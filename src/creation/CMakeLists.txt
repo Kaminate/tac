@@ -1,0 +1,185 @@
+if( ( NOT WIN32 ) AND ( NOT UNIX ) )
+  return()
+endif()
+
+set( TAC_DEBUGGING FALSE )
+set( TAC_LIBRARIES ""  )
+set( TAC_INCLUDE_DIRECTORIES "" )
+set( TAC_SOURCES "" )
+set( TAC_EXE_NAME "Creation" )
+set( TAC_SOURCES 
+  ${TAC_SOURCES}
+  "${CMAKE_SOURCE_DIR}/src/creation/tacCreation.cpp"
+  "${CMAKE_SOURCE_DIR}/src/creation/tacCreation.h"
+  "${CMAKE_SOURCE_DIR}/src/shell/tacDesktopApp.cpp"
+  "${CMAKE_SOURCE_DIR}/src/shell/tacDesktopApp.h" )
+if( WIN32 )
+  set( TAC_SOURCES 
+    ${TAC_SOURCES}
+    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacDXGI.cpp"
+    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacDXGI.h"
+    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWindows.cpp"
+    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWindows.h"
+
+    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacRendererDirectX12.cpp"
+    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacRendererDirectX12.h"
+    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacRendererDirectX11.cpp"
+    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacRendererDirectX11.h" )
+endif()
+
+# note: variables names are case-sensitive
+
+find_package( OpenGL )
+if( OPENGL_FOUND )
+  set( TAC_SOURCES
+    ${TAC_SOURCES}
+    ${OPENGL_INCLUDE_DIR}
+    "${CMAKE_SOURCE_DIR}/src/shell/opengl/gl3w.cpp"
+    "${CMAKE_SOURCE_DIR}/src/shell/opengl/tacRendererOpenGL4.cpp"
+    "${CMAKE_SOURCE_DIR}/src/shell/opengl/tacRendererOpenGL4.h"
+    "${CMAKE_SOURCE_DIR}/include/GL/gl3w.h"
+    "${CMAKE_SOURCE_DIR}/include/GL/glcorearb.h"
+    "${CMAKE_SOURCE_DIR}/include/KHR/khrplatform.h" )
+  if( WIN32 )
+    set( TAC_SOURCES
+      ${TAC_SOURCES}
+      "${CMAKE_SOURCE_DIR}/src/shell/windows/tacRendererOpenGL4Win32.cpp" )
+    endif()
+  set( TAC_LIBRARIES ${TAC_LIBRARIES} OpenGL::GL  )
+endif()
+
+find_package( Vulkan )
+if( Vulkan_FOUND )
+  set( TAC_SOURCES
+    ${TAC_SOURCES}
+    ${Vulkan_INCLUDE_DIRS}
+    "${CMAKE_SOURCE_DIR}/src/shell/vulkan/tacRendererVulkan.cpp"
+    "${CMAKE_SOURCE_DIR}/src/shell/vulkan/tacRendererVulkan.h" )
+  if( WIN32 )
+    set( TAC_SOURCES
+      ${TAC_SOURCES}
+      "${CMAKE_SOURCE_DIR}/src/shell/windows/tacRendererVulkanWin32.cpp" )
+  endif()
+  set( TAC_LIBRARIES ${TAC_LIBRARIES} Vulkan::Vulkan  )
+endif()
+
+set( TAC_INCLUDE_DIRECTORIES "" )
+set( TAC_INCLUDE_DIRECTORIES
+    ${TAC_INCLUDE_DIRECTORIES}
+    "${CMAKE_SOURCE_DIR}/include"
+    "${CMAKE_SOURCE_DIR}/src" )
+
+set( TAC_SOURCES_BASE ${TAC_SOURCES} )
+set( TAC_LIBRARIES_BASE ${TAC_LIBRARIES} )
+set( TAC_INCLUDE_DIRECTORIES_BASE ${TAC_INCLUDE_DIRECTORIES} )
+
+# cached variables are bullshit ( can't get cleared in a parent scope from inside a function? )
+# properties suck
+# ...guess we just goota use PARENT_SCOPE
+function( tac_target TAC_TARGET_SUFFIX )
+  # okay so like functions open up a new scope
+  # this means we can't set variables normally
+  # thus, everything is global
+  set( TAC_TARGET_NAME "${TAC_EXE_NAME}${TAC_TARGET_SUFFIX}" PARENT_SCOPE )
+  set( TAC_INCLUDE_DIRECTORIES ${TAC_INCLUDE_DIRECTORIES_BASE} PARENT_SCOPE )
+  set( TAC_SOURCES  ${TAC_SOURCES_BASE} PARENT_SCOPE )
+  set( TAC_LIBRARIES ${TAC_LIBRARIES_BASE} PARENT_SCOPE )
+endfunction()
+
+find_package( SDL2 )
+if( SDL2_FOUND )
+  tac_target( "SDL" )
+  find_package( SDL2 REQUIRED )
+  set( TAC_INCLUDE_DIRECTORIES ${TAC_INCLUDE_DIRECTORIES} ${SDL2_INCLUDE_DIR} )
+  include_directories( ${TAC_INCLUDE_DIRECTORIES} )
+  set( TAC_SOURCES 
+    ${TAC_SOURCES}
+    "${CMAKE_SOURCE_DIR}/src/shell/sdl/tacSDLApp.cpp"
+    "${CMAKE_SOURCE_DIR}/src/shell/sdl/tacSDLApp.h"
+    "${CMAKE_SOURCE_DIR}/src/shell/sdl/tacSDLMain.cpp" )
+
+  
+  # the win32 here changes the
+  # configuration properties --> linker --> system --> subsystem
+  # from console to windows, which makes the console window go away
+  #
+  # If this is a unix build, will the WIN32 here fuck everything up?
+  message( "adding exe ${TAC_TARGET_NAME}" )
+  add_executable( ${TAC_TARGET_NAME} WIN32 ${TAC_SOURCES} )
+  set( TAC_LIBRARIES ${TAC_LIBRARIES} ${SDL2_LIBRARY} )
+  target_link_libraries( ${TAC_TARGET_NAME} ${TAC_LIBRARIES} )
+  set_target_properties( ${TAC_TARGET_NAME} PROPERTIES OUTPUT_NAME "${TAC_EXE_NAME}" )
+  target_sources( ${TAC_TARGET_NAME} PRIVATE ${TacCommon} )
+  set_target_properties( ${TAC_TARGET_NAME} PROPERTIES
+    VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    VS_STARTUP_PROJECT ${TAC_TARGET_NAME}
+    LINKER_LANGUAGE CXX )
+
+  # When we run the exe, it needs sdl2.dll to function ( not to compile )
+  # As a post-build step, copy sdl2.dll to the exe output directory.
+  # SDL2_LIBRARY contains comma-separated filepaths to sdl2main.lib and sdl2.lib
+  # ( comma separated items denote a list in cmake )
+
+  if( ${TAC_DEBUGGING} )
+    message( "hi")
+    message( "sdl2 liubrary: ${SDL2_LIBRARY}")
+    message( "hi")
+  endif()
+
+  list( GET SDL2_LIBRARY 0 SDL_FIRST_LIBRARY)
+  get_filename_component( SDL_DLL_FOLDER ${SDL_FIRST_LIBRARY} DIRECTORY )
+  set( SDL2_DLL_FULL_NAME "${SDL_DLL_FOLDER}/SDL2.dll" )
+
+  if( ${TAC_DEBUGGING} )
+    message( "hi")
+    message( "sdl2 liubrary: ${SDL_FIRST_LIBRARY}")
+    message( "sdl2 folder: ${SDL_DLL_FOLDER}")
+    message( "sdl2 dll full path: ${SDL2_DLL_FULL_NAME}")
+    message( "hi")
+  endif()
+
+
+
+  # CMAKE_COMMAND is the full path to the cmake executable
+  # -E invokes command line tool mode
+  # https://cmake.org/cmake/help/latest/manual/cmake.1.html
+  #
+  # In visual studio, this takes the form as a Post-Build Event
+  ADD_CUSTOM_COMMAND(TARGET ${TAC_TARGET_NAME}
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+      ${SDL2_DLL_FULL_NAME}
+      $<TARGET_FILE_DIR:${TAC_TARGET_NAME}>)
+else()
+endif()
+
+
+if( WIN32 )
+  tac_target( "Win32" )
+  set( TAC_SOURCES 
+    ${TAC_SOURCES}
+    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWindowsMouseEdge.cpp"
+    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWindowsMouseEdge.h"
+    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWindowsApp2.cpp"
+    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWindowsApp2.h"
+    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWindowsMain2.cpp" )
+  include_directories( ${TAC_INCLUDE_DIRECTORIES} )
+
+  # the win32 here changes the
+  # configuration properties --> linker --> system --> subsystem
+  # from console to windows, which makes the console window go away
+  add_executable( ${TAC_TARGET_NAME} WIN32 ${TAC_SOURCES} )
+  target_link_libraries( ${TAC_TARGET_NAME} ${TAC_LIBRARIES} )
+  target_sources( ${TAC_TARGET_NAME} PRIVATE ${TacCommon} )
+  set_target_properties( ${TAC_TARGET_NAME} PROPERTIES
+    VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    VS_STARTUP_PROJECT ${TAC_TARGET_NAME}
+    OUTPUT_NAME "${TAC_EXE_NAME}"
+    RUNTIME_OUTPUT_DIRECTORY "${RUNTIME_OUTPUT_DIRECTORY}/${TAC_TARGET_NAME}"
+    LINKER_LANGUAGE CXX )
+endif()
+
+
+
+
+

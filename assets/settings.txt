@@ -1,0 +1,21 @@
+
+{
+  "hostname": "localhost",
+  "port": 8081,
+  "server type": "TacScriptGameClient",
+  "fonts":
+  {
+    "English":
+    {
+      "NormalText": "english_srcpro.ttf",
+    },
+    "Chinese":
+    {
+      "NormalText": "chinese_lngaan.ttf",
+    },
+    "Japanese":
+    {
+      "NormalText": "japanese_irohamaru.ttf"
+    }
+  }
+}

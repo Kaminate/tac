@@ -1,0 +1,36 @@
+#include "tacMemory.h"
+
+#include <fstream>
+
+TacVector< char > TacTemporaryMemory( const TacString& path, TacErrors& errors )
+{
+  std::ifstream ifs( path.c_str(), std::ifstream::binary );
+  if( !ifs.is_open() )
+  {
+    errors = "Error: Failed to open file " + path + " while allocating temporary memory";
+    return {};
+  }
+  ifs.seekg( 0, std::ifstream::end );
+  auto byteCount = ifs.tellg();
+  ifs.seekg( 0, std::ifstream::beg );
+  TacVector< char > result( ( int )byteCount );
+  ifs.read( result.data(), byteCount );
+  return result;
+}
+TacVector< char > TacTemporaryMemory( void* bytes, int byteCount )
+{
+  TacVector< char > result( byteCount );
+  TacMemCpy( result.data(), bytes, byteCount );
+  return result;
+}
+
+void TacWriteToFile( const TacString& path, void* bytes, int byteCount, TacErrors& errors )
+{
+  std::ofstream ofs( path.c_str(), std::ofstream::binary );
+  if( !ofs.is_open() )
+  {
+    errors = "Failed to open file " + path + " for saving";
+    return;
+  }
+  ofs.write( ( const char* )bytes, ( std::streamsize   ) byteCount );
+}

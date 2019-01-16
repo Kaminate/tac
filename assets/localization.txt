@@ -1,0 +1,69 @@
+
+HELLO_WORLD
+English Hello, World!
+Chinese 你好，世界!
+Spanish Hola, Mundo!
+
+DREAMT_BY
+English Dreamt by
+Chinese 由梦想
+Spanish Soñada Por
+
+SLEEPING_STUDIO
+English Sleeping Studio
+Chinese 睡眠工作室
+Spanish Estudio de Dormir
+
+GAME_OVER
+Arabic      انتهت اللعبة
+Chinese     游戏结束
+English     Game Over
+Japanese    ゲームオーバー
+Korean      게임 오버
+Russian     Конец игры
+Spanish     Fim do jogo
+
+BACK
+Arabic ظهر
+Chinese 后退
+English Back
+Japanese 前へ
+Korean 뒤로
+Russian Назад
+Spanish Atrás
+
+JOKER_CONVERSATION_0
+English     Hail there traveler
+
+JOKER_CONVERSATION_1
+English     Yes?
+
+JOKER_CONVERSATION_2
+English     Here's some friendly advice from one wanderer to another
+
+JOKER_CONVERSATION_3
+English     There are dangerous folk in the roads ahead. Best be on your guard.
+
+JOKER_CONVERSATION_4
+English     Haha yeah you wouldn't have lasted long anyways
+
+JOKER_CONVERSATION_5
+English     Oh hey, forget what you just saw, ok?
+
+JOKER_CONVERSATION_6
+English     Let's just keep this between us.
+
+JOKER_CONVERSATION_7
+English     I'll even share some of the loot as an incentive to seal your lips. I highly suggest you take me up on my offer.
+
+JOKER_CONVERSATION_8
+English     You can take this cloak. It's got a bloody hole in it ( wonder how that got there ), but it'll still give you +5 magic power.
+
+JOKER_CONVERSATION_9
+English     It suits you well.
+
+JOKER_CONVERSATION_10
+English     Oh come on, I'm sure the blood will wash out
+
+JOKER_CONVERSATION_11
+English     Let me just slip the ring off. Hmm, there's a spell infused in the ringstone. Take it, as a symbol of our friendship.
