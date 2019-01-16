@@ -363,13 +363,16 @@ void TacCreation::Init( TacErrors& errors )
     shell->mUI2DCommonData = ui2DCommonData;
   }
 
+  TacString mainWindowName = "MainWindow";
   TacSettings* settings = shell->mSettings;
 
   TacVector< TacString > settingsPaths = { "Windows" };
-  TacJson* windows = shell->mSettings->GetArray( nullptr, { "Windows" }, nullptr, errors );
+  auto windowsDefault = new TacJson();
+  windowsDefault->mType = TacJsonType::Array;
+  windowsDefault->mElements.push_back( new TacJson() );
+  TacJson* windows = shell->mSettings->GetArray( nullptr, { "Windows" }, windowsDefault, errors );
   TAC_HANDLE_ERROR( errors );
 
-  TacString mainWindowName = "MainWindow";
 
   std::sort(
     windows->mElements.begin(),
@@ -389,7 +392,7 @@ void TacCreation::Init( TacErrors& errors )
 
   for( TacJson* windowJson : windows->mElements )
   {
-    bool shouldCreate = shell->mSettings->GetBool( windowJson, { "Create" }, false, errors );
+    bool shouldCreate = shell->mSettings->GetBool( windowJson, { "Create" }, true, errors );
     TAC_HANDLE_ERROR( errors );
 
     if( !shouldCreate )
@@ -397,7 +400,7 @@ void TacCreation::Init( TacErrors& errors )
 
 
     TacWindowParams windowParams = {};
-    windowParams.mName = shell->mSettings->GetString( windowJson, { "Name" }, "Unnamed Window", errors );
+    windowParams.mName = shell->mSettings->GetString( windowJson, { "Name" }, mainWindowName, errors );
     windowParams.mParentWindow = mainWindow;
 
     TacMonitor monitor;
@@ -473,53 +476,6 @@ void TacCreation::Init( TacErrors& errors )
     editorWindow->mUIRoot = uiRoot;
     mEditorWindows.insert( editorWindow );
   }
-
-  // Assign parents
-  if( false )
-  {
-    TacDesktopWindow* parentWindow = nullptr;
-    for( TacDesktopWindow* window : mApp->mMainWindows )
-    {
-      if( window->mName == "MainWindow" )
-      {
-        parentWindow = window;
-      }
-    }
-    for( TacDesktopWindow* window : mApp->mMainWindows )
-    {
-      if( window != parentWindow )
-      {
-        window->SetParent( parentWindow );
-      }
-    }
-  }
-
-
-  //auto mainWindow = new TacCreationMainWindow();
-  //mainWindow->mCreation = this;
-  //mainWindow->Init( errors );
-  //TAC_HANDLE_ERROR( errors );
-  //mMainWindow = mainWindow;
-
-  //TacWindowParams propertiesWindowParams;
-  //propertiesWindowParams.mName = "SecondWindow";
-  //propertiesWindowParams.mParentWindow = mMainWindow->mDesktopWindow;
-  //mSecondWindow = new TacEditorWindow();
-  //mSecondWindow->mCreation = this;
-  //mSecondWindow->mWindowParams = &propertiesWindowParams;
-  //mSecondWindow->Init( errors );
-  //TAC_HANDLE_ERROR( errors );
-
-  //TacWindowParams gamePlayerWindowParams;
-  //gamePlayerWindowParams.mName = "VirtualGamePlayer";
-  //gamePlayerWindowParams.mParentWindow = mMainWindow->mDesktopWindow;
-  //mGamePlayerWindow = new TacEditorWindow();
-  //mGamePlayerWindow->mCreation = this;
-  //mGamePlayerWindow->mWindowParams = &gamePlayerWindowParams;
-  //mGamePlayerWindow->Init( errors );
-  //TAC_HANDLE_ERROR( errors );
-
-
 }
 void TacCreation::Update( TacErrors& errors )
 {
