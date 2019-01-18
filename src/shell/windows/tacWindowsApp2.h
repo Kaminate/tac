@@ -22,7 +22,6 @@ struct TacWin32DesktopWindow : public TacDesktopWindow
 {
   LRESULT HandleWindowProc( UINT uMsg, WPARAM wParam, LPARAM lParam );
   void Poll( TacErrors& errors );
-  void SetParent( TacDesktopWindow* newParent ) override;
 
   TacWindowsApplication2* app = nullptr;
   HWND mHWND = NULL;
@@ -37,6 +36,9 @@ struct TacWindowsApplication2 : public TacDesktopApp
   ~TacWindowsApplication2();
   void Init( TacErrors& errors ) override;
   void Poll( TacErrors& errors ) override;
+
+  // Note: The first window spawned will be the parent window,
+  //       combining them all into one tab group
   void SpawnWindow( const TacWindowParams& , TacDesktopWindow** , TacErrors& ) override;
   void GetPrimaryMonitor( TacMonitor* monitor, TacErrors& errors ) override;
   TacOwned< TacWin32MouseEdgeCommonData > mMouseEdgeCommonData;
@@ -52,6 +54,7 @@ struct TacWindowsApplication2 : public TacDesktopApp
 
   bool mShouldWindowHaveBorder;
   TacVector< TacWin32DesktopWindow* > mWindows;
+  HWND mParentHWND = NULL;
   TacWin32MouseEdgeHandler* mMouseEdgeHandler = nullptr;
 };
 

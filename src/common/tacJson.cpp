@@ -1,4 +1,5 @@
 #include "tacJson.h"
+#include "tacAlgorithm.h"
 
 TacJson::TacJson()
 {
@@ -43,75 +44,49 @@ TacString TacJson::Stringify( TacStringifyData* stringifyData ) const
 {
   int iChild = 0;
   TacString result;
-  auto AddResult = [ & ]( const TacString& s )
-  {
-    result += s;
-  };
-  auto AddSeparator = [ & ]( int childCount )
-  {
-    if( iChild++ != childCount - 1 )
-      AddResult( "," );
-    AddResult( "\n" );
-  };
-  auto AddIndentation = [ & ]()
-  {
-    for( int iTab = 0; iTab < stringifyData->tabCount; ++iTab )
-    {
-      if( stringifyData->convertTabsToSpaces )
-      {
-        for( int iSpace = 0; iSpace < stringifyData->spacesPerTab; ++iSpace )
-        {
-          AddResult( " " );
-        }
-      }
-      else
-        AddResult( "\t" );
-    }
-  };
+  auto GetSeparator = [ & ]( int childCount ) { return iChild++ != childCount - 1 ? "," : ""; };
   switch( mType )
   {
   case TacJsonType::String: result = DoubleQuote( mString ); break;
   case TacJsonType::Number:
+  {
     if( ( ( TacJsonNumber )( ( int )mNumber ) ) == mNumber )
       result = TacToString( ( int )mNumber );
     else
       result = TacToString( mNumber );
-    break;
+  } break;
   case TacJsonType::Null: result = "null"; break;
   case TacJsonType::Bool: result = mBoolean ? "true" : "false"; break;
   case TacJsonType::Object:
   {
-    AddResult( "\n" );
-    AddIndentation();
-    AddResult( "{\n" );
+    result += stringifyData->ToString() + "{\n";
     stringifyData->tabCount++;
     for( auto pair : mChildren )
     {
       TacString childKey = pair.first;
       TacJson* childValue = pair.second;
-      AddIndentation();
-      result += DoubleQuote( childKey ) + ": " + childValue->Stringify( stringifyData );
-      AddSeparator( ( int )mChildren.size() );
+
+      result += stringifyData->ToString() + DoubleQuote( childKey ) + ":";
+      result += TacContains( { TacJsonType::Array, TacJsonType::Object }, childValue->mType ) ? "\n" : " ";
+      result += childValue->Stringify( stringifyData );
+      result += GetSeparator( ( int )mChildren.size() );
+      result += "\n";
     }
     stringifyData->tabCount--;
-    AddIndentation();
-    AddResult( "}" );
+    result += stringifyData->ToString() + "}";
   } break;
   case TacJsonType::Array:
   {
-    AddResult( "\n" );
-    AddIndentation();
-    AddResult( "[\n" );
+    result += stringifyData->ToString() + "[\n";
     stringifyData->tabCount++;
     for( TacJson* element : mElements )
     {
-      AddIndentation();
-      result += element->Stringify( stringifyData );
-      AddSeparator( ( int )mElements.size() );
+      result += element->Stringify( stringifyData ) +
+        GetSeparator( ( int )mElements.size() ) +
+        "\n";
     }
     stringifyData->tabCount--;
-    AddIndentation();
-    AddResult( "]" );
+    result += stringifyData->ToString() + "]";
   } break;
   }
   return result;
@@ -420,3 +395,17 @@ void TacJson::operator = ( const TacJson& json )
 }
 
 
+TacString TacJson::TacStringifyData::ToString()
+{
+  TacString spacer;
+  if( convertTabsToSpaces )
+    for( int iSpace = 0; iSpace < spacesPerTab; ++iSpace )
+      spacer += " ";
+  else
+    spacer = "\t";
+
+  TacString result;
+  for( int iTab = 0; iTab < tabCount; ++iTab )
+    result += spacer;
+  return result;
+}

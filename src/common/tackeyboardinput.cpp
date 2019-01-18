@@ -24,38 +24,16 @@ TacString ToString( TacKey key )
   case TacKey::E: return "e";
   case TacKey::F: return "f";
   case TacKey::F5: return "f5";
-      TacInvalidDefaultCase( key );
+    TacInvalidDefaultCase( key );
   }
   return "";
 }
 
-
-bool TacKeyboardInput::IsKeyDown( TacKey key )
+bool TacKeyboardInputFrame::IsKeyDown( TacKey key )
 {
   return mCurrDown.find( key ) != mCurrDown.end();
 }
-bool TacKeyboardInput::IsKeyUp( TacKey key )
-{
-  return !IsKeyDown( key );
-}
-bool TacKeyboardInput::WasKeyDown( TacKey key )
-{
-  return mPrevDown.find( key ) != mPrevDown.end();
-}
-bool TacKeyboardInput::WasKeyUp( TacKey key )
-{
-  return !WasKeyDown( key );
-}
-bool TacKeyboardInput::IsKeyJustDown( TacKey key )
-{
-  return IsKeyDown( key ) && !WasKeyDown( key );
-}
-bool TacKeyboardInput::IsKeyJustUp( TacKey key )
-{
-  return IsKeyUp( key ) && !WasKeyUp( key );
-}
-
-TacString TacKeyboardInput::GetKeysDownText()
+TacString TacKeyboardInputFrame::GetPressedKeyDescriptions()
 {
   TacVector< TacString > keyNames;
   for( auto key : mCurrDown )
@@ -63,13 +41,47 @@ TacString TacKeyboardInput::GetKeysDownText()
     auto keyName = ToString( key );
     keyNames.push_back( keyName );
   }
-  TacString keysDownText = "Keys Down: " + (!keyNames.empty() ? TacSeparateStrings( keyNames, ", " ) : "none" );
+  TacString keysDownText = "Keys Down: " + ( !keyNames.empty() ? TacSeparateStrings( keyNames, ", " ) : "none" );
   return keysDownText;
+}
+
+bool TacKeyboardInput::IsKeyJustDown( TacKey key )
+{
+  return !mPrev.IsKeyDown( key ) && IsKeyDown( key );
+}
+bool TacKeyboardInput::HasKeyJustBeenReleased( TacKey key )
+{
+  return mPrev.IsKeyDown( key ) && !IsKeyDown( key );
+}
+bool TacKeyboardInput::IsKeyDown( TacKey key )
+{
+  return mCurr.IsKeyDown( key );
 }
 void TacKeyboardInput::DebugImgui()
 {
-  TacString keysDownText = GetKeysDownText();
-  ImGui::Text( keysDownText.c_str() );
+  ImGui::Text( mCurr.GetPressedKeyDescriptions() );
 }
-
+void TacKeyboardInput::SetIsKeyDown( TacKey key, bool isDown )
+{
+  if( isDown )
+  {
+    mCurr.mCurrDown.insert( key );
+  }
+  else
+  {
+    mCurr.mCurrDown.erase( key );
+  }
+}
+void TacKeyboardInput::BeforePoll()
+{
+  mPrev = mCurr;
+}
+void TacKeyboardInput::DebugPrintWhenKeysChange()
+{
+  TacString currkeysDown = mCurr.GetPressedKeyDescriptions();
+  TacString lastkeysDown = mPrev.GetPressedKeyDescriptions();
+  if( currkeysDown == lastkeysDown )
+    return;
+  std::cout << currkeysDown << std::endl;
+}
 

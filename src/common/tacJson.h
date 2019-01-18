@@ -37,6 +37,7 @@ struct TacJson
     int spacesPerTab = 2;
     int tabCount = 0;
     bool convertTabsToSpaces = true;
+    TacString ToString();
   };
   TacJson();
 

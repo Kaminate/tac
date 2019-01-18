@@ -53,7 +53,14 @@ HCURSOR TacWin32MouseEdgeCommonData::GetCursor( TacCursorDir cursorDir )
   }
 }
 
-void TacWin32MouseEdgeHandler::Update( TacVector< TacWin32DesktopWindow*>& windows )
+BOOL enumfunc( HWND hwndchild, LPARAM userdata )
+{
+  std::cout << "child " << hwndchild << std::endl;
+
+  return TRUE; // to continue enumerating
+}
+
+void TacWin32MouseEdgeHandler::Update( HWND parentHwnd ) //TacVector< TacWin32DesktopWindow*>& windows )
 {
   if( mHandler )
   {
@@ -73,19 +80,21 @@ void TacWin32MouseEdgeHandler::Update( TacVector< TacWin32DesktopWindow*>& windo
   //  windowHandle = GetWindow( windowHandle, GW_HWNDNEXT );
   //}
 
-  for( HWND windowHandle = GetTopWindow( NULL );
+  //HWND parentWindowWhooseChildrenAreToBeExamined = ;
+
+
+  //EnumChildWindows( parentHwnd, enumfunc, ( LPARAM )nullptr );
+
+  for( HWND windowHandle = GetTopWindow( parentHwnd );
+  //for( HWND windowHandle = parentHwnd ; //GetTopWindow( NULL );
     windowHandle;
     windowHandle = GetWindow( windowHandle, GW_HWNDNEXT ) )
   {
     int edgeDistResizePx = mMouseEdgeCommonData->edgeDistResizePx;
     int edgeDistMovePx = mMouseEdgeCommonData->edgeDistMovePx;
 
-    char text[ 100 ];
-    GetWindowTextA(
-      windowHandle,
-      text,
-      100
-    );
+    char text[ 100 ]; // debuggin
+    GetWindowTextA( windowHandle, text, 100 );
 
     POINT cursorPos;
     GetCursorPos( &cursorPos );
@@ -159,8 +168,6 @@ void TacWin32MouseEdgeHandler::ResizeHandler::Update()
   int w = rect.right - rect.left;
   int h = rect.bottom - rect.top;
   MoveWindow( mHwnd, x, y, w, h, TRUE );
-
-
 }
 
 void TacWin32MouseEdgeHandler::MoveHandler::Update()

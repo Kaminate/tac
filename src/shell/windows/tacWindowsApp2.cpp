@@ -142,10 +142,7 @@ LRESULT TacWin32DesktopWindow::HandleWindowProc( UINT uMsg, WPARAM wParam, LPARA
     TacKey key = TacGetKey( ( uint8_t )wParam );
     if( key == TacKey::Count )
       break;
-    if( isDown )
-      mKeyboardInput->mCurrDown.insert( key );
-    else
-      mKeyboardInput->mCurrDown.erase( key );
+    mKeyboardInput->SetIsKeyDown( key, isDown );
   } break;
   // Sent to a window after it has gained the keyboard focus.
   case WM_SETFOCUS:
@@ -176,12 +173,19 @@ LRESULT TacWin32DesktopWindow::HandleWindowProc( UINT uMsg, WPARAM wParam, LPARA
       // The window is being deactivated
     }
   } break;
-  case WM_LBUTTONDOWN: { mKeyboardInput->mCurrDown.insert( TacKey::MouseLeft ); } break;
-  case WM_LBUTTONUP: { mKeyboardInput->mCurrDown.erase( TacKey::MouseLeft ); } break;
-  case WM_RBUTTONDOWN: { mKeyboardInput->mCurrDown.insert( TacKey::MouseRight ); } break;
-  case WM_RBUTTONUP: { mKeyboardInput->mCurrDown.erase( TacKey::MouseRight ); } break;
-  case WM_MBUTTONDOWN: { mKeyboardInput->mCurrDown.insert( TacKey::MouseMiddle ); } break;
-  case WM_MBUTTONUP: { mKeyboardInput->mCurrDown.erase( TacKey::MouseMiddle ); } break;
+  case WM_LBUTTONDOWN: { mKeyboardInput->SetIsKeyDown( TacKey::MouseLeft, true ); 
+    //SetActiveWindow( mHWND );
+    //SetForegroundWindow( mHWND );
+  
+  } break;
+  case WM_LBUTTONUP: {  mKeyboardInput->SetIsKeyDown( TacKey::MouseLeft, false );  } break;
+
+  case WM_RBUTTONDOWN: { mKeyboardInput->SetIsKeyDown( TacKey::MouseRight, true ); } break;
+  case WM_RBUTTONUP: {  mKeyboardInput->SetIsKeyDown( TacKey::MouseRight, false );  } break;
+
+  case WM_MBUTTONDOWN: { mKeyboardInput->SetIsKeyDown( TacKey::MouseMiddle, true ); } break;
+  case WM_MBUTTONUP: {  mKeyboardInput->SetIsKeyDown( TacKey::MouseMiddle , false );  } break;
+
   case WM_MOUSEMOVE:
   {
     if( !mIsMouseInWindow )
@@ -230,11 +234,6 @@ void TacWin32DesktopWindow::Poll( TacErrors& errors )
     errors = mWindowProcErrors;
     TAC_HANDLE_ERROR( errors );
   }
-}
-void TacWin32DesktopWindow::SetParent( TacDesktopWindow* newParent )
-{
-  auto parent = ( TacWin32DesktopWindow* )newParent;
-  ::SetParent( mHWND, parent->mHWND );
 }
 
 TacWindowsApplication2::TacWindowsApplication2()
@@ -294,7 +293,7 @@ void TacWindowsApplication2::Init( TacErrors& errors )
 void TacWindowsApplication2::Poll( TacErrors& errors )
 {
   TacKeyboardInput* keyboardInput = mShell->mKeyboardInput;
-  keyboardInput->mPrevDown = keyboardInput->mCurrDown;
+  keyboardInput->BeforePoll();
   for( TacWin32DesktopWindow* window : mWindows )
   {
     window->Poll( errors );
@@ -303,23 +302,16 @@ void TacWindowsApplication2::Poll( TacErrors& errors )
 
   if( mMouseEdgeHandler )
   {
-    mMouseEdgeHandler->Update( mWindows );
+    //mMouseEdgeHandler->Update( mWindows );
+    mMouseEdgeHandler->Update( mParentHWND );
+
     // if the mouse just left the window, reset the cursor lock
     //if( mMouseEdgeHandler && !mMouseEdgeHandler->IsHandling() )
     //  mMouseEdgeHandler->ResetCursorLock();
   }
 
-  const bool debugPrintWhichKeysAreDown = false;
-  if( debugPrintWhichKeysAreDown )
-  {
-    static TacString lastkeysDown = keyboardInput->GetKeysDownText();
-    TacString currkeysDown = keyboardInput->GetKeysDownText();
-    if( currkeysDown != lastkeysDown )
-    {
-      std::cout << currkeysDown << std::endl;
-      lastkeysDown = currkeysDown;
-    }
-  }
+  if( false )
+    keyboardInput->DebugPrintWhenKeysChange();
 }
 void TacWindowsApplication2::GetPrimaryMonitor( TacMonitor* monitor, TacErrors& errors )
 {
@@ -349,22 +341,16 @@ void TacWindowsApplication2::SpawnWindow( const TacWindowParams& windowParams, T
   int windowAdjustedWidth = windowRect.right - windowRect.left;
   int windowAdjustedHeight = windowRect.bottom - windowRect.top;
 
-  HWND hwndParent = nullptr;
-  if( auto parent = ( TacWin32DesktopWindow* )windowParams.mParentWindow )
-  {
-    hwndParent = parent->mHWND;
-  }
-
   HINSTANCE hInstance = mHInstance;
   HWND hwnd = CreateWindow(
     classname,
-    windowParams.mTitle.c_str(),
+    windowParams.mName.c_str(),
     windowStyle,
     windowParams.mX,
     windowParams.mY,
     windowAdjustedWidth,
     windowAdjustedHeight,
-    hwndParent,
+    mParentHWND,
     NULL,
     hInstance,
     NULL );
@@ -406,5 +392,12 @@ void TacWindowsApplication2::SpawnWindow( const TacWindowParams& windowParams, T
   *( TacWindowParams* )createdWindow = windowParams;
   *desktopWindow = createdWindow;
   mWindows.push_back( createdWindow );
+
+  HWND whatsmyparent = GetParent( hwnd );
+  std::cout << windowParams.mName + "'s parent: " << whatsmyparent << std::endl;
+
+  // Used to combine all the windows into one tab group.
+  if( !mParentHWND )
+    mParentHWND = hwnd;
 }
 

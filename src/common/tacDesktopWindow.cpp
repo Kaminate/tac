@@ -17,7 +17,6 @@ TacDesktopWindow::~TacDesktopWindow()
 
 TacWindowParams::TacWindowParams()
 {
-  mTitle = "Tac";
   mWidth = 800;
   mHeight = 600;
   mX = 50;

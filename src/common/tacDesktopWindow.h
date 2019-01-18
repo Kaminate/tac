@@ -22,7 +22,6 @@ struct TacMonitor
 struct TacWindowParams
 {
   TacWindowParams();
-  TacString mTitle;
   TacString mName;
   int mWidth = 0;
   int mHeight = 0;
@@ -30,9 +29,6 @@ struct TacWindowParams
   int mY = 0;
 
   static void GetCenteredPosition( int w, int h, int* x, int* y, TacMonitor );
-
-  // Used so that all the windows are combined in the parent's alt-tab group.
-  TacDesktopWindow* mParentWindow = nullptr;
 };
 
 
@@ -43,7 +39,6 @@ struct TacDesktopWindow : public TacWindowParams
 
   TacEvent<>::Emitter mOnDestroyed;
 
-  virtual void SetParent( TacDesktopWindow* newParent ) {}
   // Used to create a vulkan surface...
   void* mOperatingSystemApplicationHandle = nullptr;
   void* mOperatingSystemHandle = nullptr;

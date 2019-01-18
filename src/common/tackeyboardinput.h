@@ -25,19 +25,24 @@ enum class TacKey
 TacString ToString( TacKey key );
 
 
+struct TacKeyboardInputFrame
+{
+  bool IsKeyDown( TacKey key );
+  TacString GetPressedKeyDescriptions();
+
+  std::set< TacKey > mCurrDown;
+};
 
 struct TacKeyboardInput
 {
-  bool IsKeyDown( TacKey key );
-  bool IsKeyUp( TacKey key );
-  bool WasKeyDown( TacKey key );
-  bool WasKeyUp( TacKey key );
+  bool HasKeyJustBeenReleased( TacKey key );
   bool IsKeyJustDown( TacKey key );
-  bool IsKeyJustUp( TacKey key );
-
+  bool IsKeyDown( TacKey key );
   void DebugImgui();
-  TacString GetKeysDownText();
+  void DebugPrintWhenKeysChange();
+  void SetIsKeyDown( TacKey key, bool isDown );
+  void BeforePoll();
 
-  std::set< TacKey > mPrevDown;
-  std::set< TacKey > mCurrDown;
+  TacKeyboardInputFrame mCurr;
+  TacKeyboardInputFrame mPrev;
 };

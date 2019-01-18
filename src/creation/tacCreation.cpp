@@ -363,7 +363,6 @@ void TacCreation::Init( TacErrors& errors )
     shell->mUI2DCommonData = ui2DCommonData;
   }
 
-  TacString mainWindowName = "MainWindow";
   TacSettings* settings = shell->mSettings;
 
   TacVector< TacString > settingsPaths = { "Windows" };
@@ -372,21 +371,6 @@ void TacCreation::Init( TacErrors& errors )
   windowsDefault->mElements.push_back( new TacJson() );
   TacJson* windows = shell->mSettings->GetArray( nullptr, { "Windows" }, windowsDefault, errors );
   TAC_HANDLE_ERROR( errors );
-
-
-  std::sort(
-    windows->mElements.begin(),
-    windows->mElements.end(),
-    [&]( TacJson* left, TacJson* right )
-  {
-    TacString leftName = shell->mSettings->GetString( left, { "Name" }, "Unnamed Window", errors );
-    TacString rightName = shell->mSettings->GetString( right, { "Name" }, "Unnamed Window", errors );
-    if( leftName == mainWindowName )
-      return true;
-    if( rightName == mainWindowName )
-      return false;
-    return leftName < rightName;
-  } );
 
   TacDesktopWindow* mainWindow = nullptr;
 
@@ -400,8 +384,7 @@ void TacCreation::Init( TacErrors& errors )
 
 
     TacWindowParams windowParams = {};
-    windowParams.mName = shell->mSettings->GetString( windowJson, { "Name" }, mainWindowName, errors );
-    windowParams.mParentWindow = mainWindow;
+    windowParams.mName = shell->mSettings->GetString( windowJson, { "Name" }, "unnamed window", errors );
 
     TacMonitor monitor;
     mApp->GetPrimaryMonitor( &monitor, errors );
@@ -492,31 +475,6 @@ void TacCreation::Update( TacErrors& errors )
     TAC_HANDLE_ERROR( errors );
   }
 
-  //if( mMainWindow )
-  //{
-  //  mMainWindow->Update( errors );
-  //  TAC_HANDLE_ERROR( errors );
-  //}
-
-  //if( mSecondWindow )
-  //{
-  //  mSecondWindow->Update( errors );
-  //  TAC_HANDLE_ERROR( errors );
-  //}
-
-  ////UpdatePropertiesWindow( errors );
-  ////TAC_HANDLE_ERROR( errors );
-
-  //if( mGamePlayerWindow )
-  //{
-  //  mGamePlayerWindow->Update( errors );
-  //  TAC_HANDLE_ERROR( errors );
-  //}
-
-  ////UpdateGamePlayer( errors );
-  ////TAC_HANDLE_ERROR( errors );
-
-
   if( !mAreTexturesLoaded )
   {
 
@@ -549,58 +507,6 @@ void TacCreation::Update( TacErrors& errors )
     }
   }
 }
-//void TacCreation::UpdatePropertiesWindow( TacErrors&errors )
-//{
-//  TacDesktopWindow* desktopWindow = mSecondWindow->mDesktopWindow;
-//  if( !desktopWindow )
-//    return;
-//  TacTexture* currentBackbufferTexture = nullptr;
-//  desktopWindow->mRendererData->GetCurrentBackbufferTexture( &currentBackbufferTexture );
-//  TacAssert( currentBackbufferTexture );
-//
-//  TacUI2DDrawData* uI2DDrawData = mSecondWindow->mUI2DDrawData;
-//  TacUI2DState* state = uI2DDrawData->PushState();
-//
-//  state->Draw2DBox( 50, 50, v4( 1, 1, 1, 1 ), nullptr );
-//
-//  uI2DDrawData->PopState();
-//  uI2DDrawData->DrawToTexture( errors );
-//  TAC_HANDLE_ERROR( errors );
-//}
-//void TacCreation::UpdateGamePlayer( TacErrors& errors )
-//{
-//  TacDesktopWindow* desktopWindow = mGamePlayerWindow->mDesktopWindow;
-//  if( !desktopWindow )
-//    return;
-//  TacTexture* currentBackbufferTexture = nullptr;
-//  desktopWindow->mRendererData->GetCurrentBackbufferTexture( &currentBackbufferTexture );
-//  TacAssert( currentBackbufferTexture );
-//
-//  TacUI2DDrawData* uI2DDrawData = mGamePlayerWindow->mUI2DDrawData;
-//  TacUI2DState* state = uI2DDrawData->PushState();
-//
-//  TacFontAtlasCell* fontAtlasCell;
-//  mShell->mFontStuff->GetCharacter(
-//    TacLanguage::English,
-//    ( TacCodepoint )'H',
-//    &fontAtlasCell,
-//    errors );
-//  TAC_HANDLE_ERROR( errors );
-//  fontAtlasCell->mMaxGLTexCoord;
-//  fontAtlasCell->mMinGLTexCoord;
-//
-//  state->Draw2DBox(
-//    ( float )currentBackbufferTexture->myImage.mWidth,
-//    ( float )currentBackbufferTexture->myImage.mHeight,
-//    v4( 1, 1, 1, 1 ),
-//    nullptr );
-//
-//  uI2DDrawData->PopState();
-//  uI2DDrawData->DrawToTexture( errors );
-//  TAC_HANDLE_ERROR( errors );
-//}
-
-
 
 void TacDesktopApp::DoStuff( TacDesktopApp* desktopApp, TacErrors& errors )
 {
