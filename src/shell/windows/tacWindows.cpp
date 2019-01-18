@@ -41,6 +41,35 @@ TacString TacGetLastWin32ErrorString()
   return TacWin32ErrorToString( winErrorValue );
 }
 
+TacString TacGetWin32WindowClass( HWND hwnd )
+{
+  const int byteCountIncNull = 100;
+  char buffer[ byteCountIncNull ];
+  GetClassNameA( hwnd, buffer, byteCountIncNull );
+  TacString result = buffer;
+  if( result == "#32768" ) return result + "(a menu)";
+  if( result == "#32769" ) return result + "(the desktop window)";
+  if( result == "#32770" ) return result + "(a dialog box)";
+  if( result == "#32771" ) return result + "(the task switch window)";
+  if( result == "#32772" ) return result + "(an icon titles)";
+  return buffer;
+}
+
+TacString TacGetWin32WindowNameAux( HWND hwnd )
+{
+  const int byteCountIncNull = 100;
+  char buffer[ byteCountIncNull ];
+  GetWindowTextA( hwnd, buffer, byteCountIncNull );
+  return buffer;
+}
+
+TacString TacGetWin32WindowName( HWND hwnd )
+{
+  TacString className = TacGetWin32WindowClass( hwnd );
+  TacString windowName = TacGetWin32WindowNameAux( hwnd );
+  return className + " " + windowName;
+}
+
 void TacWindowsAssert( TacErrors& errors )
 {
   TacString s = errors.ToString();
@@ -65,6 +94,7 @@ void TacWindowsPopup( TacString s )
 {
   MessageBox( NULL, s.c_str(), "Message", MB_OK );
 }
+
 void TacWindowsOutput( TacString s )
 {
   OutputDebugString( s.c_str() );
@@ -147,7 +177,7 @@ struct TacWin32OS : public TacOS
       errors = "Cannot save to file " + path + " because " + TacGetLastWin32ErrorString();
       TAC_HANDLE_ERROR( errors );
     }
-    OnDestruct(CloseHandle( handle ));
+    OnDestruct( CloseHandle( handle ) );
     DWORD bytesWrittenCount;
     if( !WriteFile( handle, bytes, byteCount, &bytesWrittenCount, NULL ) )
     {
@@ -178,9 +208,9 @@ struct TacWin32OS : public TacOS
   }
   TacString GetDefaultRendererName() override
   {
-      return RendererNameDirectX11;
+    return RendererNameDirectX11;
   }
-  void GetFileLastModifiedTime( time_t* time,const TacString& path, TacErrors& errors ) override
+  void GetFileLastModifiedTime( time_t* time, const TacString& path, TacErrors& errors ) override
   {
     HANDLE handle = CreateFile(
       path.c_str(),
@@ -235,19 +265,19 @@ struct TacWin32OS : public TacOS
     const TacString& dir,
     TacErrors& errors )
   {
-      TacString dataFilename = data.cFileName;
-      if( dataFilename == "." || dataFilename == ".." )
-        return;
-      TacString dataFilepath = dir + "/" + dataFilename;
-      if( data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY )
-      {
-        GetDirFilesRecrusive( files, dataFilepath, errors );
-        TAC_HANDLE_ERROR( errors );
-      }
-      else
-      {
-        files.push_back( dataFilepath );
-      }
+    TacString dataFilename = data.cFileName;
+    if( dataFilename == "." || dataFilename == ".." )
+      return;
+    TacString dataFilepath = dir + "/" + dataFilename;
+    if( data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY )
+    {
+      GetDirFilesRecrusive( files, dataFilepath, errors );
+      TAC_HANDLE_ERROR( errors );
+    }
+    else
+    {
+      files.push_back( dataFilepath );
+    }
   }
   void GetDirFilesRecrusive( TacVector<TacString>&files, const TacString& dir, TacErrors& errors ) override
   {
@@ -264,11 +294,11 @@ struct TacWin32OS : public TacOS
       }
     }
     OnDestruct( FindClose( fileHandle ) );
-    GetDirFilesRecrusiveAux(data, files, dir, errors );
+    GetDirFilesRecrusiveAux( data, files, dir, errors );
     TAC_HANDLE_ERROR( errors );
     while( FindNextFile( fileHandle, &data ) )
     {
-      GetDirFilesRecrusiveAux(data, files, dir, errors );
+      GetDirFilesRecrusiveAux( data, files, dir, errors );
       TAC_HANDLE_ERROR( errors );
     }
     DWORD error = GetLastError();
@@ -283,6 +313,6 @@ struct TacWin32OS : public TacOS
 
 int setOSInstance = []()
 {
-    TacOS::Instance = new TacWin32OS;
-    return 0;
-}();
+  TacOS::Instance = new TacWin32OS;
+  return 0;
+}( );

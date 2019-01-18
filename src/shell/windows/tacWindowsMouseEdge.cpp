@@ -1,5 +1,7 @@
 #include "common/tackeyboardinput.h"
+#include "common/tacAlgorithm.h"
 #include "shell/windows/tacWindowsMouseEdge.h"
+#include "shell/windows/tacWindowsApp2.h"
 
 // enum classes amiright
 static void operator |= ( TacCursorDir& lhs, TacCursorDir rhs )
@@ -19,24 +21,16 @@ TacString ToString( TacCursorDir cursorType )
   return result;
 }
 
-TacWin32MouseEdgeCommonData::TacWin32MouseEdgeCommonData()
+TacWin32Cursors::TacWin32Cursors()
 {
-  edgeDistResizePx = 7;
-  edgeDistMovePx = edgeDistResizePx + 20;
-
-  // the distance that your mouse can be from the edge to resize the window is a thin border
-  // but the top bar that you can move is a fat border.
-  // The resize border sits on top of the move border, so if it were the bigger border it would
-  // completely obscure the move border and youd never be able to move your window.
-  TacAssert( edgeDistMovePx > edgeDistResizePx );
-
   cursorArrow = LoadCursor( NULL, IDC_ARROW );
   cursorArrowNS = LoadCursor( NULL, IDC_SIZENS );
   cursorArrowWE = LoadCursor( NULL, IDC_SIZEWE );
   cursorArrowNE_SW = LoadCursor( NULL, IDC_SIZENESW );
   cursorArrowNW_SE = LoadCursor( NULL, IDC_SIZENWSE );
 }
-HCURSOR TacWin32MouseEdgeCommonData::GetCursor( TacCursorDir cursorDir )
+
+HCURSOR TacWin32Cursors::GetCursor( TacCursorDir cursorDir )
 {
   // switch by the integral type cuz of the bit-twiddling
   switch( ( TacCursorDirType )cursorDir )
@@ -60,7 +54,18 @@ BOOL enumfunc( HWND hwndchild, LPARAM userdata )
   return TRUE; // to continue enumerating
 }
 
-void TacWin32MouseEdgeHandler::Update( HWND parentHwnd ) //TacVector< TacWin32DesktopWindow*>& windows )
+TacWin32MouseEdgeHandler::TacWin32MouseEdgeHandler()
+{
+  edgeDistResizePx = 7;
+  edgeDistMovePx = edgeDistResizePx + 20;
+
+  // the distance that your mouse can be from the edge to resize the window is a thin border
+  // but the top bar that you can move is a fat border.
+  // The resize border sits on top of the move border, so if it were the bigger border it would
+  // completely obscure the move border and youd never be able to move your window.
+  TacAssert( edgeDistMovePx > edgeDistResizePx );
+}
+void TacWin32MouseEdgeHandler::Update( TacVector< TacWin32DesktopWindow*>& windows )
 {
   if( mHandler )
   {
@@ -72,29 +77,37 @@ void TacWin32MouseEdgeHandler::Update( HWND parentHwnd ) //TacVector< TacWin32De
     return;
   }
 
-  //TacVector< HWND > orderedWindows;
-  //HWND windowHandle = GetTopWindow( NULL );
-  //while( windowHandle )
-  //{
-  //  orderedWindows.push_back( windowHandle );
-  //  windowHandle = GetWindow( windowHandle, GW_HWNDNEXT );
-  //}
 
-  //HWND parentWindowWhooseChildrenAreToBeExamined = ;
+  // Brute-forcing the lookup through all the windows, because...
+  // - GetTopWindow( parentHwnd ) is returning NULL.
+  // - EnumChildWindows( parentHwnd, ... ) also shows that the parent has no children.
+  // - Calling GetParent( childHwnd ) returns NULL
+  // - Calling GetAncestor( childHwnd, GA_PARENT ) returns
+  //   the actual desktop hwnd ( window class #32769 )
 
+  std::set< HWND > ourHwndsNotZSorted;
+  for( TacWin32DesktopWindow* window : windows )
+    ourHwndsNotZSorted.insert( window->mHWND );
 
-  //EnumChildWindows( parentHwnd, enumfunc, ( LPARAM )nullptr );
+  TacVector< HWND > ourHwndsZSortedTopToBottom;
 
-  for( HWND windowHandle = GetTopWindow( parentHwnd );
-  //for( HWND windowHandle = parentHwnd ; //GetTopWindow( NULL );
-    windowHandle;
-    windowHandle = GetWindow( windowHandle, GW_HWNDNEXT ) )
+  HWND topZSortedHwnd = GetTopWindow( NULL );
+  int totalWindowCount = 0;
+  for( HWND curZSortedHwnd = topZSortedHwnd;
+    curZSortedHwnd != NULL;
+    curZSortedHwnd = GetWindow( curZSortedHwnd, GW_HWNDNEXT ) )
   {
-    int edgeDistResizePx = mMouseEdgeCommonData->edgeDistResizePx;
-    int edgeDistMovePx = mMouseEdgeCommonData->edgeDistMovePx;
+    totalWindowCount++;
+    if( !TacContains( ourHwndsNotZSorted, curZSortedHwnd ) )
+      continue;
+    ourHwndsNotZSorted.erase( curZSortedHwnd );
+    ourHwndsZSortedTopToBottom.push_back( curZSortedHwnd );
+  }
 
-    char text[ 100 ]; // debuggin
-    GetWindowTextA( windowHandle, text, 100 );
+  for( HWND windowHandle : ourHwndsZSortedTopToBottom )
+  {
+    TacString windowName = TacGetWin32WindowName( windowHandle );
+
 
     POINT cursorPos;
     GetCursorPos( &cursorPos );
@@ -115,7 +128,7 @@ void TacWin32MouseEdgeHandler::Update( HWND parentHwnd ) //TacVector< TacWin32De
     if( cursorPos.y < windowRect.top + edgeDistResizePx ) cursorLock |= TacCursorDir::S;
     if( mCursorLock != cursorLock )
     {
-      HCURSOR cursor = mMouseEdgeCommonData->GetCursor( cursorLock );
+      HCURSOR cursor = mCursors->GetCursor( cursorLock );
       SetCursor( cursor );
       SetCursorLock( cursorLock );
     }
@@ -151,7 +164,6 @@ void TacWin32MouseEdgeHandler::SetCursorLock( TacCursorDir cursorDir )
   }
   mCursorLock = cursorDir;
 }
-
 void TacWin32MouseEdgeHandler::ResizeHandler::Update()
 {
   POINT cursorPos;
@@ -169,7 +181,6 @@ void TacWin32MouseEdgeHandler::ResizeHandler::Update()
   int h = rect.bottom - rect.top;
   MoveWindow( mHwnd, x, y, w, h, TRUE );
 }
-
 void TacWin32MouseEdgeHandler::MoveHandler::Update()
 {
   POINT cursorPos;

@@ -27,6 +27,7 @@ struct TacErrors;
 
 TacString TacWin32ErrorToString( DWORD winErrorValue );
 TacString TacGetLastWin32ErrorString();
+TacString TacGetWin32WindowName( HWND hwnd );
 
 void TacWindowsAssert( const TacErrors& errors );
 void TacWindowsDebugBreak();

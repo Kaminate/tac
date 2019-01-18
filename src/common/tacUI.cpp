@@ -825,17 +825,15 @@ void TacUIE::Render( TacErrors& errors )
 {
   TacUI2DDrawData* ui2DDrawData = mUIRoot->mUI2DDrawData;
   TacUI2DState* state = ui2DDrawData->PushState();
-
-  float w = ( float )mUIRoot->mDesktopWindow->mWidth;
-  float h = ( float )mUIRoot->mDesktopWindow->mHeight;
+  TacDesktopWindow* desktopWindow = mUIRoot->mDesktopWindow;
   TacTexture* texture = nullptr;
 
   float padding = 5;
   v2 windowSpacePosition = { padding, padding };
   state->Translate( windowSpacePosition );
   state->Draw2DBox(
-    w - ( padding * 2 ),
-    h - ( padding * 2 ),
+    desktopWindow->mWidth - ( padding * 2 ),
+    desktopWindow->mHeight - ( padding * 2 ),
     mColor,
     texture );
 

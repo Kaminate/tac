@@ -41,8 +41,7 @@ struct TacWindowsApplication2 : public TacDesktopApp
   //       combining them all into one tab group
   void SpawnWindow( const TacWindowParams& , TacDesktopWindow** , TacErrors& ) override;
   void GetPrimaryMonitor( TacMonitor* monitor, TacErrors& errors ) override;
-  TacOwned< TacWin32MouseEdgeCommonData > mMouseEdgeCommonData;
-
+  void OnShellInit( TacErrors& errors ) override;
 
   // WinMain arguments
   HINSTANCE mHInstance = nullptr;
@@ -50,11 +49,10 @@ struct TacWindowsApplication2 : public TacDesktopApp
   LPSTR mlpCmdLine = nullptr;
   int mNCmdShow = 0;
 
-  //std::map< uint8_t, TacKey > mKeyMap;
-
   bool mShouldWindowHaveBorder;
   TacVector< TacWin32DesktopWindow* > mWindows;
   HWND mParentHWND = NULL;
   TacWin32MouseEdgeHandler* mMouseEdgeHandler = nullptr;
+  TacWin32Cursors* mCursors = new TacWin32Cursors();
 };
 

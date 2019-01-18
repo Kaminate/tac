@@ -1,4 +1,5 @@
 #include "shell/windows/tacWindowsApp2.h"
+#include "common/tacSettings.h"
 #include "common/imgui.h"
 #include "common/tacPreprocessor.h"
 #include "common/tacString.h"
@@ -12,6 +13,7 @@
 
 
 const char* classname = "tac";
+
 
 
 
@@ -238,7 +240,6 @@ void TacWin32DesktopWindow::Poll( TacErrors& errors )
 
 TacWindowsApplication2::TacWindowsApplication2()
 {
-  mShouldWindowHaveBorder = false;
 }
 TacWindowsApplication2::~TacWindowsApplication2()
 {
@@ -249,14 +250,15 @@ void TacWindowsApplication2::Init( TacErrors& errors )
   RerouteStdOutToOutputDebugString();
   gWindowsApplications.insert( this );
 
-
-
+}
+void TacWindowsApplication2::OnShellInit( TacErrors& errors )
+{
+  // window borders should be a higher-level concept, right?
+  mShouldWindowHaveBorder = mShell->mSettings->GetBool( nullptr, { "areWindowsBordered" }, false, errors );
   if( !mShouldWindowHaveBorder )
   {
-    // Combine TacWin32MouseEdgeCommonData and TacWin32MouseEdgeHandler?
-    mMouseEdgeCommonData = new TacWin32MouseEdgeCommonData();
     mMouseEdgeHandler = new TacWin32MouseEdgeHandler();
-    mMouseEdgeHandler->mMouseEdgeCommonData = mMouseEdgeCommonData;
+    mMouseEdgeHandler->mCursors = mCursors;
     mMouseEdgeHandler->mKeyboardInput = mShell->mKeyboardInput;
   }
 
@@ -265,7 +267,7 @@ void TacWindowsApplication2::Init( TacErrors& errors )
   // before reverting back to the old cursor.
   HCURSOR hCursor = NULL;
   if( mShouldWindowHaveBorder )
-    hCursor = LoadCursor( nullptr, IDC_ARROW );
+    hCursor = mCursors->cursorArrow;
 
   UINT fuLoad
     = LR_LOADFROMFILE // load a file ( not a resource )
@@ -289,6 +291,11 @@ void TacWindowsApplication2::Init( TacErrors& errors )
     errors.mMessage = errorMessage;
     TAC_HANDLE_ERROR( errors );
   }
+
+  // Set the initial cursor, or else the cursor will remain as what it was before
+  // the application was launched
+  if( hCursor == NULL )
+    SetCursor( mCursors->cursorArrow );
 }
 void TacWindowsApplication2::Poll( TacErrors& errors )
 {
@@ -302,8 +309,7 @@ void TacWindowsApplication2::Poll( TacErrors& errors )
 
   if( mMouseEdgeHandler )
   {
-    //mMouseEdgeHandler->Update( mWindows );
-    mMouseEdgeHandler->Update( mParentHWND );
+    mMouseEdgeHandler->Update( mWindows);
 
     // if the mouse just left the window, reset the cursor lock
     //if( mMouseEdgeHandler && !mMouseEdgeHandler->IsHandling() )
@@ -329,6 +335,9 @@ void TacWindowsApplication2::GetPrimaryMonitor( TacMonitor* monitor, TacErrors& 
 void TacWindowsApplication2::SpawnWindow( const TacWindowParams& windowParams, TacDesktopWindow** desktopWindow, TacErrors& errors )
 {
   DWORD windowStyle = mShouldWindowHaveBorder ? WS_OVERLAPPEDWINDOW : WS_POPUP;
+  //windowStyle = WS_OVERLAPPEDWINDOW;
+  //if( mParentHWND )
+  //  windowStyle = WS_CHILD | WS_BORDER;
   RECT windowRect = {};
   windowRect.right = windowParams.mWidth;
   windowRect.bottom = windowParams.mHeight;
@@ -393,11 +402,8 @@ void TacWindowsApplication2::SpawnWindow( const TacWindowParams& windowParams, T
   *desktopWindow = createdWindow;
   mWindows.push_back( createdWindow );
 
-  HWND whatsmyparent = GetParent( hwnd );
-  std::cout << windowParams.mName + "'s parent: " << whatsmyparent << std::endl;
-
   // Used to combine all the windows into one tab group.
-  if( !mParentHWND )
+  if( mParentHWND == NULL )
     mParentHWND = hwnd;
 }
 

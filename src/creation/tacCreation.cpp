@@ -46,6 +46,7 @@ struct SaveWindowPosition : public TacEvent<>::Handler
 
 static v4 GetClearColor( TacShell* shell )
 {
+  return v4( 1, 0, 0, 1 );
   float visualStudioBackground = 45 / 255.0f;
   visualStudioBackground += 0.3f;
   return v4( v3( 1, 1, 1 ) * visualStudioBackground, 1.0f );
@@ -528,11 +529,14 @@ void TacDesktopApp::DoStuff( TacDesktopApp* desktopApp, TacErrors& errors )
   TAC_HANDLE_ERROR( errors );
 
 
-  TacShell* shell = desktopApp->mShell ;
+  TacShell* shell = desktopApp->mShell;
   shell->mAppName = appName;
   shell->mPrefPath = prefPath;
   shell->SetScopedGlobals();
   shell->Init( errors );
+  TAC_HANDLE_ERROR( errors );
+
+  desktopApp->OnShellInit( errors);
   TAC_HANDLE_ERROR( errors );
 
 

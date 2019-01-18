@@ -27,38 +27,40 @@ enum TacCursorDir : TacCursorDirType
 
 TacString ToString( TacCursorDir cursorType );
 
-struct TacWin32MouseEdgeCommonData
+struct TacWin32Cursors
 {
-  TacWin32MouseEdgeCommonData();
-  HCURSOR GetCursor( TacCursorDir cursorDir );
+  TacWin32Cursors();
   HCURSOR cursorArrow;
   HCURSOR cursorArrowNS;
   HCURSOR cursorArrowWE;
   HCURSOR cursorArrowNE_SW;
   HCURSOR cursorArrowNW_SE;
-  int edgeDistResizePx;
-  int edgeDistMovePx;
-  std::map< TacCursorDir, HCURSOR > mCursors;
+  HCURSOR GetCursor( TacCursorDir cursorDir = ( TacCursorDir )0 );
 };
+
 
 
 struct TacWin32MouseEdgeHandler
 {
+  TacWin32MouseEdgeHandler();
   TacKeyboardInput* mKeyboardInput = nullptr;
-  TacWin32MouseEdgeCommonData* mMouseEdgeCommonData = nullptr;
 
-  //void Update( TacVector< TacWin32DesktopWindow*>& windows );
-  void Update( HWND parentHwnd );
+  void Update( TacVector< TacWin32DesktopWindow*>& windows );
   void ResetCursorLock();
+
+  TacWin32Cursors* mCursors = nullptr;
 
 private:
 
+  // care to describe what this function does?
   void SetCursorLock( TacCursorDir cursorDir );
 
   // Used to set the cursor icon
   TacCursorDir mCursorLock = {};
   POINT mCursorPositionOnClick = {};
   RECT mWindowRectOnClick = {};
+  int edgeDistResizePx;
+  int edgeDistMovePx;
 
   struct Handler
   {

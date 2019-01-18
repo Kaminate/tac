@@ -95,7 +95,7 @@ void TacSDLApp::SpawnWindow( const TacWindowParams& windowParams, TacDesktopWind
     //SDL_WINDOW_BORDERLESS |
     0;
   SDL_Window* sdlWindow = SDL_CreateWindow(
-    windowParams.mTitle.c_str(),
+    windowParams.mName.c_str(),
     windowParams.mX,
     windowParams.mY,
     windowParams.mWidth,
