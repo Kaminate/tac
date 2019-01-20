@@ -253,32 +253,11 @@ struct TacUILayout : public TacUILayoutable
   bool mExpandWidth = false;
 };
 
-
-//struct TacUIStackFrame
-//{
-//  TacUIStackFrame();
-//  ~TacUIStackFrame();
-//
-//  // it's a list instead of a set so i can debug in order of creation
-//  std::list< TacUILayout* > mUIMenus;
-//};
-
 // The layout min and max is relative to the parent's anchored position
 struct TacUILayoutData
 {
   v2 mUIMin = {};
   v2 mUIMax = {};
-};
-
-struct TacUIE
-{
-  TacUIE();
-  void Render( TacErrors& errors );
-
-  //TacVector< TacUIE* > mSlices;
-  
-  v4 mColor;
-  TacUIRoot* mUIRoot = nullptr;
 };
 
 struct TacUIRoot
@@ -307,9 +286,5 @@ struct TacUIRoot
   v2 mUiCursor = {};
 
   bool mShouldDebugDrawButtonAreas = false;
-  //float mUIWidth;
-  //float mUIHeight;
-
-  TacUIE* mUIE = nullptr;
 };
 

@@ -9,7 +9,6 @@
 #include "common/tacOS.h"
 #include "common/tacTime.h"
 #include "common/tacJobQueue.h"
-#include "common/tacAssetManager.h"
 #include "common/tacTextureAssetManager.h"
 #include "common/imgui.h"
 #include "common/tacSettings.h"

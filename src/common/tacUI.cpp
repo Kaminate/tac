@@ -707,8 +707,6 @@ v2 TacUILayout::GetWindowspacePosition()
 TacUIRoot::TacUIRoot()
 {
   transitionDurationSeconds = 0.3f;
-  mUIE = new TacUIE();
-  mUIE->mUIRoot = this;
 }
 TacUIRoot::~TacUIRoot()
 {
@@ -764,12 +762,6 @@ void TacUIRoot::Render( TacErrors& errors )
     TAC_HANDLE_ERROR( errors );
   }
   //mUI2DDrawData->PopState();
-
-  if( mUIE )
-  {
-    mUIE->Render( errors );
-    TAC_HANDLE_ERROR( errors );
-  }
 }
 void TacUIRoot::Update()
 {
@@ -810,32 +802,3 @@ void TacUIRoot::Update()
   }
 }
 
-
-TacUIE::TacUIE()
-{
-  //mColor.x = 1;
-  //mColor.y = 0;
-  //mColor.z = 0;
-  mColor.x = TacRandomFloat0To1();
-  mColor.y = TacRandomFloat0To1();
-  mColor.z = TacRandomFloat0To1();
-  mColor.w = 1;
-}
-void TacUIE::Render( TacErrors& errors )
-{
-  TacUI2DDrawData* ui2DDrawData = mUIRoot->mUI2DDrawData;
-  TacUI2DState* state = ui2DDrawData->PushState();
-  TacDesktopWindow* desktopWindow = mUIRoot->mDesktopWindow;
-  TacTexture* texture = nullptr;
-
-  float padding = 5;
-  v2 windowSpacePosition = { padding, padding };
-  state->Translate( windowSpacePosition );
-  state->Draw2DBox(
-    desktopWindow->mWidth - ( padding * 2 ),
-    desktopWindow->mHeight - ( padding * 2 ),
-    mColor,
-    texture );
-
-  ui2DDrawData->PopState();
-}

@@ -1,3 +1,8 @@
+
+# TODO:
+#   since we're compiling this into a static library now,
+#   we no longer need the TacCommon global variable
+
 set(TacCommon 
 ${CMAKE_CURRENT_SOURCE_DIR}/imconfig.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/imconfig.h
@@ -7,11 +12,7 @@ ${CMAKE_CURRENT_SOURCE_DIR}/imgui.h
 ${CMAKE_CURRENT_SOURCE_DIR}/imgui_demo.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/imgui_draw.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/imgui_internal.h
-${CMAKE_CURRENT_SOURCE_DIR}/tacAssetManager.cpp
-${CMAKE_CURRENT_SOURCE_DIR}/tacAssetManager.h
-${CMAKE_CURRENT_SOURCE_DIR}/tacAlgorithm.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/tacAlgorithm.h
-${CMAKE_CURRENT_SOURCE_DIR}/containers/tacArray.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/containers/tacArray.h
 ${CMAKE_CURRENT_SOURCE_DIR}/tacDesktopWindow.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/tacDesktopWindow.h
@@ -86,4 +87,7 @@ ${CMAKE_CURRENT_SOURCE_DIR}/stb_textedit.h
 ${CMAKE_CURRENT_SOURCE_DIR}/stb_truetype.h
 CACHE INTERNAL ""
 )
+
+# Create a library named TacCommonLibrary
+add_library( "TacCommonLibrary" ${TacCommon} )
 

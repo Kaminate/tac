@@ -7,7 +7,8 @@ void TacSettings::Load( TacErrors& errors )
 {
   if( !TacFileExist( mPath ) )
   {
-    errors = "File doesn't exist at path: " + mPath;
+    Save( errors );
+    TAC_HANDLE_ERROR( errors );
     return;
   }
   auto temporaryMemory = TacTemporaryMemory( mPath, errors );

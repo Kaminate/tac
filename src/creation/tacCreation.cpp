@@ -20,7 +20,7 @@ struct SaveWindowSize : public TacEvent<>::Handler
   void HandleEvent() override
   {
     mWindowJson->operator[]( "w" ) = mDesktopWindow->mWidth;
-    mWindowJson->operator[]( "y" ) = mDesktopWindow->mHeight;
+    mWindowJson->operator[]( "h" ) = mDesktopWindow->mHeight;
     TacErrors errors;
     mSettings->Save( errors );
   }
@@ -46,7 +46,6 @@ struct SaveWindowPosition : public TacEvent<>::Handler
 
 static v4 GetClearColor( TacShell* shell )
 {
-  return v4( 1, 0, 0, 1 );
   float visualStudioBackground = 45 / 255.0f;
   visualStudioBackground += 0.3f;
   return v4( v3( 1, 1, 1 ) * visualStudioBackground, 1.0f );
@@ -555,8 +554,6 @@ void TacDesktopApp::DoStuff( TacDesktopApp* desktopApp, TacErrors& errors )
 
   auto creationUpdater = new TacCreationUpdater;
   creationUpdater->f = [ & ]() { creation->Update( errors ); };
-  creation->mCreationUpdater = creationUpdater;
-
 
   shell->mOnUpdate.AddCallback( creationUpdater );
 

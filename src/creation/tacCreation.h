@@ -83,7 +83,6 @@ struct TacCreation
   //TacEditorWindow* mSecondWindow = nullptr;
   //TacEditorWindow* mGamePlayerWindow = nullptr;
   TacShell* mShell = nullptr;
-  TacOwned< TacEvent<>::Handler > mCreationUpdater;
 
   TacTextureAssetManager* mTextureAssetManager = nullptr;
 

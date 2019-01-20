@@ -7,5 +7,6 @@ add_subdirectory(common)
 add_subdirectory(space)
 add_subdirectory(shell)
 add_subdirectory(creation)
+add_subdirectory(game)
 
 # add_dependencies(Shell Ghost)
