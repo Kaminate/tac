@@ -156,12 +156,19 @@ struct TacWin32OS : public TacOS
     CreateFolderIfNotExist( splitFilepath.mDirectory, errors );
     TAC_HANDLE_ERROR( errors );
 
-    // Note: An application cannot create a directory by using CreateFile, therefore only the OPEN_EXISTING value is valid for dwCreationDisposition for this use case. To create a directory, the application must call CreateDirectory
+    // Note ( from MSDN ):
+    //   An application cannot create a directory by using CreateFile,
+    //   To create a directory, the application must call CreateDirectory
     LPCSTR lpFileName = path.c_str();
     DWORD dwDesiredAccess = GENERIC_WRITE;
     DWORD dwShareMode = FILE_SHARE_READ | FILE_SHARE_WRITE;
     LPSECURITY_ATTRIBUTES lpSecurityAttributes = NULL;
-    DWORD dwCreationDisposition = OPEN_ALWAYS;
+
+    // Note( n8 ) 2019-1-22:
+    //   Changing from OPEN_ALWAYS to CREATE_ALWAYS,
+    //   since OPEN_ALWAYS doesn't actually clear the file
+    DWORD dwCreationDisposition = CREATE_ALWAYS;
+
     DWORD dwFlagsAndAttributes = FILE_ATTRIBUTE_NORMAL;
     HANDLE hTemplateFile = NULL;
     HANDLE handle = CreateFileA(
