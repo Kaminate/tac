@@ -200,6 +200,15 @@ enum class TacUILayoutType
   Horizontal
 };
 
+//enum class TacUIEdge
+//{
+//  Left,
+//  Right,
+//  Top,
+//  Bottom,
+//  Count
+//};
+
 struct TacUILayout : public TacUILayoutable
 {
   TacUILayout( const TacString& debugName );
@@ -251,6 +260,9 @@ struct TacUILayout : public TacUILayoutable
 
   // If true, expands the width of this element to fill its encompassing space
   bool mExpandWidth = false;
+
+  //TacUILayout* mLeftEdge = nullptr;
+
 };
 
 // The layout min and max is relative to the parent's anchored position
@@ -260,7 +272,35 @@ struct TacUILayoutData
   v2 mUIMax = {};
 };
 
-struct TacUIRoot
+
+enum class TacUISplit
+{
+  Before,
+  After,
+};
+
+struct TacUIHierarchyNode
+{
+  TacUIHierarchyNode();
+  TacUIHierarchyNode* Split( TacUISplit uiSplit, float pixelWidth );
+  void RenderHierarchy( TacErrors& errors );
+
+  v4 mColor;
+  TacVector< TacUIHierarchyNode* > mChildren;
+  TacUIHierarchyNode* mParent = nullptr;
+  TacUIRoot* mUIRoot = nullptr;
+
+
+  bool mExpandWidth = false;
+  float mPixelWidth = 0;
+  float mPixelX = 0;
+
+  // Should this be put into a child node?
+  TacTexture* mTexture = nullptr;
+  TacUITextData mUITextData;
+};
+
+struct TacUIRoot//  : public TacUIHierarchyNode
 {
   TacUIRoot();
   ~TacUIRoot();
@@ -286,5 +326,17 @@ struct TacUIRoot
   v2 mUiCursor = {};
 
   bool mShouldDebugDrawButtonAreas = false;
+
+
+  ////////////////////////
+  // BEGIN EXPERIMENTAL //
+  ////////////////////////
+
+  TacUIHierarchyNode* mHierarchyRoot = nullptr;
+
+  
+  //////////////////////
+  // END EXPERIMENTAL //
+  //////////////////////
 };
 

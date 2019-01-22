@@ -32,19 +32,14 @@ struct TacSampler
 
 struct TacCBufferDX11 : public TacCBuffer
 {
-  ~TacCBufferDX11() { TAC_RELEASE_IUNKNOWN( mDXObj ); }
+  ~TacCBufferDX11();
   ID3D11Buffer* mDXObj = nullptr;
   void SendUniforms( void* bytes ) override;
 };
 
 struct TacTextureDX11 : public TacTexture
 {
-  ~TacTextureDX11()
-  {
-    TAC_RELEASE_IUNKNOWN( mDXObj );
-    TAC_RELEASE_IUNKNOWN( mSrv );
-    TAC_RELEASE_IUNKNOWN( mRTV );
-  }
+  ~TacTextureDX11();
   ID3D11Resource* mDXObj = nullptr;
   ID3D11ShaderResourceView* mSrv = nullptr;
   ID3D11RenderTargetView* mRTV = nullptr;
@@ -53,22 +48,14 @@ struct TacTextureDX11 : public TacTexture
 
 struct TacDepthBufferDX11 : public TacDepthBuffer
 {
-  ~TacDepthBufferDX11()
-  {
-    TAC_RELEASE_IUNKNOWN( mDXObj );
-    TAC_RELEASE_IUNKNOWN( mDSV );
-  }
+  ~TacDepthBufferDX11();
   ID3D11Resource* mDXObj = nullptr;
   ID3D11DepthStencilView* mDSV = nullptr;
 };
 
 struct TacShaderDX11 : public TacShader
 {
-  ~TacShaderDX11()
-  {
-    TAC_RELEASE_IUNKNOWN( mVertexShader );
-    TAC_RELEASE_IUNKNOWN( mPixelShader );
-  }
+  ~TacShaderDX11();
   ID3D11VertexShader* mVertexShader = nullptr;
   ID3D11PixelShader* mPixelShader = nullptr;
   ID3DBlob* mInputSig = nullptr;
@@ -82,14 +69,14 @@ struct TacShaderDX11 : public TacShader
 
 struct TacVertexBufferDX11 : public TacVertexBuffer
 {
-  ~TacVertexBufferDX11() { TAC_RELEASE_IUNKNOWN( mDXObj ); }
+  ~TacVertexBufferDX11();
   ID3D11Buffer* mDXObj = nullptr;
   void Overwrite( void* data, int byteCount, TacErrors& errors ) override;
 };
 
 struct TacIndexBufferDX11 : public TacIndexBuffer
 {
-  ~TacIndexBufferDX11() { TAC_RELEASE_IUNKNOWN( mDXObj ); }
+  ~TacIndexBufferDX11();
   ID3D11Buffer* mDXObj = nullptr;
   DXGI_FORMAT mFormat = DXGI_FORMAT_UNKNOWN;
   void Overwrite( void* data, int byteCount, TacErrors& errors ) override;
@@ -97,31 +84,31 @@ struct TacIndexBufferDX11 : public TacIndexBuffer
 
 struct TacSamplerStateDX11 : public TacSamplerState
 {
-  ~TacSamplerStateDX11() { TAC_RELEASE_IUNKNOWN( mDXObj ); }
+  ~TacSamplerStateDX11();
   ID3D11SamplerState* mDXObj = nullptr;
 };
 
 struct TacDepthStateDX11 : public TacDepthState
 {
-  ~TacDepthStateDX11() { TAC_RELEASE_IUNKNOWN( mDXObj ); }
+  ~TacDepthStateDX11();
   ID3D11DepthStencilState* mDXObj = nullptr;
 };
 
 struct TacBlendStateDX11 : public TacBlendState
 {
-  ~TacBlendStateDX11() { TAC_RELEASE_IUNKNOWN( mDXObj ); }
+  ~TacBlendStateDX11();
   ID3D11BlendState* mDXObj = nullptr;
 };
 
 struct TacRasterizerStateDX11 : public TacRasterizerState
 {
-  ~TacRasterizerStateDX11() { TAC_RELEASE_IUNKNOWN( mDXObj ); }
+  ~TacRasterizerStateDX11();
   ID3D11RasterizerState* mDXObj = nullptr;
 };
 
 struct TacVertexFormatDX11 : public TacVertexFormat
 {
-  ~TacVertexFormatDX11() { TAC_RELEASE_IUNKNOWN( mDXObj ); }
+  ~TacVertexFormatDX11();
   ID3D11InputLayout* mDXObj = nullptr;
 };
 
@@ -293,5 +280,6 @@ struct TacRendererDirectX11 : public TacRenderer
   TacVertexFormatDX11* mCurrentlyBoundVertexFormat = nullptr;
   TacTextureDX11* mCurrentlyBoundTexture = nullptr;
   TacSamplerStateDX11* mCurrentlyBoundSamplerState = nullptr;
+
 };
 

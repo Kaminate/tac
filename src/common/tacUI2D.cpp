@@ -283,6 +283,8 @@ void TacUI2DState::Draw2DBox(
   v4 color,
   TacTexture* texture )
 {
+  if( width <= 0 || height <= 0 )
+    return;
   auto oldVertexCount = ( int )mUI2DDrawData->mDefaultVertex2Ds.size();
   auto oldIndexCount = ( int )mUI2DDrawData->mDefaultIndex2Ds.size();
   auto offsets = TacMakeArray<v2>(
@@ -363,7 +365,7 @@ void TacUI2DState::Draw2DText(
 
   // The pen pos starts at the top of the line above us,
   // so reserve some space for the first line.
-  float runningY = mPenPos2D.y - lineHeight;
+  float runningY = mPenPos2D.y + lineHeight;
   float runningX = mPenPos2D.x;
 
   float minY = runningY;

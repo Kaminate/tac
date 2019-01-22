@@ -450,6 +450,12 @@ v2 TacUILayoutable::GetWindowspacePosition()
 
 TacUILayout::TacUILayout( const TacString& debugName ) : TacUILayoutable( debugName )
 {
+  mColor = v4(
+    TacRandomFloat0To1(),
+    TacRandomFloat0To1(),
+    TacRandomFloat0To1(),
+    1
+  );
 }
 TacUILayout::~TacUILayout()
 {
@@ -496,10 +502,6 @@ void TacUILayout::DebugImgui()
       }
     }
   }
-  else
-  {
-    ImGui::Text( "no children ( todo: add child button )" );
-  }
   mAnchor.DebugImgui();
   //ImGui::DragFloat2( "Position", mPosition.data() );
   ImGui::DragFloat( "Width", &mUiWidth );
@@ -527,12 +529,15 @@ void TacUILayout::Update( TacUILayoutData* uiLayoutData )
     {
       uiLayoutable->Update( uiLayoutData );
 
-      // this line of code assumes the child is LEFT-ALIGNED
+      // TODO: this line of code assumes the child is LEFT-ALIGNED
       runningAutoWidth += uiLayoutable->mUiWidth;
     }
     if( mAutoWidth )
       mUiWidth = runningAutoWidth;
   }
+
+  if( mExpandWidth )
+    mUiWidth = mParent ? mParent->mUiWidth : mUIRoot->mDesktopWindow->mWidth;
 
   //mPositionAnchored = mPosition;
   mHeightCur = mHeightTarget;
@@ -664,7 +669,7 @@ void TacUILayout::Render( TacErrors& errors )
   TacUI2DDrawData* ui2DDrawData = mUIRoot->mUI2DDrawData;
   TacUI2DState* state = ui2DDrawData->PushState();
 
-  v4 menuColor = mColor; // TODO: use this variable
+  v4 menuColor = mColor;
   if( IsHovered() )
     menuColor.xyz() *= 1.30f;
 
@@ -673,8 +678,7 @@ void TacUILayout::Render( TacErrors& errors )
   state->Draw2DBox(
     mUiWidth,
     mUiHeight,
-    // mHeightCur, 
-    v4( 1, 1, 1, 1 ),
+    menuColor,
     mTexture );
 
   for( TacUILayoutable* uiLayoutable : mUILayoutables )
@@ -707,6 +711,9 @@ v2 TacUILayout::GetWindowspacePosition()
 TacUIRoot::TacUIRoot()
 {
   transitionDurationSeconds = 0.3f;
+  mHierarchyRoot = new TacUIHierarchyNode();
+  mHierarchyRoot->mUIRoot = this;
+  mHierarchyRoot->mExpandWidth = true;
 }
 TacUIRoot::~TacUIRoot()
 {
@@ -762,6 +769,8 @@ void TacUIRoot::Render( TacErrors& errors )
     TAC_HANDLE_ERROR( errors );
   }
   //mUI2DDrawData->PopState();
+  mHierarchyRoot-> RenderHierarchy( errors );
+  TAC_HANDLE_ERROR( errors );
 }
 void TacUIRoot::Update()
 {
@@ -799,6 +808,112 @@ void TacUIRoot::Update()
   {
     mUIMenus.erase( std::find( mUIMenus.begin(), mUIMenus.end(), uiMenu ) );
     delete uiMenu;
+  }
+
+  mHierarchyRoot->mPixelWidth = ( float )mDesktopWindow->mWidth;
+}
+
+TacUIHierarchyNode::TacUIHierarchyNode()
+{
+  mColor = {
+    TacRandomFloat0To1(),
+    TacRandomFloat0To1(),
+    TacRandomFloat0To1(),
+    1,
+  };
+}
+TacUIHierarchyNode* TacUIHierarchyNode::Split( TacUISplit uiSplit, float pixelWidth )
+{
+  TacUIHierarchyNode* parent;
+  if( mChildren.size() )
+  {
+    parent = this;
+  }
+  else
+  {
+    if( !mParent )
+    {
+      auto newParent = new TacUIHierarchyNode();
+      newParent->mChildren = { this };
+      newParent->mUIRoot = mUIRoot;
+      mUIRoot->mHierarchyRoot = newParent;
+      mParent = newParent;
+    }
+    parent = mParent;
+  }
+
+  auto newChild = new TacUIHierarchyNode();
+  newChild->mPixelWidth = pixelWidth;
+  newChild->mUIRoot = mUIRoot;
+  newChild->mParent = parent;
+  switch( uiSplit )
+  {
+  case TacUISplit::Before: {
+    int oldChildCount = parent->mChildren.size();
+    parent->mChildren.resize( oldChildCount + 1 );
+    for( int i = 0; i < oldChildCount; ++i )
+    {
+      parent->mChildren[ oldChildCount - i ] =
+        parent->mChildren[ oldChildCount - i - 1 ];
+    }
+    parent->mChildren[ 0 ] = newChild;
+  } break;
+  case TacUISplit::After: {
+    parent->mChildren.push_back( newChild );
+  } break;
+    TacInvalidDefaultCase( uiSplit );
+  }
+  return newChild;
+}
+void TacUIHierarchyNode::RenderHierarchy( TacErrors& errors )
+{
+  if( mExpandWidth )
+  {
+    if( mParent )
+    {
+      float pixelWidth = mParent->mPixelWidth;
+      for( TacUIHierarchyNode* child : mParent->mChildren )
+      {
+        if( !child->mExpandWidth )
+        {
+          pixelWidth -= child->mPixelWidth;
+        }
+      }
+      mPixelWidth = pixelWidth;
+    }
+    else
+    {
+      mPixelWidth = ( float )mUIRoot->mDesktopWindow->mWidth;
+    }
+  }
+  TacUI2DState* state = mUIRoot->mUI2DDrawData->PushState();
+  float padding = 0;
+  state->Translate( mPixelX + padding, padding );
+  state->Draw2DBox(
+    mPixelWidth - ( padding * 2 ),
+    ( float )mUIRoot->mDesktopWindow->mHeight - ( padding * 2 ),
+    mColor,
+    mTexture );
+  if( !mUITextData.mUtf8.empty() )
+  {
+    float why_the_fuck_do_i_care_about_this;
+    state->Draw2DText(
+      mUIRoot->mDefaultLanguage,
+      mUITextData.mFontSize,
+      mUITextData.mUtf8,
+      &why_the_fuck_do_i_care_about_this,
+      mUITextData.mColor,
+      errors );
+    TAC_HANDLE_ERROR( errors );
+  }
+  mUIRoot->mUI2DDrawData->PopState();
+  float runningPixelX = 0;
+  for( TacUIHierarchyNode* child : mChildren )
+  {
+    child->mPixelX = runningPixelX;
+    child->RenderHierarchy( errors );
+    TAC_HANDLE_ERROR( errors );
+    runningPixelX += child->mPixelWidth;
   }
 }
 

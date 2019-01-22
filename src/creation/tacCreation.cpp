@@ -46,9 +46,10 @@ struct SaveWindowPosition : public TacEvent<>::Handler
 
 static v4 GetClearColor( TacShell* shell )
 {
+  return v4( 1, 0, 0, 1 );
   float visualStudioBackground = 45 / 255.0f;
   visualStudioBackground += 0.3f;
-  return v4( v3( 1, 1, 1 ) * visualStudioBackground, 1.0f );
+  //return v4( v3( 1, 1, 1 ) * visualStudioBackground, 1.0f );
   v4 clearColorRGBA;
   v3 a = { 0.8f, 0.5f, 0.4f };
   v3 b = { 0.2f, 0.4f, 0.2f };
@@ -109,112 +110,118 @@ void TacHandleMainWindowClosed::HandleEvent()
 
 void TacCreationMainWindow::Init( TacErrors& errors )
 {
-  TacWindowParams mainWindowParams;
-  mainWindowParams.mName = "MainWindow";
-
-  mWindowParams = &mainWindowParams;
-
-  TAC_HANDLE_ERROR( errors );
-
+  TacDesktopWindow* desktopWindow = mEditorWindow->mDesktopWindow;
   mHandleMainWindowClosed = new TacHandleMainWindowClosed();
-  mDesktopWindow->mOnDestroyed.AddCallback( mHandleMainWindowClosed );
+  desktopWindow->mOnDestroyed.AddCallback( mHandleMainWindowClosed );
 
   mDrawTitleBar = false;
   mDrawMenuBar = false;
-
-  mShouldCreateTopMostBar = false;
-  mShouldCreateTopMostBarLeft = false;
-  mShouldCreateTopMostBarRight = false;
-  mShouldCreateWindowIcon = false;
-  mShouldCreateCloseIcon = false;
-  mShouldCreateMaximizeButton = false;
-  mShouldCreateMinimizeButton = false;
-  mShouldCreateTitleText = false;
 }
 void TacCreationMainWindow::Update( TacErrors& errors )
 {
-  auto uiRoot = mUIRoot;
+  TacUIRoot* uiRoot = mEditorWindow->mUIRoot;
+  TacCreation* creation = mEditorWindow->mCreation;
 
-  if( mCreation->mAreTexturesLoaded && !mAreLayoutsCreated )
+  if( creation->mAreTexturesLoaded && !mAreLayoutsCreated )
   {
-    bool EXPERIMENTAL_UI = true;
-    if( EXPERIMENTAL_UI )
+    float size = 35;
+
+    bool experimental = true;
+    if( experimental )
     {
-      //uiRoot->mUIE->SplitVertically();
+      TacUIHierarchyNode* node;
+
+      node = uiRoot->mHierarchyRoot->Split( TacUISplit::After, size );
+      node->mTexture = creation->mIconMinimize;
+
+      node = uiRoot->mHierarchyRoot->Split( TacUISplit::After, size );
+      node->mTexture = creation->mIconMaximize;
+
+      node = uiRoot->mHierarchyRoot->Split( TacUISplit::After, size );
+      node->mTexture = creation->mIconClose;
+
+      node = uiRoot->mHierarchyRoot->Split( TacUISplit::Before, 400 );
+      node->mUITextData.mUtf8 = "Gravestory (Running) - Moachers Creation Studio";
+      node->mUITextData.mFontSize = 16;
+
+      node = uiRoot->mHierarchyRoot->Split( TacUISplit::Before, size );
+      node->mTexture = creation->mIconWindow;
     }
 
 
-
-
-
-
-
-    float size = 35;
-
+    bool mShouldCreateTopMostBar = false;
     if( mShouldCreateTopMostBar )
     {
       mTopMostBar = uiRoot->AddMenu( "topmost bar" );
       mTopMostBar->mAutoWidth = true;
       mTopMostBar->mHeightTarget = size;
 
+      bool mShouldCreateTopMostBarLeft = false;
       if( mShouldCreateTopMostBarLeft )
       {
         mTopMostBarLeft = mTopMostBar->Add< TacUILayout >( "topmost bar left" );
         mTopMostBarLeft->mAutoWidth = true;
 
+        bool mShouldCreateWindowIcon = true;
         if( mShouldCreateWindowIcon )
         {
           mLayoutIconWindow = mTopMostBarLeft->Add< TacUILayout >( "window icon" );
           mLayoutIconWindow->mUiWidth = size;
           mLayoutIconWindow->mHeightTarget = size;
-          mLayoutIconWindow->mTexture = mCreation->mIconWindow;
+          mLayoutIconWindow->mTexture = creation->mIconWindow;
         }
 
+        bool mShouldCreateTitleText = true;
         if( mShouldCreateTitleText )
         {
           TacUITextData uiTextData;
           uiTextData.mUtf8 = "Creation (Running) - Tac Studio";
           uiTextData.mFontSize = 16;
           uiTextData.mColor = v4(
-            90 / 255.0f,
-            111 / 255.0f,
-            102 / 255.0f,
+            1, 0, 0,
+            //90 / 255.0f,
+            //111 / 255.0f,
+            //102 / 255.0f,
             1 );
           mTitleText = mTopMostBarLeft->Add< TacUIText >( "creation title text" );
           mTitleText->SetText( uiTextData );
         }
       }
 
+      bool mShouldCreateTopMostBarRight = true;
       if( mShouldCreateTopMostBarRight )
       {
         mTopMostBarRight = mTopMostBar->Add< TacUILayout >( "topmost bar right" );
         mTopMostBarRight->mAutoWidth = true;
         mTopMostBarRight->mAnchor.mAnchorHorizontal = TacUIAnchorHorizontal::Right;
 
+        bool mShouldCreateMinimizeButton = false;
         if( mShouldCreateMinimizeButton )
         {
           mLayoutIconMinimize = mTopMostBarRight->Add< TacUILayout >( "icon minimize" );
-          mLayoutIconMinimize->mTexture = mCreation->mIconClose;
+          mLayoutIconMinimize->mTexture = creation->mIconClose;
           mLayoutIconMinimize->mUiWidth = size;
           mLayoutIconMinimize->mHeightTarget = size;
           mLayoutIconMinimize->mAnchor.mAnchorHorizontal = TacUIAnchorHorizontal::Right;
           mLayoutIconMinimize->mAnchor.mAnchorVertical = TacUIAnchorVertical::Top;
         }
 
+        bool mShouldCreateMaximizeButton = false;
         if( mShouldCreateMaximizeButton )
         {
           mLayoutIconMaximize = mTopMostBarRight->Add< TacUILayout >( "icon maximize" );
-          mLayoutIconMaximize->mTexture = mCreation->mIconClose;
+          mLayoutIconMaximize->mTexture = creation->mIconClose;
           mLayoutIconMaximize->mUiWidth = size;
           mLayoutIconMaximize->mHeightTarget = size;
           mLayoutIconMaximize->mAnchor.mAnchorHorizontal = TacUIAnchorHorizontal::Right;
           mLayoutIconMaximize->mAnchor.mAnchorVertical = TacUIAnchorVertical::Top;
         }
 
+        bool mShouldCreateCloseIcon = true;
         if( mShouldCreateCloseIcon )
         {
           mLayoutIconClose = mTopMostBarRight->Add< TacUILayout >( "icon close" );
-          mLayoutIconClose->mTexture = mCreation->mIconClose;
+          mLayoutIconClose->mTexture = creation->mIconClose;
           mLayoutIconClose->mUiWidth = size;
           mLayoutIconClose->mHeightTarget = size;
           mLayoutIconClose->mAnchor.mAnchorHorizontal = TacUIAnchorHorizontal::Right;
@@ -222,10 +229,11 @@ void TacCreationMainWindow::Update( TacErrors& errors )
         }
       }
     }
+
     mAreLayoutsCreated = true;
   }
-  TacDesktopWindow* desktopWindow = mDesktopWindow;
-  TacUI2DDrawData* uI2DDrawData = mUI2DDrawData;
+  TacDesktopWindow* desktopWindow = mEditorWindow->mDesktopWindow;
+  TacUI2DDrawData* uI2DDrawData = mEditorWindow->mUI2DDrawData;
   TacUI2DState* state = uI2DDrawData->PushState();
 
   TacTexture* currentBackbufferTexture = nullptr;
@@ -250,7 +258,7 @@ void TacCreationMainWindow::Update( TacErrors& errors )
           iconW,
           iconH,
           v4( 1, 1, 1, 1 ),
-          mCreation->mIconWindow );
+          creation->mIconWindow );
         state->Translate( iconW, 0 );
       }
 
@@ -270,7 +278,7 @@ void TacCreationMainWindow::Update( TacErrors& errors )
           iconW,
           iconH,
           v4( 1, 1, 1, 1 ),
-          mCreation->mIconClose );
+          creation->mIconClose );
       }
 
       state->Translate( -padding, 0 );
@@ -334,10 +342,6 @@ void TacCreationMainWindow::Update( TacErrors& errors )
   }
 
   uI2DDrawData->PopState();
-
-  TacEditorWindow::Update( errors );
-  TAC_HANDLE_ERROR( errors );
-
 }
 
 void TacCreation::Init( TacErrors& errors )
@@ -393,7 +397,7 @@ void TacCreation::Init( TacErrors& errors )
     windowParams.mWidth = ( int )settings->GetNumber( windowJson, { "w" }, 800, errors );
     TAC_HANDLE_ERROR( errors );
 
-    windowParams.mHeight  = ( int )settings->GetNumber( windowJson, { "h" }, 600, errors );
+    windowParams.mHeight = ( int )settings->GetNumber( windowJson, { "h" }, 600, errors );
     TAC_HANDLE_ERROR( errors );
 
     bool centered = ( int )settings->GetBool( windowJson, { "centered" }, false, errors );
@@ -410,10 +414,10 @@ void TacCreation::Init( TacErrors& errors )
     }
     else
     {
-      windowParams.mX = ( int )settings->GetNumber( windowJson, { "x" }, 50,  errors );
+      windowParams.mX = ( int )settings->GetNumber( windowJson, { "x" }, 50, errors );
       TAC_HANDLE_ERROR( errors );
 
-      windowParams.mY = ( int )settings->GetNumber( windowJson, { "y" }, 50,  errors );
+      windowParams.mY = ( int )settings->GetNumber( windowJson, { "y" }, 50, errors );
       TAC_HANDLE_ERROR( errors );
     }
     TAC_HANDLE_ERROR( errors );
@@ -422,8 +426,6 @@ void TacCreation::Init( TacErrors& errors )
     mApp->SpawnWindowOuter( windowParams, &desktopWindow, errors );
     TAC_HANDLE_ERROR( errors );
 
-    if( !mainWindow )
-      mainWindow = desktopWindow;
 
     {
       auto saveWindowSize = new SaveWindowSize();
@@ -442,21 +444,31 @@ void TacCreation::Init( TacErrors& errors )
     }
     TAC_HANDLE_ERROR( errors );
 
-    TacEditorWindow* editorWindow = new TacEditorWindow();
-    editorWindow->mCreation = this;
-    editorWindow->mDesktopWindow = desktopWindow;
-
     auto ui2DDrawData = new TacUI2DDrawData();
     ui2DDrawData->mUI2DCommonData = shell->mUI2DCommonData;
     ui2DDrawData->mRenderView = desktopWindow->mMainWindowRenderView;
-    editorWindow->mUI2DDrawData = ui2DDrawData;
 
     auto uiRoot = new TacUIRoot();
     uiRoot->mKeyboardInput = shell->mKeyboardInput;
     uiRoot->mElapsedSeconds = &shell->mElapsedSeconds;
     uiRoot->mUI2DDrawData = ui2DDrawData;
     uiRoot->mDesktopWindow = desktopWindow;
+
+    auto editorWindow = new TacEditorWindow();
+    editorWindow->mCreation = this;
+    editorWindow->mDesktopWindow = desktopWindow;
+    editorWindow->mUI2DDrawData = ui2DDrawData;
     editorWindow->mUIRoot = uiRoot;
+
+    if( !mainWindow )
+    {
+      mainWindow = desktopWindow;
+      mMainWindow = new TacCreationMainWindow();
+      mMainWindow->mEditorWindow = editorWindow;
+      mMainWindow->Init( errors );
+      TAC_HANDLE_ERROR( errors );
+    }
+
     mEditorWindows.insert( editorWindow );
   }
 }
@@ -477,8 +489,6 @@ void TacCreation::Update( TacErrors& errors )
 
   if( !mAreTexturesLoaded )
   {
-
-
     struct TacTextureAndPath
     {
       TacTexture** texture;
@@ -496,15 +506,16 @@ void TacCreation::Update( TacErrors& errors )
       mTextureAssetManager->GetTexture( textureAndPath.texture, textureAndPath.path, errors );
       TAC_HANDLE_ERROR( errors );
       if( *textureAndPath.texture )
-      {
         loadedTextureCount++;
-      }
     }
-
     if( loadedTextureCount == textureAndPaths.size() )
-    {
       mAreTexturesLoaded = true;
-    }
+  }
+
+  if( mMainWindow )
+  {
+    mMainWindow->Update( errors );
+    TAC_HANDLE_ERROR( errors );
   }
 }
 
@@ -535,7 +546,7 @@ void TacDesktopApp::DoStuff( TacDesktopApp* desktopApp, TacErrors& errors )
   shell->Init( errors );
   TAC_HANDLE_ERROR( errors );
 
-  desktopApp->OnShellInit( errors);
+  desktopApp->OnShellInit( errors );
   TAC_HANDLE_ERROR( errors );
 
 

@@ -481,6 +481,11 @@ void TacRendererDirectX11::Render( TacErrors& errors )
       }
       mDeviceContext->IASetIndexBuffer( buffer, format, 0 );
       currentlyBoundIndexBuffer = indexBufferDX11;
+
+      std::cout << "changing index buffer to "
+        << ( void* )indexBufferDX11
+        << " "
+        << indexBufferDX11->indexCount << std::endl;
     }
 
     if( currentlyBoundBlendState != drawCall.mBlendState )
@@ -1619,6 +1624,15 @@ TacSampler* TacShaderDX11::Find( TacVector< TacSampler* >& samplers, const TacSt
   return nullptr;
 }
 
+TacShaderDX11::~TacShaderDX11()
+{
+  TAC_RELEASE_IUNKNOWN( mVertexShader );
+  TAC_RELEASE_IUNKNOWN( mPixelShader );
+  auto rendererDX11 = ( TacRendererDirectX11* )mRenderer;
+  if( rendererDX11->currentlyBoundShader == this )
+    rendererDX11->currentlyBoundShader = nullptr;
+}
+
 TacSampler* TacShaderDX11::FindTexture( const TacString& name )
 {
   return Find( mTextures, name );
@@ -1629,6 +1643,17 @@ TacSampler* TacShaderDX11::FindSampler( const TacString& name )
   return Find( mSamplers, name );
 }
 
+
+TacTextureDX11::~TacTextureDX11()
+{
+  TAC_RELEASE_IUNKNOWN( mDXObj );
+  TAC_RELEASE_IUNKNOWN( mSrv );
+  TAC_RELEASE_IUNKNOWN( mRTV );
+  auto rendererDX11 = ( TacRendererDirectX11* )mRenderer;
+  if( rendererDX11->mCurrentlyBoundTexture == this )
+    rendererDX11->mCurrentlyBoundTexture = nullptr;
+  // if the rtv is the currently bound view, null the view?
+}
 
 void* TacTextureDX11::GetImguiTextureID()
 {
@@ -1646,14 +1671,37 @@ static void TacOverwrite( TacRenderer* rendererr, ID3D11Resource* resource, void
   renderer->mDeviceContext->Unmap( resource, 0 );
 }
 
+TacVertexBufferDX11::~TacVertexBufferDX11()
+{
+
+  TAC_RELEASE_IUNKNOWN( mDXObj );
+  auto rendererDX11 = ( TacRendererDirectX11* )mRenderer;
+  if( rendererDX11->currentlyBoundVertexBuffer == this )
+    rendererDX11->currentlyBoundVertexBuffer = nullptr;
+}
+
 void TacVertexBufferDX11::Overwrite( void* data, int byteCount, TacErrors& errors )
 {
   TacOverwrite( mRenderer, mDXObj, data, byteCount, errors );
 }
 
+TacIndexBufferDX11::~TacIndexBufferDX11()
+{
+  TAC_RELEASE_IUNKNOWN( mDXObj );
+  auto rendererDX11 = ( TacRendererDirectX11* )mRenderer;
+  if( rendererDX11->currentlyBoundIndexBuffer == this )
+    rendererDX11->currentlyBoundIndexBuffer = nullptr;
+}
+
 void TacIndexBufferDX11::Overwrite( void* data, int byteCount, TacErrors& errors )
 {
   TacOverwrite( mRenderer, mDXObj, data, byteCount, errors );
+}
+
+TacCBufferDX11::~TacCBufferDX11()
+{
+
+  TAC_RELEASE_IUNKNOWN( mDXObj );
 }
 
 void TacCBufferDX11::SendUniforms( void* bytes )
@@ -1685,3 +1733,52 @@ int registerDX11 = []()
   TacRendererFactory::GetRegistry().push_back( &factory );
   return 0;
 }( );
+
+TacDepthBufferDX11::~TacDepthBufferDX11()
+{
+  TAC_RELEASE_IUNKNOWN( mDXObj );
+  TAC_RELEASE_IUNKNOWN( mDSV );
+  // null the view if bound?
+}
+
+TacSamplerStateDX11::~TacSamplerStateDX11()
+{
+
+  TAC_RELEASE_IUNKNOWN( mDXObj );
+  auto rendererDX11 = ( TacRendererDirectX11* )mRenderer;
+  if( rendererDX11->mCurrentlyBoundSamplerState == this )
+    rendererDX11->mCurrentlyBoundSamplerState = nullptr;
+}
+
+TacDepthStateDX11::~TacDepthStateDX11()
+{
+  TAC_RELEASE_IUNKNOWN( mDXObj );
+  auto rendererDX11 = ( TacRendererDirectX11* )mRenderer;
+  if( rendererDX11->mCurrentlyBoundDepthState == this )
+    rendererDX11->mCurrentlyBoundDepthState = nullptr;
+}
+
+TacBlendStateDX11::~TacBlendStateDX11()
+{
+  TAC_RELEASE_IUNKNOWN( mDXObj );
+  auto rendererDX11 = ( TacRendererDirectX11* )mRenderer;
+  if( rendererDX11->currentlyBoundBlendState == this )
+    rendererDX11->currentlyBoundBlendState = nullptr;
+}
+
+TacRasterizerStateDX11::~TacRasterizerStateDX11()
+{
+  TAC_RELEASE_IUNKNOWN( mDXObj );
+  auto rendererDX11 = ( TacRendererDirectX11* )mRenderer;
+  if( rendererDX11->mCurrentlyBoundRasterizerState == this )
+    rendererDX11->mCurrentlyBoundRasterizerState = nullptr;
+}
+
+TacVertexFormatDX11::~TacVertexFormatDX11()
+{
+  TAC_RELEASE_IUNKNOWN( mDXObj );
+
+  auto rendererDX11 = ( TacRendererDirectX11* )mRenderer;
+  if( rendererDX11->mCurrentlyBoundVertexFormat == this )
+    rendererDX11->mCurrentlyBoundVertexFormat = nullptr;
+}

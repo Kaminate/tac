@@ -27,47 +27,31 @@ struct TacHandleMainWindowClosed : public TacEvent<>::Handler
 struct TacEditorWindow
 {
   void Update( TacErrors& errors );
-  TacWindowParams* mWindowParams = nullptr;
   TacDesktopWindow* mDesktopWindow = nullptr;
   TacCreation* mCreation = nullptr;
   TacUIRoot* mUIRoot = nullptr;
   TacUI2DDrawData* mUI2DDrawData = nullptr;
 };
 
-struct TacCreationMainWindow : public TacEditorWindow
+struct TacCreationMainWindow
 {
   void Init( TacErrors& errors );
   void Update( TacErrors& errors );
   TacOwned< TacHandleMainWindowClosed > mHandleMainWindowClosed;
 
-  bool mShouldCreateTopMostBar;
   TacUILayout* mTopMostBar = nullptr;
-
-  bool mShouldCreateTopMostBarLeft;
   TacUILayout* mTopMostBarLeft = nullptr;
-
-  bool mShouldCreateTopMostBarRight;
   TacUILayout* mTopMostBarRight = nullptr;
-
-  bool mShouldCreateWindowIcon;
   TacUILayout* mLayoutIconWindow = nullptr;
-
-  bool mShouldCreateCloseIcon;
   TacUILayout* mLayoutIconClose = nullptr;
-
-  bool mShouldCreateMaximizeButton;
   TacUILayout* mLayoutIconMaximize = nullptr;
-
-  bool mShouldCreateMinimizeButton;
   TacUILayout* mLayoutIconMinimize = nullptr;
-
-  bool mShouldCreateTitleText;
   TacUIText* mTitleText = nullptr;
-
   bool mAreLayoutsCreated = false;
 
   bool mDrawTitleBar;
   bool mDrawMenuBar;
+  TacEditorWindow* mEditorWindow = nullptr;
 };
 
 struct TacCreation
@@ -79,7 +63,7 @@ struct TacCreation
   //void UpdatePropertiesWindow( TacErrors& );
 
   TacDesktopApp* mApp = nullptr;
-  //TacCreationMainWindow* mMainWindow = nullptr;
+  TacCreationMainWindow* mMainWindow = nullptr;
   //TacEditorWindow* mSecondWindow = nullptr;
   //TacEditorWindow* mGamePlayerWindow = nullptr;
   TacShell* mShell = nullptr;
