@@ -37,6 +37,7 @@ struct TacUILayout;
 struct TacUILayoutable;
 struct TacUILayoutData;
 struct TacUI2DDrawData;
+struct TacUIHierarchyNode;
 struct TacDepthBuffer;
 struct TacDesktopWindow;
 struct TacKeyboardInput;
@@ -194,10 +195,11 @@ private:
   bool mIsRecentChangeInStack = false;
 };
 
+// used as an index
 enum class TacUILayoutType
 {
-  Vertical,
-  Horizontal
+  Horizontal = 0,
+  Vertical = 1,
 };
 
 //enum class TacUIEdge
@@ -279,25 +281,65 @@ enum class TacUISplit
   After,
 };
 
+struct TacUIHierarchyVisual
+{
+  virtual void Render(  TacErrors& errors ) {}
+  virtual v2 GetSize() = 0;
+  TacUIHierarchyNode* mHierarchyNode = nullptr;
+};
+
+struct TacUIHierarchyVisualText : public TacUIHierarchyVisual
+{
+  void Render( TacErrors& errors ) override;
+  v2 GetSize() override;
+  TacUITextData mUITextData;
+  v2 mDims;
+};
+
+struct TacUIHierarchyVisualImage : public TacUIHierarchyVisual
+{
+  void Render( TacErrors& errors ) override;
+  v2 GetSize() override;
+  TacTexture* mTexture = nullptr;
+  v2 mDims;
+  // - alignment
+  // - offset
+  // - basically layoutable stuff?
+};
+
 struct TacUIHierarchyNode
 {
   TacUIHierarchyNode();
-  TacUIHierarchyNode* Split( TacUISplit uiSplit, float pixelWidth );
+  TacUIHierarchyNode* Split(
+    TacUISplit uiSplit = TacUISplit::After,
+    TacUILayoutType layoutType = TacUILayoutType::Horizontal );
   void RenderHierarchy( TacErrors& errors );
 
   v4 mColor;
   TacVector< TacUIHierarchyNode* > mChildren;
   TacUIHierarchyNode* mParent = nullptr;
   TacUIRoot* mUIRoot = nullptr;
+  TacUILayoutType mLayoutType = TacUILayoutType::Horizontal;
+  v2 mPosition = {};
 
+  // This variable is used...
+  //
+  // to hold the dims of the box to show thie space this node takes up,
+  // especially in the case of the uiroot's hierarchy root, where
+  // the size is equal to the window dims
+  //
+  // It starts with a non-zero default size so that you can see the
+  // layout background in absence of a visual, or before a visual has been set
+  v2 mSize = { 50, 50 };
 
-  bool mExpandWidth = false;
-  float mPixelWidth = 0;
-  float mPixelX = 0;
-
-  // Should this be put into a child node?
-  TacTexture* mTexture = nullptr;
-  TacUITextData mUITextData;
+  int mExpandingChildIndex = 0;
+  void SetVisual( TacUIHierarchyVisual* visual )
+  {
+    mVisual = visual;
+    visual->mHierarchyNode = this;
+  }
+private:
+  TacUIHierarchyVisual* mVisual = nullptr;
 };
 
 struct TacUIRoot//  : public TacUIHierarchyNode

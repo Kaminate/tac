@@ -129,23 +129,49 @@ void TacCreationMainWindow::Update( TacErrors& errors )
     bool experimental = true;
     if( experimental )
     {
-      TacUIHierarchyNode* node;
+      TacUIHierarchyNode* node = nullptr;
+      TacUIHierarchyVisualImage* image = nullptr;
+      TacUIHierarchyVisualText* text = nullptr;
 
-      node = uiRoot->mHierarchyRoot->Split( TacUISplit::After, size );
-      node->mTexture = creation->mIconMinimize;
 
-      node = uiRoot->mHierarchyRoot->Split( TacUISplit::After, size );
-      node->mTexture = creation->mIconMaximize;
+      image = new TacUIHierarchyVisualImage();
+      image->mTexture = creation->mIconMinimize;
+      image->mDims = { size, size };
+      node = uiRoot->mHierarchyRoot->Split();
+      node->SetVisual( image );
 
-      node = uiRoot->mHierarchyRoot->Split( TacUISplit::After, size );
-      node->mTexture = creation->mIconClose;
+      image = new TacUIHierarchyVisualImage();
+      image->mDims = { size, size };
+      image->mTexture = creation->mIconMaximize;
+      node = uiRoot->mHierarchyRoot->Split( TacUISplit::After, TacUILayoutType::Horizontal );
+      node->SetVisual( image );
 
-      node = uiRoot->mHierarchyRoot->Split( TacUISplit::Before, 400 );
-      node->mUITextData.mUtf8 = "Gravestory (Running) - Moachers Creation Studio";
-      node->mUITextData.mFontSize = 16;
+      image = new TacUIHierarchyVisualImage();
+      image->mDims = { size, size };
+      image->mTexture = creation->mIconClose;
+      node = uiRoot->mHierarchyRoot->Split( TacUISplit::After, TacUILayoutType::Horizontal );
+      node->SetVisual( image );
 
-      node = uiRoot->mHierarchyRoot->Split( TacUISplit::Before, size );
-      node->mTexture = creation->mIconWindow;
+      text = new TacUIHierarchyVisualText();
+      text->mUITextData.mUtf8 = "Gravestory (Running) - Moachers Creation Studio";
+      text->mUITextData.mFontSize = 16;
+      text->mDims = { 400, 50 };
+      node = uiRoot->mHierarchyRoot->Split( TacUISplit::Before, TacUILayoutType::Horizontal );
+      node->SetVisual( text );
+
+      image = new TacUIHierarchyVisualImage();
+      image->mDims = { size, size };
+      image->mTexture = creation->mIconWindow;
+      node = uiRoot->mHierarchyRoot->Split( TacUISplit::Before, TacUILayoutType::Horizontal);
+      node->SetVisual( image );
+
+      uiRoot->mHierarchyRoot->mSize.y = size;
+
+      node = uiRoot->mHierarchyRoot->Split( TacUISplit::After, TacUILayoutType::Vertical );
+      uiRoot->mHierarchyRoot->mExpandingChildIndex++;
+
+      node = uiRoot->mHierarchyRoot->Split( TacUISplit::After, TacUILayoutType::Vertical );
+      node->mSize.y = 30;
     }
 
 

@@ -713,7 +713,6 @@ TacUIRoot::TacUIRoot()
   transitionDurationSeconds = 0.3f;
   mHierarchyRoot = new TacUIHierarchyNode();
   mHierarchyRoot->mUIRoot = this;
-  mHierarchyRoot->mExpandWidth = true;
 }
 TacUIRoot::~TacUIRoot()
 {
@@ -769,7 +768,7 @@ void TacUIRoot::Render( TacErrors& errors )
     TAC_HANDLE_ERROR( errors );
   }
   //mUI2DDrawData->PopState();
-  mHierarchyRoot-> RenderHierarchy( errors );
+  mHierarchyRoot->RenderHierarchy( errors );
   TAC_HANDLE_ERROR( errors );
 }
 void TacUIRoot::Update()
@@ -810,7 +809,9 @@ void TacUIRoot::Update()
     delete uiMenu;
   }
 
-  mHierarchyRoot->mPixelWidth = ( float )mDesktopWindow->mWidth;
+  mHierarchyRoot->mSize = {
+    ( float )mDesktopWindow->mWidth,
+    ( float )mDesktopWindow->mHeight };
 }
 
 TacUIHierarchyNode::TacUIHierarchyNode()
@@ -822,30 +823,44 @@ TacUIHierarchyNode::TacUIHierarchyNode()
     1,
   };
 }
-TacUIHierarchyNode* TacUIHierarchyNode::Split( TacUISplit uiSplit, float pixelWidth )
+TacUIHierarchyNode* TacUIHierarchyNode::Split(
+  TacUISplit uiSplit,
+  TacUILayoutType layoutType )
 {
-  TacUIHierarchyNode* parent;
+  TacUIHierarchyNode* parent = nullptr;
   if( mChildren.size() )
   {
-    parent = this;
-  }
-  else
-  {
-    if( !mParent )
+    if( layoutType == mLayoutType )
     {
-      auto newParent = new TacUIHierarchyNode();
-      newParent->mChildren = { this };
-      newParent->mUIRoot = mUIRoot;
-      mUIRoot->mHierarchyRoot = newParent;
-      mParent = newParent;
+      parent = this;
     }
-    parent = mParent;
+    else if( !mParent )
+    {
+      // get my parent who is vertically split
+      parent = new TacUIHierarchyNode();
+      parent->mChildren = { this };
+      parent->mUIRoot = mUIRoot;
+      parent->mLayoutType = layoutType;
+      mUIRoot->mHierarchyRoot = parent;
+      mParent = parent;
+    }
+  }
+  else if( !mParent )
+  {
+    parent = new TacUIHierarchyNode();
+    parent->mChildren = { this };
+    parent->mUIRoot = mUIRoot;
+    parent->mLayoutType = layoutType;
+    mUIRoot->mHierarchyRoot = parent;
+    mParent = parent;
   }
 
+  TacAssert( parent );
+
   auto newChild = new TacUIHierarchyNode();
-  newChild->mPixelWidth = pixelWidth;
   newChild->mUIRoot = mUIRoot;
   newChild->mParent = parent;
+
   switch( uiSplit )
   {
   case TacUISplit::Before: {
@@ -857,63 +872,92 @@ TacUIHierarchyNode* TacUIHierarchyNode::Split( TacUISplit uiSplit, float pixelWi
         parent->mChildren[ oldChildCount - i - 1 ];
     }
     parent->mChildren[ 0 ] = newChild;
+    parent->mExpandingChildIndex++;
   } break;
   case TacUISplit::After: {
     parent->mChildren.push_back( newChild );
   } break;
     TacInvalidDefaultCase( uiSplit );
   }
+
   return newChild;
 }
 void TacUIHierarchyNode::RenderHierarchy( TacErrors& errors )
 {
-  if( mExpandWidth )
+  // compute children sizes
+  if( !mChildren.empty() )
   {
-    if( mParent )
+    float expandedChildSize = mSize[ ( int )mLayoutType ];
+    TacUIHierarchyNode* expandedChild = mChildren[ mExpandingChildIndex ];
+    for( TacUIHierarchyNode* child : mChildren )
     {
-      float pixelWidth = mParent->mPixelWidth;
-      for( TacUIHierarchyNode* child : mParent->mChildren )
+      child->mSize[ 1 - ( int )mLayoutType ] = mSize[ 1 - ( int )mLayoutType ];
+      if( child == expandedChild )
+        continue;
+      if( child->mVisual )
       {
-        if( !child->mExpandWidth )
-        {
-          pixelWidth -= child->mPixelWidth;
-        }
+        child->mSize[ ( int )mLayoutType ] = child->mVisual->GetSize()[ ( int )mLayoutType ];
       }
-      mPixelWidth = pixelWidth;
+      expandedChildSize -= child->mSize[ ( int )mLayoutType ];
     }
-    else
-    {
-      mPixelWidth = ( float )mUIRoot->mDesktopWindow->mWidth;
-    }
+    expandedChild->mSize[ ( int )mLayoutType ] = expandedChildSize;
   }
+
   TacUI2DState* state = mUIRoot->mUI2DDrawData->PushState();
   float padding = 0;
-  state->Translate( mPixelX + padding, padding );
+  state->Translate( mPosition + v2( 1, 1 ) * padding );
   state->Draw2DBox(
-    mPixelWidth - ( padding * 2 ),
-    ( float )mUIRoot->mDesktopWindow->mHeight - ( padding * 2 ),
-    mColor,
-    mTexture );
-  if( !mUITextData.mUtf8.empty() )
+    mSize[ 0 ] - ( padding * 2 ),
+    mSize[ 1 ] - ( padding * 2 ),
+    mColor );
+  if( mVisual )
   {
-    float why_the_fuck_do_i_care_about_this;
-    state->Draw2DText(
-      mUIRoot->mDefaultLanguage,
-      mUITextData.mFontSize,
-      mUITextData.mUtf8,
-      &why_the_fuck_do_i_care_about_this,
-      mUITextData.mColor,
-      errors );
+    mVisual->Render( errors );
     TAC_HANDLE_ERROR( errors );
   }
   mUIRoot->mUI2DDrawData->PopState();
   float runningPixelX = 0;
   for( TacUIHierarchyNode* child : mChildren )
   {
-    child->mPixelX = runningPixelX;
+    child->mPosition[ ( int )mLayoutType ] = runningPixelX;
     child->RenderHierarchy( errors );
     TAC_HANDLE_ERROR( errors );
-    runningPixelX += child->mPixelWidth;
+    runningPixelX += child->mSize[ ( int )mLayoutType ];
   }
 }
 
+void TacUIHierarchyVisualText::Render( TacErrors& errors )
+{
+  if( mUITextData.mUtf8.empty() )
+    return;
+  float why_the_fuck_do_i_care_about_this;
+  TacUIRoot* uiRoot = mHierarchyNode->mUIRoot;
+  uiRoot->mUI2DDrawData->mStates.back().Draw2DText(
+    uiRoot->mDefaultLanguage,
+    mUITextData.mFontSize,
+    mUITextData.mUtf8,
+    &why_the_fuck_do_i_care_about_this,
+    mUITextData.mColor,
+    errors );
+  TAC_HANDLE_ERROR( errors );
+}
+
+v2 TacUIHierarchyVisualText::GetSize()
+{
+  return mDims;
+}
+
+void TacUIHierarchyVisualImage::Render( TacErrors& errors )
+{
+  TacUIRoot* uiRoot = mHierarchyNode->mUIRoot;
+  uiRoot->mUI2DDrawData->mStates.back().Draw2DBox(
+    mDims[ 0 ],
+    mDims[ 1 ],
+    v4( 1, 1, 1, 1 ),
+    mTexture );
+}
+
+v2 TacUIHierarchyVisualImage::GetSize()
+{
+  return mDims;
+}
