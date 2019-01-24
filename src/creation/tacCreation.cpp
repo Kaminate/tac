@@ -134,44 +134,111 @@ void TacCreationMainWindow::Update( TacErrors& errors )
       TacUIHierarchyVisualText* text = nullptr;
 
 
-      image = new TacUIHierarchyVisualImage();
-      image->mTexture = creation->mIconMinimize;
-      image->mDims = { size, size };
-      node = uiRoot->mHierarchyRoot->Split();
-      node->SetVisual( image );
+      TacUIHierarchyNode* contentArea = uiRoot->mHierarchyRoot;
 
-      image = new TacUIHierarchyVisualImage();
-      image->mDims = { size, size };
-      image->mTexture = creation->mIconMaximize;
-      node = uiRoot->mHierarchyRoot->Split( TacUISplit::After, TacUILayoutType::Horizontal );
-      node->SetVisual( image );
+      TacUIHierarchyNode* menuBar = contentArea->Split(
+        TacUISplit::Before, TacUILayoutType::Vertical );
 
-      image = new TacUIHierarchyVisualImage();
-      image->mDims = { size, size };
-      image->mTexture = creation->mIconClose;
-      node = uiRoot->mHierarchyRoot->Split( TacUISplit::After, TacUILayoutType::Horizontal );
-      node->SetVisual( image );
+      TacUIHierarchyNode* topBar = contentArea->Split(
+        TacUISplit::Before, TacUILayoutType::Vertical );
 
-      text = new TacUIHierarchyVisualText();
-      text->mUITextData.mUtf8 = "Gravestory (Running) - Moachers Creation Studio";
-      text->mUITextData.mFontSize = 16;
-      text->mDims = { 400, 50 };
-      node = uiRoot->mHierarchyRoot->Split( TacUISplit::Before, TacUILayoutType::Horizontal );
-      node->SetVisual( text );
+      TacUIHierarchyNode* statusBar = contentArea->Split(
+        TacUISplit::After, TacUILayoutType::Vertical );
 
-      image = new TacUIHierarchyVisualImage();
-      image->mDims = { size, size };
-      image->mTexture = creation->mIconWindow;
-      node = uiRoot->mHierarchyRoot->Split( TacUISplit::Before, TacUILayoutType::Horizontal);
-      node->SetVisual( image );
+      v4 textColor = v4( v3( 1, 1, 1 ) * 0.2f, 1 );
 
-      uiRoot->mHierarchyRoot->mSize.y = size;
+      if( topBar )
+      {
+        topBar->mDebugName = "top bar";
+        topBar->mSize.y = size;
 
-      node = uiRoot->mHierarchyRoot->Split( TacUISplit::After, TacUILayoutType::Vertical );
-      uiRoot->mHierarchyRoot->mExpandingChildIndex++;
+        image = new TacUIHierarchyVisualImage();
+        image->mTexture = creation->mIconMinimize;
+        image->mDims = { size, size };
+        node = topBar->Split();
+        node->SetVisual( image );
 
-      node = uiRoot->mHierarchyRoot->Split( TacUISplit::After, TacUILayoutType::Vertical );
-      node->mSize.y = 30;
+        image = new TacUIHierarchyVisualImage();
+        image->mDims = { size, size };
+        image->mTexture = creation->mIconMaximize;
+        node = topBar->Split( TacUISplit::After, TacUILayoutType::Horizontal );
+        node->SetVisual( image );
+
+        image = new TacUIHierarchyVisualImage();
+        image->mDims = { size, size };
+        image->mTexture = creation->mIconClose;
+        node = topBar->Split( TacUISplit::After, TacUILayoutType::Horizontal );
+        node->SetVisual( image );
+
+        text = new TacUIHierarchyVisualText();
+        text->mUITextData.mUtf8 = "Gravestory (Running) - Moachers Creation Studio";
+        text->mUITextData.mFontSize = 16;
+        text->mUITextData.mColor = textColor;
+        text->mDims = { 400, 50 };
+        node = topBar->Split( TacUISplit::Before, TacUILayoutType::Horizontal );
+        node->SetVisual( text );
+
+        image = new TacUIHierarchyVisualImage();
+        image->mDims = { size, size };
+        image->mTexture = creation->mIconWindow;
+        node = topBar->Split( TacUISplit::Before, TacUILayoutType::Horizontal );
+        node->SetVisual( image );
+
+      }
+
+      if( menuBar  )
+      {
+        menuBar->mDebugName = "menu bar";
+        menuBar->mSize.y = 300;
+
+        text = new TacUIHierarchyVisualText();
+        text->mUITextData.mUtf8 = "Help";
+        text->mUITextData.mFontSize = 16;
+        text->mUITextData.mColor = textColor;
+        text->mDims = { 100, 50 };
+        node = menuBar->Split( TacUISplit::Before );
+        node->SetVisual( text );
+
+        text = new TacUIHierarchyVisualText();
+        text->mUITextData.mUtf8 = "Window";
+        text->mUITextData.mFontSize = 16;
+        text->mUITextData.mColor = textColor;
+        text->mDims = { 100, 50 };
+        node = menuBar->Split( TacUISplit::Before );
+        node->SetVisual( text );
+
+
+
+        text = new TacUIHierarchyVisualText();
+        text->mUITextData.mUtf8 = "Edit";
+        text->mUITextData.mFontSize = 16;
+        text->mUITextData.mColor = textColor;
+        text->mDims = { 100, 50 };
+        node = menuBar->Split( TacUISplit::Before );
+        node->SetVisual( text );
+
+
+        text = new TacUIHierarchyVisualText();
+        text->mUITextData.mUtf8 = "File";
+        text->mUITextData.mFontSize = 16;
+        text->mUITextData.mColor = textColor;
+        text->mDims = { 100, 50 };
+        node = menuBar->Split( TacUISplit::Before );
+        node->SetVisual( text );
+      }
+
+      if( contentArea )
+      {
+        contentArea->mDebugName = "content area";
+      }
+
+      if( statusBar )
+      {
+        statusBar->mDebugName = "status bar";
+        statusBar->mSize.y = 30;
+      }
+
+        uiRoot->DebugGenerateGraphVizDotFile();
     }
 
 

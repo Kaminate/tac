@@ -827,6 +827,7 @@ TacUIHierarchyNode* TacUIHierarchyNode::Split(
   TacUISplit uiSplit,
   TacUILayoutType layoutType )
 {
+  // TODO: I'm sure this whole if else chain can be simplified into something elegant
   TacUIHierarchyNode* parent = nullptr;
   if( mChildren.size() )
   {
@@ -853,6 +854,37 @@ TacUIHierarchyNode* TacUIHierarchyNode::Split(
     parent->mLayoutType = layoutType;
     mUIRoot->mHierarchyRoot = parent;
     mParent = parent;
+  }
+  else
+  {
+    if( mParent )
+    {
+      if( mParent->mLayoutType == layoutType )
+      {
+        parent = mParent;
+      }
+      else
+      {
+        parent = new TacUIHierarchyNode();
+        parent->mChildren = { this };
+        parent->mUIRoot = mUIRoot;
+        parent->mLayoutType = layoutType;
+        parent->mParent = mParent;
+        int n = mParent->mChildren.size();
+        bool exchanged = false;
+        for( int i = 0; i < n; ++i )
+        {
+          TacUIHierarchyNode* child = mParent->mChildren[ i ];
+          if( child != this )
+            continue;
+          mParent->mChildren[ i ] = parent;
+          mParent = parent;
+          exchanged = true;
+          break;
+        }
+        TacAssert( exchanged );
+      }
+    }
   }
 
   TacAssert( parent );
@@ -906,10 +938,26 @@ void TacUIHierarchyNode::RenderHierarchy( TacErrors& errors )
   TacUI2DState* state = mUIRoot->mUI2DDrawData->PushState();
   float padding = 0;
   state->Translate( mPosition + v2( 1, 1 ) * padding );
-  state->Draw2DBox(
-    mSize[ 0 ] - ( padding * 2 ),
-    mSize[ 1 ] - ( padding * 2 ),
-    mColor );
+  if( TacIsDebugMode() )
+  {
+    bool debugdrawNodeBackground = true;
+    if( debugdrawNodeBackground )
+    {
+      state->Draw2DBox(
+        mSize[ 0 ] - ( padding * 2 ),
+        mSize[ 1 ] - ( padding * 2 ),
+        mColor );
+    }
+
+    bool debugdrawNodeName = true;
+    if( debugdrawNodeName )
+    {
+      v4 debugTextColor = mColor.xyz().Length() < 0.5f ? v4( 1, 1, 1, 1 ) : v4( 0, 0, 0, 1 );
+      debugTextColor = { 0, 0, 0, 1 };
+      state->Draw2DText( TacLanguage::English, 16, mDebugName, nullptr, debugTextColor, errors );
+      TAC_HANDLE_ERROR( errors );
+    }
+  }
   if( mVisual )
   {
     mVisual->Render( errors );
@@ -919,7 +967,9 @@ void TacUIHierarchyNode::RenderHierarchy( TacErrors& errors )
   float runningPixelX = 0;
   for( TacUIHierarchyNode* child : mChildren )
   {
-    child->mPosition[ ( int )mLayoutType ] = runningPixelX;
+    v2 childPosition = mPosition;
+    childPosition[ ( int )mLayoutType ] += runningPixelX;
+    child->mPosition = childPosition;
     child->RenderHierarchy( errors );
     TAC_HANDLE_ERROR( errors );
     runningPixelX += child->mSize[ ( int )mLayoutType ];
@@ -960,4 +1010,74 @@ void TacUIHierarchyVisualImage::Render( TacErrors& errors )
 v2 TacUIHierarchyVisualImage::GetSize()
 {
   return mDims;
+}
+
+void TacUIRoot::DebugGenerateGraphVizDotFile()
+{
+  TacString stringified;
+
+  // https://en.wikipedia.org/wiki/DOT_(graph_description_language)
+  // 
+  // digraph graphname    a
+  // {                    |
+  //   a->b->c;           b
+  //   b->d;             / \
+  // }                  c   d
+
+
+  TacVector<TacString> lines;
+  lines.push_back( "digraph graphname" );
+  lines.push_back( "{" );
+
+  std::set< TacUIHierarchyNode* > allnodes;
+  std::map< TacUIHierarchyNode*, TacString > nodeGraphNames;
+  TacVector< std::pair< TacUIHierarchyNode*, TacUIHierarchyNode* >> nodeConnections;
+
+  if( mHierarchyRoot )
+  {
+    TacVector< TacUIHierarchyNode* > nodes = { mHierarchyRoot };
+    while( !nodes.empty() )
+    {
+      TacUIHierarchyNode* node = nodes.back();
+      nodes.pop_back();
+      allnodes.insert( node );
+
+      for( TacUIHierarchyNode* child : node->mChildren )
+      {
+        nodes.push_back( child );
+        nodeConnections.push_back( { node, child } );
+      }
+    }
+  }
+
+  for( TacUIHierarchyNode* node : allnodes )
+  {
+    TacString nodeGraphName = "node" + TacToString( ( int )nodeGraphNames.size() );
+    TacString nodeGraphLabel = TacToString( node );
+
+    if( node->mDebugName.size() )
+      nodeGraphLabel = node->mDebugName;
+    else if( node == mHierarchyRoot )
+      nodeGraphLabel = "hierarchy root";
+    else if( node->GetVisual() && node->GetVisual()->GetDebugName().size() )
+      nodeGraphLabel = node->GetVisual()->GetDebugName();
+
+    nodeGraphNames[ node ] = nodeGraphName;
+    
+    lines.push_back( nodeGraphName + "[ label = \"" + nodeGraphLabel + "\" ];" );
+  }
+
+  for( auto connection : nodeConnections )
+  {
+    lines.push_back(
+      nodeGraphNames[ connection.first ] + "->" + nodeGraphNames[ connection.second ] );
+  }
+
+  lines.push_back( "}" );
+  stringified = TacJoin( "\n", lines );
+
+  TacString filepath = mDesktopWindow->mShell->mPrefPath + "/tac.dot";
+  TacErrors errors;
+  TacOS::Instance->SaveToFile( filepath, stringified.data(), stringified.size(), errors );
+  TacAssert( errors.empty() );
 }

@@ -6,6 +6,7 @@
 
 #include <string>
 #include <algorithm>
+#include <sstream>
 
 bool TacIsSpace( char c )
 {
@@ -17,6 +18,13 @@ bool TacIsSpace( char c )
     c == '\f' || // feed
     c == '\r'; // carriage return
   return result;
+}
+
+bool TacIsAlpha( char c )
+{
+  return
+    ( c >= 'A' && c <= 'Z' ) ||
+    ( c >= 'a' && c <= 'z' );
 }
 
 int TacStrCmp( const char* lhs, const char* rhs )
@@ -45,16 +53,26 @@ void TacMemCpy( void* dst, const void* src, int len )
 
 TacString TacToString( int i )
 {
+  bool isNegative = i < 0;
   TacString s;
   for( ;; )
   {
     char curdigit = i % 10 + '0';
-    s = curdigit + s; // yep
+    s = curdigit + s;
     i /= 10;
     if( !i )
       break;
   }
+  if( isNegative )
+    s = "-" + s;
   return s;
+}
+
+TacString TacToString( void* val )
+{
+  std::stringstream ss;
+  ss << val;
+  return ss.str().c_str();
 }
 
 TacString TacToString( double val )

@@ -461,6 +461,7 @@ void TacUI2DState::Draw2DText(
   //}
   mUI2DDrawData->mDrawCall2Ds.push_back( drawCall );
 
+  if( heightBetweenBaselines )
   *heightBetweenBaselines = ( float )( ( lineCount )* lineHeight );
 }
 

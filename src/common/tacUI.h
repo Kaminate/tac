@@ -285,6 +285,7 @@ struct TacUIHierarchyVisual
 {
   virtual void Render(  TacErrors& errors ) {}
   virtual v2 GetSize() = 0;
+  virtual TacString GetDebugName() = 0;
   TacUIHierarchyNode* mHierarchyNode = nullptr;
 };
 
@@ -292,6 +293,10 @@ struct TacUIHierarchyVisualText : public TacUIHierarchyVisual
 {
   void Render( TacErrors& errors ) override;
   v2 GetSize() override;
+  TacString GetDebugName() override
+  {
+    return mUITextData.mUtf8;
+  }
   TacUITextData mUITextData;
   v2 mDims;
 };
@@ -300,6 +305,10 @@ struct TacUIHierarchyVisualImage : public TacUIHierarchyVisual
 {
   void Render( TacErrors& errors ) override;
   v2 GetSize() override;
+  TacString GetDebugName() override
+  {
+    return mTexture->mName;
+  }
   TacTexture* mTexture = nullptr;
   v2 mDims;
   // - alignment
@@ -318,9 +327,15 @@ struct TacUIHierarchyNode
   v4 mColor;
   TacVector< TacUIHierarchyNode* > mChildren;
   TacUIHierarchyNode* mParent = nullptr;
+
+  // use injection instead?
   TacUIRoot* mUIRoot = nullptr;
+
+
   TacUILayoutType mLayoutType = TacUILayoutType::Horizontal;
   v2 mPosition = {};
+  TacString mDebugName;
+
 
   // This variable is used...
   //
@@ -338,6 +353,7 @@ struct TacUIHierarchyNode
     mVisual = visual;
     visual->mHierarchyNode = this;
   }
+  TacUIHierarchyVisual* GetVisual() { return mVisual; }
 private:
   TacUIHierarchyVisual* mVisual = nullptr;
 };
@@ -375,6 +391,7 @@ struct TacUIRoot//  : public TacUIHierarchyNode
   ////////////////////////
 
   TacUIHierarchyNode* mHierarchyRoot = nullptr;
+  void DebugGenerateGraphVizDotFile();
 
   
   //////////////////////

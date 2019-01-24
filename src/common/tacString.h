@@ -4,6 +4,7 @@
 #include <initializer_list>
 
 bool TacIsSpace( char c );
+bool TacIsAlpha( char c );
 
 int TacStrLen( const char* str );
 // Negative value if lhs appears before rhs in lexicographical order.
@@ -55,6 +56,7 @@ struct TacString
 };
 
 TacString TacToString( int i );
+TacString TacToString( void* val );
 TacString TacToString( double val );
 TacString TacToString( float val );
 
