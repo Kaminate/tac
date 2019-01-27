@@ -308,20 +308,10 @@ void TacWindowsApplication2::OnShellInit( TacErrors& errors )
   if( hCursor == NULL )
     SetCursor( mCursors->cursorArrow );
 }
-void TacWindowsApplication2::Poll( TacErrors& errors )
+TacWin32DesktopWindow* TacWindowsApplication2::GetCursorUnobscuredWindow()
 {
-  TacKeyboardInput* keyboardInput = mShell->mKeyboardInput;
-  keyboardInput->BeforePoll();
-  //std::set< TacWin32DesktopWindow* > unsortedWindows;
-  for( TacWin32DesktopWindow* window : mWindows )
-  {
-    window->Poll( errors );
-    TAC_HANDLE_ERROR( errors );
-    //unsortedWindows.insert( window );
-  }
-
-  // Windows earlier in the array occlude later windows.
-  TacVector< TacWin32DesktopWindow* > zsortedWindows;
+  POINT cursorPos;
+  GetCursorPos( &cursorPos );
 
   // Brute-forcing the lookup through all the windows, because...
   // - GetTopWindow( parentHwnd ) is returning NULL.
@@ -336,46 +326,42 @@ void TacWindowsApplication2::Poll( TacErrors& errors )
     curZSortedHwnd = GetWindow( curZSortedHwnd, GW_HWNDNEXT ) )
   {
     totalWindowCount++;
-    //for( TacWin32DesktopWindow* window : unsortedWindows )
+    // I tried removing this for loop and just returning an HWND which
+    // may or may not be a tac HWND. Didn't work.
     for( TacWin32DesktopWindow* window : mWindows )
     {
-      if( window->mHWND == curZSortedHwnd )
-      {
-        //unsortedWindows.erase( window );
-        zsortedWindows.push_back( window );
-      }
+      if( window->mHWND != curZSortedHwnd )
+        continue;
+
+      RECT windowRect;
+      GetWindowRect( curZSortedHwnd, &windowRect );
+
+      bool isCursorInside = 
+        cursorPos.x >= windowRect.left &&
+        cursorPos.x <= windowRect.right &&
+        cursorPos.y >= windowRect.top &&
+        cursorPos.y <= windowRect.bottom;
+
+      if( isCursorInside )
+        return window;
     }
   }
 
-  bool foundTopZWindowContainingCursor = false;
-
-  TacWin32DesktopWindow* cursorUnobscuredWindow = nullptr;
-  for( TacWin32DesktopWindow*  window : zsortedWindows )
+  return nullptr;
+}
+void TacWindowsApplication2::Poll( TacErrors& errors )
+{
+  TacKeyboardInput* keyboardInput = mShell->mKeyboardInput;
+  keyboardInput->BeforePoll();
+  for( TacWin32DesktopWindow* window : mWindows )
   {
-    HWND windowHandle = window->mHWND;
-    POINT cursorPos;
-    GetCursorPos( &cursorPos );
-
-    RECT windowRect;
-    GetWindowRect( windowHandle, &windowRect );
-
-    bool isCursorInside = 
-      cursorPos.x >= windowRect.left ||
-      cursorPos.x <= windowRect.right ||
-      cursorPos.y >= windowRect.top ||
-      cursorPos.y <= windowRect.bottom;
-
-    if( isCursorInside )
-    {
-      cursorUnobscuredWindow = window;
-      break;
-    }
+    window->Poll( errors );
+    TAC_HANDLE_ERROR( errors );
   }
 
+  TacWin32DesktopWindow* cursorUnobscuredWindow = GetCursorUnobscuredWindow();
   for( TacWin32DesktopWindow* window : mWindows )
     window->mCursorUnobscured = cursorUnobscuredWindow == window;
-
-
 
   if( mMouseEdgeHandler )
   {

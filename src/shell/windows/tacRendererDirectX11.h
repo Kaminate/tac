@@ -39,6 +39,7 @@ struct TacCBufferDX11 : public TacCBuffer
 
 struct TacTextureDX11 : public TacTexture
 {
+  TacTextureDX11();
   ~TacTextureDX11();
   ID3D11Resource* mDXObj = nullptr;
   ID3D11ShaderResourceView* mSrv = nullptr;
@@ -271,10 +272,10 @@ struct TacRendererDirectX11 : public TacRenderer
   TacDXGI mDxgi;
   TacVector< TacDX11Window* > mWindows;
 
-  TacShaderDX11* currentlyBoundShader = nullptr;
-  TacVertexBufferDX11* currentlyBoundVertexBuffer = nullptr;
-  TacIndexBufferDX11* currentlyBoundIndexBuffer = nullptr;
-  TacBlendStateDX11* currentlyBoundBlendState = nullptr;
+  TacShaderDX11* mCurrentlyBoundShader = nullptr;
+  TacVertexBufferDX11* mCurrentlyBoundVertexBuffer = nullptr;
+  TacIndexBufferDX11* mCurrentlyBoundIndexBuffer = nullptr;
+  TacBlendStateDX11* mCurrentlyBoundBlendState = nullptr;
   TacRasterizerStateDX11* mCurrentlyBoundRasterizerState = nullptr;
   TacDepthStateDX11* mCurrentlyBoundDepthState = nullptr;
   TacVertexFormatDX11* mCurrentlyBoundVertexFormat = nullptr;

@@ -439,7 +439,7 @@ void TacRendererDirectX11::Render( TacErrors& errors )
 
   for( TacDrawCall2& drawCall : mDrawCall2s )
   {
-    if( currentlyBoundShader != drawCall.mShader )
+    if( mCurrentlyBoundShader != drawCall.mShader )
     {
       auto shaderDX11 = ( TacShaderDX11 * )drawCall.mShader;
       ID3D11VertexShader* vertexShader = nullptr;
@@ -459,10 +459,10 @@ void TacRendererDirectX11::Render( TacErrors& errors )
       }
       mDeviceContext->VSSetShader( vertexShader, nullptr, 0 );
       mDeviceContext->PSSetShader( pixelShader, nullptr, 0 );
-      currentlyBoundShader = shaderDX11;
+      mCurrentlyBoundShader = shaderDX11;
     }
 
-    if( currentlyBoundVertexBuffer != drawCall.mVertexBuffer )
+    if( mCurrentlyBoundVertexBuffer != drawCall.mVertexBuffer )
     {
       int startSlot = 0;
       const int NUM_VBOS = 16;
@@ -491,10 +491,10 @@ void TacRendererDirectX11::Render( TacErrors& errors )
         vertexBufferHandles,
         strides,
         offsets );
-      currentlyBoundVertexBuffer = ( TacVertexBufferDX11* )drawCall.mVertexBuffer;
+      mCurrentlyBoundVertexBuffer = ( TacVertexBufferDX11* )drawCall.mVertexBuffer;
     }
 
-    if( currentlyBoundIndexBuffer != drawCall.mIndexBuffer )
+    if( mCurrentlyBoundIndexBuffer != drawCall.mIndexBuffer )
     {
       auto indexBufferDX11 = ( TacIndexBufferDX11* )drawCall.mIndexBuffer;
       ID3D11Buffer* buffer = nullptr;
@@ -505,7 +505,7 @@ void TacRendererDirectX11::Render( TacErrors& errors )
         format = indexBufferDX11->mFormat;
       }
       mDeviceContext->IASetIndexBuffer( buffer, format, 0 );
-      currentlyBoundIndexBuffer = indexBufferDX11;
+      mCurrentlyBoundIndexBuffer = indexBufferDX11;
 
       if( false )
         std::cout << "changing index buffer to "
@@ -514,7 +514,7 @@ void TacRendererDirectX11::Render( TacErrors& errors )
           << indexBufferDX11->indexCount << std::endl;
     }
 
-    if( currentlyBoundBlendState != drawCall.mBlendState )
+    if( mCurrentlyBoundBlendState != drawCall.mBlendState )
     {
       auto blendStateDX11 = ( TacBlendStateDX11* )drawCall.mBlendState;
       ID3D11BlendState* pBlendState = nullptr; // default blend state, overwrites dst with src pixels
@@ -526,7 +526,7 @@ void TacRendererDirectX11::Render( TacErrors& errors )
         pBlendState,
         blendFactorRGBA.data(),
         sampleMask );
-      currentlyBoundBlendState = blendStateDX11;
+      mCurrentlyBoundBlendState = blendStateDX11;
     }
 
     if( mCurrentlyBoundRasterizerState != drawCall.mRasterizerState )
@@ -655,7 +655,7 @@ void TacRendererDirectX11::Render( TacErrors& errors )
 
     if( drawCall.mIndexCount )
     {
-      TacAssert( currentlyBoundShader );
+      TacAssert( mCurrentlyBoundShader );
       mDeviceContext->DrawIndexed( drawCall.mIndexCount, drawCall.mStartIndex, 0 );
     }
   }
@@ -1660,8 +1660,8 @@ TacShaderDX11::~TacShaderDX11()
   TAC_RELEASE_IUNKNOWN( mVertexShader );
   TAC_RELEASE_IUNKNOWN( mPixelShader );
   auto rendererDX11 = ( TacRendererDirectX11* )mRenderer;
-  if( rendererDX11->currentlyBoundShader == this )
-    rendererDX11->currentlyBoundShader = nullptr;
+  if( rendererDX11->mCurrentlyBoundShader == this )
+    rendererDX11->mCurrentlyBoundShader = nullptr;
 }
 
 TacSampler* TacShaderDX11::FindTexture( const TacString& name )
@@ -1674,14 +1674,23 @@ TacSampler* TacShaderDX11::FindSampler( const TacString& name )
   return Find( mSamplers, name );
 }
 
+bool debugTextureLifespan = false;
+TacTextureDX11::TacTextureDX11()
+{
+  if( debugTextureLifespan )
+  {
+    std::cout
+      << "creating texture " << this
+      << std::endl;
+  }
+}
 
 TacTextureDX11::~TacTextureDX11()
 {
-  if( false )
+  if( debugTextureLifespan )
   {
     std::cout
-      << "deleting texture (" << mName << ") created at "
-      << this->mStackFrame.ToString()
+      << "deleting texture " << this << "(" << mName << ")"
       << std::endl;
   }
 
@@ -1715,8 +1724,8 @@ TacVertexBufferDX11::~TacVertexBufferDX11()
 
   TAC_RELEASE_IUNKNOWN( mDXObj );
   auto rendererDX11 = ( TacRendererDirectX11* )mRenderer;
-  if( rendererDX11->currentlyBoundVertexBuffer == this )
-    rendererDX11->currentlyBoundVertexBuffer = nullptr;
+  if( rendererDX11->mCurrentlyBoundVertexBuffer == this )
+    rendererDX11->mCurrentlyBoundVertexBuffer = nullptr;
 }
 
 void TacVertexBufferDX11::Overwrite( void* data, int byteCount, TacErrors& errors )
@@ -1728,8 +1737,8 @@ TacIndexBufferDX11::~TacIndexBufferDX11()
 {
   TAC_RELEASE_IUNKNOWN( mDXObj );
   auto rendererDX11 = ( TacRendererDirectX11* )mRenderer;
-  if( rendererDX11->currentlyBoundIndexBuffer == this )
-    rendererDX11->currentlyBoundIndexBuffer = nullptr;
+  if( rendererDX11->mCurrentlyBoundIndexBuffer == this )
+    rendererDX11->mCurrentlyBoundIndexBuffer = nullptr;
 }
 
 void TacIndexBufferDX11::Overwrite( void* data, int byteCount, TacErrors& errors )
@@ -1801,8 +1810,8 @@ TacBlendStateDX11::~TacBlendStateDX11()
 {
   TAC_RELEASE_IUNKNOWN( mDXObj );
   auto rendererDX11 = ( TacRendererDirectX11* )mRenderer;
-  if( rendererDX11->currentlyBoundBlendState == this )
-    rendererDX11->currentlyBoundBlendState = nullptr;
+  if( rendererDX11->mCurrentlyBoundBlendState == this )
+    rendererDX11->mCurrentlyBoundBlendState = nullptr;
 }
 
 TacRasterizerStateDX11::~TacRasterizerStateDX11()

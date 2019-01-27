@@ -39,9 +39,11 @@ struct TacWindowsApplication2 : public TacDesktopApp
 
   // Note: The first window spawned will be the parent window,
   //       combining them all into one tab group
-  void SpawnWindow( const TacWindowParams& , TacDesktopWindow** , TacErrors& ) override;
+  void SpawnWindow( const TacWindowParams&, TacDesktopWindow**, TacErrors& ) override;
   void GetPrimaryMonitor( TacMonitor* monitor, TacErrors& errors ) override;
   void OnShellInit( TacErrors& errors ) override;
+
+  TacWin32DesktopWindow* GetCursorUnobscuredWindow();
 
   // WinMain arguments
   HINSTANCE mHInstance = nullptr;

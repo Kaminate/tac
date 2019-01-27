@@ -437,7 +437,6 @@ struct TacDrawCall
   bool mIsText = false; // eww
 };
 
-
 struct TacDrawCall2
 {
   TacShader* mShader = nullptr;
@@ -455,7 +454,6 @@ struct TacDrawCall2
   TacCBuffer* mUniformDst = nullptr;
   TacVector< char > mUniformSrcc;
   TacStackFrame mStackFrame;
-  int mDebugIndex;
 };
 
 // TODO: Make all the datas passed by const ref

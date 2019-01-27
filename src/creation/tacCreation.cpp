@@ -677,11 +677,20 @@ void TacEditorWindow::Update( TacErrors& errors )
   TacDesktopWindow* desktopWindow = mDesktopWindow;
   TacUI2DDrawData* uI2DDrawData = mUI2DDrawData;
 
-  uI2DDrawData->DrawToTexture( errors );
-  TAC_HANDLE_ERROR( errors );
 
   mUIRoot->Update();
   mUIRoot->Render( errors );
+  TAC_HANDLE_ERROR( errors );
+
+  // ^
+  // |
+  // ui renders onto the draw data so have it first
+  // otherwise, if you resize the window it will try to
+  // draw using a deleted texture
+  // |
+  // v
+
+  uI2DDrawData->DrawToTexture( errors );
   TAC_HANDLE_ERROR( errors );
 }
 
