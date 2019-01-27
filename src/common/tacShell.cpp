@@ -51,7 +51,7 @@ TacShell::~TacShell()
   delete mLog;
   delete mNet;
   delete mTimer;
-  delete mInput;
+  delete mControllerInput;
 }
 void TacShell::Init( TacErrors& errors )
 {
@@ -211,13 +211,13 @@ void TacShell::DebugImgui( TacErrors& errors )
   }
   ImGui::Text( "Soul count: %i", mSouls.size() );
   ImGui::DragFloat( "Accumulated seconds", &mTimer->mAccumulatedSeconds );
-  ImGui::DragInt( "mMouseRelTopLeftY", &mMouseRelTopLeftY );
-  ImGui::DragInt( "mMouseRelTopLeftX", &mMouseRelTopLeftX );
-  ImGui::DragInt( "mMouseRelTopLeftYDelta", &mMouseRelTopLeftYDelta );
-  ImGui::DragInt( "mMouseRelTopLeftXDelta", &mMouseRelTopLeftXDelta );
-  ImGui::DragInt( "mouse wheel rel", &mMouseWheelRel );
-  ImGui::DragInt( "window w", &mWindowWidth );
-  ImGui::DragInt( "window h", &mWindowHeight );
+  //ImGui::DragInt( "mMouseRelTopLeftY", &mMouseRelTopLeftY );
+  //ImGui::DragInt( "mMouseRelTopLeftX", &mMouseRelTopLeftX );
+  //ImGui::DragInt( "mMouseRelTopLeftYDelta", &mMouseRelTopLeftYDelta );
+  //ImGui::DragInt( "mMouseRelTopLeftXDelta", &mMouseRelTopLeftXDelta );
+  //ImGui::DragInt( "mouse wheel rel", &mMouseWheelRel );
+  //ImGui::DragInt( "window w", &mWindowWidth );
+  //ImGui::DragInt( "window h", &mWindowHeight );
   ImGui::Checkbox( "imgui render", &mImGuiRender );
   ImGui::Text( "Elapsed time: %s", TacFormatFrameTime( mElapsedSeconds ).c_str() );
 
@@ -233,8 +233,8 @@ void TacShell::DebugImgui( TacErrors& errors )
     mLocalization->DebugImgui();
   if( mFontStuff )
     mFontStuff->DebugImgui();
-  if( mInput )
-    mInput->DebugImgui();
+  if( mControllerInput )
+    mControllerInput->DebugImgui();
 
   if( ImGui::Button( "std::cout" ) )
     std::cout << mToStdOut << std::endl;
@@ -251,14 +251,19 @@ void TacShell::DebugImgui( TacErrors& errors )
   }
   mDebugImguiAux.EmitEvent();
 }
+void TacShell::AddSoul( TacSoul* soul )
+{
+  soul->mID = mSoulIDCounter++;
+  soul->mShell = this;
+  mSouls.push_back( soul );
+}
 void TacShell::AddSoul( TacErrors& errors )
 {
   if( !mGhostCreateFn )
     return;
   TacSoul* ghost = mGhostCreateFn( this, errors );
   TAC_HANDLE_ERROR( errors );
-  ghost->mID = mSoulIDCounter++;
-  mSouls.push_back( ghost );
+  AddSoul( ghost );
 }
 
 
@@ -287,8 +292,8 @@ void TacShell::Update( TacErrors& errors )
   }
 
   mOnUpdate.EmitEvent();
-  if( mInput )
-    mInput->Update();
+  if( mControllerInput )
+    mControllerInput->Update();
   if( TacIsDebugMode() && mKeyboardInput->IsKeyJustDown( TacToggleMainMenuKey ) )
   {
     if( mImGuiRender )

@@ -1,0 +1,58 @@
+#include "tacColorUtil.h"
+#include "common/math/tacMath.h"
+#include <cmath> // cos
+
+v4 TacGetColorSchemeA( float t )
+{
+  v4 clearColorRGBA;
+  v3 a = { 0.8f, 0.5f, 0.4f };
+  v3 b = { 0.2f, 0.4f, 0.2f };
+  v3 c = { 2.0f, 1.0f, 1.0f };
+  v3 d = { 0.0f, 0.25f, 0.25f };
+  for( int i = 0; i < 3; ++i )
+  {
+    float v = c[ i ];
+    v *= ( float )t;
+    v *= 0.15f;
+    v += d[ i ];
+    v *= 2.0f;
+    v *= 3.14f;
+    v = std::cos( v );
+    v *= b[ i ];
+    v += a[ i ];
+    clearColorRGBA[ i ] = v;
+  }
+  clearColorRGBA[ 3 ] = 1.0f;
+  return clearColorRGBA;
+}
+
+void TacRGBToHSV( v3 inputRGB, float* h, float* s, float* v )
+{
+  float r = inputRGB.x;
+  float g = inputRGB.y;
+  float b = inputRGB.z;
+  float maxi = TacMax( TacMax( r, g ), b );
+  float mini = TacMin( TacMin( r, g ), b );
+  float delta = maxi - mini;
+  if( maxi == r ) *h = ( ( ( g - b ) / delta ) + 0 ) / 6.0f;
+  else if( maxi == g ) *h = ( ( ( b - r ) / delta ) + 2 ) / 6.0f;
+  else if( maxi == b ) *h = ( ( ( r - g ) / delta ) + 4 ) / 6.0f;
+  else *h = 0;
+  *v = maxi;
+  *s = *v > 0 ? delta / *v : 0;
+}
+void TacHSVToRGB( float h, float s, float v, v3* outputRGB )
+{
+  float c = v * s; // c = chroma
+  float h_prime = h * 6.0f;
+  float x = c * ( 1 - std::abs( std::fmodf( h_prime, 2 ) - 1 ) );
+  v3 rgb1 = {};
+  if( h_prime <= 6 ) rgb1 = { c, 0, x };
+  if( h_prime <= 5 ) rgb1 = { x, 0, c };
+  if( h_prime <= 4 ) rgb1 = { 0, x, c };
+  if( h_prime <= 3 ) rgb1 = { 0, c, x };
+  if( h_prime <= 2 ) rgb1 = { x, c, 0 };
+  if( h_prime <= 1 ) rgb1 = { c, x, 0 };
+  float m = v - c;
+  *outputRGB = rgb1 + v3( 1, 1, 1 ) * m;
+}

@@ -88,6 +88,7 @@ struct TacUI2DDrawCall
   TacVector< char > mUniformSource;
 };
 
+// why does this class exist
 struct TacUI2DDrawData
 {
   ~TacUI2DDrawData();

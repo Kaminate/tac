@@ -58,5 +58,8 @@ struct TacDesktopWindow : public TacWindowParams
   //TacUIRoot* mUIRoot = nullptr;
   TacEvent<>::Emitter mOnResize;
   TacEvent<>::Emitter mOnMove;
+
+  // True if the window directly under the mouse cursor is this one
+  bool mCursorUnobscured = false;
 };
 

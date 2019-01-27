@@ -370,7 +370,11 @@ struct TacUIRoot//  : public TacUIHierarchyNode
   // Unified getter because I can't make up my mind how to store this variable ( Shell*? )
   double GetElapsedSeconds() { return *mElapsedSeconds; }
 
-  TacDesktopWindow* mDesktopWindow = nullptr;
+  // | The ui shouldn't know about the window it's rendering to
+  // | because it could be rendererd to a texture
+  // v
+  //TacDesktopWindow* mDesktopWindow = nullptr;
+
   TacUI2DDrawData* mUI2DDrawData = nullptr;
   TacFontStuff* mFontStuff = nullptr;
   TacKeyboardInput* mKeyboardInput = nullptr;
@@ -381,6 +385,8 @@ struct TacUIRoot//  : public TacUIHierarchyNode
   float transitionDurationSeconds;
 
   // TODO: add notes on coordinates
+  //       ...
+  //       ...?
   v2 mUiCursor = {};
 
   bool mShouldDebugDrawButtonAreas = false;
@@ -391,7 +397,7 @@ struct TacUIRoot//  : public TacUIHierarchyNode
   ////////////////////////
 
   TacUIHierarchyNode* mHierarchyRoot = nullptr;
-  void DebugGenerateGraphVizDotFile();
+  TacString DebugGenerateGraphVizDotFile();
 
   
   //////////////////////

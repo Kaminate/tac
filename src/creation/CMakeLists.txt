@@ -5,7 +5,10 @@ if( ( NOT WIN32 ) AND ( NOT UNIX ) )
 endif()
 
 set( TAC_DEBUGGING FALSE )
-set( TAC_LIBRARIES TacCommonLibrary  )
+set( TAC_LIBRARIES
+  TacCommonLibrary 
+  Ghost
+   )
 set( TAC_INCLUDE_DIRECTORIES "" )
 set( TAC_SOURCES "" )
 set( TAC_EXE_NAME "Creation" )
@@ -22,7 +25,10 @@ if( WIN32 )
     "${CMAKE_SOURCE_DIR}/src/shell/windows/tacDXGI.h"
     "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWindows.cpp"
     "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWindows.h"
-
+    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacXInput.cpp"
+    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacXInput.h"
+    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacNetWinsock.cpp"
+    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacNetWinsock.h"
     "${CMAKE_SOURCE_DIR}/src/shell/windows/tacRendererDirectX12.cpp"
     "${CMAKE_SOURCE_DIR}/src/shell/windows/tacRendererDirectX12.h"
     "${CMAKE_SOURCE_DIR}/src/shell/windows/tacRendererDirectX11.cpp"

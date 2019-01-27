@@ -192,7 +192,7 @@ void TacScriptMatchmaker::Update( float seconds, TacErrors& errors )
   auto settings = shell->mSettings;
   TAC_TIMELINE_BEGIN;
   mSocket = net->CreateSocket( "Matchmaking socket", TacAddressFamily::IPv4, TacSocketType::TCP, errors );
-    TAC_HANDLE_ERROR( errors );
+  TAC_HANDLE_ERROR( errors );
 
   auto tCPOnMessage = []( void* userData, TacSocket* socket, void* bytes, int byteCount )
   {
@@ -239,7 +239,7 @@ void TacScriptMatchmaker::Update( float seconds, TacErrors& errors )
   if( mPrintHTTPRequest )
     std::cout << httpRequest.ToString() << std::endl;
   mSocket->Send( httpRequest, errors );
-    TAC_HANDLE_ERROR( errors );
+  TAC_HANDLE_ERROR( errors );
   mPretendWebsocketHandshakeDone = true;
   mSocket->mRequiresWebsocketFrame = true;
   mSocket->mKeepaliveOverride.mUserData = this;
@@ -365,10 +365,6 @@ void TacScriptMainMenu::AddCallbackDisconnect()
 }
 void TacScriptMainMenu::Update( float seconds, TacErrors& errors )
 {
-
-
-
-
   auto ghost = mScriptRoot->mGhost;
   auto shell = ghost->mShell;
   TacUIRoot* uiRoot = ghost->mUIRoot;
@@ -386,12 +382,9 @@ void TacScriptMainMenu::Update( float seconds, TacErrors& errors )
 
   if( !mPower )
   {
-      // TODO: use the asset manager to load this shit async
-
-
-    auto memory = TacTemporaryMemory( TacString( "power.png" ), errors );
-    if( errors.size() )
-      return;
+    // TODO: use the asset manager to load this shit async
+    auto memory = TacTemporaryMemory( "assets/power.png", errors );
+    TAC_HANDLE_ERROR( errors );
 
     int x;
     int y;
@@ -716,7 +709,7 @@ void TacScriptMainMenu::Update( float seconds, TacErrors& errors )
 
 
   mTimeline.Update( ghost->mShell->mElapsedSeconds, errors );
-    TAC_HANDLE_ERROR( errors );
+  TAC_HANDLE_ERROR( errors );
 
   return;
 

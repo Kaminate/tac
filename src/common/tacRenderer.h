@@ -437,6 +437,7 @@ struct TacDrawCall
   bool mIsText = false; // eww
 };
 
+
 struct TacDrawCall2
 {
   TacShader* mShader = nullptr;
@@ -453,6 +454,8 @@ struct TacDrawCall2
   TacTexture* mTexture = nullptr;
   TacCBuffer* mUniformDst = nullptr;
   TacVector< char > mUniformSrcc;
+  TacStackFrame mStackFrame;
+  int mDebugIndex;
 };
 
 // TODO: Make all the datas passed by const ref
@@ -629,26 +632,26 @@ struct TacRenderer
 
   virtual void Render( TacErrors& errors ) { TacUnimplemented; }
 
-  virtual void SetViewport(
-    float xRelBotLeftCorner,
-    float yRelBotLeftCorner,
-    float wIncreasingRight,
-    float hIncreasingUp ) {
-    TacUnimplemented;
-  }
+  //virtual void SetViewport(
+  //  float xRelBotLeftCorner,
+  //  float yRelBotLeftCorner,
+  //  float wIncreasingRight,
+  //  float hIncreasingUp ) {
+  //  TacUnimplemented;
+  //}
 
   virtual void SetPrimitiveTopology( TacPrimitive primitive ) { TacUnimplemented; }
 
   // coordinates relative to the render target ( not the viewport? )
   // x increases to the right
   // y increases down
-  virtual void SetScissorRect(
-    float x1,
-    float y1,
-    float x2,
-    float y2 ) {
-    TacUnimplemented;
-  }
+  //virtual void SetScissorRect(
+  //  float x1,
+  //  float y1,
+  //  float x2,
+  //  float y2 ) {
+  //  TacUnimplemented;
+  //}
 
   virtual void GetPerspectiveProjectionAB(
     float f,

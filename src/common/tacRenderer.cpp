@@ -479,7 +479,8 @@ void TacRenderer::Render2D(
       scissorMin = { xMin, yMin };
       scissorMax = { xMax, yMax };
     }
-    SetScissorRect( scissorMin.x, scissorMin.y, scissorMax.x, scissorMax.y );
+    // hmm...
+    //SetScissorRect( scissorMin.x, scissorMin.y, scissorMax.x, scissorMax.y );
     DrawIndexed( drawCall.mIndexCount, startingIndex, 0 );
     startingIndex += drawCall.mIndexCount;
   }
@@ -496,6 +497,7 @@ void TacRenderer::DebugDraw(
   const TacVector< TacDefaultVertexColor >& mDebugDrawVerts,
   TacErrors& errors )
 {
+  return;
   DebugBegin( "Debug Draw" );
   OnDestruct( DebugEnd() );
   //SetRenderTarget( texture, depth );
@@ -518,11 +520,11 @@ void TacRenderer::DebugDraw(
 
   auto viewportW = ( float )texture->myImage.mWidth;
   auto viewportH = ( float )texture->myImage.mHeight;
-  SetViewport(
-    0, // x rel bot left
-    0, // y rel bot left
-    viewportW,
-    viewportH );
+  //SetViewport(
+  //  0, // x rel bot left
+  //  0, // y rel bot left
+  //  viewportW,
+  //  viewportH );
   DrawNonIndexed( ( int )mDebugDrawVerts.size() );
   DebugEnd();
 }
@@ -572,3 +574,4 @@ void TacRenderer::RemoveRendererResource( TacRendererResource* rendererResource 
   mRendererResources.erase( rendererResource );
   delete rendererResource;
 }
+

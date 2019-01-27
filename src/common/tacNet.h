@@ -62,7 +62,7 @@ struct TacSocket
   TacString mName;
   TacSocketType mSocketType = TacSocketType::Count;
   TacAddressFamily mAddressFamily = TacAddressFamily::Count;
-  double mLastRecvFrame = 0;
+  double mElapsedSecondsOnLastRecv = 0;
   TacNet* mNet = nullptr;
   bool mTCPIsConnected = false;
   bool mRequestDeletion = false;

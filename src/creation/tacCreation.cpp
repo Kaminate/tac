@@ -8,11 +8,15 @@
 #include "common/math/tacMath.h"
 #include "common/tacFont.h"
 #include "common/tacTextureAssetManager.h"
+#include "common/tacColorUtil.h"
+#include "space/tacGhost.h"
 
 #include <iostream>
 #include <functional>
 #include <algorithm>
 
+
+const TacString gGameWindowName = "VirtualGamePlayer";
 
 struct SaveWindowSize : public TacEvent<>::Handler
 {
@@ -49,31 +53,7 @@ static v4 GetClearColor( TacShell* shell )
   return v4( 1, 0, 0, 1 );
   float visualStudioBackground = 45 / 255.0f;
   visualStudioBackground += 0.3f;
-  //return v4( v3( 1, 1, 1 ) * visualStudioBackground, 1.0f );
-  v4 clearColorRGBA;
-  v3 a = { 0.8f, 0.5f, 0.4f };
-  v3 b = { 0.2f, 0.4f, 0.2f };
-  v3 c = { 2.0f, 1.0f, 1.0f };
-  v3 d = { 0.0f, 0.25f, 0.25f };
-  for( int i = 0; i < 3; ++i )
-  {
-    float v = c[ i ];
-    v *= ( float )shell->mElapsedSeconds;
-    v *= 0.15f;
-    v += d[ i ];
-    v *= 2.0f;
-    v *= 3.14f;
-    v = std::cos( v );
-    v *= b[ i ];
-    v += a[ i ];
-    clearColorRGBA[ i ] = v;
-  }
-  float scale = 0.2f;
-  clearColorRGBA[ 0 ] *= scale;
-  clearColorRGBA[ 1 ] *= scale;
-  clearColorRGBA[ 2 ] *= scale;
-  clearColorRGBA[ 3 ] = 1.0f;
-  return clearColorRGBA;
+  return TacGetColorSchemeA( ( float )shell->mElapsedSeconds );
 }
 
 static void SetRenderViewDefaults( TacShell* shell, TacDesktopWindow* desktopWindow )
@@ -145,7 +125,7 @@ void TacCreationMainWindow::Update( TacErrors& errors )
       TacUIHierarchyNode* statusBar = contentArea->Split(
         TacUISplit::After, TacUILayoutType::Vertical );
 
-      v4 textColor = v4( v3( 1, 1, 1 ) * 0.2f, 1 );
+      v4 textColor = v4( v3( 1, 1, 1 ) * 0.0f, 1 );
 
       if( topBar )
       {
@@ -186,7 +166,7 @@ void TacCreationMainWindow::Update( TacErrors& errors )
 
       }
 
-      if( menuBar  )
+      if( menuBar )
       {
         menuBar->mDebugName = "menu bar";
         menuBar->mSize.y = 300;
@@ -238,7 +218,14 @@ void TacCreationMainWindow::Update( TacErrors& errors )
         statusBar->mSize.y = 30;
       }
 
-        uiRoot->DebugGenerateGraphVizDotFile();
+      if( false )
+      {
+        TacString stringified = uiRoot->DebugGenerateGraphVizDotFile();
+        TacString filepath = creation->mShell->mPrefPath + "/tac.dot";
+        TacErrors errors;
+        TacOS::Instance->SaveToFile( filepath, stringified.data(), stringified.size(), errors );
+        TacAssert( errors.empty() );
+      }
     }
 
 
@@ -545,7 +532,6 @@ void TacCreation::Init( TacErrors& errors )
     uiRoot->mKeyboardInput = shell->mKeyboardInput;
     uiRoot->mElapsedSeconds = &shell->mElapsedSeconds;
     uiRoot->mUI2DDrawData = ui2DDrawData;
-    uiRoot->mDesktopWindow = desktopWindow;
 
     auto editorWindow = new TacEditorWindow();
     editorWindow->mCreation = this;
@@ -559,6 +545,15 @@ void TacCreation::Init( TacErrors& errors )
       mMainWindow = new TacCreationMainWindow();
       mMainWindow->mEditorWindow = editorWindow;
       mMainWindow->Init( errors );
+      TAC_HANDLE_ERROR( errors );
+    }
+
+    if( windowParams.mName == gGameWindowName )
+    {
+      TacAssert( !mGameWindow );
+      mGameWindow = new TacCreationGameWindow();
+      mGameWindow->mEditorWindow = editorWindow;
+      mGameWindow->Init( errors );
       TAC_HANDLE_ERROR( errors );
     }
 
@@ -608,6 +603,11 @@ void TacCreation::Update( TacErrors& errors )
   if( mMainWindow )
   {
     mMainWindow->Update( errors );
+    TAC_HANDLE_ERROR( errors );
+  }
+  if( mGameWindow )
+  {
+    mGameWindow->Update( errors );
     TAC_HANDLE_ERROR( errors );
   }
 }
@@ -683,4 +683,138 @@ void TacEditorWindow::Update( TacErrors& errors )
   mUIRoot->Update();
   mUIRoot->Render( errors );
   TAC_HANDLE_ERROR( errors );
+}
+
+void TacCreationGameWindow::Init( TacErrors& errors)
+{
+  TacShell* shell = mEditorWindow->mCreation->mShell;
+
+  mRenderView = new TacRenderView();
+
+  auto uI2DDrawData = new TacUI2DDrawData();
+  uI2DDrawData->mUI2DCommonData = shell->mUI2DCommonData;
+  uI2DDrawData->mRenderView = mRenderView;
+
+  auto ghost = new TacGhost( shell, errors);
+  TAC_HANDLE_ERROR( errors );
+  ghost->mUIRoot->mUI2DDrawData = uI2DDrawData;
+  ghost->mRenderView = mRenderView;
+
+  ghost->Init( errors );
+  TAC_HANDLE_ERROR( errors );
+
+  shell->AddSoul( ghost );
+  mSoul = ghost;
+
+  struct TacGameVis : public TacUIHierarchyVisual
+  {
+    void Render( TacErrors& errors ) override
+    {
+      TacTexture* texture;
+      TacString path;
+      TacRenderer* renderer = mRenderer;
+      
+      path = "assets/vgb_blue_big.png";
+      mTextureAssetManager->GetTexture( &texture, path, errors );
+      TacUI2DState& state = mHierarchyNode->mUIRoot->mUI2DDrawData->mStates.back();
+      state.Draw2DBox(
+        ( float )mDesktopWindow->mWidth,
+        ( float )mDesktopWindow->mHeight,
+        v4( 1, 1, 1, 1 ),
+        texture );
+
+      float innerBoxPercentOffsetX = 0.159f;
+      float innerBoxPercentOffsetY = 0.175f;
+      float innerBoxPercentWidth = 1 - ( 2 * innerBoxPercentOffsetX );
+      float innerBoxPercentHeight = 1 - ( 2 * innerBoxPercentOffsetY );
+
+      float innerBoxPixelOffsetY = innerBoxPercentOffsetX * ( float )mDesktopWindow->mWidth;
+      float innerBoxPixelOffsetX = innerBoxPercentOffsetY * ( float )mDesktopWindow->mHeight;
+      float innerBoxPixelWidth = innerBoxPercentWidth * ( float )mDesktopWindow->mWidth;
+      float innerBoxPixelHeight = innerBoxPercentHeight * ( float )mDesktopWindow->mHeight;
+      state.Translate( innerBoxPixelOffsetY, innerBoxPixelOffsetX );
+
+      TacTexture* outputColor = mRenderView->mFramebuffer;
+      TacDepthBuffer* outputDepth = mRenderView->mFramebufferDepth;
+      if( !outputColor || outputColor->myImage.mWidth != ( int )innerBoxPixelWidth )
+      {
+        if( outputColor )
+        {
+          mRenderer->RemoveRendererResource( outputColor );
+          mRenderer->RemoveRendererResource( outputDepth );
+          outputColor = nullptr;
+          outputDepth = nullptr;
+        }
+
+        TacImage image;
+        image.mWidth = ( int )innerBoxPixelWidth;
+        image.mHeight = ( int )innerBoxPixelHeight;
+        image.mFormat.mPerElementByteCount = 1;
+        image.mFormat.mElementCount = 4;
+        image.mFormat.mPerElementDataType = TacGraphicsType::unorm;
+        TacTextureData textureData;
+        textureData.access = TacAccess::Default;
+        textureData.binding = { TacBinding::RenderTarget, TacBinding::ShaderResource };
+        textureData.cpuAccess = {};
+        textureData.mName = "client view fbo";
+        textureData.mStackFrame = TAC_STACK_FRAME;
+        textureData.myImage = image;
+        renderer->AddTextureResource( &outputColor, textureData, errors );
+        TAC_HANDLE_ERROR( errors );
+
+        TacDepthBufferData depthBufferData;
+        depthBufferData.mName = "client view depth buffer";
+        depthBufferData.mStackFrame = TAC_STACK_FRAME;
+        depthBufferData.width = ( int )innerBoxPixelWidth;
+        depthBufferData.height  = ( int )innerBoxPixelHeight;
+        renderer->AddDepthBuffer( &outputDepth, depthBufferData, errors );
+        TAC_HANDLE_ERROR( errors );
+
+        mRenderView->mFramebuffer = outputColor;
+        mRenderView->mFramebufferDepth = outputDepth;
+      }
+
+      //path = "assets/unknown.png";
+      //mTextureAssetManager->GetTexture( &texture, path, errors );
+      texture = outputColor;
+
+      state.Draw2DBox(
+        innerBoxPixelWidth,
+        innerBoxPixelHeight,
+        v4( 1, 1, 1, 1 ),
+        texture );
+
+    }
+    v2 GetSize() override
+    {
+      return
+      {
+        ( float )mDesktopWindow->mWidth,
+        ( float )mDesktopWindow->mHeight
+      };
+    }
+    TacString GetDebugName() override
+    {
+      return "game vis";
+    }
+    TacDesktopWindow* mDesktopWindow = nullptr;
+    TacTextureAssetManager* mTextureAssetManager = nullptr;
+    TacRenderer* mRenderer = nullptr;
+    TacSoul* mSoul = nullptr;
+    TacRenderView* mRenderView = nullptr;
+
+  };
+
+  auto gameVis = new TacGameVis();
+  gameVis->mDesktopWindow = mEditorWindow->mDesktopWindow;
+  gameVis->mTextureAssetManager = mEditorWindow->mCreation->mTextureAssetManager;
+  gameVis->mRenderer = mEditorWindow->mCreation->mShell->mRenderer;
+  gameVis->mSoul = ghost;
+  gameVis->mRenderView = mRenderView;
+
+
+  mEditorWindow->mUIRoot->mHierarchyRoot->SetVisual( gameVis);
+}
+void TacCreationGameWindow::Update( TacErrors& errors )
+{
 }

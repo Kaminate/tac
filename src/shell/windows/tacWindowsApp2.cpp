@@ -1,8 +1,11 @@
 #include "shell/windows/tacWindowsApp2.h"
+#include "shell/windows/tacXInput.h"
+#include "shell/windows/tacNetWinsock.h"
 #include "common/tacSettings.h"
 #include "common/imgui.h"
 #include "common/tacPreprocessor.h"
 #include "common/tacString.h"
+#include "common/tacAlgorithm.h"
 #include "common/tacErrorHandling.h"
 #include "common/tackeyboardinput.h"
 
@@ -253,6 +256,14 @@ void TacWindowsApplication2::Init( TacErrors& errors )
 }
 void TacWindowsApplication2::OnShellInit( TacErrors& errors )
 {
+  mShell->mControllerInput = new TacXInput( mHInstance, errors );
+  TAC_HANDLE_ERROR( errors );
+
+  auto netWinsock = new TacNetWinsock( errors );
+  TAC_HANDLE_ERROR( errors );
+  netWinsock->mShell = mShell;
+  mShell->mNet = netWinsock;
+
   // window borders should be a higher-level concept, right?
   mShouldWindowHaveBorder = mShell->mSettings->GetBool( nullptr, { "areWindowsBordered" }, false, errors );
   if( !mShouldWindowHaveBorder )
@@ -301,15 +312,74 @@ void TacWindowsApplication2::Poll( TacErrors& errors )
 {
   TacKeyboardInput* keyboardInput = mShell->mKeyboardInput;
   keyboardInput->BeforePoll();
+  //std::set< TacWin32DesktopWindow* > unsortedWindows;
   for( TacWin32DesktopWindow* window : mWindows )
   {
     window->Poll( errors );
     TAC_HANDLE_ERROR( errors );
+    //unsortedWindows.insert( window );
   }
+
+  // Windows earlier in the array occlude later windows.
+  TacVector< TacWin32DesktopWindow* > zsortedWindows;
+
+  // Brute-forcing the lookup through all the windows, because...
+  // - GetTopWindow( parentHwnd ) is returning NULL.
+  // - EnumChildWindows( parentHwnd, ... ) also shows that the parent has no children.
+  // - Calling GetParent( childHwnd ) returns NULL
+  // - Calling GetAncestor( childHwnd, GA_PARENT ) returns
+  //   the actual desktop hwnd ( window class #32769 )
+  HWND topZSortedHwnd = GetTopWindow( NULL );
+  int totalWindowCount = 0;
+  for( HWND curZSortedHwnd = topZSortedHwnd;
+    curZSortedHwnd != NULL;
+    curZSortedHwnd = GetWindow( curZSortedHwnd, GW_HWNDNEXT ) )
+  {
+    totalWindowCount++;
+    //for( TacWin32DesktopWindow* window : unsortedWindows )
+    for( TacWin32DesktopWindow* window : mWindows )
+    {
+      if( window->mHWND == curZSortedHwnd )
+      {
+        //unsortedWindows.erase( window );
+        zsortedWindows.push_back( window );
+      }
+    }
+  }
+
+  bool foundTopZWindowContainingCursor = false;
+
+  TacWin32DesktopWindow* cursorUnobscuredWindow = nullptr;
+  for( TacWin32DesktopWindow*  window : zsortedWindows )
+  {
+    HWND windowHandle = window->mHWND;
+    POINT cursorPos;
+    GetCursorPos( &cursorPos );
+
+    RECT windowRect;
+    GetWindowRect( windowHandle, &windowRect );
+
+    bool isCursorInside = 
+      cursorPos.x >= windowRect.left ||
+      cursorPos.x <= windowRect.right ||
+      cursorPos.y >= windowRect.top ||
+      cursorPos.y <= windowRect.bottom;
+
+    if( isCursorInside )
+    {
+      cursorUnobscuredWindow = window;
+      break;
+    }
+  }
+
+  for( TacWin32DesktopWindow* window : mWindows )
+    window->mCursorUnobscured = cursorUnobscuredWindow == window;
+
+
 
   if( mMouseEdgeHandler )
   {
-    mMouseEdgeHandler->Update( mWindows);
+    mMouseEdgeHandler->Update( cursorUnobscuredWindow );
 
     // if the mouse just left the window, reset the cursor lock
     //if( mMouseEdgeHandler && !mMouseEdgeHandler->IsHandling() )

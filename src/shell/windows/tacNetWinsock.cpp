@@ -1,12 +1,12 @@
-#include "tacNetWinsock.h"
-#include "tacPreprocessor.h"
-#include "tacUtility.h"
-#include "tacJson.h"
-#include "tacSerialization.h"
-#include "tacSettings.h"
-#include "tacAlgorithm.h"
+#include "shell/windows/tacNetWinsock.h"
+#include "common/tacPreprocessor.h"
+#include "common/tacUtility.h"
+#include "common/tacJson.h"
+#include "common/tacSerialization.h"
+#include "common/tacSettings.h"
+#include "common/tacAlgorithm.h"
 
-#include "imgui.h"
+#include "common/imgui.h"
 
 #include <iostream>
 #include <thread> // std::this_thread::sleep_for
@@ -227,7 +227,7 @@ TacSocket* TacNetWinsock::CreateSocket(
   netWinsocket->mSocketType = socketType;
   netWinsocket->mWinsockAddressFamily = winsockAddressFamily;
   netWinsocket->mWinsockSocketType = winsockSocketType;
-  netWinsocket->mLastRecvFrame = mShell->mElapsedFrames;
+  netWinsocket->mElapsedSecondsOnLastRecv = mShell->mElapsedSeconds;
   netWinsocket->SetKeepalive( true, errors );
   if( errors.size() )
     return nullptr;
@@ -267,7 +267,8 @@ void TacNetWinsock::Update( TacErrors& errors )
 
   for( auto socketWinsock : mSocketWinsocks )
   {
-    if( socketWinsock->mSocketType == TacSocketType::TCP && !socketWinsock->mTCPIsConnected )
+    if( socketWinsock->mSocketType == TacSocketType::TCP &&
+      !socketWinsock->mTCPIsConnected )
       continue;
 
     if( shouldSendKeepalive )
@@ -310,7 +311,7 @@ void TacNetWinsock::Update( TacErrors& errors )
       socketWinsock->mRequestDeletion = true;
       continue;
     }
-    socketWinsock->mLastRecvFrame = mShell->mElapsedFrames;
+    socketWinsock->mElapsedSecondsOnLastRecv = mShell->mElapsedSeconds;
     if( mPrintReceivedMessages )
     {
       auto recvString = TacString( recvBuf, recvResult );

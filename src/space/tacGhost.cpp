@@ -83,32 +83,32 @@ TacGhost::TacGhost( TacShell* shell, TacErrors& errors )
   mScriptRoot = new TacScriptRoot();
   mScriptRoot->mGhost = this;
   auto renderer = mShell->mRenderer;
-  int w = shell->mWindowWidth;
-  int h = shell->mWindowHeight;
+  //int w = shell->mWindowWidth;
+  //int h = shell->mWindowHeight;
 
-  TacImage image;
-  image.mWidth = w;
-  image.mHeight = h;
-  image.mFormat.mPerElementByteCount = 1;
-  image.mFormat.mElementCount = 4;
-  image.mFormat.mPerElementDataType = TacGraphicsType::unorm;
-  TacTextureData textureData;
-  textureData.access = TacAccess::Default;
-  textureData.binding = { TacBinding::RenderTarget, TacBinding::ShaderResource };
-  textureData.cpuAccess = {};
-  textureData.mName = "client view fbo";
-  textureData.mStackFrame = TAC_STACK_FRAME;
-  textureData.myImage = image;
-  renderer->AddTextureResource( &mFBOTexture,textureData, errors );
-  TAC_HANDLE_ERROR( errors );
+  //TacImage image;
+  //image.mWidth = w;
+  //image.mHeight = h;
+  //image.mFormat.mPerElementByteCount = 1;
+  //image.mFormat.mElementCount = 4;
+  //image.mFormat.mPerElementDataType = TacGraphicsType::unorm;
+  //TacTextureData textureData;
+  //textureData.access = TacAccess::Default;
+  //textureData.binding = { TacBinding::RenderTarget, TacBinding::ShaderResource };
+  //textureData.cpuAccess = {};
+  //textureData.mName = "client view fbo";
+  //textureData.mStackFrame = TAC_STACK_FRAME;
+  //textureData.myImage = image;
+  //renderer->AddTextureResource( &mFBOTexture, textureData, errors );
+  //TAC_HANDLE_ERROR( errors );
 
-  TacDepthBufferData depthBufferData;
-  depthBufferData.height = h;
-  depthBufferData.mName = "client view depth buffer";
-  depthBufferData.mStackFrame = TAC_STACK_FRAME;
-  depthBufferData.width = w;
-  renderer->AddDepthBuffer( &mFBODepthBuffer, depthBufferData, errors );
-  TAC_HANDLE_ERROR( errors );
+  //TacDepthBufferData depthBufferData;
+  //depthBufferData.height = h;
+  //depthBufferData.mName = "client view depth buffer";
+  //depthBufferData.mStackFrame = TAC_STACK_FRAME;
+  //depthBufferData.width = w;
+  //renderer->AddDepthBuffer( &mFBODepthBuffer, depthBufferData, errors );
+  //TAC_HANDLE_ERROR( errors );
 
   const TacString serverTypeGameClient = TacStringify( TacScriptGameClient );
   TacString serverType = mShell->mSettings->GetString(
@@ -138,21 +138,25 @@ TacGhost::TacGhost( TacShell* shell, TacErrors& errors )
   }
 
   mUIRoot = new TacUIRoot();
+  mUIRoot->mElapsedSeconds = &mShell->mElapsedSeconds; // eww
   //mUIRoot->mGhost = this;
 }
 TacGhost::~TacGhost()
 {
-  delete mFBOTexture;
-  delete mFBODepthBuffer;
+  //delete mFBOTexture;
+  //delete mFBODepthBuffer;
   for( TacUser* user : mUsers )
     delete user;
   delete mUIRoot;
   delete mServerData;
   delete mClientData;
 }
+void TacGhost::Init( TacErrors& errors )
+{
+}
 TacUser* TacGhost::AddPlayer( const TacString& name, TacErrors& errors )
 {
-    auto* user = new TacUser( this, name, errors );
+  auto* user = new TacUser( this, name, errors );
   mUsers.push_back( user );
   TacScriptMsg scriptMsg;
   scriptMsg.mType = scriptMsgNameUserConnect;
@@ -183,20 +187,20 @@ void TacGhost::Update( TacErrors& errors )
 {
   if( CanDrawImgui() )
   {
-    mMouserCursorNDC.x = ( ( float )mShell->mMouseRelTopLeftX - mImguiImagePosRelTopLeftX ) / mImguiImageW;
-    mMouserCursorNDC.y = ( ( float )mShell->mMouseRelTopLeftY - mImguiImagePosRelTopLeftY ) / mImguiImageH;
-    mMouseHoveredOverWindow &= mShell->mMouseInWindow;
-    mDrawDepthBuffer = mFBODepthBuffer;
-    mDrawTexture = mFBOTexture;
+    //mMouserCursorNDC.x = ( ( float )mShell->mMouseRelTopLeftX - mImguiImagePosRelTopLeftX ) / mImguiImageW;
+    //mMouserCursorNDC.y = ( ( float )mShell->mMouseRelTopLeftY - mImguiImagePosRelTopLeftY ) / mImguiImageH;
+    //mMouseHoveredOverWindow &= mShell->mMouseInWindow;
+    //mDrawDepthBuffer = mFBODepthBuffer;
+    //mDrawTexture = mFBOTexture;
   }
   else
   {
-    TacInvalidCodePath;
+    //TacInvalidCodePath;
     //mShell->mRenderer->GetBackbufferColor( &mDrawTexture  );
     //mShell->mRenderer->GetBackbufferDepth( &mDrawDepthBuffer );
-    mMouserCursorNDC.x = ( float )mShell->mMouseRelTopLeftX / mDrawTexture->myImage.mWidth;
-    mMouserCursorNDC.y = ( float )mShell->mMouseRelTopLeftY / mDrawTexture->myImage.mHeight;
-    mMouseHoveredOverWindow = mShell->mMouseInWindow;
+    //mMouserCursorNDC.x = ( float )mShell->mMouseRelTopLeftX / mDrawTexture->myImage.mWidth;
+    //mMouserCursorNDC.y = ( float )mShell->mMouseRelTopLeftY / mDrawTexture->myImage.mHeight;
+    //mMouseHoveredOverWindow = mShell->mMouseInWindow;
   }
   mMouserCursorNDC.y = 1 - mMouserCursorNDC.y;
   mMouserCursorNDC *= 2;
@@ -206,13 +210,13 @@ void TacGhost::Update( TacErrors& errors )
     user->Update( errors );
   mScriptRoot->Update( TAC_DELTA_FRAME_SECONDS, errors );
   mServerData->Update( TAC_DELTA_FRAME_SECONDS, nullptr, nullptr, errors );
-    TAC_HANDLE_ERROR( errors );
+  TAC_HANDLE_ERROR( errors );
   mUIRoot->Update();
   Draw( errors );
-    TAC_HANDLE_ERROR( errors );
+  TAC_HANDLE_ERROR( errors );
 
   AddMorePlayers( errors );
-    TAC_HANDLE_ERROR( errors );
+  TAC_HANDLE_ERROR( errors );
 }
 void TacGhost::AddMorePlayers( TacErrors& errors )
 {
@@ -230,7 +234,7 @@ void TacGhost::AddMorePlayers( TacErrors& errors )
   {
     if( TacContains( claimedControllerIndexes, controllerIndex ) )
       continue;
-    TacController* controller = mShell->mInput->mControllers[ controllerIndex ];
+    TacController* controller = mShell->mControllerInput->mControllers[ controllerIndex ];
     if( !controller )
       continue;
     if( !controller->IsButtonJustPressed( TacControllerButton::Start ) )
@@ -293,9 +297,9 @@ void TacGhost::DebugImgui( TacErrors& errors )
   ImGui::Checkbox( "Grabbing Input", &mIsGrabbingInput );
   mServerData->DebugImgui();
   mScriptRoot->DebugImgui( errors );
-    TAC_HANDLE_ERROR( errors );
+  TAC_HANDLE_ERROR( errors );
   ImguiCreatePlayerPopup( errors );
-    TAC_HANDLE_ERROR( errors );
+  TAC_HANDLE_ERROR( errors );
   if( ImGui::CollapsingHeader( "Users" ) )
   {
     ImGui::Indent();
@@ -326,25 +330,26 @@ void TacGhost::Draw( TacErrors& errors )
 
   renderer->DebugBegin( "Draw world" );
   OnDestruct( renderer->DebugEnd() );
-  TacTexture* fboTexture = mDrawTexture;
-  TacDepthBuffer* fboDepth = mDrawDepthBuffer;
+  //TacTexture* fboTexture = mDrawTexture;
+  //TacDepthBuffer* fboDepth = mDrawDepthBuffer;
+  TacTexture* fboTexture = mRenderView->mFramebuffer;
+  TacDepthBuffer* fboDepth = mRenderView->mFramebufferDepth;
 
   const float aspect = fboTexture->GetAspect();
   renderer->ClearColor( fboTexture, mClearColor );
   renderer->ClearDepthStencil( fboDepth, true, 1.0f, false, 0 );
-  TacInvalidCodePath;
   //renderer->SetRenderTarget( fboTexture, fboDepth );
 
 
-  renderer->SetViewport(
-    0, // x rel bot left
-    0, // y rel bot left
-    ( float )fboTexture->myImage.mWidth, // width increasing right
-    ( float )fboTexture->myImage.mHeight ); // height increasing up
+  //renderer->SetViewport(
+  //  0, // x rel bot left
+  //  0, // y rel bot left
+  //  ( float )fboTexture->myImage.mWidth, // width increasing right
+  //  ( float )fboTexture->myImage.mHeight ); // height increasing up
 
 
   v3 camPos = {};
-  if(!mUsers.empty())
+  if( !mUsers.empty() )
   {
     for( auto user : mUsers )
       camPos += user->mPlayer->mCameraPos;
@@ -364,7 +369,7 @@ void TacGhost::Draw( TacErrors& errors )
   auto world_to_view = M4View( camPos, camViewDir, camR, camU );
   auto view_to_clip = M4ProjPerspective( projA, projB, fovYRad, aspect );
 
-  TacInvalidCodePath;
+  //TacInvalidCodePath;
   //renderer->SetBlendState( nullptr );
   //renderer->SetScissorRect( 0, 0, ( float )fboTexture->mWidth(), ( float )fboTexture->mHeight() );
 
@@ -387,11 +392,11 @@ void TacGhost::Draw( TacErrors& errors )
   graphics->mDrawCall2Ds.clear();
 
 
-  renderer->SetScissorRect(
-      0,
-      0,
-      ( float )fboTexture->myImage.mWidth,
-      ( float )fboTexture->myImage.mHeight );
+  //renderer->SetScissorRect(
+  //  0,
+  //  0,
+  //  ( float )fboTexture->myImage.mWidth,
+  //  ( float )fboTexture->myImage.mHeight );
 
   if( mSplashAlpha )
   {

@@ -32,8 +32,33 @@ static TacString TacTryInferDX11ErrorStr( HRESULT res )
   case D3D11_ERROR_TOO_MANY_UNIQUE_STATE_OBJECTS: return "D3D11_ERROR_TOO_MANY_UNIQUE_STATE_OBJECTS	There are too many unique instances of a particular type of state object.";
   case D3D11_ERROR_TOO_MANY_UNIQUE_VIEW_OBJECTS: return "D3D11_ERROR_TOO_MANY_UNIQUE_VIEW_OBJECTS	There are too many unique instances of a particular type of view object.";
   case D3D11_ERROR_DEFERRED_CONTEXT_MAP_WITHOUT_INITIAL_DISCARD: return "D3D11_ERROR_DEFERRED_CONTEXT_MAP_WITHOUT_INITIAL_DISCARD	The first call to ID3D11DeviceContext::Map after either ID3D11Device::CreateDeferredContext or ID3D11DeviceContext::FinishCommandList per Resource was not D3D11_MAP_WRITE_DISCARD.";
+
+    // move to tacdxgi.cpp?
   case DXGI_ERROR_INVALID_CALL: return "DXGI_ERROR_INVALID_CALL The method call is invalid.For example, a method's parameter may not be a valid pointer.";
   case DXGI_ERROR_WAS_STILL_DRAWING: return "DXGI_ERROR_WAS_STILL_DRAWING The previous blit operation that is transferring information to or from this surface is incomplete.";
+  case DXGI_ERROR_ACCESS_DENIED: return "DXGI_ERROR_ACCESS_DENIED You tried to use a resource to which you did not have the required access privileges.This error is most typically caused when you write to a shared resource with read - only access.";
+  case DXGI_ERROR_ACCESS_LOST: return "DXGI_ERROR_ACCESS_LOST The desktop duplication interface is invalid.The desktop duplication interface typically becomes invalid when a different type of image is displayed on the desktop.";
+  case DXGI_ERROR_ALREADY_EXISTS: return "DXGI_ERROR_ALREADY_EXISTS The desired element already exists.This is returned by DXGIDeclareAdapterRemovalSupport if it is not the first time that the function is called.";
+  case DXGI_ERROR_CANNOT_PROTECT_CONTENT: return "DXGI_ERROR_CANNOT_PROTECT_CONTENT DXGI can't provide content protection on the swap chain. This error is typically caused by an older driver, or when you use a swap chain that is incompatible with content protection.";
+  case DXGI_ERROR_DEVICE_HUNG: return "DXGI_ERROR_DEVICE_HUNG The application's device failed due to badly formed commands sent by the application. This is an design-time issue that should be investigated and fixed.";
+  case DXGI_ERROR_DEVICE_REMOVED: return "DXGI_ERROR_DEVICE_REMOVED The video card has been physically removed from the system, or a driver upgrade for the video card has occurred.The application should destroy and recreate the device.For help debugging the problem, call ID3D10Device::GetDeviceRemovedReason.";
+  case DXGI_ERROR_DEVICE_RESET: return "DXGI_ERROR_DEVICE_RESET The device failed due to a badly formed command.This is a run - time issue; The application should destroy and recreate the device.";
+  case DXGI_ERROR_DRIVER_INTERNAL_ERROR: return "DXGI_ERROR_DRIVER_INTERNAL_ERROR The driver encountered a problem and was put into the device removed state.";
+  case DXGI_ERROR_FRAME_STATISTICS_DISJOINT: return "DXGI_ERROR_FRAME_STATISTICS_DISJOINT An event( for example, a power cycle ) interrupted the gathering of presentation statistics.";
+  case DXGI_ERROR_GRAPHICS_VIDPN_SOURCE_IN_USE: return "DXGI_ERROR_GRAPHICS_VIDPN_SOURCE_IN_USE The application attempted to acquire exclusive ownership of an output, but failed because some other application( or device within the application ) already acquired ownership.";
+  case DXGI_ERROR_MORE_DATA: return "DXGI_ERROR_MORE_DATA The buffer supplied by the application is not big enough to hold the requested data.";
+  case DXGI_ERROR_NAME_ALREADY_EXISTS: return "DXGI_ERROR_NAME_ALREADY_EXISTS The supplied name of a resource in a call to IDXGIResource1::CreateSharedHandle is already associated with some other resource.";
+  case DXGI_ERROR_NONEXCLUSIVE: return "DXGI_ERROR_NONEXCLUSIVE A global counter resource is in use, and the Direct3D device can't currently use the counter resource.";
+  case DXGI_ERROR_NOT_CURRENTLY_AVAILABLE: return "DXGI_ERROR_NOT_CURRENTLY_AVAILABLE The resource or request is not currently available, but it might become available later.";
+  case DXGI_ERROR_NOT_FOUND: return "DXGI_ERROR_NOT_FOUND When calling IDXGIObject::GetPrivateData, the GUID passed in is not recognized as one previously passed to IDXGIObject::SetPrivateData or IDXGIObject::SetPrivateDataInterface.When calling IDXGIFactory::EnumAdapters or IDXGIAdapter::EnumOutputs, the enumerated ordinal is out of range.";
+  case DXGI_ERROR_REMOTE_CLIENT_DISCONNECTED: return "DXGI_ERROR_REMOTE_CLIENT_DISCONNECTED Reserved";
+  case DXGI_ERROR_REMOTE_OUTOFMEMORY: return "DXGI_ERROR_REMOTE_OUTOFMEMORY Reserved";
+  case DXGI_ERROR_RESTRICT_TO_OUTPUT_STALE: return "DXGI_ERROR_RESTRICT_TO_OUTPUT_STALE The DXGI output( monitor ) to which the swap chain content was restricted is now disconnected or changed.";
+  case DXGI_ERROR_SDK_COMPONENT_MISSING: return "DXGI_ERROR_SDK_COMPONENT_MISSING The operation depends on an SDK component that is missing or mismatched.";
+  case DXGI_ERROR_SESSION_DISCONNECTED: return "DXGI_ERROR_SESSION_DISCONNECTED The Remote Desktop Services session is currently disconnected.";
+  case DXGI_ERROR_UNSUPPORTED: return "DXGI_ERROR_UNSUPPORTED The requested functionality is not supported by the device or the driver.";
+  case DXGI_ERROR_WAIT_TIMEOUT: return "DXGI_ERROR_WAIT_TIMEOUT The time - out interval elapsed before the next desktop frame was available.";
+
   case E_FAIL: return "E_FAIL	Attempted to create a device with the debug layer enabled and the layer is not installed.";
   case E_INVALIDARG: return "E_INVALIDARG	An invalid parameter was passed to the returning function.";
   case E_OUTOFMEMORY: return "E_OUTOFMEMORY	Direct3D could not allocate sufficient memory to complete the call.";
@@ -482,10 +507,11 @@ void TacRendererDirectX11::Render( TacErrors& errors )
       mDeviceContext->IASetIndexBuffer( buffer, format, 0 );
       currentlyBoundIndexBuffer = indexBufferDX11;
 
-      std::cout << "changing index buffer to "
-        << ( void* )indexBufferDX11
-        << " "
-        << indexBufferDX11->indexCount << std::endl;
+      if( false )
+        std::cout << "changing index buffer to "
+          << ( void* )indexBufferDX11
+          << " "
+          << indexBufferDX11->indexCount << std::endl;
     }
 
     if( currentlyBoundBlendState != drawCall.mBlendState )
@@ -629,6 +655,7 @@ void TacRendererDirectX11::Render( TacErrors& errors )
 
     if( drawCall.mIndexCount )
     {
+      TacAssert( currentlyBoundShader );
       mDeviceContext->DrawIndexed( drawCall.mIndexCount, drawCall.mStartIndex, 0 );
     }
   }
@@ -1418,16 +1445,20 @@ void TacRendererDirectX11::DebugEnd()
   mUserAnnotationDEBUG->EndEvent();
 }
 
+// TODO: remove this function?
 void TacRendererDirectX11::DrawNonIndexed( int vertCount )
 {
+  TacInvalidCodePath;
   mDeviceContext->Draw( vertCount, 0 );
 }
 
+// TODO: remove this function?
 void TacRendererDirectX11::DrawIndexed(
   int elementCount,
   int idxOffset,
   int vtxOffset )
 {
+  TacInvalidCodePath;
   mDeviceContext->DrawIndexed( elementCount, idxOffset, vtxOffset );
 }
 
@@ -1481,22 +1512,22 @@ void TacRendererDirectX11::Apply()
   }
 }
 
-void TacRendererDirectX11::SetViewport(
-  float xRelBotLeftCorner,
-  float yRelBotLeftCorner,
-  float wIncreasingRight,
-  float hIncreasingUp )
-{
-  auto curRenderTarget = mCurRenderTargets[ 0 ];
-  D3D11_VIEWPORT vp;
-  vp.Width = wIncreasingRight;
-  vp.Height = hIncreasingUp;
-  vp.MinDepth = 0.0f;
-  vp.MaxDepth = 1.0f;
-  vp.TopLeftX = xRelBotLeftCorner;
-  vp.TopLeftY = curRenderTarget->myImage.mHeight - ( yRelBotLeftCorner + hIncreasingUp );
-  mDeviceContext->RSSetViewports( 1, &vp );
-}
+//void TacRendererDirectX11::SetViewport(
+//  float xRelBotLeftCorner,
+//  float yRelBotLeftCorner,
+//  float wIncreasingRight,
+//  float hIncreasingUp )
+//{
+//  auto curRenderTarget = mCurRenderTargets[ 0 ];
+//  D3D11_VIEWPORT vp;
+//  vp.Width = wIncreasingRight;
+//  vp.Height = hIncreasingUp;
+//  vp.MinDepth = 0.0f;
+//  vp.MaxDepth = 1.0f;
+//  vp.TopLeftX = xRelBotLeftCorner;
+//  vp.TopLeftY = curRenderTarget->myImage.mHeight - ( yRelBotLeftCorner + hIncreasingUp );
+//  mDeviceContext->RSSetViewports( 1, &vp );
+//}
 
 void TacRendererDirectX11::SetPrimitiveTopology( TacPrimitive primitive )
 {
@@ -1513,20 +1544,20 @@ void TacRendererDirectX11::SetPrimitiveTopology( TacPrimitive primitive )
   mDeviceContext->IASetPrimitiveTopology( dxPrimitiveTopology );
 }
 
-void TacRendererDirectX11::SetScissorRect(
-  float x1,
-  float y1,
-  float x2,
-  float y2 )
-{
-  const D3D11_RECT r = {
-    ( LONG )x1,
-    ( LONG )y1,
-    ( LONG )x2,
-    ( LONG )y2 };
-
-  mDeviceContext->RSSetScissorRects( 1, &r );
-}
+//void TacRendererDirectX11::SetScissorRect(
+//  float x1,
+//  float y1,
+//  float x2,
+//  float y2 )
+//{
+//  const D3D11_RECT r = {
+//    ( LONG )x1,
+//    ( LONG )y1,
+//    ( LONG )x2,
+//    ( LONG )y2 };
+//
+//  mDeviceContext->RSSetScissorRects( 1, &r );
+//}
 
 // private functions and data
 
@@ -1646,6 +1677,14 @@ TacSampler* TacShaderDX11::FindSampler( const TacString& name )
 
 TacTextureDX11::~TacTextureDX11()
 {
+  if( false )
+  {
+    std::cout
+      << "deleting texture (" << mName << ") created at "
+      << this->mStackFrame.ToString()
+      << std::endl;
+  }
+
   TAC_RELEASE_IUNKNOWN( mDXObj );
   TAC_RELEASE_IUNKNOWN( mSrv );
   TAC_RELEASE_IUNKNOWN( mRTV );

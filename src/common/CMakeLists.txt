@@ -14,6 +14,8 @@ ${CMAKE_CURRENT_SOURCE_DIR}/imgui_draw.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/imgui_internal.h
 ${CMAKE_CURRENT_SOURCE_DIR}/tacAlgorithm.h
 ${CMAKE_CURRENT_SOURCE_DIR}/containers/tacArray.h
+${CMAKE_CURRENT_SOURCE_DIR}/tacColorUtil.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/tacColorUtil.h
 ${CMAKE_CURRENT_SOURCE_DIR}/tacDesktopWindow.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/tacDesktopWindow.h
 ${CMAKE_CURRENT_SOURCE_DIR}/tacErrorHandling.cpp

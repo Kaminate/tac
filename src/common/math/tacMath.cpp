@@ -41,6 +41,11 @@ float TacRandomFloatMinus1To1()
   return ( TacRandomFloat0To1() * 2.0f ) - 1.0f;
 }
 
+float TacRandomFloatBetween( float a, float b )
+{
+  return TacLerp( a, b, TacRandomFloat0To1() );
+}
+
 int TacRoundUpToNearestMultiple( int numToRound, int multiple )
 {
   return ( ( numToRound + ( multiple - 1 ) ) / multiple ) * multiple;

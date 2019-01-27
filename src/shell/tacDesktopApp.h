@@ -15,6 +15,7 @@ struct TacDesktopApp
   void Loop( TacErrors& errors );
   void SpawnWindowOuter( const TacWindowParams& , TacDesktopWindow** , TacErrors& );
   virtual void GetPrimaryMonitor( TacMonitor* monitor, TacErrors& errors ) = 0;
+
   virtual void OnShellInit( TacErrors& errors ) {}
 
   TacVector< TacOwned< TacDesktopWindow > > mMainWindows;

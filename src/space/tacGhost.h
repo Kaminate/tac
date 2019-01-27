@@ -61,6 +61,7 @@ struct TacGhost : public TacSoul
 {
   TacGhost( TacShell* shell, TacErrors& errors );
   virtual ~TacGhost();
+  void Init( TacErrors& errors );
   void Update( TacErrors& errors ) override;
   void ImguiCreatePlayerPopup( TacErrors& errors );
   TacUser* AddPlayer( const TacString& name, TacErrors& errors );
@@ -79,10 +80,10 @@ struct TacGhost : public TacSoul
   v4 mClearColor = v4( v3( 27, 33, 40 ) / 255.0f, 1 );
   bool mDrawText = true;
   float mSplashAlpha = 0;
-  TacTexture* mFBOTexture = nullptr;
-  TacTexture* mDrawTexture = nullptr;
-  TacDepthBuffer* mFBODepthBuffer = nullptr;
-  TacDepthBuffer* mDrawDepthBuffer = nullptr;
+  //TacTexture* mFBOTexture = nullptr;
+  //TacTexture* mDrawTexture = nullptr;
+  //TacDepthBuffer* mFBODepthBuffer = nullptr;
+  //TacDepthBuffer* mDrawDepthBuffer = nullptr;
   TacUIRoot* mUIRoot = nullptr;
   bool mIsGrabbingInput = true;
   bool mDrawDirectlyToScreen = true;

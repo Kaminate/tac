@@ -65,7 +65,7 @@ TacWin32MouseEdgeHandler::TacWin32MouseEdgeHandler()
   // completely obscure the move border and youd never be able to move your window.
   TacAssert( edgeDistMovePx > edgeDistResizePx );
 }
-void TacWin32MouseEdgeHandler::Update( TacVector< TacWin32DesktopWindow*>& windows )
+void TacWin32MouseEdgeHandler::Update( TacWin32DesktopWindow* window )
 {
   if( mHandler )
   {
@@ -77,79 +77,49 @@ void TacWin32MouseEdgeHandler::Update( TacVector< TacWin32DesktopWindow*>& windo
     return;
   }
 
+  if( !window )
+    return;
+  HWND windowHandle = window->mHWND;
 
-  // Brute-forcing the lookup through all the windows, because...
-  // - GetTopWindow( parentHwnd ) is returning NULL.
-  // - EnumChildWindows( parentHwnd, ... ) also shows that the parent has no children.
-  // - Calling GetParent( childHwnd ) returns NULL
-  // - Calling GetAncestor( childHwnd, GA_PARENT ) returns
-  //   the actual desktop hwnd ( window class #32769 )
+  POINT cursorPos;
+  GetCursorPos( &cursorPos );
 
-  std::set< HWND > ourHwndsNotZSorted;
-  for( TacWin32DesktopWindow* window : windows )
-    ourHwndsNotZSorted.insert( window->mHWND );
+  RECT windowRect;
+  GetWindowRect( windowHandle, &windowRect );
 
-  TacVector< HWND > ourHwndsZSortedTopToBottom;
+  if( cursorPos.x < windowRect.left ||
+    cursorPos.x > windowRect.right ||
+    cursorPos.y > windowRect.bottom ||
+    cursorPos.y < windowRect.top )
+    return;
 
-  HWND topZSortedHwnd = GetTopWindow( NULL );
-  int totalWindowCount = 0;
-  for( HWND curZSortedHwnd = topZSortedHwnd;
-    curZSortedHwnd != NULL;
-    curZSortedHwnd = GetWindow( curZSortedHwnd, GW_HWNDNEXT ) )
+  TacCursorDir cursorLock = {};
+  if( cursorPos.x < windowRect.left + edgeDistResizePx ) cursorLock |= TacCursorDir::E;
+  if( cursorPos.x > windowRect.right - edgeDistResizePx ) cursorLock |= TacCursorDir::W;
+  if( cursorPos.y > windowRect.bottom - edgeDistResizePx ) cursorLock |= TacCursorDir::N;
+  if( cursorPos.y < windowRect.top + edgeDistResizePx ) cursorLock |= TacCursorDir::S;
+  if( mCursorLock != cursorLock )
   {
-    totalWindowCount++;
-    if( !TacContains( ourHwndsNotZSorted, curZSortedHwnd ) )
-      continue;
-    ourHwndsNotZSorted.erase( curZSortedHwnd );
-    ourHwndsZSortedTopToBottom.push_back( curZSortedHwnd );
+    HCURSOR cursor = mCursors->GetCursor( cursorLock );
+    SetCursor( cursor );
+    SetCursorLock( cursorLock );
+  }
+  if( mKeyboardInput->IsKeyJustDown( TacKey::MouseLeft ) )
+  {
+    if( cursorLock )
+      mHandler = new ResizeHandler();
+    else if( cursorPos.y < windowRect.top + edgeDistMovePx )
+      mHandler = new MoveHandler();
   }
 
-  for( HWND windowHandle : ourHwndsZSortedTopToBottom )
+  if( mHandler )
   {
-    TacString windowName = TacGetWin32WindowName( windowHandle );
-
-
-    POINT cursorPos;
-    GetCursorPos( &cursorPos );
-
-    RECT windowRect;
-    GetWindowRect( windowHandle, &windowRect );
-
-    if( cursorPos.x < windowRect.left ||
-      cursorPos.x > windowRect.right ||
-      cursorPos.y > windowRect.bottom ||
-      cursorPos.y < windowRect.top )
-      continue;
-
-    TacCursorDir cursorLock = {};
-    if( cursorPos.x < windowRect.left + edgeDistResizePx ) cursorLock |= TacCursorDir::E;
-    if( cursorPos.x > windowRect.right - edgeDistResizePx ) cursorLock |= TacCursorDir::W;
-    if( cursorPos.y > windowRect.bottom - edgeDistResizePx ) cursorLock |= TacCursorDir::N;
-    if( cursorPos.y < windowRect.top + edgeDistResizePx ) cursorLock |= TacCursorDir::S;
-    if( mCursorLock != cursorLock )
-    {
-      HCURSOR cursor = mCursors->GetCursor( cursorLock );
-      SetCursor( cursor );
-      SetCursorLock( cursorLock );
-    }
-    if( mKeyboardInput->IsKeyJustDown( TacKey::MouseLeft ) )
-    {
-      if( cursorLock )
-        mHandler = new ResizeHandler();
-      else if( cursorPos.y < windowRect.top + edgeDistMovePx )
-        mHandler = new MoveHandler();
-    }
-
-    if( mHandler )
-    {
-      mCursorPositionOnClick = cursorPos;
-      mWindowRectOnClick = windowRect;
-      mHandler->mHandler = this;
-      mHandler->mHwnd = windowHandle;
-    }
-
-    break;
+    mCursorPositionOnClick = cursorPos;
+    mWindowRectOnClick = windowRect;
+    mHandler->mHandler = this;
+    mHandler->mHwnd = windowHandle;
   }
+
 }
 void TacWin32MouseEdgeHandler::ResetCursorLock()
 {

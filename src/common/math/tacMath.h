@@ -21,6 +21,7 @@ template< typename T > T TacSaturate( T value ) { return TacClamp( value, ( T )0
 
 float TacRandomFloat0To1();
 float TacRandomFloatMinus1To1();
+float TacRandomFloatBetween( float a, float b );
 
 float TacEaseInOutQuart( float t );
 

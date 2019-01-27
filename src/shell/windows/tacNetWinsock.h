@@ -2,12 +2,12 @@
 
 #pragma once
 
-#include "tacNet.h"
-#include "tacWindows.h"
-
+#include "shell/windows/tacWindows.h"
 #include "common/tacString.h"
 #include "common/tacErrorHandling.h"
-#include "common/tacVector.h"
+#include "common/containers/tacVector.h"
+#include "common/tacNet.h"
+
 #include <set>
 
 #include <WinSock2.h> // SOCKET

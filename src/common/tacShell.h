@@ -44,9 +44,13 @@ struct TacSoul
 {
   TacSoul();
   virtual ~TacSoul() = default;
+  virtual void Init( TacErrors& errors ) = 0;
   virtual void Update( TacErrors& errors ) = 0;
   virtual void DebugImgui( TacErrors& errors ) = 0;
   TacString GetDebugName();
+
+  TacRenderView* mRenderView = nullptr;
+
 
   int mID = 0;
   bool mIsImGuiVisible;
@@ -75,6 +79,7 @@ struct TacShell
 
   void DebugImgui( TacErrors& errors );
   void AddSoul( TacErrors& errors );
+  void AddSoul( TacSoul* soul );
   ImGuiContext* mImGuiContext = nullptr;
   bool mImGuiRender = true;
   bool mImGuiShowTestWindow = false;
@@ -83,20 +88,20 @@ struct TacShell
   TacUI2DCommonData* mUI2DCommonData = nullptr;
   TacNet* mNet = nullptr;
   TacKeyboardInput* mKeyboardInput;
-  TacControllerInput* mInput = nullptr;
+  TacControllerInput* mControllerInput = nullptr;
   double mElapsedSeconds = 0;
 
   // | TODO: move this to be per window
   // |
   // V
-  int mWindowWidth = 0;
-  int mWindowHeight = 0;
-  int mMouseRelTopLeftY = 0;
-  int mMouseRelTopLeftX = 0;
-  int mMouseRelTopLeftXDelta = 0;
-  int mMouseRelTopLeftYDelta = 0;
-  int mMouseWheelRel = 0;
-  bool mMouseInWindow = false;
+  //int mWindowWidth = 0;
+  //int mWindowHeight = 0;
+  //int mMouseRelTopLeftY = 0;
+  //int mMouseRelTopLeftX = 0;
+  //int mMouseRelTopLeftXDelta = 0;
+  //int mMouseRelTopLeftYDelta = 0;
+  //int mMouseWheelRel = 0;
+  //bool mMouseInWindow = false;
   // ^
   // |
 

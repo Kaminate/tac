@@ -14,6 +14,7 @@ struct TacRenderer;
 struct TacUI2DDrawData;
 struct TacCreation;
 struct TacShell;
+struct TacSoul;
 struct TacWindowParams;
 struct TacTextureAssetManager;
 struct TacTexture;
@@ -54,6 +55,15 @@ struct TacCreationMainWindow
   TacEditorWindow* mEditorWindow = nullptr;
 };
 
+struct TacCreationGameWindow
+{
+  void Init( TacErrors& errors);
+  void Update( TacErrors& errors );
+  TacEditorWindow* mEditorWindow = nullptr;
+  TacSoul* mSoul = nullptr;
+  TacRenderView* mRenderView = nullptr;
+};
+
 struct TacCreation
 {
   void Init( TacErrors& errors );
@@ -64,6 +74,7 @@ struct TacCreation
 
   TacDesktopApp* mApp = nullptr;
   TacCreationMainWindow* mMainWindow = nullptr;
+  TacCreationGameWindow* mGameWindow = nullptr;
   //TacEditorWindow* mSecondWindow = nullptr;
   //TacEditorWindow* mGamePlayerWindow = nullptr;
   TacShell* mShell = nullptr;

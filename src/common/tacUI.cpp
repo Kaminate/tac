@@ -11,6 +11,7 @@
 #include "common/tacTime.h"
 #include "common/tacOS.h"
 #include "common/tacDesktopWindow.h"
+#include "common/tacColorUtil.h"
 
 static TacUIText* debugOnlyThisText;
 static bool IsIgnoring( TacUIText* uiText )
@@ -537,7 +538,11 @@ void TacUILayout::Update( TacUILayoutData* uiLayoutData )
   }
 
   if( mExpandWidth )
-    mUiWidth = mParent ? mParent->mUiWidth : mUIRoot->mDesktopWindow->mWidth;
+  {
+    mUiWidth = mParent ?
+      mParent->mUiWidth :
+      mUIRoot->mUI2DDrawData->mRenderView->mFramebuffer->myImage.mWidth;
+  }
 
   //mPositionAnchored = mPosition;
   mHeightCur = mHeightTarget;
@@ -784,11 +789,11 @@ void TacUIRoot::Update()
   //mUIWidth = uiWidth;
   //mUIHeight = uiHeight;
 
-  v2 cursorPos;
-  TacErrors cursorPosErrors;
-  TacOS::Instance->GetScreenspaceCursorPos( cursorPos, cursorPosErrors );
-  if( cursorPosErrors.empty() )
-    mUiCursor = cursorPos - v2( ( float )mDesktopWindow->mX, ( float )mDesktopWindow->mY );
+  //v2 cursorPos;
+  //TacErrors cursorPosErrors;
+  //TacOS::Instance->GetScreenspaceCursorPos( cursorPos, cursorPosErrors );
+  //if( cursorPosErrors.empty() )
+  //  mUiCursor = cursorPos - v2( ( float )mDesktopWindow->mX, ( float )mDesktopWindow->mY );
 
   TacVector< TacUILayout* > toDelete;
   for( TacUILayout* uiMenu : mUIMenus )
@@ -809,19 +814,29 @@ void TacUIRoot::Update()
     delete uiMenu;
   }
 
+  TacImage& image = framebuffer->myImage;
+
   mHierarchyRoot->mSize = {
-    ( float )mDesktopWindow->mWidth,
-    ( float )mDesktopWindow->mHeight };
+    ( float )image.mWidth,
+    ( float )image.mHeight };
 }
 
 TacUIHierarchyNode::TacUIHierarchyNode()
 {
-  mColor = {
+  v3 color = {
     TacRandomFloat0To1(),
     TacRandomFloat0To1(),
-    TacRandomFloat0To1(),
-    1,
-  };
+    TacRandomFloat0To1() };
+
+  color = TacGetColorSchemeA( TacRandomFloat0To1() * 1000.0f ).xyz();
+
+  float h, s, v;
+  TacRGBToHSV( color, &h, &s, &v );
+  s /= 2;
+  v = ( v + 1 ) / 2;
+
+  TacHSVToRGB( h, s, v, &color );
+  mColor = v4( color, 1 );
 }
 TacUIHierarchyNode* TacUIHierarchyNode::Split(
   TacUISplit uiSplit,
@@ -1012,7 +1027,7 @@ v2 TacUIHierarchyVisualImage::GetSize()
   return mDims;
 }
 
-void TacUIRoot::DebugGenerateGraphVizDotFile()
+TacString TacUIRoot::DebugGenerateGraphVizDotFile()
 {
   TacString stringified;
 
@@ -1063,7 +1078,7 @@ void TacUIRoot::DebugGenerateGraphVizDotFile()
       nodeGraphLabel = node->GetVisual()->GetDebugName();
 
     nodeGraphNames[ node ] = nodeGraphName;
-    
+
     lines.push_back( nodeGraphName + "[ label = \"" + nodeGraphLabel + "\" ];" );
   }
 
@@ -1075,9 +1090,6 @@ void TacUIRoot::DebugGenerateGraphVizDotFile()
 
   lines.push_back( "}" );
   stringified = TacJoin( "\n", lines );
+  return stringified;
 
-  TacString filepath = mDesktopWindow->mShell->mPrefPath + "/tac.dot";
-  TacErrors errors;
-  TacOS::Instance->SaveToFile( filepath, stringified.data(), stringified.size(), errors );
-  TacAssert( errors.empty() );
 }

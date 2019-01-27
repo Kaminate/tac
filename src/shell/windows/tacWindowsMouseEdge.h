@@ -45,7 +45,7 @@ struct TacWin32MouseEdgeHandler
   TacWin32MouseEdgeHandler();
   TacKeyboardInput* mKeyboardInput = nullptr;
 
-  void Update( TacVector< TacWin32DesktopWindow*>& windows );
+  void Update(TacWin32DesktopWindow* window);
   void ResetCursorLock();
 
   TacWin32Cursors* mCursors = nullptr;

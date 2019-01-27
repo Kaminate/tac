@@ -203,19 +203,19 @@ struct TacRendererDirectX11 : public TacRenderer
 
   void Apply() override;
 
-  void SetViewport(
-    float xRelBotLeftCorner,
-    float yRelBotLeftCorner,
-    float wIncreasingRight,
-    float hIncreasingUp ) override;
+  //void SetViewport(
+  //  float xRelBotLeftCorner,
+  //  float yRelBotLeftCorner,
+  //  float wIncreasingRight,
+  //  float hIncreasingUp ) override;
 
   void SetPrimitiveTopology( TacPrimitive primitive ) override;
 
-  void SetScissorRect(
-    float x1,
-    float y1,
-    float x2,
-    float y2 ) override;
+  //void SetScissorRect(
+  //  float x1,
+  //  float y1,
+  //  float x2,
+  //  float y2 ) override;
 
   void GetPerspectiveProjectionAB(
     float f,

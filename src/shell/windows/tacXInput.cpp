@@ -1,9 +1,9 @@
 #include "tacXInput.h"
-#include "tacPreprocessor.h"
-#include "tacMath.h"
-#include "tacShell.h"
+#include "common/tacPreprocessor.h"
+#include "common/math/tacMath.h"
+#include "common/tacShell.h"
+#include "common/tacTime.h"
 
-#include "imgui.h"
 
 #include <algorithm>
 #include <cmath>
@@ -51,42 +51,42 @@ TacDirectInputPerController::~TacDirectInputPerController()
 }
 void TacDirectInputPerController::DebugImguiInner()
 {
-  if( !ImGui::CollapsingHeader( "Direct Input" ) )
-    return;
-  DIJOYSTATE2 js = mJoystate;
-  TacString s;
-  for( auto b : js.rgbButtons )
-    s += b?'1':'0';
-  ImGui::Text( "lX: %i", js.lX );
-  ImGui::Text( "lY: %i", js.lY );
-  ImGui::Text( "lZ: %i", js.lZ );
-  ImGui::Text( "lRx: %i", js.lRx );
-  ImGui::Text( "lRy: %i", js.lRy );
-  ImGui::Text( "lRz: %i", js.lRz );
-  ImGui::Text( "rglSlider: %i %i", js.rglSlider[ 0 ], js.rglSlider[ 1 ] );
-  ImGui::Text( "rgdwPOV: %i %i %i %i", js.rgdwPOV[ 0 ], js.rgdwPOV[ 1 ], js.rgdwPOV[ 2 ], js.rgdwPOV[ 3 ] );
-  ImGui::Text( s );
-  ImGui::Text( "lVX: %i", js.lVX );
-  ImGui::Text( "lVY: %i", js.lVY );
-  ImGui::Text( "lVZ: %i", js.lVZ );
-  ImGui::Text( "lVRx: %i", js.lVRx );
-  ImGui::Text( "lVRy: %i", js.lVRy );
-  ImGui::Text( "lVRz: %i", js.lVRz );
-  ImGui::Text( "rglVSlider: %i %i", js.rglVSlider[ 0 ], js.rglVSlider[ 1 ] );
-  ImGui::Text( "lAX: %i", js.lAX );
-  ImGui::Text( "lAY: %i", js.lAY );
-  ImGui::Text( "lAZ: %i", js.lAZ );
-  ImGui::Text( "lARx: %i", js.lARx );
-  ImGui::Text( "lARy: %i", js.lARy );
-  ImGui::Text( "lARz: %i", js.lARz );
-  ImGui::Text( "rglASlider: %i %i", js.rglASlider[ 0 ], js.rglASlider[ 1 ] );
-  ImGui::Text( "lFX: %i", js.lFX );
-  ImGui::Text( "lFY: %i", js.lFY );
-  ImGui::Text( "lFZ: %i", js.lFZ );
-  ImGui::Text( "lFRx: %i", js.lFRx );
-  ImGui::Text( "lFRy: %i", js.lFRy );
-  ImGui::Text( "lFRz: %i", js.lFRz );
-  ImGui::Text( "rglFSlider: %i %i", js.rglFSlider[ 0 ], js.rglFSlider[ 1 ] );
+  //if( !ImGui::CollapsingHeader( "Direct Input" ) )
+  //  return;
+  //DIJOYSTATE2 js = mJoystate;
+  //TacString s;
+  //for( auto b : js.rgbButtons )
+  //  s += b?'1':'0';
+  //ImGui::Text( "lX: %i", js.lX );
+  //ImGui::Text( "lY: %i", js.lY );
+  //ImGui::Text( "lZ: %i", js.lZ );
+  //ImGui::Text( "lRx: %i", js.lRx );
+  //ImGui::Text( "lRy: %i", js.lRy );
+  //ImGui::Text( "lRz: %i", js.lRz );
+  //ImGui::Text( "rglSlider: %i %i", js.rglSlider[ 0 ], js.rglSlider[ 1 ] );
+  //ImGui::Text( "rgdwPOV: %i %i %i %i", js.rgdwPOV[ 0 ], js.rgdwPOV[ 1 ], js.rgdwPOV[ 2 ], js.rgdwPOV[ 3 ] );
+  //ImGui::Text( s );
+  //ImGui::Text( "lVX: %i", js.lVX );
+  //ImGui::Text( "lVY: %i", js.lVY );
+  //ImGui::Text( "lVZ: %i", js.lVZ );
+  //ImGui::Text( "lVRx: %i", js.lVRx );
+  //ImGui::Text( "lVRy: %i", js.lVRy );
+  //ImGui::Text( "lVRz: %i", js.lVRz );
+  //ImGui::Text( "rglVSlider: %i %i", js.rglVSlider[ 0 ], js.rglVSlider[ 1 ] );
+  //ImGui::Text( "lAX: %i", js.lAX );
+  //ImGui::Text( "lAY: %i", js.lAY );
+  //ImGui::Text( "lAZ: %i", js.lAZ );
+  //ImGui::Text( "lARx: %i", js.lARx );
+  //ImGui::Text( "lARy: %i", js.lARy );
+  //ImGui::Text( "lARz: %i", js.lARz );
+  //ImGui::Text( "rglASlider: %i %i", js.rglASlider[ 0 ], js.rglASlider[ 1 ] );
+  //ImGui::Text( "lFX: %i", js.lFX );
+  //ImGui::Text( "lFY: %i", js.lFY );
+  //ImGui::Text( "lFZ: %i", js.lFZ );
+  //ImGui::Text( "lFRx: %i", js.lFRx );
+  //ImGui::Text( "lFRy: %i", js.lFRy );
+  //ImGui::Text( "lFRz: %i", js.lFRz );
+  //ImGui::Text( "rglFSlider: %i %i", js.rglFSlider[ 0 ], js.rglFSlider[ 1 ] );
 }
 
 TacXInput::TacXInput( HINSTANCE hInstance, TacErrors& errors )
@@ -120,8 +120,8 @@ TacDirectInputPerController* TacXInput::FindDInputController( const DIDEVICEINST
 }
 void TacXInput::DebugImguiInner()
 {
-  ImGui::DragFloat( "Seconds till discover cur", &mSecondsTillDisconver );
-  ImGui::DragFloat( "Seconds till discover max", &mSecondsTillDiscoverMax );
+  //ImGui::DragFloat( "Seconds till discover cur", &mSecondsTillDisconver );
+  //ImGui::DragFloat( "Seconds till discover max", &mSecondsTillDiscoverMax );
 }
 void TacXInput::UpdateInner()
 {
