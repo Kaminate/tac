@@ -75,12 +75,16 @@ void TacUser::Update( TacErrors& errors )
   mPlayer->mIsSpaceJustDown = keyboardInput->IsKeyDown( TacKey::Space );
 }
 
-TacGhost::TacGhost( TacShell* shell, TacErrors& errors )
+TacGhost::TacGhost()
+{
+  mScriptRoot = new TacScriptRoot;
+  mUIRoot = new TacUIRoot;
+  mServerData = new TacServerData;
+}
+void TacGhost::Init( TacErrors& errors )
 {
   mShouldPopulateWorldInitial = false;
-  mShell = shell;
   mShell->SetScopedGlobals();
-  mScriptRoot = new TacScriptRoot();
   mScriptRoot->mGhost = this;
   auto renderer = mShell->mRenderer;
   //int w = shell->mWindowWidth;
@@ -123,7 +127,6 @@ TacGhost::TacGhost( TacShell* shell, TacErrors& errors )
   else
     TacInvalidCodePath;
   mScriptRoot->AddChild( child );
-  mServerData = new TacServerData( errors );
   TAC_HANDLE_ERROR( errors );
   if( mShouldPopulateWorldInitial )
     PopulateWorldInitial();
@@ -137,7 +140,6 @@ TacGhost::TacGhost( TacShell* shell, TacErrors& errors )
     TAC_HANDLE_ERROR( errors );
   }
 
-  mUIRoot = new TacUIRoot();
   mUIRoot->mElapsedSeconds = &mShell->mElapsedSeconds; // eww
   //mUIRoot->mGhost = this;
 }
@@ -150,9 +152,6 @@ TacGhost::~TacGhost()
   delete mUIRoot;
   delete mServerData;
   delete mClientData;
-}
-void TacGhost::Init( TacErrors& errors )
-{
 }
 TacUser* TacGhost::AddPlayer( const TacString& name, TacErrors& errors )
 {
@@ -451,8 +450,8 @@ bool TacGhost::CanDrawImgui()
 {
   return !mDrawDirectlyToScreen && mShell->mImGuiRender;
 }
-extern "C" TAC_EXPORT TacSoul* TAC_GHOST_CREATE( TacShell* shell, TacErrors& errors )
-{
-  return new TacGhost( shell, errors );
-}
-static_assert( std::is_same< decltype( TAC_GHOST_CREATE ), TacGhostCreateFn > ::value, "" );
+//extern "C" TAC_EXPORT TacSoul* TAC_GHOST_CREATE( TacShell* shell, TacErrors& errors )
+//{
+//  return new TacGhost( shell, errors );
+//}
+//static_assert( std::is_same< decltype( TAC_GHOST_CREATE ), TacGhostCreateFn > ::value, "" );

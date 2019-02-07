@@ -396,9 +396,6 @@ TacUILayoutable::TacUILayoutable( const TacString& debugName )
 TacUILayoutable::~TacUILayoutable()
 {
 }
-void TacUILayoutable::Update( TacUILayoutData* uiLayoutData )
-{
-}
 void TacUILayoutable::DebugImgui()
 {
   if( !ImGui::CollapsingHeader( "Layout" ) )
@@ -409,12 +406,6 @@ void TacUILayoutable::DebugImgui()
   ImGui::DragFloat( "ui height", &mUiHeight );
   ImGui::DragFloat2( "ui position", mPositionAnchored.data() );
   ImGui::Checkbox( "Debug", &mDebug );
-}
-void TacUILayoutable::TransitionOut()
-{
-}
-void TacUILayoutable::TransitionIn()
-{
 }
 void TacUILayoutable::Render( TacErrors& errors )
 {
@@ -661,12 +652,6 @@ void TacUILayout::RequestDeletion()
     uiText->TransitionOut();
   mTransitionDurationSeconds = 2.3f;
 }
-void TacUILayout::TransitionOut()
-{
-}
-void TacUILayout::TransitionIn()
-{
-}
 void TacUILayout::Render( TacErrors& errors )
 {
   TacUILayoutable::Render( errors );
@@ -767,14 +752,15 @@ void TacUIRoot::Render( TacErrors& errors )
   //  framebuffer->myImage.mWidth / mUIWidth,
   //  framebuffer->myImage.mHeight / mUIHeight,
   //  1 );
+  //mUI2DDrawData->PopState();
+  mHierarchyRoot->RenderHierarchy( errors );
+  TAC_HANDLE_ERROR( errors );
+
   for( TacUILayout* uiMenu : mUIMenus )
   {
     uiMenu->Render( errors );
     TAC_HANDLE_ERROR( errors );
   }
-  //mUI2DDrawData->PopState();
-  mHierarchyRoot->RenderHierarchy( errors );
-  TAC_HANDLE_ERROR( errors );
 }
 void TacUIRoot::Update()
 {
@@ -820,23 +806,86 @@ void TacUIRoot::Update()
     ( float )image.mWidth,
     ( float )image.mHeight };
 }
+TacString TacUIRoot::DebugGenerateGraphVizDotFile()
+{
+  TacString stringified;
+
+  // https://en.wikipedia.org/wiki/DOT_(graph_description_language)
+  // 
+  // digraph graphname    a
+  // {                    |
+  //   a->b->c;           b
+  //   b->d;             / \
+  // }                  c   d
+
+
+  TacVector<TacString> lines;
+  lines.push_back( "digraph graphname" );
+  lines.push_back( "{" );
+
+  std::set< TacUIHierarchyNode* > allnodes;
+  std::map< TacUIHierarchyNode*, TacString > nodeGraphNames;
+  TacVector< std::pair< TacUIHierarchyNode*, TacUIHierarchyNode* >> nodeConnections;
+
+  if( mHierarchyRoot )
+  {
+    TacVector< TacUIHierarchyNode* > nodes = { mHierarchyRoot };
+    while( !nodes.empty() )
+    {
+      TacUIHierarchyNode* node = nodes.back();
+      nodes.pop_back();
+      allnodes.insert( node );
+
+      for( TacUIHierarchyNode* child : node->mChildren )
+      {
+        nodes.push_back( child );
+        nodeConnections.push_back( { node, child } );
+      }
+    }
+  }
+
+  for( TacUIHierarchyNode* node : allnodes )
+  {
+    TacString nodeGraphName = "node" + TacToString( ( int )nodeGraphNames.size() );
+    TacString nodeGraphLabel = TacToString( node );
+
+    if( node->mDebugName.size() )
+      nodeGraphLabel = node->mDebugName;
+    else if( node == mHierarchyRoot )
+      nodeGraphLabel = "hierarchy root";
+    else if( node->GetVisual() && node->GetVisual()->GetDebugName().size() )
+      nodeGraphLabel = node->GetVisual()->GetDebugName();
+
+    nodeGraphNames[ node ] = nodeGraphName;
+
+    lines.push_back( nodeGraphName + "[ label = \"" + nodeGraphLabel + "\" ];" );
+  }
+
+  for( auto connection : nodeConnections )
+  {
+    lines.push_back(
+      nodeGraphNames[ connection.first ] + "->" + nodeGraphNames[ connection.second ] );
+  }
+
+  lines.push_back( "}" );
+  stringified = TacJoin( "\n", lines );
+  return stringified;
+
+}
 
 TacUIHierarchyNode::TacUIHierarchyNode()
 {
-  v3 color = {
-    TacRandomFloat0To1(),
-    TacRandomFloat0To1(),
-    TacRandomFloat0To1() };
-
-  color = TacGetColorSchemeA( TacRandomFloat0To1() * 1000.0f ).xyz();
-
-  float h, s, v;
-  TacRGBToHSV( color, &h, &s, &v );
-  s /= 2;
-  v = ( v + 1 ) / 2;
-
-  TacHSVToRGB( h, s, v, &color );
-  mColor = v4( color, 1 );
+  static int iColor;
+  auto colors = TacMakeArray< int > (
+    0x53c8e9, 
+    0x3c3c3b,
+    0x074b7f,
+    0xc82c60,
+    0xf9fff9 );
+  int color = colors[ iColor++ % colors.size() ];
+  mColor.xyz() = TacHexToRGB( color );
+  mColor.w = 1;
+  mDrawOutline = true;
 }
 TacUIHierarchyNode* TacUIHierarchyNode::Split(
   TacUISplit uiSplit,
@@ -943,7 +992,7 @@ void TacUIHierarchyNode::RenderHierarchy( TacErrors& errors )
         continue;
       if( child->mVisual )
       {
-        child->mSize[ ( int )mLayoutType ] = child->mVisual->GetSize()[ ( int )mLayoutType ];
+        child->mSize[ ( int )mLayoutType ] = child->mVisual->mDims[ ( int )mLayoutType ];
       }
       expandedChildSize -= child->mSize[ ( int )mLayoutType ];
     }
@@ -952,8 +1001,8 @@ void TacUIHierarchyNode::RenderHierarchy( TacErrors& errors )
 
   TacUI2DState* state = mUIRoot->mUI2DDrawData->PushState();
   float padding = 0;
-  state->Translate( mPosition + v2( 1, 1 ) * padding );
-  if( TacIsDebugMode() )
+  state->Translate( mLocalPosition + v2( 1, 1 ) * padding );
+  if( mDrawOutline )
   {
     bool debugdrawNodeBackground = true;
     if( debugdrawNodeBackground )
@@ -978,17 +1027,17 @@ void TacUIHierarchyNode::RenderHierarchy( TacErrors& errors )
     mVisual->Render( errors );
     TAC_HANDLE_ERROR( errors );
   }
-  mUIRoot->mUI2DDrawData->PopState();
   float runningPixelX = 0;
   for( TacUIHierarchyNode* child : mChildren )
   {
-    v2 childPosition = mPosition;
+    v2 childPosition = {};
     childPosition[ ( int )mLayoutType ] += runningPixelX;
-    child->mPosition = childPosition;
+    child->mLocalPosition = childPosition;
     child->RenderHierarchy( errors );
     TAC_HANDLE_ERROR( errors );
     runningPixelX += child->mSize[ ( int )mLayoutType ];
   }
+  mUIRoot->mUI2DDrawData->PopState();
 }
 
 void TacUIHierarchyVisualText::Render( TacErrors& errors )
@@ -1007,11 +1056,6 @@ void TacUIHierarchyVisualText::Render( TacErrors& errors )
   TAC_HANDLE_ERROR( errors );
 }
 
-v2 TacUIHierarchyVisualText::GetSize()
-{
-  return mDims;
-}
-
 void TacUIHierarchyVisualImage::Render( TacErrors& errors )
 {
   TacUIRoot* uiRoot = mHierarchyNode->mUIRoot;
@@ -1020,76 +1064,4 @@ void TacUIHierarchyVisualImage::Render( TacErrors& errors )
     mDims[ 1 ],
     v4( 1, 1, 1, 1 ),
     mTexture );
-}
-
-v2 TacUIHierarchyVisualImage::GetSize()
-{
-  return mDims;
-}
-
-TacString TacUIRoot::DebugGenerateGraphVizDotFile()
-{
-  TacString stringified;
-
-  // https://en.wikipedia.org/wiki/DOT_(graph_description_language)
-  // 
-  // digraph graphname    a
-  // {                    |
-  //   a->b->c;           b
-  //   b->d;             / \
-  // }                  c   d
-
-
-  TacVector<TacString> lines;
-  lines.push_back( "digraph graphname" );
-  lines.push_back( "{" );
-
-  std::set< TacUIHierarchyNode* > allnodes;
-  std::map< TacUIHierarchyNode*, TacString > nodeGraphNames;
-  TacVector< std::pair< TacUIHierarchyNode*, TacUIHierarchyNode* >> nodeConnections;
-
-  if( mHierarchyRoot )
-  {
-    TacVector< TacUIHierarchyNode* > nodes = { mHierarchyRoot };
-    while( !nodes.empty() )
-    {
-      TacUIHierarchyNode* node = nodes.back();
-      nodes.pop_back();
-      allnodes.insert( node );
-
-      for( TacUIHierarchyNode* child : node->mChildren )
-      {
-        nodes.push_back( child );
-        nodeConnections.push_back( { node, child } );
-      }
-    }
-  }
-
-  for( TacUIHierarchyNode* node : allnodes )
-  {
-    TacString nodeGraphName = "node" + TacToString( ( int )nodeGraphNames.size() );
-    TacString nodeGraphLabel = TacToString( node );
-
-    if( node->mDebugName.size() )
-      nodeGraphLabel = node->mDebugName;
-    else if( node == mHierarchyRoot )
-      nodeGraphLabel = "hierarchy root";
-    else if( node->GetVisual() && node->GetVisual()->GetDebugName().size() )
-      nodeGraphLabel = node->GetVisual()->GetDebugName();
-
-    nodeGraphNames[ node ] = nodeGraphName;
-
-    lines.push_back( nodeGraphName + "[ label = \"" + nodeGraphLabel + "\" ];" );
-  }
-
-  for( auto connection : nodeConnections )
-  {
-    lines.push_back(
-      nodeGraphNames[ connection.first ] + "->" + nodeGraphNames[ connection.second ] );
-  }
-
-  lines.push_back( "}" );
-  stringified = TacJoin( "\n", lines );
-  return stringified;
-
 }

@@ -8,6 +8,7 @@
 #include "common/taccontrollerinput.h"
 #include "common/tacOS.h"
 #include "common/tacTime.h"
+#include "common/tacUI2D.h"
 #include "common/tacJobQueue.h"
 #include "common/tacTextureAssetManager.h"
 #include "common/imgui.h"
@@ -90,7 +91,7 @@ void TacShell::Init( TacErrors& errors )
 
 
     TacString rendererName = rendererFactory->mRendererName;
-    rendererName = mSettings->GetString( nullptr,  { "DefaultRenderer" },rendererName,  errors );
+    rendererName = mSettings->GetString( nullptr, { "DefaultRenderer" }, rendererName, errors );
     TAC_HANDLE_ERROR( errors );
     if( !TacFindIf( &rendererFactory, rendererFactories, [ & ]( TacRendererFactory* fact ) { return fact->mRendererName == rendererName; } ) )
       std::cout << "Failed to find " + rendererName + " renderer";
@@ -121,9 +122,15 @@ void TacShell::Init( TacErrors& errors )
   mRenderer->LoadDefaultGraphicsObjects( errors );
   TAC_HANDLE_ERROR( errors );
 
-  AddSoul( errors );
-  TAC_HANDLE_ERROR( errors );
+  //AddSoul( errors );
+  //TAC_HANDLE_ERROR( errors );
 
+
+  mUI2DCommonData = new TacUI2DCommonData;
+  mUI2DCommonData->mRenderer = mRenderer;
+  mUI2DCommonData->mFontStuff = mFontStuff;
+  mUI2DCommonData->Init( errors );
+  TAC_HANDLE_ERROR( errors );
 }
 void TacShell::SetScopedGlobals()
 {
@@ -244,11 +251,11 @@ void TacShell::DebugImgui( TacErrors& errors )
   ImGui::Checkbox( "Show main menu", &mShowMainMenu );
   for( TacSoul* soul : mSouls )
     ImGui::Checkbox( soul->GetDebugName() + " visible", &soul->mIsImGuiVisible );
-  if( mGhostCreateFn && ImGui::Button( "Create Ghost" ) )
-  {
-    AddSoul( errors );
-    TAC_HANDLE_ERROR( errors );
-  }
+  //if( mGhostCreateFn && ImGui::Button( "Create Ghost" ) )
+  //{
+  //  AddSoul( errors );
+  //  TAC_HANDLE_ERROR( errors );
+  //}
   mDebugImguiAux.EmitEvent();
 }
 void TacShell::AddSoul( TacSoul* soul )
@@ -257,14 +264,14 @@ void TacShell::AddSoul( TacSoul* soul )
   soul->mShell = this;
   mSouls.push_back( soul );
 }
-void TacShell::AddSoul( TacErrors& errors )
-{
-  if( !mGhostCreateFn )
-    return;
-  TacSoul* ghost = mGhostCreateFn( this, errors );
-  TAC_HANDLE_ERROR( errors );
-  AddSoul( ghost );
-}
+//void TacShell::AddSoul( TacErrors& errors )
+//{
+//  if( !mGhostCreateFn )
+//    return;
+//  TacSoul* ghost = mGhostCreateFn( this, errors );
+//  TAC_HANDLE_ERROR( errors );
+//  AddSoul( ghost );
+//}
 
 
 void TacShell::Update( TacErrors& errors )

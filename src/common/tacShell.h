@@ -37,8 +37,8 @@ struct TacUI2DCommonData;
 struct TacUI2DDrawData;
 
 
-typedef TacSoul*( TacGhostCreateFn )( TacShell* shell, TacErrors& errors );
-#define TAC_GHOST_CREATE GhostCreate
+//typedef TacSoul*( TacGhostCreateFn )( TacShell* shell, TacErrors& errors );
+//#define TAC_GHOST_CREATE GhostCreate
 
 struct TacSoul
 {
@@ -78,7 +78,7 @@ struct TacShell
   TacEvent<>::Emitter mOnRenderBegin;
 
   void DebugImgui( TacErrors& errors );
-  void AddSoul( TacErrors& errors );
+  //void AddSoul( TacErrors& errors );
   void AddSoul( TacSoul* soul );
   ImGuiContext* mImGuiContext = nullptr;
   bool mImGuiRender = true;
@@ -116,7 +116,7 @@ struct TacShell
 
 
 
-  TacGhostCreateFn* mGhostCreateFn = nullptr;
+  //TacGhostCreateFn* mGhostCreateFn = nullptr;
   int mSoulIDCounter = 0;
   bool mPaused = false;
 

@@ -157,3 +157,8 @@ struct TacScriptMainMenu : public TacScriptThread
   TacTexture* mPower = nullptr;
 };
 
+struct TacScriptMainMenu2 : public TacScriptThread
+{
+  TacScriptMainMenu2();
+};
+

@@ -1,7 +1,10 @@
 
 
 set( TAC_DEBUGGING FALSE )
-set( TAC_LIBRARIES TacCommonLibrary  )
+set( TAC_LIBRARIES 
+TacCommonLibrary  
+  Ghost
+)
 set( TAC_INCLUDE_DIRECTORIES "" )
 set( TAC_SOURCES "" )
 set( TAC_EXE_NAME "Gravestory" )

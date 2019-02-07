@@ -437,15 +437,6 @@ void TacCreation::Init( TacErrors& errors )
   auto shell = mShell;
   mTextureAssetManager = mShell->mTextureAssetManager;
 
-  // create ui
-  {
-    auto ui2DCommonData = new TacUI2DCommonData();
-    ui2DCommonData->mRenderer = shell->mRenderer;
-    ui2DCommonData->mFontStuff = shell->mFontStuff;
-    ui2DCommonData->Init( errors );
-    TAC_HANDLE_ERROR( errors );
-    shell->mUI2DCommonData = ui2DCommonData;
-  }
 
   TacSettings* settings = shell->mSettings;
 
@@ -704,7 +695,9 @@ void TacCreationGameWindow::Init( TacErrors& errors)
   uI2DDrawData->mUI2DCommonData = shell->mUI2DCommonData;
   uI2DDrawData->mRenderView = mRenderView;
 
-  auto ghost = new TacGhost( shell, errors);
+  auto ghost = new TacGhost;
+  ghost->mShell = shell;
+  ghost->Init( errors );
   TAC_HANDLE_ERROR( errors );
   ghost->mUIRoot->mUI2DDrawData = uI2DDrawData;
   ghost->mRenderView = mRenderView;
@@ -719,6 +712,7 @@ void TacCreationGameWindow::Init( TacErrors& errors)
   {
     void Render( TacErrors& errors ) override
     {
+
       TacTexture* texture;
       TacString path;
       TacRenderer* renderer = mRenderer;
@@ -787,20 +781,22 @@ void TacCreationGameWindow::Init( TacErrors& errors)
       //mTextureAssetManager->GetTexture( &texture, path, errors );
       texture = outputColor;
 
+      mRenderView->mScissorRect.mXMaxRelUpperLeftCornerPixel = innerBoxPixelWidth;
+      mRenderView->mScissorRect.mYMaxRelUpperLeftCornerPixel = innerBoxPixelHeight;
+      mRenderView->mViewportRect.mViewportPixelWidthIncreasingRight = innerBoxPixelWidth;
+      mRenderView->mViewportRect.mViewportPixelHeightIncreasingUp = innerBoxPixelHeight;
+      uI2DDrawData->DrawToTexture( errors );
+      TAC_HANDLE_ERROR( errors );
+
       state.Draw2DBox(
         innerBoxPixelWidth,
         innerBoxPixelHeight,
         v4( 1, 1, 1, 1 ),
         texture );
 
-    }
-    v2 GetSize() override
-    {
-      return
-      {
+      mDims = {
         ( float )mDesktopWindow->mWidth,
-        ( float )mDesktopWindow->mHeight
-      };
+        ( float )mDesktopWindow->mHeight };
     }
     TacString GetDebugName() override
     {
@@ -811,6 +807,7 @@ void TacCreationGameWindow::Init( TacErrors& errors)
     TacRenderer* mRenderer = nullptr;
     TacSoul* mSoul = nullptr;
     TacRenderView* mRenderView = nullptr;
+    TacUI2DDrawData* uI2DDrawData = nullptr;
 
   };
 
@@ -820,6 +817,7 @@ void TacCreationGameWindow::Init( TacErrors& errors)
   gameVis->mRenderer = mEditorWindow->mCreation->mShell->mRenderer;
   gameVis->mSoul = ghost;
   gameVis->mRenderView = mRenderView;
+  gameVis->uI2DDrawData  =  uI2DDrawData;
 
 
   mEditorWindow->mUIRoot->mHierarchyRoot->SetVisual( gameVis);

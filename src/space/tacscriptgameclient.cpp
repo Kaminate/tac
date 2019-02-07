@@ -100,15 +100,41 @@ TacScriptSplash::TacScriptSplash()
   mName = "Splash";
   mFullyVisibleSec = 1.5f;
   mFadeSecTotal = 0.5f;
-  mSkipSplashScreen = true;
+  mSkipSplashScreen = false;
 }
 TacScriptSplash::~TacScriptSplash()
 {
-  mScriptRoot->AddChild( new TacScriptMainMenu() );
+  //mScriptRoot->AddChild( new TacScriptMainMenu() );
+  mScriptRoot->AddChild( new TacScriptMainMenu2() );
 }
 void TacScriptSplash::Update( float seconds, TacErrors& errors )
 {
+  TacGhost* ghost = mScriptRoot->mGhost;
+  TacShell* shell = ghost->mShell;
+  TacUIRoot* uiRoot = ghost->mUIRoot;
+
+
   TAC_TIMELINE_BEGIN;
+
+
+  auto ogroot = uiRoot->mHierarchyRoot;
+  ogroot->mDebugName = "og root";
+
+  auto child1 = ogroot->Split( TacUISplit::Before, TacUILayoutType::Vertical );
+  child1->mDebugName = "child1";
+
+  auto child2 =ogroot->Split( TacUISplit::After, TacUILayoutType::Vertical );
+  child2->mDebugName = "child2";
+
+  auto child3 = ogroot->Split( TacUISplit::Before, TacUILayoutType::Horizontal );
+  child3->mDebugName = "child3";
+
+  auto child4 = ogroot->Split( TacUISplit::After, TacUILayoutType::Horizontal );
+  child4->mDebugName = "child4";
+
+  //auto vis = new TacUIHierarchyVisualText;
+  //vis->mUITextData.mUtf8 = "Moachers";
+  //uiRoot->mHierarchyRoot->SetVisual( vis );
   TAC_TIMELINE_KEYFRAME;
   TAC_TIMELINE_KEYFRAME;
   TAC_TIMELINE_KEYFRAME;
@@ -771,3 +797,7 @@ void TacTimeline::Add( TacTimelineAction* timelineAction )
   mTimelineActions.push_back( timelineAction );
 }
 
+TacScriptMainMenu2::TacScriptMainMenu2()
+{
+  mName = "Main Menu 2";
+}

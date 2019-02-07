@@ -59,9 +59,9 @@ struct TacUser
 //
 struct TacGhost : public TacSoul
 {
-  TacGhost( TacShell* shell, TacErrors& errors );
+  TacGhost();
   virtual ~TacGhost();
-  void Init( TacErrors& errors );
+  void Init( TacErrors& errors ) override;
   void Update( TacErrors& errors ) override;
   void ImguiCreatePlayerPopup( TacErrors& errors );
   TacUser* AddPlayer( const TacString& name, TacErrors& errors );

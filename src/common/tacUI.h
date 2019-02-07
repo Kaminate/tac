@@ -88,9 +88,9 @@ struct TacUILayoutable // yee haw
   TacUILayoutable( const TacString& debugName );
   virtual ~TacUILayoutable();
   virtual void DebugImgui();
-  virtual void Update( TacUILayoutData* uiLayoutData );
-  virtual void TransitionOut();
-  virtual void TransitionIn();
+  virtual void Update( TacUILayoutData* uiLayoutData ) {};
+  virtual void TransitionOut() {};
+  virtual void TransitionIn() {};
   virtual void Render( TacErrors& errors );
   virtual bool IsHovered();
   virtual v2 GetWindowspacePosition();
@@ -202,23 +202,12 @@ enum class TacUILayoutType
   Vertical = 1,
 };
 
-//enum class TacUIEdge
-//{
-//  Left,
-//  Right,
-//  Top,
-//  Bottom,
-//  Count
-//};
-
 struct TacUILayout : public TacUILayoutable
 {
   TacUILayout( const TacString& debugName );
   ~TacUILayout();
   void DebugImgui() override;
   void Update( TacUILayoutData* uiLayoutData ) override;
-  void TransitionOut() override;
-  void TransitionIn()override;
   void Render( TacErrors& errors ) override;
    v2 GetWindowspacePosition() override;
 
@@ -284,36 +273,23 @@ enum class TacUISplit
 struct TacUIHierarchyVisual
 {
   virtual void Render(  TacErrors& errors ) {}
-  virtual v2 GetSize() = 0;
   virtual TacString GetDebugName() = 0;
   TacUIHierarchyNode* mHierarchyNode = nullptr;
+  v2 mDims;
 };
 
 struct TacUIHierarchyVisualText : public TacUIHierarchyVisual
 {
   void Render( TacErrors& errors ) override;
-  v2 GetSize() override;
-  TacString GetDebugName() override
-  {
-    return mUITextData.mUtf8;
-  }
+  TacString GetDebugName() override { return mUITextData.mUtf8; }
   TacUITextData mUITextData;
-  v2 mDims;
 };
 
 struct TacUIHierarchyVisualImage : public TacUIHierarchyVisual
 {
   void Render( TacErrors& errors ) override;
-  v2 GetSize() override;
-  TacString GetDebugName() override
-  {
-    return mTexture->mName;
-  }
+  TacString GetDebugName() override { return mTexture->mName; }
   TacTexture* mTexture = nullptr;
-  v2 mDims;
-  // - alignment
-  // - offset
-  // - basically layoutable stuff?
 };
 
 struct TacUIHierarchyNode
@@ -324,16 +300,20 @@ struct TacUIHierarchyNode
     TacUILayoutType layoutType = TacUILayoutType::Horizontal );
   void RenderHierarchy( TacErrors& errors );
 
-  v4 mColor;
+  v4 mColor = { 1, 1, 1, 1 };
   TacVector< TacUIHierarchyNode* > mChildren;
   TacUIHierarchyNode* mParent = nullptr;
 
   // use injection instead?
   TacUIRoot* mUIRoot = nullptr;
 
+  bool mDrawOutline;
 
   TacUILayoutType mLayoutType = TacUILayoutType::Horizontal;
-  v2 mPosition = {};
+
+  // Position relative to parent
+  v2 mLocalPosition = {};
+
   TacString mDebugName;
 
 
@@ -347,7 +327,10 @@ struct TacUIHierarchyNode
   // layout background in absence of a visual, or before a visual has been set
   v2 mSize = { 50, 50 };
 
+  // I'm thinking about replacing this with grid.width="*" kind of deal
+  // so that I can center a window between two *s
   int mExpandingChildIndex = 0;
+
   void SetVisual( TacUIHierarchyVisual* visual )
   {
     mVisual = visual;

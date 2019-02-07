@@ -9,7 +9,6 @@
 #include "common/tacErrorHandling.h"
 #include "common/tackeyboardinput.h"
 
-#include <cassert>
 #include <thread>
 #include <iostream>
 #include <set>

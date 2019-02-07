@@ -19,11 +19,10 @@
 // ( consistant update between server/client )
 const float sSnapshotUntilNextSecondsMax = 0; //0.1f;
 
-TacServerData::TacServerData( TacErrors& errors )
+TacServerData::TacServerData()
 {
   mWorld = new TacWorld();
   mEmptyWorld = new TacWorld();
-
 }
 
 TacServerData::~TacServerData()

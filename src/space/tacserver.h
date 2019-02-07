@@ -33,7 +33,7 @@ struct TacScriptRoot;
 
 struct TacServerData
 {
-  TacServerData( TacErrors& errors );
+  TacServerData();
   ~TacServerData();
   TacEntity* SpawnEntity();
   TacPlayer* SpawnPlayer();

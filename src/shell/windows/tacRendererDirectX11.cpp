@@ -604,6 +604,8 @@ void TacRendererDirectX11::Render( TacErrors& errors )
       // set viewport rect
       {
         TacViewport viewportRect = drawCall.mView->mViewportRect;
+        TacAssert( viewportRect.mViewportPixelWidthIncreasingRight > 0 );
+        TacAssert( viewportRect.mViewportPixelHeightIncreasingUp > 0 );
         auto textureDX11 = ( TacTextureDX11* )drawCall.mView->mFramebuffer;
 
         FLOAT TopLeftX = viewportRect.mViewportBottomLeftCornerRelFramebufferBottomLeftCornerX;

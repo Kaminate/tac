@@ -1,5 +1,7 @@
 #include "tacColorUtil.h"
 #include "common/math/tacMath.h"
+#include "common/tacSerialization.h"
+#include "common/tacPreprocessor.h"
 #include <cmath> // cos
 
 v4 TacGetColorSchemeA( float t )
@@ -55,4 +57,21 @@ void TacHSVToRGB( float h, float s, float v, v3* outputRGB )
   if( h_prime <= 1 ) rgb1 = { c, x, 0 };
   float m = v - c;
   *outputRGB = rgb1 + v3( 1, 1, 1 ) * m;
+}
+
+v3 TacHexToRGB( uint32_t hexColor ) // 0xRRGGBB
+{
+  switch( TacGetEndianness() )
+  {
+  case TacEndianness::Big:  return  {
+    ( ( uint8_t* )&hexColor )[ 1 ] / 255.0f,
+    ( ( uint8_t* )&hexColor )[ 2 ] / 255.0f,
+    ( ( uint8_t* )&hexColor )[ 3 ] / 255.0f };
+  case TacEndianness::Little: return {
+    ( ( uint8_t* )&hexColor )[ 2 ] / 255.0f,
+    ( ( uint8_t* )&hexColor )[ 1 ] / 255.0f,
+    ( ( uint8_t* )&hexColor )[ 0 ] / 255.0f };
+  }
+  TacInvalidCodePath;
+  return {};
 }
