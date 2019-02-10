@@ -21,7 +21,7 @@
 #include "common/containers/tacVector.h"
 #include "common/math/tacVector2.h"
 #include "common/math/tacVector4.h"
-#include "common/tacUI2D.h"
+//#include "common/tacUI2D.h"
 #include "common/tacLocalization.h"
 #include <list>
 #include <set>
@@ -42,6 +42,7 @@ struct TacDepthBuffer;
 struct TacDesktopWindow;
 struct TacKeyboardInput;
 struct TacTexture;
+struct TacFontStuff;
 
 enum class TacUIAnchorHorizontal
 {
@@ -288,7 +289,7 @@ struct TacUIHierarchyVisualText : public TacUIHierarchyVisual
 struct TacUIHierarchyVisualImage : public TacUIHierarchyVisual
 {
   void Render( TacErrors& errors ) override;
-  TacString GetDebugName() override { return mTexture->mName; }
+  TacString GetDebugName() override;
   TacTexture* mTexture = nullptr;
 };
 

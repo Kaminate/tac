@@ -45,7 +45,7 @@ void TacDesktopApp::SpawnWindowOuter( const TacWindowParams& windowParams, TacDe
   //uiRoot->mUI2DDrawData = ui2DDrawData;
   //uiRoot->mDesktopWindow = desktopWindow;
 
-  desktopWindow->mMainWindowRenderView = renderView;
+  desktopWindow->mRenderView = renderView;
   //desktopWindow->mUI2DDrawData = ui2DDrawData;
   //desktopWindow->mUIRoot = uiRoot;
 

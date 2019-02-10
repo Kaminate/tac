@@ -33,11 +33,11 @@ struct TacGame
 
     mUi2DDrawData = new TacUI2DDrawData;
     mUi2DDrawData->mUI2DCommonData = mShell->mUI2DCommonData;
-    mUi2DDrawData->mRenderView = mDesktopWindow->mMainWindowRenderView;
+    mUi2DDrawData->mRenderView = mDesktopWindow->mRenderView;
 
     auto ghost = new TacGhost;
     ghost->mShell = mShell;
-    ghost->mRenderView = mDesktopWindow->mMainWindowRenderView;
+    ghost->mRenderView = mDesktopWindow->mRenderView;
     ghost->mUIRoot->mUI2DDrawData = mUi2DDrawData;
     ghost->Init( errors );
     TAC_HANDLE_ERROR( errors );
@@ -56,7 +56,7 @@ struct TacGame
     TacTexture* framebuffer;
     mDesktopWindow->mRendererData->GetCurrentBackbufferTexture( &framebuffer );
 
-    TacRenderView* renderView = mDesktopWindow->mMainWindowRenderView;
+    TacRenderView* renderView = mDesktopWindow->mRenderView;
     renderView->mFramebuffer = framebuffer;
     renderView->mFramebufferDepth = mDesktopWindow->mRendererData->mDepthBuffer;
     renderView->mViewportRect = viewport;

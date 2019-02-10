@@ -59,22 +59,22 @@ struct TacTimeline
 };
 
 
-struct TacScriptFader : public TacScriptThread
-{
-  TacScriptFader();
-  void Update( float seconds, TacErrors& errors ) override;
-  void DebugImgui( TacErrors& errors ) override;
-  void SetAlpha( float alpha );
-
-  float mValueInitial = 0;
-  float mValueFinal = 1;
-  float mPreFadeSec;
-  float mPostFadeSec;
-  float mFadeSecTotal;
-  float mFadeSecElapsed;
-  bool mShouldFade;
-  float* mValue = nullptr;
-};
+//struct TacScriptFader : public TacScriptThread
+//{
+//  TacScriptFader();
+//  void Update( float seconds, TacErrors& errors ) override;
+//  void DebugImgui( TacErrors& errors ) override;
+//  void SetAlpha( float alpha );
+//
+//  float mValueInitial = 0;
+//  float mValueFinal = 1;
+//  float mPreFadeSec;
+//  float mPostFadeSec;
+//  float mFadeSecTotal;
+//  float mFadeSecElapsed;
+//  bool mShouldFade;
+//  float* mValue = nullptr;
+//};
 
 struct TacScriptSplash : public TacScriptThread
 {
@@ -160,5 +160,6 @@ struct TacScriptMainMenu : public TacScriptThread
 struct TacScriptMainMenu2 : public TacScriptThread
 {
   TacScriptMainMenu2();
+  void Update( float seconds, TacErrors& errors ) override;
 };
 

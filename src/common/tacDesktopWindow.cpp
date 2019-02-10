@@ -10,7 +10,7 @@ TacDesktopWindow::~TacDesktopWindow()
 {
   mOnDestroyed.EmitEvent();
   delete mRendererData;
-  delete mMainWindowRenderView;
+  delete mRenderView;
   //delete mUI2DDrawData;
 }
 

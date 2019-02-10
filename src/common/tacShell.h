@@ -91,20 +91,6 @@ struct TacShell
   TacControllerInput* mControllerInput = nullptr;
   double mElapsedSeconds = 0;
 
-  // | TODO: move this to be per window
-  // |
-  // V
-  //int mWindowWidth = 0;
-  //int mWindowHeight = 0;
-  //int mMouseRelTopLeftY = 0;
-  //int mMouseRelTopLeftX = 0;
-  //int mMouseRelTopLeftXDelta = 0;
-  //int mMouseRelTopLeftYDelta = 0;
-  //int mMouseWheelRel = 0;
-  //bool mMouseInWindow = false;
-  // ^
-  // |
-
   TacLog* mLog = nullptr;
   bool mShowMainMenu = false;
   bool mShowShellWindow = false;
@@ -114,9 +100,6 @@ struct TacShell
   TacFontStuff* mFontStuff = nullptr;
   TacLocalization* mLocalization = nullptr;
 
-
-
-  //TacGhostCreateFn* mGhostCreateFn = nullptr;
   int mSoulIDCounter = 0;
   bool mPaused = false;
 

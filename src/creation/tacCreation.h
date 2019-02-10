@@ -7,6 +7,9 @@
 #include "common/tacEvent.h"
 #include "common/tacUI.h"
 #include "common/containers/tacVector.h"
+#include "creation/tacCreationGameWindow.h"
+#include "creation/tacCreationPropertyWindow.h"
+#include "creation/tacCreationMainWindow.h"
 
 struct TacDesktopWindow;
 struct TacDesktopApp;
@@ -20,49 +23,15 @@ struct TacTextureAssetManager;
 struct TacTexture;
 
 
-struct TacHandleMainWindowClosed : public TacEvent<>::Handler
-{
-  void HandleEvent() override;
-};
 
-struct TacEditorWindow
-{
-  void Update( TacErrors& errors );
-  TacDesktopWindow* mDesktopWindow = nullptr;
-  TacCreation* mCreation = nullptr;
-  TacUIRoot* mUIRoot = nullptr;
-  TacUI2DDrawData* mUI2DDrawData = nullptr;
-};
-
-struct TacCreationMainWindow
-{
-  void Init( TacErrors& errors );
-  void Update( TacErrors& errors );
-  TacOwned< TacHandleMainWindowClosed > mHandleMainWindowClosed;
-
-  TacUILayout* mTopMostBar = nullptr;
-  TacUILayout* mTopMostBarLeft = nullptr;
-  TacUILayout* mTopMostBarRight = nullptr;
-  TacUILayout* mLayoutIconWindow = nullptr;
-  TacUILayout* mLayoutIconClose = nullptr;
-  TacUILayout* mLayoutIconMaximize = nullptr;
-  TacUILayout* mLayoutIconMinimize = nullptr;
-  TacUIText* mTitleText = nullptr;
-  bool mAreLayoutsCreated = false;
-
-  bool mDrawTitleBar;
-  bool mDrawMenuBar;
-  TacEditorWindow* mEditorWindow = nullptr;
-};
-
-struct TacCreationGameWindow
-{
-  void Init( TacErrors& errors);
-  void Update( TacErrors& errors );
-  TacEditorWindow* mEditorWindow = nullptr;
-  TacSoul* mSoul = nullptr;
-  TacRenderView* mRenderView = nullptr;
-};
+//struct TacEditorWindow
+//{
+//  void Update( TacErrors& errors );
+//  TacDesktopWindow* mDesktopWindow = nullptr;
+//  TacCreation* mCreation = nullptr;
+//  TacUIRoot* mUIRoot = nullptr;
+//  TacUI2DDrawData* mUI2DDrawData = nullptr;
+//};
 
 struct TacCreation
 {
@@ -73,22 +42,16 @@ struct TacCreation
   //void UpdatePropertiesWindow( TacErrors& );
 
   TacDesktopApp* mApp = nullptr;
+
   TacCreationMainWindow* mMainWindow = nullptr;
   TacCreationGameWindow* mGameWindow = nullptr;
+  TacCreationPropertyWindow* mPropertyWindow = nullptr;
+
   //TacEditorWindow* mSecondWindow = nullptr;
   //TacEditorWindow* mGamePlayerWindow = nullptr;
   TacShell* mShell = nullptr;
 
   TacTextureAssetManager* mTextureAssetManager = nullptr;
-
-  // These textures shouldnt really, be here
-  // they should be prerequisites of each window.
-  TacTexture* mIconWindow = nullptr;
-  TacTexture* mIconClose = nullptr;
-  TacTexture* mIconMaximize = nullptr;
-  TacTexture* mIconMinimize = nullptr;
-  bool mAreTexturesLoaded = false;
-
-  std::set< TacEditorWindow* > mEditorWindows;
+  //std::set< TacEditorWindow* > mEditorWindows;
 };
 

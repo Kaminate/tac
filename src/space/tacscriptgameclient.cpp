@@ -23,53 +23,53 @@ const uint16_t defaultPort = 8081;
 
 v4 colorText = v4( 202, 234, 241, 255 ) / 255.0f;
 
-TacScriptFader::TacScriptFader()
-{
-  mName = "Text fader";
-  mShouldFade = true;
-  mPreFadeSec = 0;
-  mPostFadeSec = 0;
-  mFadeSecTotal = 0.5f;
-  mFadeSecElapsed = 0;
-}
-void TacScriptFader::DebugImgui( TacErrors& errors )
-{
-  ImGui::DragFloat( "Pre fade sec", &mPreFadeSec );
-  ImGui::DragFloat( "Post fade sec", &mPostFadeSec );
-  ImGui::DragFloat( "Fade sec total", &mFadeSecTotal );
-  ImGui::DragFloat( "Fade sec elapsed", &mFadeSecElapsed );
-  ImGui::DragFloat( "Fade alpha", mValue );
-  ImGui::Checkbox( "should fade in", &mShouldFade );
-}
-void TacScriptFader::SetAlpha( float alpha )
-{
-  *mValue = alpha;
-}
-void TacScriptFader::Update( float seconds, TacErrors& errors )
-{
-  TAC_TIMELINE_BEGIN;
-  mFadeSecElapsed = 0;
-  SetAlpha( mValueInitial );
-
-  if( mShouldFade )
-    SetNextKeyDelay( mPreFadeSec );
-
-  TAC_TIMELINE_KEYFRAME;
-  if( mShouldFade )
-  {
-    mFadeSecElapsed += seconds;
-    float t = mFadeSecElapsed / mFadeSecTotal;
-    float alpha = TacSaturate( TacLerp( mValueInitial, mValueFinal, t ) );
-    SetAlpha( alpha );
-    if( mFadeSecElapsed < mFadeSecTotal )
-      return;
-  }
-  TAC_TIMELINE_KEYFRAME;
-  SetAlpha( mValueFinal );
-  if( mShouldFade )
-    SetNextKeyDelay( mPostFadeSec );
-  TAC_TIMELINE_END
-}
+//TacScriptFader::TacScriptFader()
+//{
+//  mName = "Text fader";
+//  mShouldFade = true;
+//  mPreFadeSec = 0;
+//  mPostFadeSec = 0;
+//  mFadeSecTotal = 0.5f;
+//  mFadeSecElapsed = 0;
+//}
+//void TacScriptFader::DebugImgui( TacErrors& errors )
+//{
+//  ImGui::DragFloat( "Pre fade sec", &mPreFadeSec );
+//  ImGui::DragFloat( "Post fade sec", &mPostFadeSec );
+//  ImGui::DragFloat( "Fade sec total", &mFadeSecTotal );
+//  ImGui::DragFloat( "Fade sec elapsed", &mFadeSecElapsed );
+//  ImGui::DragFloat( "Fade alpha", mValue );
+//  ImGui::Checkbox( "should fade in", &mShouldFade );
+//}
+//void TacScriptFader::SetAlpha( float alpha )
+//{
+//  *mValue = alpha;
+//}
+//void TacScriptFader::Update( float seconds, TacErrors& errors )
+//{
+//  TAC_TIMELINE_BEGIN;
+//  mFadeSecElapsed = 0;
+//  SetAlpha( mValueInitial );
+//
+//  if( mShouldFade )
+//    SetNextKeyDelay( mPreFadeSec );
+//
+//  TAC_TIMELINE_KEYFRAME;
+//  if( mShouldFade )
+//  {
+//    mFadeSecElapsed += seconds;
+//    float t = mFadeSecElapsed / mFadeSecTotal;
+//    float alpha = TacSaturate( TacLerp( mValueInitial, mValueFinal, t ) );
+//    SetAlpha( alpha );
+//    if( mFadeSecElapsed < mFadeSecTotal )
+//      return;
+//  }
+//  TAC_TIMELINE_KEYFRAME;
+//  SetAlpha( mValueFinal );
+//  if( mShouldFade )
+//    SetNextKeyDelay( mPostFadeSec );
+//  TAC_TIMELINE_END
+//}
 
 TacScriptGameClient::TacScriptGameClient()
 {
@@ -116,21 +116,20 @@ void TacScriptSplash::Update( float seconds, TacErrors& errors )
 
   TAC_TIMELINE_BEGIN;
 
+  //auto ogroot = uiRoot->mHierarchyRoot;
+  //ogroot->mDebugName = "og root";
 
-  auto ogroot = uiRoot->mHierarchyRoot;
-  ogroot->mDebugName = "og root";
+  //auto child1 = ogroot->Split( TacUISplit::Before, TacUILayoutType::Vertical );
+  //child1->mDebugName = "child1";
 
-  auto child1 = ogroot->Split( TacUISplit::Before, TacUILayoutType::Vertical );
-  child1->mDebugName = "child1";
+  //auto child2 =ogroot->Split( TacUISplit::After, TacUILayoutType::Vertical );
+  //child2->mDebugName = "child2";
 
-  auto child2 =ogroot->Split( TacUISplit::After, TacUILayoutType::Vertical );
-  child2->mDebugName = "child2";
+  //auto child3 = ogroot->Split( TacUISplit::Before, TacUILayoutType::Horizontal );
+  //child3->mDebugName = "child3";
 
-  auto child3 = ogroot->Split( TacUISplit::Before, TacUILayoutType::Horizontal );
-  child3->mDebugName = "child3";
-
-  auto child4 = ogroot->Split( TacUISplit::After, TacUILayoutType::Horizontal );
-  child4->mDebugName = "child4";
+  //auto child4 = ogroot->Split( TacUISplit::After, TacUILayoutType::Horizontal );
+  //child4->mDebugName = "child4";
 
   //auto vis = new TacUIHierarchyVisualText;
   //vis->mUITextData.mUtf8 = "Moachers";
@@ -391,13 +390,14 @@ void TacScriptMainMenu::AddCallbackDisconnect()
 }
 void TacScriptMainMenu::Update( float seconds, TacErrors& errors )
 {
-  auto ghost = mScriptRoot->mGhost;
-  auto shell = ghost->mShell;
+  TacGhost* ghost = mScriptRoot->mGhost;
+  TacShell* shell = ghost->mShell;
   TacUIRoot* uiRoot = ghost->mUIRoot;
   auto* scriptMatchmaker = ( TacScriptMatchmaker* )mScriptRoot->GetThread( scriptMatchmakerName );
-  auto serverData = ghost->mServerData;
-  auto world = serverData->mWorld;
-  auto graphics = ( TacGraphics* )world->GetSystem( TacSystemType::Graphics );
+  TacServerData* serverData = ghost->mServerData;
+  TacWorld* world = serverData->mWorld;
+  TacGraphics* graphics = ( TacGraphics* )world->GetSystem( TacSystemType::Graphics );
+  TacRenderer* renderer = shell->mRenderer;
   float boxWidth = 5;
   if( false )
   {
@@ -460,7 +460,7 @@ void TacScriptMainMenu::Update( float seconds, TacErrors& errors )
     textureData.mName = "power";
     textureData.mStackFrame = TAC_STACK_FRAME;
     textureData.myImage = image;
-    mScriptRoot->mGhost->mShell->mRenderer->AddTextureResource( &mPower, textureData, errors );
+    renderer->AddTextureResource( &mPower, textureData, errors );
     TAC_HANDLE_ERROR( errors );
   }
 
@@ -800,4 +800,17 @@ void TacTimeline::Add( TacTimelineAction* timelineAction )
 TacScriptMainMenu2::TacScriptMainMenu2()
 {
   mName = "Main Menu 2";
+}
+void TacScriptMainMenu2::Update( float seconds, TacErrors& errors )
+{
+  TAC_TIMELINE_BEGIN;
+
+
+
+  TAC_TIMELINE_KEYFRAME;
+  TAC_TIMELINE_KEYFRAME;
+  TAC_TIMELINE_KEYFRAME;
+  TAC_TIMELINE_KEYFRAME;
+  TAC_TIMELINE_KEYFRAME;
+  TAC_TIMELINE_END;
 }

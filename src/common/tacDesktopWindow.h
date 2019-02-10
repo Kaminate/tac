@@ -45,7 +45,7 @@ struct TacDesktopWindow : public TacWindowParams
 
   bool mRequestDeletion = false;
   TacRendererWindowData* mRendererData = nullptr;
-  TacRenderView* mMainWindowRenderView = nullptr;
+  TacRenderView* mRenderView = nullptr;
 
   // Should this be here? a window doesn't necessarily need ui
   //TacUI2DDrawData* mUI2DDrawData = nullptr;

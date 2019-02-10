@@ -1065,3 +1065,8 @@ void TacUIHierarchyVisualImage::Render( TacErrors& errors )
     v4( 1, 1, 1, 1 ),
     mTexture );
 }
+
+TacString TacUIHierarchyVisualImage::GetDebugName()
+{
+  return mTexture->mName;
+}
