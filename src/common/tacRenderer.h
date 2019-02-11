@@ -300,61 +300,6 @@ struct TacVertexFormatData : public TacRendererResource
   TacShader* shader = nullptr;
 };
 struct TacVertexFormat : public TacVertexFormatData { };
-struct TacCommandBuffer : public TacRendererResource
-{
-  enum class TacCommandType
-  {
-    SetViewport,
-    SetScissorRect,
-    BindPipeline,
-    BindVertexBuffer,
-    BindIndexBuffer,
-  };
-
-  struct TacCommandSetViewport
-  {
-    float mWidth = 0;
-    float mHeight = 0;
-    float mMinDepth = 0;
-    float mMaxDepth = 0;
-  };
-  struct TacCommandSetScissorRect
-  {
-    float width;
-    float height;
-    float topLeftXIncRight;
-    float topLeftYIncDown;
-  };
-  struct TacCommandBindPipeline
-  {
-  };
-  struct TacCommandBindVertexBuffer
-  {
-    TacVertexBuffer* vertexBuffer = nullptr;
-  };
-  struct TacCommandBindIndexBuffer
-  {
-    TacIndexBuffer* IndexBuffer = nullptr;
-  };
-
-  void SetViewport( const TacCommandSetViewport& data ) { Push( TacCommandType::SetViewport ); Push( data ); }
-  void SetScissorRect( const TacCommandSetScissorRect& data ) { Push( TacCommandType::SetScissorRect ); Push( data ); }
-  void BindPipeline( const TacCommandBindPipeline& data ) { Push( TacCommandType::BindPipeline ); Push( data ); }
-  void BindVertexBuffer( const TacCommandBindVertexBuffer& data ) { Push( TacCommandType::BindVertexBuffer ); Push( data ); }
-  void BindIndexBuffer( const TacCommandBindIndexBuffer& data ) { Push( TacCommandType::BindIndexBuffer ); Push( data ); }
-
-  TacVector< char > mBytes;
-
-private:
-
-  template< typename T >
-  void Push( const T& t )
-  {
-    int byteCount = ( int )mBytes.size();
-    mBytes.resize( byteCount + sizeof( T ) );
-    std::memcpy( ( char* )mBytes.data() + byteCount, &t, sizeof( T ) );
-  }
-};
 
 const int mDebugDrawBytes = 4 * 1024 * 1024;
 typedef uint16_t TacDefaultIndex2D;
@@ -460,6 +405,25 @@ struct TacDrawCall2
 
 struct TacRenderer
 {
+  virtual void CreateResource( TacShader**, TacString, TacStackFrame ) { TacUnimplemented }
+  virtual void CreateResource( TacVertexBuffer**, TacString, TacStackFrame ) { TacUnimplemented }
+  virtual void CreateResource( TacIndexBuffer**, TacString, TacStackFrame ) { TacUnimplemented }
+  virtual void CreateResource( TacSamplerState**, TacString, TacStackFrame ) { TacUnimplemented }
+  virtual void CreateResource( TacTexture**, TacString, TacStackFrame ) { TacUnimplemented }
+  virtual void CreateResource( TacDepthBuffer**, TacString, TacStackFrame ) { TacUnimplemented }
+  virtual void CreateResource( TacCBuffer**, TacString, TacStackFrame ) { TacUnimplemented }
+  virtual void CreateResource( TacBlendState**, TacString, TacStackFrame ) { TacUnimplemented }
+  virtual void CreateResource( TacRasterizerState**, TacString, TacStackFrame ) { TacUnimplemented }
+  virtual void CreateResource( TacDepthState**, TacString, TacStackFrame ) { TacUnimplemented }
+  virtual void CreateResource( TacVertexFormat**, TacString, TacStackFrame ) { TacUnimplemented }
+
+
+
+
+
+
+
+
   virtual void CreateWindowContext( TacDesktopWindow* desktopWindow, TacErrors& errors ) {}
 
   virtual ~TacRenderer();

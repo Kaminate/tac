@@ -1,4 +1,5 @@
 #include "creation/tacCreationMainWindow.h"
+#include "common/tacEvent.h"
 #include "common/tacOS.h"
 #include "common/tacDesktopWindow.h"
 #include "common/tacUI.h"
@@ -139,7 +140,13 @@ void TacCreationMainWindow::Update( TacErrors& errors )
         node = menuBar->Split( TacUISplit::Before );
         node->SetVisual( text );
 
-
+        text = new TacUIHierarchyVisualText();
+        text->mUITextData.mUtf8 = "Game Object";
+        text->mUITextData.mFontSize = 16;
+        text->mUITextData.mColor = textColor;
+        text->mDims = { 100, 50 };
+        node = menuBar->Split( TacUISplit::Before );
+        node->SetVisual( text );
 
         text = new TacUIHierarchyVisualText();
         text->mUITextData.mUtf8 = "Edit";
@@ -148,7 +155,6 @@ void TacCreationMainWindow::Update( TacErrors& errors )
         text->mDims = { 100, 50 };
         node = menuBar->Split( TacUISplit::Before );
         node->SetVisual( text );
-
 
         text = new TacUIHierarchyVisualText();
         text->mUITextData.mUtf8 = "File";
@@ -181,90 +187,13 @@ void TacCreationMainWindow::Update( TacErrors& errors )
     }
 
 
-    bool mShouldCreateTopMostBar = false;
-    if( mShouldCreateTopMostBar )
-    {
-      mTopMostBar = uiRoot->AddMenu( "topmost bar" );
-      mTopMostBar->mAutoWidth = true;
-      mTopMostBar->mHeightTarget = size;
-
-      bool mShouldCreateTopMostBarLeft = false;
-      if( mShouldCreateTopMostBarLeft )
-      {
-        mTopMostBarLeft = mTopMostBar->Add< TacUILayout >( "topmost bar left" );
-        mTopMostBarLeft->mAutoWidth = true;
-
-        bool mShouldCreateWindowIcon = true;
-        if( mShouldCreateWindowIcon )
-        {
-          mLayoutIconWindow = mTopMostBarLeft->Add< TacUILayout >( "window icon" );
-          mLayoutIconWindow->mUiWidth = size;
-          mLayoutIconWindow->mHeightTarget = size;
-          mLayoutIconWindow->mTexture = mIconWindow;
-        }
-
-        bool mShouldCreateTitleText = true;
-        if( mShouldCreateTitleText )
-        {
-          TacUITextData uiTextData;
-          uiTextData.mUtf8 = "Creation (Running) - Tac Studio";
-          uiTextData.mFontSize = 16;
-          uiTextData.mColor = v4(
-            1, 0, 0,
-            //90 / 255.0f,
-            //111 / 255.0f,
-            //102 / 255.0f,
-            1 );
-          mTitleText = mTopMostBarLeft->Add< TacUIText >( "creation title text" );
-          mTitleText->SetText( uiTextData );
-        }
-      }
-
-      bool mShouldCreateTopMostBarRight = true;
-      if( mShouldCreateTopMostBarRight )
-      {
-        mTopMostBarRight = mTopMostBar->Add< TacUILayout >( "topmost bar right" );
-        mTopMostBarRight->mAutoWidth = true;
-        mTopMostBarRight->mAnchor.mAnchorHorizontal = TacUIAnchorHorizontal::Right;
-
-        bool mShouldCreateMinimizeButton = false;
-        if( mShouldCreateMinimizeButton )
-        {
-          mLayoutIconMinimize = mTopMostBarRight->Add< TacUILayout >( "icon minimize" );
-          mLayoutIconMinimize->mTexture = mIconClose;
-          mLayoutIconMinimize->mUiWidth = size;
-          mLayoutIconMinimize->mHeightTarget = size;
-          mLayoutIconMinimize->mAnchor.mAnchorHorizontal = TacUIAnchorHorizontal::Right;
-          mLayoutIconMinimize->mAnchor.mAnchorVertical = TacUIAnchorVertical::Top;
-        }
-
-        bool mShouldCreateMaximizeButton = false;
-        if( mShouldCreateMaximizeButton )
-        {
-          mLayoutIconMaximize = mTopMostBarRight->Add< TacUILayout >( "icon maximize" );
-          mLayoutIconMaximize->mTexture = mIconClose;
-          mLayoutIconMaximize->mUiWidth = size;
-          mLayoutIconMaximize->mHeightTarget = size;
-          mLayoutIconMaximize->mAnchor.mAnchorHorizontal = TacUIAnchorHorizontal::Right;
-          mLayoutIconMaximize->mAnchor.mAnchorVertical = TacUIAnchorVertical::Top;
-        }
-
-        bool mShouldCreateCloseIcon = true;
-        if( mShouldCreateCloseIcon )
-        {
-          mLayoutIconClose = mTopMostBarRight->Add< TacUILayout >( "icon close" );
-          mLayoutIconClose->mTexture = mIconClose;
-          mLayoutIconClose->mUiWidth = size;
-          mLayoutIconClose->mHeightTarget = size;
-          mLayoutIconClose->mAnchor.mAnchorHorizontal = TacUIAnchorHorizontal::Right;
-          mLayoutIconClose->mAnchor.mAnchorVertical = TacUIAnchorVertical::Top;
-        }
-      }
-    }
 
     mAreLayoutsCreated = true;
   }
 
+  this->mShell->mControllerInput;
+
+  mUIRoot->mUiCursor.x;
   mUIRoot->Update();
   mUIRoot->Render( errors );
   TAC_HANDLE_ERROR( errors );

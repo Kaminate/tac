@@ -16,8 +16,6 @@
 #include <algorithm>
 
 
-const TacString gGameWindowName = "VirtualGamePlayer";
-
 struct SaveWindowSize : public TacEvent<>::Handler
 {
   virtual ~SaveWindowSize() = default;
@@ -198,6 +196,15 @@ void TacCreation::Init( TacErrors& errors )
       mGameWindow->mShell = shell;
       mGameWindow->mDesktopWindow = desktopWindow;
       mGameWindow->Init( errors );
+      TAC_HANDLE_ERROR( errors );
+    }
+
+    if( windowParams.mName == gPropertyWindowName )
+    {
+      mPropertyWindow = new TacCreationPropertyWindow;
+      mPropertyWindow->mShell = shell;
+      mPropertyWindow->mDesktopWindow = desktopWindow;
+      mPropertyWindow->Init( errors );
       TAC_HANDLE_ERROR( errors );
     }
 

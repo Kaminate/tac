@@ -1,5 +1,6 @@
 #pragma once
-#include "common/tacEvent.h"
+
+
 struct TacUILayout;
 struct TacShell;
 struct TacUIText;
@@ -17,16 +18,6 @@ struct TacCreationMainWindow
 
   TacShell* mShell = nullptr;
   TacDesktopWindow* mDesktopWindow = nullptr;
-
-  TacUILayout* mTopMostBar = nullptr;
-  TacUILayout* mTopMostBarLeft = nullptr;
-  TacUILayout* mTopMostBarRight = nullptr;
-  TacUILayout* mLayoutIconWindow = nullptr;
-  TacUILayout* mLayoutIconClose = nullptr;
-  TacUILayout* mLayoutIconMaximize = nullptr;
-  TacUILayout* mLayoutIconMinimize = nullptr;
-  TacUIText* mTitleText = nullptr;
-  bool mAreLayoutsCreated = false;
   TacUIRoot* mUIRoot = nullptr;
   TacUI2DDrawData* mUI2DDrawData = nullptr;
   TacTexture* mIconWindow = nullptr;
@@ -34,4 +25,5 @@ struct TacCreationMainWindow
   TacTexture* mIconMaximize = nullptr;
   TacTexture* mIconMinimize = nullptr;
   bool mAreTexturesLoaded = false;
+  bool mAreLayoutsCreated = false;
 };

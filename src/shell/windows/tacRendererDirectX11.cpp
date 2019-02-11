@@ -1832,3 +1832,93 @@ TacVertexFormatDX11::~TacVertexFormatDX11()
   if( rendererDX11->mCurrentlyBoundVertexFormat == this )
     rendererDX11->mCurrentlyBoundVertexFormat = nullptr;
 }
+void TacRendererDirectX11::CreateResource( TacShader** shader, TacString debugName, TacStackFrame stackFrame )
+{
+  auto shaderDX11 = new TacShaderDX11;
+  shaderDX11->mName = debugName;
+  shaderDX11->mStackFrame = stackFrame;
+  shaderDX11->mRenderer = this;
+  *shader = shaderDX11;
+}
+void TacRendererDirectX11::CreateResource( TacVertexBuffer** vertexBuffer, TacString debugName, TacStackFrame stackFrame )
+{
+  auto vertexBufferDX11 = new TacVertexBufferDX11;
+  vertexBufferDX11->mName = debugName;
+  vertexBufferDX11->mStackFrame = stackFrame;
+  vertexBufferDX11->mRenderer = this;
+  *vertexBuffer = vertexBufferDX11;
+}
+void TacRendererDirectX11::CreateResource( TacIndexBuffer** indexBuffer, TacString debugName, TacStackFrame stackFrame )
+{
+  auto indexBufferDX11 = new TacIndexBufferDX11;
+  indexBufferDX11->mName = debugName;
+  indexBufferDX11->mStackFrame = stackFrame;
+  indexBufferDX11->mRenderer = this;
+  *indexBuffer = indexBufferDX11;
+}
+void TacRendererDirectX11::CreateResource( TacSamplerState** samplerState, TacString debugName, TacStackFrame stackFrame )
+{
+  auto  samplerStateDX11 = new TacSamplerStateDX11;
+  samplerStateDX11->mName = debugName;
+  samplerStateDX11->mStackFrame = stackFrame;
+  samplerStateDX11->mRenderer = this;
+  *samplerState = samplerStateDX11;
+}
+void TacRendererDirectX11::CreateResource( TacTexture** texture, TacString debugName, TacStackFrame stackFrame )
+{
+  auto  textureDX11 = new TacTextureDX11;
+  textureDX11->mName = debugName;
+  textureDX11->mStackFrame = stackFrame;
+  textureDX11->mRenderer = this;
+  *texture = textureDX11;
+}
+void TacRendererDirectX11::CreateResource( TacDepthBuffer** depthBuffer, TacString debugName, TacStackFrame stackFrame )
+{
+  auto  depthBufferDX11 = new TacDepthBufferDX11;
+  depthBufferDX11->mName = debugName;
+  depthBufferDX11->mStackFrame = stackFrame;
+  depthBufferDX11->mRenderer = this;
+  *depthBuffer = depthBufferDX11;
+}
+void TacRendererDirectX11::CreateResource( TacCBuffer** cBuffer, TacString debugName, TacStackFrame stackFrame )
+{
+  auto  cBufferDX11 = new TacCBufferDX11;
+  cBufferDX11->mName = debugName;
+  cBufferDX11->mStackFrame = stackFrame;
+  cBufferDX11->mRenderer = this;
+  *cBuffer = cBufferDX11;
+}
+void TacRendererDirectX11::CreateResource( TacBlendState** blendState, TacString debugName, TacStackFrame stackFrame )
+{
+  auto  blendStateDX11 = new TacBlendStateDX11;
+  blendStateDX11->mName = debugName;
+  blendStateDX11->mStackFrame = stackFrame;
+  blendStateDX11->mRenderer = this;
+  *blendState = blendStateDX11;
+}
+void TacRendererDirectX11::CreateResource( TacRasterizerState** rasterizerState, TacString debugName, TacStackFrame stackFrame )
+{
+  auto  rasterizerStateDX11 = new TacRasterizerStateDX11;
+  rasterizerStateDX11->mName = debugName;
+  rasterizerStateDX11->mStackFrame = stackFrame;
+  rasterizerStateDX11->mRenderer = this;
+  *rasterizerState = rasterizerStateDX11;
+}
+void TacRendererDirectX11::CreateResource( TacDepthState** depthState, TacString debugName, TacStackFrame stackFrame )
+{
+  auto  depthStateDX11 = new TacDepthStateDX11;
+  depthStateDX11->mName = debugName;
+  depthStateDX11->mStackFrame = stackFrame;
+  depthStateDX11->mRenderer = this;
+  *depthState = depthStateDX11;
+}
+void TacRendererDirectX11::CreateResource( TacVertexFormat** vertexFormat, TacString debugName, TacStackFrame stackFrame )
+{
+  auto  vertexFormatDX11 = new TacVertexFormatDX11;
+  vertexFormatDX11->mName = debugName;
+  vertexFormatDX11->mStackFrame = stackFrame;
+  vertexFormatDX11->mRenderer = this;
+  *vertexFormat = vertexFormatDX11;
+}
+
+

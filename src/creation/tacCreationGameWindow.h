@@ -1,5 +1,7 @@
 #pragma once
 
+#include "common/tacString.h"
+
 struct TacErrors;
 struct TacDesktopWindow;
 struct TacCreation;
@@ -23,3 +25,5 @@ struct TacCreationGameWindow
   TacRenderView* mRenderView = nullptr;
 };
 
+
+const TacString gGameWindowName = "VirtualGamePlayer";

@@ -133,6 +133,21 @@ struct TacDX11Window : public TacRendererWindowData
 
 struct TacRendererDirectX11 : public TacRenderer
 {
+  void CreateResource( TacShader**, TacString, TacStackFrame ) override;
+  void CreateResource( TacVertexBuffer**, TacString, TacStackFrame ) override;
+  void CreateResource( TacIndexBuffer**, TacString, TacStackFrame ) override;
+  void CreateResource( TacSamplerState**, TacString, TacStackFrame ) override;
+  void CreateResource( TacTexture**, TacString, TacStackFrame ) override;
+  void CreateResource( TacDepthBuffer**, TacString, TacStackFrame ) override;
+  void CreateResource( TacCBuffer**, TacString, TacStackFrame ) override;
+  void CreateResource( TacBlendState**, TacString, TacStackFrame ) override;
+  void CreateResource( TacRasterizerState**, TacString, TacStackFrame ) override;
+  void CreateResource( TacDepthState**, TacString, TacStackFrame ) override;
+  void CreateResource( TacVertexFormat**, TacString, TacStackFrame ) override;
+
+
+
+
   TacRendererDirectX11(/* HWND hwnd, TacErrors& errors */ );
   ~TacRendererDirectX11();
 
