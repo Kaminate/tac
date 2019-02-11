@@ -312,8 +312,8 @@ struct TacUIHierarchyNode
 
   TacUILayoutType mLayoutType = TacUILayoutType::Horizontal;
 
-  // Position relative to parent
-  v2 mLocalPosition = {};
+  v2 mPositionRelativeToParent = {};
+  v2 mPositionRelativeToRoot = {};
 
   TacString mDebugName;
 
@@ -354,14 +354,19 @@ struct TacUIRoot//  : public TacUIHierarchyNode
   // Unified getter because I can't make up my mind how to store this variable ( Shell*? )
   double GetElapsedSeconds() { return *mElapsedSeconds; }
 
-  // | The ui shouldn't know about the window it's rendering to
-  // | because it could be rendererd to a texture
-  // v
-  //TacDesktopWindow* mDesktopWindow = nullptr;
 
   TacUI2DDrawData* mUI2DDrawData = nullptr;
   TacFontStuff* mFontStuff = nullptr;
   TacKeyboardInput* mKeyboardInput = nullptr;
+
+
+  // | The ui shouldn't know about the window it's rendering to
+  // | because it could be rendererd to a texture
+  // |
+  // | Although the above is true, we still need to know if our window
+  // | is the cursor unobscured window
+  // v
+  TacDesktopWindow* mDesktopWindow = nullptr;
   double* mElapsedSeconds = 0;
 
   TacLanguage mDefaultLanguage = TacLanguage::English;

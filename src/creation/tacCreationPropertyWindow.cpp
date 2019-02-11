@@ -12,7 +12,7 @@ void TacCreationPropertyWindow::Init( TacErrors& errors )
   mUI2DDrawData->mUI2DCommonData = mShell->mUI2DCommonData;
   mUIRoot = new TacUIRoot;
   mUIRoot->mUI2DDrawData = mUI2DDrawData;
-
+  mUIRoot->mDesktopWindow = mDesktopWindow;
   mUIRoot->mHierarchyRoot->Split();
 }
 

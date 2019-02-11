@@ -15,6 +15,8 @@ struct TacCreationMainWindow
 {
   void Init( TacErrors& errors );
   void Update( TacErrors& errors );
+  void LoadTextures( TacErrors& errors );
+  void CreateLayouts();
 
   TacShell* mShell = nullptr;
   TacDesktopWindow* mDesktopWindow = nullptr;

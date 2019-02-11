@@ -1001,16 +1001,27 @@ void TacUIHierarchyNode::RenderHierarchy( TacErrors& errors )
 
   TacUI2DState* state = mUIRoot->mUI2DDrawData->PushState();
   float padding = 0;
-  state->Translate( mLocalPosition + v2( 1, 1 ) * padding );
+  state->Translate( mPositionRelativeToParent + v2( 1, 1 ) * padding );
   if( mDrawOutline )
   {
+      v4 color = mColor;
+    if( mUIRoot->mDesktopWindow->mCursorUnobscured &&
+      mUIRoot->mUiCursor.x > mPositionRelativeToRoot.x &&
+      mUIRoot->mUiCursor.x < mPositionRelativeToRoot.x + mSize.x &&
+      mUIRoot->mUiCursor.y > mPositionRelativeToRoot.y  &&
+      mUIRoot->mUiCursor.y < mPositionRelativeToRoot.y + mSize.y )
+    {
+      // magic
+      color.xyz() = ( color.xyz().Length() < 0.5f ? color.xyz() + v3( 1, 1, 1 ) : color.xyz() ) / 2;
+    }
+
     bool debugdrawNodeBackground = true;
     if( debugdrawNodeBackground )
     {
       state->Draw2DBox(
         mSize[ 0 ] - ( padding * 2 ),
         mSize[ 1 ] - ( padding * 2 ),
-        mColor );
+        color );
     }
 
     bool debugdrawNodeName = true;
@@ -1032,7 +1043,8 @@ void TacUIHierarchyNode::RenderHierarchy( TacErrors& errors )
   {
     v2 childPosition = {};
     childPosition[ ( int )mLayoutType ] += runningPixelX;
-    child->mLocalPosition = childPosition;
+    child->mPositionRelativeToRoot = mPositionRelativeToRoot + childPosition;
+    child->mPositionRelativeToParent = childPosition;
     child->RenderHierarchy( errors );
     TAC_HANDLE_ERROR( errors );
     runningPixelX += child->mSize[ ( int )mLayoutType ];

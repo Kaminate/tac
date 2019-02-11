@@ -405,25 +405,6 @@ struct TacDrawCall2
 
 struct TacRenderer
 {
-  virtual void CreateResource( TacShader**, TacString, TacStackFrame ) { TacUnimplemented }
-  virtual void CreateResource( TacVertexBuffer**, TacString, TacStackFrame ) { TacUnimplemented }
-  virtual void CreateResource( TacIndexBuffer**, TacString, TacStackFrame ) { TacUnimplemented }
-  virtual void CreateResource( TacSamplerState**, TacString, TacStackFrame ) { TacUnimplemented }
-  virtual void CreateResource( TacTexture**, TacString, TacStackFrame ) { TacUnimplemented }
-  virtual void CreateResource( TacDepthBuffer**, TacString, TacStackFrame ) { TacUnimplemented }
-  virtual void CreateResource( TacCBuffer**, TacString, TacStackFrame ) { TacUnimplemented }
-  virtual void CreateResource( TacBlendState**, TacString, TacStackFrame ) { TacUnimplemented }
-  virtual void CreateResource( TacRasterizerState**, TacString, TacStackFrame ) { TacUnimplemented }
-  virtual void CreateResource( TacDepthState**, TacString, TacStackFrame ) { TacUnimplemented }
-  virtual void CreateResource( TacVertexFormat**, TacString, TacStackFrame ) { TacUnimplemented }
-
-
-
-
-
-
-
-
   virtual void CreateWindowContext( TacDesktopWindow* desktopWindow, TacErrors& errors ) {}
 
   virtual ~TacRenderer();
