@@ -18,11 +18,11 @@
 
 #include "common/tacString.h"
 #include "common/tacErrorHandling.h"
+#include "common/tacEvent.h"
+#include "common/tacLocalization.h"
 #include "common/containers/tacVector.h"
 #include "common/math/tacVector2.h"
 #include "common/math/tacVector4.h"
-//#include "common/tacUI2D.h"
-#include "common/tacLocalization.h"
 #include <list>
 #include <set>
 
@@ -316,6 +316,8 @@ struct TacUIHierarchyNode
   v2 mPositionRelativeToRoot = {};
 
   TacString mDebugName;
+
+  TacEvent<>::Emitter mOnClickEventEmitter;
 
 
   // This variable is used...

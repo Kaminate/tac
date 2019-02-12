@@ -28,7 +28,7 @@ struct TacGame
       &windowParams.mY,
       monitor );
 
-    mApp->SpawnWindowOuter( windowParams, &mDesktopWindow, errors );
+    mApp->SpawnWindow( windowParams, &mDesktopWindow, errors );
     TAC_HANDLE_ERROR( errors );
 
     mUi2DDrawData = new TacUI2DDrawData;

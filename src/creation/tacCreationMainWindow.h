@@ -1,15 +1,31 @@
 #pragma once
 
+#include "common/tacErrorHandling.h"
 
 struct TacUILayout;
 struct TacShell;
 struct TacUIText;
 struct TacDesktopWindow;
+struct TacDesktopApp;
 struct TacUIRoot;
 struct TacUI2DDrawData;
-struct TacErrors;
+struct TacUIHierarchyNode;
 struct TacTexture;
+struct TacCreationGameObjectMenuWindow;
+struct TacCreationMainWindow;
 
+struct TacCreationGameObjectMenuWindow
+{
+  ~TacCreationGameObjectMenuWindow();
+  void Init( TacErrors& errors );
+  void Update( TacErrors& errors );
+  TacCreationMainWindow* mMainWindow = nullptr;
+  TacDesktopWindow* mDesktopWindow = nullptr;
+  TacUIRoot* mUIRoot = nullptr;
+  TacUI2DDrawData* mUI2DDrawData = nullptr;
+  TacShell* mShell = nullptr;
+  double mCreationSeconds;
+};
 
 struct TacCreationMainWindow
 {
@@ -20,12 +36,16 @@ struct TacCreationMainWindow
 
   TacShell* mShell = nullptr;
   TacDesktopWindow* mDesktopWindow = nullptr;
+  TacDesktopApp* mDesktopApp = nullptr;
   TacUIRoot* mUIRoot = nullptr;
   TacUI2DDrawData* mUI2DDrawData = nullptr;
   TacTexture* mIconWindow = nullptr;
   TacTexture* mIconClose = nullptr;
   TacTexture* mIconMaximize = nullptr;
   TacTexture* mIconMinimize = nullptr;
+  TacUIHierarchyNode* mGameObjectButton = nullptr;
   bool mAreTexturesLoaded = false;
   bool mAreLayoutsCreated = false;
+  TacErrors mButtonCallbackErrors;
+  TacCreationGameObjectMenuWindow* mGameObjectMenuWindow = nullptr;
 };

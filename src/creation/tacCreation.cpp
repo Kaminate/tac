@@ -54,29 +54,6 @@ static v4 GetClearColor( TacShell* shell )
   return TacGetColorSchemeA( ( float )shell->mElapsedSeconds );
 }
 
-static void SetRenderViewDefaults( TacShell* shell, TacDesktopWindow* desktopWindow )
-{
-  if( !desktopWindow )
-    return;
-  TacTexture* currentBackbufferTexture = nullptr;
-  desktopWindow->mRendererData->GetCurrentBackbufferTexture( &currentBackbufferTexture );
-  TacAssert( currentBackbufferTexture );
-
-  TacScissorRect scissorRect;
-  scissorRect.mXMaxRelUpperLeftCornerPixel = ( float )currentBackbufferTexture->myImage.mWidth;
-  scissorRect.mYMaxRelUpperLeftCornerPixel = ( float )currentBackbufferTexture->myImage.mHeight;
-
-  TacViewport viewport;
-  viewport.mViewportPixelWidthIncreasingRight = ( float )currentBackbufferTexture->myImage.mWidth;
-  viewport.mViewportPixelHeightIncreasingUp = ( float )currentBackbufferTexture->myImage.mHeight;
-
-  TacRenderView* renderView = desktopWindow->mRenderView;
-  renderView->mFramebuffer = currentBackbufferTexture;
-  renderView->mFramebufferDepth = desktopWindow->mRendererData->mDepthBuffer;
-  renderView->mClearColorRGBA = GetClearColor( shell );
-  renderView->mScissorRect = scissorRect;
-  renderView->mViewportRect = viewport;
-}
 
 void TacCreation::Init( TacErrors& errors )
 {
@@ -148,7 +125,7 @@ void TacCreation::Init( TacErrors& errors )
     TAC_HANDLE_ERROR( errors );
 
     TacDesktopWindow* desktopWindow;
-    mApp->SpawnWindowOuter( windowParams, &desktopWindow, errors );
+    mApp->SpawnWindow( windowParams, &desktopWindow, errors );
     TAC_HANDLE_ERROR( errors );
 
 
@@ -185,6 +162,7 @@ void TacCreation::Init( TacErrors& errors )
       mMainWindow = new TacCreationMainWindow();
       mMainWindow->mShell = mShell;
       mMainWindow->mDesktopWindow = desktopWindow;
+      mMainWindow->mDesktopApp = mApp;
       mMainWindow->Init( errors );
       TAC_HANDLE_ERROR( errors );
     }
@@ -213,18 +191,6 @@ void TacCreation::Init( TacErrors& errors )
 }
 void TacCreation::Update( TacErrors& errors )
 {
-  TacShell* shell = mShell;
-
-  for( TacDesktopWindow* desktopWindow : mApp->mMainWindows )
-    SetRenderViewDefaults( mShell, desktopWindow );
-
-  //for( TacEditorWindow* editorWindow : mEditorWindows )
-  //{
-  //  editorWindow->Update( errors );
-  //  TAC_HANDLE_ERROR( errors );
-  //}
-
-
   if( mMainWindow )
   {
     mMainWindow->Update( errors );

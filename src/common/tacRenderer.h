@@ -573,6 +573,7 @@ struct TacRenderer
 
   virtual void Apply() { TacUnimplemented; }
 
+  virtual void RenderFlush() { TacUnimplemented; }
   virtual void Render( TacErrors& errors ) { TacUnimplemented; }
 
   //virtual void SetViewport(

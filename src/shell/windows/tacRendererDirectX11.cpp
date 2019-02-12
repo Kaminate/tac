@@ -430,11 +430,8 @@ void TacRendererDirectX11::Init( TacErrors& errors )
   TAC_HANDLE_ERROR( errors );
 }
 
-void TacRendererDirectX11::Render( TacErrors& errors )
+void TacRendererDirectX11::RenderFlush()
 {
-  // uhh so i still like want to clear the first one of each frame
-  TacRenderView* mCurrentlyBoundView = nullptr;
-
   mDeviceContext->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
 
   for( TacDrawCall2& drawCall : mDrawCall2s )
@@ -509,9 +506,9 @@ void TacRendererDirectX11::Render( TacErrors& errors )
 
       if( false )
         std::cout << "changing index buffer to "
-          << ( void* )indexBufferDX11
-          << " "
-          << indexBufferDX11->indexCount << std::endl;
+        << ( void* )indexBufferDX11
+        << " "
+        << indexBufferDX11->indexCount << std::endl;
     }
 
     if( mCurrentlyBoundBlendState != drawCall.mBlendState )
@@ -581,13 +578,18 @@ void TacRendererDirectX11::Render( TacErrors& errors )
           renderTargetViews.data(),
           pDepthStencilView );
 
-        mDeviceContext->ClearRenderTargetView(
-          renderTargetView,
-          drawCall.mView->mClearColorRGBA.data() );
+        if( !TacContains( mFrameBoundRenderViews, drawCall.mView ) )
+        {
+          mFrameBoundRenderViews.push_back( drawCall.mView );
+          mDeviceContext->ClearRenderTargetView(
+            renderTargetView,
+            drawCall.mView->mClearColorRGBA.data() );
 
-        UINT clearFlags = D3D11_CLEAR_DEPTH; // | D3D11_CLEAR_STENCIL;
-        FLOAT valueToClearDepthTo = 1.0f;
-        mDeviceContext->ClearDepthStencilView( pDepthStencilView, clearFlags, valueToClearDepthTo, 0 );
+          UINT clearFlags = D3D11_CLEAR_DEPTH; // | D3D11_CLEAR_STENCIL;
+          FLOAT valueToClearDepthTo = 1.0f;
+          mDeviceContext->ClearDepthStencilView( pDepthStencilView, clearFlags, valueToClearDepthTo, 0 );
+        }
+
       }
 
       // set scissor rect
@@ -662,11 +664,19 @@ void TacRendererDirectX11::Render( TacErrors& errors )
     }
   }
   mDrawCall2s.clear();
+}
+void TacRendererDirectX11::Render( TacErrors& errors )
+{
+  RenderFlush();
+
   for( TacDX11Window* window : mWindows )
   {
     window->SwapBuffers( errors );
     TAC_HANDLE_ERROR( errors );
   }
+
+  mCurrentlyBoundView = nullptr;
+  mFrameBoundRenderViews.clear();
 }
 
 void TacRendererDirectX11::CreateWindowContext( TacDesktopWindow* desktopWindow, TacErrors& errors )
@@ -679,16 +689,41 @@ void TacRendererDirectX11::CreateWindowContext( TacDesktopWindow* desktopWindow,
   mDxgi.CreateSwapChain( hwnd, pDevice, bufferCount, desktopWindow->mWidth, desktopWindow->mHeight, &mSwapChain, errors );
   TAC_HANDLE_ERROR( errors );
 
-  auto dx12Window = new TacDX11Window();
-  dx12Window->mSwapChain = mSwapChain;
-  dx12Window->mRenderer = this;
-  dx12Window->CreateRenderTarget( errors );
-  dx12Window->mDesktopWindow = desktopWindow;
+  auto dx11Window = new TacDX11Window();
+  dx11Window->mSwapChain = mSwapChain;
+  dx11Window->mRenderer = this;
+  dx11Window->CreateRenderTarget( errors );
+  dx11Window->mDesktopWindow = desktopWindow;
   TAC_HANDLE_ERROR( errors );
 
-  mWindows.push_back( dx12Window );
+  mWindows.push_back( dx11Window );
 
-  desktopWindow->mRendererData = dx12Window;
+  struct TacOnDX11WindowDestroyed : TacEvent<>::Handler
+  {
+    TacOnDX11WindowDestroyed( TacDX11Window* window, TacRendererDirectX11* renderer )
+    {
+      mWindow = window;
+      mRenderer = renderer;
+    }
+    void HandleEvent() override
+    {
+      for( auto& window : mRenderer->mWindows )
+      {
+        if( window == mWindow )
+        {
+          window = mRenderer->mWindows.back();
+          delete mWindow;
+          mRenderer->mWindows.pop_back();
+          break;
+        }
+      }
+    }
+    TacDX11Window* mWindow;
+    TacRendererDirectX11* mRenderer;
+  };
+  desktopWindow->mOnDestroyed.AddCallback( new TacOnDX11WindowDestroyed( dx11Window, this ) );
+
+  desktopWindow->mRendererData = dx11Window;
 }
 
 // Make this static?

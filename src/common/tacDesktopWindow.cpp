@@ -5,13 +5,12 @@
 
 TacDesktopWindow::TacDesktopWindow()
 {
+  mRenderView = new TacRenderView;
 }
 TacDesktopWindow::~TacDesktopWindow()
 {
   mOnDestroyed.EmitEvent();
-  delete mRendererData;
   delete mRenderView;
-  //delete mUI2DDrawData;
 }
 
 
@@ -28,3 +27,23 @@ void TacWindowParams::GetCenteredPosition( int w, int h, int* x, int* y, TacMoni
   *y = ( monitor.h - h ) / 2;
 }
 
+void TacDesktopWindow::SetRenderViewDefaults()
+{
+  TacTexture* currentBackbufferTexture = nullptr;
+  mRendererData->GetCurrentBackbufferTexture( &currentBackbufferTexture );
+  TacAssert( currentBackbufferTexture );
+
+  TacScissorRect scissorRect;
+  scissorRect.mXMaxRelUpperLeftCornerPixel = ( float )currentBackbufferTexture->myImage.mWidth;
+  scissorRect.mYMaxRelUpperLeftCornerPixel = ( float )currentBackbufferTexture->myImage.mHeight;
+
+  TacViewport viewport;
+  viewport.mViewportPixelWidthIncreasingRight = ( float )currentBackbufferTexture->myImage.mWidth;
+  viewport.mViewportPixelHeightIncreasingUp = ( float )currentBackbufferTexture->myImage.mHeight;
+
+  TacRenderView* renderView = mRenderView;
+  renderView->mFramebuffer = currentBackbufferTexture;
+  renderView->mFramebufferDepth = mRendererData->mDepthBuffer;
+  renderView->mScissorRect = scissorRect;
+  renderView->mViewportRect = viewport;
+}

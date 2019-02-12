@@ -57,6 +57,21 @@ template< typename T > T TacRandom( const TacVector< T >& ts ) { return TacRando
 template< typename T, size_t U > T TacRandom( const std::array< T, U >& ts ) { return TacRandomAccess( ts ); }
 template< typename T > T TacRandom( std::initializer_list<T> ts ) { return TacRandomNoAccess( ts ); }
 
+template< typename TElement, typename TContainer >
+int TacIndexOf( const TElement& element, const TContainer& container )
+{
+  int i = 0;
+  for( const TElement& curElement : container )
+  {
+    if( curElement == element )
+    {
+      break;
+    }
+    i++;
+  }
+  return i;
+}
+
 // Not sure if this will be that useful...
 // A lot of the time, you find an element from a key,
 // do some stuff with it, and then remove it from the container.

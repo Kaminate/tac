@@ -23,9 +23,9 @@ const char* TacToString( TacControllerButton controllerButton )
   case TacControllerButton::LeftShoulder: return "LeftShoulder";
   case TacControllerButton::RightShoulder: return "RightShoulder";
   case TacControllerButton::A: return "A";
-  case TacControllerButton::B:return "B";
-  case TacControllerButton::X:return "X";
-  case TacControllerButton::Y:return "Y";
+  case TacControllerButton::B: return "B";
+  case TacControllerButton::X: return "X";
+  case TacControllerButton::Y: return "Y";
     TacInvalidDefaultCase( controllerButton );
   }
   return nullptr;
@@ -148,7 +148,7 @@ void TacControllerInput::DebugImgui()
       float intensity = 0.2f;
       ImVec4 red( intensity, 0, 0, 1 );
       ImVec4 green( 0, intensity, 0, 1 );
-      ImVec4 color = mIndexOverride == iController?green:red;
+      ImVec4 color = mIndexOverride == iController ? green : red;
       ImGui::PushStyleColor( ImGuiCol_WindowBg, color );
     }
     OnDestruct( if( mForceIndexOverride ) ImGui::PopStyleColor() );

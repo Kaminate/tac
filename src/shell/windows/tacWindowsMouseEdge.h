@@ -5,11 +5,8 @@
 
 #pragma once
 
-#include "tacWindows.h"
-//#include "common/tacUtility.h"
-//#include "common/tacEvent.h"
+#include "shell/windows/tacWindows.h"
 #include "common/tacMemory.h"
-#include <map>
 
 struct TacWin32DesktopWindow;
 struct TacWindowsApplication2;
@@ -38,11 +35,10 @@ struct TacWin32Cursors
   HCURSOR GetCursor( TacCursorDir cursorDir = ( TacCursorDir )0 );
 };
 
-
-
 struct TacWin32MouseEdgeHandler
 {
   TacWin32MouseEdgeHandler();
+  ~TacWin32MouseEdgeHandler();
   TacKeyboardInput* mKeyboardInput = nullptr;
 
   void Update(TacWin32DesktopWindow* window);
@@ -82,7 +78,6 @@ private:
     void Update() override;
   };
 
-  TacOwned< Handler > mHandler;
-
+  Handler* mHandler = nullptr;
 };
 

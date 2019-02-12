@@ -29,7 +29,7 @@ struct TacSDLApp : public TacDesktopApp
   ~TacSDLApp();
   void Init( TacErrors& errors ) override;
   void Poll( TacErrors& errors ) override;
-  void SpawnWindow( const TacWindowParams& windowParams, TacDesktopWindow** desktopWindow, TacErrors& errors )override;
+  void SpawnWindowAux( const TacWindowParams& windowParams, TacDesktopWindow** desktopWindow, TacErrors& errors )override;
   void GetPrimaryMonitor( TacMonitor* monitor, TacErrors& errors ) override;
   TacSDLWindow* FindSDLWindowByID( Uint32 windowID );
 

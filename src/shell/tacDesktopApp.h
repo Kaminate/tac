@@ -9,23 +9,23 @@
 struct TacDesktopApp
 {
   TacDesktopApp();
-  virtual ~TacDesktopApp() = default;
+  virtual ~TacDesktopApp();
   virtual void Init( TacErrors& errors ) {}
   virtual void Poll( TacErrors& errors ) {}
   void Loop( TacErrors& errors );
-  void SpawnWindowOuter( const TacWindowParams& , TacDesktopWindow** , TacErrors& );
+  void SpawnWindow( const TacWindowParams& , TacDesktopWindow** , TacErrors& );
   virtual void GetPrimaryMonitor( TacMonitor* monitor, TacErrors& errors ) = 0;
 
   virtual void OnShellInit( TacErrors& errors ) {}
 
-  TacVector< TacOwned< TacDesktopWindow > > mMainWindows;
+  TacVector< TacDesktopWindow* > mMainWindows;
 
   TacShell* mShell = nullptr;
 
   static void DoStuff( TacDesktopApp* desktopApp, TacErrors& errors );
 
 protected:
-  virtual void SpawnWindow( const TacWindowParams& windowParams, TacDesktopWindow** desktopWindow, TacErrors& errors) {};
+  virtual void SpawnWindowAux( const TacWindowParams& windowParams, TacDesktopWindow** desktopWindow, TacErrors& errors) {};
 };
 
 

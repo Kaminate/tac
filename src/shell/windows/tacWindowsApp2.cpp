@@ -109,6 +109,11 @@ void TacWin32Log::HandleEvent( const TacString& logMessage )
   OutputDebugString( c );
 }
 
+
+TacWin32DesktopWindow::~TacWin32DesktopWindow()
+{
+  DestroyWindow( mHWND );
+}
 LRESULT TacWin32DesktopWindow::HandleWindowProc( UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
   TacKeyboardInput* mKeyboardInput = app->mShell->mKeyboardInput;
@@ -358,6 +363,7 @@ void TacWindowsApplication2::Poll( TacErrors& errors )
     TAC_HANDLE_ERROR( errors );
   }
 
+
   TacWin32DesktopWindow* cursorUnobscuredWindow = GetCursorUnobscuredWindow();
   for( TacWin32DesktopWindow* window : mWindows )
     window->mCursorUnobscured = cursorUnobscuredWindow == window;
@@ -387,7 +393,7 @@ void TacWindowsApplication2::GetPrimaryMonitor( TacMonitor* monitor, TacErrors& 
   monitor->w = w;
   monitor->h = h;
 }
-void TacWindowsApplication2::SpawnWindow( const TacWindowParams& windowParams, TacDesktopWindow** desktopWindow, TacErrors& errors )
+void TacWindowsApplication2::SpawnWindowAux( const TacWindowParams& windowParams, TacDesktopWindow** desktopWindow, TacErrors& errors )
 {
   DWORD windowStyle = mShouldWindowHaveBorder ? WS_OVERLAPPEDWINDOW : WS_POPUP;
   //windowStyle = WS_OVERLAPPEDWINDOW;
@@ -449,13 +455,21 @@ void TacWindowsApplication2::SpawnWindow( const TacWindowParams& windowParams, T
 
   auto createdWindow = new TacWin32DesktopWindow();
   createdWindow->app = this;
-  createdWindow->mShell = mShell;
   createdWindow->mHWND = hwnd;
   createdWindow->mOperatingSystemHandle = hwnd;
+
 
   *( TacWindowParams* )createdWindow = windowParams;
   *desktopWindow = createdWindow;
   mWindows.push_back( createdWindow );
+
+
+  createdWindow->mOnDestroyed.AddCallback( new TacFunctionalHandler( [this,createdWindow]()
+  {
+    int i = TacIndexOf( createdWindow, mWindows );
+    mWindows[ i ] = mWindows.back();
+    mWindows.pop_back();
+  } ) );
 
   // Used to combine all the windows into one tab group.
   if( mParentHWND == NULL )

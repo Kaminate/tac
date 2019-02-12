@@ -36,28 +36,22 @@ struct TacDesktopWindow : public TacWindowParams
 {
   TacDesktopWindow();
   virtual ~TacDesktopWindow();
+  void SetRenderViewDefaults();
 
-  TacEvent<>::Emitter mOnDestroyed;
-
-  // Used to create a vulkan surface...
+  // Used to create a vulkan surface
   void* mOperatingSystemApplicationHandle = nullptr;
   void* mOperatingSystemHandle = nullptr;
 
   bool mRequestDeletion = false;
+
+  // Owned by the renderer
   TacRendererWindowData* mRendererData = nullptr;
-  TacRenderView* mRenderView = nullptr;
 
-  // Should this be here? a window doesn't necessarily need ui
-  //TacUI2DDrawData* mUI2DDrawData = nullptr;
+  TacRenderView* mRenderView;
 
-  // TODO: comment why this is here
-  TacShell* mShell = nullptr;
-
-  // Should this be here?
-  // A window doesn't necessarily have to have ui
-  //TacUIRoot* mUIRoot = nullptr;
   TacEvent<>::Emitter mOnResize;
   TacEvent<>::Emitter mOnMove;
+  TacEvent<>::Emitter mOnDestroyed;
 
   // True if the window directly under the mouse cursor is this one
   bool mCursorUnobscured = false;

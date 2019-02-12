@@ -1,6 +1,7 @@
 #pragma once
 #include "common/containers/tacVector.h"
 #include "tacPreprocessor.h"
+#include <functional>
 
 template< typename... Args >
 struct TacEvent
@@ -10,17 +11,6 @@ struct TacEvent
     virtual ~Handler() = default;
     virtual void HandleEvent( Args... eventArgs ) = 0;
   };
-
-  //template< typename T >
-  //struct THandler : public Handler
-  //{
-  //  THandler( T t ) : mT( t ) {};
-  //  void HandleEvent( Args... eventArgs ) override
-  //  {
-  //    mT( eventArgs... );
-  //  }
-  //  T mT;
-  //};
 
   struct Emitter
   {
@@ -48,10 +38,24 @@ struct TacEvent
         handlerSlot->HandleEvent( eventArgs... );
       }
     }
+    int size() { return mHandlerSlots.size(); }
 
   private:
     TacVector< Handler* > mHandlerSlots;
   };
+};
+
+struct TacFunctionalHandler : public TacEvent<>::Handler
+{
+  TacFunctionalHandler( std::function<void()> callback )
+  {
+    mCallback = callback;
+  }
+  void HandleEvent() override
+  {
+    mCallback();
+  }
+  std::function<void()> mCallback;
 };
 
 

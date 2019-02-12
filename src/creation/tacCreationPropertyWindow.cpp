@@ -18,6 +18,7 @@ void TacCreationPropertyWindow::Init( TacErrors& errors )
 
 void TacCreationPropertyWindow::Update( TacErrors& errors )
 {
+  mDesktopWindow->SetRenderViewDefaults();
   mUIRoot->Update();
   mUIRoot->Render( errors );
   TAC_HANDLE_ERROR( errors );

@@ -140,4 +140,5 @@ void TacCreationGameWindow::Init( TacErrors& errors )
 }
 void TacCreationGameWindow::Update( TacErrors& errors )
 {
+    mDesktopWindow->SetRenderViewDefaults();
 }

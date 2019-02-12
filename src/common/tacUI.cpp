@@ -876,8 +876,8 @@ TacString TacUIRoot::DebugGenerateGraphVizDotFile()
 TacUIHierarchyNode::TacUIHierarchyNode()
 {
   static int iColor;
-  auto colors = TacMakeArray< int > (
-    0x53c8e9, 
+  auto colors = TacMakeArray< int >(
+    0x53c8e9,
     0x3c3c3b,
     0x074b7f,
     0xc82c60,
@@ -1004,8 +1004,9 @@ void TacUIHierarchyNode::RenderHierarchy( TacErrors& errors )
   state->Translate( mPositionRelativeToParent + v2( 1, 1 ) * padding );
   if( mDrawOutline )
   {
-      v4 color = mColor;
+    v4 color = mColor;
     if( mUIRoot->mDesktopWindow->mCursorUnobscured &&
+      mOnClickEventEmitter.size() &&
       mUIRoot->mUiCursor.x > mPositionRelativeToRoot.x &&
       mUIRoot->mUiCursor.x < mPositionRelativeToRoot.x + mSize.x &&
       mUIRoot->mUiCursor.y > mPositionRelativeToRoot.y  &&
@@ -1013,6 +1014,9 @@ void TacUIHierarchyNode::RenderHierarchy( TacErrors& errors )
     {
       // magic
       color.xyz() = ( color.xyz().Length() < 0.5f ? color.xyz() + v3( 1, 1, 1 ) : color.xyz() ) / 2;
+      if( mUIRoot->mDesktopWindow->mCursorUnobscured &&
+        mUIRoot->mKeyboardInput->IsKeyJustDown( TacKey::MouseLeft ) )
+        mOnClickEventEmitter.EmitEvent();
     }
 
     bool debugdrawNodeBackground = true;

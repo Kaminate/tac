@@ -10,6 +10,12 @@ TacDesktopApp::TacDesktopApp()
 {
   mShell = new TacShell();
 }
+
+TacDesktopApp::~TacDesktopApp()
+{
+  for( auto window : mMainWindows )
+    delete window;
+}
 void TacDesktopApp::Loop( TacErrors& errors )
 {
   for( ;; )
@@ -20,39 +26,37 @@ void TacDesktopApp::Loop( TacErrors& errors )
     Poll( errors );
     TAC_HANDLE_ERROR( errors );
 
+    int windowCount = mMainWindows.size();
+    int iWindow = 0;
+    while( iWindow < windowCount )
+    {
+      TacDesktopWindow* window = mMainWindows[ iWindow ];
+      if( window->mRequestDeletion )
+      {
+        mMainWindows[ iWindow ] = mMainWindows[ windowCount - 1 ];
+        delete window;
+        --windowCount;
+        mMainWindows.pop_back();
+      }
+      else
+      {
+        ++iWindow;
+      }
+    }
+
     mShell->Update( errors );
     TAC_HANDLE_ERROR( errors );
   }
 }
 
-// toDO: pass windowParams by const ref
-void TacDesktopApp::SpawnWindowOuter( const TacWindowParams& windowParams, TacDesktopWindow** ppDesktopWindow, TacErrors& errors )
+void TacDesktopApp::SpawnWindow( const TacWindowParams& windowParams, TacDesktopWindow** ppDesktopWindow, TacErrors& errors )
 {
   TacDesktopWindow* desktopWindow;
-  SpawnWindow( windowParams, &desktopWindow, errors );
+  SpawnWindowAux( windowParams, &desktopWindow, errors );
   TAC_HANDLE_ERROR( errors );
-
-  auto renderView = new TacRenderView();
-
-  //auto ui2DDrawData = new TacUI2DDrawData();
-  //ui2DDrawData->mUI2DCommonData = mShell->mUI2DCommonData;
-  //ui2DDrawData->mRenderView = renderView;
-  //TAC_HANDLE_ERROR( errors );
-
-  //auto uiRoot = new TacUIRoot();
-  //uiRoot->mKeyboardInput = mShell->mKeyboardInput;
-  //uiRoot->mElapsedSeconds = &mShell->mElapsedSeconds;
-  //uiRoot->mUI2DDrawData = ui2DDrawData;
-  //uiRoot->mDesktopWindow = desktopWindow;
-
-  desktopWindow->mRenderView = renderView;
-  //desktopWindow->mUI2DDrawData = ui2DDrawData;
-  //desktopWindow->mUIRoot = uiRoot;
 
   mShell->mRenderer->CreateWindowContext( desktopWindow, errors );
 
-
-  // subscribe graphics system to window creation?
   struct TacOnWindowResize : public TacEvent<>::Handler
   {
     void HandleEvent() override

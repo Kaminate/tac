@@ -20,6 +20,7 @@ struct TacWin32Log : public TacEvent< const TacString& >::Handler
 
 struct TacWin32DesktopWindow : public TacDesktopWindow
 {
+  ~TacWin32DesktopWindow();
   LRESULT HandleWindowProc( UINT uMsg, WPARAM wParam, LPARAM lParam );
   void Poll( TacErrors& errors );
 
@@ -39,7 +40,7 @@ struct TacWindowsApplication2 : public TacDesktopApp
 
   // Note: The first window spawned will be the parent window,
   //       combining them all into one tab group
-  void SpawnWindow( const TacWindowParams&, TacDesktopWindow**, TacErrors& ) override;
+  void SpawnWindowAux( const TacWindowParams&, TacDesktopWindow**, TacErrors& ) override;
   void GetPrimaryMonitor( TacMonitor* monitor, TacErrors& errors ) override;
   void OnShellInit( TacErrors& errors ) override;
 

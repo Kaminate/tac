@@ -87,7 +87,7 @@ TacSDLWindow* TacSDLApp::FindSDLWindowByID( Uint32 windowID )
   }
   return nullptr;
 }
-void TacSDLApp::SpawnWindow( const TacWindowParams& windowParams, TacDesktopWindow** desktopWindow, TacErrors& errors )
+void TacSDLApp::SpawnWindowAux( const TacWindowParams& windowParams, TacDesktopWindow** desktopWindow, TacErrors& errors )
 {
   Uint32 flags =
     SDL_WINDOW_SHOWN |

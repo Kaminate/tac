@@ -141,6 +141,7 @@ struct TacRendererDirectX11 : public TacRenderer
 
   void Init( TacErrors& errors ) override;
   void Render( TacErrors& errors ) override;
+  void RenderFlush() override;
 
   void CreateWindowContext( TacDesktopWindow* desktopWindow, TacErrors& errors ) override;
 
@@ -284,6 +285,8 @@ struct TacRendererDirectX11 : public TacRenderer
   TacVertexFormatDX11* mCurrentlyBoundVertexFormat = nullptr;
   TacTextureDX11* mCurrentlyBoundTexture = nullptr;
   TacSamplerStateDX11* mCurrentlyBoundSamplerState = nullptr;
+  TacRenderView* mCurrentlyBoundView = nullptr;
+  TacVector< TacRenderView* > mFrameBoundRenderViews;
 
 };
 

@@ -65,6 +65,10 @@ TacWin32MouseEdgeHandler::TacWin32MouseEdgeHandler()
   // completely obscure the move border and youd never be able to move your window.
   TacAssert( edgeDistMovePx > edgeDistResizePx );
 }
+TacWin32MouseEdgeHandler::~TacWin32MouseEdgeHandler()
+{
+  delete mHandler;
+}
 void TacWin32MouseEdgeHandler::Update( TacWin32DesktopWindow* window )
 {
   if( mHandler )
@@ -72,6 +76,7 @@ void TacWin32MouseEdgeHandler::Update( TacWin32DesktopWindow* window )
     mHandler->Update();
     if( !mKeyboardInput->IsKeyDown( TacKey::MouseLeft ) )
     {
+      delete mHandler;
       mHandler = nullptr;
     }
     return;
