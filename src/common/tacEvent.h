@@ -14,6 +14,10 @@ struct TacEvent
 
   struct Emitter
   {
+    void AddCallbackFunctional( std::function< void( Args... ) > callback )
+    {
+      mFunctionalHandlerSlots.push_back( callback );
+    }
     void AddCallback( Handler* handler )
     {
       mHandlerSlots.push_back( handler );
@@ -37,11 +41,21 @@ struct TacEvent
       {
         handlerSlot->HandleEvent( eventArgs... );
       }
+      for( auto callback : mFunctionalHandlerSlots )
+      {
+        callback( eventArgs... );
+      }
     }
-    int size() { return mHandlerSlots.size(); }
+    int size()
+    {
+      return mHandlerSlots.size() +
+        mFunctionalHandlerSlots.size();
+
+    }
 
   private:
     TacVector< Handler* > mHandlerSlots;
+    TacVector< std::function< void(Args...) > > mFunctionalHandlerSlots;
   };
 };
 

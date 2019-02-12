@@ -16,6 +16,8 @@ set( TAC_SOURCES
   ${TAC_SOURCES}
   "${CMAKE_SOURCE_DIR}/src/creation/tacCreation.cpp"
   "${CMAKE_SOURCE_DIR}/src/creation/tacCreation.h"
+  "${CMAKE_SOURCE_DIR}/src/creation/tacCreationGameObjectMenuWindow.cpp"
+  "${CMAKE_SOURCE_DIR}/src/creation/tacCreationGameObjectMenuWindow.h"
   "${CMAKE_SOURCE_DIR}/src/creation/tacCreationMainWindow.cpp"
   "${CMAKE_SOURCE_DIR}/src/creation/tacCreationMainWindow.h"
   "${CMAKE_SOURCE_DIR}/src/creation/tacCreationPropertyWindow.cpp"
