@@ -10,6 +10,7 @@ struct TacShell;
 
 struct TacCreationPropertyWindow
 {
+  ~TacCreationPropertyWindow();
   void Init( TacErrors& errors );
   void Update( TacErrors& errors );
   TacDesktopWindow* mDesktopWindow = nullptr;

@@ -55,3 +55,4 @@ struct TacCreation
   //std::set< TacEditorWindow* > mEditorWindows;
 };
 
+const v4 textColor = v4( v3( 1, 1, 1 ) * 0.0f, 1 );

@@ -1014,8 +1014,7 @@ void TacUIHierarchyNode::RenderHierarchy( TacErrors& errors )
     {
       // magic
       color.xyz() = ( color.xyz().Length() < 0.5f ? color.xyz() + v3( 1, 1, 1 ) : color.xyz() ) / 2;
-      if( mUIRoot->mDesktopWindow->mCursorUnobscured &&
-        mUIRoot->mKeyboardInput->IsKeyJustDown( TacKey::MouseLeft ) )
+      if( mUIRoot->mKeyboardInput->IsKeyJustDown( TacKey::MouseLeft ) )
         mOnClickEventEmitter.EmitEvent();
     }
 

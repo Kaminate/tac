@@ -7,6 +7,7 @@ struct TacShell;
 struct TacUIText;
 struct TacDesktopWindow;
 struct TacDesktopApp;
+struct TacCreation;
 struct TacUIRoot;
 struct TacUI2DDrawData;
 struct TacUIHierarchyNode;
@@ -18,6 +19,7 @@ struct TacCreationGameObjectMenuWindow
 {
   ~TacCreationGameObjectMenuWindow();
   void Init( TacErrors& errors );
+  void CreateLayouts();
   void Update( TacErrors& errors );
   TacCreationMainWindow* mMainWindow = nullptr;
   TacDesktopWindow* mDesktopWindow = nullptr;
@@ -34,6 +36,7 @@ struct TacCreationMainWindow
   void LoadTextures( TacErrors& errors );
   void CreateLayouts();
 
+  TacCreation* mCreation = nullptr;
   TacShell* mShell = nullptr;
   TacDesktopWindow* mDesktopWindow = nullptr;
   TacDesktopApp* mDesktopApp = nullptr;

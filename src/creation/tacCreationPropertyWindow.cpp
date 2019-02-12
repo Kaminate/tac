@@ -5,6 +5,10 @@
 #include "common/tacDesktopWindow.h"
 #include "common/tacShell.h"
 
+TacCreationPropertyWindow::~TacCreationPropertyWindow()
+{
+}
+
 void TacCreationPropertyWindow::Init( TacErrors& errors )
 {
   mUI2DDrawData = new TacUI2DDrawData;

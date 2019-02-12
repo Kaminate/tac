@@ -161,10 +161,18 @@ void TacCreation::Init( TacErrors& errors )
       mainWindow = desktopWindow;
       mMainWindow = new TacCreationMainWindow();
       mMainWindow->mShell = mShell;
+      mMainWindow->mCreation = this;
       mMainWindow->mDesktopWindow = desktopWindow;
       mMainWindow->mDesktopApp = mApp;
       mMainWindow->Init( errors );
       TAC_HANDLE_ERROR( errors );
+
+      desktopWindow->mOnDestroyed.AddCallback( new TacFunctionalHandler( [&]()
+      {
+        TacOS::Instance->mShouldStopRunning = true;
+        delete mMainWindow;
+        mMainWindow = nullptr;
+      } ) );
     }
 
     if( windowParams.mName == gGameWindowName )
@@ -175,6 +183,12 @@ void TacCreation::Init( TacErrors& errors )
       mGameWindow->mDesktopWindow = desktopWindow;
       mGameWindow->Init( errors );
       TAC_HANDLE_ERROR( errors );
+
+      desktopWindow->mOnDestroyed.AddCallback( new TacFunctionalHandler( [&]()
+      {
+        delete mGameWindow;
+        mGameWindow = nullptr;
+      } ) );
     }
 
     if( windowParams.mName == gPropertyWindowName )
@@ -184,6 +198,12 @@ void TacCreation::Init( TacErrors& errors )
       mPropertyWindow->mDesktopWindow = desktopWindow;
       mPropertyWindow->Init( errors );
       TAC_HANDLE_ERROR( errors );
+
+      desktopWindow->mOnDestroyed.AddCallback( new TacFunctionalHandler( [&]()
+      {
+        delete mPropertyWindow;
+        mPropertyWindow = nullptr;
+      } ) );
     }
 
     //mEditorWindows.insert( editorWindow );

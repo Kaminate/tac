@@ -1,4 +1,5 @@
 #include "creation/tacCreationMainWindow.h"
+#include "creation/tacCreation.h"
 #include "common/tacEvent.h"
 #include "common/tacOS.h"
 #include "common/tacDesktopWindow.h"
@@ -10,17 +11,8 @@
 #include "common/tackeyboardinput.h"
 #include "shell/tacDesktopApp.h"
 
-struct TacHandleMainWindowClosed : public TacEvent<>::Handler
-{
-  void HandleEvent() override
-  {
-    TacOS::Instance->mShouldStopRunning = true;
-  }
-};
-
 void TacCreationMainWindow::Init( TacErrors& errors )
 {
-  mDesktopWindow->mOnDestroyed.AddCallback( new TacHandleMainWindowClosed() );
   mUI2DDrawData = new TacUI2DDrawData;
   mUI2DDrawData->mRenderView = mDesktopWindow->mRenderView;
   mUI2DDrawData->mUI2DCommonData = mShell->mUI2DCommonData;
@@ -84,7 +76,6 @@ void TacCreationMainWindow::CreateLayouts()
   TacUIHierarchyNode* statusBar = contentArea->Split(
     TacUISplit::After, TacUILayoutType::Vertical );
 
-  v4 textColor = v4( v3( 1, 1, 1 ) * 0.0f, 1 );
 
   if( topBar )
   {
@@ -108,6 +99,10 @@ void TacCreationMainWindow::CreateLayouts()
     image->mTexture = mIconClose;
     node = topBar->Split( TacUISplit::After, TacUILayoutType::Horizontal );
     node->SetVisual( image );
+    node->mOnClickEventEmitter.AddCallback( new TacFunctionalHandler( [&]()
+    {
+      mDesktopWindow->mRequestDeletion = true;
+    } ) );
 
     text = new TacUIHierarchyVisualText();
     text->mUITextData.mUtf8 = "Gravestory (Running) - Moachers Creation Studio";
@@ -271,11 +266,44 @@ void TacCreationGameObjectMenuWindow::Init( TacErrors& errors )
   mUIRoot->mDesktopWindow = mDesktopWindow;
   mUIRoot->mKeyboardInput = mShell->mKeyboardInput;
 
-  mUIRoot->mHierarchyRoot->Split( TacUISplit::After, TacUILayoutType::Vertical );
-  mUIRoot->mHierarchyRoot->Split( TacUISplit::After, TacUILayoutType::Vertical );
-  mUIRoot->mHierarchyRoot->Split( TacUISplit::After, TacUILayoutType::Vertical );
-  mUIRoot->mHierarchyRoot->Split( TacUISplit::After, TacUILayoutType::Vertical );
-  mUIRoot->mHierarchyRoot->Split( TacUISplit::After, TacUILayoutType::Vertical );
+  CreateLayouts();
+}
+void TacCreationGameObjectMenuWindow::CreateLayouts()
+{
+  TacUIHierarchyNode* node;
+  TacUIHierarchyVisualText* text;
+
+  text = new TacUIHierarchyVisualText();
+  text->mUITextData.mUtf8 = "Audio Source";
+  text->mUITextData.mFontSize = 16;
+  text->mUITextData.mColor = textColor;
+  text->mDims = { 100, 50 };
+  node = mUIRoot->mHierarchyRoot->Split( TacUISplit::Before, TacUILayoutType::Vertical );
+  node->SetVisual( text );
+
+  text = new TacUIHierarchyVisualText();
+  text->mUITextData.mUtf8 = "Text";
+  text->mUITextData.mFontSize = 16;
+  text->mUITextData.mColor = textColor;
+  text->mDims = { 100, 50 };
+  node = mUIRoot->mHierarchyRoot->Split( TacUISplit::Before, TacUILayoutType::Vertical );
+  node->SetVisual( text );
+
+  text = new TacUIHierarchyVisualText();
+  text->mUITextData.mUtf8 = "Cube";
+  text->mUITextData.mFontSize = 16;
+  text->mUITextData.mColor = textColor;
+  text->mDims = { 100, 50 };
+  node = mUIRoot->mHierarchyRoot->Split( TacUISplit::Before, TacUILayoutType::Vertical );
+  node->SetVisual( text );
+
+  text = new TacUIHierarchyVisualText();
+  text->mUITextData.mUtf8 = "Empty";
+  text->mUITextData.mFontSize = 16;
+  text->mUITextData.mColor = textColor;
+  text->mDims = { 100, 50 };
+  node = mUIRoot->mHierarchyRoot->Split( TacUISplit::Before, TacUILayoutType::Vertical );
+  node->SetVisual( text );
 }
 void TacCreationGameObjectMenuWindow::Update( TacErrors& errors )
 {
