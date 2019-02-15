@@ -7,6 +7,7 @@ struct TacGameInterface;
 struct TacPlayer;
 struct TacEntity;
 struct TacSystem;
+struct TacString;
 
 static const int sPlayerCountMax = 4;
 
@@ -18,7 +19,6 @@ struct TacWorld
   TacSystem* GetSystem( TacSystemType systemType );
   void ClearPlayersAndEntities();
   void DeepCopy( const TacWorld& );
-  void EnsureAllEntityMatrixValidity();
   void Step( float seconds );
   void DebugImgui();
   void ApplyInput( TacPlayer* player, float seconds );
@@ -27,6 +27,7 @@ struct TacWorld
   void KillEntity( TacEntityUUID entityUUID );
   TacEntity* FindEntity( TacPlayerUUID playerUUID );
   TacEntity* FindEntity( TacEntityUUID entityUUID );
+  TacEntity* FindEntity( const TacString& name );
 
   TacPlayer* SpawnPlayer( TacPlayerUUID playerUUID );
   void KillPlayer( TacPlayerUUID playerUUID );

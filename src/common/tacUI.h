@@ -300,6 +300,8 @@ struct TacUIHierarchyNode
     TacUISplit uiSplit = TacUISplit::After,
     TacUILayoutType layoutType = TacUILayoutType::Horizontal );
   void RenderHierarchy( TacErrors& errors );
+  void SetVisual( TacUIHierarchyVisual* visual );
+  TacUIHierarchyNode* AddChild();
 
   v4 mColor = { 1, 1, 1, 1 };
   TacVector< TacUIHierarchyNode* > mChildren;
@@ -334,13 +336,6 @@ struct TacUIHierarchyNode
   // so that I can center a window between two *s
   int mExpandingChildIndex = 0;
 
-  void SetVisual( TacUIHierarchyVisual* visual )
-  {
-    mVisual = visual;
-    visual->mHierarchyNode = this;
-  }
-  TacUIHierarchyVisual* GetVisual() { return mVisual; }
-private:
   TacUIHierarchyVisual* mVisual = nullptr;
 };
 

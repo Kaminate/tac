@@ -10,6 +10,7 @@
 #include "common/tacTextureAssetManager.h"
 #include "common/tacColorUtil.h"
 #include "space/tacGhost.h"
+//#include "space/tacworld.h"
 
 #include <iostream>
 #include <functional>
@@ -65,10 +66,7 @@ void TacCreation::Init( TacErrors& errors )
   TacOS::Instance->CreateFolderIfNotExist( dataPath, errors );
   TAC_HANDLE_ERROR( errors );
 
-  auto shell = mShell;
-  mTextureAssetManager = mShell->mTextureAssetManager;
-
-
+  TacShell* shell = mDesktopApp->mShell;
   TacSettings* settings = shell->mSettings;
 
   TacVector< TacString > settingsPaths = { "Windows" };
@@ -93,7 +91,7 @@ void TacCreation::Init( TacErrors& errors )
     windowParams.mName = shell->mSettings->GetString( windowJson, { "Name" }, "unnamed window", errors );
 
     TacMonitor monitor;
-    mApp->GetPrimaryMonitor( &monitor, errors );
+    mDesktopApp->GetPrimaryMonitor( &monitor, errors );
     TAC_HANDLE_ERROR( errors );
 
     windowParams.mWidth = ( int )settings->GetNumber( windowJson, { "w" }, 800, errors );
@@ -125,19 +123,19 @@ void TacCreation::Init( TacErrors& errors )
     TAC_HANDLE_ERROR( errors );
 
     TacDesktopWindow* desktopWindow;
-    mApp->SpawnWindow( windowParams, &desktopWindow, errors );
+    mDesktopApp->SpawnWindow( windowParams, &desktopWindow, errors );
     TAC_HANDLE_ERROR( errors );
 
 
     auto saveWindowSize = new SaveWindowSize();
     saveWindowSize->mDesktopWindow = desktopWindow;
-    saveWindowSize->mSettings = mShell->mSettings;
+    saveWindowSize->mSettings = settings;
     saveWindowSize->mWindowJson = windowJson;
     desktopWindow->mOnResize.AddCallback( saveWindowSize );
 
     auto saveWindowPosition = new SaveWindowPosition();
     saveWindowPosition->mDesktopWindow = desktopWindow;
-    saveWindowPosition->mSettings = mShell->mSettings;
+    saveWindowPosition->mSettings = settings;
     saveWindowPosition->mWindowJson = windowJson;
     desktopWindow->mOnMove.AddCallback( saveWindowPosition );
 
@@ -160,10 +158,9 @@ void TacCreation::Init( TacErrors& errors )
     {
       mainWindow = desktopWindow;
       mMainWindow = new TacCreationMainWindow();
-      mMainWindow->mShell = mShell;
       mMainWindow->mCreation = this;
       mMainWindow->mDesktopWindow = desktopWindow;
-      mMainWindow->mDesktopApp = mApp;
+      mMainWindow->mDesktopApp = mDesktopApp;
       mMainWindow->Init( errors );
       TAC_HANDLE_ERROR( errors );
 
@@ -195,6 +192,7 @@ void TacCreation::Init( TacErrors& errors )
     {
       mPropertyWindow = new TacCreationPropertyWindow;
       mPropertyWindow->mShell = shell;
+      mPropertyWindow->mCreation = this;
       mPropertyWindow->mDesktopWindow = desktopWindow;
       mPropertyWindow->Init( errors );
       TAC_HANDLE_ERROR( errors );
@@ -208,6 +206,7 @@ void TacCreation::Init( TacErrors& errors )
 
     //mEditorWindows.insert( editorWindow );
   }
+
 }
 void TacCreation::Update( TacErrors& errors )
 {
@@ -271,8 +270,7 @@ void TacDesktopApp::DoStuff( TacDesktopApp* desktopApp, TacErrors& errors )
 
   // should this really be on the heap?
   auto creation = new TacCreation();
-  creation->mApp = desktopApp;
-  creation->mShell = shell;
+  creation->mDesktopApp = desktopApp;
 
   auto creationUpdater = new TacCreationUpdater;
   creationUpdater->f = [ & ]() { creation->Update( errors ); };

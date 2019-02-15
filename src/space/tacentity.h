@@ -24,6 +24,7 @@ struct TacEntity
   TacEntityUUID mEntityUUID = TacNullEntityUUID;
   std::list< TacComponent* > mComponents;
   v3 mPosition;
+  TacString mName;
 };
 
 const TacVector< TacNetworkBit > TacEntityBits =

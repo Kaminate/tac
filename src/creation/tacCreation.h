@@ -11,48 +11,31 @@
 #include "creation/tacCreationPropertyWindow.h"
 #include "creation/tacCreationMainWindow.h"
 
-struct TacDesktopWindow;
-struct TacDesktopApp;
-struct TacRenderer;
-struct TacUI2DDrawData;
 struct TacCreation;
+struct TacDesktopApp;
+struct TacDesktopWindow;
+struct TacEntity;
+struct TacRenderer;
 struct TacShell;
 struct TacSoul;
-struct TacWindowParams;
-struct TacTextureAssetManager;
 struct TacTexture;
-
-
-
-//struct TacEditorWindow
-//{
-//  void Update( TacErrors& errors );
-//  TacDesktopWindow* mDesktopWindow = nullptr;
-//  TacCreation* mCreation = nullptr;
-//  TacUIRoot* mUIRoot = nullptr;
-//  TacUI2DDrawData* mUI2DDrawData = nullptr;
-//};
+struct TacTextureAssetManager;
+struct TacUI2DDrawData;
+struct TacWindowParams;
+struct TacWorld;
 
 struct TacCreation
 {
   void Init( TacErrors& errors );
   void Update( TacErrors& errors );
 
-  //void UpdateGamePlayer( TacErrors& );
-  //void UpdatePropertiesWindow( TacErrors& );
-
-  TacDesktopApp* mApp = nullptr;
-
+  TacDesktopApp* mDesktopApp = nullptr;
   TacCreationMainWindow* mMainWindow = nullptr;
   TacCreationGameWindow* mGameWindow = nullptr;
   TacCreationPropertyWindow* mPropertyWindow = nullptr;
 
-  //TacEditorWindow* mSecondWindow = nullptr;
-  //TacEditorWindow* mGamePlayerWindow = nullptr;
-  TacShell* mShell = nullptr;
-
-  TacTextureAssetManager* mTextureAssetManager = nullptr;
-  //std::set< TacEditorWindow* > mEditorWindows;
+  TacWorld* mWorld = nullptr;
+  TacEntity* mSelectedEntity = nullptr;
 };
 
 const v4 textColor = v4( v3( 1, 1, 1 ) * 0.0f, 1 );

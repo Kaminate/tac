@@ -20,11 +20,12 @@ struct TacCreationGameObjectMenuWindow
   void Init( TacErrors& errors );
   void CreateLayouts();
   void Update( TacErrors& errors );
+
+  TacCreation* mCreation = nullptr;
   TacCreationMainWindow* mMainWindow = nullptr;
   TacDesktopWindow* mDesktopWindow = nullptr;
   TacUIRoot* mUIRoot = nullptr;
   TacUI2DDrawData* mUI2DDrawData = nullptr;
-  TacShell* mShell = nullptr;
   double mCreationSeconds;
 };
 

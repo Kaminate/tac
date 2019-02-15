@@ -237,8 +237,6 @@ void TacClientData::TacReadSnapshotBody(
   for( TacEntityCount i = 0; i < numEntitiesDifferent; ++i )
     ReadEntityDifferences( reader, errors );
 
-  mWorld->EnsureAllEntityMatrixValidity();
-
   mSnapshots.AddSnapshot( mWorld );;
 
   if( mIsPredicting )

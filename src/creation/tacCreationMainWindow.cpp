@@ -14,17 +14,18 @@
 
 void TacCreationMainWindow::Init( TacErrors& errors )
 {
+  TacShell* shell = mDesktopApp->mShell;
   mUI2DDrawData = new TacUI2DDrawData;
   mUI2DDrawData->mRenderView = mDesktopWindow->mRenderView;
-  mUI2DDrawData->mUI2DCommonData = mShell->mUI2DCommonData;
+  mUI2DDrawData->mUI2DCommonData = shell->mUI2DCommonData;
   mUIRoot = new TacUIRoot;
   mUIRoot->mUI2DDrawData = mUI2DDrawData;
   mUIRoot->mDesktopWindow = mDesktopWindow;
-  mUIRoot->mKeyboardInput = mShell->mKeyboardInput;
+  mUIRoot->mKeyboardInput = shell->mKeyboardInput;
 }
 void TacCreationMainWindow::LoadTextures( TacErrors& errors )
 {
-
+  TacShell* shell = mDesktopApp->mShell;
   if( mAreTexturesLoaded )
     return;
   struct TacTextureAndPath
@@ -41,7 +42,7 @@ void TacCreationMainWindow::LoadTextures( TacErrors& errors )
   int loadedTextureCount = 0;
   for( TacTextureAndPath textureAndPath : textureAndPaths )
   {
-    mShell->mTextureAssetManager->GetTexture( textureAndPath.texture, textureAndPath.path, errors );
+    shell->mTextureAssetManager->GetTexture( textureAndPath.texture, textureAndPath.path, errors );
     TAC_HANDLE_ERROR( errors );
     if( *textureAndPath.texture )
       loadedTextureCount++;
@@ -52,6 +53,7 @@ void TacCreationMainWindow::LoadTextures( TacErrors& errors )
 }
 void TacCreationMainWindow::CreateLayouts()
 {
+  TacShell* shell = mDesktopApp->mShell;
   if( mAreLayoutsCreated )
     return;
 
@@ -155,7 +157,7 @@ void TacCreationMainWindow::CreateLayouts()
         return;
       mGameObjectMenuWindow = new TacCreationGameObjectMenuWindow;
       mGameObjectMenuWindow->mMainWindow = this;
-      mGameObjectMenuWindow->mShell = mShell;
+      mGameObjectMenuWindow->mCreation = mCreation;
       mGameObjectMenuWindow->Init( mButtonCallbackErrors );
     } ) );
 
@@ -190,7 +192,7 @@ void TacCreationMainWindow::CreateLayouts()
   if( false )
   {
     TacString stringified = uiRoot->DebugGenerateGraphVizDotFile();
-    TacString filepath = mShell->mPrefPath + "/tac.dot";
+    TacString filepath = shell->mPrefPath + "/tac.dot";
     TacErrors errors;
     TacOS::Instance->SaveToFile( filepath, stringified.data(), stringified.size(), errors );
     TacAssert( errors.empty() );
@@ -200,6 +202,7 @@ void TacCreationMainWindow::CreateLayouts()
 }
 void TacCreationMainWindow::Update( TacErrors& errors )
 {
+  TacShell* shell = mDesktopApp->mShell;
   mDesktopWindow->SetRenderViewDefaults();
 
   LoadTextures( errors );
@@ -231,9 +234,9 @@ void TacCreationMainWindow::Update( TacErrors& errors )
     mGameObjectMenuWindow->Update( errors );
     TAC_HANDLE_ERROR( errors );
 
-    if( mShell->mKeyboardInput->IsKeyJustDown( TacKey::MouseLeft ) &&
+    if( shell->mKeyboardInput->IsKeyJustDown( TacKey::MouseLeft ) &&
       !mGameObjectMenuWindow->mDesktopWindow->mCursorUnobscured &&
-      mShell->mElapsedSeconds != mGameObjectMenuWindow->mCreationSeconds )
+      shell->mElapsedSeconds != mGameObjectMenuWindow->mCreationSeconds )
     {
       delete mGameObjectMenuWindow;
       mGameObjectMenuWindow = nullptr;

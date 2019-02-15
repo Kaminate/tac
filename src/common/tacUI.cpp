@@ -853,8 +853,8 @@ TacString TacUIRoot::DebugGenerateGraphVizDotFile()
       nodeGraphLabel = node->mDebugName;
     else if( node == mHierarchyRoot )
       nodeGraphLabel = "hierarchy root";
-    else if( node->GetVisual() && node->GetVisual()->GetDebugName().size() )
-      nodeGraphLabel = node->GetVisual()->GetDebugName();
+    else if( node->mVisual && node->mVisual->GetDebugName().size() )
+      nodeGraphLabel = node->mVisual->GetDebugName();
 
     nodeGraphNames[ node ] = nodeGraphName;
 
@@ -978,6 +978,16 @@ TacUIHierarchyNode* TacUIHierarchyNode::Split(
 
   return newChild;
 }
+
+TacUIHierarchyNode* TacUIHierarchyNode::AddChild()
+{
+  auto newChild = new TacUIHierarchyNode();
+  newChild->mUIRoot = mUIRoot;
+  newChild->mParent = this;
+  mChildren.push_back( newChild );
+  return newChild;
+}
+
 void TacUIHierarchyNode::RenderHierarchy( TacErrors& errors )
 {
   // compute children sizes
@@ -991,9 +1001,7 @@ void TacUIHierarchyNode::RenderHierarchy( TacErrors& errors )
       if( child == expandedChild )
         continue;
       if( child->mVisual )
-      {
         child->mSize[ ( int )mLayoutType ] = child->mVisual->mDims[ ( int )mLayoutType ];
-      }
       expandedChildSize -= child->mSize[ ( int )mLayoutType ];
     }
     expandedChild->mSize[ ( int )mLayoutType ] = expandedChildSize;
@@ -1028,7 +1036,7 @@ void TacUIHierarchyNode::RenderHierarchy( TacErrors& errors )
     }
 
     bool debugdrawNodeName = true;
-    if( debugdrawNodeName )
+    if( !mVisual && debugdrawNodeName )
     {
       v4 debugTextColor = mColor.xyz().Length() < 0.5f ? v4( 1, 1, 1, 1 ) : v4( 0, 0, 0, 1 );
       debugTextColor = { 0, 0, 0, 1 };
@@ -1054,6 +1062,13 @@ void TacUIHierarchyNode::RenderHierarchy( TacErrors& errors )
   }
   mUIRoot->mUI2DDrawData->PopState();
 }
+
+void TacUIHierarchyNode::SetVisual( TacUIHierarchyVisual* visual )
+{
+  mVisual = visual;
+  visual->mHierarchyNode = this;
+}
+
 
 void TacUIHierarchyVisualText::Render( TacErrors& errors )
 {

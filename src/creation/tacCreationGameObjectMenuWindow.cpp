@@ -10,6 +10,8 @@
 #include "common/tacTextureAssetManager.h"
 #include "common/tackeyboardinput.h"
 #include "shell/tacDesktopApp.h"
+#include "space/tacworld.h"
+#include "space/tacentity.h"
 
 
 TacCreationGameObjectMenuWindow::~TacCreationGameObjectMenuWindow()
@@ -20,7 +22,8 @@ TacCreationGameObjectMenuWindow::~TacCreationGameObjectMenuWindow()
 }
 void TacCreationGameObjectMenuWindow::Init( TacErrors& errors )
 {
-  mCreationSeconds = mShell->mElapsedSeconds;
+  TacShell* shell = mCreation->mDesktopApp->mShell;
+  mCreationSeconds = shell->mElapsedSeconds;
   TacWindowParams windowParams;
   windowParams.mName = "game object menu";
   windowParams.mWidth = 300;
@@ -39,11 +42,11 @@ void TacCreationGameObjectMenuWindow::Init( TacErrors& errors )
 
   mUI2DDrawData = new TacUI2DDrawData;
   mUI2DDrawData->mRenderView = mDesktopWindow->mRenderView;
-  mUI2DDrawData->mUI2DCommonData = mShell->mUI2DCommonData;
+  mUI2DDrawData->mUI2DCommonData = shell->mUI2DCommonData;
   mUIRoot = new TacUIRoot;
   mUIRoot->mUI2DDrawData = mUI2DDrawData;
   mUIRoot->mDesktopWindow = mDesktopWindow;
-  mUIRoot->mKeyboardInput = mShell->mKeyboardInput;
+  mUIRoot->mKeyboardInput = shell->mKeyboardInput;
 
   CreateLayouts();
 }
@@ -67,15 +70,6 @@ void TacCreationGameObjectMenuWindow::CreateLayouts()
   text->mDims = { 100, 50 };
   node = mUIRoot->mHierarchyRoot->Split( TacUISplit::Before, TacUILayoutType::Vertical );
   node->SetVisual( text );
-  node->mOnClickEventEmitter.AddCallbackFunctional( []()
-  {
-    std::cout
-      << "auto text = new Text" << std::endl
-      << "active scene .add ( text ) " << std::endl
-      << "parent = selected_object ?? root" << std::endl
-      << "select( text )" << std::endl
-      << std::endl;
-  } );
 
   text = new TacUIHierarchyVisualText();
   text->mUITextData.mUtf8 = "Cube";
@@ -92,6 +86,31 @@ void TacCreationGameObjectMenuWindow::CreateLayouts()
   text->mDims = { 100, 50 };
   node = mUIRoot->mHierarchyRoot->Split( TacUISplit::Before, TacUILayoutType::Vertical );
   node->SetVisual( text );
+  node->mOnClickEventEmitter.AddCallbackFunctional( [&]()
+  {
+    TacWorld* world = mCreation->mWorld;
+    if( !world )
+    {
+      world = new TacWorld;
+      mCreation->mWorld = world;
+    }
+
+    TacString desiredEntityName = "Entity";
+    int parenNumber = 1;
+    for( ;; )
+    {
+      bool isEntityNameUnique = false;
+      TacEntity* entity = world->FindEntity( desiredEntityName );
+      if( !entity )
+        break;
+      desiredEntityName = "Entity (" + TacToString( parenNumber ) + ")";
+      parenNumber++;
+    }
+    
+    TacEntity* entity = world->SpawnEntity( TacNullEntityUUID );
+    entity->mName = desiredEntityName;
+    mCreation->mSelectedEntity = entity;
+  } );
 }
 void TacCreationGameObjectMenuWindow::Update( TacErrors& errors )
 {

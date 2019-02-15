@@ -1,11 +1,10 @@
-#include "tacworld.h"
-#include "tacplayer.h"
-#include "tacentity.h"
-#include "tacsystem.h"
-#include "tacgraphics.h"
-#include "tacphysics.h"
-#include "taccollider.h"
-
+#include "space/tacworld.h"
+#include "space/tacplayer.h"
+#include "space/tacentity.h"
+#include "space/tacsystem.h"
+#include "space/tacgraphics.h"
+#include "space/tacphysics.h"
+#include "space/taccollider.h"
 #include "common/imgui.h"
 
 #include <algorithm>
@@ -51,6 +50,13 @@ TacEntity* TacWorld::FindEntity( TacEntityUUID entityUUID )
 {
   for( auto entity : mEntities )
     if( entity->mEntityUUID == entityUUID )
+      return entity;
+  return nullptr;
+}
+TacEntity* TacWorld::FindEntity( const TacString& name )
+{
+  for( TacEntity* entity : mEntities )
+    if( entity->mName == name )
       return entity;
   return nullptr;
 }
@@ -175,13 +181,6 @@ void TacWorld::DeepCopy( const TacWorld& world )
   {
     auto toEntity = SpawnEntity( fromEntity->mEntityUUID );
     toEntity->DeepCopy( *fromEntity );
-  }
-}
-void TacWorld::EnsureAllEntityMatrixValidity()
-{
-  for( auto entity : mEntities )
-  {
-    //EnsureMatrixValidity();
   }
 }
 TacSystem* TacWorld::GetSystem( TacSystemType systemType )

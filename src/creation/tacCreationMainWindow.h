@@ -22,7 +22,6 @@ struct TacCreationMainWindow
   void CreateLayouts();
 
   TacCreation* mCreation = nullptr;
-  TacShell* mShell = nullptr;
   TacDesktopWindow* mDesktopWindow = nullptr;
   TacDesktopApp* mDesktopApp = nullptr;
   TacUIRoot* mUIRoot = nullptr;
