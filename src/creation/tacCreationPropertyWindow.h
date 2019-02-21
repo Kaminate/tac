@@ -22,8 +22,10 @@ struct TacCreationPropertyWindow
   TacUI2DDrawData* mUI2DDrawData = nullptr;
   TacShell* mShell = nullptr;
   TacCreation* mCreation = nullptr;
-  TacUIHierarchyNode* mHierarchy;
-  TacUIHierarchyNode* mInspector;
+
+  //TacUIHierarchyNode* mHierarchyList = nullptr;
+  //TacUIHierarchyNode* mHierarchyPane = nullptr;
+  //TacUIHierarchyNode* mInspector = nullptr;
 };
 
 const TacString gPropertyWindowName = "PropertyWindow";

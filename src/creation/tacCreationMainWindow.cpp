@@ -191,7 +191,7 @@ void TacCreationMainWindow::CreateLayouts()
 
   if( false )
   {
-    TacString stringified = uiRoot->DebugGenerateGraphVizDotFile();
+    TacString stringified = uiRoot->mHierarchyRoot->DebugGenerateGraphVizDotFile();
     TacString filepath = shell->mPrefPath + "/tac.dot";
     TacErrors errors;
     TacOS::Instance->SaveToFile( filepath, stringified.data(), stringified.size(), errors );

@@ -99,6 +99,8 @@ struct TacUI2DDrawData
 
   //TacDrawCall* GetLastDrawCall();
 
+  v2 CalculateTextSize( const TacString& text );
+
   TacVector< TacDefaultVertex2D > mDefaultVertex2Ds;
   TacVector< TacDefaultIndex2D > mDefaultIndex2Ds;
   TacVector< TacUI2DDrawCall > mDrawCall2Ds;

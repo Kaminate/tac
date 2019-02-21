@@ -421,11 +421,16 @@ void TacGraphics::Draw2DText(
     if( !codepoint )
       continue;
 
-    if( TacIsAsciiCharacter( codepoint, '\n' ) )
+    if( TacIsAsciiCharacter( codepoint ) )
     {
-      runningX = mPenPos2D.x;
-      lineCount++;
-      runningY -= lineHeight;
+      if( codepoint == '\n' )
+      {
+        runningX = mPenPos2D.x;
+        lineCount++;
+        runningY -= lineHeight;
+      }
+      if( codepoint == '\r' )
+        continue;
     }
 
     TacFontAtlasCell* fontAtlasCell;

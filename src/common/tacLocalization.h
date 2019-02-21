@@ -51,7 +51,7 @@ void TacLanguageDebugImgui( const TacString& name, TacLanguage* language );
 
 typedef uint32_t TacCodepoint;
 
-bool TacIsAsciiCharacter( TacCodepoint codepoint, char c );
+bool TacIsAsciiCharacter( TacCodepoint codepoint );
 
 struct TacUTF8Converter
 {

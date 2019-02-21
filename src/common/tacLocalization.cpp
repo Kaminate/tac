@@ -5,11 +5,9 @@
 
 #include "imgui.h"
 
-bool TacIsAsciiCharacter( TacCodepoint codepoint, char c )
+bool TacIsAsciiCharacter( TacCodepoint codepoint )
 {
-  if( codepoint > ( TacCodepoint )std::numeric_limits< char >::max() )
-    return false;
-  return codepoint == (TacCodepoint)c;
+  return codepoint < ( TacCodepoint )128;
 }
 
 char TacUTF8Converter::GetNextByte( TacErrors& errors )

@@ -19,7 +19,14 @@ struct TacFontFile;
 struct TacTexture;
 struct TacSettings;
 
+// - This is the height and width in pixels of a cell in the font atlas
+// - When a glyph is rendered into this cell, the height of the cell is used
+//   as the distance between the font's ( highest ascender - lowest descender ).
+// - In other words, this is the font size for glyphs in the atlas.
+// - It's pretty much assumed that the glyph can fit in this cell.
+//   are there any fonts with wide glyphs which would have their sides clipped?
 const int TacFontCellWidth = 64;
+
 const int TacFontAtlasDefaultVramByteCount = 40 * 1024 * 1024;
 
 struct TacFontAtlasCell
@@ -33,8 +40,13 @@ struct TacFontAtlasCell
   double mReadTime = 0;
   v2 mMinGLTexCoord = {};
   v2 mMaxGLTexCoord = {};
+
   float mUISpaceAdvanceWidth = 0;
+  float mAdvanceWidth = 0;
+
   float mUISpaceLeftSideBearing = 0;
+  float mLeftSideBearing = 0;
+
   float mUISpaceVerticalShift = 0;
   int mBitmapWidth = 0;
   int mBitmapHeight = 0;
@@ -47,12 +59,45 @@ struct TacFontFile
   std::map< TacCodepoint, TacFontAtlasCell* > mCells;
   TacVector< char > mFontMemory;
   stbtt_fontinfo mFontInfo = {};
+
+  // y
+  // ^
+  // |_________________________________________
+  // | | |              ^ ascent             ^
+  // | |_| .       _    |                    | font
+  // | | | | \  / / \   |                    | atlas
+  // |_|_|_|__\/__\_/\__|_______ baseline    | cell
+  // |        / |                            | height
+  // |       /__v__descent___________________v_
+  // |         ^
+  // |         | linegap
+  // |_________v_____
+  // | |\           ^ ascent
+  // | | |  _   _   |
+  // | | | / \ / |  |
+  // |_|/__\_/_\_|__|___________ baseline
+  //             |
+  //           \_/
+
+  // ascent is the coordinate above the baseline the font extends
   float mAscent = 0;
+  float mUISpaceAscent = 0;
+
+  // descent is the coordinate below the baseline the font extends
+  // (i.e. it is typically negative)
   float mDescent = 0;
+  float mUISpaceDescent = 0;
+
+  // lineGap is the spacing between one row's descent and the next row's ascent
   float mLinegap = 0;
+  float mUISpaceLinegap = 0;
+
+  // scale = pixels / (ascent - descent)
   float mScale = 0;
-  float GetLineDist();
 };
+
+
+
 
 // TODO: rename from TacFontStuff to TacFontAtlas
 struct TacFontStuff

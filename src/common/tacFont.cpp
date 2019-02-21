@@ -37,10 +37,10 @@ TacFontFile::TacFontFile( const TacString& filepath, TacErrors& errors )
   mAscent = ( float )ascent;
   mDescent = ( float )descent;
   mLinegap = ( float )linegap;
-}
-float TacFontFile::GetLineDist()
-{
-  return mScale * ( mLinegap + mAscent - mDescent );
+
+  mUISpaceAscent = ( float )ascent * mScale;
+  mUISpaceDescent = ( float )descent * mScale;
+  mUISpaceLinegap = ( float )linegap * mScale;
 }
 
 TacFontStuff::TacFontStuff()
@@ -312,8 +312,13 @@ void TacFontStuff::GetCharacter(
   cell->mCodepoint = codepoint;
   cell->mCodepointAscii = codepoint < 128 ? ( char )codepoint : '?';
   cell->mOwner = fontFile;
+
+  cell->mAdvanceWidth = advanceWidth;
   cell->mUISpaceAdvanceWidth = advanceWidth * fontFile->mScale;
+
   cell->mUISpaceLeftSideBearing = leftSideBearing * fontFile->mScale;
+  cell->mLeftSideBearing = leftSideBearing;
+
   cell->mBitmapWidth = bitmapWidthPx;
   cell->mBitmapHeight = bitmapHeightPx;
   cell->mMinGLTexCoord = minGLTexCoord;

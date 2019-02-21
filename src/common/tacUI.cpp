@@ -701,13 +701,19 @@ v2 TacUILayout::GetWindowspacePosition()
 TacUIRoot::TacUIRoot()
 {
   transitionDurationSeconds = 0.3f;
+
   mHierarchyRoot = new TacUIHierarchyNode();
   mHierarchyRoot->mUIRoot = this;
+
+  mImGuiWindow = new TacImGuiWindow;
+  mImGuiWindow->mUIRoot = this;
 }
 TacUIRoot::~TacUIRoot()
 {
   for( auto menu : mUIMenus )
     delete menu;
+  delete mImGuiWindow;
+  delete mHierarchyRoot;
 }
 void TacUIRoot::DebugImgui()
 {
@@ -806,7 +812,7 @@ void TacUIRoot::Update()
     ( float )image.mWidth,
     ( float )image.mHeight };
 }
-TacString TacUIRoot::DebugGenerateGraphVizDotFile()
+TacString TacUIHierarchyNode::DebugGenerateGraphVizDotFile()
 {
   TacString stringified;
 
@@ -827,20 +833,17 @@ TacString TacUIRoot::DebugGenerateGraphVizDotFile()
   std::map< TacUIHierarchyNode*, TacString > nodeGraphNames;
   TacVector< std::pair< TacUIHierarchyNode*, TacUIHierarchyNode* >> nodeConnections;
 
-  if( mHierarchyRoot )
+  TacVector< TacUIHierarchyNode* > nodes = { this };
+  while( !nodes.empty() )
   {
-    TacVector< TacUIHierarchyNode* > nodes = { mHierarchyRoot };
-    while( !nodes.empty() )
-    {
-      TacUIHierarchyNode* node = nodes.back();
-      nodes.pop_back();
-      allnodes.insert( node );
+    TacUIHierarchyNode* node = nodes.back();
+    nodes.pop_back();
+    allnodes.insert( node );
 
-      for( TacUIHierarchyNode* child : node->mChildren )
-      {
-        nodes.push_back( child );
-        nodeConnections.push_back( { node, child } );
-      }
+    for( TacUIHierarchyNode* child : node->mChildren )
+    {
+      nodes.push_back( child );
+      nodeConnections.push_back( { node, child } );
     }
   }
 
@@ -851,7 +854,7 @@ TacString TacUIRoot::DebugGenerateGraphVizDotFile()
 
     if( node->mDebugName.size() )
       nodeGraphLabel = node->mDebugName;
-    else if( node == mHierarchyRoot )
+    else if( node == this )
       nodeGraphLabel = "hierarchy root";
     else if( node->mVisual && node->mVisual->GetDebugName().size() )
       nodeGraphLabel = node->mVisual->GetDebugName();
@@ -988,6 +991,13 @@ TacUIHierarchyNode* TacUIHierarchyNode::AddChild()
   return newChild;
 }
 
+void TacUIHierarchyNode::Expand()
+{
+  for( int iChild = 0; iChild < mParent->mChildren.size(); ++iChild )
+    if( this == mParent->mChildren[ iChild ] )
+      mParent->mExpandingChildIndex = iChild;
+}
+
 void TacUIHierarchyNode::RenderHierarchy( TacErrors& errors )
 {
   // compute children sizes
@@ -1099,4 +1109,22 @@ void TacUIHierarchyVisualImage::Render( TacErrors& errors )
 TacString TacUIHierarchyVisualImage::GetDebugName()
 {
   return mTexture->mName;
+}
+
+void TacImGuiWindow::Begin()
+{
+  float windowPadding = 8;
+  mCursorDrawPos = v2( 1, 1 ) * windowPadding;
+}
+
+void TacImGuiWindow::Text( const TacString& utf8 )
+{
+  //auto state = mUIRoot->mUI2DDrawData->PushState();
+  //state->Draw2DText(...);
+
+  v2 textPos = mCursorDrawPos;
+  v2 textSize = mUIRoot->mUI2DDrawData->CalculateTextSize( utf8 );
+
+
+  mCursorDrawPos;
 }

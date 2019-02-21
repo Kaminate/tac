@@ -302,6 +302,8 @@ struct TacUIHierarchyNode
   void RenderHierarchy( TacErrors& errors );
   void SetVisual( TacUIHierarchyVisual* visual );
   TacUIHierarchyNode* AddChild();
+  void Expand();
+  TacString DebugGenerateGraphVizDotFile();
 
   v4 mColor = { 1, 1, 1, 1 };
   TacVector< TacUIHierarchyNode* > mChildren;
@@ -339,7 +341,18 @@ struct TacUIHierarchyNode
   TacUIHierarchyVisual* mVisual = nullptr;
 };
 
-struct TacUIRoot//  : public TacUIHierarchyNode
+struct TacImGuiWindow
+{
+  void Text( const TacString& utf8 );
+
+  void Begin();
+  
+
+  v2 mCursorDrawPos = {};
+  TacUIRoot* mUIRoot = nullptr;
+};
+
+struct TacUIRoot
 {
   TacUIRoot();
   ~TacUIRoot();
@@ -383,8 +396,7 @@ struct TacUIRoot//  : public TacUIHierarchyNode
   ////////////////////////
 
   TacUIHierarchyNode* mHierarchyRoot = nullptr;
-  TacString DebugGenerateGraphVizDotFile();
-
+  TacImGuiWindow* mImGuiWindow = nullptr;
   
   //////////////////////
   // END EXPERIMENTAL //

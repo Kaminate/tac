@@ -200,7 +200,7 @@ void TacUI2DDrawData::DrawToTexture( TacErrors& errors )
       0, 0, 0, 1 ) );
     v4 testVector( 130, 160, 0, 1 );
     bool testing = false;
-    auto PrintTestVector = [&]()
+    auto PrintTestVector = [ & ]()
     {
       std::cout
         << va(
@@ -217,7 +217,7 @@ void TacUI2DDrawData::DrawToTexture( TacErrors& errors )
     m4 projection = m4::Identity();
     for( m4 projectionPiece : projectionPieces )
     {
-      projection = projectionPiece *projection;
+      projection = projectionPiece * projection;
       if( testing )
       {
         testVector = projectionPiece * testVector;
@@ -350,7 +350,7 @@ void TacUI2DState::Draw2DText(
 {
   TacFontStuff* fontStuff = mUI2DDrawData->mUI2DCommonData->mFontStuff;
   const m3& transform = mTransform;
-  
+
   TacVector< TacCodepoint > codepoints;
   TacUTF8Converter::Convert( text, codepoints, errors );
   TAC_HANDLE_ERROR( errors );
@@ -380,11 +380,16 @@ void TacUI2DState::Draw2DText(
     if( !codepoint )
       continue;
 
-    if( TacIsAsciiCharacter( codepoint, '\n' ) )
+    if( TacIsAsciiCharacter( codepoint ) )
     {
-      runningX = mPenPos2D.x;
-      lineCount++;
-      runningY += lineHeight;
+      if( codepoint == '\n' )
+      {
+        runningX = mPenPos2D.x;
+        lineCount++;
+        runningY += lineHeight;
+      }
+      if( codepoint == '\r' )
+        continue;
     }
 
 
@@ -464,9 +469,71 @@ void TacUI2DState::Draw2DText(
   mUI2DDrawData->mDrawCall2Ds.push_back( drawCall );
 
   if( heightBetweenBaselines )
-  *heightBetweenBaselines = ( float )( ( lineCount )* lineHeight );
+    *heightBetweenBaselines = ( float )( lineCount * lineHeight );
 }
 
+// cache the results?
+v2 TacUI2DDrawData::CalculateTextSize( const TacString& text )
+{
+  // ignored
+  TacErrors errors;
+
+  int fontSize = 16;
+  TacVector< TacCodepoint > codepoints;
+  TacUTF8Converter::Convert( text, codepoints, errors );
+
+
+  float lineWidthUISpaceMax = 0;
+  float lineWidthUISpace = 0;
+  float xUISpace = 0;
+
+
+  TacFontStuff* fontStuff = mUI2DCommonData->mFontStuff;
+  TacLanguage defaultLanguage = TacLanguage::English;
+  TacFontFile* fontFile = fontStuff->mDefaultFonts[ defaultLanguage ];
+  fontFile->mAscent;
+
+  int lineCount = 1;
+
+  for( TacCodepoint codepoint : codepoints )
+  {
+    if( !codepoint )
+      continue;
+
+    if( TacIsAsciiCharacter( codepoint ) )
+    {
+      if( codepoint == '\n' )
+      {
+        lineWidthUISpaceMax = TacMax( lineWidthUISpaceMax, lineWidthUISpace );
+        lineWidthUISpace = 0;
+        xUISpace = 0;
+        lineCount++;
+      }
+      if( codepoint == '\r' )
+        continue;
+    }
+
+    TacFontAtlasCell* fontAtlasCell;
+    fontStuff->GetCharacter( defaultLanguage, codepoint, &fontAtlasCell, errors );
+    // ^ ignore errors...
+
+    if( !fontAtlasCell )
+      continue;
+
+    lineWidthUISpace = xUISpace + fontAtlasCell->mUISpaceLeftSideBearing + fontAtlasCell->mBitmapWidth;
+    xUISpace += fontAtlasCell->mUISpaceAdvanceWidth;
+  }
+
+  lineWidthUISpaceMax = TacMax( lineWidthUISpaceMax, lineWidthUISpace );
+
+  v2 textSize;
+  textSize.x = lineWidthUISpaceMax;
+  textSize.y = lineCount * ( fontFile->mUISpaceAscent - fontFile->mUISpaceDescent ) +
+    ( lineCount - 1 ) * fontFile->mUISpaceLinegap;
+  textSize *= ( float )fontSize / ( float )TacFontCellWidth;
+
+  return textSize;
+}
 
 void TacUI2DState::Translate( v2 pos )
 {
