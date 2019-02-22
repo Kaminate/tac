@@ -36,3 +36,5 @@ struct TacCreationMainWindow
   TacErrors mButtonCallbackErrors;
   TacCreationGameObjectMenuWindow* mGameObjectMenuWindow = nullptr;
 };
+
+const TacString gMainWindowName = "MainWindow";

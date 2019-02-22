@@ -100,6 +100,7 @@ struct TacUI2DDrawData
   //TacDrawCall* GetLastDrawCall();
 
   v2 CalculateTextSize( const TacString& text );
+  void AddText( v2 textPos, const TacString& utf8 );
 
   TacVector< TacDefaultVertex2D > mDefaultVertex2Ds;
   TacVector< TacDefaultIndex2D > mDefaultIndex2Ds;

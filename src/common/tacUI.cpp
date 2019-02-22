@@ -1111,10 +1111,16 @@ TacString TacUIHierarchyVisualImage::GetDebugName()
   return mTexture->mName;
 }
 
-void TacImGuiWindow::Begin()
+
+struct TacUIStyle
 {
   float windowPadding = 8;
-  mCursorDrawPos = v2( 1, 1 ) * windowPadding;
+  v2 itemSpacing = { 8, 4 };
+} gStyle;
+
+void TacImGuiWindow::Begin()
+{
+  mCursorDrawPos = v2( 1, 1 ) * gStyle.windowPadding;
 }
 
 void TacImGuiWindow::Text( const TacString& utf8 )
@@ -1126,5 +1132,13 @@ void TacImGuiWindow::Text( const TacString& utf8 )
   v2 textSize = mUIRoot->mUI2DDrawData->CalculateTextSize( utf8 );
 
 
-  mCursorDrawPos;
+  // this is ImGui::ItemSize
+  mCurrentLineHeight = TacMax( mCurrentLineHeight, textSize.y );
+  mCursorDrawPos.x = gStyle.windowPadding;
+  mCursorDrawPos.y += mCurrentLineHeight + gStyle.itemSpacing.y;
+  mCurrentLineHeight = 0;
+
+  // nothing for itemadd atm ( does clipping early outs )
+
+  mUIRoot->mUI2DDrawData->AddText( textPos, utf8 );
 }

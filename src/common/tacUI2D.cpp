@@ -472,13 +472,14 @@ void TacUI2DState::Draw2DText(
     *heightBetweenBaselines = ( float )( lineCount * lineHeight );
 }
 
+int fontSize = 16;
+
 // cache the results?
 v2 TacUI2DDrawData::CalculateTextSize( const TacString& text )
 {
   // ignored
   TacErrors errors;
 
-  int fontSize = 16;
   TacVector< TacCodepoint > codepoints;
   TacUTF8Converter::Convert( text, codepoints, errors );
 
@@ -533,6 +534,103 @@ v2 TacUI2DDrawData::CalculateTextSize( const TacString& text )
   textSize *= ( float )fontSize / ( float )TacFontCellWidth;
 
   return textSize;
+}
+
+void TacUI2DDrawData::AddText( v2 textPos, const TacString& utf8 )
+{
+  // ignored
+  TacErrors errors;
+
+  TacVector< TacCodepoint > codepoints;
+  TacUTF8Converter::Convert( utf8, codepoints, errors );
+
+  TacFontStuff* fontStuff = mUI2DCommonData->mFontStuff;
+  TacLanguage defaultLanguage = TacLanguage::English;
+  TacFontFile* fontFile = fontStuff->mDefaultFonts[ defaultLanguage ];
+
+  float scaleUIToPx = ( float )fontSize / ( float )TacFontCellWidth;
+  float scaleFontToPx = fontFile->mScale * scaleUIToPx;
+
+  float ascentPx = fontFile->mAscent * scaleFontToPx;
+  float descentPx = fontFile->mDescent * scaleFontToPx;
+  float linegapPx = fontFile->mLinegap * scaleFontToPx;
+  float xPx = textPos.x;
+  float yPx = textPos.y + ascentPx;
+
+  int indexStart = mDefaultIndex2Ds.size();
+  int indexCount = 0;
+  int vertexStart = mDefaultVertex2Ds.size();
+  int vertexCount = 0;
+
+  for( TacCodepoint codepoint : codepoints )
+  {
+    if( !codepoint )
+      continue;
+
+    if( TacIsAsciiCharacter( codepoint ) )
+    {
+      if( codepoint == '\n' )
+      {
+        xPx = textPos.x;
+        yPx += ascentPx + linegapPx + descentPx;
+      }
+      if( codepoint == '\r' )
+        continue;
+    }
+
+    TacFontAtlasCell* fontAtlasCell;
+    fontStuff->GetCharacter( defaultLanguage, codepoint, &fontAtlasCell, errors );
+    // ^ ignore errors...
+
+    if( !fontAtlasCell )
+      continue;
+
+    auto startingIndex = ( TacDefaultIndex2D )mDefaultVertex2Ds.size();
+    mDefaultIndex2Ds.push_back( startingIndex + 0 );
+    mDefaultIndex2Ds.push_back( startingIndex + 1 );
+    mDefaultIndex2Ds.push_back( startingIndex + 2 );
+    mDefaultIndex2Ds.push_back( startingIndex + 0 );
+    mDefaultIndex2Ds.push_back( startingIndex + 2 );
+    mDefaultIndex2Ds.push_back( startingIndex + 3 );
+    indexCount += 6;
+
+    float PxLeft = xPx + fontAtlasCell->mLeftSideBearing * scaleFontToPx;
+    float PxRight = PxLeft + fontAtlasCell->mBitmapWidth * scaleUIToPx;
+    float PxBottom = yPx + fontAtlasCell->mVerticalShift * scaleUIToPx;
+    float PxTop = PxBottom - fontAtlasCell->mBitmapHeight * scaleUIToPx;
+
+    mDefaultVertex2Ds.resize( startingIndex + 4 );
+    TacDefaultVertex2D* defaultVertex2D = &mDefaultVertex2Ds[ startingIndex ];
+
+    defaultVertex2D->mPosition = { PxLeft, PxTop };
+    defaultVertex2D->mGLTexCoord = { fontAtlasCell->mMinGLTexCoord.x, fontAtlasCell->mMaxGLTexCoord.y };
+    defaultVertex2D++;
+    defaultVertex2D->mPosition = { PxLeft, PxBottom };
+    defaultVertex2D->mGLTexCoord = { fontAtlasCell->mMinGLTexCoord.x, fontAtlasCell->mMinGLTexCoord.y };
+    defaultVertex2D++;
+    defaultVertex2D->mPosition = { PxRight, PxBottom };
+    defaultVertex2D->mGLTexCoord = { fontAtlasCell->mMaxGLTexCoord.x, fontAtlasCell->mMinGLTexCoord.y };
+    defaultVertex2D++;
+    defaultVertex2D->mPosition = { PxRight, PxTop };
+    defaultVertex2D->mGLTexCoord = { fontAtlasCell->mMaxGLTexCoord.x, fontAtlasCell->mMaxGLTexCoord.y };
+    vertexCount += 4;
+
+    xPx += fontAtlasCell->mAdvanceWidth * scaleFontToPx;
+  }
+
+  CBufferPerObject perObjectData = {};
+  perObjectData.World = m4::Identity();
+  perObjectData.Color = { 1, 1, 0, 1 };
+
+  TacUI2DDrawCall drawCall;
+  drawCall.mIIndexCount = indexCount;
+  drawCall.mIIndexStart = indexStart;
+  drawCall.mIVertexCount = vertexCount;
+  drawCall.mIVertexStart = vertexStart;
+  drawCall.mTexture = fontStuff->mTexture;
+  drawCall.mShader = mUI2DCommonData->m2DTextShader;
+  drawCall.mUniformSource = TacTemporaryMemory( perObjectData );
+  mDrawCall2Ds.push_back( drawCall );
 }
 
 void TacUI2DState::Translate( v2 pos )

@@ -350,6 +350,8 @@ struct TacImGuiWindow
 
   v2 mCursorDrawPos = {};
   TacUIRoot* mUIRoot = nullptr;
+
+  float mCurrentLineHeight = 0;
 };
 
 struct TacUIRoot

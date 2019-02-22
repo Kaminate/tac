@@ -41,13 +41,22 @@ struct TacFontAtlasCell
   v2 mMinGLTexCoord = {};
   v2 mMaxGLTexCoord = {};
 
+
+  // todo:
+  //  if foo is unscaled, rename it to unscaledFoo
+  //  or if its in bitmap space, rename it to bitmapFoo
+  //  delete the clones
+
   float mUISpaceAdvanceWidth = 0;
-  float mAdvanceWidth = 0;
+  float mAdvanceWidth = 0; // unscaled
 
   float mUISpaceLeftSideBearing = 0;
-  float mLeftSideBearing = 0;
+  float mLeftSideBearing = 0; // unscaled
 
   float mUISpaceVerticalShift = 0;
+
+  // measured in pixels in bitmap space ( uispace )
+  float mVerticalShift = 0;
   int mBitmapWidth = 0;
   int mBitmapHeight = 0;
 };
@@ -92,6 +101,7 @@ struct TacFontFile
   float mLinegap = 0;
   float mUISpaceLinegap = 0;
 
+  // scaleFontToUI
   // scale = pixels / (ascent - descent)
   float mScale = 0;
 };

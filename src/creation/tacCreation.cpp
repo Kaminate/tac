@@ -76,8 +76,6 @@ void TacCreation::Init( TacErrors& errors )
   TacJson* windows = shell->mSettings->GetArray( nullptr, { "Windows" }, windowsDefault, errors );
   TAC_HANDLE_ERROR( errors );
 
-  TacDesktopWindow* mainWindow = nullptr;
-
   for( TacJson* windowJson : windows->mElements )
   {
     bool shouldCreate = shell->mSettings->GetBool( windowJson, { "Create" }, true, errors );
@@ -154,9 +152,8 @@ void TacCreation::Init( TacErrors& errors )
     //editorWindow->mUI2DDrawData = ui2DDrawData;
     //editorWindow->mUIRoot = uiRoot;
 
-    if( !mainWindow )
+    if( windowParams.mName == gMainWindowName )
     {
-      mainWindow = desktopWindow;
       mMainWindow = new TacCreationMainWindow();
       mMainWindow->mCreation = this;
       mMainWindow->mDesktopWindow = desktopWindow;

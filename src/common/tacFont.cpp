@@ -270,13 +270,14 @@ void TacFontStuff::GetCharacter(
   //   these are expressed in unscaled coordinates
   stbtt_GetGlyphHMetrics( &fontFile->mFontInfo, glyphIndex, &advanceWidth, &leftSideBearing );
 
-  TacVector< uint8_t > bitmapMemory( bitmapWidthPx * bitmapHeightPx );
+  int stride = bitmapWidthPx;
+  TacVector< uint8_t > bitmapMemory( stride * bitmapHeightPx );
   stbtt_MakeCodepointBitmap(
     &fontFile->mFontInfo,
     ( unsigned char* )bitmapMemory.data(),
     bitmapWidthPx,
     bitmapHeightPx,
-    bitmapWidthPx,
+    stride,
     fontFile->mScale,
     fontFile->mScale,
     codepoint );
@@ -313,11 +314,11 @@ void TacFontStuff::GetCharacter(
   cell->mCodepointAscii = codepoint < 128 ? ( char )codepoint : '?';
   cell->mOwner = fontFile;
 
-  cell->mAdvanceWidth = advanceWidth;
+  cell->mAdvanceWidth = ( float )advanceWidth;
   cell->mUISpaceAdvanceWidth = advanceWidth * fontFile->mScale;
 
   cell->mUISpaceLeftSideBearing = leftSideBearing * fontFile->mScale;
-  cell->mLeftSideBearing = leftSideBearing;
+  cell->mLeftSideBearing = ( float )leftSideBearing;
 
   cell->mBitmapWidth = bitmapWidthPx;
   cell->mBitmapHeight = bitmapHeightPx;

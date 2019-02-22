@@ -57,8 +57,6 @@ void TacCreationPropertyWindow::Init( TacErrors& errors )
 
 void TacCreationPropertyWindow::Update( TacErrors& errors )
 {
-  mUIRoot->mImGuiWindow->Begin();
-  mUIRoot->mImGuiWindow->Text( "This is some useful text" );
 
   //static bool added;
   //if( mCreation->mSelectedEntity )
@@ -82,8 +80,12 @@ void TacCreationPropertyWindow::Update( TacErrors& errors )
 
   mDesktopWindow->SetRenderViewDefaults();
   mUIRoot->Update();
-  mUIRoot->Render( errors );
+  //mUIRoot->Render( errors );
   TAC_HANDLE_ERROR( errors );
+
+  mUIRoot->mImGuiWindow->Begin();
+  mUIRoot->mImGuiWindow->Text( "This is some useful text" );
+  mUIRoot->mImGuiWindow->Text( "This is some more useful text" );
 
   mUI2DDrawData->DrawToTexture( errors );
   TAC_HANDLE_ERROR( errors );
