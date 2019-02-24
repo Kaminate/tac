@@ -1124,6 +1124,7 @@ void TacImGuiWindow::Begin()
 }
 
 void TacImGuiWindow::Checkbox( const TacString& str, bool* value )
+{
   v2 pos = mCursorDrawPos;
 
   v2 textSize = mUIRoot->mUI2DDrawData->CalculateTextSize( str );
