@@ -341,11 +341,18 @@ struct TacUIHierarchyNode
   TacUIHierarchyVisual* mVisual = nullptr;
 };
 
+struct TacImGuiRect
+{
+  v2 mMini;
+  v2 mMaxi;
+};
+
 struct TacImGuiWindow
 {
-  void Text( const TacString& utf8 );
-
   void Begin();
+  void Text( const TacString& utf8 );
+  void Checkbox( const TacString& str, bool* value );
+  void ItemSize( v2 size );
   
 
   v2 mCursorDrawPos = {};

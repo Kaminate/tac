@@ -1123,6 +1123,114 @@ void TacImGuiWindow::Begin()
   mCursorDrawPos = v2( 1, 1 ) * gStyle.windowPadding;
 }
 
+void TacImGuiWindow::Checkbox( const TacString& str, bool* value )
+  v2 pos = mCursorDrawPos;
+
+  v2 textSize = mUIRoot->mUI2DDrawData->CalculateTextSize( str );
+  textSize.y;
+
+  float boxWidth = textSize.y;
+  v2 boxSize = v2( 1, 1 ) * boxWidth;
+
+  v2 totalSize = v2( boxWidth + gStyle.itemSpacing.x + textSize.x, textSize.y );
+  ItemSize( totalSize );
+
+  bool hovered = false;
+
+  // TODO: move to a drawData->rect( topleft, bottomright, rounding )
+  TacUI2DDrawData* mUI2DDrawData = mUIRoot->mUI2DDrawData;
+  TacUI2DCommonData* mUI2DCommonData = mUI2DDrawData->mUI2DCommonData;
+
+  TacErrors errors;
+  v2 mousePosScreenspace = {};
+  TacOS::Instance->GetScreenspaceCursorPos( mousePosScreenspace, errors );
+  if( errors.empty() && mUIRoot->mDesktopWindow->mCursorUnobscured )
+  {
+    v2 mousePosWindowspace = mousePosScreenspace - v2(
+      ( float )mUIRoot->mDesktopWindow->mX,
+      ( float )mUIRoot->mDesktopWindow->mY);
+    hovered =
+      mousePosWindowspace.x > pos.x &&
+      mousePosWindowspace.x < pos.x + totalSize.x &&
+      mousePosWindowspace.y > pos.y &&
+      mousePosWindowspace.y < pos.y + totalSize.y;
+  }
+
+  v4 outerBoxColor = v4( 1, 1, 0, 1 );
+  if( hovered )
+  {
+    outerBoxColor = v4( 0.5f, 0.5f, 0, 1 );
+    if( mUIRoot->mKeyboardInput->IsKeyDown( TacKey::MouseLeft ) )
+    {
+      outerBoxColor = v4( 0.3f, 0.3f, 0, 1 );
+    }
+    if( mUIRoot->mKeyboardInput->IsKeyJustDown( TacKey::MouseLeft ) )
+    {
+      *value = !*value;
+    }
+  }
+
+  mUI2DDrawData->AddBox( pos, pos + boxSize, outerBoxColor );
+  if( *value )
+  {
+    // (0,0)-------+
+    // |         3 |
+    // |       //  |
+    // | 0 __2 /   |
+    // |   \  /    |
+    // |     1     |
+    // +-------(1,1)
+    v2 p0 = { 0.2f, 0.4f };
+    v2 p1 = { 0.45f, 0.9f };
+    v2 p2 = { 0.45f, 0.60f };
+    v2 p3 = { 0.9f, 0.1f };
+    for( v2* point : { &p0, &p1, &p2, &p3 } )
+    {
+      point->x = pos.x + point->x * boxWidth;
+      point->y = pos.y + point->y * boxWidth;
+    }
+    int iVert = mUI2DDrawData->mDefaultVertex2Ds.size();
+    int iIndex = mUI2DDrawData->mDefaultIndex2Ds.size();
+    mUI2DDrawData->mDefaultIndex2Ds.push_back( iVert + 0 );
+    mUI2DDrawData->mDefaultIndex2Ds.push_back( iVert + 1 );
+    mUI2DDrawData->mDefaultIndex2Ds.push_back( iVert + 2 );
+    mUI2DDrawData->mDefaultIndex2Ds.push_back( iVert + 1 );
+    mUI2DDrawData->mDefaultIndex2Ds.push_back( iVert + 3 );
+    mUI2DDrawData->mDefaultIndex2Ds.push_back( iVert + 2 );
+    mUI2DDrawData->mDefaultVertex2Ds.resize( iVert + 4 );
+    TacDefaultVertex2D* defaultVertex2D = &mUI2DDrawData->mDefaultVertex2Ds[ iVert ];
+    defaultVertex2D->mPosition = p0;
+    defaultVertex2D++;
+    defaultVertex2D->mPosition = p1;
+    defaultVertex2D++;
+    defaultVertex2D->mPosition = p2;
+    defaultVertex2D++;
+    defaultVertex2D->mPosition = p3;
+
+    CBufferPerObject perObjectData = {};
+    perObjectData.World = m4::Identity();
+    perObjectData.Color = { 0, 0, 0, 1 };
+
+    TacUI2DDrawCall drawCall;
+    drawCall.mIIndexCount = 6;
+    drawCall.mIIndexStart = iIndex;
+    drawCall.mIVertexCount = 4;
+    drawCall.mIVertexStart = iVert;
+    drawCall.mShader = mUI2DCommonData->m2DTextShader;
+    drawCall.mUniformSource = TacTemporaryMemory( perObjectData );
+    mUI2DDrawData->mDrawCall2Ds.push_back( drawCall );
+  }
+  mUI2DDrawData->AddText( pos + v2( boxWidth + gStyle.itemSpacing.x, 0 ), str );
+}
+
+void TacImGuiWindow::ItemSize( v2 size )
+{
+  mCurrentLineHeight = TacMax( mCurrentLineHeight, size.y );
+  mCursorDrawPos.x = gStyle.windowPadding;
+  mCursorDrawPos.y += mCurrentLineHeight + gStyle.itemSpacing.y;
+  mCurrentLineHeight = 0;
+}
+
 void TacImGuiWindow::Text( const TacString& utf8 )
 {
   //auto state = mUIRoot->mUI2DDrawData->PushState();
@@ -1132,11 +1240,7 @@ void TacImGuiWindow::Text( const TacString& utf8 )
   v2 textSize = mUIRoot->mUI2DDrawData->CalculateTextSize( utf8 );
 
 
-  // this is ImGui::ItemSize
-  mCurrentLineHeight = TacMax( mCurrentLineHeight, textSize.y );
-  mCursorDrawPos.x = gStyle.windowPadding;
-  mCursorDrawPos.y += mCurrentLineHeight + gStyle.itemSpacing.y;
-  mCurrentLineHeight = 0;
+  ItemSize( textSize );
 
   // nothing for itemadd atm ( does clipping early outs )
 

@@ -536,6 +536,63 @@ v2 TacUI2DDrawData::CalculateTextSize( const TacString& text )
   return textSize;
 }
 
+void TacUI2DDrawData::AddBox( v2 mini, v2 maxi, v4 color, TacTexture* texture )
+{
+  int iVert = mDefaultVertex2Ds.size();
+  int iIndex = mDefaultIndex2Ds.size();
+  mDefaultIndex2Ds.push_back( iVert + 0 );
+  mDefaultIndex2Ds.push_back( iVert + 1 );
+  mDefaultIndex2Ds.push_back( iVert + 2 );
+  mDefaultIndex2Ds.push_back( iVert + 0 );
+  mDefaultIndex2Ds.push_back( iVert + 2 );
+  mDefaultIndex2Ds.push_back( iVert + 3 );
+
+  mDefaultVertex2Ds.resize( iVert + 4 );
+  TacDefaultVertex2D* defaultVertex2D = &mDefaultVertex2Ds[ iVert ];
+
+  defaultVertex2D->mPosition = { mini.x, mini.y };
+  defaultVertex2D++;
+  defaultVertex2D->mPosition = { mini.x, maxi.y };
+  defaultVertex2D++;
+  defaultVertex2D->mPosition = { maxi.x, maxi.y };
+  defaultVertex2D++;
+  defaultVertex2D->mPosition = { maxi.x, mini.y };
+
+  CBufferPerObject perObjectData = {};
+  perObjectData.World = m4::Identity();
+  perObjectData.Color = color;
+
+  TacUI2DDrawCall drawCall;
+  drawCall.mIVertexStart = iVert;
+  drawCall.mIVertexCount = 4;
+  drawCall.mIIndexStart = iIndex;
+  drawCall.mIIndexCount = 6;
+  drawCall.mTexture = texture;
+  drawCall.mShader = mUI2DCommonData->mShader;
+  drawCall.mUniformSource = TacTemporaryMemory( perObjectData );
+
+  mDrawCall2Ds.push_back( drawCall );
+}
+
+//void TacUI2DDrawData::AddPolyFill( const TacVector< v2 >& points, v4 color )
+//{
+//}
+//void TacUI2DDrawData::AddSquiggle( const TacVector< v2 >& inputPoints, float width, v4 color )
+//{
+//  int iVert = mDefaultVertex2Ds.size();
+//  int iIndex = mDefaultIndex2Ds.size();
+//
+//  TacVector< v2 > outputPoints;
+//  outputPoints.resize( 2 * inputPoints.size() - 2 );
+//
+//  mDefaultVertex2Ds.resize( iVert + outputPoints.size() );
+//
+//  TacDefaultVertex2D* defaultVertex2D = &mDefaultVertex2Ds[ iVert ];
+//
+//
+//  TacVector< v2 > normals;
+//}
+
 void TacUI2DDrawData::AddText( v2 textPos, const TacString& utf8 )
 {
   // ignored
@@ -596,7 +653,7 @@ void TacUI2DDrawData::AddText( v2 textPos, const TacString& utf8 )
 
     float PxLeft = xPx + fontAtlasCell->mLeftSideBearing * scaleFontToPx;
     float PxRight = PxLeft + fontAtlasCell->mBitmapWidth * scaleUIToPx;
-    float PxBottom = yPx + fontAtlasCell->mVerticalShift * scaleUIToPx;
+    float PxBottom = yPx - fontAtlasCell->mUISpaceVerticalShift * scaleUIToPx;
     float PxTop = PxBottom - fontAtlasCell->mBitmapHeight * scaleUIToPx;
 
     mDefaultVertex2Ds.resize( startingIndex + 4 );

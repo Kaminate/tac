@@ -56,7 +56,6 @@ struct TacFontAtlasCell
   float mUISpaceVerticalShift = 0;
 
   // measured in pixels in bitmap space ( uispace )
-  float mVerticalShift = 0;
   int mBitmapWidth = 0;
   int mBitmapHeight = 0;
 };

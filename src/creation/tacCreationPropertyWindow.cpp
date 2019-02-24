@@ -18,6 +18,7 @@ void TacCreationPropertyWindow::Init( TacErrors& errors )
   mUI2DDrawData->mUI2DCommonData = mShell->mUI2DCommonData;
   mUIRoot = new TacUIRoot;
   mUIRoot->mUI2DDrawData = mUI2DDrawData;
+  mUIRoot->mKeyboardInput = mShell->mKeyboardInput;
   mUIRoot->mDesktopWindow = mDesktopWindow;
   mUIRoot->mHierarchyRoot->mLayoutType = TacUILayoutType::Horizontal;
 
@@ -83,9 +84,12 @@ void TacCreationPropertyWindow::Update( TacErrors& errors )
   //mUIRoot->Render( errors );
   TAC_HANDLE_ERROR( errors );
 
+  static bool areYouHappy;
+
   mUIRoot->mImGuiWindow->Begin();
   mUIRoot->mImGuiWindow->Text( "This is some useful text" );
   mUIRoot->mImGuiWindow->Text( "This is some more useful text" );
+  mUIRoot->mImGuiWindow->Checkbox( "Happy", &areYouHappy );
 
   mUI2DDrawData->DrawToTexture( errors );
   TAC_HANDLE_ERROR( errors );
