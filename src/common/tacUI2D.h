@@ -102,7 +102,7 @@ struct TacUI2DDrawData
   v2 CalculateTextSize( const TacString& text );
   void AddText( v2 textPos, const TacString& utf8 );
   void AddBox( v2 mini, v2 maxi, v4 color, TacTexture* texture = nullptr );
-  void AddPolyFill( const TacVector< v2 >& points, v4 color );
+  //void AddPolyFill( const TacVector< v2 >& points, v4 color );
 
   TacVector< TacDefaultVertex2D > mDefaultVertex2Ds;
   TacVector< TacDefaultIndex2D > mDefaultIndex2Ds;

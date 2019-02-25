@@ -349,16 +349,31 @@ struct TacImGuiRect
 
 struct TacImGuiWindow
 {
-  void Begin();
+  void BeginFrame();
   void Text( const TacString& utf8 );
   void Checkbox( const TacString& str, bool* value );
+  bool Button( const TacString& str );
   void ItemSize( v2 size );
-  
+  void SameLine();
+  void BeginGroup();
+  void EndGroup();
+  TacImGuiWindow* BeginChild( const TacString& name, v2 size );
+  void EndChild();
+  void UpdateMaxCursorDrawPos( v2 pos );
 
-  v2 mCursorDrawPos = {};
   TacUIRoot* mUIRoot = nullptr;
+  TacString mName;
+  //TacVector< TacImGuiWindow* > mChildren;
+  TacImGuiWindow* mParent = nullptr;
 
-  float mCurrentLineHeight = 0;
+  v2 mMaxiCursorDrawPos;
+  v2 mCurrCursorDrawPos;
+  v2 mPrevCursorDrawPos;
+  v2 mPos = {};
+  v2 mSize = {};
+  float mCurrLineHeight;
+  float mPrevLineHeight;
+  v2 mGroupPos;
 };
 
 struct TacUIRoot

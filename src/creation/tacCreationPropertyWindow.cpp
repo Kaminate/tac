@@ -86,10 +86,43 @@ void TacCreationPropertyWindow::Update( TacErrors& errors )
 
   static bool areYouHappy;
 
-  mUIRoot->mImGuiWindow->Begin();
-  mUIRoot->mImGuiWindow->Text( "This is some useful text" );
-  mUIRoot->mImGuiWindow->Text( "This is some more useful text" );
-  mUIRoot->mImGuiWindow->Checkbox( "Happy", &areYouHappy );
+  mUIRoot->mImGuiWindow->mSize =
+  {
+    (float)mDesktopWindow->mWidth,
+    (float)mDesktopWindow->mHeight
+  };
+  mUIRoot->mImGuiWindow->BeginFrame();
+
+  static int entityCount;
+  TacImGuiWindow* hierarchy = mUIRoot->mImGuiWindow->BeginChild( "Hierarchy", v2( 250, -100 ));
+  for( int iEntity = 0; iEntity < entityCount; ++iEntity )
+  {
+    hierarchy->Text( "Entity " + TacToString( iEntity + 1 ) );
+  }
+  if( hierarchy->Button( "Add Entity" ) )
+  {
+    entityCount++;
+  }
+  hierarchy->EndChild();
+
+
+  //mUIRoot->mImGuiWindow->BeginGroup();
+  mUIRoot->mImGuiWindow->Text( "Hello" );
+  //mUIRoot->mImGuiWindow->Text( "Obj 2" );
+  //mUIRoot->mImGuiWindow->Text( "Obj 3" );
+  //mUIRoot->mImGuiWindow->Button( "A" );
+  //mUIRoot->mImGuiWindow->SameLine();
+  //mUIRoot->mImGuiWindow->Button( "B" );
+  //mUIRoot->mImGuiWindow->EndGroup();
+  //mUIRoot->mImGuiWindow->SameLine();
+  //mUIRoot->mImGuiWindow->Button( "C" );
+
+  //mUIRoot->mImGuiWindow->Text( "This is some useful text" );
+  //mUIRoot->mImGuiWindow->Text( "This is some more useful text" );
+  //mUIRoot->mImGuiWindow->Checkbox( "Happy", &areYouHappy );
+  //if( mUIRoot->mImGuiWindow->Button( "If you're happy and you know it" ) )
+  //  std::cout << "Clap your hands" << std::endl;
+
 
   mUI2DDrawData->DrawToTexture( errors );
   TAC_HANDLE_ERROR( errors );
