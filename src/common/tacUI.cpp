@@ -1162,16 +1162,20 @@ void TacImGuiWindow::BeginFrame()
     mPos = mParent->mCurrCursorDrawPos;
     // Render borders
     {
-      mUIRoot->mUI2DDrawData->AddBox( mPos, mPos + mSize, v4( 0.2f, 0.3f, 0.4f, 1.0f ) );
+      bool clipped;
+      auto clipRect = TacImGuiRect::FromPosSize( mPos, mSize );
+      ComputeClipInfo( &clipped, &clipRect );
+      if( !clipped )
+        mUIRoot->mUI2DDrawData->AddBox( mPos, mPos + mSize, v4( 0.2f, 0.3f, 0.4f, 1.0f ), clipRect );
     }
   }
-  v2 pos = mPos + v2( 1, 1 ) * gStyle.windowPadding;
-  mCurrCursorDrawPos = pos;
-  mPrevCursorDrawPos = pos;
-  mMaxiCursorDrawPos = pos;
+  mXOffsets = { gStyle.windowPadding };
+  v2 drawPos = mPos + v2( mXOffsets.back(), gStyle.windowPadding );
+  mCurrCursorDrawPos = drawPos;
+  mPrevCursorDrawPos = drawPos;
+  mMaxiCursorDrawPos = drawPos;
   mCurrLineHeight = 0;
   mPrevLineHeight = 0;
-  mGroupPos = { -1, -1 }; // eww?
 }
 
 void TacImGuiWindow::Checkbox( const TacString& str, bool* value )
@@ -1187,26 +1191,17 @@ void TacImGuiWindow::Checkbox( const TacString& str, bool* value )
   v2 totalSize = v2( boxWidth + gStyle.itemSpacing.x + textSize.x, textSize.y );
   ItemSize( totalSize );
 
-  bool hovered = false;
+  bool clipped;
+  auto clipRect = TacImGuiRect::FromPosSize( pos, totalSize );
+  ComputeClipInfo( &clipped, &clipRect );
+  if( clipped )
+    return;
+
+  bool hovered = IsHovered( clipRect );
 
   // TODO: move to a drawData->rect( topleft, bottomright, rounding )
   TacUI2DDrawData* mUI2DDrawData = mUIRoot->mUI2DDrawData;
   TacUI2DCommonData* mUI2DCommonData = mUI2DDrawData->mUI2DCommonData;
-
-  TacErrors errors;
-  v2 mousePosScreenspace = {};
-  TacOS::Instance->GetScreenspaceCursorPos( mousePosScreenspace, errors );
-  if( errors.empty() && mUIRoot->mDesktopWindow->mCursorUnobscured )
-  {
-    v2 mousePosWindowspace = mousePosScreenspace - v2(
-      ( float )mUIRoot->mDesktopWindow->mX,
-      ( float )mUIRoot->mDesktopWindow->mY );
-    hovered =
-      mousePosWindowspace.x > pos.x &&
-      mousePosWindowspace.x < pos.x + totalSize.x &&
-      mousePosWindowspace.y > pos.y &&
-      mousePosWindowspace.y < pos.y + totalSize.y;
-  }
 
   v4 outerBoxColor = v4( 1, 1, 0, 1 );
   if( hovered )
@@ -1222,7 +1217,7 @@ void TacImGuiWindow::Checkbox( const TacString& str, bool* value )
     }
   }
 
-  mUI2DDrawData->AddBox( pos, pos + boxSize, outerBoxColor );
+  mUI2DDrawData->AddBox( pos, pos + boxSize, outerBoxColor, clipRect );
   if( *value )
   {
     // (0,0)-------+
@@ -1272,11 +1267,52 @@ void TacImGuiWindow::Checkbox( const TacString& str, bool* value )
     drawCall.mUniformSource = TacTemporaryMemory( perObjectData );
     mUI2DDrawData->mDrawCall2Ds.push_back( drawCall );
   }
-  mUI2DDrawData->AddText( pos + v2( boxWidth + gStyle.itemSpacing.x, 0 ), str );
+  mUI2DDrawData->AddText( pos + v2( boxWidth + gStyle.itemSpacing.x, 0 ), str, clipRect );
+}
+
+void TacImGuiWindow::ComputeClipInfo( bool* clipped, TacImGuiRect* clipRect )
+{
+  auto windowRect = TacImGuiRect::FromPosSize( mPos, mSize );
+  if( clipRect->mMini.x > windowRect.mMaxi.x ||
+    clipRect->mMaxi.x < windowRect.mMini.x ||
+    clipRect->mMini.y > windowRect.mMaxi.y ||
+    clipRect->mMaxi.y < windowRect.mMini.y )
+  {
+    *clipped = true;
+    return;
+  }
+
+  clipRect->mMini.x = TacMax( clipRect->mMini.x, windowRect.mMini.x );
+  clipRect->mMini.y = TacMax( clipRect->mMini.y, windowRect.mMini.y );
+  clipRect->mMaxi.x = TacMin( clipRect->mMaxi.x, windowRect.mMaxi.x );
+  clipRect->mMaxi.y = TacMin( clipRect->mMaxi.y, windowRect.mMaxi.y );
+  *clipped = false;
+}
+
+bool TacImGuiWindow::IsHovered( const TacImGuiRect& rect )
+{
+  if( !mUIRoot->mDesktopWindow->mCursorUnobscured )
+    return false;
+
+  TacErrors errors;
+  v2 mousePosScreenspace = {};
+  TacOS::Instance->GetScreenspaceCursorPos( mousePosScreenspace, errors );
+  if( errors.size() )
+    return false;
+
+  v2 mousePosWindowspace = mousePosScreenspace - v2(
+    ( float )mUIRoot->mDesktopWindow->mX,
+    ( float )mUIRoot->mDesktopWindow->mY );
+  return
+    mousePosWindowspace.x > rect.mMini.x &&
+    mousePosWindowspace.x < rect.mMaxi.x &&
+    mousePosWindowspace.y > rect.mMini.y &&
+    mousePosWindowspace.y < rect.mMaxi.y;
 }
 
 bool TacImGuiWindow::Button( const TacString& str )
 {
+  bool justClicked = false;
   float buttonPadding = 3.0f;
   v2 textSize = mUIRoot->mUI2DDrawData->CalculateTextSize( str );
   v2 buttonSize = { textSize.x + 2 * buttonPadding, textSize.y };
@@ -1284,23 +1320,13 @@ bool TacImGuiWindow::Button( const TacString& str )
   ItemSize( textSize );
 
 
+  bool clipped;
+  auto clipRect = TacImGuiRect::FromPosSize( pos, buttonSize );
+  ComputeClipInfo( &clipped, &clipRect );
+  if( clipped )
+    return justClicked;
 
-  bool hovered = false;
-  bool justClicked = false;
-  TacErrors errors;
-  v2 mousePosScreenspace = {};
-  TacOS::Instance->GetScreenspaceCursorPos( mousePosScreenspace, errors );
-  if( errors.empty() && mUIRoot->mDesktopWindow->mCursorUnobscured )
-  {
-    v2 mousePosWindowspace = mousePosScreenspace - v2(
-      ( float )mUIRoot->mDesktopWindow->mX,
-      ( float )mUIRoot->mDesktopWindow->mY );
-    hovered =
-      mousePosWindowspace.x > pos.x &&
-      mousePosWindowspace.x < pos.x + buttonSize.x &&
-      mousePosWindowspace.y > pos.y &&
-      mousePosWindowspace.y < pos.y + buttonSize.y;
-  }
+  bool hovered = IsHovered( clipRect );
 
   v3 outerBoxColor = v3( .23f, .28f, .38f );
   if( hovered )
@@ -1316,8 +1342,8 @@ bool TacImGuiWindow::Button( const TacString& str )
     }
   }
 
-  mUIRoot->mUI2DDrawData->AddBox( pos, pos + buttonSize, v4( outerBoxColor, 1 ) );
-  mUIRoot->mUI2DDrawData->AddText( pos + v2( buttonPadding, 0 ), str );
+  mUIRoot->mUI2DDrawData->AddBox( pos, pos + buttonSize, v4( outerBoxColor, 1 ), clipRect );
+  mUIRoot->mUI2DDrawData->AddText( pos + v2( buttonPadding, 0 ), str, clipRect );
 
   return justClicked;
 }
@@ -1338,23 +1364,27 @@ void TacImGuiWindow::ItemSize( v2 size )
     mCurrCursorDrawPos.y };
   UpdateMaxCursorDrawPos( mPrevCursorDrawPos );
   mCurrCursorDrawPos = {
-    mPos.x + gStyle.windowPadding,
+    mPos.x + mXOffsets.back(),
     mPrevCursorDrawPos.y + mPrevLineHeight + gStyle.itemSpacing.y };
   mCurrLineHeight = 0;
 }
 
 void TacImGuiWindow::BeginGroup()
 {
-  mGroupPos = mCurrCursorDrawPos;
+  mGroupSavedCursorDrawPos = mCurrCursorDrawPos;
+  mXOffsets.push_back( mCurrCursorDrawPos.x - mPos.x );
+  // restore on end group?
+  mCurrLineHeight = 0;
 }
 void TacImGuiWindow::EndGroup()
 {
+  mXOffsets.pop_back();
   v2 groupEndPos = {
     mMaxiCursorDrawPos.x,
     mMaxiCursorDrawPos.y + mPrevLineHeight };
-  mCurrCursorDrawPos = mGroupPos;
-  ItemSize( groupEndPos - mGroupPos );
-  mGroupPos = { -1, -1 };
+  v2 groupSize = groupEndPos - mGroupSavedCursorDrawPos;
+  mCurrCursorDrawPos = mGroupSavedCursorDrawPos;
+  ItemSize( groupSize );
 }
 
 void TacImGuiWindow::UpdateMaxCursorDrawPos( v2 pos )
@@ -1374,7 +1404,18 @@ void TacImGuiWindow::Text( const TacString& utf8 )
 
   ItemSize( textSize );
 
-  // nothing for itemadd atm ( does clipping early outs )
+  bool clipped;
+  auto clipRect = TacImGuiRect::FromPosSize( textPos, textSize );
+  ComputeClipInfo( &clipped, &clipRect );
+  if( clipped )
+    return;
 
-  mUIRoot->mUI2DDrawData->AddText( textPos, utf8 );
+  mUIRoot->mUI2DDrawData->AddText( textPos, utf8, clipRect );
+}
+TacImGuiRect TacImGuiRect::FromPosSize( v2 pos, v2 size )
+{
+  TacImGuiRect result;
+  result.mMini = pos;
+  result.mMaxi = pos + size;
+  return result;
 }

@@ -88,6 +88,8 @@ struct TacUI2DDrawCall
   TacVector< char > mUniformSource;
 };
 
+struct TacImGuiRect;
+
 // why does this class exist
 struct TacUI2DDrawData
 {
@@ -100,8 +102,8 @@ struct TacUI2DDrawData
   //TacDrawCall* GetLastDrawCall();
 
   v2 CalculateTextSize( const TacString& text );
-  void AddText( v2 textPos, const TacString& utf8 );
-  void AddBox( v2 mini, v2 maxi, v4 color, TacTexture* texture = nullptr );
+  void AddText( v2 textPos, const TacString& utf8, const TacImGuiRect& clipRect );
+  void AddBox( v2 mini, v2 maxi, v4 color, const TacImGuiRect& clipRect, TacTexture* texture = nullptr );
   //void AddPolyFill( const TacVector< v2 >& points, v4 color );
 
   TacVector< TacDefaultVertex2D > mDefaultVertex2Ds;
@@ -112,7 +114,7 @@ struct TacUI2DDrawData
   TacVertexBuffer* mVerts = nullptr;
   TacIndexBuffer* mIndexes = nullptr;
   TacRenderView* mRenderView = nullptr;
- 
+
   TacUI2DCommonData* mUI2DCommonData = nullptr;
 };
 

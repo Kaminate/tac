@@ -54,6 +54,7 @@ struct TacDesktopWindow : public TacWindowParams
   TacEvent<>::Emitter mOnDestroyed;
 
   // True if the window directly under the mouse cursor is this one
+  // todo: Figure out a better variable name that can be negated
   bool mCursorUnobscured = false;
 };
 

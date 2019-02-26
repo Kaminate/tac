@@ -1,4 +1,5 @@
 #include "common/tacUI2D.h"
+#include "common/tacUI.h"
 #include "common/containers/tacArray.h"
 #include "common/math/tacMath.h"
 
@@ -536,8 +537,17 @@ v2 TacUI2DDrawData::CalculateTextSize( const TacString& text )
   return textSize;
 }
 
-void TacUI2DDrawData::AddBox( v2 mini, v2 maxi, v4 color, TacTexture* texture )
+void TacUI2DDrawData::AddBox( v2 mini, v2 maxi, v4 color, const TacImGuiRect& clipRect, TacTexture* texture )
 {
+  mini.x = TacMax( mini.x, clipRect.mMini.x );
+  maxi.x = TacMin( maxi.x, clipRect.mMaxi.x );
+
+  mini.y = TacMax( mini.y, clipRect.mMini.y );
+  maxi.y = TacMin( maxi.y, clipRect.mMaxi.y );
+
+  if( mini.x == maxi.x || mini.y == maxi.y )
+    return;
+
   int iVert = mDefaultVertex2Ds.size();
   int iIndex = mDefaultIndex2Ds.size();
   mDefaultIndex2Ds.push_back( iVert + 0 );
@@ -593,7 +603,7 @@ void TacUI2DDrawData::AddBox( v2 mini, v2 maxi, v4 color, TacTexture* texture )
 //  TacVector< v2 > normals;
 //}
 
-void TacUI2DDrawData::AddText( v2 textPos, const TacString& utf8 )
+void TacUI2DDrawData::AddText( v2 textPos, const TacString& utf8, const TacImGuiRect& clipRect )
 {
   // ignored
   TacErrors errors;
@@ -611,8 +621,8 @@ void TacUI2DDrawData::AddText( v2 textPos, const TacString& utf8 )
   float ascentPx = fontFile->mAscent * scaleFontToPx;
   float descentPx = fontFile->mDescent * scaleFontToPx;
   float linegapPx = fontFile->mLinegap * scaleFontToPx;
-  float xPx = textPos.x;
-  float yPx = textPos.y + ascentPx;
+  float xPxCursor = textPos.x;
+  float yPxBaseline = textPos.y + ascentPx;
 
   int indexStart = mDefaultIndex2Ds.size();
   int indexCount = 0;
@@ -628,8 +638,8 @@ void TacUI2DDrawData::AddText( v2 textPos, const TacString& utf8 )
     {
       if( codepoint == '\n' )
       {
-        xPx = textPos.x;
-        yPx += ascentPx + linegapPx + descentPx;
+        xPxCursor = textPos.x;
+        yPxBaseline += descentPx + linegapPx + ascentPx;
       }
       if( codepoint == '\r' )
         continue;
@@ -651,28 +661,55 @@ void TacUI2DDrawData::AddText( v2 textPos, const TacString& utf8 )
     mDefaultIndex2Ds.push_back( startingIndex + 3 );
     indexCount += 6;
 
-    float PxLeft = xPx + fontAtlasCell->mLeftSideBearing * scaleFontToPx;
-    float PxRight = PxLeft + fontAtlasCell->mBitmapWidth * scaleUIToPx;
-    float PxBottom = yPx - fontAtlasCell->mUISpaceVerticalShift * scaleUIToPx;
-    float PxTop = PxBottom - fontAtlasCell->mBitmapHeight * scaleUIToPx;
+    float glyphMinX = xPxCursor + fontAtlasCell->mLeftSideBearing * scaleFontToPx;
+    float glyphMaxX = glyphMinX + fontAtlasCell->mBitmapWidth * scaleUIToPx;
+    float glyphMaxY = yPxBaseline - fontAtlasCell->mUISpaceVerticalShift * scaleUIToPx;
+    float glyphMinY = glyphMaxY - fontAtlasCell->mBitmapHeight * scaleUIToPx;
 
-    mDefaultVertex2Ds.resize( startingIndex + 4 );
-    TacDefaultVertex2D* defaultVertex2D = &mDefaultVertex2Ds[ startingIndex ];
+    // Coordinate system reminder:
+    //
+    //   +-->x
+    //   |
+    //   v
+    //   y
 
-    defaultVertex2D->mPosition = { PxLeft, PxTop };
-    defaultVertex2D->mGLTexCoord = { fontAtlasCell->mMinGLTexCoord.x, fontAtlasCell->mMaxGLTexCoord.y };
-    defaultVertex2D++;
-    defaultVertex2D->mPosition = { PxLeft, PxBottom };
-    defaultVertex2D->mGLTexCoord = { fontAtlasCell->mMinGLTexCoord.x, fontAtlasCell->mMinGLTexCoord.y };
-    defaultVertex2D++;
-    defaultVertex2D->mPosition = { PxRight, PxBottom };
-    defaultVertex2D->mGLTexCoord = { fontAtlasCell->mMaxGLTexCoord.x, fontAtlasCell->mMinGLTexCoord.y };
-    defaultVertex2D++;
-    defaultVertex2D->mPosition = { PxRight, PxTop };
-    defaultVertex2D->mGLTexCoord = { fontAtlasCell->mMaxGLTexCoord.x, fontAtlasCell->mMaxGLTexCoord.y };
-    vertexCount += 4;
+    if( utf8 == "Entity 22" && ( char )codepoint == 'y' )
+    {
+      static int i;
+      ++i;
+    }
 
-    xPx += fontAtlasCell->mAdvanceWidth * scaleFontToPx;
+    glyphMinX = TacMax( glyphMinX, clipRect.mMini.x );
+    glyphMaxX = TacMin( glyphMaxX, clipRect.mMaxi.x );
+    glyphMinY = TacMax( glyphMinY, clipRect.mMini.y );
+    glyphMaxY = TacMin( glyphMaxY, clipRect.mMaxi.y );
+
+    // todo: smarter early outs
+    if( glyphMinX != glyphMaxX && glyphMinY != glyphMaxY )
+    {
+      TacAssert( glyphMaxX > glyphMinX );
+      TacAssert( glyphMaxY > glyphMinY );
+
+      // todo: compute clipped uvs
+
+      mDefaultVertex2Ds.resize( startingIndex + 4 );
+      TacDefaultVertex2D* defaultVertex2D = &mDefaultVertex2Ds[ startingIndex ];
+
+      defaultVertex2D->mPosition = { glyphMinX, glyphMinY };
+      defaultVertex2D->mGLTexCoord = { fontAtlasCell->mMinGLTexCoord.x, fontAtlasCell->mMaxGLTexCoord.y };
+      defaultVertex2D++;
+      defaultVertex2D->mPosition = { glyphMinX, glyphMaxY };
+      defaultVertex2D->mGLTexCoord = { fontAtlasCell->mMinGLTexCoord.x, fontAtlasCell->mMinGLTexCoord.y };
+      defaultVertex2D++;
+      defaultVertex2D->mPosition = { glyphMaxX, glyphMaxY };
+      defaultVertex2D->mGLTexCoord = { fontAtlasCell->mMaxGLTexCoord.x, fontAtlasCell->mMinGLTexCoord.y };
+      defaultVertex2D++;
+      defaultVertex2D->mPosition = { glyphMaxX, glyphMinY };
+      defaultVertex2D->mGLTexCoord = { fontAtlasCell->mMaxGLTexCoord.x, fontAtlasCell->mMaxGLTexCoord.y };
+      vertexCount += 4;
+    }
+
+    xPxCursor += fontAtlasCell->mAdvanceWidth * scaleFontToPx;
   }
 
   CBufferPerObject perObjectData = {};
