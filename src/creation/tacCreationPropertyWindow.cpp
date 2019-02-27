@@ -6,6 +6,8 @@
 #include "common/tacDesktopWindow.h"
 #include "common/tacShell.h"
 #include "space/tacentity.h"
+#include "space/tacworld.h"
+#include "space/taccomponent.h"
 
 TacCreationPropertyWindow::~TacCreationPropertyWindow()
 {
@@ -96,31 +98,21 @@ void TacCreationPropertyWindow::Update( TacErrors& errors )
   {
     mUIRoot->mImGuiWindow->BeginGroup();
     {
-      static int entityCount;
       TacImGuiWindow* hierarchy = mUIRoot->mImGuiWindow->BeginChild( "Hierarchy", v2( 250, -100 ) );
-      for( int iEntity = 0; iEntity < entityCount; ++iEntity )
+
+      TacWorld* world = mCreation->mWorld;
+      for( TacEntity* entity : world->mEntities )
       {
-        TacString text = "Entity " + TacToString( iEntity + 1 );
-        hierarchy->Text( text );
-      }
-      if( hierarchy->Button( "Add Entity" ) )
-      {
-        entityCount++;
-      }
-      if( hierarchy->Button( "Add 30 Entity" ) )
-      {
-        entityCount += 30;
+        bool isSelected = mCreation->mSelectedEntity == entity;
+        if( hierarchy->Selectable( entity->mName, isSelected ) )
+        {
+          mCreation->mSelectedEntity = entity;
+        }
       }
       hierarchy->EndChild();
     }
-
-
-    //mUIRoot->mImGuiWindow->Text( "Hello" );
-    //mUIRoot->mImGuiWindow->Text( "Obj 2" );
-    //mUIRoot->mImGuiWindow->Text( "Obj 3" );
-    mUIRoot->mImGuiWindow->Button( "A" );
-    //mUIRoot->mImGuiWindow->SameLine();
-    //mUIRoot->mImGuiWindow->Button( "B" );
+    if( mUIRoot->mImGuiWindow->Button( "Create Entity" ) )
+      mCreation->CreateEntity();
     mUIRoot->mImGuiWindow->EndGroup();
   }
 
@@ -128,13 +120,25 @@ void TacCreationPropertyWindow::Update( TacErrors& errors )
 
   {
     mUIRoot->mImGuiWindow->BeginGroup();
-    mUIRoot->mImGuiWindow->Button( "C" );
 
-    //mUIRoot->mImGuiWindow->Text( "This is some useful text" );
-    //mUIRoot->mImGuiWindow->Text( "This is some more useful text" );
+    if( TacEntity* entity = mCreation->mSelectedEntity )
+    {
+      mUIRoot->mImGuiWindow->Text( entity->mName );
+      mUIRoot->mImGuiWindow->Text( "UUID: " + TacToString( ( TacUUID )entity->mEntityUUID ) );
+      mUIRoot->mImGuiWindow->Text( "Position: " +
+        TacToString( entity->mPosition.x ) + " " +
+        TacToString( entity->mPosition.y ) + " " +
+        TacToString( entity->mPosition.z ) );
+      for( TacComponent* component : entity->mComponents )
+      {
+        TacComponentType componentType = component->GetComponentType();
+        TacString componentName = TacToString( componentType );
+        mUIRoot->mImGuiWindow->Text( componentName + " component" );
+      }
+      mUIRoot->mImGuiWindow->Button( "Add component" );
+    }
+    mUIRoot->mImGuiWindow->Button( "C" );
     mUIRoot->mImGuiWindow->Checkbox( "Happy", &areYouHappy );
-    //if( mUIRoot->mImGuiWindow->Button( "If you're happy and you know it" ) )
-    //  std::cout << "Clap your hands" << std::endl;
     mUIRoot->mImGuiWindow->EndGroup();
   }
 

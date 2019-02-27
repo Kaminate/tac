@@ -86,31 +86,7 @@ void TacCreationGameObjectMenuWindow::CreateLayouts()
   text->mDims = { 100, 50 };
   node = mUIRoot->mHierarchyRoot->Split( TacUISplit::Before, TacUILayoutType::Vertical );
   node->SetVisual( text );
-  node->mOnClickEventEmitter.AddCallbackFunctional( [&]()
-  {
-    TacWorld* world = mCreation->mWorld;
-    if( !world )
-    {
-      world = new TacWorld;
-      mCreation->mWorld = world;
-    }
-
-    TacString desiredEntityName = "Entity";
-    int parenNumber = 1;
-    for( ;; )
-    {
-      bool isEntityNameUnique = false;
-      TacEntity* entity = world->FindEntity( desiredEntityName );
-      if( !entity )
-        break;
-      desiredEntityName = "Entity (" + TacToString( parenNumber ) + ")";
-      parenNumber++;
-    }
-    
-    TacEntity* entity = world->SpawnEntity( TacNullEntityUUID );
-    entity->mName = desiredEntityName;
-    mCreation->mSelectedEntity = entity;
-  } );
+  node->mOnClickEventEmitter.AddCallbackFunctional( [&]() { mCreation->CreateEntity(); } );
 }
 void TacCreationGameObjectMenuWindow::Update( TacErrors& errors )
 {

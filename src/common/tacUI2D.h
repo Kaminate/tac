@@ -29,7 +29,6 @@ struct TacUI2DVertex
 
 struct TacUI2DCommonData
 {
-  //TacUI2DCommonData();
   TacUI2DCommonData() = default;
   ~TacUI2DCommonData();
   void Init( TacErrors& errors );
@@ -84,7 +83,7 @@ struct TacUI2DDrawCall
   int mIIndexCount = 0;
 
   TacShader* mShader = nullptr;
-  TacTexture* mTexture = nullptr;
+  const TacTexture* mTexture = nullptr;
   TacVector< char > mUniformSource;
 };
 
@@ -101,9 +100,9 @@ struct TacUI2DDrawData
 
   //TacDrawCall* GetLastDrawCall();
 
-  v2 CalculateTextSize( const TacString& text );
-  void AddText( v2 textPos, const TacString& utf8, const TacImGuiRect& clipRect );
-  void AddBox( v2 mini, v2 maxi, v4 color, const TacImGuiRect& clipRect, TacTexture* texture = nullptr );
+  v2 CalculateTextSize( const TacString& text, int fontSize );
+  void AddText( v2 textPos, int fontSize, const TacString& utf8, const TacImGuiRect* clipRect );
+  void AddBox( v2 mini, v2 maxi, v4 color, const TacTexture* texture, const TacImGuiRect* clipRect );
   //void AddPolyFill( const TacVector< v2 >& points, v4 color );
 
   TacVector< TacDefaultVertex2D > mDefaultVertex2Ds;

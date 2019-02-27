@@ -10,7 +10,8 @@
 #include "common/tacTextureAssetManager.h"
 #include "common/tacColorUtil.h"
 #include "space/tacGhost.h"
-//#include "space/tacworld.h"
+#include "space/tacworld.h"
+#include "space/tacentity.h"
 
 #include <iostream>
 #include <functional>
@@ -58,6 +59,7 @@ static v4 GetClearColor( TacShell* shell )
 
 void TacCreation::Init( TacErrors& errors )
 {
+  mWorld = new TacWorld;
 
   TacString dataPath;
   TacOS::Instance->GetApplicationDataPath( dataPath, errors );
@@ -225,6 +227,28 @@ void TacCreation::Update( TacErrors& errors )
     TAC_HANDLE_ERROR( errors );
   }
 }
+
+
+void TacCreation::CreateEntity()
+{
+  TacWorld* world = mWorld;
+  TacString desiredEntityName = "Entity";
+  int parenNumber = 1;
+  for( ;; )
+  {
+    bool isEntityNameUnique = false;
+    TacEntity* entity = world->FindEntity( desiredEntityName );
+    if( !entity )
+      break;
+    desiredEntityName = "Entity (" + TacToString( parenNumber ) + ")";
+    parenNumber++;
+  }
+
+  TacEntity* entity = world->SpawnEntity( TacNullEntityUUID );
+  entity->mName = desiredEntityName;
+  mSelectedEntity = entity;
+}
+
 
 void TacDesktopApp::DoStuff( TacDesktopApp* desktopApp, TacErrors& errors )
 {

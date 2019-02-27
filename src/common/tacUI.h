@@ -344,6 +344,10 @@ struct TacUIHierarchyNode
 struct TacImGuiRect
 {
   static TacImGuiRect FromPosSize( v2 pos, v2 size );
+  static TacImGuiRect FromMinMax( v2 mini, v2 maxi );
+  float GetWidth();
+  float GetHeight();
+  v2 GetDimensions();
   v2 mMini = {};
   v2 mMaxi = {};
 };
@@ -354,6 +358,7 @@ struct TacImGuiWindow
   void Text( const TacString& utf8 );
   void Checkbox( const TacString& str, bool* value );
   bool Button( const TacString& str );
+  bool Selectable( const TacString& str, bool selected );
   void ItemSize( v2 size );
   void ComputeClipInfo( bool* clipped, TacImGuiRect* clipRect );
   bool IsHovered( const TacImGuiRect& clipRect );
@@ -374,8 +379,13 @@ struct TacImGuiWindow
   v2 mPrevCursorDrawPos;
   v2 mPos = {};
   v2 mSize = {};
+  TacImGuiRect mContentRect;
   float mCurrLineHeight;
   float mPrevLineHeight;
+
+  float mScroll = 0;
+  v2 mScrollMousePosScreenspaceInitial;
+  bool mScrolling = false;
 
   v2 mGroupSavedCursorDrawPos;
 

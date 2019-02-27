@@ -28,6 +28,7 @@ struct TacCreation
 {
   void Init( TacErrors& errors );
   void Update( TacErrors& errors );
+  void CreateEntity();
 
   TacDesktopApp* mDesktopApp = nullptr;
   TacCreationMainWindow* mMainWindow = nullptr;

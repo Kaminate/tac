@@ -395,7 +395,7 @@ struct TacDrawCall2
   TacSamplerState* mSamplerState = nullptr;
   TacDepthState* mDepthState = nullptr;
   TacVertexFormat* mVertexFormat = nullptr;
-  TacTexture* mTexture = nullptr;
+  const TacTexture* mTexture = nullptr;
   TacCBuffer* mUniformDst = nullptr;
   TacVector< char > mUniformSrcc;
   TacStackFrame mStackFrame;

@@ -59,6 +59,7 @@ TacString TacToString( int i );
 TacString TacToString( void* val );
 TacString TacToString( double val );
 TacString TacToString( float val );
+TacString TacToString( uint32_t val );
 
 TacString TacJoin( TacString, std::initializer_list< TacString > );
 TacString TacJoin( TacString, const TacString*, int );

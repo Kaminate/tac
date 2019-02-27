@@ -65,10 +65,10 @@ void TacUser::Update( TacErrors& errors )
   auto keyboardInput = shell->mKeyboardInput;
   auto serverData = mGhost->mServerData;
   v2 inputDirection = { 0, 0 };
-  if( keyboardInput->IsKeyDown( TacKey::Right ) ) inputDirection += { 1, 0 };
-  if( keyboardInput->IsKeyDown( TacKey::Up ) ) inputDirection += { 0, 1 };
-  if( keyboardInput->IsKeyDown( TacKey::Down ) ) inputDirection += { 0, -1 };
-  if( keyboardInput->IsKeyDown( TacKey::Left ) ) inputDirection += { -1, 0 };
+  if( keyboardInput->IsKeyDown( TacKey::RightArrow ) ) inputDirection += { 1, 0 };
+  if( keyboardInput->IsKeyDown( TacKey::UpArrow ) ) inputDirection += { 0, 1 };
+  if( keyboardInput->IsKeyDown( TacKey::DownArrow ) ) inputDirection += { 0, -1 };
+  if( keyboardInput->IsKeyDown( TacKey::LeftArrow ) ) inputDirection += { -1, 0 };
   if( inputDirection.Length() )
     inputDirection.Normalize();
   mPlayer->mInputDirection = inputDirection;

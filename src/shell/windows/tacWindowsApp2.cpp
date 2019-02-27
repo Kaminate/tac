@@ -77,15 +77,15 @@ static TacKey TacGetKey( uint8_t keyCode )
   // https://msdn.microsoft.com/en-us/library/windows/desktop/dd375731(v=vs.85).aspx
   switch( keyCode )
   {
-  case VK_UP: return TacKey::Up;
-  case VK_LEFT: return TacKey::Left;
-  case VK_DOWN: return TacKey::Down;
-  case VK_RIGHT: return TacKey::Right;
+  case VK_UP: return TacKey::UpArrow;
+  case VK_LEFT: return TacKey::LeftArrow;
+  case VK_DOWN: return TacKey::DownArrow;
+  case VK_RIGHT: return TacKey::RightArrow;
   case VK_SPACE: return TacKey::Space;
-  case 'W': return TacKey::Up;
-  case 'A': return TacKey::Left;
-  case 'S': return TacKey::Down;
-  case 'D': return TacKey::Right;
+  case 'W': return TacKey::W;
+  case 'A': return TacKey::A;
+  case 'S': return TacKey::S;
+  case 'D': return TacKey::D;
   case VK_OEM_3: return TacKey::Backtick;
   case VK_F1: return TacKey::F1;
   case VK_F2: return TacKey::F2;

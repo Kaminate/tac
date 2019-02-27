@@ -473,10 +473,8 @@ void TacUI2DState::Draw2DText(
     *heightBetweenBaselines = ( float )( lineCount * lineHeight );
 }
 
-int fontSize = 16;
-
 // cache the results?
-v2 TacUI2DDrawData::CalculateTextSize( const TacString& text )
+v2 TacUI2DDrawData::CalculateTextSize( const TacString& text, int fontSize )
 {
   // ignored
   TacErrors errors;
@@ -537,13 +535,16 @@ v2 TacUI2DDrawData::CalculateTextSize( const TacString& text )
   return textSize;
 }
 
-void TacUI2DDrawData::AddBox( v2 mini, v2 maxi, v4 color, const TacImGuiRect& clipRect, TacTexture* texture )
+void TacUI2DDrawData::AddBox( v2 mini, v2 maxi, v4 color, const TacTexture* texture, const TacImGuiRect* clipRect )
 {
-  mini.x = TacMax( mini.x, clipRect.mMini.x );
-  maxi.x = TacMin( maxi.x, clipRect.mMaxi.x );
+  if( clipRect )
+  {
+    mini.x = TacMax( mini.x, clipRect->mMini.x );
+    maxi.x = TacMin( maxi.x, clipRect->mMaxi.x );
 
-  mini.y = TacMax( mini.y, clipRect.mMini.y );
-  maxi.y = TacMin( maxi.y, clipRect.mMaxi.y );
+    mini.y = TacMax( mini.y, clipRect->mMini.y );
+    maxi.y = TacMin( maxi.y, clipRect->mMaxi.y );
+  }
 
   if( mini.x == maxi.x || mini.y == maxi.y )
     return;
@@ -603,7 +604,7 @@ void TacUI2DDrawData::AddBox( v2 mini, v2 maxi, v4 color, const TacImGuiRect& cl
 //  TacVector< v2 > normals;
 //}
 
-void TacUI2DDrawData::AddText( v2 textPos, const TacString& utf8, const TacImGuiRect& clipRect )
+void TacUI2DDrawData::AddText( v2 textPos, int fontSize, const TacString& utf8, const TacImGuiRect* clipRect )
 {
   // ignored
   TacErrors errors;
@@ -652,6 +653,12 @@ void TacUI2DDrawData::AddText( v2 textPos, const TacString& utf8, const TacImGui
     if( !fontAtlasCell )
       continue;
 
+    OnDestruct(
+      // Even if we don't draw a glyph, we still need to advance the cursor,
+      // For example if our current codepoint represents whitespace
+      xPxCursor += fontAtlasCell->mAdvanceWidth * scaleFontToPx;
+    );
+
     auto startingIndex = ( TacDefaultIndex2D )mDefaultVertex2Ds.size();
     mDefaultIndex2Ds.push_back( startingIndex + 0 );
     mDefaultIndex2Ds.push_back( startingIndex + 1 );
@@ -673,43 +680,49 @@ void TacUI2DDrawData::AddText( v2 textPos, const TacString& utf8, const TacImGui
     //   v
     //   y
 
-    if( utf8 == "Entity 22" && ( char )codepoint == 'y' )
+    if( utf8 == "Entity 1" && ( char )codepoint == '1' )
     {
       static int i;
       ++i;
     }
 
-    glyphMinX = TacMax( glyphMinX, clipRect.mMini.x );
-    glyphMaxX = TacMin( glyphMaxX, clipRect.mMaxi.x );
-    glyphMinY = TacMax( glyphMinY, clipRect.mMini.y );
-    glyphMaxY = TacMin( glyphMaxY, clipRect.mMaxi.y );
-
-    // todo: smarter early outs
-    if( glyphMinX != glyphMaxX && glyphMinY != glyphMaxY )
+    if( clipRect )
     {
-      TacAssert( glyphMaxX > glyphMinX );
-      TacAssert( glyphMaxY > glyphMinY );
-
-      // todo: compute clipped uvs
-
-      mDefaultVertex2Ds.resize( startingIndex + 4 );
-      TacDefaultVertex2D* defaultVertex2D = &mDefaultVertex2Ds[ startingIndex ];
-
-      defaultVertex2D->mPosition = { glyphMinX, glyphMinY };
-      defaultVertex2D->mGLTexCoord = { fontAtlasCell->mMinGLTexCoord.x, fontAtlasCell->mMaxGLTexCoord.y };
-      defaultVertex2D++;
-      defaultVertex2D->mPosition = { glyphMinX, glyphMaxY };
-      defaultVertex2D->mGLTexCoord = { fontAtlasCell->mMinGLTexCoord.x, fontAtlasCell->mMinGLTexCoord.y };
-      defaultVertex2D++;
-      defaultVertex2D->mPosition = { glyphMaxX, glyphMaxY };
-      defaultVertex2D->mGLTexCoord = { fontAtlasCell->mMaxGLTexCoord.x, fontAtlasCell->mMinGLTexCoord.y };
-      defaultVertex2D++;
-      defaultVertex2D->mPosition = { glyphMaxX, glyphMinY };
-      defaultVertex2D->mGLTexCoord = { fontAtlasCell->mMaxGLTexCoord.x, fontAtlasCell->mMaxGLTexCoord.y };
-      vertexCount += 4;
+      // Check if completely clipped prior to clipping the edges to fit the clip rect.
+      // This way we don't need to clip both sides of the glyph against the clip rect.
+      if( glyphMaxX < clipRect->mMini.x ||
+        glyphMinX > clipRect->mMaxi.x ||
+        glyphMaxY < clipRect->mMini.y ||
+        glyphMinY > clipRect->mMaxi.y )
+        continue;
+      glyphMinX = TacMax( glyphMinX, clipRect->mMini.x );
+      glyphMaxX = TacMin( glyphMaxX, clipRect->mMaxi.x );
+      glyphMinY = TacMax( glyphMinY, clipRect->mMini.y );
+      glyphMaxY = TacMin( glyphMaxY, clipRect->mMaxi.y );
     }
 
-    xPxCursor += fontAtlasCell->mAdvanceWidth * scaleFontToPx;
+    if( glyphMinX == glyphMaxX || glyphMinY == glyphMaxY )
+      continue;
+    TacAssert( glyphMaxX > glyphMinX );
+    TacAssert( glyphMaxY > glyphMinY );
+
+    // todo: compute clipped uvs
+
+    mDefaultVertex2Ds.resize( startingIndex + 4 );
+    TacDefaultVertex2D* defaultVertex2D = &mDefaultVertex2Ds[ startingIndex ];
+
+    defaultVertex2D->mPosition = { glyphMinX, glyphMinY };
+    defaultVertex2D->mGLTexCoord = { fontAtlasCell->mMinGLTexCoord.x, fontAtlasCell->mMaxGLTexCoord.y };
+    defaultVertex2D++;
+    defaultVertex2D->mPosition = { glyphMinX, glyphMaxY };
+    defaultVertex2D->mGLTexCoord = { fontAtlasCell->mMinGLTexCoord.x, fontAtlasCell->mMinGLTexCoord.y };
+    defaultVertex2D++;
+    defaultVertex2D->mPosition = { glyphMaxX, glyphMaxY };
+    defaultVertex2D->mGLTexCoord = { fontAtlasCell->mMaxGLTexCoord.x, fontAtlasCell->mMinGLTexCoord.y };
+    defaultVertex2D++;
+    defaultVertex2D->mPosition = { glyphMaxX, glyphMinY };
+    defaultVertex2D->mGLTexCoord = { fontAtlasCell->mMaxGLTexCoord.x, fontAtlasCell->mMaxGLTexCoord.y };
+    vertexCount += 4;
   }
 
   CBufferPerObject perObjectData = {};

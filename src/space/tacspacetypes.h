@@ -11,6 +11,18 @@ enum class TacComponentType
   Count
 };
 
+inline const char* TacToString( TacComponentType componentType )
+{
+  switch( componentType )
+  {
+  case TacComponentType::Say: return "say";
+  case TacComponentType::Model: return "model";
+  case TacComponentType::Collider: return "collider";
+  case TacComponentType::Terrain: return "terrain";
+  }
+  return nullptr;
+}
+
 enum class TacSystemType
 {
   Graphics,

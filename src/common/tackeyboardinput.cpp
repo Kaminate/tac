@@ -8,10 +8,10 @@ TacString ToString( TacKey key )
 {
   switch( key )
   {
-  case TacKey::Up: return "up";
-  case TacKey::Down: return "down";
-  case TacKey::Left: return "left";
-  case TacKey::Right: return "right";
+  case TacKey::UpArrow: return "uparrow";
+  case TacKey::DownArrow: return "downarrow";
+  case TacKey::LeftArrow: return "leftarrow";
+  case TacKey::RightArrow: return "rightarrow";
   case TacKey::Space: return "space";
   case TacKey::Debug: return "debug";
   case TacKey::Back: return "back";

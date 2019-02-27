@@ -1116,6 +1116,8 @@ struct TacUIStyle
 {
   float windowPadding = 8;
   v2 itemSpacing = { 8, 4 };
+  int fontSize = 16;
+  float buttonPadding = 3.0f;
 } gStyle;
 
 TacVector< TacImGuiWindow* > gTacImGuiWindows;
@@ -1157,6 +1159,7 @@ void TacImGuiWindow::EndChild()
 }
 void TacImGuiWindow::BeginFrame()
 {
+  TacUI2DDrawData* ui2DDrawData = mUIRoot->mUI2DDrawData;
   if( mParent )
   {
     mPos = mParent->mCurrCursorDrawPos;
@@ -1166,11 +1169,91 @@ void TacImGuiWindow::BeginFrame()
       auto clipRect = TacImGuiRect::FromPosSize( mPos, mSize );
       ComputeClipInfo( &clipped, &clipRect );
       if( !clipped )
-        mUIRoot->mUI2DDrawData->AddBox( mPos, mPos + mSize, v4( 0.2f, 0.3f, 0.4f, 1.0f ), clipRect );
+      {
+        v4 childWindowColor = v4( 0.1f, 0.15f, 0.2f, 1.0f );
+        ui2DDrawData->AddBox( mPos, mPos + mSize, childWindowColor, nullptr, nullptr );
+      }
     }
   }
+
+  // Scrollbar
+  if( mMaxiCursorDrawPos.y > mPos.y + mSize.y || mScroll )
+  {
+    float scrollbarWidth = 30;
+    v2 mini = {
+      mPos.x + mSize.x - scrollbarWidth,
+      mPos.y };
+    v2 maxi = mPos + mSize;
+    v4 scrollbarBackgroundColor = v4( 0.4f, 0.2f, 0.8f, 1.0f );
+    ui2DDrawData->AddBox( mini, maxi, scrollbarBackgroundColor, nullptr, nullptr );
+
+    float contentAllMinY = mPos.y - mScroll;
+    float contentAllMaxY = mMaxiCursorDrawPos.y;
+    float contentAllHeight = contentAllMaxY - contentAllMinY;
+    float contentVisibleMinY = mPos.y;
+    float contentVisibleMaxY = mPos.y + mSize.y;
+    float contentVisibleHeight = contentVisibleMaxY - contentVisibleMinY;
+    float contentVisiblePercent = contentVisibleHeight / contentAllHeight;
+
+
+    mini.y = mPos.y + ( ( contentVisibleMinY - contentAllMinY ) / contentAllHeight ) * mSize.y;
+    maxi.y = mPos.y + ( ( contentVisibleMaxY - contentAllMinY ) / contentAllHeight ) * mSize.y;
+
+    v2 padding = v2( 1, 1 ) * 3;
+    mini += padding;
+    maxi -= padding;
+
+    v4 scrollbarForegroundColor = v4( ( scrollbarBackgroundColor.xyz() + v3( 1, 1, 1 ) ) / 2.0f, 1.0f );
+    ui2DDrawData->AddBox( mini, maxi, scrollbarForegroundColor, nullptr, nullptr );
+
+
+    if( mScrolling )
+    {
+      TacErrors mouseErrors;
+      v2 mousePosScreenspace;
+      TacOS::Instance->GetScreenspaceCursorPos( mousePosScreenspace, mouseErrors );
+      if( mouseErrors.empty() )
+      {
+        float mouseDY = mousePosScreenspace.y - mScrollMousePosScreenspaceInitial.y;
+        float scrollMin = 0;
+        float scrollMax = contentAllHeight - contentVisibleHeight;
+        mScroll = TacClamp( mouseDY, scrollMin, scrollMax );
+      }
+
+      if( !mUIRoot->mKeyboardInput->IsKeyDown( TacKey::MouseLeft ) )
+        mScrolling = false;
+    }
+    else if( mUIRoot->mKeyboardInput->IsKeyJustDown( TacKey::MouseLeft ) &&
+      IsHovered( TacImGuiRect::FromMinMax( mini, maxi ) ) )
+    {
+      TacErrors mouseErrors;
+      v2 mousePosScreenspace;
+      TacOS::Instance->GetScreenspaceCursorPos( mousePosScreenspace, mouseErrors );
+      if( mouseErrors.empty() )
+      {
+        mScrolling = true;
+        mScrollMousePosScreenspaceInitial = mousePosScreenspace;
+      }
+    }
+
+    mContentRect = TacImGuiRect::FromPosSize( mPos, v2( mSize.x - scrollbarWidth, mSize.y ) );
+  }
+  else
+  {
+    mContentRect = TacImGuiRect::FromPosSize( mPos, mSize );
+  }
+
+  v2 padVec = v2( 1, 1 ) * gStyle.windowPadding;
+  mContentRect.mMini += padVec;
+  mContentRect.mMaxi -= padVec;
+
   mXOffsets = { gStyle.windowPadding };
-  v2 drawPos = mPos + v2( mXOffsets.back(), gStyle.windowPadding );
+  v2 drawPos = {
+    //       +----- grody ------+
+    //       |                  |
+    //       v                  v
+    mPos.x + mXOffsets.back(),
+    mPos.y + gStyle.windowPadding - mScroll };
   mCurrCursorDrawPos = drawPos;
   mPrevCursorDrawPos = drawPos;
   mMaxiCursorDrawPos = drawPos;
@@ -1182,7 +1265,7 @@ void TacImGuiWindow::Checkbox( const TacString& str, bool* value )
 {
   v2 pos = mCurrCursorDrawPos;
 
-  v2 textSize = mUIRoot->mUI2DDrawData->CalculateTextSize( str );
+  v2 textSize = mUIRoot->mUI2DDrawData->CalculateTextSize( str, gStyle.fontSize );
   textSize.y;
 
   float boxWidth = textSize.y;
@@ -1217,57 +1300,72 @@ void TacImGuiWindow::Checkbox( const TacString& str, bool* value )
     }
   }
 
-  mUI2DDrawData->AddBox( pos, pos + boxSize, outerBoxColor, clipRect );
+  mUI2DDrawData->AddBox( pos, pos + boxSize, outerBoxColor, nullptr, &clipRect );
   if( *value )
   {
-    // (0,0)-------+
-    // |         3 |
-    // |       //  |
-    // | 0 __2 /   |
-    // |   \  /    |
-    // |     1     |
-    // +-------(1,1)
-    v2 p0 = { 0.2f, 0.4f };
-    v2 p1 = { 0.45f, 0.9f };
-    v2 p2 = { 0.45f, 0.60f };
-    v2 p3 = { 0.9f, 0.1f };
-    for( v2* point : { &p0, &p1, &p2, &p3 } )
+    v4 checkmarkColor = v4( outerBoxColor.xyz() / 2.0f, 1.0f );
+    bool drawCheckmark = false;
+    if( drawCheckmark )
     {
-      point->x = pos.x + point->x * boxWidth;
-      point->y = pos.y + point->y * boxWidth;
+
+      // (0,0)-------+
+      // |         3 |
+      // |       //  |
+      // | 0 __2 /   |
+      // |   \  /    |
+      // |     1     |
+      // +-------(1,1)
+      v2 p0 = { 0.2f, 0.4f };
+      v2 p1 = { 0.45f, 0.9f };
+      v2 p2 = { 0.45f, 0.60f };
+      v2 p3 = { 0.9f, 0.1f };
+      for( v2* point : { &p0, &p1, &p2, &p3 } )
+      {
+        point->x = pos.x + point->x * boxWidth;
+        point->y = pos.y + point->y * boxWidth;
+      }
+      int iVert = mUI2DDrawData->mDefaultVertex2Ds.size();
+      int iIndex = mUI2DDrawData->mDefaultIndex2Ds.size();
+      mUI2DDrawData->mDefaultIndex2Ds.push_back( iVert + 0 );
+      mUI2DDrawData->mDefaultIndex2Ds.push_back( iVert + 1 );
+      mUI2DDrawData->mDefaultIndex2Ds.push_back( iVert + 2 );
+      mUI2DDrawData->mDefaultIndex2Ds.push_back( iVert + 1 );
+      mUI2DDrawData->mDefaultIndex2Ds.push_back( iVert + 3 );
+      mUI2DDrawData->mDefaultIndex2Ds.push_back( iVert + 2 );
+      mUI2DDrawData->mDefaultVertex2Ds.resize( iVert + 4 );
+      TacDefaultVertex2D* defaultVertex2D = &mUI2DDrawData->mDefaultVertex2Ds[ iVert ];
+      defaultVertex2D->mPosition = p0;
+      defaultVertex2D++;
+      defaultVertex2D->mPosition = p1;
+      defaultVertex2D++;
+      defaultVertex2D->mPosition = p2;
+      defaultVertex2D++;
+      defaultVertex2D->mPosition = p3;
+
+      CBufferPerObject perObjectData = {};
+      perObjectData.World = m4::Identity();
+      perObjectData.Color = checkmarkColor;
+
+      TacUI2DDrawCall drawCall;
+      drawCall.mIIndexCount = 6;
+      drawCall.mIIndexStart = iIndex;
+      drawCall.mIVertexCount = 4;
+      drawCall.mIVertexStart = iVert;
+      drawCall.mShader = mUI2DCommonData->m2DTextShader;
+      drawCall.mUniformSource = TacTemporaryMemory( perObjectData );
+      mUI2DDrawData->mDrawCall2Ds.push_back( drawCall );
     }
-    int iVert = mUI2DDrawData->mDefaultVertex2Ds.size();
-    int iIndex = mUI2DDrawData->mDefaultIndex2Ds.size();
-    mUI2DDrawData->mDefaultIndex2Ds.push_back( iVert + 0 );
-    mUI2DDrawData->mDefaultIndex2Ds.push_back( iVert + 1 );
-    mUI2DDrawData->mDefaultIndex2Ds.push_back( iVert + 2 );
-    mUI2DDrawData->mDefaultIndex2Ds.push_back( iVert + 1 );
-    mUI2DDrawData->mDefaultIndex2Ds.push_back( iVert + 3 );
-    mUI2DDrawData->mDefaultIndex2Ds.push_back( iVert + 2 );
-    mUI2DDrawData->mDefaultVertex2Ds.resize( iVert + 4 );
-    TacDefaultVertex2D* defaultVertex2D = &mUI2DDrawData->mDefaultVertex2Ds[ iVert ];
-    defaultVertex2D->mPosition = p0;
-    defaultVertex2D++;
-    defaultVertex2D->mPosition = p1;
-    defaultVertex2D++;
-    defaultVertex2D->mPosition = p2;
-    defaultVertex2D++;
-    defaultVertex2D->mPosition = p3;
-
-    CBufferPerObject perObjectData = {};
-    perObjectData.World = m4::Identity();
-    perObjectData.Color = { 0, 0, 0, 1 };
-
-    TacUI2DDrawCall drawCall;
-    drawCall.mIIndexCount = 6;
-    drawCall.mIIndexStart = iIndex;
-    drawCall.mIVertexCount = 4;
-    drawCall.mIVertexStart = iVert;
-    drawCall.mShader = mUI2DCommonData->m2DTextShader;
-    drawCall.mUniformSource = TacTemporaryMemory( perObjectData );
-    mUI2DDrawData->mDrawCall2Ds.push_back( drawCall );
+    else
+    {
+      v2 innerPadding = v2( 1, 1 ) * 3;
+      mUI2DDrawData->AddBox( pos + innerPadding, pos + boxSize - innerPadding, checkmarkColor, nullptr, &clipRect );
+    }
   }
-  mUI2DDrawData->AddText( pos + v2( boxWidth + gStyle.itemSpacing.x, 0 ), str, clipRect );
+
+  v2 textPos = {
+    pos.x + boxWidth + gStyle.itemSpacing.x,
+    pos.y };
+  mUI2DDrawData->AddText( textPos, gStyle.fontSize, str, &clipRect );
 }
 
 void TacImGuiWindow::ComputeClipInfo( bool* clipped, TacImGuiRect* clipRect )
@@ -1313,9 +1411,8 @@ bool TacImGuiWindow::IsHovered( const TacImGuiRect& rect )
 bool TacImGuiWindow::Button( const TacString& str )
 {
   bool justClicked = false;
-  float buttonPadding = 3.0f;
-  v2 textSize = mUIRoot->mUI2DDrawData->CalculateTextSize( str );
-  v2 buttonSize = { textSize.x + 2 * buttonPadding, textSize.y };
+  v2 textSize = mUIRoot->mUI2DDrawData->CalculateTextSize( str, gStyle.fontSize );
+  v2 buttonSize = { textSize.x + 2 * gStyle.buttonPadding, textSize.y };
   v2 pos = mCurrCursorDrawPos;
   ItemSize( textSize );
 
@@ -1342,10 +1439,53 @@ bool TacImGuiWindow::Button( const TacString& str )
     }
   }
 
-  mUIRoot->mUI2DDrawData->AddBox( pos, pos + buttonSize, v4( outerBoxColor, 1 ), clipRect );
-  mUIRoot->mUI2DDrawData->AddText( pos + v2( buttonPadding, 0 ), str, clipRect );
+  mUIRoot->mUI2DDrawData->AddBox( pos, pos + buttonSize, v4( outerBoxColor, 1 ), nullptr, &clipRect );
+
+  v2 textPos = {
+    pos.x + gStyle.buttonPadding,
+    pos.y };
+  mUIRoot->mUI2DDrawData->AddText( textPos, gStyle.fontSize, str, &clipRect );
 
   return justClicked;
+}
+
+bool TacImGuiWindow::Selectable( const TacString& str, bool selected )
+{
+  bool clicked = false;
+  v2 pos = mCurrCursorDrawPos;
+  v2 buttonSize = {
+    mContentRect.mMaxi.x - pos.x,
+    ( float )gStyle.fontSize };
+
+  ItemSize( buttonSize );
+
+  bool clipped;
+  auto clipRect = TacImGuiRect::FromPosSize( pos, buttonSize );
+  ComputeClipInfo( &clipped, &clipRect );
+  if( clipped )
+    return clicked;
+
+  v3 color3 = v3( 0.7f, 0.3f, 0.3f ) * 0.7f;
+  if( selected )
+    color3 = ( color3 + v3( 1, 1, 1 ) ) * 0.3f;
+
+
+  bool hovered = IsHovered( clipRect );
+  if( hovered )
+  {
+    color3 /= 2.0f;
+    if( mUIRoot->mKeyboardInput->IsKeyJustDown( TacKey::MouseLeft ) )
+    {
+      color3 /= 2.0f;
+      clicked = true;
+    }
+  }
+
+  v4 color( color3, 1 );
+
+  mUIRoot->mUI2DDrawData->AddBox( pos, pos + buttonSize, color, nullptr, &clipRect );
+  mUIRoot->mUI2DDrawData->AddText( pos, gStyle.fontSize, str, &clipRect );
+  return clicked;
 }
 
 void TacImGuiWindow::SameLine()
@@ -1399,7 +1539,7 @@ void TacImGuiWindow::Text( const TacString& utf8 )
   //state->Draw2DText(...);
 
   v2 textPos = mCurrCursorDrawPos;
-  v2 textSize = mUIRoot->mUI2DDrawData->CalculateTextSize( utf8 );
+  v2 textSize = mUIRoot->mUI2DDrawData->CalculateTextSize( utf8, gStyle.fontSize );
 
 
   ItemSize( textSize );
@@ -1410,7 +1550,7 @@ void TacImGuiWindow::Text( const TacString& utf8 )
   if( clipped )
     return;
 
-  mUIRoot->mUI2DDrawData->AddText( textPos, utf8, clipRect );
+  mUIRoot->mUI2DDrawData->AddText( textPos, gStyle.fontSize, utf8, &clipRect );
 }
 TacImGuiRect TacImGuiRect::FromPosSize( v2 pos, v2 size )
 {
@@ -1418,4 +1558,24 @@ TacImGuiRect TacImGuiRect::FromPosSize( v2 pos, v2 size )
   result.mMini = pos;
   result.mMaxi = pos + size;
   return result;
+}
+TacImGuiRect TacImGuiRect::FromMinMax( v2 mini, v2 maxi )
+{
+  TacImGuiRect result;
+  result.mMini = mini;
+  result.mMaxi = maxi;
+  return result;
+}
+
+float TacImGuiRect::GetWidth()
+{
+  return mMaxi.x - mMini.x;
+}
+float TacImGuiRect::GetHeight()
+{
+  return mMaxi.y - mMini.y;
+}
+v2 TacImGuiRect::GetDimensions()
+{
+    return mMaxi - mMini;
 }

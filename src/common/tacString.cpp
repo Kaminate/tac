@@ -68,6 +68,11 @@ TacString TacToString( int i )
   return s;
 }
 
+TacString TacToString( uint32_t val )
+{
+  return TacToString( ( int )val );
+}
+
 TacString TacToString( void* val )
 {
   std::stringstream ss;
