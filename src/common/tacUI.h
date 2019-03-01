@@ -356,6 +356,7 @@ struct TacImGuiWindow
 {
   void BeginFrame();
   void Text( const TacString& utf8 );
+  bool InputText( const TacString& label, TacString& text );
   void Checkbox( const TacString& str, bool* value );
   bool Button( const TacString& str );
   bool Selectable( const TacString& str, bool selected );
@@ -377,6 +378,8 @@ struct TacImGuiWindow
   v2 mMaxiCursorDrawPos;
   v2 mCurrCursorDrawPos;
   v2 mPrevCursorDrawPos;
+
+  // rename to mPosWindowspace
   v2 mPos = {};
   v2 mSize = {};
   TacImGuiRect mContentRect;

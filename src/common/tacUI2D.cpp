@@ -476,13 +476,21 @@ void TacUI2DState::Draw2DText(
 // cache the results?
 v2 TacUI2DDrawData::CalculateTextSize( const TacString& text, int fontSize )
 {
+  TacVector< TacCodepoint > codepoints;
+
   // ignored
   TacErrors errors;
 
-  TacVector< TacCodepoint > codepoints;
   TacUTF8Converter::Convert( text, codepoints, errors );
+  return CalculateTextSize( codepoints, fontSize );
+}
 
-
+v2 TacUI2DDrawData::CalculateTextSize( const TacVector< TacCodepoint >& codepoints, int fontSize )
+{
+  return CalculateTextSize( codepoints.data(), ( int )codepoints.size(), fontSize );
+}
+v2 TacUI2DDrawData::CalculateTextSize( const TacCodepoint* codepoints, int codepointCount, int fontSize )
+{
   float lineWidthUISpaceMax = 0;
   float lineWidthUISpace = 0;
   float xUISpace = 0;
@@ -495,8 +503,10 @@ v2 TacUI2DDrawData::CalculateTextSize( const TacString& text, int fontSize )
 
   int lineCount = 1;
 
-  for( TacCodepoint codepoint : codepoints )
+
+  for( int iCodepoint = 0; iCodepoint < codepointCount; ++iCodepoint )
   {
+    TacCodepoint codepoint = codepoints[ iCodepoint ];
     if( !codepoint )
       continue;
 
@@ -514,8 +524,11 @@ v2 TacUI2DDrawData::CalculateTextSize( const TacString& text, int fontSize )
     }
 
     TacFontAtlasCell* fontAtlasCell;
+
+    // ignored...
+    TacErrors errors;
+
     fontStuff->GetCharacter( defaultLanguage, codepoint, &fontAtlasCell, errors );
-    // ^ ignore errors...
 
     if( !fontAtlasCell )
       continue;
@@ -604,7 +617,7 @@ void TacUI2DDrawData::AddBox( v2 mini, v2 maxi, v4 color, const TacTexture* text
 //  TacVector< v2 > normals;
 //}
 
-void TacUI2DDrawData::AddText( v2 textPos, int fontSize, const TacString& utf8, const TacImGuiRect* clipRect )
+void TacUI2DDrawData::AddText( v2 textPos, int fontSize, const TacString& utf8, v4 color, const TacImGuiRect* clipRect )
 {
   // ignored
   TacErrors errors;
@@ -727,7 +740,7 @@ void TacUI2DDrawData::AddText( v2 textPos, int fontSize, const TacString& utf8, 
 
   CBufferPerObject perObjectData = {};
   perObjectData.World = m4::Identity();
-  perObjectData.Color = { 1, 1, 0, 1 };
+  perObjectData.Color = color;
 
   TacUI2DDrawCall drawCall;
   drawCall.mIIndexCount = indexCount;

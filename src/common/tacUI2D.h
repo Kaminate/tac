@@ -101,7 +101,9 @@ struct TacUI2DDrawData
   //TacDrawCall* GetLastDrawCall();
 
   v2 CalculateTextSize( const TacString& text, int fontSize );
-  void AddText( v2 textPos, int fontSize, const TacString& utf8, const TacImGuiRect* clipRect );
+  v2 CalculateTextSize( const TacVector< TacCodepoint >& codePoints, int fontSize );
+  v2 CalculateTextSize( const TacCodepoint* codepoints, int codepointCount, int fontSize );
+  void AddText( v2 textPos, int fontSize, const TacString& utf8, v4 color, const TacImGuiRect* clipRect );
   void AddBox( v2 mini, v2 maxi, v4 color, const TacTexture* texture, const TacImGuiRect* clipRect );
   //void AddPolyFill( const TacVector< v2 >& points, v4 color );
 

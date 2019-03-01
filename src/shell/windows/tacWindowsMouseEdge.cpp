@@ -57,7 +57,7 @@ BOOL enumfunc( HWND hwndchild, LPARAM userdata )
 TacWin32MouseEdgeHandler::TacWin32MouseEdgeHandler()
 {
   edgeDistResizePx = 7;
-  edgeDistMovePx = edgeDistResizePx + 20;
+  edgeDistMovePx = edgeDistResizePx + 6;
 
   // the distance that your mouse can be from the edge to resize the window is a thin border
   // but the top bar that you can move is a fat border.

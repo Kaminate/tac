@@ -19,6 +19,7 @@ void TacCreationPropertyWindow::Init( TacErrors& errors )
   mUI2DDrawData->mRenderView = mDesktopWindow->mRenderView;
   mUI2DDrawData->mUI2DCommonData = mShell->mUI2DCommonData;
   mUIRoot = new TacUIRoot;
+  mUIRoot->mElapsedSeconds = &mShell->mElapsedSeconds;
   mUIRoot->mUI2DDrawData = mUI2DDrawData;
   mUIRoot->mKeyboardInput = mShell->mKeyboardInput;
   mUIRoot->mDesktopWindow = mDesktopWindow;
@@ -123,6 +124,10 @@ void TacCreationPropertyWindow::Update( TacErrors& errors )
 
     if( TacEntity* entity = mCreation->mSelectedEntity )
     {
+      if( mUIRoot->mImGuiWindow->InputText( "Name", entity->mName ) )
+      {
+        std::cout << entity->mName << std::endl;
+      }
       mUIRoot->mImGuiWindow->Text( entity->mName );
       mUIRoot->mImGuiWindow->Text( "UUID: " + TacToString( ( TacUUID )entity->mEntityUUID ) );
       mUIRoot->mImGuiWindow->Text( "Position: " +

@@ -13,6 +13,8 @@
 #include "common/tacDesktopWindow.h"
 #include "common/tacColorUtil.h"
 
+#include <cmath> // sin
+
 static TacUIText* debugOnlyThisText;
 static bool IsIgnoring( TacUIText* uiText )
 {
@@ -1116,8 +1118,12 @@ struct TacUIStyle
 {
   float windowPadding = 8;
   v2 itemSpacing = { 8, 4 };
+
+  // Should this be a float?
   int fontSize = 16;
+
   float buttonPadding = 3.0f;
+  v4 textColor = { 1, 1, 0, 1 };
 } gStyle;
 
 TacVector< TacImGuiWindow* > gTacImGuiWindows;
@@ -1365,7 +1371,7 @@ void TacImGuiWindow::Checkbox( const TacString& str, bool* value )
   v2 textPos = {
     pos.x + boxWidth + gStyle.itemSpacing.x,
     pos.y };
-  mUI2DDrawData->AddText( textPos, gStyle.fontSize, str, &clipRect );
+  mUI2DDrawData->AddText( textPos, gStyle.fontSize, str, gStyle.textColor, &clipRect );
 }
 
 void TacImGuiWindow::ComputeClipInfo( bool* clipped, TacImGuiRect* clipRect )
@@ -1444,7 +1450,7 @@ bool TacImGuiWindow::Button( const TacString& str )
   v2 textPos = {
     pos.x + gStyle.buttonPadding,
     pos.y };
-  mUIRoot->mUI2DDrawData->AddText( textPos, gStyle.fontSize, str, &clipRect );
+  mUIRoot->mUI2DDrawData->AddText( textPos, gStyle.fontSize, str, gStyle.textColor, &clipRect );
 
   return justClicked;
 }
@@ -1484,7 +1490,7 @@ bool TacImGuiWindow::Selectable( const TacString& str, bool selected )
   v4 color( color3, 1 );
 
   mUIRoot->mUI2DDrawData->AddBox( pos, pos + buttonSize, color, nullptr, &clipRect );
-  mUIRoot->mUI2DDrawData->AddText( pos, gStyle.fontSize, str, &clipRect );
+  mUIRoot->mUI2DDrawData->AddText( pos, gStyle.fontSize, str, gStyle.textColor, &clipRect );
   return clicked;
 }
 
@@ -1550,8 +1556,228 @@ void TacImGuiWindow::Text( const TacString& utf8 )
   if( clipped )
     return;
 
-  mUIRoot->mUI2DDrawData->AddText( textPos, gStyle.fontSize, utf8, &clipRect );
+  mUIRoot->mUI2DDrawData->AddText( textPos, gStyle.fontSize, utf8, gStyle.textColor, &clipRect );
 }
+
+struct TacCaret
+{
+  int numGlyphsBeforeCaret = 0;
+  float pos;
+};
+static TacCaret TacGetCaret(
+  TacUI2DDrawData* drawData,
+  const TacVector< TacCodepoint >& codepoints,
+  float mousePos ) // mouse pos rel text top left corner
+{
+
+  auto codepointCount = ( int )codepoints.size();
+  float runningTextWidth = 0;
+  int numGlyphsBeforeCaret = 0;
+  for( int i = 1; i <= codepointCount; ++i )
+  {
+    v2 substringSize = drawData->CalculateTextSize(
+      codepoints.begin(), i, gStyle.fontSize );
+
+    float lastGlyphWidth = substringSize.x - runningTextWidth;
+    float lastGlyphMidpoint = runningTextWidth + lastGlyphWidth / 2;
+
+    if( mousePos < lastGlyphMidpoint )
+      break;
+
+    runningTextWidth += lastGlyphWidth;
+    numGlyphsBeforeCaret++;
+  }
+  float caretPosition = runningTextWidth;
+
+  TacCaret caret;
+  caret.numGlyphsBeforeCaret = numGlyphsBeforeCaret;
+  caret.pos = runningTextWidth;
+  return caret;
+}
+
+bool TacImGuiWindow::InputText( const TacString& label, TacString& text )
+{
+
+  struct TacTextInputData
+  {
+    // should caret and secondCaret be joined into an TacCaret carets[ 2 ], and 
+    // selected and hasSecondCaret turned into a caretCount?
+
+    TacCaret caret;
+    TacCaret secondCaret;
+    bool selected;
+    bool hasSecondCaret;
+    TacVector< TacCodepoint > codepoints;
+  };
+
+  static TacTextInputData inputData;
+  bool textChanged = false;
+
+  TacUI2DDrawData* drawData = mUIRoot->mUI2DDrawData;
+  TacKeyboardInput* keyboardInput = mUIRoot->mKeyboardInput;
+
+  v2 pos = mCurrCursorDrawPos;
+
+  // Word wrap?
+  int lineCount = 1;
+  for( char c : text )
+    if( c == '\n' )
+      lineCount++;
+
+  v2 totalSize = {
+    mContentRect.mMaxi.x - pos.x,
+    ( float )lineCount * ( float )gStyle.fontSize };
+
+  ItemSize( totalSize );
+
+  bool clipped;
+  auto clipRect = TacImGuiRect::FromPosSize( pos, totalSize );
+  ComputeClipInfo( &clipped, &clipRect );
+  if( clipped )
+    return textChanged;
+
+  v3 textBackgroundColor3 = { 1, 1, 0 };
+
+
+  v4 editTextColor = { 0, 0, 0, 1 };
+  v2 textBackgroundMaxi = {
+    pos.x + totalSize.x * ( 2.0f / 3.0f ),
+    pos.y + totalSize.y };
+  v2 textPos = {
+    pos.x + gStyle.buttonPadding,
+    pos.y };
+  drawData->AddBox(
+    pos,
+    textBackgroundMaxi,
+    v4( textBackgroundColor3, 1 ), nullptr, &clipRect );
+
+
+  bool hadSecondCaret = inputData.hasSecondCaret;
+  if( inputData.selected && inputData.hasSecondCaret )
+  {
+    TacCaret minCaret = inputData.caret;
+    TacCaret maxCaret = inputData.secondCaret;
+    if( inputData.caret.numGlyphsBeforeCaret > inputData.secondCaret.numGlyphsBeforeCaret )
+    {
+      minCaret = inputData.secondCaret;
+      maxCaret = inputData.caret;
+    }
+
+
+    v2 selectionMini = {
+      textPos.x + minCaret.pos,
+      textPos.y };
+    v2 selectionMaxi = {
+      textPos.x + maxCaret.pos,
+      textPos.y + gStyle.fontSize };
+    drawData->AddBox( selectionMini, selectionMaxi, v4( textBackgroundColor3 / 2, 1 ), nullptr, &clipRect );
+
+    if( keyboardInput->IsKeyJustDown( TacKey::LeftArrow ) )
+    {
+      inputData.caret = minCaret;
+      inputData.hasSecondCaret = false;
+    }
+    if( keyboardInput->IsKeyJustDown( TacKey::RightArrow ) )
+    {
+      inputData.caret = maxCaret;
+      inputData.hasSecondCaret = false;
+    }
+  }
+
+  drawData->AddText( textPos, gStyle.fontSize, text, editTextColor, &clipRect );
+
+  v2 labelPos = {
+    textBackgroundMaxi.x + gStyle.itemSpacing.x,
+    pos.y };
+  drawData->AddText( labelPos, gStyle.fontSize, label, gStyle.textColor, &clipRect );
+
+
+
+
+  // TODO:
+  //   it seems dumb that we need to get the mouse position twice.
+  //   since IsHovered() already got the cursor position and checked
+  //   for errors
+  TacErrors cursorErrors;
+  v2 mousePositionScreenspace;
+  TacOS::Instance->GetScreenspaceCursorPos( mousePositionScreenspace, cursorErrors );
+
+  //auto totalSizeRect = TacImGuiRect::FromPosSize( pos, totalSize );
+  if( IsHovered( clipRect ) && keyboardInput->IsKeyDown( TacKey::MouseLeft ) && cursorErrors.empty() )
+  {
+    //int cursorGlyphIndex = 0;
+    TacUTF8Converter converter;
+    TacVector< TacCodepoint > codepoints;
+    TacErrors ignoredUTF8ConversionErrors;
+    converter.Convert( text, codepoints, ignoredUTF8ConversionErrors );
+
+    v2 mousePositionWindowspace = mousePositionScreenspace - v2(
+      ( float )mUIRoot->mDesktopWindow->mX,
+      ( float )mUIRoot->mDesktopWindow->mY );
+
+    float mousePositionTextSpace = mousePositionWindowspace.x - textPos.x;
+    TacCaret caret = TacGetCaret( drawData, codepoints, mousePositionTextSpace );
+
+    if( keyboardInput->IsKeyJustDown( TacKey::MouseLeft ) )
+    {
+      inputData.selected = true;
+      inputData.caret = caret;
+      inputData.hasSecondCaret = false;
+      inputData.codepoints = codepoints;
+    }
+    else if( caret.numGlyphsBeforeCaret != inputData.caret.numGlyphsBeforeCaret )
+    {
+      inputData.secondCaret = caret;
+      inputData.hasSecondCaret = true;
+    }
+  }
+
+  if( inputData.selected && !inputData.hasSecondCaret )
+  {
+
+    if( !hadSecondCaret )
+    {
+      // TODO: if shift is held
+      if( keyboardInput->IsKeyJustDown( TacKey::LeftArrow ) &&
+        inputData.caret.numGlyphsBeforeCaret > 0 )
+      {
+        inputData.caret.numGlyphsBeforeCaret--;
+        inputData.caret.pos = drawData->CalculateTextSize(
+          inputData.codepoints.data(),
+          inputData.caret.numGlyphsBeforeCaret,
+          gStyle.fontSize ).x;
+      }
+
+      if( keyboardInput->IsKeyJustDown( TacKey::RightArrow ) &&
+        inputData.caret.numGlyphsBeforeCaret < inputData.codepoints.size() )
+      {
+        inputData.caret.numGlyphsBeforeCaret++;
+        inputData.caret.pos = drawData->CalculateTextSize(
+          inputData.codepoints.data(),
+          inputData.caret.numGlyphsBeforeCaret,
+          gStyle.fontSize ).x;
+      }
+    }
+
+
+
+
+    float caretYPadding = 2.0f;
+    float caretHalfWidth = 0.5f;
+    v2 caretMini = {
+      textPos.x + inputData.caret.pos - caretHalfWidth,
+      textPos.y + caretYPadding };
+    v2 caretMaxi = {
+      textPos.x + inputData.caret.pos + caretHalfWidth,
+      textPos.y + totalSize.y - caretYPadding };
+    float caretColorAlpha = ( ( std::sin( 6.0f * ( float )*mUIRoot->mElapsedSeconds ) + 1.0f ) / 2.0f );
+    v4 caretColor = { 0, 0, 0, caretColorAlpha };
+    drawData->AddBox( caretMini, caretMaxi, caretColor, nullptr, &clipRect );
+  }
+
+  return textChanged;
+}
+
 TacImGuiRect TacImGuiRect::FromPosSize( v2 pos, v2 size )
 {
   TacImGuiRect result;
@@ -1577,5 +1803,5 @@ float TacImGuiRect::GetHeight()
 }
 v2 TacImGuiRect::GetDimensions()
 {
-    return mMaxi - mMini;
+  return mMaxi - mMini;
 }

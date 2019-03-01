@@ -29,6 +29,12 @@ struct TacOS
 
   virtual void GetDirFilesRecrusive( TacVector<TacString>&files, const TacString& dir, TacErrors& errors ) = 0;
 
+
+  // I don't think this function should exist.
+  // If you are debugging, hit a breakpoint, and THEN call this function,
+  // you're mouse is likely to have moved.
+  // What should happen is that this gets cached during the message pump,
+  // and accessed through TacMouseInput
   virtual void GetScreenspaceCursorPos( v2& pos, TacErrors& errors ) = 0;
 
 
