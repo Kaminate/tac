@@ -1608,6 +1608,20 @@ bool TacImGuiWindow::InputText( const TacString& label, TacString& text )
     bool selected;
     bool hasSecondCaret;
     TacVector< TacCodepoint > codepoints;
+
+    void GetMinMaxCaret( TacCaret& minCaret, TacCaret& maxCaret )
+    {
+      if( inputData.caret.numGlyphsBeforeCaret < inputData.secondCaret.numGlyphsBeforeCaret )
+      {
+        minCaret = inputData.caret;
+        maxCaret = inputData.secondCaret;
+      }
+      else
+      {
+        minCaret = inputData.secondCaret;
+        maxCaret = inputData.caret;
+      }
+    }
   };
 
   static TacTextInputData inputData;
@@ -1655,14 +1669,9 @@ bool TacImGuiWindow::InputText( const TacString& label, TacString& text )
   bool hadSecondCaret = inputData.hasSecondCaret;
   if( inputData.selected && inputData.hasSecondCaret )
   {
-    TacCaret minCaret = inputData.caret;
-    TacCaret maxCaret = inputData.secondCaret;
-    if( inputData.caret.numGlyphsBeforeCaret > inputData.secondCaret.numGlyphsBeforeCaret )
-    {
-      minCaret = inputData.secondCaret;
-      maxCaret = inputData.caret;
-    }
-
+    TacCaret minCaret;
+    TacCaret maxCaret;
+    inputData.GetMinMaxCaret( minCaret, maxCaret );
 
     v2 selectionMini = {
       textPos.x + minCaret.pos,
@@ -1773,6 +1782,41 @@ bool TacImGuiWindow::InputText( const TacString& label, TacString& text )
     float caretColorAlpha = ( ( std::sin( 6.0f * ( float )*mUIRoot->mElapsedSeconds ) + 1.0f ) / 2.0f );
     v4 caretColor = { 0, 0, 0, caretColorAlpha };
     drawData->AddBox( caretMini, caretMaxi, caretColor, nullptr, &clipRect );
+  }
+
+  if( inputData.selected && keyboardInput->IsKeyJustDown( TacKey::Backspace ) )
+  {
+    int deletedCodepointsStartIndex;
+    int deletedCodepointCount;
+    if( inputData.hasSecondCaret )
+    {
+      TacCaret minCaret;
+      TacCaret maxCaret;
+      inputData.GetMinMaxCaret( minCaret, maxCaret );
+      deletedCodepointsStartIndex = minCaret.numGlyphsBeforeCaret;
+      deletedCodepointCount = maxCaret.numGlyphsBeforeCaret - minCaret.numGlyphsBeforeCaret;
+    }
+    else
+    {
+      deletedCodepointsStartIndex = inputData.caret.numGlyphsBeforeCaret - 1;
+      deletedCodepointCount = 1;
+    }
+
+    inputData.codepoints;
+    TacVector< TacCodepoint > newCodepoints;
+
+    for( int iCodepoint = 0; iCodepoint <inputData.codepoints.size(); ++iCodepoint )
+    {
+      if( iCodepoint >= deletedCodepointsStartIndex &&
+        iCodepoint <= deletedCodepointsStartIndex + deletedCodepointCount )
+        continue;
+
+      newCodepoints.push_back( inputData.codepoints[ iCodepoint ] );
+    }
+
+
+    inputData.codepoints =  newCodepoints;
+
   }
 
   return textChanged;
