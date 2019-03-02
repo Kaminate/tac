@@ -81,11 +81,35 @@ static TacKey TacGetKey( uint8_t keyCode )
   case VK_LEFT: return TacKey::LeftArrow;
   case VK_DOWN: return TacKey::DownArrow;
   case VK_RIGHT: return TacKey::RightArrow;
-  case VK_SPACE: return TacKey::Space;
-  case 'W': return TacKey::W;
+  case VK_SPACE: return TacKey::Spacebar;
+  case VK_DELETE: return TacKey::Delete;
+  case VK_BACK: return TacKey::Backspace;
   case 'A': return TacKey::A;
-  case 'S': return TacKey::S;
+  case 'B': return TacKey::B;
+  case 'C': return TacKey::C;
   case 'D': return TacKey::D;
+  case 'E': return TacKey::E;
+  case 'F': return TacKey::F;
+  case 'G': return TacKey::G;
+  case 'H': return TacKey::H;
+  case 'I': return TacKey::I;
+  case 'J': return TacKey::J;
+  case 'K': return TacKey::K;
+  case 'L': return TacKey::L;
+  case 'M': return TacKey::M;
+  case 'N': return TacKey::N;
+  case 'O': return TacKey::O;
+  case 'P': return TacKey::P;
+  case 'Q': return TacKey::Q;
+  case 'R': return TacKey::R;
+  case 'S': return TacKey::S;
+  case 'T': return TacKey::T;
+  case 'U': return TacKey::U;
+  case 'V': return TacKey::V;
+  case 'W': return TacKey::W;
+  case 'X': return TacKey::X;
+  case 'Y': return TacKey::Y;
+  case 'Z': return TacKey::Z;
   case VK_OEM_3: return TacKey::Backtick;
   case VK_F1: return TacKey::F1;
   case VK_F2: return TacKey::F2;
@@ -139,6 +163,11 @@ LRESULT TacWin32DesktopWindow::HandleWindowProc( UINT uMsg, WPARAM wParam, LPARA
     mY = ( int )HIWORD( lParam );
     mOnMove.EmitEvent();
   } break;
+  case WM_CHAR:
+  {
+    // TODO: convert to unicode
+    mKeyboardInput->mWMCharPressedHax = ( char )wParam;
+  } break;
   case WM_SYSKEYDOWN: // fallthrough
   case WM_SYSKEYUP: // fallthrough
   case WM_KEYDOWN: // fallthrough
@@ -182,10 +211,10 @@ LRESULT TacWin32DesktopWindow::HandleWindowProc( UINT uMsg, WPARAM wParam, LPARA
       // The window is being deactivated
     }
   } break;
-  case WM_LBUTTONDOWN: { mKeyboardInput->SetIsKeyDown( TacKey::MouseLeft, true ); 
+  case WM_LBUTTONDOWN: { mKeyboardInput->SetIsKeyDown( TacKey::MouseLeft, true );
     //SetActiveWindow( mHWND );
     //SetForegroundWindow( mHWND );
-  
+
   } break;
   case WM_LBUTTONUP: {  mKeyboardInput->SetIsKeyDown( TacKey::MouseLeft, false );  } break;
 
@@ -193,7 +222,7 @@ LRESULT TacWin32DesktopWindow::HandleWindowProc( UINT uMsg, WPARAM wParam, LPARA
   case WM_RBUTTONUP: {  mKeyboardInput->SetIsKeyDown( TacKey::MouseRight, false );  } break;
 
   case WM_MBUTTONDOWN: { mKeyboardInput->SetIsKeyDown( TacKey::MouseMiddle, true ); } break;
-  case WM_MBUTTONUP: {  mKeyboardInput->SetIsKeyDown( TacKey::MouseMiddle , false );  } break;
+  case WM_MBUTTONUP: {  mKeyboardInput->SetIsKeyDown( TacKey::MouseMiddle, false );  } break;
 
   case WM_MOUSEMOVE:
   {
@@ -340,7 +369,7 @@ TacWin32DesktopWindow* TacWindowsApplication2::GetCursorUnobscuredWindow()
       RECT windowRect;
       GetWindowRect( curZSortedHwnd, &windowRect );
 
-      bool isCursorInside = 
+      bool isCursorInside =
         cursorPos.x >= windowRect.left &&
         cursorPos.x <= windowRect.right &&
         cursorPos.y >= windowRect.top &&
@@ -464,7 +493,7 @@ void TacWindowsApplication2::SpawnWindowAux( const TacWindowParams& windowParams
   mWindows.push_back( createdWindow );
 
 
-  createdWindow->mOnDestroyed.AddCallback( new TacFunctionalHandler( [this,createdWindow]()
+  createdWindow->mOnDestroyed.AddCallback( new TacFunctionalHandler( [ this, createdWindow ]()
   {
     int i = TacIndexOf( createdWindow, mWindows );
     mWindows[ i ] = mWindows.back();

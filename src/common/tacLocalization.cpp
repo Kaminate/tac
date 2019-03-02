@@ -33,8 +33,8 @@ void TacUTF8Converter::TacIterateUTF8( TacCodepoint* codepoint, TacErrors& error
   if( ( b0 & ( 1 << 5 ) ) == 0 )
   {
     *codepoint =
-    ( ( 0b00111111 & b1 ) << 0 ) |
-    ( ( 0b00011111 & b0 ) << 6 );
+      ( ( 0b00111111 & b1 ) << 0 ) |
+      ( ( 0b00011111 & b0 ) << 6 );
     return;
   }
   char b2 = GetNextByte( errors );
@@ -42,9 +42,9 @@ void TacUTF8Converter::TacIterateUTF8( TacCodepoint* codepoint, TacErrors& error
   if( ( b0 & ( 1 << 4 ) ) == 0 )
   {
     *codepoint =
-    ( ( 0b00111111 & b2 ) << 0 ) |
-    ( ( 0b00111111 & b1 ) << 6 ) |
-    ( ( 0b00001111 & b0 ) << 12 );
+      ( ( 0b00111111 & b2 ) << 0 ) |
+      ( ( 0b00111111 & b1 ) << 6 ) |
+      ( ( 0b00001111 & b0 ) << 12 );
     return;
   }
   char b3 = GetNextByte( errors );
@@ -75,13 +75,42 @@ void TacUTF8Converter::Convert(
   converter.mEnd = text.data() + text.size();
   converter.Run( codepoints, errors );
 }
-
+void TacUTF8Converter::Convert(
+  const TacVector< TacCodepoint >& codepoints,
+  TacString& text )
+{
+  for( TacCodepoint codepoint : codepoints )
+  {
+    if( codepoint >= 0x10000 )
+    {
+      text.push_back( 0b11110000 | ( 0b00000111 & ( codepoint >> 18 ) ) );
+      text.push_back( 0b10000000 | ( 0b00111111 & ( codepoint >> 12 ) ) );
+      text.push_back( 0b10000000 | ( 0b00111111 & ( codepoint >> 6 ) ) );
+      text.push_back( 0b10000000 | ( 0b00111111 & ( codepoint >> 0 ) ) );
+    }
+    else if( codepoint >= 0x800 )
+    {
+      text.push_back( 0b11100000 | ( 0b00001111 & ( codepoint >> 12 ) ) );
+      text.push_back( 0b10000000 | ( 0b00111111 & ( codepoint >> 6 ) ) );
+      text.push_back( 0b10000000 | ( 0b00111111 & ( codepoint >> 0 ) ) );
+    }
+    else if( codepoint > 0x80 )
+    {
+      text.push_back( 0b11000000 | ( 0b00011111 & ( codepoint >> 6 ) ) );
+      text.push_back( 0b10000000 | ( 0b00111111 & ( codepoint >> 0 ) ) );
+    }
+    else
+    {
+      text.push_back( 0b01111111 & codepoint );
+    }
+  }
+}
 TacString TacLocalization::EatWord()
 {
   TacString result;
   while( mBegin < mEnd )
   {
-    if( ( EatWhitespace() || EatNewLine() ) && !result.empty())
+    if( ( EatWhitespace() || EatNewLine() ) && !result.empty() )
       break;
     result += *mBegin++;
   }

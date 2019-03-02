@@ -87,6 +87,13 @@ void TacCreationPropertyWindow::Update( TacErrors& errors )
   //mUIRoot->Render( errors );
   TAC_HANDLE_ERROR( errors );
 
+  static bool once;
+  if( !once )
+  {
+    once = true;
+    mCreation->CreateEntity();
+  }
+
   static bool areYouHappy;
 
   mUIRoot->mImGuiWindow->mSize =
@@ -124,10 +131,7 @@ void TacCreationPropertyWindow::Update( TacErrors& errors )
 
     if( TacEntity* entity = mCreation->mSelectedEntity )
     {
-      if( mUIRoot->mImGuiWindow->InputText( "Name", entity->mName ) )
-      {
-        std::cout << entity->mName << std::endl;
-      }
+      mUIRoot->mImGuiWindow->InputText( "Name", entity->mName );
       mUIRoot->mImGuiWindow->Text( entity->mName );
       mUIRoot->mImGuiWindow->Text( "UUID: " + TacToString( ( TacUUID )entity->mEntityUUID ) );
       mUIRoot->mImGuiWindow->Text( "Position: " +

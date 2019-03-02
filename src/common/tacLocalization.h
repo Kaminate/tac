@@ -59,6 +59,9 @@ struct TacUTF8Converter
     const TacString& text,
     TacVector< TacCodepoint >& codepoints,
     TacErrors& errors );
+  static void Convert(
+    const TacVector< TacCodepoint >& codepoints,
+    TacString& text );
   void Run( TacVector< TacCodepoint >& codepoints, TacErrors& errors );
   void TacIterateUTF8( TacCodepoint* codepoint, TacErrors& errors );
   char GetNextByte( TacErrors& errors );

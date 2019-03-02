@@ -506,7 +506,7 @@ v2 TacUI2DDrawData::CalculateTextSize( const TacCodepoint* codepoints, int codep
 
   for( int iCodepoint = 0; iCodepoint < codepointCount; ++iCodepoint )
   {
-    TacCodepoint codepoint = codepoints[ iCodepoint ];
+   TacCodepoint codepoint = codepoints[ iCodepoint ];
     if( !codepoint )
       continue;
 

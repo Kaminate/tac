@@ -12,17 +12,41 @@ TacString ToString( TacKey key )
   case TacKey::DownArrow: return "downarrow";
   case TacKey::LeftArrow: return "leftarrow";
   case TacKey::RightArrow: return "rightarrow";
-  case TacKey::Space: return "space";
+  case TacKey::Spacebar: return "spacebar";
   case TacKey::Debug: return "debug";
-  case TacKey::Back: return "back";
+  case TacKey::Backspace: return "backspace";
+  case TacKey::Delete: return "delete";
   case TacKey::Backtick: return "backtick";
   case TacKey::MouseLeft: return "lclick";
   case TacKey::MouseRight: return "rclick";
   case TacKey::MouseMiddle: return "mclick";
   case TacKey::Modifier: return "mod";
-  case TacKey::Q: return "q";
-  case TacKey::E: return "e";
-  case TacKey::F: return "f";
+  case TacKey::A: return "A";
+  case TacKey::B: return "B";
+  case TacKey::C: return "C";
+  case TacKey::D: return "D";
+  case TacKey::E: return "E";
+  case TacKey::F: return "F";
+  case TacKey::G: return "G";
+  case TacKey::H: return "H";
+  case TacKey::I: return "I";
+  case TacKey::J: return "J";
+  case TacKey::K: return "K";
+  case TacKey::L: return "L";
+  case TacKey::M: return "M";
+  case TacKey::N: return "N";
+  case TacKey::O: return "O";
+  case TacKey::P: return "P";
+  case TacKey::Q: return "Q";
+  case TacKey::R: return "R";
+  case TacKey::S: return "S";
+  case TacKey::T: return "T";
+  case TacKey::U: return "U";
+  case TacKey::V: return "V";
+  case TacKey::W: return "W";
+  case TacKey::X: return "X";
+  case TacKey::Y: return "Y";
+  case TacKey::Z: return "Z";
   case TacKey::F5: return "f5";
     TacInvalidDefaultCase( key );
   }
@@ -75,6 +99,7 @@ void TacKeyboardInput::SetIsKeyDown( TacKey key, bool isDown )
 void TacKeyboardInput::BeforePoll()
 {
   mPrev = mCurr;
+  mWMCharPressedHax = 0;
 }
 void TacKeyboardInput::DebugPrintWhenKeysChange()
 {

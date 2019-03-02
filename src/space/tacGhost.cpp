@@ -72,7 +72,7 @@ void TacUser::Update( TacErrors& errors )
   if( inputDirection.Length() )
     inputDirection.Normalize();
   mPlayer->mInputDirection = inputDirection;
-  mPlayer->mIsSpaceJustDown = keyboardInput->IsKeyDown( TacKey::Space );
+  mPlayer->mIsSpaceJustDown = keyboardInput->IsKeyDown( TacKey::Spacebar );
 }
 
 TacGhost::TacGhost()

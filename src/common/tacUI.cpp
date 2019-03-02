@@ -12,6 +12,7 @@
 #include "common/tacOS.h"
 #include "common/tacDesktopWindow.h"
 #include "common/tacColorUtil.h"
+#include "common/tacTextEdit.h"
 
 #include <cmath> // sin
 
@@ -1559,17 +1560,11 @@ void TacImGuiWindow::Text( const TacString& utf8 )
   mUIRoot->mUI2DDrawData->AddText( textPos, gStyle.fontSize, utf8, gStyle.textColor, &clipRect );
 }
 
-struct TacCaret
-{
-  int numGlyphsBeforeCaret = 0;
-  float pos;
-};
-static TacCaret TacGetCaret(
+static int TacGetCaret(
   TacUI2DDrawData* drawData,
   const TacVector< TacCodepoint >& codepoints,
   float mousePos ) // mouse pos rel text top left corner
 {
-
   auto codepointCount = ( int )codepoints.size();
   float runningTextWidth = 0;
   int numGlyphsBeforeCaret = 0;
@@ -1587,44 +1582,39 @@ static TacCaret TacGetCaret(
     runningTextWidth += lastGlyphWidth;
     numGlyphsBeforeCaret++;
   }
-  float caretPosition = runningTextWidth;
+  return numGlyphsBeforeCaret;
+}
 
-  TacCaret caret;
-  caret.numGlyphsBeforeCaret = numGlyphsBeforeCaret;
-  caret.pos = runningTextWidth;
-  return caret;
+static bool AreEqual(
+  const TacVector< TacCodepoint >& a,
+  const TacVector< TacCodepoint >& b )
+{
+  int aSize = a.size();
+  if( aSize != b.size() )
+    return false;
+  for( int i = 0; i < aSize; ++i )
+    if( a[ i ] != b[ i ] )
+      return false;
+  return true;
 }
 
 bool TacImGuiWindow::InputText( const TacString& label, TacString& text )
 {
-
-  struct TacTextInputData
-  {
-    // should caret and secondCaret be joined into an TacCaret carets[ 2 ], and 
-    // selected and hasSecondCaret turned into a caretCount?
-
-    TacCaret caret;
-    TacCaret secondCaret;
-    bool selected;
-    bool hasSecondCaret;
-    TacVector< TacCodepoint > codepoints;
-
-    void GetMinMaxCaret( TacCaret& minCaret, TacCaret& maxCaret )
-    {
-      if( inputData.caret.numGlyphsBeforeCaret < inputData.secondCaret.numGlyphsBeforeCaret )
-      {
-        minCaret = inputData.caret;
-        maxCaret = inputData.secondCaret;
-      }
-      else
-      {
-        minCaret = inputData.secondCaret;
-        maxCaret = inputData.caret;
-      }
-    }
-  };
-
+  TacErrors cursorErrors;
   static TacTextInputData inputData;
+  v2 mousePositionScreenspace;
+  TacOS::Instance->GetScreenspaceCursorPos( mousePositionScreenspace, cursorErrors );
+
+  TacUTF8Converter converter;
+  TacVector< TacCodepoint > codepoints;
+  TacErrors ignoredUTF8ConversionErrors;
+  converter.Convert( text, codepoints, ignoredUTF8ConversionErrors );
+  if( !AreEqual( inputData.mCodepoints, codepoints) )
+  {
+    inputData.mCodepoints = codepoints;
+    inputData.mCaretCount = 0;
+  }
+
   bool textChanged = false;
 
   TacUI2DDrawData* drawData = mUIRoot->mUI2DDrawData;
@@ -1652,7 +1642,6 @@ bool TacImGuiWindow::InputText( const TacString& label, TacString& text )
 
   v3 textBackgroundColor3 = { 1, 1, 0 };
 
-
   v4 editTextColor = { 0, 0, 0, 1 };
   v2 textBackgroundMaxi = {
     pos.x + totalSize.x * ( 2.0f / 3.0f ),
@@ -1665,32 +1654,57 @@ bool TacImGuiWindow::InputText( const TacString& label, TacString& text )
     textBackgroundMaxi,
     v4( textBackgroundColor3, 1 ), nullptr, &clipRect );
 
-
-  bool hadSecondCaret = inputData.hasSecondCaret;
-  if( inputData.selected && inputData.hasSecondCaret )
+  static std::map< TacKey, TacTextInputKey > foo =
   {
-    TacCaret minCaret;
-    TacCaret maxCaret;
-    inputData.GetMinMaxCaret( minCaret, maxCaret );
+    { TacKey::LeftArrow, TacTextInputKey::LeftArrow },
+  { TacKey::RightArrow, TacTextInputKey::RightArrow },
+  { TacKey::Backspace, TacTextInputKey::Backspace },
+  { TacKey::Delete, TacTextInputKey::Delete },
+  };
+  for( auto pair : foo )
+    if( keyboardInput->IsKeyJustDown( pair.first ) )
+      inputData.OnKeyPressed( pair.second );
+  if( keyboardInput->mWMCharPressedHax )
+    inputData.OnCodepoint( keyboardInput->mWMCharPressedHax );
+
+  // handle double click
+  static double lastMouseReleaseSeconds;
+  static v2 lastMouseReleasePositionScreenspace;
+  if( keyboardInput->HasKeyJustBeenReleased( TacKey::MouseLeft ) &&
+    cursorErrors.empty() &&
+    !inputData.mCodepoints.empty() )
+  {
+    auto mouseReleaseSeconds = mUIRoot->GetElapsedSeconds();
+    if( mouseReleaseSeconds - lastMouseReleaseSeconds < 0.5f &&
+      lastMouseReleasePositionScreenspace == mousePositionScreenspace )
+    {
+      inputData.mNumGlyphsBeforeCaret[ 0 ] = 0;
+      inputData.mNumGlyphsBeforeCaret[ 1 ] = inputData.mCodepoints.size();
+      inputData.mCaretCount = 2;
+    }
+    lastMouseReleaseSeconds = mouseReleaseSeconds;
+    lastMouseReleasePositionScreenspace = mousePositionScreenspace;
+  }
+
+  if( inputData.mCaretCount == 2 )
+  {
+    float minCaretPos = drawData->CalculateTextSize(
+      inputData.mCodepoints.data(),
+      inputData.GetMinCaret(),
+      gStyle.fontSize ).x;
+
+    float maxCaretPos = drawData->CalculateTextSize(
+      inputData.mCodepoints.data(),
+      inputData.GetMaxCaret(),
+      gStyle.fontSize ).x;
 
     v2 selectionMini = {
-      textPos.x + minCaret.pos,
+      textPos.x + minCaretPos,
       textPos.y };
     v2 selectionMaxi = {
-      textPos.x + maxCaret.pos,
+      textPos.x + maxCaretPos,
       textPos.y + gStyle.fontSize };
     drawData->AddBox( selectionMini, selectionMaxi, v4( textBackgroundColor3 / 2, 1 ), nullptr, &clipRect );
-
-    if( keyboardInput->IsKeyJustDown( TacKey::LeftArrow ) )
-    {
-      inputData.caret = minCaret;
-      inputData.hasSecondCaret = false;
-    }
-    if( keyboardInput->IsKeyJustDown( TacKey::RightArrow ) )
-    {
-      inputData.caret = maxCaret;
-      inputData.hasSecondCaret = false;
-    }
   }
 
   drawData->AddText( textPos, gStyle.fontSize, text, editTextColor, &clipRect );
@@ -1701,122 +1715,52 @@ bool TacImGuiWindow::InputText( const TacString& label, TacString& text )
   drawData->AddText( labelPos, gStyle.fontSize, label, gStyle.textColor, &clipRect );
 
 
-
-
   // TODO:
   //   it seems dumb that we need to get the mouse position twice.
   //   since IsHovered() already got the cursor position and checked
   //   for errors
-  TacErrors cursorErrors;
-  v2 mousePositionScreenspace;
-  TacOS::Instance->GetScreenspaceCursorPos( mousePositionScreenspace, cursorErrors );
-
-  //auto totalSizeRect = TacImGuiRect::FromPosSize( pos, totalSize );
-  if( IsHovered( clipRect ) && keyboardInput->IsKeyDown( TacKey::MouseLeft ) && cursorErrors.empty() )
+  if( IsHovered( clipRect ) && cursorErrors.empty() )
   {
-    //int cursorGlyphIndex = 0;
-    TacUTF8Converter converter;
-    TacVector< TacCodepoint > codepoints;
-    TacErrors ignoredUTF8ConversionErrors;
-    converter.Convert( text, codepoints, ignoredUTF8ConversionErrors );
-
     v2 mousePositionWindowspace = mousePositionScreenspace - v2(
       ( float )mUIRoot->mDesktopWindow->mX,
       ( float )mUIRoot->mDesktopWindow->mY );
-
     float mousePositionTextSpace = mousePositionWindowspace.x - textPos.x;
-    TacCaret caret = TacGetCaret( drawData, codepoints, mousePositionTextSpace );
-
-    if( keyboardInput->IsKeyJustDown( TacKey::MouseLeft ) )
+    int numGlyphsBeforeCaret = TacGetCaret( drawData, codepoints, mousePositionTextSpace );
+    if( keyboardInput->mCurr.IsKeyDown( TacKey::MouseLeft ) )
     {
-      inputData.selected = true;
-      inputData.caret = caret;
-      inputData.hasSecondCaret = false;
-      inputData.codepoints = codepoints;
-    }
-    else if( caret.numGlyphsBeforeCaret != inputData.caret.numGlyphsBeforeCaret )
-    {
-      inputData.secondCaret = caret;
-      inputData.hasSecondCaret = true;
+      if( keyboardInput->mPrev.IsKeyDown( TacKey::MouseLeft ) )
+        inputData.OnDrag( numGlyphsBeforeCaret );
+      else
+        inputData.OnClick( numGlyphsBeforeCaret );
     }
   }
 
-  if( inputData.selected && !inputData.hasSecondCaret )
+  if( inputData.mCaretCount == 1 )
   {
-
-    if( !hadSecondCaret )
-    {
-      // TODO: if shift is held
-      if( keyboardInput->IsKeyJustDown( TacKey::LeftArrow ) &&
-        inputData.caret.numGlyphsBeforeCaret > 0 )
-      {
-        inputData.caret.numGlyphsBeforeCaret--;
-        inputData.caret.pos = drawData->CalculateTextSize(
-          inputData.codepoints.data(),
-          inputData.caret.numGlyphsBeforeCaret,
-          gStyle.fontSize ).x;
-      }
-
-      if( keyboardInput->IsKeyJustDown( TacKey::RightArrow ) &&
-        inputData.caret.numGlyphsBeforeCaret < inputData.codepoints.size() )
-      {
-        inputData.caret.numGlyphsBeforeCaret++;
-        inputData.caret.pos = drawData->CalculateTextSize(
-          inputData.codepoints.data(),
-          inputData.caret.numGlyphsBeforeCaret,
-          gStyle.fontSize ).x;
-      }
-    }
-
-
-
-
+    float caretPos = drawData->CalculateTextSize(
+      inputData.mCodepoints.data(),
+      inputData.mNumGlyphsBeforeCaret[ 0 ],
+      gStyle.fontSize ).x;
     float caretYPadding = 2.0f;
     float caretHalfWidth = 0.5f;
     v2 caretMini = {
-      textPos.x + inputData.caret.pos - caretHalfWidth,
+      textPos.x + caretPos - caretHalfWidth,
       textPos.y + caretYPadding };
     v2 caretMaxi = {
-      textPos.x + inputData.caret.pos + caretHalfWidth,
+      textPos.x + caretPos + caretHalfWidth,
       textPos.y + totalSize.y - caretYPadding };
     float caretColorAlpha = ( ( std::sin( 6.0f * ( float )*mUIRoot->mElapsedSeconds ) + 1.0f ) / 2.0f );
     v4 caretColor = { 0, 0, 0, caretColorAlpha };
     drawData->AddBox( caretMini, caretMaxi, caretColor, nullptr, &clipRect );
   }
 
-  if( inputData.selected && keyboardInput->IsKeyJustDown( TacKey::Backspace ) )
+
+  if( codepoints.size() != inputData.mCodepoints.size() )
   {
-    int deletedCodepointsStartIndex;
-    int deletedCodepointCount;
-    if( inputData.hasSecondCaret )
-    {
-      TacCaret minCaret;
-      TacCaret maxCaret;
-      inputData.GetMinMaxCaret( minCaret, maxCaret );
-      deletedCodepointsStartIndex = minCaret.numGlyphsBeforeCaret;
-      deletedCodepointCount = maxCaret.numGlyphsBeforeCaret - minCaret.numGlyphsBeforeCaret;
-    }
-    else
-    {
-      deletedCodepointsStartIndex = inputData.caret.numGlyphsBeforeCaret - 1;
-      deletedCodepointCount = 1;
-    }
-
-    inputData.codepoints;
-    TacVector< TacCodepoint > newCodepoints;
-
-    for( int iCodepoint = 0; iCodepoint <inputData.codepoints.size(); ++iCodepoint )
-    {
-      if( iCodepoint >= deletedCodepointsStartIndex &&
-        iCodepoint <= deletedCodepointsStartIndex + deletedCodepointCount )
-        continue;
-
-      newCodepoints.push_back( inputData.codepoints[ iCodepoint ] );
-    }
-
-
-    inputData.codepoints =  newCodepoints;
-
+    TacString newText;
+    TacUTF8Converter::Convert( inputData.mCodepoints, newText );
+    text = newText;
+    textChanged = true;
   }
 
   return textChanged;
