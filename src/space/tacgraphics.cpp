@@ -1,13 +1,13 @@
-#include "tacgraphics.h"
 #include "common/tacPreprocessor.h"
-#include "taccomponent.h"
 #include "common/tacFont.h"
 #include "common/math/tacMath.h"
+#include "space/tacgraphics.h"
+#include "space/taccomponent.h"
 
 //#include "tacsay.h"
 //#include "tacmodel.h"
 
-#include "common/imgui.h"
+//#include "common/imgui.h"
 #include <cmath>
 
 const int cylinderSegmentCount = 10;
@@ -79,11 +79,11 @@ void TacGraphics::DestroyComponent( TacComponent* component )
 
 void TacGraphics::DebugImgui()
 {
-  if( !ImGui::CollapsingHeader( "Graphics" ) )
-    return;
-  ImGui::Indent();
-  OnDestruct( ImGui::Unindent() );
-  ImGui::Text( "Debug draw vert count: %i", mDebugDrawVerts.size() );
+  //if( !ImGui::CollapsingHeader( "Graphics" ) )
+  //  return;
+  //ImGui::Indent();
+  //OnDestruct( ImGui::Unindent() );
+  //ImGui::Text( "Debug draw vert count: %i", mDebugDrawVerts.size() );
 }
 
 

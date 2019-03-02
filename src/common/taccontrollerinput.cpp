@@ -1,6 +1,6 @@
-#include "taccontrollerinput.h"
-#include "tacPreprocessor.h"
-#include "imgui.h"
+#include "common/taccontrollerinput.h"
+#include "common/tacPreprocessor.h"
+//#include "imgui.h"
 
 
 TacControllerBitfield ToBitfield( TacControllerButton controllerButton )
@@ -37,16 +37,16 @@ bool TacControllerState::IsButtonDown( TacControllerButton controllerButton )
 }
 void TacControllerState::DebugImgui()
 {
-  ImGui::DragFloat2( "Left stick", mLeftStick.data() );
-  ImGui::DragFloat2( "Right stick", mRightStick.data() );
-  ImGui::DragFloat( "Left Trigger", &mLeftTrigger );
-  ImGui::DragFloat( "Right Trigger", &mRightTrigger );
-  for( int iButton = 0; iButton < ( int )TacControllerButton::Count; ++iButton )
-  {
-    auto controllerButton = ( TacControllerButton )iButton;
-    bool down = IsButtonDown( controllerButton );
-    ImGui::Checkbox( TacToString( controllerButton ), &down );
-  }
+  //ImGui::DragFloat2( "Left stick", mLeftStick.data() );
+  //ImGui::DragFloat2( "Right stick", mRightStick.data() );
+  //ImGui::DragFloat( "Left Trigger", &mLeftTrigger );
+  //ImGui::DragFloat( "Right Trigger", &mRightTrigger );
+  //for( int iButton = 0; iButton < ( int )TacControllerButton::Count; ++iButton )
+  //{
+  //  auto controllerButton = ( TacControllerButton )iButton;
+  //  bool down = IsButtonDown( controllerButton );
+  //  ImGui::Checkbox( TacToString( controllerButton ), &down );
+  //}
 }
 
 TacController::TacController()
@@ -87,9 +87,9 @@ bool TacController::IsButtonJustReleased( TacControllerButton controllerButton )
 }
 void TacController::DebugImgui()
 {
-  ImGui::Text( mName );
-  mControllerStateCurr.DebugImgui();
-  DebugImguiInner();
+  //ImGui::Text( mName );
+  //mControllerStateCurr.DebugImgui();
+  //DebugImguiInner();
 }
 void TacController::DebugImguiInner()
 {
@@ -112,51 +112,51 @@ TacControllerInput::~TacControllerInput()
 }
 void TacControllerInput::DebugImgui()
 {
-  ImGui::Checkbox( "Input", &mDebugging );
-  if( !mDebugging )
-    return;
+  //ImGui::Checkbox( "Input", &mDebugging );
+  //if( !mDebugging )
+  //  return;
 
-  ImGui::Begin( "Input", &mDebugging );
-  OnDestruct( ImGui::End() );
+  //ImGui::Begin( "Input", &mDebugging );
+  //OnDestruct( ImGui::End() );
 
-  ImGui::Checkbox( "Use index override", &mForceIndexOverride );
-  if( mForceIndexOverride )
-    ImGui::SliderInt( "index override", &mIndexOverride, 0, 3 );
+  //ImGui::Checkbox( "Use index override", &mForceIndexOverride );
+  //if( mForceIndexOverride )
+  //  ImGui::SliderInt( "index override", &mIndexOverride, 0, 3 );
 
-  DebugImguiInner();
+  //DebugImguiInner();
 
-  for( int iController = 0; iController < TAC_CONTROLLER_COUNT_MAX; ++iController )
-  {
-    TacString name = "Controller " + TacToString( iController );
-    TacController* controller = mControllers[ iController ];
-    if( !controller )
-    {
-      name += "disconnected";
-      ImGui::Text( name );
-      continue;
-    }
+  //for( int iController = 0; iController < TAC_CONTROLLER_COUNT_MAX; ++iController )
+  //{
+  //  TacString name = "Controller " + TacToString( iController );
+  //  TacController* controller = mControllers[ iController ];
+  //  if( !controller )
+  //  {
+  //    name += "disconnected";
+  //    ImGui::Text( name );
+  //    continue;
+  //  }
 
-    ImGui::PushID( iController );
-    OnDestruct( ImGui::PopID() );
+  //  ImGui::PushID( iController );
+  //  OnDestruct( ImGui::PopID() );
 
-    ImGui::Checkbox( name, &controller->mDebugging );
-    if( !controller->mDebugging )
-      continue;
+  //  ImGui::Checkbox( name, &controller->mDebugging );
+  //  if( !controller->mDebugging )
+  //    continue;
 
-    if( mForceIndexOverride )
-    {
-      float intensity = 0.2f;
-      ImVec4 red( intensity, 0, 0, 1 );
-      ImVec4 green( 0, intensity, 0, 1 );
-      ImVec4 color = mIndexOverride == iController ? green : red;
-      ImGui::PushStyleColor( ImGuiCol_WindowBg, color );
-    }
-    OnDestruct( if( mForceIndexOverride ) ImGui::PopStyleColor() );
+  //  if( mForceIndexOverride )
+  //  {
+  //    float intensity = 0.2f;
+  //    ImVec4 red( intensity, 0, 0, 1 );
+  //    ImVec4 green( 0, intensity, 0, 1 );
+  //    ImVec4 color = mIndexOverride == iController ? green : red;
+  //    ImGui::PushStyleColor( ImGuiCol_WindowBg, color );
+  //  }
+  //  OnDestruct( if( mForceIndexOverride ) ImGui::PopStyleColor() );
 
-    ImGui::Begin( name.c_str(), &controller->mDebugging );
-    controller->DebugImgui();
-    ImGui::End();
-  }
+  //  ImGui::Begin( name.c_str(), &controller->mDebugging );
+  //  controller->DebugImgui();
+  //  ImGui::End();
+  //}
 }
 void TacControllerInput::Update()
 {

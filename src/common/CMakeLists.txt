@@ -4,14 +4,6 @@
 #   we no longer need the TacCommon global variable
 
 set(TacCommon 
-${CMAKE_CURRENT_SOURCE_DIR}/imconfig.cpp
-${CMAKE_CURRENT_SOURCE_DIR}/imconfig.h
-
-${CMAKE_CURRENT_SOURCE_DIR}/imgui.cpp
-${CMAKE_CURRENT_SOURCE_DIR}/imgui.h
-${CMAKE_CURRENT_SOURCE_DIR}/imgui_demo.cpp
-${CMAKE_CURRENT_SOURCE_DIR}/imgui_draw.cpp
-${CMAKE_CURRENT_SOURCE_DIR}/imgui_internal.h
 ${CMAKE_CURRENT_SOURCE_DIR}/tacAlgorithm.h
 ${CMAKE_CURRENT_SOURCE_DIR}/containers/tacArray.h
 ${CMAKE_CURRENT_SOURCE_DIR}/tacColorUtil.cpp
@@ -23,6 +15,8 @@ ${CMAKE_CURRENT_SOURCE_DIR}/tacErrorHandling.h
 ${CMAKE_CURRENT_SOURCE_DIR}/tacEvent.h
 ${CMAKE_CURRENT_SOURCE_DIR}/tacFont.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/tacFont.h
+${CMAKE_CURRENT_SOURCE_DIR}/tacImGui.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/tacImGui.h
 ${CMAKE_CURRENT_SOURCE_DIR}/taccontrollerinput.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/taccontrollerinput.h
 ${CMAKE_CURRENT_SOURCE_DIR}/tackeyboardinput.cpp
@@ -86,8 +80,6 @@ ${CMAKE_CURRENT_SOURCE_DIR}/tacJobQueue.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/tacJobQueue.h
 ${CMAKE_CURRENT_SOURCE_DIR}/stb_impl.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/stb_image.h
-${CMAKE_CURRENT_SOURCE_DIR}/stb_rect_pack.h
-${CMAKE_CURRENT_SOURCE_DIR}/stb_textedit.h
 ${CMAKE_CURRENT_SOURCE_DIR}/stb_truetype.h
 CACHE INTERNAL ""
 )

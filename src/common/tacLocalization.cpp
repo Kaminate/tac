@@ -1,9 +1,9 @@
-#include "tacLocalization.h"
-#include "tacUtility.h"
-#include "tacMemory.h"
-#include "tacAlgorithm.h"
+#include "common/tacLocalization.h"
+#include "common/tacUtility.h"
+#include "common/tacMemory.h"
+#include "common/tacAlgorithm.h"
 
-#include "imgui.h"
+//#include "imgui.h"
 
 bool TacIsAsciiCharacter( TacCodepoint codepoint )
 {
@@ -215,42 +215,42 @@ bool TacLocalization::EatWhitespace()
 
 void TacLocalization::DebugImgui()
 {
-  if( !ImGui::CollapsingHeader( "Localization" ) )
-    return;
-  ImGui::Indent();
-  OnDestruct( ImGui::Unindent() );
-  for( auto & localizedStrings : mLocalizedStrings )
-  {
-    if( !ImGui::CollapsingHeader( localizedStrings.mReference.c_str() ) )
-      continue;
-    ImGui::Indent();
-    OnDestruct( ImGui::Unindent() );
-    for( auto kvp : localizedStrings.mCodepoints )
-    {
-      auto language = kvp.first;
-      auto& languageStr = TacLanguageToStr( language );
-      auto& codepoints = kvp.second;
-      if( !ImGui::CollapsingHeader( languageStr.c_str() ) )
-        continue;
-      ImGui::Indent();
-      OnDestruct( ImGui::Unindent() );
-      ImGui::InputText( "", codepoints.mUTF8String );
-    }
-  }
+  //if( !ImGui::CollapsingHeader( "Localization" ) )
+  //  return;
+  //ImGui::Indent();
+  //OnDestruct( ImGui::Unindent() );
+  //for( auto & localizedStrings : mLocalizedStrings )
+  //{
+  //  if( !ImGui::CollapsingHeader( localizedStrings.mReference.c_str() ) )
+  //    continue;
+  //  ImGui::Indent();
+  //  OnDestruct( ImGui::Unindent() );
+  //  for( auto kvp : localizedStrings.mCodepoints )
+  //  {
+  //    auto language = kvp.first;
+  //    auto& languageStr = TacLanguageToStr( language );
+  //    auto& codepoints = kvp.second;
+  //    if( !ImGui::CollapsingHeader( languageStr.c_str() ) )
+  //      continue;
+  //    ImGui::Indent();
+  //    OnDestruct( ImGui::Unindent() );
+  //    ImGui::InputText( "", codepoints.mUTF8String );
+  //  }
+  //}
 }
 
 
 // Should I make an ImGui::Enum?
 void TacLanguageDebugImgui( const TacString& name, TacLanguage* language )
 {
-  auto currentItem = ( int )( *language );
-  auto itemGetter = []( void* data, int idx, const char** outText )
-  {
-    TacUnusedParameter( data );
-    *outText = TacLanguageToStr( ( TacLanguage )idx ).c_str();
-    return true;
-  };
-  if( !ImGui::Combo( name.c_str(), &currentItem, itemGetter, nullptr, ( int )TacLanguage::Count ) )
-    return;
-  *language = ( TacLanguage )currentItem;
+  //auto currentItem = ( int )( *language );
+  //auto itemGetter = []( void* data, int idx, const char** outText )
+  //{
+  //  TacUnusedParameter( data );
+  //  *outText = TacLanguageToStr( ( TacLanguage )idx ).c_str();
+  //  return true;
+  //};
+  //if( !ImGui::Combo( name.c_str(), &currentItem, itemGetter, nullptr, ( int )TacLanguage::Count ) )
+  //  return;
+  //*language = ( TacLanguage )currentItem;
 }

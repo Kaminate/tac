@@ -9,7 +9,7 @@
 #include "common/containers/tacVector.h"
 #include "common/math/tacMath.h"
 #include "common/tacPreprocessor.h"
-#include "common/imgui.h"
+//#include "common/imgui.h"
 
 #include <array>
 #include <algorithm>
@@ -114,75 +114,75 @@ void TacPhysics::DestroyComponent( TacComponent* component )
 }
 void TacPhysics::DebugImgui()
 {
-  if( !ImGui::CollapsingHeader( "Physics" ) )
-    return;
-  ImGui::Indent();
-  OnDestruct( ImGui::Unindent() );
-  ImGui::Checkbox( "Should debug draw capsules", &mShouldDebugDrawCapsules );
-  {
-    ImGui::Indent();
-    OnDestruct( ImGui::Unindent() );
-    ImGui::ColorEdit3( "Capsule color", &mDebugDrawCapsuleColor[ 0 ] );
-  }
-  ImGui::Checkbox( "Running", &mRunning );
-  ImGui::Checkbox( "Should debug draw terrains", &mShouldDebugDrawTerrains );
-  if( ImGui::CollapsingHeader( "Collision Detection" ) )
-  {
-    ImGui::Indent();
-    OnDestruct( ImGui::Unindent() );
-    ImGui::Checkbox( "Should Integrate", &mShouldIntegrate );
-    ImGui::Checkbox( "Gravity On", &mGravityOn );
-    ImGui::DragFloat( "Gravity", &mGravity, 0.01f );
-    ImGui::Checkbox( "Should Narrowphase", &mShouldNarrowphase );
-    ImGui::Checkbox( "Draw Collision", &mDebugDrawCollision );
+  //if( !ImGui::CollapsingHeader( "Physics" ) )
+  //  return;
+  //ImGui::Indent();
+  //OnDestruct( ImGui::Unindent() );
+  //ImGui::Checkbox( "Should debug draw capsules", &mShouldDebugDrawCapsules );
+  //{
+  //  ImGui::Indent();
+  //  OnDestruct( ImGui::Unindent() );
+  //  ImGui::ColorEdit3( "Capsule color", &mDebugDrawCapsuleColor[ 0 ] );
+  //}
+  //ImGui::Checkbox( "Running", &mRunning );
+  //ImGui::Checkbox( "Should debug draw terrains", &mShouldDebugDrawTerrains );
+  //if( ImGui::CollapsingHeader( "Collision Detection" ) )
+  //{
+  //  ImGui::Indent();
+  //  OnDestruct( ImGui::Unindent() );
+  //  ImGui::Checkbox( "Should Integrate", &mShouldIntegrate );
+  //  ImGui::Checkbox( "Gravity On", &mGravityOn );
+  //  ImGui::DragFloat( "Gravity", &mGravity, 0.01f );
+  //  ImGui::Checkbox( "Should Narrowphase", &mShouldNarrowphase );
+  //  ImGui::Checkbox( "Draw Collision", &mDebugDrawCollision );
 
-    if( ImGui::CollapsingHeader( "GJK" ) )
-    {
-      ImGui::Indent();
-      OnDestruct( ImGui::Unindent() );
-      ImGui::Checkbox( "Debugging", &mGJKDebugging );
-      ImGui::InputInt( "Max GJK Iter", &mGJKDebugMaxIter );
-      ImGui::InputInt( "Max EPA Iter", &mGJKDebugMaxEPAIter );
-      if( mGJKDebugMaxIter < 0 )
-        mGJKDebugMaxIter = 0;
-      if( mGJKDebugMaxEPAIter < 0 )
-        mGJKDebugMaxEPAIter = 0;
-    }
-  }
+  //  if( ImGui::CollapsingHeader( "GJK" ) )
+  //  {
+  //    ImGui::Indent();
+  //    OnDestruct( ImGui::Unindent() );
+  //    ImGui::Checkbox( "Debugging", &mGJKDebugging );
+  //    ImGui::InputInt( "Max GJK Iter", &mGJKDebugMaxIter );
+  //    ImGui::InputInt( "Max EPA Iter", &mGJKDebugMaxEPAIter );
+  //    if( mGJKDebugMaxIter < 0 )
+  //      mGJKDebugMaxIter = 0;
+  //    if( mGJKDebugMaxEPAIter < 0 )
+  //      mGJKDebugMaxEPAIter = 0;
+  //  }
+  //}
 
-  if( ImGui::CollapsingHeader( "Terrain" ) )
-  {
-    ImGui::Indent();
-    OnDestruct( ImGui::Unindent() );
-    int iTerrain = 0;
-    for( auto terrain : mTerrains )
-    {
-      ImGui::PushID( terrain );
-      OnDestruct( ImGui::PopID() );
-      if( !ImGui::CollapsingHeader( va( "Terrain %i", iTerrain++ ) ) )
-        continue;
-      if( ImGui::Button( "Add OBB" ) )
-      {
-        TacTerrainOBB obb = {};
-        terrain->mTerrainOBBs.push_back( obb );
-      }
-      ImGui::Indent();
-      OnDestruct( ImGui::Unindent() );
-      for( int iOBB = 0; iOBB < ( int )terrain->mTerrainOBBs.size(); ++iOBB )
-      {
-        TacTerrainOBB& obb = terrain->mTerrainOBBs[ iOBB ];
-        ImGui::PushID( &obb );
-        OnDestruct( ImGui::PopID() );
-        if( !ImGui::CollapsingHeader( ( va( "OBB %i", iOBB ) ) ) )
-          continue;
-        ImGui::Indent();
-        OnDestruct( ImGui::Unindent() );
-        ImGui::DragFloat3( "pos", obb.mPos.data(), 0.1f );
-        ImGui::DragFloat3( "extents", obb.mHalfExtents.data(), 0.1f );
-        ImGui::DragFloat3( "mEulerRads", obb.mEulerRads.data(), 0.1f );
-      }
-    }
-  }
+  //if( ImGui::CollapsingHeader( "Terrain" ) )
+  //{
+  //  ImGui::Indent();
+  //  OnDestruct( ImGui::Unindent() );
+  //  int iTerrain = 0;
+  //  for( auto terrain : mTerrains )
+  //  {
+  //    ImGui::PushID( terrain );
+  //    OnDestruct( ImGui::PopID() );
+  //    if( !ImGui::CollapsingHeader( va( "Terrain %i", iTerrain++ ) ) )
+  //      continue;
+  //    if( ImGui::Button( "Add OBB" ) )
+  //    {
+  //      TacTerrainOBB obb = {};
+  //      terrain->mTerrainOBBs.push_back( obb );
+  //    }
+  //    ImGui::Indent();
+  //    OnDestruct( ImGui::Unindent() );
+  //    for( int iOBB = 0; iOBB < ( int )terrain->mTerrainOBBs.size(); ++iOBB )
+  //    {
+  //      TacTerrainOBB& obb = terrain->mTerrainOBBs[ iOBB ];
+  //      ImGui::PushID( &obb );
+  //      OnDestruct( ImGui::PopID() );
+  //      if( !ImGui::CollapsingHeader( ( va( "OBB %i", iOBB ) ) ) )
+  //        continue;
+  //      ImGui::Indent();
+  //      OnDestruct( ImGui::Unindent() );
+  //      ImGui::DragFloat3( "pos", obb.mPos.data(), 0.1f );
+  //      ImGui::DragFloat3( "extents", obb.mHalfExtents.data(), 0.1f );
+  //      ImGui::DragFloat3( "mEulerRads", obb.mEulerRads.data(), 0.1f );
+  //    }
+  //  }
+  //}
 }
 void TacPhysics::DebugDrawCapsules()
 {

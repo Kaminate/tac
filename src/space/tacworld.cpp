@@ -5,7 +5,7 @@
 #include "space/tacgraphics.h"
 #include "space/tacphysics.h"
 #include "space/taccollider.h"
-#include "common/imgui.h"
+//#include "common/imgui.h"
 
 #include <algorithm>
 
@@ -192,29 +192,29 @@ TacSystem* TacWorld::GetSystem( TacSystemType systemType )
 }
 void TacWorld::DebugImgui()
 {
-  if( !ImGui::CollapsingHeader( "World" ) )
-    return;
-  ImGui::Indent();
-  OnDestruct( ImGui::Unindent() );
-  if( ImGui::CollapsingHeader( "Entities" ) )
-  {
-    ImGui::Indent();
-    OnDestruct( ImGui::Unindent() );
-    for( auto entity : mEntities )
-      entity->TacDebugImgui();
-  }
+  //if( !ImGui::CollapsingHeader( "World" ) )
+  //  return;
+  //ImGui::Indent();
+  //OnDestruct( ImGui::Unindent() );
+  //if( ImGui::CollapsingHeader( "Entities" ) )
+  //{
+  //  ImGui::Indent();
+  //  OnDestruct( ImGui::Unindent() );
+  //  for( auto entity : mEntities )
+  //    entity->TacDebugImgui();
+  //}
 
-  if( ImGui::CollapsingHeader( "Players" ) )
-  {
-    ImGui::Indent();
-    OnDestruct( ImGui::Unindent() );
-    for( auto player : mPlayers )
-      player->DebugImgui();
-  }
+  //if( ImGui::CollapsingHeader( "Players" ) )
+  //{
+  //  ImGui::Indent();
+  //  OnDestruct( ImGui::Unindent() );
+  //  for( auto player : mPlayers )
+  //    player->DebugImgui();
+  //}
 
-  for( auto system : mSystems )
-    system->DebugImgui();
+  //for( auto system : mSystems )
+  //  system->DebugImgui();
 
-  ImGui::Checkbox( "Draw Entity Origins", &mDebugDrawEntityOrigins );
+  //ImGui::Checkbox( "Draw Entity Origins", &mDebugDrawEntityOrigins );
 
 }

@@ -6,7 +6,7 @@
 #include "tacSettings.h"
 #include "tacMemory.h"
 
-#include "imgui.h"
+//#include "imgui.h"
 
 #include "stb_truetype.h"
 
@@ -373,39 +373,39 @@ TacFontAtlasCell* TacFontStuff::GetCell()
 }
 void TacFontStuff::DebugImgui()
 {
-  if( !ImGui::CollapsingHeader( "Font Stuff" ) )
-    return;
-  ImGui::Indent();
-  OnDestruct( ImGui::Unindent() );
-  ImGui::InputInt( "Row count", &mRowCount );
-  if( ImGui::Button( "Clear cells" ) )
-  {
-    for( auto cell : mCells )
-    {
-      cell->mOwner->mCells.erase( cell->mCodepoint );
-      delete cell;
-    }
-    mCells.clear();
-  }
+  //if( !ImGui::CollapsingHeader( "Font Stuff" ) )
+  //  return;
+  //ImGui::Indent();
+  //OnDestruct( ImGui::Unindent() );
+  //ImGui::InputInt( "Row count", &mRowCount );
+  //if( ImGui::Button( "Clear cells" ) )
+  //{
+  //  for( auto cell : mCells )
+  //  {
+  //    cell->mOwner->mCells.erase( cell->mCodepoint );
+  //    delete cell;
+  //  }
+  //  mCells.clear();
+  //}
 
-  ImGui::Checkbox( "Outline Glyphs", &mOutlineGlyphs );
-  ImGui::InputInt( "Outline Width", &mOutlineWidth );
+  //ImGui::Checkbox( "Outline Glyphs", &mOutlineGlyphs );
+  //ImGui::InputInt( "Outline Width", &mOutlineWidth );
 
-  if( mTexture )
-  {
-    auto imguitextureID = mTexture->GetImguiTextureID();
-    auto size = ImVec2( ( float )300, ( float )300 );
-    ImGui::Image( imguitextureID, size );
-  }
-  else
-  {
-    ImGui::Text( "No font atlas" );
-  }
+  //if( mTexture )
+  //{
+  //  auto imguitextureID = mTexture->GetImguiTextureID();
+  //  auto size = ImVec2( ( float )300, ( float )300 );
+  //  ImGui::Image( imguitextureID, size );
+  //}
+  //else
+  //{
+  //  ImGui::Text( "No font atlas" );
+  //}
 
-  if( !ImGui::CollapsingHeader( "Language Stuffs" ) )
-    return;
-  ImGui::Indent();
-  OnDestruct( ImGui::Unindent() );
+  //if( !ImGui::CollapsingHeader( "Language Stuffs" ) )
+  //  return;
+  //ImGui::Indent();
+  //OnDestruct( ImGui::Unindent() );
   //for( int iLanguage = 0; iLanguage < ( int )TacLanguage::Count; ++iLanguage )
   //{
   //  auto language = ( TacLanguage )iLanguage;

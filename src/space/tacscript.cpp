@@ -1,23 +1,23 @@
 #include "tacscript.h"
 #include "common/tacPreprocessor.h"
-#include "common/imgui.h"
+//#include "common/imgui.h"
 
 
 void TacScriptThread::DebugImguiOuter( TacErrors& errors )
 {
-  ImGui::PushID( this );
-  OnDestruct( ImGui::PopID() );
-  TacAssert( mName.size() );
-  if( !ImGui::CollapsingHeader( mName.c_str() ) )
-    return;
-  ImGui::Indent();
-  OnDestruct( ImGui::Unindent() );
-  ImGui::DragInt( "mLine", &mLine );
-  if( ImGui::Button( "Replay" ) )
-    mLine = 0;
-  if( ImGui::Button( "Complete" ) )
-    mIsComplete = true;
-  DebugImgui( errors );
+  //ImGui::PushID( this );
+  //OnDestruct( ImGui::PopID() );
+  //TacAssert( mName.size() );
+  //if( !ImGui::CollapsingHeader( mName.c_str() ) )
+  //  return;
+  //ImGui::Indent();
+  //OnDestruct( ImGui::Unindent() );
+  //ImGui::DragInt( "mLine", &mLine );
+  //if( ImGui::Button( "Replay" ) )
+  //  mLine = 0;
+  //if( ImGui::Button( "Complete" ) )
+  //  mIsComplete = true;
+  //DebugImgui( errors );
 }
 void TacScriptThread::SetNextKeyDelay( float seconds )
 {
@@ -88,14 +88,14 @@ void TacScriptRoot::AddChild( TacScriptThread* child )
 }
 void TacScriptRoot::DebugImgui( TacErrors& errors )
 {
-  if( !ImGui::CollapsingHeader( "Script Root" ) )
-    return;
-  ImGui::Indent();
-  OnDestruct( ImGui::Unindent() );
-  for( TacScriptThread* child : mChildren )
-  {
-    child->DebugImguiOuter( errors );
-  }
+  //if( !ImGui::CollapsingHeader( "Script Root" ) )
+  //  return;
+  //ImGui::Indent();
+  //OnDestruct( ImGui::Unindent() );
+  //for( TacScriptThread* child : mChildren )
+  //{
+  //  child->DebugImguiOuter( errors );
+  //}
 }
 void TacScriptRoot::OnMsg( const TacScriptMsg* scriptMsg )
 {

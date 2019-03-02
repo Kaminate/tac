@@ -1,4 +1,4 @@
-#include "common/imgui.h"
+//#include "common/imgui.h"
 #include "common/math/tacMath.h"
 #include "common/tacAlgorithm.h"
 #include "common/taccontrollerinput.h"
@@ -53,9 +53,9 @@ TacUser::TacUser( TacGhost* ghost, const TacString& name, TacErrors& errors )
 }
 void TacUser::DebugImgui()
 {
-  if( mPlayer )
-    mPlayer->DebugImgui();
-  ImGui::InputText( "Name", mName );
+  //if( mPlayer )
+  //  mPlayer->DebugImgui();
+  //ImGui::InputText( "Name", mName );
 }
 void TacUser::Update( TacErrors& errors )
 {
@@ -165,22 +165,22 @@ TacUser* TacGhost::AddPlayer( const TacString& name, TacErrors& errors )
 }
 void TacGhost::ImguiCreatePlayerPopup( TacErrors& errors )
 {
-  const char* popupName = "Enter Player Name";
-  const int playerNameBufSize = 100;
-  static TacString playerName;
-  if( ImGui::Button( "Spawn Player" ) )
-    ImGui::OpenPopup( popupName );
-  if( !ImGui::BeginPopup( popupName ) )
-    return;
-  OnDestruct( ImGui::EndPopup() );
-  ImGui::InputText( "Player Name: ", playerName );
-  if( playerName.empty() )
-    return;
-  if( !ImGui::Button( "Go" ) )
-    return;
-  AddPlayer( playerName, errors );
-  if( errors.size() )
-    return;
+  //const char* popupName = "Enter Player Name";
+  //const int playerNameBufSize = 100;
+  //static TacString playerName;
+  //if( ImGui::Button( "Spawn Player" ) )
+  //  ImGui::OpenPopup( popupName );
+  //if( !ImGui::BeginPopup( popupName ) )
+  //  return;
+  //OnDestruct( ImGui::EndPopup() );
+  //ImGui::InputText( "Player Name: ", playerName );
+  //if( playerName.empty() )
+  //  return;
+  //if( !ImGui::Button( "Go" ) )
+  //  return;
+  //AddPlayer( playerName, errors );
+  //if( errors.size() )
+  //  return;
 }
 void TacGhost::Update( TacErrors& errors )
 {
@@ -423,10 +423,10 @@ void TacGhost::Draw( TacErrors& errors )
     //renderer->Apply();
     //renderer->DrawIndexed( renderer->m2DNDCQuadIB->indexCount, 0, 0 );
   }
-  if( mDrawText )
-  {
-    mUIRoot->Render( errors );
-  }
+  //if( mDrawText )
+  //{
+  //  mUIRoot->Render( errors );
+  //}
 }
 void TacGhost::PopulateWorldInitial()
 {

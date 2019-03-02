@@ -1,8 +1,8 @@
-#include "tackeyboardinput.h"
-#include "tacPreprocessor.h"
+#include "common/tackeyboardinput.h"
+#include "common/tacPreprocessor.h"
 #include "common/containers/tacVector.h"
-#include "imgui.h" 
-#include "tacUtility.h"
+//#include "imgui.h" 
+#include "common/tacUtility.h"
 
 TacString ToString( TacKey key )
 {
@@ -83,7 +83,7 @@ bool TacKeyboardInput::IsKeyDown( TacKey key )
 }
 void TacKeyboardInput::DebugImgui()
 {
-  ImGui::Text( mCurr.GetPressedKeyDescriptions() );
+  //ImGui::Text( mCurr.GetPressedKeyDescriptions() );
 }
 void TacKeyboardInput::SetIsKeyDown( TacKey key, bool isDown )
 {

@@ -3,7 +3,7 @@
 #include "space/tacworld.h"
 #include "space/tacsystem.h"
 #include "common/tacPreprocessor.h"
-#include "common/imgui.h"
+//#include "common/imgui.h"
 
 #include <algorithm>
 
@@ -87,7 +87,7 @@ void TacEntity::DeepCopy( const TacEntity& entity )
 
 void TacEntity::TacDebugImgui()
 {
-#if 1
+#if 0
   ImGui::PushID( this );
   OnDestruct( ImGui::PopID() );
   if( !ImGui::CollapsingHeader( va( "Entity id %i", mEntityUUID ), ImGuiTreeNodeFlags_DefaultOpen ) )

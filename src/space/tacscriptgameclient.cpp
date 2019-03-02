@@ -6,7 +6,7 @@
 #include "common/tacNet.h"
 #include "common/tacJson.h"
 #include "common/tacMemory.h"
-#include "common/imgui.h"
+//#include "common/imgui.h"
 #include "common/stb_image.h"
 #include "common/tacOS.h"
 #include "common/tacUI.h"
@@ -144,9 +144,9 @@ void TacScriptSplash::Update( float seconds, TacErrors& errors )
 }
 void TacScriptSplash::DebugImgui( TacErrors& errors )
 {
-  ImGui::DragFloat( "Fully visible sec", &mFullyVisibleSec );
-  ImGui::DragFloat( "Fade sec total", &mFadeSecTotal );
-  ImGui::Checkbox( "Skip splash screen", &mSkipSplashScreen );
+  //ImGui::DragFloat( "Fully visible sec", &mFullyVisibleSec );
+  //ImGui::DragFloat( "Fade sec total", &mFadeSecTotal );
+  //ImGui::Checkbox( "Skip splash screen", &mSkipSplashScreen );
 }
 
 TacScriptMatchmaker::TacScriptMatchmaker()
@@ -286,25 +286,25 @@ void TacScriptMatchmaker::Update( float seconds, TacErrors& errors )
 }
 void TacScriptMatchmaker::DebugImgui( TacErrors& errors )
 {
-  ImGui::Checkbox( "auto-spam server", &mShouldSpamServer );
-  ImGui::Checkbox( "Log received messages", &mLogReceivedMessages );
-  ImGui::Checkbox( "Try auto connect", &mTryAutoConnect );
+  //ImGui::Checkbox( "auto-spam server", &mShouldSpamServer );
+  //ImGui::Checkbox( "Log received messages", &mLogReceivedMessages );
+  //ImGui::Checkbox( "Try auto connect", &mTryAutoConnect );
 
 
-  if( mSocket )
-  {
-    if( ImGui::Button( "Poke server" ) )
-      PokeServer( errors );
-    if( ImGui::Button( "Clear server log" ) )
-      ClearServerLog( errors );
-    if( !mSocket->mTCPIsConnected && !mTryAutoConnect && ImGui::Button( "Try Connect" ) )
-    {
-      mSocket->TCPTryConnect( mHostname, mPort, errors );
-      if( errors.size() )
-        return;
-    }
-    mSocket->DebugImgui();
-  }
+  //if( mSocket )
+  //{
+  //  if( ImGui::Button( "Poke server" ) )
+  //    PokeServer( errors );
+  //  if( ImGui::Button( "Clear server log" ) )
+  //    ClearServerLog( errors );
+  //  if( !mSocket->mTCPIsConnected && !mTryAutoConnect && ImGui::Button( "Try Connect" ) )
+  //  {
+  //    mSocket->TCPTryConnect( mHostname, mPort, errors );
+  //    if( errors.size() )
+  //      return;
+  //  }
+  //  mSocket->DebugImgui();
+  //}
 }
 
 TacScriptMainMenu::TacScriptMainMenu()

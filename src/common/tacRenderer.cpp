@@ -1,11 +1,11 @@
 
-#include "tacRenderer.h"
-#include "tacPreprocessor.h"
-#include "tacAlgorithm.h"
-#include "tacShell.h"
-#include "tacOS.h"
+#include "common/tacRenderer.h"
+#include "common/tacPreprocessor.h"
+#include "common/tacAlgorithm.h"
+#include "common/tacShell.h"
+#include "common/tacOS.h"
 
-#include "imgui.h"
+//#include "imgui.h"
 
 const char* TacGetSemanticName( TacAttribute attribType )
 {
@@ -326,51 +326,51 @@ void TacRenderer::UnloadDefaultGraphicsObjects()
 
 void TacRenderer::DebugImgui()
 {
-  if( !ImGui::CollapsingHeader( "Renderer" ) )
-    return;
-  ImGui::Indent();
-  OnDestruct( ImGui::Unindent() );
-  if( ImGui::CollapsingHeader( "Shaders" ) )
-  {
-    ImGui::Indent();
-    OnDestruct( ImGui::Unindent() );
-    auto reloadAll = ImGui::Button( "Reload all shaders" );
-    TacVector< TacShader*>shaders;
-    GetShaders( shaders );
-    for( auto shader : shaders )
-    {
-      auto reloadShader = reloadAll || ImGui::Button( shader->mName.c_str() );
-      if( !reloadShader )
-        continue;
-      ReloadShader( shader, mShaderReloadErrors );
-    }
-    ImGui::Text( mShaderReloadErrors.mMessage );
-  }
+  //if( !ImGui::CollapsingHeader( "Renderer" ) )
+  //  return;
+  //ImGui::Indent();
+  //OnDestruct( ImGui::Unindent() );
+  //if( ImGui::CollapsingHeader( "Shaders" ) )
+  //{
+  //  ImGui::Indent();
+  //  OnDestruct( ImGui::Unindent() );
+  //  auto reloadAll = ImGui::Button( "Reload all shaders" );
+  //  TacVector< TacShader*>shaders;
+  //  GetShaders( shaders );
+  //  for( auto shader : shaders )
+  //  {
+  //    auto reloadShader = reloadAll || ImGui::Button( shader->mName.c_str() );
+  //    if( !reloadShader )
+  //      continue;
+  //    ReloadShader( shader, mShaderReloadErrors );
+  //  }
+  //  ImGui::Text( mShaderReloadErrors.mMessage );
+  //}
 
-  if( ImGui::CollapsingHeader( "Textures" ) )
-  {
-    ImGui::Indent();
-    OnDestruct( ImGui::Unindent() );
-    TacVector< TacTexture* > textures;
-    GetTextures( textures );
-    for( auto texture : textures )
-    {
-      ImGui::PushID( texture );
-      OnDestruct( ImGui::PopID() );
-      if( ImGui::CollapsingHeader( texture->mName.c_str() ) )
-      {
-        ImGui::Indent();
-        OnDestruct( ImGui::Unindent() );
-        ImGui::Text( "Width: %ipx", texture->myImage.mWidth );
-        ImGui::Text( "Height: %ipx", texture->myImage.mHeight );
-        float w = 0.9f * ImGui::GetContentRegionAvailWidth();
-        float h = w / texture->GetAspect();
-        auto id = texture->GetImguiTextureID();
-        auto size = ImVec2( w, h );
-        ImGui::Image( id, size );
-      }
-    }
-  }
+  //if( ImGui::CollapsingHeader( "Textures" ) )
+  //{
+  //  ImGui::Indent();
+  //  OnDestruct( ImGui::Unindent() );
+  //  TacVector< TacTexture* > textures;
+  //  GetTextures( textures );
+  //  for( auto texture : textures )
+  //  {
+  //    ImGui::PushID( texture );
+  //    OnDestruct( ImGui::PopID() );
+  //    if( ImGui::CollapsingHeader( texture->mName.c_str() ) )
+  //    {
+  //      ImGui::Indent();
+  //      OnDestruct( ImGui::Unindent() );
+  //      ImGui::Text( "Width: %ipx", texture->myImage.mWidth );
+  //      ImGui::Text( "Height: %ipx", texture->myImage.mHeight );
+  //      float w = 0.9f * ImGui::GetContentRegionAvailWidth();
+  //      float h = w / texture->GetAspect();
+  //      auto id = texture->GetImguiTextureID();
+  //      auto size = ImVec2( w, h );
+  //      ImGui::Image( id, size );
+  //    }
+  //  }
+  //}
 }
 
 const float sizeInMagicUISpaceUnits = 1024.0f;
@@ -532,27 +532,27 @@ void TacRenderer::DebugDraw(
 void TacDrawCall::DebugImgui()
 {
 
-  ImGui::PushID( this );
-  OnDestruct( ImGui::PopID() );
+  //ImGui::PushID( this );
+  //OnDestruct( ImGui::PopID() );
 
-  if( !ImGui::CollapsingHeader( "Draw call" ) )
-    return;
-  ImGui::Indent();
-  OnDestruct( ImGui::Unindent() );
+  //if( !ImGui::CollapsingHeader( "Draw call" ) )
+  //  return;
+  //ImGui::Indent();
+  //OnDestruct( ImGui::Unindent() );
 
-  if( mTexture )
-  {
-    ImGui::Text( "Texture: " + mTexture->mName );
-    float w = 0.9f * ImGui::GetContentRegionAvailWidth();
-    float h = w / mTexture->GetAspect();
-    ImGui::Image( mTexture->GetImguiTextureID(), ImVec2( w, h ) );
-  }
-  ImGui::ColorEdit4( "color", mColor.data() );
-  ImGui::Checkbox( "scissor test", &mScissorTest );
-  ImGui::Checkbox( "scissor debug", &mScissorDebugging );
-  ImGui::DragFloat2( "scissor min", mScissorRectMinUISpace.data() );
-  ImGui::DragFloat2( "scissor max", mScissorRectMaxUISpace.data() );
-  ImGui::DragInt( "Index count", &mIndexCount );
+  //if( mTexture )
+  //{
+  //  ImGui::Text( "Texture: " + mTexture->mName );
+  //  float w = 0.9f * ImGui::GetContentRegionAvailWidth();
+  //  float h = w / mTexture->GetAspect();
+  //  ImGui::Image( mTexture->GetImguiTextureID(), ImVec2( w, h ) );
+  //}
+  //ImGui::ColorEdit4( "color", mColor.data() );
+  //ImGui::Checkbox( "scissor test", &mScissorTest );
+  //ImGui::Checkbox( "scissor debug", &mScissorDebugging );
+  //ImGui::DragFloat2( "scissor min", mScissorRectMinUISpace.data() );
+  //ImGui::DragFloat2( "scissor max", mScissorRectMaxUISpace.data() );
+  //ImGui::DragInt( "Index count", &mIndexCount );
 }
 
 void TacRendererFactory::CreateRendererOuter( TacRenderer** renderer )

@@ -1,5 +1,6 @@
 #include "common/tacUI2D.h"
 #include "common/tacUI.h"
+#include "common/tacImGui.h"
 #include "common/containers/tacArray.h"
 #include "common/math/tacMath.h"
 

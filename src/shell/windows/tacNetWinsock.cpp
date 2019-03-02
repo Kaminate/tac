@@ -6,7 +6,7 @@
 #include "common/tacSettings.h"
 #include "common/tacAlgorithm.h"
 
-#include "common/imgui.h"
+//#include "common/imgui.h"
 
 #include <iostream>
 #include <thread> // std::this_thread::sleep_for
@@ -246,18 +246,18 @@ TacVector< TacSocket* > TacNetWinsock::GetSockets()
 }
 void TacNetWinsock::DebugImgui()
 {
-  if( !ImGui::CollapsingHeader( "Network" ) )
-    return;
-  ImGui::Indent();
-  OnDestruct( ImGui::Unindent() );
-  ImGui::Checkbox( "Print received messages", &mPrintReceivedMessages );
-  ImGui::DragFloat( "Keepalive interval seconds", &mKeepaliveIntervalSeconds );
-  if( ImGui::Button( "Send keepalive now" ) )
-    mKeepaliveNextSeconds = 0;
-  for( auto netWinsocket : mSocketWinsocks )
-  {
-    netWinsocket->DebugImgui();
-  }
+  //if( !ImGui::CollapsingHeader( "Network" ) )
+  //  return;
+  //ImGui::Indent();
+  //OnDestruct( ImGui::Unindent() );
+  //ImGui::Checkbox( "Print received messages", &mPrintReceivedMessages );
+  //ImGui::DragFloat( "Keepalive interval seconds", &mKeepaliveIntervalSeconds );
+  //if( ImGui::Button( "Send keepalive now" ) )
+  //  mKeepaliveNextSeconds = 0;
+  //for( auto netWinsocket : mSocketWinsocks )
+  //{
+  //  netWinsocket->DebugImgui();
+  //}
 }
 void TacNetWinsock::Update( TacErrors& errors )
 {

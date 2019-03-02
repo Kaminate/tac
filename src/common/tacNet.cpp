@@ -1,9 +1,9 @@
-#include "tacNet.h"
-#include "tacPreprocessor.h"
-#include "tacUtility.h"
-#include "tacTime.h"
+#include "common/tacNet.h"
+#include "common/tacPreprocessor.h"
+#include "common/tacUtility.h"
+#include "common/tacTime.h"
 
-#include "imgui.h"
+//#include "imgui.h"
 
 
 TacString ToString( TacAddressFamily addressFamily )
@@ -29,17 +29,17 @@ TacString ToString( TacSocketType socketType )
 
 void TacSocket::DebugImgui()
 {
-  if( !ImGui::CollapsingHeader( mName.c_str() ) )
-    return;
-  ImGui::Indent();
-  OnDestruct( ImGui::Unindent() );
-  TacString time = TacFormatFrameTime( mNet->mShell->mElapsedSeconds - mElapsedSecondsOnLastRecv );
-  ImGui::Text( "Address Family: %s", ToString( mAddressFamily ).c_str() );
-  ImGui::Text( "Socket Type: %s", ToString( mSocketType ).c_str() );
-  ImGui::Text( "Last recvd msg: %s", time.c_str() );
-  if( ImGui::Button( "Request socket deletion" ) )
-    mRequestDeletion = true;
-  ImGui::Checkbox( "TCP is connected", &mTCPIsConnected );
+  //if( !ImGui::CollapsingHeader( mName.c_str() ) )
+  //  return;
+  //ImGui::Indent();
+  //OnDestruct( ImGui::Unindent() );
+  //TacString time = TacFormatFrameTime( mNet->mShell->mElapsedSeconds - mElapsedSecondsOnLastRecv );
+  //ImGui::Text( "Address Family: %s", ToString( mAddressFamily ).c_str() );
+  //ImGui::Text( "Socket Type: %s", ToString( mSocketType ).c_str() );
+  //ImGui::Text( "Last recvd msg: %s", time.c_str() );
+  //if( ImGui::Button( "Request socket deletion" ) )
+  //  mRequestDeletion = true;
+  //ImGui::Checkbox( "TCP is connected", &mTCPIsConnected );
 }
 
 void TacSocket::Send( const TacString& s, TacErrors& errors )
