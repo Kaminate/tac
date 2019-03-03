@@ -5,6 +5,7 @@
 #include "common/tacImGui.h"
 #include "common/tacUI2D.h"
 #include "common/tacDesktopWindow.h"
+#include "common/tacOS.h"
 #include "common/tacShell.h"
 #include "space/tacentity.h"
 #include "space/tacworld.h"
@@ -28,8 +29,30 @@ void TacCreationPropertyWindow::Init( TacErrors& errors )
 
 }
 
+void TacCreationPropertyWindow::SetImGuiGlobals()
+{
+  TacErrors screenspaceCursorPosErrors;
+  v2 screenspaceCursorPos;
+  TacOS::Instance->GetScreenspaceCursorPos( screenspaceCursorPos, screenspaceCursorPosErrors );
+  if( screenspaceCursorPosErrors.empty() )
+  {
+    gTacImGuiGlobals.mMousePositionDesktopWindowspace = {
+      screenspaceCursorPos.x - mDesktopWindow->mX,
+      screenspaceCursorPos.y - mDesktopWindow->mY };
+    gTacImGuiGlobals.mIsWindowDirectlyCursor = mDesktopWindow->mCursorUnobscured;
+  }
+  else
+  {
+    gTacImGuiGlobals.mIsWindowDirectlyCursor = false;
+  }
+  gTacImGuiGlobals.mUI2DDrawData = mUI2DDrawData;
+  gTacImGuiGlobals.mKeyboardInput = mShell->mKeyboardInput;
+  gTacImGuiGlobals.mElapsedSeconds = mShell->mElapsedSeconds;
+}
+
 void TacCreationPropertyWindow::Update( TacErrors& errors )
 {
+  static bool areYouHappy;
 
   mDesktopWindow->SetRenderViewDefaults();
   mUIRoot->Update();
@@ -43,63 +66,49 @@ void TacCreationPropertyWindow::Update( TacErrors& errors )
     mCreation->CreateEntity();
   }
 
-  static bool areYouHappy;
+  SetImGuiGlobals();
 
-  mUIRoot->mImGuiWindow->mSize =
-  {
-    ( float )mDesktopWindow->mWidth,
-    ( float )mDesktopWindow->mHeight
-  };
-  mUIRoot->mImGuiWindow->BeginFrame();
 
+  TacImGuiBegin( "Properties", {} );
+  TacImGuiBeginGroup();
+  TacImGuiBeginChild( "Hierarchy", v2( 250, -100 ) );
+  TacWorld* world = mCreation->mWorld;
+  for( TacEntity* entity : world->mEntities )
   {
-    mUIRoot->mImGuiWindow->BeginGroup();
+    bool isSelected = mCreation->mSelectedEntity == entity;
+    if( TacImGuiSelectable( entity->mName, isSelected ) )
     {
-      TacImGuiWindow* hierarchy = mUIRoot->mImGuiWindow->BeginChild( "Hierarchy", v2( 250, -100 ) );
-
-      TacWorld* world = mCreation->mWorld;
-      for( TacEntity* entity : world->mEntities )
-      {
-        bool isSelected = mCreation->mSelectedEntity == entity;
-        if( hierarchy->Selectable( entity->mName, isSelected ) )
-        {
-          mCreation->mSelectedEntity = entity;
-        }
-      }
-      hierarchy->EndChild();
+      mCreation->mSelectedEntity = entity;
     }
-    if( mUIRoot->mImGuiWindow->Button( "Create Entity" ) )
-      mCreation->CreateEntity();
-    mUIRoot->mImGuiWindow->EndGroup();
   }
+  TacImGuiEndChild();
+  if( TacImGuiButton( "Create Entity" ) )
+    mCreation->CreateEntity();
+  TacImGuiEndGroup();
+  TacImGuiSameLine();
+  TacImGuiBeginGroup();
 
-  mUIRoot->mImGuiWindow->SameLine();
-
+  if( TacEntity* entity = mCreation->mSelectedEntity )
   {
-    mUIRoot->mImGuiWindow->BeginGroup();
-
-    if( TacEntity* entity = mCreation->mSelectedEntity )
+    TacImGuiInputText( "Name", entity->mName );
+    TacImGuiText( entity->mName );
+    TacImGuiText( "UUID: " + TacToString( ( TacUUID )entity->mEntityUUID ) );
+    TacImGuiText( "Position: " +
+      TacToString( entity->mPosition.x ) + " " +
+      TacToString( entity->mPosition.y ) + " " +
+      TacToString( entity->mPosition.z ) );
+    for( TacComponent* component : entity->mComponents )
     {
-      mUIRoot->mImGuiWindow->InputText( "Name", entity->mName );
-      mUIRoot->mImGuiWindow->Text( entity->mName );
-      mUIRoot->mImGuiWindow->Text( "UUID: " + TacToString( ( TacUUID )entity->mEntityUUID ) );
-      mUIRoot->mImGuiWindow->Text( "Position: " +
-        TacToString( entity->mPosition.x ) + " " +
-        TacToString( entity->mPosition.y ) + " " +
-        TacToString( entity->mPosition.z ) );
-      for( TacComponent* component : entity->mComponents )
-      {
-        TacComponentType componentType = component->GetComponentType();
-        TacString componentName = TacToString( componentType );
-        mUIRoot->mImGuiWindow->Text( componentName + " component" );
-      }
-      mUIRoot->mImGuiWindow->Button( "Add component" );
+      TacComponentType componentType = component->GetComponentType();
+      TacString componentName = TacToString( componentType );
+      TacImGuiText( componentName + " component" );
     }
-    mUIRoot->mImGuiWindow->Button( "C" );
-    mUIRoot->mImGuiWindow->Checkbox( "Happy", &areYouHappy );
-    mUIRoot->mImGuiWindow->EndGroup();
+    TacImGuiButton( "Add component" );
   }
-
+  TacImGuiButton( "C" );
+  TacImGuiCheckbox( "Happy", &areYouHappy );
+  TacImGuiEndGroup();
+  TacImGuiEnd();
 
   mUI2DDrawData->DrawToTexture( errors );
   TAC_HANDLE_ERROR( errors );

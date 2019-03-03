@@ -8,8 +8,7 @@
 #include "common/tacOS.h"
 #include "common/tacTextEdit.h"
 
-//TacUIRoot* mUIRoot = nullptr;
-
+TacImGuiGlobals gTacImGuiGlobals;
 
 struct TacUIStyle
 {
@@ -23,46 +22,11 @@ struct TacUIStyle
   v4 textColor = { 1, 1, 0, 1 };
 } gStyle;
 
-TacVector< TacImGuiWindow* > gTacImGuiWindows;
-static TacImGuiWindow* TacImGuiFindWindow( const TacString& name )
-{
-  for( TacImGuiWindow* window : gTacImGuiWindows )
-  {
-    if( window->mName == name )
-      return window;
-  }
-  return nullptr;
-}
-
-TacImGuiWindow* TacImGuiWindow::BeginChild( const TacString& name, v2 size )
-{
-  TacImGuiWindow* child = TacImGuiFindWindow( name );
-  if( !child )
-  {
-    child = new TacImGuiWindow;
-    child->mName = name;
-    child->mParent = this;
-    child->mUIRoot = mUIRoot;
-    gTacImGuiWindows.push_back( child );
-  }
-
-  child->mSize =
-  {
-    size.x > 0 ? size.x : mSize.x + size.x,
-    size.y > 0 ? size.y : mSize.y + size.y
-  };
-
-  child->BeginFrame();
-  return child;
-}
-void TacImGuiWindow::EndChild()
-{
-  TacAssert( mParent );
-  mParent->ItemSize( mSize );
-}
 void TacImGuiWindow::BeginFrame()
 {
-  TacUI2DDrawData* ui2DDrawData = mUIRoot->mUI2DDrawData;
+  TacUI2DDrawData* ui2DDrawData = gTacImGuiGlobals.mUI2DDrawData;
+  TacKeyboardInput* keyboardInput = gTacImGuiGlobals.mKeyboardInput;
+
   if( mParent )
   {
     mPos = mParent->mCurrCursorDrawPos;
@@ -123,11 +87,11 @@ void TacImGuiWindow::BeginFrame()
         mScroll = TacClamp( mouseDY, scrollMin, scrollMax );
       }
 
-      if( !mUIRoot->mKeyboardInput->IsKeyDown( TacKey::MouseLeft ) )
+      if( !keyboardInput->IsKeyDown( TacKey::MouseLeft ) )
         mScrolling = false;
     }
-    else if( mUIRoot->mKeyboardInput->IsKeyJustDown( TacKey::MouseLeft ) &&
-      IsHovered( TacImGuiRect::FromMinMax( mini, maxi ) ) )
+    else if( keyboardInput->IsKeyJustDown( TacKey::MouseLeft ) &&
+      gTacImGuiGlobals.IsHovered( TacImGuiRect::FromMinMax( mini, maxi ) ) )
     {
       TacErrors mouseErrors;
       v2 mousePosScreenspace;
@@ -163,114 +127,6 @@ void TacImGuiWindow::BeginFrame()
   mCurrLineHeight = 0;
   mPrevLineHeight = 0;
 }
-
-void TacImGuiWindow::Checkbox( const TacString& str, bool* value )
-{
-  v2 pos = mCurrCursorDrawPos;
-
-  v2 textSize = mUIRoot->mUI2DDrawData->CalculateTextSize( str, gStyle.fontSize );
-  textSize.y;
-
-  float boxWidth = textSize.y;
-  v2 boxSize = v2( 1, 1 ) * boxWidth;
-
-  v2 totalSize = v2( boxWidth + gStyle.itemSpacing.x + textSize.x, textSize.y );
-  ItemSize( totalSize );
-
-  bool clipped;
-  auto clipRect = TacImGuiRect::FromPosSize( pos, totalSize );
-  ComputeClipInfo( &clipped, &clipRect );
-  if( clipped )
-    return;
-
-  bool hovered = IsHovered( clipRect );
-
-  // TODO: move to a drawData->rect( topleft, bottomright, rounding )
-  TacUI2DDrawData* mUI2DDrawData = mUIRoot->mUI2DDrawData;
-  TacUI2DCommonData* mUI2DCommonData = mUI2DDrawData->mUI2DCommonData;
-
-  v4 outerBoxColor = v4( 1, 1, 0, 1 );
-  if( hovered )
-  {
-    outerBoxColor = v4( 0.5f, 0.5f, 0, 1 );
-    if( mUIRoot->mKeyboardInput->IsKeyDown( TacKey::MouseLeft ) )
-    {
-      outerBoxColor = v4( 0.3f, 0.3f, 0, 1 );
-    }
-    if( mUIRoot->mKeyboardInput->IsKeyJustDown( TacKey::MouseLeft ) )
-    {
-      *value = !*value;
-    }
-  }
-
-  mUI2DDrawData->AddBox( pos, pos + boxSize, outerBoxColor, nullptr, &clipRect );
-  if( *value )
-  {
-    v4 checkmarkColor = v4( outerBoxColor.xyz() / 2.0f, 1.0f );
-    bool drawCheckmark = false;
-    if( drawCheckmark )
-    {
-
-      // (0,0)-------+
-      // |         3 |
-      // |       //  |
-      // | 0 __2 /   |
-      // |   \  /    |
-      // |     1     |
-      // +-------(1,1)
-      v2 p0 = { 0.2f, 0.4f };
-      v2 p1 = { 0.45f, 0.9f };
-      v2 p2 = { 0.45f, 0.60f };
-      v2 p3 = { 0.9f, 0.1f };
-      for( v2* point : { &p0, &p1, &p2, &p3 } )
-      {
-        point->x = pos.x + point->x * boxWidth;
-        point->y = pos.y + point->y * boxWidth;
-      }
-      int iVert = mUI2DDrawData->mDefaultVertex2Ds.size();
-      int iIndex = mUI2DDrawData->mDefaultIndex2Ds.size();
-      mUI2DDrawData->mDefaultIndex2Ds.push_back( iVert + 0 );
-      mUI2DDrawData->mDefaultIndex2Ds.push_back( iVert + 1 );
-      mUI2DDrawData->mDefaultIndex2Ds.push_back( iVert + 2 );
-      mUI2DDrawData->mDefaultIndex2Ds.push_back( iVert + 1 );
-      mUI2DDrawData->mDefaultIndex2Ds.push_back( iVert + 3 );
-      mUI2DDrawData->mDefaultIndex2Ds.push_back( iVert + 2 );
-      mUI2DDrawData->mDefaultVertex2Ds.resize( iVert + 4 );
-      TacDefaultVertex2D* defaultVertex2D = &mUI2DDrawData->mDefaultVertex2Ds[ iVert ];
-      defaultVertex2D->mPosition = p0;
-      defaultVertex2D++;
-      defaultVertex2D->mPosition = p1;
-      defaultVertex2D++;
-      defaultVertex2D->mPosition = p2;
-      defaultVertex2D++;
-      defaultVertex2D->mPosition = p3;
-
-      CBufferPerObject perObjectData = {};
-      perObjectData.World = m4::Identity();
-      perObjectData.Color = checkmarkColor;
-
-      TacUI2DDrawCall drawCall;
-      drawCall.mIIndexCount = 6;
-      drawCall.mIIndexStart = iIndex;
-      drawCall.mIVertexCount = 4;
-      drawCall.mIVertexStart = iVert;
-      drawCall.mShader = mUI2DCommonData->m2DTextShader;
-      drawCall.mUniformSource = TacTemporaryMemory( perObjectData );
-      mUI2DDrawData->mDrawCall2Ds.push_back( drawCall );
-    }
-    else
-    {
-      v2 innerPadding = v2( 1, 1 ) * 3;
-      mUI2DDrawData->AddBox( pos + innerPadding, pos + boxSize - innerPadding, checkmarkColor, nullptr, &clipRect );
-    }
-  }
-
-  v2 textPos = {
-    pos.x + boxWidth + gStyle.itemSpacing.x,
-    pos.y };
-  mUI2DDrawData->AddText( textPos, gStyle.fontSize, str, gStyle.textColor, &clipRect );
-}
-
 void TacImGuiWindow::ComputeClipInfo( bool* clipped, TacImGuiRect* clipRect )
 {
   auto windowRect = TacImGuiRect::FromPosSize( mPos, mSize );
@@ -289,116 +145,6 @@ void TacImGuiWindow::ComputeClipInfo( bool* clipped, TacImGuiRect* clipRect )
   clipRect->mMaxi.y = TacMin( clipRect->mMaxi.y, windowRect.mMaxi.y );
   *clipped = false;
 }
-
-bool TacImGuiWindow::IsHovered( const TacImGuiRect& rect )
-{
-  if( !mUIRoot->mDesktopWindow->mCursorUnobscured )
-    return false;
-
-  TacErrors errors;
-  v2 mousePosScreenspace = {};
-  TacOS::Instance->GetScreenspaceCursorPos( mousePosScreenspace, errors );
-  if( errors.size() )
-    return false;
-
-  v2 mousePosWindowspace = mousePosScreenspace - v2(
-    ( float )mUIRoot->mDesktopWindow->mX,
-    ( float )mUIRoot->mDesktopWindow->mY );
-  return
-    mousePosWindowspace.x > rect.mMini.x &&
-    mousePosWindowspace.x < rect.mMaxi.x &&
-    mousePosWindowspace.y > rect.mMini.y &&
-    mousePosWindowspace.y < rect.mMaxi.y;
-}
-
-bool TacImGuiWindow::Button( const TacString& str )
-{
-  bool justClicked = false;
-  v2 textSize = mUIRoot->mUI2DDrawData->CalculateTextSize( str, gStyle.fontSize );
-  v2 buttonSize = { textSize.x + 2 * gStyle.buttonPadding, textSize.y };
-  v2 pos = mCurrCursorDrawPos;
-  ItemSize( textSize );
-
-
-  bool clipped;
-  auto clipRect = TacImGuiRect::FromPosSize( pos, buttonSize );
-  ComputeClipInfo( &clipped, &clipRect );
-  if( clipped )
-    return justClicked;
-
-  bool hovered = IsHovered( clipRect );
-
-  v3 outerBoxColor = v3( .23f, .28f, .38f );
-  if( hovered )
-  {
-    outerBoxColor /= 2.0f;
-    if( mUIRoot->mKeyboardInput->IsKeyDown( TacKey::MouseLeft ) )
-    {
-      outerBoxColor /= 2.0f;
-    }
-    if( mUIRoot->mKeyboardInput->IsKeyJustDown( TacKey::MouseLeft ) )
-    {
-      justClicked = true;
-    }
-  }
-
-  mUIRoot->mUI2DDrawData->AddBox( pos, pos + buttonSize, v4( outerBoxColor, 1 ), nullptr, &clipRect );
-
-  v2 textPos = {
-    pos.x + gStyle.buttonPadding,
-    pos.y };
-  mUIRoot->mUI2DDrawData->AddText( textPos, gStyle.fontSize, str, gStyle.textColor, &clipRect );
-
-  return justClicked;
-}
-
-bool TacImGuiWindow::Selectable( const TacString& str, bool selected )
-{
-  bool clicked = false;
-  v2 pos = mCurrCursorDrawPos;
-  v2 buttonSize = {
-    mContentRect.mMaxi.x - pos.x,
-    ( float )gStyle.fontSize };
-
-  ItemSize( buttonSize );
-
-  bool clipped;
-  auto clipRect = TacImGuiRect::FromPosSize( pos, buttonSize );
-  ComputeClipInfo( &clipped, &clipRect );
-  if( clipped )
-    return clicked;
-
-  v3 color3 = v3( 0.7f, 0.3f, 0.3f ) * 0.7f;
-  if( selected )
-    color3 = ( color3 + v3( 1, 1, 1 ) ) * 0.3f;
-
-
-  bool hovered = IsHovered( clipRect );
-  if( hovered )
-  {
-    color3 /= 2.0f;
-    if( mUIRoot->mKeyboardInput->IsKeyJustDown( TacKey::MouseLeft ) )
-    {
-      color3 /= 2.0f;
-      clicked = true;
-    }
-  }
-
-  v4 color( color3, 1 );
-
-  mUIRoot->mUI2DDrawData->AddBox( pos, pos + buttonSize, color, nullptr, &clipRect );
-  mUIRoot->mUI2DDrawData->AddText( pos, gStyle.fontSize, str, gStyle.textColor, &clipRect );
-  return clicked;
-}
-
-void TacImGuiWindow::SameLine()
-{
-  mCurrCursorDrawPos = {
-    mPrevCursorDrawPos.x + gStyle.itemSpacing.x,
-    mPrevCursorDrawPos.y };
-  mCurrLineHeight = mPrevLineHeight;
-}
-
 void TacImGuiWindow::ItemSize( v2 size )
 {
   mPrevLineHeight = TacMax( mCurrLineHeight, size.y );
@@ -411,49 +157,10 @@ void TacImGuiWindow::ItemSize( v2 size )
     mPrevCursorDrawPos.y + mPrevLineHeight + gStyle.itemSpacing.y };
   mCurrLineHeight = 0;
 }
-
-void TacImGuiWindow::BeginGroup()
-{
-  mGroupSavedCursorDrawPos = mCurrCursorDrawPos;
-  mXOffsets.push_back( mCurrCursorDrawPos.x - mPos.x );
-  // restore on end group?
-  mCurrLineHeight = 0;
-}
-void TacImGuiWindow::EndGroup()
-{
-  mXOffsets.pop_back();
-  v2 groupEndPos = {
-    mMaxiCursorDrawPos.x,
-    mMaxiCursorDrawPos.y + mPrevLineHeight };
-  v2 groupSize = groupEndPos - mGroupSavedCursorDrawPos;
-  mCurrCursorDrawPos = mGroupSavedCursorDrawPos;
-  ItemSize( groupSize );
-}
-
 void TacImGuiWindow::UpdateMaxCursorDrawPos( v2 pos )
 {
   mMaxiCursorDrawPos.x = TacMax( mMaxiCursorDrawPos.x, pos.x );
   mMaxiCursorDrawPos.y = TacMax( mMaxiCursorDrawPos.y, pos.y );
-}
-
-void TacImGuiWindow::Text( const TacString& utf8 )
-{
-  //auto state = mUIRoot->mUI2DDrawData->PushState();
-  //state->Draw2DText(...);
-
-  v2 textPos = mCurrCursorDrawPos;
-  v2 textSize = mUIRoot->mUI2DDrawData->CalculateTextSize( utf8, gStyle.fontSize );
-
-
-  ItemSize( textSize );
-
-  bool clipped;
-  auto clipRect = TacImGuiRect::FromPosSize( textPos, textSize );
-  ComputeClipInfo( &clipped, &clipRect );
-  if( clipped )
-    return;
-
-  mUIRoot->mUI2DDrawData->AddText( textPos, gStyle.fontSize, utf8, gStyle.textColor, &clipRect );
 }
 
 static int TacGetCaret(
@@ -494,12 +201,148 @@ static bool AreEqual(
   return true;
 }
 
-bool TacImGuiWindow::InputText( const TacString& label, TacString& text )
+TacImGuiRect TacImGuiRect::FromPosSize( v2 pos, v2 size )
 {
-  TacErrors cursorErrors;
+  TacImGuiRect result;
+  result.mMini = pos;
+  result.mMaxi = pos + size;
+  return result;
+}
+TacImGuiRect TacImGuiRect::FromMinMax( v2 mini, v2 maxi )
+{
+  TacImGuiRect result;
+  result.mMini = mini;
+  result.mMaxi = maxi;
+  return result;
+}
+float TacImGuiRect::GetWidth()
+{
+  return mMaxi.x - mMini.x;
+}
+float TacImGuiRect::GetHeight()
+{
+  return mMaxi.y - mMini.y;
+}
+v2 TacImGuiRect::GetDimensions()
+{
+  return mMaxi - mMini;
+}
+
+TacImGuiWindow* TacImGuiGlobals::FindWindow( const TacString& name )
+{
+  for( TacImGuiWindow* window : mAllWindows )
+    if( window->mName == name )
+      return window;
+  return nullptr;
+}
+bool TacImGuiGlobals::IsHovered( const TacImGuiRect& rect )
+{
+  if( !mIsWindowDirectlyCursor )
+    return false;
+  return
+    mMousePositionDesktopWindowspace.x > rect.mMini.x &&
+    mMousePositionDesktopWindowspace.x < rect.mMaxi.x &&
+    mMousePositionDesktopWindowspace.y > rect.mMini.y &&
+    mMousePositionDesktopWindowspace.y < rect.mMaxi.y;
+}
+
+void TacImGuiBegin( const TacString& name, v2 size )
+{
+  TacImGuiWindow* window = gTacImGuiGlobals.FindWindow( name );
+  if( !window )
+  {
+    window = new TacImGuiWindow;
+    window->mName = name;
+    gTacImGuiGlobals.mAllWindows.push_back( window );
+  }
+  const TacImage& image = gTacImGuiGlobals.mUI2DDrawData->mRenderView->mFramebuffer->myImage;
+  window->mSize = {
+    size.x > 0 ? size.x : size.x + image.mWidth,
+    size.y > 0 ? size.y : size.y + image.mHeight };
+  TacAssert( gTacImGuiGlobals.mWindowStack.empty() );
+  gTacImGuiGlobals.mWindowStack = { window };
+  gTacImGuiGlobals.mCurrentWindow = window;
+  window->BeginFrame();
+}
+void TacImGuiEnd()
+{
+  gTacImGuiGlobals.mWindowStack.pop_back();
+  gTacImGuiGlobals.mCurrentWindow =
+    gTacImGuiGlobals.mWindowStack.size() ?
+    gTacImGuiGlobals.mWindowStack.back() : nullptr;
+}
+void TacImGuiBeginChild( const TacString& name, v2 size )
+{
+  TacImGuiWindow* child = gTacImGuiGlobals.FindWindow( name );
+  TacImGuiWindow* parent = gTacImGuiGlobals.mCurrentWindow;
+  if( !child )
+  {
+    child = new TacImGuiWindow;
+    child->mName = name;
+    child->mParent = parent;
+    gTacImGuiGlobals.mAllWindows.push_back( child );
+  }
+  child->mSize = {
+    size.x > 0 ? size.x : size.x + parent->mSize.x,
+    size.y > 0 ? size.y : size.y + parent->mSize.y };
+  gTacImGuiGlobals.mWindowStack.push_back( child );
+  gTacImGuiGlobals.mCurrentWindow = child;
+  child->BeginFrame();
+}
+void TacImGuiEndChild()
+{
+  TacImGuiWindow* child = gTacImGuiGlobals.mCurrentWindow;
+  child->mParent->ItemSize( child->mSize );
+  gTacImGuiGlobals.mWindowStack.pop_back();
+  gTacImGuiGlobals.mCurrentWindow = gTacImGuiGlobals.mWindowStack.back();
+}
+void TacImGuiBeginGroup()
+{
+  TacImGuiWindow* window = gTacImGuiGlobals.mCurrentWindow;
+  window->mGroupSavedCursorDrawPos = window->mCurrCursorDrawPos;
+  window->mXOffsets.push_back( window->mCurrCursorDrawPos.x - window->mPos.x );
+  window->mCurrLineHeight = 0;
+}
+void TacImGuiEndGroup()
+{
+  TacImGuiWindow* window = gTacImGuiGlobals.mCurrentWindow;
+  window->mXOffsets.pop_back();
+  v2 groupEndPos = {
+    window->mMaxiCursorDrawPos.x,
+    window->mMaxiCursorDrawPos.y + window->mPrevLineHeight };
+  v2 groupSize = groupEndPos - window->mGroupSavedCursorDrawPos;
+  window->mCurrCursorDrawPos = window->mGroupSavedCursorDrawPos;
+  window->ItemSize( groupSize );
+}
+void TacImGuiSameLine()
+{
+  TacImGuiWindow* window = gTacImGuiGlobals.mCurrentWindow;
+  window->mCurrCursorDrawPos = {
+    window->mPrevCursorDrawPos.x + gStyle.itemSpacing.x,
+    window->mPrevCursorDrawPos.y };
+  window->mCurrLineHeight = window->mPrevLineHeight;
+}
+void TacImGuiText( const TacString& utf8 )
+{
+  TacImGuiWindow* window = gTacImGuiGlobals.mCurrentWindow;
+  TacUI2DDrawData* drawData = gTacImGuiGlobals.mUI2DDrawData;
+  v2 textPos = window->mCurrCursorDrawPos;
+  v2 textSize = drawData->CalculateTextSize( utf8, gStyle.fontSize );
+  window->ItemSize( textSize );
+  bool clipped;
+  auto clipRect = TacImGuiRect::FromPosSize( textPos, textSize );
+  window->ComputeClipInfo( &clipped, &clipRect );
+  if( clipped )
+    return;
+  drawData->AddText( textPos, gStyle.fontSize, utf8, gStyle.textColor, &clipRect );
+}
+bool TacImGuiInputText( const TacString& label, TacString& text )
+{
+  TacImGuiWindow* window = gTacImGuiGlobals.mCurrentWindow;
+  TacKeyboardInput* keyboardInput = gTacImGuiGlobals.mKeyboardInput;
+  TacUI2DDrawData* drawData = gTacImGuiGlobals.mUI2DDrawData;
+
   static TacTextInputData inputData;
-  v2 mousePositionScreenspace;
-  TacOS::Instance->GetScreenspaceCursorPos( mousePositionScreenspace, cursorErrors );
 
   TacUTF8Converter converter;
   TacVector< TacCodepoint > codepoints;
@@ -513,10 +356,7 @@ bool TacImGuiWindow::InputText( const TacString& label, TacString& text )
 
   bool textChanged = false;
 
-  TacUI2DDrawData* drawData = mUIRoot->mUI2DDrawData;
-  TacKeyboardInput* keyboardInput = mUIRoot->mKeyboardInput;
-
-  v2 pos = mCurrCursorDrawPos;
+  v2 pos = window->mCurrCursorDrawPos;
 
   // Word wrap?
   int lineCount = 1;
@@ -525,14 +365,14 @@ bool TacImGuiWindow::InputText( const TacString& label, TacString& text )
       lineCount++;
 
   v2 totalSize = {
-    mContentRect.mMaxi.x - pos.x,
+    window->mContentRect.mMaxi.x - pos.x,
     ( float )lineCount * ( float )gStyle.fontSize };
 
-  ItemSize( totalSize );
+  window->ItemSize( totalSize );
 
   bool clipped;
   auto clipRect = TacImGuiRect::FromPosSize( pos, totalSize );
-  ComputeClipInfo( &clipped, &clipRect );
+  window->ComputeClipInfo( &clipped, &clipRect );
   if( clipped )
     return textChanged;
 
@@ -565,21 +405,21 @@ bool TacImGuiWindow::InputText( const TacString& label, TacString& text )
 
   // handle double click
   static double lastMouseReleaseSeconds;
-  static v2 lastMouseReleasePositionScreenspace;
+  static v2 lastMousePositionDesktopWindowspace;
   if( keyboardInput->HasKeyJustBeenReleased( TacKey::MouseLeft ) &&
-    cursorErrors.empty() &&
+    gTacImGuiGlobals.IsHovered( clipRect ) &&
     !inputData.mCodepoints.empty() )
   {
-    auto mouseReleaseSeconds = mUIRoot->GetElapsedSeconds();
+    auto mouseReleaseSeconds = gTacImGuiGlobals.mElapsedSeconds;
     if( mouseReleaseSeconds - lastMouseReleaseSeconds < 0.5f &&
-      lastMouseReleasePositionScreenspace == mousePositionScreenspace )
+      lastMousePositionDesktopWindowspace == gTacImGuiGlobals.mMousePositionDesktopWindowspace )
     {
       inputData.mNumGlyphsBeforeCaret[ 0 ] = 0;
       inputData.mNumGlyphsBeforeCaret[ 1 ] = inputData.mCodepoints.size();
       inputData.mCaretCount = 2;
     }
     lastMouseReleaseSeconds = mouseReleaseSeconds;
-    lastMouseReleasePositionScreenspace = mousePositionScreenspace;
+    lastMousePositionDesktopWindowspace = gTacImGuiGlobals.mMousePositionDesktopWindowspace;
   }
 
   if( inputData.mCaretCount == 2 )
@@ -615,12 +455,9 @@ bool TacImGuiWindow::InputText( const TacString& label, TacString& text )
   //   it seems dumb that we need to get the mouse position twice.
   //   since IsHovered() already got the cursor position and checked
   //   for errors
-  if( IsHovered( clipRect ) && cursorErrors.empty() )
+  if( gTacImGuiGlobals.IsHovered( clipRect ) )
   {
-    v2 mousePositionWindowspace = mousePositionScreenspace - v2(
-      ( float )mUIRoot->mDesktopWindow->mX,
-      ( float )mUIRoot->mDesktopWindow->mY );
-    float mousePositionTextSpace = mousePositionWindowspace.x - textPos.x;
+    float mousePositionTextSpace = gTacImGuiGlobals.mMousePositionDesktopWindowspace.x - textPos.x;
     int numGlyphsBeforeCaret = TacGetCaret( drawData, codepoints, mousePositionTextSpace );
     if( keyboardInput->mCurr.IsKeyDown( TacKey::MouseLeft ) )
     {
@@ -645,7 +482,7 @@ bool TacImGuiWindow::InputText( const TacString& label, TacString& text )
     v2 caretMaxi = {
       textPos.x + caretPos + caretHalfWidth,
       textPos.y + totalSize.y - caretYPadding };
-    float caretColorAlpha = ( ( std::sin( 6.0f * ( float )*mUIRoot->mElapsedSeconds ) + 1.0f ) / 2.0f );
+    float caretColorAlpha = ( ( std::sin( 6.0f * ( float )gTacImGuiGlobals.mElapsedSeconds ) + 1.0f ) / 2.0f );
     v4 caretColor = { 0, 0, 0, caretColorAlpha };
     drawData->AddBox( caretMini, caretMaxi, caretColor, nullptr, &clipRect );
   }
@@ -661,31 +498,192 @@ bool TacImGuiWindow::InputText( const TacString& label, TacString& text )
 
   return textChanged;
 }
+bool TacImGuiSelectable( const TacString& str, bool selected )
+{
+  TacImGuiWindow* window = gTacImGuiGlobals.mCurrentWindow;
+  TacKeyboardInput* keyboardInput = gTacImGuiGlobals.mKeyboardInput;
+  TacUI2DDrawData* drawData = gTacImGuiGlobals.mUI2DDrawData;
+  bool clicked = false;
+  v2 pos = window->mCurrCursorDrawPos;
+  v2 buttonSize = {
+    window->mContentRect.mMaxi.x - pos.x,
+    ( float )gStyle.fontSize };
 
-TacImGuiRect TacImGuiRect::FromPosSize( v2 pos, v2 size )
-{
-  TacImGuiRect result;
-  result.mMini = pos;
-  result.mMaxi = pos + size;
-  return result;
-}
-TacImGuiRect TacImGuiRect::FromMinMax( v2 mini, v2 maxi )
-{
-  TacImGuiRect result;
-  result.mMini = mini;
-  result.mMaxi = maxi;
-  return result;
-}
+  window->ItemSize( buttonSize );
 
-float TacImGuiRect::GetWidth()
-{
-  return mMaxi.x - mMini.x;
+  bool clipped;
+  auto clipRect = TacImGuiRect::FromPosSize( pos, buttonSize );
+  window->ComputeClipInfo( &clipped, &clipRect );
+  if( clipped )
+    return clicked;
+
+  v3 color3 = v3( 0.7f, 0.3f, 0.3f ) * 0.7f;
+  if( selected )
+    color3 = ( color3 + v3( 1, 1, 1 ) ) * 0.3f;
+
+
+  bool hovered = gTacImGuiGlobals.IsHovered( clipRect );
+  if( hovered )
+  {
+    color3 /= 2.0f;
+    if( keyboardInput->IsKeyJustDown( TacKey::MouseLeft ) )
+    {
+      color3 /= 2.0f;
+      clicked = true;
+    }
+  }
+
+  v4 color( color3, 1 );
+
+  drawData->AddBox( pos, pos + buttonSize, color, nullptr, &clipRect );
+  drawData->AddText( pos, gStyle.fontSize, str, gStyle.textColor, &clipRect );
+  return clicked;
 }
-float TacImGuiRect::GetHeight()
+bool TacImGuiButton( const TacString& str )
 {
-  return mMaxi.y - mMini.y;
+  TacImGuiWindow* window = gTacImGuiGlobals.mCurrentWindow;
+  TacKeyboardInput* keyboardInput = gTacImGuiGlobals.mKeyboardInput;
+  TacUI2DDrawData* drawData = gTacImGuiGlobals.mUI2DDrawData;
+  bool justClicked = false;
+  v2 textSize = drawData->CalculateTextSize( str, gStyle.fontSize );
+  v2 buttonSize = { textSize.x + 2 * gStyle.buttonPadding, textSize.y };
+  v2 pos = window->mCurrCursorDrawPos;
+  window->ItemSize( textSize );
+
+
+  bool clipped;
+  auto clipRect = TacImGuiRect::FromPosSize( pos, buttonSize );
+  window->ComputeClipInfo( &clipped, &clipRect );
+  if( clipped )
+    return justClicked;
+
+  bool hovered = gTacImGuiGlobals.IsHovered( clipRect );
+
+  v3 outerBoxColor = v3( .23f, .28f, .38f );
+  if( hovered )
+  {
+    outerBoxColor /= 2.0f;
+    if( keyboardInput->IsKeyDown( TacKey::MouseLeft ) )
+    {
+      outerBoxColor /= 2.0f;
+    }
+    if( keyboardInput->IsKeyJustDown( TacKey::MouseLeft ) )
+    {
+      justClicked = true;
+    }
+  }
+
+  drawData->AddBox( pos, pos + buttonSize, v4( outerBoxColor, 1 ), nullptr, &clipRect );
+
+  v2 textPos = {
+    pos.x + gStyle.buttonPadding,
+    pos.y };
+  drawData->AddText( textPos, gStyle.fontSize, str, gStyle.textColor, &clipRect );
+
+  return justClicked;
 }
-v2 TacImGuiRect::GetDimensions()
+void TacImGuiCheckbox( const TacString& str, bool* value )
 {
-  return mMaxi - mMini;
+  TacImGuiWindow* window = gTacImGuiGlobals.mCurrentWindow;
+  TacKeyboardInput* keyboardInput = gTacImGuiGlobals.mKeyboardInput;
+  TacUI2DDrawData* drawData = gTacImGuiGlobals.mUI2DDrawData;
+  v2 pos = window->mCurrCursorDrawPos;
+
+  v2 textSize = drawData->CalculateTextSize( str, gStyle.fontSize );
+  textSize.y;
+
+  float boxWidth = textSize.y;
+  v2 boxSize = v2( 1, 1 ) * boxWidth;
+
+  v2 totalSize = v2( boxWidth + gStyle.itemSpacing.x + textSize.x, textSize.y );
+  window->ItemSize( totalSize );
+
+  bool clipped;
+  auto clipRect = TacImGuiRect::FromPosSize( pos, totalSize );
+  window->ComputeClipInfo( &clipped, &clipRect );
+  if( clipped )
+    return;
+
+  bool hovered = gTacImGuiGlobals.IsHovered( clipRect );
+
+  v4 outerBoxColor = v4( 1, 1, 0, 1 );
+  if( hovered )
+  {
+    outerBoxColor = v4( 0.5f, 0.5f, 0, 1 );
+    if( keyboardInput->IsKeyDown( TacKey::MouseLeft ) )
+    {
+      outerBoxColor = v4( 0.3f, 0.3f, 0, 1 );
+    }
+    if( keyboardInput->IsKeyJustDown( TacKey::MouseLeft ) )
+    {
+      *value = !*value;
+    }
+  }
+
+  drawData->AddBox( pos, pos + boxSize, outerBoxColor, nullptr, &clipRect );
+  if( *value )
+  {
+    v4 checkmarkColor = v4( outerBoxColor.xyz() / 2.0f, 1.0f );
+    bool drawCheckmark = false;
+    if( drawCheckmark )
+    {
+
+      // (0,0)-------+
+      // |         3 |
+      // |       //  |
+      // | 0 __2 /   |
+      // |   \  /    |
+      // |     1     |
+      // +-------(1,1)
+      v2 p0 = { 0.2f, 0.4f };
+      v2 p1 = { 0.45f, 0.9f };
+      v2 p2 = { 0.45f, 0.60f };
+      v2 p3 = { 0.9f, 0.1f };
+      for( v2* point : { &p0, &p1, &p2, &p3 } )
+      {
+        point->x = pos.x + point->x * boxWidth;
+        point->y = pos.y + point->y * boxWidth;
+      }
+      int iVert = drawData->mDefaultVertex2Ds.size();
+      int iIndex = drawData->mDefaultIndex2Ds.size();
+      drawData->mDefaultIndex2Ds.push_back( iVert + 0 );
+      drawData->mDefaultIndex2Ds.push_back( iVert + 1 );
+      drawData->mDefaultIndex2Ds.push_back( iVert + 2 );
+      drawData->mDefaultIndex2Ds.push_back( iVert + 1 );
+      drawData->mDefaultIndex2Ds.push_back( iVert + 3 );
+      drawData->mDefaultIndex2Ds.push_back( iVert + 2 );
+      drawData->mDefaultVertex2Ds.resize( iVert + 4 );
+      TacDefaultVertex2D* defaultVertex2D = &drawData->mDefaultVertex2Ds[ iVert ];
+      defaultVertex2D->mPosition = p0;
+      defaultVertex2D++;
+      defaultVertex2D->mPosition = p1;
+      defaultVertex2D++;
+      defaultVertex2D->mPosition = p2;
+      defaultVertex2D++;
+      defaultVertex2D->mPosition = p3;
+
+      CBufferPerObject perObjectData = {};
+      perObjectData.World = m4::Identity();
+      perObjectData.Color = checkmarkColor;
+
+      TacUI2DDrawCall drawCall;
+      drawCall.mIIndexCount = 6;
+      drawCall.mIIndexStart = iIndex;
+      drawCall.mIVertexCount = 4;
+      drawCall.mIVertexStart = iVert;
+      drawCall.mShader = drawData->mUI2DCommonData->mShader;
+      drawCall.mUniformSource = TacTemporaryMemory( perObjectData );
+      drawData->mDrawCall2Ds.push_back( drawCall );
+    }
+    else
+    {
+      v2 innerPadding = v2( 1, 1 ) * 3;
+      drawData->AddBox( pos + innerPadding, pos + boxSize - innerPadding, checkmarkColor, nullptr, &clipRect );
+    }
+  }
+
+  v2 textPos = {
+    pos.x + boxWidth + gStyle.itemSpacing.x,
+    pos.y };
+  drawData->AddText( textPos, gStyle.fontSize, str, gStyle.textColor, &clipRect );
 }

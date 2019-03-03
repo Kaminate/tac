@@ -16,6 +16,7 @@ struct TacCreationPropertyWindow
   ~TacCreationPropertyWindow();
   void Init( TacErrors& errors );
   void Update( TacErrors& errors );
+  void SetImGuiGlobals();
 
   TacDesktopWindow* mDesktopWindow = nullptr;
   TacUIRoot* mUIRoot = nullptr;

@@ -1,6 +1,6 @@
 #pragma once
-#include <initializer_list> 
-#include <utility> 
+#include <initializer_list>  // std::initializer_list
+#include <utility> // std::move
 
 template< typename T >
 struct TacVector

@@ -13,7 +13,6 @@
 #include "common/tacDesktopWindow.h"
 #include "common/tacColorUtil.h"
 #include "common/tacTextEdit.h"
-#include "common/tacImGui.h"
 
 #include <cmath> // sin
 
@@ -709,14 +708,11 @@ TacUIRoot::TacUIRoot()
   mHierarchyRoot = new TacUIHierarchyNode();
   mHierarchyRoot->mUIRoot = this;
 
-  mImGuiWindow = new TacImGuiWindow;
-  mImGuiWindow->mUIRoot = this;
 }
 TacUIRoot::~TacUIRoot()
 {
   for( auto menu : mUIMenus )
     delete menu;
-  delete mImGuiWindow;
   delete mHierarchyRoot;
 }
 void TacUIRoot::DebugImgui()

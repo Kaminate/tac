@@ -39,7 +39,6 @@ struct TacUILayoutData;
 struct TacUI2DDrawData;
 struct TacUIHierarchyNode;
 struct TacDepthBuffer;
-struct TacImGuiWindow;
 struct TacDesktopWindow;
 struct TacKeyboardInput;
 struct TacTexture;
@@ -389,7 +388,6 @@ struct TacUIRoot
   ////////////////////////
 
   TacUIHierarchyNode* mHierarchyRoot = nullptr;
-  TacImGuiWindow* mImGuiWindow = nullptr;
   
   //////////////////////
   // END EXPERIMENTAL //

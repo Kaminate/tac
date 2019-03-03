@@ -5,8 +5,9 @@
 #include "common/containers/tacVector.h"
 
 struct TacUIRoot;
-
-//extern TacUIRoot* mUIRoot;
+struct TacImGuiWindow;
+struct TacUI2DDrawData;
+struct TacKeyboardInput;
 
 struct TacImGuiRect
 {
@@ -19,35 +20,52 @@ struct TacImGuiRect
   v2 mMaxi = {};
 };
 
+// move some of the things to cpp?
+struct TacImGuiGlobals
+{
+  TacImGuiWindow* FindWindow( const TacString& name );
+  bool IsHovered(const TacImGuiRect& rect );
+
+  v2 mMousePositionDesktopWindowspace = {};
+  bool mIsWindowDirectlyCursor = false;
+  double mElapsedSeconds = 0;
+  TacVector< TacImGuiWindow* > mAllWindows;
+  TacVector< TacImGuiWindow* > mWindowStack;
+  TacImGuiWindow* mCurrentWindow = nullptr;
+  TacUI2DDrawData* mUI2DDrawData = nullptr;
+  TacKeyboardInput* mKeyboardInput = nullptr;
+};
+extern TacImGuiGlobals gTacImGuiGlobals;
+
+void TacImGuiBegin( const TacString& name, v2 size );
+void TacImGuiEnd();
+void TacImGuiBeginChild( const TacString& name, v2 size );
+void TacImGuiEndChild();
+void TacImGuiBeginGroup();
+void TacImGuiEndGroup();
+void TacImGuiSameLine();
+void TacImGuiText( const TacString& text );
+bool TacImGuiInputText( const TacString& label, TacString& text );
+bool TacImGuiSelectable( const TacString& str, bool selected );
+bool TacImGuiButton( const TacString& str );
+void TacImGuiCheckbox( const TacString& str, bool* value );
+
 // move to cpp?
 struct TacImGuiWindow
 {
   void BeginFrame();
-  void Text( const TacString& utf8 );
-  bool InputText( const TacString& label, TacString& text );
-  void Checkbox( const TacString& str, bool* value );
-  bool Button( const TacString& str );
-  bool Selectable( const TacString& str, bool selected );
   void ItemSize( v2 size );
   void ComputeClipInfo( bool* clipped, TacImGuiRect* clipRect );
-  bool IsHovered( const TacImGuiRect& clipRect );
-  void SameLine();
-  void BeginGroup();
-  void EndGroup();
-  TacImGuiWindow* BeginChild( const TacString& name, v2 size );
-  void EndChild();
   void UpdateMaxCursorDrawPos( v2 pos );
 
-  TacUIRoot* mUIRoot = nullptr;
   TacString mName;
-  //TacVector< TacImGuiWindow* > mChildren;
   TacImGuiWindow* mParent = nullptr;
 
   v2 mMaxiCursorDrawPos;
   v2 mCurrCursorDrawPos;
   v2 mPrevCursorDrawPos;
 
-  // rename to mPosWindowspace
+  // rename to mPosDesktopWindowspace
   v2 mPos = {};
   v2 mSize = {};
   TacImGuiRect mContentRect;
