@@ -385,13 +385,11 @@ TacWin32DesktopWindow* TacWindowsApplication2::GetCursorUnobscuredWindow()
 void TacWindowsApplication2::Poll( TacErrors& errors )
 {
   TacKeyboardInput* keyboardInput = mShell->mKeyboardInput;
-  keyboardInput->BeforePoll();
   for( TacWin32DesktopWindow* window : mWindows )
   {
     window->Poll( errors );
     TAC_HANDLE_ERROR( errors );
   }
-
 
   TacWin32DesktopWindow* cursorUnobscuredWindow = GetCursorUnobscuredWindow();
   for( TacWin32DesktopWindow* window : mWindows )
@@ -405,9 +403,6 @@ void TacWindowsApplication2::Poll( TacErrors& errors )
     //if( mMouseEdgeHandler && !mMouseEdgeHandler->IsHandling() )
     //  mMouseEdgeHandler->ResetCursorLock();
   }
-
-  if( false )
-    keyboardInput->DebugPrintWhenKeysChange();
 }
 void TacWindowsApplication2::GetPrimaryMonitor( TacMonitor* monitor, TacErrors& errors )
 {

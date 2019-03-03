@@ -333,5 +333,11 @@ void TacShell::Frame( TacErrors& errors )
       return;
   }
   mElapsedSeconds += TAC_DELTA_FRAME_SECONDS;
+
+  // I feel like this is a better place for this function than
+  // actually before polling, because input may be polled
+  // several times before a frame udpate function fires, which
+  // would cause IsKeyJustNowPressed() functions to fail
+  mKeyboardInput->BeforePoll();
 }
 

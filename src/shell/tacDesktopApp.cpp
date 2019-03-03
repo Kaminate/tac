@@ -5,6 +5,7 @@
 #include "common/tacUI2D.h"
 #include "common/tacUI.h"
 #include "common/tacOS.h"
+#include "common/tackeyboardinput.h" // temp
 
 TacDesktopApp::TacDesktopApp()
 {
@@ -42,6 +43,12 @@ void TacDesktopApp::Loop( TacErrors& errors )
       {
         ++iWindow;
       }
+    }
+
+    if( mShell->mKeyboardInput->IsKeyDown( TacKey::MouseLeft ) )
+    {
+      static int i = 5;
+      i++;
     }
 
     mShell->Update( errors );

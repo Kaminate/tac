@@ -49,6 +49,7 @@ bool TacImGuiInputText( const TacString& label, TacString& text );
 bool TacImGuiSelectable( const TacString& str, bool selected );
 bool TacImGuiButton( const TacString& str );
 void TacImGuiCheckbox( const TacString& str, bool* value );
+void TacImGuiDragFloat( const TacString& str, float* value );
 
 // move to cpp?
 struct TacImGuiWindow
@@ -79,6 +80,19 @@ struct TacImGuiWindow
   v2 mGroupSavedCursorDrawPos;
 
   TacVector< float > mXOffsets;
+
+  int GetID()
+  {
+    return mIDCounter++;
+  }
+
+  //void SetActiveID( int id )
+  //{
+  //  mActiveID = id;
+  //}
+  int mActiveID = 0;
+  //int mActiveIDPrev = 0;
+  int mIDCounter = 0;
 };
 
 

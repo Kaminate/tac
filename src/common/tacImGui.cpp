@@ -7,8 +7,7 @@
 #include "common/tacDesktopWindow.h"
 #include "common/tacOS.h"
 #include "common/tacTextEdit.h"
-
-TacImGuiGlobals gTacImGuiGlobals;
+#include <cstdlib> // atof
 
 struct TacUIStyle
 {
@@ -21,6 +20,110 @@ struct TacUIStyle
   float buttonPadding = 3.0f;
   v4 textColor = { 1, 1, 0, 1 };
 } gStyle;
+
+TacImGuiGlobals gTacImGuiGlobals;
+static TacTextInputData inputData;
+
+static int TacGetCaret(
+  TacUI2DDrawData* drawData,
+  const TacVector< TacCodepoint >& codepoints,
+  float mousePos ) // mouse pos rel text top left corner
+{
+  auto codepointCount = ( int )codepoints.size();
+  float runningTextWidth = 0;
+  int numGlyphsBeforeCaret = 0;
+  for( int i = 1; i <= codepointCount; ++i )
+  {
+    v2 substringSize = drawData->CalculateTextSize(
+      codepoints.begin(), i, gStyle.fontSize );
+
+    float lastGlyphWidth = substringSize.x - runningTextWidth;
+    float lastGlyphMidpoint = runningTextWidth + lastGlyphWidth / 2;
+
+    if( mousePos < lastGlyphMidpoint )
+      break;
+
+    runningTextWidth += lastGlyphWidth;
+    numGlyphsBeforeCaret++;
+  }
+  return numGlyphsBeforeCaret;
+}
+
+
+static void TacTextInputDataUpdateKeys( v2 textPos )
+{
+  TacKeyboardInput* keyboardInput = gTacImGuiGlobals.mKeyboardInput;
+  TacUI2DDrawData* drawData = gTacImGuiGlobals.mUI2DDrawData;
+  static std::map< TacKey, TacTextInputKey > foo =
+  {
+    { TacKey::LeftArrow, TacTextInputKey::LeftArrow },
+  { TacKey::RightArrow, TacTextInputKey::RightArrow },
+  { TacKey::Backspace, TacTextInputKey::Backspace },
+  { TacKey::Delete, TacTextInputKey::Delete },
+  };
+  for( auto pair : foo )
+    if( keyboardInput->IsKeyJustDown( pair.first ) )
+      inputData.OnKeyPressed( pair.second );
+  if( keyboardInput->mWMCharPressedHax )
+    inputData.OnCodepoint( keyboardInput->mWMCharPressedHax );
+  if( keyboardInput->mCurr.IsKeyDown( TacKey::MouseLeft ) )
+  {
+    float mousePositionTextSpace = gTacImGuiGlobals.mMousePositionDesktopWindowspace.x - textPos.x;
+    int numGlyphsBeforeCaret = TacGetCaret( drawData, inputData.mCodepoints, mousePositionTextSpace );
+
+    if( keyboardInput->mPrev.IsKeyDown( TacKey::MouseLeft ) )
+      inputData.OnDrag( numGlyphsBeforeCaret );
+    else
+      inputData.OnClick( numGlyphsBeforeCaret );
+  }
+}
+
+
+static void TacTextInputDataDrawSelection( v2 textPos, const TacImGuiRect* clipRect )
+{
+  TacUI2DDrawData* drawData = gTacImGuiGlobals.mUI2DDrawData;
+  if( inputData.mCaretCount == 2 )
+  {
+    float minCaretPos = drawData->CalculateTextSize(
+      inputData.mCodepoints.data(),
+      inputData.GetMinCaret(),
+      gStyle.fontSize ).x;
+
+    float maxCaretPos = drawData->CalculateTextSize(
+      inputData.mCodepoints.data(),
+      inputData.GetMaxCaret(),
+      gStyle.fontSize ).x;
+
+    v2 selectionMini = {
+      textPos.x + minCaretPos,
+      textPos.y };
+    v2 selectionMaxi = {
+      textPos.x + maxCaretPos,
+      textPos.y + gStyle.fontSize };
+
+    drawData->AddBox( selectionMini, selectionMaxi, { 0.5f, 0.5f, 0.0f, 1 }, nullptr, clipRect );
+  }
+
+  if( inputData.mCaretCount == 1 )
+  {
+    float caretPos = drawData->CalculateTextSize(
+      inputData.mCodepoints.data(),
+      inputData.mNumGlyphsBeforeCaret[ 0 ],
+      gStyle.fontSize ).x;
+    float caretYPadding = 2.0f;
+    float caretHalfWidth = 0.5f;
+    v2 caretMini = {
+      textPos.x + caretPos - caretHalfWidth,
+      textPos.y + caretYPadding };
+    v2 caretMaxi = {
+      textPos.x + caretPos + caretHalfWidth,
+      textPos.y + gStyle.fontSize - caretYPadding };
+    float caretColorAlpha = ( ( std::sin( 6.0f * ( float )gTacImGuiGlobals.mElapsedSeconds ) + 1.0f ) / 2.0f );
+    v4 caretColor = { 0, 0, 0, caretColorAlpha };
+    drawData->AddBox( caretMini, caretMaxi, caretColor, nullptr, clipRect );
+  }
+}
+
 
 void TacImGuiWindow::BeginFrame()
 {
@@ -126,6 +229,13 @@ void TacImGuiWindow::BeginFrame()
   mMaxiCursorDrawPos = drawPos;
   mCurrLineHeight = 0;
   mPrevLineHeight = 0;
+
+  mIDCounter = 0;
+
+  //if( mActiveIDPrev && !mActiveID )
+  //{
+  //}
+  //mActiveIDPrev = mActiveID;
 }
 void TacImGuiWindow::ComputeClipInfo( bool* clipped, TacImGuiRect* clipRect )
 {
@@ -161,31 +271,6 @@ void TacImGuiWindow::UpdateMaxCursorDrawPos( v2 pos )
 {
   mMaxiCursorDrawPos.x = TacMax( mMaxiCursorDrawPos.x, pos.x );
   mMaxiCursorDrawPos.y = TacMax( mMaxiCursorDrawPos.y, pos.y );
-}
-
-static int TacGetCaret(
-  TacUI2DDrawData* drawData,
-  const TacVector< TacCodepoint >& codepoints,
-  float mousePos ) // mouse pos rel text top left corner
-{
-  auto codepointCount = ( int )codepoints.size();
-  float runningTextWidth = 0;
-  int numGlyphsBeforeCaret = 0;
-  for( int i = 1; i <= codepointCount; ++i )
-  {
-    v2 substringSize = drawData->CalculateTextSize(
-      codepoints.begin(), i, gStyle.fontSize );
-
-    float lastGlyphWidth = substringSize.x - runningTextWidth;
-    float lastGlyphMidpoint = runningTextWidth + lastGlyphWidth / 2;
-
-    if( mousePos < lastGlyphMidpoint )
-      break;
-
-    runningTextWidth += lastGlyphWidth;
-    numGlyphsBeforeCaret++;
-  }
-  return numGlyphsBeforeCaret;
 }
 
 static bool AreEqual(
@@ -341,18 +426,7 @@ bool TacImGuiInputText( const TacString& label, TacString& text )
   TacImGuiWindow* window = gTacImGuiGlobals.mCurrentWindow;
   TacKeyboardInput* keyboardInput = gTacImGuiGlobals.mKeyboardInput;
   TacUI2DDrawData* drawData = gTacImGuiGlobals.mUI2DDrawData;
-
-  static TacTextInputData inputData;
-
-  TacUTF8Converter converter;
-  TacVector< TacCodepoint > codepoints;
-  TacErrors ignoredUTF8ConversionErrors;
-  converter.Convert( text, codepoints, ignoredUTF8ConversionErrors );
-  if( !AreEqual( inputData.mCodepoints, codepoints ) )
-  {
-    inputData.mCodepoints = codepoints;
-    inputData.mCaretCount = 0;
-  }
+  int id = window->GetID();
 
   bool textChanged = false;
 
@@ -376,6 +450,9 @@ bool TacImGuiInputText( const TacString& label, TacString& text )
   if( clipped )
     return textChanged;
 
+  if( gTacImGuiGlobals.IsHovered( clipRect ) && keyboardInput->IsKeyJustDown( TacKey::MouseLeft ) )
+    window->mActiveID = id;
+
   v3 textBackgroundColor3 = { 1, 1, 0 };
 
   v4 editTextColor = { 0, 0, 0, 1 };
@@ -390,57 +467,49 @@ bool TacImGuiInputText( const TacString& label, TacString& text )
     textBackgroundMaxi,
     v4( textBackgroundColor3, 1 ), nullptr, &clipRect );
 
-  static std::map< TacKey, TacTextInputKey > foo =
+  if( window->mActiveID == id )
   {
-    { TacKey::LeftArrow, TacTextInputKey::LeftArrow },
-  { TacKey::RightArrow, TacTextInputKey::RightArrow },
-  { TacKey::Backspace, TacTextInputKey::Backspace },
-  { TacKey::Delete, TacTextInputKey::Delete },
-  };
-  for( auto pair : foo )
-    if( keyboardInput->IsKeyJustDown( pair.first ) )
-      inputData.OnKeyPressed( pair.second );
-  if( keyboardInput->mWMCharPressedHax )
-    inputData.OnCodepoint( keyboardInput->mWMCharPressedHax );
-
-  // handle double click
-  static double lastMouseReleaseSeconds;
-  static v2 lastMousePositionDesktopWindowspace;
-  if( keyboardInput->HasKeyJustBeenReleased( TacKey::MouseLeft ) &&
-    gTacImGuiGlobals.IsHovered( clipRect ) &&
-    !inputData.mCodepoints.empty() )
-  {
-    auto mouseReleaseSeconds = gTacImGuiGlobals.mElapsedSeconds;
-    if( mouseReleaseSeconds - lastMouseReleaseSeconds < 0.5f &&
-      lastMousePositionDesktopWindowspace == gTacImGuiGlobals.mMousePositionDesktopWindowspace )
+    TacUTF8Converter converter;
+    TacVector< TacCodepoint > codepoints;
+    TacErrors ignoredUTF8ConversionErrors;
+    converter.Convert( text, codepoints, ignoredUTF8ConversionErrors );
+    if( !AreEqual( inputData.mCodepoints, codepoints ) )
     {
-      inputData.mNumGlyphsBeforeCaret[ 0 ] = 0;
-      inputData.mNumGlyphsBeforeCaret[ 1 ] = inputData.mCodepoints.size();
-      inputData.mCaretCount = 2;
+      inputData.mCodepoints = codepoints;
+      inputData.mCaretCount = 0;
     }
-    lastMouseReleaseSeconds = mouseReleaseSeconds;
-    lastMousePositionDesktopWindowspace = gTacImGuiGlobals.mMousePositionDesktopWindowspace;
-  }
+    TacTextInputDataUpdateKeys( textPos );
 
-  if( inputData.mCaretCount == 2 )
-  {
-    float minCaretPos = drawData->CalculateTextSize(
-      inputData.mCodepoints.data(),
-      inputData.GetMinCaret(),
-      gStyle.fontSize ).x;
+    // handle double click
+    static double lastMouseReleaseSeconds;
+    static v2 lastMousePositionDesktopWindowspace;
+    if( keyboardInput->HasKeyJustBeenReleased( TacKey::MouseLeft ) &&
+      gTacImGuiGlobals.IsHovered( clipRect ) &&
+      !inputData.mCodepoints.empty() )
+    {
+      auto mouseReleaseSeconds = gTacImGuiGlobals.mElapsedSeconds;
+      if( mouseReleaseSeconds - lastMouseReleaseSeconds < 0.5f &&
+        lastMousePositionDesktopWindowspace == gTacImGuiGlobals.mMousePositionDesktopWindowspace )
+      {
+        inputData.mNumGlyphsBeforeCaret[ 0 ] = 0;
+        inputData.mNumGlyphsBeforeCaret[ 1 ] = inputData.mCodepoints.size();
+        inputData.mCaretCount = 2;
+      }
+      lastMouseReleaseSeconds = mouseReleaseSeconds;
+      lastMousePositionDesktopWindowspace = gTacImGuiGlobals.mMousePositionDesktopWindowspace;
+    }
 
-    float maxCaretPos = drawData->CalculateTextSize(
-      inputData.mCodepoints.data(),
-      inputData.GetMaxCaret(),
-      gStyle.fontSize ).x;
+    TacTextInputDataDrawSelection( textPos, &clipRect );
 
-    v2 selectionMini = {
-      textPos.x + minCaretPos,
-      textPos.y };
-    v2 selectionMaxi = {
-      textPos.x + maxCaretPos,
-      textPos.y + gStyle.fontSize };
-    drawData->AddBox( selectionMini, selectionMaxi, v4( textBackgroundColor3 / 2, 1 ), nullptr, &clipRect );
+
+
+    TacString newText;
+    TacUTF8Converter::Convert( inputData.mCodepoints, newText );
+    if( text != newText )
+    {
+      text = newText;
+      textChanged = true;
+    }
   }
 
   drawData->AddText( textPos, gStyle.fontSize, text, editTextColor, &clipRect );
@@ -449,52 +518,6 @@ bool TacImGuiInputText( const TacString& label, TacString& text )
     textBackgroundMaxi.x + gStyle.itemSpacing.x,
     pos.y };
   drawData->AddText( labelPos, gStyle.fontSize, label, gStyle.textColor, &clipRect );
-
-
-  // TODO:
-  //   it seems dumb that we need to get the mouse position twice.
-  //   since IsHovered() already got the cursor position and checked
-  //   for errors
-  if( gTacImGuiGlobals.IsHovered( clipRect ) )
-  {
-    float mousePositionTextSpace = gTacImGuiGlobals.mMousePositionDesktopWindowspace.x - textPos.x;
-    int numGlyphsBeforeCaret = TacGetCaret( drawData, codepoints, mousePositionTextSpace );
-    if( keyboardInput->mCurr.IsKeyDown( TacKey::MouseLeft ) )
-    {
-      if( keyboardInput->mPrev.IsKeyDown( TacKey::MouseLeft ) )
-        inputData.OnDrag( numGlyphsBeforeCaret );
-      else
-        inputData.OnClick( numGlyphsBeforeCaret );
-    }
-  }
-
-  if( inputData.mCaretCount == 1 )
-  {
-    float caretPos = drawData->CalculateTextSize(
-      inputData.mCodepoints.data(),
-      inputData.mNumGlyphsBeforeCaret[ 0 ],
-      gStyle.fontSize ).x;
-    float caretYPadding = 2.0f;
-    float caretHalfWidth = 0.5f;
-    v2 caretMini = {
-      textPos.x + caretPos - caretHalfWidth,
-      textPos.y + caretYPadding };
-    v2 caretMaxi = {
-      textPos.x + caretPos + caretHalfWidth,
-      textPos.y + totalSize.y - caretYPadding };
-    float caretColorAlpha = ( ( std::sin( 6.0f * ( float )gTacImGuiGlobals.mElapsedSeconds ) + 1.0f ) / 2.0f );
-    v4 caretColor = { 0, 0, 0, caretColorAlpha };
-    drawData->AddBox( caretMini, caretMaxi, caretColor, nullptr, &clipRect );
-  }
-
-
-  if( codepoints.size() != inputData.mCodepoints.size() )
-  {
-    TacString newText;
-    TacUTF8Converter::Convert( inputData.mCodepoints, newText );
-    text = newText;
-    textChanged = true;
-  }
 
   return textChanged;
 }
@@ -686,4 +709,109 @@ void TacImGuiCheckbox( const TacString& str, bool* value )
     pos.x + boxWidth + gStyle.itemSpacing.x,
     pos.y };
   drawData->AddText( textPos, gStyle.fontSize, str, gStyle.textColor, &clipRect );
+}
+void TacImGuiDragFloat( const TacString& str, float* value )
+{
+  v4 backgroundBoxColor = { 1, 1, 0, 1 };
+  TacString valueStr = TacToString( *value );
+
+  TacImGuiWindow* window = gTacImGuiGlobals.mCurrentWindow;
+  TacKeyboardInput* keyboardInput = gTacImGuiGlobals.mKeyboardInput;
+  TacUI2DDrawData* drawData = gTacImGuiGlobals.mUI2DDrawData;
+  v2 pos = window->mCurrCursorDrawPos;
+  v2 totalSize = {
+    window->mContentRect.mMaxi.x - pos.x,
+    ( float )gStyle.fontSize };
+  window->ItemSize( totalSize );
+  bool clipped;
+  auto clipRect = TacImGuiRect::FromPosSize( pos, totalSize );
+  window->ComputeClipInfo( &clipped, &clipRect );
+  if( clipped )
+    return;
+
+  static int state;
+  v2 valuePos = {
+    pos.x + gStyle.buttonPadding,
+    pos.y };
+
+  int id = window->GetID();
+  if( gTacImGuiGlobals.IsHovered( clipRect ) && keyboardInput->IsKeyJustDown( TacKey::MouseLeft ) )
+  {
+    window->mActiveID = id;
+  }
+  if( id == window->mActiveID )
+  {
+    if( state == 0 )
+    {
+      static float lastMouseXDesktopWindowspace;
+      if( gTacImGuiGlobals.IsHovered( clipRect ) )
+      {
+        backgroundBoxColor.xyz() /= 2.0f;
+        if( keyboardInput->IsKeyJustDown( TacKey::MouseLeft ) )
+          lastMouseXDesktopWindowspace = gTacImGuiGlobals.mMousePositionDesktopWindowspace.x;
+        if( keyboardInput->IsKeyDown( TacKey::MouseLeft ) )
+        {
+          backgroundBoxColor.xyz() /= 2.0f;
+
+          if( keyboardInput->mPrev.IsKeyDown( TacKey::MouseLeft ) )
+          {
+            float dMousePx = gTacImGuiGlobals.mMousePositionDesktopWindowspace.x - lastMouseXDesktopWindowspace;
+            *value += dMousePx * 0.1f;
+          }
+        }
+      }
+      lastMouseXDesktopWindowspace = gTacImGuiGlobals.mMousePositionDesktopWindowspace.x;
+
+      // handle double click
+      static double lastMouseReleaseSeconds;
+      static v2 lastMousePositionDesktopWindowspace;
+      if( keyboardInput->HasKeyJustBeenReleased( TacKey::MouseLeft ) &&
+        gTacImGuiGlobals.IsHovered( clipRect ) )
+      {
+        auto mouseReleaseSeconds = gTacImGuiGlobals.mElapsedSeconds;
+        if( mouseReleaseSeconds - lastMouseReleaseSeconds < 0.5f &&
+          lastMousePositionDesktopWindowspace == gTacImGuiGlobals.mMousePositionDesktopWindowspace )
+        {
+          TacUTF8Converter converter;
+          TacVector< TacCodepoint > codepoints;
+          TacErrors ignoredUTF8ConversionErrors;
+          converter.Convert( valueStr, codepoints, ignoredUTF8ConversionErrors );
+          inputData.mCodepoints = codepoints;
+          inputData.mCaretCount = 2;
+          inputData.mNumGlyphsBeforeCaret[ 0 ] = 0;
+          inputData.mNumGlyphsBeforeCaret[ 1 ] = codepoints.size();
+          state = 1;
+        }
+        lastMouseReleaseSeconds = mouseReleaseSeconds;
+        lastMousePositionDesktopWindowspace = gTacImGuiGlobals.mMousePositionDesktopWindowspace;
+      }
+    }
+
+    if( state == 1 )
+    {
+      TacTextInputDataUpdateKeys( valuePos );
+      TacString newText;
+      TacUTF8Converter::Convert( inputData.mCodepoints, newText );
+      *value = ( float )std::atof( newText.c_str() );
+      valueStr = newText;
+    }
+  }
+
+  if( id != window->mActiveID )
+    state = 0;
+
+  v2 backgroundBoxMaxi = {
+    pos.x + totalSize.x * ( 2.0f / 3.0f ),
+    pos.x + totalSize.y };
+  drawData->AddBox( pos, backgroundBoxMaxi, backgroundBoxColor, nullptr, &clipRect );
+
+  if( state == 1 )
+      TacTextInputDataDrawSelection( valuePos, &clipRect );
+  drawData->AddText( valuePos, gStyle.fontSize, valueStr, v4( 0, 0, 0, 1 ), &clipRect );
+
+  v2 labelPos = {
+    backgroundBoxMaxi.x + gStyle.itemSpacing.x,
+    pos.y };
+  drawData->AddText( labelPos, gStyle.fontSize, str, gStyle.textColor, &clipRect );
+
 }

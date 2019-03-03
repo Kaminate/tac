@@ -90,13 +90,16 @@ void TacCreationPropertyWindow::Update( TacErrors& errors )
 
   if( TacEntity* entity = mCreation->mSelectedEntity )
   {
+    static TacString occupation = "Bartender";
     TacImGuiInputText( "Name", entity->mName );
+    TacImGuiInputText( "Occupation", occupation );
     TacImGuiText( entity->mName );
     TacImGuiText( "UUID: " + TacToString( ( TacUUID )entity->mEntityUUID ) );
     TacImGuiText( "Position: " +
       TacToString( entity->mPosition.x ) + " " +
       TacToString( entity->mPosition.y ) + " " +
       TacToString( entity->mPosition.z ) );
+    TacImGuiDragFloat( "X Position: ", &entity->mPosition.x );
     for( TacComponent* component : entity->mComponents )
     {
       TacComponentType componentType = component->GetComponentType();
