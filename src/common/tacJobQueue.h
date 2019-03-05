@@ -11,6 +11,8 @@
 
 enum class TacAsyncLoadStatus
 {
+  JustBeenCreated,
+
   // Waiting for a worker thread to start the job
   ThreadQueued,
 
@@ -26,6 +28,7 @@ enum class TacAsyncLoadStatus
 
 struct TacJob
 {
+  TacJob();
   virtual ~TacJob() = default;
   virtual void Execute() = 0;
   void SetStatus( TacAsyncLoadStatus asyncLoadStatus );
@@ -34,7 +37,7 @@ struct TacJob
   // Errors which occured while running the job in another thread.
   TacErrors mErrors;
 private:
-  TacAsyncLoadStatus mAsyncLoadStatus = TacAsyncLoadStatus::ThreadQueued;
+  TacAsyncLoadStatus mAsyncLoadStatus;
   std::mutex mStatusMutex;
 };
 
@@ -49,7 +52,7 @@ struct TacJobQueue
   TacVector< std::thread > mThreads;
   std::mutex mMutex;
 
-  // owned
+  // Unowned
   TacRingVector< TacJob* > mUnstarted;
 };
 

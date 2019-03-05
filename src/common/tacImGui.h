@@ -26,6 +26,7 @@ struct TacImGuiGlobals
   TacImGuiWindow* FindWindow( const TacString& name );
   bool IsHovered(const TacImGuiRect& rect );
 
+  v2 mNextWindowPos = {};
   v2 mMousePositionDesktopWindowspace = {};
   bool mIsWindowDirectlyCursor = false;
   double mElapsedSeconds = 0;
@@ -37,6 +38,7 @@ struct TacImGuiGlobals
 };
 extern TacImGuiGlobals gTacImGuiGlobals;
 
+void TacImGuiSetNextWindowPos( v2 pos );
 void TacImGuiBegin( const TacString& name, v2 size );
 void TacImGuiEnd();
 void TacImGuiBeginChild( const TacString& name, v2 size );

@@ -21,10 +21,13 @@ static void TacWorkerThread( TacJobQueue* jobQueue )
     job->SetStatus( job->mErrors.empty() ?
       TacAsyncLoadStatus::ThreadCompleted :
       TacAsyncLoadStatus::ThreadFailed );
-    //delete job;
   }
 }
 
+TacJob::TacJob()
+{
+  mAsyncLoadStatus = TacAsyncLoadStatus::JustBeenCreated;
+}
 void TacJob::SetStatus( TacAsyncLoadStatus asyncLoadStatus )
 {
   mStatusMutex.lock();
@@ -43,6 +46,8 @@ TacAsyncLoadStatus TacJob::GetStatus()
 
 void TacJobQueue::Push( TacJob* job )
 {
+  job->SetStatus( TacAsyncLoadStatus::ThreadQueued );
+  job->mErrors.clear();
   mMutex.lock();
   mUnstarted.Push( job );
   mMutex.unlock();

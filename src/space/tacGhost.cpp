@@ -335,8 +335,8 @@ void TacGhost::Draw( TacErrors& errors )
   TacDepthBuffer* fboDepth = mRenderView->mFramebufferDepth;
 
   const float aspect = fboTexture->GetAspect();
-  renderer->ClearColor( fboTexture, mClearColor );
-  renderer->ClearDepthStencil( fboDepth, true, 1.0f, false, 0 );
+  //renderer->ClearColor( fboTexture, mClearColor );
+  //renderer->ClearDepthStencil( fboDepth, true, 1.0f, false, 0 );
   //renderer->SetRenderTarget( fboTexture, fboDepth );
 
 

@@ -4,6 +4,7 @@
 #include "common/tacOS.h"
 #include "common/tacUI2D.h"
 #include "common/tacUI.h"
+#include "common/tacImGui.h"
 
 #include <functional> // std::function
 
@@ -43,8 +44,29 @@ struct TacGame
     TAC_HANDLE_ERROR( errors );
     mShell->AddSoul( ghost );
   }
+  void SetImGuiGlobals()
+  {
+    TacErrors screenspaceCursorPosErrors;
+    v2 screenspaceCursorPos;
+    TacOS::Instance->GetScreenspaceCursorPos( screenspaceCursorPos, screenspaceCursorPosErrors );
+    if( screenspaceCursorPosErrors.empty() )
+    {
+      gTacImGuiGlobals.mMousePositionDesktopWindowspace = {
+        screenspaceCursorPos.x - mDesktopWindow->mX,
+        screenspaceCursorPos.y - mDesktopWindow->mY };
+      gTacImGuiGlobals.mIsWindowDirectlyCursor = mDesktopWindow->mCursorUnobscured;
+    }
+    else
+    {
+      gTacImGuiGlobals.mIsWindowDirectlyCursor = false;
+    }
+    gTacImGuiGlobals.mElapsedSeconds = mShell->mElapsedSeconds;
+    gTacImGuiGlobals.mUI2DDrawData = mUi2DDrawData;
+    gTacImGuiGlobals.mKeyboardInput = mShell->mKeyboardInput;
+  }
   void Update( TacErrors& errors )
   {
+    SetImGuiGlobals();
     TacViewport viewport;
     viewport.mViewportPixelWidthIncreasingRight = ( float )mDesktopWindow->mWidth;
     viewport.mViewportPixelHeightIncreasingUp = ( float )mDesktopWindow->mHeight;

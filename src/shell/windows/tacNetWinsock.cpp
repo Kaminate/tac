@@ -162,24 +162,24 @@ void TacSocketWinsock::TCPTryConnect( const TacString& hostname, uint16_t port, 
   if( !targetAddrInfo )
   {
     errors = "Cannot find addr info";
-    return;
+    TAC_HANDLE_ERROR( errors );
   }
   wsaErrorCode = connect( mSocket, targetAddrInfo->ai_addr, ( int )targetAddrInfo->ai_addrlen );
   if( wsaErrorCode == SOCKET_ERROR )
   {
     wsaErrorCode = WSAGetLastError();
-    if( wsaErrorCode == WSAEISCONN )
+    if( wsaErrorCode == WSAEISCONN ) // 10056A connect request was made on an already connected socket.
     {
       mTCPIsConnected = true;
       return;
     }
     if( TacContains( {
-      WSAEWOULDBLOCK, // non-blocking socket
-      WSAEALREADY }, // already connected
+      WSAEWOULDBLOCK, // 10035 non-blocking socket
+      WSAEALREADY }, // 10037 already connected
       wsaErrorCode ) )
       return;
     errors = TacGetLastWSAErrorString();
-    return;
+    TAC_HANDLE_ERROR( errors );
   }
   mTCPIsConnected = true;
 }
@@ -192,7 +192,7 @@ TacNetWinsock::TacNetWinsock( TacErrors& errors )
   if( wsaErrorCode )
   {
     errors = TacWin32ErrorToString( wsaErrorCode );
-    return;
+    TAC_HANDLE_ERROR( errors );
   }
   mPrintReceivedMessages = true;
 }

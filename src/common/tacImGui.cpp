@@ -331,6 +331,10 @@ bool TacImGuiGlobals::IsHovered( const TacImGuiRect& rect )
     mMousePositionDesktopWindowspace.y < rect.mMaxi.y;
 }
 
+void TacImGuiSetNextWindowPos( v2 pos )
+{
+  gTacImGuiGlobals.mNextWindowPos = pos;
+}
 void TacImGuiBegin( const TacString& name, v2 size )
 {
   TacImGuiWindow* window = gTacImGuiGlobals.FindWindow( name );
@@ -339,6 +343,11 @@ void TacImGuiBegin( const TacString& name, v2 size )
     window = new TacImGuiWindow;
     window->mName = name;
     gTacImGuiGlobals.mAllWindows.push_back( window );
+  }
+  if( gTacImGuiGlobals.mNextWindowPos != v2( 0, 0 ) )
+  {
+    window->mPos = gTacImGuiGlobals.mNextWindowPos;
+    gTacImGuiGlobals.mNextWindowPos = {};
   }
   const TacImage& image = gTacImGuiGlobals.mUI2DDrawData->mRenderView->mFramebuffer->myImage;
   window->mSize = {

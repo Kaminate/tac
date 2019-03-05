@@ -1,22 +1,23 @@
-
 #include "common/math/tacMath.h"
 #include "common/tacSettings.h"
 #include "common/tacShell.h"
+#include "common/tacJobQueue.h"
 #include "common/tacLog.h"
 #include "common/tacNet.h"
 #include "common/tacJson.h"
 #include "common/tacMemory.h"
-//#include "common/imgui.h"
+#include "common/tacImGui.h"
 #include "common/stb_image.h"
 #include "common/tacOS.h"
 #include "common/tacUI.h"
 #include "common/tacTime.h"
-
+#include "common/tacJobQueue.h"
 #include "space/tacGhost.h"
 #include "space/tacserver.h"
 #include "space/tacgraphics.h"
 #include "space/tacworld.h"
 #include "space/tacscriptgameclient.h"
+#include <cstdlib> // itoa
 
 const TacString defaultHostname = "tac.nate.rocks";
 const uint16_t defaultPort = 8081;
@@ -154,7 +155,7 @@ TacScriptMatchmaker::TacScriptMatchmaker()
   mName = scriptMatchmakerName;
   mPrintHTTPRequest = false;
   mShouldSpamServer = false;
-  mTryAutoConnect = true;
+  mTryAutoConnect = false;
   mShouldLog = false;
   mPort = 0;
   mConnectionAttemptStartSeconds = 0;
@@ -210,6 +211,13 @@ void TacScriptMatchmaker::Log( const TacString& text )
     return;
   log->Push( "TacScriptGameClient: " + text );
 }
+void TacScriptMatchmaker::TryConnect()
+{
+  mConnectionErrors.clear();
+  if( mSocket->mTCPIsConnected )
+    return;
+  mSocket->TCPTryConnect( mHostname, mPort, mConnectionErrors );
+}
 void TacScriptMatchmaker::Update( float seconds, TacErrors& errors )
 {
   auto shell = mScriptRoot->mGhost->mShell;
@@ -249,10 +257,7 @@ void TacScriptMatchmaker::Update( float seconds, TacErrors& errors )
 
 
   if( mTryAutoConnect )
-  {
-    mSocket->TCPTryConnect( mHostname, mPort, errors );
-    TAC_HANDLE_ERROR( errors );
-  }
+    TryConnect();
   if( !mSocket->mTCPIsConnected )
     return;
   TacString text = "Connected to " + mHostname + ":" + TacToString( mPort );
@@ -541,6 +546,7 @@ void TacScriptMainMenu::Update( float seconds, TacErrors& errors )
     //uiMenu->mPosition.y = 0;
     uiMenu->mColor = v4( v3( 1, 1, 1 ) * 52.0f, 58.0f ) / 255.0f;
 
+    // Server host / port
     {
       TacString serverDispalyName =
         scriptMatchmaker->mHostname +
@@ -555,6 +561,7 @@ void TacScriptMainMenu::Update( float seconds, TacErrors& errors )
       uiText->SetText( uiTextData );
     }
 
+    // server connection status
     {
       auto* uiText = uiMenu->Add< TacUIText >( "server connection status" );
       uiText->mInitialDelaySecs = uiMenu->GetInitialDelaySeconds();
@@ -573,6 +580,7 @@ void TacScriptMainMenu::Update( float seconds, TacErrors& errors )
       uiText->SetText( uiTextData );
     }
 
+    // server autoconnect
     {
       bool nestedLayouts = true;
       if( nestedLayouts )
@@ -635,6 +643,7 @@ void TacScriptMainMenu::Update( float seconds, TacErrors& errors )
 
     }
 
+    // disconenct from server
     {
       auto* uiText = uiMenu->Add< TacUIText >( "disconnect from server text" );
       uiText->mInitialDelaySecs = uiMenu->GetInitialDelaySeconds();
@@ -645,6 +654,7 @@ void TacScriptMainMenu::Update( float seconds, TacErrors& errors )
       mUITextDisconnectFromServer = uiText;
     }
 
+    // create room
     {
       auto* uiText = uiMenu->Add< TacUIText >( "create room button" );
       uiText->mInitialDelaySecs = uiMenu->GetInitialDelaySeconds();
@@ -654,6 +664,7 @@ void TacScriptMainMenu::Update( float seconds, TacErrors& errors )
       uiText->SetText( uiTextData );
     }
 
+    // controllers
     {
       auto* uiText = uiMenu->Add< TacUIText >( "controllers text" );
       uiText->mInitialDelaySecs = uiMenu->GetInitialDelaySeconds();
@@ -672,6 +683,7 @@ void TacScriptMainMenu::Update( float seconds, TacErrors& errors )
       uiText->mButtonCallbacks.push_back( buttonCallback );
     }
 
+    // Exit game
     {
       auto* layout = uiMenu->Add< TacUILayout >( "exit game layout" );
       layout->mUILayoutType = TacUILayoutType::Horizontal;
@@ -797,20 +809,106 @@ void TacTimeline::Add( TacTimelineAction* timelineAction )
   mTimelineActions.push_back( timelineAction );
 }
 
+
+
+struct TacConnectToServerJob : public TacJob
+{
+  void Execute() override
+  {
+    mMatchmaker->TryConnect();
+    if( mMatchmaker->mConnectionErrors.size() )
+    {
+      SetStatus( TacAsyncLoadStatus::ThreadFailed );
+      mErrors = mMatchmaker->mConnectionErrors;
+    }
+  }
+  TacScriptMatchmaker* mMatchmaker;
+};
+
 TacScriptMainMenu2::TacScriptMainMenu2()
 {
   mName = "Main Menu 2";
+}
+TacScriptMainMenu2::~TacScriptMainMenu2()
+{
+  static int j;
+  ++j;
+}
+void TacScriptMainMenu2::RenderMainMenu()
+{
+  auto* scriptMatchmaker = ( TacScriptMatchmaker* )mScriptRoot->GetThread( scriptMatchmakerName );
+
+  v2 mainMenuPos = { 200, 400 };
+  v2 mainMenuSize = { 400, 400 };
+
+  TacImGuiSetNextWindowPos( mainMenuPos );
+  TacImGuiBegin( "Main Menu", mainMenuSize );
+  if( scriptMatchmaker->mSocket->mTCPIsConnected )
+  {
+    TacString serverDispalyName =
+      scriptMatchmaker->mHostname +
+      TacString( ":" ) +
+      TacToString( scriptMatchmaker->mPort );
+    TacImGuiText( "Connected to server: " + serverDispalyName );
+    if( TacImGuiButton( "Disconnect from server" ) )
+      scriptMatchmaker->mSocket->mRequestDeletion = true;
+    if( TacImGuiButton( "Create room" ) )
+    {
+      TacJson json;
+      json[ "name" ] = "create room";
+      TacString toSend = json.Stringify();
+      TacSocket* socket = scriptMatchmaker->mSocket;
+      socket->Send( ( void* )toSend.data(), ( int )toSend.size(), scriptMatchmaker->mConnectionErrors );
+    }
+  }
+  else
+  {
+    TacImGuiInputText( "Hostname", scriptMatchmaker->mHostname );
+    TacString portString = TacToString( scriptMatchmaker->mPort );
+    if( TacImGuiInputText( "Port", portString ) )
+      scriptMatchmaker->mPort = TacClamp( std::atoi( portString.c_str() ), 0, 65535 );
+    TacAsyncLoadStatus status = mConnectToServerJob->GetStatus();
+    if( status == TacAsyncLoadStatus::ThreadQueued ||
+      status == TacAsyncLoadStatus::ThreadRunning )
+    {
+      TacString text = "Connecting to server";
+      for( int i = 0; i < ( int )mScriptRoot->mGhost->mShell->mElapsedSeconds % 4; ++i )
+        text += ".";
+      TacImGuiText( text );
+    }
+    else
+    {
+      if( status == TacAsyncLoadStatus::ThreadFailed )
+        TacImGuiText( mConnectToServerJob->mErrors.mMessage );
+      if( TacImGuiButton( "Connect to server" ) )
+      {
+        TacJobQueue* jobQueue = mScriptRoot->mGhost->mShell->mJobQueue;
+        jobQueue->Push( mConnectToServerJob );
+      }
+    }
+  }
+  if( TacImGuiButton( "Exit Game" ) )
+  {
+    TacOS::Instance->mShouldStopRunning = true;
+  }
+  TacImGuiEnd();
 }
 void TacScriptMainMenu2::Update( float seconds, TacErrors& errors )
 {
   TAC_TIMELINE_BEGIN;
 
+  auto job = new TacConnectToServerJob;
+  job->mMatchmaker = ( TacScriptMatchmaker* )mScriptRoot->GetThread( scriptMatchmakerName );
+  mConnectToServerJob = job;
 
 
+
   TAC_TIMELINE_KEYFRAME;
   TAC_TIMELINE_KEYFRAME;
   TAC_TIMELINE_KEYFRAME;
   TAC_TIMELINE_KEYFRAME;
   TAC_TIMELINE_KEYFRAME;
+  RenderMainMenu();
+  return;// prevent IsComplete
   TAC_TIMELINE_END;
 }

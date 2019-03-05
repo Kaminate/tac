@@ -6,6 +6,7 @@
 
 struct TacUILayout;
 struct TacUIText;
+struct TacJob;
 struct TacGhost;
 struct TacSocket;
 struct TacScriptMainMenu;
@@ -106,9 +107,11 @@ struct TacScriptMatchmaker : public TacScriptThread
   void PokeServer( TacErrors& errors );
   void ClearServerLog( TacErrors& errors );
   void Log( const TacString& text );
+  void TryConnect();
 
   TacSocket* mSocket = nullptr;
   TacString mHostname;
+  TacErrors mConnectionErrors;
   uint16_t mPort;
   bool mPrintHTTPRequest;
   bool mPretendWebsocketHandshakeDone = false;
@@ -160,6 +163,11 @@ struct TacScriptMainMenu : public TacScriptThread
 struct TacScriptMainMenu2 : public TacScriptThread
 {
   TacScriptMainMenu2();
+  ~TacScriptMainMenu2();
+  void RenderMainMenu();
   void Update( float seconds, TacErrors& errors ) override;
+  TacJob* mConnectToServerJob = nullptr;
 };
+
+
 
