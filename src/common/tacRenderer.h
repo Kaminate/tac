@@ -247,7 +247,10 @@ struct TacTextureData : public TacRendererResource
   std::set< TacCPUAccess > cpuAccess;
   std::set< TacBinding > binding;
 };
-struct TacTexture : public TacTextureData { };
+struct TacTexture : public TacTextureData 
+{ 
+  virtual void Clear() {}
+};
 struct TacDepthBufferData : public TacRendererResource
 {
   int width = 0;
@@ -259,7 +262,10 @@ struct TacDepthBufferData : public TacRendererResource
   int mStencilBitCount = 0;
   TacGraphicsType mStencilType = TacGraphicsType::unknown;
 };
-struct TacDepthBuffer : public TacDepthBufferData { };
+struct TacDepthBuffer : public TacDepthBufferData
+{
+  virtual void Clear() {}
+};
 struct TacCBufferData : public TacRendererResource
 {
   int shaderRegister = 0;

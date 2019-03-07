@@ -17,37 +17,6 @@
 #include <functional>
 #include <algorithm>
 
-
-struct SaveWindowSize : public TacEvent<>::Handler
-{
-  virtual ~SaveWindowSize() = default;
-  void HandleEvent() override
-  {
-    mWindowJson->operator[]( "w" ) = mDesktopWindow->mWidth;
-    mWindowJson->operator[]( "h" ) = mDesktopWindow->mHeight;
-    TacErrors errors;
-    mSettings->Save( errors );
-  }
-  TacDesktopWindow* mDesktopWindow = nullptr;
-  TacJson* mWindowJson = nullptr;
-  TacSettings* mSettings = nullptr;
-};
-
-struct SaveWindowPosition : public TacEvent<>::Handler
-{
-  virtual ~SaveWindowPosition() = default;
-  void HandleEvent() override
-  {
-    mWindowJson->operator[]( "x" ) = mDesktopWindow->mX;
-    mWindowJson->operator[]( "y" ) = mDesktopWindow->mY;
-    TacErrors errors;
-    mSettings->Save( errors );
-  }
-  TacDesktopWindow* mDesktopWindow = nullptr;
-  TacJson* mWindowJson = nullptr;
-  TacSettings* mSettings = nullptr;
-};
-
 static v4 GetClearColor( TacShell* shell )
 {
   return v4( 1, 0, 0, 1 );
@@ -127,17 +96,15 @@ void TacCreation::Init( TacErrors& errors )
     TAC_HANDLE_ERROR( errors );
 
 
-    auto saveWindowSize = new SaveWindowSize();
-    saveWindowSize->mDesktopWindow = desktopWindow;
-    saveWindowSize->mSettings = settings;
-    saveWindowSize->mWindowJson = windowJson;
-    desktopWindow->mOnResize.AddCallback( saveWindowSize );
+    desktopWindow->mOnResize.AddCallback( new TacFunctionalHandler([&]() {
+      windowJson->operator[]( "w" ) = desktopWindow->mWidth;
+      windowJson->operator[]( "h" ) = desktopWindow->mHeight;
+      settings->Save( errors ); } ) );
 
-    auto saveWindowPosition = new SaveWindowPosition();
-    saveWindowPosition->mDesktopWindow = desktopWindow;
-    saveWindowPosition->mSettings = settings;
-    saveWindowPosition->mWindowJson = windowJson;
-    desktopWindow->mOnMove.AddCallback( saveWindowPosition );
+    desktopWindow->mOnMove.AddCallback( new TacFunctionalHandler( [ & ]() {
+      windowJson->operator[]( "x" ) = desktopWindow->mX;
+      windowJson->operator[]( "y" ) = desktopWindow->mY;
+      settings->Save( errors ); } ) );
 
     //auto ui2DDrawData = new TacUI2DDrawData();
     //ui2DDrawData->mUI2DCommonData = shell->mUI2DCommonData;
@@ -273,30 +240,16 @@ void TacDesktopApp::DoStuff( TacDesktopApp* desktopApp, TacErrors& errors )
   TacShell* shell = desktopApp->mShell;
   shell->mAppName = appName;
   shell->mPrefPath = prefPath;
-  shell->SetScopedGlobals();
   shell->Init( errors );
   TAC_HANDLE_ERROR( errors );
 
   desktopApp->OnShellInit( errors );
   TAC_HANDLE_ERROR( errors );
 
-
-  struct TacCreationUpdater : public TacEvent<>::Handler
-  {
-    virtual ~TacCreationUpdater() = default;
-    void HandleEvent() override { f(); }
-    std::function< void() > f;
-  };
-
-
-  // should this really be on the heap?
   auto creation = new TacCreation();
   creation->mDesktopApp = desktopApp;
-
-  auto creationUpdater = new TacCreationUpdater;
-  creationUpdater->f = [ & ]() { creation->Update( errors ); };
-
-  shell->mOnUpdate.AddCallback( creationUpdater );
+  shell->mOnUpdate.AddCallback( new TacFunctionalHandler( [ & ]() {
+    creation->Update( errors );} ) );
 
   creation->Init( errors );
   TAC_HANDLE_ERROR( errors );

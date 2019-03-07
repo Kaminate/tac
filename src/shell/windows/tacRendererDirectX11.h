@@ -33,23 +33,29 @@ struct TacSampler
 struct TacCBufferDX11 : public TacCBuffer
 {
   ~TacCBufferDX11();
-  ID3D11Buffer* mDXObj = nullptr;
   void SendUniforms( void* bytes ) override;
+
+  ID3D11Buffer* mDXObj = nullptr;
 };
 
 struct TacTextureDX11 : public TacTexture
 {
   TacTextureDX11();
   ~TacTextureDX11();
+  void Clear() override;
+  void* GetImguiTextureID() override;
+
   ID3D11Resource* mDXObj = nullptr;
   ID3D11ShaderResourceView* mSrv = nullptr;
   ID3D11RenderTargetView* mRTV = nullptr;
-  void* GetImguiTextureID() override;
 };
 
 struct TacDepthBufferDX11 : public TacDepthBuffer
 {
   ~TacDepthBufferDX11();
+  void Init( TacErrors& errors );
+  void Clear() override;
+
   ID3D11Resource* mDXObj = nullptr;
   ID3D11DepthStencilView* mDSV = nullptr;
 };
@@ -133,10 +139,7 @@ struct TacDX11Window : public TacRendererWindowData
 
 struct TacRendererDirectX11 : public TacRenderer
 {
-
-
-
-  TacRendererDirectX11(/* HWND hwnd, TacErrors& errors */ );
+  TacRendererDirectX11();
   ~TacRendererDirectX11();
 
   void Init( TacErrors& errors ) override;
@@ -257,7 +260,6 @@ struct TacRendererDirectX11 : public TacRenderer
     TacErrors& errors );
 
   TacString AppendInfoQueueMessage( HRESULT hr );
-  void ReportLiveObjects();
   void SetDebugName(
     ID3D11DeviceChild* directXObject,
     const TacString& name );

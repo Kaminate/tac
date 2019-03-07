@@ -324,7 +324,7 @@ TacImGuiWindow* TacImGuiGlobals::FindWindow( const TacString& name )
 }
 bool TacImGuiGlobals::IsHovered( const TacImGuiRect& rect )
 {
-  if( !mIsWindowDirectlyCursor )
+  if( !mIsWindowDirectlyUnderCursor )
     return false;
   return
     mMousePositionDesktopWindowspace.x > rect.mMini.x &&

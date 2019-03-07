@@ -39,7 +39,7 @@ struct TacGame
     auto ghost = new TacGhost;
     ghost->mShell = mShell;
     ghost->mRenderView = mDesktopWindow->mRenderView;
-    ghost->mUIRoot->mUI2DDrawData = mUi2DDrawData;
+    //ghost->mUIRoot->mUI2DDrawData = mUi2DDrawData;
     ghost->Init( errors );
     TAC_HANDLE_ERROR( errors );
     mShell->AddSoul( ghost );
@@ -54,11 +54,11 @@ struct TacGame
       gTacImGuiGlobals.mMousePositionDesktopWindowspace = {
         screenspaceCursorPos.x - mDesktopWindow->mX,
         screenspaceCursorPos.y - mDesktopWindow->mY };
-      gTacImGuiGlobals.mIsWindowDirectlyCursor = mDesktopWindow->mCursorUnobscured;
+      gTacImGuiGlobals.mIsWindowDirectlyUnderCursor = mDesktopWindow->mCursorUnobscured;
     }
     else
     {
-      gTacImGuiGlobals.mIsWindowDirectlyCursor = false;
+      gTacImGuiGlobals.mIsWindowDirectlyUnderCursor = false;
     }
     gTacImGuiGlobals.mElapsedSeconds = mShell->mElapsedSeconds;
     gTacImGuiGlobals.mUI2DDrawData = mUi2DDrawData;
@@ -111,35 +111,21 @@ void TacDesktopApp::DoStuff( TacDesktopApp* desktopApp, TacErrors& errors )
   TacOS::Instance->CreateFolderIfNotExist( prefPath, errors );
   TAC_HANDLE_ERROR( errors );
 
-
   TacShell* shell = desktopApp->mShell;
   shell->mAppName = appName;
   shell->mPrefPath = prefPath;
-  shell->SetScopedGlobals();
   shell->Init( errors );
   TAC_HANDLE_ERROR( errors );
 
   desktopApp->OnShellInit( errors );
   TAC_HANDLE_ERROR( errors );
 
-
-  struct TacUpdater : public TacEvent<>::Handler
-  {
-    virtual ~TacUpdater() = default;
-    void HandleEvent() override { f(); }
-    std::function< void() > f;
-  };
-
-
   // should this really be on the heap?
   auto game = new TacGame();
   game->mApp = desktopApp;
   game->mShell = shell;
-
-  auto updater = new TacUpdater;
-  updater->f = [ & ]() { game->Update( errors ); };
-
-  shell->mOnUpdate.AddCallback( updater );
+  shell->mOnUpdate.AddCallback( new TacFunctionalHandler( [&]() {
+    game->Update( errors ); } ) );
 
   game->Init( errors );
   TAC_HANDLE_ERROR( errors );

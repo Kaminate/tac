@@ -187,6 +187,7 @@ void TacUI2DDrawData::DrawToTexture( TacErrors& errors )
     mIndexes->Overwrite( mDefaultIndex2Ds.data(), indexCount * sizeof( TacDefaultIndex2D ), errors );
     TAC_HANDLE_ERROR( errors );
 
+    // mRenderView->mViewportRect.mViewportPixelWidthIncreasingRight?
     float sx = 2.0f / mRenderView->mFramebuffer->myImage.mWidth;
     float sy = 2.0f / mRenderView->mFramebuffer->myImage.mHeight;
     auto projectionPieces = TacMakeArray< m4 >(

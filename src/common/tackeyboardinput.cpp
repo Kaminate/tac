@@ -97,7 +97,7 @@ void TacKeyboardInput::SetIsKeyDown( TacKey key, bool isDown )
     mCurr.mCurrDown.erase( key );
   }
 }
-void TacKeyboardInput::BeforePoll()
+void TacKeyboardInput::Frame()
 {
   mPrev = mCurr;
   mWMCharPressedHax = 0;

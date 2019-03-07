@@ -1,4 +1,5 @@
 #pragma once
+
 #include "common/tacString.h"
 #include "common/tacErrorHandling.h"
 #include "common/containers/tacVector.h"
@@ -8,7 +9,7 @@
 #include "common/math/tacVector2.h"
 #include "common/tacRenderer.h"
 #include "common/taccontrollerinput.h"
-#include <set>
+
 struct TacGhost;
 struct TacTexture;
 struct TacPlayer;
@@ -28,8 +29,6 @@ struct TacIndexBuffer;
 struct TacVertexBuffer;
 struct TacController;
 struct TacNewI;
-
-
 
 //
 // A user stores data for a person interactiong with this application.
@@ -80,11 +79,7 @@ struct TacGhost : public TacSoul
   v4 mClearColor = v4( v3( 27, 33, 40 ) / 255.0f, 1 );
   bool mDrawText = true;
   float mSplashAlpha = 0;
-  //TacTexture* mFBOTexture = nullptr;
-  //TacTexture* mDrawTexture = nullptr;
-  //TacDepthBuffer* mFBODepthBuffer = nullptr;
-  //TacDepthBuffer* mDrawDepthBuffer = nullptr;
-  TacUIRoot* mUIRoot = nullptr;
+  //TacUIRoot* mUIRoot = nullptr;
   bool mIsGrabbingInput = true;
   bool mDrawDirectlyToScreen = true;
   v2 mMouserCursorNDC = {};

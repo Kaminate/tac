@@ -28,7 +28,7 @@ struct TacImGuiGlobals
 
   v2 mNextWindowPos = {};
   v2 mMousePositionDesktopWindowspace = {};
-  bool mIsWindowDirectlyCursor = false;
+  bool mIsWindowDirectlyUnderCursor = false;
   double mElapsedSeconds = 0;
   TacVector< TacImGuiWindow* > mAllWindows;
   TacVector< TacImGuiWindow* > mWindowStack;

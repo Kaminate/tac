@@ -2,6 +2,7 @@
 #include "common/tacAlgorithm.h"
 #include "common/taccontrollerinput.h"
 #include "common/tacFont.h"
+#include "common/tacImGui.h"
 #include "common/tackeyboardinput.h"
 #include "common/tacLocalization.h"
 #include "common/tacmeta.h"
@@ -78,13 +79,12 @@ void TacUser::Update( TacErrors& errors )
 TacGhost::TacGhost()
 {
   mScriptRoot = new TacScriptRoot;
-  mUIRoot = new TacUIRoot;
+  //mUIRoot = new TacUIRoot;
   mServerData = new TacServerData;
 }
 void TacGhost::Init( TacErrors& errors )
 {
   mShouldPopulateWorldInitial = false;
-  mShell->SetScopedGlobals();
   mScriptRoot->mGhost = this;
   auto renderer = mShell->mRenderer;
   //int w = shell->mWindowWidth;
@@ -140,7 +140,7 @@ void TacGhost::Init( TacErrors& errors )
     TAC_HANDLE_ERROR( errors );
   }
 
-  mUIRoot->mElapsedSeconds = &mShell->mElapsedSeconds; // eww
+  //mUIRoot->mElapsedSeconds = &mShell->mElapsedSeconds; // eww
   //mUIRoot->mGhost = this;
 }
 TacGhost::~TacGhost()
@@ -149,7 +149,7 @@ TacGhost::~TacGhost()
   //delete mFBODepthBuffer;
   for( TacUser* user : mUsers )
     delete user;
-  delete mUIRoot;
+  //delete mUIRoot;
   delete mServerData;
   delete mClientData;
 }
@@ -184,6 +184,8 @@ void TacGhost::ImguiCreatePlayerPopup( TacErrors& errors )
 }
 void TacGhost::Update( TacErrors& errors )
 {
+  gTacImGuiGlobals.mIsWindowDirectlyUnderCursor;
+
   if( CanDrawImgui() )
   {
     //mMouserCursorNDC.x = ( ( float )mShell->mMouseRelTopLeftX - mImguiImagePosRelTopLeftX ) / mImguiImageW;
@@ -210,7 +212,7 @@ void TacGhost::Update( TacErrors& errors )
   mScriptRoot->Update( TAC_DELTA_FRAME_SECONDS, errors );
   mServerData->Update( TAC_DELTA_FRAME_SECONDS, nullptr, nullptr, errors );
   TAC_HANDLE_ERROR( errors );
-  mUIRoot->Update();
+  //mUIRoot->Update();
   Draw( errors );
   TAC_HANDLE_ERROR( errors );
 
@@ -449,7 +451,7 @@ void TacGhost::PopulateWorldInitial()
 }
 bool TacGhost::CanDrawImgui()
 {
-  return !mDrawDirectlyToScreen && mShell->mImGuiRender;
+  return !mDrawDirectlyToScreen;
 }
 //extern "C" TAC_EXPORT TacSoul* TAC_GHOST_CREATE( TacShell* shell, TacErrors& errors )
 //{

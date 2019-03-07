@@ -22,7 +22,7 @@ struct TacCreationGameWindow
   TacUIRoot* mUIRoot = nullptr;
   TacUI2DDrawData* mUI2DDrawData = nullptr;
   TacSoul* mSoul = nullptr;
-  TacRenderView* mRenderView = nullptr;
+  //TacRenderView* mRenderView = nullptr;
   void SetGhostRenderView();
 };
 

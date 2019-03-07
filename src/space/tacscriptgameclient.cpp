@@ -112,7 +112,7 @@ void TacScriptSplash::Update( float seconds, TacErrors& errors )
 {
   TacGhost* ghost = mScriptRoot->mGhost;
   TacShell* shell = ghost->mShell;
-  TacUIRoot* uiRoot = ghost->mUIRoot;
+  //TacUIRoot* uiRoot = ghost->mUIRoot;
 
 
   TAC_TIMELINE_BEGIN;
@@ -397,7 +397,7 @@ void TacScriptMainMenu::Update( float seconds, TacErrors& errors )
 {
   TacGhost* ghost = mScriptRoot->mGhost;
   TacShell* shell = ghost->mShell;
-  TacUIRoot* uiRoot = ghost->mUIRoot;
+  //TacUIRoot* uiRoot = ghost->mUIRoot;
   auto* scriptMatchmaker = ( TacScriptMatchmaker* )mScriptRoot->GetThread( scriptMatchmakerName );
   TacServerData* serverData = ghost->mServerData;
   TacWorld* world = serverData->mWorld;
@@ -511,235 +511,234 @@ void TacScriptMainMenu::Update( float seconds, TacErrors& errors )
 
   double timelineSeconds = shell->mElapsedSeconds;
 
-  auto createGameTitle = [ = ]()
-  {
-    if( !mCreateGraveStoryButton )
-      return;
-    TacUILayout* uiMenu = uiRoot->AddMenu( "Game title layout" );
-    uiMenu->mAnchor.mAnchorHorizontal = menuAnchorHorizontal;
-    uiMenu->mAnchor.mAnchorVertical = menuAnchorVertical;
-    uiMenu->mUiWidth = 0;
-    uiMenu->mHeightTarget = 0;
-    //uiMenu->mPosition.x = menuPositionX;
-    //uiMenu->mPosition.y = 200;
+  //auto createGameTitle = [ = ]()
+  //{
+  //  if( !mCreateGraveStoryButton )
+  //    return;
+  //  TacUILayout* uiMenu = uiRoot->AddMenu( "Game title layout" );
+  //  uiMenu->mAnchor.mAnchorHorizontal = menuAnchorHorizontal;
+  //  uiMenu->mAnchor.mAnchorVertical = menuAnchorVertical;
+  //  uiMenu->mUiWidth = 0;
+  //  uiMenu->mHeightTarget = 0;
+  //  //uiMenu->mPosition.x = menuPositionX;
+  //  //uiMenu->mPosition.y = 200;
 
-    auto* uiText = uiMenu->Add< TacUIText >( "Game title text" );
-    TacUITextData uiTextData;
-    uiTextData.mColor = colorText;
-    uiTextData.mUtf8 = "GRAVE STORY";
-    uiTextData.mFontSize = 60;
-    uiText->SetText( uiTextData );
-    uiText->GoNuts();
-  };
-  mTimeline.Add( new TacTimelineOnce( timelineSeconds, createGameTitle ) );
-  timelineSeconds += 0.2f;
+  //  auto* uiText = uiMenu->Add< TacUIText >( "Game title text" );
+  //  TacUITextData uiTextData;
+  //  uiTextData.mColor = colorText;
+  //  uiTextData.mUtf8 = "GRAVE STORY";
+  //  uiTextData.mFontSize = 60;
+  //  uiText->SetText( uiTextData );
+  //  uiText->GoNuts();
+  //};
+  //mTimeline.Add( new TacTimelineOnce( timelineSeconds, createGameTitle ) );
+  //timelineSeconds += 0.2f;
 
-  auto createMainMenu = [ = ]()->void
-  {
-    TacUILayout* uiMenu = uiRoot->AddMenu( "main menu layout" );
-    uiMenu->mAnchor.mAnchorHorizontal = menuAnchorHorizontal;
-    uiMenu->mAnchor.mAnchorVertical = menuAnchorVertical;
-    uiMenu->mUiWidth = 300;
-    uiMenu->mHeightTarget = 200;
-    uiMenu->mMenuPadding = 8;
-    //uiMenu->mPosition.x = 200;
-    //uiMenu->mPosition.y = 0;
-    uiMenu->mColor = v4( v3( 1, 1, 1 ) * 52.0f, 58.0f ) / 255.0f;
+  //auto createMainMenu = [ = ]()->void
+  //{
+  //  TacUILayout* uiMenu = uiRoot->AddMenu( "main menu layout" );
+  //  uiMenu->mAnchor.mAnchorHorizontal = menuAnchorHorizontal;
+  //  uiMenu->mAnchor.mAnchorVertical = menuAnchorVertical;
+  //  uiMenu->mUiWidth = 300;
+  //  uiMenu->mHeightTarget = 200;
+  //  uiMenu->mMenuPadding = 8;
+  //  //uiMenu->mPosition.x = 200;
+  //  //uiMenu->mPosition.y = 0;
+  //  uiMenu->mColor = v4( v3( 1, 1, 1 ) * 52.0f, 58.0f ) / 255.0f;
 
-    // Server host / port
-    {
-      TacString serverDispalyName =
-        scriptMatchmaker->mHostname +
-        TacString( ":" ) +
-        TacToString( scriptMatchmaker->mPort );
+  //  // Server host / port
+  //  {
+  //    TacString serverDispalyName =
+  //      scriptMatchmaker->mHostname +
+  //      TacString( ":" ) +
+  //      TacToString( scriptMatchmaker->mPort );
 
-      TacUIText* uiText = uiMenu->Add< TacUIText >( "server display name" );
-      uiText->mInitialDelaySecs = uiMenu->GetInitialDelaySeconds();
-      TacUITextData uiTextData;
-      uiTextData.mColor = colorText;
-      uiTextData.mUtf8 = "Server: " + serverDispalyName;
-      uiText->SetText( uiTextData );
-    }
+  //    TacUIText* uiText = uiMenu->Add< TacUIText >( "server display name" );
+  //    uiText->mInitialDelaySecs = uiMenu->GetInitialDelaySeconds();
+  //    TacUITextData uiTextData;
+  //    uiTextData.mColor = colorText;
+  //    uiTextData.mUtf8 = "Server: " + serverDispalyName;
+  //    uiText->SetText( uiTextData );
+  //  }
 
-    // server connection status
-    {
-      auto* uiText = uiMenu->Add< TacUIText >( "server connection status" );
-      uiText->mInitialDelaySecs = uiMenu->GetInitialDelaySeconds();
-      mUITextServerConnectionStatus = uiText;
-      TacUITextData uiTextData;
-      uiTextData.mColor = colorText;
-      if( scriptMatchmaker->mPretendWebsocketHandshakeDone )
-      {
-        uiTextData.mUtf8 = "Status: Connected";
-        AddCallbackDisconnect();
-      }
-      else
-      {
-        AddCallbackConnect();
-      }
-      uiText->SetText( uiTextData );
-    }
+  //  // server connection status
+  //  {
+  //    auto* uiText = uiMenu->Add< TacUIText >( "server connection status" );
+  //    uiText->mInitialDelaySecs = uiMenu->GetInitialDelaySeconds();
+  //    mUITextServerConnectionStatus = uiText;
+  //    TacUITextData uiTextData;
+  //    uiTextData.mColor = colorText;
+  //    if( scriptMatchmaker->mPretendWebsocketHandshakeDone )
+  //    {
+  //      uiTextData.mUtf8 = "Status: Connected";
+  //      AddCallbackDisconnect();
+  //    }
+  //    else
+  //    {
+  //      AddCallbackConnect();
+  //    }
+  //    uiText->SetText( uiTextData );
+  //  }
 
-    // server autoconnect
-    {
-      bool nestedLayouts = true;
-      if( nestedLayouts )
-      {
+  //  // server autoconnect
+  //  {
+  //    bool nestedLayouts = true;
+  //    if( nestedLayouts )
+  //    {
 
-        float sideLength = 20;
-        TacUILayout* uiLayout = uiMenu->Add< TacUILayout >( "server autoconnect layout" );
-        uiLayout->mUiWidth = sideLength;
-        uiLayout->mHeightTarget = sideLength;
-        uiLayout->mUILayoutType = TacUILayoutType::Horizontal;
-        uiLayout->mAnchor.mAnchorHorizontal = TacUIAnchorHorizontal::Left;
-        uiLayout->mAnchor.mAnchorVertical = TacUIAnchorVertical::Top;
+  //      float sideLength = 20;
+  //      TacUILayout* uiLayout = uiMenu->Add< TacUILayout >( "server autoconnect layout" );
+  //      uiLayout->mUiWidth = sideLength;
+  //      uiLayout->mHeightTarget = sideLength;
+  //      uiLayout->mUILayoutType = TacUILayoutType::Horizontal;
+  //      uiLayout->mAnchor.mAnchorHorizontal = TacUIAnchorHorizontal::Left;
+  //      uiLayout->mAnchor.mAnchorVertical = TacUIAnchorVertical::Top;
 
-        TacUILayout* parentUiLayout = uiLayout;
+  //      TacUILayout* parentUiLayout = uiLayout;
 
-        uiLayout = parentUiLayout->Add< TacUILayout >( "server autoconnect left image" );
-        uiLayout->mColor = v4( 1, 1, 0, 1 );
-        uiLayout->mUiWidth = sideLength;
-        uiLayout->mHeightTarget = sideLength;
-        uiLayout->mAnchor.mAnchorHorizontal = TacUIAnchorHorizontal::Left;
-        uiLayout->mAnchor.mAnchorVertical = TacUIAnchorVertical::Top;
+  //      uiLayout = parentUiLayout->Add< TacUILayout >( "server autoconnect left image" );
+  //      uiLayout->mColor = v4( 1, 1, 0, 1 );
+  //      uiLayout->mUiWidth = sideLength;
+  //      uiLayout->mHeightTarget = sideLength;
+  //      uiLayout->mAnchor.mAnchorHorizontal = TacUIAnchorHorizontal::Left;
+  //      uiLayout->mAnchor.mAnchorVertical = TacUIAnchorVertical::Top;
 
-        TacUIText* uiText = parentUiLayout->Add< TacUIText >( "server autoconnect text" );
-        uiText->mInitialDelaySecs = uiMenu->GetInitialDelaySeconds();
-        TacUITextData uiTextData;
-        uiTextData.mUtf8 = "Server Autoconnect: On";
-        uiTextData.mColor = colorMagenta;
-        TacUIButtonCallback buttonCallback;
-        buttonCallback.mUserData = this;
-        buttonCallback.mUserCallback = []( void* userData, TacErrors& errors )
-        {
-          auto* scriptMainMenu = ( TacScriptMainMenu* )userData;
-          TacScriptRoot* scriptRoot = scriptMainMenu->mScriptRoot;
-          auto* scriptMatchmaker = ( TacScriptMatchmaker* )scriptRoot->GetThread( scriptMatchmakerName );
-          scriptMatchmaker->mTryAutoConnect = !scriptMatchmaker->mTryAutoConnect;
-          TacString text = "Server Autoconnect: ";
-          if( scriptMatchmaker->mTryAutoConnect )
-            text += "On";
-          else
-            text += "Off";
-          TacUITextData uiTextData;
-          uiTextData.mUtf8 = text;
-          uiTextData.mColor = colorMagenta;
-          scriptMainMenu->mUITextServerAutoconnect->SetText( uiTextData, false );
-        };
-        uiText->mButtonCallbacks.push_back( buttonCallback );
-        mUITextServerAutoconnect = uiText;
-        uiText->SetText( uiTextData );
+  //      TacUIText* uiText = parentUiLayout->Add< TacUIText >( "server autoconnect text" );
+  //      uiText->mInitialDelaySecs = uiMenu->GetInitialDelaySeconds();
+  //      TacUITextData uiTextData;
+  //      uiTextData.mUtf8 = "Server Autoconnect: On";
+  //      uiTextData.mColor = colorMagenta;
+  //      TacUIButtonCallback buttonCallback;
+  //      buttonCallback.mUserData = this;
+  //      buttonCallback.mUserCallback = []( void* userData, TacErrors& errors )
+  //      {
+  //        auto* scriptMainMenu = ( TacScriptMainMenu* )userData;
+  //        TacScriptRoot* scriptRoot = scriptMainMenu->mScriptRoot;
+  //        auto* scriptMatchmaker = ( TacScriptMatchmaker* )scriptRoot->GetThread( scriptMatchmakerName );
+  //        scriptMatchmaker->mTryAutoConnect = !scriptMatchmaker->mTryAutoConnect;
+  //        TacString text = "Server Autoconnect: ";
+  //        if( scriptMatchmaker->mTryAutoConnect )
+  //          text += "On";
+  //        else
+  //          text += "Off";
+  //        TacUITextData uiTextData;
+  //        uiTextData.mUtf8 = text;
+  //        uiTextData.mColor = colorMagenta;
+  //        scriptMainMenu->mUITextServerAutoconnect->SetText( uiTextData, false );
+  //      };
+  //      uiText->mButtonCallbacks.push_back( buttonCallback );
+  //      mUITextServerAutoconnect = uiText;
+  //      uiText->SetText( uiTextData );
 
-        uiLayout = parentUiLayout->Add< TacUILayout >( "server autoconnect right image" );
-        uiLayout->mColor = v4( 0, 1, 1, 1 );
-        uiLayout->mUiWidth = sideLength;
-        uiLayout->mHeightTarget = sideLength;
-        uiLayout->mAnchor.mAnchorHorizontal = TacUIAnchorHorizontal::Left;
-        uiLayout->mAnchor.mAnchorVertical = TacUIAnchorVertical::Top;
+  //      uiLayout = parentUiLayout->Add< TacUILayout >( "server autoconnect right image" );
+  //      uiLayout->mColor = v4( 0, 1, 1, 1 );
+  //      uiLayout->mUiWidth = sideLength;
+  //      uiLayout->mHeightTarget = sideLength;
+  //      uiLayout->mAnchor.mAnchorHorizontal = TacUIAnchorHorizontal::Left;
+  //      uiLayout->mAnchor.mAnchorVertical = TacUIAnchorVertical::Top;
 
-      }
+  //    }
 
 
 
-    }
+  //  }
 
-    // disconenct from server
-    {
-      auto* uiText = uiMenu->Add< TacUIText >( "disconnect from server text" );
-      uiText->mInitialDelaySecs = uiMenu->GetInitialDelaySeconds();
-      TacUITextData uiTextData;
-      uiTextData.mUtf8 = "Disconnect From Server";
-      uiTextData.mColor = colorGrey;
-      uiText->SetText( uiTextData );
-      mUITextDisconnectFromServer = uiText;
-    }
+  //  // disconenct from server
+  //  {
+  //    auto* uiText = uiMenu->Add< TacUIText >( "disconnect from server text" );
+  //    uiText->mInitialDelaySecs = uiMenu->GetInitialDelaySeconds();
+  //    TacUITextData uiTextData;
+  //    uiTextData.mUtf8 = "Disconnect From Server";
+  //    uiTextData.mColor = colorGrey;
+  //    uiText->SetText( uiTextData );
+  //    mUITextDisconnectFromServer = uiText;
+  //  }
 
-    // create room
-    {
-      auto* uiText = uiMenu->Add< TacUIText >( "create room button" );
-      uiText->mInitialDelaySecs = uiMenu->GetInitialDelaySeconds();
-      TacUITextData uiTextData;
-      uiTextData.mUtf8 = "Create Room";
-      uiTextData.mColor = colorGrey;
-      uiText->SetText( uiTextData );
-    }
+  //  // create room
+  //  {
+  //    auto* uiText = uiMenu->Add< TacUIText >( "create room button" );
+  //    uiText->mInitialDelaySecs = uiMenu->GetInitialDelaySeconds();
+  //    TacUITextData uiTextData;
+  //    uiTextData.mUtf8 = "Create Room";
+  //    uiTextData.mColor = colorGrey;
+  //    uiText->SetText( uiTextData );
+  //  }
 
-    // controllers
-    {
-      auto* uiText = uiMenu->Add< TacUIText >( "controllers text" );
-      uiText->mInitialDelaySecs = uiMenu->GetInitialDelaySeconds();
-      TacUITextData uiTextData;
-      uiTextData.mUtf8 = "Controllers";
-      uiTextData.mColor = colorMagenta;
-      uiText->SetText( uiTextData );
-      TacUIButtonCallback buttonCallback;
-      buttonCallback.mUserData = this;
-      buttonCallback.mUserCallback = []( void* userData, TacErrors& errors )
-      {
-        auto* scriptMainMenu = ( TacScriptMainMenu* )userData;
-        static int ihi;
-        std::cout << "hi" << " " << ihi++ << std::endl;
-      };
-      uiText->mButtonCallbacks.push_back( buttonCallback );
-    }
+  //  // controllers
+  //  {
+  //    auto* uiText = uiMenu->Add< TacUIText >( "controllers text" );
+  //    uiText->mInitialDelaySecs = uiMenu->GetInitialDelaySeconds();
+  //    TacUITextData uiTextData;
+  //    uiTextData.mUtf8 = "Controllers";
+  //    uiTextData.mColor = colorMagenta;
+  //    uiText->SetText( uiTextData );
+  //    TacUIButtonCallback buttonCallback;
+  //    buttonCallback.mUserData = this;
+  //    buttonCallback.mUserCallback = []( void* userData, TacErrors& errors )
+  //    {
+  //      auto* scriptMainMenu = ( TacScriptMainMenu* )userData;
+  //      static int ihi;
+  //      std::cout << "hi" << " " << ihi++ << std::endl;
+  //    };
+  //    uiText->mButtonCallbacks.push_back( buttonCallback );
+  //  }
 
-    // Exit game
-    {
-      auto* layout = uiMenu->Add< TacUILayout >( "exit game layout" );
-      layout->mUILayoutType = TacUILayoutType::Horizontal;
-      layout->mAnchor.mAnchorHorizontal = TacUIAnchorHorizontal::Left;
-      layout->mAnchor.mAnchorVertical = TacUIAnchorVertical::Top;
-      layout->mHeightTarget = 100.0f;
-      layout->mColor = { 0, 0, 0, 0 };
-      layout->mExpandWidth = true;
-      float powerSize = 20;
-      auto* power = layout->Add< TacUILayout >( "power icon" );
-      power->mAnchor.mAnchorHorizontal = TacUIAnchorHorizontal::Left;
-      power->mAnchor.mAnchorVertical = TacUIAnchorVertical::Center;
-      power->mColor = {
-        186 / 255.0f,
-        164 / 255.0f,
-        236 / 255.0f,
-        1 };
-      power->mHeightTarget = powerSize;
-      power->mUiWidth = powerSize;
-      power->mTexture = mPower;
+  //  // Exit game
+  //  {
+  //    auto* layout = uiMenu->Add< TacUILayout >( "exit game layout" );
+  //    layout->mUILayoutType = TacUILayoutType::Horizontal;
+  //    layout->mAnchor.mAnchorHorizontal = TacUIAnchorHorizontal::Left;
+  //    layout->mAnchor.mAnchorVertical = TacUIAnchorVertical::Top;
+  //    layout->mHeightTarget = 100.0f;
+  //    layout->mColor = { 0, 0, 0, 0 };
+  //    layout->mExpandWidth = true;
+  //    float powerSize = 20;
+  //    auto* power = layout->Add< TacUILayout >( "power icon" );
+  //    power->mAnchor.mAnchorHorizontal = TacUIAnchorHorizontal::Left;
+  //    power->mAnchor.mAnchorVertical = TacUIAnchorVertical::Center;
+  //    power->mColor = {
+  //      186 / 255.0f,
+  //      164 / 255.0f,
+  //      236 / 255.0f,
+  //      1 };
+  //    power->mHeightTarget = powerSize;
+  //    power->mUiWidth = powerSize;
+  //    power->mTexture = mPower;
 
-      auto* uiText = layout->Add< TacUIText >( "exit game text" );
-      uiText->mInitialDelaySecs = uiMenu->GetInitialDelaySeconds();
-      TacUITextData uiTextData;
-      uiTextData.mUtf8 = "Exit Game";
-      uiTextData.mColor = colorMagenta;
-      uiText->SetText( uiTextData );
-      TacUIButtonCallback buttonCallback;
-      buttonCallback.mUserData = this;
-      buttonCallback.mUserCallback = []( void* userData, TacErrors& errors )
-      {
-        TacOS::Instance->mShouldStopRunning = true;
-      };
-      uiText->mButtonCallbacks.push_back( buttonCallback );
-    }
+  //    auto* uiText = layout->Add< TacUIText >( "exit game text" );
+  //    uiText->mInitialDelaySecs = uiMenu->GetInitialDelaySeconds();
+  //    TacUITextData uiTextData;
+  //    uiTextData.mUtf8 = "Exit Game";
+  //    uiTextData.mColor = colorMagenta;
+  //    uiText->SetText( uiTextData );
+  //    TacUIButtonCallback buttonCallback;
+  //    buttonCallback.mUserData = this;
+  //    buttonCallback.mUserCallback = []( void* userData, TacErrors& errors )
+  //    {
+  //      TacOS::Instance->mShouldStopRunning = true;
+  //    };
+  //    uiText->mButtonCallbacks.push_back( buttonCallback );
+  //  }
 
-    mMenu = uiMenu;
-  };
-  mTimeline.Add( new TacTimelineOnce( timelineSeconds, createMainMenu ) );
-  timelineSeconds += 0.2f;
+  //  mMenu = uiMenu;
+  //};
+  //mTimeline.Add( new TacTimelineOnce( timelineSeconds, createMainMenu ) );
+  //timelineSeconds += 0.2f;
 
-  auto createPressStart = [ = ]()
-  {
-    if( !mCreatePressStartButton )
-      return;
-
-    TacUILayout* uiMenu = uiRoot->AddMenu( "press start layout" );
-    uiMenu->mAnchor.mAnchorHorizontal = TacUIAnchorHorizontal::Right;
-    uiMenu->mAnchor.mAnchorVertical = TacUIAnchorVertical::Bottom;
-    //uiMenu->mPosition = { -100, 100 };
-    uiMenu->mColor = {};
-    auto* uiText = uiMenu->Add< TacUIText >( "press start text" );
-    mUITextPressStart = uiText;
-  };
-  mTimeline.Add( new TacTimelineOnce( timelineSeconds, createPressStart ) );
-  timelineSeconds += 0.2f;
+  //auto createPressStart = [ = ]()
+  //{
+  //  if( !mCreatePressStartButton )
+  //    return;
+  //  TacUILayout* uiMenu = uiRoot->AddMenu( "press start layout" );
+  //  uiMenu->mAnchor.mAnchorHorizontal = TacUIAnchorHorizontal::Right;
+  //  uiMenu->mAnchor.mAnchorVertical = TacUIAnchorVertical::Bottom;
+  //  //uiMenu->mPosition = { -100, 100 };
+  //  uiMenu->mColor = {};
+  //  auto* uiText = uiMenu->Add< TacUIText >( "press start text" );
+  //  mUITextPressStart = uiText;
+  //};
+  //mTimeline.Add( new TacTimelineOnce( timelineSeconds, createPressStart ) );
+  //timelineSeconds += 0.2f;
 
 
 

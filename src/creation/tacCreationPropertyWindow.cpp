@@ -38,11 +38,11 @@ void TacCreationPropertyWindow::SetImGuiGlobals()
     gTacImGuiGlobals.mMousePositionDesktopWindowspace = {
       screenspaceCursorPos.x - mDesktopWindow->mX,
       screenspaceCursorPos.y - mDesktopWindow->mY };
-    gTacImGuiGlobals.mIsWindowDirectlyCursor = mDesktopWindow->mCursorUnobscured;
+    gTacImGuiGlobals.mIsWindowDirectlyUnderCursor = mDesktopWindow->mCursorUnobscured;
   }
   else
   {
-    gTacImGuiGlobals.mIsWindowDirectlyCursor = false;
+    gTacImGuiGlobals.mIsWindowDirectlyUnderCursor = false;
   }
   gTacImGuiGlobals.mUI2DDrawData = mUI2DDrawData;
   gTacImGuiGlobals.mKeyboardInput = mShell->mKeyboardInput;

@@ -41,7 +41,7 @@ struct TacKeyboardInput
   void DebugImgui();
   void DebugPrintWhenKeysChange();
   void SetIsKeyDown( TacKey key, bool isDown );
-  void BeforePoll();
+  void Frame();
 
   TacKeyboardInputFrame mCurr;
   TacKeyboardInputFrame mPrev;
