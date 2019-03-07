@@ -838,11 +838,16 @@ void TacScriptMainMenu2::RenderMainMenu()
 {
   auto* scriptMatchmaker = ( TacScriptMatchmaker* )mScriptRoot->GetThread( scriptMatchmakerName );
 
-  v2 mainMenuPos = { 200, 400 };
+  v2 mainMenuPos = { 200, 300 };
   v2 mainMenuSize = { 400, 400 };
 
   TacImGuiSetNextWindowPos( mainMenuPos );
   TacImGuiBegin( "Main Menu", mainMenuSize );
+
+  TacImGuiPushFontSize( 70 );
+  TacImGuiText( "Gravestory" );
+  TacImGuiPopFontSize();
+
   if( scriptMatchmaker->mSocket->mTCPIsConnected )
   {
     TacString serverDispalyName =

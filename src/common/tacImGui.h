@@ -38,9 +38,14 @@ struct TacImGuiGlobals
 };
 extern TacImGuiGlobals gTacImGuiGlobals;
 
+
 void TacImGuiSetNextWindowPos( v2 pos );
 void TacImGuiBegin( const TacString& name, v2 size );
 void TacImGuiEnd();
+
+void TacImGuiPushFontSize(  int value );
+void TacImGuiPopFontSize();
+
 void TacImGuiBeginChild( const TacString& name, v2 size );
 void TacImGuiEndChild();
 void TacImGuiBeginGroup();

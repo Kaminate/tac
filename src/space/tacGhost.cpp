@@ -1,4 +1,3 @@
-//#include "common/imgui.h"
 #include "common/math/tacMath.h"
 #include "common/tacAlgorithm.h"
 #include "common/taccontrollerinput.h"
@@ -13,6 +12,7 @@
 #include "common/tacTime.h"
 #include "common/tacUI.h"
 #include "common/tacUtility.h"
+#include "common/tacImGui.h"
 #include "space/tacclient.h"
 #include "space/taccollider.h"
 #include "space/tacentity.h"
@@ -438,13 +438,14 @@ void TacGhost::PopulateWorldInitial()
     mLevelLoadErrors = "failed to open " + levelpath;
     return;
   }
-  auto meta = TacMeta::GetInstance();
-  auto terrain = new TacTerrain();
-  auto metaTerrain = meta->GetType( TacStringify( TacTerrain ) );
-  meta->Load( ifs, metaTerrain, terrain, mLevelLoadErrors );
-  if( mLevelLoadErrors.size() )
-    return;
-  physics->mTerrains.insert( terrain );
+
+  //auto meta = TacMeta::GetInstance();
+  //auto terrain = new TacTerrain();
+  //auto metaTerrain = meta->GetType( TacStringify( TacTerrain ) );
+  //meta->Load( ifs, metaTerrain, terrain, mLevelLoadErrors );
+  //if( mLevelLoadErrors.size() )
+  //  return;
+  //physics->mTerrains.insert( terrain );
 }
 bool TacGhost::CanDrawImgui()
 {

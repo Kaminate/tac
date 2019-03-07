@@ -8,106 +8,107 @@
 #include "space/tacGhost.h"
 
 
-  struct TacGameVis : public TacUIHierarchyVisual
+struct TacGameVis : public TacUIHierarchyVisual
+{
+  void Render( TacErrors& errors ) override
   {
-    void Render( TacErrors& errors ) override
+
+    TacTexture* texture;
+    TacString path;
+    TacRenderer* renderer = mSoul->mShell->mRenderer;
+    TacTextureAssetManager* textureAssetManager = mSoul->mShell->mTextureAssetManager;
+
+    path = "assets/vgb_blue_big.png";
+    textureAssetManager->GetTexture( &texture, path, errors );
+    TacUI2DState& state = mHierarchyNode->mUIRoot->mUI2DDrawData->mStates.back();
+    state.Draw2DBox(
+      ( float )mDesktopWindow->mWidth,
+      ( float )mDesktopWindow->mHeight,
+      v4( 1, 1, 1, 1 ),
+      texture );
+
+    float innerBoxPercentOffsetX = 0.159f;
+    float innerBoxPercentOffsetY = 0.175f;
+    float innerBoxPercentWidth = 1 - ( 2 * innerBoxPercentOffsetX );
+    float innerBoxPercentHeight = 1 - ( 2 * innerBoxPercentOffsetY );
+
+    float innerBoxPixelOffsetY = innerBoxPercentOffsetX * ( float )mDesktopWindow->mWidth;
+    float innerBoxPixelOffsetX = innerBoxPercentOffsetY * ( float )mDesktopWindow->mHeight;
+    float innerBoxPixelWidth = innerBoxPercentWidth * ( float )mDesktopWindow->mWidth;
+    float innerBoxPixelHeight = innerBoxPercentHeight * ( float )mDesktopWindow->mHeight;
+    state.Translate( innerBoxPixelOffsetY, innerBoxPixelOffsetX );
+
+    TacTexture* outputColor = mRenderView->mFramebuffer;
+    TacDepthBuffer* outputDepth = mRenderView->mFramebufferDepth;
+    if( !outputColor || outputColor->myImage.mWidth != ( int )innerBoxPixelWidth )
     {
-
-      TacTexture* texture;
-      TacString path;
-      TacRenderer* renderer = mSoul->mShell->mRenderer;
-      TacTextureAssetManager* textureAssetManager = mSoul->mShell->mTextureAssetManager;
-
-      path = "assets/vgb_blue_big.png";
-      textureAssetManager->GetTexture( &texture, path, errors );
-      TacUI2DState& state = mHierarchyNode->mUIRoot->mUI2DDrawData->mStates.back();
-      state.Draw2DBox(
-        ( float )mDesktopWindow->mWidth,
-        ( float )mDesktopWindow->mHeight,
-        v4( 1, 1, 1, 1 ),
-        texture );
-
-      float innerBoxPercentOffsetX = 0.159f;
-      float innerBoxPercentOffsetY = 0.175f;
-      float innerBoxPercentWidth = 1 - ( 2 * innerBoxPercentOffsetX );
-      float innerBoxPercentHeight = 1 - ( 2 * innerBoxPercentOffsetY );
-
-      float innerBoxPixelOffsetY = innerBoxPercentOffsetX * ( float )mDesktopWindow->mWidth;
-      float innerBoxPixelOffsetX = innerBoxPercentOffsetY * ( float )mDesktopWindow->mHeight;
-      float innerBoxPixelWidth = innerBoxPercentWidth * ( float )mDesktopWindow->mWidth;
-      float innerBoxPixelHeight = innerBoxPercentHeight * ( float )mDesktopWindow->mHeight;
-      state.Translate( innerBoxPixelOffsetY, innerBoxPixelOffsetX );
-
-      TacTexture* outputColor = mRenderView->mFramebuffer;
-      TacDepthBuffer* outputDepth = mRenderView->mFramebufferDepth;
-      if( !outputColor || outputColor->myImage.mWidth != ( int )innerBoxPixelWidth )
+      if( outputColor )
       {
-        if( outputColor )
-        {
-          renderer->RemoveRendererResource( outputColor );
-          renderer->RemoveRendererResource( outputDepth );
-          outputColor = nullptr;
-          outputDepth = nullptr;
-        }
-
-        TacImage image;
-        image.mWidth = ( int )innerBoxPixelWidth;
-        image.mHeight = ( int )innerBoxPixelHeight;
-        image.mFormat.mPerElementByteCount = 1;
-        image.mFormat.mElementCount = 4;
-        image.mFormat.mPerElementDataType = TacGraphicsType::unorm;
-        TacTextureData textureData;
-        textureData.access = TacAccess::Default;
-        textureData.binding = { TacBinding::RenderTarget, TacBinding::ShaderResource };
-        textureData.cpuAccess = {};
-        textureData.mName = "client view fbo";
-        textureData.mStackFrame = TAC_STACK_FRAME;
-        textureData.myImage = image;
-        renderer->AddTextureResource( &outputColor, textureData, errors );
-        TAC_HANDLE_ERROR( errors );
-
-        TacDepthBufferData depthBufferData;
-        depthBufferData.mName = "client view depth buffer";
-        depthBufferData.mStackFrame = TAC_STACK_FRAME;
-        depthBufferData.width = ( int )innerBoxPixelWidth;
-        depthBufferData.height = ( int )innerBoxPixelHeight;
-        renderer->AddDepthBuffer( &outputDepth, depthBufferData, errors );
-        TAC_HANDLE_ERROR( errors );
-
-        mRenderView->mFramebuffer = outputColor;
-        mRenderView->mFramebufferDepth = outputDepth;
+        renderer->RemoveRendererResource( outputColor );
+        renderer->RemoveRendererResource( outputDepth );
+        outputColor = nullptr;
+        outputDepth = nullptr;
       }
 
-      //path = "assets/unknown.png";
-      //mTextureAssetManager->GetTexture( &texture, path, errors );
-      texture = outputColor;
-
-      mRenderView->mScissorRect.mXMaxRelUpperLeftCornerPixel = innerBoxPixelWidth;
-      mRenderView->mScissorRect.mYMaxRelUpperLeftCornerPixel = innerBoxPixelHeight;
-      mRenderView->mViewportRect.mViewportPixelWidthIncreasingRight = innerBoxPixelWidth;
-      mRenderView->mViewportRect.mViewportPixelHeightIncreasingUp = innerBoxPixelHeight;
-      uI2DDrawData->DrawToTexture( errors );
+      TacImage image;
+      image.mWidth = ( int )innerBoxPixelWidth;
+      image.mHeight = ( int )innerBoxPixelHeight;
+      image.mFormat.mPerElementByteCount = 1;
+      image.mFormat.mElementCount = 4;
+      image.mFormat.mPerElementDataType = TacGraphicsType::unorm;
+      TacTextureData textureData;
+      textureData.access = TacAccess::Default;
+      textureData.binding = { TacBinding::RenderTarget, TacBinding::ShaderResource };
+      textureData.cpuAccess = {};
+      textureData.mName = "client view fbo";
+      textureData.mStackFrame = TAC_STACK_FRAME;
+      textureData.myImage = image;
+      renderer->AddTextureResource( &outputColor, textureData, errors );
       TAC_HANDLE_ERROR( errors );
 
-      state.Draw2DBox(
-        innerBoxPixelWidth,
-        innerBoxPixelHeight,
-        v4( 1, 1, 1, 1 ),
-        texture );
+      TacDepthBufferData depthBufferData;
+      depthBufferData.mName = "client view depth buffer";
+      depthBufferData.mStackFrame = TAC_STACK_FRAME;
+      depthBufferData.width = ( int )innerBoxPixelWidth;
+      depthBufferData.height = ( int )innerBoxPixelHeight;
+      renderer->AddDepthBuffer( &outputDepth, depthBufferData, errors );
+      TAC_HANDLE_ERROR( errors );
 
-      mDims = {
-        ( float )mDesktopWindow->mWidth,
-        ( float )mDesktopWindow->mHeight };
+      mRenderView->mFramebuffer = outputColor;
+      mRenderView->mFramebufferDepth = outputDepth;
     }
-    TacString GetDebugName() override
-    {
-      return "game vis";
-    }
-    TacDesktopWindow* mDesktopWindow = nullptr;
-    TacSoul* mSoul = nullptr;
-    TacRenderView* mRenderView = nullptr;
-    TacUI2DDrawData* uI2DDrawData = nullptr;
-  };
+
+    //path = "assets/unknown.png";
+    //mTextureAssetManager->GetTexture( &texture, path, errors );
+    texture = outputColor;
+
+    mRenderView->mScissorRect.mXMaxRelUpperLeftCornerPixel = innerBoxPixelWidth;
+    mRenderView->mScissorRect.mYMaxRelUpperLeftCornerPixel = innerBoxPixelHeight;
+    mRenderView->mViewportRect.mViewportPixelWidthIncreasingRight = innerBoxPixelWidth;
+    mRenderView->mViewportRect.mViewportPixelHeightIncreasingUp = innerBoxPixelHeight;
+    uI2DDrawData->DrawToTexture( errors );
+    TAC_HANDLE_ERROR( errors );
+
+    state.Draw2DBox(
+      innerBoxPixelWidth,
+      innerBoxPixelHeight,
+      v4( 1, 1, 1, 1 ),
+      texture );
+
+    mDims = {
+      ( float )mDesktopWindow->mWidth,
+      ( float )mDesktopWindow->mHeight };
+  }
+  TacString GetDebugName() override
+  {
+    return "game vis";
+  }
+  TacDesktopWindow* mDesktopWindow = nullptr;
+  TacSoul* mSoul = nullptr;
+  TacRenderView* mRenderView = nullptr;
+  TacUI2DDrawData* uI2DDrawData = nullptr;
+  TacCreationGameWindow* creationGameWindow = nullptr;
+};
 
 void TacCreationGameWindow::Init( TacErrors& errors )
 {
@@ -118,6 +119,7 @@ void TacCreationGameWindow::Init( TacErrors& errors )
   auto uI2DDrawData = new TacUI2DDrawData();
   uI2DDrawData->mUI2DCommonData = shell->mUI2DCommonData;
   uI2DDrawData->mRenderView = mRenderView;
+  mUI2DDrawData = uI2DDrawData;
 
   auto ghost = new TacGhost;
   ghost->mShell = shell;
@@ -135,10 +137,78 @@ void TacCreationGameWindow::Init( TacErrors& errors )
   gameVis->mSoul = ghost;
   gameVis->mRenderView = mRenderView;
   gameVis->uI2DDrawData = uI2DDrawData;
+  gameVis->creationGameWindow = this;
 
+
+  mUIRoot = new TacUIRoot;
+  mUIRoot->mElapsedSeconds = &mShell->mElapsedSeconds;
+  mUIRoot->mUI2DDrawData = mUI2DDrawData;
+  mUIRoot->mKeyboardInput = mShell->mKeyboardInput;
+  mUIRoot->mDesktopWindow = mDesktopWindow;
   mUIRoot->mHierarchyRoot->SetVisual( gameVis );
 }
 void TacCreationGameWindow::Update( TacErrors& errors )
 {
-    mDesktopWindow->SetRenderViewDefaults();
+  mDesktopWindow->SetRenderViewDefaults();
+  SetGhostRenderView();
+}
+void TacCreationGameWindow::SetGhostRenderView()
+{
+  TacRenderer* renderer = mShell->mRenderer;
+
+  float innerBoxPercentOffsetX = 0.159f;
+  float innerBoxPercentOffsetY = 0.175f;
+  float innerBoxPercentWidth = 1 - ( 2 * innerBoxPercentOffsetX );
+  float innerBoxPercentHeight = 1 - ( 2 * innerBoxPercentOffsetY );
+
+  float innerBoxPixelOffsetY = innerBoxPercentOffsetX * ( float )mDesktopWindow->mWidth;
+  float innerBoxPixelOffsetX = innerBoxPercentOffsetY * ( float )mDesktopWindow->mHeight;
+  float innerBoxPixelWidth = innerBoxPercentWidth * ( float )mDesktopWindow->mWidth;
+  float innerBoxPixelHeight = innerBoxPercentHeight * ( float )mDesktopWindow->mHeight;
+  TacTexture* outputColor = mRenderView->mFramebuffer;
+  TacDepthBuffer* outputDepth = mRenderView->mFramebufferDepth;
+
+  if( !outputColor || outputColor->myImage.mWidth != ( int )innerBoxPixelWidth )
+  {
+    if( outputColor )
+    {
+      renderer->RemoveRendererResource( outputColor );
+      renderer->RemoveRendererResource( outputDepth );
+      outputColor = nullptr;
+      outputDepth = nullptr;
+    }
+
+    TacImage image;
+    image.mWidth = ( int )innerBoxPixelWidth;
+    image.mHeight = ( int )innerBoxPixelHeight;
+    image.mFormat.mPerElementByteCount = 1;
+    image.mFormat.mElementCount = 4;
+    image.mFormat.mPerElementDataType = TacGraphicsType::unorm;
+    TacTextureData textureData;
+    textureData.access = TacAccess::Default;
+    textureData.binding = { TacBinding::RenderTarget, TacBinding::ShaderResource };
+    textureData.cpuAccess = {};
+    textureData.mName = "client view fbo";
+    textureData.mStackFrame = TAC_STACK_FRAME;
+    textureData.myImage = image;
+    TacErrors errors; // ???
+    renderer->AddTextureResource( &outputColor, textureData, errors );
+    TAC_HANDLE_ERROR( errors );
+
+    TacDepthBufferData depthBufferData;
+    depthBufferData.mName = "client view depth buffer";
+    depthBufferData.mStackFrame = TAC_STACK_FRAME;
+    depthBufferData.width = ( int )innerBoxPixelWidth;
+    depthBufferData.height = ( int )innerBoxPixelHeight;
+    renderer->AddDepthBuffer( &outputDepth, depthBufferData, errors );
+    TAC_HANDLE_ERROR( errors );
+
+    mRenderView->mFramebuffer = outputColor;
+    mRenderView->mFramebufferDepth = outputDepth;
+  }
+
+  mRenderView->mScissorRect.mXMaxRelUpperLeftCornerPixel = innerBoxPixelWidth;
+  mRenderView->mScissorRect.mYMaxRelUpperLeftCornerPixel = innerBoxPixelHeight;
+  mRenderView->mViewportRect.mViewportPixelWidthIncreasingRight = innerBoxPixelWidth;
+  mRenderView->mViewportRect.mViewportPixelHeightIncreasingUp = innerBoxPixelHeight;
 }

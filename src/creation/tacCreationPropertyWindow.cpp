@@ -26,7 +26,6 @@ void TacCreationPropertyWindow::Init( TacErrors& errors )
   mUIRoot->mKeyboardInput = mShell->mKeyboardInput;
   mUIRoot->mDesktopWindow = mDesktopWindow;
   mUIRoot->mHierarchyRoot->mLayoutType = TacUILayoutType::Horizontal;
-
 }
 
 void TacCreationPropertyWindow::SetImGuiGlobals()

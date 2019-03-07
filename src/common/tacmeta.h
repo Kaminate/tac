@@ -10,38 +10,60 @@
 #include <functional>
 #include <map>
 
+struct TacMeta;
+struct TacMetaVar;
+struct TacMetaVarCArray;
+struct TacMetaVarDynArray;
+struct TacMetaType;
+
+//enum TacMetaPod
+//{
+//  Unknown,
+//  tacfloat,
+//  tacint32,
+//};
+
+struct TacMetaVar
+{
+  TacString mName;
+  int mOffset = 0;
+  TacMetaType* mMetaType = nullptr;
+};
+
+struct TacMetaVarCArray : public TacMetaVar
+{
+  int mCArrayCount = 0;
+};
+
+struct TacMetaVarDynArray : public TacMetaVar
+{
+  std::function<void( void*, int )>mResizeFunction;
+  std::function<void*( void* )>mDataFunction;
+};
+
+struct TacMetaType
+{
+  TacString mName;
+  int mSize = 0;
+};
+template< typename T >
+struct TacMetaPodType : public TacMetaType
+{
+  //TacMetaPod mMetaPod = TacMetaPod::Unknown;
+};
+struct TacMetaCompositeType : public TacMetaType
+{
+  TacVector< TacMetaVar* > mMetaVars;
+};
+
 struct TacMeta
 {
-  enum Pod
-  {
-    Unknown,
-    tacfloat,
-    tacint32,
-  };
-  struct Type;
-  struct Var
-  {
-    TacString name;
-    int offset = 0;
-    Type* mMetaType = nullptr;
-    int mCArrayCount = 0;
-    bool mIsStdArray = false;
-    std::function<void( void*, int )>mResizeFunction;
-    std::function<void*( void* )>mDataFunction;
-  };
-  struct Type
-  {
-    TacString name;
-    TacVector< Var > mMetaVars;
-    Pod mMetaPod = Pod::Unknown;
-    int size = 0;
-  };
   TacMeta();
   static TacMeta* GetInstance();
-  Type* GetType( const TacString& name );
-  void AddType( Type* metaType );
-  // TODO: make static?
-  void Load( std::ifstream& ifs, Type* metaType, void* data, TacErrors& errors );
-  std::map< TacString, Type* > metaTypes;
+  TacMetaType* GetType( const TacString& name );
+  void AddType( TacMetaType* metaType );
+  //void Load( std::ifstream& ifs, TacMetaType* metaType, void* data, TacErrors& errors );
+
+  std::map< TacString, TacMetaType* > metaTypes;
 };
 

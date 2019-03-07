@@ -7,6 +7,8 @@
 #include "common/tacDesktopWindow.h"
 #include "common/tacOS.h"
 #include "common/tacTextEdit.h"
+#include "common/tacmeta.h"
+#include "common/tacPreprocessor.h"
 #include <cstdlib> // atof
 
 struct TacUIStyle
@@ -815,7 +817,7 @@ void TacImGuiDragFloat( const TacString& str, float* value )
   drawData->AddBox( pos, backgroundBoxMaxi, backgroundBoxColor, nullptr, &clipRect );
 
   if( state == 1 )
-      TacTextInputDataDrawSelection( valuePos, &clipRect );
+    TacTextInputDataDrawSelection( valuePos, &clipRect );
   drawData->AddText( valuePos, gStyle.fontSize, valueStr, v4( 0, 0, 0, 1 ), &clipRect );
 
   v2 labelPos = {
@@ -824,3 +826,17 @@ void TacImGuiDragFloat( const TacString& str, float* value )
   drawData->AddText( labelPos, gStyle.fontSize, str, gStyle.textColor, &clipRect );
 
 }
+
+static TacVector< int > fontsizestack;
+void TacImGuiPushFontSize( int value )
+{
+  fontsizestack.push_back( gStyle.fontSize );
+  gStyle.fontSize = value;
+}
+void TacImGuiPopFontSize()
+{
+  int fontsize = fontsizestack.back();
+  gStyle.fontSize = fontsize;
+  fontsizestack.pop_back();
+}
+
