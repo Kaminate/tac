@@ -15,6 +15,7 @@ struct TacCreationGameWindow
 {
   void Init( TacErrors& errors);
   void Update( TacErrors& errors );
+  void RenderGameWorld();
   void SetImGuiGlobals();
 
   TacShell* mShell = nullptr;
@@ -22,6 +23,7 @@ struct TacCreationGameWindow
   TacUIRoot* mUIRoot = nullptr;
   TacUI2DDrawData* mUI2DDrawData = nullptr;
   TacSoul* mSoul = nullptr;
+  TacCreation* mCreation = nullptr;
 };
 
 

@@ -10,4 +10,4 @@ assets/imgui.ini
 # vim temporary files
 *.swp
 
-cloc
+run_cloc.bat

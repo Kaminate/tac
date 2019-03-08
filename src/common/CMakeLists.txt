@@ -78,9 +78,9 @@ ${CMAKE_CURRENT_SOURCE_DIR}/math/tacVector4.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/math/tacVector4.h
 ${CMAKE_CURRENT_SOURCE_DIR}/tacJobQueue.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/tacJobQueue.h
-${CMAKE_CURRENT_SOURCE_DIR}/stb_impl.cpp
-${CMAKE_CURRENT_SOURCE_DIR}/stb_image.h
-${CMAKE_CURRENT_SOURCE_DIR}/stb_truetype.h
+${CMAKE_CURRENT_SOURCE_DIR}/stb/stb_impl.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/stb/stb_image.h
+${CMAKE_CURRENT_SOURCE_DIR}/stb/stb_truetype.h
 CACHE INTERNAL ""
 )
 

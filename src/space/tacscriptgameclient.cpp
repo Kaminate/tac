@@ -7,7 +7,7 @@
 #include "common/tacJson.h"
 #include "common/tacMemory.h"
 #include "common/tacImGui.h"
-#include "common/stb_image.h"
+#include "common/stb/stb_image.h"
 #include "common/tacOS.h"
 #include "common/tacUI.h"
 #include "common/tacTime.h"
@@ -837,8 +837,9 @@ void TacScriptMainMenu2::RenderMainMenu()
 {
   auto* scriptMatchmaker = ( TacScriptMatchmaker* )mScriptRoot->GetThread( scriptMatchmakerName );
 
-  v2 mainMenuPos = { 200, 300 };
-  v2 mainMenuSize = { 400, 400 };
+  TacImage* image = &mScriptRoot->mGhost->mRenderView->mFramebuffer->myImage;
+  v2 mainMenuSize = { 400, 200 };
+  v2 mainMenuPos = { 100, ( image->mHeight - mainMenuSize.y ) / 2 };
 
   TacImGuiSetNextWindowPos( mainMenuPos );
   TacImGuiBegin( "Main Menu", mainMenuSize );

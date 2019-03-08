@@ -48,29 +48,8 @@ struct TacGraphics : public TacSystem
   void DebugDrawTriangle( v3 p0, v3 p1, v3 p2, v3 color0, v3 color1, v3 color2 );
   void DebugDrawTriangle( v3 p0, v3 p1, v3 p2, v3 color = v3( 1, 1, 1 ) );
 
-  void Draw2DBox(
-    float width,
-    float height,
-    v4 color,
-    TacTexture* texture = nullptr );
-  void Draw2DText(
-    TacLanguage language,
-    TacFontStuff* fontStuff,
-    int fontSize,
-    const TacString& text,
-    float* heightBetweenBaselines,
-    v4 color,
-    TacErrors& errors );
-  TacDrawCall* GetLastDrawCall();
-
   //std::set< TacSay* > mSays;
   //std::set< TacStuff* > mStuffs;
   //std::set< TacModel* > mModels;
   TacVector< TacDefaultVertexColor > mDebugDrawVerts;
-
-  TacVector< TacDefaultVertex2D > mDefaultVertex2Ds;
-  TacVector< TacDefaultIndex2D > mDefaultIndex2Ds;
-  TacVector< TacDrawCall > mDrawCall2Ds;
-  v2 mPenPos2D = {};
-
 };

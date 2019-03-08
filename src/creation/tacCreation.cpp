@@ -25,10 +25,13 @@ static v4 GetClearColor( TacShell* shell )
   return TacGetColorSchemeA( ( float )shell->mElapsedSeconds );
 }
 
-
 void TacCreation::Init( TacErrors& errors )
 {
   mWorld = new TacWorld;
+  mEditorCamPos = { 0, 0, 5 };
+  mEditorCamForwards = { 0, 0, -1 };
+  mEditorCamRight = { 1, 0, 0 };
+  mEditorCamUp = { 0, 1, 0 };
 
   TacString dataPath;
   TacOS::Instance->GetApplicationDataPath( dataPath, errors );
@@ -142,6 +145,7 @@ void TacCreation::Init( TacErrors& errors )
     {
       TacAssert( !mGameWindow );
       mGameWindow = new TacCreationGameWindow();
+      mGameWindow->mCreation = this;
       mGameWindow->mShell = shell;
       mGameWindow->mDesktopWindow = desktopWindow;
       mGameWindow->Init( errors );
@@ -192,8 +196,6 @@ void TacCreation::Update( TacErrors& errors )
     TAC_HANDLE_ERROR( errors );
   }
 }
-
-
 void TacCreation::CreateEntity()
 {
   TacWorld* world = mWorld;
@@ -213,7 +215,6 @@ void TacCreation::CreateEntity()
   entity->mName = desiredEntityName;
   mSelectedEntity = entity;
 }
-
 
 void TacDesktopApp::DoStuff( TacDesktopApp* desktopApp, TacErrors& errors )
 {
@@ -258,26 +259,3 @@ void TacDesktopApp::DoStuff( TacDesktopApp* desktopApp, TacErrors& errors )
   delete creation;
 }
 
-
-//void TacEditorWindow::Update( TacErrors& errors )
-//{
-//  auto uiRoot = mUIRoot;
-//  TacDesktopWindow* desktopWindow = mDesktopWindow;
-//  TacUI2DDrawData* uI2DDrawData = mUI2DDrawData;
-//
-//
-//  mUIRoot->Update();
-//  mUIRoot->Render( errors );
-//  TAC_HANDLE_ERROR( errors );
-//
-//  // ^
-//  // |
-//  // ui renders onto the draw data so have it first
-//  // otherwise, if you resize the window it will try to
-//  // draw using a deleted texture
-//  // |
-//  // v
-//
-//  uI2DDrawData->DrawToTexture( errors );
-//  TAC_HANDLE_ERROR( errors );
-//}

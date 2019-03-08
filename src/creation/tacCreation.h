@@ -37,6 +37,11 @@ struct TacCreation
 
   TacWorld* mWorld = nullptr;
   TacEntity* mSelectedEntity = nullptr;
+
+  v3 mEditorCamPos;
+  v3 mEditorCamForwards;
+  v3 mEditorCamRight;
+  v3 mEditorCamUp;
 };
 
 const v4 textColor = v4( v3( 1, 1, 1 ) * 0.0f, 1 );

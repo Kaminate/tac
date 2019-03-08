@@ -1,8 +1,10 @@
 project(Ghost CXX)
 set(TacTarget "Ghost")
 set( TAC_LIBRARIES TacCommonLibrary  )
-#                        | MODULE is for DLLs
-#                        v
+#                        | ( commented out )
+#                        |
+#                        | | MODULE is for DLLs
+#                        v v
 add_library(${TacTarget} # MODULE
 "tacclient.cpp"
 "tacclient.h"
@@ -18,6 +20,8 @@ add_library(${TacTarget} # MODULE
 "tacGhost.h"
 "tacgraphics.cpp"
 "tacgraphics.h"
+"tacmodel.cpp"
+"tacmodel.h"
 "tacmetaphysics.cpp"
 "tacplayer.cpp"
 "tacplayer.h"

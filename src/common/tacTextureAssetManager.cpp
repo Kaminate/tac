@@ -1,7 +1,7 @@
 #include "common/tacTextureAssetManager.h"
 #include "common/tacMemory.h"
 #include "common/tacJobQueue.h"
-#include "common/stb_image.h"
+#include "common/stb/stb_image.h"
 
 struct TacAsyncTextureData : public TacJob
 {

@@ -1,14 +1,10 @@
-#include "tacFont.h"
-#include "tacUtility.h"
-#include "tacRenderer.h"
+#include "common/tacFont.h"
+#include "common/tacUtility.h"
+#include "common/tacRenderer.h"
 #include "common/math/tacMath.h"
-#include "tacShell.h"
-#include "tacSettings.h"
-#include "tacMemory.h"
-
-//#include "imgui.h"
-
-#include "stb_truetype.h"
+#include "common/tacShell.h"
+#include "common/tacSettings.h"
+#include "common/tacMemory.h"
 
 const TacFormat atlasFormat = { 1, sizeof( uint8_t ), TacGraphicsType::unorm };
 
