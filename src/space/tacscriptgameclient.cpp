@@ -7,7 +7,7 @@
 #include "common/tacJson.h"
 #include "common/tacMemory.h"
 #include "common/tacImGui.h"
-#include "common/stb/stb_image.h"
+#include "common/thirdparty/stb_image.h"
 #include "common/tacOS.h"
 #include "common/tacUI.h"
 #include "common/tacTime.h"

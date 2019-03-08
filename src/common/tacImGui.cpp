@@ -24,6 +24,7 @@ struct TacUIStyle
 } gStyle;
 
 TacImGuiGlobals gTacImGuiGlobals;
+static TacVector< int > fontsizestack;
 
 static int TacGetCaret(
   TacUI2DDrawData* drawData,
@@ -51,7 +52,7 @@ static int TacGetCaret(
 }
 
 
-static void TacTextInputDataUpdateKeys( TacTextInputData* inputData,v2 textPos )
+static void TacTextInputDataUpdateKeys( TacTextInputData* inputData, v2 textPos )
 {
   TacKeyboardInput* keyboardInput = gTacImGuiGlobals.mKeyboardInput;
   TacUI2DDrawData* drawData = gTacImGuiGlobals.mUI2DDrawData;
@@ -281,7 +282,10 @@ void TacImGuiWindow::UpdateMaxCursorDrawPos( v2 pos )
   mMaxiCursorDrawPos.x = TacMax( mMaxiCursorDrawPos.x, pos.x );
   mMaxiCursorDrawPos.y = TacMax( mMaxiCursorDrawPos.y, pos.y );
 }
-
+int TacImGuiWindow::GetID()
+{
+  return mIDCounter++;
+}
 static bool AreEqual(
   const TacVector< TacCodepoint >& a,
   const TacVector< TacCodepoint >& b )
@@ -416,6 +420,18 @@ void TacImGuiEndGroup()
   v2 groupSize = groupEndPos - window->mGroupSavedCursorDrawPos;
   window->mCurrCursorDrawPos = window->mGroupSavedCursorDrawPos;
   window->ItemSize( groupSize );
+}
+void TacImGuiIndent()
+{
+  TacImGuiWindow* window = gTacImGuiGlobals.mCurrentWindow;
+  window->mCurrCursorDrawPos.x += 15.0f;
+  window->mXOffsets.push_back( window->mCurrCursorDrawPos.x - window->mPos.x );
+}
+void TacImGuiUnindent()
+{
+  TacImGuiWindow* window = gTacImGuiGlobals.mCurrentWindow;
+  window->mXOffsets.pop_back();
+  window->mCurrCursorDrawPos.x = window->mXOffsets.back();
 }
 void TacImGuiSameLine()
 {
@@ -835,8 +851,39 @@ void TacImGuiDragFloat( const TacString& str, float* value )
   drawData->AddText( labelPos, gStyle.fontSize, str, gStyle.textColor, &clipRect );
 
 }
+bool TacImGuiCollapsingHeader( const TacString& name )
+{
+  TacImGuiWindow* window = gTacImGuiGlobals.mCurrentWindow;
+  TacUI2DDrawData* drawData = gTacImGuiGlobals.mUI2DDrawData;
+  TacKeyboardInput* keyboardInput = gTacImGuiGlobals.mKeyboardInput;
+  v2 pos = window->mCurrCursorDrawPos;
+  v2 totalSize = {
+    window->mContentRect.mMaxi.x - pos.x,
+    ( float )gStyle.fontSize };
+  window->ItemSize( totalSize );
+  bool clipped;
+  auto clipRect = TacImGuiRect::FromPosSize( pos, totalSize );
+  window->ComputeClipInfo( &clipped, &clipRect );
+  if( clipped )
+    return false;
 
-static TacVector< int > fontsizestack;
+  int id = window->GetID();
+  bool& isOpen = window->mCollapsingHeaderStates[ id ];
+  if( gTacImGuiGlobals.IsHovered( clipRect ) &&
+    keyboardInput->IsKeyJustDown( TacKey::MouseLeft ) )
+    isOpen = !isOpen;
+
+  v4 backgroundBoxColor = { 100 / 255.0f, 65 / 255.0f, 164 / 255.0f, 255 / 255.0f };
+  drawData->AddBox( pos, pos + totalSize, backgroundBoxColor, nullptr, &clipRect );
+
+  v4 textColor = { 1, 1, 1, 1 };
+  v2 textPos = { pos.x + gStyle.buttonPadding, pos.y };
+  drawData->AddText( textPos, gStyle.fontSize, isOpen ? "v" : ">", textColor, &clipRect );
+  textPos.x += drawData->CalculateTextSize( "  ", gStyle.fontSize ).x;
+  drawData->AddText( textPos, gStyle.fontSize, name, textColor, &clipRect );
+
+  return isOpen;
+}
 void TacImGuiPushFontSize( int value )
 {
   fontsizestack.push_back( gStyle.fontSize );

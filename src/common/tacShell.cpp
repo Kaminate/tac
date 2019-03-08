@@ -8,7 +8,8 @@
 #include "common/tacRenderer.h"
 #include "common/tacSettings.h"
 #include "common/tacShell.h"
-#include "common/tacTextureAssetManager.h"
+#include "common/assetmanagers/tacTextureAssetManager.h"
+#include "common/assetmanagers/tacModelAssetManager.h"
 #include "common/tacTime.h"
 #include "common/tacUI2D.h"
 #include "common/taccontrollerinput.h"
@@ -98,6 +99,10 @@ void TacShell::Init( TacErrors& errors )
   mTextureAssetManager = new TacTextureAssetManager;
   mTextureAssetManager->mJobQueue = mJobQueue;
   mTextureAssetManager->mRenderer = mRenderer;
+
+  mModelAssetManager = new TacModelAssetManager;
+  mModelAssetManager->mJobQueue = mJobQueue;
+  mModelAssetManager->mRenderer = mRenderer;
 
   mFontStuff = new TacFontStuff();
   mFontStuff->Load( mSettings, mRenderer, TacFontAtlasDefaultVramByteCount, errors );

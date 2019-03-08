@@ -10,9 +10,12 @@
 //#include "common/imgui.h"
 #include <cmath>
 
-const int cylinderSegmentCount = 10;
-const int hemisphereSegmentCount = 4;
-const int numdivisions = 20;
+static const int cylinderSegmentCount = 10;
+static const int hemisphereSegmentCount = 4;
+static const int numdivisions = 20;
+static const TacVector< TacComponentType > managedComponentTypes = {
+  TacComponentType::Model,
+};
 
 TacDebugDrawAABB TacDebugDrawAABB::FromMinMax( v3 mini, v3 maxi )
 {
@@ -31,8 +34,8 @@ TacDebugDrawAABB TacDebugDrawAABB::FromPosExtents( v3 pos, v3 extents )
 
 TacComponent* TacGraphics::CreateComponent( TacComponentType componentType )
 {
-  //switch( componentType )
-  //{
+  switch( componentType )
+  {
     //case TacComponentType::Say:
     //{
     //  auto say = new TacSay();
@@ -40,43 +43,47 @@ TacComponent* TacGraphics::CreateComponent( TacComponentType componentType )
     //  return say;
     //}
 
-    //case TacComponentType::Model:
-    //{
-    //  auto model = new TacModel();
-    //  mModels.insert( model );
-    //  return model;
-    //}
-  //}
+  case TacComponentType::Model:
+  {
+    auto model = new TacModel();
+    mModels.insert( model );
+    return model;
+  }
+  }
   TacInvalidCodePath;
   return nullptr;
 }
 
 void TacGraphics::DestroyComponent( TacComponent* component )
 {
-  //auto componentType = component->GetComponentType();
-  //switch( componentType )
-  //{
-  //  case TacComponentType::Say:
-  //  {
-  //    auto say = ( TacSay* )component;
-  //    auto it = mSays.find( say );
-  //    TacAssert( it != mSays.end() );
-  //    mSays.erase( it );
-  //    delete say;
-  //  } return;
+  auto componentType = component->GetComponentType();
+  switch( componentType )
+  {
+    //  case TacComponentType::Say:
+    //  {
+    //    auto say = ( TacSay* )component;
+    //    auto it = mSays.find( say );
+    //    TacAssert( it != mSays.end() );
+    //    mSays.erase( it );
+    //    delete say;
+    //  } return;
 
-  //  case TacComponentType::Model:
-  //  {
-  //    auto model = ( TacModel* )component;
-  //    auto it = mModels.find( model );
-  //    TacAssert( it != mModels.end() );
-  //    mModels.erase( it );
-  //    delete model;
-  //  }return;
-  //}
+  case TacComponentType::Model:
+  {
+    auto model = ( TacModel* )component;
+    auto it = mModels.find( model );
+    TacAssert( it != mModels.end() );
+    mModels.erase( it );
+    delete model;
+  }return;
+  }
   TacInvalidCodePath;
 }
 
+const TacVector< TacComponentType >& TacGraphics::GetManagedComponentTypes()
+{
+  return managedComponentTypes;
+}
 void TacGraphics::DebugImgui()
 {
   //if( !ImGui::CollapsingHeader( "Graphics" ) )

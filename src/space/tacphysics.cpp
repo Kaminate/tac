@@ -17,6 +17,11 @@
 
 extern void RegisterMetaphysics();
 
+static const TacVector< TacComponentType > managedComponentTypes = {
+  TacComponentType::Collider,
+  TacComponentType::Terrain,
+};
+
 static void DebugDrawGJK( const TacGJK& gjk, TacGraphics* graphics )
 {
   if( !gjk.mIsColliding )
@@ -65,6 +70,11 @@ TacPhysics::TacPhysics()
   mDebugDrawCollision = true;
   mGJKDebugMaxIter = 10;
   mGJKDebugMaxEPAIter = 10;
+}
+
+const TacVector< TacComponentType >& TacPhysics::GetManagedComponentTypes()
+{
+  return managedComponentTypes;
 }
 TacComponent* TacPhysics::CreateComponent( TacComponentType componentType )
 {

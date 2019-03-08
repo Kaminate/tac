@@ -60,8 +60,10 @@ ${CMAKE_CURRENT_SOURCE_DIR}/tacTextEdit.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/tacTextEdit.h
 ${CMAKE_CURRENT_SOURCE_DIR}/tacTime.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/tacTime.h
-${CMAKE_CURRENT_SOURCE_DIR}/tacTextureAssetManager.cpp
-${CMAKE_CURRENT_SOURCE_DIR}/tacTextureAssetManager.h
+${CMAKE_CURRENT_SOURCE_DIR}/assetmanagers/tacModelAssetManager.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/assetmanagers/tacModelAssetManager.h
+${CMAKE_CURRENT_SOURCE_DIR}/assetmanagers/tacTextureAssetManager.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/assetmanagers/tacTextureAssetManager.h
 ${CMAKE_CURRENT_SOURCE_DIR}/tacUI.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/tacUI.h
 ${CMAKE_CURRENT_SOURCE_DIR}/tacUI2D.cpp
@@ -78,9 +80,10 @@ ${CMAKE_CURRENT_SOURCE_DIR}/math/tacVector4.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/math/tacVector4.h
 ${CMAKE_CURRENT_SOURCE_DIR}/tacJobQueue.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/tacJobQueue.h
-${CMAKE_CURRENT_SOURCE_DIR}/stb/stb_impl.cpp
-${CMAKE_CURRENT_SOURCE_DIR}/stb/stb_image.h
-${CMAKE_CURRENT_SOURCE_DIR}/stb/stb_truetype.h
+${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/cgltf.h
+${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/stb_impl.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/stb_image.h
+${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/stb_truetype.h
 CACHE INTERNAL ""
 )
 

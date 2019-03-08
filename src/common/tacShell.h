@@ -10,7 +10,6 @@
 #include "common/containers/tacVector.h"
 #include "common/tacEvent.h"
 
-struct TacAssetManager;
 struct TacControllerInput;
 struct TacDepthBuffer;
 struct TacDesktopWindow;
@@ -28,6 +27,7 @@ struct TacShell;
 struct TacSoul;
 struct TacTexture;
 struct TacTextureAssetManager;
+struct TacModelAssetManager;
 struct TacTimer;
 struct TacUI2DCommonData;
 
@@ -57,7 +57,6 @@ struct TacShell
   void Init( TacErrors& errors );
   void Update( TacErrors& errors );
 
-  TacAssetManager* mAssetManager = nullptr;
   TacControllerInput* mControllerInput = nullptr;
   TacEvent< const TacString& >::Emitter mLogData;
   TacEvent<>::Emitter mOnUpdate;
@@ -75,6 +74,7 @@ struct TacShell
   // ( doesn't include a trailing slash )
   TacString mPrefPath;
   TacTextureAssetManager* mTextureAssetManager = nullptr;
+  TacModelAssetManager* mModelAssetManager = nullptr;
   TacTimer* mTimer = nullptr;
   TacUI2DCommonData* mUI2DCommonData = nullptr;
   TacVector< TacSoul* > mSouls;

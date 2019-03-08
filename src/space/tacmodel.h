@@ -1,9 +1,11 @@
 #pragma once
 
-#include "taccommon.h"
-#include "taccomponent.h"
-#include "graphics\tacRenderer.h"
-#include "common\tacAssetManager.h"
+//#include "taccommon.h"
+#include "space/taccomponent.h"
+#include "common/containers/tacVector.h"
+#include "common/tacString.h"
+//#include "graphics\tacRenderer.h"
+//#include "common\tacAssetManager.h"
 
 #include <string>
 
@@ -14,12 +16,15 @@ struct TacModel : public TacComponent
   void TacDebugImguiChangeTexture();
   TacComponentType GetComponentType() override { return TacComponentType::Model; };
 
-  TacTextureUUID mTextureUUID = TacNullTextureUUID;
-  TacGeometryUUID mGeometryUUID = TacNullGeometryUUID;
+  //TacTextureUUID mTextureUUID = TacNullTextureUUID;
+  //TacGeometryUUID mGeometryUUID = TacNullGeometryUUID;
+  TacString mGLTFPath;
 };
 
-const std::vector< TacNetworkBit > TacComponentModelBits =
-{
-  TacNetworkBit( "TacModel::mTextureUUID", TacOffsetOf( TacModel, mTextureUUID ), TacUUIDFormat, TacNoMaxEnumValue ),
-  TacNetworkBit( "TacModel::mGeometryUUID", TacOffsetOf( TacModel, mGeometryUUID ), TacUUIDFormat, TacNoMaxEnumValue ),
-};
+const TacVector< TacNetworkBit > TacComponentModelBits = [](){
+  TacVector< TacNetworkBit > networkBits;
+  //TacNetworkBit( "TacModel::mTextureUUID", TacOffsetOf( TacModel, mTextureUUID ), TacUUIDFormat, TacNoMaxEnumValue ),
+  //TacNetworkBit( "TacModel::mGeometryUUID", TacOffsetOf( TacModel, mGeometryUUID ), TacUUIDFormat, TacNoMaxEnumValue ),
+  return networkBits;
+}();
+

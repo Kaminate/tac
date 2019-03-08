@@ -25,6 +25,7 @@ struct TacSplitFilepath
 void TacSaveToFile( const TacString& path, void* bytes, int byteCount, TacErrors& errors );
 bool TacIsOfExt( const TacString& str, const TacString& ext );
 bool TacFileExist( const TacString& str );
+TacString TacStripExt( const TacString& path );
 
 
 //

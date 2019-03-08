@@ -1,8 +1,8 @@
-#include "taccomponent.h"
-//#include "tacsay.h"
-//#include "tacmodel.h"
-#include "taccollider.h"
-//#include "tacterrain.h"
+#include "space/taccomponent.h"
+//#include "space/tacsay.h"
+#include "space/tacmodel.h"
+#include "space/taccollider.h"
+//#include "space/tacterrain.h"
 
 char TacComponentToBitField( TacComponentType componentType )
 {
@@ -43,22 +43,20 @@ TacComponentData* TacGetComponentData( TacComponentType componentType )
 
   }
   {
-    /*
+    //{
+    //  TacComponentType::Say,
+    //  new TacComponentData(
+    //    "Say",
+    //    TacSystemType::Graphics,
+    //    TacSayBits)
+    //},
     {
-      TacComponentType::Say,
-      new TacComponentData(
-        "Say",
-        TacSystemType::Graphics,
-        TacSayBits)
-    },
-    {
-      TacComponentType::Model,
-      new TacComponentData(
-        "Model",
-        TacSystemType::Graphics,
-        TacComponentModelBits)
-    },
-    */
+      auto modelData = new TacComponentData;
+      modelData->mName = "Model";
+      modelData->mSystemType = TacSystemType::Graphics;
+      modelData->mNetworkBits = TacComponentModelBits;
+      mRegisteredComponents[ ( int )TacComponentType::Model ] = modelData;
+    }
     /*
     {
       TacComponentType::Terrain,

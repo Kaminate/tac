@@ -3,12 +3,13 @@
 #include "common/math/tacVector2.h"
 #include "common/tacString.h"
 #include "common/containers/tacVector.h"
+#include <map>
 
 struct TacUIRoot;
 struct TacImGuiWindow;
 struct TacUI2DDrawData;
 struct TacKeyboardInput;
-  struct TacTextInputData;
+struct TacTextInputData;
 
 struct TacImGuiRect
 {
@@ -25,7 +26,7 @@ struct TacImGuiRect
 struct TacImGuiGlobals
 {
   TacImGuiWindow* FindWindow( const TacString& name );
-  bool IsHovered(const TacImGuiRect& rect );
+  bool IsHovered( const TacImGuiRect& rect );
 
   v2 mNextWindowPos = {};
   // TODO: different space
@@ -44,14 +45,15 @@ extern TacImGuiGlobals gTacImGuiGlobals;
 void TacImGuiSetNextWindowPos( v2 pos );
 void TacImGuiBegin( const TacString& name, v2 size );
 void TacImGuiEnd();
-
-void TacImGuiPushFontSize(  int value );
+bool TacImGuiCollapsingHeader( const TacString& name );
+void TacImGuiPushFontSize( int value );
 void TacImGuiPopFontSize();
-
 void TacImGuiBeginChild( const TacString& name, v2 size );
 void TacImGuiEndChild();
 void TacImGuiBeginGroup();
 void TacImGuiEndGroup();
+void TacImGuiIndent();
+void TacImGuiUnindent();
 void TacImGuiSameLine();
 void TacImGuiText( const TacString& text );
 bool TacImGuiInputText( const TacString& label, TacString& text );
@@ -69,6 +71,7 @@ struct TacImGuiWindow
   void ItemSize( v2 size );
   void ComputeClipInfo( bool* clipped, TacImGuiRect* clipRect );
   void UpdateMaxCursorDrawPos( v2 pos );
+  int GetID();
 
   TacString mName;
   TacImGuiWindow* mParent = nullptr;
@@ -92,16 +95,10 @@ struct TacImGuiWindow
 
   TacVector< float > mXOffsets;
 
-  int GetID()
-  {
-    return mIDCounter++;
-  }
 
   int mActiveID = -1;
   int mIDCounter = 0;
 
   TacTextInputData* inputData;
+  std::map< int, bool > mCollapsingHeaderStates;
 };
-
-
-

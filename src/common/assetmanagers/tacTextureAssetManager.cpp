@@ -1,25 +1,16 @@
-#include "common/tacTextureAssetManager.h"
+#include "common/assetmanagers/tacTextureAssetManager.h"
 #include "common/tacMemory.h"
+#include "common/tacRenderer.h"
 #include "common/tacJobQueue.h"
-#include "common/stb/stb_image.h"
+#include "common/thirdparty/stb_image.h"
 
 struct TacAsyncTextureData : public TacJob
 {
   void Execute() override;
   TacImage mImage;
   TacVector< char > mImageData;
-  //TacTexture* mTexture = nullptr;
   TacString mFilepath;
 };
-
-//struct TacLoadTextureJob: public TacJob
-//{
-//  void Execute() override
-//  {
-//    mAsyncTextureData->DoWork();
-//  }
-//  TacAsyncTextureData* mAsyncTextureData = nullptr;
-//};
 
 void TacAsyncTextureData::Execute()
 {
@@ -84,7 +75,7 @@ void TacAsyncTextureData::Execute()
 
 void TacTextureAssetManager::GetTexture( TacTexture** ppTexture, const TacString& textureFilepath, TacErrors& errors )
 {
-  if( (*ppTexture = mLoadedTextureMap[ textureFilepath ]) )
+  if( ( *ppTexture = mLoadedTextureMap[ textureFilepath ] ) )
     return;
 
   TacAsyncTextureData* asyncTextureData = nullptr;
@@ -100,9 +91,6 @@ void TacTextureAssetManager::GetTexture( TacTexture** ppTexture, const TacString
     asyncTextureData = new TacAsyncTextureData;
     asyncTextureData->mFilepath = textureFilepath;
     mLoadingTextures.insert( asyncTextureData );
-    //auto job = new TacLoadTextureJob;
-    //job->mAsyncTextureData = asyncTextureData;
-    //mJobQueue->Push( job );
     mJobQueue->Push( asyncTextureData );
     return;
   }
@@ -128,7 +116,7 @@ void TacTextureAssetManager::GetTexture( TacTexture** ppTexture, const TacString
     mLoadedTextureMap[ textureFilepath ] = *ppTexture;
     break;
   }
-  TacInvalidDefaultCase( status );
+                                            TacInvalidDefaultCase( status );
   }
 
 }

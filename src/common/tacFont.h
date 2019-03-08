@@ -11,7 +11,7 @@
 #include "common/math/tacVector2.h"
 #include "common/math/tacVector4.h"
 #include "common/tacErrorHandling.h"
-#include "common/stb/stb_truetype.h"
+#include "common/thirdparty/stb_truetype.h"
 
 struct TacTexture;
 struct TacRenderer;

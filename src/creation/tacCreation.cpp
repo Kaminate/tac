@@ -7,7 +7,7 @@
 #include "common/tacOS.h"
 #include "common/math/tacMath.h"
 #include "common/tacFont.h"
-#include "common/tacTextureAssetManager.h"
+#include "common/assetmanagers/tacTextureAssetManager.h"
 #include "common/tacColorUtil.h"
 #include "space/tacGhost.h"
 #include "space/tacworld.h"

@@ -1,13 +1,14 @@
 #pragma once
 
-#include "tacRenderer.h"
+#include "common/tacString.h"
+#include "common/tacErrorHandling.h"
 
 #include <map>
+#include <set>
 
-struct TacAssetManager;
 struct TacRenderer;
 struct TacJobQueue;
-
+struct TacTexture;
 struct TacAsyncTextureData;
 
 struct TacTextureAssetManager

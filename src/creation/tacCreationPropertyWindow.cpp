@@ -10,6 +10,8 @@
 #include "space/tacentity.h"
 #include "space/tacworld.h"
 #include "space/taccomponent.h"
+#include "space/tacsystem.h"
+#include "space/tacspacetypes.h"
 
 TacCreationPropertyWindow::~TacCreationPropertyWindow()
 {
@@ -103,9 +105,26 @@ void TacCreationPropertyWindow::Update( TacErrors& errors )
     {
       TacComponentType componentType = component->GetComponentType();
       TacString componentName = TacToString( componentType );
-      TacImGuiText( componentName + " component" );
+      if( TacImGuiCollapsingHeader( componentName ) )
+      {
+        TacImGuiIndent();
+        OnDestruct( TacImGuiUnindent() );
+        if( TacImGuiButton( "Remove component" ) )
+        {
+          entity->RemoveComponent( componentType );
+          break;
+        }
+        component->TacDebugImgui();
+      }
     }
-    TacImGuiButton( "Add component" );
+
+    for( int i = 0; i < ( int )TacComponentType::Count; ++i )
+    {
+      auto componentType = ( TacComponentType )i;
+      if( !entity->HasComponent( componentType ) &&
+        TacImGuiButton( va( "Add %s component", TacToString( componentType ) ) ) )
+        entity->AddNewComponent( componentType );
+    }
   }
   TacImGuiButton( "C" );
   TacImGuiCheckbox( "Happy", &areYouHappy );

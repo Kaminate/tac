@@ -22,6 +22,7 @@ struct TacTerrain
 struct TacPhysics : public TacSystem
 {
   TacPhysics();
+  const TacVector< TacComponentType >& GetManagedComponentTypes() override;
   TacComponent* CreateComponent( TacComponentType componentType ) override;
   void DestroyComponent( TacComponent* component ) override;
   TacSystemType GetSystemType() override { return TacSystemType::Physics; }

@@ -384,12 +384,6 @@ void TacGhost::Draw( TacErrors& errors )
     return;
   graphics->mDebugDrawVerts.clear();
 
-  renderer->Render2D( graphics->mDefaultVertex2Ds, graphics->mDefaultIndex2Ds, graphics->mDrawCall2Ds, errors );
-  if( errors.size() )
-    return;
-  graphics->mDefaultVertex2Ds.clear();
-  graphics->mDefaultIndex2Ds.clear();
-  graphics->mDrawCall2Ds.clear();
 
 
   //renderer->SetScissorRect(

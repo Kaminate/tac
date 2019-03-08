@@ -1,7 +1,7 @@
 #include <fstream>
-//#include <cstring>
 #include "tacUtility.h"
 #include "tacAlgorithm.h"
+#include "tacPreprocessor.h"
 
 
 TacSplitFilepath::TacSplitFilepath( const TacString& entireFilepath )
@@ -9,6 +9,12 @@ TacSplitFilepath::TacSplitFilepath( const TacString& entireFilepath )
   auto found = entireFilepath.find_last_of( "/\\" );
   mDirectory = entireFilepath.substr( 0, found );
   mFilename = entireFilepath.substr( found + 1 );
+}
+TacString TacStripExt( const TacString& path )
+{
+  auto found = path.find_last_of( "." );
+  TacAssert( found != TacString::npos );
+  return path.substr( 0, found );
 }
 void TacSaveToFile( const TacString& path, void* bytes, int byteCount, TacErrors& errors )
 {

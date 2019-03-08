@@ -8,7 +8,7 @@
 #include "common/tacUI2D.h"
 #include "common/tacDesktopWindow.h"
 #include "common/tacShell.h"
-#include "common/tacTextureAssetManager.h"
+#include "common/assetmanagers/tacTextureAssetManager.h"
 #include "common/tackeyboardinput.h"
 #include "shell/tacDesktopApp.h"
 

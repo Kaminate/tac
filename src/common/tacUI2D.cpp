@@ -505,6 +505,14 @@ v2 TacUI2DDrawData::CalculateTextSize( const TacCodepoint* codepoints, int codep
 
   int lineCount = 1;
 
+  auto AccountForLine = [&]()
+  {
+    lineWidthUISpaceMax = TacMax( lineWidthUISpaceMax, lineWidthUISpace );
+
+    // if the string ends with a space ( ' ' )
+    // ( bitmap width is 0, advance width is nonzero )
+    lineWidthUISpaceMax = TacMax( lineWidthUISpaceMax, xUISpace );
+  };
 
   for( int iCodepoint = 0; iCodepoint < codepointCount; ++iCodepoint )
   {
@@ -516,7 +524,7 @@ v2 TacUI2DDrawData::CalculateTextSize( const TacCodepoint* codepoints, int codep
     {
       if( codepoint == '\n' )
       {
-        lineWidthUISpaceMax = TacMax( lineWidthUISpaceMax, lineWidthUISpace );
+        AccountForLine();
         lineWidthUISpace = 0;
         xUISpace = 0;
         lineCount++;
@@ -539,7 +547,7 @@ v2 TacUI2DDrawData::CalculateTextSize( const TacCodepoint* codepoints, int codep
     xUISpace += fontAtlasCell->mUISpaceAdvanceWidth;
   }
 
-  lineWidthUISpaceMax = TacMax( lineWidthUISpaceMax, lineWidthUISpace );
+  AccountForLine();
 
   v2 textSize;
   textSize.x = lineWidthUISpaceMax;
