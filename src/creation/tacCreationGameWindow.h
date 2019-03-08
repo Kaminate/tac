@@ -15,15 +15,13 @@ struct TacCreationGameWindow
 {
   void Init( TacErrors& errors);
   void Update( TacErrors& errors );
+  void SetImGuiGlobals();
 
   TacShell* mShell = nullptr;
   TacDesktopWindow* mDesktopWindow = nullptr;
-
   TacUIRoot* mUIRoot = nullptr;
   TacUI2DDrawData* mUI2DDrawData = nullptr;
   TacSoul* mSoul = nullptr;
-  //TacRenderView* mRenderView = nullptr;
-  void SetGhostRenderView();
 };
 
 

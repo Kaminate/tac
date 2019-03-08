@@ -1076,7 +1076,8 @@ void TacUIHierarchyNode::RenderHierarchy( TacErrors& errors )
 void TacUIHierarchyNode::SetVisual( TacUIHierarchyVisual* visual )
 {
   mVisual = visual;
-  visual->mHierarchyNode = this;
+  if( visual )
+    visual->mHierarchyNode = this;
 }
 
 

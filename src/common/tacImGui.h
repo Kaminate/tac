@@ -8,6 +8,7 @@ struct TacUIRoot;
 struct TacImGuiWindow;
 struct TacUI2DDrawData;
 struct TacKeyboardInput;
+  struct TacTextInputData;
 
 struct TacImGuiRect
 {
@@ -62,6 +63,8 @@ void TacImGuiDragFloat( const TacString& str, float* value );
 // move to cpp?
 struct TacImGuiWindow
 {
+  TacImGuiWindow();
+  ~TacImGuiWindow();
   void BeginFrame();
   void ItemSize( v2 size );
   void ComputeClipInfo( bool* clipped, TacImGuiRect* clipRect );
@@ -94,13 +97,10 @@ struct TacImGuiWindow
     return mIDCounter++;
   }
 
-  //void SetActiveID( int id )
-  //{
-  //  mActiveID = id;
-  //}
-  int mActiveID = 0;
-  //int mActiveIDPrev = 0;
+  int mActiveID = -1;
   int mIDCounter = 0;
+
+  TacTextInputData* inputData;
 };
 
 

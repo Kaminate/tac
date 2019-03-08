@@ -24,7 +24,6 @@ struct TacUIStyle
 } gStyle;
 
 TacImGuiGlobals gTacImGuiGlobals;
-static TacTextInputData inputData;
 
 static int TacGetCaret(
   TacUI2DDrawData* drawData,
@@ -52,7 +51,7 @@ static int TacGetCaret(
 }
 
 
-static void TacTextInputDataUpdateKeys( v2 textPos )
+static void TacTextInputDataUpdateKeys( TacTextInputData* inputData,v2 textPos )
 {
   TacKeyboardInput* keyboardInput = gTacImGuiGlobals.mKeyboardInput;
   TacUI2DDrawData* drawData = gTacImGuiGlobals.mUI2DDrawData;
@@ -65,35 +64,35 @@ static void TacTextInputDataUpdateKeys( v2 textPos )
   };
   for( auto pair : foo )
     if( keyboardInput->IsKeyJustDown( pair.first ) )
-      inputData.OnKeyPressed( pair.second );
+      inputData->OnKeyPressed( pair.second );
   if( keyboardInput->mWMCharPressedHax )
-    inputData.OnCodepoint( keyboardInput->mWMCharPressedHax );
+    inputData->OnCodepoint( keyboardInput->mWMCharPressedHax );
   if( keyboardInput->mCurr.IsKeyDown( TacKey::MouseLeft ) )
   {
     float mousePositionTextSpace = gTacImGuiGlobals.mMousePositionDesktopWindowspace.x - textPos.x;
-    int numGlyphsBeforeCaret = TacGetCaret( drawData, inputData.mCodepoints, mousePositionTextSpace );
+    int numGlyphsBeforeCaret = TacGetCaret( drawData, inputData->mCodepoints, mousePositionTextSpace );
 
     if( keyboardInput->mPrev.IsKeyDown( TacKey::MouseLeft ) )
-      inputData.OnDrag( numGlyphsBeforeCaret );
+      inputData->OnDrag( numGlyphsBeforeCaret );
     else
-      inputData.OnClick( numGlyphsBeforeCaret );
+      inputData->OnClick( numGlyphsBeforeCaret );
   }
 }
 
 
-static void TacTextInputDataDrawSelection( v2 textPos, const TacImGuiRect* clipRect )
+static void TacTextInputDataDrawSelection( TacTextInputData* inputData, v2 textPos, const TacImGuiRect* clipRect )
 {
   TacUI2DDrawData* drawData = gTacImGuiGlobals.mUI2DDrawData;
-  if( inputData.mCaretCount == 2 )
+  if( inputData->mCaretCount == 2 )
   {
     float minCaretPos = drawData->CalculateTextSize(
-      inputData.mCodepoints.data(),
-      inputData.GetMinCaret(),
+      inputData->mCodepoints.data(),
+      inputData->GetMinCaret(),
       gStyle.fontSize ).x;
 
     float maxCaretPos = drawData->CalculateTextSize(
-      inputData.mCodepoints.data(),
-      inputData.GetMaxCaret(),
+      inputData->mCodepoints.data(),
+      inputData->GetMaxCaret(),
       gStyle.fontSize ).x;
 
     v2 selectionMini = {
@@ -106,11 +105,11 @@ static void TacTextInputDataDrawSelection( v2 textPos, const TacImGuiRect* clipR
     drawData->AddBox( selectionMini, selectionMaxi, { 0.5f, 0.5f, 0.0f, 1 }, nullptr, clipRect );
   }
 
-  if( inputData.mCaretCount == 1 )
+  if( inputData->mCaretCount == 1 )
   {
     float caretPos = drawData->CalculateTextSize(
-      inputData.mCodepoints.data(),
-      inputData.mNumGlyphsBeforeCaret[ 0 ],
+      inputData->mCodepoints.data(),
+      inputData->mNumGlyphsBeforeCaret[ 0 ],
       gStyle.fontSize ).x;
     float caretYPadding = 2.0f;
     float caretHalfWidth = 0.5f;
@@ -127,6 +126,14 @@ static void TacTextInputDataDrawSelection( v2 textPos, const TacImGuiRect* clipR
 }
 
 
+TacImGuiWindow::TacImGuiWindow()
+{
+  inputData = new TacTextInputData;
+}
+TacImGuiWindow::~TacImGuiWindow()
+{
+  delete inputData;
+}
 void TacImGuiWindow::BeginFrame()
 {
   TacUI2DDrawData* ui2DDrawData = gTacImGuiGlobals.mUI2DDrawData;
@@ -435,6 +442,7 @@ void TacImGuiText( const TacString& utf8 )
 bool TacImGuiInputText( const TacString& label, TacString& text )
 {
   TacImGuiWindow* window = gTacImGuiGlobals.mCurrentWindow;
+  TacTextInputData* inputData = window->inputData;
   TacKeyboardInput* keyboardInput = gTacImGuiGlobals.mKeyboardInput;
   TacUI2DDrawData* drawData = gTacImGuiGlobals.mUI2DDrawData;
   int id = window->GetID();
@@ -484,38 +492,38 @@ bool TacImGuiInputText( const TacString& label, TacString& text )
     TacVector< TacCodepoint > codepoints;
     TacErrors ignoredUTF8ConversionErrors;
     converter.Convert( text, codepoints, ignoredUTF8ConversionErrors );
-    if( !AreEqual( inputData.mCodepoints, codepoints ) )
+    if( !AreEqual( inputData->mCodepoints, codepoints ) )
     {
-      inputData.mCodepoints = codepoints;
-      inputData.mCaretCount = 0;
+      inputData->mCodepoints = codepoints;
+      inputData->mCaretCount = 0;
     }
-    TacTextInputDataUpdateKeys( textPos );
+    TacTextInputDataUpdateKeys( inputData, textPos );
 
     // handle double click
     static double lastMouseReleaseSeconds;
     static v2 lastMousePositionDesktopWindowspace;
     if( keyboardInput->HasKeyJustBeenReleased( TacKey::MouseLeft ) &&
       gTacImGuiGlobals.IsHovered( clipRect ) &&
-      !inputData.mCodepoints.empty() )
+      !inputData->mCodepoints.empty() )
     {
       auto mouseReleaseSeconds = gTacImGuiGlobals.mElapsedSeconds;
       if( mouseReleaseSeconds - lastMouseReleaseSeconds < 0.5f &&
         lastMousePositionDesktopWindowspace == gTacImGuiGlobals.mMousePositionDesktopWindowspace )
       {
-        inputData.mNumGlyphsBeforeCaret[ 0 ] = 0;
-        inputData.mNumGlyphsBeforeCaret[ 1 ] = inputData.mCodepoints.size();
-        inputData.mCaretCount = 2;
+        inputData->mNumGlyphsBeforeCaret[ 0 ] = 0;
+        inputData->mNumGlyphsBeforeCaret[ 1 ] = inputData->mCodepoints.size();
+        inputData->mCaretCount = 2;
       }
       lastMouseReleaseSeconds = mouseReleaseSeconds;
       lastMousePositionDesktopWindowspace = gTacImGuiGlobals.mMousePositionDesktopWindowspace;
     }
 
-    TacTextInputDataDrawSelection( textPos, &clipRect );
+    TacTextInputDataDrawSelection( inputData, textPos, &clipRect );
 
 
 
     TacString newText;
-    TacUTF8Converter::Convert( inputData.mCodepoints, newText );
+    TacUTF8Converter::Convert( inputData->mCodepoints, newText );
     if( text != newText )
     {
       text = newText;
@@ -729,6 +737,7 @@ void TacImGuiDragFloat( const TacString& str, float* value )
   TacImGuiWindow* window = gTacImGuiGlobals.mCurrentWindow;
   TacKeyboardInput* keyboardInput = gTacImGuiGlobals.mKeyboardInput;
   TacUI2DDrawData* drawData = gTacImGuiGlobals.mUI2DDrawData;
+  TacTextInputData* inputData = window->inputData;
   v2 pos = window->mCurrCursorDrawPos;
   v2 totalSize = {
     window->mContentRect.mMaxi.x - pos.x,
@@ -787,10 +796,10 @@ void TacImGuiDragFloat( const TacString& str, float* value )
           TacVector< TacCodepoint > codepoints;
           TacErrors ignoredUTF8ConversionErrors;
           converter.Convert( valueStr, codepoints, ignoredUTF8ConversionErrors );
-          inputData.mCodepoints = codepoints;
-          inputData.mCaretCount = 2;
-          inputData.mNumGlyphsBeforeCaret[ 0 ] = 0;
-          inputData.mNumGlyphsBeforeCaret[ 1 ] = codepoints.size();
+          inputData->mCodepoints = codepoints;
+          inputData->mCaretCount = 2;
+          inputData->mNumGlyphsBeforeCaret[ 0 ] = 0;
+          inputData->mNumGlyphsBeforeCaret[ 1 ] = codepoints.size();
           state = 1;
         }
         lastMouseReleaseSeconds = mouseReleaseSeconds;
@@ -800,9 +809,9 @@ void TacImGuiDragFloat( const TacString& str, float* value )
 
     if( state == 1 )
     {
-      TacTextInputDataUpdateKeys( valuePos );
+      TacTextInputDataUpdateKeys( inputData, valuePos );
       TacString newText;
-      TacUTF8Converter::Convert( inputData.mCodepoints, newText );
+      TacUTF8Converter::Convert( inputData->mCodepoints, newText );
       *value = ( float )std::atof( newText.c_str() );
       valueStr = newText;
     }
@@ -817,7 +826,7 @@ void TacImGuiDragFloat( const TacString& str, float* value )
   drawData->AddBox( pos, backgroundBoxMaxi, backgroundBoxColor, nullptr, &clipRect );
 
   if( state == 1 )
-    TacTextInputDataDrawSelection( valuePos, &clipRect );
+    TacTextInputDataDrawSelection( inputData, valuePos, &clipRect );
   drawData->AddText( valuePos, gStyle.fontSize, valueStr, v4( 0, 0, 0, 1 ), &clipRect );
 
   v2 labelPos = {
