@@ -96,15 +96,15 @@ void TacCreation::Init( TacErrors& errors )
     TAC_HANDLE_ERROR( errors );
 
 
-    desktopWindow->mOnResize.AddCallback( new TacFunctionalHandler([&]() {
+    desktopWindow->mOnResize.AddCallbackFunctional( [ windowJson, settings, desktopWindow, &errors ]() {
       windowJson->operator[]( "w" ) = desktopWindow->mWidth;
       windowJson->operator[]( "h" ) = desktopWindow->mHeight;
-      settings->Save( errors ); } ) );
+      settings->Save( errors ); } );
 
-    desktopWindow->mOnMove.AddCallback( new TacFunctionalHandler( [ & ]() {
+    desktopWindow->mOnMove.AddCallbackFunctional( [ windowJson, settings, desktopWindow, &errors ]() {
       windowJson->operator[]( "x" ) = desktopWindow->mX;
       windowJson->operator[]( "y" ) = desktopWindow->mY;
-      settings->Save( errors ); } ) );
+      settings->Save( errors ); } );
 
     //auto ui2DDrawData = new TacUI2DDrawData();
     //ui2DDrawData->mUI2DCommonData = shell->mUI2DCommonData;
@@ -130,12 +130,12 @@ void TacCreation::Init( TacErrors& errors )
       mMainWindow->Init( errors );
       TAC_HANDLE_ERROR( errors );
 
-      desktopWindow->mOnDestroyed.AddCallback( new TacFunctionalHandler( [&]()
+      desktopWindow->mOnDestroyed.AddCallbackFunctional( [ this ]()
       {
         TacOS::Instance->mShouldStopRunning = true;
         delete mMainWindow;
         mMainWindow = nullptr;
-      } ) );
+      } );
     }
 
     if( windowParams.mName == gGameWindowName )
@@ -147,11 +147,11 @@ void TacCreation::Init( TacErrors& errors )
       mGameWindow->Init( errors );
       TAC_HANDLE_ERROR( errors );
 
-      desktopWindow->mOnDestroyed.AddCallback( new TacFunctionalHandler( [&]()
+      desktopWindow->mOnDestroyed.AddCallbackFunctional( [ this ]()
       {
         delete mGameWindow;
         mGameWindow = nullptr;
-      } ) );
+      } );
     }
 
     if( windowParams.mName == gPropertyWindowName )
@@ -163,14 +163,12 @@ void TacCreation::Init( TacErrors& errors )
       mPropertyWindow->Init( errors );
       TAC_HANDLE_ERROR( errors );
 
-      desktopWindow->mOnDestroyed.AddCallback( new TacFunctionalHandler( [&]()
+      desktopWindow->mOnDestroyed.AddCallbackFunctional( [ this ]()
       {
         delete mPropertyWindow;
         mPropertyWindow = nullptr;
-      } ) );
+      } );
     }
-
-    //mEditorWindows.insert( editorWindow );
   }
 
 }
@@ -248,8 +246,8 @@ void TacDesktopApp::DoStuff( TacDesktopApp* desktopApp, TacErrors& errors )
 
   auto creation = new TacCreation();
   creation->mDesktopApp = desktopApp;
-  shell->mOnUpdate.AddCallback( new TacFunctionalHandler( [ & ]() {
-    creation->Update( errors );} ) );
+  shell->mOnUpdate.AddCallbackFunctional([creation,&errors](){
+    creation->Update( errors ); } );
 
   creation->Init( errors );
   TAC_HANDLE_ERROR( errors );

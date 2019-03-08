@@ -64,21 +64,22 @@ void TacDesktopApp::SpawnWindow( const TacWindowParams& windowParams, TacDesktop
 
   mShell->mRenderer->CreateWindowContext( desktopWindow, errors );
 
-  struct TacOnWindowResize : public TacEvent<>::Handler
-  {
-    void HandleEvent() override
-    {
-      TacErrors errors;
-      mRendererWindowData->OnResize( errors );
-    }
-    TacRendererWindowData* mRendererWindowData = nullptr;
-    TacDesktopWindow* mDesktopWindow = nullptr;
-  };
-  auto onWindowResize = new TacOnWindowResize;
-  onWindowResize->mDesktopWindow = desktopWindow;
-  onWindowResize->mRendererWindowData = desktopWindow->mRendererData;
+  //struct TacOnWindowResize : public TacEvent<>::Handler
+  //{
+  //  void HandleEvent() override
+  //  {
+  //    TacErrors errors;
+  //    mRendererWindowData->OnResize( errors );
+  //  }
+  //  TacRendererWindowData* mRendererWindowData = nullptr;
+  //  TacDesktopWindow* mDesktopWindow = nullptr;
+  //};
+  //auto onWindowResize = new TacOnWindowResize;
+  //onWindowResize->mDesktopWindow = desktopWindow;
+  //onWindowResize->mRendererWindowData = desktopWindow->mRendererData;
 
-  desktopWindow->mOnResize.AddCallback( onWindowResize );
+  desktopWindow->mOnResize.AddCallbackFunctional( [desktopWindow, &errors]() {
+    desktopWindow->mRendererData->OnResize( errors ); } );
 
 
   TAC_HANDLE_ERROR( errors );

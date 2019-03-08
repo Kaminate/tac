@@ -13,11 +13,6 @@
 #include "shell/windows/tacWindows.h"
 #include "shell/windows/tacWindowsMouseEdge.h"
 
-struct TacWin32Log : public TacEvent< const TacString& >::Handler
-{
-  void HandleEvent( const TacString& )override;
-};
-
 struct TacWin32DesktopWindow : public TacDesktopWindow
 {
   ~TacWin32DesktopWindow();

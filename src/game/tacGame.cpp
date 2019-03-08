@@ -39,10 +39,8 @@ struct TacGame
     auto ghost = new TacGhost;
     ghost->mShell = mShell;
     ghost->mRenderView = mDesktopWindow->mRenderView;
-    //ghost->mUIRoot->mUI2DDrawData = mUi2DDrawData;
     ghost->Init( errors );
     TAC_HANDLE_ERROR( errors );
-    mShell->AddSoul( ghost );
   }
   void SetImGuiGlobals()
   {
@@ -124,8 +122,8 @@ void TacDesktopApp::DoStuff( TacDesktopApp* desktopApp, TacErrors& errors )
   auto game = new TacGame();
   game->mApp = desktopApp;
   game->mShell = shell;
-  shell->mOnUpdate.AddCallback( new TacFunctionalHandler( [&]() {
-    game->Update( errors ); } ) );
+  shell->mOnUpdate.AddCallbackFunctional([game, &errors](){
+    game->Update( errors ); } );
 
   game->Init( errors );
   TAC_HANDLE_ERROR( errors );

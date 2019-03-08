@@ -19,11 +19,6 @@ struct TacSDLWindow : public TacDesktopWindow
   TacSDLApp* app;
 };
 
-struct TacSDLLog : public TacEvent< const TacString& >::Handler
-{
-  virtual void HandleEvent( const TacString& ) override;
-};
-
 struct TacSDLApp : public TacDesktopApp
 {
   ~TacSDLApp();

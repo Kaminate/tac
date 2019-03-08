@@ -354,6 +354,7 @@ struct TacScissorRect
   float mYMaxRelUpperLeftCornerPixel = 0;
 };
 
+// glViewport lets opengl know how to map the NDC coordinates to the framebuffer coordinates.
 struct TacViewport
 {
   float mViewportBottomLeftCornerRelFramebufferBottomLeftCornerX = 0;

@@ -127,13 +127,6 @@ static TacKey TacGetKey( uint8_t keyCode )
   }
 }
 
-void TacWin32Log::HandleEvent( const TacString& logMessage )
-{
-  const char* c = logMessage.c_str();
-  OutputDebugString( c );
-}
-
-
 TacWin32DesktopWindow::~TacWin32DesktopWindow()
 {
   DestroyWindow( mHWND );
@@ -488,12 +481,12 @@ void TacWindowsApplication2::SpawnWindowAux( const TacWindowParams& windowParams
   mWindows.push_back( createdWindow );
 
 
-  createdWindow->mOnDestroyed.AddCallback( new TacFunctionalHandler( [ this, createdWindow ]()
+  createdWindow->mOnDestroyed.AddCallbackFunctional( [ this, createdWindow ]()
   {
     int i = TacIndexOf( createdWindow, mWindows );
     mWindows[ i ] = mWindows.back();
     mWindows.pop_back();
-  } ) );
+  } );
 
   // Used to combine all the windows into one tab group.
   if( mParentHWND == NULL )

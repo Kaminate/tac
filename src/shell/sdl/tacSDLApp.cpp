@@ -3,14 +3,6 @@
 #include <SDL_syswm.h>
 
 
-void TacSDLLog::HandleEvent( const TacString& logMessage )
-{
-  SDL_LogMessage(
-    SDL_LOG_CATEGORY_APPLICATION,
-    SDL_LOG_PRIORITY_INFO,
-    logMessage.c_str() );
-}
-
 TacSDLWindow::~TacSDLWindow()
 {
   SDL_DestroyWindow( mWindow );
@@ -28,9 +20,6 @@ void TacSDLApp::Init( TacErrors& errors )
     errors = SDL_GetError();
     return;
   }
-
-  //mShell->mPrefPath = SDL_GetPrefPath( "Sleeping Studio", mShell->mAppName.c_str() );
-  //mShell->mLogData.AddCallback( new TacSDLLog() );
 }
 void TacSDLApp::Poll( TacErrors& errors )
 {

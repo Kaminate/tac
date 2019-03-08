@@ -54,9 +54,8 @@ struct TacShell
 {
   TacShell();
   ~TacShell();
-  void Update( TacErrors& errors );
   void Init( TacErrors& errors );
-  void AddSoul( TacSoul* soul );
+  void Update( TacErrors& errors );
 
   TacAssetManager* mAssetManager = nullptr;
   TacControllerInput* mControllerInput = nullptr;

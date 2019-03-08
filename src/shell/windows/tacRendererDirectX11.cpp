@@ -672,7 +672,7 @@ void TacRendererDirectX11::CreateWindowContext( TacDesktopWindow* desktopWindow,
   TAC_HANDLE_ERROR( errors );
   mWindows.push_back( dx11Window );
   desktopWindow->mRendererData = dx11Window;
-  desktopWindow->mOnDestroyed.AddCallback( new TacFunctionalHandler( [ & ]() {
+  desktopWindow->mOnDestroyed.AddCallbackFunctional([this, dx11Window](){
     for( TacDX11Window*& window : mWindows )
     {
       if( window != dx11Window )
@@ -681,7 +681,7 @@ void TacRendererDirectX11::CreateWindowContext( TacDesktopWindow* desktopWindow,
       delete window;
       mWindows.pop_back();
       break;
-    } } ) );
+    } } );
 }
 void TacRendererDirectX11::AddVertexBuffer( TacVertexBuffer** outputVertexBuffer, TacVertexBufferData vbData, TacErrors& errors )
 {

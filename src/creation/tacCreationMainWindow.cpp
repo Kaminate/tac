@@ -151,7 +151,7 @@ void TacCreationMainWindow::CreateLayouts()
     text->mDims = { 100, 50 };
     mGameObjectButton = menuBar->Split( TacUISplit::Before );
     mGameObjectButton->SetVisual( text );
-    mGameObjectButton->mOnClickEventEmitter.AddCallback( new TacFunctionalHandler( [&]()
+    mGameObjectButton->mOnClickEventEmitter.AddCallbackFunctional([this]()
     {
       if( mGameObjectMenuWindow )
         return;
@@ -159,7 +159,7 @@ void TacCreationMainWindow::CreateLayouts()
       mGameObjectMenuWindow->mMainWindow = this;
       mGameObjectMenuWindow->mCreation = mCreation;
       mGameObjectMenuWindow->Init( mButtonCallbackErrors );
-    } ) );
+    } );
 
     text = new TacUIHierarchyVisualText();
     text->mUITextData.mUtf8 = "Edit";

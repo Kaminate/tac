@@ -4,6 +4,7 @@
 #include "common/tacRenderer.h"
 #include "common/tacUI2D.h"
 #include "common/tacUI.h"
+#include "common/tacImGui.h"
 #include "common/tacTextureAssetManager.h"
 #include "space/tacGhost.h"
 
@@ -111,36 +112,26 @@ struct TacGameVis : public TacUIHierarchyVisual
 
 void TacCreationGameWindow::Init( TacErrors& errors )
 {
-  //mRenderView = new TacRenderView;
-
   TacShell* shell = mShell;
 
   auto uI2DDrawData = new TacUI2DDrawData();
   uI2DDrawData->mUI2DCommonData = shell->mUI2DCommonData;
-  //uI2DDrawData->mRenderView = mRenderView;
   uI2DDrawData->mRenderView = mDesktopWindow->mRenderView;
   mUI2DDrawData = uI2DDrawData;
 
   auto ghost = new TacGhost;
   ghost->mShell = shell;
-  //ghost->mUIRoot->mUI2DDrawData = uI2DDrawData;
-  //ghost->mRenderView = mRenderView;
   ghost->mRenderView = mDesktopWindow->mRenderView;
   ghost->Init( errors );
   TAC_HANDLE_ERROR( errors );
-
-  shell->AddSoul( ghost );
   mSoul = ghost;
-
 
   auto gameVis = new TacGameVis();
   gameVis->mDesktopWindow = mDesktopWindow;
   gameVis->mSoul = ghost;
-  //gameVis->mRenderView = mRenderView;
   gameVis->mRenderView = mDesktopWindow->mRenderView;
   gameVis->uI2DDrawData = uI2DDrawData;
   gameVis->creationGameWindow = this;
-
 
   mUIRoot = new TacUIRoot;
   mUIRoot->mElapsedSeconds = &mShell->mElapsedSeconds;
@@ -152,7 +143,14 @@ void TacCreationGameWindow::Init( TacErrors& errors )
 void TacCreationGameWindow::Update( TacErrors& errors )
 {
   mDesktopWindow->SetRenderViewDefaults();
-  //SetGhostRenderView();
+  gTacImGuiGlobals.mUI2DDrawData = mUI2DDrawData;
+  gTacImGuiGlobals.mKeyboardInput = mShell->mKeyboardInput;
+  auto ghost = ( TacGhost* )mSoul;
+  ghost->Update( errors );
+  TAC_HANDLE_ERROR( errors );
+
+  mUI2DDrawData->DrawToTexture( errors );
+  TAC_HANDLE_ERROR( errors );
 }
 //void TacCreationGameWindow::SetGhostRenderView()
 //{

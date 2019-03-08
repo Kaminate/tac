@@ -116,11 +116,6 @@ void TacShell::Init( TacErrors& errors )
   mUI2DCommonData->Init( errors );
   TAC_HANDLE_ERROR( errors );
 }
-void TacShell::AddSoul( TacSoul* soul )
-{
-  soul->mShell = this;
-  mSouls.push_back( soul );
-}
 void TacShell::Update( TacErrors& errors )
 {
   mTimer->Tick();
@@ -139,12 +134,6 @@ void TacShell::Update( TacErrors& errors )
 
   if( mControllerInput )
     mControllerInput->Update();
-
-  for( auto soul : mSouls )
-  {
-    soul->Update( errors );
-    TAC_HANDLE_ERROR( errors );
-  }
 
   mKeyboardInput->Frame();
 

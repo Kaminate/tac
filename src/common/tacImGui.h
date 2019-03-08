@@ -27,6 +27,7 @@ struct TacImGuiGlobals
   bool IsHovered(const TacImGuiRect& rect );
 
   v2 mNextWindowPos = {};
+  // TODO: different space
   v2 mMousePositionDesktopWindowspace = {};
   bool mIsWindowDirectlyUnderCursor = false;
   double mElapsedSeconds = 0;

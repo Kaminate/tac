@@ -184,7 +184,6 @@ void TacGhost::ImguiCreatePlayerPopup( TacErrors& errors )
 }
 void TacGhost::Update( TacErrors& errors )
 {
-  gTacImGuiGlobals.mIsWindowDirectlyUnderCursor;
 
   if( CanDrawImgui() )
   {
