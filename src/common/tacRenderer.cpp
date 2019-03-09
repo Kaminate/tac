@@ -30,7 +30,7 @@ TacString TacToString( TacRendererType rendererType )
   case TacRendererType::Vulkan: return "Vulkan";
   case TacRendererType::OpenGL4: return "OpenGL4";
   case TacRendererType::DirectX12: return "DirectX12";
-      TacInvalidDefaultCase(rendererType);
+    TacInvalidDefaultCase( rendererType );
   }
   TacInvalidCodePath;
   return "";
@@ -38,13 +38,17 @@ TacString TacToString( TacRendererType rendererType )
 v4 ToColorAlphaPremultiplied( v4 colorAlphaUnassociated )
 {
   return {
-   colorAlphaUnassociated.x * colorAlphaUnassociated.w,
-   colorAlphaUnassociated.y * colorAlphaUnassociated.w,
-   colorAlphaUnassociated.z * colorAlphaUnassociated.w,
-   colorAlphaUnassociated.w };
+    colorAlphaUnassociated.x * colorAlphaUnassociated.w,
+    colorAlphaUnassociated.y * colorAlphaUnassociated.w,
+    colorAlphaUnassociated.z * colorAlphaUnassociated.w,
+    colorAlphaUnassociated.w };
 }
 
 
+int TacFormat::CalculateTotalByteCount() const
+{
+  return mElementCount * mPerElementByteCount;
+}
 
 TacVertexDeclarations TacDefaultVertex2D::sVertexDeclarations = []() ->TacVertexDeclarations {
   TacVertexDeclaration posData;
@@ -166,7 +170,7 @@ void TacRenderer::LoadDefaultGraphicsObjects( TacErrors& errors )
   TAC_HANDLE_ERROR( errors );
 
   TacShaderData data3dVertexColorShaderData;
-  data3dVertexColorShaderData.mShaderPath = "assets/3DVertexColor";
+  data3dVertexColorShaderData.mShaderPath = "3DVertexColor";
   data3dVertexColorShaderData.mStackFrame = TAC_STACK_FRAME;
   data3dVertexColorShaderData.mName = "3d color";
   AddShader( &m3DVertexColorShader, data3dVertexColorShaderData, errors );
@@ -231,7 +235,7 @@ void TacRenderer::LoadDefaultGraphicsObjects( TacErrors& errors )
 
   TacShaderData shaderData2D;
   shaderData2D.mName = "2D default shader";
-  shaderData2D.mShaderPath = "assets/2D";
+  shaderData2D.mShaderPath = "2D";
   shaderData2D.mStackFrame = TAC_STACK_FRAME;
   AddShader( &m2DShader, shaderData2D, errors );
   TAC_HANDLE_ERROR( errors );
@@ -248,7 +252,7 @@ void TacRenderer::LoadDefaultGraphicsObjects( TacErrors& errors )
 
   TacShaderData shaderData2DText;
   shaderData2DText.mName = "2D text shader";
-  shaderData2DText.mShaderPath = "assets/2DText";
+  shaderData2DText.mShaderPath = "2DText";
   shaderData2DText.mStackFrame = TAC_STACK_FRAME;
   AddShader( &m2DTextShader, shaderData2DText, errors );
   TAC_HANDLE_ERROR( errors );

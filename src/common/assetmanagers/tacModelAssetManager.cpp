@@ -2,6 +2,7 @@
 #include "common/tacMemory.h"
 #include "common/tacJobQueue.h"
 #include "common/tacRenderer.h"
+#include "common/math/tacMath.h"
 #include "common/tacUtility.h"
 #include "common/tacOS.h"
 
@@ -12,9 +13,19 @@
 #include "common/thirdparty/cgltf.h"
 #pragma warning( pop )
 
-struct TacLoadingMesh
+static TacAttribute GetAttributeFromGltf( cgltf_attribute_type attributeType )
 {
-};
+  switch( attributeType )
+  {
+  case cgltf_attribute_type_position: return TacAttribute::Position;
+  case cgltf_attribute_type_normal: return TacAttribute::Normal;
+  case cgltf_attribute_type_texcoord: return TacAttribute::Texcoord;
+  case cgltf_attribute_type_color: return TacAttribute::Color;
+  case cgltf_attribute_type_joints: return TacAttribute::BoneIndex;
+  case cgltf_attribute_type_weights: return TacAttribute::BoneWeight;
+  }
+  return TacAttribute::Count;
+}
 
 static const char* GetcgltfErrorAsString( cgltf_result parseResult )
 {
@@ -33,21 +44,31 @@ static const char* GetcgltfErrorAsString( cgltf_result parseResult )
   return results[ parseResult ];
 }
 
-void TacFillDataType( cgltf_component_type component_type, TacFormat* dataType )
+void TacFillDataType( cgltf_accessor* accessor, TacFormat* dataType )
 {
-  switch( component_type )
+  switch( accessor->component_type )
   {
   case cgltf_component_type_r_16u:
-    dataType->mElementCount = 1;
     dataType->mPerElementByteCount = 2;
     dataType->mPerElementDataType = TacGraphicsType::uint;
     break;
-  default:
-    TacInvalidCodePath;
+  case cgltf_component_type_r_32f:
+    dataType->mPerElementByteCount = 4;
+    dataType->mPerElementDataType = TacGraphicsType::real;
+    break;
+    TacInvalidDefaultCase( accessor->component_type );
+  }
+  switch( accessor->type )
+  {
+  case cgltf_type_scalar: dataType->mElementCount = 1; break;
+  case cgltf_type_vec2: dataType->mElementCount = 2; break;
+  case cgltf_type_vec3: dataType->mElementCount = 3; break;
+  case cgltf_type_vec4: dataType->mElementCount = 4; break;
+    TacInvalidDefaultCase( accessor->type );
   }
 }
 
-void TacModelAssetManager::GetMesh( TacMesh** mesh, const TacString& path, TacErrors& errors )
+void TacModelAssetManager::GetMesh( TacMesh** mesh, const TacString& path, TacVertexFormat* vertexFormat, TacErrors& errors )
 {
   auto bytes = TacTemporaryMemory( path, errors );
   TAC_HANDLE_ERROR( errors );
@@ -83,6 +104,8 @@ void TacModelAssetManager::GetMesh( TacMesh** mesh, const TacString& path, TacEr
     return;
   }
 
+  TacVector< TacSubMesh > submeshes;
+
   for( int iMesh = 0; iMesh < parsedData->meshes_count; ++iMesh )
   {
     cgltf_mesh* parsedMesh = &parsedData->meshes[ iMesh ];
@@ -90,41 +113,113 @@ void TacModelAssetManager::GetMesh( TacMesh** mesh, const TacString& path, TacEr
     for( int iPrim = 0; iPrim < parsedMesh->primitives_count; ++iPrim )
     {
       cgltf_primitive* parsedPrim = &parsedMesh->primitives[ iPrim ];
+      if( !parsedPrim->attributes_count )
+        continue;
 
       cgltf_accessor* indices = parsedPrim->indices;
-
+      void* indiciesData = ( char* )indices->buffer_view->buffer->data + indices->buffer_view->offset;
       TacAssert( indices->type == cgltf_type_scalar );
-      TacFormat format;
-      TacFillDataType( indices->component_type, &format );
-
+      TacFormat indexFormat;
+      TacFillDataType( indices, &indexFormat );
       TacIndexBuffer* indexBuffer;
       TacIndexBufferData indexBufferData = {};
       indexBufferData.indexCount = ( int )indices->count;
       indexBufferData.access = TacAccess::Default;
       indexBufferData.mStackFrame = TAC_STACK_FRAME;
       indexBufferData.mName = debugName;
-      indexBufferData.data = indices->buffer_view->buffer->data;
-      indexBufferData.dataType = format;
+      indexBufferData.data = indiciesData;
+      indexBufferData.dataType = indexFormat;
       TacErrors indexBufferErrors;
       mRenderer->AddIndexBuffer( &indexBuffer, indexBufferData, indexBufferErrors );
 
+      int vertexCount = ( int )parsedPrim->attributes[ 0 ].data->count;
+      int vertexStride = 0;
+      for( const TacVertexDeclaration& vertexDeclaration : vertexFormat->vertexFormatDatas )
+      {
+        int vertexEnd =
+          vertexDeclaration.mAlignedByteOffset +
+          vertexDeclaration.mTextureFormat.CalculateTotalByteCount();
+        vertexStride = TacMax( vertexStride, vertexEnd );
+      }
+      TacVector< char > convertedVertices( vertexCount * vertexStride, ( char )0 );
+
+      int runningVertexStride = 0;
+      parsedPrim->attributes[ 0 ].data;
+      for( const TacVertexDeclaration& vertexDeclaration : vertexFormat->vertexFormatDatas )
+      {
+        const TacFormat& dstFormat = vertexDeclaration.mTextureFormat;
+        cgltf_attribute* gltfVertAttribute = nullptr;
+        for( int iAttrib = 0; iAttrib < parsedPrim->attributes_count; ++iAttrib )
+        {
+          cgltf_attribute* gltfVertAttributeCurr = &parsedPrim->attributes[ iAttrib ];
+          if( GetAttributeFromGltf( gltfVertAttributeCurr->type ) != vertexDeclaration.mAttribute )
+            continue;
+          gltfVertAttribute = gltfVertAttributeCurr;
+
+          break;
+        }
+        if( !gltfVertAttribute )
+          continue;
+        cgltf_accessor* gltfVertAttributeData = gltfVertAttribute->data;
+        TacFormat srcFormat;
+        TacFillDataType( gltfVertAttributeData, &srcFormat );
+        TacAssert( vertexCount == gltfVertAttributeData->count );
+        char* dstVtx = convertedVertices.data();
+        char* srcVtx = ( char* )gltfVertAttributeData->buffer_view->buffer->data + gltfVertAttributeData->offset;
+
+        int elementCount = TacMin( dstFormat.mElementCount, srcFormat.mElementCount );
+        for( int iVert = 0; iVert < vertexCount; ++iVert )
+        { 
+          char* srcElement = srcVtx;
+          char* dstElement = dstVtx + vertexDeclaration.mAlignedByteOffset;
+          for( int iElement = 0; iElement < elementCount; ++iElement )
+          {
+            if( srcFormat.mPerElementDataType == dstFormat.mPerElementDataType &&
+              srcFormat.mPerElementByteCount == dstFormat.mPerElementByteCount )
+            {
+              TacMemCpy( dstElement, srcElement, srcFormat.mPerElementByteCount );
+            }
+            else
+            {
+              // todo
+              TacInvalidCodePath;
+            }
+            // copy
+            dstElement += dstFormat.mPerElementByteCount;
+            srcElement += srcFormat.mPerElementByteCount;
+          }
+
+          //dataType->mElementCount = 1;
+          //dataType->mPerElementByteCount = 2;
+          //dataType->mPerElementDataType = TacGraphicsType::uint;
+
+          srcVtx += gltfVertAttributeData->stride;
+          dstVtx += vertexStride;
+        }
+      }
 
       TacVertexBuffer* vertexBuffer;
       TacVertexBufferData vertexBufferData = {};
       vertexBufferData.access = TacAccess::Default;
       vertexBufferData.mName = debugName;
       vertexBufferData.mStackFrame = TAC_STACK_FRAME;
-      vertexBufferData.mNumVertexes;
-      //mRenderer->AddVertexBuffer(
+      vertexBufferData.mNumVertexes = vertexCount;
+      vertexBufferData.optionalData = convertedVertices.data();
+      vertexBufferData.mStrideBytesBetweenVertexes = vertexStride;
+      TacErrors vertexBufferErrors;
+      mRenderer->AddVertexBuffer( &vertexBuffer, vertexBufferData, vertexBufferErrors );
 
-      // vertex format?
-
-        TacUnimplemented;
-      std::cout << "Asdf";
+      TacSubMesh subMesh;
+      subMesh.mIndexBuffer = indexBuffer;
+      subMesh.mVertexBuffer = vertexBuffer;
+      submeshes.push_back( subMesh );
     }
   }
 
   auto newMesh = new TacMesh;
+  newMesh->mSubMeshes = submeshes;
+  newMesh->mVertexFormat = vertexFormat;
+  *mesh = newMesh;
 
   //* `cgltf_result cgltf_load_buffers( const cgltf_options*, cgltf_data*,
   //*const char* )` can be optionally called to open and read buffer

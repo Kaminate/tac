@@ -12,6 +12,7 @@
 #include "space/taccomponent.h"
 #include "space/tacsystem.h"
 #include "space/tacspacetypes.h"
+#include "space/tacmodel.h"
 
 TacCreationPropertyWindow::~TacCreationPropertyWindow()
 {
@@ -60,13 +61,6 @@ void TacCreationPropertyWindow::Update( TacErrors& errors )
   //mUIRoot->Render( errors );
   TAC_HANDLE_ERROR( errors );
 
-  static bool once;
-  if( !once )
-  {
-    once = true;
-    mCreation->CreateEntity();
-  }
-
   SetImGuiGlobals();
 
 
@@ -93,22 +87,24 @@ void TacCreationPropertyWindow::Update( TacErrors& errors )
   {
     static TacString occupation = "Bartender";
     TacImGuiInputText( "Name", entity->mName );
-    TacImGuiInputText( "Occupation", occupation );
-    TacImGuiText( entity->mName );
     TacImGuiText( "UUID: " + TacToString( ( TacUUID )entity->mEntityUUID ) );
-    TacImGuiText( "Position: " +
-      TacToString( entity->mPosition.x ) + " " +
-      TacToString( entity->mPosition.y ) + " " +
-      TacToString( entity->mPosition.z ) );
     TacImGuiDragFloat( "X Position: ", &entity->mPosition.x );
-    for( TacComponent* component : entity->mComponents )
+    TacImGuiDragFloat( "Y Position: ", &entity->mPosition.y );
+    TacImGuiDragFloat( "Z Position: ", &entity->mPosition.z );
+    TacVector< TacComponentType > addableComponentTypes;
+    for( int i = 0; i < ( int )TacComponentType::Count; ++i )
     {
-      TacComponentType componentType = component->GetComponentType();
+      TacComponentType componentType = ( TacComponentType )i;
+      if( !entity->HasComponent( componentType ) )
+      {
+        addableComponentTypes.push_back( componentType );
+        continue;
+      }
+      TacComponent* component = entity->GetComponent( componentType );
       TacString componentName = TacToString( componentType );
       if( TacImGuiCollapsingHeader( componentName ) )
       {
-        TacImGuiIndent();
-        OnDestruct( TacImGuiUnindent() );
+        TAC_IMGUI_INDENT_BLOCK;
         if( TacImGuiButton( "Remove component" ) )
         {
           entity->RemoveComponent( componentType );
@@ -118,16 +114,16 @@ void TacCreationPropertyWindow::Update( TacErrors& errors )
       }
     }
 
-    for( int i = 0; i < ( int )TacComponentType::Count; ++i )
+    if( !addableComponentTypes.empty() && TacImGuiCollapsingHeader( "Add component" ) )
     {
-      auto componentType = ( TacComponentType )i;
-      if( !entity->HasComponent( componentType ) &&
-        TacImGuiButton( va( "Add %s component", TacToString( componentType ) ) ) )
-        entity->AddNewComponent( componentType );
+      TAC_IMGUI_INDENT_BLOCK;
+      for( TacComponentType componentType : addableComponentTypes )
+      {
+        if( TacImGuiButton( va( "Add %s component", TacToString( componentType ) ) ) )
+          entity->AddNewComponent( componentType );
+      }
     }
   }
-  TacImGuiButton( "C" );
-  TacImGuiCheckbox( "Happy", &areYouHappy );
   TacImGuiEndGroup();
   TacImGuiEnd();
 

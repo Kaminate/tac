@@ -14,16 +14,3 @@ cbuffer CBufferPerObject : register( b1 )
   float4 Color;
 }
 
-struct ShaderInputText
-{
-  float3 Position : POSITION;
-  float2 GLTexCoord : TEXCOORD;
-};
-
-struct ShaderInputPosColor
-{
-  float3 Position : POSITION;
-  float3 Color : COLOR;
-};
-
-

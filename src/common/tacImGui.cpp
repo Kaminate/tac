@@ -759,25 +759,25 @@ void TacImGuiDragFloat( const TacString& str, float* value )
     window->mContentRect.mMaxi.x - pos.x,
     ( float )gStyle.fontSize };
   window->ItemSize( totalSize );
+  int id = window->GetID();
   bool clipped;
   auto clipRect = TacImGuiRect::FromPosSize( pos, totalSize );
   window->ComputeClipInfo( &clipped, &clipRect );
   if( clipped )
     return;
 
-  static int state;
+  bool& state = window->mDragFloatStates[ id ];
   v2 valuePos = {
     pos.x + gStyle.buttonPadding,
     pos.y };
 
-  int id = window->GetID();
   if( gTacImGuiGlobals.IsHovered( clipRect ) && keyboardInput->IsKeyJustDown( TacKey::MouseLeft ) )
   {
     window->mActiveID = id;
   }
   if( id == window->mActiveID )
   {
-    if( state == 0 )
+    if( state == false )
     {
       static float lastMouseXDesktopWindowspace;
       if( gTacImGuiGlobals.IsHovered( clipRect ) )
@@ -816,14 +816,14 @@ void TacImGuiDragFloat( const TacString& str, float* value )
           inputData->mCaretCount = 2;
           inputData->mNumGlyphsBeforeCaret[ 0 ] = 0;
           inputData->mNumGlyphsBeforeCaret[ 1 ] = codepoints.size();
-          state = 1;
+          state = true;
         }
         lastMouseReleaseSeconds = mouseReleaseSeconds;
         lastMousePositionDesktopWindowspace = gTacImGuiGlobals.mMousePositionDesktopWindowspace;
       }
     }
 
-    if( state == 1 )
+    if( state == true )
     {
       TacTextInputDataUpdateKeys( inputData, valuePos );
       TacString newText;
@@ -834,14 +834,14 @@ void TacImGuiDragFloat( const TacString& str, float* value )
   }
 
   if( id != window->mActiveID )
-    state = 0;
+    state = false;
 
   v2 backgroundBoxMaxi = {
     pos.x + totalSize.x * ( 2.0f / 3.0f ),
     pos.x + totalSize.y };
   drawData->AddBox( pos, backgroundBoxMaxi, backgroundBoxColor, nullptr, &clipRect );
 
-  if( state == 1 )
+  if( state == true )
     TacTextInputDataDrawSelection( inputData, valuePos, &clipRect );
   drawData->AddText( valuePos, gStyle.fontSize, valueStr, v4( 0, 0, 0, 1 ), &clipRect );
 
@@ -867,13 +867,16 @@ bool TacImGuiCollapsingHeader( const TacString& name )
   if( clipped )
     return false;
 
+  v4 backgroundBoxColor = { 100 / 255.0f, 65 / 255.0f, 164 / 255.0f, 255 / 255.0f };
   int id = window->GetID();
   bool& isOpen = window->mCollapsingHeaderStates[ id ];
-  if( gTacImGuiGlobals.IsHovered( clipRect ) &&
-    keyboardInput->IsKeyJustDown( TacKey::MouseLeft ) )
-    isOpen = !isOpen;
+  if( gTacImGuiGlobals.IsHovered( clipRect ) )
+  {
+    backgroundBoxColor.xyz() /= 2.0f;
+    if( keyboardInput->IsKeyJustDown( TacKey::MouseLeft ) )
+      isOpen = !isOpen;
+  }
 
-  v4 backgroundBoxColor = { 100 / 255.0f, 65 / 255.0f, 164 / 255.0f, 255 / 255.0f };
   drawData->AddBox( pos, pos + totalSize, backgroundBoxColor, nullptr, &clipRect );
 
   v4 textColor = { 1, 1, 1, 1 };

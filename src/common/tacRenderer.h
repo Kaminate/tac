@@ -46,7 +46,6 @@ const TacString RendererNameDirectX12 = "DirectX12";
 
 enum class TacAttribute // Used to hardcode shader semantics/indexes
 {
-
   Position,
   Normal,
   Texcoord,
@@ -149,6 +148,7 @@ const char* TacGetSemanticName( TacAttribute attribType );
 // Used so the gpu can translate from cpu types to gpu types
 struct TacFormat
 {
+  int CalculateTotalByteCount() const;
   int mElementCount = 0;
   int mPerElementByteCount = 0;
   TacGraphicsType mPerElementDataType = TacGraphicsType::unknown;

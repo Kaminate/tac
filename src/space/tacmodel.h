@@ -9,6 +9,8 @@
 
 #include <string>
 
+struct TacMesh;
+
 struct TacModel : public TacComponent
 {
   void TacDebugImgui() override;
@@ -19,6 +21,7 @@ struct TacModel : public TacComponent
   //TacTextureUUID mTextureUUID = TacNullTextureUUID;
   //TacGeometryUUID mGeometryUUID = TacNullGeometryUUID;
   TacString mGLTFPath;
+  TacMesh* mesh = nullptr;
 };
 
 const TacVector< TacNetworkBit > TacComponentModelBits = [](){

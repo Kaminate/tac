@@ -32,6 +32,11 @@
   }\
 }
 
+static TacString TacGetDirectX11ShaderPath( TacString shaderName )
+{
+  return "assets/hlsl/" + shaderName + ".fx";
+}
+
 static TacString TacTryInferDX11ErrorStr( HRESULT res )
 {
   switch( res )
@@ -423,6 +428,8 @@ void TacRendererDirectX11::RenderFlush()
       {
         vertexShader = shaderDX11->mVertexShader;
         pixelShader = shaderDX11->mPixelShader;
+        if( drawCall.mShader->mCBuffers.empty() )
+          TacAssertMessage( "You probably forgot" );
         for( TacCBuffer* cbufferr : drawCall.mShader->mCBuffers )
         {
           auto cbuffer = ( TacCBufferDX11* )cbufferr;
@@ -544,8 +551,9 @@ void TacRendererDirectX11::RenderFlush()
 
     if( mCurrentlyBoundView != drawCall.mView )
     {
-      // set & clear render target
+      if( drawCall.mView )
       {
+        // set & clear render target
         auto textureDX11 = ( TacTextureDX11* )drawCall.mView->mFramebuffer;
         auto depthBufferDX11 = ( TacDepthBufferDX11* )drawCall.mView->mFramebufferDepth;
         auto renderTargetView = ( ID3D11RenderTargetView* )textureDX11->mRTV;
@@ -555,23 +563,19 @@ void TacRendererDirectX11::RenderFlush()
           ( UINT )renderTargetViews.size(),
           renderTargetViews.data(),
           pDepthStencilView );
-
         if( !TacContains( mFrameBoundRenderViews, drawCall.mView ) )
         {
           mFrameBoundRenderViews.push_back( drawCall.mView );
           mDeviceContext->ClearRenderTargetView(
             renderTargetView,
             drawCall.mView->mClearColorRGBA.data() );
-
           UINT clearFlags = D3D11_CLEAR_DEPTH; // | D3D11_CLEAR_STENCIL;
           FLOAT valueToClearDepthTo = 1.0f;
           mDeviceContext->ClearDepthStencilView( pDepthStencilView, clearFlags, valueToClearDepthTo, 0 );
         }
 
-      }
 
-      // set scissor rect
-      {
+        // set scissor rect
         TacScissorRect mScissorRect = drawCall.mView->mScissorRect;
         D3D11_RECT r;
         r.left = ( LONG )mScissorRect.mXMinRelUpperLeftCornerPixel;
@@ -579,21 +583,16 @@ void TacRendererDirectX11::RenderFlush()
         r.right = ( LONG )mScissorRect.mXMaxRelUpperLeftCornerPixel;
         r.bottom = ( LONG )mScissorRect.mYMaxRelUpperLeftCornerPixel;
         mDeviceContext->RSSetScissorRects( 1, &r );
-      }
 
-      // set viewport rect
-      {
+        // set viewport rect
         TacViewport viewportRect = drawCall.mView->mViewportRect;
         TacAssert( viewportRect.mViewportPixelWidthIncreasingRight > 0 );
         TacAssert( viewportRect.mViewportPixelHeightIncreasingUp > 0 );
-        auto textureDX11 = ( TacTextureDX11* )drawCall.mView->mFramebuffer;
-
         FLOAT TopLeftX = viewportRect.mViewportBottomLeftCornerRelFramebufferBottomLeftCornerX;
         FLOAT TopLeftY
           = textureDX11->myImage.mHeight
           - viewportRect.mViewportBottomLeftCornerRelFramebufferBottomLeftCornerY
           - viewportRect.mViewportPixelHeightIncreasingUp;
-
         D3D11_VIEWPORT vp;
         vp.Width = viewportRect.mViewportPixelWidthIncreasingRight;
         vp.Height = viewportRect.mViewportPixelHeightIncreasingUp;
@@ -803,7 +802,8 @@ void TacRendererDirectX11::AddShader( TacShader** outputShader, TacShaderData sh
   AddRendererResource( &shader, shaderData );
   if( !shader->mShaderPath.empty() )
   {
-    shader->mShaderPath += ".fx";
+    
+    shader->mShaderPath = TacGetDirectX11ShaderPath( shader->mShaderPath );
     for( ;; )
     {
       ReloadShader( shader, errors );
@@ -837,7 +837,7 @@ void TacRendererDirectX11::LoadShaderInternal(
   TacErrors& errors )
 {
 
-  auto temporaryMemory = TacTemporaryMemory( "assets/common.fx", errors );
+  auto temporaryMemory = TacTemporaryMemory( TacGetDirectX11ShaderPath( "common" ), errors );
   TAC_HANDLE_ERROR( errors );
 
   TacString common( temporaryMemory.data(), ( int )temporaryMemory.size() );
@@ -1330,7 +1330,13 @@ void TacRendererDirectX11::AddVertexFormat(
     curDX11Input.Format = GetDXGIFormat( curTacFormat.mTextureFormat );
     curDX11Input.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
     curDX11Input.InstanceDataStepRate = 0;
+    curDX11Input.InputSlot = 0;
     curDX11Input.SemanticName = TacGetSemanticName( curTacFormat.mAttribute );
+    // MSDN:
+    // A semantic index modifies a semantic, with an integer index number.
+    // A semantic index is only needed in a case where there is more than
+    // one element with the same semantic.
+    curDX11Input.SemanticIndex;
     curDX11Input.AlignedByteOffset = curTacFormat.mAlignedByteOffset;
     inputElementDescs.push_back( curDX11Input );
   }

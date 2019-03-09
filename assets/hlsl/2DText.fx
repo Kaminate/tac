@@ -4,13 +4,18 @@
 Texture2D atlas : register( t0 );
 sampler linearSampler : register( s0 );
 
+struct VS_INPUT
+{
+  float3 Position : POSITION;
+  float2 GLTexCoord : TEXCOORD;
+};
 struct VS_OUTPUT
 {
   float4 mClipSpacePosition : SV_POSITION;
   float2 DXTexCoord : TEXCOORD0;
 };
 
-VS_OUTPUT VS( ShaderInputText input )
+VS_OUTPUT VS( VS_INPUT input )
 {
   float4 worldSpacePosition = mul( World, float4( input.Position, 1 ) );
   float4 viewSpacePosition = mul( View, worldSpacePosition );

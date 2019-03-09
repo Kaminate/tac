@@ -196,7 +196,7 @@ void TacCreation::Update( TacErrors& errors )
     TAC_HANDLE_ERROR( errors );
   }
 }
-void TacCreation::CreateEntity()
+TacEntity* TacCreation::CreateEntity()
 {
   TacWorld* world = mWorld;
   TacString desiredEntityName = "Entity";
@@ -214,6 +214,7 @@ void TacCreation::CreateEntity()
   TacEntity* entity = world->SpawnEntity( TacNullEntityUUID );
   entity->mName = desiredEntityName;
   mSelectedEntity = entity;
+  return entity;
 }
 
 void TacDesktopApp::DoStuff( TacDesktopApp* desktopApp, TacErrors& errors )

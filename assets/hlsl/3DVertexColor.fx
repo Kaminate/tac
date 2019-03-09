@@ -1,11 +1,16 @@
 
+struct VS_INPUT
+{
+  float3 Position : POSITION;
+  float3 Color : COLOR;
+};
 struct VS_OUTPUT
 {
   float4 mClipSpacePosition : SV_POSITION;
   float3 mColor : Color;
 };
 
-VS_OUTPUT VS( ShaderInputPosColor input )
+VS_OUTPUT VS( VS_INPUT input )
 {
   float4 worldSpacePosition = mul( World, float4( input.Position, 1 ) );
   float4 viewSpacePosition = mul( View, worldSpacePosition );

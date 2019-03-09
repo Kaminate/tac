@@ -61,7 +61,7 @@ void TacFontStuff::Load( TacSettings* settings, TacRenderer* renderer, int atlas
   {
     auto language = TacLanguage( iLanguage );
     const TacString& languageString = TacLanguageToStr( language );
-    TacString fontFilePathDefault = language == TacLanguage::English  ? "assets/english_srcpro.ttf" : "";
+    TacString fontFilePathDefault = language == TacLanguage::English ? "assets/fonts/english_srcpro.ttf" : "";
     TacString fontFilePath = settings->GetString( nullptr, { "defaultfonts",  languageString }, fontFilePathDefault, errors );
     if( fontFilePath.empty() )
       continue;

@@ -41,9 +41,6 @@ TacVertexDeclarations TacUI2DVertex::sVertexDeclarations = []() ->TacVertexDecla
   return { posData, uvData };
 }( );
 
-//TacUI2DCommonData::TacUI2DCommonData()
-//{
-//}
 TacUI2DCommonData::~TacUI2DCommonData()
 {
   mRenderer->RemoveRendererResource( mShader );
@@ -83,7 +80,7 @@ void TacUI2DCommonData::Init( TacErrors& errors )
 
   TacShaderData shaderData;
   shaderData.mName = "tac 2d ui shader";
-  shaderData.mShaderPath = "assets/2D";
+  shaderData.mShaderPath = "2D";
   shaderData.mStackFrame = TAC_STACK_FRAME;
   shaderData.mCBuffers = { mPerFrame, mPerObj };
   mRenderer->AddShader( &mShader, shaderData, errors );
@@ -91,7 +88,7 @@ void TacUI2DCommonData::Init( TacErrors& errors )
 
   TacShaderData textShaderData;
   textShaderData.mName = "tac 2d ui text shader";
-  textShaderData.mShaderPath = "assets/2Dtext";
+  textShaderData.mShaderPath = "2Dtext";
   textShaderData.mStackFrame = TAC_STACK_FRAME;
   textShaderData.mCBuffers = { mPerFrame, mPerObj };
   mRenderer->AddShader( &m2DTextShader, textShaderData, errors );
@@ -533,7 +530,7 @@ v2 TacUI2DDrawData::CalculateTextSize( const TacCodepoint* codepoints, int codep
         continue;
     }
 
-    TacFontAtlasCell* fontAtlasCell;
+    TacFontAtlasCell* fontAtlasCell = nullptr;
 
     // ignored...
     TacErrors errors;
@@ -669,7 +666,7 @@ void TacUI2DDrawData::AddText( v2 textPos, int fontSize, const TacString& utf8, 
         continue;
     }
 
-    TacFontAtlasCell* fontAtlasCell;
+    TacFontAtlasCell* fontAtlasCell = nullptr;
     fontStuff->GetCharacter( defaultLanguage, codepoint, &fontAtlasCell, errors );
     // ^ ignore errors...
 

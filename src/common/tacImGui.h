@@ -62,6 +62,11 @@ bool TacImGuiButton( const TacString& str );
 void TacImGuiCheckbox( const TacString& str, bool* value );
 void TacImGuiDragFloat( const TacString& str, float* value );
 
+struct TacImGuiIndentBlock {
+  TacImGuiIndentBlock() { TacImGuiIndent(); }
+  ~TacImGuiIndentBlock() { TacImGuiUnindent(); } };
+#define TAC_IMGUI_INDENT_BLOCK TacImGuiIndentBlock indent##__LINE__;
+
 // move to cpp?
 struct TacImGuiWindow
 {
@@ -101,4 +106,5 @@ struct TacImGuiWindow
 
   TacTextInputData* inputData;
   std::map< int, bool > mCollapsingHeaderStates;
+  std::map< int, bool > mDragFloatStates;
 };
