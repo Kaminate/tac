@@ -448,8 +448,8 @@ void TacRendererDirectX11::RenderFlush()
     {
       int startSlot = 0;
       const int NUM_VBOS = 16;
-      ID3D11Buffer* vertexBufferHandles[ NUM_VBOS ];
-      UINT strides[ NUM_VBOS ];
+      ID3D11Buffer* vertexBufferHandles[ NUM_VBOS ] = {};
+      UINT strides[ NUM_VBOS ] = {};
       UINT offsets[ NUM_VBOS ] = {};
       auto vertexBufferDX11 = ( TacVertexBufferDX11* )drawCall.mVertexBuffer;
       TacVector< TacVertexBufferDX11* > vertexBuffers;
@@ -699,7 +699,7 @@ void TacRendererDirectX11::AddVertexBuffer( TacVertexBuffer** outputVertexBuffer
   }
   ID3D11Buffer* buffer;
   TAC_DX11_CALL( errors, mDevice->CreateBuffer, &bd, pInitialData, &buffer );
-  SetDebugName( buffer, vbData.mName );
+  SetDebugName( buffer, vbData.mName + " verts" );
   TacVertexBufferDX11* vertexBuffer;
   AddRendererResource( &vertexBuffer, vbData );
   vertexBuffer->mDXObj = buffer;
@@ -730,7 +730,7 @@ void TacRendererDirectX11::AddIndexBuffer(
     initData.pSysMem = indexBufferData.data;
   }
   TAC_DX11_CALL( errors, mDevice->CreateBuffer, &bd, pInitData, &mDXObj );
-  SetDebugName( mDXObj, indexBufferData.mName );
+  SetDebugName( mDXObj, indexBufferData.mName + " indexes" );
   TacIndexBufferDX11* indexBuffer;
   AddRendererResource( &indexBuffer, indexBufferData );
   indexBuffer->mFormat = GetDXGIFormat( indexBufferData.dataType );
@@ -836,16 +836,13 @@ void TacRendererDirectX11::LoadShaderInternal(
   TacString str,
   TacErrors& errors )
 {
-
   auto temporaryMemory = TacTemporaryMemory( TacGetDirectX11ShaderPath( "common" ), errors );
   TAC_HANDLE_ERROR( errors );
 
   TacString common( temporaryMemory.data(), ( int )temporaryMemory.size() );
   str = common + str;
 
-
-
-
+  // vertex shader
   {
     ID3DBlob* pVSBlob;
 
@@ -865,7 +862,7 @@ void TacRendererDirectX11::LoadShaderInternal(
       pVSBlob->GetBufferSize(),
       nullptr,
       &shader->mVertexShader );
-    SetDebugName( shader->mVertexShader, shader->mName );
+    SetDebugName( shader->mVertexShader, shader->mName + " vtx shader" );
 
     TAC_DX11_CALL(
       errors,
@@ -875,12 +872,9 @@ void TacRendererDirectX11::LoadShaderInternal(
       D3D_BLOB_INPUT_SIGNATURE_BLOB,
       0,
       &shader->mInputSig );
-    //hr = D3DGetInputSignatureBlob(
-    //  pVSBlob->GetBufferPointer(),
-    //  pVSBlob->GetBufferSize(),
-    //  &shader->mInputSig );
-    //TacAssert( SUCCEEDED( hr ) );
   }
+
+  // pixel shader
   {
     ID3DBlob* pPSBlob;
     TacCompileShaderFromString(
@@ -899,7 +893,7 @@ void TacRendererDirectX11::LoadShaderInternal(
       pPSBlob->GetBufferSize(),
       nullptr,
       &shader->mPixelShader );
-    SetDebugName( shader->mPixelShader, shader->mName );
+    SetDebugName( shader->mPixelShader, shader->mName + " px shader" );
   }
 }
 void TacRendererDirectX11::ReloadShader( TacShader* shader, TacErrors& errors )
@@ -1004,7 +998,7 @@ void TacRendererDirectX11::AddTextureResource(
     textureData.mName,
     errors );
   TAC_HANDLE_ERROR( errors );
-  SetDebugName( dXObj, textureData.mName );
+  SetDebugName( dXObj, textureData.mName + " tex2d" );
 
   ID3D11RenderTargetView* rTV = nullptr;
   if( TacContains( textureData.binding, TacBinding::RenderTarget ) )
@@ -1225,7 +1219,7 @@ void TacRendererDirectX11::CreateShaderResourceView(
   }
 
   TAC_DX11_CALL( errors, mDevice->CreateShaderResourceView, resource, &srvDesc, srv );
-  SetDebugName( *srv, debugName );
+  SetDebugName( *srv, debugName + " srv" );
 }
 
 void TacRendererDirectX11::AddDepthBuffer(
@@ -1746,14 +1740,14 @@ void TacDepthBufferDX11::Init( TacErrors& errors )
 
   ID3D11Texture2D* texture;
   TAC_DX11_CALL( errors, mDevice->CreateTexture2D, &texture2dDesc, nullptr, &texture );
-  rendererDX11->SetDebugName( texture, mName );
+  rendererDX11->SetDebugName( texture, mName + " tex2d" );
 
   ID3D11DepthStencilView* dsv;
   D3D11_DEPTH_STENCIL_VIEW_DESC desc = {};
   desc.Format = texture2dDesc.Format;
   desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
   TAC_DX11_CALL( errors, mDevice->CreateDepthStencilView, texture, &desc, &dsv );
-  rendererDX11->SetDebugName( dsv, mName );
+  rendererDX11->SetDebugName( dsv, mName + " dsv" );
 
   mDXObj = texture;
   mDSV = dsv;

@@ -262,7 +262,9 @@ void TacUI2DDrawData::DrawToTexture( TacErrors& errors )
   mDefaultVertex2Ds.clear();
   mDefaultIndex2Ds.clear();
 
+  renderer->DebugBegin( "2d" );
   renderer->RenderFlush();
+  renderer->DebugEnd();
 }
 TacUI2DState* TacUI2DDrawData::PushState()
 {

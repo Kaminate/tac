@@ -19,7 +19,6 @@ bool TacIsSpace( char c )
     c == '\r'; // carriage return
   return result;
 }
-
 bool TacIsAlpha( char c )
 {
   return
@@ -67,19 +66,16 @@ TacString TacToString( int i )
     s = "-" + s;
   return s;
 }
-
 TacString TacToString( uint32_t val )
 {
   return TacToString( ( int )val );
 }
-
 TacString TacToString( void* val )
 {
   std::stringstream ss;
   ss << val;
   return ss.str().c_str();
 }
-
 TacString TacToString( double val )
 {
   return std::to_string( val ).data();
@@ -89,11 +85,41 @@ TacString TacToString( float val )
   return std::to_string( val ).data();
 }
 
+
+TacStringView::TacStringView() : mLen( 0 ), mStr( nullptr ) { }
+TacStringView::TacStringView( const char* str ) : mStr( str ), mLen( TacStrLen( str ) ) { }
+TacStringView::TacStringView( const char* str, int len ) : mStr( str ), mLen( len ) {}
+TacStringView::TacStringView( const TacString& str ) : mStr( str.mStr ), mLen( str.mLen ) {}
+char TacStringView::operator[]( int i ) const
+{
+  return mStr[ i ];
+}
+const char* TacStringView::data() const
+{
+  return mStr;
+}
+int TacStringView::size() const
+{
+  return mLen;
+}
+const char* TacStringView::begin() const
+{
+  return mStr;
+}
+const char* TacStringView::end() const
+{
+  return mStr + mLen;
+}
+
 TacString::TacString()
 {
   clear();
 }
 
+TacString::TacString( const TacStringView& rhs )
+{
+  append( rhs.mStr, rhs.mLen );
+}
 TacString::TacString( const TacString& rhs )
 {
   mLen = rhs.mLen;
@@ -110,7 +136,7 @@ TacString::TacString( int len, char c )
 }
 TacString::TacString( const char* begin, const char* end )
 {
-    auto len = ( int )( end - begin );
+  auto len = ( int )( end - begin );
   append( begin, len );
 }
 TacString::TacString( const char* str, int len )
@@ -167,7 +193,7 @@ void TacString::reserve( int newLen )
   if( mStr && newLen <= mLen )
     return;
   int newByteCount = newLen + 1;
-    auto* newStr = new char[ newByteCount ];
+  auto* newStr = new char[ newByteCount ];
   TacMemCpy( newStr, mStr, mLen );
   newStr[ mLen ] = '\0';
   delete[] mStr;
@@ -258,6 +284,7 @@ TacString operator + ( const TacString& lhs, const TacString& rhs )
   result += rhs;
   return result;
 }
+
 bool operator == ( const TacString& a, const TacString& b )
 {
   if( a.mLen != b.mLen )
@@ -265,12 +292,10 @@ bool operator == ( const TacString& a, const TacString& b )
   bool result = !TacStrCmp( a.mStr, b.mStr );
   return result;
 }
-
 bool operator != ( const TacString& a, const TacString& b )
 {
   return !( a == b );
 }
-
 bool operator < ( const TacString& a, const TacString& b )
 {
   return TacStrCmp( a.c_str(), b.c_str() ) < 0;
@@ -315,8 +340,6 @@ std::ostream& operator << ( std::ostream& os, const TacString& s )
 {
   return os << s.c_str();
 }
-
-
 std::istream& operator >> ( std::istream& is, TacString& s )
 {
   char c;
@@ -324,7 +347,7 @@ std::istream& operator >> ( std::istream& is, TacString& s )
   {
     if( TacIsSpace( c ) )
     {
-      if(!s.empty())
+      if( !s.empty() )
         break;
     }
     else
@@ -334,7 +357,6 @@ std::istream& operator >> ( std::istream& is, TacString& s )
   }
   return is;
 }
-
 
 // TODO: make separator a const ref
 TacString TacJoin( TacString separator, std::initializer_list< TacString > strings )

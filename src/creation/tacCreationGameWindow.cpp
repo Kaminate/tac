@@ -214,7 +214,7 @@ void TacCreationGameWindow::RenderGameWorld()
       drawCall.mVertexBuffer = subMesh.mVertexBuffer;
       drawCall.mIndexBuffer = subMesh.mIndexBuffer;
       drawCall.mStartIndex = 0;
-      drawCall.mIndexCount = subMesh.mVertexBuffer->mNumVertexes;
+      drawCall.mIndexCount = subMesh.mIndexBuffer->indexCount;
       drawCall.mView = mDesktopWindow->mRenderView;
       drawCall.mBlendState = mBlendState;
       drawCall.mRasterizerState = mRasterizerState;
@@ -228,7 +228,9 @@ void TacCreationGameWindow::RenderGameWorld()
       renderer->AddDrawCall( drawCall );
     }
   }
+  renderer->DebugBegin( "Render game world" );
   renderer->RenderFlush();
+  renderer->DebugEnd();
 }
 void TacCreationGameWindow::PlayGame( TacErrors& errors )
 {
@@ -273,7 +275,7 @@ void TacCreationGameWindow::Update( TacErrors& errors )
     {
       once = true;
       TacEntity* entity = mCreation->CreateEntity();
-      entity->mName = "Star";
+      entity->mName = "Starry-eyed girl";
       entity->mPosition = { 4.5f, -4.0f, -0.5f };
       auto model = ( TacModel* )entity->AddNewComponent( TacComponentType::Model );
       model->mGLTFPath = "assets/gltf/box/Box.gltf";

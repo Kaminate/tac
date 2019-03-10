@@ -3,6 +3,9 @@
 #include <iostream> // temp?
 #include <initializer_list>
 
+struct TacString;
+struct TacStringView;
+
 bool TacIsSpace( char c );
 bool TacIsAlpha( char c );
 
@@ -15,9 +18,27 @@ int TacStrCmp( const char* lhs, const char* rhs );
 // std uses void*
 void TacMemCpy( void* dst, const void* src, int len );
 
+// TODO: use this
+struct TacStringView
+{
+  TacStringView();
+  TacStringView( const char* str );
+  TacStringView( const char* str, int len );
+  TacStringView( const TacString& str );
+  char operator[]( int i ) const;
+  const char* data() const;
+  int size() const;
+  const char* begin() const;
+  const char* end() const;
+
+  const char* mStr;
+  int mLen;
+};
+
 struct TacString
 {
   TacString();
+  TacString( const TacStringView& rhs );
   TacString( const TacString& rhs );
   TacString( const char* begin, const char* end );
   TacString( const char* str, int len );
@@ -63,11 +84,7 @@ TacString TacToString( uint32_t val );
 
 TacString TacJoin( TacString, std::initializer_list< TacString > );
 TacString TacJoin( TacString, const TacString*, int );
-//template< typename T >
-//TacString TacJoin( TacString, T iBegin, T iEnd )
-//{
-//
-//}
+
 template< typename T >
 TacString TacJoin( const TacString& sep, const T& ts )
 {

@@ -125,6 +125,8 @@ void TacCreationPropertyWindow::Update( TacErrors& errors )
     }
   }
   TacImGuiEndGroup();
+  if( TacImGuiButton( "Close window" ) )
+    mDesktopWindow->mRequestDeletion = true;
   TacImGuiEnd();
 
   mUI2DDrawData->DrawToTexture( errors );

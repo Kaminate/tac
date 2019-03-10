@@ -133,15 +133,15 @@ void TacModelAssetManager::GetMesh( TacMesh** mesh, const TacString& path, TacVe
       mRenderer->AddIndexBuffer( &indexBuffer, indexBufferData, indexBufferErrors );
 
       int vertexCount = ( int )parsedPrim->attributes[ 0 ].data->count;
-      int vertexStride = 0;
+      int dstVtxStride = 0;
       for( const TacVertexDeclaration& vertexDeclaration : vertexFormat->vertexFormatDatas )
       {
         int vertexEnd =
           vertexDeclaration.mAlignedByteOffset +
           vertexDeclaration.mTextureFormat.CalculateTotalByteCount();
-        vertexStride = TacMax( vertexStride, vertexEnd );
+        dstVtxStride = TacMax( dstVtxStride, vertexEnd );
       }
-      TacVector< char > convertedVertices( vertexCount * vertexStride, ( char )0 );
+      TacVector< char > dstVtxs( vertexCount * dstVtxStride, ( char )0 );
 
       int runningVertexStride = 0;
       parsedPrim->attributes[ 0 ].data;
@@ -155,7 +155,6 @@ void TacModelAssetManager::GetMesh( TacMesh** mesh, const TacString& path, TacVe
           if( GetAttributeFromGltf( gltfVertAttributeCurr->type ) != vertexDeclaration.mAttribute )
             continue;
           gltfVertAttribute = gltfVertAttributeCurr;
-
           break;
         }
         if( !gltfVertAttribute )
@@ -164,14 +163,13 @@ void TacModelAssetManager::GetMesh( TacMesh** mesh, const TacString& path, TacVe
         TacFormat srcFormat;
         TacFillDataType( gltfVertAttributeData, &srcFormat );
         TacAssert( vertexCount == gltfVertAttributeData->count );
-        char* dstVtx = convertedVertices.data();
+        char* dstVtx = dstVtxs.data();
         char* srcVtx = ( char* )gltfVertAttributeData->buffer_view->buffer->data + gltfVertAttributeData->offset;
-
         int elementCount = TacMin( dstFormat.mElementCount, srcFormat.mElementCount );
         for( int iVert = 0; iVert < vertexCount; ++iVert )
         { 
-          char* srcElement = srcVtx;
-          char* dstElement = dstVtx + vertexDeclaration.mAlignedByteOffset;
+          char* srcElement = srcVtx + vertexDeclaration.mAlignedByteOffset;
+          char* dstElement = dstVtx + 0;
           for( int iElement = 0; iElement < elementCount; ++iElement )
           {
             if( srcFormat.mPerElementDataType == dstFormat.mPerElementDataType &&
@@ -188,13 +186,8 @@ void TacModelAssetManager::GetMesh( TacMesh** mesh, const TacString& path, TacVe
             dstElement += dstFormat.mPerElementByteCount;
             srcElement += srcFormat.mPerElementByteCount;
           }
-
-          //dataType->mElementCount = 1;
-          //dataType->mPerElementByteCount = 2;
-          //dataType->mPerElementDataType = TacGraphicsType::uint;
-
           srcVtx += gltfVertAttributeData->stride;
-          dstVtx += vertexStride;
+          dstVtx += dstVtxStride;
         }
       }
 
@@ -204,8 +197,8 @@ void TacModelAssetManager::GetMesh( TacMesh** mesh, const TacString& path, TacVe
       vertexBufferData.mName = debugName;
       vertexBufferData.mStackFrame = TAC_STACK_FRAME;
       vertexBufferData.mNumVertexes = vertexCount;
-      vertexBufferData.optionalData = convertedVertices.data();
-      vertexBufferData.mStrideBytesBetweenVertexes = vertexStride;
+      vertexBufferData.optionalData = dstVtxs.data();
+      vertexBufferData.mStrideBytesBetweenVertexes = dstVtxStride;
       TacErrors vertexBufferErrors;
       mRenderer->AddVertexBuffer( &vertexBuffer, vertexBufferData, vertexBufferErrors );
 
