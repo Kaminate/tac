@@ -230,32 +230,36 @@ void TacUI2DDrawData::DrawToTexture( TacErrors& errors )
     CBufferPerFrame perFrameData = {};
     perFrameData.mView = m4::Identity();
     perFrameData.mProjection = projection;
-
-
-    TacDrawCall2 drawCall2 = {};
-    drawCall2.mIndexBuffer = mIndexes;
-    drawCall2.mVertexBuffer = mVerts;
-    drawCall2.mView = mRenderView;
-    drawCall2.mBlendState = mUI2DCommonData->mBlendState;
-    drawCall2.mRasterizerState = mUI2DCommonData->mRasterizerState;
-    drawCall2.mSamplerState = mUI2DCommonData->mSamplerState;
-    drawCall2.mDepthState = mUI2DCommonData->mDepthState;
-    drawCall2.mVertexFormat = mUI2DCommonData->mFormat;
-
-    TacDrawCall2 perFrame = drawCall2;
+    TacDrawCall2 perFrame = {};
+    perFrame.mView = mRenderView;
+    perFrame.mBlendState = mUI2DCommonData->mBlendState;
+    perFrame.mRasterizerState = mUI2DCommonData->mRasterizerState;
+    perFrame.mSamplerState = mUI2DCommonData->mSamplerState;
+    perFrame.mDepthState = mUI2DCommonData->mDepthState;
+    perFrame.mVertexFormat = mUI2DCommonData->mFormat;
     perFrame.mUniformDst = mUI2DCommonData->mPerFrame;
     perFrame.mUniformSrcc = TacTemporaryMemory( perFrameData );
+    perFrame.mStackFrame = TAC_STACK_FRAME;
     renderer->AddDrawCall( perFrame );
-
-    drawCall2.mUniformDst = mUI2DCommonData->mPerObj;
 
     for( TacUI2DDrawCall& uidrawCall : mDrawCall2Ds )
     {
+      TacDrawCall2 drawCall2 = {};
+      drawCall2.mUniformDst = mUI2DCommonData->mPerObj;
+      drawCall2.mIndexBuffer = mIndexes;
+      drawCall2.mVertexBuffer = mVerts;
+      drawCall2.mView = mRenderView;
+      drawCall2.mBlendState = mUI2DCommonData->mBlendState;
+      drawCall2.mRasterizerState = mUI2DCommonData->mRasterizerState;
+      drawCall2.mSamplerState = mUI2DCommonData->mSamplerState;
+      drawCall2.mDepthState = mUI2DCommonData->mDepthState;
+      drawCall2.mVertexFormat = mUI2DCommonData->mFormat;
       drawCall2.mStartIndex = uidrawCall.mIIndexStart;
       drawCall2.mIndexCount = uidrawCall.mIIndexCount;
       drawCall2.mTexture = uidrawCall.mTexture ? uidrawCall.mTexture : mUI2DCommonData->m1x1White;
       drawCall2.mShader = uidrawCall.mShader;
       drawCall2.mUniformSrcc = uidrawCall.mUniformSource;
+      drawCall2.mStackFrame = TAC_STACK_FRAME;
       renderer->AddDrawCall( drawCall2 );
     }
   }

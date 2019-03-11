@@ -126,46 +126,6 @@ void TacRenderer::GetUIDimensions(
   *height = scaleHeight * sizeInMagicUISpaceUnits;
 }
 
-//void TacRenderer::DebugDraw(
-//  m4 world_to_view,
-//  m4 view_to_clip,
-//  TacTexture* texture,
-//  TacDepthBuffer* depth,
-//  const TacVector< TacDefaultVertexColor >& mDebugDrawVerts,
-//  TacErrors& errors )
-//{
-//  return;
-//  DebugBegin( "Debug Draw" );
-//  OnDestruct( DebugEnd() );
-//  //SetRenderTarget( texture, depth );
-//
-//  //auto local_to_world = m4::Identity();
-//  //v4 objectColor( 1, 1, 1, 1 );
-//
-//  //SetDepthState( mDepthLess );
-//  //SetActiveShader( m3DVertexColorShader );
-//  //SendUniform( CBufferPerFrame::name_proj(), view_to_clip.data() );
-//  //SendUniform( CBufferPerFrame::name_view(), world_to_view.data() );
-//  //SendUniform( CBufferPerObject::name_world(), local_to_world.data() );
-//  //SendUniform( CBufferPerObject::name_color(), objectColor.data() );
-//  Apply();
-//  mDebugLineVB->Overwrite( ( void* )mDebugDrawVerts.data(), mDebugDrawVerts.size() * sizeof( TacDefaultVertexColor ), errors );
-//  TAC_HANDLE_ERROR( errors );
-//  //SetVertexBuffer( mDebugLineVB );
-//  //SetVertexFormat( mVertexColorFormat );
-//  SetPrimitiveTopology( TacPrimitive::LineList );
-//
-//  auto viewportW = ( float )texture->myImage.mWidth;
-//  auto viewportH = ( float )texture->myImage.mHeight;
-//  //SetViewport(
-//  //  0, // x rel bot left
-//  //  0, // y rel bot left
-//  //  viewportW,
-//  //  viewportH );
-//  DrawNonIndexed( ( int )mDebugDrawVerts.size() );
-//  DebugEnd();
-//}
-
 
 void TacRendererFactory::CreateRendererOuter( TacRenderer** renderer )
 {

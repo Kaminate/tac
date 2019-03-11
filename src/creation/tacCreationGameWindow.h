@@ -6,6 +6,7 @@ struct TacErrors;
 struct TacDesktopWindow;
 struct TacCreation;
 struct TacUIRoot;
+  struct TacDebug3DDrawData;
 struct TacUI2DDrawData;
 struct TacSoul;
 struct TacShell;
@@ -42,6 +43,7 @@ struct TacCreationGameWindow
   TacBlendState* mBlendState = nullptr;
   TacRasterizerState* mRasterizerState = nullptr;
   TacSamplerState* mSamplerState = nullptr;
+  TacDebug3DDrawData* mDebug3DDrawData = nullptr;
 };
 
 

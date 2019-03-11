@@ -2,6 +2,7 @@
 #include "common/assetmanagers/tacTextureAssetManager.h"
 #include "common/graphics/tacFont.h"
 #include "common/graphics/tacRenderer.h"
+#include "common/graphics/tacDebug3D.h"
 #include "common/graphics/tacUI2D.h"
 #include "common/tacAlgorithm.h"
 #include "common/tacJobQueue.h"
@@ -106,6 +107,11 @@ void TacShell::Init( TacErrors& errors )
 
   mLocalization = new TacLocalization();
   mLocalization->Load( "assets/localization.txt", errors );
+  TAC_HANDLE_ERROR( errors );
+
+  mDebug3DCommonData = new TacDebug3DCommonData;
+  mDebug3DCommonData->mRenderer = mRenderer;
+  mDebug3DCommonData->Init( errors );
   TAC_HANDLE_ERROR( errors );
 
   mUI2DCommonData = new TacUI2DCommonData;

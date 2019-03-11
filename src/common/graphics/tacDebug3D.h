@@ -22,6 +22,8 @@ struct TacUI2DState;
 struct TacUI2DVertex;
 struct TacVertexBuffer;
 struct TacVertexFormat;
+struct TacRenderView;
+struct  CBufferPerFrame;
 
 struct TacDefaultVertexColor
 {
@@ -35,16 +37,12 @@ struct TacDebug3DCommonData
   void Init( TacErrors& errors );
 
   TacRenderer* mRenderer = nullptr;
-
   TacBlendState* mAlphaBlendState = nullptr;
   TacCBuffer* mCBufferPerFrame = nullptr;
-  TacCBuffer* mCBufferPerObject = nullptr;
   TacDepthState* mDepthLess = nullptr;
   TacRasterizerState* mRasterizerStateNoCull = nullptr;
   TacShader* m3DVertexColorShader = nullptr;
-  TacVertexBuffer* mDebugLineVB = nullptr;
   TacVertexFormat* mVertexColorFormat = nullptr;
-  int mDebugDrawVertMax;
 };
 
 struct TacDebugDrawAABB
@@ -57,6 +55,7 @@ struct TacDebugDrawAABB
 
 struct TacDebug3DDrawData
 {
+  TacDebug3DDrawData();
   void DebugDrawLine( v3 p0, v3 p1, v3 color, v3 color1 );
   void DebugDrawLine( v3 p0, v3 p1, v3 color = { 1, 1, 1 } );
   void DebugDrawCircle( v3 p0, v3 dir, float rad, v3 color = { 1, 1, 1 } );
@@ -70,6 +69,11 @@ struct TacDebug3DDrawData
   void DebugDrawAABB( TacDebugDrawAABB debugDrawAABB, v3 color = { 1, 1, 1 } );
   void DebugDrawTriangle( v3 p0, v3 p1, v3 p2, v3 color0, v3 color1, v3 color2 );
   void DebugDrawTriangle( v3 p0, v3 p1, v3 p2, v3 color = v3( 1, 1, 1 ) );
+  void DrawToTexture( TacErrors& errors, const CBufferPerFrame* cbufferperframe );
+
   TacVector< TacDefaultVertexColor > mDebugDrawVerts;
+  TacVertexBuffer* mVerts = nullptr;
+  TacRenderView* mRenderView = nullptr;
+  TacDebug3DCommonData* mCommonData = nullptr;
 };
 

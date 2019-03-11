@@ -307,7 +307,6 @@ struct TacVertexFormatData : public TacRendererResource
 };
 struct TacVertexFormat : public TacVertexFormatData { };
 
-const int mDebugDrawBytes = 4 * 1024 * 1024;
 struct CBufferPerFrame // Todo: rename TacDefaultCbufferPerFrame
 {
   m4 mView;
@@ -363,6 +362,13 @@ struct TacRenderView
   v4 mClearColorRGBA = v4( 0, 0, 0, 1 );
 };
 
+enum TacPrimitiveTopology
+{
+  TriangleList,
+  LineList,
+  Count,
+};
+
 struct TacDrawCall2
 {
   TacShader* mShader = nullptr;
@@ -380,6 +386,7 @@ struct TacDrawCall2
   TacCBuffer* mUniformDst = nullptr;
   TacVector< char > mUniformSrcc;
   TacStackFrame mStackFrame;
+  TacPrimitiveTopology mPrimitiveTopology = TacPrimitiveTopology::TriangleList;
 };
 
 // TODO: Make all the datas passed by const ref

@@ -6,6 +6,7 @@
 #include "common/graphics/tacUI2D.h"
 #include "common/graphics/tacUI.h"
 #include "common/graphics/tacImGui.h"
+#include "common/graphics/tacDebug3D.h"
 #include "common/assetmanagers/tacTextureAssetManager.h"
 #include "common/assetmanagers/tacModelAssetManager.h"
 #include "common/tacOS.h"
@@ -112,6 +113,10 @@ void TacCreationGameWindow::Init( TacErrors& errors )
   CreateGraphicsObjects( errors );
   TAC_HANDLE_ERROR( errors );
 
+  mDebug3DDrawData = new TacDebug3DDrawData;
+  mDebug3DDrawData->mCommonData = shell->mDebug3DCommonData;
+  mDebug3DDrawData->mRenderView = mDesktopWindow->mRenderView;
+
   PlayGame( errors );
   TAC_HANDLE_ERROR( errors );
 }
@@ -136,6 +141,7 @@ void TacCreationGameWindow::SetImGuiGlobals()
 }
 void TacCreationGameWindow::RenderGameWorld()
 {
+
   TacRenderer* renderer = mShell->mRenderer;
   m4 view = M4View(
     mCreation->mEditorCamPos,
@@ -166,10 +172,12 @@ void TacCreationGameWindow::RenderGameWorld()
     v3 grn = { 0, 1, 0 };
     v3 blu = { 0, 0, 1 };
     float arrowLen = clip_height * 0.3f;
-    //graphics->DebugDrawArrow( entity->mPosition, entity->mPosition + x * arrowLen, red );
-    //graphics->DebugDrawArrow( entity->mPosition, entity->mPosition + y * arrowLen, grn );
-    //graphics->DebugDrawArrow( entity->mPosition, entity->mPosition + z * arrowLen, blu );
+    mDebug3DDrawData->DebugDrawArrow( entity->mPosition, entity->mPosition + x * arrowLen, red );
+    mDebug3DDrawData->DebugDrawArrow( entity->mPosition, entity->mPosition + y * arrowLen, grn );
+    mDebug3DDrawData->DebugDrawArrow( entity->mPosition, entity->mPosition + z * arrowLen, blu );
   }
+
+
 
 
 
@@ -184,24 +192,8 @@ void TacCreationGameWindow::RenderGameWorld()
   setPerFrame.mUniformSrcc = TacTemporaryMemory( &perFrameData, sizeof( CBufferPerFrame ) );
   renderer->AddDrawCall( setPerFrame );
 
-  TacDrawCall2 graphicsDebug3D = {};
-  graphicsDebug3D.mShader  ;
-  TacVertexBuffer* mVertexBuffer = nullptr;
-  TacIndexBuffer* mIndexBuffer = nullptr;
-  int mStartIndex = 0;
-  int mIndexCount = 0;
-  TacRenderView* mView = nullptr;
-  TacBlendState* mBlendState = nullptr;
-  TacRasterizerState* mRasterizerState = nullptr;
-  TacSamplerState* mSamplerState = nullptr;
-  TacDepthState* mDepthState = nullptr;
-  TacVertexFormat* mVertexFormat = nullptr;
-  const TacTexture* mTexture = nullptr;
-  TacCBuffer* mUniformDst = nullptr;
-  TacVector< char > mUniformSrcc;
-  TacStackFrame mStackFrame;
-
-
+  TacErrors ignored;
+  mDebug3DDrawData->DrawToTexture( ignored, &perFrameData );
 
   TacWorld* world = mCreation->mWorld;
   auto graphics = ( TacGraphics* )world->GetSystem( TacSystemType::Graphics );

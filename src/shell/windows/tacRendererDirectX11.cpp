@@ -257,6 +257,17 @@ static D3D11_CULL_MODE GetCullMode( TacCullMode cullMode )
   return ( D3D11_CULL_MODE )0;
 }
 
+static D3D11_PRIMITIVE_TOPOLOGY GetPrimTop( TacPrimitiveTopology primTop )
+{
+  switch( primTop )
+  {
+  case TriangleList: return D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+  case LineList:return D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
+    TacInvalidDefaultCase( primTop );
+  }
+  return (D3D11_PRIMITIVE_TOPOLOGY )0;
+}
+
 TacDX11Window::~TacDX11Window()
 {
   mBackbufferColor->Clear();
@@ -634,10 +645,22 @@ void TacRendererDirectX11::RenderFlush()
       mCurrentlyBoundSamplerState = samplerStateDX11;
     }
 
-    if( drawCall.mIndexCount )
+    static TacPrimitiveTopology primitiveTopology = TacPrimitiveTopology::Count;
+    if( drawCall.mPrimitiveTopology != primitiveTopology )
+    {
+      primitiveTopology = drawCall.mPrimitiveTopology;
+      D3D11_PRIMITIVE_TOPOLOGY primtopdx11 = GetPrimTop( primitiveTopology );
+      mDeviceContext->IASetPrimitiveTopology( primtopdx11 );
+    }
+
+    if( drawCall.mIndexBuffer && drawCall.mIndexCount )
     {
       TacAssert( mCurrentlyBoundShader );
       mDeviceContext->DrawIndexed( drawCall.mIndexCount, drawCall.mStartIndex, 0 );
+    }
+    else if( drawCall.mVertexBuffer && drawCall.mVertexBuffer->mNumVertexes )
+    {
+      mDeviceContext->Draw( drawCall.mVertexBuffer->mNumVertexes, 0 );
     }
   }
   mDrawCall2s.clear();
@@ -671,7 +694,7 @@ void TacRendererDirectX11::CreateWindowContext( TacDesktopWindow* desktopWindow,
   TAC_HANDLE_ERROR( errors );
   mWindows.push_back( dx11Window );
   desktopWindow->mRendererData = dx11Window;
-  desktopWindow->mOnDestroyed.AddCallbackFunctional([this, dx11Window](){
+  desktopWindow->mOnDestroyed.AddCallbackFunctional( [ this, dx11Window ]() {
     for( TacDX11Window*& window : mWindows )
     {
       if( window != dx11Window )
@@ -798,11 +821,12 @@ static void TacCompileShaderFromString(
 }
 void TacRendererDirectX11::AddShader( TacShader** outputShader, TacShaderData shaderData, TacErrors& errors )
 {
+  for( TacCBuffer* cbuf : shaderData.mCBuffers )
+    TacAssert( cbuf );
   TacShaderDX11* shader;
   AddRendererResource( &shader, shaderData );
   if( !shader->mShaderPath.empty() )
   {
-    
     shader->mShaderPath = TacGetDirectX11ShaderPath( shader->mShaderPath );
     for( ;; )
     {

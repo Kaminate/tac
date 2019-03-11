@@ -30,6 +30,7 @@ struct TacTextureAssetManager;
 struct TacModelAssetManager;
 struct TacTimer;
 struct TacUI2DCommonData;
+struct TacDebug3DCommonData;
 
 struct TacSoul
 {
@@ -77,6 +78,7 @@ struct TacShell
   TacModelAssetManager* mModelAssetManager = nullptr;
   TacTimer* mTimer = nullptr;
   TacUI2DCommonData* mUI2DCommonData = nullptr;
+  TacDebug3DCommonData* mDebug3DCommonData = nullptr;
   TacVector< TacSoul* > mSouls;
   double mElapsedSeconds = 0;
 };
