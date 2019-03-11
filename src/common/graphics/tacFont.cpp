@@ -1,6 +1,6 @@
-#include "common/tacFont.h"
 #include "common/tacUtility.h"
-#include "common/tacRenderer.h"
+#include "common/graphics/tacFont.h"
+#include "common/graphics/tacRenderer.h"
 #include "common/math/tacMath.h"
 #include "common/tacShell.h"
 #include "common/tacSettings.h"

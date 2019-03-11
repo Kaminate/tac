@@ -1,6 +1,5 @@
 #pragma once
-#include "common/tacRenderer.h"
-// TODO: remove?
+#include "common/graphics/tacRenderer.h"
 #include "GL/gl3w.h"
 
 struct TacOpenGL4Renderer : public TacRenderer

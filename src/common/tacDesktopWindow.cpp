@@ -1,7 +1,8 @@
-#include "tacDesktopWindow.h"
-#include "tacUI2D.h"
-#include "tacUI.h"
-#include "tacShell.h"
+#include "common/tacDesktopWindow.h"
+#include "common/graphics/tacUI2D.h"
+#include "common/graphics/tacUI.h"
+#include "common/graphics/tacRenderer.h"
+#include "common/tacShell.h"
 
 TacDesktopWindow::TacDesktopWindow()
 {

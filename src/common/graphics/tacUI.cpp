@@ -1,18 +1,17 @@
-#include "common/tacUI.h"
-//#include "common/imgui.h"
 #include "common/tacPreprocessor.h"
 #include "common/tackeyboardinput.h"
 #include "common/tacShell.h"
-#include "common/tacRenderer.h"
-#include "common/tacFont.h"
+#include "common/graphics/tacUI.h"
+#include "common/graphics/tacRenderer.h"
+#include "common/graphics/tacFont.h"
+#include "common/graphics/tacUI2D.h"
+#include "common/graphics/tacTextEdit.h"
 #include "common/math/tacMath.h"
 #include "common/tacAlgorithm.h"
-#include "common/tacUI2D.h"
 #include "common/tacTime.h"
 #include "common/tacOS.h"
 #include "common/tacDesktopWindow.h"
-#include "common/tacColorUtil.h"
-#include "common/tacTextEdit.h"
+#include "common/graphics/tacColorUtil.h"
 
 #include <cmath> // sin
 
@@ -277,7 +276,6 @@ void TacUIText::Render( TacErrors& errors )
   }
 
 
-  TacDrawCall* drawCallPrev = nullptr;
   float heightBetweenBaselines;
   float maxHeightBaselines = 0;
 

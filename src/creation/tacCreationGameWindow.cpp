@@ -2,10 +2,10 @@
 #include "creation/tacCreation.h"
 #include "common/tacShell.h"
 #include "common/tacDesktopWindow.h"
-#include "common/tacRenderer.h"
-#include "common/tacUI2D.h"
-#include "common/tacUI.h"
-#include "common/tacImGui.h"
+#include "common/graphics/tacRenderer.h"
+#include "common/graphics/tacUI2D.h"
+#include "common/graphics/tacUI.h"
+#include "common/graphics/tacImGui.h"
 #include "common/assetmanagers/tacTextureAssetManager.h"
 #include "common/assetmanagers/tacModelAssetManager.h"
 #include "common/tacOS.h"
@@ -172,6 +172,7 @@ void TacCreationGameWindow::RenderGameWorld()
   }
 
 
+
   CBufferPerFrame perFrameData;
   perFrameData.mFar = farPlane;
   perFrameData.mNear = nearPlane;
@@ -182,6 +183,24 @@ void TacCreationGameWindow::RenderGameWorld()
   setPerFrame.mUniformDst = mPerFrame;
   setPerFrame.mUniformSrcc = TacTemporaryMemory( &perFrameData, sizeof( CBufferPerFrame ) );
   renderer->AddDrawCall( setPerFrame );
+
+  TacDrawCall2 graphicsDebug3D = {};
+  graphicsDebug3D.mShader  ;
+  TacVertexBuffer* mVertexBuffer = nullptr;
+  TacIndexBuffer* mIndexBuffer = nullptr;
+  int mStartIndex = 0;
+  int mIndexCount = 0;
+  TacRenderView* mView = nullptr;
+  TacBlendState* mBlendState = nullptr;
+  TacRasterizerState* mRasterizerState = nullptr;
+  TacSamplerState* mSamplerState = nullptr;
+  TacDepthState* mDepthState = nullptr;
+  TacVertexFormat* mVertexFormat = nullptr;
+  const TacTexture* mTexture = nullptr;
+  TacCBuffer* mUniformDst = nullptr;
+  TacVector< char > mUniformSrcc;
+  TacStackFrame mStackFrame;
+
 
 
   TacWorld* world = mCreation->mWorld;

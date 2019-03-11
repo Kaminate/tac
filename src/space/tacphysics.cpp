@@ -1,15 +1,13 @@
-#include "tacphysics.h"
-#include "taccomponent.h"
-#include "tacgraphics.h"
-#include "tacworld.h"
-#include "taccollider.h"
-#include "tacgraphics.h"
-#include "tacentity.h"
-
+#include "space/tacphysics.h"
+#include "space/taccomponent.h"
+#include "space/tacgraphics.h"
+#include "space/tacworld.h"
+#include "space/taccollider.h"
+#include "space/tacgraphics.h"
+#include "space/tacentity.h"
 #include "common/containers/tacVector.h"
 #include "common/math/tacMath.h"
 #include "common/tacPreprocessor.h"
-//#include "common/imgui.h"
 
 #include <array>
 #include <algorithm>
@@ -22,37 +20,37 @@ static const TacVector< TacComponentType > managedComponentTypes = {
   TacComponentType::Terrain,
 };
 
-static void DebugDrawGJK( const TacGJK& gjk, TacGraphics* graphics )
-{
-  if( !gjk.mIsColliding )
-  {
-    for( int iSupport = 0; iSupport < gjk.mSupports.size(); ++iSupport )
-    {
-      auto supporti = gjk.mSupports[ iSupport ];
-      graphics->DebugDrawSphere( supporti.mDiffPt, 0.1f );
-      for( int jSupport = iSupport + 1; jSupport < gjk.mSupports.size(); ++jSupport )
-      {
-        auto supportj = gjk.mSupports[ jSupport ];
-        graphics->DebugDrawLine( supporti.mDiffPt, supportj.mDiffPt );
-      }
-    }
-    return;
-  }
-
-  for( auto epaTri : gjk.mEPATriangles )
-  {
-    graphics->DebugDrawTriangle(
-      epaTri.mV0.mDiffPt,
-      epaTri.mV1.mDiffPt,
-      epaTri.mV2.mDiffPt );
-    graphics->DebugDrawSphere( epaTri.mV0.mDiffPt, 0.1f );
-    graphics->DebugDrawSphere( epaTri.mV1.mDiffPt, 0.1f );
-    graphics->DebugDrawSphere( epaTri.mV2.mDiffPt, 0.1f );
-  }
-  graphics->DebugDrawSphere( gjk.mEPAClosestSupportPoint.mDiffPt, 0.15f, v3( 1, 1, 0 ) );
-  graphics->DebugDrawArrow( { 0, 0, 0 }, gjk.mEPAClosest.mNormal * TacMax( gjk.mEPAClosest.mPlaneDist, 0.1f ), v3( 1, 1, 0 ) );
-
-}
+//static void DebugDrawGJK( const TacGJK& gjk, TacGraphics* graphics )
+//{
+//  if( !gjk.mIsColliding )
+//  {
+//    for( int iSupport = 0; iSupport < gjk.mSupports.size(); ++iSupport )
+//    {
+//      auto supporti = gjk.mSupports[ iSupport ];
+//      graphics->DebugDrawSphere( supporti.mDiffPt, 0.1f );
+//      for( int jSupport = iSupport + 1; jSupport < gjk.mSupports.size(); ++jSupport )
+//      {
+//        auto supportj = gjk.mSupports[ jSupport ];
+//        graphics->DebugDrawLine( supporti.mDiffPt, supportj.mDiffPt );
+//      }
+//    }
+//    return;
+//  }
+//
+//  for( auto epaTri : gjk.mEPATriangles )
+//  {
+//    graphics->DebugDrawTriangle(
+//      epaTri.mV0.mDiffPt,
+//      epaTri.mV1.mDiffPt,
+//      epaTri.mV2.mDiffPt );
+//    graphics->DebugDrawSphere( epaTri.mV0.mDiffPt, 0.1f );
+//    graphics->DebugDrawSphere( epaTri.mV1.mDiffPt, 0.1f );
+//    graphics->DebugDrawSphere( epaTri.mV2.mDiffPt, 0.1f );
+//  }
+//  graphics->DebugDrawSphere( gjk.mEPAClosestSupportPoint.mDiffPt, 0.15f, v3( 1, 1, 0 ) );
+//  graphics->DebugDrawArrow( { 0, 0, 0 }, gjk.mEPAClosest.mNormal * TacMax( gjk.mEPAClosest.mPlaneDist, 0.1f ), v3( 1, 1, 0 ) );
+//
+//}
 
 TacPhysics::TacPhysics()
 {
@@ -203,7 +201,7 @@ void TacPhysics::DebugDrawCapsules()
     v3 up( 0, 1, 0 );
     auto p0 = collider->mEntity->mPosition + up * collider->mRadius;
     auto p1 = collider->mEntity->mPosition + up * ( collider->mTotalHeight - collider->mRadius );
-    graphics->DebugDrawCapsule( p0, p1, collider->mRadius, mDebugDrawCapsuleColor );
+    //graphics->DebugDrawCapsule( p0, p1, collider->mRadius, mDebugDrawCapsuleColor );
   }
 }
 void TacPhysics::DebugDrawTerrains()
@@ -213,7 +211,7 @@ void TacPhysics::DebugDrawTerrains()
   {
     for( auto obb : terrain->mTerrainOBBs )
     {
-      graphics->DebugDrawOBB( obb.mPos, obb.mHalfExtents, obb.mEulerRads, mDebugDrawTerrainColor );
+      //graphics->DebugDrawOBB( obb.mPos, obb.mHalfExtents, obb.mEulerRads, mDebugDrawTerrainColor );
     }
   }
 }
@@ -261,7 +259,7 @@ void TacPhysics::Narrowphase()
           = collider->mEntity->mPosition
           + up * ( collider->mTotalHeight - collider->mRadius );
         TacGJK gjk( &terrainSupport, &capsuleSupport );
-        OnDestruct( if( mGJKDebugging ) DebugDrawGJK( gjk, graphics ) );
+        //OnDestruct( if( mGJKDebugging ) DebugDrawGJK( gjk, graphics ) );
         while( gjk.mIsRunning )
         {
           if( mGJKDebugging && gjk.mIteration >= mGJKDebugMaxIter )
@@ -287,10 +285,10 @@ void TacPhysics::Narrowphase()
 
         if( mDebugDrawCollision )
         {
-          graphics->DebugDrawSphere( gjk.mEPALeftPoint, 0.1f );
-          graphics->DebugDrawArrow(
-            gjk.mEPALeftPoint,
-            gjk.mEPALeftPoint + gjk.mEPALeftNormal * gjk.mEPAPenetrationDist );
+          //graphics->DebugDrawSphere( gjk.mEPALeftPoint, 0.1f );
+          //graphics->DebugDrawArrow(
+          //  gjk.mEPALeftPoint,
+          //  gjk.mEPALeftPoint + gjk.mEPALeftNormal * gjk.mEPAPenetrationDist );
         }
 
       }

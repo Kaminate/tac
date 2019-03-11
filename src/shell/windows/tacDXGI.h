@@ -1,7 +1,7 @@
 #pragma once
 
-#include "common\tacErrorHandling.h"
-#include "common\tacRenderer.h"
+#include "common/tacErrorHandling.h"
+#include "common/graphics/tacRenderer.h"
 
 #include <dxgi1_6.h> // IDXGIFactory4, IDXGIAdapter4
 

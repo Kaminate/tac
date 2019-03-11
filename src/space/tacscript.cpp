@@ -1,6 +1,5 @@
-#include "tacscript.h"
+#include "space/tacscript.h"
 #include "common/tacPreprocessor.h"
-//#include "common/imgui.h"
 
 
 void TacScriptThread::DebugImguiOuter( TacErrors& errors )

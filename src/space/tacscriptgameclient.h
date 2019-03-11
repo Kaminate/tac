@@ -1,6 +1,6 @@
 #pragma once
-#include "tacscript.h"
-#include "common/tacFont.h"
+#include "space/tacscript.h"
+#include "common/graphics/tacFont.h"
 #include <list>
 #include <set>
 

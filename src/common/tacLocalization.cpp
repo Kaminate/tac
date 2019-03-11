@@ -3,8 +3,6 @@
 #include "common/tacMemory.h"
 #include "common/tacAlgorithm.h"
 
-//#include "imgui.h"
-
 bool TacIsAsciiCharacter( TacCodepoint codepoint )
 {
   return codepoint < ( TacCodepoint )128;

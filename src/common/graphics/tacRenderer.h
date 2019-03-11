@@ -308,19 +308,6 @@ struct TacVertexFormatData : public TacRendererResource
 struct TacVertexFormat : public TacVertexFormatData { };
 
 const int mDebugDrawBytes = 4 * 1024 * 1024;
-typedef uint16_t TacDefaultIndex2D;
-struct TacDefaultVertexColor
-{
-  v3 mPosition;
-  v3 mColor;
-  static TacVertexDeclarations sVertexDeclarations;
-};
-struct TacDefaultVertex2D
-{
-  v2 mPosition;
-  v2 mGLTexCoord;
-  static TacVertexDeclarations sVertexDeclarations;
-};
 struct CBufferPerFrame // Todo: rename TacDefaultCbufferPerFrame
 {
   m4 mView;
@@ -376,19 +363,6 @@ struct TacRenderView
   v4 mClearColorRGBA = v4( 0, 0, 0, 1 );
 };
 
-struct TacDrawCall
-{
-  void DebugImgui();
-  TacTexture* mTexture = nullptr;
-  int mIndexCount = 0;
-  v4 mColor = { 1, 1, 1, 1 };
-  bool mScissorTest = false;
-  v2 mScissorRectMinUISpace = {};
-  v2 mScissorRectMaxUISpace = {};
-  bool mScissorDebugging = false;
-  bool mIsText = false; // eww
-};
-
 struct TacDrawCall2
 {
   TacShader* mShader = nullptr;
@@ -422,8 +396,6 @@ struct TacRenderer
     TacErrors& errors ) {
     AddRendererResource( vertexBuffer, vertexBufferData );
   }
-  void LoadDefaultGraphicsObjects( TacErrors& errors );
-  void UnloadDefaultGraphicsObjects();
 
   virtual void AddIndexBuffer(
     TacIndexBuffer** indexBuffer,
@@ -583,26 +555,7 @@ struct TacRenderer
   virtual void RenderFlush() { TacUnimplemented; }
   virtual void Render( TacErrors& errors ) { TacUnimplemented; }
 
-  //virtual void SetViewport(
-  //  float xRelBotLeftCorner,
-  //  float yRelBotLeftCorner,
-  //  float wIncreasingRight,
-  //  float hIncreasingUp ) {
-  //  TacUnimplemented;
-  //}
-
   virtual void SetPrimitiveTopology( TacPrimitive primitive ) { TacUnimplemented; }
-
-  // coordinates relative to the render target ( not the viewport? )
-  // x increases to the right
-  // y increases down
-  //virtual void SetScissorRect(
-  //  float x1,
-  //  float y1,
-  //  float x2,
-  //  float y2 ) {
-  //  TacUnimplemented;
-  //}
 
   virtual void GetPerspectiveProjectionAB(
     float f,
@@ -612,51 +565,16 @@ struct TacRenderer
     TacUnimplemented;
   }
 
-  //virtual void AddCommandBuffer(
-  //  const TacString & debugName,
-  //  const TacStackFrame& stackFrame,
-  //  TacCommandBuffer** outputCommandBuffer,
-  //  TacString & errors ) { TacUnimplemented; }
-
-  void Render2D(
-    const TacVector< TacDefaultVertex2D >& defaultVertex2Ds,
-    const TacVector< TacDefaultIndex2D >& defaultIndex2Ds,
-    const TacVector< TacDrawCall >& drawCalls,
-    TacErrors& errors );
-  void DebugDraw(
-    m4 world_to_view,
-    m4 view_to_clip,
-    TacTexture* texture,
-    TacDepthBuffer* depth,
-    const TacVector< TacDefaultVertexColor >& mDebugDrawVerts,
-    TacErrors& errors );
+  //void DebugDraw(
+  //  m4 world_to_view,
+  //  m4 view_to_clip,
+  //  TacTexture* texture,
+  //  TacDepthBuffer* depth,
+  //  const TacVector< TacDefaultVertexColor >& mDebugDrawVerts,
+  //  TacErrors& errors );
   void GetUIDimensions( TacTexture* texture, float* width, float* height );
   void DebugImgui();
 
-  TacShader* m2DShader = nullptr;
-  TacShader* m2DTextShader = nullptr;
-  TacSamplerState* mSamplerStateLinearWrap = nullptr;
-  // Premultiplied alpha
-  TacBlendState* mAlphaBlendState = nullptr;
-  TacDepthState* mNoDepthReadOrWrite = nullptr;
-  TacIndexBuffer* m2DNDCQuadIB = nullptr;
-  TacVertexBuffer* m2DNDCQuadVB = nullptr;
-  TacVertexFormat* mDefaultVertex2DFormat = nullptr;
-
-  TacVector< TacTexture* > mCurRenderTargets;
-  TacDepthBuffer* mCurDepthBuffer = nullptr;
-
-  TacCBuffer* mCBufferPerFrame = nullptr;
-  TacCBuffer* mCBufferPerObject = nullptr;
-  TacDepthState* mDepthLess = nullptr;
-  TacRasterizerState* mRasterizerStateFrontCCWCullBack = nullptr;
-  TacRasterizerState* mRasterizerStateNoCull = nullptr;
-  TacShader* m3DVertexColorShader = nullptr;
-  TacVertexFormat* mVertexColorFormat = nullptr;
-  TacVertexBuffer* mDebugLineVB = nullptr;
-  TacTexture* m1x1White = nullptr;
-  int mDebugDrawVertMax;
-  TacErrors mShaderReloadErrors;
 
   TacShell* mShell = nullptr;
   TacString mName;

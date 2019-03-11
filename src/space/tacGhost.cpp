@@ -1,23 +1,23 @@
+#include "common/graphics/tacFont.h"
+#include "common/graphics/tacImGui.h"
+#include "common/graphics/tacImGui.h"
+#include "common/graphics/tacRenderer.h"
+#include "common/graphics/tacUI.h"
 #include "common/math/tacMath.h"
 #include "common/tacAlgorithm.h"
-#include "common/taccontrollerinput.h"
-#include "common/tacFont.h"
-#include "common/tacImGui.h"
-#include "common/tackeyboardinput.h"
 #include "common/tacLocalization.h"
-#include "common/tacmeta.h"
 #include "common/tacPreprocessor.h"
-#include "common/tacRenderer.h"
 #include "common/tacSettings.h"
 #include "common/tacShell.h"
 #include "common/tacTime.h"
-#include "common/tacUI.h"
 #include "common/tacUtility.h"
-#include "common/tacImGui.h"
+#include "common/taccontrollerinput.h"
+#include "common/tackeyboardinput.h"
+#include "common/tacmeta.h"
+#include "space/tacGhost.h"
 #include "space/tacclient.h"
 #include "space/taccollider.h"
 #include "space/tacentity.h"
-#include "space/tacGhost.h"
 #include "space/tacgraphics.h"
 #include "space/tacphysics.h"
 #include "space/tacplayer.h"
@@ -373,16 +373,16 @@ void TacGhost::Draw( TacErrors& errors )
   //renderer->SetBlendState( nullptr );
   //renderer->SetScissorRect( 0, 0, ( float )fboTexture->mWidth(), ( float )fboTexture->mHeight() );
 
-  renderer->DebugDraw(
-    world_to_view,
-    view_to_clip,
-    fboTexture,
-    fboDepth,
-    graphics->mDebugDrawVerts,
-    errors );
-  if( errors.size() )
-    return;
-  graphics->mDebugDrawVerts.clear();
+  //renderer->DebugDraw(
+  //  world_to_view,
+  //  view_to_clip,
+  //  fboTexture,
+  //  fboDepth,
+  //  graphics->mDebugDrawVerts,
+  //  errors );
+  //if( errors.size() )
+  //  return;
+  //graphics->mDebugDrawVerts.clear();
 
 
 

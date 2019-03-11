@@ -2,10 +2,10 @@
 
 #include "common/tacMemory.h"
 #include "common/tacErrorHandling.h"
-#include "common/tacRenderer.h"
 #include "common/tacSettings.h"
 #include "common/tacEvent.h"
-#include "common/tacUI.h"
+#include "common/graphics/tacUI.h"
+#include "common/graphics/tacRenderer.h"
 #include "common/containers/tacVector.h"
 #include "creation/tacCreationGameWindow.h"
 #include "creation/tacCreationPropertyWindow.h"

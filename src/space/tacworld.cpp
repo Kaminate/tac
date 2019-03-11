@@ -5,7 +5,6 @@
 #include "space/tacgraphics.h"
 #include "space/tacphysics.h"
 #include "space/taccollider.h"
-//#include "common/imgui.h"
 
 #include <algorithm>
 
@@ -150,7 +149,7 @@ void TacWorld::Step( float seconds )
     {
       for( auto entity : mEntities )
       {
-        graphics->DebugDrawOBB( entity->mPosition, boxSize, boxRot );
+        //graphics->DebugDrawOBB( entity->mPosition, boxSize, boxRot );
       }
     }
   }

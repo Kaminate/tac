@@ -1,12 +1,13 @@
-#include "common/tacImGui.h"
 #include "common/math/tacVector4.h"
 #include "common/math/tacMath.h"
-#include "common/tacUI.h"
-#include "common/tacUI2D.h"
+#include "common/graphics/tacUI.h"
+#include "common/graphics/tacImGui.h"
+#include "common/graphics/tacUI2D.h"
+#include "common/graphics/tacTextEdit.h"
+#include "common/graphics/tacRenderer.h"
 #include "common/tackeyboardinput.h"
 #include "common/tacDesktopWindow.h"
 #include "common/tacOS.h"
-#include "common/tacTextEdit.h"
 #include "common/tacmeta.h"
 #include "common/tacPreprocessor.h"
 #include <cstdlib> // atof
@@ -711,7 +712,7 @@ void TacImGuiCheckbox( const TacString& str, bool* value )
       drawData->mDefaultIndex2Ds.push_back( iVert + 3 );
       drawData->mDefaultIndex2Ds.push_back( iVert + 2 );
       drawData->mDefaultVertex2Ds.resize( iVert + 4 );
-      TacDefaultVertex2D* defaultVertex2D = &drawData->mDefaultVertex2Ds[ iVert ];
+      TacUI2DVertex* defaultVertex2D = &drawData->mDefaultVertex2Ds[ iVert ];
       defaultVertex2D->mPosition = p0;
       defaultVertex2D++;
       defaultVertex2D->mPosition = p1;

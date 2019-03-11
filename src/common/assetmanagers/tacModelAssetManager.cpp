@@ -1,7 +1,7 @@
 #include "common/assetmanagers/tacModelAssetManager.h"
 #include "common/tacMemory.h"
 #include "common/tacJobQueue.h"
-#include "common/tacRenderer.h"
+#include "common/graphics/tacRenderer.h"
 #include "common/math/tacMath.h"
 #include "common/tacUtility.h"
 #include "common/tacOS.h"

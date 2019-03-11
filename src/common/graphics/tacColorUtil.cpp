@@ -1,4 +1,4 @@
-#include "tacColorUtil.h"
+#include "common/graphics/tacColorUtil.h"
 #include "common/math/tacMath.h"
 #include "common/tacSerialization.h"
 #include "common/tacPreprocessor.h"

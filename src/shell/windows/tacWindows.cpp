@@ -3,7 +3,7 @@
 #include "common/tacPreprocessor.h"
 #include "common/tacUtility.h"
 #include "common/tacOS.h"
-#include "common/tacRenderer.h"
+#include "common/graphics/tacRenderer.h"
 #include "common/tacAlgorithm.h"
 
 #include <iostream>

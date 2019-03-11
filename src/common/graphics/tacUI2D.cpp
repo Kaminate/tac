@@ -1,6 +1,7 @@
-#include "common/tacUI2D.h"
-#include "common/tacUI.h"
-#include "common/tacImGui.h"
+#include "common/graphics/tacUI2D.h"
+#include "common/graphics/tacUI.h"
+#include "common/graphics/tacRenderer.h"
+#include "common/graphics/tacImGui.h"
 #include "common/containers/tacArray.h"
 #include "common/math/tacMath.h"
 
@@ -29,7 +30,7 @@ static TacIndexBufferData GetIndexBufferData( const TacStackFrame& stackFrame, i
 }
 
 
-TacVertexDeclarations TacUI2DVertex::sVertexDeclarations = []() ->TacVertexDeclarations {
+static TacVertexDeclarations TacUI2DVertexDeclarations = []() ->TacVertexDeclarations {
   TacVertexDeclaration posData;
   posData.mAlignedByteOffset = TacOffsetOf( TacUI2DVertex, mPosition );
   posData.mAttribute = TacAttribute::Position;
@@ -40,6 +41,7 @@ TacVertexDeclarations TacUI2DVertex::sVertexDeclarations = []() ->TacVertexDecla
   uvData.mTextureFormat = formatv2;
   return { posData, uvData };
 }( );
+
 
 TacUI2DCommonData::~TacUI2DCommonData()
 {
@@ -98,7 +100,7 @@ void TacUI2DCommonData::Init( TacErrors& errors )
   vertexFormatData.mName = "tac 2d ui vertex format";
   vertexFormatData.mStackFrame = TAC_STACK_FRAME;
   vertexFormatData.shader = mShader;
-  vertexFormatData.vertexFormatDatas = TacUI2DVertex::sVertexDeclarations;
+  vertexFormatData.vertexFormatDatas = TacUI2DVertexDeclarations;
   mRenderer->AddVertexFormat( &mFormat, vertexFormatData, errors );
   TAC_HANDLE_ERROR( errors );
 
@@ -178,10 +180,10 @@ void TacUI2DDrawData::DrawToTexture( TacErrors& errors )
       TAC_HANDLE_ERROR( errors );
     }
 
-    mVerts->Overwrite( mDefaultVertex2Ds.data(), vertexCount * sizeof( TacDefaultVertex2D ), errors );
+    mVerts->Overwrite( mDefaultVertex2Ds.data(), vertexCount * sizeof( TacUI2DVertex ), errors );
     TAC_HANDLE_ERROR( errors );
 
-    mIndexes->Overwrite( mDefaultIndex2Ds.data(), indexCount * sizeof( TacDefaultIndex2D ), errors );
+    mIndexes->Overwrite( mDefaultIndex2Ds.data(), indexCount * sizeof( TacUI2DIndex ), errors );
     TAC_HANDLE_ERROR( errors );
 
     // mRenderView->mViewportRect.mViewportPixelWidthIncreasingRight?
@@ -310,19 +312,13 @@ void TacUI2DState::Draw2DBox(
 
   for( int iVert = 0; iVert < vertexCount; ++iVert )
   {
-    TacDefaultVertex2D defaultVertex2D;
+    TacUI2DVertex defaultVertex2D;
     defaultVertex2D.mGLTexCoord = uvs[ iVert ];
     defaultVertex2D.mPosition = offsets[ iVert ];
     mUI2DDrawData->mDefaultVertex2Ds.push_back( defaultVertex2D );
   }
 
-  auto indexes = TacMakeArray< TacDefaultIndex2D >(
-    ( TacDefaultIndex2D )0,
-    ( TacDefaultIndex2D )1,
-    ( TacDefaultIndex2D )2,
-    ( TacDefaultIndex2D )0,
-    ( TacDefaultIndex2D )2,
-    ( TacDefaultIndex2D )3 );
+  TacUI2DIndex indexes[] = { 0, 1, 2, 0, 2, 3 };
   for( int offset : indexes )
     mUI2DDrawData->mDefaultIndex2Ds.push_back( oldVertexCount + offset );
 
@@ -334,7 +330,7 @@ void TacUI2DState::Draw2DBox(
   drawCall.mIVertexStart = oldVertexCount;
   drawCall.mIVertexCount = vertexCount;
   drawCall.mIIndexStart = oldIndexCount;
-  drawCall.mIIndexCount = indexes.size();
+  drawCall.mIIndexCount = 6;
   drawCall.mTexture = texture;
   drawCall.mShader = mUI2DDrawData->mUI2DCommonData->mShader;
   drawCall.mUniformSource = TacTemporaryMemory( perObjectData );
@@ -432,7 +428,7 @@ void TacUI2DState::Draw2DText(
         1 );
       v2 position2 = position3.xy();
 
-      TacDefaultVertex2D vert2D;
+      TacUI2DVertex vert2D;
       vert2D.mPosition = position2;
       vert2D.mGLTexCoord.x = TacLerp(
         fontAtlasCell->mMinGLTexCoord.x,
@@ -581,7 +577,7 @@ void TacUI2DDrawData::AddBox( v2 mini, v2 maxi, v4 color, const TacTexture* text
   mDefaultIndex2Ds.push_back( iVert + 3 );
 
   mDefaultVertex2Ds.resize( iVert + 4 );
-  TacDefaultVertex2D* defaultVertex2D = &mDefaultVertex2Ds[ iVert ];
+  TacUI2DVertex* defaultVertex2D = &mDefaultVertex2Ds[ iVert ];
 
   defaultVertex2D->mPosition = { mini.x, mini.y };
   defaultVertex2D++;
@@ -681,7 +677,7 @@ void TacUI2DDrawData::AddText( v2 textPos, int fontSize, const TacString& utf8, 
       xPxCursor += fontAtlasCell->mAdvanceWidth * scaleFontToPx;
     );
 
-    auto startingIndex = ( TacDefaultIndex2D )mDefaultVertex2Ds.size();
+    auto startingIndex = ( TacUI2DIndex )mDefaultVertex2Ds.size();
     mDefaultIndex2Ds.push_back( startingIndex + 0 );
     mDefaultIndex2Ds.push_back( startingIndex + 1 );
     mDefaultIndex2Ds.push_back( startingIndex + 2 );
@@ -731,7 +727,7 @@ void TacUI2DDrawData::AddText( v2 textPos, int fontSize, const TacString& utf8, 
     // todo: compute clipped uvs
 
     mDefaultVertex2Ds.resize( startingIndex + 4 );
-    TacDefaultVertex2D* defaultVertex2D = &mDefaultVertex2Ds[ startingIndex ];
+    TacUI2DVertex* defaultVertex2D = &mDefaultVertex2Ds[ startingIndex ];
 
     defaultVertex2D->mPosition = { glyphMinX, glyphMinY };
     defaultVertex2D->mGLTexCoord = { fontAtlasCell->mMinGLTexCoord.x, fontAtlasCell->mMaxGLTexCoord.y };

@@ -1,22 +1,22 @@
+#include "common/graphics/tacImGui.h"
+#include "common/graphics/tacUI.h"
 #include "common/math/tacMath.h"
+#include "common/tacJobQueue.h"
+#include "common/tacJobQueue.h"
+#include "common/tacJson.h"
+#include "common/tacLog.h"
+#include "common/tacMemory.h"
+#include "common/tacNet.h"
+#include "common/tacOS.h"
 #include "common/tacSettings.h"
 #include "common/tacShell.h"
-#include "common/tacJobQueue.h"
-#include "common/tacLog.h"
-#include "common/tacNet.h"
-#include "common/tacJson.h"
-#include "common/tacMemory.h"
-#include "common/tacImGui.h"
-#include "common/thirdparty/stb_image.h"
-#include "common/tacOS.h"
-#include "common/tacUI.h"
 #include "common/tacTime.h"
-#include "common/tacJobQueue.h"
+#include "common/thirdparty/stb_image.h"
 #include "space/tacGhost.h"
-#include "space/tacserver.h"
 #include "space/tacgraphics.h"
-#include "space/tacworld.h"
 #include "space/tacscriptgameclient.h"
+#include "space/tacserver.h"
+#include "space/tacworld.h"
 #include <cstdlib> // itoa
 
 const TacString defaultHostname = "tac.nate.rocks";
@@ -406,8 +406,8 @@ void TacScriptMainMenu::Update( float seconds, TacErrors& errors )
   float boxWidth = 5;
   if( false )
   {
-    TacDebugDrawAABB debugDrawAABB = TacDebugDrawAABB::FromPosExtents( v3( 0, 0, boxWidth / 2 ), v3( 1, 1, 1 ) * boxWidth );
-    graphics->DebugDrawAABB( debugDrawAABB );
+    //TacDebugDrawAABB debugDrawAABB = TacDebugDrawAABB::FromPosExtents( v3( 0, 0, boxWidth / 2 ), v3( 1, 1, 1 ) * boxWidth );
+    //graphics->DebugDrawAABB( debugDrawAABB );
   }
 
 

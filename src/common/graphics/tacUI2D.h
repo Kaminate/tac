@@ -7,24 +7,32 @@
 #include "common/math/tacVector2.h"
 #include "common/math/tacMatrix3.h"
 #include "common/tacLocalization.h"
-#include "common/tacRenderer.h"
+//#include "common/graphics/tacRenderer.h"
+#include "common/graphics/tacFont.h"
 #include "common/tacErrorHandling.h"
-#include "common/tacFont.h"
 
+struct TacBlendState;
+struct TacCBuffer;
+struct TacDepthState;
+struct TacFontStuff;
+struct TacIndexBuffer;
+struct TacRasterizerState;
+struct TacRenderView;
+struct TacSamplerState;
+struct TacShader;
 struct TacUI2DCommonData;
 struct TacUI2DDrawCall;
 struct TacUI2DDrawData;
 struct TacUI2DState;
-struct TacUI2DVertex;
-struct TacFontStuff;
+struct TacVertexBuffer;
+struct TacVertexFormat;
 
-typedef uint16_t TacUI2DIndex;
+typedef uint16_t TacUI2DIndex; // formerly TacDefaultIndex2D
 
 struct TacUI2DVertex
 {
   v2 mPosition;
   v2 mGLTexCoord;
-  static TacVertexDeclarations sVertexDeclarations;
 };
 
 struct TacUI2DCommonData
@@ -35,10 +43,10 @@ struct TacUI2DCommonData
 
   TacTexture* m1x1White = nullptr;
   TacFontStuff* mFontStuff = nullptr;
+  TacRenderer* mRenderer = nullptr;
   TacVertexFormat* mFormat = nullptr;
   TacShader* mShader = nullptr;
   TacShader* m2DTextShader = nullptr;
-  TacRenderer* mRenderer = nullptr;
   TacDepthState* mDepthState = nullptr;
   TacBlendState* mBlendState = nullptr;
   TacRasterizerState* mRasterizerState = nullptr;
@@ -98,8 +106,6 @@ struct TacUI2DDrawData
   TacUI2DState* PushState();
   void PopState();
 
-  //TacDrawCall* GetLastDrawCall();
-
   v2 CalculateTextSize( const TacString& text, int fontSize );
   v2 CalculateTextSize( const TacVector< TacCodepoint >& codePoints, int fontSize );
   v2 CalculateTextSize( const TacCodepoint* codepoints, int codepointCount, int fontSize );
@@ -107,8 +113,8 @@ struct TacUI2DDrawData
   void AddBox( v2 mini, v2 maxi, v4 color, const TacTexture* texture, const TacImGuiRect* clipRect );
   //void AddPolyFill( const TacVector< v2 >& points, v4 color );
 
-  TacVector< TacDefaultVertex2D > mDefaultVertex2Ds;
-  TacVector< TacDefaultIndex2D > mDefaultIndex2Ds;
+  TacVector< TacUI2DVertex > mDefaultVertex2Ds;
+  TacVector< TacUI2DIndex > mDefaultIndex2Ds;
   TacVector< TacUI2DDrawCall > mDrawCall2Ds;
   TacVector< TacUI2DState > mStates;
 

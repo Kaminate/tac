@@ -1,7 +1,6 @@
-#include "tacplayer.h"
-//#include "common/imgui.h"
-#include "tacworld.h"
-#include "tacentity.h"
+#include "space/tacplayer.h"
+#include "space/tacworld.h"
+#include "space/tacentity.h"
 void TacPlayer::DebugImgui()
 {
   //if( !ImGui::CollapsingHeader( va( "Player %i", mPlayerUUID ) ) )

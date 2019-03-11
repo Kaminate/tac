@@ -1,9 +1,8 @@
 #include "tacDesktopApp.h"
 
-#include "common/tacRenderer.h"
-//#include "common/tacTime.h"
-#include "common/tacUI2D.h"
-#include "common/tacUI.h"
+#include "common/graphics/tacRenderer.h"
+#include "common/graphics/tacUI2D.h"
+#include "common/graphics/tacUI.h"
 #include "common/tacOS.h"
 #include "common/tackeyboardinput.h" // temp
 

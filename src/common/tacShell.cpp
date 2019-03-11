@@ -1,17 +1,17 @@
+#include "common/assetmanagers/tacModelAssetManager.h"
+#include "common/assetmanagers/tacTextureAssetManager.h"
+#include "common/graphics/tacFont.h"
+#include "common/graphics/tacRenderer.h"
+#include "common/graphics/tacUI2D.h"
 #include "common/tacAlgorithm.h"
-#include "common/tacFont.h"
 #include "common/tacJobQueue.h"
 #include "common/tacLog.h"
 #include "common/tacNet.h"
 #include "common/tacOS.h"
 #include "common/tacPreprocessor.h"
-#include "common/tacRenderer.h"
 #include "common/tacSettings.h"
 #include "common/tacShell.h"
-#include "common/assetmanagers/tacTextureAssetManager.h"
-#include "common/assetmanagers/tacModelAssetManager.h"
 #include "common/tacTime.h"
-#include "common/tacUI2D.h"
 #include "common/taccontrollerinput.h"
 #include "common/tackeyboardinput.h"
 #include <iostream>
@@ -33,11 +33,7 @@ TacShell::TacShell()
 }
 TacShell::~TacShell()
 {
-  if( mRenderer )
-  {
-    mRenderer->UnloadDefaultGraphicsObjects();
-    delete mRenderer;
-  }
+  delete mRenderer;
   delete mLocalization;
   delete mFontStuff;
   delete mLog;
@@ -110,9 +106,6 @@ void TacShell::Init( TacErrors& errors )
 
   mLocalization = new TacLocalization();
   mLocalization->Load( "assets/localization.txt", errors );
-  TAC_HANDLE_ERROR( errors );
-
-  mRenderer->LoadDefaultGraphicsObjects( errors );
   TAC_HANDLE_ERROR( errors );
 
   mUI2DCommonData = new TacUI2DCommonData;

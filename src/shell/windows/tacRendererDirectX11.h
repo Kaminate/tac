@@ -1,10 +1,10 @@
 // This file implements the rendering backend using directx11
 
 #pragma once
-#include "common/tacRenderer.h"
+#include "common/graphics/tacRenderer.h"
 #include "common/tacShell.h"
-#include "tacWindows.h"
-#include "tacDXGI.h"
+#include "shell/windows/tacWindows.h"
+#include "shell/windows/tacDXGI.h"
 
 #include <d3d11_1.h>
 

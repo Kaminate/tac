@@ -1,6 +1,6 @@
 #include "common/assetmanagers/tacTextureAssetManager.h"
 #include "common/tacMemory.h"
-#include "common/tacRenderer.h"
+#include "common/graphics/tacRenderer.h"
 #include "common/tacJobQueue.h"
 #include "common/thirdparty/stb_image.h"
 

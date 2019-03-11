@@ -2,9 +2,9 @@
 #include "shell/tacDesktopApp.h"
 #include "space/tacGhost.h"
 #include "common/tacOS.h"
-#include "common/tacUI2D.h"
-#include "common/tacUI.h"
-#include "common/tacImGui.h"
+#include "common/graphics/tacUI2D.h"
+#include "common/graphics/tacUI.h"
+#include "common/graphics/tacImGui.h"
 
 #include <functional> // std::function
 

@@ -7,7 +7,7 @@
 #include "common/tacLocalization.h"
 #include "common/math/tacVector4.h"
 #include "common/math/tacVector2.h"
-#include "common/tacRenderer.h"
+#include "common/graphics/tacRenderer.h"
 #include "common/taccontrollerinput.h"
 
 struct TacGhost;

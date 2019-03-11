@@ -1,4 +1,4 @@
-#include "common/tacTextEdit.h"
+#include "common/graphics/tacTextEdit.h"
 #include "common/math/tacMath.h" // Min/Max
 
 int TacTextInputData::GetMinCaret()

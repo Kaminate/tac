@@ -1,0 +1,189 @@
+#include "common/graphics/tacRenderer.h"
+#include "common/tacPreprocessor.h"
+#include "common/tacAlgorithm.h"
+#include "common/tacShell.h"
+#include "common/tacOS.h"
+
+const char* TacGetSemanticName( TacAttribute attribType )
+{
+  switch( attribType )
+  {
+  case TacAttribute::Position: return "POSITION";
+  case TacAttribute::Normal: return "NORMAL";
+  case TacAttribute::Texcoord: return "TEXCOORD";
+  case TacAttribute::Color: return "COLOR";
+  case TacAttribute::BoneIndex: return "BONEINDEX";
+  case TacAttribute::BoneWeight: return "BONEWEIGHT";
+  case TacAttribute::Coeffs: return "COEFFS";
+    TacInvalidDefaultCase( attribType );
+  }
+  return nullptr;
+}
+
+TacString TacToString( TacRendererType rendererType )
+{
+  switch( rendererType )
+  {
+  case TacRendererType::Vulkan: return "Vulkan";
+  case TacRendererType::OpenGL4: return "OpenGL4";
+  case TacRendererType::DirectX12: return "DirectX12";
+    TacInvalidDefaultCase( rendererType );
+  }
+  TacInvalidCodePath;
+  return "";
+}
+v4 ToColorAlphaPremultiplied( v4 colorAlphaUnassociated )
+{
+  return {
+    colorAlphaUnassociated.x * colorAlphaUnassociated.w,
+    colorAlphaUnassociated.y * colorAlphaUnassociated.w,
+    colorAlphaUnassociated.z * colorAlphaUnassociated.w,
+    colorAlphaUnassociated.w };
+}
+
+
+int TacFormat::CalculateTotalByteCount() const
+{
+  return mElementCount * mPerElementByteCount;
+}
+
+TacRenderer::~TacRenderer()
+{
+  for( TacRendererResource* rendererResource : mRendererResources )
+  {
+    TacOS::Instance->DebugAssert(
+      "Resource leaked: " + rendererResource->mName,
+      TAC_STACK_FRAME );
+  }
+}
+
+
+void TacRenderer::DebugImgui()
+{
+  //if( !ImGui::CollapsingHeader( "Renderer" ) )
+  //  return;
+  //ImGui::Indent();
+  //OnDestruct( ImGui::Unindent() );
+  //if( ImGui::CollapsingHeader( "Shaders" ) )
+  //{
+  //  ImGui::Indent();
+  //  OnDestruct( ImGui::Unindent() );
+  //  auto reloadAll = ImGui::Button( "Reload all shaders" );
+  //  TacVector< TacShader*>shaders;
+  //  GetShaders( shaders );
+  //  for( auto shader : shaders )
+  //  {
+  //    auto reloadShader = reloadAll || ImGui::Button( shader->mName.c_str() );
+  //    if( !reloadShader )
+  //      continue;
+  //    ReloadShader( shader, mShaderReloadErrors );
+  //  }
+  //  ImGui::Text( mShaderReloadErrors.mMessage );
+  //}
+
+  //if( ImGui::CollapsingHeader( "Textures" ) )
+  //{
+  //  ImGui::Indent();
+  //  OnDestruct( ImGui::Unindent() );
+  //  TacVector< TacTexture* > textures;
+  //  GetTextures( textures );
+  //  for( auto texture : textures )
+  //  {
+  //    ImGui::PushID( texture );
+  //    OnDestruct( ImGui::PopID() );
+  //    if( ImGui::CollapsingHeader( texture->mName.c_str() ) )
+  //    {
+  //      ImGui::Indent();
+  //      OnDestruct( ImGui::Unindent() );
+  //      ImGui::Text( "Width: %ipx", texture->myImage.mWidth );
+  //      ImGui::Text( "Height: %ipx", texture->myImage.mHeight );
+  //      float w = 0.9f * ImGui::GetContentRegionAvailWidth();
+  //      float h = w / texture->GetAspect();
+  //      auto id = texture->GetImguiTextureID();
+  //      auto size = ImVec2( w, h );
+  //      ImGui::Image( id, size );
+  //    }
+  //  }
+  //}
+}
+
+const float sizeInMagicUISpaceUnits = 1024.0f;
+
+// Make this static?
+void TacRenderer::GetUIDimensions(
+  TacTexture* texture,
+  float* width,
+  float* height )
+{
+  float aspect = texture->GetAspect();
+  float scaleWidth = 1;
+  float scaleHeight = 1;
+  if( aspect > 1 )
+    scaleWidth = aspect;
+  else
+    scaleHeight = 1.0f / aspect;
+  *width = scaleWidth * sizeInMagicUISpaceUnits;
+  *height = scaleHeight * sizeInMagicUISpaceUnits;
+}
+
+//void TacRenderer::DebugDraw(
+//  m4 world_to_view,
+//  m4 view_to_clip,
+//  TacTexture* texture,
+//  TacDepthBuffer* depth,
+//  const TacVector< TacDefaultVertexColor >& mDebugDrawVerts,
+//  TacErrors& errors )
+//{
+//  return;
+//  DebugBegin( "Debug Draw" );
+//  OnDestruct( DebugEnd() );
+//  //SetRenderTarget( texture, depth );
+//
+//  //auto local_to_world = m4::Identity();
+//  //v4 objectColor( 1, 1, 1, 1 );
+//
+//  //SetDepthState( mDepthLess );
+//  //SetActiveShader( m3DVertexColorShader );
+//  //SendUniform( CBufferPerFrame::name_proj(), view_to_clip.data() );
+//  //SendUniform( CBufferPerFrame::name_view(), world_to_view.data() );
+//  //SendUniform( CBufferPerObject::name_world(), local_to_world.data() );
+//  //SendUniform( CBufferPerObject::name_color(), objectColor.data() );
+//  Apply();
+//  mDebugLineVB->Overwrite( ( void* )mDebugDrawVerts.data(), mDebugDrawVerts.size() * sizeof( TacDefaultVertexColor ), errors );
+//  TAC_HANDLE_ERROR( errors );
+//  //SetVertexBuffer( mDebugLineVB );
+//  //SetVertexFormat( mVertexColorFormat );
+//  SetPrimitiveTopology( TacPrimitive::LineList );
+//
+//  auto viewportW = ( float )texture->myImage.mWidth;
+//  auto viewportH = ( float )texture->myImage.mHeight;
+//  //SetViewport(
+//  //  0, // x rel bot left
+//  //  0, // y rel bot left
+//  //  viewportW,
+//  //  viewportH );
+//  DrawNonIndexed( ( int )mDebugDrawVerts.size() );
+//  DebugEnd();
+//}
+
+
+void TacRendererFactory::CreateRendererOuter( TacRenderer** renderer )
+{
+  CreateRenderer( renderer );
+  ( *renderer )->mName = mRendererName;
+}
+
+TacVector< TacRendererFactory* >& TacRendererFactory::GetRegistry()
+{
+  static TacVector< TacRendererFactory* > registry;
+  return registry;
+}
+
+void TacRenderer::RemoveRendererResource( TacRendererResource* rendererResource )
+{
+  bool found = TacContains( mRendererResources, rendererResource );
+  TacAssert( found );
+  mRendererResources.erase( rendererResource );
+  delete rendererResource;
+}
+
