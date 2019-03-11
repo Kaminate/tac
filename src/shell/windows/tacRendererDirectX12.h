@@ -80,10 +80,10 @@ struct TacRendererDX12 : public TacRenderer
 {
   void Init( TacErrors& errors ) override;
   void CreateWindowContext( TacDesktopWindow* desktopWindow, TacErrors& errors ) override;
-  void AddVertexBuffer( TacVertexBuffer** vertexBuffer, TacVertexBufferData vertexBufferData, TacErrors& errors ) override;
-  void AddIndexBuffer( TacIndexBuffer** indexBuffer, TacIndexBufferData indexBufferData, TacErrors& errors ) override;
-  void AddConstantBuffer( TacCBuffer** outputCbuffer, TacCBufferData cBufferData, TacErrors& errors ) override;
-  void AddShader( TacShader** shader, TacShaderData shaderData, TacErrors& errors ) override;
+  void AddVertexBuffer( TacVertexBuffer** vertexBuffer, const TacVertexBufferData& vertexBufferData, TacErrors& errors ) override;
+  void AddIndexBuffer( TacIndexBuffer** indexBuffer, const TacIndexBufferData& indexBufferData, TacErrors& errors ) override;
+  void AddConstantBuffer( TacCBuffer** outputCbuffer, const TacCBufferData& cBufferData, TacErrors& errors ) override;
+  void AddShader( TacShader** shader, const TacShaderData& shaderData, TacErrors& errors ) override;
   void Render( TacErrors& errors ) override;
 
   void ResourceBarrier( ID3D12Resource* resource, D3D12_RESOURCE_STATES& oldState, const D3D12_RESOURCE_STATES& newState );

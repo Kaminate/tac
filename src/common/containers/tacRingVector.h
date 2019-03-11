@@ -1,6 +1,5 @@
 #pragma once
 
-#include "common/containers/tacVector.h"
 #include "tacPreprocessor.h"
 
 template< typename T >

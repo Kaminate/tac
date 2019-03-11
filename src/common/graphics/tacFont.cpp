@@ -10,11 +10,11 @@ const TacFormat atlasFormat = { 1, sizeof( uint8_t ), TacGraphicsType::unorm };
 
 static v4 ToColorAlphaPremultiplied( v4 colorAlphaUnassociated )
 {
-  return v4(
+  return {
       colorAlphaUnassociated.x * colorAlphaUnassociated.w,
       colorAlphaUnassociated.y * colorAlphaUnassociated.w,
       colorAlphaUnassociated.z * colorAlphaUnassociated.w,
-      colorAlphaUnassociated.w);
+      colorAlphaUnassociated.w };
 }
 
 TacFontFile::TacFontFile( const TacString& filepath, TacErrors& errors )

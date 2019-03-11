@@ -150,9 +150,9 @@ struct TacRendererDirectX11 : public TacRenderer
 
 
 
-  void AddVertexBuffer( TacVertexBuffer**, TacVertexBufferData, TacErrors& errors ) override;
+  void AddVertexBuffer( TacVertexBuffer**, const TacVertexBufferData&, TacErrors& errors ) override;
 
-  void AddIndexBuffer( TacIndexBuffer**, TacIndexBufferData, TacErrors& errors ) override;
+  void AddIndexBuffer( TacIndexBuffer**, const TacIndexBufferData&, TacErrors& errors ) override;
 
   void ClearColor( TacTexture* texture, v4 rgba ) override;
   void ClearDepthStencil(
@@ -163,10 +163,10 @@ struct TacRendererDirectX11 : public TacRenderer
     uint8_t stencil ) override;
 
   void ReloadShader( TacShader* shader, TacErrors& errors ) override;
-  void AddShader( TacShader** outputShader, TacShaderData, TacErrors& errors ) override;
+  void AddShader( TacShader** outputShader, const TacShaderData&, TacErrors& errors ) override;
   void GetShaders( TacVector< TacShader* > & ) override;
 
-  void AddSamplerState( TacSamplerState**, TacSamplerStateData, TacErrors& errors ) override;
+  void AddSamplerState( TacSamplerState**, const TacSamplerStateData&, TacErrors& errors ) override;
   void AddSampler(
     const TacString& samplerName,
     TacShader* shader,
@@ -176,7 +176,7 @@ struct TacRendererDirectX11 : public TacRenderer
     const TacString& samplerName,
     TacSamplerState* samplerState ) override;
 
-  void AddTextureResource( TacTexture**, TacTextureData, TacErrors& errors ) override;
+  void AddTextureResource( TacTexture**, const TacTextureData&, TacErrors& errors ) override;
   void RemoveTextureResoure( TacTexture* texture );
   void AddTexture(
     const TacString& textureName,
@@ -188,19 +188,19 @@ struct TacRendererDirectX11 : public TacRenderer
     TacTexture* texture ) override;
   void GetTextures( TacVector< TacTexture* >& ) override;
 
-  void AddDepthBuffer( TacDepthBuffer** outputDepthBuffer, TacDepthBufferData, TacErrors& errors ) override;
+  void AddDepthBuffer( TacDepthBuffer** outputDepthBuffer, const TacDepthBufferData&, TacErrors& errors ) override;
 
-  void AddConstantBuffer( TacCBuffer** outputCbuffer, TacCBufferData, TacErrors& errors ) override;
+  void AddConstantBuffer( TacCBuffer** outputCbuffer, const TacCBufferData&, TacErrors& errors ) override;
 
-  void AddBlendState( TacBlendState**, TacBlendStateData, TacErrors& errors ) override;
+  void AddBlendState( TacBlendState**, const TacBlendStateData&, TacErrors& errors ) override;
 
   // rasterizer state
 
-  void AddRasterizerState( TacRasterizerState**, TacRasterizerStateData, TacErrors& errors ) override;
+  void AddRasterizerState( TacRasterizerState**, const TacRasterizerStateData&, TacErrors& errors ) override;
 
-  void AddDepthState( TacDepthState**, TacDepthStateData, TacErrors& errors ) override;
+  void AddDepthState( TacDepthState**, const TacDepthStateData&, TacErrors& errors ) override;
 
-  void AddVertexFormat( TacVertexFormat**, TacVertexFormatData, TacErrors& errors ) override;
+  void AddVertexFormat( TacVertexFormat**, const TacVertexFormatData&, TacErrors& errors ) override;
 
   void DebugBegin( const TacString& section ) override;
   void DebugMark( const TacString& remark ) override;

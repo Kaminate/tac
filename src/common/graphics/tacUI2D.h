@@ -5,6 +5,7 @@
 
 #include "common/tacMemory.h"
 #include "common/math/tacVector2.h"
+#include "common/math/tacVector4.h"
 #include "common/math/tacMatrix3.h"
 #include "common/tacLocalization.h"
 //#include "common/graphics/tacRenderer.h"
@@ -107,7 +108,7 @@ struct TacUI2DDrawData
   void PopState();
 
   v2 CalculateTextSize( const TacString& text, int fontSize );
-  v2 CalculateTextSize( const TacVector< TacCodepoint >& codePoints, int fontSize );
+  v2 CalculateTextSize( const TacVector< TacCodepoint >& codepoints, int fontSize );
   v2 CalculateTextSize( const TacCodepoint* codepoints, int codepointCount, int fontSize );
   void AddText( v2 textPos, int fontSize, const TacString& utf8, v4 color, const TacImGuiRect* clipRect );
   void AddBox( v2 mini, v2 maxi, v4 color, const TacTexture* texture, const TacImGuiRect* clipRect );

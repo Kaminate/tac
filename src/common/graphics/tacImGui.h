@@ -89,8 +89,8 @@ struct TacImGuiWindow
   v2 mPos = {};
   v2 mSize = {};
   TacImGuiRect mContentRect;
-  float mCurrLineHeight;
-  float mPrevLineHeight;
+  float mCurrLineHeight = 0;
+  float mPrevLineHeight = 0;
 
   float mScroll = 0;
   v2 mScrollMousePosScreenspaceInitial;

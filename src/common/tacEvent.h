@@ -13,7 +13,7 @@ struct TacEvent
     }
     void EmitEvent( Args... eventArgs )
     {
-      for( auto callback : mFunctionalHandlerSlots )
+      for( const auto& callback : mFunctionalHandlerSlots )
       {
         callback( eventArgs... );
       }

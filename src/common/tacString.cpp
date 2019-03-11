@@ -86,7 +86,7 @@ TacString TacToString( float val )
 }
 
 
-TacStringView::TacStringView() : mLen( 0 ), mStr( nullptr ) { }
+TacStringView::TacStringView() :  mStr( nullptr ), mLen( 0 ){ }
 TacStringView::TacStringView( const char* str ) : mStr( str ), mLen( TacStrLen( str ) ) { }
 TacStringView::TacStringView( const char* str, int len ) : mStr( str ), mLen( len ) {}
 TacStringView::TacStringView( const TacString& str ) : mStr( str.mStr ), mLen( str.mLen ) {}
@@ -359,13 +359,13 @@ std::istream& operator >> ( std::istream& is, TacString& s )
 }
 
 // TODO: make separator a const ref
-TacString TacJoin( TacString separator, std::initializer_list< TacString > strings )
+TacString TacJoin( const TacString& separator, std::initializer_list< TacString > strings )
 {
   TacVector< TacString > v( strings.begin(), strings.end() );
   return TacJoin( separator, v.data(), v.size() );
 }
 
-TacString TacJoin( TacString separator, const TacString* strings, int stringCount )
+TacString TacJoin( const TacString& separator, const TacString* strings, int stringCount )
 {
   TacString result;
   for( int i = 0; i < stringCount; ++i )

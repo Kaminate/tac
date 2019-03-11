@@ -82,8 +82,8 @@ TacString TacToString( double val );
 TacString TacToString( float val );
 TacString TacToString( uint32_t val );
 
-TacString TacJoin( TacString, std::initializer_list< TacString > );
-TacString TacJoin( TacString, const TacString*, int );
+TacString TacJoin( const TacString&, std::initializer_list< TacString > );
+TacString TacJoin( const TacString&, const TacString*, int );
 
 template< typename T >
 TacString TacJoin( const TacString& sep, const T& ts )

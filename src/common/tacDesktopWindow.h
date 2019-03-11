@@ -2,7 +2,6 @@
 #pragma once
 
 #include "tacString.h"
-#include "tacUtility.h"
 #include "tacEvent.h"
 
 struct TacRendererWindowData;

@@ -24,7 +24,6 @@
 #include "common/math/tacVector2.h"
 #include "common/math/tacVector4.h"
 #include <list>
-#include <set>
 
 struct TacUIAnchor;
 struct TacUIButtonCallback;
@@ -88,7 +87,7 @@ struct TacUIAnchor
 struct TacUILayoutable // yee haw
 {
   TacUILayoutable( const TacString& debugName );
-  virtual ~TacUILayoutable();
+  virtual ~TacUILayoutable() = default;
   virtual void DebugImgui();
   virtual void Update( TacUILayoutData* uiLayoutData ) {};
   virtual void TransitionOut() {};
@@ -166,7 +165,7 @@ struct TacUIText : public TacUILayoutable
   bool IsHovered() override;
   void GoNuts();
   const TacUITextData* GetUITextData();
-  void SetText( TacUITextData uiTextData, bool updateStack = true );
+  void SetText( const TacUITextData& uiTextData, bool updateStack = true );
   // mIsRecentChangeInStack or mTransitionOut changed
   void Think();
   bool IsMostRecentChangeInStack();
@@ -192,9 +191,6 @@ struct TacUIText : public TacUILayoutable
 private:
   bool mTransitionOut = false; // aka: mMenu->mRequestDeletion
   TacUITextData mUITextData;
-
-  // AKA: is most recent change in the call stack
-  bool mIsRecentChangeInStack = false;
 };
 
 // used as an index
@@ -274,6 +270,7 @@ enum class TacUISplit
 
 struct TacUIHierarchyVisual
 {
+    virtual ~TacUIHierarchyVisual() = default;
   virtual void Render(  TacErrors& errors ) {}
   virtual TacString GetDebugName() = 0;
   TacUIHierarchyNode* mHierarchyNode = nullptr;
@@ -282,6 +279,7 @@ struct TacUIHierarchyVisual
 
 struct TacUIHierarchyVisualText : public TacUIHierarchyVisual
 {
+    virtual ~TacUIHierarchyVisualText() = default;
   void Render( TacErrors& errors ) override;
   TacString GetDebugName() override { return mUITextData.mUtf8; }
   TacUITextData mUITextData;
@@ -289,6 +287,7 @@ struct TacUIHierarchyVisualText : public TacUIHierarchyVisual
 
 struct TacUIHierarchyVisualImage : public TacUIHierarchyVisual
 {
+    virtual ~TacUIHierarchyVisualImage() = default;
   void Render( TacErrors& errors ) override;
   TacString GetDebugName() override;
   TacTexture* mTexture = nullptr;

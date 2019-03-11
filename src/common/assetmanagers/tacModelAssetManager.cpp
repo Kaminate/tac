@@ -4,7 +4,6 @@
 #include "common/graphics/tacRenderer.h"
 #include "common/math/tacMath.h"
 #include "common/tacUtility.h"
-#include "common/tacOS.h"
 
 #pragma warning( push )
 #pragma warning( disable : 4996 )
@@ -23,6 +22,7 @@ static TacAttribute GetAttributeFromGltf( cgltf_attribute_type attributeType )
   case cgltf_attribute_type_color: return TacAttribute::Color;
   case cgltf_attribute_type_joints: return TacAttribute::BoneIndex;
   case cgltf_attribute_type_weights: return TacAttribute::BoneWeight;
+      TacInvalidDefaultCase( attributeType );
   }
   return TacAttribute::Count;
 }
@@ -106,11 +106,11 @@ void TacModelAssetManager::GetMesh( TacMesh** mesh, const TacString& path, TacVe
 
   TacVector< TacSubMesh > submeshes;
 
-  for( int iMesh = 0; iMesh < parsedData->meshes_count; ++iMesh )
+  for( int iMesh = 0; iMesh < ( int )parsedData->meshes_count; ++iMesh )
   {
     cgltf_mesh* parsedMesh = &parsedData->meshes[ iMesh ];
 
-    for( int iPrim = 0; iPrim < parsedMesh->primitives_count; ++iPrim )
+    for( int iPrim = 0; iPrim < ( int )parsedMesh->primitives_count; ++iPrim )
     {
       cgltf_primitive* parsedPrim = &parsedMesh->primitives[ iPrim ];
       if( !parsedPrim->attributes_count )
@@ -143,13 +143,11 @@ void TacModelAssetManager::GetMesh( TacMesh** mesh, const TacString& path, TacVe
       }
       TacVector< char > dstVtxs( vertexCount * dstVtxStride, ( char )0 );
 
-      int runningVertexStride = 0;
-      parsedPrim->attributes[ 0 ].data;
       for( const TacVertexDeclaration& vertexDeclaration : vertexFormat->vertexFormatDatas )
       {
         const TacFormat& dstFormat = vertexDeclaration.mTextureFormat;
         cgltf_attribute* gltfVertAttribute = nullptr;
-        for( int iAttrib = 0; iAttrib < parsedPrim->attributes_count; ++iAttrib )
+        for( int iAttrib = 0; iAttrib < ( int )parsedPrim->attributes_count; ++iAttrib )
         {
           cgltf_attribute* gltfVertAttributeCurr = &parsedPrim->attributes[ iAttrib ];
           if( GetAttributeFromGltf( gltfVertAttributeCurr->type ) != vertexDeclaration.mAttribute )
@@ -162,7 +160,7 @@ void TacModelAssetManager::GetMesh( TacMesh** mesh, const TacString& path, TacVe
         cgltf_accessor* gltfVertAttributeData = gltfVertAttribute->data;
         TacFormat srcFormat;
         TacFillDataType( gltfVertAttributeData, &srcFormat );
-        TacAssert( vertexCount == gltfVertAttributeData->count );
+        TacAssert( vertexCount == ( int )gltfVertAttributeData->count );
         char* dstVtx = dstVtxs.data();
         char* srcVtx = ( char* )gltfVertAttributeData->buffer_view->buffer->data + gltfVertAttributeData->offset;
         int elementCount = TacMin( dstFormat.mElementCount, srcFormat.mElementCount );

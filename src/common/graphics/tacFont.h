@@ -9,7 +9,6 @@
 #include "common/tacLocalization.h"
 #include "common/containers/tacVector.h"
 #include "common/math/tacVector2.h"
-#include "common/math/tacVector4.h"
 #include "common/tacErrorHandling.h"
 #include "common/thirdparty/stb_truetype.h"
 

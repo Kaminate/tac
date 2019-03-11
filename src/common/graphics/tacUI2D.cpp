@@ -423,9 +423,8 @@ void TacUI2DState::Draw2DText(
     maxY = TacMax( maxY, fontAtlasCellY + scaledBitmapHeight );
     maxX = TacMax( maxX, fontAtlasCellX + scaledBitmapWidth );
 
-    for( int i = 0; i < quad_vertex_count; ++i )
+    for( const v2& glTexCoord : glTexCoords )
     {
-      const v2 glTexCoord = glTexCoords[ i ];
       v3 position3 = transform * v3(
         fontAtlasCellX + glTexCoord.x * scaledBitmapWidth,
         fontAtlasCellY - glTexCoord.y * scaledBitmapHeight,
@@ -500,7 +499,6 @@ v2 TacUI2DDrawData::CalculateTextSize( const TacCodepoint* codepoints, int codep
   TacFontStuff* fontStuff = mUI2DCommonData->mFontStuff;
   TacLanguage defaultLanguage = TacLanguage::English;
   TacFontFile* fontFile = fontStuff->mDefaultFonts[ defaultLanguage ];
-  fontFile->mAscent;
 
   int lineCount = 1;
 

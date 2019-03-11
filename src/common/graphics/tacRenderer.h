@@ -399,14 +399,14 @@ struct TacRenderer
   virtual void Init( TacErrors& errors ) {};
   virtual void AddVertexBuffer(
     TacVertexBuffer** vertexBuffer,
-    TacVertexBufferData vertexBufferData,
+    const TacVertexBufferData& vertexBufferData,
     TacErrors& errors ) {
     AddRendererResource( vertexBuffer, vertexBufferData );
   }
 
   virtual void AddIndexBuffer(
     TacIndexBuffer** indexBuffer,
-    TacIndexBufferData indexBufferData,
+    const TacIndexBufferData& indexBufferData,
     TacErrors& errors ) {
     AddRendererResource( indexBuffer, indexBufferData );
   }
@@ -423,10 +423,10 @@ struct TacRenderer
   }
 
   virtual void ReloadShader( TacShader* shader, TacErrors& errors ) { TacUnimplemented; }
-  virtual void AddShader( TacShader** shader, TacShaderData shaderData, TacErrors& errors ) { AddRendererResource( shader, shaderData ); }
+  virtual void AddShader( TacShader** shader, const TacShaderData& shaderData, TacErrors& errors ) { AddRendererResource( shader, shaderData ); }
   virtual void GetShaders( TacVector< TacShader* > & ) { TacUnimplemented; }
 
-  virtual void AddSamplerState( TacSamplerState** samplerState, TacSamplerStateData samplerStateData, TacErrors& errors )
+  virtual void AddSamplerState( TacSamplerState** samplerState, const TacSamplerStateData& samplerStateData, TacErrors& errors )
   {
     AddRendererResource( samplerState, samplerStateData );
   }
@@ -445,7 +445,7 @@ struct TacRenderer
     TacUnimplemented;
   }
 
-  virtual void AddTextureResource( TacTexture** texture, TacTextureData textureData, TacErrors& errors ) {
+  virtual void AddTextureResource( TacTexture** texture, const TacTextureData& textureData, TacErrors& errors ) {
     AddRendererResource( texture, textureData );
   }
   virtual void AddTexture(
@@ -484,7 +484,7 @@ struct TacRenderer
 
   virtual void AddDepthBuffer(
     TacDepthBuffer** outputDepthBuffer,
-    TacDepthBufferData depthBufferData,
+    const TacDepthBufferData& depthBufferData,
     TacErrors& errors )
   {
     AddRendererResource( outputDepthBuffer, depthBufferData );
@@ -516,7 +516,7 @@ struct TacRenderer
 
   std::set< TacRendererResource* > mRendererResources;
 
-  virtual void AddConstantBuffer( TacCBuffer** outputCbuffer, TacCBufferData cBufferData, TacErrors& errors )
+  virtual void AddConstantBuffer( TacCBuffer** outputCbuffer, const TacCBufferData& cBufferData, TacErrors& errors )
   {
     AddRendererResource( outputCbuffer, cBufferData );
   }
@@ -525,26 +525,26 @@ struct TacRenderer
     //TacUnimplemented;
   }
 
-  virtual void AddBlendState( TacBlendState** blendState, TacBlendStateData blendStateData, TacErrors& errors )
+  virtual void AddBlendState( TacBlendState** blendState, const TacBlendStateData& blendStateData, TacErrors& errors )
   {
     AddRendererResource( blendState, blendStateData );
   }
 
   virtual void AddRasterizerState(
     TacRasterizerState** rasterizerState,
-    TacRasterizerStateData rasterizerStateData,
+    const TacRasterizerStateData& rasterizerStateData,
     TacErrors& errors )
   {
     AddRendererResource( rasterizerState, rasterizerStateData );
   }
 
-  virtual void AddDepthState( TacDepthState** depthState, TacDepthStateData depthStateData, TacErrors& errors )
+  virtual void AddDepthState( TacDepthState** depthState, const TacDepthStateData& depthStateData, TacErrors& errors )
   {
     AddRendererResource( depthState, depthStateData );
   }
 
 
-  virtual void AddVertexFormat( TacVertexFormat** vertexFormat, TacVertexFormatData vertexFormatData, TacErrors& errors )
+  virtual void AddVertexFormat( TacVertexFormat** vertexFormat, const TacVertexFormatData& vertexFormatData, TacErrors& errors )
   {
     AddRendererResource( vertexFormat, vertexFormatData );
   }
@@ -586,7 +586,8 @@ struct TacRenderer
   TacShell* mShell = nullptr;
   TacString mName;
 
-  void AddDrawCall( TacDrawCall2 drawCall )
+  // Should this resize and return a reference to theback?
+  void AddDrawCall( const TacDrawCall2& drawCall )
   {
     mDrawCall2s.push_back( drawCall );
   }

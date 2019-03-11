@@ -705,7 +705,7 @@ void TacRendererDirectX11::CreateWindowContext( TacDesktopWindow* desktopWindow,
       break;
     } } );
 }
-void TacRendererDirectX11::AddVertexBuffer( TacVertexBuffer** outputVertexBuffer, TacVertexBufferData vbData, TacErrors& errors )
+void TacRendererDirectX11::AddVertexBuffer( TacVertexBuffer** outputVertexBuffer, const TacVertexBufferData& vbData, TacErrors& errors )
 {
   D3D11_BUFFER_DESC bd = {};
   bd.ByteWidth = vbData.mNumVertexes * vbData.mStrideBytesBetweenVertexes;
@@ -730,7 +730,7 @@ void TacRendererDirectX11::AddVertexBuffer( TacVertexBuffer** outputVertexBuffer
 }
 void TacRendererDirectX11::AddIndexBuffer(
   TacIndexBuffer** outputIndexBuffer,
-  TacIndexBufferData indexBufferData,
+  const TacIndexBufferData& indexBufferData,
   TacErrors& errors )
 {
   TacAssert( indexBufferData.indexCount > 0 );
@@ -819,7 +819,7 @@ static void TacCompileShaderFromString(
     errors += ( const char* )pErrorBlob->GetBufferPointer();
   }
 }
-void TacRendererDirectX11::AddShader( TacShader** outputShader, TacShaderData shaderData, TacErrors& errors )
+void TacRendererDirectX11::AddShader( TacShader** outputShader, const TacShaderData& shaderData, TacErrors& errors )
 {
   for( TacCBuffer* cbuf : shaderData.mCBuffers )
     TacAssert( cbuf );
@@ -953,7 +953,7 @@ void TacRendererDirectX11::GetShaders( TacVector< TacShader* >&shaders )
 }
 void TacRendererDirectX11::AddSamplerState(
   TacSamplerState** outputSamplerState,
-  TacSamplerStateData samplerStateData,
+  const TacSamplerStateData& samplerStateData,
   TacErrors& errors )
 {
   D3D11_SAMPLER_DESC desc = {};
@@ -1009,7 +1009,7 @@ void TacRendererDirectX11::SetSamplerState(
 
 void TacRendererDirectX11::AddTextureResource(
   TacTexture** outputTexture,
-  TacTextureData textureData,
+  const TacTextureData& textureData,
   TacErrors& errors )
 {
   ID3D11Resource* dXObj;
@@ -1248,7 +1248,7 @@ void TacRendererDirectX11::CreateShaderResourceView(
 
 void TacRendererDirectX11::AddDepthBuffer(
   TacDepthBuffer** outputDepthBuffer,
-  TacDepthBufferData depthBufferData,
+  const TacDepthBufferData& depthBufferData,
   TacErrors& errors )
 {
   TacDepthBufferDX11* depthBufferDX11;
@@ -1257,7 +1257,10 @@ void TacRendererDirectX11::AddDepthBuffer(
   *outputDepthBuffer = depthBufferDX11;
 }
 
-void TacRendererDirectX11::AddConstantBuffer( TacCBuffer** outputCbuffer, TacCBufferData cBufferData, TacErrors& errors )
+void TacRendererDirectX11::AddConstantBuffer(
+    TacCBuffer** outputCbuffer,
+    const TacCBufferData& cBufferData,
+    TacErrors& errors )
 {
   ID3D11Buffer* cbufferhandle;
   D3D11_BUFFER_DESC bd = {};
@@ -1271,7 +1274,10 @@ void TacRendererDirectX11::AddConstantBuffer( TacCBuffer** outputCbuffer, TacCBu
   *outputCbuffer = cBufferDX11;
 }
 
-void TacRendererDirectX11::AddBlendState( TacBlendState** outputBlendState, TacBlendStateData blendStateData, TacErrors& errors )
+void TacRendererDirectX11::AddBlendState(
+    TacBlendState** outputBlendState,
+    const TacBlendStateData& blendStateData,
+    TacErrors& errors )
 {
   D3D11_RENDER_TARGET_BLEND_DESC d3d11rtbd = {};
   d3d11rtbd.BlendEnable = true;
@@ -1296,7 +1302,7 @@ void TacRendererDirectX11::AddBlendState( TacBlendState** outputBlendState, TacB
 
 void TacRendererDirectX11::AddRasterizerState(
   TacRasterizerState** outputRasterizerState,
-  TacRasterizerStateData rasterizerStateData,
+  const TacRasterizerStateData& rasterizerStateData,
   TacErrors& errors )
 {
   D3D11_RASTERIZER_DESC desc = {};
@@ -1317,7 +1323,7 @@ void TacRendererDirectX11::AddRasterizerState(
 
 void TacRendererDirectX11::AddDepthState(
   TacDepthState** outputDepthState,
-  TacDepthStateData depthStateData,
+  const TacDepthStateData& depthStateData,
   TacErrors& errors )
 {
   D3D11_DEPTH_STENCIL_DESC desc = {};
@@ -1338,7 +1344,7 @@ void TacRendererDirectX11::AddDepthState(
 
 void TacRendererDirectX11::AddVertexFormat(
   TacVertexFormat** outputVertexFormat,
-  TacVertexFormatData vertexFormatDataa,
+  const TacVertexFormatData& vertexFormatDataa,
   TacErrors& errors )
 {
   TacVector< D3D11_INPUT_ELEMENT_DESC > inputElementDescs;

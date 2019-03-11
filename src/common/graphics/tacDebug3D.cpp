@@ -103,9 +103,6 @@ TacDebugDrawAABB TacDebugDrawAABB::FromPosExtents( v3 pos, v3 extents )
   return result;
 }
 
-  TacDebug3DDrawData::TacDebug3DDrawData()
-  {
-  }
 void TacDebug3DDrawData::DebugDrawLine( v3 p0, v3 p1, v3 color0, v3 color1 )
 {
   if( !TacIsDebugMode() )

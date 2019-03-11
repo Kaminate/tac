@@ -6,9 +6,7 @@
 #include "common/graphics/tacTextEdit.h"
 #include "common/graphics/tacRenderer.h"
 #include "common/tackeyboardinput.h"
-#include "common/tacDesktopWindow.h"
 #include "common/tacOS.h"
-#include "common/tacmeta.h"
 #include "common/tacPreprocessor.h"
 #include <cstdlib> // atof
 
@@ -174,8 +172,6 @@ void TacImGuiWindow::BeginFrame()
     float contentVisibleMinY = mPos.y;
     float contentVisibleMaxY = mPos.y + mSize.y;
     float contentVisibleHeight = contentVisibleMaxY - contentVisibleMinY;
-    float contentVisiblePercent = contentVisibleHeight / contentAllHeight;
-
 
     mini.y = mPos.y + ( ( contentVisibleMinY - contentAllMinY ) / contentAllHeight ) * mSize.y;
     maxi.y = mPos.y + ( ( contentVisibleMaxY - contentAllMinY ) / contentAllHeight ) * mSize.y;
@@ -376,8 +372,8 @@ void TacImGuiEnd()
 {
   gTacImGuiGlobals.mWindowStack.pop_back();
   gTacImGuiGlobals.mCurrentWindow =
-    gTacImGuiGlobals.mWindowStack.size() ?
-    gTacImGuiGlobals.mWindowStack.back() : nullptr;
+    gTacImGuiGlobals.mWindowStack.empty() ? nullptr :
+    gTacImGuiGlobals.mWindowStack.back();
 }
 void TacImGuiBeginChild( const TacString& name, v2 size )
 {
@@ -505,10 +501,9 @@ bool TacImGuiInputText( const TacString& label, TacString& text )
 
   if( window->mActiveID == id )
   {
-    TacUTF8Converter converter;
     TacVector< TacCodepoint > codepoints;
     TacErrors ignoredUTF8ConversionErrors;
-    converter.Convert( text, codepoints, ignoredUTF8ConversionErrors );
+    TacUTF8Converter::Convert( text, codepoints, ignoredUTF8ConversionErrors );
     if( !AreEqual( inputData->mCodepoints, codepoints ) )
     {
       inputData->mCodepoints = codepoints;
@@ -649,7 +644,6 @@ void TacImGuiCheckbox( const TacString& str, bool* value )
   v2 pos = window->mCurrCursorDrawPos;
 
   v2 textSize = drawData->CalculateTextSize( str, gStyle.fontSize );
-  textSize.y;
 
   float boxWidth = textSize.y;
   v2 boxSize = v2( 1, 1 ) * boxWidth;
@@ -778,7 +772,7 @@ void TacImGuiDragFloat( const TacString& str, float* value )
   }
   if( id == window->mActiveID )
   {
-    if( state == false )
+    if( !state )
     {
       static float lastMouseXDesktopWindowspace;
       if( gTacImGuiGlobals.IsHovered( clipRect ) )
@@ -809,10 +803,9 @@ void TacImGuiDragFloat( const TacString& str, float* value )
         if( mouseReleaseSeconds - lastMouseReleaseSeconds < 0.5f &&
           lastMousePositionDesktopWindowspace == gTacImGuiGlobals.mMousePositionDesktopWindowspace )
         {
-          TacUTF8Converter converter;
           TacVector< TacCodepoint > codepoints;
           TacErrors ignoredUTF8ConversionErrors;
-          converter.Convert( valueStr, codepoints, ignoredUTF8ConversionErrors );
+          TacUTF8Converter::Convert( valueStr, codepoints, ignoredUTF8ConversionErrors );
           inputData->mCodepoints = codepoints;
           inputData->mCaretCount = 2;
           inputData->mNumGlyphsBeforeCaret[ 0 ] = 0;
@@ -824,7 +817,7 @@ void TacImGuiDragFloat( const TacString& str, float* value )
       }
     }
 
-    if( state == true )
+    if( state )
     {
       TacTextInputDataUpdateKeys( inputData, valuePos );
       TacString newText;
@@ -842,7 +835,7 @@ void TacImGuiDragFloat( const TacString& str, float* value )
     pos.x + totalSize.y };
   drawData->AddBox( pos, backgroundBoxMaxi, backgroundBoxColor, nullptr, &clipRect );
 
-  if( state == true )
+  if( state )
     TacTextInputDataDrawSelection( inputData, valuePos, &clipRect );
   drawData->AddText( valuePos, gStyle.fontSize, valueStr, v4( 0, 0, 0, 1 ), &clipRect );
 

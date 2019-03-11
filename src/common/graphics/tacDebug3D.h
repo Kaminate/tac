@@ -55,8 +55,8 @@ struct TacDebugDrawAABB
 
 struct TacDebug3DDrawData
 {
-  TacDebug3DDrawData();
-  void DebugDrawLine( v3 p0, v3 p1, v3 color, v3 color1 );
+  TacDebug3DDrawData() = default;
+  void DebugDrawLine( v3 p0, v3 p1, v3 color0, v3 color1 );
   void DebugDrawLine( v3 p0, v3 p1, v3 color = { 1, 1, 1 } );
   void DebugDrawCircle( v3 p0, v3 dir, float rad, v3 color = { 1, 1, 1 } );
   void DebugDrawSphere( v3 origin, float radius, v3 color = { 1, 1, 1 } );

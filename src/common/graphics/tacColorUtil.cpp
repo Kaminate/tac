@@ -61,7 +61,8 @@ void TacHSVToRGB( float h, float s, float v, v3* outputRGB )
 
 v3 TacHexToRGB( uint32_t hexColor ) // 0xRRGGBB
 {
-  switch( TacGetEndianness() )
+TacEndianness endianness =  TacGetEndianness() ;
+  switch(endianness)
   {
   case TacEndianness::Big:  return  {
     ( ( uint8_t* )&hexColor )[ 1 ] / 255.0f,
@@ -71,7 +72,7 @@ v3 TacHexToRGB( uint32_t hexColor ) // 0xRRGGBB
     ( ( uint8_t* )&hexColor )[ 2 ] / 255.0f,
     ( ( uint8_t* )&hexColor )[ 1 ] / 255.0f,
     ( ( uint8_t* )&hexColor )[ 0 ] / 255.0f };
+  TacInvalidDefaultCase( endianness);
   }
-  TacInvalidCodePath;
   return {};
 }

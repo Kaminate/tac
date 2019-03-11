@@ -3,13 +3,10 @@
 #include "common/tacShell.h"
 #include "common/graphics/tacUI.h"
 #include "common/graphics/tacRenderer.h"
-#include "common/graphics/tacFont.h"
 #include "common/graphics/tacUI2D.h"
-#include "common/graphics/tacTextEdit.h"
 #include "common/math/tacMath.h"
 #include "common/tacAlgorithm.h"
 #include "common/tacTime.h"
-#include "common/tacOS.h"
 #include "common/tacDesktopWindow.h"
 #include "common/graphics/tacColorUtil.h"
 
@@ -158,7 +155,7 @@ void TacUIText::UpdateTransitions()
   }
   mTransitions.resize( uiTextInfoCount );
 }
-void TacUIText::SetText( TacUITextData uiTextData, bool updateStack )
+void TacUIText::SetText( const TacUITextData& uiTextData, bool updateStack )
 {
   if( updateStack )
   {
@@ -203,8 +200,8 @@ void TacUIText::Think()
   {
     if( !mTransitions.empty() )
     {
-      TacUITextTransition& uiTextTransition = mTransitions.back();
-      if( uiTextTransition.mUseUITextDataStore && uiTextTransition.mUITextDataStore.mUtf8.empty() )
+      TacUITextTransition& backuiTextTransition = mTransitions.back();
+      if( backuiTextTransition.mUseUITextDataStore && backuiTextTransition.mUITextDataStore.mUtf8.empty() )
         return;
     }
     uiTextTransition.mUseUITextDataStore = true;
@@ -291,9 +288,8 @@ void TacUIText::Render( TacErrors& errors )
   TacUI2DState* state = ui2DDrawData->PushState();
   OnDestruct( ui2DDrawData->PopState() );
 
-  for( int iTransition = 0; iTransition < ( int )mTransitions.size(); ++iTransition )
+  for( const TacUITextTransition& transition : mTransitions )
   {
-    const TacUITextTransition& transition = mTransitions[ iTransition ];
     const TacUITextData* uiTextInfo = transition.mUseUITextDataStore ? &transition.mUITextDataStore : GetUITextData();
 
     v4 uiTextColor = uiTextInfo->mColor;
@@ -393,9 +389,6 @@ void TacUIAnchor::DebugImgui()
 TacUILayoutable::TacUILayoutable( const TacString& debugName )
 {
   mDebugName = debugName;
-}
-TacUILayoutable::~TacUILayoutable()
-{
 }
 void TacUILayoutable::DebugImgui()
 {
@@ -517,7 +510,6 @@ void TacUILayout::Update( TacUILayoutData* uiLayoutData )
   if( !mUILayoutables.empty() )
   {
     float runningAutoWidth = 0;
-    bool hasRightAlignedChild = false;
     for( TacUILayoutable* uiLayoutable : mUILayoutables )
     {
       uiLayoutable->Update( uiLayoutData );
@@ -648,7 +640,6 @@ void TacUILayout::RequestDeletion()
   mTransitionStartSeconds = mUIRoot->GetElapsedSeconds();
   mTransitionedFinished = false;
   mRequestDeletion = true;
-  int iDelay = ( int )mUILayoutables.size() - 1;
   for( TacUILayoutable* uiText : mUILayoutables )
     uiText->TransitionOut();
   mTransitionDurationSeconds = 2.3f;
@@ -685,7 +676,6 @@ v2 TacUILayout::GetWindowspacePosition()
   if( mParent )
   {
     v2 parentWindowSpacePos = mParent->GetWindowspacePosition();
-    float parentWidth = mParent->mUiWidth;
     switch( mAnchor.mAnchorHorizontal )
     {
     case TacUIAnchorHorizontal::Left:
@@ -694,6 +684,7 @@ v2 TacUILayout::GetWindowspacePosition()
       windowSpacePos.x += parentWindowSpacePos.x + mParent->mUiWidth - mUiWidth; break;
     case TacUIAnchorHorizontal::Center:
       windowSpacePos.x += parentWindowSpacePos.x + ( mParent->mUiWidth + mUiWidth ) / 2; break;
+      TacInvalidDefaultCase( mAnchor.mAnchorHorizontal );
     }
   }
   return windowSpacePos;
@@ -750,7 +741,6 @@ TacUILayout* TacUIRoot::AddMenu( const TacString& debugName )
 }
 void TacUIRoot::Render( TacErrors& errors )
 {
-  TacTexture* framebuffer = mUI2DDrawData->mRenderView->mFramebuffer;
   //TacUI2DState* state = mUI2DDrawData->PushState();
   //state->mTransform = M3Scale(
   //  framebuffer->myImage.mWidth / mUIWidth,
@@ -769,7 +759,6 @@ void TacUIRoot::Render( TacErrors& errors )
 void TacUIRoot::Update()
 {
   TacTexture* framebuffer = mUI2DDrawData->mRenderView->mFramebuffer;
-  float aspect = framebuffer->GetAspect();
   //float uiWidth = 1024;
   //float uiHeight = 1024;
   //if( aspect > 1 )
@@ -812,7 +801,6 @@ void TacUIRoot::Update()
 }
 TacString TacUIHierarchyNode::DebugGenerateGraphVizDotFile()
 {
-  TacString stringified;
 
   // https://en.wikipedia.org/wiki/DOT_(graph_description_language)
   // 
@@ -850,11 +838,11 @@ TacString TacUIHierarchyNode::DebugGenerateGraphVizDotFile()
     TacString nodeGraphName = "node" + TacToString( ( int )nodeGraphNames.size() );
     TacString nodeGraphLabel = TacToString( node );
 
-    if( node->mDebugName.size() )
+    if( !node->mDebugName.empty() )
       nodeGraphLabel = node->mDebugName;
     else if( node == this )
       nodeGraphLabel = "hierarchy root";
-    else if( node->mVisual && node->mVisual->GetDebugName().size() )
+    else if( node->mVisual && !node->mVisual->GetDebugName().empty() )
       nodeGraphLabel = node->mVisual->GetDebugName();
 
     nodeGraphNames[ node ] = nodeGraphName;
@@ -869,7 +857,8 @@ TacString TacUIHierarchyNode::DebugGenerateGraphVizDotFile()
   }
 
   lines.push_back( "}" );
-  stringified = TacJoin( "\n", lines );
+
+  TacString stringified = TacJoin( "\n", lines );
   return stringified;
 
 }
@@ -894,7 +883,7 @@ TacUIHierarchyNode* TacUIHierarchyNode::Split(
 {
   // TODO: I'm sure this whole if else chain can be simplified into something elegant
   TacUIHierarchyNode* parent = nullptr;
-  if( mChildren.size() )
+  if( !mChildren.empty() )
   {
     if( layoutType == mLayoutType )
     {

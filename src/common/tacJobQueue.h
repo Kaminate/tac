@@ -1,7 +1,6 @@
 #pragma once
 
 
-#include "common/containers/tacArray.h"
 #include "common/containers/tacRingVector.h"
 #include "common/containers/tacVector.h"
 #include "common/tacErrorHandling.h"
@@ -52,7 +51,7 @@ struct TacJobQueue
   TacVector< std::thread > mThreads;
   std::mutex mMutex;
 
-  // Unowned
+  // The jobs are unowned
   TacRingVector< TacJob* > mUnstarted;
 };
 

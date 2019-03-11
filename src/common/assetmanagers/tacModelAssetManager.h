@@ -3,15 +3,13 @@
 #include "common/tacErrorHandling.h"
 #include "common/containers/tacVector.h"
 
-#include <map>
-#include <set>
 
 struct TacLoadingMesh;
 struct TacJobQueue;
 struct TacRenderer;
 struct TacVertexFormat;
-  struct TacVertexBuffer;
-  struct TacIndexBuffer;
+struct TacVertexBuffer;
+struct TacIndexBuffer;
 
 struct TacSubMesh
 {

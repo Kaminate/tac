@@ -208,7 +208,7 @@ void TacDX12CallAux( const char* fnCallWithArgs, HRESULT res, TacErrors& errors 
 
 struct TacRendererBufferDX12
 {
-  void CrateMainBuffer( TacRendererDX12* renderer, TacString& name, TacErrors& errors, D3D12_RESOURCE_STATES resourceStates, int byteCount )
+  void CrateMainBuffer( TacRendererDX12* renderer, const TacString& name, TacErrors& errors, D3D12_RESOURCE_STATES resourceStates, int byteCount )
   {
     ID3D12Device* device = renderer->mDevice.Get();
     ID3D12Resource* resource;
@@ -240,7 +240,7 @@ struct TacRendererBufferDX12
     mResourceBuffer = resource;
     mState = resourceStates;
   }
-  void CreateUploadBuffer( TacRendererDX12* renderer, TacString& name, TacErrors& errors, int byteCount )
+  void CreateUploadBuffer( TacRendererDX12* renderer, const TacString& name, TacErrors& errors, int byteCount )
   {
     ID3D12Device* device = renderer->mDevice.Get();
     ID3D12Resource* uploadResource;
@@ -590,7 +590,7 @@ void TacRendererDX12::CreateWindowContext( TacDesktopWindow* desktopWindow, TacE
   mWindows.push_back( dx12Window );
 }
 
-void TacRendererDX12::AddVertexBuffer( TacVertexBuffer** vertexBuffer, TacVertexBufferData vertexBufferData, TacErrors& errors )
+void TacRendererDX12::AddVertexBuffer( TacVertexBuffer** vertexBuffer, const TacVertexBufferData& vertexBufferData, TacErrors& errors )
 {
   int byteCount = vertexBufferData.mNumVertexes * vertexBufferData.mStrideBytesBetweenVertexes;
   D3D12_RESOURCE_STATES resourceStates = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
@@ -601,7 +601,7 @@ void TacRendererDX12::AddVertexBuffer( TacVertexBuffer** vertexBuffer, TacVertex
   *vertexBuffer = vertexBufferDX12;
 }
 
-void TacRendererDX12::AddIndexBuffer( TacIndexBuffer** indexBuffer, TacIndexBufferData indexBufferData, TacErrors& errors )
+void TacRendererDX12::AddIndexBuffer( TacIndexBuffer** indexBuffer, const TacIndexBufferData& indexBufferData, TacErrors& errors )
 {
   TacAssert( indexBufferData.dataType.mElementCount == 1 );
   int byteCount = indexBufferData.indexCount * indexBufferData.dataType.mPerElementByteCount;
@@ -613,7 +613,7 @@ void TacRendererDX12::AddIndexBuffer( TacIndexBuffer** indexBuffer, TacIndexBuff
   *indexBuffer = indexBufferDX12;
 }
 
-void TacRendererDX12::AddConstantBuffer( TacCBuffer** outputCbuffer, TacCBufferData cBufferData, TacErrors& errors )
+void TacRendererDX12::AddConstantBuffer( TacCBuffer** outputCbuffer, const TacCBufferData& cBufferData, TacErrors& errors )
 {
   TacAssert( cBufferData.byteCount );
 
@@ -691,7 +691,7 @@ void TacRendererDX12::AddConstantBuffer( TacCBuffer** outputCbuffer, TacCBufferD
   *outputCbuffer = constantBufferDX12;
 }
 
-void TacRendererDX12::AddShader( TacShader** shader, TacShaderData shaderData, TacErrors& errors )
+void TacRendererDX12::AddShader( TacShader** shader, const TacShaderData& shaderData, TacErrors& errors )
 {
   struct TacShaderPart
   {
