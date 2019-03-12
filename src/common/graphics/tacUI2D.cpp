@@ -626,6 +626,9 @@ void TacUI2DDrawData::AddBox( v2 mini, v2 maxi, v4 color, const TacTexture* text
 
 void TacUI2DDrawData::AddText( v2 textPos, int fontSize, const TacString& utf8, v4 color, const TacImGuiRect* clipRect )
 {
+  if( utf8.empty() )
+    return;
+
   // ignored
   TacErrors errors;
 
