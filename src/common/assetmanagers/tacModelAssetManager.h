@@ -2,6 +2,8 @@
 #include "common/tacString.h"
 #include "common/tacErrorHandling.h"
 #include "common/containers/tacVector.h"
+#include "common/containers/tacArray.h"
+#include "common/math/tacVector3.h"
 
 
 struct TacLoadingMesh;
@@ -15,6 +17,7 @@ struct TacSubMesh
 {
   TacVertexBuffer* mVertexBuffer = nullptr;
   TacIndexBuffer* mIndexBuffer = nullptr;
+  TacVector< TacArray< v3, 3 >> mTris;
 };
 
 struct TacMesh

@@ -12,6 +12,22 @@
 #include "common/thirdparty/cgltf.h"
 #pragma warning( pop )
 
+static cgltf_attribute_type GetGltfFromAttribute( TacAttribute attributeType )
+{
+  switch( attributeType )
+  {
+  case TacAttribute::Position: return cgltf_attribute_type_position;
+  case TacAttribute::Normal: return cgltf_attribute_type_normal;
+  case TacAttribute::Texcoord: return cgltf_attribute_type_texcoord;
+  case TacAttribute::Color: return cgltf_attribute_type_color;
+  case TacAttribute::BoneIndex: return cgltf_attribute_type_joints;
+  case TacAttribute::BoneWeight: return cgltf_attribute_type_weights;
+      TacInvalidDefaultCase( attributeType );
+  }
+  return cgltf_attribute_type_invalid;
+}
+
+// replace with above?
 static TacAttribute GetAttributeFromGltf( cgltf_attribute_type attributeType )
 {
   switch( attributeType )
@@ -66,6 +82,17 @@ void TacFillDataType( cgltf_accessor* accessor, TacFormat* dataType )
   case cgltf_type_vec4: dataType->mElementCount = 4; break;
     TacInvalidDefaultCase( accessor->type );
   }
+}
+
+static cgltf_attribute*  FindAttributeOfType(cgltf_primitive* parsedPrim, cgltf_attribute_type  type )
+{
+        for( int iAttrib = 0; iAttrib < ( int )parsedPrim->attributes_count; ++iAttrib )
+        {
+          cgltf_attribute* gltfVertAttributeCurr = &parsedPrim->attributes[ iAttrib ];
+          if( gltfVertAttributeCurr->type == type )
+            return gltfVertAttributeCurr;
+        }
+        return nullptr;
 }
 
 void TacModelAssetManager::GetMesh( TacMesh** mesh, const TacString& path, TacVertexFormat* vertexFormat, TacErrors& errors )
@@ -146,15 +173,8 @@ void TacModelAssetManager::GetMesh( TacMesh** mesh, const TacString& path, TacVe
       for( const TacVertexDeclaration& vertexDeclaration : vertexFormat->vertexFormatDatas )
       {
         const TacFormat& dstFormat = vertexDeclaration.mTextureFormat;
-        cgltf_attribute* gltfVertAttribute = nullptr;
-        for( int iAttrib = 0; iAttrib < ( int )parsedPrim->attributes_count; ++iAttrib )
-        {
-          cgltf_attribute* gltfVertAttributeCurr = &parsedPrim->attributes[ iAttrib ];
-          if( GetAttributeFromGltf( gltfVertAttributeCurr->type ) != vertexDeclaration.mAttribute )
-            continue;
-          gltfVertAttribute = gltfVertAttributeCurr;
-          break;
-        }
+        cgltf_attribute_type gltfVertAttributeType = GetGltfFromAttribute(vertexDeclaration.mAttribute );
+        cgltf_attribute* gltfVertAttribute = FindAttributeOfType( parsedPrim, gltfVertAttributeType);
         if( !gltfVertAttribute )
           continue;
         cgltf_accessor* gltfVertAttributeData = gltfVertAttribute->data;
@@ -189,6 +209,13 @@ void TacModelAssetManager::GetMesh( TacMesh** mesh, const TacString& path, TacVe
         }
       }
 
+      TacVector< TacArray< v3, 3 >> tris;
+      cgltf_attribute* posAttribute = FindAttributeOfType( parsedPrim, cgltf_attribute_type_position );
+      if( posAttribute )
+      {
+          
+      }
+
       TacVertexBuffer* vertexBuffer;
       TacVertexBufferData vertexBufferData = {};
       vertexBufferData.access = TacAccess::Default;
@@ -203,6 +230,7 @@ void TacModelAssetManager::GetMesh( TacMesh** mesh, const TacString& path, TacVe
       TacSubMesh subMesh;
       subMesh.mIndexBuffer = indexBuffer;
       subMesh.mVertexBuffer = vertexBuffer;
+      subMesh.mTris = tris;
       submeshes.push_back( subMesh );
     }
   }
