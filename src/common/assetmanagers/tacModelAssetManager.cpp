@@ -304,3 +304,76 @@ void TacModelAssetManager::GetMesh( TacMesh** mesh, const TacString& path, TacVe
   //* and only works with single - component data types.
 
 }
+
+  static bool RaycastTriangle( 
+    const v3& p0, 
+    const v3& p1, 
+    const v3& p2, 
+    const v3& rayPos, 
+    const v3& normalizedRayDir, 
+    float & dist )
+  {
+    v3 edge2 = p2 - p0;
+    v3 edge1 = p1 - p0;
+    v3 b = rayPos - p0;
+    v3 p = Cross( normalizedRayDir,edge2);
+    v3 q = Cross( b,edge1);
+    float pdotv1 = TacDot( p,edge1);
+    float t = TacDot(q,edge2) / pdotv1;
+    float u = TacDot(p,b) / pdotv1;
+    float v = TacDot(q,normalizedRayDir) / pdotv1;
+    if (t > 0 && u >= 0 && v >= 0 && u + v <= 1)
+    {
+      dist = t;
+      return true;
+    }
+    return false;
+  }
+
+void TacSubMesh::Raycast( v3 inRayPos, v3 inRayDir, bool* outHit, v3* outHitPoint)
+{
+    *outHit = false;
+    float minDist = 0;
+    int triCount = (int)mTris.size();
+    for (int iTri = 0; iTri < triCount; ++iTri)
+    {
+        const TacSubMeshTriangle& tri = mTris[ iTri ];
+        float dist;
+        bool hit = RaycastTriangle( tri[ 0 ], tri[ 1 ], tri[2 ], inRayPos, inRayDir, dist );
+        if( !hit )
+            continue;
+        v3 hitPoint = {};
+        if( *outHit && dist > minDist )
+            continue;
+        minDist = dist;
+        *outHit = true;
+        *outHitPoint = hitPoint;;
+    }
+}
+
+void TacMesh::Raycast( v3 inRayPos, v3 inRayDir, bool* outHit, v3* outHitPoint)
+{
+    *outHit = false;
+    float minQuadrance = 0;
+    for( TacSubMesh& subMesh : mSubMeshes )
+    {
+        bool subMeshHit = false;
+        v3 subMeshHitPoint = {};
+        subMesh.Raycast( inRayPos, inRayDir, &subMeshHit, &subMeshHitPoint);
+        if( !subMeshHit )
+            continue;
+        float quadrance = TacQuadrance( inRayPos, subMeshHitPoint );
+        if( *outHit && quadrance > minQuadrance )
+            continue;
+        minQuadrance = quadrance;
+        *outHit = true;
+        *outHitPoint = subMeshHitPoint;
+    }
+}
+v3 TacGetNormal( const TacSubMeshTriangle& tri )
+{
+    v3 edge0 = tri[ 1 ] - tri[ 0 ];
+    v3 edge1 = tri[ 2 ] - tri[ 0 ];
+    // check for div 0?
+    return Normalize( Cross( edge0, edge1 ) );
+}

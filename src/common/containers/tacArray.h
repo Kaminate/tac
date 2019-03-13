@@ -22,6 +22,7 @@ struct TacArray
   T* begin() { return mTs; }
   T* end() { return mTs + N; }
   T& operator[]( int index ) { TacAssert( index >= 0 && index < N ); return mTs[ index ]; }
+  const T& operator[] (int index) const{ TacAssert(index >= 0 && index < N); return mTs[index]; }
   T mTs[ N ];
 };
 

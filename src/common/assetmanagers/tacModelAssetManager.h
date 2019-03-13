@@ -13,17 +13,22 @@ struct TacVertexFormat;
 struct TacVertexBuffer;
 struct TacIndexBuffer;
 
+typedef TacArray< v3, 3 > TacSubMeshTriangle;
+v3 TacGetNormal( const TacSubMeshTriangle& tri );
+
 struct TacSubMesh
 {
   TacVertexBuffer* mVertexBuffer = nullptr;
   TacIndexBuffer* mIndexBuffer = nullptr;
-  TacVector< TacArray< v3, 3 >> mTris;
+  TacVector< TacSubMeshTriangle > mTris;
+  void Raycast( v3 inRayPos, v3 inRayDir, bool* outHit, v3* outHitPoint);
 };
 
 struct TacMesh
 {
   TacVector< TacSubMesh > mSubMeshes;
   TacVertexFormat* mVertexFormat = nullptr;
+  void Raycast( v3 inRayPos, v3 inRayDir, bool* outHit, v3* outHitPoint);
 };
 
 struct TacModelAssetManager
