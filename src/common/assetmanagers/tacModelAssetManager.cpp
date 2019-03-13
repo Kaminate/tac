@@ -95,6 +95,51 @@ static cgltf_attribute*  FindAttributeOfType(cgltf_primitive* parsedPrim, cgltf_
         return nullptr;
 }
 
+template< typename T >
+static TacVector< int > ConvertIndexes( cgltf_accessor* indices )
+{
+    T* indiciesData = (char*)indices->buffer_view->buffer->data + indices->buffer_view->offset;
+    TacVector< int > result((int)indices->count);
+    for (int i = 0; i < (int)indices->count; ++i)
+        result[i] = (int)indiciesData[i];
+    return result;
+}
+
+static void GetTris(  cgltf_primitive* parsedPrim , TacVector< TacArray< v3, 3 >>& tris )
+{
+  cgltf_attribute* posAttribute = FindAttributeOfType( parsedPrim, cgltf_attribute_type_position );
+  if( !posAttribute )
+      return;
+
+  TacVector< int > indexes;
+  switch( parsedPrim->indices->component_type )
+  {
+  case cgltf_component_type_r_8: indexes = ConvertIndexes<int8_t>( parsedPrim->indices ); break;
+  case cgltf_component_type_r_8u: indexes = ConvertIndexes<uint8_t>( parsedPrim->indices ); break;
+  case cgltf_component_type_r_16: indexes = ConvertIndexes<int16_t>( parsedPrim->indices ); break;
+  case cgltf_component_type_r_16u: indexes = ConvertIndexes<uint16_t>( parsedPrim->indices ); break;
+  case cgltf_component_type_r_32u: indexes = ConvertIndexes<uint32_t>( parsedPrim->indices ); break;
+  case cgltf_component_type_r_32f: indexes = ConvertIndexes<float>( parsedPrim->indices ); break;
+  default: break; // do nothing
+  }
+  if( indexes.empty() )
+      return;
+  
+  char* srcVtx = ( char* )posAttribute->data->buffer_view->buffer->data + posAttribute->data->offset;
+  TacArray< v3, 3 > tri = {};
+  int iVert = 0;
+  for( int i : indexes )
+  {
+       auto vert = ( v3* )( srcVtx + posAttribute->data->stride * i );
+       tri[ iVert++ ] = *vert;
+       if( iVert == 3 )
+       {
+           iVert = 0;
+           tris.push_back( tri );
+       }
+  }
+}
+
 void TacModelAssetManager::GetMesh( TacMesh** mesh, const TacString& path, TacVertexFormat* vertexFormat, TacErrors& errors )
 {
   auto bytes = TacTemporaryMemory( path, errors );
@@ -210,11 +255,7 @@ void TacModelAssetManager::GetMesh( TacMesh** mesh, const TacString& path, TacVe
       }
 
       TacVector< TacArray< v3, 3 >> tris;
-      cgltf_attribute* posAttribute = FindAttributeOfType( parsedPrim, cgltf_attribute_type_position );
-      if( posAttribute )
-      {
-          
-      }
+      GetTris( parsedPrim, tris );
 
       TacVertexBuffer* vertexBuffer;
       TacVertexBufferData vertexBufferData = {};
