@@ -394,6 +394,7 @@ void TacDebug3DDrawData::DrawToTexture( TacErrors& errors, const CBufferPerFrame
     drawCall.mDepthState = commonData->mDepthLess;
     drawCall.mIndexBuffer = nullptr;
     drawCall.mIndexCount = 0;
+    drawCall.mVertexCount = vertexCount;
     drawCall.mPrimitiveTopology = TacPrimitiveTopology::LineList;
     drawCall.mRasterizerState = commonData->mRasterizerStateNoCull;
     drawCall.mSamplerState = nullptr;

@@ -35,6 +35,7 @@ void TacModel::TacDebugImguiChangeModel()
       if( TacImGuiButton( filepath ) )
       {
         mGLTFPath = filepath;
+        mesh = nullptr;
       }
     }
   }

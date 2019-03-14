@@ -15,9 +15,9 @@
 #include "space/tacworld.h"
 #include "space/tacentity.h"
 
-  float farPlane = 10000.0f;
-  float nearPlane = 0.1f;
-  float fovyrad = 100.0f * ( 3.14f / 180.0f );
+float farPlane = 10000.0f;
+float nearPlane = 0.1f;
+float fovyrad = 100.0f * ( 3.14f / 180.0f );
 
 void TacCreationGameWindow::CreateGraphicsObjects( TacErrors& errors )
 {
@@ -143,29 +143,41 @@ void TacCreationGameWindow::SetImGuiGlobals()
   gTacImGuiGlobals.mUI2DDrawData = mUI2DDrawData;
   gTacImGuiGlobals.mKeyboardInput = mShell->mKeyboardInput;
 }
-
 void TacCreationGameWindow::MousePicking()
 {
   float w = ( float )mDesktopWindow->mWidth;
   float h = ( float )mDesktopWindow->mHeight;
-  float xNDC = 0;
-  float yNDC = 0;
+  v2 screenspaceCursorPos;
+  TacErrors errors;
+  TacOS::Instance->GetScreenspaceCursorPos( screenspaceCursorPos, errors );
+  if( errors.size() )
+    return;
+  float xNDC = ( ( screenspaceCursorPos.x - mDesktopWindow->mX ) / w );
+  float yNDC = ( ( screenspaceCursorPos.y - mDesktopWindow->mY ) / h );
+  yNDC = 1 - yNDC;
+  xNDC = xNDC * 2 - 1;
+  yNDC = yNDC * 2 - 1;
   float aspect = w / h;
   float theta = fovyrad / 2.0f;
   float cotTheta = 1.0f / std::tan( theta );
   float sX = cotTheta / aspect;
   float sY = cotTheta;
 
+  m4 view = M4View(
+    mCreation->mEditorCamPos,
+    mCreation->mEditorCamForwards,
+    mCreation->mEditorCamRight,
+    mCreation->mEditorCamUp );
   m4 viewInv = M4ViewInv(
-      mCreation->mEditorCamPos,
-      mCreation->mEditorCamForwards,
-      mCreation->mEditorCamRight,
-      mCreation->mEditorCamUp );
+    mCreation->mEditorCamPos,
+    mCreation->mEditorCamForwards,
+    mCreation->mEditorCamRight,
+    mCreation->mEditorCamUp );
   v3 viewSpaceMousePosNearPlane =
   {
-      xNDC / sX,
-      yNDC / sY,
-      -1,
+    xNDC / sX,
+    yNDC / sY,
+    -1,
   };
 
   v3 viewSpaceMouseDir = Normalize( viewSpaceMousePosNearPlane );
@@ -173,15 +185,27 @@ void TacCreationGameWindow::MousePicking()
   v4 worldSpaceMouseDir4 = viewInv * viewSpaceMouseDir4;
   v3 worldSpaceMouseDir = worldSpaceMouseDir4.xyz();
 
-  auto model = (TacModel* )mCreation->mSelectedEntity->GetComponent( TacComponentType::Model );
-  bool hit = false;
-  v3 hitPoint  = {};
-  v3 modelSpaceMousePos = mCreation->mEditorCamPos - mCreation->mSelectedEntity->mPosition;
-  v3 modelSpaceMouseDir = worldSpaceMouseDir;
-  model->mesh->Raycast( modelSpaceMousePos, modelSpaceMouseDir, &hit, &hitPoint );
+  for( TacEntity* entity : mCreation->mWorld->mEntities )
+  {
+    auto model = ( TacModel* )entity->GetComponent( TacComponentType::Model );
+    if( !model )
+      return;
+    if( !model->mesh )
+      return;
+    bool hit = false;
+    v3 modelSpaceHitPoint = {};
+    v3 modelSpaceMousePos = mCreation->mEditorCamPos - mCreation->mSelectedEntity->mPosition;
+    v3 modelSpaceMouseDir = worldSpaceMouseDir;
+    model->mesh->Raycast( modelSpaceMousePos, modelSpaceMouseDir, &hit, &modelSpaceHitPoint );
+    if( !hit )
+      continue;
+    v3 worldSpaceHitPoint = modelSpaceHitPoint + mCreation->mSelectedEntity->mPosition;
+    mDebug3DDrawData->DebugDrawSphere( worldSpaceHitPoint, 0.2f, v3( 1, 1, 0 ) );
+  }
 }
 void TacCreationGameWindow::RenderGameWorld()
 {
+  MousePicking();
 
   TacRenderer* renderer = mShell->mRenderer;
   m4 view = M4View(

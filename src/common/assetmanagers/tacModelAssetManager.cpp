@@ -227,7 +227,9 @@ void TacModelAssetManager::GetMesh( TacMesh** mesh, const TacString& path, TacVe
         TacFillDataType( gltfVertAttributeData, &srcFormat );
         TacAssert( vertexCount == ( int )gltfVertAttributeData->count );
         char* dstVtx = dstVtxs.data();
-        char* srcVtx = ( char* )gltfVertAttributeData->buffer_view->buffer->data + gltfVertAttributeData->offset;
+        char* srcVtx = ( char* )gltfVertAttributeData->buffer_view->buffer->data +
+          gltfVertAttributeData->offset +
+          gltfVertAttributeData->buffer_view->offset;
         int elementCount = TacMin( dstFormat.mElementCount, srcFormat.mElementCount );
         for( int iVert = 0; iVert < vertexCount; ++iVert )
         { 
@@ -342,7 +344,7 @@ void TacSubMesh::Raycast( v3 inRayPos, v3 inRayDir, bool* outHit, v3* outHitPoin
         bool hit = RaycastTriangle( tri[ 0 ], tri[ 1 ], tri[2 ], inRayPos, inRayDir, dist );
         if( !hit )
             continue;
-        v3 hitPoint = {};
+        v3 hitPoint = inRayPos + inRayDir * dist;
         if( *outHit && dist > minDist )
             continue;
         minDist = dist;

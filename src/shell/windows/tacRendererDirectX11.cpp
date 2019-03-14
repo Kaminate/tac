@@ -658,9 +658,9 @@ void TacRendererDirectX11::RenderFlush()
       TacAssert( mCurrentlyBoundShader );
       mDeviceContext->DrawIndexed( drawCall.mIndexCount, drawCall.mStartIndex, 0 );
     }
-    else if( drawCall.mVertexBuffer && drawCall.mVertexBuffer->mNumVertexes )
+    else if( drawCall.mVertexBuffer && drawCall.mVertexCount )
     {
-      mDeviceContext->Draw( drawCall.mVertexBuffer->mNumVertexes, 0 );
+      mDeviceContext->Draw( drawCall.mVertexCount, 0 );
     }
   }
   mDrawCall2s.clear();

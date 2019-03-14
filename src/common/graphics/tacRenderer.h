@@ -376,6 +376,7 @@ struct TacDrawCall2
   TacIndexBuffer* mIndexBuffer = nullptr;
   int mStartIndex = 0;
   int mIndexCount = 0;
+  int mVertexCount = 0;
   TacRenderView* mView = nullptr;
   TacBlendState* mBlendState = nullptr;
   TacRasterizerState* mRasterizerState = nullptr;
