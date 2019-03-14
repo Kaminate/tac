@@ -98,7 +98,7 @@ static cgltf_attribute*  FindAttributeOfType(cgltf_primitive* parsedPrim, cgltf_
 template< typename T >
 static TacVector< int > ConvertIndexes( cgltf_accessor* indices )
 {
-    T* indiciesData = (char*)indices->buffer_view->buffer->data + indices->buffer_view->offset;
+    auto indiciesData = ( T* )( (char*)indices->buffer_view->buffer->data + indices->buffer_view->offset );
     TacVector< int > result((int)indices->count);
     for (int i = 0; i < (int)indices->count; ++i)
         result[i] = (int)indiciesData[i];

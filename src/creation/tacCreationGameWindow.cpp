@@ -15,6 +15,10 @@
 #include "space/tacworld.h"
 #include "space/tacentity.h"
 
+  float farPlane = 10000.0f;
+  float nearPlane = 0.1f;
+  float fovyrad = 100.0f * ( 3.14f / 180.0f );
+
 void TacCreationGameWindow::CreateGraphicsObjects( TacErrors& errors )
 {
   TacRenderer* renderer = mShell->mRenderer;
@@ -139,6 +143,43 @@ void TacCreationGameWindow::SetImGuiGlobals()
   gTacImGuiGlobals.mUI2DDrawData = mUI2DDrawData;
   gTacImGuiGlobals.mKeyboardInput = mShell->mKeyboardInput;
 }
+
+void TacCreationGameWindow::MousePicking()
+{
+  float w = ( float )mDesktopWindow->mWidth;
+  float h = ( float )mDesktopWindow->mHeight;
+  float xNDC = 0;
+  float yNDC = 0;
+  float aspect = w / h;
+  float theta = fovyrad / 2.0f;
+  float cotTheta = 1.0f / std::tan( theta );
+  float sX = cotTheta / aspect;
+  float sY = cotTheta;
+
+  m4 viewInv = M4ViewInv(
+      mCreation->mEditorCamPos,
+      mCreation->mEditorCamForwards,
+      mCreation->mEditorCamRight,
+      mCreation->mEditorCamUp );
+  v3 viewSpaceMousePosNearPlane =
+  {
+      xNDC / sX,
+      yNDC / sY,
+      -1,
+  };
+
+  v3 viewSpaceMouseDir = Normalize( viewSpaceMousePosNearPlane );
+  v4 viewSpaceMouseDir4 = v4( viewSpaceMouseDir, 0 );
+  v4 worldSpaceMouseDir4 = viewInv * viewSpaceMouseDir4;
+  v3 worldSpaceMouseDir = worldSpaceMouseDir4.xyz();
+
+  auto model = (TacModel* )mCreation->mSelectedEntity->GetComponent( TacComponentType::Model );
+  bool hit = false;
+  v3 hitPoint  = {};
+  v3 modelSpaceMousePos = mCreation->mEditorCamPos - mCreation->mSelectedEntity->mPosition;
+  v3 modelSpaceMouseDir = worldSpaceMouseDir;
+  model->mesh->Raycast( modelSpaceMousePos, modelSpaceMouseDir, &hit, &hitPoint );
+}
 void TacCreationGameWindow::RenderGameWorld()
 {
 
@@ -148,14 +189,11 @@ void TacCreationGameWindow::RenderGameWorld()
     mCreation->mEditorCamForwards,
     mCreation->mEditorCamRight,
     mCreation->mEditorCamUp );
-  float farPlane = 10000.0f;
-  float nearPlane = 0.1f;
   float w = ( float )mDesktopWindow->mWidth;
   float h = ( float )mDesktopWindow->mHeight;
   float a;
   float b;
   renderer->GetPerspectiveProjectionAB( farPlane, nearPlane, a, b );
-  float fovyrad = 100.0f * ( 3.14f / 180.0f );
   float aspect = w / h;
   m4 proj = M4ProjPerspective( a, b, fovyrad, aspect );
   TacEntity* entity = mCreation->mSelectedEntity;
@@ -176,10 +214,6 @@ void TacCreationGameWindow::RenderGameWorld()
     mDebug3DDrawData->DebugDrawArrow( entity->mPosition, entity->mPosition + y * arrowLen, grn );
     mDebug3DDrawData->DebugDrawArrow( entity->mPosition, entity->mPosition + z * arrowLen, blu );
   }
-
-
-
-
 
   CBufferPerFrame perFrameData;
   perFrameData.mFar = farPlane;

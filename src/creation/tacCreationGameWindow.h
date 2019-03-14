@@ -24,6 +24,7 @@ struct TacCreationGameWindow
   void Init( TacErrors& errors );
   void Update( TacErrors& errors );
   void RenderGameWorld();
+  void MousePicking();
   void SetImGuiGlobals();
   void CreateGraphicsObjects( TacErrors& errors);
   void DrawPlaybackOverlay( TacErrors& errors );
