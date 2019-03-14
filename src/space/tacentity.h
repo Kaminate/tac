@@ -13,6 +13,7 @@ struct TacEntity
   ~TacEntity();
   void RemoveAllComponents();
   TacComponent* GetComponent( TacComponentType type );
+  const TacComponent* GetComponent( TacComponentType type ) const;
   bool HasComponent( TacComponentType componentType );
   TacComponent* AddNewComponent( TacComponentType componentType );
   void RemoveComponent( TacComponentType type );

@@ -6,6 +6,7 @@
 #include "common/graphics/tacUI2D.h"
 #include "common/graphics/tacUI.h"
 #include "common/graphics/tacImGui.h"
+#include "common/tackeyboardinput.h"
 #include "common/graphics/tacDebug3D.h"
 #include "common/assetmanagers/tacTextureAssetManager.h"
 #include "common/assetmanagers/tacModelAssetManager.h"
@@ -14,6 +15,7 @@
 #include "space/tacgraphics.h"
 #include "space/tacworld.h"
 #include "space/tacentity.h"
+#include <WinString.h>
 
 float farPlane = 10000.0f;
 float nearPlane = 0.1f;
@@ -145,6 +147,33 @@ void TacCreationGameWindow::SetImGuiGlobals()
 }
 void TacCreationGameWindow::MousePicking()
 {
+    TacEntity* closest = nullptr;
+    float closestDist = 0;
+  for( TacEntity* entity : mCreation->mWorld->mEntities )
+  {
+      bool hit;
+      v3 worldSpaceHitPoint;
+      MousePicking( entity, &hit, &worldSpaceHitPoint );
+      if( !hit )
+          continue;
+      float dist = Distance( mCreation->mEditorCamPos, worldSpaceHitPoint );
+      if( closest && closestDist < dist )
+          continue;
+
+      closestDist = dist;
+      closest = entity;
+
+  }
+  if( closest )
+  {
+      v3 worldSpaceHitPoint = mCreation->mEditorCamPos + closestDist * worldSpaceMouseDir;
+      mDebug3DDrawData->DebugDrawSphere( worldSpaceHitPoint, 0.2f, v3( 1, 1, 0 ) );
+      if( mShell->mKeyboardInput->IsKeyJustDown( TacKey::MouseLeft )) 
+            mCreation->mSelectedEntity = closest;
+  }
+}
+void TacCreationGameWindow::MousePickingInit()
+{
   float w = ( float )mDesktopWindow->mWidth;
   float h = ( float )mDesktopWindow->mHeight;
   v2 screenspaceCursorPos;
@@ -178,27 +207,24 @@ void TacCreationGameWindow::MousePicking()
   v3 viewSpaceMouseDir = Normalize( viewSpaceMousePosNearPlane );
   v4 viewSpaceMouseDir4 = v4( viewSpaceMouseDir, 0 );
   v4 worldSpaceMouseDir4 = viewInv * viewSpaceMouseDir4;
-  v3 worldSpaceMouseDir = worldSpaceMouseDir4.xyz();
-
-  for( TacEntity* entity : mCreation->mWorld->mEntities )
-  {
-    auto model = ( TacModel* )entity->GetComponent( TacComponentType::Model );
+  worldSpaceMouseDir = worldSpaceMouseDir4.xyz();
+}
+void TacCreationGameWindow::MousePicking(const TacEntity* entity, bool* hit, v3* worldSpaceHitPoint)
+{
+    *hit = false;
+    auto model = ( const TacModel* )entity->GetComponent( TacComponentType::Model );
     if( !model )
       return;
     if( !model->mesh )
       return;
-    bool hit = false;
     v3 modelSpaceHitPoint = {};
     v3 modelSpaceMousePos = mCreation->mEditorCamPos - mCreation->mSelectedEntity->mPosition;
     v3 modelSpaceMouseDir = worldSpaceMouseDir;
-    model->mesh->Raycast( modelSpaceMousePos, modelSpaceMouseDir, &hit, &modelSpaceHitPoint );
-    if( !hit )
-      continue;
-    v3 worldSpaceHitPoint = modelSpaceHitPoint + mCreation->mSelectedEntity->mPosition;
-    mDebug3DDrawData->DebugDrawSphere( worldSpaceHitPoint, 0.2f, v3( 1, 1, 0 ) );
-  }
+    model->mesh->Raycast( modelSpaceMousePos, modelSpaceMouseDir, hit, &modelSpaceHitPoint );
+    if( !*hit )
+      return;
+    *worldSpaceHitPoint = modelSpaceHitPoint + mCreation->mSelectedEntity->mPosition;
 }
-
 void TacCreationGameWindow::AddDrawCall( const TacMesh* mesh, const CBufferPerObject& cbuf )
 {
     TacRenderer* renderer = mShell->mRenderer;
@@ -362,6 +388,7 @@ void TacCreationGameWindow::Update( TacErrors& errors )
     TAC_HANDLE_ERROR( errors );
   }
 
+  MousePickingInit();
   RenderGameWorld();
   TAC_HANDLE_ERROR( errors );
 

@@ -44,6 +44,10 @@ TacComponent* TacEntity::GetComponent( TacComponentType type )
       return component;
   return nullptr;
 }
+const TacComponent* TacEntity::GetComponent( TacComponentType type ) const
+{
+    return GetComponent( type );
+}
 
 bool TacEntity::HasComponent( TacComponentType componentType )
 {

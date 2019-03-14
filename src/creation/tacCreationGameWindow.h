@@ -1,7 +1,10 @@
 #pragma once
 
 #include "common/tacString.h"
+#include "common/math/tacVector3.h"
 
+struct TacEntity;
+struct TacModel;
 struct TacErrors;
 struct TacDesktopWindow;
 struct TacCreation;
@@ -26,6 +29,8 @@ struct TacCreationGameWindow
   void Init( TacErrors& errors );
   void Update( TacErrors& errors );
   void RenderGameWorld();
+  void MousePickingInit();
+  void MousePicking(const TacEntity* entity, bool* hit, v3* worldSpaceHitPoint);
   void MousePicking();
   void AddDrawCall( const TacMesh* mesh, const CBufferPerObject& cbuf );
   void SetImGuiGlobals();
@@ -48,6 +53,8 @@ struct TacCreationGameWindow
   TacRasterizerState* mRasterizerState = nullptr;
   TacSamplerState* mSamplerState = nullptr;
   TacDebug3DDrawData* mDebug3DDrawData = nullptr;
+
+  v3 worldSpaceMouseDir = {};
 };
 
 
