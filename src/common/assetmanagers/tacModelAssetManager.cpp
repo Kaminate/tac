@@ -278,9 +278,17 @@ void TacModelAssetManager::GetMesh( TacMesh** mesh, const TacString& path, TacVe
     }
   }
 
+  m4 transform = m4::Identity();
+  cgltf_node* node = parsedData->scene->nodes[ 0 ];
+  if( node->has_translation )
+  {
+     transform = M4Translate( node->translation[ 0 ], node->translation[ 1 ], node->translation[ 2 ] );
+  }
+
   auto newMesh = new TacMesh;
   newMesh->mSubMeshes = submeshes;
   newMesh->mVertexFormat = vertexFormat;
+  newMesh->mTransform = transform;
   *mesh = newMesh;
 
   //* `cgltf_result cgltf_load_buffers( const cgltf_options*, cgltf_data*,

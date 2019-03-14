@@ -18,6 +18,8 @@ struct TacDepthState;
 struct TacBlendState;
 struct TacRasterizerState;
 struct TacSamplerState;
+struct TacMesh;
+struct CBufferPerObject;
 
 struct TacCreationGameWindow
 {
@@ -25,6 +27,7 @@ struct TacCreationGameWindow
   void Update( TacErrors& errors );
   void RenderGameWorld();
   void MousePicking();
+  void AddDrawCall( const TacMesh* mesh, const CBufferPerObject& cbuf );
   void SetImGuiGlobals();
   void CreateGraphicsObjects( TacErrors& errors);
   void DrawPlaybackOverlay( TacErrors& errors );

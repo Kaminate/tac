@@ -4,6 +4,7 @@
 #include "common/containers/tacVector.h"
 #include "common/containers/tacArray.h"
 #include "common/math/tacVector3.h"
+#include "common/math/tacMatrix4.h"
 
 
 struct TacLoadingMesh;
@@ -29,6 +30,7 @@ struct TacMesh
   TacVector< TacSubMesh > mSubMeshes;
   TacVertexFormat* mVertexFormat = nullptr;
   void Raycast( v3 inRayPos, v3 inRayDir, bool* outHit, v3* outHitPoint);
+  m4 mTransform = m4::Identity();
 };
 
 struct TacModelAssetManager

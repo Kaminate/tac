@@ -163,11 +163,6 @@ void TacCreationGameWindow::MousePicking()
   float sX = cotTheta / aspect;
   float sY = cotTheta;
 
-  m4 view = M4View(
-    mCreation->mEditorCamPos,
-    mCreation->mEditorCamForwards,
-    mCreation->mEditorCamRight,
-    mCreation->mEditorCamUp );
   m4 viewInv = M4ViewInv(
     mCreation->mEditorCamPos,
     mCreation->mEditorCamForwards,
@@ -203,11 +198,37 @@ void TacCreationGameWindow::MousePicking()
     mDebug3DDrawData->DebugDrawSphere( worldSpaceHitPoint, 0.2f, v3( 1, 1, 0 ) );
   }
 }
+
+void TacCreationGameWindow::AddDrawCall( const TacMesh* mesh, const CBufferPerObject& cbuf )
+{
+    TacRenderer* renderer = mShell->mRenderer;
+    for( const TacSubMesh& subMesh : mesh->mSubMeshes )
+    {
+      TacDrawCall2 drawCall = {};
+      drawCall.mShader = mesh->mVertexFormat->shader;
+      drawCall.mVertexBuffer = subMesh.mVertexBuffer;
+      drawCall.mIndexBuffer = subMesh.mIndexBuffer;
+      drawCall.mStartIndex = 0;
+      drawCall.mIndexCount = subMesh.mIndexBuffer->indexCount;
+      drawCall.mView = mDesktopWindow->mRenderView;
+      drawCall.mBlendState = mBlendState;
+      drawCall.mRasterizerState = mRasterizerState;
+      drawCall.mSamplerState = mSamplerState;
+      drawCall.mDepthState = mDepthState;
+      drawCall.mVertexFormat = mesh->mVertexFormat;
+      drawCall.mTexture = nullptr;
+      drawCall.mUniformDst = mPerObj;
+      drawCall.mUniformSrcc = TacTemporaryMemory( &cbuf, sizeof( CBufferPerObject ) );
+      drawCall.mStackFrame = TAC_STACK_FRAME;
+      renderer->AddDrawCall( drawCall );
+    }
+}
 void TacCreationGameWindow::RenderGameWorld()
 {
   MousePicking();
 
   TacRenderer* renderer = mShell->mRenderer;
+  TacModelAssetManager* modelAssetManager = mShell->mModelAssetManager;
   m4 view = M4View(
     mCreation->mEditorCamPos,
     mCreation->mEditorCamForwards,
@@ -226,17 +247,26 @@ void TacCreationGameWindow::RenderGameWorld()
     v3 pos = entity->mPosition;
     v4 posVS4 = view * v4( pos, 1 );
     float clip_height = std::abs( std::tan( fovyrad / 2.0f ) * posVS4.z * 2.0f );
-    auto graphics = ( TacGraphics* )mCreation->mWorld->GetSystem( TacSystemType::Graphics );
-    v3 x = { 1, 0, 0 };
-    v3 y = { 0, 1, 0 };
-    v3 z = { 0, 0, 1 };
-    v3 red = { 1, 0, 0 };
-    v3 grn = { 0, 1, 0 };
-    v3 blu = { 0, 0, 1 };
     float arrowLen = clip_height * 0.3f;
-    mDebug3DDrawData->DebugDrawArrow( entity->mPosition, entity->mPosition + x * arrowLen, red );
-    mDebug3DDrawData->DebugDrawArrow( entity->mPosition, entity->mPosition + y * arrowLen, grn );
-    mDebug3DDrawData->DebugDrawArrow( entity->mPosition, entity->mPosition + z * arrowLen, blu );
+    static TacMesh* mesh;
+    if( !mesh )
+    {
+      TacErrors errors;
+      modelAssetManager->GetMesh( &mesh, "assets/editor/arrow.gltf", m3DVertexFormat, errors );
+      TacAssert( errors.empty() );
+    }
+    CBufferPerObject perObjectData;
+    perObjectData.Color = { 1, 0, 0, 1 };
+    perObjectData.World = M4Translate( entity->mPosition ) * M4RotRadZ( -3.14f / 2.0f ) * M4Scale( v3( 1, 1, 1 ) * arrowLen ) * mesh->mTransform;
+    AddDrawCall( mesh, perObjectData );
+
+    perObjectData.Color = { 0, 1, 0, 1 };
+    perObjectData.World = M4Translate( entity->mPosition ) * M4Scale( v3( 1, 1, 1 ) * arrowLen ) * mesh->mTransform;
+    AddDrawCall( mesh, perObjectData );
+
+    perObjectData.Color = { 0, 0, 1, 1 };
+    perObjectData.World = M4Translate( entity->mPosition ) * M4RotRadX( 3.14f / 2.0f ) * M4Scale( v3( 1, 1, 1 ) * arrowLen ) * mesh->mTransform;
+    AddDrawCall( mesh, perObjectData );
   }
 
   CBufferPerFrame perFrameData;
@@ -257,7 +287,6 @@ void TacCreationGameWindow::RenderGameWorld()
   auto graphics = ( TacGraphics* )world->GetSystem( TacSystemType::Graphics );
   for( TacModel* model : graphics->mModels )
   {
-    TacModelAssetManager* modelAssetManager = mShell->mModelAssetManager;
     TacMesh* mesh = model->mesh;
     if( !mesh )
     {
@@ -275,27 +304,7 @@ void TacCreationGameWindow::RenderGameWorld()
     CBufferPerObject perObjectData;
     perObjectData.Color = { 0.23f, 0.7f, 0.5f, 1 };
     perObjectData.World = M4Translate( model->mEntity->mPosition );
-
-    for( const TacSubMesh& subMesh : mesh->mSubMeshes )
-    {
-      TacDrawCall2 drawCall = {};
-      drawCall.mShader = mesh->mVertexFormat->shader;
-      drawCall.mVertexBuffer = subMesh.mVertexBuffer;
-      drawCall.mIndexBuffer = subMesh.mIndexBuffer;
-      drawCall.mStartIndex = 0;
-      drawCall.mIndexCount = subMesh.mIndexBuffer->indexCount;
-      drawCall.mView = mDesktopWindow->mRenderView;
-      drawCall.mBlendState = mBlendState;
-      drawCall.mRasterizerState = mRasterizerState;
-      drawCall.mSamplerState = mSamplerState;
-      drawCall.mDepthState = mDepthState;
-      drawCall.mVertexFormat = mesh->mVertexFormat;
-      drawCall.mTexture = nullptr;
-      drawCall.mUniformDst = mPerObj;
-      drawCall.mUniformSrcc = TacTemporaryMemory( &perObjectData, sizeof( CBufferPerObject ) );
-      drawCall.mStackFrame = TAC_STACK_FRAME;
-      renderer->AddDrawCall( drawCall );
-    }
+    AddDrawCall( mesh, perObjectData );
   }
   renderer->DebugBegin( "Render game world" );
   renderer->RenderFlush();

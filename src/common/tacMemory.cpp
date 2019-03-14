@@ -17,7 +17,7 @@ TacVector< char > TacTemporaryMemory( const TacString& path, TacErrors& errors )
   ifs.read( result.data(), byteCount );
   return result;
 }
-TacVector< char > TacTemporaryMemory( void* bytes, int byteCount )
+TacVector< char > TacTemporaryMemory( const void* bytes, int byteCount )
 {
   TacVector< char > result( byteCount );
   TacMemCpy( result.data(), bytes, byteCount );

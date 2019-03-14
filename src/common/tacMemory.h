@@ -6,7 +6,7 @@
 #include "common/containers/tacVector.h"
 
 TacVector< char > TacTemporaryMemory( const TacString& path, TacErrors& errors );
-TacVector< char > TacTemporaryMemory( void* bytes, int byteCount );
+TacVector< char > TacTemporaryMemory( const void* bytes, int byteCount );
 template< typename T >
 TacVector< char > TacTemporaryMemory( const T& t ) { return TacTemporaryMemory( ( void* )&t, ( int )sizeof( T ) ); }
 void TacWriteToFile( const TacString& path,  void* bytes, int byteCount , TacErrors& errors );
