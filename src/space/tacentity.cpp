@@ -46,7 +46,10 @@ TacComponent* TacEntity::GetComponent( TacComponentType type )
 }
 const TacComponent* TacEntity::GetComponent( TacComponentType type ) const
 {
-    return GetComponent( type );
+  for( auto component : mComponents )
+    if( component->GetComponentType() == type )
+      return component;
+  return nullptr;
 }
 
 bool TacEntity::HasComponent( TacComponentType componentType )

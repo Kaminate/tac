@@ -107,6 +107,8 @@ void TacCreationGameWindow::Init( TacErrors& errors )
 {
   TacShell* shell = mShell;
   TacRenderer* renderer = mShell->mRenderer;
+  TacModelAssetManager* modelAssetManager = mShell->mModelAssetManager;
+
   auto uI2DDrawData = new TacUI2DDrawData();
   uI2DDrawData->mUI2DCommonData = shell->mUI2DCommonData;
   uI2DDrawData->mRenderView = mDesktopWindow->mRenderView;
@@ -117,6 +119,9 @@ void TacCreationGameWindow::Init( TacErrors& errors )
   mUIRoot->mKeyboardInput = mShell->mKeyboardInput;
   mUIRoot->mDesktopWindow = mDesktopWindow;
   CreateGraphicsObjects( errors );
+  TAC_HANDLE_ERROR( errors );
+
+  modelAssetManager->GetMesh( &mArrow, "assets/editor/arrow.gltf", m3DVertexFormat, errors );
   TAC_HANDLE_ERROR( errors );
 
   mDebug3DDrawData = new TacDebug3DDrawData;
@@ -147,29 +152,72 @@ void TacCreationGameWindow::SetImGuiGlobals()
 }
 void TacCreationGameWindow::MousePicking()
 {
-    TacEntity* closest = nullptr;
-    float closestDist = 0;
+  enum PickedObject
+  {
+    None,
+    Entity,
+    Arrow,
+  } pickedObject = PickedObject::None;
+
+  union
+  {
+    TacEntity* closest;
+    v3 pickedArrowDir;
+  };
+
+  float closestDist = 0;
+  bool hit;
+  float dist;
+  auto IsNewClosest = [&]()
+  {
+    if( !hit )
+      return false;
+    if( pickedObject != PickedObject::None && dist > closestDist )
+      return false;
+    return true;
+  };
+
   for( TacEntity* entity : mCreation->mWorld->mEntities )
   {
-      bool hit;
-      v3 worldSpaceHitPoint;
-      MousePicking( entity, &hit, &worldSpaceHitPoint );
-      if( !hit )
-          continue;
-      float dist = Distance( mCreation->mEditorCamPos, worldSpaceHitPoint );
-      if( closest && closestDist < dist )
-          continue;
-
-      closestDist = dist;
-      closest = entity;
-
+    MousePicking( entity, &hit, &dist );
+    if( !IsNewClosest() )
+      continue;
+    closestDist = dist;
+    closest = entity;
+    pickedObject = PickedObject::Entity;
   }
-  if( closest )
+
+  if( mCreation->mSelectedEntity )
   {
-      v3 worldSpaceHitPoint = mCreation->mEditorCamPos + closestDist * worldSpaceMouseDir;
-      mDebug3DDrawData->DebugDrawSphere( worldSpaceHitPoint, 0.2f, v3( 1, 1, 0 ) );
-      if( mShell->mKeyboardInput->IsKeyJustDown( TacKey::MouseLeft )) 
-            mCreation->mSelectedEntity = closest;
+    v3 modelSpaceRayPos = mCreation->mEditorCamPos - mCreation->mSelectedEntity->mPosition;
+    v3 modelSpaceRayDir = worldSpaceMouseDir;
+    for( int i = 0; i < 3; ++i )
+    {
+      mArrow->Raycast( modelSpaceRayPos, modelSpaceRayDir, &hit, &dist );
+      if( !IsNewClosest() )
+        continue;
+      closestDist = dist;
+      pickedObject = PickedObject::Arrow;
+      std::cout << "ARROW" << std::endl;
+    }
+  }
+
+  if( pickedObject == PickedObject::None )
+    return;
+
+  v3 worldSpaceHitPoint = mCreation->mEditorCamPos + closestDist * worldSpaceMouseDir;
+  mDebug3DDrawData->DebugDrawSphere( worldSpaceHitPoint, 0.2f, v3( 1, 1, 0 ) );
+
+  if( !mShell->mKeyboardInput->IsKeyJustDown( TacKey::MouseLeft ) )
+    return;
+
+  switch( pickedObject )
+  {
+    case PickedObject::Arrow:
+      break;
+    case PickedObject::Entity:
+      mCreation->mSelectedEntity = closest;
+      break;
   }
 }
 void TacCreationGameWindow::MousePickingInit()
@@ -209,45 +257,58 @@ void TacCreationGameWindow::MousePickingInit()
   v4 worldSpaceMouseDir4 = viewInv * viewSpaceMouseDir4;
   worldSpaceMouseDir = worldSpaceMouseDir4.xyz();
 }
-void TacCreationGameWindow::MousePicking(const TacEntity* entity, bool* hit, v3* worldSpaceHitPoint)
+void TacCreationGameWindow::MousePicking( const TacEntity* entity, bool* hit, float* dist )
 {
-    *hit = false;
-    auto model = ( const TacModel* )entity->GetComponent( TacComponentType::Model );
-    if( !model )
-      return;
-    if( !model->mesh )
-      return;
-    v3 modelSpaceHitPoint = {};
-    v3 modelSpaceMousePos = mCreation->mEditorCamPos - mCreation->mSelectedEntity->mPosition;
-    v3 modelSpaceMouseDir = worldSpaceMouseDir;
-    model->mesh->Raycast( modelSpaceMousePos, modelSpaceMouseDir, hit, &modelSpaceHitPoint );
-    if( !*hit )
-      return;
-    *worldSpaceHitPoint = modelSpaceHitPoint + mCreation->mSelectedEntity->mPosition;
+  *hit = false;
+  auto model = ( const TacModel* )entity->GetComponent( TacComponentType::Model );
+  if( !model )
+    return;
+  if( !model->mesh )
+    return;
+  v3 modelSpaceHitPoint = {};
+  v3 modelSpaceMousePos = mCreation->mEditorCamPos - entity->mPosition;
+  v3 modelSpaceMouseDir = worldSpaceMouseDir;
+  model->mesh->Raycast( modelSpaceMousePos, modelSpaceMouseDir, hit, dist );
 }
 void TacCreationGameWindow::AddDrawCall( const TacMesh* mesh, const CBufferPerObject& cbuf )
 {
-    TacRenderer* renderer = mShell->mRenderer;
-    for( const TacSubMesh& subMesh : mesh->mSubMeshes )
-    {
-      TacDrawCall2 drawCall = {};
-      drawCall.mShader = mesh->mVertexFormat->shader;
-      drawCall.mVertexBuffer = subMesh.mVertexBuffer;
-      drawCall.mIndexBuffer = subMesh.mIndexBuffer;
-      drawCall.mStartIndex = 0;
-      drawCall.mIndexCount = subMesh.mIndexBuffer->indexCount;
-      drawCall.mView = mDesktopWindow->mRenderView;
-      drawCall.mBlendState = mBlendState;
-      drawCall.mRasterizerState = mRasterizerState;
-      drawCall.mSamplerState = mSamplerState;
-      drawCall.mDepthState = mDepthState;
-      drawCall.mVertexFormat = mesh->mVertexFormat;
-      drawCall.mTexture = nullptr;
-      drawCall.mUniformDst = mPerObj;
-      drawCall.mUniformSrcc = TacTemporaryMemory( &cbuf, sizeof( CBufferPerObject ) );
-      drawCall.mStackFrame = TAC_STACK_FRAME;
-      renderer->AddDrawCall( drawCall );
-    }
+  TacRenderer* renderer = mShell->mRenderer;
+  for( const TacSubMesh& subMesh : mesh->mSubMeshes )
+  {
+    TacDrawCall2 drawCall = {};
+    drawCall.mShader = mesh->mVertexFormat->shader;
+    drawCall.mVertexBuffer = subMesh.mVertexBuffer;
+    drawCall.mIndexBuffer = subMesh.mIndexBuffer;
+    drawCall.mStartIndex = 0;
+    drawCall.mIndexCount = subMesh.mIndexBuffer->indexCount;
+    drawCall.mView = mDesktopWindow->mRenderView;
+    drawCall.mBlendState = mBlendState;
+    drawCall.mRasterizerState = mRasterizerState;
+    drawCall.mSamplerState = mSamplerState;
+    drawCall.mDepthState = mDepthState;
+    drawCall.mVertexFormat = mesh->mVertexFormat;
+    drawCall.mTexture = nullptr;
+    drawCall.mUniformDst = mPerObj;
+    drawCall.mUniformSrcc = TacTemporaryMemory( &cbuf, sizeof( CBufferPerObject ) );
+    drawCall.mStackFrame = TAC_STACK_FRAME;
+    renderer->AddDrawCall( drawCall );
+  }
+}
+void TacCreationGameWindow::ComputeArrowLen()
+{
+  m4 view = M4View(
+    mCreation->mEditorCamPos,
+    mCreation->mEditorCamForwards,
+    mCreation->mEditorCamRight,
+    mCreation->mEditorCamUp );
+  TacEntity* entity = mCreation->mSelectedEntity;
+  if( !entity )
+    return;
+  v3 pos = entity->mPosition;
+  v4 posVS4 = view * v4( pos, 1 );
+  float clip_height = std::abs( std::tan( fovyrad / 2.0f ) * posVS4.z * 2.0f );
+  float arrowLen = clip_height * 0.3f;
+  mArrowLen = arrowLen;
 }
 void TacCreationGameWindow::RenderGameWorld()
 {
@@ -270,29 +331,25 @@ void TacCreationGameWindow::RenderGameWorld()
   TacEntity* entity = mCreation->mSelectedEntity;
   if( entity )
   {
-    v3 pos = entity->mPosition;
-    v4 posVS4 = view * v4( pos, 1 );
-    float clip_height = std::abs( std::tan( fovyrad / 2.0f ) * posVS4.z * 2.0f );
-    float arrowLen = clip_height * 0.3f;
-    static TacMesh* mesh;
-    if( !mesh )
+    v3 colors[] = {
+      { 1, 0, 0 },
+      { 0, 1, 0 },
+      { 0, 0, 1 }, };
+    m4 rots[] = {
+      M4RotRadZ( -3.14f / 2.0f ),
+      m4::Identity(),
+      M4RotRadX( 3.14f / 2.0f ), };
+
+    for( int i = 0; i < 3; ++i )
     {
-      TacErrors errors;
-      modelAssetManager->GetMesh( &mesh, "assets/editor/arrow.gltf", m3DVertexFormat, errors );
-      TacAssert( errors.empty() );
+      CBufferPerObject perObjectData;
+      perObjectData.Color = { colors[ i ], 1 };
+      perObjectData.World = M4Translate( entity->mPosition ) *
+        rots[ i ] *
+        M4Scale( v3( 1, 1, 1 ) * mArrowLen ) *
+        mArrow->mTransform;
+      AddDrawCall( mArrow, perObjectData );
     }
-    CBufferPerObject perObjectData;
-    perObjectData.Color = { 1, 0, 0, 1 };
-    perObjectData.World = M4Translate( entity->mPosition ) * M4RotRadZ( -3.14f / 2.0f ) * M4Scale( v3( 1, 1, 1 ) * arrowLen ) * mesh->mTransform;
-    AddDrawCall( mesh, perObjectData );
-
-    perObjectData.Color = { 0, 1, 0, 1 };
-    perObjectData.World = M4Translate( entity->mPosition ) * M4Scale( v3( 1, 1, 1 ) * arrowLen ) * mesh->mTransform;
-    AddDrawCall( mesh, perObjectData );
-
-    perObjectData.Color = { 0, 0, 1, 1 };
-    perObjectData.World = M4Translate( entity->mPosition ) * M4RotRadX( 3.14f / 2.0f ) * M4Scale( v3( 1, 1, 1 ) * arrowLen ) * mesh->mTransform;
-    AddDrawCall( mesh, perObjectData );
   }
 
   CBufferPerFrame perFrameData;
@@ -389,6 +446,7 @@ void TacCreationGameWindow::Update( TacErrors& errors )
   }
 
   MousePickingInit();
+  ComputeArrowLen();
   RenderGameWorld();
   TAC_HANDLE_ERROR( errors );
 

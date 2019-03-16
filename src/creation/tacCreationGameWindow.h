@@ -9,7 +9,7 @@ struct TacErrors;
 struct TacDesktopWindow;
 struct TacCreation;
 struct TacUIRoot;
-  struct TacDebug3DDrawData;
+struct TacDebug3DDrawData;
 struct TacUI2DDrawData;
 struct TacSoul;
 struct TacShell;
@@ -30,11 +30,12 @@ struct TacCreationGameWindow
   void Update( TacErrors& errors );
   void RenderGameWorld();
   void MousePickingInit();
-  void MousePicking(const TacEntity* entity, bool* hit, v3* worldSpaceHitPoint);
+  void MousePicking( const TacEntity* entity, bool* hit, float* dist );
   void MousePicking();
   void AddDrawCall( const TacMesh* mesh, const CBufferPerObject& cbuf );
   void SetImGuiGlobals();
-  void CreateGraphicsObjects( TacErrors& errors);
+  void ComputeArrowLen();
+  void CreateGraphicsObjects( TacErrors& errors );
   void DrawPlaybackOverlay( TacErrors& errors );
   void PlayGame( TacErrors& errors );
 
@@ -54,7 +55,9 @@ struct TacCreationGameWindow
   TacSamplerState* mSamplerState = nullptr;
   TacDebug3DDrawData* mDebug3DDrawData = nullptr;
 
+  TacMesh* mArrow = nullptr;
   v3 worldSpaceMouseDir = {};
+  float mArrowLen = 0;
 };
 
 

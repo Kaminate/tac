@@ -16,12 +16,12 @@ static cgltf_attribute_type GetGltfFromAttribute( TacAttribute attributeType )
 {
   switch( attributeType )
   {
-  case TacAttribute::Position: return cgltf_attribute_type_position;
-  case TacAttribute::Normal: return cgltf_attribute_type_normal;
-  case TacAttribute::Texcoord: return cgltf_attribute_type_texcoord;
-  case TacAttribute::Color: return cgltf_attribute_type_color;
-  case TacAttribute::BoneIndex: return cgltf_attribute_type_joints;
-  case TacAttribute::BoneWeight: return cgltf_attribute_type_weights;
+    case TacAttribute::Position: return cgltf_attribute_type_position;
+    case TacAttribute::Normal: return cgltf_attribute_type_normal;
+    case TacAttribute::Texcoord: return cgltf_attribute_type_texcoord;
+    case TacAttribute::Color: return cgltf_attribute_type_color;
+    case TacAttribute::BoneIndex: return cgltf_attribute_type_joints;
+    case TacAttribute::BoneWeight: return cgltf_attribute_type_weights;
       TacInvalidDefaultCase( attributeType );
   }
   return cgltf_attribute_type_invalid;
@@ -32,12 +32,12 @@ static TacAttribute GetAttributeFromGltf( cgltf_attribute_type attributeType )
 {
   switch( attributeType )
   {
-  case cgltf_attribute_type_position: return TacAttribute::Position;
-  case cgltf_attribute_type_normal: return TacAttribute::Normal;
-  case cgltf_attribute_type_texcoord: return TacAttribute::Texcoord;
-  case cgltf_attribute_type_color: return TacAttribute::Color;
-  case cgltf_attribute_type_joints: return TacAttribute::BoneIndex;
-  case cgltf_attribute_type_weights: return TacAttribute::BoneWeight;
+    case cgltf_attribute_type_position: return TacAttribute::Position;
+    case cgltf_attribute_type_normal: return TacAttribute::Normal;
+    case cgltf_attribute_type_texcoord: return TacAttribute::Texcoord;
+    case cgltf_attribute_type_color: return TacAttribute::Color;
+    case cgltf_attribute_type_joints: return TacAttribute::BoneIndex;
+    case cgltf_attribute_type_weights: return TacAttribute::BoneWeight;
       TacInvalidDefaultCase( attributeType );
   }
   return TacAttribute::Count;
@@ -64,79 +64,82 @@ void TacFillDataType( cgltf_accessor* accessor, TacFormat* dataType )
 {
   switch( accessor->component_type )
   {
-  case cgltf_component_type_r_16u:
-    dataType->mPerElementByteCount = 2;
-    dataType->mPerElementDataType = TacGraphicsType::uint;
-    break;
-  case cgltf_component_type_r_32f:
-    dataType->mPerElementByteCount = 4;
-    dataType->mPerElementDataType = TacGraphicsType::real;
-    break;
-    TacInvalidDefaultCase( accessor->component_type );
+    case cgltf_component_type_r_16u:
+      dataType->mPerElementByteCount = 2;
+      dataType->mPerElementDataType = TacGraphicsType::uint;
+      break;
+    case cgltf_component_type_r_32f:
+      dataType->mPerElementByteCount = 4;
+      dataType->mPerElementDataType = TacGraphicsType::real;
+      break;
+      TacInvalidDefaultCase( accessor->component_type );
   }
   switch( accessor->type )
   {
-  case cgltf_type_scalar: dataType->mElementCount = 1; break;
-  case cgltf_type_vec2: dataType->mElementCount = 2; break;
-  case cgltf_type_vec3: dataType->mElementCount = 3; break;
-  case cgltf_type_vec4: dataType->mElementCount = 4; break;
-    TacInvalidDefaultCase( accessor->type );
+    case cgltf_type_scalar: dataType->mElementCount = 1; break;
+    case cgltf_type_vec2: dataType->mElementCount = 2; break;
+    case cgltf_type_vec3: dataType->mElementCount = 3; break;
+    case cgltf_type_vec4: dataType->mElementCount = 4; break;
+      TacInvalidDefaultCase( accessor->type );
   }
 }
 
-static cgltf_attribute*  FindAttributeOfType(cgltf_primitive* parsedPrim, cgltf_attribute_type  type )
+static cgltf_attribute*  FindAttributeOfType( cgltf_primitive* parsedPrim, cgltf_attribute_type  type )
 {
-        for( int iAttrib = 0; iAttrib < ( int )parsedPrim->attributes_count; ++iAttrib )
-        {
-          cgltf_attribute* gltfVertAttributeCurr = &parsedPrim->attributes[ iAttrib ];
-          if( gltfVertAttributeCurr->type == type )
-            return gltfVertAttributeCurr;
-        }
-        return nullptr;
+  for( int iAttrib = 0; iAttrib < ( int )parsedPrim->attributes_count; ++iAttrib )
+  {
+    cgltf_attribute* gltfVertAttributeCurr = &parsedPrim->attributes[ iAttrib ];
+    if( gltfVertAttributeCurr->type == type )
+      return gltfVertAttributeCurr;
+  }
+  return nullptr;
 }
 
 template< typename T >
 static TacVector< int > ConvertIndexes( cgltf_accessor* indices )
 {
-    auto indiciesData = ( T* )( (char*)indices->buffer_view->buffer->data + indices->buffer_view->offset );
-    TacVector< int > result((int)indices->count);
-    for (int i = 0; i < (int)indices->count; ++i)
-        result[i] = (int)indiciesData[i];
-    return result;
+  auto indiciesData = ( T* )( ( char* )indices->buffer_view->buffer->data + indices->buffer_view->offset );
+  TacVector< int > result( ( int )indices->count );
+  for( int i = 0; i < ( int )indices->count; ++i )
+    result[ i ] = ( int )indiciesData[ i ];
+  return result;
 }
 
-static void GetTris(  cgltf_primitive* parsedPrim , TacVector< TacArray< v3, 3 >>& tris )
+static void GetTris( cgltf_primitive* parsedPrim, TacVector< TacArray< v3, 3 >>& tris )
 {
   cgltf_attribute* posAttribute = FindAttributeOfType( parsedPrim, cgltf_attribute_type_position );
   if( !posAttribute )
-      return;
+    return;
 
   TacVector< int > indexes;
   switch( parsedPrim->indices->component_type )
   {
-  case cgltf_component_type_r_8: indexes = ConvertIndexes<int8_t>( parsedPrim->indices ); break;
-  case cgltf_component_type_r_8u: indexes = ConvertIndexes<uint8_t>( parsedPrim->indices ); break;
-  case cgltf_component_type_r_16: indexes = ConvertIndexes<int16_t>( parsedPrim->indices ); break;
-  case cgltf_component_type_r_16u: indexes = ConvertIndexes<uint16_t>( parsedPrim->indices ); break;
-  case cgltf_component_type_r_32u: indexes = ConvertIndexes<uint32_t>( parsedPrim->indices ); break;
-  case cgltf_component_type_r_32f: indexes = ConvertIndexes<float>( parsedPrim->indices ); break;
-  default: break; // do nothing
+    case cgltf_component_type_r_8: indexes = ConvertIndexes<int8_t>( parsedPrim->indices ); break;
+    case cgltf_component_type_r_8u: indexes = ConvertIndexes<uint8_t>( parsedPrim->indices ); break;
+    case cgltf_component_type_r_16: indexes = ConvertIndexes<int16_t>( parsedPrim->indices ); break;
+    case cgltf_component_type_r_16u: indexes = ConvertIndexes<uint16_t>( parsedPrim->indices ); break;
+    case cgltf_component_type_r_32u: indexes = ConvertIndexes<uint32_t>( parsedPrim->indices ); break;
+    case cgltf_component_type_r_32f: indexes = ConvertIndexes<float>( parsedPrim->indices ); break;
+    default: break; // do nothing
   }
   if( indexes.empty() )
-      return;
-  
-  char* srcVtx = ( char* )posAttribute->data->buffer_view->buffer->data + posAttribute->data->offset;
+    return;
+
+  auto srcVtx = ( char* )
+    posAttribute->data->buffer_view->buffer->data +
+    posAttribute->data->buffer_view->offset +
+    posAttribute->data->offset;
   TacArray< v3, 3 > tri = {};
   int iVert = 0;
   for( int i : indexes )
   {
-       auto vert = ( v3* )( srcVtx + posAttribute->data->stride * i );
-       tri[ iVert++ ] = *vert;
-       if( iVert == 3 )
-       {
-           iVert = 0;
-           tris.push_back( tri );
-       }
+    auto vert = ( v3* )( srcVtx + posAttribute->data->stride * i );
+    tri[ iVert++ ] = *vert;
+    if( iVert == 3 )
+    {
+      iVert = 0;
+      tris.push_back( tri );
+    }
   }
 }
 
@@ -218,8 +221,8 @@ void TacModelAssetManager::GetMesh( TacMesh** mesh, const TacString& path, TacVe
       for( const TacVertexDeclaration& vertexDeclaration : vertexFormat->vertexFormatDatas )
       {
         const TacFormat& dstFormat = vertexDeclaration.mTextureFormat;
-        cgltf_attribute_type gltfVertAttributeType = GetGltfFromAttribute(vertexDeclaration.mAttribute );
-        cgltf_attribute* gltfVertAttribute = FindAttributeOfType( parsedPrim, gltfVertAttributeType);
+        cgltf_attribute_type gltfVertAttributeType = GetGltfFromAttribute( vertexDeclaration.mAttribute );
+        cgltf_attribute* gltfVertAttribute = FindAttributeOfType( parsedPrim, gltfVertAttributeType );
         if( !gltfVertAttribute )
           continue;
         cgltf_accessor* gltfVertAttributeData = gltfVertAttribute->data;
@@ -232,7 +235,7 @@ void TacModelAssetManager::GetMesh( TacMesh** mesh, const TacString& path, TacVe
           gltfVertAttributeData->buffer_view->offset;
         int elementCount = TacMin( dstFormat.mElementCount, srcFormat.mElementCount );
         for( int iVert = 0; iVert < vertexCount; ++iVert )
-        { 
+        {
           char* srcElement = srcVtx + vertexDeclaration.mAlignedByteOffset;
           char* dstElement = dstVtx + 0;
           for( int iElement = 0; iElement < elementCount; ++iElement )
@@ -282,7 +285,7 @@ void TacModelAssetManager::GetMesh( TacMesh** mesh, const TacString& path, TacVe
   cgltf_node* node = parsedData->scene->nodes[ 0 ];
   if( node->has_translation )
   {
-     transform = M4Translate( node->translation[ 0 ], node->translation[ 1 ], node->translation[ 2 ] );
+    transform = M4Translate( node->translation[ 0 ], node->translation[ 1 ], node->translation[ 2 ] );
   }
 
   auto newMesh = new TacMesh;
@@ -315,75 +318,75 @@ void TacModelAssetManager::GetMesh( TacMesh** mesh, const TacString& path, TacVe
 
 }
 
-  static bool RaycastTriangle( 
-    const v3& p0, 
-    const v3& p1, 
-    const v3& p2, 
-    const v3& rayPos, 
-    const v3& normalizedRayDir, 
-    float & dist )
-  {
-    v3 edge2 = p2 - p0;
-    v3 edge1 = p1 - p0;
-    v3 b = rayPos - p0;
-    v3 p = Cross( normalizedRayDir,edge2);
-    v3 q = Cross( b,edge1);
-    float pdotv1 = TacDot( p,edge1);
-    float t = TacDot(q,edge2) / pdotv1;
-    float u = TacDot(p,b) / pdotv1;
-    float v = TacDot(q,normalizedRayDir) / pdotv1;
-    if (t > 0 && u >= 0 && v >= 0 && u + v <= 1)
-    {
-      dist = t;
-      return true;
-    }
-    return false;
-  }
-
-void TacSubMesh::Raycast( v3 inRayPos, v3 inRayDir, bool* outHit, v3* outHitPoint)
+static bool RaycastTriangle(
+  const v3& p0,
+  const v3& p1,
+  const v3& p2,
+  const v3& rayPos,
+  const v3& normalizedRayDir,
+  float & dist )
 {
-    *outHit = false;
-    float minDist = 0;
-    int triCount = (int)mTris.size();
-    for (int iTri = 0; iTri < triCount; ++iTri)
-    {
-        const TacSubMeshTriangle& tri = mTris[ iTri ];
-        float dist;
-        bool hit = RaycastTriangle( tri[ 0 ], tri[ 1 ], tri[2 ], inRayPos, inRayDir, dist );
-        if( !hit )
-            continue;
-        v3 hitPoint = inRayPos + inRayDir * dist;
-        if( *outHit && dist > minDist )
-            continue;
-        minDist = dist;
-        *outHit = true;
-        *outHitPoint = hitPoint;;
-    }
+  v3 edge2 = p2 - p0;
+  v3 edge1 = p1 - p0;
+  v3 b = rayPos - p0;
+  v3 p = Cross( normalizedRayDir, edge2 );
+  v3 q = Cross( b, edge1 );
+  float pdotv1 = TacDot( p, edge1 );
+  float t = TacDot( q, edge2 ) / pdotv1;
+  float u = TacDot( p, b ) / pdotv1;
+  float v = TacDot( q, normalizedRayDir ) / pdotv1;
+  if( t > 0 && u >= 0 && v >= 0 && u + v <= 1 )
+  {
+    dist = t;
+    return true;
+  }
+  return false;
 }
 
-void TacMesh::Raycast( v3 inRayPos, v3 inRayDir, bool* outHit, v3* outHitPoint)
+void TacSubMesh::Raycast( v3 inRayPos, v3 inRayDir, bool* outHit, float* outDist )
 {
-    *outHit = false;
-    float minQuadrance = 0;
-    for( TacSubMesh& subMesh : mSubMeshes )
-    {
-        bool subMeshHit = false;
-        v3 subMeshHitPoint = {};
-        subMesh.Raycast( inRayPos, inRayDir, &subMeshHit, &subMeshHitPoint);
-        if( !subMeshHit )
-            continue;
-        float quadrance = TacQuadrance( inRayPos, subMeshHitPoint );
-        if( *outHit && quadrance > minQuadrance )
-            continue;
-        minQuadrance = quadrance;
-        *outHit = true;
-        *outHitPoint = subMeshHitPoint;
-    }
+  bool submeshHit = false;
+  float submeshDist = 0;
+  int triCount = ( int )mTris.size();
+  for( int iTri = 0; iTri < triCount; ++iTri )
+  {
+    const TacSubMeshTriangle& tri = mTris[ iTri ];
+    float triDist;
+    bool triHit = RaycastTriangle( tri[ 0 ], tri[ 1 ], tri[ 2 ], inRayPos, inRayDir, triDist );
+    if( !triHit )
+      continue;
+    if( submeshHit && triDist > submeshDist )
+      continue;
+    submeshDist = triDist;
+    submeshHit = true;
+  }
+  *outHit = submeshHit;
+  *outDist = submeshDist;
+}
+
+void TacMesh::Raycast( v3 inRayPos, v3 inRayDir, bool* outHit, float* outDist)
+{
+  bool meshHit = false;
+  float meshDist = 0;
+  for( TacSubMesh& subMesh : mSubMeshes )
+  {
+    bool subMeshHit = false;
+    float submeshDist = 0;
+    subMesh.Raycast( inRayPos, inRayDir, &subMeshHit, &submeshDist );
+    if( !subMeshHit )
+      continue;
+    if( *outHit && submeshDist > meshDist )
+      continue;
+    meshDist = submeshDist;
+    meshHit = true;
+  }
+  *outHit = meshHit;
+  *outDist = meshDist;
 }
 v3 TacGetNormal( const TacSubMeshTriangle& tri )
 {
-    v3 edge0 = tri[ 1 ] - tri[ 0 ];
-    v3 edge1 = tri[ 2 ] - tri[ 0 ];
-    // check for div 0?
-    return Normalize( Cross( edge0, edge1 ) );
+  v3 edge0 = tri[ 1 ] - tri[ 0 ];
+  v3 edge1 = tri[ 2 ] - tri[ 0 ];
+  // check for div 0?
+  return Normalize( Cross( edge0, edge1 ) );
 }

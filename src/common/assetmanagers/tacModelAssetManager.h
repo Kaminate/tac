@@ -22,14 +22,14 @@ struct TacSubMesh
   TacVertexBuffer* mVertexBuffer = nullptr;
   TacIndexBuffer* mIndexBuffer = nullptr;
   TacVector< TacSubMeshTriangle > mTris;
-  void Raycast( v3 inRayPos, v3 inRayDir, bool* outHit, v3* outHitPoint);
+  void Raycast( v3 inRayPos, v3 inRayDir, bool* outHit, float* outDist );
 };
 
 struct TacMesh
 {
   TacVector< TacSubMesh > mSubMeshes;
   TacVertexFormat* mVertexFormat = nullptr;
-  void Raycast( v3 inRayPos, v3 inRayDir, bool* outHit, v3* outHitPoint);
+  void Raycast( v3 inRayPos, v3 inRayDir, bool* outHit, float* outDist );
   m4 mTransform = m4::Identity();
 };
 
