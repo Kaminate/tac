@@ -37,6 +37,9 @@ struct TacCreation
 
   TacWorld* mWorld = nullptr;
   TacEntity* mSelectedEntity = nullptr;
+  bool mSelectedGizmo = false;
+  v3 mTranslationGizmoDir = {};
+  float mTranslationGizmoOffset = 0;
 
   v3 mEditorCamPos;
   v3 mEditorCamForwards;

@@ -21,6 +21,74 @@ float farPlane = 10000.0f;
 float nearPlane = 0.1f;
 float fovyrad = 100.0f * ( 3.14f / 180.0f );
 
+
+
+// http://palitri.com/vault/stuff/maths/Rays%20closest%20point.pdf
+//
+//              \ /
+//               \
+//              / \
+//             /   \
+//            /     \    
+//           /   z__\.D 
+//         E.__---  / \
+//         /           \
+//        /             \
+//       /               \
+//     _/                 \_
+//     /| b               |\ a
+//    /                     \
+//  B. <-------- c ----------. A
+//
+//     A - first ray origin
+//     a - first ray direction ( not necessarily normalized )
+//     B - second ray origin
+//     b - second ray direction ( not necessarily normalized )
+//     c - vector from A to B ( c = B - A )
+//     E - closest point on the first ray to the second ray
+//     D - closest point on the second ray to the first ray
+//
+// +-------------+
+// | 3 Equations |
+// +-------------+
+// |
+// +--> Dot( a, z ) = 0
+// +--> Dot( b, z ) = 0
+// +--> c + (b*e) + z - (a*d) = 0
+//
+// +------------+
+// | 3 unknowns |
+// +------------+
+// |
+// +--> e - scalar such that b*e=E
+// +--> d - scalar such that a*d=D
+// +--> z - vector perpendicular to both a and b ( z = D - E )
+static void ClosestPointTwoRays(
+  v3 A,
+  v3 a,
+  v3 B,
+  v3 b,
+  float* d,
+  float* e )
+{
+  v3 c = B - A;
+  float ab = TacDot( a, b );
+  float bc = TacDot( b, c );
+  float ac = TacDot( a, c );
+  float aa = TacDot( a, a );
+  float bb = TacDot( b, b );
+  float denom = aa * bb - ab * ab;
+
+  if( d )
+  {
+    *d = ( -ab * bc + ac * bb ) / denom;
+  }
+  if( e )
+  {
+    *e = ( ab * ac - bc * aa ) / denom;
+  }
+}
+
 void TacCreationGameWindow::CreateGraphicsObjects( TacErrors& errors )
 {
   TacRenderer* renderer = mShell->mRenderer;
@@ -152,48 +220,48 @@ void TacCreationGameWindow::SetImGuiGlobals()
 }
 void TacCreationGameWindow::MousePicking()
 {
+  if( !mDesktopWindow->mCursorUnobscured )
+    return;
+  bool debugPrintPicked = true;
+
   enum PickedObject
   {
     None,
     Entity,
     Arrow,
-  } pickedObject = PickedObject::None;
-
-  union
-  {
-    TacEntity* closest;
-    v3 pickedArrowDir;
   };
 
-  float closestDist = 0;
+  struct
+  {
+    PickedObject pickedObject = PickedObject::None;
+    float closestDist = 0;
+    union
+    {
+      TacEntity* closest;
+      int arrowAxis;
+    };
+    bool IsNewClosest( float dist )
+    {
+      bool result = pickedObject == PickedObject::None || dist < closestDist;
+      return result;
+    }
+  } pickData;
+
   bool hit;
   float dist;
-  auto IsNewClosest = [&]()
-  {
-    if( !hit )
-      return false;
-    if( pickedObject != PickedObject::None && dist > closestDist )
-      return false;
-    return true;
-  };
 
   for( TacEntity* entity : mCreation->mWorld->mEntities )
   {
     MousePicking( entity, &hit, &dist );
-    if( !IsNewClosest() )
+    if( !hit || !pickData.IsNewClosest( dist ) )
       continue;
-    closestDist = dist;
-    closest = entity;
-    pickedObject = PickedObject::Entity;
+    pickData.closestDist = dist;
+    pickData.closest = entity;
+    pickData.pickedObject = PickedObject::Entity;
   }
 
   if( mCreation->mSelectedEntity )
   {
-    // 1/3: inverse transform
-    v3 modelSpaceRayPos3 = mCreation->mEditorCamPos - mCreation->mSelectedEntity->mPosition;
-    v4 modelSpaceRayPos4 = v4( modelSpaceRayPos3, 1 );
-    v3 modelSpaceRayDir3 = worldSpaceMouseDir;
-    v4 modelSpaceRayDir4 = v4( worldSpaceMouseDir, 0 );
 
     m4 invArrowRots[] = {
       M4RotRadZ( 3.14f / 2.0f ),
@@ -202,6 +270,12 @@ void TacCreationGameWindow::MousePicking()
 
     for( int i = 0; i < 3; ++i )
     {
+      // 1/3: inverse transform
+      v3 modelSpaceRayPos3 = mCreation->mEditorCamPos - mCreation->mSelectedEntity->mPosition;
+      v4 modelSpaceRayPos4 = v4( modelSpaceRayPos3, 1 );
+      v3 modelSpaceRayDir3 = worldSpaceMouseDir;
+      v4 modelSpaceRayDir4 = v4( worldSpaceMouseDir, 0 );
+
       // 2/3: inverse rotate
       const m4& invArrowRot = invArrowRots[ i ];
       modelSpaceRayPos4 = invArrowRot * modelSpaceRayPos4;
@@ -213,30 +287,43 @@ void TacCreationGameWindow::MousePicking()
       modelSpaceRayPos3 /= mArrowLen;
 
       mArrow->Raycast( modelSpaceRayPos3, modelSpaceRayDir3, &hit, &dist );
-      if( !IsNewClosest() )
-        continue;
       dist *= mArrowLen;
-      closestDist = dist;
-      pickedObject = PickedObject::Arrow;
-      std::cout << "ARROW" << std::endl;
+      if( !hit || !pickData.IsNewClosest( dist ) )
+        continue;
+      pickData.arrowAxis = i;
+      pickData.closestDist = dist;
+      pickData.pickedObject = PickedObject::Arrow;
     }
   }
 
-  if( pickedObject == PickedObject::None )
+  if( pickData.pickedObject == PickedObject::None )
     return;
 
-  v3 worldSpaceHitPoint = mCreation->mEditorCamPos + closestDist * worldSpaceMouseDir;
+  v3 worldSpaceHitPoint = mCreation->mEditorCamPos + pickData.closestDist * worldSpaceMouseDir;
   mDebug3DDrawData->DebugDrawSphere( worldSpaceHitPoint, 0.2f, v3( 1, 1, 0 ) );
 
   if( !mShell->mKeyboardInput->IsKeyJustDown( TacKey::MouseLeft ) )
     return;
 
-  switch( pickedObject )
+  switch( pickData.pickedObject )
   {
     case PickedObject::Arrow:
-      break;
+    {
+      v3 pickPoint = mCreation->mEditorCamPos + worldSpaceMouseDir * pickData.closestDist;
+      v3 arrowDir = {};
+      arrowDir[ pickData.arrowAxis ] = 1;
+      mCreation->mSelectedGizmo = true;
+      mCreation->mTranslationGizmoDir = arrowDir;
+      mCreation->mTranslationGizmoOffset = TacDot(
+        arrowDir,
+        worldSpaceHitPoint - mCreation->mSelectedEntity->mPosition );
+      if( debugPrintPicked )
+        std::cout << "picked arrow" << std::endl;
+    } break;
     case PickedObject::Entity:
-      mCreation->mSelectedEntity = closest;
+      mCreation->mSelectedEntity = pickData.closest;
+      if( debugPrintPicked )
+        std::cout << "picked entity" << std::endl;
       break;
   }
 }
@@ -353,8 +440,8 @@ void TacCreationGameWindow::RenderGameWorld()
   {
     v3 colors[] = {
       { 1, 0, 0 },
-      { 0, 1, 0 },
-      { 0, 0, 1 }, };
+    { 0, 1, 0 },
+    { 0, 0, 1 }, };
     m4 rots[] = {
       M4RotRadZ( -3.14f / 2.0f ),
       m4::Identity(),
@@ -469,6 +556,26 @@ void TacCreationGameWindow::Update( TacErrors& errors )
   ComputeArrowLen();
   RenderGameWorld();
   TAC_HANDLE_ERROR( errors );
+
+  if( mCreation->mSelectedGizmo )
+  {
+    float gizmoMouseDist;
+    float secondDist;
+    ClosestPointTwoRays(
+      mCreation->mEditorCamPos,
+      worldSpaceMouseDir,
+      mCreation->mSelectedEntity->mPosition,
+      mCreation->mTranslationGizmoDir,
+      &gizmoMouseDist,
+      &secondDist );
+    mCreation->mSelectedEntity->mPosition +=
+      mCreation->mTranslationGizmoDir *
+      ( secondDist - mCreation->mTranslationGizmoOffset );
+    if( !mShell->mKeyboardInput->IsKeyDown( TacKey::MouseLeft ) )
+    {
+      mCreation->mSelectedGizmo = false;
+    }
+  }
 
   DrawPlaybackOverlay( errors );
   TAC_HANDLE_ERROR( errors );
