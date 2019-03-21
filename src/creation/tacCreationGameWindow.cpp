@@ -189,13 +189,33 @@ void TacCreationGameWindow::MousePicking()
 
   if( mCreation->mSelectedEntity )
   {
-    v3 modelSpaceRayPos = mCreation->mEditorCamPos - mCreation->mSelectedEntity->mPosition;
-    v3 modelSpaceRayDir = worldSpaceMouseDir;
+    // 1/3: inverse transform
+    v3 modelSpaceRayPos3 = mCreation->mEditorCamPos - mCreation->mSelectedEntity->mPosition;
+    v4 modelSpaceRayPos4 = v4( modelSpaceRayPos3, 1 );
+    v3 modelSpaceRayDir3 = worldSpaceMouseDir;
+    v4 modelSpaceRayDir4 = v4( worldSpaceMouseDir, 0 );
+
+    m4 invArrowRots[] = {
+      M4RotRadZ( 3.14f / 2.0f ),
+      m4::Identity(),
+      M4RotRadX( -3.14f / 2.0f ), };
+
     for( int i = 0; i < 3; ++i )
     {
-      mArrow->Raycast( modelSpaceRayPos, modelSpaceRayDir, &hit, &dist );
+      // 2/3: inverse rotate
+      const m4& invArrowRot = invArrowRots[ i ];
+      modelSpaceRayPos4 = invArrowRot * modelSpaceRayPos4;
+      modelSpaceRayPos3 = modelSpaceRayPos4.xyz();
+      modelSpaceRayDir4 = invArrowRot * modelSpaceRayDir4;
+      modelSpaceRayDir3 = modelSpaceRayDir4.xyz();
+
+      // 3/3: inverse scale
+      modelSpaceRayPos3 /= mArrowLen;
+
+      mArrow->Raycast( modelSpaceRayPos3, modelSpaceRayDir3, &hit, &dist );
       if( !IsNewClosest() )
         continue;
+      dist *= mArrowLen;
       closestDist = dist;
       pickedObject = PickedObject::Arrow;
       std::cout << "ARROW" << std::endl;

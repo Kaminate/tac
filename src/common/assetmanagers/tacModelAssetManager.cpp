@@ -282,16 +282,20 @@ void TacModelAssetManager::GetMesh( TacMesh** mesh, const TacString& path, TacVe
   }
 
   m4 transform = m4::Identity();
+  m4 transformInv = m4::Identity();
   cgltf_node* node = parsedData->scene->nodes[ 0 ];
   if( node->has_translation )
   {
-    transform = M4Translate( node->translation[ 0 ], node->translation[ 1 ], node->translation[ 2 ] );
+    v3 pos = { node->translation[ 0 ], node->translation[ 1 ], node->translation[ 2 ] };
+    transform = M4Translate( pos );
+    transformInv = M4Translate(-pos);
   }
 
   auto newMesh = new TacMesh;
   newMesh->mSubMeshes = submeshes;
   newMesh->mVertexFormat = vertexFormat;
   newMesh->mTransform = transform;
+  newMesh->mTransformInv = transformInv;
   *mesh = newMesh;
 
   //* `cgltf_result cgltf_load_buffers( const cgltf_options*, cgltf_data*,
@@ -366,6 +370,12 @@ void TacSubMesh::Raycast( v3 inRayPos, v3 inRayDir, bool* outHit, float* outDist
 
 void TacMesh::Raycast( v3 inRayPos, v3 inRayDir, bool* outHit, float* outDist)
 {
+  v4 inRayPos4 = { inRayPos, 1 };
+  inRayPos4 = mTransformInv * inRayPos4;
+  inRayPos = inRayPos4.xyz();
+
+
+
   bool meshHit = false;
   float meshDist = 0;
   for( TacSubMesh& subMesh : mSubMeshes )

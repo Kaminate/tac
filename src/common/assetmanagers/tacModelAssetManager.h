@@ -31,6 +31,7 @@ struct TacMesh
   TacVertexFormat* mVertexFormat = nullptr;
   void Raycast( v3 inRayPos, v3 inRayDir, bool* outHit, float* outDist );
   m4 mTransform = m4::Identity();
+  m4 mTransformInv = m4::Identity();
 };
 
 struct TacModelAssetManager
