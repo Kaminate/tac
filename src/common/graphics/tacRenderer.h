@@ -192,7 +192,12 @@ typedef TacVector< TacVertexDeclaration > TacVertexDeclarations;
 // don't store these in a TacOwned, they should be both new'd and delete'd by the renderer
 struct TacRendererResource
 {
-  virtual ~TacRendererResource() = default;
+  virtual ~TacRendererResource()
+  {
+    // Please call remove renderer resource instead of deleting directly
+    TacAssert( mActive == false );
+  }
+  bool mActive = false;
   TacRenderer* mRenderer = nullptr;
   TacString mName;
   TacStackFrame mStackFrame;
@@ -449,6 +454,9 @@ struct TacRenderer
   virtual void AddTextureResource( TacTexture** texture, const TacTextureData& textureData, TacErrors& errors ) {
     AddRendererResource( texture, textureData );
   }
+  virtual void AddTextureResourceCube( TacTexture** texture, const TacTextureData& textureData, void** sixCubeDatas, TacErrors& errors ) {
+    AddRendererResource( texture, textureData );
+  }
   virtual void AddTexture(
     const TacString& textureName,
     TacShader* shader,
@@ -481,7 +489,6 @@ struct TacRenderer
   {
     TacUnimplemented;
   }
-  virtual void GetTextures( TacVector< TacTexture* >& ) { TacUnimplemented; }
 
   virtual void AddDepthBuffer(
     TacDepthBuffer** outputDepthBuffer,
@@ -506,6 +513,7 @@ struct TacRenderer
     auto resource = new TResource();
     *( TResourceData* )resource = resourceData;
     resource->mRenderer = this;
+    resource->mActive = true;
 
     //auto rendererResource = ( TacRendererResource* )resource;
     //mRendererResources.insert( rendererResource );

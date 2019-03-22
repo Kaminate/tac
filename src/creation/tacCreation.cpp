@@ -25,6 +25,24 @@ static v4 GetClearColor( TacShell* shell )
   return TacGetColorSchemeA( ( float )shell->mElapsedSeconds );
 }
 
+TacCreation::~TacCreation()
+{
+  if( mMainWindow )
+  {
+    mMainWindow->mDesktopWindow->mOnDestroyed.clear();
+    delete mMainWindow;
+  }
+  if( mGameWindow )
+  {
+    mGameWindow->mDesktopWindow->mOnDestroyed.clear();
+    delete mGameWindow;
+  }
+  if( mPropertyWindow )
+  {
+    mPropertyWindow->mDesktopWindow->mOnDestroyed.clear();
+    delete mPropertyWindow;
+  }
+}
 void TacCreation::Init( TacErrors& errors )
 {
   mWorld = new TacWorld;
@@ -99,15 +117,19 @@ void TacCreation::Init( TacErrors& errors )
     TAC_HANDLE_ERROR( errors );
 
 
-    desktopWindow->mOnResize.AddCallbackFunctional( [ windowJson, settings, desktopWindow, &errors ]() {
-      windowJson->operator[]( "w" ) = desktopWindow->mWidth;
-      windowJson->operator[]( "h" ) = desktopWindow->mHeight;
-      settings->Save( errors ); } );
+    desktopWindow->mOnResize.AddCallbackFunctional( [ windowJson, settings, desktopWindow, &errors ]()
+      {
+        windowJson->operator[]( "w" ) = desktopWindow->mWidth;
+        windowJson->operator[]( "h" ) = desktopWindow->mHeight;
+        settings->Save( errors );
+      } );
 
-    desktopWindow->mOnMove.AddCallbackFunctional( [ windowJson, settings, desktopWindow, &errors ]() {
-      windowJson->operator[]( "x" ) = desktopWindow->mX;
-      windowJson->operator[]( "y" ) = desktopWindow->mY;
-      settings->Save( errors ); } );
+    desktopWindow->mOnMove.AddCallbackFunctional( [ windowJson, settings, desktopWindow, &errors ]()
+      {
+        windowJson->operator[]( "x" ) = desktopWindow->mX;
+        windowJson->operator[]( "y" ) = desktopWindow->mY;
+        settings->Save( errors );
+      } );
 
     //auto ui2DDrawData = new TacUI2DDrawData();
     //ui2DDrawData->mUI2DCommonData = shell->mUI2DCommonData;
@@ -134,11 +156,11 @@ void TacCreation::Init( TacErrors& errors )
       TAC_HANDLE_ERROR( errors );
 
       desktopWindow->mOnDestroyed.AddCallbackFunctional( [ this ]()
-      {
-        TacOS::Instance->mShouldStopRunning = true;
-        delete mMainWindow;
-        mMainWindow = nullptr;
-      } );
+        {
+          TacOS::Instance->mShouldStopRunning = true;
+          delete mMainWindow;
+          mMainWindow = nullptr;
+        } );
     }
 
     if( windowParams.mName == gGameWindowName )
@@ -152,10 +174,10 @@ void TacCreation::Init( TacErrors& errors )
       TAC_HANDLE_ERROR( errors );
 
       desktopWindow->mOnDestroyed.AddCallbackFunctional( [ this ]()
-      {
-        delete mGameWindow;
-        mGameWindow = nullptr;
-      } );
+        {
+          delete mGameWindow;
+          mGameWindow = nullptr;
+        } );
     }
 
     if( windowParams.mName == gPropertyWindowName )
@@ -168,10 +190,10 @@ void TacCreation::Init( TacErrors& errors )
       TAC_HANDLE_ERROR( errors );
 
       desktopWindow->mOnDestroyed.AddCallbackFunctional( [ this ]()
-      {
-        delete mPropertyWindow;
-        mPropertyWindow = nullptr;
-      } );
+        {
+          delete mPropertyWindow;
+          mPropertyWindow = nullptr;
+        } );
     }
   }
 
@@ -248,8 +270,10 @@ void TacDesktopApp::DoStuff( TacDesktopApp* desktopApp, TacErrors& errors )
 
   auto creation = new TacCreation();
   creation->mDesktopApp = desktopApp;
-  shell->mOnUpdate.AddCallbackFunctional([creation,&errors](){
-    creation->Update( errors ); } );
+  shell->mOnUpdate.AddCallbackFunctional( [ creation, &errors ]()
+    {
+      creation->Update( errors );
+    } );
 
   creation->Init( errors );
   TAC_HANDLE_ERROR( errors );

@@ -20,5 +20,6 @@ int CALLBACK WinMain(
   TacDesktopApp::DoStuff( windowsApplication, errors );
   if( errors.size() )
     TacOS::Instance->DebugPopupBox( errors.ToString() );
+  delete windowsApplication;
   return 0;
 }

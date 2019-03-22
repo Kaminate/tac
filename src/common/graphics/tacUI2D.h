@@ -101,6 +101,7 @@ struct TacImGuiRect;
 // why does this class exist
 struct TacUI2DDrawData
 {
+  TacUI2DDrawData();
   ~TacUI2DDrawData();
   void DrawToTexture( TacErrors& errors );
 

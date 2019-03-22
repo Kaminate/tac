@@ -26,9 +26,11 @@ struct CBufferPerObject;
 
 struct TacCreationGameWindow
 {
+  ~TacCreationGameWindow();
   void Init( TacErrors& errors );
   void Update( TacErrors& errors );
   void RenderGameWorld();
+  void RenderSkybox();
   void MousePickingInit();
   void MousePicking( const TacEntity* entity, bool* hit, float* dist );
   void MousePicking();
@@ -45,6 +47,8 @@ struct TacCreationGameWindow
   TacUI2DDrawData* mUI2DDrawData = nullptr;
   TacSoul* mSoul = nullptr;
   TacCreation* mCreation = nullptr;
+
+  // Renderer resources
   TacShader* m3DShader = nullptr;
   TacVertexFormat* m3DVertexFormat = nullptr;
   TacCBuffer* mPerFrame = nullptr;
@@ -53,6 +57,7 @@ struct TacCreationGameWindow
   TacBlendState* mBlendState = nullptr;
   TacRasterizerState* mRasterizerState = nullptr;
   TacSamplerState* mSamplerState = nullptr;
+
   TacDebug3DDrawData* mDebug3DDrawData = nullptr;
 
   TacMesh* mArrow = nullptr;

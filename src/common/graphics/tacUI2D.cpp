@@ -45,7 +45,16 @@ static TacVertexDeclarations TacUI2DVertexDeclarations = []() ->TacVertexDeclara
 
 TacUI2DCommonData::~TacUI2DCommonData()
 {
+  mRenderer->RemoveRendererResource( m1x1White );
+  mRenderer->RemoveRendererResource( mFormat );
   mRenderer->RemoveRendererResource( mShader );
+  mRenderer->RemoveRendererResource( m2DTextShader );
+  mRenderer->RemoveRendererResource( mDepthState );
+  mRenderer->RemoveRendererResource( mBlendState );
+  mRenderer->RemoveRendererResource( mRasterizerState );
+  mRenderer->RemoveRendererResource( mSamplerState );
+  mRenderer->RemoveRendererResource( mPerFrame );
+  mRenderer->RemoveRendererResource( mPerObj );
 }
 void TacUI2DCommonData::Init( TacErrors& errors )
 {
@@ -144,6 +153,11 @@ void TacUI2DCommonData::Init( TacErrors& errors )
   TAC_HANDLE_ERROR( errors );
 }
 
+  TacUI2DDrawData::TacUI2DDrawData()
+  {
+
+
+  }
 TacUI2DDrawData::~TacUI2DDrawData()
 {
   TacRenderer* renderer = mUI2DCommonData->mRenderer;

@@ -6,7 +6,8 @@
 static const int cylinderSegmentCount = 10;
 static const int hemisphereSegmentCount = 4;
 static const int numdivisions = 20;
-static TacVertexDeclarations TacDefaultVertexColorDeclarations = []() ->TacVertexDeclarations {
+static TacVertexDeclarations TacDefaultVertexColorDeclarations = []() ->TacVertexDeclarations
+{
   TacVertexDeclaration positionData;
   positionData.mAttribute = TacAttribute::Position;
   positionData.mTextureFormat = formatv3;
@@ -20,12 +21,12 @@ static TacVertexDeclarations TacDefaultVertexColorDeclarations = []() ->TacVerte
 
 TacDebug3DCommonData::~TacDebug3DCommonData()
 {
-  delete mAlphaBlendState;
-  delete mCBufferPerFrame;
-  delete mDepthLess;
-  delete mRasterizerStateNoCull;
-  delete m3DVertexColorShader;
-  delete mVertexColorFormat;
+  mRenderer->RemoveRendererResource( mAlphaBlendState );
+  mRenderer->RemoveRendererResource( mCBufferPerFrame );
+  mRenderer->RemoveRendererResource( mDepthLess );
+  mRenderer->RemoveRendererResource( mRasterizerStateNoCull );
+  mRenderer->RemoveRendererResource( m3DVertexColorShader );
+  mRenderer->RemoveRendererResource( mVertexColorFormat );
 }
 void TacDebug3DCommonData::Init( TacErrors& errors )
 {
@@ -103,6 +104,17 @@ TacDebugDrawAABB TacDebugDrawAABB::FromPosExtents( v3 pos, v3 extents )
   return result;
 }
 
+  TacDebug3DDrawData::TacDebug3DDrawData()
+  {
+
+
+  }
+TacDebug3DDrawData::~TacDebug3DDrawData()
+{
+  TacDebug3DCommonData* commonData = mCommonData;
+  TacRenderer* renderer = commonData->mRenderer;
+  renderer->RemoveRendererResource( mVerts );
+}
 void TacDebug3DDrawData::DebugDrawLine( v3 p0, v3 p1, v3 color0, v3 color1 )
 {
   if( !TacIsDebugMode() )
@@ -377,7 +389,7 @@ void TacDebug3DDrawData::DrawToTexture( TacErrors& errors, const CBufferPerFrame
         renderer->RemoveRendererResource( mVerts );
       TacVertexBufferData vertexBufferData = {};
       vertexBufferData.access = TacAccess::Dynamic;
-      vertexBufferData.mName = "debug 3d";
+      vertexBufferData.mName = "debug 3d verts";
       vertexBufferData.mNumVertexes = vertexCount;
       vertexBufferData.mStrideBytesBetweenVertexes = sizeof( TacDefaultVertexColor );
       vertexBufferData.mStackFrame = TAC_STACK_FRAME;

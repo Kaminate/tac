@@ -26,6 +26,7 @@ struct TacWorld;
 
 struct TacCreation
 {
+  ~TacCreation();
   void Init( TacErrors& errors );
   void Update( TacErrors& errors );
   TacEntity* CreateEntity();

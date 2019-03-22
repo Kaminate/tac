@@ -73,6 +73,14 @@ void TacAsyncTextureData::Execute()
   image.mPitch = pitch;
 }
 
+TacTextureAssetManager::~TacTextureAssetManager()
+{
+  for( auto pair : mLoadedTextureMap )
+  {
+    TacTexture* texture = pair.second;
+    mRenderer->RemoveRendererResource( texture );
+  }
+}
 void TacTextureAssetManager::GetTexture( TacTexture** ppTexture, const TacString& textureFilepath, TacErrors& errors )
 {
   if( ( *ppTexture = mLoadedTextureMap[ textureFilepath ] ) )
@@ -97,26 +105,28 @@ void TacTextureAssetManager::GetTexture( TacTexture** ppTexture, const TacString
   TacAsyncLoadStatus status = asyncTextureData->GetStatus();
   switch( status )
   {
-  case TacAsyncLoadStatus::ThreadQueued: // fallthrough
-  case TacAsyncLoadStatus::ThreadRunning: break;
-  case TacAsyncLoadStatus::ThreadFailed: {
-    errors = asyncTextureData->mErrors;
-    TAC_HANDLE_ERROR( errors );
-  } break;
-  case TacAsyncLoadStatus::ThreadCompleted: {
-    TacTextureData textureData;
-    textureData.mName = textureFilepath;
-    textureData.mStackFrame = TAC_STACK_FRAME;
-    textureData.myImage = asyncTextureData->mImage;
-    textureData.binding = { TacBinding::ShaderResource };
-    mRenderer->AddTextureResource( ppTexture, textureData, errors );
-    TAC_HANDLE_ERROR( errors );
-    mLoadingTextures.erase( asyncTextureData );
-    delete asyncTextureData;
-    mLoadedTextureMap[ textureFilepath ] = *ppTexture;
-    break;
-  }
-                                            TacInvalidDefaultCase( status );
+    case TacAsyncLoadStatus::ThreadQueued: // fallthrough
+    case TacAsyncLoadStatus::ThreadRunning: break;
+    case TacAsyncLoadStatus::ThreadFailed:
+    {
+      errors = asyncTextureData->mErrors;
+      TAC_HANDLE_ERROR( errors );
+    } break;
+    case TacAsyncLoadStatus::ThreadCompleted:
+    {
+      TacTextureData textureData;
+      textureData.mName = textureFilepath;
+      textureData.mStackFrame = TAC_STACK_FRAME;
+      textureData.myImage = asyncTextureData->mImage;
+      textureData.binding = { TacBinding::ShaderResource };
+      mRenderer->AddTextureResource( ppTexture, textureData, errors );
+      TAC_HANDLE_ERROR( errors );
+      mLoadingTextures.erase( asyncTextureData );
+      delete asyncTextureData;
+      mLoadedTextureMap[ textureFilepath ] = *ppTexture;
+      break;
+    }
+    TacInvalidDefaultCase( status );
   }
 
 }

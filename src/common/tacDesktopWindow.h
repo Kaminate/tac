@@ -43,7 +43,6 @@ struct TacDesktopWindow : public TacWindowParams
 
   bool mRequestDeletion = false;
 
-  // Owned by the renderer
   TacRendererWindowData* mRendererData = nullptr;
 
   TacRenderView* mRenderView;

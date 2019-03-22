@@ -51,9 +51,12 @@ TacRenderer::~TacRenderer()
 {
   for( TacRendererResource* rendererResource : mRendererResources )
   {
-    TacOS::Instance->DebugAssert(
-      "Resource leaked: " + rendererResource->mName,
-      TAC_STACK_FRAME );
+    TacString errorMessage =
+      "Resource leaked: " +
+      rendererResource->mName +
+      " created at " +
+      rendererResource->mStackFrame.ToString();
+    TacOS::Instance->DebugAssert( errorMessage, TAC_STACK_FRAME );
   }
 }
 
@@ -141,9 +144,12 @@ TacVector< TacRendererFactory* >& TacRendererFactory::GetRegistry()
 
 void TacRenderer::RemoveRendererResource( TacRendererResource* rendererResource )
 {
+  if( !rendererResource )
+    return;
   bool found = TacContains( mRendererResources, rendererResource );
   TacAssert( found );
   mRendererResources.erase( rendererResource );
+  rendererResource->mActive = false;
   delete rendererResource;
 }
 

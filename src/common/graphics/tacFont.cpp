@@ -11,10 +11,10 @@ const TacFormat atlasFormat = { 1, sizeof( uint8_t ), TacGraphicsType::unorm };
 static v4 ToColorAlphaPremultiplied( v4 colorAlphaUnassociated )
 {
   return {
-      colorAlphaUnassociated.x * colorAlphaUnassociated.w,
-      colorAlphaUnassociated.y * colorAlphaUnassociated.w,
-      colorAlphaUnassociated.z * colorAlphaUnassociated.w,
-      colorAlphaUnassociated.w };
+    colorAlphaUnassociated.x * colorAlphaUnassociated.w,
+    colorAlphaUnassociated.y * colorAlphaUnassociated.w,
+    colorAlphaUnassociated.z * colorAlphaUnassociated.w,
+    colorAlphaUnassociated.w };
 }
 
 TacFontFile::TacFontFile( const TacString& filepath, TacErrors& errors )
@@ -50,7 +50,7 @@ TacFontStuff::~TacFontStuff()
   {
     delete fontAtlasCell;
   }
-  delete mTexture;
+  mRenderer->RemoveRendererResource( mTexture );
 }
 void TacFontStuff::Load( TacSettings* settings, TacRenderer* renderer, int atlasVramBytes, TacErrors& errors )
 {
@@ -62,7 +62,7 @@ void TacFontStuff::Load( TacSettings* settings, TacRenderer* renderer, int atlas
     auto language = TacLanguage( iLanguage );
     const TacString& languageString = TacLanguageToStr( language );
     TacString fontFilePathDefault = language == TacLanguage::English ? "assets/fonts/english_srcpro.ttf" : "";
-    TacString fontFilePath = settings->GetString( nullptr, { "defaultfonts",  languageString }, fontFilePathDefault, errors );
+    TacString fontFilePath = settings->GetString( nullptr, { "defaultfonts", languageString }, fontFilePathDefault, errors );
     if( fontFilePath.empty() )
       continue;
 
@@ -103,7 +103,7 @@ void TacFontStuff::Load( TacSettings* settings, TacRenderer* renderer, int atlas
 
 
 
-#if 0
+  #if 0
 
 
 
@@ -210,7 +210,7 @@ void TacFontStuff::Load( TacSettings* settings, TacRenderer* renderer, int atlas
     errors );
   TAC_HANDLE_ERROR( errors );
 
-#endif
+  #endif
 }
 void TacFontStuff::GetCharacter(
   TacLanguage defaultLanguage,

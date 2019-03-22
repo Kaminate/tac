@@ -143,8 +143,28 @@ static void GetTris( cgltf_primitive* parsedPrim, TacVector< TacArray< v3, 3 >>&
   }
 }
 
+
+TacModelAssetManager::~TacModelAssetManager()
+{
+  for( auto pair : mMeshes )
+  {
+    TacMesh* mesh = pair.second;
+    for( TacSubMesh& submesh : mesh->mSubMeshes )
+    {
+      mRenderer->RemoveRendererResource( submesh.mIndexBuffer );
+      mRenderer->RemoveRendererResource( submesh.mVertexBuffer );
+    }
+  }
+}
 void TacModelAssetManager::GetMesh( TacMesh** mesh, const TacString& path, TacVertexFormat* vertexFormat, TacErrors& errors )
 {
+  auto it = mMeshes.find( path );
+  if( it != mMeshes.end() )
+  {
+    *mesh = ( *it ).second;
+    return;
+  }
+
   auto bytes = TacTemporaryMemory( path, errors );
   TAC_HANDLE_ERROR( errors );
 
@@ -288,7 +308,7 @@ void TacModelAssetManager::GetMesh( TacMesh** mesh, const TacString& path, TacVe
   {
     v3 pos = { node->translation[ 0 ], node->translation[ 1 ], node->translation[ 2 ] };
     transform = M4Translate( pos );
-    transformInv = M4Translate(-pos);
+    transformInv = M4Translate( -pos );
   }
 
   auto newMesh = new TacMesh;
@@ -319,6 +339,7 @@ void TacModelAssetManager::GetMesh( TacMesh** mesh, const TacString& path, TacVe
   //*
   //* `cgltf_accessor_read_index` is similar to its floating - point counterpart, but it returns size_t
   //* and only works with single - component data types.
+  mMeshes[ path ] = newMesh;
 
 }
 
@@ -368,7 +389,7 @@ void TacSubMesh::Raycast( v3 inRayPos, v3 inRayDir, bool* outHit, float* outDist
   *outDist = submeshDist;
 }
 
-void TacMesh::Raycast( v3 inRayPos, v3 inRayDir, bool* outHit, float* outDist)
+void TacMesh::Raycast( v3 inRayPos, v3 inRayDir, bool* outHit, float* outDist )
 {
   v4 inRayPos4 = { inRayPos, 1 };
   inRayPos4 = mTransformInv * inRayPos4;

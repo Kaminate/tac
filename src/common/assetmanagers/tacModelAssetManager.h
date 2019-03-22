@@ -5,6 +5,7 @@
 #include "common/containers/tacArray.h"
 #include "common/math/tacVector3.h"
 #include "common/math/tacMatrix4.h"
+#include <map>
 
 
 struct TacLoadingMesh;
@@ -36,9 +37,11 @@ struct TacMesh
 
 struct TacModelAssetManager
 {
+  ~TacModelAssetManager();
   void GetMesh( TacMesh** mesh, const TacString& path, TacVertexFormat* vertexFormat, TacErrors& errors );
   TacJobQueue* mJobQueue = nullptr;
   TacRenderer* mRenderer = nullptr;
+  std::map< TacString, TacMesh* > mMeshes;
 };
 
 

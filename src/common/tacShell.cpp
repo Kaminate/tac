@@ -34,13 +34,19 @@ TacShell::TacShell()
 }
 TacShell::~TacShell()
 {
-  delete mRenderer;
+  delete mUI2DCommonData ;
+  delete mDebug3DCommonData;
   delete mLocalization;
   delete mFontStuff;
   delete mLog;
   delete mNet;
   delete mTimer;
   delete mControllerInput;
+  delete mModelAssetManager;
+  delete mTextureAssetManager;
+
+  // last, so resources can be freed
+  delete mRenderer;
 }
 void TacShell::Init( TacErrors& errors )
 {

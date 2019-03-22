@@ -22,6 +22,10 @@ struct TacEvent
     {
       return mFunctionalHandlerSlots.size();
     }
+    void clear()
+    {
+      mFunctionalHandlerSlots.clear();
+    }
   private:
     TacVector< std::function< void( Args... ) > > mFunctionalHandlerSlots;
   };

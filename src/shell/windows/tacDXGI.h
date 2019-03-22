@@ -9,12 +9,9 @@
 
 struct TacDXGI
 {
-  ~TacDXGI()
-  {
-    TAC_RELEASE_IUNKNOWN( mFactory );
-    TAC_RELEASE_IUNKNOWN( mDxgiAdapter4 );
-  }
+  ~TacDXGI();
   void Init( TacErrors& errors );
+  void Uninit();
   void CreateSwapChain(
     HWND hwnd,
     IUnknown* pDevice,

@@ -15,6 +15,7 @@ TacDesktopApp::~TacDesktopApp()
 {
   for( auto window : mMainWindows )
     delete window;
+  delete mShell;
 }
 void TacDesktopApp::Loop( TacErrors& errors )
 {

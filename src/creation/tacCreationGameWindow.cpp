@@ -89,6 +89,20 @@ static void ClosestPointTwoRays(
   }
 }
 
+TacCreationGameWindow::~TacCreationGameWindow()
+{
+  TacRenderer* renderer = mShell->mRenderer;
+  renderer->RemoveRendererResource( m3DShader );
+  renderer->RemoveRendererResource( m3DVertexFormat );
+  renderer->RemoveRendererResource( mPerFrame );
+  renderer->RemoveRendererResource( mPerObj );
+  renderer->RemoveRendererResource( mDepthState );
+  renderer->RemoveRendererResource( mBlendState );
+  renderer->RemoveRendererResource( mRasterizerState );
+  renderer->RemoveRendererResource( mSamplerState );
+  delete mUI2DDrawData;
+  delete mDebug3DDrawData ;
+}
 void TacCreationGameWindow::CreateGraphicsObjects( TacErrors& errors )
 {
   TacRenderer* renderer = mShell->mRenderer;
@@ -417,8 +431,32 @@ void TacCreationGameWindow::ComputeArrowLen()
   float arrowLen = clip_height * 0.3f;
   mArrowLen = arrowLen;
 }
+void TacCreationGameWindow::RenderSkybox()
+{
+  return;
+
+  TacRenderer* renderer = mShell->mRenderer;
+
+  
+
+  TacTextureData textureData = {};
+  textureData.access = TacAccess::Default;
+  textureData.binding = { TacBinding::ShaderResource };
+  textureData.cpuAccess = {};
+  textureData.mName = "cubemap";
+  textureData.mStackFrame = TAC_STACK_FRAME;
+  textureData.myImage.mFormat;
+  textureData.myImage.mHeight;
+  textureData.myImage.mPitch;
+  textureData.myImage.mWidth;
+
+  TacTexture* cubemap = nullptr;
+  // renderer->AddTextureResourceCube( &cubemap, `)
+
+}
 void TacCreationGameWindow::RenderGameWorld()
 {
+  RenderSkybox();
   MousePicking();
 
   TacRenderer* renderer = mShell->mRenderer;

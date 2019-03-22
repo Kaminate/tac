@@ -16,6 +16,7 @@
 
 TacCreationPropertyWindow::~TacCreationPropertyWindow()
 {
+  delete mUI2DDrawData;
 }
 
 void TacCreationPropertyWindow::Init( TacErrors& errors )

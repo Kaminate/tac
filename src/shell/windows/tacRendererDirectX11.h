@@ -123,7 +123,6 @@ struct TacDX11Window : public TacRendererWindowData
 {
   ~TacDX11Window();
 
-  void CleanupRenderTarget();
   void SwapBuffers( TacErrors& errors );
   void CreateRenderTarget( TacErrors& errors );
   void GetCurrentBackbufferTexture( TacTexture** texture ) override;
@@ -177,7 +176,7 @@ struct TacRendererDirectX11 : public TacRenderer
     TacSamplerState* samplerState ) override;
 
   void AddTextureResource( TacTexture**, const TacTextureData&, TacErrors& errors ) override;
-  void RemoveTextureResoure( TacTexture* texture );
+  void AddTextureResourceCube( TacTexture** texture, const TacTextureData& textureData, void** sixCubeDatas, TacErrors& errors ) override;
   void AddTexture(
     const TacString& textureName,
     TacShader* shader,
@@ -186,7 +185,6 @@ struct TacRendererDirectX11 : public TacRenderer
   void SetTexture(
     const TacString& textureName,
     TacTexture* texture ) override;
-  void GetTextures( TacVector< TacTexture* >& ) override;
 
   void AddDepthBuffer( TacDepthBuffer** outputDepthBuffer, const TacDepthBufferData&, TacErrors& errors ) override;
 
@@ -268,7 +266,6 @@ struct TacRendererDirectX11 : public TacRenderer
   ID3DUserDefinedAnnotation* mUserAnnotationDEBUG = nullptr;
   std::map< TacShaderType, TacVector< TacTextureDX11* > >mCurrentTextures;
   std::set< TacShaderType > mCurrentTexturesDirty;
-  std::set< TacTextureDX11* > mTextures;
   std::map< TacShaderType, TacVector< TacSamplerStateDX11* > >mCurrentSamplers;
   std::set< TacShaderType > mCurrentSamplersDirty;
   std::set< TacCBufferDX11* > mCbuffers;
