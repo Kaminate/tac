@@ -235,9 +235,9 @@ LRESULT TacWin32DesktopWindow::HandleWindowProc( UINT uMsg, WPARAM wParam, LPARA
   } break;
   case WM_MOUSEWHEEL:
   {
-    //short wheelDeltaParam = GET_WHEEL_DELTA_WPARAM( wParam );
-    //short ticks = wheelDeltaParam / WHEEL_DELTA;
-    //mMouseWheelRel += ticks;
+    short wheelDeltaParam = GET_WHEEL_DELTA_WPARAM( wParam );
+    short ticks = wheelDeltaParam / WHEEL_DELTA;
+    mKeyboardInput->mCurr.mMouseScroll += ( int )ticks;
   } break;
   case WM_MOUSELEAVE:
   {

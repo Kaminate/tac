@@ -58,6 +58,10 @@ struct TacShell
   void Init( TacErrors& errors );
   void Update( TacErrors& errors );
 
+  void FrameBegin( TacErrors& errors );
+  void Frame( TacErrors& errors );
+  void FrameEnd( TacErrors& errors );
+
   TacControllerInput* mControllerInput = nullptr;
   TacEvent< const TacString& >::Emitter mLogData;
   TacEvent<>::Emitter mOnUpdate;

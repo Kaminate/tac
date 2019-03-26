@@ -34,7 +34,7 @@ TacShell::TacShell()
 }
 TacShell::~TacShell()
 {
-  delete mUI2DCommonData ;
+  delete mUI2DCommonData;
   delete mDebug3DCommonData;
   delete mLocalization;
   delete mFontStuff;
@@ -126,14 +126,12 @@ void TacShell::Init( TacErrors& errors )
   mUI2DCommonData->Init( errors );
   TAC_HANDLE_ERROR( errors );
 }
-void TacShell::Update( TacErrors& errors )
+void TacShell::FrameBegin( TacErrors& errors )
 {
-  mTimer->Tick();
-  if( mTimer->mAccumulatedSeconds < TAC_DELTA_FRAME_SECONDS )
-    return;
-  mTimer->mAccumulatedSeconds -= TAC_DELTA_FRAME_SECONDS;
-  mElapsedSeconds += TAC_DELTA_FRAME_SECONDS;
-
+  mKeyboardInput->BeginFrame();
+}
+void TacShell::Frame( TacErrors& errors )
+{
   if( mNet )
   {
     mNet->Update( errors );
@@ -144,12 +142,25 @@ void TacShell::Update( TacErrors& errors )
 
   if( mControllerInput )
     mControllerInput->Update();
-
-  mKeyboardInput->Frame();
-
+}
+void TacShell::FrameEnd( TacErrors& errors )
+{
   if( mRenderer )
   {
     mRenderer->Render( errors );
     TAC_HANDLE_ERROR( errors );
   }
+  mKeyboardInput->EndFrame();
+}
+void TacShell::Update( TacErrors& errors )
+{
+  mTimer->Tick();
+  if( mTimer->mAccumulatedSeconds < TAC_DELTA_FRAME_SECONDS )
+    return;
+  mTimer->mAccumulatedSeconds -= TAC_DELTA_FRAME_SECONDS;
+  mElapsedSeconds += TAC_DELTA_FRAME_SECONDS;
+
+  FrameBegin( errors );
+  Frame( errors );
+  FrameEnd( errors );
 }

@@ -1,6 +1,7 @@
 #pragma once
-#include "tacString.h"
-#include "tacLocalization.h"
+#include "common/tacString.h"
+#include "common/tacLocalization.h"
+#include "common/math/tacVector2.h"
 #include <set>
 
 enum class TacKey
@@ -31,20 +32,28 @@ struct TacKeyboardInputFrame
   TacString GetPressedKeyDescriptions();
 
   std::set< TacKey > mCurrDown;
+  v2 mScreenspaceCursorPos = {};
+  int mMouseScroll = 0;
 };
 
 struct TacKeyboardInput
 {
+  TacKeyboardInput();
   bool HasKeyJustBeenReleased( TacKey key );
   bool IsKeyJustDown( TacKey key );
   bool IsKeyDown( TacKey key );
   void DebugImgui();
   void DebugPrintWhenKeysChange();
   void SetIsKeyDown( TacKey key, bool isDown );
-  void Frame();
+
+  // Called after input has been gathered, but before the game updates
+  void BeginFrame();
+  void EndFrame();
 
   TacKeyboardInputFrame mCurr;
   TacKeyboardInputFrame mPrev;
 
   TacCodepoint mWMCharPressedHax = 0;
+  v2 mMouseDeltaPosScreenspace = {};
+  int mMouseDeltaScroll = 0;
 };

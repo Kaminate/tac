@@ -38,6 +38,7 @@ struct TacCreationGameWindow
   void AddDrawCall( const TacMesh* mesh, const CBufferPerObject& cbuf );
   void SetImGuiGlobals();
   void ComputeArrowLen();
+  void CameraControls();
   void CreateGraphicsObjects( TacErrors& errors );
   void DrawPlaybackOverlay( TacErrors& errors );
   void PlayGame( TacErrors& errors );

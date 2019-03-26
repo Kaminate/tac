@@ -2,6 +2,7 @@
 #include "common/tacPreprocessor.h"
 #include "common/containers/tacVector.h"
 #include "common/tacUtility.h"
+#include "common/tacOS.h"
 
 TacString ToString( TacKey key )
 {
@@ -96,7 +97,23 @@ void TacKeyboardInput::SetIsKeyDown( TacKey key, bool isDown )
     mCurr.mCurrDown.erase( key );
   }
 }
-void TacKeyboardInput::Frame()
+
+TacKeyboardInput::TacKeyboardInput()
+{
+  TacErrors ignored;
+  TacOS::Instance->GetScreenspaceCursorPos( mCurr.mScreenspaceCursorPos, ignored );
+  TacOS::Instance->GetScreenspaceCursorPos( mPrev.mScreenspaceCursorPos, ignored );
+}
+void TacKeyboardInput::BeginFrame()
+{
+  TacErrors ignored;
+  TacOS::Instance->GetScreenspaceCursorPos( mCurr.mScreenspaceCursorPos, ignored );
+  mMouseDeltaPosScreenspace =
+    mCurr.mScreenspaceCursorPos -
+    mPrev.mScreenspaceCursorPos;
+  mMouseDeltaScroll = mCurr.mMouseScroll - mPrev.mMouseScroll;
+}
+void TacKeyboardInput::EndFrame()
 {
   mPrev = mCurr;
   mWMCharPressedHax = 0;

@@ -251,7 +251,6 @@ void TacCreationGameWindow::MousePicking()
 {
   if( !mDesktopWindow->mCursorUnobscured )
     return;
-  bool debugPrintPicked = true;
 
   enum PickedObject
   {
@@ -325,35 +324,38 @@ void TacCreationGameWindow::MousePicking()
     }
   }
 
-  if( pickData.pickedObject == PickedObject::None )
-    return;
-
-  v3 worldSpaceHitPoint = mCreation->mEditorCamera.mPos + pickData.closestDist * worldSpaceMouseDir;
-  mDebug3DDrawData->DebugDrawSphere( worldSpaceHitPoint, 0.2f, v3( 1, 1, 0 ) );
-
-  if( !mShell->mKeyboardInput->IsKeyJustDown( TacKey::MouseLeft ) )
-    return;
-
-  switch( pickData.pickedObject )
+  v3 worldSpaceHitPoint = {};
+  if( pickData.pickedObject != PickedObject::None )
   {
-    case PickedObject::Arrow:
+    worldSpaceHitPoint = mCreation->mEditorCamera.mPos + pickData.closestDist * worldSpaceMouseDir;
+    mDebug3DDrawData->DebugDrawSphere( worldSpaceHitPoint, 0.2f, v3( 1, 1, 0 ) );
+  }
+
+  if( mShell->mKeyboardInput->IsKeyJustDown( TacKey::MouseLeft ) )
+  {
+
+    switch( pickData.pickedObject )
     {
-      v3 pickPoint = mCreation->mEditorCamera.mPos + worldSpaceMouseDir * pickData.closestDist;
-      v3 arrowDir = {};
-      arrowDir[ pickData.arrowAxis ] = 1;
-      mCreation->mSelectedGizmo = true;
-      mCreation->mTranslationGizmoDir = arrowDir;
-      mCreation->mTranslationGizmoOffset = TacDot(
-        arrowDir,
-        worldSpaceHitPoint - mCreation->mSelectedEntity->mPosition );
-      if( debugPrintPicked )
-        std::cout << "picked arrow" << std::endl;
-    } break;
-    case PickedObject::Entity:
-      mCreation->mSelectedEntity = pickData.closest;
-      if( debugPrintPicked )
-        std::cout << "picked entity" << std::endl;
-      break;
+      case PickedObject::Arrow:
+      {
+        v3 pickPoint = mCreation->mEditorCamera.mPos + worldSpaceMouseDir * pickData.closestDist;
+        v3 arrowDir = {};
+        arrowDir[ pickData.arrowAxis ] = 1;
+        mCreation->mSelectedGizmo = true;
+        mCreation->mTranslationGizmoDir = arrowDir;
+        mCreation->mTranslationGizmoOffset = TacDot(
+          arrowDir,
+          worldSpaceHitPoint - mCreation->mSelectedEntity->mPosition );
+      } break;
+      case PickedObject::Entity:
+      {
+        mCreation->mSelectedEntity = pickData.closest;
+      } break;
+      case PickedObject::None:
+      {
+        mCreation->mSelectedEntity = nullptr;
+      } break;
+    }
   }
 }
 void TacCreationGameWindow::MousePickingInit()
@@ -443,7 +445,7 @@ void TacCreationGameWindow::ComputeArrowLen()
   v3 pos = entity->mPosition;
   v4 posVS4 = view * v4( pos, 1 );
   float clip_height = std::abs( std::tan( mCreation->mEditorCamera.mFovyrad / 2.0f ) * posVS4.z * 2.0f );
-  float arrowLen = clip_height * 0.3f;
+  float arrowLen = clip_height * 0.2f;
   mArrowLen = arrowLen;
 }
 void TacCreationGameWindow::RenderGameWorld()
@@ -535,6 +537,71 @@ void TacCreationGameWindow::DrawPlaybackOverlay( TacErrors& errors )
   }
   TacImGuiEnd();
 }
+void TacCreationGameWindow::CameraControls()
+{
+  if( !mDesktopWindow->mCursorUnobscured )
+    return;
+  TacKeyboardInput* keyboardInput = mShell->mKeyboardInput;
+  if( keyboardInput->IsKeyDown( TacKey::MouseRight ) &&
+    keyboardInput->mMouseDeltaPosScreenspace != v2( 0, 0 ) )
+  {
+    float pixelsPerDeg = 400.0f / 90.0f;
+    float radiansPerPixel = ( 1.0f / pixelsPerDeg ) * ( 3.14f / 180.0f );
+    v2 angleRadians = keyboardInput->mMouseDeltaPosScreenspace * radiansPerPixel;
+
+    if( angleRadians.x != 0 )
+    {
+      m3 matrix = M3AngleAxis( -angleRadians.x, mCreation->mEditorCamera.mUp );
+      mCreation->mEditorCamera.mForwards =
+        matrix *
+        mCreation->mEditorCamera.mForwards;
+      mCreation->mEditorCamera.mRight = Cross(
+        mCreation->mEditorCamera.mForwards,
+        mCreation->mEditorCamera.mUp );
+    }
+
+    if( angleRadians.y != 0 )
+    {
+      m3 matrix = M3AngleAxis( -angleRadians.y, mCreation->mEditorCamera.mRight );
+      mCreation->mEditorCamera.mForwards =
+        matrix *
+        mCreation->mEditorCamera.mForwards;
+      mCreation->mEditorCamera.mUp = Cross(
+        mCreation->mEditorCamera.mRight,
+        mCreation->mEditorCamera.mForwards );
+    }
+
+    mCreation->mEditorCamera.mForwards.Normalize();
+    mCreation->mEditorCamera.mRight.y = 0;
+    mCreation->mEditorCamera.mRight.Normalize();
+    mCreation->mEditorCamera.mUp = Cross(
+      mCreation->mEditorCamera.mRight,
+      mCreation->mEditorCamera.mForwards );
+    mCreation->mEditorCamera.mUp.Normalize();
+  }
+
+  if( keyboardInput->IsKeyDown( TacKey::MouseMiddle ) &&
+    keyboardInput->mMouseDeltaPosScreenspace != v2( 0, 0 ) )
+  {
+    float unitsPerPixel = 5.0f / 100.0f;
+    mCreation->mEditorCamera.mPos +=
+      mCreation->mEditorCamera.mRight *
+      -keyboardInput->mMouseDeltaPosScreenspace.x *
+      unitsPerPixel;
+    mCreation->mEditorCamera.mPos +=
+      mCreation->mEditorCamera.mUp *
+      keyboardInput->mMouseDeltaPosScreenspace.y *
+      unitsPerPixel;
+  }
+
+  if( keyboardInput->mMouseDeltaScroll )
+  {
+    float unitsPerTick = 0.35f;
+    mCreation->mEditorCamera.mPos +=
+      mCreation->mEditorCamera.mForwards *
+      keyboardInput->mMouseDeltaScroll;
+  }
+}
 void TacCreationGameWindow::Update( TacErrors& errors )
 {
   mDesktopWindow->SetRenderViewDefaults();
@@ -555,7 +622,14 @@ void TacCreationGameWindow::Update( TacErrors& errors )
     TAC_HANDLE_ERROR( errors );
   }
 
+  mDebug3DDrawData->DebugDrawGrid();
+  if( mCreation->mSelectedEntity )
+    mDebug3DDrawData->DebugDrawCircle(
+      mCreation->mSelectedEntity->mPosition,
+      mCreation->mEditorCamera.mForwards, mArrowLen );
+
   MousePickingInit();
+  CameraControls();
   ComputeArrowLen();
   RenderGameWorld();
   TAC_HANDLE_ERROR( errors );

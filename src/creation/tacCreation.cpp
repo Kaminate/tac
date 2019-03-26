@@ -46,7 +46,7 @@ TacCreation::~TacCreation()
 void TacCreation::Init( TacErrors& errors )
 {
   mWorld = new TacWorld;
-  mEditorCamera.mPos = { 0, 0, 5 };
+  mEditorCamera.mPos = { 0, 1, 5 };
   mEditorCamera.mForwards = { 0, 0, -1 };
   mEditorCamera.mRight = { 1, 0, 0 };
   mEditorCamera.mUp = { 0, 1, 0 };

@@ -122,7 +122,7 @@ void TacSkyboxPresentation::RenderSkybox( const TacString& skyboxDir )
   perFrame.mFar = mCamera->mFarPlane;
   perFrame.mNear = mCamera->mNearPlane;
   perFrame.mGbufferSize = { ( float )mDesktopWindow->mWidth, ( float )mDesktopWindow->mHeight };
-  perFrame.mView = M4View( v3( 0, 0, 0 ), mCamera->mForwards, mCamera->mRight, mCamera->mUp );
+  perFrame.mView = M4ViewInv( v3( 0, 0, 0 ), mCamera->mForwards, mCamera->mRight, mCamera->mUp );
   perFrame.mProjection = mCamera->Proj( a, b, aspect );
 
   TacDrawCall2 drawCallPerFrame = {};

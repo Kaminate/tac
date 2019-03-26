@@ -251,23 +251,23 @@ void TacDebug3DDrawData::DebugDrawCylinder( v3 p0, v3 p1, float radius, v3 color
 }
 void TacDebug3DDrawData::DebugDrawGrid( v3 lineColor )
 {
-  const int extent = 8;
+  const int extent = 10;
   for( int i = -extent; i <= extent; ++i )
   {
-    if( i == 0 )
-    {
-      for( int axis = 0; axis < 3; ++axis )
-      {
-        v3 to;
-        to[ axis ] = ( float )extent;
-        if( axis != 1 )
-          DebugDrawLine( v3(), -to, lineColor );
-        v3 arrowColor;
-        arrowColor[ axis ] = 1;
-        DebugDrawArrow( v3(), to, arrowColor );
-      }
-      continue;
-    }
+    //if( i == 0 )
+    //{
+    //  for( int axis = 0; axis < 3; ++axis )
+    //  {
+    //    v3 to = {};
+    //    to[ axis ] = ( float )extent;
+    //    if( axis != 1 )
+    //      DebugDrawLine( v3(), -to, lineColor );
+    //    v3 arrowColor = {};
+    //    arrowColor[ axis ] = 1;
+    //    DebugDrawArrow( v3(), to, arrowColor );
+    //  }
+    //  continue;
+    //}
     // since we have y up, draw on the xz plane
     DebugDrawLine(
       v3( ( float )-extent, 0, ( float )i ),
