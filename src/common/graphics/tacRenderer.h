@@ -183,8 +183,6 @@ struct TacVertexDeclaration
   // ie: TacOffsetOf( MyVertexType, mPosition)
   int mAlignedByteOffset = 0;
 };
-typedef TacVector< TacVertexDeclaration > TacVertexDeclarations;
-
 
 
 
@@ -307,7 +305,7 @@ struct TacDepthStateData : public TacRendererResource
 struct TacDepthState : public TacDepthStateData { };
 struct TacVertexFormatData : public TacRendererResource
 {
-  TacVertexDeclarations vertexFormatDatas;
+  TacVector< TacVertexDeclaration > vertexFormatDatas;
   TacShader* shader = nullptr;
 };
 struct TacVertexFormat : public TacVertexFormatData { };

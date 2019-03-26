@@ -9,14 +9,25 @@
 struct TacRenderer;
 struct TacJobQueue;
 struct TacTexture;
-struct TacAsyncTextureData;
+struct TacAsyncTexture;
 
 struct TacTextureAssetManager
 {
   ~TacTextureAssetManager();
   void GetTexture( TacTexture** ppTexture, const TacString& textureFilepath, TacErrors& errors );
-  std::set< TacAsyncTextureData* > mLoadingTextures;
+  void GetTextureCube( TacTexture** ppTexture, const TacString& textureDir, TacErrors& errors );
+  void UpdateAsyncTexture(
+    TacTexture** ppTexture,
+    const TacString& key,
+    TacAsyncTexture* asyncTexture,
+    TacErrors& errors );
+
+  TacTexture* FindLoadedTexture( const TacString& key );
+  TacAsyncTexture* FindLoadingTexture( const TacString& key );
+
   TacJobQueue* mJobQueue = nullptr;
   TacRenderer* mRenderer = nullptr;
-  std::map< TacString, TacTexture* > mLoadedTextureMap;
+
+  std::map< TacString, TacAsyncTexture* > mLoadingTextures;
+  std::map< TacString, TacTexture* > mLoadedTextures;
 };

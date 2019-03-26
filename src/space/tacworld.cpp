@@ -168,6 +168,7 @@ void TacWorld::DeepCopy( const TacWorld& world )
 {
   ClearPlayersAndEntities();
   mElapsedSecs = world.mElapsedSecs;
+  mSkyboxDir = world.mSkyboxDir;
 
   for( auto fromPlayer : world.mPlayers )
   {

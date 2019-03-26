@@ -26,6 +26,17 @@ bool TacIsAlpha( char c )
     ( c >= 'a' && c <= 'z' );
 }
 
+int TacMemCmp( const char* lhs, const char* rhs, int len )
+{
+  for( int i = 0; i < len; ++i )
+  {
+    int diff = *lhs++ - *rhs++;
+    if( diff )
+      return diff;
+  }
+  return 0;
+}
+
 int TacStrCmp( const char* lhs, const char* rhs )
 {
   while( *lhs && ( *lhs == *rhs ) )
@@ -224,6 +235,17 @@ int TacString::find_last_of( const char* c ) const
     }
   }
   return iFound;
+}
+int TacString::find( const TacString& substr ) const
+{
+  if( substr.mLen > mLen )
+    return npos;
+  for( int i = 0; i < mLen - substr.mLen; ++i )
+  {
+    if( TacMemCmp( mStr + i, substr.mStr, substr.mLen ) == 0 )
+      return i;
+  }
+  return npos;
 }
 
 TacString TacString::substr( int pos, int len ) const

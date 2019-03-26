@@ -6,18 +6,6 @@
 static const int cylinderSegmentCount = 10;
 static const int hemisphereSegmentCount = 4;
 static const int numdivisions = 20;
-static TacVertexDeclarations TacDefaultVertexColorDeclarations = []() ->TacVertexDeclarations
-{
-  TacVertexDeclaration positionData;
-  positionData.mAttribute = TacAttribute::Position;
-  positionData.mTextureFormat = formatv3;
-  positionData.mAlignedByteOffset = TacOffsetOf( TacDefaultVertexColor, mPosition );
-  TacVertexDeclaration colorData;
-  colorData.mAttribute = TacAttribute::Color;
-  colorData.mTextureFormat = formatv3;
-  colorData.mAlignedByteOffset = TacOffsetOf( TacDefaultVertexColor, mColor );
-  return { positionData, colorData };
-} ( );
 
 TacDebug3DCommonData::~TacDebug3DCommonData()
 {
@@ -67,11 +55,19 @@ void TacDebug3DCommonData::Init( TacErrors& errors )
   mRenderer->AddDepthState( &mDepthLess, depthStateData, errors );
   TAC_HANDLE_ERROR( errors );
 
+  TacVertexDeclaration positionData;
+  positionData.mAttribute = TacAttribute::Position;
+  positionData.mTextureFormat = formatv3;
+  positionData.mAlignedByteOffset = TacOffsetOf( TacDefaultVertexColor, mPosition );
+  TacVertexDeclaration colorData;
+  colorData.mAttribute = TacAttribute::Color;
+  colorData.mTextureFormat = formatv3;
+  colorData.mAlignedByteOffset = TacOffsetOf( TacDefaultVertexColor, mColor );
   TacVertexFormatData vertexColorFormatDataa;
   vertexColorFormatDataa.mName = "vertex color format";
   vertexColorFormatDataa.mStackFrame = TAC_STACK_FRAME;
   vertexColorFormatDataa.shader = m3DVertexColorShader;
-  vertexColorFormatDataa.vertexFormatDatas = TacDefaultVertexColorDeclarations;
+  vertexColorFormatDataa.vertexFormatDatas = { positionData, colorData };
   mRenderer->AddVertexFormat( &mVertexColorFormat, vertexColorFormatDataa, errors );
   TAC_HANDLE_ERROR( errors );
 

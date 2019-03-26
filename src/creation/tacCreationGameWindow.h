@@ -23,6 +23,8 @@ struct TacRasterizerState;
 struct TacSamplerState;
 struct TacMesh;
 struct CBufferPerObject;
+struct TacGamePresentation;
+struct TacSkyboxPresentation;
 
 struct TacCreationGameWindow
 {
@@ -30,7 +32,6 @@ struct TacCreationGameWindow
   void Init( TacErrors& errors );
   void Update( TacErrors& errors );
   void RenderGameWorld();
-  void RenderSkybox();
   void MousePickingInit();
   void MousePicking( const TacEntity* entity, bool* hit, float* dist );
   void MousePicking();
@@ -59,6 +60,9 @@ struct TacCreationGameWindow
   TacSamplerState* mSamplerState = nullptr;
 
   TacDebug3DDrawData* mDebug3DDrawData = nullptr;
+
+  TacGamePresentation* mGamePresentation = nullptr;
+  TacSkyboxPresentation* mSkyboxPresentation = nullptr;
 
   TacMesh* mArrow = nullptr;
   v3 worldSpaceMouseDir = {};

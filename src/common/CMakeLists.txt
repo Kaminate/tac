@@ -26,6 +26,8 @@ ${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacDebug3D.h
 ${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacRenderer.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacRenderer.h
 ${CMAKE_CURRENT_SOURCE_DIR}/tacAlgorithm.h
+${CMAKE_CURRENT_SOURCE_DIR}/tacCamera.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/tacCamera.h
 ${CMAKE_CURRENT_SOURCE_DIR}/tacDesktopWindow.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/tacDesktopWindow.h
 ${CMAKE_CURRENT_SOURCE_DIR}/tacErrorHandling.cpp

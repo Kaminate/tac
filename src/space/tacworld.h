@@ -1,6 +1,7 @@
 #pragma once
 #include "tacspacetypes.h"
 #include "common/math/tacVector2.h"
+#include "common/tacString.h"
 #include <list>
 
 struct TacGameInterface;
@@ -39,4 +40,5 @@ struct TacWorld
   std::list< TacPlayer* > mPlayers;
   std::list< TacEntity* > mEntities;
   std::list< TacSystem* > mSystems;
+  TacString mSkyboxDir;
 };

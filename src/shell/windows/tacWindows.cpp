@@ -278,7 +278,7 @@ struct TacWin32OS : public TacOS
     TacString dataFilepath = dir + "/" + dataFilename;
     if( data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY )
     {
-      GetDirFilesRecrusive( files, dataFilepath, errors );
+      GetDirFilesRecursive( files, dataFilepath, errors );
       TAC_HANDLE_ERROR( errors );
     }
     else
@@ -286,7 +286,7 @@ struct TacWin32OS : public TacOS
       files.push_back( dataFilepath );
     }
   }
-  void GetDirFilesRecrusive( TacVector<TacString>&files, const TacString& dir, TacErrors& errors ) override
+  void GetDirFilesRecursive( TacVector<TacString>&files, const TacString& dir, TacErrors& errors ) override
   {
     TacString path = dir + "/*";
     WIN32_FIND_DATA data;

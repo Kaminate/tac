@@ -1,5 +1,6 @@
 #pragma once
 
+#include "common/tacCamera.h"
 #include "common/tacMemory.h"
 #include "common/tacErrorHandling.h"
 #include "common/tacSettings.h"
@@ -42,10 +43,7 @@ struct TacCreation
   v3 mTranslationGizmoDir = {};
   float mTranslationGizmoOffset = 0;
 
-  v3 mEditorCamPos;
-  v3 mEditorCamForwards;
-  v3 mEditorCamRight;
-  v3 mEditorCamUp;
+  TacCamera mEditorCamera;
 };
 
 const v4 textColor = v4( v3( 1, 1, 1 ) * 0.0f, 1 );

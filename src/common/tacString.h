@@ -14,6 +14,7 @@ int TacStrLen( const char* str );
 // Zero if lhs and rhs compare equal.
 // Positive value if lhs appears after rhs in lexicographical order.
 int TacStrCmp( const char* lhs, const char* rhs );
+int TacMemCmp( const char* lhs, const char* rhs, int len );
 
 // std uses void*
 void TacMemCpy( void* dst, const void* src, int len );
@@ -68,6 +69,7 @@ struct TacString
   char* end() const;
   // returns npos if not found
   int find_last_of( const char* c ) const;
+  int find( const TacString& substr ) const;
   TacString substr( int pos = 0, int len = npos ) const;
 
   static const int npos = -1; // mimicking the standard library

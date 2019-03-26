@@ -6,6 +6,10 @@ set( TAC_LIBRARIES TacCommonLibrary  )
 #                        | | MODULE is for DLLs
 #                        v v
 add_library(${TacTarget} # MODULE
+"presentation/tacGamePresentation.cpp"
+"presentation/tacGamePresentation.h"
+"presentation/tacSkyboxPresentation.cpp"
+"presentation/tacSkyboxPresentation.h"
 "tacclient.cpp"
 "tacclient.h"
 "taccomponent.cpp"

@@ -55,8 +55,6 @@ void TacCreationPropertyWindow::SetImGuiGlobals()
 
 void TacCreationPropertyWindow::Update( TacErrors& errors )
 {
-  static bool areYouHappy;
-
   mDesktopWindow->SetRenderViewDefaults();
   mUIRoot->Update();
   //mUIRoot->Render( errors );

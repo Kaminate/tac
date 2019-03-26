@@ -90,3 +90,10 @@ bool TacFindIf( TElement* foundElement, TContainer& elements, TPredicate predica
   return false;
 }
 
+template< typename T >
+void TacSwap( T& a, T& b )
+{
+  T temp = a;
+  a = b;
+  b = temp;
+}

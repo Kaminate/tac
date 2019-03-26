@@ -27,7 +27,7 @@ struct TacOS
 
   virtual void GetFileLastModifiedTime( time_t* time, const TacString& path, TacErrors& errors ) = 0;
 
-  virtual void GetDirFilesRecrusive( TacVector<TacString>&files, const TacString& dir, TacErrors& errors ) = 0;
+  virtual void GetDirFilesRecursive( TacVector<TacString>&files, const TacString& dir, TacErrors& errors ) = 0;
 
 
   // I don't think this function should exist.

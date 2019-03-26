@@ -29,20 +29,6 @@ static TacIndexBufferData GetIndexBufferData( const TacStackFrame& stackFrame, i
   return indexBufferData;
 }
 
-
-static TacVertexDeclarations TacUI2DVertexDeclarations = []() ->TacVertexDeclarations {
-  TacVertexDeclaration posData;
-  posData.mAlignedByteOffset = TacOffsetOf( TacUI2DVertex, mPosition );
-  posData.mAttribute = TacAttribute::Position;
-  posData.mTextureFormat = formatv2;
-  TacVertexDeclaration uvData;
-  uvData.mAlignedByteOffset = TacOffsetOf( TacUI2DVertex, mGLTexCoord );
-  uvData.mAttribute = TacAttribute::Texcoord;
-  uvData.mTextureFormat = formatv2;
-  return { posData, uvData };
-}( );
-
-
 TacUI2DCommonData::~TacUI2DCommonData()
 {
   mRenderer->RemoveRendererResource( m1x1White );
@@ -105,11 +91,19 @@ void TacUI2DCommonData::Init( TacErrors& errors )
   mRenderer->AddShader( &m2DTextShader, textShaderData, errors );
   TAC_HANDLE_ERROR( errors );
 
+  TacVertexDeclaration posData;
+  posData.mAlignedByteOffset = TacOffsetOf( TacUI2DVertex, mPosition );
+  posData.mAttribute = TacAttribute::Position;
+  posData.mTextureFormat = formatv2;
+  TacVertexDeclaration uvData;
+  uvData.mAlignedByteOffset = TacOffsetOf( TacUI2DVertex, mGLTexCoord );
+  uvData.mAttribute = TacAttribute::Texcoord;
+  uvData.mTextureFormat = formatv2;
   TacVertexFormatData vertexFormatData = {};
   vertexFormatData.mName = "tac 2d ui vertex format";
   vertexFormatData.mStackFrame = TAC_STACK_FRAME;
   vertexFormatData.shader = mShader;
-  vertexFormatData.vertexFormatDatas = TacUI2DVertexDeclarations;
+  vertexFormatData.vertexFormatDatas = { posData, uvData };
   mRenderer->AddVertexFormat( &mFormat, vertexFormatData, errors );
   TAC_HANDLE_ERROR( errors );
 

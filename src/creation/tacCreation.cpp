@@ -46,10 +46,10 @@ TacCreation::~TacCreation()
 void TacCreation::Init( TacErrors& errors )
 {
   mWorld = new TacWorld;
-  mEditorCamPos = { 0, 0, 5 };
-  mEditorCamForwards = { 0, 0, -1 };
-  mEditorCamRight = { 1, 0, 0 };
-  mEditorCamUp = { 0, 1, 0 };
+  mEditorCamera.mPos = { 0, 0, 5 };
+  mEditorCamera.mForwards = { 0, 0, -1 };
+  mEditorCamera.mRight = { 1, 0, 0 };
+  mEditorCamera.mUp = { 0, 1, 0 };
 
   TacString dataPath;
   TacOS::Instance->GetApplicationDataPath( dataPath, errors );

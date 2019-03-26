@@ -882,6 +882,8 @@ void TacRendererDirectX11::LoadShaderInternal(
   TacString common( temporaryMemory.data(), ( int )temporaryMemory.size() );
   str = common + str;
 
+  shader->mShaderStr = str;
+
   // vertex shader
   {
     ID3DBlob* pVSBlob;
@@ -1078,12 +1080,13 @@ void TacRendererDirectX11::AddTextureResourceCube(
   ID3D11ShaderResourceView* srv = nullptr;
   if( TacContains( textureData.binding, TacBinding::ShaderResource ) )
   {
-    CreateShaderResourceView(
-      resource,
-      &srv,
-      textureData.mName,
-      errors );
-    TAC_HANDLE_ERROR( errors );
+    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+    srvDesc.Format = texDesc.Format;
+    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
+    srvDesc.TextureCube.MostDetailedMip = 0;
+    srvDesc.TextureCube.MipLevels = -1;
+    TAC_DX11_CALL( errors, mDevice->CreateShaderResourceView, resource, &srvDesc, &srv );
+    SetDebugName( srv, textureData.mName + " srv" );
   }
 
   TacTextureDX11* textureDX11;
@@ -1612,6 +1615,7 @@ TacString TacRendererDirectX11::AppendInfoQueueMessage( HRESULT hr )
   return TacString( pMessage->pDescription, ( int )pMessage->DescriptionByteLength );
 }
 
+// Q: Should this function just return the clip space dimensions instead of A, B?
 void TacRendererDirectX11::GetPerspectiveProjectionAB(
   float f,
   float n,

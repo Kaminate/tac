@@ -24,7 +24,7 @@ void TacModel::TacDebugImguiChangeModel()
     {
       firsttime = true;
       TacVector< TacString > allfiles;
-      TacOS::Instance->GetDirFilesRecrusive( allfiles, "assets", getfilesErrors );
+      TacOS::Instance->GetDirFilesRecursive( allfiles, "assets", getfilesErrors );
       for( TacString file : allfiles )
         if( TacEndsWith( TacToLower( file ), ".gltf" ) )
           gltf_filepaths.push_back( file );

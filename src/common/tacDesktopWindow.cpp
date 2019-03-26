@@ -11,7 +11,6 @@ TacDesktopWindow::~TacDesktopWindow()
 {
   mOnDestroyed.EmitEvent();
   delete mRenderView;
-  delete mRendererData;
 }
 
 
