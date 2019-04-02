@@ -571,6 +571,7 @@ void TacCreationGameWindow::CameraControls()
         mCreation->mEditorCamera.mForwards );
     }
 
+    // Snapping right.y to the x-z plane prevents the camera from tilting side-to-side.
     mCreation->mEditorCamera.mForwards.Normalize();
     mCreation->mEditorCamera.mRight.y = 0;
     mCreation->mEditorCamera.mRight.Normalize();

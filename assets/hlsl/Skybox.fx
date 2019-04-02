@@ -15,7 +15,6 @@ struct VS_OUTPUT
 VS_OUTPUT VS( VS_INPUT input )
 {
   float4 viewSpacePosition = mul( View, float4( input.Position, 1 ) );
-  // float4 clipSpacePosition = mul( Projection, viewSpacePosition );
   float4 clipSpacePosition = mul( Projection, float4( input.Position, 1 ) );
 
   // Shader optimization trick which causes the ndc position to be
