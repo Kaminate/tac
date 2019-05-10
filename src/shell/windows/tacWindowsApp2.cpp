@@ -76,53 +76,53 @@ static TacKey TacGetKey( uint8_t keyCode )
   // https://msdn.microsoft.com/en-us/library/windows/desktop/dd375731(v=vs.85).aspx
   switch( keyCode )
   {
-  case VK_UP: return TacKey::UpArrow;
-  case VK_LEFT: return TacKey::LeftArrow;
-  case VK_DOWN: return TacKey::DownArrow;
-  case VK_RIGHT: return TacKey::RightArrow;
-  case VK_SPACE: return TacKey::Spacebar;
-  case VK_DELETE: return TacKey::Delete;
-  case VK_BACK: return TacKey::Backspace;
-  case 'A': return TacKey::A;
-  case 'B': return TacKey::B;
-  case 'C': return TacKey::C;
-  case 'D': return TacKey::D;
-  case 'E': return TacKey::E;
-  case 'F': return TacKey::F;
-  case 'G': return TacKey::G;
-  case 'H': return TacKey::H;
-  case 'I': return TacKey::I;
-  case 'J': return TacKey::J;
-  case 'K': return TacKey::K;
-  case 'L': return TacKey::L;
-  case 'M': return TacKey::M;
-  case 'N': return TacKey::N;
-  case 'O': return TacKey::O;
-  case 'P': return TacKey::P;
-  case 'Q': return TacKey::Q;
-  case 'R': return TacKey::R;
-  case 'S': return TacKey::S;
-  case 'T': return TacKey::T;
-  case 'U': return TacKey::U;
-  case 'V': return TacKey::V;
-  case 'W': return TacKey::W;
-  case 'X': return TacKey::X;
-  case 'Y': return TacKey::Y;
-  case 'Z': return TacKey::Z;
-  case VK_OEM_3: return TacKey::Backtick;
-  case VK_F1: return TacKey::F1;
-  case VK_F2: return TacKey::F2;
-  case VK_F3: return TacKey::F3;
-  case VK_F4: return TacKey::F4;
-  case VK_F5: return TacKey::F5;
-  case VK_F6: return TacKey::F6;
-  case VK_F7: return TacKey::F7;
-  case VK_F8: return TacKey::F8;
-  case VK_F9: return TacKey::F9;
-  case VK_F10: return TacKey::F10;
-  case VK_F11: return TacKey::F11;
-  case VK_F12: return TacKey::F12;
-  default: return TacKey::Count;
+    case VK_UP: return TacKey::UpArrow;
+    case VK_LEFT: return TacKey::LeftArrow;
+    case VK_DOWN: return TacKey::DownArrow;
+    case VK_RIGHT: return TacKey::RightArrow;
+    case VK_SPACE: return TacKey::Spacebar;
+    case VK_DELETE: return TacKey::Delete;
+    case VK_BACK: return TacKey::Backspace;
+    case 'A': return TacKey::A;
+    case 'B': return TacKey::B;
+    case 'C': return TacKey::C;
+    case 'D': return TacKey::D;
+    case 'E': return TacKey::E;
+    case 'F': return TacKey::F;
+    case 'G': return TacKey::G;
+    case 'H': return TacKey::H;
+    case 'I': return TacKey::I;
+    case 'J': return TacKey::J;
+    case 'K': return TacKey::K;
+    case 'L': return TacKey::L;
+    case 'M': return TacKey::M;
+    case 'N': return TacKey::N;
+    case 'O': return TacKey::O;
+    case 'P': return TacKey::P;
+    case 'Q': return TacKey::Q;
+    case 'R': return TacKey::R;
+    case 'S': return TacKey::S;
+    case 'T': return TacKey::T;
+    case 'U': return TacKey::U;
+    case 'V': return TacKey::V;
+    case 'W': return TacKey::W;
+    case 'X': return TacKey::X;
+    case 'Y': return TacKey::Y;
+    case 'Z': return TacKey::Z;
+    case VK_OEM_3: return TacKey::Backtick;
+    case VK_F1: return TacKey::F1;
+    case VK_F2: return TacKey::F2;
+    case VK_F3: return TacKey::F3;
+    case VK_F4: return TacKey::F4;
+    case VK_F5: return TacKey::F5;
+    case VK_F6: return TacKey::F6;
+    case VK_F7: return TacKey::F7;
+    case VK_F8: return TacKey::F8;
+    case VK_F9: return TacKey::F9;
+    case VK_F10: return TacKey::F10;
+    case VK_F11: return TacKey::F11;
+    case VK_F12: return TacKey::F12;
+    default: return TacKey::Count;
   }
 }
 
@@ -137,116 +137,156 @@ LRESULT TacWin32DesktopWindow::HandleWindowProc( UINT uMsg, WPARAM wParam, LPARA
 
   switch( uMsg )
   {
-  case WM_CLOSE:
-  case WM_DESTROY:
-  case WM_QUIT:
-  {
-    mRequestDeletion = true;
-  } return 0;
-  case WM_SIZE:
-  {
-    mWidth = ( int )LOWORD( lParam );
-    mHeight = ( int )HIWORD( lParam );
-    mOnResize.EmitEvent();
-  } break;
-  case WM_MOVE:
-  {
-    mX = ( int )LOWORD( lParam );
-    mY = ( int )HIWORD( lParam );
-    mOnMove.EmitEvent();
-  } break;
-  case WM_CHAR:
-  {
-    // TODO: convert to unicode
-    mKeyboardInput->mWMCharPressedHax = ( char )wParam;
-  } break;
-  case WM_SYSKEYDOWN: // fallthrough
-  case WM_SYSKEYUP: // fallthrough
-  case WM_KEYDOWN: // fallthrough
-  case WM_KEYUP: // fallthrough
-  {
-    bool wasDown = ( lParam & ( ( LPARAM )1 << 30 ) ) != 0;
-    bool isDown = ( lParam & ( ( LPARAM )1 << 31 ) ) == 0;
-    if( isDown == wasDown )
-      break;
-    TacKey key = TacGetKey( ( uint8_t )wParam );
-    if( key == TacKey::Count )
-      break;
-    mKeyboardInput->SetIsKeyDown( key, isDown );
-  } break;
-  // Sent to a window after it has gained the keyboard focus.
-  case WM_SETFOCUS:
-  {
-    //WindowDebugPrintLine( "gained keyboard focus " );
-  } break;
-
-  // Sent to a window immediately before it loses the keyboard focus.
-  case WM_KILLFOCUS:
-  {
-    //mKeyboardInput->mCurrDown.clear();
-    //WindowDebugPrintLine( "about to lose keyboard focus" );
-  } break;
-
-  // Sent when a window belonging to a different application than the active window
-  // is about to be activated.
-  //
-  // The message is sent to the application whose window is being activated
-  // and to the application whose window is being deactivated.
-  case WM_ACTIVATEAPP:
-  {
-    if( wParam == TRUE )
+    case WM_CLOSE:
+    case WM_DESTROY:
+    case WM_QUIT:
     {
-      // The window is being activated
-    }
-    else
+      mRequestDeletion = true;
+    } return 0;
+    case WM_SIZE:
     {
-      // The window is being deactivated
-    }
-  } break;
-  case WM_LBUTTONDOWN: { mKeyboardInput->SetIsKeyDown( TacKey::MouseLeft, true );
-    //SetActiveWindow( mHWND );
-    //SetForegroundWindow( mHWND );
-
-  } break;
-  case WM_LBUTTONUP: {  mKeyboardInput->SetIsKeyDown( TacKey::MouseLeft, false );  } break;
-
-  case WM_RBUTTONDOWN: { mKeyboardInput->SetIsKeyDown( TacKey::MouseRight, true ); } break;
-  case WM_RBUTTONUP: {  mKeyboardInput->SetIsKeyDown( TacKey::MouseRight, false );  } break;
-
-  case WM_MBUTTONDOWN: { mKeyboardInput->SetIsKeyDown( TacKey::MouseMiddle, true ); } break;
-  case WM_MBUTTONUP: {  mKeyboardInput->SetIsKeyDown( TacKey::MouseMiddle, false );  } break;
-
-  case WM_MOUSEMOVE:
-  {
-    if( !mIsMouseInWindow )
+      mWidth = ( int )LOWORD( lParam );
+      mHeight = ( int )HIWORD( lParam );
+      mOnResize.EmitEvent();
+    } break;
+    case WM_MOVE:
     {
-      TRACKMOUSEEVENT mouseevent = {};
-      mouseevent.cbSize = sizeof( TRACKMOUSEEVENT );
-      mouseevent.dwFlags = TME_LEAVE;
-      mouseevent.hwndTrack = mHWND;
-      mouseevent.dwHoverTime = HOVER_DEFAULT;
-      if( 0 == TrackMouseEvent( &mouseevent ) )
-        mWindowProcErrors = "Track mouse errors: " + TacGetLastWin32ErrorString();
-      //SetCapture( mHWND );
+      mX = ( int )LOWORD( lParam );
+      mY = ( int )HIWORD( lParam );
+      mOnMove.EmitEvent();
+    } break;
+    case WM_CHAR:
+    {
+      // TODO: convert to unicode
+      mKeyboardInput->mWMCharPressedHax = ( char )wParam;
+    } break;
+    case WM_SYSKEYDOWN: // fallthrough
+    case WM_SYSKEYUP: // fallthrough
+    case WM_KEYDOWN: // fallthrough
+    case WM_KEYUP: // fallthrough
+    {
+      bool wasDown = ( lParam & ( ( LPARAM )1 << 30 ) ) != 0;
+      bool isDown = ( lParam & ( ( LPARAM )1 << 31 ) ) == 0;
+      if( isDown == wasDown )
+        break;
+      TacKey key = TacGetKey( ( uint8_t )wParam );
+      if( key == TacKey::Count )
+        break;
+      mKeyboardInput->SetIsKeyDown( key, isDown );
+    } break;
+    // Sent to a window after it has gained the keyboard focus.
+    case WM_SETFOCUS:
+    {
+      std::cout << "gained keyboard focus " << std::endl;
+    } break;
+
+    // Sent to a window immediately before it loses the keyboard focus.
+    case WM_KILLFOCUS:
+    {
+      //mKeyboardInput->mCurrDown.clear();
+      std::cout << "about to lose keyboard focus" << std::endl;
+    } break;
+
+    // Sent when a window belonging to a different application than the active window
+    // is about to be activated.
+    //
+    // The message is sent to the application whose window is being activated
+    // and to the application whose window is being deactivated.
+    case WM_ACTIVATEAPP:
+    {
+      if( wParam == TRUE )
+      {
+        // The window is being activated
+      }
+      else
+      {
+        // The window is being deactivated
+      }
+    } break;
+
+    case WM_CAPTURECHANGED:
+    {
+
+      std::cout << "WM_CAPTURECHANGED ( mouse capture lost )" << std::endl;
+    } break;
+
+    case WM_LBUTTONDOWN:
+    {
+      std::cout << "WM_LBUTTONDOWN" << std::endl;
+      mKeyboardInput->SetIsKeyDown( TacKey::MouseLeft, true );
+      //SetActiveWindow( mHWND );
+      //SetForegroundWindow( mHWND );
+
+    } break;
+
+    // https://docs.microsoft.com/en-us/windows/desktop/inputdev/wm-nclbuttonup
+    // Posted when the user releases the left mouse button while the cursor is
+    // within the nonclient area of a window.
+    // This message is posted to the window that contains the cursor.
+    // If a window has captured the mouse, this message is not posted.
+    // case WM_NCLBUTTONUP:
+    case WM_LBUTTONUP:
+    {
+      const char* buttonName =
+        uMsg == WM_LBUTTONUP ?
+        "WM_LBUTTONUP" :
+        "WM_NCLBUTTONUP";
+      std::cout << buttonName << std::endl;
+      mKeyboardInput->SetIsKeyDown( TacKey::MouseLeft, false );
+    } break;
+
+    case WM_RBUTTONDOWN:
+    {
+      mKeyboardInput->SetIsKeyDown( TacKey::MouseRight, true );
+    } break;
+    case WM_RBUTTONUP:
+    {
+      mKeyboardInput->SetIsKeyDown( TacKey::MouseRight, false );
+    } break;
+
+    case WM_MBUTTONDOWN:
+    {
+      mKeyboardInput->SetIsKeyDown( TacKey::MouseMiddle, true );
+    } break;
+    case WM_MBUTTONUP:
+    {
+      mKeyboardInput->SetIsKeyDown( TacKey::MouseMiddle, false );
+    } break;
+
+    case WM_MOUSEMOVE:
+    {
+      if( !mIsMouseInWindow )
+      {
+        TRACKMOUSEEVENT mouseevent = {};
+        mouseevent.cbSize = sizeof( TRACKMOUSEEVENT );
+        mouseevent.dwFlags = TME_LEAVE;
+        mouseevent.hwndTrack = mHWND;
+        mouseevent.dwHoverTime = HOVER_DEFAULT;
+        if( 0 == TrackMouseEvent( &mouseevent ) )
+          mWindowProcErrors = "Track mouse errors: " + TacGetLastWin32ErrorString();
+
+        // Allows this windows to receive mouse-move messages past the edge of the window
+        SetCapture( mHWND );
+
+        if( mouseInWindowVerbose )
+          std::cout << mName << " mouse enter " << std::endl;
+        mIsMouseInWindow = true;
+      }
+    } break;
+    case WM_MOUSEWHEEL:
+    {
+      short wheelDeltaParam = GET_WHEEL_DELTA_WPARAM( wParam );
+      short ticks = wheelDeltaParam / WHEEL_DELTA;
+      mKeyboardInput->mCurr.mMouseScroll += ( int )ticks;
+    } break;
+    case WM_MOUSELEAVE:
+    {
       if( mouseInWindowVerbose )
-        std::cout << mName << " mouse enter " << std::endl;
-      mIsMouseInWindow = true;
-    }
-  } break;
-  case WM_MOUSEWHEEL:
-  {
-    short wheelDeltaParam = GET_WHEEL_DELTA_WPARAM( wParam );
-    short ticks = wheelDeltaParam / WHEEL_DELTA;
-    mKeyboardInput->mCurr.mMouseScroll += ( int )ticks;
-  } break;
-  case WM_MOUSELEAVE:
-  {
-    if( mouseInWindowVerbose )
-      std::cout << mName << " mouse leave " << std::endl;
-    mIsMouseInWindow = false;
-    //ReleaseCapture();
-    //mCurrDown.clear();
-  } break;
+        std::cout << mName << " mouse leave " << std::endl;
+      mIsMouseInWindow = false;
+      //ReleaseCapture();
+      //mCurrDown.clear();
+    } break;
   }
   return 0;
 }
@@ -481,11 +521,11 @@ void TacWindowsApplication2::SpawnWindowAux( const TacWindowParams& windowParams
 
 
   createdWindow->mOnDestroyed.AddCallbackFunctional( [ this, createdWindow ]()
-  {
-    int i = TacIndexOf( createdWindow, mWindows );
-    mWindows[ i ] = mWindows.back();
-    mWindows.pop_back();
-  } );
+    {
+      int i = TacIndexOf( createdWindow, mWindows );
+      mWindows[ i ] = mWindows.back();
+      mWindows.pop_back();
+    } );
 
   // Used to combine all the windows into one tab group.
   if( mParentHWND == NULL )

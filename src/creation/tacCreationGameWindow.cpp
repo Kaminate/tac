@@ -218,7 +218,18 @@ void TacCreationGameWindow::Init( TacErrors& errors )
   TAC_HANDLE_ERROR( errors );
 
 
-  modelAssetManager->GetMesh( &mArrow, "assets/editor/arrow.gltf", m3DVertexFormat, errors );
+  modelAssetManager->GetMesh(
+    &mCenteredUnitCube,
+    "assets/editor/box.gltf",
+    m3DVertexFormat,
+    errors );
+  TAC_HANDLE_ERROR( errors );
+
+  modelAssetManager->GetMesh(
+    &mArrow,
+    "assets/editor/arrow.gltf",
+    m3DVertexFormat,
+    errors );
   TAC_HANDLE_ERROR( errors );
 
   mDebug3DDrawData = new TacDebug3DDrawData;
@@ -256,7 +267,8 @@ void TacCreationGameWindow::MousePicking()
   {
     None,
     Entity,
-    Arrow,
+    WidgetTranslationArrow,
+    WidgetScaleCube,
   };
 
   struct
@@ -320,7 +332,7 @@ void TacCreationGameWindow::MousePicking()
         continue;
       pickData.arrowAxis = i;
       pickData.closestDist = dist;
-      pickData.pickedObject = PickedObject::Arrow;
+      pickData.pickedObject = PickedObject::WidgetTranslationArrow;
     }
   }
 
@@ -336,7 +348,7 @@ void TacCreationGameWindow::MousePicking()
 
     switch( pickData.pickedObject )
     {
-      case PickedObject::Arrow:
+      case PickedObject::WidgetTranslationArrow:
       {
         v3 pickPoint = mCreation->mEditorCamera.mPos + worldSpaceMouseDir * pickData.closestDist;
         v3 arrowDir = {};
@@ -490,13 +502,25 @@ void TacCreationGameWindow::RenderGameWorld()
 
     for( int i = 0; i < 3; ++i )
     {
+      // Widget Translation Arrow
       CBufferPerObject perObjectData;
       perObjectData.Color = { colors[ i ], 1 };
-      perObjectData.World = M4Translate( entity->mPosition ) *
+      perObjectData.World =
+        M4Translate( entity->mPosition ) *
         rots[ i ] *
         M4Scale( v3( 1, 1, 1 ) * mArrowLen ) *
         mArrow->mTransform;
       AddDrawCall( mArrow, perObjectData );
+
+      // Widget Scale Cube
+      v3 axis = {};
+      axis[ i ] = 1;
+      perObjectData.World =
+        M4Translate( entity->mPosition ) *
+        M4Translate( axis * ( mArrowLen * 1.1f ) ) *
+        rots[ i ] *
+        M4Scale( v3( 1, 1, 1 ) * mArrowLen * 0.1f );
+      AddDrawCall( mCenteredUnitCube, perObjectData );
     }
   }
 
@@ -600,7 +624,7 @@ void TacCreationGameWindow::CameraControls()
     float unitsPerTick = 0.35f;
     mCreation->mEditorCamera.mPos +=
       mCreation->mEditorCamera.mForwards *
-      keyboardInput->mMouseDeltaScroll;
+      ( float )keyboardInput->mMouseDeltaScroll;
   }
 }
 void TacCreationGameWindow::Update( TacErrors& errors )

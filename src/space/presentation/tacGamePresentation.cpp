@@ -56,22 +56,25 @@ void TacGamePresentation::RenderGameWorld()
     TacMesh* mesh = model->mesh;
     if( !mesh )
     {
-      if( !model->mGLTFPath.empty() )
-      {
-        TacErrors getmeshErrors;
-        modelAssetManager->GetMesh( &mesh, model->mGLTFPath, m3DVertexFormat, getmeshErrors );
-        if( getmeshErrors.empty() )
-          model->mesh = mesh;
-      }
+      // Try load mesh
+      if( model->mGLTFPath.empty() )
+        continue;
+      TacErrors getmeshErrors;
+      modelAssetManager->GetMesh( &mesh, model->mGLTFPath, m3DVertexFormat, getmeshErrors );
+      if( getmeshErrors.empty() )
+        model->mesh = mesh;
+      else
+        continue;
     }
-    if( !mesh )
-      continue;
 
     TacEntity* entity = model->mEntity;
 
     CBufferPerObject perObjectData;
     perObjectData.Color = { 0.23f, 0.7f, 0.5f, 1 };
-    perObjectData.World = M4Translate( entity->mPosition );
+    perObjectData.World = M4Transform(
+      v3( 1, 1, 1 ),
+      entity->mEulerRads,
+      entity->mPosition );
     AddDrawCall( mesh, perObjectData );
   }
   renderer->DebugBegin( "Render game world" );

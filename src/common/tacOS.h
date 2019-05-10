@@ -36,6 +36,7 @@ struct TacOS
   // What should happen is that this gets cached during the message pump,
   // and accessed through TacMouseInput
   virtual void GetScreenspaceCursorPos( v2& pos, TacErrors& errors ) = 0;
+  virtual void SetScreenspaceCursorPos( v2& pos, TacErrors& errors ) = 0;
 
 
   bool mShouldStopRunning = false;

@@ -60,12 +60,27 @@ bool TacImGuiInputText( const TacString& label, TacString& text );
 bool TacImGuiSelectable( const TacString& str, bool selected );
 bool TacImGuiButton( const TacString& str );
 void TacImGuiCheckbox( const TacString& str, bool* value );
-void TacImGuiDragFloat( const TacString& str, float* value );
+bool TacImGuiDragFloat( const TacString& str, float* value );
+void TacImGuiDebugDraw();
 
 struct TacImGuiIndentBlock {
   TacImGuiIndentBlock() { TacImGuiIndent(); }
   ~TacImGuiIndentBlock() { TacImGuiUnindent(); } };
 #define TAC_IMGUI_INDENT_BLOCK TacImGuiIndentBlock indent##__LINE__;
+
+typedef int TacImGuiId;
+const int TacImGuiIdNull = -1;
+
+enum class TacDragFloatMode
+{
+  Drag,
+  TextInput
+};
+
+struct TacDragFloatData
+{
+  TacDragFloatMode mMode;
+};
 
 // move to cpp?
 struct TacImGuiWindow
@@ -76,7 +91,7 @@ struct TacImGuiWindow
   void ItemSize( v2 size );
   void ComputeClipInfo( bool* clipped, TacImGuiRect* clipRect );
   void UpdateMaxCursorDrawPos( v2 pos );
-  int GetID();
+  TacImGuiId GetID();
 
   TacString mName;
   TacImGuiWindow* mParent = nullptr;
@@ -101,10 +116,10 @@ struct TacImGuiWindow
   TacVector< float > mXOffsets;
 
 
-  int mActiveID = -1;
-  int mIDCounter = 0;
+  TacImGuiId mActiveID = TacImGuiIdNull;
+  TacImGuiId mIDCounter = 0;
 
   TacTextInputData* inputData;
-  std::map< int, bool > mCollapsingHeaderStates;
-  std::map< int, bool > mDragFloatStates;
+  std::map< TacImGuiId, bool > mCollapsingHeaderStates;
+  std::map< TacImGuiId, TacDragFloatData > mDragFloatDatas;
 };

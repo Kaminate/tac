@@ -64,6 +64,8 @@ void TacMemCpy( void* dst, const void* src, int len )
 TacString TacToString( int i )
 {
   bool isNegative = i < 0;
+  if( isNegative )
+    i *= -1;
   TacString s;
   for( ;; )
   {

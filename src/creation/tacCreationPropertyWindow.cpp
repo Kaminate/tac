@@ -90,6 +90,13 @@ void TacCreationPropertyWindow::Update( TacErrors& errors )
     TacImGuiDragFloat( "X Position: ", &entity->mPosition.x );
     TacImGuiDragFloat( "Y Position: ", &entity->mPosition.y );
     TacImGuiDragFloat( "Z Position: ", &entity->mPosition.z );
+    v3 rotDeg = entity->mEulerRads * ( 180.0f / 3.14f );
+    bool changed = false;
+    changed |= TacImGuiDragFloat( "X Eul Deg: ", &rotDeg.x );
+    changed |= TacImGuiDragFloat( "Y Eul Deg: ", &rotDeg.y );
+    changed |= TacImGuiDragFloat( "Z Eul Deg: ", &rotDeg.z );
+    if( changed )
+      entity->mEulerRads = rotDeg * ( 3.14f / 180.0f );
     TacVector< TacComponentType > addableComponentTypes;
     for( int i = 0; i < ( int )TacComponentType::Count; ++i )
     {
@@ -126,6 +133,11 @@ void TacCreationPropertyWindow::Update( TacErrors& errors )
   TacImGuiEndGroup();
   if( TacImGuiButton( "Close window" ) )
     mDesktopWindow->mRequestDeletion = true;
+
+  // temp begin
+  TacImGuiDebugDraw();
+  // temp end
+
   TacImGuiEnd();
 
   mUI2DDrawData->DrawToTexture( errors );

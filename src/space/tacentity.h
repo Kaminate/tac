@@ -24,7 +24,9 @@ struct TacEntity
   TacWorld* mWorld = nullptr;
   TacEntityUUID mEntityUUID = TacNullEntityUUID;
   std::list< TacComponent* > mComponents;
-  v3 mPosition;
+  v3 mPosition = {};
+  v3 mEulerRads = {};
+  v3 mScale = { 1, 1, 1 };
   TacString mName;
 };
 

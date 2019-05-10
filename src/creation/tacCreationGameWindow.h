@@ -66,6 +66,7 @@ struct TacCreationGameWindow
   TacSkyboxPresentation* mSkyboxPresentation = nullptr;
 
   TacMesh* mArrow = nullptr;
+  TacMesh* mCenteredUnitCube = nullptr;
   v3 worldSpaceMouseDir = {};
   float mArrowLen = 0;
 };

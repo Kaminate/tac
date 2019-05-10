@@ -126,6 +126,13 @@ struct TacWin32OS : public TacOS
     pos.x = ( float )point.x;
     pos.y = ( float )point.y;
   }
+  void SetScreenspaceCursorPos( v2& pos, TacErrors& errors ) override
+  {
+    if( SetCursorPos( ( int )pos.x, ( int )pos.y ) )
+      return;
+    errors += TacGetLastWin32ErrorString();
+    TAC_HANDLE_ERROR( errors );
+  }
   void DoesFolderExist( const TacString& path, bool& exists, TacErrors& errors ) override
   {
     DWORD dwAttrib = GetFileAttributes( path.c_str() );
