@@ -84,25 +84,41 @@ void TacCreationPropertyWindow::Update( TacErrors& errors )
     static TacString occupation = "Bartender";
     TacImGuiInputText( "Name", entity->mName );
     TacImGuiText( "UUID: " + TacToString( ( TacUUID )entity->mEntityUUID ) );
-    TacImGuiDragFloat( "X Position: ", &entity->mPosition.x );
-    TacImGuiDragFloat( "Y Position: ", &entity->mPosition.y );
-    TacImGuiDragFloat( "Z Position: ", &entity->mPosition.z );
-    TacImGuiDragFloat( "X Scale: ", &entity->mScale.x );
-    TacImGuiDragFloat( "Y Scale: ", &entity->mScale.y );
-    TacImGuiDragFloat( "Z Scale: ", &entity->mScale.z );
-    v3 rotDeg = entity->mEulerRads * ( 180.0f / 3.14f );
+    TacImGuiDragFloat( "X Position: ", &entity->mLocalPosition.x );
+    TacImGuiDragFloat( "Y Position: ", &entity->mLocalPosition.y );
+    TacImGuiDragFloat( "Z Position: ", &entity->mLocalPosition.z );
+    TacImGuiDragFloat( "X Scale: ", &entity->mLocalScale.x );
+    TacImGuiDragFloat( "Y Scale: ", &entity->mLocalScale.y );
+    TacImGuiDragFloat( "Z Scale: ", &entity->mLocalScale.z );
+    v3 rotDeg = entity->mLocalEulerRads * ( 180.0f / 3.14f );
     bool changed = false;
     changed |= TacImGuiDragFloat( "X Eul Deg: ", &rotDeg.x );
     changed |= TacImGuiDragFloat( "Y Eul Deg: ", &rotDeg.y );
     changed |= TacImGuiDragFloat( "Z Eul Deg: ", &rotDeg.z );
     if( changed )
-      entity->mEulerRads = rotDeg * ( 3.14f / 180.0f );
+      entity->mLocalEulerRads = rotDeg * ( 3.14f / 180.0f );
     TacVector< TacComponentType > addableComponentTypes;
 
-    TacImGuiText( "Parent: " + ( entity->mParent ? entity->mParent->mName : "nullptr" ) );
-    if( entity->mParent && TacImGuiButton( "Unparent" ) )
+    if( entity->mParent )
     {
-      entity->Unparent();
+      TacImGuiText( "Parent: " + entity->mParent->mName );
+      TacImGuiSameLine();
+      if( TacImGuiButton( "Unparent" ) )
+        entity->Unparent();
+    }
+    if( entity->mChildren.size() && TacImGuiCollapsingHeader( "Children" ) )
+    {
+      TAC_IMGUI_INDENT_BLOCK;
+      TacVector< TacEntity* > childrenCopy = entity->mChildren; // For iterator invalidation
+      for( TacEntity* child : childrenCopy )
+      {
+        TacImGuiText( child->mName );
+        TacImGuiSameLine();
+        if( TacImGuiButton( "Remove" ) )
+        {
+          child->Unparent();
+        }
+      }
     }
     TacVector< TacEntity* > potentialParents;
     for( TacEntity* potentialParent : mCreation->mWorld->mEntities )

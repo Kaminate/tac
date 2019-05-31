@@ -124,7 +124,7 @@ void TacClientData::ApplyPrediction( double lastTime )
       continue;
     player->mInputDirection = savedInput.mInputDirection;
     mWorld->ApplyInput( player, timeDifference );
-    entity->mPosition += collider->mVelocity * timeDifference;
+    entity->mLocalPosition += collider->mVelocity * timeDifference;
     // TODO: this doesn't play nice with physics system integrate?
   }
 }

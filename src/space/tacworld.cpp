@@ -132,8 +132,8 @@ void TacWorld::ApplyInput( TacPlayer* player, float seconds )
 
 void TacWorld::ComputeTransformsRecursively( const m4& parentWorldTransformNoScale, TacEntity* entity )
 {
-  m4 localTransform = M4Transform( entity->mScale, entity->mEulerRads, entity->mPosition );
-  m4 localTransformNoScale = M4Transform( v3( 1, 1, 1 ), entity->mEulerRads, entity->mPosition );
+  m4 localTransform = M4Transform( entity->mLocalScale, entity->mLocalEulerRads, entity->mLocalPosition );
+  m4 localTransformNoScale = M4Transform( v3( 1, 1, 1 ), entity->mLocalEulerRads, entity->mLocalPosition );
   m4 worldTransform = parentWorldTransformNoScale * localTransform;
   m4 worldTransformNoScale = parentWorldTransformNoScale * localTransformNoScale;
 

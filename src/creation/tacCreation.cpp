@@ -264,6 +264,48 @@ void TacCreation::Init( TacErrors& errors )
   LoadPrefabs( errors );
   TAC_HANDLE_ERROR( errors );
 }
+
+void TacCreation::DeleteEntity( TacEntity* entity )
+{
+  int prefabCount = mPrefabs.size();
+  for( int iPrefab = 0; iPrefab < prefabCount; ++iPrefab )
+  {
+    TacPrefab* prefab = mPrefabs[ iPrefab ];
+    bool removedEntityFromPrefab = false;
+    int prefabEntityCount = prefab->mEntities.size();
+    for( int iPrefabEntity = 0; iPrefabEntity < prefabEntityCount; ++iPrefabEntity )
+    {
+      if( prefab->mEntities[ iPrefabEntity ] == entity )
+      {
+
+        prefab->mEntities[ iPrefabEntity ] = prefab->mEntities[ prefabEntityCount - 1 ];
+        prefab->mEntities.pop_back();
+        if( prefab->mEntities.empty() )
+        {
+          mPrefabs[ iPrefab ] = mPrefabs[ prefabCount - 1 ];
+          mPrefabs.pop_back();
+        }
+
+        removedEntityFromPrefab = true;
+        break;
+      }
+    }
+
+    if( removedEntityFromPrefab )
+      break;
+  }
+
+  mWorld->KillEntity( entity->mEntityUUID );
+}
+void TacCreation::DeleteSelectedEntities()
+{
+  int prefabCount = mPrefabs.size();
+  for( TacEntity* entity : mSelectedEntities )
+  {
+    DeleteEntity( entity );
+  }
+  mSelectedEntities.clear();
+}
 void TacCreation::Update( TacErrors& errors )
 {
   TacShell* shell = mDesktopApp->mShell;
@@ -290,25 +332,7 @@ void TacCreation::Update( TacErrors& errors )
   TacKeyboardInput* keyboardInput = shell->mKeyboardInput;
   if( keyboardInput->IsKeyJustDown( TacKey::Delete ) )
   {
-    for( TacEntity* entity : mSelectedEntities )
-    {
-      int iPrefab;
-      for( iPrefab = 0; iPrefab < mPrefabs.size(); ++iPrefab )
-      {
-        TacPrefab* prefab = mPrefabs[ iPrefab ];
-        if( prefab->mEntity == entity )
-          break;
-      }
-      if( iPrefab < mPrefabs.size() )
-      {
-        delete mPrefabs[ iPrefab ];
-        mPrefabs[ iPrefab ] = mPrefabs[ mPrefabs.size() - 1 ];
-        mPrefabs.pop_back();
-      }
-
-      mWorld->KillEntity( entity->mEntityUUID );
-    }
-    mSelectedEntities.clear();
+    DeleteSelectedEntities();
   }
 
   if( keyboardInput->IsKeyJustDown( TacKey::S ) &&
@@ -351,7 +375,7 @@ v3 TacCreation::GetSelectionGizmoOrigin()
   {
     runningPosSum +=
       ( entity->mWorldTransform * v4( 0, 0, 0, 1 ) ).xyz();
-      // entity->mPosition;
+    entity->mLocalPosition;
     selectionCount++;
   }
   v3 averagePos = runningPosSum / ( float )selectionCount;
@@ -398,38 +422,99 @@ void TacCreation::UpdateSavedPrefabs()
 
   settings->Save( errors );
 }
+TacPrefab* TacCreation::FindPrefab( TacEntity* entity )
+{
+  for( TacPrefab* prefab : mPrefabs )
+  {
+    if( TacContains( prefab->mEntities, entity ) )
+    {
+      return prefab;
+    }
+  }
+  return nullptr;
+}
+TacJson TacCreation::SaveEntityToJsonRecusively( TacEntity* entity )
+{
+  TacJson entityJson;
+  {
+    TacJson posJson;
+    {
+      v3 position = entity->mLocalPosition;
+      posJson[ "x" ] = position.x;
+      posJson[ "y" ] = position.y;
+      posJson[ "z" ] = position.z;
+    }
+
+    TacJson scaleJson;
+    {
+      v3 scale = entity->mLocalScale;
+      scaleJson[ "x" ] = scale.x;
+      scaleJson[ "y" ] = scale.y;
+      scaleJson[ "z" ] = scale.z;
+    }
+
+    TacJson eulerRadsJson;
+    {
+      eulerRadsJson[ "x" ] = entity->mLocalEulerRads.x;
+      eulerRadsJson[ "y" ] = entity->mLocalEulerRads.y;
+      eulerRadsJson[ "z" ] = entity->mLocalEulerRads.z;
+    }
+    entityJson[ "mPosition" ] = posJson;
+    entityJson[ "mScale" ] = scaleJson;
+    entityJson[ "mName" ] = entity->mName;
+    entityJson[ "mEulerRads" ] = eulerRadsJson;
+    entityJson[ "mEntityUUID" ] = ( TacJsonNumber )entity->mEntityUUID;
+
+    // todo: GetComponentJsonSerializer( component )->SerializeToJson( ... )
+    if( auto model = ( TacModel* )entity->GetComponent( TacComponentType::Model ) )
+    {
+      TacJson modelJson;
+      modelJson[ "mGLTFPath" ] = model->mGLTFPath;
+      entityJson[ "Model" ] = modelJson;
+    }
+
+    if( !entity->mChildren.empty() )
+    {
+      TacJson childrenJson;
+      childrenJson.mType = TacJsonType::Array;
+      for( TacEntity* child : entity->mChildren )
+      {
+        auto childJson = new TacJson( SaveEntityToJsonRecusively( child ) );
+        childrenJson.mElements.push_back( childJson );
+      }
+      entityJson[ "mChildren" ] = childrenJson;
+    }
+  }
+
+  return entityJson;
+}
 void TacCreation::SavePrefabs()
 {
   TacShell* shell = mDesktopApp->mShell;
   TacOS* os = TacOS::Instance;
 
-  // Create prefabs for entities without them
   for( TacEntity* entity : mWorld->mEntities )
   {
-    TacPrefab* entityPrefab = nullptr;
-    for( TacPrefab* prefab : mPrefabs )
-    {
-      if( prefab->mEntity == entity )
-      {
-        entityPrefab = prefab;
-        break;
-      }
-    }
-    if( entityPrefab )
+    if( entity->mParent )
       continue;
-    auto prefab = new TacPrefab;
-    prefab->mEntity = entity;
-    mPrefabs.push_back( prefab );
-  }
 
-  // Save each prefab to a document
-  for( TacPrefab* prefab : mPrefabs )
-  {
+    TacPrefab* prefab = FindPrefab( entity );
+    if( !prefab )
+    {
+      prefab = new TacPrefab;
+      prefab->mEntities = { entity };
+      mPrefabs.push_back( prefab );
+    }
+
+
     // Get document paths for prefabs missing them
     if( prefab->mDocumentPath.empty() )
     {
       TacString savePath;
-      TacString suggestedName = prefab->mEntity->mName + ".prefab";
+      TacString suggestedName =
+        //prefab->mEntity->mName
+        entity->mName +
+        ".prefab";
       TacErrors saveDialogErrors;
       os->SaveDialog( savePath, suggestedName, saveDialogErrors );
       if( saveDialogErrors.size() )
@@ -449,41 +534,11 @@ void TacCreation::SavePrefabs()
       UpdateSavedPrefabs();
     }
 
-    TacEntity* entity = prefab->mEntity;
+    //TacEntity* entity = prefab->mEntity;
 
-    v3 position = entity->mPosition;
-    TacJson posJson;
-    posJson[ "x" ] = position.x;
-    posJson[ "y" ] = position.y;
-    posJson[ "z" ] = position.z;
+    TacJson entityJson = SaveEntityToJsonRecusively( entity );
 
-    v3 scale = entity->mScale;
-    TacJson scaleJson;
-    scaleJson[ "x" ] = scale.x;
-    scaleJson[ "y" ] = scale.y;
-    scaleJson[ "z" ] = scale.z;
-
-    TacJson eulerRadsJson;
-    eulerRadsJson[ "x" ] = entity->mEulerRads.x;
-    eulerRadsJson[ "y" ] = entity->mEulerRads.y;
-    eulerRadsJson[ "z" ] = entity->mEulerRads.z;
-
-
-    TacJson prefabJson;
-    prefabJson[ "mPosition" ] = posJson;
-    prefabJson[ "mScale" ] = scaleJson;
-    prefabJson[ "mName" ] = entity->mName;
-    prefabJson[ "mEulerRads" ] = eulerRadsJson;
-    prefabJson[ "mEntityUUID" ] = ( TacJsonNumber )entity->mEntityUUID;
-
-    if( auto model = ( TacModel* )entity->GetComponent( TacComponentType::Model ) )
-    {
-      TacJson modelJson;
-      modelJson[ "mGLTFPath" ] = model->mGLTFPath;
-      prefabJson[ "Model" ] = modelJson;
-    }
-
-    TacString prefabJsonString = prefabJson.Stringify();
+    TacString prefabJsonString = entityJson.Stringify();
     TacErrors saveToFileErrors;
     void* bytes = prefabJsonString.data();
     int byteCount = prefabJsonString.size();
@@ -494,18 +549,12 @@ void TacCreation::SavePrefabs()
       std::cout << saveToFileErrors.ToString() << std::endl;
       continue;
     }
-
   }
 }
-void TacCreation::LoadPrefabs( TacErrors& errors )
+
+TacEntity* TacCreation::LoadEntityFromJsonRecursively( TacJson& prefabJson )
 {
-  TacVector< TacString > prefabPaths;
-  GetSavedPrefabs( prefabPaths, errors );
-  for( TacString prefabPath : prefabPaths )
-  {
-    auto memory = TacTemporaryMemory( prefabPath, errors );
-    TacJson prefabJson;
-    prefabJson.Parse( memory.data(), memory.size(), errors );
+
     TacJson& positionJson = prefabJson[ "mPosition" ];
     v3 pos =
     {
@@ -530,10 +579,10 @@ void TacCreation::LoadPrefabs( TacErrors& errors )
       ( float )eulerRadsJson[ "z" ].mNumber,
     };
 
-    auto entity = CreateEntity();
-    entity->mPosition = pos;
-    entity->mScale = scale;
-    entity->mEulerRads = eulerRads;
+    TacEntity* entity = CreateEntity();
+    entity->mLocalPosition = pos;
+    entity->mLocalScale = scale;
+    entity->mLocalEulerRads = eulerRads;
     entity->mName = prefabJson[ "mName" ].mString;
     entity->mEntityUUID = ( TacEntityUUID )( TacUUID )prefabJson[ "mEntityUUID" ].mNumber;
 
@@ -543,9 +592,33 @@ void TacCreation::LoadPrefabs( TacErrors& errors )
       model->mGLTFPath = ( *modelJson )[ "mGLTFPath" ].mString;
     }
 
+    if( TacJson* childrenJson =  prefabJson.mChildren[ "mChildren" ] )
+    {
+      for( TacJson* childJson : childrenJson->mElements )
+      {
+        TacEntity* childEntity = LoadEntityFromJsonRecursively( *childJson );
+        entity->AddChild( childEntity );
+      }
+    }
+
+    return entity;
+}
+void TacCreation::LoadPrefabs( TacErrors& errors )
+{
+  TacVector< TacString > prefabPaths;
+  GetSavedPrefabs( prefabPaths, errors );
+  for( TacString prefabPath : prefabPaths )
+  {
+    auto memory = TacTemporaryMemory( prefabPath, errors );
+    TacJson prefabJson;
+    prefabJson.Parse( memory.data(), memory.size(), errors );
+
+    TacEntity* entity = LoadEntityFromJsonRecursively( prefabJson );
+
+
     TacPrefab* prefab = new TacPrefab;
     prefab->mDocumentPath = prefabPath;
-    prefab->mEntity = entity;
+    prefab->mEntities = { entity };
     mPrefabs.push_back( prefab );
   }
 }

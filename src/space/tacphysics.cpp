@@ -199,8 +199,8 @@ void TacPhysics::DebugDrawCapsules()
   {
     auto entity = collider->mEntity;
     v3 up( 0, 1, 0 );
-    auto p0 = collider->mEntity->mPosition + up * collider->mRadius;
-    auto p1 = collider->mEntity->mPosition + up * ( collider->mTotalHeight - collider->mRadius );
+    auto p0 = collider->mEntity->mLocalPosition + up * collider->mRadius;
+    auto p1 = collider->mEntity->mLocalPosition + up * ( collider->mTotalHeight - collider->mRadius );
     //graphics->DebugDrawCapsule( p0, p1, collider->mRadius, mDebugDrawCapsuleColor );
   }
 }
@@ -235,7 +235,7 @@ void TacPhysics::Integrate()
   {
     if( mGravityOn )
       collider->mVelocity += a * dt;
-    collider->mEntity->mPosition += collider->mVelocity * dt;
+    collider->mEntity->mLocalPosition += collider->mVelocity * dt;
   }
 }
 void TacPhysics::Narrowphase()
@@ -253,10 +253,10 @@ void TacPhysics::Narrowphase()
         v3 up = { 0, 1, 0 };
         capsuleSupport.mRadius = collider->mRadius;
         capsuleSupport.mBotSpherePos =
-          collider->mEntity->mPosition
+          collider->mEntity->mLocalPosition
           + up * collider->mRadius;
         capsuleSupport.mTopSpherePos
-          = collider->mEntity->mPosition
+          = collider->mEntity->mLocalPosition
           + up * ( collider->mTotalHeight - collider->mRadius );
         TacGJK gjk( &terrainSupport, &capsuleSupport );
         //OnDestruct( if( mGJKDebugging ) DebugDrawGJK( gjk, graphics ) );
@@ -276,7 +276,7 @@ void TacPhysics::Narrowphase()
         }
         if( gjk.mEPABarycentricFucked )
           continue;
-        collider->mEntity->mPosition += gjk.mEPALeftNormal * gjk.mEPAPenetrationDist;
+        collider->mEntity->mLocalPosition += gjk.mEPALeftNormal * gjk.mEPAPenetrationDist;
         auto projectedVel = TacProject( gjk.mEPALeftNormal, collider->mVelocity );
         if( TacDot( projectedVel, gjk.mEPALeftNormal ) < 0.0f )
         {

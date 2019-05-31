@@ -3,6 +3,7 @@
 #include "space/tacworld.h"
 #include "space/tacsystem.h"
 #include "common/tacPreprocessor.h"
+#include "common/tacAlgorithm.h"
 
 #include <algorithm>
 
@@ -69,6 +70,15 @@ void TacEntity::RemoveComponent( TacComponentType type )
   auto componentData = TacGetComponentData( type );
   auto system = mWorld->GetSystem( componentData->mSystemType );
   system->DestroyComponent( component );
+}
+
+void TacEntity::AddChild( TacEntity* child )
+{
+  TacAssert( !TacContains( mChildren, child ) );
+  TacAssert( child->mParent != this );
+  child->Unparent();
+  child->mParent = this;
+  mChildren.push_back( child );
 }
 
 void TacEntity::DeepCopy( const TacEntity& entity )

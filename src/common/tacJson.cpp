@@ -6,6 +6,10 @@ TacJson::TacJson()
   // Why?
   mType = TacJsonType::Object;
 }
+TacJson::TacJson( const TacJson& other )
+{
+  *this = other;
+}
 //TacJson::TacJson( const char* str )
 //{
 //  mType = TacJsonType::String;
@@ -47,49 +51,49 @@ TacString TacJson::Stringify( TacStringifyData* stringifyData ) const
   auto GetSeparator = [ & ]( int childCount ) { return iChild++ != childCount - 1 ? "," : ""; };
   switch( mType )
   {
-  case TacJsonType::String: result = DoubleQuote( mString ); break;
-  case TacJsonType::Number:
-  {
-    if( ( ( TacJsonNumber )( ( int )mNumber ) ) == mNumber )
-      result = TacToString( ( int )mNumber );
-    else
-      result = TacToString( mNumber );
-  } break;
-  case TacJsonType::Null: result = "null"; break;
-  case TacJsonType::Bool: result = mBoolean ? "true" : "false"; break;
-  case TacJsonType::Object:
-  {
-    result += stringifyData->ToString() + "{\n";
-    stringifyData->tabCount++;
-    for( auto pair : mChildren )
+    case TacJsonType::String: result = DoubleQuote( mString ); break;
+    case TacJsonType::Number:
     {
-      TacString childKey = pair.first;
-      TacJson* childValue = pair.second;
+      if( ( ( TacJsonNumber )( ( int )mNumber ) ) == mNumber )
+        result = TacToString( ( int )mNumber );
+      else
+        result = TacToString( mNumber );
+    } break;
+    case TacJsonType::Null: result = "null"; break;
+    case TacJsonType::Bool: result = mBoolean ? "true" : "false"; break;
+    case TacJsonType::Object:
+    {
+      result += stringifyData->ToString() + "{\n";
+      stringifyData->tabCount++;
+      for( auto pair : mChildren )
+      {
+        TacString childKey = pair.first;
+        TacJson* childValue = pair.second;
 
-      result += stringifyData->ToString() + DoubleQuote( childKey ) + ":";
-      result += TacContains( { TacJsonType::Array, TacJsonType::Object }, childValue->mType ) ? "\n" : " ";
-      result += childValue->Stringify( stringifyData );
-      result += GetSeparator( ( int )mChildren.size() );
-      result += "\n";
-    }
-    stringifyData->tabCount--;
-    result += stringifyData->ToString() + "}";
-  } break;
-  case TacJsonType::Array:
-  {
-    result += stringifyData->ToString() + "[\n";
-    stringifyData->tabCount++;
-    for( TacJson* element : mElements )
+        result += stringifyData->ToString() + DoubleQuote( childKey ) + ":";
+        result += TacContains( { TacJsonType::Array, TacJsonType::Object }, childValue->mType ) ? "\n" : " ";
+        result += childValue->Stringify( stringifyData );
+        result += GetSeparator( ( int )mChildren.size() );
+        result += "\n";
+      }
+      stringifyData->tabCount--;
+      result += stringifyData->ToString() + "}";
+    } break;
+    case TacJsonType::Array:
     {
-      result +=
-        stringifyData->ToString() +
-        element->Stringify( stringifyData ) +
-        GetSeparator( ( int )mElements.size() ) +
-        "\n";
-    }
-    stringifyData->tabCount--;
-    result += stringifyData->ToString() + "]";
-  } break;
+      result += stringifyData->ToString() + "[\n";
+      stringifyData->tabCount++;
+      for( TacJson* element : mElements )
+      {
+        result +=
+          stringifyData->ToString() +
+          element->Stringify( stringifyData ) +
+          GetSeparator( ( int )mElements.size() ) +
+          "\n";
+      }
+      stringifyData->tabCount--;
+      result += stringifyData->ToString() + "]";
+    } break;
   }
   return result;
 }

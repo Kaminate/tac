@@ -28,7 +28,7 @@ struct TacWorld;
 // this would be saved as a .map file in cod engine
 struct TacPrefab
 {
-  TacEntity* mEntity = nullptr;
+  TacVector< TacEntity* > mEntities;
   TacString mDocumentPath;
   //TacString GetDisplayName();
 };
@@ -46,8 +46,16 @@ struct TacCreation
   void ClearSelection();
   void UpdateSavedPrefabs();
   void GetSavedPrefabs( TacVector< TacString > & paths, TacErrors& errors );
+
   void SavePrefabs();
+  TacJson SaveEntityToJsonRecusively( TacEntity* entity );
+
   void LoadPrefabs( TacErrors& errors );
+  TacEntity* LoadEntityFromJsonRecursively( TacJson& prefabJson );
+
+  void DeleteSelectedEntities();
+  void DeleteEntity( TacEntity* entity );
+  TacPrefab* FindPrefab( TacEntity* entity );
 
   TacDesktopApp* mDesktopApp = nullptr;
   TacCreationMainWindow* mMainWindow = nullptr;

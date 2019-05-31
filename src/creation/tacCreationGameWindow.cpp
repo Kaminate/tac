@@ -682,7 +682,7 @@ void TacCreationGameWindow::Update( TacErrors& errors )
       ( secondDist - mCreation->mTranslationGizmoOffset );
     for( TacEntity* entity : mCreation->mSelectedEntities )
     {
-      entity->mPosition += translate;
+      entity->mLocalPosition += translate;
     }
     //for( TacPrefab* prefab : mCreation->mSelectedPrefabs )
     //{

@@ -3,11 +3,40 @@
   {
     "mGLTFPath": "assets/editor/Box.gltf"
   },
+  "mChildren":
+  [
+        {
+      "Model":
+      {
+        "mGLTFPath": "assets/editor/Box.gltf"
+      },
+      "mEntityUUID": 0,
+      "mEulerRads":
+      {
+        "x": -0.462278,
+        "y": 0.882690,
+        "z": 0
+      },
+      "mName": "sunchild",
+      "mPosition":
+      {
+        "x": 0.346150,
+        "y": -0.539074,
+        "z": 0.719617
+      },
+      "mScale":
+      {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      }
+    }
+  ],
   "mEntityUUID": 0,
   "mEulerRads":
   {
-    "x": 0,
-    "y": 0,
+    "x": 0.919323,
+    "y": -0.992590,
     "z": 0
   },
   "mName": "starry eyed girl",

@@ -49,6 +49,7 @@ struct TacJson
   TacJson( TacJsonNumber number ) { mType = TacJsonType::Number; mNumber = number; }
   TacJson( int number ) { mType = TacJsonType::Number; mNumber = ( TacJsonNumber )number; }
   TacJson( bool b ) { mType = TacJsonType::Bool; mBoolean = b; }
+  TacJson( const TacJson& other );
 
   ~TacJson();
   void Clear();
