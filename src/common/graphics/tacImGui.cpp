@@ -5,10 +5,77 @@
 #include "common/graphics/tacUI2D.h"
 #include "common/graphics/tacTextEdit.h"
 #include "common/graphics/tacRenderer.h"
+#include "common/tacDesktopWindow.h"
 #include "common/tackeyboardinput.h"
 #include "common/tacOS.h"
 #include "common/tacPreprocessor.h"
+#include "common/tacShell.h"
 #include <cstdlib> // atof
+
+typedef int TacImGuiId;
+const int TacImGuiIdNull = -1;
+
+enum class TacDragFloatMode
+{
+  Drag,
+  TextInput
+};
+
+struct TacDragFloatData
+{
+  TacDragFloatMode mMode;
+};
+
+struct TacImGuiIDAllocator
+{
+  TacImGuiId mActiveID = TacImGuiIdNull;
+  TacImGuiId mIDCounter = 0;
+};
+
+// move to cpp?
+struct TacImGuiWindow
+{
+  TacImGuiWindow();
+  ~TacImGuiWindow();
+  void BeginFrame();
+  void ItemSize( v2 size );
+  void ComputeClipInfo( bool* clipped, TacImGuiRect* clipRect );
+  void UpdateMaxCursorDrawPos( v2 pos );
+  TacImGuiId GetID();
+  void SetActiveID( TacImGuiId );
+  TacImGuiId  GetActiveID();
+
+  TacString mName;
+  TacImGuiWindow* mParent = nullptr;
+
+  v2 mMaxiCursorDrawPos;
+  v2 mCurrCursorDrawPos;
+  v2 mPrevCursorDrawPos;
+
+  // rename to mPosDesktopWindowspace
+  v2 mPos = {};
+  v2 mSize = {};
+  TacImGuiRect mContentRect;
+  float mCurrLineHeight = 0;
+  float mPrevLineHeight = 0;
+
+  float mScroll = 0;
+  v2 mScrollMousePosScreenspaceInitial;
+  bool mScrolling = false;
+
+  v2 mGroupSavedCursorDrawPos;
+
+  TacVector< float > mXOffsets;
+
+  TacImGuiIDAllocator* mIDAllocator = nullptr;
+
+
+  TacTextInputData* inputData;
+  std::map< TacImGuiId, bool > mCollapsingHeaderStates;
+  std::map< TacImGuiId, TacDragFloatData > mDragFloatDatas;
+  bool mIsAppendingToMenu = false;
+};
+
 
 struct TacUIStyle
 {
@@ -139,6 +206,7 @@ void TacImGuiWindow::BeginFrame()
   TacUI2DDrawData* ui2DDrawData = gTacImGuiGlobals.mUI2DDrawData;
   TacKeyboardInput* keyboardInput = gTacImGuiGlobals.mKeyboardInput;
 
+
   if( mParent )
   {
     mPos = mParent->mCurrCursorDrawPos;
@@ -153,6 +221,7 @@ void TacImGuiWindow::BeginFrame()
         ui2DDrawData->AddBox( mPos, mPos + mSize, childWindowColor, nullptr, nullptr );
       }
     }
+
   }
 
   // Scrollbar
@@ -237,11 +306,22 @@ void TacImGuiWindow::BeginFrame()
   mCurrLineHeight = 0;
   mPrevLineHeight = 0;
 
-  mIDCounter = 0;
+  if( !mParent )
+  {
+    if( !mIDAllocator )
+      mIDAllocator = new TacImGuiIDAllocator;
+    mIDAllocator->mIDCounter = 0;
+    if( !gTacImGuiGlobals.mIsWindowDirectlyUnderCursor &&
+      keyboardInput->IsKeyJustDown( TacKey::MouseLeft ) )
+    {
+      mIDAllocator->mActiveID = TacImGuiIdNull;
+    }
+  }
+  else
+  {
+    mIDAllocator = mParent->mIDAllocator;
+  }
 
-  if( !gTacImGuiGlobals.mIsWindowDirectlyUnderCursor &&
-    keyboardInput->IsKeyJustDown( TacKey::MouseLeft ) )
-    mActiveID = TacImGuiIdNull;
 
   //if( mActiveIDPrev && !mActiveID )
   //{
@@ -283,9 +363,17 @@ void TacImGuiWindow::UpdateMaxCursorDrawPos( v2 pos )
   mMaxiCursorDrawPos.x = TacMax( mMaxiCursorDrawPos.x, pos.x );
   mMaxiCursorDrawPos.y = TacMax( mMaxiCursorDrawPos.y, pos.y );
 }
+TacImGuiId  TacImGuiWindow::GetActiveID()
+{
+  return mIDAllocator->mActiveID;
+}
+void TacImGuiWindow::SetActiveID( TacImGuiId id )
+{
+  mIDAllocator->mActiveID = id;
+}
 TacImGuiId TacImGuiWindow::GetID()
 {
-  return mIDCounter++;
+  return mIDAllocator->mIDCounter++;
 }
 static bool AreEqual(
   const TacVector< TacCodepoint >& a,
@@ -487,7 +575,7 @@ bool TacImGuiInputText( const TacString& label, TacString& text )
     return textChanged;
 
   if( gTacImGuiGlobals.IsHovered( clipRect ) && keyboardInput->IsKeyJustDown( TacKey::MouseLeft ) )
-    window->mActiveID = id;
+    window->SetActiveID( id );
 
   v3 textBackgroundColor3 = { 1, 1, 0 };
 
@@ -503,7 +591,7 @@ bool TacImGuiInputText( const TacString& label, TacString& text )
     textBackgroundMaxi,
     v4( textBackgroundColor3, 1 ), nullptr, &clipRect );
 
-  if( window->mActiveID == id )
+  if( window->GetActiveID() == id )
   {
     TacVector< TacCodepoint > codepoints;
     TacErrors ignoredUTF8ConversionErrors;
@@ -568,6 +656,7 @@ bool TacImGuiSelectable( const TacString& str, bool selected )
     ( float )gStyle.fontSize };
 
   window->ItemSize( buttonSize );
+  auto id = window->GetID();
 
   bool clipped;
   auto clipRect = TacImGuiRect::FromPosSize( pos, buttonSize );
@@ -588,6 +677,7 @@ bool TacImGuiSelectable( const TacString& str, bool selected )
     {
       color3 /= 2.0f;
       clicked = true;
+      window->SetActiveID ( id );
     }
   }
 
@@ -719,7 +809,7 @@ void TacImGuiCheckbox( const TacString& str, bool* value )
       defaultVertex2D++;
       defaultVertex2D->mPosition = p3;
 
-      CBufferPerObject perObjectData = {};
+      TacDefaultCBufferPerObject perObjectData = {};
       perObjectData.World = m4::Identity();
       perObjectData.Color = checkmarkColor;
 
@@ -773,9 +863,9 @@ bool TacImGuiDragFloat( const TacString& str, float* value )
 
   if( gTacImGuiGlobals.IsHovered( clipRect ) && keyboardInput->IsKeyJustDown( TacKey::MouseLeft ) )
   {
-    window->mActiveID = id;
+    window->SetActiveID( id );
   }
-  if( id == window->mActiveID )
+  if( window->GetActiveID() == id )
   {
     if( dragFloatData.mMode == TacDragFloatMode::Drag )
     {
@@ -857,10 +947,13 @@ bool TacImGuiDragFloat( const TacString& str, float* value )
       TacUTF8Converter::Convert( inputData->mCodepoints, newText );
       *value = ( float )std::atof( newText.c_str() );
       valueStr = newText;
+
+      if( keyboardInput->IsKeyJustDown( TacKey::Tab ) )
+        window->mIDAllocator->mActiveID++;
     }
   }
 
-  if( dragFloatData.mMode == TacDragFloatMode::TextInput  && id != window->mActiveID )
+  if( dragFloatData.mMode == TacDragFloatMode::TextInput  && id != window->GetActiveID() )
     dragFloatData.mMode = TacDragFloatMode::Drag;
 
   v2 backgroundBoxMaxi = {
@@ -927,10 +1020,69 @@ void TacImGuiPopFontSize()
   fontsizestack.pop_back();
 }
 
+void TacImGuiBeginMenuBar()
+{
+  TacImGuiWindow* window = gTacImGuiGlobals.mCurrentWindow;
+  TacUI2DDrawData* drawData = gTacImGuiGlobals.mUI2DDrawData;
+  TacAssert( !window->mIsAppendingToMenu );
+  window->mIsAppendingToMenu = true;
+  v2 size = { window->mSize.x, gStyle.fontSize + gStyle.buttonPadding * 2 };
+  v4 color = { v3( 69, 45, 83 ) / 255.0f, 1.0f };
+  TacTexture* texture = nullptr;
+  TacImGuiRect* cliprect = nullptr;
+  drawData->AddBox( {}, size, color, texture, cliprect );
+}
+//void TacImGuiBeginMenu( const TacString& label )
+//{
+//  TacImGuiWindow* window = gTacImGuiGlobals.mCurrentWindow;
+//  TacAssert( window->mIsAppendingToMenu );
+//}
+//void TacImGuiMenuItem( const TacString& label )
+//{
+//  TacImGuiWindow* window = gTacImGuiGlobals.mCurrentWindow;
+//  TacAssert( window->mIsAppendingToMenu );
+//}
+//void TacImGuiEndMenu()
+//{
+//  TacImGuiWindow* window = gTacImGuiGlobals.mCurrentWindow;
+//  TacAssert( window->mIsAppendingToMenu );
+//}
+void TacImGuiEndMenuBar()
+{
+  TacImGuiWindow* window = gTacImGuiGlobals.mCurrentWindow;
+  TacAssert( window->mIsAppendingToMenu );
+  window->mIsAppendingToMenu = false;
+}
+
 void TacImGuiDebugDraw()
 {
   TacString text =
     "Cur window active id: " +
-    TacToString( gTacImGuiGlobals.mCurrentWindow->mActiveID );
+    TacToString( gTacImGuiGlobals.mCurrentWindow->GetActiveID() );
   TacImGuiText( text );
 }
+
+void TacImGuiSetGlobals(
+  TacShell* shell,
+  TacDesktopWindow* desktopWindow,
+  TacUI2DDrawData* ui2DDrawData )
+{
+  TacErrors screenspaceCursorPosErrors;
+  v2 screenspaceCursorPos;
+  TacOS::Instance->GetScreenspaceCursorPos( screenspaceCursorPos, screenspaceCursorPosErrors );
+  if( screenspaceCursorPosErrors.empty() )
+  {
+    gTacImGuiGlobals.mMousePositionDesktopWindowspace = {
+      screenspaceCursorPos.x - desktopWindow->mX,
+      screenspaceCursorPos.y - desktopWindow->mY };
+    gTacImGuiGlobals.mIsWindowDirectlyUnderCursor = desktopWindow->mCursorUnobscured;
+  }
+  else
+  {
+    gTacImGuiGlobals.mIsWindowDirectlyUnderCursor = false;
+  }
+  gTacImGuiGlobals.mUI2DDrawData = ui2DDrawData;
+  gTacImGuiGlobals.mKeyboardInput = shell->mKeyboardInput;
+  gTacImGuiGlobals.mElapsedSeconds = shell->mElapsedSeconds;
+}
+

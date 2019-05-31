@@ -93,7 +93,7 @@ void TacEntity::DeepCopy( const TacEntity& entity )
 
 void TacEntity::TacDebugImgui()
 {
-#if 0
+  #if 0
   ImGui::PushID( this );
   OnDestruct( ImGui::PopID() );
   if( !ImGui::CollapsingHeader( va( "Entity id %i", mEntityUUID ), ImGuiTreeNodeFlags_DefaultOpen ) )
@@ -141,6 +141,22 @@ void TacEntity::TacDebugImgui()
   }
   for( auto component : mComponents )
     component->TacDebugImgui();
-#endif
+  #endif
 }
 
+void TacEntity::Unparent()
+{
+  if( !mParent )
+    return;
+  for( int iChild = 0; iChild < mParent->mChildren.size(); ++iChild )
+  {
+    if( mParent->mChildren[ iChild ] == this )
+    {
+      mParent->mChildren[ iChild ] = mParent->mChildren[ mParent->mChildren.size() - 1 ];
+      mParent->mChildren.pop_back();
+      break;
+    }
+  }
+  mParent = nullptr;
+  // todo: relative positioning
+}

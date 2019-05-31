@@ -22,7 +22,7 @@ struct TacBlendState;
 struct TacRasterizerState;
 struct TacSamplerState;
 struct TacMesh;
-struct CBufferPerObject;
+struct TacDefaultCBufferPerObject;
 struct TacGamePresentation;
 struct TacSkyboxPresentation;
 
@@ -31,12 +31,11 @@ struct TacCreationGameWindow
   ~TacCreationGameWindow();
   void Init( TacErrors& errors );
   void Update( TacErrors& errors );
-  void RenderGameWorld();
+  void RenderGameWorldToGameWindow();
   void MousePickingInit();
-  void MousePicking( const TacEntity* entity, bool* hit, float* dist );
-  void MousePicking();
-  void AddDrawCall( const TacMesh* mesh, const CBufferPerObject& cbuf );
-  void SetImGuiGlobals();
+  void MousePickingEntity( const TacEntity* entity, bool* hit, float* dist );
+  void MousePickingAll();
+  void AddDrawCall( const TacMesh* mesh, const TacDefaultCBufferPerObject& cbuf );
   void ComputeArrowLen();
   void CameraControls();
   void CreateGraphicsObjects( TacErrors& errors );

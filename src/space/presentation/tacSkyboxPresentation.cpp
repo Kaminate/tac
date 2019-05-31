@@ -23,7 +23,7 @@ void TacSkyboxPresentation::Init( TacErrors& errors )
   cBufferDataPerFrame.mName = "skybox per frame";
   cBufferDataPerFrame.mStackFrame = TAC_STACK_FRAME;
   cBufferDataPerFrame.shaderRegister = 0;
-  cBufferDataPerFrame.byteCount = sizeof( CBufferPerFrame );
+  cBufferDataPerFrame.byteCount = sizeof( TacDefaultCBufferPerFrame );
   renderer->AddConstantBuffer( &mPerFrame, cBufferDataPerFrame, errors );
   TAC_HANDLE_ERROR( errors );
 
@@ -118,7 +118,7 @@ void TacSkyboxPresentation::RenderSkybox( const TacString& skyboxDir )
   renderer->GetPerspectiveProjectionAB( mCamera->mFarPlane, mCamera->mNearPlane, a, b );
   float aspect = ( float )mDesktopWindow->mWidth / ( float )mDesktopWindow->mHeight;
 
-  CBufferPerFrame perFrame;
+  TacDefaultCBufferPerFrame perFrame;
   perFrame.mFar = mCamera->mFarPlane;
   perFrame.mNear = mCamera->mNearPlane;
   perFrame.mGbufferSize = { ( float )mDesktopWindow->mWidth, ( float )mDesktopWindow->mHeight };

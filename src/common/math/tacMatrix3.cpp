@@ -114,6 +114,23 @@ float determinant( const m3& m )
   return m.determinant();
 }
 
+m3 M3RotRad( v3 eulerRads )
+{
+  m3 rot
+    = M3RotRadZ( eulerRads[ 2 ] )
+    * M3RotRadY( eulerRads[ 1 ] )
+    * M3RotRadX( eulerRads[ 0 ] );
+  return rot;
+}
+m3 M3RotRadInv( v3 eulerRads )
+{
+  // ( z y x )inv = xinv yinv zinv
+  m3 rotInv
+    = M3RotRadX( -eulerRads[ 0 ] )
+    * M3RotRadY( -eulerRads[ 1 ] )
+    * M3RotRadZ( -eulerRads[ 2 ] );
+  return rotInv;
+}
 m3 M3RotRadX( float rotRad )
 {
   float s = sin( rotRad );

@@ -10,6 +10,7 @@
 #include "common/tacShell.h"
 #include "common/assetmanagers/tacTextureAssetManager.h"
 #include "common/tackeyboardinput.h"
+#include "common/graphics/tacImGui.h"
 #include "shell/tacDesktopApp.h"
 
 void TacCreationMainWindow::Init( TacErrors& errors )
@@ -200,6 +201,7 @@ void TacCreationMainWindow::CreateLayouts()
 
   mAreLayoutsCreated = true;
 }
+
 void TacCreationMainWindow::Update( TacErrors& errors )
 {
   TacShell* shell = mDesktopApp->mShell;
@@ -208,17 +210,24 @@ void TacCreationMainWindow::Update( TacErrors& errors )
   LoadTextures( errors );
   TAC_HANDLE_ERROR( errors );
 
-  CreateLayouts();
+  //CreateLayouts();
+
+  TacImGuiSetGlobals( shell, mDesktopWindow, mUI2DDrawData );
+  TacImGuiBegin( "Main Window", {} );
+  TacImGuiBeginMenuBar();
+  TacImGuiEndMenuBar();
+  TacImGuiText( "sup bitches" );
+  TacImGuiEnd();
 
   v2 cursorPos;
   TacOS::Instance->GetScreenspaceCursorPos( cursorPos, errors );
   TAC_HANDLE_ERROR( errors );
 
-  mUIRoot->mUiCursor.x = cursorPos.x - mDesktopWindow->mX;
-  mUIRoot->mUiCursor.y = cursorPos.y - mDesktopWindow->mY;
-  mUIRoot->Update();
-  mUIRoot->Render( errors );
-  TAC_HANDLE_ERROR( errors );
+  //mUIRoot->mUiCursor.x = cursorPos.x - mDesktopWindow->mX;
+  //mUIRoot->mUiCursor.y = cursorPos.y - mDesktopWindow->mY;
+  //mUIRoot->Update();
+  //mUIRoot->Render( errors );
+  //TAC_HANDLE_ERROR( errors );
 
   mUI2DDrawData->DrawToTexture( errors );
   TAC_HANDLE_ERROR( errors );

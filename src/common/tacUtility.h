@@ -26,6 +26,7 @@ void TacSaveToFile( const TacString& path, void* bytes, int byteCount, TacErrors
 bool TacIsOfExt( const TacString& str, const TacString& ext );
 bool TacFileExist( const TacString& str );
 TacString TacStripExt( const TacString& path );
+TacString TacStripLeadingSlashes( const TacString& path );
 
 
 //
@@ -34,6 +35,7 @@ TacString TacStripExt( const TacString& path );
 TacString TacSeparateStrings( const TacVector< TacString>& lines, const TacString& separator );
 TacString TacSeparateNewline( const TacVector< TacString>& lines );
 TacString TacSeparateSpace( const TacVector< TacString>& lines );
+bool TacStartsWith( const TacString& str, const TacString& prefix );
 bool TacEndsWith( const TacString& str, const TacString& suffix );
 TacString TacToLower( const TacString& str );
 TacString TacFormatPercentage( float number_between_0_and_1 );

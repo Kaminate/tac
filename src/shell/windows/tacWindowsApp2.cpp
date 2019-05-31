@@ -83,6 +83,8 @@ static TacKey TacGetKey( uint8_t keyCode )
     case VK_SPACE: return TacKey::Spacebar;
     case VK_DELETE: return TacKey::Delete;
     case VK_BACK: return TacKey::Backspace;
+    case VK_TAB: return TacKey::Tab;
+    case VK_CONTROL: return TacKey::Modifier;
     case 'A': return TacKey::A;
     case 'B': return TacKey::B;
     case 'C': return TacKey::C;
@@ -130,7 +132,10 @@ TacWin32DesktopWindow::~TacWin32DesktopWindow()
 {
   DestroyWindow( mHWND );
 }
-LRESULT TacWin32DesktopWindow::HandleWindowProc( UINT uMsg, WPARAM wParam, LPARAM lParam )
+LRESULT TacWin32DesktopWindow::HandleWindowProc(
+  UINT uMsg,
+  WPARAM wParam,
+  LPARAM lParam )
 {
   TacKeyboardInput* mKeyboardInput = app->mShell->mKeyboardInput;
   bool mouseInWindowVerbose = false;
@@ -174,17 +179,15 @@ LRESULT TacWin32DesktopWindow::HandleWindowProc( UINT uMsg, WPARAM wParam, LPARA
         break;
       mKeyboardInput->SetIsKeyDown( key, isDown );
     } break;
-    // Sent to a window after it has gained the keyboard focus.
+
     case WM_SETFOCUS:
     {
-      std::cout << "gained keyboard focus " << std::endl;
+      //std::cout << "window gained keyboard focus " << std::endl;
     } break;
-
-    // Sent to a window immediately before it loses the keyboard focus.
     case WM_KILLFOCUS:
     {
       //mKeyboardInput->mCurrDown.clear();
-      std::cout << "about to lose keyboard focus" << std::endl;
+      //std::cout << "window about to lose keyboard focus" << std::endl;
     } break;
 
     // Sent when a window belonging to a different application than the active window
@@ -206,13 +209,12 @@ LRESULT TacWin32DesktopWindow::HandleWindowProc( UINT uMsg, WPARAM wParam, LPARA
 
     case WM_CAPTURECHANGED:
     {
-
-      std::cout << "WM_CAPTURECHANGED ( mouse capture lost )" << std::endl;
+      //std::cout << "WM_CAPTURECHANGED ( mouse capture lost )" << std::endl;
     } break;
 
     case WM_LBUTTONDOWN:
     {
-      std::cout << "WM_LBUTTONDOWN" << std::endl;
+      //std::cout << "WM_LBUTTONDOWN" << std::endl;
       mKeyboardInput->SetIsKeyDown( TacKey::MouseLeft, true );
       //SetActiveWindow( mHWND );
       //SetForegroundWindow( mHWND );
@@ -227,11 +229,8 @@ LRESULT TacWin32DesktopWindow::HandleWindowProc( UINT uMsg, WPARAM wParam, LPARA
     // case WM_NCLBUTTONUP:
     case WM_LBUTTONUP:
     {
-      const char* buttonName =
-        uMsg == WM_LBUTTONUP ?
-        "WM_LBUTTONUP" :
-        "WM_NCLBUTTONUP";
-      std::cout << buttonName << std::endl;
+      //if( uMsg == WM_LBUTTONUP ) { std::cout << "WM_LBUTTONUP" << std::endl; }
+      //else { std::cout << "WM_NCLBUTTONUP" << std::endl; }
       mKeyboardInput->SetIsKeyDown( TacKey::MouseLeft, false );
     } break;
 

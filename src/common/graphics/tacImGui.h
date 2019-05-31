@@ -5,11 +5,13 @@
 #include "common/containers/tacVector.h"
 #include <map>
 
-struct TacUIRoot;
+struct TacDesktopWindow;
 struct TacImGuiWindow;
-struct TacUI2DDrawData;
 struct TacKeyboardInput;
+struct TacShell;
 struct TacTextInputData;
+struct TacUI2DDrawData;
+struct TacUIRoot;
 
 struct TacImGuiRect
 {
@@ -41,19 +43,29 @@ struct TacImGuiGlobals
 };
 extern TacImGuiGlobals gTacImGuiGlobals;
 
-
-void TacImGuiSetNextWindowPos( v2 pos );
 void TacImGuiBegin( const TacString& name, v2 size );
 void TacImGuiEnd();
-bool TacImGuiCollapsingHeader( const TacString& name );
+
+void TacImGuiBeginMenuBar();
+//void TacImGuiBeginMenu( const TacString& label );
+//void TacImGuiMenuItem( const TacString& label );
+//void TacImGuiEndMenu();
+void TacImGuiEndMenuBar();
+
 void TacImGuiPushFontSize( int value );
 void TacImGuiPopFontSize();
+
 void TacImGuiBeginChild( const TacString& name, v2 size );
 void TacImGuiEndChild();
+
 void TacImGuiBeginGroup();
 void TacImGuiEndGroup();
+
 void TacImGuiIndent();
 void TacImGuiUnindent();
+
+void TacImGuiSetNextWindowPos( v2 pos );
+bool TacImGuiCollapsingHeader( const TacString& name );
 void TacImGuiSameLine();
 void TacImGuiText( const TacString& text );
 bool TacImGuiInputText( const TacString& label, TacString& text );
@@ -62,64 +74,14 @@ bool TacImGuiButton( const TacString& str );
 void TacImGuiCheckbox( const TacString& str, bool* value );
 bool TacImGuiDragFloat( const TacString& str, float* value );
 void TacImGuiDebugDraw();
+void TacImGuiSetGlobals(
+  TacShell* shell,
+  TacDesktopWindow* desktopWindow,
+  TacUI2DDrawData* ui2DDrawData );
 
 struct TacImGuiIndentBlock {
   TacImGuiIndentBlock() { TacImGuiIndent(); }
   ~TacImGuiIndentBlock() { TacImGuiUnindent(); } };
 #define TAC_IMGUI_INDENT_BLOCK TacImGuiIndentBlock indent##__LINE__;
 
-typedef int TacImGuiId;
-const int TacImGuiIdNull = -1;
 
-enum class TacDragFloatMode
-{
-  Drag,
-  TextInput
-};
-
-struct TacDragFloatData
-{
-  TacDragFloatMode mMode;
-};
-
-// move to cpp?
-struct TacImGuiWindow
-{
-  TacImGuiWindow();
-  ~TacImGuiWindow();
-  void BeginFrame();
-  void ItemSize( v2 size );
-  void ComputeClipInfo( bool* clipped, TacImGuiRect* clipRect );
-  void UpdateMaxCursorDrawPos( v2 pos );
-  TacImGuiId GetID();
-
-  TacString mName;
-  TacImGuiWindow* mParent = nullptr;
-
-  v2 mMaxiCursorDrawPos;
-  v2 mCurrCursorDrawPos;
-  v2 mPrevCursorDrawPos;
-
-  // rename to mPosDesktopWindowspace
-  v2 mPos = {};
-  v2 mSize = {};
-  TacImGuiRect mContentRect;
-  float mCurrLineHeight = 0;
-  float mPrevLineHeight = 0;
-
-  float mScroll = 0;
-  v2 mScrollMousePosScreenspaceInitial;
-  bool mScrolling = false;
-
-  v2 mGroupSavedCursorDrawPos;
-
-  TacVector< float > mXOffsets;
-
-
-  TacImGuiId mActiveID = TacImGuiIdNull;
-  TacImGuiId mIDCounter = 0;
-
-  TacTextInputData* inputData;
-  std::map< TacImGuiId, bool > mCollapsingHeaderStates;
-  std::map< TacImGuiId, TacDragFloatData > mDragFloatDatas;
-};

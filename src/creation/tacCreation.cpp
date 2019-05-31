@@ -5,24 +5,87 @@
 #include "common/graphics/tacUI2D.h"
 #include "common/math/tacMath.h"
 #include "common/tacAlgorithm.h"
+#include "common/tacTime.h"
 #include "common/tacOS.h"
 #include "common/tacPreprocessor.h"
+#include "common/tackeyboardinput.h"
 #include "creation/tacCreation.h"
 #include "shell/tacDesktopApp.h"
 #include "space/tacGhost.h"
 #include "space/tacentity.h"
 #include "space/tacworld.h"
+#include "space/tacmodel.h"
 
 #include <iostream>
 #include <functional>
 #include <algorithm>
 
+const TacString prefabSettingsPath = "prefabs";
 static v4 GetClearColor( TacShell* shell )
 {
   return v4( 1, 0, 0, 1 );
   float visualStudioBackground = 45 / 255.0f;
   visualStudioBackground += 0.3f;
   return TacGetColorSchemeA( ( float )shell->mElapsedSeconds );
+}
+
+//TacString TacPrefab::GetDisplayName()
+//{
+//  if( mDocumentPath.empty() )
+//    return "(Unsaved Prefab)";
+//  TacSplitFilepath split( mDocumentPath );
+//  return split.mFilename;
+//}
+
+void TacDesktopApp::DoStuff( TacDesktopApp* desktopApp, TacErrors& errors )
+{
+  TacOS* os = TacOS::Instance;
+  TacString appDataPath;
+  os->GetApplicationDataPath( appDataPath, errors );
+
+  TacString appName = "Creation";
+  TacString studioPath = appDataPath + "\\Sleeping Studio\\";
+  TacString prefPath = studioPath + appName;
+
+  bool appDataPathExists;
+  os->DoesFolderExist( appDataPath, appDataPathExists, errors );
+  TacAssert( appDataPathExists );
+
+  os->CreateFolderIfNotExist( studioPath, errors );
+  TAC_HANDLE_ERROR( errors );
+
+  os->CreateFolderIfNotExist( prefPath, errors );
+  TAC_HANDLE_ERROR( errors );
+
+
+  TacString workingDir;
+  os->GetWorkingDir( workingDir, errors );
+  TAC_HANDLE_ERROR( errors );
+
+  TacShell* shell = desktopApp->mShell;
+  shell->mAppName = appName;
+  shell->mPrefPath = prefPath;
+  shell->mInitialWorkingDir = workingDir;
+  shell->Init( errors );
+  TAC_HANDLE_ERROR( errors );
+
+  desktopApp->OnShellInit( errors );
+  TAC_HANDLE_ERROR( errors );
+
+  auto creation = new TacCreation();
+  creation->mDesktopApp = desktopApp;
+  shell->mOnUpdate.AddCallbackFunctional( [ creation, &errors ]()
+    {
+      creation->Update( errors );
+    } );
+
+  creation->Init( errors );
+  TAC_HANDLE_ERROR( errors );
+
+  desktopApp->Loop( errors );
+  TAC_HANDLE_ERROR( errors );
+
+  delete creation;
 }
 
 TacCreation::~TacCreation()
@@ -45,6 +108,7 @@ TacCreation::~TacCreation()
 }
 void TacCreation::Init( TacErrors& errors )
 {
+  TacOS* os = TacOS::Instance;
   mWorld = new TacWorld;
   mEditorCamera.mPos = { 0, 1, 5 };
   mEditorCamera.mForwards = { 0, 0, -1 };
@@ -52,10 +116,10 @@ void TacCreation::Init( TacErrors& errors )
   mEditorCamera.mUp = { 0, 1, 0 };
 
   TacString dataPath;
-  TacOS::Instance->GetApplicationDataPath( dataPath, errors );
+  os->GetApplicationDataPath( dataPath, errors );
   TAC_HANDLE_ERROR( errors );
 
-  TacOS::Instance->CreateFolderIfNotExist( dataPath, errors );
+  os->CreateFolderIfNotExist( dataPath, errors );
   TAC_HANDLE_ERROR( errors );
 
   TacShell* shell = mDesktopApp->mShell;
@@ -65,12 +129,12 @@ void TacCreation::Init( TacErrors& errors )
   auto windowsDefault = new TacJson();
   windowsDefault->mType = TacJsonType::Array;
   windowsDefault->mElements.push_back( new TacJson() );
-  TacJson* windows = shell->mSettings->GetArray( nullptr, { "Windows" }, windowsDefault, errors );
+  TacJson* windows = settings->GetArray( nullptr, { "Windows" }, windowsDefault, errors );
   TAC_HANDLE_ERROR( errors );
 
   for( TacJson* windowJson : windows->mElements )
   {
-    bool shouldCreate = shell->mSettings->GetBool( windowJson, { "Create" }, true, errors );
+    bool shouldCreate = settings->GetBool( windowJson, { "Create" }, true, errors );
     TAC_HANDLE_ERROR( errors );
 
     if( !shouldCreate )
@@ -78,7 +142,7 @@ void TacCreation::Init( TacErrors& errors )
 
 
     TacWindowParams windowParams = {};
-    windowParams.mName = shell->mSettings->GetString( windowJson, { "Name" }, "unnamed window", errors );
+    windowParams.mName = settings->GetString( windowJson, { "Name" }, "unnamed window", errors );
 
     TacMonitor monitor;
     mDesktopApp->GetPrimaryMonitor( &monitor, errors );
@@ -197,9 +261,12 @@ void TacCreation::Init( TacErrors& errors )
     }
   }
 
+  LoadPrefabs( errors );
+  TAC_HANDLE_ERROR( errors );
 }
 void TacCreation::Update( TacErrors& errors )
 {
+  TacShell* shell = mDesktopApp->mShell;
   if( mMainWindow )
   {
     mMainWindow->Update( errors );
@@ -216,6 +283,38 @@ void TacCreation::Update( TacErrors& errors )
   {
     mPropertyWindow->Update( errors );
     TAC_HANDLE_ERROR( errors );
+  }
+
+  mWorld->Step( TAC_DELTA_FRAME_SECONDS );
+
+  TacKeyboardInput* keyboardInput = shell->mKeyboardInput;
+  if( keyboardInput->IsKeyJustDown( TacKey::Delete ) )
+  {
+    for( TacEntity* entity : mSelectedEntities )
+    {
+      int iPrefab;
+      for( iPrefab = 0; iPrefab < mPrefabs.size(); ++iPrefab )
+      {
+        TacPrefab* prefab = mPrefabs[ iPrefab ];
+        if( prefab->mEntity == entity )
+          break;
+      }
+      if( iPrefab < mPrefabs.size() )
+      {
+        delete mPrefabs[ iPrefab ];
+        mPrefabs[ iPrefab ] = mPrefabs[ mPrefabs.size() - 1 ];
+        mPrefabs.pop_back();
+      }
+
+      mWorld->KillEntity( entity->mEntityUUID );
+    }
+    mSelectedEntities.clear();
+  }
+
+  if( keyboardInput->IsKeyJustDown( TacKey::S ) &&
+    keyboardInput->IsKeyDown( TacKey::Modifier ) )
+  {
+    SavePrefabs();
   }
 }
 TacEntity* TacCreation::CreateEntity()
@@ -235,52 +334,220 @@ TacEntity* TacCreation::CreateEntity()
 
   TacEntity* entity = world->SpawnEntity( TacNullEntityUUID );
   entity->mName = desiredEntityName;
-  mSelectedEntity = entity;
+  mSelectedEntities = { entity };
   return entity;
 }
-
-void TacDesktopApp::DoStuff( TacDesktopApp* desktopApp, TacErrors& errors )
+bool TacCreation::IsAnythingSelected()
 {
-  TacString appDataPath;
-  TacOS::Instance->GetApplicationDataPath( appDataPath, errors );
-
-  TacString appName = "Creation";
-  TacString studioPath = appDataPath + "\\Sleeping Studio\\";
-  TacString prefPath = studioPath + appName;
-
-  bool appDataPathExists;
-  TacOS::Instance->DoesFolderExist( appDataPath, appDataPathExists, errors );
-  TacAssert( appDataPathExists );
-
-  TacOS::Instance->CreateFolderIfNotExist( studioPath, errors );
-  TAC_HANDLE_ERROR( errors );
-
-  TacOS::Instance->CreateFolderIfNotExist( prefPath, errors );
-  TAC_HANDLE_ERROR( errors );
-
-
-  TacShell* shell = desktopApp->mShell;
-  shell->mAppName = appName;
-  shell->mPrefPath = prefPath;
-  shell->Init( errors );
-  TAC_HANDLE_ERROR( errors );
-
-  desktopApp->OnShellInit( errors );
-  TAC_HANDLE_ERROR( errors );
-
-  auto creation = new TacCreation();
-  creation->mDesktopApp = desktopApp;
-  shell->mOnUpdate.AddCallbackFunctional( [ creation, &errors ]()
-    {
-      creation->Update( errors );
-    } );
-
-  creation->Init( errors );
-  TAC_HANDLE_ERROR( errors );
-
-  desktopApp->Loop( errors );
-  TAC_HANDLE_ERROR( errors );
-
-  delete creation;
+  return mSelectedEntities.size();
 }
+v3 TacCreation::GetSelectionGizmoOrigin()
+{
+  TacAssert( IsAnythingSelected() );
+  // do i really want average? or like center of bounding circle?
+  v3 runningPosSum = {};
+  int selectionCount = 0;
+  for( auto entity : mSelectedEntities )
+  {
+    runningPosSum +=
+      ( entity->mWorldTransform * v4( 0, 0, 0, 1 ) ).xyz();
+      // entity->mPosition;
+    selectionCount++;
+  }
+  v3 averagePos = runningPosSum / ( float )selectionCount;
+  return averagePos;
+}
+void TacCreation::ClearSelection()
+{
+  mSelectedEntities.clear();
+  //mSelectedPrefabs.clear();
+}
+void TacCreation::GetSavedPrefabs( TacVector< TacString > & paths, TacErrors& errors )
+{
+  TacShell* shell = mDesktopApp->mShell;
+  TacSettings* settings = shell->mSettings;
+  TacJson& prefabs = settings->mJson[ prefabSettingsPath ];
+  prefabs.mType = TacJsonType::Array;
+
+  TacVector< TacString > alreadySavedPrefabs;
+  for( TacJson* child : prefabs.mElements )
+    alreadySavedPrefabs.push_back( child->mString );
+  paths = alreadySavedPrefabs;
+}
+void TacCreation::UpdateSavedPrefabs()
+{
+  TacShell* shell = mDesktopApp->mShell;
+  TacSettings* settings = shell->mSettings;
+  TacJson& prefabs = settings->mJson[ prefabSettingsPath ];
+  prefabs.mType = TacJsonType::Array;
+
+  TacErrors errors;
+  TacVector< TacString > alreadySavedPrefabs;
+  GetSavedPrefabs( alreadySavedPrefabs, errors );
+  TAC_HANDLE_ERROR( errors );
+
+  for( TacPrefab* prefab : mPrefabs )
+  {
+    const TacString& path = prefab->mDocumentPath;
+    if( path.empty() )
+      continue;
+    if( TacContains( alreadySavedPrefabs, path ) )
+      continue;
+    prefabs.mElements.push_back( new TacJson( path ) );
+  }
+
+  settings->Save( errors );
+}
+void TacCreation::SavePrefabs()
+{
+  TacShell* shell = mDesktopApp->mShell;
+  TacOS* os = TacOS::Instance;
+
+  // Create prefabs for entities without them
+  for( TacEntity* entity : mWorld->mEntities )
+  {
+    TacPrefab* entityPrefab = nullptr;
+    for( TacPrefab* prefab : mPrefabs )
+    {
+      if( prefab->mEntity == entity )
+      {
+        entityPrefab = prefab;
+        break;
+      }
+    }
+    if( entityPrefab )
+      continue;
+    auto prefab = new TacPrefab;
+    prefab->mEntity = entity;
+    mPrefabs.push_back( prefab );
+  }
+
+  // Save each prefab to a document
+  for( TacPrefab* prefab : mPrefabs )
+  {
+    // Get document paths for prefabs missing them
+    if( prefab->mDocumentPath.empty() )
+    {
+      TacString savePath;
+      TacString suggestedName = prefab->mEntity->mName + ".prefab";
+      TacErrors saveDialogErrors;
+      os->SaveDialog( savePath, suggestedName, saveDialogErrors );
+      if( saveDialogErrors.size() )
+      {
+        // todo: log it, user feedback
+        std::cout << saveDialogErrors.ToString() << std::endl;
+        continue;
+      }
+
+      if( TacStartsWith( savePath, shell->mInitialWorkingDir ) )
+      {
+        savePath = savePath.substr( shell->mInitialWorkingDir.size() );
+        savePath = TacStripLeadingSlashes( savePath );
+      }
+
+      prefab->mDocumentPath = savePath;
+      UpdateSavedPrefabs();
+    }
+
+    TacEntity* entity = prefab->mEntity;
+
+    v3 position = entity->mPosition;
+    TacJson posJson;
+    posJson[ "x" ] = position.x;
+    posJson[ "y" ] = position.y;
+    posJson[ "z" ] = position.z;
+
+    v3 scale = entity->mScale;
+    TacJson scaleJson;
+    scaleJson[ "x" ] = scale.x;
+    scaleJson[ "y" ] = scale.y;
+    scaleJson[ "z" ] = scale.z;
+
+    TacJson eulerRadsJson;
+    eulerRadsJson[ "x" ] = entity->mEulerRads.x;
+    eulerRadsJson[ "y" ] = entity->mEulerRads.y;
+    eulerRadsJson[ "z" ] = entity->mEulerRads.z;
+
+
+    TacJson prefabJson;
+    prefabJson[ "mPosition" ] = posJson;
+    prefabJson[ "mScale" ] = scaleJson;
+    prefabJson[ "mName" ] = entity->mName;
+    prefabJson[ "mEulerRads" ] = eulerRadsJson;
+    prefabJson[ "mEntityUUID" ] = ( TacJsonNumber )entity->mEntityUUID;
+
+    if( auto model = ( TacModel* )entity->GetComponent( TacComponentType::Model ) )
+    {
+      TacJson modelJson;
+      modelJson[ "mGLTFPath" ] = model->mGLTFPath;
+      prefabJson[ "Model" ] = modelJson;
+    }
+
+    TacString prefabJsonString = prefabJson.Stringify();
+    TacErrors saveToFileErrors;
+    void* bytes = prefabJsonString.data();
+    int byteCount = prefabJsonString.size();
+    os->SaveToFile( prefab->mDocumentPath, bytes, byteCount, saveToFileErrors );
+    if( saveToFileErrors.size() )
+    {
+      // todo: log it, user feedback
+      std::cout << saveToFileErrors.ToString() << std::endl;
+      continue;
+    }
+
+  }
+}
+void TacCreation::LoadPrefabs( TacErrors& errors )
+{
+  TacVector< TacString > prefabPaths;
+  GetSavedPrefabs( prefabPaths, errors );
+  for( TacString prefabPath : prefabPaths )
+  {
+    auto memory = TacTemporaryMemory( prefabPath, errors );
+    TacJson prefabJson;
+    prefabJson.Parse( memory.data(), memory.size(), errors );
+    TacJson& positionJson = prefabJson[ "mPosition" ];
+    v3 pos =
+    {
+      ( float )positionJson[ "x" ].mNumber,
+      ( float )positionJson[ "y" ].mNumber,
+      ( float )positionJson[ "z" ].mNumber,
+    };
+
+    TacJson& scaleJson = prefabJson[ "mScale" ];
+    v3 scale =
+    {
+      ( float )scaleJson[ "x" ].mNumber,
+      ( float )scaleJson[ "y" ].mNumber,
+      ( float )scaleJson[ "z" ].mNumber,
+    };
+
+    TacJson& eulerRadsJson = prefabJson[ "mEulerRads" ];
+    v3 eulerRads =
+    {
+      ( float )eulerRadsJson[ "x" ].mNumber,
+      ( float )eulerRadsJson[ "y" ].mNumber,
+      ( float )eulerRadsJson[ "z" ].mNumber,
+    };
+
+    auto entity = CreateEntity();
+    entity->mPosition = pos;
+    entity->mScale = scale;
+    entity->mEulerRads = eulerRads;
+    entity->mName = prefabJson[ "mName" ].mString;
+    entity->mEntityUUID = ( TacEntityUUID )( TacUUID )prefabJson[ "mEntityUUID" ].mNumber;
+
+    if( TacJson* modelJson = prefabJson.mChildren[ "Model" ] )
+    {
+      auto model = ( TacModel* )entity->AddNewComponent( TacComponentType::Model );
+      model->mGLTFPath = ( *modelJson )[ "mGLTFPath" ].mString;
+    }
+
+    TacPrefab* prefab = new TacPrefab;
+    prefab->mDocumentPath = prefabPath;
+    prefab->mEntity = entity;
+    mPrefabs.push_back( prefab );
+  }
+}
+
 

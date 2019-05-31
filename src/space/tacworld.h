@@ -1,6 +1,7 @@
 #pragma once
 #include "tacspacetypes.h"
 #include "common/math/tacVector2.h"
+#include "common/math/tacMatrix4.h"
 #include "common/tacString.h"
 #include <list>
 
@@ -23,6 +24,9 @@ struct TacWorld
   void Step( float seconds );
   void DebugImgui();
   void ApplyInput( TacPlayer* player, float seconds );
+  void ComputeTransformsRecursively( const m4& parentWorldTransformNoScale, TacEntity* entity );
+
+
 
   TacEntity* SpawnEntity( TacEntityUUID entityUUID );
   void KillEntity( TacEntityUUID entityUUID );

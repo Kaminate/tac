@@ -31,6 +31,8 @@ m3 M3Scale( v3 scale );
 m3 M3Scale( float x, float y, float z );
 m3 M3Translate( float x, float y );
 m3 M3Translate(v2 v);
+m3 M3RotRad( v3 eulerRads );
+m3 M3RotRadInv( v3 eulerRads );
 m3 M3RotRadX( float rotRad );
 m3 M3RotRadY( float rotRad );
 m3 M3RotRadZ( float rotRad );

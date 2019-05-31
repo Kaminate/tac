@@ -1,0 +1,26 @@
+{
+  "Model":
+  {
+    "mGLTFPath": "assets/editor/Box.gltf"
+  },
+  "mEntityUUID": 0,
+  "mEulerRads":
+  {
+    "x": 0,
+    "y": 0,
+    "z": 0
+  },
+  "mName": "starry eyed girl",
+  "mPosition":
+  {
+    "x": 3.500000,
+    "y": 0.156614,
+    "z": -0.100000
+  },
+  "mScale":
+  {
+    "x": 1,
+    "y": 1,
+    "z": 1
+  }
+}

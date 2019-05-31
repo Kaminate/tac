@@ -1,12 +1,14 @@
 #include "creation/tacCreationPropertyWindow.h"
 #include "creation/tacCreation.h"
 #include "common/tacErrorHandling.h"
+#include "common/tacAlgorithm.h"
 #include "common/graphics/tacUI.h"
 #include "common/graphics/tacImGui.h"
 #include "common/graphics/tacUI2D.h"
 #include "common/tacDesktopWindow.h"
 #include "common/tacOS.h"
 #include "common/tacShell.h"
+#include "common/tacUtility.h"
 #include "space/tacentity.h"
 #include "space/tacworld.h"
 #include "space/taccomponent.h"
@@ -32,27 +34,24 @@ void TacCreationPropertyWindow::Init( TacErrors& errors )
   mUIRoot->mHierarchyRoot->mLayoutType = TacUILayoutType::Horizontal;
 }
 
-void TacCreationPropertyWindow::SetImGuiGlobals()
-{
-  TacErrors screenspaceCursorPosErrors;
-  v2 screenspaceCursorPos;
-  TacOS::Instance->GetScreenspaceCursorPos( screenspaceCursorPos, screenspaceCursorPosErrors );
-  if( screenspaceCursorPosErrors.empty() )
-  {
-    gTacImGuiGlobals.mMousePositionDesktopWindowspace = {
-      screenspaceCursorPos.x - mDesktopWindow->mX,
-      screenspaceCursorPos.y - mDesktopWindow->mY };
-    gTacImGuiGlobals.mIsWindowDirectlyUnderCursor = mDesktopWindow->mCursorUnobscured;
-  }
-  else
-  {
-    gTacImGuiGlobals.mIsWindowDirectlyUnderCursor = false;
-  }
-  gTacImGuiGlobals.mUI2DDrawData = mUI2DDrawData;
-  gTacImGuiGlobals.mKeyboardInput = mShell->mKeyboardInput;
-  gTacImGuiGlobals.mElapsedSeconds = mShell->mElapsedSeconds;
-}
 
+
+void TacCreationPropertyWindow::RecursiveEntityHierarchyElement( TacEntity* entity )
+{
+  bool previouslySelected = TacContains( mCreation->mSelectedEntities, entity );
+  if( TacImGuiSelectable( entity->mName, previouslySelected ) )
+  {
+    mCreation->ClearSelection();
+    mCreation->mSelectedEntities = { entity };
+  }
+  if( entity->mChildren.empty() )
+    return;
+  TAC_IMGUI_INDENT_BLOCK;
+  for( TacEntity* child : entity->mChildren )
+  {
+    RecursiveEntityHierarchyElement( child );
+  }
+}
 void TacCreationPropertyWindow::Update( TacErrors& errors )
 {
   mDesktopWindow->SetRenderViewDefaults();
@@ -60,7 +59,8 @@ void TacCreationPropertyWindow::Update( TacErrors& errors )
   //mUIRoot->Render( errors );
   TAC_HANDLE_ERROR( errors );
 
-  SetImGuiGlobals();
+  //SetImGuiGlobals();
+  TacImGuiSetGlobals( mShell, mDesktopWindow, mUI2DDrawData );
 
 
   TacImGuiBegin( "Properties", {} );
@@ -69,11 +69,8 @@ void TacCreationPropertyWindow::Update( TacErrors& errors )
   TacWorld* world = mCreation->mWorld;
   for( TacEntity* entity : world->mEntities )
   {
-    bool isSelected = mCreation->mSelectedEntity == entity;
-    if( TacImGuiSelectable( entity->mName, isSelected ) )
-    {
-      mCreation->mSelectedEntity = entity;
-    }
+    if( !entity->mParent )
+      RecursiveEntityHierarchyElement( entity );
   }
   TacImGuiEndChild();
   if( TacImGuiButton( "Create Entity" ) )
@@ -82,7 +79,7 @@ void TacCreationPropertyWindow::Update( TacErrors& errors )
   TacImGuiSameLine();
   TacImGuiBeginGroup();
 
-  if( TacEntity* entity = mCreation->mSelectedEntity )
+  for( TacEntity* entity : mCreation->mSelectedEntities )
   {
     static TacString occupation = "Bartender";
     TacImGuiInputText( "Name", entity->mName );
@@ -90,6 +87,9 @@ void TacCreationPropertyWindow::Update( TacErrors& errors )
     TacImGuiDragFloat( "X Position: ", &entity->mPosition.x );
     TacImGuiDragFloat( "Y Position: ", &entity->mPosition.y );
     TacImGuiDragFloat( "Z Position: ", &entity->mPosition.z );
+    TacImGuiDragFloat( "X Scale: ", &entity->mScale.x );
+    TacImGuiDragFloat( "Y Scale: ", &entity->mScale.y );
+    TacImGuiDragFloat( "Z Scale: ", &entity->mScale.z );
     v3 rotDeg = entity->mEulerRads * ( 180.0f / 3.14f );
     bool changed = false;
     changed |= TacImGuiDragFloat( "X Eul Deg: ", &rotDeg.x );
@@ -98,6 +98,39 @@ void TacCreationPropertyWindow::Update( TacErrors& errors )
     if( changed )
       entity->mEulerRads = rotDeg * ( 3.14f / 180.0f );
     TacVector< TacComponentType > addableComponentTypes;
+
+    TacImGuiText( "Parent: " + ( entity->mParent ? entity->mParent->mName : "nullptr" ) );
+    if( entity->mParent && TacImGuiButton( "Unparent" ) )
+    {
+      entity->Unparent();
+    }
+    TacVector< TacEntity* > potentialParents;
+    for( TacEntity* potentialParent : mCreation->mWorld->mEntities )
+    {
+      if( potentialParent == entity )
+        continue;
+      if( entity->mParent == potentialParent )
+        continue;
+      potentialParents.push_back( potentialParent );
+    }
+    if( !potentialParents.empty() && TacImGuiCollapsingHeader( "Set Parent" ) )
+    {
+      TAC_IMGUI_INDENT_BLOCK;
+      for( TacEntity* potentialParent : potentialParents )
+      {
+        if( TacImGuiButton( "Set Parent: " + potentialParent->mName ) )
+        {
+          entity->Unparent();
+          potentialParent->mChildren.push_back( entity );
+          entity->mParent = potentialParent;
+        }
+      }
+    }
+
+    TacImGuiIndent();
+    // all the children, recursively
+    TacImGuiUnindent();
+
     for( int i = 0; i < ( int )TacComponentType::Count; ++i )
     {
       TacComponentType componentType = ( TacComponentType )i;

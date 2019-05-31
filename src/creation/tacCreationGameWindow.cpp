@@ -106,7 +106,7 @@ void TacCreationGameWindow::CreateGraphicsObjects( TacErrors& errors )
   cBufferDataPerFrame.mName = "tac 3d per frame";
   cBufferDataPerFrame.mStackFrame = TAC_STACK_FRAME;
   cBufferDataPerFrame.shaderRegister = 0;
-  cBufferDataPerFrame.byteCount = sizeof( CBufferPerFrame );
+  cBufferDataPerFrame.byteCount = sizeof( TacDefaultCBufferPerFrame );
   renderer->AddConstantBuffer( &mPerFrame, cBufferDataPerFrame, errors );
   TAC_HANDLE_ERROR( errors );
 
@@ -114,7 +114,7 @@ void TacCreationGameWindow::CreateGraphicsObjects( TacErrors& errors )
   cBufferDataPerObj.mName = "tac 3d per obj";
   cBufferDataPerObj.mStackFrame = TAC_STACK_FRAME;
   cBufferDataPerObj.shaderRegister = 1;
-  cBufferDataPerObj.byteCount = sizeof( CBufferPerObject );
+  cBufferDataPerObj.byteCount = sizeof( TacDefaultCBufferPerObject );
   renderer->AddConstantBuffer( &mPerObj, cBufferDataPerObj, errors );
   TAC_HANDLE_ERROR( errors );
 
@@ -239,26 +239,8 @@ void TacCreationGameWindow::Init( TacErrors& errors )
   PlayGame( errors );
   TAC_HANDLE_ERROR( errors );
 }
-void TacCreationGameWindow::SetImGuiGlobals()
-{
-  TacErrors mousePosErrors;
-  v2 mousePosScreenspace;
-  TacOS::Instance->GetScreenspaceCursorPos( mousePosScreenspace, mousePosErrors );
-  if( mousePosErrors.empty() )
-  {
-    gTacImGuiGlobals.mMousePositionDesktopWindowspace = {
-      mousePosScreenspace.x - mDesktopWindow->mX,
-      mousePosScreenspace.y - mDesktopWindow->mY };
-    gTacImGuiGlobals.mIsWindowDirectlyUnderCursor = mDesktopWindow->mCursorUnobscured;
-  }
-  else
-  {
-    gTacImGuiGlobals.mIsWindowDirectlyUnderCursor = false;
-  }
-  gTacImGuiGlobals.mUI2DDrawData = mUI2DDrawData;
-  gTacImGuiGlobals.mKeyboardInput = mShell->mKeyboardInput;
-}
-void TacCreationGameWindow::MousePicking()
+
+void TacCreationGameWindow::MousePickingAll()
 {
   if( !mDesktopWindow->mCursorUnobscured )
     return;
@@ -292,7 +274,7 @@ void TacCreationGameWindow::MousePicking()
 
   for( TacEntity* entity : mCreation->mWorld->mEntities )
   {
-    MousePicking( entity, &hit, &dist );
+    MousePickingEntity( entity, &hit, &dist );
     if( !hit || !pickData.IsNewClosest( dist ) )
       continue;
     pickData.closestDist = dist;
@@ -300,8 +282,9 @@ void TacCreationGameWindow::MousePicking()
     pickData.pickedObject = PickedObject::Entity;
   }
 
-  if( mCreation->mSelectedEntity )
+  if( mCreation->mSelectedEntities.size() ) // || mCreation->mSelectedPrefabs.size() )
   {
+    v3 selectionGizmoOrigin = mCreation->GetSelectionGizmoOrigin();
 
     m4 invArrowRots[] = {
       M4RotRadZ( 3.14f / 2.0f ),
@@ -311,7 +294,7 @@ void TacCreationGameWindow::MousePicking()
     for( int i = 0; i < 3; ++i )
     {
       // 1/3: inverse transform
-      v3 modelSpaceRayPos3 = mCreation->mEditorCamera.mPos - mCreation->mSelectedEntity->mPosition;
+      v3 modelSpaceRayPos3 = mCreation->mEditorCamera.mPos - selectionGizmoOrigin;
       v4 modelSpaceRayPos4 = v4( modelSpaceRayPos3, 1 );
       v3 modelSpaceRayDir3 = worldSpaceMouseDir;
       v4 modelSpaceRayDir4 = v4( worldSpaceMouseDir, 0 );
@@ -350,6 +333,7 @@ void TacCreationGameWindow::MousePicking()
     {
       case PickedObject::WidgetTranslationArrow:
       {
+        v3 gizmoOrigin = mCreation->GetSelectionGizmoOrigin();
         v3 pickPoint = mCreation->mEditorCamera.mPos + worldSpaceMouseDir * pickData.closestDist;
         v3 arrowDir = {};
         arrowDir[ pickData.arrowAxis ] = 1;
@@ -357,15 +341,16 @@ void TacCreationGameWindow::MousePicking()
         mCreation->mTranslationGizmoDir = arrowDir;
         mCreation->mTranslationGizmoOffset = TacDot(
           arrowDir,
-          worldSpaceHitPoint - mCreation->mSelectedEntity->mPosition );
+          worldSpaceHitPoint - gizmoOrigin );
       } break;
       case PickedObject::Entity:
       {
-        mCreation->mSelectedEntity = pickData.closest;
+        mCreation->ClearSelection();
+        mCreation->mSelectedEntities = { pickData.closest };
       } break;
       case PickedObject::None:
       {
-        mCreation->mSelectedEntity = nullptr;
+        mCreation->ClearSelection();
       } break;
     }
   }
@@ -407,20 +392,36 @@ void TacCreationGameWindow::MousePickingInit()
   v4 worldSpaceMouseDir4 = viewInv * viewSpaceMouseDir4;
   worldSpaceMouseDir = worldSpaceMouseDir4.xyz();
 }
-void TacCreationGameWindow::MousePicking( const TacEntity* entity, bool* hit, float* dist )
+void TacCreationGameWindow::MousePickingEntity(
+  const TacEntity* entity,
+  bool* hit,
+  float* dist )
 {
-  *hit = false;
   auto model = ( const TacModel* )entity->GetComponent( TacComponentType::Model );
-  if( !model )
+  if( !model || !model->mesh )
+  {
+    *hit = false;
     return;
-  if( !model->mesh )
+  }
+
+  m4 transformInv;
+  bool transformInvExists;
+  M4Inverse( entity->mWorldTransform, &transformInv, &transformInvExists );
+  if( !transformInvExists )
+  {
+    *hit = false;
     return;
-  v3 modelSpaceHitPoint = {};
-  v3 modelSpaceMousePos = mCreation->mEditorCamera.mPos - entity->mPosition;
-  v3 modelSpaceMouseDir = worldSpaceMouseDir;
-  model->mesh->Raycast( modelSpaceMousePos, modelSpaceMouseDir, hit, dist );
+  }
+  //m4 transformInv = M4TransformInverse(
+  //  entity->mScale,
+  //  entity->mEulerRads,
+  //  entity->mPosition );
+
+  v3 mousePos3 = ( transformInv * v4( mCreation->mEditorCamera.mPos, 1 ) ).xyz();
+  v3 mouseDir3 = Normalize( ( transformInv * v4( worldSpaceMouseDir, 0 ) ).xyz() );
+  model->mesh->Raycast( mousePos3, mouseDir3, hit, dist );
 }
-void TacCreationGameWindow::AddDrawCall( const TacMesh* mesh, const CBufferPerObject& cbuf )
+void TacCreationGameWindow::AddDrawCall( const TacMesh* mesh, const TacDefaultCBufferPerObject& cbuf )
 {
   TacRenderer* renderer = mShell->mRenderer;
   for( const TacSubMesh& subMesh : mesh->mSubMeshes )
@@ -439,30 +440,31 @@ void TacCreationGameWindow::AddDrawCall( const TacMesh* mesh, const CBufferPerOb
     drawCall.mVertexFormat = mesh->mVertexFormat;
     drawCall.mTexture = nullptr;
     drawCall.mUniformDst = mPerObj;
-    drawCall.mUniformSrcc = TacTemporaryMemory( &cbuf, sizeof( CBufferPerObject ) );
+    drawCall.mUniformSrcc = TacTemporaryMemory( &cbuf, sizeof( TacDefaultCBufferPerObject ) );
     drawCall.mStackFrame = TAC_STACK_FRAME;
     renderer->AddDrawCall( drawCall );
   }
 }
 void TacCreationGameWindow::ComputeArrowLen()
 {
+  if( !mCreation->IsAnythingSelected() )
+  {
+    return;
+  }
   m4 view = M4View(
     mCreation->mEditorCamera.mPos,
     mCreation->mEditorCamera.mForwards,
     mCreation->mEditorCamera.mRight,
     mCreation->mEditorCamera.mUp );
-  TacEntity* entity = mCreation->mSelectedEntity;
-  if( !entity )
-    return;
-  v3 pos = entity->mPosition;
+  v3 pos = mCreation->GetSelectionGizmoOrigin();
   v4 posVS4 = view * v4( pos, 1 );
   float clip_height = std::abs( std::tan( mCreation->mEditorCamera.mFovyrad / 2.0f ) * posVS4.z * 2.0f );
   float arrowLen = clip_height * 0.2f;
   mArrowLen = arrowLen;
 }
-void TacCreationGameWindow::RenderGameWorld()
+void TacCreationGameWindow::RenderGameWorldToGameWindow()
 {
-  MousePicking();
+  MousePickingAll();
 
   TacRenderer* renderer = mShell->mRenderer;
   TacModelAssetManager* modelAssetManager = mShell->mModelAssetManager;
@@ -478,7 +480,7 @@ void TacCreationGameWindow::RenderGameWorld()
     b );
   float aspect = w / h;
   m4 proj = M4ProjPerspective( a, b, mCreation->mEditorCamera.mFovyrad, aspect );
-  CBufferPerFrame perFrameData;
+  TacDefaultCBufferPerFrame perFrameData;
   perFrameData.mFar = mCreation->mEditorCamera.mFarPlane;
   perFrameData.mNear = mCreation->mEditorCamera.mNearPlane;
   perFrameData.mView = view;
@@ -486,11 +488,11 @@ void TacCreationGameWindow::RenderGameWorld()
   perFrameData.mGbufferSize = { w, h };
   TacDrawCall2 setPerFrame = {};
   setPerFrame.mUniformDst = mPerFrame;
-  setPerFrame.mUniformSrcc = TacTemporaryMemory( &perFrameData, sizeof( CBufferPerFrame ) );
+  setPerFrame.mUniformSrcc = TacTemporaryMemory( &perFrameData, sizeof( TacDefaultCBufferPerFrame ) );
   renderer->AddDrawCall( setPerFrame );
-  TacEntity* entity = mCreation->mSelectedEntity;
-  if( entity )
+  if( mCreation->IsAnythingSelected() )
   {
+    v3 selectionGizmoOrigin = mCreation->GetSelectionGizmoOrigin();
     v3 colors[] = {
       { 1, 0, 0 },
     { 0, 1, 0 },
@@ -503,10 +505,10 @@ void TacCreationGameWindow::RenderGameWorld()
     for( int i = 0; i < 3; ++i )
     {
       // Widget Translation Arrow
-      CBufferPerObject perObjectData;
+      TacDefaultCBufferPerObject perObjectData;
       perObjectData.Color = { colors[ i ], 1 };
       perObjectData.World =
-        M4Translate( entity->mPosition ) *
+        M4Translate( selectionGizmoOrigin ) *
         rots[ i ] *
         M4Scale( v3( 1, 1, 1 ) * mArrowLen ) *
         mArrow->mTransform;
@@ -516,7 +518,7 @@ void TacCreationGameWindow::RenderGameWorld()
       v3 axis = {};
       axis[ i ] = 1;
       perObjectData.World =
-        M4Translate( entity->mPosition ) *
+        M4Translate( selectionGizmoOrigin ) *
         M4Translate( axis * ( mArrowLen * 1.1f ) ) *
         rots[ i ] *
         M4Scale( v3( 1, 1, 1 ) * mArrowLen * 0.1f );
@@ -527,7 +529,7 @@ void TacCreationGameWindow::RenderGameWorld()
   TacErrors ignored;
   mDebug3DDrawData->DrawToTexture( ignored, &perFrameData );
 
-  mGamePresentation->RenderGameWorld();
+  mGamePresentation->RenderGameWorldToDesktopView();
 }
 void TacCreationGameWindow::PlayGame( TacErrors& errors )
 {
@@ -630,49 +632,62 @@ void TacCreationGameWindow::CameraControls()
 void TacCreationGameWindow::Update( TacErrors& errors )
 {
   mDesktopWindow->SetRenderViewDefaults();
-  SetImGuiGlobals();
+  TacImGuiSetGlobals( mShell, mDesktopWindow, mUI2DDrawData );
   if( auto ghost = ( TacGhost* )mSoul )
   {
-    static bool once;
-    if( !once )
-    {
-      once = true;
-      TacEntity* entity = mCreation->CreateEntity();
-      entity->mName = "Starry-eyed girl";
-      entity->mPosition = { 4.5f, -4.0f, -0.5f };
-      auto model = ( TacModel* )entity->AddNewComponent( TacComponentType::Model );
-      model->mGLTFPath = "assets/editor/Box.gltf";
-    }
+    //static bool once;
+    //if( !once )
+    //{
+    //  once = true;
+    //  TacEntity* entity = mCreation->CreateEntity();
+    //  entity->mName = "Starry-eyed girl";
+    //  entity->mPosition = {}; // { 4.5f, -4.0f, -0.5f };
+    //  auto model = ( TacModel* )entity->AddNewComponent( TacComponentType::Model );
+    //  model->mGLTFPath = "assets/editor/Box.gltf";
+    //}
     ghost->Update( errors );
     TAC_HANDLE_ERROR( errors );
   }
 
   mDebug3DDrawData->DebugDrawGrid();
-  if( mCreation->mSelectedEntity )
+
+  if( mCreation->IsAnythingSelected() )
+  {
+    v3 origin = mCreation->GetSelectionGizmoOrigin();
     mDebug3DDrawData->DebugDrawCircle(
-      mCreation->mSelectedEntity->mPosition,
-      mCreation->mEditorCamera.mForwards, mArrowLen );
+      origin,
+      mCreation->mEditorCamera.mForwards,
+      mArrowLen );
+  }
 
   MousePickingInit();
   CameraControls();
   ComputeArrowLen();
-  RenderGameWorld();
+  RenderGameWorldToGameWindow();
   TAC_HANDLE_ERROR( errors );
 
   if( mCreation->mSelectedGizmo )
   {
+    v3 origin = mCreation->GetSelectionGizmoOrigin();
     float gizmoMouseDist;
     float secondDist;
     ClosestPointTwoRays(
       mCreation->mEditorCamera.mPos,
       worldSpaceMouseDir,
-      mCreation->mSelectedEntity->mPosition,
+      origin,
       mCreation->mTranslationGizmoDir,
       &gizmoMouseDist,
       &secondDist );
-    mCreation->mSelectedEntity->mPosition +=
-      mCreation->mTranslationGizmoDir *
+    v3 translate = mCreation->mTranslationGizmoDir *
       ( secondDist - mCreation->mTranslationGizmoOffset );
+    for( TacEntity* entity : mCreation->mSelectedEntities )
+    {
+      entity->mPosition += translate;
+    }
+    //for( TacPrefab* prefab : mCreation->mSelectedPrefabs )
+    //{
+    //  prefab->mPosition += translate;
+    //}
     if( !mShell->mKeyboardInput->IsKeyDown( TacKey::MouseLeft ) )
     {
       mCreation->mSelectedGizmo = false;

@@ -1,28 +1,28 @@
 #pragma once
 
-struct TacModelAssetManager;
-struct TacRenderer;
-struct TacCamera;
-struct TacDesktopWindow;
-struct TacShader;
-struct TacVertexFormat;
-struct TacCBuffer;
-struct TacCBuffer;
-struct TacDepthState;
 struct TacBlendState;
-struct TacRasterizerState;
-struct TacSamplerState;
-struct TacWorld;
+struct TacCBuffer;
+struct TacCamera;
+struct TacDefaultCBufferPerObject;
+struct TacDepthState;
+struct TacDesktopWindow;
+struct TacEntity;
 struct TacMesh;
-struct CBufferPerObject;
+struct TacModelAssetManager;
+struct TacRasterizerState;
+struct TacRenderer;
+struct TacSamplerState;
+struct TacShader;
 struct TacSkyboxPresentation;
+struct TacVertexFormat;
+struct TacWorld;
 
 struct TacGamePresentation
 {
   ~TacGamePresentation();
-  void RenderGameWorld();
   void CreateGraphicsObjects( TacErrors& errors );
-  void AddDrawCall( const TacMesh* mesh, const CBufferPerObject& cbuf );
+  void RenderGameWorldToDesktopView();
+  void RenderGameWorldAddDrawCall( const TacMesh* mesh, const TacDefaultCBufferPerObject& cbuf );
 
   TacModelAssetManager* mModelAssetManager = nullptr;
   TacRenderer* mRenderer = nullptr;

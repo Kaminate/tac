@@ -45,6 +45,13 @@ m4::m4(
 int m4::getValueIndex( int iRow, int iCol ) const { return 4 * iRow + iCol; }
 float& m4::operator()( int iRow, int iCol ) { return mValues[ getValueIndex( iRow, iCol ) ]; }
 float m4::operator()( int iRow, int iCol ) const { return mValues[ getValueIndex( iRow, iCol ) ]; }
+float& m4::operator[]( int i ) { return mValues[ i ]; }
+float m4::operator[]( int i ) const { return mValues[ i ]; }
+void m4::operator /= ( float f )
+{
+  for( float& v : mValues )
+    v *= 1.0f / f;
+}
 bool m4::operator == ( const m4& m ) const
 {
   bool result = 0 == std::memcmp( data(), m.data(), sizeof( m4 ) );
@@ -141,13 +148,138 @@ m4 M4Transform( v3 scale, m3 rot, v3 translate )
 }
 m4 M4Transform( v3 scale, v3 eulerRads, v3 translate )
 {
-  m3 rot
-    = M3RotRadZ( eulerRads[ 2 ] )
-    * M3RotRadY( eulerRads[ 1 ] )
-    * M3RotRadX( eulerRads[ 0 ] );
+  m3 rot = M3RotRad( eulerRads );
   return M4Transform( scale, rot, translate );
 }
-m4 M4TransformInverse( v3 scale, v3 rotate, v3 translate )
+void M4Inverse( const m4& m, m4* result, bool* resultExists )
+{
+  // gluInvertMatrix
+  m4 inv;
+  inv[ 0 ] = m[ 5 ] * m[ 10 ] * m[ 15 ] -
+    m[ 5 ] * m[ 11 ] * m[ 14 ] -
+    m[ 9 ] * m[ 6 ] * m[ 15 ] +
+    m[ 9 ] * m[ 7 ] * m[ 14 ] +
+    m[ 13 ] * m[ 6 ] * m[ 11 ] -
+    m[ 13 ] * m[ 7 ] * m[ 10 ];
+
+  inv[ 4 ] = -m[ 4 ] * m[ 10 ] * m[ 15 ] +
+    m[ 4 ] * m[ 11 ] * m[ 14 ] +
+    m[ 8 ] * m[ 6 ] * m[ 15 ] -
+    m[ 8 ] * m[ 7 ] * m[ 14 ] -
+    m[ 12 ] * m[ 6 ] * m[ 11 ] +
+    m[ 12 ] * m[ 7 ] * m[ 10 ];
+
+  inv[ 8 ] = m[ 4 ] * m[ 9 ] * m[ 15 ] -
+    m[ 4 ] * m[ 11 ] * m[ 13 ] -
+    m[ 8 ] * m[ 5 ] * m[ 15 ] +
+    m[ 8 ] * m[ 7 ] * m[ 13 ] +
+    m[ 12 ] * m[ 5 ] * m[ 11 ] -
+    m[ 12 ] * m[ 7 ] * m[ 9 ];
+
+  inv[ 12 ] = -m[ 4 ] * m[ 9 ] * m[ 14 ] +
+    m[ 4 ] * m[ 10 ] * m[ 13 ] +
+    m[ 8 ] * m[ 5 ] * m[ 14 ] -
+    m[ 8 ] * m[ 6 ] * m[ 13 ] -
+    m[ 12 ] * m[ 5 ] * m[ 10 ] +
+    m[ 12 ] * m[ 6 ] * m[ 9 ];
+
+  inv[ 1 ] = -m[ 1 ] * m[ 10 ] * m[ 15 ] +
+    m[ 1 ] * m[ 11 ] * m[ 14 ] +
+    m[ 9 ] * m[ 2 ] * m[ 15 ] -
+    m[ 9 ] * m[ 3 ] * m[ 14 ] -
+    m[ 13 ] * m[ 2 ] * m[ 11 ] +
+    m[ 13 ] * m[ 3 ] * m[ 10 ];
+
+  inv[ 5 ] = m[ 0 ] * m[ 10 ] * m[ 15 ] -
+    m[ 0 ] * m[ 11 ] * m[ 14 ] -
+    m[ 8 ] * m[ 2 ] * m[ 15 ] +
+    m[ 8 ] * m[ 3 ] * m[ 14 ] +
+    m[ 12 ] * m[ 2 ] * m[ 11 ] -
+    m[ 12 ] * m[ 3 ] * m[ 10 ];
+
+  inv[ 9 ] = -m[ 0 ] * m[ 9 ] * m[ 15 ] +
+    m[ 0 ] * m[ 11 ] * m[ 13 ] +
+    m[ 8 ] * m[ 1 ] * m[ 15 ] -
+    m[ 8 ] * m[ 3 ] * m[ 13 ] -
+    m[ 12 ] * m[ 1 ] * m[ 11 ] +
+    m[ 12 ] * m[ 3 ] * m[ 9 ];
+
+  inv[ 13 ] = m[ 0 ] * m[ 9 ] * m[ 14 ] -
+    m[ 0 ] * m[ 10 ] * m[ 13 ] -
+    m[ 8 ] * m[ 1 ] * m[ 14 ] +
+    m[ 8 ] * m[ 2 ] * m[ 13 ] +
+    m[ 12 ] * m[ 1 ] * m[ 10 ] -
+    m[ 12 ] * m[ 2 ] * m[ 9 ];
+
+  inv[ 2 ] = m[ 1 ] * m[ 6 ] * m[ 15 ] -
+    m[ 1 ] * m[ 7 ] * m[ 14 ] -
+    m[ 5 ] * m[ 2 ] * m[ 15 ] +
+    m[ 5 ] * m[ 3 ] * m[ 14 ] +
+    m[ 13 ] * m[ 2 ] * m[ 7 ] -
+    m[ 13 ] * m[ 3 ] * m[ 6 ];
+
+  inv[ 6 ] = -m[ 0 ] * m[ 6 ] * m[ 15 ] +
+    m[ 0 ] * m[ 7 ] * m[ 14 ] +
+    m[ 4 ] * m[ 2 ] * m[ 15 ] -
+    m[ 4 ] * m[ 3 ] * m[ 14 ] -
+    m[ 12 ] * m[ 2 ] * m[ 7 ] +
+    m[ 12 ] * m[ 3 ] * m[ 6 ];
+
+  inv[ 10 ] = m[ 0 ] * m[ 5 ] * m[ 15 ] -
+    m[ 0 ] * m[ 7 ] * m[ 13 ] -
+    m[ 4 ] * m[ 1 ] * m[ 15 ] +
+    m[ 4 ] * m[ 3 ] * m[ 13 ] +
+    m[ 12 ] * m[ 1 ] * m[ 7 ] -
+    m[ 12 ] * m[ 3 ] * m[ 5 ];
+
+  inv[ 14 ] = -m[ 0 ] * m[ 5 ] * m[ 14 ] +
+    m[ 0 ] * m[ 6 ] * m[ 13 ] +
+    m[ 4 ] * m[ 1 ] * m[ 14 ] -
+    m[ 4 ] * m[ 2 ] * m[ 13 ] -
+    m[ 12 ] * m[ 1 ] * m[ 6 ] +
+    m[ 12 ] * m[ 2 ] * m[ 5 ];
+
+  inv[ 3 ] = -m[ 1 ] * m[ 6 ] * m[ 11 ] +
+    m[ 1 ] * m[ 7 ] * m[ 10 ] +
+    m[ 5 ] * m[ 2 ] * m[ 11 ] -
+    m[ 5 ] * m[ 3 ] * m[ 10 ] -
+    m[ 9 ] * m[ 2 ] * m[ 7 ] +
+    m[ 9 ] * m[ 3 ] * m[ 6 ];
+
+  inv[ 7 ] = m[ 0 ] * m[ 6 ] * m[ 11 ] -
+    m[ 0 ] * m[ 7 ] * m[ 10 ] -
+    m[ 4 ] * m[ 2 ] * m[ 11 ] +
+    m[ 4 ] * m[ 3 ] * m[ 10 ] +
+    m[ 8 ] * m[ 2 ] * m[ 7 ] -
+    m[ 8 ] * m[ 3 ] * m[ 6 ];
+
+  inv[ 11 ] = -m[ 0 ] * m[ 5 ] * m[ 11 ] +
+    m[ 0 ] * m[ 7 ] * m[ 9 ] +
+    m[ 4 ] * m[ 1 ] * m[ 11 ] -
+    m[ 4 ] * m[ 3 ] * m[ 9 ] -
+    m[ 8 ] * m[ 1 ] * m[ 7 ] +
+    m[ 8 ] * m[ 3 ] * m[ 5 ];
+
+  inv[ 15 ] = m[ 0 ] * m[ 5 ] * m[ 10 ] -
+    m[ 0 ] * m[ 6 ] * m[ 9 ] -
+    m[ 4 ] * m[ 1 ] * m[ 10 ] +
+    m[ 4 ] * m[ 2 ] * m[ 9 ] +
+    m[ 8 ] * m[ 1 ] * m[ 6 ] -
+    m[ 8 ] * m[ 2 ] * m[ 5 ];
+
+  float det = m[ 0 ] * inv[ 0 ] + m[ 1 ] * inv[ 4 ] + m[ 2 ] * inv[ 8 ] + m[ 3 ] * inv[ 12 ];
+
+  if( det == 0 )
+  {
+    *resultExists = false;
+    return;
+  }
+
+  inv /= det;
+  *result = inv;
+  *resultExists = true;
+}
+m4 M4TransformInverse( v3 scale, v3 eulerRads, v3 translate )
 {
   v3 s(
     1.0f / scale[ 0 ],
@@ -156,7 +288,7 @@ m4 M4TransformInverse( v3 scale, v3 rotate, v3 translate )
   v3 t = -translate;
 
   v3 zero = {};
-  if( rotate == zero )
+  if( eulerRads == zero )
   {
     m4 result = m4(
       s[ 0 ], 0, 0, s[ 0 ] * t[ 0 ],
@@ -169,10 +301,7 @@ m4 M4TransformInverse( v3 scale, v3 rotate, v3 translate )
   {
     // NOTE( N8 ): this MUST be opposite order of Matrix4::Transform
     // ( Transform goes zyx, so TransformInverse goes xyz )
-    m3 r =
-      M3RotRadX( -rotate[ 0 ] ) *
-      M3RotRadY( -rotate[ 1 ] ) *
-      M3RotRadZ( -rotate[ 2 ] );
+    m3 r = M3RotRadInv( eulerRads );
     float m03 = s[ 0 ] * ( t[ 0 ] * r( 0, 0 ) + t[ 1 ] * r( 0, 1 ) + t[ 2 ] * r( 0, 2 ) );
     float m13 = s[ 1 ] * ( t[ 0 ] * r( 1, 0 ) + t[ 1 ] * r( 1, 1 ) + t[ 2 ] * r( 1, 2 ) );
     float m23 = s[ 2 ] * ( t[ 0 ] * r( 2, 0 ) + t[ 1 ] * r( 2, 1 ) + t[ 2 ] * r( 2, 2 ) );

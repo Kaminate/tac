@@ -12,6 +12,13 @@
 
 #include <Shlobj.h> // SHGetKnownFolderPath
 
+
+#include <commdlg.h> // GetSaveFileNameA
+#pragma comment( lib, "Comdlg32.lib" ) // GetSaveFileNameA
+
+
+
+
 TacString TacWin32ErrorToString( DWORD winErrorValue )
 {
   if( !winErrorValue )
@@ -115,8 +122,95 @@ static TacString TacWideStringToUTF8( WCHAR* inputWideStr )
 
 struct TacWin32OS : public TacOS
 {
+
+  void GetWorkingDir( TacString& dir, TacErrors& errors ) override
+  {
+    const int bufLen = 1024;
+    char buf[ bufLen ] = {};
+    DWORD getCurrentDirectoryResult = GetCurrentDirectory(
+      bufLen,
+      buf );
+    if( 0 == getCurrentDirectoryResult )
+    {
+      errors = TacGetLastWin32ErrorString();
+      return;
+    }
+    dir = TacString( buf, getCurrentDirectoryResult );
+  };
+  void SaveDialog( TacString& path, const TacString& suggestedPath, TacErrors& errors ) override
+  {
+    //IFileDialog *pfd = NULL;
+    //// CoCreate the File Open Dialog object.
+    //HRESULT hr = CoCreateInstance(
+    //  CLSID_FileSaveDialog,
+    //  NULL,
+    //  CLSCTX_INPROC_SERVER,
+    //  IID_PPV_ARGS( &pfd ) );
+    //if( FAILED( hr ) )
+    //{
+    //  errors = "cocreateinstance failed";
+    //  return;
+    //}
+    //// Create an event handling object, and hook it up to the dialog.
+    //IFileDialogEvents *pfde = NULL;
+    //hr = CDialogEventHandler_CreateInstance( IID_PPV_ARGS( &pfde ) );
+    // ^ this is a helper fn from a windows sample...
+
+    const int outBufSize = 256;
+    char outBuf[ outBufSize ] = {};
+    TacMemCpy( outBuf, suggestedPath.c_str(), suggestedPath.size() );
+
+    // https://devblogs.microsoft.com/oldnewthing/20101112-00/?p=12293
+    // When you change folders in a common file dialog,
+    // the common file dialog calls Set­Current­Directory to match the
+    // directory you are viewing.
+    //
+    // Many programs require that the current directory match the
+    // directory containing the document being opened.
+    //
+    // OFN_NOCHANGEDIR avoids this ( doesn't work on GetOpenFileName )
+    DWORD flags = OFN_NOCHANGEDIR;
+
+    OPENFILENAME dialogParams = {};
+    dialogParams.lStructSize = sizeof( OPENFILENAME );
+    dialogParams.lpstrFilter = "All files\0*.*\0\0";
+    dialogParams.lpstrFile = outBuf;
+    dialogParams.nMaxFile = outBufSize;
+    dialogParams.Flags = flags;
+
+    BOOL getSaveFileNameResult = GetSaveFileNameA( &dialogParams );
+    if( 0 == getSaveFileNameResult )
+    {
+      errors = "failed to save file";
+      // the user cancels or closes the Save dialog box
+      // or an error such as the file name buffer being too small occurs
+      DWORD extError = CommDlgExtendedError();
+      switch( extError )
+      {
+        // the enums should be in commdlg.h, but its not finding, so fk it
+        case 0xFFFF: errors += "CDERR_DIALOGFAILURE"; break;
+        case 0x0006: errors += "CDERR_FINDRESFAILURE"; break;
+        case 0x0002: errors += "CDERR_INITIALIZATION"; break;
+        case 0x0007: errors += "CDERR_LOADRESFAILURE"; break;
+        case 0x0005: errors += "CDERR_LOADSTRFAILURE"; break;
+        case 0x0008: errors += "CDERR_LOCKRESFAILURE"; break;
+        case 0x0009: errors += "CDERR_MEMALLOCFAILURE"; break;
+        case 0x000A: errors += "CDERR_MEMLOCKFAILURE"; break;
+        case 0x0004: errors += "CDERR_NOHINSTANCE"; break;
+        case 0x000B: errors += "CDERR_NOHOOK"; break;
+        case 0x0003: errors += "CDERR_NOTEMPLATE"; break;
+        case 0x000C: errors += "CDERR_REGISTERMSGFAIL"; break;
+        case 0x0001: errors += "CDERR_STRUCTSIZE"; break;
+        default: errors += "unknown"; break;
+      }
+      return;
+    }
+
+    path = outBuf;
+  };
   void GetScreenspaceCursorPos( v2& pos, TacErrors& errors ) override
   {
+    // Note: this could return error access denied
     POINT point;
     if( !GetCursorPos( &point ) )
     {
@@ -135,7 +229,22 @@ struct TacWin32OS : public TacOS
   }
   void DoesFolderExist( const TacString& path, bool& exists, TacErrors& errors ) override
   {
-    DWORD dwAttrib = GetFileAttributes( path.c_str() );
+    TacString expandedPath;
+    const char* pathBytes = path.c_str();
+
+    bool isFullPath =
+      TacIsAlpha( path[ 0 ] ) &&
+      ':' == path[ 1 ] &&
+      '\\' == path[ 2 ];
+    if( !isFullPath )
+    {
+      TacString workingDir;
+      GetWorkingDir( workingDir, errors );
+      expandedPath = workingDir + '\\' + path;
+      pathBytes = expandedPath.c_str();
+    }
+
+    DWORD dwAttrib = GetFileAttributes( pathBytes );
     if( dwAttrib == INVALID_FILE_ATTRIBUTES )
     {
       exists = false;

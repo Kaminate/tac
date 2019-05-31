@@ -93,6 +93,7 @@ struct TacGame
 
 void TacDesktopApp::DoStuff( TacDesktopApp* desktopApp, TacErrors& errors )
 {
+  TacOS* os = TacOS::Instance;
   TacString appDataPath;
   TacOS::Instance->GetApplicationDataPath( appDataPath, errors );
 
@@ -100,18 +101,23 @@ void TacDesktopApp::DoStuff( TacDesktopApp* desktopApp, TacErrors& errors )
   TacString prefPath = studioPath + appName;
 
   bool appDataPathExists;
-  TacOS::Instance->DoesFolderExist( appDataPath, appDataPathExists, errors );
+  os->DoesFolderExist( appDataPath, appDataPathExists, errors );
   TacAssert( appDataPathExists );
 
-  TacOS::Instance->CreateFolderIfNotExist( studioPath, errors );
+  os->CreateFolderIfNotExist( studioPath, errors );
   TAC_HANDLE_ERROR( errors );
 
-  TacOS::Instance->CreateFolderIfNotExist( prefPath, errors );
+  os->CreateFolderIfNotExist( prefPath, errors );
+  TAC_HANDLE_ERROR( errors );
+
+  TacString workingDir;
+  os->GetWorkingDir( workingDir, errors );
   TAC_HANDLE_ERROR( errors );
 
   TacShell* shell = desktopApp->mShell;
   shell->mAppName = appName;
   shell->mPrefPath = prefPath;
+  shell->mInitialWorkingDir = workingDir;
   shell->Init( errors );
   TAC_HANDLE_ERROR( errors );
 

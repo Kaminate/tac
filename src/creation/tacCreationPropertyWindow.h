@@ -2,21 +2,21 @@
 
 #include "common/tacString.h"
 
-
+struct TacCreation;
 struct TacDesktopWindow;
+struct TacEntity;
 struct TacErrors;
 struct TacShell;
 struct TacUI2DDrawData;
 struct TacUIHierarchyNode;
 struct TacUIRoot;
-struct TacCreation;
 
 struct TacCreationPropertyWindow
 {
   ~TacCreationPropertyWindow();
   void Init( TacErrors& errors );
   void Update( TacErrors& errors );
-  void SetImGuiGlobals();
+  void RecursiveEntityHierarchyElement( TacEntity* );
 
   TacDesktopWindow* mDesktopWindow = nullptr;
   TacUIRoot* mUIRoot = nullptr;

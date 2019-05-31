@@ -33,8 +33,8 @@ void TacDebug3DCommonData::Init( TacErrors& errors )
   TacCBufferData cBufferPerFrameData;
   cBufferPerFrameData.mName = "cbuffer per frame";
   cBufferPerFrameData.mStackFrame = TAC_STACK_FRAME;
-  cBufferPerFrameData.shaderRegister = CBufferPerFrame::shaderRegister;
-  cBufferPerFrameData.byteCount = sizeof( CBufferPerFrame );
+  cBufferPerFrameData.shaderRegister = TacDefaultCBufferPerFrame::shaderRegister;
+  cBufferPerFrameData.byteCount = sizeof( TacDefaultCBufferPerFrame );
   mRenderer->AddConstantBuffer( &mCBufferPerFrame, cBufferPerFrameData, errors );
   TAC_HANDLE_ERROR( errors );
 
@@ -371,7 +371,7 @@ void TacDebug3DDrawData::DebugDrawTriangle( v3 p0, v3 p1, v3 p2, v3 color )
 {
   DebugDrawTriangle( p0, p1, p2, color, color, color );
 }
-void TacDebug3DDrawData::DrawToTexture( TacErrors& errors, const CBufferPerFrame* cbufferperframe )
+void TacDebug3DDrawData::DrawToTexture( TacErrors& errors, const TacDefaultCBufferPerFrame* cbufferperframe )
 {
   TacDebug3DCommonData* commonData = mCommonData;
   TacRenderer* renderer = commonData->mRenderer;

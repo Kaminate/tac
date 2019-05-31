@@ -29,6 +29,11 @@ struct TacOS
 
   virtual void GetDirFilesRecursive( TacVector<TacString>&files, const TacString& dir, TacErrors& errors ) = 0;
 
+  virtual void SaveDialog( TacString& path, const TacString& suggestedPath, TacErrors& errors ) {};
+
+  // same as current dir
+  virtual void GetWorkingDir( TacString& dir, TacErrors& errors ) {};
+
 
   // I don't think this function should exist.
   // If you are debugging, hit a breakpoint, and THEN call this function,

@@ -310,7 +310,7 @@ struct TacVertexFormatData : public TacRendererResource
 };
 struct TacVertexFormat : public TacVertexFormatData { };
 
-struct CBufferPerFrame // Todo: rename TacDefaultCbufferPerFrame
+struct TacDefaultCBufferPerFrame
 {
   m4 mView;
   m4 mProjection;
@@ -324,7 +324,7 @@ struct CBufferPerFrame // Todo: rename TacDefaultCbufferPerFrame
   static TacString name_gbuffersize() { return "gbufferSize"; };
   static const int shaderRegister = 0;
 };
-struct CBufferPerObject // Todo: rename TacDefaultCbufferPerObject
+struct TacDefaultCBufferPerObject
 {
   m4 World;
   v4 Color;

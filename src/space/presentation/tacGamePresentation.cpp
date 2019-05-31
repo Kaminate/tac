@@ -23,10 +23,11 @@ TacGamePresentation::~TacGamePresentation()
   renderer->RemoveRendererResource( mRasterizerState );
   renderer->RemoveRendererResource( mSamplerState );
 }
-void TacGamePresentation::RenderGameWorld()
+void TacGamePresentation::RenderGameWorldToDesktopView()
 {
   TacRenderer* renderer = mRenderer;
   TacModelAssetManager* modelAssetManager = mModelAssetManager;
+  TacWorld* world = mWorld;
 
   m4 view = mCamera->View();
   float a;
@@ -38,7 +39,7 @@ void TacGamePresentation::RenderGameWorld()
   float aspect = w / h;
   m4 proj = mCamera->Proj( a, b, aspect );
 
-  CBufferPerFrame perFrameData;
+  TacDefaultCBufferPerFrame perFrameData;
   perFrameData.mFar = mCamera->mFarPlane;
   perFrameData.mNear = mCamera->mNearPlane;
   perFrameData.mView = view;
@@ -46,10 +47,10 @@ void TacGamePresentation::RenderGameWorld()
   perFrameData.mGbufferSize = { w, h };
   TacDrawCall2 setPerFrame = {};
   setPerFrame.mUniformDst = mPerFrame;
-  setPerFrame.mUniformSrcc = TacTemporaryMemory( &perFrameData, sizeof( CBufferPerFrame ) );
+  setPerFrame.mUniformSrcc = TacTemporaryMemory( &perFrameData, sizeof( TacDefaultCBufferPerFrame ) );
   renderer->AddDrawCall( setPerFrame );
 
-  TacWorld* world = mWorld;
+
   auto graphics = ( TacGraphics* )world->GetSystem( TacSystemType::Graphics );
   for( TacModel* model : graphics->mModels )
   {
@@ -69,13 +70,14 @@ void TacGamePresentation::RenderGameWorld()
 
     TacEntity* entity = model->mEntity;
 
-    CBufferPerObject perObjectData;
+    TacDefaultCBufferPerObject perObjectData;
     perObjectData.Color = { 0.23f, 0.7f, 0.5f, 1 };
-    perObjectData.World = M4Transform(
-      v3( 1, 1, 1 ),
-      entity->mEulerRads,
-      entity->mPosition );
-    AddDrawCall( mesh, perObjectData );
+    //perObjectData.World = M4Transform(
+    //  entity->mScale,
+    //  entity->mEulerRads,
+    //  entity->mPosition );
+    perObjectData.World = entity->mWorldTransform;
+    RenderGameWorldAddDrawCall( mesh, perObjectData );
   }
   renderer->DebugBegin( "Render game world" );
   renderer->RenderFlush();
@@ -90,7 +92,7 @@ void TacGamePresentation::CreateGraphicsObjects( TacErrors& errors )
   cBufferDataPerFrame.mName = "tac 3d per frame";
   cBufferDataPerFrame.mStackFrame = TAC_STACK_FRAME;
   cBufferDataPerFrame.shaderRegister = 0;
-  cBufferDataPerFrame.byteCount = sizeof( CBufferPerFrame );
+  cBufferDataPerFrame.byteCount = sizeof( TacDefaultCBufferPerFrame );
   renderer->AddConstantBuffer( &mPerFrame, cBufferDataPerFrame, errors );
   TAC_HANDLE_ERROR( errors );
 
@@ -98,7 +100,7 @@ void TacGamePresentation::CreateGraphicsObjects( TacErrors& errors )
   cBufferDataPerObj.mName = "tac 3d per obj";
   cBufferDataPerObj.mStackFrame = TAC_STACK_FRAME;
   cBufferDataPerObj.shaderRegister = 1;
-  cBufferDataPerObj.byteCount = sizeof( CBufferPerObject );
+  cBufferDataPerObj.byteCount = sizeof( TacDefaultCBufferPerObject );
   renderer->AddConstantBuffer( &mPerObj, cBufferDataPerObj, errors );
   TAC_HANDLE_ERROR( errors );
 
@@ -164,7 +166,9 @@ void TacGamePresentation::CreateGraphicsObjects( TacErrors& errors )
   renderer->AddSamplerState( &mSamplerState, samplerStateData, errors );
   TAC_HANDLE_ERROR( errors );
 }
-void TacGamePresentation::AddDrawCall( const TacMesh* mesh, const CBufferPerObject& cbuf )
+void TacGamePresentation::RenderGameWorldAddDrawCall(
+  const TacMesh* mesh,
+  const TacDefaultCBufferPerObject& cbuf )
 {
   TacRenderer* renderer = mRenderer;
   for( const TacSubMesh& subMesh : mesh->mSubMeshes )
@@ -183,7 +187,7 @@ void TacGamePresentation::AddDrawCall( const TacMesh* mesh, const CBufferPerObje
     drawCall.mVertexFormat = mesh->mVertexFormat;
     drawCall.mTexture = nullptr;
     drawCall.mUniformDst = mPerObj;
-    drawCall.mUniformSrcc = TacTemporaryMemory( &cbuf, sizeof( CBufferPerObject ) );
+    drawCall.mUniformSrcc = TacTemporaryMemory( &cbuf, sizeof( TacDefaultCBufferPerObject ) );
     drawCall.mStackFrame = TAC_STACK_FRAME;
     renderer->AddDrawCall( drawCall );
   }

@@ -129,6 +129,23 @@ void TacWorld::ApplyInput( TacPlayer* player, float seconds )
   //stuff->mWaddleParams.Update( player->mInputDirection, seconds );
   //stuff->zCCWEulerRotDeg = stuff->mWaddleParams.mAngle;
 }
+
+void TacWorld::ComputeTransformsRecursively( const m4& parentWorldTransformNoScale, TacEntity* entity )
+{
+  m4 localTransform = M4Transform( entity->mScale, entity->mEulerRads, entity->mPosition );
+  m4 localTransformNoScale = M4Transform( v3( 1, 1, 1 ), entity->mEulerRads, entity->mPosition );
+  m4 worldTransform = parentWorldTransformNoScale * localTransform;
+  m4 worldTransformNoScale = parentWorldTransformNoScale * localTransformNoScale;
+
+  entity->mLocalTransform = localTransform;
+  entity->mWorldTransform = worldTransform;
+  entity->mWorldTransformNoScale = worldTransformNoScale;
+
+  for( TacEntity* child : entity->mChildren )
+  {
+    ComputeTransformsRecursively( worldTransformNoScale, child );
+  }
+}
 void TacWorld::Step( float seconds )
 {
   for( auto player : mPlayers )
@@ -139,6 +156,14 @@ void TacWorld::Step( float seconds )
   {
     //entity->TacIntegrate( seconds );
   }
+
+  const m4 identity = m4::Identity();
+  for( TacEntity* entity : mEntities )
+  {
+    if( !entity->mParent )
+      ComputeTransformsRecursively( identity, entity );
+  }
+
   mElapsedSecs += seconds;
   if( mDebugDrawEntityOrigins )
   {

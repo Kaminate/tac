@@ -78,6 +78,7 @@ struct TacShell
   // Unique per user, per application.
   // ( doesn't include a trailing slash )
   TacString mPrefPath;
+  TacString mInitialWorkingDir;
   TacTextureAssetManager* mTextureAssetManager = nullptr;
   TacModelAssetManager* mModelAssetManager = nullptr;
   TacTimer* mTimer = nullptr;

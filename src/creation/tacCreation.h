@@ -25,12 +25,29 @@ struct TacUI2DDrawData;
 struct TacWindowParams;
 struct TacWorld;
 
+// this would be saved as a .map file in cod engine
+struct TacPrefab
+{
+  TacEntity* mEntity = nullptr;
+  TacString mDocumentPath;
+  //TacString GetDisplayName();
+};
+
+
+
 struct TacCreation
 {
   ~TacCreation();
   void Init( TacErrors& errors );
   void Update( TacErrors& errors );
   TacEntity* CreateEntity();
+  bool IsAnythingSelected();
+  v3 GetSelectionGizmoOrigin();
+  void ClearSelection();
+  void UpdateSavedPrefabs();
+  void GetSavedPrefabs( TacVector< TacString > & paths, TacErrors& errors );
+  void SavePrefabs();
+  void LoadPrefabs( TacErrors& errors );
 
   TacDesktopApp* mDesktopApp = nullptr;
   TacCreationMainWindow* mMainWindow = nullptr;
@@ -38,12 +55,18 @@ struct TacCreation
   TacCreationPropertyWindow* mPropertyWindow = nullptr;
 
   TacWorld* mWorld = nullptr;
-  TacEntity* mSelectedEntity = nullptr;
+
+  // todo: TacHashSet
+  TacVector< TacEntity* > mSelectedEntities;
+
   bool mSelectedGizmo = false;
   v3 mTranslationGizmoDir = {};
   float mTranslationGizmoOffset = 0;
 
   TacCamera mEditorCamera;
+
+  // todo: TacHashSet
+  TacVector< TacPrefab* > mPrefabs;
 };
 
 const v4 textColor = v4( v3( 1, 1, 1 ) * 0.0f, 1 );

@@ -16,6 +16,15 @@ TacString TacStripExt( const TacString& path )
   TacAssert( found != TacString::npos );
   return path.substr( 0, found );
 }
+TacString TacStripLeadingSlashes( const TacString& path )
+{
+  int i;
+  for( i = 0; i < path.size(); i++ )
+    if( path[ i ] != '/' && path[ i ] != '\\' )
+      break;
+  TacString result = path.substr( i );
+  return result;
+}
 void TacSaveToFile( const TacString& path, void* bytes, int byteCount, TacErrors& errors )
 {
   std::ofstream ofs( path.c_str(), std::ofstream::binary );
@@ -59,6 +68,16 @@ TacString TacSeparateNewline( const TacVector< TacString>& lines )
 TacString TacSeparateSpace( const TacVector< TacString>& lines )
 {
   return TacSeparateStrings( lines, " " );
+}
+
+bool TacStartsWith( const TacString& str, const TacString& prefix )
+{
+  if( str.size() < prefix.size() )
+    return false;
+  for( int i = 0; i < ( int )prefix.size(); ++i )
+    if( prefix[ i ] != str[ i ] )
+      return false;
+  return true;
 }
 bool TacEndsWith( const TacString& str, const TacString& suffix )
 {

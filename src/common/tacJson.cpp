@@ -81,7 +81,9 @@ TacString TacJson::Stringify( TacStringifyData* stringifyData ) const
     stringifyData->tabCount++;
     for( TacJson* element : mElements )
     {
-      result += element->Stringify( stringifyData ) +
+      result +=
+        stringifyData->ToString() +
+        element->Stringify( stringifyData ) +
         GetSeparator( ( int )mElements.size() ) +
         "\n";
     }
@@ -320,7 +322,7 @@ void TacJson::ParseUnknownType( TacParseData* parseData, TacErrors& errors )
     TAC_HANDLE_ERROR( errors );
     mType = TacJsonType::String;
   }
-  else if( isdigit( c ) )
+  else if( isdigit( c ) || c == '-' || c == '.' )
   {
     ParseNumber( parseData, mNumber, errors );
     TAC_HANDLE_ERROR( errors );

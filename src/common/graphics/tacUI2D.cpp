@@ -63,7 +63,7 @@ void TacUI2DCommonData::Init( TacErrors& errors )
   cBufferDataPerFrame.mName = "tac ui 2d per frame";
   cBufferDataPerFrame.mStackFrame = TAC_STACK_FRAME;
   cBufferDataPerFrame.shaderRegister = 0;
-  cBufferDataPerFrame.byteCount = sizeof( CBufferPerFrame );
+  cBufferDataPerFrame.byteCount = sizeof( TacDefaultCBufferPerFrame );
   mRenderer->AddConstantBuffer( &mPerFrame, cBufferDataPerFrame, errors );
   TAC_HANDLE_ERROR( errors );
 
@@ -71,7 +71,7 @@ void TacUI2DCommonData::Init( TacErrors& errors )
   cBufferDataPerObj.mName = "tac ui 2d per obj";
   cBufferDataPerObj.mStackFrame = TAC_STACK_FRAME;
   cBufferDataPerObj.shaderRegister = 1;
-  cBufferDataPerObj.byteCount = sizeof( CBufferPerObject );
+  cBufferDataPerObj.byteCount = sizeof( TacDefaultCBufferPerObject );
   mRenderer->AddConstantBuffer( &mPerObj, cBufferDataPerObj, errors );
   TAC_HANDLE_ERROR( errors );
 
@@ -235,7 +235,7 @@ void TacUI2DDrawData::DrawToTexture( TacErrors& errors )
       }
     }
 
-    CBufferPerFrame perFrameData = {};
+    TacDefaultCBufferPerFrame perFrameData = {};
     perFrameData.mView = m4::Identity();
     perFrameData.mProjection = projection;
     TacDrawCall2 perFrame = {};
@@ -334,7 +334,7 @@ void TacUI2DState::Draw2DBox(
   for( int offset : indexes )
     mUI2DDrawData->mDefaultIndex2Ds.push_back( oldVertexCount + offset );
 
-  CBufferPerObject perObjectData = {};
+  TacDefaultCBufferPerObject perObjectData = {};
   perObjectData.World = m4::Identity();
   perObjectData.Color = color;
 
@@ -455,7 +455,7 @@ void TacUI2DState::Draw2DText(
     runningX += fontAtlasCell->mUISpaceAdvanceWidth * scale;
   }
 
-  CBufferPerObject perObjectData = {};
+  TacDefaultCBufferPerObject perObjectData = {};
   perObjectData.World = m4::Identity();
   perObjectData.Color = color;
 
@@ -597,7 +597,7 @@ void TacUI2DDrawData::AddBox( v2 mini, v2 maxi, v4 color, const TacTexture* text
   defaultVertex2D++;
   defaultVertex2D->mPosition = { maxi.x, mini.y };
 
-  CBufferPerObject perObjectData = {};
+  TacDefaultCBufferPerObject perObjectData = {};
   perObjectData.World = m4::Identity();
   perObjectData.Color = color;
 
@@ -756,7 +756,7 @@ void TacUI2DDrawData::AddText( v2 textPos, int fontSize, const TacString& utf8, 
     vertexCount += 4;
   }
 
-  CBufferPerObject perObjectData = {};
+  TacDefaultCBufferPerObject perObjectData = {};
   perObjectData.World = m4::Identity();
   perObjectData.Color = color;
 

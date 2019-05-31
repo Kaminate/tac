@@ -406,7 +406,7 @@ void TacMesh::Raycast( v3 inRayPos, v3 inRayDir, bool* outHit, float* outDist )
     subMesh.Raycast( inRayPos, inRayDir, &subMeshHit, &submeshDist );
     if( !subMeshHit )
       continue;
-    if( *outHit && submeshDist > meshDist )
+    if( meshHit && submeshDist > meshDist )
       continue;
     meshDist = submeshDist;
     meshHit = true;
