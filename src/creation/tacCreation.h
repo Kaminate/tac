@@ -74,6 +74,8 @@ struct TacCreation
 
   // todo: TacHashSet
   TacVector< TacEntity* > mSelectedEntities;
+  bool mSelectedHitOffsetExists = false;
+  v3 mSelectedHitOffset = {};
 
   bool mSelectedGizmo = false;
   v3 mTranslationGizmoDir = {};

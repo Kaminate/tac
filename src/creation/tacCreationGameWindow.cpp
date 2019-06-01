@@ -346,8 +346,11 @@ void TacCreationGameWindow::MousePickingAll()
       } break;
       case PickedObject::Entity:
       {
+        v3 entityWorldOrigin = ( pickData.closest->mWorldTransform * v4( 0, 0, 0, 1 ) ).xyz();
         mCreation->ClearSelection();
         mCreation->mSelectedEntities = { pickData.closest };
+        mCreation->mSelectedHitOffsetExists = true;
+        mCreation->mSelectedHitOffset = worldSpaceHitPoint - entityWorldOrigin;
       } break;
       case PickedObject::None:
       {
@@ -419,8 +422,8 @@ void TacCreationGameWindow::MousePickingEntity(
   float modelSpaceDist;
   model->mesh->Raycast( modelSpaceMouseRayPos3, modelSpaceMouseRayDir3, hit, &modelSpaceDist );
 
-  // Recompute the distance by moving the model space hit point into world space in order to
-  // remove errors caused by non-uniform scaling
+  // Recompute the distance by transforming the model space hit point into world space in order to
+  // account for non-uniform scaling
   if( *hit )
   {
     v3 modelSpaceHitPoint = modelSpaceMouseRayPos3 + modelSpaceMouseRayDir3 * modelSpaceDist;

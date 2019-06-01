@@ -10,7 +10,7 @@ struct TacCamera
   v3 mUp;
   float mFarPlane = 10000.0f;
   float mNearPlane = 0.1f;
-  float mFovyrad = 100.0f * ( 3.14f / 180.0f );
+  float mFovyrad = 60.0f * ( 3.14f / 180.0f );
   m4 View();
   m4 ViewInv();
   m4 Proj( float a, float b, float aspect );

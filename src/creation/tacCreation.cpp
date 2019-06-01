@@ -374,12 +374,15 @@ v3 TacCreation::GetSelectionGizmoOrigin()
     selectionCount++;
   }
   v3 averagePos = runningPosSum / ( float )selectionCount;
-  return averagePos;
+  v3 result = averagePos;
+  if( mSelectedHitOffsetExists )
+    result += mSelectedHitOffset;
+  return result;
 }
 void TacCreation::ClearSelection()
 {
   mSelectedEntities.clear();
-  //mSelectedPrefabs.clear();
+  mSelectedHitOffsetExists = false;
 }
 void TacCreation::GetSavedPrefabs( TacVector< TacString > & paths, TacErrors& errors )
 {
@@ -631,14 +634,14 @@ void TacCreation::LoadPrefabs( TacErrors& errors )
   }
 }
 
-  TacString refFrameVecNames[] = {
-    "mPos",
-    "mForwards",
-    "mRight",
-    "mUp",
-  };
+TacString refFrameVecNames[] = {
+  "mPos",
+  "mForwards",
+  "mRight",
+  "mUp",
+};
 
-  TacString axisNames[] = { "x", "y", "z" };
+TacString axisNames[] = { "x", "y", "z" };
 
 void TacCreation::LoadPrefabCameraPosition( TacPrefab* prefab )
 {
