@@ -32,7 +32,7 @@ struct TacJson
     int mByteCount;
     int mIByte;
   };
-  struct TacStringifyData
+  struct TacIndentation
   {
     int spacesPerTab = 2;
     int tabCount = 0;
@@ -53,7 +53,7 @@ struct TacJson
 
   ~TacJson();
   void Clear();
-  TacString Stringify( TacStringifyData* stringifyData ) const;
+  TacString Stringify( TacIndentation* indentation ) const;
   TacString Stringify() const;
   TacString CharToString( char c ) const;
   TacString Surround( const TacString& inner, const TacString& outer ) const;
@@ -78,6 +78,7 @@ struct TacJson
   TacJson& operator[]( const TacString& key );
 
   void operator = ( const TacJson& json );
+  void operator = ( const TacJson* json );
 
   // Client api, ie: settings[ "foo" ][ "bar" ] = qux;
   void operator = ( const char* str ){ mType = TacJsonType::String; mString = str; }

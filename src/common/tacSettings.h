@@ -24,6 +24,12 @@ struct TacSettings
     TacJsonNumber defaultValue,
     TacErrors& errors );
 
+  void SetNumber(
+    TacJson* root,
+    const TacVector< TacString >& paths,
+    TacJsonNumber value,
+    TacErrors& errors );
+
   TacString GetString(
     TacJson* root,
     const TacVector< TacString >& paths,
@@ -50,6 +56,12 @@ private:
     int iPath,
     TacJson** outputSetting,
     const TacJson& defaultValue,
+    TacErrors& errors );
+  void SetSetting(
+    TacJson* settingTree,
+    const TacVector< TacString >& paths,
+    int iPath,
+    const TacJson& value,
     TacErrors& errors );
 };
 

@@ -57,49 +57,35 @@ void TacSettings::GetSetting(
   GetSetting( &child, settingVariables, iPath + 1, outputSetting, defaultValue, errors );
 }
 
-/*
-
-TacString TacSettings::GetSettingz( const TacString& result, const TacVector< TacString >& paths, TacErrors& errors )
-{
-  return GetString( result, paths, errors );
-}
-TacString TacSettings::GetString( const TacString& result, const TacVector< TacString >& paths, TacErrors& errors )
-{
-  return GetSetting( paths, TacJson( result ), errors )->mString;
-}
-TacJsonNumber TacSettings::GetSettingz( TacJsonNumber result, const TacVector< TacString >& paths, TacErrors& errors )
-{
-  return GetNumber( result, paths, errors );
-}
-TacJsonNumber TacSettings::GetNumber( TacJsonNumber result, const TacVector< TacString >& paths, TacErrors& errors )
-{
-  return GetSetting( paths, TacJson( result ), errors )->mNumber;
-}
-bool TacSettings::GetSettingz( bool result, const TacVector< TacString >& paths, TacErrors& errors )
-{
-  return GetBool( result, paths, errors );
-}
-bool TacSettings::GetBool( bool result, const TacVector< TacString >& paths, TacErrors& errors )
-{
-}
-TacJson* TacSettings::GetArray( const TacVector< TacString >& paths, TacErrors& errors )
-{
-  TacJson defaultValue;
-  defaultValue.mType = TacJsonType::Array;
-  return GetSetting( paths, defaultValue, errors );
-}
-
-TacJson* TacSettings::GetObject(
+void TacSettings::SetSetting(
+  TacJson* settingTree,
   const TacVector< TacString >& paths,
-  const TacJson& defaultValue,
+  int iPath,
+  const TacJson& value,
   TacErrors& errors )
 {
-  TacJson* result;
-  GetSetting( mJson, paths, 0, &result, defaultValue, errors );
-  return result;
+  if( !settingTree )
+    settingTree = &mJson;
+  const TacString& settingVariable = paths[ iPath ];
+  TacJson& child = settingTree->operator[]( settingVariable );
+  bool isLeaf = iPath == ( int )paths.size() - 1;
+  if( isLeaf )
+  {
+    child = value;
+    Save( errors );
+    if( errors.size() )
+    {
+      TacString getSettingsErrors;
+      getSettingsErrors += "Failed to save default setting ";
+      getSettingsErrors += settingVariable;
+      getSettingsErrors += value.Stringify();
+      errors.mMessage += getSettingsErrors;
+      return;
+    }
+    return;
+  }
+  SetSetting( &child, paths, iPath + 1, value, errors );
 }
-
-*/
 
 bool TacSettings::GetBool(
   TacJson* root,
@@ -121,6 +107,15 @@ TacJsonNumber TacSettings::GetNumber(
   TacJson* setting;
   GetSetting( root, paths, 0, &setting, TacJson( defaultValue ), errors );
   return setting->mNumber;
+}
+
+void TacSettings::SetNumber(
+  TacJson* root,
+  const TacVector< TacString >& paths,
+  TacJsonNumber value,
+  TacErrors& errors )
+{
+  SetSetting( root, paths, 0, TacJson( value ), errors );
 }
 
 TacString TacSettings::GetString(

@@ -4,6 +4,9 @@
 TacJson::TacJson()
 {
   // Why?
+  //
+  // I think it's like when you default open a json file,
+  // it contains a json object
   mType = TacJsonType::Object;
 }
 TacJson::TacJson( const TacJson& other )
@@ -44,7 +47,7 @@ void TacJson::Clear()
     delete element;
   mElements.clear();
 }
-TacString TacJson::Stringify( TacStringifyData* stringifyData ) const
+TacString TacJson::Stringify( TacIndentation* indentation ) const
 {
   int iChild = 0;
   TacString result;
@@ -63,44 +66,45 @@ TacString TacJson::Stringify( TacStringifyData* stringifyData ) const
     case TacJsonType::Bool: result = mBoolean ? "true" : "false"; break;
     case TacJsonType::Object:
     {
-      result += stringifyData->ToString() + "{\n";
-      stringifyData->tabCount++;
+      result += indentation->ToString() + "{\n";
+      indentation->tabCount++;
       for( auto pair : mChildren )
       {
         TacString childKey = pair.first;
         TacJson* childValue = pair.second;
 
-        result += stringifyData->ToString() + DoubleQuote( childKey ) + ":";
+        result += indentation->ToString() + DoubleQuote( childKey ) + ":";
         result += TacContains( { TacJsonType::Array, TacJsonType::Object }, childValue->mType ) ? "\n" : " ";
-        result += childValue->Stringify( stringifyData );
+        result += childValue->Stringify( indentation );
         result += GetSeparator( ( int )mChildren.size() );
         result += "\n";
       }
-      stringifyData->tabCount--;
-      result += stringifyData->ToString() + "}";
+      indentation->tabCount--;
+      result += indentation->ToString() + "}";
     } break;
     case TacJsonType::Array:
     {
-      result += stringifyData->ToString() + "[\n";
-      stringifyData->tabCount++;
+      result += indentation->ToString() + "[\n";
+      indentation->tabCount++;
       for( TacJson* element : mElements )
       {
+        if( !TacContains( { TacJsonType::Array, TacJsonType::Object }, element->mType ) )
+          result += indentation->ToString();
         result +=
-          stringifyData->ToString() +
-          element->Stringify( stringifyData ) +
+          element->Stringify( indentation ) +
           GetSeparator( ( int )mElements.size() ) +
           "\n";
       }
-      stringifyData->tabCount--;
-      result += stringifyData->ToString() + "]";
+      indentation->tabCount--;
+      result += indentation->ToString() + "]";
     } break;
   }
   return result;
 }
 TacString TacJson::Stringify() const
 {
-  TacStringifyData stringifyData;
-  return Stringify( &stringifyData );
+  TacIndentation indentation;
+  return Stringify( &indentation );
 }
 // Make this static?
 TacString TacJson::CharToString( char c ) const
@@ -378,6 +382,10 @@ TacJson& TacJson::operator[]( const TacString& key )
   mType = TacJsonType::Object;
   return *child;
 }
+void TacJson::operator = ( const TacJson* json )
+{
+  *this = *json;
+}
 void TacJson::operator = ( const TacJson& json )
 {
   mType = json.mType;
@@ -401,7 +409,7 @@ void TacJson::operator = ( const TacJson& json )
 }
 
 
-TacString TacJson::TacStringifyData::ToString()
+TacString TacJson::TacIndentation::ToString()
 {
   TacString spacer;
   if( convertTabsToSpaces )

@@ -52,7 +52,8 @@ struct TacImGuiWindow
   v2 mCurrCursorDrawPos;
   v2 mPrevCursorDrawPos;
 
-  // rename to mPosDesktopWindowspace
+  // ( rename to mPosDesktopWindowspace )
+  // Position of this TacImGuiWindow relative to the desktop window (?)
   v2 mPos = {};
   v2 mSize = {};
   TacImGuiRect mContentRect;
@@ -65,10 +66,12 @@ struct TacImGuiWindow
 
   v2 mGroupSavedCursorDrawPos;
 
+  // The mXOffsets.back() represents the horizontal tabbing distance
+  // from the window mPos and the stuff that's about to be drawn
   TacVector< float > mXOffsets;
 
+  // Shared between sub-windows
   TacImGuiIDAllocator* mIDAllocator = nullptr;
-
 
   TacTextInputData* inputData;
   std::map< TacImGuiId, bool > mCollapsingHeaderStates;
@@ -520,7 +523,7 @@ void TacImGuiUnindent()
 {
   TacImGuiWindow* window = gTacImGuiGlobals.mCurrentWindow;
   window->mXOffsets.pop_back();
-  window->mCurrCursorDrawPos.x = window->mXOffsets.back();
+  window->mCurrCursorDrawPos.x = window->mPos.x + window->mXOffsets.back();
 }
 void TacImGuiSameLine()
 {
@@ -958,7 +961,7 @@ bool TacImGuiDragFloat( const TacString& str, float* value )
 
   v2 backgroundBoxMaxi = {
     pos.x + totalSize.x * ( 2.0f / 3.0f ),
-    pos.x + totalSize.y };
+    pos.y + totalSize.y };
   drawData->AddBox( pos, backgroundBoxMaxi, backgroundBoxColor, nullptr, &clipRect );
 
   if( dragFloatData.mMode == TacDragFloatMode::TextInput )

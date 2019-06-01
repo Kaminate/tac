@@ -33,6 +33,11 @@ struct TacPrefab
   //TacString GetDisplayName();
 };
 
+struct TacPrefabCameraPosition
+{
+  TacString mPrefab;
+  TacCamera mCamera;
+};
 
 
 struct TacCreation
@@ -52,6 +57,9 @@ struct TacCreation
 
   void LoadPrefabs( TacErrors& errors );
   TacEntity* LoadEntityFromJsonRecursively( TacJson& prefabJson );
+
+  void LoadPrefabCameraPosition( TacPrefab* prefab );
+  void SavePrefabCameraPosition( TacPrefab* prefab );
 
   void DeleteSelectedEntities();
   void DeleteEntity( TacEntity* entity );

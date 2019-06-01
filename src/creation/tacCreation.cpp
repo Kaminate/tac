@@ -29,13 +29,7 @@ static v4 GetClearColor( TacShell* shell )
   return TacGetColorSchemeA( ( float )shell->mElapsedSeconds );
 }
 
-//TacString TacPrefab::GetDisplayName()
-//{
-//  if( mDocumentPath.empty() )
-//    return "(Unsaved Prefab)";
-//  TacSplitFilepath split( mDocumentPath );
-//  return split.mFilename;
-//}
+
 
 void TacDesktopApp::DoStuff( TacDesktopApp* desktopApp, TacErrors& errors )
 {
@@ -330,7 +324,8 @@ void TacCreation::Update( TacErrors& errors )
   mWorld->Step( TAC_DELTA_FRAME_SECONDS );
 
   TacKeyboardInput* keyboardInput = shell->mKeyboardInput;
-  if( keyboardInput->IsKeyJustDown( TacKey::Delete ) )
+  if( keyboardInput->IsKeyJustDown( TacKey::Delete ) &&
+    mGameWindow->mDesktopWindow->mCursorUnobscured )
   {
     DeleteSelectedEntities();
   }
@@ -468,8 +463,15 @@ TacJson TacCreation::SaveEntityToJsonRecusively( TacEntity* entity )
     // todo: GetComponentJsonSerializer( component )->SerializeToJson( ... )
     if( auto model = ( TacModel* )entity->GetComponent( TacComponentType::Model ) )
     {
+      TacJson colorRGBJson;
+      colorRGBJson[ "r" ] = model->mColorRGB[ 0 ];
+      colorRGBJson[ "g" ] = model->mColorRGB[ 1 ];
+      colorRGBJson[ "b" ] = model->mColorRGB[ 2 ];
+
       TacJson modelJson;
       modelJson[ "mGLTFPath" ] = model->mGLTFPath;
+      modelJson[ "mColorRGB" ] = colorRGBJson;
+
       entityJson[ "Model" ] = modelJson;
     }
 
@@ -555,53 +557,57 @@ void TacCreation::SavePrefabs()
 TacEntity* TacCreation::LoadEntityFromJsonRecursively( TacJson& prefabJson )
 {
 
-    TacJson& positionJson = prefabJson[ "mPosition" ];
-    v3 pos =
-    {
-      ( float )positionJson[ "x" ].mNumber,
-      ( float )positionJson[ "y" ].mNumber,
-      ( float )positionJson[ "z" ].mNumber,
-    };
+  TacJson& positionJson = prefabJson[ "mPosition" ];
+  v3 pos =
+  {
+    ( float )positionJson[ "x" ].mNumber,
+    ( float )positionJson[ "y" ].mNumber,
+    ( float )positionJson[ "z" ].mNumber,
+  };
 
-    TacJson& scaleJson = prefabJson[ "mScale" ];
-    v3 scale =
-    {
-      ( float )scaleJson[ "x" ].mNumber,
-      ( float )scaleJson[ "y" ].mNumber,
-      ( float )scaleJson[ "z" ].mNumber,
-    };
+  TacJson& scaleJson = prefabJson[ "mScale" ];
+  v3 scale =
+  {
+    ( float )scaleJson[ "x" ].mNumber,
+    ( float )scaleJson[ "y" ].mNumber,
+    ( float )scaleJson[ "z" ].mNumber,
+  };
 
-    TacJson& eulerRadsJson = prefabJson[ "mEulerRads" ];
-    v3 eulerRads =
-    {
-      ( float )eulerRadsJson[ "x" ].mNumber,
-      ( float )eulerRadsJson[ "y" ].mNumber,
-      ( float )eulerRadsJson[ "z" ].mNumber,
-    };
+  TacJson& eulerRadsJson = prefabJson[ "mEulerRads" ];
+  v3 eulerRads =
+  {
+    ( float )eulerRadsJson[ "x" ].mNumber,
+    ( float )eulerRadsJson[ "y" ].mNumber,
+    ( float )eulerRadsJson[ "z" ].mNumber,
+  };
 
-    TacEntity* entity = CreateEntity();
-    entity->mLocalPosition = pos;
-    entity->mLocalScale = scale;
-    entity->mLocalEulerRads = eulerRads;
-    entity->mName = prefabJson[ "mName" ].mString;
-    entity->mEntityUUID = ( TacEntityUUID )( TacUUID )prefabJson[ "mEntityUUID" ].mNumber;
+  TacEntity* entity = CreateEntity();
+  entity->mLocalPosition = pos;
+  entity->mLocalScale = scale;
+  entity->mLocalEulerRads = eulerRads;
+  entity->mName = prefabJson[ "mName" ].mString;
+  entity->mEntityUUID = ( TacEntityUUID )( TacUUID )prefabJson[ "mEntityUUID" ].mNumber;
 
-    if( TacJson* modelJson = prefabJson.mChildren[ "Model" ] )
+  if( TacJson* modelJson = prefabJson.mChildren[ "Model" ] )
+  {
+    auto model = ( TacModel* )entity->AddNewComponent( TacComponentType::Model );
+    model->mGLTFPath = ( *modelJson )[ "mGLTFPath" ].mString;
+    model->mColorRGB = {
+      ( float )( *modelJson )[ "mColorRGB" ][ "r" ].mNumber,
+      ( float )( *modelJson )[ "mColorRGB" ][ "g" ].mNumber,
+      ( float )( *modelJson )[ "mColorRGB" ][ "b" ].mNumber };
+  }
+
+  if( TacJson* childrenJson = prefabJson.mChildren[ "mChildren" ] )
+  {
+    for( TacJson* childJson : childrenJson->mElements )
     {
-      auto model = ( TacModel* )entity->AddNewComponent( TacComponentType::Model );
-      model->mGLTFPath = ( *modelJson )[ "mGLTFPath" ].mString;
+      TacEntity* childEntity = LoadEntityFromJsonRecursively( *childJson );
+      entity->AddChild( childEntity );
     }
+  }
 
-    if( TacJson* childrenJson =  prefabJson.mChildren[ "mChildren" ] )
-    {
-      for( TacJson* childJson : childrenJson->mElements )
-      {
-        TacEntity* childEntity = LoadEntityFromJsonRecursively( *childJson );
-        entity->AddChild( childEntity );
-      }
-    }
-
-    return entity;
+  return entity;
 }
 void TacCreation::LoadPrefabs( TacErrors& errors )
 {
@@ -620,7 +626,87 @@ void TacCreation::LoadPrefabs( TacErrors& errors )
     prefab->mDocumentPath = prefabPath;
     prefab->mEntities = { entity };
     mPrefabs.push_back( prefab );
+
+    LoadPrefabCameraPosition( prefab );
   }
 }
 
+  TacString refFrameVecNames[] = {
+    "mPos",
+    "mForwards",
+    "mRight",
+    "mUp",
+  };
 
+  TacString axisNames[] = { "x", "y", "z" };
+
+void TacCreation::LoadPrefabCameraPosition( TacPrefab* prefab )
+{
+  if( prefab->mDocumentPath.empty() )
+    return;
+  TacSettings* settings = mDesktopApp->mShell->mSettings;
+  TacJson* root = nullptr;
+  v3* refFrameVecs[] = {
+    &mEditorCamera.mPos,
+    &mEditorCamera.mForwards,
+    &mEditorCamera.mRight,
+    &mEditorCamera.mUp,
+  };
+  for( int iRefFrameVec = 0; iRefFrameVec < 4; ++iRefFrameVec )
+  {
+    v3* refFrameVec = refFrameVecs[ iRefFrameVec ];
+    TacString refFrameVecName = refFrameVecNames[ iRefFrameVec ];
+    for( int iAxis = 0; iAxis < 3; ++iAxis )
+    {
+      const TacString& axisName = axisNames[ iAxis ];
+
+      TacVector< TacString > settingsPath = {
+        "prefabCameraRefFrames",
+        prefab->mDocumentPath,
+        refFrameVecName,
+        axisName };
+
+      TacErrors ignored;
+      TacJsonNumber defaultValue = 0;
+      TacJsonNumber axisValue = settings->GetNumber(
+        root,
+        settingsPath,
+        defaultValue,
+        ignored );
+
+      refFrameVec->operator[]( iAxis ) = ( float )axisValue;
+    }
+  }
+}
+void TacCreation::SavePrefabCameraPosition( TacPrefab* prefab )
+{
+  if( prefab->mDocumentPath.empty() )
+    return;
+  TacJson* root = nullptr;
+  TacSettings* settings = mDesktopApp->mShell->mSettings;
+
+  v3 refFrameVecs[] = {
+    mEditorCamera.mPos,
+    mEditorCamera.mForwards,
+    mEditorCamera.mRight,
+    mEditorCamera.mUp,
+  };
+  for( int iRefFrameVec = 0; iRefFrameVec < 4; ++iRefFrameVec )
+  {
+    v3 refFrameVec = refFrameVecs[ iRefFrameVec ];
+    TacString refFrameVecName = refFrameVecNames[ iRefFrameVec ];
+    for( int iAxis = 0; iAxis < 3; ++iAxis )
+    {
+      const TacString& axisName = axisNames[ iAxis ];
+
+      TacVector< TacString > settingsPath = {
+        "prefabCameraRefFrames",
+        prefab->mDocumentPath,
+        refFrameVecName,
+        axisName };
+
+      TacErrors ignored;
+      settings->SetNumber( root, settingsPath, refFrameVec[ iAxis ], ignored );
+    }
+  }
+}

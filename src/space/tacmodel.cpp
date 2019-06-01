@@ -145,4 +145,7 @@ void TacModel::TacDebugImgui()
 {
   TacDebugImguiChangeModel();
   TacDebugImguiChangeTexture();
+  TacImGuiDragFloat( "r", &mColorRGB[ 0 ] );
+  TacImGuiDragFloat( "g", &mColorRGB[ 1 ] );
+  TacImGuiDragFloat( "b", &mColorRGB[ 2 ] );
 }

@@ -3,6 +3,9 @@
 #include "shell/windows/tacWindowsApp2.h"
 #include "common/tacOS.h"
 
+// temp
+#include "common/tacJson.h"
+
 
 int CALLBACK WinMain(
   HINSTANCE hInstance,

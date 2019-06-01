@@ -20,6 +20,7 @@ struct TacModel : public TacComponent
 
   //TacTextureUUID mTextureUUID = TacNullTextureUUID;
   //TacGeometryUUID mGeometryUUID = TacNullGeometryUUID;
+  v3 mColorRGB = { 1, 1, 1 };
   TacString mGLTFPath;
   TacMesh* mesh = nullptr;
 };

@@ -1,50 +1,317 @@
 {
-  "Model":
-  {
-    "mGLTFPath": "assets/editor/Box.gltf"
-  },
   "mChildren":
   [
-        {
+    {
       "Model":
       {
+        "mColorRGB":
+        {
+          "b": 0,
+          "g": 0.200000,
+          "r": 0
+        },
+        "mGLTFPath": "assets/editor/Box.gltf"
+      },
+      "mChildren":
+      [
+        {
+          "Model":
+          {
+            "mColorRGB":
+            {
+              "b": 0,
+              "g": 0.200000,
+              "r": 0
+            },
+            "mGLTFPath": "assets/editor/Box.gltf"
+          },
+          "mEntityUUID": 0,
+          "mEulerRads":
+          {
+            "x": 0,
+            "y": -2.199751,
+            "z": 0
+          },
+          "mName": "ground( main right )",
+          "mPosition":
+          {
+            "x": -1.999999,
+            "y": 0,
+            "z": 18.985273
+          },
+          "mScale":
+          {
+            "x": 503.700012,
+            "y": 1.800000,
+            "z": 371.399994
+          }
+        }
+      ],
+      "mEntityUUID": 0,
+      "mEulerRads":
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "mName": "ground( main )",
+      "mPosition":
+      {
+        "x": 299.984528,
+        "y": 2.750594,
+        "z": -1.936632
+      },
+      "mScale":
+      {
+        "x": 599.800110,
+        "y": 1.800000,
+        "z": 226.200546
+      }
+    },
+    {
+      "Model":
+      {
+        "mColorRGB":
+        {
+          "b": 0.100000,
+          "g": 0.100000,
+          "r": 0
+        },
         "mGLTFPath": "assets/editor/Box.gltf"
       },
       "mEntityUUID": 0,
       "mEulerRads":
       {
-        "x": -0.462278,
-        "y": 0.882690,
+        "x": 0,
+        "y": 0,
         "z": 0
       },
-      "mName": "sunchild",
+      "mName": "river bend left",
       "mPosition":
       {
-        "x": 0.346150,
-        "y": -0.539074,
-        "z": 0.719617
+        "x": -4.100000,
+        "y": 1.279022,
+        "z": 0
       },
       "mScale":
       {
-        "x": 1,
+        "x": 9.999998,
         "y": 1,
-        "z": 1
+        "z": 229.300064
+      }
+    },
+    {
+      "Model":
+      {
+        "mColorRGB":
+        {
+          "b": 0.010000,
+          "g": 0.100000,
+          "r": 0.020000
+        },
+        "mGLTFPath": "assets/editor/Box.gltf"
+      },
+      "mChildren":
+      [
+        {
+          "Model":
+          {
+            "mColorRGB":
+            {
+              "b": 0.010000,
+              "g": 0.100000,
+              "r": 0.020000
+            },
+            "mGLTFPath": "assets/editor/Box.gltf"
+          },
+          "mEntityUUID": 0,
+          "mEulerRads":
+          {
+            "x": 0,
+            "y": -0.631487,
+            "z": 0
+          },
+          "mName": "ground( near right )",
+          "mPosition":
+          {
+            "x": 159.300018,
+            "y": 0,
+            "z": 264.800018
+          },
+          "mScale":
+          {
+            "x": 442.799988,
+            "y": 1,
+            "z": 68.100006
+          }
+        }
+      ],
+      "mEntityUUID": 0,
+      "mEulerRads":
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "mName": "ground( near )",
+      "mPosition":
+      {
+        "x": -24.284960,
+        "y": 1.885190,
+        "z": -8
+      },
+      "mScale":
+      {
+        "x": 39.799995,
+        "y": 0.999999,
+        "z": 407.500092
+      }
+    },
+    {
+      "Model":
+      {
+        "mColorRGB":
+        {
+          "b": 0.100000,
+          "g": 0.100000,
+          "r": 0
+        },
+        "mGLTFPath": "assets/editor/Box.gltf"
+      },
+      "mEntityUUID": 0,
+      "mEulerRads":
+      {
+        "x": 0,
+        "y": -0.619278,
+        "z": 0
+      },
+      "mName": "river bend right",
+      "mPosition":
+      {
+        "x": 67.398186,
+        "y": 1.200000,
+        "z": 162.617065
+      },
+      "mScale":
+      {
+        "x": 552.000061,
+        "y": 1,
+        "z": 10
+      }
+    },
+    {
+      "Model":
+      {
+        "mColorRGB":
+        {
+          "b": 0.010000,
+          "g": 0.300000,
+          "r": 0.010000
+        },
+        "mGLTFPath": "assets/editor/Box.gltf"
+      },
+      "mChildren":
+      [
+        {
+          "Model":
+          {
+            "mColorRGB":
+            {
+              "b": 0.100000,
+              "g": 0.250000,
+              "r": 0.250000
+            },
+            "mGLTFPath": "assets/editor/Box.gltf"
+          },
+          "mEntityUUID": 0,
+          "mEulerRads":
+          {
+            "x": 0,
+            "y": -0.750112,
+            "z": 0
+          },
+          "mName": "big tree trunk",
+          "mPosition":
+          {
+            "x": 14.000007,
+            "y": 15.599995,
+            "z": 10.076808
+          },
+          "mScale":
+          {
+            "x": 20.999998,
+            "y": 74.300003,
+            "z": 12.300000
+          }
+        },
+        {
+          "Model":
+          {
+            "mColorRGB":
+            {
+              "b": -0.000000,
+              "g": 0.500000,
+              "r": 1
+            },
+            "mGLTFPath": "assets/editor/Box.gltf"
+          },
+          "mEntityUUID": 0,
+          "mEulerRads":
+          {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "mName": "player sitting",
+          "mPosition":
+          {
+            "x": -4.799999,
+            "y": 2.500000,
+            "z": -3.700000
+          },
+          "mScale":
+          {
+            "x": 1,
+            "y": 5.499999,
+            "z": 1
+          }
+        }
+      ],
+      "mEntityUUID": 0,
+      "mEulerRads":
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "mName": "campground",
+      "mPosition":
+      {
+        "x": 7.499646,
+        "y": 3.800000,
+        "z": 105.330727
+      },
+      "mScale":
+      {
+        "x": 13.399998,
+        "y": 0.999999,
+        "z": 13.800003
       }
     }
   ],
   "mEntityUUID": 0,
   "mEulerRads":
   {
-    "x": 0.919323,
-    "y": -0.992590,
+    "x": 0,
+    "y": 0,
     "z": 0
   },
-  "mName": "starry eyed girl",
+  "mName": "root scene node",
   "mPosition":
   {
-    "x": 3.500000,
-    "y": 0.156614,
-    "z": -0.100000
+    "x": 0,
+    "y": 0,
+    "z": 0
   },
   "mScale":
   {

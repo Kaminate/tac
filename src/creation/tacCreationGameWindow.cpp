@@ -11,6 +11,7 @@
 #include "common/assetmanagers/tacTextureAssetManager.h"
 #include "common/assetmanagers/tacModelAssetManager.h"
 #include "common/tacOS.h"
+#include "shell/tacDesktopApp.h"
 #include "space/tacGhost.h"
 #include "space/tacgraphics.h"
 #include "space/tacworld.h"
@@ -412,14 +413,20 @@ void TacCreationGameWindow::MousePickingEntity(
     *hit = false;
     return;
   }
-  //m4 transformInv = M4TransformInverse(
-  //  entity->mScale,
-  //  entity->mEulerRads,
-  //  entity->mPosition );
 
-  v3 mousePos3 = ( transformInv * v4( mCreation->mEditorCamera.mPos, 1 ) ).xyz();
-  v3 mouseDir3 = Normalize( ( transformInv * v4( worldSpaceMouseDir, 0 ) ).xyz() );
-  model->mesh->Raycast( mousePos3, mouseDir3, hit, dist );
+  v3 modelSpaceMouseRayPos3 = ( transformInv * v4( mCreation->mEditorCamera.mPos, 1 ) ).xyz();
+  v3 modelSpaceMouseRayDir3 = Normalize( ( transformInv * v4( worldSpaceMouseDir, 0 ) ).xyz() );
+  float modelSpaceDist;
+  model->mesh->Raycast( modelSpaceMouseRayPos3, modelSpaceMouseRayDir3, hit, &modelSpaceDist );
+
+  // Recompute the distance by moving the model space hit point into world space in order to
+  // remove errors caused by non-uniform scaling
+  if( *hit )
+  {
+    v3 modelSpaceHitPoint = modelSpaceMouseRayPos3 + modelSpaceMouseRayDir3 * modelSpaceDist;
+    v3 worldSpaceHitPoint = ( entity->mWorldTransform * v4( modelSpaceHitPoint, 1 ) ).xyz();
+    *dist = Distance( mCreation->mEditorCamera.mPos, worldSpaceHitPoint );
+  }
 }
 void TacCreationGameWindow::AddDrawCall( const TacMesh* mesh, const TacDefaultCBufferPerObject& cbuf )
 {
@@ -567,6 +574,8 @@ void TacCreationGameWindow::CameraControls()
 {
   if( !mDesktopWindow->mCursorUnobscured )
     return;
+  TacCamera oldCamera = mCreation->mEditorCamera;
+
   TacKeyboardInput* keyboardInput = mShell->mKeyboardInput;
   if( keyboardInput->IsKeyDown( TacKey::MouseRight ) &&
     keyboardInput->mMouseDeltaPosScreenspace != v2( 0, 0 ) )
@@ -627,6 +636,18 @@ void TacCreationGameWindow::CameraControls()
     mCreation->mEditorCamera.mPos +=
       mCreation->mEditorCamera.mForwards *
       ( float )keyboardInput->mMouseDeltaScroll;
+  }
+
+  if(
+    oldCamera.mPos != mCreation->mEditorCamera.mPos ||
+    oldCamera.mForwards != mCreation->mEditorCamera.mForwards ||
+    oldCamera.mRight != mCreation->mEditorCamera.mRight ||
+    oldCamera.mUp != mCreation->mEditorCamera.mUp )
+  {
+    for( TacPrefab* prefab : mCreation->mPrefabs )
+    {
+      mCreation->SavePrefabCameraPosition( prefab );
+    }
   }
 }
 void TacCreationGameWindow::Update( TacErrors& errors )
