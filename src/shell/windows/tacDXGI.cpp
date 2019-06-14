@@ -13,6 +13,45 @@ TacDXGI::~TacDXGI()
 {
 }
 
+//void TacDXGI::CheckHDRSupport()
+//{
+//  // http://asawicki.info/news_1703_programming_hdr_monitor_support_in_direct3d.html
+//
+//  TacErrors errors; // ignored
+//
+//  // https://docs.microsoft.com/en-us/windows/desktop/api/dxgi/nn-dxgi-idxgioutput
+//  // An IDXGIOutput interface represents an adapter output (such as a monitor).
+//
+//  bool supportsHDR = false;
+//  UINT iOutput = 0;
+//  IDXGIOutput* output;
+//  TacVector< IDXGIOutput* > outputs;
+//  while( mDxgiAdapter4->EnumOutputs( iOutput, &output ) != DXGI_ERROR_NOT_FOUND )
+//  {
+//    outputs.push_back( output );
+//    ++iOutput;
+//  }
+//
+//  for( IDXGIOutput* output : outputs )
+//  {
+//    IDXGIOutput6* output6;
+//    HRESULT hr = output->QueryInterface( IID_PPV_ARGS( &output6 ) );
+//    if( FAILED( hr ) )
+//      continue;
+//    
+//    DXGI_OUTPUT_DESC1 outputDesc;
+//    hr = output6->GetDesc1( &outputDesc );
+//    if( FAILED( hr ) )
+//      continue;
+//
+//    // I'm getting DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709, which according to
+//    // https://docs.microsoft.com/en-us/windows/desktop/api/dxgicommon/ne-dxgicommon-dxgi_color_space_type
+//    //   Note that this is often implemented with a linear segment,
+//    //   but in that case the exponent is corrected to stay aligned with a gamma 2.2 curve. 
+//    //   This is usually used with 8 or 10 bit color channels.
+//    outputDesc.ColorSpace;
+//  }
+//}
 void TacDXGI::Init( TacErrors& errors )
 {
   UINT flags = TacIsDebugMode() ? DXGI_CREATE_FACTORY_DEBUG : 0;
@@ -64,7 +103,11 @@ void TacDXGI::CreateSwapChain(
     scd1.SampleDesc.Count = 1;
     scd1.BufferCount = bufferCount;
     scd1.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-    scd1.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+
+    // Standard way of implementing hdr in games is to use 16 bit floating backbuffer, and
+    // giving player brightness/gamma controls (?)
+    scd1.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+     //scd1.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
   }
   DXGI_SWAP_CHAIN_FULLSCREEN_DESC scfsd = {};
   {

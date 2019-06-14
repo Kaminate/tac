@@ -72,10 +72,6 @@ void TacGamePresentation::RenderGameWorldToDesktopView()
 
     TacDefaultCBufferPerObject perObjectData;
     perObjectData.Color = { model->mColorRGB, 1 }; // { 0.23f, 0.7f, 0.5f, 1 };
-    //perObjectData.World = M4Transform(
-    //  entity->mScale,
-    //  entity->mEulerRads,
-    //  entity->mPosition );
     perObjectData.World = entity->mWorldTransform;
     RenderGameWorldAddDrawCall( mesh, perObjectData );
   }

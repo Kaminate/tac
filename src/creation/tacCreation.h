@@ -62,7 +62,7 @@ struct TacCreation
   void SavePrefabCameraPosition( TacPrefab* prefab );
 
   void DeleteSelectedEntities();
-  void DeleteEntity( TacEntity* entity );
+  void RemoveEntityFromPrefabRecursively( TacEntity* entity );
   TacPrefab* FindPrefab( TacEntity* entity );
 
   TacDesktopApp* mDesktopApp = nullptr;

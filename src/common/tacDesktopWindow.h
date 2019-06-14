@@ -45,7 +45,7 @@ struct TacDesktopWindow : public TacWindowParams
 
   TacRendererWindowData* mRendererData = nullptr;
 
-  TacRenderView* mRenderView;
+  TacRenderView* mRenderView = nullptr;
 
   TacEvent<>::Emitter mOnResize;
   TacEvent<>::Emitter mOnMove;

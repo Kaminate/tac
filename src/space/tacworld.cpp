@@ -59,18 +59,73 @@ TacEntity* TacWorld::FindEntity( const TacString& name )
       return entity;
   return nullptr;
 }
+void TacWorld::KillEntity( TacEntityIterator it )
+{
+  TacAssert( it != mEntities.end() );
+  TacEntity* entity = *it;
+
+  // Remove this entity from its parent's list of children
+  if( TacEntity* parent = entity->mParent )
+  {
+    int iEntity = 0;
+    int entityCount = parent->mChildren.size();
+    while( iEntity < entityCount )
+    {
+      if( parent->mChildren[ iEntity ] == entity )
+      {
+        break;
+      }
+      iEntity++;
+    }
+    TacAssert( iEntity < entityCount );
+    parent->mChildren[ iEntity ] = parent->mChildren[ entityCount - 1 ];
+    parent->mChildren.pop_back();
+  }
+
+  TacVector< TacEntityIterator > treeIterators = { it };
+  int iTreeIterator = 0;
+  for( ;; )
+  {
+    if( iTreeIterator == treeIterators.size() )
+      break;
+    TacEntityIterator treeIterator = treeIterators[ iTreeIterator ];
+    TacEntity* treeEntity = *treeIterator;
+    for( TacEntity* treeEntityChild : treeEntity->mChildren )
+    {
+      TacEntityIterator treeEntityChildIterator = std::find(
+        mEntities.begin(),
+        mEntities.end(),
+        treeEntityChild );
+      treeIterators.push_back( treeEntityChildIterator );
+    }
+    iTreeIterator++;
+  }
+
+  for( TacEntityIterator treeIterator : treeIterators )
+  {
+    TacEntity* treeEntity = *treeIterator;
+    if( TacPlayer* player = FindPlayer( treeEntity->mEntityUUID ) )
+      player->mEntityUUID = TacNullEntityUUID;
+
+    mEntities.erase( treeIterator );
+    delete treeEntity;
+  }
+}
+void TacWorld::KillEntity( TacEntity* entity )
+{
+  auto it = std::find(
+    mEntities.begin(),
+    mEntities.end(),
+    entity );
+  KillEntity( it );
+}
 void TacWorld::KillEntity( TacEntityUUID entityUUID )
 {
   auto it = std::find_if(
     mEntities.begin(),
     mEntities.end(),
     [ & ]( TacEntity* entity ) { return entity->mEntityUUID == entityUUID; } );
-  TacAssert( it != mEntities.end() );
-  TacEntity* entity = *it;
-  delete entity;
-  mEntities.erase( it );
-  if( TacPlayer* player = FindPlayer( entityUUID ) )
-    player->mEntityUUID = TacNullEntityUUID;
+  KillEntity( it );
 }
 TacPlayer* TacWorld::SpawnPlayer( TacPlayerUUID playerUUID )
 {

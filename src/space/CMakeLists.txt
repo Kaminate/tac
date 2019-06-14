@@ -26,6 +26,8 @@ add_library(${TacTarget} # MODULE
 "tacgraphics.h"
 "tacmodel.cpp"
 "tacmodel.h"
+"taclight.cpp"
+"taclight.h"
 "tacmetaphysics.cpp"
 "tacplayer.cpp"
 "tacplayer.h"

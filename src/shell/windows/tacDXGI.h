@@ -20,7 +20,8 @@ struct TacDXGI
     UINT height,
     IDXGISwapChain** ppSwapChain,
     TacErrors& errors );
-  
+  //void CheckHDRSupport();
+
   IDXGIFactory4* mFactory = nullptr;
   IDXGIAdapter4* mDxgiAdapter4 = nullptr;
  };

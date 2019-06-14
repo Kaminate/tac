@@ -259,7 +259,7 @@ void TacCreation::Init( TacErrors& errors )
   TAC_HANDLE_ERROR( errors );
 }
 
-void TacCreation::DeleteEntity( TacEntity* entity )
+void TacCreation::RemoveEntityFromPrefabRecursively( TacEntity* entity )
 {
   int prefabCount = mPrefabs.size();
   for( int iPrefab = 0; iPrefab < prefabCount; ++iPrefab )
@@ -271,7 +271,6 @@ void TacCreation::DeleteEntity( TacEntity* entity )
     {
       if( prefab->mEntities[ iPrefabEntity ] == entity )
       {
-
         prefab->mEntities[ iPrefabEntity ] = prefab->mEntities[ prefabEntityCount - 1 ];
         prefab->mEntities.pop_back();
         if( prefab->mEntities.empty() )
@@ -288,15 +287,31 @@ void TacCreation::DeleteEntity( TacEntity* entity )
     if( removedEntityFromPrefab )
       break;
   }
-
-  mWorld->KillEntity( entity->mEntityUUID );
+  for( TacEntity* child : entity->mChildren )
+    RemoveEntityFromPrefabRecursively( child );
 }
 void TacCreation::DeleteSelectedEntities()
 {
-  int prefabCount = mPrefabs.size();
+  TacVector< TacEntity* > topLevelEntitiesToDelete;
+
   for( TacEntity* entity : mSelectedEntities )
   {
-    DeleteEntity( entity );
+    bool isTopLevel = true;
+    for( TacEntity* parent = entity->mParent; parent; parent = parent->mParent )
+    {
+      if( TacContains( mSelectedEntities, parent ) )
+      {
+        isTopLevel = false;
+        break;
+      }
+    }
+    if( isTopLevel )
+      topLevelEntitiesToDelete.push_back( entity );
+  }
+  for( TacEntity* entity : topLevelEntitiesToDelete )
+  {
+    RemoveEntityFromPrefabRecursively( entity );
+    mWorld->KillEntity( entity );
   }
   mSelectedEntities.clear();
 }
