@@ -19,6 +19,13 @@
 // ( consistant update between server/client )
 const float sSnapshotUntilNextSecondsMax = 0; //0.1f;
 
+typedef int TacComponentRegistryEntryIndex;
+static char TacComponentToBitField( TacComponentRegistryEntryIndex componentType )
+{
+  char result = 1 << ( char )componentType;
+  return result;
+}
+
 TacServerData::TacServerData()
 {
   mWorld = new TacWorld();
@@ -177,30 +184,34 @@ void TacServerData::WriteSnapshotBody( TacOtherPlayer* otherPlayer, TacWriter* w
 
   // Write entity differenes
   {
-    struct EntityDifference
+    TacComponentRegistry* componentRegistry = TacComponentRegistry::Instance();
+    int registeredComponentCount = componentRegistry->mEntries.size();
+
+
+    struct TacEntityDifference
     {
-      std::set< TacComponentType > mDeletedComponents;
-      std::map< TacComponentType, char > mChangedComponentBitfields;
+      std::set< TacComponentRegistryEntryIndex > mDeletedComponents;
+      std::map< TacComponentRegistryEntryIndex, char > mChangedComponentBitfields;
       TacEntity* mNewEntity = nullptr;
       TacEntityUUID mEntityUUID = TacNullEntityUUID;
     };
 
-    TacVector< EntityDifference > entityDifferences;
+    TacVector< TacEntityDifference > entityDifferences;
     for( auto newEntity : mWorld->mEntities )
     {
       auto oldEntity = oldWorld->FindEntity( newEntity->mEntityUUID );
 
-      std::set< TacComponentType > deletedComponents;
-      std::map< TacComponentType, char > changedComponentBitfields;
+      std::set< TacComponentRegistryEntryIndex > deletedComponents;
+      std::map< TacComponentRegistryEntryIndex, char > changedComponentBitfields;
 
-      for( int iComponentType = 0; iComponentType < ( int )TacComponentType::Count; ++iComponentType )
+      for( int iComponentType = 0; iComponentType < registeredComponentCount; ++iComponentType )
       {
-        auto componentType = ( TacComponentType )iComponentType;
-        auto componentData = TacGetComponentData( componentType );
+        auto componentType = ( TacComponentRegistryEntryIndex )iComponentType;
+        TacComponentRegistryEntry* componentData = componentRegistry->mEntries[ iComponentType ];
         TacComponent* oldComponent = nullptr;
         if( oldEntity )
-          oldComponent = oldEntity->GetComponent( componentType );
-        auto newComponent = newEntity->GetComponent( componentType );
+          oldComponent = oldEntity->GetComponent( componentData );
+        auto newComponent = newEntity->GetComponent( componentData );
         if( !oldComponent && !newComponent )
           continue;
         else if( oldComponent && !newComponent )
@@ -219,7 +230,7 @@ void TacServerData::WriteSnapshotBody( TacOtherPlayer* otherPlayer, TacWriter* w
       if( deletedComponents.empty() && changedComponentBitfields.empty() )
         continue;
 
-      EntityDifference entityDifference;
+      TacEntityDifference entityDifference;
       entityDifference.mDeletedComponents = deletedComponents;
       entityDifference.mChangedComponentBitfields = changedComponentBitfields;
       entityDifference.mNewEntity = newEntity;
@@ -229,7 +240,7 @@ void TacServerData::WriteSnapshotBody( TacOtherPlayer* otherPlayer, TacWriter* w
 
     writer->Write( ( TacEntityCount )entityDifferences.size() );
 
-    for( auto entityDifference : entityDifferences )
+    for( const TacEntityDifference& entityDifference : entityDifferences )
     {
       writer->Write( entityDifference.mEntityUUID );
 
@@ -243,18 +254,18 @@ void TacServerData::WriteSnapshotBody( TacOtherPlayer* otherPlayer, TacWriter* w
         changedComponentsBitfield |= TacComponentToBitField( pair.first );
       writer->Write( changedComponentsBitfield );
 
-      for( int iComponentType = 0; iComponentType < ( int )TacComponentType::Count; ++iComponentType )
+      for( int iComponentType = 0; iComponentType < registeredComponentCount; ++iComponentType )
       {
         if( !( changedComponentsBitfield & iComponentType ) )
           continue;
-        auto componentType = ( TacComponentType )iComponentType;
-        auto component = entityDifference.mNewEntity->GetComponent( componentType );
-        auto componentData = TacGetComponentData( componentType );
-        auto componentBitfield = entityDifference.mChangedComponentBitfields[ componentType ];
+        auto componentType = ( TacComponentRegistryEntryIndex )iComponentType;
+        TacComponentRegistryEntry* componentRegistryEntry = componentRegistry->mEntries[ iComponentType ];
+        TacComponent* component = entityDifference.mNewEntity->GetComponent( componentRegistryEntry );
+        auto componentBitfield = entityDifference.mChangedComponentBitfields.at( componentType );
         writer->Write(
           component,
           componentBitfield,
-          componentData->mNetworkBits );
+          componentRegistryEntry->mNetworkBits );
       }
     }
   }

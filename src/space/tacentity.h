@@ -8,17 +8,19 @@
 
 struct TacWorld;
 struct TacComponent;
+struct TacComponentRegistryEntry;
 
 struct TacEntity
 {
   ~TacEntity();
 
   void RemoveAllComponents();
-  TacComponent* GetComponent( TacComponentType type );
-  const TacComponent* GetComponent( TacComponentType type ) const;
-  bool HasComponent( TacComponentType componentType );
-  TacComponent* AddNewComponent( TacComponentType componentType );
-  void RemoveComponent( TacComponentType type );
+  
+  TacComponent* GetComponent( TacComponentRegistryEntry* );
+  const TacComponent* GetComponent( TacComponentRegistryEntry* ) const;
+  bool HasComponent( TacComponentRegistryEntry* );
+  TacComponent* AddNewComponent( TacComponentRegistryEntry* );
+  void RemoveComponent( TacComponentRegistryEntry* );
 
   void DeepCopy( const TacEntity& );
   void TacDebugImgui();

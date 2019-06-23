@@ -401,7 +401,7 @@ void TacCreationGameWindow::MousePickingEntity(
   bool* hit,
   float* dist )
 {
-  auto model = ( const TacModel* )entity->GetComponent( TacComponentType::Model );
+  const TacModel* model = TacModel::GetModel( entity );
   if( !model || !model->mesh )
   {
     *hit = false;
@@ -666,7 +666,7 @@ void TacCreationGameWindow::Update( TacErrors& errors )
     //  TacEntity* entity = mCreation->CreateEntity();
     //  entity->mName = "Starry-eyed girl";
     //  entity->mPosition = {}; // { 4.5f, -4.0f, -0.5f };
-    //  auto model = ( TacModel* )entity->AddNewComponent( TacComponentType::Model );
+    //  auto model = ( TacModel* )entity->AddNewComponent( TacComponentRegistryEntryIndex::Model );
     //  model->mGLTFPath = "assets/editor/Box.gltf";
     //}
     ghost->Update( errors );

@@ -38,13 +38,14 @@ void TacClientData::ReadEntityDifferences(
     TAC_HANDLE_ERROR( errors );
   }
 
-  for( int iComponentType = 0; iComponentType < ( int )TacComponentType::Count; ++iComponentType )
-  {
-    if( !( deletedComponentsBitfield & iComponentType ) )
-      continue;
-    auto componentType = ( TacComponentType )iComponentType;
-    entity->RemoveComponent( componentType );
-  }
+  TacUnimplemented;
+  //for( int iComponentType = 0; iComponentType < ( int )TacComponentRegistryEntryIndex::Count; ++iComponentType )
+  //{
+  //  if( !( deletedComponentsBitfield & iComponentType ) )
+  //    continue;
+  //  auto componentType = ( TacComponentRegistryEntryIndex )iComponentType;
+  //  entity->RemoveComponent( componentType );
+  //}
 
   char changedComponentsBitfield;
   if( !reader->Read( &changedComponentsBitfield ) )
@@ -52,24 +53,25 @@ void TacClientData::ReadEntityDifferences(
     errors += "fuck";
     TAC_HANDLE_ERROR( errors );
   }
-  for( int iComponentType = 0; iComponentType < ( int )TacComponentType::Count; ++iComponentType )
-  {
-    if( !( changedComponentsBitfield & iComponentType ) )
-      continue;
-    auto componentType = ( TacComponentType )iComponentType;
-    auto component = entity->GetComponent( componentType );
-    if( !component )
-      component = entity->AddNewComponent( componentType );
-    auto componentStuff = TacGetComponentData( componentType );
+  TacUnimplemented;
+  //for( int iComponentType = 0; iComponentType < ( int )TacComponentRegistryEntryIndex::Count; ++iComponentType )
+  //{
+  //  if( !( changedComponentsBitfield & iComponentType ) )
+  //    continue;
+  //  auto componentType = ( TacComponentRegistryEntryIndex )iComponentType;
+  //  auto component = entity->GetComponent( componentType );
+  //  if( !component )
+  //    component = entity->AddNewComponent( componentType );
+  //  auto componentStuff = TacGetComponentData( componentType );
 
-    component->PreReadDifferences();
-    if( !reader->Read( component, componentStuff->mNetworkBits ) )
-    {
-      errors += "fuck";
-      TAC_HANDLE_ERROR( errors );
-    }
-    component->PostReadDifferences();
-  }
+  //  component->PreReadDifferences();
+  //  if( !reader->Read( component, componentStuff->mNetworkBits ) )
+  //  {
+  //    errors += "fuck";
+  //    TAC_HANDLE_ERROR( errors );
+  //  }
+  //  component->PostReadDifferences();
+  //}
 }
 
 void TacClientData::ReadPlayerDifferences(
@@ -119,7 +121,7 @@ void TacClientData::ApplyPrediction( double lastTime )
     if( timeDifference < 0 )
       continue;
     lastTime = savedInput.mTimestamp;
-    auto collider = ( TacCollider* )entity->GetComponent( TacComponentType::Collider );
+    TacCollider* collider = TacCollider::GetCollider( entity );
     if( !collider )
       continue;
     player->mInputDirection = savedInput.mInputDirection;

@@ -401,7 +401,7 @@ void TacScriptMainMenu::Update( float seconds, TacErrors& errors )
   auto* scriptMatchmaker = ( TacScriptMatchmaker* )mScriptRoot->GetThread( scriptMatchmakerName );
   TacServerData* serverData = ghost->mServerData;
   TacWorld* world = serverData->mWorld;
-  TacGraphics* graphics = ( TacGraphics* )world->GetSystem( TacSystemType::Graphics );
+  TacGraphics* graphics = TacGraphics::GetSystem( world );
   TacRenderer* renderer = shell->mRenderer;
   float boxWidth = 5;
   if( false )

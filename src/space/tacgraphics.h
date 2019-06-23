@@ -15,10 +15,17 @@ struct TacFontStuff;
 
 struct TacGraphics : public TacSystem
 {
-  const TacVector< TacComponentType >& GetManagedComponentTypes() override;
-  TacComponent* CreateComponent( TacComponentType componentType ) override;
-  void DestroyComponent( TacComponent* component ) override;
-  TacSystemType GetSystemType() override { return TacSystemType::Graphics; }
+  //const TacVector< TacComponentRegistryEntryIndex >& GetManagedComponentTypes() override;
+  //TacComponent* CreateComponent( TacComponentRegistryEntryIndex componentType ) override;
+  //void DestroyComponent( TacComponent* component ) override;
+  //TacSystemType GetSystemType() override { return TacSystemType::Graphics; }
+
+  static TacGraphics* GetSystem( TacWorld* world );
+  static TacSystemRegistryEntry* SystemRegistryEntry;
+  //TacSystemRegistryEntry* GetEntry() override;
+
+  TacModel* CreateModelComponent();
+  void DestroyModelComponent(TacModel* );
 
   void DebugImgui() override;
 

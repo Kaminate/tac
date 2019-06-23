@@ -17,15 +17,37 @@ struct TacTerrainOBB
 struct TacTerrain
 {
   TacVector< TacTerrainOBB > mTerrainOBBs;
+
+  // heightmap
 };
+
+struct TacHeightmap
+{
+  // does it make sense to use the same heightmap for rendering and physics?
+  // what about tesellation close to camera?
+  // what about streaming?
+};
+
+struct TacCollideResult
+{
+  bool mCollided = false;
+
+};
+TacCollideResult TacCollide( const TacHeightmap* heightmap, const TacCollider* collider );
 
 struct TacPhysics : public TacSystem
 {
   TacPhysics();
-  const TacVector< TacComponentType >& GetManagedComponentTypes() override;
-  TacComponent* CreateComponent( TacComponentType componentType ) override;
-  void DestroyComponent( TacComponent* component ) override;
-  TacSystemType GetSystemType() override { return TacSystemType::Physics; }
+  //const TacVector< TacComponentRegistryEntryIndex >& GetManagedComponentTypes() override;
+  //TacComponent* CreateComponent( TacComponentRegistryEntryIndex componentType ) override;
+  //void DestroyComponent( TacComponent* component ) override;
+  //TacSystemType GetSystemType() override { return TacSystemType::Physics; }
+
+  TacCollider* CreateCollider();
+  TacTerrain* CreateTerrain();
+
+  static TacSystemRegistryEntry* SystemRegistryEntry;
+  static TacPhysics* GetSystem( TacWorld* );
 
   void Update() override;
   void Integrate();

@@ -3,6 +3,8 @@
 #include "common/math/tacVector2.h"
 #include "common/math/tacMatrix4.h"
 #include "common/tacString.h"
+#include "common/containers/tacVector.h"
+#include "common/containers/tacArray.h"
 #include <list>
 
 struct TacGameInterface;
@@ -10,17 +12,20 @@ struct TacPlayer;
 struct TacEntity;
 struct TacSystem;
 struct TacString;
+struct TacWorld;
+  struct TacSystemRegistryEntry;
 
 static const int sPlayerCountMax = 4;
 
 typedef std::list< TacEntity* >::iterator TacEntityIterator;
+
 
 struct TacWorld
 {
   TacWorld();
   ~TacWorld();
 
-  TacSystem* GetSystem( TacSystemType systemType );
+  TacSystem* GetSystem( TacSystemRegistryEntry* );
   void ClearPlayersAndEntities();
   void DeepCopy( const TacWorld& );
   void Step( float seconds );
@@ -48,7 +53,7 @@ struct TacWorld
   bool mDebugDrawEntityOrigins = true;
   std::list< TacPlayer* > mPlayers;
   std::list< TacEntity* > mEntities;
-  std::list< TacSystem* > mSystems;
+  TacVector< TacSystem* > mSystems;
   TacString mSkyboxDir;
 };
 

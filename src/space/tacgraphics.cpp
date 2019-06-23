@@ -1,6 +1,7 @@
 #include "common/tacPreprocessor.h"
 #include "common/graphics/tacFont.h"
 #include "common/math/tacMath.h"
+#include "space/tacworld.h"
 #include "space/tacgraphics.h"
 #include "space/taccomponent.h"
 
@@ -9,63 +10,88 @@
 
 #include <cmath>
 
-static const TacVector< TacComponentType > managedComponentTypes = {
-  TacComponentType::Model,
-};
+//static const TacVector< TacComponentRegistryEntryIndex > managedComponentTypes = {
+//  TacComponentRegistryEntryIndex::Model,
+//};
 
-
-TacComponent* TacGraphics::CreateComponent( TacComponentType componentType )
+TacModel* TacGraphics::CreateModelComponent()
 {
-  switch( componentType )
-  {
-    //case TacComponentType::Say:
-    //{
-    //  auto say = new TacSay();
-    //  mSays.insert( say );
-    //  return say;
-    //}
-
-  case TacComponentType::Model:
-  {
-    auto model = new TacModel();
-    mModels.insert( model );
-    return model;
-  }
-  }
-  TacInvalidCodePath;
-  return nullptr;
+  auto model = new TacModel();
+  mModels.insert( model );
+  return model;
 }
 
-void TacGraphics::DestroyComponent( TacComponent* component )
+TacSystemRegistryEntry* TacGraphics::SystemRegistryEntry = []()
 {
-  auto componentType = component->GetComponentType();
-  switch( componentType )
-  {
-    //  case TacComponentType::Say:
-    //  {
-    //    auto say = ( TacSay* )component;
-    //    auto it = mSays.find( say );
-    //    TacAssert( it != mSays.end() );
-    //    mSays.erase( it );
-    //    delete say;
-    //  } return;
+  TacSystemRegistryEntry* entry = TacSystemRegistry::Instance()->RegisterNewEntry();
+  entry->mCreateFn = []() -> TacSystem* { return new TacGraphics; };
+  return entry;
+}( );
 
-  case TacComponentType::Model:
-  {
-    auto model = ( TacModel* )component;
-    auto it = mModels.find( model );
-    TacAssert( it != mModels.end() );
-    mModels.erase( it );
-    delete model;
-  }return;
-  }
-  TacInvalidCodePath;
+TacGraphics* TacGraphics::GetSystem( TacWorld* world )
+{
+  return ( TacGraphics* )world->GetSystem( TacGraphics::SystemRegistryEntry );
 }
 
-const TacVector< TacComponentType >& TacGraphics::GetManagedComponentTypes()
+//TacComponent* TacGraphics::CreateComponent( TacComponentRegistryEntryIndex componentType )
+//{
+//  switch( componentType )
+//  {
+//    //case TacComponentRegistryEntryIndex::Say:
+//    //{
+//    //  auto say = new TacSay();
+//    //  mSays.insert( say );
+//    //  return say;
+//    //}
+//
+//  case TacComponentRegistryEntryIndex::Model:
+//  {
+//    auto model = new TacModel();
+//    mModels.insert( model );
+//    return model;
+//  }
+//  }
+//  TacInvalidCodePath;
+//  return nullptr;
+//}
+
+void TacGraphics::DestroyModelComponent( TacModel*model )
 {
-  return managedComponentTypes;
+  auto it = mModels.find( model );
+  TacAssert( it != mModels.end() );
+  mModels.erase( it );
+  delete model;
 }
+//void TacGraphics::DestroyComponent( TacComponent* component )
+//{
+//  auto componentType = component->GetComponentType();
+//  switch( componentType )
+//  {
+//    //  case TacComponentRegistryEntryIndex::Say:
+//    //  {
+//    //    auto say = ( TacSay* )component;
+//    //    auto it = mSays.find( say );
+//    //    TacAssert( it != mSays.end() );
+//    //    mSays.erase( it );
+//    //    delete say;
+//    //  } return;
+//
+//  case TacComponentRegistryEntryIndex::Model:
+//  {
+//    auto model = ( TacModel* )component;
+//    auto it = mModels.find( model );
+//    TacAssert( it != mModels.end() );
+//    mModels.erase( it );
+//    delete model;
+//  }return;
+//  }
+//  TacInvalidCodePath;
+//}
+
+//const TacVector< TacComponentRegistryEntryIndex >& TacGraphics::GetManagedComponentTypes()
+//{
+//  return managedComponentTypes;
+//}
 void TacGraphics::DebugImgui()
 {
   //if( !ImGui::CollapsingHeader( "Graphics" ) )

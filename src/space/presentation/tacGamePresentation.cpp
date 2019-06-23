@@ -51,7 +51,7 @@ void TacGamePresentation::RenderGameWorldToDesktopView()
   renderer->AddDrawCall( setPerFrame );
 
 
-  auto graphics = ( TacGraphics* )world->GetSystem( TacSystemType::Graphics );
+  TacGraphics* graphics = TacGraphics::GetSystem( world );
   for( TacModel* model : graphics->mModels )
   {
     TacMesh* mesh = model->mesh;

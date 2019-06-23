@@ -15,10 +15,10 @@
 
 extern void RegisterMetaphysics();
 
-static const TacVector< TacComponentType > managedComponentTypes = {
-  TacComponentType::Collider,
-  TacComponentType::Terrain,
-};
+//static const TacVector< TacComponentRegistryEntryIndex > managedComponentTypes = {
+//  TacComponentRegistryEntryIndex::Collider,
+//  TacComponentRegistryEntryIndex::Terrain,
+//};
 
 //static void DebugDrawGJK( const TacGJK& gjk, TacGraphics* graphics )
 //{
@@ -70,56 +70,48 @@ TacPhysics::TacPhysics()
   mGJKDebugMaxEPAIter = 10;
 }
 
-const TacVector< TacComponentType >& TacPhysics::GetManagedComponentTypes()
+//const TacVector< TacComponentRegistryEntryIndex >& TacPhysics::GetManagedComponentTypes()
+//{
+//  return managedComponentTypes;
+//}
+TacCollider* TacPhysics::CreateCollider()
 {
-  return managedComponentTypes;
-}
-TacComponent* TacPhysics::CreateComponent( TacComponentType componentType )
-{
-  switch( componentType )
-  {
-    case TacComponentType::Collider:
-    {
       auto collider = new TacCollider();
       mColliders.insert( collider );
       return collider;
-    }
-    //case TacComponentType::Terrain:
-    //{
-    //  auto terrain = new TacTerrain();
-    //  mTerrains.insert( terrain );
-    //  return terrain;
-    //}
-  }
-  TacInvalidCodePath;
-  return nullptr;
 }
-void TacPhysics::DestroyComponent( TacComponent* component )
+TacTerrain* TacPhysics::CreateTerrain()
 {
-  auto componentType = component->GetComponentType();
-  switch( componentType )
-  {
-    case TacComponentType::Collider:
-    {
-      auto collider = ( TacCollider* )component;
-      auto it = mColliders.find( collider );
-      TacAssert( it != mColliders.end() );
-      mColliders.erase( it );
-      delete collider;
-    } break;
-
-    //  case TacComponentType::Terrain:
-    //  {
-    //    auto terrain = ( TacTerrain* )component;
-    //    auto it = mTerrains.find( terrain );
-    //    TacAssert( it != mTerrains.end() );
-    //    mTerrains.erase( it );
-    //    delete terrain;
-    //  } break;
-
-    TacInvalidDefaultCase( componentType );
-  }
+      auto terrain = new TacTerrain();
+      mTerrains.insert( terrain );
+      return terrain;
 }
+//void TacPhysics::DestroyComponent( TacComponent* component )
+//{
+//  auto componentType = component->GetComponentType();
+//  switch( componentType )
+//  {
+//    case TacComponentRegistryEntryIndex::Collider:
+//    {
+//      auto collider = ( TacCollider* )component;
+//      auto it = mColliders.find( collider );
+//      TacAssert( it != mColliders.end() );
+//      mColliders.erase( it );
+//      delete collider;
+//    } break;
+//
+//    //  case TacComponentRegistryEntryIndex::Terrain:
+//    //  {
+//    //    auto terrain = ( TacTerrain* )component;
+//    //    auto it = mTerrains.find( terrain );
+//    //    TacAssert( it != mTerrains.end() );
+//    //    mTerrains.erase( it );
+//    //    delete terrain;
+//    //  } break;
+//
+//    TacInvalidDefaultCase( componentType );
+//  }
+//}
 void TacPhysics::DebugImgui()
 {
   //if( !ImGui::CollapsingHeader( "Physics" ) )
@@ -194,7 +186,7 @@ void TacPhysics::DebugImgui()
 }
 void TacPhysics::DebugDrawCapsules()
 {
-  auto graphics = ( TacGraphics* )mWorld->GetSystem( TacSystemType::Graphics );
+  TacGraphics* graphics = TacGraphics::GetSystem( mWorld );
   for( auto collider : mColliders )
   {
     auto entity = collider->mEntity;
@@ -206,7 +198,7 @@ void TacPhysics::DebugDrawCapsules()
 }
 void TacPhysics::DebugDrawTerrains()
 {
-  auto graphics = ( TacGraphics* )mWorld->GetSystem( TacSystemType::Graphics );
+  TacGraphics* graphics = TacGraphics::GetSystem( mWorld );
   for( auto terrain : mTerrains )
   {
     for( auto obb : terrain->mTerrainOBBs )
@@ -240,7 +232,7 @@ void TacPhysics::Integrate()
 }
 void TacPhysics::Narrowphase()
 {
-  auto graphics = ( TacGraphics* )mWorld->GetSystem( TacSystemType::Graphics );
+  TacGraphics* graphics = TacGraphics::GetSystem( mWorld );
   for( auto terrain : mTerrains )
   {
     for( auto obb : terrain->mTerrainOBBs )
@@ -312,13 +304,13 @@ void TacPhysics::Narrowphase()
   // capsule - terrain narrowphase collision
   for( auto collider : mColliders )
   {
-    auto colliderStuff = ( TacStuff* )collider->mEntity->GetComponent( TacComponentType::Stuff );
+    auto colliderStuff = ( TacStuff* )collider->mEntity->GetComponent( TacComponentRegistryEntryIndex::Stuff );
 
     TacCapsuleSupport capsuleSupport( colliderStuff->mPosition, collider->mCapsuleHeight, collider->mCapsuleRadius );
 
     for( auto terrainData : terrainDatas )
     {
-      //auto terrainStuff = ( TacStuff* )collider->mEntity->GetComponent( TacComponentType::Stuff );
+      //auto terrainStuff = ( TacStuff* )collider->mEntity->GetComponent( TacComponentRegistryEntryIndex::Stuff );
       TacUnusedParameter( colliderStuff );
       TacUnusedParameter( terrainData );
 
@@ -331,4 +323,23 @@ void TacPhysics::Narrowphase()
     }
   }
   */
+}
+
+TacSystemRegistryEntry* TacPhysics::SystemRegistryEntry = []()
+{
+  TacSystemRegistryEntry* entry = TacSystemRegistry::Instance()->RegisterNewEntry();
+  entry->mCreateFn = []() -> TacSystem* { return new TacPhysics; };
+  return entry;
+}( );
+TacPhysics* TacPhysics::GetSystem( TacWorld* world )
+{
+  return ( TacPhysics* )world->GetSystem( TacPhysics::SystemRegistryEntry );
+}
+TacCollideResult TacCollide( const TacHeightmap* heightmap, const TacCollider* collider )
+{
+  // get all overlapping triangles
+  // get the one with the deepest penetration
+
+  TacCollideResult result;
+  return result;
 }

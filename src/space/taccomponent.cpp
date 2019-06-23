@@ -4,69 +4,30 @@
 #include "space/taccollider.h"
 //#include "space/tacterrain.h"
 
-char TacComponentToBitField( TacComponentType componentType )
+
+//{
+//  TacComponentRegistryEntryIndex::Say,
+//  new TacComponentData(
+//    "Say",
+//    TacSystemType::Graphics,
+//    TacSayBits)
+//},
+//
+//TacComponentRegistryEntryIndex::Terrain,
+//new TacComponentData(
+//  "Terrain",
+//  TacSystemType::Physics,
+//  TacTerrainBits )
+
+TacComponentRegistry* TacComponentRegistry::Instance()
 {
-  char result = 1 << ( char )componentType;
-  return result;
+  static TacComponentRegistry registry;
+  return &registry;
 }
 
-TacComponentData* TacGetComponentData( TacComponentType componentType )
+TacComponentRegistryEntry* TacComponentRegistry::RegisterNewEntry()
 {
-  /////////////
-  // BE      //
-  //         //
-  // VERY    //
-  //         //
-  // CAREFUL //
-  //         //
-  // OF      //
-  //         //
-  // COPY    //
-  //         //
-  // PASTA   //
-  /////////////
-
-  // Ahh who am i kidding you're going to fuck it up anyway
-
-
-  static TacComponentData* mRegisteredComponents[ ( int )TacComponentType::Count ];
-  static bool initialized;
-  if( !initialized )
-  {
-    initialized = true;
-
-    auto colliderData = new TacComponentData();
-    colliderData->mName = "Collider";
-    colliderData->mSystemType = TacSystemType::Physics;
-    colliderData->mNetworkBits = TacColliderBits;
-    mRegisteredComponents[ ( int ) TacComponentType::Collider ] = colliderData;
-
-  }
-  {
-    //{
-    //  TacComponentType::Say,
-    //  new TacComponentData(
-    //    "Say",
-    //    TacSystemType::Graphics,
-    //    TacSayBits)
-    //},
-    {
-      auto modelData = new TacComponentData;
-      modelData->mName = "Model";
-      modelData->mSystemType = TacSystemType::Graphics;
-      modelData->mNetworkBits = TacComponentModelBits;
-      mRegisteredComponents[ ( int )TacComponentType::Model ] = modelData;
-    }
-    /*
-    {
-      TacComponentType::Terrain,
-      new TacComponentData(
-        "Terrain",
-        TacSystemType::Physics,
-        TacTerrainBits )
-    },
-    */
-  };
-  return mRegisteredComponents[ ( int )componentType ];
+  auto entry = new TacComponentRegistryEntry;
+  mEntries.push_back( entry );
+  return entry;
 }
-

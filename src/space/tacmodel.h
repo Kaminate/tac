@@ -16,7 +16,13 @@ struct TacModel : public TacComponent
   void TacDebugImgui() override;
   void TacDebugImguiChangeModel();
   void TacDebugImguiChangeTexture();
-  TacComponentType GetComponentType() override { return TacComponentType::Model; };
+
+  static TacModel* GetModel( TacEntity* );
+  static const TacModel* GetModel( const TacEntity* );
+  static TacComponentRegistryEntry* ComponentRegistryEntry;
+  TacComponentRegistryEntry* GetEntry() override;
+
+  //TacComponentRegistryEntryIndex GetComponentType() override { return TacComponentRegistryEntryIndex::Model; };
 
   //TacTextureUUID mTextureUUID = TacNullTextureUUID;
   //TacGeometryUUID mGeometryUUID = TacNullGeometryUUID;

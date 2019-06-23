@@ -479,7 +479,7 @@ TacJson TacCreation::SaveEntityToJsonRecusively( TacEntity* entity )
     entityJson[ "mEntityUUID" ] = ( TacJsonNumber )entity->mEntityUUID;
 
     // todo: GetComponentJsonSerializer( component )->SerializeToJson( ... )
-    if( auto model = ( TacModel* )entity->GetComponent( TacComponentType::Model ) )
+    if( TacModel* model = TacModel::GetModel( entity ) )
     {
       TacJson colorRGBJson;
       colorRGBJson[ "r" ] = model->mColorRGB[ 0 ];
@@ -608,7 +608,7 @@ TacEntity* TacCreation::LoadEntityFromJsonRecursively( TacJson& prefabJson )
 
   if( TacJson* modelJson = prefabJson.mChildren[ "Model" ] )
   {
-    auto model = ( TacModel* )entity->AddNewComponent( TacComponentType::Model );
+    auto model = ( TacModel* )entity->AddNewComponent( TacModel::ComponentRegistryEntry );
     model->mGLTFPath = ( *modelJson )[ "mGLTFPath" ].mString;
     model->mColorRGB = {
       ( float )( *modelJson )[ "mColorRGB" ][ "r" ].mNumber,

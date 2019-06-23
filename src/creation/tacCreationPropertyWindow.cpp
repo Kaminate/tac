@@ -97,7 +97,7 @@ void TacCreationPropertyWindow::Update( TacErrors& errors )
     changed |= TacImGuiDragFloat( "Z Eul Deg: ", &rotDeg.z );
     if( changed )
       entity->mLocalEulerRads = rotDeg * ( 3.14f / 180.0f );
-    TacVector< TacComponentType > addableComponentTypes;
+    TacVector< TacComponentRegistryEntry* > addableComponentTypes;
 
     if( entity->mParent )
     {
@@ -147,22 +147,22 @@ void TacCreationPropertyWindow::Update( TacErrors& errors )
     // all the children, recursively
     TacImGuiUnindent();
 
-    for( int i = 0; i < ( int )TacComponentType::Count; ++i )
+    //for( int i = 0; i < ( int )TacComponentRegistryEntryIndex::Count; ++i )
+    for( TacComponentRegistryEntry* componentRegistryEntry : TacComponentRegistry::Instance()->mEntries )
     {
-      TacComponentType componentType = ( TacComponentType )i;
-      if( !entity->HasComponent( componentType ) )
+      //TacComponentRegistryEntryIndex componentType = ( TacComponentRegistryEntryIndex )i;
+      if( !entity->HasComponent( componentRegistryEntry ) )
       {
-        addableComponentTypes.push_back( componentType );
+        addableComponentTypes.push_back( componentRegistryEntry );
         continue;
       }
-      TacComponent* component = entity->GetComponent( componentType );
-      TacString componentName = TacToString( componentType );
-      if( TacImGuiCollapsingHeader( componentName ) )
+      TacComponent* component = entity->GetComponent( componentRegistryEntry );
+      if( TacImGuiCollapsingHeader( componentRegistryEntry->mName ) )
       {
         TAC_IMGUI_INDENT_BLOCK;
         if( TacImGuiButton( "Remove component" ) )
         {
-          entity->RemoveComponent( componentType );
+          entity->RemoveComponent( componentRegistryEntry );
           break;
         }
         component->TacDebugImgui();
@@ -172,9 +172,9 @@ void TacCreationPropertyWindow::Update( TacErrors& errors )
     if( !addableComponentTypes.empty() && TacImGuiCollapsingHeader( "Add component" ) )
     {
       TAC_IMGUI_INDENT_BLOCK;
-      for( TacComponentType componentType : addableComponentTypes )
+      for( TacComponentRegistryEntry*  componentType : addableComponentTypes )
       {
-        if( TacImGuiButton( va( "Add %s component", TacToString( componentType ) ) ) )
+        if( TacImGuiButton( va( "Add %s component", componentType->mName ) ) )
           entity->AddNewComponent( componentType );
       }
     }

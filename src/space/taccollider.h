@@ -3,9 +3,14 @@
 #include "taccomponent.h"
 #include "common/tacPreprocessor.h"
 
+// This is an upright capsule
 struct TacCollider : public TacComponent
 {
-  TacComponentType GetComponentType() override { return TacComponentType::Collider; }
+  static TacCollider* GetCollider( TacEntity* );
+  TacComponentRegistryEntry* GetEntry() override;
+  static TacComponentRegistryEntry* ComponentRegistryEntry;
+
+  //TacComponentRegistryEntryIndex GetComponentType() override { return TacComponentRegistryEntryIndex::Collider; }
   void TacDebugImgui() override;
   v3 mVelocity = {};
   float mRadius = 0.5f;

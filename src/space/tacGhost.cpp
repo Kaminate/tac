@@ -43,12 +43,12 @@ TacUser::TacUser( TacGhost* ghost, const TacString& name, TacErrors& errors )
   mPlayer = player;
   if( mGhost->mShouldPopulateWorldInitial )
   {
-    auto entity = serverData->SpawnEntity();
+    TacEntity* entity = serverData->SpawnEntity();
     entity->mLocalPosition = v3(
       TacRandomFloatMinus1To1() * 3.0f,
       5.2f,
       TacRandomFloatMinus1To1() * 3.0f );
-    entity->AddNewComponent( TacComponentType::Collider );
+    entity->AddNewComponent( TacCollider::ComponentRegistryEntry );
     player->mEntityUUID = entity->mEntityUUID;
   }
 }
@@ -256,7 +256,7 @@ bool TacGhost::IsPartyFull()
 }
 void TacGhost::DebugImgui( TacErrors& errors )
 {
-#if COMPILE_PLS
+  #if COMPILE_PLS
   if( !mIsImGuiVisible )
     return;
   ImGui::PushID( this );
@@ -319,14 +319,14 @@ void TacGhost::DebugImgui( TacErrors& errors )
   ImGui::ColorEdit4( "Clear color", &mClearColor.x );
   mUIRoot->DebugImgui();
   ImGui::DragFloat( "Splash alpha", &mSplashAlpha, 0.1f, 0.0f, 1.0f );
-#endif
+  #endif
 }
 void TacGhost::Draw( TacErrors& errors )
 {
   TacWorld* world = mServerData->mWorld;
-  auto renderer = mShell->mRenderer;
+  TacRenderer* renderer = mShell->mRenderer;
   TacFontStuff* fontStuff = mShell->mFontStuff;
-  auto graphics = ( TacGraphics* )world->GetSystem( TacSystemType::Graphics );
+  TacGraphics* graphics = TacGraphics::GetSystem( world );
 
   renderer->DebugBegin( "Draw world" );
   OnDestruct( renderer->DebugEnd() );
@@ -425,7 +425,8 @@ void TacGhost::Draw( TacErrors& errors )
 }
 void TacGhost::PopulateWorldInitial()
 {
-  auto physics = ( TacPhysics* )mServerData->mWorld->GetSystem( TacSystemType::Physics );
+  TacWorld* world = mServerData->mWorld;
+  TacPhysics* physics = TacPhysics::GetSystem( world );
   TacString levelpath = "mylevel.txt";
   std::ifstream ifs( levelpath.c_str() );
   if( !ifs.is_open() )

@@ -2,6 +2,10 @@
 #include "space/taccomponent.h"
 #include "space/tacworld.h"
 #include "space/tacsystem.h"
+
+// systems
+#include "space/tacgraphics.h"
+
 #include "common/tacPreprocessor.h"
 #include "common/tacAlgorithm.h"
 
@@ -18,58 +22,118 @@ TacEntity::~TacEntity()
 
 void TacEntity::RemoveAllComponents()
 {
-  for( auto component : mComponents )
-  {
-    auto componentData = TacGetComponentData( component->GetComponentType() );
-    auto system = mWorld->GetSystem( componentData->mSystemType );
-    system->DestroyComponent( component );
-  }
-  mComponents.clear();
+  TacInvalidCodePath; // temp
+  //auto graphics = ( TacGraphics* )mWorld->GetSystem( TacSystemType::Graphics );
+  //for( auto component : mComponents )
+  //{
+  //  TacComponentRegistryEntryIndex componentType = component->GetComponentType();
+  //// todo:
+  ////   break this up  into a thing
+  ////   that auto does it when you register each system
+  //  switch( componentType )
+  //  {
+  //    case TacComponentRegistryEntryIndex::Say:
+  //      break;
+  //    case TacComponentRegistryEntryIndex::Model:
+  //      graphics->DestroyModelComponent( ( TacModel* )component );
+  //      break;
+  //    case TacComponentRegistryEntryIndex::Collider:
+  //      break;
+  //    case TacComponentRegistryEntryIndex::Terrain:
+  //      break;
+  //      TacInvalidDefaultCase( componentType );
+  //  }
+
+
+
+  //  //auto componentData = TacGetComponentData(componentType);
+  //  //auto system = mWorld->GetSystem( componentData->mSystemType );
+  //  //system->DestroyComponent( component );
+  //}
+  //mComponents.clear();
 }
 
-TacComponent* TacEntity::AddNewComponent( TacComponentType componentType )
+TacComponent* TacEntity::AddNewComponent( TacComponentRegistryEntry* entry )
 {
-  TacAssert( !HasComponent( componentType ) );
-  auto componentData = TacGetComponentData( componentType );
-  auto system = mWorld->GetSystem( componentData->mSystemType );
-  auto component = system->CreateComponent( componentType );
+  TacAssert( !HasComponent( entry ) );
+  TacAssert( entry->mCreateFn );
+  TacComponent* component = entry->mCreateFn( mWorld );
+  TacAssert( component );
   mComponents.push_back( component );
   component->mEntity = this;
   return component;
 }
-
-TacComponent* TacEntity::GetComponent( TacComponentType type )
+TacComponent* TacEntity::GetComponent( TacComponentRegistryEntry* entry )
 {
-  for( auto component : mComponents )
-    if( component->GetComponentType() == type )
+  for( TacComponent* component : mComponents )
+    if( component->GetEntry() == entry )
       return component;
   return nullptr;
 }
-const TacComponent* TacEntity::GetComponent( TacComponentType type ) const
+const TacComponent* TacEntity::GetComponent( TacComponentRegistryEntry* entry ) const
 {
   for( auto component : mComponents )
-    if( component->GetComponentType() == type )
+    if( component->GetEntry() == entry )
       return component;
   return nullptr;
 }
 
-bool TacEntity::HasComponent( TacComponentType componentType )
+bool TacEntity::HasComponent( TacComponentRegistryEntry* entry )
 {
-  return GetComponent( componentType ) != nullptr;
+  return GetComponent( entry ) != nullptr;
 }
 
-void TacEntity::RemoveComponent( TacComponentType type )
+void TacEntity::RemoveComponent( TacComponentRegistryEntry* entry )
 {
+  TacUnimplemented;
   auto it = std::find_if(
     mComponents.begin(),
     mComponents.end(),
-    [ & ]( TacComponent* component ) { return component->GetComponentType() == type; } );
+    [ & ]( TacComponent* component ) { return component->GetEntry() == entry; } );
   TacAssert( it != mComponents.end() );
-  auto component = *it;
+  TacComponent* component = *it;
   mComponents.erase( it );
-  auto componentData = TacGetComponentData( type );
-  auto system = mWorld->GetSystem( componentData->mSystemType );
-  system->DestroyComponent( component );
+  //auto componentData = TacGetComponentData( componentType );
+  //auto system = mWorld->GetSystem( componentData->mSystemType );
+  //// todo:
+  ////   break this up  into a thing
+  ////   that auto does it when you register each system
+  //auto graphics = ( TacGraphics* )mWorld->GetSystem( TacSystemType::Graphics );
+  //switch( componentType )
+  //{
+  //  case TacComponentRegistryEntryIndex::Say:
+  //    break;
+  //  case TacComponentRegistryEntryIndex::Model:
+  //    graphics->DestroyModelComponent( ( TacModel* )component );
+  //    break;
+  //  case TacComponentRegistryEntryIndex::Collider:
+  //    break;
+  //  case TacComponentRegistryEntryIndex::Terrain:
+  //    break;
+  //    TacInvalidDefaultCase( componentType );
+  //}
+
+}
+
+
+void TacEntity::DeepCopy( const TacEntity& entity )
+{
+  TacAssert( mWorld && entity.mWorld && mWorld != entity.mWorld );
+  mEntityUUID = entity.mEntityUUID;
+  RemoveAllComponents();
+  //for( auto oldComponent : entity.mComponents )
+  //{
+  //  auto componentType = oldComponent->GetComponentType();
+  //  auto newComponent = AddNewComponent( componentType );
+  //  auto componentData = TacGetComponentData( componentType );
+  //  for( auto& networkBit : componentData->mNetworkBits )
+  //  {
+  //    auto dst = ( char* )newComponent + networkBit.mByteOffset;
+  //    auto src = ( char* )oldComponent + networkBit.mByteOffset;
+  //    auto size = networkBit.mComponentByteCount * networkBit.mComponentCount;
+  //    std::memcpy( dst, src, size );
+  //  }
+  //}
 }
 
 void TacEntity::AddChild( TacEntity* child )
@@ -80,27 +144,6 @@ void TacEntity::AddChild( TacEntity* child )
   child->mParent = this;
   mChildren.push_back( child );
 }
-
-void TacEntity::DeepCopy( const TacEntity& entity )
-{
-  TacAssert( mWorld && entity.mWorld && mWorld != entity.mWorld );
-  mEntityUUID = entity.mEntityUUID;
-  RemoveAllComponents();
-  for( auto oldComponent : entity.mComponents )
-  {
-    auto componentType = oldComponent->GetComponentType();
-    auto newComponent = AddNewComponent( componentType );
-    auto componentData = TacGetComponentData( componentType );
-    for( auto& networkBit : componentData->mNetworkBits )
-    {
-      auto dst = ( char* )newComponent + networkBit.mByteOffset;
-      auto src = ( char* )oldComponent + networkBit.mByteOffset;
-      auto size = networkBit.mComponentByteCount * networkBit.mComponentCount;
-      std::memcpy( dst, src, size );
-    }
-  }
-}
-
 void TacEntity::TacDebugImgui()
 {
   #if 0
@@ -112,10 +155,10 @@ void TacEntity::TacDebugImgui()
   OnDestruct( ImGui::Unindent() );
   ImGui::DragFloat3( "Position", mPosition.data(), 0.1f );
 
-  TacVector< TacComponentType > couldBeAdded;
-  for( int i = 0; i < ( int )TacComponentType::Count; i++ )
+  TacVector< TacComponentRegistryEntryIndex > couldBeAdded;
+  for( int i = 0; i < ( int )TacComponentRegistryEntryIndex::Count; i++ )
   {
-    auto componentType = ( TacComponentType )i;
+    auto componentType = ( TacComponentRegistryEntryIndex )i;
     if( HasComponent( componentType ) )
       continue;
     auto componentData = TacGetComponentData( componentType );

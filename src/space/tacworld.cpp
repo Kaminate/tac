@@ -10,26 +10,20 @@
 
 TacWorld::TacWorld()
 {
-  for( int i = 0; i < ( int )TacSystemType::Count; ++i )
+  TacSystemRegistry* registry = TacSystemRegistry::Instance();
+  for( TacSystemRegistryEntry* entry : registry->mEntries )
   {
-    auto systemType = ( TacSystemType )i;
-    TacSystem* system = nullptr;
-    switch( systemType )
-    {
-    case TacSystemType::Graphics: system = new TacGraphics(); break;
-    case TacSystemType::Physics: system = new TacPhysics(); break;
-    }
-    if( !system )
-      return;
+    TacSystem* system = entry->mCreateFn();
+    TacAssert( system );
     system->mWorld = this;
     mSystems.push_back( system );
   }
 }
 TacWorld::~TacWorld()
 {
-  ClearPlayersAndEntities();
   for( auto system : mSystems )
     delete system;
+  ClearPlayersAndEntities();
 }
 TacEntity* TacWorld::SpawnEntity( TacEntityUUID entityUUID )
 {
@@ -167,7 +161,7 @@ void TacWorld::ApplyInput( TacPlayer* player, float seconds )
   if( !entity )
     return;
   // update velocity
-  auto collider = ( TacCollider* )entity->GetComponent( TacComponentType::Collider );
+  TacCollider*  collider = TacCollider::GetCollider( entity );
   if( !collider )
     return;
   float speedHorizontal = 5;
@@ -180,7 +174,7 @@ void TacWorld::ApplyInput( TacPlayer* player, float seconds )
   collider->mVelocity = v3( velX, velY, velZ );
 
   // update rotation
-  //auto stuff = ( TacStuff* )entity->GetComponent( TacComponentType::Stuff );
+  //auto stuff = ( TacStuff* )entity->GetComponent( TacComponentRegistryEntryIndex::Stuff );
   //stuff->mWaddleParams.Update( player->mInputDirection, seconds );
   //stuff->zCCWEulerRotDeg = stuff->mWaddleParams.mAngle;
 }
@@ -224,7 +218,7 @@ void TacWorld::Step( float seconds )
   {
     auto boxSize = v3( 1, 1, 1 ) * 0.1f;
     v3 boxRot = {};
-    auto graphics = ( TacGraphics* )GetSystem( TacSystemType::Graphics );
+    TacGraphics* graphics = TacGraphics::GetSystem( this );
     if( graphics )
     {
       for( auto entity : mEntities )
@@ -250,25 +244,22 @@ void TacWorld::DeepCopy( const TacWorld& world )
   mElapsedSecs = world.mElapsedSecs;
   mSkyboxDir = world.mSkyboxDir;
 
-  for( auto fromPlayer : world.mPlayers )
+  for( TacPlayer* fromPlayer : world.mPlayers )
   {
-    auto player = new TacPlayer();
+    TacPlayer*  player = new TacPlayer();
     *player = *fromPlayer;
     mPlayers.push_back( player );
   }
 
-  for( auto fromEntity : world.mEntities )
+  for( TacEntity* fromEntity : world.mEntities )
   {
-    auto toEntity = SpawnEntity( fromEntity->mEntityUUID );
+    TacEntity* toEntity = SpawnEntity( fromEntity->mEntityUUID );
     toEntity->DeepCopy( *fromEntity );
   }
 }
-TacSystem* TacWorld::GetSystem( TacSystemType systemType )
+TacSystem* TacWorld::GetSystem( TacSystemRegistryEntry* systemRegistryEntry )
 {
-  for( auto system : mSystems )
-    if( system->GetSystemType() == systemType )
-      return system;
-  return nullptr;
+  return mSystems[ systemRegistryEntry->mIndex ];
 }
 void TacWorld::DebugImgui()
 {

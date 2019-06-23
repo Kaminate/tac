@@ -1,8 +1,11 @@
 #include "space/tacmodel.h"
+#include "space/tacentity.h"
+#include "space/tacgraphics.h"
 #include "common/graphics/tacImGui.h"
 #include "common/tacOS.h"
 #include "common/tacUtility.h"
 #include "common/tacErrorHandling.h"
+
 //#include "common\tacAssetManager.h"
 //#include "common\tacPlatform.h"
 //#include "core\tacstuff.h"
@@ -50,7 +53,7 @@ void TacModel::TacDebugImguiChangeModel()
   //else
   //{
 
-  //  auto stuff = ( TacStuff* )mEntity->GetComponent( TacComponentType::Stuff );
+  //  auto stuff = ( TacStuff* )mEntity->GetComponent( TacComponentRegistryEntryIndex::Stuff );
 
   //  ImGui::Text( "Model path: %s", assetManager->GetGeometryPath( mGeometryUUID ).c_str() );
   //  auto geometry = assetManager->GetGeometry( mGeometryUUID );
@@ -149,3 +152,30 @@ void TacModel::TacDebugImgui()
   TacImGuiDragFloat( "g", &mColorRGB[ 1 ] );
   TacImGuiDragFloat( "b", &mColorRGB[ 2 ] );
 }
+
+
+const TacModel* TacModel::GetModel( const TacEntity* entity )
+{
+  return ( TacModel* )entity->GetComponent( TacModel::ComponentRegistryEntry );
+}
+TacModel* TacModel::GetModel( TacEntity* entity )
+{
+  return ( TacModel* )entity->GetComponent( TacModel::ComponentRegistryEntry );
+}
+TacComponentRegistryEntry* TacModel::ComponentRegistryEntry = []()
+{
+  TacComponentRegistryEntry* entry = TacComponentRegistry::Instance()->RegisterNewEntry();
+  entry->mName = "Model";
+  entry->mSystemRegistryEntry = TacGraphics::SystemRegistryEntry;
+  entry->mNetworkBits = TacComponentModelBits;
+  entry->mCreateFn = [](TacWorld* world)->TacComponent*
+  {
+    return TacGraphics::GetSystem( world )->CreateModelComponent();
+  };
+  return entry;
+}( );
+TacComponentRegistryEntry* TacModel::GetEntry()
+{
+  return TacModel::ComponentRegistryEntry;
+}
+
