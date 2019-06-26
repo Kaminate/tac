@@ -64,6 +64,9 @@ void TacCreationPropertyWindow::Update( TacErrors& errors )
 
 
   TacImGuiBegin( "Properties", {} );
+
+
+
   TacImGuiBeginGroup();
   TacImGuiBeginChild( "Hierarchy", v2( 250, -100 ) );
   TacWorld* world = mCreation->mWorld;
@@ -180,6 +183,8 @@ void TacCreationPropertyWindow::Update( TacErrors& errors )
     }
   }
   TacImGuiEndGroup();
+
+
   if( TacImGuiButton( "Close window" ) )
     mDesktopWindow->mRequestDeletion = true;
 

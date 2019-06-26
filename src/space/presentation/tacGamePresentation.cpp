@@ -3,6 +3,7 @@
 #include "common/assetmanagers/tacModelAssetManager.h"
 #include "common/math/tacMatrix4.h"
 #include "common/graphics/tacRenderer.h"
+#include "common/graphics/tacDebug3D.h"
 #include "common/tacDesktopWindow.h"
 #include "space/presentation/tacSkyboxPresentation.h"
 #include "space/presentation/tacGamePresentation.h"
@@ -79,6 +80,13 @@ void TacGamePresentation::RenderGameWorldToDesktopView()
   renderer->RenderFlush();
   renderer->DebugEnd();
   mSkyboxPresentation->RenderSkybox( world->mSkyboxDir );
+
+  TacErrors ignored;
+  world->mDebug3DDrawData->DrawToTexture(
+    ignored,
+    &perFrameData,
+    mDebug3DCommonData,
+    mDesktopWindow->mRenderView );
 }
 void TacGamePresentation::CreateGraphicsObjects( TacErrors& errors )
 {
@@ -175,7 +183,7 @@ void TacGamePresentation::RenderGameWorldAddDrawCall(
     drawCall.mIndexBuffer = subMesh.mIndexBuffer;
     drawCall.mStartIndex = 0;
     drawCall.mIndexCount = subMesh.mIndexBuffer->indexCount;
-    drawCall.mView = mDesktopWindow->mRenderView;
+    drawCall.mRenderView = mDesktopWindow->mRenderView;
     drawCall.mBlendState = mBlendState;
     drawCall.mRasterizerState = mRasterizerState;
     drawCall.mSamplerState = mSamplerState;

@@ -166,11 +166,15 @@ TacComponentRegistryEntry* TacModel::ComponentRegistryEntry = []()
 {
   TacComponentRegistryEntry* entry = TacComponentRegistry::Instance()->RegisterNewEntry();
   entry->mName = "Model";
-  entry->mSystemRegistryEntry = TacGraphics::SystemRegistryEntry;
+  //entry->mSystemRegistryEntry = TacGraphics::SystemRegistryEntry;
   entry->mNetworkBits = TacComponentModelBits;
   entry->mCreateFn = [](TacWorld* world)->TacComponent*
   {
     return TacGraphics::GetSystem( world )->CreateModelComponent();
+  };
+  entry->mDestroyFn = []( TacWorld* world, TacComponent* component )
+  {
+    TacGraphics::GetSystem( world )->DestroyModelComponent( ( TacModel* )component );
   };
   return entry;
 }( );

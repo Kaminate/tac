@@ -44,6 +44,8 @@ add_library(${TacTarget} # MODULE
 "tacserver.h"
 "tacspacenet.cpp"
 "tacspacenet.h"
+"tacterrain.cpp"
+"tacterrain.h"
 "tacworld.cpp"
 "tacworld.h"
 )

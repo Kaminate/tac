@@ -215,6 +215,7 @@ void TacCreationGameWindow::Init( TacErrors& errors )
   mGamePresentation->mRenderer = mShell->mRenderer;
   mGamePresentation->mDesktopWindow = mDesktopWindow;
   mGamePresentation->mSkyboxPresentation = mSkyboxPresentation;
+  mGamePresentation->mDebug3DCommonData = mShell->mDebug3DCommonData;
   mGamePresentation->CreateGraphicsObjects( errors );
   TAC_HANDLE_ERROR( errors );
 
@@ -234,8 +235,8 @@ void TacCreationGameWindow::Init( TacErrors& errors )
   TAC_HANDLE_ERROR( errors );
 
   mDebug3DDrawData = new TacDebug3DDrawData;
-  mDebug3DDrawData->mCommonData = shell->mDebug3DCommonData;
-  mDebug3DDrawData->mRenderView = mDesktopWindow->mRenderView;
+  //mDebug3DDrawData->mCommonData = shell->mDebug3DCommonData;
+  //mDebug3DDrawData->mRenderView = mDesktopWindow->mRenderView;
 
   PlayGame( errors );
   TAC_HANDLE_ERROR( errors );
@@ -442,7 +443,7 @@ void TacCreationGameWindow::AddDrawCall( const TacMesh* mesh, const TacDefaultCB
     drawCall.mIndexBuffer = subMesh.mIndexBuffer;
     drawCall.mStartIndex = 0;
     drawCall.mIndexCount = subMesh.mIndexBuffer->indexCount;
-    drawCall.mView = mDesktopWindow->mRenderView;
+    drawCall.mRenderView = mDesktopWindow->mRenderView;
     drawCall.mBlendState = mBlendState;
     drawCall.mRasterizerState = mRasterizerState;
     drawCall.mSamplerState = mSamplerState;
@@ -537,7 +538,11 @@ void TacCreationGameWindow::RenderGameWorldToGameWindow()
   }
 
   TacErrors ignored;
-  mDebug3DDrawData->DrawToTexture( ignored, &perFrameData );
+  mDebug3DDrawData->DrawToTexture(
+    ignored,
+    &perFrameData,
+    mShell->mDebug3DCommonData,
+    mDesktopWindow->mRenderView );
 
   mGamePresentation->RenderGameWorldToDesktopView();
 }

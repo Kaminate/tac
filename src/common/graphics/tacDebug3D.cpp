@@ -100,16 +100,15 @@ TacDebugDrawAABB TacDebugDrawAABB::FromPosExtents( v3 pos, v3 extents )
   return result;
 }
 
-  TacDebug3DDrawData::TacDebug3DDrawData()
+TacDebug3DDrawData::TacDebug3DDrawData()
   {
 
 
   }
 TacDebug3DDrawData::~TacDebug3DDrawData()
 {
-  TacDebug3DCommonData* commonData = mCommonData;
-  TacRenderer* renderer = commonData->mRenderer;
-  renderer->RemoveRendererResource( mVerts );
+  if( mVerts )
+    mRenderer->RemoveRendererResource( mVerts );
 }
 void TacDebug3DDrawData::DebugDrawLine( v3 p0, v3 p1, v3 color0, v3 color1 )
 {
@@ -371,9 +370,12 @@ void TacDebug3DDrawData::DebugDrawTriangle( v3 p0, v3 p1, v3 p2, v3 color )
 {
   DebugDrawTriangle( p0, p1, p2, color, color, color );
 }
-void TacDebug3DDrawData::DrawToTexture( TacErrors& errors, const TacDefaultCBufferPerFrame* cbufferperframe )
+void TacDebug3DDrawData::DrawToTexture(
+  TacErrors& errors,
+  const TacDefaultCBufferPerFrame* cbufferperframe,
+  TacDebug3DCommonData* commonData,
+  TacRenderView* renderView )
 {
-  TacDebug3DCommonData* commonData = mCommonData;
   TacRenderer* renderer = commonData->mRenderer;
 
   int vertexCount = mDebugDrawVerts.size();
@@ -381,6 +383,7 @@ void TacDebug3DDrawData::DrawToTexture( TacErrors& errors, const TacDefaultCBuff
   {
     if( !mVerts || mVerts->mNumVertexes < vertexCount )
     {
+      mRenderer = renderer;
       if( mVerts )
         renderer->RemoveRendererResource( mVerts );
       TacVertexBufferData vertexBufferData = {};
@@ -414,7 +417,7 @@ void TacDebug3DDrawData::DrawToTexture( TacErrors& errors, const TacDefaultCBuff
     drawCall.mUniformSrcc = TacTemporaryMemory( *cbufferperframe );
     drawCall.mVertexBuffer = mVerts;
     drawCall.mVertexFormat = commonData->mVertexColorFormat;
-    drawCall.mView = mRenderView;
+    drawCall.mRenderView = renderView;
     renderer->AddDrawCall( drawCall );
 
     mDebugDrawVerts.clear();

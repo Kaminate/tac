@@ -13,7 +13,9 @@ struct TacEntity;
 struct TacSystem;
 struct TacString;
 struct TacWorld;
-  struct TacSystemRegistryEntry;
+struct TacShell;
+struct TacSystemRegistryEntry;
+struct TacDebug3DDrawData;
 
 static const int sPlayerCountMax = 4;
 
@@ -26,7 +28,6 @@ struct TacWorld
   ~TacWorld();
 
   TacSystem* GetSystem( TacSystemRegistryEntry* );
-  void ClearPlayersAndEntities();
   void DeepCopy( const TacWorld& );
   void Step( float seconds );
   void DebugImgui();
@@ -38,7 +39,6 @@ struct TacWorld
   void KillEntity( TacEntityUUID entityUUID );
   void KillEntity( TacEntity* entity );
   void KillEntity( TacEntityIterator it );
-
   TacEntity* FindEntity( TacPlayerUUID playerUUID );
   TacEntity* FindEntity( TacEntityUUID entityUUID );
   TacEntity* FindEntity( const TacString& name );
@@ -55,5 +55,7 @@ struct TacWorld
   std::list< TacEntity* > mEntities;
   TacVector< TacSystem* > mSystems;
   TacString mSkyboxDir;
+  TacShell* mShell = nullptr;
+  TacDebug3DDrawData* mDebug3DDrawData = nullptr;
 };
 

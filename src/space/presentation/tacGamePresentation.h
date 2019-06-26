@@ -16,6 +16,7 @@ struct TacShader;
 struct TacSkyboxPresentation;
 struct TacVertexFormat;
 struct TacWorld;
+  struct TacDebug3DCommonData;
 
 struct TacGamePresentation
 {
@@ -31,6 +32,7 @@ struct TacGamePresentation
   TacWorld* mWorld = nullptr;
 
   TacSkyboxPresentation* mSkyboxPresentation = nullptr;
+  TacDebug3DCommonData* mDebug3DCommonData = nullptr;
 
   // Renderer resources
   TacShader* m3DShader = nullptr;

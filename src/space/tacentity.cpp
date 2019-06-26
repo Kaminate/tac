@@ -22,35 +22,12 @@ TacEntity::~TacEntity()
 
 void TacEntity::RemoveAllComponents()
 {
-  TacInvalidCodePath; // temp
-  //auto graphics = ( TacGraphics* )mWorld->GetSystem( TacSystemType::Graphics );
-  //for( auto component : mComponents )
-  //{
-  //  TacComponentRegistryEntryIndex componentType = component->GetComponentType();
-  //// todo:
-  ////   break this up  into a thing
-  ////   that auto does it when you register each system
-  //  switch( componentType )
-  //  {
-  //    case TacComponentRegistryEntryIndex::Say:
-  //      break;
-  //    case TacComponentRegistryEntryIndex::Model:
-  //      graphics->DestroyModelComponent( ( TacModel* )component );
-  //      break;
-  //    case TacComponentRegistryEntryIndex::Collider:
-  //      break;
-  //    case TacComponentRegistryEntryIndex::Terrain:
-  //      break;
-  //      TacInvalidDefaultCase( componentType );
-  //  }
-
-
-
-  //  //auto componentData = TacGetComponentData(componentType);
-  //  //auto system = mWorld->GetSystem( componentData->mSystemType );
-  //  //system->DestroyComponent( component );
-  //}
-  //mComponents.clear();
+  for( TacComponent* component : mComponents )
+  {
+    TacComponentRegistryEntry* entry = component->GetEntry();
+    entry->mDestroyFn( mWorld, component );
+  }
+  mComponents.clear();
 }
 
 TacComponent* TacEntity::AddNewComponent( TacComponentRegistryEntry* entry )

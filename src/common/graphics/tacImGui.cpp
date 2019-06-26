@@ -32,6 +32,13 @@ struct TacImGuiIDAllocator
   TacImGuiId mIDCounter = 0;
 };
 
+struct TacGroupData
+{
+  // Position of the cursor when starting the group
+  v2 mSavedCursorDrawPos;
+  float mSavedLineHeight;
+};
+
 // move to cpp?
 struct TacImGuiWindow
 {
@@ -48,6 +55,8 @@ struct TacImGuiWindow
   TacString mName;
   TacImGuiWindow* mParent = nullptr;
 
+  // The most bottom right the cursor has ever been,
+  // updated during ItemSize()
   v2 mMaxiCursorDrawPos;
   v2 mCurrCursorDrawPos;
   v2 mPrevCursorDrawPos;
@@ -64,7 +73,7 @@ struct TacImGuiWindow
   v2 mScrollMousePosScreenspaceInitial;
   bool mScrolling = false;
 
-  v2 mGroupSavedCursorDrawPos;
+  TacVector< TacGroupData > mGroupStack;
 
   // The mXOffsets.back() represents the horizontal tabbing distance
   // from the window mPos and the stuff that's about to be drawn
@@ -351,14 +360,14 @@ void TacImGuiWindow::ComputeClipInfo( bool* clipped, TacImGuiRect* clipRect )
 }
 void TacImGuiWindow::ItemSize( v2 size )
 {
-  mPrevLineHeight = TacMax( mCurrLineHeight, size.y );
-  mPrevCursorDrawPos = {
-    mCurrCursorDrawPos.x + size.x,
-    mCurrCursorDrawPos.y };
-  UpdateMaxCursorDrawPos( mPrevCursorDrawPos );
-  mCurrCursorDrawPos = {
-    mPos.x + mXOffsets.back(),
-    mPrevCursorDrawPos.y + mPrevLineHeight + gStyle.itemSpacing.y };
+  mCurrLineHeight = TacMax( mCurrLineHeight, size.y );
+  UpdateMaxCursorDrawPos( mCurrCursorDrawPos + v2{ size.x, mCurrLineHeight } );
+
+  mPrevCursorDrawPos = mCurrCursorDrawPos + v2( size.x, 0 );
+  mPrevLineHeight = mCurrLineHeight;
+
+  mCurrCursorDrawPos.x = mPos.x + mXOffsets.back();
+  mCurrCursorDrawPos.y += mCurrLineHeight + gStyle.itemSpacing.y;
   mCurrLineHeight = 0;
 }
 void TacImGuiWindow::UpdateMaxCursorDrawPos( v2 pos )
@@ -498,20 +507,35 @@ void TacImGuiEndChild()
 void TacImGuiBeginGroup()
 {
   TacImGuiWindow* window = gTacImGuiGlobals.mCurrentWindow;
-  window->mGroupSavedCursorDrawPos = window->mCurrCursorDrawPos;
+  TacGroupData groupData = {};
+  groupData.mSavedCursorDrawPos = window->mCurrCursorDrawPos;
+  groupData.mSavedLineHeight = window->mCurrLineHeight;
+
   window->mXOffsets.push_back( window->mCurrCursorDrawPos.x - window->mPos.x );
   window->mCurrLineHeight = 0;
+
+  // new
+  //window->mMaxiCursorDrawPos = window->mCurrCursorDrawPos;
+
+  window->mGroupStack.push_back( groupData );
 }
 void TacImGuiEndGroup()
 {
   TacImGuiWindow* window = gTacImGuiGlobals.mCurrentWindow;
+  TacGroupData& groupData = window->mGroupStack.back();
   window->mXOffsets.pop_back();
-  v2 groupEndPos = {
-    window->mMaxiCursorDrawPos.x,
-    window->mMaxiCursorDrawPos.y + window->mPrevLineHeight };
-  v2 groupSize = groupEndPos - window->mGroupSavedCursorDrawPos;
-  window->mCurrCursorDrawPos = window->mGroupSavedCursorDrawPos;
+  //v2 groupEndPos = {
+  //  window->mMaxiCursorDrawPos.x,
+  //  window->mMaxiCursorDrawPos.y + window->mPrevLineHeight };
+  //v2 groupSize = groupEndPos - groupData.mSavedCursorDrawPos;
+  v2 groupSize = window->mMaxiCursorDrawPos - groupData.mSavedCursorDrawPos;
+  //groupSize.y = TacMax( groupSize.y, window->mCurrLineHeight );
+
+  window->mCurrLineHeight = groupData.mSavedLineHeight;
+
+  window->mCurrCursorDrawPos = groupData.mSavedCursorDrawPos;
   window->ItemSize( groupSize );
+  window->mGroupStack.pop_back();
 }
 void TacImGuiIndent()
 {
@@ -532,6 +556,7 @@ void TacImGuiSameLine()
     window->mPrevCursorDrawPos.x + gStyle.itemSpacing.x,
     window->mPrevCursorDrawPos.y };
   window->mCurrLineHeight = window->mPrevLineHeight;
+  //window->mCurrLineHeight = window->mPrevLineHeight;
 }
 void TacImGuiText( const TacString& utf8 )
 {

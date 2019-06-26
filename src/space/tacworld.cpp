@@ -6,6 +6,8 @@
 #include "space/tacphysics.h"
 #include "space/taccollider.h"
 
+#include "common/graphics/tacDebug3D.h"
+
 #include <algorithm>
 
 TacWorld::TacWorld()
@@ -18,12 +20,16 @@ TacWorld::TacWorld()
     system->mWorld = this;
     mSystems.push_back( system );
   }
+  mDebug3DDrawData = new TacDebug3DDrawData;
 }
 TacWorld::~TacWorld()
 {
   for( auto system : mSystems )
     delete system;
-  ClearPlayersAndEntities();
+  for( auto player : mPlayers )
+    delete player;
+  for( auto entity : mEntities )
+    delete entity;
 }
 TacEntity* TacWorld::SpawnEntity( TacEntityUUID entityUUID )
 {
@@ -178,7 +184,6 @@ void TacWorld::ApplyInput( TacPlayer* player, float seconds )
   //stuff->mWaddleParams.Update( player->mInputDirection, seconds );
   //stuff->zCCWEulerRotDeg = stuff->mWaddleParams.mAngle;
 }
-
 void TacWorld::ComputeTransformsRecursively( const m4& parentWorldTransformNoScale, TacEntity* entity )
 {
   m4 localTransform = M4Transform( entity->mLocalScale, entity->mLocalEulerRads, entity->mLocalPosition );
@@ -228,7 +233,7 @@ void TacWorld::Step( float seconds )
     }
   }
 }
-void TacWorld::ClearPlayersAndEntities()
+void TacWorld::DeepCopy( const TacWorld& world )
 {
   for( auto player : mPlayers )
     delete player;
@@ -237,10 +242,7 @@ void TacWorld::ClearPlayersAndEntities()
   for( auto entity : mEntities )
     delete entity;
   mEntities.clear();
-}
-void TacWorld::DeepCopy( const TacWorld& world )
-{
-  ClearPlayersAndEntities();
+
   mElapsedSecs = world.mElapsedSecs;
   mSkyboxDir = world.mSkyboxDir;
 

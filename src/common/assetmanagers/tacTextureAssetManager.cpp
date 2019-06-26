@@ -290,13 +290,17 @@ void TacTextureAssetManager::UpdateAsyncTexture(
   TacAsyncLoadStatus status = job->GetStatus();
   switch( status )
   {
-    case TacAsyncLoadStatus::ThreadQueued: // fallthrough
+    case TacAsyncLoadStatus::ThreadQueued:
+    {
+      *ppTexture = nullptr;
+    } break;
     case TacAsyncLoadStatus::ThreadRunning:
     {
       *ppTexture = nullptr;
     } break;
     case TacAsyncLoadStatus::ThreadFailed:
     {
+      *ppTexture = nullptr;
       errors = job->mErrors;
       TAC_HANDLE_ERROR( errors );
     } break;

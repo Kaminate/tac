@@ -5,6 +5,7 @@
 
 struct TacBlendState;
 struct TacCBuffer;
+struct TacDefaultCBufferPerFrame;
 struct TacDepthBuffer;
 struct TacDepthState;
 struct TacErrors;
@@ -23,7 +24,6 @@ struct TacUI2DVertex;
 struct TacVertexBuffer;
 struct TacVertexFormat;
 struct TacRenderView;
-struct  TacDefaultCBufferPerFrame;
 
 struct TacDefaultVertexColor
 {
@@ -70,11 +70,14 @@ struct TacDebug3DDrawData
   void DebugDrawAABB( TacDebugDrawAABB debugDrawAABB, v3 color = { 1, 1, 1 } );
   void DebugDrawTriangle( v3 p0, v3 p1, v3 p2, v3 color0, v3 color1, v3 color2 );
   void DebugDrawTriangle( v3 p0, v3 p1, v3 p2, v3 color = v3( 1, 1, 1 ) );
-  void DrawToTexture( TacErrors& errors, const TacDefaultCBufferPerFrame* cbufferperframe );
+  void DrawToTexture(
+    TacErrors& errors,
+    const TacDefaultCBufferPerFrame* cbufferperframe,
+    TacDebug3DCommonData* mCommonData,
+    TacRenderView* mRenderView );
 
   TacVector< TacDefaultVertexColor > mDebugDrawVerts;
   TacVertexBuffer* mVerts = nullptr;
-  TacRenderView* mRenderView = nullptr;
-  TacDebug3DCommonData* mCommonData = nullptr;
+  TacRenderer* mRenderer = nullptr;
 };
 

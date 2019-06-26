@@ -1,5 +1,6 @@
 #include "space/tacphysics.h"
 #include "space/taccomponent.h"
+#include "space/tacterrain.h"
 #include "space/tacgraphics.h"
 #include "space/tacworld.h"
 #include "space/taccollider.h"
@@ -8,6 +9,11 @@
 #include "common/containers/tacVector.h"
 #include "common/math/tacMath.h"
 #include "common/tacPreprocessor.h"
+#include "common/tacShell.h"
+#include "common/assetmanagers/tacTextureAssetManager.h"
+#include "common/tacMemory.h"
+#include "common/thirdparty/stb_image.h"
+#include "common/graphics/tacDebug3D.h"
 
 #include <array>
 #include <algorithm>
@@ -76,15 +82,15 @@ TacPhysics::TacPhysics()
 //}
 TacCollider* TacPhysics::CreateCollider()
 {
-      auto collider = new TacCollider();
-      mColliders.insert( collider );
-      return collider;
+  auto collider = new TacCollider();
+  mColliders.insert( collider );
+  return collider;
 }
 TacTerrain* TacPhysics::CreateTerrain()
 {
-      auto terrain = new TacTerrain();
-      mTerrains.insert( terrain );
-      return terrain;
+  auto terrain = new TacTerrain();
+  mTerrains.insert( terrain );
+  return terrain;
 }
 //void TacPhysics::DestroyComponent( TacComponent* component )
 //{
@@ -112,8 +118,44 @@ TacTerrain* TacPhysics::CreateTerrain()
 //    TacInvalidDefaultCase( componentType );
 //  }
 //}
+
+void TacPhysics::LoadTestHeightmap()
+{
+  if( mTestHeightmapImageMemory.size() )
+    return; // already loaded
+
+  if( mTestHeightmapLoadErrors.size() )
+    return; // tried to load already, but load failed
+
+  const char* heightmapPath = "assets/heightmap.png";
+
+  TacVector< char > imageMemory = TacTemporaryMemory( heightmapPath, mTestHeightmapLoadErrors );
+  if( mTestHeightmapLoadErrors.size() )
+    return;
+
+  int imageWidth;
+  int imageHeight;
+  stbi_uc* loaded = stbi_load_from_memory(
+    ( stbi_uc const * )imageMemory.data(),
+    imageMemory.size(),
+    &imageWidth,
+    &imageHeight,
+    nullptr,
+    STBI_grey );
+
+  int byteCount = imageWidth * imageHeight;
+  mTestHeightmapImageMemory.resize( byteCount );
+
+  TacMemCpy( mTestHeightmapImageMemory.data(), loaded, byteCount );
+
+  mTestHeightmapWidth = imageWidth;
+  mTestHeightmapHeight = imageHeight;
+  stbi_image_free( loaded );
+}
 void TacPhysics::DebugImgui()
 {
+
+
   //if( !ImGui::CollapsingHeader( "Physics" ) )
   //  return;
   //ImGui::Indent();
@@ -199,11 +241,48 @@ void TacPhysics::DebugDrawCapsules()
 void TacPhysics::DebugDrawTerrains()
 {
   TacGraphics* graphics = TacGraphics::GetSystem( mWorld );
+  TacShell* shell = mWorld->mShell;
+
+  LoadTestHeightmap();
+
   for( auto terrain : mTerrains )
   {
     for( auto obb : terrain->mTerrainOBBs )
     {
       //graphics->DebugDrawOBB( obb.mPos, obb.mHalfExtents, obb.mEulerRads, mDebugDrawTerrainColor );
+    }
+
+    if( terrain->mGrid.empty() )
+    {
+      int rowCount = 2;
+      int colCount = 2;
+      float width = 10;
+      float height = 10;
+      for( int iRow = 0; iRow <= rowCount; ++iRow )
+      {
+        for( int iCol = 0; iCol <= colCount; ++iCol )
+        {
+          float xPercent = ( float )iRow / ( float )rowCount;
+          float zPercent = ( float )iCol / ( float )colCount;
+
+          int heightmapX = ( int )( xPercent * mTestHeightmapWidth );
+          int heightmapY = ( int )( zPercent * mTestHeightmapHeight );
+          uint8_t heightmapValue = mTestHeightmapImageMemory[ heightmapX + heightmapY * mTestHeightmapWidth ];
+          float heightmapPercent = heightmapValue / 255.0f;
+
+
+          v3 pos;
+          pos.x = xPercent * width;
+          pos.y = heightmapPercent * 5.0f;
+          pos.z = zPercent * height;
+          terrain->mGrid.push_back( pos );
+        }
+      }
+    }
+
+    for( const v3& pos : terrain->mGrid )
+    {
+      mWorld->mDebug3DDrawData->DebugDrawSphere( pos, 1.0f, { 1, 0, 0 } );
     }
   }
 }
@@ -342,4 +421,16 @@ TacCollideResult TacCollide( const TacHeightmap* heightmap, const TacCollider* c
 
   TacCollideResult result;
   return result;
+}
+
+void TacPhysics::DestroyCollider( TacCollider* collider )
+{
+  mColliders.erase( collider );
+  delete collider;
+}
+
+void TacPhysics::DestroyTerrain( TacTerrain* terrain )
+{
+  mTerrains.erase( terrain );
+  delete terrain;
 }

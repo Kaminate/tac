@@ -925,8 +925,8 @@ void TacRendererDX12::GetPSOStuff( const TacDrawCall2& drawCall2, ID3D12Pipeline
       drawCall2.mRasterizerState == curPSOStuff.mRasterizerState &&
       drawCall2.mDepthState == curPSOStuff.mDepthState &&
       drawCall2.mVertexFormat == curPSOStuff.mVertexFormat &&
-      drawCall2.mView->mFramebuffer == curPSOStuff.mFramebufferTexture &&
-      drawCall2.mView->mFramebufferDepth == curPSOStuff.mFramebufferDepth )
+      drawCall2.mRenderView->mFramebuffer == curPSOStuff.mFramebufferTexture &&
+      drawCall2.mRenderView->mFramebufferDepth == curPSOStuff.mFramebufferDepth )
     {
       *pppipelineState = curPSOStuff.mPipelineState.Get();
       return;
@@ -934,7 +934,7 @@ void TacRendererDX12::GetPSOStuff( const TacDrawCall2& drawCall2, ID3D12Pipeline
   }
 
 
-  TacRenderView* renderView = drawCall2.mView;
+  TacRenderView* renderView = drawCall2.mRenderView;
   auto backbufferColor = ( TacTextureDX12* )renderView->mFramebuffer;
   auto backbufferDepth = ( TacDepthBufferDX12* )renderView->mFramebufferDepth;
 
@@ -1177,7 +1177,7 @@ void TacRendererDX12::Render( TacErrors& errors )
     for( TacDrawCall2& drawCall2 : mDrawCall2s )
     {
       auto shader = ( TacShaderDX12* )drawCall2.mShader;
-      TacRenderView* renderView = drawCall2.mView;
+      TacRenderView* renderView = drawCall2.mRenderView;
 
       if( drawCall2.mUniformDst )
         drawCall2.mUniformDst->SendUniforms( drawCall2.mUniformSrcc.data() );

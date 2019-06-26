@@ -217,6 +217,12 @@ void TacCreationMainWindow::Update( TacErrors& errors )
   TacImGuiBeginMenuBar();
   TacImGuiEndMenuBar();
   TacImGuiText( "sup bitches" );
+
+  // to force directx graphics specific window debugging
+  if( TacImGuiButton( "close window" ) )
+  {
+    mDesktopWindow->mRequestDeletion = true;
+  }
   TacImGuiEnd();
 
   v2 cursorPos;

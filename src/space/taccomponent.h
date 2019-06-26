@@ -27,8 +27,15 @@ struct TacComponentRegistryEntry
   // - prefab serialization
   const char* mName = nullptr;
 
+  // Used to create components at runtime
+  // ( from prefabs, or hardcode, or in editor, or whenever )
   TacComponent* ( *mCreateFn )( TacWorld* ) = nullptr;
-  TacSystemRegistryEntry* mSystemRegistryEntry = nullptr;
+  void ( *mDestroyFn )( TacWorld*, TacComponent* ) = nullptr;
+
+  // Used for what?
+  //TacSystemRegistryEntry* mSystemRegistryEntry = nullptr;
+
+  // Used for serializing components over the network
   TacVector< TacNetworkBit > mNetworkBits;
 };
 

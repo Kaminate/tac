@@ -239,7 +239,7 @@ void TacUI2DDrawData::DrawToTexture( TacErrors& errors )
     perFrameData.mView = m4::Identity();
     perFrameData.mProjection = projection;
     TacDrawCall2 perFrame = {};
-    perFrame.mView = mRenderView;
+    perFrame.mRenderView = mRenderView;
     perFrame.mBlendState = mUI2DCommonData->mBlendState;
     perFrame.mRasterizerState = mUI2DCommonData->mRasterizerState;
     perFrame.mSamplerState = mUI2DCommonData->mSamplerState;
@@ -256,7 +256,7 @@ void TacUI2DDrawData::DrawToTexture( TacErrors& errors )
       drawCall2.mUniformDst = mUI2DCommonData->mPerObj;
       drawCall2.mIndexBuffer = mIndexes;
       drawCall2.mVertexBuffer = mVerts;
-      drawCall2.mView = mRenderView;
+      drawCall2.mRenderView = mRenderView;
       drawCall2.mBlendState = mUI2DCommonData->mBlendState;
       drawCall2.mRasterizerState = mUI2DCommonData->mRasterizerState;
       drawCall2.mSamplerState = mUI2DCommonData->mSamplerState;

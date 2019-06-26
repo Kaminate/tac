@@ -574,13 +574,13 @@ void TacRendererDirectX11::RenderFlush()
       drawCall.mUniformDst->SendUniforms( drawCall.mUniformSrcc.data() );
     }
 
-    if( mCurrentlyBoundView != drawCall.mView )
+    if( mCurrentlyBoundView != drawCall.mRenderView )
     {
-      if( drawCall.mView )
+      if( drawCall.mRenderView )
       {
         // set & clear render target
-        auto textureDX11 = ( TacTextureDX11* )drawCall.mView->mFramebuffer;
-        auto depthBufferDX11 = ( TacDepthBufferDX11* )drawCall.mView->mFramebufferDepth;
+        auto textureDX11 = ( TacTextureDX11* )drawCall.mRenderView->mFramebuffer;
+        auto depthBufferDX11 = ( TacDepthBufferDX11* )drawCall.mRenderView->mFramebufferDepth;
         auto renderTargetView = ( ID3D11RenderTargetView* )textureDX11->mRTV;
         auto renderTargetViews = TacMakeArray<ID3D11RenderTargetView*>( renderTargetView );
         ID3D11DepthStencilView *pDepthStencilView = depthBufferDX11->mDSV;
@@ -588,12 +588,12 @@ void TacRendererDirectX11::RenderFlush()
           ( UINT )renderTargetViews.size(),
           renderTargetViews.data(),
           pDepthStencilView );
-        if( !TacContains( mFrameBoundRenderViews, drawCall.mView ) )
+        if( !TacContains( mFrameBoundRenderViews, drawCall.mRenderView ) )
         {
-          mFrameBoundRenderViews.push_back( drawCall.mView );
+          mFrameBoundRenderViews.push_back( drawCall.mRenderView );
           mDeviceContext->ClearRenderTargetView(
             renderTargetView,
-            drawCall.mView->mClearColorRGBA.data() );
+            drawCall.mRenderView->mClearColorRGBA.data() );
           UINT clearFlags = D3D11_CLEAR_DEPTH; // | D3D11_CLEAR_STENCIL;
           FLOAT valueToClearDepthTo = 1.0f;
           mDeviceContext->ClearDepthStencilView( pDepthStencilView, clearFlags, valueToClearDepthTo, 0 );
@@ -601,7 +601,7 @@ void TacRendererDirectX11::RenderFlush()
 
 
         // set scissor rect
-        TacScissorRect mScissorRect = drawCall.mView->mScissorRect;
+        TacScissorRect mScissorRect = drawCall.mRenderView->mScissorRect;
         D3D11_RECT r;
         r.left = ( LONG )mScissorRect.mXMinRelUpperLeftCornerPixel;
         r.top = ( LONG )mScissorRect.mYMinRelUpperLeftCornerPixel;
@@ -610,7 +610,7 @@ void TacRendererDirectX11::RenderFlush()
         mDeviceContext->RSSetScissorRects( 1, &r );
 
         // set viewport rect
-        TacViewport viewportRect = drawCall.mView->mViewportRect;
+        TacViewport viewportRect = drawCall.mRenderView->mViewportRect;
         TacAssert( viewportRect.mViewportPixelWidthIncreasingRight > 0 );
         TacAssert( viewportRect.mViewportPixelHeightIncreasingUp > 0 );
         FLOAT TopLeftX = viewportRect.mViewportBottomLeftCornerRelFramebufferBottomLeftCornerX;
@@ -628,7 +628,7 @@ void TacRendererDirectX11::RenderFlush()
         mDeviceContext->RSSetViewports( 1, &vp );
       }
 
-      mCurrentlyBoundView = drawCall.mView;
+      mCurrentlyBoundView = drawCall.mRenderView;
     }
 
     if( drawCall.mTexture != mCurrentlyBoundTexture )

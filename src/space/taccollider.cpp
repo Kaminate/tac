@@ -21,11 +21,15 @@ TacComponentRegistryEntry* TacCollider::ComponentRegistryEntry = []()
 {
   TacComponentRegistryEntry* entry = TacComponentRegistry::Instance()->RegisterNewEntry();
   entry->mName = "Collider";
-  entry->mSystemRegistryEntry = TacPhysics::SystemRegistryEntry;
+  //entry->mSystemRegistryEntry = TacPhysics::SystemRegistryEntry;
   entry->mNetworkBits = TacColliderBits;
   entry->mCreateFn = []( TacWorld* world ) -> TacComponent*
   {
     return TacPhysics::GetSystem( world )->CreateCollider();
+  };
+  entry->mDestroyFn = []( TacWorld* world, TacComponent* component )
+  {
+    TacPhysics::GetSystem( world )->DestroyCollider( ( TacCollider* )component );
   };
   return entry;
 }( );

@@ -1,5 +1,6 @@
 #pragma once
 #include "common/math/tacVector3.h"
+#include "common/tacErrorHandling.h"
 #include "tacspacetypes.h"
 #include "tacsystem.h"
 #include "tacgjk.h"
@@ -7,33 +8,9 @@
 #include <list>
 
 struct TacCollider;
-struct TacTerrainOBB
-{
-  v3 mPos;
-  v3 mHalfExtents;
-  v3 mEulerRads;
-};
+struct TacTerrain;
+struct TacDebug3DDrawData;
 
-struct TacTerrain
-{
-  TacVector< TacTerrainOBB > mTerrainOBBs;
-
-  // heightmap
-};
-
-struct TacHeightmap
-{
-  // does it make sense to use the same heightmap for rendering and physics?
-  // what about tesellation close to camera?
-  // what about streaming?
-};
-
-struct TacCollideResult
-{
-  bool mCollided = false;
-
-};
-TacCollideResult TacCollide( const TacHeightmap* heightmap, const TacCollider* collider );
 
 struct TacPhysics : public TacSystem
 {
@@ -44,7 +21,10 @@ struct TacPhysics : public TacSystem
   //TacSystemType GetSystemType() override { return TacSystemType::Physics; }
 
   TacCollider* CreateCollider();
+  void DestroyCollider( TacCollider* collider );
+
   TacTerrain* CreateTerrain();
+  void DestroyTerrain( TacTerrain* terrain );
 
   static TacSystemRegistryEntry* SystemRegistryEntry;
   static TacPhysics* GetSystem( TacWorld* );
@@ -55,9 +35,16 @@ struct TacPhysics : public TacSystem
   void DebugImgui() override;
   void DebugDrawCapsules();
   void DebugDrawTerrains();
+  void LoadTestHeightmap();
 
   std::set< TacCollider* > mColliders;
   std::set< TacTerrain* > mTerrains;
+
+  //TacTexture* mTestHeightmap = nullptr;
+  int mTestHeightmapWidth;
+  int mTestHeightmapHeight;
+  TacVector< uint8_t > mTestHeightmapImageMemory;
+  TacErrors mTestHeightmapLoadErrors;
 
   bool mDebugDrawCollision = true;
   float mGravity;
