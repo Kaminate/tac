@@ -1,7 +1,8 @@
 #include "space/tacterrain.h"
 #include "space/tacphysics.h"
+#include "space/tacentity.h"
 
-TacComponentRegistryEntry* TacTerrain::ComponentRegistryEntry = []( )
+TacComponentRegistryEntry* TacTerrain::ComponentRegistryEntry = []()
 {
   TacComponentRegistryEntry* entry = TacComponentRegistry::Instance()->RegisterNewEntry();
   entry->mName = "Terrain";
@@ -18,3 +19,7 @@ TacComponentRegistryEntry* TacTerrain::ComponentRegistryEntry = []( )
   return entry;
 }( );
 TacComponentRegistryEntry* TacTerrain::GetEntry() { return TacTerrain::ComponentRegistryEntry; }
+TacTerrain* TacTerrain::GetComponent( TacEntity* entity )
+{
+  return ( TacTerrain* )entity->GetComponent( TacTerrain::ComponentRegistryEntry );
+}

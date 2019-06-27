@@ -15,6 +15,7 @@
 #include "space/tacentity.h"
 #include "space/tacworld.h"
 #include "space/tacmodel.h"
+#include "space/tacterrain.h"
 
 #include <iostream>
 #include <functional>
@@ -493,6 +494,13 @@ TacJson TacCreation::SaveEntityToJsonRecusively( TacEntity* entity )
       entityJson[ "Model" ] = modelJson;
     }
 
+    if( TacTerrain* terrain = TacTerrain::GetComponent( entity ) )
+    {
+      TacJson terrainJson;
+      terrainJson[ "ogga" ] = "booga";
+      entityJson[ "Terrain" ] = terrainJson;
+    }
+
     if( !entity->mChildren.empty() )
     {
       TacJson childrenJson;
@@ -544,11 +552,7 @@ void TacCreation::SavePrefabs()
         continue;
       }
 
-      if( TacStartsWith( savePath, shell->mInitialWorkingDir ) )
-      {
-        savePath = savePath.substr( shell->mInitialWorkingDir.size() );
-        savePath = TacStripLeadingSlashes( savePath );
-      }
+      ModifyPathRelative( savePath );
 
       prefab->mDocumentPath = savePath;
       UpdateSavedPrefabs();
@@ -569,6 +573,15 @@ void TacCreation::SavePrefabs()
       std::cout << saveToFileErrors.ToString() << std::endl;
       continue;
     }
+  }
+}
+void TacCreation::ModifyPathRelative( TacString& savePath )
+{
+  TacShell* shell = mDesktopApp->mShell;
+  if( TacStartsWith( savePath, shell->mInitialWorkingDir ) )
+  {
+    savePath = savePath.substr( shell->mInitialWorkingDir.size() );
+    savePath = TacStripLeadingSlashes( savePath );
   }
 }
 
@@ -615,6 +628,10 @@ TacEntity* TacCreation::LoadEntityFromJsonRecursively( TacJson& prefabJson )
       ( float )( *modelJson )[ "mColorRGB" ][ "g" ].mNumber,
       ( float )( *modelJson )[ "mColorRGB" ][ "b" ].mNumber };
   }
+  if( TacJson* terrainJson = prefabJson.mChildren[ "Terrain" ] )
+  {
+    entity->AddNewComponent( TacTerrain::ComponentRegistryEntry );
+  }
 
   if( TacJson* childrenJson = prefabJson.mChildren[ "mChildren" ] )
   {
@@ -627,25 +644,33 @@ TacEntity* TacCreation::LoadEntityFromJsonRecursively( TacJson& prefabJson )
 
   return entity;
 }
+void TacCreation::LoadPrefabAtPath( TacString prefabPath, TacErrors& errors )
+{
+  ModifyPathRelative( prefabPath );
+  auto memory = TacTemporaryMemory( prefabPath, errors );
+  TAC_HANDLE_ERROR( errors );
+
+  TacJson prefabJson;
+  prefabJson.Parse( memory.data(), memory.size(), errors );
+
+  TacEntity* entity = LoadEntityFromJsonRecursively( prefabJson );
+
+  auto prefab = new TacPrefab;
+  prefab->mDocumentPath = prefabPath;
+  prefab->mEntities = { entity };
+  mPrefabs.push_back( prefab );
+
+  LoadPrefabCameraPosition( prefab );
+  UpdateSavedPrefabs();
+}
 void TacCreation::LoadPrefabs( TacErrors& errors )
 {
   TacVector< TacString > prefabPaths;
   GetSavedPrefabs( prefabPaths, errors );
-  for( TacString prefabPath : prefabPaths )
+  for( const TacString& prefabPath : prefabPaths )
   {
-    auto memory = TacTemporaryMemory( prefabPath, errors );
-    TacJson prefabJson;
-    prefabJson.Parse( memory.data(), memory.size(), errors );
-
-    TacEntity* entity = LoadEntityFromJsonRecursively( prefabJson );
-
-
-    TacPrefab* prefab = new TacPrefab;
-    prefab->mDocumentPath = prefabPath;
-    prefab->mEntities = { entity };
-    mPrefabs.push_back( prefab );
-
-    LoadPrefabCameraPosition( prefab );
+    LoadPrefabAtPath( prefabPath, errors );
+    TAC_HANDLE_ERROR( errors );
   }
 }
 
@@ -685,7 +710,7 @@ void TacCreation::LoadPrefabCameraPosition( TacPrefab* prefab )
         axisName };
 
       TacErrors ignored;
-      TacJsonNumber defaultValue = 0;
+      TacJsonNumber defaultValue = refFrameVecs[ iRefFrameVec ]->operator[]( iAxis );
       TacJsonNumber axisValue = settings->GetNumber(
         root,
         settingsPath,

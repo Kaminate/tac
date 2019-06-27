@@ -56,7 +56,10 @@ struct TacCreation
   TacJson SaveEntityToJsonRecusively( TacEntity* entity );
 
   void LoadPrefabs( TacErrors& errors );
+  void LoadPrefabAtPath( TacString path, TacErrors& errors );
   TacEntity* LoadEntityFromJsonRecursively( TacJson& prefabJson );
+
+  void ModifyPathRelative( TacString& path );
 
   void LoadPrefabCameraPosition( TacPrefab* prefab );
   void SavePrefabCameraPosition( TacPrefab* prefab );

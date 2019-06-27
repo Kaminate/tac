@@ -78,6 +78,15 @@ void TacCreationPropertyWindow::Update( TacErrors& errors )
   TacImGuiEndChild();
   if( TacImGuiButton( "Create Entity" ) )
     mCreation->CreateEntity();
+  if( TacImGuiButton( "Open Prefab" ) )
+  {
+    TacString prefabPath;
+    TacOS::Instance->OpenDialog( prefabPath, errors );
+    TAC_HANDLE_ERROR( errors );
+
+    mCreation->LoadPrefabAtPath( prefabPath, errors );
+    TAC_HANDLE_ERROR( errors );
+  }
   TacImGuiEndGroup();
   TacImGuiSameLine();
   TacImGuiBeginGroup();

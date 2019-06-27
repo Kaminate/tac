@@ -119,6 +119,35 @@ static TacString TacWideStringToUTF8( WCHAR* inputWideStr )
   return result;
 }
 
+static TacString TacGetFileDialogErrors()
+{
+  TacString errors;
+
+  errors = "failed to save file";
+  // the user cancels or closes the Save dialog box
+  // or an error such as the file name buffer being too small occurs
+  DWORD extError = CommDlgExtendedError();
+  switch( extError )
+  {
+    // the enums should be in commdlg.h, but its not finding, so fk it
+    case 0xFFFF: errors += "CDERR_DIALOGFAILURE"; break;
+    case 0x0006: errors += "CDERR_FINDRESFAILURE"; break;
+    case 0x0002: errors += "CDERR_INITIALIZATION"; break;
+    case 0x0007: errors += "CDERR_LOADRESFAILURE"; break;
+    case 0x0005: errors += "CDERR_LOADSTRFAILURE"; break;
+    case 0x0008: errors += "CDERR_LOCKRESFAILURE"; break;
+    case 0x0009: errors += "CDERR_MEMALLOCFAILURE"; break;
+    case 0x000A: errors += "CDERR_MEMLOCKFAILURE"; break;
+    case 0x0004: errors += "CDERR_NOHINSTANCE"; break;
+    case 0x000B: errors += "CDERR_NOHOOK"; break;
+    case 0x0003: errors += "CDERR_NOTEMPLATE"; break;
+    case 0x000C: errors += "CDERR_REGISTERMSGFAIL"; break;
+    case 0x0001: errors += "CDERR_STRUCTSIZE"; break;
+    default: errors += "unknown"; break;
+  }
+
+  return errors;
+}
 
 struct TacWin32OS : public TacOS
 {
@@ -137,6 +166,27 @@ struct TacWin32OS : public TacOS
     }
     dir = TacString( buf, getCurrentDirectoryResult );
   };
+  void OpenDialog( TacString& path, TacErrors& errors ) override
+  {
+    const int outBufSize = 256;
+    char outBuf[ outBufSize ] = {};
+    DWORD flags = OFN_NOCHANGEDIR;
+
+    OPENFILENAME dialogParams = {};
+    dialogParams.lStructSize = sizeof( OPENFILENAME );
+    dialogParams.lpstrFilter = "All files\0*.*\0\0";
+    dialogParams.lpstrFile = outBuf;
+    dialogParams.nMaxFile = outBufSize;
+    dialogParams.Flags = flags;
+    BOOL getOpenFileNameResult = GetOpenFileNameA( &dialogParams );
+    if( 0 == getOpenFileNameResult )
+    {
+      errors = TacGetFileDialogErrors();
+      return;
+    }
+
+    path = outBuf;
+  }
   void SaveDialog( TacString& path, const TacString& suggestedPath, TacErrors& errors ) override
   {
     //IFileDialog *pfd = NULL;
@@ -181,28 +231,7 @@ struct TacWin32OS : public TacOS
     BOOL getSaveFileNameResult = GetSaveFileNameA( &dialogParams );
     if( 0 == getSaveFileNameResult )
     {
-      errors = "failed to save file";
-      // the user cancels or closes the Save dialog box
-      // or an error such as the file name buffer being too small occurs
-      DWORD extError = CommDlgExtendedError();
-      switch( extError )
-      {
-        // the enums should be in commdlg.h, but its not finding, so fk it
-        case 0xFFFF: errors += "CDERR_DIALOGFAILURE"; break;
-        case 0x0006: errors += "CDERR_FINDRESFAILURE"; break;
-        case 0x0002: errors += "CDERR_INITIALIZATION"; break;
-        case 0x0007: errors += "CDERR_LOADRESFAILURE"; break;
-        case 0x0005: errors += "CDERR_LOADSTRFAILURE"; break;
-        case 0x0008: errors += "CDERR_LOCKRESFAILURE"; break;
-        case 0x0009: errors += "CDERR_MEMALLOCFAILURE"; break;
-        case 0x000A: errors += "CDERR_MEMLOCKFAILURE"; break;
-        case 0x0004: errors += "CDERR_NOHINSTANCE"; break;
-        case 0x000B: errors += "CDERR_NOHOOK"; break;
-        case 0x0003: errors += "CDERR_NOTEMPLATE"; break;
-        case 0x000C: errors += "CDERR_REGISTERMSGFAIL"; break;
-        case 0x0001: errors += "CDERR_STRUCTSIZE"; break;
-        default: errors += "unknown"; break;
-      }
+      errors = TacGetFileDialogErrors();
       return;
     }
 

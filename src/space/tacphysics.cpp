@@ -252,10 +252,10 @@ void TacPhysics::DebugDrawTerrains()
       //graphics->DebugDrawOBB( obb.mPos, obb.mHalfExtents, obb.mEulerRads, mDebugDrawTerrainColor );
     }
 
+    int rowCount = 20;
+    int colCount = 20;
     if( terrain->mGrid.empty() )
     {
-      int rowCount = 2;
-      int colCount = 2;
       float width = 10;
       float height = 10;
       for( int iRow = 0; iRow <= rowCount; ++iRow )
@@ -282,7 +282,9 @@ void TacPhysics::DebugDrawTerrains()
 
     for( const v3& pos : terrain->mGrid )
     {
-      mWorld->mDebug3DDrawData->DebugDrawSphere( pos, 1.0f, { 1, 0, 0 } );
+      float radius = 0.2f;
+      v3 color = { 1, 0, 0 };
+      mWorld->mDebug3DDrawData->DebugDrawSphere( pos, radius, color );
     }
   }
 }

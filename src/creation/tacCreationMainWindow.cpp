@@ -11,6 +11,8 @@
 #include "common/assetmanagers/tacTextureAssetManager.h"
 #include "common/tackeyboardinput.h"
 #include "common/graphics/tacImGui.h"
+#include "space/tacworld.h"
+#include "space/tacentity.h"
 #include "shell/tacDesktopApp.h"
 
 void TacCreationMainWindow::Init( TacErrors& errors )
@@ -201,7 +203,6 @@ void TacCreationMainWindow::CreateLayouts()
 
   mAreLayoutsCreated = true;
 }
-
 void TacCreationMainWindow::Update( TacErrors& errors )
 {
   TacShell* shell = mDesktopApp->mShell;
@@ -215,7 +216,52 @@ void TacCreationMainWindow::Update( TacErrors& errors )
   TacImGuiSetGlobals( shell, mDesktopWindow, mUI2DDrawData );
   TacImGuiBegin( "Main Window", {} );
   TacImGuiBeginMenuBar();
+  TacImGuiText( "file | edit | window" );
   TacImGuiEndMenuBar();
+  TacImGuiText( "sup bitches" );
+  if( TacImGuiButton( "save as" ) )
+  {
+    TacWorld* world = mCreation->mWorld;
+
+
+    TacShell* shell = mDesktopApp->mShell;
+    TacOS* os = TacOS::Instance;
+
+    for( TacEntity* entity : world->mEntities )
+    {
+      if( entity->mParent )
+        continue;
+
+      TacString savePath;
+      TacString suggestedName =
+        entity->mName +
+        ".prefab";
+      TacErrors saveDialogErrors;
+      os->SaveDialog( savePath, suggestedName, saveDialogErrors );
+      if( saveDialogErrors.size() )
+      {
+        // todo: log it, user feedback
+        std::cout << saveDialogErrors.ToString() << std::endl;
+        continue;
+      }
+
+      mCreation->ModifyPathRelative( savePath );
+
+      TacJson entityJson = mCreation->SaveEntityToJsonRecusively( entity );
+
+      TacString prefabJsonString = entityJson.Stringify();
+      TacErrors saveToFileErrors;
+      void* bytes = prefabJsonString.data();
+      int byteCount = prefabJsonString.size();
+      os->SaveToFile( savePath, bytes, byteCount, saveToFileErrors );
+      if( saveToFileErrors.size() )
+      {
+        // todo: log it, user feedback
+        std::cout << saveToFileErrors.ToString() << std::endl;
+        continue;
+      }
+    }
+  }
   TacImGuiText( "sup bitches" );
 
   // to force directx graphics specific window debugging

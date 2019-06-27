@@ -59,6 +59,7 @@ struct TacJson
   TacString Surround( const TacString& inner, const TacString& outer ) const;
   TacString DoubleQuote( const TacString& s ) const;
   void ByteEat( TacParseData* parseData, char& c, TacErrors& errors );
+  void EatRestOfLine( TacParseData* parseData, TacErrors& errors );
   void BytePeek( TacParseData* parseData, char& c, TacErrors& errors );
   void BytePeekUnchecked( TacParseData* parseData, char& c );
   void ByteIncrement( TacParseData* parseData, int byteCount = 1 );
@@ -70,7 +71,9 @@ struct TacJson
   void ParseStringExpected( TacParseData* parseData, const TacString& expected, TacErrors& errors );
   void ParseObject( TacParseData* parseData, TacErrors& errors );
   void ParseArray( TacParseData* parseData, TacErrors& errors );
-  void ParseUnknownType( TacParseData* parseData, TacErrors& errors );
+  void ParseUnknownType(
+    TacParseData* parseData,
+    TacErrors& errors );
   void Parse( const char* bytes, int byteCount, TacErrors& errors );
   void Parse( const TacString& s, TacErrors& errors );
 

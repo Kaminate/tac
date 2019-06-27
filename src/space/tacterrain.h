@@ -22,6 +22,8 @@ struct TacTerrain : public TacComponent
   TacComponentRegistryEntry* GetEntry() override;
   static TacComponentRegistryEntry* ComponentRegistryEntry;
 
+  static TacTerrain* GetComponent( TacEntity* );
+
   // heightmap
   // vertexes
   //int mRowCount = 2;

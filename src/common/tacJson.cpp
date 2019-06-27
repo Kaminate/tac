@@ -232,6 +232,11 @@ void TacJson::ParseObject( TacParseData* parseData, TacErrors& errors )
   char c;
   SkipLeadingWhitespace( parseData );
   ByteEat( parseData, c, errors );
+  if( errors.size() )
+  {
+    static int a;
+    a++;
+  }
   TAC_HANDLE_ERROR( errors );
   ExpectCharacter( c, '{', errors );
   TAC_HANDLE_ERROR( errors );
@@ -257,6 +262,12 @@ void TacJson::ParseObject( TacParseData* parseData, TacErrors& errors )
     if( c == ',' )
     {
       ByteIncrement( parseData );
+      continue;
+    }
+    if( c == '/' )
+    {
+      EatRestOfLine( parseData, errors );
+      TAC_HANDLE_ERROR( errors );
       continue;
     }
     ExpectCharacter( c, '\"', errors );
@@ -303,13 +314,32 @@ void TacJson::ParseArray( TacParseData* parseData, TacErrors& errors )
       ByteIncrement( parseData );
       continue;
     }
+    if( '/' == c )
+    {
+      EatRestOfLine( parseData, errors );
+      TAC_HANDLE_ERROR( errors );
+      continue;
+    }
     auto child = new TacJson();
     child->ParseUnknownType( parseData, errors );
     TAC_HANDLE_ERROR( errors );
     mElements.push_back( child );
   }
 }
-void TacJson::ParseUnknownType( TacParseData* parseData, TacErrors& errors )
+void TacJson::EatRestOfLine( TacParseData* parseData, TacErrors& errors )
+{
+  for( ;; )
+  {
+    char c;
+    ByteEat( parseData, c, errors );
+    TAC_HANDLE_ERROR( errors );
+    if( c == '\n' )
+      return;
+  }
+}
+void TacJson::ParseUnknownType(
+  TacParseData* parseData,
+  TacErrors& errors )
 {
   char c;
   Clear();
@@ -355,6 +385,12 @@ void TacJson::ParseUnknownType( TacParseData* parseData, TacErrors& errors )
     TAC_HANDLE_ERROR( errors );
     mType = TacJsonType::Bool;
     mBoolean = false;
+  }
+  else if( c == '/' )
+  {
+    EatRestOfLine( parseData, errors );
+    TAC_HANDLE_ERROR( errors );
+    ParseUnknownType( parseData, errors );
   }
   else
   {
