@@ -252,24 +252,31 @@ void TacPhysics::DebugDrawTerrains()
       //graphics->DebugDrawOBB( obb.mPos, obb.mHalfExtents, obb.mEulerRads, mDebugDrawTerrainColor );
     }
 
-    int rowCount = 20;
-    int colCount = 20;
+    int squareVertexCount = 50;
+    int horizontalVertexCount = squareVertexCount;
+    int verticalVertexCount = squareVertexCount;
+
+    auto GetVal = [ & ]( int x, int y ) -> const v3&
+    {
+      return terrain->mGrid[ x + y * verticalVertexCount ];
+    };
+
     if( terrain->mGrid.empty() )
     {
-      float width = 10;
-      float height = 10;
-      for( int iRow = 0; iRow <= rowCount; ++iRow )
+      float squareSize = 50.0f;
+      float width = squareSize;
+      float height = squareSize;
+      for( int iRow = 0; iRow < verticalVertexCount; ++iRow )
       {
-        for( int iCol = 0; iCol <= colCount; ++iCol )
+        for( int iCol = 0; iCol < horizontalVertexCount; ++iCol )
         {
-          float xPercent = ( float )iRow / ( float )rowCount;
-          float zPercent = ( float )iCol / ( float )colCount;
+          float xPercent = ( float )iRow / ( float )( verticalVertexCount - 1 );
+          float zPercent = ( float )iCol / ( float )( horizontalVertexCount - 1 );
 
-          int heightmapX = ( int )( xPercent * mTestHeightmapWidth );
-          int heightmapY = ( int )( zPercent * mTestHeightmapHeight );
+          int heightmapX = ( int )( xPercent * ( mTestHeightmapWidth - 1 ) );
+          int heightmapY = ( int )( zPercent * ( mTestHeightmapHeight - 1 ) );
           uint8_t heightmapValue = mTestHeightmapImageMemory[ heightmapX + heightmapY * mTestHeightmapWidth ];
           float heightmapPercent = heightmapValue / 255.0f;
-
 
           v3 pos;
           pos.x = xPercent * width;
@@ -280,11 +287,39 @@ void TacPhysics::DebugDrawTerrains()
       }
     }
 
+    TacAssert( !terrain->mGrid.empty() );
+
+    v3 gridColor = { 0, 0, 0 };
+
+    for( int iRow = 0; iRow < horizontalVertexCount; ++iRow )
+    {
+      for( int iCol = 0; iCol < verticalVertexCount; ++iCol )
+      {
+        const v3& topLeft = GetVal( iRow, iCol );
+
+        if( iCol + 1 < verticalVertexCount )
+        {
+          const v3& topRight = GetVal( iRow, iCol + 1 );
+          mWorld->mDebug3DDrawData->DebugDrawLine( topLeft, topRight, gridColor );
+        }
+        if( iRow + 1 < horizontalVertexCount )
+        {
+          const v3& bottomLeft = GetVal( iRow + 1, iCol );
+          mWorld->mDebug3DDrawData->DebugDrawLine( topLeft, bottomLeft, gridColor );
+        }
+        if( iCol + 1 < verticalVertexCount && iRow + 1 < horizontalVertexCount )
+        {
+          const v3& bottomRight = GetVal( iRow + 1, iCol + 1 );
+          mWorld->mDebug3DDrawData->DebugDrawLine( topLeft, bottomRight, gridColor );
+        }
+      }
+    }
+
     for( const v3& pos : terrain->mGrid )
     {
-      float radius = 0.2f;
-      v3 color = { 1, 0, 0 };
-      mWorld->mDebug3DDrawData->DebugDrawSphere( pos, radius, color );
+      //float radius = 0.2f;
+      //v3 color = { 1, 0, 0 };
+      //mWorld->mDebug3DDrawData->DebugDrawSphere( pos, radius, color );
     }
   }
 }

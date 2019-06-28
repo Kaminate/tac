@@ -678,7 +678,7 @@ void TacCreationGameWindow::Update( TacErrors& errors )
     TAC_HANDLE_ERROR( errors );
   }
 
-  mDebug3DDrawData->DebugDrawGrid();
+  //mDebug3DDrawData->DebugDrawGrid();
 
   if( mCreation->IsAnythingSelected() )
   {
