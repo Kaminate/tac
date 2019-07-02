@@ -280,7 +280,7 @@ void TacPhysics::DebugDrawTerrains()
 
           v3 pos;
           pos.x = xPercent * width;
-          pos.y = heightmapPercent * 5.0f;
+          pos.y = heightmapPercent * 25.0f;
           pos.z = zPercent * height;
           terrain->mGrid.push_back( pos );
         }
@@ -313,13 +313,6 @@ void TacPhysics::DebugDrawTerrains()
           mWorld->mDebug3DDrawData->DebugDrawLine( topLeft, bottomRight, gridColor );
         }
       }
-    }
-
-    for( const v3& pos : terrain->mGrid )
-    {
-      //float radius = 0.2f;
-      //v3 color = { 1, 0, 0 };
-      //mWorld->mDebug3DDrawData->DebugDrawSphere( pos, radius, color );
     }
   }
 }

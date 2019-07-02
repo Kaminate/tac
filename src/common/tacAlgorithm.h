@@ -97,3 +97,10 @@ void TacSwap( T& a, T& b )
   a = b;
   b = temp;
 }
+
+template< typename T >
+void TacUnorderedVectorRemove( TacVector< T >& container, int indexToRemove )
+{
+  container[ indexToRemove ] = container[ container.size() - 1 ];
+  container.pop_back();
+}
