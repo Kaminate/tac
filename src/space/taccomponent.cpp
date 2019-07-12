@@ -1,7 +1,5 @@
 #include "space/taccomponent.h"
 //#include "space/tacsay.h"
-#include "space/tacmodel.h"
-#include "space/taccollider.h"
 //#include "space/tacterrain.h"
 
 

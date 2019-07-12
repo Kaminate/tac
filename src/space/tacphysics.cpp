@@ -1,9 +1,9 @@
 #include "space/tacphysics.h"
 #include "space/taccomponent.h"
-#include "space/tacterrain.h"
+#include "space/terrain/tacterrain.h"
 #include "space/tacgraphics.h"
 #include "space/tacworld.h"
-#include "space/taccollider.h"
+#include "space/collider/taccollider.h"
 #include "space/tacgraphics.h"
 #include "space/tacentity.h"
 #include "common/containers/tacVector.h"
@@ -434,12 +434,6 @@ void TacPhysics::Narrowphase()
   */
 }
 
-TacSystemRegistryEntry* TacPhysics::SystemRegistryEntry = []()
-{
-  TacSystemRegistryEntry* entry = TacSystemRegistry::Instance()->RegisterNewEntry();
-  entry->mCreateFn = []() -> TacSystem* { return new TacPhysics; };
-  return entry;
-}( );
 TacPhysics* TacPhysics::GetSystem( TacWorld* world )
 {
   return ( TacPhysics* )world->GetSystem( TacPhysics::SystemRegistryEntry );

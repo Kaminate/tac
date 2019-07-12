@@ -25,6 +25,9 @@ struct TacSystem
 struct TacSystemRegistryEntry
 {
   TacSystem* ( *mCreateFn )( ) = nullptr;
+
+  // Index of this system in the registry, also the 
+  // index of this system in the world systems array
   int mIndex = -1;
 };
 

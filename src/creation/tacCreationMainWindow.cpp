@@ -203,16 +203,10 @@ void TacCreationMainWindow::CreateLayouts()
 
   mAreLayoutsCreated = true;
 }
-void TacCreationMainWindow::Update( TacErrors& errors )
+
+void TacCreationMainWindow::ImGui()
 {
   TacShell* shell = mDesktopApp->mShell;
-  mDesktopWindow->SetRenderViewDefaults();
-
-  LoadTextures( errors );
-  TAC_HANDLE_ERROR( errors );
-
-  //CreateLayouts();
-
   TacImGuiSetGlobals( shell, mDesktopWindow, mUI2DDrawData );
   TacImGuiBegin( "Main Window", {} );
   TacImGuiBeginMenuBar();
@@ -270,6 +264,19 @@ void TacCreationMainWindow::Update( TacErrors& errors )
     mDesktopWindow->mRequestDeletion = true;
   }
   TacImGuiEnd();
+}
+void TacCreationMainWindow::Update( TacErrors& errors )
+{
+  TacShell* shell = mDesktopApp->mShell;
+  mDesktopWindow->SetRenderViewDefaults();
+
+  LoadTextures( errors );
+  TAC_HANDLE_ERROR( errors );
+
+  //CreateLayouts();
+
+  ImGui();
+
 
   v2 cursorPos;
   TacOS::Instance->GetScreenspaceCursorPos( cursorPos, errors );

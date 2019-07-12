@@ -21,6 +21,7 @@ struct TacTerrain : public TacComponent
 
   TacComponentRegistryEntry* GetEntry() override;
   static TacComponentRegistryEntry* ComponentRegistryEntry;
+  static TacComponentRegistryEntry* GetComponentRegistryEntry();
 
   static TacTerrain* GetComponent( TacEntity* );
 
@@ -36,6 +37,7 @@ struct TacTerrain : public TacComponent
   TacVector< v3 > mGrid;
 };
 
+extern int asdfDEBUG;
 
 struct TacCollideResult
 {

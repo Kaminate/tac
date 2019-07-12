@@ -11,7 +11,6 @@ struct TacCollider : public TacComponent
   static TacComponentRegistryEntry* ComponentRegistryEntry;
 
   //TacComponentRegistryEntryIndex GetComponentType() override { return TacComponentRegistryEntryIndex::Collider; }
-  void TacDebugImgui() override;
   v3 mVelocity = {};
   float mRadius = 0.5f;
   float mTotalHeight = 2.0f;

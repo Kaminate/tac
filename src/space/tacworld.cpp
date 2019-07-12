@@ -4,7 +4,7 @@
 #include "space/tacsystem.h"
 #include "space/tacgraphics.h"
 #include "space/tacphysics.h"
-#include "space/taccollider.h"
+#include "space/collider/taccollider.h"
 
 #include "common/graphics/tacDebug3D.h"
 
@@ -13,6 +13,7 @@
 TacWorld::TacWorld()
 {
   TacSystemRegistry* registry = TacSystemRegistry::Instance();
+  TacAssert( !registry->mEntries.empty() );
   for( TacSystemRegistryEntry* entry : registry->mEntries )
   {
     TacSystem* system = entry->mCreateFn();

@@ -14,7 +14,7 @@
 #include "space/taccomponent.h"
 #include "space/tacsystem.h"
 #include "space/tacspacetypes.h"
-#include "space/tacmodel.h"
+#include "space/model/tacmodel.h"
 
 TacCreationPropertyWindow::~TacCreationPropertyWindow()
 {
@@ -33,8 +33,6 @@ void TacCreationPropertyWindow::Init( TacErrors& errors )
   mUIRoot->mDesktopWindow = mDesktopWindow;
   mUIRoot->mHierarchyRoot->mLayoutType = TacUILayoutType::Horizontal;
 }
-
-
 
 void TacCreationPropertyWindow::RecursiveEntityHierarchyElement( TacEntity* entity )
 {
@@ -177,7 +175,11 @@ void TacCreationPropertyWindow::Update( TacErrors& errors )
           entity->RemoveComponent( componentRegistryEntry );
           break;
         }
-        component->TacDebugImgui();
+
+        if( componentRegistryEntry->mDebugImguiFn )
+        {
+          componentRegistryEntry->mDebugImguiFn( component );
+        }
       }
     }
 

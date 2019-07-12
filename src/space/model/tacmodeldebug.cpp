@@ -1,20 +1,12 @@
-#include "space/tacmodel.h"
-#include "space/tacentity.h"
-#include "space/tacgraphics.h"
 #include "common/graphics/tacImGui.h"
+#include "common/tacPreprocessor.h"
+#include "common/tacErrorHandling.h"
 #include "common/tacOS.h"
 #include "common/tacUtility.h"
-#include "common/tacErrorHandling.h"
+#include "space/model/tacmodel.h"
 
-//#include "common\tacAssetManager.h"
-//#include "common\tacPlatform.h"
-//#include "core\tacstuff.h"
-//#include "core\tacentity.h"
-//#include "core\tacworld.h"
-//#include <iostream>
-//#include <fstream>
 
-void TacModel::TacDebugImguiChangeModel()
+void TacModelDebugImguiChangeModel( TacModel* model )
 {
   if( TacImGuiCollapsingHeader( "Change model" ) )
   {
@@ -37,12 +29,12 @@ void TacModel::TacDebugImguiChangeModel()
     {
       if( TacImGuiButton( filepath ) )
       {
-        mGLTFPath = filepath;
-        mesh = nullptr;
+        model->mGLTFPath = filepath;
+        model->mesh = nullptr;
       }
     }
   }
-  TacImGuiInputText( "Model", mGLTFPath );
+  TacImGuiInputText( "Model", model->mGLTFPath );
 
 
   //auto assetManager = mEntity->mWorld->mGameInterface->mAssetManager;
@@ -100,7 +92,7 @@ void TacModel::TacDebugImguiChangeModel()
   //}
 }
 
-void TacModel::TacDebugImguiChangeTexture()
+void TacModelDebugImguiChangeTexture( TacModel* model )
 {
   //auto assetManager = mEntity->mWorld->mGameInterface->mAssetManager;
   //if( mTextureUUID == TacNullTextureUUID )
@@ -144,42 +136,16 @@ void TacModel::TacDebugImguiChangeTexture()
   //}
 }
 
-void TacModel::TacDebugImgui()
+void TacModelDebugImgui( TacComponent* component )
 {
-  TacDebugImguiChangeModel();
-  TacDebugImguiChangeTexture();
-  TacImGuiDragFloat( "r", &mColorRGB[ 0 ] );
-  TacImGuiDragFloat( "g", &mColorRGB[ 1 ] );
-  TacImGuiDragFloat( "b", &mColorRGB[ 2 ] );
+  TacModelDebugImgui( ( TacModel* )component );
 }
-
-
-const TacModel* TacModel::GetModel( const TacEntity* entity )
+void TacModelDebugImgui( TacModel* model )
 {
-  return ( TacModel* )entity->GetComponent( TacModel::ComponentRegistryEntry );
-}
-TacModel* TacModel::GetModel( TacEntity* entity )
-{
-  return ( TacModel* )entity->GetComponent( TacModel::ComponentRegistryEntry );
-}
-TacComponentRegistryEntry* TacModel::ComponentRegistryEntry = []()
-{
-  TacComponentRegistryEntry* entry = TacComponentRegistry::Instance()->RegisterNewEntry();
-  entry->mName = "Model";
-  //entry->mSystemRegistryEntry = TacGraphics::SystemRegistryEntry;
-  entry->mNetworkBits = TacComponentModelBits;
-  entry->mCreateFn = [](TacWorld* world)->TacComponent*
-  {
-    return TacGraphics::GetSystem( world )->CreateModelComponent();
-  };
-  entry->mDestroyFn = []( TacWorld* world, TacComponent* component )
-  {
-    TacGraphics::GetSystem( world )->DestroyModelComponent( ( TacModel* )component );
-  };
-  return entry;
-}( );
-TacComponentRegistryEntry* TacModel::GetEntry()
-{
-  return TacModel::ComponentRegistryEntry;
+  TacModelDebugImguiChangeModel( model );
+  TacModelDebugImguiChangeTexture( model );
+  TacImGuiDragFloat( "r", &model->mColorRGB[ 0 ] );
+  TacImGuiDragFloat( "g", &model->mColorRGB[ 1 ] );
+  TacImGuiDragFloat( "b", &model->mColorRGB[ 2 ] );
 }
 

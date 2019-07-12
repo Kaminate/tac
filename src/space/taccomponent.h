@@ -13,7 +13,6 @@ struct TacSystemRegistryEntry;
 struct TacComponent
 {
   virtual ~TacComponent() = default;
-  virtual void TacDebugImgui() {};
   virtual void PreReadDifferences() {};
   virtual void PostReadDifferences() {};
   virtual TacComponentRegistryEntry* GetEntry() = 0;
@@ -30,7 +29,9 @@ struct TacComponentRegistryEntry
   // Used to create components at runtime
   // ( from prefabs, or hardcode, or in editor, or whenever )
   TacComponent* ( *mCreateFn )( TacWorld* ) = nullptr;
+
   void ( *mDestroyFn )( TacWorld*, TacComponent* ) = nullptr;
+  void ( *mDebugImguiFn )( TacComponent* ) = nullptr;
 
   // Used for what?
   //TacSystemRegistryEntry* mSystemRegistryEntry = nullptr;
@@ -49,3 +50,5 @@ struct TacComponentRegistry
   // maybe it should be sorted by entry name or something?
   TacVector< TacComponentRegistryEntry* > mEntries;
 };
+
+

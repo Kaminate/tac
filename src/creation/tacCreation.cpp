@@ -14,14 +14,15 @@
 #include "space/tacGhost.h"
 #include "space/tacentity.h"
 #include "space/tacworld.h"
-#include "space/tacmodel.h"
-#include "space/tacterrain.h"
+#include "space/model/tacmodel.h"
+#include "space/terrain/tacterrain.h"
+#include "space/tacspace.h"
 
 #include <iostream>
 #include <functional>
 #include <algorithm>
 
-const TacString prefabSettingsPath = "prefabs";
+const static TacString prefabSettingsPath = "prefabs";
 static v4 GetClearColor( TacShell* shell )
 {
   return v4( 1, 0, 0, 1 );
@@ -29,8 +30,13 @@ static v4 GetClearColor( TacShell* shell )
   visualStudioBackground += 0.3f;
   return TacGetColorSchemeA( ( float )shell->mElapsedSeconds );
 }
-
-
+const static TacString refFrameVecNames[] = {
+  "mPos",
+  "mForwards",
+  "mRight",
+  "mUp",
+};
+const static TacString axisNames[] = { "x", "y", "z" };
 
 void TacDesktopApp::DoStuff( TacDesktopApp* desktopApp, TacErrors& errors )
 {
@@ -104,6 +110,8 @@ TacCreation::~TacCreation()
 void TacCreation::Init( TacErrors& errors )
 {
   TacOS* os = TacOS::Instance;
+  
+  TacSpaceInit();
   mWorld = new TacWorld;
   mEditorCamera.mPos = { 0, 1, 5 };
   mEditorCamera.mForwards = { 0, 0, -1 };
@@ -259,7 +267,6 @@ void TacCreation::Init( TacErrors& errors )
   LoadPrefabs( errors );
   TAC_HANDLE_ERROR( errors );
 }
-
 void TacCreation::RemoveEntityFromPrefabRecursively( TacEntity* entity )
 {
   int prefabCount = mPrefabs.size();
@@ -584,7 +591,6 @@ void TacCreation::ModifyPathRelative( TacString& savePath )
     savePath = TacStripLeadingSlashes( savePath );
   }
 }
-
 TacEntity* TacCreation::LoadEntityFromJsonRecursively( TacJson& prefabJson )
 {
 
@@ -673,16 +679,6 @@ void TacCreation::LoadPrefabs( TacErrors& errors )
     TAC_HANDLE_ERROR( errors );
   }
 }
-
-TacString refFrameVecNames[] = {
-  "mPos",
-  "mForwards",
-  "mRight",
-  "mUp",
-};
-
-TacString axisNames[] = { "x", "y", "z" };
-
 void TacCreation::LoadPrefabCameraPosition( TacPrefab* prefab )
 {
   if( prefab->mDocumentPath.empty() )

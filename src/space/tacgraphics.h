@@ -2,7 +2,7 @@
 #include "common/graphics/tacRenderer.h"
 #include "common/tacLocalization.h"
 #include "common/containers/tacVector.h"
-#include "space/tacmodel.h"
+#include "space/model/tacmodel.h"
 #include "space/tacsystem.h"
 //#include "graphics/tacDefaultGeometry.h"
 #include <set>

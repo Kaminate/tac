@@ -32,6 +32,7 @@ void TacEntity::RemoveAllComponents()
 
 TacComponent* TacEntity::AddNewComponent( TacComponentRegistryEntry* entry )
 {
+  TacAssert( entry );
   TacAssert( !HasComponent( entry ) );
   TacAssert( entry->mCreateFn );
   TacComponent* component = entry->mCreateFn( mWorld );

@@ -19,6 +19,7 @@ struct TacCreationMainWindow
   void Init( TacErrors& errors );
   void Update( TacErrors& errors );
   void LoadTextures( TacErrors& errors );
+  void ImGui();
   void CreateLayouts();
 
   TacCreation* mCreation = nullptr;

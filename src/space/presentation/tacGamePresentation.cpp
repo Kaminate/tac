@@ -9,7 +9,7 @@
 #include "space/presentation/tacGamePresentation.h"
 #include "space/tacgraphics.h"
 #include "space/tacworld.h"
-#include "space/tacmodel.h"
+#include "space/model/tacmodel.h"
 #include "space/tacentity.h"
 
 TacGamePresentation::~TacGamePresentation()

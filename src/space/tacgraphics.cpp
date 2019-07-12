@@ -21,12 +21,6 @@ TacModel* TacGraphics::CreateModelComponent()
   return model;
 }
 
-TacSystemRegistryEntry* TacGraphics::SystemRegistryEntry = []()
-{
-  TacSystemRegistryEntry* entry = TacSystemRegistry::Instance()->RegisterNewEntry();
-  entry->mCreateFn = []() -> TacSystem* { return new TacGraphics; };
-  return entry;
-}( );
 
 TacGraphics* TacGraphics::GetSystem( TacWorld* world )
 {
