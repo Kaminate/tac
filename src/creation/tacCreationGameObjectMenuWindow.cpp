@@ -1,4 +1,5 @@
 #include "creation/tacCreationGameObjectMenuWindow.h"
+#include "creation/tacCreationMainWindow.h"
 #include "creation/tacCreation.h"
 #include "common/tacEvent.h"
 #include "common/tacOS.h"

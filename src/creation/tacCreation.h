@@ -8,11 +8,13 @@
 #include "common/graphics/tacUI.h"
 #include "common/graphics/tacRenderer.h"
 #include "common/containers/tacVector.h"
-#include "creation/tacCreationGameWindow.h"
-#include "creation/tacCreationPropertyWindow.h"
-#include "creation/tacCreationMainWindow.h"
+
 
 struct TacCreation;
+struct TacCreationMainWindow;
+struct TacCreationGameWindow;
+struct TacCreationPropertyWindow;
+struct TacCreationSystemWindow;
 struct TacDesktopApp;
 struct TacDesktopWindow;
 struct TacEntity;
@@ -24,6 +26,7 @@ struct TacTextureAssetManager;
 struct TacUI2DDrawData;
 struct TacWindowParams;
 struct TacWorld;
+
 
 // this would be saved as a .map file in cod engine
 struct TacPrefab
@@ -68,10 +71,13 @@ struct TacCreation
   void RemoveEntityFromPrefabRecursively( TacEntity* entity );
   TacPrefab* FindPrefab( TacEntity* entity );
 
+  void CreateSystemWindow( TacErrors& errors );
+
   TacDesktopApp* mDesktopApp = nullptr;
   TacCreationMainWindow* mMainWindow = nullptr;
   TacCreationGameWindow* mGameWindow = nullptr;
   TacCreationPropertyWindow* mPropertyWindow = nullptr;
+  TacCreationSystemWindow* mSystemWindow = nullptr;
 
   TacWorld* mWorld = nullptr;
 

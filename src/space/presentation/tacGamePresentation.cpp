@@ -7,7 +7,7 @@
 #include "common/tacDesktopWindow.h"
 #include "space/presentation/tacSkyboxPresentation.h"
 #include "space/presentation/tacGamePresentation.h"
-#include "space/tacgraphics.h"
+#include "space/graphics/tacgraphics.h"
 #include "space/tacworld.h"
 #include "space/model/tacmodel.h"
 #include "space/tacentity.h"

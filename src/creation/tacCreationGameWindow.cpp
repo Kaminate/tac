@@ -13,7 +13,7 @@
 #include "common/tacOS.h"
 #include "shell/tacDesktopApp.h"
 #include "space/tacGhost.h"
-#include "space/tacgraphics.h"
+#include "space/graphics/tacgraphics.h"
 #include "space/tacworld.h"
 #include "space/tacentity.h"
 #include "space/presentation/tacGamePresentation.h"

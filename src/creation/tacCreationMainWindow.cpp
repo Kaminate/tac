@@ -15,6 +15,11 @@
 #include "space/tacentity.h"
 #include "shell/tacDesktopApp.h"
 
+TacCreationMainWindow::~TacCreationMainWindow()
+{
+  delete mUI2DDrawData;
+  delete mUIRoot;
+}
 void TacCreationMainWindow::Init( TacErrors& errors )
 {
   TacShell* shell = mDesktopApp->mShell;
@@ -105,10 +110,10 @@ void TacCreationMainWindow::CreateLayouts()
     image->mTexture = mIconClose;
     node = topBar->Split( TacUISplit::After, TacUILayoutType::Horizontal );
     node->SetVisual( image );
-    node->mOnClickEventEmitter.AddCallbackFunctional( [&]()
-    {
-      mDesktopWindow->mRequestDeletion = true;
-    } );
+    node->mOnClickEventEmitter.AddCallbackFunctional( [ & ]()
+      {
+        mDesktopWindow->mRequestDeletion = true;
+      } );
 
     text = new TacUIHierarchyVisualText();
     text->mUITextData.mUtf8 = "Gravestory (Running) - Moachers Creation Studio";
@@ -154,15 +159,15 @@ void TacCreationMainWindow::CreateLayouts()
     text->mDims = { 100, 50 };
     mGameObjectButton = menuBar->Split( TacUISplit::Before );
     mGameObjectButton->SetVisual( text );
-    mGameObjectButton->mOnClickEventEmitter.AddCallbackFunctional([this]()
-    {
-      if( mGameObjectMenuWindow )
-        return;
-      mGameObjectMenuWindow = new TacCreationGameObjectMenuWindow;
-      mGameObjectMenuWindow->mMainWindow = this;
-      mGameObjectMenuWindow->mCreation = mCreation;
-      mGameObjectMenuWindow->Init( mButtonCallbackErrors );
-    } );
+    mGameObjectButton->mOnClickEventEmitter.AddCallbackFunctional( [ this ]()
+      {
+        if( mGameObjectMenuWindow )
+          return;
+        mGameObjectMenuWindow = new TacCreationGameObjectMenuWindow;
+        mGameObjectMenuWindow->mMainWindow = this;
+        mGameObjectMenuWindow->mCreation = mCreation;
+        mGameObjectMenuWindow->Init( mButtonCallbackErrors );
+      } );
 
     text = new TacUIHierarchyVisualText();
     text->mUITextData.mUtf8 = "Edit";
@@ -203,7 +208,6 @@ void TacCreationMainWindow::CreateLayouts()
 
   mAreLayoutsCreated = true;
 }
-
 void TacCreationMainWindow::ImGui()
 {
   TacShell* shell = mDesktopApp->mShell;
@@ -212,7 +216,6 @@ void TacCreationMainWindow::ImGui()
   TacImGuiBeginMenuBar();
   TacImGuiText( "file | edit | window" );
   TacImGuiEndMenuBar();
-  TacImGuiText( "sup bitches" );
   if( TacImGuiButton( "save as" ) )
   {
     TacWorld* world = mCreation->mWorld;
@@ -256,13 +259,22 @@ void TacCreationMainWindow::ImGui()
       }
     }
   }
-  TacImGuiText( "sup bitches" );
+
+  if( TacImGuiButton( "Systems" ) )
+  {
+    // static because hackery ( the errors get saved in a lambda, which then turns into garbage when it goes out of scope... )
+    static TacErrors ignoredErrors;
+    mCreation->CreateSystemWindow(ignoredErrors);
+  }
 
   // to force directx graphics specific window debugging
   if( TacImGuiButton( "close window" ) )
   {
     mDesktopWindow->mRequestDeletion = true;
   }
+
+
+
   TacImGuiEnd();
 }
 void TacCreationMainWindow::Update( TacErrors& errors )

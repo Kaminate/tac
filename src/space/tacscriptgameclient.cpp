@@ -13,7 +13,7 @@
 #include "common/tacTime.h"
 #include "common/thirdparty/stb_image.h"
 #include "space/tacGhost.h"
-#include "space/tacgraphics.h"
+#include "space/graphics/tacgraphics.h"
 #include "space/tacscriptgameclient.h"
 #include "space/tacserver.h"
 #include "space/tacworld.h"

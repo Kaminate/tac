@@ -1,6 +1,6 @@
-#include "space/tacmodel.h"
+#include "space/model/tacmodel.h"
 #include "space/tacentity.h"
-#include "space/tacgraphics.h"
+#include "space/graphics/tacgraphics.h"
 #include "common/graphics/tacImGui.h"
 #include "common/tacOS.h"
 #include "common/tacUtility.h"

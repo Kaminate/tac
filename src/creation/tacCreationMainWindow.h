@@ -16,6 +16,7 @@ struct TacCreationGameObjectMenuWindow;
 
 struct TacCreationMainWindow
 {
+  ~TacCreationMainWindow();
   void Init( TacErrors& errors );
   void Update( TacErrors& errors );
   void LoadTextures( TacErrors& errors );
@@ -23,6 +24,8 @@ struct TacCreationMainWindow
   void CreateLayouts();
 
   TacCreation* mCreation = nullptr;
+  TacCreationGameObjectMenuWindow* mGameObjectMenuWindow = nullptr;
+
   TacDesktopWindow* mDesktopWindow = nullptr;
   TacDesktopApp* mDesktopApp = nullptr;
   TacUIRoot* mUIRoot = nullptr;
@@ -35,7 +38,6 @@ struct TacCreationMainWindow
   bool mAreTexturesLoaded = false;
   bool mAreLayoutsCreated = false;
   TacErrors mButtonCallbackErrors;
-  TacCreationGameObjectMenuWindow* mGameObjectMenuWindow = nullptr;
 };
 
 const TacString gMainWindowName = "MainWindow";

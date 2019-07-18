@@ -2,10 +2,9 @@
 #include "space/tacplayer.h"
 #include "space/tacentity.h"
 #include "space/tacsystem.h"
-#include "space/tacgraphics.h"
-#include "space/tacphysics.h"
+#include "space/graphics/tacgraphics.h"
+#include "space/physics/tacphysics.h"
 #include "space/collider/taccollider.h"
-
 #include "common/graphics/tacDebug3D.h"
 
 #include <algorithm>

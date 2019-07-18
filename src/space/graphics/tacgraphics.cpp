@@ -2,7 +2,7 @@
 #include "common/graphics/tacFont.h"
 #include "common/math/tacMath.h"
 #include "space/tacworld.h"
-#include "space/tacgraphics.h"
+#include "space/graphics/tacgraphics.h"
 #include "space/taccomponent.h"
 
 //#include "tacsay.h"

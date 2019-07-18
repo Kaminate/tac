@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/containers/tacVector.h"
+#include "common/tacString.h"
 #include "space/tacspacetypes.h"
 
 struct TacWorld;
@@ -25,6 +26,9 @@ struct TacSystem
 struct TacSystemRegistryEntry
 {
   TacSystem* ( *mCreateFn )( ) = nullptr;
+  TacString mName;
+
+  void ( *mDebugImGui )( TacSystem* ) = nullptr;
 
   // Index of this system in the registry, also the 
   // index of this system in the world systems array

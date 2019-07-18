@@ -4,7 +4,7 @@
 #include "space/tacsystem.h"
 
 // systems
-#include "space/tacgraphics.h"
+#include "space/graphics/tacgraphics.h"
 
 #include "common/tacPreprocessor.h"
 #include "common/tacAlgorithm.h"

@@ -10,6 +10,10 @@
 #include "common/tacPreprocessor.h"
 #include "common/tackeyboardinput.h"
 #include "creation/tacCreation.h"
+#include "creation/tacCreationGameWindow.h"
+#include "creation/tacCreationPropertyWindow.h"
+#include "creation/tacCreationMainWindow.h"
+#include "creation/tacCreationSystemWindow.h"
 #include "shell/tacDesktopApp.h"
 #include "space/tacGhost.h"
 #include "space/tacentity.h"
@@ -107,10 +111,112 @@ TacCreation::~TacCreation()
     delete mPropertyWindow;
   }
 }
+void TacCreation::CreateSystemWindow( TacErrors& errors )
+{
+  if( mSystemWindow )
+    return;
+  TacShell* shell = mDesktopApp->mShell;
+  TacSettings* settings = shell->mSettings;
+  TacVector< TacString > settingsPaths = { "Windows" };
+  auto windowsDefault = new TacJson();
+  windowsDefault->mType = TacJsonType::Array;
+  windowsDefault->mElements.push_back( new TacJson() ); // <-- why is this line here
+  TacJson* windows = settings->GetArray( nullptr, { "Windows" }, windowsDefault, errors );
+  TacJson* settingsWindowJson = nullptr;
+  TacWindowParams windowParams = {};
+  windowParams.mName = gSystemWindowName;
+  windowParams.mX = 200;
+  windowParams.mY = 200;
+  windowParams.mWidth = 400;
+  windowParams.mHeight = 400;
+  for( TacJson* windowJson : windows->mElements )
+  {
+    TacString windowName = windowJson->mChildren[ "Name" ]->mString;
+    if( windowName != gSystemWindowName )
+      continue;
+    settingsWindowJson = windowJson;
+    windowParams.mWidth = ( int )settings->GetNumber( windowJson, { "w" }, 800, errors );
+    TAC_HANDLE_ERROR( errors );
+
+    windowParams.mHeight = ( int )settings->GetNumber( windowJson, { "h" }, 600, errors );
+    TAC_HANDLE_ERROR( errors );
+
+    windowParams.mX = ( int )settings->GetNumber( windowJson, { "x" }, 50, errors );
+    TAC_HANDLE_ERROR( errors );
+
+    windowParams.mY = ( int )settings->GetNumber( windowJson, { "y" }, 50, errors );
+    TAC_HANDLE_ERROR( errors );
+
+    bool centered = ( int )settings->GetBool( windowJson, { "centered" }, false, errors );
+    TAC_HANDLE_ERROR( errors );
+
+    if( centered )
+    {
+      TacMonitor monitor;
+      mDesktopApp->GetPrimaryMonitor( &monitor, errors );
+      TAC_HANDLE_ERROR( errors );
+      TacWindowParams::GetCenteredPosition(
+        windowParams.mWidth,
+        windowParams.mHeight,
+        &windowParams.mX,
+        &windowParams.mY,
+        monitor );
+    }
+  }
+
+  if( !settingsWindowJson )
+  {
+    settingsWindowJson = new TacJson;
+    settingsWindowJson->mType = TacJsonType::Object;
+    windows->mElements.push_back( settingsWindowJson );
+    settings->GetNumber( settingsWindowJson, { "x" }, windowParams.mX, errors );
+    settings->GetNumber( settingsWindowJson, { "y" }, windowParams.mY, errors );
+    settings->GetNumber( settingsWindowJson, { "w" }, windowParams.mWidth, errors );
+    settings->GetNumber( settingsWindowJson, { "h" }, windowParams.mHeight, errors );
+    settings->GetString( settingsWindowJson, { "Name" }, windowParams.mName, errors );
+    //settings->Save( errors );
+    TAC_HANDLE_ERROR( errors );
+  }
+
+
+  TacJson* windowJson = settingsWindowJson;
+
+  TacDesktopWindow* desktopWindow;
+  mDesktopApp->SpawnWindow( windowParams, &desktopWindow, errors );
+  TAC_HANDLE_ERROR( errors );
+
+
+  desktopWindow->mOnResize.AddCallbackFunctional( [ windowJson, settings, desktopWindow, &errors ]()
+    {
+      windowJson->operator[]( "w" ) = desktopWindow->mWidth;
+      windowJson->operator[]( "h" ) = desktopWindow->mHeight;
+      settings->Save( errors );
+    } );
+
+  desktopWindow->mOnMove.AddCallbackFunctional( [ windowJson, settings, desktopWindow, &errors ]()
+    {
+      windowJson->operator[]( "x" ) = desktopWindow->mX;
+      windowJson->operator[]( "y" ) = desktopWindow->mY;
+      settings->Save( errors );
+    } );
+
+  mSystemWindow = new TacCreationSystemWindow();
+  mSystemWindow->mCreation = this;
+  mSystemWindow->mDesktopWindow = desktopWindow;
+  mSystemWindow->mShell = shell;
+  mSystemWindow->Init( errors );
+  TAC_HANDLE_ERROR( errors );
+
+  desktopWindow->mOnDestroyed.AddCallbackFunctional( [ this ]()
+    {
+      delete mSystemWindow;
+      mSystemWindow = nullptr;
+    } );
+}
 void TacCreation::Init( TacErrors& errors )
 {
   TacOS* os = TacOS::Instance;
-  
+
   TacSpaceInit();
   mWorld = new TacWorld;
   mEditorCamera.mPos = { 0, 1, 5 };
@@ -131,7 +237,7 @@ void TacCreation::Init( TacErrors& errors )
   TacVector< TacString > settingsPaths = { "Windows" };
   auto windowsDefault = new TacJson();
   windowsDefault->mType = TacJsonType::Array;
-  windowsDefault->mElements.push_back( new TacJson() );
+  windowsDefault->mElements.push_back( new TacJson() ); // <-- why is this line here
   TacJson* windows = settings->GetArray( nullptr, { "Windows" }, windowsDefault, errors );
   TAC_HANDLE_ERROR( errors );
 
@@ -198,21 +304,6 @@ void TacCreation::Init( TacErrors& errors )
         settings->Save( errors );
       } );
 
-    //auto ui2DDrawData = new TacUI2DDrawData();
-    //ui2DDrawData->mUI2DCommonData = shell->mUI2DCommonData;
-    //ui2DDrawData->mRenderView = desktopWindow->mMainWindowRenderView;
-
-    //auto uiRoot = new TacUIRoot();
-    //uiRoot->mKeyboardInput = shell->mKeyboardInput;
-    //uiRoot->mElapsedSeconds = &shell->mElapsedSeconds;
-    //uiRoot->mUI2DDrawData = ui2DDrawData;
-
-    //auto editorWindow = new TacEditorWindow();
-    //editorWindow->mCreation = this;
-    //editorWindow->mDesktopWindow = desktopWindow;
-    //editorWindow->mUI2DDrawData = ui2DDrawData;
-    //editorWindow->mUIRoot = uiRoot;
-
     if( windowParams.mName == gMainWindowName )
     {
       mMainWindow = new TacCreationMainWindow();
@@ -230,13 +321,30 @@ void TacCreation::Init( TacErrors& errors )
         } );
     }
 
+    if( windowParams.mName == gSystemWindowName )
+    {
+      TacAssert( !mSystemWindow );
+      mSystemWindow = new TacCreationSystemWindow();
+      mSystemWindow->mCreation = this;
+      mSystemWindow->mDesktopWindow = desktopWindow;
+      mSystemWindow->mShell = shell;
+      mSystemWindow->Init( errors );
+      TAC_HANDLE_ERROR( errors );
+
+      desktopWindow->mOnDestroyed.AddCallbackFunctional( [ this ]()
+        {
+          delete mSystemWindow;
+          mSystemWindow = nullptr;
+        } );
+    }
+
     if( windowParams.mName == gGameWindowName )
     {
       TacAssert( !mGameWindow );
       mGameWindow = new TacCreationGameWindow();
       mGameWindow->mCreation = this;
-      mGameWindow->mShell = shell;
       mGameWindow->mDesktopWindow = desktopWindow;
+      mGameWindow->mShell = shell;
       mGameWindow->Init( errors );
       TAC_HANDLE_ERROR( errors );
 
@@ -250,9 +358,9 @@ void TacCreation::Init( TacErrors& errors )
     if( windowParams.mName == gPropertyWindowName )
     {
       mPropertyWindow = new TacCreationPropertyWindow;
-      mPropertyWindow->mShell = shell;
       mPropertyWindow->mCreation = this;
       mPropertyWindow->mDesktopWindow = desktopWindow;
+      mPropertyWindow->mShell = shell;
       mPropertyWindow->Init( errors );
       TAC_HANDLE_ERROR( errors );
 
@@ -341,6 +449,12 @@ void TacCreation::Update( TacErrors& errors )
   if( mPropertyWindow )
   {
     mPropertyWindow->Update( errors );
+    TAC_HANDLE_ERROR( errors );
+  }
+
+  if( mSystemWindow )
+  {
+    mSystemWindow->Update( errors );
     TAC_HANDLE_ERROR( errors );
   }
 

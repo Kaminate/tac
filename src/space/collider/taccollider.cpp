@@ -1,6 +1,6 @@
-#include "taccollider.h"
-#include "tacentity.h"
-#include "tacphysics.h"
+#include "space/collider/taccollider.h"
+#include "space/tacentity.h"
+#include "space/physics/tacphysics.h"
 
 
 TacCollider* TacCollider::GetCollider( TacEntity* entity )
