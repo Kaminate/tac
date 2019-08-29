@@ -21,10 +21,6 @@
 
 extern void RegisterMetaphysics();
 
-//static const TacVector< TacComponentRegistryEntryIndex > managedComponentTypes = {
-//  TacComponentRegistryEntryIndex::Collider,
-//  TacComponentRegistryEntryIndex::Terrain,
-//};
 
 //static void DebugDrawGJK( const TacGJK& gjk, TacGraphics* graphics )
 //{
@@ -76,10 +72,6 @@ TacPhysics::TacPhysics()
   mGJKDebugMaxEPAIter = 10;
 }
 
-//const TacVector< TacComponentRegistryEntryIndex >& TacPhysics::GetManagedComponentTypes()
-//{
-//  return managedComponentTypes;
-//}
 TacCollider* TacPhysics::CreateCollider()
 {
   auto collider = new TacCollider();
@@ -92,33 +84,16 @@ TacTerrain* TacPhysics::CreateTerrain()
   mTerrains.insert( terrain );
   return terrain;
 }
-//void TacPhysics::DestroyComponent( TacComponent* component )
-//{
-//  auto componentType = component->GetComponentType();
-//  switch( componentType )
-//  {
-//    case TacComponentRegistryEntryIndex::Collider:
-//    {
-//      auto collider = ( TacCollider* )component;
-//      auto it = mColliders.find( collider );
-//      TacAssert( it != mColliders.end() );
-//      mColliders.erase( it );
-//      delete collider;
-//    } break;
-//
-//    //  case TacComponentRegistryEntryIndex::Terrain:
-//    //  {
-//    //    auto terrain = ( TacTerrain* )component;
-//    //    auto it = mTerrains.find( terrain );
-//    //    TacAssert( it != mTerrains.end() );
-//    //    mTerrains.erase( it );
-//    //    delete terrain;
-//    //  } break;
-//
-//    TacInvalidDefaultCase( componentType );
-//  }
-//}
-
+void TacPhysics::DestroyCollider( TacCollider* collider )
+{
+  mColliders.erase( collider );
+  delete collider;
+}
+void TacPhysics::DestroyTerrain( TacTerrain* terrain )
+{
+  mTerrains.erase( terrain );
+  delete terrain;
+}
 void TacPhysics::LoadTestHeightmap()
 {
   if( mTestHeightmapImageMemory.size() )
@@ -243,8 +218,10 @@ void TacPhysics::DebugDrawTerrains()
   TacGraphics* graphics = TacGraphics::GetSystem( mWorld );
   TacShell* shell = mWorld->mShell;
 
+  // loads the heightmap from file into bitmap
   LoadTestHeightmap();
 
+  // Load heightmap mesh from heighap image
   for( auto terrain : mTerrains )
   {
     for( auto obb : terrain->mTerrainOBBs )
@@ -263,9 +240,9 @@ void TacPhysics::DebugDrawTerrains()
 
     if( terrain->mGrid.empty() )
     {
-      float squareSize = 50.0f;
-      float width = squareSize;
-      float height = squareSize;
+      float totalGridSideLength = 50.0f;
+      float width = totalGridSideLength;
+      float height = totalGridSideLength;
       for( int iRow = 0; iRow < verticalVertexCount; ++iRow )
       {
         for( int iCol = 0; iCol < horizontalVertexCount; ++iCol )
@@ -445,16 +422,4 @@ TacCollideResult TacCollide( const TacHeightmap* heightmap, const TacCollider* c
 
   TacCollideResult result;
   return result;
-}
-
-void TacPhysics::DestroyCollider( TacCollider* collider )
-{
-  mColliders.erase( collider );
-  delete collider;
-}
-
-void TacPhysics::DestroyTerrain( TacTerrain* terrain )
-{
-  mTerrains.erase( terrain );
-  delete terrain;
 }
