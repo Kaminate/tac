@@ -568,75 +568,6 @@ TacPrefab* TacCreation::FindPrefab( TacEntity* entity )
   }
   return nullptr;
 }
-TacJson TacCreation::SaveEntityToJsonRecusively( TacEntity* entity )
-{
-  TacJson entityJson;
-  {
-    TacJson posJson;
-    {
-      v3 position = entity->mLocalPosition;
-      posJson[ "x" ] = position.x;
-      posJson[ "y" ] = position.y;
-      posJson[ "z" ] = position.z;
-    }
-
-    TacJson scaleJson;
-    {
-      v3 scale = entity->mLocalScale;
-      scaleJson[ "x" ] = scale.x;
-      scaleJson[ "y" ] = scale.y;
-      scaleJson[ "z" ] = scale.z;
-    }
-
-    TacJson eulerRadsJson;
-    {
-      eulerRadsJson[ "x" ] = entity->mLocalEulerRads.x;
-      eulerRadsJson[ "y" ] = entity->mLocalEulerRads.y;
-      eulerRadsJson[ "z" ] = entity->mLocalEulerRads.z;
-    }
-    entityJson[ "mPosition" ] = posJson;
-    entityJson[ "mScale" ] = scaleJson;
-    entityJson[ "mName" ] = entity->mName;
-    entityJson[ "mEulerRads" ] = eulerRadsJson;
-    entityJson[ "mEntityUUID" ] = ( TacJsonNumber )entity->mEntityUUID;
-
-    // todo: GetComponentJsonSerializer( component )->SerializeToJson( ... )
-    if( TacModel* model = TacModel::GetModel( entity ) )
-    {
-      TacJson colorRGBJson;
-      colorRGBJson[ "r" ] = model->mColorRGB[ 0 ];
-      colorRGBJson[ "g" ] = model->mColorRGB[ 1 ];
-      colorRGBJson[ "b" ] = model->mColorRGB[ 2 ];
-
-      TacJson modelJson;
-      modelJson[ "mGLTFPath" ] = model->mGLTFPath;
-      modelJson[ "mColorRGB" ] = colorRGBJson;
-
-      entityJson[ "Model" ] = modelJson;
-    }
-
-    if( TacTerrain* terrain = TacTerrain::GetComponent( entity ) )
-    {
-      TacJson terrainJson;
-      terrainJson[ "ogga" ] = "booga";
-      entityJson[ "Terrain" ] = terrainJson;
-    }
-
-    if( !entity->mChildren.empty() )
-    {
-      TacJson childrenJson;
-      childrenJson.mType = TacJsonType::Array;
-      for( TacEntity* child : entity->mChildren )
-      {
-        auto childJson = new TacJson( SaveEntityToJsonRecusively( child ) );
-        childrenJson.mElements.push_back( childJson );
-      }
-      entityJson[ "mChildren" ] = childrenJson;
-    }
-  }
-
-  return entityJson;
-}
 void TacCreation::SavePrefabs()
 {
   TacShell* shell = mDesktopApp->mShell;
@@ -681,7 +612,8 @@ void TacCreation::SavePrefabs()
 
     //TacEntity* entity = prefab->mEntity;
 
-    TacJson entityJson = SaveEntityToJsonRecusively( entity );
+    TacJson entityJson;
+    entity->Save( entityJson );
 
     TacString prefabJsonString = entityJson.Stringify();
     TacErrors saveToFileErrors;
@@ -705,65 +637,6 @@ void TacCreation::ModifyPathRelative( TacString& savePath )
     savePath = TacStripLeadingSlashes( savePath );
   }
 }
-TacEntity* TacCreation::LoadEntityFromJsonRecursively( TacJson& prefabJson )
-{
-
-  TacJson& positionJson = prefabJson[ "mPosition" ];
-  v3 pos =
-  {
-    ( float )positionJson[ "x" ].mNumber,
-    ( float )positionJson[ "y" ].mNumber,
-    ( float )positionJson[ "z" ].mNumber,
-  };
-
-  TacJson& scaleJson = prefabJson[ "mScale" ];
-  v3 scale =
-  {
-    ( float )scaleJson[ "x" ].mNumber,
-    ( float )scaleJson[ "y" ].mNumber,
-    ( float )scaleJson[ "z" ].mNumber,
-  };
-
-  TacJson& eulerRadsJson = prefabJson[ "mEulerRads" ];
-  v3 eulerRads =
-  {
-    ( float )eulerRadsJson[ "x" ].mNumber,
-    ( float )eulerRadsJson[ "y" ].mNumber,
-    ( float )eulerRadsJson[ "z" ].mNumber,
-  };
-
-  TacEntity* entity = CreateEntity();
-  entity->mLocalPosition = pos;
-  entity->mLocalScale = scale;
-  entity->mLocalEulerRads = eulerRads;
-  entity->mName = prefabJson[ "mName" ].mString;
-  entity->mEntityUUID = ( TacEntityUUID )( TacUUID )prefabJson[ "mEntityUUID" ].mNumber;
-
-  if( TacJson* modelJson = prefabJson.mChildren[ "Model" ] )
-  {
-    auto model = ( TacModel* )entity->AddNewComponent( TacModel::ComponentRegistryEntry );
-    model->mGLTFPath = ( *modelJson )[ "mGLTFPath" ].mString;
-    model->mColorRGB = {
-      ( float )( *modelJson )[ "mColorRGB" ][ "r" ].mNumber,
-      ( float )( *modelJson )[ "mColorRGB" ][ "g" ].mNumber,
-      ( float )( *modelJson )[ "mColorRGB" ][ "b" ].mNumber };
-  }
-  if( TacJson* terrainJson = prefabJson.mChildren[ "Terrain" ] )
-  {
-    entity->AddNewComponent( TacTerrain::ComponentRegistryEntry );
-  }
-
-  if( TacJson* childrenJson = prefabJson.mChildren[ "mChildren" ] )
-  {
-    for( TacJson* childJson : childrenJson->mElements )
-    {
-      TacEntity* childEntity = LoadEntityFromJsonRecursively( *childJson );
-      entity->AddChild( childEntity );
-    }
-  }
-
-  return entity;
-}
 void TacCreation::LoadPrefabAtPath( TacString prefabPath, TacErrors& errors )
 {
   ModifyPathRelative( prefabPath );
@@ -773,7 +646,8 @@ void TacCreation::LoadPrefabAtPath( TacString prefabPath, TacErrors& errors )
   TacJson prefabJson;
   prefabJson.Parse( memory.data(), memory.size(), errors );
 
-  TacEntity* entity = LoadEntityFromJsonRecursively( prefabJson );
+  TacEntity* entity = mWorld->SpawnEntity( TacNullEntityUUID );
+  entity->Load( prefabJson );
 
   auto prefab = new TacPrefab;
   prefab->mDocumentPath = prefabPath;

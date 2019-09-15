@@ -52,25 +52,20 @@ struct TacCreation
   bool IsAnythingSelected();
   v3 GetSelectionGizmoOrigin();
   void ClearSelection();
+
+  // Prefabs
   void UpdateSavedPrefabs();
   void GetSavedPrefabs( TacVector< TacString > & paths, TacErrors& errors );
-
   void SavePrefabs();
-  TacJson SaveEntityToJsonRecusively( TacEntity* entity );
-
   void LoadPrefabs( TacErrors& errors );
   void LoadPrefabAtPath( TacString path, TacErrors& errors );
-  TacEntity* LoadEntityFromJsonRecursively( TacJson& prefabJson );
-
-  void ModifyPathRelative( TacString& path );
-
   void LoadPrefabCameraPosition( TacPrefab* prefab );
   void SavePrefabCameraPosition( TacPrefab* prefab );
-
-  void DeleteSelectedEntities();
   void RemoveEntityFromPrefabRecursively( TacEntity* entity );
   TacPrefab* FindPrefab( TacEntity* entity );
 
+  void ModifyPathRelative( TacString& path );
+  void DeleteSelectedEntities();
   void CreateSystemWindow( TacErrors& errors );
 
   TacDesktopApp* mDesktopApp = nullptr;

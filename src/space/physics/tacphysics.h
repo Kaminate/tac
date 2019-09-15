@@ -26,7 +26,8 @@ struct TacPhysics : public TacSystem
   TacTerrain* CreateTerrain();
   void DestroyTerrain( TacTerrain* terrain );
 
-  static TacSystemRegistryEntry* SystemRegistryEntry;
+  static void TacSpaceInitPhysics();
+  static TacSystemRegistryEntry* PhysicsSystemRegistryEntry;
   static TacPhysics* GetSystem( TacWorld* );
 
   void Update() override;
@@ -35,16 +36,10 @@ struct TacPhysics : public TacSystem
   void DebugImgui() override;
   void DebugDrawCapsules();
   void DebugDrawTerrains();
-  void LoadTestHeightmap();
 
   std::set< TacCollider* > mColliders;
   std::set< TacTerrain* > mTerrains;
 
-  //TacTexture* mTestHeightmap = nullptr;
-  int mTestHeightmapWidth;
-  int mTestHeightmapHeight;
-  TacVector< uint8_t > mTestHeightmapImageMemory;
-  TacErrors mTestHeightmapLoadErrors;
 
   bool mDebugDrawCollision = true;
   float mGravity;

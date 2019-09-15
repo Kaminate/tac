@@ -1,19 +1,21 @@
-#include "space/physics/tacphysics.h"
-#include "space/taccomponent.h"
-#include "space/terrain/tacterrain.h"
-#include "space/graphics/tacgraphics.h"
-#include "space/tacworld.h"
 #include "space/collider/taccollider.h"
 #include "space/graphics/tacgraphics.h"
+#include "space/graphics/tacgraphics.h"
+#include "space/physics/tacphysics.h"
+#include "space/physics/tacphysicsdebug.h"
+#include "space/taccomponent.h"
 #include "space/tacentity.h"
+#include "space/tacworld.h"
+#include "space/terrain/tacterrain.h"
+
+#include "common/assetmanagers/tacTextureAssetManager.h"
 #include "common/containers/tacVector.h"
+#include "common/graphics/tacDebug3D.h"
 #include "common/math/tacMath.h"
+#include "common/tacMemory.h"
 #include "common/tacPreprocessor.h"
 #include "common/tacShell.h"
-#include "common/assetmanagers/tacTextureAssetManager.h"
-#include "common/tacMemory.h"
 #include "common/thirdparty/stb_image.h"
-#include "common/graphics/tacDebug3D.h"
 
 #include <array>
 #include <algorithm>
@@ -94,39 +96,8 @@ void TacPhysics::DestroyTerrain( TacTerrain* terrain )
   mTerrains.erase( terrain );
   delete terrain;
 }
-void TacPhysics::LoadTestHeightmap()
-{
-  if( mTestHeightmapImageMemory.size() )
-    return; // already loaded
 
-  if( mTestHeightmapLoadErrors.size() )
-    return; // tried to load already, but load failed
 
-  const char* heightmapPath = "assets/heightmap.png";
-
-  TacVector< char > imageMemory = TacTemporaryMemory( heightmapPath, mTestHeightmapLoadErrors );
-  if( mTestHeightmapLoadErrors.size() )
-    return;
-
-  int imageWidth;
-  int imageHeight;
-  stbi_uc* loaded = stbi_load_from_memory(
-    ( stbi_uc const * )imageMemory.data(),
-    imageMemory.size(),
-    &imageWidth,
-    &imageHeight,
-    nullptr,
-    STBI_grey );
-
-  int byteCount = imageWidth * imageHeight;
-  mTestHeightmapImageMemory.resize( byteCount );
-
-  TacMemCpy( mTestHeightmapImageMemory.data(), loaded, byteCount );
-
-  mTestHeightmapWidth = imageWidth;
-  mTestHeightmapHeight = imageHeight;
-  stbi_image_free( loaded );
-}
 void TacPhysics::DebugImgui()
 {
 
@@ -218,79 +189,23 @@ void TacPhysics::DebugDrawTerrains()
   TacGraphics* graphics = TacGraphics::GetSystem( mWorld );
   TacShell* shell = mWorld->mShell;
 
-  // loads the heightmap from file into bitmap
-  LoadTestHeightmap();
-
   // Load heightmap mesh from heighap image
   for( auto terrain : mTerrains )
   {
     for( auto obb : terrain->mTerrainOBBs )
     {
-      //graphics->DebugDrawOBB( obb.mPos, obb.mHalfExtents, obb.mEulerRads, mDebugDrawTerrainColor );
+      mWorld->mDebug3DDrawData->DebugDrawOBB(
+        obb.mPos,
+        obb.mHalfExtents,
+        obb.mEulerRads,
+        mDebugDrawTerrainColor );
     }
+    // loads the heightmap from file into bitmap
+    terrain->LoadTestHeightmap();
 
-    int squareVertexCount = 50;
-    int horizontalVertexCount = squareVertexCount;
-    int verticalVertexCount = squareVertexCount;
+    terrain->PopulateGrid();
 
-    auto GetVal = [ & ]( int x, int y ) -> const v3&
-    {
-      return terrain->mGrid[ x + y * verticalVertexCount ];
-    };
-
-    if( terrain->mGrid.empty() )
-    {
-      float totalGridSideLength = 50.0f;
-      float width = totalGridSideLength;
-      float height = totalGridSideLength;
-      for( int iRow = 0; iRow < verticalVertexCount; ++iRow )
-      {
-        for( int iCol = 0; iCol < horizontalVertexCount; ++iCol )
-        {
-          float xPercent = ( float )iRow / ( float )( verticalVertexCount - 1 );
-          float zPercent = ( float )iCol / ( float )( horizontalVertexCount - 1 );
-
-          int heightmapX = ( int )( xPercent * ( mTestHeightmapWidth - 1 ) );
-          int heightmapY = ( int )( zPercent * ( mTestHeightmapHeight - 1 ) );
-          uint8_t heightmapValue = mTestHeightmapImageMemory[ heightmapX + heightmapY * mTestHeightmapWidth ];
-          float heightmapPercent = heightmapValue / 255.0f;
-
-          v3 pos;
-          pos.x = xPercent * width;
-          pos.y = heightmapPercent * 25.0f;
-          pos.z = zPercent * height;
-          terrain->mGrid.push_back( pos );
-        }
-      }
-    }
-
-    TacAssert( !terrain->mGrid.empty() );
-
-    v3 gridColor = { 0, 0, 0 };
-
-    for( int iRow = 0; iRow < horizontalVertexCount; ++iRow )
-    {
-      for( int iCol = 0; iCol < verticalVertexCount; ++iCol )
-      {
-        const v3& topLeft = GetVal( iRow, iCol );
-
-        if( iCol + 1 < verticalVertexCount )
-        {
-          const v3& topRight = GetVal( iRow, iCol + 1 );
-          mWorld->mDebug3DDrawData->DebugDrawLine( topLeft, topRight, gridColor );
-        }
-        if( iRow + 1 < horizontalVertexCount )
-        {
-          const v3& bottomLeft = GetVal( iRow + 1, iCol );
-          mWorld->mDebug3DDrawData->DebugDrawLine( topLeft, bottomLeft, gridColor );
-        }
-        if( iCol + 1 < verticalVertexCount && iRow + 1 < horizontalVertexCount )
-        {
-          const v3& bottomRight = GetVal( iRow + 1, iCol + 1 );
-          mWorld->mDebug3DDrawData->DebugDrawLine( topLeft, bottomRight, gridColor );
-        }
-      }
-    }
+    terrain->DebugDraw();
   }
 }
 void TacPhysics::Update()
@@ -413,7 +328,7 @@ void TacPhysics::Narrowphase()
 
 TacPhysics* TacPhysics::GetSystem( TacWorld* world )
 {
-  return ( TacPhysics* )world->GetSystem( TacPhysics::SystemRegistryEntry );
+  return ( TacPhysics* )world->GetSystem( TacPhysics::PhysicsSystemRegistryEntry );
 }
 TacCollideResult TacCollide( const TacHeightmap* heightmap, const TacCollider* collider )
 {
@@ -422,4 +337,20 @@ TacCollideResult TacCollide( const TacHeightmap* heightmap, const TacCollider* c
 
   TacCollideResult result;
   return result;
+}
+
+
+TacSystemRegistryEntry* TacPhysics::PhysicsSystemRegistryEntry;
+
+static TacSystem* TacCreatePhysicsSystem() { return new TacPhysics; }
+
+
+void TacPhysics::TacSpaceInitPhysics()
+{
+  TacPhysics::PhysicsSystemRegistryEntry = TacSystemRegistry::Instance()->RegisterNewEntry();
+  TacPhysics::PhysicsSystemRegistryEntry->mCreateFn = TacCreatePhysicsSystem;
+  TacPhysics::PhysicsSystemRegistryEntry->mName = "Physics";
+  TacPhysics::PhysicsSystemRegistryEntry->mDebugImGui = TacPhysicsDebugImgui;
+  TacTerrain::TacSpaceInitPhysicsTerrain();
+  TacCollider::TacSpaceInitPhysicsCollider();
 }

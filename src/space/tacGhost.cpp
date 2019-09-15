@@ -48,7 +48,7 @@ TacUser::TacUser( TacGhost* ghost, const TacString& name, TacErrors& errors )
       TacRandomFloatMinus1To1() * 3.0f,
       5.2f,
       TacRandomFloatMinus1To1() * 3.0f );
-    entity->AddNewComponent( TacCollider::ComponentRegistryEntry );
+    entity->AddNewComponent( TacCollider::ColliderComponentRegistryEntry );
     player->mEntityUUID = entity->mEntityUUID;
   }
 }

@@ -15,7 +15,7 @@ const static int includedOpenGL4RendererFactory = []()
       *renderer = new TacOpenGL4Renderer();
     }
   } OpenGL4Factory;
-  TacRendererFactory::GetRegistry().push_back( &OpenGL4Factory );
+  TacRendererRegistry::Instance().mFactories.push_back( &OpenGL4Factory );
   return 0;
 }( );
 

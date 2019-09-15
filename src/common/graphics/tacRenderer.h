@@ -606,9 +606,13 @@ struct TacRendererFactory
 public:
   virtual ~TacRendererFactory() = default;
   void CreateRendererOuter( TacRenderer** );
-  static TacVector< TacRendererFactory* >& GetRegistry();
   TacString mRendererName;
 protected:
   virtual void CreateRenderer( TacRenderer** ) { TacUnimplemented; }
+};
 
+struct TacRendererRegistry
+{
+  static TacRendererRegistry& Instance();
+  TacVector< TacRendererFactory* > mFactories;
 };

@@ -136,12 +136,14 @@ void TacRendererFactory::CreateRendererOuter( TacRenderer** renderer )
   ( *renderer )->mName = mRendererName;
 }
 
-TacVector< TacRendererFactory* >& TacRendererFactory::GetRegistry()
+TacRendererRegistry& TacRendererRegistry::Instance()
 {
-  static TacVector< TacRendererFactory* > registry;
-  return registry;
+  // This variable must be inside this function or else the
+  // renderers will add themselves too early or something
+  // and then be stomped with an empty registry
+  static TacRendererRegistry TacRendererRegistryInstance;
+  return TacRendererRegistryInstance;
 }
-
 void TacRenderer::RemoveRendererResource( TacRendererResource* rendererResource )
 {
   if( !rendererResource )

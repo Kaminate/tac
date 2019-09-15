@@ -1491,6 +1491,6 @@ int registerDX12 = []()
       *renderer = new TacRendererDX12();
     }
   } factory;
-  TacRendererFactory::GetRegistry().push_back( &factory );
+  TacRendererRegistry::Instance().mFactories.push_back( &factory );
   return 0;
 }( );

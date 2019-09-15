@@ -62,13 +62,12 @@ void TacShell::Init( TacErrors& errors )
 
   // create renderer
   {
-    TacVector< TacRendererFactory* >& rendererFactories = TacRendererFactory::GetRegistry();
+    TacVector< TacRendererFactory* >& rendererFactories = TacRendererRegistry::Instance().mFactories;
     if( rendererFactories.empty() )
     {
       errors = "No renderers available";
-      return;
+      TAC_HANDLE_ERROR( errors );
     }
-
 
     TacRendererFactory* rendererFactory = rendererFactories[ 0 ];
     TacString defaultRendererName = TacOS::Instance->GetDefaultRendererName();

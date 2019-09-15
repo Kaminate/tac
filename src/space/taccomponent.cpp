@@ -29,3 +29,16 @@ TacComponentRegistryEntry* TacComponentRegistry::RegisterNewEntry()
   mEntries.push_back( entry );
   return entry;
 }
+
+TacComponentRegistryEntry* TacComponentRegistry::FindEntryNamed( const TacString& name )
+{
+  for( auto entry  : mEntries )
+  {
+    if( entry->mName == name )
+    {
+      return entry;
+    }
+  }
+
+  return nullptr;
+}

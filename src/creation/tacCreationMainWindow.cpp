@@ -244,7 +244,8 @@ void TacCreationMainWindow::ImGui()
 
       mCreation->ModifyPathRelative( savePath );
 
-      TacJson entityJson = mCreation->SaveEntityToJsonRecusively( entity );
+      TacJson entityJson;
+      entity->Save( entityJson );
 
       TacString prefabJsonString = entityJson.Stringify();
       TacErrors saveToFileErrors;

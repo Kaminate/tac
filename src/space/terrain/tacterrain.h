@@ -1,6 +1,7 @@
 #pragma once
 #include "common/containers/tacVector.h"
 #include "common/math/tacVector3.h"
+#include "common/tacErrorHandling.h"
 #include "space/taccomponent.h"
 
 struct TacTerrainOBB
@@ -15,15 +16,22 @@ struct TacHeightmap
   float mMaxHeight = 100.0f;
 };
 
+
 struct TacTerrain : public TacComponent
 {
   TacVector< TacTerrainOBB > mTerrainOBBs;
+  static void TacSpaceInitPhysicsTerrain();
 
   TacComponentRegistryEntry* GetEntry() override;
-  static TacComponentRegistryEntry* ComponentRegistryEntry;
-  static TacComponentRegistryEntry* GetComponentRegistryEntry();
+  static TacComponentRegistryEntry* TerrainComponentRegistryEntry;
 
   static TacTerrain* GetComponent( TacEntity* );
+  void LoadTestHeightmap();
+  void PopulateGrid();
+  void DebugDraw();
+  v3 GetVal( int x, int y );
+
+  int squareVertexCount = 50;
 
   // heightmap
   // vertexes
@@ -35,6 +43,12 @@ struct TacTerrain : public TacComponent
   //TacHeightmap mHeightmap;
 
   TacVector< v3 > mGrid;
+
+  const char* heightmapPath = "assets/heightmap.png";
+  int mTestHeightmapWidth;
+  int mTestHeightmapHeight;
+  TacVector< uint8_t > mTestHeightmapImageMemory;
+  TacErrors mTestHeightmapLoadErrors;
 };
 
 extern int asdfDEBUG;

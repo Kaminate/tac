@@ -13,10 +13,11 @@ struct TacMesh;
 
 struct TacModel : public TacComponent
 {
+  static void TacSpaceInitGraphicsModel();
 
   static TacModel* GetModel( TacEntity* );
   static const TacModel* GetModel( const TacEntity* );
-  static TacComponentRegistryEntry* ComponentRegistryEntry;
+  static TacComponentRegistryEntry* ModelComponentRegistryEntry;
   TacComponentRegistryEntry* GetEntry() override;
 
   //TacTextureUUID mTextureUUID = TacNullTextureUUID;

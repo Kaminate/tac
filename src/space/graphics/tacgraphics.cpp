@@ -3,6 +3,7 @@
 #include "common/math/tacMath.h"
 #include "space/tacworld.h"
 #include "space/graphics/tacgraphics.h"
+#include "space/graphics/tacgraphicsdebug.h"
 #include "space/taccomponent.h"
 
 //#include "tacsay.h"
@@ -24,7 +25,7 @@ TacModel* TacGraphics::CreateModelComponent()
 
 TacGraphics* TacGraphics::GetSystem( TacWorld* world )
 {
-  return ( TacGraphics* )world->GetSystem( TacGraphics::SystemRegistryEntry );
+  return ( TacGraphics* )world->GetSystem( TacGraphics::GraphicsSystemRegistryEntry );
 }
 
 //TacComponent* TacGraphics::CreateComponent( TacComponentRegistryEntryIndex componentType )
@@ -94,3 +95,18 @@ void TacGraphics::DebugImgui()
   //OnDestruct( ImGui::Unindent() );
   //ImGui::Text( "Debug draw vert count: %i", mDebugDrawVerts.size() );
 }
+
+TacSystemRegistryEntry* TacGraphics::GraphicsSystemRegistryEntry;
+static TacSystem* TacCreateGraphicsSystem()
+{
+  return new TacGraphics;
+}
+void TacGraphics::TacSpaceInitGraphics()
+{
+  TacGraphics::GraphicsSystemRegistryEntry = TacSystemRegistry::Instance()->RegisterNewEntry();
+  TacGraphics::GraphicsSystemRegistryEntry->mCreateFn = TacCreateGraphicsSystem;
+  TacGraphics::GraphicsSystemRegistryEntry->mName = "Graphics";
+  TacGraphics::GraphicsSystemRegistryEntry->mDebugImGui = TacGraphicsDebugImgui;
+  TacModel::TacSpaceInitGraphicsModel();
+}
+

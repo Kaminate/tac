@@ -1,5 +1,6 @@
 #pragma once
 #include "common/tacSerialization.h"
+#include "common/tacString.h"
 #include "tacspacetypes.h"
 #include <map>
 
@@ -9,6 +10,7 @@ struct TacComponentRegistry;
 struct TacComponentRegistryEntry;
 struct TacSystemRegistry;
 struct TacSystemRegistryEntry;
+struct TacJson;
 
 struct TacComponent
 {
@@ -24,7 +26,7 @@ struct TacComponentRegistryEntry
   // Used for
   // - debugging network bits
   // - prefab serialization
-  const char* mName = nullptr;
+  TacString mName;
 
   // Used to create components at runtime
   // ( from prefabs, or hardcode, or in editor, or whenever )
@@ -32,6 +34,9 @@ struct TacComponentRegistryEntry
 
   void ( *mDestroyFn )( TacWorld*, TacComponent* ) = nullptr;
   void ( *mDebugImguiFn )( TacComponent* ) = nullptr;
+
+  void ( *mSaveFn )( TacJson&, TacComponent* ) = nullptr;
+  void ( *mLoadFn )( TacJson&, TacComponent* ) = nullptr;
 
   // Used for what?
   //TacSystemRegistryEntry* mSystemRegistryEntry = nullptr;
@@ -44,6 +49,7 @@ struct TacComponentRegistry
 {
   static TacComponentRegistry* Instance();
   TacComponentRegistryEntry* RegisterNewEntry();
+  TacComponentRegistryEntry* FindEntryNamed( const TacString& name );
 
   // I wonder if these can be out of sync between different builds of the exe
   // or between server/clients

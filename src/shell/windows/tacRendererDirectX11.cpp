@@ -1785,7 +1785,6 @@ void TacIndexBufferDX11::Overwrite( void* data, int byteCount, TacErrors& errors
 
 TacCBufferDX11::~TacCBufferDX11()
 {
-
   TAC_RELEASE_IUNKNOWN( mDXObj );
 }
 
@@ -1815,9 +1814,9 @@ int registerDX11 = []()
       *renderer = new TacRendererDirectX11();
     }
   } factory;
-  TacRendererFactory::GetRegistry().push_back( &factory );
+  TacRendererRegistry::Instance().mFactories.push_back( &factory );
   return 0;
-}( );
+}();
 
 TacDepthBufferDX11::~TacDepthBufferDX11()
 {
@@ -1838,7 +1837,6 @@ void TacDepthBufferDX11::Init( TacErrors& errors )
 
   auto rendererDX11 = ( TacRendererDirectX11* )mRenderer;
   ID3D11Device* mDevice = rendererDX11->mDevice;
-
 
   ID3D11Texture2D* texture;
   TAC_DX11_CALL( errors, mDevice->CreateTexture2D, &texture2dDesc, nullptr, &texture );

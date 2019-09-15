@@ -6,9 +6,10 @@
 // This is an upright capsule
 struct TacCollider : public TacComponent
 {
+  static void TacSpaceInitPhysicsCollider();
   static TacCollider* GetCollider( TacEntity* );
   TacComponentRegistryEntry* GetEntry() override;
-  static TacComponentRegistryEntry* ComponentRegistryEntry;
+  static TacComponentRegistryEntry* ColliderComponentRegistryEntry;
 
   //TacComponentRegistryEntryIndex GetComponentType() override { return TacComponentRegistryEntryIndex::Collider; }
   v3 mVelocity = {};

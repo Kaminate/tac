@@ -9,6 +9,7 @@
 struct TacWorld;
 struct TacComponent;
 struct TacComponentRegistryEntry;
+struct TacJson;
 
 struct TacEntity
 {
@@ -27,6 +28,8 @@ struct TacEntity
   //void TacIntegrate( float time );
   void Unparent();
   void AddChild( TacEntity* child );
+  void Save( TacJson& entityJson );
+  void Load( TacJson& entityJson );
 
   TacEntity* mParent = nullptr;
   TacVector< TacEntity* > mChildren;

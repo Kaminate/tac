@@ -20,8 +20,10 @@ struct TacGraphics : public TacSystem
   //void DestroyComponent( TacComponent* component ) override;
   //TacSystemType GetSystemType() override { return TacSystemType::Graphics; }
 
+  static void TacSpaceInitGraphics();
+
   static TacGraphics* GetSystem( TacWorld* world );
-  static TacSystemRegistryEntry* SystemRegistryEntry;
+  static TacSystemRegistryEntry* GraphicsSystemRegistryEntry;
   //TacSystemRegistryEntry* GetEntry() override;
 
   TacModel* CreateModelComponent();

@@ -136,10 +136,6 @@ void TacModelDebugImguiChangeTexture( TacModel* model )
   //}
 }
 
-void TacModelDebugImgui( TacComponent* component )
-{
-  TacModelDebugImgui( ( TacModel* )component );
-}
 void TacModelDebugImgui( TacModel* model )
 {
   TacModelDebugImguiChangeModel( model );
@@ -149,3 +145,7 @@ void TacModelDebugImgui( TacModel* model )
   TacImGuiDragFloat( "b", &model->mColorRGB[ 2 ] );
 }
 
+void TacModelDebugImgui( TacComponent* component )
+{
+  TacModelDebugImgui( ( TacModel* )component );
+}
