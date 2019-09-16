@@ -14,7 +14,7 @@ int TacStrLen( const char* str );
 // Zero if lhs and rhs compare equal.
 // Positive value if lhs appears after rhs in lexicographical order.
 int TacStrCmp( const char* lhs, const char* rhs );
-int TacMemCmp( const char* lhs, const char* rhs, int len );
+int TacMemCmp( const void* lhs, const void* rhs, int len );
 
 // std uses void*
 void TacMemCpy( void* dst, const void* src, int len );

@@ -1,7 +1,10 @@
 {
   "Terrain":
   {
-    "ogga": "booga"
+    "mHeight": 50,
+    "mSideLength": 100,
+    "mSideVertexCount": 46
+    "mHeightmapTexturePath": "assets/heightmap.png"
   },
   "mEntityUUID": 0,
   "mEulerRads":

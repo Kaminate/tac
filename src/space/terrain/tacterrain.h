@@ -31,7 +31,10 @@ struct TacTerrain : public TacComponent
   void DebugDraw();
   v3 GetVal( int x, int y );
 
-  int squareVertexCount = 50;
+  int mSideVertexCount = 50;
+
+  float mSideLength = 50.0f;
+  float mHeight = 20.0f;
 
   // heightmap
   // vertexes
@@ -44,7 +47,7 @@ struct TacTerrain : public TacComponent
 
   TacVector< v3 > mGrid;
 
-  const char* heightmapPath = "assets/heightmap.png";
+  TacString mHeightmapTexturePath = "assets/heightmap.png";
   int mTestHeightmapWidth;
   int mTestHeightmapHeight;
   TacVector< uint8_t > mTestHeightmapImageMemory;

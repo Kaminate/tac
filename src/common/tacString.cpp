@@ -26,11 +26,11 @@ bool TacIsAlpha( char c )
     ( c >= 'a' && c <= 'z' );
 }
 
-int TacMemCmp( const char* lhs, const char* rhs, int len )
+int TacMemCmp( const void* lhs, const void* rhs, int len )
 {
   for( int i = 0; i < len; ++i )
   {
-    int diff = *lhs++ - *rhs++;
+    int diff = ( ( const char* )lhs )[ i ] - ( ( const char* )rhs )[ i ];
     if( diff )
       return diff;
   }

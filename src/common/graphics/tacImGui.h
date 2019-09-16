@@ -73,6 +73,7 @@ bool TacImGuiSelectable( const TacString& str, bool selected );
 bool TacImGuiButton( const TacString& str );
 void TacImGuiCheckbox( const TacString& str, bool* value );
 bool TacImGuiDragFloat( const TacString& str, float* value );
+bool TacImGuiDragInt( const TacString& str, int* value );
 void TacImGuiDebugDraw();
 void TacImGuiSetGlobals(
   TacShell* shell,

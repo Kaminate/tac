@@ -15,15 +15,21 @@
 typedef int TacImGuiId;
 const int TacImGuiIdNull = -1;
 
-enum class TacDragFloatMode
+enum class TacDragMode
 {
   Drag,
   TextInput
 };
 
-struct TacDragFloatData
+struct TacDragData
 {
-  TacDragFloatMode mMode;
+  TacDragMode mMode = ( TacDragMode )0;
+  float mDragDistPx = 0;
+
+  // This is the value of the variable we are gizmoing for at the start of the mouse drag.
+  // That way, we can accumulate all the mouse drag pixels and apply them to ints in
+  // addition to floats
+  TacVector< char > mValueCopy;
 };
 
 struct TacImGuiIDAllocator
@@ -39,7 +45,6 @@ struct TacGroupData
   float mSavedLineHeight;
 };
 
-// move to cpp?
 struct TacImGuiWindow
 {
   TacImGuiWindow();
@@ -84,7 +89,9 @@ struct TacImGuiWindow
 
   TacTextInputData* inputData;
   std::map< TacImGuiId, bool > mCollapsingHeaderStates;
-  std::map< TacImGuiId, TacDragFloatData > mDragFloatDatas;
+
+  std::map< TacImGuiId, TacDragData > mDragDatas;
+
   bool mIsAppendingToMenu = false;
 };
 
@@ -862,11 +869,18 @@ void TacImGuiCheckbox( const TacString& str, bool* value )
     pos.y };
   drawData->AddText( textPos, gStyle.fontSize, str, gStyle.textColor, &clipRect );
 }
-bool TacImGuiDragFloat( const TacString& str, float* value )
+
+static bool TacImguiDragVal(
+  const TacString& str,
+  void* valueBytes,
+  int valueByteCount,
+  void( *valueToStringGetter )( TacString& to, const void* from ),
+  void( *valueFromStringSetter )( const TacString& from, void* to ),
+  void( *whatToDoWithMousePixel )( float mouseChangeSinceBeginningOfDrag, const void* valAtDragStart, void* curVal ) )
 {
-  float originalValue = *value;
   v4 backgroundBoxColor = { 1, 1, 0, 1 };
-  TacString valueStr = TacToString( *value );
+  TacString valueStr;
+  valueToStringGetter( valueStr, valueBytes );
 
   TacImGuiWindow* window = gTacImGuiGlobals.mCurrentWindow;
   TacKeyboardInput* keyboardInput = gTacImGuiGlobals.mKeyboardInput;
@@ -884,7 +898,13 @@ bool TacImGuiDragFloat( const TacString& str, float* value )
   if( clipped )
     return false;
 
-  auto& dragFloatData = window->mDragFloatDatas[ id ];
+  TacDragData& dragFloatData = window->mDragDatas[ id ];
+
+  // Only used to check if this function should return true/false because the value
+  // changed or didnt change
+  static TacVector< char > valueFrameCopy;
+  valueFrameCopy.resize(valueByteCount);
+  TacMemCpy( valueFrameCopy.data(), valueBytes, valueByteCount );
   v2 valuePos = {
     pos.x + gStyle.buttonPadding,
     pos.y };
@@ -895,7 +915,7 @@ bool TacImGuiDragFloat( const TacString& str, float* value )
   }
   if( window->GetActiveID() == id )
   {
-    if( dragFloatData.mMode == TacDragFloatMode::Drag )
+    if( dragFloatData.mMode == TacDragMode::Drag )
     {
       static float lastMouseXDesktopWindowspace;
       if( gTacImGuiGlobals.IsHovered( clipRect ) )
@@ -904,10 +924,15 @@ bool TacImGuiDragFloat( const TacString& str, float* value )
       {
         backgroundBoxColor.xyz() /= 2.0f;
         if( keyboardInput->IsKeyJustDown( TacKey::MouseLeft ) )
+        {
           lastMouseXDesktopWindowspace = gTacImGuiGlobals.mMousePositionDesktopWindowspace.x;
+          dragFloatData.mDragDistPx = 0;
+          dragFloatData.mValueCopy.resize( valueByteCount );
+          TacMemCpy( dragFloatData.mValueCopy.data(), valueBytes, valueByteCount );
+        }
+
         if( keyboardInput->mPrev.IsKeyDown( TacKey::MouseLeft ) )
         {
-
           float moveCursorDir = 0;
           if( gTacImGuiGlobals.mMousePositionDesktopWindowspace.x > clipRect.mMaxi.x )
             moveCursorDir = -1.0f;
@@ -935,7 +960,8 @@ bool TacImGuiDragFloat( const TacString& str, float* value )
             float dMousePx =
               gTacImGuiGlobals.mMousePositionDesktopWindowspace.x -
               lastMouseXDesktopWindowspace;
-            *value += dMousePx * 0.1f;
+            dragFloatData.mDragDistPx += dMousePx;
+            whatToDoWithMousePixel( dragFloatData.mDragDistPx, dragFloatData.mValueCopy.data(), valueBytes );
           }
         }
       }
@@ -959,7 +985,7 @@ bool TacImGuiDragFloat( const TacString& str, float* value )
           inputData->mCaretCount = 2;
           inputData->mNumGlyphsBeforeCaret[ 0 ] = 0;
           inputData->mNumGlyphsBeforeCaret[ 1 ] = codepoints.size();
-          dragFloatData.mMode = TacDragFloatMode::TextInput;
+          dragFloatData.mMode = TacDragMode::TextInput;
         }
         lastMouseReleaseSeconds = mouseReleaseSeconds;
         lastMousePositionDesktopWindowspace = gTacImGuiGlobals.mMousePositionDesktopWindowspace;
@@ -968,12 +994,12 @@ bool TacImGuiDragFloat( const TacString& str, float* value )
       //  window->mActiveID = TacImGuiIdNull;
     }
 
-    if( dragFloatData.mMode == TacDragFloatMode::TextInput )
+    if( dragFloatData.mMode == TacDragMode::TextInput )
     {
       TacTextInputDataUpdateKeys( inputData, valuePos );
       TacString newText;
       TacUTF8Converter::Convert( inputData->mCodepoints, newText );
-      *value = ( float )std::atof( newText.c_str() );
+      valueFromStringSetter( newText, valueBytes );
       valueStr = newText;
 
       if( keyboardInput->IsKeyJustDown( TacKey::Tab ) )
@@ -981,15 +1007,18 @@ bool TacImGuiDragFloat( const TacString& str, float* value )
     }
   }
 
-  if( dragFloatData.mMode == TacDragFloatMode::TextInput  && id != window->GetActiveID() )
-    dragFloatData.mMode = TacDragFloatMode::Drag;
+  if( dragFloatData.mMode == TacDragMode::TextInput && id != window->GetActiveID() )
+  {
+    dragFloatData.mMode = TacDragMode::Drag;
+    dragFloatData.mDragDistPx = 0;
+  }
 
   v2 backgroundBoxMaxi = {
     pos.x + totalSize.x * ( 2.0f / 3.0f ),
     pos.y + totalSize.y };
   drawData->AddBox( pos, backgroundBoxMaxi, backgroundBoxColor, nullptr, &clipRect );
 
-  if( dragFloatData.mMode == TacDragFloatMode::TextInput )
+  if( dragFloatData.mMode == TacDragMode::TextInput )
     TacTextInputDataDrawSelection( inputData, valuePos, &clipRect );
   drawData->AddText( valuePos, gStyle.fontSize, valueStr, v4( 0, 0, 0, 1 ), &clipRect );
 
@@ -998,8 +1027,55 @@ bool TacImGuiDragFloat( const TacString& str, float* value )
     pos.y };
   drawData->AddText( labelPos, gStyle.fontSize, str, gStyle.textColor, &clipRect );
 
-  return originalValue != *value;
+  return TacMemCmp( valueFrameCopy.data(), valueBytes, valueByteCount );
 }
+
+bool TacImGuiDragFloat( const TacString& str, float* value )
+{
+  auto getter = []( TacString& to, const void* from )
+  {
+    float i =  *( ( float* )from );
+    to = TacToString( i );
+  };
+  auto setter = []( const TacString& from, void* to )
+  {
+    float f = ( float )std::atof( from.c_str() );
+    *( ( float* )to ) = f;
+  };
+  auto whatToDoWithMousePixel = []( float mouseChangeSinceBeginningOfDrag, const void* valAtDragStart, void* curVal )
+  {
+    const float& valAtDragStartRef = *( const float* )valAtDragStart;
+    float& curValRef = *( float* )curVal;
+    const float offset = ( float )( mouseChangeSinceBeginningOfDrag * 0.1f );
+    curValRef = valAtDragStartRef + offset;
+  };
+  const bool result =  TacImguiDragVal( str, value, sizeof( float ), getter, setter, whatToDoWithMousePixel );
+  return result;
+}
+
+bool TacImGuiDragInt( const TacString& str, int* value )
+{
+  auto getter = []( TacString& to, const void* from )
+  {
+    int i =  *( ( int* )from );
+    to = TacToString( i );
+  };
+  auto setter = []( const TacString& from, void* to )
+  {
+    int i = std::atoi( from.c_str() );
+    *( ( int* )to ) = i;
+  };
+  auto whatToDoWithMousePixel = []( float mouseChangeSinceBeginningOfDrag, const void* valAtDragStart, void* curVal )
+  {
+    const int& valAtDragStartRef = *( const int* )valAtDragStart;
+    int& curValRef = *( int* )curVal;
+    const int offset = ( int )( mouseChangeSinceBeginningOfDrag / 50.0f );
+    curValRef = valAtDragStartRef + offset;
+  };
+  const bool result = TacImguiDragVal( str, value, sizeof( int ), getter, setter, whatToDoWithMousePixel );
+  return result;
+}
+
 bool TacImGuiCollapsingHeader( const TacString& name )
 {
   TacImGuiWindow* window = gTacImGuiGlobals.mCurrentWindow;
