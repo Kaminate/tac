@@ -12,9 +12,7 @@ struct TacSettings
   void Load( TacErrors& errors );
   void Save( TacErrors& errors );
 
-  // TODO:
-  //   these functions are useful for things outside of settings ( prefab loading ).
-  //   Move them into tacjson.h
+  // These all have the property where it calls TacSettings::Save
   bool GetBool(
     TacJson* root,
     const TacVector< TacString >& paths,

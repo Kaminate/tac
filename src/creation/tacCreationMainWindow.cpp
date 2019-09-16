@@ -208,6 +208,32 @@ void TacCreationMainWindow::CreateLayouts()
 
   mAreLayoutsCreated = true;
 }
+void TacCreationMainWindow::ImGuiWindows()
+{
+  TacImGuiText( "Windows" );
+  TacImGuiIndent();
+
+  // static because hackery ( the errors get saved in a lambda,
+  // which then turns into garbage when it goes out of scope... )
+  static TacErrors createWindowErrors;
+  if( TacImGuiButton( "System" ) )
+  {
+    mCreation->CreateSystemWindow( createWindowErrors );
+  }
+  if( TacImGuiButton( "Game" ) )
+  {
+    mCreation->CreateGameWindow( createWindowErrors );
+  }
+  if( TacImGuiButton( "Properties" ) )
+  {
+    mCreation->CreatePropertyWindow( createWindowErrors );
+  }
+  if( createWindowErrors.size() )
+  {
+    TacImGuiText( createWindowErrors.ToString() );
+  }
+  TacImGuiUnindent();
+}
 void TacCreationMainWindow::ImGui()
 {
   TacShell* shell = mDesktopApp->mShell;
@@ -261,20 +287,13 @@ void TacCreationMainWindow::ImGui()
     }
   }
 
-  if( TacImGuiButton( "Systems" ) )
-  {
-    // static because hackery ( the errors get saved in a lambda, which then turns into garbage when it goes out of scope... )
-    static TacErrors ignoredErrors;
-    mCreation->CreateSystemWindow(ignoredErrors);
-  }
+  ImGuiWindows();
 
   // to force directx graphics specific window debugging
   if( TacImGuiButton( "close window" ) )
   {
     mDesktopWindow->mRequestDeletion = true;
   }
-
-
 
   TacImGuiEnd();
 }

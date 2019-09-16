@@ -23,72 +23,44 @@ enum class TacJsonType
   Null
 };
 
+struct TacIndentation
+{
+  int spacesPerTab = 2;
+  int tabCount = 0;
+  bool convertTabsToSpaces = true;
+  TacString ToString();
+};
+
 // The function names Stringify and Parse mimic the built-in javascript api
 struct TacJson
 {
-  struct TacParseData
-  {
-    const char* mBytes;
-    int mByteCount;
-    int mIByte;
-  };
-  struct TacIndentation
-  {
-    int spacesPerTab = 2;
-    int tabCount = 0;
-    bool convertTabsToSpaces = true;
-    TacString ToString();
-  };
+
   TacJson();
-
-  //template< typename T > TacJson( const T& t ) { *this = t; }
-
-  // Used by some other client apis. unfortunately cant really combine this with the = operator
-  TacJson( const char* str ) { mType = TacJsonType::String; mString = str; }
-  TacJson( const TacString& s ) { mType = TacJsonType::String; mString = s; }
-  TacJson( TacJsonNumber number ) { mType = TacJsonType::Number; mNumber = number; }
-  TacJson( int number ) { mType = TacJsonType::Number; mNumber = ( TacJsonNumber )number; }
-  TacJson( bool b ) { mType = TacJsonType::Bool; mBoolean = b; }
+  TacJson( const char* str );
+  TacJson( const TacString& s );
+  TacJson( TacJsonNumber number );
+  TacJson( int number );
+  TacJson( bool b );
   TacJson( const TacJson& other );
-
   ~TacJson();
   void Clear();
   TacString Stringify( TacIndentation* indentation ) const;
   TacString Stringify() const;
-  TacString CharToString( char c ) const;
-  TacString Surround( const TacString& inner, const TacString& outer ) const;
-  TacString DoubleQuote( const TacString& s ) const;
-  void ByteEat( TacParseData* parseData, char& c, TacErrors& errors );
-  void EatRestOfLine( TacParseData* parseData, TacErrors& errors );
-  void BytePeek( TacParseData* parseData, char& c, TacErrors& errors );
-  void BytePeekUnchecked( TacParseData* parseData, char& c );
-  void ByteIncrement( TacParseData* parseData, int byteCount = 1 );
-  void UnexpectedCharacter( char c, TacErrors& errors );
-  void ExpectCharacter( char c, char expected, TacErrors& errors );
-  void SkipLeadingWhitespace( TacParseData* parseData );
-  void ParseNumber( TacParseData* parseData, TacJsonNumber& jsonNumber, TacErrors& errors );
-  void ParseString( TacParseData* parseData, TacString& stringToParse, TacErrors& errors );
-  void ParseStringExpected( TacParseData* parseData, const TacString& expected, TacErrors& errors );
-  void ParseObject( TacParseData* parseData, TacErrors& errors );
-  void ParseArray( TacParseData* parseData, TacErrors& errors );
-  void ParseUnknownType(
-    TacParseData* parseData,
-    TacErrors& errors );
   void Parse( const char* bytes, int byteCount, TacErrors& errors );
   void Parse( const TacString& s, TacErrors& errors );
 
-  // TODO: replace with string view
   TacJson& operator[]( const TacString& key );
-
+  TacJson& operator[]( const char* key );
   void operator = ( const TacJson& json );
   void operator = ( const TacJson* json );
-
-  // Client api, ie: settings[ "foo" ][ "bar" ] = qux;
-  void operator = ( const char* str ){ mType = TacJsonType::String; mString = str; }
-  void operator = ( const TacString& s ){  mType = TacJsonType::String; mString = s;}
-  void operator = ( TacJsonNumber number ){  mType = TacJsonType::Number; mNumber = number;}
-  void operator = ( int number ){  mType = TacJsonType::Number; mNumber = ( int )number;}
-  void operator = ( bool b ) {  mType = TacJsonType::Bool; mBoolean = b;}
+  void operator = ( const char* str );
+  void operator = ( const TacString& str );
+  void operator = ( TacJsonNumber number );
+  void operator = ( int number );
+  void operator = ( bool b );
+  operator TacString ();
+  operator TacJsonNumber ();
+  operator bool ();
 
   std::map< TacString, TacJson* > mChildren;
   TacString mString;

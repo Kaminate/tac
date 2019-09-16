@@ -1,6 +1,326 @@
 #include "tacJson.h"
 #include "tacAlgorithm.h"
 
+
+
+static TacString CharToString( char c )
+{
+  return TacString( 1, c );
+}
+static TacString Surround( const TacString& inner, const TacString& outer )
+{
+  return outer + inner + outer;
+}
+static TacString DoubleQuote( const TacString& s )
+{
+  return Surround( s, CharToString( '\"' ) );
+}
+static void ExpectCharacter( char c, char expected, TacErrors& errors )
+{
+  if( c == expected )
+    return;
+  errors += "Unexpected character " + CharToString( c ) + ", expected " + CharToString( expected );
+}
+
+struct TacParseData
+{
+  const char* mBytes;
+  int mByteCount;
+  int mIByte;
+
+  void ByteEat(  char& c, TacErrors& errors );
+  void BytePeek(  char& c, TacErrors& errors );
+  void BytePeekUnchecked(  char& c );
+  void ByteIncrement(  int byteCount = 1 );
+
+  void EatRestOfLine(  TacErrors& errors );
+  void SkipLeadingWhitespace();
+
+  void ParseNumber(  TacJsonNumber& jsonNumber, TacErrors& errors );
+  void ParseString(  TacString& stringToParse, TacErrors& errors );
+  void ParseStringExpected(  const TacString& expected, TacErrors& errors );
+};
+
+void TacParseData::ByteEat(  char& c, TacErrors& errors )
+{
+  BytePeek( c, errors );
+  ByteIncrement();
+}
+
+void TacParseData::BytePeek(  char& c, TacErrors& errors )
+{
+  if( mIByte >= mByteCount )
+  {
+    errors = "Expected more bytes";
+    return;
+  }
+  BytePeekUnchecked( c );
+}
+
+void TacParseData::BytePeekUnchecked(  char& c )
+{
+  c = mBytes[ mIByte ];
+}
+
+void TacParseData::ByteIncrement( int byteCount )
+{
+  mIByte += byteCount;
+}
+
+void TacParseData::EatRestOfLine( TacErrors& errors )
+{
+  for( ;; )
+  {
+    char c;
+    ByteEat( c, errors );
+    TAC_HANDLE_ERROR( errors );
+    if( c == '\n' )
+      return;
+  }
+}
+
+void TacParseData::ParseNumber( TacJsonNumber& jsonNumber, TacErrors& errors )
+{
+  SkipLeadingWhitespace();
+  TacString s;
+  char c;
+  while( mIByte < mByteCount )
+  {
+    BytePeekUnchecked( c );
+    bool validCharater = isdigit( c )
+      || c == '.'
+      || c == 'e'
+      || c == 'E'
+      || c == '+'
+      || c == '-';
+    if( !validCharater )
+      break;
+    s += c;
+    ByteIncrement();
+  }
+  if( s.empty() )
+  {
+    errors = "No digits";
+    return;
+  }
+  jsonNumber = atof( s.c_str() );
+}
+
+void TacParseData::ParseString(  TacString& stringToParse, TacErrors& errors )
+{
+  char c;
+  SkipLeadingWhitespace();
+  ByteEat( c, errors );
+  TAC_HANDLE_ERROR( errors );
+  ExpectCharacter( c, '\"', errors );
+  TAC_HANDLE_ERROR( errors );
+  stringToParse.clear();
+  for( ;; )
+  {
+    ByteEat( c, errors );
+    TAC_HANDLE_ERROR( errors );
+    if( c == '\"' )
+      return;
+    stringToParse += c;
+  }
+}
+
+void TacParseData::ParseStringExpected(  const TacString& expected, TacErrors& errors )
+{
+  int expectedByteCount = expected.size();
+  int remainingByteCount = mByteCount - mIByte;
+  if( remainingByteCount < expectedByteCount )
+  {
+    errors = "Not enough bytes";
+    TAC_HANDLE_ERROR( errors );
+  }
+  TacString actual( mBytes + mIByte, expectedByteCount );
+  ByteIncrement( expectedByteCount );
+  if( actual != expected )
+  {
+    errors = "Expected " + expected + ", actual " + actual;
+    TAC_HANDLE_ERROR( errors );
+  }
+}
+
+void TacParseData::SkipLeadingWhitespace()
+{
+  char c;
+  while( mIByte < mByteCount )
+  {
+    BytePeekUnchecked( c );
+    if( !isspace( c ) )
+      break;
+    ByteIncrement();
+  }
+}
+
+void ParseObject( TacJson* json, TacParseData* parseData, TacErrors& errors );
+void ParseArray( TacJson* json, TacParseData* parseData, TacErrors& errors );
+
+static void ParseUnknownType( TacJson* json, TacParseData* parseData, TacErrors& errors )
+{
+  char c;
+  json->Clear();
+  parseData->SkipLeadingWhitespace( );
+  parseData->BytePeek( c, errors );
+  TAC_HANDLE_ERROR( errors );
+  if( c == '{' )
+  {
+    ParseObject( json, parseData, errors );
+  }
+  else if( c == '[' )
+  {
+    ParseArray( json, parseData, errors );
+  }
+  else if( c == '\"' )
+  {
+    TacString s;
+    parseData->ParseString( s, errors );
+    TAC_HANDLE_ERROR( errors );
+    *json = TacJson( s );
+  }
+  else if( isdigit( c ) || c == '-' || c == '.' )
+  {
+    TacJsonNumber number;
+    parseData->ParseNumber( number, errors );
+    TAC_HANDLE_ERROR( errors );
+    *json = TacJson( number );
+  }
+  else if( c == 'n' )
+  {
+    parseData->ParseStringExpected( "null", errors );
+    TAC_HANDLE_ERROR( errors );
+    json->mType = TacJsonType::Null;
+  }
+  else if( c == 't' )
+  {
+    parseData->ParseStringExpected( "true", errors );
+    TAC_HANDLE_ERROR( errors );
+    *json = TacJson( true );
+  }
+  else if( c == 'f' )
+  {
+    parseData->ParseStringExpected( "false", errors );
+    TAC_HANDLE_ERROR( errors );
+    *json = TacJson( false );
+  }
+  else if( c == '/' )
+  {
+    parseData->EatRestOfLine( errors );
+    TAC_HANDLE_ERROR( errors );
+    ParseUnknownType( json, parseData, errors );
+  }
+  else
+  {
+    errors = "Unexpected character: " + c;
+  }
+}
+
+static void ParseObject( TacJson* json, TacParseData* parseData, TacErrors& errors )
+{
+  char c;
+  parseData->SkipLeadingWhitespace();
+  parseData->ByteEat( c, errors );
+  TAC_HANDLE_ERROR( errors );
+  ExpectCharacter( c, '{', errors );
+  TAC_HANDLE_ERROR( errors );
+  TacString key;
+  enum class TacParseObjectStep
+  {
+    Key,
+    Colon,
+    ValuePre,
+    ValuePost
+  };
+
+  std::map< TacString, TacJson* > children;
+  for( ;; )
+  {
+    parseData->SkipLeadingWhitespace();
+    parseData->BytePeek( c, errors );
+    TAC_HANDLE_ERROR( errors );
+    if( c == '}' )
+    {
+      parseData->ByteIncrement();
+      break;
+    }
+    if( c == ',' )
+    {
+      parseData->ByteIncrement();
+      continue;
+    }
+    if( c == '/' )
+    {
+      parseData->EatRestOfLine( errors );
+      TAC_HANDLE_ERROR( errors );
+      continue;
+    }
+    ExpectCharacter( c, '\"', errors );
+    TAC_HANDLE_ERROR( errors );
+    parseData->ParseString( key, errors );
+    TAC_HANDLE_ERROR( errors );
+    if( key.empty() )
+    {
+      errors = "Empty key";
+      TAC_HANDLE_ERROR( errors );
+    }
+    parseData->SkipLeadingWhitespace();
+    parseData->ByteEat( c, errors );
+    TAC_HANDLE_ERROR( errors );
+    ExpectCharacter( c, ':', errors );
+    TAC_HANDLE_ERROR( errors );
+    auto child = new TacJson();
+    ParseUnknownType( child, parseData, errors );
+    TAC_HANDLE_ERROR( errors );
+    children[ key ] = child;
+  }
+
+  json->mType = TacJsonType::Object;
+  json->mChildren = children;
+}
+
+static void ParseArray( TacJson* json, TacParseData* parseData, TacErrors& errors )
+{
+  char c;
+  TacVector< TacJson* > elements;
+  parseData->SkipLeadingWhitespace();
+  parseData->ByteEat( c, errors );
+  TAC_HANDLE_ERROR( errors );
+  ExpectCharacter( c, '[', errors );
+  TAC_HANDLE_ERROR( errors );
+  for( ;; )
+  {
+    parseData->SkipLeadingWhitespace();
+    parseData->BytePeek( c, errors );
+    TAC_HANDLE_ERROR( errors );
+    if( c == ']' )
+    {
+      parseData->ByteIncrement();
+      break;
+    }
+    if( c == ',' )
+    {
+      parseData->ByteIncrement();
+      continue;
+    }
+    if( '/' == c )
+    {
+      parseData->EatRestOfLine( errors );
+      TAC_HANDLE_ERROR( errors );
+      continue;
+    }
+    auto child = new TacJson();
+    ParseUnknownType( child, parseData, errors );
+    TAC_HANDLE_ERROR( errors );
+
+    elements.push_back( child );
+  }
+
+  json->mType = TacJsonType::Array;
+  json->mElements = elements;
+}
+
 TacJson::TacJson()
 {
   // Why?
@@ -9,30 +329,15 @@ TacJson::TacJson()
   // it contains a json object
   mType = TacJsonType::Object;
 }
+TacJson::TacJson( const char* str ) { mType = TacJsonType::String; mString = str; }
+TacJson::TacJson( const TacString& s ) { mType = TacJsonType::String; mString = s; }
 TacJson::TacJson( const TacJson& other )
 {
   *this = other;
 }
-//TacJson::TacJson( const char* str )
-//{
-//  mType = TacJsonType::String;
-//  mString = str;
-//}
-//TacJson::TacJson( const TacString& s )
-//{
-//  mType = TacJsonType::String;
-//  mString = s;
-//}
-//TacJson::TacJson( TacJsonNumber number )
-//{
-//  mType = TacJsonType::Number;
-//  mNumber = number;
-//}
-//TacJson::TacJson( bool b )
-//{
-//  mType = TacJsonType::Bool;
-//  mBoolean = b;
-//}
+TacJson::TacJson( TacJsonNumber number ) { mType = TacJsonType::Number; mNumber = number; }
+TacJson::TacJson( int number ) { mType = TacJsonType::Number; mNumber = ( TacJsonNumber )number; }
+TacJson::TacJson( bool b ) { mType = TacJsonType::Bool; mBoolean = b; }
 TacJson::~TacJson()
 {
   Clear();
@@ -106,306 +411,21 @@ TacString TacJson::Stringify() const
   TacIndentation indentation;
   return Stringify( &indentation );
 }
-// Make this static?
-TacString TacJson::CharToString( char c ) const
-{
-  return TacString( 1, c );
-}
-// Make this static?
-TacString TacJson::Surround( const TacString& inner, const TacString& outer ) const
-{
-  return outer + inner + outer;
-}
-TacString TacJson::DoubleQuote( const TacString& s ) const
-{
-  return Surround( s, CharToString( '\"' ) );
-}
-void TacJson::ByteEat( TacParseData* parseData, char& c, TacErrors& errors )
-{
-  BytePeek( parseData, c, errors );
-  ByteIncrement( parseData );
-}
-void TacJson::BytePeek( TacParseData* parseData, char& c, TacErrors& errors )
-{
-  if( parseData->mIByte >= parseData->mByteCount )
-  {
-    errors = "Expected more bytes";
-    return;
-  }
-  BytePeekUnchecked( parseData, c );
-}
-// Make this static?
-void TacJson::BytePeekUnchecked( TacParseData* parseData, char& c )
-{
-  c = parseData->mBytes[ parseData->mIByte ];
-}
-// Make this static?
-void TacJson::ByteIncrement( TacParseData* parseData, int byteCount )
-{
-  parseData->mIByte += byteCount;
-}
-void TacJson::UnexpectedCharacter( char c, TacErrors& errors )
-{
-  errors += "Unexpected character " + CharToString( c );
-}
-void TacJson::ExpectCharacter( char c, char expected, TacErrors& errors )
-{
-  if( c == expected )
-    return;
-  UnexpectedCharacter( c, errors );
-  errors += ", expected " + CharToString( expected );
-}
-void TacJson::SkipLeadingWhitespace( TacParseData* parseData )
-{
-  char c;
-  while( parseData->mIByte < parseData->mByteCount )
-  {
-    BytePeekUnchecked( parseData, c );
-    if( !isspace( c ) )
-      break;
-    ByteIncrement( parseData );
-  }
-}
-void TacJson::ParseNumber( TacParseData* parseData, TacJsonNumber& jsonNumber, TacErrors& errors )
-{
-  SkipLeadingWhitespace( parseData );
-  TacString s;
-  char c;
-  while( parseData->mIByte < parseData->mByteCount )
-  {
-    BytePeekUnchecked( parseData, c );
-    bool validCharater = isdigit( c )
-      || c == '.'
-      || c == 'e'
-      || c == 'E'
-      || c == '+'
-      || c == '-';
-    if( !validCharater )
-      break;
-    s += c;
-    ByteIncrement( parseData );
-  }
-  if( s.empty() )
-  {
-    errors = "No digits";
-    return;
-  }
-  jsonNumber = atof( s.c_str() );
-}
-void TacJson::ParseString( TacParseData* parseData, TacString& stringToParse, TacErrors& errors )
-{
-  char c;
-  SkipLeadingWhitespace( parseData );
-  ByteEat( parseData, c, errors );
-  TAC_HANDLE_ERROR( errors );
-  ExpectCharacter( c, '\"', errors );
-  TAC_HANDLE_ERROR( errors );
-  stringToParse.clear();
-  for( ;; )
-  {
-    ByteEat( parseData, c, errors );
-    TAC_HANDLE_ERROR( errors );
-    if( c == '\"' )
-      return;
-    stringToParse += c;
-  }
-}
-void TacJson::ParseStringExpected( TacParseData* parseData, const TacString& expected, TacErrors& errors )
-{
-  int expectedByteCount = expected.size();
-  int remainingByteCount = parseData->mByteCount - parseData->mIByte;
-  if( remainingByteCount < expectedByteCount )
-  {
-    errors = "Not enough bytes";
-    TAC_HANDLE_ERROR( errors );
-  }
-  TacString actual( parseData->mBytes + parseData->mIByte, expectedByteCount );
-  ByteIncrement( parseData, expectedByteCount );
-  if( actual != expected )
-  {
-    errors = "Expected " + expected + ", actual " + actual;
-    TAC_HANDLE_ERROR( errors );
-  }
-}
-void TacJson::ParseObject( TacParseData* parseData, TacErrors& errors )
-{
-  char c;
-  SkipLeadingWhitespace( parseData );
-  ByteEat( parseData, c, errors );
-  if( errors.size() )
-  {
-    static int a;
-    a++;
-  }
-  TAC_HANDLE_ERROR( errors );
-  ExpectCharacter( c, '{', errors );
-  TAC_HANDLE_ERROR( errors );
-  TacString key;
-  enum class TacParseObjectStep
-  {
-    Key,
-    Colon,
-    ValuePre,
-    ValuePost
-  };
-  //TacParseObjectStep parseObjectStep = TacParseObjectStep::Key;
-  for( ;; )
-  {
-    SkipLeadingWhitespace( parseData );
-    BytePeek( parseData, c, errors );
-    TAC_HANDLE_ERROR( errors );
-    if( c == '}' )
-    {
-      ByteIncrement( parseData );
-      return;
-    }
-    if( c == ',' )
-    {
-      ByteIncrement( parseData );
-      continue;
-    }
-    if( c == '/' )
-    {
-      EatRestOfLine( parseData, errors );
-      TAC_HANDLE_ERROR( errors );
-      continue;
-    }
-    ExpectCharacter( c, '\"', errors );
-    TAC_HANDLE_ERROR( errors );
-    ParseString( parseData, key, errors );
-    TAC_HANDLE_ERROR( errors );
-    if( key.empty() )
-    {
-      errors = "Empty key";
-      return;
-    }
-    SkipLeadingWhitespace( parseData );
-    ByteEat( parseData, c, errors );
-    TAC_HANDLE_ERROR( errors );
-    ExpectCharacter( c, ':', errors );
-    TAC_HANDLE_ERROR( errors );
-    auto child = new TacJson();
-    child->ParseUnknownType( parseData, errors );
-    TAC_HANDLE_ERROR( errors );
-    mChildren[ key ] = child;
-  }
-}
-void TacJson::ParseArray( TacParseData* parseData, TacErrors& errors )
-{
-  char c;
-  mType = TacJsonType::Array;
-  SkipLeadingWhitespace( parseData );
-  ByteEat( parseData, c, errors );
-  TAC_HANDLE_ERROR( errors );
-  ExpectCharacter( c, '[', errors );
-  TAC_HANDLE_ERROR( errors );
-  for( ;; )
-  {
-    SkipLeadingWhitespace( parseData );
-    BytePeek( parseData, c, errors );
-    TAC_HANDLE_ERROR( errors );
-    if( c == ']' )
-    {
-      ByteIncrement( parseData );
-      return;
-    }
-    if( c == ',' )
-    {
-      ByteIncrement( parseData );
-      continue;
-    }
-    if( '/' == c )
-    {
-      EatRestOfLine( parseData, errors );
-      TAC_HANDLE_ERROR( errors );
-      continue;
-    }
-    auto child = new TacJson();
-    child->ParseUnknownType( parseData, errors );
-    TAC_HANDLE_ERROR( errors );
-    mElements.push_back( child );
-  }
-}
-void TacJson::EatRestOfLine( TacParseData* parseData, TacErrors& errors )
-{
-  for( ;; )
-  {
-    char c;
-    ByteEat( parseData, c, errors );
-    TAC_HANDLE_ERROR( errors );
-    if( c == '\n' )
-      return;
-  }
-}
-void TacJson::ParseUnknownType(
-  TacParseData* parseData,
-  TacErrors& errors )
-{
-  char c;
-  Clear();
-  SkipLeadingWhitespace( parseData );
-  BytePeek( parseData, c, errors );
-  TAC_HANDLE_ERROR( errors );
-  if( c == '{' )
-  {
-    ParseObject( parseData, errors );
-  }
-  else if( c == '[' )
-  {
-    ParseArray( parseData, errors );
-  }
-  else if( c == '\"' )
-  {
-    ParseString( parseData, mString, errors );
-    TAC_HANDLE_ERROR( errors );
-    mType = TacJsonType::String;
-  }
-  else if( isdigit( c ) || c == '-' || c == '.' )
-  {
-    ParseNumber( parseData, mNumber, errors );
-    TAC_HANDLE_ERROR( errors );
-    mType = TacJsonType::Number;
-  }
-  else if( c == 'n' )
-  {
-    ParseStringExpected( parseData, "null", errors );
-    TAC_HANDLE_ERROR( errors );
-    mType = TacJsonType::Null;
-  }
-  else if( c == 't' )
-  {
-    ParseStringExpected( parseData, "true", errors );
-    TAC_HANDLE_ERROR( errors );
-    mType = TacJsonType::Bool;
-    mBoolean = true;
-  }
-  else if( c == 'f' )
-  {
-    ParseStringExpected( parseData, "false", errors );
-    TAC_HANDLE_ERROR( errors );
-    mType = TacJsonType::Bool;
-    mBoolean = false;
-  }
-  else if( c == '/' )
-  {
-    EatRestOfLine( parseData, errors );
-    TAC_HANDLE_ERROR( errors );
-    ParseUnknownType( parseData, errors );
-  }
-  else
-  {
-    UnexpectedCharacter( c, errors );
-  }
-}
+
 void TacJson::Parse( const char* bytes, int byteCount, TacErrors& errors )
 {
   TacParseData parseData = { bytes, byteCount, 0 };
-  ParseObject( &parseData, errors );
+  ParseUnknownType( this, &parseData, errors );
 }
 void TacJson::Parse( const TacString& s, TacErrors& errors )
 {
-  TacParseData parseData = { s.data(), ( int )s.size(), 0 };
-  ParseObject( &parseData, errors );
+  Parse( s.data(), s.size(), errors );
+}
+
+
+TacJson& TacJson::operator[]( const char* key )
+{
+  return ( *this )[ TacString( key ) ];
 }
 TacJson& TacJson::operator[]( const TacString& key )
 {
@@ -443,9 +463,17 @@ void TacJson::operator = ( const TacJson& json )
     mElements.push_back( childCopy );
   }
 }
+void TacJson::operator = ( const char* str ){ *this = TacJson( str ); }
+void TacJson::operator = ( const TacString& str ){ *this = TacJson( str ); }
+void TacJson::operator = ( TacJsonNumber number ){ *this = TacJson( number ); }
+void TacJson::operator = ( int number ){ *this = TacJson( number ); }
+void TacJson::operator = ( bool b ) { *this = TacJson( b ); }
+TacJson::operator TacString() { return mString; }
+TacJson::operator TacJsonNumber() { return mNumber; }
+TacJson::operator bool() { return mBoolean; }
 
 
-TacString TacJson::TacIndentation::ToString()
+TacString TacIndentation::ToString()
 {
   TacString spacer;
   if( convertTabsToSpaces )

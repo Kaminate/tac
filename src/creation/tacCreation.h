@@ -66,7 +66,15 @@ struct TacCreation
 
   void ModifyPathRelative( TacString& path );
   void DeleteSelectedEntities();
+
+  void CreatePropertyWindow( TacErrors& errors );
+  void CreateGameWindow( TacErrors& errors );
+  void CreateMainWindow( TacErrors& errors );
   void CreateSystemWindow( TacErrors& errors );
+
+  void CreateDesktopWindow( TacString windowName, TacDesktopWindow** outDesktopWindow,  TacErrors& errors );
+  bool HasWindowNamed( TacJson* windows, const TacString& name );
+  void GetWindowsJson( TacJson** outJson, TacErrors& errors );
 
   TacDesktopApp* mDesktopApp = nullptr;
   TacCreationMainWindow* mMainWindow = nullptr;

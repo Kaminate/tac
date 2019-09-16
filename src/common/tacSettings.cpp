@@ -17,7 +17,6 @@ void TacSettings::Load( TacErrors& errors )
 void TacSettings::Save( TacErrors& errors )
 {
   TacString str = mJson.Stringify();
-  //TacSaveToFile( mPath, ( void* )str.data(), ( int )str.size(), errors );
   TacOS::Instance->SaveToFile( mPath, ( void* )str.data(), ( int )str.size(), errors );
   TAC_HANDLE_ERROR( errors );
 }
