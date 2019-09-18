@@ -1,6 +1,7 @@
 #pragma once
 #include "common/containers/tacVector.h"
 #include "common/math/tacVector3.h"
+#include "common/math/tacMatrix4.h"
 #include "common/tacErrorHandling.h"
 #include "space/taccomponent.h"
 
@@ -50,8 +51,10 @@ struct TacTerrain : public TacComponent
   TacString mHeightmapTexturePath = "assets/heightmap.png";
   int mTestHeightmapWidth;
   int mTestHeightmapHeight;
+  float mPower = 1;
   TacVector< uint8_t > mTestHeightmapImageMemory;
   TacErrors mTestHeightmapLoadErrors;
+  m4 mWorldCreationTransform = {};
 };
 
 extern int asdfDEBUG;

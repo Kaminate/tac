@@ -8,6 +8,7 @@
 #include "common/tacJson.h"
 #include "common/tacMemory.h"
 #include "common/thirdparty/stb_image.h"
+#include "common/math/tacMath.h"
 
 TacComponentRegistryEntry* TacTerrain::TerrainComponentRegistryEntry;
 
@@ -100,10 +101,20 @@ void TacTerrain::PopulateGrid()
 {
   TacTerrain* terrain = this;
 
+
+  if( TacMemCmp( mEntity->mWorldTransform.data(), mWorldCreationTransform.data(), sizeof( m4 ) ) )
+    terrain->mGrid.clear();
+
   if( !terrain->mGrid.empty() )
     return;
-  if( mSideVertexCount < 2 )
-    mSideVertexCount = 2; // quad
+
+  if( mTestHeightmapImageMemory.empty() )
+    return;
+
+  mSideVertexCount = TacMax( mSideVertexCount, 2 );
+  mPower = TacMax( mPower, 1.0f );
+
+  mWorldCreationTransform = mEntity->mWorldTransform;
 
   float width = mSideLength;
   float height = mSideLength;
@@ -118,6 +129,8 @@ void TacTerrain::PopulateGrid()
       int heightmapY = ( int )( zPercent * ( mTestHeightmapHeight - 1 ) );
       uint8_t heightmapValue = mTestHeightmapImageMemory[ heightmapX + heightmapY * mTestHeightmapWidth ];
       float heightmapPercent = heightmapValue / 255.0f;
+      heightmapPercent *= heightmapPercent;
+      heightmapPercent = TacPow( heightmapPercent, mPower );
 
       v3 pos;
       pos.x = xPercent * width;
@@ -127,6 +140,9 @@ void TacTerrain::PopulateGrid()
       const float halfWidth = mSideLength / 2.0f;
       pos.x -= halfWidth;
       pos.z -= halfWidth;
+
+      //pos += mWorldCreationPoint;
+      pos = ( mEntity->mWorldTransform * v4( pos, 1.0f ) ).xyz();
 
       terrain->mGrid.push_back( pos );
     }
@@ -138,6 +154,9 @@ void TacTerrain::DebugDraw()
   TacWorld* world = mEntity->mWorld;
   TacDebug3DDrawData* debug3DDrawData = world->mDebug3DDrawData;
   v3 gridColor = { 0, 0, 0 };
+
+  if( mGrid.empty() )
+    return;
 
   for( int iRow = 0; iRow < mSideVertexCount; ++iRow )
   {

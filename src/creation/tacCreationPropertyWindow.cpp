@@ -94,19 +94,19 @@ void TacCreationPropertyWindow::Update( TacErrors& errors )
     static TacString occupation = "Bartender";
     TacImGuiInputText( "Name", entity->mName );
     TacImGuiText( "UUID: " + TacToString( ( TacUUID )entity->mEntityUUID ) );
-    TacImGuiDragFloat( "X Position: ", &entity->mLocalPosition.x );
-    TacImGuiDragFloat( "Y Position: ", &entity->mLocalPosition.y );
-    TacImGuiDragFloat( "Z Position: ", &entity->mLocalPosition.z );
-    TacImGuiDragFloat( "X Scale: ", &entity->mLocalScale.x );
-    TacImGuiDragFloat( "Y Scale: ", &entity->mLocalScale.y );
-    TacImGuiDragFloat( "Z Scale: ", &entity->mLocalScale.z );
-    v3 rotDeg = entity->mLocalEulerRads * ( 180.0f / 3.14f );
+    TacImGuiDragFloat( "X Position: ", &entity->mRelativeSpace.mPosition.x );
+    TacImGuiDragFloat( "Y Position: ", &entity->mRelativeSpace.mPosition.y );
+    TacImGuiDragFloat( "Z Position: ", &entity->mRelativeSpace.mPosition.z );
+    TacImGuiDragFloat( "X Scale: ", &entity->mRelativeSpace.mScale.x );
+    TacImGuiDragFloat( "Y Scale: ", &entity->mRelativeSpace.mScale.y );
+    TacImGuiDragFloat( "Z Scale: ", &entity->mRelativeSpace.mScale.z );
+    v3 rotDeg = entity->mRelativeSpace.mEulerRads * ( 180.0f / 3.14f );
     bool changed = false;
     changed |= TacImGuiDragFloat( "X Eul Deg: ", &rotDeg.x );
     changed |= TacImGuiDragFloat( "Y Eul Deg: ", &rotDeg.y );
     changed |= TacImGuiDragFloat( "Z Eul Deg: ", &rotDeg.z );
     if( changed )
-      entity->mLocalEulerRads = rotDeg * ( 3.14f / 180.0f );
+      entity->mRelativeSpace.mEulerRads = rotDeg * ( 3.14f / 180.0f );
     TacVector< TacComponentRegistryEntry* > addableComponentTypes;
 
     if( entity->mParent )

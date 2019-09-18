@@ -68,6 +68,9 @@ struct TacCreationGameWindow
   TacMesh* mCenteredUnitCube = nullptr;
   v3 worldSpaceMouseDir = {};
   float mArrowLen = 0;
+
+  TacString mStatusMessage;
+  double mStatusMessageEndTime = 0;
 };
 
 

@@ -44,7 +44,7 @@ TacUser::TacUser( TacGhost* ghost, const TacString& name, TacErrors& errors )
   if( mGhost->mShouldPopulateWorldInitial )
   {
     TacEntity* entity = serverData->SpawnEntity();
-    entity->mLocalPosition = v3(
+    entity->mRelativeSpace.mPosition = v3(
       TacRandomFloatMinus1To1() * 3.0f,
       5.2f,
       TacRandomFloatMinus1To1() * 3.0f );

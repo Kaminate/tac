@@ -1,10 +1,10 @@
 {
   "Terrain":
   {
-    "mHeight": 50,
-    "mHeightmapTexturePath": "assets/heightmap.png",
-    "mSideLength": 100,
-    "mSideVertexCount": 46
+    "mHeight": 78.400024,
+    "mHeightmapTexturePath": "assets/heightmaps/heightmap2.png",
+    "mSideLength": 1000,
+    "mSideVertexCount": 200
   },
   "mEntityUUID": 0,
   "mEulerRads":

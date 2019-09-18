@@ -474,6 +474,11 @@ void TacCreation::Update( TacErrors& errors )
     keyboardInput->IsKeyDown( TacKey::Modifier ) )
   {
     SavePrefabs();
+    if( mGameWindow )
+    {
+      mGameWindow->mStatusMessage = "Saved prefabs!";
+      mGameWindow->mStatusMessageEndTime = shell->mElapsedSeconds + 5.0f;
+    }
   }
 }
 TacEntity* TacCreation::CreateEntity()
@@ -510,7 +515,7 @@ v3 TacCreation::GetSelectionGizmoOrigin()
   {
     runningPosSum +=
       ( entity->mWorldTransform * v4( 0, 0, 0, 1 ) ).xyz();
-    entity->mLocalPosition;
+    entity->mRelativeSpace.mPosition;
     selectionCount++;
   }
   v3 averagePos = runningPosSum / ( float )selectionCount;

@@ -576,6 +576,12 @@ void TacCreationGameWindow::DrawPlaybackOverlay( TacErrors& errors )
       TAC_HANDLE_ERROR( errors );
     }
   }
+
+  if( mShell->mElapsedSeconds < mStatusMessageEndTime )
+  {
+    TacImGuiText( mStatusMessage );
+  }
+
   TacImGuiEnd();
 }
 void TacCreationGameWindow::CameraControls()
@@ -711,7 +717,7 @@ void TacCreationGameWindow::Update( TacErrors& errors )
       ( secondDist - mCreation->mTranslationGizmoOffset );
     for( TacEntity* entity : mCreation->mSelectedEntities )
     {
-      entity->mLocalPosition += translate;
+      entity->mRelativeSpace.mPosition += translate;
     }
     //for( TacPrefab* prefab : mCreation->mSelectedPrefabs )
     //{

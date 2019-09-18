@@ -24,6 +24,7 @@ float TacRandomFloatMinus1To1();
 float TacRandomFloatBetween( float a, float b );
 
 float TacEaseInOutQuart( float t );
+float TacPow( float base, float exp );
 
 int TacRoundUpToNearestMultiple( int numToRound, int multiple );
 

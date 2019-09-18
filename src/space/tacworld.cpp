@@ -184,20 +184,31 @@ void TacWorld::ApplyInput( TacPlayer* player, float seconds )
   //stuff->mWaddleParams.Update( player->mInputDirection, seconds );
   //stuff->zCCWEulerRotDeg = stuff->mWaddleParams.mAngle;
 }
-void TacWorld::ComputeTransformsRecursively( const m4& parentWorldTransformNoScale, TacEntity* entity )
+void TacWorld::ComputeTransformsRecursively( const m4& parentTransform, TacEntity* entity )
 {
-  m4 localTransform = M4Transform( entity->mLocalScale, entity->mLocalEulerRads, entity->mLocalPosition );
-  m4 localTransformNoScale = M4Transform( v3( 1, 1, 1 ), entity->mLocalEulerRads, entity->mLocalPosition );
-  m4 worldTransform = parentWorldTransformNoScale * localTransform;
-  m4 worldTransformNoScale = parentWorldTransformNoScale * localTransformNoScale;
+  m4 localTransform = M4Transform(
+    entity->mRelativeSpace.mScale,
+    entity->mRelativeSpace.mEulerRads,
+    entity->mRelativeSpace.mPosition );
+  m4 worldTransform = parentTransform * localTransform;
 
-  entity->mLocalTransform = localTransform;
+  m4 localTransformNoScale = M4Transform(
+    v3( 1, 1, 1 ),
+    entity->mRelativeSpace.mEulerRads,
+    entity->mRelativeSpace.mPosition );
+  m4 worldTransformNoScale = parentTransform * localTransformNoScale;
+
+  //entity->mLocalTransform = localTransform;
   entity->mWorldTransform = worldTransform;
-  entity->mWorldTransformNoScale = worldTransformNoScale;
+  entity->mWorldPosition = ( worldTransform * v4( 0, 0, 0, 1 ) ).xyz();
+  //entity->mWorldTransformNoScale = worldTransformNoScale;
 
   for( TacEntity* child : entity->mChildren )
   {
-    ComputeTransformsRecursively( worldTransformNoScale, child );
+    const m4* parentTransformForChild = &worldTransform;
+    if( !child->mInheritParentScale )
+      parentTransformForChild = &worldTransformNoScale;
+    ComputeTransformsRecursively( *parentTransformForChild, child );
   }
 }
 void TacWorld::Step( float seconds )

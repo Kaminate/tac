@@ -11,6 +11,13 @@ struct TacComponent;
 struct TacComponentRegistryEntry;
 struct TacJson;
 
+struct TacRelativeSpace
+{
+  v3 mPosition = {};
+  v3 mEulerRads = {};
+  v3 mScale = { 1, 1, 1 };
+};
+
 struct TacEntity
 {
   ~TacEntity();
@@ -37,19 +44,25 @@ struct TacEntity
   TacEntityUUID mEntityUUID = TacNullEntityUUID;
   std::list< TacComponent* > mComponents;
 
-  v3 mLocalPosition = {};
-  v3 mLocalEulerRads = {};
-  v3 mLocalScale = { 1, 1, 1 };
+  TacRelativeSpace mRelativeSpace;
+  bool mInheritParentScale = false;
 
-  m4 mLocalTransform;
+  v3 mWorldPosition = {};
   m4 mWorldTransform;
-  m4 mWorldTransformNoScale;
+
+  //v3 mLocalPosition = {};
+  //v3 mLocalEulerRads = {};
+  //v3 mLocalScale = { 1, 1, 1 };
+
+  //m4 mLocalTransform;
+
+  //m4 mWorldTransformNoScale;
 
   TacString mName;
 };
 
 const TacVector< TacNetworkBit > TacEntityBits =
 {
-  { "mPosition", TacOffsetOf( TacEntity, mLocalPosition ), sizeof( float ), 3 },
+  //{ "mPosition", TacOffsetOf( TacEntity, mLocalPosition ), sizeof( float ), 3 },
 };
 

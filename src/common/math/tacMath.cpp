@@ -1,6 +1,12 @@
 #include "common/math/tacMath.h"
 #include <cstdlib>
 #include <algorithm>
+#include <cmath>
+
+float TacPow( float base, float exp )
+{
+  return std::pow( base, exp );
+}
 
 float TacEaseInOutQuart( float t )
 {
