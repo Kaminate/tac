@@ -43,11 +43,9 @@ void TacCreationGameObjectMenuWindow::Init( TacErrors& errors )
 
   mUI2DDrawData = new TacUI2DDrawData;
   mUI2DDrawData->mRenderView = mDesktopWindow->mRenderView;
-  mUI2DDrawData->mUI2DCommonData = shell->mUI2DCommonData;
   mUIRoot = new TacUIRoot;
   mUIRoot->mUI2DDrawData = mUI2DDrawData;
   mUIRoot->mDesktopWindow = mDesktopWindow;
-  mUIRoot->mKeyboardInput = shell->mKeyboardInput;
 
   CreateLayouts();
 }

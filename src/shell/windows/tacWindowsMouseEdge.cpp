@@ -74,7 +74,7 @@ void TacWin32MouseEdgeHandler::Update( TacWin32DesktopWindow* window )
   if( mHandler )
   {
     mHandler->Update();
-    if( !mKeyboardInput->IsKeyDown( TacKey::MouseLeft ) )
+    if( !TacKeyboardInput::Instance->IsKeyDown( TacKey::MouseLeft ) )
     {
       delete mHandler;
       mHandler = nullptr;
@@ -109,7 +109,7 @@ void TacWin32MouseEdgeHandler::Update( TacWin32DesktopWindow* window )
     SetCursor( cursor );
     SetCursorLock( cursorLock );
   }
-  if( mKeyboardInput->IsKeyJustDown( TacKey::MouseLeft ) )
+  if( TacKeyboardInput::Instance->IsKeyJustDown( TacKey::MouseLeft ) )
   {
     if( cursorLock )
       mHandler = new ResizeHandler();

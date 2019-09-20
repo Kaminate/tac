@@ -37,10 +37,14 @@ struct TacMesh
 
 struct TacModelAssetManager
 {
+  static TacModelAssetManager* Instance;
+  TacModelAssetManager();
   ~TacModelAssetManager();
-  void GetMesh( TacMesh** mesh, const TacString& path, TacVertexFormat* vertexFormat, TacErrors& errors );
-  TacJobQueue* mJobQueue = nullptr;
-  TacRenderer* mRenderer = nullptr;
+  void GetMesh(
+    TacMesh** mesh,
+    const TacString& path,
+    TacVertexFormat* vertexFormat,
+    TacErrors& errors );
   std::map< TacString, TacMesh* > mMeshes;
 };
 

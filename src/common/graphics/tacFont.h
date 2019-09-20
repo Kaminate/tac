@@ -123,7 +123,6 @@ struct TacFontStuff
   TacFontAtlasCell* GetCell();
 
   TacTexture* mTexture = nullptr;
-  TacRenderer* mRenderer = nullptr;
   int mRowCount = 0;
   TacVector< TacFontAtlasCell* > mCells;
   TacVector< TacFontFile* > mFontFiles;

@@ -18,7 +18,6 @@ void TacCreationSystemWindow::Init( TacErrors& errors )
   TacShell* shell = mShell;
   mUI2DDrawData = new TacUI2DDrawData;
   mUI2DDrawData->mRenderView = mDesktopWindow->mRenderView;
-  mUI2DDrawData->mUI2DCommonData = shell->mUI2DCommonData;
 }
 void TacCreationSystemWindow::ImGui()
 {

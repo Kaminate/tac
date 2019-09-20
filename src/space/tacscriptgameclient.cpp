@@ -221,10 +221,9 @@ void TacScriptMatchmaker::TryConnect()
 void TacScriptMatchmaker::Update( float seconds, TacErrors& errors )
 {
   auto shell = mScriptRoot->mGhost->mShell;
-  auto net = shell->mNet;
   auto settings = shell->mSettings;
   TAC_TIMELINE_BEGIN;
-  mSocket = net->CreateSocket( "Matchmaking socket", TacAddressFamily::IPv4, TacSocketType::TCP, errors );
+  mSocket = TacNet::Instance->CreateSocket( "Matchmaking socket", TacAddressFamily::IPv4, TacSocketType::TCP, errors );
   TAC_HANDLE_ERROR( errors );
 
   auto tCPOnMessage = []( void* userData, TacSocket* socket, void* bytes, int byteCount )
@@ -402,7 +401,6 @@ void TacScriptMainMenu::Update( float seconds, TacErrors& errors )
   TacServerData* serverData = ghost->mServerData;
   TacWorld* world = serverData->mWorld;
   TacGraphics* graphics = TacGraphics::GetSystem( world );
-  TacRenderer* renderer = shell->mRenderer;
   float boxWidth = 5;
   if( false )
   {
@@ -465,7 +463,7 @@ void TacScriptMainMenu::Update( float seconds, TacErrors& errors )
     textureData.mName = "power";
     textureData.mStackFrame = TAC_STACK_FRAME;
     textureData.myImage = image;
-    renderer->AddTextureResource( &mPower, textureData, errors );
+    TacRenderer::Instance->AddTextureResource( &mPower, textureData, errors );
     TAC_HANDLE_ERROR( errors );
   }
 
@@ -887,8 +885,7 @@ void TacScriptMainMenu2::RenderMainMenu()
         TacImGuiText( mConnectToServerJob->mErrors.mMessage );
       if( TacImGuiButton( "Connect to server" ) )
       {
-        TacJobQueue* jobQueue = mScriptRoot->mGhost->mShell->mJobQueue;
-        jobQueue->Push( mConnectToServerJob );
+        TacJobQueue::Instance->Push( mConnectToServerJob );
       }
     }
   }

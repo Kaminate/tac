@@ -5,6 +5,7 @@
 #include "space/terrain/tacterraindebug.h"
 
 #include "common/graphics/tacDebug3D.h"
+#include "common/graphics/tacRenderer.h"
 #include "common/tacJson.h"
 #include "common/tacMemory.h"
 #include "common/thirdparty/stb_image.h"
@@ -17,7 +18,7 @@ static void TacTerrainSavePrefab( TacJson& json, TacComponent* component )
   auto terrain = ( TacTerrain* )component;
   json[ "mSideVertexCount" ] = terrain->mSideVertexCount;
   json[ "mSideLength" ] = terrain->mSideLength;
-  json[ "mHeight" ] = terrain->mHeight;
+  json[ "mHeight" ] = terrain->mUpwardsHeight;
   json[ "mHeightmapTexturePath" ] = terrain->mHeightmapTexturePath;
 }
 
@@ -26,7 +27,7 @@ static void TacTerrainLoadPrefab( TacJson& json, TacComponent* component )
   auto terrain = ( TacTerrain* )component;
   terrain->mSideVertexCount = ( int )json[ "mSideVertexCount" ].mNumber;
   terrain->mSideLength = ( float )json[ "mSideLength" ].mNumber;
-  terrain->mHeight = ( float )json[ "mHeight" ].mNumber;
+  terrain->mUpwardsHeight = ( float )json[ "mHeight" ].mNumber;
   terrain->mHeightmapTexturePath = json[ "mHeightmapTexturePath" ].mString;
 }
 
@@ -92,9 +93,9 @@ void TacTerrain::LoadTestHeightmap()
   stbi_image_free( loaded );
 }
 
-v3 TacTerrain::GetVal( int x, int y )
+v3 TacTerrain::GetGridVal( int iRow, int iCol )
 {
-  return mGrid[ x + y * this->mSideVertexCount ];
+  return mRowMajorGrid[ iCol + iRow * mSideVertexCount ];
 };
 
 void TacTerrain::PopulateGrid()
@@ -103,9 +104,9 @@ void TacTerrain::PopulateGrid()
 
 
   if( TacMemCmp( mEntity->mWorldTransform.data(), mWorldCreationTransform.data(), sizeof( m4 ) ) )
-    terrain->mGrid.clear();
+    terrain->mRowMajorGrid.clear();
 
-  if( !terrain->mGrid.empty() )
+  if( !terrain->mRowMajorGrid.empty() )
     return;
 
   if( mTestHeightmapImageMemory.empty() )
@@ -134,7 +135,7 @@ void TacTerrain::PopulateGrid()
 
       v3 pos;
       pos.x = xPercent * width;
-      pos.y = heightmapPercent * mHeight;
+      pos.y = heightmapPercent * mUpwardsHeight;
       pos.z = zPercent * height;
 
       const float halfWidth = mSideLength / 2.0f;
@@ -144,7 +145,7 @@ void TacTerrain::PopulateGrid()
       //pos += mWorldCreationPoint;
       pos = ( mEntity->mWorldTransform * v4( pos, 1.0f ) ).xyz();
 
-      terrain->mGrid.push_back( pos );
+      terrain->mRowMajorGrid.push_back( pos );
     }
   }
 }
@@ -155,28 +156,28 @@ void TacTerrain::DebugDraw()
   TacDebug3DDrawData* debug3DDrawData = world->mDebug3DDrawData;
   v3 gridColor = { 0, 0, 0 };
 
-  if( mGrid.empty() )
+  if( mRowMajorGrid.empty() )
     return;
 
   for( int iRow = 0; iRow < mSideVertexCount; ++iRow )
   {
     for( int iCol = 0; iCol < mSideVertexCount; ++iCol )
     {
-      const v3& topLeft = GetVal( iRow, iCol );
+      const v3& topLeft = GetGridVal( iRow, iCol );
 
       if( iCol + 1 < mSideVertexCount )
       {
-        const v3& topRight = GetVal( iRow, iCol + 1 );
+        const v3& topRight = GetGridVal( iRow, iCol + 1 );
         debug3DDrawData->DebugDrawLine( topLeft, topRight, gridColor );
       }
       if( iRow + 1 < mSideVertexCount )
       {
-        const v3& bottomLeft = GetVal( iRow + 1, iCol );
+        const v3& bottomLeft = GetGridVal( iRow + 1, iCol );
         debug3DDrawData->DebugDrawLine( topLeft, bottomLeft, gridColor );
       }
       if( iCol + 1 < mSideVertexCount && iRow + 1 < mSideVertexCount )
       {
-        const v3& bottomRight = GetVal( iRow + 1, iCol + 1 );
+        const v3& bottomRight = GetGridVal( iRow + 1, iCol + 1 );
         debug3DDrawData->DebugDrawLine( topLeft, bottomRight, gridColor );
       }
     }

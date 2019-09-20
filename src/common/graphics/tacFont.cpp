@@ -50,11 +50,11 @@ TacFontStuff::~TacFontStuff()
   {
     delete fontAtlasCell;
   }
-  mRenderer->RemoveRendererResource( mTexture );
+  TacRenderer::Instance->RemoveRendererResource( mTexture );
 }
 void TacFontStuff::Load( TacSettings* settings, TacRenderer* renderer, int atlasVramBytes, TacErrors& errors )
 {
-  mRenderer = renderer;
+  TacRenderer::Instance = renderer;
 
 
   for( int iLanguage = 0; iLanguage < ( int )TacLanguage::Count; ++iLanguage )
@@ -98,7 +98,7 @@ void TacFontStuff::Load( TacSettings* settings, TacRenderer* renderer, int atlas
   textureData.mName = "texture atlas";
   textureData.mStackFrame = TAC_STACK_FRAME;
   textureData.myImage = image;
-  renderer->AddTextureResource( &mTexture, textureData, errors );
+  TacRenderer::Instance->AddTextureResource( &mTexture, textureData, errors );
   TAC_HANDLE_ERROR( errors );
 
 
@@ -202,7 +202,7 @@ void TacFontStuff::Load( TacSettings* settings, TacRenderer* renderer, int atlas
   image.mPitch = atlasWidth * sizeof( unsigned char );
   image.mFormat = format;
 
-  mTexture = renderer->AddTextureResource(
+  mTexture = TacRenderer::Instance->AddTextureResource(
     image,
     TacAccess::Default,
     { TacBinding::ShaderResource },
@@ -338,7 +338,7 @@ void TacFontStuff::GetCharacter(
     // TODO: this function de/allocates a temporary texture every time.
     // Instead, create a texture once, and write to it with D3D11_MAP_DISCARD
 
-    mRenderer->CopyTextureRegion( mTexture, src, x, y, errors );
+    TacRenderer::Instance->CopyTextureRegion( mTexture, src, x, y, errors );
     TAC_HANDLE_ERROR( errors );
   }
   *fontAtlasCell = cell;

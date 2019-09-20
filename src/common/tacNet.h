@@ -91,6 +91,8 @@ struct TacHTTPRequest
 
 struct TacNet
 {
+  static TacNet* Instance;
+  TacNet();
   virtual ~TacNet() = default;
   virtual TacSocket* CreateSocket(
     const TacString& name,

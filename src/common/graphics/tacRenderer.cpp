@@ -47,6 +47,13 @@ int TacFormat::CalculateTotalByteCount() const
   return mElementCount * mPerElementByteCount;
 }
 
+
+TacRenderer* TacRenderer::Instance = nullptr;
+TacRenderer::TacRenderer()
+{
+  Instance = this;
+}
+
 TacRenderer::~TacRenderer()
 {
   for( TacRendererResource* rendererResource : mRendererResources )
@@ -59,7 +66,6 @@ TacRenderer::~TacRenderer()
     TacOS::Instance->DebugAssert( errorMessage, TAC_STACK_FRAME );
   }
 }
-
 
 void TacRenderer::DebugImgui()
 {

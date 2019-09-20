@@ -7,14 +7,19 @@ static const int cylinderSegmentCount = 10;
 static const int hemisphereSegmentCount = 4;
 static const int numdivisions = 20;
 
+TacDebug3DCommonData* TacDebug3DCommonData::Instance = nullptr;
+TacDebug3DCommonData::TacDebug3DCommonData()
+{
+  Instance = this;
+}
 TacDebug3DCommonData::~TacDebug3DCommonData()
 {
-  mRenderer->RemoveRendererResource( mAlphaBlendState );
-  mRenderer->RemoveRendererResource( mCBufferPerFrame );
-  mRenderer->RemoveRendererResource( mDepthLess );
-  mRenderer->RemoveRendererResource( mRasterizerStateNoCull );
-  mRenderer->RemoveRendererResource( m3DVertexColorShader );
-  mRenderer->RemoveRendererResource( mVertexColorFormat );
+  TacRenderer::Instance->RemoveRendererResource( mAlphaBlendState );
+  TacRenderer::Instance->RemoveRendererResource( mCBufferPerFrame );
+  TacRenderer::Instance->RemoveRendererResource( mDepthLess );
+  TacRenderer::Instance->RemoveRendererResource( mRasterizerStateNoCull );
+  TacRenderer::Instance->RemoveRendererResource( m3DVertexColorShader );
+  TacRenderer::Instance->RemoveRendererResource( mVertexColorFormat );
 }
 void TacDebug3DCommonData::Init( TacErrors& errors )
 {
@@ -26,7 +31,7 @@ void TacDebug3DCommonData::Init( TacErrors& errors )
   rasterizerStateNoCullData.mStackFrame = TAC_STACK_FRAME;
   rasterizerStateNoCullData.multisample = false;
   rasterizerStateNoCullData.scissor = true;
-  mRenderer->AddRasterizerState( &mRasterizerStateNoCull, rasterizerStateNoCullData, errors );
+  TacRenderer::Instance->AddRasterizerState( &mRasterizerStateNoCull, rasterizerStateNoCullData, errors );
   TAC_HANDLE_ERROR( errors );
 
 
@@ -35,7 +40,7 @@ void TacDebug3DCommonData::Init( TacErrors& errors )
   cBufferPerFrameData.mStackFrame = TAC_STACK_FRAME;
   cBufferPerFrameData.shaderRegister = TacDefaultCBufferPerFrame::shaderRegister;
   cBufferPerFrameData.byteCount = sizeof( TacDefaultCBufferPerFrame );
-  mRenderer->AddConstantBuffer( &mCBufferPerFrame, cBufferPerFrameData, errors );
+  TacRenderer::Instance->AddConstantBuffer( &mCBufferPerFrame, cBufferPerFrameData, errors );
   TAC_HANDLE_ERROR( errors );
 
   TacShaderData data3dVertexColorShaderData;
@@ -43,7 +48,7 @@ void TacDebug3DCommonData::Init( TacErrors& errors )
   data3dVertexColorShaderData.mStackFrame = TAC_STACK_FRAME;
   data3dVertexColorShaderData.mName = "3d color";
   data3dVertexColorShaderData.mCBuffers = { mCBufferPerFrame };
-  mRenderer->AddShader( &m3DVertexColorShader, data3dVertexColorShaderData, errors );
+  TacRenderer::Instance->AddShader( &m3DVertexColorShader, data3dVertexColorShaderData, errors );
   TAC_HANDLE_ERROR( errors );
 
   TacDepthStateData depthStateData;
@@ -52,7 +57,7 @@ void TacDebug3DCommonData::Init( TacErrors& errors )
   depthStateData.depthWrite = true;
   depthStateData.mName = "depth less";
   depthStateData.mStackFrame = TAC_STACK_FRAME;
-  mRenderer->AddDepthState( &mDepthLess, depthStateData, errors );
+  TacRenderer::Instance->AddDepthState( &mDepthLess, depthStateData, errors );
   TAC_HANDLE_ERROR( errors );
 
   TacVertexDeclaration positionData;
@@ -68,7 +73,7 @@ void TacDebug3DCommonData::Init( TacErrors& errors )
   vertexColorFormatDataa.mStackFrame = TAC_STACK_FRAME;
   vertexColorFormatDataa.shader = m3DVertexColorShader;
   vertexColorFormatDataa.vertexFormatDatas = { positionData, colorData };
-  mRenderer->AddVertexFormat( &mVertexColorFormat, vertexColorFormatDataa, errors );
+  TacRenderer::Instance->AddVertexFormat( &mVertexColorFormat, vertexColorFormatDataa, errors );
   TAC_HANDLE_ERROR( errors );
 
   TacBlendStateData alphaBlendStateData;
@@ -80,10 +85,9 @@ void TacDebug3DCommonData::Init( TacErrors& errors )
   alphaBlendStateData.blendA = TacBlendMode::Add;
   alphaBlendStateData.mName = "alpha blend";
   alphaBlendStateData.mStackFrame = TAC_STACK_FRAME;
-  mRenderer->AddBlendState( &mAlphaBlendState, alphaBlendStateData, errors );
+  TacRenderer::Instance->AddBlendState( &mAlphaBlendState, alphaBlendStateData, errors );
   TAC_HANDLE_ERROR( errors );
 }
-
 
 TacDebugDrawAABB TacDebugDrawAABB::FromMinMax( v3 mini, v3 maxi )
 {
@@ -100,15 +104,10 @@ TacDebugDrawAABB TacDebugDrawAABB::FromPosExtents( v3 pos, v3 extents )
   return result;
 }
 
-TacDebug3DDrawData::TacDebug3DDrawData()
-  {
-
-
-  }
 TacDebug3DDrawData::~TacDebug3DDrawData()
 {
   if( mVerts )
-    mRenderer->RemoveRendererResource( mVerts );
+    TacRenderer::Instance->RemoveRendererResource( mVerts );
 }
 void TacDebug3DDrawData::DebugDrawLine( v3 p0, v3 p1, v3 color0, v3 color1 )
 {
@@ -373,26 +372,22 @@ void TacDebug3DDrawData::DebugDrawTriangle( v3 p0, v3 p1, v3 p2, v3 color )
 void TacDebug3DDrawData::DrawToTexture(
   TacErrors& errors,
   const TacDefaultCBufferPerFrame* cbufferperframe,
-  TacDebug3DCommonData* commonData,
   TacRenderView* renderView )
 {
-  TacRenderer* renderer = commonData->mRenderer;
-
   int vertexCount = mDebugDrawVerts.size();
   if( vertexCount )
   {
     if( !mVerts || mVerts->mNumVertexes < vertexCount )
     {
-      mRenderer = renderer;
       if( mVerts )
-        renderer->RemoveRendererResource( mVerts );
+        TacRenderer::Instance->RemoveRendererResource( mVerts );
       TacVertexBufferData vertexBufferData = {};
       vertexBufferData.access = TacAccess::Dynamic;
       vertexBufferData.mName = "debug 3d verts";
       vertexBufferData.mNumVertexes = vertexCount;
       vertexBufferData.mStrideBytesBetweenVertexes = sizeof( TacDefaultVertexColor );
       vertexBufferData.mStackFrame = TAC_STACK_FRAME;
-      renderer->AddVertexBuffer( &mVerts, vertexBufferData, errors );
+      TacRenderer::Instance->AddVertexBuffer( &mVerts, vertexBufferData, errors );
       TAC_HANDLE_ERROR( errors );
     }
 
@@ -401,29 +396,29 @@ void TacDebug3DDrawData::DrawToTexture(
 
 
     TacDrawCall2 drawCall;
-    drawCall.mBlendState = commonData->mAlphaBlendState;
-    drawCall.mDepthState = commonData->mDepthLess;
+    drawCall.mBlendState = TacDebug3DCommonData::Instance->mAlphaBlendState;
+    drawCall.mDepthState = TacDebug3DCommonData::Instance->mDepthLess;
     drawCall.mIndexBuffer = nullptr;
     drawCall.mIndexCount = 0;
     drawCall.mVertexCount = vertexCount;
     drawCall.mPrimitiveTopology = TacPrimitiveTopology::LineList;
-    drawCall.mRasterizerState = commonData->mRasterizerStateNoCull;
+    drawCall.mRasterizerState = TacDebug3DCommonData::Instance->mRasterizerStateNoCull;
     drawCall.mSamplerState = nullptr;
-    drawCall.mShader = commonData->m3DVertexColorShader;
+    drawCall.mShader = TacDebug3DCommonData::Instance->m3DVertexColorShader;
     drawCall.mStackFrame = TAC_STACK_FRAME;
     drawCall.mStartIndex = 0;
     drawCall.mTexture = nullptr;
-    drawCall.mUniformDst = commonData->mCBufferPerFrame;
+    drawCall.mUniformDst = TacDebug3DCommonData::Instance->mCBufferPerFrame;
     drawCall.mUniformSrcc = TacTemporaryMemory( *cbufferperframe );
     drawCall.mVertexBuffer = mVerts;
-    drawCall.mVertexFormat = commonData->mVertexColorFormat;
+    drawCall.mVertexFormat = TacDebug3DCommonData::Instance->mVertexColorFormat;
     drawCall.mRenderView = renderView;
-    renderer->AddDrawCall( drawCall );
+    TacRenderer::Instance->AddDrawCall( drawCall );
 
     mDebugDrawVerts.clear();
   }
 
-  renderer->DebugBegin( "debug 3d" );
-  renderer->RenderFlush();
-  renderer->DebugEnd();
+  TacRenderer::Instance->DebugBegin( "debug 3d" );
+  TacRenderer::Instance->RenderFlush();
+  TacRenderer::Instance->DebugEnd();
 }

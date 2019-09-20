@@ -30,7 +30,7 @@ void TacAsyncTextureSingleData::CreateTexture(
   textureData.mStackFrame = TAC_STACK_FRAME;
   textureData.myImage = mImage;
   textureData.binding = { TacBinding::ShaderResource };
-  renderer->AddTextureResource( texture, textureData, errors );
+  TacRenderer::Instance->AddTextureResource( texture, textureData, errors );
   TAC_HANDLE_ERROR( errors );
 }
 
@@ -55,7 +55,7 @@ void TacAsyncTextureCubeData::CreateTexture(
   textureData.mStackFrame = TAC_STACK_FRAME;
   textureData.myImage = mImage;
   textureData.binding = { TacBinding::ShaderResource };
-  renderer->AddTextureResourceCube( texture, textureData, cubedatas, errors );
+  TacRenderer::Instance->AddTextureResourceCube( texture, textureData, cubedatas, errors );
   TAC_HANDLE_ERROR( errors );
 }
 
@@ -226,12 +226,17 @@ void TacAsyncTextureCubeJob::Execute()
   image.mPitch = prevWidth * format.mElementCount * format.mPerElementByteCount;
 }
 
+TacTextureAssetManager* TacTextureAssetManager::Instance = nullptr;
+TacTextureAssetManager::TacTextureAssetManager()
+{
+  Instance = this;
+}
 TacTextureAssetManager::~TacTextureAssetManager()
 {
   for( auto pair : mLoadedTextures )
   {
     TacTexture* texture = pair.second;
-    mRenderer->RemoveRendererResource( texture );
+    TacRenderer::Instance->RemoveRendererResource( texture );
   }
 }
 TacTexture* TacTextureAssetManager::FindLoadedTexture( const TacString& key )
@@ -273,7 +278,7 @@ void TacTextureAssetManager::GetTextureCube(
     asyncTexture->mJob = job;
     asyncTexture->mData = data;
     mLoadingTextures[ textureDir ] = asyncTexture;
-    mJobQueue->Push( job );
+    TacJobQueue::Instance->Push( job );
     *ppTexture = nullptr;
     return;
   }
@@ -306,7 +311,7 @@ void TacTextureAssetManager::UpdateAsyncTexture(
     } break;
     case TacAsyncLoadStatus::ThreadCompleted:
     {
-      asyncTexture->mData->CreateTexture( mRenderer, ppTexture, errors );
+      asyncTexture->mData->CreateTexture( TacRenderer::Instance, ppTexture, errors );
       TAC_HANDLE_ERROR( errors );
       mLoadingTextures.erase( key );
       delete asyncTexture->mData;
@@ -344,7 +349,7 @@ void TacTextureAssetManager::GetTexture(
     asyncTexture->mJob = job;
 
     mLoadingTextures[ textureFilepath ] = asyncTexture;
-    mJobQueue->Push( job );
+    TacJobQueue::Instance->Push( job );
     *ppTexture = nullptr;
     return;
   }

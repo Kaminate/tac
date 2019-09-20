@@ -33,7 +33,6 @@ struct TacGame
     TAC_HANDLE_ERROR( errors );
 
     mUi2DDrawData = new TacUI2DDrawData;
-    mUi2DDrawData->mUI2DCommonData = mShell->mUI2DCommonData;
     mUi2DDrawData->mRenderView = mDesktopWindow->mRenderView;
 
     auto ghost = new TacGhost;
@@ -60,7 +59,6 @@ struct TacGame
     }
     gTacImGuiGlobals.mElapsedSeconds = mShell->mElapsedSeconds;
     gTacImGuiGlobals.mUI2DDrawData = mUi2DDrawData;
-    gTacImGuiGlobals.mKeyboardInput = mShell->mKeyboardInput;
   }
   void Update( TacErrors& errors )
   {

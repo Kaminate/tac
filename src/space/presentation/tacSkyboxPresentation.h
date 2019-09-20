@@ -21,9 +21,6 @@ struct TacSkyboxPresentation
   void RenderSkybox( const TacString& skyboxDir );
   void Init( TacErrors& errors );
 
-  TacTextureAssetManager* mTextureAssetManager = nullptr;
-  TacModelAssetManager* mModelAssetManager = nullptr;
-  TacRenderer* mRenderer = nullptr;
   TacCamera* mCamera = nullptr;
   TacDesktopWindow* mDesktopWindow = nullptr;
 

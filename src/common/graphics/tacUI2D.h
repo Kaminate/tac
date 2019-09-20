@@ -38,13 +38,13 @@ struct TacUI2DVertex
 
 struct TacUI2DCommonData
 {
-  TacUI2DCommonData() = default;
+  static TacUI2DCommonData* Instance;
+  TacUI2DCommonData();
   ~TacUI2DCommonData();
   void Init( TacErrors& errors );
 
   TacTexture* m1x1White = nullptr;
   TacFontStuff* mFontStuff = nullptr;
-  TacRenderer* mRenderer = nullptr;
   TacVertexFormat* mFormat = nullptr;
   TacShader* mShader = nullptr;
   TacShader* m2DTextShader = nullptr;
@@ -123,7 +123,5 @@ struct TacUI2DDrawData
   TacVertexBuffer* mVerts = nullptr;
   TacIndexBuffer* mIndexes = nullptr;
   TacRenderView* mRenderView = nullptr;
-
-  TacUI2DCommonData* mUI2DCommonData = nullptr;
 };
 

@@ -43,6 +43,11 @@ TacAsyncLoadStatus TacJob::GetStatus()
   return asyncLoadStatus;
 }
 
+TacJobQueue* TacJobQueue::Instance = nullptr;
+TacJobQueue::TacJobQueue()
+{
+  Instance = this;
+}
 
 void TacJobQueue::Push( TacJob* job )
 {

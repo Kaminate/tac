@@ -10,21 +10,21 @@
 
 TacSkyboxPresentation::~TacSkyboxPresentation()
 {
-  TacRenderer* renderer = mRenderer;
-  renderer->RemoveRendererResource( mShader );
-  renderer->RemoveRendererResource( mVertexFormat );
-  renderer->RemoveRendererResource( mPerFrame  );
+  TacRenderer* renderer = TacRenderer::Instance;
+  TacRenderer::Instance->RemoveRendererResource( mShader );
+  TacRenderer::Instance->RemoveRendererResource( mVertexFormat );
+  TacRenderer::Instance->RemoveRendererResource( mPerFrame  );
 }
 void TacSkyboxPresentation::Init( TacErrors& errors )
 {
-  TacRenderer* renderer = mRenderer;
+  TacRenderer* renderer = TacRenderer::Instance;
 
   TacCBufferData cBufferDataPerFrame = {};
   cBufferDataPerFrame.mName = "skybox per frame";
   cBufferDataPerFrame.mStackFrame = TAC_STACK_FRAME;
   cBufferDataPerFrame.shaderRegister = 0;
   cBufferDataPerFrame.byteCount = sizeof( TacDefaultCBufferPerFrame );
-  renderer->AddConstantBuffer( &mPerFrame, cBufferDataPerFrame, errors );
+  TacRenderer::Instance->AddConstantBuffer( &mPerFrame, cBufferDataPerFrame, errors );
   TAC_HANDLE_ERROR( errors );
 
   TacShaderData shaderData = {};
@@ -32,7 +32,7 @@ void TacSkyboxPresentation::Init( TacErrors& errors )
   shaderData.mCBuffers = { mPerFrame };
   shaderData.mStackFrame = TAC_STACK_FRAME;
   shaderData.mName = "skybox";
-  renderer->AddShader( &mShader, shaderData, errors );
+  TacRenderer::Instance->AddShader( &mShader, shaderData, errors );
   TAC_HANDLE_ERROR( errors );
 
   TacVertexDeclaration pos;
@@ -47,7 +47,7 @@ void TacSkyboxPresentation::Init( TacErrors& errors )
   vertexFormatData.mStackFrame = TAC_STACK_FRAME;
   vertexFormatData.shader = mShader;
   vertexFormatData.vertexFormatDatas = { pos };
-  renderer->AddVertexFormat( &mVertexFormat, vertexFormatData, errors );
+  TacRenderer::Instance->AddVertexFormat( &mVertexFormat, vertexFormatData, errors );
   TAC_HANDLE_ERROR( errors );
 
   TacBlendStateData blendStateData;
@@ -59,7 +59,7 @@ void TacSkyboxPresentation::Init( TacErrors& errors )
   blendStateData.blendA = TacBlendMode::Add;
   blendStateData.mName = "skybox";
   blendStateData.mStackFrame = TAC_STACK_FRAME;
-  renderer->AddBlendState( &mBlendState, blendStateData, errors );
+  TacRenderer::Instance->AddBlendState( &mBlendState, blendStateData, errors );
   TAC_HANDLE_ERROR( errors );
 
   TacDepthStateData depthStateData;
@@ -68,7 +68,7 @@ void TacSkyboxPresentation::Init( TacErrors& errors )
   depthStateData.depthFunc = TacDepthFunc::LessOrEqual;
   depthStateData.mName = "skybox";
   depthStateData.mStackFrame = TAC_STACK_FRAME;
-  renderer->AddDepthState( &mDepthState, depthStateData, errors );
+  TacRenderer::Instance->AddDepthState( &mDepthState, depthStateData, errors );
   TAC_HANDLE_ERROR( errors );
 
   TacRasterizerStateData rasterizerStateData;
@@ -79,23 +79,23 @@ void TacSkyboxPresentation::Init( TacErrors& errors )
   rasterizerStateData.mStackFrame = TAC_STACK_FRAME;
   rasterizerStateData.multisample = false;
   rasterizerStateData.scissor = true;
-  renderer->AddRasterizerState( &mRasterizerState, rasterizerStateData, errors );
+  TacRenderer::Instance->AddRasterizerState( &mRasterizerState, rasterizerStateData, errors );
   TAC_HANDLE_ERROR( errors );
 
   TacSamplerStateData samplerStateData;
   samplerStateData.mName = "skybox";
   samplerStateData.mStackFrame = TAC_STACK_FRAME;
   samplerStateData.filter = TacFilter::Linear;
-  renderer->AddSamplerState( &mSamplerState, samplerStateData, errors );
+  TacRenderer::Instance->AddSamplerState( &mSamplerState, samplerStateData, errors );
   TAC_HANDLE_ERROR( errors );
 }
 void TacSkyboxPresentation::RenderSkybox( const TacString& skyboxDir )
 {
-  TacRenderer* renderer = mRenderer;
+  TacRenderer* renderer = TacRenderer::Instance;
   static TacString defaultSkybox = "assets/skybox/daylight";
   const TacString& skyboxDirToUse = skyboxDir.empty() ? defaultSkybox : skyboxDir;
 
-  TacTextureAssetManager* textureAssetManager = mTextureAssetManager;
+  TacTextureAssetManager* textureAssetManager = TacTextureAssetManager::Instance;
   TacTexture* cubemap;
   TacErrors errors;
   textureAssetManager->GetTextureCube( &cubemap, skyboxDirToUse, errors );
@@ -105,7 +105,7 @@ void TacSkyboxPresentation::RenderSkybox( const TacString& skyboxDir )
 
 
   TacMesh* mesh;
-  mModelAssetManager->GetMesh( &mesh, "assets/editor/Box.gltf", mVertexFormat, errors );
+  TacModelAssetManager::Instance->GetMesh( &mesh, "assets/editor/Box.gltf", mVertexFormat, errors );
   TacAssert( errors.empty() );
   if( !mesh )
     return;
@@ -115,7 +115,7 @@ void TacSkyboxPresentation::RenderSkybox( const TacString& skyboxDir )
 
   float a;
   float b;
-  renderer->GetPerspectiveProjectionAB( mCamera->mFarPlane, mCamera->mNearPlane, a, b );
+  TacRenderer::Instance->GetPerspectiveProjectionAB( mCamera->mFarPlane, mCamera->mNearPlane, a, b );
   float aspect = ( float )mDesktopWindow->mWidth / ( float )mDesktopWindow->mHeight;
 
   TacDefaultCBufferPerFrame perFrame;
@@ -128,7 +128,7 @@ void TacSkyboxPresentation::RenderSkybox( const TacString& skyboxDir )
   TacDrawCall2 drawCallPerFrame = {};
   drawCallPerFrame.mUniformDst = mPerFrame;
   drawCallPerFrame.mUniformSrcc = TacTemporaryMemory( perFrame );
-  renderer->AddDrawCall( drawCallPerFrame );
+  TacRenderer::Instance->AddDrawCall( drawCallPerFrame );
 
   TacSubMesh* subMesh = &mesh->mSubMeshes[ 0 ];
 
@@ -147,9 +147,9 @@ void TacSkyboxPresentation::RenderSkybox( const TacString& skyboxDir )
   drawCallGeometry.mStartIndex = 0;
   drawCallGeometry.mTexture = cubemap;
   drawCallGeometry.mRenderView = mDesktopWindow->mRenderView;
-  renderer->AddDrawCall( drawCallGeometry );
+  TacRenderer::Instance->AddDrawCall( drawCallGeometry );
 
-  renderer->DebugBegin( "Skybox" );
-  renderer->RenderFlush();
-  renderer->DebugEnd();
+  TacRenderer::Instance->DebugBegin( "Skybox" );
+  TacRenderer::Instance->RenderFlush();
+  TacRenderer::Instance->DebugEnd();
 }

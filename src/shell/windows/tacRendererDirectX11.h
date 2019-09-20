@@ -138,6 +138,7 @@ struct TacDX11Window : public TacRendererWindowData
 
 struct TacRendererDirectX11 : public TacRenderer
 {
+  static TacRendererDirectX11* Instance;
   TacRendererDirectX11();
   ~TacRendererDirectX11();
 

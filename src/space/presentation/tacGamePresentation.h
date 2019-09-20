@@ -16,7 +16,7 @@ struct TacShader;
 struct TacSkyboxPresentation;
 struct TacVertexFormat;
 struct TacWorld;
-  struct TacDebug3DCommonData;
+struct TacDebug3DCommonData;
 
 struct TacGamePresentation
 {
@@ -25,22 +25,33 @@ struct TacGamePresentation
   void RenderGameWorldToDesktopView();
   void RenderGameWorldAddDrawCall( const TacMesh* mesh, const TacDefaultCBufferPerObject& cbuf );
 
-  TacModelAssetManager* mModelAssetManager = nullptr;
-  TacRenderer* mRenderer = nullptr;
   TacCamera* mCamera = nullptr;
   TacDesktopWindow* mDesktopWindow = nullptr;
   TacWorld* mWorld = nullptr;
 
   TacSkyboxPresentation* mSkyboxPresentation = nullptr;
-  TacDebug3DCommonData* mDebug3DCommonData = nullptr;
 
   // Renderer resources
   TacShader* m3DShader = nullptr;
+  TacShader* mTerrainShader = nullptr;
   TacVertexFormat* m3DVertexFormat = nullptr;
+  TacVertexFormat* mTerrainVertexFormat = nullptr;
   TacCBuffer* mPerFrame = nullptr;
   TacCBuffer* mPerObj = nullptr;
   TacDepthState* mDepthState = nullptr;
   TacBlendState* mBlendState = nullptr;
   TacRasterizerState* mRasterizerState = nullptr;
   TacSamplerState* mSamplerState = nullptr;
+
+private:
+  void Create3DShader( TacErrors& errors );
+  void CreateTerrainShader( TacErrors& errors );
+  void Create3DVertexFormat( TacErrors& errors );
+  void CreateTerrainVertexFormat( TacErrors& errors );
+  void CreatePerFrame( TacErrors& errors );
+  void CreatePerObj( TacErrors& errors );
+  void CreateDepthState( TacErrors& errors );
+  void CreateBlendState( TacErrors& errors );
+  void CreateRasterizerState( TacErrors& errors );
+  void CreateSamplerState( TacErrors& errors );
 };

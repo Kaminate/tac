@@ -63,17 +63,16 @@ void TacUser::Update( TacErrors& errors )
   if( !mGhost->mIsGrabbingInput )
     return;
   auto shell = mGhost->mShell;
-  auto keyboardInput = shell->mKeyboardInput;
   auto serverData = mGhost->mServerData;
   v2 inputDirection = { 0, 0 };
-  if( keyboardInput->IsKeyDown( TacKey::RightArrow ) ) inputDirection += { 1, 0 };
-  if( keyboardInput->IsKeyDown( TacKey::UpArrow ) ) inputDirection += { 0, 1 };
-  if( keyboardInput->IsKeyDown( TacKey::DownArrow ) ) inputDirection += { 0, -1 };
-  if( keyboardInput->IsKeyDown( TacKey::LeftArrow ) ) inputDirection += { -1, 0 };
+  if( TacKeyboardInput::Instance->IsKeyDown( TacKey::RightArrow ) ) inputDirection += { 1, 0 };
+  if( TacKeyboardInput::Instance->IsKeyDown( TacKey::UpArrow ) ) inputDirection += { 0, 1 };
+  if( TacKeyboardInput::Instance->IsKeyDown( TacKey::DownArrow ) ) inputDirection += { 0, -1 };
+  if( TacKeyboardInput::Instance->IsKeyDown( TacKey::LeftArrow ) ) inputDirection += { -1, 0 };
   if( inputDirection.Length() )
     inputDirection.Normalize();
   mPlayer->mInputDirection = inputDirection;
-  mPlayer->mIsSpaceJustDown = keyboardInput->IsKeyDown( TacKey::Spacebar );
+  mPlayer->mIsSpaceJustDown = TacKeyboardInput::Instance->IsKeyDown( TacKey::Spacebar );
 }
 
 TacGhost::TacGhost()
@@ -86,7 +85,6 @@ void TacGhost::Init( TacErrors& errors )
 {
   mShouldPopulateWorldInitial = false;
   mScriptRoot->mGhost = this;
-  auto renderer = mShell->mRenderer;
   //int w = shell->mWindowWidth;
   //int h = shell->mWindowHeight;
 
@@ -103,7 +101,7 @@ void TacGhost::Init( TacErrors& errors )
   //textureData.mName = "client view fbo";
   //textureData.mStackFrame = TAC_STACK_FRAME;
   //textureData.myImage = image;
-  //renderer->AddTextureResource( &mFBOTexture, textureData, errors );
+  //TacRenderer::Instance->AddTextureResource( &mFBOTexture, textureData, errors );
   //TAC_HANDLE_ERROR( errors );
 
   //TacDepthBufferData depthBufferData;
@@ -111,7 +109,7 @@ void TacGhost::Init( TacErrors& errors )
   //depthBufferData.mName = "client view depth buffer";
   //depthBufferData.mStackFrame = TAC_STACK_FRAME;
   //depthBufferData.width = w;
-  //renderer->AddDepthBuffer( &mFBODepthBuffer, depthBufferData, errors );
+  //TacRenderer::Instance->AddDepthBuffer( &mFBODepthBuffer, depthBufferData, errors );
   //TAC_HANDLE_ERROR( errors );
 
   const TacString serverTypeGameClient = TacStringify( TacScriptGameClient );
@@ -196,8 +194,8 @@ void TacGhost::Update( TacErrors& errors )
   else
   {
     //TacInvalidCodePath;
-    //mShell->mRenderer->GetBackbufferColor( &mDrawTexture  );
-    //mShell->mRenderer->GetBackbufferDepth( &mDrawDepthBuffer );
+    //mShell->TacRenderer::Instance->GetBackbufferColor( &mDrawTexture  );
+    //mShell->TacRenderer::Instance->GetBackbufferDepth( &mDrawDepthBuffer );
     //mMouserCursorNDC.x = ( float )mShell->mMouseRelTopLeftX / mDrawTexture->myImage.mWidth;
     //mMouserCursorNDC.y = ( float )mShell->mMouseRelTopLeftY / mDrawTexture->myImage.mHeight;
     //mMouseHoveredOverWindow = mShell->mMouseInWindow;
@@ -234,7 +232,7 @@ void TacGhost::AddMorePlayers( TacErrors& errors )
   {
     if( TacContains( claimedControllerIndexes, controllerIndex ) )
       continue;
-    TacController* controller = mShell->mControllerInput->mControllers[ controllerIndex ];
+    TacController* controller = TacControllerInput::Instance->mControllers[ controllerIndex ];
     if( !controller )
       continue;
     if( !controller->IsButtonJustPressed( TacControllerButton::Start ) )
@@ -324,24 +322,23 @@ void TacGhost::DebugImgui( TacErrors& errors )
 void TacGhost::Draw( TacErrors& errors )
 {
   TacWorld* world = mServerData->mWorld;
-  TacRenderer* renderer = mShell->mRenderer;
   TacFontStuff* fontStuff = mShell->mFontStuff;
   TacGraphics* graphics = TacGraphics::GetSystem( world );
 
-  renderer->DebugBegin( "Draw world" );
-  OnDestruct( renderer->DebugEnd() );
+  TacRenderer::Instance->DebugBegin( "Draw world" );
+  OnDestruct( TacRenderer::Instance->DebugEnd() );
   //TacTexture* fboTexture = mDrawTexture;
   //TacDepthBuffer* fboDepth = mDrawDepthBuffer;
   TacTexture* fboTexture = mRenderView->mFramebuffer;
   TacDepthBuffer* fboDepth = mRenderView->mFramebufferDepth;
 
   const float aspect = fboTexture->GetAspect();
-  //renderer->ClearColor( fboTexture, mClearColor );
-  //renderer->ClearDepthStencil( fboDepth, true, 1.0f, false, 0 );
-  //renderer->SetRenderTarget( fboTexture, fboDepth );
+  //TacRenderer::Instance->ClearColor( fboTexture, mClearColor );
+  //TacRenderer::Instance->ClearDepthStencil( fboDepth, true, 1.0f, false, 0 );
+  //TacRenderer::Instance->SetRenderTarget( fboTexture, fboDepth );
 
 
-  //renderer->SetViewport(
+  //TacRenderer::Instance->SetViewport(
   //  0, // x rel bot left
   //  0, // y rel bot left
   //  ( float )fboTexture->myImage.mWidth, // width increasing right
@@ -364,16 +361,16 @@ void TacGhost::Draw( TacErrors& errors )
   float fovYRad = 100.0f * ( 3.14f / 180.0f );
   float projA;
   float projB;
-  renderer->GetPerspectiveProjectionAB( farPlane, nearPlane, projA, projB );
+  TacRenderer::Instance->GetPerspectiveProjectionAB( farPlane, nearPlane, projA, projB );
 
   auto world_to_view = M4View( camPos, camViewDir, camR, camU );
   auto view_to_clip = M4ProjPerspective( projA, projB, fovYRad, aspect );
 
   //TacInvalidCodePath;
-  //renderer->SetBlendState( nullptr );
-  //renderer->SetScissorRect( 0, 0, ( float )fboTexture->mWidth(), ( float )fboTexture->mHeight() );
+  //TacRenderer::Instance->SetBlendState( nullptr );
+  //TacRenderer::Instance->SetScissorRect( 0, 0, ( float )fboTexture->mWidth(), ( float )fboTexture->mHeight() );
 
-  //renderer->DebugDraw(
+  //TacRenderer::Instance->DebugDraw(
   //  world_to_view,
   //  view_to_clip,
   //  fboTexture,
@@ -386,7 +383,7 @@ void TacGhost::Draw( TacErrors& errors )
 
 
 
-  //renderer->SetScissorRect(
+  //TacRenderer::Instance->SetScissorRect(
   //  0,
   //  0,
   //  ( float )fboTexture->myImage.mWidth,
@@ -399,24 +396,24 @@ void TacGhost::Draw( TacErrors& errors )
     //m4 world = m4::Identity();
     //m4 view = m4::Identity();
     //m4 proj = m4::Identity();
-    //renderer->DebugBegin( "Splash background" );
-    //OnDestruct( renderer->DebugEnd() );
-    //renderer->SetBlendState( renderer->mAlphaBlendState );
-    //renderer->SetActiveShader( renderer->m2DShader );
-    //renderer->SetRasterizerState( renderer->mRasterizerStateNoCull );
-    //renderer->SetVertexFormat( renderer->mDefaultVertex2DFormat );
-    //renderer->SetDepthState( renderer->mNoDepthReadOrWrite );
-    //renderer->SetTexture( "atlas", renderer->m1x1White );
-    //renderer->SetSamplerState( "linearSampler", renderer->mSamplerStateLinearWrap );
-    //renderer->SetPrimitiveTopology( TacPrimitive::TriangleList );
-    //renderer->SetVertexBuffer( renderer->m2DNDCQuadVB );
-    //renderer->SetIndexBuffer( renderer->m2DNDCQuadIB );
-    //renderer->SendUniform( "Color", color.data() );
-    //renderer->SendUniform( "World", world.data() );
-    //renderer->SendUniform( "View", view.data() );
-    //renderer->SendUniform( "Projection", proj.data() );
-    //renderer->Apply();
-    //renderer->DrawIndexed( renderer->m2DNDCQuadIB->indexCount, 0, 0 );
+    //TacRenderer::Instance->DebugBegin( "Splash background" );
+    //OnDestruct( TacRenderer::Instance->DebugEnd() );
+    //TacRenderer::Instance->SetBlendState( TacRenderer::Instance->mAlphaBlendState );
+    //TacRenderer::Instance->SetActiveShader( TacRenderer::Instance->m2DShader );
+    //TacRenderer::Instance->SetRasterizerState( TacRenderer::Instance->mRasterizerStateNoCull );
+    //TacRenderer::Instance->SetVertexFormat( TacRenderer::Instance->mDefaultVertex2DFormat );
+    //TacRenderer::Instance->SetDepthState( TacRenderer::Instance->mNoDepthReadOrWrite );
+    //TacRenderer::Instance->SetTexture( "atlas", TacRenderer::Instance->m1x1White );
+    //TacRenderer::Instance->SetSamplerState( "linearSampler", TacRenderer::Instance->mSamplerStateLinearWrap );
+    //TacRenderer::Instance->SetPrimitiveTopology( TacPrimitive::TriangleList );
+    //TacRenderer::Instance->SetVertexBuffer( TacRenderer::Instance->m2DNDCQuadVB );
+    //TacRenderer::Instance->SetIndexBuffer( TacRenderer::Instance->m2DNDCQuadIB );
+    //TacRenderer::Instance->SendUniform( "Color", color.data() );
+    //TacRenderer::Instance->SendUniform( "World", world.data() );
+    //TacRenderer::Instance->SendUniform( "View", view.data() );
+    //TacRenderer::Instance->SendUniform( "Projection", proj.data() );
+    //TacRenderer::Instance->Apply();
+    //TacRenderer::Instance->DrawIndexed( TacRenderer::Instance->m2DNDCQuadIB->indexCount, 0, 0 );
   }
   //if( mDrawText )
   //{

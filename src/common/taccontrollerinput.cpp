@@ -93,11 +93,11 @@ void TacController::DebugImguiInner()
 {
 }
 
+TacControllerInput* TacControllerInput::Instance = nullptr;
 TacControllerInput::TacControllerInput()
 {
   mDebugging = true;
-
-
+  Instance = this;
 }
 TacControllerInput::~TacControllerInput()
 {

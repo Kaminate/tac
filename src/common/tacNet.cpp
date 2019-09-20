@@ -196,3 +196,8 @@ void TacHTTPRequest::FormatRequestWebsocket(
   AddNewline();
 }
 
+TacNet* TacNet::Instance = nullptr;
+TacNet::TacNet()
+{
+  Instance = this;
+}

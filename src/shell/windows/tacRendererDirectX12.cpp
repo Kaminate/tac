@@ -210,7 +210,7 @@ struct TacRendererBufferDX12
 {
   void CrateMainBuffer( TacRendererDX12* renderer, const TacString& name, TacErrors& errors, D3D12_RESOURCE_STATES resourceStates, int byteCount )
   {
-    ID3D12Device* device = renderer->mDevice.Get();
+    ID3D12Device* device = TacRendererDX12::Instance->mDevice.Get();
     ID3D12Resource* resource;
     D3D12_RESOURCE_DESC resourceDesc = {};
     resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
@@ -242,7 +242,7 @@ struct TacRendererBufferDX12
   }
   void CreateUploadBuffer( TacRendererDX12* renderer, const TacString& name, TacErrors& errors, int byteCount )
   {
-    ID3D12Device* device = renderer->mDevice.Get();
+    ID3D12Device* device = TacRendererDX12::Instance->mDevice.Get();
     ID3D12Resource* uploadResource;
 
     // https://docs.microsoft.com/en-us/windows/desktop/direct3d12/uploading-resources#code-example-d3d12
@@ -276,11 +276,11 @@ struct TacRendererBufferDX12
   void UpdateBuffer( TacRendererDX12* renderer, void* bytes, int byteCount, TacErrors& errors )
   {
     //D3D12_RESOURCE_STATES newState = D3D12_RESOURCE_STATE_COPY_DEST;
-    ID3D12GraphicsCommandList* commandList = renderer->mCommandList.Get();
+    ID3D12GraphicsCommandList* commandList = TacRendererDX12::Instance->mCommandList.Get();
     ID3D12Resource* dstResource = mResourceBuffer.Get();
     ID3D12Resource* srcResource = mResourceStaging.Get();
 
-    renderer->ResourceBarrier( dstResource, mState, D3D12_RESOURCE_STATE_COPY_DEST );
+    TacRendererDX12::Instance->ResourceBarrier( dstResource, mState, D3D12_RESOURCE_STATE_COPY_DEST );
 
     D3D12_RANGE range;
     range.Begin = 0;
@@ -294,7 +294,7 @@ struct TacRendererBufferDX12
     UINT64 srcOffset = 0;
     commandList->CopyBufferRegion( dstResource, dstOffset, srcResource, srcOffset, ( UINT64 )byteCount );
 
-    renderer->ResourceBarrier( dstResource, mState, D3D12_RESOURCE_STATE_COMMON );
+    TacRendererDX12::Instance->ResourceBarrier( dstResource, mState, D3D12_RESOURCE_STATE_COMMON );
   }
 
   D3D12_RESOURCE_STATES mState = D3D12_RESOURCE_STATE_COMMON;
@@ -307,7 +307,7 @@ struct TacVertexBufferDX12 : public TacVertexBuffer
   TacRendererBufferDX12 mBuffer;
   void Overwrite( void* data, int byteCount, TacErrors& errors ) override
   {
-    auto renderer = ( TacRendererDX12* )mRenderer;
+    auto renderer = ( TacRendererDX12* )TacRenderer::Instance;
     mBuffer.UpdateBuffer( renderer, data, byteCount, errors );
   };
 };
@@ -317,7 +317,7 @@ struct TacIndexBufferDX12 : public TacIndexBuffer
   TacRendererBufferDX12 mBuffer;
   void Overwrite( void* data, int byteCount, TacErrors& errors )  override
   {
-    auto renderer = ( TacRendererDX12* )mRenderer;
+    auto renderer = ( TacRendererDX12* )TacRenderer::Instance;
     mBuffer.UpdateBuffer( renderer, data, byteCount, errors );
   }
 };
@@ -334,6 +334,12 @@ void TacConstantBufferDX12::SendUniforms( void* bytes )
 {
   // Do I need a resource barrier here?
   TacMemCpy( mMappedData, bytes, byteCount );
+}
+
+TacRendererDX12* TacRendererDX12::Instance = nullptr;
+TacRendererDX12::TacRendererDX12()
+{
+  TacRendererDX12::Instance = this;
 }
 
 void TacRendererDX12::Init( TacErrors& errors )
@@ -584,7 +590,6 @@ void TacRendererDX12::CreateWindowContext( TacDesktopWindow* desktopWindow, TacE
   dx12Window->mSwapChain = swapChain;
   dx12Window->mBackbufferColors = backbufferColors;
   dx12Window->mDepthBuffer = depthBufferDX12;
-  dx12Window->mRenderer = this;
 
   desktopWindow->mRendererData = dx12Window;
   mWindows.push_back( dx12Window );

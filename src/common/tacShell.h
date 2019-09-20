@@ -62,16 +62,11 @@ struct TacShell
   void Frame( TacErrors& errors );
   void FrameEnd( TacErrors& errors );
 
-  TacControllerInput* mControllerInput = nullptr;
   TacEvent< const TacString& >::Emitter mLogData;
   TacEvent<>::Emitter mOnUpdate;
   TacFontStuff* mFontStuff = nullptr;
-  TacJobQueue* mJobQueue = nullptr;
-  TacKeyboardInput* mKeyboardInput = nullptr;
   TacLocalization* mLocalization = nullptr;
   TacLog* mLog = nullptr;
-  TacNet* mNet = nullptr;
-  TacRenderer* mRenderer = nullptr;
   TacSettings* mSettings = nullptr;
   TacString mAppName;
   // This is the directory where files can be written.
@@ -79,11 +74,7 @@ struct TacShell
   // ( doesn't include a trailing slash )
   TacString mPrefPath;
   TacString mInitialWorkingDir;
-  TacTextureAssetManager* mTextureAssetManager = nullptr;
-  TacModelAssetManager* mModelAssetManager = nullptr;
   TacTimer* mTimer = nullptr;
-  TacUI2DCommonData* mUI2DCommonData = nullptr;
-  TacDebug3DCommonData* mDebug3DCommonData = nullptr;
   TacVector< TacSoul* > mSouls;
   double mElapsedSeconds = 0;
 };
@@ -96,7 +87,6 @@ struct TacRendererWindowData
   virtual void OnResize( TacErrors& errors ) {};
 
   TacDesktopWindow* mDesktopWindow = nullptr;
-  TacRenderer* mRenderer = nullptr;
   TacDepthBuffer* mDepthBuffer = nullptr;
 };
 

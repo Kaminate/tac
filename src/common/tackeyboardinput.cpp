@@ -98,8 +98,10 @@ void TacKeyboardInput::SetIsKeyDown( TacKey key, bool isDown )
   }
 }
 
+TacKeyboardInput* TacKeyboardInput::Instance;
 TacKeyboardInput::TacKeyboardInput()
 {
+  Instance = this;
   TacErrors ignored;
   TacOS::Instance->GetScreenspaceCursorPos( mCurr.mScreenspaceCursorPos, ignored );
   TacOS::Instance->GetScreenspaceCursorPos( mPrev.mScreenspaceCursorPos, ignored );

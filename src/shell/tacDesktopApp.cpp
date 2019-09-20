@@ -45,7 +45,7 @@ void TacDesktopApp::Loop( TacErrors& errors )
       }
     }
 
-    if( mShell->mKeyboardInput->IsKeyDown( TacKey::MouseLeft ) )
+    if( TacKeyboardInput::Instance->IsKeyDown( TacKey::MouseLeft ) )
     {
       static int i = 5;
       i++;
@@ -62,7 +62,7 @@ void TacDesktopApp::SpawnWindow( const TacWindowParams& windowParams, TacDesktop
   SpawnWindowAux( windowParams, &desktopWindow, errors );
   TAC_HANDLE_ERROR( errors );
 
-  mShell->mRenderer->CreateWindowContext( desktopWindow, errors );
+  TacRenderer::Instance->CreateWindowContext( desktopWindow, errors );
 
   //struct TacOnWindowResize : public TacEvent<>::Handler
   //{

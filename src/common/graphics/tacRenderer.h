@@ -196,7 +196,6 @@ struct TacRendererResource
     TacAssert( mActive == false );
   }
   bool mActive = false;
-  TacRenderer* mRenderer = nullptr;
   TacString mName;
   TacStackFrame mStackFrame;
 };
@@ -397,6 +396,8 @@ struct TacDrawCall2
 
 struct TacRenderer
 {
+  static TacRenderer* Instance;
+  TacRenderer();
   virtual void CreateWindowContext( TacDesktopWindow* desktopWindow, TacErrors& errors ) {}
 
   virtual ~TacRenderer();
@@ -510,11 +511,8 @@ struct TacRenderer
 
     auto resource = new TResource();
     *( TResourceData* )resource = resourceData;
-    resource->mRenderer = this;
     resource->mActive = true;
 
-    //auto rendererResource = ( TacRendererResource* )resource;
-    //mRendererResources.insert( rendererResource );
     mRendererResources.insert( resource );
 
     *ppResource = resource;

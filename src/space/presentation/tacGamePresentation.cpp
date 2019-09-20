@@ -8,32 +8,43 @@
 #include "space/presentation/tacSkyboxPresentation.h"
 #include "space/presentation/tacGamePresentation.h"
 #include "space/graphics/tacgraphics.h"
+#include "space/physics/tacphysics.h"
+#include "space/terrain/tacterrain.h"
 #include "space/tacworld.h"
 #include "space/model/tacmodel.h"
 #include "space/tacentity.h"
 
+
+struct TacTerrainVertex
+{
+  v3 mPos;
+
+  // no need forr uv, just use worldspace pos.xz instead?
+  //v2 mUV;
+};
+
 TacGamePresentation::~TacGamePresentation()
 {
-  TacRenderer* renderer = mRenderer;
-  renderer->RemoveRendererResource( m3DShader );
-  renderer->RemoveRendererResource( m3DVertexFormat );
-  renderer->RemoveRendererResource( mPerFrame );
-  renderer->RemoveRendererResource( mPerObj );
-  renderer->RemoveRendererResource( mDepthState );
-  renderer->RemoveRendererResource( mBlendState );
-  renderer->RemoveRendererResource( mRasterizerState );
-  renderer->RemoveRendererResource( mSamplerState );
+  TacRenderer* renderer = TacRenderer::Instance;
+  TacRenderer::Instance->RemoveRendererResource( m3DShader );
+  TacRenderer::Instance->RemoveRendererResource( m3DVertexFormat );
+  TacRenderer::Instance->RemoveRendererResource( mPerFrame );
+  TacRenderer::Instance->RemoveRendererResource( mPerObj );
+  TacRenderer::Instance->RemoveRendererResource( mDepthState );
+  TacRenderer::Instance->RemoveRendererResource( mBlendState );
+  TacRenderer::Instance->RemoveRendererResource( mRasterizerState );
+  TacRenderer::Instance->RemoveRendererResource( mSamplerState );
 }
 void TacGamePresentation::RenderGameWorldToDesktopView()
 {
-  TacRenderer* renderer = mRenderer;
-  TacModelAssetManager* modelAssetManager = mModelAssetManager;
+  TacRenderer* renderer = TacRenderer::Instance;
+  TacModelAssetManager* modelAssetManager = TacModelAssetManager::Instance;
   TacWorld* world = mWorld;
 
   m4 view = mCamera->View();
   float a;
   float b;
-  renderer->GetPerspectiveProjectionAB( mCamera->mFarPlane, mCamera->mNearPlane, a, b );
+  TacRenderer::Instance->GetPerspectiveProjectionAB( mCamera->mFarPlane, mCamera->mNearPlane, a, b );
 
   float w = ( float )mDesktopWindow->mWidth;
   float h = ( float )mDesktopWindow->mHeight;
@@ -49,10 +60,11 @@ void TacGamePresentation::RenderGameWorldToDesktopView()
   TacDrawCall2 setPerFrame = {};
   setPerFrame.mUniformDst = mPerFrame;
   setPerFrame.mUniformSrcc = TacTemporaryMemory( &perFrameData, sizeof( TacDefaultCBufferPerFrame ) );
-  renderer->AddDrawCall( setPerFrame );
+  TacRenderer::Instance->AddDrawCall( setPerFrame );
 
 
   TacGraphics* graphics = TacGraphics::GetSystem( world );
+  TacPhysics* physics = TacPhysics::GetSystem( world );
   for( TacModel* model : graphics->mModels )
   {
     TacMesh* mesh = model->mesh;
@@ -62,7 +74,7 @@ void TacGamePresentation::RenderGameWorldToDesktopView()
       if( model->mGLTFPath.empty() )
         continue;
       TacErrors getmeshErrors;
-      modelAssetManager->GetMesh( &mesh, model->mGLTFPath, m3DVertexFormat, getmeshErrors );
+      TacModelAssetManager::Instance->GetMesh( &mesh, model->mGLTFPath, m3DVertexFormat, getmeshErrors );
       if( getmeshErrors.empty() )
         model->mesh = mesh;
       else
@@ -76,47 +88,78 @@ void TacGamePresentation::RenderGameWorldToDesktopView()
     perObjectData.World = entity->mWorldTransform;
     RenderGameWorldAddDrawCall( mesh, perObjectData );
   }
-  renderer->DebugBegin( "Render game world" );
-  renderer->RenderFlush();
-  renderer->DebugEnd();
+  for( TacTerrain* terrain : physics->mTerrains )
+  {
+    if( !terrain->mVertexBuffer || !terrain->mIndexBuffer )
+    {
+      if( terrain->mRowMajorGrid.empty() )
+        continue;
+
+      TacVector< TacTerrainVertex > vertexes( terrain->mRowMajorGrid.size() );
+      int iGrid = 0;
+      for( int iRow = 0; iRow < terrain->mSideVertexCount; ++iRow )
+      {
+        for( int iCol = 0; iCol < terrain->mSideVertexCount; ++iCol )
+        {
+          v3 gridVal = terrain->GetGridVal( iRow, iCol );
+
+          TacTerrainVertex vertex = {};
+          vertex.mPos = gridVal;
+
+          vertexes[ iGrid ] = vertex;
+          iGrid++;
+        }
+      }
+      //terrain->GetGridVal( x, y );
+
+      TacErrors rendererResourceErrors;
+
+      TacVertexBufferData vertexBufferData = {};
+      TacRenderer::Instance->AddVertexBuffer( &terrain->mVertexBuffer, vertexBufferData, rendererResourceErrors );
+      if( rendererResourceErrors.size() )
+        continue;
+
+      TacIndexBufferData indexBufferData = {};
+      TacRenderer::Instance->AddIndexBuffer( &terrain->mIndexBuffer, indexBufferData, rendererResourceErrors );
+      if( rendererResourceErrors.size() )
+        continue;
+
+    }
+
+    if( !terrain->mVertexBuffer || !terrain->mIndexBuffer )
+      continue;
+  }
+  TacRenderer::Instance->DebugBegin( "Render game world" );
+  TacRenderer::Instance->RenderFlush();
+  TacRenderer::Instance->DebugEnd();
   mSkyboxPresentation->RenderSkybox( world->mSkyboxDir );
 
   TacErrors ignored;
   world->mDebug3DDrawData->DrawToTexture(
     ignored,
     &perFrameData,
-    mDebug3DCommonData,
     mDesktopWindow->mRenderView );
 }
-void TacGamePresentation::CreateGraphicsObjects( TacErrors& errors )
+void TacGamePresentation::CreateTerrainShader( TacErrors& errors )
 {
-  TacRenderer* renderer = mRenderer;
-
-  TacCBufferData cBufferDataPerFrame = {};
-  cBufferDataPerFrame.mName = "tac 3d per frame";
-  cBufferDataPerFrame.mStackFrame = TAC_STACK_FRAME;
-  cBufferDataPerFrame.shaderRegister = 0;
-  cBufferDataPerFrame.byteCount = sizeof( TacDefaultCBufferPerFrame );
-  renderer->AddConstantBuffer( &mPerFrame, cBufferDataPerFrame, errors );
-  TAC_HANDLE_ERROR( errors );
-
-  TacCBufferData cBufferDataPerObj = {};
-  cBufferDataPerObj.mName = "tac 3d per obj";
-  cBufferDataPerObj.mStackFrame = TAC_STACK_FRAME;
-  cBufferDataPerObj.shaderRegister = 1;
-  cBufferDataPerObj.byteCount = sizeof( TacDefaultCBufferPerObject );
-  renderer->AddConstantBuffer( &mPerObj, cBufferDataPerObj, errors );
-  TAC_HANDLE_ERROR( errors );
-
-
+  TacShaderData shaderData;
+  shaderData.mStackFrame = TAC_STACK_FRAME;
+  shaderData.mName = "game window terrain shader";
+  shaderData.mShaderPath = "Terrain";
+  shaderData.mCBuffers = { mPerFrame, mPerObj };
+  TacRenderer::Instance->AddShader( &mTerrainShader, shaderData, errors );
+}
+void TacGamePresentation::Create3DShader( TacErrors& errors )
+{
   TacShaderData shaderData;
   shaderData.mStackFrame = TAC_STACK_FRAME;
   shaderData.mName = "game window 3d shader";
   shaderData.mShaderPath = "3DTest";
   shaderData.mCBuffers = { mPerFrame, mPerObj };
-  renderer->AddShader( &m3DShader, shaderData, errors );
-  TAC_HANDLE_ERROR( errors );
-
+  TacRenderer::Instance->AddShader( &m3DShader, shaderData, errors );
+}
+void TacGamePresentation::Create3DVertexFormat( TacErrors& errors )
+{
   TacVertexDeclaration posDecl;
   posDecl.mAlignedByteOffset = 0;
   posDecl.mAttribute = TacAttribute::Position;
@@ -128,9 +171,65 @@ void TacGamePresentation::CreateGraphicsObjects( TacErrors& errors )
   vertexFormatData.vertexFormatDatas = { posDecl };
   vertexFormatData.mStackFrame = TAC_STACK_FRAME;
   vertexFormatData.mName = "game window renderer"; // cpresentation?
-  renderer->AddVertexFormat( &m3DVertexFormat, vertexFormatData, errors );
-  TAC_HANDLE_ERROR( errors );
+  TacRenderer::Instance->AddVertexFormat( &m3DVertexFormat, vertexFormatData, errors );
+}
+void TacGamePresentation::CreateTerrainVertexFormat( TacErrors& errors )
+{
+  TacVertexDeclaration terrainPosDecl = {};
+  terrainPosDecl.mAttribute = TacAttribute::Position;
+  terrainPosDecl.mTextureFormat.mElementCount = 3;
+  terrainPosDecl.mTextureFormat.mPerElementByteCount = sizeof( float );
+  terrainPosDecl.mTextureFormat.mPerElementDataType = TacGraphicsType::real;
+  terrainPosDecl.mAlignedByteOffset = TacOffsetOf( TacTerrainVertex, mPos );
 
+  //TacVertexDeclaration terrainTexCoordDecl = {};
+  //terrainTexCoordDecl.mAttribute = TacAttribute::Texcoord;
+  //terrainTexCoordDecl.mTextureFormat.mElementCount = 2;
+  //terrainTexCoordDecl.mTextureFormat.mPerElementByteCount = sizeof( float );
+  //terrainTexCoordDecl.mTextureFormat.mPerElementDataType = TacGraphicsType::real;
+  //terrainTexCoordDecl.mAlignedByteOffset = TacOffsetOf( TacTerrainVertex, mUV );
+
+  TacVertexFormatData vertexFormatData = {};
+  vertexFormatData.shader = mTerrainShader;
+  vertexFormatData.vertexFormatDatas =
+  {
+    terrainPosDecl,
+    //terrainTexCoordDecl
+  };
+  vertexFormatData.mStackFrame = TAC_STACK_FRAME;
+  vertexFormatData.mName = "terrain vertex format";
+  TacRenderer::Instance->AddVertexFormat( &mTerrainVertexFormat, vertexFormatData, errors );
+}
+void TacGamePresentation::CreatePerFrame( TacErrors& errors )
+{
+  TacCBufferData cBufferDataPerFrame = {};
+  cBufferDataPerFrame.mName = "tac 3d per frame";
+  cBufferDataPerFrame.mStackFrame = TAC_STACK_FRAME;
+  cBufferDataPerFrame.shaderRegister = 0;
+  cBufferDataPerFrame.byteCount = sizeof( TacDefaultCBufferPerFrame );
+  TacRenderer::Instance->AddConstantBuffer( &mPerFrame, cBufferDataPerFrame, errors );
+}
+void TacGamePresentation::CreatePerObj( TacErrors& errors )
+{
+  TacCBufferData cBufferDataPerObj = {};
+  cBufferDataPerObj.mName = "tac 3d per obj";
+  cBufferDataPerObj.mStackFrame = TAC_STACK_FRAME;
+  cBufferDataPerObj.shaderRegister = 1;
+  cBufferDataPerObj.byteCount = sizeof( TacDefaultCBufferPerObject );
+  TacRenderer::Instance->AddConstantBuffer( &mPerObj, cBufferDataPerObj, errors );
+}
+void TacGamePresentation::CreateDepthState( TacErrors& errors )
+{
+  TacDepthStateData depthStateData;
+  depthStateData.depthTest = true;
+  depthStateData.depthWrite = true;
+  depthStateData.depthFunc = TacDepthFunc::Less;
+  depthStateData.mName = "tac 3d depth state";
+  depthStateData.mStackFrame = TAC_STACK_FRAME;
+  TacRenderer::Instance->AddDepthState( &mDepthState, depthStateData, errors );
+}
+void TacGamePresentation::CreateBlendState( TacErrors& errors )
+{
   TacBlendStateData blendStateData;
   blendStateData.srcRGB = TacBlendConstants::One;
   blendStateData.dstRGB = TacBlendConstants::Zero;
@@ -140,18 +239,10 @@ void TacGamePresentation::CreateGraphicsObjects( TacErrors& errors )
   blendStateData.blendA = TacBlendMode::Add;
   blendStateData.mName = "tac 3d opaque blend";
   blendStateData.mStackFrame = TAC_STACK_FRAME;
-  renderer->AddBlendState( &mBlendState, blendStateData, errors );
-  TAC_HANDLE_ERROR( errors );
-
-  TacDepthStateData depthStateData;
-  depthStateData.depthTest = true;
-  depthStateData.depthWrite = true;
-  depthStateData.depthFunc = TacDepthFunc::Less;
-  depthStateData.mName = "tac 3d depth state";
-  depthStateData.mStackFrame = TAC_STACK_FRAME;
-  renderer->AddDepthState( &mDepthState, depthStateData, errors );
-  TAC_HANDLE_ERROR( errors );
-
+  TacRenderer::Instance->AddBlendState( &mBlendState, blendStateData, errors );
+}
+void TacGamePresentation::CreateRasterizerState( TacErrors& errors )
+{
   TacRasterizerStateData rasterizerStateData;
   rasterizerStateData.cullMode = TacCullMode::None; // todo
   rasterizerStateData.fillMode = TacFillMode::Solid;
@@ -160,21 +251,53 @@ void TacGamePresentation::CreateGraphicsObjects( TacErrors& errors )
   rasterizerStateData.mStackFrame = TAC_STACK_FRAME;
   rasterizerStateData.multisample = false;
   rasterizerStateData.scissor = true;
-  renderer->AddRasterizerState( &mRasterizerState, rasterizerStateData, errors );
-  TAC_HANDLE_ERROR( errors );
-
+  TacRenderer::Instance->AddRasterizerState( &mRasterizerState, rasterizerStateData, errors );
+}
+void TacGamePresentation::CreateSamplerState( TacErrors& errors )
+{
   TacSamplerStateData samplerStateData;
   samplerStateData.mName = "tac 3d tex sampler";
   samplerStateData.mStackFrame = TAC_STACK_FRAME;
   samplerStateData.filter = TacFilter::Linear;
-  renderer->AddSamplerState( &mSamplerState, samplerStateData, errors );
+  TacRenderer::Instance->AddSamplerState( &mSamplerState, samplerStateData, errors );
+}
+void TacGamePresentation::CreateGraphicsObjects( TacErrors& errors )
+{
+  CreatePerFrame( errors );
+  TAC_HANDLE_ERROR( errors );
+
+  CreatePerObj( errors );
+  TAC_HANDLE_ERROR( errors );
+
+  Create3DShader( errors );
+  TAC_HANDLE_ERROR( errors );
+
+  CreateTerrainShader( errors );
+  TAC_HANDLE_ERROR( errors );
+
+  Create3DVertexFormat( errors );
+  TAC_HANDLE_ERROR( errors );
+
+  CreateTerrainVertexFormat( errors );
+  TAC_HANDLE_ERROR( errors );
+
+  CreateBlendState( errors );
+  TAC_HANDLE_ERROR( errors );
+
+  CreateDepthState( errors );
+  TAC_HANDLE_ERROR( errors );
+
+  CreateRasterizerState( errors );
+  TAC_HANDLE_ERROR( errors );
+
+  CreateSamplerState( errors );
   TAC_HANDLE_ERROR( errors );
 }
 void TacGamePresentation::RenderGameWorldAddDrawCall(
   const TacMesh* mesh,
   const TacDefaultCBufferPerObject& cbuf )
 {
-  TacRenderer* renderer = mRenderer;
+  TacRenderer* renderer = TacRenderer::Instance;
   for( const TacSubMesh& subMesh : mesh->mSubMeshes )
   {
     TacDrawCall2 drawCall = {};
@@ -193,6 +316,6 @@ void TacGamePresentation::RenderGameWorldAddDrawCall(
     drawCall.mUniformDst = mPerObj;
     drawCall.mUniformSrcc = TacTemporaryMemory( &cbuf, sizeof( TacDefaultCBufferPerObject ) );
     drawCall.mStackFrame = TAC_STACK_FRAME;
-    renderer->AddDrawCall( drawCall );
+    TacRenderer::Instance->AddDrawCall( drawCall );
   }
 }

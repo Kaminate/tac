@@ -137,7 +137,6 @@ LRESULT TacWin32DesktopWindow::HandleWindowProc(
   WPARAM wParam,
   LPARAM lParam )
 {
-  TacKeyboardInput* mKeyboardInput = app->mShell->mKeyboardInput;
   bool mouseInWindowVerbose = false;
 
   switch( uMsg )
@@ -163,7 +162,7 @@ LRESULT TacWin32DesktopWindow::HandleWindowProc(
     case WM_CHAR:
     {
       // TODO: convert to unicode
-      mKeyboardInput->mWMCharPressedHax = ( char )wParam;
+      TacKeyboardInput::Instance->mWMCharPressedHax = ( char )wParam;
     } break;
     case WM_SYSKEYDOWN: // fallthrough
     case WM_SYSKEYUP: // fallthrough
@@ -177,7 +176,7 @@ LRESULT TacWin32DesktopWindow::HandleWindowProc(
       TacKey key = TacGetKey( ( uint8_t )wParam );
       if( key == TacKey::Count )
         break;
-      mKeyboardInput->SetIsKeyDown( key, isDown );
+      TacKeyboardInput::Instance->SetIsKeyDown( key, isDown );
     } break;
 
     case WM_SETFOCUS:
@@ -186,7 +185,7 @@ LRESULT TacWin32DesktopWindow::HandleWindowProc(
     } break;
     case WM_KILLFOCUS:
     {
-      //mKeyboardInput->mCurrDown.clear();
+      //TacKeyboardInput::Instance->mCurrDown.clear();
       //std::cout << "window about to lose keyboard focus" << std::endl;
     } break;
 
@@ -215,7 +214,7 @@ LRESULT TacWin32DesktopWindow::HandleWindowProc(
     case WM_LBUTTONDOWN:
     {
       //std::cout << "WM_LBUTTONDOWN" << std::endl;
-      mKeyboardInput->SetIsKeyDown( TacKey::MouseLeft, true );
+      TacKeyboardInput::Instance->SetIsKeyDown( TacKey::MouseLeft, true );
       //SetActiveWindow( mHWND );
       //SetForegroundWindow( mHWND );
 
@@ -231,25 +230,25 @@ LRESULT TacWin32DesktopWindow::HandleWindowProc(
     {
       //if( uMsg == WM_LBUTTONUP ) { std::cout << "WM_LBUTTONUP" << std::endl; }
       //else { std::cout << "WM_NCLBUTTONUP" << std::endl; }
-      mKeyboardInput->SetIsKeyDown( TacKey::MouseLeft, false );
+      TacKeyboardInput::Instance->SetIsKeyDown( TacKey::MouseLeft, false );
     } break;
 
     case WM_RBUTTONDOWN:
     {
-      mKeyboardInput->SetIsKeyDown( TacKey::MouseRight, true );
+      TacKeyboardInput::Instance->SetIsKeyDown( TacKey::MouseRight, true );
     } break;
     case WM_RBUTTONUP:
     {
-      mKeyboardInput->SetIsKeyDown( TacKey::MouseRight, false );
+      TacKeyboardInput::Instance->SetIsKeyDown( TacKey::MouseRight, false );
     } break;
 
     case WM_MBUTTONDOWN:
     {
-      mKeyboardInput->SetIsKeyDown( TacKey::MouseMiddle, true );
+      TacKeyboardInput::Instance->SetIsKeyDown( TacKey::MouseMiddle, true );
     } break;
     case WM_MBUTTONUP:
     {
-      mKeyboardInput->SetIsKeyDown( TacKey::MouseMiddle, false );
+      TacKeyboardInput::Instance->SetIsKeyDown( TacKey::MouseMiddle, false );
     } break;
 
     case WM_MOUSEMOVE:
@@ -276,7 +275,7 @@ LRESULT TacWin32DesktopWindow::HandleWindowProc(
     {
       short wheelDeltaParam = GET_WHEEL_DELTA_WPARAM( wParam );
       short ticks = wheelDeltaParam / WHEEL_DELTA;
-      mKeyboardInput->mCurr.mMouseScroll += ( int )ticks;
+      TacKeyboardInput::Instance->mCurr.mMouseScroll += ( int )ticks;
     } break;
     case WM_MOUSELEAVE:
     {
@@ -320,13 +319,12 @@ void TacWindowsApplication2::Init( TacErrors& errors )
 }
 void TacWindowsApplication2::OnShellInit( TacErrors& errors )
 {
-  mShell->mControllerInput = new TacXInput( mHInstance, errors );
+  TacControllerInput::Instance = new TacXInput( mHInstance, errors );
   TAC_HANDLE_ERROR( errors );
 
   auto netWinsock = new TacNetWinsock( errors );
   TAC_HANDLE_ERROR( errors );
   netWinsock->mShell = mShell;
-  mShell->mNet = netWinsock;
 
   // window borders should be a higher-level concept, right?
   mShouldWindowHaveBorder = mShell->mSettings->GetBool( nullptr, { "areWindowsBordered" }, false, errors );
@@ -334,7 +332,6 @@ void TacWindowsApplication2::OnShellInit( TacErrors& errors )
   {
     mMouseEdgeHandler = new TacWin32MouseEdgeHandler();
     mMouseEdgeHandler->mCursors = mCursors;
-    mMouseEdgeHandler->mKeyboardInput = mShell->mKeyboardInput;
   }
 
 
@@ -415,7 +412,6 @@ TacWin32DesktopWindow* TacWindowsApplication2::GetCursorUnobscuredWindow()
 }
 void TacWindowsApplication2::Poll( TacErrors& errors )
 {
-  TacKeyboardInput* keyboardInput = mShell->mKeyboardInput;
   for( TacWin32DesktopWindow* window : mWindows )
   {
     window->Poll( errors );

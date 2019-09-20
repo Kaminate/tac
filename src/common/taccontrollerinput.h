@@ -75,6 +75,7 @@ struct TacController
 
 struct TacControllerInput
 {
+  static TacControllerInput* Instance;
   TacControllerInput();
   virtual ~TacControllerInput();
   virtual void DebugImguiInner();

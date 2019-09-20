@@ -75,9 +75,10 @@ struct TacConstantBufferDX12 : public TacCBuffer
   void* mMappedData = nullptr;
 };
 
-
 struct TacRendererDX12 : public TacRenderer
 {
+  static TacRendererDX12* Instance;
+  TacRendererDX12();
   void Init( TacErrors& errors ) override;
   void CreateWindowContext( TacDesktopWindow* desktopWindow, TacErrors& errors ) override;
   void AddVertexBuffer( TacVertexBuffer** vertexBuffer, const TacVertexBufferData& vertexBufferData, TacErrors& errors ) override;

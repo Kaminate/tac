@@ -463,15 +463,14 @@ void TacCreation::Update( TacErrors& errors )
 
   mWorld->Step( TAC_DELTA_FRAME_SECONDS );
 
-  TacKeyboardInput* keyboardInput = shell->mKeyboardInput;
-  if( keyboardInput->IsKeyJustDown( TacKey::Delete ) &&
+  if( TacKeyboardInput::Instance->IsKeyJustDown( TacKey::Delete ) &&
     mGameWindow->mDesktopWindow->mCursorUnobscured )
   {
     DeleteSelectedEntities();
   }
 
-  if( keyboardInput->IsKeyJustDown( TacKey::S ) &&
-    keyboardInput->IsKeyDown( TacKey::Modifier ) )
+  if( TacKeyboardInput::Instance->IsKeyJustDown( TacKey::S ) &&
+    TacKeyboardInput::Instance->IsKeyDown( TacKey::Modifier ) )
   {
     SavePrefabs();
     if( mGameWindow )

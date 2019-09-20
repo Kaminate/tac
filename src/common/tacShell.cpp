@@ -27,26 +27,24 @@ TacSoul::TacSoul()
 TacShell::TacShell()
 {
   mTimer = new TacTimer();
-  mKeyboardInput = new TacKeyboardInput();
+  new TacKeyboardInput();
   mTimer->Start();
   if( TacIsDebugMode() )
     mLog = new TacLog();
 }
 TacShell::~TacShell()
 {
-  delete mUI2DCommonData;
-  delete mDebug3DCommonData;
+  delete TacUI2DCommonData::Instance;
+  delete TacDebug3DCommonData::Instance;
   delete mLocalization;
   delete mFontStuff;
   delete mLog;
-  delete mNet;
   delete mTimer;
-  delete mControllerInput;
-  delete mModelAssetManager;
-  delete mTextureAssetManager;
+  delete TacModelAssetManager::Instance;
+  delete TacTextureAssetManager::Instance;
 
   // last, so resources can be freed
-  delete mRenderer;
+  delete TacRenderer::Instance;
 }
 void TacShell::Init( TacErrors& errors )
 {
@@ -90,66 +88,59 @@ void TacShell::Init( TacErrors& errors )
       std::cout << "Failed to find " + rendererName + " renderer";
     TacRenderer* renderer = nullptr;
     rendererFactory->CreateRendererOuter( &renderer );
-    renderer->mShell = this;
-    renderer->Init( errors );
-    mRenderer = renderer;
+    TacRenderer::Instance->mShell = this;
+    TacRenderer::Instance->Init( errors );
+    TacRenderer::Instance = renderer;
   }
 
-  mJobQueue = new TacJobQueue;
-  mJobQueue->Init();
+  TacJobQueue::Instance = new TacJobQueue;
+  TacJobQueue::Instance->Init();
 
-  mTextureAssetManager = new TacTextureAssetManager;
-  mTextureAssetManager->mJobQueue = mJobQueue;
-  mTextureAssetManager->mRenderer = mRenderer;
+  TacTextureAssetManager::Instance = new TacTextureAssetManager;
 
-  mModelAssetManager = new TacModelAssetManager;
-  mModelAssetManager->mJobQueue = mJobQueue;
-  mModelAssetManager->mRenderer = mRenderer;
+  TacModelAssetManager::Instance = new TacModelAssetManager;
 
   mFontStuff = new TacFontStuff();
-  mFontStuff->Load( mSettings, mRenderer, TacFontAtlasDefaultVramByteCount, errors );
+  mFontStuff->Load( mSettings, TacRenderer::Instance, TacFontAtlasDefaultVramByteCount, errors );
   TAC_HANDLE_ERROR( errors );
 
   mLocalization = new TacLocalization();
   mLocalization->Load( "assets/localization.txt", errors );
   TAC_HANDLE_ERROR( errors );
 
-  mDebug3DCommonData = new TacDebug3DCommonData;
-  mDebug3DCommonData->mRenderer = mRenderer;
-  mDebug3DCommonData->Init( errors );
+  TacDebug3DCommonData::Instance = new TacDebug3DCommonData;
+  TacDebug3DCommonData::Instance->Init( errors );
   TAC_HANDLE_ERROR( errors );
 
-  mUI2DCommonData = new TacUI2DCommonData;
-  mUI2DCommonData->mRenderer = mRenderer;
-  mUI2DCommonData->mFontStuff = mFontStuff;
-  mUI2DCommonData->Init( errors );
+  TacUI2DCommonData::Instance = new TacUI2DCommonData;
+  TacUI2DCommonData::Instance->mFontStuff = mFontStuff;
+  TacUI2DCommonData::Instance->Init( errors );
   TAC_HANDLE_ERROR( errors );
 }
 void TacShell::FrameBegin( TacErrors& errors )
 {
-  mKeyboardInput->BeginFrame();
+  TacKeyboardInput::Instance->BeginFrame();
 }
 void TacShell::Frame( TacErrors& errors )
 {
-  if( mNet )
+  if( TacNet::Instance )
   {
-    mNet->Update( errors );
+    TacNet::Instance->Update( errors );
     TAC_HANDLE_ERROR( errors );
   }
 
   mOnUpdate.EmitEvent();
 
-  if( mControllerInput )
-    mControllerInput->Update();
+  TacControllerInput::Instance->Update();
 }
 void TacShell::FrameEnd( TacErrors& errors )
 {
-  if( mRenderer )
+  if( TacRenderer::Instance )
   {
-    mRenderer->Render( errors );
+    TacRenderer::Instance->Render( errors );
     TAC_HANDLE_ERROR( errors );
   }
-  mKeyboardInput->EndFrame();
+  TacKeyboardInput::Instance->EndFrame();
 }
 void TacShell::Update( TacErrors& errors )
 {

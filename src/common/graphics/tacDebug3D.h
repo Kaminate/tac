@@ -33,10 +33,11 @@ struct TacDefaultVertexColor
 
 struct TacDebug3DCommonData
 {
+  static TacDebug3DCommonData* Instance;
+  TacDebug3DCommonData();
   ~TacDebug3DCommonData();
   void Init( TacErrors& errors );
 
-  TacRenderer* mRenderer = nullptr;
   TacBlendState* mAlphaBlendState = nullptr;
   TacCBuffer* mCBufferPerFrame = nullptr;
   TacDepthState* mDepthLess = nullptr;
@@ -55,7 +56,7 @@ struct TacDebugDrawAABB
 
 struct TacDebug3DDrawData
 {
-  TacDebug3DDrawData();
+  TacDebug3DDrawData() = default;
   ~TacDebug3DDrawData();
   void DebugDrawLine( v3 p0, v3 p1, v3 color0, v3 color1 );
   void DebugDrawLine( v3 p0, v3 p1, v3 color = { 1, 1, 1 } );
@@ -73,11 +74,9 @@ struct TacDebug3DDrawData
   void DrawToTexture(
     TacErrors& errors,
     const TacDefaultCBufferPerFrame* cbufferperframe,
-    TacDebug3DCommonData* mCommonData,
     TacRenderView* mRenderView );
 
   TacVector< TacDefaultVertexColor > mDebugDrawVerts;
   TacVertexBuffer* mVerts = nullptr;
-  TacRenderer* mRenderer = nullptr;
 };
 

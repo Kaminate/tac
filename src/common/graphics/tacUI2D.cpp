@@ -29,18 +29,23 @@ static TacIndexBufferData GetIndexBufferData( const TacStackFrame& stackFrame, i
   return indexBufferData;
 }
 
+TacUI2DCommonData* TacUI2DCommonData::Instance = nullptr;
+TacUI2DCommonData::TacUI2DCommonData()
+{
+  Instance = this;
+}
 TacUI2DCommonData::~TacUI2DCommonData()
 {
-  mRenderer->RemoveRendererResource( m1x1White );
-  mRenderer->RemoveRendererResource( mFormat );
-  mRenderer->RemoveRendererResource( mShader );
-  mRenderer->RemoveRendererResource( m2DTextShader );
-  mRenderer->RemoveRendererResource( mDepthState );
-  mRenderer->RemoveRendererResource( mBlendState );
-  mRenderer->RemoveRendererResource( mRasterizerState );
-  mRenderer->RemoveRendererResource( mSamplerState );
-  mRenderer->RemoveRendererResource( mPerFrame );
-  mRenderer->RemoveRendererResource( mPerObj );
+  TacRenderer::Instance->RemoveRendererResource( m1x1White );
+  TacRenderer::Instance->RemoveRendererResource( mFormat );
+  TacRenderer::Instance->RemoveRendererResource( mShader );
+  TacRenderer::Instance->RemoveRendererResource( m2DTextShader );
+  TacRenderer::Instance->RemoveRendererResource( mDepthState );
+  TacRenderer::Instance->RemoveRendererResource( mBlendState );
+  TacRenderer::Instance->RemoveRendererResource( mRasterizerState );
+  TacRenderer::Instance->RemoveRendererResource( mSamplerState );
+  TacRenderer::Instance->RemoveRendererResource( mPerFrame );
+  TacRenderer::Instance->RemoveRendererResource( mPerObj );
 }
 void TacUI2DCommonData::Init( TacErrors& errors )
 {
@@ -56,7 +61,7 @@ void TacUI2DCommonData::Init( TacErrors& errors )
   textureData.mStackFrame = TAC_STACK_FRAME;
   textureData.mName = "1x1 white";
   textureData.binding = { TacBinding::ShaderResource };
-  mRenderer->AddTextureResource( &m1x1White, textureData, errors );
+  TacRenderer::Instance->AddTextureResource( &m1x1White, textureData, errors );
   TAC_HANDLE_ERROR( errors );
 
   TacCBufferData cBufferDataPerFrame = {};
@@ -64,7 +69,7 @@ void TacUI2DCommonData::Init( TacErrors& errors )
   cBufferDataPerFrame.mStackFrame = TAC_STACK_FRAME;
   cBufferDataPerFrame.shaderRegister = 0;
   cBufferDataPerFrame.byteCount = sizeof( TacDefaultCBufferPerFrame );
-  mRenderer->AddConstantBuffer( &mPerFrame, cBufferDataPerFrame, errors );
+  TacRenderer::Instance->AddConstantBuffer( &mPerFrame, cBufferDataPerFrame, errors );
   TAC_HANDLE_ERROR( errors );
 
   TacCBufferData cBufferDataPerObj = {};
@@ -72,7 +77,7 @@ void TacUI2DCommonData::Init( TacErrors& errors )
   cBufferDataPerObj.mStackFrame = TAC_STACK_FRAME;
   cBufferDataPerObj.shaderRegister = 1;
   cBufferDataPerObj.byteCount = sizeof( TacDefaultCBufferPerObject );
-  mRenderer->AddConstantBuffer( &mPerObj, cBufferDataPerObj, errors );
+  TacRenderer::Instance->AddConstantBuffer( &mPerObj, cBufferDataPerObj, errors );
   TAC_HANDLE_ERROR( errors );
 
   TacShaderData shaderData;
@@ -80,7 +85,7 @@ void TacUI2DCommonData::Init( TacErrors& errors )
   shaderData.mShaderPath = "2D";
   shaderData.mStackFrame = TAC_STACK_FRAME;
   shaderData.mCBuffers = { mPerFrame, mPerObj };
-  mRenderer->AddShader( &mShader, shaderData, errors );
+  TacRenderer::Instance->AddShader( &mShader, shaderData, errors );
   TAC_HANDLE_ERROR( errors );
 
   TacShaderData textShaderData;
@@ -88,7 +93,7 @@ void TacUI2DCommonData::Init( TacErrors& errors )
   textShaderData.mShaderPath = "2Dtext";
   textShaderData.mStackFrame = TAC_STACK_FRAME;
   textShaderData.mCBuffers = { mPerFrame, mPerObj };
-  mRenderer->AddShader( &m2DTextShader, textShaderData, errors );
+  TacRenderer::Instance->AddShader( &m2DTextShader, textShaderData, errors );
   TAC_HANDLE_ERROR( errors );
 
   TacVertexDeclaration posData;
@@ -104,7 +109,7 @@ void TacUI2DCommonData::Init( TacErrors& errors )
   vertexFormatData.mStackFrame = TAC_STACK_FRAME;
   vertexFormatData.shader = mShader;
   vertexFormatData.vertexFormatDatas = { posData, uvData };
-  mRenderer->AddVertexFormat( &mFormat, vertexFormatData, errors );
+  TacRenderer::Instance->AddVertexFormat( &mFormat, vertexFormatData, errors );
   TAC_HANDLE_ERROR( errors );
 
   TacBlendStateData blendStateData;
@@ -116,7 +121,7 @@ void TacUI2DCommonData::Init( TacErrors& errors )
   blendStateData.blendA = TacBlendMode::Add;
   blendStateData.mName = "tac 2d ui alpha blend state";
   blendStateData.mStackFrame = TAC_STACK_FRAME;
-  mRenderer->AddBlendState( &mBlendState, blendStateData, errors );
+  TacRenderer::Instance->AddBlendState( &mBlendState, blendStateData, errors );
   TAC_HANDLE_ERROR( errors );
 
   TacDepthStateData depthStateData;
@@ -125,7 +130,7 @@ void TacUI2DCommonData::Init( TacErrors& errors )
   depthStateData.depthFunc = TacDepthFunc::Less;
   depthStateData.mName = "tac 2d ui no depth read/write";
   depthStateData.mStackFrame = TAC_STACK_FRAME;
-  mRenderer->AddDepthState( &mDepthState, depthStateData, errors );
+  TacRenderer::Instance->AddDepthState( &mDepthState, depthStateData, errors );
   TAC_HANDLE_ERROR( errors );
 
   TacRasterizerStateData rasterizerStateData;
@@ -136,14 +141,14 @@ void TacUI2DCommonData::Init( TacErrors& errors )
   rasterizerStateData.mStackFrame = TAC_STACK_FRAME;
   rasterizerStateData.multisample = false;
   rasterizerStateData.scissor = true;
-  mRenderer->AddRasterizerState( &mRasterizerState, rasterizerStateData, errors );
+  TacRenderer::Instance->AddRasterizerState( &mRasterizerState, rasterizerStateData, errors );
   TAC_HANDLE_ERROR( errors );
 
   TacSamplerStateData samplerStateData;
   samplerStateData.mName = "tac 2d ui tex sampler";
   samplerStateData.mStackFrame = TAC_STACK_FRAME;
   samplerStateData.filter = TacFilter::Linear;
-  mRenderer->AddSamplerState( &mSamplerState, samplerStateData, errors );
+  TacRenderer::Instance->AddSamplerState( &mSamplerState, samplerStateData, errors );
   TAC_HANDLE_ERROR( errors );
 }
 
@@ -154,17 +159,14 @@ void TacUI2DCommonData::Init( TacErrors& errors )
   }
 TacUI2DDrawData::~TacUI2DDrawData()
 {
-  TacRenderer* renderer = mUI2DCommonData->mRenderer;
   if( mVerts )
-    renderer->RemoveRendererResource( mVerts );
+    TacRenderer::Instance->RemoveRendererResource( mVerts );
   if( mIndexes )
-    renderer->RemoveRendererResource( mIndexes );
+    TacRenderer::Instance->RemoveRendererResource( mIndexes );
 }
 void TacUI2DDrawData::DrawToTexture( TacErrors& errors )
 {
   TacAssert( mStates.empty() );
-
-  TacRenderer* renderer = mUI2DCommonData->mRenderer;
 
   int vertexCount = mDefaultVertex2Ds.size();
   int indexCount = mDefaultIndex2Ds.size();
@@ -173,18 +175,18 @@ void TacUI2DDrawData::DrawToTexture( TacErrors& errors )
     if( !mVerts || mVerts->mNumVertexes < vertexCount )
     {
       if( mVerts )
-        renderer->RemoveRendererResource( mVerts );
+        TacRenderer::Instance->RemoveRendererResource( mVerts );
       TacVertexBufferData vertexBufferData = GetVertexBufferData( TAC_STACK_FRAME, vertexCount );
-      renderer->AddVertexBuffer( &mVerts, vertexBufferData, errors );
+      TacRenderer::Instance->AddVertexBuffer( &mVerts, vertexBufferData, errors );
       TAC_HANDLE_ERROR( errors );
     }
 
     if( !mIndexes || mIndexes->indexCount < indexCount )
     {
       if( mIndexes )
-        renderer->RemoveRendererResource( mIndexes );
+        TacRenderer::Instance->RemoveRendererResource( mIndexes );
       TacIndexBufferData indexBufferData = GetIndexBufferData( TAC_STACK_FRAME, indexCount );
-      renderer->AddIndexBuffer( &mIndexes, indexBufferData, errors );
+      TacRenderer::Instance->AddIndexBuffer( &mIndexes, indexBufferData, errors );
       TAC_HANDLE_ERROR( errors );
     }
 
@@ -240,35 +242,35 @@ void TacUI2DDrawData::DrawToTexture( TacErrors& errors )
     perFrameData.mProjection = projection;
     TacDrawCall2 perFrame = {};
     perFrame.mRenderView = mRenderView;
-    perFrame.mBlendState = mUI2DCommonData->mBlendState;
-    perFrame.mRasterizerState = mUI2DCommonData->mRasterizerState;
-    perFrame.mSamplerState = mUI2DCommonData->mSamplerState;
-    perFrame.mDepthState = mUI2DCommonData->mDepthState;
-    perFrame.mVertexFormat = mUI2DCommonData->mFormat;
-    perFrame.mUniformDst = mUI2DCommonData->mPerFrame;
+    perFrame.mBlendState = TacUI2DCommonData::Instance->mBlendState;
+    perFrame.mRasterizerState = TacUI2DCommonData::Instance->mRasterizerState;
+    perFrame.mSamplerState = TacUI2DCommonData::Instance->mSamplerState;
+    perFrame.mDepthState = TacUI2DCommonData::Instance->mDepthState;
+    perFrame.mVertexFormat = TacUI2DCommonData::Instance->mFormat;
+    perFrame.mUniformDst = TacUI2DCommonData::Instance->mPerFrame;
     perFrame.mUniformSrcc = TacTemporaryMemory( perFrameData );
     perFrame.mStackFrame = TAC_STACK_FRAME;
-    renderer->AddDrawCall( perFrame );
+    TacRenderer::Instance->AddDrawCall( perFrame );
 
     for( TacUI2DDrawCall& uidrawCall : mDrawCall2Ds )
     {
       TacDrawCall2 drawCall2 = {};
-      drawCall2.mUniformDst = mUI2DCommonData->mPerObj;
+      drawCall2.mUniformDst = TacUI2DCommonData::Instance->mPerObj;
       drawCall2.mIndexBuffer = mIndexes;
       drawCall2.mVertexBuffer = mVerts;
       drawCall2.mRenderView = mRenderView;
-      drawCall2.mBlendState = mUI2DCommonData->mBlendState;
-      drawCall2.mRasterizerState = mUI2DCommonData->mRasterizerState;
-      drawCall2.mSamplerState = mUI2DCommonData->mSamplerState;
-      drawCall2.mDepthState = mUI2DCommonData->mDepthState;
-      drawCall2.mVertexFormat = mUI2DCommonData->mFormat;
+      drawCall2.mBlendState = TacUI2DCommonData::Instance->mBlendState;
+      drawCall2.mRasterizerState = TacUI2DCommonData::Instance->mRasterizerState;
+      drawCall2.mSamplerState = TacUI2DCommonData::Instance->mSamplerState;
+      drawCall2.mDepthState = TacUI2DCommonData::Instance->mDepthState;
+      drawCall2.mVertexFormat = TacUI2DCommonData::Instance->mFormat;
       drawCall2.mStartIndex = uidrawCall.mIIndexStart;
       drawCall2.mIndexCount = uidrawCall.mIIndexCount;
-      drawCall2.mTexture = uidrawCall.mTexture ? uidrawCall.mTexture : mUI2DCommonData->m1x1White;
+      drawCall2.mTexture = uidrawCall.mTexture ? uidrawCall.mTexture : TacUI2DCommonData::Instance->m1x1White;
       drawCall2.mShader = uidrawCall.mShader;
       drawCall2.mUniformSrcc = uidrawCall.mUniformSource;
       drawCall2.mStackFrame = TAC_STACK_FRAME;
-      renderer->AddDrawCall( drawCall2 );
+      TacRenderer::Instance->AddDrawCall( drawCall2 );
     }
   }
 
@@ -276,9 +278,9 @@ void TacUI2DDrawData::DrawToTexture( TacErrors& errors )
   mDefaultVertex2Ds.clear();
   mDefaultIndex2Ds.clear();
 
-  renderer->DebugBegin( "2d" );
-  renderer->RenderFlush();
-  renderer->DebugEnd();
+  TacRenderer::Instance->DebugBegin( "2d" );
+  TacRenderer::Instance->RenderFlush();
+  TacRenderer::Instance->DebugEnd();
 }
 TacUI2DState* TacUI2DDrawData::PushState()
 {
@@ -344,7 +346,7 @@ void TacUI2DState::Draw2DBox(
   drawCall.mIIndexStart = oldIndexCount;
   drawCall.mIIndexCount = 6;
   drawCall.mTexture = texture;
-  drawCall.mShader = mUI2DDrawData->mUI2DCommonData->mShader;
+  drawCall.mShader = TacUI2DCommonData::Instance->mShader;
   drawCall.mUniformSource = TacTemporaryMemory( perObjectData );
 
   mUI2DDrawData->mDrawCall2Ds.push_back( drawCall );
@@ -358,7 +360,7 @@ void TacUI2DState::Draw2DText(
   v4 color,
   TacErrors& errors )
 {
-  TacFontStuff* fontStuff = mUI2DDrawData->mUI2DCommonData->mFontStuff;
+  TacFontStuff* fontStuff = TacUI2DCommonData::Instance->mFontStuff;
   const m3& transform = mTransform;
 
   TacVector< TacCodepoint > codepoints;
@@ -465,7 +467,7 @@ void TacUI2DState::Draw2DText(
   drawCall.mIVertexCount = ( int )mUI2DDrawData->mDefaultVertex2Ds.size() - oldVertexCount;
   drawCall.mIVertexStart = oldVertexCount;
   drawCall.mTexture = fontStuff->mTexture;
-  drawCall.mShader = mUI2DDrawData->mUI2DCommonData->m2DTextShader;
+  drawCall.mShader = TacUI2DCommonData::Instance->m2DTextShader;
   drawCall.mUniformSource = TacTemporaryMemory( perObjectData );
   //if( !drawCall.mScissorDebugging )
   //{
@@ -504,7 +506,7 @@ v2 TacUI2DDrawData::CalculateTextSize( const TacCodepoint* codepoints, int codep
   float xUISpace = 0;
 
 
-  TacFontStuff* fontStuff = mUI2DCommonData->mFontStuff;
+  TacFontStuff* fontStuff = TacUI2DCommonData::Instance->mFontStuff;
   TacLanguage defaultLanguage = TacLanguage::English;
   TacFontFile* fontFile = fontStuff->mDefaultFonts[ defaultLanguage ];
 
@@ -607,7 +609,7 @@ void TacUI2DDrawData::AddBox( v2 mini, v2 maxi, v4 color, const TacTexture* text
   drawCall.mIIndexStart = iIndex;
   drawCall.mIIndexCount = 6;
   drawCall.mTexture = texture;
-  drawCall.mShader = mUI2DCommonData->mShader;
+  drawCall.mShader = TacUI2DCommonData::Instance->mShader;
   drawCall.mUniformSource = TacTemporaryMemory( perObjectData );
 
   mDrawCall2Ds.push_back( drawCall );
@@ -643,7 +645,7 @@ void TacUI2DDrawData::AddText( v2 textPos, int fontSize, const TacString& utf8, 
   TacVector< TacCodepoint > codepoints;
   TacUTF8Converter::Convert( utf8, codepoints, errors );
 
-  TacFontStuff* fontStuff = mUI2DCommonData->mFontStuff;
+  TacFontStuff* fontStuff = TacUI2DCommonData::Instance->mFontStuff;
   TacLanguage defaultLanguage = TacLanguage::English;
   TacFontFile* fontFile = fontStuff->mDefaultFonts[ defaultLanguage ];
 
@@ -766,7 +768,7 @@ void TacUI2DDrawData::AddText( v2 textPos, int fontSize, const TacString& utf8, 
   drawCall.mIVertexCount = vertexCount;
   drawCall.mIVertexStart = vertexStart;
   drawCall.mTexture = fontStuff->mTexture;
-  drawCall.mShader = mUI2DCommonData->m2DTextShader;
+  drawCall.mShader = TacUI2DCommonData::Instance->m2DTextShader;
   drawCall.mUniformSource = TacTemporaryMemory( perObjectData );
   mDrawCall2Ds.push_back( drawCall );
 }

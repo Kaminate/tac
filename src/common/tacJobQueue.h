@@ -42,6 +42,8 @@ private:
 
 struct TacJobQueue
 {
+  static TacJobQueue* Instance;
+  TacJobQueue();
   void Init();
   void Push( TacJob* job );
   int GetThreadCount() const { return mThreads.size(); }

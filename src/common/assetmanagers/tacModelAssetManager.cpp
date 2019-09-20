@@ -65,14 +65,14 @@ void TacFillDataType( cgltf_accessor* accessor, TacFormat* dataType )
   switch( accessor->component_type )
   {
     case cgltf_component_type_r_16u:
-      dataType->mPerElementByteCount = 2;
-      dataType->mPerElementDataType = TacGraphicsType::uint;
-      break;
+    dataType->mPerElementByteCount = 2;
+    dataType->mPerElementDataType = TacGraphicsType::uint;
+    break;
     case cgltf_component_type_r_32f:
-      dataType->mPerElementByteCount = 4;
-      dataType->mPerElementDataType = TacGraphicsType::real;
-      break;
-      TacInvalidDefaultCase( accessor->component_type );
+    dataType->mPerElementByteCount = 4;
+    dataType->mPerElementDataType = TacGraphicsType::real;
+    break;
+    TacInvalidDefaultCase( accessor->component_type );
   }
   switch( accessor->type )
   {
@@ -144,6 +144,11 @@ static void GetTris( cgltf_primitive* parsedPrim, TacVector< TacArray< v3, 3 >>&
 }
 
 
+TacModelAssetManager* TacModelAssetManager::Instance = nullptr;
+TacModelAssetManager::TacModelAssetManager()
+{
+  Instance = this;
+}
 TacModelAssetManager::~TacModelAssetManager()
 {
   for( auto pair : mMeshes )
@@ -151,8 +156,8 @@ TacModelAssetManager::~TacModelAssetManager()
     TacMesh* mesh = pair.second;
     for( TacSubMesh& submesh : mesh->mSubMeshes )
     {
-      mRenderer->RemoveRendererResource( submesh.mIndexBuffer );
-      mRenderer->RemoveRendererResource( submesh.mVertexBuffer );
+      TacRenderer::Instance->RemoveRendererResource( submesh.mIndexBuffer );
+      TacRenderer::Instance->RemoveRendererResource( submesh.mVertexBuffer );
     }
   }
 }
@@ -225,7 +230,7 @@ void TacModelAssetManager::GetMesh( TacMesh** mesh, const TacString& path, TacVe
       indexBufferData.data = indiciesData;
       indexBufferData.dataType = indexFormat;
       TacErrors indexBufferErrors;
-      mRenderer->AddIndexBuffer( &indexBuffer, indexBufferData, indexBufferErrors );
+      TacRenderer::Instance->AddIndexBuffer( &indexBuffer, indexBufferData, indexBufferErrors );
 
       int vertexCount = ( int )parsedPrim->attributes[ 0 ].data->count;
       int dstVtxStride = 0;
@@ -291,7 +296,7 @@ void TacModelAssetManager::GetMesh( TacMesh** mesh, const TacString& path, TacVe
       vertexBufferData.optionalData = dstVtxs.data();
       vertexBufferData.mStrideBytesBetweenVertexes = dstVtxStride;
       TacErrors vertexBufferErrors;
-      mRenderer->AddVertexBuffer( &vertexBuffer, vertexBufferData, vertexBufferErrors );
+      TacRenderer::Instance->AddVertexBuffer( &vertexBuffer, vertexBufferData, vertexBufferErrors );
 
       TacSubMesh subMesh;
       subMesh.mIndexBuffer = indexBuffer;

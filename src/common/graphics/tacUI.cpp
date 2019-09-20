@@ -262,7 +262,7 @@ void TacUIText::Render( TacErrors& errors )
     float t = std::sin( pulsateyness  * hoverElapsedSeconds - phase );
     t = ( t + 1 ) / 2; // map -1,1 to 0,1
     extraColorScale = t;
-    if( uiRoot->mKeyboardInput->IsKeyJustDown( TacKey::MouseLeft ) )
+    if( TacKeyboardInput::Instance->IsKeyJustDown( TacKey::MouseLeft ) )
     {
       for( const TacUIButtonCallback& buttonCallback : mButtonCallbacks )
       {
@@ -1019,7 +1019,7 @@ void TacUIHierarchyNode::RenderHierarchy( TacErrors& errors )
     {
       // magic
       color.xyz() = ( color.xyz().Length() < 0.5f ? color.xyz() + v3( 1, 1, 1 ) : color.xyz() ) / 2;
-      if( mUIRoot->mKeyboardInput->IsKeyJustDown( TacKey::MouseLeft ) )
+      if( TacKeyboardInput::Instance->IsKeyJustDown( TacKey::MouseLeft ) )
         mOnClickEventEmitter.EmitEvent();
     }
 

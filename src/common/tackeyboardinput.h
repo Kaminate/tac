@@ -39,6 +39,7 @@ struct TacKeyboardInputFrame
 
 struct TacKeyboardInput
 {
+  static TacKeyboardInput* Instance;
   TacKeyboardInput();
   bool HasKeyJustBeenReleased( TacKey key );
   bool IsKeyJustDown( TacKey key );

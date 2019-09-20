@@ -43,11 +43,11 @@ void TacTerrainDebugImgui( TacTerrain* terrain )
   }
   changed |= TacImGuiDragInt( "Subdivisionness", &terrain->mSideVertexCount );
   changed |= TacImGuiDragFloat( "Size", &terrain->mSideLength );
-  changed |= TacImGuiDragFloat( "Height", &terrain->mHeight );
+  changed |= TacImGuiDragFloat( "Height", &terrain->mUpwardsHeight );
   changed |= TacImGuiDragFloat( "Power", &terrain->mPower );
   if( changed )
   {
-    terrain->mGrid.clear();
+    terrain->mRowMajorGrid.clear();
   }
 }
 

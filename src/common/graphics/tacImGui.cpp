@@ -149,16 +149,16 @@ static void TacTextInputDataUpdateKeys( TacTextInputData* inputData, v2 textPos 
   { TacKey::Delete, TacTextInputKey::Delete },
   };
   for( auto pair : foo )
-    if( keyboardInput->IsKeyJustDown( pair.first ) )
+    if( TacKeyboardInput::Instance->IsKeyJustDown( pair.first ) )
       inputData->OnKeyPressed( pair.second );
-  if( keyboardInput->mWMCharPressedHax )
-    inputData->OnCodepoint( keyboardInput->mWMCharPressedHax );
-  if( keyboardInput->mCurr.IsKeyDown( TacKey::MouseLeft ) )
+  if( TacKeyboardInput::Instance->mWMCharPressedHax )
+    inputData->OnCodepoint( TacKeyboardInput::Instance->mWMCharPressedHax );
+  if( TacKeyboardInput::Instance->mCurr.IsKeyDown( TacKey::MouseLeft ) )
   {
     float mousePositionTextSpace = gTacImGuiGlobals.mMousePositionDesktopWindowspace.x - textPos.x;
     int numGlyphsBeforeCaret = TacGetCaret( drawData, inputData->mCodepoints, mousePositionTextSpace );
 
-    if( keyboardInput->mPrev.IsKeyDown( TacKey::MouseLeft ) )
+    if( TacKeyboardInput::Instance->mPrev.IsKeyDown( TacKey::MouseLeft ) )
       inputData->OnDrag( numGlyphsBeforeCaret );
     else
       inputData->OnClick( numGlyphsBeforeCaret );
@@ -285,10 +285,10 @@ void TacImGuiWindow::BeginFrame()
         mScroll = TacClamp( mouseDY, scrollMin, scrollMax );
       }
 
-      if( !keyboardInput->IsKeyDown( TacKey::MouseLeft ) )
+      if( !TacKeyboardInput::Instance->IsKeyDown( TacKey::MouseLeft ) )
         mScrolling = false;
     }
-    else if( keyboardInput->IsKeyJustDown( TacKey::MouseLeft ) &&
+    else if( TacKeyboardInput::Instance->IsKeyJustDown( TacKey::MouseLeft ) &&
       gTacImGuiGlobals.IsHovered( TacImGuiRect::FromMinMax( mini, maxi ) ) )
     {
       TacErrors mouseErrors;
@@ -331,7 +331,7 @@ void TacImGuiWindow::BeginFrame()
       mIDAllocator = new TacImGuiIDAllocator;
     mIDAllocator->mIDCounter = 0;
     if( !gTacImGuiGlobals.mIsWindowDirectlyUnderCursor &&
-      keyboardInput->IsKeyJustDown( TacKey::MouseLeft ) )
+      TacKeyboardInput::Instance->IsKeyJustDown( TacKey::MouseLeft ) )
     {
       mIDAllocator->mActiveID = TacImGuiIdNull;
     }
@@ -609,7 +609,7 @@ bool TacImGuiInputText( const TacString& label, TacString& text )
   if( clipped )
     return textChanged;
 
-  if( gTacImGuiGlobals.IsHovered( clipRect ) && keyboardInput->IsKeyJustDown( TacKey::MouseLeft ) )
+  if( gTacImGuiGlobals.IsHovered( clipRect ) && TacKeyboardInput::Instance->IsKeyJustDown( TacKey::MouseLeft ) )
     window->SetActiveID( id );
 
   v3 textBackgroundColor3 = { 1, 1, 0 };
@@ -641,7 +641,7 @@ bool TacImGuiInputText( const TacString& label, TacString& text )
     // handle double click
     static double lastMouseReleaseSeconds;
     static v2 lastMousePositionDesktopWindowspace;
-    if( keyboardInput->HasKeyJustBeenReleased( TacKey::MouseLeft ) &&
+    if( TacKeyboardInput::Instance->HasKeyJustBeenReleased( TacKey::MouseLeft ) &&
       gTacImGuiGlobals.IsHovered( clipRect ) &&
       !inputData->mCodepoints.empty() )
     {
@@ -708,7 +708,7 @@ bool TacImGuiSelectable( const TacString& str, bool selected )
   if( hovered )
   {
     color3 /= 2.0f;
-    if( keyboardInput->IsKeyJustDown( TacKey::MouseLeft ) )
+    if( TacKeyboardInput::Instance->IsKeyJustDown( TacKey::MouseLeft ) )
     {
       color3 /= 2.0f;
       clicked = true;
@@ -746,11 +746,11 @@ bool TacImGuiButton( const TacString& str )
   if( hovered )
   {
     outerBoxColor /= 2.0f;
-    if( keyboardInput->IsKeyDown( TacKey::MouseLeft ) )
+    if( TacKeyboardInput::Instance->IsKeyDown( TacKey::MouseLeft ) )
     {
       outerBoxColor /= 2.0f;
     }
-    if( keyboardInput->IsKeyJustDown( TacKey::MouseLeft ) )
+    if( TacKeyboardInput::Instance->IsKeyJustDown( TacKey::MouseLeft ) )
     {
       justClicked = true;
     }
@@ -792,11 +792,11 @@ void TacImGuiCheckbox( const TacString& str, bool* value )
   if( hovered )
   {
     outerBoxColor = v4( 0.5f, 0.5f, 0, 1 );
-    if( keyboardInput->IsKeyDown( TacKey::MouseLeft ) )
+    if( TacKeyboardInput::Instance->IsKeyDown( TacKey::MouseLeft ) )
     {
       outerBoxColor = v4( 0.3f, 0.3f, 0, 1 );
     }
-    if( keyboardInput->IsKeyJustDown( TacKey::MouseLeft ) )
+    if( TacKeyboardInput::Instance->IsKeyJustDown( TacKey::MouseLeft ) )
     {
       *value = !*value;
     }
@@ -853,7 +853,7 @@ void TacImGuiCheckbox( const TacString& str, bool* value )
       drawCall.mIIndexStart = iIndex;
       drawCall.mIVertexCount = 4;
       drawCall.mIVertexStart = iVert;
-      drawCall.mShader = drawData->mUI2DCommonData->mShader;
+      drawCall.mShader = TacUI2DCommonData::Instance->mShader;
       drawCall.mUniformSource = TacTemporaryMemory( perObjectData );
       drawData->mDrawCall2Ds.push_back( drawCall );
     }
@@ -909,7 +909,7 @@ static bool TacImguiDragVal(
     pos.x + gStyle.buttonPadding,
     pos.y };
 
-  if( gTacImGuiGlobals.IsHovered( clipRect ) && keyboardInput->IsKeyJustDown( TacKey::MouseLeft ) )
+  if( gTacImGuiGlobals.IsHovered( clipRect ) && TacKeyboardInput::Instance->IsKeyJustDown( TacKey::MouseLeft ) )
   {
     window->SetActiveID( id );
   }
@@ -920,10 +920,10 @@ static bool TacImguiDragVal(
       static float lastMouseXDesktopWindowspace;
       if( gTacImGuiGlobals.IsHovered( clipRect ) )
         backgroundBoxColor.xyz() /= 2.0f;
-      if( keyboardInput->IsKeyDown( TacKey::MouseLeft ) )
+      if( TacKeyboardInput::Instance->IsKeyDown( TacKey::MouseLeft ) )
       {
         backgroundBoxColor.xyz() /= 2.0f;
-        if( keyboardInput->IsKeyJustDown( TacKey::MouseLeft ) )
+        if( TacKeyboardInput::Instance->IsKeyJustDown( TacKey::MouseLeft ) )
         {
           lastMouseXDesktopWindowspace = gTacImGuiGlobals.mMousePositionDesktopWindowspace.x;
           dragFloatData.mDragDistPx = 0;
@@ -931,7 +931,7 @@ static bool TacImguiDragVal(
           TacMemCpy( dragFloatData.mValueCopy.data(), valueBytes, valueByteCount );
         }
 
-        if( keyboardInput->mPrev.IsKeyDown( TacKey::MouseLeft ) )
+        if( TacKeyboardInput::Instance->mPrev.IsKeyDown( TacKey::MouseLeft ) )
         {
           float moveCursorDir = 0;
           if( gTacImGuiGlobals.mMousePositionDesktopWindowspace.x > clipRect.mMaxi.x )
@@ -971,7 +971,7 @@ static bool TacImguiDragVal(
       // handle double click
       static double lastMouseReleaseSeconds;
       static v2 lastMousePositionDesktopWindowspace;
-      if( keyboardInput->HasKeyJustBeenReleased( TacKey::MouseLeft ) &&
+      if( TacKeyboardInput::Instance->HasKeyJustBeenReleased( TacKey::MouseLeft ) &&
         gTacImGuiGlobals.IsHovered( clipRect ) )
       {
         auto mouseReleaseSeconds = gTacImGuiGlobals.mElapsedSeconds;
@@ -990,7 +990,7 @@ static bool TacImguiDragVal(
         lastMouseReleaseSeconds = mouseReleaseSeconds;
         lastMousePositionDesktopWindowspace = gTacImGuiGlobals.mMousePositionDesktopWindowspace;
       }
-      //if( !keyboardInput->IsKeyDown( TacKey::MouseLeft ) )
+      //if( !TacKeyboardInput::Instance->IsKeyDown( TacKey::MouseLeft ) )
       //  window->mActiveID = TacImGuiIdNull;
     }
 
@@ -1002,7 +1002,7 @@ static bool TacImguiDragVal(
       valueFromStringSetter( newText, valueBytes );
       valueStr = newText;
 
-      if( keyboardInput->IsKeyJustDown( TacKey::Tab ) )
+      if( TacKeyboardInput::Instance->IsKeyJustDown( TacKey::Tab ) )
         window->mIDAllocator->mActiveID++;
     }
   }
@@ -1098,7 +1098,7 @@ bool TacImGuiCollapsingHeader( const TacString& name )
   if( gTacImGuiGlobals.IsHovered( clipRect ) )
   {
     backgroundBoxColor.xyz() /= 2.0f;
-    if( keyboardInput->IsKeyJustDown( TacKey::MouseLeft ) )
+    if( TacKeyboardInput::Instance->IsKeyJustDown( TacKey::MouseLeft ) )
       isOpen = !isOpen;
   }
 
@@ -1186,7 +1186,6 @@ void TacImGuiSetGlobals(
     gTacImGuiGlobals.mIsWindowDirectlyUnderCursor = false;
   }
   gTacImGuiGlobals.mUI2DDrawData = ui2DDrawData;
-  gTacImGuiGlobals.mKeyboardInput = shell->mKeyboardInput;
   gTacImGuiGlobals.mElapsedSeconds = shell->mElapsedSeconds;
 }
 

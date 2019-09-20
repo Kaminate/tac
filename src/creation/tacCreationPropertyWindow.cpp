@@ -25,11 +25,9 @@ void TacCreationPropertyWindow::Init( TacErrors& errors )
 {
   mUI2DDrawData = new TacUI2DDrawData;
   mUI2DDrawData->mRenderView = mDesktopWindow->mRenderView;
-  mUI2DDrawData->mUI2DCommonData = mShell->mUI2DCommonData;
   mUIRoot = new TacUIRoot;
   mUIRoot->mElapsedSeconds = &mShell->mElapsedSeconds;
   mUIRoot->mUI2DDrawData = mUI2DDrawData;
-  mUIRoot->mKeyboardInput = mShell->mKeyboardInput;
   mUIRoot->mDesktopWindow = mDesktopWindow;
   mUIRoot->mHierarchyRoot->mLayoutType = TacUILayoutType::Horizontal;
 }

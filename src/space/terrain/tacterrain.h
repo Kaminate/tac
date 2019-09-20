@@ -17,6 +17,8 @@ struct TacHeightmap
   float mMaxHeight = 100.0f;
 };
 
+struct TacVertexBuffer;
+struct TacIndexBuffer;
 
 struct TacTerrain : public TacComponent
 {
@@ -30,12 +32,12 @@ struct TacTerrain : public TacComponent
   void LoadTestHeightmap();
   void PopulateGrid();
   void DebugDraw();
-  v3 GetVal( int x, int y );
+  v3 GetGridVal( int iRow, int iCol );
 
   int mSideVertexCount = 50;
 
   float mSideLength = 50.0f;
-  float mHeight = 20.0f;
+  float mUpwardsHeight = 20.0f;
 
   // heightmap
   // vertexes
@@ -46,7 +48,7 @@ struct TacTerrain : public TacComponent
   //TacVector< v3 > mWorldSpaceGrid;
   //TacHeightmap mHeightmap;
 
-  TacVector< v3 > mGrid;
+  TacVector< v3 > mRowMajorGrid;
 
   TacString mHeightmapTexturePath = "assets/heightmap.png";
   int mTestHeightmapWidth;
@@ -55,6 +57,9 @@ struct TacTerrain : public TacComponent
   TacVector< uint8_t > mTestHeightmapImageMemory;
   TacErrors mTestHeightmapLoadErrors;
   m4 mWorldCreationTransform = {};
+
+  TacVertexBuffer* mVertexBuffer = nullptr;
+  TacIndexBuffer* mIndexBuffer = nullptr;
 };
 
 extern int asdfDEBUG;

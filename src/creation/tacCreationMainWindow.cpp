@@ -25,11 +25,9 @@ void TacCreationMainWindow::Init( TacErrors& errors )
   TacShell* shell = mDesktopApp->mShell;
   mUI2DDrawData = new TacUI2DDrawData;
   mUI2DDrawData->mRenderView = mDesktopWindow->mRenderView;
-  mUI2DDrawData->mUI2DCommonData = shell->mUI2DCommonData;
   mUIRoot = new TacUIRoot;
   mUIRoot->mUI2DDrawData = mUI2DDrawData;
   mUIRoot->mDesktopWindow = mDesktopWindow;
-  mUIRoot->mKeyboardInput = shell->mKeyboardInput;
 }
 void TacCreationMainWindow::LoadTextures( TacErrors& errors )
 {
@@ -50,7 +48,7 @@ void TacCreationMainWindow::LoadTextures( TacErrors& errors )
   int loadedTextureCount = 0;
   for( TacTextureAndPath textureAndPath : textureAndPaths )
   {
-    shell->mTextureAssetManager->GetTexture( textureAndPath.texture, textureAndPath.path, errors );
+    TacTextureAssetManager::Instance->GetTexture( textureAndPath.texture, textureAndPath.path, errors );
     TAC_HANDLE_ERROR( errors );
     if( *textureAndPath.texture )
       loadedTextureCount++;
@@ -334,7 +332,7 @@ void TacCreationMainWindow::Update( TacErrors& errors )
     mGameObjectMenuWindow->Update( errors );
     TAC_HANDLE_ERROR( errors );
 
-    if( shell->mKeyboardInput->IsKeyJustDown( TacKey::MouseLeft ) &&
+    if( TacKeyboardInput::Instance->IsKeyJustDown( TacKey::MouseLeft ) &&
       !mGameObjectMenuWindow->mDesktopWindow->mCursorUnobscured &&
       shell->mElapsedSeconds != mGameObjectMenuWindow->mCreationSeconds )
     {

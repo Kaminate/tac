@@ -218,18 +218,18 @@ static D3D11_BLEND GetBlend( TacBlendConstants c )
   switch( c )
   {
     case TacBlendConstants::OneMinusSrcA:
-      return D3D11_BLEND_INV_SRC_ALPHA;
+    return D3D11_BLEND_INV_SRC_ALPHA;
     case TacBlendConstants::SrcA:
-      return D3D11_BLEND_SRC_ALPHA;
+    return D3D11_BLEND_SRC_ALPHA;
     case TacBlendConstants::SrcRGB:
-      return D3D11_BLEND_SRC_COLOR;
+    return D3D11_BLEND_SRC_COLOR;
     case TacBlendConstants::Zero:
-      return D3D11_BLEND_ZERO;
+    return D3D11_BLEND_ZERO;
     case TacBlendConstants::One:
-      return D3D11_BLEND_ONE;
+    return D3D11_BLEND_ONE;
     default:
-      TacAssert( false );
-      return D3D11_BLEND_ZERO;
+    TacAssert( false );
+    return D3D11_BLEND_ZERO;
   }
 };
 
@@ -238,10 +238,10 @@ static D3D11_BLEND_OP GetBlendOp( TacBlendMode mode )
   switch( mode )
   {
     case TacBlendMode::Add:
-      return D3D11_BLEND_OP_ADD;
+    return D3D11_BLEND_OP_ADD;
     default:
-      TacAssert( false );
-      return D3D11_BLEND_OP_ADD;
+    TacAssert( false );
+    return D3D11_BLEND_OP_ADD;
   }
 };
 
@@ -288,8 +288,8 @@ TacDX11Window::~TacDX11Window()
     mSwapChain->Release();
     mSwapChain = nullptr;
   }
-  mRenderer->RemoveRendererResource( mBackbufferColor );
-  mRenderer->RemoveRendererResource( mDepthBuffer );
+  TacRenderer::Instance->RemoveRendererResource( mBackbufferColor );
+  TacRenderer::Instance->RemoveRendererResource( mDepthBuffer );
 }
 void TacDX11Window::OnResize( TacErrors& errors )
 {
@@ -321,8 +321,8 @@ void TacDX11Window::SwapBuffers( TacErrors & errors )
 }
 void TacDX11Window::CreateRenderTarget( TacErrors& errors )
 {
-  auto renderer = ( TacRendererDirectX11* )mRenderer;
-  ID3D11Device* device = renderer->mDevice;
+  auto renderer = ( TacRendererDirectX11* )TacRenderer::Instance;
+  ID3D11Device* device = TacRendererDirectX11::Instance->mDevice;
   DXGI_SWAP_CHAIN_DESC desc;
   mSwapChain->GetDesc( &desc );
 
@@ -336,7 +336,7 @@ void TacDX11Window::CreateRenderTarget( TacErrors& errors )
       pBackBuffer,
       rtvDesc,
       &rtv );
-    renderer->SetDebugName( rtv, "backbuffer color rtv" );
+    TacRendererDirectX11::Instance->SetDebugName( rtv, "backbuffer color rtv" );
     if( !mBackbufferColor )
     {
       TacTextureData textureData = {};
@@ -344,7 +344,7 @@ void TacDX11Window::CreateRenderTarget( TacErrors& errors )
       textureData.myImage.mHeight = desc.BufferDesc.Height;
       textureData.mName = "tac backbuffer color";
       textureData.mStackFrame = TAC_STACK_FRAME;
-      mRenderer->AddRendererResource( &mBackbufferColor, textureData );
+      TacRenderer::Instance->AddRendererResource( &mBackbufferColor, textureData );
     }
     mBackbufferColor->mRTV = rtv;
     pBackBuffer->Release();
@@ -366,7 +366,7 @@ void TacDX11Window::CreateRenderTarget( TacErrors& errors )
       depthBufferData.height = desc.BufferDesc.Height;
       depthBufferData.mName = "backbuffer depth";
       depthBufferData.mStackFrame = TAC_STACK_FRAME;
-      renderer->AddDepthBuffer( &mDepthBuffer, depthBufferData, errors );
+      TacRenderer::Instance->AddDepthBuffer( &mDepthBuffer, depthBufferData, errors );
       TAC_HANDLE_ERROR( errors );
     }
   }
@@ -376,7 +376,11 @@ void TacDX11Window::GetCurrentBackbufferTexture( TacTexture** texture )
   *texture = mBackbufferColor;
 }
 
-TacRendererDirectX11::TacRendererDirectX11() = default;
+TacRendererDirectX11* TacRendererDirectX11::Instance = nullptr;
+TacRendererDirectX11::TacRendererDirectX11()
+{
+  TacRendererDirectX11::Instance = this;
+}
 TacRendererDirectX11::~TacRendererDirectX11()
 {
   mDxgi.Uninit();
@@ -702,7 +706,6 @@ void TacRendererDirectX11::CreateWindowContext( TacDesktopWindow* desktopWindow,
   TAC_HANDLE_ERROR( errors );
   auto dx11Window = new TacDX11Window();
   dx11Window->mSwapChain = mSwapChain;
-  dx11Window->mRenderer = this;
   dx11Window->CreateRenderTarget( errors );
   dx11Window->mDesktopWindow = desktopWindow;
   TAC_HANDLE_ERROR( errors );
@@ -1510,12 +1513,12 @@ void TacRendererDirectX11::Apply()
       switch( shaderType )
       {
         case TacShaderType::Vertex:
-          mDeviceContext->VSSetSamplers( 0, ( UINT )ppSamplers.size(), ppSamplers.data() );
-          break;
+        mDeviceContext->VSSetSamplers( 0, ( UINT )ppSamplers.size(), ppSamplers.data() );
+        break;
         case TacShaderType::Fragment:
-          mDeviceContext->PSSetSamplers( 0, ( UINT )ppSamplers.size(), ppSamplers.data() );
-          break;
-          TacInvalidDefaultCase( shaderType );
+        mDeviceContext->PSSetSamplers( 0, ( UINT )ppSamplers.size(), ppSamplers.data() );
+        break;
+        TacInvalidDefaultCase( shaderType );
       }
     }
     mCurrentSamplersDirty.clear();
@@ -1532,12 +1535,12 @@ void TacRendererDirectX11::Apply()
       switch( shaderType )
       {
         case TacShaderType::Vertex:
-          mDeviceContext->VSSetShaderResources( 0, ( UINT )ppSRVs.size(), ppSRVs.data() );
-          break;
+        mDeviceContext->VSSetShaderResources( 0, ( UINT )ppSRVs.size(), ppSRVs.data() );
+        break;
         case TacShaderType::Fragment:
-          mDeviceContext->PSSetShaderResources( 0, ( UINT )ppSRVs.size(), ppSRVs.data() );
-          break;
-          TacInvalidDefaultCase( shaderType );
+        mDeviceContext->PSSetShaderResources( 0, ( UINT )ppSRVs.size(), ppSRVs.data() );
+        break;
+        TacInvalidDefaultCase( shaderType );
       }
     }
     mCurrentTexturesDirty.clear();
@@ -1692,7 +1695,7 @@ TacShaderDX11::~TacShaderDX11()
 {
   TAC_RELEASE_IUNKNOWN( mVertexShader );
   TAC_RELEASE_IUNKNOWN( mPixelShader );
-  auto rendererDX11 = ( TacRendererDirectX11* )mRenderer;
+  auto rendererDX11 = ( TacRendererDirectX11* )TacRenderer::Instance;
   if( rendererDX11->mCurrentlyBoundShader == this )
     rendererDX11->mCurrentlyBoundShader = nullptr;
 }
@@ -1735,7 +1738,7 @@ void TacTextureDX11::Clear()
   TAC_RELEASE_IUNKNOWN( mDXObj );
   TAC_RELEASE_IUNKNOWN( mSrv );
   TAC_RELEASE_IUNKNOWN( mRTV );
-  auto rendererDX11 = ( TacRendererDirectX11* )mRenderer;
+  auto rendererDX11 = ( TacRendererDirectX11* )TacRenderer::Instance;
   if( rendererDX11->mCurrentlyBoundTexture == this )
     rendererDX11->mCurrentlyBoundTexture = nullptr;
   // if the rtv is the currently bound view, null the view?
@@ -1748,39 +1751,39 @@ void* TacTextureDX11::GetImguiTextureID()
 static void TacOverwrite( TacRenderer* rendererr, ID3D11Resource* resource, void* data, int byteCount, TacErrors& errors )
 {
   auto renderer = ( TacRendererDirectX11* )rendererr;
-  ID3D11DeviceContext* deviceContext = renderer->mDeviceContext;
+  ID3D11DeviceContext* deviceContext = TacRendererDirectX11::Instance->mDeviceContext;
   D3D11_MAP d3d11mapType = GetD3D11_MAP( TacMap::WriteDiscard );
   D3D11_MAPPED_SUBRESOURCE mappedResource;
   TAC_DX11_CALL( errors, deviceContext->Map, resource, 0, d3d11mapType, 0, &mappedResource );
   TacMemCpy( mappedResource.pData, data, byteCount );
-  renderer->mDeviceContext->Unmap( resource, 0 );
+  TacRendererDirectX11::Instance->mDeviceContext->Unmap( resource, 0 );
 }
 
 TacVertexBufferDX11::~TacVertexBufferDX11()
 {
 
   TAC_RELEASE_IUNKNOWN( mDXObj );
-  auto rendererDX11 = ( TacRendererDirectX11* )mRenderer;
+  auto rendererDX11 = ( TacRendererDirectX11* )TacRenderer::Instance;
   if( rendererDX11->mCurrentlyBoundVertexBuffer == this )
     rendererDX11->mCurrentlyBoundVertexBuffer = nullptr;
 }
 
 void TacVertexBufferDX11::Overwrite( void* data, int byteCount, TacErrors& errors )
 {
-  TacOverwrite( mRenderer, mDXObj, data, byteCount, errors );
+  TacOverwrite( TacRenderer::Instance, mDXObj, data, byteCount, errors );
 }
 
 TacIndexBufferDX11::~TacIndexBufferDX11()
 {
   TAC_RELEASE_IUNKNOWN( mDXObj );
-  auto rendererDX11 = ( TacRendererDirectX11* )mRenderer;
+  auto rendererDX11 = ( TacRendererDirectX11* )TacRenderer::Instance;
   if( rendererDX11->mCurrentlyBoundIndexBuffer == this )
     rendererDX11->mCurrentlyBoundIndexBuffer = nullptr;
 }
 
 void TacIndexBufferDX11::Overwrite( void* data, int byteCount, TacErrors& errors )
 {
-  TacOverwrite( mRenderer, mDXObj, data, byteCount, errors );
+  TacOverwrite( TacRenderer::Instance, mDXObj, data, byteCount, errors );
 }
 
 TacCBufferDX11::~TacCBufferDX11()
@@ -1790,9 +1793,9 @@ TacCBufferDX11::~TacCBufferDX11()
 
 void TacCBufferDX11::SendUniforms( void* bytes )
 {
-  auto renderer = ( TacRendererDirectX11* )mRenderer;
+  auto renderer = ( TacRendererDirectX11* )TacRenderer::Instance;
   ID3D11Resource* resource = mDXObj;
-  renderer->mDeviceContext->UpdateSubresource(
+  TacRendererDirectX11::Instance->mDeviceContext->UpdateSubresource(
     resource,
     0,
     nullptr,
@@ -1816,7 +1819,7 @@ int registerDX11 = []()
   } factory;
   TacRendererRegistry::Instance().mFactories.push_back( &factory );
   return 0;
-}();
+}( );
 
 TacDepthBufferDX11::~TacDepthBufferDX11()
 {
@@ -1835,7 +1838,7 @@ void TacDepthBufferDX11::Init( TacErrors& errors )
   texture2dDesc.ArraySize = 1;
   texture2dDesc.MipLevels = 1;
 
-  auto rendererDX11 = ( TacRendererDirectX11* )mRenderer;
+  auto rendererDX11 = ( TacRendererDirectX11* )TacRenderer::Instance;
   ID3D11Device* mDevice = rendererDX11->mDevice;
 
   ID3D11Texture2D* texture;
@@ -1863,7 +1866,7 @@ TacSamplerStateDX11::~TacSamplerStateDX11()
 {
 
   TAC_RELEASE_IUNKNOWN( mDXObj );
-  auto rendererDX11 = ( TacRendererDirectX11* )mRenderer;
+  auto rendererDX11 = ( TacRendererDirectX11* )TacRenderer::Instance;
   if( rendererDX11->mCurrentlyBoundSamplerState == this )
     rendererDX11->mCurrentlyBoundSamplerState = nullptr;
 }
@@ -1871,7 +1874,7 @@ TacSamplerStateDX11::~TacSamplerStateDX11()
 TacDepthStateDX11::~TacDepthStateDX11()
 {
   TAC_RELEASE_IUNKNOWN( mDXObj );
-  auto rendererDX11 = ( TacRendererDirectX11* )mRenderer;
+  auto rendererDX11 = ( TacRendererDirectX11* )TacRenderer::Instance;
   if( rendererDX11->mCurrentlyBoundDepthState == this )
     rendererDX11->mCurrentlyBoundDepthState = nullptr;
 }
@@ -1879,7 +1882,7 @@ TacDepthStateDX11::~TacDepthStateDX11()
 TacBlendStateDX11::~TacBlendStateDX11()
 {
   TAC_RELEASE_IUNKNOWN( mDXObj );
-  auto rendererDX11 = ( TacRendererDirectX11* )mRenderer;
+  auto rendererDX11 = ( TacRendererDirectX11* )TacRenderer::Instance;
   if( rendererDX11->mCurrentlyBoundBlendState == this )
     rendererDX11->mCurrentlyBoundBlendState = nullptr;
 }
@@ -1887,7 +1890,7 @@ TacBlendStateDX11::~TacBlendStateDX11()
 TacRasterizerStateDX11::~TacRasterizerStateDX11()
 {
   TAC_RELEASE_IUNKNOWN( mDXObj );
-  auto rendererDX11 = ( TacRendererDirectX11* )mRenderer;
+  auto rendererDX11 = ( TacRendererDirectX11* )TacRenderer::Instance;
   if( rendererDX11->mCurrentlyBoundRasterizerState == this )
     rendererDX11->mCurrentlyBoundRasterizerState = nullptr;
 }
@@ -1896,7 +1899,7 @@ TacVertexFormatDX11::~TacVertexFormatDX11()
 {
   TAC_RELEASE_IUNKNOWN( mDXObj );
 
-  auto rendererDX11 = ( TacRendererDirectX11* )mRenderer;
+  auto rendererDX11 = ( TacRendererDirectX11* )TacRenderer::Instance;
   if( rendererDX11->mCurrentlyBoundVertexFormat == this )
     rendererDX11->mCurrentlyBoundVertexFormat = nullptr;
 }
