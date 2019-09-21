@@ -110,16 +110,58 @@ void TacGamePresentation::RenderGameWorldToDesktopView()
           iGrid++;
         }
       }
-      //terrain->GetGridVal( x, y );
+      
+      auto GetIndex = [&]( int iRow, int iCol )
+      {
+        return iCol + iRow * terrain->mSideVertexCount;
+      };
+
+      typedef uint32_t TerrainIndex;
+      TacVector< TerrainIndex > indexes; 
+      for( int iRow = 1; iRow < terrain->mSideVertexCount; ++iRow )
+      {
+        int iRowPrev =  iRow - 1;
+        for( int iCol = 1; iCol < terrain->mSideVertexCount; ++iCol )
+        {
+          int iColPrev = iCol - 1;
+
+          int iBR = GetIndex( iCol, iRow );
+          int iBL = GetIndex( iColPrev, iRow );
+          int iTR = GetIndex( iCol, iRowPrev );
+          int iTL = GetIndex( iColPrev, iRowPrev );
+          // tri 1
+          indexes.push_back( iBR );
+          indexes.push_back( iTL );
+          indexes.push_back( iBL );
+          // tri 2
+          indexes.push_back( iBR );
+          indexes.push_back( iTR );
+          indexes.push_back( iTL );
+        }
+      }
 
       TacErrors rendererResourceErrors;
 
       TacVertexBufferData vertexBufferData = {};
+      vertexBufferData.mAccess = TacAccess::Default;
+      vertexBufferData.mNumVertexes = vertexes.size();
+      vertexBufferData.mOptionalData = vertexes.data();
+      vertexBufferData.mStrideBytesBetweenVertexes = sizeof( TacTerrainVertex );
+      vertexBufferData.mName = terrain->mHeightmapTexturePath + "terrain vtx buffer";
+      vertexBufferData.mStackFrame = TAC_STACK_FRAME;
       TacRenderer::Instance->AddVertexBuffer( &terrain->mVertexBuffer, vertexBufferData, rendererResourceErrors );
       if( rendererResourceErrors.size() )
         continue;
 
       TacIndexBufferData indexBufferData = {};
+      indexBufferData.mAccess = TacAccess::Default;
+      indexBufferData.mData = indexes.data();
+      indexBufferData.mFormat.mElementCount = 1;
+      indexBufferData.mFormat.mPerElementByteCount = sizeof( TerrainIndex );
+      indexBufferData.mFormat.mPerElementDataType = TacGraphicsType::uint;
+      indexBufferData.mIndexCount = indexes.size();
+      indexBufferData.mName = terrain->mHeightmapTexturePath + "terrain idx buffer";
+      indexBufferData.mStackFrame = TAC_STACK_FRAME;
       TacRenderer::Instance->AddIndexBuffer( &terrain->mIndexBuffer, indexBufferData, rendererResourceErrors );
       if( rendererResourceErrors.size() )
         continue;
@@ -128,6 +170,31 @@ void TacGamePresentation::RenderGameWorldToDesktopView()
 
     if( !terrain->mVertexBuffer || !terrain->mIndexBuffer )
       continue;
+
+    TacDefaultCBufferPerObject cbuf = {};
+    cbuf.Color = { 1, 1, 1, 1 };
+    cbuf.World = m4::Identity();
+
+    TacDrawCall2 drawCall = {};
+    drawCall.mBlendState = mBlendState;
+    drawCall.mDepthState = mDepthState;
+    drawCall.mIndexBuffer = terrain->mIndexBuffer;
+    drawCall.mIndexCount = terrain->mIndexBuffer->mIndexCount;
+    drawCall.mPrimitiveTopology = TacPrimitiveTopology::TriangleList;
+    drawCall.mRasterizerState = mRasterizerState;
+    drawCall.mRenderView = mDesktopWindow->mRenderView;
+    drawCall.mSamplerState = mSamplerState;
+    drawCall.mShader = mTerrainShader;
+    drawCall.mStackFrame = TAC_STACK_FRAME;
+    drawCall.mStartIndex = 0;
+    drawCall.mTexture = nullptr;
+    drawCall.mUniformDst = mPerObj;
+    drawCall.mUniformSrcc = TacTemporaryMemory( &cbuf, sizeof( TacDefaultCBufferPerObject ) );
+    drawCall.mVertexBuffer = terrain->mVertexBuffer;
+    drawCall.mVertexCount = terrain->mVertexBuffer->mNumVertexes;
+    drawCall.mVertexFormat = mTerrainVertexFormat;
+
+    renderer->AddDrawCall( drawCall );
   }
   TacRenderer::Instance->DebugBegin( "Render game world" );
   TacRenderer::Instance->RenderFlush();
@@ -305,7 +372,7 @@ void TacGamePresentation::RenderGameWorldAddDrawCall(
     drawCall.mVertexBuffer = subMesh.mVertexBuffer;
     drawCall.mIndexBuffer = subMesh.mIndexBuffer;
     drawCall.mStartIndex = 0;
-    drawCall.mIndexCount = subMesh.mIndexBuffer->indexCount;
+    drawCall.mIndexCount = subMesh.mIndexBuffer->mIndexCount;
     drawCall.mRenderView = mDesktopWindow->mRenderView;
     drawCall.mBlendState = mBlendState;
     drawCall.mRasterizerState = mRasterizerState;

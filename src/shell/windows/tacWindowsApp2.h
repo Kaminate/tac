@@ -28,6 +28,7 @@ struct TacWin32DesktopWindow : public TacDesktopWindow
 
 struct TacWindowsApplication2 : public TacDesktopApp
 {
+  static TacWindowsApplication2* Instance;
   TacWindowsApplication2();
   ~TacWindowsApplication2();
   void Init( TacErrors& errors ) override;

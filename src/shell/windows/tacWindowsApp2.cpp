@@ -304,8 +304,10 @@ void TacWin32DesktopWindow::Poll( TacErrors& errors )
   }
 }
 
+TacWindowsApplication2* TacWindowsApplication2::Instance;
 TacWindowsApplication2::TacWindowsApplication2()
 {
+  Instance = this;
 }
 TacWindowsApplication2::~TacWindowsApplication2()
 {
@@ -514,12 +516,13 @@ void TacWindowsApplication2::SpawnWindowAux( const TacWindowParams& windowParams
   *desktopWindow = createdWindow;
   mWindows.push_back( createdWindow );
 
-
-  createdWindow->mOnDestroyed.AddCallbackFunctional( [ this, createdWindow ]()
+  createdWindow->mOnDestroyed.AddCallbackFunctional( []( TacDesktopWindow* desktopWindow )
     {
-      int i = TacIndexOf( createdWindow, mWindows );
-      mWindows[ i ] = mWindows.back();
-      mWindows.pop_back();
+      TacWindowsApplication2* app = TacWindowsApplication2::Instance;
+      auto createdWindow = (TacWin32DesktopWindow*)desktopWindow;
+      int i = TacIndexOf( createdWindow, app->mWindows );
+      app->mWindows[ i ] = app->mWindows.back();
+      app->mWindows.pop_back();
     } );
 
   // Used to combine all the windows into one tab group.

@@ -139,6 +139,7 @@ TacVector< std::pair< TacFormat, DXGI_FORMAT > > GetFormatPairs()
   { { 2, sizeof( uint8_t ), TacGraphicsType::unorm }, DXGI_FORMAT_R8G8_UNORM },
   { { 4, sizeof( uint8_t ), TacGraphicsType::unorm }, DXGI_FORMAT_R8G8B8A8_UNORM },
   { { 1, sizeof( uint16_t ), TacGraphicsType::uint }, DXGI_FORMAT_R16_UINT },
+  { { 1, sizeof( uint32_t ), TacGraphicsType::uint }, DXGI_FORMAT_R32_UINT },
   };
 }
 

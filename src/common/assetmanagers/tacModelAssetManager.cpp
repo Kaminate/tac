@@ -223,12 +223,12 @@ void TacModelAssetManager::GetMesh( TacMesh** mesh, const TacString& path, TacVe
       TacFillDataType( indices, &indexFormat );
       TacIndexBuffer* indexBuffer;
       TacIndexBufferData indexBufferData = {};
-      indexBufferData.indexCount = ( int )indices->count;
-      indexBufferData.access = TacAccess::Default;
+      indexBufferData.mIndexCount = ( int )indices->count;
+      indexBufferData.mAccess = TacAccess::Default;
       indexBufferData.mStackFrame = TAC_STACK_FRAME;
       indexBufferData.mName = debugName;
-      indexBufferData.data = indiciesData;
-      indexBufferData.dataType = indexFormat;
+      indexBufferData.mData = indiciesData;
+      indexBufferData.mFormat = indexFormat;
       TacErrors indexBufferErrors;
       TacRenderer::Instance->AddIndexBuffer( &indexBuffer, indexBufferData, indexBufferErrors );
 
@@ -289,11 +289,11 @@ void TacModelAssetManager::GetMesh( TacMesh** mesh, const TacString& path, TacVe
 
       TacVertexBuffer* vertexBuffer;
       TacVertexBufferData vertexBufferData = {};
-      vertexBufferData.access = TacAccess::Default;
+      vertexBufferData.mAccess = TacAccess::Default;
       vertexBufferData.mName = debugName;
       vertexBufferData.mStackFrame = TAC_STACK_FRAME;
       vertexBufferData.mNumVertexes = vertexCount;
-      vertexBufferData.optionalData = dstVtxs.data();
+      vertexBufferData.mOptionalData = dstVtxs.data();
       vertexBufferData.mStrideBytesBetweenVertexes = dstVtxStride;
       TacErrors vertexBufferErrors;
       TacRenderer::Instance->AddVertexBuffer( &vertexBuffer, vertexBufferData, vertexBufferErrors );

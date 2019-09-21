@@ -92,7 +92,11 @@ void TacDesktopApp::DoStuff( TacDesktopApp* desktopApp, TacErrors& errors )
 
   delete creation;
 }
-
+TacCreation* TacCreation::Instance = nullptr;
+TacCreation::TacCreation()
+{
+  Instance = this;
+}
 TacCreation::~TacCreation()
 {
   if( mMainWindow )
@@ -129,10 +133,10 @@ void TacCreation::CreatePropertyWindow( TacErrors& errors )
   mPropertyWindow->Init( errors );
   TAC_HANDLE_ERROR( errors );
 
-  desktopWindow->mOnDestroyed.AddCallbackFunctional( [ this ]()
+  desktopWindow->mOnDestroyed.AddCallbackFunctional( [](TacDesktopWindow*)
     {
-      delete mPropertyWindow;
-      mPropertyWindow = nullptr;
+      delete TacCreation::Instance->mPropertyWindow;
+      TacCreation::Instance->mPropertyWindow = nullptr;
     } );
 }
 void TacCreation::CreateGameWindow( TacErrors& errors )
@@ -153,10 +157,10 @@ void TacCreation::CreateGameWindow( TacErrors& errors )
   mGameWindow->Init( errors );
   TAC_HANDLE_ERROR( errors );
 
-  desktopWindow->mOnDestroyed.AddCallbackFunctional( [ this ]()
+  desktopWindow->mOnDestroyed.AddCallbackFunctional( [](TacDesktopWindow*)
     {
-      delete mGameWindow;
-      mGameWindow = nullptr;
+      delete TacCreation::Instance->mGameWindow;
+      TacCreation::Instance->mGameWindow = nullptr;
     } );
 }
 void TacCreation::CreateMainWindow( TacErrors& errors )
@@ -176,11 +180,13 @@ void TacCreation::CreateMainWindow( TacErrors& errors )
   mMainWindow->Init( errors );
   TAC_HANDLE_ERROR( errors );
 
-  desktopWindow->mOnDestroyed.AddCallbackFunctional( [ this ]()
+  desktopWindow->mOnDestroyed.AddCallbackFunctional( [](TacDesktopWindow*)
     {
-      TacOS::Instance->mShouldStopRunning = true;
-      delete mMainWindow;
-      mMainWindow = nullptr;
+      // no, for graphics debuggin
+      //TacOS::Instance->mShouldStopRunning = true;
+      
+      delete TacCreation::Instance->mMainWindow;
+      TacCreation::Instance->mMainWindow = nullptr;
     } );
 }
 void TacCreation::CreateSystemWindow( TacErrors& errors )
@@ -200,10 +206,10 @@ void TacCreation::CreateSystemWindow( TacErrors& errors )
   mSystemWindow->Init( errors );
   TAC_HANDLE_ERROR( errors );
 
-  desktopWindow->mOnDestroyed.AddCallbackFunctional( [ this ]()
+  desktopWindow->mOnDestroyed.AddCallbackFunctional( [](TacDesktopWindow*)
     {
-      delete mSystemWindow;
-      mSystemWindow = nullptr;
+      delete TacCreation::Instance->mSystemWindow;
+      TacCreation::Instance->mSystemWindow = nullptr;
     } );
 }
 

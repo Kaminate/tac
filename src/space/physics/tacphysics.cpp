@@ -7,6 +7,7 @@
 #include "space/tacentity.h"
 #include "space/tacworld.h"
 #include "space/terrain/tacterrain.h"
+#include "space/tacgjk.h"
 
 #include "common/assetmanagers/tacTextureAssetManager.h"
 #include "common/containers/tacVector.h"

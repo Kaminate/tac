@@ -45,6 +45,8 @@ struct TacPrefabCameraPosition
 
 struct TacCreation
 {
+  static TacCreation* Instance;
+  TacCreation();
   ~TacCreation();
   void Init( TacErrors& errors );
   void Update( TacErrors& errors );

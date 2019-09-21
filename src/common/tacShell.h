@@ -81,7 +81,7 @@ struct TacShell
 
 struct TacRendererWindowData
 {
-  virtual ~TacRendererWindowData() = default;
+  virtual ~TacRendererWindowData();
   virtual void Submit( TacErrors& errors ) {};
   virtual void GetCurrentBackbufferTexture( TacTexture** texture ) { TacUnimplemented; };
   virtual void OnResize( TacErrors& errors ) {};

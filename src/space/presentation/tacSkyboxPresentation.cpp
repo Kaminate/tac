@@ -135,7 +135,7 @@ void TacSkyboxPresentation::RenderSkybox( const TacString& skyboxDir )
   TacDrawCall2 drawCallGeometry = {};
   drawCallGeometry.mVertexBuffer = subMesh->mVertexBuffer;
   drawCallGeometry.mIndexBuffer = subMesh->mIndexBuffer;
-  drawCallGeometry.mIndexCount = subMesh->mIndexBuffer->indexCount;
+  drawCallGeometry.mIndexCount = subMesh->mIndexBuffer->mIndexCount;
   drawCallGeometry.mVertexFormat = mVertexFormat;
   drawCallGeometry.mShader = mShader;
   drawCallGeometry.mBlendState = mBlendState;

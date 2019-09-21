@@ -9,7 +9,7 @@ TacDesktopWindow::TacDesktopWindow()
 }
 TacDesktopWindow::~TacDesktopWindow()
 {
-  mOnDestroyed.EmitEvent();
+  mOnDestroyed.EmitEvent(this);
   delete mRenderView;
 }
 

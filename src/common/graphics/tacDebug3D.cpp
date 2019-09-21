@@ -382,7 +382,7 @@ void TacDebug3DDrawData::DrawToTexture(
       if( mVerts )
         TacRenderer::Instance->RemoveRendererResource( mVerts );
       TacVertexBufferData vertexBufferData = {};
-      vertexBufferData.access = TacAccess::Dynamic;
+      vertexBufferData.mAccess = TacAccess::Dynamic;
       vertexBufferData.mName = "debug 3d verts";
       vertexBufferData.mNumVertexes = vertexCount;
       vertexBufferData.mStrideBytesBetweenVertexes = sizeof( TacDefaultVertexColor );

@@ -1,8 +1,8 @@
 #pragma once
-#include "tacspacetypes.h"
-#include "tacspacenet.h"
-#include <list>
+#include "space/tacspacetypes.h"
+#include "space/tacspacenet.h"
 #include "common/containers/tacVector.h"
+#include <list>
 #include <map>
 
 struct TacOtherPlayer

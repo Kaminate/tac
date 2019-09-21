@@ -427,7 +427,7 @@ void TacCreationGameWindow::AddDrawCall( const TacMesh* mesh, const TacDefaultCB
     drawCall.mVertexBuffer = subMesh.mVertexBuffer;
     drawCall.mIndexBuffer = subMesh.mIndexBuffer;
     drawCall.mStartIndex = 0;
-    drawCall.mIndexCount = subMesh.mIndexBuffer->indexCount;
+    drawCall.mIndexCount = subMesh.mIndexBuffer->mIndexCount;
     drawCall.mRenderView = mDesktopWindow->mRenderView;
     drawCall.mBlendState = mBlendState;
     drawCall.mRasterizerState = mRasterizerState;

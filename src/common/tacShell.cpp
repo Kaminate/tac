@@ -154,3 +154,10 @@ void TacShell::Update( TacErrors& errors )
   Frame( errors );
   FrameEnd( errors );
 }
+
+
+TacRendererWindowData::~TacRendererWindowData()
+{
+  static int i;
+  ++i;
+}

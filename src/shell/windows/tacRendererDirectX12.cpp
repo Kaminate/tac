@@ -608,8 +608,8 @@ void TacRendererDX12::AddVertexBuffer( TacVertexBuffer** vertexBuffer, const Tac
 
 void TacRendererDX12::AddIndexBuffer( TacIndexBuffer** indexBuffer, const TacIndexBufferData& indexBufferData, TacErrors& errors )
 {
-  TacAssert( indexBufferData.dataType.mElementCount == 1 );
-  int byteCount = indexBufferData.indexCount * indexBufferData.dataType.mPerElementByteCount;
+  TacAssert( indexBufferData.mFormat.mElementCount == 1 );
+  int byteCount = indexBufferData.mIndexCount * indexBufferData.mFormat.mPerElementByteCount;
   D3D12_RESOURCE_STATES resourceStates = D3D12_RESOURCE_STATE_INDEX_BUFFER;
   TacIndexBufferDX12* indexBufferDX12;
   AddRendererResource( &indexBufferDX12, indexBufferData );
@@ -1322,8 +1322,8 @@ void TacRendererDX12::Render( TacErrors& errors )
           auto indexBuffer = ( TacIndexBufferDX12* )drawCall2.mIndexBuffer;
           D3D12_INDEX_BUFFER_VIEW indexBufferView = {};
           indexBufferView.BufferLocation = indexBuffer->mBuffer.mResourceBuffer->GetGPUVirtualAddress();
-          indexBufferView.Format = GetDXGIFormat( indexBuffer->dataType );
-          indexBufferView.SizeInBytes = ( UINT )( indexBuffer->indexCount * indexBuffer->dataType.mPerElementByteCount );
+          indexBufferView.Format = GetDXGIFormat( indexBuffer->mFormat );
+          indexBufferView.SizeInBytes = ( UINT )( indexBuffer->mIndexCount * indexBuffer->mFormat.mPerElementByteCount );
           mCommandList->IASetIndexBuffer( &indexBufferView );
         }
 

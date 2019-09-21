@@ -49,7 +49,7 @@ struct TacDesktopWindow : public TacWindowParams
 
   TacEvent<>::Emitter mOnResize;
   TacEvent<>::Emitter mOnMove;
-  TacEvent<>::Emitter mOnDestroyed;
+  TacEvent<TacDesktopWindow*>::Emitter mOnDestroyed;
 
   // True if the window directly under the mouse cursor is this one
   // todo: Figure out a better variable name that can be negated

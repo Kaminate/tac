@@ -8,7 +8,7 @@
 static TacVertexBufferData GetVertexBufferData( const TacStackFrame& stackFrame, int vertexCount )
 {
   TacVertexBufferData vertexBufferData = {};
-  vertexBufferData.access = TacAccess::Dynamic;
+  vertexBufferData.mAccess = TacAccess::Dynamic;
   vertexBufferData.mName = "draw data verts";
   vertexBufferData.mStrideBytesBetweenVertexes = sizeof( TacUI2DVertex );
   vertexBufferData.mNumVertexes = vertexCount;
@@ -19,13 +19,13 @@ static TacVertexBufferData GetVertexBufferData( const TacStackFrame& stackFrame,
 static TacIndexBufferData GetIndexBufferData( const TacStackFrame& stackFrame, int indexCount )
 {
   TacIndexBufferData indexBufferData;
-  indexBufferData.access = TacAccess::Dynamic;
+  indexBufferData.mAccess = TacAccess::Dynamic;
   indexBufferData.mName = "draw data indexes";
-  indexBufferData.dataType.mPerElementDataType = TacGraphicsType::uint;
-  indexBufferData.dataType.mElementCount = 1;
-  indexBufferData.dataType.mPerElementByteCount = sizeof( TacUI2DIndex );
+  indexBufferData.mFormat.mPerElementDataType = TacGraphicsType::uint;
+  indexBufferData.mFormat.mElementCount = 1;
+  indexBufferData.mFormat.mPerElementByteCount = sizeof( TacUI2DIndex );
   indexBufferData.mStackFrame = stackFrame;
-  indexBufferData.indexCount = indexCount;
+  indexBufferData.mIndexCount = indexCount;
   return indexBufferData;
 }
 
@@ -181,7 +181,7 @@ void TacUI2DDrawData::DrawToTexture( TacErrors& errors )
       TAC_HANDLE_ERROR( errors );
     }
 
-    if( !mIndexes || mIndexes->indexCount < indexCount )
+    if( !mIndexes || mIndexes->mIndexCount < indexCount )
     {
       if( mIndexes )
         TacRenderer::Instance->RemoveRendererResource( mIndexes );

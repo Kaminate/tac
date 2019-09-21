@@ -211,8 +211,8 @@ struct TacShaderData : public TacRendererResource
 struct TacShader : public TacShaderData { };// for now, this encompasses both the vertex & pixel shader 
 struct TacVertexBufferData : public TacRendererResource
 {
-  TacAccess access = TacAccess::Default;
-  void* optionalData = nullptr;
+  TacAccess mAccess = TacAccess::Default;
+  void* mOptionalData = nullptr;
   int mNumVertexes = 0;
   int mStrideBytesBetweenVertexes = 0;
 };
@@ -222,10 +222,10 @@ struct TacVertexBuffer : public TacVertexBufferData
 };
 struct TacIndexBufferData : public TacRendererResource
 {
-  TacAccess access = TacAccess::Default;
-  const void* data = nullptr;
-  int indexCount = 0;
-  TacFormat dataType;
+  TacAccess mAccess = TacAccess::Default;
+  const void* mData = nullptr;
+  int mIndexCount = 0;
+  TacFormat mFormat;
 };
 struct TacIndexBuffer : public TacIndexBufferData
 {

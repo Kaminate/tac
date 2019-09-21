@@ -522,7 +522,7 @@ void TacRendererDirectX11::RenderFlush()
         std::cout << "changing index buffer to "
         << ( void* )indexBufferDX11
         << " "
-        << indexBufferDX11->indexCount << std::endl;
+        << indexBufferDX11->mIndexCount << std::endl;
     }
 
     if( mCurrentlyBoundBlendState != drawCall.mBlendState )
@@ -711,15 +711,18 @@ void TacRendererDirectX11::CreateWindowContext( TacDesktopWindow* desktopWindow,
   TAC_HANDLE_ERROR( errors );
   mWindows.push_back( dx11Window );
   desktopWindow->mRendererData = dx11Window;
-  desktopWindow->mOnDestroyed.AddCallbackFunctional( [ this, dx11Window ]()
+  desktopWindow->mOnDestroyed.AddCallbackFunctional( [](TacDesktopWindow* desktopWindow)
     {
-      for( TacDX11Window*& window : mWindows )
+      TacRendererDirectX11* renderer = TacRendererDirectX11::Instance;
+      auto dx11Window = ( TacDX11Window* )desktopWindow->mRendererData;
+
+      for( TacDX11Window*& window : renderer->mWindows )
       {
         if( window != dx11Window )
           continue;
-        window = mWindows.back();
         delete window;
-        mWindows.pop_back();
+        window = renderer->mWindows.back();
+        renderer->mWindows.pop_back();
         break;
       }
     } );
@@ -729,14 +732,14 @@ void TacRendererDirectX11::AddVertexBuffer( TacVertexBuffer** outputVertexBuffer
   D3D11_BUFFER_DESC bd = {};
   bd.ByteWidth = vbData.mNumVertexes * vbData.mStrideBytesBetweenVertexes;
   bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-  bd.Usage = GetUsage( vbData.access );
-  if( vbData.access == TacAccess::Dynamic )
+  bd.Usage = GetUsage( vbData.mAccess );
+  if( vbData.mAccess == TacAccess::Dynamic )
     bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
   D3D11_SUBRESOURCE_DATA initData = {};
   D3D11_SUBRESOURCE_DATA* pInitialData = nullptr;
-  if( vbData.optionalData )
+  if( vbData.mOptionalData )
   {
-    initData.pSysMem = vbData.optionalData;
+    initData.pSysMem = vbData.mOptionalData;
     pInitialData = &initData;
   }
   ID3D11Buffer* buffer;
@@ -752,30 +755,30 @@ void TacRendererDirectX11::AddIndexBuffer(
   const TacIndexBufferData& indexBufferData,
   TacErrors& errors )
 {
-  TacAssert( indexBufferData.indexCount > 0 );
+  TacAssert( indexBufferData.mIndexCount > 0 );
   UINT totalBufferSize
-    = indexBufferData.indexCount
-    * indexBufferData.dataType.mPerElementByteCount
-    * indexBufferData.dataType.mElementCount;
+    = indexBufferData.mIndexCount
+    * indexBufferData.mFormat.mPerElementByteCount
+    * indexBufferData.mFormat.mElementCount;
   D3D11_BUFFER_DESC bd = {};
   bd.ByteWidth = totalBufferSize;
   bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-  bd.Usage = GetUsage( indexBufferData.access );
-  if( indexBufferData.access == TacAccess::Dynamic )
+  bd.Usage = GetUsage( indexBufferData.mAccess );
+  if( indexBufferData.mAccess == TacAccess::Dynamic )
     bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
   ID3D11Buffer* mDXObj = nullptr;
   D3D11_SUBRESOURCE_DATA initData = {};
   D3D11_SUBRESOURCE_DATA* pInitData = nullptr;
-  if( indexBufferData.data )
+  if( indexBufferData.mData )
   {
     pInitData = &initData;
-    initData.pSysMem = indexBufferData.data;
+    initData.pSysMem = indexBufferData.mData;
   }
   TAC_DX11_CALL( errors, mDevice->CreateBuffer, &bd, pInitData, &mDXObj );
   SetDebugName( mDXObj, indexBufferData.mName + " indexes" );
   TacIndexBufferDX11* indexBuffer;
   AddRendererResource( &indexBuffer, indexBufferData );
-  indexBuffer->mFormat = GetDXGIFormat( indexBufferData.dataType );
+  indexBuffer->mFormat = GetDXGIFormat( indexBufferData.mFormat );
   indexBuffer->mDXObj = mDXObj;
   *outputIndexBuffer = indexBuffer;
 }

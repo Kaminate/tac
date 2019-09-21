@@ -1,9 +1,7 @@
 #pragma once
 #include "common/math/tacVector3.h"
 #include "common/tacErrorHandling.h"
-#include "tacspacetypes.h"
-#include "tacsystem.h"
-#include "tacgjk.h"
+#include "space/tacsystem.h"
 #include <set>
 #include <list>
 
