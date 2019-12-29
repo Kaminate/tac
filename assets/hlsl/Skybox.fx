@@ -36,11 +36,11 @@ struct PS_OUTPUT
 
 PS_OUTPUT PS( VS_OUTPUT input )
 {
-  float3 sampled = cubemap.Sample( linearSampler, input.mViewSpacePosition ).xyz;
+  float3 sampled_sRGB = cubemap.Sample( linearSampler, input.mViewSpacePosition ).xyz;
+  float3 sampled_linear = pow( sampled_sRGB, 2.2 );
 
   PS_OUTPUT output = ( PS_OUTPUT )0;
-  output.mColor.xyz = sampled.xyz; // gamma?
-  output.mColor.w = 1;
+  output.mColor = float4( sampled_linear, 1 );
 
   return output;
 }

@@ -1,10 +1,10 @@
 {
   "Terrain":
   {
-    "mDrawGrid": true,
     "mGroundTexturePath": "C:\Users\Nate\Documents\GitHub\tac\assets\grass.png",
     "mHeight": 78.400024,
     "mHeightmapTexturePath": "assets/heightmaps/heightmap2.png",
+    "mNoiseTexturePath": "C:\Users\Nate\Documents\GitHub\tac\assets\shadertoy_gray_noise_med_256x256.png",
     "mSideLength": 1000,
     "mSideVertexCount": 200
   },

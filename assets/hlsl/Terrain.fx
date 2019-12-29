@@ -13,7 +13,7 @@ struct VS_INPUT
 
 struct VS_OUTPUT
 {
-  //float2 mWorldSpaceXZ : HI;// : POSITION;
+  float2 mWorldSpaceXZ : HI;// : POSITION;
   float2 mTexCoord : TEXCOORD;
   float4 mClipSpacePosition : SV_POSITION;
 };
@@ -26,7 +26,7 @@ VS_OUTPUT VS( VS_INPUT input )
 
   VS_OUTPUT output = ( VS_OUTPUT )0;
   output.mClipSpacePosition = clipSpacePosition;
-  //output.mWorldSpaceXZ = worldSpacePosition.xz;
+  output.mWorldSpaceXZ = worldSpacePosition.xz;
   output.mTexCoord = input.TexCoord;
   return output;
 }
@@ -36,16 +36,23 @@ struct PS_OUTPUT
   float4 mColor : SV_Target0;
 };
 
-static const bool showBaseUvs           = true;
+static const bool showBaseUvs           = false;
 static const bool showTerrain           = false;
 static const bool showTerrainModulation = false;
 static const bool showNoise             = false;
 static const bool showNoiseModulation   = false;
-static const bool showDomain            = true;
-static const bool showNoiseScroll       = true;
+static const bool showDomain            = false;
+static const bool showNoiseScroll       = false;
 static const bool showTiledResult       = true;
+static const bool showTiledResultOrig   = false;
 
 static float3 finalColor = float3( 0, 0, 0 );
+
+// turns a number into a random direction
+float2 Hash( float i )
+{
+    return sin( float2( 3.0, 7.0 ) * i );
+}
 
 void ShowModulation( float2 uvs )
 {
@@ -55,27 +62,81 @@ void ShowModulation( float2 uvs )
   finalColor.xy += uvModded / 5.0;
 }
 
+float sum( float3 v )
+{
+  return v.x + v.y + v.z;
+}
+
 PS_OUTPUT PS( VS_OUTPUT input )
 {
   PS_OUTPUT output = ( PS_OUTPUT )0;
-  const float3 sampledsRGB = terrainTexture.Sample(
-    linearSampler,
-    input.mTexCoord ).xyz;
-  const float3 sampledLinear = pow( sampledsRGB, 2.2 );
-
-  const float3 pixelColor = Color.xyz * sampledLinear.xyz;
-  const float2 noiseuv = input.mTexCoord * 2.1 / 256.0;
+  const float magicNoiseScalar = 200.0;
+  const float2 noiseuv = input.mWorldSpaceXZ / magicNoiseScalar;
   const float noiseSample = noiseTexture.Sample(
     linearSampler,
     noiseuv );
+  const float noiseIndex = noiseSample * 8.0;
+  const float noiseIndexWhole = floor( noiseIndex );
+  const float noiseIndexFract = frac( noiseIndex );
 
+  if( showNoise )
+    finalColor.xyz += noiseSample;
 
-
-  if( showTiledResult )
-    finalColor.xyz = pixelColor;
+  if( showNoiseModulation )
+    ShowModulation( noiseuv );
 
   if( showBaseUvs )
     ShowModulation( input.mTexCoord );
+
+  float3 domainColor = float3( 0, 0, 0 );
+  if( showDomain )
+  {
+    float3 domainColors[ 8 ];
+    domainColors[ 0 ] = float3( 0, 0, 0 );
+    domainColors[ 1 ] = float3( 0, 0, 1 );
+    domainColors[ 2 ] = float3( 0, 1, 0 );
+    domainColors[ 3 ] = float3( 0, 1, 1 );
+    domainColors[ 4 ] = float3( 1, 0, 0 );
+    domainColors[ 5 ] = float3( 1, 0, 1 );
+    domainColors[ 6 ] = float3( 1, 1, 0 );
+    domainColors[ 7 ] = float3( 1, 1, 1 );
+    float3 domainColor = domainColors[ int( noiseIndexWhole ) ];
+    for(float border = 1.0; border <= 8.0; border += 1.0 )
+    {
+        if( noiseIndex < border )
+        {
+            finalColor += domainColor * 0.1;
+            break;
+        }
+    }
+
+    finalColor += pow( 1.0 - noiseIndexFract, 10.0 ) * domainColor;
+  }
+
+  float2 offa = Hash( noiseIndexWhole + 0.0 );
+  float2 offb = Hash( noiseIndexWhole + 1.0 );
+  // the variable 'v' controls how much we add the offset direction to our sample
+  float v = 69420.0;
+  float2 dvudx = ddx( input.mTexCoord );
+  float2 dvudy = ddy( input.mTexCoord );
+  float3 cola = terrainTexture.SampleGrad( linearSampler, v * offa + input.mTexCoord, dvudx, dvudy ).xyz;
+  float3 colb = terrainTexture.SampleGrad( linearSampler, v * offb + input.mTexCoord, dvudx, dvudy ).xyz;
+
+  if( showTiledResult )
+  {
+    float t = smoothstep( 0.2, 0.8, noiseIndexFract - 0.1 * sum( cola - colb ) );
+    finalColor += pow( lerp( cola, colb, t ), 2.2 );
+  }
+
+  if( showTiledResultOrig )
+  {
+    const float3 sampledsRGB = terrainTexture.Sample(
+      linearSampler,
+      input.mTexCoord ).xyz;
+    const float3 sampledLinear = pow( sampledsRGB, 2.2 );
+    const float3 pixelColor = Color.xyz * sampledLinear.xyz;
+    finalColor.xyz += pixelColor;
+  }
 
   output.mColor = float4( finalColor, 1.0 );
 

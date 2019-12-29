@@ -178,7 +178,7 @@ static D3D11_USAGE GetUsage( TacAccess access )
   return D3D11_USAGE_DEFAULT;
 }
 
-static UINT GetCPUAccessFlags( std::set< TacCPUAccess > access )
+static UINT GetCPUAccessFlags( const std::set< TacCPUAccess >& access )
 {
   std::map< TacCPUAccess, UINT > accessMap;
   accessMap[ TacCPUAccess::Read ] = D3D11_CPU_ACCESS_READ;
