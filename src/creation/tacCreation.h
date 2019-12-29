@@ -75,7 +75,7 @@ struct TacCreation
   void CreateSystemWindow( TacErrors& errors );
 
   void CreateDesktopWindow( TacString windowName, TacDesktopWindow** outDesktopWindow,  TacErrors& errors );
-  bool HasWindowNamed( TacJson* windows, const TacString& name );
+  bool ShouldCreateWindowNamed( TacJson* windows, const TacString& name );
   void GetWindowsJson( TacJson** outJson, TacErrors& errors );
 
   TacDesktopApp* mDesktopApp = nullptr;
@@ -83,6 +83,8 @@ struct TacCreation
   TacCreationGameWindow* mGameWindow = nullptr;
   TacCreationPropertyWindow* mPropertyWindow = nullptr;
   TacCreationSystemWindow* mSystemWindow = nullptr;
+
+  TacString mOnlyCreateWindowNamed;
 
   TacWorld* mWorld = nullptr;
 

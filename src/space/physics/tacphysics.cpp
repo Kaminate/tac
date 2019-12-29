@@ -2,7 +2,6 @@
 #include "space/graphics/tacgraphics.h"
 #include "space/graphics/tacgraphics.h"
 #include "space/physics/tacphysics.h"
-#include "space/physics/tacphysicsdebug.h"
 #include "space/taccomponent.h"
 #include "space/tacentity.h"
 #include "space/tacworld.h"
@@ -205,8 +204,6 @@ void TacPhysics::DebugDrawTerrains()
     terrain->LoadTestHeightmap();
 
     terrain->PopulateGrid();
-
-    terrain->DebugDraw();
   }
 }
 void TacPhysics::Update()
@@ -346,6 +343,7 @@ TacSystemRegistryEntry* TacPhysics::PhysicsSystemRegistryEntry;
 static TacSystem* TacCreatePhysicsSystem() { return new TacPhysics; }
 
 
+void TacPhysicsDebugImgui( TacSystem* );
 void TacPhysics::TacSpaceInitPhysics()
 {
   TacPhysics::PhysicsSystemRegistryEntry = TacSystemRegistry::Instance()->RegisterNewEntry();

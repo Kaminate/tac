@@ -279,6 +279,19 @@ static D3D11_PRIMITIVE_TOPOLOGY GetPrimTop( TacPrimitiveTopology primTop )
   return ( D3D11_PRIMITIVE_TOPOLOGY )0;
 }
 
+static bool AreEqual(
+  const TacVector< const TacTexture* >& a,
+  const TacVector< const TacTexture* >& b )
+{
+  const int n = a.size();
+  if( n != b.size() )
+    return false;
+  for( int i = 0; i < n; ++i )
+    if( a[ i ] != b[ i ] )
+      return false;
+  return true;
+}
+
 TacDX11Window::~TacDX11Window()
 {
   mBackbufferColor->Clear();
@@ -304,11 +317,11 @@ void TacDX11Window::OnResize( TacErrors& errors )
   // resources needs to be Release()'d
   // ie: the rtv, srv, or the texture used to create it
   TAC_DXGI_CALL( errors, mSwapChain->ResizeBuffers,
-    bufferCount,
-    mDesktopWindow->mWidth,
-    mDesktopWindow->mHeight,
-    DXGI_FORMAT_UNKNOWN, // preserve existing format
-    DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH );
+                 bufferCount,
+                 mDesktopWindow->mWidth,
+                 mDesktopWindow->mHeight,
+                 DXGI_FORMAT_UNKNOWN, // preserve existing format
+                 DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH );
   CreateRenderTarget( errors );
   TAC_HANDLE_ERROR( errors );
 }
@@ -333,9 +346,9 @@ void TacDX11Window::CreateRenderTarget( TacErrors& errors )
     ID3D11RenderTargetView* rtv = nullptr;
     D3D11_RENDER_TARGET_VIEW_DESC* rtvDesc = nullptr;
     TAC_DX11_CALL( errors, device->CreateRenderTargetView,
-      pBackBuffer,
-      rtvDesc,
-      &rtv );
+                   pBackBuffer,
+                   rtvDesc,
+                   &rtv );
     TacRendererDirectX11::Instance->SetDebugName( rtv, "backbuffer color rtv" );
     if( !mBackbufferColor )
     {
@@ -420,17 +433,17 @@ void TacRendererDirectX11::Init( TacErrors& errors )
   HMODULE Software = NULL;
 
   TAC_DX11_CALL( errors,
-    D3D11CreateDevice,
-    pAdapter,
-    DriverType,
-    Software,
-    createDeviceFlags,
-    featureLevelArray.data(),
-    featureLevelArray.size(),
-    D3D11_SDK_VERSION,
-    &mDevice,
-    &featureLevel,
-    &mDeviceContext );
+                 D3D11CreateDevice,
+                 pAdapter,
+                 DriverType,
+                 Software,
+                 createDeviceFlags,
+                 featureLevelArray.data(),
+                 featureLevelArray.size(),
+                 D3D11_SDK_VERSION,
+                 &mDevice,
+                 &featureLevel,
+                 &mDeviceContext );
   // If you're directx is crashing / throwing exception, don't forget to check
   // your output window, it likes to put error messages there
   if( TacIsDebugMode() )
@@ -455,8 +468,8 @@ void TacRendererDirectX11::RenderFlush()
       ID3D11PixelShader* pixelShader = nullptr;
       if( drawCall.mShader )
       {
-        vertexShader = shaderDX11->mVertexShader;
-        pixelShader = shaderDX11->mPixelShader;
+        vertexShader = shaderDX11->mLoadData.mVertexShader;
+        pixelShader = shaderDX11->mLoadData.mPixelShader;
         if( drawCall.mShader->mCBuffers.empty() )
           TacAssertMessage( "You probably forgot" );
         for( TacCBuffer* cbufferr : drawCall.mShader->mCBuffers )
@@ -635,22 +648,24 @@ void TacRendererDirectX11::RenderFlush()
       mCurrentlyBoundView = drawCall.mRenderView;
     }
 
-    if( drawCall.mTexture != mCurrentlyBoundTexture )
+    if( !AreEqual( drawCall.mTextures, mCurrentlyBoundTextures ) )
     {
-      auto textureDX11 = ( TacTextureDX11* )drawCall.mTexture;
-      ID3D11ShaderResourceView* srv = nullptr;
-      if( textureDX11 )
+      TacVector< ID3D11ShaderResourceView* > srvs;
+      srvs.reserve( drawCall.mTextures.size() );
+      for( const TacTexture* texture : drawCall.mTextures )
       {
-        srv = textureDX11->mSrv;
+        if( !texture )
+          continue;
+        auto textureDX11 = ( TacTextureDX11* )texture;
+        ID3D11ShaderResourceView* srv = textureDX11->mSrv;
         if( !srv )
-        {
           TacAssertMessage( "%s should be created with shader bind flags", textureDX11->mName.c_str() );
-        }
+        srvs.push_back( srv );
       }
-      auto srvs = TacMakeArray< ID3D11ShaderResourceView* >( srv );
+
       mDeviceContext->VSSetShaderResources( 0, srvs.size(), srvs.data() );
       mDeviceContext->PSSetShaderResources( 0, srvs.size(), srvs.data() );
-      mCurrentlyBoundTexture = textureDX11;
+      mCurrentlyBoundTextures = drawCall.mTextures;
     }
 
     if( drawCall.mSamplerState != mCurrentlyBoundSamplerState )
@@ -711,21 +726,21 @@ void TacRendererDirectX11::CreateWindowContext( TacDesktopWindow* desktopWindow,
   TAC_HANDLE_ERROR( errors );
   mWindows.push_back( dx11Window );
   desktopWindow->mRendererData = dx11Window;
-  desktopWindow->mOnDestroyed.AddCallbackFunctional( [](TacDesktopWindow* desktopWindow)
-    {
-      TacRendererDirectX11* renderer = TacRendererDirectX11::Instance;
-      auto dx11Window = ( TacDX11Window* )desktopWindow->mRendererData;
+  desktopWindow->mOnDestroyed.AddCallbackFunctional( []( TacDesktopWindow* desktopWindow )
+                                                     {
+                                                       TacRendererDirectX11* renderer = TacRendererDirectX11::Instance;
+                                                       auto dx11Window = ( TacDX11Window* )desktopWindow->mRendererData;
 
-      for( TacDX11Window*& window : renderer->mWindows )
-      {
-        if( window != dx11Window )
-          continue;
-        delete window;
-        window = renderer->mWindows.back();
-        renderer->mWindows.pop_back();
-        break;
-      }
-    } );
+                                                       for( TacDX11Window*& window : renderer->mWindows )
+                                                       {
+                                                         if( window != dx11Window )
+                                                           continue;
+                                                         delete window;
+                                                         window = renderer->mWindows.back();
+                                                         renderer->mWindows.pop_back();
+                                                         break;
+                                                       }
+                                                     } );
 }
 void TacRendererDirectX11::AddVertexBuffer( TacVertexBuffer** outputVertexBuffer, const TacVertexBufferData& vbData, TacErrors& errors )
 {
@@ -864,7 +879,7 @@ void TacRendererDirectX11::AddShader( TacShader** outputShader, const TacShaderD
   }
   else if( !shader->mShaderStr.empty() )
   {
-    LoadShaderInternal( shader, shader->mShaderStr, errors );
+    LoadShaderInternal( &shader->mLoadData, shader->mName, shader->mShaderStr, errors );
     if( TacIsDebugMode() )
     {
       TacAssert( errors.empty() );
@@ -878,7 +893,8 @@ void TacRendererDirectX11::AddShader( TacShader** outputShader, const TacShaderD
   *outputShader = shader;
 }
 void TacRendererDirectX11::LoadShaderInternal(
-  TacShaderDX11* shader,
+  TacShaderDX11LoadData* loadData,
+  TacString name,
   TacString str,
   TacErrors& errors )
 {
@@ -887,8 +903,6 @@ void TacRendererDirectX11::LoadShaderInternal(
 
   TacString common( temporaryMemory.data(), ( int )temporaryMemory.size() );
   str = common + str;
-
-  shader->mShaderStr = str;
 
   // vertex shader
   {
@@ -909,8 +923,8 @@ void TacRendererDirectX11::LoadShaderInternal(
       pVSBlob->GetBufferPointer(),
       pVSBlob->GetBufferSize(),
       nullptr,
-      &shader->mVertexShader );
-    SetDebugName( shader->mVertexShader, shader->mName + " vtx shader" );
+      &loadData->mVertexShader );
+    SetDebugName( loadData->mVertexShader, name + " vtx shader" );
 
     TAC_DX11_CALL(
       errors,
@@ -919,7 +933,7 @@ void TacRendererDirectX11::LoadShaderInternal(
       pVSBlob->GetBufferSize(),
       D3D_BLOB_INPUT_SIGNATURE_BLOB,
       0,
-      &shader->mInputSig );
+      &loadData->mInputSig );
   }
 
   // pixel shader
@@ -940,8 +954,8 @@ void TacRendererDirectX11::LoadShaderInternal(
       pPSBlob->GetBufferPointer(),
       pPSBlob->GetBufferSize(),
       nullptr,
-      &shader->mPixelShader );
-    SetDebugName( shader->mPixelShader, shader->mName + " px shader" );
+      &loadData->mPixelShader );
+    SetDebugName( loadData->mPixelShader, name + " px shader" );
   }
 }
 void TacRendererDirectX11::ReloadShader( TacShader* shader, TacErrors& errors )
@@ -951,24 +965,17 @@ void TacRendererDirectX11::ReloadShader( TacShader* shader, TacErrors& errors )
   if( shaderDX11->mShaderPath.empty() )
     return;
 
-  if( shaderDX11->mVertexShader )
-  {
-    shaderDX11->mVertexShader->Release();
-    shaderDX11->mVertexShader = nullptr;
-  }
-
-  if( shaderDX11->mPixelShader )
-  {
-    shaderDX11->mPixelShader->Release();
-    shaderDX11->mPixelShader = nullptr;
-  }
-
   auto temporaryMemory = TacTemporaryMemory( shaderDX11->mShaderPath, errors );
   TAC_HANDLE_ERROR( errors );
 
   TacString shaderStr( temporaryMemory.data(), ( int )temporaryMemory.size() );
-  LoadShaderInternal( shaderDX11, shaderStr, errors );
+
+  TacShaderDX11LoadData loadData;
+  LoadShaderInternal( &loadData, shader->mName, shaderStr, errors );
   TAC_HANDLE_ERROR( errors );
+
+  shaderDX11->mLoadData.Release();
+  shaderDX11->mLoadData = loadData;
 }
 void TacRendererDirectX11::GetShaders( TacVector< TacShader* >&shaders )
 {
@@ -1077,9 +1084,9 @@ void TacRendererDirectX11::AddTextureResourceCube(
   if( TacContains( textureData.binding, TacBinding::RenderTarget ) )
   {
     TAC_DX11_CALL( errors, mDevice->CreateRenderTargetView,
-      resource,
-      nullptr,
-      &rTV );
+                   resource,
+                   nullptr,
+                   &rTV );
     SetDebugName( rTV, textureData.mName + " rtv" );
   }
 
@@ -1123,9 +1130,9 @@ void TacRendererDirectX11::AddTextureResource(
   if( TacContains( textureData.binding, TacBinding::RenderTarget ) )
   {
     TAC_DX11_CALL( errors, mDevice->CreateRenderTargetView,
-      dXObj,
-      nullptr,
-      &rTV );
+                   dXObj,
+                   nullptr,
+                   &rTV );
     SetDebugName( rTV, textureData.mName + " rtv" );
   }
 
@@ -1449,8 +1456,8 @@ void TacRendererDirectX11::AddVertexFormat(
     mDevice->CreateInputLayout,
     inputElementDescs.data(),
     ( UINT )inputElementDescs.size(),
-    myShaderDX11->mInputSig->GetBufferPointer(),
-    myShaderDX11->mInputSig->GetBufferSize(),
+    myShaderDX11->mLoadData.mInputSig->GetBufferPointer(),
+    myShaderDX11->mLoadData.mInputSig->GetBufferSize(),
     &inputLayout );
   SetDebugName( inputLayout, vertexFormatDataa.mName );
   TacVertexFormatDX11* vertexFormatDX11;
@@ -1694,10 +1701,14 @@ TacSampler* TacShaderDX11::Find( TacVector< TacSampler* >& samplers, const TacSt
   return nullptr;
 }
 
-TacShaderDX11::~TacShaderDX11()
+void TacShaderDX11LoadData::Release()
 {
   TAC_RELEASE_IUNKNOWN( mVertexShader );
   TAC_RELEASE_IUNKNOWN( mPixelShader );
+}
+TacShaderDX11::~TacShaderDX11()
+{
+  mLoadData.Release();
   auto rendererDX11 = ( TacRendererDirectX11* )TacRenderer::Instance;
   if( rendererDX11->mCurrentlyBoundShader == this )
     rendererDX11->mCurrentlyBoundShader = nullptr;
@@ -1742,9 +1753,9 @@ void TacTextureDX11::Clear()
   TAC_RELEASE_IUNKNOWN( mSrv );
   TAC_RELEASE_IUNKNOWN( mRTV );
   auto rendererDX11 = ( TacRendererDirectX11* )TacRenderer::Instance;
-  if( rendererDX11->mCurrentlyBoundTexture == this )
-    rendererDX11->mCurrentlyBoundTexture = nullptr;
-  // if the rtv is the currently bound view, null the view?
+  for( int i = 0; i < rendererDX11->mCurrentlyBoundTextures.size(); ++i )
+    if( rendererDX11->mCurrentlyBoundTextures[ i ] == this )
+      rendererDX11->mCurrentlyBoundTextures[ i ] = nullptr;
 }
 void* TacTextureDX11::GetImguiTextureID()
 {

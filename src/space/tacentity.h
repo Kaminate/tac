@@ -48,7 +48,7 @@ struct TacEntity
   bool mInheritParentScale = false;
 
   v3 mWorldPosition = {};
-  m4 mWorldTransform;
+  m4 mWorldTransform = m4::Identity();
 
   //v3 mLocalPosition = {};
   //v3 mLocalEulerRads = {};

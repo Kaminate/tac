@@ -2,7 +2,6 @@
 #include "space/tacentity.h"
 #include "space/tacworld.h"
 #include "space/terrain/tacterrain.h"
-#include "space/terrain/tacterraindebug.h"
 
 #include "common/graphics/tacDebug3D.h"
 #include "common/graphics/tacRenderer.h"
@@ -20,6 +19,8 @@ static void TacTerrainSavePrefab( TacJson& json, TacComponent* component )
   json[ "mSideLength" ] = terrain->mSideLength;
   json[ "mHeight" ] = terrain->mUpwardsHeight;
   json[ "mHeightmapTexturePath" ] = terrain->mHeightmapTexturePath;
+  json[ "mGroundTexturePath" ] = terrain->mGroundTexturePath;
+  json[ "mNoiseTexturePath" ] = terrain->mNoiseTexturePath;
 }
 
 static void TacTerrainLoadPrefab( TacJson& json, TacComponent* component )
@@ -29,6 +30,8 @@ static void TacTerrainLoadPrefab( TacJson& json, TacComponent* component )
   terrain->mSideLength = ( float )json[ "mSideLength" ].mNumber;
   terrain->mUpwardsHeight = ( float )json[ "mHeight" ].mNumber;
   terrain->mHeightmapTexturePath = json[ "mHeightmapTexturePath" ].mString;
+  terrain->mGroundTexturePath = json[ "mGroundTexturePath" ].mString;
+  terrain->mNoiseTexturePath = json[ "mNoiseTexturePath" ].mString;
 }
 
 static TacComponent* TacCreateTerrainComponent( TacWorld* world )
@@ -41,6 +44,7 @@ static void TacDestroyTerrainComponent( TacWorld* world, TacComponent* component
   TacPhysics::GetSystem( world )->DestroyTerrain( ( TacTerrain* )component );
 };
 
+void TacTerrainDebugImgui( TacComponent* );
 void TacTerrain::TacSpaceInitPhysicsTerrain()
 {
   TacTerrain::TerrainComponentRegistryEntry = TacComponentRegistry::Instance()->RegisterNewEntry();
@@ -103,8 +107,13 @@ void TacTerrain::PopulateGrid()
   TacTerrain* terrain = this;
 
 
-  if( TacMemCmp( mEntity->mWorldTransform.data(), mWorldCreationTransform.data(), sizeof( m4 ) ) )
-    terrain->mRowMajorGrid.clear();
+  if( TacMemCmp(
+    mEntity->mWorldTransform.data(),
+    mWorldCreationTransform.data(), sizeof( m4 ) ) )
+  {
+    Recompute();
+  }
+
 
   if( !terrain->mRowMajorGrid.empty() )
     return;
@@ -150,36 +159,14 @@ void TacTerrain::PopulateGrid()
   }
 }
 
-void TacTerrain::DebugDraw()
+
+void TacTerrain::Recompute()
 {
-  TacWorld* world = mEntity->mWorld;
-  TacDebug3DDrawData* debug3DDrawData = world->mDebug3DDrawData;
-  v3 gridColor = { 0, 0, 0 };
+  mRowMajorGrid.clear();
 
-  if( mRowMajorGrid.empty() )
-    return;
+  TacRenderer::Instance->RemoveRendererResource(  mVertexBuffer );
+  mVertexBuffer = nullptr;
 
-  for( int iRow = 0; iRow < mSideVertexCount; ++iRow )
-  {
-    for( int iCol = 0; iCol < mSideVertexCount; ++iCol )
-    {
-      const v3& topLeft = GetGridVal( iRow, iCol );
-
-      if( iCol + 1 < mSideVertexCount )
-      {
-        const v3& topRight = GetGridVal( iRow, iCol + 1 );
-        debug3DDrawData->DebugDrawLine( topLeft, topRight, gridColor );
-      }
-      if( iRow + 1 < mSideVertexCount )
-      {
-        const v3& bottomLeft = GetGridVal( iRow + 1, iCol );
-        debug3DDrawData->DebugDrawLine( topLeft, bottomLeft, gridColor );
-      }
-      if( iCol + 1 < mSideVertexCount && iRow + 1 < mSideVertexCount )
-      {
-        const v3& bottomRight = GetGridVal( iRow + 1, iCol + 1 );
-        debug3DDrawData->DebugDrawLine( topLeft, bottomRight, gridColor );
-      }
-    }
-  }
+  TacRenderer::Instance->RemoveRendererResource(  mIndexBuffer );
+  mIndexBuffer = nullptr;
 }

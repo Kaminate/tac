@@ -60,12 +60,20 @@ struct TacDepthBufferDX11 : public TacDepthBuffer
   ID3D11DepthStencilView* mDSV = nullptr;
 };
 
-struct TacShaderDX11 : public TacShader
+struct TacShaderDX11LoadData
 {
-  ~TacShaderDX11();
+  void Release();
   ID3D11VertexShader* mVertexShader = nullptr;
   ID3D11PixelShader* mPixelShader = nullptr;
   ID3DBlob* mInputSig = nullptr;
+};
+
+struct TacShaderDX11 : public TacShader
+{
+  ~TacShaderDX11();
+
+  TacShaderDX11LoadData mLoadData;
+
   TacVector< TacSampler* > mTextures;
   TacVector< TacSampler* > mSamplers;
   TacSampler* FindTexture( const TacString& name );
@@ -232,7 +240,8 @@ struct TacRendererDirectX11 : public TacRenderer
 
 
   void LoadShaderInternal(
-    TacShaderDX11* shader,
+    TacShaderDX11LoadData* loadData,
+    TacString name,
     TacString str,
     TacErrors& errors );
 
@@ -276,6 +285,7 @@ struct TacRendererDirectX11 : public TacRenderer
   TacDXGI mDxgi;
   TacVector< TacDX11Window* > mWindows;
 
+  // do you think these should live in the base renderer class?
   TacShaderDX11* mCurrentlyBoundShader = nullptr;
   TacVertexBufferDX11* mCurrentlyBoundVertexBuffer = nullptr;
   TacIndexBufferDX11* mCurrentlyBoundIndexBuffer = nullptr;
@@ -283,7 +293,7 @@ struct TacRendererDirectX11 : public TacRenderer
   TacRasterizerStateDX11* mCurrentlyBoundRasterizerState = nullptr;
   TacDepthStateDX11* mCurrentlyBoundDepthState = nullptr;
   TacVertexFormatDX11* mCurrentlyBoundVertexFormat = nullptr;
-  TacTextureDX11* mCurrentlyBoundTexture = nullptr;
+  TacVector< const TacTexture* > mCurrentlyBoundTextures;
   TacSamplerStateDX11* mCurrentlyBoundSamplerState = nullptr;
   TacRenderView* mCurrentlyBoundView = nullptr;
   TacVector< TacRenderView* > mFrameBoundRenderViews;

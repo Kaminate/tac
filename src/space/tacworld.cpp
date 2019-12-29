@@ -213,6 +213,13 @@ void TacWorld::ComputeTransformsRecursively( const m4& parentTransform, TacEntit
 }
 void TacWorld::Step( float seconds )
 {
+  const m4 identity = m4::Identity();
+  for( TacEntity* entity : mEntities )
+  {
+    if( !entity->mParent )
+      ComputeTransformsRecursively( identity, entity );
+  }
+
   for( auto player : mPlayers )
     ApplyInput( player, seconds );
   for( auto system : mSystems )
@@ -222,12 +229,6 @@ void TacWorld::Step( float seconds )
     //entity->TacIntegrate( seconds );
   }
 
-  const m4 identity = m4::Identity();
-  for( TacEntity* entity : mEntities )
-  {
-    if( !entity->mParent )
-      ComputeTransformsRecursively( identity, entity );
-  }
 
   mElapsedSecs += seconds;
   if( mDebugDrawEntityOrigins )

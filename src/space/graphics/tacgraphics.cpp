@@ -1,9 +1,9 @@
 #include "common/tacPreprocessor.h"
 #include "common/graphics/tacFont.h"
+#include "common/graphics/tacImGui.h"
 #include "common/math/tacMath.h"
 #include "space/tacworld.h"
 #include "space/graphics/tacgraphics.h"
-#include "space/graphics/tacgraphicsdebug.h"
 #include "space/taccomponent.h"
 
 //#include "tacsay.h"
@@ -94,6 +94,8 @@ void TacGraphics::DebugImgui()
   //ImGui::Indent();
   //OnDestruct( ImGui::Unindent() );
   //ImGui::Text( "Debug draw vert count: %i", mDebugDrawVerts.size() );
+
+  TacImGuiText("graphics::debugimgiuo()");
 }
 
 TacSystemRegistryEntry* TacGraphics::GraphicsSystemRegistryEntry;
@@ -101,6 +103,8 @@ static TacSystem* TacCreateGraphicsSystem()
 {
   return new TacGraphics;
 }
+
+void TacGraphicsDebugImgui(TacSystem*);
 void TacGraphics::TacSpaceInitGraphics()
 {
   TacGraphics::GraphicsSystemRegistryEntry = TacSystemRegistry::Instance()->RegisterNewEntry();

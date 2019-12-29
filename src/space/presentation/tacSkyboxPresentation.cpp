@@ -145,7 +145,7 @@ void TacSkyboxPresentation::RenderSkybox( const TacString& skyboxDir )
   drawCallGeometry.mSamplerState = mSamplerState;
   drawCallGeometry.mStackFrame = TAC_STACK_FRAME;
   drawCallGeometry.mStartIndex = 0;
-  drawCallGeometry.mTexture = cubemap;
+  drawCallGeometry.mTextures = { cubemap };
   drawCallGeometry.mRenderView = mDesktopWindow->mRenderView;
   TacRenderer::Instance->AddDrawCall( drawCallGeometry );
 

@@ -106,6 +106,11 @@ void TacDXGI::CreateSwapChain(
 
     // Standard way of implementing hdr in games is to use 16 bit floating backbuffer, and
     // giving player brightness/gamma controls (?)
+    //
+    // https://docs.microsoft.com/en-us/windows/win32/direct3ddxgi/converting-data-color-space
+    //   For presentation, integer-valued display formats (such as DXGI_FORMAT_B8G8R8A8_UNORM_SRGB)
+    //   always contain sRGB gamma-corrected data.
+    //   Float-valued display formats (ie DXGI_FORMAT_R16G16B16A16_FLOAT) contain linear-valued data.
     scd1.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
      //scd1.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
   }

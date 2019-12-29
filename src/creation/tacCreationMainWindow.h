@@ -22,7 +22,6 @@ struct TacCreationMainWindow
   void LoadTextures( TacErrors& errors );
   void ImGui();
   void ImGuiWindows();
-  void CreateLayouts();
 
   TacCreation* mCreation = nullptr;
   TacCreationGameObjectMenuWindow* mGameObjectMenuWindow = nullptr;

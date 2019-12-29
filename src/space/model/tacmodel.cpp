@@ -1,5 +1,4 @@
 #include "space/model/tacmodel.h"
-#include "space/model/tacmodeldebug.h"
 #include "space/tacentity.h"
 #include "space/graphics/tacgraphics.h"
 #include "common/graphics/tacImGui.h"
@@ -65,6 +64,8 @@ static void TacLoadModelComponent( TacJson& modelJson, TacComponent* component )
     ( float )( modelJson )[ "mColorRGB" ][ "b" ].mNumber };
 }
 
+
+  void TacModelDebugImgui( TacComponent* );
 void TacModel::TacSpaceInitGraphicsModel()
 {
   TacModel::ModelComponentRegistryEntry = TacComponentRegistry::Instance()->RegisterNewEntry();

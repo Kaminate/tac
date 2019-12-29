@@ -1,6 +1,7 @@
 #include "common/tacCamera.h"
 #include "common/tacMemory.h"
 #include "common/assetmanagers/tacModelAssetManager.h"
+#include "common/assetmanagers/tacTextureAssetManager.h"
 #include "common/math/tacMatrix4.h"
 #include "common/graphics/tacRenderer.h"
 #include "common/graphics/tacDebug3D.h"
@@ -18,9 +19,7 @@
 struct TacTerrainVertex
 {
   v3 mPos;
-
-  // no need forr uv, just use worldspace pos.xz instead?
-  //v2 mUV;
+  v2 mUV;
 };
 
 TacGamePresentation::~TacGamePresentation()
@@ -37,8 +36,10 @@ TacGamePresentation::~TacGamePresentation()
 }
 void TacGamePresentation::RenderGameWorldToDesktopView()
 {
-  TacRenderer* renderer = TacRenderer::Instance;
+  TacTextureAssetManager* textureAssetManager = TacTextureAssetManager::Instance;
   TacModelAssetManager* modelAssetManager = TacModelAssetManager::Instance;
+  TacRenderer* renderer = TacRenderer::Instance;
+
   TacWorld* world = mWorld;
 
   m4 view = mCamera->View();
@@ -95,51 +96,49 @@ void TacGamePresentation::RenderGameWorldToDesktopView()
       if( terrain->mRowMajorGrid.empty() )
         continue;
 
-      TacVector< TacTerrainVertex > vertexes( terrain->mRowMajorGrid.size() );
-      int iGrid = 0;
-      for( int iRow = 0; iRow < terrain->mSideVertexCount; ++iRow )
+      typedef uint32_t TerrainIndex;
+
+      TacVector< TacTerrainVertex > vertexes;
+      TacVector< TerrainIndex > indexes; 
+
+      for( int iRow = 1; iRow < terrain->mSideVertexCount; ++iRow )
       {
-        for( int iCol = 0; iCol < terrain->mSideVertexCount; ++iCol )
+        for( int iCol = 1; iCol < terrain->mSideVertexCount; ++iCol )
         {
-          v3 gridVal = terrain->GetGridVal( iRow, iCol );
+          TacTerrainVertex vertexTL = {};
+          vertexTL.mPos = terrain->GetGridVal( iRow - 1, iCol - 1 );
+          vertexTL.mUV = { 0, 1 };
+          int iVertexTL = vertexes.size();
+          vertexes.push_back(vertexTL);
 
-          TacTerrainVertex vertex = {};
-          vertex.mPos = gridVal;
+          TacTerrainVertex vertexTR = {};
+          vertexTR.mPos = terrain->GetGridVal( iRow - 1, iCol );
+          vertexTR.mUV = { 1, 1 };
+          int iVertexTR  = vertexes.size();
+          vertexes.push_back(vertexTR);
 
-          vertexes[ iGrid ] = vertex;
-          iGrid++;
+          TacTerrainVertex vertexBL = {};
+          vertexBL.mPos = terrain->GetGridVal( iRow, iCol - 1 );
+          vertexBL.mUV = { 0, 0 };
+          int iVertexBL = vertexes.size();
+          vertexes.push_back(vertexBL);
+
+          TacTerrainVertex vertexBR = {};
+          vertexBR.mPos = terrain->GetGridVal( iRow, iCol );
+          vertexBR.mUV = { 1, 0 };
+          int iVertexBR = vertexes.size();
+          vertexes.push_back(vertexBR);
+
+          indexes.push_back( iVertexBR );
+          indexes.push_back( iVertexTL );
+          indexes.push_back( iVertexBL );
+
+          indexes.push_back( iVertexBR );
+          indexes.push_back( iVertexTR );
+          indexes.push_back( iVertexTL );
         }
       }
       
-      auto GetIndex = [&]( int iRow, int iCol )
-      {
-        return iCol + iRow * terrain->mSideVertexCount;
-      };
-
-      typedef uint32_t TerrainIndex;
-      TacVector< TerrainIndex > indexes; 
-      for( int iRow = 1; iRow < terrain->mSideVertexCount; ++iRow )
-      {
-        int iRowPrev =  iRow - 1;
-        for( int iCol = 1; iCol < terrain->mSideVertexCount; ++iCol )
-        {
-          int iColPrev = iCol - 1;
-
-          int iBR = GetIndex( iCol, iRow );
-          int iBL = GetIndex( iColPrev, iRow );
-          int iTR = GetIndex( iCol, iRowPrev );
-          int iTL = GetIndex( iColPrev, iRowPrev );
-          // tri 1
-          indexes.push_back( iBR );
-          indexes.push_back( iTL );
-          indexes.push_back( iBL );
-          // tri 2
-          indexes.push_back( iBR );
-          indexes.push_back( iTR );
-          indexes.push_back( iTL );
-        }
-      }
-
       TacErrors rendererResourceErrors;
 
       TacVertexBufferData vertexBufferData = {};
@@ -171,6 +170,12 @@ void TacGamePresentation::RenderGameWorldToDesktopView()
     if( !terrain->mVertexBuffer || !terrain->mIndexBuffer )
       continue;
 
+    TacTexture* terrainTexture = nullptr;
+    TacTexture* noiseTexture = nullptr;
+    TacErrors errors;
+    textureAssetManager->GetTexture( &terrainTexture, terrain->mGroundTexturePath, errors );
+    textureAssetManager->GetTexture( &noiseTexture, terrain->mNoiseTexturePath, errors );
+
     TacDefaultCBufferPerObject cbuf = {};
     cbuf.Color = { 1, 1, 1, 1 };
     cbuf.World = m4::Identity();
@@ -187,7 +192,7 @@ void TacGamePresentation::RenderGameWorldToDesktopView()
     drawCall.mShader = mTerrainShader;
     drawCall.mStackFrame = TAC_STACK_FRAME;
     drawCall.mStartIndex = 0;
-    drawCall.mTexture = nullptr;
+    drawCall.mTextures = { terrainTexture, noiseTexture };
     drawCall.mUniformDst = mPerObj;
     drawCall.mUniformSrcc = TacTemporaryMemory( &cbuf, sizeof( TacDefaultCBufferPerObject ) );
     drawCall.mVertexBuffer = terrain->mVertexBuffer;
@@ -249,19 +254,19 @@ void TacGamePresentation::CreateTerrainVertexFormat( TacErrors& errors )
   terrainPosDecl.mTextureFormat.mPerElementDataType = TacGraphicsType::real;
   terrainPosDecl.mAlignedByteOffset = TacOffsetOf( TacTerrainVertex, mPos );
 
-  //TacVertexDeclaration terrainTexCoordDecl = {};
-  //terrainTexCoordDecl.mAttribute = TacAttribute::Texcoord;
-  //terrainTexCoordDecl.mTextureFormat.mElementCount = 2;
-  //terrainTexCoordDecl.mTextureFormat.mPerElementByteCount = sizeof( float );
-  //terrainTexCoordDecl.mTextureFormat.mPerElementDataType = TacGraphicsType::real;
-  //terrainTexCoordDecl.mAlignedByteOffset = TacOffsetOf( TacTerrainVertex, mUV );
+  TacVertexDeclaration terrainTexCoordDecl = {};
+  terrainTexCoordDecl.mAttribute = TacAttribute::Texcoord;
+  terrainTexCoordDecl.mTextureFormat.mElementCount = 2;
+  terrainTexCoordDecl.mTextureFormat.mPerElementByteCount = sizeof( float );
+  terrainTexCoordDecl.mTextureFormat.mPerElementDataType = TacGraphicsType::real;
+  terrainTexCoordDecl.mAlignedByteOffset = TacOffsetOf( TacTerrainVertex, mUV );
 
   TacVertexFormatData vertexFormatData = {};
   vertexFormatData.shader = mTerrainShader;
   vertexFormatData.vertexFormatDatas =
   {
     terrainPosDecl,
-    //terrainTexCoordDecl
+    terrainTexCoordDecl
   };
   vertexFormatData.mStackFrame = TAC_STACK_FRAME;
   vertexFormatData.mName = "terrain vertex format";
@@ -379,7 +384,6 @@ void TacGamePresentation::RenderGameWorldAddDrawCall(
     drawCall.mSamplerState = mSamplerState;
     drawCall.mDepthState = mDepthState;
     drawCall.mVertexFormat = mesh->mVertexFormat;
-    drawCall.mTexture = nullptr;
     drawCall.mUniformDst = mPerObj;
     drawCall.mUniformSrcc = TacTemporaryMemory( &cbuf, sizeof( TacDefaultCBufferPerObject ) );
     drawCall.mStackFrame = TAC_STACK_FRAME;

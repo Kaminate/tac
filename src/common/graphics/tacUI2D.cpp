@@ -266,7 +266,10 @@ void TacUI2DDrawData::DrawToTexture( TacErrors& errors )
       drawCall2.mVertexFormat = TacUI2DCommonData::Instance->mFormat;
       drawCall2.mStartIndex = uidrawCall.mIIndexStart;
       drawCall2.mIndexCount = uidrawCall.mIIndexCount;
-      drawCall2.mTexture = uidrawCall.mTexture ? uidrawCall.mTexture : TacUI2DCommonData::Instance->m1x1White;
+      drawCall2.mTextures = {
+        uidrawCall.mTexture ?
+        uidrawCall.mTexture :
+        TacUI2DCommonData::Instance->m1x1White };
       drawCall2.mShader = uidrawCall.mShader;
       drawCall2.mUniformSrcc = uidrawCall.mUniformSource;
       drawCall2.mStackFrame = TAC_STACK_FRAME;

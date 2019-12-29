@@ -1,6 +1,8 @@
 {
   "Terrain":
   {
+    "mDrawGrid": true,
+    "mGroundTexturePath": "C:\Users\Nate\Documents\GitHub\tac\assets\grass.png",
     "mHeight": 78.400024,
     "mHeightmapTexturePath": "assets/heightmaps/heightmap2.png",
     "mSideLength": 1000,

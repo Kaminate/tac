@@ -22,44 +22,32 @@ struct TacIndexBuffer;
 
 struct TacTerrain : public TacComponent
 {
-  TacVector< TacTerrainOBB > mTerrainOBBs;
   static void TacSpaceInitPhysicsTerrain();
 
   TacComponentRegistryEntry* GetEntry() override;
   static TacComponentRegistryEntry* TerrainComponentRegistryEntry;
-
   static TacTerrain* GetComponent( TacEntity* );
   void LoadTestHeightmap();
   void PopulateGrid();
-  void DebugDraw();
   v3 GetGridVal( int iRow, int iCol );
+  void Recompute();
 
   int mSideVertexCount = 50;
-
   float mSideLength = 50.0f;
   float mUpwardsHeight = 20.0f;
-
-  // heightmap
-  // vertexes
-  //int mRowCount = 2;
-  //int mColumnCount = 2;
-  //TacVector< float > mSamples;
-  //TacVector< v3 > mModelSpaceGrid;
-  //TacVector< v3 > mWorldSpaceGrid;
-  //TacHeightmap mHeightmap;
-
   TacVector< v3 > mRowMajorGrid;
-
   TacString mHeightmapTexturePath = "assets/heightmap.png";
+  TacString mGroundTexturePath = "";
+  TacString mNoiseTexturePath = "";
   int mTestHeightmapWidth;
   int mTestHeightmapHeight;
   float mPower = 1;
   TacVector< uint8_t > mTestHeightmapImageMemory;
-  TacErrors mTestHeightmapLoadErrors;
   m4 mWorldCreationTransform = {};
-
   TacVertexBuffer* mVertexBuffer = nullptr;
   TacIndexBuffer* mIndexBuffer = nullptr;
+  TacVector< TacTerrainOBB > mTerrainOBBs;
+  TacErrors mTestHeightmapLoadErrors;
 };
 
 extern int asdfDEBUG;

@@ -8,6 +8,9 @@
 #include "space/tacworld.h"
 #include "space/tacentity.h"
 #include "space/tacsystem.h"
+#include "shell/tacDesktopApp.h"
+
+const  TacSettingPath iSysPath = { "SystemWindow", "iSys" };
 
 TacCreationSystemWindow::~TacCreationSystemWindow()
 {
@@ -18,7 +21,10 @@ void TacCreationSystemWindow::Init( TacErrors& errors )
   TacShell* shell = mShell;
   mUI2DDrawData = new TacUI2DDrawData;
   mUI2DDrawData->mRenderView = mDesktopWindow->mRenderView;
-}
+
+  TacSettings* settings = shell->mSettings;
+  mSystemIndex = ( int )settings->GetNumber( nullptr, iSysPath, -1, errors );
+};
 void TacCreationSystemWindow::ImGui()
 {
   TacShell* shell = mShell;
@@ -36,6 +42,8 @@ void TacCreationSystemWindow::ImGui()
       if( TacImGuiButton( systemRegistryEntry->mName ) )
       {
         mSystemIndex = i;
+        TacErrors e;
+        shell->mSettings->SetNumber( nullptr, iSysPath, mSystemIndex, e);
       }
       if( mSystemIndex == i )
       {

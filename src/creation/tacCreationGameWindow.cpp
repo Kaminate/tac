@@ -434,7 +434,6 @@ void TacCreationGameWindow::AddDrawCall( const TacMesh* mesh, const TacDefaultCB
     drawCall.mSamplerState = mSamplerState;
     drawCall.mDepthState = mDepthState;
     drawCall.mVertexFormat = mesh->mVertexFormat;
-    drawCall.mTexture = nullptr;
     drawCall.mUniformDst = mPerObj;
     drawCall.mUniformSrcc = TacTemporaryMemory( &cbuf, sizeof( TacDefaultCBufferPerObject ) );
     drawCall.mStackFrame = TAC_STACK_FRAME;

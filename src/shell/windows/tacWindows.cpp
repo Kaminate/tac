@@ -239,7 +239,7 @@ struct TacWin32OS : public TacOS
   };
   void GetScreenspaceCursorPos( v2& pos, TacErrors& errors ) override
   {
-    // Note: this could return error access denied
+    // Note: this could return error access denied, for example if your computer goes to sleep
     POINT point;
     if( !GetCursorPos( &point ) )
     {

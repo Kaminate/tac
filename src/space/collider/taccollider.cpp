@@ -1,5 +1,4 @@
 #include "space/collider/taccollider.h"
-#include "space/collider/taccolliderdebug.h"
 #include "space/tacentity.h"
 #include "space/physics/tacphysics.h"
 
@@ -25,6 +24,7 @@ static void TacDestroyColliderComponent( TacWorld* world, TacComponent* componen
 }
 TacComponentRegistryEntry* TacCollider::ColliderComponentRegistryEntry;
 
+void TacColliderDebugImgui( TacComponent* );
 void TacCollider::TacSpaceInitPhysicsCollider()
 {
   TacCollider::ColliderComponentRegistryEntry = TacComponentRegistry::Instance()->RegisterNewEntry();

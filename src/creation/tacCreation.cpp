@@ -318,17 +318,19 @@ void TacCreation::CreateDesktopWindow(
   *outDesktopWindow = desktopWindow;
 }
 
-bool TacCreation::HasWindowNamed( TacJson* windows, const TacString& name )
+bool TacCreation::ShouldCreateWindowNamed( TacJson* windows, const TacString& name )
 {
   for( TacJson* windowJson : windows->mElements )
   {
     TacJson& nameJson = ( *windowJson )[ "Name" ];
     TacString curName = nameJson;
+    if( curName != name )
+      continue;
 
-    curName = ( ( *windowJson )[ "Name" ] );
+    if( mOnlyCreateWindowNamed.size() && curName != mOnlyCreateWindowNamed )
+      continue;
 
-    if( curName == name )
-      return true;
+    return true;
   }
   return false;
 }
@@ -357,25 +359,30 @@ void TacCreation::Init( TacErrors& errors )
   GetWindowsJson( &windows, errors );
   TAC_HANDLE_ERROR( errors );
 
-  if( HasWindowNamed( windows, gMainWindowName ) )
+  mOnlyCreateWindowNamed = settings->GetString(
+    nullptr, { "onlyCreateWindowNamed" }, "", errors );
+  TAC_HANDLE_ERROR( errors );
+
+  // The first window spawned becomes the parent window
+  if( ShouldCreateWindowNamed( windows, gMainWindowName ) )
   {
     CreateMainWindow( errors );
     TAC_HANDLE_ERROR( errors );
   }
 
-  if( HasWindowNamed( windows, gPropertyWindowName ) )
+  if( ShouldCreateWindowNamed( windows, gPropertyWindowName ) )
   {
     CreatePropertyWindow( errors );
     TAC_HANDLE_ERROR( errors );
   }
 
-  if( HasWindowNamed( windows, gGameWindowName ) )
+  if( ShouldCreateWindowNamed( windows, gGameWindowName ) )
   {
     CreateGameWindow( errors );
     TAC_HANDLE_ERROR( errors );
   }
 
-  if( HasWindowNamed( windows, gSystemWindowName ) )
+  if( ShouldCreateWindowNamed( windows, gSystemWindowName ) )
   {
     CreateSystemWindow( errors );
     TAC_HANDLE_ERROR( errors );
