@@ -330,7 +330,7 @@ void TacGamePresentation::CreateSamplerState( TacErrors& errors )
   TacSamplerStateData samplerStateData;
   samplerStateData.mName = "tac 3d tex sampler";
   samplerStateData.mStackFrame = TAC_STACK_FRAME;
-  samplerStateData.filter = TacFilter::Linear;
+  samplerStateData.filter = TacFilter::Aniso;
   TacRenderer::Instance->AddSamplerState( &mSamplerState, samplerStateData, errors );
 }
 void TacGamePresentation::CreateGraphicsObjects( TacErrors& errors )

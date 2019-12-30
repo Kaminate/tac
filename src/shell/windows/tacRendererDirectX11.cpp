@@ -150,6 +150,7 @@ static D3D11_FILTER GetFilter( TacFilter filter )
   {
     case TacFilter::Linear: return D3D11_FILTER_MIN_MAG_MIP_LINEAR;
     case TacFilter::Point: return D3D11_FILTER_MIN_MAG_MIP_POINT;
+    case TacFilter::Aniso: return D3D11_FILTER_ANISOTROPIC;
       TacInvalidDefaultCase( filter );
   }
   return D3D11_FILTER_MIN_MAG_MIP_LINEAR;
@@ -1255,7 +1256,28 @@ void TacRendererDirectX11::CreateTexture(
   D3D11_TEXTURE2D_DESC texDesc = {};
   texDesc.Width = myImage.mWidth;
   texDesc.Height = myImage.mHeight;
+
+  // all levels?
+  //texDesc.MipLevels = 0;
+
+  // also all levels?
+  //texDesc.MipLevels = 5;
+
   texDesc.MipLevels = 1;
+  if(
+    debugName != "temp copy texture" &&
+    debugName != "texture atlas"
+    && debugName != "1x1 white"
+      )
+  {
+    const char* grassPath = "assets\\grass.png";
+    if(debugName == grassPath)
+    {
+
+      texDesc.MipLevels = 5;
+    }
+  }
+
   texDesc.SampleDesc.Count = 1;
   texDesc.ArraySize = 1;
   texDesc.Format = GetDXGIFormat( myImage.mFormat );
@@ -1280,6 +1302,7 @@ void TacRendererDirectX11::CreateTexture(
     &texDesc,
     pSubResource,
     ( ID3D11Texture2D** )resource );
+
 }
 
 void TacRendererDirectX11::CreateShaderResourceView(

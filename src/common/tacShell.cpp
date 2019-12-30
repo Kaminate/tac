@@ -18,6 +18,7 @@
 #include <iostream>
 
 const TacKey TacToggleMainMenuKey = TacKey::Backtick;
+TacShell* TacShell::Instance = nullptr;
 
 TacSoul::TacSoul()
 {
@@ -31,6 +32,7 @@ TacShell::TacShell()
   mTimer->Start();
   if( TacIsDebugMode() )
     mLog = new TacLog();
+  Instance = this;
 }
 TacShell::~TacShell()
 {
@@ -45,6 +47,7 @@ TacShell::~TacShell()
 
   // last, so resources can be freed
   delete TacRenderer::Instance;
+  Instance = nullptr;
 }
 void TacShell::Init( TacErrors& errors )
 {

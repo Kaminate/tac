@@ -83,7 +83,8 @@ enum class TacComparison
 enum class TacFilter
 {
   Point,
-  Linear
+  Linear,
+  Aniso,
 };
 enum class TacShaderType
 {

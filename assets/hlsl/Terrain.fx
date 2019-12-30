@@ -41,7 +41,7 @@ static const bool showTerrain           = false;
 static const bool showTerrainModulation = false;
 static const bool showNoise             = false;
 static const bool showNoiseModulation   = false;
-static const bool showDomain            = false;
+static const bool showNoiseDomain       = false;
 static const bool showNoiseScroll       = false;
 static const bool showTiledResult       = true;
 static const bool showTiledResultOrig   = false;
@@ -70,7 +70,7 @@ float sum( float3 v )
 PS_OUTPUT PS( VS_OUTPUT input )
 {
   PS_OUTPUT output = ( PS_OUTPUT )0;
-  const float magicNoiseScalar = 200.0;
+  const float magicNoiseScalar = 1000.0;
   const float2 noiseuv = input.mWorldSpaceXZ / magicNoiseScalar;
   const float noiseSample = noiseTexture.Sample(
     linearSampler,
@@ -89,7 +89,7 @@ PS_OUTPUT PS( VS_OUTPUT input )
     ShowModulation( input.mTexCoord );
 
   float3 domainColor = float3( 0, 0, 0 );
-  if( showDomain )
+  if( showNoiseDomain )
   {
     float3 domainColors[ 8 ];
     domainColors[ 0 ] = float3( 0, 0, 0 );
@@ -116,11 +116,20 @@ PS_OUTPUT PS( VS_OUTPUT input )
   float2 offa = Hash( noiseIndexWhole + 0.0 );
   float2 offb = Hash( noiseIndexWhole + 1.0 );
   // the variable 'v' controls how much we add the offset direction to our sample
-  float v = 69420.0;
+  float v = 69.0;
+  if( showTiledResultOrig )
+    v = 0.0;
   float2 dvudx = ddx( input.mTexCoord );
   float2 dvudy = ddy( input.mTexCoord );
-  float3 cola = terrainTexture.SampleGrad( linearSampler, v * offa + input.mTexCoord, dvudx, dvudy ).xyz;
-  float3 colb = terrainTexture.SampleGrad( linearSampler, v * offb + input.mTexCoord, dvudx, dvudy ).xyz;
+  //float3 cola = terrainTexture.SampleGrad( linearSampler, v * offa + input.mTexCoord, dvudx, dvudy ).xyz;
+  //float3 colb = terrainTexture.SampleGrad( linearSampler, v * offb + input.mTexCoord, dvudx, dvudy ).xyz;
+
+  float mip = 4.0;
+  float3 cola = terrainTexture.SampleLevel( linearSampler, v * offa + input.mTexCoord, mip ).xyz;
+  float3 colb = terrainTexture.SampleLevel( linearSampler, v * offb + input.mTexCoord, mip ).xyz;
+
+  //float3 cola = terrainTexture.Sample( linearSampler, v * offa + input.mTexCoord).xyz;
+  //float3 colb = terrainTexture.Sample( linearSampler, v * offb + input.mTexCoord).xyz;
 
   if( showTiledResult )
   {
@@ -128,6 +137,7 @@ PS_OUTPUT PS( VS_OUTPUT input )
     finalColor += pow( lerp( cola, colb, t ), 2.2 );
   }
 
+/*
   if( showTiledResultOrig )
   {
     const float3 sampledsRGB = terrainTexture.Sample(
@@ -137,6 +147,7 @@ PS_OUTPUT PS( VS_OUTPUT input )
     const float3 pixelColor = Color.xyz * sampledLinear.xyz;
     finalColor.xyz += pixelColor;
   }
+  */
 
   output.mColor = float4( finalColor, 1.0 );
 

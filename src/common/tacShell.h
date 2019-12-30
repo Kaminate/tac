@@ -53,6 +53,7 @@ struct TacSoul
 //
 struct TacShell
 {
+  static TacShell* Instance;
   TacShell();
   ~TacShell();
   void Init( TacErrors& errors );
@@ -61,6 +62,7 @@ struct TacShell
   void FrameBegin( TacErrors& errors );
   void Frame( TacErrors& errors );
   void FrameEnd( TacErrors& errors );
+
 
   TacEvent< const TacString& >::Emitter mLogData;
   TacEvent<>::Emitter mOnUpdate;

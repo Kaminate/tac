@@ -5,6 +5,7 @@
 #include "common/tacOS.h"
 #include "common/graphics/tacRenderer.h"
 #include "common/tacAlgorithm.h"
+#include "common/tacShell.h"
 
 #include <iostream>
 #include <ctime> // mktime
@@ -186,6 +187,13 @@ struct TacWin32OS : public TacOS
     }
 
     path = outBuf;
+
+    const TacString& workingDir = TacShell::Instance->mInitialWorkingDir;
+    if( TacStartsWith( path, workingDir ) )
+    {
+      path = path.substr( workingDir.size() );
+      path = TacStripLeadingSlashes( path );
+    }
   }
   void SaveDialog( TacString& path, const TacString& suggestedPath, TacErrors& errors ) override
   {
