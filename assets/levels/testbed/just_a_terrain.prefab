@@ -1,12 +1,12 @@
 {
   "Terrain":
   {
-    "mGroundTexturePath": "assets\Cobblestone.png",
-    "mHeight": 78.400024,
+    "mGroundTexturePath": "assets\grass.png",
+    "mHeight": 170.400024,
     "mHeightmapTexturePath": "assets/heightmaps/heightmap2.png",
     "mNoiseTexturePath": "assets\shadertoy_gray_noise_med_256x256.png",
-    "mSideLength": 1000,
-    "mSideVertexCount": 200
+    "mSideLength": 1500,
+    "mSideVertexCount": 150
   },
   "mEntityUUID": 0,
   "mEulerRads":

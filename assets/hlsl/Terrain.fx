@@ -121,12 +121,12 @@ PS_OUTPUT PS( VS_OUTPUT input )
     v = 0.0;
   float2 dvudx = ddx( input.mTexCoord );
   float2 dvudy = ddy( input.mTexCoord );
-  //float3 cola = terrainTexture.SampleGrad( linearSampler, v * offa + input.mTexCoord, dvudx, dvudy ).xyz;
-  //float3 colb = terrainTexture.SampleGrad( linearSampler, v * offb + input.mTexCoord, dvudx, dvudy ).xyz;
+  float3 cola = terrainTexture.SampleGrad( linearSampler, v * offa + input.mTexCoord, dvudx, dvudy ).xyz;
+  float3 colb = terrainTexture.SampleGrad( linearSampler, v * offb + input.mTexCoord, dvudx, dvudy ).xyz;
 
-  float mip = 4.0;
-  float3 cola = terrainTexture.SampleLevel( linearSampler, v * offa + input.mTexCoord, mip ).xyz;
-  float3 colb = terrainTexture.SampleLevel( linearSampler, v * offb + input.mTexCoord, mip ).xyz;
+  //float mip = 0.0;
+  //float3 cola = terrainTexture.SampleLevel( linearSampler, v * offa + input.mTexCoord, mip ).xyz;
+  //float3 colb = terrainTexture.SampleLevel( linearSampler, v * offb + input.mTexCoord, mip ).xyz;
 
   //float3 cola = terrainTexture.Sample( linearSampler, v * offa + input.mTexCoord).xyz;
   //float3 colb = terrainTexture.Sample( linearSampler, v * offb + input.mTexCoord).xyz;

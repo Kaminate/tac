@@ -14,6 +14,7 @@
 #include "creation/tacCreationPropertyWindow.h"
 #include "creation/tacCreationMainWindow.h"
 #include "creation/tacCreationSystemWindow.h"
+#include "creation/tacCreationProfileWindow.h"
 #include "shell/tacDesktopApp.h"
 #include "space/tacGhost.h"
 #include "space/tacentity.h"
@@ -213,6 +214,30 @@ void TacCreation::CreateSystemWindow( TacErrors& errors )
     } );
 }
 
+void TacCreation::CreateProfileWindow( TacErrors& errors )
+{
+  if( mProfileWindow )
+    return;
+
+  TacShell* shell = mDesktopApp->mShell;
+  TacDesktopWindow* desktopWindow;
+  CreateDesktopWindow( gProfileWindowName, &desktopWindow, errors );
+  TAC_HANDLE_ERROR( errors );
+
+  mProfileWindow = new TacCreationProfileWindow();
+  mProfileWindow->mCreation = this;
+  mProfileWindow->mDesktopWindow = desktopWindow;
+  mProfileWindow->mShell = shell;
+  mProfileWindow->Init( errors );
+  TAC_HANDLE_ERROR( errors );
+
+  desktopWindow->mOnDestroyed.AddCallbackFunctional( [](TacDesktopWindow*)
+    {
+      delete TacCreation::Instance->mProfileWindow;
+      TacCreation::Instance->mProfileWindow = nullptr;
+    } );
+}
+
 void TacCreation::GetWindowsJson( TacJson** outJson, TacErrors& errors )
 {
   TacShell* shell = mDesktopApp->mShell;
@@ -388,6 +413,12 @@ void TacCreation::Init( TacErrors& errors )
     TAC_HANDLE_ERROR( errors );
   }
 
+  if( ShouldCreateWindowNamed( windows, gProfileWindowName ) )
+  {
+    CreateProfileWindow( errors );
+    TAC_HANDLE_ERROR( errors );
+  }
+
   LoadPrefabs( errors );
   TAC_HANDLE_ERROR( errors );
 }
@@ -471,6 +502,12 @@ void TacCreation::Update( TacErrors& errors )
   if( mSystemWindow )
   {
     mSystemWindow->Update( errors );
+    TAC_HANDLE_ERROR( errors );
+  }
+
+  if( mProfileWindow )
+  {
+    mProfileWindow->Update( errors );
     TAC_HANDLE_ERROR( errors );
   }
 

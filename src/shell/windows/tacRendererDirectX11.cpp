@@ -1146,6 +1146,8 @@ void TacRendererDirectX11::AddTextureResource(
       textureData.mName,
       errors );
     TAC_HANDLE_ERROR( errors );
+
+    mDeviceContext->GenerateMips( srv );
   }
 
   TacTextureDX11* textureDX11;
@@ -1264,19 +1266,19 @@ void TacRendererDirectX11::CreateTexture(
   //texDesc.MipLevels = 5;
 
   texDesc.MipLevels = 1;
-  if(
-    debugName != "temp copy texture" &&
-    debugName != "texture atlas"
-    && debugName != "1x1 white"
-      )
-  {
-    const char* grassPath = "assets\\grass.png";
-    if(debugName == grassPath)
-    {
+  //if(
+  //  debugName != "temp copy texture" &&
+  //  debugName != "texture atlas"
+  //  && debugName != "1x1 white"
+  //    )
+  //{
+  //  const char* grassPath = "assets\\grass.png";
+  //  if(debugName == grassPath)
+  //  {
 
-      texDesc.MipLevels = 5;
-    }
-  }
+  //    texDesc.MipLevels = 5;
+  //  }
+  //}
 
   texDesc.SampleDesc.Count = 1;
   texDesc.ArraySize = 1;

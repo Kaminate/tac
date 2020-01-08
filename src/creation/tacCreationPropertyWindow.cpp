@@ -186,7 +186,7 @@ void TacCreationPropertyWindow::Update( TacErrors& errors )
       TAC_IMGUI_INDENT_BLOCK;
       for( TacComponentRegistryEntry*  componentType : addableComponentTypes )
       {
-        if( TacImGuiButton( va( "Add %s component", componentType->mName ) ) )
+        if( TacImGuiButton( va( "Add %s component", componentType->mName.c_str() ) ) )
           entity->AddNewComponent( componentType );
       }
     }

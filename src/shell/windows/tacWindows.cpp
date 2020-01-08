@@ -236,6 +236,11 @@ struct TacWin32OS : public TacOS
     dialogParams.nMaxFile = outBufSize;
     dialogParams.Flags = flags;
 
+
+    // | actually, no.
+    // v we want the prefabs to be saved in the install ( working ) dir
+    // dialogParams.lpstrInitialDir = (LPCSTR)TacShell::Instance->mPrefPath.c_str();
+
     BOOL getSaveFileNameResult = GetSaveFileNameA( &dialogParams );
     if( 0 == getSaveFileNameResult )
     {

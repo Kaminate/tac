@@ -78,6 +78,10 @@ void TacCreationMainWindow::ImGuiWindows()
   {
     mCreation->CreatePropertyWindow( createWindowErrors );
   }
+  if( TacImGuiButton( "Profile" ) )
+  {
+    mCreation->CreateProfileWindow( createWindowErrors );
+  }
   if( createWindowErrors.size() )
   {
     TacImGuiText( createWindowErrors.ToString() );
