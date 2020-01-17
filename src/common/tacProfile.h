@@ -2,6 +2,7 @@
 #pragma once
 #include "common/containers/tacVector.h"
 #include "common/tacTime.h"
+#include "common/tacPreprocessor.h"
 
 struct TacProfileBlock;
 struct TacProfileFunction;
@@ -9,34 +10,37 @@ struct TacProfileSystem;
 
 struct TacProfileBlock
 {
-  TacProfileBlock();
+  TacProfileBlock(TacStackFrame stackFrame);
   ~TacProfileBlock();
-  TacProfileFunction* mFunction;
-  TacTimer mTimer;
+  TacProfileFunction* mFunction = nullptr;
+  TacTimer            mTimer;
 };
-#define TAC_PROFILE_BLOCK TacProfileBlock b##__LINE__ ();
+#define TAC_PROFILE_BLOCK TacProfileBlock b##__LINE__ (TAC_STACK_FRAME);
 
 struct TacProfileFunction
 {
-  TacProfileFunction();
-  void Clear();
-
-  TacProfileFunction* mNext;
-  TacProfileFunction* mChildren;
-  float mMiliseconds;
+  void                Clear();
+  TacProfileFunction* GetLastChild();
+  void                AppendChild( TacProfileFunction* child );
+  
+  TacProfileFunction* mNext = nullptr;
+  TacProfileFunction* mChildren = nullptr;
+  float               mMiliseconds = 0;
+  TacStackFrame       mStackFrame;
 };
 
 struct TacProfileSystem
 {
   static TacProfileSystem* Instance;
+  void                     Init();
+  void                     OnFrameBegin();
+  TacProfileFunction*      Alloc();
+  void                     Dealloc( TacProfileFunction* );
+  void                     PushFunction( TacProfileFunction* );
 
-  void                Init();
-  void                OnFrameBegin();
-  TacProfileFunction* Alloc();
-  void                Dealloc(TacProfileFunction*);
-
-  TacVector< TacProfileFunction* > mUsed;
   TacVector< TacProfileFunction* > mFree;
-  TacVector< TacProfileFunction* > mProfileStack;
+  TacProfileFunction*              mLastFrame = nullptr;
+  TacProfileFunction*              mCurrFrame = nullptr;
+  TacVector< TacProfileFunction* > mCurrStackFrame;
 };
 

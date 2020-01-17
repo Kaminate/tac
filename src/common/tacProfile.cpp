@@ -1,44 +1,58 @@
 #include "tacProfile.h"
 #include "tacPreprocessor.h"
 
-/////////////////////
-// TacProfileBlock //
-/////////////////////
-
-TacProfileBlock::TacProfileBlock()
-{
-  TacProfileSystem* system = TacProfileSystem::Instance;
-  TacProfileFunction* function = system->Alloc();
-
-  mFunction = function;
-  mTimer.Start();
-}
-TacProfileBlock::~TacProfileBlock()
-{
-  mTimer.Tick();
-
-  float miliseconds = mTimer.mAccumulatedSeconds * 1000.0f;
-  mFunction->mMiliseconds = miliseconds;
-
-  TacProfileSystem* system = TacProfileSystem::Instance;
-  TacAssert( system->mProfileStack.back() == mFunction );
-}
-
 ////////////////////////
 // TacProfileFunction //
 ////////////////////////
 
-TacProfileFunction::TacProfileFunction()
-{
-  Clear();
-}
-
 void TacProfileFunction::Clear()
 {
-  mNext = nullptr;
-  mChildren = nullptr;
-  mMiliseconds = 0;
+  TacAssert( !mChildren );
+  TacAssert( !mNext );
+  *this = TacProfileFunction();
 }
+
+TacProfileFunction* TacProfileFunction::GetLastChild()
+{
+  if( !mChildren )
+    return nullptr;
+  TacProfileFunction* child = mChildren;
+  while( child->mNext )
+    child = child->mNext;
+  return child;
+}
+
+void TacProfileFunction::AppendChild( TacProfileFunction* child )
+{
+  TacProfileFunction* lastChild = GetLastChild();
+  if( lastChild )
+    lastChild->mNext = child;
+  else
+    mChildren = child;
+}
+
+/////////////////////
+// TacProfileBlock //
+/////////////////////
+
+TacProfileBlock::TacProfileBlock( TacStackFrame stackFrame )
+{
+  TacProfileSystem* system = TacProfileSystem::Instance;
+  mFunction = system->Alloc();
+  mFunction->mStackFrame = stackFrame;
+  system->PushFunction( mFunction );
+  mTimer.Start();
+}
+
+TacProfileBlock::~TacProfileBlock()
+{
+  mTimer.Tick();
+  mFunction->mMiliseconds = mTimer.mAccumulatedSeconds * 1000.0f;
+  TacProfileSystem* system = TacProfileSystem::Instance;
+  TacAssert(system->mCurrStackFrame.back() == mFunction);
+  system->mCurrStackFrame.pop_back();
+}
+
 
 //////////////////////
 // TacProfileSystem //
@@ -65,44 +79,38 @@ TacProfileFunction* TacProfileSystem::Alloc()
   }
 
 
-  if( mProfileStack.empty() )
-  {
-    mProfileStack.push_back( result );
-  }
-  else
-  {
-    TacProfileFunction* backFunction = mProfileStack.back();
-    if( backFunction->mChildren )
-    {
-      TacProfileFunction* lastChild = backFunction->mChildren;
-      while( lastChild->mNext )
-        lastChild = lastChild->mNext;
-      lastChild->mNext = result;
-    }
-    else
-    {
-      backFunction->mChildren = result;
-    }
-  }
-
-  mUsed.push_back( result );
   return result;
 }
 
 void TacProfileSystem::OnFrameBegin()
 {
-  for( TacProfileFunction* f : mUsed )
-    mFree.push_back( f );
-  mUsed.clear();
+  Dealloc( mLastFrame );
+  mLastFrame = mCurrFrame;
+  mCurrFrame = nullptr;
 }
 
-void TacProfileSystem::Dealloc(TacProfileFunction* fn)
+void TacProfileSystem::Dealloc( TacProfileFunction* profileFunction )
 {
-  if( !fn )
+  if( !profileFunction )
     return;
-  Dealloc( fn->mChildren );
-  Dealloc( fn->mNext );
-  fn->Clear();
-  mFree.push_back( fn );
+  Dealloc( profileFunction->mChildren );
+  profileFunction->mChildren = nullptr;
+  Dealloc( profileFunction->mNext );
+  profileFunction->mNext = nullptr;
+  profileFunction->Clear();
+  mFree.push_back( profileFunction );
 }
 
+void TacProfileSystem::PushFunction( TacProfileFunction* profileFunction )
+{
+  if( mCurrStackFrame.empty() )
+  {
+    mCurrFrame = profileFunction;
+  }
+  else
+  {
+    mCurrStackFrame.back()->AppendChild( profileFunction );
+  }
+
+  mCurrStackFrame.push_back( profileFunction );
+}

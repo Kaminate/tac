@@ -15,6 +15,7 @@
 #include "common/tacTime.h"
 #include "common/taccontrollerinput.h"
 #include "common/tackeyboardinput.h"
+#include "common/tacProfile.h"
 #include <iostream>
 
 const TacKey TacToggleMainMenuKey = TacKey::Backtick;
@@ -119,13 +120,18 @@ void TacShell::Init( TacErrors& errors )
   TacUI2DCommonData::Instance->mFontStuff = mFontStuff;
   TacUI2DCommonData::Instance->Init( errors );
   TAC_HANDLE_ERROR( errors );
+
+  TacProfileSystem::Instance = new TacProfileSystem;
+  TacProfileSystem::Instance->Init();
 }
 void TacShell::FrameBegin( TacErrors& errors )
 {
   TacKeyboardInput::Instance->BeginFrame();
+  TacProfileSystem::Instance->OnFrameBegin();
 }
 void TacShell::Frame( TacErrors& errors )
 {
+  TAC_PROFILE_BLOCK;
   if( TacNet::Instance )
   {
     TacNet::Instance->Update( errors );
