@@ -13,8 +13,10 @@ ${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacColorUtil.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacColorUtil.h
 ${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacFont.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacFont.h
-${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacImGui.cpp
-${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacImGui.h
+${CMAKE_CURRENT_SOURCE_DIR}/graphics/imgui/tacImGui.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/graphics/imgui/tacImGui.h
+${CMAKE_CURRENT_SOURCE_DIR}/graphics/imgui/tacImGuiState.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/graphics/imgui/tacImGuiState.h
 ${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacTextEdit.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacTextEdit.h
 ${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacUI.cpp
@@ -45,8 +47,10 @@ ${CMAKE_CURRENT_SOURCE_DIR}/tacLog.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/tacLog.h
 ${CMAKE_CURRENT_SOURCE_DIR}/tacMemory.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/tacMemory.h
-${CMAKE_CURRENT_SOURCE_DIR}/tacProfile.cpp
-${CMAKE_CURRENT_SOURCE_DIR}/tacProfile.h
+${CMAKE_CURRENT_SOURCE_DIR}/profile/tacProfile.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/profile/tacProfile.h
+${CMAKE_CURRENT_SOURCE_DIR}/profile/tacProfileImGui.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/profile/tacProfileImGui.h
 ${CMAKE_CURRENT_SOURCE_DIR}/math/tacMath.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/math/tacMath.h
 ${CMAKE_CURRENT_SOURCE_DIR}/math/tacMatrix3.cpp

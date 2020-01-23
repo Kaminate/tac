@@ -10,7 +10,7 @@
 #include "common/tacShell.h"
 #include "common/assetmanagers/tacTextureAssetManager.h"
 #include "common/tackeyboardinput.h"
-#include "common/graphics/tacImGui.h"
+#include "common/graphics/imgui/tacImGui.h"
 #include "space/tacworld.h"
 #include "space/tacentity.h"
 #include "shell/tacDesktopApp.h"
@@ -91,7 +91,7 @@ void TacCreationMainWindow::ImGuiWindows()
 void TacCreationMainWindow::ImGui()
 {
   TacShell* shell = mDesktopApp->mShell;
-  TacImGuiSetGlobals( shell, mDesktopWindow, mUI2DDrawData );
+  SetCreationWindowImGuiGlobals( shell, mDesktopWindow, mUI2DDrawData );
   TacImGuiBegin( "Main Window", {} );
   TacImGuiBeginMenuBar();
   TacImGuiText( "file | edit | window" );

@@ -1,6 +1,6 @@
 #include "common/graphics/tacFont.h"
-#include "common/graphics/tacImGui.h"
-#include "common/graphics/tacImGui.h"
+#include "common/graphics/imgui/tacImGui.h"
+#include "common/graphics/imgui/tacImGui.h"
 #include "common/graphics/tacRenderer.h"
 #include "common/graphics/tacUI.h"
 #include "common/math/tacMath.h"

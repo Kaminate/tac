@@ -17,6 +17,7 @@ struct TacCreationProfileWindow
   void Init( TacErrors& errors );
   void Update( TacErrors& errors );
   void ImGui();
+  void ImGuiProfile();
 
   TacDesktopWindow* mDesktopWindow = nullptr;
   TacUI2DDrawData* mUI2DDrawData = nullptr;

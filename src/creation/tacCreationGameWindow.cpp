@@ -5,7 +5,7 @@
 #include "common/graphics/tacRenderer.h"
 #include "common/graphics/tacUI2D.h"
 #include "common/graphics/tacUI.h"
-#include "common/graphics/tacImGui.h"
+#include "common/graphics/imgui/tacImGui.h"
 #include "common/tackeyboardinput.h"
 #include "common/graphics/tacDebug3D.h"
 #include "common/assetmanagers/tacTextureAssetManager.h"
@@ -647,7 +647,7 @@ void TacCreationGameWindow::CameraControls()
 void TacCreationGameWindow::Update( TacErrors& errors )
 {
   mDesktopWindow->SetRenderViewDefaults();
-  TacImGuiSetGlobals( mShell, mDesktopWindow, mUI2DDrawData );
+  SetCreationWindowImGuiGlobals( mShell, mDesktopWindow, mUI2DDrawData );
   if( auto ghost = ( TacGhost* )mSoul )
   {
     //static bool once;

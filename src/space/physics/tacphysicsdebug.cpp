@@ -1,5 +1,5 @@
 #include "space/physics/tacphysics.h"
-#include "common/graphics/tacImGui.h"
+#include "common/graphics/imgui/tacImGui.h"
 
 void TacPhysicsDebugImgui( TacPhysics* physics )
 {

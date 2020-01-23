@@ -15,7 +15,7 @@
 #include "common/tacTime.h"
 #include "common/taccontrollerinput.h"
 #include "common/tackeyboardinput.h"
-#include "common/tacProfile.h"
+#include "common/profile/tacProfile.h"
 #include <iostream>
 
 const TacKey TacToggleMainMenuKey = TacKey::Backtick;

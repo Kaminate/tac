@@ -1,7 +1,7 @@
 #include "space/terrain/tacterrain.h"
 #include "space/tacentity.h"
 #include "space/tacworld.h"
-#include "common/graphics/tacImGui.h"
+#include "common/graphics/imgui/tacImGui.h"
 #include "common/tacOS.h"
 #include "common/graphics/tacDebug3D.h"
 

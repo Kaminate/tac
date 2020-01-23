@@ -3,6 +3,7 @@
 #include "common/graphics/tacFont.h"
 #include "common/graphics/tacRenderer.h"
 #include "common/graphics/tacUI2D.h"
+#include "common/graphics/imgui/tacImGui.h"
 #include "common/math/tacMath.h"
 #include "common/tacAlgorithm.h"
 #include "common/tacTime.h"
@@ -793,4 +794,29 @@ void TacCreation::SavePrefabCameraPosition( TacPrefab* prefab )
       settings->SetNumber( root, settingsPath, refFrameVec[ iAxis ], ignored );
     }
   }
+}
+
+void SetCreationWindowImGuiGlobals(
+  TacShell* shell,
+  TacDesktopWindow* desktopWindow,
+  TacUI2DDrawData* ui2DDrawData )
+{
+  TacErrors screenspaceCursorPosErrors;
+  v2 screenspaceCursorPos = {};
+  TacOS::Instance->GetScreenspaceCursorPos( screenspaceCursorPos, screenspaceCursorPosErrors );
+  bool isWindowDirectlyUnderCursor = false;
+  v2 mousePositionDestopWindowspace = {};
+  if( screenspaceCursorPosErrors.empty() )
+  {
+    mousePositionDestopWindowspace = {
+      screenspaceCursorPos.x - desktopWindow->mX,
+      screenspaceCursorPos.y - desktopWindow->mY };
+    isWindowDirectlyUnderCursor = desktopWindow->mCursorUnobscured;
+  }
+
+  TacImGuiSetGlobals(
+    mousePositionDestopWindowspace,
+    isWindowDirectlyUnderCursor,
+    shell->mElapsedSeconds,
+    ui2DDrawData );
 }

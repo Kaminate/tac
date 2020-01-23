@@ -1,7 +1,7 @@
 #include "common/graphics/tacUI2D.h"
 #include "common/tacShell.h"
 #include "common/tacDesktopWindow.h"
-#include "common/graphics/tacImGui.h"
+#include "common/graphics/imgui/tacImGui.h"
 #include "common/tacOS.h"
 #include "creation/tacCreation.h"
 #include "creation/tacCreationSystemWindow.h"
@@ -30,7 +30,7 @@ void TacCreationSystemWindow::ImGui()
   TacShell* shell = mShell;
   TacSystemRegistry* systemRegistry = TacSystemRegistry::Instance();
 
-  TacImGuiSetGlobals( shell, mDesktopWindow, mUI2DDrawData );
+  SetCreationWindowImGuiGlobals( shell, mDesktopWindow, mUI2DDrawData );
   TacImGuiBegin( "System Window", {} );
 
   if( TacImGuiCollapsingHeader( "Select System" ) )

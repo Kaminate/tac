@@ -4,7 +4,7 @@
 #include "common/tacOS.h"
 #include "common/graphics/tacUI2D.h"
 #include "common/graphics/tacUI.h"
-#include "common/graphics/tacImGui.h"
+#include "common/graphics/imgui/tacImGui.h"
 
 #include <functional> // std::function
 
@@ -46,19 +46,20 @@ struct TacGame
     TacErrors screenspaceCursorPosErrors;
     v2 screenspaceCursorPos;
     TacOS::Instance->GetScreenspaceCursorPos( screenspaceCursorPos, screenspaceCursorPosErrors );
+    v2 mousePositionDesktopWindowspace = {};
+    bool isWindowDirectlyUnderCursor = false;
     if( screenspaceCursorPosErrors.empty() )
     {
-      gTacImGuiGlobals.mMousePositionDesktopWindowspace = {
+      mousePositionDesktopWindowspace = {
         screenspaceCursorPos.x - mDesktopWindow->mX,
         screenspaceCursorPos.y - mDesktopWindow->mY };
-      gTacImGuiGlobals.mIsWindowDirectlyUnderCursor = mDesktopWindow->mCursorUnobscured;
+      isWindowDirectlyUnderCursor = mDesktopWindow->mCursorUnobscured;
     }
-    else
-    {
-      gTacImGuiGlobals.mIsWindowDirectlyUnderCursor = false;
-    }
-    gTacImGuiGlobals.mElapsedSeconds = mShell->mElapsedSeconds;
-    gTacImGuiGlobals.mUI2DDrawData = mUi2DDrawData;
+    TacImGuiSetGlobals(
+      mousePositionDesktopWindowspace,
+      isWindowDirectlyUnderCursor,
+      mShell->mElapsedSeconds,
+      mUi2DDrawData);
   }
   void Update( TacErrors& errors )
   {

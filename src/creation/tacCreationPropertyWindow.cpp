@@ -3,7 +3,7 @@
 #include "common/tacErrorHandling.h"
 #include "common/tacAlgorithm.h"
 #include "common/graphics/tacUI.h"
-#include "common/graphics/tacImGui.h"
+#include "common/graphics/imgui/tacImGui.h"
 #include "common/graphics/tacUI2D.h"
 #include "common/tacDesktopWindow.h"
 #include "common/tacOS.h"
@@ -55,8 +55,7 @@ void TacCreationPropertyWindow::Update( TacErrors& errors )
   //mUIRoot->Render( errors );
   TAC_HANDLE_ERROR( errors );
 
-  //SetImGuiGlobals();
-  TacImGuiSetGlobals( mShell, mDesktopWindow, mUI2DDrawData );
+  SetCreationWindowImGuiGlobals( mShell, mDesktopWindow, mUI2DDrawData );
 
 
   TacImGuiBegin( "Properties", {} );

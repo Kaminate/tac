@@ -1,8 +1,10 @@
 #include "common/graphics/tacUI2D.h"
 #include "common/tacShell.h"
 #include "common/tacDesktopWindow.h"
-#include "common/graphics/tacImGui.h"
+#include "common/graphics/imgui/tacImGui.h"
 #include "common/tacOS.h"
+#include "common/profile/tacProfile.h"
+#include "common/profile/tacProfileImGui.h"
 #include "creation/tacCreation.h"
 #include "creation/tacCreationProfileWindow.h"
 #include "space/tacworld.h"
@@ -22,11 +24,16 @@ void TacCreationProfileWindow::Init( TacErrors& errors )
 
   TacSettings* settings = shell->mSettings;
 };
+void TacCreationProfileWindow::ImGuiProfile()
+{
+  TacProfileSystem* profileSystem = TacProfileSystem::Instance;
+  TacImGuiProfileWidget( profileSystem->mLastFrame );
+}
 void TacCreationProfileWindow::ImGui()
 {
   TacShell* shell = mShell;
 
-  TacImGuiSetGlobals( shell, mDesktopWindow, mUI2DDrawData );
+  SetCreationWindowImGuiGlobals( shell, mDesktopWindow, mUI2DDrawData );
   TacImGuiBegin( "Profile Window", {} );
 
   TacImGuiText( "i am the profile window" );
@@ -36,6 +43,11 @@ void TacCreationProfileWindow::ImGui()
   {
     mDesktopWindow->mRequestDeletion = true;
   }
+
+  ImGuiProfile();
+
+
+
   TacImGuiEnd();
 }
 void TacCreationProfileWindow::Update( TacErrors& errors )

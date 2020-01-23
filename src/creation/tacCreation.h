@@ -106,4 +106,9 @@ struct TacCreation
   TacVector< TacPrefab* > mPrefabs;
 };
 
+void SetCreationWindowImGuiGlobals(
+  TacShell* shell,
+  TacDesktopWindow* desktopWindow,
+  TacUI2DDrawData* ui2DDrawData );
+
 const v4 textColor = v4( v3( 1, 1, 1 ) * 0.0f, 1 );

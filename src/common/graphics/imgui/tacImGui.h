@@ -24,27 +24,15 @@ struct TacImGuiRect
   v2 mMaxi = {};
 };
 
-// move some of the things to cpp?
-struct TacImGuiGlobals
-{
-  TacImGuiWindow* FindWindow( const TacString& name );
-  bool IsHovered( const TacImGuiRect& rect );
-
-  v2 mNextWindowPos = {};
-  // TODO: different space
-  v2 mMousePositionDesktopWindowspace = {};
-  bool mIsWindowDirectlyUnderCursor = false;
-  double mElapsedSeconds = 0;
-  TacVector< TacImGuiWindow* > mAllWindows;
-  TacVector< TacImGuiWindow* > mWindowStack;
-  TacImGuiWindow* mCurrentWindow = nullptr;
-  TacUI2DDrawData* mUI2DDrawData = nullptr;
-  TacKeyboardInput* mKeyboardInput = nullptr;
-};
-extern TacImGuiGlobals gTacImGuiGlobals;
 
 void TacImGuiBegin( const TacString& name, v2 size );
 void TacImGuiEnd();
+
+void TacImGuiSetGlobals(
+  v2 mousePositionDesktopWindowspace,
+  bool isWindowDirectlyUnderCursor,
+  double elapsedSeconds,
+  TacUI2DDrawData* ui2DDrawData);
 
 void TacImGuiBeginMenuBar();
 //void TacImGuiBeginMenu( const TacString& label );
@@ -75,10 +63,6 @@ void TacImGuiCheckbox( const TacString& str, bool* value );
 bool TacImGuiDragFloat( const TacString& str, float* value );
 bool TacImGuiDragInt( const TacString& str, int* value );
 void TacImGuiDebugDraw();
-void TacImGuiSetGlobals(
-  TacShell* shell,
-  TacDesktopWindow* desktopWindow,
-  TacUI2DDrawData* ui2DDrawData );
 
 struct TacImGuiIndentBlock {
   TacImGuiIndentBlock() { TacImGuiIndent(); }
