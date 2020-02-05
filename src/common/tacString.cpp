@@ -7,6 +7,7 @@
 #include <string>
 #include <algorithm>
 #include <sstream>
+#include <cstdarg>
 
 bool TacIsSpace( char c )
 {
@@ -158,6 +159,24 @@ TacString::TacString( const char* str, int len )
 TacString::TacString( const char* str )
 {
   *this = str;
+}
+TacStringView TacVa( const char* format, ... )
+{
+  // todo: move this to frame allocator
+  const int bufSize = 1024 * 1024;
+  static char buf[bufSize];
+  static int i;
+
+  const int strSize = 256;
+  int iBegin = i + strSize > bufSize ? 0 : i;
+  int iEnd = iBegin + strSize;
+  i = iEnd;
+  
+  std::va_list args;
+  va_start( args, format);
+  std::vsnprintf( buf + iBegin, strSize, format, args );
+  va_end(args);
+  return buf + iBegin;
 }
 TacString::~TacString()
 {

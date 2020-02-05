@@ -617,6 +617,50 @@ void TacUI2DDrawData::AddBox( v2 mini, v2 maxi, v4 color, const TacTexture* text
   mDrawCall2Ds.push_back( drawCall );
 }
 
+void TacUI2DDrawData::AddLine( v2 p0, v2 p1, float radius, v4 color )
+{
+  v2 dp = p1 - p0;
+  float quadrance = dp.Quadrance();
+  if( dp.Quadrance() < 0.01f )
+    return;
+  float length = std::sqrt( quadrance );
+  v2 dphat = dp / length;
+  v2 dphatccw = {
+    -dphat.y,
+    dphat.x,
+  };
+
+  int iVert = mDefaultVertex2Ds.size();
+  int iIndex = mDefaultIndex2Ds.size();
+  mDefaultVertex2Ds.resize( iVert + 4 );
+  mDefaultVertex2Ds[ iVert + 0 ].mPosition = p0 + dphatccw * radius;
+  mDefaultVertex2Ds[ iVert + 1 ].mPosition = p0 - dphatccw * radius;
+  mDefaultVertex2Ds[ iVert + 2 ].mPosition = p1 + dphatccw * radius;
+  mDefaultVertex2Ds[ iVert + 3 ].mPosition = p1 - dphatccw * radius;
+  mDefaultIndex2Ds.resize( iIndex + 6 );
+  mDefaultIndex2Ds[ iIndex + 0 ] = iVert + 0;
+  mDefaultIndex2Ds[ iIndex + 1 ] = iVert + 1;
+  mDefaultIndex2Ds[ iIndex + 2 ] = iVert + 2;
+  mDefaultIndex2Ds[ iIndex + 3 ] = iVert + 1;
+  mDefaultIndex2Ds[ iIndex + 4 ] = iVert + 3;
+  mDefaultIndex2Ds[ iIndex + 5 ] = iVert + 2;
+
+  TacDefaultCBufferPerObject perObjectData = {};
+  perObjectData.World = m4::Identity();
+  perObjectData.Color = color;
+
+  TacUI2DDrawCall drawCall;
+  drawCall.mIVertexStart = iVert;
+  drawCall.mIVertexCount = 4;
+  drawCall.mIIndexStart = iIndex;
+  drawCall.mIIndexCount = 6;
+  drawCall.mTexture = nullptr;
+  drawCall.mShader = TacUI2DCommonData::Instance->mShader;
+  drawCall.mUniformSource = TacTemporaryMemory( perObjectData );
+
+  mDrawCall2Ds.push_back( drawCall );
+}
+
 //void TacUI2DDrawData::AddPolyFill( const TacVector< v2 >& points, v4 color )
 //{
 //}

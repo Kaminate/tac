@@ -113,6 +113,7 @@ struct TacUI2DDrawData
   v2 CalculateTextSize( const TacCodepoint* codepoints, int codepointCount, int fontSize );
   void AddText( v2 textPos, int fontSize, const TacString& utf8, v4 color, const TacImGuiRect* clipRect );
   void AddBox( v2 mini, v2 maxi, v4 color, const TacTexture* texture, const TacImGuiRect* clipRect );
+  void AddLine( v2 p0, v2 p1, float radius, v4 color );
   //void AddPolyFill( const TacVector< v2 >& points, v4 color );
 
   TacVector< TacUI2DVertex > mDefaultVertex2Ds;

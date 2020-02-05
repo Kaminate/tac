@@ -2,7 +2,7 @@
 
 #pragma once
 
-template< typename T > T TacLerp( T from, T to, T t ) { return from + t * ( to - from ); }
+template< typename T > T TacLerp( T from, T to, float t ) { return from + t * ( to - from ); }
 
 
 template< typename T > T TacMax( T a, T b ) { return a > b ? a : b; }

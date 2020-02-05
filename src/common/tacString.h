@@ -83,6 +83,7 @@ TacString TacToString( void* val );
 TacString TacToString( double val );
 TacString TacToString( float val );
 TacString TacToString( uint32_t val );
+TacStringView TacVa( const char* format, ... );
 
 TacString TacJoin( const TacString&, std::initializer_list< TacString > );
 TacString TacJoin( const TacString&, const TacString*, int );
