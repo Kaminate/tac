@@ -22,7 +22,7 @@ void TacMemCpy( void* dst, const void* src, int len );
 // TODO: use this
 struct TacStringView
 {
-  TacStringView();
+  // TacStringView() = default;
   TacStringView( const char* str );
   TacStringView( const char* str, int len );
   TacStringView( const TacString& str );
@@ -32,8 +32,8 @@ struct TacStringView
   const char* begin() const;
   const char* end() const;
 
-  const char* mStr;
-  int mLen;
+  const char* mStr = nullptr;
+  int mLen = 0;
 };
 
 struct TacString

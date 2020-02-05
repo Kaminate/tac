@@ -52,6 +52,11 @@ struct TacGroupData
 };
 
 
+struct TacImGuiWindowResource
+{
+  virtual ~TacImGuiWindowResource() = default;
+};
+
 struct TacImGuiWindow
 {
   TacImGuiWindow();
@@ -62,7 +67,7 @@ struct TacImGuiWindow
   void UpdateMaxCursorDrawPos( v2 pos );
   TacImGuiId GetID();
   void SetActiveID( TacImGuiId );
-  TacImGuiId  GetActiveID();
+  TacImGuiId GetActiveID();
 
   TacString mName;
   TacImGuiWindow* mParent = nullptr;
@@ -101,6 +106,21 @@ struct TacImGuiWindow
 
   bool mIsAppendingToMenu = false;
 
+
+  template< typename T > T* GetOrCreateResource()
+  {
+    TacImGuiId id = GetID();
+    TacImGuiWindowResource* resource = mResources[id];
+    T* t = dynamic_cast< T* >( resource );
+    if( !t )
+    {
+      delete resource;
+      t = new T;
+      mResources[id] = t;
+    }
+    return t;
+  }
+  std::map< TacImGuiId, TacImGuiWindowResource* > mResources;
 };
 
 struct TacImGuiGlobals

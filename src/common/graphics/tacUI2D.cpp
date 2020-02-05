@@ -572,14 +572,13 @@ void TacUI2DDrawData::AddBox( v2 mini, v2 maxi, v4 color, const TacTexture* text
 {
   if( clipRect )
   {
-    mini.x = TacMax( mini.x, clipRect->mMini.x );
-    maxi.x = TacMin( maxi.x, clipRect->mMaxi.x );
-
-    mini.y = TacMax( mini.y, clipRect->mMini.y );
-    maxi.y = TacMin( maxi.y, clipRect->mMaxi.y );
+    mini = { TacMax( mini.x, clipRect->mMini.x ),
+             TacMax( mini.y, clipRect->mMini.y ) };
+    maxi = { TacMin( maxi.x, clipRect->mMaxi.x ),
+             TacMin( maxi.y, clipRect->mMaxi.y ) };
   }
 
-  if( mini.x == maxi.x || mini.y == maxi.y )
+  if( mini.x >= maxi.x || mini.y >= maxi.y )
     return;
 
   int iVert = mDefaultVertex2Ds.size();

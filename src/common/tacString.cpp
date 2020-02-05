@@ -99,7 +99,6 @@ TacString TacToString( float val )
 }
 
 
-TacStringView::TacStringView() :  mStr( nullptr ), mLen( 0 ){ }
 TacStringView::TacStringView( const char* str ) : mStr( str ), mLen( TacStrLen( str ) ) { }
 TacStringView::TacStringView( const char* str, int len ) : mStr( str ), mLen( len ) {}
 TacStringView::TacStringView( const TacString& str ) : mStr( str.mStr ), mLen( str.mLen ) {}
