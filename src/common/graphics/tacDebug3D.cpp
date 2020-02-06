@@ -2,6 +2,7 @@
 #include "common/graphics/tacRenderer.h"
 #include "common/tacMemory.h"
 #include "common/tacErrorHandling.h"
+#include "common/profile/tacProfile.h"
 
 static const int cylinderSegmentCount = 10;
 static const int hemisphereSegmentCount = 4;
@@ -374,6 +375,7 @@ void TacDebug3DDrawData::DrawToTexture(
   const TacDefaultCBufferPerFrame* cbufferperframe,
   TacRenderView* renderView )
 {
+  //TAC_PROFILE_BLOCK;
   int vertexCount = mDebugDrawVerts.size();
   if( vertexCount )
   {

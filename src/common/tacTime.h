@@ -29,3 +29,7 @@ struct TacTimer
   TacTimepoint mTimePoint;
   float mAccumulatedSeconds = 0;
 };
+
+// returns a - b
+float TacTimepointSubtractSeconds(TacTimepoint a, TacTimepoint b);
+float TacTimepointSubtractMiliseconds(TacTimepoint a, TacTimepoint b);

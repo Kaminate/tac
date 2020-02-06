@@ -16,6 +16,7 @@
 #include "common/tacPreprocessor.h"
 #include "common/tacShell.h"
 #include "common/thirdparty/stb_image.h"
+#include "common/profile/tacProfile.h"
 
 #include <array>
 #include <algorithm>
@@ -208,6 +209,7 @@ void TacPhysics::DebugDrawTerrains()
 }
 void TacPhysics::Update()
 {
+  /*TAC_PROFILE_BLOCK*/;
   if( mShouldDebugDrawCapsules )
     DebugDrawCapsules();
   if( mShouldDebugDrawTerrains )
@@ -220,6 +222,7 @@ void TacPhysics::Update()
 }
 void TacPhysics::Integrate()
 {
+  /*TAC_PROFILE_BLOCK*/;
   v3 a( 0, mGravity, 0 );
   const auto dt = 1.0f / 60.0f;
   for( auto collider : mColliders )
@@ -231,6 +234,7 @@ void TacPhysics::Integrate()
 }
 void TacPhysics::Narrowphase()
 {
+  /*TAC_PROFILE_BLOCK*/;
   TacGraphics* graphics = TacGraphics::GetSystem( mWorld );
   for( auto terrain : mTerrains )
   {

@@ -7,6 +7,7 @@
 #include "common/assetmanagers/tacTextureAssetManager.h"
 #include "common/assetmanagers/tacModelAssetManager.h"
 #include "common/graphics/tacRenderer.h"
+#include "common/profile/tacProfile.h"
 
 TacSkyboxPresentation::~TacSkyboxPresentation()
 {
@@ -91,6 +92,7 @@ void TacSkyboxPresentation::Init( TacErrors& errors )
 }
 void TacSkyboxPresentation::RenderSkybox( const TacString& skyboxDir )
 {
+  /*TAC_PROFILE_BLOCK*/;
   TacRenderer* renderer = TacRenderer::Instance;
   static TacString defaultSkybox = "assets/skybox/daylight";
   const TacString& skyboxDirToUse = skyboxDir.empty() ? defaultSkybox : skyboxDir;

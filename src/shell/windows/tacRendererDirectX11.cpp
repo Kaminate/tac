@@ -2,7 +2,7 @@
 #include "common/tacDesktopWindow.h"
 #include "common/tacShell.h"
 #include "common/tacPreprocessor.h"
-//#include "common/tacUtility.h"
+#include "common/profile/tacProfile.h"
 #include "common/tacMemory.h"
 #include "common/containers/tacArray.h"
 #include "common/tacAlgorithm.h"
@@ -11,7 +11,6 @@
 
 #include <initguid.h>
 #include <dxgidebug.h>
-//#include <algorithm>
 #include <D3DCompiler.h> // D3DCOMPILE_...
 #include <d3dcommon.h> // WKPDID_D3DDebugObjectName
 
@@ -701,6 +700,7 @@ void TacRendererDirectX11::RenderFlush()
 }
 void TacRendererDirectX11::Render( TacErrors& errors )
 {
+  TAC_PROFILE_BLOCK;
   RenderFlush();
 
   for( TacDX11Window* window : mWindows )

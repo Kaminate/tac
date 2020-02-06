@@ -3,6 +3,7 @@
 #include "common/graphics/tacRenderer.h"
 #include "common/graphics/imgui/tacImGui.h"
 #include "common/containers/tacArray.h"
+#include "common/profile/tacProfile.h"
 #include "common/math/tacMath.h"
 
 static TacVertexBufferData GetVertexBufferData( const TacStackFrame& stackFrame, int vertexCount )
@@ -166,6 +167,7 @@ TacUI2DDrawData::~TacUI2DDrawData()
 }
 void TacUI2DDrawData::DrawToTexture( TacErrors& errors )
 {
+  /*TAC_PROFILE_BLOCK*/;
   TacAssert( mStates.empty() );
 
   int vertexCount = mDefaultVertex2Ds.size();

@@ -66,3 +66,15 @@ void TacTimer::Tick()
   mTimePoint = timepoint;
 }
 
+float TacTimepointSubtractSeconds( TacTimepoint a, TacTimepoint b )
+{
+  TacNano nano = a - b;
+  float seconds = nano.count() / 1000000000.0f;
+  return seconds;
+}
+float TacTimepointSubtractMiliseconds( TacTimepoint a, TacTimepoint b )
+{
+  TacNano nano = a - b;
+  float seconds = nano.count() / 1000000.0f;
+  return seconds;
+}

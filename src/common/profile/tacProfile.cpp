@@ -40,14 +40,13 @@ TacProfileBlock::TacProfileBlock( TacStackFrame stackFrame )
   TacProfileSystem* system = TacProfileSystem::Instance;
   mFunction = system->Alloc();
   mFunction->mStackFrame = stackFrame;
+  mFunction->mBeginTime = TacClock::now();
   system->PushFunction( mFunction );
-  mTimer.Start();
 }
 
 TacProfileBlock::~TacProfileBlock()
 {
-  mTimer.Tick();
-  mFunction->mMiliseconds = mTimer.mAccumulatedSeconds * 1000.0f;
+  mFunction->mEndTime = TacClock::now();
   TacProfileSystem* system = TacProfileSystem::Instance;
   TacAssert(system->mCurrStackFrame.back() == mFunction);
   system->mCurrStackFrame.pop_back();
@@ -83,6 +82,10 @@ TacProfileFunction* TacProfileSystem::Alloc()
 }
 
 void TacProfileSystem::OnFrameBegin()
+{
+
+}
+void TacProfileSystem::OnFrameEnd()
 {
   Dealloc( mLastFrame );
   mLastFrame = mCurrFrame;

@@ -2,5 +2,5 @@
 
 struct TacProfileFunction;
 
-void TacImGuiProfileWidget(TacProfileFunction* profileFunction);
+void TacImGuiProfileWidget( TacProfileFunction* profileFunction );
 

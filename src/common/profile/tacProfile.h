@@ -13,7 +13,6 @@ struct TacProfileBlock
   TacProfileBlock(TacStackFrame stackFrame);
   ~TacProfileBlock();
   TacProfileFunction* mFunction = nullptr;
-  TacTimer            mTimer;
 };
 #define TAC_PROFILE_BLOCK TacProfileBlock b##__LINE__ (TAC_STACK_FRAME);
 
@@ -25,7 +24,8 @@ struct TacProfileFunction
   
   TacProfileFunction* mNext = nullptr;
   TacProfileFunction* mChildren = nullptr;
-  float               mMiliseconds = 0;
+  TacTimepoint        mBeginTime;
+  TacTimepoint        mEndTime;
   TacStackFrame       mStackFrame;
 };
 
@@ -34,6 +34,7 @@ struct TacProfileSystem
   static TacProfileSystem* Instance;
   void                     Init();
   void                     OnFrameBegin();
+  void                     OnFrameEnd();
   TacProfileFunction*      Alloc();
   void                     Dealloc( TacProfileFunction* );
   void                     PushFunction( TacProfileFunction* );

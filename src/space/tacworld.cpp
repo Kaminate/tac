@@ -6,6 +6,7 @@
 #include "space/physics/tacphysics.h"
 #include "space/collider/taccollider.h"
 #include "common/graphics/tacDebug3D.h"
+#include "common/profile/tacProfile.h"
 
 #include <algorithm>
 
@@ -213,6 +214,7 @@ void TacWorld::ComputeTransformsRecursively( const m4& parentTransform, TacEntit
 }
 void TacWorld::Step( float seconds )
 {
+  /*TAC_PROFILE_BLOCK*/;
   const m4 identity = m4::Identity();
   for( TacEntity* entity : mEntities )
   {

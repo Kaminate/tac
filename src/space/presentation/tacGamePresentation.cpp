@@ -1,4 +1,5 @@
 #include "common/tacCamera.h"
+#include "common/profile/tacProfile.h"
 #include "common/tacMemory.h"
 #include "common/assetmanagers/tacModelAssetManager.h"
 #include "common/assetmanagers/tacTextureAssetManager.h"
@@ -36,6 +37,7 @@ TacGamePresentation::~TacGamePresentation()
 }
 void TacGamePresentation::RenderGameWorldToDesktopView()
 {
+  //TAC_PROFILE_BLOCK;
   TacTextureAssetManager* textureAssetManager = TacTextureAssetManager::Instance;
   TacModelAssetManager* modelAssetManager = TacModelAssetManager::Instance;
   TacRenderer* renderer = TacRenderer::Instance;

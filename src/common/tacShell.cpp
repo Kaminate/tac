@@ -132,6 +132,8 @@ void TacShell::FrameBegin( TacErrors& errors )
 void TacShell::Frame( TacErrors& errors )
 {
   TAC_PROFILE_BLOCK;
+  FrameBegin( errors );
+
   if( TacNet::Instance )
   {
     TacNet::Instance->Update( errors );
@@ -139,8 +141,9 @@ void TacShell::Frame( TacErrors& errors )
   }
 
   mOnUpdate.EmitEvent();
-
   TacControllerInput::Instance->Update();
+
+  FrameEnd( errors );
 }
 void TacShell::FrameEnd( TacErrors& errors )
 {
@@ -150,6 +153,7 @@ void TacShell::FrameEnd( TacErrors& errors )
     TAC_HANDLE_ERROR( errors );
   }
   TacKeyboardInput::Instance->EndFrame();
+  TacProfileSystem::Instance->OnFrameEnd();
 }
 void TacShell::Update( TacErrors& errors )
 {
@@ -159,9 +163,7 @@ void TacShell::Update( TacErrors& errors )
   mTimer->mAccumulatedSeconds -= TAC_DELTA_FRAME_SECONDS;
   mElapsedSeconds += TAC_DELTA_FRAME_SECONDS;
 
-  FrameBegin( errors );
   Frame( errors );
-  FrameEnd( errors );
 }
 
 

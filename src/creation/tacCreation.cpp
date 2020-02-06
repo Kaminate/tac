@@ -10,6 +10,7 @@
 #include "common/tacOS.h"
 #include "common/tacPreprocessor.h"
 #include "common/tackeyboardinput.h"
+#include "common/profile/tacProfile.h"
 #include "creation/tacCreation.h"
 #include "creation/tacCreationGameWindow.h"
 #include "creation/tacCreationPropertyWindow.h"
@@ -481,6 +482,7 @@ void TacCreation::DeleteSelectedEntities()
 }
 void TacCreation::Update( TacErrors& errors )
 {
+  /*TAC_PROFILE_BLOCK*/;
   TacShell* shell = mDesktopApp->mShell;
   if( mMainWindow )
   {
