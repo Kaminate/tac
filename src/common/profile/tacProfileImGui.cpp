@@ -11,7 +11,8 @@ static const float maxiMiliseconds = 100.0f;
 struct TacImguiProfileWidgetData : public TacImGuiWindowResource
 {
   float mLMiliseconds = miniMiliseconds;
-  float mRMiliseconds = 17.0f;
+  //float mRMiliseconds = 17.0f;
+  float mRMiliseconds = 47.0f;
 };
 
 TacVector<TacImguiProfileWidgetData> gImguiProfileWidgetDatas;
@@ -39,9 +40,9 @@ static v4 GetTacProfileFunctionColor( TacProfileFunction* profileFunction )
   v3 d( 0, 0.25, 0.25 );
 
   uint32_t hash  = 0;
-  for( char c :  profileFunction->mStackFrame.mFunction)
+  for( char c : profileFunction->mStackFrame.mFunction )
     hash = hash * 31 + c;
-  float t = ( std::sin((float)hash) + 2.0f ) / 2.0f;
+  float t = ( std::sin( ( float )hash ) + 1.0f ) / 2.0f;
 
   v4 boxColor;
   boxColor.xyz() = a + v3mult( b, v3cos( 6.28318f * ( c * t + d ) ) );

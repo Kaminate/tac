@@ -78,7 +78,7 @@ TacScriptGameClient::TacScriptGameClient()
 }
 void TacScriptGameClient::Update( float seconds, TacErrors& errors )
 {
-  auto shell = mScriptRoot->mGhost->mShell;
+  auto shell = TacShell::Instance;
   TAC_TIMELINE_BEGIN;
 
   auto scriptMatchmaker = new TacScriptMatchmaker();
@@ -111,7 +111,7 @@ TacScriptSplash::~TacScriptSplash()
 void TacScriptSplash::Update( float seconds, TacErrors& errors )
 {
   TacGhost* ghost = mScriptRoot->mGhost;
-  TacShell* shell = ghost->mShell;
+  TacShell* shell = TacShell::Instance;
   //TacUIRoot* uiRoot = ghost->mUIRoot;
 
 
@@ -178,7 +178,7 @@ void TacScriptMatchmaker::PokeServer( TacErrors& errors )
   TacAssert( mSocket );
   if( !mSocket->mTCPIsConnected )
     return;
-  auto shell = mScriptRoot->mGhost->mShell;
+  auto shell = TacShell::Instance;
   TacString s =
     "TacScriptGameClient messsage: elapsed time is " +
     TacFormatFrameTime( shell->mElapsedSeconds );
@@ -196,7 +196,7 @@ void TacScriptMatchmaker::ClearServerLog( TacErrors& errors )
   TacAssert( mSocket );
   if( !mSocket->mTCPIsConnected )
     return;
-  auto shell = mScriptRoot->mGhost->mShell;
+  TacShell* shell = TacShell::Instance;
   TacJson json;
   json[ "name" ] = "clear console";
   TacString toSend = json.Stringify();
@@ -206,7 +206,7 @@ void TacScriptMatchmaker::Log( const TacString& text )
 {
   if( !mShouldLog )
     return;
-  auto log = mScriptRoot->mGhost->mShell->mLog;
+  auto log = TacShell::Instance->mLog;
   if( !log )
     return;
   log->Push( "TacScriptGameClient: " + text );
@@ -220,7 +220,7 @@ void TacScriptMatchmaker::TryConnect()
 }
 void TacScriptMatchmaker::Update( float seconds, TacErrors& errors )
 {
-  auto shell = mScriptRoot->mGhost->mShell;
+  TacShell* shell = TacShell::Instance;
   auto settings = shell->mSettings;
   TAC_TIMELINE_BEGIN;
   mSocket = TacNet::Instance->CreateSocket( "Matchmaking socket", TacAddressFamily::IPv4, TacSocketType::TCP, errors );
@@ -395,7 +395,7 @@ void TacScriptMainMenu::AddCallbackDisconnect()
 void TacScriptMainMenu::Update( float seconds, TacErrors& errors )
 {
   TacGhost* ghost = mScriptRoot->mGhost;
-  TacShell* shell = ghost->mShell;
+  TacShell* shell = TacShell::Instance;
   //TacUIRoot* uiRoot = ghost->mUIRoot;
   auto* scriptMatchmaker = ( TacScriptMatchmaker* )mScriptRoot->GetThread( scriptMatchmakerName );
   TacServerData* serverData = ghost->mServerData;
@@ -743,7 +743,7 @@ void TacScriptMainMenu::Update( float seconds, TacErrors& errors )
   TAC_TIMELINE_KEYFRAME;
 
 
-  mTimeline.Update( ghost->mShell->mElapsedSeconds, errors );
+  mTimeline.Update( TacShell::Instance->mElapsedSeconds, errors );
   TAC_HANDLE_ERROR( errors );
 
   return;
@@ -875,7 +875,7 @@ void TacScriptMainMenu2::RenderMainMenu()
       status == TacAsyncLoadStatus::ThreadRunning )
     {
       TacString text = "Connecting to server";
-      for( int i = 0; i < ( int )mScriptRoot->mGhost->mShell->mElapsedSeconds % 4; ++i )
+      for( int i = 0; i < ( int )TacShell::Instance->mElapsedSeconds % 4; ++i )
         text += ".";
       TacImGuiText( text );
     }

@@ -180,13 +180,13 @@ void TacCreationGameWindow::CreateGraphicsObjects( TacErrors& errors )
 }
 void TacCreationGameWindow::Init( TacErrors& errors )
 {
-  TacShell* shell = mShell;
+  TacShell* shell = TacShell::Instance;
 
   auto uI2DDrawData = new TacUI2DDrawData();
   uI2DDrawData->mRenderView = mDesktopWindow->mRenderView;
   mUI2DDrawData = uI2DDrawData;
   mUIRoot = new TacUIRoot;
-  mUIRoot->mElapsedSeconds = &mShell->mElapsedSeconds;
+  mUIRoot->mElapsedSeconds = &TacShell::Instance->mElapsedSeconds;
   mUIRoot->mUI2DDrawData = mUI2DDrawData;
   mUIRoot->mDesktopWindow = mDesktopWindow;
   CreateGraphicsObjects( errors );
@@ -532,7 +532,6 @@ void TacCreationGameWindow::PlayGame( TacErrors& errors )
   if( mSoul )
     return;
   auto ghost = new TacGhost;
-  ghost->mShell = mShell;
   ghost->mRenderView = mDesktopWindow->mRenderView;
   ghost->Init( errors );
   TAC_HANDLE_ERROR( errors );
@@ -558,7 +557,7 @@ void TacCreationGameWindow::DrawPlaybackOverlay( TacErrors& errors )
     }
   }
 
-  if( mShell->mElapsedSeconds < mStatusMessageEndTime )
+  if( TacShell::Instance->mElapsedSeconds < mStatusMessageEndTime )
   {
     TacImGuiText( mStatusMessage );
   }
@@ -647,7 +646,7 @@ void TacCreationGameWindow::CameraControls()
 void TacCreationGameWindow::Update( TacErrors& errors )
 {
   mDesktopWindow->SetRenderViewDefaults();
-  SetCreationWindowImGuiGlobals( mShell, mDesktopWindow, mUI2DDrawData );
+  SetCreationWindowImGuiGlobals( mDesktopWindow, mUI2DDrawData );
   if( auto ghost = ( TacGhost* )mSoul )
   {
     //static bool once;

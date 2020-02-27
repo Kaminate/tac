@@ -19,10 +19,8 @@ int TacMemCmp( const void* lhs, const void* rhs, int len );
 // std uses void*
 void TacMemCpy( void* dst, const void* src, int len );
 
-// TODO: use this
 struct TacStringView
 {
-  // TacStringView() = default;
   TacStringView( const char* str );
   TacStringView( const char* str, int len );
   TacStringView( const TacString& str );

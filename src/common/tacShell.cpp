@@ -19,21 +19,22 @@
 #include <iostream>
 
 const TacKey TacToggleMainMenuKey = TacKey::Backtick;
-TacShell* TacShell::Instance = nullptr;
 
 TacSoul::TacSoul()
 {
   mIsImGuiVisible = true;
 }
 
+TacShell* TacShell::Instance = nullptr;
 TacShell::TacShell()
 {
-  mTimer = new TacTimer();
+  //mTimer = new TacTimer();
   new TacKeyboardInput();
-  mTimer->Start();
+  //mTimer->Start();
   if( TacIsDebugMode() )
     mLog = new TacLog();
   Instance = this;
+  mLastTick = TacGetCurrentTime();
 }
 TacShell::~TacShell()
 {
@@ -42,7 +43,6 @@ TacShell::~TacShell()
   delete mLocalization;
   delete mFontStuff;
   delete mLog;
-  delete mTimer;
   delete TacModelAssetManager::Instance;
   delete TacTextureAssetManager::Instance;
 
@@ -92,7 +92,6 @@ void TacShell::Init( TacErrors& errors )
       std::cout << "Failed to find " + rendererName + " renderer";
     TacRenderer* renderer = nullptr;
     rendererFactory->CreateRendererOuter( &renderer );
-    TacRenderer::Instance->mShell = this;
     TacRenderer::Instance->Init( errors );
     TacRenderer::Instance = renderer;
   }
@@ -157,10 +156,12 @@ void TacShell::FrameEnd( TacErrors& errors )
 }
 void TacShell::Update( TacErrors& errors )
 {
-  mTimer->Tick();
-  if( mTimer->mAccumulatedSeconds < TAC_DELTA_FRAME_SECONDS )
+  TacTimepoint curTime = TacGetCurrentTime();
+  mAccumulatorSeconds += TacTimepointSubtractSeconds(curTime, mLastTick);
+  mLastTick = curTime;
+  if( mAccumulatorSeconds < TAC_DELTA_FRAME_SECONDS )
     return;
-  mTimer->mAccumulatedSeconds -= TAC_DELTA_FRAME_SECONDS;
+  mAccumulatorSeconds -= TAC_DELTA_FRAME_SECONDS;
   mElapsedSeconds += TAC_DELTA_FRAME_SECONDS;
 
   Frame( errors );

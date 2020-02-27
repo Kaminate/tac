@@ -42,7 +42,7 @@ struct TacCreationGameWindow
   void DrawPlaybackOverlay( TacErrors& errors );
   void PlayGame( TacErrors& errors );
 
-  TacShell* mShell = nullptr;
+  
   TacDesktopWindow* mDesktopWindow = nullptr;
   TacUIRoot* mUIRoot = nullptr;
   TacUI2DDrawData* mUI2DDrawData = nullptr;

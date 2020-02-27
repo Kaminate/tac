@@ -226,7 +226,7 @@ TacSocket* TacNetWinsock::CreateSocket(
   netWinsocket->mSocketType = socketType;
   netWinsocket->mWinsockAddressFamily = winsockAddressFamily;
   netWinsocket->mWinsockSocketType = winsockSocketType;
-  netWinsocket->mElapsedSecondsOnLastRecv = mShell->mElapsedSeconds;
+  netWinsocket->mElapsedSecondsOnLastRecv = TacShell::Instance->mElapsedSeconds;
   netWinsocket->SetKeepalive( true, errors );
   if( errors.size() )
     return nullptr;
@@ -260,7 +260,7 @@ void TacNetWinsock::DebugImgui()
 }
 void TacNetWinsock::Update( TacErrors& errors )
 {
-  bool shouldSendKeepalive = mShell->mElapsedSeconds > mKeepaliveNextSeconds;
+  bool shouldSendKeepalive = TacShell::Instance->mElapsedSeconds > mKeepaliveNextSeconds;
   if( shouldSendKeepalive )
     mKeepaliveNextSeconds += mKeepaliveIntervalSeconds;
 
@@ -310,7 +310,7 @@ void TacNetWinsock::Update( TacErrors& errors )
       socketWinsock->mRequestDeletion = true;
       continue;
     }
-    socketWinsock->mElapsedSecondsOnLastRecv = mShell->mElapsedSeconds;
+    socketWinsock->mElapsedSecondsOnLastRecv = TacShell::Instance->mElapsedSeconds;
     if( mPrintReceivedMessages )
     {
       auto recvString = TacString( recvBuf, recvResult );

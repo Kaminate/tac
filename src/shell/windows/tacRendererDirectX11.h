@@ -10,6 +10,7 @@
 
 #include <map>
 #include <set>
+#include <thread>
 
 struct TacCBufferDX11;
 struct TacRendererDirectX11;
@@ -272,6 +273,8 @@ struct TacRendererDirectX11 : public TacRenderer
     ID3D11DeviceChild* directXObject,
     const TacString& name );
 
+  static void RenderThreadFunction();
+
   ID3D11InfoQueue* mInfoQueueDEBUG = nullptr;
   ID3DUserDefinedAnnotation* mUserAnnotationDEBUG = nullptr;
   std::map< TacShaderType, TacVector< TacTextureDX11* > >mCurrentTextures;
@@ -297,6 +300,10 @@ struct TacRendererDirectX11 : public TacRenderer
   TacSamplerStateDX11* mCurrentlyBoundSamplerState = nullptr;
   TacRenderView* mCurrentlyBoundView = nullptr;
   TacVector< TacRenderView* > mFrameBoundRenderViews;
+
+
+
+  std::thread mRenderThread;
 
 };
 

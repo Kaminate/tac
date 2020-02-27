@@ -18,7 +18,7 @@ TacCreationProfileWindow::~TacCreationProfileWindow()
 }
 void TacCreationProfileWindow::Init( TacErrors& errors )
 {
-  TacShell* shell = mShell;
+  TacShell* shell = TacShell::Instance;
   mUI2DDrawData = new TacUI2DDrawData;
   mUI2DDrawData->mRenderView = mDesktopWindow->mRenderView;
 
@@ -31,9 +31,9 @@ void TacCreationProfileWindow::ImGuiProfile()
 }
 void TacCreationProfileWindow::ImGui()
 {
-  TacShell* shell = mShell;
+  TacShell* shell = TacShell::Instance;
 
-  SetCreationWindowImGuiGlobals( shell, mDesktopWindow, mUI2DDrawData );
+  SetCreationWindowImGuiGlobals( mDesktopWindow, mUI2DDrawData );
   TacImGuiBegin( "Profile Window", {} );
 
   TacImGuiText( "i am the profile window" );
@@ -52,7 +52,7 @@ void TacCreationProfileWindow::ImGui()
 }
 void TacCreationProfileWindow::Update( TacErrors& errors )
 {
-  TacShell* shell = mShell;
+  TacShell* shell = TacShell::Instance;
   mDesktopWindow->SetRenderViewDefaults();
   ImGui();
   mUI2DDrawData->DrawToTexture( errors );

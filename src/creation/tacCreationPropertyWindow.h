@@ -21,7 +21,7 @@ struct TacCreationPropertyWindow
   TacDesktopWindow* mDesktopWindow = nullptr;
   TacUIRoot* mUIRoot = nullptr;
   TacUI2DDrawData* mUI2DDrawData = nullptr;
-  TacShell* mShell = nullptr;
+  
   TacCreation* mCreation = nullptr;
 
   //TacUIHierarchyNode* mHierarchyList = nullptr;

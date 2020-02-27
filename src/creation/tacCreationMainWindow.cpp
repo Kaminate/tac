@@ -22,7 +22,6 @@ TacCreationMainWindow::~TacCreationMainWindow()
 }
 void TacCreationMainWindow::Init( TacErrors& errors )
 {
-  TacShell* shell = mDesktopApp->mShell;
   mUI2DDrawData = new TacUI2DDrawData;
   mUI2DDrawData->mRenderView = mDesktopWindow->mRenderView;
   mUIRoot = new TacUIRoot;
@@ -31,7 +30,6 @@ void TacCreationMainWindow::Init( TacErrors& errors )
 }
 void TacCreationMainWindow::LoadTextures( TacErrors& errors )
 {
-  TacShell* shell = mDesktopApp->mShell;
   if( mAreTexturesLoaded )
     return;
   struct TacTextureAndPath
@@ -90,8 +88,7 @@ void TacCreationMainWindow::ImGuiWindows()
 }
 void TacCreationMainWindow::ImGui()
 {
-  TacShell* shell = mDesktopApp->mShell;
-  SetCreationWindowImGuiGlobals( shell, mDesktopWindow, mUI2DDrawData );
+  SetCreationWindowImGuiGlobals( mDesktopWindow, mUI2DDrawData );
   TacImGuiBegin( "Main Window", {} );
   TacImGuiBeginMenuBar();
   TacImGuiText( "file | edit | window" );
@@ -101,7 +98,7 @@ void TacCreationMainWindow::ImGui()
     TacWorld* world = mCreation->mWorld;
 
 
-    TacShell* shell = mDesktopApp->mShell;
+    TacShell* shell = TacShell::Instance;
     TacOS* os = TacOS::Instance;
 
     for( TacEntity* entity : world->mEntities )
@@ -153,7 +150,7 @@ void TacCreationMainWindow::ImGui()
 }
 void TacCreationMainWindow::Update( TacErrors& errors )
 {
-  TacShell* shell = mDesktopApp->mShell;
+  TacShell* shell = TacShell::Instance;
   mDesktopWindow->SetRenderViewDefaults();
 
   LoadTextures( errors );

@@ -8,6 +8,7 @@
 #include "common/tacErrorHandling.h"
 #include "common/tacPreprocessor.h"
 #include "common/containers/tacVector.h"
+#include "common/tacTime.h"
 #include "common/tacEvent.h"
 
 struct TacControllerInput;
@@ -43,7 +44,6 @@ struct TacSoul
   // unowned
   TacRenderView* mRenderView = nullptr;
   bool mIsImGuiVisible;
-  TacShell* mShell = nullptr;
   TacLanguage mLanguage = TacLanguage::English;
 };
 
@@ -79,6 +79,8 @@ struct TacShell
   TacTimer* mTimer = nullptr;
   TacVector< TacSoul* > mSouls;
   double mElapsedSeconds = 0;
+  TacTimepoint mLastTick;
+  float mAccumulatorSeconds = 0;
 };
 
 struct TacRendererWindowData

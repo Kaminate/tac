@@ -8,14 +8,13 @@
 
 TacDesktopApp::TacDesktopApp()
 {
-  mShell = new TacShell();
+   new TacShell;
 }
 
 TacDesktopApp::~TacDesktopApp()
 {
   for( auto window : mMainWindows )
     delete window;
-  delete mShell;
 }
 void TacDesktopApp::Loop( TacErrors& errors )
 {
@@ -51,7 +50,7 @@ void TacDesktopApp::Loop( TacErrors& errors )
       i++;
     }
 
-    mShell->Update( errors );
+    TacShell::Instance->Update( errors );
     TAC_HANDLE_ERROR( errors );
   }
 }

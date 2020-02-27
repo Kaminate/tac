@@ -23,7 +23,7 @@ TacCreationGameObjectMenuWindow::~TacCreationGameObjectMenuWindow()
 }
 void TacCreationGameObjectMenuWindow::Init( TacErrors& errors )
 {
-  TacShell* shell = mCreation->mDesktopApp->mShell;
+  TacShell* shell = TacShell::Instance;
   mCreationSeconds = shell->mElapsedSeconds;
   TacWindowParams windowParams;
   windowParams.mName = "game object menu";

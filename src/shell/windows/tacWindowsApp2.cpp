@@ -326,10 +326,9 @@ void TacWindowsApplication2::OnShellInit( TacErrors& errors )
 
   auto netWinsock = new TacNetWinsock( errors );
   TAC_HANDLE_ERROR( errors );
-  netWinsock->mShell = mShell;
 
   // window borders should be a higher-level concept, right?
-  mShouldWindowHaveBorder = mShell->mSettings->GetBool( nullptr, { "areWindowsBordered" }, false, errors );
+  mShouldWindowHaveBorder = TacShell::Instance->mSettings->GetBool( nullptr, { "areWindowsBordered" }, false, errors );
   if( !mShouldWindowHaveBorder )
   {
     mMouseEdgeHandler = new TacWin32MouseEdgeHandler();

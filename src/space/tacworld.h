@@ -55,7 +55,6 @@ struct TacWorld
   std::list< TacEntity* > mEntities;
   TacVector< TacSystem* > mSystems;
   TacString mSkyboxDir;
-  TacShell* mShell = nullptr;
   TacDebug3DDrawData* mDebug3DDrawData = nullptr;
 };
 

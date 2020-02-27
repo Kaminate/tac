@@ -18,7 +18,7 @@ TacCreationSystemWindow::~TacCreationSystemWindow()
 }
 void TacCreationSystemWindow::Init( TacErrors& errors )
 {
-  TacShell* shell = mShell;
+  TacShell* shell = TacShell::Instance;
   mUI2DDrawData = new TacUI2DDrawData;
   mUI2DDrawData->mRenderView = mDesktopWindow->mRenderView;
 
@@ -27,10 +27,10 @@ void TacCreationSystemWindow::Init( TacErrors& errors )
 };
 void TacCreationSystemWindow::ImGui()
 {
-  TacShell* shell = mShell;
+  TacShell* shell = TacShell::Instance;
   TacSystemRegistry* systemRegistry = TacSystemRegistry::Instance();
 
-  SetCreationWindowImGuiGlobals( shell, mDesktopWindow, mUI2DDrawData );
+  SetCreationWindowImGuiGlobals( mDesktopWindow, mUI2DDrawData );
   TacImGuiBegin( "System Window", {} );
 
   if( TacImGuiCollapsingHeader( "Select System" ) )
@@ -73,7 +73,7 @@ void TacCreationSystemWindow::ImGui()
 }
 void TacCreationSystemWindow::Update( TacErrors& errors )
 {
-  TacShell* shell = mShell;
+  TacShell* shell = TacShell::Instance;
   mDesktopWindow->SetRenderViewDefaults();
   ImGui();
   mUI2DDrawData->DrawToTexture( errors );

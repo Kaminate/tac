@@ -589,7 +589,6 @@ struct TacRenderer
   void DebugImgui();
 
 
-  TacShell* mShell = nullptr;
   TacString mName;
 
   // Should this resize and return a reference to theback?

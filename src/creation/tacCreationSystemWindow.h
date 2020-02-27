@@ -22,7 +22,7 @@ struct TacCreationSystemWindow
 
   TacDesktopWindow* mDesktopWindow = nullptr;
   TacUI2DDrawData* mUI2DDrawData = nullptr;
-  TacShell* mShell = nullptr;
+  
   TacCreation* mCreation = nullptr;
 
   int mSystemIndex = -1;

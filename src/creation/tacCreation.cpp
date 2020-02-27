@@ -70,7 +70,7 @@ void TacDesktopApp::DoStuff( TacDesktopApp* desktopApp, TacErrors& errors )
   os->GetWorkingDir( workingDir, errors );
   TAC_HANDLE_ERROR( errors );
 
-  TacShell* shell = desktopApp->mShell;
+  TacShell* shell = TacShell::Instance;
   shell->mAppName = appName;
   shell->mPrefPath = prefPath;
   shell->mInitialWorkingDir = workingDir;
@@ -124,7 +124,7 @@ void TacCreation::CreatePropertyWindow( TacErrors& errors )
   if( mPropertyWindow )
     return;
 
-  TacShell* shell = mDesktopApp->mShell;
+  TacShell* shell = TacShell::Instance;
   TacDesktopWindow* desktopWindow;
   CreateDesktopWindow( gPropertyWindowName, &desktopWindow, errors );
   TAC_HANDLE_ERROR( errors );
@@ -132,7 +132,6 @@ void TacCreation::CreatePropertyWindow( TacErrors& errors )
   mPropertyWindow = new TacCreationPropertyWindow;
   mPropertyWindow->mCreation = this;
   mPropertyWindow->mDesktopWindow = desktopWindow;
-  mPropertyWindow->mShell = shell;
   mPropertyWindow->Init( errors );
   TAC_HANDLE_ERROR( errors );
 
@@ -147,7 +146,7 @@ void TacCreation::CreateGameWindow( TacErrors& errors )
   if(mGameWindow)
     return;
 
-  TacShell* shell = mDesktopApp->mShell;
+  TacShell* shell = TacShell::Instance;
   TacDesktopWindow* desktopWindow;
   CreateDesktopWindow( gGameWindowName, &desktopWindow, errors );
   TAC_HANDLE_ERROR( errors );
@@ -156,7 +155,6 @@ void TacCreation::CreateGameWindow( TacErrors& errors )
   mGameWindow = new TacCreationGameWindow();
   mGameWindow->mCreation = this;
   mGameWindow->mDesktopWindow = desktopWindow;
-  mGameWindow->mShell = shell;
   mGameWindow->Init( errors );
   TAC_HANDLE_ERROR( errors );
 
@@ -171,7 +169,7 @@ void TacCreation::CreateMainWindow( TacErrors& errors )
   if( mMainWindow )
     return;
 
-  TacShell* shell = mDesktopApp->mShell;
+  TacShell* shell = TacShell::Instance;
   TacDesktopWindow* desktopWindow = nullptr;
   CreateDesktopWindow( gMainWindowName, &desktopWindow, errors );
   TAC_HANDLE_ERROR( errors );
@@ -197,7 +195,7 @@ void TacCreation::CreateSystemWindow( TacErrors& errors )
   if( mSystemWindow )
     return;
 
-  TacShell* shell = mDesktopApp->mShell;
+  TacShell* shell = TacShell::Instance;
   TacDesktopWindow* desktopWindow;
   CreateDesktopWindow( gSystemWindowName, &desktopWindow, errors );
   TAC_HANDLE_ERROR( errors );
@@ -205,7 +203,6 @@ void TacCreation::CreateSystemWindow( TacErrors& errors )
   mSystemWindow = new TacCreationSystemWindow();
   mSystemWindow->mCreation = this;
   mSystemWindow->mDesktopWindow = desktopWindow;
-  mSystemWindow->mShell = shell;
   mSystemWindow->Init( errors );
   TAC_HANDLE_ERROR( errors );
 
@@ -221,7 +218,7 @@ void TacCreation::CreateProfileWindow( TacErrors& errors )
   if( mProfileWindow )
     return;
 
-  TacShell* shell = mDesktopApp->mShell;
+  TacShell* shell = TacShell::Instance;
   TacDesktopWindow* desktopWindow;
   CreateDesktopWindow( gProfileWindowName, &desktopWindow, errors );
   TAC_HANDLE_ERROR( errors );
@@ -229,7 +226,6 @@ void TacCreation::CreateProfileWindow( TacErrors& errors )
   mProfileWindow = new TacCreationProfileWindow();
   mProfileWindow->mCreation = this;
   mProfileWindow->mDesktopWindow = desktopWindow;
-  mProfileWindow->mShell = shell;
   mProfileWindow->Init( errors );
   TAC_HANDLE_ERROR( errors );
 
@@ -242,8 +238,7 @@ void TacCreation::CreateProfileWindow( TacErrors& errors )
 
 void TacCreation::GetWindowsJson( TacJson** outJson, TacErrors& errors )
 {
-  TacShell* shell = mDesktopApp->mShell;
-  TacSettings* settings = shell->mSettings;
+  TacSettings* settings = TacShell::Instance->mSettings;
   TacVector< TacString > settingsPaths = { "Windows" };
   auto windowDefault = new TacJson();
   ( *windowDefault )[ "Name" ] = gMainWindowName;
@@ -261,7 +256,7 @@ void TacCreation::CreateDesktopWindow(
   TacDesktopWindow** outDesktopWindow,
   TacErrors& errors )
 {
-  TacShell* shell = mDesktopApp->mShell;
+  TacShell* shell = TacShell::Instance;
   TacSettings* settings = shell->mSettings;
   TacJson* windows;
   GetWindowsJson( &windows, errors );
@@ -379,7 +374,7 @@ void TacCreation::Init( TacErrors& errors )
   os->CreateFolderIfNotExist( dataPath, errors );
   TAC_HANDLE_ERROR( errors );
 
-  TacShell* shell = mDesktopApp->mShell;
+  TacShell* shell = TacShell::Instance;
   TacSettings* settings = shell->mSettings;
 
   TacJson* windows;
@@ -483,7 +478,7 @@ void TacCreation::DeleteSelectedEntities()
 void TacCreation::Update( TacErrors& errors )
 {
   /*TAC_PROFILE_BLOCK*/;
-  TacShell* shell = mDesktopApp->mShell;
+  TacShell* shell = TacShell::Instance;
   if( mMainWindow )
   {
     mMainWindow->Update( errors );
@@ -583,7 +578,7 @@ void TacCreation::ClearSelection()
 }
 void TacCreation::GetSavedPrefabs( TacVector< TacString > & paths, TacErrors& errors )
 {
-  TacShell* shell = mDesktopApp->mShell;
+  TacShell* shell = TacShell::Instance;
   TacSettings* settings = shell->mSettings;
   TacJson& prefabs = settings->mJson[ prefabSettingsPath ];
   prefabs.mType = TacJsonType::Array;
@@ -595,7 +590,7 @@ void TacCreation::GetSavedPrefabs( TacVector< TacString > & paths, TacErrors& er
 }
 void TacCreation::UpdateSavedPrefabs()
 {
-  TacShell* shell = mDesktopApp->mShell;
+  TacShell* shell = TacShell::Instance;
   TacSettings* settings = shell->mSettings;
   TacJson& prefabs = settings->mJson[ prefabSettingsPath ];
   prefabs.mType = TacJsonType::Array;
@@ -630,7 +625,7 @@ TacPrefab* TacCreation::FindPrefab( TacEntity* entity )
 }
 void TacCreation::SavePrefabs()
 {
-  TacShell* shell = mDesktopApp->mShell;
+  TacShell* shell = TacShell::Instance;
   TacOS* os = TacOS::Instance;
 
   for( TacEntity* entity : mWorld->mEntities )
@@ -690,7 +685,7 @@ void TacCreation::SavePrefabs()
 }
 void TacCreation::ModifyPathRelative( TacString& savePath )
 {
-  TacShell* shell = mDesktopApp->mShell;
+  TacShell* shell = TacShell::Instance;
   if( TacStartsWith( savePath, shell->mInitialWorkingDir ) )
   {
     savePath = savePath.substr( shell->mInitialWorkingDir.size() );
@@ -731,7 +726,7 @@ void TacCreation::LoadPrefabCameraPosition( TacPrefab* prefab )
 {
   if( prefab->mDocumentPath.empty() )
     return;
-  TacSettings* settings = mDesktopApp->mShell->mSettings;
+  TacSettings* settings = TacShell::Instance->mSettings;
   TacJson* root = nullptr;
   v3* refFrameVecs[] = {
     &mEditorCamera.mPos,
@@ -770,7 +765,7 @@ void TacCreation::SavePrefabCameraPosition( TacPrefab* prefab )
   if( prefab->mDocumentPath.empty() )
     return;
   TacJson* root = nullptr;
-  TacSettings* settings = mDesktopApp->mShell->mSettings;
+  TacSettings* settings = TacShell::Instance->mSettings;
 
   v3 refFrameVecs[] = {
     mEditorCamera.mPos,
@@ -799,7 +794,6 @@ void TacCreation::SavePrefabCameraPosition( TacPrefab* prefab )
 }
 
 void SetCreationWindowImGuiGlobals(
-  TacShell* shell,
   TacDesktopWindow* desktopWindow,
   TacUI2DDrawData* ui2DDrawData )
 {
@@ -819,6 +813,6 @@ void SetCreationWindowImGuiGlobals(
   TacImGuiSetGlobals(
     mousePositionDestopWindowspace,
     isWindowDirectlyUnderCursor,
-    shell->mElapsedSeconds,
+    TacShell::Instance->mElapsedSeconds,
     ui2DDrawData );
 }

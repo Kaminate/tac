@@ -20,15 +20,16 @@ using TacClock = std::chrono::high_resolution_clock;
 using TacNano = std::chrono::nanoseconds;
 using TacTimepoint = std::chrono::time_point< TacClock, TacNano >;
 
-struct TacTimerAux;
-struct TacTimer
-{
-  void Start();
-  void Tick();
+//struct TacTimer
+//{
+//  void Start();
+//  void Tick();
+//
+//  TacTimepoint mTimePoint;
+//  float mAccumulatedSeconds = 0;
+//};
 
-  TacTimepoint mTimePoint;
-  float mAccumulatedSeconds = 0;
-};
+TacTimepoint TacGetCurrentTime();
 
 // returns a - b
 float TacTimepointSubtractSeconds(TacTimepoint a, TacTimepoint b);

@@ -107,7 +107,6 @@ struct TacCreation
 };
 
 void SetCreationWindowImGuiGlobals(
-  TacShell* shell,
   TacDesktopWindow* desktopWindow,
   TacUI2DDrawData* ui2DDrawData );
 

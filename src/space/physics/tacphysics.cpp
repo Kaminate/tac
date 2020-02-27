@@ -188,7 +188,6 @@ void TacPhysics::DebugDrawCapsules()
 void TacPhysics::DebugDrawTerrains()
 {
   TacGraphics* graphics = TacGraphics::GetSystem( mWorld );
-  TacShell* shell = mWorld->mShell;
 
   // Load heightmap mesh from heighap image
   for( auto terrain : mTerrains )

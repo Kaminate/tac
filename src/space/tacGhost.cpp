@@ -62,7 +62,6 @@ void TacUser::Update( TacErrors& errors )
 {
   if( !mGhost->mIsGrabbingInput )
     return;
-  auto shell = mGhost->mShell;
   auto serverData = mGhost->mServerData;
   v2 inputDirection = { 0, 0 };
   if( TacKeyboardInput::Instance->IsKeyDown( TacKey::RightArrow ) ) inputDirection += { 1, 0 };
@@ -113,7 +112,7 @@ void TacGhost::Init( TacErrors& errors )
   //TAC_HANDLE_ERROR( errors );
 
   const TacString serverTypeGameClient = TacStringify( TacScriptGameClient );
-  TacString serverType = mShell->mSettings->GetString(
+  TacString serverType = TacShell::Instance->mSettings->GetString(
     nullptr,
     { "server type" },
     serverTypeGameClient,
@@ -138,7 +137,7 @@ void TacGhost::Init( TacErrors& errors )
     TAC_HANDLE_ERROR( errors );
   }
 
-  //mUIRoot->mElapsedSeconds = &mShell->mElapsedSeconds; // eww
+  //mUIRoot->mElapsedSeconds = &TacShell::Instance->mElapsedSeconds; // eww
   //mUIRoot->mGhost = this;
 }
 TacGhost::~TacGhost()
@@ -185,20 +184,20 @@ void TacGhost::Update( TacErrors& errors )
 
   if( CanDrawImgui() )
   {
-    //mMouserCursorNDC.x = ( ( float )mShell->mMouseRelTopLeftX - mImguiImagePosRelTopLeftX ) / mImguiImageW;
-    //mMouserCursorNDC.y = ( ( float )mShell->mMouseRelTopLeftY - mImguiImagePosRelTopLeftY ) / mImguiImageH;
-    //mMouseHoveredOverWindow &= mShell->mMouseInWindow;
+    //mMouserCursorNDC.x = ( ( float )TacShell::Instance->mMouseRelTopLeftX - mImguiImagePosRelTopLeftX ) / mImguiImageW;
+    //mMouserCursorNDC.y = ( ( float )TacShell::Instance->mMouseRelTopLeftY - mImguiImagePosRelTopLeftY ) / mImguiImageH;
+    //mMouseHoveredOverWindow &= TacShell::Instance->mMouseInWindow;
     //mDrawDepthBuffer = mFBODepthBuffer;
     //mDrawTexture = mFBOTexture;
   }
   else
   {
     //TacInvalidCodePath;
-    //mShell->TacRenderer::Instance->GetBackbufferColor( &mDrawTexture  );
-    //mShell->TacRenderer::Instance->GetBackbufferDepth( &mDrawDepthBuffer );
-    //mMouserCursorNDC.x = ( float )mShell->mMouseRelTopLeftX / mDrawTexture->myImage.mWidth;
-    //mMouserCursorNDC.y = ( float )mShell->mMouseRelTopLeftY / mDrawTexture->myImage.mHeight;
-    //mMouseHoveredOverWindow = mShell->mMouseInWindow;
+    //TacShell::Instance->TacRenderer::Instance->GetBackbufferColor( &mDrawTexture  );
+    //TacShell::Instance->TacRenderer::Instance->GetBackbufferDepth( &mDrawDepthBuffer );
+    //mMouserCursorNDC.x = ( float )TacShell::Instance->mMouseRelTopLeftX / mDrawTexture->myImage.mWidth;
+    //mMouserCursorNDC.y = ( float )TacShell::Instance->mMouseRelTopLeftY / mDrawTexture->myImage.mHeight;
+    //mMouseHoveredOverWindow = TacShell::Instance->mMouseInWindow;
   }
   mMouserCursorNDC.y = 1 - mMouserCursorNDC.y;
   mMouserCursorNDC *= 2;
@@ -322,7 +321,7 @@ void TacGhost::DebugImgui( TacErrors& errors )
 void TacGhost::Draw( TacErrors& errors )
 {
   TacWorld* world = mServerData->mWorld;
-  TacFontStuff* fontStuff = mShell->mFontStuff;
+  TacFontStuff* fontStuff = TacShell::Instance->mFontStuff;
   TacGraphics* graphics = TacGraphics::GetSystem( world );
 
   TacRenderer::Instance->DebugBegin( "Draw world" );

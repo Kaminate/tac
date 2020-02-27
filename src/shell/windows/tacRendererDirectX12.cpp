@@ -811,7 +811,7 @@ void TacRendererDX12::AddShader( TacShader** shader, const TacShaderData& shader
       return;
 
 
-    TacString compositeShaderPath = mShell->mPrefPath + "/tacFailedShader.txt";
+    TacString compositeShaderPath = TacShell::Instance->mPrefPath + "/tacFailedShader.txt";
     TacErrors compositeShaderErrors;
     TacWriteToFile( compositeShaderPath, shaderMemory.data(), shaderMemory.size(), compositeShaderErrors );
     TacString compositeShaderErrorString =

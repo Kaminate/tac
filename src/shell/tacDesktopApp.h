@@ -20,7 +20,7 @@ struct TacDesktopApp
 
   TacVector< TacDesktopWindow* > mMainWindows;
 
-  TacShell* mShell = nullptr;
+  
 
   static void DoStuff( TacDesktopApp* desktopApp, TacErrors& errors );
 

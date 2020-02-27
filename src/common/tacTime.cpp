@@ -53,18 +53,23 @@ TacString TacFormatFrameTime( double seconds )
 }
 
 
-void TacTimer::Start()
+TacTimepoint TacGetCurrentTime()
 {
-  mTimePoint = TacClock::now();
+  return TacClock::now();
 }
-void TacTimer::Tick()
-{
-  TacTimepoint timepoint = TacClock::now();
-  TacNano nano = timepoint - mTimePoint;
-  float elapsedSeconds = nano.count() / 1000000000.0f;
-  mAccumulatedSeconds += elapsedSeconds;
-  mTimePoint = timepoint;
-}
+
+//void TacTimer::Start()
+//{
+//  mTimePoint = TacClock::now();
+//}
+//void TacTimer::Tick()
+//{
+//  TacTimepoint timepoint = TacClock::now();
+//  TacNano nano = timepoint - mTimePoint;
+//  float elapsedSeconds = nano.count() / 1000000000.0f;
+//  mAccumulatedSeconds += elapsedSeconds;
+//  mTimePoint = timepoint;
+//}
 
 float TacTimepointSubtractSeconds( TacTimepoint a, TacTimepoint b )
 {

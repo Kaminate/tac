@@ -454,6 +454,8 @@ void TacRendererDirectX11::Init( TacErrors& errors )
 
   mDxgi.Init( errors );
   TAC_HANDLE_ERROR( errors );
+
+  mRenderThread = std::thread(RenderThreadFunction);
 }
 void TacRendererDirectX11::RenderFlush()
 {
@@ -1942,3 +1944,10 @@ TacVertexFormatDX11::~TacVertexFormatDX11()
   if( rendererDX11->mCurrentlyBoundVertexFormat == this )
     rendererDX11->mCurrentlyBoundVertexFormat = nullptr;
 }
+
+
+void TacRendererDirectX11::RenderThreadFunction()
+{
+
+}
+

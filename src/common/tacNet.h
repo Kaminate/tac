@@ -102,7 +102,7 @@ struct TacNet
   virtual TacVector< TacSocket* > GetSockets() = 0;
   virtual void DebugImgui() = 0;
   virtual void Update( TacErrors& errors ) = 0;
-  TacShell* mShell = nullptr;
+  
 };
 
 TacVector< uint8_t > TacGenerateSecWebsocketKey();

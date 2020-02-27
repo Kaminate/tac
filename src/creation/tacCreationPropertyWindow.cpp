@@ -26,7 +26,7 @@ void TacCreationPropertyWindow::Init( TacErrors& errors )
   mUI2DDrawData = new TacUI2DDrawData;
   mUI2DDrawData->mRenderView = mDesktopWindow->mRenderView;
   mUIRoot = new TacUIRoot;
-  mUIRoot->mElapsedSeconds = &mShell->mElapsedSeconds;
+  mUIRoot->mElapsedSeconds = &TacShell::Instance->mElapsedSeconds;
   mUIRoot->mUI2DDrawData = mUI2DDrawData;
   mUIRoot->mDesktopWindow = mDesktopWindow;
   mUIRoot->mHierarchyRoot->mLayoutType = TacUILayoutType::Horizontal;
@@ -55,7 +55,7 @@ void TacCreationPropertyWindow::Update( TacErrors& errors )
   //mUIRoot->Render( errors );
   TAC_HANDLE_ERROR( errors );
 
-  SetCreationWindowImGuiGlobals( mShell, mDesktopWindow, mUI2DDrawData );
+  SetCreationWindowImGuiGlobals( mDesktopWindow, mUI2DDrawData );
 
 
   TacImGuiBegin( "Properties", {} );

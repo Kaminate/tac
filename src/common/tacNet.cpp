@@ -30,7 +30,7 @@ void TacSocket::DebugImgui()
   //  return;
   //ImGui::Indent();
   //OnDestruct( ImGui::Unindent() );
-  //TacString time = TacFormatFrameTime( mNet->mShell->mElapsedSeconds - mElapsedSecondsOnLastRecv );
+  //TacString time = TacFormatFrameTime( mNet->TacShell::Instance->mElapsedSeconds - mElapsedSecondsOnLastRecv );
   //ImGui::Text( "Address Family: %s", ToString( mAddressFamily ).c_str() );
   //ImGui::Text( "Socket Type: %s", ToString( mSocketType ).c_str() );
   //ImGui::Text( "Last recvd msg: %s", time.c_str() );

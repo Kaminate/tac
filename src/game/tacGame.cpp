@@ -36,7 +36,6 @@ struct TacGame
     mUi2DDrawData->mRenderView = mDesktopWindow->mRenderView;
 
     auto ghost = new TacGhost;
-    ghost->mShell = mShell;
     ghost->mRenderView = mDesktopWindow->mRenderView;
     ghost->Init( errors );
     TAC_HANDLE_ERROR( errors );
@@ -58,7 +57,7 @@ struct TacGame
     TacImGuiSetGlobals(
       mousePositionDesktopWindowspace,
       isWindowDirectlyUnderCursor,
-      mShell->mElapsedSeconds,
+      TacShell::Instance->mElapsedSeconds,
       mUi2DDrawData);
   }
   void Update( TacErrors& errors )
@@ -85,7 +84,6 @@ struct TacGame
     TAC_HANDLE_ERROR( errors );
   }
   TacDesktopApp* mApp;
-  TacShell* mShell;
   TacDesktopWindow* mDesktopWindow;
   TacUI2DDrawData* mUi2DDrawData;
 };
@@ -113,7 +111,7 @@ void TacDesktopApp::DoStuff( TacDesktopApp* desktopApp, TacErrors& errors )
   os->GetWorkingDir( workingDir, errors );
   TAC_HANDLE_ERROR( errors );
 
-  TacShell* shell = desktopApp->mShell;
+  TacShell* shell = TacShell::Instance;
   shell->mAppName = appName;
   shell->mPrefPath = prefPath;
   shell->mInitialWorkingDir = workingDir;
@@ -126,7 +124,6 @@ void TacDesktopApp::DoStuff( TacDesktopApp* desktopApp, TacErrors& errors )
   // should this really be on the heap?
   auto game = new TacGame();
   game->mApp = desktopApp;
-  game->mShell = shell;
   shell->mOnUpdate.AddCallbackFunctional([game, &errors](){
     game->Update( errors ); } );
 
