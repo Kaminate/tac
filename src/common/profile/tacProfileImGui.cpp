@@ -81,7 +81,7 @@ static void TacImGuiProfileWidgetFunction(
   };
   v2 boxPos = timelineLeft + v2(
     functionLPercent * ( timelineRight.x - timelineLeft.x ),
-    depth * ( TacImGuiGlobals::Instance.mUIStyle.fontSize + 5 ) );
+    ( float )depth * ( TacImGuiGlobals::Instance.mUIStyle.fontSize + 5 ) );
 
   bool boxClipped;
   auto boxClipRect = TacImGuiRect::FromPosSize( boxPos, boxSize );

@@ -32,6 +32,7 @@ struct TacProfileFunction
 struct TacProfileSystem
 {
   static TacProfileSystem* Instance;
+  TacProfileSystem();
   void                     Init();
   void                     OnFrameBegin();
   void                     OnFrameEnd();

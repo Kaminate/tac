@@ -8,19 +8,19 @@ void TacErrors::operator+=( const TacString& message )
 {
   mMessage += message;
 }
-TacString TacErrors::ToString()
+TacString TacErrors::ToString() const
 {
   TacString result;
   result += mMessage + "\n";
-  for(TacStackFrame& frame : mStackFrames)
+  for(const TacStackFrame& frame : mStackFrames)
     result += frame.ToString() + "\n";
   return result;
 }
-bool TacErrors::size()
+bool TacErrors::size() const
 {
   return !mMessage.empty();
 }
-bool TacErrors::empty()
+bool TacErrors::empty() const
 {
   return mMessage.empty();
 }

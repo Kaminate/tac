@@ -84,6 +84,8 @@ struct TacLocalizedString
 
 struct TacLocalization
 {
+  TacLocalization();
+  static TacLocalization* Instance;
   const TacVector< TacCodepoint >& GetString( TacLanguage language, const TacString& reference );
   void Load( const TacString& path, TacErrors& errors );
   bool EatWhitespace();

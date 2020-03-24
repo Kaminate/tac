@@ -47,6 +47,21 @@ struct TacSoul
   TacLanguage mLanguage = TacLanguage::English;
 };
 
+struct TacUpdateThing
+{
+  TacUpdateThing();
+  static TacUpdateThing* Instance;
+  virtual void Init( TacErrors& errors ) = 0;
+  virtual void Update( TacErrors& errors ) = 0;
+};
+
+struct TacExecutableStartupInfo
+{
+  void Init( TacErrors& errors );
+  TacString mAppName;
+  TacString mStudioName;
+};
+
 //
 // The shell acts as the interface between platform-specific applications
 // and the ghost
@@ -65,9 +80,7 @@ struct TacShell
 
 
   TacEvent< const TacString& >::Emitter mLogData;
-  TacEvent<>::Emitter mOnUpdate;
-  TacFontStuff* mFontStuff = nullptr;
-  TacLocalization* mLocalization = nullptr;
+  TacEvent< TacErrors& >::Emitter mOnUpdate;
   TacLog* mLog = nullptr;
   TacSettings* mSettings = nullptr;
   TacString mAppName;

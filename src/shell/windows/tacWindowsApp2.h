@@ -38,7 +38,7 @@ struct TacWindowsApplication2 : public TacDesktopApp
   //       combining them all into one tab group
   void SpawnWindowAux( const TacWindowParams&, TacDesktopWindow**, TacErrors& ) override;
   void GetPrimaryMonitor( TacMonitor* monitor, TacErrors& errors ) override;
-  void OnShellInit( TacErrors& errors ) override;
+  TacWin32DesktopWindow* TacFindWindow( HWND hwnd );
 
   TacWin32DesktopWindow* GetCursorUnobscuredWindow();
 

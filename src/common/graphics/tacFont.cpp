@@ -39,8 +39,10 @@ TacFontFile::TacFontFile( const TacString& filepath, TacErrors& errors )
   mUISpaceLinegap = ( float )linegap * mScale;
 }
 
+TacFontStuff* TacFontStuff::Instance = nullptr;
 TacFontStuff::TacFontStuff()
 {
+  Instance = this;
   mOutlineGlyphs = false;
   mOutlineWidth = 3;
 }
@@ -52,11 +54,8 @@ TacFontStuff::~TacFontStuff()
   }
   TacRenderer::Instance->RemoveRendererResource( mTexture );
 }
-void TacFontStuff::Load( TacSettings* settings, TacRenderer* renderer, int atlasVramBytes, TacErrors& errors )
+void TacFontStuff::Load( TacSettings* settings, int atlasVramBytes, TacErrors& errors )
 {
-  TacRenderer::Instance = renderer;
-
-
   for( int iLanguage = 0; iLanguage < ( int )TacLanguage::Count; ++iLanguage )
   {
     auto language = TacLanguage( iLanguage );

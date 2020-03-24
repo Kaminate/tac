@@ -36,7 +36,7 @@ void TacCreationGameObjectMenuWindow::Init( TacErrors& errors )
     mMainWindow->mDesktopWindow->mY +
     ( int )mMainWindow->mGameObjectButton->mPositionRelativeToRoot.y +
     ( int )mMainWindow->mGameObjectButton->mSize.y;
-  mMainWindow->mDesktopApp->SpawnWindow(
+  TacDesktopApp::Instance->SpawnWindow(
     windowParams,
     &mDesktopWindow,
     errors );

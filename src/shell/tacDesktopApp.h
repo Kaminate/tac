@@ -8,25 +8,18 @@
 
 struct TacDesktopApp
 {
+  static TacDesktopApp* Instance;
   TacDesktopApp();
   virtual ~TacDesktopApp();
-  virtual void Init( TacErrors& errors ) {}
+  virtual void Init( TacErrors& errors );
   virtual void Poll( TacErrors& errors ) {}
-  void Loop( TacErrors& errors );
+  void Run();
   void SpawnWindow( const TacWindowParams& , TacDesktopWindow** , TacErrors& );
+  void KillDeadWindows();
   virtual void GetPrimaryMonitor( TacMonitor* monitor, TacErrors& errors ) = 0;
-
-  virtual void OnShellInit( TacErrors& errors ) {}
+  virtual void SpawnWindowAux( const TacWindowParams& windowParams, TacDesktopWindow** desktopWindow, TacErrors& errors) {};
 
   TacVector< TacDesktopWindow* > mMainWindows;
-
-  
-
-  static void DoStuff( TacDesktopApp* desktopApp, TacErrors& errors );
-
-protected:
-  virtual void SpawnWindowAux( const TacWindowParams& windowParams, TacDesktopWindow** desktopWindow, TacErrors& errors) {};
+  TacErrors mErrorsMainThread;
+  TacErrors mErrorsStuffThread;
 };
-
-
-

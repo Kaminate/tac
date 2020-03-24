@@ -321,7 +321,6 @@ void TacGhost::DebugImgui( TacErrors& errors )
 void TacGhost::Draw( TacErrors& errors )
 {
   TacWorld* world = mServerData->mWorld;
-  TacFontStuff* fontStuff = TacShell::Instance->mFontStuff;
   TacGraphics* graphics = TacGraphics::GetSystem( world );
 
   TacRenderer::Instance->DebugBegin( "Draw world" );

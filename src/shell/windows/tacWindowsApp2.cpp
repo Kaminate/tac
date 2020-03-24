@@ -7,6 +7,7 @@
 #include "common/tacAlgorithm.h"
 #include "common/tacErrorHandling.h"
 #include "common/tackeyboardinput.h"
+#include "common/tacOS.h"
 
 #include <thread>
 #include <iostream>
@@ -38,17 +39,13 @@ static void RerouteStdOutToOutputDebugString()
 }
 
 
-static std::set< TacWindowsApplication2* > gWindowsApplications;
-static TacWin32DesktopWindow* TacFindWindow( HWND hwnd )
+TacWin32DesktopWindow* TacWindowsApplication2::TacFindWindow( HWND hwnd )
 {
-  for( TacWindowsApplication2* windowsApplication : gWindowsApplications )
+  for( TacWin32DesktopWindow* desktopWindow : mWindows )
   {
-    for( TacWin32DesktopWindow* desktopWindow : windowsApplication->mWindows )
+    if( desktopWindow->mHWND == hwnd )
     {
-      if( desktopWindow->mHWND == hwnd )
-      {
-        return desktopWindow;
-      }
+      return desktopWindow;
     }
   }
   return nullptr;
@@ -61,7 +58,7 @@ static LRESULT CALLBACK WindowProc(
 {
   //static UINT uPrevMsg;
   //uPrevMsg = uMsg;
-  TacWin32DesktopWindow* window = TacFindWindow( hwnd );
+  TacWin32DesktopWindow* window = TacWindowsApplication2::Instance->TacFindWindow( hwnd );
   if( window )
   {
     LRESULT result = window->HandleWindowProc( uMsg, wParam, lParam );
@@ -311,20 +308,21 @@ TacWindowsApplication2::TacWindowsApplication2()
 }
 TacWindowsApplication2::~TacWindowsApplication2()
 {
-  gWindowsApplications.erase( this );
+  for( const TacErrors& errors : { mErrorsMainThread, mErrorsStuffThread } )
+    if( errors.size() )
+      TacOS::Instance->DebugPopupBox( errors.ToString() );
 }
 void TacWindowsApplication2::Init( TacErrors& errors )
 {
-  RerouteStdOutToOutputDebugString();
-  gWindowsApplications.insert( this );
-
-}
-void TacWindowsApplication2::OnShellInit( TacErrors& errors )
-{
-  TacControllerInput::Instance = new TacXInput( mHInstance, errors );
+  TacDesktopApp::Init(errors);
   TAC_HANDLE_ERROR( errors );
 
-  auto netWinsock = new TacNetWinsock( errors );
+  RerouteStdOutToOutputDebugString();
+
+  new TacXInput( mHInstance, errors );
+  TAC_HANDLE_ERROR( errors );
+
+  new TacNetWinsock( errors );
   TAC_HANDLE_ERROR( errors );
 
   // window borders should be a higher-level concept, right?

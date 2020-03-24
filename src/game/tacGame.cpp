@@ -12,10 +12,12 @@ TacString appName = "Gravestory";
 
 struct TacGame
 {
+  static TacGame* Instance;
   void Init( TacErrors& errors )
   {
+    Instance = this;
     TacMonitor monitor;
-    mApp->GetPrimaryMonitor( &monitor, errors );
+    TacDesktopApp::Instance->GetPrimaryMonitor( &monitor, errors );
     TAC_HANDLE_ERROR( errors );
 
     TacWindowParams windowParams = {};
@@ -28,8 +30,7 @@ struct TacGame
       &windowParams.mX,
       &windowParams.mY,
       monitor );
-
-    mApp->SpawnWindow( windowParams, &mDesktopWindow, errors );
+    TacDesktopApp::Instance->SpawnWindow( windowParams, &mDesktopWindow, errors );
     TAC_HANDLE_ERROR( errors );
 
     mUi2DDrawData = new TacUI2DDrawData;
@@ -58,7 +59,7 @@ struct TacGame
       mousePositionDesktopWindowspace,
       isWindowDirectlyUnderCursor,
       TacShell::Instance->mElapsedSeconds,
-      mUi2DDrawData);
+      mUi2DDrawData );
   }
   void Update( TacErrors& errors )
   {
@@ -83,12 +84,13 @@ struct TacGame
     mUi2DDrawData->DrawToTexture( errors );
     TAC_HANDLE_ERROR( errors );
   }
-  TacDesktopApp* mApp;
   TacDesktopWindow* mDesktopWindow;
   TacUI2DDrawData* mUi2DDrawData;
 };
 
-void TacDesktopApp::DoStuff( TacDesktopApp* desktopApp, TacErrors& errors )
+TacGame* TacGame::Instance = nullptr;
+
+void TacExecutableStartupInfo::Init( TacErrors& errors )
 {
   TacOS* os = TacOS::Instance;
   TacString appDataPath;
@@ -118,19 +120,11 @@ void TacDesktopApp::DoStuff( TacDesktopApp* desktopApp, TacErrors& errors )
   shell->Init( errors );
   TAC_HANDLE_ERROR( errors );
 
-  desktopApp->OnShellInit( errors );
-  TAC_HANDLE_ERROR( errors );
-
   // should this really be on the heap?
   auto game = new TacGame();
-  game->mApp = desktopApp;
-  shell->mOnUpdate.AddCallbackFunctional([game, &errors](){
-    game->Update( errors ); } );
+  shell->mOnUpdate.AddCallbackFunctional( []( TacErrors& errors ) { TacGame::Instance->Update( errors ); } );
 
   game->Init( errors );
-  TAC_HANDLE_ERROR( errors );
-
-  desktopApp->Loop( errors );
   TAC_HANDLE_ERROR( errors );
 
   delete game;

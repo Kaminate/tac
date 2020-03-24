@@ -4,12 +4,7 @@
 
 int main( int argc, char **argv )
 {
-  TacErrors errors;
-  auto app = new TacSDLApp;
-  app->Init( errors );
-  TacDesktopApp::DoStuff( app, errors );
-  if( errors.size() )
-    TacOS::Instance->DebugPopupBox( errors.ToString() );
+  ( new TacSDLApp )->Run();
   return 0;
 }
 

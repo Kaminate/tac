@@ -27,7 +27,6 @@ struct TacCreationMainWindow
   TacCreationGameObjectMenuWindow* mGameObjectMenuWindow = nullptr;
 
   TacDesktopWindow* mDesktopWindow = nullptr;
-  TacDesktopApp* mDesktopApp = nullptr;
   TacUIRoot* mUIRoot = nullptr;
   TacUI2DDrawData* mUI2DDrawData = nullptr;
   TacTexture* mIconWindow = nullptr;

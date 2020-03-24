@@ -128,6 +128,11 @@ const TacVector< TacCodepoint >& TacLocalization::GetString( TacLanguage languag
   return result;
 }
 
+TacLocalization* TacLocalization::Instance = nullptr;
+TacLocalization::TacLocalization()
+{
+  Instance = this;
+}
 void TacLocalization::Load( const TacString& path, TacErrors& errors )
 {
   mBytes = TacTemporaryMemory( path, errors );

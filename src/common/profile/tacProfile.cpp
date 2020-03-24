@@ -48,7 +48,7 @@ TacProfileBlock::~TacProfileBlock()
 {
   mFunction->mEndTime = TacClock::now();
   TacProfileSystem* system = TacProfileSystem::Instance;
-  TacAssert(system->mCurrStackFrame.back() == mFunction);
+  TacAssert( system->mCurrStackFrame.back() == mFunction );
   system->mCurrStackFrame.pop_back();
 }
 
@@ -58,6 +58,10 @@ TacProfileBlock::~TacProfileBlock()
 //////////////////////
 
 TacProfileSystem* TacProfileSystem::Instance = nullptr;
+TacProfileSystem::TacProfileSystem()
+{
+  Instance = this;
+}
 
 void TacProfileSystem::Init()
 {

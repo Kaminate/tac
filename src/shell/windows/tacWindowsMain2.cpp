@@ -13,16 +13,13 @@ int CALLBACK WinMain(
   LPSTR lpCmdLine,
   int nCmdShow )
 {
-  TacErrors errors;
   auto windowsApplication = new TacWindowsApplication2();
   windowsApplication->mHInstance = hInstance;
   windowsApplication->mlpCmdLine = lpCmdLine;
   windowsApplication->mNCmdShow = nCmdShow;
   windowsApplication->mhPrevInstance = hPrevInstance;
-  windowsApplication->Init( errors );
-  TacDesktopApp::DoStuff( windowsApplication, errors );
-  if( errors.size() )
-    TacOS::Instance->DebugPopupBox( errors.ToString() );
+  windowsApplication->Run();
   delete windowsApplication;
+
   return 0;
 }

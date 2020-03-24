@@ -1149,8 +1149,11 @@ void TacRendererDirectX11::AddTextureResource(
       errors );
     TAC_HANDLE_ERROR( errors );
 
-    mDeviceContext->GenerateMips( srv );
   }
+
+  if( TacContains( textureData.binding, TacBinding::RenderTarget ) &&
+      TacContains( textureData.binding, TacBinding::ShaderResource ) )
+    mDeviceContext->GenerateMips( srv );
 
   TacTextureDX11* textureDX11;
   AddRendererResource( &textureDX11, textureData );
@@ -1282,13 +1285,20 @@ void TacRendererDirectX11::CreateTexture(
   //  }
   //}
 
+
+    UINT MiscFlags = 0;
+  UINT BindFlags = GetBindFlags( binding );
+  if( BindFlags & D3D11_BIND_RENDER_TARGET &&
+      BindFlags & D3D11_BIND_SHADER_RESOURCE )
+    MiscFlags &= D3D11_RESOURCE_MISC_GENERATE_MIPS;
+
   texDesc.SampleDesc.Count = 1;
   texDesc.ArraySize = 1;
   texDesc.Format = GetDXGIFormat( myImage.mFormat );
   texDesc.Usage = GetUsage( access );
-  texDesc.BindFlags = GetBindFlags( binding );
+  texDesc.BindFlags = BindFlags;
   texDesc.CPUAccessFlags = GetCPUAccessFlags( cpuAccess );
-  texDesc.MiscFlags = 0;
+  texDesc.MiscFlags = MiscFlags;
 
   // D3D11_SUBRESOURCE_DATA structure
   // https://msdn.microsoft.com/en-us/library/windows/desktop/ff476220(v=vs.85).aspx

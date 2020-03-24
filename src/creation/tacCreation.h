@@ -8,6 +8,7 @@
 #include "common/graphics/tacUI.h"
 #include "common/graphics/tacRenderer.h"
 #include "common/containers/tacVector.h"
+#include "common/tacShell.h"
 
 
 struct TacCreation;
@@ -44,7 +45,7 @@ struct TacPrefabCameraPosition
 };
 
 
-struct TacCreation
+struct TacCreation : public TacUpdateThing
 {
   static TacCreation* Instance;
   TacCreation();
@@ -80,7 +81,6 @@ struct TacCreation
   bool ShouldCreateWindowNamed( TacJson* windows, const TacString& name );
   void GetWindowsJson( TacJson** outJson, TacErrors& errors );
 
-  TacDesktopApp* mDesktopApp = nullptr;
   TacCreationMainWindow* mMainWindow = nullptr;
   TacCreationGameWindow* mGameWindow = nullptr;
   TacCreationPropertyWindow* mPropertyWindow = nullptr;

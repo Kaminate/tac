@@ -45,56 +45,14 @@ const static TacString refFrameVecNames[] = {
 };
 const static TacString axisNames[] = { "x", "y", "z" };
 
-void TacDesktopApp::DoStuff( TacDesktopApp* desktopApp, TacErrors& errors )
+
+void TacExecutableStartupInfo::Init( TacErrors& errors )
 {
-  TacOS* os = TacOS::Instance;
-  TacString appDataPath;
-  os->GetApplicationDataPath( appDataPath, errors );
-
-  TacString appName = "Creation";
-  TacString studioPath = appDataPath + "\\Sleeping Studio\\";
-  TacString prefPath = studioPath + appName;
-
-  bool appDataPathExists;
-  os->DoesFolderExist( appDataPath, appDataPathExists, errors );
-  TacAssert( appDataPathExists );
-
-  os->CreateFolderIfNotExist( studioPath, errors );
-  TAC_HANDLE_ERROR( errors );
-
-  os->CreateFolderIfNotExist( prefPath, errors );
-  TAC_HANDLE_ERROR( errors );
-
-
-  TacString workingDir;
-  os->GetWorkingDir( workingDir, errors );
-  TAC_HANDLE_ERROR( errors );
-
-  TacShell* shell = TacShell::Instance;
-  shell->mAppName = appName;
-  shell->mPrefPath = prefPath;
-  shell->mInitialWorkingDir = workingDir;
-  shell->Init( errors );
-  TAC_HANDLE_ERROR( errors );
-
-  desktopApp->OnShellInit( errors );
-  TAC_HANDLE_ERROR( errors );
-
-  auto creation = new TacCreation();
-  creation->mDesktopApp = desktopApp;
-  shell->mOnUpdate.AddCallbackFunctional( [ creation, &errors ]()
-    {
-      creation->Update( errors );
-    } );
-
-  creation->Init( errors );
-  TAC_HANDLE_ERROR( errors );
-
-  desktopApp->Loop( errors );
-  TAC_HANDLE_ERROR( errors );
-
-  delete creation;
+  mAppName = "Creation";
+  mStudioName = "Sleeping Studio";
+  new TacCreation;
 }
+
 TacCreation* TacCreation::Instance = nullptr;
 TacCreation::TacCreation()
 {
@@ -177,7 +135,6 @@ void TacCreation::CreateMainWindow( TacErrors& errors )
   mMainWindow = new TacCreationMainWindow();
   mMainWindow->mCreation = this;
   mMainWindow->mDesktopWindow = desktopWindow;
-  mMainWindow->mDesktopApp = mDesktopApp;
   mMainWindow->Init( errors );
   TAC_HANDLE_ERROR( errors );
 
@@ -301,7 +258,7 @@ void TacCreation::CreateDesktopWindow(
   if( centered )
   {
     TacMonitor monitor;
-    mDesktopApp->GetPrimaryMonitor( &monitor, errors );
+    TacDesktopApp::Instance->GetPrimaryMonitor( &monitor, errors );
     TAC_HANDLE_ERROR( errors );
     TacWindowParams::GetCenteredPosition(
       width,
@@ -319,7 +276,7 @@ void TacCreation::CreateDesktopWindow(
   windowParams.mHeight = height;
 
   TacDesktopWindow* desktopWindow;
-  mDesktopApp->SpawnWindow( windowParams, &desktopWindow, errors );
+  TacDesktopApp::Instance->SpawnWindow( windowParams, &desktopWindow, errors );
   TAC_HANDLE_ERROR( errors );
 
 

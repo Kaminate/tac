@@ -5,10 +5,14 @@
 #include "common/graphics/tacUI.h"
 #include "common/tacOS.h"
 #include "common/tackeyboardinput.h" // temp
+#include <thread>
+
+TacDesktopApp* TacDesktopApp::Instance = nullptr;
 
 TacDesktopApp::TacDesktopApp()
 {
-   new TacShell;
+  Instance = this;
+  new TacShell;
 }
 
 TacDesktopApp::~TacDesktopApp()
@@ -16,8 +20,82 @@ TacDesktopApp::~TacDesktopApp()
   for( auto window : mMainWindows )
     delete window;
 }
-void TacDesktopApp::Loop( TacErrors& errors )
+
+static void StuffThread(TacErrors& errors )
 {
+  TacShell::Instance->Update( errors );
+  TAC_HANDLE_ERROR( errors );
+
+  TacUpdateThing::Instance->Update( errors );
+  TAC_HANDLE_ERROR( errors );
+}
+
+void TacDesktopApp::KillDeadWindows()
+{
+  int windowCount = mMainWindows.size();
+  int iWindow = 0;
+  while( iWindow < windowCount )
+  {
+    TacDesktopWindow* window = mMainWindows[ iWindow ];
+    if( window->mRequestDeletion )
+    {
+      mMainWindows[ iWindow ] = mMainWindows[ windowCount - 1 ];
+      delete window;
+      --windowCount;
+      mMainWindows.pop_back();
+    }
+    else
+    {
+      ++iWindow;
+    }
+  }
+}
+
+void TacDesktopApp::Init( TacErrors& errors )
+{
+  TacExecutableStartupInfo info;
+  info.Init( errors );
+  TAC_HANDLE_ERROR( errors );
+
+  TacString appDataPath;
+  bool appDataPathExists;
+  TacOS::Instance->GetApplicationDataPath( appDataPath, errors );
+  TacOS::Instance->DoesFolderExist( appDataPath, appDataPathExists, errors );
+  TacAssert( appDataPathExists );
+
+  TacString appName = info.mAppName;
+  TacString studioPath = appDataPath + "\\" + info.mStudioName + "\\";
+  TacString prefPath = studioPath + appName;
+
+  TacOS::Instance->CreateFolderIfNotExist( studioPath, errors );
+  TAC_HANDLE_ERROR( errors );
+
+  TacOS::Instance->CreateFolderIfNotExist( prefPath, errors );
+  TAC_HANDLE_ERROR( errors );
+
+  TacString workingDir;
+  TacOS::Instance->GetWorkingDir( workingDir, errors );
+  TAC_HANDLE_ERROR( errors );
+
+  new TacShell;
+  TacShell::Instance->mAppName = appName;
+  TacShell::Instance->mPrefPath = prefPath;
+  TacShell::Instance->mInitialWorkingDir = workingDir;
+  TacShell::Instance->Init( errors );
+  TAC_HANDLE_ERROR( errors );
+
+  TacUpdateThing::Instance->Init( errors );
+  TAC_HANDLE_ERROR( errors );
+
+}
+void TacDesktopApp::Run()
+{
+  TacErrors& errors = mErrorsMainThread;
+
+  Init( errors );
+  TAC_HANDLE_ERROR( errors );
+
+  std::thread( StuffThread, mErrorsStuffThread );
   for( ;; )
   {
     if( TacOS::Instance->mShouldStopRunning )
@@ -26,31 +104,9 @@ void TacDesktopApp::Loop( TacErrors& errors )
     Poll( errors );
     TAC_HANDLE_ERROR( errors );
 
-    int windowCount = mMainWindows.size();
-    int iWindow = 0;
-    while( iWindow < windowCount )
-    {
-      TacDesktopWindow* window = mMainWindows[ iWindow ];
-      if( window->mRequestDeletion )
-      {
-        mMainWindows[ iWindow ] = mMainWindows[ windowCount - 1 ];
-        delete window;
-        --windowCount;
-        mMainWindows.pop_back();
-      }
-      else
-      {
-        ++iWindow;
-      }
-    }
+    KillDeadWindows();
 
-    if( TacKeyboardInput::Instance->IsKeyDown( TacKey::MouseLeft ) )
-    {
-      static int i = 5;
-      i++;
-    }
-
-    TacShell::Instance->Update( errors );
+    TacRenderer::Instance->Render( errors );
     TAC_HANDLE_ERROR( errors );
   }
 }
@@ -77,8 +133,10 @@ void TacDesktopApp::SpawnWindow( const TacWindowParams& windowParams, TacDesktop
   //onWindowResize->mDesktopWindow = desktopWindow;
   //onWindowResize->mRendererWindowData = desktopWindow->mRendererData;
 
-  desktopWindow->mOnResize.AddCallbackFunctional( [desktopWindow, &errors]() {
-    desktopWindow->mRendererData->OnResize( errors ); } );
+  desktopWindow->mOnResize.AddCallbackFunctional( [ desktopWindow, &errors ]()
+                                                  {
+                                                    desktopWindow->mRendererData->OnResize( errors );
+                                                  } );
 
 
   TAC_HANDLE_ERROR( errors );

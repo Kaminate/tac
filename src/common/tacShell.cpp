@@ -18,6 +18,12 @@
 #include "common/profile/tacProfile.h"
 #include <iostream>
 
+TacUpdateThing::TacUpdateThing()
+{
+  Instance = this;
+}
+TacUpdateThing* TacUpdateThing::Instance = nullptr;
+
 const TacKey TacToggleMainMenuKey = TacKey::Backtick;
 
 TacSoul::TacSoul()
@@ -40,14 +46,15 @@ TacShell::~TacShell()
 {
   delete TacUI2DCommonData::Instance;
   delete TacDebug3DCommonData::Instance;
-  delete mLocalization;
-  delete mFontStuff;
+  delete TacLocalization::Instance;
+  delete TacFontStuff::Instance;
   delete mLog;
   delete TacModelAssetManager::Instance;
   delete TacTextureAssetManager::Instance;
 
   // last, so resources can be freed
   delete TacRenderer::Instance;
+
   Instance = nullptr;
 }
 void TacShell::Init( TacErrors& errors )
@@ -96,31 +103,30 @@ void TacShell::Init( TacErrors& errors )
     TacRenderer::Instance = renderer;
   }
 
-  TacJobQueue::Instance = new TacJobQueue;
+  new TacJobQueue;
   TacJobQueue::Instance->Init();
 
-  TacTextureAssetManager::Instance = new TacTextureAssetManager;
+  new TacTextureAssetManager;
 
-  TacModelAssetManager::Instance = new TacModelAssetManager;
+  new TacModelAssetManager;
 
-  mFontStuff = new TacFontStuff();
-  mFontStuff->Load( mSettings, TacRenderer::Instance, TacFontAtlasDefaultVramByteCount, errors );
+  new TacFontStuff;
+  TacFontStuff::Instance->Load( mSettings, TacFontAtlasDefaultVramByteCount, errors );
   TAC_HANDLE_ERROR( errors );
 
-  mLocalization = new TacLocalization();
-  mLocalization->Load( "assets/localization.txt", errors );
+  new TacLocalization;
+  TacLocalization::Instance->Load( "assets/localization.txt", errors );
   TAC_HANDLE_ERROR( errors );
 
-  TacDebug3DCommonData::Instance = new TacDebug3DCommonData;
+  new TacDebug3DCommonData;
   TacDebug3DCommonData::Instance->Init( errors );
   TAC_HANDLE_ERROR( errors );
 
-  TacUI2DCommonData::Instance = new TacUI2DCommonData;
-  TacUI2DCommonData::Instance->mFontStuff = mFontStuff;
+  new TacUI2DCommonData;
   TacUI2DCommonData::Instance->Init( errors );
   TAC_HANDLE_ERROR( errors );
 
-  TacProfileSystem::Instance = new TacProfileSystem;
+  new TacProfileSystem;
   TacProfileSystem::Instance->Init();
 }
 void TacShell::FrameBegin( TacErrors& errors )
@@ -139,7 +145,7 @@ void TacShell::Frame( TacErrors& errors )
     TAC_HANDLE_ERROR( errors );
   }
 
-  mOnUpdate.EmitEvent();
+  mOnUpdate.EmitEvent( errors );
   TacControllerInput::Instance->Update();
 
   FrameEnd( errors );

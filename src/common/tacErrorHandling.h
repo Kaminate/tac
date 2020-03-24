@@ -8,10 +8,10 @@ struct TacErrors
 {
   void operator=( const TacString& message );
   void operator+=( const TacString& message );
-  bool size();
-  bool empty();
+  bool size() const;
+  bool empty() const;
   void clear();
-  TacString ToString();
+  TacString ToString() const;
   //void Push( TacString message );
   //void Push( TacString message, TacStackFrame stackFrame );
   //void Push( TacStackFrame stackFrame );

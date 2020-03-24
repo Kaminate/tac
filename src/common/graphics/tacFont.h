@@ -110,9 +110,10 @@ struct TacFontFile
 // TODO: rename from TacFontStuff to TacFontAtlas
 struct TacFontStuff
 {
+  static TacFontStuff* Instance;
   TacFontStuff();
   ~TacFontStuff();
-  void Load( TacSettings* settings, TacRenderer* renderer, int atlasVramBytes, TacErrors& errors );
+  void Load( TacSettings* settings, int atlasVramBytes, TacErrors& errors );
   void DebugImgui();
 
   void GetCharacter(
