@@ -74,7 +74,7 @@ void TacAsyncTextureSingleJob::Execute()
 {
   TacErrors& errors = mErrors;
 
-  auto memory = TacTemporaryMemory( mData->mFilepath, errors );
+  auto memory = TacTemporaryMemoryFromFile( mData->mFilepath, errors );
   TAC_HANDLE_ERROR( errors );
 
   int x;
@@ -181,7 +181,7 @@ void TacAsyncTextureCubeJob::Execute()
   for( int iFile = 0; iFile < 6; ++iFile )
   {
     const TacString& filepath = files[ iFile ];
-    auto memory = TacTemporaryMemory( filepath, errors );
+    auto memory = TacTemporaryMemoryFromFile( filepath, errors );
     TAC_HANDLE_ERROR( mErrors );
 
     int x;

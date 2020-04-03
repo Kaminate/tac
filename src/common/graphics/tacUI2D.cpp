@@ -250,7 +250,7 @@ void TacUI2DDrawData::DrawToTexture( TacErrors& errors )
     perFrame.mDepthState = TacUI2DCommonData::Instance->mDepthState;
     perFrame.mVertexFormat = TacUI2DCommonData::Instance->mFormat;
     perFrame.mUniformDst = TacUI2DCommonData::Instance->mPerFrame;
-    perFrame.mUniformSrcc = TacTemporaryMemory( perFrameData );
+    perFrame.mUniformSrcc = TacTemporaryMemoryFromT( perFrameData );
     perFrame.mStackFrame = TAC_STACK_FRAME;
     TacRenderer::Instance->AddDrawCall( perFrame );
 
@@ -267,7 +267,7 @@ void TacUI2DDrawData::DrawToTexture( TacErrors& errors )
       drawCall2.mDepthState = TacUI2DCommonData::Instance->mDepthState;
       drawCall2.mVertexFormat = TacUI2DCommonData::Instance->mFormat;
       drawCall2.mStartIndex = uidrawCall.mIIndexStart;
-      drawCall2.mIndexCount = uidrawCall.mIIndexCount;
+      drawCall2.mIndexCount = uidrawCall.mIndexCount;
       drawCall2.mTextures = {
         uidrawCall.mTexture ?
         uidrawCall.mTexture :
@@ -347,12 +347,12 @@ void TacUI2DState::Draw2DBox(
 
   TacUI2DDrawCall drawCall;
   drawCall.mIVertexStart = oldVertexCount;
-  drawCall.mIVertexCount = vertexCount;
+  drawCall.mVertexCount = vertexCount;
   drawCall.mIIndexStart = oldIndexCount;
-  drawCall.mIIndexCount = 6;
+  drawCall.mIndexCount = 6;
   drawCall.mTexture = texture;
   drawCall.mShader = TacUI2DCommonData::Instance->mShader;
-  drawCall.mUniformSource = TacTemporaryMemory( perObjectData );
+  drawCall.mUniformSource = TacTemporaryMemoryFromT( perObjectData );
 
   mUI2DDrawData->mDrawCall2Ds.push_back( drawCall );
 }
@@ -467,13 +467,13 @@ void TacUI2DState::Draw2DText(
   perObjectData.Color = color;
 
   TacUI2DDrawCall drawCall;
-  drawCall.mIIndexCount = ( int )mUI2DDrawData->mDefaultIndex2Ds.size() - oldIndexCount;
+  drawCall.mIndexCount = ( int )mUI2DDrawData->mDefaultIndex2Ds.size() - oldIndexCount;
   drawCall.mIIndexStart = oldIndexCount;
-  drawCall.mIVertexCount = ( int )mUI2DDrawData->mDefaultVertex2Ds.size() - oldVertexCount;
+  drawCall.mVertexCount = ( int )mUI2DDrawData->mDefaultVertex2Ds.size() - oldVertexCount;
   drawCall.mIVertexStart = oldVertexCount;
   drawCall.mTexture = fontStuff->mTexture;
   drawCall.mShader = TacUI2DCommonData::Instance->m2DTextShader;
-  drawCall.mUniformSource = TacTemporaryMemory( perObjectData );
+  drawCall.mUniformSource = TacTemporaryMemoryFromT( perObjectData );
   //if( !drawCall.mScissorDebugging )
   //{
   //  drawCall.mScissorTest = true;
@@ -609,12 +609,12 @@ void TacUI2DDrawData::AddBox( v2 mini, v2 maxi, v4 color, const TacTexture* text
 
   TacUI2DDrawCall drawCall;
   drawCall.mIVertexStart = iVert;
-  drawCall.mIVertexCount = 4;
+  drawCall.mVertexCount = 4;
   drawCall.mIIndexStart = iIndex;
-  drawCall.mIIndexCount = 6;
+  drawCall.mIndexCount = 6;
   drawCall.mTexture = texture;
   drawCall.mShader = TacUI2DCommonData::Instance->mShader;
-  drawCall.mUniformSource = TacTemporaryMemory( perObjectData );
+  drawCall.mUniformSource = TacTemporaryMemoryFromT( perObjectData );
 
   mDrawCall2Ds.push_back( drawCall );
 }
@@ -653,12 +653,12 @@ void TacUI2DDrawData::AddLine( v2 p0, v2 p1, float radius, v4 color )
 
   TacUI2DDrawCall drawCall;
   drawCall.mIVertexStart = iVert;
-  drawCall.mIVertexCount = 4;
+  drawCall.mVertexCount = 4;
   drawCall.mIIndexStart = iIndex;
-  drawCall.mIIndexCount = 6;
+  drawCall.mIndexCount = 6;
   drawCall.mTexture = nullptr;
   drawCall.mShader = TacUI2DCommonData::Instance->mShader;
-  drawCall.mUniformSource = TacTemporaryMemory( perObjectData );
+  drawCall.mUniformSource = TacTemporaryMemoryFromT( perObjectData );
 
   mDrawCall2Ds.push_back( drawCall );
 }
@@ -811,13 +811,13 @@ void TacUI2DDrawData::AddText( v2 textPos, int fontSize, const TacString& utf8, 
   perObjectData.Color = color;
 
   TacUI2DDrawCall drawCall;
-  drawCall.mIIndexCount = indexCount;
+  drawCall.mIndexCount = indexCount;
   drawCall.mIIndexStart = indexStart;
-  drawCall.mIVertexCount = vertexCount;
+  drawCall.mVertexCount = vertexCount;
   drawCall.mIVertexStart = vertexStart;
   drawCall.mTexture = fontStuff->mTexture;
   drawCall.mShader = TacUI2DCommonData::Instance->m2DTextShader;
-  drawCall.mUniformSource = TacTemporaryMemory( perObjectData );
+  drawCall.mUniformSource = TacTemporaryMemoryFromT( perObjectData );
   mDrawCall2Ds.push_back( drawCall );
 }
 
@@ -829,3 +829,10 @@ void TacUI2DState::Translate( float x, float y )
 {
   mTransform = mTransform * M3Translate( x, y );
 }
+
+
+void TacUI2DDrawCall::CopyUniform( const void* bytes, int byteCount )
+{
+  mUniformSource.resize(byteCount );
+  TacMemCpy(mUniformSource.data(), bytes, byteCount );
+  }

@@ -54,11 +54,11 @@ struct TacTerainDebugger
       TacOS::Instance->OpenDialog( mTerrain->mNoiseTexturePath, mNoiseTextureDialogErrors );
     }
 
-    if( mTerrain->mTestHeightmapLoadErrors.size() )
+    if( mTerrain->mTestHeightmapLoadErrors )
       TacImGuiText( "Load heightmap errors: " + mTerrain->mTestHeightmapLoadErrors.ToString() );
-    if( mTerrainTextureDialogErrors.size() )
+    if( mTerrainTextureDialogErrors )
       TacImGuiText( "Dialog heightmap errors: " + mTerrainTextureDialogErrors.ToString() );
-    if( mNoiseTextureDialogErrors.size() )
+    if( mNoiseTextureDialogErrors )
       TacImGuiText( "Dialog noise texture errors: " + mNoiseTextureDialogErrors.ToString() );
 
     changed |= TacImGuiDragInt( "Subdivisionness", &mTerrain->mSideVertexCount );

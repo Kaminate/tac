@@ -123,6 +123,10 @@ const char* TacStringView::end() const
 {
   return mStr + mLen;
 }
+const char* TacStringView::c_str() const
+{
+  return data();
+}
 
 TacString::TacString()
 {

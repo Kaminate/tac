@@ -135,7 +135,7 @@ TacLocalization::TacLocalization()
 }
 void TacLocalization::Load( const TacString& path, TacErrors& errors )
 {
-  mBytes = TacTemporaryMemory( path, errors );
+  mBytes = TacTemporaryMemoryFromFile( path, errors );
   TAC_HANDLE_ERROR( errors );
   mBegin = mBytes.data();
   mEnd = mBytes.data() + mBytes.size();

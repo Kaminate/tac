@@ -51,6 +51,8 @@ struct TacCreation : public TacUpdateThing
   TacCreation();
   ~TacCreation();
   void Init( TacErrors& errors );
+  void SetSavedWindowData( TacJson* windowJson, TacErrors& errors );
+  void SetSavedWindowsData( TacErrors& errors );
   void Update( TacErrors& errors );
   TacEntity* CreateEntity();
   bool IsAnythingSelected();
@@ -78,8 +80,9 @@ struct TacCreation : public TacUpdateThing
   void CreateProfileWindow( TacErrors& errors );
 
   void CreateDesktopWindow( TacString windowName, TacDesktopWindow** outDesktopWindow,  TacErrors& errors );
-  bool ShouldCreateWindowNamed( TacJson* windows, const TacString& name );
+  bool ShouldCreateWindowNamed( TacStringView name);
   void GetWindowsJson( TacJson** outJson, TacErrors& errors );
+  TacJson* FindWindowJson( TacStringView windowName);
 
   TacCreationMainWindow* mMainWindow = nullptr;
   TacCreationGameWindow* mGameWindow = nullptr;

@@ -23,7 +23,7 @@ void TacGraphicsDebugImgui( TacSystem* system )
       {
         TacErrors shaderReloadErrors;
         renderer->ReloadShader( shader, shaderReloadErrors );
-        if(shaderReloadErrors.size())
+        if(shaderReloadErrors)
           shaderReloadStatus = shaderReloadErrors.ToString();
         else
           shaderReloadStatus = "reloaded shader " + shader->mName;

@@ -57,7 +57,7 @@ TacProfileBlock::~TacProfileBlock()
 // TacProfileSystem //
 //////////////////////
 
-TacProfileSystem* TacProfileSystem::Instance = nullptr;
+thread_local TacProfileSystem* TacProfileSystem::Instance = nullptr;
 TacProfileSystem::TacProfileSystem()
 {
   Instance = this;

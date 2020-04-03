@@ -129,7 +129,7 @@ void TacSkyboxPresentation::RenderSkybox( const TacString& skyboxDir )
 
   TacDrawCall2 drawCallPerFrame = {};
   drawCallPerFrame.mUniformDst = mPerFrame;
-  drawCallPerFrame.mUniformSrcc = TacTemporaryMemory( perFrame );
+  drawCallPerFrame.mUniformSrcc = TacTemporaryMemoryFromT( perFrame );
   TacRenderer::Instance->AddDrawCall( drawCallPerFrame );
 
   TacSubMesh* subMesh = &mesh->mSubMeshes[ 0 ];

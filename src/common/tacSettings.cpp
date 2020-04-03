@@ -11,7 +11,7 @@ void TacSettings::Load( TacErrors& errors )
     TAC_HANDLE_ERROR( errors );
     return;
   }
-  auto temporaryMemory = TacTemporaryMemory( mPath, errors );
+  auto temporaryMemory = TacTemporaryMemoryFromFile( mPath, errors );
   mJson.Parse( temporaryMemory.data(), ( int )temporaryMemory.size(), errors );
 }
 void TacSettings::Save( TacErrors& errors )
@@ -40,7 +40,7 @@ void TacSettings::GetSetting(
     {
       child = defaultValue;
       Save( errors );
-      if( errors.size() )
+      if( errors )
       {
         TacString getSettingsErrors;
         getSettingsErrors += "Failed to save default setting ";
@@ -72,7 +72,7 @@ void TacSettings::SetSetting(
   {
     child = value;
     Save( errors );
-    if( errors.size() )
+    if( errors )
     {
       TacString getSettingsErrors;
       getSettingsErrors += "Failed to save default setting ";
@@ -117,7 +117,7 @@ void TacSettings::SetNumber(
   SetSetting( root, paths, 0, TacJson( value ), errors );
 }
 
-TacString TacSettings::GetString(
+TacStringView TacSettings::GetString(
   TacJson* root,
   const TacVector< TacString >& paths,
   TacString defaultValue,

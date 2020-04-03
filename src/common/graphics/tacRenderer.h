@@ -391,6 +391,10 @@ struct TacDrawCall2
   TacVector< char > mUniformSrcc;
   TacStackFrame mStackFrame;
   TacPrimitiveTopology mPrimitiveTopology = TacPrimitiveTopology::TriangleList;
+
+  template< typename T>
+  void CopyUniformSource(const T& t){ CopyUniformSource(&t, sizeof(T)); }
+  void CopyUniformSource(const void* bytes, int byteCount);
 };
 
 // TODO: Make all the datas passed by const ref

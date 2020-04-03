@@ -715,24 +715,22 @@ void TacRendererDX12::AddShader( TacShader** shader, const TacShaderData& shader
   for( ;; )
   {
     TacVector< char > temporaryMemory;
-    if(!shaderData.mShaderStr.empty())
-    {
-      temporaryMemory = TacTemporaryMemory( shaderData.mShaderStr.data(), shaderData.mShaderStr.size() );
-    }
     if(!shaderData.mShaderPath.empty())
     {
       TacString shaderPath = shaderData.mShaderPath + ".fx";
-      temporaryMemory = TacTemporaryMemory( shaderPath, errors );
+      temporaryMemory = TacTemporaryMemoryFromFile( shaderPath, errors );
       TAC_HANDLE_ERROR( errors );
     }
 
-    TacVector< char > common = TacTemporaryMemory( "assets/common.fx", errors );
+    TacVector< char > common = TacTemporaryMemoryFromFile( "assets/common.fx", errors );
     TAC_HANDLE_ERROR( errors );
 
     // Using a string instead of a vector because it's null terminated,
     // which means it will debug visualizes better
     TacString shaderMemory;
     for( char c : common )
+      shaderMemory.push_back( c );
+    for( char c : shaderData.mShaderStr )
       shaderMemory.push_back( c );
     for( char c : temporaryMemory )
       shaderMemory.push_back( c );
@@ -798,7 +796,7 @@ void TacRendererDX12::AddShader( TacShader** shader, const TacShaderData& shader
     for( TacShaderPart* shaderPart : { &shaderPartVertex, &shaderPartFragment } )
     {
       CompileShaderPart( shaderPart );
-      if( errors.size() )
+      if( errors )
       {
         failedShaderPart = shaderPart;
         break;
@@ -815,7 +813,7 @@ void TacRendererDX12::AddShader( TacShader** shader, const TacShaderData& shader
     TacErrors compositeShaderErrors;
     TacWriteToFile( compositeShaderPath, shaderMemory.data(), shaderMemory.size(), compositeShaderErrors );
     TacString compositeShaderErrorString =
-      compositeShaderErrors.size() ?
+      compositeShaderErrors ?
       compositeShaderErrors.ToString() :
       "See composite shader " + compositeShaderPath;
 

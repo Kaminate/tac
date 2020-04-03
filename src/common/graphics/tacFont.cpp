@@ -20,7 +20,7 @@ static v4 ToColorAlphaPremultiplied( v4 colorAlphaUnassociated )
 TacFontFile::TacFontFile( const TacString& filepath, TacErrors& errors )
 {
   mFilepath = filepath;
-  mFontMemory = TacTemporaryMemory( mFilepath, errors );
+  mFontMemory = TacTemporaryMemoryFromFile( mFilepath, errors );
   TAC_HANDLE_ERROR( errors );
 
   stbtt_InitFont( &mFontInfo, ( const unsigned char* )mFontMemory.data(), 0 );

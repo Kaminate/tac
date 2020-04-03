@@ -179,7 +179,7 @@ void TacImGuiProfileWidget( TacProfileFunction* profileFunction )
 
     v2 rSize = drawData->CalculateTextSize(timestamp, TacImGuiGlobals::Instance.mUIStyle.fontSize);
     drawData->AddText(
-      tickTop - v2(rSize.x / 2.0f, TacImGuiGlobals::Instance.mUIStyle.fontSize),
+      tickTop - v2( rSize.x / 2.0f, ( float )TacImGuiGlobals::Instance.mUIStyle.fontSize ),
       TacImGuiGlobals::Instance.mUIStyle.fontSize,
       timestamp,
       TacImGuiGlobals::Instance.mUIStyle.textColor, nullptr );

@@ -410,7 +410,7 @@ void TacDebug3DDrawData::DrawToTexture(
     drawCall.mStackFrame = TAC_STACK_FRAME;
     drawCall.mStartIndex = 0;
     drawCall.mUniformDst = TacDebug3DCommonData::Instance->mCBufferPerFrame;
-    drawCall.mUniformSrcc = TacTemporaryMemory( *cbufferperframe );
+    drawCall.CopyUniformSource(*cbufferperframe);
     drawCall.mVertexBuffer = mVerts;
     drawCall.mVertexFormat = TacDebug3DCommonData::Instance->mVertexColorFormat;
     drawCall.mRenderView = renderView;

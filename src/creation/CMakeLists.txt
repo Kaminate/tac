@@ -30,6 +30,8 @@ set( TAC_SOURCES
   "${CMAKE_SOURCE_DIR}/src/creation/tacCreationGameWindow.h"
   "${CMAKE_SOURCE_DIR}/src/creation/tacEditorWindow.cpp"
   "${CMAKE_SOURCE_DIR}/src/creation/tacEditorWindow.h"
+  "${CMAKE_SOURCE_DIR}/src/shell/tacDesktopWindowManager.cpp"
+  "${CMAKE_SOURCE_DIR}/src/shell/tacDesktopWindowManager.h"
   "${CMAKE_SOURCE_DIR}/src/shell/tacDesktopApp.cpp"
   "${CMAKE_SOURCE_DIR}/src/shell/tacDesktopApp.h" )
 if( WIN32 )

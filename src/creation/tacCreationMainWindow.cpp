@@ -65,25 +65,15 @@ void TacCreationMainWindow::ImGuiWindows()
   // which then turns into garbage when it goes out of scope... )
   static TacErrors createWindowErrors;
   if( TacImGuiButton( "System" ) )
-  {
     mCreation->CreateSystemWindow( createWindowErrors );
-  }
   if( TacImGuiButton( "Game" ) )
-  {
     mCreation->CreateGameWindow( createWindowErrors );
-  }
   if( TacImGuiButton( "Properties" ) )
-  {
     mCreation->CreatePropertyWindow( createWindowErrors );
-  }
   if( TacImGuiButton( "Profile" ) )
-  {
     mCreation->CreateProfileWindow( createWindowErrors );
-  }
-  if( createWindowErrors.size() )
-  {
+  if( createWindowErrors )
     TacImGuiText( createWindowErrors.ToString() );
-  }
   TacImGuiUnindent();
 }
 void TacCreationMainWindow::ImGui()
@@ -112,7 +102,7 @@ void TacCreationMainWindow::ImGui()
         ".prefab";
       TacErrors saveDialogErrors;
       os->SaveDialog( savePath, suggestedName, saveDialogErrors );
-      if( saveDialogErrors.size() )
+      if( saveDialogErrors )
       {
         // todo: log it, user feedback
         std::cout << saveDialogErrors.ToString() << std::endl;
@@ -129,7 +119,7 @@ void TacCreationMainWindow::ImGui()
       void* bytes = prefabJsonString.data();
       int byteCount = prefabJsonString.size();
       os->SaveToFile( savePath, bytes, byteCount, saveToFileErrors );
-      if( saveToFileErrors.size() )
+      if( saveToFileErrors )
       {
         // todo: log it, user feedback
         std::cout << saveToFileErrors.ToString() << std::endl;
@@ -161,7 +151,7 @@ void TacCreationMainWindow::Update( TacErrors& errors )
   mUI2DDrawData->DrawToTexture( errors );
   TAC_HANDLE_ERROR( errors );
 
-  if( mButtonCallbackErrors.size() )
+  if( mButtonCallbackErrors )
   {
     errors = mButtonCallbackErrors;
     TAC_HANDLE_ERROR( errors );

@@ -423,11 +423,7 @@ void TacJson::Parse( const TacString& s, TacErrors& errors )
 }
 
 
-TacJson& TacJson::operator[]( const char* key )
-{
-  return ( *this )[ TacString( key ) ];
-}
-TacJson& TacJson::operator[]( const TacString& key )
+TacJson& TacJson::GetChild( TacStringView key )
 {
   TacJson* child = mChildren[ key ];
   if( child )
@@ -437,6 +433,14 @@ TacJson& TacJson::operator[]( const TacString& key )
   mChildren[ key ] = child;
   mType = TacJsonType::Object;
   return *child;
+}
+TacJson& TacJson::operator[]( const char* key )
+{
+  return GetChild( key );
+}
+TacJson& TacJson::operator[]( const TacString& key )
+{
+  return GetChild( key );
 }
 void TacJson::operator = ( const TacJson* json )
 {

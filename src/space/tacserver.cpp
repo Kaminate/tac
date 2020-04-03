@@ -329,7 +329,11 @@ void TacServerData::ReceiveMessage(
 
   if( otherPlayer->delayedNetMsg.mLagSimulationMS )
   {
-    otherPlayer->delayedNetMsg.SaveMessage( TacTemporaryMemory( bytes, byteCount ), mWorld->mElapsedSecs );
+    TacVector< char > messageData;
+    messageData.resize( byteCount );
+    TacMemCpy( messageData.data(), bytes, byteCount );
+
+    otherPlayer->delayedNetMsg.SaveMessage( messageData, mWorld->mElapsedSecs );
     return;
   }
 

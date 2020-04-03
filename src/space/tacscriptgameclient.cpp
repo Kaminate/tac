@@ -304,7 +304,7 @@ void TacScriptMatchmaker::DebugImgui( TacErrors& errors )
   //  if( !mSocket->mTCPIsConnected && !mTryAutoConnect && ImGui::Button( "Try Connect" ) )
   //  {
   //    mSocket->TCPTryConnect( mHostname, mPort, errors );
-  //    if( errors.size() )
+  //    if( errors )
   //      return;
   //  }
   //  mSocket->DebugImgui();
@@ -412,7 +412,7 @@ void TacScriptMainMenu::Update( float seconds, TacErrors& errors )
   if( !mPower )
   {
     // TODO: use the asset manager to load this shit async
-    auto memory = TacTemporaryMemory( "assets/power.png", errors );
+    auto memory = TacTemporaryMemoryFromFile( "assets/power.png", errors );
     TAC_HANDLE_ERROR( errors );
 
     int x;
@@ -813,7 +813,7 @@ struct TacConnectToServerJob : public TacJob
   void Execute() override
   {
     mMatchmaker->TryConnect();
-    if( mMatchmaker->mConnectionErrors.size() )
+    if( mMatchmaker->mConnectionErrors )
     {
       SetStatus( TacAsyncLoadStatus::ThreadFailed );
       mErrors = mMatchmaker->mConnectionErrors;

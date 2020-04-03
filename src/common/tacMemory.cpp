@@ -2,7 +2,7 @@
 
 #include <fstream>
 
-TacVector< char > TacTemporaryMemory( const TacString& path, TacErrors& errors )
+TacTemporaryMemory TacTemporaryMemoryFromFile( const TacStringView& path, TacErrors& errors )
 {
   std::ifstream ifs( path.c_str(), std::ifstream::binary );
   if( !ifs.is_open() )
@@ -13,13 +13,13 @@ TacVector< char > TacTemporaryMemory( const TacString& path, TacErrors& errors )
   ifs.seekg( 0, std::ifstream::end );
   auto byteCount = ifs.tellg();
   ifs.seekg( 0, std::ifstream::beg );
-  TacVector< char > result( ( int )byteCount );
+  TacTemporaryMemory result( ( int )byteCount );
   ifs.read( result.data(), byteCount );
   return result;
 }
-TacVector< char > TacTemporaryMemory( const void* bytes, int byteCount )
+TacTemporaryMemory TacTemporaryMemoryFromBytes( const void* bytes, int byteCount )
 {
-  TacVector< char > result( byteCount );
+  TacTemporaryMemory result( byteCount );
   TacMemCpy( result.data(), bytes, byteCount );
   return result;
 }

@@ -69,12 +69,12 @@ void TacTerrain::LoadTestHeightmap()
   if( mTestHeightmapImageMemory.size() )
     return; // already loaded
 
-  if( mTestHeightmapLoadErrors.size() )
+  if( mTestHeightmapLoadErrors )
     return; // tried to load already, but load failed
 
 
-  TacVector< char > imageMemory = TacTemporaryMemory( mHeightmapTexturePath, mTestHeightmapLoadErrors );
-  if( mTestHeightmapLoadErrors.size() )
+  TacVector< char > imageMemory = TacTemporaryMemoryFromFile( mHeightmapTexturePath, mTestHeightmapLoadErrors );
+  if( mTestHeightmapLoadErrors )
     return;
 
   int imageWidth;

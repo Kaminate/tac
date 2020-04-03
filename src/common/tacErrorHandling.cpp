@@ -1,10 +1,10 @@
 #include "tacErrorHandling.h"
 
-void TacErrors::operator=( const TacString& message )
+void TacErrors::operator=( const TacStringView& message )
 {
   mMessage = message;
 }
-void TacErrors::operator+=( const TacString& message )
+void TacErrors::operator+=( const TacStringView& message )
 {
   mMessage += message;
 }
@@ -47,8 +47,14 @@ void TacErrors::Append( const TacStackFrame& stackFrame )
   TacAssert( size() );
   mStackFrames.push_back( stackFrame );
 }
-void TacErrors::Append( const TacString& message )
+void TacErrors::Append( const TacStringView& message )
 {
   TacAssert( size() );
   mMessage += message;
 }
+
+TacErrors::operator bool() const
+{
+  return !mMessage.empty();
+}
+

@@ -218,7 +218,7 @@ TacSocket* TacNetWinsock::CreateSocket(
   }
 
   auto netWinsocket = new TacSocketWinsock();
-  OnDestruct( if( errors.size() ) delete netWinsocket );
+  OnDestruct( if( errors ) delete netWinsocket );
   netWinsocket->mSocket = winsockSocket;
   netWinsocket->mName = name;
   netWinsocket->mNet = this;
@@ -228,10 +228,10 @@ TacSocket* TacNetWinsock::CreateSocket(
   netWinsocket->mWinsockSocketType = winsockSocketType;
   netWinsocket->mElapsedSecondsOnLastRecv = TacShell::Instance->mElapsedSeconds;
   netWinsocket->SetKeepalive( true, errors );
-  if( errors.size() )
+  if( errors )
     return nullptr;
   netWinsocket->SetIsBlocking( false, errors );
-  if( errors.size() )
+  if( errors )
     return nullptr;
   mSocketWinsocks.insert( netWinsocket );
   return ( TacSocket* )netWinsocket;
@@ -280,7 +280,7 @@ void TacNetWinsock::Update( TacErrors& errors )
       else
       {
         socketWinsock->Send( ( void* )keepalive.data(), ( int )keepalive.size(), errors );
-        if( errors.size() )
+        if( errors )
           return;
       }
     }

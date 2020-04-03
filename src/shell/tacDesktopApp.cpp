@@ -1,11 +1,13 @@
-#include "tacDesktopApp.h"
+#include "shell/tacDesktopApp.h"
+#include "shell/tacDesktopWindowManager.h"
 
 #include "common/graphics/tacRenderer.h"
 #include "common/graphics/tacUI2D.h"
 #include "common/graphics/tacUI.h"
 #include "common/tacOS.h"
 #include "common/tackeyboardinput.h" // temp
-#include <thread>
+#include "common/profile/tacProfile.h"
+
 
 TacDesktopApp* TacDesktopApp::Instance = nullptr;
 
@@ -21,13 +23,18 @@ TacDesktopApp::~TacDesktopApp()
     delete window;
 }
 
-static void StuffThread(TacErrors& errors )
+static void StuffThread( TacErrors& errors )
 {
-  TacShell::Instance->Update( errors );
-  TAC_HANDLE_ERROR( errors );
+  new TacProfileSystem;
+  TacProfileSystem::Instance->Init();
+  while( !TacOS::Instance->mShouldStopRunning )
+  {
+    TacShell::Instance->Update( errors );
+    TAC_HANDLE_ERROR( errors );
 
-  TacUpdateThing::Instance->Update( errors );
-  TAC_HANDLE_ERROR( errors );
+    TacUpdateThing::Instance->Update( errors );
+    TAC_HANDLE_ERROR( errors );
+  }
 }
 
 void TacDesktopApp::KillDeadWindows()
@@ -53,6 +60,8 @@ void TacDesktopApp::KillDeadWindows()
 
 void TacDesktopApp::Init( TacErrors& errors )
 {
+  new TacDesktopWindowManager;
+
   TacExecutableStartupInfo info;
   info.Init( errors );
   TAC_HANDLE_ERROR( errors );
@@ -95,7 +104,7 @@ void TacDesktopApp::Run()
   Init( errors );
   TAC_HANDLE_ERROR( errors );
 
-  std::thread( StuffThread, mErrorsStuffThread );
+  mStuffThread = std::thread( StuffThread, mErrorsStuffThread );
   for( ;; )
   {
     if( TacOS::Instance->mShouldStopRunning )

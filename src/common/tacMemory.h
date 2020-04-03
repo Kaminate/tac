@@ -1,16 +1,26 @@
 #pragma once
 
 #include "common/tacErrorHandling.h"
-//#include "common/tacPreprocessor.h"
 #include "common/tacString.h"
 #include "common/containers/tacVector.h"
 
-TacVector< char > TacTemporaryMemory( const TacString& path, TacErrors& errors );
-TacVector< char > TacTemporaryMemory( const void* bytes, int byteCount );
+typedef TacVector< char > TacTemporaryMemory;
+
+TacTemporaryMemory TacTemporaryMemoryFromFile( const TacStringView& path, TacErrors& errors );
+TacTemporaryMemory TacTemporaryMemoryFromBytes( const void* bytes, int byteCount );
+
 template< typename T >
-TacVector< char > TacTemporaryMemory( const T& t ) { return TacTemporaryMemory( ( void* )&t, ( int )sizeof( T ) ); }
+TacTemporaryMemory TacTemporaryMemoryFromT( const T& t )
+{
+  return TacTemporaryMemoryFromBytes( ( void* )&t, ( int )sizeof( T ) );
+}
+
 void TacWriteToFile( const TacString& path,  void* bytes, int byteCount , TacErrors& errors );
 
+//struct TacTemporaryMemoryRingBuffer
+//{
+//
+//};
 
 template< typename T >
 struct TacOwned

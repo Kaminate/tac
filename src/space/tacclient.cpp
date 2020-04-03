@@ -335,7 +335,8 @@ void TacClientData::ReceiveMessage(
 {
   if( mSavedNetworkMessages.mLagSimulationMS )
   {
-    mSavedNetworkMessages.SaveMessage( TacTemporaryMemory( bytes, byteCount ), mWorld->mElapsedSecs );
+    TacVector< char > messageData( (char*)bytes, (char*)bytes + byteCount );
+    mSavedNetworkMessages.SaveMessage( messageData, mWorld->mElapsedSecs );
     return;
   }
   ExecuteNetMsg( bytes, byteCount, errors );

@@ -353,7 +353,7 @@ void TacCreationGameWindow::MousePickingInit()
   v2 screenspaceCursorPos;
   TacErrors errors;
   TacOS::Instance->GetScreenspaceCursorPos( screenspaceCursorPos, errors );
-  if( errors.size() )
+  if( errors )
     return;
   float xNDC = ( ( screenspaceCursorPos.x - mDesktopWindow->mX ) / w );
   float yNDC = ( ( screenspaceCursorPos.y - mDesktopWindow->mY ) / h );
@@ -435,7 +435,7 @@ void TacCreationGameWindow::AddDrawCall( const TacMesh* mesh, const TacDefaultCB
     drawCall.mDepthState = mDepthState;
     drawCall.mVertexFormat = mesh->mVertexFormat;
     drawCall.mUniformDst = mPerObj;
-    drawCall.mUniformSrcc = TacTemporaryMemory( &cbuf, sizeof( TacDefaultCBufferPerObject ) );
+    drawCall.mUniformSrcc = TacTemporaryMemoryFromT( cbuf );
     drawCall.mStackFrame = TAC_STACK_FRAME;
     TacRenderer::Instance->AddDrawCall( drawCall );
   }
@@ -481,7 +481,7 @@ void TacCreationGameWindow::RenderGameWorldToGameWindow()
   perFrameData.mGbufferSize = { w, h };
   TacDrawCall2 setPerFrame = {};
   setPerFrame.mUniformDst = mPerFrame;
-  setPerFrame.mUniformSrcc = TacTemporaryMemory( &perFrameData, sizeof( TacDefaultCBufferPerFrame ) );
+  setPerFrame.CopyUniformSource(perFrameData);
   TacRenderer::Instance->AddDrawCall( setPerFrame );
   if( mCreation->IsAnythingSelected() )
   {

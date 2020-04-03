@@ -161,3 +161,9 @@ void TacRenderer::RemoveRendererResource( TacRendererResource* rendererResource 
   delete rendererResource;
 }
 
+void TacDrawCall2::CopyUniformSource( const void* bytes, int byteCount )
+{
+  mUniformSrcc.resize(byteCount);
+  TacMemCpy(mUniformSrcc.data(), bytes, byteCount );
+
+  }

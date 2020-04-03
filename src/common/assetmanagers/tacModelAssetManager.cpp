@@ -170,7 +170,7 @@ void TacModelAssetManager::GetMesh( TacMesh** mesh, const TacString& path, TacVe
     return;
   }
 
-  auto bytes = TacTemporaryMemory( path, errors );
+  auto bytes = TacTemporaryMemoryFromFile( path, errors );
   TAC_HANDLE_ERROR( errors );
 
   // zero initialize for default options, can hold allocators

@@ -49,6 +49,7 @@ struct TacJson
   void Parse( const char* bytes, int byteCount, TacErrors& errors );
   void Parse( const TacString& s, TacErrors& errors );
 
+  TacJson& GetChild( TacStringView key );
   TacJson& operator[]( const TacString& key );
   TacJson& operator[]( const char* key );
   void operator = ( const TacJson& json );

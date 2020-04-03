@@ -294,7 +294,7 @@ void TacWin32DesktopWindow::Poll( TacErrors& errors )
     DispatchMessage( &msg );
   }
 
-  if( mWindowProcErrors.size() )
+  if( mWindowProcErrors )
   {
     errors = mWindowProcErrors;
     TAC_HANDLE_ERROR( errors );
@@ -309,7 +309,7 @@ TacWindowsApplication2::TacWindowsApplication2()
 TacWindowsApplication2::~TacWindowsApplication2()
 {
   for( const TacErrors& errors : { mErrorsMainThread, mErrorsStuffThread } )
-    if( errors.size() )
+    if( errors )
       TacOS::Instance->DebugPopupBox( errors.ToString() );
 }
 void TacWindowsApplication2::Init( TacErrors& errors )

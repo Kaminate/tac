@@ -62,7 +62,7 @@ void TacGamePresentation::RenderGameWorldToDesktopView()
   perFrameData.mGbufferSize = { w, h };
   TacDrawCall2 setPerFrame = {};
   setPerFrame.mUniformDst = mPerFrame;
-  setPerFrame.mUniformSrcc = TacTemporaryMemory( &perFrameData, sizeof( TacDefaultCBufferPerFrame ) );
+  setPerFrame.CopyUniformSource(perFrameData);
   TacRenderer::Instance->AddDrawCall( setPerFrame );
 
 
@@ -151,7 +151,7 @@ void TacGamePresentation::RenderGameWorldToDesktopView()
       vertexBufferData.mName = terrain->mHeightmapTexturePath + "terrain vtx buffer";
       vertexBufferData.mStackFrame = TAC_STACK_FRAME;
       TacRenderer::Instance->AddVertexBuffer( &terrain->mVertexBuffer, vertexBufferData, rendererResourceErrors );
-      if( rendererResourceErrors.size() )
+      if( rendererResourceErrors )
         continue;
 
       TacIndexBufferData indexBufferData = {};
@@ -164,7 +164,7 @@ void TacGamePresentation::RenderGameWorldToDesktopView()
       indexBufferData.mName = terrain->mHeightmapTexturePath + "terrain idx buffer";
       indexBufferData.mStackFrame = TAC_STACK_FRAME;
       TacRenderer::Instance->AddIndexBuffer( &terrain->mIndexBuffer, indexBufferData, rendererResourceErrors );
-      if( rendererResourceErrors.size() )
+      if( rendererResourceErrors )
         continue;
 
     }
@@ -196,7 +196,7 @@ void TacGamePresentation::RenderGameWorldToDesktopView()
     drawCall.mStartIndex = 0;
     drawCall.mTextures = { terrainTexture, noiseTexture };
     drawCall.mUniformDst = mPerObj;
-    drawCall.mUniformSrcc = TacTemporaryMemory( &cbuf, sizeof( TacDefaultCBufferPerObject ) );
+    drawCall.mUniformSrcc = TacTemporaryMemoryFromT( cbuf);
     drawCall.mVertexBuffer = terrain->mVertexBuffer;
     drawCall.mVertexCount = terrain->mVertexBuffer->mNumVertexes;
     drawCall.mVertexFormat = mTerrainVertexFormat;
@@ -387,7 +387,7 @@ void TacGamePresentation::RenderGameWorldAddDrawCall(
     drawCall.mDepthState = mDepthState;
     drawCall.mVertexFormat = mesh->mVertexFormat;
     drawCall.mUniformDst = mPerObj;
-    drawCall.mUniformSrcc = TacTemporaryMemory( &cbuf, sizeof( TacDefaultCBufferPerObject ) );
+    drawCall.mUniformSrcc = TacTemporaryMemoryFromT( cbuf );
     drawCall.mStackFrame = TAC_STACK_FRAME;
     TacRenderer::Instance->AddDrawCall( drawCall );
   }

@@ -871,7 +871,7 @@ void TacRendererDirectX11::AddShader( TacShader** outputShader, const TacShaderD
     for( ;; )
     {
       ReloadShader( shader, errors );
-      if( TacIsDebugMode() && errors.size() )
+      if( TacIsDebugMode() && errors )
       {
         DebugBreak();
         errors = "";
@@ -901,7 +901,7 @@ void TacRendererDirectX11::LoadShaderInternal(
   TacString str,
   TacErrors& errors )
 {
-  auto temporaryMemory = TacTemporaryMemory( TacGetDirectX11ShaderPath( "common" ), errors );
+  auto temporaryMemory = TacTemporaryMemoryFromFile( TacGetDirectX11ShaderPath( "common" ), errors );
   TAC_HANDLE_ERROR( errors );
 
   TacString common( temporaryMemory.data(), ( int )temporaryMemory.size() );
@@ -968,7 +968,7 @@ void TacRendererDirectX11::ReloadShader( TacShader* shader, TacErrors& errors )
   if( shaderDX11->mShaderPath.empty() )
     return;
 
-  auto temporaryMemory = TacTemporaryMemory( shaderDX11->mShaderPath, errors );
+  auto temporaryMemory = TacTemporaryMemoryFromFile( shaderDX11->mShaderPath, errors );
   TAC_HANDLE_ERROR( errors );
 
   TacString shaderStr( temporaryMemory.data(), ( int )temporaryMemory.size() );

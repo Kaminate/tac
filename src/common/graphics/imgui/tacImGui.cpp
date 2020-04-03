@@ -161,6 +161,7 @@ void TacImGuiSetNextWindowPos( v2 pos )
 {
   TacImGuiGlobals::Instance.mNextWindowPos = pos;
 }
+// TODO: remove size parameter, use setnextwindowsize instead
 void TacImGuiBegin( const TacString& name, v2 size )
 {
   TacImGuiWindow* window = TacImGuiGlobals::Instance.FindWindow( name );
@@ -566,12 +567,12 @@ void TacImGuiCheckbox( const TacString& str, bool* value )
       perObjectData.Color = checkmarkColor;
 
       TacUI2DDrawCall drawCall;
-      drawCall.mIIndexCount = 6;
+      drawCall.mIndexCount = 6;
       drawCall.mIIndexStart = iIndex;
-      drawCall.mIVertexCount = 4;
+      drawCall.mVertexCount = 4;
       drawCall.mIVertexStart = iVert;
       drawCall.mShader = TacUI2DCommonData::Instance->mShader;
-      drawCall.mUniformSource = TacTemporaryMemory( perObjectData );
+      drawCall.mUniformSource = TacTemporaryMemoryFromT( perObjectData );
       drawData->mDrawCall2Ds.push_back( drawCall );
     }
     else

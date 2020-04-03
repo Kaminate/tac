@@ -176,7 +176,7 @@ void TacGhost::ImguiCreatePlayerPopup( TacErrors& errors )
   //if( !ImGui::Button( "Go" ) )
   //  return;
   //AddPlayer( playerName, errors );
-  //if( errors.size() )
+  //if( errors )
   //  return;
 }
 void TacGhost::Update( TacErrors& errors )
@@ -237,7 +237,7 @@ void TacGhost::AddMorePlayers( TacErrors& errors )
     if( !controller->IsButtonJustPressed( TacControllerButton::Start ) )
       continue;
     TacUser* user = AddPlayer( "Player " + TacToString( ( int )mUsers.size() ), errors );
-    if( errors.size() )
+    if( errors )
       return;
     user->mHasControllerIndex = true;
     user->mControllerIndex = controllerIndex;
@@ -375,7 +375,7 @@ void TacGhost::Draw( TacErrors& errors )
   //  fboDepth,
   //  graphics->mDebugDrawVerts,
   //  errors );
-  //if( errors.size() )
+  //if( errors )
   //  return;
   //graphics->mDebugDrawVerts.clear();
 
@@ -434,7 +434,7 @@ void TacGhost::PopulateWorldInitial()
   //auto terrain = new TacTerrain();
   //auto metaTerrain = meta->GetType( TacStringify( TacTerrain ) );
   //meta->Load( ifs, metaTerrain, terrain, mLevelLoadErrors );
-  //if( mLevelLoadErrors.size() )
+  //if( mLevelLoaderrors )
   //  return;
   //physics->mTerrains.insert( terrain );
 }

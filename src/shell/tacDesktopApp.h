@@ -5,6 +5,7 @@
 #include "common/tacErrorHandling.h"
 #include "common/tacDesktopWindow.h"
 #include "common/tacMemory.h"
+#include <thread>
 
 struct TacDesktopApp
 {
@@ -14,12 +15,13 @@ struct TacDesktopApp
   virtual void Init( TacErrors& errors );
   virtual void Poll( TacErrors& errors ) {}
   void Run();
-  void SpawnWindow( const TacWindowParams& , TacDesktopWindow** , TacErrors& );
+  void SpawnWindow( const TacWindowParams&, TacDesktopWindow**, TacErrors& );
   void KillDeadWindows();
   virtual void GetPrimaryMonitor( TacMonitor* monitor, TacErrors& errors ) = 0;
-  virtual void SpawnWindowAux( const TacWindowParams& windowParams, TacDesktopWindow** desktopWindow, TacErrors& errors) {};
+  virtual void SpawnWindowAux( const TacWindowParams& windowParams, TacDesktopWindow** desktopWindow, TacErrors& errors ) {};
 
   TacVector< TacDesktopWindow* > mMainWindows;
   TacErrors mErrorsMainThread;
   TacErrors mErrorsStuffThread;
+  std::thread mStuffThread;
 };

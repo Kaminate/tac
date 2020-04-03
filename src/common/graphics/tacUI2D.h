@@ -82,18 +82,18 @@ struct TacUI2DState
 struct TacUI2DDrawCall
 {
   int mIVertexStart = 0;
-
-  // Shouldn't this be called mVertexCount?
-  int mIVertexCount = 0;
-
+  int mVertexCount = 0;
   int mIIndexStart = 0;
-
-  // Shouldn't this be called mIndexCount?
-  int mIIndexCount = 0;
+  int mIndexCount = 0;
 
   TacShader* mShader = nullptr;
   const TacTexture* mTexture = nullptr;
   TacVector< char > mUniformSource;
+
+  void CopyUniform( const void* bytes, int byteCount );
+
+  template< typename T>
+  void CopyUniform( T& t ) { CopyUniform( &t, sizeof(T)); }
 };
 
 struct TacImGuiRect;

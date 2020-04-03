@@ -33,7 +33,7 @@ struct TacSettings
     TacJsonNumber value,
     TacErrors& errors );
 
-  TacString GetString(
+  TacStringView GetString(
     TacJson* root,
     const TacSettingPath& paths,
     TacString defaultValue,

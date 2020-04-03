@@ -29,6 +29,7 @@ struct TacStringView
   int size() const;
   const char* begin() const;
   const char* end() const;
+  const char* c_str() const;
 
   const char* mStr = nullptr;
   int mLen = 0;
