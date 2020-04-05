@@ -6,17 +6,21 @@
 
 #pragma once
 
-#include "common/tacLocalization.h"
-#include "common/containers/tacVector.h"
-#include "common/math/tacVector2.h"
-#include "common/tacErrorHandling.h"
-#include "common/thirdparty/stb_truetype.h"
+#include "src/common/tacLocalization.h"
+#include "src/common/containers/tacVector.h"
+#include "src/common/math/tacVector2.h"
+#include "src/common/tacErrorHandling.h"
+#include "src/common/thirdparty/stb_truetype.h"
 
-struct TacTexture;
-struct TacRenderer;
-struct TacFontFile;
-struct TacTexture;
-struct TacSettings;
+namespace Tac
+{
+
+
+struct Texture;
+struct Renderer;
+struct FontFile;
+struct Texture;
+struct Settings;
 
 // - This is the height and width in pixels of a cell in the font atlas
 // - When a glyph is rendered into this cell, the height of the cell is used
@@ -24,15 +28,15 @@ struct TacSettings;
 // - In other words, this is the font size for glyphs in the atlas.
 // - It's pretty much assumed that the glyph can fit in this cell.
 //   are there any fonts with wide glyphs which would have their sides clipped?
-const int TacFontCellWidth = 64;
+const int FontCellWidth = 64;
 
-const int TacFontAtlasDefaultVramByteCount = 40 * 1024 * 1024;
+const int FontAtlasDefaultVramByteCount = 40 * 1024 * 1024;
 
-struct TacFontAtlasCell
+struct FontAtlasCell
 {
-  TacCodepoint mCodepoint = 0;
+  Codepoint mCodepoint = 0;
   char mCodepointAscii = 0; // For debugging purposes
-  TacFontFile* mOwner = nullptr;
+  FontFile* mOwner = nullptr;
   int mRow = 0;
   int mColumn = 0;
   double mWriteTime = 0;
@@ -59,12 +63,12 @@ struct TacFontAtlasCell
   int mBitmapHeight = 0;
 };
 
-struct TacFontFile
+struct FontFile
 {
-  TacFontFile( const TacString& filepath, TacErrors& errors );
-  TacString mFilepath;
-  std::map< TacCodepoint, TacFontAtlasCell* > mCells;
-  TacVector< char > mFontMemory;
+  FontFile( const String& filepath, Errors& errors );
+  String mFilepath;
+  std::map< Codepoint, FontAtlasCell* > mCells;
+  Vector< char > mFontMemory;
   stbtt_fontinfo mFontInfo = {};
 
   // y
@@ -107,27 +111,28 @@ struct TacFontFile
 
 
 
-// TODO: rename from TacFontStuff to TacFontAtlas
-struct TacFontStuff
+// TODO: rename from FontStuff to FontAtlas
+struct FontStuff
 {
-  static TacFontStuff* Instance;
-  TacFontStuff();
-  ~TacFontStuff();
-  void Load( TacSettings* settings, int atlasVramBytes, TacErrors& errors );
+  static FontStuff* Instance;
+  FontStuff();
+  ~FontStuff();
+  void Load( Settings* settings, int atlasVramBytes, Errors& errors );
   void DebugImgui();
 
   void GetCharacter(
-    TacLanguage defaultLanguage,
-    TacCodepoint codepoint,
-    TacFontAtlasCell** fontAtlasCell,
-    TacErrors& errors );
-  TacFontAtlasCell* GetCell();
+    Language defaultLanguage,
+    Codepoint codepoint,
+    FontAtlasCell** fontAtlasCell,
+    Errors& errors );
+  FontAtlasCell* GetCell();
 
-  TacTexture* mTexture = nullptr;
+  Texture* mTexture = nullptr;
   int mRowCount = 0;
-  TacVector< TacFontAtlasCell* > mCells;
-  TacVector< TacFontFile* > mFontFiles;
-  std::map< TacLanguage, TacFontFile* > mDefaultFonts;
+  Vector< FontAtlasCell* > mCells;
+  Vector< FontFile* > mFontFiles;
+  std::map< Language, FontFile* > mDefaultFonts;
   bool mOutlineGlyphs;
   int mOutlineWidth;
 };
+}

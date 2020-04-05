@@ -1,26 +1,29 @@
-#include "space/tacclient.h"
-#include "space/tacworld.h"
-#include "space/tacentity.h"
-#include "space/tacplayer.h"
-#include "space/taccomponent.h"
-#include "space/tacspacenet.h"
-#include "space/tacspacenet.h"
-#include "space/collider/taccollider.h"
-#include "common/tacSerialization.h"
-#include "common/tacUtility.h"
-#include "common/tacPreprocessor.h"
-#include "common/tacMemory.h"
-#include "common/math/tacVector2.h"
-#include "common/math/tacVector3.h"
-#include "common/math/tacVector4.h"
 
+#include "src/space/tacClient.h"
+#include "src/space/tacWorld.h"
+#include "src/space/tacEntity.h"
+#include "src/space/tacPlayer.h"
+#include "src/space/tacComponent.h"
+#include "src/space/tacSpacenet.h"
+#include "src/space/tacSpacenet.h"
+#include "src/space/collider/tacCollider.h"
+#include "src/common/tacSerialization.h"
+#include "src/common/tacUtility.h"
+#include "src/common/tacPreprocessor.h"
+#include "src/common/tacMemory.h"
+#include "src/common/math/tacVector2.h"
+#include "src/common/math/tacVector3.h"
+#include "src/common/math/tacVector4.h"
 
-
-void TacClientData::ReadEntityDifferences(
-  TacReader* reader,
-  TacErrors& errors )
+namespace Tac
 {
-  TacEntityUUID entityUUID;
+
+
+void ClientData::ReadEntityDifferences(
+  Reader* reader,
+  Errors& errors )
+{
+  EntityUUID entityUUID;
   if( !reader->Read( &entityUUID ) )
   {
     errors += "fuck";
@@ -38,12 +41,12 @@ void TacClientData::ReadEntityDifferences(
     TAC_HANDLE_ERROR( errors );
   }
 
-  TacUnimplemented;
-  //for( int iComponentType = 0; iComponentType < ( int )TacComponentRegistryEntryIndex::Count; ++iComponentType )
+  TAC_UNIMPLEMENTED;
+  //for( int iComponentType = 0; iComponentType < ( int )ComponentRegistryEntryIndex::Count; ++iComponentType )
   //{
   //  if( !( deletedComponentsBitfield & iComponentType ) )
   //    continue;
-  //  auto componentType = ( TacComponentRegistryEntryIndex )iComponentType;
+  //  auto componentType = ( ComponentRegistryEntryIndex )iComponentType;
   //  entity->RemoveComponent( componentType );
   //}
 
@@ -53,16 +56,16 @@ void TacClientData::ReadEntityDifferences(
     errors += "fuck";
     TAC_HANDLE_ERROR( errors );
   }
-  TacUnimplemented;
-  //for( int iComponentType = 0; iComponentType < ( int )TacComponentRegistryEntryIndex::Count; ++iComponentType )
+  TAC_UNIMPLEMENTED;
+  //for( int iComponentType = 0; iComponentType < ( int )ComponentRegistryEntryIndex::Count; ++iComponentType )
   //{
   //  if( !( changedComponentsBitfield & iComponentType ) )
   //    continue;
-  //  auto componentType = ( TacComponentRegistryEntryIndex )iComponentType;
+  //  auto componentType = ( ComponentRegistryEntryIndex )iComponentType;
   //  auto component = entity->GetComponent( componentType );
   //  if( !component )
   //    component = entity->AddNewComponent( componentType );
-  //  auto componentStuff = TacGetComponentData( componentType );
+  //  auto componentStuff = GetComponentData( componentType );
 
   //  component->PreReadDifferences();
   //  if( !reader->Read( component, componentStuff->mNetworkBits ) )
@@ -74,11 +77,11 @@ void TacClientData::ReadEntityDifferences(
   //}
 }
 
-void TacClientData::ReadPlayerDifferences(
-  TacReader* reader,
-  TacErrors& errors )
+void ClientData::ReadPlayerDifferences(
+  Reader* reader,
+  Errors& errors )
 {
-  TacPlayerUUID differentPlayerUUID;
+  PlayerUUID differentPlayerUUID;
   if( !reader->Read( &differentPlayerUUID ) )
   {
     errors += "fuck";
@@ -87,27 +90,27 @@ void TacClientData::ReadPlayerDifferences(
   auto player = mWorld->FindPlayer( differentPlayerUUID );
   if( !player )
     player = mWorld->SpawnPlayer( differentPlayerUUID );
-  if( !reader->Read( player, TacPlayerBits ) )
+  if( !reader->Read( player, PlayerBits ) )
   {
     errors += "fuck";
     TAC_HANDLE_ERROR( errors );
   }
 }
 
-void TacClientData::WriteInputBody( TacWriter* writer )
+void ClientData::WriteInputBody( Writer* writer )
 {
   writer->Write( mSavedInputs.back().mInputDirection );
   writer->Write( mMostRecentSnapshotTime );
 }
 
-void TacClientData::TacOnClientDisconnect()
+void ClientData::OnClientDisconnect()
 {
   mWorld->mEntities.clear();
   mWorld->mPlayers.clear();
-  mPlayerUUID = ( TacPlayerUUID )0;
+  mPlayerUUID = ( PlayerUUID )0;
 }
 
-void TacClientData::ApplyPrediction( double lastTime )
+void ClientData::ApplyPrediction( double lastTime )
 {
   auto entity = mWorld->FindEntity( mPlayerUUID );
   if( !entity )
@@ -121,7 +124,7 @@ void TacClientData::ApplyPrediction( double lastTime )
     if( timeDifference < 0 )
       continue;
     lastTime = savedInput.mTimestamp;
-    TacCollider* collider = TacCollider::GetCollider( entity );
+    Collider* collider = Collider::GetCollider( entity );
     if( !collider )
       continue;
     player->mInputDirection = savedInput.mInputDirection;
@@ -132,9 +135,9 @@ void TacClientData::ApplyPrediction( double lastTime )
 }
 
 
-void TacClientData::TacReadSnapshotBody(
-  TacReader* reader,
-  TacErrors& errors )
+void ClientData::ReadSnapshotBody(
+  Reader* reader,
+  Errors& errors )
 {
   double newGameTime;
   if( !reader->Read( &newGameTime ) )
@@ -171,27 +174,27 @@ void TacClientData::TacReadSnapshotBody(
   // ANyway.
   //
   // Problem: when we deep copy from the snapshot, we destroy our entities, so any previous databreakpoint is invalidated
-  //TacTODO;
+  //TODO;
 
   mWorld->DeepCopy( *snapshotFrom );
   mWorld->mElapsedSecs = newGameTime;
 
-  if( !reader->Read( ( TacUUID* )&mPlayerUUID ) )
+  if( !reader->Read( ( UUID* )&mPlayerUUID ) )
   {
     errors += "Fuck";
     return;
   }
 
-  TacPlayerCount numPlayerDeleted;
+  PlayerCount numPlayerDeleted;
   if( !reader->Read( &numPlayerDeleted ) )
   {
     errors += "Fuck";
     return;
   }
-  for( TacPlayerCount i = 0; i < numPlayerDeleted; ++i )
+  for( PlayerCount i = 0; i < numPlayerDeleted; ++i )
   {
-    TacPlayerUUID deletedPlayerUUID;
-    if( !reader->Read( ( TacUUID* )&deletedPlayerUUID ) )
+    PlayerUUID deletedPlayerUUID;
+    if( !reader->Read( ( UUID* )&deletedPlayerUUID ) )
     {
       errors += "Fuck";
       return;
@@ -200,28 +203,28 @@ void TacClientData::TacReadSnapshotBody(
     mWorld->KillPlayer( deletedPlayerUUID );
   }
 
-  TacPlayerCount numPlayersDifferent;
+  PlayerCount numPlayersDifferent;
   if( !reader->Read( &numPlayersDifferent ) )
   {
     errors += "Fuck";
     return;
   }
-  for( TacPlayerCount i = 0; i < numPlayersDifferent; ++i )
+  for( PlayerCount i = 0; i < numPlayersDifferent; ++i )
   {
     ReadPlayerDifferences( reader, errors );
     TAC_HANDLE_ERROR( errors );
   }
 
-  TacEntityCount numDeletedEntities;
+  EntityCount numDeletedEntities;
   if( !reader->Read( &numDeletedEntities ) )
   {
     errors += "Fuck";
     return;
   }
-  for( TacEntityCount i = 0; i < numDeletedEntities; ++i )
+  for( EntityCount i = 0; i < numDeletedEntities; ++i )
   {
-    TacEntityUUID entityUUID;
-    if( !reader->Read( ( TacUUID* )&entityUUID ) )
+    EntityUUID entityUUID;
+    if( !reader->Read( ( UUID* )&entityUUID ) )
     {
       errors += "fuck";
       return;
@@ -229,14 +232,14 @@ void TacClientData::TacReadSnapshotBody(
     mWorld->KillEntity( entityUUID );
   }
 
-  TacEntityCount numEntitiesDifferent;
+  EntityCount numEntitiesDifferent;
   if( !reader->Read( &numEntitiesDifferent ) )
   {
     errors += "Fuck";
     return;
   }
 
-  for( TacEntityCount i = 0; i < numEntitiesDifferent; ++i )
+  for( EntityCount i = 0; i < numEntitiesDifferent; ++i )
     ReadEntityDifferences( reader, errors );
 
   mSnapshots.AddSnapshot( mWorld );;
@@ -245,55 +248,55 @@ void TacClientData::TacReadSnapshotBody(
     ApplyPrediction( oldGameTime );
 }
 
-void TacClientData::ExecuteNetMsg(
+void ClientData::ExecuteNetMsg(
   void* bytes,
   int byteCount,
-  TacErrors& errors )
+  Errors& errors )
 {
-  TacReader reader;
-  reader.mFrom = TacGameEndianness;
-  reader.mTo = TacGetEndianness();
+  Reader reader;
+  reader.mFrom = GameEndianness;
+  reader.mTo = GetEndianness();
   reader.mBegin = bytes;
   reader.mEnd = ( char* )bytes + byteCount;
-  auto networkMessage = TacReadNetMsgHeader( &reader, errors );
+  auto networkMessage = ReadNetMsgHeader( &reader, errors );
   TAC_HANDLE_ERROR( errors );
 
   switch( networkMessage )
   {
-    case TacNetMsgType::Snapshot:
+    case NetMsgType::Snapshot:
     {
-      TacReadSnapshotBody( &reader, errors );
+      ReadSnapshotBody( &reader, errors );
       TAC_HANDLE_ERROR( errors );
     } break;
-      //case TacNetMsgType::Text: { TacReadIncomingChatMessageBody( &reader, &mChat, errors ); } break;
+      //case NetMsgType::Text: { ReadIncomingChatMessageBody( &reader, &mChat, errors ); } break;
   }
 }
 
 
-void TacClientData::Update(
+void ClientData::Update(
   float seconds,
   v2 inputDir,
   ClientSendNetworkMessageCallback sendNetworkMessageCallback,
   void* userData,
-  TacErrors& errors )
+  Errors& errors )
 {
-  TacVector< char > delayedMsg;
+  Vector< char > delayedMsg;
   while( mSavedNetworkMessages.TryPopSavedMessage( delayedMsg, mWorld->mElapsedSecs ) )
   {
     ExecuteNetMsg( delayedMsg.data(), ( int )delayedMsg.size(), errors );
     TAC_HANDLE_ERROR( errors );
   }
 
-  TacWriter writer;
-  writer.mFrom = TacGetEndianness();
-  writer.mTo = TacGameEndianness;
-  TacWriteNetMsgHeader( &writer, TacNetMsgType::Input );
+  Writer writer;
+  writer.mFrom = GetEndianness();
+  writer.mTo = GameEndianness;
+  WriteNetMsgHeader( &writer, NetMsgType::Input );
   TAC_HANDLE_ERROR( errors );
 
-  TacSavedInput newInput;
+  SavedInput newInput;
   newInput.mTimestamp = mWorld->mElapsedSecs;
   newInput.mInputDirection = inputDir;
-  if( mSavedInputs.size() == TacClientData::sMaxSavedInputCount )
+  if( mSavedInputs.size() == ClientData::sMaxSavedInputCount )
     mSavedInputs.pop_front();
   mSavedInputs.push_back( newInput );
 
@@ -319,7 +322,7 @@ void TacClientData::Update(
   //  // todo: keep sending until the client has acknowledged our message
   //  mChat.mIsReadyToSend = false;
   //  writer->mBuffer = buffer;
-  //  TacWriteOutgoingChatMessage( writer, &mChat, errors );
+  //  WriteOutgoingChatMessage( writer, &mChat, errors );
   //  TAC_HANDLE_ERROR( errors );
   //  sendNetworkMessageCallback(
   //    ( u8* )writer->mBuffer.mBytes,
@@ -328,16 +331,19 @@ void TacClientData::Update(
   //}
 }
 
-void TacClientData::ReceiveMessage(
+void ClientData::ReceiveMessage(
   void* bytes,
   int byteCount,
-  TacErrors& errors )
+  Errors& errors )
 {
   if( mSavedNetworkMessages.mLagSimulationMS )
   {
-    TacVector< char > messageData( (char*)bytes, (char*)bytes + byteCount );
+    Vector< char > messageData( (char*)bytes, (char*)bytes + byteCount );
     mSavedNetworkMessages.SaveMessage( messageData, mWorld->mElapsedSecs );
     return;
   }
   ExecuteNetMsg( bytes, byteCount, errors );
 }
+
+}
+

@@ -1,207 +1,212 @@
-#include "creation/tacCreationPropertyWindow.h"
-#include "creation/tacCreation.h"
-#include "common/tacErrorHandling.h"
-#include "common/tacAlgorithm.h"
-#include "common/graphics/tacUI.h"
-#include "common/graphics/imgui/tacImGui.h"
-#include "common/graphics/tacUI2D.h"
-#include "common/tacDesktopWindow.h"
-#include "common/tacOS.h"
-#include "common/tacShell.h"
-#include "common/tacUtility.h"
-#include "space/tacentity.h"
-#include "space/tacworld.h"
-#include "space/taccomponent.h"
-#include "space/tacsystem.h"
-#include "space/tacspacetypes.h"
-#include "space/model/tacmodel.h"
+#include "src/creation/tacCreationPropertyWindow.h"
+#include "src/creation/tacCreation.h"
+#include "src/common/tacErrorHandling.h"
+#include "src/common/tacAlgorithm.h"
+#include "src/common/graphics/tacUI.h"
+#include "src/common/graphics/imgui/tacImGui.h"
+#include "src/common/graphics/tacUI2D.h"
+#include "src/common/tacDesktopWindow.h"
+#include "src/common/tacOS.h"
+#include "src/common/tacShell.h"
+#include "src/common/tacUtility.h"
+#include "src/space/tacEntity.h"
+#include "src/space/tacWorld.h"
+#include "src/space/tacComponent.h"
+#include "src/space/tacSystem.h"
+#include "src/space/tacSpacetypes.h"
+#include "src/space/model/tacModel.h"
 
-TacCreationPropertyWindow::~TacCreationPropertyWindow()
+namespace Tac
 {
-  delete mUI2DDrawData;
-}
 
-void TacCreationPropertyWindow::Init( TacErrors& errors )
-{
-  mUI2DDrawData = new TacUI2DDrawData;
-  mUI2DDrawData->mRenderView = mDesktopWindow->mRenderView;
-  mUIRoot = new TacUIRoot;
-  mUIRoot->mElapsedSeconds = &TacShell::Instance->mElapsedSeconds;
-  mUIRoot->mUI2DDrawData = mUI2DDrawData;
-  mUIRoot->mDesktopWindow = mDesktopWindow;
-  mUIRoot->mHierarchyRoot->mLayoutType = TacUILayoutType::Horizontal;
-}
 
-void TacCreationPropertyWindow::RecursiveEntityHierarchyElement( TacEntity* entity )
-{
-  bool previouslySelected = TacContains( mCreation->mSelectedEntities, entity );
-  if( TacImGuiSelectable( entity->mName, previouslySelected ) )
+  CreationPropertyWindow::~CreationPropertyWindow()
   {
-    mCreation->ClearSelection();
-    mCreation->mSelectedEntities = { entity };
+    delete mUI2DDrawData;
   }
-  if( entity->mChildren.empty() )
-    return;
-  TAC_IMGUI_INDENT_BLOCK;
-  for( TacEntity* child : entity->mChildren )
+
+  void CreationPropertyWindow::Init( Errors& errors )
   {
-    RecursiveEntityHierarchyElement( child );
+    mUI2DDrawData = new UI2DDrawData;
+    mUI2DDrawData->mRenderView = mDesktopWindow->mRenderView;
+    mUIRoot = new UIRoot;
+    mUIRoot->mElapsedSeconds = &Shell::Instance->mElapsedSeconds;
+    mUIRoot->mUI2DDrawData = mUI2DDrawData;
+    mUIRoot->mDesktopWindow = mDesktopWindow;
+    mUIRoot->mHierarchyRoot->mLayoutType = UILayoutType::Horizontal;
   }
-}
-void TacCreationPropertyWindow::Update( TacErrors& errors )
-{
-  mDesktopWindow->SetRenderViewDefaults();
-  mUIRoot->Update();
-  //mUIRoot->Render( errors );
-  TAC_HANDLE_ERROR( errors );
 
-  SetCreationWindowImGuiGlobals( mDesktopWindow, mUI2DDrawData );
-
-
-  TacImGuiBegin( "Properties", {} );
-
-
-
-  TacImGuiBeginGroup();
-  TacImGuiBeginChild( "Hierarchy", v2( 250, -100 ) );
-  TacWorld* world = mCreation->mWorld;
-  for( TacEntity* entity : world->mEntities )
+  void CreationPropertyWindow::RecursiveEntityHierarchyElement( Entity* entity )
   {
-    if( !entity->mParent )
-      RecursiveEntityHierarchyElement( entity );
+    bool previouslySelected = Contains( mCreation->mSelectedEntities, entity );
+    if( ImGuiSelectable( entity->mName, previouslySelected ) )
+    {
+      mCreation->ClearSelection();
+      mCreation->mSelectedEntities = { entity };
+    }
+    if( entity->mChildren.empty() )
+      return;
+    TAC_IMGUI_INDENT_BLOCK;
+    for( Entity* child : entity->mChildren )
+    {
+      RecursiveEntityHierarchyElement( child );
+    }
   }
-  TacImGuiEndChild();
-  if( TacImGuiButton( "Create Entity" ) )
-    mCreation->CreateEntity();
-  if( TacImGuiButton( "Open Prefab" ) )
+  void CreationPropertyWindow::Update( Errors& errors )
   {
-    TacString prefabPath;
-    TacOS::Instance->OpenDialog( prefabPath, errors );
+    mDesktopWindow->SetRenderViewDefaults();
+    mUIRoot->Update();
+    //mUIRoot->Render( errors );
     TAC_HANDLE_ERROR( errors );
 
-    mCreation->LoadPrefabAtPath( prefabPath, errors );
-    TAC_HANDLE_ERROR( errors );
-  }
-  TacImGuiEndGroup();
-  TacImGuiSameLine();
-  TacImGuiBeginGroup();
+    SetCreationWindowImGuiGlobals( mDesktopWindow, mUI2DDrawData );
 
-  for( TacEntity* entity : mCreation->mSelectedEntities )
-  {
-    static TacString occupation = "Bartender";
-    TacImGuiInputText( "Name", entity->mName );
-    TacImGuiText( "UUID: " + TacToString( ( TacUUID )entity->mEntityUUID ) );
-    TacImGuiDragFloat( "X Position: ", &entity->mRelativeSpace.mPosition.x );
-    TacImGuiDragFloat( "Y Position: ", &entity->mRelativeSpace.mPosition.y );
-    TacImGuiDragFloat( "Z Position: ", &entity->mRelativeSpace.mPosition.z );
-    TacImGuiDragFloat( "X Scale: ", &entity->mRelativeSpace.mScale.x );
-    TacImGuiDragFloat( "Y Scale: ", &entity->mRelativeSpace.mScale.y );
-    TacImGuiDragFloat( "Z Scale: ", &entity->mRelativeSpace.mScale.z );
-    v3 rotDeg = entity->mRelativeSpace.mEulerRads * ( 180.0f / 3.14f );
-    bool changed = false;
-    changed |= TacImGuiDragFloat( "X Eul Deg: ", &rotDeg.x );
-    changed |= TacImGuiDragFloat( "Y Eul Deg: ", &rotDeg.y );
-    changed |= TacImGuiDragFloat( "Z Eul Deg: ", &rotDeg.z );
-    if( changed )
-      entity->mRelativeSpace.mEulerRads = rotDeg * ( 3.14f / 180.0f );
-    TacVector< TacComponentRegistryEntry* > addableComponentTypes;
 
-    if( entity->mParent )
+    ImGuiBegin( "Properties", {} );
+
+
+
+    ImGuiBeginGroup();
+    ImGuiBeginChild( "Hierarchy", v2( 250, -100 ) );
+    World* world = mCreation->mWorld;
+    for( Entity* entity : world->mEntities )
     {
-      TacImGuiText( "Parent: " + entity->mParent->mName );
-      TacImGuiSameLine();
-      if( TacImGuiButton( "Unparent" ) )
-        entity->Unparent();
+      if( !entity->mParent )
+        RecursiveEntityHierarchyElement( entity );
     }
-    if( entity->mChildren.size() && TacImGuiCollapsingHeader( "Children" ) )
+    ImGuiEndChild();
+    if( ImGuiButton( "Create Entity" ) )
+      mCreation->CreateEntity();
+    if( ImGuiButton( "Open Prefab" ) )
     {
-      TAC_IMGUI_INDENT_BLOCK;
-      TacVector< TacEntity* > childrenCopy = entity->mChildren; // For iterator invalidation
-      for( TacEntity* child : childrenCopy )
+      String prefabPath;
+      OS::Instance->OpenDialog( prefabPath, errors );
+      TAC_HANDLE_ERROR( errors );
+
+      mCreation->LoadPrefabAtPath( prefabPath, errors );
+      TAC_HANDLE_ERROR( errors );
+    }
+    ImGuiEndGroup();
+    ImGuiSameLine();
+    ImGuiBeginGroup();
+
+    for( Entity* entity : mCreation->mSelectedEntities )
+    {
+      static String occupation = "Bartender";
+      ImGuiInputText( "Name", entity->mName );
+      ImGuiText( "UUID: " + ToString( ( UUID )entity->mEntityUUID ) );
+      ImGuiDragFloat( "X Position: ", &entity->mRelativeSpace.mPosition.x );
+      ImGuiDragFloat( "Y Position: ", &entity->mRelativeSpace.mPosition.y );
+      ImGuiDragFloat( "Z Position: ", &entity->mRelativeSpace.mPosition.z );
+      ImGuiDragFloat( "X Scale: ", &entity->mRelativeSpace.mScale.x );
+      ImGuiDragFloat( "Y Scale: ", &entity->mRelativeSpace.mScale.y );
+      ImGuiDragFloat( "Z Scale: ", &entity->mRelativeSpace.mScale.z );
+      v3 rotDeg = entity->mRelativeSpace.mEulerRads * ( 180.0f / 3.14f );
+      bool changed = false;
+      changed |= ImGuiDragFloat( "X Eul Deg: ", &rotDeg.x );
+      changed |= ImGuiDragFloat( "Y Eul Deg: ", &rotDeg.y );
+      changed |= ImGuiDragFloat( "Z Eul Deg: ", &rotDeg.z );
+      if( changed )
+        entity->mRelativeSpace.mEulerRads = rotDeg * ( 3.14f / 180.0f );
+      Vector< ComponentRegistryEntry* > addableComponentTypes;
+
+      if( entity->mParent )
       {
-        TacImGuiText( child->mName );
-        TacImGuiSameLine();
-        if( TacImGuiButton( "Remove" ) )
-        {
-          child->Unparent();
-        }
-      }
-    }
-    TacVector< TacEntity* > potentialParents;
-    for( TacEntity* potentialParent : mCreation->mWorld->mEntities )
-    {
-      if( potentialParent == entity )
-        continue;
-      if( entity->mParent == potentialParent )
-        continue;
-      potentialParents.push_back( potentialParent );
-    }
-    if( !potentialParents.empty() && TacImGuiCollapsingHeader( "Set Parent" ) )
-    {
-      TAC_IMGUI_INDENT_BLOCK;
-      for( TacEntity* potentialParent : potentialParents )
-      {
-        if( TacImGuiButton( "Set Parent: " + potentialParent->mName ) )
-        {
+        ImGuiText( "Parent: " + entity->mParent->mName );
+        ImGuiSameLine();
+        if( ImGuiButton( "Unparent" ) )
           entity->Unparent();
-          potentialParent->mChildren.push_back( entity );
-          entity->mParent = potentialParent;
-        }
       }
-    }
-
-    TacImGuiIndent();
-    // all the children, recursively
-    TacImGuiUnindent();
-
-    //for( int i = 0; i < ( int )TacComponentRegistryEntryIndex::Count; ++i )
-    for( TacComponentRegistryEntry* componentRegistryEntry : TacComponentRegistry::Instance()->mEntries )
-    {
-      //TacComponentRegistryEntryIndex componentType = ( TacComponentRegistryEntryIndex )i;
-      if( !entity->HasComponent( componentRegistryEntry ) )
-      {
-        addableComponentTypes.push_back( componentRegistryEntry );
-        continue;
-      }
-      TacComponent* component = entity->GetComponent( componentRegistryEntry );
-      if( TacImGuiCollapsingHeader( componentRegistryEntry->mName ) )
+      if( entity->mChildren.size() && ImGuiCollapsingHeader( "Children" ) )
       {
         TAC_IMGUI_INDENT_BLOCK;
-        if( TacImGuiButton( "Remove component" ) )
+        Vector< Entity* > childrenCopy = entity->mChildren; // For iterator invalidation
+        for( Entity* child : childrenCopy )
         {
-          entity->RemoveComponent( componentRegistryEntry );
-          break;
-        }
-
-        if( componentRegistryEntry->mDebugImguiFn )
-        {
-          componentRegistryEntry->mDebugImguiFn( component );
+          ImGuiText( child->mName );
+          ImGuiSameLine();
+          if( ImGuiButton( "Remove" ) )
+          {
+            child->Unparent();
+          }
         }
       }
-    }
-
-    if( !addableComponentTypes.empty() && TacImGuiCollapsingHeader( "Add component" ) )
-    {
-      TAC_IMGUI_INDENT_BLOCK;
-      for( TacComponentRegistryEntry*  componentType : addableComponentTypes )
+      Vector< Entity* > potentialParents;
+      for( Entity* potentialParent : mCreation->mWorld->mEntities )
       {
-        if( TacImGuiButton( va( "Add %s component", componentType->mName.c_str() ) ) )
-          entity->AddNewComponent( componentType );
+        if( potentialParent == entity )
+          continue;
+        if( entity->mParent == potentialParent )
+          continue;
+        potentialParents.push_back( potentialParent );
+      }
+      if( !potentialParents.empty() && ImGuiCollapsingHeader( "Set Parent" ) )
+      {
+        TAC_IMGUI_INDENT_BLOCK;
+        for( Entity* potentialParent : potentialParents )
+        {
+          if( ImGuiButton( "Set Parent: " + potentialParent->mName ) )
+          {
+            entity->Unparent();
+            potentialParent->mChildren.push_back( entity );
+            entity->mParent = potentialParent;
+          }
+        }
+      }
+
+      ImGuiIndent();
+      // all the children, recursively
+      ImGuiUnindent();
+
+      //for( int i = 0; i < ( int )ComponentRegistryEntryIndex::Count; ++i )
+      for( ComponentRegistryEntry* componentRegistryEntry : ComponentRegistry::Instance()->mEntries )
+      {
+        //ComponentRegistryEntryIndex componentType = ( ComponentRegistryEntryIndex )i;
+        if( !entity->HasComponent( componentRegistryEntry ) )
+        {
+          addableComponentTypes.push_back( componentRegistryEntry );
+          continue;
+        }
+        Component* component = entity->GetComponent( componentRegistryEntry );
+        if( ImGuiCollapsingHeader( componentRegistryEntry->mName ) )
+        {
+          TAC_IMGUI_INDENT_BLOCK;
+          if( ImGuiButton( "Remove component" ) )
+          {
+            entity->RemoveComponent( componentRegistryEntry );
+            break;
+          }
+
+          if( componentRegistryEntry->mDebugImguiFn )
+          {
+            componentRegistryEntry->mDebugImguiFn( component );
+          }
+        }
+      }
+
+      if( !addableComponentTypes.empty() && ImGuiCollapsingHeader( "Add component" ) )
+      {
+        TAC_IMGUI_INDENT_BLOCK;
+        for( ComponentRegistryEntry* componentType : addableComponentTypes )
+        {
+          if( ImGuiButton( va( "Add %s component", componentType->mName.c_str() ) ) )
+            entity->AddNewComponent( componentType );
+        }
       }
     }
+    ImGuiEndGroup();
+
+
+    if( ImGuiButton( "Close window" ) )
+      mDesktopWindow->mRequestDeletion = true;
+
+    // temp begin
+    ImGuiDebugDraw();
+    // temp end
+
+    ImGuiEnd();
+
+    mUI2DDrawData->DrawToTexture( errors );
+    TAC_HANDLE_ERROR( errors );
   }
-  TacImGuiEndGroup();
-
-
-  if( TacImGuiButton( "Close window" ) )
-    mDesktopWindow->mRequestDeletion = true;
-
-  // temp begin
-  TacImGuiDebugDraw();
-  // temp end
-
-  TacImGuiEnd();
-
-  mUI2DDrawData->DrawToTexture( errors );
-  TAC_HANDLE_ERROR( errors );
 }

@@ -1,106 +1,111 @@
+
 // The Gilbert–Johnson–Keerthi algorithm computes the intersection
 // of two convex polygons. We use it for physics integration and collision detection
 
 #pragma once
-#include "common/containers/tacVector.h"
-#include "common/math/tacVector3.h"
+#include "src/common/containers/tacVector.h"
+#include "src/common/math/tacVector3.h"
 #include <list>
 
-struct TacSupport
+namespace Tac
 {
-  virtual v3 Support( const v3& dir ) = 0;
+struct Support
+{
+  virtual v3 GetFurthestPoint( const v3& dir ) = 0;
 };
 
-struct TacSphereSupport : public TacSupport
+struct SphereSupport : public Support
 {
-  TacSphereSupport() = default;
-  TacSphereSupport( v3 origin, float radius );
-  v3 Support( const v3& dir ) override;
+  SphereSupport() = default;
+  SphereSupport( v3 origin, float radius );
+  v3 GetFurthestPoint( const v3& dir ) override;
   v3 mOrigin;
   float mRadius = 0;
 };
 
-struct TacCapsuleSupport : public TacSupport
+struct CapsuleSupport : public Support
 {
-  TacCapsuleSupport() = default;
-  TacCapsuleSupport( v3 base, float height, float radius );
-  v3 Support( const v3& dir ) override;
+  CapsuleSupport() = default;
+  CapsuleSupport( v3 base, float height, float radius );
+  v3 GetFurthestPoint( const v3& dir ) override;
   v3 mBotSpherePos;
   v3 mTopSpherePos;
   float mRadius;
 };
 
-struct TacConvexPolygonSupport : public TacSupport
+struct ConvexPolygonSupport : public Support
 {
-  TacConvexPolygonSupport() = default;
-  TacConvexPolygonSupport( v3 obbPos, v3 obbHalfExtents, v3 obbEulerRads );
-  v3 Support( const v3& dir ) override;
-  TacVector< v3 > mPoints;
+  ConvexPolygonSupport() = default;
+  ConvexPolygonSupport( v3 obbPos, v3 obbHalfExtents, v3 obbEulerRads );
+  v3 GetFurthestPoint( const v3& dir ) override;
+  Vector< v3 > mPoints;
 };
 
-struct TacCompoundSupport
+struct CompoundSupport
 {
+  // what is a diffpt
   v3 mDiffPt;
+  // what is a leftpt
   v3 mLeftPoint;
 };
 
-struct TacEPATriangle
+struct EPATriangle
 {
-  TacEPATriangle() = default;
-  TacEPATriangle(
-    TacCompoundSupport v0,
-    TacCompoundSupport v1,
-    TacCompoundSupport v2,
+  EPATriangle() = default;
+  EPATriangle(
+    CompoundSupport v0,
+    CompoundSupport v1,
+    CompoundSupport v2,
     v3 toNormalize );
-  TacEPATriangle(
-    TacCompoundSupport v0,
-    TacCompoundSupport v1,
-    TacCompoundSupport v2 );
+  EPATriangle(
+    CompoundSupport v0,
+    CompoundSupport v1,
+    CompoundSupport v2 );
   v3 GetArbitraryPointOnTriangle();
   void ComputeDist();
 
-  TacCompoundSupport mV0;
-  TacCompoundSupport mV1;
-  TacCompoundSupport mV2;
+  CompoundSupport mV0;
+  CompoundSupport mV1;
+  CompoundSupport mV2;
   v3 mNormal;
   float mPlaneDist;
 };
 
-struct TacEPAHalfEdge
+struct EPAHalfEdge
 {
-  TacEPAHalfEdge() = default;
-  TacEPAHalfEdge(
-    TacCompoundSupport from,
-    TacCompoundSupport to );
-  TacEPAHalfEdge Reverse();
-  bool operator == ( const TacEPAHalfEdge& other ) const;
-  TacCompoundSupport mFrom;
-  TacCompoundSupport mTo;
+  EPAHalfEdge() = default;
+  EPAHalfEdge(
+    CompoundSupport from,
+    CompoundSupport to );
+  EPAHalfEdge Reverse();
+  bool operator == ( const EPAHalfEdge& other ) const;
+  CompoundSupport mFrom;
+  CompoundSupport mTo;
 };
 
-struct TacGJK
+struct GJK
 {
-  TacGJK() = default;
-  TacGJK( TacSupport* left, TacSupport* right );
+  GJK() = default;
+  GJK( Support* left, Support* right );
   void EnsureCorrectTetrahedronOrientation();
   void Step();
   void EPAStep();
-  TacCompoundSupport Support( const v3& dir );
+  CompoundSupport GetCompountSupport( const v3& dir );
 
   bool mIsRunning = true;
   bool mIsColliding = false;
   int mIteration = 0;
   v3 mNormalizedSearchDir = { 1, 0, 0 };
   v3 mClosestPoint = {};
-  TacVector< TacCompoundSupport > mSupports;
-  TacSupport* mLeft = nullptr;
-  TacSupport* mRight = nullptr;
+  Vector< CompoundSupport > mSupports;
+  Support* mLeft = nullptr;
+  Support* mRight = nullptr;
 
   bool mEPAIsComplete = false;
-  std::list< TacEPATriangle > mEPATriangles;
+  std::list< EPATriangle > mEPATriangles;
   int mEPATriangleCount = 4;
-  TacEPATriangle mEPAClosest;
-  TacCompoundSupport mEPAClosestSupportPoint;
+  EPATriangle mEPAClosest;
+  CompoundSupport mEPAClosestSupportPoint;
   v3 mEPALeftPoint = {};
   v3 mEPALeftNormal = {};
   bool mEPABarycentricFucked = true;
@@ -129,4 +134,7 @@ void BarycentricTetrahedron(
   float& bary1,
   float& bary2,
   float& bary3 );
+
+
+}
 

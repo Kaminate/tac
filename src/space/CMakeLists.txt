@@ -1,65 +1,69 @@
 project(Ghost CXX)
-set(TacTarget "Ghost")
-set( TAC_LIBRARIES TacCommonLibrary  )
+set(Target "Ghost")
+set( TAC_LIBRARIES CommonLibrary  )
 #                        | ( commented out )
 #                        |
 #                        | | MODULE is for DLLs
 #                        v v
-add_library(${TacTarget} # MODULE
-"presentation/tacGamePresentation.cpp"
-"presentation/tacGamePresentation.h"
-"presentation/tacSkyboxPresentation.cpp"
-"presentation/tacSkyboxPresentation.h"
-"tacclient.cpp"
-"tacclient.h"
-"taccomponent.cpp"
-"taccomponent.h"
-"collider/taccollider.cpp"
-"collider/taccollider.h"
-"collider/taccolliderdebug.cpp"
-"tacentity.cpp"
-"tacentity.h"
-"tacgjk.cpp"
-"tacgjk.h"
-"tacGhost.cpp"
-"tacGhost.h"
-"graphics/tacgraphicsdebug.cpp"
-"graphics/tacgraphics.cpp"
-"graphics/tacgraphics.h"
-"model/tacmodel.cpp"
-"model/tacmodel.h"
-"model/tacmodeldebug.cpp"
-"taclight.cpp"
-"taclight.h"
-"tacplayer.cpp"
-"tacplayer.h"
-"physics/tacmetaphysics.cpp"
-"physics/tacphysicsdebug.cpp"
-"physics/tacphysics.cpp"
-"physics/tacphysics.h"
-"tacscript.cpp"
-"tacscript.h"
-"tacscriptgameclient.cpp"
-"tacscriptgameclient.h"
-"tacspace.cpp"
-"tacspace.h"
-"tacspacetypes.h"
-"tacsystem.cpp"
-"tacsystem.h"
-"tacserver.cpp"
-"tacserver.h"
-"tacspacenet.cpp"
-"tacspacenet.h"
-"terrain/tacterrain.cpp"
-"terrain/tacterrain.h"
-"terrain/tacterraindebug.cpp"
-"tacworld.cpp"
-"tacworld.h"
+
+
+# ${CMAKE_CURRENT_SOURCE_DIR}/myfile.h
+
+add_library(${Target} # MODULE
+"${CMAKE_CURRENT_SOURCE_DIR}/presentation/tacGamePresentation.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/presentation/tacGamePresentation.h"
+"${CMAKE_CURRENT_SOURCE_DIR}/presentation/tacSkyboxPresentation.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/presentation/tacSkyboxPresentation.h"
+"${CMAKE_CURRENT_SOURCE_DIR}/tacClient.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/tacClient.h"
+"${CMAKE_CURRENT_SOURCE_DIR}/tacComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/tacComponent.h"
+"${CMAKE_CURRENT_SOURCE_DIR}/collider/tacCollider.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/collider/tacCollider.h"
+"${CMAKE_CURRENT_SOURCE_DIR}/collider/tacColliderDebug.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/tacEntity.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/tacEntity.h"
+"${CMAKE_CURRENT_SOURCE_DIR}/tacGjk.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/tacGjk.h"
+"${CMAKE_CURRENT_SOURCE_DIR}/tacGhost.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/tacGhost.h"
+"${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacGraphicsDebug.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacGraphics.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacGraphics.h"
+"${CMAKE_CURRENT_SOURCE_DIR}/model/tacModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/model/tacModel.h"
+"${CMAKE_CURRENT_SOURCE_DIR}/model/tacModelDebug.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/tacLight.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/tacLight.h"
+"${CMAKE_CURRENT_SOURCE_DIR}/tacPlayer.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/tacPlayer.h"
+"${CMAKE_CURRENT_SOURCE_DIR}/physics/tacMetaPhysics.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/physics/tacPhysicsDebug.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/physics/tacPhysics.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/physics/tacPhysics.h"
+"${CMAKE_CURRENT_SOURCE_DIR}/tacScript.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/tacScript.h"
+"${CMAKE_CURRENT_SOURCE_DIR}/tacScriptGameClient.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/tacScriptGameClient.h"
+"${CMAKE_CURRENT_SOURCE_DIR}/tacSpace.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/tacSpace.h"
+"${CMAKE_CURRENT_SOURCE_DIR}/tacSpacetypes.h"
+"${CMAKE_CURRENT_SOURCE_DIR}/tacSystem.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/tacSystem.h"
+"${CMAKE_CURRENT_SOURCE_DIR}/tacServer.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/tacServer.h"
+"${CMAKE_CURRENT_SOURCE_DIR}/tacSpacenet.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/tacSpacenet.h"
+"${CMAKE_CURRENT_SOURCE_DIR}/terrain/tacTerrain.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/terrain/tacTerrain.h"
+"${CMAKE_CURRENT_SOURCE_DIR}/terrain/tacTerrainDebug.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/tacWorld.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/tacWorld.h"
 )
-#${TacCommon})
+#${Common})
 include_directories("${CMAKE_SOURCE_DIR}/src")
-set_target_properties(${TacTarget} PROPERTIES LINKER_LANGUAGE CXX)
-target_link_libraries( ${TacTarget} ${TAC_LIBRARIES} )
+set_target_properties(${Target} PROPERTIES LINKER_LANGUAGE CXX)
+target_link_libraries( ${Target} ${TAC_LIBRARIES} )
 
 
 

@@ -1,5 +1,11 @@
+
 #pragma once
 
+namespace Tac
+{
 
-void TacSpaceInit();
+void SpaceInit();
+
+
+}
 

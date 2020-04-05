@@ -2,12 +2,16 @@
 #include <initializer_list>  // std::initializer_list
 #include <utility> // std::move
 
-template< typename T >
-struct TacVector
+namespace Tac
 {
-  TacVector() = default;
+
+
+template< typename T >
+struct Vector
+{
+  Vector() = default;
   template< typename Iterator >
-  TacVector( Iterator iBegin, Iterator iEnd )
+  Vector( Iterator iBegin, Iterator iEnd )
   {
     while( iBegin != iEnd )
     {
@@ -15,42 +19,42 @@ struct TacVector
       push_back( t );
     }
   }
-  TacVector( const TacVector& v )
+  Vector( const Vector& v )
   {
     int size = v.size();
     resize( size );
     for( int i = 0; i < size; ++i )
       mTs[ i ] = v[ i ];
   }
-  TacVector( int size )
+  Vector( int size )
   {
     resize( size );
   }
-  TacVector( int size, T initialValue )
+  Vector( int size, T initialValue )
   {
     resize( size );
     for( int i = 0; i < size; ++i )
       mTs[ i ] = initialValue;
   }
-  TacVector( T* tbegin, T* tend )
+  Vector( T* tbegin, T* tend )
   {
     int size = ( int )( tend - tbegin );
     resize( size );
     for( int i = 0; i < size; ++i )
       mTs[ i ] = tbegin[ i ];
   }
-  TacVector( std::initializer_list< T > ts )
+  Vector( std::initializer_list< T > ts )
   {
     resize( ( int )ts.size() );
     int i = 0;
     for( T t : ts )
       mTs[ i++ ] = t;
   }
-  ~TacVector()
+  ~Vector()
   {
     delete[] mTs;
   }
-  void operator =( const TacVector<T>& v )
+  void operator =( const Vector<T>& v )
   {
     int newSize = v.size();
     resize( newSize );
@@ -98,7 +102,7 @@ struct TacVector
     T* newTs = new T[ capacity ];
     for( int i = 0; i < mTCount; ++i )
     {
-      // std::move for TacVector< std::thread >
+      // std::move for Vector< std::thread >
       newTs[ i ] = std::move( mTs[ i ] );
     }
     delete[] mTs;
@@ -119,3 +123,4 @@ struct TacVector
   int mTCount = 0;
   int mTCapacity = 0;
 };
+}

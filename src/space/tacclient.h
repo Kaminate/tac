@@ -1,17 +1,19 @@
+
 #pragma once
 
-#include "tacspacetypes.h"
-#include "tacspacenet.h"
-#include "tacworld.h"
-
-#include "common/math/tacVector2.h"
-#include "common/containers/tacVector.h"
-#include "common/tacString.h"
-#include "common/tacErrorHandling.h"
+#include "src/space/tacSpacetypes.h"
+#include "src/space/tacSpacenet.h"
+#include "src/space/tacWorld.h"
+#include "src/common/math/tacVector2.h"
+#include "src/common/containers/tacVector.h"
+#include "src/common/tacString.h"
+#include "src/common/tacErrorHandling.h"
 
 #include <list>
 
-struct TacSavedInput
+namespace Tac
+{
+struct SavedInput
 {
   double mTimestamp;
   v2 mInputDirection;
@@ -22,47 +24,50 @@ typedef void( *ClientSendNetworkMessageCallback )(
   int byteCount,
   void* userData );
 
-struct TacReader;
-struct TacWriter;
+struct Reader;
+struct Writer;
 
 
-struct TacClientData
+struct ClientData
 {
-  TacLagTest mSavedNetworkMessages;
+  LagTest mSavedNetworkMessages;
 
-  //TacChat mChat;
-  TacWorld* mWorld = nullptr;
-  TacWorld* mEmptyWorld = nullptr;
-  TacPlayerUUID mPlayerUUID = TacNullPlayerUUID;
+  //Chat mChat;
+  World* mWorld = nullptr;
+  World* mEmptyWorld = nullptr;
+  PlayerUUID mPlayerUUID = NullPlayerUUID;
 
   // < Prediction >
   static const int sMaxSavedInputCount = 60;
-  std::list< TacSavedInput > mSavedInputs;
+  std::list< SavedInput > mSavedInputs;
   bool mIsPredicting = true;
   // </>
 
   // --------------------------------------------
 
   double mMostRecentSnapshotTime = 0;
-  TacSnapshotBuffer mSnapshots;
+  SnapshotBuffer mSnapshots;
 
-  void TacReadSnapshotBody(
-    TacReader* reader,
-    TacErrors& errors );
-  void TacOnClientDisconnect();
-  void WriteInputBody( TacWriter* writer );
-  void ExecuteNetMsg( void* bytes, int byteCount, TacErrors& errors );
+  void ReadSnapshotBody(
+    Reader* reader,
+    Errors& errors );
+  void OnClientDisconnect();
+  void WriteInputBody( Writer* writer );
+  void ExecuteNetMsg( void* bytes, int byteCount, Errors& errors );
   void ApplyPrediction( double lastTime );
-  void ReadEntityDifferences( TacReader* reader, TacErrors& errors );
-  void ReadPlayerDifferences( TacReader* reader, TacErrors& errors );
+  void ReadEntityDifferences( Reader* reader, Errors& errors );
+  void ReadPlayerDifferences( Reader* reader, Errors& errors );
   void Update(
     float seconds,
     v2 inputDir,
     ClientSendNetworkMessageCallback sendNetworkMessageCallback,
     void* userData,
-    TacErrors& errors );
+    Errors& errors );
   void ReceiveMessage(
     void* bytes,
     int byteCount,
-    TacErrors& errors );
+    Errors& errors );
 };
+
+}
+

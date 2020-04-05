@@ -1,33 +1,37 @@
 #pragma once
 
-#include "tacString.h"
-#include "containers/tacVector.h"
-#include "tacPreprocessor.h"
-
-struct TacErrors
+#include "src/common/tacString.h"
+#include "src/common/containers/tacVector.h"
+#include "src/common/tacPreprocessor.h"
+namespace Tac
 {
-  void operator=( const TacStringView& message );
-  void operator+=( const TacStringView& message );
-  bool size() const;
-  bool empty() const;
-  void clear();
-  operator bool() const;
-  TacString ToString() const;
-  //void Push( TacString message );
-  //void Push( TacString message, TacStackFrame stackFrame );
-  //void Push( TacStackFrame stackFrame );
 
-  void Append( const TacStackFrame& stackFrame );
-  void Append( const TacStringView& message );
 
-  TacString mMessage;
-  TacVector< TacStackFrame > mStackFrames;
-};
+  struct Errors
+  {
+    void operator=( const StringView& message );
+    void operator+=( const StringView& message );
+    bool size() const;
+    bool empty() const;
+    void clear();
+    operator bool() const;
+    String ToString() const;
+    //void Push( String message );
+    //void Push( String message, Frame frame );
+    //void Push( Frame frame );
+
+    void Append( const Frame& frame );
+    void Append( const StringView& message );
+
+    String mMessage;
+    Vector< Frame > mFrames;
+  };
 
 #define TAC_HANDLE_ERROR( errors )\
-if( ( errors ) )\
+if( errors )\
 {\
-  errors.Append( TAC_STACK_FRAME );\
+  errors.Append( TAC_FRAME );\
   return;\
 }
 
+}

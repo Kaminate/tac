@@ -1,105 +1,108 @@
-#include "common/tacmeta.h"
-#include "common/tacSerialization.h"
-#include "common/tacPreprocessor.h"
-#include "common/tacUtility.h"
+
+#include "src/common/tacMeta.h"
+#include "src/common/tacSerialization.h"
+#include "src/common/tacPreprocessor.h"
+#include "src/common/tacUtility.h"
 #include <fstream>
 
+namespace Tac
+{
 
-TacMeta::TacMeta()
+Meta::Meta()
 {
   // float
   {
-    auto metaFloat = new TacMetaPodType< float >();
-    metaFloat->mName = TacStringify( float );
+    auto metaFloat = new MetaPodType< float >();
+    metaFloat->mName = TAC_STRINGIFY( float );
     metaFloat->mSize = sizeof( float );
     AddType( metaFloat );
   }
   // int32_t
   {
-    auto metaint32_t = new TacMetaPodType< int32_t >();
-    metaint32_t->mName = TacStringify( int32_t );
+    auto metaint32_t = new MetaPodType< int32_t >();
+    metaint32_t->mName = TAC_STRINGIFY( int32_t );
     metaint32_t->mSize = sizeof( int32_t );
     AddType( metaint32_t );
   }
   // int
   {
-    auto metaint = new TacMetaPodType< int >();
-    metaint->mName = TacStringify( int );
+    auto metaint = new MetaPodType< int >();
+    metaint->mName = TAC_STRINGIFY( int );
     metaint->mSize = sizeof( int );
     AddType( metaint );
   }
   // v2
   {
-    auto x = new TacMetaVar;
+    auto x = new MetaVar;
     x->mMetaType = GetType( "float" );
     x->mName = "x";
-    x->mOffset = TacOffsetOf( v4, x );
+    x->mOffset = TAC_OFFSET_OF( v4, x );
 
-    auto y = new TacMetaVar;
+    auto y = new MetaVar;
     y->mMetaType = GetType( "float" );
     y->mName = "y";
-    y->mOffset = TacOffsetOf( v4, y );
+    y->mOffset = TAC_OFFSET_OF( v4, y );
 
-    auto metav2 = new TacMetaCompositeType();
-    metav2->mName = TacStringify( v2 );
+    auto metav2 = new MeOmpositeType();
+    metav2->mName = TAC_STRINGIFY( v2 );
     metav2->mMetaVars = { x, y };
     metav2->mSize = sizeof( v2 );
     AddType( metav2 );
   }
   // v3
   {
-    auto x = new TacMetaVar;
+    auto x = new MetaVar;
     x->mMetaType = GetType( "float" );
     x->mName = "x";
-    x->mOffset = TacOffsetOf( v3, x );
+    x->mOffset = TAC_OFFSET_OF( v3, x );
 
-    auto y = new TacMetaVar;
+    auto y = new MetaVar;
     y->mMetaType = GetType( "float" );
     y->mName = "y";
-    y->mOffset = TacOffsetOf( v3, y );
+    y->mOffset = TAC_OFFSET_OF( v3, y );
 
-    auto z = new TacMetaVar;
+    auto z = new MetaVar;
     z->mMetaType = GetType( "float" );
     z->mName = "z";
-    z->mOffset = TacOffsetOf( v3, z );
+    z->mOffset = TAC_OFFSET_OF( v3, z );
 
-    auto metav3 = new TacMetaCompositeType();
-    metav3->mName = TacStringify( v3 );
+    auto metav3 = new MeOmpositeType();
+    metav3->mName = TAC_STRINGIFY( v3 );
     metav3->mMetaVars = { x, y, z };
     metav3->mSize = sizeof( v3 );
     AddType( metav3 );
   }
   // v4
   {
-    auto x = new TacMetaVar;
+    auto x = new MetaVar;
     x->mMetaType = GetType( "float" );
     x->mName = "x";
-    x->mOffset = TacOffsetOf( v4, x );
+    x->mOffset = TAC_OFFSET_OF( v4, x );
 
-    auto y = new TacMetaVar;
+    auto y = new MetaVar;
     y->mMetaType = GetType( "float" );
     y->mName = "y";
-    y->mOffset = TacOffsetOf( v4, y );
+    y->mOffset = TAC_OFFSET_OF( v4, y );
 
-    auto z = new TacMetaVar;
+    auto z = new MetaVar;
     z->mMetaType = GetType( "float" );
     z->mName = "z";
-    z->mOffset = TacOffsetOf( v4, z );
+    z->mOffset = TAC_OFFSET_OF( v4, z );
 
-    auto w = new TacMetaVar;
+    auto w = new MetaVar;
     w->mMetaType = GetType( "float" );
     w->mName = "w";
-    w->mOffset = TacOffsetOf( v4, w );
+    w->mOffset = TAC_OFFSET_OF( v4, w );
 
-    auto metav4 = new TacMetaCompositeType();
-    metav4->mName = TacStringify( v4 );
+    auto metav4 = new MeOmpositeType();
+    metav4->mName = TAC_STRINGIFY( v4 );
     metav4->mMetaVars = { x, y, z, w };
     metav4->mSize = sizeof( v4 );
     AddType( metav4 );
   }
 }
 
-TacMetaType* TacMeta::GetType( const TacString& name )
+MetaType* Meta::GetType( const String& name )
 {
   auto it = metaTypes.find( name );
   if( it == metaTypes.end() )
@@ -107,25 +110,25 @@ TacMetaType* TacMeta::GetType( const TacString& name )
   return ( *it ).second;
 }
 
-void TacMeta::AddType( TacMetaType* metaType )
+void Meta::AddType( MetaType* metaType )
 {
-  TacAssert( !GetType( metaType->mName ) );
-  TacAssert( metaType->mName.size() );
-  TacAssert( metaType->mSize );
+  TAC_ASSERT( !GetType( metaType->mName ) );
+  TAC_ASSERT( metaType->mName.size() );
+  TAC_ASSERT( metaType->mSize );
   metaTypes[ metaType->mName ] = metaType;
 }
 
-//void TacMeta::Load(
+//void Meta::Load(
 //  std::ifstream& ifs,
-//  TacMetaType* metaType,
+//  MetaType* metaType,
 //  void* data,
-//  TacErrors& errors )
+//  Errors& errors )
 //{
 //  for( auto metaVar : metaType->mMetaVars )
 //  {
 //    void* varBaseData = ( char* )data + metaVar.offset;
 //    void* arrayBaseData = varBaseData;
-//    TacString varName;
+//    String varName;
 //    if( !( ifs >> varName ) )
 //    {
 //      errors += "fux";
@@ -159,8 +162,8 @@ void TacMeta::AddType( TacMetaType* metaType )
 //  if(!metaType->mMetaVars.empty())
 //    return;
 //
-//  TacAssert( metaType->mMetaPod != Pod::Unknown );
-//  TacString podStr;
+//  Assert( metaType->mMetaPod != Pod::Unknown );
+//  String podStr;
 //  if( !( ifs >> podStr ) )
 //  {
 //    errors = "fux";
@@ -169,14 +172,17 @@ void TacMeta::AddType( TacMetaType* metaType )
 //
 //  switch( metaType->mMetaPod )
 //  {
-//    case Pod::tacfloat: *( ( float* )data ) = ( float )atof( podStr.c_str() ); break;
-//    case Pod::tacint32: *( ( int32_t* )data ) = ( int32_t )atoi( podStr.c_str() ); break;
-//    TacInvalidDefaultCase(metaType->mMetaPod);
+//    case Pod::Float: *( ( float* )data ) = ( float )atof( podStr.c_str() ); break;
+//    case Pod::Int32: *( ( int32_t* )data ) = ( int32_t )atoi( podStr.c_str() ); break;
+//    TAC_INVALID_DEFAULT_CASE(metaType->mMetaPod);
 //  }
 //}
 
-TacMeta* TacMeta::GetInstance()
+Meta* Meta::GetInstance()
 {
-  static TacMeta meta;
+  static Meta meta;
   return &meta;
 }
+
+}
+

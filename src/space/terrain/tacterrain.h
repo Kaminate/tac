@@ -1,32 +1,34 @@
 #pragma once
-#include "common/containers/tacVector.h"
-#include "common/math/tacVector3.h"
-#include "common/math/tacMatrix4.h"
-#include "common/tacErrorHandling.h"
-#include "space/taccomponent.h"
+#include "src/common/containers/tacVector.h"
+#include "src/common/math/tacVector3.h"
+#include "src/common/math/tacMatrix4.h"
+#include "src/common/tacErrorHandling.h"
+#include "src/space/tacComponent.h"
 
-struct TacTerrainOBB
+namespace Tac
+{
+struct TerrainOBB
 {
   v3 mPos;
   v3 mHalfExtents;
   v3 mEulerRads;
 };
 
-struct TacHeightmap
+struct Heightmap
 {
   float mMaxHeight = 100.0f;
 };
 
-struct TacVertexBuffer;
-struct TacIndexBuffer;
+struct VertexBuffer;
+struct IndexBuffer;
 
-struct TacTerrain : public TacComponent
+struct Terrain : public Component
 {
-  static void TacSpaceInitPhysicsTerrain();
+  static void SpaceInitPhysicsTerrain();
 
-  TacComponentRegistryEntry* GetEntry() override;
-  static TacComponentRegistryEntry* TerrainComponentRegistryEntry;
-  static TacTerrain* GetComponent( TacEntity* );
+  ComponentRegistryEntry* GetEntry() override;
+  static ComponentRegistryEntry* TerrainComponentRegistryEntry;
+  static Terrain* GetComponent( Entity* );
   void LoadTestHeightmap();
   void PopulateGrid();
   v3 GetGridVal( int iRow, int iCol );
@@ -35,27 +37,30 @@ struct TacTerrain : public TacComponent
   int mSideVertexCount = 50;
   float mSideLength = 50.0f;
   float mUpwardsHeight = 20.0f;
-  TacVector< v3 > mRowMajorGrid;
-  TacString mHeightmapTexturePath = "assets/heightmap.png";
-  TacString mGroundTexturePath = "";
-  TacString mNoiseTexturePath = "";
+  Vector< v3 > mRowMajorGrid;
+  String mHeightmapTexturePath = "assets/heightmap.png";
+  String mGroundTexturePath = "";
+  String mNoiseTexturePath = "";
   int mTestHeightmapWidth;
   int mTestHeightmapHeight;
   float mPower = 1;
-  TacVector< uint8_t > mTestHeightmapImageMemory;
+  Vector< uint8_t > mTestHeightmapImageMemory;
   m4 mWorldCreationTransform = {};
-  TacVertexBuffer* mVertexBuffer = nullptr;
-  TacIndexBuffer* mIndexBuffer = nullptr;
-  TacVector< TacTerrainOBB > mTerrainOBBs;
-  TacErrors mTestHeightmapLoadErrors;
+  VertexBuffer* mVertexBuffer = nullptr;
+  IndexBuffer* mIndexBuffer = nullptr;
+  Vector< TerrainOBB > mTerrainOBBs;
+  Errors mTestHeightmapLoadErrors;
 };
 
 extern int asdfDEBUG;
 
-struct TacCollideResult
+struct CollideResult
 {
   bool mCollided = false;
 
 };
 
-//TacCollideResult TacCollide( const TacHeightmap* heightmap, const TacCollider* collider );
+//CollideResult Collide( const Heightmap* heightmap, const Collider* collider );
+
+}
+

@@ -1,32 +1,35 @@
+
 #pragma once
-#include "common/math/tacVector3.h"
-#include "common/tacErrorHandling.h"
-#include "space/tacsystem.h"
+#include "src/common/math/tacVector3.h"
+#include "src/common/tacErrorHandling.h"
+#include "src/space/tacSystem.h"
 #include <set>
 #include <list>
 
-struct TacCollider;
-struct TacTerrain;
-struct TacDebug3DDrawData;
-
-
-struct TacPhysics : public TacSystem
+namespace Tac
 {
-  TacPhysics();
-  //const TacVector< TacComponentRegistryEntryIndex >& GetManagedComponentTypes() override;
-  //TacComponent* CreateComponent( TacComponentRegistryEntryIndex componentType ) override;
-  //void DestroyComponent( TacComponent* component ) override;
-  //TacSystemType GetSystemType() override { return TacSystemType::Physics; }
+struct Collider;
+struct Terrain;
+struct Debug3DDrawData;
 
-  TacCollider* CreateCollider();
-  void DestroyCollider( TacCollider* collider );
 
-  TacTerrain* CreateTerrain();
-  void DestroyTerrain( TacTerrain* terrain );
+struct Physics : public System
+{
+  Physics();
+  //const Vector< ComponentRegistryEntryIndex >& GetManagedComponentTypes() override;
+  //Component* CreateComponent( ComponentRegistryEntryIndex componentType ) override;
+  //void DestroyComponent( Component* component ) override;
+  //SystemType GetSystemType() override { return SystemType::Physics; }
 
-  static void TacSpaceInitPhysics();
-  static TacSystemRegistryEntry* PhysicsSystemRegistryEntry;
-  static TacPhysics* GetSystem( TacWorld* );
+  Collider* CreateCollider();
+  void DestroyCollider( Collider* collider );
+
+  Terrain* CreateTerrain();
+  void DestroyTerrain( Terrain* terrain );
+
+  static void SpaceInitPhysics();
+  static SystemRegistryEntry* PhysicsSystemRegistryEntry;
+  static Physics* GetSystem( World* );
 
   void Update() override;
   void Integrate();
@@ -35,8 +38,8 @@ struct TacPhysics : public TacSystem
   void DebugDrawCapsules();
   void DebugDrawTerrains();
 
-  std::set< TacCollider* > mColliders;
-  std::set< TacTerrain* > mTerrains;
+  std::set< Collider* > mColliders;
+  std::set< Terrain* > mTerrains;
 
 
   bool mDebugDrawCollision = true;
@@ -53,3 +56,6 @@ struct TacPhysics : public TacSystem
   int mGJKDebugMaxIter = 10;
   int mGJKDebugMaxEPAIter = 0;
 };
+
+}
+

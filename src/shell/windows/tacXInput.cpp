@@ -1,8 +1,8 @@
-#include "tacXInput.h"
-#include "common/tacPreprocessor.h"
-#include "common/math/tacMath.h"
-#include "common/tacShell.h"
-#include "common/tacTime.h"
+#include "src/shell/windows/tacXInput.h"
+#include "src/common/tacPreprocessor.h"
+#include "src/common/math/tacMath.h"
+#include "src/common/tacShell.h"
+#include "src/common/tacTime.h"
 
 
 #include <algorithm>
@@ -11,12 +11,16 @@
 
 #pragma comment( lib, "Dinput8.lib" )
 
+namespace Tac
+{
+
+
 
 float ConvertDirectInputUnsigned( LONG inputVal )
 {
   float result = ( float )inputVal;
   result /= 65535.0f;
-  result = TacSaturate( result );
+  result = Saturate( result );
   return result;
 }
 float ConvertDirectInputSigned( LONG inputVal, float deadzonePercent )
@@ -29,15 +33,15 @@ float ConvertDirectInputSigned( LONG inputVal, float deadzonePercent )
   result *= sign;
   result -= deadzonePercent;
   result /= 1.0f - deadzonePercent;
-  result = TacSaturate( result );
+  result = Saturate( result );
   result *= sign;
   return result;
 }
 
-TacControllerState TacToControllerState( const DIJOYSTATE2& js )
+ControllerState ToControllerState( const DIJOYSTATE2& js )
 {
   float deadzone = 0.1f;
-  TacControllerState controllerState = {};
+  ControllerState controllerState = {};
   controllerState.mLeftStick.x = ConvertDirectInputSigned( js.lX, deadzone );
   //controllerState.mLeftStick.y = ConvertDirectInputSigned( js.lY, deadzone );
 
@@ -45,16 +49,16 @@ TacControllerState TacToControllerState( const DIJOYSTATE2& js )
   return controllerState;
 }
 
-TacDirectInputPerController::~TacDirectInputPerController()
+DirectInputPerController::~DirectInputPerController()
 {
   mDivice->Release();
 }
-void TacDirectInputPerController::DebugImguiInner()
+void DirectInputPerController::DebugImguiInner()
 {
   //if( !ImGui::CollapsingHeader( "Direct Input" ) )
   //  return;
   //DIJOYSTATE2 js = mJoystate;
-  //TacString s;
+  //String s;
   //for( auto b : js.rgbButtons )
   //  s += b?'1':'0';
   //ImGui::Text( "lX: %i", js.lX );
@@ -89,7 +93,7 @@ void TacDirectInputPerController::DebugImguiInner()
   //ImGui::Text( "rglFSlider: %i %i", js.rglFSlider[ 0 ], js.rglFSlider[ 1 ] );
 }
 
-TacXInput::TacXInput( HINSTANCE hInstance, TacErrors& errors )
+XInput::XInput( HINSTANCE hInstance, Errors& errors )
 {
   REFIID riidltf = IID_IDirectInput8;
   HRESULT hr = DirectInput8Create( hInstance, DIRECTINPUT_VERSION, riidltf, ( LPVOID* )&directInput, NULL );
@@ -100,30 +104,30 @@ TacXInput::TacXInput( HINSTANCE hInstance, TacErrors& errors )
   case DIERR_INVALIDPARAM:errors = "DIERR_INVALIDPARAM"; return;
   case DIERR_OLDDIRECTINPUTVERSION:errors = "DIERR_OLDDIRECTINPUTVERSION"; return;
   case DIERR_OUTOFMEMORY:errors = "DIERR_OUTOFMEMORY"; return;
-    TacInvalidDefaultCase( hr );
+    TAC_INVALID_DEFAULT_CASE( hr );
   }
 }
-TacXInput::~TacXInput()
+XInput::~XInput()
 {
 }
-TacDirectInputPerController* TacXInput::FindDInputController( const DIDEVICEINSTANCE* mDeviceInstance )
+DirectInputPerController* XInput::FindDInputController( const DIDEVICEINSTANCE* mDeviceInstance )
 {
-  for( TacController* controller : mControllers )
+  for( Controller* controller : mControllers )
   {
     if( !controller )
       continue;
-    TacDirectInputPerController* directInputPerController = ( TacDirectInputPerController * )controller;
+    DirectInputPerController* directInputPerController = ( DirectInputPerController * )controller;
     if( mDeviceInstance->guidInstance == directInputPerController->mInstance.guidInstance )
       return directInputPerController;
   }
   return nullptr;
 }
-void TacXInput::DebugImguiInner()
+void XInput::DebugImguiInner()
 {
   //ImGui::DragFloat( "Seconds till discover cur", &mSecondsTillDisconver );
   //ImGui::DragFloat( "Seconds till discover max", &mSecondsTillDiscoverMax );
 }
-void TacXInput::UpdateInner()
+void XInput::UpdateInner()
 {
   mSecondsTillDisconver -= TAC_DELTA_FRAME_SECONDS;
   if( mSecondsTillDisconver < 0 )
@@ -132,7 +136,7 @@ void TacXInput::UpdateInner()
       const DIDEVICEINSTANCE* pdidInstance,
       LPVOID pvRef )->BOOL
     {
-      TacXInput* xInput = ( TacXInput* )pvRef;
+      XInput* xInput = ( XInput* )pvRef;
       xInput->EnumerateController( pdidInstance );
       return DIENUM_CONTINUE;
     };
@@ -148,17 +152,17 @@ void TacXInput::UpdateInner()
   HRESULT hr;
 
   int iController = 0;
-  for( TacController* controller : mControllers )
+  for( Controller* controller : mControllers )
   {
     if( !controller )
       continue;
-    TacDirectInputPerController* directInputPerController = ( TacDirectInputPerController* )controller;
+    DirectInputPerController* directInputPerController = ( DirectInputPerController* )controller;
     if( mForceIndexOverride && ( iController != mIndexOverride ) )
       continue;
 
 
-    OnDestruct( iController++ );
-    TacController* controller = mControllers[ iController ];
+    TAC_ON_DESTRUCT( iController++ );
+    Controller* controller = mControllers[ iController ];
 
     IDirectInputDevice8* joystick = directInputPerController->mDivice;
     hr = joystick->Poll();
@@ -180,17 +184,17 @@ void TacXInput::UpdateInner()
     }
     else if( hr == DIERR_INPUTLOST )
     {
-      TacAssertMessage( "todo" );
+      TAC_ASSERT_MESSAGE( "todo" );
     }
     else
     {
-      TacAssert( hr != DIERR_INVALIDPARAM );
-      TacAssert( hr != DIERR_NOTACQUIRED );
-      TacAssert( hr != DIERR_NOTINITIALIZED );
-      TacInvalidCodePath;
+      TAC_ASSERT( hr != DIERR_INVALIDPARAM );
+      TAC_ASSERT( hr != DIERR_NOTACQUIRED );
+      TAC_ASSERT( hr != DIERR_NOTINITIALIZED );
+      TAC_INVALID_CODE_PATH;
     }
 
-    TacControllerState controllerState = TacToControllerState( js );
+    ControllerState controllerState = ToControllerState( js );
     controller->mControllerStateCurr = controllerState;
 
 
@@ -199,24 +203,25 @@ void TacXInput::UpdateInner()
 
   }
 }
-void TacXInput::EnumerateController( const DIDEVICEINSTANCE* pdidInstance )
+void XInput::EnumerateController( const DIDEVICEINSTANCE* pdidInstance )
 {
-  TacDirectInputPerController* controller = FindDInputController( pdidInstance );
+  DirectInputPerController* controller = FindDInputController( pdidInstance );
   if( controller )
     return;
   IDirectInputDevice8* joystick = nullptr;
   HRESULT hr = directInput->CreateDevice( pdidInstance->guidInstance, &joystick, NULL );
-  TacAssert( SUCCEEDED( hr ) ); // ???
-  controller = new TacDirectInputPerController();
+  TAC_ASSERT( SUCCEEDED( hr ) ); // ???
+  controller = new DirectInputPerController();
   controller->mDivice = joystick;
   controller->mInstance = *pdidInstance;
   controller->mName = pdidInstance->tszInstanceName;
 
   hr = joystick->SetDataFormat( &c_dfDIJoystick2 );
-  TacAssert( SUCCEEDED( hr ) );// ???
+  TAC_ASSERT( SUCCEEDED( hr ) );// ???
 
   hr = joystick->Acquire();
-  TacAssert( SUCCEEDED( hr ) );// ???
+  TAC_ASSERT( SUCCEEDED( hr ) );// ???
 
   AddController( controller );
+}
 }

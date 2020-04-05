@@ -1,52 +1,54 @@
-#include "creation/tacCreationMainWindow.h"
-#include "creation/tacCreationGameObjectMenuWindow.h"
-#include "creation/tacCreation.h"
-#include "common/tacEvent.h"
-#include "common/tacOS.h"
-#include "common/tacDesktopWindow.h"
-#include "common/graphics/tacUI.h"
-#include "common/graphics/tacUI2D.h"
-#include "common/tacDesktopWindow.h"
-#include "common/tacShell.h"
-#include "common/assetmanagers/tacTextureAssetManager.h"
-#include "common/tackeyboardinput.h"
-#include "common/graphics/imgui/tacImGui.h"
-#include "space/tacworld.h"
-#include "space/tacentity.h"
-#include "shell/tacDesktopApp.h"
+#include "src/creation/tacCreationMainWindow.h"
+#include "src/creation/tacCreationGameObjectMenuWindow.h"
+#include "src/creation/tacCreation.h"
+#include "src/common/tacEvent.h"
+#include "src/common/tacOS.h"
+#include "src/common/tacDesktopWindow.h"
+#include "src/common/graphics/tacUI.h"
+#include "src/common/graphics/tacUI2D.h"
+#include "src/common/tacDesktopWindow.h"
+#include "src/common/tacShell.h"
+#include "src/common/assetmanagers/tacTextureAssetManager.h"
+#include "src/common/tacKeyboardinput.h"
+#include "src/common/graphics/imgui/tacImGui.h"
+#include "src/space/tacWorld.h"
+#include "src/space/tacEntity.h"
+#include "src/shell/tacDesktopApp.h"
 
-TacCreationMainWindow::~TacCreationMainWindow()
+namespace Tac
+{
+CreationMainWindow::~CreationMainWindow()
 {
   delete mUI2DDrawData;
   delete mUIRoot;
 }
-void TacCreationMainWindow::Init( TacErrors& errors )
+void CreationMainWindow::Init( Errors& errors )
 {
-  mUI2DDrawData = new TacUI2DDrawData;
+  mUI2DDrawData = new UI2DDrawData;
   mUI2DDrawData->mRenderView = mDesktopWindow->mRenderView;
-  mUIRoot = new TacUIRoot;
+  mUIRoot = new UIRoot;
   mUIRoot->mUI2DDrawData = mUI2DDrawData;
   mUIRoot->mDesktopWindow = mDesktopWindow;
 }
-void TacCreationMainWindow::LoadTextures( TacErrors& errors )
+void CreationMainWindow::LoadTextures( Errors& errors )
 {
   if( mAreTexturesLoaded )
     return;
-  struct TacTextureAndPath
+  struct TextureAndPath
   {
-    TacTexture** texture;
+    Texture** texture;
     const char* path;
   };
-  TacVector< TacTextureAndPath > textureAndPaths = {
+  Vector< TextureAndPath > textureAndPaths = {
     { &mIconWindow, "assets/grave.png" },
   { &mIconClose, "assets/icons/close.png" },
   { &mIconMinimize, "assets/icons/minimize.png" },
   { &mIconMaximize, "assets/icons/maximize.png" },
   };
   int loadedTextureCount = 0;
-  for( TacTextureAndPath textureAndPath : textureAndPaths )
+  for( TextureAndPath textureAndPath : textureAndPaths )
   {
-    TacTextureAssetManager::Instance->GetTexture( textureAndPath.texture, textureAndPath.path, errors );
+    TextureAssetManager::Instance->GetTexture( textureAndPath.texture, textureAndPath.path, errors );
     TAC_HANDLE_ERROR( errors );
     if( *textureAndPath.texture )
       loadedTextureCount++;
@@ -56,51 +58,51 @@ void TacCreationMainWindow::LoadTextures( TacErrors& errors )
 
 }
 
-void TacCreationMainWindow::ImGuiWindows()
+void CreationMainWindow::ImGuiWindows()
 {
-  TacImGuiText( "Windows" );
-  TacImGuiIndent();
+  ImGuiText( "Windows" );
+  ImGuiIndent();
 
   // static because hackery ( the errors get saved in a lambda,
   // which then turns into garbage when it goes out of scope... )
-  static TacErrors createWindowErrors;
-  if( TacImGuiButton( "System" ) )
+  static Errors createWindowErrors;
+  if( ImGuiButton( "System" ) )
     mCreation->CreateSystemWindow( createWindowErrors );
-  if( TacImGuiButton( "Game" ) )
+  if( ImGuiButton( "Game" ) )
     mCreation->CreateGameWindow( createWindowErrors );
-  if( TacImGuiButton( "Properties" ) )
+  if( ImGuiButton( "Properties" ) )
     mCreation->CreatePropertyWindow( createWindowErrors );
-  if( TacImGuiButton( "Profile" ) )
+  if( ImGuiButton( "Profile" ) )
     mCreation->CreateProfileWindow( createWindowErrors );
   if( createWindowErrors )
-    TacImGuiText( createWindowErrors.ToString() );
-  TacImGuiUnindent();
+    ImGuiText( createWindowErrors.ToString() );
+  ImGuiUnindent();
 }
-void TacCreationMainWindow::ImGui()
+void CreationMainWindow::ImGui()
 {
   SetCreationWindowImGuiGlobals( mDesktopWindow, mUI2DDrawData );
-  TacImGuiBegin( "Main Window", {} );
-  TacImGuiBeginMenuBar();
-  TacImGuiText( "file | edit | window" );
-  TacImGuiEndMenuBar();
-  if( TacImGuiButton( "save as" ) )
+  ImGuiBegin( "Main Window", {} );
+  ImGuiBeginMenuBar();
+  ImGuiText( "file | edit | window" );
+  ImGuiEndMenuBar();
+  if( ImGuiButton( "save as" ) )
   {
-    TacWorld* world = mCreation->mWorld;
+    World* world = mCreation->mWorld;
 
 
-    TacShell* shell = TacShell::Instance;
-    TacOS* os = TacOS::Instance;
+    Shell* shell = Shell::Instance;
+    OS* os = OS::Instance;
 
-    for( TacEntity* entity : world->mEntities )
+    for( Entity* entity : world->mEntities )
     {
       if( entity->mParent )
         continue;
 
-      TacString savePath;
-      TacString suggestedName =
+      String savePath;
+      String suggestedName =
         entity->mName +
         ".prefab";
-      TacErrors saveDialogErrors;
+      Errors saveDialogErrors;
       os->SaveDialog( savePath, suggestedName, saveDialogErrors );
       if( saveDialogErrors )
       {
@@ -111,11 +113,11 @@ void TacCreationMainWindow::ImGui()
 
       mCreation->ModifyPathRelative( savePath );
 
-      TacJson entityJson;
+      Json entityJson;
       entity->Save( entityJson );
 
-      TacString prefabJsonString = entityJson.Stringify();
-      TacErrors saveToFileErrors;
+      String prefabJsonString = entityJson.Stringify();
+      Errors saveToFileErrors;
       void* bytes = prefabJsonString.data();
       int byteCount = prefabJsonString.size();
       os->SaveToFile( savePath, bytes, byteCount, saveToFileErrors );
@@ -131,16 +133,16 @@ void TacCreationMainWindow::ImGui()
   ImGuiWindows();
 
   // to force directx graphics specific window debugging
-  if( TacImGuiButton( "close window" ) )
+  if( ImGuiButton( "close window" ) )
   {
     mDesktopWindow->mRequestDeletion = true;
   }
 
-  TacImGuiEnd();
+  ImGuiEnd();
 }
-void TacCreationMainWindow::Update( TacErrors& errors )
+void CreationMainWindow::Update( Errors& errors )
 {
-  TacShell* shell = TacShell::Instance;
+  Shell* shell = Shell::Instance;
   mDesktopWindow->SetRenderViewDefaults();
 
   LoadTextures( errors );
@@ -162,7 +164,7 @@ void TacCreationMainWindow::Update( TacErrors& errors )
     mGameObjectMenuWindow->Update( errors );
     TAC_HANDLE_ERROR( errors );
 
-    if( TacKeyboardInput::Instance->IsKeyJustDown( TacKey::MouseLeft ) &&
+    if( KeyboardInput::Instance->IsKeyJustDown( Key::MouseLeft ) &&
       !mGameObjectMenuWindow->mDesktopWindow->mCursorUnobscured &&
       shell->mElapsedSeconds != mGameObjectMenuWindow->mCreationSeconds )
     {
@@ -170,5 +172,8 @@ void TacCreationMainWindow::Update( TacErrors& errors )
       mGameObjectMenuWindow = nullptr;
     }
   }
+}
+
+
 }
 

@@ -1,42 +1,45 @@
+
 // This file contains common operations that you would do on generic types
 // Our version of stl's #include <algorithm>
 
 #pragma once
 
-#include "common/containers/tacVector.h"
-#include "common/containers/tacArray.h"
+#include "src/common/containers/tacVector.h"
+#include "src/common/containers/tacArray.h"
 
 
 #include <set>
 #include <map>
 #include <initializer_list>
 
+namespace Tac
+{
 
-// ie: if( TacContains( { 1, 2, 3, 4, 5, 6 }, i )
+// ie: if( Contains( { 1, 2, 3, 4, 5, 6 }, i )
 template< typename T, typename U >
-bool TacContains( const T& elements, const U& element )
+bool Contains( const T& elements, const U& element )
 {
   return std::find( elements.begin(), elements.end(), element ) != elements.end();
 }
 template< typename U >
-bool TacContains( const std::set< U>& elements, const U& element )
+bool Contains( const std::set< U>& elements, const U& element )
 {
   return elements.find( element ) != elements.end();
 }
 template< typename T, typename U >
-bool TacContains( const std::map< T, U >& elements, const T& key )
+bool Contains( const std::map< T, U >& elements, const T& key )
 {
   return elements.find( key ) != elements.end();
 }
 
-// ie: int i = TacRandom( { 1, 2, 3, 4, 5, 6 } )
+// ie: int i = Random( { 1, 2, 3, 4, 5, 6 } )
 template< typename T >
-auto TacRandomAccess( const T& ts ) -> decltype( ts[ 0 ] )
+auto RandomAccess( const T& ts ) -> decltype( ts[ 0 ] )
 {
   return ts[ std::rand() % ( int )ts.size() ];
 }
 template< typename T >
-auto TacRandomNoAccess( const T& ts ) -> decltype( *ts.begin() )
+auto RandomNoAccess( const T& ts ) -> decltype( *ts.begin() )
 {
   int c = std::rand() % ts.size();
   auto it = ts.begin();
@@ -45,7 +48,7 @@ auto TacRandomNoAccess( const T& ts ) -> decltype( *ts.begin() )
   return *it;
 }
 template< typename T >
-auto TacRandom( const T& ts ) -> decltype( *ts.begin() )
+auto Random( const T& ts ) -> decltype( *ts.begin() )
 {
   int c = std::rand() % ( int )ts.size();
   auto it = ts.begin();
@@ -53,12 +56,12 @@ auto TacRandom( const T& ts ) -> decltype( *ts.begin() )
     ++it;
   return *it;
 }
-template< typename T > T TacRandom( const TacVector< T >& ts ) { return TacRandomAccess( ts ); }
-template< typename T, size_t U > T TacRandom( const std::array< T, U >& ts ) { return TacRandomAccess( ts ); }
-template< typename T > T TacRandom( std::initializer_list<T> ts ) { return TacRandomNoAccess( ts ); }
+template< typename T > T Random( const Vector< T >& ts ) { return RandomAccess( ts ); }
+template< typename T, size_t U > T Random( const std::array< T, U >& ts ) { return RandomAccess( ts ); }
+template< typename T > T Random( std::initializer_list<T> ts ) { return RandomNoAccess( ts ); }
 
 template< typename TElement, typename TContainer >
-int TacIndexOf( const TElement& element, const TContainer& container )
+int IndexOf( const TElement& element, const TContainer& container )
 {
   int i = 0;
   for( const TElement& curElement : container )
@@ -77,7 +80,7 @@ int TacIndexOf( const TElement& element, const TContainer& container )
 // do some stuff with it, and then remove it from the container.
 // std::find_if returns an iterator that you can then use to remove the element
 template< typename TElement, typename TContainer, typename TPredicate >
-bool TacFindIf( TElement* foundElement, TContainer& elements, TPredicate predicate )
+bool FindIf( TElement* foundElement, TContainer& elements, TPredicate predicate )
 {
   for( TElement& currentElement : elements )
   {
@@ -91,10 +94,13 @@ bool TacFindIf( TElement* foundElement, TContainer& elements, TPredicate predica
 }
 
 template< typename T >
-void TacSwap( T& a, T& b )
+void Swap( T& a, T& b )
 {
   T temp = a;
   a = b;
   b = temp;
+}
+
+
 }
 

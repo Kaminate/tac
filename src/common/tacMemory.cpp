@@ -1,8 +1,12 @@
-#include "tacMemory.h"
+#include "src/common/tacMemory.h"
 
 #include <fstream>
 
-TacTemporaryMemory TacTemporaryMemoryFromFile( const TacStringView& path, TacErrors& errors )
+namespace Tac
+{
+
+
+TemporaryMemory TemporaryMemoryFromFile( const StringView& path, Errors& errors )
 {
   std::ifstream ifs( path.c_str(), std::ifstream::binary );
   if( !ifs.is_open() )
@@ -13,18 +17,18 @@ TacTemporaryMemory TacTemporaryMemoryFromFile( const TacStringView& path, TacErr
   ifs.seekg( 0, std::ifstream::end );
   auto byteCount = ifs.tellg();
   ifs.seekg( 0, std::ifstream::beg );
-  TacTemporaryMemory result( ( int )byteCount );
+  TemporaryMemory result( ( int )byteCount );
   ifs.read( result.data(), byteCount );
   return result;
 }
-TacTemporaryMemory TacTemporaryMemoryFromBytes( const void* bytes, int byteCount )
+TemporaryMemory TemporaryMemoryFromBytes( const void* bytes, int byteCount )
 {
-  TacTemporaryMemory result( byteCount );
-  TacMemCpy( result.data(), bytes, byteCount );
+  TemporaryMemory result( byteCount );
+  MemCpy( result.data(), bytes, byteCount );
   return result;
 }
 
-void TacWriteToFile( const TacString& path, void* bytes, int byteCount, TacErrors& errors )
+void WriteToFile( const String& path, void* bytes, int byteCount, Errors& errors )
 {
   std::ofstream ofs( path.c_str(), std::ofstream::binary );
   if( !ofs.is_open() )
@@ -33,4 +37,5 @@ void TacWriteToFile( const TacString& path, void* bytes, int byteCount, TacError
     return;
   }
   ofs.write( ( const char* )bytes, ( std::streamsize   ) byteCount );
+}
 }

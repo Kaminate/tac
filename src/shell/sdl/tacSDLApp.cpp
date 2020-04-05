@@ -1,18 +1,21 @@
-#include "tacSDLApp.h"
-#include "common/tacOS.h"
+#include "src/shell/sdl/tacSDLApp.h"
+#include "src/common/tacOS.h"
 #include <SDL_syswm.h>
 
+namespace Tac
+{
 
-TacSDLWindow::~TacSDLWindow()
+
+SDLWindow::~SDLWindow()
 {
   SDL_DestroyWindow( mWindow );
   app->mWindows.erase( this );
 }
 
-TacSDLApp::~TacSDLApp()
+SDLApp::~SDLApp()
 {
 }
-void TacSDLApp::Init( TacErrors& errors )
+void SDLApp::Init( Errors& errors )
 {
   int sdl_init_result = SDL_Init( SDL_INIT_EVERYTHING );
   if( sdl_init_result )
@@ -21,22 +24,22 @@ void TacSDLApp::Init( TacErrors& errors )
     return;
   }
 }
-void TacSDLApp::Poll( TacErrors& errors )
+void SDLApp::Poll( Errors& errors )
 {
   SDL_Event event;
   while( SDL_PollEvent( &event ) )
   {
-    if( TacOS::Instance->mShouldStopRunning )
+    if( OS::Instance->mShouldStopRunning )
       break;
     switch( event.type )
     {
     case SDL_QUIT:
     {
-      TacOS::Instance->mShouldStopRunning = true;
+      OS::Instance->mShouldStopRunning = true;
     } break;
     case SDL_WINDOWEVENT:
     {
-      TacSDLWindow* sdlWindow = FindSDLWindowByID( event.window.windowID );
+      SDLWindow* sdlWindow = FindSDLWindowByID( event.window.windowID );
       switch( event.window.event )
       {
       case SDL_WINDOWEVENT_CLOSE:
@@ -54,7 +57,7 @@ void TacSDLApp::Poll( TacErrors& errors )
     }
   }
 }
-void TacSDLApp::GetPrimaryMonitor( TacMonitor* monitor, TacErrors& errors )
+void SDLApp::GetPrimaryMonitor( Monitor* monitor, Errors& errors )
 {
   SDL_Rect rect;
   if( SDL_GetDisplayBounds( 0, &rect ) )
@@ -65,9 +68,9 @@ void TacSDLApp::GetPrimaryMonitor( TacMonitor* monitor, TacErrors& errors )
   monitor->w = rect.w;
   monitor->h = rect.h;
 }
-TacSDLWindow* TacSDLApp::FindSDLWindowByID( Uint32 windowID )
+SDLWindow* SDLApp::FindSDLWindowByID( Uint32 windowID )
 {
-  for( TacSDLWindow* linuxWindow : mWindows )
+  for( SDLWindow* linuxWindow : mWindows )
   {
     if( SDL_GetWindowID( linuxWindow->mWindow ) == windowID )
     {
@@ -76,7 +79,7 @@ TacSDLWindow* TacSDLApp::FindSDLWindowByID( Uint32 windowID )
   }
   return nullptr;
 }
-void TacSDLApp::SpawnWindowAux( const TacWindowParams& windowParams, TacDesktopWindow** desktopWindow, TacErrors& errors )
+void SDLApp::SpawnWindowAux( const WindowParams& windowParams, DesktopWindow** desktopWindow, Errors& errors )
 {
   Uint32 flags =
     SDL_WINDOW_SHOWN |
@@ -107,12 +110,13 @@ void TacSDLApp::SpawnWindowAux( const TacWindowParams& windowParams, TacDesktopW
   operatingSystemApplicationHandle = wmInfo.info.win.hinstance;
 #endif
 
-  auto linuxWindow = new TacSDLWindow();
+  auto linuxWindow = new SDLWindow();
   linuxWindow->mWindow = sdlWindow;
   linuxWindow->app = this;
   linuxWindow->mOperatingSystemHandle = operatingSystemHandle;
   linuxWindow->mOperatingSystemApplicationHandle = operatingSystemApplicationHandle;
-  *( TacWindowParams* )linuxWindow = windowParams;
+  *( WindowParams* )linuxWindow = windowParams;
   *desktopWindow = linuxWindow;
   mWindows.insert( linuxWindow );
+}
 }

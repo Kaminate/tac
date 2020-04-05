@@ -1,22 +1,28 @@
+
 #pragma once
 #include <cstdint>
+namespace Tac
+{
 
 
-typedef uint32_t TacUUID;
-const TacUUID TacNullUUID = 0;
+typedef uint32_t UUID;
+const UUID NullUUID = 0;
 
-enum class TacConnectionUUID : TacUUID;
-const TacConnectionUUID TacNullConnectionUUID = ( TacConnectionUUID )TacNullUUID;
+enum class ConnectionUUID : UUID;
+const ConnectionUUID NullConnectionUUID = ( ConnectionUUID )NullUUID;
 
-enum class TacPlayerUUID : TacUUID;
-const TacPlayerUUID TacNullPlayerUUID = ( TacPlayerUUID )TacNullUUID;
+enum class PlayerUUID : UUID;
+const PlayerUUID NullPlayerUUID = ( PlayerUUID )NullUUID;
 
-enum class TacEntityUUID : TacUUID;
-const TacEntityUUID TacNullEntityUUID = ( TacEntityUUID )TacNullUUID;
+enum class EntityUUID : UUID;
+const EntityUUID NullEntityUUID = ( EntityUUID )NullUUID;
 
-enum class TacAssetUUID : TacUUID;
-const TacAssetUUID TacNullAssetUUID = ( TacAssetUUID )TacNullUUID;
+enum class AssetUUID : UUID;
+const AssetUUID NullAssetUUID = ( AssetUUID )NullUUID;
 
-typedef uint8_t TacPlayerCount;
-typedef uint16_t TacEntityCount;
+typedef uint8_t PlayerCount;
+typedef uint16_t EntityCount;
+
+
+}
 

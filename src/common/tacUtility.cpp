@@ -1,31 +1,34 @@
+#include "src/common/tacUtility.h"
+#include "src/common/tacAlgorithm.h"
+#include "src/common/tacPreprocessor.h"
 #include <fstream>
-#include "tacUtility.h"
-#include "tacAlgorithm.h"
-#include "tacPreprocessor.h"
+namespace Tac
+{
 
 
-TacSplitFilepath::TacSplitFilepath( const TacString& entireFilepath )
+
+SplitFilepath::SplitFilepath( const String& entireFilepath )
 {
   auto found = entireFilepath.find_last_of( "/\\" );
   mDirectory = entireFilepath.substr( 0, found );
   mFilename = entireFilepath.substr( found + 1 );
 }
-TacString TacStripExt( const TacString& path )
+String StripExt( const String& path )
 {
   auto found = path.find_last_of( "." );
-  TacAssert( found != TacString::npos );
+  TAC_ASSERT( found != String::npos );
   return path.substr( 0, found );
 }
-TacString TacStripLeadingSlashes( const TacString& path )
+String StripLeadingSlashes( const String& path )
 {
   int i;
   for( i = 0; i < path.size(); i++ )
     if( path[ i ] != '/' && path[ i ] != '\\' )
       break;
-  TacString result = path.substr( i );
+  String result = path.substr( i );
   return result;
 }
-void TacSaveToFile( const TacString& path, void* bytes, int byteCount, TacErrors& errors )
+void SaveToFile( const String& path, void* bytes, int byteCount, Errors& errors )
 {
   std::ofstream ofs( path.c_str(), std::ofstream::binary );
   if( !ofs.is_open() )
@@ -35,13 +38,13 @@ void TacSaveToFile( const TacString& path, void* bytes, int byteCount, TacErrors
   }
   ofs.write( ( const char* )bytes, byteCount );
 }
-bool TacIsOfExt( const TacString& str, const TacString& ext )
+bool IsOfExt( const String& str, const String& ext )
 {
-  auto lower_str = TacToLower( str );
-  auto lower_ext = TacToLower( ext );
-  return TacEndsWith( lower_str, lower_ext );
+  auto lower_str = ToLower( str );
+  auto lower_ext = ToLower( ext );
+  return EndsWith( lower_str, lower_ext );
 }
-bool TacFileExist( const TacString& str )
+bool FileExist( const String& str )
 {
   return std::ifstream( str.c_str() ).good();
 }
@@ -49,11 +52,11 @@ bool TacFileExist( const TacString& str )
 //
 // String-manipulation
 //
-TacString TacSeparateStrings( const TacVector< TacString>& lines, const TacString& separator )
+String SeparateStrings( const Vector< String>& lines, const String& separator )
 {
-  TacString curSeparator;
-  TacString result;
-  for( const TacString& line : lines )
+  String curSeparator;
+  String result;
+  for( const String& line : lines )
   {
     result += curSeparator;
     curSeparator = separator;
@@ -61,16 +64,16 @@ TacString TacSeparateStrings( const TacVector< TacString>& lines, const TacStrin
   }
   return result;
 }
-TacString TacSeparateNewline( const TacVector< TacString>& lines )
+String SeparateNewline( const Vector< String>& lines )
 {
-  return TacSeparateStrings( lines, "\n" );
+  return SeparateStrings( lines, "\n" );
 }
-TacString TacSeparateSpace( const TacVector< TacString>& lines )
+String SeparateSpace( const Vector< String>& lines )
 {
-  return TacSeparateStrings( lines, " " );
+  return SeparateStrings( lines, " " );
 }
 
-bool TacStartsWith( const TacString& str, const TacString& prefix )
+bool StartsWith( const String& str, const String& prefix )
 {
   if( str.size() < prefix.size() )
     return false;
@@ -79,7 +82,7 @@ bool TacStartsWith( const TacString& str, const TacString& prefix )
       return false;
   return true;
 }
-bool TacEndsWith( const TacString& str, const TacString& suffix )
+bool EndsWith( const String& str, const String& suffix )
 {
   if( str.size() < suffix.size() )
     return false;
@@ -88,29 +91,30 @@ bool TacEndsWith( const TacString& str, const TacString& suffix )
       return false;
   return true;
 }
-TacString TacToLower( const TacString& str )
+String ToLower( const String& str )
 {
-  TacString result;
+  String result;
   for( auto c : str )
     result += ( char )tolower( c );
   return result;
 }
-TacString TacFormatPercentage( float number_between_0_and_1 )
+String FormatPercentage( float number_between_0_and_1 )
 {
-  TacString result;
+  String result;
   float t = number_between_0_and_1 * 100;
-  result += TacToString( ( int )t );
+  result += ToString( ( int )t );
   t -= ( int )t;
   t *= 100;
   result += ".";
-  result += TacToString( ( int )t );
+  result += ToString( ( int )t );
   result += "%";
   return result;
 }
-TacString TacFormatPercentage( float curr, float maxi )
+String FormatPercentage( float curr, float maxi )
 {
   if( curr <= maxi )
     return "0%";
-  return TacFormatPercentage( curr / maxi );
+  return FormatPercentage( curr / maxi );
 }
 
+}

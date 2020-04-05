@@ -1,112 +1,117 @@
+
 // Networking interface ( udp, tcp websockets )
 
 #pragma once
 
-#include "tacShell.h"
+#include "src/common/tacShell.h"
+#include "src/common/tacString.h"
+#include "src/common/tacErrorHandling.h"
+#include "src/common/containers/tacVector.h"
 
-#include "common/tacString.h"
-#include "common/tacErrorHandling.h"
-#include "common/containers/tacVector.h"
+namespace Tac
+{
+const String requestMethodGET = "GET";
+const String httpVersion = "HTTP/1.1";
 
-const TacString requestMethodGET = "GET";
-const TacString httpVersion = "HTTP/1.1";
+enum class AddressFamily;
+enum class SocketType;
+struct Socket;
+struct HTTPRequest;
+struct Net;
 
-enum class TacAddressFamily;
-enum class TacSocketType;
-struct TacSocket;
-struct TacHTTPRequest;
-struct TacNet;
-
-enum class TacAddressFamily
+enum class AddressFamily
 {
   IPv4,
   IPv6,
   Count,
 };
-TacString ToString( TacAddressFamily addressFamily );
+String ToString( AddressFamily addressFamily );
 
-enum class TacSocketType
+enum class SocketType
 {
   TCP, // transmission control protocol
   UDP, // user datagram protocol
   Count,
 };
-TacString ToString( TacSocketType socketType );
+String ToString( SocketType socketType );
 
-typedef void( TacSocketCallback )( void* userData, TacSocket* socket );
-typedef void( TacSocketCallbackMessage )( void* userData, TacSocket* socket, void* bytes, int byteCount );
+typedef void( SocketCallback )( void* userData, Socket* socket );
+typedef void( SocketCallbackMessage )( void* userData, Socket* socket, void* bytes, int byteCount );
 
 // Should these have a debug name?
-// Should these structs be merged and the callback be a union?
-struct TacSocketCallbackData
+// Should these struct S be merged and the callback be a union?
+struct SocketCallbackData
 {
-  TacSocketCallback* mCallback = nullptr;
+  SocketCallback* mCallback = nullptr;
   void* mUserData = nullptr;
 };
-struct TacSocketCallbackDataMessage
+struct SocketCallbackDataMessage
 {
-  TacSocketCallbackMessage* mCallback = nullptr;
+  SocketCallbackMessage* mCallback = nullptr;
   void* mUserData = nullptr;
 };
 
-struct TacSocket
+struct Socket
 {
-  virtual ~TacSocket() = default;
+  virtual ~Socket() = default;
   void DebugImgui();
-  void Send( const TacHTTPRequest& httpRequest, TacErrors& errors );
-  void Send( const TacString& s, TacErrors& errors );
-  virtual void Send( void* bytes, int byteCount, TacErrors& errors ) = 0;
-  virtual void TCPTryConnect( const TacString& hostname, uint16_t port, TacErrors& errors ) = 0;
+  void Send( const HTTPRequest& httpRequest, Errors& errors );
+  void Send( const String& s, Errors& errors );
+  virtual void Send( void* bytes, int byteCount, Errors& errors ) = 0;
+  virtual void TCPTryConnect( const String& hostname, uint16_t port, Errors& errors ) = 0;
   void OnMessage( void* bytes, int byteCount );
 
-  TacString mName;
-  TacSocketType mSocketType = TacSocketType::Count;
-  TacAddressFamily mAddressFamily = TacAddressFamily::Count;
+  String mName;
+  SocketType mSocketType = SocketType::Count;
+  AddressFamily mAddressFamily = AddressFamily::Count;
   double mElapsedSecondsOnLastRecv = 0;
-  TacNet* mNet = nullptr;
+  Net* mNet = nullptr;
   bool mTCPIsConnected = false;
   bool mRequestDeletion = false;
-  TacVector< TacSocketCallbackDataMessage > mTCPOnMessage;
-  TacVector< TacSocketCallbackData > mTCPOnConnectionClosed;
+  Vector< SocketCallbackDataMessage > mTCPOnMessage;
+  Vector< SocketCallbackData > mTCPOnConnectionClosed;
   bool mRequiresWebsocketFrame = false;
-  TacSocketCallbackData mKeepaliveOverride;
+  SocketCallbackData mKeepaliveOverride;
 };
 
-struct TacHTTPRequest
+struct HTTPRequest
 {
-  void AddString( const TacString& s );
+  void AddString( const String& s );
   void AddNewline();
-  void AddLine( const TacString& s );
+  void AddLine( const String& s );
   void FormatRequestHTTP(
-    const TacString& requestMethod,
-    const TacString& host,
-    const TacString& messageBody );
+    const String& requestMethod,
+    const String& host,
+    const String& messageBody );
   void FormatRequestWebsocket(
-    const TacString& uri,
-    const TacString& host,
-    const TacVector< uint8_t > & secWebsocketKey );
-  TacString ToString();
-  TacVector< char > mBytes;
+    const String& uri,
+    const String& host,
+    const Vector< uint8_t > & secWebsocketKey );
+  String ToString();
+  Vector< char > mBytes;
 };
 
-struct TacNet
+struct Net
 {
-  static TacNet* Instance;
-  TacNet();
-  virtual ~TacNet() = default;
-  virtual TacSocket* CreateSocket(
-    const TacString& name,
-    TacAddressFamily addressFamily,
-    TacSocketType socketType,
-    TacErrors& errors ) = 0;
-  virtual TacVector< TacSocket* > GetSockets() = 0;
+  static Net* Instance;
+  Net();
+  virtual ~Net() = default;
+  virtual Socket* CreateSocket(
+    const String& name,
+    AddressFamily addressFamily,
+    SocketType socketType,
+    Errors& errors ) = 0;
+  virtual Vector< Socket* > GetSockets() = 0;
   virtual void DebugImgui() = 0;
-  virtual void Update( TacErrors& errors ) = 0;
+  virtual void Update( Errors& errors ) = 0;
   
 };
 
-TacVector< uint8_t > TacGenerateSecWebsocketKey();
+Vector< uint8_t > GenerateSecWebsocketKey();
 
-TacString TacBase64Encode( const TacVector< uint8_t >& input );
-TacString TacBase64Encode( const TacString& input );
-void TacBase64EncodeRunTests();
+String Base64Encode( const Vector< uint8_t >& input );
+String Base64Encode( const String& input );
+void Base64EncodeRunTests();
+
+}
+

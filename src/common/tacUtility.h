@@ -3,41 +3,42 @@
 
 #pragma once
 
-#include "tacString.h"
-#include "tacErrorHandling.h"
-#include "containers/tacVector.h"
-//#include "tacPreprocessor.h"
+#include "src/common/tacString.h"
+#include "src/common/tacErrorHandling.h"
+#include "src/common/containers/tacVector.h"
 
-//#include <set>
+namespace Tac
+{
 
 
 //
 // Filesystem utils
 //
-struct TacSplitFilepath
+struct SplitFilepath
 {
   // "/usr/bin/man" --> { "/user/bin", "man" }
   // "c:\windows\winhelp.exe" --> { "c:\windows", "winhelp.exe" }
-  TacSplitFilepath( const TacString& );
-  TacString mFilename;
-  TacString mDirectory;
+  SplitFilepath( const String& );
+  String mFilename;
+  String mDirectory;
 };
-void TacSaveToFile( const TacString& path, void* bytes, int byteCount, TacErrors& errors );
-bool TacIsOfExt( const TacString& str, const TacString& ext );
-bool TacFileExist( const TacString& str );
-TacString TacStripExt( const TacString& path );
-TacString TacStripLeadingSlashes( const TacString& path );
+void SaveToFile( const String& path, void* bytes, int byteCount, Errors& errors );
+bool IsOfExt( const String& str, const String& ext );
+bool FileExist( const String& str );
+String StripExt( const String& path );
+String StripLeadingSlashes( const String& path );
 
 
 //
 // String-manipulation
 //
-TacString TacSeparateStrings( const TacVector< TacString>& lines, const TacString& separator );
-TacString TacSeparateNewline( const TacVector< TacString>& lines );
-TacString TacSeparateSpace( const TacVector< TacString>& lines );
-bool TacStartsWith( const TacString& str, const TacString& prefix );
-bool TacEndsWith( const TacString& str, const TacString& suffix );
-TacString TacToLower( const TacString& str );
-TacString TacFormatPercentage( float number_between_0_and_1 );
-TacString TacFormatPercentage( float curr, float maxi );
+String SeparateStrings( const Vector< String>& lines, const String& separator );
+String SeparateNewline( const Vector< String>& lines );
+String SeparateSpace( const Vector< String>& lines );
+bool StartsWith( const String& str, const String& prefix );
+bool EndsWith( const String& str, const String& suffix );
+String ToLower( const String& str );
+String FormatPercentage( float number_between_0_and_1 );
+String FormatPercentage( float curr, float maxi );
 
+}

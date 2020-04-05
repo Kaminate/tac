@@ -1,9 +1,12 @@
 #pragma once
-#include "common/containers/tacVector.h"
+#include "src/common/containers/tacVector.h"
 #include <functional>
+namespace Tac
+{
+
 
 template< typename... Args >
-struct TacEvent
+struct Event
 {
   struct Emitter
   {
@@ -27,8 +30,9 @@ struct TacEvent
       mFunctionalHandlerSlots.clear();
     }
   private:
-    TacVector< std::function< void( Args... ) > > mFunctionalHandlerSlots;
+    Vector< std::function< void( Args... ) > > mFunctionalHandlerSlots;
   };
 };
 
 
+}

@@ -1,6 +1,10 @@
 #pragma once
 
-#include "tacVector2.h"
+#include "src/common/math/tacVector2.h"
+
+namespace Tac
+{
+
 
 struct v3
 {
@@ -34,16 +38,17 @@ struct v3
 };
 
 v3 operator *( float f, const v3& v );
-float TacDot( const v3& lhs, const v3& rhs );
+float Dot( const v3& lhs, const v3& rhs );
 v3 Cross( const v3& lhs, const v3& rhs );
 v3 Normalize( const v3& v );
 float Length( const v3& v );
 float Distance( const v3& lhs, const v3& rhs );
-float TacQuadrance( const v3& v );
-float TacQuadrance( const v3& lhs, const v3& rhs );
+float Quadrance( const v3& v );
+float Quadrance( const v3& lhs, const v3& rhs );
 
-// float Angle( v3 a, v3 b ) { return std::acos( TacDot( a, b ) / ( Length( a ) * Length( b ) ) ); }
+// float Angle( v3 a, v3 b ) { return std::acos( Dot( a, b ) / ( Length( a ) * Length( b ) ) ); }
 
-v3 TacProject( const v3& onto_b, const v3& of_a );
+v3 Project( const v3& onto_b, const v3& of_a );
 
 void GetFrameRH( const v3& normalizedDir, v3& unittan1, v3& unittan2 );
+}

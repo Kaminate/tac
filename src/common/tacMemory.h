@@ -1,49 +1,53 @@
 #pragma once
 
-#include "common/tacErrorHandling.h"
-#include "common/tacString.h"
-#include "common/containers/tacVector.h"
+#include "src/common/tacErrorHandling.h"
+#include "src/common/tacString.h"
+#include "src/common/containers/tacVector.h"
 
-typedef TacVector< char > TacTemporaryMemory;
+namespace Tac
+{
 
-TacTemporaryMemory TacTemporaryMemoryFromFile( const TacStringView& path, TacErrors& errors );
-TacTemporaryMemory TacTemporaryMemoryFromBytes( const void* bytes, int byteCount );
+
+typedef Vector< char > TemporaryMemory;
+
+TemporaryMemory TemporaryMemoryFromFile( const StringView& path, Errors& errors );
+TemporaryMemory TemporaryMemoryFromBytes( const void* bytes, int byteCount );
 
 template< typename T >
-TacTemporaryMemory TacTemporaryMemoryFromT( const T& t )
+TemporaryMemory TemporaryMemoryFromT( const T& t )
 {
-  return TacTemporaryMemoryFromBytes( ( void* )&t, ( int )sizeof( T ) );
+  return TemporaryMemoryFromBytes( ( void* )&t, ( int )sizeof( T ) );
 }
 
-void TacWriteToFile( const TacString& path,  void* bytes, int byteCount , TacErrors& errors );
+void WriteToFile( const String& path,  void* bytes, int byteCount , Errors& errors );
 
-//struct TacTemporaryMemoryRingBuffer
+//struct TemporaryMemoryRingBuffer
 //{
 //
 //};
 
 template< typename T >
-struct TacOwned
+struct Owned
 {
-  TacOwned() = default;
-  TacOwned( T* t ) : mT( t ) {}
-  ~TacOwned()
+  Owned() = default;
+  Owned( T* t ) : mT( t ) {}
+  ~Owned()
   {
     delete mT;
     mT = nullptr;
   }
-  TacOwned& GainOwnershipFrom( TacOwned< T >& rhs )
+  Owned& GainOwnershipFrom( Owned< T >& rhs )
   {
     delete mT;
     mT = rhs.mT;
     rhs.mT = nullptr;
     return *this;
   }
-  TacOwned& operator = ( TacOwned< T >&& rhs )
+  Owned& operator = ( Owned< T >&& rhs )
   {
     return GainOwnershipFrom( rhs );
   }
-  TacOwned& operator = ( TacOwned< T >& rhs )
+  Owned& operator = ( Owned< T >& rhs )
   {
     return GainOwnershipFrom( rhs );
   }
@@ -58,3 +62,4 @@ struct TacOwned
   T* mT = nullptr;
 };
 
+}

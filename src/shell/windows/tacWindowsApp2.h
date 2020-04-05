@@ -4,54 +4,59 @@
 
 #pragma once
 
-#include "common/tacShell.h"
-#include "common/tacString.h"
-#include "common/tacErrorHandling.h"
-#include "common/containers/tacVector.h"
-#include "common/tacEvent.h"
-#include "shell/tacDesktopApp.h"
-#include "shell/windows/tacWindows.h"
-#include "shell/windows/tacWindowsMouseEdge.h"
+#include "src/common/tacShell.h"
+#include "src/common/tacString.h"
+#include "src/common/tacErrorHandling.h"
+#include "src/common/containers/tacVector.h"
+#include "src/common/tacEvent.h"
+#include "src/shell/tacDesktopApp.h"
+#include "src/shell/windows/tacWindows.h"
+#include "src/shell/windows/tacWindowsMouseEdge.h"
 
-struct TacWin32DesktopWindow : public TacDesktopWindow
+namespace Tac
 {
-  ~TacWin32DesktopWindow();
-  LRESULT HandleWindowProc( UINT uMsg, WPARAM wParam, LPARAM lParam );
-  void Poll( TacErrors& errors );
-
-  TacWindowsApplication2* app = nullptr;
-  HWND mHWND = NULL;
-  bool mIsMouseInWindow = false;
-  TacErrors mWindowProcErrors;
-};
 
 
-struct TacWindowsApplication2 : public TacDesktopApp
-{
-  static TacWindowsApplication2* Instance;
-  TacWindowsApplication2();
-  ~TacWindowsApplication2();
-  void Init( TacErrors& errors ) override;
-  void Poll( TacErrors& errors ) override;
+  struct Win32DesktopWindow : public DesktopWindow
+  {
+    ~Win32DesktopWindow();
+    LRESULT HandleWindowProc( UINT uMsg, WPARAM wParam, LPARAM lParam );
+    void Poll( Errors& errors );
 
-  // Note: The first window spawned will be the parent window,
-  //       combining them all into one tab group
-  void SpawnWindowAux( const TacWindowParams&, TacDesktopWindow**, TacErrors& ) override;
-  void GetPrimaryMonitor( TacMonitor* monitor, TacErrors& errors ) override;
-  TacWin32DesktopWindow* TacFindWindow( HWND hwnd );
+    WindowsApplication2* app = nullptr;
+    HWND mHWND = NULL;
+    bool mIsMouseInWindow = false;
+    Errors mWindowProcErrors;
+  };
 
-  TacWin32DesktopWindow* GetCursorUnobscuredWindow();
 
-  // WinMain arguments
-  HINSTANCE mHInstance = nullptr;
-  HINSTANCE mhPrevInstance = nullptr;
-  LPSTR mlpCmdLine = nullptr;
-  int mNCmdShow = 0;
+  struct WindowsApplication2 : public DesktopApp
+  {
+    static WindowsApplication2* Instance;
+    WindowsApplication2();
+    ~WindowsApplication2();
+    void Init( Errors& errors ) override;
+    void Poll( Errors& errors ) override;
 
-  bool mShouldWindowHaveBorder;
-  TacVector< TacWin32DesktopWindow* > mWindows;
-  HWND mParentHWND = NULL;
-  TacWin32MouseEdgeHandler* mMouseEdgeHandler = nullptr;
-  TacWin32Cursors* mCursors = new TacWin32Cursors();
-};
+    // Note: The first window spawned will be the parent window,
+    //       combining them all into one tab group
+    void SpawnWindowAux( const WindowParams&, DesktopWindow**, Errors& ) override;
+    void GetPrimaryMonitor( Monitor* monitor, Errors& errors ) override;
+    Win32DesktopWindow* FindWindow( HWND hwnd );
 
+    Win32DesktopWindow* GetCursorUnobscuredWindow();
+
+    // WinMain arguments
+    HINSTANCE mHInstance = nullptr;
+    HINSTANCE mhPrevInstance = nullptr;
+    LPSTR mlpCmdLine = nullptr;
+    int mNCmdShow = 0;
+
+    bool mShouldWindowHaveBorder;
+    Vector< Win32DesktopWindow* > mWindows;
+    HWND mParentHWND = NULL;
+    Win32MouseEdgeHandler* mMouseEdgeHandler = nullptr;
+    Win32Cursors* mCursors = new Win32Cursors();
+  };
+
+}

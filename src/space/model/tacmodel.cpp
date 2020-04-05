@@ -1,51 +1,47 @@
-#include "space/model/tacmodel.h"
-#include "space/tacentity.h"
-#include "space/graphics/tacgraphics.h"
-#include "common/graphics/imgui/tacImGui.h"
-#include "common/tacOS.h"
-#include "common/tacUtility.h"
-#include "common/tacErrorHandling.h"
-#include "common/tacJson.h"
 
-//#include "common\tacAssetManager.h"
-//#include "common\tacPlatform.h"
-//#include "core\tacstuff.h"
-//#include "core\tacentity.h"
-//#include "core\tacworld.h"
-//#include <iostream>
-//#include <fstream>
+#include "src/space/model/tacModel.h"
+#include "src/space/tacEntity.h"
+#include "src/space/graphics/tacGraphics.h"
+#include "src/common/graphics/imgui/tacImGui.h"
+#include "src/common/tacOS.h"
+#include "src/common/tacUtility.h"
+#include "src/common/tacErrorHandling.h"
+#include "src/common/tacJson.h"
 
-
-TacComponentRegistryEntry* TacModel::ModelComponentRegistryEntry;
-
-const TacModel* TacModel::GetModel( const TacEntity* entity )
+namespace Tac
 {
-  return ( TacModel* )entity->GetComponent( TacModel::ModelComponentRegistryEntry );
+
+
+ComponentRegistryEntry* Model::ModelComponentRegistryEntry;
+
+const Model* Model::GetModel( const Entity* entity )
+{
+  return ( Model* )entity->GetComponent( Model::ModelComponentRegistryEntry );
 }
-TacModel* TacModel::GetModel( TacEntity* entity )
+Model* Model::GetModel( Entity* entity )
 {
-  return ( TacModel* )entity->GetComponent( TacModel::ModelComponentRegistryEntry );
+  return ( Model* )entity->GetComponent( Model::ModelComponentRegistryEntry );
 }
-TacComponentRegistryEntry* TacModel::GetEntry()
+ComponentRegistryEntry* Model::GetEntry()
 {
-  return TacModel::ModelComponentRegistryEntry;
+  return Model::ModelComponentRegistryEntry;
 }
 
 
-static TacComponent* TacCreateModelComponent( TacWorld* world )
+static Component* CreateModelComponent( World* world )
 {
-  return TacGraphics::GetSystem( world )->CreateModelComponent();
+  return Graphics::GetSystem( world )->CreateModelComponent();
 }
 
-static void TacDestroyModelComponent( TacWorld* world, TacComponent* component )
+static void DestroyModelComponent( World* world, Component* component )
 {
-  TacGraphics::GetSystem( world )->DestroyModelComponent( ( TacModel* )component );
+  Graphics::GetSystem( world )->DestroyModelComponent( ( Model* )component );
 }
 
-static void TacSaveModelComponent( TacJson& modelJson, TacComponent* component )
+static void SaveModelComponent( Json& modelJson, Component* component )
 {
-  auto model = ( TacModel* )component;
-  TacJson colorRGBJson;
+  auto model = ( Model* )component;
+  Json colorRGBJson;
   colorRGBJson[ "r" ] = model->mColorRGB[ 0 ];
   colorRGBJson[ "g" ] = model->mColorRGB[ 1 ];
   colorRGBJson[ "b" ] = model->mColorRGB[ 2 ];
@@ -54,9 +50,9 @@ static void TacSaveModelComponent( TacJson& modelJson, TacComponent* component )
   modelJson[ "mColorRGB" ] = colorRGBJson;
 }
 
-static void TacLoadModelComponent( TacJson& modelJson, TacComponent* component )
+static void LoadModelComponent( Json& modelJson, Component* component )
 {
-  auto model = ( TacModel* )component;
+  auto model = ( Model* )component;
   model->mGLTFPath = ( modelJson )[ "mGLTFPath" ].mString;
   model->mColorRGB = {
     ( float )( modelJson )[ "mColorRGB" ][ "r" ].mNumber,
@@ -65,15 +61,18 @@ static void TacLoadModelComponent( TacJson& modelJson, TacComponent* component )
 }
 
 
-  void TacModelDebugImgui( TacComponent* );
-void TacModel::TacSpaceInitGraphicsModel()
+  void ModelDebugImgui( Component* );
+void Model::SpaceInitGraphicsModel()
 {
-  TacModel::ModelComponentRegistryEntry = TacComponentRegistry::Instance()->RegisterNewEntry();
-  TacModel::ModelComponentRegistryEntry->mName = "Model";
-  TacModel::ModelComponentRegistryEntry->mNetworkBits = TacComponentModelBits;
-  TacModel::ModelComponentRegistryEntry->mCreateFn = TacCreateModelComponent;
-  TacModel::ModelComponentRegistryEntry->mDestroyFn = TacDestroyModelComponent;
-  TacModel::ModelComponentRegistryEntry->mDebugImguiFn = TacModelDebugImgui;
-  TacModel::ModelComponentRegistryEntry->mSaveFn = TacSaveModelComponent;
-  TacModel::ModelComponentRegistryEntry->mLoadFn = TacLoadModelComponent;
+  Model::ModelComponentRegistryEntry = ComponentRegistry::Instance()->RegisterNewEntry();
+  Model::ModelComponentRegistryEntry->mName = "Model";
+  Model::ModelComponentRegistryEntry->mNetworkBits = ComponentModelBits;
+  Model::ModelComponentRegistryEntry->mCreateFn = CreateModelComponent;
+  Model::ModelComponentRegistryEntry->mDestroyFn = DestroyModelComponent;
+  Model::ModelComponentRegistryEntry->mDebugImguiFn = ModelDebugImgui;
+  Model::ModelComponentRegistryEntry->mSaveFn = SaveModelComponent;
+  Model::ModelComponentRegistryEntry->mLoadFn = LoadModelComponent;
 }
+
+}
+

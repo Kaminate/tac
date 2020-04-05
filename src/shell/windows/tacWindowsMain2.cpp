@@ -1,11 +1,6 @@
 // Entry point into a windows application
 
-#include "shell/windows/tacWindowsApp2.h"
-#include "common/tacOS.h"
-
-// temp
-#include "common/tacJson.h"
-
+#include "src/shell/windows/tacWindowsApp2.h"
 
 int CALLBACK WinMain(
   HINSTANCE hInstance,
@@ -13,7 +8,7 @@ int CALLBACK WinMain(
   LPSTR lpCmdLine,
   int nCmdShow )
 {
-  auto windowsApplication = new TacWindowsApplication2();
+  auto windowsApplication = new Tac::WindowsApplication2();
   windowsApplication->mHInstance = hInstance;
   windowsApplication->mlpCmdLine = lpCmdLine;
   windowsApplication->mNCmdShow = nCmdShow;

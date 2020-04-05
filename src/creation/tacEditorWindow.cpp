@@ -1,1 +1,8 @@
-#include "tacEditorWindow.h"
+
+#include "src/creation/tacEditorWindow.h"
+
+namespace Tac
+{
+
+}
+

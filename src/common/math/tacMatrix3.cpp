@@ -1,5 +1,9 @@
-#include "tacMatrix3.h"
+#include "src/common/math/tacMatrix3.h"
 #include <cmath> // sin, cos, sqrt
+
+namespace Tac
+{
+
 
 float* m3::data()
 {
@@ -212,4 +216,5 @@ m3 M3Translate( float x, float y )
 m3 M3Translate( v2 v )
 {
   return M3Translate( v.x, v.y );
+}
 }

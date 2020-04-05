@@ -1,9 +1,13 @@
 #include <algorithm> // std::reverse
 #include <cstring> // std::memcpy
-#include "common/tacSerialization.h"
-#include "common/tacPreprocessor.h" // assert
+#include "src/common/tacSerialization.h"
+#include "src/common/tacPreprocessor.h" // assert
 
-TacEndianness TacGetEndianness()
+namespace Tac
+{
+
+
+Endianness GetEndianness()
 {
   union U16B
   {
@@ -14,14 +18,14 @@ TacEndianness TacGetEndianness()
   u16b.mu16 = 0xABCD;
   if( u16b.mu8[ 0 ] == 0xCD &&
       u16b.mu8[ 1 ] == 0xAB )
-    return TacEndianness::Little;
-  return TacEndianness::Big;
+    return Endianness::Little;
+  return Endianness::Big;
 }
 
-bool TacReader::Read( void* values, int valueCount, int sizeOfValue )
+bool Reader::Read( void* values, int valueCount, int sizeOfValue )
 {
-  TacAssert( mFrom != TacEndianness::Unknown );
-  TacAssert( mTo != TacEndianness::Unknown );
+  TAC_ASSERT( mFrom != Endianness::Unknown );
+  TAC_ASSERT( mTo != Endianness::Unknown );
   if( ( char* )mEnd - ( char* )mBegin <  valueCount * sizeOfValue )
     return false;
   auto value = ( char* )values;
@@ -35,12 +39,12 @@ bool TacReader::Read( void* values, int valueCount, int sizeOfValue )
   }
   return true;
 }
-bool TacReader::Read( void* bytes, const TacVector< TacNetworkBit >& networkBits )
+bool Reader::Read( void* bytes, const Vector< NetworkBit >& networkBits )
 {
   uint8_t bitfield;
   if( !Read( &bitfield ) )
     return false;
-  TacAssert( bitfield ); // y u sending me nothin
+  TAC_ASSERT( bitfield ); // y u sending me nothin
   for( int networkBitIndex = 0; networkBitIndex < networkBits.size(); ++networkBitIndex )
   {
     if( !( bitfield & ( 1 << networkBitIndex ) ) )
@@ -55,10 +59,10 @@ bool TacReader::Read( void* bytes, const TacVector< TacNetworkBit >& networkBits
   return true;
 }
 
-void TacWriter::Write( const void* values, int valueCount, int sizeOfValue )
+void Writer::Write( const void* values, int valueCount, int sizeOfValue )
 {
-  TacAssert( mFrom != TacEndianness::Unknown );
-  TacAssert( mTo != TacEndianness::Unknown );
+  TAC_ASSERT( mFrom != Endianness::Unknown );
+  TAC_ASSERT( mTo != Endianness::Unknown );
   auto value = ( const char* )values;
   for( int i = 0; i < valueCount; ++i )
   {
@@ -70,21 +74,22 @@ void TacWriter::Write( const void* values, int valueCount, int sizeOfValue )
     value += sizeOfValue;
   }
 }
-void TacWriter::Write(
+void Writer::Write(
   const void* bytes,
   uint8_t bitfield,
-  const TacVector< TacNetworkBit >& networkBits )
+  const Vector< NetworkBit >& networkBits )
 {
   Write( bitfield );
-  TacAssert( bitfield );
+  TAC_ASSERT( bitfield );
   for( int networkBitIndex = 0; networkBitIndex < networkBits.size(); ++networkBitIndex )
   {
     if( !( bitfield & ( 1 << networkBitIndex ) ) )
       continue;
-    const TacNetworkBit& networkBit = networkBits[ networkBitIndex ];
+    const NetworkBit& networkBit = networkBits[ networkBitIndex ];
     Write(
       ( char* )bytes + networkBit.mByteOffset,
       networkBit.mComponentCount,
       networkBit.mComponentByteCount );
   }
+}
 }

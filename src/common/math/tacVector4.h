@@ -1,5 +1,8 @@
 #pragma once
-#include "tacVector3.h"
+#include "src/common/math/tacVector3.h"
+
+namespace Tac
+{
 
 struct v4
 {
@@ -36,3 +39,4 @@ struct v4
 v4 operator *( float f, const v4& v );
 float dot( const v4& lhs, const v4& rhs );
 
+}

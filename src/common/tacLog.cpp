@@ -1,65 +1,68 @@
-#include "common/tacLog.h"
-#include "common/tacPreprocessor.h"
-#include "common/tacAlgorithm.h"
-#include "common/math/tacMath.h"
+
+#include "src/common/tacLog.h"
+#include "src/common/tacPreprocessor.h"
+#include "src/common/tacAlgorithm.h"
+#include "src/common/math/tacMath.h"
 
 #include <iostream>
 
+namespace Tac
+{
 
 // TODO: fix log unhandled exceptions!!!!!!!!!!!!!!!!!!!
 // Q: How to repro?
 
-TacLog::TacLog()
+Log::Log()
 {
   int megabytes = 100;
   int kilobytes = 1024 * megabytes;
   int bytes = 1024 * kilobytes;
   Resize( bytes );
 }
-TacLog::~TacLog()
+Log::~Log()
 {
   Clear();
 }
-void TacLog::Pop()
+void Log::Pop()
 {
-  TacAssert( mStringCount );
-  TacLogNumber stringByteCount = ReadStringLength( mBeginIndex );
-  int freedByteCount = sizeof( TacLogNumber ) + stringByteCount;
+  TAC_ASSERT( mStringCount );
+  LogNumber stringByteCount = ReadStringLength( mBeginIndex );
+  int freedByteCount = sizeof( LogNumber ) + stringByteCount;
   mBeginIndex = ( mBeginIndex + freedByteCount ) % mByteCount;
   mBytesUsed -= freedByteCount;
   mStringCount--;
 }
-void TacLog::Push( const char* stringData )
+void Log::Push( const char* stringData )
 {
-  if( mByteCount < ( int )sizeof( TacLogNumber ) )
+  if( mByteCount < ( int )sizeof( LogNumber ) )
     return;
-  TacLogNumber stringLenMax = mByteCount - sizeof( TacLogNumber );
-  auto stringLenOld = ( TacLogNumber )strlen( stringData );
-  TacLogNumber stringLen = TacMin( stringLenOld, stringLenMax );
-  TacLogNumber requiredByteCount = stringLen + sizeof( TacLogNumber );
+  LogNumber stringLenMax = mByteCount - sizeof( LogNumber );
+  auto stringLenOld = ( LogNumber )strlen( stringData );
+  LogNumber stringLen = Min( stringLenOld, stringLenMax );
+  LogNumber requiredByteCount = stringLen + sizeof( LogNumber );
   for( ;; )
   {
-    TacLogNumber remainingByteCount = mByteCount - mBytesUsed;
+    LogNumber remainingByteCount = mByteCount - mBytesUsed;
     if( remainingByteCount >= requiredByteCount )
       break;
     Pop();
   }
-  Write( &stringLen, sizeof( TacLogNumber ) );
+  Write( &stringLen, sizeof( LogNumber ) );
   Write( ( void* )stringData, stringLen );
   mStringCount++;
   mScrollToBottom = true;
 }
-void TacLog::Push( const TacString& s )
+void Log::Push( const String& s )
 {
   Push( s.c_str() );
 }
-TacString TacLog::VisualizeLog()
+String Log::VisualizeLog()
 {
   int maxVisBytes = 1000;
   if( mByteCount > maxVisBytes )
-    return "Log too big to vis, max: " + TacToString( maxVisBytes );
+    return "Log too big to vis, max: " + ToString( maxVisBytes );
   char* bytes = mBytes;
-  TacString result;
+  String result;
   for( int iByte = 0; iByte < mByteCount; ++iByte )
   {
     char c = bytes[ iByte ];
@@ -69,7 +72,7 @@ TacString TacLog::VisualizeLog()
   }
   return result;
 }
-void TacLog::DebugImgui()
+void Log::DebugImgui()
 {
   //if( !mIsVisible )
   //  return;
@@ -95,14 +98,14 @@ void TacLog::DebugImgui()
   //  ImGui::Text( "Byte count: %i", mByteCount );
   //  ImGui::Text( "Bytes used: %i", mBytesUsed );
   //  ImGui::Text( "String count: %i", mStringCount );
-  //  TacString percentStr = TacFormatPercentage( ( float )mBytesUsed, ( float )mByteCount );
+  //  String percentStr = FormatPercentage( ( float )mBytesUsed, ( float )mByteCount );
   //  ImGui::Text( "Percent Used: %s", percentStr.c_str() );
   //  ImGui::Checkbox( "Is visible", &mIsVisible );
   //  if( ImGui::CollapsingHeader( "Debug Test" ) )
   //  {
   //    if( ImGui::Button( "Set DebugTest byte count" ) )
   //      Resize( 1000 );
-  //    TacString debugtext = "TacScriptGameClient: TacScriptGameClient message: elapsed time is X minutes YY seconds ZZZ miliseconds";
+  //    String debugtext = "ScriptGameClient: ScriptGameClient message: elapsed time is X minutes YY seconds ZZZ miliseconds";
   //    if( ImGui::Button( "Copy DebugTest text" ) )
   //      mText = debugtext;
   //    static bool mDebugTest;
@@ -120,12 +123,12 @@ void TacLog::DebugImgui()
   //OnDestruct( ImGui::EndChild() );
 
 
-  //TacLogNumber beginIndex = mBeginIndex;
+  //LogNumber beginIndex = mBeginIndex;
   //for( int iLog = 0; iLog < mStringCount; ++iLog )
   //{
-  //  TacLogNumber stringByteCount = ReadStringLength( beginIndex );
-  //  beginIndex = ( beginIndex + sizeof( TacLogNumber ) ) % mByteCount;
-  //  TacString s;
+  //  LogNumber stringByteCount = ReadStringLength( beginIndex );
+  //  beginIndex = ( beginIndex + sizeof( LogNumber ) ) % mByteCount;
+  //  String s;
   //  s.resize( stringByteCount );
   //  Read( ( char* )s.data(), beginIndex, stringByteCount );
   //  ImGui::Text( s );
@@ -138,13 +141,13 @@ void TacLog::DebugImgui()
   //  ImGui::SetScrollHere( 1.0f );
   //}
 }
-TacLogNumber TacLog::ReadStringLength( int beginIndex )
+LogNumber Log::ReadStringLength( int beginIndex )
 {
-  TacLogNumber stringByteCount;
-  Read( ( char* )&stringByteCount, beginIndex, sizeof( TacLogNumber ) );
+  LogNumber stringByteCount;
+  Read( ( char* )&stringByteCount, beginIndex, sizeof( LogNumber ) );
   return stringByteCount;
 }
-void TacLog::ClearData()
+void Log::ClearData()
 {
   if( !mBytes )
     return;
@@ -153,21 +156,21 @@ void TacLog::ClearData()
   mStringCount = 0;
   mBeginIndex = 0;
 }
-void TacLog::Clear()
+void Log::Clear()
 {
   ClearData();
   delete mBytes;
   mBytes = nullptr;
   mByteCount = 0;
 }
-void TacLog::Resize( int byteCount )
+void Log::Resize( int byteCount )
 {
   Clear();
   mByteCount = byteCount;
   mBytes = new char[ byteCount ];
   ClearData();
 }
-void TacLog::Write( void* src, int bytes )
+void Log::Write( void* src, int bytes )
 {
   char* dst = ( char* )mBytes + ( mBeginIndex + mBytesUsed ) % mByteCount;
   mBytesUsed += bytes;
@@ -176,8 +179,8 @@ void TacLog::Write( void* src, int bytes )
   char* logEnd = mBytes + mByteCount;
   if( dstEnd > logEnd )
   {
-    auto overshoot = ( TacLogNumber )( dstEnd - logEnd );
-    auto writtenByteCount = ( TacLogNumber )( logEnd - ( char* )dst );
+    auto overshoot = ( LogNumber )( dstEnd - logEnd );
+    auto writtenByteCount = ( LogNumber )( logEnd - ( char* )dst );
     std::memcpy( dst, src, writtenByteCount );
     dst = mBytes;
     bytes = overshoot;
@@ -185,7 +188,7 @@ void TacLog::Write( void* src, int bytes )
   }
   std::memcpy( dst, src, bytes );
 }
-void TacLog::Read( char* dst, int beginIndex, int bytes )
+void Log::Read( char* dst, int beginIndex, int bytes )
 {
   char* srcBegin = mBytes + beginIndex;
   char* srcEnd = srcBegin + bytes;
@@ -193,7 +196,7 @@ void TacLog::Read( char* dst, int beginIndex, int bytes )
   char* bufferEnd = mBytes + mByteCount;
   if( srcEnd > bufferEnd )
   {
-    auto overshootBytes = ( TacLogNumber )( srcEnd - bufferEnd );
+    auto overshootBytes = ( LogNumber )( srcEnd - bufferEnd );
     bytes -= overshootBytes;
     std::memcpy( dst, srcBegin, bytes );
     dst += bytes;
@@ -202,3 +205,6 @@ void TacLog::Read( char* dst, int beginIndex, int bytes )
   }
   std::memcpy( dst, srcBegin, bytes );
 }
+
+}
+

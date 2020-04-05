@@ -1,68 +1,71 @@
-#include "common/assetmanagers/tacModelAssetManager.h"
-#include "common/assetmanagers/tacTextureAssetManager.h"
-#include "common/graphics/tacFont.h"
-#include "common/graphics/tacRenderer.h"
-#include "common/graphics/tacDebug3D.h"
-#include "common/graphics/tacUI2D.h"
-#include "common/tacAlgorithm.h"
-#include "common/tacJobQueue.h"
-#include "common/tacLog.h"
-#include "common/tacNet.h"
-#include "common/tacOS.h"
-#include "common/tacPreprocessor.h"
-#include "common/tacSettings.h"
-#include "common/tacShell.h"
-#include "common/tacTime.h"
-#include "common/taccontrollerinput.h"
-#include "common/tackeyboardinput.h"
-#include "common/profile/tacProfile.h"
+#include "src/common/assetmanagers/tacModelAssetManager.h"
+#include "src/common/assetmanagers/tacTextureAssetManager.h"
+#include "src/common/graphics/tacFont.h"
+#include "src/common/graphics/tacRenderer.h"
+#include "src/common/graphics/tacDebug3D.h"
+#include "src/common/graphics/tacUI2D.h"
+#include "src/common/tacAlgorithm.h"
+#include "src/common/tacJobQueue.h"
+#include "src/common/tacLog.h"
+#include "src/common/tacNet.h"
+#include "src/common/tacOS.h"
+#include "src/common/tacPreprocessor.h"
+#include "src/common/tacSettings.h"
+#include "src/common/tacShell.h"
+#include "src/common/tacTime.h"
+#include "src/common/tacControllerinput.h"
+#include "src/common/tacKeyboardinput.h"
+#include "src/common/profile/tacProfile.h"
 #include <iostream>
 
-TacUpdateThing::TacUpdateThing()
+namespace Tac
+{
+
+UpdateThing::UpdateThing()
 {
   Instance = this;
 }
-TacUpdateThing* TacUpdateThing::Instance = nullptr;
+UpdateThing* UpdateThing::Instance = nullptr;
 
-const TacKey TacToggleMainMenuKey = TacKey::Backtick;
+const Key ToggleMainMenuKey = Key::Backtick;
 
-TacSoul::TacSoul()
+Soul::Soul()
 {
   mIsImGuiVisible = true;
 }
 
-TacShell* TacShell::Instance = nullptr;
-TacShell::TacShell()
+Shell* Shell::Instance = nullptr;
+Shell::Shell()
 {
-  //mTimer = new TacTimer();
-  new TacKeyboardInput();
+  //mTimer = new Timer();
+  new KeyboardInput();
   //mTimer->Start();
-  if( TacIsDebugMode() )
-    mLog = new TacLog();
+  if( IsDebugMode() )
+    mLog = new Log();
   Instance = this;
-  mLastTick = TacGetCurrentTime();
+  mLastTick = GetCurrentTime();
 }
-TacShell::~TacShell()
+Shell::~Shell()
 {
-  delete TacUI2DCommonData::Instance;
-  delete TacDebug3DCommonData::Instance;
-  delete TacLocalization::Instance;
-  delete TacFontStuff::Instance;
+  delete UI2DCommonData::Instance;
+  delete Debug3DCommonData::Instance;
+  delete Localization::Instance;
+  delete FontStuff::Instance;
   delete mLog;
-  delete TacModelAssetManager::Instance;
-  delete TacTextureAssetManager::Instance;
+  delete ModelAssetManager::Instance;
+  delete TextureAssetManager::Instance;
 
   // last, so resources can be freed
-  delete TacRenderer::Instance;
+  delete Renderer::Instance;
 
   Instance = nullptr;
 }
-void TacShell::Init( TacErrors& errors )
+void Shell::Init( Errors& errors )
 {
   // load settings
   {
-    TacString settingsFilename = mAppName + "Settings.txt";
-    auto settings = new TacSettings();
+    String settingsFilename = mAppName + "Settings.txt";
+    auto settings = new Settings();
     settings->mPath = mPrefPath + "/" + settingsFilename;
     settings->Load( errors );
     TAC_HANDLE_ERROR( errors );
@@ -71,18 +74,18 @@ void TacShell::Init( TacErrors& errors )
 
   // create renderer
   {
-    TacVector< TacRendererFactory* >& rendererFactories = TacRendererRegistry::Instance().mFactories;
+    Vector< RendererFactory* >& rendererFactories = RendererRegistry::Instance().mFactories;
     if( rendererFactories.empty() )
     {
       errors = "No renderers available";
       TAC_HANDLE_ERROR( errors );
     }
 
-    TacRendererFactory* rendererFactory = rendererFactories[ 0 ];
-    TacString defaultRendererName = TacOS::Instance->GetDefaultRendererName();
+    RendererFactory* rendererFactory = rendererFactories[ 0 ];
+    String defaultRendererName = OS::Instance->GetDefaultRendererName();
     if( !defaultRendererName.empty() )
     {
-      for( TacRendererFactory* curRendererFactory : rendererFactories )
+      for( RendererFactory* curRendererFactory : rendererFactories )
       {
         if( curRendererFactory->mRendererName == defaultRendererName )
         {
@@ -92,78 +95,76 @@ void TacShell::Init( TacErrors& errors )
     }
 
 
-    TacString rendererName = rendererFactory->mRendererName;
+    String rendererName = rendererFactory->mRendererName;
     rendererName = mSettings->GetString( nullptr, { "DefaultRenderer" }, rendererName, errors );
     TAC_HANDLE_ERROR( errors );
-    if( !TacFindIf( &rendererFactory, rendererFactories, [ & ]( TacRendererFactory* fact ) { return fact->mRendererName == rendererName; } ) )
+    if( !FindIf( &rendererFactory, rendererFactories, [ & ]( RendererFactory* fact ) { return fact->mRendererName == rendererName; } ) )
       std::cout << "Failed to find " + rendererName + " renderer";
-    TacRenderer* renderer = nullptr;
-    rendererFactory->CreateRendererOuter( &renderer );
-    TacRenderer::Instance->Init( errors );
-    TacRenderer::Instance = renderer;
+    rendererFactory->CreateRendererOuter();
+    Renderer::Instance->Init( errors );
   }
 
-  new TacJobQueue;
-  TacJobQueue::Instance->Init();
+  new JobQueue;
+  JobQueue::Instance->Init();
 
-  new TacTextureAssetManager;
+  new TextureAssetManager;
 
-  new TacModelAssetManager;
+  new ModelAssetManager;
 
-  new TacFontStuff;
-  TacFontStuff::Instance->Load( mSettings, TacFontAtlasDefaultVramByteCount, errors );
+  new FontStuff;
+  FontStuff::Instance->Load( mSettings, FontAtlasDefaultVramByteCount, errors );
   TAC_HANDLE_ERROR( errors );
 
-  new TacLocalization;
-  TacLocalization::Instance->Load( "assets/localization.txt", errors );
+  new Localization;
+  Localization::Instance->Load( "assets/localization.txt", errors );
   TAC_HANDLE_ERROR( errors );
 
-  new TacDebug3DCommonData;
-  TacDebug3DCommonData::Instance->Init( errors );
+  new Debug3DCommonData;
+  Debug3DCommonData::Instance->Init( errors );
   TAC_HANDLE_ERROR( errors );
 
-  new TacUI2DCommonData;
-  TacUI2DCommonData::Instance->Init( errors );
+  new UI2DCommonData;
+  UI2DCommonData::Instance->Init( errors );
   TAC_HANDLE_ERROR( errors );
 
-  new TacProfileSystem;
-  TacProfileSystem::Instance->Init();
+  new ProfileSystem;
+  ProfileSystem::Instance->Init();
 }
-void TacShell::FrameBegin( TacErrors& errors )
+void Shell::FrameBegin( Errors& errors )
 {
-  TacKeyboardInput::Instance->BeginFrame();
-  TacProfileSystem::Instance->OnFrameBegin();
+  KeyboardInput::Instance->BeginFrame();
+  ProfileSystem::Instance->OnFrameBegin();
 }
-void TacShell::Frame( TacErrors& errors )
+void Shell::Frame( Errors& errors )
 {
   TAC_PROFILE_BLOCK;
   FrameBegin( errors );
 
-  if( TacNet::Instance )
+  if( Net::Instance )
   {
-    TacNet::Instance->Update( errors );
+    Net::Instance->Update( errors );
     TAC_HANDLE_ERROR( errors );
   }
 
   mOnUpdate.EmitEvent( errors );
-  TacControllerInput::Instance->Update();
+  ControllerInput::Instance->Update();
 
   FrameEnd( errors );
 }
-void TacShell::FrameEnd( TacErrors& errors )
+void Shell::FrameEnd( Errors& errors )
 {
-  if( TacRenderer::Instance )
+  if( Renderer::Instance )
   {
-    TacRenderer::Instance->Render( errors );
+    Renderer::Instance->Render( errors );
     TAC_HANDLE_ERROR( errors );
   }
-  TacKeyboardInput::Instance->EndFrame();
-  TacProfileSystem::Instance->OnFrameEnd();
+  KeyboardInput::Instance->EndFrame();
+  ProfileSystem::Instance->OnFrameEnd();
 }
-void TacShell::Update( TacErrors& errors )
+void Shell::Update( Errors& errors )
 {
-  TacTimepoint curTime = TacGetCurrentTime();
-  mAccumulatorSeconds += TacTimepointSubtractSeconds(curTime, mLastTick);
+  Timepoint curTime = GetCurrentTime();
+  mAccumulatorSeconds += TimepointSubtractSeconds(curTime, mLastTick);
   mLastTick = curTime;
   if( mAccumulatorSeconds < TAC_DELTA_FRAME_SECONDS )
     return;
@@ -174,8 +175,9 @@ void TacShell::Update( TacErrors& errors )
 }
 
 
-TacRendererWindowData::~TacRendererWindowData()
+RendererWindowData::~RendererWindowData()
 {
   static int i;
   ++i;
+}
 }

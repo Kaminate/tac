@@ -1,16 +1,18 @@
+#include "src/space/tacSpacenet.h"
+#include "src/space/tacWorld.h"
 #include <cstring>
-#include "tacspacenet.h"
-#include "tacworld.h"
+namespace Tac
+{
 
-const TacString tac( "tac" );
+const String tac( "tac" );
 
-void TacWriteNetMsgHeader( TacWriter* writer, TacNetMsgType networkMessageType )
+void WriteNetMsgHeader( Writer* writer, NetMsgType networkMessageType )
 {
   writer->Write( tac.data(), ( int )tac.size(), 1 );
   writer->Write( networkMessageType );
 }
 
-TacNetMsgType TacReadNetMsgHeader( TacReader* reader, TacErrors& errors )
+NetMsgType ReadNetMsgHeader( Reader* reader, Errors& errors )
 {
   for( char c:tac )
   {
@@ -18,19 +20,19 @@ TacNetMsgType TacReadNetMsgHeader( TacReader* reader, TacErrors& errors )
     if( !reader->Read( &l ) )
     {
       errors = "fuck";
-      return TacNetMsgType::Count;
+      return NetMsgType::Count;
     }
     if( l != c )
     {
       errors = "fuck";
-      return TacNetMsgType::Count;
+      return NetMsgType::Count;
     }
   }
-  TacNetMsgType result;
+  NetMsgType result;
   if( !reader->Read( &result ) )
   {
     errors = "fuck";
-    return TacNetMsgType::Count;
+    return NetMsgType::Count;
   }
   return result;
 }
@@ -38,7 +40,7 @@ TacNetMsgType TacReadNetMsgHeader( TacReader* reader, TacErrors& errors )
 uint8_t GetNetworkBitfield(
   void* oldData,
   void* newData,
-  const TacVector< TacNetworkBit >& networkBits )
+  const Vector< NetworkBit >& networkBits )
 {
   if( !oldData )
     return 0xff;
@@ -55,14 +57,14 @@ uint8_t GetNetworkBitfield(
   return bitfield;
 }
 
-void TacLagTest::SaveMessage( const TacVector< char >& data, double elapsedSecs )
+void LagTest::SaveMessage( const Vector< char >& data, double elapsedSecs )
 {
-  TacDelayedNetMsg delayedNetMsg;
+  DelayedNetMsg delayedNetMsg;
   delayedNetMsg.mData = data;
   delayedNetMsg.mDelayedTillSecs = elapsedSecs + mLagSimulationMS * 0.001f;
   mSavedNetworkMessages.push_back( delayedNetMsg );
 }
-bool TacLagTest::TryPopSavedMessage( TacVector< char >& data, double elapsedSecs )
+bool LagTest::TryPopSavedMessage( Vector< char >& data, double elapsedSecs )
 {
   if( mSavedNetworkMessages.empty() )
     return false;
@@ -75,26 +77,29 @@ bool TacLagTest::TryPopSavedMessage( TacVector< char >& data, double elapsedSecs
 }
 
 
-TacSnapshotBuffer::~TacSnapshotBuffer()
+SnapshotBuffer::~SnapshotBuffer()
 {
   for( auto world : mSnapshots )
     delete world;
 }
-void TacSnapshotBuffer::AddSnapshot( const TacWorld* world )
+void SnapshotBuffer::AddSnapshot( const World* world )
 {
   if( mSnapshots.size() == maxSnapshots )
   {
     delete mSnapshots.front();
     mSnapshots.pop_front();
   }
-  auto snapshot = new TacWorld();
+  auto snapshot = new World();
   snapshot->DeepCopy( *world );
   mSnapshots.push_back( snapshot );
 }
-TacWorld* TacSnapshotBuffer::FindSnapshot( double elapsedGameSecs )
+World* SnapshotBuffer::FindSnapshot( double elapsedGameSecs )
 {
   for( auto world : mSnapshots )
     if( world->mElapsedSecs == elapsedGameSecs )
       return world;
   return nullptr;
 }
+
+}
+

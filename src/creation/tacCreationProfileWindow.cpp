@@ -1,45 +1,48 @@
-#include "common/graphics/tacUI2D.h"
-#include "common/tacShell.h"
-#include "common/tacDesktopWindow.h"
-#include "common/graphics/imgui/tacImGui.h"
-#include "common/tacOS.h"
-#include "common/profile/tacProfile.h"
-#include "common/profile/tacProfileImGui.h"
-#include "creation/tacCreation.h"
-#include "creation/tacCreationProfileWindow.h"
-#include "space/tacworld.h"
-#include "space/tacentity.h"
-#include "space/tacsystem.h"
-#include "shell/tacDesktopApp.h"
 
-TacCreationProfileWindow::~TacCreationProfileWindow()
+#include "src/common/graphics/tacUI2D.h"
+#include "src/common/tacShell.h"
+#include "src/common/tacDesktopWindow.h"
+#include "src/common/graphics/imgui/tacImGui.h"
+#include "src/common/tacOS.h"
+#include "src/common/profile/tacProfile.h"
+#include "src/common/profile/tacProfileImGui.h"
+#include "src/creation/tacCreation.h"
+#include "src/creation/tacCreationProfileWindow.h"
+#include "src/space/tacWorld.h"
+#include "src/space/tacEntity.h"
+#include "src/space/tacSystem.h"
+#include "src/shell/tacDesktopApp.h"
+
+namespace Tac
+{
+CreationProfileWindow::~CreationProfileWindow()
 {
   delete mUI2DDrawData;
 }
-void TacCreationProfileWindow::Init( TacErrors& errors )
+void CreationProfileWindow::Init( Errors& errors )
 {
-  TacShell* shell = TacShell::Instance;
-  mUI2DDrawData = new TacUI2DDrawData;
+  Shell* shell = Shell::Instance;
+  mUI2DDrawData = new UI2DDrawData;
   mUI2DDrawData->mRenderView = mDesktopWindow->mRenderView;
 
-  TacSettings* settings = shell->mSettings;
+  Settings* settings = shell->mSettings;
 };
-void TacCreationProfileWindow::ImGuiProfile()
+void CreationProfileWindow::ImGuiProfile()
 {
-  TacProfileSystem* profileSystem = TacProfileSystem::Instance;
-  TacImGuiProfileWidget( profileSystem->mLastFrame );
+  ProfileSystem* profileSystem = ProfileSystem::Instance;
+  ImGuiProfileWidget( profileSystem->mLastFrame );
 }
-void TacCreationProfileWindow::ImGui()
+void CreationProfileWindow::ImGui()
 {
-  TacShell* shell = TacShell::Instance;
+  Shell* shell = Shell::Instance;
 
   SetCreationWindowImGuiGlobals( mDesktopWindow, mUI2DDrawData );
-  TacImGuiBegin( "Profile Window", {} );
+  ImGuiBegin( "Profile Window", {} );
 
-  TacImGuiText( "i am the profile window" );
+  ImGuiText( "i am the profile window" );
 
   // to force directx graphics specific window debugging
-  if( TacImGuiButton( "close window" ) )
+  if( ImGuiButton( "close window" ) )
   {
     mDesktopWindow->mRequestDeletion = true;
   }
@@ -48,14 +51,17 @@ void TacCreationProfileWindow::ImGui()
 
 
 
-  TacImGuiEnd();
+  ImGuiEnd();
 }
-void TacCreationProfileWindow::Update( TacErrors& errors )
+void CreationProfileWindow::Update( Errors& errors )
 {
-  TacShell* shell = TacShell::Instance;
+  Shell* shell = Shell::Instance;
   mDesktopWindow->SetRenderViewDefaults();
   ImGui();
   mUI2DDrawData->DrawToTexture( errors );
   TAC_HANDLE_ERROR( errors );
+}
+
+
 }
 

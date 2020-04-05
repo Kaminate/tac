@@ -5,15 +5,19 @@
 
 #pragma once
 
-#include "shell/windows/tacWindows.h"
-#include "common/tacMemory.h"
+#include "src/shell/windows/tacWindows.h"
+#include "src/common/tacMemory.h"
 
-struct TacWin32DesktopWindow;
-struct TacWindowsApplication2;
-struct TacKeyboardInput;
+namespace Tac
+{
 
-typedef int TacCursorDirType;
-enum TacCursorDir : TacCursorDirType
+
+struct Win32DesktopWindow;
+struct WindowsApplication2;
+struct KeyboardInput;
+
+typedef int CursorDirType;
+enum CursorDir : CursorDirType
 {
   N = 1 << 0,
   W = 1 << 1,
@@ -22,37 +26,37 @@ enum TacCursorDir : TacCursorDirType
 };
 
 
-TacString ToString( TacCursorDir cursorType );
+String ToString( CursorDir cursorType );
 
-struct TacWin32Cursors
+struct Win32Cursors
 {
-  TacWin32Cursors();
+  Win32Cursors();
   HCURSOR cursorArrow;
   HCURSOR cursorArrowNS;
   HCURSOR cursorArrowWE;
   HCURSOR cursorArrowNE_SW;
   HCURSOR cursorArrowNW_SE;
-  HCURSOR GetCursor( TacCursorDir cursorDir = ( TacCursorDir )0 );
+  HCURSOR GetCursor( CursorDir cursorDir = ( CursorDir )0 );
 };
 
-struct TacWin32MouseEdgeHandler
+struct Win32MouseEdgeHandler
 {
-  TacWin32MouseEdgeHandler();
-  ~TacWin32MouseEdgeHandler();
-  TacKeyboardInput* mKeyboardInput = nullptr;
+  Win32MouseEdgeHandler();
+  ~Win32MouseEdgeHandler();
+  KeyboardInput* mKeyboardInput = nullptr;
 
-  void Update(TacWin32DesktopWindow* window);
+  void Update(Win32DesktopWindow* window);
   void ResetCursorLock();
 
-  TacWin32Cursors* mCursors = nullptr;
+  Win32Cursors* mCursors = nullptr;
 
 private:
 
   // care to describe what this function does?
-  void SetCursorLock( TacCursorDir cursorDir );
+  void SetCursorLock( CursorDir cursorDir );
 
   // Used to set the cursor icon
-  TacCursorDir mCursorLock = {};
+  CursorDir mCursorLock = {};
   POINT mCursorPositionOnClick = {};
   RECT mWindowRectOnClick = {};
   int edgeDistResizePx;
@@ -63,7 +67,7 @@ private:
     virtual ~Handler() = default;
     virtual void Init() {};
     virtual void Update() {};
-    TacWin32MouseEdgeHandler* mHandler = nullptr;
+    Win32MouseEdgeHandler* mHandler = nullptr;
     bool mIsFinished = false;
     HWND mHwnd = NULL;
   };
@@ -81,3 +85,4 @@ private:
   Handler* mHandler = nullptr;
 };
 
+}

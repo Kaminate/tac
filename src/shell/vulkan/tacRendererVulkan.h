@@ -1,3 +1,4 @@
+/*
 #pragma once
 #include "common/graphics/tacRenderer.h"
 #include "common/tacShell.h"
@@ -113,3 +114,4 @@ void TacVulkanCallAux( TacErrors& errors, TacString functionName, VkResult res )
     TAC_HANDLE_ERROR( errors );\
   }\
 }
+*/

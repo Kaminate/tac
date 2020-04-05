@@ -1,12 +1,10 @@
-#include "shell/windows/tacNetWinsock.h"
-#include "common/tacPreprocessor.h"
-#include "common/tacUtility.h"
-#include "common/tacJson.h"
-#include "common/tacSerialization.h"
-#include "common/tacSettings.h"
-#include "common/tacAlgorithm.h"
-
-
+#include "src/shell/windows/tacNetWinsock.h"
+#include "src/common/tacPreprocessor.h"
+#include "src/common/tacUtility.h"
+#include "src/common/tacJson.h"
+#include "src/common/tacSerialization.h"
+#include "src/common/tacSettings.h"
+#include "src/common/tacAlgorithm.h"
 #include <iostream>
 #include <thread> // std::this_thread::sleep_for
 #include <chrono> // std::chrono::miliseconds
@@ -14,59 +12,61 @@
 
 #pragma comment( lib, "ws2_32.lib" )
 
-static int GetWinsockAddressFamily( TacAddressFamily addressFamily )
+namespace Tac
+{
+static int GetWinsockAddressFamily( AddressFamily addressFamily )
 {
   switch( addressFamily )
   {
-  case TacAddressFamily::IPv4: return AF_INET;
-  case TacAddressFamily::IPv6: return AF_INET6;
-    TacInvalidDefaultCase( addressFamily );
+  case AddressFamily::IPv4: return AF_INET;
+  case AddressFamily::IPv6: return AF_INET6;
+    TAC_INVALID_DEFAULT_CASE( addressFamily );
   }
   return 0;
 }
-static int GetWinsockSocketType( TacSocketType socketType )
+static int GetWinsockSocketType( SocketType socketType )
 {
   switch( socketType )
   {
-  case TacSocketType::TCP: return SOCK_STREAM;
-  case TacSocketType::UDP: return SOCK_DGRAM;
-    TacInvalidDefaultCase( socketType );
+  case SocketType::TCP: return SOCK_STREAM;
+  case SocketType::UDP: return SOCK_DGRAM;
+    TAC_INVALID_DEFAULT_CASE( socketType );
   }
   return 0;
 }
-static TacString TacGetLastWSAErrorString()
+static String GetLastWSAErrorString()
 {
   int wsaErrorCode = WSAGetLastError();
-  TacString result = TacWin32ErrorToString( wsaErrorCode );
+  String result = Win32ErrorToString( wsaErrorCode );
   return result;
 }
 
-TacSocketWinsock::~TacSocketWinsock()
+SocketWinsock::~SocketWinsock()
 {
 
   // do I care about the return value? what about the "linger" struct
   closesocket( mSocket );
 }
-void TacSocketWinsock::SetIsBlocking( bool isBlocking, TacErrors& errors )
+void SocketWinsock::SetIsBlocking( bool isBlocking, Errors& errors )
 {
   u_long iMode = isBlocking?0:1;
   int wsaErrorCode = ioctlsocket( mSocket, FIONBIO, &iMode );
   if( wsaErrorCode == SOCKET_ERROR )
   {
-    errors = TacGetLastWSAErrorString();
+    errors = GetLastWSAErrorString();
     return;
   }
 }
-void TacSocketWinsock::Send( void* bytes, int byteCount, TacErrors& errors )
+void SocketWinsock::Send( void* bytes, int byteCount, Errors& errors )
 {
-  TacVector< uint8_t > framed;
+  Vector< uint8_t > framed;
   if( mRequiresWebsocketFrame )
   {
     uint8_t payloadByteCount7Bit = 0;
     int payloadByteCountExtra = 0;
-    TacWriter writer;
-    writer.mFrom = TacGetEndianness();
-    writer.mTo = TacEndianness::Big;
+    Writer writer;
+    writer.mFrom = GetEndianness();
+    writer.mTo = Endianness::Big;
     if( byteCount < 126 )
       payloadByteCount7Bit = byteCount;
     else if( byteCount < 1 << 16 )
@@ -105,13 +105,13 @@ void TacSocketWinsock::Send( void* bytes, int byteCount, TacErrors& errors )
       uint8_t maskedByte = unmaskedByte ^ mask;
       framed[ iByte++ ] = maskedByte;
     }
-    TacAssert( iByte == frameByteCount );
+    TAC_ASSERT( iByte == frameByteCount );
 
     bytes = framed.data();
     byteCount = ( int )framed.size();
   }
 
-  // Should we send right now or queue it for TacNetWinsock::Update?
+  // Should we send right now or queue it for NetWinsock::Update?
   int wsaErrorCode = send(
     mSocket,
     ( const char* )bytes,
@@ -120,37 +120,37 @@ void TacSocketWinsock::Send( void* bytes, int byteCount, TacErrors& errors )
   if( wsaErrorCode == SOCKET_ERROR )
   {
     wsaErrorCode = WSAGetLastError();
-    if( TacContains( { WSAECONNRESET, WSAECONNABORTED }, wsaErrorCode ) )
+    if( Contains( { WSAECONNRESET, WSAECONNABORTED }, wsaErrorCode ) )
     {
       mRequestDeletion = true;
       return;
     }
-    errors = TacWin32ErrorToString( wsaErrorCode );
+    errors = Win32ErrorToString( wsaErrorCode );
     return;
   }
 }
-void TacSocketWinsock::SetKeepalive( bool keepAlive, TacErrors& errors )
+void SocketWinsock::SetKeepalive( bool keepAlive, Errors& errors )
 {
   DWORD enableKeepalive = keepAlive?TRUE:FALSE;
   int wsaErrorCode = setsockopt( mSocket, SOL_SOCKET, SO_KEEPALIVE, ( const char* )&enableKeepalive, sizeof( enableKeepalive ) );
   if( wsaErrorCode == SOCKET_ERROR )
   {
-    errors = TacGetLastWSAErrorString();
+    errors = GetLastWSAErrorString();
     return;
   }
 }
-void TacSocketWinsock::TCPTryConnect( const TacString& hostname, uint16_t port, TacErrors& errors )
+void SocketWinsock::TCPTryConnect( const String& hostname, uint16_t port, Errors& errors )
 {
-  TacAssert( mSocketType == TacSocketType::TCP );
-  auto portString = TacToString( port );
+  TAC_ASSERT( mSocketType == SocketType::TCP );
+  auto portString = ToString( port );
   addrinfo* addrinfos;
   int wsaErrorCode = getaddrinfo( hostname.c_str(), portString.c_str(), nullptr, &addrinfos );
   if( wsaErrorCode )
   {
-    errors = TacWin32ErrorToString( wsaErrorCode );
+    errors = Win32ErrorToString( wsaErrorCode );
     return;
   }
-  OnDestruct( freeaddrinfo( addrinfos ) );
+  TAC_ON_DESTRUCT( freeaddrinfo( addrinfos ) );
   addrinfo* targetAddrInfo = nullptr;
   for( addrinfo* curAddrInfo = addrinfos; curAddrInfo; curAddrInfo = curAddrInfo->ai_next )
   {
@@ -172,40 +172,40 @@ void TacSocketWinsock::TCPTryConnect( const TacString& hostname, uint16_t port, 
       mTCPIsConnected = true;
       return;
     }
-    if( TacContains( {
+    if( Contains( {
       WSAEWOULDBLOCK, // 10035 non-blocking socket
       WSAEALREADY }, // 10037 already connected
       wsaErrorCode ) )
       return;
-    errors = TacGetLastWSAErrorString();
+    errors = GetLastWSAErrorString();
     TAC_HANDLE_ERROR( errors );
   }
   mTCPIsConnected = true;
 }
 
-TacNetWinsock::TacNetWinsock( TacErrors& errors )
+NetWinsock::NetWinsock( Errors& errors )
 {
   WORD wsaVersion = MAKEWORD( 2, 2 );
   WSAData wsaData;
   int wsaErrorCode = WSAStartup( wsaVersion, &wsaData );
   if( wsaErrorCode )
   {
-    errors = TacWin32ErrorToString( wsaErrorCode );
+    errors = Win32ErrorToString( wsaErrorCode );
     TAC_HANDLE_ERROR( errors );
   }
   mPrintReceivedMessages = true;
 }
-TacNetWinsock::~TacNetWinsock()
+NetWinsock::~NetWinsock()
 {
   for( auto netWinsocket : mSocketWinsocks )
     closesocket( netWinsocket->mSocket );
   WSACleanup();
 }
-TacSocket* TacNetWinsock::CreateSocket(
-  const TacString& name,
-  TacAddressFamily addressFamily,
-  TacSocketType socketType,
-  TacErrors& errors )
+Socket* NetWinsock::CreateSocket(
+  const String& name,
+  AddressFamily addressFamily,
+  SocketType socketType,
+  Errors& errors )
 {
   auto winsockSocketType = GetWinsockSocketType( socketType );
   auto winsockAddressFamily = GetWinsockAddressFamily( addressFamily );
@@ -213,12 +213,12 @@ TacSocket* TacNetWinsock::CreateSocket(
   auto winsockSocket = socket( winsockAddressFamily, winsockSocketType, winsockProtocol );
   if( winsockSocket == INVALID_SOCKET )
   {
-    errors = TacGetLastWSAErrorString();
+    errors = GetLastWSAErrorString();
     return nullptr;
   }
 
-  auto netWinsocket = new TacSocketWinsock();
-  OnDestruct( if( errors ) delete netWinsocket );
+  auto netWinsocket = new SocketWinsock();
+  TAC_ON_DESTRUCT( if( errors ) delete netWinsocket );
   netWinsocket->mSocket = winsockSocket;
   netWinsocket->mName = name;
   netWinsocket->mNet = this;
@@ -226,7 +226,7 @@ TacSocket* TacNetWinsock::CreateSocket(
   netWinsocket->mSocketType = socketType;
   netWinsocket->mWinsockAddressFamily = winsockAddressFamily;
   netWinsocket->mWinsockSocketType = winsockSocketType;
-  netWinsocket->mElapsedSecondsOnLastRecv = TacShell::Instance->mElapsedSeconds;
+  netWinsocket->mElapsedSecondsOnLastRecv = Shell::Instance->mElapsedSeconds;
   netWinsocket->SetKeepalive( true, errors );
   if( errors )
     return nullptr;
@@ -234,16 +234,16 @@ TacSocket* TacNetWinsock::CreateSocket(
   if( errors )
     return nullptr;
   mSocketWinsocks.insert( netWinsocket );
-  return ( TacSocket* )netWinsocket;
+  return ( Socket* )netWinsocket;
 }
-TacVector< TacSocket* > TacNetWinsock::GetSockets()
+Vector< Socket* > NetWinsock::GetSockets()
 {
-  TacVector< TacSocket* > result;
+  Vector< Socket* > result;
   for( auto netWinsocket : mSocketWinsocks )
     result.push_back( netWinsocket );
   return result;
 }
-void TacNetWinsock::DebugImgui()
+void NetWinsock::DebugImgui()
 {
   //if( !ImGui::CollapsingHeader( "Network" ) )
   //  return;
@@ -258,21 +258,21 @@ void TacNetWinsock::DebugImgui()
   //  netWinsocket->DebugImgui();
   //}
 }
-void TacNetWinsock::Update( TacErrors& errors )
+void NetWinsock::Update( Errors& errors )
 {
-  bool shouldSendKeepalive = TacShell::Instance->mElapsedSeconds > mKeepaliveNextSeconds;
+  bool shouldSendKeepalive = Shell::Instance->mElapsedSeconds > mKeepaliveNextSeconds;
   if( shouldSendKeepalive )
     mKeepaliveNextSeconds += mKeepaliveIntervalSeconds;
 
   for( auto socketWinsock : mSocketWinsocks )
   {
-    if( socketWinsock->mSocketType == TacSocketType::TCP &&
+    if( socketWinsock->mSocketType == SocketType::TCP &&
       !socketWinsock->mTCPIsConnected )
       continue;
 
     if( shouldSendKeepalive )
     {
-      TacString keepalive = "keepalive";
+      String keepalive = "keepalive";
       if( socketWinsock->mKeepaliveOverride.mUserData )
       {
         socketWinsock->mKeepaliveOverride.mCallback( socketWinsock->mKeepaliveOverride.mUserData, socketWinsock );
@@ -293,7 +293,7 @@ void TacNetWinsock::Update( TacErrors& errors )
       int wsaErrorCode = WSAGetLastError();
       if( wsaErrorCode == WSAEWOULDBLOCK )
         continue;
-      if( TacContains( {
+      if( Contains( {
         WSAECONNRESET, // An existing connection was forcibly closed by the remote host
         WSAECONNABORTED // An established connection was aborted by the software in your host machine.
         }, wsaErrorCode ) )
@@ -301,7 +301,7 @@ void TacNetWinsock::Update( TacErrors& errors )
         socketWinsock->mRequestDeletion = true;
         continue;
       }
-      errors = TacWin32ErrorToString( wsaErrorCode );
+      errors = Win32ErrorToString( wsaErrorCode );
       return;
     }
     else if( recvResult == 0 )
@@ -310,17 +310,17 @@ void TacNetWinsock::Update( TacErrors& errors )
       socketWinsock->mRequestDeletion = true;
       continue;
     }
-    socketWinsock->mElapsedSecondsOnLastRecv = TacShell::Instance->mElapsedSeconds;
+    socketWinsock->mElapsedSecondsOnLastRecv = Shell::Instance->mElapsedSeconds;
     if( mPrintReceivedMessages )
     {
-      auto recvString = TacString( recvBuf, recvResult );
+      auto recvString = String( recvBuf, recvResult );
       std::cout << "Received message: " << recvString << std::endl;
     }
 
     socketWinsock->OnMessage( recvBuf, recvResult );
   }
 
-  TacVector< TacSocketWinsock* > socketWinsocks;
+  Vector< SocketWinsock* > socketWinsocks;
   for( auto socketWinsock : mSocketWinsocks )
     if( socketWinsock->mRequestDeletion )
       socketWinsocks.push_back( socketWinsock );
@@ -332,3 +332,6 @@ void TacNetWinsock::Update( TacErrors& errors )
     delete socketWinsock;
   }
 }
+
+}
+

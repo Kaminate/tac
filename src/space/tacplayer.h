@@ -1,23 +1,29 @@
-#pragma once
-#include "tacspacetypes.h"
-#include "common/tacSerialization.h"
-#include "common/tacPreprocessor.h"
-#include "common/math/tacVector2.h"
 
-struct TacWorld;
-struct TacPlayer
+#pragma once
+#include "src/space/tacSpacetypes.h"
+#include "src/common/tacSerialization.h"
+#include "src/common/tacPreprocessor.h"
+#include "src/common/math/tacVector2.h"
+
+namespace Tac
+{
+struct World;
+struct Player
 {
   void DebugImgui();
-  TacPlayerUUID mPlayerUUID = TacNullPlayerUUID;
-  TacEntityUUID mEntityUUID = TacNullEntityUUID;
+  PlayerUUID mPlayerUUID = NullPlayerUUID;
+  EntityUUID mEntityUUID = NullEntityUUID;
   v2 mInputDirection = {};
   bool mIsSpaceJustDown = false;
   v3 mCameraPos = {};
-  TacWorld* mWorld = nullptr;
+  World* mWorld = nullptr;
 };
 
-const TacVector< TacNetworkBit > TacPlayerBits =
+const Vector< NetworkBit > PlayerBits =
 {
-  { "mEntityUUID", TacOffsetOf( TacPlayer, mEntityUUID ), sizeof( TacEntityUUID ), 1 },
-  { "mInputDirection", TacOffsetOf( TacPlayer, mInputDirection ), sizeof( float ), 2 },
+  { "mEntityUUID", TAC_OFFSET_OF( Player, mEntityUUID ), sizeof( EntityUUID ), 1 },
+  { "mInputDirection", TAC_OFFSET_OF( Player, mInputDirection ), sizeof( float ), 2 },
 };
+
+}
+

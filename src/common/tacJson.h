@@ -3,17 +3,23 @@
 
 #pragma once
 
-#include "common/tacString.h"
-#include "common/tacErrorHandling.h"
-#include "common/containers/tacVector.h"
+#include "src/common/tacString.h"
+#include "src/common/tacErrorHandling.h"
+#include "src/common/containers/tacVector.h"
+
+
 
 #include <map>
 
-typedef double TacJsonNumber;
+namespace Tac
+{
 
-const bool tacJsonParseDebug = false;
 
-enum class TacJsonType
+typedef double JsonNumber;
+
+const bool JsonParseDebug = false;
+
+enum class JsonType
 {
   String,
   Number,
@@ -23,51 +29,52 @@ enum class TacJsonType
   Null
 };
 
-struct TacIndentation
+struct Indentation
 {
   int spacesPerTab = 2;
   int tabCount = 0;
   bool convertTabsToSpaces = true;
-  TacString ToString();
+  String ToString();
 };
 
 // The function names Stringify and Parse mimic the built-in javascript api
-struct TacJson
+struct Json
 {
 
-  TacJson();
-  TacJson( const char* str );
-  TacJson( const TacString& s );
-  TacJson( TacJsonNumber number );
-  TacJson( int number );
-  TacJson( bool b );
-  TacJson( const TacJson& other );
-  ~TacJson();
+  Json();
+  Json( const char* str );
+  Json( const String& s );
+  Json( JsonNumber number );
+  Json( int number );
+  Json( bool b );
+  Json( const Json& other );
+  ~Json();
   void Clear();
-  TacString Stringify( TacIndentation* indentation ) const;
-  TacString Stringify() const;
-  void Parse( const char* bytes, int byteCount, TacErrors& errors );
-  void Parse( const TacString& s, TacErrors& errors );
+  String Stringify( Indentation* indentation ) const;
+  String Stringify() const;
+  void Parse( const char* bytes, int byteCount, Errors& errors );
+  void Parse( const String& s, Errors& errors );
 
-  TacJson& GetChild( TacStringView key );
-  TacJson& operator[]( const TacString& key );
-  TacJson& operator[]( const char* key );
-  void operator = ( const TacJson& json );
-  void operator = ( const TacJson* json );
+  Json& GetChild( StringView key );
+  Json& operator[]( const String& key );
+  Json& operator[]( const char* key );
+  void operator = ( const Json& json );
+  void operator = ( const Json* json );
   void operator = ( const char* str );
-  void operator = ( const TacString& str );
-  void operator = ( TacJsonNumber number );
+  void operator = ( const String& str );
+  void operator = ( JsonNumber number );
   void operator = ( int number );
   void operator = ( bool b );
-  operator TacString ();
-  operator TacJsonNumber ();
+  operator String ();
+  operator JsonNumber ();
   operator bool ();
 
-  std::map< TacString, TacJson* > mChildren;
-  TacString mString;
-  TacJsonNumber mNumber = 0;
-  TacVector< TacJson* > mElements;
+  std::map< String, Json* > mChildren;
+  String mString;
+  JsonNumber mNumber = 0;
+  Vector< Json* > mElements;
   bool mBoolean = false;
-  TacJsonType mType = TacJsonType::Object;
+  JsonType mType = JsonType::Object;
 };
 
+}

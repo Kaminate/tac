@@ -1,48 +1,54 @@
 
+
 #pragma once
-#include "common/containers/tacVector.h"
-#include "common/tacTime.h"
-#include "common/tacPreprocessor.h"
+#include "src/common/containers/tacVector.h"
+#include "src/common/tacTime.h"
+#include "src/common/tacPreprocessor.h"
 
-struct TacProfileBlock;
-struct TacProfileFunction;
-struct TacProfileSystem;
-
-struct TacProfileBlock
+namespace Tac
 {
-  TacProfileBlock(TacStackFrame stackFrame);
-  ~TacProfileBlock();
-  TacProfileFunction* mFunction = nullptr;
-};
-#define TAC_PROFILE_BLOCK TacProfileBlock b##__LINE__ (TAC_STACK_FRAME);
+  struct ProfileBlock;
+  struct ProfileFunction;
+  struct ProfileSystem;
 
-struct TacProfileFunction
-{
-  void                Clear();
-  TacProfileFunction* GetLastChild();
-  void                AppendChild( TacProfileFunction* child );
-  
-  TacProfileFunction* mNext = nullptr;
-  TacProfileFunction* mChildren = nullptr;
-  TacTimepoint        mBeginTime;
-  TacTimepoint        mEndTime;
-  TacStackFrame       mStackFrame;
-};
+  struct ProfileBlock
+  {
+    ProfileBlock( Frame frame );
+    ~ProfileBlock();
+    ProfileFunction* mFunction = nullptr;
+  };
+#define TAC_PROFILE_BLOCK ProfileBlock b##__LINE__ (TAC_FRAME);
 
-struct TacProfileSystem
-{
-  static thread_local TacProfileSystem* Instance;
-  TacProfileSystem();
-  void                     Init();
-  void                     OnFrameBegin();
-  void                     OnFrameEnd();
-  TacProfileFunction*      Alloc();
-  void                     Dealloc( TacProfileFunction* );
-  void                     PushFunction( TacProfileFunction* );
+  struct ProfileFunction
+  {
+    void             Clear();
+    ProfileFunction* GetLastChild();
+    void             AppendChild( ProfileFunction* child );
 
-  TacVector< TacProfileFunction* > mFree;
-  TacProfileFunction*              mLastFrame = nullptr;
-  TacProfileFunction*              mCurrFrame = nullptr;
-  TacVector< TacProfileFunction* > mCurrStackFrame;
-};
+    ProfileFunction* mNext = nullptr;
+    ProfileFunction* mChildren = nullptr;
+    Timepoint        mBeginTime;
+    Timepoint        mEndTime;
+    Frame            mFrame;
+  };
+
+  struct ProfileSystem
+  {
+    static thread_local ProfileSystem* Instance;
+    ProfileSystem();
+    void                       Init();
+    void                       OnFrameBegin();
+    void                       OnFrameEnd();
+    ProfileFunction*           Alloc();
+    void                       Dealloc( ProfileFunction* );
+    void                       PushFunction( ProfileFunction* );
+
+    Vector< ProfileFunction* > mFree;
+    ProfileFunction*           mLastFrame = nullptr;
+    ProfileFunction*           mCurrFrame = nullptr;
+    Vector< ProfileFunction* > mCurrStack;
+  };
+
+
+}
 

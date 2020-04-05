@@ -1,16 +1,20 @@
+
 #pragma once
 
-#include "common/tacErrorHandling.h"
-#include "common/graphics/tacRenderer.h"
+#include "src/common/tacErrorHandling.h"
+#include "src/common/graphics/tacRenderer.h"
 
 #include <dxgi1_6.h> // IDXGIFactory4, IDXGIAdapter4
 
 #define TAC_RELEASE_IUNKNOWN( p ) { if( p ){ p->Release(); p = nullptr; } }
 
-struct TacDXGI
+namespace Tac
 {
-  ~TacDXGI();
-  void Init( TacErrors& errors );
+
+struct DXGI
+{
+  ~DXGI();
+  void Init( Errors& errors );
   void Uninit();
   void CreateSwapChain(
     HWND hwnd,
@@ -19,7 +23,7 @@ struct TacDXGI
     UINT width,
     UINT height,
     IDXGISwapChain** ppSwapChain,
-    TacErrors& errors );
+    Errors& errors );
   //void CheckHDRSupport();
 
   IDXGIFactory4* mFactory = nullptr;
@@ -27,20 +31,23 @@ struct TacDXGI
  };
 
 
-TacFormat GetTacFormat( DXGI_FORMAT format );
-DXGI_FORMAT GetDXGIFormat( TacFormat textureFormat );
+Format GetFormat( DXGI_FORMAT format );
+DXGI_FORMAT GetDXGIFormat( Format textureFormat );
 
-void TacNameDXGIObject( IDXGIObject* object, const TacString& name );
+void NameDXGIObject( IDXGIObject* object, const String& name );
 
-void TacDXGICallAux( const char* fnCallWithArgs, HRESULT res, TacErrors& errors );
+void DXGICallAux( const char* fnCallWithArgs, HRESULT res, Errors& errors );
 
 #define TAC_DXGI_CALL( errors, call, ... )\
 {\
   HRESULT result = call( __VA_ARGS__ );\
   if( FAILED( result ) )\
   {\
-    TacDXGICallAux( TacStringify( call ) "( " #__VA_ARGS__ " )", result, errors );\
+    DXGICallAux( TAC_STRINGIFY( call ) "( " #__VA_ARGS__ " )", result, errors );\
     TAC_HANDLE_ERROR( errors );\
   }\
+}
+
+
 }
 

@@ -1,3 +1,6 @@
+/*
+
+
 // ok heres the fuckin deal:
 // you want to set event markers and event groups for convenient graphcis debugging
 // so you see these nice functions, like ID3D12GraphicsCommandList::SetMarker .
@@ -17,15 +20,15 @@
 // So you decide to live without debug markers
 
 
-#include "common/tacUtility.h"
-#include "common/tacMemory.h"
-#include "common/tacPreprocessor.h"
-#include "common/containers/tacArray.h"
-#include "common/math/tacMath.h"
-#include "common/tacOS.h"
-#include "common/tacDesktopWindow.h"
-#include "shell/windows/tacWindows.h"
-#include "shell/windows/tacRendererDirectX12.h"
+#include "src/common/Utility.h"
+#include "src/common/Memory.h"
+#include "src/common/Preprocessor.h"
+#include "src/common/containers/Array.h"
+#include "src/common/math/Math.h"
+#include "src/common/OS.h"
+#include "src/common/DesktopWindow.h"
+#include "src/shell/windows/Windows.h"
+#include "src/shell/windows/RendererDirectX12.h"
 
 #include <sstream>
 #include <d3d11_1.h>
@@ -37,83 +40,87 @@
 
 #pragma comment( lib, "d3d12.lib" )
 
+namespace Tac
+{
+
+
 bool isGraphicsDebugging = true;
 
-static D3D12_COMPARISON_FUNC TacGetDepthFuncDX12( TacDepthFunc depthFunc )
+static D3D12_COMPARISON_FUNC GetDepthFuncDX12( DepthFunc depthFunc )
 {
   switch( depthFunc )
   {
-  case TacDepthFunc::Less: return D3D12_COMPARISON_FUNC_LESS;
-  case TacDepthFunc::LessOrEqual: return D3D12_COMPARISON_FUNC_LESS_EQUAL;
-    TacInvalidDefaultCase( depthFunc );
+  case DepthFunc::Less: return D3D12_COMPARISON_FUNC_LESS;
+  case DepthFunc::LessOrEqual: return D3D12_COMPARISON_FUNC_LESS_EQUAL;
+    TAC_INVALID_DEFAULT_CASE( depthFunc );
   }
   return D3D12_COMPARISON_FUNC_LESS;
 }
 
-static D3D12_FILL_MODE TacGetFillModeDX12( TacFillMode fillMode )
+static D3D12_FILL_MODE GetFillModeDX12( FillMode fillMode )
 {
   switch( fillMode )
   {
-  case TacFillMode::Solid: return D3D12_FILL_MODE_SOLID;
-  case TacFillMode::Wireframe:return D3D12_FILL_MODE_WIREFRAME;
-    TacInvalidDefaultCase( fillMode );
+  case FillMode::Solid: return D3D12_FILL_MODE_SOLID;
+  case FillMode::Wireframe:return D3D12_FILL_MODE_WIREFRAME;
+    TAC_INVALID_DEFAULT_CASE( fillMode );
   }
   return D3D12_FILL_MODE_SOLID;
 }
 
-static D3D12_CULL_MODE TacGetCullModeDX12( TacCullMode cullMode )
+static D3D12_CULL_MODE GetCullModeDX12( CullMode cullMode )
 {
   switch( cullMode )
   {
-  case TacCullMode::None: return D3D12_CULL_MODE_NONE;
-  case TacCullMode::Back: return D3D12_CULL_MODE_BACK;
-  case TacCullMode::Front: return D3D12_CULL_MODE_FRONT;
-    TacInvalidDefaultCase( cullMode );
+  case CullMode::None: return D3D12_CULL_MODE_NONE;
+  case CullMode::Back: return D3D12_CULL_MODE_BACK;
+  case CullMode::Front: return D3D12_CULL_MODE_FRONT;
+    TAC_INVALID_DEFAULT_CASE( cullMode );
   }
   return D3D12_CULL_MODE_NONE;
 }
 
-static D3D12_BLEND TacGetBlendDX12( TacBlendConstants blendConstants )
+static D3D12_BLEND GetBlendDX12( BlendConstants blendConstants )
 {
   switch( blendConstants )
   {
-  case TacBlendConstants::One: return D3D12_BLEND_ONE;
-  case TacBlendConstants::Zero: return D3D12_BLEND_ZERO;
-  case TacBlendConstants::SrcRGB: return D3D12_BLEND_SRC_COLOR;
-  case TacBlendConstants::SrcA: return D3D12_BLEND_SRC_ALPHA;
-  case TacBlendConstants::OneMinusSrcA: return D3D12_BLEND_INV_SRC_ALPHA;
-    TacInvalidDefaultCase( blendConstants );
+  case BlendConstants::One: return D3D12_BLEND_ONE;
+  case BlendConstants::Zero: return D3D12_BLEND_ZERO;
+  case BlendConstants::SrcRGB: return D3D12_BLEND_SRC_COLOR;
+  case BlendConstants::SrcA: return D3D12_BLEND_SRC_ALPHA;
+  case BlendConstants::OneMinusSrcA: return D3D12_BLEND_INV_SRC_ALPHA;
+    TAC_INVALID_DEFAULT_CASE( blendConstants );
   }
   return D3D12_BLEND_ONE;
 }
 
-static D3D12_BLEND_OP TacGetBlendOpDX12( TacBlendMode blendMode )
+static D3D12_BLEND_OP GetBlendOpDX12( BlendMode blendMode )
 {
   switch( blendMode )
   {
-  case TacBlendMode::Add: return D3D12_BLEND_OP_ADD;
-    TacInvalidDefaultCase( blendMode );
+  case BlendMode::Add: return D3D12_BLEND_OP_ADD;
+    TAC_INVALID_DEFAULT_CASE( blendMode );
   }
   return D3D12_BLEND_OP_ADD;
 }
 
-static TacVector< WCHAR > TacToWChar( const TacString& str )
+static Vector< WCHAR > ToWChar( const String& str )
 {
-  TacVector< WCHAR > result;
+  Vector< WCHAR > result;
   for( char c : str )
     result.push_back( c );
   result.push_back( ( WCHAR )'\0' );
   return result;
 }
 
-static void TacNameDirectX12Object( ID3D12Object* obj, const TacString& name )
+static void NameDirectX12Object( ID3D12Object* obj, const String& name )
 {
-  TacVector< WCHAR > nameWchar = TacToWChar( name );
+  Vector< WCHAR > nameWchar = ToWChar( name );
   HRESULT hr = obj->SetName( nameWchar.data() );
-  TacAssert( hr == S_OK );
+  Assert( hr == S_OK );
 }
 
-void TacDX12Window::Submit( TacErrors& errors )
+void DX12Window::Submit( Errors& errors )
 {
   // Present swap chain
   {
@@ -131,7 +138,7 @@ void TacDX12Window::Submit( TacErrors& errors )
       case DXGI_ERROR_DEVICE_RESET: errors = "DXGI_ERROR_DEVICE_RESET"; break;
       case DXGI_ERROR_DEVICE_REMOVED: errors = "DXGI_ERROR_DEVICE_REMOVED"; break;
       case DXGI_STATUS_OCCLUDED: errors = "DXGI_STATUS_OCCLUDED"; break;
-          TacInvalidDefaultCase( hr );
+          TAC_INVALID_DEFAULT_CASE( hr );
       }
       TAC_HANDLE_ERROR( errors );
     }
@@ -139,25 +146,25 @@ void TacDX12Window::Submit( TacErrors& errors )
   mBackbufferIndex = ( mBackbufferIndex + 1 ) % mBackbufferColors.size();
 }
 
-void TacDX12Window::DebugDoubleCheckBackbufferIndex()
+void DX12Window::DebugDoubleCheckBackbufferIndex()
 {
-  if( !TacIsDebugMode() )
+  if( !IsDebugMode() )
     return;
   ComPtr<IDXGISwapChain3> swapChain3;
   HRESULT hr = mSwapChain.As( &swapChain3 );
   if( hr == S_OK )
     return;
   UINT curBBIndex = swapChain3->GetCurrentBackBufferIndex();
-  TacAssert( curBBIndex == mBackbufferIndex );
+  Assert( curBBIndex == mBackbufferIndex );
 }
 
-void TacDX12Window::GetCurrentBackbufferTexture( TacTexture** texture )
+void DX12Window::GetCurrentBackbufferTexture( Texture** texture )
 {
   DebugDoubleCheckBackbufferIndex();
   *texture = mBackbufferColors[ mBackbufferIndex ];
 }
 
-static TacString TacTryInferDX12ErrorStr( HRESULT res )
+static String TryInferDX12ErrorStr( HRESULT res )
 {
   switch( res )
   {
@@ -182,11 +189,11 @@ static TacString TacTryInferDX12ErrorStr( HRESULT res )
   }
 }
 
-void TacDX12CallAux( const char* fnCallWithArgs, HRESULT res, TacErrors& errors )
+void DX12CallAux( const char* fnCallWithArgs, HRESULT res, Errors& errors )
 {
   std::stringstream ss;
   ss << fnCallWithArgs << " returned 0x" << std::hex << res;
-  TacString inferredErrorMessage = TacTryInferDX12ErrorStr( res );
+  String inferredErrorMessage = TryInferDX12ErrorStr( res );
   if(!inferredErrorMessage.empty())
   {
     ss << "(";
@@ -201,16 +208,16 @@ void TacDX12CallAux( const char* fnCallWithArgs, HRESULT res, TacErrors& errors 
   HRESULT result = call( __VA_ARGS__ );\
   if( FAILED( result ) )\
   {\
-    TacDX12CallAux( TacStringify( call ) "( " #__VA_ARGS__ " )", result, errors );\
+    DX12CallAux( Stringify( call ) "( " #__VA_ARGS__ " )", result, errors );\
     TAC_HANDLE_ERROR( errors );\
   }\
 }
 
-struct TacRendererBufferDX12
+struct RendererBufferDX12
 {
-  void CrateMainBuffer( TacRendererDX12* renderer, const TacString& name, TacErrors& errors, D3D12_RESOURCE_STATES resourceStates, int byteCount )
+  void CrateMainBuffer( RendererDX12* renderer, const String& name, Errors& errors, D3D12_RESOURCE_STATES resourceStates, int byteCount )
   {
-    ID3D12Device* device = TacRendererDX12::Instance->mDevice.Get();
+    ID3D12Device* device = RendererDX12::Instance->mDevice.Get();
     ID3D12Resource* resource;
     D3D12_RESOURCE_DESC resourceDesc = {};
     resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
@@ -236,13 +243,13 @@ struct TacRendererBufferDX12
       nullptr, // clear value
       IID_PPV_ARGS( &resource ) );
     TAC_HANDLE_ERROR( errors );
-    TacNameDirectX12Object( resource, name );
+    NameDirectX12Object( resource, name );
     mResourceBuffer = resource;
     mState = resourceStates;
   }
-  void CreateUploadBuffer( TacRendererDX12* renderer, const TacString& name, TacErrors& errors, int byteCount )
+  void CreateUploadBuffer( RendererDX12* renderer, const String& name, Errors& errors, int byteCount )
   {
-    ID3D12Device* device = TacRendererDX12::Instance->mDevice.Get();
+    ID3D12Device* device = RendererDX12::Instance->mDevice.Get();
     ID3D12Resource* uploadResource;
 
     // https://docs.microsoft.com/en-us/windows/desktop/direct3d12/uploading-resources#code-example-d3d12
@@ -270,17 +277,17 @@ struct TacRendererBufferDX12
       nullptr, // optimized clear value
       IID_PPV_ARGS( &uploadResource ) );
     TAC_HANDLE_ERROR( errors );
-    TacNameDirectX12Object( uploadResource, name + "\"upload object\"" );
+    NameDirectX12Object( uploadResource, name + "\"upload object\"" );
     mResourceStaging = uploadResource;
   }
-  void UpdateBuffer( TacRendererDX12* renderer, void* bytes, int byteCount, TacErrors& errors )
+  void UpdateBuffer( RendererDX12* renderer, void* bytes, int byteCount, Errors& errors )
   {
     //D3D12_RESOURCE_STATES newState = D3D12_RESOURCE_STATE_COPY_DEST;
-    ID3D12GraphicsCommandList* commandList = TacRendererDX12::Instance->mCommandList.Get();
+    ID3D12GraphicsCommandList* commandList = RendererDX12::Instance->mCommandList.Get();
     ID3D12Resource* dstResource = mResourceBuffer.Get();
     ID3D12Resource* srcResource = mResourceStaging.Get();
 
-    TacRendererDX12::Instance->ResourceBarrier( dstResource, mState, D3D12_RESOURCE_STATE_COPY_DEST );
+    RendererDX12::Instance->ResourceBarrier( dstResource, mState, D3D12_RESOURCE_STATE_COPY_DEST );
 
     D3D12_RANGE range;
     range.Begin = 0;
@@ -288,13 +295,13 @@ struct TacRendererBufferDX12
     void* mappedData;
     UINT subresource = 0;
     TAC_DX12_CALL( errors, mResourceStaging->Map, subresource, &range, &mappedData );
-    TacMemCpy( mappedData, bytes, byteCount );
+    MemCpy( mappedData, bytes, byteCount );
     mResourceStaging->Unmap( subresource, &range );
     UINT64 dstOffset = 0;
     UINT64 srcOffset = 0;
     commandList->CopyBufferRegion( dstResource, dstOffset, srcResource, srcOffset, ( UINT64 )byteCount );
 
-    TacRendererDX12::Instance->ResourceBarrier( dstResource, mState, D3D12_RESOURCE_STATE_COMMON );
+    RendererDX12::Instance->ResourceBarrier( dstResource, mState, D3D12_RESOURCE_STATE_COMMON );
   }
 
   D3D12_RESOURCE_STATES mState = D3D12_RESOURCE_STATE_COMMON;
@@ -302,27 +309,27 @@ struct TacRendererBufferDX12
   ComPtr< ID3D12Resource > mResourceBuffer;
 };
 
-struct TacVertexBufferDX12 : public TacVertexBuffer
+struct VertexBufferDX12 : public VertexBuffer
 {
-  TacRendererBufferDX12 mBuffer;
-  void Overwrite( void* data, int byteCount, TacErrors& errors ) override
+  RendererBufferDX12 mBuffer;
+  void Overwrite( void* data, int byteCount, Errors& errors ) override
   {
-    auto renderer = ( TacRendererDX12* )TacRenderer::Instance;
+    auto renderer = ( RendererDX12* )Renderer::Instance;
     mBuffer.UpdateBuffer( renderer, data, byteCount, errors );
   };
 };
 
-struct TacIndexBufferDX12 : public TacIndexBuffer
+struct IndexBufferDX12 : public IndexBuffer
 {
-  TacRendererBufferDX12 mBuffer;
-  void Overwrite( void* data, int byteCount, TacErrors& errors )  override
+  RendererBufferDX12 mBuffer;
+  void Overwrite( void* data, int byteCount, Errors& errors )  override
   {
-    auto renderer = ( TacRendererDX12* )TacRenderer::Instance;
+    auto renderer = ( RendererDX12* )Renderer::Instance;
     mBuffer.UpdateBuffer( renderer, data, byteCount, errors );
   }
 };
 
-struct TacShaderDX12 : public TacShader
+struct ShaderDX12 : public Shader
 {
   ComPtr< ID3DBlob > mBlobVertexShader;
   ComPtr< ID3DBlob > mBlobFragmentShader;
@@ -330,24 +337,24 @@ struct TacShaderDX12 : public TacShader
 };
 
 
-void TacConstantBufferDX12::SendUniforms( void* bytes )
+void ConstantBufferDX12::SendUniforms( void* bytes )
 {
   // Do I need a resource barrier here?
-  TacMemCpy( mMappedData, bytes, byteCount );
+  MemCpy( mMappedData, bytes, byteCount );
 }
 
-TacRendererDX12* TacRendererDX12::Instance = nullptr;
-TacRendererDX12::TacRendererDX12()
+RendererDX12* RendererDX12::Instance = nullptr;
+RendererDX12::RendererDX12()
 {
-  TacRendererDX12::Instance = this;
+  RendererDX12::Instance = this;
 }
 
-void TacRendererDX12::Init( TacErrors& errors )
+void RendererDX12::Init( Errors& errors )
 {
   mDXGI.Init( errors );
   TAC_HANDLE_ERROR( errors );
 
-  bool shouldCreateDebugLayer = TacIsDebugMode() &&
+  bool shouldCreateDebugLayer = IsDebugMode() &&
     // https://github.com/Microsoft/DirectX-Graphics-Samples/issues/158
     !isGraphicsDebugging;
 
@@ -362,12 +369,12 @@ void TacRendererDX12::Init( TacErrors& errors )
 
   ID3D12Device* device;
   TAC_DX12_CALL( errors, D3D12CreateDevice, mDXGI.mDxgiAdapter4, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS( &device ) );
-  TacNameDirectX12Object( device, "tac dx12 device" );
+  NameDirectX12Object( device, "tac dx12 device" );
   mDevice = device;
 
 
 
-  if( TacIsDebugMode() && mDebugController )
+  if( IsDebugMode() && mDebugController )
   {
     TAC_DX12_CALL( errors, mDevice.As, &mInfoQueue );
     mInfoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE );
@@ -383,7 +390,7 @@ void TacRendererDX12::Init( TacErrors& errors )
     rtvDescHeap.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
     rtvDescHeap.NodeMask = 1;
     TAC_DX12_CALL( errors, mDevice->CreateDescriptorHeap, &rtvDescHeap, IID_PPV_ARGS( &rtvDescriptorHeap ) );
-    TacNameDirectX12Object( rtvDescriptorHeap, "tac rtv desc heap" );
+    NameDirectX12Object( rtvDescriptorHeap, "tac rtv desc heap" );
     mRTVDescriptorHeap = rtvDescriptorHeap;
   }
 
@@ -395,7 +402,7 @@ void TacRendererDX12::Init( TacErrors& errors )
     dsvDescHeap.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
     dsvDescHeap.NodeMask = 1;
     TAC_DX12_CALL( errors, mDevice->CreateDescriptorHeap, &dsvDescHeap, IID_PPV_ARGS( &dsvDescriptorHeap ) );
-    TacNameDirectX12Object( dsvDescriptorHeap, "tac dsv desc heap" );
+    NameDirectX12Object( dsvDescriptorHeap, "tac dsv desc heap" );
     mDSVDescriptorHeap = dsvDescriptorHeap;
   }
 
@@ -414,12 +421,12 @@ void TacRendererDX12::Init( TacErrors& errors )
     scratchDescHeap.NodeMask = 1;
     scratchDescHeap.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE; // cpu read + write
     TAC_DX12_CALL( errors, mDevice->CreateDescriptorHeap, &scratchDescHeap, IID_PPV_ARGS( &scratchDescriptorHeap ) );
-    TacNameDirectX12Object( scratchDescriptorHeap, "tac scratch desc heap src" );
+    NameDirectX12Object( scratchDescriptorHeap, "tac scratch desc heap src" );
     mScratchDescriptorHeap = scratchDescriptorHeap;
 
     scratchDescHeap.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE; // cpu write only
     TAC_DX12_CALL( errors, mDevice->CreateDescriptorHeap, &scratchDescHeap, IID_PPV_ARGS( &scratchDescriptorHeap ) );
-    TacNameDirectX12Object( scratchDescriptorHeap, "tac scratch desc heap dst" );
+    NameDirectX12Object( scratchDescriptorHeap, "tac scratch desc heap dst" );
     mScratchDescriptorHeapCopyDest = scratchDescriptorHeap;
   }
 
@@ -431,7 +438,7 @@ void TacRendererDX12::Init( TacErrors& errors )
     queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
     queueDesc.NodeMask = 1;
     TAC_DX12_CALL( errors, mDevice->CreateCommandQueue, &queueDesc, IID_PPV_ARGS( &commandQueue ) );
-    TacNameDirectX12Object( commandQueue, "my command queue idk" );
+    NameDirectX12Object( commandQueue, "my command queue idk" );
     mCommandQueue = commandQueue;
   }
 
@@ -440,14 +447,14 @@ void TacRendererDX12::Init( TacErrors& errors )
     // a command allocator is...
     ID3D12CommandAllocator* commandAllocator;
     TAC_DX12_CALL( errors, mDevice->CreateCommandAllocator, D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS( &commandAllocator ) );
-    TacNameDirectX12Object( commandAllocator, "tac command allocator" );
+    NameDirectX12Object( commandAllocator, "tac command allocator" );
     mCommandAllocator = commandAllocator;
 
     ID3D12GraphicsCommandList* commandList;
     TAC_DX12_CALL( errors, mDevice->CreateCommandList, 0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator, NULL, IID_PPV_ARGS( &commandList ) );
     TAC_DX12_CALL( errors, commandList->Close );
     TAC_DX12_CALL( errors, commandList->Reset, commandAllocator, NULL );
-    TacNameDirectX12Object( commandList, "tac command list" );
+    NameDirectX12Object( commandList, "tac command list" );
     mCommandList = commandList;
   }
 
@@ -456,12 +463,12 @@ void TacRendererDX12::Init( TacErrors& errors )
     mFenceValue = 0;
     ID3D12Fence* fence;
     TAC_DX12_CALL( errors, mDevice->CreateFence, mFenceValue, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS( &fence ) );
-    TacNameDirectX12Object( fence, "my fence idk" );
+    NameDirectX12Object( fence, "my fence idk" );
     mFence = fence;
   }
 }
 
-void TacRendererDX12::CreateWindowContext( TacDesktopWindow* desktopWindow, TacErrors& errors )
+void RendererDX12::CreateWindowContext( DesktopWindow* desktopWindow, Errors& errors )
 {
   UINT bufferCount = 4; // ?
   //IDXGISwapChain* swapChain;
@@ -493,21 +500,21 @@ void TacRendererDX12::CreateWindowContext( TacDesktopWindow* desktopWindow, TacE
     // This call deprecates IDXGIFactory::CreateSwapChain
     TAC_DX12_CALL( errors, mDXGI.mFactory->CreateSwapChainForHwnd, pDevice, hwnd, &scd1, &scfsd, NULL, &swapChain );
 
-    TacNameDXGIObject( swapChain, desktopWindow->mName + " swap chain" );
+    NameDXGIObject( swapChain, desktopWindow->mName + " swap chain" );
   }
 
   // TODO: how the fuck does any of this work?
   uint32_t rtvDescriptorSize = mDevice->GetDescriptorHandleIncrementSize( D3D12_DESCRIPTOR_HEAP_TYPE_RTV );
   D3D12_CPU_DESCRIPTOR_HANDLE handle = mRTVDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
-  TacVector< TacTextureDX12* > backbufferColors;
+  Vector< TextureDX12* > backbufferColors;
   for( UINT i = 0; i < bufferCount; ++i )
   {
     ID3D12Resource* backbufferColor;
     TAC_DX12_CALL( errors, swapChain->GetBuffer, i, IID_PPV_ARGS( &backbufferColor ) );
-    TacString debugName = desktopWindow->mName + " backbufer " + TacToString( ( int )i );
-    //TacVector< WCHAR > debugNameWchar = TacToWChar( debugName );
+    String debugName = desktopWindow->mName + " backbufer " + ToString( ( int )i );
+    //Vector< WCHAR > debugNameWchar = ToWChar( debugName );
     //backbufferColor->SetName( debugNameWchar.data() );
-    TacNameDirectX12Object( backbufferColor, debugName );
+    NameDirectX12Object( backbufferColor, debugName );
 
     DXGI_FORMAT backbufferFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 
@@ -517,13 +524,13 @@ void TacRendererDX12::CreateWindowContext( TacDesktopWindow* desktopWindow, TacE
     //mDevice->CreateRenderTargetView( backbufferColor, NULL, handle );
     mDevice->CreateRenderTargetView( backbufferColor, &renderTargetViewDesc, handle );
 
-    auto texture = new TacTextureDX12();
+    auto texture = new TextureDX12();
     texture->mCpuDescriptorHandle = handle;
     texture->mResource = backbufferColor;
     texture->myImage.mWidth = desktopWindow->mWidth;
     texture->myImage.mHeight = desktopWindow->mHeight;
     texture->mDxgiFormat = backbufferFormat;
-    //texture->myImage.mFormat = GetTacFormat( backbufferFormat );
+    //texture->myImage.mFormat = GetFormat( backbufferFormat );
 
     handle.ptr += rtvDescriptorSize;
     backbufferColors.push_back( texture );
@@ -581,12 +588,12 @@ void TacRendererDX12::CreateWindowContext( TacDesktopWindow* desktopWindow, TacE
     mCommandList->ResourceBarrier( 1, &barrier );
   }
 
-  auto depthBufferDX12 = new TacDepthBufferDX12();
+  auto depthBufferDX12 = new DepthBufferDX12();
   depthBufferDX12->mBackbufferDepthStencil = backbufferDepthStencil;
   depthBufferDX12->mBackbufferDepthCpuDescriptorHandle = backbufferDepthCpuDescriptorHandle;
   depthBufferDX12->mDxgiFormat = depthBufferFormat;
 
-  auto dx12Window = new TacDX12Window();
+  auto dx12Window = new DX12Window();
   dx12Window->mSwapChain = swapChain;
   dx12Window->mBackbufferColors = backbufferColors;
   dx12Window->mDepthBuffer = depthBufferDX12;
@@ -595,32 +602,32 @@ void TacRendererDX12::CreateWindowContext( TacDesktopWindow* desktopWindow, TacE
   mWindows.push_back( dx12Window );
 }
 
-void TacRendererDX12::AddVertexBuffer( TacVertexBuffer** vertexBuffer, const TacVertexBufferData& vertexBufferData, TacErrors& errors )
+void RendererDX12::AddVertexBuffer( VertexBuffer** vertexBuffer, const VertexBufferData& vertexBufferData, Errors& errors )
 {
   int byteCount = vertexBufferData.mNumVertexes * vertexBufferData.mStrideBytesBetweenVertexes;
   D3D12_RESOURCE_STATES resourceStates = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
-  TacVertexBufferDX12* vertexBufferDX12;
+  VertexBufferDX12* vertexBufferDX12;
   AddRendererResource( &vertexBufferDX12, vertexBufferData );
   vertexBufferDX12->mBuffer.CrateMainBuffer( this, vertexBufferData.mName, errors, resourceStates, byteCount );
   vertexBufferDX12->mBuffer.CreateUploadBuffer( this, vertexBufferData.mName, errors, byteCount );
   *vertexBuffer = vertexBufferDX12;
 }
 
-void TacRendererDX12::AddIndexBuffer( TacIndexBuffer** indexBuffer, const TacIndexBufferData& indexBufferData, TacErrors& errors )
+void RendererDX12::AddIndexBuffer( IndexBuffer** indexBuffer, const IndexBufferData& indexBufferData, Errors& errors )
 {
-  TacAssert( indexBufferData.mFormat.mElementCount == 1 );
+  Assert( indexBufferData.mFormat.mElementCount == 1 );
   int byteCount = indexBufferData.mIndexCount * indexBufferData.mFormat.mPerElementByteCount;
   D3D12_RESOURCE_STATES resourceStates = D3D12_RESOURCE_STATE_INDEX_BUFFER;
-  TacIndexBufferDX12* indexBufferDX12;
+  IndexBufferDX12* indexBufferDX12;
   AddRendererResource( &indexBufferDX12, indexBufferData );
   indexBufferDX12->mBuffer.CrateMainBuffer( this, indexBufferData.mName, errors, resourceStates, byteCount );
   indexBufferDX12->mBuffer.CreateUploadBuffer( this, indexBufferData.mName, errors, byteCount );
   *indexBuffer = indexBufferDX12;
 }
 
-void TacRendererDX12::AddConstantBuffer( TacCBuffer** outputCbuffer, const TacCBufferData& cBufferData, TacErrors& errors )
+void RendererDX12::AddConstantBuffer( CBuffer** outputCbuffer, const CBufferData& cBufferData, Errors& errors )
 {
-  TacAssert( cBufferData.byteCount );
+  Assert( cBufferData.byteCount );
 
   D3D12_HEAP_PROPERTIES heapProperties = {};
   heapProperties.Type = D3D12_HEAP_TYPE_UPLOAD;
@@ -633,7 +640,7 @@ void TacRendererDX12::AddConstantBuffer( TacCBuffer** outputCbuffer, const TacCB
   D3D12_RESOURCE_DESC resourceDesc = {};
   resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
   resourceDesc.Alignment = 0;
-  resourceDesc.Width = ( UINT64 )TacRoundUpToNearestMultiple( cBufferData.byteCount, 256 );
+  resourceDesc.Width = ( UINT64 )RoundUpToNearestMultiple( cBufferData.byteCount, 256 );
   resourceDesc.Height = 1;
   resourceDesc.DepthOrArraySize = 1;
   resourceDesc.MipLevels = 1;
@@ -645,7 +652,7 @@ void TacRendererDX12::AddConstantBuffer( TacCBuffer** outputCbuffer, const TacCB
 
   ID3D12Resource* resource = nullptr;
   TAC_DX12_CALL( errors, mDevice->CreateCommittedResource, &heapProperties, HeapFlags, &resourceDesc, resourceStates, clearValue, IID_PPV_ARGS( &resource ) );
-  TacNameDirectX12Object( resource, cBufferData.mName + "upload heap" );
+  NameDirectX12Object( resource, cBufferData.mName + "upload heap" );
   mCBufferUpload = resource;
 
 
@@ -658,7 +665,7 @@ void TacRendererDX12::AddConstantBuffer( TacCBuffer** outputCbuffer, const TacCB
   // memcpy shader uniforms here
   //m4 world = {};
   //world = m4::Identity();
-  //TacMemCpy( mappedData, &world, sizeof( m4 ) );
+  //MemCpy( mappedData, &world, sizeof( m4 ) );
   // stay permanently mapped to avoid map/unmap overhead
   //resource->Unmap( 0, &cpuReadRange );
 
@@ -687,7 +694,7 @@ void TacRendererDX12::AddConstantBuffer( TacCBuffer** outputCbuffer, const TacCB
 
 
 
-  TacConstantBufferDX12* constantBufferDX12;
+  ConstantBufferDX12* constantBufferDX12;
   AddRendererResource( &constantBufferDX12, cBufferData );
   constantBufferDX12->mCBufferDestDescriptorCPU = destDescriptorCPU;
   constantBufferDX12->mCBufferDestDescriptorGPU = destDescriptorGPU;
@@ -696,38 +703,38 @@ void TacRendererDX12::AddConstantBuffer( TacCBuffer** outputCbuffer, const TacCB
   *outputCbuffer = constantBufferDX12;
 }
 
-void TacRendererDX12::AddShader( TacShader** shader, const TacShaderData& shaderData, TacErrors& errors )
+void RendererDX12::AddShader( Shader** shader, const ShaderData& shaderData, Errors& errors )
 {
-  struct TacShaderPart
+  struct ShaderPart
   {
-    TacString mEntryPoint;
-    TacString mShaderVersion;
+    String mEntryPoint;
+    String mShaderVersion;
     ID3DBlob* blobShader = nullptr;
   };
 
-  TacShaderPart shaderPartVertex;
+  ShaderPart shaderPartVertex;
   shaderPartVertex.mEntryPoint = "VS";
   shaderPartVertex.mShaderVersion = "vs_5_0";
 
-  TacShaderPart shaderPartFragment;
+  ShaderPart shaderPartFragment;
   shaderPartFragment.mEntryPoint = "PS";
   shaderPartFragment.mShaderVersion = "ps_5_0";
   for( ;; )
   {
-    TacVector< char > temporaryMemory;
+    Vector< char > temporaryMemory;
     if(!shaderData.mShaderPath.empty())
     {
-      TacString shaderPath = shaderData.mShaderPath + ".fx";
-      temporaryMemory = TacTemporaryMemoryFromFile( shaderPath, errors );
+      String shaderPath = shaderData.mShaderPath + ".fx";
+      temporaryMemory = TemporaryMemoryFromFile( shaderPath, errors );
       TAC_HANDLE_ERROR( errors );
     }
 
-    TacVector< char > common = TacTemporaryMemoryFromFile( "assets/common.fx", errors );
+    Vector< char > common = TemporaryMemoryFromFile( "assets/common.fx", errors );
     TAC_HANDLE_ERROR( errors );
 
     // Using a string instead of a vector because it's null terminated,
     // which means it will debug visualizes better
-    TacString shaderMemory;
+    String shaderMemory;
     for( char c : common )
       shaderMemory.push_back( c );
     for( char c : shaderData.mShaderStr )
@@ -737,13 +744,13 @@ void TacRendererDX12::AddShader( TacShader** shader, const TacShaderData& shader
 
 
     UINT flags = D3DCOMPILE_ENABLE_STRICTNESS;
-    if( TacIsDebugMode() )
+    if( IsDebugMode() )
     {
       flags |= D3DCOMPILE_DEBUG;
     }
 
 
-    auto CompileShaderPart = [ & ]( TacShaderPart* shaderPart )
+    auto CompileShaderPart = [ & ]( ShaderPart* shaderPart )
     {
       // https://docs.microsoft.com/en-us/windows/desktop/direct3dhlsl/d3dcompile
       ID3DBlob* blobShader;
@@ -778,7 +785,7 @@ void TacRendererDX12::AddShader( TacShader** shader, const TacShaderData& shader
           errors += " from file " + shaderData.mShaderPath;
         errors += "\n";
 
-        TacString blobErrorsString = TacString(
+        String blobErrorsString = String(
           ( char* )blobErrors->GetBufferPointer() );
 
         // this like includes the null which i guess makes sense, but i don't want
@@ -791,9 +798,9 @@ void TacRendererDX12::AddShader( TacShader** shader, const TacShaderData& shader
       shaderPart->blobShader = blobShader;
     };
 
-    TacShaderPart* failedShaderPart = nullptr;
+    ShaderPart* failedShaderPart = nullptr;
     //bool shouldRetry = false;
-    for( TacShaderPart* shaderPart : { &shaderPartVertex, &shaderPartFragment } )
+    for( ShaderPart* shaderPart : { &shaderPartVertex, &shaderPartFragment } )
     {
       CompileShaderPart( shaderPart );
       if( errors )
@@ -805,27 +812,27 @@ void TacRendererDX12::AddShader( TacShader** shader, const TacShaderData& shader
 
     if( !failedShaderPart )
       break;
-    if( !TacIsDebugMode() )
+    if( !IsDebugMode() )
       return;
 
 
-    TacString compositeShaderPath = TacShell::Instance->mPrefPath + "/tacFailedShader.txt";
-    TacErrors compositeShaderErrors;
-    TacWriteToFile( compositeShaderPath, shaderMemory.data(), shaderMemory.size(), compositeShaderErrors );
-    TacString compositeShaderErrorString =
+    String compositeShaderPath = Shell::Instance->mPrefPath + "/FailedShader.txt";
+    Errors compositeShaderErrors;
+    WriteToFile( compositeShaderPath, shaderMemory.data(), shaderMemory.size(), compositeShaderErrors );
+    String compositeShaderErrorString =
       compositeShaderErrors ?
       compositeShaderErrors.ToString() :
       "See composite shader " + compositeShaderPath;
 
-    TacVector< TacString > popupMessages;
+    Vector< String > popupMessages;
     popupMessages.push_back( errors.ToString() );
     popupMessages.push_back( compositeShaderErrorString );
     popupMessages.push_back( "Specified entry point: " + failedShaderPart->mEntryPoint );
     popupMessages.push_back( "Specified shader ver: " + failedShaderPart->mShaderVersion );
     popupMessages.push_back( errors.ToString() );
     popupMessages.push_back( "Fix errors, and press OK to try again" );
-    TacString popupMessage = TacJoin( "\n", popupMessages.data(), popupMessages.size() );
-    TacOS::Instance->DebugPopupBox( popupMessage );
+    String popupMessage = Join( "\n", popupMessages.data(), popupMessages.size() );
+    OS::Instance->DebugPopupBox( popupMessage );
     errors.clear();
   }
 
@@ -838,11 +845,11 @@ void TacRendererDX12::AddShader( TacShader** shader, const TacShaderData& shader
     // https://msdn.microsoft.com/en-us/library/windows/desktop/dn899109(v=vs.85).aspx
 
     // Declare containers in outer scope, careful with those pointers, man...
-    TacVector< D3D12_ROOT_PARAMETER > rootParameters;
-    TacVector< D3D12_DESCRIPTOR_RANGE > descriptorRanges;
+    Vector< D3D12_ROOT_PARAMETER > rootParameters;
+    Vector< D3D12_DESCRIPTOR_RANGE > descriptorRanges;
 
 
-    for( TacCBuffer* cbuffer : shaderData.mCBuffers )
+    for( CBuffer* cbuffer : shaderData.mCBuffers )
     {
       // The base shader register in the range.
       // For example, for shader - resource views( SRVs ), 3 maps to ": register(t3);" in HLSL.
@@ -868,7 +875,7 @@ void TacRendererDX12::AddShader( TacShader** shader, const TacShaderData& shader
 
     if( descriptorRanges.empty() )
     {
-      TacAssertMessage( "No descriptor ranges, will get bullshit errors" );
+      TAC_ASSERT_MESSAGE( "No descriptor ranges, will get bullshit errors" );
     }
 
     D3D12_ROOT_DESCRIPTOR_TABLE descriptorTable = {};
@@ -906,12 +913,12 @@ void TacRendererDX12::AddShader( TacShader** shader, const TacShaderData& shader
       signatureBlob->GetBufferSize(),
       IID_PPV_ARGS( &rootSignature ) );
 
-    TacNameDirectX12Object( rootSignature, shaderData.mName + " root sig" );
+    NameDirectX12Object( rootSignature, shaderData.mName + " root sig" );
 
   }
 
 
-  TacShaderDX12* shaderDX12;
+  ShaderDX12* shaderDX12;
   AddRendererResource( &shaderDX12, shaderData );
   shaderDX12->mBlobVertexShader = shaderPartVertex.blobShader;
   shaderDX12->mBlobFragmentShader = shaderPartFragment.blobShader;
@@ -919,9 +926,9 @@ void TacRendererDX12::AddShader( TacShader** shader, const TacShaderData& shader
   *shader = shaderDX12;
 }
 
-void TacRendererDX12::GetPSOStuff( const TacDrawCall2& drawCall2, ID3D12PipelineState **pppipelineState, TacErrors& errors )
+void RendererDX12::GetPSOStuff( const DrawCall2& drawCall2, ID3D12PipelineState **pppipelineState, Errors& errors )
 {
-  for( TacPSOStuff& curPSOStuff : mPSOStuff )
+  for( PSOStuff& curPSOStuff : mPSOStuff )
   {
     if( drawCall2.mShader == curPSOStuff.mShader &&
       drawCall2.mBlendState == curPSOStuff.mBlendState &&
@@ -937,32 +944,28 @@ void TacRendererDX12::GetPSOStuff( const TacDrawCall2& drawCall2, ID3D12Pipeline
   }
 
 
-  TacRenderView* renderView = drawCall2.mRenderView;
-  auto backbufferColor = ( TacTextureDX12* )renderView->mFramebuffer;
-  auto backbufferDepth = ( TacDepthBufferDX12* )renderView->mFramebufferDepth;
+  RenderView* renderView = drawCall2.mRenderView;
+  auto backbufferColor = ( TextureDX12* )renderView->mFramebuffer;
+  auto backbufferDepth = ( DepthBufferDX12* )renderView->mFramebufferDepth;
 
 
   // common variables
-  auto shader = ( TacShaderDX12* )drawCall2.mShader;
+  auto shader = ( ShaderDX12* )drawCall2.mShader;
   ID3DBlob* vertexShader = shader->mBlobVertexShader.Get();
   ID3DBlob* fragmentShader = shader->mBlobFragmentShader.Get();
-  TacVector< D3D12_INPUT_ELEMENT_DESC > inputElementDescs;
+  Vector< D3D12_INPUT_ELEMENT_DESC > inputElementDescs;
 
   // pipeline state variables
 
   ID3D12RootSignature *pRootSignature = shader->mRootSignature.Get();
 
   D3D12_SHADER_BYTECODE VS = {};
-  {
     VS.BytecodeLength = vertexShader->GetBufferSize();
     VS.pShaderBytecode = vertexShader->GetBufferPointer();
-  }
 
   D3D12_SHADER_BYTECODE PS = {};
-  {
     PS.BytecodeLength = fragmentShader->GetBufferSize();
     PS.pShaderBytecode = fragmentShader->GetBufferPointer();
-  }
 
   D3D12_SHADER_BYTECODE DS = {};
 
@@ -979,12 +982,12 @@ void TacRendererDX12::GetPSOStuff( const TacDrawCall2& drawCall2, ID3D12Pipeline
   {
     D3D12_RENDER_TARGET_BLEND_DESC renderTargetBlendDesc = {};
     renderTargetBlendDesc.BlendEnable = TRUE;
-    renderTargetBlendDesc.SrcBlend = TacGetBlendDX12( drawCall2.mBlendState->srcRGB );
-    renderTargetBlendDesc.DestBlend = TacGetBlendDX12( drawCall2.mBlendState->dstRGB );
-    renderTargetBlendDesc.BlendOp = TacGetBlendOpDX12( drawCall2.mBlendState->blendRGB );
-    renderTargetBlendDesc.SrcBlendAlpha = TacGetBlendDX12( drawCall2.mBlendState->srcA );
-    renderTargetBlendDesc.DestBlendAlpha = TacGetBlendDX12( drawCall2.mBlendState->dstA );
-    renderTargetBlendDesc.BlendOpAlpha = TacGetBlendOpDX12( drawCall2.mBlendState->blendA );
+    renderTargetBlendDesc.SrcBlend = GetBlendDX12( drawCall2.mBlendState->srcRGB );
+    renderTargetBlendDesc.DestBlend = GetBlendDX12( drawCall2.mBlendState->dstRGB );
+    renderTargetBlendDesc.BlendOp = GetBlendOpDX12( drawCall2.mBlendState->blendRGB );
+    renderTargetBlendDesc.SrcBlendAlpha = GetBlendDX12( drawCall2.mBlendState->srcA );
+    renderTargetBlendDesc.DestBlendAlpha = GetBlendDX12( drawCall2.mBlendState->dstA );
+    renderTargetBlendDesc.BlendOpAlpha = GetBlendOpDX12( drawCall2.mBlendState->blendA );
     renderTargetBlendDesc.LogicOpEnable = FALSE;
     renderTargetBlendDesc.RenderTargetWriteMask =
       D3D12_COLOR_WRITE_ENABLE_RED |
@@ -1001,7 +1004,7 @@ void TacRendererDX12::GetPSOStuff( const TacDrawCall2& drawCall2, ID3D12Pipeline
     // If set to FALSE, only the RenderTarget[ 0 ] members are used; RenderTarget[ 1..7 ] are ignored.
     BlendState.IndependentBlendEnable = FALSE;
 
-    // An array of D3D12_RENDER_TARGET_BLEND_DESC structures that describe the blend states for render targets
+    // An array of D3D12_RENDER_TARGET_BLEND_DESC struct Ures that describe the blend states for render targets
     // these correspond to the eight render targets that can be bound to the output-merger stage at one time.
     BlendState.RenderTarget[ 0 ] = renderTargetBlendDesc;
   }
@@ -1013,11 +1016,11 @@ void TacRendererDX12::GetPSOStuff( const TacDrawCall2& drawCall2, ID3D12Pipeline
   {
     RasterizerState.AntialiasedLineEnable = TRUE;
     RasterizerState.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
-    RasterizerState.CullMode = TacGetCullModeDX12( drawCall2.mRasterizerState->cullMode );
+    RasterizerState.CullMode = GetCullModeDX12( drawCall2.mRasterizerState->cullMode );
     RasterizerState.DepthBias = 0;
     RasterizerState.DepthBiasClamp = 0;
     RasterizerState.DepthClipEnable = TRUE; // ?
-    RasterizerState.FillMode = TacGetFillModeDX12( drawCall2.mRasterizerState->fillMode );
+    RasterizerState.FillMode = GetFillModeDX12( drawCall2.mRasterizerState->fillMode );
     RasterizerState.ForcedSampleCount = 0;
     RasterizerState.FrontCounterClockwise = ( BOOL )drawCall2.mRasterizerState->frontCounterClockwise;
     RasterizerState.MultisampleEnable = false;
@@ -1038,7 +1041,7 @@ void TacRendererDX12::GetPSOStuff( const TacDrawCall2& drawCall2, ID3D12Pipeline
     DepthStencilState.FrontFace.StencilPassOp = D3D12_STENCIL_OP_KEEP;
 
     DepthStencilState.DepthEnable = drawCall2.mDepthState->depthTest;
-    DepthStencilState.DepthFunc = TacGetDepthFuncDX12( drawCall2.mDepthState->depthFunc );
+    DepthStencilState.DepthFunc = GetDepthFuncDX12( drawCall2.mDepthState->depthFunc );
     DepthStencilState.DepthWriteMask = drawCall2.mDepthState->depthWrite ? D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
     DepthStencilState.StencilEnable = FALSE;
   }
@@ -1046,7 +1049,7 @@ void TacRendererDX12::GetPSOStuff( const TacDrawCall2& drawCall2, ID3D12Pipeline
 
   D3D12_INPUT_LAYOUT_DESC InputLayout = {};
   {
-    for( TacVertexDeclaration& vertexDeclaration : drawCall2.mVertexFormat->vertexFormatDatas )
+    for( VertexDeclaration& vertexDeclaration : drawCall2.mVertexFormat->vertexFormatDatas )
     {
       // A semantic index is only needed in a case where there is more than one element with the same semantic 
       UINT semanticIndex = 0;
@@ -1064,7 +1067,7 @@ void TacRendererDX12::GetPSOStuff( const TacDrawCall2& drawCall2, ID3D12Pipeline
 
       // https://docs.microsoft.com/en-us/windows/desktop/api/d3d12/ns-d3d12-d3d12_input_element_desc
       D3D12_INPUT_ELEMENT_DESC inputElementDesc = {};
-      inputElementDesc.SemanticName = TacGetSemanticName( vertexDeclaration.mAttribute );
+      inputElementDesc.SemanticName = GetSemanticName( vertexDeclaration.mAttribute );
       inputElementDesc.SemanticIndex = semanticIndex;
       inputElementDesc.Format = GetDXGIFormat( vertexDeclaration.mTextureFormat );
       inputElementDesc.InputSlot = inputSlot;
@@ -1102,17 +1105,17 @@ void TacRendererDX12::GetPSOStuff( const TacDrawCall2& drawCall2, ID3D12Pipeline
 
   DXGI_FORMAT DSVFormat = DXGI_FORMAT_UNKNOWN;
   {
-    //TacDepthBuffer* depthBuffer = renderView->mFramebufferDepth;
+    //DepthBuffer* depthBuffer = renderView->mFramebufferDepth;
     //if( depthBuffer->mDepthBitCount == 24 &&
-    //  depthBuffer->mDepthGraphicsType == TacGraphicsType::unorm &&
+    //  depthBuffer->mDepthGraphicsType == GraphicsType::unorm &&
     //  depthBuffer->mStencilBitCount == 8 &&
-    //  depthBuffer->mStencilType == TacGraphicsType::uint )
+    //  depthBuffer->mStencilType == GraphicsType::uint )
     //{
     //  DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
     //}
     //else
     //{
-    //  TacInvalidCodePath;
+    //  InvalidCodePath;
     //}
     DSVFormat = backbufferDepth->mDxgiFormat;
   }
@@ -1155,9 +1158,9 @@ void TacRendererDX12::GetPSOStuff( const TacDrawCall2& drawCall2, ID3D12Pipeline
 
   ID3D12PipelineState* pipelineState;
   TAC_DX12_CALL( errors, mDevice->CreateGraphicsPipelineState, &graphicsPipelineStateDesc, IID_PPV_ARGS( &pipelineState ) );
-  TacNameDirectX12Object( pipelineState, "tac pipeline state " + TacToString( mPSOStuff.size() ) );
+  NameDirectX12Object( pipelineState, "tac pipeline state " + ToString( mPSOStuff.size() ) );
 
-  TacPSOStuff psoStuff = {};
+  PSOStuff psoStuff = {};
   psoStuff.mBlendState = drawCall2.mBlendState;
   psoStuff.mDepthState = drawCall2.mDepthState;
   psoStuff.mFramebufferDepth = backbufferDepth;
@@ -1170,27 +1173,27 @@ void TacRendererDX12::GetPSOStuff( const TacDrawCall2& drawCall2, ID3D12Pipeline
   *pppipelineState = pipelineState;
 }
 
-void TacRendererDX12::Render( TacErrors& errors )
+void RendererDX12::Render( Errors& errors )
 {
   bool shouldAddDrawCalls = true;
   if( shouldAddDrawCalls )
   {
-    TacRenderView* lastRenderView = nullptr;
+    RenderView* lastRenderView = nullptr;
     // Add all draw calls to the commnd list
-    for( TacDrawCall2& drawCall2 : mDrawCall2s )
+    for( DrawCall2& drawCall2 : mDrawCall2s )
     {
-      auto shader = ( TacShaderDX12* )drawCall2.mShader;
-      TacRenderView* renderView = drawCall2.mRenderView;
+      auto shader = ( ShaderDX12* )drawCall2.mShader;
+      RenderView* renderView = drawCall2.mRenderView;
 
       if( drawCall2.mUniformDst )
         drawCall2.mUniformDst->SendUniforms( drawCall2.mUniformSrcc.data() );
 
       if( renderView )
       {
-        TacTextureDX12* backbufferColor = nullptr;
-        TacDepthBufferDX12* backbufferDepth = nullptr;
-        backbufferColor = ( TacTextureDX12* )renderView->mFramebuffer;
-        backbufferDepth = ( TacDepthBufferDX12* )renderView->mFramebufferDepth;
+        TextureDX12* backbufferColor = nullptr;
+        DepthBufferDX12* backbufferDepth = nullptr;
+        backbufferColor = ( TextureDX12* )renderView->mFramebuffer;
+        backbufferDepth = ( DepthBufferDX12* )renderView->mFramebufferDepth;
         // set render target
         if( renderView != lastRenderView )
         {
@@ -1200,11 +1203,11 @@ void TacRendererDX12::Render( TacErrors& errors )
           ResourceBarrier( backbufferColor->mResource.Get(), backbufferColor->mState, D3D12_RESOURCE_STATE_RENDER_TARGET );
 
 
-          TacVector< D3D12_CPU_DESCRIPTOR_HANDLE > renderTargetDescriptors;
+          Vector< D3D12_CPU_DESCRIPTOR_HANDLE > renderTargetDescriptors;
           D3D12_CPU_DESCRIPTOR_HANDLE cpuDescriptorHandle = backbufferColor->mCpuDescriptorHandle;
           renderTargetDescriptors.push_back( cpuDescriptorHandle );
 
-          //TacVector< D3D12_RECT > rects;
+          //Vector< D3D12_RECT > rects;
           //D3D12_RECT rect = {};
           //rect.bottom = ( LONG )backbufferColor->mHeight();
           //rect.right = ( LONG )backbufferColor->mWidth();
@@ -1237,7 +1240,7 @@ void TacRendererDX12::Render( TacErrors& errors )
 
         // set viewport
         {
-          TacVector< D3D12_VIEWPORT > viewports;
+          Vector< D3D12_VIEWPORT > viewports;
           D3D12_VIEWPORT viewport = {};
           viewport.Height = ( FLOAT )backbufferColor->myImage.mHeight;
           viewport.Width = ( FLOAT )backbufferColor->myImage.mWidth;
@@ -1247,7 +1250,7 @@ void TacRendererDX12::Render( TacErrors& errors )
 
         // set scissor rect
         {
-          TacVector< D3D12_RECT > rects;
+          Vector< D3D12_RECT > rects;
           D3D12_RECT  rect = {};
           rect.right = ( LONG )backbufferColor->myImage.mWidth;
           rect.bottom = ( LONG )backbufferColor->myImage.mHeight;
@@ -1284,10 +1287,10 @@ void TacRendererDX12::Render( TacErrors& errors )
           D3D12_CPU_DESCRIPTOR_HANDLE dst = mScratchDescriptorHeapCopyDest->GetCPUDescriptorHandleForHeapStart();
           UINT inc = mDevice->GetDescriptorHandleIncrementSize( type );
 
-          for( TacCBuffer* cBuffer : shader->mCBuffers )
+          for( CBuffer* cBuffer : shader->mCBuffers )
           {
-            auto cbuf = ( TacConstantBufferDX12* )cBuffer;
-            //TacVector<ID3D12DescriptorHeap *> descriptorHeaps =
+            auto cbuf = ( ConstantBufferDX12* )cBuffer;
+            //Vector<ID3D12DescriptorHeap *> descriptorHeaps =
             //{
             //  mScratchDescriptorHeap.Get()
             //};
@@ -1299,7 +1302,7 @@ void TacRendererDX12::Render( TacErrors& errors )
 
             // test
           }
-          TacVector<ID3D12DescriptorHeap *> descriptorHeaps =
+          Vector<ID3D12DescriptorHeap *> descriptorHeaps =
           {
             mScratchDescriptorHeapCopyDest.Get()
           };
@@ -1317,7 +1320,7 @@ void TacRendererDX12::Render( TacErrors& errors )
 
         // set index buffer
         {
-          auto indexBuffer = ( TacIndexBufferDX12* )drawCall2.mIndexBuffer;
+          auto indexBuffer = ( IndexBufferDX12* )drawCall2.mIndexBuffer;
           D3D12_INDEX_BUFFER_VIEW indexBufferView = {};
           indexBufferView.BufferLocation = indexBuffer->mBuffer.mResourceBuffer->GetGPUVirtualAddress();
           indexBufferView.Format = GetDXGIFormat( indexBuffer->mFormat );
@@ -1327,7 +1330,7 @@ void TacRendererDX12::Render( TacErrors& errors )
 
         // set vertex buffer
         {
-          auto vertexBuffer = ( TacVertexBufferDX12* )drawCall2.mVertexBuffer;
+          auto vertexBuffer = ( VertexBufferDX12* )drawCall2.mVertexBuffer;
           D3D12_VERTEX_BUFFER_VIEW vertexBufferView = {};
           vertexBufferView.BufferLocation = vertexBuffer->mBuffer.mResourceBuffer->GetGPUVirtualAddress();
           vertexBufferView.StrideInBytes = ( UINT )vertexBuffer->mStrideBytesBetweenVertexes;
@@ -1371,7 +1374,7 @@ void TacRendererDX12::Render( TacErrors& errors )
   TAC_HANDLE_ERROR( errors );
 }
 
-void TacRendererDX12::FinishRendering( TacErrors& errors )
+void RendererDX12::FinishRendering( Errors& errors )
 {
 
 
@@ -1380,10 +1383,10 @@ void TacRendererDX12::FinishRendering( TacErrors& errors )
 
 
   // Execute the command list ( must be done after closing the command list )
-  auto commandLists = TacMakeArray< ID3D12CommandList* >( mCommandList.Get() );
+  auto commandLists = MakeArray< ID3D12CommandList* >( mCommandList.Get() );
   mCommandQueue->ExecuteCommandLists( commandLists.size(), commandLists.data() );
 
-  for( TacDX12Window* window : mWindows )
+  for( DX12Window* window : mWindows )
   {
     window->Submit( errors );
     TAC_HANDLE_ERROR( errors );
@@ -1413,7 +1416,7 @@ void TacRendererDX12::FinishRendering( TacErrors& errors )
     if( completedFenceValue == nextFenceValue )
       break;
     HANDLE fenceEvent = ::CreateEvent( NULL, FALSE, FALSE, NULL );
-    TacAssert( fenceEvent );
+    Assert( fenceEvent );
     OnDestruct( CloseHandle( fenceEvent ) );
     HRESULT hr = mFence->SetEventOnCompletion( nextFenceValue, fenceEvent );
     if( FAILED( hr ) )
@@ -1438,7 +1441,7 @@ void TacRendererDX12::FinishRendering( TacErrors& errors )
     }
     else
     {
-      errors = "Failed to reset command allocator " + TacTryInferDX12ErrorStr( hr );
+      errors = "Failed to reset command allocator " + TryInferDX12ErrorStr( hr );
     }
     TAC_HANDLE_ERROR( errors );
   }
@@ -1446,7 +1449,7 @@ void TacRendererDX12::FinishRendering( TacErrors& errors )
   TAC_DX12_CALL( errors, mCommandList->Reset, mCommandAllocator.Get(), nullptr );
 }
 
-void TacRendererDX12::ResourceBarrier( ID3D12Resource* resource, D3D12_RESOURCE_STATES& oldState, const D3D12_RESOURCE_STATES& newState )
+void RendererDX12::ResourceBarrier( ID3D12Resource* resource, D3D12_RESOURCE_STATES& oldState, const D3D12_RESOURCE_STATES& newState )
 {
   D3D12_RESOURCE_BARRIER barrier;
   barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
@@ -1459,13 +1462,13 @@ void TacRendererDX12::ResourceBarrier( ID3D12Resource* resource, D3D12_RESOURCE_
   oldState = newState;
 }
 
-TacString TacRendererDX12::GetDeviceRemovedReason()
+String RendererDX12::GetDeviceRemovedReason()
 {
   HRESULT hr = mDevice->GetDeviceRemovedReason();
   return GetDeviceRemovedReason( hr );
 }
 
-TacString TacRendererDX12::GetDeviceRemovedReason( HRESULT hr )
+String RendererDX12::GetDeviceRemovedReason( HRESULT hr )
 {
   switch( hr )
   {
@@ -1475,25 +1478,27 @@ TacString TacRendererDX12::GetDeviceRemovedReason( HRESULT hr )
   case DXGI_ERROR_DRIVER_INTERNAL_ERROR: return "DXGI_ERROR_DRIVER_INTERNAL_ERROR The graphics driver encountered an error and reset the device.";
   case DXGI_ERROR_INVALID_CALL: return "DXGI_ERROR_INVALID_CALL The application provided invalid parameter data.If you get this error even once, it means that your code caused the device removed condition and must be debugged.";
   case S_OK: return "S_OK Returned when a graphics device was enabled, disabled, or reset without invalidating the current graphics device.For example, this error code can be returned if an app is using Windows Advanced Rasterization Platform( WARP ) and a hardware adapter becomes available.";
-      TacInvalidDefaultCase( hr );
+      TAC_INVALID_DEFAULT_CASE( hr );
   }
-  //TacInvalidCodePath;
+  //InvalidCodePath;
   return "";
 }
 
 int registerDX12 = []()
 {
-  static struct TacDirectX12RendererFactory : public TacRendererFactory
+  static struct DirectX12RendererFactory : public RendererFactory
   {
-    TacDirectX12RendererFactory()
+    DirectX12RendererFactory()
     {
       mRendererName = RendererNameDirectX12;
     }
-    void CreateRenderer( TacRenderer** renderer ) override
+    void CreateRenderer() override
     {
-      *renderer = new TacRendererDX12();
+      new RendererDX12;
     }
   } factory;
-  TacRendererRegistry::Instance().mFactories.push_back( &factory );
+  RendererRegistry::Instance().mFactories.push_back( &factory );
   return 0;
 }( );
+}
+*/

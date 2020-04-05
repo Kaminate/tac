@@ -1,101 +1,104 @@
+
 #pragma once
 
-#include "common/tacCamera.h"
-#include "common/tacMemory.h"
-#include "common/tacErrorHandling.h"
-#include "common/tacSettings.h"
-#include "common/tacEvent.h"
-#include "common/graphics/tacUI.h"
-#include "common/graphics/tacRenderer.h"
-#include "common/containers/tacVector.h"
-#include "common/tacShell.h"
+#include "src/common/tacCamera.h"
+#include "src/common/tacMemory.h"
+#include "src/common/tacErrorHandling.h"
+#include "src/common/tacSettings.h"
+#include "src/common/tacEvent.h"
+#include "src/common/graphics/tacUI.h"
+#include "src/common/graphics/tacRenderer.h"
+#include "src/common/containers/tacVector.h"
+#include "src/common/tacShell.h"
 
+namespace Tac
+{
 
-struct TacCreation;
-struct TacCreationMainWindow;
-struct TacCreationGameWindow;
-struct TacCreationPropertyWindow;
-struct TacCreationSystemWindow;
-struct TacCreationProfileWindow;
-struct TacDesktopApp;
-struct TacDesktopWindow;
-struct TacEntity;
-struct TacRenderer;
-struct TacShell;
-struct TacSoul;
-struct TacTexture;
-struct TacTextureAssetManager;
-struct TacUI2DDrawData;
-struct TacWindowParams;
-struct TacWorld;
+struct Creation;
+struct CreationMainWindow;
+struct CreationGameWindow;
+struct CreationPropertyWindow;
+struct CreationSystemWindow;
+struct CreationProfileWindow;
+struct DesktopApp;
+struct DesktopWindow;
+struct Entity;
+struct Renderer;
+struct Shell;
+struct Soul;
+struct Texture;
+struct TextureAssetManager;
+struct UI2DDrawData;
+struct WindowParams;
+struct World;
 
 
 // this would be saved as a .map file in cod engine
-struct TacPrefab
+struct Prefab
 {
-  TacVector< TacEntity* > mEntities;
-  TacString mDocumentPath;
-  //TacString GetDisplayName();
+  Vector< Entity* > mEntities;
+  String mDocumentPath;
+  //String GetDisplayName();
 };
 
-struct TacPrefabCameraPosition
+struct PrefabCameraPosition
 {
-  TacString mPrefab;
-  TacCamera mCamera;
+  String mPrefab;
+  Camera mCamera;
 };
 
 
-struct TacCreation : public TacUpdateThing
+struct Creation : public UpdateThing
 {
-  static TacCreation* Instance;
-  TacCreation();
-  ~TacCreation();
-  void Init( TacErrors& errors );
-  void SetSavedWindowData( TacJson* windowJson, TacErrors& errors );
-  void SetSavedWindowsData( TacErrors& errors );
-  void Update( TacErrors& errors );
-  TacEntity* CreateEntity();
+  static Creation* Instance;
+  Creation();
+  ~Creation();
+  void Init( Errors& errors );
+  void SetSavedWindowData( Json* windowJson, Errors& errors );
+  void SetSavedWindowsData( Errors& errors );
+  void Update( Errors& errors );
+  Entity* CreateEntity();
   bool IsAnythingSelected();
   v3 GetSelectionGizmoOrigin();
   void ClearSelection();
 
   // Prefabs
   void UpdateSavedPrefabs();
-  void GetSavedPrefabs( TacVector< TacString > & paths, TacErrors& errors );
+  void GetSavedPrefabs( Vector< String > & paths, Errors& errors );
   void SavePrefabs();
-  void LoadPrefabs( TacErrors& errors );
-  void LoadPrefabAtPath( TacString path, TacErrors& errors );
-  void LoadPrefabCameraPosition( TacPrefab* prefab );
-  void SavePrefabCameraPosition( TacPrefab* prefab );
-  void RemoveEntityFromPrefabRecursively( TacEntity* entity );
-  TacPrefab* FindPrefab( TacEntity* entity );
+  void LoadPrefabs( Errors& errors );
+  void LoadPrefabAtPath( String path, Errors& errors );
+  void LoadPrefabCameraPosition( Prefab* prefab );
+  void SavePrefabCameraPosition( Prefab* prefab );
+  void RemoveEntityFromPrefabRecursively( Entity* entity );
+  Prefab* FindPrefab( Entity* entity );
 
-  void ModifyPathRelative( TacString& path );
+  void ModifyPathRelative( String& path );
   void DeleteSelectedEntities();
 
-  void CreatePropertyWindow( TacErrors& errors );
-  void CreateGameWindow( TacErrors& errors );
-  void CreateMainWindow( TacErrors& errors );
-  void CreateSystemWindow( TacErrors& errors );
-  void CreateProfileWindow( TacErrors& errors );
+  void CreatePropertyWindow( Errors& errors );
+  void CreateGameWindow( Errors& errors );
+  void CreateMainWindow( Errors& errors );
+  void CreateSystemWindow( Errors& errors );
+  void CreateProfileWindow( Errors& errors );
 
-  void CreateDesktopWindow( TacString windowName, TacDesktopWindow** outDesktopWindow,  TacErrors& errors );
-  bool ShouldCreateWindowNamed( TacStringView name);
-  void GetWindowsJson( TacJson** outJson, TacErrors& errors );
-  TacJson* FindWindowJson( TacStringView windowName);
+  void CreateDesktopWindow( String windowName, DesktopWindow** outDesktopWindow,  Errors& errors );
+  bool ShouldCreateWindowNamed( StringView name);
+  void GetWindowsJson( Json** outJson, Errors& errors );
+  Json* FindWindowJson( StringView windowName);
 
-  TacCreationMainWindow* mMainWindow = nullptr;
-  TacCreationGameWindow* mGameWindow = nullptr;
-  TacCreationPropertyWindow* mPropertyWindow = nullptr;
-  TacCreationSystemWindow* mSystemWindow = nullptr;
-  TacCreationProfileWindow* mProfileWindow = nullptr;
+  CreationMainWindow* mMainWindow = nullptr;
+  CreationGameWindow* mGameWindow = nullptr;
+  CreationPropertyWindow* mPropertyWindow = nullptr;
+  CreationSystemWindow* mSystemWindow = nullptr;
+  CreationProfileWindow* mProfileWindow = nullptr;
 
-  TacString mOnlyCreateWindowNamed;
+  String mOnlyCreateWindowNamed;
 
-  TacWorld* mWorld = nullptr;
+  World* mWorld = nullptr;
 
-  // todo: TacHashSet
-  TacVector< TacEntity* > mSelectedEntities;
+  // todo: HashSet
+  Vector< Entity* > mSelectedEntities;
   bool mSelectedHitOffsetExists = false;
   v3 mSelectedHitOffset = {};
 
@@ -103,14 +106,17 @@ struct TacCreation : public TacUpdateThing
   v3 mTranslationGizmoDir = {};
   float mTranslationGizmoOffset = 0;
 
-  TacCamera mEditorCamera;
+  Camera mEditorCamera;
 
-  // todo: TacHashSet
-  TacVector< TacPrefab* > mPrefabs;
+  // todo: HashSet
+  Vector< Prefab* > mPrefabs;
 };
 
 void SetCreationWindowImGuiGlobals(
-  TacDesktopWindow* desktopWindow,
-  TacUI2DDrawData* ui2DDrawData );
+  DesktopWindow* desktopWindow,
+  UI2DDrawData* ui2DDrawData );
 
 const v4 textColor = v4( v3( 1, 1, 1 ) * 0.0f, 1 );
+
+}
+

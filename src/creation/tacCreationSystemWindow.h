@@ -1,31 +1,37 @@
+
 #pragma once
 
-#include "common/tacString.h"
+#include "src/common/tacString.h"
 
-struct TacCreation;
-struct TacDesktopWindow;
-struct TacEntity;
-struct TacErrors;
-struct TacShell;
-struct TacUI2DDrawData;
-struct TacUIHierarchyNode;
-struct TacUIRoot;
+namespace Tac
+{
+struct Creation;
+struct DesktopWindow;
+struct Entity;
+struct Errors;
+struct Shell;
+struct UI2DDrawData;
+struct UIHierarchyNode;
+struct UIRoot;
 
 // you sohuld be able to open this window from the main window menu bar
 // and then u can see each system ( graphics, physics, etc ) of creation->world->systems
-struct TacCreationSystemWindow
+struct CreationSystemWindow
 {
-  ~TacCreationSystemWindow();
-  void Init( TacErrors& errors );
-  void Update( TacErrors& errors );
+  ~CreationSystemWindow();
+  void Init( Errors& errors );
+  void Update( Errors& errors );
   void ImGui();
 
-  TacDesktopWindow* mDesktopWindow = nullptr;
-  TacUI2DDrawData* mUI2DDrawData = nullptr;
+  DesktopWindow* mDesktopWindow = nullptr;
+  UI2DDrawData* mUI2DDrawData = nullptr;
   
-  TacCreation* mCreation = nullptr;
+  Creation* mCreation = nullptr;
 
   int mSystemIndex = -1;
 };
 
-const TacString gSystemWindowName = "SystemWindow";
+const String gSystemWindowName = "SystemWindow";
+
+}
+

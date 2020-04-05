@@ -1,60 +1,66 @@
+
 #pragma once
-#include "common/tacSerialization.h"
-#include "common/tacString.h"
-#include "tacspacetypes.h"
+#include "src/common/tacSerialization.h"
+#include "src/common/tacString.h"
+#include "src/space/tacSpaceTypes.h"
 #include <map>
 
-struct TacEntity;
-struct TacWorld;
-struct TacComponentRegistry;
-struct TacComponentRegistryEntry;
-struct TacSystemRegistry;
-struct TacSystemRegistryEntry;
-struct TacJson;
-
-struct TacComponent
+namespace Tac
 {
-  virtual ~TacComponent() = default;
+struct Entity;
+struct World;
+struct ComponentRegistry;
+struct ComponentRegistryEntry;
+struct SystemRegistry;
+struct SystemRegistryEntry;
+struct Json;
+
+struct Component
+{
+  virtual ~Component() = default;
   virtual void PreReadDifferences() {};
   virtual void PostReadDifferences() {};
-  virtual TacComponentRegistryEntry* GetEntry() = 0;
-  TacEntity* mEntity = nullptr;
+  virtual ComponentRegistryEntry* GetEntry() = 0;
+  Entity* mEntity = nullptr;
 };
 
-struct TacComponentRegistryEntry
+struct ComponentRegistryEntry
 {
   // Used for
   // - debugging network bits
   // - prefab serialization
-  TacString mName;
+  String mName;
 
   // Used to create components at runtime
   // ( from prefabs, or hardcode, or in editor, or whenever )
-  TacComponent* ( *mCreateFn )( TacWorld* ) = nullptr;
+  Component* ( *mCreateFn )( World* ) = nullptr;
 
-  void ( *mDestroyFn )( TacWorld*, TacComponent* ) = nullptr;
-  void ( *mDebugImguiFn )( TacComponent* ) = nullptr;
+  void ( *mDestroyFn )( World*, Component* ) = nullptr;
+  void ( *mDebugImguiFn )( Component* ) = nullptr;
 
-  void ( *mSaveFn )( TacJson&, TacComponent* ) = nullptr;
-  void ( *mLoadFn )( TacJson&, TacComponent* ) = nullptr;
+  void ( *mSaveFn )( Json&, Component* ) = nullptr;
+  void ( *mLoadFn )( Json&, Component* ) = nullptr;
 
   // Used for what?
-  //TacSystemRegistryEntry* mSystemRegistryEntry = nullptr;
+  //SystemRegistryEntry* mSystemRegistryEntry = nullptr;
 
   // Used for serializing components over the network
-  TacVector< TacNetworkBit > mNetworkBits;
+  Vector< NetworkBit > mNetworkBits;
 };
 
-struct TacComponentRegistry
+struct ComponentRegistry
 {
-  static TacComponentRegistry* Instance();
-  TacComponentRegistryEntry* RegisterNewEntry();
-  TacComponentRegistryEntry* FindEntryNamed( const TacString& name );
+  static ComponentRegistry* Instance();
+  ComponentRegistryEntry* RegisterNewEntry();
+  ComponentRegistryEntry* FindEntryNamed( const String& name );
 
   // I wonder if these can be out of sync between different builds of the exe
   // or between server/clients
   // maybe it should be sorted by entry name or something?
-  TacVector< TacComponentRegistryEntry* > mEntries;
+  Vector< ComponentRegistryEntry* > mEntries;
 };
 
+
+
+}
 

@@ -1,57 +1,63 @@
 #pragma once
 
-struct TacBlendState;
-struct TacCBuffer;
-struct TacCamera;
-struct TacDefaultCBufferPerObject;
-struct TacDepthState;
-struct TacDesktopWindow;
-struct TacEntity;
-struct TacMesh;
-struct TacModelAssetManager;
-struct TacRasterizerState;
-struct TacRenderer;
-struct TacSamplerState;
-struct TacShader;
-struct TacSkyboxPresentation;
-struct TacVertexFormat;
-struct TacWorld;
-struct TacDebug3DCommonData;
-
-struct TacGamePresentation
+namespace Tac
 {
-  ~TacGamePresentation();
-  void CreateGraphicsObjects( TacErrors& errors );
-  void RenderGameWorldToDesktopView();
-  void RenderGameWorldAddDrawCall( const TacMesh* mesh, const TacDefaultCBufferPerObject& cbuf );
 
-  TacCamera* mCamera = nullptr;
-  TacDesktopWindow* mDesktopWindow = nullptr;
-  TacWorld* mWorld = nullptr;
+  struct BlendState;
+  struct CBuffer;
+  struct Camera;
+  struct DefaultCBufferPerObject;
+  struct DepthState;
+  struct DesktopWindow;
+  struct Entity;
+  struct Mesh;
+  struct ModelAssetManager;
+  struct RasterizerState;
+  struct Renderer;
+  struct SamplerState;
+  struct Shader;
+  struct SkyboxPresentation;
+  struct VertexFormat;
+  struct World;
+  struct Debug3DCommonData;
 
-  TacSkyboxPresentation* mSkyboxPresentation = nullptr;
 
-  // Renderer resources
-  TacShader* m3DShader = nullptr;
-  TacShader* mTerrainShader = nullptr;
-  TacVertexFormat* m3DVertexFormat = nullptr;
-  TacVertexFormat* mTerrainVertexFormat = nullptr;
-  TacCBuffer* mPerFrame = nullptr;
-  TacCBuffer* mPerObj = nullptr;
-  TacDepthState* mDepthState = nullptr;
-  TacBlendState* mBlendState = nullptr;
-  TacRasterizerState* mRasterizerState = nullptr;
-  TacSamplerState* mSamplerState = nullptr;
+  struct GamePresentation
+  {
+    ~GamePresentation();
+    void CreateGraphicsObjects( Errors& errors );
+    void RenderGameWorldToDesktopView();
+    void RenderGameWorldAddDrawCall( const Mesh* mesh, const DefaultCBufferPerObject& cbuf );
 
-private:
-  void Create3DShader( TacErrors& errors );
-  void CreateTerrainShader( TacErrors& errors );
-  void Create3DVertexFormat( TacErrors& errors );
-  void CreateTerrainVertexFormat( TacErrors& errors );
-  void CreatePerFrame( TacErrors& errors );
-  void CreatePerObj( TacErrors& errors );
-  void CreateDepthState( TacErrors& errors );
-  void CreateBlendState( TacErrors& errors );
-  void CreateRasterizerState( TacErrors& errors );
-  void CreateSamplerState( TacErrors& errors );
-};
+    Camera* mCamera = nullptr;
+    DesktopWindow* mDesktopWindow = nullptr;
+    World* mWorld = nullptr;
+
+    SkyboxPresentation* mSkyboxPresentation = nullptr;
+
+    // Renderer resources
+    Shader* m3DShader = nullptr;
+    Shader* mTerrainShader = nullptr;
+    VertexFormat* m3DVertexFormat = nullptr;
+    VertexFormat* mTerrainVertexFormat = nullptr;
+    CBuffer* mPerFrame = nullptr;
+    CBuffer* mPerObj = nullptr;
+    DepthState* mDepthState = nullptr;
+    BlendState* mBlendState = nullptr;
+    RasterizerState* mRasterizerState = nullptr;
+    SamplerState* mSamplerState = nullptr;
+
+  private:
+    void Create3DShader( Errors& errors );
+    void CreateTerrainShader( Errors& errors );
+    void Create3DVertexFormat( Errors& errors );
+    void CreateTerrainVertexFormat( Errors& errors );
+    void CreatePerFrame( Errors& errors );
+    void CreatePerObj( Errors& errors );
+    void CreateDepthState( Errors& errors );
+    void CreateBlendState( Errors& errors );
+    void CreateRasterizerState( Errors& errors );
+    void CreateSamplerState( Errors& errors );
+  };
+}
+

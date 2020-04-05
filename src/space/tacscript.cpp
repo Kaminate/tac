@@ -1,12 +1,15 @@
-#include "space/tacscript.h"
-#include "common/tacPreprocessor.h"
+
+#include "src/space/tacScript.h"
+#include "src/common/tacPreprocessor.h"
+namespace Tac
+{
 
 
-void TacScriptThread::DebugImguiOuter( TacErrors& errors )
+void ScriptThread::DebugImguiOuter( Errors& errors )
 {
   //ImGui::PushID( this );
   //OnDestruct( ImGui::PopID() );
-  //TacAssert( mName.size() );
+  //Assert( mName.size() );
   //if( !ImGui::CollapsingHeader( mName.c_str() ) )
   //  return;
   //ImGui::Indent();
@@ -18,47 +21,47 @@ void TacScriptThread::DebugImguiOuter( TacErrors& errors )
   //  mIsComplete = true;
   //DebugImgui( errors );
 }
-void TacScriptThread::SetNextKeyDelay( float seconds )
+void ScriptThread::SetNextKeyDelay( float seconds )
 {
   mIsSleeping = true;
   mSecondsToSleep = seconds;
   mSecondsSlept = 0;
 }
-void TacScriptThread::AddScriptCallback( void* userData, TacScriptCallbackFunction* scriptCallbackFunction )
+void ScriptThread::AddScriptCallback( void* userData, ScriptCallbackFunction* scriptCallbackFunction )
 {
-    auto* scriptCallbackData = new TacScriptCallbackData();
+    auto* scriptCallbackData = new ScriptCallbackData();
   scriptCallbackData->mUserData = userData;
   scriptCallbackData->mScriptCallbackFunction = scriptCallbackFunction;
   mMsgCallbacks.insert( scriptCallbackData );
 }
-void TacScriptThread::OnMsg( const TacScriptMsg* scriptMsg )
+void ScriptThread::OnMsg( const ScriptMsg* scriptMsg )
 {
-  TacVector< TacScriptCallbackData* > toDelete;
-  for( TacScriptCallbackData* scriptCallbackData : mMsgCallbacks )
+  Vector< ScriptCallbackData* > toDelete;
+  for( ScriptCallbackData* scriptCallbackData : mMsgCallbacks )
   {
     scriptCallbackData->mScriptCallbackFunction( scriptCallbackData, scriptMsg );
     if( scriptCallbackData->mRequestDeletion )
       toDelete.push_back( scriptCallbackData );
   }
-  for( TacScriptCallbackData* deleteMe : toDelete )
+  for( ScriptCallbackData* deleteMe : toDelete )
   {
     mMsgCallbacks.erase( deleteMe );
     delete deleteMe;
   }
 }
 
-TacScriptRoot::~TacScriptRoot()
+ScriptRoot::~ScriptRoot()
 {
   for( auto child : mChildren )
   {
     delete child;
   }
 }
-void TacScriptRoot::Update( float seconds, TacErrors& errors )
+void ScriptRoot::Update( float seconds, Errors& errors )
 {
   // threads can add children during the update, so make a copy
-  TacVector< TacScriptThread* > childrenToUpdate( mChildren.begin(), mChildren.end() );
-  TacVector< TacScriptThread* > childrenToKill;
+  Vector< ScriptThread* > childrenToUpdate( mChildren.begin(), mChildren.end() );
+  Vector< ScriptThread* > childrenToKill;
   for( auto child : childrenToUpdate )
   {
     // should we check for complete? ( ie: child A sends a message that completes child B )
@@ -79,36 +82,36 @@ void TacScriptRoot::Update( float seconds, TacErrors& errors )
     delete child;
   }
 }
-void TacScriptRoot::AddChild( TacScriptThread* child )
+void ScriptRoot::AddChild( ScriptThread* child )
 {
-  TacAssert( child->mName.size() );
+  TAC_ASSERT( child->mName.size() );
   child->mScriptRoot = this;
   mChildren.insert( child );
 }
-void TacScriptRoot::DebugImgui( TacErrors& errors )
+void ScriptRoot::DebugImgui( Errors& errors )
 {
   //if( !ImGui::CollapsingHeader( "Script Root" ) )
   //  return;
   //ImGui::Indent();
   //OnDestruct( ImGui::Unindent() );
-  //for( TacScriptThread* child : mChildren )
+  //for( ScriptThread* child : mChildren )
   //{
   //  child->DebugImguiOuter( errors );
   //}
 }
-void TacScriptRoot::OnMsg( const TacScriptMsg* scriptMsg )
+void ScriptRoot::OnMsg( const ScriptMsg* scriptMsg )
 {
-  TacAssert( scriptMsg->mType.size() );
+  TAC_ASSERT( scriptMsg->mType.size() );
   for( auto child : mChildren )
     child->OnMsg( scriptMsg );
 }
-void TacScriptRoot::OnMsg( const TacString& scriptMsgType )
+void ScriptRoot::OnMsg( const String& scriptMsgType )
 {
-  TacScriptMsg scriptMsg;
+  ScriptMsg scriptMsg;
   scriptMsg.mType = scriptMsgType;
   OnMsg( &scriptMsg );
 }
-TacScriptThread* TacScriptRoot::GetThread( const TacString& name )
+ScriptThread* ScriptRoot::GetThread( const String& name )
 {
   for( auto scriptThread : mChildren )
   {
@@ -116,5 +119,8 @@ TacScriptThread* TacScriptRoot::GetThread( const TacString& name )
       return scriptThread;
   }
   return nullptr;
+}
+
+
 }
 

@@ -1,32 +1,38 @@
+
 #pragma once
 
-#include "common/tacString.h"
-#include "common/tacErrorHandling.h"
+#include "src/common/tacString.h"
+#include "src/common/tacErrorHandling.h"
 
 #include <map>
 #include <set>
-
-struct TacRenderer;
-struct TacJobQueue;
-struct TacTexture;
-struct TacAsyncTexture;
-
-struct TacTextureAssetManager
+namespace Tac
 {
-  static TacTextureAssetManager* Instance;
-  TacTextureAssetManager();
-  ~TacTextureAssetManager();
-  void GetTexture( TacTexture** ppTexture, const TacString& textureFilepath, TacErrors& errors );
-  void GetTextureCube( TacTexture** ppTexture, const TacString& textureDir, TacErrors& errors );
+
+struct Renderer;
+struct JobQueue;
+struct Texture;
+struct AsyncTexture;
+
+struct TextureAssetManager
+{
+  static TextureAssetManager* Instance;
+  TextureAssetManager();
+  ~TextureAssetManager();
+  void GetTexture( Texture** ppTexture, const String& textureFilepath, Errors& errors );
+  void GetTextureCube( Texture** ppTexture, const String& textureDir, Errors& errors );
   void UpdateAsyncTexture(
-    TacTexture** ppTexture,
-    const TacString& key,
-    TacAsyncTexture* asyncTexture,
-    TacErrors& errors );
+    Texture** ppTexture,
+    const String& key,
+    AsyncTexture* asyncTexture,
+    Errors& errors );
 
-  TacTexture* FindLoadedTexture( const TacString& key );
-  TacAsyncTexture* FindLoadingTexture( const TacString& key );
+  Texture* FindLoadedTexture( const String& key );
+  AsyncTexture* FindLoadingTexture( const String& key );
 
-  std::map< TacString, TacAsyncTexture* > mLoadingTextures;
-  std::map< TacString, TacTexture* > mLoadedTextures;
+  std::map< String, AsyncTexture* > mLoadingTextures;
+  std::map< String, Texture* > mLoadedTextures;
 };
+
+}
+

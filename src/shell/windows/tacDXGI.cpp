@@ -1,7 +1,7 @@
-#include "tacDXGI.h"
-#include "common/tacString.h"
-#include "common/tacErrorHandling.h"
-#include "common/tacPreprocessor.h"
+#include "src/shell/windows/tacDXGI.h"
+#include "src/common/tacString.h"
+#include "src/common/tacErrorHandling.h"
+#include "src/common/tacPreprocessor.h"
 
 #include <d3dcommon.h> // WKPDID_D3DDebugObjectName
 
@@ -9,15 +9,19 @@
 
 #pragma comment( lib, "DXGI.lib" )
 
-TacDXGI::~TacDXGI()
+namespace Tac
+{
+
+
+DXGI::~DXGI()
 {
 }
 
-//void TacDXGI::CheckHDRSupport()
+//void DXGI::CheckHDRSupport()
 //{
 //  // http://asawicki.info/news_1703_programming_hdr_monitor_support_in_direct3d.html
 //
-//  TacErrors errors; // ignored
+//  Errors errors; // ignored
 //
 //  // https://docs.microsoft.com/en-us/windows/desktop/api/dxgi/nn-dxgi-idxgioutput
 //  // An IDXGIOutput interface represents an adapter output (such as a monitor).
@@ -25,7 +29,7 @@ TacDXGI::~TacDXGI()
 //  bool supportsHDR = false;
 //  UINT iOutput = 0;
 //  IDXGIOutput* output;
-//  TacVector< IDXGIOutput* > outputs;
+//  Vector< IDXGIOutput* > outputs;
 //  while( mDxgiAdapter4->EnumOutputs( iOutput, &output ) != DXGI_ERROR_NOT_FOUND )
 //  {
 //    outputs.push_back( output );
@@ -52,22 +56,22 @@ TacDXGI::~TacDXGI()
 //    outputDesc.ColorSpace;
 //  }
 //}
-void TacDXGI::Init( TacErrors& errors )
+void DXGI::Init( Errors& errors )
 {
-  UINT flags = TacIsDebugMode() ? DXGI_CREATE_FACTORY_DEBUG : 0;
+  UINT flags = IsDebugMode() ? DXGI_CREATE_FACTORY_DEBUG : 0;
   HRESULT hr = CreateDXGIFactory2( flags, IID_PPV_ARGS( &mFactory ) );
   if( FAILED( hr ) )
   {
     errors = "failed to create dxgi factory";
     return;
   }
-  TacNameDXGIObject( mFactory, "tac dxgi factory" );
+  NameDXGIObject( mFactory, "tac dxgi factory" );
 
   IDXGIAdapter1* dxgiAdapter1;
   SIZE_T maxDedicatedVideoMemory = 0;
   for( UINT i = 0; mFactory->EnumAdapters1( i, &dxgiAdapter1 ) != DXGI_ERROR_NOT_FOUND; ++i )
   {
-    OnDestruct( dxgiAdapter1->Release() );
+    TAC_ON_DESTRUCT( dxgiAdapter1->Release() );
     DXGI_ADAPTER_DESC1 dxgiAdapterDesc1;
     dxgiAdapter1->GetDesc1( &dxgiAdapterDesc1 );
     if( dxgiAdapterDesc1.DedicatedVideoMemory < maxDedicatedVideoMemory )
@@ -75,23 +79,23 @@ void TacDXGI::Init( TacErrors& errors )
     maxDedicatedVideoMemory = dxgiAdapterDesc1.DedicatedVideoMemory;
     TAC_DXGI_CALL( errors, dxgiAdapter1->QueryInterface, IID_PPV_ARGS( &mDxgiAdapter4 ) );
   }
-  TacNameDXGIObject( mDxgiAdapter4, "tac dxgi adaptor" );
+  NameDXGIObject( mDxgiAdapter4, "tac dxgi adaptor" );
 }
 
-void TacDXGI::Uninit()
+void DXGI::Uninit()
 {
   TAC_RELEASE_IUNKNOWN( mFactory );
   TAC_RELEASE_IUNKNOWN( mDxgiAdapter4 );
 }
 
-void TacDXGI::CreateSwapChain(
+void DXGI::CreateSwapChain(
   HWND hwnd,
   IUnknown* pDevice,
   int bufferCount,
   UINT width,
   UINT height,
   IDXGISwapChain** ppSwapChain,
-  TacErrors& errors )
+  Errors& errors )
 {
   IDXGISwapChain1* swapChain;
   DXGI_SWAP_CHAIN_DESC1 scd1 = {};
@@ -134,21 +138,21 @@ void TacDXGI::CreateSwapChain(
   *ppSwapChain = swapChain;
 }
 
-TacVector< std::pair< TacFormat, DXGI_FORMAT > > GetFormatPairs()
+Vector< std::pair< Format, DXGI_FORMAT > > GetFormatPairs()
 {
   return {
-    { { 2, sizeof( float ), TacGraphicsType::real }, DXGI_FORMAT_R32G32_FLOAT },
-  { { 3, sizeof( float ), TacGraphicsType::real }, DXGI_FORMAT_R32G32B32_FLOAT },
-  { { 4, sizeof( float ), TacGraphicsType::real }, DXGI_FORMAT_R32G32B32A32_FLOAT },
-  { { 1, sizeof( uint8_t ), TacGraphicsType::unorm }, DXGI_FORMAT_R8_UNORM },
-  { { 2, sizeof( uint8_t ), TacGraphicsType::unorm }, DXGI_FORMAT_R8G8_UNORM },
-  { { 4, sizeof( uint8_t ), TacGraphicsType::unorm }, DXGI_FORMAT_R8G8B8A8_UNORM },
-  { { 1, sizeof( uint16_t ), TacGraphicsType::uint }, DXGI_FORMAT_R16_UINT },
-  { { 1, sizeof( uint32_t ), TacGraphicsType::uint }, DXGI_FORMAT_R32_UINT },
+    { { 2, sizeof( float ), GraphicsType::real }, DXGI_FORMAT_R32G32_FLOAT },
+  { { 3, sizeof( float ), GraphicsType::real }, DXGI_FORMAT_R32G32B32_FLOAT },
+  { { 4, sizeof( float ), GraphicsType::real }, DXGI_FORMAT_R32G32B32A32_FLOAT },
+  { { 1, sizeof( uint8_t ), GraphicsType::unorm }, DXGI_FORMAT_R8_UNORM },
+  { { 2, sizeof( uint8_t ), GraphicsType::unorm }, DXGI_FORMAT_R8G8_UNORM },
+  { { 4, sizeof( uint8_t ), GraphicsType::unorm }, DXGI_FORMAT_R8G8B8A8_UNORM },
+  { { 1, sizeof( uint16_t ), GraphicsType::uint }, DXGI_FORMAT_R16_UINT },
+  { { 1, sizeof( uint32_t ), GraphicsType::uint }, DXGI_FORMAT_R32_UINT },
   };
 }
 
-TacFormat GetTacFormat( DXGI_FORMAT format )
+Format GetFormat( DXGI_FORMAT format )
 {
   for( auto formatPair : GetFormatPairs() )
   {
@@ -156,35 +160,35 @@ TacFormat GetTacFormat( DXGI_FORMAT format )
       continue;
     return formatPair.first;
   }
-  TacInvalidCodePath;
+  TAC_INVALID_CODE_PATH;
   return {};
 }
 
-DXGI_FORMAT GetDXGIFormat( TacFormat textureFormat )
+DXGI_FORMAT GetDXGIFormat( Format textureFormat )
 {
   for( auto formatPair : GetFormatPairs() )
   {
-    auto curTacFormat = formatPair.first;
-    if( curTacFormat.mPerElementByteCount != textureFormat.mPerElementByteCount ||
-      curTacFormat.mElementCount != textureFormat.mElementCount ||
-      curTacFormat.mPerElementDataType != textureFormat.mPerElementDataType )
+    auto curFormat = formatPair.first;
+    if( curFormat.mPerElementByteCount != textureFormat.mPerElementByteCount ||
+      curFormat.mElementCount != textureFormat.mElementCount ||
+      curFormat.mPerElementDataType != textureFormat.mPerElementDataType )
       continue;
     return formatPair.second;
   }
-  TacInvalidCodePath;
+  TAC_INVALID_CODE_PATH;
   return DXGI_FORMAT_UNKNOWN;
 }
 
 
-void TacNameDXGIObject( IDXGIObject* object, const TacString& name )
+void NameDXGIObject( IDXGIObject* object, const String& name )
 {
   // https://docs.microsoft.com/en-us/windows/desktop/api/dxgi/nf-dxgi-idxgiobject-setprivatedata
   HRESULT hr = object->SetPrivateData( WKPDID_D3DDebugObjectName, name.size(), name.data() );
-  TacAssert( hr == S_OK );
+  TAC_ASSERT( hr == S_OK );
 }
 
 
-static TacString TacTryInferDXGIErrorStr( HRESULT res )
+static String TryInferDXGIErrorStr( HRESULT res )
 {
   // https://docs.microsoft.com/en-us/windows/desktop/direct3ddxgi/dxgi-error
   switch( res )
@@ -243,11 +247,11 @@ static TacString TacTryInferDXGIErrorStr( HRESULT res )
       return "";
   }
 }
-void TacDXGICallAux( const char* fnCallWithArgs, HRESULT res, TacErrors& errors )
+void DXGICallAux( const char* fnCallWithArgs, HRESULT res, Errors& errors )
 {
   std::stringstream ss;
   ss << fnCallWithArgs << " returned 0x" << std::hex << res;
-  TacString inferredErrorMessage = TacTryInferDXGIErrorStr( res );
+  String inferredErrorMessage = TryInferDXGIErrorStr( res );
   if( !inferredErrorMessage.empty() )
   {
     ss << "(";
@@ -257,3 +261,4 @@ void TacDXGICallAux( const char* fnCallWithArgs, HRESULT res, TacErrors& errors 
   errors.mMessage = ss.str().c_str();
 }
 
+}

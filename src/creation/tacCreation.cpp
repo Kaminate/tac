@@ -1,65 +1,67 @@
-#include "common/assetmanagers/tacTextureAssetManager.h"
-#include "common/graphics/tacColorUtil.h"
-#include "common/graphics/tacFont.h"
-#include "common/graphics/tacRenderer.h"
-#include "common/graphics/tacUI2D.h"
-#include "common/graphics/imgui/tacImGui.h"
-#include "common/math/tacMath.h"
-#include "common/tacAlgorithm.h"
-#include "common/tacTime.h"
-#include "common/tacOS.h"
-#include "common/tacPreprocessor.h"
-#include "common/tackeyboardinput.h"
-#include "common/profile/tacProfile.h"
-#include "creation/tacCreation.h"
-#include "creation/tacCreationGameWindow.h"
-#include "creation/tacCreationPropertyWindow.h"
-#include "creation/tacCreationMainWindow.h"
-#include "creation/tacCreationSystemWindow.h"
-#include "creation/tacCreationProfileWindow.h"
-#include "shell/tacDesktopApp.h"
-#include "shell/tacDesktopWindowManager.h"
-#include "space/tacGhost.h"
-#include "space/tacentity.h"
-#include "space/tacworld.h"
-#include "space/model/tacmodel.h"
-#include "space/terrain/tacterrain.h"
-#include "space/tacspace.h"
 
+#include "src/common/assetmanagers/tacTextureAssetManager.h"
+#include "src/common/graphics/tacColorUtil.h"
+#include "src/common/graphics/tacFont.h"
+#include "src/common/graphics/tacRenderer.h"
+#include "src/common/graphics/tacUI2D.h"
+#include "src/common/graphics/imgui/tacImGui.h"
+#include "src/common/math/tacMath.h"
+#include "src/common/tacAlgorithm.h"
+#include "src/common/tacTime.h"
+#include "src/common/tacOS.h"
+#include "src/common/tacPreprocessor.h"
+#include "src/common/tacKeyboardinput.h"
+#include "src/common/profile/tacProfile.h"
+#include "src/creation/tacCreation.h"
+#include "src/creation/tacCreationGameWindow.h"
+#include "src/creation/tacCreationPropertyWindow.h"
+#include "src/creation/tacCreationMainWindow.h"
+#include "src/creation/tacCreationSystemWindow.h"
+#include "src/creation/tacCreationProfileWindow.h"
+#include "src/shell/tacDesktopApp.h"
+#include "src/shell/tacDesktopWindowManager.h"
+#include "src/space/tacGhost.h"
+#include "src/space/tacEntity.h"
+#include "src/space/tacWorld.h"
+#include "src/space/model/tacModel.h"
+#include "src/space/terrain/tacTerrain.h"
+#include "src/space/tacSpace.h"
 #include <iostream>
 #include <functional>
 #include <algorithm>
 
-const static TacString prefabSettingsPath = "prefabs";
-static v4 GetClearColor( TacShell* shell )
+namespace Tac
+{
+const static String prefabSettingsPath = "prefabs";
+static v4 GetClearColor( Shell* shell )
 {
   return v4( 1, 0, 0, 1 );
   float visualStudioBackground = 45 / 255.0f;
   visualStudioBackground += 0.3f;
-  return TacGetColorSchemeA( ( float )shell->mElapsedSeconds );
+  return GetColorSchemeA( ( float )shell->mElapsedSeconds );
 }
-const static TacString refFrameVecNames[] = {
+const static String refFrameVecNames[] = {
   "mPos",
   "mForwards",
   "mRight",
   "mUp",
 };
-const static TacString axisNames[] = { "x", "y", "z" };
+const static String axisNames[] = { "x", "y", "z" };
 
 
-void TacExecutableStartupInfo::Init( TacErrors& errors )
+void ExecutableStartupInfo::Init( Errors& errors )
 {
   mAppName = "Creation";
   mStudioName = "Sleeping Studio";
-  new TacCreation;
+  new Creation;
 }
 
-TacCreation* TacCreation::Instance = nullptr;
-TacCreation::TacCreation()
+Creation* Creation::Instance = nullptr;
+Creation::Creation()
 {
   Instance = this;
 }
-TacCreation::~TacCreation()
+Creation::~Creation()
 {
   if( mMainWindow )
   {
@@ -78,153 +80,153 @@ TacCreation::~TacCreation()
   }
 }
 
-void TacCreation::CreatePropertyWindow( TacErrors& errors )
+void Creation::CreatePropertyWindow( Errors& errors )
 {
   if( mPropertyWindow )
     return;
 
-  TacShell* shell = TacShell::Instance;
-  TacDesktopWindow* desktopWindow;
+  Shell* shell = Shell::Instance;
+  DesktopWindow* desktopWindow;
   CreateDesktopWindow( gPropertyWindowName, &desktopWindow, errors );
   TAC_HANDLE_ERROR( errors );
 
-  mPropertyWindow = new TacCreationPropertyWindow;
+  mPropertyWindow = new CreationPropertyWindow;
   mPropertyWindow->mCreation = this;
   mPropertyWindow->mDesktopWindow = desktopWindow;
   mPropertyWindow->Init( errors );
   TAC_HANDLE_ERROR( errors );
 
-  desktopWindow->mOnDestroyed.AddCallbackFunctional( []( TacDesktopWindow* )
+  desktopWindow->mOnDestroyed.AddCallbackFunctional( []( DesktopWindow* )
                                                      {
-                                                       delete TacCreation::Instance->mPropertyWindow;
-                                                       TacCreation::Instance->mPropertyWindow = nullptr;
+                                                       delete Creation::Instance->mPropertyWindow;
+                                                       Creation::Instance->mPropertyWindow = nullptr;
                                                      } );
 }
-void TacCreation::CreateGameWindow( TacErrors& errors )
+void Creation::CreateGameWindow( Errors& errors )
 {
   if( mGameWindow )
     return;
 
-  TacShell* shell = TacShell::Instance;
-  TacDesktopWindow* desktopWindow;
+  Shell* shell = Shell::Instance;
+  DesktopWindow* desktopWindow;
   CreateDesktopWindow( gGameWindowName, &desktopWindow, errors );
   TAC_HANDLE_ERROR( errors );
 
-  TacAssert( !mGameWindow );
-  mGameWindow = new TacCreationGameWindow();
+  TAC_ASSERT( !mGameWindow );
+  mGameWindow = new CreationGameWindow();
   mGameWindow->mCreation = this;
   mGameWindow->mDesktopWindow = desktopWindow;
   mGameWindow->Init( errors );
   TAC_HANDLE_ERROR( errors );
 
-  desktopWindow->mOnDestroyed.AddCallbackFunctional( []( TacDesktopWindow* )
+  desktopWindow->mOnDestroyed.AddCallbackFunctional( []( DesktopWindow* )
                                                      {
-                                                       delete TacCreation::Instance->mGameWindow;
-                                                       TacCreation::Instance->mGameWindow = nullptr;
+                                                       delete Creation::Instance->mGameWindow;
+                                                       Creation::Instance->mGameWindow = nullptr;
                                                      } );
 }
-void TacCreation::CreateMainWindow( TacErrors& errors )
+void Creation::CreateMainWindow( Errors& errors )
 {
   if( mMainWindow )
     return;
 
-  TacShell* shell = TacShell::Instance;
-  TacDesktopWindow* desktopWindow = nullptr;
+  Shell* shell = Shell::Instance;
+  DesktopWindow* desktopWindow = nullptr;
   CreateDesktopWindow( gMainWindowName, &desktopWindow, errors );
   TAC_HANDLE_ERROR( errors );
 
-  mMainWindow = new TacCreationMainWindow();
+  mMainWindow = new CreationMainWindow();
   mMainWindow->mCreation = this;
   mMainWindow->mDesktopWindow = desktopWindow;
   mMainWindow->Init( errors );
   TAC_HANDLE_ERROR( errors );
 
-  desktopWindow->mOnDestroyed.AddCallbackFunctional( []( TacDesktopWindow* )
+  desktopWindow->mOnDestroyed.AddCallbackFunctional( []( DesktopWindow* )
                                                      {
                                                        // no, for graphics debuggin
-                                                       //TacOS::Instance->mShouldStopRunning = true;
+                                                       //OS::Instance->mShouldStopRunning = true;
 
-                                                       delete TacCreation::Instance->mMainWindow;
-                                                       TacCreation::Instance->mMainWindow = nullptr;
+                                                       delete Creation::Instance->mMainWindow;
+                                                       Creation::Instance->mMainWindow = nullptr;
                                                      } );
 }
-void TacCreation::CreateSystemWindow( TacErrors& errors )
+void Creation::CreateSystemWindow( Errors& errors )
 {
   if( mSystemWindow )
     return;
 
-  TacShell* shell = TacShell::Instance;
-  TacDesktopWindow* desktopWindow;
+  Shell* shell = Shell::Instance;
+  DesktopWindow* desktopWindow;
   CreateDesktopWindow( gSystemWindowName, &desktopWindow, errors );
   TAC_HANDLE_ERROR( errors );
 
-  mSystemWindow = new TacCreationSystemWindow();
+  mSystemWindow = new CreationSystemWindow();
   mSystemWindow->mCreation = this;
   mSystemWindow->mDesktopWindow = desktopWindow;
   mSystemWindow->Init( errors );
   TAC_HANDLE_ERROR( errors );
 
-  desktopWindow->mOnDestroyed.AddCallbackFunctional( []( TacDesktopWindow* )
+  desktopWindow->mOnDestroyed.AddCallbackFunctional( []( DesktopWindow* )
                                                      {
-                                                       delete TacCreation::Instance->mSystemWindow;
-                                                       TacCreation::Instance->mSystemWindow = nullptr;
+                                                       delete Creation::Instance->mSystemWindow;
+                                                       Creation::Instance->mSystemWindow = nullptr;
                                                      } );
 }
 
-void TacCreation::CreateProfileWindow( TacErrors& errors )
+void Creation::CreateProfileWindow( Errors& errors )
 {
   if( mProfileWindow )
     return;
 
-  TacShell* shell = TacShell::Instance;
-  TacDesktopWindow* desktopWindow;
+  Shell* shell = Shell::Instance;
+  DesktopWindow* desktopWindow;
   CreateDesktopWindow( gProfileWindowName, &desktopWindow, errors );
   TAC_HANDLE_ERROR( errors );
 
-  mProfileWindow = new TacCreationProfileWindow();
+  mProfileWindow = new CreationProfileWindow();
   mProfileWindow->mCreation = this;
   mProfileWindow->mDesktopWindow = desktopWindow;
   mProfileWindow->Init( errors );
   TAC_HANDLE_ERROR( errors );
 
-  desktopWindow->mOnDestroyed.AddCallbackFunctional( []( TacDesktopWindow* )
+  desktopWindow->mOnDestroyed.AddCallbackFunctional( []( DesktopWindow* )
                                                      {
-                                                       delete TacCreation::Instance->mProfileWindow;
-                                                       TacCreation::Instance->mProfileWindow = nullptr;
+                                                       delete Creation::Instance->mProfileWindow;
+                                                       Creation::Instance->mProfileWindow = nullptr;
                                                      } );
 }
 
-void TacCreation::GetWindowsJson( TacJson** outJson, TacErrors& errors )
+void Creation::GetWindowsJson( Json** outJson, Errors& errors )
 {
-  TacSettings* settings = TacShell::Instance->mSettings;
-  TacVector< TacString > settingsPaths = { "Windows" };
-  auto windowDefault = new TacJson();
+  Settings* settings = Shell::Instance->mSettings;
+  Vector< String > settingsPaths = { "Windows" };
+  auto windowDefault = new Json();
   ( *windowDefault )[ "Name" ] = gMainWindowName;
 
-  auto windowsDefault = new TacJson();
-  windowsDefault->mType = TacJsonType::Array;
+  auto windowsDefault = new Json();
+  windowsDefault->mType = JsonType::Array;
   windowsDefault->mElements.push_back( windowDefault );
-  TacJson* windows = settings->GetArray( nullptr, { "Windows" }, windowsDefault, errors );
+  Json* windows = settings->GetArray( nullptr, { "Windows" }, windowsDefault, errors );
   TAC_HANDLE_ERROR( errors );
 
   *outJson = windows;
 }
-void TacCreation::CreateDesktopWindow(
-  TacString windowName,
-  TacDesktopWindow** outDesktopWindow,
-  TacErrors& errors )
+void Creation::CreateDesktopWindow(
+  String windowName,
+  DesktopWindow** outDesktopWindow,
+  Errors& errors )
 {
-  TacShell* shell = TacShell::Instance;
-  TacSettings* settings = shell->mSettings;
-  TacJson* windows;
+  Shell* shell = Shell::Instance;
+  Settings* settings = shell->mSettings;
+  Json* windows;
   GetWindowsJson( &windows, errors );
   TAC_HANDLE_ERROR( errors );
 
 
-  TacJson* settingsWindowJson = nullptr;
-  for( TacJson* windowJson : windows->mElements )
+  Json* settingsWindowJson = nullptr;
+  for( Json* windowJson : windows->mElements )
   {
-    TacString curWindowName = windowJson->mChildren[ "Name" ]->mString;
+    String curWindowName = windowJson->mChildren[ "Name" ]->mString;
     if( curWindowName == windowName )
     {
       settingsWindowJson = windowJson;
@@ -234,12 +236,12 @@ void TacCreation::CreateDesktopWindow(
 
   if( !settingsWindowJson )
   {
-    settingsWindowJson = new TacJson;
+    settingsWindowJson = new Json;
     ( *settingsWindowJson )[ "Name" ] = windowName;
     windows->mElements.push_back( settingsWindowJson );
   }
 
-  TacJson* windowJson = settingsWindowJson;
+  Json* windowJson = settingsWindowJson;
 
   const int width = ( int )settings->GetNumber( windowJson, { "w" }, 400, errors );
   TAC_HANDLE_ERROR( errors );
@@ -258,10 +260,10 @@ void TacCreation::CreateDesktopWindow(
 
   if( centered )
   {
-    TacMonitor monitor;
-    TacDesktopApp::Instance->GetPrimaryMonitor( &monitor, errors );
+    Monitor monitor;
+    DesktopApp::Instance->GetPrimaryMonitor( &monitor, errors );
     TAC_HANDLE_ERROR( errors );
-    TacWindowParams::GetCenteredPosition(
+    WindowParams::GetCenteredPosition(
       width,
       height,
       &x,
@@ -269,15 +271,15 @@ void TacCreation::CreateDesktopWindow(
       monitor );
   }
 
-  TacWindowParams windowParams = {};
+  WindowParams windowParams = {};
   windowParams.mName = windowName;
   windowParams.mX = x;
   windowParams.mY = y;
   windowParams.mWidth = width;
   windowParams.mHeight = height;
 
-  TacDesktopWindow* desktopWindow;
-  TacDesktopApp::Instance->SpawnWindow( windowParams, &desktopWindow, errors );
+  DesktopWindow* desktopWindow;
+  DesktopApp::Instance->SpawnWindow( windowParams, &desktopWindow, errors );
   TAC_HANDLE_ERROR( errors );
 
 
@@ -298,27 +300,27 @@ void TacCreation::CreateDesktopWindow(
   *outDesktopWindow = desktopWindow;
 }
 
-bool TacCreation::ShouldCreateWindowNamed( TacStringView name )
+bool Creation::ShouldCreateWindowNamed( StringView name )
 {
   if( mOnlyCreateWindowNamed.size() && name != mOnlyCreateWindowNamed )
     return false;
-  TacJson* windowJson = FindWindowJson( name);
+  Json* windowJson = FindWindowJson( name);
   if( !windowJson )
     return false;
 
-  TacSettings* settings = TacShell::Instance->mSettings;
-  TacErrors errors;
+  Settings* settings = Shell::Instance->mSettings;
+  Errors errors;
   const bool create = settings->GetBool( windowJson, { "Create" }, false, errors );
   if( errors )
     return false;
   return create;
 }
 
-void TacCreation::SetSavedWindowData( TacJson* windowJson, TacErrors& errors )
+void Creation::SetSavedWindowData( Json* windowJson, Errors& errors )
 {
-  TacSettings* settings = TacShell::Instance->mSettings;
+  Settings* settings = Shell::Instance->mSettings;
 
-  const TacStringView name = settings->GetString( windowJson, { "Name" }, gMainWindowName, errors );
+  const StringView name = settings->GetString( windowJson, { "Name" }, gMainWindowName, errors );
   TAC_HANDLE_ERROR( errors );
 
   const int width = ( int )settings->GetNumber( windowJson, { "w" }, 400, errors );
@@ -338,10 +340,10 @@ void TacCreation::SetSavedWindowData( TacJson* windowJson, TacErrors& errors )
 
   if( centered )
   {
-    TacMonitor monitor;
-    TacDesktopApp::Instance->GetPrimaryMonitor( &monitor, errors );
+    Monitor monitor;
+    DesktopApp::Instance->GetPrimaryMonitor( &monitor, errors );
     TAC_HANDLE_ERROR( errors );
-    TacWindowParams::GetCenteredPosition(
+    WindowParams::GetCenteredPosition(
       width,
       height,
       &x,
@@ -349,48 +351,48 @@ void TacCreation::SetSavedWindowData( TacJson* windowJson, TacErrors& errors )
       monitor );
   }
 
-  TacDesktopWindowManager::Instance->SetWindowCreationData( name, width, height, x, y );
+  DesktopWindowManager::Instance->SetWindowCreationData( name, width, height, x, y );
 }
-void TacCreation::SetSavedWindowsData( TacErrors& errors )
+void Creation::SetSavedWindowsData( Errors& errors )
 {
-  TacSettings* settings = TacShell::Instance->mSettings;
+  Settings* settings = Shell::Instance->mSettings;
 
-  TacJson* windows;
+  Json* windows;
   GetWindowsJson( &windows, errors );
   TAC_HANDLE_ERROR( errors );
 
 
-  for( TacJson* windowJson : windows->mElements )
+  for( Json* windowJson : windows->mElements )
   {
     SetSavedWindowData( windowJson, errors );
     TAC_HANDLE_ERROR( errors );
   }
 }
-void TacCreation::Init( TacErrors& errors )
+void Creation::Init( Errors& errors )
 {
-  TacOS* os = TacOS::Instance;
+  OS* os = OS::Instance;
 
-  TacSpaceInit();
-  mWorld = new TacWorld;
+  SpaceInit();
+  mWorld = new World;
   mEditorCamera.mPos = { 0, 1, 5 };
   mEditorCamera.mForwards = { 0, 0, -1 };
   mEditorCamera.mRight = { 1, 0, 0 };
   mEditorCamera.mUp = { 0, 1, 0 };
 
-  TacString dataPath;
+  String dataPath;
   os->GetApplicationDataPath( dataPath, errors );
   TAC_HANDLE_ERROR( errors );
 
   os->CreateFolderIfNotExist( dataPath, errors );
   TAC_HANDLE_ERROR( errors );
 
-  TacShell* shell = TacShell::Instance;
-  TacSettings* settings = shell->mSettings;
+  Shell* shell = Shell::Instance;
+  Settings* settings = shell->mSettings;
 
   SetSavedWindowsData( errors );
   TAC_HANDLE_ERROR( errors );
 
-  TacJson* windows;
+  Json* windows;
   GetWindowsJson( &windows, errors );
   TAC_HANDLE_ERROR( errors );
 
@@ -422,24 +424,24 @@ void TacCreation::Init( TacErrors& errors )
   LoadPrefabs( errors );
   TAC_HANDLE_ERROR( errors );
 }
-TacJson* TacCreation::FindWindowJson( TacStringView windowName )
+Json* Creation::FindWindowJson( StringView windowName )
 {
-  TacJson* windows;
-  TacErrors errors;
+  Json* windows;
+  Errors errors;
   GetWindowsJson( &windows, errors );
   if(errors)
     return nullptr;
-  for( TacJson* windowJson : windows->mElements )
+  for( Json* windowJson : windows->mElements )
     if( windowJson->GetChild( "Name" ) == windowName )
       return windowJson;
   return nullptr;
 }
-void TacCreation::RemoveEntityFromPrefabRecursively( TacEntity* entity )
+void Creation::RemoveEntityFromPrefabRecursively( Entity* entity )
 {
   int prefabCount = mPrefabs.size();
   for( int iPrefab = 0; iPrefab < prefabCount; ++iPrefab )
   {
-    TacPrefab* prefab = mPrefabs[ iPrefab ];
+    Prefab* prefab = mPrefabs[ iPrefab ];
     bool removedEntityFromPrefab = false;
     int prefabEntityCount = prefab->mEntities.size();
     for( int iPrefabEntity = 0; iPrefabEntity < prefabEntityCount; ++iPrefabEntity )
@@ -462,19 +464,19 @@ void TacCreation::RemoveEntityFromPrefabRecursively( TacEntity* entity )
     if( removedEntityFromPrefab )
       break;
   }
-  for( TacEntity* child : entity->mChildren )
+  for( Entity* child : entity->mChildren )
     RemoveEntityFromPrefabRecursively( child );
 }
-void TacCreation::DeleteSelectedEntities()
+void Creation::DeleteSelectedEntities()
 {
-  TacVector< TacEntity* > topLevelEntitiesToDelete;
+  Vector< Entity* > topLevelEntitiesToDelete;
 
-  for( TacEntity* entity : mSelectedEntities )
+  for( Entity* entity : mSelectedEntities )
   {
     bool isTopLevel = true;
-    for( TacEntity* parent = entity->mParent; parent; parent = parent->mParent )
+    for( Entity* parent = entity->mParent; parent; parent = parent->mParent )
     {
-      if( TacContains( mSelectedEntities, parent ) )
+      if( Contains( mSelectedEntities, parent ) )
       {
         isTopLevel = false;
         break;
@@ -483,17 +485,17 @@ void TacCreation::DeleteSelectedEntities()
     if( isTopLevel )
       topLevelEntitiesToDelete.push_back( entity );
   }
-  for( TacEntity* entity : topLevelEntitiesToDelete )
+  for( Entity* entity : topLevelEntitiesToDelete )
   {
     RemoveEntityFromPrefabRecursively( entity );
     mWorld->KillEntity( entity );
   }
   mSelectedEntities.clear();
 }
-void TacCreation::Update( TacErrors& errors )
+void Creation::Update( Errors& errors )
 {
   /*TAC_PROFILE_BLOCK*/;
-  TacShell* shell = TacShell::Instance;
+  Shell* shell = Shell::Instance;
   if( mMainWindow )
   {
     mMainWindow->Update( errors );
@@ -526,14 +528,14 @@ void TacCreation::Update( TacErrors& errors )
 
   mWorld->Step( TAC_DELTA_FRAME_SECONDS );
 
-  if( TacKeyboardInput::Instance->IsKeyJustDown( TacKey::Delete ) &&
+  if( KeyboardInput::Instance->IsKeyJustDown( Key::Delete ) &&
       mGameWindow->mDesktopWindow->mCursorUnobscured )
   {
     DeleteSelectedEntities();
   }
 
-  if( TacKeyboardInput::Instance->IsKeyJustDown( TacKey::S ) &&
-      TacKeyboardInput::Instance->IsKeyDown( TacKey::Modifier ) )
+  if( KeyboardInput::Instance->IsKeyJustDown( Key::S ) &&
+      KeyboardInput::Instance->IsKeyDown( Key::Modifier ) )
   {
     SavePrefabs();
     if( mGameWindow )
@@ -543,33 +545,33 @@ void TacCreation::Update( TacErrors& errors )
     }
   }
 }
-TacEntity* TacCreation::CreateEntity()
+Entity* Creation::CreateEntity()
 {
-  TacWorld* world = mWorld;
-  TacString desiredEntityName = "Entity";
+  World* world = mWorld;
+  String desiredEntityName = "Entity";
   int parenNumber = 1;
   for( ;; )
   {
     bool isEntityNameUnique = false;
-    TacEntity* entity = world->FindEntity( desiredEntityName );
+    Entity* entity = world->FindEntity( desiredEntityName );
     if( !entity )
       break;
-    desiredEntityName = "Entity (" + TacToString( parenNumber ) + ")";
+    desiredEntityName = "Entity (" + ToString( parenNumber ) + ")";
     parenNumber++;
   }
 
-  TacEntity* entity = world->SpawnEntity( TacNullEntityUUID );
+  Entity* entity = world->SpawnEntity( NullEntityUUID );
   entity->mName = desiredEntityName;
   mSelectedEntities = { entity };
   return entity;
 }
-bool TacCreation::IsAnythingSelected()
+bool Creation::IsAnythingSelected()
 {
   return mSelectedEntities.size();
 }
-v3 TacCreation::GetSelectionGizmoOrigin()
+v3 Creation::GetSelectionGizmoOrigin()
 {
-  TacAssert( IsAnythingSelected() );
+  TAC_ASSERT( IsAnythingSelected() );
   // do i really want average? or like center of bounding circle?
   v3 runningPosSum = {};
   int selectionCount = 0;
@@ -586,72 +588,72 @@ v3 TacCreation::GetSelectionGizmoOrigin()
     result += mSelectedHitOffset;
   return result;
 }
-void TacCreation::ClearSelection()
+void Creation::ClearSelection()
 {
   mSelectedEntities.clear();
   mSelectedHitOffsetExists = false;
 }
-void TacCreation::GetSavedPrefabs( TacVector< TacString > & paths, TacErrors& errors )
+void Creation::GetSavedPrefabs( Vector< String > & paths, Errors& errors )
 {
-  TacShell* shell = TacShell::Instance;
-  TacSettings* settings = shell->mSettings;
-  TacJson& prefabs = settings->mJson[ prefabSettingsPath ];
-  prefabs.mType = TacJsonType::Array;
+  Shell* shell = Shell::Instance;
+  Settings* settings = shell->mSettings;
+  Json& prefabs = settings->mJson[ prefabSettingsPath ];
+  prefabs.mType = JsonType::Array;
 
-  TacVector< TacString > alreadySavedPrefabs;
-  for( TacJson* child : prefabs.mElements )
+  Vector< String > alreadySavedPrefabs;
+  for( Json* child : prefabs.mElements )
     alreadySavedPrefabs.push_back( child->mString );
   paths = alreadySavedPrefabs;
 }
-void TacCreation::UpdateSavedPrefabs()
+void Creation::UpdateSavedPrefabs()
 {
-  TacShell* shell = TacShell::Instance;
-  TacSettings* settings = shell->mSettings;
-  TacJson& prefabs = settings->mJson[ prefabSettingsPath ];
-  prefabs.mType = TacJsonType::Array;
+  Shell* shell = Shell::Instance;
+  Settings* settings = shell->mSettings;
+  Json& prefabs = settings->mJson[ prefabSettingsPath ];
+  prefabs.mType = JsonType::Array;
 
-  TacErrors errors;
-  TacVector< TacString > alreadySavedPrefabs;
+  Errors errors;
+  Vector< String > alreadySavedPrefabs;
   GetSavedPrefabs( alreadySavedPrefabs, errors );
   TAC_HANDLE_ERROR( errors );
 
-  for( TacPrefab* prefab : mPrefabs )
+  for( Prefab* prefab : mPrefabs )
   {
-    const TacString& path = prefab->mDocumentPath;
+    const String& path = prefab->mDocumentPath;
     if( path.empty() )
       continue;
-    if( TacContains( alreadySavedPrefabs, path ) )
+    if( Contains( alreadySavedPrefabs, path ) )
       continue;
-    prefabs.mElements.push_back( new TacJson( path ) );
+    prefabs.mElements.push_back( new Json( path ) );
   }
 
   settings->Save( errors );
 }
-TacPrefab* TacCreation::FindPrefab( TacEntity* entity )
+Prefab* Creation::FindPrefab( Entity* entity )
 {
-  for( TacPrefab* prefab : mPrefabs )
+  for( Prefab* prefab : mPrefabs )
   {
-    if( TacContains( prefab->mEntities, entity ) )
+    if( Contains( prefab->mEntities, entity ) )
     {
       return prefab;
     }
   }
   return nullptr;
 }
-void TacCreation::SavePrefabs()
+void Creation::SavePrefabs()
 {
-  TacShell* shell = TacShell::Instance;
-  TacOS* os = TacOS::Instance;
+  Shell* shell = Shell::Instance;
+  OS* os = OS::Instance;
 
-  for( TacEntity* entity : mWorld->mEntities )
+  for( Entity* entity : mWorld->mEntities )
   {
     if( entity->mParent )
       continue;
 
-    TacPrefab* prefab = FindPrefab( entity );
+    Prefab* prefab = FindPrefab( entity );
     if( !prefab )
     {
-      prefab = new TacPrefab;
+      prefab = new Prefab;
       prefab->mEntities = { entity };
       mPrefabs.push_back( prefab );
     }
@@ -660,12 +662,12 @@ void TacCreation::SavePrefabs()
     // Get document paths for prefabs missing them
     if( prefab->mDocumentPath.empty() )
     {
-      TacString savePath;
-      TacString suggestedName =
+      String savePath;
+      String suggestedName =
         //prefab->mEntity->mName
         entity->mName +
         ".prefab";
-      TacErrors saveDialogErrors;
+      Errors saveDialogErrors;
       os->SaveDialog( savePath, suggestedName, saveDialogErrors );
       if( saveDialogErrors )
       {
@@ -680,13 +682,13 @@ void TacCreation::SavePrefabs()
       UpdateSavedPrefabs();
     }
 
-    //TacEntity* entity = prefab->mEntity;
+    //Entity* entity = prefab->mEntity;
 
-    TacJson entityJson;
+    Json entityJson;
     entity->Save( entityJson );
 
-    TacString prefabJsonString = entityJson.Stringify();
-    TacErrors saveToFileErrors;
+    String prefabJsonString = entityJson.Stringify();
+    Errors saveToFileErrors;
     void* bytes = prefabJsonString.data();
     int byteCount = prefabJsonString.size();
     os->SaveToFile( prefab->mDocumentPath, bytes, byteCount, saveToFileErrors );
@@ -698,28 +700,28 @@ void TacCreation::SavePrefabs()
     }
   }
 }
-void TacCreation::ModifyPathRelative( TacString& savePath )
+void Creation::ModifyPathRelative( String& savePath )
 {
-  TacShell* shell = TacShell::Instance;
-  if( TacStartsWith( savePath, shell->mInitialWorkingDir ) )
+  Shell* shell = Shell::Instance;
+  if( StartsWith( savePath, shell->mInitialWorkingDir ) )
   {
     savePath = savePath.substr( shell->mInitialWorkingDir.size() );
-    savePath = TacStripLeadingSlashes( savePath );
+    savePath = StripLeadingSlashes( savePath );
   }
 }
-void TacCreation::LoadPrefabAtPath( TacString prefabPath, TacErrors& errors )
+void Creation::LoadPrefabAtPath( String prefabPath, Errors& errors )
 {
   ModifyPathRelative( prefabPath );
-  auto memory = TacTemporaryMemoryFromFile( prefabPath, errors );
+  auto memory = TemporaryMemoryFromFile( prefabPath, errors );
   TAC_HANDLE_ERROR( errors );
 
-  TacJson prefabJson;
+  Json prefabJson;
   prefabJson.Parse( memory.data(), memory.size(), errors );
 
-  TacEntity* entity = mWorld->SpawnEntity( TacNullEntityUUID );
+  Entity* entity = mWorld->SpawnEntity( NullEntityUUID );
   entity->Load( prefabJson );
 
-  auto prefab = new TacPrefab;
+  auto prefab = new Prefab;
   prefab->mDocumentPath = prefabPath;
   prefab->mEntities = { entity };
   mPrefabs.push_back( prefab );
@@ -727,22 +729,22 @@ void TacCreation::LoadPrefabAtPath( TacString prefabPath, TacErrors& errors )
   LoadPrefabCameraPosition( prefab );
   UpdateSavedPrefabs();
 }
-void TacCreation::LoadPrefabs( TacErrors& errors )
+void Creation::LoadPrefabs( Errors& errors )
 {
-  TacVector< TacString > prefabPaths;
+  Vector< String > prefabPaths;
   GetSavedPrefabs( prefabPaths, errors );
-  for( const TacString& prefabPath : prefabPaths )
+  for( const String& prefabPath : prefabPaths )
   {
     LoadPrefabAtPath( prefabPath, errors );
     TAC_HANDLE_ERROR( errors );
   }
 }
-void TacCreation::LoadPrefabCameraPosition( TacPrefab* prefab )
+void Creation::LoadPrefabCameraPosition( Prefab* prefab )
 {
   if( prefab->mDocumentPath.empty() )
     return;
-  TacSettings* settings = TacShell::Instance->mSettings;
-  TacJson* root = nullptr;
+  Settings* settings = Shell::Instance->mSettings;
+  Json* root = nullptr;
   v3* refFrameVecs[] = {
     &mEditorCamera.mPos,
     &mEditorCamera.mForwards,
@@ -752,20 +754,20 @@ void TacCreation::LoadPrefabCameraPosition( TacPrefab* prefab )
   for( int iRefFrameVec = 0; iRefFrameVec < 4; ++iRefFrameVec )
   {
     v3* refFrameVec = refFrameVecs[ iRefFrameVec ];
-    TacString refFrameVecName = refFrameVecNames[ iRefFrameVec ];
+    String refFrameVecName = refFrameVecNames[ iRefFrameVec ];
     for( int iAxis = 0; iAxis < 3; ++iAxis )
     {
-      const TacString& axisName = axisNames[ iAxis ];
+      const String& axisName = axisNames[ iAxis ];
 
-      TacVector< TacString > settingsPath = {
+      Vector< String > settingsPath = {
         "prefabCameraRefFrames",
         prefab->mDocumentPath,
         refFrameVecName,
         axisName };
 
-      TacErrors ignored;
-      TacJsonNumber defaultValue = refFrameVecs[ iRefFrameVec ]->operator[]( iAxis );
-      TacJsonNumber axisValue = settings->GetNumber(
+      Errors ignored;
+      JsonNumber defaultValue = refFrameVecs[ iRefFrameVec ]->operator[]( iAxis );
+      JsonNumber axisValue = settings->GetNumber(
         root,
         settingsPath,
         defaultValue,
@@ -775,12 +777,12 @@ void TacCreation::LoadPrefabCameraPosition( TacPrefab* prefab )
     }
   }
 }
-void TacCreation::SavePrefabCameraPosition( TacPrefab* prefab )
+void Creation::SavePrefabCameraPosition( Prefab* prefab )
 {
   if( prefab->mDocumentPath.empty() )
     return;
-  TacJson* root = nullptr;
-  TacSettings* settings = TacShell::Instance->mSettings;
+  Json* root = nullptr;
+  Settings* settings = Shell::Instance->mSettings;
 
   v3 refFrameVecs[] = {
     mEditorCamera.mPos,
@@ -791,30 +793,30 @@ void TacCreation::SavePrefabCameraPosition( TacPrefab* prefab )
   for( int iRefFrameVec = 0; iRefFrameVec < 4; ++iRefFrameVec )
   {
     v3 refFrameVec = refFrameVecs[ iRefFrameVec ];
-    TacString refFrameVecName = refFrameVecNames[ iRefFrameVec ];
+    String refFrameVecName = refFrameVecNames[ iRefFrameVec ];
     for( int iAxis = 0; iAxis < 3; ++iAxis )
     {
-      const TacString& axisName = axisNames[ iAxis ];
+      const String& axisName = axisNames[ iAxis ];
 
-      TacVector< TacString > settingsPath = {
+      Vector< String > settingsPath = {
         "prefabCameraRefFrames",
         prefab->mDocumentPath,
         refFrameVecName,
         axisName };
 
-      TacErrors ignored;
+      Errors ignored;
       settings->SetNumber( root, settingsPath, refFrameVec[ iAxis ], ignored );
     }
   }
 }
 
 void SetCreationWindowImGuiGlobals(
-  TacDesktopWindow* desktopWindow,
-  TacUI2DDrawData* ui2DDrawData )
+  DesktopWindow* desktopWindow,
+  UI2DDrawData* ui2DDrawData )
 {
-  TacErrors screenspaceCursorPosErrors;
+  Errors screenspaceCursorPosErrors;
   v2 screenspaceCursorPos = {};
-  TacOS::Instance->GetScreenspaceCursorPos( screenspaceCursorPos, screenspaceCursorPosErrors );
+  OS::Instance->GetScreenspaceCursorPos( screenspaceCursorPos, screenspaceCursorPosErrors );
   bool isWindowDirectlyUnderCursor = false;
   v2 mousePositionDestopWindowspace = {};
   if( screenspaceCursorPosErrors.empty() )
@@ -825,9 +827,12 @@ void SetCreationWindowImGuiGlobals(
     isWindowDirectlyUnderCursor = desktopWindow->mCursorUnobscured;
   }
 
-  TacImGuiSetGlobals(
+  ImGuiSetGlobals(
     mousePositionDestopWindowspace,
     isWindowDirectlyUnderCursor,
-    TacShell::Instance->mElapsedSeconds,
+    Shell::Instance->mElapsedSeconds,
     ui2DDrawData );
 }
+
+}
+

@@ -1,5 +1,9 @@
-#include "tacVector3.h"
+#include "src/common/math/tacVector3.h"
 #include <cmath> // sqrt
+
+namespace Tac
+{
+
 
 v3::v3( float xx, float yy, float zz ) : x( xx ), y( yy ), z( zz ){}
 v3::v3( v2 xy, float zz ) : x( xy.x ), y( xy.y ), z( zz ){}
@@ -35,10 +39,10 @@ v3 v3::operator + ( const v3& v ) const { v3 result = *this; result += v; return
 v3 v3::operator - ( const v3& v ) const { v3 result = *this; result -= v; return result; }
 void v3::Normalize() { *this /= Length(); }
 float v3::Length() const { return std::sqrt( Quadrance() ); }
-float v3::Quadrance() const { return TacDot( *this, *this ); }
+float v3::Quadrance() const { return Dot( *this, *this ); }
 
 v3 operator *( float f, const v3& v ) { return v * f; }
-float TacDot( const v3& lhs, const v3& rhs )
+float Dot( const v3& lhs, const v3& rhs )
 {
   float result = 0;
   for( int i = 0; i < 3; ++i )
@@ -55,16 +59,16 @@ v3 Cross( const v3& l, const v3& r )
 v3 Normalize( const v3& v ){ v3 result = v; result.Normalize(); return result; }
 float Length( const v3& v ){ return v.Length(); }
 float Distance( const v3& lhs, const v3& rhs ) { return ( lhs - rhs ).Length(); }
-float TacQuadrance( const v3& v ){ return v.Quadrance(); }
-float TacQuadrance( const v3& lhs, const v3& rhs ){ return ( lhs - rhs ).Quadrance(); }
+float Quadrance( const v3& v ){ return v.Quadrance(); }
+float Quadrance( const v3& lhs, const v3& rhs ){ return ( lhs - rhs ).Quadrance(); }
 
-v3 TacProject( const v3& onto_b, const v3& of_a )
+v3 Project( const v3& onto_b, const v3& of_a )
 {
-  auto b_lengthsq = TacQuadrance( onto_b );
+  auto b_lengthsq = Quadrance( onto_b );
   if( b_lengthsq < 0.0001f )
     return onto_b;
   auto onto_b_dir = onto_b / std::sqrt( b_lengthsq );
-  auto result = onto_b_dir * TacDot( onto_b_dir, of_a );
+  auto result = onto_b_dir * Dot( onto_b_dir, of_a );
   return result;
 }
 
@@ -93,4 +97,5 @@ void GetFrameRH( const v3& unitDir, v3& unitTan1, v3& unitTan2 )
 
   unitTan1.Normalize();
   unitTan2 = Cross( unitDir, unitTan1 );
+}
 }

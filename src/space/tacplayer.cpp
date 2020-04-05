@@ -1,18 +1,24 @@
-#include "space/tacplayer.h"
-#include "space/tacworld.h"
-#include "space/tacentity.h"
-void TacPlayer::DebugImgui()
+
+#include "src/space/tacPlayer.h"
+#include "src/space/tacWorld.h"
+#include "src/space/tacEntity.h"
+namespace Tac
+{
+void Player::DebugImgui()
 {
   //if( !ImGui::CollapsingHeader( va( "Player %i", mPlayerUUID ) ) )
   //  return;
   //ImGui::Indent();
   //OnDestruct( ImGui::Unindent() );
   //ImGui::DragInt( "entity uuid", ( int* )&mEntityUUID );
-  //if( mEntityUUID != TacNullEntityUUID )
+  //if( mEntityUUID != NullEntityUUID )
   //{
   //  auto entity = mWorld->FindEntity( mEntityUUID );
-  //  entity->TacDebugImgui();
+  //  entity->DebugImgui();
   //}
   //ImGui::DragFloat2( "input dir", mInputDirection.data(), 0.1f );
   //ImGui::DragFloat3( "camera pos", mCameraPos.data(), 0.1f );
 }
+
+}
+

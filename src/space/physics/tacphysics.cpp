@@ -1,31 +1,32 @@
-#include "space/collider/taccollider.h"
-#include "space/graphics/tacgraphics.h"
-#include "space/graphics/tacgraphics.h"
-#include "space/physics/tacphysics.h"
-#include "space/taccomponent.h"
-#include "space/tacentity.h"
-#include "space/tacworld.h"
-#include "space/terrain/tacterrain.h"
-#include "space/tacgjk.h"
 
-#include "common/assetmanagers/tacTextureAssetManager.h"
-#include "common/containers/tacVector.h"
-#include "common/graphics/tacDebug3D.h"
-#include "common/math/tacMath.h"
-#include "common/tacMemory.h"
-#include "common/tacPreprocessor.h"
-#include "common/tacShell.h"
-#include "common/thirdparty/stb_image.h"
-#include "common/profile/tacProfile.h"
-
+#include "src/space/collider/tacCollider.h"
+#include "src/space/graphics/tacGraphics.h"
+#include "src/space/graphics/tacGraphics.h"
+#include "src/space/physics/tacPhysics.h"
+#include "src/space/tacComponent.h"
+#include "src/space/tacEntity.h"
+#include "src/space/tacWorld.h"
+#include "src/space/terrain/tacTerrain.h"
+#include "src/space/tacGjk.h"
+#include "src/common/assetmanagers/tacTextureAssetManager.h"
+#include "src/common/containers/tacVector.h"
+#include "src/common/graphics/tacDebug3D.h"
+#include "src/common/math/tacMath.h"
+#include "src/common/tacMemory.h"
+#include "src/common/tacPreprocessor.h"
+#include "src/common/tacShell.h"
+#include "src/common/thirdparty/Stb_image.h"
+#include "src/common/profile/tacProfile.h"
 #include <array>
 #include <algorithm>
 #include <iostream>
 
+namespace Tac
+{
 extern void RegisterMetaphysics();
 
 
-//static void DebugDrawGJK( const TacGJK& gjk, TacGraphics* graphics )
+//static void DebugDrawGJK( const GJK& gjk, Graphics* graphics )
 //{
 //  if( !gjk.mIsColliding )
 //  {
@@ -53,11 +54,11 @@ extern void RegisterMetaphysics();
 //    graphics->DebugDrawSphere( epaTri.mV2.mDiffPt, 0.1f );
 //  }
 //  graphics->DebugDrawSphere( gjk.mEPAClosestSupportPoint.mDiffPt, 0.15f, v3( 1, 1, 0 ) );
-//  graphics->DebugDrawArrow( { 0, 0, 0 }, gjk.mEPAClosest.mNormal * TacMax( gjk.mEPAClosest.mPlaneDist, 0.1f ), v3( 1, 1, 0 ) );
+//  graphics->DebugDrawArrow( { 0, 0, 0 }, gjk.mEPAClosest.mNormal * Max( gjk.mEPAClosest.mPlaneDist, 0.1f ), v3( 1, 1, 0 ) );
 //
 //}
 
-TacPhysics::TacPhysics()
+Physics::Physics()
 {
   RegisterMetaphysics();
   mShouldDebugDrawCapsules = true;
@@ -75,31 +76,31 @@ TacPhysics::TacPhysics()
   mGJKDebugMaxEPAIter = 10;
 }
 
-TacCollider* TacPhysics::CreateCollider()
+Collider* Physics::CreateCollider()
 {
-  auto collider = new TacCollider();
+  auto collider = new Collider();
   mColliders.insert( collider );
   return collider;
 }
-TacTerrain* TacPhysics::CreateTerrain()
+Terrain* Physics::CreateTerrain()
 {
-  auto terrain = new TacTerrain();
+  auto terrain = new Terrain();
   mTerrains.insert( terrain );
   return terrain;
 }
-void TacPhysics::DestroyCollider( TacCollider* collider )
+void Physics::DestroyCollider( Collider* collider )
 {
   mColliders.erase( collider );
   delete collider;
 }
-void TacPhysics::DestroyTerrain( TacTerrain* terrain )
+void Physics::DestroyTerrain( Terrain* terrain )
 {
   mTerrains.erase( terrain );
   delete terrain;
 }
 
 
-void TacPhysics::DebugImgui()
+void Physics::DebugImgui()
 {
 
 
@@ -152,14 +153,14 @@ void TacPhysics::DebugImgui()
   //      continue;
   //    if( ImGui::Button( "Add OBB" ) )
   //    {
-  //      TacTerrainOBB obb = {};
+  //      TerrainOBB obb = {};
   //      terrain->mTerrainOBBs.push_back( obb );
   //    }
   //    ImGui::Indent();
   //    OnDestruct( ImGui::Unindent() );
   //    for( int iOBB = 0; iOBB < ( int )terrain->mTerrainOBBs.size(); ++iOBB )
   //    {
-  //      TacTerrainOBB& obb = terrain->mTerrainOBBs[ iOBB ];
+  //      TerrainOBB& obb = terrain->mTerrainOBBs[ iOBB ];
   //      ImGui::PushID( &obb );
   //      OnDestruct( ImGui::PopID() );
   //      if( !ImGui::CollapsingHeader( ( va( "OBB %i", iOBB ) ) ) )
@@ -173,9 +174,9 @@ void TacPhysics::DebugImgui()
   //  }
   //}
 }
-void TacPhysics::DebugDrawCapsules()
+void Physics::DebugDrawCapsules()
 {
-  TacGraphics* graphics = TacGraphics::GetSystem( mWorld );
+  Graphics* graphics = Graphics::GetSystem( mWorld );
   for( auto collider : mColliders )
   {
     auto entity = collider->mEntity;
@@ -185,9 +186,9 @@ void TacPhysics::DebugDrawCapsules()
     //graphics->DebugDrawCapsule( p0, p1, collider->mRadius, mDebugDrawCapsuleColor );
   }
 }
-void TacPhysics::DebugDrawTerrains()
+void Physics::DebugDrawTerrains()
 {
-  TacGraphics* graphics = TacGraphics::GetSystem( mWorld );
+  Graphics* graphics = Graphics::GetSystem( mWorld );
 
   // Load heightmap mesh from heighap image
   for( auto terrain : mTerrains )
@@ -206,7 +207,7 @@ void TacPhysics::DebugDrawTerrains()
     terrain->PopulateGrid();
   }
 }
-void TacPhysics::Update()
+void Physics::Update()
 {
   /*TAC_PROFILE_BLOCK*/;
   if( mShouldDebugDrawCapsules )
@@ -219,7 +220,7 @@ void TacPhysics::Update()
   if( mShouldNarrowphase )
     Narrowphase();
 }
-void TacPhysics::Integrate()
+void Physics::Integrate()
 {
   /*TAC_PROFILE_BLOCK*/;
   v3 a( 0, mGravity, 0 );
@@ -231,19 +232,19 @@ void TacPhysics::Integrate()
     collider->mEntity->mRelativeSpace.mPosition += collider->mVelocity * dt;
   }
 }
-void TacPhysics::Narrowphase()
+void Physics::Narrowphase()
 {
   /*TAC_PROFILE_BLOCK*/;
-  TacGraphics* graphics = TacGraphics::GetSystem( mWorld );
+  Graphics* graphics = Graphics::GetSystem( mWorld );
   for( auto terrain : mTerrains )
   {
     for( auto obb : terrain->mTerrainOBBs )
     {
-      auto terrainSupport = TacConvexPolygonSupport( obb.mPos, obb.mHalfExtents, obb.mEulerRads );
+      auto terrainSupport = ConvexPolygonSupport( obb.mPos, obb.mHalfExtents, obb.mEulerRads );
 
       for( auto collider : mColliders )
       {
-        TacCapsuleSupport capsuleSupport;
+        CapsuleSupport capsuleSupport;
         v3 up = { 0, 1, 0 };
         capsuleSupport.mRadius = collider->mRadius;
         capsuleSupport.mBotSpherePos =
@@ -252,7 +253,7 @@ void TacPhysics::Narrowphase()
         capsuleSupport.mTopSpherePos
           = collider->mEntity->mRelativeSpace.mPosition
           + up * ( collider->mTotalHeight - collider->mRadius );
-        TacGJK gjk( &terrainSupport, &capsuleSupport );
+        GJK gjk( &terrainSupport, &capsuleSupport );
         //OnDestruct( if( mGJKDebugging ) DebugDrawGJK( gjk, graphics ) );
         while( gjk.mIsRunning )
         {
@@ -271,8 +272,8 @@ void TacPhysics::Narrowphase()
         if( gjk.mEPABarycentricFucked )
           continue;
         collider->mEntity->mRelativeSpace.mPosition += gjk.mEPALeftNormal * gjk.mEPAPenetrationDist;
-        auto projectedVel = TacProject( gjk.mEPALeftNormal, collider->mVelocity );
-        if( TacDot( projectedVel, gjk.mEPALeftNormal ) < 0.0f )
+        auto projectedVel = Project( gjk.mEPALeftNormal, collider->mVelocity );
+        if( Dot( projectedVel, gjk.mEPALeftNormal ) < 0.0f )
         {
           collider->mVelocity -= projectedVel;
         }
@@ -288,7 +289,7 @@ void TacPhysics::Narrowphase()
       }
     }
   }
-  //TacVector< TacTerrainData* > terrainDatas;
+  //Vector< TerrainData* > terrainDatas;
   //for( auto terrain : mTerrains )
   //{
   //  auto terrainData = mGameInterface->mTerrainManager->GetAsset( terrain->mTerrainUUID );
@@ -306,53 +307,56 @@ void TacPhysics::Narrowphase()
   // capsule - terrain narrowphase collision
   for( auto collider : mColliders )
   {
-    auto colliderStuff = ( TacStuff* )collider->mEntity->GetComponent( TacComponentRegistryEntryIndex::Stuff );
+    auto colliderStuff = ( Stuff* )collider->mEntity->GetComponent( ComponentRegistryEntryIndex::Stuff );
 
-    TacCapsuleSupport capsuleSupport( colliderStuff->mPosition, collider->mCapsuleHeight, collider->mCapsuleRadius );
+    CapsuleSupport capsuleSupport( colliderStuff->mPosition, collider->mCapsuleHeight, collider->mCapsuleRadius );
 
     for( auto terrainData : terrainDatas )
     {
-      //auto terrainStuff = ( TacStuff* )collider->mEntity->GetComponent( TacComponentRegistryEntryIndex::Stuff );
-      TacUnusedParameter( colliderStuff );
-      TacUnusedParameter( terrainData );
+      //auto terrainStuff = ( Stuff* )collider->mEntity->GetComponent( ComponentRegistryEntryIndex::Stuff );
+      UnusedParameter( colliderStuff );
+      UnusedParameter( terrainData );
 
 
       for( auto& obb : terrainData->mOBBs )
       {
-        TacConvexPolygonSupport convexPolygonSupport( obb );
-        TacGJK gjk( &capsuleSupport, &convexPolygonSupport );
+        ConvexPolygonSupport convexPolygonSupport( obb );
+        GJK gjk( &capsuleSupport, &convexPolygonSupport );
       }
     }
   }
   */
 }
 
-TacPhysics* TacPhysics::GetSystem( TacWorld* world )
+Physics* Physics::GetSystem( World* world )
 {
-  return ( TacPhysics* )world->GetSystem( TacPhysics::PhysicsSystemRegistryEntry );
+  return ( Physics* )world->GetSystem( Physics::PhysicsSystemRegistryEntry );
 }
-TacCollideResult TacCollide( const TacHeightmap* heightmap, const TacCollider* collider )
+CollideResult Collide( const Heightmap* heightmap, const Collider* collider )
 {
   // get all overlapping triangles
   // get the one with the deepest penetration
 
-  TacCollideResult result;
+  CollideResult result;
   return result;
 }
 
 
-TacSystemRegistryEntry* TacPhysics::PhysicsSystemRegistryEntry;
+SystemRegistryEntry* Physics::PhysicsSystemRegistryEntry;
 
-static TacSystem* TacCreatePhysicsSystem() { return new TacPhysics; }
+static System* CreatePhysicsSystem() { return new Physics; }
 
 
-void TacPhysicsDebugImgui( TacSystem* );
-void TacPhysics::TacSpaceInitPhysics()
+void PhysicsDebugImgui( System* );
+void Physics::SpaceInitPhysics()
 {
-  TacPhysics::PhysicsSystemRegistryEntry = TacSystemRegistry::Instance()->RegisterNewEntry();
-  TacPhysics::PhysicsSystemRegistryEntry->mCreateFn = TacCreatePhysicsSystem;
-  TacPhysics::PhysicsSystemRegistryEntry->mName = "Physics";
-  TacPhysics::PhysicsSystemRegistryEntry->mDebugImGui = TacPhysicsDebugImgui;
-  TacTerrain::TacSpaceInitPhysicsTerrain();
-  TacCollider::TacSpaceInitPhysicsCollider();
+  Physics::PhysicsSystemRegistryEntry = SystemRegistry::Instance()->RegisterNewEntry();
+  Physics::PhysicsSystemRegistryEntry->mCreateFn = CreatePhysicsSystem;
+  Physics::PhysicsSystemRegistryEntry->mName = "Physics";
+  Physics::PhysicsSystemRegistryEntry->mDebugImGui = PhysicsDebugImgui;
+  Terrain::SpaceInitPhysicsTerrain();
+  Collider::SpaceInitPhysicsCollider();
 }
+
+}
+

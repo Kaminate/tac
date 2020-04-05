@@ -1,80 +1,82 @@
-#include "common/assetmanagers/tacTextureAssetManager.h"
-#include "common/tacMemory.h"
-#include "common/tacAlgorithm.h"
-#include "common/tacOS.h"
-#include "common/tacUtility.h"
-#include "common/graphics/tacRenderer.h"
-#include "common/tacJobQueue.h"
-#include "common/thirdparty/stb_image.h"
 
-struct TacAsyncTextureData
+#include "src/common/assetmanagers/tacTextureAssetManager.h"
+#include "src/common/tacMemory.h"
+#include "src/common/tacAlgorithm.h"
+#include "src/common/tacOS.h"
+#include "src/common/tacUtility.h"
+#include "src/common/graphics/tacRenderer.h"
+#include "src/common/tacJobQueue.h"
+#include "src/common/thirdparty/stb_image.h"
+
+namespace Tac
 {
-  virtual ~TacAsyncTextureData() = default;
-  virtual void CreateTexture( TacRenderer* renderer, TacTexture** texture, TacErrors& errors ) = 0;
+
+struct AsyncTextureData
+{
+  virtual ~AsyncTextureData() = default;
+  virtual void CreateTexture( Texture** texture, Errors& errors ) = 0;
 };
 
-struct TacAsyncTextureSingleData : TacAsyncTextureData
+struct AsyncTextureSingleData : AsyncTextureData
 {
-  void CreateTexture( TacRenderer* renderer, TacTexture** texture, TacErrors& errors ) override;
-  TacImage mImage;
-  TacVector< char > mImageData;
-  TacString mFilepath;
+  void CreateTexture( Texture** texture, Errors& errors ) override;
+  Image mImage;
+  Vector< char > mImageData;
+  String mFilepath;
 };
-void TacAsyncTextureSingleData::CreateTexture(
-  TacRenderer* renderer,
-  TacTexture** texture,
-  TacErrors& errors )
+void AsyncTextureSingleData::CreateTexture(
+  Texture** texture,
+  Errors& errors )
 {
-  TacTextureData textureData;
+  TextureData textureData;
   textureData.mName = mFilepath;
-  textureData.mStackFrame = TAC_STACK_FRAME;
+  textureData.mFrame = TAC_FRAME;
   textureData.myImage = mImage;
-  textureData.binding = { TacBinding::ShaderResource };
-  TacRenderer::Instance->AddTextureResource( texture, textureData, errors );
+  textureData.binding = { Binding::ShaderResource };
+  Renderer::Instance->AddTextureResource( texture, textureData, errors );
   TAC_HANDLE_ERROR( errors );
 }
 
-struct TacAsyncTextureCubeData : TacAsyncTextureData
+struct AsyncTextureCubeData : AsyncTextureData
 {
-  void CreateTexture( TacRenderer* renderer, TacTexture** texture, TacErrors& errors ) override;
-  TacImage mImage;
-  TacVector< char > mImageData[ 6 ];
-  TacString mDir;
+  void CreateTexture(  Texture** texture, Errors& errors ) override;
+  Image mImage;
+  Vector< char > mImageData[ 6 ];
+  String mDir;
 };
-void TacAsyncTextureCubeData::CreateTexture(
-  TacRenderer* renderer,
-  TacTexture** texture,
-  TacErrors& errors )
+void AsyncTextureCubeData::CreateTexture(
+  Texture** texture,
+  Errors& errors )
 {
   void* cubedatas[ 6 ];
   for( int i = 0; i < 6; ++i )
     cubedatas[ i ] = mImageData[ i ].data();
 
-  TacTextureData textureData;
+  TextureData textureData;
   textureData.mName = mDir;
-  textureData.mStackFrame = TAC_STACK_FRAME;
+  textureData.mFrame = TAC_FRAME;
   textureData.myImage = mImage;
-  textureData.binding = { TacBinding::ShaderResource };
-  TacRenderer::Instance->AddTextureResourceCube( texture, textureData, cubedatas, errors );
+  textureData.binding = { Binding::ShaderResource };
+  Renderer::Instance->AddTextureResourceCube( texture, textureData, cubedatas, errors );
   TAC_HANDLE_ERROR( errors );
 }
 
-struct TacAsyncTexture
+struct AsyncTexture
 {
-  TacJob* mJob = nullptr;
-  TacAsyncTextureData* mData = nullptr;
+  Job* mJob = nullptr;
+  AsyncTextureData* mData = nullptr;
 };
 
-struct TacAsyncTextureSingleJob : TacJob
+struct AsyncTextureSingleJob : Job
 {
   void Execute() override;
-  TacAsyncTextureSingleData* mData = nullptr;
+  AsyncTextureSingleData* mData = nullptr;
 };
-void TacAsyncTextureSingleJob::Execute()
+void AsyncTextureSingleJob::Execute()
 {
-  TacErrors& errors = mErrors;
+  Errors& errors = mErrors;
 
-  auto memory = TacTemporaryMemoryFromFile( mData->mFilepath, errors );
+  auto memory = TemporaryMemoryFromFile( mData->mFilepath, errors );
   TAC_HANDLE_ERROR( errors );
 
   int x;
@@ -90,7 +92,7 @@ void TacAsyncTextureSingleJob::Execute()
     &y,
     &previousChannelCount,
     desiredChannelCount );
-  OnDestruct( stbi_image_free( loaded ) );
+  TAC_ON_DESTRUCT( stbi_image_free( loaded ) );
 
   bool shouldConvertToPremultipliedAlpha = true;
   if( shouldConvertToPremultipliedAlpha )
@@ -112,17 +114,17 @@ void TacAsyncTextureSingleJob::Execute()
     }
   }
 
-  TacFormat format;
+  Format format;
   format.mElementCount = desiredChannelCount;
   format.mPerElementByteCount = 1;
-  format.mPerElementDataType = TacGraphicsType::unorm;
+  format.mPerElementDataType = GraphicsType::unorm;
 
   int pitch = x * format.mElementCount * format.mPerElementByteCount;
   int imageDataByteCount = y * pitch;
   mData->mImageData.resize( imageDataByteCount );
-  TacMemCpy( mData->mImageData.data(), loaded, imageDataByteCount );
+  MemCpy( mData->mImageData.data(), loaded, imageDataByteCount );
 
-  TacImage& image = mData->mImage;
+  Image& image = mData->mImage;
   image.mData = mData->mImageData.data();
   image.mFormat = format;
   image.mWidth = x;
@@ -130,33 +132,33 @@ void TacAsyncTextureSingleJob::Execute()
   image.mPitch = pitch;
 }
 
-struct TacAsyncTextureCubeJob : TacJob
+struct AsyncTextureCubeJob : Job
 {
   void Execute() override;
-  TacAsyncTextureCubeData* mData = nullptr;
+  AsyncTextureCubeData* mData = nullptr;
 };
-void TacAsyncTextureCubeJob::Execute()
+void AsyncTextureCubeJob::Execute()
 {
-  TacErrors& errors = mErrors;
+  Errors& errors = mErrors;
 
-  TacVector< TacString > files;
-  TacOS::Instance->GetDirFilesRecursive( files, mData->mDir, errors );
+  Vector< String > files;
+  OS::Instance->GetDirFilesRecursive( files, mData->mDir, errors );
   TAC_HANDLE_ERROR( errors );
 
   if( files.size() != 6 )
   {
-    errors = "found " + TacToString( files.size() ) + " textures in " + mData->mDir;
+    errors = "found " + ToString( files.size() ) + " textures in " + mData->mDir;
     TAC_HANDLE_ERROR( errors );
   }
 
-  auto TrySortPart = [ & ]( const TacString& face, int desiredIndex )
+  auto TrySortPart = [ & ]( const String& face, int desiredIndex )
   {
     for( int i = 0; i < 6; ++i )
     {
-      TacString filepath = files[ i ];
-      if( TacToLower( filepath ).find( TacToLower( face ) ) == TacString::npos )
+      String filepath = files[ i ];
+      if( ToLower( filepath ).find( ToLower( face ) ) == String::npos )
         continue;
-      TacSwap( files[ i ], files[ desiredIndex ] );
+      Swap( files[ i ], files[ desiredIndex ] );
       break;
     }
   };
@@ -170,18 +172,18 @@ void TacAsyncTextureCubeJob::Execute()
   TrySortPart( "Back", 5 );
 
 
-  TacFormat format;
+  Format format;
   format.mElementCount = 4;
   format.mPerElementByteCount = 1;
-  format.mPerElementDataType = TacGraphicsType::unorm;
+  format.mPerElementDataType = GraphicsType::unorm;
 
 
   int prevWidth = 0;
   int prevHeight = 0;
   for( int iFile = 0; iFile < 6; ++iFile )
   {
-    const TacString& filepath = files[ iFile ];
-    auto memory = TacTemporaryMemoryFromFile( filepath, errors );
+    const String& filepath = files[ iFile ];
+    auto memory = TemporaryMemoryFromFile( filepath, errors );
     TAC_HANDLE_ERROR( mErrors );
 
     int x;
@@ -195,7 +197,7 @@ void TacAsyncTextureCubeJob::Execute()
       &y,
       &previousChannelCount,
       format.mElementCount );
-    OnDestruct
+    TAC_ON_DESTRUCT
     (
       stbi_image_free( loaded );
     prevWidth = x;
@@ -204,114 +206,114 @@ void TacAsyncTextureCubeJob::Execute()
 
     if( iFile && !( x == prevWidth && y == prevHeight ) )
     {
-      const TacString& filepathPrev = files[ iFile - 1 ];
+      const String& filepathPrev = files[ iFile - 1 ];
       errors = filepath + " has dimensions " +
-        TacToString( x ) + "x" + TacToString( y ) +
+        ToString( x ) + "x" + ToString( y ) +
         " which is different from " + filepathPrev + " dimensions " +
-        TacToString( prevWidth ) + "x" + TacToString( prevHeight );
+        ToString( prevWidth ) + "x" + ToString( prevHeight );
       TAC_HANDLE_ERROR( errors );
     }
 
     int pitch = x * format.mElementCount * format.mPerElementByteCount;
     int imageDataByteCount = y * pitch;
-    TacVector< char >& imageData = mData->mImageData[ iFile ];
+    Vector< char >& imageData = mData->mImageData[ iFile ];
     imageData.resize( imageDataByteCount );
-    TacMemCpy( imageData.data(), loaded, imageDataByteCount );
+    MemCpy( imageData.data(), loaded, imageDataByteCount );
   }
 
-  TacImage& image = mData->mImage;
+  Image& image = mData->mImage;
   image.mFormat = format;
   image.mWidth = prevWidth;
   image.mHeight = prevHeight;
   image.mPitch = prevWidth * format.mElementCount * format.mPerElementByteCount;
 }
 
-TacTextureAssetManager* TacTextureAssetManager::Instance = nullptr;
-TacTextureAssetManager::TacTextureAssetManager()
+TextureAssetManager* TextureAssetManager::Instance = nullptr;
+TextureAssetManager::TextureAssetManager()
 {
   Instance = this;
 }
-TacTextureAssetManager::~TacTextureAssetManager()
+TextureAssetManager::~TextureAssetManager()
 {
   for( auto pair : mLoadedTextures )
   {
-    TacTexture* texture = pair.second;
-    TacRenderer::Instance->RemoveRendererResource( texture );
+    Texture* texture = pair.second;
+    Renderer::Instance->RemoveRendererResource( texture );
   }
 }
-TacTexture* TacTextureAssetManager::FindLoadedTexture( const TacString& key )
+Texture* TextureAssetManager::FindLoadedTexture( const String& key )
 {
   auto it = mLoadedTextures.find( key );
   if( it == mLoadedTextures.end() )
     return nullptr;
   return ( *it ).second;
 }
-TacAsyncTexture* TacTextureAssetManager::FindLoadingTexture( const TacString& key )
+AsyncTexture* TextureAssetManager::FindLoadingTexture( const String& key )
 {
   auto it = mLoadingTextures.find( key );
   if( it == mLoadingTextures.end() )
     return nullptr;
   return ( *it ).second;
 }
-void TacTextureAssetManager::GetTextureCube(
-  TacTexture** ppTexture,
-  const TacString& textureDir,
-  TacErrors& errors )
+void TextureAssetManager::GetTextureCube(
+  Texture** ppTexture,
+  const String& textureDir,
+  Errors& errors )
 {
-  TacTexture* texture = FindLoadedTexture( textureDir );
+  Texture* texture = FindLoadedTexture( textureDir );
   if( texture )
   {
     *ppTexture = texture;
     return;
   }
 
-  TacAsyncTexture* asyncTexture = FindLoadingTexture( textureDir );
+  AsyncTexture* asyncTexture = FindLoadingTexture( textureDir );
   if( !asyncTexture )
   {
-    auto data = new TacAsyncTextureCubeData;
+    auto data = new AsyncTextureCubeData;
     data->mDir = textureDir;
 
-    auto job = new TacAsyncTextureCubeJob;
+    auto job = new AsyncTextureCubeJob;
     job->mData = data;
 
-    asyncTexture = new TacAsyncTexture;
+    asyncTexture = new AsyncTexture;
     asyncTexture->mJob = job;
     asyncTexture->mData = data;
     mLoadingTextures[ textureDir ] = asyncTexture;
-    TacJobQueue::Instance->Push( job );
+    JobQueue::Instance->Push( job );
     *ppTexture = nullptr;
     return;
   }
 
   UpdateAsyncTexture( ppTexture, textureDir, asyncTexture, errors );
 }
-void TacTextureAssetManager::UpdateAsyncTexture(
-  TacTexture** ppTexture,
-  const TacString& key,
-  TacAsyncTexture* asyncTexture,
-  TacErrors& errors )
+void TextureAssetManager::UpdateAsyncTexture(
+  Texture** ppTexture,
+  const String& key,
+  AsyncTexture* asyncTexture,
+  Errors& errors )
 {
-  TacJob* job = asyncTexture->mJob;
-  TacAsyncLoadStatus status = job->GetStatus();
+  Job* job = asyncTexture->mJob;
+  AsyncLoadStatus status = job->GetStatus();
   switch( status )
   {
-    case TacAsyncLoadStatus::ThreadQueued:
+    case AsyncLoadStatus::ThreadQueued:
     {
       *ppTexture = nullptr;
     } break;
-    case TacAsyncLoadStatus::ThreadRunning:
+    case AsyncLoadStatus::ThreadRunning:
     {
       *ppTexture = nullptr;
     } break;
-    case TacAsyncLoadStatus::ThreadFailed:
+    case AsyncLoadStatus::ThreadFailed:
     {
       *ppTexture = nullptr;
       errors = job->mErrors;
       TAC_HANDLE_ERROR( errors );
     } break;
-    case TacAsyncLoadStatus::ThreadCompleted:
+    case AsyncLoadStatus::ThreadCompleted:
     {
-      asyncTexture->mData->CreateTexture( TacRenderer::Instance, ppTexture, errors );
+      asyncTexture->mData->CreateTexture( ppTexture, errors );
       TAC_HANDLE_ERROR( errors );
       mLoadingTextures.erase( key );
       delete asyncTexture->mData;
@@ -320,39 +322,42 @@ void TacTextureAssetManager::UpdateAsyncTexture(
       mLoadedTextures[ key ] = *ppTexture;
       break;
     }
-    TacInvalidDefaultCase( status );
+    TAC_INVALID_DEFAULT_CASE( status );
   }
 }
-void TacTextureAssetManager::GetTexture(
-  TacTexture** ppTexture,
-  const TacString& textureFilepath,
-  TacErrors& errors )
+void TextureAssetManager::GetTexture(
+  Texture** ppTexture,
+  const String& textureFilepath,
+  Errors& errors )
 {
-  TacTexture* texture = FindLoadedTexture( textureFilepath );
+  Texture* texture = FindLoadedTexture( textureFilepath );
   if( texture )
   {
     *ppTexture = texture;
     return;
   }
 
-  TacAsyncTexture* asyncTexture = FindLoadingTexture( textureFilepath );
+  AsyncTexture* asyncTexture = FindLoadingTexture( textureFilepath );
   if( !asyncTexture )
   {
-    auto data = new TacAsyncTextureSingleData;
+    auto data = new AsyncTextureSingleData;
     data->mFilepath = textureFilepath;
 
-    auto job = new TacAsyncTextureSingleJob;
+    auto job = new AsyncTextureSingleJob;
     job->mData = data;
 
-    asyncTexture = new TacAsyncTexture;
+    asyncTexture = new AsyncTexture;
     asyncTexture->mData = data;
     asyncTexture->mJob = job;
 
     mLoadingTextures[ textureFilepath ] = asyncTexture;
-    TacJobQueue::Instance->Push( job );
+    JobQueue::Instance->Push( job );
     *ppTexture = nullptr;
     return;
   }
 
   UpdateAsyncTexture( ppTexture, textureFilepath, asyncTexture, errors );
 }
+
+}
+

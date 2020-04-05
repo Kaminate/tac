@@ -1,5 +1,9 @@
-#include "tacVector2.h"
+#include "src/common/math/tacVector2.h"
 #include <cmath> // sqrt
+
+namespace Tac
+{
+
 
 v2::v2( float xx, float yy) : x( xx ), y( yy ){}
 float* v2::begin() { return data(); }
@@ -33,10 +37,10 @@ v2 v2::operator + ( const v2& v ) const { v2 result = *this; result += v; return
 v2 v2::operator - ( const v2& v ) const { v2 result = *this; result -= v; return result; }
 void v2::Normalize() { *this /= Length(); }
 float v2::Length() const { return std::sqrt( Quadrance() ); }
-float v2::Quadrance() const { return TacDot( *this, *this ); }
+float v2::Quadrance() const { return Dot( *this, *this ); }
 
 v2 operator *( float f, const v2& v ) { return v * f; }
-float TacDot( const v2& lhs, const v2& rhs )
+float Dot( const v2& lhs, const v2& rhs )
 {
   float result = 0;
   for( int i = 0; i < 2; ++i )
@@ -46,7 +50,8 @@ float TacDot( const v2& lhs, const v2& rhs )
 v2 Normalize( const v2& v ){ v2 result = v; result.Normalize(); return result; }
 float Length( const v2& v ){ return v.Length(); }
 float Distance( const v2& lhs, const v2& rhs ) { return ( lhs - rhs ).Length(); }
-float TacQuadrance( const v2& v ){ return v.Quadrance(); }
-float TacQuadrance( const v2& lhs, const v2& rhs ){ return ( lhs - rhs ).Quadrance(); }
+float Quadrance( const v2& v ){ return v.Quadrance(); }
+float Quadrance( const v2& lhs, const v2& rhs ){ return ( lhs - rhs ).Quadrance(); }
 
 
+}

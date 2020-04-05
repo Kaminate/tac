@@ -1,93 +1,91 @@
-#include "common/tacPreprocessor.h"
-#include "common/graphics/tacFont.h"
-#include "common/graphics/imgui/tacImGui.h"
-#include "common/math/tacMath.h"
-#include "space/tacworld.h"
-#include "space/graphics/tacgraphics.h"
-#include "space/taccomponent.h"
-
-//#include "tacsay.h"
-//#include "tacmodel.h"
-
+#include "src/common/tacPreprocessor.h"
+#include "src/common/graphics/tacFont.h"
+#include "src/common/graphics/imgui/tacImGui.h"
+#include "src/common/math/tacMath.h"
+#include "src/space/tacWorld.h"
+#include "src/space/graphics/tacGraphics.h"
+#include "src/space/tacComponent.h"
 #include <cmath>
+namespace Tac
+{
 
-//static const TacVector< TacComponentRegistryEntryIndex > managedComponentTypes = {
-//  TacComponentRegistryEntryIndex::Model,
+//static const Vector< ComponentRegistryEntryIndex > managedComponentTypes = {
+//  ComponentRegistryEntryIndex::Model,
 //};
 
-TacModel* TacGraphics::CreateModelComponent()
+Model* Graphics::CreateModelComponent()
 {
-  auto model = new TacModel();
+  auto model = new Model();
   mModels.insert( model );
   return model;
 }
 
 
-TacGraphics* TacGraphics::GetSystem( TacWorld* world )
+Graphics* Graphics::GetSystem( World* world )
 {
-  return ( TacGraphics* )world->GetSystem( TacGraphics::GraphicsSystemRegistryEntry );
+  return ( Graphics* )world->GetSystem( Graphics::GraphicsSystemRegistryEntry );
 }
 
-//TacComponent* TacGraphics::CreateComponent( TacComponentRegistryEntryIndex componentType )
+//Component* Graphics::CreateComponent( ComponentRegistryEntryIndex componentType )
 //{
 //  switch( componentType )
 //  {
-//    //case TacComponentRegistryEntryIndex::Say:
+//    //case ComponentRegistryEntryIndex::Say:
 //    //{
-//    //  auto say = new TacSay();
+//    //  auto say = new Say();
 //    //  mSays.insert( say );
 //    //  return say;
 //    //}
 //
-//  case TacComponentRegistryEntryIndex::Model:
+//  case ComponentRegistryEntryIndex::Model:
 //  {
-//    auto model = new TacModel();
+//    auto model = new Model();
 //    mModels.insert( model );
 //    return model;
 //  }
 //  }
-//  TacInvalidCodePath;
+//  InvalidCodePath;
 //  return nullptr;
 //}
 
-void TacGraphics::DestroyModelComponent( TacModel*model )
+void Graphics::DestroyModelComponent( Model*model )
 {
   auto it = mModels.find( model );
-  TacAssert( it != mModels.end() );
+  TAC_ASSERT( it != mModels.end() );
   mModels.erase( it );
   delete model;
 }
-//void TacGraphics::DestroyComponent( TacComponent* component )
+//void Graphics::DestroyComponent( Component* component )
 //{
 //  auto componentType = component->GetComponentType();
 //  switch( componentType )
 //  {
-//    //  case TacComponentRegistryEntryIndex::Say:
+//    //  case ComponentRegistryEntryIndex::Say:
 //    //  {
-//    //    auto say = ( TacSay* )component;
+//    //    auto say = ( Say* )component;
 //    //    auto it = mSays.find( say );
-//    //    TacAssert( it != mSays.end() );
+//    //    Assert( it != mSays.end() );
 //    //    mSays.erase( it );
 //    //    delete say;
 //    //  } return;
 //
-//  case TacComponentRegistryEntryIndex::Model:
+//  case ComponentRegistryEntryIndex::Model:
 //  {
-//    auto model = ( TacModel* )component;
+//    auto model = ( Model* )component;
 //    auto it = mModels.find( model );
-//    TacAssert( it != mModels.end() );
+//    Assert( it != mModels.end() );
 //    mModels.erase( it );
 //    delete model;
 //  }return;
 //  }
-//  TacInvalidCodePath;
+//  InvalidCodePath;
 //}
 
-//const TacVector< TacComponentRegistryEntryIndex >& TacGraphics::GetManagedComponentTypes()
+//const Vector< ComponentRegistryEntryIndex >& Graphics::GetManagedComponentTypes()
 //{
 //  return managedComponentTypes;
 //}
-void TacGraphics::DebugImgui()
+void Graphics::DebugImgui()
 {
   //if( !ImGui::CollapsingHeader( "Graphics" ) )
   //  return;
@@ -95,22 +93,25 @@ void TacGraphics::DebugImgui()
   //OnDestruct( ImGui::Unindent() );
   //ImGui::Text( "Debug draw vert count: %i", mDebugDrawVerts.size() );
 
-  TacImGuiText("graphics::debugimgiuo()");
+  ImGuiText("graphics::debugimgiuo()");
 }
 
-TacSystemRegistryEntry* TacGraphics::GraphicsSystemRegistryEntry;
-static TacSystem* TacCreateGraphicsSystem()
+SystemRegistryEntry* Graphics::GraphicsSystemRegistryEntry;
+static System* CreateGraphicsSystem()
 {
-  return new TacGraphics;
+  return new Graphics;
 }
 
-void TacGraphicsDebugImgui(TacSystem*);
-void TacGraphics::TacSpaceInitGraphics()
+void GraphicsDebugImgui(System*);
+void Graphics::SpaceInitGraphics()
 {
-  TacGraphics::GraphicsSystemRegistryEntry = TacSystemRegistry::Instance()->RegisterNewEntry();
-  TacGraphics::GraphicsSystemRegistryEntry->mCreateFn = TacCreateGraphicsSystem;
-  TacGraphics::GraphicsSystemRegistryEntry->mName = "Graphics";
-  TacGraphics::GraphicsSystemRegistryEntry->mDebugImGui = TacGraphicsDebugImgui;
-  TacModel::TacSpaceInitGraphicsModel();
+  Graphics::GraphicsSystemRegistryEntry = SystemRegistry::Instance()->RegisterNewEntry();
+  Graphics::GraphicsSystemRegistryEntry->mCreateFn = CreateGraphicsSystem;
+  Graphics::GraphicsSystemRegistryEntry->mName = "Graphics";
+  Graphics::GraphicsSystemRegistryEntry->mDebugImGui = GraphicsDebugImgui;
+  Model::SpaceInitGraphicsModel();
+}
+
+
 }
 

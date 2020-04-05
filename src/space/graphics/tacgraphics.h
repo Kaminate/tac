@@ -1,33 +1,33 @@
+
 #pragma once
-#include "common/graphics/tacRenderer.h"
-#include "common/tacLocalization.h"
-#include "common/containers/tacVector.h"
-#include "space/model/tacmodel.h"
-#include "space/tacsystem.h"
-//#include "graphics/tacDefaultGeometry.h"
+#include "src/common/graphics/tacRenderer.h"
+#include "src/common/tacLocalization.h"
+#include "src/common/containers/tacVector.h"
+#include "src/space/model/tacModel.h"
+#include "src/space/tacSystem.h"
 #include <set>
 
-struct TacFontStuff;
-//struct TacSay;
-//struct TacModel;
-//struct TacComponent;
 
-
-struct TacGraphics : public TacSystem
+namespace Tac
 {
-  //const TacVector< TacComponentRegistryEntryIndex >& GetManagedComponentTypes() override;
-  //TacComponent* CreateComponent( TacComponentRegistryEntryIndex componentType ) override;
-  //void DestroyComponent( TacComponent* component ) override;
-  //TacSystemType GetSystemType() override { return TacSystemType::Graphics; }
+struct FontStuff;
 
-  static void TacSpaceInitGraphics();
 
-  static TacGraphics* GetSystem( TacWorld* world );
-  static TacSystemRegistryEntry* GraphicsSystemRegistryEntry;
-  //TacSystemRegistryEntry* GetEntry() override;
+struct Graphics : public System
+{
+  //const Vector< ComponentRegistryEntryIndex >& GetManagedComponentTypes() override;
+  //Component* CreateComponent( ComponentRegistryEntryIndex componentType ) override;
+  //void DestroyComponent( Component* component ) override;
+  //SystemType GetSystemType() override { return SystemType::Graphics; }
 
-  TacModel* CreateModelComponent();
-  void DestroyModelComponent(TacModel* );
+  static void SpaceInitGraphics();
+
+  static Graphics* GetSystem( World* world );
+  static SystemRegistryEntry* GraphicsSystemRegistryEntry;
+  //SystemRegistryEntry* GetEntry() override;
+
+  Model* CreateModelComponent();
+  void DestroyModelComponent(Model* );
 
   void DebugImgui() override;
 
@@ -39,7 +39,10 @@ struct TacGraphics : public TacSystem
   // For convenience, we also offer an overload that defaults all points to white
 
 
-  //std::set< TacSay* > mSays;
-  //std::set< TacStuff* > mStuffs;
-  std::set< TacModel* > mModels;
+  //std::set< Say* > mSays;
+  //std::set< Stuff* > mStuffs;
+  std::set< Model* > mModels;
 };
+
+}
+

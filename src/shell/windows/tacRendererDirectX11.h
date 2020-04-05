@@ -1,10 +1,10 @@
 // This file implements the rendering backend using directx11
 
 #pragma once
-#include "common/graphics/tacRenderer.h"
-#include "common/tacShell.h"
-#include "shell/windows/tacWindows.h"
-#include "shell/windows/tacDXGI.h"
+#include "src/common/graphics/tacRenderer.h"
+#include "src/common/tacShell.h"
+#include "src/shell/windows/tacWindows.h"
+#include "src/shell/windows/tacDXGI.h"
 
 #include <d3d11_1.h>
 
@@ -12,298 +12,303 @@
 #include <set>
 #include <thread>
 
-struct TacCBufferDX11;
-struct TacRendererDirectX11;
-
-
-struct ConstantFinder
+namespace Tac
 {
-  TacCBufferDX11* mCBuffer;
-  int mConstantIndex;
-};
-
-struct TacSampler
-{
-  TacString mName; // not debug name, dude idk what the fuck this is
-  TacShaderType mShaderType = TacShaderType::Count;
-  int mSamplerIndex = 0;
-};
-
-// Resources
-
-struct TacCBufferDX11 : public TacCBuffer
-{
-  ~TacCBufferDX11();
-  void SendUniforms( void* bytes ) override;
-
-  ID3D11Buffer* mDXObj = nullptr;
-};
-
-struct TacTextureDX11 : public TacTexture
-{
-  TacTextureDX11();
-  ~TacTextureDX11();
-  void Clear() override;
-  void* GetImguiTextureID() override;
-
-  ID3D11Resource* mDXObj = nullptr;
-  ID3D11ShaderResourceView* mSrv = nullptr;
-  ID3D11RenderTargetView* mRTV = nullptr;
-};
-
-struct TacDepthBufferDX11 : public TacDepthBuffer
-{
-  ~TacDepthBufferDX11();
-  void Init( TacErrors& errors );
-  void Clear() override;
-
-  ID3D11Resource* mDXObj = nullptr;
-  ID3D11DepthStencilView* mDSV = nullptr;
-};
-
-struct TacShaderDX11LoadData
-{
-  void Release();
-  ID3D11VertexShader* mVertexShader = nullptr;
-  ID3D11PixelShader* mPixelShader = nullptr;
-  ID3DBlob* mInputSig = nullptr;
-};
-
-struct TacShaderDX11 : public TacShader
-{
-  ~TacShaderDX11();
-
-  TacShaderDX11LoadData mLoadData;
-
-  TacVector< TacSampler* > mTextures;
-  TacVector< TacSampler* > mSamplers;
-  TacSampler* FindTexture( const TacString& name );
-  TacSampler* FindSampler( const TacString& name );
-  TacSampler* Find( TacVector< TacSampler* >& samplers, const TacString& name );
-
-};
-
-struct TacVertexBufferDX11 : public TacVertexBuffer
-{
-  ~TacVertexBufferDX11();
-  ID3D11Buffer* mDXObj = nullptr;
-  void Overwrite( void* data, int byteCount, TacErrors& errors ) override;
-};
-
-struct TacIndexBufferDX11 : public TacIndexBuffer
-{
-  ~TacIndexBufferDX11();
-  ID3D11Buffer* mDXObj = nullptr;
-  DXGI_FORMAT mFormat = DXGI_FORMAT_UNKNOWN;
-  void Overwrite( void* data, int byteCount, TacErrors& errors ) override;
-};
-
-struct TacSamplerStateDX11 : public TacSamplerState
-{
-  ~TacSamplerStateDX11();
-  ID3D11SamplerState* mDXObj = nullptr;
-};
-
-struct TacDepthStateDX11 : public TacDepthState
-{
-  ~TacDepthStateDX11();
-  ID3D11DepthStencilState* mDXObj = nullptr;
-};
-
-struct TacBlendStateDX11 : public TacBlendState
-{
-  ~TacBlendStateDX11();
-  ID3D11BlendState* mDXObj = nullptr;
-};
-
-struct TacRasterizerStateDX11 : public TacRasterizerState
-{
-  ~TacRasterizerStateDX11();
-  ID3D11RasterizerState* mDXObj = nullptr;
-};
-
-struct TacVertexFormatDX11 : public TacVertexFormat
-{
-  ~TacVertexFormatDX11();
-  ID3D11InputLayout* mDXObj = nullptr;
-};
-
-struct TacDX11Window : public TacRendererWindowData
-{
-  ~TacDX11Window();
-
-  void SwapBuffers( TacErrors& errors );
-  void CreateRenderTarget( TacErrors& errors );
-  void GetCurrentBackbufferTexture( TacTexture** texture ) override;
-  void OnResize( TacErrors& errors ) override;
-  IDXGISwapChain* mSwapChain = nullptr;
-  // | I don't understand why this isn't a thing.
-  // | Shouldn't there be one texture per buffer?
-  // v ie: double buffering should have an array of 2 textures, right?
-  //TacVector< TacTextureDX11* > mBackbufferColors;
-  //int mBufferIndex = 0;
-  TacTextureDX11* mBackbufferColor = nullptr;
-};
-
-struct TacRendererDirectX11 : public TacRenderer
-{
-  static TacRendererDirectX11* Instance;
-  TacRendererDirectX11();
-  ~TacRendererDirectX11();
-
-  void Init( TacErrors& errors ) override;
-  void Render( TacErrors& errors ) override;
-  void RenderFlush() override;
-
-  void CreateWindowContext( TacDesktopWindow* desktopWindow, TacErrors& errors ) override;
 
 
-
-  void AddVertexBuffer( TacVertexBuffer**, const TacVertexBufferData&, TacErrors& errors ) override;
-
-  void AddIndexBuffer( TacIndexBuffer**, const TacIndexBufferData&, TacErrors& errors ) override;
-
-  void ClearColor( TacTexture* texture, v4 rgba ) override;
-  void ClearDepthStencil(
-    TacDepthBuffer* depthBuffer,
-    bool shouldClearDepth,
-    float depth,
-    bool shouldClearStencil,
-    uint8_t stencil ) override;
-
-  void ReloadShader( TacShader* shader, TacErrors& errors ) override;
-  void AddShader( TacShader** outputShader, const TacShaderData&, TacErrors& errors ) override;
-  void GetShaders( TacVector< TacShader* > & ) override;
-
-  void AddSamplerState( TacSamplerState**, const TacSamplerStateData&, TacErrors& errors ) override;
-  void AddSampler(
-    const TacString& samplerName,
-    TacShader* shader,
-    TacShaderType shaderType,
-    int samplerIndex ) override;
-  void SetSamplerState(
-    const TacString& samplerName,
-    TacSamplerState* samplerState ) override;
-
-  void AddTextureResource( TacTexture**, const TacTextureData&, TacErrors& errors ) override;
-  void AddTextureResourceCube( TacTexture** texture, const TacTextureData& textureData, void** sixCubeDatas, TacErrors& errors ) override;
-  void AddTexture(
-    const TacString& textureName,
-    TacShader* shader,
-    TacShaderType shaderType,
-    int samplerIndex ) override;
-  void SetTexture(
-    const TacString& textureName,
-    TacTexture* texture ) override;
-
-  void AddDepthBuffer( TacDepthBuffer** outputDepthBuffer, const TacDepthBufferData&, TacErrors& errors ) override;
-
-  void AddConstantBuffer( TacCBuffer** outputCbuffer, const TacCBufferData&, TacErrors& errors ) override;
-
-  void AddBlendState( TacBlendState**, const TacBlendStateData&, TacErrors& errors ) override;
-
-  // rasterizer state
-
-  void AddRasterizerState( TacRasterizerState**, const TacRasterizerStateData&, TacErrors& errors ) override;
-
-  void AddDepthState( TacDepthState**, const TacDepthStateData&, TacErrors& errors ) override;
-
-  void AddVertexFormat( TacVertexFormat**, const TacVertexFormatData&, TacErrors& errors ) override;
-
-  void DebugBegin( const TacString& section ) override;
-  void DebugMark( const TacString& remark ) override;
-  void DebugEnd() override;
-
-  void DrawNonIndexed( int vertCount ) override;
-  void DrawIndexed( int elementCount, int idxOffset, int vtxOffset ) override;
-
-  void Apply() override;
-
-  //void SetViewport(
-  //  float xRelBotLeftCorner,
-  //  float yRelBotLeftCorner,
-  //  float wIncreasingRight,
-  //  float hIncreasingUp ) override;
-
-  void SetPrimitiveTopology( TacPrimitive primitive ) override;
-
-  //void SetScissorRect(
-  //  float x1,
-  //  float y1,
-  //  float x2,
-  //  float y2 ) override;
-
-  void GetPerspectiveProjectionAB(
-    float f,
-    float n,
-    float& a,
-    float& b ) override;
+  struct CBufferDX11;
+  struct RendererDirectX11;
 
 
-  void LoadShaderInternal(
-    TacShaderDX11LoadData* loadData,
-    TacString name,
-    TacString str,
-    TacErrors& errors );
+  struct ConstantFinder
+  {
+    CBufferDX11* mCBuffer;
+    int mConstantIndex;
+  };
 
-  void CreateTexture(
-    const TacImage& image,
-    ID3D11Resource** texture,
-    TacAccess access,
-    std::set< TacCPUAccess > cpuAccess,
-    std::set< TacBinding > binding,
-    const TacString& debugName,
-    TacErrors& errors );
+  struct Sampler
+  {
+    String mName; // not debug name, dude idk what the fuck this is
+    ShaderType mShaderType = ShaderType::Count;
+    int mSamplerIndex = 0;
+  };
 
-  void CopyTextureRegion(
-    TacTexture* dst,
-    TacImage src,
-    int x,
-    int y,
-    TacErrors& errors ) override;
+  // Resources
 
-  void CreateShaderResourceView(
-    ID3D11Resource* resource,
-    ID3D11ShaderResourceView** srv,
-    const TacString& debugName,
-    TacErrors& errors );
+  struct CBufferDX11 : public CBuffer
+  {
+    ~CBufferDX11();
+    void SendUniforms( void* bytes ) override;
 
-  TacString AppendInfoQueueMessage( HRESULT hr );
-  void SetDebugName(
-    ID3D11DeviceChild* directXObject,
-    const TacString& name );
+    ID3D11Buffer* mDXObj = nullptr;
+  };
 
-  static void RenderThreadFunction();
+  struct TextureDX11 : public Texture
+  {
+    TextureDX11();
+    ~TextureDX11();
+    void Clear() override;
+    void* GetImguiTextureID() override;
 
-  ID3D11InfoQueue* mInfoQueueDEBUG = nullptr;
-  ID3DUserDefinedAnnotation* mUserAnnotationDEBUG = nullptr;
-  std::map< TacShaderType, TacVector< TacTextureDX11* > >mCurrentTextures;
-  std::set< TacShaderType > mCurrentTexturesDirty;
-  std::map< TacShaderType, TacVector< TacSamplerStateDX11* > >mCurrentSamplers;
-  std::set< TacShaderType > mCurrentSamplersDirty;
-  std::set< TacCBufferDX11* > mCbuffers;
-  std::set< TacShaderDX11* > mShaders;
-  ID3D11Device* mDevice = nullptr;
-  ID3D11DeviceContext* mDeviceContext = nullptr;
-  TacDXGI mDxgi;
-  TacVector< TacDX11Window* > mWindows;
+    ID3D11Resource* mDXObj = nullptr;
+    ID3D11ShaderResourceView* mSrv = nullptr;
+    ID3D11RenderTargetView* mRTV = nullptr;
+  };
 
-  // do you think these should live in the base renderer class?
-  TacShaderDX11* mCurrentlyBoundShader = nullptr;
-  TacVertexBufferDX11* mCurrentlyBoundVertexBuffer = nullptr;
-  TacIndexBufferDX11* mCurrentlyBoundIndexBuffer = nullptr;
-  TacBlendStateDX11* mCurrentlyBoundBlendState = nullptr;
-  TacRasterizerStateDX11* mCurrentlyBoundRasterizerState = nullptr;
-  TacDepthStateDX11* mCurrentlyBoundDepthState = nullptr;
-  TacVertexFormatDX11* mCurrentlyBoundVertexFormat = nullptr;
-  TacVector< const TacTexture* > mCurrentlyBoundTextures;
-  TacSamplerStateDX11* mCurrentlyBoundSamplerState = nullptr;
-  TacRenderView* mCurrentlyBoundView = nullptr;
-  TacVector< TacRenderView* > mFrameBoundRenderViews;
+  struct DepthBufferDX11 : public DepthBuffer
+  {
+    ~DepthBufferDX11();
+    void Init( Errors& errors );
+    void Clear() override;
+
+    ID3D11Resource* mDXObj = nullptr;
+    ID3D11DepthStencilView* mDSV = nullptr;
+  };
+
+  struct ShaderDX11LoadData
+  {
+    void Release();
+    ID3D11VertexShader* mVertexShader = nullptr;
+    ID3D11PixelShader* mPixelShader = nullptr;
+    ID3DBlob* mInputSig = nullptr;
+  };
+
+  struct ShaderDX11 : public Shader
+  {
+    ~ShaderDX11();
+
+    ShaderDX11LoadData mLoadData;
+
+    Vector< Sampler* > mTextures;
+    Vector< Sampler* > mSamplers;
+    Sampler* FindTexture( const String& name );
+    Sampler* FindSampler( const String& name );
+    Sampler* Find( Vector< Sampler* >& samplers, const String& name );
+
+  };
+
+  struct VertexBufferDX11 : public VertexBuffer
+  {
+    ~VertexBufferDX11();
+    ID3D11Buffer* mDXObj = nullptr;
+    void Overwrite( void* data, int byteCount, Errors& errors ) override;
+  };
+
+  struct IndexBufferDX11 : public IndexBuffer
+  {
+    ~IndexBufferDX11();
+    ID3D11Buffer* mDXObj = nullptr;
+    DXGI_FORMAT mFormat = DXGI_FORMAT_UNKNOWN;
+    void Overwrite( void* data, int byteCount, Errors& errors ) override;
+  };
+
+  struct SamplerStateDX11 : public SamplerState
+  {
+    ~SamplerStateDX11();
+    ID3D11SamplerState* mDXObj = nullptr;
+  };
+
+  struct DepthStateDX11 : public DepthState
+  {
+    ~DepthStateDX11();
+    ID3D11DepthStencilState* mDXObj = nullptr;
+  };
+
+  struct BlendStateDX11 : public BlendState
+  {
+    ~BlendStateDX11();
+    ID3D11BlendState* mDXObj = nullptr;
+  };
+
+  struct RasterizerStateDX11 : public RasterizerState
+  {
+    ~RasterizerStateDX11();
+    ID3D11RasterizerState* mDXObj = nullptr;
+  };
+
+  struct VertexFormatDX11 : public VertexFormat
+  {
+    ~VertexFormatDX11();
+    ID3D11InputLayout* mDXObj = nullptr;
+  };
+
+  struct DX11Window : public RendererWindowData
+  {
+    ~DX11Window();
+
+    void SwapBuffers( Errors& errors );
+    void CreateRenderTarget( Errors& errors );
+    void GetCurrentBackbufferTexture( Texture** texture ) override;
+    void OnResize( Errors& errors ) override;
+    IDXGISwapChain* mSwapChain = nullptr;
+    // | I don't understand why this isn't a thing.
+    // | Shouldn't there be one texture per buffer?
+    // v ie: double buffering should have an array of 2 textures, right?
+    //Vector< TextureDX11* > mBackbufferColors;
+    //int mBufferIndex = 0;
+    TextureDX11* mBackbufferColor = nullptr;
+  };
+
+  struct RendererDirectX11 : public Renderer
+  {
+    static RendererDirectX11* Instance;
+    RendererDirectX11();
+    ~RendererDirectX11();
+
+    void Init( Errors& errors ) override;
+    void Render( Errors& errors ) override;
+    void RenderFlush() override;
+
+    void CreateWindowContext( DesktopWindow* desktopWindow, Errors& errors ) override;
 
 
 
-  std::thread mRenderThread;
+    void AddVertexBuffer( VertexBuffer**, const VertexBufferData&, Errors& errors ) override;
 
-};
+    void AddIndexBuffer( IndexBuffer**, const IndexBufferData&, Errors& errors ) override;
 
+    void ClearColor( Texture* texture, v4 rgba ) override;
+    void ClearDepthStencil(
+      DepthBuffer* depthBuffer,
+      bool shouldClearDepth,
+      float depth,
+      bool shouldClearStencil,
+      uint8_t stencil ) override;
+
+    void ReloadShader( Shader* shader, Errors& errors ) override;
+    void AddShader( Shader** outputShader, const ShaderData&, Errors& errors ) override;
+    void GetShaders( Vector< Shader* > & ) override;
+
+    void AddSamplerState( SamplerState**, const SamplerStateData&, Errors& errors ) override;
+    void AddSampler(
+      const String& samplerName,
+      Shader* shader,
+      ShaderType shaderType,
+      int samplerIndex ) override;
+    void SetSamplerState(
+      const String& samplerName,
+      SamplerState* samplerState ) override;
+
+    void AddTextureResource( Texture**, const TextureData&, Errors& errors ) override;
+    void AddTextureResourceCube( Texture** texture, const TextureData& textureData, void** sixCubeDatas, Errors& errors ) override;
+    void AddTexture(
+      const String& textureName,
+      Shader* shader,
+      ShaderType shaderType,
+      int samplerIndex ) override;
+    void SetTexture(
+      const String& textureName,
+      Texture* texture ) override;
+
+    void AddDepthBuffer( DepthBuffer** outputDepthBuffer, const DepthBufferData&, Errors& errors ) override;
+
+    void AddConstantBuffer( CBuffer** outputCbuffer, const CBufferData&, Errors& errors ) override;
+
+    void AddBlendState( BlendState**, const BlendStateData&, Errors& errors ) override;
+
+    // rasterizer state
+
+    void AddRasterizerState( RasterizerState**, const RasterizerStateData&, Errors& errors ) override;
+
+    void AddDepthState( DepthState**, const DepthStateData&, Errors& errors ) override;
+
+    void AddVertexFormat( VertexFormat**, const VertexFormatData&, Errors& errors ) override;
+
+    void DebugBegin( const String& section ) override;
+    void DebugMark( const String& remark ) override;
+    void DebugEnd() override;
+
+    void DrawNonIndexed( int vertCount ) override;
+    void DrawIndexed( int elementCount, int idxOffset, int vtxOffset ) override;
+
+    void Apply() override;
+
+    //void SetViewport(
+    //  float xRelBotLeftCorner,
+    //  float yRelBotLeftCorner,
+    //  float wIncreasingRight,
+    //  float hIncreasingUp ) override;
+
+    void SetPrimitiveTopology( Primitive primitive ) override;
+
+    //void SetScissorRect(
+    //  float x1,
+    //  float y1,
+    //  float x2,
+    //  float y2 ) override;
+
+    void GetPerspectiveProjectionAB(
+      float f,
+      float n,
+      float& a,
+      float& b ) override;
+
+
+    void LoadShaderInternal(
+      ShaderDX11LoadData* loadData,
+      String name,
+      String str,
+      Errors& errors );
+
+    void CreateTexture(
+      const Image& image,
+      ID3D11Resource** texture,
+      Access access,
+      std::set< CPUAccess > cpuAccess,
+      std::set< Binding > binding,
+      const String& debugName,
+      Errors& errors );
+
+    void CopyTextureRegion(
+      Texture* dst,
+      Image src,
+      int x,
+      int y,
+      Errors& errors ) override;
+
+    void CreateShaderResourceView(
+      ID3D11Resource* resource,
+      ID3D11ShaderResourceView** srv,
+      const String& debugName,
+      Errors& errors );
+
+    String AppendInfoQueueMessage( HRESULT hr );
+    void SetDebugName(
+      ID3D11DeviceChild* directXObject,
+      const String& name );
+
+    static void RenderThreadFunction();
+
+    ID3D11InfoQueue* mInfoQueueDEBUG = nullptr;
+    ID3DUserDefinedAnnotation* mUserAnnotationDEBUG = nullptr;
+    std::map< ShaderType, Vector< TextureDX11* > >mCurrentTextures;
+    std::set< ShaderType > mCurrentTexturesDirty;
+    std::map< ShaderType, Vector< SamplerStateDX11* > >mCurrentSamplers;
+    std::set< ShaderType > mCurrentSamplersDirty;
+    std::set< CBufferDX11* > mCbuffers;
+    std::set< ShaderDX11* > mShaders;
+    ID3D11Device* mDevice = nullptr;
+    ID3D11DeviceContext* mDeviceContext = nullptr;
+    DXGI mDxgi;
+    Vector< DX11Window* > mWindows;
+
+    // do you think these should live in the base renderer class?
+    ShaderDX11* mCurrentlyBoundShader = nullptr;
+    VertexBufferDX11* mCurrentlyBoundVertexBuffer = nullptr;
+    IndexBufferDX11* mCurrentlyBoundIndexBuffer = nullptr;
+    BlendStateDX11* mCurrentlyBoundBlendState = nullptr;
+    RasterizerStateDX11* mCurrentlyBoundRasterizerState = nullptr;
+    DepthStateDX11* mCurrentlyBoundDepthState = nullptr;
+    VertexFormatDX11* mCurrentlyBoundVertexFormat = nullptr;
+    Vector< const Texture* > mCurrentlyBoundTextures;
+    SamplerStateDX11* mCurrentlyBoundSamplerState = nullptr;
+    RenderView* mCurrentlyBoundView = nullptr;
+    Vector< RenderView* > mFrameBoundRenderViews;
+
+
+
+    std::thread mRenderThread;
+
+  };
+
+}

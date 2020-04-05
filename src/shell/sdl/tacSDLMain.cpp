@@ -1,10 +1,10 @@
-#include "shell/sdl/tacSDLApp.h"
-#include "common/tacErrorHandling.h"
-#include "common/tacOS.h"
+#include "src/shell/sdl/tacSDLApp.h"
+#include "src/common/tacErrorHandling.h"
+#include "src/common/tacOS.h"
 
 int main( int argc, char **argv )
 {
-  ( new TacSDLApp )->Run();
+  ( new Tac::SDLApp )->Run();
   return 0;
 }
 

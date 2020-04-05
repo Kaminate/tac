@@ -1,6 +1,12 @@
+
 #pragma once
+namespace Tac
+{
 
-struct TacProfileFunction;
+struct ProfileFunction;
 
-void TacImGuiProfileWidget( TacProfileFunction* profileFunction );
+void ImGuiProfileWidget( ProfileFunction* profileFunction );
+
+
+}
 

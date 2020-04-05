@@ -1,51 +1,55 @@
 #pragma once
-#include "common/tacString.h"
-#include "common/tacErrorHandling.h"
-#include "common/containers/tacVector.h"
-#include "common/containers/tacArray.h"
-#include "common/math/tacVector3.h"
-#include "common/math/tacMatrix4.h"
+#include "src/common/tacString.h"
+#include "src/common/tacErrorHandling.h"
+#include "src/common/containers/tacVector.h"
+#include "src/common/containers/tacArray.h"
+#include "src/common/math/tacVector3.h"
+#include "src/common/math/tacMatrix4.h"
 #include <map>
 
-
-struct TacLoadingMesh;
-struct TacJobQueue;
-struct TacRenderer;
-struct TacVertexFormat;
-struct TacVertexBuffer;
-struct TacIndexBuffer;
-
-typedef TacArray< v3, 3 > TacSubMeshTriangle;
-v3 TacGetNormal( const TacSubMeshTriangle& tri );
-
-struct TacSubMesh
+namespace Tac
 {
-  TacVertexBuffer* mVertexBuffer = nullptr;
-  TacIndexBuffer* mIndexBuffer = nullptr;
-  TacVector< TacSubMeshTriangle > mTris;
+
+
+struct LoadingMesh;
+struct JobQueue;
+struct Renderer;
+struct VertexFormat;
+struct VertexBuffer;
+struct IndexBuffer;
+
+typedef Array< v3, 3 > SubMeshTriangle;
+v3 GetNormal( const SubMeshTriangle& tri );
+
+struct SubMesh
+{
+  VertexBuffer* mVertexBuffer = nullptr;
+  IndexBuffer* mIndexBuffer = nullptr;
+  Vector< SubMeshTriangle > mTris;
   void Raycast( v3 inRayPos, v3 inRayDir, bool* outHit, float* outDist );
 };
 
-struct TacMesh
+struct Mesh
 {
-  TacVector< TacSubMesh > mSubMeshes;
-  TacVertexFormat* mVertexFormat = nullptr;
+  Vector< SubMesh > mSubMeshes;
+  VertexFormat* mVertexFormat = nullptr;
   void Raycast( v3 inRayPos, v3 inRayDir, bool* outHit, float* outDist );
   m4 mTransform = m4::Identity();
   m4 mTransformInv = m4::Identity();
 };
 
-struct TacModelAssetManager
+struct ModelAssetManager
 {
-  static TacModelAssetManager* Instance;
-  TacModelAssetManager();
-  ~TacModelAssetManager();
+  static ModelAssetManager* Instance;
+  ModelAssetManager();
+  ~ModelAssetManager();
   void GetMesh(
-    TacMesh** mesh,
-    const TacString& path,
-    TacVertexFormat* vertexFormat,
-    TacErrors& errors );
-  std::map< TacString, TacMesh* > mMeshes;
+    Mesh** mesh,
+    const String& path,
+    VertexFormat* vertexFormat,
+    Errors& errors );
+  std::map< String, Mesh* > mMeshes;
 };
 
 
+}

@@ -1,20 +1,21 @@
-#include "space/physics/tacphysics.h"
-#include "space/tacentity.h"
-#include "space/tacworld.h"
-#include "space/terrain/tacterrain.h"
+#include "src/space/physics/tacPhysics.h"
+#include "src/space/tacEntity.h"
+#include "src/space/tacWorld.h"
+#include "src/space/terrain/tacTerrain.h"
+#include "src/common/graphics/tacDebug3D.h"
+#include "src/common/graphics/tacRenderer.h"
+#include "src/common/tacJson.h"
+#include "src/common/tacMemory.h"
+#include "src/common/thirdparty/stb_image.h"
+#include "src/common/math/tacMath.h"
 
-#include "common/graphics/tacDebug3D.h"
-#include "common/graphics/tacRenderer.h"
-#include "common/tacJson.h"
-#include "common/tacMemory.h"
-#include "common/thirdparty/stb_image.h"
-#include "common/math/tacMath.h"
-
-TacComponentRegistryEntry* TacTerrain::TerrainComponentRegistryEntry;
-
-static void TacTerrainSavePrefab( TacJson& json, TacComponent* component )
+namespace Tac
 {
-  auto terrain = ( TacTerrain* )component;
+ComponentRegistryEntry* Terrain::TerrainComponentRegistryEntry;
+
+static void TerrainSavePrefab( Json& json, Component* component )
+{
+  auto terrain = ( Terrain* )component;
   json[ "mSideVertexCount" ] = terrain->mSideVertexCount;
   json[ "mSideLength" ] = terrain->mSideLength;
   json[ "mHeight" ] = terrain->mUpwardsHeight;
@@ -23,9 +24,9 @@ static void TacTerrainSavePrefab( TacJson& json, TacComponent* component )
   json[ "mNoiseTexturePath" ] = terrain->mNoiseTexturePath;
 }
 
-static void TacTerrainLoadPrefab( TacJson& json, TacComponent* component )
+static void TerrainLoadPrefab( Json& json, Component* component )
 {
-  auto terrain = ( TacTerrain* )component;
+  auto terrain = ( Terrain* )component;
   terrain->mSideVertexCount = ( int )json[ "mSideVertexCount" ].mNumber;
   terrain->mSideLength = ( float )json[ "mSideLength" ].mNumber;
   terrain->mUpwardsHeight = ( float )json[ "mHeight" ].mNumber;
@@ -34,37 +35,37 @@ static void TacTerrainLoadPrefab( TacJson& json, TacComponent* component )
   terrain->mNoiseTexturePath = json[ "mNoiseTexturePath" ].mString;
 }
 
-static TacComponent* TacCreateTerrainComponent( TacWorld* world )
+static Component* CreateTerrainComponent( World* world )
 {
-  return TacPhysics::GetSystem( world )->CreateTerrain();
+  return Physics::GetSystem( world )->CreateTerrain();
 }
 
-static void TacDestroyTerrainComponent( TacWorld* world, TacComponent* component )
+static void DestroyTerrainComponent( World* world, Component* component )
 {
-  TacPhysics::GetSystem( world )->DestroyTerrain( ( TacTerrain* )component );
+  Physics::GetSystem( world )->DestroyTerrain( ( Terrain* )component );
 };
 
-void TacTerrainDebugImgui( TacComponent* );
-void TacTerrain::TacSpaceInitPhysicsTerrain()
+void TerrainDebugImgui( Component* );
+void Terrain::SpaceInitPhysicsTerrain()
 {
-  TacTerrain::TerrainComponentRegistryEntry = TacComponentRegistry::Instance()->RegisterNewEntry();
-  TacTerrain::TerrainComponentRegistryEntry->mName = "Terrain";
-  TacTerrain::TerrainComponentRegistryEntry->mNetworkBits = {};
-  TacTerrain::TerrainComponentRegistryEntry->mCreateFn = TacCreateTerrainComponent;
-  TacTerrain::TerrainComponentRegistryEntry->mDestroyFn = TacDestroyTerrainComponent;
-  TacTerrain::TerrainComponentRegistryEntry->mDebugImguiFn = TacTerrainDebugImgui;
-  TacTerrain::TerrainComponentRegistryEntry->mLoadFn = TacTerrainLoadPrefab;
-  TacTerrain::TerrainComponentRegistryEntry->mSaveFn = TacTerrainSavePrefab;
+  Terrain::TerrainComponentRegistryEntry = ComponentRegistry::Instance()->RegisterNewEntry();
+  Terrain::TerrainComponentRegistryEntry->mName = "Terrain";
+  Terrain::TerrainComponentRegistryEntry->mNetworkBits = {};
+  Terrain::TerrainComponentRegistryEntry->mCreateFn = CreateTerrainComponent;
+  Terrain::TerrainComponentRegistryEntry->mDestroyFn = DestroyTerrainComponent;
+  Terrain::TerrainComponentRegistryEntry->mDebugImguiFn = TerrainDebugImgui;
+  Terrain::TerrainComponentRegistryEntry->mLoadFn = TerrainLoadPrefab;
+  Terrain::TerrainComponentRegistryEntry->mSaveFn = TerrainSavePrefab;
 }
 
-TacComponentRegistryEntry* TacTerrain::GetEntry() { return TacTerrain::TerrainComponentRegistryEntry; }
+ComponentRegistryEntry* Terrain::GetEntry() { return Terrain::TerrainComponentRegistryEntry; }
 
-TacTerrain* TacTerrain::GetComponent( TacEntity* entity )
+Terrain* Terrain::GetComponent( Entity* entity )
 {
-  return ( TacTerrain* )entity->GetComponent( TacTerrain::TerrainComponentRegistryEntry );
+  return ( Terrain* )entity->GetComponent( Terrain::TerrainComponentRegistryEntry );
 }
 
-void TacTerrain::LoadTestHeightmap()
+void Terrain::LoadTestHeightmap()
 {
   if( mTestHeightmapImageMemory.size() )
     return; // already loaded
@@ -73,7 +74,7 @@ void TacTerrain::LoadTestHeightmap()
     return; // tried to load already, but load failed
 
 
-  TacVector< char > imageMemory = TacTemporaryMemoryFromFile( mHeightmapTexturePath, mTestHeightmapLoadErrors );
+  Vector< char > imageMemory = TemporaryMemoryFromFile( mHeightmapTexturePath, mTestHeightmapLoadErrors );
   if( mTestHeightmapLoadErrors )
     return;
 
@@ -90,24 +91,24 @@ void TacTerrain::LoadTestHeightmap()
   int byteCount = imageWidth * imageHeight;
   mTestHeightmapImageMemory.resize( byteCount );
 
-  TacMemCpy( mTestHeightmapImageMemory.data(), loaded, byteCount );
+  MemCpy( mTestHeightmapImageMemory.data(), loaded, byteCount );
 
   mTestHeightmapWidth = imageWidth;
   mTestHeightmapHeight = imageHeight;
   stbi_image_free( loaded );
 }
 
-v3 TacTerrain::GetGridVal( int iRow, int iCol )
+v3 Terrain::GetGridVal( int iRow, int iCol )
 {
   return mRowMajorGrid[ iCol + iRow * mSideVertexCount ];
 };
 
-void TacTerrain::PopulateGrid()
+void Terrain::PopulateGrid()
 {
-  TacTerrain* terrain = this;
+  Terrain* terrain = this;
 
 
-  if( TacMemCmp(
+  if( MemCmp(
     mEntity->mWorldTransform.data(),
     mWorldCreationTransform.data(), sizeof( m4 ) ) )
   {
@@ -121,8 +122,8 @@ void TacTerrain::PopulateGrid()
   if( mTestHeightmapImageMemory.empty() )
     return;
 
-  mSideVertexCount = TacMax( mSideVertexCount, 2 );
-  mPower = TacMax( mPower, 1.0f );
+  mSideVertexCount = Max( mSideVertexCount, 2 );
+  mPower = Max( mPower, 1.0f );
 
   mWorldCreationTransform = mEntity->mWorldTransform;
 
@@ -140,7 +141,7 @@ void TacTerrain::PopulateGrid()
       uint8_t heightmapValue = mTestHeightmapImageMemory[ heightmapX + heightmapY * mTestHeightmapWidth ];
       float heightmapPercent = heightmapValue / 255.0f;
       heightmapPercent *= heightmapPercent;
-      heightmapPercent = TacPow( heightmapPercent, mPower );
+      heightmapPercent = Pow( heightmapPercent, mPower );
 
       v3 pos;
       pos.x = xPercent * width;
@@ -160,13 +161,16 @@ void TacTerrain::PopulateGrid()
 }
 
 
-void TacTerrain::Recompute()
+void Terrain::Recompute()
 {
   mRowMajorGrid.clear();
 
-  TacRenderer::Instance->RemoveRendererResource(  mVertexBuffer );
+  Renderer::Instance->RemoveRendererResource(  mVertexBuffer );
   mVertexBuffer = nullptr;
 
-  TacRenderer::Instance->RemoveRendererResource(  mIndexBuffer );
+  Renderer::Instance->RemoveRendererResource(  mIndexBuffer );
   mIndexBuffer = nullptr;
 }
+
+}
+

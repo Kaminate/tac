@@ -1,36 +1,41 @@
-#include "space/collider/taccollider.h"
-#include "space/tacentity.h"
-#include "space/physics/tacphysics.h"
-
-
-TacCollider* TacCollider::GetCollider( TacEntity* entity )
+#include "src/space/collider/taccollider.h"
+#include "src/space/tacentity.h"
+#include "src/space/physics/tacphysics.h"
+namespace Tac
 {
-  return ( TacCollider* )entity->GetComponent( TacCollider::ColliderComponentRegistryEntry );
+
+
+Collider* Collider::GetCollider( Entity* entity )
+{
+  return ( Collider* )entity->GetComponent( Collider::ColliderComponentRegistryEntry );
 }
 
-TacComponentRegistryEntry* TacCollider::GetEntry()
+ComponentRegistryEntry* Collider::GetEntry()
 {
-  return TacCollider::ColliderComponentRegistryEntry;
+  return Collider::ColliderComponentRegistryEntry;
 }
 
-static TacComponent* TacCreateColliderComponent( TacWorld* world )
+static Component* CreateColliderComponent( World* world )
 {
-  return TacPhysics::GetSystem( world )->CreateCollider();
+  return Physics::GetSystem( world )->CreateCollider();
 }
 
-static void TacDestroyColliderComponent( TacWorld* world, TacComponent* component )
+static void DestroyColliderComponent( World* world, Component* component )
 {
-  TacPhysics::GetSystem( world )->DestroyCollider( ( TacCollider* )component );
+  Physics::GetSystem( world )->DestroyCollider( ( Collider* )component );
 }
-TacComponentRegistryEntry* TacCollider::ColliderComponentRegistryEntry;
+ComponentRegistryEntry* Collider::ColliderComponentRegistryEntry;
 
-void TacColliderDebugImgui( TacComponent* );
-void TacCollider::TacSpaceInitPhysicsCollider()
+void ColliderDebugImgui( Component* );
+void Collider::SpaceInitPhysicsCollider()
 {
-  TacCollider::ColliderComponentRegistryEntry = TacComponentRegistry::Instance()->RegisterNewEntry();
-  TacCollider::ColliderComponentRegistryEntry->mName = "Collider";
-  TacCollider::ColliderComponentRegistryEntry->mNetworkBits = TacColliderBits;
-  TacCollider::ColliderComponentRegistryEntry->mCreateFn = TacCreateColliderComponent;
-  TacCollider::ColliderComponentRegistryEntry->mDestroyFn = TacDestroyColliderComponent;
-  TacCollider::ColliderComponentRegistryEntry->mDebugImguiFn = TacColliderDebugImgui;
+  Collider::ColliderComponentRegistryEntry = ComponentRegistry::Instance()->RegisterNewEntry();
+  Collider::ColliderComponentRegistryEntry->mName = "Collider";
+  Collider::ColliderComponentRegistryEntry->mNetworkBits = ColliderBits;
+  Collider::ColliderComponentRegistryEntry->mCreateFn = CreateColliderComponent;
+  Collider::ColliderComponentRegistryEntry->mDestroyFn = DestroyColliderComponent;
+  Collider::ColliderComponentRegistryEntry->mDebugImguiFn = ColliderDebugImgui;
 }
+
+}
+

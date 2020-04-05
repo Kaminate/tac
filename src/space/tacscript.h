@@ -1,67 +1,73 @@
+
 #pragma once
-#include "common/tacString.h"
-#include "common/tacErrorHandling.h"
-#include "common/containers/tacVector.h"
+#include "src/common/tacString.h"
+#include "src/common/tacErrorHandling.h"
+#include "src/common/containers/tacVector.h"
 #include <set>
 
+namespace Tac
+{
 #define TAC_TIMELINE_KEYFRAME_BEGIN case __COUNTER__: {
 #define TAC_TIMELINE_KEYFRAME_END   mLine++; } break;
 #define TAC_TIMELINE_KEYFRAME       TAC_TIMELINE_KEYFRAME_END TAC_TIMELINE_KEYFRAME_BEGIN
 #define TAC_TIMELINE_BEGIN          switch( mLine ){ case 0: { mLine = __COUNTER__; TAC_TIMELINE_KEYFRAME
 #define TAC_TIMELINE_END            mIsComplete = true; TAC_TIMELINE_KEYFRAME_END }
 
-struct TacGhost;
-struct TacScriptRoot;
-struct TacUser;
-struct TacScriptCallbackData;
+struct Ghost;
+struct ScriptRoot;
+struct User;
+struct ScriptCallbackData;
 
-struct TacScriptMsg
+struct ScriptMsg
 {
-  TacString mType;
+  String mType;
   void* mData = nullptr;
 };
 
-typedef void TacScriptCallbackFunction( TacScriptCallbackData*, const TacScriptMsg* );
+typedef void ScriptCallbackFunction( ScriptCallbackData*, const ScriptMsg* );
 
-struct TacScriptCallbackData
+struct ScriptCallbackData
 {
   void* mUserData = nullptr;
-  TacScriptCallbackFunction* mScriptCallbackFunction = nullptr;
+  ScriptCallbackFunction* mScriptCallbackFunction = nullptr;
   bool mRequestDeletion = false;
 };
 
-struct TacScriptThread
+struct ScriptThread
 {
-  virtual ~TacScriptThread() = default;
-  virtual void Update( float seconds, TacErrors& errors ) {}
-  void DebugImguiOuter( TacErrors& errors );
-  virtual void DebugImgui( TacErrors& errors ) {}
+  virtual ~ScriptThread() = default;
+  virtual void Update( float seconds, Errors& errors ) {}
+  void DebugImguiOuter( Errors& errors );
+  virtual void DebugImgui( Errors& errors ) {}
   void SetNextKeyDelay( float seconds );
-  void OnMsg( const TacScriptMsg* scriptMsg );
+  void OnMsg( const ScriptMsg* scriptMsg );
 
-  void AddScriptCallback( void* userData, TacScriptCallbackFunction* scriptCallbackFunction );
+  void AddScriptCallback( void* userData, ScriptCallbackFunction* scriptCallbackFunction );
 
   // should this struct have imgui & debug name?
 
-  TacScriptRoot* mScriptRoot = nullptr;
+  ScriptRoot* mScriptRoot = nullptr;
   int mLine = 0;
   bool mIsSleeping = false;
   float mSecondsSlept = 0;
   float mSecondsToSleep = 0;
   bool mIsComplete = false;
-  TacString mName;
-  std::set< TacScriptCallbackData* > mMsgCallbacks;
+  String mName;
+  std::set< ScriptCallbackData* > mMsgCallbacks;
 };
 
-struct TacScriptRoot
+struct ScriptRoot
 {
-  ~TacScriptRoot();
-  void AddChild( TacScriptThread* child );
-  void Update( float seconds, TacErrors& errors );
-  void DebugImgui( TacErrors& errors );
-  void OnMsg( const TacScriptMsg* scriptMsg );
-  void OnMsg( const TacString& scriptMsgType );
-  TacScriptThread* GetThread( const TacString& name );
-  std::set< TacScriptThread* > mChildren;
-  TacGhost* mGhost = nullptr;
+  ~ScriptRoot();
+  void AddChild( ScriptThread* child );
+  void Update( float seconds, Errors& errors );
+  void DebugImgui( Errors& errors );
+  void OnMsg( const ScriptMsg* scriptMsg );
+  void OnMsg( const String& scriptMsgType );
+  ScriptThread* GetThread( const String& name );
+  std::set< ScriptThread* > mChildren;
+  Ghost* mGhost = nullptr;
 };
+
+}
+

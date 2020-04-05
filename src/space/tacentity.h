@@ -1,50 +1,53 @@
+
 #pragma once
-#include "tacspacetypes.h"
-#include "common/tacSerialization.h"
-#include "common/tacPreprocessor.h"
-#include "common/math/tacVector3.h"
-#include "common/math/tacMatrix4.h"
+#include "src/space/tacSpacetypes.h"
+#include "src/common/tacSerialization.h"
+#include "src/common/tacPreprocessor.h"
+#include "src/common/math/tacVector3.h"
+#include "src/common/math/tacMatrix4.h"
 #include <list>
 
-struct TacWorld;
-struct TacComponent;
-struct TacComponentRegistryEntry;
-struct TacJson;
+namespace Tac
+{
+struct World;
+struct Component;
+struct ComponentRegistryEntry;
+struct Json;
 
-struct TacRelativeSpace
+struct RelativeSpace
 {
   v3 mPosition = {};
   v3 mEulerRads = {};
   v3 mScale = { 1, 1, 1 };
 };
 
-struct TacEntity
+struct Entity
 {
-  ~TacEntity();
+  ~Entity();
 
   void RemoveAllComponents();
   
-  TacComponent* GetComponent( TacComponentRegistryEntry* );
-  const TacComponent* GetComponent( TacComponentRegistryEntry* ) const;
-  bool HasComponent( TacComponentRegistryEntry* );
-  TacComponent* AddNewComponent( TacComponentRegistryEntry* );
-  void RemoveComponent( TacComponentRegistryEntry* );
+  Component* GetComponent( ComponentRegistryEntry* );
+  const Component* GetComponent( ComponentRegistryEntry* ) const;
+  bool HasComponent( ComponentRegistryEntry* );
+  Component* AddNewComponent( ComponentRegistryEntry* );
+  void RemoveComponent( ComponentRegistryEntry* );
 
-  void DeepCopy( const TacEntity& );
-  void TacDebugImgui();
-  //void TacIntegrate( float time );
+  void DeepCopy( const Entity& );
+  void DebugImgui();
+  //void Integrate( float time );
   void Unparent();
-  void AddChild( TacEntity* child );
-  void Save( TacJson& entityJson );
-  void Load( TacJson& entityJson );
+  void AddChild( Entity* child );
+  void Save( Json& entityJson );
+  void Load( Json& entityJson );
 
-  TacEntity* mParent = nullptr;
-  TacVector< TacEntity* > mChildren;
-  TacWorld* mWorld = nullptr;
-  TacEntityUUID mEntityUUID = TacNullEntityUUID;
-  std::list< TacComponent* > mComponents;
+  Entity* mParent = nullptr;
+  Vector< Entity* > mChildren;
+  World* mWorld = nullptr;
+  EntityUUID mEntityUUID = NullEntityUUID;
+  std::list< Component* > mComponents;
 
-  TacRelativeSpace mRelativeSpace;
+  RelativeSpace mRelativeSpace;
   bool mInheritParentScale = false;
 
   v3 mWorldPosition = {};
@@ -58,11 +61,14 @@ struct TacEntity
 
   //m4 mWorldTransformNoScale;
 
-  TacString mName;
+  String mName;
 };
 
-const TacVector< TacNetworkBit > TacEntityBits =
+const Vector< NetworkBit > EntityBits =
 {
-  //{ "mPosition", TacOffsetOf( TacEntity, mLocalPosition ), sizeof( float ), 3 },
+  //{ "mPosition", OffsetOf( Entity, mLocalPosition ), sizeof( float ), 3 },
 };
+
+
+}
 

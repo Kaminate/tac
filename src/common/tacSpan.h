@@ -1,3 +1,4 @@
+
 // The whole point of a span is to unify the way we pass around contiguous data,
 // as a convenience class. Normally you would have something like these:
 //
@@ -12,8 +13,10 @@
 
 #pragma once
 
+namespace Tac
+{
 template< typename T >
-struct TacSpan
+struct Span
 {
   int size(){ return mCount; }
   T* data(){ return mElements; }
@@ -23,8 +26,11 @@ struct TacSpan
   int mCount = 0;
 };
 
-typedef TacSpan< char > TacMemorySpan;
+typedef Span< char > MemorySpan;
 
 // cant do this or else the operator[] returns a void&
-//typedef TacSpan< void > TacMemorySpan;
+//typedef Span< void > MemorySpan;
+
+
+}
 

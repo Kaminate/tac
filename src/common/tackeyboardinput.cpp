@@ -1,92 +1,96 @@
-#include "common/tackeyboardinput.h"
-#include "common/tacPreprocessor.h"
-#include "common/containers/tacVector.h"
-#include "common/tacUtility.h"
-#include "common/tacOS.h"
+#include "src/common/tacKeyboardinput.h"
+#include "src/common/tacPreprocessor.h"
+#include "src/common/containers/tacVector.h"
+#include "src/common/tacUtility.h"
+#include "src/common/tacOS.h"
 
-TacString ToString( TacKey key )
+namespace Tac
+{
+
+
+String ToString( Key key )
 {
   switch( key )
   {
-  case TacKey::UpArrow: return "uparrow";
-  case TacKey::DownArrow: return "downarrow";
-  case TacKey::LeftArrow: return "leftarrow";
-  case TacKey::RightArrow: return "rightarrow";
-  case TacKey::Spacebar: return "spacebar";
-  case TacKey::Debug: return "debug";
-  case TacKey::Backspace: return "backspace";
-  case TacKey::Delete: return "delete";
-  case TacKey::Backtick: return "backtick";
-  case TacKey::MouseLeft: return "lclick";
-  case TacKey::MouseRight: return "rclick";
-  case TacKey::MouseMiddle: return "mclick";
-  case TacKey::Modifier: return "mod";
-  case TacKey::A: return "A";
-  case TacKey::B: return "B";
-  case TacKey::C: return "C";
-  case TacKey::D: return "D";
-  case TacKey::E: return "E";
-  case TacKey::F: return "F";
-  case TacKey::G: return "G";
-  case TacKey::H: return "H";
-  case TacKey::I: return "I";
-  case TacKey::J: return "J";
-  case TacKey::K: return "K";
-  case TacKey::L: return "L";
-  case TacKey::M: return "M";
-  case TacKey::N: return "N";
-  case TacKey::O: return "O";
-  case TacKey::P: return "P";
-  case TacKey::Q: return "Q";
-  case TacKey::R: return "R";
-  case TacKey::S: return "S";
-  case TacKey::T: return "T";
-  case TacKey::U: return "U";
-  case TacKey::V: return "V";
-  case TacKey::W: return "W";
-  case TacKey::X: return "X";
-  case TacKey::Y: return "Y";
-  case TacKey::Z: return "Z";
-  case TacKey::F5: return "f5";
-    TacInvalidDefaultCase( key );
+  case Key::UpArrow: return "uparrow";
+  case Key::DownArrow: return "downarrow";
+  case Key::LeftArrow: return "leftarrow";
+  case Key::RightArrow: return "rightarrow";
+  case Key::Spacebar: return "spacebar";
+  case Key::Debug: return "debug";
+  case Key::Backspace: return "backspace";
+  case Key::Delete: return "delete";
+  case Key::Backtick: return "backtick";
+  case Key::MouseLeft: return "lclick";
+  case Key::MouseRight: return "rclick";
+  case Key::MouseMiddle: return "mclick";
+  case Key::Modifier: return "mod";
+  case Key::A: return "A";
+  case Key::B: return "B";
+  case Key::C: return "C";
+  case Key::D: return "D";
+  case Key::E: return "E";
+  case Key::F: return "F";
+  case Key::G: return "G";
+  case Key::H: return "H";
+  case Key::I: return "I";
+  case Key::J: return "J";
+  case Key::K: return "K";
+  case Key::L: return "L";
+  case Key::M: return "M";
+  case Key::N: return "N";
+  case Key::O: return "O";
+  case Key::P: return "P";
+  case Key::Q: return "Q";
+  case Key::R: return "R";
+  case Key::S: return "S";
+  case Key::T: return "T";
+  case Key::U: return "U";
+  case Key::V: return "V";
+  case Key::W: return "W";
+  case Key::X: return "X";
+  case Key::Y: return "Y";
+  case Key::Z: return "Z";
+  case Key::F5: return "f5";
+    TAC_INVALID_DEFAULT_CASE( key );
   }
   return "";
 }
 
-bool TacKeyboardInputFrame::IsKeyDown( TacKey key )
+bool KeyboardInputFrame::IsKeyDown( Key key )
 {
   return mCurrDown.find( key ) != mCurrDown.end();
 }
-TacString TacKeyboardInputFrame::GetPressedKeyDescriptions()
+String KeyboardInputFrame::GetPressedKeyDescriptions()
 {
-  TacVector< TacString > keyNames;
+  Vector< String > keyNames;
   for( auto key : mCurrDown )
   {
     auto keyName = ToString( key );
     keyNames.push_back( keyName );
   }
-  TacString keysDownText = "Keys Down: " + ( !keyNames.empty() ? TacSeparateStrings( keyNames, ", " ) : "none" );
+  String keysDownText = "Keys Down: " + ( !keyNames.empty() ? SeparateStrings( keyNames, ", " ) : "none" );
   return keysDownText;
 }
 
 
-bool TacKeyboardInput::IsKeyJustDown( TacKey key )
+bool KeyboardInput::IsKeyJustDown( Key key )
 {
   return !mPrev.IsKeyDown( key ) && IsKeyDown( key );
 }
-bool TacKeyboardInput::HasKeyJustBeenReleased( TacKey key )
+bool KeyboardInput::HasKeyJustBeenReleased( Key key )
 {
   return mPrev.IsKeyDown( key ) && !IsKeyDown( key );
 }
-bool TacKeyboardInput::IsKeyDown( TacKey key )
+bool KeyboardInput::IsKeyDown( Key key )
 {
   return mCurr.IsKeyDown( key );
 }
-void TacKeyboardInput::DebugImgui()
+void KeyboardInput::DebugImgui()
 {
   //ImGui::Text( mCurr.GetPressedKeyDescriptions() );
 }
-void TacKeyboardInput::SetIsKeyDown( TacKey key, bool isDown )
+void KeyboardInput::SetIsKeyDown( Key key, bool isDown )
 {
   if( isDown )
   {
@@ -98,34 +102,35 @@ void TacKeyboardInput::SetIsKeyDown( TacKey key, bool isDown )
   }
 }
 
-TacKeyboardInput* TacKeyboardInput::Instance;
-TacKeyboardInput::TacKeyboardInput()
+KeyboardInput* KeyboardInput::Instance;
+KeyboardInput::KeyboardInput()
 {
   Instance = this;
-  TacErrors ignored;
-  TacOS::Instance->GetScreenspaceCursorPos( mCurr.mScreenspaceCursorPos, ignored );
-  TacOS::Instance->GetScreenspaceCursorPos( mPrev.mScreenspaceCursorPos, ignored );
+  Errors ignored;
+  OS::Instance->GetScreenspaceCursorPos( mCurr.mScreenspaceCursorPos, ignored );
+  OS::Instance->GetScreenspaceCursorPos( mPrev.mScreenspaceCursorPos, ignored );
 }
-void TacKeyboardInput::BeginFrame()
+void KeyboardInput::BeginFrame()
 {
-  TacErrors ignored;
-  TacOS::Instance->GetScreenspaceCursorPos( mCurr.mScreenspaceCursorPos, ignored );
+  Errors ignored;
+  OS::Instance->GetScreenspaceCursorPos( mCurr.mScreenspaceCursorPos, ignored );
   mMouseDeltaPosScreenspace =
     mCurr.mScreenspaceCursorPos -
     mPrev.mScreenspaceCursorPos;
   mMouseDeltaScroll = mCurr.mMouseScroll - mPrev.mMouseScroll;
 }
-void TacKeyboardInput::EndFrame()
+void KeyboardInput::EndFrame()
 {
   mPrev = mCurr;
   mWMCharPressedHax = 0;
 }
-void TacKeyboardInput::DebugPrintWhenKeysChange()
+void KeyboardInput::DebugPrintWhenKeysChange()
 {
-  TacString currkeysDown = mCurr.GetPressedKeyDescriptions();
-  TacString lastkeysDown = mPrev.GetPressedKeyDescriptions();
+  String currkeysDown = mCurr.GetPressedKeyDescriptions();
+  String lastkeysDown = mPrev.GetPressedKeyDescriptions();
   if( currkeysDown == lastkeysDown )
     return;
   std::cout << currkeysDown << std::endl;
 }
 
+}

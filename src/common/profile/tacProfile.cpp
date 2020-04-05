@@ -1,123 +1,128 @@
-#include "tacProfile.h"
-#include "tacPreprocessor.h"
 
-////////////////////////
-// TacProfileFunction //
-////////////////////////
-
-void TacProfileFunction::Clear()
+#include "src/common/profile/tacProfile.h"
+#include "src/common/tacPreprocessor.h"
+namespace Tac
 {
-  TacAssert( !mChildren );
-  TacAssert( !mNext );
-  *this = TacProfileFunction();
-}
 
-TacProfileFunction* TacProfileFunction::GetLastChild()
-{
-  if( !mChildren )
-    return nullptr;
-  TacProfileFunction* child = mChildren;
-  while( child->mNext )
-    child = child->mNext;
-  return child;
-}
+  ////////////////////////
+  // ProfileFunction //
+  ////////////////////////
 
-void TacProfileFunction::AppendChild( TacProfileFunction* child )
-{
-  TacProfileFunction* lastChild = GetLastChild();
-  if( lastChild )
-    lastChild->mNext = child;
-  else
-    mChildren = child;
-}
-
-/////////////////////
-// TacProfileBlock //
-/////////////////////
-
-TacProfileBlock::TacProfileBlock( TacStackFrame stackFrame )
-{
-  TacProfileSystem* system = TacProfileSystem::Instance;
-  mFunction = system->Alloc();
-  mFunction->mStackFrame = stackFrame;
-  mFunction->mBeginTime = TacClock::now();
-  system->PushFunction( mFunction );
-}
-
-TacProfileBlock::~TacProfileBlock()
-{
-  mFunction->mEndTime = TacClock::now();
-  TacProfileSystem* system = TacProfileSystem::Instance;
-  TacAssert( system->mCurrStackFrame.back() == mFunction );
-  system->mCurrStackFrame.pop_back();
-}
-
-
-//////////////////////
-// TacProfileSystem //
-//////////////////////
-
-thread_local TacProfileSystem* TacProfileSystem::Instance = nullptr;
-TacProfileSystem::TacProfileSystem()
-{
-  Instance = this;
-}
-
-void TacProfileSystem::Init()
-{
-}
-
-
-TacProfileFunction* TacProfileSystem::Alloc()
-{
-  TacProfileFunction* result;
-  if( mFree.size() )
+  void ProfileFunction::Clear()
   {
-    result = mFree.back();
-    mFree.pop_back();
+    TAC_ASSERT( !mChildren );
+    TAC_ASSERT( !mNext );
+    *this = ProfileFunction();
   }
-  else
+
+  ProfileFunction* ProfileFunction::GetLastChild()
   {
-    result = new TacProfileFunction;
+    if( !mChildren )
+      return nullptr;
+    ProfileFunction* child = mChildren;
+    while( child->mNext )
+      child = child->mNext;
+    return child;
+  }
+
+  void ProfileFunction::AppendChild( ProfileFunction* child )
+  {
+    ProfileFunction* lastChild = GetLastChild();
+    if( lastChild )
+      lastChild->mNext = child;
+    else
+      mChildren = child;
+  }
+
+  /////////////////////
+  // ProfileBlock //
+  /////////////////////
+
+  ProfileBlock::ProfileBlock( Frame frame )
+  {
+    ProfileSystem* system = ProfileSystem::Instance;
+    mFunction = system->Alloc();
+    mFunction->mFrame = frame;
+    mFunction->mBeginTime = Clock::now();
+    system->PushFunction( mFunction );
+  }
+
+  ProfileBlock::~ProfileBlock()
+  {
+    mFunction->mEndTime = Clock::now();
+    ProfileSystem* system = ProfileSystem::Instance;
+    TAC_ASSERT( system->mCurrStack.back() == mFunction );
+    system->mCurrStack.pop_back();
+  }
+
+  //////////////////////
+  // ProfileSystem //
+  //////////////////////
+
+  thread_local ProfileSystem* ProfileSystem::Instance = nullptr;
+  ProfileSystem::ProfileSystem()
+  {
+    Instance = this;
+  }
+
+  void ProfileSystem::Init()
+  {
   }
 
 
-  return result;
-}
-
-void TacProfileSystem::OnFrameBegin()
-{
-
-}
-void TacProfileSystem::OnFrameEnd()
-{
-  Dealloc( mLastFrame );
-  mLastFrame = mCurrFrame;
-  mCurrFrame = nullptr;
-}
-
-void TacProfileSystem::Dealloc( TacProfileFunction* profileFunction )
-{
-  if( !profileFunction )
-    return;
-  Dealloc( profileFunction->mChildren );
-  profileFunction->mChildren = nullptr;
-  Dealloc( profileFunction->mNext );
-  profileFunction->mNext = nullptr;
-  profileFunction->Clear();
-  mFree.push_back( profileFunction );
-}
-
-void TacProfileSystem::PushFunction( TacProfileFunction* profileFunction )
-{
-  if( mCurrStackFrame.empty() )
+  ProfileFunction* ProfileSystem::Alloc()
   {
-    mCurrFrame = profileFunction;
-  }
-  else
-  {
-    mCurrStackFrame.back()->AppendChild( profileFunction );
+    ProfileFunction* result;
+    if( mFree.size() )
+    {
+      result = mFree.back();
+      mFree.pop_back();
+    }
+    else
+    {
+      result = new ProfileFunction;
+    }
+
+
+    return result;
   }
 
-  mCurrStackFrame.push_back( profileFunction );
+  void ProfileSystem::OnFrameBegin()
+  {
+
+  }
+  void ProfileSystem::OnFrameEnd()
+  {
+    Dealloc( mLastFrame );
+    mLastFrame = mCurrFrame;
+    mCurrFrame = nullptr;
+  }
+
+  void ProfileSystem::Dealloc( ProfileFunction* profileFunction )
+  {
+    if( !profileFunction )
+      return;
+    Dealloc( profileFunction->mChildren );
+    profileFunction->mChildren = nullptr;
+    Dealloc( profileFunction->mNext );
+    profileFunction->mNext = nullptr;
+    profileFunction->Clear();
+    mFree.push_back( profileFunction );
+  }
+
+  void ProfileSystem::PushFunction( ProfileFunction* profileFunction )
+  {
+    if( mCurrStack.empty() )
+    {
+      mCurrFrame = profileFunction;
+    }
+    else
+    {
+      mCurrStack.back()->AppendChild( profileFunction );
+    }
+
+    mCurrStack.push_back( profileFunction );
+  }
+
 }
+

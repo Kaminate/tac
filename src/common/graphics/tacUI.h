@@ -16,88 +16,92 @@
 
 #pragma once
 
-#include "common/tacString.h"
-#include "common/tacErrorHandling.h"
-#include "common/tacEvent.h"
-#include "common/tacLocalization.h"
-#include "common/containers/tacVector.h"
-#include "common/math/tacVector2.h"
-#include "common/math/tacVector4.h"
+#include "src/common/tacString.h"
+#include "src/common/tacErrorHandling.h"
+#include "src/common/tacEvent.h"
+#include "src/common/tacLocalization.h"
+#include "src/common/containers/tacVector.h"
+#include "src/common/math/tacVector2.h"
+#include "src/common/math/tacVector4.h"
 #include <list>
 
-struct TacUIAnchor;
-struct TacUIButtonCallback;
-struct TacUITextInfo;
-struct TacUITextData;
-struct TacUITextTransition;
-struct TacUIText;
-struct TacUIRoot;
-struct TacUILayout;
-struct TacUILayoutable;
-struct TacUILayoutData;
-struct TacUI2DDrawData;
-struct TacUIHierarchyNode;
-struct TacDepthBuffer;
-struct TacDesktopWindow;
-struct TacKeyboardInput;
-struct TacTexture;
-struct TacFontStuff;
+namespace Tac
+{
 
 
-enum class TacUIAnchorHorizontal
+struct UIAnchor;
+struct UIButtonCallback;
+struct UITextInfo;
+struct UITextData;
+struct UITextTransition;
+struct UIText;
+struct UIRoot;
+struct UILayout;
+struct UILayoutable;
+struct UILayoutData;
+struct UI2DDrawData;
+struct UIHierarchyNode;
+struct DepthBuffer;
+struct DesktopWindow;
+struct KeyboardInput;
+struct Texture;
+struct FontStuff;
+
+
+enum class UIAnchorHorizontal
 {
   Center,
   Left,
   Right,
   Count
 };
-const TacString TacAnchorHorizontalStrings[] =
+const String AnchorHorizontalStrings[] =
 {
   "Center",
   "Left",
   "Right"
 };
 
-enum class TacUIAnchorVertical
+enum class UIAnchorVertical
 {
   Center,
   Top,
   Bottom,
   Count
 };
-const TacString TacAnchorVerticalStrings[] =
+const String AnchorVerticalStrings[] =
 {
   "Center",
   "Top",
   "Bottom"
 };
 
-struct TacUIAnchor
+struct UIAnchor
 {
   void DebugImgui();
 
   // Changed the defaults from
   // Horizontal Center, Vertical Center to
   // Horizontal Left, Vertical Top...
-  TacUIAnchorHorizontal mAnchorHorizontal = TacUIAnchorHorizontal::Left;
-  TacUIAnchorVertical mAnchorVertical = TacUIAnchorVertical::Top;
+  UIAnchorHorizontal mAnchorHorizontal = UIAnchorHorizontal::Left;
+  UIAnchorVertical mAnchorVertical = UIAnchorVertical::Top;
 };
 
 
-struct TacUILayoutable // yee haw
+struct UILayoutable // yee haw
 {
-  TacUILayoutable( const TacString& debugName );
-  virtual ~TacUILayoutable() = default;
+  UILayoutable( const String& debugName );
+  virtual ~UILayoutable() = default;
   virtual void DebugImgui();
-  virtual void Update( TacUILayoutData* uiLayoutData ) {};
+  virtual void Update( UILayoutData* uiLayoutData ) {};
   virtual void TransitionOut() {};
   virtual void TransitionIn() {};
-  virtual void Render( TacErrors& errors );
+  virtual void Render( Errors& errors );
   virtual bool IsHovered();
   virtual v2 GetWindowspacePosition();
 
-  TacUILayoutable* mParent = nullptr;
-  TacUIRoot* mUIRoot = nullptr;
+  UILayoutable* mParent = nullptr;
+  UIRoot* mUIRoot = nullptr;
 
   // Advance width
   // ^ what does this mean?
@@ -111,25 +115,25 @@ struct TacUILayoutable // yee haw
   // Computed automatically
   v2 mPositionAnchored = {};
 
-  TacString mDebugName;
+  String mDebugName;
   bool mDebug = false;
 
   v2 mLocalPosition = {};
 };
 
 // todo: replace with event
-struct TacUIButtonCallback
+struct UIButtonCallback
 {
   void* mUserData = nullptr;
-  void( *mUserCallback )( void*, TacErrors& errors ) = nullptr;
+  void( *mUserCallback )( void*, Errors& errors ) = nullptr;
 };
 
-struct TacUITextData
+struct UITextData
 {
   void DebugImgui();
 
   v4 mColor = { 1, 1, 0, 1 };
-  TacString mUtf8;
+  String mUtf8;
   int mFontSize = 20;
 
   // Q: why does text need to know its width and height?
@@ -139,7 +143,7 @@ struct TacUITextData
   float mUIHeight = 0;
 };
 
-struct TacUITextTransition
+struct UITextTransition
 {
   void Update();
   void DebugImgui();
@@ -147,28 +151,28 @@ struct TacUITextTransition
   double mTransitionStartSeconds = 0;
   bool mTransitionFinished = false;
   float mTransitionTweenPercent = 0;
-  TacUIText* mUIText = nullptr;
+  UIText* mUIText = nullptr;
   bool mUseUITextDataStore = false;
-  TacUITextData mUITextDataStore;
+  UITextData mUITextDataStore;
 };
 
-struct TacUIText : public TacUILayoutable
+struct UIText : public UILayoutable
 {
-  TacUIText( const TacString& debugName );
-  ~TacUIText();
+  UIText( const String& debugName );
+  ~UIText();
   void UpdateTransitions();
-  void Update( TacUILayoutData* uiLayoutData ) override;
+  void Update( UILayoutData* uiLayoutData ) override;
   void DebugImgui()override;
   void TransitionOut()override;
   void TransitionIn()override;
-  void Render( TacErrors& errors ) override;
+  void Render( Errors& errors ) override;
   bool IsHovered() override;
   void GoNuts();
-  const TacUITextData* GetUITextData();
-  void SetText( const TacUITextData& uiTextData, bool updateStack = true );
-  // mIsRecentChangeInStack or mTransitionOut changed
+  const UITextData* GetUITextData();
+  void SetText( const UITextData& uiTextData, bool updateSK = true );
+  // mIsRecentChangeInSK or mTransitionOut changed
   void Think();
-  bool IsMostRecentChangeInStack();
+  bool IsMostRecentChangeInSK();
 
   bool mIsHovered = false;
   double mHoverStartSeconds = 0;
@@ -176,10 +180,10 @@ struct TacUIText : public TacUILayoutable
   // comment?
   float mExtraXPos = 0;
   float mExtraXVel = 0;
-  TacVector< TacUIButtonCallback > mButtonCallbacks;
+  Vector< UIButtonCallback > mButtonCallbacks;
 
   // this is a queue. new infos are pushed back, old infos are popped front
-  TacVector< TacUITextTransition > mTransitions;
+  Vector< UITextTransition > mTransitions;
 
   float mInitialDelaySecs = 0;
 
@@ -190,29 +194,29 @@ struct TacUIText : public TacUILayoutable
 
 private:
   bool mTransitionOut = false; // aka: mMenu->mRequestDeletion
-  TacUITextData mUITextData;
+  UITextData mUITextData;
 };
 
 // used as an index
-enum class TacUILayoutType
+enum class UILayoutType
 {
   Horizontal = 0,
   Vertical = 1,
 };
 
-struct TacUILayout : public TacUILayoutable
+struct UILayout : public UILayoutable
 {
-  TacUILayout( const TacString& debugName );
-  ~TacUILayout();
+  UILayout( const String& debugName );
+  ~UILayout();
   void DebugImgui() override;
-  void Update( TacUILayoutData* uiLayoutData ) override;
-  void Render( TacErrors& errors ) override;
+  void Update( UILayoutData* uiLayoutData ) override;
+  void Render( Errors& errors ) override;
    v2 GetWindowspacePosition() override;
 
   template< typename T >
-  T* Add( const TacString& debugName )
+  T* Add( const String& debugName )
   {
-    TacUILayoutable* t = new T( debugName );
+    UILayoutable* t = new T( debugName );
     t->mUIRoot = mUIRoot;
     t->mParent = this;
     mUILayoutables.push_back( t );
@@ -223,9 +227,9 @@ struct TacUILayout : public TacUILayoutable
   float GetInitialDelaySeconds();
   void RequestDeletion();
 
-  TacUIAnchor mAnchor;
+  UIAnchor mAnchor;
 
-  TacVector< TacUILayoutable* > mUILayoutables;
+  Vector< UILayoutable* > mUILayoutables;
 
   // set to 0 or height target based on transition in or out
   float mHeightPrev = 0;
@@ -240,9 +244,9 @@ struct TacUILayout : public TacUILayoutable
   bool mTransitionedFinished = false;
   v4 mColor = { 1, 0, 0, 1 };
   bool mRequestDeletion = false;
-  TacUILayoutType mUILayoutType = TacUILayoutType::Vertical;
+  UILayoutType mUILayoutType = UILayoutType::Vertical;
   float mMenuPadding = 0;
-  TacTexture* mTexture = nullptr;
+  Texture* mTexture = nullptr;
 
   // If true, expands the width of this element to contain its children
   bool mAutoWidth = true;
@@ -250,78 +254,78 @@ struct TacUILayout : public TacUILayoutable
   // If true, expands the width of this element to fill its encompassing space
   bool mExpandWidth = false;
 
-  //TacUILayout* mLeftEdge = nullptr;
+  //UILayout* mLeftEdge = nullptr;
 
 };
 
 // The layout min and max is relative to the parent's anchored position
-struct TacUILayoutData
+struct UILayoutData
 {
   v2 mUIMin = {};
   v2 mUIMax = {};
 };
 
 
-enum class TacUISplit
+enum class UISplit
 {
   Before,
   After,
 };
 
-struct TacUIHierarchyVisual
+struct UIHierarchyVisual
 {
-    virtual ~TacUIHierarchyVisual() = default;
-  virtual void Render(  TacErrors& errors ) {}
-  virtual TacString GetDebugName() = 0;
-  TacUIHierarchyNode* mHierarchyNode = nullptr;
+    virtual ~UIHierarchyVisual() = default;
+  virtual void Render(  Errors& errors ) {}
+  virtual String GetDebugName() = 0;
+  UIHierarchyNode* mHierarchyNode = nullptr;
   v2 mDims;
 };
 
-struct TacUIHierarchyVisualText : public TacUIHierarchyVisual
+struct UIHierarchyVisualText : public UIHierarchyVisual
 {
-    virtual ~TacUIHierarchyVisualText() = default;
-  void Render( TacErrors& errors ) override;
-  TacString GetDebugName() override { return mUITextData.mUtf8; }
-  TacUITextData mUITextData;
+    virtual ~UIHierarchyVisualText() = default;
+  void Render( Errors& errors ) override;
+  String GetDebugName() override { return mUITextData.mUtf8; }
+  UITextData mUITextData;
 };
 
-struct TacUIHierarchyVisualImage : public TacUIHierarchyVisual
+struct UIHierarchyVisualImage : public UIHierarchyVisual
 {
-    virtual ~TacUIHierarchyVisualImage() = default;
-  void Render( TacErrors& errors ) override;
-  TacString GetDebugName() override;
-  TacTexture* mTexture = nullptr;
+    virtual ~UIHierarchyVisualImage() = default;
+  void Render( Errors& errors ) override;
+  String GetDebugName() override;
+  Texture* mTexture = nullptr;
 };
 
-struct TacUIHierarchyNode
+struct UIHierarchyNode
 {
-  TacUIHierarchyNode();
-  TacUIHierarchyNode* Split(
-    TacUISplit uiSplit = TacUISplit::After,
-    TacUILayoutType layoutType = TacUILayoutType::Horizontal );
-  void RenderHierarchy( TacErrors& errors );
-  void SetVisual( TacUIHierarchyVisual* visual );
-  TacUIHierarchyNode* AddChild();
+  UIHierarchyNode();
+  UIHierarchyNode* Split(
+    UISplit uiSplit = UISplit::After,
+    UILayoutType layoutType = UILayoutType::Horizontal );
+  void RenderHierarchy( Errors& errors );
+  void SetVisual( UIHierarchyVisual* visual );
+  UIHierarchyNode* AddChild();
   void Expand();
-  TacString DebugGenerateGraphVizDotFile();
+  String DebugGenerateGraphVizDotFile();
 
   v4 mColor = { 1, 1, 1, 1 };
-  TacVector< TacUIHierarchyNode* > mChildren;
-  TacUIHierarchyNode* mParent = nullptr;
+  Vector< UIHierarchyNode* > mChildren;
+  UIHierarchyNode* mParent = nullptr;
 
   // use injection instead?
-  TacUIRoot* mUIRoot = nullptr;
+  UIRoot* mUIRoot = nullptr;
 
   bool mDrawOutline;
 
-  TacUILayoutType mLayoutType = TacUILayoutType::Horizontal;
+  UILayoutType mLayoutType = UILayoutType::Horizontal;
 
   v2 mPositionRelativeToParent = {};
   v2 mPositionRelativeToRoot = {};
 
-  TacString mDebugName;
+  String mDebugName;
 
-  TacEvent<>::Emitter mOnClickEventEmitter;
+  Event<>::Emitter mOnClickEventEmitter;
 
 
   // This variable is used...
@@ -338,27 +342,27 @@ struct TacUIHierarchyNode
   // so that I can center a window between two *s
   int mExpandingChildIndex = 0;
 
-  TacUIHierarchyVisual* mVisual = nullptr;
+  UIHierarchyVisual* mVisual = nullptr;
 };
 
 
 
-struct TacUIRoot
+struct UIRoot
 {
-  TacUIRoot();
-  ~TacUIRoot();
-  TacUILayout* AddMenu( const TacString& debugName );
+  UIRoot();
+  ~UIRoot();
+  UILayout* AddMenu( const String& debugName );
   void Update();
-  void Render( TacErrors& errors );
+  void Render( Errors& errors );
   void DebugImgui();
   
   // Unified getter because I can't make up my mind how to store this variable ( Shell*? )
   double GetElapsedSeconds() { return *mElapsedSeconds; }
 
 
-  TacUI2DDrawData* mUI2DDrawData = nullptr;
-  TacFontStuff* mFontStuff = nullptr;
-  TacKeyboardInput* mKeyboardInput = nullptr;
+  UI2DDrawData* mUI2DDrawData = nullptr;
+  FontStuff* mFontStuff = nullptr;
+  KeyboardInput* mKeyboardInput = nullptr;
 
 
   // | The ui shouldn't know about the window it's rendering to
@@ -367,11 +371,11 @@ struct TacUIRoot
   // | Although the above is true, we still need to know if our window
   // | is the cursor unobscured window
   // v
-  TacDesktopWindow* mDesktopWindow = nullptr;
+  DesktopWindow* mDesktopWindow = nullptr;
   double* mElapsedSeconds = 0;
 
-  TacLanguage mDefaultLanguage = TacLanguage::English;
-  std::list< TacUILayout* > mUIMenus;
+  Language mDefaultLanguage = Language::English;
+  std::list< UILayout* > mUIMenus;
   float transitionDurationSeconds;
 
   // TODO: add notes on coordinates
@@ -386,10 +390,11 @@ struct TacUIRoot
   // BEGIN EXPERIMENTAL //
   ////////////////////////
 
-  TacUIHierarchyNode* mHierarchyRoot = nullptr;
+  UIHierarchyNode* mHierarchyRoot = nullptr;
   
   //////////////////////
   // END EXPERIMENTAL //
   //////////////////////
 };
 
+}

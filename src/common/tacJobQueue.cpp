@@ -1,11 +1,14 @@
-#include "tacJobQueue.h"
-#include "common/math/tacMath.h"
 
-static void TacWorkerThread( TacJobQueue* jobQueue )
+#include "src/common/tacJobQueue.h"
+#include "src/common/math/tacMath.h"
+
+namespace Tac
+{
+static void WorkerThread( JobQueue* jobQueue )
 {
   while( jobQueue->mRunning )
   {
-    TacJob* job = nullptr;
+    Job* job = nullptr;
     jobQueue->mMutex.lock();
     if( !jobQueue->mUnstarted.empty() )
       job = jobQueue->mUnstarted.Pop();
@@ -16,58 +19,59 @@ static void TacWorkerThread( TacJobQueue* jobQueue )
       continue;
     }
     //std::this_thread::sleep_for( std::chrono::seconds( 1 ) );
-    job->SetStatus( TacAsyncLoadStatus::ThreadRunning );
+    job->SetStatus( AsyncLoadStatus::ThreadRunning );
     job->Execute();
     job->SetStatus( job->mErrors.empty() ?
-      TacAsyncLoadStatus::ThreadCompleted :
-      TacAsyncLoadStatus::ThreadFailed );
+      AsyncLoadStatus::ThreadCompleted :
+      AsyncLoadStatus::ThreadFailed );
   }
 }
 
-TacJob::TacJob()
+Job::Job()
 {
-  mAsyncLoadStatus = TacAsyncLoadStatus::JustBeenCreated;
+  mAsyncLoadStatus = AsyncLoadStatus::JustBeenCreated;
 }
-void TacJob::SetStatus( TacAsyncLoadStatus asyncLoadStatus )
+void Job::SetStatus( AsyncLoadStatus asyncLoadStatus )
 {
   mStatusMutex.lock();
   mAsyncLoadStatus = asyncLoadStatus;
   mStatusMutex.unlock();
 }
 
-TacAsyncLoadStatus TacJob::GetStatus()
+AsyncLoadStatus Job::GetStatus()
 {
   mStatusMutex.lock();
-  TacAsyncLoadStatus asyncLoadStatus = mAsyncLoadStatus;
+  AsyncLoadStatus asyncLoadStatus = mAsyncLoadStatus;
   mStatusMutex.unlock();
   return asyncLoadStatus;
 }
 
-TacJobQueue* TacJobQueue::Instance = nullptr;
-TacJobQueue::TacJobQueue()
+JobQueue* JobQueue::Instance = nullptr;
+JobQueue::JobQueue()
 {
   Instance = this;
 }
 
-void TacJobQueue::Push( TacJob* job )
+void JobQueue::Push( Job* job )
 {
-  job->SetStatus( TacAsyncLoadStatus::ThreadQueued );
+  job->SetStatus( AsyncLoadStatus::ThreadQueued );
   job->mErrors.clear();
   mMutex.lock();
   mUnstarted.Push( job );
   mMutex.unlock();
 }
 
-void TacJobQueue::Init()
+void JobQueue::Init()
 {
-  int threadCount = TacMax( ( int )std::thread::hardware_concurrency(), mMinThreadCount );
+  int threadCount = Max( ( int )std::thread::hardware_concurrency(), mMinThreadCount );
   mThreads.resize( threadCount );
   mRunning = true;
   for( int i = 0; i < threadCount; ++i )
   {
     std::thread& curThread = mThreads[ i ];
-    curThread = std::thread( TacWorkerThread, this );
+    curThread = std::thread( WorkerThread, this );
     curThread.detach();
   }
+}
 }
 

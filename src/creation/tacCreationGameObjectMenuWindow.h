@@ -1,31 +1,37 @@
+
 #pragma once
 
-#include "common/tacErrorHandling.h"
+#include "src/common/tacErrorHandling.h"
 
-struct TacUILayout;
-struct TacShell;
-struct TacUIText;
-struct TacDesktopWindow;
-struct TacDesktopApp;
-struct TacCreation;
-struct TacUIRoot;
-struct TacUI2DDrawData;
-struct TacUIHierarchyNode;
-struct TacTexture;
-struct TacCreationMainWindow;
-
-struct TacCreationGameObjectMenuWindow
+namespace Tac
 {
-  ~TacCreationGameObjectMenuWindow();
-  void Init( TacErrors& errors );
-  void CreateLayouts();
-  void Update( TacErrors& errors );
+struct UILayout;
+struct Shell;
+struct UIText;
+struct DesktopWindow;
+struct DesktopApp;
+struct Creation;
+struct UIRoot;
+struct UI2DDrawData;
+struct UIHierarchyNode;
+struct Texture;
+struct CreationMainWindow;
 
-  TacCreation* mCreation = nullptr;
-  TacCreationMainWindow* mMainWindow = nullptr;
-  TacDesktopWindow* mDesktopWindow = nullptr;
-  TacUIRoot* mUIRoot = nullptr;
-  TacUI2DDrawData* mUI2DDrawData = nullptr;
+struct CreationGameObjectMenuWindow
+{
+  ~CreationGameObjectMenuWindow();
+  void Init( Errors& errors );
+  void CreateLayouts();
+  void Update( Errors& errors );
+
+  Creation* mCreation = nullptr;
+  CreationMainWindow* mMainWindow = nullptr;
+  DesktopWindow* mDesktopWindow = nullptr;
+  UIRoot* mUIRoot = nullptr;
+  UI2DDrawData* mUI2DDrawData = nullptr;
   double mCreationSeconds;
 };
+
+
+}
 

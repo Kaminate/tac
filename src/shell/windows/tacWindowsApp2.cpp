@@ -1,529 +1,532 @@
-#include "shell/windows/tacWindowsApp2.h"
-#include "shell/windows/tacXInput.h"
-#include "shell/windows/tacNetWinsock.h"
-#include "common/tacSettings.h"
-#include "common/tacPreprocessor.h"
-#include "common/tacString.h"
-#include "common/tacAlgorithm.h"
-#include "common/tacErrorHandling.h"
-#include "common/tackeyboardinput.h"
-#include "common/tacOS.h"
+#include "src/shell/windows/tacWindowsApp2.h"
+#include "src/shell/windows/tacXInput.h"
+#include "src/shell/windows/tacNetWinsock.h"
+#include "src/common/tacSettings.h"
+#include "src/common/tacPreprocessor.h"
+#include "src/common/tacString.h"
+#include "src/common/tacAlgorithm.h"
+#include "src/common/tacErrorHandling.h"
+#include "src/common/tacKeyboardinput.h"
+#include "src/common/tacOS.h"
 
 #include <thread>
 #include <iostream>
 #include <set>
 
-
-const char* classname = "tac";
-
-
-
-
-static void RerouteStdOutToOutputDebugString()
+namespace Tac
 {
-  static struct : public std::streambuf
+
+
+  const char* classname = "tac";
+
+
+
+
+  static void RerouteStdOutToOutputDebugString()
   {
-    int overflow( int c ) override
+    static struct : public std::streambuf
     {
-      if( c != EOF )
+      int overflow( int c ) override
       {
-        char buf[] = { ( char )c, '\0' };
-        OutputDebugString( buf );
+        if( c != EOF )
+        {
+          char buf[] = { ( char )c, '\0' };
+          OutputDebugString( buf );
+        }
+        return c;
       }
-      return c;
+    } outputDebugStringStreamBuf;
+    std::cout.rdbuf( &outputDebugStringStreamBuf );
+    std::cerr.rdbuf( &outputDebugStringStreamBuf );
+    std::clog.rdbuf( &outputDebugStringStreamBuf );
+  }
+
+
+  Win32DesktopWindow* WindowsApplication2::FindWindow( HWND hwnd )
+  {
+    for( Win32DesktopWindow* desktopWindow : mWindows )
+    {
+      if( desktopWindow->mHWND == hwnd )
+      {
+        return desktopWindow;
+      }
     }
-  } outputDebugStringStreamBuf;
-  std::cout.rdbuf( &outputDebugStringStreamBuf );
-  std::cerr.rdbuf( &outputDebugStringStreamBuf );
-  std::clog.rdbuf( &outputDebugStringStreamBuf );
-}
-
-
-TacWin32DesktopWindow* TacWindowsApplication2::TacFindWindow( HWND hwnd )
-{
-  for( TacWin32DesktopWindow* desktopWindow : mWindows )
+    return nullptr;
+  }
+  static LRESULT CALLBACK WindowProc(
+    HWND hwnd,
+    UINT uMsg,
+    WPARAM wParam,
+    LPARAM lParam )
   {
-    if( desktopWindow->mHWND == hwnd )
+    //static UINT uPrevMsg;
+    //uPrevMsg = uMsg;
+    Win32DesktopWindow* window = WindowsApplication2::Instance->FindWindow( hwnd );
+    if( window )
     {
-      return desktopWindow;
+      LRESULT result = window->HandleWindowProc( uMsg, wParam, lParam );
+      if( result )
+        return result;
+    }
+    return DefWindowProc( hwnd, uMsg, wParam, lParam );
+  }
+  static Key GetKey( uint8_t keyCode )
+  {
+    // List of virtual key codes
+    // https://msdn.microsoft.com/en-us/library/windows/desktop/dd375731(v=vs.85).aspx
+    switch( keyCode )
+    {
+      case VK_UP: return Key::UpArrow;
+      case VK_LEFT: return Key::LeftArrow;
+      case VK_DOWN: return Key::DownArrow;
+      case VK_RIGHT: return Key::RightArrow;
+      case VK_SPACE: return Key::Spacebar;
+      case VK_DELETE: return Key::Delete;
+      case VK_BACK: return Key::Backspace;
+      case VK_TAB: return Key::Tab;
+      case VK_CONTROL: return Key::Modifier;
+      case 'A': return Key::A;
+      case 'B': return Key::B;
+      case 'C': return Key::C;
+      case 'D': return Key::D;
+      case 'E': return Key::E;
+      case 'F': return Key::F;
+      case 'G': return Key::G;
+      case 'H': return Key::H;
+      case 'I': return Key::I;
+      case 'J': return Key::J;
+      case 'K': return Key::K;
+      case 'L': return Key::L;
+      case 'M': return Key::M;
+      case 'N': return Key::N;
+      case 'O': return Key::O;
+      case 'P': return Key::P;
+      case 'Q': return Key::Q;
+      case 'R': return Key::R;
+      case 'S': return Key::S;
+      case 'T': return Key::T;
+      case 'U': return Key::U;
+      case 'V': return Key::V;
+      case 'W': return Key::W;
+      case 'X': return Key::X;
+      case 'Y': return Key::Y;
+      case 'Z': return Key::Z;
+      case VK_OEM_3: return Key::Backtick;
+      case VK_F1: return Key::F1;
+      case VK_F2: return Key::F2;
+      case VK_F3: return Key::F3;
+      case VK_F4: return Key::F4;
+      case VK_F5: return Key::F5;
+      case VK_F6: return Key::F6;
+      case VK_F7: return Key::F7;
+      case VK_F8: return Key::F8;
+      case VK_F9: return Key::F9;
+      case VK_F10: return Key::F10;
+      case VK_F11: return Key::F11;
+      case VK_F12: return Key::F12;
+      default: return Key::Count;
     }
   }
-  return nullptr;
-}
-static LRESULT CALLBACK WindowProc(
-  HWND hwnd,
-  UINT uMsg,
-  WPARAM wParam,
-  LPARAM lParam )
-{
-  //static UINT uPrevMsg;
-  //uPrevMsg = uMsg;
-  TacWin32DesktopWindow* window = TacWindowsApplication2::Instance->TacFindWindow( hwnd );
-  if( window )
+
+  Win32DesktopWindow::~Win32DesktopWindow()
   {
-    LRESULT result = window->HandleWindowProc( uMsg, wParam, lParam );
-    if( result )
-      return result;
+    DestroyWindow( mHWND );
   }
-  return DefWindowProc( hwnd, uMsg, wParam, lParam );
-}
-static TacKey TacGetKey( uint8_t keyCode )
-{
-  // List of virtual key codes
-  // https://msdn.microsoft.com/en-us/library/windows/desktop/dd375731(v=vs.85).aspx
-  switch( keyCode )
+  LRESULT Win32DesktopWindow::HandleWindowProc(
+    UINT uMsg,
+    WPARAM wParam,
+    LPARAM lParam )
   {
-    case VK_UP: return TacKey::UpArrow;
-    case VK_LEFT: return TacKey::LeftArrow;
-    case VK_DOWN: return TacKey::DownArrow;
-    case VK_RIGHT: return TacKey::RightArrow;
-    case VK_SPACE: return TacKey::Spacebar;
-    case VK_DELETE: return TacKey::Delete;
-    case VK_BACK: return TacKey::Backspace;
-    case VK_TAB: return TacKey::Tab;
-    case VK_CONTROL: return TacKey::Modifier;
-    case 'A': return TacKey::A;
-    case 'B': return TacKey::B;
-    case 'C': return TacKey::C;
-    case 'D': return TacKey::D;
-    case 'E': return TacKey::E;
-    case 'F': return TacKey::F;
-    case 'G': return TacKey::G;
-    case 'H': return TacKey::H;
-    case 'I': return TacKey::I;
-    case 'J': return TacKey::J;
-    case 'K': return TacKey::K;
-    case 'L': return TacKey::L;
-    case 'M': return TacKey::M;
-    case 'N': return TacKey::N;
-    case 'O': return TacKey::O;
-    case 'P': return TacKey::P;
-    case 'Q': return TacKey::Q;
-    case 'R': return TacKey::R;
-    case 'S': return TacKey::S;
-    case 'T': return TacKey::T;
-    case 'U': return TacKey::U;
-    case 'V': return TacKey::V;
-    case 'W': return TacKey::W;
-    case 'X': return TacKey::X;
-    case 'Y': return TacKey::Y;
-    case 'Z': return TacKey::Z;
-    case VK_OEM_3: return TacKey::Backtick;
-    case VK_F1: return TacKey::F1;
-    case VK_F2: return TacKey::F2;
-    case VK_F3: return TacKey::F3;
-    case VK_F4: return TacKey::F4;
-    case VK_F5: return TacKey::F5;
-    case VK_F6: return TacKey::F6;
-    case VK_F7: return TacKey::F7;
-    case VK_F8: return TacKey::F8;
-    case VK_F9: return TacKey::F9;
-    case VK_F10: return TacKey::F10;
-    case VK_F11: return TacKey::F11;
-    case VK_F12: return TacKey::F12;
-    default: return TacKey::Count;
-  }
-}
+    bool mouseInWindowVerbose = false;
 
-TacWin32DesktopWindow::~TacWin32DesktopWindow()
-{
-  DestroyWindow( mHWND );
-}
-LRESULT TacWin32DesktopWindow::HandleWindowProc(
-  UINT uMsg,
-  WPARAM wParam,
-  LPARAM lParam )
-{
-  bool mouseInWindowVerbose = false;
-
-  switch( uMsg )
-  {
-    case WM_CLOSE:
-    case WM_DESTROY:
-    case WM_QUIT:
+    switch( uMsg )
     {
-      mRequestDeletion = true;
-    } return 0;
-    case WM_SIZE:
-    {
-      mWidth = ( int )LOWORD( lParam );
-      mHeight = ( int )HIWORD( lParam );
-      mOnResize.EmitEvent();
-    } break;
-    case WM_MOVE:
-    {
-      mX = ( int )LOWORD( lParam );
-      mY = ( int )HIWORD( lParam );
-      mOnMove.EmitEvent();
-    } break;
-    case WM_CHAR:
-    {
-      // TODO: convert to unicode
-      TacKeyboardInput::Instance->mWMCharPressedHax = ( char )wParam;
-    } break;
-    case WM_SYSKEYDOWN: // fallthrough
-    case WM_SYSKEYUP: // fallthrough
-    case WM_KEYDOWN: // fallthrough
-    case WM_KEYUP: // fallthrough
-    {
-      bool wasDown = ( lParam & ( ( LPARAM )1 << 30 ) ) != 0;
-      bool isDown = ( lParam & ( ( LPARAM )1 << 31 ) ) == 0;
-      if( isDown == wasDown )
-        break;
-      TacKey key = TacGetKey( ( uint8_t )wParam );
-      if( key == TacKey::Count )
-        break;
-      TacKeyboardInput::Instance->SetIsKeyDown( key, isDown );
-    } break;
-
-    case WM_SETFOCUS:
-    {
-      //std::cout << "window gained keyboard focus " << std::endl;
-    } break;
-    case WM_KILLFOCUS:
-    {
-      //TacKeyboardInput::Instance->mCurrDown.clear();
-      //std::cout << "window about to lose keyboard focus" << std::endl;
-    } break;
-
-    // Sent when a window belonging to a different application than the active window
-    // is about to be activated.
-    //
-    // The message is sent to the application whose window is being activated
-    // and to the application whose window is being deactivated.
-    case WM_ACTIVATEAPP:
-    {
-      if( wParam == TRUE )
+      case WM_CLOSE:
+      case WM_DESTROY:
+      case WM_QUIT:
       {
-        // The window is being activated
-      }
-      else
+        mRequestDeletion = true;
+      } return 0;
+      case WM_SIZE:
       {
-        // The window is being deactivated
-      }
-    } break;
-
-    case WM_CAPTURECHANGED:
-    {
-      //std::cout << "WM_CAPTURECHANGED ( mouse capture lost )" << std::endl;
-    } break;
-
-    case WM_LBUTTONDOWN:
-    {
-      //std::cout << "WM_LBUTTONDOWN" << std::endl;
-      TacKeyboardInput::Instance->SetIsKeyDown( TacKey::MouseLeft, true );
-      //SetActiveWindow( mHWND );
-      //SetForegroundWindow( mHWND );
-
-    } break;
-
-    // https://docs.microsoft.com/en-us/windows/desktop/inputdev/wm-nclbuttonup
-    // Posted when the user releases the left mouse button while the cursor is
-    // within the nonclient area of a window.
-    // This message is posted to the window that contains the cursor.
-    // If a window has captured the mouse, this message is not posted.
-    // case WM_NCLBUTTONUP:
-    case WM_LBUTTONUP:
-    {
-      //if( uMsg == WM_LBUTTONUP ) { std::cout << "WM_LBUTTONUP" << std::endl; }
-      //else { std::cout << "WM_NCLBUTTONUP" << std::endl; }
-      TacKeyboardInput::Instance->SetIsKeyDown( TacKey::MouseLeft, false );
-    } break;
-
-    case WM_RBUTTONDOWN:
-    {
-      TacKeyboardInput::Instance->SetIsKeyDown( TacKey::MouseRight, true );
-    } break;
-    case WM_RBUTTONUP:
-    {
-      TacKeyboardInput::Instance->SetIsKeyDown( TacKey::MouseRight, false );
-    } break;
-
-    case WM_MBUTTONDOWN:
-    {
-      TacKeyboardInput::Instance->SetIsKeyDown( TacKey::MouseMiddle, true );
-    } break;
-    case WM_MBUTTONUP:
-    {
-      TacKeyboardInput::Instance->SetIsKeyDown( TacKey::MouseMiddle, false );
-    } break;
-
-    case WM_MOUSEMOVE:
-    {
-      if( !mIsMouseInWindow )
+        mWidth = ( int )LOWORD( lParam );
+        mHeight = ( int )HIWORD( lParam );
+        mOnResize.EmitEvent();
+      } break;
+      case WM_MOVE:
       {
-        TRACKMOUSEEVENT mouseevent = {};
-        mouseevent.cbSize = sizeof( TRACKMOUSEEVENT );
-        mouseevent.dwFlags = TME_LEAVE;
-        mouseevent.hwndTrack = mHWND;
-        mouseevent.dwHoverTime = HOVER_DEFAULT;
-        if( 0 == TrackMouseEvent( &mouseevent ) )
-          mWindowProcErrors = "Track mouse errors: " + TacGetLastWin32ErrorString();
+        mX = ( int )LOWORD( lParam );
+        mY = ( int )HIWORD( lParam );
+        mOnMove.EmitEvent();
+      } break;
+      case WM_CHAR:
+      {
+        // TODO: convert to unicode
+        KeyboardInput::Instance->mWMCharPressedHax = ( char )wParam;
+      } break;
+      case WM_SYSKEYDOWN: // fallthrough
+      case WM_SYSKEYUP: // fallthrough
+      case WM_KEYDOWN: // fallthrough
+      case WM_KEYUP: // fallthrough
+      {
+        bool wasDown = ( lParam & ( ( LPARAM )1 << 30 ) ) != 0;
+        bool isDown = ( lParam & ( ( LPARAM )1 << 31 ) ) == 0;
+        if( isDown == wasDown )
+          break;
+        Key key = GetKey( ( uint8_t )wParam );
+        if( key == Key::Count )
+          break;
+        KeyboardInput::Instance->SetIsKeyDown( key, isDown );
+      } break;
 
-        // Allows this windows to receive mouse-move messages past the edge of the window
-        SetCapture( mHWND );
+      case WM_SETFOCUS:
+      {
+        //std::cout << "window gained keyboard focus " << std::endl;
+      } break;
+      case WM_KILLFOCUS:
+      {
+        //KeyboardInput::Instance->mCurrDown.clear();
+        //std::cout << "window about to lose keyboard focus" << std::endl;
+      } break;
 
+      // Sent when a window belonging to a different application than the active window
+      // is about to be activated.
+      //
+      // The message is sent to the application whose window is being activated
+      // and to the application whose window is being deactivated.
+      case WM_ACTIVATEAPP:
+      {
+        if( wParam == TRUE )
+        {
+          // The window is being activated
+        }
+        else
+        {
+          // The window is being deactivated
+        }
+      } break;
+
+      case WM_CAPTURECHANGED:
+      {
+        //std::cout << "WM_CAPTURECHANGED ( mouse capture lost )" << std::endl;
+      } break;
+
+      case WM_LBUTTONDOWN:
+      {
+        //std::cout << "WM_LBUTTONDOWN" << std::endl;
+        KeyboardInput::Instance->SetIsKeyDown( Key::MouseLeft, true );
+        //SeTiveWindow( mHWND );
+        //SetForegroundWindow( mHWND );
+
+      } break;
+
+      // https://docs.microsoft.com/en-us/windows/desktop/inputdev/wm-nclbuttonup
+      // Posted when the user releases the left mouse button while the cursor is
+      // within the nonclient area of a window.
+      // This message is posted to the window that contains the cursor.
+      // If a window has captured the mouse, this message is not posted.
+      // case WM_NCLBUTTONUP:
+      case WM_LBUTTONUP:
+      {
+        //if( uMsg == WM_LBUTTONUP ) { std::cout << "WM_LBUTTONUP" << std::endl; }
+        //else { std::cout << "WM_NCLBUTTONUP" << std::endl; }
+        KeyboardInput::Instance->SetIsKeyDown( Key::MouseLeft, false );
+      } break;
+
+      case WM_RBUTTONDOWN:
+      {
+        KeyboardInput::Instance->SetIsKeyDown( Key::MouseRight, true );
+      } break;
+      case WM_RBUTTONUP:
+      {
+        KeyboardInput::Instance->SetIsKeyDown( Key::MouseRight, false );
+      } break;
+
+      case WM_MBUTTONDOWN:
+      {
+        KeyboardInput::Instance->SetIsKeyDown( Key::MouseMiddle, true );
+      } break;
+      case WM_MBUTTONUP:
+      {
+        KeyboardInput::Instance->SetIsKeyDown( Key::MouseMiddle, false );
+      } break;
+
+      case WM_MOUSEMOVE:
+      {
+        if( !mIsMouseInWindow )
+        {
+          TRACKMOUSEEVENT mouseevent = {};
+          mouseevent.cbSize = sizeof( TRACKMOUSEEVENT );
+          mouseevent.dwFlags = TME_LEAVE;
+          mouseevent.hwndTrack = mHWND;
+          mouseevent.dwHoverTime = HOVER_DEFAULT;
+          if( 0 == TrackMouseEvent( &mouseevent ) )
+            mWindowProcErrors = "Track mouse errors: " + GetLastWin32ErrorString();
+
+          // Allows this windows to receive mouse-move messages past the edge of the window
+          SetCapture( mHWND );
+
+          if( mouseInWindowVerbose )
+            std::cout << mName << " mouse enter " << std::endl;
+          mIsMouseInWindow = true;
+        }
+      } break;
+      case WM_MOUSEWHEEL:
+      {
+        short wheelDeltaParam = GET_WHEEL_DELTA_WPARAM( wParam );
+        short ticks = wheelDeltaParam / WHEEL_DELTA;
+        KeyboardInput::Instance->mCurr.mMouseScroll += ( int )ticks;
+      } break;
+      case WM_MOUSELEAVE:
+      {
         if( mouseInWindowVerbose )
-          std::cout << mName << " mouse enter " << std::endl;
-        mIsMouseInWindow = true;
-      }
-    } break;
-    case WM_MOUSEWHEEL:
+          std::cout << mName << " mouse leave " << std::endl;
+        mIsMouseInWindow = false;
+        //ReleaseCapture();
+        //mCurrDown.clear();
+      } break;
+    }
+    return 0;
+  }
+  void Win32DesktopWindow::Poll( Errors& errors )
+  {
+    MSG msg = {};
+    while( PeekMessage( &msg, mHWND, 0, 0, PM_REMOVE ) )
     {
-      short wheelDeltaParam = GET_WHEEL_DELTA_WPARAM( wParam );
-      short ticks = wheelDeltaParam / WHEEL_DELTA;
-      TacKeyboardInput::Instance->mCurr.mMouseScroll += ( int )ticks;
-    } break;
-    case WM_MOUSELEAVE:
+      TranslateMessage( &msg );
+      DispatchMessage( &msg );
+    }
+
+    if( mWindowProcErrors )
     {
-      if( mouseInWindowVerbose )
-        std::cout << mName << " mouse leave " << std::endl;
-      mIsMouseInWindow = false;
-      //ReleaseCapture();
-      //mCurrDown.clear();
-    } break;
-  }
-  return 0;
-}
-void TacWin32DesktopWindow::Poll( TacErrors& errors )
-{
-  MSG msg = {};
-  while( PeekMessage( &msg, mHWND, 0, 0, PM_REMOVE ) )
-  {
-    TranslateMessage( &msg );
-    DispatchMessage( &msg );
-  }
-
-  if( mWindowProcErrors )
-  {
-    errors = mWindowProcErrors;
-    TAC_HANDLE_ERROR( errors );
-  }
-}
-
-TacWindowsApplication2* TacWindowsApplication2::Instance;
-TacWindowsApplication2::TacWindowsApplication2()
-{
-  Instance = this;
-}
-TacWindowsApplication2::~TacWindowsApplication2()
-{
-  for( const TacErrors& errors : { mErrorsMainThread, mErrorsStuffThread } )
-    if( errors )
-      TacOS::Instance->DebugPopupBox( errors.ToString() );
-}
-void TacWindowsApplication2::Init( TacErrors& errors )
-{
-  TacDesktopApp::Init(errors);
-  TAC_HANDLE_ERROR( errors );
-
-  RerouteStdOutToOutputDebugString();
-
-  new TacXInput( mHInstance, errors );
-  TAC_HANDLE_ERROR( errors );
-
-  new TacNetWinsock( errors );
-  TAC_HANDLE_ERROR( errors );
-
-  // window borders should be a higher-level concept, right?
-  mShouldWindowHaveBorder = TacShell::Instance->mSettings->GetBool( nullptr, { "areWindowsBordered" }, false, errors );
-  if( !mShouldWindowHaveBorder )
-  {
-    mMouseEdgeHandler = new TacWin32MouseEdgeHandler();
-    mMouseEdgeHandler->mCursors = mCursors;
-  }
-
-
-  // If you set the cursor here, calls to SetCursor cause it to flicker to the new cursor
-  // before reverting back to the old cursor.
-  HCURSOR hCursor = NULL;
-  if( mShouldWindowHaveBorder )
-    hCursor = mCursors->cursorArrow;
-
-  UINT fuLoad
-    = LR_LOADFROMFILE // load a file ( not a resource )
-    | LR_DEFAULTSIZE // default metrics based on the type (IMAGE_ICON, 32x32)
-    | LR_SHARED;
-  WNDCLASSEX wc = {};
-  wc.cbSize = sizeof( WNDCLASSEX );
-  wc.style = CS_HREDRAW | CS_VREDRAW; // redraw window on movement or size adjustment
-  wc.hIcon = ( HICON )LoadImage( nullptr, "grave.ico", IMAGE_ICON, 0, 0, fuLoad );
-  wc.hCursor = hCursor;
-  wc.hbrBackground = ( HBRUSH )GetStockObject( BLACK_BRUSH );
-  wc.lpfnWndProc = WindowProc;
-  wc.hInstance = mHInstance;
-  wc.lpszClassName = classname;
-  wc.hIconSm = NULL; // If null, the system searches for a small icon from the hIcon member
-  if( !RegisterClassEx( &wc ) )
-  {
-    TacString errorMessage;
-    errorMessage += "Failed to register window class ";
-    errorMessage += classname;
-    errors.mMessage = errorMessage;
-    TAC_HANDLE_ERROR( errors );
-  }
-
-  // Set the initial cursor, or else the cursor will remain as what it was before
-  // the application was launched
-  if( hCursor == NULL )
-    SetCursor( mCursors->cursorArrow );
-}
-TacWin32DesktopWindow* TacWindowsApplication2::GetCursorUnobscuredWindow()
-{
-  POINT cursorPos;
-  GetCursorPos( &cursorPos );
-
-  // Brute-forcing the lookup through all the windows, because...
-  // - GetTopWindow( parentHwnd ) is returning NULL.
-  // - EnumChildWindows( parentHwnd, ... ) also shows that the parent has no children.
-  // - Calling GetParent( childHwnd ) returns NULL
-  // - Calling GetAncestor( childHwnd, GA_PARENT ) returns
-  //   the actual desktop hwnd ( window class #32769 )
-  HWND topZSortedHwnd = GetTopWindow( NULL );
-  int totalWindowCount = 0;
-  for( HWND curZSortedHwnd = topZSortedHwnd;
-    curZSortedHwnd != NULL;
-    curZSortedHwnd = GetWindow( curZSortedHwnd, GW_HWNDNEXT ) )
-  {
-    totalWindowCount++;
-    // I tried removing this for loop and just returning an HWND which
-    // may or may not be a tac HWND. Didn't work.
-    for( TacWin32DesktopWindow* window : mWindows )
-    {
-      if( window->mHWND != curZSortedHwnd )
-        continue;
-
-      RECT windowRect;
-      GetWindowRect( curZSortedHwnd, &windowRect );
-
-      bool isCursorInside =
-        cursorPos.x >= windowRect.left &&
-        cursorPos.x <= windowRect.right &&
-        cursorPos.y >= windowRect.top &&
-        cursorPos.y <= windowRect.bottom;
-
-      if( isCursorInside )
-        return window;
+      errors = mWindowProcErrors;
+      TAC_HANDLE_ERROR( errors );
     }
   }
 
-  return nullptr;
-}
-void TacWindowsApplication2::Poll( TacErrors& errors )
-{
-  for( TacWin32DesktopWindow* window : mWindows )
+  WindowsApplication2* WindowsApplication2::Instance;
+  WindowsApplication2::WindowsApplication2()
   {
-    window->Poll( errors );
+    Instance = this;
+  }
+  WindowsApplication2::~WindowsApplication2()
+  {
+    for( const Errors& errors : { mErrorsMainThread, mErrorsStuffThread } )
+      if( errors )
+        OS::Instance->DebugPopupBox( errors.ToString() );
+  }
+  void WindowsApplication2::Init( Errors& errors )
+  {
+    DesktopApp::Init( errors );
     TAC_HANDLE_ERROR( errors );
-  }
 
-  TacWin32DesktopWindow* cursorUnobscuredWindow = GetCursorUnobscuredWindow();
-  for( TacWin32DesktopWindow* window : mWindows )
-    window->mCursorUnobscured = cursorUnobscuredWindow == window;
+    RerouteStdOutToOutputDebugString();
 
-  if( mMouseEdgeHandler )
-  {
-    mMouseEdgeHandler->Update( cursorUnobscuredWindow );
-
-    // if the mouse just left the window, reset the cursor lock
-    //if( mMouseEdgeHandler && !mMouseEdgeHandler->IsHandling() )
-    //  mMouseEdgeHandler->ResetCursorLock();
-  }
-}
-void TacWindowsApplication2::GetPrimaryMonitor( TacMonitor* monitor, TacErrors& errors )
-{
-  int w = GetSystemMetrics( SM_CXSCREEN );
-  int h = GetSystemMetrics( SM_CYSCREEN );
-  if( !w || !h )
-  {
-    errors = "Failed to get monitor dimensions";
+    new XInput( mHInstance, errors );
     TAC_HANDLE_ERROR( errors );
-  }
 
-  monitor->w = w;
-  monitor->h = h;
-}
-void TacWindowsApplication2::SpawnWindowAux( const TacWindowParams& windowParams, TacDesktopWindow** desktopWindow, TacErrors& errors )
-{
-  DWORD windowStyle = mShouldWindowHaveBorder ? WS_OVERLAPPEDWINDOW : WS_POPUP;
-  //windowStyle = WS_OVERLAPPEDWINDOW;
-  //if( mParentHWND )
-  //  windowStyle = WS_CHILD | WS_BORDER;
-  RECT windowRect = {};
-  windowRect.right = windowParams.mWidth;
-  windowRect.bottom = windowParams.mHeight;
-  if( !AdjustWindowRect( &windowRect, windowStyle, FALSE ) )
-  {
-    errors = "Failed to adjust window rect";
+    new NetWinsock( errors );
     TAC_HANDLE_ERROR( errors );
-  }
 
-  int windowAdjustedWidth = windowRect.right - windowRect.left;
-  int windowAdjustedHeight = windowRect.bottom - windowRect.top;
-
-  HINSTANCE hInstance = mHInstance;
-  HWND hwnd = CreateWindow(
-    classname,
-    windowParams.mName.c_str(),
-    windowStyle,
-    windowParams.mX,
-    windowParams.mY,
-    windowAdjustedWidth,
-    windowAdjustedHeight,
-    mParentHWND,
-    NULL,
-    hInstance,
-    NULL );
-  if( !hwnd )
-  {
-    errors += TacJoin( "\n",
-      {
-        // https://docs.microsoft.com/en-us/windows/desktop/api/winuser/nf-winuser-createwindowexa
-        "This function typically fails for one of the following reasons",
-        "- an invalid parameter value",
-        "- the system class was registered by a different module",
-        "- The WH_CBT hook is installed and returns a failure code",
-        "- if one of the controls in the dialog template is not registered, or its window window procedure fails WM_CREATE or WM_NCCREATE",
-        TacGetLastWin32ErrorString()
-      }
-    );
-    TAC_HANDLE_ERROR( errors );
-  }
-  // Sets the keyboard focus to the specified window
-  SetFocus( hwnd );
-  if( !mShouldWindowHaveBorder )
-    SetWindowLong( hwnd, GWL_STYLE, 0 );
-
-  // Brings the thread that created the specified window into the foreground and activates the window.
-  // Keyboard input is directed to the window, and various visual cues are changed for the user.
-  // The system assigns a slightly higher priority to the thread that created the foreground window
-  // than it does to other threads.
-  SetForegroundWindow( hwnd );
-
-  ShowWindow( hwnd, mNCmdShow );
-
-
-  auto createdWindow = new TacWin32DesktopWindow();
-  createdWindow->app = this;
-  createdWindow->mHWND = hwnd;
-  createdWindow->mOperatingSystemHandle = hwnd;
-
-
-  *( TacWindowParams* )createdWindow = windowParams;
-  *desktopWindow = createdWindow;
-  mWindows.push_back( createdWindow );
-
-  createdWindow->mOnDestroyed.AddCallbackFunctional( []( TacDesktopWindow* desktopWindow )
+    // window borders should be a higher-level concept, right?
+    mShouldWindowHaveBorder = Shell::Instance->mSettings->GetBool( nullptr, { "areWindowsBordered" }, false, errors );
+    if( !mShouldWindowHaveBorder )
     {
-      TacWindowsApplication2* app = TacWindowsApplication2::Instance;
-      auto createdWindow = (TacWin32DesktopWindow*)desktopWindow;
-      int i = TacIndexOf( createdWindow, app->mWindows );
-      app->mWindows[ i ] = app->mWindows.back();
-      app->mWindows.pop_back();
-    } );
+      mMouseEdgeHandler = new Win32MouseEdgeHandler();
+      mMouseEdgeHandler->mCursors = mCursors;
+    }
 
-  // Used to combine all the windows into one tab group.
-  if( mParentHWND == NULL )
-    mParentHWND = hwnd;
+
+    // If you set the cursor here, calls to SetCursor cause it to flicker to the new cursor
+    // before reverting back to the old cursor.
+    HCURSOR hCursor = NULL;
+    if( mShouldWindowHaveBorder )
+      hCursor = mCursors->cursorArrow;
+
+    UINT fuLoad
+      = LR_LOADFROMFILE // load a file ( not a resource )
+      | LR_DEFAULTSIZE // default metrics based on the type (IMAGE_ICON, 32x32)
+      | LR_SHARED;
+    WNDCLASSEX wc = {};
+    wc.cbSize = sizeof( WNDCLASSEX );
+    wc.style = CS_HREDRAW | CS_VREDRAW; // redraw window on movement or size adjustment
+    wc.hIcon = ( HICON )LoadImage( nullptr, "grave.ico", IMAGE_ICON, 0, 0, fuLoad );
+    wc.hCursor = hCursor;
+    wc.hbrBackground = ( HBRUSH )GetStockObject( BLACK_BRUSH );
+    wc.lpfnWndProc = WindowProc;
+    wc.hInstance = mHInstance;
+    wc.lpszClassName = classname;
+    wc.hIconSm = NULL; // If null, the system searches for a small icon from the hIcon member
+    if( !RegisterClassEx( &wc ) )
+    {
+      String errorMessage;
+      errorMessage += "Failed to register window class ";
+      errorMessage += classname;
+      errors.mMessage = errorMessage;
+      TAC_HANDLE_ERROR( errors );
+    }
+
+    // Set the initial cursor, or else the cursor will remain as what it was before
+    // the application was launched
+    if( hCursor == NULL )
+      SetCursor( mCursors->cursorArrow );
+  }
+  Win32DesktopWindow* WindowsApplication2::GetCursorUnobscuredWindow()
+  {
+    POINT cursorPos;
+    GetCursorPos( &cursorPos );
+
+    // Brute-forcing the lookup through all the windows, because...
+    // - GetTopWindow( parentHwnd ) is returning NULL.
+    // - EnumChildWindows( parentHwnd, ... ) also shows that the parent has no children.
+    // - Calling GetParent( childHwnd ) returns NULL
+    // - Calling GetAncestor( childHwnd, GA_PARENT ) returns
+    //   the actual desktop hwnd ( window class #32769 )
+    HWND topZSortedHwnd = GetTopWindow( NULL );
+    int totalWindowCount = 0;
+    for( HWND curZSortedHwnd = topZSortedHwnd;
+      curZSortedHwnd != NULL;
+      curZSortedHwnd = GetWindow( curZSortedHwnd, GW_HWNDNEXT ) )
+    {
+      totalWindowCount++;
+      // I tried removing this for loop and just returning an HWND which
+      // may or may not be a tac HWND. Didn't work.
+      for( Win32DesktopWindow* window : mWindows )
+      {
+        if( window->mHWND != curZSortedHwnd )
+          continue;
+
+        RECT windowRect;
+        GetWindowRect( curZSortedHwnd, &windowRect );
+
+        bool isCursorInside =
+          cursorPos.x >= windowRect.left &&
+          cursorPos.x <= windowRect.right &&
+          cursorPos.y >= windowRect.top &&
+          cursorPos.y <= windowRect.bottom;
+
+        if( isCursorInside )
+          return window;
+      }
+    }
+
+    return nullptr;
+  }
+  void WindowsApplication2::Poll( Errors& errors )
+  {
+    for( Win32DesktopWindow* window : mWindows )
+    {
+      window->Poll( errors );
+      TAC_HANDLE_ERROR( errors );
+    }
+
+    Win32DesktopWindow* cursorUnobscuredWindow = GetCursorUnobscuredWindow();
+    for( Win32DesktopWindow* window : mWindows )
+      window->mCursorUnobscured = cursorUnobscuredWindow == window;
+
+    if( mMouseEdgeHandler )
+    {
+      mMouseEdgeHandler->Update( cursorUnobscuredWindow );
+
+      // if the mouse just left the window, reset the cursor lock
+      //if( mMouseEdgeHandler && !mMouseEdgeHandler->IsHandling() )
+      //  mMouseEdgeHandler->ResetCursorLock();
+    }
+  }
+  void WindowsApplication2::GetPrimaryMonitor( Monitor* monitor, Errors& errors )
+  {
+    int w = GetSystemMetrics( SM_CXSCREEN );
+    int h = GetSystemMetrics( SM_CYSCREEN );
+    if( !w || !h )
+    {
+      errors = "Failed to get monitor dimensions";
+      TAC_HANDLE_ERROR( errors );
+    }
+
+    monitor->w = w;
+    monitor->h = h;
+  }
+  void WindowsApplication2::SpawnWindowAux( const WindowParams& windowParams, DesktopWindow** desktopWindow, Errors& errors )
+  {
+    DWORD windowStyle = mShouldWindowHaveBorder ? WS_OVERLAPPEDWINDOW : WS_POPUP;
+    //windowStyle = WS_OVERLAPPEDWINDOW;
+    //if( mParentHWND )
+    //  windowStyle = WS_CHILD | WS_BORDER;
+    RECT windowRect = {};
+    windowRect.right = windowParams.mWidth;
+    windowRect.bottom = windowParams.mHeight;
+    if( !AdjustWindowRect( &windowRect, windowStyle, FALSE ) )
+    {
+      errors = "Failed to adjust window rect";
+      TAC_HANDLE_ERROR( errors );
+    }
+
+    int windowAdjustedWidth = windowRect.right - windowRect.left;
+    int windowAdjustedHeight = windowRect.bottom - windowRect.top;
+
+    HINSTANCE hInstance = mHInstance;
+    HWND hwnd = CreateWindow(
+      classname,
+      windowParams.mName.c_str(),
+      windowStyle,
+      windowParams.mX,
+      windowParams.mY,
+      windowAdjustedWidth,
+      windowAdjustedHeight,
+      mParentHWND,
+      NULL,
+      hInstance,
+      NULL );
+    if( !hwnd )
+    {
+      errors += Join( "\n",
+        {
+          // https://docs.microsoft.com/en-us/windows/desktop/api/winuser/nf-winuser-createwindowexa
+          "This function typically fails for one of the following reasons",
+          "- an invalid parameter value",
+          "- the system class was registered by a different module",
+          "- The WH_CBT hook is installed and returns a failure code",
+          "- if one of the controls in the dialog template is not registered, or its window window procedure fails WM_CREATE or WM_NCCREATE",
+          GetLastWin32ErrorString()
+        }
+      );
+      TAC_HANDLE_ERROR( errors );
+    }
+    // Sets the keyboard focus to the specified window
+    SetFocus( hwnd );
+    if( !mShouldWindowHaveBorder )
+      SetWindowLong( hwnd, GWL_STYLE, 0 );
+
+    // Brings the thread that created the specified window into the foreground and activates the window.
+    // Keyboard input is directed to the window, and various visual cues are changed for the user.
+    // The system assigns a slightly higher priority to the thread that created the foreground window
+    // than it does to other threads.
+    SetForegroundWindow( hwnd );
+
+    ShowWindow( hwnd, mNCmdShow );
+
+
+    auto createdWindow = new Win32DesktopWindow();
+    createdWindow->app = this;
+    createdWindow->mHWND = hwnd;
+    createdWindow->mOperatingSystemHandle = hwnd;
+
+
+    *( WindowParams* )createdWindow = windowParams;
+    *desktopWindow = createdWindow;
+    mWindows.push_back( createdWindow );
+
+    createdWindow->mOnDestroyed.AddCallbackFunctional( []( DesktopWindow* desktopWindow )
+      {
+        WindowsApplication2* app = WindowsApplication2::Instance;
+        auto createdWindow = ( Win32DesktopWindow* )desktopWindow;
+        int i = IndexOf( createdWindow, app->mWindows );
+        app->mWindows[ i ] = app->mWindows.back();
+        app->mWindows.pop_back();
+      } );
+
+    // Used to combine all the windows into one tab group.
+    if( mParentHWND == NULL )
+      mParentHWND = hwnd;
+  }
 }
-

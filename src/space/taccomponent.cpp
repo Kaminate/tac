@@ -1,36 +1,37 @@
-#include "space/taccomponent.h"
-//#include "space/tacsay.h"
-//#include "space/tacterrain.h"
+
+#include "src/space/tacComponent.h"
+namespace Tac
+{
 
 
 //{
-//  TacComponentRegistryEntryIndex::Say,
-//  new TacComponentData(
+//  ComponentRegistryEntryIndex::Say,
+//  new ComponentData(
 //    "Say",
-//    TacSystemType::Graphics,
-//    TacSayBits)
+//    SystemType::Graphics,
+//    SayBits)
 //},
 //
-//TacComponentRegistryEntryIndex::Terrain,
-//new TacComponentData(
+//ComponentRegistryEntryIndex::Terrain,
+//new ComponentData(
 //  "Terrain",
-//  TacSystemType::Physics,
-//  TacTerrainBits )
+//  SystemType::Physics,
+//  TerrainBits )
 
-TacComponentRegistry* TacComponentRegistry::Instance()
+ComponentRegistry* ComponentRegistry::Instance()
 {
-  static TacComponentRegistry registry;
+  static ComponentRegistry registry;
   return &registry;
 }
 
-TacComponentRegistryEntry* TacComponentRegistry::RegisterNewEntry()
+ComponentRegistryEntry* ComponentRegistry::RegisterNewEntry()
 {
-  auto entry = new TacComponentRegistryEntry;
+  auto entry = new ComponentRegistryEntry;
   mEntries.push_back( entry );
   return entry;
 }
 
-TacComponentRegistryEntry* TacComponentRegistry::FindEntryNamed( const TacString& name )
+ComponentRegistryEntry* ComponentRegistry::FindEntryNamed( const String& name )
 {
   for( auto entry  : mEntries )
   {
@@ -42,3 +43,6 @@ TacComponentRegistryEntry* TacComponentRegistry::FindEntryNamed( const TacString
 
   return nullptr;
 }
+
+}
+

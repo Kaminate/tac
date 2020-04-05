@@ -1,44 +1,48 @@
-#include "common/tacPreprocessor.h"
-#include "common/tackeyboardinput.h"
-#include "common/tacShell.h"
-#include "common/graphics/tacUI.h"
-#include "common/graphics/tacRenderer.h"
-#include "common/graphics/tacUI2D.h"
-#include "common/math/tacMath.h"
-#include "common/tacAlgorithm.h"
-#include "common/tacTime.h"
-#include "common/tacDesktopWindow.h"
-#include "common/graphics/tacColorUtil.h"
+#include "src/common/tacPreprocessor.h"
+#include "src/common/tacKeyboardinput.h"
+#include "src/common/tacShell.h"
+#include "src/common/graphics/tacUI.h"
+#include "src/common/graphics/tacRenderer.h"
+#include "src/common/graphics/tacUI2D.h"
+#include "src/common/math/tacMath.h"
+#include "src/common/tacAlgorithm.h"
+#include "src/common/tacTime.h"
+#include "src/common/tacDesktopWindow.h"
+#include "src/common/graphics/tacColorUtil.h"
 
 #include <cmath> // sin
 
-static TacUIText* debugOnlyThisText;
-static bool IsIgnoring( TacUIText* uiText )
+namespace Tac
 {
-  return TacIsDebugMode() && debugOnlyThisText && debugOnlyThisText != uiText;
+
+
+static UIText* debugOnlyThisText;
+static bool IsIgnoring( UIText* uiText )
+{
+  return IsDebugMode() && debugOnlyThisText && debugOnlyThisText != uiText;
 }
 
-void TacUITextTransition::Update()
+void UITextTransition::Update()
 {
   if( mTransitionFinished )
     return;
-  TacUIRoot* uiRoot = mUIText->mParent->mUIRoot;
+  UIRoot* uiRoot = mUIText->mParent->mUIRoot;
   float transitionElapsedSeconds =
     ( float )( uiRoot->GetElapsedSeconds() - mTransitionStartSeconds );
   float transitionElapsedPercent =
-    TacSaturate( transitionElapsedSeconds / uiRoot->transitionDurationSeconds );
+    Saturate( transitionElapsedSeconds / uiRoot->transitionDurationSeconds );
   if( transitionElapsedPercent >= 1 )
     mTransitionFinished = true;
-  mTransitionTweenPercent = TacEaseInOutQuart( transitionElapsedPercent );
+  mTransitionTweenPercent = EaseInOutQuart( transitionElapsedPercent );
 }
-void TacUITextTransition::DebugImgui()
+void UITextTransition::DebugImgui()
 {
   //ImGui::Checkbox( "Data store", &mUseUITextDataStore );
   //if( mUseUITextDataStore )
   //  mUITextDataStore.DebugImgui();
   //if( ImGui::Button( "Transition" ) )
   //{
-  //  TacUIRoot* uiRoot = mUIText->mParent->mUIRoot;
+  //  UIRoot* uiRoot = mUIText->mParent->mUIRoot;
   //  mTransitionFinished = false;
   //  mTransitionStartSeconds = uiRoot->GetElapsedSeconds();
   //}
@@ -48,10 +52,10 @@ void TacUITextTransition::DebugImgui()
 }
 
 
-void TacUITextData::DebugImgui()
+void UITextData::DebugImgui()
 {
   //ImGui::Indent();
-  //ImGui::Text( "TacUITextData" );
+  //ImGui::Text( "UITextData" );
   //ImGui::ColorEdit4( "color", mColor.data() );
   //ImGui::DragInt( "font size", &mFontSize );
   //ImGui::InputText( "text", mUtf8 );
@@ -59,17 +63,17 @@ void TacUITextData::DebugImgui()
 }
 
 
-TacUIText::TacUIText( const TacString& debugName ) :TacUILayoutable( debugName )
+UIText::UIText( const String& debugName ) :UILayoutable( debugName )
 {
 }
-TacUIText::~TacUIText() = default;
+UIText::~UIText() = default;
 
-void TacUIText::DebugImgui()
+void UIText::DebugImgui()
 {
   //ImGui::PushID( this );
   //OnDestruct( ImGui::PopID() );
 
-  //TacUILayoutable::DebugImgui();
+  //UILayoutable::DebugImgui();
 
   //if( ImGui::Button( "Go Nuts" ) )
   //  GoNuts();
@@ -82,7 +86,7 @@ void TacUIText::DebugImgui()
   //if( ImGui::Button( "Transition in" ) )
   //  TransitionIn();
 
-  //for( TacUITextTransition& uiTextTransition : mTransitions )
+  //for( UITextTransition& uiTextTransition : mTransitions )
   //{
   //  ImGui::PushID( &uiTextTransition );
   //  OnDestruct( ImGui::PopID() );
@@ -91,13 +95,13 @@ void TacUIText::DebugImgui()
   //    ImGui::Separator();
   //}
 }
-void TacUIText::Update( TacUILayoutData* uiLayoutData )
+void UIText::Update( UILayoutData* uiLayoutData )
 {
   if( IsIgnoring( this ) )
     return;
   float posTarget = !mButtonCallbacks.empty() && mIsHovered ? 15.0f : 0;
   float springyness = 15.0f * 4;
-  TacSpring( &mExtraXPos, &mExtraXVel, posTarget, springyness, TAC_DELTA_FRAME_SECONDS );
+  Spring( &mExtraXPos, &mExtraXVel, posTarget, springyness, TAC_DELTA_FRAME_SECONDS );
 
   UpdateTransitions();
   mPositionAnchored.x = uiLayoutData->mUIMin.x + mExtraXPos;
@@ -115,13 +119,13 @@ void TacUIText::Update( TacUILayoutData* uiLayoutData )
     mIsHovered = hovered;
   }
 }
-void TacUIText::UpdateTransitions()
+void UIText::UpdateTransitions()
 {
   int iUiTextInfo = 0;
   auto uiTextInfoCount = ( int )mTransitions.size();
   while( iUiTextInfo < uiTextInfoCount )
   {
-    TacUITextTransition& uiTextInfoCur = mTransitions[ iUiTextInfo ];
+    UITextTransition& uiTextInfoCur = mTransitions[ iUiTextInfo ];
     uiTextInfoCur.Update();
 
     int iUiTextInfoNext;
@@ -132,7 +136,7 @@ void TacUIText::UpdateTransitions()
       iUiTextInfoNext = iUiTextInfo + 1;
       if( iUiTextInfoNext == uiTextInfoCount )
         return false;
-      TacUITextTransition& uiTextInfoNext = mTransitions[ iUiTextInfoNext ];
+      UITextTransition& uiTextInfoNext = mTransitions[ iUiTextInfoNext ];
       if( !uiTextInfoNext.mTransitionFinished )
         return false;
       return true;
@@ -155,11 +159,11 @@ void TacUIText::UpdateTransitions()
   }
   mTransitions.resize( uiTextInfoCount );
 }
-void TacUIText::SetText( const TacUITextData& uiTextData, bool updateStack )
+void UIText::SetText( const UITextData& uiTextData, bool updateSK )
 {
-  if( updateStack )
+  if( updateSK )
   {
-    for( TacUITextTransition& uiTextTransition : mTransitions )
+    for( UITextTransition& uiTextTransition : mTransitions )
     {
       if( uiTextTransition.mUseUITextDataStore )
         continue;
@@ -170,51 +174,51 @@ void TacUIText::SetText( const TacUITextData& uiTextData, bool updateStack )
   mUITextData = uiTextData;
   Think();
 }
-const TacUITextData* TacUIText::GetUITextData()
+const UITextData* UIText::GetUITextData()
 {
   return &mUITextData;
 }
-void TacUIText::TransitionOut()
+void UIText::TransitionOut()
 {
   mTransitionOut = true;
   Think();
 }
-void TacUIText::TransitionIn()
+void UIText::TransitionIn()
 {
   mTransitionOut = false;
   Think();
 }
-bool TacUIText::IsMostRecentChangeInStack()
+bool UIText::IsMostRecentChangeInSK()
 {
-  for( TacUITextTransition& uiTextTransition : mTransitions )
+  for( UITextTransition& uiTextTransition : mTransitions )
     if( !uiTextTransition.mUseUITextDataStore )
       return true;
   return false;
 }
-void TacUIText::Think()
+void UIText::Think()
 {
-  TacUITextTransition uiTextTransition = {};
+  UITextTransition uiTextTransition = {};
   uiTextTransition.mTransitionStartSeconds = mParent->mUIRoot->GetElapsedSeconds() + mInitialDelaySecs;
   uiTextTransition.mUIText = this;
   if( mTransitionOut )
   {
     if( !mTransitions.empty() )
     {
-      TacUITextTransition& backuiTextTransition = mTransitions.back();
+      UITextTransition& backuiTextTransition = mTransitions.back();
       if( backuiTextTransition.mUseUITextDataStore && backuiTextTransition.mUITextDataStore.mUtf8.empty() )
         return;
     }
     uiTextTransition.mUseUITextDataStore = true;
   }
-  else if( IsMostRecentChangeInStack() )
+  else if( IsMostRecentChangeInSK() )
   {
     return;
   }
   mTransitions.push_back( uiTextTransition );
 }
-void TacUIText::GoNuts()
+void UIText::GoNuts()
 {
-  TacVector< v4 > colors = {
+  Vector< v4 > colors = {
     colorOrange,
     colorGreen,
     colorBlue,
@@ -226,29 +230,29 @@ void TacUIText::GoNuts()
   for( int iClone = 0; iClone < cloneCount; ++iClone )
   {
     float clonePercent = ( float )iClone / cloneCount;
-    TacUITextTransition transition;
+    UITextTransition transition;
     transition.mUIText = this;
     transition.mTransitionStartSeconds += clonePercent * 0.4f;
     if( iClone != iCloneLast )
     {
       transition.mUseUITextDataStore = true;
       transition.mUITextDataStore = mUITextData;
-      transition.mUITextDataStore.mColor = TacRandom( colors );
+      transition.mUITextDataStore.mColor = Random( colors );
     }
     mTransitions.push_back( transition );
   }
 }
-bool TacUIText::IsHovered()
+bool UIText::IsHovered()
 {
   // hack
   return true;
 }
-void TacUIText::Render( TacErrors& errors )
+void UIText::Render( Errors& errors )
 {
-  TacUILayoutable::Render( errors );
+  UILayoutable::Render( errors );
   TAC_HANDLE_ERROR( errors );
 
-  TacUIRoot* uiRoot = mParent->mUIRoot;
+  UIRoot* uiRoot = mParent->mUIRoot;
 
 
   if( IsIgnoring( this ) )
@@ -262,9 +266,9 @@ void TacUIText::Render( TacErrors& errors )
     float t = std::sin( pulsateyness  * hoverElapsedSeconds - phase );
     t = ( t + 1 ) / 2; // map -1,1 to 0,1
     extraColorScale = t;
-    if( TacKeyboardInput::Instance->IsKeyJustDown( TacKey::MouseLeft ) )
+    if( KeyboardInput::Instance->IsKeyJustDown( Key::MouseLeft ) )
     {
-      for( const TacUIButtonCallback& buttonCallback : mButtonCallbacks )
+      for( const UIButtonCallback& buttonCallback : mButtonCallbacks )
       {
         buttonCallback.mUserCallback( buttonCallback.mUserData, errors );
         TAC_HANDLE_ERROR( errors );
@@ -284,13 +288,13 @@ void TacUIText::Render( TacErrors& errors )
   buttonYMin = std::numeric_limits< float >::max();
   buttonYMax = -std::numeric_limits< float >::max();
 
-  TacUI2DDrawData* ui2DDrawData = uiRoot->mUI2DDrawData;
-  TacUI2DState* state = ui2DDrawData->PushState();
-  OnDestruct( ui2DDrawData->PopState() );
+  UI2DDrawData* ui2DDrawData = uiRoot->mUI2DDrawData;
+  UI2DState* state = ui2DDrawData->PushState();
+  TAC_ON_DESTRUCT( ui2DDrawData->PopState() );
 
-  for( const TacUITextTransition& transition : mTransitions )
+  for( const UITextTransition& transition : mTransitions )
   {
-    const TacUITextData* uiTextInfo = transition.mUseUITextDataStore ? &transition.mUITextDataStore : GetUITextData();
+    const UITextData* uiTextInfo = transition.mUseUITextDataStore ? &transition.mUITextDataStore : GetUITextData();
 
     v4 uiTextColor = uiTextInfo->mColor;
     uiTextColor.xyz() += v3( 1, 1, 1 ) * extraColorScale;
@@ -304,37 +308,37 @@ void TacUIText::Render( TacErrors& errors )
       errors );
     TAC_HANDLE_ERROR( errors );
 
-    //TacDrawCall* drawCall = graphics->GetLastDrawCall();
+    //DrawCall* drawCall = graphics->GetLastDrawCall();
     //if( drawCallPrev )
     //{
-    //  drawCall->mScissorRectMaxUISpace.x = TacMax(
+    //  drawCall->mScissorRectMaxUISpace.x = Max(
     //    drawCall->mScissorRectMaxUISpace.x,
     //    drawCallPrev->mScissorRectMaxUISpace.x );
     //}
     //if( !transition.mTransitionFinished )
     //{
-    //  drawCall->mScissorRectMaxUISpace.x = TacLerp(
+    //  drawCall->mScissorRectMaxUISpace.x = Lerp(
     //    drawCall->mScissorRectMinUISpace.x,
     //    drawCall->mScissorRectMaxUISpace.x,
     //    transition.mTransitionTweenPercent );
     //}
     //if( drawCallPrev )
     //{
-    //  drawCallPrev->mScissorRectMinUISpace.x = TacMin(
+    //  drawCallPrev->mScissorRectMinUISpace.x = Min(
     //    drawCallPrev->mScissorRectMaxUISpace.x,
     //    drawCall->mScissorRectMaxUISpace.x );
     //}
     //drawCallPrev = drawCall;
-    //maxHeightBaselines = TacMax( maxHeightBaselines, heightBetweenBaselines );
+    //maxHeightBaselines = Max( maxHeightBaselines, heightBetweenBaselines );
     //
     //
-    //TacAssert( drawCall->mScissorRectMinUISpace.x <= drawCall->mScissorRectMaxUISpace.x );
-    //TacAssert( drawCall->mScissorRectMinUISpace.y <= drawCall->mScissorRectMaxUISpace.y );
+    //Assert( drawCall->mScissorRectMinUISpace.x <= drawCall->mScissorRectMaxUISpace.x );
+    //Assert( drawCall->mScissorRectMinUISpace.y <= drawCall->mScissorRectMaxUISpace.y );
     //
-    //buttonXMin = TacMin( buttonXMin, drawCall->mScissorRectMinUISpace.x );
-    //buttonXMax = TacMax( buttonXMax, drawCall->mScissorRectMaxUISpace.x );
-    //buttonYMin = TacMin( buttonYMin, drawCall->mScissorRectMinUISpace.y );
-    //buttonYMax = TacMax( buttonYMax, drawCall->mScissorRectMaxUISpace.y );
+    //buttonXMin = Min( buttonXMin, drawCall->mScissorRectMinUISpace.x );
+    //buttonXMax = Max( buttonXMax, drawCall->mScissorRectMaxUISpace.x );
+    //buttonYMin = Min( buttonYMin, drawCall->mScissorRectMinUISpace.y );
+    //buttonYMax = Max( buttonYMax, drawCall->mScissorRectMaxUISpace.y );
     //
     //
     //
@@ -358,39 +362,39 @@ void TacUIText::Render( TacErrors& errors )
 }
 
 
-void TacUIAnchor::DebugImgui()
+void UIAnchor::DebugImgui()
 {
   //int currentHItem = ( int )mAnchorHorizontal;
   //auto itemHGetter = []( void* data, int idx, const char** outText )
   //{
-  //  TacUnusedParameter( data );
-  //  *outText = TacAnchorHorizontalStrings[ idx ].c_str();
+  //  UnusedParameter( data );
+  //  *outText = AnchorHorizontalStrings[ idx ].c_str();
   //  return true;
   //};
-  //if( ImGui::Combo( "Anchor Horizontal", &currentHItem, itemHGetter, nullptr, ( int )TacUIAnchorHorizontal::Count ) )
+  //if( ImGui::Combo( "Anchor Horizontal", &currentHItem, itemHGetter, nullptr, ( int )UIAnchorHorizontal::Count ) )
   //{
-  //  mAnchorHorizontal = ( TacUIAnchorHorizontal )currentHItem;
+  //  mAnchorHorizontal = ( UIAnchorHorizontal )currentHItem;
   //}
 
   //int currentVItem = ( int )mAnchorVertical;
   //auto itemVGetter = []( void* data, int idx, const char** outText )
   //{
-  //  TacUnusedParameter( data );
-  //  *outText = TacAnchorVerticalStrings[ idx ].c_str();
+  //  UnusedParameter( data );
+  //  *outText = AnchorVerticalStrings[ idx ].c_str();
   //  return true;
   //};
-  //if( ImGui::Combo( "Anchor Vertical", &currentVItem, itemVGetter, nullptr, ( int )TacUIAnchorVertical::Count ) )
+  //if( ImGui::Combo( "Anchor Vertical", &currentVItem, itemVGetter, nullptr, ( int )UIAnchorVertical::Count ) )
   //{
-  //  mAnchorVertical = ( TacUIAnchorVertical )currentVItem;
+  //  mAnchorVertical = ( UIAnchorVertical )currentVItem;
   //}
 
 }
 
-TacUILayoutable::TacUILayoutable( const TacString& debugName )
+UILayoutable::UILayoutable( const String& debugName )
 {
   mDebugName = debugName;
 }
-void TacUILayoutable::DebugImgui()
+void UILayoutable::DebugImgui()
 {
   //if( !ImGui::CollapsingHeader( "Layout" ) )
   //  return;
@@ -401,12 +405,12 @@ void TacUILayoutable::DebugImgui()
   //ImGui::DragFloat2( "ui position", mPositionAnchored.data() );
   //ImGui::Checkbox( "Debug", &mDebug );
 }
-void TacUILayoutable::Render( TacErrors& errors )
+void UILayoutable::Render( Errors& errors )
 {
   if( mDebug )
   {
-    TacUI2DDrawData* ui2DDrawData = mUIRoot->mUI2DDrawData;
-    TacUI2DState* state = ui2DDrawData->PushState();
+    UI2DDrawData* ui2DDrawData = mUIRoot->mUI2DDrawData;
+    UI2DState* state = ui2DDrawData->PushState();
     state->Translate( mPositionAnchored );
     state->Draw2DBox( // Color?
       mUiWidth,
@@ -414,7 +418,7 @@ void TacUILayoutable::Render( TacErrors& errors )
     ui2DDrawData->PopState();
   }
 }
-bool TacUILayoutable::IsHovered()
+bool UILayoutable::IsHovered()
 {
   bool isHovered =
     mUIRoot->mUiCursor.x > mPositionAnchored.x &&
@@ -423,7 +427,7 @@ bool TacUILayoutable::IsHovered()
     mUIRoot->mUiCursor.y > mPositionAnchored.y - mUiHeight;
   return isHovered;
 }
-v2 TacUILayoutable::GetWindowspacePosition()
+v2 UILayoutable::GetWindowspacePosition()
 {
   v2 result = mLocalPosition;
   if( mParent )
@@ -434,36 +438,36 @@ v2 TacUILayoutable::GetWindowspacePosition()
   return result;
 }
 
-TacUILayout::TacUILayout( const TacString& debugName ) : TacUILayoutable( debugName )
+UILayout::UILayout( const String& debugName ) : UILayoutable( debugName )
 {
   mColor = v4(
-    TacRandomFloat0To1(),
-    TacRandomFloat0To1(),
-    TacRandomFloat0To1(),
+    RandomFloat0To1(),
+    RandomFloat0To1(),
+    RandomFloat0To1(),
     1
   );
 }
-TacUILayout::~TacUILayout()
+UILayout::~UILayout()
 {
   for( auto textDrawInfo : mUILayoutables )
     delete textDrawInfo;
 }
-float TacUILayout::GetInitialDelaySeconds()
+float UILayout::GetInitialDelaySeconds()
 {
   auto index = ( int )mUILayoutables.size();
   float result = GetInitialDelaySeconds( index );
   return result;
 }
-float TacUILayout::GetInitialDelaySeconds( int index )
+float UILayout::GetInitialDelaySeconds( int index )
 {
   float result =
     mTransitionPerTextInitialDelaySeconds +
     mTransitionBetweenTextsDurationSeconds * index;
   return result;
 }
-void TacUILayout::DebugImgui()
+void UILayout::DebugImgui()
 {
-  //TacUILayoutable::DebugImgui();
+  //UILayoutable::DebugImgui();
   //auto childrenCount = ( int )mUILayoutables.size();
   //if( childrenCount )
   //{
@@ -472,7 +476,7 @@ void TacUILayout::DebugImgui()
   //    ImGui::Indent();
   //    OnDestruct( ImGui::Unindent() );
   //    int iTextDrawInfo = 0;
-  //    for( TacUILayoutable* textDrawInfo : mUILayoutables )
+  //    for( UILayoutable* textDrawInfo : mUILayoutables )
   //    {
   //      iTextDrawInfo++;
   //      if( !ImGui::CollapsingHeader( textDrawInfo->mDebugName.c_str() ) )
@@ -498,19 +502,19 @@ void TacUILayout::DebugImgui()
   //ImGui::DragFloat( "mTransitionBetweenTextsDurationSeconds", &mTransitionBetweenTextsDurationSeconds );
   //if( ImGui::Button( "Delete menu" ) )
   //  RequestDeletion();
-  //if( TacTexture* texture = mTexture )
+  //if( Texture* texture = mTexture )
   //{
   //  float w = 0.9f * ImGui::GetContentRegionAvailWidth();
   //  float h = w / texture->GetAspect();
   //  ImGui::Image( texture->GetImguiTextureID(), ImVec2( w, h ) );
   //}
 }
-void TacUILayout::Update( TacUILayoutData* uiLayoutData )
+void UILayout::Update( UILayoutData* uiLayoutData )
 {
   if( !mUILayoutables.empty() )
   {
     float runningAutoWidth = 0;
-    for( TacUILayoutable* uiLayoutable : mUILayoutables )
+    for( UILayoutable* uiLayoutable : mUILayoutables )
     {
       uiLayoutable->Update( uiLayoutData );
 
@@ -538,25 +542,25 @@ void TacUILayout::Update( TacUILayoutData* uiLayoutData )
   uiLayoutData->mUIMax -= paddingVec;
   v2 contentDimensions = {};
 
-  TacUILayoutData childLayout = {};
+  UILayoutData childLayout = {};
 
-  for( TacUILayoutable* uiLayoutable : mUILayoutables )
+  for( UILayoutable* uiLayoutable : mUILayoutables )
   {
     uiLayoutable->Update( uiLayoutData );
 
     switch( mUILayoutType )
     {
-    case TacUILayoutType::Vertical:
-      contentDimensions.x = TacMax( contentDimensions.x, uiLayoutable->mUiWidth );
+    case UILayoutType::Vertical:
+      contentDimensions.x = Max( contentDimensions.x, uiLayoutable->mUiWidth );
       contentDimensions.y += uiLayoutable->mUiHeight;
       uiLayoutData->mUIMax.y += uiLayoutable->mUiHeight;
       break;
-    case TacUILayoutType::Horizontal:
-      contentDimensions.y = TacMax( contentDimensions.y, uiLayoutable->mUiHeight );
+    case UILayoutType::Horizontal:
+      contentDimensions.y = Max( contentDimensions.y, uiLayoutable->mUiHeight );
       contentDimensions.x += uiLayoutable->mUiWidth;
       uiLayoutData->mUIMax.x += uiLayoutable->mUiWidth;
       break;
-      TacInvalidDefaultCase( mUILayoutType );
+      TAC_INVALID_DEFAULT_CASE( mUILayoutType );
     }
   }
 
@@ -567,18 +571,18 @@ void TacUILayout::Update( TacUILayoutData* uiLayoutData )
   v2 anchoredPenPos = mPosition;
   switch( mAnchor.mAnchorHorizontal )
   {
-  case TacUIAnchorHorizontal::Left: anchoredPenPos.x += uiLayoutData->mUIMin.x; break;
-  case TacUIAnchorHorizontal::Right: anchoredPenPos.x += uiLayoutData->mUIMax.x - mUiWidth; break;
-  case TacUIAnchorHorizontal::Center: anchoredPenPos.x +=
+  case UIAnchorHorizontal::Left: anchoredPenPos.x += uiLayoutData->mUIMin.x; break;
+  case UIAnchorHorizontal::Right: anchoredPenPos.x += uiLayoutData->mUIMax.x - mUiWidth; break;
+  case UIAnchorHorizontal::Center: anchoredPenPos.x +=
     ( uiLayoutData->mUIMin.x + uiLayoutData->mUIMax.x - mUiWidth ) * 0.5f; break;
   }
 
 
   switch( mAnchor.mAnchorVertical )
   {
-  case TacUIAnchorVertical::Top: anchoredPenPos.y += uiLayoutData->mUIMin.y; break;
-  case TacUIAnchorVertical::Bottom: anchoredPenPos.y += uiLayoutData->mUIMax.y - mUiHeight; break;
-  case TacUIAnchorVertical::Center: anchoredPenPos.y +=
+  case UIAnchorVertical::Top: anchoredPenPos.y += uiLayoutData->mUIMin.y; break;
+  case UIAnchorVertical::Bottom: anchoredPenPos.y += uiLayoutData->mUIMax.y - mUiHeight; break;
+  case UIAnchorVertical::Center: anchoredPenPos.y +=
     ( uiLayoutData->mUIMin.y + uiLayoutData->mUIMax.y - mUiHeight ) * 0.5f; break;
   }
 
@@ -594,8 +598,8 @@ void TacUILayout::Update( TacUILayoutData* uiLayoutData )
       mTransitionedFinished = true;
       mHeightPrev = mHeightTarget;
     }
-    float t = TacEaseInOutQuart( percent );
-    mHeightCur = TacLerp( mHeightPrev, mHeightTarget, t );
+    float t = EaseInOutQuart( percent );
+    mHeightCur = Lerp( mHeightPrev, mHeightTarget, t );
   }
 
   if( !mUILayoutables.empty() )
@@ -607,25 +611,25 @@ void TacUILayout::Update( TacUILayoutData* uiLayoutData )
     float contentWidth = 0;
     float contentHeight = 0;
 
-    for( TacUILayoutable* uiLayoutable : mUILayoutables )
+    for( UILayoutable* uiLayoutable : mUILayoutables )
     {
       uiLayoutable->Update( uiLayoutData );
 
       switch( mUILayoutType )
       {
-      case TacUILayoutType::Vertical:
+      case UILayoutType::Vertical:
         contentHeight += uiLayoutable->mUiHeight;
         uiLayoutData->mUIMin.y -= uiLayoutable->mUiHeight;
         break;
-      case TacUILayoutType::Horizontal:
+      case UILayoutType::Horizontal:
         contentWidth += uiLayoutable->mUiWidth;
         uiLayoutData->mUIMax.x += uiLayoutable->mUiWidth;
         break;
-        TacInvalidDefaultCase( mUILayoutType );
+        TAC_INVALID_DEFAULT_CASE( mUILayoutType );
       }
     }
     if( mAutoWidth )
-      mUiWidth = TacMax( mUiWidth, contentWidth );
+      mUiWidth = Max( mUiWidth, contentWidth );
   }
 
   mUiHeight = mHeightCur;
@@ -634,22 +638,22 @@ void TacUILayout::Update( TacUILayoutData* uiLayoutData )
     mUiWidth = uiLayoutData->mUIMax.x - uiLayoutData->mUIMin.x;
 #endif
 }
-void TacUILayout::RequestDeletion()
+void UILayout::RequestDeletion()
 {
   mHeightTarget = 0;
   mTransitionStartSeconds = mUIRoot->GetElapsedSeconds();
   mTransitionedFinished = false;
   mRequestDeletion = true;
-  for( TacUILayoutable* uiText : mUILayoutables )
+  for( UILayoutable* uiText : mUILayoutables )
     uiText->TransitionOut();
   mTransitionDurationSeconds = 2.3f;
 }
-void TacUILayout::Render( TacErrors& errors )
+void UILayout::Render( Errors& errors )
 {
-  TacUILayoutable::Render( errors );
+  UILayoutable::Render( errors );
   TAC_HANDLE_ERROR( errors );
-  TacUI2DDrawData* ui2DDrawData = mUIRoot->mUI2DDrawData;
-  TacUI2DState* state = ui2DDrawData->PushState();
+  UI2DDrawData* ui2DDrawData = mUIRoot->mUI2DDrawData;
+  UI2DState* state = ui2DDrawData->PushState();
 
   v4 menuColor = mColor;
   if( IsHovered() )
@@ -663,14 +667,14 @@ void TacUILayout::Render( TacErrors& errors )
     menuColor,
     mTexture );
 
-  for( TacUILayoutable* uiLayoutable : mUILayoutables )
+  for( UILayoutable* uiLayoutable : mUILayoutables )
   {
     uiLayoutable->Render( errors );
     TAC_HANDLE_ERROR( errors );
   }
   ui2DDrawData->PopState();
 }
-v2 TacUILayout::GetWindowspacePosition()
+v2 UILayout::GetWindowspacePosition()
 {
   v2 windowSpacePos = mLocalPosition;
   if( mParent )
@@ -678,33 +682,33 @@ v2 TacUILayout::GetWindowspacePosition()
     v2 parentWindowSpacePos = mParent->GetWindowspacePosition();
     switch( mAnchor.mAnchorHorizontal )
     {
-    case TacUIAnchorHorizontal::Left:
+    case UIAnchorHorizontal::Left:
       windowSpacePos.x += parentWindowSpacePos.x; break;
-    case TacUIAnchorHorizontal::Right:
+    case UIAnchorHorizontal::Right:
       windowSpacePos.x += parentWindowSpacePos.x + mParent->mUiWidth - mUiWidth; break;
-    case TacUIAnchorHorizontal::Center:
+    case UIAnchorHorizontal::Center:
       windowSpacePos.x += parentWindowSpacePos.x + ( mParent->mUiWidth + mUiWidth ) / 2; break;
-      TacInvalidDefaultCase( mAnchor.mAnchorHorizontal );
+      TAC_INVALID_DEFAULT_CASE( mAnchor.mAnchorHorizontal );
     }
   }
   return windowSpacePos;
 }
 
-TacUIRoot::TacUIRoot()
+UIRoot::UIRoot()
 {
   transitionDurationSeconds = 0.3f;
 
-  mHierarchyRoot = new TacUIHierarchyNode();
+  mHierarchyRoot = new UIHierarchyNode();
   mHierarchyRoot->mUIRoot = this;
 
 }
-TacUIRoot::~TacUIRoot()
+UIRoot::~UIRoot()
 {
   for( auto menu : mUIMenus )
     delete menu;
   delete mHierarchyRoot;
 }
-void TacUIRoot::DebugImgui()
+void UIRoot::DebugImgui()
 {
   //if( !ImGui::CollapsingHeader( "UI Root" ) )
   //  return;
@@ -714,7 +718,7 @@ void TacUIRoot::DebugImgui()
   //ImGui::Checkbox( "Debug button areas", &mShouldDebugDrawButtonAreas );
   //int iUIMenu = 0;
   //bool deleteMenus = ImGui::Button( "Delete all ui" );
-  //for( TacUILayout* uiMenu : mUIMenus )
+  //for( UILayout* uiMenu : mUIMenus )
   //{
   //  if( deleteMenus )
   //    uiMenu->RequestDeletion();
@@ -731,17 +735,17 @@ void TacUIRoot::DebugImgui()
   //  uiMenu->DebugImgui();
   //}
 }
-TacUILayout* TacUIRoot::AddMenu( const TacString& debugName )
+UILayout* UIRoot::AddMenu( const String& debugName )
 {
-  auto* uiMenu = new TacUILayout( debugName );
+  auto* uiMenu = new UILayout( debugName );
   uiMenu->mUIRoot = this;
   uiMenu->mTransitionStartSeconds = GetElapsedSeconds();
   mUIMenus.push_back( uiMenu );
   return uiMenu;
 }
-void TacUIRoot::Render( TacErrors& errors )
+void UIRoot::Render( Errors& errors )
 {
-  //TacUI2DState* state = mUI2DDrawData->PushState();
+  //UI2DState* state = mUI2DDrawData->PushState();
   //state->mTransform = M3Scale(
   //  framebuffer->myImage.mWidth / mUIWidth,
   //  framebuffer->myImage.mHeight / mUIHeight,
@@ -750,15 +754,15 @@ void TacUIRoot::Render( TacErrors& errors )
   mHierarchyRoot->RenderHierarchy( errors );
   TAC_HANDLE_ERROR( errors );
 
-  for( TacUILayout* uiMenu : mUIMenus )
+  for( UILayout* uiMenu : mUIMenus )
   {
     uiMenu->Render( errors );
     TAC_HANDLE_ERROR( errors );
   }
 }
-void TacUIRoot::Update()
+void UIRoot::Update()
 {
-  TacTexture* framebuffer = mUI2DDrawData->mRenderView->mFramebuffer;
+  Texture* framebuffer = mUI2DDrawData->mRenderView->mFramebuffer;
   //float uiWidth = 1024;
   //float uiHeight = 1024;
   //if( aspect > 1 )
@@ -769,15 +773,15 @@ void TacUIRoot::Update()
   //mUIHeight = uiHeight;
 
   //v2 cursorPos;
-  //TacErrors cursorPosErrors;
-  //TacOS::Instance->GetScreenspaceCursorPos( cursorPos, cursorPosErrors );
+  //Errors cursorPosErrors;
+  //OS::Instance->GetScreenspaceCursorPos( cursorPos, cursorPosErrors );
   //if( cursorPosErrors.empty() )
   //  mUiCursor = cursorPos - v2( ( float )mDesktopWindow->mX, ( float )mDesktopWindow->mY );
 
-  TacVector< TacUILayout* > toDelete;
-  for( TacUILayout* uiMenu : mUIMenus )
+  Vector< UILayout* > toDelete;
+  for( UILayout* uiMenu : mUIMenus )
   {
-    TacUILayoutData uiLayoutData;
+    UILayoutData uiLayoutData;
     uiLayoutData.mUIMin = {};
     //uiLayoutData.mUIMax = { uiWidth, uiHeight };
     uiLayoutData.mUIMax = {
@@ -787,19 +791,19 @@ void TacUIRoot::Update()
     if( uiMenu->mRequestDeletion && uiMenu->mTransitionedFinished )
       toDelete.push_back( uiMenu );
   }
-  for( TacUILayout* uiMenu : toDelete )
+  for( UILayout* uiMenu : toDelete )
   {
     mUIMenus.erase( std::find( mUIMenus.begin(), mUIMenus.end(), uiMenu ) );
     delete uiMenu;
   }
 
-  TacImage& image = framebuffer->myImage;
+  Image& image = framebuffer->myImage;
 
   mHierarchyRoot->mSize = {
     ( float )image.mWidth,
     ( float )image.mHeight };
 }
-TacString TacUIHierarchyNode::DebugGenerateGraphVizDotFile()
+String UIHierarchyNode::DebugGenerateGraphVizDotFile()
 {
 
   // https://en.wikipedia.org/wiki/DOT_(graph_description_language)
@@ -811,32 +815,32 @@ TacString TacUIHierarchyNode::DebugGenerateGraphVizDotFile()
   // }                  c   d
 
 
-  TacVector<TacString> lines;
+  Vector<String> lines;
   lines.push_back( "digraph graphname" );
   lines.push_back( "{" );
 
-  std::set< TacUIHierarchyNode* > allnodes;
-  std::map< TacUIHierarchyNode*, TacString > nodeGraphNames;
-  TacVector< std::pair< TacUIHierarchyNode*, TacUIHierarchyNode* >> nodeConnections;
+  std::set< UIHierarchyNode* > allnodes;
+  std::map< UIHierarchyNode*, String > nodeGraphNames;
+  Vector< std::pair< UIHierarchyNode*, UIHierarchyNode* >> nodeConnections;
 
-  TacVector< TacUIHierarchyNode* > nodes = { this };
+  Vector< UIHierarchyNode* > nodes = { this };
   while( !nodes.empty() )
   {
-    TacUIHierarchyNode* node = nodes.back();
+    UIHierarchyNode* node = nodes.back();
     nodes.pop_back();
     allnodes.insert( node );
 
-    for( TacUIHierarchyNode* child : node->mChildren )
+    for( UIHierarchyNode* child : node->mChildren )
     {
       nodes.push_back( child );
       nodeConnections.push_back( { node, child } );
     }
   }
 
-  for( TacUIHierarchyNode* node : allnodes )
+  for( UIHierarchyNode* node : allnodes )
   {
-    TacString nodeGraphName = "node" + TacToString( ( int )nodeGraphNames.size() );
-    TacString nodeGraphLabel = TacToString( node );
+    String nodeGraphName = "node" + ToString( ( int )nodeGraphNames.size() );
+    String nodeGraphLabel = ToString( node );
 
     if( !node->mDebugName.empty() )
       nodeGraphLabel = node->mDebugName;
@@ -858,31 +862,31 @@ TacString TacUIHierarchyNode::DebugGenerateGraphVizDotFile()
 
   lines.push_back( "}" );
 
-  TacString stringified = TacJoin( "\n", lines );
+  String stringified = Join( "\n", lines );
   return stringified;
 
 }
 
-TacUIHierarchyNode::TacUIHierarchyNode()
+UIHierarchyNode::UIHierarchyNode()
 {
   static int iColor;
-  auto colors = TacMakeArray< int >(
+  auto colors = MakeArray< int >(
     0x53c8e9,
     0x3c3c3b,
     0x074b7f,
     0xc82c60,
     0xf9fff9 );
   int color = colors[ iColor++ % colors.size() ];
-  mColor.xyz() = TacHexToRGB( color );
+  mColor.xyz() = HexToRGB( color );
   mColor.w = 1;
   mDrawOutline = true;
 }
-TacUIHierarchyNode* TacUIHierarchyNode::Split(
-  TacUISplit uiSplit,
-  TacUILayoutType layoutType )
+UIHierarchyNode* UIHierarchyNode::Split(
+  UISplit uiSplit,
+  UILayoutType layoutType )
 {
   // TODO: I'm sure this whole if else chain can be simplified into something elegant
-  TacUIHierarchyNode* parent = nullptr;
+  UIHierarchyNode* parent = nullptr;
   if( !mChildren.empty() )
   {
     if( layoutType == mLayoutType )
@@ -892,7 +896,7 @@ TacUIHierarchyNode* TacUIHierarchyNode::Split(
     else if( !mParent )
     {
       // get my parent who is vertically split
-      parent = new TacUIHierarchyNode();
+      parent = new UIHierarchyNode();
       parent->mChildren = { this };
       parent->mUIRoot = mUIRoot;
       parent->mLayoutType = layoutType;
@@ -902,7 +906,7 @@ TacUIHierarchyNode* TacUIHierarchyNode::Split(
   }
   else if( !mParent )
   {
-    parent = new TacUIHierarchyNode();
+    parent = new UIHierarchyNode();
     parent->mChildren = { this };
     parent->mUIRoot = mUIRoot;
     parent->mLayoutType = layoutType;
@@ -919,7 +923,7 @@ TacUIHierarchyNode* TacUIHierarchyNode::Split(
       }
       else
       {
-        parent = new TacUIHierarchyNode();
+        parent = new UIHierarchyNode();
         parent->mChildren = { this };
         parent->mUIRoot = mUIRoot;
         parent->mLayoutType = layoutType;
@@ -928,7 +932,7 @@ TacUIHierarchyNode* TacUIHierarchyNode::Split(
         bool exchanged = false;
         for( int i = 0; i < n; ++i )
         {
-          TacUIHierarchyNode* child = mParent->mChildren[ i ];
+          UIHierarchyNode* child = mParent->mChildren[ i ];
           if( child != this )
             continue;
           mParent->mChildren[ i ] = parent;
@@ -936,20 +940,20 @@ TacUIHierarchyNode* TacUIHierarchyNode::Split(
           exchanged = true;
           break;
         }
-        TacAssert( exchanged );
+        TAC_ASSERT( exchanged );
       }
     }
   }
 
-  TacAssert( parent );
+  TAC_ASSERT( parent );
 
-  auto newChild = new TacUIHierarchyNode();
+  auto newChild = new UIHierarchyNode();
   newChild->mUIRoot = mUIRoot;
   newChild->mParent = parent;
 
   switch( uiSplit )
   {
-  case TacUISplit::Before: {
+  case UISplit::Before: {
     int oldChildCount = parent->mChildren.size();
     parent->mChildren.resize( oldChildCount + 1 );
     for( int i = 0; i < oldChildCount; ++i )
@@ -960,39 +964,39 @@ TacUIHierarchyNode* TacUIHierarchyNode::Split(
     parent->mChildren[ 0 ] = newChild;
     parent->mExpandingChildIndex++;
   } break;
-  case TacUISplit::After: {
+  case UISplit::After: {
     parent->mChildren.push_back( newChild );
   } break;
-    TacInvalidDefaultCase( uiSplit );
+    TAC_INVALID_DEFAULT_CASE( uiSplit );
   }
 
   return newChild;
 }
 
-TacUIHierarchyNode* TacUIHierarchyNode::AddChild()
+UIHierarchyNode* UIHierarchyNode::AddChild()
 {
-  auto newChild = new TacUIHierarchyNode();
+  auto newChild = new UIHierarchyNode();
   newChild->mUIRoot = mUIRoot;
   newChild->mParent = this;
   mChildren.push_back( newChild );
   return newChild;
 }
 
-void TacUIHierarchyNode::Expand()
+void UIHierarchyNode::Expand()
 {
   for( int iChild = 0; iChild < mParent->mChildren.size(); ++iChild )
     if( this == mParent->mChildren[ iChild ] )
       mParent->mExpandingChildIndex = iChild;
 }
 
-void TacUIHierarchyNode::RenderHierarchy( TacErrors& errors )
+void UIHierarchyNode::RenderHierarchy( Errors& errors )
 {
   // compute children sizes
   if( !mChildren.empty() )
   {
     float expandedChildSize = mSize[ ( int )mLayoutType ];
-    TacUIHierarchyNode* expandedChild = mChildren[ mExpandingChildIndex ];
-    for( TacUIHierarchyNode* child : mChildren )
+    UIHierarchyNode* expandedChild = mChildren[ mExpandingChildIndex ];
+    for( UIHierarchyNode* child : mChildren )
     {
       child->mSize[ 1 - ( int )mLayoutType ] = mSize[ 1 - ( int )mLayoutType ];
       if( child == expandedChild )
@@ -1004,7 +1008,7 @@ void TacUIHierarchyNode::RenderHierarchy( TacErrors& errors )
     expandedChild->mSize[ ( int )mLayoutType ] = expandedChildSize;
   }
 
-  TacUI2DState* state = mUIRoot->mUI2DDrawData->PushState();
+  UI2DState* state = mUIRoot->mUI2DDrawData->PushState();
   float padding = 0;
   state->Translate( mPositionRelativeToParent + v2( 1, 1 ) * padding );
   if( mDrawOutline )
@@ -1019,7 +1023,7 @@ void TacUIHierarchyNode::RenderHierarchy( TacErrors& errors )
     {
       // magic
       color.xyz() = ( color.xyz().Length() < 0.5f ? color.xyz() + v3( 1, 1, 1 ) : color.xyz() ) / 2;
-      if( TacKeyboardInput::Instance->IsKeyJustDown( TacKey::MouseLeft ) )
+      if( KeyboardInput::Instance->IsKeyJustDown( Key::MouseLeft ) )
         mOnClickEventEmitter.EmitEvent();
     }
 
@@ -1037,7 +1041,7 @@ void TacUIHierarchyNode::RenderHierarchy( TacErrors& errors )
     {
       v4 debugTextColor = mColor.xyz().Length() < 0.5f ? v4( 1, 1, 1, 1 ) : v4( 0, 0, 0, 1 );
       debugTextColor = { 0, 0, 0, 1 };
-      state->Draw2DText( TacLanguage::English, 16, mDebugName, nullptr, debugTextColor, errors );
+      state->Draw2DText( Language::English, 16, mDebugName, nullptr, debugTextColor, errors );
       TAC_HANDLE_ERROR( errors );
     }
   }
@@ -1047,7 +1051,7 @@ void TacUIHierarchyNode::RenderHierarchy( TacErrors& errors )
     TAC_HANDLE_ERROR( errors );
   }
   float runningPixelX = 0;
-  for( TacUIHierarchyNode* child : mChildren )
+  for( UIHierarchyNode* child : mChildren )
   {
     v2 childPosition = {};
     childPosition[ ( int )mLayoutType ] += runningPixelX;
@@ -1060,7 +1064,7 @@ void TacUIHierarchyNode::RenderHierarchy( TacErrors& errors )
   mUIRoot->mUI2DDrawData->PopState();
 }
 
-void TacUIHierarchyNode::SetVisual( TacUIHierarchyVisual* visual )
+void UIHierarchyNode::SetVisual( UIHierarchyVisual* visual )
 {
   mVisual = visual;
   if( visual )
@@ -1068,12 +1072,12 @@ void TacUIHierarchyNode::SetVisual( TacUIHierarchyVisual* visual )
 }
 
 
-void TacUIHierarchyVisualText::Render( TacErrors& errors )
+void UIHierarchyVisualText::Render( Errors& errors )
 {
   if( mUITextData.mUtf8.empty() )
     return;
   float why_the_fuck_do_i_care_about_this;
-  TacUIRoot* uiRoot = mHierarchyNode->mUIRoot;
+  UIRoot* uiRoot = mHierarchyNode->mUIRoot;
   uiRoot->mUI2DDrawData->mStates.back().Draw2DText(
     uiRoot->mDefaultLanguage,
     mUITextData.mFontSize,
@@ -1084,9 +1088,9 @@ void TacUIHierarchyVisualText::Render( TacErrors& errors )
   TAC_HANDLE_ERROR( errors );
 }
 
-void TacUIHierarchyVisualImage::Render( TacErrors& errors )
+void UIHierarchyVisualImage::Render( Errors& errors )
 {
-  TacUIRoot* uiRoot = mHierarchyNode->mUIRoot;
+  UIRoot* uiRoot = mHierarchyNode->mUIRoot;
   uiRoot->mUI2DDrawData->mStates.back().Draw2DBox(
     mDims[ 0 ],
     mDims[ 1 ],
@@ -1094,8 +1098,9 @@ void TacUIHierarchyVisualImage::Render( TacErrors& errors )
     mTexture );
 }
 
-TacString TacUIHierarchyVisualImage::GetDebugName()
+String UIHierarchyVisualImage::GetDebugName()
 {
   return mTexture->mName;
 }
 
+}

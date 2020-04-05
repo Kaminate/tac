@@ -1,30 +1,32 @@
-#include "space/terrain/tacterrain.h"
-#include "space/tacentity.h"
-#include "space/tacworld.h"
-#include "common/graphics/imgui/tacImGui.h"
-#include "common/tacOS.h"
-#include "common/graphics/tacDebug3D.h"
+#include "src/space/terrain/tacterrain.h"
+#include "src/space/tacentity.h"
+#include "src/space/tacworld.h"
+#include "src/common/graphics/imgui/tacImGui.h"
+#include "src/common/tacOS.h"
+#include "src/common/graphics/tacDebug3D.h"
 
-struct TacTerainDebugger
+namespace Tac
+{
+struct TerainDebugger
 {
   void DebugImgui()
   {
     bool changed = false;
     bool changedHeightmap = false;
-    if( TacImGuiCollapsingHeader( "Heightmap" ) )
+    if( ImGuiCollapsingHeader( "Heightmap" ) )
     {
-      if( TacImGuiInputText( "Heightmap path", mTerrain->mHeightmapTexturePath ) )
+      if( ImGuiInputText( "Heightmap path", mTerrain->mHeightmapTexturePath ) )
       {
         changedHeightmap = true;
       }
 
-      TacOS* os = TacOS::Instance;
-      TacVector< TacString > heightmapPaths;
-      TacErrors errors;
-      TacOS::Instance->GetDirFilesRecursive( heightmapPaths, "assets/heightmaps", errors );
-      for( const TacString& heightmapPath : heightmapPaths )
+      OS* os = OS::Instance;
+      Vector< String > heightmapPaths;
+      Errors errors;
+      OS::Instance->GetDirFilesRecursive( heightmapPaths, "assets/heightmaps", errors );
+      for( const String& heightmapPath : heightmapPaths )
       {
-        if( TacImGuiButton( heightmapPath ) )
+        if( ImGuiButton( heightmapPath ) )
         {
           mTerrain->mHeightmapTexturePath = heightmapPath;
           changedHeightmap = true;
@@ -40,31 +42,31 @@ struct TacTerainDebugger
       }
     }
 
-    TacImGuiCheckbox( "Draw grid", &mDrawGrid );
+    ImGuiCheckbox( "Draw grid", &mDrawGrid );
 
-    TacImGuiInputText( "Ground texture", mTerrain->mGroundTexturePath );
-    TacImGuiInputText( "Noise texture", mTerrain->mNoiseTexturePath );
-    if( TacImGuiButton( "Open Ground Texture" ) )
+    ImGuiInputText( "Ground texture", mTerrain->mGroundTexturePath );
+    ImGuiInputText( "Noise texture", mTerrain->mNoiseTexturePath );
+    if( ImGuiButton( "Open Ground Texture" ) )
     {
       mTerrain->mTestHeightmapLoadErrors.clear();
-      TacOS::Instance->OpenDialog( mTerrain->mGroundTexturePath, mTerrainTextureDialogErrors );
+      OS::Instance->OpenDialog( mTerrain->mGroundTexturePath, mTerrainTextureDialogErrors );
     }
-    if( TacImGuiButton( "Open Noise Texture" ) )
+    if( ImGuiButton( "Open Noise Texture" ) )
     {
-      TacOS::Instance->OpenDialog( mTerrain->mNoiseTexturePath, mNoiseTextureDialogErrors );
+      OS::Instance->OpenDialog( mTerrain->mNoiseTexturePath, mNoiseTextureDialogErrors );
     }
 
     if( mTerrain->mTestHeightmapLoadErrors )
-      TacImGuiText( "Load heightmap errors: " + mTerrain->mTestHeightmapLoadErrors.ToString() );
+      ImGuiText( "Load heightmap errors: " + mTerrain->mTestHeightmapLoadErrors.ToString() );
     if( mTerrainTextureDialogErrors )
-      TacImGuiText( "Dialog heightmap errors: " + mTerrainTextureDialogErrors.ToString() );
+      ImGuiText( "Dialog heightmap errors: " + mTerrainTextureDialogErrors.ToString() );
     if( mNoiseTextureDialogErrors )
-      TacImGuiText( "Dialog noise texture errors: " + mNoiseTextureDialogErrors.ToString() );
+      ImGuiText( "Dialog noise texture errors: " + mNoiseTextureDialogErrors.ToString() );
 
-    changed |= TacImGuiDragInt( "Subdivisionness", &mTerrain->mSideVertexCount );
-    changed |= TacImGuiDragFloat( "Size", &mTerrain->mSideLength );
-    changed |= TacImGuiDragFloat( "Height", &mTerrain->mUpwardsHeight );
-    changed |= TacImGuiDragFloat( "Power", &mTerrain->mPower );
+    changed |= ImGuiDragInt( "Subdivisionness", &mTerrain->mSideVertexCount );
+    changed |= ImGuiDragFloat( "Size", &mTerrain->mSideLength );
+    changed |= ImGuiDragFloat( "Height", &mTerrain->mUpwardsHeight );
+    changed |= ImGuiDragFloat( "Power", &mTerrain->mPower );
     if( changed )
     {
       mTerrain->Recompute();
@@ -76,9 +78,9 @@ struct TacTerainDebugger
 
   void DebugDraw()
   {
-    TacEntity* entity = mTerrain->mEntity;
-    TacWorld* world = entity->mWorld;
-    TacDebug3DDrawData* debug3DDrawData = world->mDebug3DDrawData;
+    Entity* entity = mTerrain->mEntity;
+    World* world = entity->mWorld;
+    Debug3DDrawData* debug3DDrawData = world->mDebug3DDrawData;
     v3 gridColor = { 0, 0, 0 };
     v3 offset = { 0, 0.1f, 0 }; // for zfighting against the tri mesh
 
@@ -114,14 +116,17 @@ struct TacTerainDebugger
   }
 
   bool mDrawGrid = false;
-  TacErrors mNoiseTextureDialogErrors;
-  TacErrors mTerrainTextureDialogErrors;
-  TacTerrain* mTerrain = nullptr;
+  Errors mNoiseTextureDialogErrors;
+  Errors mTerrainTextureDialogErrors;
+  Terrain* mTerrain = nullptr;
 } gTerrainDebugger;
 
-void TacTerrainDebugImgui( TacComponent* component )
+void TerrainDebugImgui( Component* component )
 {
-  gTerrainDebugger.mTerrain =  ( TacTerrain* )component ;
+  gTerrainDebugger.mTerrain =  ( Terrain* )component ;
   gTerrainDebugger.DebugImgui();
+}
+
+
 }
 

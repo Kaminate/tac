@@ -1,17 +1,19 @@
+
 #pragma once
 
-#include "common/math/tacVector2.h"
-#include "common/tacString.h"
-//#include "common/tacErrorHandling.h"
+#include "src/common/math/tacVector2.h"
+#include "src/common/tacString.h"
 
 #include <cstdint>
+namespace Tac
+{
 
-struct TacControllerInput;
-struct TacControllerState;
-struct TacController;
+struct ControllerInput;
+struct ControllerState;
+struct Controller;
 
 
-enum class TacControllerButton
+enum class ControllerButton
 {
   DPadUp,
   DPadLeft,
@@ -29,15 +31,15 @@ enum class TacControllerButton
   Y,
   Count
 };
-const char* TacToString( TacControllerButton controllerButton );
+const char* ToString( ControllerButton controllerButton );
 
-typedef uint16_t TacControllerBitfield;
+typedef uint16_t ControllerBitfield;
 
-TacControllerBitfield ToBitfield( TacControllerButton controllerButton );
+ControllerBitfield ToBitfield( ControllerButton controllerButton );
 
-struct TacControllerState
+struct ControllerState
 {
-  bool IsButtonDown( TacControllerButton controllerButton );
+  bool IsButtonDown( ControllerButton controllerButton );
   void DebugImgui();
 
   // x = [ 0, 1 ], y = [ 0, 1 ]
@@ -48,46 +50,49 @@ struct TacControllerState
   float mLeftTrigger = {};
   float mRightTrigger = {};
 
-  TacControllerBitfield mButtons = {};
+  ControllerBitfield mButtons = {};
 };
 
-typedef int TacControllerIndex;
-const TacControllerIndex TAC_CONTROLLER_COUNT_MAX = 4;
-struct TacController
+typedef int ControllerIndex;
+const ControllerIndex TAC_CONTROLLER_COUNT_MAX = 4;
+struct Controller
 {
-  TacController();
-  virtual ~TacController();
-  bool IsButtonDown( TacControllerButton controllerButton );
-  bool IsButtonChanged( TacControllerButton controllerButton );
-  bool IsButtonJustPressed( TacControllerButton controllerButton );
-  bool IsButtonJustReleased( TacControllerButton controllerButton );
+  Controller();
+  virtual ~Controller();
+  bool IsButtonDown( ControllerButton controllerButton );
+  bool IsButtonChanged( ControllerButton controllerButton );
+  bool IsButtonJustPressed( ControllerButton controllerButton );
+  bool IsButtonJustReleased( ControllerButton controllerButton );
   void DebugImgui();
   virtual void DebugImguiInner();
-  TacControllerIndex FindControllerIndex();
+  ControllerIndex FindControllerIndex();
 
-  TacControllerState mControllerStatePrev = {};
-  TacControllerState mControllerStateCurr = {};
+  ControllerState mControllerStatePrev = {};
+  ControllerState mControllerStateCurr = {};
   bool mDebugging;
-  TacString mName;
-  TacControllerInput* mInput = nullptr;
+  String mName;
+  ControllerInput* mInput = nullptr;
 };
 
 
-struct TacControllerInput
+struct ControllerInput
 {
-  static TacControllerInput* Instance;
-  TacControllerInput();
-  virtual ~TacControllerInput();
+  static ControllerInput* Instance;
+  ControllerInput();
+  virtual ~ControllerInput();
   virtual void DebugImguiInner();
   void DebugImgui();
   void Update();
   virtual void UpdateInner();
   bool CanAddController();
-  TacControllerIndex GetConnectedControllerCount();
-  TacControllerIndex AddController( TacController* controller );
+  ControllerIndex GetConnectedControllerCount();
+  ControllerIndex AddController( Controller* controller );
 
-  TacController* mControllers[ TAC_CONTROLLER_COUNT_MAX ] = {};
+  Controller* mControllers[ TAC_CONTROLLER_COUNT_MAX ] = {};
   bool mDebugging;
   bool mForceIndexOverride = false;
   int mIndexOverride = 0;
 };
+
+}
+

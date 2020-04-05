@@ -1,5 +1,9 @@
-#include "tacVector4.h"
+#include "src/common/math/tacVector4.h"
 #include <cmath> // sqrt
+
+namespace Tac
+{
+
 
 v4::v4( float xx, float yy, float zz, float ww ) : x( xx ), y( yy ), z( zz ), w( ww ){}
 v4::v4( const v3& xyz, float ww ) { *this = { xyz.x, xyz.y, xyz.z, ww }; }
@@ -55,3 +59,4 @@ float dot( const v4& lhs, const v4& rhs )
 
 
 
+}

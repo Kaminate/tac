@@ -1,20 +1,26 @@
-#include "space/tacspace.h"
-#include "space/graphics/tacgraphics.h"
-#include "space/physics/tacphysics.h"
 
+#include "src/space/tacSpace.h"
+#include "src/space/graphics/tacGraphics.h"
+#include "src/space/physics/tacPhysics.h"
 
-void TacSpaceInit()
+namespace Tac
 {
-  TacGraphics::TacSpaceInitGraphics();
-  TacPhysics::TacSpaceInitPhysics();
 
-  for( TacSystemRegistryEntry* entry : TacSystemRegistry::Instance()->mEntries )
+void SpaceInit()
+{
+  Graphics::SpaceInitGraphics();
+  Physics::SpaceInitPhysics();
+
+  for( SystemRegistryEntry* entry : SystemRegistry::Instance()->mEntries )
   {
-    TacAssert( entry->mName.size() );
+    TAC_ASSERT( entry->mName.size() );
   }
 
-  for( TacComponentRegistryEntry* entry : TacComponentRegistry::Instance()->mEntries )
+  for( ComponentRegistryEntry* entry : ComponentRegistry::Instance()->mEntries )
   {
-    TacAssert( entry->mName.size() );
+    TAC_ASSERT( entry->mName.size() );
   }
 }
+
+}
+

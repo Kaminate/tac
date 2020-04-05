@@ -1,5 +1,9 @@
 #pragma once
-#include "tacVector3.h"
+#include "src/common/math/tacVector3.h"
+
+namespace Tac
+{
+
 
 struct m3
 {
@@ -38,3 +42,4 @@ m3 M3RotRadY( float rotRad );
 m3 M3RotRadZ( float rotRad );
 m3 M3AngleAxis( float , v3 );
 
+}

@@ -1,38 +1,40 @@
-#include "tacserver.h"
-#include "common/tacPreprocessor.h"
-#include "tacplayer.h"
-#include "tacspacenet.h"
-#include "tacworld.h"
-#include "tacentity.h"
-#include "taccomponent.h"
-#include "tacspacenet.h"
-#include "common/tacUtility.h"
-#include "tacscript.h"
-#include "tacscriptgameclient.h"
-#include "common/tacSettings.h"
-#include "common/tacMemory.h"
 
+#include "src/common/tacMemory.h"
+#include "src/common/tacPreprocessor.h"
+#include "src/common/tacSettings.h"
+#include "src/common/tacUtility.h"
+#include "src/space/tacComponent.h"
+#include "src/space/tacEntity.h"
+#include "src/space/tacPlayer.h"
+#include "src/space/tacScript.h"
+#include "src/space/tacScriptGameClient.h"
+#include "src/space/tacServer.h"
+#include "src/space/tacSpaceNet.h"
+#include "src/space/tacSpaceNet.h"
+#include "src/space/tacWorld.h"
 #include <algorithm>
 #include <fstream>
 
+namespace Tac
+{
 // decreasing to 0 for easier debugging
 // ( consistant update between server/client )
 const float sSnapshotUntilNextSecondsMax = 0; //0.1f;
 
-typedef int TacComponentRegistryEntryIndex;
-static char TacComponentToBitField( TacComponentRegistryEntryIndex componentType )
+typedef int ComponentRegistryEntryIndex;
+static char ComponentToBitField( ComponentRegistryEntryIndex componentType )
 {
   char result = 1 << ( char )componentType;
   return result;
 }
 
-TacServerData::TacServerData()
+ServerData::ServerData()
 {
-  mWorld = new TacWorld();
-  mEmptyWorld = new TacWorld();
+  mWorld = new World();
+  mEmptyWorld = new World();
 }
 
-TacServerData::~TacServerData()
+ServerData::~ServerData()
 {
   for( auto otherPlayer : mOtherPlayers )
     delete otherPlayer;
@@ -40,26 +42,26 @@ TacServerData::~TacServerData()
   delete mEmptyWorld;
 }
 
-void TacServerData::DebugImgui()
+void ServerData::DebugImgui()
 {
   if( mWorld )
   {
     mWorld->DebugImgui();
   }
 }
-void TacServerData::OnClientJoin( TacConnectionUUID connectionID )
+void ServerData::OnClientJoin( ConnectionUUID connectionID )
 {
   auto player = SpawnPlayer();
-  TacAssert( player );
-  TacAssert( mOtherPlayers.size() < TacServerData::sOtherPlayerCountMax );
-  auto otherPlayer = new TacOtherPlayer();
+  TAC_ASSERT( player );
+  TAC_ASSERT( mOtherPlayers.size() < ServerData::sOtherPlayerCountMax );
+  auto otherPlayer = new OtherPlayer();
   otherPlayer->mPlayerUUID = player->mPlayerUUID;
   otherPlayer->mConnectionUUID = connectionID;
   mOtherPlayers.push_back( otherPlayer );
 }
 
 
-TacOtherPlayer* TacServerData::FindOtherPlayer( TacConnectionUUID connectionID )
+OtherPlayer* ServerData::FindOtherPlayer( ConnectionUUID connectionID )
 {
   for( auto otherPlayer : mOtherPlayers )
     if( otherPlayer->mConnectionUUID == connectionID )
@@ -67,12 +69,12 @@ TacOtherPlayer* TacServerData::FindOtherPlayer( TacConnectionUUID connectionID )
   return nullptr;
 }
 
-void TacServerData::OnLoseClient( TacConnectionUUID connectionID )
+void ServerData::OnLoseClient( ConnectionUUID connectionID )
 {
   auto it = std::find_if(
     mOtherPlayers.begin(),
     mOtherPlayers.end(),
-    [ & ]( TacOtherPlayer* otherPlayer ) { return otherPlayer->mConnectionUUID == connectionID; } );
+    [ & ]( OtherPlayer* otherPlayer ) { return otherPlayer->mConnectionUUID == connectionID; } );
   if( it == mOtherPlayers.end() )
     return;
   auto otherPlayer = *it;
@@ -81,13 +83,13 @@ void TacServerData::OnLoseClient( TacConnectionUUID connectionID )
   mOtherPlayers.erase( it );
 }
 
-void TacServerData::ReadInput(
-  TacReader* reader,
-  TacConnectionUUID connectionID,
-  TacErrors& errors )
+void ServerData::ReadInput(
+  Reader* reader,
+  ConnectionUUID connectionID,
+  Errors& errors )
 {
   auto otherPlayer = FindOtherPlayer( connectionID );
-  TacAssert( otherPlayer );
+  TAC_ASSERT( otherPlayer );
 
   auto player = mWorld->FindPlayer( otherPlayer->mPlayerUUID );
   if( !player )
@@ -106,20 +108,20 @@ void TacServerData::ReadInput(
   }
 }
 
-void TacServerData::WriteSnapshotBody( TacOtherPlayer* otherPlayer, TacWriter* writer )
+void ServerData::WriteSnapshotBody( OtherPlayer* otherPlayer, Writer* writer )
 {
   writer->Write( mWorld->mElapsedSecs );
-  TacAssert( otherPlayer );
+  TAC_ASSERT( otherPlayer );
   auto oldWorld = mSnapshots.FindSnapshot( otherPlayer->mTimeStamp );
   if( !oldWorld )
     oldWorld = mEmptyWorld;
 
   writer->Write( otherPlayer->mTimeStamp );
-  writer->Write( ( TacUUID )otherPlayer->mPlayerUUID );
+  writer->Write( ( UUID )otherPlayer->mPlayerUUID );
 
   // Write deleted players
   {
-    TacVector< TacPlayerUUID > deletedPlayerUUIDs;
+    Vector< PlayerUUID > deletedPlayerUUIDs;
     for( auto oldPlayer : oldWorld->mPlayers )
     {
       auto playerUUID = oldPlayer->mPlayerUUID;
@@ -127,8 +129,8 @@ void TacServerData::WriteSnapshotBody( TacOtherPlayer* otherPlayer, TacWriter* w
       if( !newPlayer )
         deletedPlayerUUIDs.push_back( playerUUID );
     }
-    writer->Write( ( TacPlayerCount )deletedPlayerUUIDs.size() );
-    for( TacPlayerUUID playerUUID:deletedPlayerUUIDs )
+    writer->Write( ( PlayerCount )deletedPlayerUUIDs.size() );
+    for( PlayerUUID playerUUID:deletedPlayerUUIDs )
     {
       writer->Write( playerUUID );
     }
@@ -136,40 +138,40 @@ void TacServerData::WriteSnapshotBody( TacOtherPlayer* otherPlayer, TacWriter* w
 
   // Write player differences
   {
-    struct TacPlayerDifference
+    struct PlayerDifference
     {
       uint8_t mBitfield;
-      TacPlayer* mNewPlayer;
-      TacPlayerUUID playerUUID;
+      Player* mNewPlayer;
+      PlayerUUID playerUUID;
     };
-    TacVector< TacPlayerDifference > oldAndNewPlayers;
+    Vector< PlayerDifference > oldAndNewPlayers;
 
     for( auto newPlayer : mWorld->mPlayers )
     {
       auto playerUUID = newPlayer->mPlayerUUID;
       auto oldPlayer = oldWorld->FindPlayer( playerUUID );
-      auto bitfield = GetNetworkBitfield( oldPlayer, newPlayer, TacPlayerBits );
+      auto bitfield = GetNetworkBitfield( oldPlayer, newPlayer, PlayerBits );
       if( !bitfield )
         continue;
 
-      TacPlayerDifference diff;
+      PlayerDifference diff;
       diff.mBitfield = bitfield;
       diff.mNewPlayer = newPlayer;
       diff.playerUUID = playerUUID;
       oldAndNewPlayers.push_back( diff );
     }
-    writer->Write( ( TacPlayerCount )oldAndNewPlayers.size() );
+    writer->Write( ( PlayerCount )oldAndNewPlayers.size() );
 
-    for( TacPlayerDifference& diff : oldAndNewPlayers )
+    for( PlayerDifference& diff : oldAndNewPlayers )
     {
       writer->Write( diff.playerUUID );
-      writer->Write( diff.mNewPlayer, diff.mBitfield, TacPlayerBits );
+      writer->Write( diff.mNewPlayer, diff.mBitfield, PlayerBits );
     }
   }
 
   // Write deleted entites
   {
-    TacVector< TacEntityUUID > deletedEntityUUIDs;
+    Vector< EntityUUID > deletedEntityUUIDs;
     for( auto entity : oldWorld->mEntities )
     {
       auto entityUUID = entity->mEntityUUID;
@@ -177,38 +179,38 @@ void TacServerData::WriteSnapshotBody( TacOtherPlayer* otherPlayer, TacWriter* w
       if( !newEntity )
         deletedEntityUUIDs.push_back( entityUUID );
     }
-    writer->Write( ( TacEntityCount )deletedEntityUUIDs.size() );
-    for( TacEntityUUID uuid:deletedEntityUUIDs )
+    writer->Write( ( EntityCount )deletedEntityUUIDs.size() );
+    for( EntityUUID uuid:deletedEntityUUIDs )
       writer->Write( uuid );
   }
 
   // Write entity differenes
   {
-    TacComponentRegistry* componentRegistry = TacComponentRegistry::Instance();
+    ComponentRegistry* componentRegistry = ComponentRegistry::Instance();
     int registeredComponentCount = componentRegistry->mEntries.size();
 
 
-    struct TacEntityDifference
+    struct EntityDifference
     {
-      std::set< TacComponentRegistryEntryIndex > mDeletedComponents;
-      std::map< TacComponentRegistryEntryIndex, char > mChangedComponentBitfields;
-      TacEntity* mNewEntity = nullptr;
-      TacEntityUUID mEntityUUID = TacNullEntityUUID;
+      std::set< ComponentRegistryEntryIndex > mDeletedComponents;
+      std::map< ComponentRegistryEntryIndex, char > mChangedComponentBitfields;
+      Entity* mNewEntity = nullptr;
+      EntityUUID mEntityUUID = NullEntityUUID;
     };
 
-    TacVector< TacEntityDifference > entityDifferences;
+    Vector< EntityDifference > entityDifferences;
     for( auto newEntity : mWorld->mEntities )
     {
       auto oldEntity = oldWorld->FindEntity( newEntity->mEntityUUID );
 
-      std::set< TacComponentRegistryEntryIndex > deletedComponents;
-      std::map< TacComponentRegistryEntryIndex, char > changedComponentBitfields;
+      std::set< ComponentRegistryEntryIndex > deletedComponents;
+      std::map< ComponentRegistryEntryIndex, char > changedComponentBitfields;
 
       for( int iComponentType = 0; iComponentType < registeredComponentCount; ++iComponentType )
       {
-        auto componentType = ( TacComponentRegistryEntryIndex )iComponentType;
-        TacComponentRegistryEntry* componentData = componentRegistry->mEntries[ iComponentType ];
-        TacComponent* oldComponent = nullptr;
+        auto componentType = ( ComponentRegistryEntryIndex )iComponentType;
+        ComponentRegistryEntry* componentData = componentRegistry->mEntries[ iComponentType ];
+        Component* oldComponent = nullptr;
         if( oldEntity )
           oldComponent = oldEntity->GetComponent( componentData );
         auto newComponent = newEntity->GetComponent( componentData );
@@ -230,7 +232,7 @@ void TacServerData::WriteSnapshotBody( TacOtherPlayer* otherPlayer, TacWriter* w
       if( deletedComponents.empty() && changedComponentBitfields.empty() )
         continue;
 
-      TacEntityDifference entityDifference;
+      EntityDifference entityDifference;
       entityDifference.mDeletedComponents = deletedComponents;
       entityDifference.mChangedComponentBitfields = changedComponentBitfields;
       entityDifference.mNewEntity = newEntity;
@@ -238,29 +240,29 @@ void TacServerData::WriteSnapshotBody( TacOtherPlayer* otherPlayer, TacWriter* w
       entityDifferences.push_back( entityDifference );
     }
 
-    writer->Write( ( TacEntityCount )entityDifferences.size() );
+    writer->Write( ( EntityCount )entityDifferences.size() );
 
-    for( const TacEntityDifference& entityDifference : entityDifferences )
+    for( const EntityDifference& entityDifference : entityDifferences )
     {
       writer->Write( entityDifference.mEntityUUID );
 
       char deletedComponentsBitfield = 0;
       for( auto componentType : entityDifference.mDeletedComponents )
-        deletedComponentsBitfield |= TacComponentToBitField( componentType );
+        deletedComponentsBitfield |= ComponentToBitField( componentType );
       writer->Write( deletedComponentsBitfield );
 
       char changedComponentsBitfield = 0;
       for( auto pair : entityDifference.mChangedComponentBitfields )
-        changedComponentsBitfield |= TacComponentToBitField( pair.first );
+        changedComponentsBitfield |= ComponentToBitField( pair.first );
       writer->Write( changedComponentsBitfield );
 
       for( int iComponentType = 0; iComponentType < registeredComponentCount; ++iComponentType )
       {
         if( !( changedComponentsBitfield & iComponentType ) )
           continue;
-        auto componentType = ( TacComponentRegistryEntryIndex )iComponentType;
-        TacComponentRegistryEntry* componentRegistryEntry = componentRegistry->mEntries[ iComponentType ];
-        TacComponent* component = entityDifference.mNewEntity->GetComponent( componentRegistryEntry );
+        auto componentType = ( ComponentRegistryEntryIndex )iComponentType;
+        ComponentRegistryEntry* componentRegistryEntry = componentRegistry->mEntries[ iComponentType ];
+        Component* component = entityDifference.mNewEntity->GetComponent( componentRegistryEntry );
         auto componentBitfield = entityDifference.mChangedComponentBitfields.at( componentType );
         writer->Write(
           component,
@@ -272,28 +274,28 @@ void TacServerData::WriteSnapshotBody( TacOtherPlayer* otherPlayer, TacWriter* w
 }
 
 
-void TacServerData::ExecuteNetMsg(
-  TacConnectionUUID connectionID,
+void ServerData::ExecuteNetMsg(
+  ConnectionUUID connectionID,
   void* bytes,
   int byteCount,
-  TacErrors& errors )
+  Errors& errors )
 {
-  TacReader reader;
+  Reader reader;
   reader.mBegin = bytes;
   reader.mEnd = ( char* )bytes + byteCount;
-  reader.mFrom = TacGameEndianness;
-  reader.mTo = TacGetEndianness();
+  reader.mFrom = GameEndianness;
+  reader.mTo = GetEndianness();
 
-  auto networkMessage = TacReadNetMsgHeader( &reader, errors );
+  auto networkMessage = ReadNetMsgHeader( &reader, errors );
     TAC_HANDLE_ERROR( errors );
   switch( networkMessage )
   {
-    case TacNetMsgType::Input:
+    case NetMsgType::Input:
       ReadInput( &reader, connectionID, errors );
       break;
-      //case TacNetMsgType::Text:
+      //case NetMsgType::Text:
       //{
-      //  TacReadIncomingChatMessageBody(
+      //  ReadIncomingChatMessageBody(
       //    &reader,
       //    &mChat,
       //    errors );
@@ -301,27 +303,27 @@ void TacServerData::ExecuteNetMsg(
   }
 }
 
-TacEntity* TacServerData::SpawnEntity()
+Entity* ServerData::SpawnEntity()
 {
-  mEntityUUIDCounter = ( TacEntityUUID )( ( TacUUID )mEntityUUIDCounter + 1 );
+  mEntityUUIDCounter = ( EntityUUID )( ( UUID )mEntityUUIDCounter + 1 );
   auto entity = mWorld->SpawnEntity( mEntityUUIDCounter );
   return entity;
 }
 
-TacPlayer* TacServerData::SpawnPlayer()
+Player* ServerData::SpawnPlayer()
 {
   if( mWorld->mPlayers.size() >= sPlayerCountMax )
     return nullptr;
-  mPlayerUUIDCounter = ( TacPlayerUUID )( ( TacUUID )mPlayerUUIDCounter + 1 );
+  mPlayerUUIDCounter = ( PlayerUUID )( ( UUID )mPlayerUUIDCounter + 1 );
   return mWorld->SpawnPlayer( mPlayerUUIDCounter );
 }
 
 
-void TacServerData::ReceiveMessage(
-  TacConnectionUUID connectionID,
+void ServerData::ReceiveMessage(
+  ConnectionUUID connectionID,
   void* bytes,
   int byteCount,
-  TacErrors& errors )
+  Errors& errors )
 {
   auto otherPlayer = FindOtherPlayer( connectionID );
   if( !otherPlayer )
@@ -329,9 +331,9 @@ void TacServerData::ReceiveMessage(
 
   if( otherPlayer->delayedNetMsg.mLagSimulationMS )
   {
-    TacVector< char > messageData;
+    Vector< char > messageData;
     messageData.resize( byteCount );
-    TacMemCpy( messageData.data(), bytes, byteCount );
+    MemCpy( messageData.data(), bytes, byteCount );
 
     otherPlayer->delayedNetMsg.SaveMessage( messageData, mWorld->mElapsedSecs );
     return;
@@ -344,15 +346,15 @@ void TacServerData::ReceiveMessage(
     errors );
 }
 
-void TacServerData::Update(
+void ServerData::Update(
   float seconds,
   ServerSendNetworkMessageCallback sendNetworkMessageCallback,
   void* userData,
-  TacErrors& errors )
+  Errors& errors )
 {
   for( auto otherPlayer : mOtherPlayers )
   {
-    TacVector< char > savedNetMsg;
+    Vector< char > savedNetMsg;
     while( otherPlayer->delayedNetMsg.TryPopSavedMessage( savedNetMsg, mWorld->mElapsedSecs ) )
     {
       ExecuteNetMsg(
@@ -377,10 +379,10 @@ void TacServerData::Update(
 
   for( auto otherPlayer : mOtherPlayers )
   {
-    TacWriter writer;
-    writer.mFrom = TacGetEndianness();
-    writer.mTo = TacGameEndianness;
-    TacWriteNetMsgHeader( &writer, TacNetMsgType::Snapshot );
+    Writer writer;
+    writer.mFrom = GetEndianness();
+    writer.mTo = GameEndianness;
+    WriteNetMsgHeader( &writer, NetMsgType::Snapshot );
     WriteSnapshotBody( otherPlayer, &writer );
     if( sendNetworkMessageCallback )
     {
@@ -397,7 +399,7 @@ void TacServerData::Update(
   //  // todo: keep sending until the client has acknowled our message
   //  mChat.mIsReadyToSend = false;
   //  writer->mBuffer = buffer;
-  //  TacWriteOutgoingChatMessage( writer, &mChat, errors );
+  //  WriteOutgoingChatMessage( writer, &mChat, errors );
   //  TAC_HANDLE_ERROR( errors );
   //  for( auto otherPlayer : mOtherPlayers )
   //  {
@@ -408,5 +410,8 @@ void TacServerData::Update(
   //      userData );
   //  }
   //}
+}
+
+
 }
 

@@ -1,68 +1,74 @@
+
 // Apparently I use this for serializing my terrain
-// I should combine this with tacJson.h
+// I should combine this with Json.h
 
 #pragma once
 
-#include "common/tacString.h"
-#include "common/containers/tacVector.h"
+#include "src/common/tacString.h"
+#include "src/common/containers/tacVector.h"
 
 #include <functional>
 #include <map>
 
-struct TacMeta;
-struct TacMetaVar;
-struct TacMetaVarCArray;
-struct TacMetaVarDynArray;
-struct TacMetaType;
+namespace Tac
+{
+struct Meta;
+struct MetaVar;
+struct MetaVarCArray;
+struct MetaVarDynArray;
+struct MetaType;
 
-//enum TacMetaPod
+//enum MetaPod
 //{
 //  Unknown,
-//  tacfloat,
-//  tacint32,
+//  Float,
+//  Int32,
 //};
 
-struct TacMetaVar
+struct MetaVar
 {
-  TacString mName;
+  String mName;
   int mOffset = 0;
-  TacMetaType* mMetaType = nullptr;
+  MetaType* mMetaType = nullptr;
 };
 
-struct TacMetaVarCArray : public TacMetaVar
+struct MetaVarCArray : public MetaVar
 {
   int mCArrayCount = 0;
 };
 
-struct TacMetaVarDynArray : public TacMetaVar
+struct MetaVarDynArray : public MetaVar
 {
   std::function<void( void*, int )>mResizeFunction;
   std::function<void*( void* )>mDataFunction;
 };
 
-struct TacMetaType
+struct MetaType
 {
-  TacString mName;
+  String mName;
   int mSize = 0;
 };
 template< typename T >
-struct TacMetaPodType : public TacMetaType
+struct MetaPodType : public MetaType
 {
-  //TacMetaPod mMetaPod = TacMetaPod::Unknown;
+  //MetaPod mMetaPod = MetaPod::Unknown;
 };
-struct TacMetaCompositeType : public TacMetaType
+struct MeOmpositeType : public MetaType
 {
-  TacVector< TacMetaVar* > mMetaVars;
+  Vector< MetaVar* > mMetaVars;
 };
 
-struct TacMeta
+struct Meta
 {
-  TacMeta();
-  static TacMeta* GetInstance();
-  TacMetaType* GetType( const TacString& name );
-  void AddType( TacMetaType* metaType );
-  //void Load( std::ifstream& ifs, TacMetaType* metaType, void* data, TacErrors& errors );
+  Meta();
+  static Meta* GetInstance();
+  MetaType* GetType( const String& name );
+  void AddType( MetaType* metaType );
+  //void Load( std::ifstream& ifs, MetaType* metaType, void* data, Errors& errors );
 
-  std::map< TacString, TacMetaType* > metaTypes;
+  std::map< String, MetaType* > metaTypes;
 };
+
+
+}
 

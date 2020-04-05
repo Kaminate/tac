@@ -1,28 +1,30 @@
-#include "common/graphics/imgui/tacImGui.h"
-#include "space/graphics/tacgraphics.h"
-void TacGraphicsDebugImgui( TacSystem* system )
+
+#include "src/common/graphics/imgui/tacImGui.h"
+#include "src/space/graphics/tacGraphics.h"
+namespace Tac
 {
-  auto graphics = ( TacGraphics* )system;
-  TacImGuiText( "graphics stuff" );
+void GraphicsDebugImgui( System* system )
+{
+  auto graphics = ( Graphics* )system;
+  ImGuiText( "graphics stuff" );
 
 
-  static TacString shaderReloadStatus;
+  static String shaderReloadStatus;
 
-  if( TacImGuiCollapsingHeader( "reload shaders" ) )
+  if( ImGuiCollapsingHeader( "reload shaders" ) )
   {
-    TacImGuiIndent();
-    OnDestruct(TacImGuiUnindent());
-    TacRenderer* renderer = TacRenderer::Instance;
-    TacVector<TacShader*> shaders;
-    renderer->GetShaders( shaders );
+    ImGuiIndent();
+    TAC_ON_DESTRUCT(ImGuiUnindent());
+    Vector<Shader*> shaders;
+    Renderer::Instance->GetShaders( shaders );
 
-    bool reloadAllShaders = TacImGuiButton("reload all shaders");
-    for( TacShader* shader : shaders )
+    bool reloadAllShaders = ImGuiButton("reload all shaders");
+    for( Shader* shader : shaders )
     {
-      if( TacImGuiButton( "reload shader " + shader->mName ) || reloadAllShaders )
+      if( ImGuiButton( "reload shader " + shader->mName ) || reloadAllShaders )
       {
-        TacErrors shaderReloadErrors;
-        renderer->ReloadShader( shader, shaderReloadErrors );
+        Errors shaderReloadErrors;
+        Renderer::Instance->ReloadShader( shader, shaderReloadErrors );
         if(shaderReloadErrors)
           shaderReloadStatus = shaderReloadErrors.ToString();
         else
@@ -30,8 +32,11 @@ void TacGraphicsDebugImgui( TacSystem* system )
       }
     }
 
-    if(TacImGuiButton("clear status"))
+    if(ImGuiButton("clear status"))
       shaderReloadStatus.clear();
-    TacImGuiText( shaderReloadStatus );
+    ImGuiText( shaderReloadStatus );
   }
 }
+
+}
+

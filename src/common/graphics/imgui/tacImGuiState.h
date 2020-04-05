@@ -1,10 +1,14 @@
 #pragma once
 
-#include "common/graphics/imgui/tacImGui.h"
-#include "common/math/tacVector2.h"
-#include "common/math/tacVector4.h"
+#include "src/common/graphics/imgui/tacImGui.h"
+#include "src/common/math/tacVector2.h"
+#include "src/common/math/tacVector4.h"
 
-struct TacUIStyle
+namespace Tac
+{
+
+
+struct UIStyle
 {
   float windowPadding = 8;
   v2 itemSpacing = { 8, 4 };
@@ -18,33 +22,33 @@ struct TacUIStyle
 
 
 
-typedef int TacImGuiId;
-const int TacImGuiIdNull = -1;
+typedef int ImGuiId;
+const int ImGuiIdNull = -1;
 
-enum class TacDragMode
+enum class DragMode
 {
   Drag,
   TextInput
 };
 
-struct TacDragData
+struct DragData
 {
-  TacDragMode mMode = ( TacDragMode )0;
+  DragMode mMode = ( DragMode )0;
   float mDragDistPx = 0;
 
   // This is the value of the variable we are gizmoing for at the start of the mouse drag.
   // That way, we can accumulate all the mouse drag pixels and apply them to ints in
   // addition to floats
-  TacVector< char > mValueCopy;
+  Vector< char > mValueCopy;
 };
 
-struct TacImGuiIDAllocator
+struct ImGuiIDAllocator
 {
-  TacImGuiId mActiveID = TacImGuiIdNull;
-  TacImGuiId mIDCounter = 0;
+  ImGuiId mActiveID = ImGuiIdNull;
+  ImGuiId mIDCounter = 0;
 };
 
-struct TacGroupData
+struct GroupData
 {
   // Position of the cursor when starting the group
   v2 mSavedCursorDrawPos;
@@ -52,25 +56,25 @@ struct TacGroupData
 };
 
 
-struct TacImGuiWindowResource
+struct ImGuiWindowResource
 {
-  virtual ~TacImGuiWindowResource() = default;
+  virtual ~ImGuiWindowResource() = default;
 };
 
-struct TacImGuiWindow
+struct ImGuiWindow
 {
-  TacImGuiWindow();
-  ~TacImGuiWindow();
+  ImGuiWindow();
+  ~ImGuiWindow();
   void BeginFrame();
   void ItemSize( v2 size );
-  void ComputeClipInfo( bool* clipped, TacImGuiRect* clipRect );
+  void ComputeClipInfo( bool* clipped, ImGuiRect* clipRect );
   void UpdateMaxCursorDrawPos( v2 pos );
-  TacImGuiId GetID();
-  void SetActiveID( TacImGuiId );
-  TacImGuiId GetActiveID();
+  ImGuiId GetID();
+  void SeTiveID( ImGuiId );
+  ImGuiId GeTiveID();
 
-  TacString mName;
-  TacImGuiWindow* mParent = nullptr;
+  String mName;
+  ImGuiWindow* mParent = nullptr;
 
   // The most bottom right the cursor has ever been,
   // updated during ItemSize()
@@ -79,10 +83,10 @@ struct TacImGuiWindow
   v2 mPrevCursorDrawPos;
 
   // ( rename to mPosDesktopWindowspace )
-  // Position of this TacImGuiWindow relative to the desktop window (?)
+  // Position of this ImGuiWindow relative to the desktop window (?)
   v2 mPos = {};
   v2 mSize = {};
-  TacImGuiRect mContentRect;
+  ImGuiRect mContentRect;
   float mCurrLineHeight = 0;
   float mPrevLineHeight = 0;
 
@@ -90,27 +94,27 @@ struct TacImGuiWindow
   v2 mScrollMousePosScreenspaceInitial;
   bool mScrolling = false;
 
-  TacVector< TacGroupData > mGroupStack;
+  Vector< GroupData > mGroupSK;
 
   // The mXOffsets.back() represents the horizontal tabbing distance
   // from the window mPos and the stuff that's about to be drawn
-  TacVector< float > mXOffsets;
+  Vector< float > mXOffsets;
 
   // Shared between sub-windows
-  TacImGuiIDAllocator* mIDAllocator = nullptr;
+  ImGuiIDAllocator* mIDAllocator = nullptr;
 
-  TacTextInputData* inputData;
-  std::map< TacImGuiId, bool > mCollapsingHeaderStates;
+  TextInputData* inputData;
+  std::map< ImGuiId, bool > mCollapsingHeaderStates;
 
-  std::map< TacImGuiId, TacDragData > mDragDatas;
+  std::map< ImGuiId, DragData > mDragDatas;
 
   bool mIsAppendingToMenu = false;
 
 
   template< typename T > T* GetOrCreateResource()
   {
-    TacImGuiId id = GetID();
-    TacImGuiWindowResource* resource = mResources[id];
+    ImGuiId id = GetID();
+    ImGuiWindowResource* resource = mResources[id];
     T* t = dynamic_cast< T* >( resource );
     if( !t )
     {
@@ -120,25 +124,26 @@ struct TacImGuiWindow
     }
     return t;
   }
-  std::map< TacImGuiId, TacImGuiWindowResource* > mResources;
+  std::map< ImGuiId, ImGuiWindowResource* > mResources;
 };
 
-struct TacImGuiGlobals
+struct ImGuiGlobals
 {
-  static TacImGuiGlobals Instance;
-  TacImGuiWindow* FindWindow( const TacString& name );
-  bool IsHovered( const TacImGuiRect& rect );
+  static ImGuiGlobals Instance;
+  ImGuiWindow* FindWindow( const String& name );
+  bool IsHovered( const ImGuiRect& rect );
 
   v2 mNextWindowPos = {};
   // TODO: different space
   v2 mMousePositionDesktopWindowspace = {};
   bool mIsWindowDirectlyUnderCursor = false;
   double mElapsedSeconds = 0;
-  TacVector< TacImGuiWindow* > mAllWindows;
-  TacVector< TacImGuiWindow* > mWindowStack;
-  TacImGuiWindow* mCurrentWindow = nullptr;
-  TacUI2DDrawData* mUI2DDrawData = nullptr;
-  TacKeyboardInput* mKeyboardInput = nullptr;
-  TacVector< int > mFontSizeStack;
-  TacUIStyle mUIStyle;
+  Vector< ImGuiWindow* > mAllWindows;
+  Vector< ImGuiWindow* > mWindowSK;
+  ImGuiWindow* mCurrentWindow = nullptr;
+  UI2DDrawData* mUI2DDrawData = nullptr;
+  KeyboardInput* mKeyboardInput = nullptr;
+  Vector< int > mFontSizeSK;
+  UIStyle mUIStyle;
 };
+}

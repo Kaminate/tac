@@ -1,35 +1,38 @@
-#include "common/graphics/tacFont.h"
-#include "common/graphics/imgui/tacImGui.h"
-#include "common/graphics/imgui/tacImGui.h"
-#include "common/graphics/tacRenderer.h"
-#include "common/graphics/tacUI.h"
-#include "common/math/tacMath.h"
-#include "common/tacAlgorithm.h"
-#include "common/tacLocalization.h"
-#include "common/tacPreprocessor.h"
-#include "common/tacSettings.h"
-#include "common/tacShell.h"
-#include "common/tacTime.h"
-#include "common/tacUtility.h"
-#include "common/taccontrollerinput.h"
-#include "common/tackeyboardinput.h"
-#include "common/tacmeta.h"
-#include "space/tacGhost.h"
-#include "space/tacclient.h"
-#include "space/collider/taccollider.h"
-#include "space/tacentity.h"
-#include "space/graphics/tacgraphics.h"
-#include "space/physics/tacphysics.h"
-#include "space/tacplayer.h"
-#include "space/tacscript.h"
-#include "space/tacscriptgameclient.h"
-#include "space/tacserver.h"
-#include "space/tacworld.h"
+
+#include "src/common/graphics/tacFont.h"
+#include "src/common/graphics/imgui/tacImGui.h"
+#include "src/common/graphics/imgui/tacImGui.h"
+#include "src/common/graphics/tacRenderer.h"
+#include "src/common/graphics/tacUI.h"
+#include "src/common/math/tacMath.h"
+#include "src/common/tacAlgorithm.h"
+#include "src/common/tacLocalization.h"
+#include "src/common/tacPreprocessor.h"
+#include "src/common/tacSettings.h"
+#include "src/common/tacShell.h"
+#include "src/common/tacTime.h"
+#include "src/common/tacUtility.h"
+#include "src/common/tacControllerinput.h"
+#include "src/common/tacKeyboardinput.h"
+#include "src/common/tacMeta.h"
+#include "src/space/tacGhost.h"
+#include "src/space/tacClient.h"
+#include "src/space/collider/tacCollider.h"
+#include "src/space/tacEntity.h"
+#include "src/space/graphics/tacGraphics.h"
+#include "src/space/physics/tacPhysics.h"
+#include "src/space/tacPlayer.h"
+#include "src/space/tacScript.h"
+#include "src/space/tacScriptgameclient.h"
+#include "src/space/tacServer.h"
+#include "src/space/tacWorld.h"
 #include <fstream>
 #include <iostream>
 #include <utility>
 
-TacUser::TacUser( TacGhost* ghost, const TacString& name, TacErrors& errors )
+namespace Tac
+{
+User::User( Ghost* ghost, const String& name, Errors& errors )
 {
   mName = name;
   mGhost = ghost;
@@ -43,86 +46,86 @@ TacUser::TacUser( TacGhost* ghost, const TacString& name, TacErrors& errors )
   mPlayer = player;
   if( mGhost->mShouldPopulateWorldInitial )
   {
-    TacEntity* entity = serverData->SpawnEntity();
+    Entity* entity = serverData->SpawnEntity();
     entity->mRelativeSpace.mPosition = v3(
-      TacRandomFloatMinus1To1() * 3.0f,
+      RandomFloatMinus1To1() * 3.0f,
       5.2f,
-      TacRandomFloatMinus1To1() * 3.0f );
-    entity->AddNewComponent( TacCollider::ColliderComponentRegistryEntry );
+      RandomFloatMinus1To1() * 3.0f );
+    entity->AddNewComponent( Collider::ColliderComponentRegistryEntry );
     player->mEntityUUID = entity->mEntityUUID;
   }
 }
-void TacUser::DebugImgui()
+void User::DebugImgui()
 {
   //if( mPlayer )
   //  mPlayer->DebugImgui();
   //ImGui::InputText( "Name", mName );
 }
-void TacUser::Update( TacErrors& errors )
+void User::Update( Errors& errors )
 {
   if( !mGhost->mIsGrabbingInput )
     return;
   auto serverData = mGhost->mServerData;
   v2 inputDirection = { 0, 0 };
-  if( TacKeyboardInput::Instance->IsKeyDown( TacKey::RightArrow ) ) inputDirection += { 1, 0 };
-  if( TacKeyboardInput::Instance->IsKeyDown( TacKey::UpArrow ) ) inputDirection += { 0, 1 };
-  if( TacKeyboardInput::Instance->IsKeyDown( TacKey::DownArrow ) ) inputDirection += { 0, -1 };
-  if( TacKeyboardInput::Instance->IsKeyDown( TacKey::LeftArrow ) ) inputDirection += { -1, 0 };
+  if( KeyboardInput::Instance->IsKeyDown( Key::RightArrow ) ) inputDirection += { 1, 0 };
+  if( KeyboardInput::Instance->IsKeyDown( Key::UpArrow ) ) inputDirection += { 0, 1 };
+  if( KeyboardInput::Instance->IsKeyDown( Key::DownArrow ) ) inputDirection += { 0, -1 };
+  if( KeyboardInput::Instance->IsKeyDown( Key::LeftArrow ) ) inputDirection += { -1, 0 };
   if( inputDirection.Length() )
     inputDirection.Normalize();
   mPlayer->mInputDirection = inputDirection;
-  mPlayer->mIsSpaceJustDown = TacKeyboardInput::Instance->IsKeyDown( TacKey::Spacebar );
+  mPlayer->mIsSpaceJustDown = KeyboardInput::Instance->IsKeyDown( Key::Spacebar );
 }
 
-TacGhost::TacGhost()
+Ghost::Ghost()
 {
-  mScriptRoot = new TacScriptRoot;
-  //mUIRoot = new TacUIRoot;
-  mServerData = new TacServerData;
+  mScriptRoot = new ScriptRoot;
+  //mUIRoot = new UIRoot;
+  mServerData = new ServerData;
 }
-void TacGhost::Init( TacErrors& errors )
+void Ghost::Init( Errors& errors )
 {
   mShouldPopulateWorldInitial = false;
   mScriptRoot->mGhost = this;
   //int w = shell->mWindowWidth;
   //int h = shell->mWindowHeight;
 
-  //TacImage image;
+  //Image image;
   //image.mWidth = w;
   //image.mHeight = h;
   //image.mFormat.mPerElementByteCount = 1;
   //image.mFormat.mElementCount = 4;
-  //image.mFormat.mPerElementDataType = TacGraphicsType::unorm;
-  //TacTextureData textureData;
-  //textureData.access = TacAccess::Default;
-  //textureData.binding = { TacBinding::RenderTarget, TacBinding::ShaderResource };
+  //image.mFormat.mPerElementDataType = GraphicsType::unorm;
+  //TextureData textureData;
+  //textureData.access = Access::Default;
+  //textureData.binding = { Binding::RenderTarget, Binding::ShaderResource };
   //textureData.cpuAccess = {};
   //textureData.mName = "client view fbo";
-  //textureData.mStackFrame = TAC_STACK_FRAME;
+  //textureData.mFrame = TAC_FRAME;
   //textureData.myImage = image;
-  //TacRenderer::Instance->AddTextureResource( &mFBOTexture, textureData, errors );
-  //TAC_HANDLE_ERROR( errors );
+  //Renderer::Instance->AddTextureResource( &mFBOTexture, textureData, errors );
+  //_HANDLE_ERROR( errors );
 
-  //TacDepthBufferData depthBufferData;
+  //DepthBufferData depthBufferData;
   //depthBufferData.height = h;
   //depthBufferData.mName = "client view depth buffer";
-  //depthBufferData.mStackFrame = TAC_STACK_FRAME;
+  //depthBufferData.mFrame = TAC_FRAME;
   //depthBufferData.width = w;
-  //TacRenderer::Instance->AddDepthBuffer( &mFBODepthBuffer, depthBufferData, errors );
-  //TAC_HANDLE_ERROR( errors );
+  //Renderer::Instance->AddDepthBuffer( &mFBODepthBuffer, depthBufferData, errors );
+  //_HANDLE_ERROR( errors );
 
-  const TacString serverTypeGameClient = TacStringify( TacScriptGameClient );
-  TacString serverType = TacShell::Instance->mSettings->GetString(
+  const String serverTypeGameClient = TAC_STRINGIFY( ScriptGameClient );
+  String serverType = Shell::Instance->mSettings->GetString(
     nullptr,
     { "server type" },
     serverTypeGameClient,
     errors );
   TAC_HANDLE_ERROR( errors );
-  TacScriptThread* child = nullptr;
+  ScriptThread* child = nullptr;
   if( serverType == serverTypeGameClient )
-    child = new TacScriptGameClient();
+    child = new ScriptGameClient();
   else
-    TacInvalidCodePath;
+    TAC_INVALID_CODE_PATH;
   mScriptRoot->AddChild( child );
   TAC_HANDLE_ERROR( errors );
   if( mShouldPopulateWorldInitial )
@@ -137,34 +140,34 @@ void TacGhost::Init( TacErrors& errors )
     TAC_HANDLE_ERROR( errors );
   }
 
-  //mUIRoot->mElapsedSeconds = &TacShell::Instance->mElapsedSeconds; // eww
+  //mUIRoot->mElapsedSeconds = &Shell::Instance->mElapsedSeconds; // eww
   //mUIRoot->mGhost = this;
 }
-TacGhost::~TacGhost()
+Ghost::~Ghost()
 {
   //delete mFBOTexture;
   //delete mFBODepthBuffer;
-  for( TacUser* user : mUsers )
+  for( User* user : mUsers )
     delete user;
   //delete mUIRoot;
   delete mServerData;
   delete mClientData;
 }
-TacUser* TacGhost::AddPlayer( const TacString& name, TacErrors& errors )
+User* Ghost::AddPlayer( const String& name, Errors& errors )
 {
-  auto* user = new TacUser( this, name, errors );
+  auto* user = new User( this, name, errors );
   mUsers.push_back( user );
-  TacScriptMsg scriptMsg;
+  ScriptMsg scriptMsg;
   scriptMsg.mType = scriptMsgNameUserConnect;
   scriptMsg.mData = user;
   mScriptRoot->OnMsg( &scriptMsg );
   return user;
 }
-void TacGhost::ImguiCreatePlayerPopup( TacErrors& errors )
+void Ghost::ImguiCreatePlayerPopup( Errors& errors )
 {
   //const char* popupName = "Enter Player Name";
   //const int playerNameBufSize = 100;
-  //static TacString playerName;
+  //static String playerName;
   //if( ImGui::Button( "Spawn Player" ) )
   //  ImGui::OpenPopup( popupName );
   //if( !ImGui::BeginPopup( popupName ) )
@@ -179,25 +182,25 @@ void TacGhost::ImguiCreatePlayerPopup( TacErrors& errors )
   //if( errors )
   //  return;
 }
-void TacGhost::Update( TacErrors& errors )
+void Ghost::Update( Errors& errors )
 {
 
   if( CanDrawImgui() )
   {
-    //mMouserCursorNDC.x = ( ( float )TacShell::Instance->mMouseRelTopLeftX - mImguiImagePosRelTopLeftX ) / mImguiImageW;
-    //mMouserCursorNDC.y = ( ( float )TacShell::Instance->mMouseRelTopLeftY - mImguiImagePosRelTopLeftY ) / mImguiImageH;
-    //mMouseHoveredOverWindow &= TacShell::Instance->mMouseInWindow;
+    //mMouserCursorNDC.x = ( ( float )Shell::Instance->mMouseRelTopLeftX - mImguiImagePosRelTopLeftX ) / mImguiImageW;
+    //mMouserCursorNDC.y = ( ( float )Shell::Instance->mMouseRelTopLeftY - mImguiImagePosRelTopLeftY ) / mImguiImageH;
+    //mMouseHoveredOverWindow &= Shell::Instance->mMouseInWindow;
     //mDrawDepthBuffer = mFBODepthBuffer;
     //mDrawTexture = mFBOTexture;
   }
   else
   {
-    //TacInvalidCodePath;
-    //TacShell::Instance->TacRenderer::Instance->GetBackbufferColor( &mDrawTexture  );
-    //TacShell::Instance->TacRenderer::Instance->GetBackbufferDepth( &mDrawDepthBuffer );
-    //mMouserCursorNDC.x = ( float )TacShell::Instance->mMouseRelTopLeftX / mDrawTexture->myImage.mWidth;
-    //mMouserCursorNDC.y = ( float )TacShell::Instance->mMouseRelTopLeftY / mDrawTexture->myImage.mHeight;
-    //mMouseHoveredOverWindow = TacShell::Instance->mMouseInWindow;
+    //InvalidCodePath;
+    //Shell::Instance->Renderer::Instance->GetBackbufferColor( &mDrawTexture  );
+    //Shell::Instance->Renderer::Instance->GetBackbufferDepth( &mDrawDepthBuffer );
+    //mMouserCursorNDC.x = ( float )Shell::Instance->mMouseRelTopLeftX / mDrawTexture->myImage.mWidth;
+    //mMouserCursorNDC.y = ( float )Shell::Instance->mMouseRelTopLeftY / mDrawTexture->myImage.mHeight;
+    //mMouseHoveredOverWindow = Shell::Instance->mMouseInWindow;
   }
   mMouserCursorNDC.y = 1 - mMouserCursorNDC.y;
   mMouserCursorNDC *= 2;
@@ -215,28 +218,28 @@ void TacGhost::Update( TacErrors& errors )
   AddMorePlayers( errors );
   TAC_HANDLE_ERROR( errors );
 }
-void TacGhost::AddMorePlayers( TacErrors& errors )
+void Ghost::AddMorePlayers( Errors& errors )
 {
   if( IsPartyFull() )
     return;
 
-  TacVector< TacControllerIndex > claimedControllerIndexes;
-  for( TacUser* user : mUsers )
+  Vector< ControllerIndex > claimedControllerIndexes;
+  for( User* user : mUsers )
     if( user->mHasControllerIndex )
       claimedControllerIndexes.push_back( user->mControllerIndex );
 
-  TacAssert( ( int )claimedControllerIndexes.size() < TAC_CONTROLLER_COUNT_MAX );
+  TAC_ASSERT( ( int )claimedControllerIndexes.size() < TAC_CONTROLLER_COUNT_MAX );
 
-  for( TacControllerIndex controllerIndex = 0; controllerIndex < TAC_CONTROLLER_COUNT_MAX; ++controllerIndex )
+  for( ControllerIndex controllerIndex = 0; controllerIndex < TAC_CONTROLLER_COUNT_MAX; ++controllerIndex )
   {
-    if( TacContains( claimedControllerIndexes, controllerIndex ) )
+    if( Contains( claimedControllerIndexes, controllerIndex ) )
       continue;
-    TacController* controller = TacControllerInput::Instance->mControllers[ controllerIndex ];
+    Controller* controller = ControllerInput::Instance->mControllers[ controllerIndex ];
     if( !controller )
       continue;
-    if( !controller->IsButtonJustPressed( TacControllerButton::Start ) )
+    if( !controller->IsButtonJustPressed( ControllerButton::Start ) )
       continue;
-    TacUser* user = AddPlayer( "Player " + TacToString( ( int )mUsers.size() ), errors );
+    User* user = AddPlayer( "Player " + ToString( ( int )mUsers.size() ), errors );
     if( errors )
       return;
     user->mHasControllerIndex = true;
@@ -246,22 +249,22 @@ void TacGhost::AddMorePlayers( TacErrors& errors )
   }
 
 }
-bool TacGhost::IsPartyFull()
+bool Ghost::IsPartyFull()
 {
   bool result = ( int )mUsers.size() == sPlayerCountMax;
   return result;
 }
-void TacGhost::DebugImgui( TacErrors& errors )
+void Ghost::DebugImgui( Errors& errors )
 {
   #if COMPILE_PLS
   if( !mIsImGuiVisible )
     return;
   ImGui::PushID( this );
-  OnDestruct( ImGui::PopID() );
+  TAC_ON_DESTRUCT( ImGui::PopID() );
   ImGui::Begin( GetDebugName().c_str(), &mIsImGuiVisible );
-  OnDestruct( ImGui::End() );
+  TAC_ON_DESTRUCT( ImGui::End() );
   ImGui::PushItemWidth( 200 );
-  OnDestruct( ImGui::PopItemWidth() );
+  TAC_ON_DESTRUCT( ImGui::PopItemWidth() );
 
 
   if( CanDrawImgui() )
@@ -300,43 +303,43 @@ void TacGhost::DebugImgui( TacErrors& errors )
   if( ImGui::CollapsingHeader( "Users" ) )
   {
     ImGui::Indent();
-    OnDestruct( ImGui::Unindent() );
+    TAC_ON_DESTRUCT( ImGui::Unindent() );
     for( int iUser = 0; iUser < mUsers.size(); ++iUser )
     {
       auto user = mUsers[ iUser ];
-      TacString userHeader = va( "User %i: %s", iUser, user->mName.c_str() );
+      String userHeader = va( "User %i: %s", iUser, user->mName.c_str() );
       if( !ImGui::CollapsingHeader( userHeader.c_str() ) )
         continue;
       ImGui::Indent();
-      OnDestruct( ImGui::Unindent() );
+      TAC_ON_DESTRUCT( ImGui::Unindent() );
       user->DebugImgui();
     }
   }
-  TacLanguageDebugImgui( "Default Language", &mLanguage );
+  LanguageDebugImgui( "Default Language", &mLanguage );
   ImGui::ColorEdit4( "Clear color", &mClearColor.x );
   mUIRoot->DebugImgui();
   ImGui::DragFloat( "Splash alpha", &mSplashAlpha, 0.1f, 0.0f, 1.0f );
   #endif
 }
-void TacGhost::Draw( TacErrors& errors )
+void Ghost::Draw( Errors& errors )
 {
-  TacWorld* world = mServerData->mWorld;
-  TacGraphics* graphics = TacGraphics::GetSystem( world );
+  World* world = mServerData->mWorld;
+  Graphics* graphics = Graphics::GetSystem( world );
 
-  TacRenderer::Instance->DebugBegin( "Draw world" );
-  OnDestruct( TacRenderer::Instance->DebugEnd() );
-  //TacTexture* fboTexture = mDrawTexture;
-  //TacDepthBuffer* fboDepth = mDrawDepthBuffer;
-  TacTexture* fboTexture = mRenderView->mFramebuffer;
-  TacDepthBuffer* fboDepth = mRenderView->mFramebufferDepth;
+  Renderer::Instance->DebugBegin( "Draw world" );
+  TAC_ON_DESTRUCT( Renderer::Instance->DebugEnd() );
+  //Texture* fboTexture = mDrawTexture;
+  //DepthBuffer* fboDepth = mDrawDepthBuffer;
+  Texture* fboTexture = mRenderView->mFramebuffer;
+  DepthBuffer* fboDepth = mRenderView->mFramebufferDepth;
 
   const float aspect = fboTexture->GetAspect();
-  //TacRenderer::Instance->ClearColor( fboTexture, mClearColor );
-  //TacRenderer::Instance->ClearDepthStencil( fboDepth, true, 1.0f, false, 0 );
-  //TacRenderer::Instance->SetRenderTarget( fboTexture, fboDepth );
+  //Renderer::Instance->ClearColor( fboTexture, mClearColor );
+  //Renderer::Instance->ClearDepthStencil( fboDepth, true, 1.0f, false, 0 );
+  //Renderer::Instance->SetRenderTarget( fboTexture, fboDepth );
 
 
-  //TacRenderer::Instance->SetViewport(
+  //Renderer::Instance->SetViewport(
   //  0, // x rel bot left
   //  0, // y rel bot left
   //  ( float )fboTexture->myImage.mWidth, // width increasing right
@@ -359,16 +362,16 @@ void TacGhost::Draw( TacErrors& errors )
   float fovYRad = 100.0f * ( 3.14f / 180.0f );
   float projA;
   float projB;
-  TacRenderer::Instance->GetPerspectiveProjectionAB( farPlane, nearPlane, projA, projB );
+  Renderer::Instance->GetPerspectiveProjectionAB( farPlane, nearPlane, projA, projB );
 
   auto world_to_view = M4View( camPos, camViewDir, camR, camU );
   auto view_to_clip = M4ProjPerspective( projA, projB, fovYRad, aspect );
 
-  //TacInvalidCodePath;
-  //TacRenderer::Instance->SetBlendState( nullptr );
-  //TacRenderer::Instance->SetScissorRect( 0, 0, ( float )fboTexture->mWidth(), ( float )fboTexture->mHeight() );
+  //InvalidCodePath;
+  //Renderer::Instance->SetBlendState( nullptr );
+  //Renderer::Instance->SetScissorRect( 0, 0, ( float )fboTexture->mWidth(), ( float )fboTexture->mHeight() );
 
-  //TacRenderer::Instance->DebugDraw(
+  //Renderer::Instance->DebugDraw(
   //  world_to_view,
   //  view_to_clip,
   //  fboTexture,
@@ -381,7 +384,7 @@ void TacGhost::Draw( TacErrors& errors )
 
 
 
-  //TacRenderer::Instance->SetScissorRect(
+  //Renderer::Instance->SetScissorRect(
   //  0,
   //  0,
   //  ( float )fboTexture->myImage.mWidth,
@@ -389,40 +392,40 @@ void TacGhost::Draw( TacErrors& errors )
 
   if( mSplashAlpha )
   {
-    TacInvalidCodePath;
+    TAC_INVALID_CODE_PATH;
     //v4 color( 0, 0, 0, mSplashAlpha );
     //m4 world = m4::Identity();
     //m4 view = m4::Identity();
     //m4 proj = m4::Identity();
-    //TacRenderer::Instance->DebugBegin( "Splash background" );
-    //OnDestruct( TacRenderer::Instance->DebugEnd() );
-    //TacRenderer::Instance->SetBlendState( TacRenderer::Instance->mAlphaBlendState );
-    //TacRenderer::Instance->SetActiveShader( TacRenderer::Instance->m2DShader );
-    //TacRenderer::Instance->SetRasterizerState( TacRenderer::Instance->mRasterizerStateNoCull );
-    //TacRenderer::Instance->SetVertexFormat( TacRenderer::Instance->mDefaultVertex2DFormat );
-    //TacRenderer::Instance->SetDepthState( TacRenderer::Instance->mNoDepthReadOrWrite );
-    //TacRenderer::Instance->SetTexture( "atlas", TacRenderer::Instance->m1x1White );
-    //TacRenderer::Instance->SetSamplerState( "linearSampler", TacRenderer::Instance->mSamplerStateLinearWrap );
-    //TacRenderer::Instance->SetPrimitiveTopology( TacPrimitive::TriangleList );
-    //TacRenderer::Instance->SetVertexBuffer( TacRenderer::Instance->m2DNDCQuadVB );
-    //TacRenderer::Instance->SetIndexBuffer( TacRenderer::Instance->m2DNDCQuadIB );
-    //TacRenderer::Instance->SendUniform( "Color", color.data() );
-    //TacRenderer::Instance->SendUniform( "World", world.data() );
-    //TacRenderer::Instance->SendUniform( "View", view.data() );
-    //TacRenderer::Instance->SendUniform( "Projection", proj.data() );
-    //TacRenderer::Instance->Apply();
-    //TacRenderer::Instance->DrawIndexed( TacRenderer::Instance->m2DNDCQuadIB->indexCount, 0, 0 );
+    //Renderer::Instance->DebugBegin( "Splash background" );
+    //OnDestruct( Renderer::Instance->DebugEnd() );
+    //Renderer::Instance->SetBlendState( Renderer::Instance->mAlphaBlendState );
+    //Renderer::Instance->SeTiveShader( Renderer::Instance->m2DShader );
+    //Renderer::Instance->SetRasterizerState( Renderer::Instance->mRasterizerStateNoCull );
+    //Renderer::Instance->SetVertexFormat( Renderer::Instance->mDefaultVertex2DFormat );
+    //Renderer::Instance->SetDepthState( Renderer::Instance->mNoDepthReadOrWrite );
+    //Renderer::Instance->SetTexture( "atlas", Renderer::Instance->m1x1White );
+    //Renderer::Instance->SetSamplerState( "linearSampler", Renderer::Instance->mSamplerStateLinearWrap );
+    //Renderer::Instance->SetPrimitiveTopology( Primitive::TriangleList );
+    //Renderer::Instance->SetVertexBuffer( Renderer::Instance->m2DNDCQuadVB );
+    //Renderer::Instance->SetIndexBuffer( Renderer::Instance->m2DNDCQuadIB );
+    //Renderer::Instance->SendUniform( "Color", color.data() );
+    //Renderer::Instance->SendUniform( "World", world.data() );
+    //Renderer::Instance->SendUniform( "View", view.data() );
+    //Renderer::Instance->SendUniform( "Projection", proj.data() );
+    //Renderer::Instance->Apply();
+    //Renderer::Instance->DrawIndexed( Renderer::Instance->m2DNDCQuadIB->indexCount, 0, 0 );
   }
   //if( mDrawText )
   //{
   //  mUIRoot->Render( errors );
   //}
 }
-void TacGhost::PopulateWorldInitial()
+void Ghost::PopulateWorldInitial()
 {
-  TacWorld* world = mServerData->mWorld;
-  TacPhysics* physics = TacPhysics::GetSystem( world );
-  TacString levelpath = "mylevel.txt";
+  World* world = mServerData->mWorld;
+  Physics* physics = Physics::GetSystem( world );
+  String levelpath = "mylevel.txt";
   std::ifstream ifs( levelpath.c_str() );
   if( !ifs.is_open() )
   {
@@ -430,20 +433,23 @@ void TacGhost::PopulateWorldInitial()
     return;
   }
 
-  //auto meta = TacMeta::GetInstance();
-  //auto terrain = new TacTerrain();
-  //auto metaTerrain = meta->GetType( TacStringify( TacTerrain ) );
+  //auto meta = Meta::GetInstance();
+  //auto terrain = new Terrain();
+  //auto metaTerrain = meta->GetType( Stringify( Terrain ) );
   //meta->Load( ifs, metaTerrain, terrain, mLevelLoadErrors );
   //if( mLevelLoaderrors )
   //  return;
   //physics->mTerrains.insert( terrain );
 }
-bool TacGhost::CanDrawImgui()
+bool Ghost::CanDrawImgui()
 {
   return !mDrawDirectlyToScreen;
 }
-//extern "C" TAC_EXPORT TacSoul* TAC_GHOST_CREATE( TacShell* shell, TacErrors& errors )
+//extern "C" TAC_EXPORT Soul* TAC_GHOST_CREATE( Shell* shell, Errors& errors )
 //{
-//  return new TacGhost( shell, errors );
+//  return new Ghost( shell, errors );
 //}
-//static_assert( std::is_same< decltype( TAC_GHOST_CREATE ), TacGhostCreateFn > ::value, "" );
+//static_assert( std::is_same< decltype( TAC_GHOST_CREATE ), GhostCreateFn > ::value, "" );
+
+}
+

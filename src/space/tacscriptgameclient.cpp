@@ -1,30 +1,34 @@
-#include "common/graphics/imgui/tacImGui.h"
-#include "common/graphics/tacUI.h"
-#include "common/math/tacMath.h"
-#include "common/tacJobQueue.h"
-#include "common/tacJobQueue.h"
-#include "common/tacJson.h"
-#include "common/tacLog.h"
-#include "common/tacMemory.h"
-#include "common/tacNet.h"
-#include "common/tacOS.h"
-#include "common/tacSettings.h"
-#include "common/tacShell.h"
-#include "common/tacTime.h"
-#include "common/thirdparty/stb_image.h"
-#include "space/tacGhost.h"
-#include "space/graphics/tacgraphics.h"
-#include "space/tacscriptgameclient.h"
-#include "space/tacserver.h"
-#include "space/tacworld.h"
+#include "src/common/graphics/imgui/tacImGui.h"
+#include "src/common/graphics/tacUI.h"
+#include "src/common/math/tacMath.h"
+#include "src/common/tacJobQueue.h"
+#include "src/common/tacJobQueue.h"
+#include "src/common/tacJson.h"
+#include "src/common/tacLog.h"
+#include "src/common/tacMemory.h"
+#include "src/common/tacNet.h"
+#include "src/common/tacOS.h"
+#include "src/common/tacSettings.h"
+#include "src/common/tacShell.h"
+#include "src/common/tacTime.h"
+#include "src/common/thirdparty/stb_image.h"
+#include "src/space/tacGhost.h"
+#include "src/space/graphics/tacGraphics.h"
+#include "src/space/tacScriptgameclient.h"
+#include "src/space/tacServer.h"
+#include "src/space/tacWorld.h"
 #include <cstdlib> // itoa
 
-const TacString defaultHostname = "tac.nate.rocks";
+namespace Tac
+{
+
+
+const String defaultHostname = "tac.nate.rocks";
 const uint16_t defaultPort = 8081;
 
 v4 colorText = v4( 202, 234, 241, 255 ) / 255.0f;
 
-//TacScriptFader::TacScriptFader()
+//ScriptFader::ScriptFader()
 //{
 //  mName = "Text fader";
 //  mShouldFade = true;
@@ -33,7 +37,7 @@ v4 colorText = v4( 202, 234, 241, 255 ) / 255.0f;
 //  mFadeSecTotal = 0.5f;
 //  mFadeSecElapsed = 0;
 //}
-//void TacScriptFader::DebugImgui( TacErrors& errors )
+//void ScriptFader::DebugImgui( Errors& errors )
 //{
 //  ImGui::DragFloat( "Pre fade sec", &mPreFadeSec );
 //  ImGui::DragFloat( "Post fade sec", &mPostFadeSec );
@@ -42,11 +46,11 @@ v4 colorText = v4( 202, 234, 241, 255 ) / 255.0f;
 //  ImGui::DragFloat( "Fade alpha", mValue );
 //  ImGui::Checkbox( "should fade in", &mShouldFade );
 //}
-//void TacScriptFader::SetAlpha( float alpha )
+//void ScriptFader::SetAlpha( float alpha )
 //{
 //  *mValue = alpha;
 //}
-//void TacScriptFader::Update( float seconds, TacErrors& errors )
+//void ScriptFader::Update( float seconds, Errors& errors )
 //{
 //  TAC_TIMELINE_BEGIN;
 //  mFadeSecElapsed = 0;
@@ -60,7 +64,7 @@ v4 colorText = v4( 202, 234, 241, 255 ) / 255.0f;
 //  {
 //    mFadeSecElapsed += seconds;
 //    float t = mFadeSecElapsed / mFadeSecTotal;
-//    float alpha = TacSaturate( TacLerp( mValueInitial, mValueFinal, t ) );
+//    float alpha = Saturate( Lerp( mValueInitial, mValueFinal, t ) );
 //    SetAlpha( alpha );
 //    if( mFadeSecElapsed < mFadeSecTotal )
 //      return;
@@ -72,19 +76,19 @@ v4 colorText = v4( 202, 234, 241, 255 ) / 255.0f;
 //  TAC_TIMELINE_END
 //}
 
-TacScriptGameClient::TacScriptGameClient()
+ScriptGameClient::ScriptGameClient()
 {
   mName = "Game Client";
 }
-void TacScriptGameClient::Update( float seconds, TacErrors& errors )
+void ScriptGameClient::Update( float seconds, Errors& errors )
 {
-  auto shell = TacShell::Instance;
+  auto shell = Shell::Instance;
   TAC_TIMELINE_BEGIN;
 
-  auto scriptMatchmaker = new TacScriptMatchmaker();
+  auto scriptMatchmaker = new ScriptMatchmaker();
   mScriptRoot->AddChild( scriptMatchmaker );
 
-  auto scriptSplash = new TacScriptSplash();
+  auto scriptSplash = new ScriptSplash();
   mScriptRoot->AddChild( scriptSplash );
 
   TAC_TIMELINE_KEYFRAME;
@@ -92,27 +96,27 @@ void TacScriptGameClient::Update( float seconds, TacErrors& errors )
   return;
   TAC_TIMELINE_END;
 }
-void TacScriptGameClient::DebugImgui( TacErrors& errors )
+void ScriptGameClient::DebugImgui( Errors& errors )
 {
 }
 
-TacScriptSplash::TacScriptSplash()
+ScriptSplash::ScriptSplash()
 {
   mName = "Splash";
   mFullyVisibleSec = 1.5f;
   mFadeSecTotal = 0.5f;
   mSkipSplashScreen = false;
 }
-TacScriptSplash::~TacScriptSplash()
+ScriptSplash::~ScriptSplash()
 {
-  //mScriptRoot->AddChild( new TacScriptMainMenu() );
-  mScriptRoot->AddChild( new TacScriptMainMenu2() );
+  //mScriptRoot->AddChild( new ScriptMainMenu() );
+  mScriptRoot->AddChild( new ScriptMainMenu2() );
 }
-void TacScriptSplash::Update( float seconds, TacErrors& errors )
+void ScriptSplash::Update( float seconds, Errors& errors )
 {
-  TacGhost* ghost = mScriptRoot->mGhost;
-  TacShell* shell = TacShell::Instance;
-  //TacUIRoot* uiRoot = ghost->mUIRoot;
+  Ghost* ghost = mScriptRoot->mGhost;
+  Shell* shell = Shell::Instance;
+  //UIRoot* uiRoot = ghost->mUIRoot;
 
 
   TAC_TIMELINE_BEGIN;
@@ -120,19 +124,19 @@ void TacScriptSplash::Update( float seconds, TacErrors& errors )
   //auto ogroot = uiRoot->mHierarchyRoot;
   //ogroot->mDebugName = "og root";
 
-  //auto child1 = ogroot->Split( TacUISplit::Before, TacUILayoutType::Vertical );
+  //auto child1 = ogroot->Split( UISplit::Before, UILayoutType::Vertical );
   //child1->mDebugName = "child1";
 
-  //auto child2 =ogroot->Split( TacUISplit::After, TacUILayoutType::Vertical );
+  //auto child2 =ogroot->Split( UISplit::After, UILayoutType::Vertical );
   //child2->mDebugName = "child2";
 
-  //auto child3 = ogroot->Split( TacUISplit::Before, TacUILayoutType::Horizontal );
+  //auto child3 = ogroot->Split( UISplit::Before, UILayoutType::Horizontal );
   //child3->mDebugName = "child3";
 
-  //auto child4 = ogroot->Split( TacUISplit::After, TacUILayoutType::Horizontal );
+  //auto child4 = ogroot->Split( UISplit::After, UILayoutType::Horizontal );
   //child4->mDebugName = "child4";
 
-  //auto vis = new TacUIHierarchyVisualText;
+  //auto vis = new UIHierarchyVisualText;
   //vis->mUITextData.mUtf8 = "Moachers";
   //uiRoot->mHierarchyRoot->SetVisual( vis );
   TAC_TIMELINE_KEYFRAME;
@@ -143,14 +147,14 @@ void TacScriptSplash::Update( float seconds, TacErrors& errors )
   TAC_TIMELINE_KEYFRAME;
   TAC_TIMELINE_END;
 }
-void TacScriptSplash::DebugImgui( TacErrors& errors )
+void ScriptSplash::DebugImgui( Errors& errors )
 {
   //ImGui::DragFloat( "Fully visible sec", &mFullyVisibleSec );
   //ImGui::DragFloat( "Fade sec total", &mFadeSecTotal );
   //ImGui::Checkbox( "Skip splash screen", &mSkipSplashScreen );
 }
 
-TacScriptMatchmaker::TacScriptMatchmaker()
+ScriptMatchmaker::ScriptMatchmaker()
 {
   mName = scriptMatchmakerName;
   mPrintHTTPRequest = false;
@@ -160,7 +164,7 @@ TacScriptMatchmaker::TacScriptMatchmaker()
   mPort = 0;
   mConnectionAttemptStartSeconds = 0;
 }
-void TacScriptMatchmaker::OnScriptGameConnectionClosed( TacSocket* socket )
+void ScriptMatchmaker::OnScriptGameConnectionClosed( Socket* socket )
 {
   Log( "on script game connection closed" );
   mSocket = nullptr;
@@ -168,87 +172,87 @@ void TacScriptMatchmaker::OnScriptGameConnectionClosed( TacSocket* socket )
   mLine = 0;
   mScriptRoot->OnMsg( scriptMsgDisconnect );
 }
-void TacScriptMatchmaker::OnScriptGameMessage( TacSocket* socket, void* bytes, int byteCount )
+void ScriptMatchmaker::OnScriptGameMessage( Socket* socket, void* bytes, int byteCount )
 {
   if( mLogReceivedMessages )
-    Log( TacString( ( const char* )bytes, byteCount ) );
+    Log( String( ( const char* )bytes, byteCount ) );
 }
-void TacScriptMatchmaker::PokeServer( TacErrors& errors )
+void ScriptMatchmaker::PokeServer( Errors& errors )
 {
-  TacAssert( mSocket );
+  TAC_ASSERT( mSocket );
   if( !mSocket->mTCPIsConnected )
     return;
-  auto shell = TacShell::Instance;
-  TacString s =
-    "TacScriptGameClient messsage: elapsed time is " +
-    TacFormatFrameTime( shell->mElapsedSeconds );
-  TacJson json;
+  auto shell = Shell::Instance;
+  String s =
+    "ScriptGameClient messsage: elapsed time is " +
+    FormatFrameTime( shell->mElapsedSeconds );
+  Json json;
   json[ "name" ] = "Ping";
-  TacJson& args = json[ "args" ];
-  args.mType = TacJsonType::Array;
-  args.mElements.push_back( new TacJson( s ) );
+  Json& args = json[ "args" ];
+  args.mType = JsonType::Array;
+  args.mElements.push_back( new Json( s ) );
 
-  TacString toSend = json.Stringify();
+  String toSend = json.Stringify();
   mSocket->Send( ( void* )toSend.data(), ( int )toSend.size(), errors );
 }
-void TacScriptMatchmaker::ClearServerLog( TacErrors& errors )
+void ScriptMatchmaker::ClearServerLog( Errors& errors )
 {
-  TacAssert( mSocket );
+  TAC_ASSERT( mSocket );
   if( !mSocket->mTCPIsConnected )
     return;
-  TacShell* shell = TacShell::Instance;
-  TacJson json;
+  Shell* shell = Shell::Instance;
+  Json json;
   json[ "name" ] = "clear console";
-  TacString toSend = json.Stringify();
+  String toSend = json.Stringify();
   mSocket->Send( ( void* )toSend.data(), ( int )toSend.size(), errors );
 }
-void TacScriptMatchmaker::Log( const TacString& text )
+void ScriptMatchmaker::Log( const String& text )
 {
   if( !mShouldLog )
     return;
-  auto log = TacShell::Instance->mLog;
+  auto log = Shell::Instance->mLog;
   if( !log )
     return;
-  log->Push( "TacScriptGameClient: " + text );
+  log->Push( "ScriptGameClient: " + text );
 }
-void TacScriptMatchmaker::TryConnect()
+void ScriptMatchmaker::TryConnect()
 {
   mConnectionErrors.clear();
   if( mSocket->mTCPIsConnected )
     return;
   mSocket->TCPTryConnect( mHostname, mPort, mConnectionErrors );
 }
-void TacScriptMatchmaker::Update( float seconds, TacErrors& errors )
+void ScriptMatchmaker::Update( float seconds, Errors& errors )
 {
-  TacShell* shell = TacShell::Instance;
+  Shell* shell = Shell::Instance;
   auto settings = shell->mSettings;
   TAC_TIMELINE_BEGIN;
-  mSocket = TacNet::Instance->CreateSocket( "Matchmaking socket", TacAddressFamily::IPv4, TacSocketType::TCP, errors );
+  mSocket = Net::Instance->CreateSocket( "Matchmaking socket", AddressFamily::IPv4, SocketType::TCP, errors );
   TAC_HANDLE_ERROR( errors );
 
-  auto tCPOnMessage = []( void* userData, TacSocket* socket, void* bytes, int byteCount )
+  auto tCPOnMessage = []( void* userData, Socket* socket, void* bytes, int byteCount )
   {
-    ( ( TacScriptMatchmaker* )userData )->OnScriptGameMessage( socket, bytes, byteCount );
+    ( ( ScriptMatchmaker* )userData )->OnScriptGameMessage( socket, bytes, byteCount );
   };
-  TacSocketCallbackDataMessage socketCallbackDataMessage;
+  SocketCallbackDataMessage socketCallbackDataMessage;
   socketCallbackDataMessage.mCallback = tCPOnMessage;
   socketCallbackDataMessage.mUserData = this;
   mSocket->mTCPOnMessage.push_back( socketCallbackDataMessage );
 
-  auto tcpOnConnectionClosed = []( void* userData, TacSocket* socket )
+  auto tcpOnConnectionClosed = []( void* userData, Socket* socket )
   {
-    ( ( TacScriptMatchmaker* )userData )->OnScriptGameConnectionClosed( socket );
+    ( ( ScriptMatchmaker* )userData )->OnScriptGameConnectionClosed( socket );
   };
-  TacSocketCallbackData socketCallbackData;
+  SocketCallbackData socketCallbackData;
   socketCallbackData.mCallback = tcpOnConnectionClosed;
   socketCallbackData.mUserData = this;
   mSocket->mTCPOnConnectionClosed.push_back( socketCallbackData );
 
-  TacString hostname = settings->GetString( nullptr, { "hostname" }, defaultHostname, errors );
-  mPort = ( uint16_t )settings->GetNumber( nullptr, { "port" }, ( TacJsonNumber )defaultPort, errors );
+  String hostname = settings->GetString( nullptr, { "hostname" }, defaultHostname, errors );
+  mPort = ( uint16_t )settings->GetNumber( nullptr, { "port" }, ( JsonNumber )defaultPort, errors );
 
   mConnectionAttemptStartSeconds = shell->mElapsedSeconds;
-  TacString text = "Attempting to connect to " + mHostname + ":" + TacToString( mPort );
+  String text = "Attempting to connect to " + mHostname + ":" + ToString( mPort );
   Log( text );
   TAC_TIMELINE_KEYFRAME;
   SetNextKeyDelay( 1.0f );
@@ -259,11 +263,11 @@ void TacScriptMatchmaker::Update( float seconds, TacErrors& errors )
     TryConnect();
   if( !mSocket->mTCPIsConnected )
     return;
-  TacString text = "Connected to " + mHostname + ":" + TacToString( mPort );
+  String text = "Connected to " + mHostname + ":" + ToString( mPort );
   Log( text );
   TAC_TIMELINE_KEYFRAME;
-  TacHTTPRequest httpRequest;
-  auto websocketKey = TacGenerateSecWebsocketKey();
+  HTTPRequest httpRequest;
+  auto websocketKey = GenerateSecWebsocketKey();
   httpRequest.FormatRequestWebsocket( "/game", mHostname, websocketKey );
   if( mPrintHTTPRequest )
     std::cout << httpRequest.ToString() << std::endl;
@@ -272,10 +276,10 @@ void TacScriptMatchmaker::Update( float seconds, TacErrors& errors )
   mPretendWebsocketHandshakeDone = true;
   mSocket->mRequiresWebsocketFrame = true;
   mSocket->mKeepaliveOverride.mUserData = this;
-  mSocket->mKeepaliveOverride.mCallback = []( void* userData, TacSocket* socket )
+  mSocket->mKeepaliveOverride.mCallback = []( void* userData, Socket* socket )
   {
-    auto* scriptMatchmaker = ( TacScriptMatchmaker* )userData;
-    TacErrors errors; // ???
+    auto* scriptMatchmaker = ( ScriptMatchmaker* )userData;
+    Errors errors; // ???
     scriptMatchmaker->PokeServer( errors );
   };
 
@@ -288,7 +292,7 @@ void TacScriptMatchmaker::Update( float seconds, TacErrors& errors )
   return;
   TAC_TIMELINE_END;
 }
-void TacScriptMatchmaker::DebugImgui( TacErrors& errors )
+void ScriptMatchmaker::DebugImgui( Errors& errors )
 {
   //ImGui::Checkbox( "auto-spam server", &mShouldSpamServer );
   //ImGui::Checkbox( "Log received messages", &mLogReceivedMessages );
@@ -311,100 +315,100 @@ void TacScriptMatchmaker::DebugImgui( TacErrors& errors )
   //}
 }
 
-TacScriptMainMenu::TacScriptMainMenu()
+ScriptMainMenu::ScriptMainMenu()
 {
   mName = "Main Menu";
   mCreateGraveStoryButton = true;
   mCreatePressStartButton = false;
   delete mPower;
 }
-void TacScriptMainMenu::AddCallbackConnect()
+void ScriptMainMenu::AddCallbackConnect()
 {
-  AddScriptCallback( this, []( TacScriptCallbackData* scriptCallbackData, const TacScriptMsg* scriptMsg )
+  AddScriptCallback( this, []( ScriptCallbackData* scriptCallbackData, const ScriptMsg* scriptMsg )
   {
     if( scriptMsg->mType != scriptMsgConnect )
       return;
-    auto* scriptMainMenu = ( TacScriptMainMenu* )scriptCallbackData->mUserData;
+    auto* scriptMainMenu = ( ScriptMainMenu* )scriptCallbackData->mUserData;
     scriptCallbackData->mRequestDeletion = true;
-    TacUITextData uiTextData;
+    UITextData uiTextData;
     uiTextData.mUtf8 = "Status: Connected";
     scriptMainMenu->mUITextServerConnectionStatus->SetText( uiTextData );
     scriptMainMenu->AddCallbackDisconnect();
 
-    TacUIButtonCallback buttonCallback;
+    UIButtonCallback buttonCallback;
     buttonCallback.mUserData = scriptMainMenu;
-    buttonCallback.mUserCallback = []( void* userData, TacErrors& errors )
+    buttonCallback.mUserCallback = []( void* userData, Errors& errors )
     {
-      auto* scriptMainMenu = ( TacScriptMainMenu* )userData;
-      auto* scriptMatchmaker = ( TacScriptMatchmaker* )scriptMainMenu->mScriptRoot->GetThread( scriptMatchmakerName );
+      auto* scriptMainMenu = ( ScriptMainMenu* )userData;
+      auto* scriptMatchmaker = ( ScriptMatchmaker* )scriptMainMenu->mScriptRoot->GetThread( scriptMatchmakerName );
       scriptMatchmaker->mSocket->mRequestDeletion = true;
     };
     scriptMainMenu->mUITextDisconnectFromServer->mButtonCallbacks.push_back( buttonCallback );
 
-    buttonCallback.mUserCallback = []( void* userData, TacErrors& errors )
+    buttonCallback.mUserCallback = []( void* userData, Errors& errors )
     {
-      auto* scriptMainMenu = ( TacScriptMainMenu* )userData;
-      auto* scriptMatchmaker = ( TacScriptMatchmaker* )scriptMainMenu->mScriptRoot->GetThread( scriptMatchmakerName );
+      auto* scriptMainMenu = ( ScriptMainMenu* )userData;
+      auto* scriptMatchmaker = ( ScriptMatchmaker* )scriptMainMenu->mScriptRoot->GetThread( scriptMatchmakerName );
 
-      TacJson json;
+      Json json;
       json[ "name" ] = "create room";
-      TacString toSend = json.Stringify();
-      TacSocket* socket = scriptMatchmaker->mSocket;
+      String toSend = json.Stringify();
+      Socket* socket = scriptMatchmaker->mSocket;
       socket->Send( ( void* )toSend.data(), ( int )toSend.size(), errors );
     };
     //scriptMainMenu->mUITextCreateRoom->mButtonCallbacks.push_back( buttonCallback );
 
-    for( TacUIText* uiText : {
+    for( UIText* uiText : {
       scriptMainMenu->mUITextDisconnectFromServer
       //scriptMainMenu->mUITextCreateRoom
       } )
     {
-      TacUITextData uiTextData = *uiText->GetUITextData();
+      UITextData uiTextData = *uiText->GetUITextData();
       uiTextData.mColor = colorMagenta;
       uiText->SetText( uiTextData, false );
     }
   } );
 }
-void TacScriptMainMenu::AddCallbackDisconnect()
+void ScriptMainMenu::AddCallbackDisconnect()
 {
-  AddScriptCallback( this, []( TacScriptCallbackData* scriptCallbackData, const TacScriptMsg* scriptMsg )
+  AddScriptCallback( this, []( ScriptCallbackData* scriptCallbackData, const ScriptMsg* scriptMsg )
   {
     if( scriptMsg->mType != scriptMsgDisconnect )
       return;
-    auto* scriptMainMenu = ( TacScriptMainMenu* )scriptCallbackData->mUserData;
+    auto* scriptMainMenu = ( ScriptMainMenu* )scriptCallbackData->mUserData;
     scriptCallbackData->mRequestDeletion = true;
-    TacUIText* uiText = scriptMainMenu->mUITextServerConnectionStatus;
-    TacUITextData uiTextData = *uiText->GetUITextData();
+    UIText* uiText = scriptMainMenu->mUITextServerConnectionStatus;
+    UITextData uiTextData = *uiText->GetUITextData();
     uiTextData.mUtf8 = "Status: Disconnected";
     uiText->SetText( uiTextData );
     scriptMainMenu->AddCallbackConnect();
 
 
-    for( TacUIText* uiText : {
+    for( UIText* uiText : {
       scriptMainMenu->mUITextDisconnectFromServer
       //scriptMainMenu->mUITextCreateRoom
       } )
     {
-      TacUITextData uiTextData = *uiText->GetUITextData();
+      UITextData uiTextData = *uiText->GetUITextData();
       uiTextData.mColor = colorGrey;
       uiText->SetText( uiTextData );
       uiText->mButtonCallbacks.clear();
     }
   } );
 }
-void TacScriptMainMenu::Update( float seconds, TacErrors& errors )
+void ScriptMainMenu::Update( float seconds, Errors& errors )
 {
-  TacGhost* ghost = mScriptRoot->mGhost;
-  TacShell* shell = TacShell::Instance;
-  //TacUIRoot* uiRoot = ghost->mUIRoot;
-  auto* scriptMatchmaker = ( TacScriptMatchmaker* )mScriptRoot->GetThread( scriptMatchmakerName );
-  TacServerData* serverData = ghost->mServerData;
-  TacWorld* world = serverData->mWorld;
-  TacGraphics* graphics = TacGraphics::GetSystem( world );
+  Ghost* ghost = mScriptRoot->mGhost;
+  Shell* shell = Shell::Instance;
+  //UIRoot* uiRoot = ghost->mUIRoot;
+  auto* scriptMatchmaker = ( ScriptMatchmaker* )mScriptRoot->GetThread( scriptMatchmakerName );
+  ServerData* serverData = ghost->mServerData;
+  World* world = serverData->mWorld;
+  Graphics* graphics = Graphics::GetSystem( world );
   float boxWidth = 5;
   if( false )
   {
-    //TacDebugDrawAABB debugDrawAABB = TacDebugDrawAABB::FromPosExtents( v3( 0, 0, boxWidth / 2 ), v3( 1, 1, 1 ) * boxWidth );
+    //DebugDrawAABB debugDrawAABB = DebugDrawAABB::FromPosExtents( v3( 0, 0, boxWidth / 2 ), v3( 1, 1, 1 ) * boxWidth );
     //graphics->DebugDrawAABB( debugDrawAABB );
   }
 
@@ -412,7 +416,7 @@ void TacScriptMainMenu::Update( float seconds, TacErrors& errors )
   if( !mPower )
   {
     // TODO: use the asset manager to load this shit async
-    auto memory = TacTemporaryMemoryFromFile( "assets/power.png", errors );
+    auto memory = TemporaryMemoryFromFile( "assets/power.png", errors );
     TAC_HANDLE_ERROR( errors );
 
     int x;
@@ -427,7 +431,7 @@ void TacScriptMainMenu::Update( float seconds, TacErrors& errors )
       &y,
       &previousChannelCount,
       4 );
-    OnDestruct( stbi_image_free( loaded ) );
+    TAC_ON_DESTRUCT( stbi_image_free( loaded ) );
 
     stbi_uc* l = loaded;
     for( int i = 0; i < y; ++i )
@@ -447,36 +451,36 @@ void TacScriptMainMenu::Update( float seconds, TacErrors& errors )
       std::cout << std::endl;
     }
 
-    TacImage image;
+    Image image;
     image.mData = loaded;
     image.mFormat.mElementCount = 4;
     image.mFormat.mPerElementByteCount = 1;
-    image.mFormat.mPerElementDataType = TacGraphicsType::unorm;
+    image.mFormat.mPerElementDataType = GraphicsType::unorm;
     image.mWidth = x;
     image.mHeight = y;
     image.mPitch = image.mFormat.mElementCount * image.mFormat.mPerElementByteCount * image.mWidth;
 
-    TacTextureData textureData;
-    textureData.access = TacAccess::Default;
-    textureData.binding = { TacBinding::ShaderResource };
+    TextureData textureData;
+    textureData.access = Access::Default;
+    textureData.binding = { Binding::ShaderResource };
     textureData.cpuAccess = {};
     textureData.mName = "power";
-    textureData.mStackFrame = TAC_STACK_FRAME;
+    textureData.mFrame = TAC_FRAME;
     textureData.myImage = image;
-    TacRenderer::Instance->AddTextureResource( &mPower, textureData, errors );
+    Renderer::Instance->AddTextureResource( &mPower, textureData, errors );
     TAC_HANDLE_ERROR( errors );
   }
 
   float dotPeriodSeconds = 1;
   if( !scriptMatchmaker->mPretendWebsocketHandshakeDone && mUITextServerConnectionStatus )
   {
-    TacString utf8 = "Trying to connect";
+    String utf8 = "Trying to connect";
     int maxDotCount = 3;
     double elapsedSeconds = shell->mElapsedSeconds - scriptMatchmaker->mConnectionAttemptStartSeconds;
     double partialDotSeconds = std::fmod( elapsedSeconds, ( double )( ( maxDotCount + 1 ) * dotPeriodSeconds ) );
     for( int i = 0; i < int( partialDotSeconds / dotPeriodSeconds ); ++i )
       utf8 += '.';
-    TacUITextData uiTextData;
+    UITextData uiTextData;
     uiTextData.mColor = colorText;
     uiTextData.mUtf8 = utf8;
     mUITextServerConnectionStatus->SetText( uiTextData, false );
@@ -490,8 +494,8 @@ void TacScriptMainMenu::Update( float seconds, TacErrors& errors )
     if( mPressStart != b )
     {
       mPressStart = b;
-      TacString utf8 = b ? "Press Start" : "";
-      TacUITextData uiTextData;
+      String utf8 = b ? "Press Start" : "";
+      UITextData uiTextData;
       uiTextData.mUtf8 = utf8;
       mUITextPressStart->SetText( uiTextData );
     }
@@ -504,8 +508,8 @@ void TacScriptMainMenu::Update( float seconds, TacErrors& errors )
 
 
   float menuPositionX = 200;
-  TacUIAnchorHorizontal menuAnchorHorizontal = TacUIAnchorHorizontal::Left;
-  TacUIAnchorVertical menuAnchorVertical = TacUIAnchorVertical::Center;
+  UIAnchorHorizontal menuAnchorHorizontal = UIAnchorHorizontal::Left;
+  UIAnchorVertical menuAnchorVertical = UIAnchorVertical::Center;
 
   double timelineSeconds = shell->mElapsedSeconds;
 
@@ -513,7 +517,7 @@ void TacScriptMainMenu::Update( float seconds, TacErrors& errors )
   //{
   //  if( !mCreateGraveStoryButton )
   //    return;
-  //  TacUILayout* uiMenu = uiRoot->AddMenu( "Game title layout" );
+  //  UILayout* uiMenu = uiRoot->AddMenu( "Game title layout" );
   //  uiMenu->mAnchor.mAnchorHorizontal = menuAnchorHorizontal;
   //  uiMenu->mAnchor.mAnchorVertical = menuAnchorVertical;
   //  uiMenu->mUiWidth = 0;
@@ -521,20 +525,20 @@ void TacScriptMainMenu::Update( float seconds, TacErrors& errors )
   //  //uiMenu->mPosition.x = menuPositionX;
   //  //uiMenu->mPosition.y = 200;
 
-  //  auto* uiText = uiMenu->Add< TacUIText >( "Game title text" );
-  //  TacUITextData uiTextData;
+  //  auto* uiText = uiMenu->Add< UIText >( "Game title text" );
+  //  UITextData uiTextData;
   //  uiTextData.mColor = colorText;
   //  uiTextData.mUtf8 = "GRAVE STORY";
   //  uiTextData.mFontSize = 60;
   //  uiText->SetText( uiTextData );
   //  uiText->GoNuts();
   //};
-  //mTimeline.Add( new TacTimelineOnce( timelineSeconds, createGameTitle ) );
+  //mTimeline.Add( new TimelineOnce( timelineSeconds, createGameTitle ) );
   //timelineSeconds += 0.2f;
 
   //auto createMainMenu = [ = ]()->void
   //{
-  //  TacUILayout* uiMenu = uiRoot->AddMenu( "main menu layout" );
+  //  UILayout* uiMenu = uiRoot->AddMenu( "main menu layout" );
   //  uiMenu->mAnchor.mAnchorHorizontal = menuAnchorHorizontal;
   //  uiMenu->mAnchor.mAnchorVertical = menuAnchorVertical;
   //  uiMenu->mUiWidth = 300;
@@ -546,14 +550,14 @@ void TacScriptMainMenu::Update( float seconds, TacErrors& errors )
 
   //  // Server host / port
   //  {
-  //    TacString serverDispalyName =
+  //    String serverDispalyName =
   //      scriptMatchmaker->mHostname +
-  //      TacString( ":" ) +
-  //      TacToString( scriptMatchmaker->mPort );
+  //      String( ":" ) +
+  //      ToString( scriptMatchmaker->mPort );
 
-  //    TacUIText* uiText = uiMenu->Add< TacUIText >( "server display name" );
+  //    UIText* uiText = uiMenu->Add< UIText >( "server display name" );
   //    uiText->mInitialDelaySecs = uiMenu->GetInitialDelaySeconds();
-  //    TacUITextData uiTextData;
+  //    UITextData uiTextData;
   //    uiTextData.mColor = colorText;
   //    uiTextData.mUtf8 = "Server: " + serverDispalyName;
   //    uiText->SetText( uiTextData );
@@ -561,10 +565,10 @@ void TacScriptMainMenu::Update( float seconds, TacErrors& errors )
 
   //  // server connection status
   //  {
-  //    auto* uiText = uiMenu->Add< TacUIText >( "server connection status" );
+  //    auto* uiText = uiMenu->Add< UIText >( "server connection status" );
   //    uiText->mInitialDelaySecs = uiMenu->GetInitialDelaySeconds();
   //    mUITextServerConnectionStatus = uiText;
-  //    TacUITextData uiTextData;
+  //    UITextData uiTextData;
   //    uiTextData.mColor = colorText;
   //    if( scriptMatchmaker->mPretendWebsocketHandshakeDone )
   //    {
@@ -585,41 +589,41 @@ void TacScriptMainMenu::Update( float seconds, TacErrors& errors )
   //    {
 
   //      float sideLength = 20;
-  //      TacUILayout* uiLayout = uiMenu->Add< TacUILayout >( "server autoconnect layout" );
+  //      UILayout* uiLayout = uiMenu->Add< UILayout >( "server autoconnect layout" );
   //      uiLayout->mUiWidth = sideLength;
   //      uiLayout->mHeightTarget = sideLength;
-  //      uiLayout->mUILayoutType = TacUILayoutType::Horizontal;
-  //      uiLayout->mAnchor.mAnchorHorizontal = TacUIAnchorHorizontal::Left;
-  //      uiLayout->mAnchor.mAnchorVertical = TacUIAnchorVertical::Top;
+  //      uiLayout->mUILayoutType = UILayoutType::Horizontal;
+  //      uiLayout->mAnchor.mAnchorHorizontal = UIAnchorHorizontal::Left;
+  //      uiLayout->mAnchor.mAnchorVertical = UIAnchorVertical::Top;
 
-  //      TacUILayout* parentUiLayout = uiLayout;
+  //      UILayout* parentUiLayout = uiLayout;
 
-  //      uiLayout = parentUiLayout->Add< TacUILayout >( "server autoconnect left image" );
+  //      uiLayout = parentUiLayout->Add< UILayout >( "server autoconnect left image" );
   //      uiLayout->mColor = v4( 1, 1, 0, 1 );
   //      uiLayout->mUiWidth = sideLength;
   //      uiLayout->mHeightTarget = sideLength;
-  //      uiLayout->mAnchor.mAnchorHorizontal = TacUIAnchorHorizontal::Left;
-  //      uiLayout->mAnchor.mAnchorVertical = TacUIAnchorVertical::Top;
+  //      uiLayout->mAnchor.mAnchorHorizontal = UIAnchorHorizontal::Left;
+  //      uiLayout->mAnchor.mAnchorVertical = UIAnchorVertical::Top;
 
-  //      TacUIText* uiText = parentUiLayout->Add< TacUIText >( "server autoconnect text" );
+  //      UIText* uiText = parentUiLayout->Add< UIText >( "server autoconnect text" );
   //      uiText->mInitialDelaySecs = uiMenu->GetInitialDelaySeconds();
-  //      TacUITextData uiTextData;
+  //      UITextData uiTextData;
   //      uiTextData.mUtf8 = "Server Autoconnect: On";
   //      uiTextData.mColor = colorMagenta;
-  //      TacUIButtonCallback buttonCallback;
+  //      UIButtonCallback buttonCallback;
   //      buttonCallback.mUserData = this;
-  //      buttonCallback.mUserCallback = []( void* userData, TacErrors& errors )
+  //      buttonCallback.mUserCallback = []( void* userData, Errors& errors )
   //      {
-  //        auto* scriptMainMenu = ( TacScriptMainMenu* )userData;
-  //        TacScriptRoot* scriptRoot = scriptMainMenu->mScriptRoot;
-  //        auto* scriptMatchmaker = ( TacScriptMatchmaker* )scriptRoot->GetThread( scriptMatchmakerName );
+  //        auto* scriptMainMenu = ( ScriptMainMenu* )userData;
+  //        ScriptRoot* scriptRoot = scriptMainMenu->mScriptRoot;
+  //        auto* scriptMatchmaker = ( ScriptMatchmaker* )scriptRoot->GetThread( scriptMatchmakerName );
   //        scriptMatchmaker->mTryAutoConnect = !scriptMatchmaker->mTryAutoConnect;
-  //        TacString text = "Server Autoconnect: ";
+  //        String text = "Server Autoconnect: ";
   //        if( scriptMatchmaker->mTryAutoConnect )
   //          text += "On";
   //        else
   //          text += "Off";
-  //        TacUITextData uiTextData;
+  //        UITextData uiTextData;
   //        uiTextData.mUtf8 = text;
   //        uiTextData.mColor = colorMagenta;
   //        scriptMainMenu->mUITextServerAutoconnect->SetText( uiTextData, false );
@@ -628,12 +632,12 @@ void TacScriptMainMenu::Update( float seconds, TacErrors& errors )
   //      mUITextServerAutoconnect = uiText;
   //      uiText->SetText( uiTextData );
 
-  //      uiLayout = parentUiLayout->Add< TacUILayout >( "server autoconnect right image" );
+  //      uiLayout = parentUiLayout->Add< UILayout >( "server autoconnect right image" );
   //      uiLayout->mColor = v4( 0, 1, 1, 1 );
   //      uiLayout->mUiWidth = sideLength;
   //      uiLayout->mHeightTarget = sideLength;
-  //      uiLayout->mAnchor.mAnchorHorizontal = TacUIAnchorHorizontal::Left;
-  //      uiLayout->mAnchor.mAnchorVertical = TacUIAnchorVertical::Top;
+  //      uiLayout->mAnchor.mAnchorHorizontal = UIAnchorHorizontal::Left;
+  //      uiLayout->mAnchor.mAnchorVertical = UIAnchorVertical::Top;
 
   //    }
 
@@ -643,9 +647,9 @@ void TacScriptMainMenu::Update( float seconds, TacErrors& errors )
 
   //  // disconenct from server
   //  {
-  //    auto* uiText = uiMenu->Add< TacUIText >( "disconnect from server text" );
+  //    auto* uiText = uiMenu->Add< UIText >( "disconnect from server text" );
   //    uiText->mInitialDelaySecs = uiMenu->GetInitialDelaySeconds();
-  //    TacUITextData uiTextData;
+  //    UITextData uiTextData;
   //    uiTextData.mUtf8 = "Disconnect From Server";
   //    uiTextData.mColor = colorGrey;
   //    uiText->SetText( uiTextData );
@@ -654,9 +658,9 @@ void TacScriptMainMenu::Update( float seconds, TacErrors& errors )
 
   //  // create room
   //  {
-  //    auto* uiText = uiMenu->Add< TacUIText >( "create room button" );
+  //    auto* uiText = uiMenu->Add< UIText >( "create room button" );
   //    uiText->mInitialDelaySecs = uiMenu->GetInitialDelaySeconds();
-  //    TacUITextData uiTextData;
+  //    UITextData uiTextData;
   //    uiTextData.mUtf8 = "Create Room";
   //    uiTextData.mColor = colorGrey;
   //    uiText->SetText( uiTextData );
@@ -664,17 +668,17 @@ void TacScriptMainMenu::Update( float seconds, TacErrors& errors )
 
   //  // controllers
   //  {
-  //    auto* uiText = uiMenu->Add< TacUIText >( "controllers text" );
+  //    auto* uiText = uiMenu->Add< UIText >( "controllers text" );
   //    uiText->mInitialDelaySecs = uiMenu->GetInitialDelaySeconds();
-  //    TacUITextData uiTextData;
+  //    UITextData uiTextData;
   //    uiTextData.mUtf8 = "Controllers";
   //    uiTextData.mColor = colorMagenta;
   //    uiText->SetText( uiTextData );
-  //    TacUIButtonCallback buttonCallback;
+  //    UIButtonCallback buttonCallback;
   //    buttonCallback.mUserData = this;
-  //    buttonCallback.mUserCallback = []( void* userData, TacErrors& errors )
+  //    buttonCallback.mUserCallback = []( void* userData, Errors& errors )
   //    {
-  //      auto* scriptMainMenu = ( TacScriptMainMenu* )userData;
+  //      auto* scriptMainMenu = ( ScriptMainMenu* )userData;
   //      static int ihi;
   //      std::cout << "hi" << " " << ihi++ << std::endl;
   //    };
@@ -683,17 +687,17 @@ void TacScriptMainMenu::Update( float seconds, TacErrors& errors )
 
   //  // Exit game
   //  {
-  //    auto* layout = uiMenu->Add< TacUILayout >( "exit game layout" );
-  //    layout->mUILayoutType = TacUILayoutType::Horizontal;
-  //    layout->mAnchor.mAnchorHorizontal = TacUIAnchorHorizontal::Left;
-  //    layout->mAnchor.mAnchorVertical = TacUIAnchorVertical::Top;
+  //    auto* layout = uiMenu->Add< UILayout >( "exit game layout" );
+  //    layout->mUILayoutType = UILayoutType::Horizontal;
+  //    layout->mAnchor.mAnchorHorizontal = UIAnchorHorizontal::Left;
+  //    layout->mAnchor.mAnchorVertical = UIAnchorVertical::Top;
   //    layout->mHeightTarget = 100.0f;
   //    layout->mColor = { 0, 0, 0, 0 };
   //    layout->mExpandWidth = true;
   //    float powerSize = 20;
-  //    auto* power = layout->Add< TacUILayout >( "power icon" );
-  //    power->mAnchor.mAnchorHorizontal = TacUIAnchorHorizontal::Left;
-  //    power->mAnchor.mAnchorVertical = TacUIAnchorVertical::Center;
+  //    auto* power = layout->Add< UILayout >( "power icon" );
+  //    power->mAnchor.mAnchorHorizontal = UIAnchorHorizontal::Left;
+  //    power->mAnchor.mAnchorVertical = UIAnchorVertical::Center;
   //    power->mColor = {
   //      186 / 255.0f,
   //      164 / 255.0f,
@@ -703,39 +707,39 @@ void TacScriptMainMenu::Update( float seconds, TacErrors& errors )
   //    power->mUiWidth = powerSize;
   //    power->mTexture = mPower;
 
-  //    auto* uiText = layout->Add< TacUIText >( "exit game text" );
+  //    auto* uiText = layout->Add< UIText >( "exit game text" );
   //    uiText->mInitialDelaySecs = uiMenu->GetInitialDelaySeconds();
-  //    TacUITextData uiTextData;
+  //    UITextData uiTextData;
   //    uiTextData.mUtf8 = "Exit Game";
   //    uiTextData.mColor = colorMagenta;
   //    uiText->SetText( uiTextData );
-  //    TacUIButtonCallback buttonCallback;
+  //    UIButtonCallback buttonCallback;
   //    buttonCallback.mUserData = this;
-  //    buttonCallback.mUserCallback = []( void* userData, TacErrors& errors )
+  //    buttonCallback.mUserCallback = []( void* userData, Errors& errors )
   //    {
-  //      TacOS::Instance->mShouldStopRunning = true;
+  //      OS::Instance->mShouldStopRunning = true;
   //    };
   //    uiText->mButtonCallbacks.push_back( buttonCallback );
   //  }
 
   //  mMenu = uiMenu;
   //};
-  //mTimeline.Add( new TacTimelineOnce( timelineSeconds, createMainMenu ) );
+  //mTimeline.Add( new TimelineOnce( timelineSeconds, createMainMenu ) );
   //timelineSeconds += 0.2f;
 
   //auto createPressStart = [ = ]()
   //{
   //  if( !mCreatePressStartButton )
   //    return;
-  //  TacUILayout* uiMenu = uiRoot->AddMenu( "press start layout" );
-  //  uiMenu->mAnchor.mAnchorHorizontal = TacUIAnchorHorizontal::Right;
-  //  uiMenu->mAnchor.mAnchorVertical = TacUIAnchorVertical::Bottom;
+  //  UILayout* uiMenu = uiRoot->AddMenu( "press start layout" );
+  //  uiMenu->mAnchor.mAnchorHorizontal = UIAnchorHorizontal::Right;
+  //  uiMenu->mAnchor.mAnchorVertical = UIAnchorVertical::Bottom;
   //  //uiMenu->mPosition = { -100, 100 };
   //  uiMenu->mColor = {};
-  //  auto* uiText = uiMenu->Add< TacUIText >( "press start text" );
+  //  auto* uiText = uiMenu->Add< UIText >( "press start text" );
   //  mUITextPressStart = uiText;
   //};
-  //mTimeline.Add( new TacTimelineOnce( timelineSeconds, createPressStart ) );
+  //mTimeline.Add( new TimelineOnce( timelineSeconds, createPressStart ) );
   //timelineSeconds += 0.2f;
 
 
@@ -743,41 +747,41 @@ void TacScriptMainMenu::Update( float seconds, TacErrors& errors )
   TAC_TIMELINE_KEYFRAME;
 
 
-  mTimeline.Update( TacShell::Instance->mElapsedSeconds, errors );
+  mTimeline.Update( Shell::Instance->mElapsedSeconds, errors );
   TAC_HANDLE_ERROR( errors );
 
   return;
 
   TAC_TIMELINE_END;
 }
-void TacScriptMainMenu::DebugImgui( TacErrors& errors )
+void ScriptMainMenu::DebugImgui( Errors& errors )
 {
 
 }
 
-TacTimelineAction::~TacTimelineAction() = default;
+TimelineAction::~TimelineAction() = default;
 
-void TacTimelineAction::Begin()
+void TimelineAction::Begin()
 {
 
 }
-void TacTimelineAction::End()
+void TimelineAction::End()
 {
 
 }
-void TacTimelineAction::Update( float percent )
+void TimelineAction::Update( float percent )
 {
 
 }
 
-TacTimeline::~TacTimeline()
+Timeline::~Timeline()
 {
-  for( TacTimelineAction* timelineAction : mTimelineActions )
+  for( TimelineAction* timelineAction : mTimelineActions )
     delete timelineAction;
 }
-void TacTimeline::Update( double time, TacErrors& errors )
+void Timeline::Update( double time, Errors& errors )
 {
-  for( TacTimelineAction* timelineAction : mTimelineActions )
+  for( TimelineAction* timelineAction : mTimelineActions )
   {
     if( time < timelineAction->mTimeBegin )
       continue;
@@ -791,7 +795,7 @@ void TacTimeline::Update( double time, TacErrors& errors )
     }
 
     double percent = ( time - timelineAction->mTimeBegin ) / ( timelineAction->mTimeEnd - timelineAction->mTimeBegin );
-    percent = TacSaturate( percent );
+    percent = Saturate( percent );
     timelineAction->Update( ( float )percent );
 
     if( time > timelineAction->mTimeEnd )
@@ -801,106 +805,106 @@ void TacTimeline::Update( double time, TacErrors& errors )
     }
   }
 }
-void TacTimeline::Add( TacTimelineAction* timelineAction )
+void Timeline::Add( TimelineAction* timelineAction )
 {
   mTimelineActions.push_back( timelineAction );
 }
 
 
 
-struct TacConnectToServerJob : public TacJob
+struct ConnectToServerJob : public Job
 {
   void Execute() override
   {
     mMatchmaker->TryConnect();
     if( mMatchmaker->mConnectionErrors )
     {
-      SetStatus( TacAsyncLoadStatus::ThreadFailed );
+      SetStatus( AsyncLoadStatus::ThreadFailed );
       mErrors = mMatchmaker->mConnectionErrors;
     }
   }
-  TacScriptMatchmaker* mMatchmaker;
+  ScriptMatchmaker* mMatchmaker;
 };
 
-TacScriptMainMenu2::TacScriptMainMenu2()
+ScriptMainMenu2::ScriptMainMenu2()
 {
   mName = "Main Menu 2";
 }
-TacScriptMainMenu2::~TacScriptMainMenu2()
+ScriptMainMenu2::~ScriptMainMenu2()
 {
   static int j;
   ++j;
 }
-void TacScriptMainMenu2::RenderMainMenu()
+void ScriptMainMenu2::RenderMainMenu()
 {
-  auto* scriptMatchmaker = ( TacScriptMatchmaker* )mScriptRoot->GetThread( scriptMatchmakerName );
+  auto* scriptMatchmaker = ( ScriptMatchmaker* )mScriptRoot->GetThread( scriptMatchmakerName );
 
-  TacImage* image = &mScriptRoot->mGhost->mRenderView->mFramebuffer->myImage;
+  Image* image = &mScriptRoot->mGhost->mRenderView->mFramebuffer->myImage;
   v2 mainMenuSize = { 400, 200 };
   v2 mainMenuPos = { 100, ( image->mHeight - mainMenuSize.y ) / 2 };
 
-  TacImGuiSetNextWindowPos( mainMenuPos );
-  TacImGuiBegin( "Main Menu", mainMenuSize );
+  ImGuiSetNextWindowPos( mainMenuPos );
+  ImGuiBegin( "Main Menu", mainMenuSize );
 
-  TacImGuiPushFontSize( 70 );
-  TacImGuiText( "Gravestory" );
-  TacImGuiPopFontSize();
+  ImGuiPushFontSize( 70 );
+  ImGuiText( "Gravestory" );
+  ImGuiPopFontSize();
 
   if( scriptMatchmaker->mSocket->mTCPIsConnected )
   {
-    TacString serverDispalyName =
+    String serverDispalyName =
       scriptMatchmaker->mHostname +
-      TacString( ":" ) +
-      TacToString( scriptMatchmaker->mPort );
-    TacImGuiText( "Connected to server: " + serverDispalyName );
-    if( TacImGuiButton( "Disconnect from server" ) )
+      String( ":" ) +
+      ToString( scriptMatchmaker->mPort );
+    ImGuiText( "Connected to server: " + serverDispalyName );
+    if( ImGuiButton( "Disconnect from server" ) )
       scriptMatchmaker->mSocket->mRequestDeletion = true;
-    if( TacImGuiButton( "Create room" ) )
+    if( ImGuiButton( "Create room" ) )
     {
-      TacJson json;
+      Json json;
       json[ "name" ] = "create room";
-      TacString toSend = json.Stringify();
-      TacSocket* socket = scriptMatchmaker->mSocket;
+      String toSend = json.Stringify();
+      Socket* socket = scriptMatchmaker->mSocket;
       socket->Send( ( void* )toSend.data(), ( int )toSend.size(), scriptMatchmaker->mConnectionErrors );
     }
   }
   else
   {
-    TacImGuiInputText( "Hostname", scriptMatchmaker->mHostname );
-    TacString portString = TacToString( scriptMatchmaker->mPort );
-    if( TacImGuiInputText( "Port", portString ) )
-      scriptMatchmaker->mPort = TacClamp( std::atoi( portString.c_str() ), 0, 65535 );
-    TacAsyncLoadStatus status = mConnectToServerJob->GetStatus();
-    if( status == TacAsyncLoadStatus::ThreadQueued ||
-      status == TacAsyncLoadStatus::ThreadRunning )
+    ImGuiInputText( "Hostname", scriptMatchmaker->mHostname );
+    String portString = ToString( scriptMatchmaker->mPort );
+    if( ImGuiInputText( "Port", portString ) )
+      scriptMatchmaker->mPort = Clamp( std::atoi( portString.c_str() ), 0, 65535 );
+    AsyncLoadStatus status = mConnectToServerJob->GetStatus();
+    if( status == AsyncLoadStatus::ThreadQueued ||
+      status == AsyncLoadStatus::ThreadRunning )
     {
-      TacString text = "Connecting to server";
-      for( int i = 0; i < ( int )TacShell::Instance->mElapsedSeconds % 4; ++i )
+      String text = "Connecting to server";
+      for( int i = 0; i < ( int )Shell::Instance->mElapsedSeconds % 4; ++i )
         text += ".";
-      TacImGuiText( text );
+      ImGuiText( text );
     }
     else
     {
-      if( status == TacAsyncLoadStatus::ThreadFailed )
-        TacImGuiText( mConnectToServerJob->mErrors.mMessage );
-      if( TacImGuiButton( "Connect to server" ) )
+      if( status == AsyncLoadStatus::ThreadFailed )
+        ImGuiText( mConnectToServerJob->mErrors.mMessage );
+      if( ImGuiButton( "Connect to server" ) )
       {
-        TacJobQueue::Instance->Push( mConnectToServerJob );
+        JobQueue::Instance->Push( mConnectToServerJob );
       }
     }
   }
-  if( TacImGuiButton( "Exit Game" ) )
+  if( ImGuiButton( "Exit Game" ) )
   {
-    TacOS::Instance->mShouldStopRunning = true;
+    OS::Instance->mShouldStopRunning = true;
   }
-  TacImGuiEnd();
+  ImGuiEnd();
 }
-void TacScriptMainMenu2::Update( float seconds, TacErrors& errors )
+void ScriptMainMenu2::Update( float seconds, Errors& errors )
 {
   TAC_TIMELINE_BEGIN;
 
-  auto job = new TacConnectToServerJob;
-  job->mMatchmaker = ( TacScriptMatchmaker* )mScriptRoot->GetThread( scriptMatchmakerName );
+  auto job = new ConnectToServerJob;
+  job->mMatchmaker = ( ScriptMatchmaker* )mScriptRoot->GetThread( scriptMatchmakerName );
   mConnectToServerJob = job;
 
 
@@ -913,4 +917,5 @@ void TacScriptMainMenu2::Update( float seconds, TacErrors& errors )
   RenderMainMenu();
   return;// prevent IsComplete
   TAC_TIMELINE_END;
+}
 }

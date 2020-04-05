@@ -1,9 +1,9 @@
 
 # TODO:
 #   since we're compiling this into a static library now,
-#   we no longer need the TacCommon global variable
+#   we no longer need the Common global variable
 
-set(TacCommon 
+set(Common 
 ${CMAKE_CURRENT_SOURCE_DIR}/assetmanagers/tacModelAssetManager.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/assetmanagers/tacModelAssetManager.h
 ${CMAKE_CURRENT_SOURCE_DIR}/assetmanagers/tacTextureAssetManager.cpp
@@ -97,6 +97,6 @@ ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/stb_truetype.h
 CACHE INTERNAL ""
 )
 
-# Create a library named TacCommonLibrary
-add_library( "TacCommonLibrary" ${TacCommon} )
+# Create a library named CommonLibrary
+add_library( "CommonLibrary" ${Common} )
 

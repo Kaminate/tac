@@ -1,27 +1,31 @@
-#include "common/tackeyboardinput.h"
-#include "common/tacAlgorithm.h"
-#include "shell/windows/tacWindowsMouseEdge.h"
-#include "shell/windows/tacWindowsApp2.h"
+#include "src/common/tacKeyboardinput.h"
+#include "src/common/tacAlgorithm.h"
+#include "src/shell/windows/tacWindowsMouseEdge.h"
+#include "src/shell/windows/tacWindowsApp2.h"
+
+namespace Tac
+{
+
 
 // enum classes amiright
-static void operator |= ( TacCursorDir& lhs, TacCursorDir rhs )
+static void operator |= ( CursorDir& lhs, CursorDir rhs )
 {
-  lhs = ( TacCursorDir )( ( TacCursorDirType )lhs | ( TacCursorDirType )rhs );
+  lhs = ( CursorDir )( ( CursorDirType )lhs | ( CursorDirType )rhs );
 }
 
-TacString ToString( TacCursorDir cursorType )
+String ToString( CursorDir cursorType )
 {
   if( !cursorType )
     return "Default";
-  TacString result;
-  if( cursorType & TacCursorDir::N ) result += "N";
-  if( cursorType & TacCursorDir::W ) result += "W";
-  if( cursorType & TacCursorDir::S ) result += "S";
-  if( cursorType & TacCursorDir::E ) result += "E";
+  String result;
+  if( cursorType & CursorDir::N ) result += "N";
+  if( cursorType & CursorDir::W ) result += "W";
+  if( cursorType & CursorDir::S ) result += "S";
+  if( cursorType & CursorDir::E ) result += "E";
   return result;
 }
 
-TacWin32Cursors::TacWin32Cursors()
+Win32Cursors::Win32Cursors()
 {
   cursorArrow = LoadCursor( NULL, IDC_ARROW );
   cursorArrowNS = LoadCursor( NULL, IDC_SIZENS );
@@ -30,19 +34,19 @@ TacWin32Cursors::TacWin32Cursors()
   cursorArrowNW_SE = LoadCursor( NULL, IDC_SIZENWSE );
 }
 
-HCURSOR TacWin32Cursors::GetCursor( TacCursorDir cursorDir )
+HCURSOR Win32Cursors::GetCursor( CursorDir cursorDir )
 {
   // switch by the integral type cuz of the bit-twiddling
-  switch( ( TacCursorDirType )cursorDir )
+  switch( ( CursorDirType )cursorDir )
   {
-  case TacCursorDir::N: return cursorArrowNS;
-  case TacCursorDir::W: return cursorArrowWE;
-  case TacCursorDir::S: return cursorArrowNS;
-  case TacCursorDir::E: return cursorArrowWE;
-  case TacCursorDir::N | TacCursorDir::E: // fallthrough
-  case TacCursorDir::S | TacCursorDir::W: return cursorArrowNE_SW;
-  case TacCursorDir::N | TacCursorDir::W: // fallthrough
-  case TacCursorDir::S | TacCursorDir::E: return cursorArrowNW_SE;
+  case CursorDir::N: return cursorArrowNS;
+  case CursorDir::W: return cursorArrowWE;
+  case CursorDir::S: return cursorArrowNS;
+  case CursorDir::E: return cursorArrowWE;
+  case CursorDir::N | CursorDir::E: // fallthrough
+  case CursorDir::S | CursorDir::W: return cursorArrowNE_SW;
+  case CursorDir::N | CursorDir::W: // fallthrough
+  case CursorDir::S | CursorDir::E: return cursorArrowNW_SE;
   default: return cursorArrow;
   }
 }
@@ -54,7 +58,7 @@ BOOL enumfunc( HWND hwndchild, LPARAM userdata )
   return TRUE; // to continue enumerating
 }
 
-TacWin32MouseEdgeHandler::TacWin32MouseEdgeHandler()
+Win32MouseEdgeHandler::Win32MouseEdgeHandler()
 {
   edgeDistResizePx = 7;
   edgeDistMovePx = edgeDistResizePx + 6;
@@ -63,18 +67,18 @@ TacWin32MouseEdgeHandler::TacWin32MouseEdgeHandler()
   // but the top bar that you can move is a fat border.
   // The resize border sits on top of the move border, so if it were the bigger border it would
   // completely obscure the move border and youd never be able to move your window.
-  TacAssert( edgeDistMovePx > edgeDistResizePx );
+  TAC_ASSERT( edgeDistMovePx > edgeDistResizePx );
 }
-TacWin32MouseEdgeHandler::~TacWin32MouseEdgeHandler()
+Win32MouseEdgeHandler::~Win32MouseEdgeHandler()
 {
   delete mHandler;
 }
-void TacWin32MouseEdgeHandler::Update( TacWin32DesktopWindow* window )
+void Win32MouseEdgeHandler::Update( Win32DesktopWindow* window )
 {
   if( mHandler )
   {
     mHandler->Update();
-    if( !TacKeyboardInput::Instance->IsKeyDown( TacKey::MouseLeft ) )
+    if( !KeyboardInput::Instance->IsKeyDown( Key::MouseLeft ) )
     {
       delete mHandler;
       mHandler = nullptr;
@@ -98,18 +102,18 @@ void TacWin32MouseEdgeHandler::Update( TacWin32DesktopWindow* window )
     cursorPos.y < windowRect.top )
     return;
 
-  TacCursorDir cursorLock = {};
-  if( cursorPos.x < windowRect.left + edgeDistResizePx ) cursorLock |= TacCursorDir::E;
-  if( cursorPos.x > windowRect.right - edgeDistResizePx ) cursorLock |= TacCursorDir::W;
-  if( cursorPos.y > windowRect.bottom - edgeDistResizePx ) cursorLock |= TacCursorDir::N;
-  if( cursorPos.y < windowRect.top + edgeDistResizePx ) cursorLock |= TacCursorDir::S;
+  CursorDir cursorLock = {};
+  if( cursorPos.x < windowRect.left + edgeDistResizePx ) cursorLock |= CursorDir::E;
+  if( cursorPos.x > windowRect.right - edgeDistResizePx ) cursorLock |= CursorDir::W;
+  if( cursorPos.y > windowRect.bottom - edgeDistResizePx ) cursorLock |= CursorDir::N;
+  if( cursorPos.y < windowRect.top + edgeDistResizePx ) cursorLock |= CursorDir::S;
   if( mCursorLock != cursorLock )
   {
     HCURSOR cursor = mCursors->GetCursor( cursorLock );
     SetCursor( cursor );
     SetCursorLock( cursorLock );
   }
-  if( TacKeyboardInput::Instance->IsKeyJustDown( TacKey::MouseLeft ) )
+  if( KeyboardInput::Instance->IsKeyJustDown( Key::MouseLeft ) )
   {
     if( cursorLock )
       mHandler = new ResizeHandler();
@@ -126,11 +130,11 @@ void TacWin32MouseEdgeHandler::Update( TacWin32DesktopWindow* window )
   }
 
 }
-void TacWin32MouseEdgeHandler::ResetCursorLock()
+void Win32MouseEdgeHandler::ResetCursorLock()
 {
   SetCursorLock( {} );
 }
-void TacWin32MouseEdgeHandler::SetCursorLock( TacCursorDir cursorDir )
+void Win32MouseEdgeHandler::SetCursorLock( CursorDir cursorDir )
 {
   bool verbose = false;
   if( verbose )
@@ -139,24 +143,24 @@ void TacWin32MouseEdgeHandler::SetCursorLock( TacCursorDir cursorDir )
   }
   mCursorLock = cursorDir;
 }
-void TacWin32MouseEdgeHandler::ResizeHandler::Update()
+void Win32MouseEdgeHandler::ResizeHandler::Update()
 {
   POINT cursorPos;
   GetCursorPos( &cursorPos );
   LONG dx = cursorPos.x - mHandler->mCursorPositionOnClick.x;
   LONG dy = cursorPos.y - mHandler->mCursorPositionOnClick.y;
   RECT rect = mHandler->mWindowRectOnClick;
-  if( mHandler->mCursorLock & TacCursorDir::N ) rect.bottom += dy;
-  if( mHandler->mCursorLock & TacCursorDir::S ) rect.top += dy;
-  if( mHandler->mCursorLock & TacCursorDir::E ) rect.left += dx;
-  if( mHandler->mCursorLock & TacCursorDir::W ) rect.right += dx;
+  if( mHandler->mCursorLock & CursorDir::N ) rect.bottom += dy;
+  if( mHandler->mCursorLock & CursorDir::S ) rect.top += dy;
+  if( mHandler->mCursorLock & CursorDir::E ) rect.left += dx;
+  if( mHandler->mCursorLock & CursorDir::W ) rect.right += dx;
   int x = rect.left;
   int y = rect.top;
   int w = rect.right - rect.left;
   int h = rect.bottom - rect.top;
   MoveWindow( mHwnd, x, y, w, h, TRUE );
 }
-void TacWin32MouseEdgeHandler::MoveHandler::Update()
+void Win32MouseEdgeHandler::MoveHandler::Update()
 {
   POINT cursorPos;
   GetCursorPos( &cursorPos );
@@ -170,3 +174,4 @@ void TacWin32MouseEdgeHandler::MoveHandler::Update()
 
 
 
+}

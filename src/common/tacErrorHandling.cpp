@@ -1,60 +1,64 @@
-#include "tacErrorHandling.h"
+#include "src/common/tacErrorHandling.h"
 
-void TacErrors::operator=( const TacStringView& message )
+namespace Tac
+{
+
+void Errors::operator=( const StringView& message )
 {
   mMessage = message;
 }
-void TacErrors::operator+=( const TacStringView& message )
+void Errors::operator+=( const StringView& message )
 {
   mMessage += message;
 }
-TacString TacErrors::ToString() const
+String Errors::ToString() const
 {
-  TacString result;
+  String result;
   result += mMessage + "\n";
-  for(const TacStackFrame& frame : mStackFrames)
+  for(const Frame& frame : mFrames)
     result += frame.ToString() + "\n";
   return result;
 }
-bool TacErrors::size() const
+bool Errors::size() const
 {
   return !mMessage.empty();
 }
-bool TacErrors::empty() const
+bool Errors::empty() const
 {
   return mMessage.empty();
 }
-void TacErrors::clear()
+void Errors::clear()
 {
   mMessage.clear();
-  mStackFrames.clear();
+  mFrames.clear();
 }
-//void TacErrors::Push( TacString message )
+//void Errors::Push( String message )
 //{
 //  mMessage += message;
 //}
-//void TacErrors::Push( TacString message, TacStackFrame stackFrame )
+//void Errors::Push( String message, Frame frame )
 //{
 //  Push( message );
-//  Push( stackFrame );
+//  Push( frame );
 //}
-//void TacErrors::Push( TacStackFrame stackFrame )
+//void Errors::Push( Frame frame )
 //{
-//  TacAssert( size() );
+//  Assert( size() );
 //}
-void TacErrors::Append( const TacStackFrame& stackFrame )
+void Errors::Append( const Frame& frame )
 {
-  TacAssert( size() );
-  mStackFrames.push_back( stackFrame );
+  TAC_ASSERT( size() );
+  mFrames.push_back( frame );
 }
-void TacErrors::Append( const TacStringView& message )
+void Errors::Append( const StringView& message )
 {
-  TacAssert( size() );
+  TAC_ASSERT( size() );
   mMessage += message;
 }
 
-TacErrors::operator bool() const
+Errors::operator bool() const
 {
   return !mMessage.empty();
 }
 
+}

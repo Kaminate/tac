@@ -1,31 +1,32 @@
 #pragma once
 
-//#include "common/tacUtility.h"
-//#include "common/tacShell.h"
-//#include "common/tacErrorHandling.h"
-//#include "common/tacDesktopWindow.h"
-#include "common/tacString.h"
-#include "common/containers/tacVector.h"
+#include "src/common/tacString.h"
+#include "src/common/containers/tacVector.h"
+
+namespace Tac
+{
+
 
 struct WindowCreationData
 {
-  TacString mWindowName;
+  String mWindowName;
   int mWidth;
   int mHeight;
   int mX;
   int mY;
 };
-struct TacDesktopWindowManager
+struct DesktopWindowManager
 {
-  TacDesktopWindowManager();
-  static TacDesktopWindowManager* Instance;
+  DesktopWindowManager();
+  static DesktopWindowManager* Instance;
   void SetWindowCreationData(
-    const TacStringView& windowName,
+    const StringView& windowName,
     int width,
     int height,
     int x,
     int y );
-  WindowCreationData* FindWindowCreationData( const TacStringView& windowName );
-  TacVector< WindowCreationData > mWindowCreationData;
+  WindowCreationData* FindWindowCreationData( const StringView& windowName );
+  Vector< WindowCreationData > mWindowCreationData;
 };
 
+}

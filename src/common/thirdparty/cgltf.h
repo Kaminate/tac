@@ -20,7 +20,7 @@
  * `cgltf_free()` on the created `cgltf_data*` variable.
  * Note that contents of external files for buffers and images are not
  * automatically loaded. You'll need to read these files yourself using
- * URIs in the `cgltf_data` structure.
+ * URIs in the `cgltf_data` struct Ure.
  *
  * `cgltf_options` is the struct passed to `cgltf_parse()` to control
  * parts of the parsing process. You can use it to force the file type

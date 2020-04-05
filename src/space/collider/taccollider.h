@@ -1,29 +1,32 @@
+
 #pragma once
-#include "common/math/tacVector3.h"
-#include "taccomponent.h"
-#include "common/tacPreprocessor.h"
+#include "src/common/math/tacVector3.h"
+#include "src/common/tacPreprocessor.h"
+#include "src/space/tacComponent.h"
 
-// This is an upright capsule
-struct TacCollider : public TacComponent
+namespace Tac
 {
-  static void TacSpaceInitPhysicsCollider();
-  static TacCollider* GetCollider( TacEntity* );
-  TacComponentRegistryEntry* GetEntry() override;
-  static TacComponentRegistryEntry* ColliderComponentRegistryEntry;
+// This is an upright capsule
+struct Collider : public Component
+{
+  static void SpaceInitPhysicsCollider();
+  static Collider* GetCollider( Entity* );
+  ComponentRegistryEntry* GetEntry() override;
+  static ComponentRegistryEntry* ColliderComponentRegistryEntry;
 
-  //TacComponentRegistryEntryIndex GetComponentType() override { return TacComponentRegistryEntryIndex::Collider; }
+  //ComponentRegistryEntryIndex GetComponentType() override { return ComponentRegistryEntryIndex::Collider; }
   v3 mVelocity = {};
   float mRadius = 0.5f;
   float mTotalHeight = 2.0f;
 };
 
-const TacVector< TacNetworkBit > TacColliderBits = [](){
-  TacCollider collider;
+const Vector< NetworkBit > ColliderBits = [](){
+  Collider collider;
   auto colliderAddress = ( char* )&collider;
   auto offsetVelocity = int( ( char* )&collider.mVelocity - colliderAddress );
   auto offsetRadius = int( ( char* )&collider.mRadius - colliderAddress );
   auto offsetTotalHeight = int( ( char* )&collider.mTotalHeight - colliderAddress );
-  TacVector< TacNetworkBit > result = 
+  Vector< NetworkBit > result = 
   {
     { "mVelocity", offsetVelocity, sizeof( float ), 3 },
     { "mRadius", offsetRadius, sizeof( float ), 1 },
@@ -31,4 +34,7 @@ const TacVector< TacNetworkBit > TacColliderBits = [](){
   };
   return result;
 }();
+
+
+}
 

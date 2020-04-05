@@ -1,14 +1,19 @@
-#include "tacsystem.h"
+#include "src/space/tacSystem.h"
 
-TacSystemRegistry* TacSystemRegistry::Instance()
+namespace Tac
 {
-  static TacSystemRegistry systemRegistry;
+
+
+SystemRegistry* SystemRegistry::Instance()
+{
+  static SystemRegistry systemRegistry;
   return &systemRegistry;
 }
-TacSystemRegistryEntry* TacSystemRegistry::RegisterNewEntry()
+SystemRegistryEntry* SystemRegistry::RegisterNewEntry()
 {
-  auto entry = new TacSystemRegistryEntry;
+  auto entry = new SystemRegistryEntry;
   entry->mIndex = mEntries.size();
   mEntries.push_back( entry );
   return entry;
+}
 }

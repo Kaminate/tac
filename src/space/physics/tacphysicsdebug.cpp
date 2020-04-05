@@ -1,11 +1,16 @@
-#include "space/physics/tacphysics.h"
-#include "common/graphics/imgui/tacImGui.h"
+#include "src/space/physics/tacphysics.h"
+#include "src/common/graphics/imgui/tacImGui.h"
 
-void TacPhysicsDebugImgui( TacPhysics* physics )
+namespace Tac
 {
-  TacImGuiText( "physics stuff" );
-}
-void TacPhysicsDebugImgui( TacSystem* system )
+void PhysicsDebugImgui( Physics* physics )
 {
-  TacPhysicsDebugImgui( ( TacPhysics* )system );
+  ImGuiText( "physics stuff" );
 }
+void PhysicsDebugImgui( System* system )
+{
+  PhysicsDebugImgui( ( Physics* )system );
+}
+
+}
+

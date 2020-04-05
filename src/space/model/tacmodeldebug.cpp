@@ -1,51 +1,54 @@
-#include "common/graphics/imgui/tacImGui.h"
-#include "common/tacPreprocessor.h"
-#include "common/tacErrorHandling.h"
-#include "common/tacOS.h"
-#include "common/tacUtility.h"
-#include "space/model/tacmodel.h"
 
+#include "src/common/graphics/imgui/tacImGui.h"
+#include "src/common/tacPreprocessor.h"
+#include "src/common/tacErrorHandling.h"
+#include "src/common/tacOS.h"
+#include "src/common/tacUtility.h"
+#include "src/space/model/tacModel.h"
 
-void TacModelDebugImguiChangeModel( TacModel* model )
+namespace Tac
 {
-  if( TacImGuiCollapsingHeader( "Change model" ) )
+
+void ModelDebugImguiChangeModel( Model* model )
+{
+  if( ImGuiCollapsingHeader( "Change model" ) )
   {
-    TacImGuiIndent();
-    OnDestruct( TacImGuiUnindent() );
+    ImGuiIndent();
+    TAC_ON_DESTRUCT( ImGuiUnindent() );
     static bool firsttime;
-    static TacVector< TacString > gltf_filepaths;
-    static TacErrors getfilesErrors;
+    static Vector< String > gltf_filepaths;
+    static Errors getfilesErrors;
     if( !firsttime )
     {
       firsttime = true;
-      TacVector< TacString > allfiles;
-      TacOS::Instance->GetDirFilesRecursive( allfiles, "assets", getfilesErrors );
-      for( TacString file : allfiles )
-        if( TacEndsWith( TacToLower( file ), ".gltf" ) )
+      Vector< String > allfiles;
+      OS::Instance->GetDirFilesRecursive( allfiles, "assets", getfilesErrors );
+      for( String file : allfiles )
+        if( EndsWith( ToLower( file ), ".gltf" ) )
           gltf_filepaths.push_back( file );
     }
 
-    for( TacString filepath : gltf_filepaths )
+    for( String filepath : gltf_filepaths )
     {
-      if( TacImGuiButton( filepath ) )
+      if( ImGuiButton( filepath ) )
       {
         model->mGLTFPath = filepath;
         model->mesh = nullptr;
       }
     }
   }
-  TacImGuiInputText( "Model", model->mGLTFPath );
+  ImGuiInputText( "Model", model->mGLTFPath );
 
 
   //auto assetManager = mEntity->mWorld->mGameInterface->mAssetManager;
-  //if( mGeometryUUID == TacNullGeometryUUID )
+  //if( mGeometryUUID == NullGeometryUUID )
   //{
   //  ImGui::Text( "Geometry: none" );
   //}
   //else
   //{
 
-  //  auto stuff = ( TacStuff* )mEntity->GetComponent( TacComponentRegistryEntryIndex::Stuff );
+  //  auto stuff = ( Stuff* )mEntity->GetComponent( ComponentRegistryEntryIndex::Stuff );
 
   //  ImGui::Text( "Model path: %s", assetManager->GetGeometryPath( mGeometryUUID ).c_str() );
   //  auto geometry = assetManager->GetGeometry( mGeometryUUID );
@@ -67,7 +70,7 @@ void TacModelDebugImguiChangeModel( TacModel* model )
   //        ImGui::SameLine();
   //    }
 
-  //    TacSphere sphere = geometry->mSphere;
+  //    Sphere sphere = geometry->mSphere;
   //    sphere.mCenter += stuff->mPosition;
 
   //    ImGui::DragFloat3( "Sphere center", &sphere.mCenter[ 0 ] );
@@ -92,10 +95,10 @@ void TacModelDebugImguiChangeModel( TacModel* model )
   //}
 }
 
-void TacModelDebugImguiChangeTexture( TacModel* model )
+void ModelDebugImguiChangeTexture( Model* model )
 {
   //auto assetManager = mEntity->mWorld->mGameInterface->mAssetManager;
-  //if( mTextureUUID == TacNullTextureUUID )
+  //if( mTextureUUID == NullTextureUUID )
   //{
   //  ImGui::Text( "Texture: none" );
   //}
@@ -110,7 +113,7 @@ void TacModelDebugImguiChangeTexture( TacModel* model )
   //  }
   //  ImGui::Text( "Texture path: %s", assetManager->GetTexturePath( mTextureUUID ).c_str() );
   //  if( ImGui::Button( "Remove Texture" ) )
-  //    mTextureUUID = TacNullTextureUUID;
+  //    mTextureUUID = NullTextureUUID;
   //}
 
   //const char* popupName = "Choose Texture";
@@ -136,16 +139,19 @@ void TacModelDebugImguiChangeTexture( TacModel* model )
   //}
 }
 
-void TacModelDebugImgui( TacModel* model )
+void ModelDebugImgui( Model* model )
 {
-  TacModelDebugImguiChangeModel( model );
-  TacModelDebugImguiChangeTexture( model );
-  TacImGuiDragFloat( "r", &model->mColorRGB[ 0 ] );
-  TacImGuiDragFloat( "g", &model->mColorRGB[ 1 ] );
-  TacImGuiDragFloat( "b", &model->mColorRGB[ 2 ] );
+  ModelDebugImguiChangeModel( model );
+  ModelDebugImguiChangeTexture( model );
+  ImGuiDragFloat( "r", &model->mColorRGB[ 0 ] );
+  ImGuiDragFloat( "g", &model->mColorRGB[ 1 ] );
+  ImGuiDragFloat( "b", &model->mColorRGB[ 2 ] );
 }
 
-void TacModelDebugImgui( TacComponent* component )
+void ModelDebugImgui( Component* component )
 {
-  TacModelDebugImgui( ( TacModel* )component );
+  ModelDebugImgui( ( Model* )component );
 }
+
+}
+

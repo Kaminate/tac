@@ -1,8 +1,11 @@
-#include "taccollider.h"
+
+#include "src/space/collider/tacCollider.h"
+
+namespace Tac
+{
 
 
-
-void TacColliderDebugImgui( TacCollider* collider )
+void ColliderDebugImgui( Collider* collider )
 {
   //if( !ImGui::CollapsingHeader( "Collider" ) )
   //  return;
@@ -12,7 +15,10 @@ void TacColliderDebugImgui( TacCollider* collider )
   //ImGui::DragFloat( "Capsule Radius", &mRadius, 0.1f );
   //ImGui::DragFloat( "Capsule Height", &mTotalHeight, 0.1f );
 }
-void TacColliderDebugImgui( TacComponent* component )
+void ColliderDebugImgui( Component* component )
 {
-  TacColliderDebugImgui( ( TacCollider* )component );
+  ColliderDebugImgui( ( Collider* )component );
 }
+
+}
+

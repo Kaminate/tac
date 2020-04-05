@@ -1,112 +1,117 @@
-#include "common/graphics/tacTextEdit.h"
-#include "common/math/tacMath.h" // Min/Max
+#include "src/common/graphics/tacTextEdit.h"
+#include "src/common/math/tacMath.h" // Min/Max
 
-int TacTextInputData::GetMinCaret()
+namespace Tac
 {
-  return TacMin(
-    mNumGlyphsBeforeCaret[ 0 ],
-    mNumGlyphsBeforeCaret[ 1 ] );
-}
 
-int TacTextInputData::GetMaxCaret()
-{
-  return TacMax(
-    mNumGlyphsBeforeCaret[ 0 ],
-    mNumGlyphsBeforeCaret[ 1 ] );
-}
 
-void TacTextInputData::OnClick( int numGlyphsBeforeCaret )
-{
-  mNumGlyphsBeforeCaret[ 0 ] = numGlyphsBeforeCaret;
-  mCaretCount = 1;
-}
-
-void TacTextInputData::OnDrag( int numGlyphsBeforeCaret )
-{
-  if( !mCaretCount || mNumGlyphsBeforeCaret[ 0 ] == numGlyphsBeforeCaret )
-    return;
-  mNumGlyphsBeforeCaret[ 1 ] = numGlyphsBeforeCaret;
-  mCaretCount = 2;
-}
-
-void TacTextInputData::OnArrowKeyPressed(
-  bool canMoveDirection,
-  int direction,
-  int numGlyphsBeforeCaretEdge )
-{
-  if( mCaretCount == 1 )
+  int TextInputData::GetMinCaret()
   {
-    if( canMoveDirection )
-      mNumGlyphsBeforeCaret[ 0 ] += direction;
+    return Min(
+      mNumGlyphsBeforeCaret[ 0 ],
+      mNumGlyphsBeforeCaret[ 1 ] );
   }
-  else if( mCaretCount == 2 )
+
+  int TextInputData::GetMaxCaret()
   {
-    mNumGlyphsBeforeCaret[ 0 ] = numGlyphsBeforeCaretEdge;
+    return Max(
+      mNumGlyphsBeforeCaret[ 0 ],
+      mNumGlyphsBeforeCaret[ 1 ] );
+  }
+
+  void TextInputData::OnClick( int numGlyphsBeforeCaret )
+  {
+    mNumGlyphsBeforeCaret[ 0 ] = numGlyphsBeforeCaret;
     mCaretCount = 1;
   }
-}
 
-void TacTextInputData::OnDestructivePressed( int deletedCodepointsStartIndex )
-{
-  if( !mCaretCount )
-    return;
-
-  int deletedCodepointCount = 1;
-  if( mCaretCount > 1 )
+  void TextInputData::OnDrag( int numGlyphsBeforeCaret )
   {
-    deletedCodepointsStartIndex = GetMinCaret();
-    deletedCodepointCount = GetMaxCaret() - GetMinCaret();
+    if( !mCaretCount || mNumGlyphsBeforeCaret[ 0 ] == numGlyphsBeforeCaret )
+      return;
+    mNumGlyphsBeforeCaret[ 1 ] = numGlyphsBeforeCaret;
+    mCaretCount = 2;
   }
 
-  TacVector< TacCodepoint > newCodepoints;
-  for( int iCodepoint = 0; iCodepoint < mCodepoints.size(); ++iCodepoint )
+  void TextInputData::OnArrowKeyPressed(
+    bool canMoveDirection,
+    int direction,
+    int numGlyphsBeforeCaretEdge )
   {
-    if( iCodepoint >= deletedCodepointsStartIndex &&
-      iCodepoint < deletedCodepointsStartIndex + deletedCodepointCount )
-      continue;
-    newCodepoints.push_back( mCodepoints[ iCodepoint ] );
+    if( mCaretCount == 1 )
+    {
+      if( canMoveDirection )
+        mNumGlyphsBeforeCaret[ 0 ] += direction;
+    }
+    else if( mCaretCount == 2 )
+    {
+      mNumGlyphsBeforeCaret[ 0 ] = numGlyphsBeforeCaretEdge;
+      mCaretCount = 1;
+    }
   }
 
-  if( newCodepoints.size() == mCodepoints.size() )
-    return;
-  mCodepoints = newCodepoints;
-  mNumGlyphsBeforeCaret[ 0 ] = deletedCodepointsStartIndex;
-  mCaretCount = 1;
-}
-
-void TacTextInputData::OnKeyPressed( TacTextInputKey key )
-{
-  switch( key )
+  void TextInputData::OnDestructivePressed( int deletedCodepointsStartIndex )
   {
-  case TacTextInputKey::RightArrow:
-    OnArrowKeyPressed( mNumGlyphsBeforeCaret[ 0 ] < mCodepoints.size(), 1, GetMaxCaret() );
-    break;
-  case TacTextInputKey::LeftArrow:
-    OnArrowKeyPressed( mNumGlyphsBeforeCaret[ 0 ] > 0, -1, GetMinCaret() );
-    break;
-  case TacTextInputKey::Backspace:
-    OnDestructivePressed( mNumGlyphsBeforeCaret[ 0 ] - 1 );
-    break;
-  case TacTextInputKey::Delete:
-    OnDestructivePressed( mNumGlyphsBeforeCaret[ 0 ] );
-    break;
-  }
-}
+    if( !mCaretCount )
+      return;
 
-void TacTextInputData::OnCodepoint( TacCodepoint codepoint )
-{
-  if( !mCaretCount ||
-    codepoint == '\b' ) // handled by OnKeyPressed( TacTextInputKey::Backspace )
-    return;
-  if( mCaretCount == 2 )
-    OnDestructivePressed( -1 ); // -1 will be overridden
-  TacVector< TacCodepoint > newCodepoints;
-  int iCodepoint = 0;
-  while( iCodepoint < mNumGlyphsBeforeCaret[ 0 ] )
-    newCodepoints.push_back( mCodepoints[ iCodepoint++ ] );
-  newCodepoints.push_back( codepoint );
-  while( iCodepoint < mCodepoints.size() )
-    newCodepoints.push_back( mCodepoints[ iCodepoint++ ] );
-  mCodepoints = newCodepoints;
-  mNumGlyphsBeforeCaret[ 0 ] ++;
+    int deletedCodepointCount = 1;
+    if( mCaretCount > 1 )
+    {
+      deletedCodepointsStartIndex = GetMinCaret();
+      deletedCodepointCount = GetMaxCaret() - GetMinCaret();
+    }
+
+    Vector< Codepoint > newCodepoints;
+    for( int iCodepoint = 0; iCodepoint < mCodepoints.size(); ++iCodepoint )
+    {
+      if( iCodepoint >= deletedCodepointsStartIndex &&
+        iCodepoint < deletedCodepointsStartIndex + deletedCodepointCount )
+        continue;
+      newCodepoints.push_back( mCodepoints[ iCodepoint ] );
+    }
+
+    if( newCodepoints.size() == mCodepoints.size() )
+      return;
+    mCodepoints = newCodepoints;
+    mNumGlyphsBeforeCaret[ 0 ] = deletedCodepointsStartIndex;
+    mCaretCount = 1;
+  }
+
+  void TextInputData::OnKeyPressed( TextInputKey key )
+  {
+    switch( key )
+    {
+      case TextInputKey::RightArrow:
+        OnArrowKeyPressed( mNumGlyphsBeforeCaret[ 0 ] < mCodepoints.size(), 1, GetMaxCaret() );
+        break;
+      case TextInputKey::LeftArrow:
+        OnArrowKeyPressed( mNumGlyphsBeforeCaret[ 0 ] > 0, -1, GetMinCaret() );
+        break;
+      case TextInputKey::Backspace:
+        OnDestructivePressed( mNumGlyphsBeforeCaret[ 0 ] - 1 );
+        break;
+      case TextInputKey::Delete:
+        OnDestructivePressed( mNumGlyphsBeforeCaret[ 0 ] );
+        break;
+    }
+  }
+
+  void TextInputData::OnCodepoint( Codepoint codepoint )
+  {
+    if( !mCaretCount ||
+      codepoint == '\b' ) // handled by OnKeyPressed( TextInputKey::Backspace )
+      return;
+    if( mCaretCount == 2 )
+      OnDestructivePressed( -1 ); // -1 will be overridden
+    Vector< Codepoint > newCodepoints;
+    int iCodepoint = 0;
+    while( iCodepoint < mNumGlyphsBeforeCaret[ 0 ] )
+      newCodepoints.push_back( mCodepoints[ iCodepoint++ ] );
+    newCodepoints.push_back( codepoint );
+    while( iCodepoint < mCodepoints.size() )
+      newCodepoints.push_back( mCodepoints[ iCodepoint++ ] );
+    mCodepoints = newCodepoints;
+    mNumGlyphsBeforeCaret[ 0 ] ++;
+  }
 }

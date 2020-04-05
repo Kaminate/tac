@@ -1,14 +1,16 @@
-#pragma once
-#include "common/tacSerialization.h"
-#include "common/tacString.h"
-#include "common/tacErrorHandling.h"
 
+#pragma once
+#include "src/common/tacSerialization.h"
+#include "src/common/tacString.h"
+#include "src/common/tacErrorHandling.h"
 #include <list>
 #include <cstdint>
+namespace Tac
+{
 
-struct TacWorld;
-const TacEndianness TacGameEndianness = TacEndianness::Little;
-enum class TacNetMsgType : char
+struct World;
+const Endianness GameEndianness = Endianness::Little;
+enum class NetMsgType : char
 {
   Text,
   Snapshot,
@@ -19,32 +21,35 @@ enum class TacNetMsgType : char
   Count,
 };
 
-void TacWriteNetMsgHeader( TacWriter* writer, TacNetMsgType networkMessageType );
-TacNetMsgType TacReadNetMsgHeader( TacReader* reader, TacErrors& errors );
+void WriteNetMsgHeader( Writer* writer, NetMsgType networkMessageType );
+NetMsgType ReadNetMsgHeader( Reader* reader, Errors& errors );
 
 uint8_t GetNetworkBitfield(
   void* oldData,
   void* newData,
-  const TacVector< TacNetworkBit >& networkBits );
+  const Vector< NetworkBit >& networkBits );
 
-struct TacDelayedNetMsg
+struct DelayedNetMsg
 {
   double mDelayedTillSecs = 0;
-  TacVector< char > mData;
+  Vector< char > mData;
 };
 
-struct TacLagTest
+struct LagTest
 {
-  void SaveMessage( const TacVector< char >& data, double elapsedSecs );
-  bool TryPopSavedMessage( TacVector< char >& data, double elapsedSecs );
+  void SaveMessage( const Vector< char >& data, double elapsedSecs );
+  bool TryPopSavedMessage( Vector< char >& data, double elapsedSecs );
   int mLagSimulationMS = 0;
-  std::list< TacDelayedNetMsg > mSavedNetworkMessages;
+  std::list< DelayedNetMsg > mSavedNetworkMessages;
 };
-struct TacSnapshotBuffer
+struct SnapshotBuffer
 {
-  ~TacSnapshotBuffer();
-  void AddSnapshot( const TacWorld* world );
-  TacWorld* FindSnapshot( double elapsedGameSecs );
-  std::list< TacWorld* > mSnapshots;
+  ~SnapshotBuffer();
+  void AddSnapshot( const World* world );
+  World* FindSnapshot( double elapsedGameSecs );
+  std::list< World* > mSnapshots;
   const int maxSnapshots = 32;
 };
+
+}
+

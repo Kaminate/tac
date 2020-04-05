@@ -1,40 +1,43 @@
 
+
 #pragma once
 
-#include "tacString.h"
-#include "tacEvent.h"
+#include "src/common/tacString.h"
+#include "src/common/tacEvent.h"
 
-struct TacRendererWindowData;
-struct TacRenderView;
-struct TacUI2DDrawData;
-struct TacUIRoot;
-struct TacWindowParams;
-struct TacDesktopWindow;
-struct TacShell;
+namespace Tac
+{
+struct RendererWindowData;
+struct RenderView;
+struct UI2DDrawData;
+struct UIRoot;
+struct WindowParams;
+struct DesktopWindow;
+struct Shell;
 
-struct TacMonitor
+struct Monitor
 {
   int w = 0;
   int h = 0;
 };
 
-struct TacWindowParams
+struct WindowParams
 {
-  TacWindowParams();
-  TacString mName;
+  WindowParams();
+  String mName;
   int mWidth = 0;
   int mHeight = 0;
   int mX = 0;
   int mY = 0;
 
-  static void GetCenteredPosition( int w, int h, int* x, int* y, TacMonitor );
+  static void GetCenteredPosition( int w, int h, int* x, int* y, Monitor );
 };
 
 
-struct TacDesktopWindow : public TacWindowParams
+struct DesktopWindow : public WindowParams
 {
-  TacDesktopWindow();
-  virtual ~TacDesktopWindow();
+  DesktopWindow();
+  virtual ~DesktopWindow();
   void SetRenderViewDefaults();
 
   // Used to create a vulkan surface
@@ -43,16 +46,19 @@ struct TacDesktopWindow : public TacWindowParams
 
   bool mRequestDeletion = false;
 
-  TacRendererWindowData* mRendererData = nullptr;
+  RendererWindowData* mRendererData = nullptr;
 
-  TacRenderView* mRenderView = nullptr;
+  RenderView* mRenderView = nullptr;
 
-  TacEvent<>::Emitter mOnResize;
-  TacEvent<>::Emitter mOnMove;
-  TacEvent<TacDesktopWindow*>::Emitter mOnDestroyed;
+  Event<>::Emitter mOnResize;
+  Event<>::Emitter mOnMove;
+  Event<DesktopWindow*>::Emitter mOnDestroyed;
 
   // True if the window directly under the mouse cursor is this one
   // todo: Figure out a better variable name that can be negated
   bool mCursorUnobscured = false;
 };
+
+
+}
 

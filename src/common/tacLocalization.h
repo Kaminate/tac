@@ -7,13 +7,17 @@
 
 #pragma once
 
-//#include "common/tacPreprocessor.h"
-#include "common/tacString.h"
-#include "common/tacErrorHandling.h"
-#include "common/containers/tacVector.h"
+//#include "src/common/Preprocessor.h"
+#include "src/common/tacString.h"
+#include "src/common/tacErrorHandling.h"
+#include "src/common/containers/tacVector.h"
 #include <map>
 
-enum class TacLanguage
+namespace Tac
+{
+
+
+enum class Language
 {
   Arabic,
   Chinese,
@@ -25,7 +29,7 @@ enum class TacLanguage
   Count
 };
 
-const TacString TacLanguages[ ( int )TacLanguage::Count ] =
+const String Languages[ ( int )Language::Count ] =
 {
   "Arabic",
   "Chinese",
@@ -36,66 +40,67 @@ const TacString TacLanguages[ ( int )TacLanguage::Count ] =
   "Spanish",
 };
 
-inline const TacString& TacLanguageToStr( TacLanguage language )
+inline const String& LanguageToStr( Language language )
 {
-  return TacLanguages[ ( int )language ];
+  return Languages[ ( int )language ];
 }
-inline TacLanguage TacGetLanguage( const TacString& str )
+inline Language GetLanguage( const String& str )
 {
-  for( int i = 0; i < ( int )TacLanguage::Count; ++i )
-    if( TacLanguages[ i ] == str )
-      return ( TacLanguage )i;
-  return TacLanguage::Count;
+  for( int i = 0; i < ( int )Language::Count; ++i )
+    if( Languages[ i ] == str )
+      return ( Language )i;
+  return Language::Count;
 }
-void TacLanguageDebugImgui( const TacString& name, TacLanguage* language );
+void LanguageDebugImgui( const String& name, Language* language );
 
-typedef uint32_t TacCodepoint;
+typedef uint32_t Codepoint;
 
-bool TacIsAsciiCharacter( TacCodepoint codepoint );
+bool IsAsciiCharacter( Codepoint codepoint );
 
-struct TacUTF8Converter
+struct UTF8Converter
 {
   static void Convert(
-    const TacString& text,
-    TacVector< TacCodepoint >& codepoints,
-    TacErrors& errors );
+    const String& text,
+    Vector< Codepoint >& codepoints,
+    Errors& errors );
   static void Convert(
-    const TacVector< TacCodepoint >& codepoints,
-    TacString& text );
-  void Run( TacVector< TacCodepoint >& codepoints, TacErrors& errors );
-  void TacIterateUTF8( TacCodepoint* codepoint, TacErrors& errors );
-  char GetNextByte( TacErrors& errors );
+    const Vector< Codepoint >& codepoints,
+    String& text );
+  void Run( Vector< Codepoint >& codepoints, Errors& errors );
+  void IterateUTF8( Codepoint* codepoint, Errors& errors );
+  char GetNextByte( Errors& errors );
   const char* mBegin = nullptr;
   const char* mEnd = nullptr;
 };
 
-struct TacLocalizedStringStuff
+struct LocalizedStringStuff
 {
   // TODO: don't bother storing the codepoints, just compute them on the fly
-  TacVector< TacCodepoint > mCodepoints;
-  TacString mUTF8String;
+  Vector< Codepoint > mCodepoints;
+  String mUTF8String;
 };
 
-struct TacLocalizedString
+struct LocalizedString
 {
-  TacString mReference;
-  std::map< TacLanguage, TacLocalizedStringStuff > mCodepoints;
+  String mReference;
+  std::map< Language, LocalizedStringStuff > mCodepoints;
 };
 
-struct TacLocalization
+struct Localization
 {
-  TacLocalization();
-  static TacLocalization* Instance;
-  const TacVector< TacCodepoint >& GetString( TacLanguage language, const TacString& reference );
-  void Load( const TacString& path, TacErrors& errors );
+  Localization();
+  static Localization* Instance;
+  const Vector< Codepoint >& GetString( Language language, const String& reference );
+  void Load( const String& path, Errors& errors );
   bool EatWhitespace();
   bool EatNewLine();
-  TacString EatWord();
+  String EatWord();
   void DebugImgui();
 
   char* mBegin = nullptr;
   char* mEnd = nullptr;
-  TacVector< char > mBytes;
-  TacVector< TacLocalizedString > mLocalizedStrings;
+  Vector< char > mBytes;
+  Vector< LocalizedString > mLocalizedStrings;
 };
 
+}

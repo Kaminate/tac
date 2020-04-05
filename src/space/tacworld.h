@@ -1,60 +1,67 @@
+
 #pragma once
-#include "tacspacetypes.h"
-#include "common/math/tacVector2.h"
-#include "common/math/tacMatrix4.h"
-#include "common/tacString.h"
-#include "common/containers/tacVector.h"
-#include "common/containers/tacArray.h"
+#include "src/space/tacSpacetypes.h"
+#include "src/common/math/tacVector2.h"
+#include "src/common/math/tacMatrix4.h"
+#include "src/common/tacString.h"
+#include "src/common/containers/tacVector.h"
+#include "src/common/containers/tacArray.h"
 #include <list>
 
-struct TacGameInterface;
-struct TacPlayer;
-struct TacEntity;
-struct TacSystem;
-struct TacString;
-struct TacWorld;
-struct TacShell;
-struct TacSystemRegistryEntry;
-struct TacDebug3DDrawData;
+
+namespace Tac
+{
+struct GameInterface;
+struct Player;
+struct Entity;
+struct System;
+struct String;
+struct World;
+struct Shell;
+struct SystemRegistryEntry;
+struct Debug3DDrawData;
 
 static const int sPlayerCountMax = 4;
 
-typedef std::list< TacEntity* >::iterator TacEntityIterator;
+typedef std::list< Entity* >::iterator EntityIterator;
 
 
-struct TacWorld
+struct World
 {
-  TacWorld();
-  ~TacWorld();
+  World();
+  ~World();
 
-  TacSystem* GetSystem( TacSystemRegistryEntry* );
-  void DeepCopy( const TacWorld& );
+  System* GetSystem( SystemRegistryEntry* );
+  void DeepCopy( const World& );
   void Step( float seconds );
   void DebugImgui();
-  void ApplyInput( TacPlayer* player, float seconds );
-  void ComputeTransformsRecursively( const m4& parentWorldTransformNoScale, TacEntity* entity );
+  void ApplyInput( Player* player, float seconds );
+  void ComputeTransformsRecursively( const m4& parentWorldTransformNoScale, Entity* entity );
 
   // Entity api
-  TacEntity* SpawnEntity( TacEntityUUID entityUUID );
-  void KillEntity( TacEntityUUID entityUUID );
-  void KillEntity( TacEntity* entity );
-  void KillEntity( TacEntityIterator it );
-  TacEntity* FindEntity( TacPlayerUUID playerUUID );
-  TacEntity* FindEntity( TacEntityUUID entityUUID );
-  TacEntity* FindEntity( const TacString& name );
+  Entity* SpawnEntity( EntityUUID entityUUID );
+  void KillEntity( EntityUUID entityUUID );
+  void KillEntity( Entity* entity );
+  void KillEntity( EntityIterator it );
+  Entity* FindEntity( PlayerUUID playerUUID );
+  Entity* FindEntity( EntityUUID entityUUID );
+  Entity* FindEntity( const String& name );
 
   // Player api
-  TacPlayer* SpawnPlayer( TacPlayerUUID playerUUID );
-  void KillPlayer( TacPlayerUUID playerUUID );
-  TacPlayer* FindPlayer( TacPlayerUUID playerUUID );
-  TacPlayer* FindPlayer( TacEntityUUID entityUUID );
+  Player* SpawnPlayer( PlayerUUID playerUUID );
+  void KillPlayer( PlayerUUID playerUUID );
+  Player* FindPlayer( PlayerUUID playerUUID );
+  Player* FindPlayer( EntityUUID entityUUID );
 
   double mElapsedSecs = 0;
   bool mDebugDrawEntityOrigins = true;
-  std::list< TacPlayer* > mPlayers;
-  std::list< TacEntity* > mEntities;
-  TacVector< TacSystem* > mSystems;
-  TacString mSkyboxDir;
-  TacDebug3DDrawData* mDebug3DDrawData = nullptr;
+  std::list< Player* > mPlayers;
+  std::list< Entity* > mEntities;
+  Vector< System* > mSystems;
+  String mSkyboxDir;
+  Debug3DDrawData* mDebug3DDrawData = nullptr;
 };
+
+
+}
 

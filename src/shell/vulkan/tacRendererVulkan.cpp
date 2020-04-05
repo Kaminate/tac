@@ -1,3 +1,4 @@
+/*
 #include "tacRendererVulkan.h"
 #include "common/tacDesktopWindow.h"
 #include "common/tacShell.h"
@@ -1263,3 +1264,4 @@ const static int includedVulkanRendererFactory = []()
   TacRendererFactory::GetRegistry().push_back( &vulkanFactory );
   return 0;
 }( );
+*/

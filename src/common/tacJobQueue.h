@@ -1,14 +1,17 @@
+
 #pragma once
 
 
-#include "common/containers/tacRingVector.h"
-#include "common/containers/tacVector.h"
-#include "common/tacErrorHandling.h"
+#include "src/common/containers/tacRingVector.h"
+#include "src/common/containers/tacVector.h"
+#include "src/common/tacErrorHandling.h"
 
 #include <mutex>
 #include <thread>
 
-enum class TacAsyncLoadStatus
+namespace Tac
+{
+enum class AsyncLoadStatus
 {
   JustBeenCreated,
 
@@ -25,35 +28,38 @@ enum class TacAsyncLoadStatus
   ThreadCompleted
 };
 
-struct TacJob
+struct Job
 {
-  TacJob();
-  virtual ~TacJob() = default;
+  Job();
+  virtual ~Job() = default;
   virtual void Execute() = 0;
-  void SetStatus( TacAsyncLoadStatus asyncLoadStatus );
-  TacAsyncLoadStatus GetStatus();
+  void SetStatus( AsyncLoadStatus asyncLoadStatus );
+  AsyncLoadStatus GetStatus();
 
   // Errors which occured while running the job in another thread.
-  TacErrors mErrors;
+  Errors mErrors;
 private:
-  TacAsyncLoadStatus mAsyncLoadStatus;
+  AsyncLoadStatus mAsyncLoadStatus;
   std::mutex mStatusMutex;
 };
 
-struct TacJobQueue
+struct JobQueue
 {
-  static TacJobQueue* Instance;
-  TacJobQueue();
+  static JobQueue* Instance;
+  JobQueue();
   void Init();
-  void Push( TacJob* job );
+  void Push( Job* job );
   int GetThreadCount() const { return mThreads.size(); }
 
   int mMinThreadCount = 4;
   bool mRunning = false;
-  TacVector< std::thread > mThreads;
+  Vector< std::thread > mThreads;
   std::mutex mMutex;
 
   // The jobs are unowned
-  TacRingVector< TacJob* > mUnstarted;
+  RingVector< Job* > mUnstarted;
 };
+
+
+}
 

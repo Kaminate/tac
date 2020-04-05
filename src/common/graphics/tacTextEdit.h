@@ -1,8 +1,12 @@
 #pragma once
-#include "common/tacLocalization.h"
-#include "common/containers/tacVector.h"
+#include "src/common/tacLocalization.h"
+#include "src/common/containers/tacVector.h"
 
-enum class TacTextInputKey
+namespace Tac
+{
+
+
+enum class TextInputKey
 {
   LeftArrow,
   RightArrow,
@@ -10,19 +14,19 @@ enum class TacTextInputKey
   Delete,
 };
 
-struct TacTextInputData
+struct TextInputData
 {
   int GetMinCaret();
   int GetMaxCaret();
   void OnClick( int numGlyphsBeforeCaret );
   void OnDrag( int numGlyphsBeforeCaret );
-  void OnKeyPressed( TacTextInputKey key );
-  void OnCodepoint( TacCodepoint codepoint );
+  void OnKeyPressed( TextInputKey key );
+  void OnCodepoint( Codepoint codepoint );
 
 
   int mNumGlyphsBeforeCaret[ 2 ];
   int mCaretCount = 0;
-  TacVector< TacCodepoint > mCodepoints;
+  Vector< Codepoint > mCodepoints;
 
 private:
   void OnArrowKeyPressed(
@@ -31,3 +35,4 @@ private:
     int numGlyphsBeforeCaretEdge );
   void OnDestructivePressed( int deletedCodepointsStartIndex );
 };
+}

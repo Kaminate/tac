@@ -1,33 +1,36 @@
-#include "common/tacShell.h"
-#include "common/tacString.h"
-#include "common/tacErrorHandling.h"
-#include "common/containers/tacVector.h"
-#include "common/tacEvent.h"
-#include "shell/tacDesktopApp.h"
-
+#include "src/common/tacShell.h"
+#include "src/common/tacString.h"
+#include "src/common/tacErrorHandling.h"
+#include "src/common/containers/tacVector.h"
+#include "src/common/tacEvent.h"
+#include "src/shell/tacDesktopApp.h"
 #include <SDL.h>
-
 #include <set>
 
-struct TacSDLWindow;
-struct TacSDLApp;
-
-struct TacSDLWindow : public TacDesktopWindow
+namespace Tac
 {
-  ~TacSDLWindow();
+
+
+struct SDLWindow;
+struct SDLApp;
+
+struct SDLWindow : public DesktopWindow
+{
+  ~SDLWindow();
   SDL_Window* mWindow = nullptr;
-  TacSDLApp* app;
+  SDLApp* app;
 };
 
-struct TacSDLApp : public TacDesktopApp
+struct SDLApp : public DesktopApp
 {
-  ~TacSDLApp();
-  void Init( TacErrors& errors ) override;
-  void Poll( TacErrors& errors ) override;
-  void SpawnWindowAux( const TacWindowParams& windowParams, TacDesktopWindow** desktopWindow, TacErrors& errors )override;
-  void GetPrimaryMonitor( TacMonitor* monitor, TacErrors& errors ) override;
-  TacSDLWindow* FindSDLWindowByID( Uint32 windowID );
+  ~SDLApp();
+  void Init( Errors& errors ) override;
+  void Poll( Errors& errors ) override;
+  void SpawnWindowAux( const WindowParams& windowParams, DesktopWindow** desktopWindow, Errors& errors )override;
+  void GetPrimaryMonitor( Monitor* monitor, Errors& errors ) override;
+  SDLWindow* FindSDLWindowByID( Uint32 windowID );
 
-  std::set< TacSDLWindow* > mWindows;
+  std::set< SDLWindow* > mWindows;
 };
 
+}

@@ -1,6 +1,10 @@
 #pragma once
-#include "tacVector4.h"
-#include "tacMatrix3.h"
+#include "src/common/math/tacVector4.h"
+#include "src/common/math/tacMatrix3.h"
+
+namespace Tac
+{
+
 
 struct m4
 {
@@ -47,3 +51,4 @@ m4 M4ProjPerspectiveInv( float A, float B, float mFieldOfViewYRad, float mAspect
 
 
 
+}

@@ -1,28 +1,29 @@
-#include "tacRendererOpenGL4.h"
-#include "common/tacShell.h"
+/*
+#include "RendererOpenGL4.h"
+#include "src/common/Shell.h"
 
 
 const static int includedOpenGL4RendererFactory = []()
 {
-  static struct TacOpenGL4RendererFactory : public TacRendererFactory
+  static struct OpenGL4RendererFactory : public RendererFactory
   {
-    TacOpenGL4RendererFactory()
+    OpenGL4RendererFactory()
     {
       mRendererName = RendererNameOpenGL4;
     }
-    void CreateRenderer( TacRenderer** renderer ) override
+    void CreateRenderer() override
     {
-      *renderer = new TacOpenGL4Renderer();
+      new OpenGL4Renderer;
     }
   } OpenGL4Factory;
-  TacRendererRegistry::Instance().mFactories.push_back( &OpenGL4Factory );
+  RendererRegistry::Instance().mFactories.push_back( &OpenGL4Factory );
   return 0;
 }( );
 
 
 
 
-void TacOpenGL4Renderer::Init( TacErrors& errors )
+void OpenGL4Renderer::Init( Errors& errors )
 {
   // prequisite: need to create a platform-specific opengl context
 
@@ -39,9 +40,9 @@ void TacOpenGL4Renderer::Init( TacErrors& errors )
   if( !gl3wIsSupported( major, minor ) )
   {
     errors += "opengl version";
-    errors += TacToString( major ).c_str();
+    errors += ToString( major ).c_str();
     errors += " ";
-    errors += TacToString( minor ).c_str();
+    errors += ToString( minor ).c_str();
     errors += " unsupported";
     return;
   }
@@ -49,13 +50,14 @@ void TacOpenGL4Renderer::Init( TacErrors& errors )
 
 }
 
-void TacOpenGL4Renderer::CreateWindowContext( TacDesktopWindow* desktopWindow, TacErrors& errors )
+void OpenGL4Renderer::CreateWindowContext( DesktopWindow* desktopWindow, Errors& errors )
 {
-  TacOpenGL4Globals* globals = TacOpenGL4Globals::Instance();
+  OpenGL4Globals* globals = OpenGL4Globals::Instance();
   globals->mInitOpenGlStuff( this, desktopWindow, errors );
 }
-TacOpenGL4Globals* TacOpenGL4Globals::Instance()
+OpenGL4Globals* OpenGL4Globals::Instance()
 {
-  static TacOpenGL4Globals vg;
+  static OpenGL4Globals vg;
   return &vg;
 }
+*/

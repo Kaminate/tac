@@ -1,40 +1,50 @@
-#include "tacPreprocessor.h"
-#include "tacUtility.h"
-#include "tacOS.h"
+#include "src/common/tacPreprocessor.h"
+#include "src/common/tacUtility.h"
+#include "src/common/tacOS.h"
 #include <cstdarg>
 
-
-char* va( const char* format, ... )
+namespace Tac
 {
-  const int bufferCount = 512;
-  static thread_local char buffer[ bufferCount ];
-  va_list args;
-  va_start( args, format );
-  vsnprintf( buffer, bufferCount, format, args );
-  va_end( args );
-  return buffer;
-}
 
-bool TacIsDebugMode()
-{
+
+  char* va( const char* format, ... )
+  {
+    const int bufferCount = 512;
+    static thread_local char buffer[ bufferCount ];
+    va_list args;
+    va_start( args, format );
+    vsnprintf( buffer, bufferCount, format, args );
+    va_end( args );
+    return buffer;
+  }
+
+  bool IsDebugMode()
+  {
 #ifdef NDEBUG
-  return false;
+    return false;
 #else
-  return true;
+    return true;
 #endif
-}
+  }
 
+  Frame::Frame( int line, StringView file, StringView function )
+  {
+    mLine = line;
+    mFile = file;
+    mFunction = function;
+  }
 
-TacString TacStackFrame::ToString()  const
-{
-    TacSplitFilepath splitFilepath( mFile );
-    TacString pathString = splitFilepath.mFilename;
-    TacString lineString = TacToString( mLine );
-    TacString result = pathString + ":" + lineString + " " + mFunction;
+  String Frame::ToString()  const
+  {
+    SplitFilepath splitFilepath( mFile );
+    String pathString = splitFilepath.mFilename;
+    String lineString = Tac::ToString( mLine );
+    String result = pathString + ":" + lineString + " " + mFunction;
     return result;
-}
+  }
 
-void TacAssertInternal( const TacString& message, const TacStackFrame& stackFrame )
-{
-  TacOS::Instance->DebugAssert( message, stackFrame );
+  void AssertInternal( const String& message, const Frame& frame )
+  {
+    OS::Instance->DebugAssert( message, frame );
+  }
 }

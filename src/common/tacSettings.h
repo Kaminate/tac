@@ -1,70 +1,76 @@
+
 // Super convenient way of saving shit to a file
 
 #pragma once
 
-#include "tacJson.h"
-#include "tacErrorHandling.h"
+#include "src/common/tacJson.h"
+#include "src/common/tacErrorHandling.h"
 
-typedef TacVector< TacString > TacSettingPath;
-
-struct TacSettings
+namespace Tac
 {
-  TacJson mJson;
-  TacString mPath;
-  void Load( TacErrors& errors );
-  void Save( TacErrors& errors );
+typedef Vector< String > SettingPath;
 
-  // These all have the property where it calls TacSettings::Save
+struct Settings
+{
+  Json mJson;
+  String mPath;
+  void Load( Errors& errors );
+  void Save( Errors& errors );
+
+  // These all have the property where it calls Settings::Save
   bool GetBool(
-    TacJson* root,
-    const TacSettingPath& paths,
+    Json* root,
+    const SettingPath& paths,
     bool defaultValue,
-    TacErrors& errors );
+    Errors& errors );
 
-  TacJsonNumber GetNumber(
-    TacJson* root,
-    const TacSettingPath& paths,
-    TacJsonNumber defaultValue,
-    TacErrors& errors );
+  JsonNumber GetNumber(
+    Json* root,
+    const SettingPath& paths,
+    JsonNumber defaultValue,
+    Errors& errors );
 
   void SetNumber(
-    TacJson* root,
-    const TacSettingPath& paths,
-    TacJsonNumber value,
-    TacErrors& errors );
+    Json* root,
+    const SettingPath& paths,
+    JsonNumber value,
+    Errors& errors );
 
-  TacStringView GetString(
-    TacJson* root,
-    const TacSettingPath& paths,
-    TacString defaultValue,
-    TacErrors& errors );
+  StringView GetString(
+    Json* root,
+    const SettingPath& paths,
+    String defaultValue,
+    Errors& errors );
 
-  TacJson* GetArray(
-    TacJson* root,
-    const TacSettingPath& paths,
-    TacJson* defaultValue,
-    TacErrors& errors );
+  Json* GetArray(
+    Json* root,
+    const SettingPath& paths,
+    Json* defaultValue,
+    Errors& errors );
 
-  TacJson* GetObject(
-    TacJson* root,
-    const TacSettingPath& paths,
-    TacJson* defaultValue,
-    TacErrors& errors ); 
+  Json* GetObject(
+    Json* root,
+    const SettingPath& paths,
+    Json* defaultValue,
+    Errors& errors ); 
 
 private:
 
   void GetSetting(
-    TacJson* settingTree,
-    const TacSettingPath& paths,
+    Json* settingTree,
+    const SettingPath& paths,
     int iPath,
-    TacJson** outputSetting,
-    const TacJson& defaultValue,
-    TacErrors& errors );
+    Json** outputSetting,
+    const Json& defaultValue,
+    Errors& errors );
   void SetSetting(
-    TacJson* settingTree,
-    const TacSettingPath& paths,
+    Json* settingTree,
+    const SettingPath& paths,
     int iPath,
-    const TacJson& value,
-    TacErrors& errors );
+    const Json& value,
+    Errors& errors );
 };
+
+
+}
 

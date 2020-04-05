@@ -1,77 +1,82 @@
 #pragma once
 
-#include "common/tacString.h"
-#include "common/math/tacVector3.h"
+#include "src/common/tacString.h"
+#include "src/common/math/tacVector3.h"
 
-struct TacEntity;
-struct TacModel;
-struct TacErrors;
-struct TacDesktopWindow;
-struct TacCreation;
-struct TacUIRoot;
-struct TacDebug3DDrawData;
-struct TacUI2DDrawData;
-struct TacSoul;
-struct TacShell;
-struct TacRenderView;
-struct TacShader;
-struct TacVertexFormat;
-struct TacCBuffer;
-struct TacDepthState;
-struct TacBlendState;
-struct TacRasterizerState;
-struct TacSamplerState;
-struct TacMesh;
-struct TacDefaultCBufferPerObject;
-struct TacGamePresentation;
-struct TacSkyboxPresentation;
-
-struct TacCreationGameWindow
+namespace Tac
 {
-  ~TacCreationGameWindow();
-  void Init( TacErrors& errors );
-  void Update( TacErrors& errors );
+
+
+struct Entity;
+struct Model;
+struct Errors;
+struct DesktopWindow;
+struct Creation;
+struct UIRoot;
+struct Debug3DDrawData;
+struct UI2DDrawData;
+struct Soul;
+struct Shell;
+struct RenderView;
+struct Shader;
+struct VertexFormat;
+struct CBuffer;
+struct DepthState;
+struct BlendState;
+struct RasterizerState;
+struct SamplerState;
+struct Mesh;
+struct DefaultCBufferPerObject;
+struct GamePresentation;
+struct SkyboxPresentation;
+
+struct CreationGameWindow
+{
+  ~CreationGameWindow();
+  void Init( Errors& errors );
+  void Update( Errors& errors );
   void RenderGameWorldToGameWindow();
   void MousePickingInit();
-  void MousePickingEntity( const TacEntity* entity, bool* hit, float* dist );
+  void MousePickingEntity( const Entity* entity, bool* hit, float* dist );
   void MousePickingAll();
-  void AddDrawCall( const TacMesh* mesh, const TacDefaultCBufferPerObject& cbuf );
+  void AddDrawCall( const Mesh* mesh, const DefaultCBufferPerObject& cbuf );
   void ComputeArrowLen();
   void CameraControls();
-  void CreateGraphicsObjects( TacErrors& errors );
-  void DrawPlaybackOverlay( TacErrors& errors );
-  void PlayGame( TacErrors& errors );
+  void CreateGraphicsObjects( Errors& errors );
+  void DrawPlaybackOverlay( Errors& errors );
+  void PlayGame( Errors& errors );
 
   
-  TacDesktopWindow* mDesktopWindow = nullptr;
-  TacUIRoot* mUIRoot = nullptr;
-  TacUI2DDrawData* mUI2DDrawData = nullptr;
-  TacSoul* mSoul = nullptr;
-  TacCreation* mCreation = nullptr;
+  DesktopWindow* mDesktopWindow = nullptr;
+  UIRoot* mUIRoot = nullptr;
+  UI2DDrawData* mUI2DDrawData = nullptr;
+  Soul* mSoul = nullptr;
+  Creation* mCreation = nullptr;
 
   // Renderer resources
-  TacShader* m3DShader = nullptr;
-  TacVertexFormat* m3DVertexFormat = nullptr;
-  TacCBuffer* mPerFrame = nullptr;
-  TacCBuffer* mPerObj = nullptr;
-  TacDepthState* mDepthState = nullptr;
-  TacBlendState* mBlendState = nullptr;
-  TacRasterizerState* mRasterizerState = nullptr;
-  TacSamplerState* mSamplerState = nullptr;
+  Shader* m3DShader = nullptr;
+  VertexFormat* m3DVertexFormat = nullptr;
+  CBuffer* mPerFrame = nullptr;
+  CBuffer* mPerObj = nullptr;
+  DepthState* mDepthState = nullptr;
+  BlendState* mBlendState = nullptr;
+  RasterizerState* mRasterizerState = nullptr;
+  SamplerState* mSamplerState = nullptr;
 
-  TacDebug3DDrawData* mDebug3DDrawData = nullptr;
+  Debug3DDrawData* mDebug3DDrawData = nullptr;
 
-  TacGamePresentation* mGamePresentation = nullptr;
-  TacSkyboxPresentation* mSkyboxPresentation = nullptr;
+  GamePresentation* mGamePresentation = nullptr;
+  SkyboxPresentation* mSkyboxPresentation = nullptr;
 
-  TacMesh* mArrow = nullptr;
-  TacMesh* mCenteredUnitCube = nullptr;
+  Mesh* mArrow = nullptr;
+  Mesh* mCenteredUnitCube = nullptr;
   v3 worldSpaceMouseDir = {};
   float mArrowLen = 0;
 
-  TacString mStatusMessage;
+  String mStatusMessage;
   double mStatusMessageEndTime = 0;
 };
 
 
-const TacString gGameWindowName = "VirtualGamePlayer";
+const String gGameWindowName = "VirtualGamePlayer";
+}

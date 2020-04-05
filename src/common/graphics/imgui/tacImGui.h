@@ -1,22 +1,26 @@
 #pragma once
 
-#include "common/math/tacVector2.h"
-#include "common/tacString.h"
-#include "common/containers/tacVector.h"
+#include "src/common/math/tacVector2.h"
+#include "src/common/tacString.h"
+#include "src/common/containers/tacVector.h"
 #include <map>
 
-struct TacDesktopWindow;
-struct TacImGuiWindow;
-struct TacKeyboardInput;
-struct TacShell;
-struct TacTextInputData;
-struct TacUI2DDrawData;
-struct TacUIRoot;
-
-struct TacImGuiRect
+namespace Tac
 {
-  static TacImGuiRect FromPosSize( v2 pos, v2 size );
-  static TacImGuiRect FromMinMax( v2 mini, v2 maxi );
+
+
+struct DesktopWindow;
+struct ImGuiWindow;
+struct KeyboardInput;
+struct Shell;
+struct TextInputData;
+struct UI2DDrawData;
+struct UIRoot;
+
+struct ImGuiRect
+{
+  static ImGuiRect FromPosSize( v2 pos, v2 size );
+  static ImGuiRect FromMinMax( v2 mini, v2 maxi );
   float GetWidth();
   float GetHeight();
   v2 GetDimensions();
@@ -25,48 +29,49 @@ struct TacImGuiRect
 };
 
 
-void TacImGuiBegin( const TacString& name, v2 size );
-void TacImGuiEnd();
+void ImGuiBegin( const String& name, v2 size );
+void ImGuiEnd();
 
-void TacImGuiSetGlobals(
+void ImGuiSetGlobals(
   v2 mousePositionDesktopWindowspace,
   bool isWindowDirectlyUnderCursor,
   double elapsedSeconds,
-  TacUI2DDrawData* ui2DDrawData);
+  UI2DDrawData* ui2DDrawData);
 
-void TacImGuiBeginMenuBar();
-//void TacImGuiBeginMenu( const TacString& label );
-//void TacImGuiMenuItem( const TacString& label );
-//void TacImGuiEndMenu();
-void TacImGuiEndMenuBar();
+void ImGuiBeginMenuBar();
+//void ImGuiBeginMenu( const String& label );
+//void ImGuiMenuItem( const String& label );
+//void ImGuiEndMenu();
+void ImGuiEndMenuBar();
 
-void TacImGuiPushFontSize( int value );
-void TacImGuiPopFontSize();
+void ImGuiPushFontSize( int value );
+void ImGuiPopFontSize();
 
-void TacImGuiBeginChild( const TacString& name, v2 size );
-void TacImGuiEndChild();
+void ImGuiBeginChild( const String& name, v2 size );
+void ImGuiEndChild();
 
-void TacImGuiBeginGroup();
-void TacImGuiEndGroup();
+void ImGuiBeginGroup();
+void ImGuiEndGroup();
 
-void TacImGuiIndent();
-void TacImGuiUnindent();
+void ImGuiIndent();
+void ImGuiUnindent();
 
-void TacImGuiSetNextWindowPos( v2 pos );
-bool TacImGuiCollapsingHeader( const TacString& name );
-void TacImGuiSameLine();
-void TacImGuiText( const TacString& text );
-bool TacImGuiInputText( const TacString& label, TacString& text );
-bool TacImGuiSelectable( const TacString& str, bool selected );
-bool TacImGuiButton( const TacString& str );
-void TacImGuiCheckbox( const TacString& str, bool* value );
-bool TacImGuiDragFloat( const TacString& str, float* value );
-bool TacImGuiDragInt( const TacString& str, int* value );
-void TacImGuiDebugDraw();
+void ImGuiSetNextWindowPos( v2 pos );
+bool ImGuiCollapsingHeader( const String& name );
+void ImGuiSameLine();
+void ImGuiText( const String& text );
+bool ImGuiInputText( const String& label, String& text );
+bool ImGuiSelectable( const String& str, bool selected );
+bool ImGuiButton( const String& str );
+void ImGuiCheckbox( const String& str, bool* value );
+bool ImGuiDragFloat( const String& str, float* value );
+bool ImGuiDragInt( const String& str, int* value );
+void ImGuiDebugDraw();
 
-struct TacImGuiIndentBlock {
-  TacImGuiIndentBlock() { TacImGuiIndent(); }
-  ~TacImGuiIndentBlock() { TacImGuiUnindent(); } };
-#define TAC_IMGUI_INDENT_BLOCK TacImGuiIndentBlock indent##__LINE__;
+struct ImGuiIndentBlock {
+  ImGuiIndentBlock() { ImGuiIndent(); }
+  ~ImGuiIndentBlock() { ImGuiUnindent(); } };
+#define TAC_IMGUI_INDENT_BLOCK ImGuiIndentBlock indent##__LINE__;
 
 
+}

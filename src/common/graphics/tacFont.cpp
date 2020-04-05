@@ -1,12 +1,16 @@
-#include "common/tacUtility.h"
-#include "common/graphics/tacFont.h"
-#include "common/graphics/tacRenderer.h"
-#include "common/math/tacMath.h"
-#include "common/tacShell.h"
-#include "common/tacSettings.h"
-#include "common/tacMemory.h"
+#include "src/common/tacUtility.h"
+#include "src/common/graphics/tacFont.h"
+#include "src/common/graphics/tacRenderer.h"
+#include "src/common/math/tacMath.h"
+#include "src/common/tacShell.h"
+#include "src/common/tacSettings.h"
+#include "src/common/tacMemory.h"
 
-const TacFormat atlasFormat = { 1, sizeof( uint8_t ), TacGraphicsType::unorm };
+namespace Tac
+{
+
+
+const Format atlasFormat = { 1, sizeof( uint8_t ), GraphicsType::unorm };
 
 static v4 ToColorAlphaPremultiplied( v4 colorAlphaUnassociated )
 {
@@ -17,14 +21,14 @@ static v4 ToColorAlphaPremultiplied( v4 colorAlphaUnassociated )
     colorAlphaUnassociated.w };
 }
 
-TacFontFile::TacFontFile( const TacString& filepath, TacErrors& errors )
+FontFile::FontFile( const String& filepath, Errors& errors )
 {
   mFilepath = filepath;
-  mFontMemory = TacTemporaryMemoryFromFile( mFilepath, errors );
+  mFontMemory = TemporaryMemoryFromFile( mFilepath, errors );
   TAC_HANDLE_ERROR( errors );
 
   stbtt_InitFont( &mFontInfo, ( const unsigned char* )mFontMemory.data(), 0 );
-  mScale = stbtt_ScaleForPixelHeight( &mFontInfo, ( float )TacFontCellWidth );
+  mScale = stbtt_ScaleForPixelHeight( &mFontInfo, ( float )FontCellWidth );
 
   int ascent;
   int descent;
@@ -39,33 +43,33 @@ TacFontFile::TacFontFile( const TacString& filepath, TacErrors& errors )
   mUISpaceLinegap = ( float )linegap * mScale;
 }
 
-TacFontStuff* TacFontStuff::Instance = nullptr;
-TacFontStuff::TacFontStuff()
+FontStuff* FontStuff::Instance = nullptr;
+FontStuff::FontStuff()
 {
   Instance = this;
   mOutlineGlyphs = false;
   mOutlineWidth = 3;
 }
-TacFontStuff::~TacFontStuff()
+FontStuff::~FontStuff()
 {
   for( auto fontAtlasCell : mCells )
   {
     delete fontAtlasCell;
   }
-  TacRenderer::Instance->RemoveRendererResource( mTexture );
+  Renderer::Instance->RemoveRendererResource( mTexture );
 }
-void TacFontStuff::Load( TacSettings* settings, int atlasVramBytes, TacErrors& errors )
+void FontStuff::Load( Settings* settings, int atlasVramBytes, Errors& errors )
 {
-  for( int iLanguage = 0; iLanguage < ( int )TacLanguage::Count; ++iLanguage )
+  for( int iLanguage = 0; iLanguage < ( int )Language::Count; ++iLanguage )
   {
-    auto language = TacLanguage( iLanguage );
-    const TacString& languageString = TacLanguageToStr( language );
-    TacString fontFilePathDefault = language == TacLanguage::English ? "assets/fonts/english_srcpro.ttf" : "";
-    TacString fontFilePath = settings->GetString( nullptr, { "defaultfonts", languageString }, fontFilePathDefault, errors );
+    auto language = Language( iLanguage );
+    const String& languageString = LanguageToStr( language );
+    String fontFilePathDefault = language == Language::English ? "assets/fonts/english_srcpro.ttf" : "";
+    String fontFilePath = settings->GetString( nullptr, { "defaultfonts", languageString }, fontFilePathDefault, errors );
     if( fontFilePath.empty() )
       continue;
 
-    auto fontFile = new TacFontFile( fontFilePath, errors );
+    auto fontFile = new FontFile( fontFilePath, errors );
     TAC_HANDLE_ERROR( errors );
 
     mFontFiles.push_back( fontFile );
@@ -79,25 +83,25 @@ void TacFontStuff::Load( TacSettings* settings, int atlasVramBytes, TacErrors& e
     return;
   }
 
-  mRowCount = ( int )std::sqrt( atlasVramBytes ) / TacFontCellWidth;
-  int size = mRowCount * TacFontCellWidth;
+  mRowCount = ( int )std::sqrt( atlasVramBytes ) / FontCellWidth;
+  int size = mRowCount * FontCellWidth;
   // fill the atlas with a color other than black so we can see the borders of cells as they get come in
-  TacVector< uint8_t > initialAtlas( TacSquare( size ), ( uint8_t )( 0.3f * 255 ) );
+  Vector< uint8_t > initialAtlas( Square( size ), ( uint8_t )( 0.3f * 255 ) );
 
-  TacImage image;
+  Image image;
   image.mData = initialAtlas.data();
   image.mWidth = size;
   image.mHeight = size;
   image.mPitch = size;
   image.mFormat = atlasFormat;
-  TacTextureData textureData;
-  textureData.access = TacAccess::Dynamic;
-  textureData.binding = { TacBinding::ShaderResource };
-  textureData.cpuAccess = { TacCPUAccess::Write };
+  TextureData textureData;
+  textureData.access = Access::Dynamic;
+  textureData.binding = { Binding::ShaderResource };
+  textureData.cpuAccess = { CPUAccess::Write };
   textureData.mName = "texture atlas";
-  textureData.mStackFrame = TAC_STACK_FRAME;
+  textureData.mFrame = TAC_FRAME;
   textureData.myImage = image;
-  TacRenderer::Instance->AddTextureResource( &mTexture, textureData, errors );
+  Renderer::Instance->AddTextureResource( &mTexture, textureData, errors );
   TAC_HANDLE_ERROR( errors );
 
 
@@ -107,7 +111,7 @@ void TacFontStuff::Load( TacSettings* settings, int atlasVramBytes, TacErrors& e
 
 
 
-  mFontMemory = TacTemporaryMemory( fontPath, errors );
+  mFontMemory = TemporaryMemory( fontPath, errors );
   TAC_HANDLE_ERROR( errors );
 
   stbtt_InitFont( &mFontInfo, ( const unsigned char* )mFontMemory.data(), 0 );
@@ -126,7 +130,7 @@ void TacFontStuff::Load( TacSettings* settings, int atlasVramBytes, TacErrors& e
   int atlasWidth = 512;
   int atlasHeight = 512;
   // 256 kb
-  auto atlasRawData = TacVector< char >( atlasWidth * atlasHeight );
+  auto atlasRawData = Vector< char >( atlasWidth * atlasHeight );
 
   int stride_in_bytes = 0;
   int padding = 1;
@@ -147,10 +151,10 @@ void TacFontStuff::Load( TacSettings* settings, int atlasVramBytes, TacErrors& e
 
   for( auto codepoint : codepoints )
   {
-    if( codepoint > ( TacCodepoint )std::numeric_limits< int >::max() )
+    if( codepoint > ( Codepoint )std::numeric_limits< int >::max() )
     {
       // yeah idk what to do about this, because stbtt uses ints
-      TacAssert( true );
+      Assert( true );
     }
 
     mGlyphIndex = stbtt_FindGlyphIndex( &mFontInfo, codepoint );
@@ -174,7 +178,7 @@ void TacFontStuff::Load( TacSettings* settings, int atlasVramBytes, TacErrors& e
       return;
     }
 
-    auto perCodepoint = new TacPerCodepoint();
+    auto perCodepoint = new PerCodepoint();
     perCodepoint->mPackedChar = packedchar;
     perCodepoint->uiSpaceCharHalfWidth = 0.5f * ( packedchar.x1 - packedchar.x0 );
     perCodepoint->uiSpaceCharHalfHeight = 0.5f * ( packedchar.y1 - packedchar.y0 );
@@ -189,38 +193,38 @@ void TacFontStuff::Load( TacSettings* settings, int atlasVramBytes, TacErrors& e
 
   stbtt_PackEnd( &spc );
 
-  TacFormat format;
+  Format format;
   format.mByteCount = 1;
   format.mCount = 1;
-  format.mGraphicsType = TacGraphicsType::unorm;
+  format.mGraphicsType = GraphicsType::unorm;
 
-  TacImage image;
+  Image image;
   image.mData = atlasRawData.data();
   image.mWidth = atlasWidth;
   image.mHeight = atlasHeight;
   image.mPitch = atlasWidth * sizeof( unsigned char );
   image.mFormat = format;
 
-  mTexture = TacRenderer::Instance->AddTextureResource(
+  mTexture = Renderer::Instance->AddTextureResource(
     image,
-    TacAccess::Default,
-    { TacBinding::ShaderResource },
+    Access::Default,
+    { Binding::ShaderResource },
     fontPath,
     errors );
   TAC_HANDLE_ERROR( errors );
 
   #endif
 }
-void TacFontStuff::GetCharacter(
-  TacLanguage defaultLanguage,
-  TacCodepoint codepoint,
-  TacFontAtlasCell** fontAtlasCell,
-  TacErrors& errors )
+void FontStuff::GetCharacter(
+  Language defaultLanguage,
+  Codepoint codepoint,
+  FontAtlasCell** fontAtlasCell,
+  Errors& errors )
 {
-  //TacLanguageStuff* languageStuff = mLanguageStuffs[ defaultLanguage ];
-  //TacFontStyle fontStyle = TacFontStyle::NormalText;
-  //TacFontFile* fontFile = languageStuff->mFontStylePaths[ fontStyle ];
-  TacFontFile* fontFile = mDefaultFonts[ defaultLanguage ];
+  //LanguageStuff* languageStuff = mLanguageStuffs[ defaultLanguage ];
+  //FontStyle fontStyle = FontStyle::NormalText;
+  //FontFile* fontFile = languageStuff->mFontStylePaths[ fontStyle ];
+  FontFile* fontFile = mDefaultFonts[ defaultLanguage ];
   auto cellIt = fontFile->mCells.find( codepoint );
   if( cellIt != fontFile->mCells.end() )
   {
@@ -266,7 +270,7 @@ void TacFontStuff::GetCharacter(
   stbtt_GetGlyphHMetrics( &fontFile->mFontInfo, glyphIndex, &advanceWidth, &leftSideBearing );
 
   int stride = bitmapWidthPx;
-  TacVector< uint8_t > bitmapMemory( stride * bitmapHeightPx );
+  Vector< uint8_t > bitmapMemory( stride * bitmapHeightPx );
   stbtt_MakeCodepointBitmap(
     &fontFile->mFontInfo,
     ( unsigned char* )bitmapMemory.data(),
@@ -294,9 +298,9 @@ void TacFontStuff::GetCharacter(
     }
   }
 
-  TacFontAtlasCell* cell = GetCell();
+  FontAtlasCell* cell = GetCell();
 
-  auto atlasPxWidth = mRowCount * TacFontCellWidth;
+  auto atlasPxWidth = mRowCount * FontCellWidth;
 
   v2 minGLTexCoord = {
     ( float )cell->mColumn / ( float )mRowCount,
@@ -324,36 +328,36 @@ void TacFontStuff::GetCharacter(
 
   if( bitmapWidthPx && bitmapHeightPx )
   {
-    TacImage src;
+    Image src;
     src.mData = bitmapMemory.data();
     src.mFormat = atlasFormat;
     src.mHeight = bitmapHeightPx;
     src.mWidth = bitmapWidthPx;
     src.mPitch = bitmapWidthPx;
 
-    int x = cell->mColumn * TacFontCellWidth;
-    int y = cell->mRow * TacFontCellWidth;
+    int x = cell->mColumn * FontCellWidth;
+    int y = cell->mRow * FontCellWidth;
 
     // TODO: this function de/allocates a temporary texture every time.
     // Instead, create a texture once, and write to it with D3D11_MAP_DISCARD
 
-    TacRenderer::Instance->CopyTextureRegion( mTexture, src, x, y, errors );
+    Renderer::Instance->CopyTextureRegion( mTexture, src, x, y, errors );
     TAC_HANDLE_ERROR( errors );
   }
   *fontAtlasCell = cell;
 }
-TacFontAtlasCell* TacFontStuff::GetCell()
+FontAtlasCell* FontStuff::GetCell()
 {
-  if( mCells.size() < TacSquare( mRowCount ) )
+  if( mCells.size() < Square( mRowCount ) )
   {
     auto cellIndex = ( int )mCells.size();
-    auto cell = new TacFontAtlasCell();
+    auto cell = new FontAtlasCell();
     cell->mRow = cellIndex / mRowCount;
     cell->mColumn = cellIndex % mRowCount;
     mCells.push_back( cell );
     return cell;
   }
-  TacFontAtlasCell* oldest = nullptr;
+  FontAtlasCell* oldest = nullptr;
   for( auto cell : mCells )
   {
     if( !cell->mOwner )
@@ -366,7 +370,7 @@ TacFontAtlasCell* TacFontStuff::GetCell()
   oldest->mOwner = nullptr;
   return oldest;
 }
-void TacFontStuff::DebugImgui()
+void FontStuff::DebugImgui()
 {
   //if( !ImGui::CollapsingHeader( "Font Stuff" ) )
   //  return;
@@ -401,13 +405,13 @@ void TacFontStuff::DebugImgui()
   //  return;
   //ImGui::Indent();
   //OnDestruct( ImGui::Unindent() );
-  //for( int iLanguage = 0; iLanguage < ( int )TacLanguage::Count; ++iLanguage )
+  //for( int iLanguage = 0; iLanguage < ( int )Language::Count; ++iLanguage )
   //{
-  //  auto language = ( TacLanguage )iLanguage;
-  //  TacLanguageStuff* languageStuff = mLanguageStuffs[ language ];
+  //  auto language = ( Language )iLanguage;
+  //  LanguageStuff* languageStuff = mLanguageStuffs[ language ];
   //  if( !languageStuff )
   //    continue;
-  //  if( !ImGui::CollapsingHeader( TacLanguageToStr( language ).c_str() ) )
+  //  if( !ImGui::CollapsingHeader( LanguageToStr( language ).c_str() ) )
   //    continue;
 
   //  ImGui::Indent();
@@ -416,10 +420,10 @@ void TacFontStuff::DebugImgui()
   //  ImGui::PushID( languageStuff );
   //  OnDestruct( ImGui::PopID() );
 
-  //  for( int iFontStyle = 0; iFontStyle < ( int )TacFontStyle::Count; ++iFontStyle )
+  //  for( int iFontStyle = 0; iFontStyle < ( int )FontStyle::Count; ++iFontStyle )
   //  {
-  //    auto fontstyle = ( TacFontStyle )iFontStyle;
-  //    auto& fontstylestr = TacFontStyleToString( fontstyle );
+  //    auto fontstyle = ( FontStyle )iFontStyle;
+  //    auto& fontstylestr = FontStyleToString( fontstyle );
   //    auto fontFile = languageStuff->mFontStylePaths[ fontstyle ];
   //    if( !fontFile )
   //      continue;
@@ -430,4 +434,5 @@ void TacFontStuff::DebugImgui()
   //    ImGui::InputText( "Filepath", ( char* )fontFile->mFilepath.data(), ( size_t )fontFile->mFilepath.size() );
   //  }
   //}
+}
 }

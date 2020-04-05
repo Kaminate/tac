@@ -1,6 +1,8 @@
-#include "tacphysics.h"
-#include "common/tacmeta.h"
-#include "common/tacPreprocessor.h"
+#include "src/space/physics/tacPhysics.h"
+#include "src/common/tacmeta.h"
+#include "src/common/tacPreprocessor.h"
+namespace Tac
+{
 
 void RegisterMetaphysics()
 {
@@ -9,45 +11,48 @@ void RegisterMetaphysics()
     return;
   registered = true;
 
-  //auto meta = TacMeta::GetInstance();
-  //auto metav3 = meta->GetType( TacStringify( v3 ) );
+  //auto meta = Meta::GetInstance();
+  //auto metav3 = meta->GetType( Stringify( v3 ) );
 
-  //TacMeta::Var mEulerRads;
+  //Meta::Var mEulerRads;
   //mEulerRads.name = "mEulerRads";
-  //mEulerRads.offset = TacOffsetOf( TacTerrainOBB, mEulerRads );
+  //mEulerRads.offset = OffsetOf( TerrainOBB, mEulerRads );
   //mEulerRads.mMetaType = metav3;
 
-  //TacMeta::Var mHalfExtents;
+  //Meta::Var mHalfExtents;
   //mHalfExtents.name = "mHalfExtents";
-  //mHalfExtents.offset = TacOffsetOf( TacTerrainOBB, mHalfExtents );
+  //mHalfExtents.offset = OffsetOf( TerrainOBB, mHalfExtents );
   //mHalfExtents.mMetaType = metav3;
 
-  //TacMeta::Var mPos;
+  //Meta::Var mPos;
   //mPos.name = "mPos";
-  //mPos.offset = TacOffsetOf( TacTerrainOBB, mPos );
+  //mPos.offset = OffsetOf( TerrainOBB, mPos );
   //mPos.mMetaType = metav3;
 
-  //auto metaTerrainOBB = new TacMeta::Type();
-  //metaTerrainOBB->name = TacStringify( TacTerrainOBB );
+  //auto metaTerrainOBB = new Meta::Type();
+  //metaTerrainOBB->name = Stringify( TerrainOBB );
   //metaTerrainOBB->mMetaVars = { mEulerRads, mPos, mHalfExtents };
-  //metaTerrainOBB->size = sizeof( TacTerrainOBB );
+  //metaTerrainOBB->size = sizeof( TerrainOBB );
   //meta->AddType( metaTerrainOBB );
 
-  //TacMeta::Var obbs;
+  //Meta::Var obbs;
   //obbs.name = "mTerrainOBBs";
-  //obbs.offset = TacOffsetOf( TacTerrain, mTerrainOBBs );
+  //obbs.offset = OffsetOf( Terrain, mTerrainOBBs );
   //obbs.mMetaType = metaTerrainOBB;
   //obbs.mIsStdArray = true;
   //obbs.mDataFunction = []( void* data ) {
-  //  return ( ( TacVector< TacTerrainOBB >* )data )->data(); };
+  //  return ( ( Vector< TerrainOBB >* )data )->data(); };
   //obbs.mResizeFunction = []( void* data, int size ) {
-  //  ( ( TacVector< TacTerrainOBB >* )data )->resize( size ); };
+  //  ( ( Vector< TerrainOBB >* )data )->resize( size ); };
 
-  //auto metaTerrain = new TacMeta::Type();
-  //metaTerrain->name = TacStringify( TacTerrain );
+  //auto metaTerrain = new Meta::Type();
+  //metaTerrain->name = Stringify( Terrain );
   //metaTerrain->mMetaVars = { obbs };
-  //metaTerrain->size = sizeof( TacTerrain );
+  //metaTerrain->size = sizeof( Terrain );
   //meta->AddType( metaTerrain );
 
 
 }
+
+}
+

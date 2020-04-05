@@ -1,6 +1,10 @@
-#include "tacMatrix4.h"
+#include "src/common/math/tacMatrix4.h"
 #include <cmath>
 #include <cstring> // memcmp
+
+namespace Tac
+{
+
 
 float* m4::data() { return mValues; }
 const float* m4::data() const { return mValues; }
@@ -421,3 +425,4 @@ m4 M4ProjPerspectiveInv( float A, float B, float mFieldOfViewYRad, float mAspect
     0, 0, 1.0f / B, A / B };
 }
 
+}

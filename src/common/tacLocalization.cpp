@@ -1,14 +1,18 @@
-#include "common/tacLocalization.h"
-#include "common/tacUtility.h"
-#include "common/tacMemory.h"
-#include "common/tacAlgorithm.h"
+#include "src/common/tacLocalization.h"
+#include "src/common/tacUtility.h"
+#include "src/common/tacMemory.h"
+#include "src/common/tacAlgorithm.h"
 
-bool TacIsAsciiCharacter( TacCodepoint codepoint )
+namespace Tac
 {
-  return codepoint < ( TacCodepoint )128;
+
+
+bool IsAsciiCharacter( Codepoint codepoint )
+{
+  return codepoint < ( Codepoint )128;
 }
 
-char TacUTF8Converter::GetNextByte( TacErrors& errors )
+char UTF8Converter::GetNextByte( Errors& errors )
 {
   if( mBegin >= mEnd )
   {
@@ -17,7 +21,7 @@ char TacUTF8Converter::GetNextByte( TacErrors& errors )
   }
   return *mBegin++;
 }
-void TacUTF8Converter::TacIterateUTF8( TacCodepoint* codepoint, TacErrors& errors )
+void UTF8Converter::IterateUTF8( Codepoint* codepoint, Errors& errors )
 {
   char b0 = GetNextByte( errors );
   TAC_HANDLE_ERROR( errors );
@@ -53,31 +57,31 @@ void TacUTF8Converter::TacIterateUTF8( TacCodepoint* codepoint, TacErrors& error
     ( ( 0b00111111 & b1 ) << 12 ) |
     ( ( 0b00000111 & b0 ) << 18 );
 }
-void TacUTF8Converter::Run( TacVector< TacCodepoint >& codepoints, TacErrors& errors )
+void UTF8Converter::Run( Vector< Codepoint >& codepoints, Errors& errors )
 {
   while( mBegin < mEnd )
   {
-    TacCodepoint codepoint;
-    TacIterateUTF8( &codepoint, errors );
+    Codepoint codepoint;
+    IterateUTF8( &codepoint, errors );
     TAC_HANDLE_ERROR( errors );
     codepoints.push_back( codepoint );
   }
 }
-void TacUTF8Converter::Convert(
-  const TacString& text,
-  TacVector< TacCodepoint >& codepoints,
-  TacErrors& errors )
+void UTF8Converter::Convert(
+  const String& text,
+  Vector< Codepoint >& codepoints,
+  Errors& errors )
 {
-  TacUTF8Converter converter;
+  UTF8Converter converter;
   converter.mBegin = text.data();
   converter.mEnd = text.data() + text.size();
   converter.Run( codepoints, errors );
 }
-void TacUTF8Converter::Convert(
-  const TacVector< TacCodepoint >& codepoints,
-  TacString& text )
+void UTF8Converter::Convert(
+  const Vector< Codepoint >& codepoints,
+  String& text )
 {
-  for( TacCodepoint codepoint : codepoints )
+  for( Codepoint codepoint : codepoints )
   {
     if( codepoint >= 0x10000 )
     {
@@ -103,9 +107,9 @@ void TacUTF8Converter::Convert(
     }
   }
 }
-TacString TacLocalization::EatWord()
+String Localization::EatWord()
 {
-  TacString result;
+  String result;
   while( mBegin < mEnd )
   {
     if( ( EatWhitespace() || EatNewLine() ) && !result.empty() )
@@ -115,7 +119,7 @@ TacString TacLocalization::EatWord()
   return result;
 }
 
-const TacVector< TacCodepoint >& TacLocalization::GetString( TacLanguage language, const TacString& reference )
+const Vector< Codepoint >& Localization::GetString( Language language, const String& reference )
 {
   for( const auto& localizedString : mLocalizedStrings )
   {
@@ -123,41 +127,41 @@ const TacVector< TacCodepoint >& TacLocalization::GetString( TacLanguage languag
       continue;
     return localizedString.mCodepoints.at( language ).mCodepoints;
   }
-  TacInvalidCodePath;
-  static TacVector< TacCodepoint > result;
+  TAC_INVALID_CODE_PATH;
+  static Vector< Codepoint > result;
   return result;
 }
 
-TacLocalization* TacLocalization::Instance = nullptr;
-TacLocalization::TacLocalization()
+Localization* Localization::Instance = nullptr;
+Localization::Localization()
 {
   Instance = this;
 }
-void TacLocalization::Load( const TacString& path, TacErrors& errors )
+void Localization::Load( const String& path, Errors& errors )
 {
-  mBytes = TacTemporaryMemoryFromFile( path, errors );
+  mBytes = TemporaryMemoryFromFile( path, errors );
   TAC_HANDLE_ERROR( errors );
   mBegin = mBytes.data();
   mEnd = mBytes.data() + mBytes.size();
 
-  TacString reference;
+  String reference;
   while( mBegin < mEnd )
   {
     if( reference.empty() )
       reference = EatWord();
-    TacLocalizedString localizedString;
+    LocalizedString localizedString;
     localizedString.mReference = reference;
     while( mBegin < mEnd )
     {
       auto word = EatWord();
-      auto language = TacGetLanguage( word );
-      if( language == TacLanguage::Count )
+      auto language = GetLanguage( word );
+      if( language == Language::Count )
       {
         reference = word;
         break;
       }
       EatWhitespace();
-      TacUTF8Converter converter;
+      UTF8Converter converter;
       converter.mBegin = mBegin;
       converter.mEnd = mBegin;
       while( mBegin < mEnd )
@@ -167,16 +171,16 @@ void TacLocalization::Load( const TacString& path, TacErrors& errors )
           break;
         mBegin++;
       }
-      TacString utf8String( converter.mBegin, converter.mEnd );
+      String utf8String( converter.mBegin, converter.mEnd );
 
-      TacVector< TacCodepoint > codepoints;
+      Vector< Codepoint > codepoints;
       converter.Run( codepoints, errors );
       if( !errors.empty() )
       {
         errors += "Failed reading " + reference + " of " + word;
         return;
       }
-      TacLocalizedStringStuff localizedStringStuff;
+      LocalizedStringStuff localizedStringStuff;
       localizedStringStuff.mCodepoints = codepoints;
       localizedStringStuff.mUTF8String = utf8String;
       localizedString.mCodepoints[ language ] = localizedStringStuff;
@@ -187,7 +191,7 @@ void TacLocalization::Load( const TacString& path, TacErrors& errors )
   mBegin = nullptr;
   mEnd = nullptr;
 }
-bool TacLocalization::EatNewLine()
+bool Localization::EatNewLine()
 {
   auto oldBegin = mBegin;
   if( mBegin < mEnd &&
@@ -203,12 +207,12 @@ bool TacLocalization::EatNewLine()
   }
   return oldBegin < mBegin;
 }
-bool TacLocalization::EatWhitespace()
+bool Localization::EatWhitespace()
 {
   auto oldBegin = mBegin;
   while( mBegin < mEnd )
   {
-    if( !TacContains( { ' ', '\t' }, *mBegin ) )
+    if( !Contains( { ' ', '\t' }, *mBegin ) )
       break;
     mBegin++;
   }
@@ -216,7 +220,7 @@ bool TacLocalization::EatWhitespace()
 }
 
 
-void TacLocalization::DebugImgui()
+void Localization::DebugImgui()
 {
   //if( !ImGui::CollapsingHeader( "Localization" ) )
   //  return;
@@ -231,7 +235,7 @@ void TacLocalization::DebugImgui()
   //  for( auto kvp : localizedStrings.mCodepoints )
   //  {
   //    auto language = kvp.first;
-  //    auto& languageStr = TacLanguageToStr( language );
+  //    auto& languageStr = LanguageToStr( language );
   //    auto& codepoints = kvp.second;
   //    if( !ImGui::CollapsingHeader( languageStr.c_str() ) )
   //      continue;
@@ -244,16 +248,17 @@ void TacLocalization::DebugImgui()
 
 
 // Should I make an ImGui::Enum?
-void TacLanguageDebugImgui( const TacString& name, TacLanguage* language )
+void LanguageDebugImgui( const String& name, Language* language )
 {
   //auto currentItem = ( int )( *language );
   //auto itemGetter = []( void* data, int idx, const char** outText )
   //{
-  //  TacUnusedParameter( data );
-  //  *outText = TacLanguageToStr( ( TacLanguage )idx ).c_str();
+  //  UnusedParameter( data );
+  //  *outText = LanguageToStr( ( Language )idx ).c_str();
   //  return true;
   //};
-  //if( !ImGui::Combo( name.c_str(), &currentItem, itemGetter, nullptr, ( int )TacLanguage::Count ) )
+  //if( !ImGui::Combo( name.c_str(), &currentItem, itemGetter, nullptr, ( int )Language::Count ) )
   //  return;
-  //*language = ( TacLanguage )currentItem;
+  //*language = ( Language )currentItem;
+}
 }

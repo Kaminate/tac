@@ -1,5 +1,9 @@
 #pragma once
 
+namespace Tac
+{
+
+
 struct v2
 {
   float x;
@@ -29,9 +33,10 @@ struct v2
 };
 
 v2 operator *( float f, const v2& v );
-float TacDot( const v2& lhs, const v2& rhs );
+float Dot( const v2& lhs, const v2& rhs );
 v2 Normalize( const v2& v );
 float Length( const v2& v );
 float Distance( const v2& lhs, const v2& rhs );
-float TacQuadrance( const v2& v );
-float TacQuadrance( const v2& lhs, const v2& rhs );
+float Quadrance( const v2& v );
+float Quadrance( const v2& lhs, const v2& rhs );
+}

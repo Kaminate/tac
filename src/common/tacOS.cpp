@@ -1,9 +1,12 @@
-#include "tacOS.h"
-#include "tacPreprocessor.h"
-#include "tacErrorHandling.h"
+#include "src/common/tacOS.h"
+#include "src/common/tacPreprocessor.h"
+#include "src/common/tacErrorHandling.h"
+namespace Tac
+{
 
-TacOS* TacOS::Instance = nullptr;
-void TacOS::CreateFolderIfNotExist( const TacString& path, TacErrors& errors )
+
+OS* OS::Instance = nullptr;
+void OS::CreateFolderIfNotExist( const String& path, Errors& errors )
 {
   bool exist;
   DoesFolderExist( path, exist, errors );
@@ -14,10 +17,10 @@ void TacOS::CreateFolderIfNotExist( const TacString& path, TacErrors& errors )
   TAC_HANDLE_ERROR( errors );
 }
 
-void TacOS::DebugAssert( const TacString& msg, const TacStackFrame& stackFrame )
+void OS::DebugAssert( const String& msg, const Frame& frame )
 {
-  TacString s = msg + "\n" + stackFrame.ToString();
-  if( !TacIsDebugMode() )
+  String s = msg + "\n" + frame.ToString();
+  if( !IsDebugMode() )
     return;
   std::cout << s << std::endl;
   DebugBreak();
@@ -25,3 +28,4 @@ void TacOS::DebugAssert( const TacString& msg, const TacStackFrame& stackFrame )
   exit( -1 );
 }
 
+}

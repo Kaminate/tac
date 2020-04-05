@@ -61,7 +61,7 @@ union GL3WProcs {
 	struct {
 		PFNGLACTIVESHADERPROGRAMPROC                            ActiveShaderProgram;
 		PFNGLACTIVETEXTUREPROC                                  ActiveTexture;
-		PFNGLATTACHSHADERPROC                                   AttachShader;
+		PFNGLATHSHADERPROC                                   AtHShader;
 		PFNGLBEGINCONDITIONALRENDERPROC                         BeginConditionalRender;
 		PFNGLBEGINQUERYPROC                                     BeginQuery;
 		PFNGLBEGINQUERYINDEXEDPROC                              BeginQueryIndexed;
@@ -183,7 +183,7 @@ union GL3WProcs {
 		PFNGLDEPTHRANGEARRAYVPROC                               DepthRangeArrayv;
 		PFNGLDEPTHRANGEINDEXEDPROC                              DepthRangeIndexed;
 		PFNGLDEPTHRANGEFPROC                                    DepthRangef;
-		PFNGLDETACHSHADERPROC                                   DetachShader;
+		PFNGLDEHSHADERPROC                                   DeHShader;
 		PFNGLDISABLEPROC                                        Disable;
 		PFNGLDISABLEVERTEXARRAYATTRIBPROC                       DisableVertexArrayAttrib;
 		PFNGLDISABLEVERTEXATTRIBARRAYPROC                       DisableVertexAttribArray;
@@ -241,17 +241,17 @@ union GL3WProcs {
 		PFNGLGENVERTEXARRAYSPROC                                GenVertexArrays;
 		PFNGLGENERATEMIPMAPPROC                                 GenerateMipmap;
 		PFNGLGENERATETEXTUREMIPMAPPROC                          GenerateTextureMipmap;
-		PFNGLGETACTIVEATOMICCOUNTERBUFFERIVPROC                 GetActiveAtomicCounterBufferiv;
-		PFNGLGETACTIVEATTRIBPROC                                GetActiveAttrib;
-		PFNGLGETACTIVESUBROUTINENAMEPROC                        GetActiveSubroutineName;
-		PFNGLGETACTIVESUBROUTINEUNIFORMNAMEPROC                 GetActiveSubroutineUniformName;
-		PFNGLGETACTIVESUBROUTINEUNIFORMIVPROC                   GetActiveSubroutineUniformiv;
-		PFNGLGETACTIVEUNIFORMPROC                               GetActiveUniform;
-		PFNGLGETACTIVEUNIFORMBLOCKNAMEPROC                      GetActiveUniformBlockName;
-		PFNGLGETACTIVEUNIFORMBLOCKIVPROC                        GetActiveUniformBlockiv;
-		PFNGLGETACTIVEUNIFORMNAMEPROC                           GetActiveUniformName;
-		PFNGLGETACTIVEUNIFORMSIVPROC                            GetActiveUniformsiv;
-		PFNGLGETATTACHEDSHADERSPROC                             GetAttachedShaders;
+		PFNGLGETIVEATOMICCOUNTERBUFFERIVPROC                 GeTiveAtomicCounterBufferiv;
+		PFNGLGETIVEATTRIBPROC                                GeTiveAttrib;
+		PFNGLGETIVESUBROUTINENAMEPROC                        GeTiveSubroutineName;
+		PFNGLGETIVESUBROUTINEUNIFORMNAMEPROC                 GeTiveSubroutineUniformName;
+		PFNGLGETIVESUBROUTINEUNIFORMIVPROC                   GeTiveSubroutineUniformiv;
+		PFNGLGETIVEUNIFORMPROC                               GeTiveUniform;
+		PFNGLGETIVEUNIFORMBLOCKNAMEPROC                      GeTiveUniformBlockName;
+		PFNGLGETIVEUNIFORMBLOCKIVPROC                        GeTiveUniformBlockiv;
+		PFNGLGETIVEUNIFORMNAMEPROC                           GeTiveUniformName;
+		PFNGLGETIVEUNIFORMSIVPROC                            GeTiveUniformsiv;
+		PFNGLGETATHEDSHADERSPROC                             GetAtHedShaders;
 		PFNGLGETATTRIBLOCATIONPROC                              GetAttribLocation;
 		PFNGLGETBOOLEANI_VPROC                                  GetBooleani_v;
 		PFNGLGETBOOLEANVPROC                                    GetBooleanv;
@@ -270,7 +270,7 @@ union GL3WProcs {
 		PFNGLGETFLOATVPROC                                      GetFloatv;
 		PFNGLGETFRAGDATAINDEXPROC                               GetFragDataIndex;
 		PFNGLGETFRAGDATALOCATIONPROC                            GetFragDataLocation;
-		PFNGLGETFRAMEBUFFERATTACHMENTPARAMETERIVPROC            GetFramebufferAttachmentParameteriv;
+		PFNGLGETFRAMEBUFFERATHMENTPARAMETERIVPROC            GetFramebufferAtHmentParameteriv;
 		PFNGLGETFRAMEBUFFERPARAMETERIVPROC                      GetFramebufferParameteriv;
 		PFNGLGETGRAPHICSRESETSTATUSPROC                         GetGraphicsResetStatus;
 		PFNGLGETINTEGER64I_VPROC                                GetInteger64i_v;
@@ -284,7 +284,7 @@ union GL3WProcs {
 		PFNGLGETNAMEDBUFFERPARAMETERIVPROC                      GetNamedBufferParameteriv;
 		PFNGLGETNAMEDBUFFERPOINTERVPROC                         GetNamedBufferPointerv;
 		PFNGLGETNAMEDBUFFERSUBDATAPROC                          GetNamedBufferSubData;
-		PFNGLGETNAMEDFRAMEBUFFERATTACHMENTPARAMETERIVPROC       GetNamedFramebufferAttachmentParameteriv;
+		PFNGLGETNAMEDFRAMEBUFFERATHMENTPARAMETERIVPROC       GetNamedFramebufferAtHmentParameteriv;
 		PFNGLGETNAMEDFRAMEBUFFERPARAMETERIVPROC                 GetNamedFramebufferParameteriv;
 		PFNGLGETNAMEDRENDERBUFFERPARAMETERIVPROC                GetNamedRenderbufferParameteriv;
 		PFNGLGETOBJECTLABELPROC                                 GetObjectLabel;
@@ -724,7 +724,7 @@ extern union GL3WProcs gl3wProcs;
 /* OpenGL functions */
 #define glActiveShaderProgram                            gl3wProcs.gl.ActiveShaderProgram
 #define glActiveTexture                                  gl3wProcs.gl.ActiveTexture
-#define glAttachShader                                   gl3wProcs.gl.AttachShader
+#define glAtHShader                                   gl3wProcs.gl.AtHShader
 #define glBeginConditionalRender                         gl3wProcs.gl.BeginConditionalRender
 #define glBeginQuery                                     gl3wProcs.gl.BeginQuery
 #define glBeginQueryIndexed                              gl3wProcs.gl.BeginQueryIndexed
@@ -846,7 +846,7 @@ extern union GL3WProcs gl3wProcs;
 #define glDepthRangeArrayv                               gl3wProcs.gl.DepthRangeArrayv
 #define glDepthRangeIndexed                              gl3wProcs.gl.DepthRangeIndexed
 #define glDepthRangef                                    gl3wProcs.gl.DepthRangef
-#define glDetachShader                                   gl3wProcs.gl.DetachShader
+#define glDeHShader                                   gl3wProcs.gl.DeHShader
 #define glDisable                                        gl3wProcs.gl.Disable
 #define glDisableVertexArrayAttrib                       gl3wProcs.gl.DisableVertexArrayAttrib
 #define glDisableVertexAttribArray                       gl3wProcs.gl.DisableVertexAttribArray
@@ -904,17 +904,17 @@ extern union GL3WProcs gl3wProcs;
 #define glGenVertexArrays                                gl3wProcs.gl.GenVertexArrays
 #define glGenerateMipmap                                 gl3wProcs.gl.GenerateMipmap
 #define glGenerateTextureMipmap                          gl3wProcs.gl.GenerateTextureMipmap
-#define glGetActiveAtomicCounterBufferiv                 gl3wProcs.gl.GetActiveAtomicCounterBufferiv
-#define glGetActiveAttrib                                gl3wProcs.gl.GetActiveAttrib
-#define glGetActiveSubroutineName                        gl3wProcs.gl.GetActiveSubroutineName
-#define glGetActiveSubroutineUniformName                 gl3wProcs.gl.GetActiveSubroutineUniformName
-#define glGetActiveSubroutineUniformiv                   gl3wProcs.gl.GetActiveSubroutineUniformiv
-#define glGetActiveUniform                               gl3wProcs.gl.GetActiveUniform
-#define glGetActiveUniformBlockName                      gl3wProcs.gl.GetActiveUniformBlockName
-#define glGetActiveUniformBlockiv                        gl3wProcs.gl.GetActiveUniformBlockiv
-#define glGetActiveUniformName                           gl3wProcs.gl.GetActiveUniformName
-#define glGetActiveUniformsiv                            gl3wProcs.gl.GetActiveUniformsiv
-#define glGetAttachedShaders                             gl3wProcs.gl.GetAttachedShaders
+#define glGeTiveAtomicCounterBufferiv                 gl3wProcs.gl.GeTiveAtomicCounterBufferiv
+#define glGeTiveAttrib                                gl3wProcs.gl.GeTiveAttrib
+#define glGeTiveSubroutineName                        gl3wProcs.gl.GeTiveSubroutineName
+#define glGeTiveSubroutineUniformName                 gl3wProcs.gl.GeTiveSubroutineUniformName
+#define glGeTiveSubroutineUniformiv                   gl3wProcs.gl.GeTiveSubroutineUniformiv
+#define glGeTiveUniform                               gl3wProcs.gl.GeTiveUniform
+#define glGeTiveUniformBlockName                      gl3wProcs.gl.GeTiveUniformBlockName
+#define glGeTiveUniformBlockiv                        gl3wProcs.gl.GeTiveUniformBlockiv
+#define glGeTiveUniformName                           gl3wProcs.gl.GeTiveUniformName
+#define glGeTiveUniformsiv                            gl3wProcs.gl.GeTiveUniformsiv
+#define glGetAtHedShaders                             gl3wProcs.gl.GetAtHedShaders
 #define glGetAttribLocation                              gl3wProcs.gl.GetAttribLocation
 #define glGetBooleani_v                                  gl3wProcs.gl.GetBooleani_v
 #define glGetBooleanv                                    gl3wProcs.gl.GetBooleanv
@@ -933,7 +933,7 @@ extern union GL3WProcs gl3wProcs;
 #define glGetFloatv                                      gl3wProcs.gl.GetFloatv
 #define glGetFragDataIndex                               gl3wProcs.gl.GetFragDataIndex
 #define glGetFragDataLocation                            gl3wProcs.gl.GetFragDataLocation
-#define glGetFramebufferAttachmentParameteriv            gl3wProcs.gl.GetFramebufferAttachmentParameteriv
+#define glGetFramebufferAtHmentParameteriv            gl3wProcs.gl.GetFramebufferAtHmentParameteriv
 #define glGetFramebufferParameteriv                      gl3wProcs.gl.GetFramebufferParameteriv
 #define glGetGraphicsResetStatus                         gl3wProcs.gl.GetGraphicsResetStatus
 #define glGetInteger64i_v                                gl3wProcs.gl.GetInteger64i_v
@@ -947,7 +947,7 @@ extern union GL3WProcs gl3wProcs;
 #define glGetNamedBufferParameteriv                      gl3wProcs.gl.GetNamedBufferParameteriv
 #define glGetNamedBufferPointerv                         gl3wProcs.gl.GetNamedBufferPointerv
 #define glGetNamedBufferSubData                          gl3wProcs.gl.GetNamedBufferSubData
-#define glGetNamedFramebufferAttachmentParameteriv       gl3wProcs.gl.GetNamedFramebufferAttachmentParameteriv
+#define glGetNamedFramebufferAtHmentParameteriv       gl3wProcs.gl.GetNamedFramebufferAtHmentParameteriv
 #define glGetNamedFramebufferParameteriv                 gl3wProcs.gl.GetNamedFramebufferParameteriv
 #define glGetNamedRenderbufferParameteriv                gl3wProcs.gl.GetNamedRenderbufferParameteriv
 #define glGetObjectLabel                                 gl3wProcs.gl.GetObjectLabel

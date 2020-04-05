@@ -1,27 +1,41 @@
 #pragma once
 
-#include "common/tacUtility.h"
-#include "common/tacShell.h"
-#include "common/tacErrorHandling.h"
-#include "common/tacDesktopWindow.h"
-#include "common/tacMemory.h"
+#include "src/common/tacUtility.h"
+#include "src/common/tacShell.h"
+#include "src/common/tacErrorHandling.h"
+#include "src/common/tacDesktopWindow.h"
+#include "src/common/tacMemory.h"
 #include <thread>
 
-struct TacDesktopApp
+namespace Tac
 {
-  static TacDesktopApp* Instance;
-  TacDesktopApp();
-  virtual ~TacDesktopApp();
-  virtual void Init( TacErrors& errors );
-  virtual void Poll( TacErrors& errors ) {}
-  void Run();
-  void SpawnWindow( const TacWindowParams&, TacDesktopWindow**, TacErrors& );
-  void KillDeadWindows();
-  virtual void GetPrimaryMonitor( TacMonitor* monitor, TacErrors& errors ) = 0;
-  virtual void SpawnWindowAux( const TacWindowParams& windowParams, TacDesktopWindow** desktopWindow, TacErrors& errors ) {};
 
-  TacVector< TacDesktopWindow* > mMainWindows;
-  TacErrors mErrorsMainThread;
-  TacErrors mErrorsStuffThread;
+
+enum class ThreadType
+{
+  Unknown,
+  Main,
+  Stuff
+};
+
+extern thread_local ThreadType gThreadType;
+
+struct DesktopApp
+{
+  static DesktopApp* Instance;
+  DesktopApp();
+  virtual ~DesktopApp();
+  virtual void Init( Errors& errors );
+  virtual void Poll( Errors& errors ) {}
+  void Run();
+  void SpawnWindow( const WindowParams&, DesktopWindow**, Errors& );
+  void KillDeadWindows();
+  virtual void GetPrimaryMonitor( Monitor* monitor, Errors& errors ) = 0;
+  virtual void SpawnWindowAux( const WindowParams& windowParams, DesktopWindow** desktopWindow, Errors& errors ) {};
+
+  Vector< DesktopWindow* > mMainWindows;
+  Errors mErrorsMainThread;
+  Errors mErrorsStuffThread;
   std::thread mStuffThread;
 };
+}

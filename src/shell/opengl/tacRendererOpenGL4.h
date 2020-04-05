@@ -1,19 +1,22 @@
+/*
 #pragma once
-#include "common/graphics/tacRenderer.h"
+#include "src/common/graphics/Renderer.h"
 #include "GL/gl3w.h"
 
-struct TacOpenGL4Renderer : public TacRenderer
+struct OpenGL4Renderer : public Renderer
 {
-  void Init( TacErrors& errors ) override;
-  void CreateWindowContext( TacDesktopWindow* desktopWindow, TacErrors& errors ) override;
+  void Init( Errors& errors ) override;
+  void CreateWindowContext( DesktopWindow* desktopWindow, Errors& errors ) override;
 };
 
-struct TacOpenGL4Globals
+struct OpenGL4Globals
 {
-  static TacOpenGL4Globals* Instance();
+  static OpenGL4Globals* Instance();
 
   void( *mInitOpenGlStuff )(
-    TacOpenGL4Renderer* OpenGL4Renderer,
-    struct TacDesktopWindow* desktopWindow,
-    struct TacErrors& errors );
+    OpenGL4Renderer* OpenGL4Renderer,
+    struct DesktopWindow* desktopWindow,
+    struct Errors& errors );
 };
+
+*/

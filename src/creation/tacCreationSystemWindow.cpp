@@ -1,82 +1,88 @@
-#include "common/graphics/tacUI2D.h"
-#include "common/tacShell.h"
-#include "common/tacDesktopWindow.h"
-#include "common/graphics/imgui/tacImGui.h"
-#include "common/tacOS.h"
-#include "creation/tacCreation.h"
-#include "creation/tacCreationSystemWindow.h"
-#include "space/tacworld.h"
-#include "space/tacentity.h"
-#include "space/tacsystem.h"
-#include "shell/tacDesktopApp.h"
 
-const  TacSettingPath iSysPath = { "SystemWindow", "iSys" };
+#include "src/common/graphics/tacUI2D.h"
+#include "src/common/tacShell.h"
+#include "src/common/tacDesktopWindow.h"
+#include "src/common/graphics/imgui/tacImGui.h"
+#include "src/common/tacOS.h"
+#include "src/creation/tacCreation.h"
+#include "src/creation/tacCreationSystemWindow.h"
+#include "src/space/tacWorld.h"
+#include "src/space/tacEntity.h"
+#include "src/space/tacSystem.h"
+#include "src/shell/tacDesktopApp.h"
 
-TacCreationSystemWindow::~TacCreationSystemWindow()
+namespace Tac
+{
+const  SettingPath iSysPath = { "SystemWindow", "iSys" };
+
+CreationSystemWindow::~CreationSystemWindow()
 {
   delete mUI2DDrawData;
 }
-void TacCreationSystemWindow::Init( TacErrors& errors )
+void CreationSystemWindow::Init( Errors& errors )
 {
-  TacShell* shell = TacShell::Instance;
-  mUI2DDrawData = new TacUI2DDrawData;
+  Shell* shell = Shell::Instance;
+  mUI2DDrawData = new UI2DDrawData;
   mUI2DDrawData->mRenderView = mDesktopWindow->mRenderView;
 
-  TacSettings* settings = shell->mSettings;
+  Settings* settings = shell->mSettings;
   mSystemIndex = ( int )settings->GetNumber( nullptr, iSysPath, -1, errors );
 };
-void TacCreationSystemWindow::ImGui()
+void CreationSystemWindow::ImGui()
 {
-  TacShell* shell = TacShell::Instance;
-  TacSystemRegistry* systemRegistry = TacSystemRegistry::Instance();
+  Shell* shell = Shell::Instance;
+  SystemRegistry* systemRegistry = SystemRegistry::Instance();
 
   SetCreationWindowImGuiGlobals( mDesktopWindow, mUI2DDrawData );
-  TacImGuiBegin( "System Window", {} );
+  ImGuiBegin( "System Window", {} );
 
-  if( TacImGuiCollapsingHeader( "Select System" ) )
+  if( ImGuiCollapsingHeader( "Select System" ) )
   {
     TAC_IMGUI_INDENT_BLOCK;
     for( int i = 0; i < systemRegistry->mEntries.size(); ++i )
     {
-      TacSystemRegistryEntry* systemRegistryEntry = systemRegistry->mEntries[ i ];
-      if( TacImGuiButton( systemRegistryEntry->mName ) )
+      SystemRegistryEntry* systemRegistryEntry = systemRegistry->mEntries[ i ];
+      if( ImGuiButton( systemRegistryEntry->mName ) )
       {
         mSystemIndex = i;
-        TacErrors e;
+        Errors e;
         shell->mSettings->SetNumber( nullptr, iSysPath, mSystemIndex, e);
       }
       if( mSystemIndex == i )
       {
-        TacImGuiSameLine();
-        TacImGuiText( "<-- currently selected" );
+        ImGuiSameLine();
+        ImGuiText( "<-- currently selected" );
       }
     }
   }
 
   if( mSystemIndex >= 0 && mSystemIndex < systemRegistry->mEntries.size() )
   {
-    TacSystemRegistryEntry* systemRegistryEntry = systemRegistry->mEntries[ mSystemIndex ];
-    TacImGuiText( systemRegistryEntry->mName );
+    SystemRegistryEntry* systemRegistryEntry = systemRegistry->mEntries[ mSystemIndex ];
+    ImGuiText( systemRegistryEntry->mName );
     if( systemRegistryEntry->mDebugImGui )
     {
-      TacSystem* system = mCreation->mWorld->GetSystem( systemRegistryEntry );
+      System* system = mCreation->mWorld->GetSystem( systemRegistryEntry );
       systemRegistryEntry->mDebugImGui( system );
     }
   }
 
   // to force directx graphics specific window debugging
-  if( TacImGuiButton( "close window" ) )
+  if( ImGuiButton( "close window" ) )
   {
     mDesktopWindow->mRequestDeletion = true;
   }
-  TacImGuiEnd();
+  ImGuiEnd();
 }
-void TacCreationSystemWindow::Update( TacErrors& errors )
+void CreationSystemWindow::Update( Errors& errors )
 {
-  TacShell* shell = TacShell::Instance;
+  Shell* shell = Shell::Instance;
   mDesktopWindow->SetRenderViewDefaults();
   ImGui();
   mUI2DDrawData->DrawToTexture( errors );
   TAC_HANDLE_ERROR( errors );
+}
+
+
 }
 

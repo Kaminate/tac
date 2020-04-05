@@ -1,29 +1,32 @@
-#include "space/tacworld.h"
-#include "space/tacplayer.h"
-#include "space/tacentity.h"
-#include "space/tacsystem.h"
-#include "space/graphics/tacgraphics.h"
-#include "space/physics/tacphysics.h"
-#include "space/collider/taccollider.h"
-#include "common/graphics/tacDebug3D.h"
-#include "common/profile/tacProfile.h"
+
+#include "src/space/tacWorld.h"
+#include "src/space/tacPlayer.h"
+#include "src/space/tacEntity.h"
+#include "src/space/tacSystem.h"
+#include "src/space/graphics/tacGraphics.h"
+#include "src/space/physics/tacPhysics.h"
+#include "src/space/collider/tacCollider.h"
+#include "src/common/graphics/tacDebug3D.h"
+#include "src/common/profile/tacProfile.h"
 
 #include <algorithm>
 
-TacWorld::TacWorld()
+namespace Tac
 {
-  TacSystemRegistry* registry = TacSystemRegistry::Instance();
-  TacAssert( !registry->mEntries.empty() );
-  for( TacSystemRegistryEntry* entry : registry->mEntries )
+World::World()
+{
+  SystemRegistry* registry = SystemRegistry::Instance();
+  TAC_ASSERT( !registry->mEntries.empty() );
+  for( SystemRegistryEntry* entry : registry->mEntries )
   {
-    TacSystem* system = entry->mCreateFn();
-    TacAssert( system );
+    System* system = entry->mCreateFn();
+    TAC_ASSERT( system );
     system->mWorld = this;
     mSystems.push_back( system );
   }
-  mDebug3DDrawData = new TacDebug3DDrawData;
+  mDebug3DDrawData = new Debug3DDrawData;
 }
-TacWorld::~TacWorld()
+World::~World()
 {
   for( auto system : mSystems )
     delete system;
@@ -32,41 +35,41 @@ TacWorld::~TacWorld()
   for( auto entity : mEntities )
     delete entity;
 }
-TacEntity* TacWorld::SpawnEntity( TacEntityUUID entityUUID )
+Entity* World::SpawnEntity( EntityUUID entityUUID )
 {
-  auto entity = new TacEntity();
+  auto entity = new Entity();
   entity->mEntityUUID = entityUUID;
   entity->mWorld = this;
   mEntities.push_back( entity );
   return entity;
 }
-TacEntity* TacWorld::FindEntity( TacPlayerUUID playerUUID )
+Entity* World::FindEntity( PlayerUUID playerUUID )
 {
-  if( TacPlayer* player = FindPlayer( playerUUID ) )
+  if( Player* player = FindPlayer( playerUUID ) )
     return FindEntity( player->mEntityUUID );
   return nullptr;
 }
-TacEntity* TacWorld::FindEntity( TacEntityUUID entityUUID )
+Entity* World::FindEntity( EntityUUID entityUUID )
 {
   for( auto entity : mEntities )
     if( entity->mEntityUUID == entityUUID )
       return entity;
   return nullptr;
 }
-TacEntity* TacWorld::FindEntity( const TacString& name )
+Entity* World::FindEntity( const String& name )
 {
-  for( TacEntity* entity : mEntities )
+  for( Entity* entity : mEntities )
     if( entity->mName == name )
       return entity;
   return nullptr;
 }
-void TacWorld::KillEntity( TacEntityIterator it )
+void World::KillEntity( EntityIterator it )
 {
-  TacAssert( it != mEntities.end() );
-  TacEntity* entity = *it;
+  TAC_ASSERT( it != mEntities.end() );
+  Entity* entity = *it;
 
   // Remove this entity from its parent's list of children
-  if( TacEntity* parent = entity->mParent )
+  if( Entity* parent = entity->mParent )
   {
     int iEntity = 0;
     int entityCount = parent->mChildren.size();
@@ -78,22 +81,22 @@ void TacWorld::KillEntity( TacEntityIterator it )
       }
       iEntity++;
     }
-    TacAssert( iEntity < entityCount );
+    TAC_ASSERT( iEntity < entityCount );
     parent->mChildren[ iEntity ] = parent->mChildren[ entityCount - 1 ];
     parent->mChildren.pop_back();
   }
 
-  TacVector< TacEntityIterator > treeIterators = { it };
+  Vector< EntityIterator > treeIterators = { it };
   int iTreeIterator = 0;
   for( ;; )
   {
     if( iTreeIterator == treeIterators.size() )
       break;
-    TacEntityIterator treeIterator = treeIterators[ iTreeIterator ];
-    TacEntity* treeEntity = *treeIterator;
-    for( TacEntity* treeEntityChild : treeEntity->mChildren )
+    EntityIterator treeIterator = treeIterators[ iTreeIterator ];
+    Entity* treeEntity = *treeIterator;
+    for( Entity* treeEntityChild : treeEntity->mChildren )
     {
-      TacEntityIterator treeEntityChildIterator = std::find(
+      EntityIterator treeEntityChildIterator = std::find(
         mEntities.begin(),
         mEntities.end(),
         treeEntityChild );
@@ -102,17 +105,17 @@ void TacWorld::KillEntity( TacEntityIterator it )
     iTreeIterator++;
   }
 
-  for( TacEntityIterator treeIterator : treeIterators )
+  for( EntityIterator treeIterator : treeIterators )
   {
-    TacEntity* treeEntity = *treeIterator;
-    if( TacPlayer* player = FindPlayer( treeEntity->mEntityUUID ) )
-      player->mEntityUUID = TacNullEntityUUID;
+    Entity* treeEntity = *treeIterator;
+    if( Player* player = FindPlayer( treeEntity->mEntityUUID ) )
+      player->mEntityUUID = NullEntityUUID;
 
     mEntities.erase( treeIterator );
     delete treeEntity;
   }
 }
-void TacWorld::KillEntity( TacEntity* entity )
+void World::KillEntity( Entity* entity )
 {
   auto it = std::find(
     mEntities.begin(),
@@ -120,55 +123,55 @@ void TacWorld::KillEntity( TacEntity* entity )
     entity );
   KillEntity( it );
 }
-void TacWorld::KillEntity( TacEntityUUID entityUUID )
+void World::KillEntity( EntityUUID entityUUID )
 {
   auto it = std::find_if(
     mEntities.begin(),
     mEntities.end(),
-    [ & ]( TacEntity* entity ) { return entity->mEntityUUID == entityUUID; } );
+    [ & ]( Entity* entity ) { return entity->mEntityUUID == entityUUID; } );
   KillEntity( it );
 }
-TacPlayer* TacWorld::SpawnPlayer( TacPlayerUUID playerUUID )
+Player* World::SpawnPlayer( PlayerUUID playerUUID )
 {
-  auto player = new TacPlayer();
+  auto player = new Player();
   player->mPlayerUUID = playerUUID;
   player->mWorld = this;
   mPlayers.push_back( player );
   return player;
 }
-TacPlayer* TacWorld::FindPlayer( TacPlayerUUID playerUUID )
+Player* World::FindPlayer( PlayerUUID playerUUID )
 {
   for( auto player : mPlayers )
     if( player->mPlayerUUID == playerUUID )
       return player;
   return nullptr;
 }
-TacPlayer* TacWorld::FindPlayer( TacEntityUUID entityUUID )
+Player* World::FindPlayer( EntityUUID entityUUID )
 {
   for( auto player : mPlayers )
     if( player->mEntityUUID == entityUUID )
       return player;
   return nullptr;
 }
-void TacWorld::KillPlayer( TacPlayerUUID playerUUID )
+void World::KillPlayer( PlayerUUID playerUUID )
 {
   auto it = std::find_if(
     mPlayers.begin(),
     mPlayers.end(),
-    [ & ]( TacPlayer* player ) { return player->mPlayerUUID == playerUUID; } );
-  TacAssert( it != mPlayers.end() );
+    [ & ]( Player* player ) { return player->mPlayerUUID == playerUUID; } );
+  TAC_ASSERT( it != mPlayers.end() );
   auto player = *it;
   KillEntity( player->mEntityUUID );
   delete player;
   mPlayers.erase( it );
 }
-void TacWorld::ApplyInput( TacPlayer* player, float seconds )
+void World::ApplyInput( Player* player, float seconds )
 {
   auto entity = FindEntity( player->mEntityUUID );
   if( !entity )
     return;
   // update velocity
-  TacCollider*  collider = TacCollider::GetCollider( entity );
+  Collider*  collider = Collider::GetCollider( entity );
   if( !collider )
     return;
   float speedHorizontal = 5;
@@ -181,11 +184,11 @@ void TacWorld::ApplyInput( TacPlayer* player, float seconds )
   collider->mVelocity = v3( velX, velY, velZ );
 
   // update rotation
-  //auto stuff = ( TacStuff* )entity->GetComponent( TacComponentRegistryEntryIndex::Stuff );
+  //auto stuff = ( Stuff* )entity->GetComponent( ComponentRegistryEntryIndex::Stuff );
   //stuff->mWaddleParams.Update( player->mInputDirection, seconds );
   //stuff->zCCWEulerRotDeg = stuff->mWaddleParams.mAngle;
 }
-void TacWorld::ComputeTransformsRecursively( const m4& parentTransform, TacEntity* entity )
+void World::ComputeTransformsRecursively( const m4& parentTransform, Entity* entity )
 {
   m4 localTransform = M4Transform(
     entity->mRelativeSpace.mScale,
@@ -204,7 +207,7 @@ void TacWorld::ComputeTransformsRecursively( const m4& parentTransform, TacEntit
   entity->mWorldPosition = ( worldTransform * v4( 0, 0, 0, 1 ) ).xyz();
   //entity->mWorldTransformNoScale = worldTransformNoScale;
 
-  for( TacEntity* child : entity->mChildren )
+  for( Entity* child : entity->mChildren )
   {
     const m4* parentTransformForChild = &worldTransform;
     if( !child->mInheritParentScale )
@@ -212,11 +215,11 @@ void TacWorld::ComputeTransformsRecursively( const m4& parentTransform, TacEntit
     ComputeTransformsRecursively( *parentTransformForChild, child );
   }
 }
-void TacWorld::Step( float seconds )
+void World::Step( float seconds )
 {
   /*TAC_PROFILE_BLOCK*/;
   const m4 identity = m4::Identity();
-  for( TacEntity* entity : mEntities )
+  for( Entity* entity : mEntities )
   {
     if( !entity->mParent )
       ComputeTransformsRecursively( identity, entity );
@@ -228,7 +231,7 @@ void TacWorld::Step( float seconds )
     system->Update();
   for( auto entity : mEntities )
   {
-    //entity->TacIntegrate( seconds );
+    //entity->Integrate( seconds );
   }
 
 
@@ -237,7 +240,7 @@ void TacWorld::Step( float seconds )
   {
     auto boxSize = v3( 1, 1, 1 ) * 0.1f;
     v3 boxRot = {};
-    TacGraphics* graphics = TacGraphics::GetSystem( this );
+    Graphics* graphics = Graphics::GetSystem( this );
     if( graphics )
     {
       for( auto entity : mEntities )
@@ -247,7 +250,7 @@ void TacWorld::Step( float seconds )
     }
   }
 }
-void TacWorld::DeepCopy( const TacWorld& world )
+void World::DeepCopy( const World& world )
 {
   for( auto player : mPlayers )
     delete player;
@@ -260,24 +263,24 @@ void TacWorld::DeepCopy( const TacWorld& world )
   mElapsedSecs = world.mElapsedSecs;
   mSkyboxDir = world.mSkyboxDir;
 
-  for( TacPlayer* fromPlayer : world.mPlayers )
+  for( Player* fromPlayer : world.mPlayers )
   {
-    TacPlayer*  player = new TacPlayer();
+    Player*  player = new Player();
     *player = *fromPlayer;
     mPlayers.push_back( player );
   }
 
-  for( TacEntity* fromEntity : world.mEntities )
+  for( Entity* fromEntity : world.mEntities )
   {
-    TacEntity* toEntity = SpawnEntity( fromEntity->mEntityUUID );
+    Entity* toEntity = SpawnEntity( fromEntity->mEntityUUID );
     toEntity->DeepCopy( *fromEntity );
   }
 }
-TacSystem* TacWorld::GetSystem( TacSystemRegistryEntry* systemRegistryEntry )
+System* World::GetSystem( SystemRegistryEntry* systemRegistryEntry )
 {
   return mSystems[ systemRegistryEntry->mIndex ];
 }
-void TacWorld::DebugImgui()
+void World::DebugImgui()
 {
   //if( !ImGui::CollapsingHeader( "World" ) )
   //  return;
@@ -288,7 +291,7 @@ void TacWorld::DebugImgui()
   //  ImGui::Indent();
   //  OnDestruct( ImGui::Unindent() );
   //  for( auto entity : mEntities )
-  //    entity->TacDebugImgui();
+  //    entity->DebugImgui();
   //}
 
   //if( ImGui::CollapsingHeader( "Players" ) )
@@ -305,3 +308,6 @@ void TacWorld::DebugImgui()
   //ImGui::Checkbox( "Draw Entity Origins", &mDebugDrawEntityOrigins );
 
 }
+
+}
+

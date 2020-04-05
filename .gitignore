@@ -2,7 +2,6 @@ build/
 x64/
 
 assets/imgui.ini
-*.bat
 
 # renderdoc captures
 *.cap

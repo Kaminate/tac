@@ -1,45 +1,50 @@
 #pragma once
 
-#include "common/containers/tacVector.h"
-#include "common/tacString.h"
-#include "space/tacspacetypes.h"
+#include "src/common/containers/tacVector.h"
+#include "src/common/tacString.h"
+#include "src/space/tacSpaceTypes.h"
 
-struct TacWorld;
-struct TacComponent;
-struct TacSystemRegistry;
-struct TacSystemRegistryEntry;
-
-struct TacSystem
+namespace Tac
 {
-  //virtual const TacVector< TacComponentRegistryEntryIndex >& GetManagedComponentTypes() = 0;
-  //virtual TacComponent* CreateComponent( TacComponentRegistryEntryIndex componentType ) = 0;
-  //virtual void DestroyComponent( TacComponent* component ) = 0;
+
+
+struct World;
+struct Component;
+struct SystemRegistry;
+struct SystemRegistryEntry;
+
+struct System
+{
+  //virtual const Vector< ComponentRegistryEntryIndex >& GetManagedComponentTypes() = 0;
+  //virtual Component* CreateComponent( ComponentRegistryEntryIndex componentType ) = 0;
+  //virtual void DestroyComponent( Component* component ) = 0;
   virtual void DebugImgui(){};
   virtual void Update(){};
-  //virtual TacSystemRegistryEntry* GetEntry() = 0;
-  //virtual TacSystemType GetSystemType() = 0;
+  //virtual SystemRegistryEntry* GetEntry() = 0;
+  //virtual SystemType GetSystemType() = 0;
 
-  TacWorld* mWorld = nullptr;
+  World* mWorld = nullptr;
 };
 
 
-struct TacSystemRegistryEntry
+struct SystemRegistryEntry
 {
-  TacSystem* ( *mCreateFn )( ) = nullptr;
-  TacString mName;
+  System* ( *mCreateFn )( ) = nullptr;
+  String mName;
 
-  void ( *mDebugImGui )( TacSystem* ) = nullptr;
+  void ( *mDebugImGui )( System* ) = nullptr;
 
   // Index of this system in the registry, also the 
   // index of this system in the world systems array
   int mIndex = -1;
 };
 
-struct TacSystemRegistry
+struct SystemRegistry
 {
-  static TacSystemRegistry* Instance();
-  TacSystemRegistryEntry* RegisterNewEntry();
-  TacVector< TacSystemRegistryEntry* > mEntries;
+  static SystemRegistry* Instance();
+  SystemRegistryEntry* RegisterNewEntry();
+  Vector< SystemRegistryEntry* > mEntries;
 };
 
 
+}

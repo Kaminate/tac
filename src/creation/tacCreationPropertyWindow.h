@@ -1,32 +1,38 @@
 #pragma once
 
-#include "common/tacString.h"
+#include "src/common/tacString.h"
 
-struct TacCreation;
-struct TacDesktopWindow;
-struct TacEntity;
-struct TacErrors;
-struct TacShell;
-struct TacUI2DDrawData;
-struct TacUIHierarchyNode;
-struct TacUIRoot;
-
-struct TacCreationPropertyWindow
+namespace Tac
 {
-  ~TacCreationPropertyWindow();
-  void Init( TacErrors& errors );
-  void Update( TacErrors& errors );
-  void RecursiveEntityHierarchyElement( TacEntity* );
+struct Creation;
+struct DesktopWindow;
+struct Entity;
+struct Errors;
+struct Shell;
+struct UI2DDrawData;
+struct UIHierarchyNode;
+struct UIRoot;
 
-  TacDesktopWindow* mDesktopWindow = nullptr;
-  TacUIRoot* mUIRoot = nullptr;
-  TacUI2DDrawData* mUI2DDrawData = nullptr;
+
+
+struct CreationPropertyWindow
+{
+  ~CreationPropertyWindow();
+  void Init( Errors& errors );
+  void Update( Errors& errors );
+  void RecursiveEntityHierarchyElement( Entity* );
+
+  DesktopWindow* mDesktopWindow = nullptr;
+  UIRoot* mUIRoot = nullptr;
+  UI2DDrawData* mUI2DDrawData = nullptr;
   
-  TacCreation* mCreation = nullptr;
+  Creation* mCreation = nullptr;
 
-  //TacUIHierarchyNode* mHierarchyList = nullptr;
-  //TacUIHierarchyNode* mHierarchyPane = nullptr;
-  //TacUIHierarchyNode* mInspector = nullptr;
+  //UIHierarchyNode* mHierarchyList = nullptr;
+  //UIHierarchyNode* mHierarchyPane = nullptr;
+  //UIHierarchyNode* mInspector = nullptr;
 };
 
-const TacString gPropertyWindowName = "PropertyWindow";
+const String gPropertyWindowName = "PropertyWindow";
+
+}

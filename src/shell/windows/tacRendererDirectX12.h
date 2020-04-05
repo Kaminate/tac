@@ -1,8 +1,9 @@
+/*
 #pragma once
 
-#include "common/graphics/tacRenderer.h"
-#include "common/tacShell.h"
-#include "tacDXGI.h"
+#include "src/common/graphics/Renderer.h"
+#include "src/common/Shell.h"
+#include "src/shell/windows/DXGI.h"
 
 #include <d3d12.h>
 
@@ -11,9 +12,13 @@
 #include <comdef.h> // temp
 using Microsoft::WRL::ComPtr;
 
-struct TacString;
+namespace Tac
+{
 
-struct TacTextureDX12 : public TacTexture
+
+struct String;
+
+struct TextureDX12 : public Texture
 {
   ComPtr< ID3D12Resource > mResource;
   D3D12_CPU_DESCRIPTOR_HANDLE mCpuDescriptorHandle = {};
@@ -21,38 +26,38 @@ struct TacTextureDX12 : public TacTexture
   D3D12_RESOURCE_STATES mState = D3D12_RESOURCE_STATE_COMMON;
 };
 
-struct TacDX12Window : public TacRendererWindowData
+struct DX12Window : public RendererWindowData
 {
   // Equivalent to bgfx's RendererContextD3D12::submit ( not bgfx::submit )
   //                      ^ used to render a frame           ^ used to add a draw call
-  void Submit( TacErrors& errors ) override;
+  void Submit( Errors& errors ) override;
 
-  void GetCurrentBackbufferTexture( TacTexture** texture ) override;
+  void GetCurrentBackbufferTexture( Texture** texture ) override;
   void DebugDoubleCheckBackbufferIndex();
 
   // Indexes into backbufferColor, for double/triple/... buffering
   int mBackbufferIndex = 0;
   ComPtr< IDXGISwapChain > mSwapChain;
-  TacVector< TacTextureDX12* > mBackbufferColors;
+  Vector< TextureDX12* > mBackbufferColors;
 };
 
-struct TacDepthBufferDX12 : public TacDepthBuffer
+struct DepthBufferDX12 : public DepthBuffer
 {
   ComPtr< ID3D12Resource > mBackbufferDepthStencil;
   D3D12_CPU_DESCRIPTOR_HANDLE mBackbufferDepthCpuDescriptorHandle = {};
   DXGI_FORMAT mDxgiFormat = DXGI_FORMAT_UNKNOWN;
 };
 
-struct TacPSOStuff
+struct PSOStuff
 {
-  TacShader* mShader = nullptr;
-  TacBlendState* mBlendState = nullptr;
-  TacRasterizerState* mRasterizerState = nullptr;
-  TacDepthState* mDepthState = nullptr;
-  TacVertexFormat* mVertexFormat = nullptr;
-  TacTexture* mFramebufferTexture = nullptr;
-  TacDepthBuffer* mFramebufferDepth = nullptr;
-  //bool operator =( const TacPSOStuff& rhs )
+  Shader* mShader = nullptr;
+  BlendState* mBlendState = nullptr;
+  RasterizerState* mRasterizerState = nullptr;
+  DepthState* mDepthState = nullptr;
+  VertexFormat* mVertexFormat = nullptr;
+  Texture* mFramebufferTexture = nullptr;
+  DepthBuffer* mFramebufferDepth = nullptr;
+  //bool operator =( const PSOStuff& rhs )
   //{
   //  return
   //    mShader == rhs.mShader &&
@@ -67,7 +72,7 @@ struct TacPSOStuff
   ComPtr< ID3D12PipelineState > mPipelineState;
 };
 
-struct TacConstantBufferDX12 : public TacCBuffer
+struct ConstantBufferDX12 : public CBuffer
 {
   D3D12_GPU_DESCRIPTOR_HANDLE mCBufferDestDescriptorGPU = {};
   D3D12_CPU_DESCRIPTOR_HANDLE mCBufferDestDescriptorCPU = {};
@@ -75,23 +80,23 @@ struct TacConstantBufferDX12 : public TacCBuffer
   void* mMappedData = nullptr;
 };
 
-struct TacRendererDX12 : public TacRenderer
+struct RendererDX12 : public Renderer
 {
-  static TacRendererDX12* Instance;
-  TacRendererDX12();
-  void Init( TacErrors& errors ) override;
-  void CreateWindowContext( TacDesktopWindow* desktopWindow, TacErrors& errors ) override;
-  void AddVertexBuffer( TacVertexBuffer** vertexBuffer, const TacVertexBufferData& vertexBufferData, TacErrors& errors ) override;
-  void AddIndexBuffer( TacIndexBuffer** indexBuffer, const TacIndexBufferData& indexBufferData, TacErrors& errors ) override;
-  void AddConstantBuffer( TacCBuffer** outputCbuffer, const TacCBufferData& cBufferData, TacErrors& errors ) override;
-  void AddShader( TacShader** shader, const TacShaderData& shaderData, TacErrors& errors ) override;
-  void Render( TacErrors& errors ) override;
+  static RendererDX12* Instance;
+  RendererDX12();
+  void Init( Errors& errors ) override;
+  void CreateWindowContext( DesktopWindow* desktopWindow, Errors& errors ) override;
+  void AddVertexBuffer( VertexBuffer** vertexBuffer, const VertexBufferData& vertexBufferData, Errors& errors ) override;
+  void AddIndexBuffer( IndexBuffer** indexBuffer, const IndexBufferData& indexBufferData, Errors& errors ) override;
+  void AddConstantBuffer( CBuffer** outputCbuffer, const CBufferData& cBufferData, Errors& errors ) override;
+  void AddShader( Shader** shader, const ShaderData& shaderData, Errors& errors ) override;
+  void Render( Errors& errors ) override;
 
   void ResourceBarrier( ID3D12Resource* resource, D3D12_RESOURCE_STATES& oldState, const D3D12_RESOURCE_STATES& newState );
-  void GetPSOStuff( const TacDrawCall2& drawCall2, ID3D12PipelineState **pppipelineState, TacErrors& errors );
-  TacString GetDeviceRemovedReason();
-  TacString GetDeviceRemovedReason( HRESULT hr );
-  void FinishRendering( TacErrors& errors );
+  void GetPSOStuff( const DrawCall2& drawCall2, ID3D12PipelineState **pppipelineState, Errors& errors );
+  String GetDeviceRemovedReason();
+  String GetDeviceRemovedReason( HRESULT hr );
+  void FinishRendering( Errors& errors );
 
   ComPtr< ID3D12CommandQueue > mCommandQueue;
   ComPtr< ID3D12DescriptorHeap > mDSVDescriptorHeap;
@@ -107,10 +112,12 @@ struct TacRendererDX12 : public TacRenderer
   UINT64 mFenceValue = 0;
 
   ComPtr< ID3D12Resource > mCBufferUpload;
-  TacVector< TacDX12Window* > mWindows;
-  TacVector< TacPSOStuff > mPSOStuff;
+  Vector< DX12Window* > mWindows;
+  Vector< PSOStuff > mPSOStuff;
 
-  TacDXGI mDXGI;
+  DXGI mDXGI;
 
   SIZE_T scratchIncrement = 0;
 };
+}
+*/

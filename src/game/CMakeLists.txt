@@ -2,7 +2,7 @@
 
 set( TAC_DEBUGGING FALSE )
 set( TAC_LIBRARIES 
-TacCommonLibrary  
+CommonLibrary  
   Ghost
 )
 set( TAC_INCLUDE_DIRECTORIES "" )
@@ -74,7 +74,7 @@ if( WIN32 )
   # from console to windows, which makes the console window go away
   add_executable( ${TAC_TARGET_NAME} WIN32 ${TAC_SOURCES} )
   target_link_libraries( ${TAC_TARGET_NAME} ${TAC_LIBRARIES} )
-  # target_sources( ${TAC_TARGET_NAME} PRIVATE ${TacCommon} )
+  # target_sources( ${TAC_TARGET_NAME} PRIVATE ${Common} )
   set_target_properties( ${TAC_TARGET_NAME} PROPERTIES
     VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
     VS_STARTUP_PROJECT ${TAC_TARGET_NAME}

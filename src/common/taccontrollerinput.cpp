@@ -1,114 +1,117 @@
-#include "common/taccontrollerinput.h"
-#include "common/tacPreprocessor.h"
 
-TacControllerBitfield ToBitfield( TacControllerButton controllerButton )
+#include "src/common/tacControllerinput.h"
+#include "src/common/tacPreprocessor.h"
+namespace Tac
 {
-  return 1 << ( TacControllerBitfield )controllerButton;
+
+ControllerBitfield ToBitfield( ControllerButton controllerButton )
+{
+  return 1 << ( ControllerBitfield )controllerButton;
 }
 
-const char* TacToString( TacControllerButton controllerButton )
+const char* ToString( ControllerButton controllerButton )
 {
   switch( controllerButton )
   {
-  case TacControllerButton::DPadUp: return "DPadUp";
-  case TacControllerButton::DPadLeft: return "DPadLeft";
-  case TacControllerButton::DPadDown: return "DPadDown";
-  case TacControllerButton::DPadRight: return "DPadRight";
-  case TacControllerButton::Start: return "Start";
-  case TacControllerButton::Back: return "Back";
-  case TacControllerButton::LeftThumb: return "LeftThumb";
-  case TacControllerButton::RightThumb: return "RightThumb";
-  case TacControllerButton::LeftShoulder: return "LeftShoulder";
-  case TacControllerButton::RightShoulder: return "RightShoulder";
-  case TacControllerButton::A: return "A";
-  case TacControllerButton::B: return "B";
-  case TacControllerButton::X: return "X";
-  case TacControllerButton::Y: return "Y";
-    TacInvalidDefaultCase( controllerButton );
+  case ControllerButton::DPadUp: return "DPadUp";
+  case ControllerButton::DPadLeft: return "DPadLeft";
+  case ControllerButton::DPadDown: return "DPadDown";
+  case ControllerButton::DPadRight: return "DPadRight";
+  case ControllerButton::Start: return "Start";
+  case ControllerButton::Back: return "Back";
+  case ControllerButton::LeftThumb: return "LeftThumb";
+  case ControllerButton::RightThumb: return "RightThumb";
+  case ControllerButton::LeftShoulder: return "LeftShoulder";
+  case ControllerButton::RightShoulder: return "RightShoulder";
+  case ControllerButton::A: return "A";
+  case ControllerButton::B: return "B";
+  case ControllerButton::X: return "X";
+  case ControllerButton::Y: return "Y";
+    TAC_INVALID_DEFAULT_CASE( controllerButton );
   }
   return nullptr;
 }
 
-bool TacControllerState::IsButtonDown( TacControllerButton controllerButton )
+bool ControllerState::IsButtonDown( ControllerButton controllerButton )
 {
   return mButtons & ToBitfield( controllerButton );
 }
-void TacControllerState::DebugImgui()
+void ControllerState::DebugImgui()
 {
   //ImGui::DragFloat2( "Left stick", mLeftStick.data() );
   //ImGui::DragFloat2( "Right stick", mRightStick.data() );
   //ImGui::DragFloat( "Left Trigger", &mLeftTrigger );
   //ImGui::DragFloat( "Right Trigger", &mRightTrigger );
-  //for( int iButton = 0; iButton < ( int )TacControllerButton::Count; ++iButton )
+  //for( int iButton = 0; iButton < ( int )ControllerButton::Count; ++iButton )
   //{
-  //  auto controllerButton = ( TacControllerButton )iButton;
+  //  auto controllerButton = ( ControllerButton )iButton;
   //  bool down = IsButtonDown( controllerButton );
-  //  ImGui::Checkbox( TacToString( controllerButton ), &down );
+  //  ImGui::Checkbox( ToString( controllerButton ), &down );
   //}
 }
 
-TacController::TacController()
+Controller::Controller()
 {
   mDebugging = true;
 }
-TacController::~TacController()
+Controller::~Controller()
 {
-  TacControllerIndex iController = FindControllerIndex();
+  ControllerIndex iController = FindControllerIndex();
   mInput->mControllers[ iController ] = nullptr;
 }
-TacControllerIndex TacController::FindControllerIndex()
+ControllerIndex Controller::FindControllerIndex()
 {
-  for( TacControllerIndex iController = 0; iController < TAC_CONTROLLER_COUNT_MAX; ++iController )
+  for( ControllerIndex iController = 0; iController < TAC_CONTROLLER_COUNT_MAX; ++iController )
     if( mInput->mControllers[ iController ] == this )
       return iController;
-  TacInvalidCodePath;
+  TAC_INVALID_CODE_PATH;
   return TAC_CONTROLLER_COUNT_MAX;
 }
-bool TacController::IsButtonDown( TacControllerButton controllerButton )
+bool Controller::IsButtonDown( ControllerButton controllerButton )
 {
   return mControllerStateCurr.IsButtonDown( controllerButton );
 }
-bool TacController::IsButtonChanged( TacControllerButton controllerButton )
+bool Controller::IsButtonChanged( ControllerButton controllerButton )
 {
   return mControllerStateCurr.IsButtonDown( controllerButton ) !=
     mControllerStatePrev.IsButtonDown( controllerButton );
 }
-bool TacController::IsButtonJustPressed( TacControllerButton controllerButton )
+bool Controller::IsButtonJustPressed( ControllerButton controllerButton )
 {
   return mControllerStateCurr.IsButtonDown( controllerButton ) &&
     IsButtonChanged( controllerButton );
 }
-bool TacController::IsButtonJustReleased( TacControllerButton controllerButton )
+bool Controller::IsButtonJustReleased( ControllerButton controllerButton )
 {
   return !mControllerStateCurr.IsButtonDown( controllerButton ) &&
     IsButtonChanged( controllerButton );
 }
-void TacController::DebugImgui()
+void Controller::DebugImgui()
 {
   //ImGui::Text( mName );
   //mControllerStateCurr.DebugImgui();
   //DebugImguiInner();
 }
-void TacController::DebugImguiInner()
+void Controller::DebugImguiInner()
 {
 }
 
-TacControllerInput* TacControllerInput::Instance = nullptr;
-TacControllerInput::TacControllerInput()
+ControllerInput* ControllerInput::Instance = nullptr;
+ControllerInput::ControllerInput()
 {
   mDebugging = true;
   Instance = this;
 }
-TacControllerInput::~TacControllerInput()
+ControllerInput::~ControllerInput()
 {
 
-  for( TacController* controller : mControllers )
+  for( Controller* controller : mControllers )
   {
     delete controller;
   }
 
 }
-void TacControllerInput::DebugImgui()
+void ControllerInput::DebugImgui()
 {
   //ImGui::Checkbox( "Input", &mDebugging );
   //if( !mDebugging )
@@ -125,8 +128,8 @@ void TacControllerInput::DebugImgui()
 
   //for( int iController = 0; iController < TAC_CONTROLLER_COUNT_MAX; ++iController )
   //{
-  //  TacString name = "Controller " + TacToString( iController );
-  //  TacController* controller = mControllers[ iController ];
+  //  String name = "Controller " + ToString( iController );
+  //  Controller* controller = mControllers[ iController ];
   //  if( !controller )
   //  {
   //    name += "disconnected";
@@ -156,29 +159,29 @@ void TacControllerInput::DebugImgui()
   //  ImGui::End();
   //}
 }
-void TacControllerInput::Update()
+void ControllerInput::Update()
 {
-  for( TacController* controller : mControllers )
+  for( Controller* controller : mControllers )
     if( controller )
       controller->mControllerStatePrev = controller->mControllerStateCurr;
   UpdateInner();
 }
-void TacControllerInput::DebugImguiInner()
+void ControllerInput::DebugImguiInner()
 {
 }
-void TacControllerInput::UpdateInner()
+void ControllerInput::UpdateInner()
 {
 }
-bool TacControllerInput::CanAddController()
+bool ControllerInput::CanAddController()
 {
   auto c = GetConnectedControllerCount();
   bool result = c < TAC_CONTROLLER_COUNT_MAX;
   return result;
 }
-TacControllerIndex TacControllerInput::GetConnectedControllerCount()
+ControllerIndex ControllerInput::GetConnectedControllerCount()
 {
-  TacControllerIndex connectedControllerCount = 0;
-  for( TacController* controller : mControllers )
+  ControllerIndex connectedControllerCount = 0;
+  for( Controller* controller : mControllers )
   {
     if( !controller )
       continue;
@@ -186,10 +189,10 @@ TacControllerIndex TacControllerInput::GetConnectedControllerCount()
   }
   return connectedControllerCount;
 }
-TacControllerIndex TacControllerInput::AddController( TacController* controller )
+ControllerIndex ControllerInput::AddController( Controller* controller )
 {
-  TacAssert( CanAddController() );
-  for( TacControllerIndex iController = 0; iController < TAC_CONTROLLER_COUNT_MAX; ++iController )
+  TAC_ASSERT( CanAddController() );
+  for( ControllerIndex iController = 0; iController < TAC_CONTROLLER_COUNT_MAX; ++iController )
   {
     if( mControllers[ iController ] )
       continue;
@@ -197,6 +200,9 @@ TacControllerIndex TacControllerInput::AddController( TacController* controller 
     mControllers[ iController ] = controller;
     return iController;
   }
-  TacInvalidCodePath;
+  TAC_INVALID_CODE_PATH;
   return TAC_CONTROLLER_COUNT_MAX;
 }
+
+}
+

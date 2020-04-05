@@ -1,20 +1,23 @@
-#include "shell/tacDesktopWindowManager.h"
-
-#include "common/graphics/tacRenderer.h"
-#include "common/graphics/tacUI2D.h"
-#include "common/graphics/tacUI.h"
-#include "common/tacOS.h"
-#include "common/tackeyboardinput.h" // temp
+#include "src/shell/tacDesktopWindowManager.h"
+#include "src/common/graphics/tacRenderer.h"
+#include "src/common/graphics/tacUI2D.h"
+#include "src/common/graphics/tacUI.h"
+#include "src/common/tacOS.h"
+#include "src/common/tacKeyboardinput.h" // temp
 #include <thread>
 
-TacDesktopWindowManager::TacDesktopWindowManager()
+namespace Tac
+{
+
+
+DesktopWindowManager::DesktopWindowManager()
 {
   Instance = this;
 }
-TacDesktopWindowManager* TacDesktopWindowManager::Instance = nullptr;
+DesktopWindowManager* DesktopWindowManager::Instance = nullptr;
 
-void TacDesktopWindowManager::SetWindowCreationData(
-  const TacStringView& windowName,
+void DesktopWindowManager::SetWindowCreationData(
+  const StringView& windowName,
   int width,
   int height,
   int x,
@@ -34,7 +37,7 @@ void TacDesktopWindowManager::SetWindowCreationData(
   pData->mY = y;
 }
 
-WindowCreationData* TacDesktopWindowManager::FindWindowCreationData( const TacStringView& windowName )
+WindowCreationData* DesktopWindowManager::FindWindowCreationData( const StringView& windowName )
 {
   for( WindowCreationData& data : mWindowCreationData )
     if( data.mWindowName == windowName )
@@ -42,3 +45,4 @@ WindowCreationData* TacDesktopWindowManager::FindWindowCreationData( const TacSt
   return nullptr;
 }
 
+}

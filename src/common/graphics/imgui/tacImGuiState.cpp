@@ -1,24 +1,28 @@
-#include "common/graphics/imgui/tacImGuiState.h"
-#include "common/graphics/tacTextEdit.h"
-#include "common/graphics/tacUI2D.h"
-#include "common/tackeyboardinput.h"
-#include "common/tacOS.h"
-#include "common/math/tacMath.h"
+#include "src/common/graphics/imgui/tacImGuiState.h"
+#include "src/common/graphics/tacTextEdit.h"
+#include "src/common/graphics/tacUI2D.h"
+#include "src/common/tacKeyboardinput.h"
+#include "src/common/tacOS.h"
+#include "src/common/math/tacMath.h"
 
-TacImGuiGlobals TacImGuiGlobals::Instance;
-
-TacImGuiWindow::TacImGuiWindow()
+namespace Tac
 {
-  inputData = new TacTextInputData;
+
+
+ImGuiGlobals ImGuiGlobals::Instance;
+
+ImGuiWindow::ImGuiWindow()
+{
+  inputData = new TextInputData;
 }
-TacImGuiWindow::~TacImGuiWindow()
+ImGuiWindow::~ImGuiWindow()
 {
   delete inputData;
 }
-void TacImGuiWindow::BeginFrame()
+void ImGuiWindow::BeginFrame()
 {
-  TacUI2DDrawData* ui2DDrawData = TacImGuiGlobals::Instance.mUI2DDrawData;
-  TacKeyboardInput* keyboardInput = TacImGuiGlobals::Instance.mKeyboardInput;
+  UI2DDrawData* ui2DDrawData = ImGuiGlobals::Instance.mUI2DDrawData;
+  KeyboardInput* keyboardInput = ImGuiGlobals::Instance.mKeyboardInput;
 
 
   if( mParent )
@@ -27,7 +31,7 @@ void TacImGuiWindow::BeginFrame()
     // Render borders
     {
       bool clipped;
-      auto clipRect = TacImGuiRect::FromPosSize( mPos, mSize );
+      auto clipRect = ImGuiRect::FromPosSize( mPos, mSize );
       ComputeClipInfo( &clipped, &clipRect );
       if( !clipped )
       {
@@ -69,26 +73,26 @@ void TacImGuiWindow::BeginFrame()
 
     if( mScrolling )
     {
-      TacErrors mouseErrors;
+      Errors mouseErrors;
       v2 mousePosScreenspace;
-      TacOS::Instance->GetScreenspaceCursorPos( mousePosScreenspace, mouseErrors );
+      OS::Instance->GetScreenspaceCursorPos( mousePosScreenspace, mouseErrors );
       if( mouseErrors.empty() )
       {
         float mouseDY = mousePosScreenspace.y - mScrollMousePosScreenspaceInitial.y;
         float scrollMin = 0;
         float scrollMax = contentAllHeight - contentVisibleHeight;
-        mScroll = TacClamp( mouseDY, scrollMin, scrollMax );
+        mScroll = Clamp( mouseDY, scrollMin, scrollMax );
       }
 
-      if( !TacKeyboardInput::Instance->IsKeyDown( TacKey::MouseLeft ) )
+      if( !KeyboardInput::Instance->IsKeyDown( Key::MouseLeft ) )
         mScrolling = false;
     }
-    else if( TacKeyboardInput::Instance->IsKeyJustDown( TacKey::MouseLeft ) &&
-      TacImGuiGlobals::Instance.IsHovered( TacImGuiRect::FromMinMax( mini, maxi ) ) )
+    else if( KeyboardInput::Instance->IsKeyJustDown( Key::MouseLeft ) &&
+      ImGuiGlobals::Instance.IsHovered( ImGuiRect::FromMinMax( mini, maxi ) ) )
     {
-      TacErrors mouseErrors;
+      Errors mouseErrors;
       v2 mousePosScreenspace;
-      TacOS::Instance->GetScreenspaceCursorPos( mousePosScreenspace, mouseErrors );
+      OS::Instance->GetScreenspaceCursorPos( mousePosScreenspace, mouseErrors );
       if( mouseErrors.empty() )
       {
         mScrolling = true;
@@ -96,24 +100,24 @@ void TacImGuiWindow::BeginFrame()
       }
     }
 
-    mContentRect = TacImGuiRect::FromPosSize( mPos, v2( mSize.x - scrollbarWidth, mSize.y ) );
+    mContentRect = ImGuiRect::FromPosSize( mPos, v2( mSize.x - scrollbarWidth, mSize.y ) );
   }
   else
   {
-    mContentRect = TacImGuiRect::FromPosSize( mPos, mSize );
+    mContentRect = ImGuiRect::FromPosSize( mPos, mSize );
   }
 
-  v2 padVec = v2( 1, 1 ) * TacImGuiGlobals::Instance.mUIStyle.windowPadding;
+  v2 padVec = v2( 1, 1 ) * ImGuiGlobals::Instance.mUIStyle.windowPadding;
   mContentRect.mMini += padVec;
   mContentRect.mMaxi -= padVec;
 
-  mXOffsets = { TacImGuiGlobals::Instance.mUIStyle.windowPadding };
+  mXOffsets = { ImGuiGlobals::Instance.mUIStyle.windowPadding };
   v2 drawPos = {
     //       +----- grody ------+
     //       |                  |
     //       v                  v
     mPos.x + mXOffsets.back(),
-    mPos.y + TacImGuiGlobals::Instance.mUIStyle.windowPadding - mScroll };
+    mPos.y + ImGuiGlobals::Instance.mUIStyle.windowPadding - mScroll };
   mCurrCursorDrawPos = drawPos;
   mPrevCursorDrawPos = drawPos;
   mMaxiCursorDrawPos = drawPos;
@@ -123,12 +127,12 @@ void TacImGuiWindow::BeginFrame()
   if( !mParent )
   {
     if( !mIDAllocator )
-      mIDAllocator = new TacImGuiIDAllocator;
+      mIDAllocator = new ImGuiIDAllocator;
     mIDAllocator->mIDCounter = 0;
-    if( !TacImGuiGlobals::Instance.mIsWindowDirectlyUnderCursor &&
-      TacKeyboardInput::Instance->IsKeyJustDown( TacKey::MouseLeft ) )
+    if( !ImGuiGlobals::Instance.mIsWindowDirectlyUnderCursor &&
+      KeyboardInput::Instance->IsKeyJustDown( Key::MouseLeft ) )
     {
-      mIDAllocator->mActiveID = TacImGuiIdNull;
+      mIDAllocator->mActiveID = ImGuiIdNull;
     }
   }
   else
@@ -142,57 +146,57 @@ void TacImGuiWindow::BeginFrame()
   //}
   //mActiveIDPrev = mActiveID;
 }
-void TacImGuiWindow::ComputeClipInfo( bool* clipped, TacImGuiRect* clipRect )
+void ImGuiWindow::ComputeClipInfo( bool* clipped, ImGuiRect* clipRect )
 {
-  auto windowRect = TacImGuiRect::FromPosSize( mPos, mSize );
+  auto windowRect = ImGuiRect::FromPosSize( mPos, mSize );
   *clipped =
     clipRect->mMini.x > windowRect.mMaxi.x ||
     clipRect->mMaxi.x < windowRect.mMini.x ||
     clipRect->mMini.y > windowRect.mMaxi.y ||
     clipRect->mMaxi.y < windowRect.mMini.y;
-  clipRect->mMini.x = TacMax( clipRect->mMini.x, windowRect.mMini.x );
-  clipRect->mMini.y = TacMax( clipRect->mMini.y, windowRect.mMini.y );
-  clipRect->mMaxi.x = TacMin( clipRect->mMaxi.x, windowRect.mMaxi.x );
-  clipRect->mMaxi.y = TacMin( clipRect->mMaxi.y, windowRect.mMaxi.y );
+  clipRect->mMini.x = Max( clipRect->mMini.x, windowRect.mMini.x );
+  clipRect->mMini.y = Max( clipRect->mMini.y, windowRect.mMini.y );
+  clipRect->mMaxi.x = Min( clipRect->mMaxi.x, windowRect.mMaxi.x );
+  clipRect->mMaxi.y = Min( clipRect->mMaxi.y, windowRect.mMaxi.y );
 }
-void TacImGuiWindow::ItemSize( v2 size )
+void ImGuiWindow::ItemSize( v2 size )
 {
-  mCurrLineHeight = TacMax( mCurrLineHeight, size.y );
+  mCurrLineHeight = Max( mCurrLineHeight, size.y );
   UpdateMaxCursorDrawPos( mCurrCursorDrawPos + v2{ size.x, mCurrLineHeight } );
 
   mPrevCursorDrawPos = mCurrCursorDrawPos + v2( size.x, 0 );
   mPrevLineHeight = mCurrLineHeight;
 
   mCurrCursorDrawPos.x = mPos.x + mXOffsets.back();
-  mCurrCursorDrawPos.y += mCurrLineHeight + TacImGuiGlobals::Instance.mUIStyle.itemSpacing.y;
+  mCurrCursorDrawPos.y += mCurrLineHeight + ImGuiGlobals::Instance.mUIStyle.itemSpacing.y;
   mCurrLineHeight = 0;
 }
-void TacImGuiWindow::UpdateMaxCursorDrawPos( v2 pos )
+void ImGuiWindow::UpdateMaxCursorDrawPos( v2 pos )
 {
-  mMaxiCursorDrawPos.x = TacMax( mMaxiCursorDrawPos.x, pos.x );
-  mMaxiCursorDrawPos.y = TacMax( mMaxiCursorDrawPos.y, pos.y );
+  mMaxiCursorDrawPos.x = Max( mMaxiCursorDrawPos.x, pos.x );
+  mMaxiCursorDrawPos.y = Max( mMaxiCursorDrawPos.y, pos.y );
 }
-TacImGuiId  TacImGuiWindow::GetActiveID()
+ImGuiId  ImGuiWindow::GeTiveID()
 {
   return mIDAllocator->mActiveID;
 }
-void TacImGuiWindow::SetActiveID( TacImGuiId id )
+void ImGuiWindow::SeTiveID( ImGuiId id )
 {
   mIDAllocator->mActiveID = id;
 }
-TacImGuiId TacImGuiWindow::GetID()
+ImGuiId ImGuiWindow::GetID()
 {
   return mIDAllocator->mIDCounter++;
 }
 
-TacImGuiWindow* TacImGuiGlobals::FindWindow( const TacString& name )
+ImGuiWindow* ImGuiGlobals::FindWindow( const String& name )
 {
-  for( TacImGuiWindow* window : mAllWindows )
+  for( ImGuiWindow* window : mAllWindows )
     if( window->mName == name )
       return window;
   return nullptr;
 }
-bool TacImGuiGlobals::IsHovered( const TacImGuiRect& rect )
+bool ImGuiGlobals::IsHovered( const ImGuiRect& rect )
 {
   if( !mIsWindowDirectlyUnderCursor )
     return false;
@@ -201,4 +205,5 @@ bool TacImGuiGlobals::IsHovered( const TacImGuiRect& rect )
     mMousePositionDesktopWindowspace.x < rect.mMaxi.x &&
     mMousePositionDesktopWindowspace.y > rect.mMini.y &&
     mMousePositionDesktopWindowspace.y < rect.mMaxi.y;
+}
 }

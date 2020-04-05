@@ -191,7 +191,7 @@
 // NOTES
 //
 //   The system uses the raw data found in the .ttf file without changing it
-//   and without building auxiliary data structures. This is a bit inefficient
+//   and without building auxiliary data struct Ures. This is a bit inefficient
 //   on little-endian systems (the data is big-endian), but assuming you're
 //   caching the bitmaps or glyph shapes this shouldn't be a big deal.
 //
@@ -449,7 +449,7 @@ int main(int arg, char **argv)
 extern "C" {
 #endif
 
-// private structure
+// private struct Ure
 typedef struct
 {
    unsigned char *data;
@@ -605,7 +605,7 @@ STBTT_DEF int  stbtt_PackFontRangesRenderIntoRects(stbtt_pack_context *spc, cons
 // better packing than calling PackFontRanges multiple times
 // (or it may not).
 
-// this is an opaque structure that you shouldn't mess with which holds
+// this is an opaque struct Ure that you shouldn't mess with which holds
 // all the context needed from PackBegin to PackEnd.
 struct stbtt_pack_context {
    void *user_allocator_context;
@@ -639,8 +639,8 @@ STBTT_DEF int stbtt_GetFontOffsetForIndex(const unsigned char *data, int index);
 // file will only define one font and it always be at offset 0, so it will
 // return '0' for index 0, and -1 for all other indices.
 
-// The following structure is defined publically so you can declare one on
-// the stack or as a global or etc, but you should treat it as opaque.
+// The following struct Ure is defined publically so you can declare one on
+// the sK or as a global or etc, but you should treat it as opaque.
 struct stbtt_fontinfo
 {
    void           * userdata;
@@ -666,7 +666,7 @@ STBTT_DEF int stbtt_InitFont(stbtt_fontinfo *info, const unsigned char *data, in
 // the necessary cached info for the rest of the system. You must allocate
 // the stbtt_fontinfo yourself, and stbtt_InitFont will fill it out. You don't
 // need to do anything special to free it, because the contents are pure
-// value data with no additional data structures. Returns 0 on failure.
+// value data with no additional data struct Ures. Returns 0 on failure.
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -1826,10 +1826,10 @@ static stbtt__buf stbtt__cid_get_glyph_subrs(const stbtt_fontinfo *info, int gly
 
 static int stbtt__run_charstring(const stbtt_fontinfo *info, int glyph_index, stbtt__csctx *c)
 {
-   int in_header = 1, maskbits = 0, subr_stack_height = 0, sp = 0, v, i, b0;
-   int has_subrs = 0, clear_stack;
+   int in_header = 1, maskbits = 0, subr_sK_height = 0, sp = 0, v, i, b0;
+   int has_subrs = 0, clear_sK;
    float s[48];
-   stbtt__buf subr_stack[10], subrs = info->subrs, b;
+   stbtt__buf subr_sK[10], subrs = info->subrs, b;
    float f;
 
 #define STBTT__CSERR(s) (0)
@@ -1838,7 +1838,7 @@ static int stbtt__run_charstring(const stbtt_fontinfo *info, int glyph_index, st
    b = stbtt__cff_index_get(info->charstrings, glyph_index);
    while (b.cursor < b.size) {
       i = 0;
-      clear_stack = 1;
+      clear_sK = 1;
       b0 = stbtt__buf_get8(&b);
       switch (b0) {
       case 0x13: // hintmask
@@ -1858,22 +1858,22 @@ static int stbtt__run_charstring(const stbtt_fontinfo *info, int glyph_index, st
 
       case 0x15: // rmoveto
          in_header = 0;
-         if (sp < 2) return STBTT__CSERR("rmoveto stack");
+         if (sp < 2) return STBTT__CSERR("rmoveto sK");
          stbtt__csctx_rmove_to(c, s[sp-2], s[sp-1]);
          break;
       case 0x04: // vmoveto
          in_header = 0;
-         if (sp < 1) return STBTT__CSERR("vmoveto stack");
+         if (sp < 1) return STBTT__CSERR("vmoveto sK");
          stbtt__csctx_rmove_to(c, 0, s[sp-1]);
          break;
       case 0x16: // hmoveto
          in_header = 0;
-         if (sp < 1) return STBTT__CSERR("hmoveto stack");
+         if (sp < 1) return STBTT__CSERR("hmoveto sK");
          stbtt__csctx_rmove_to(c, s[sp-1], 0);
          break;
 
       case 0x05: // rlineto
-         if (sp < 2) return STBTT__CSERR("rlineto stack");
+         if (sp < 2) return STBTT__CSERR("rlineto sK");
          for (; i + 1 < sp; i += 2)
             stbtt__csctx_rline_to(c, s[i], s[i+1]);
          break;
@@ -1882,10 +1882,10 @@ static int stbtt__run_charstring(const stbtt_fontinfo *info, int glyph_index, st
       // starting from a different place.
 
       case 0x07: // vlineto
-         if (sp < 1) return STBTT__CSERR("vlineto stack");
+         if (sp < 1) return STBTT__CSERR("vlineto sK");
          goto vlineto;
       case 0x06: // hlineto
-         if (sp < 1) return STBTT__CSERR("hlineto stack");
+         if (sp < 1) return STBTT__CSERR("hlineto sK");
          for (;;) {
             if (i >= sp) break;
             stbtt__csctx_rline_to(c, s[i], 0);
@@ -1898,10 +1898,10 @@ static int stbtt__run_charstring(const stbtt_fontinfo *info, int glyph_index, st
          break;
 
       case 0x1F: // hvcurveto
-         if (sp < 4) return STBTT__CSERR("hvcurveto stack");
+         if (sp < 4) return STBTT__CSERR("hvcurveto sK");
          goto hvcurveto;
       case 0x1E: // vhcurveto
-         if (sp < 4) return STBTT__CSERR("vhcurveto stack");
+         if (sp < 4) return STBTT__CSERR("vhcurveto sK");
          for (;;) {
             if (i + 3 >= sp) break;
             stbtt__csctx_rccurve_to(c, 0, s[i], s[i+1], s[i+2], s[i+3], (sp - i == 5) ? s[i + 4] : 0.0f);
@@ -1914,30 +1914,30 @@ static int stbtt__run_charstring(const stbtt_fontinfo *info, int glyph_index, st
          break;
 
       case 0x08: // rrcurveto
-         if (sp < 6) return STBTT__CSERR("rcurveline stack");
+         if (sp < 6) return STBTT__CSERR("rcurveline sK");
          for (; i + 5 < sp; i += 6)
             stbtt__csctx_rccurve_to(c, s[i], s[i+1], s[i+2], s[i+3], s[i+4], s[i+5]);
          break;
 
       case 0x18: // rcurveline
-         if (sp < 8) return STBTT__CSERR("rcurveline stack");
+         if (sp < 8) return STBTT__CSERR("rcurveline sK");
          for (; i + 5 < sp - 2; i += 6)
             stbtt__csctx_rccurve_to(c, s[i], s[i+1], s[i+2], s[i+3], s[i+4], s[i+5]);
-         if (i + 1 >= sp) return STBTT__CSERR("rcurveline stack");
+         if (i + 1 >= sp) return STBTT__CSERR("rcurveline sK");
          stbtt__csctx_rline_to(c, s[i], s[i+1]);
          break;
 
       case 0x19: // rlinecurve
-         if (sp < 8) return STBTT__CSERR("rlinecurve stack");
+         if (sp < 8) return STBTT__CSERR("rlinecurve sK");
          for (; i + 1 < sp - 6; i += 2)
             stbtt__csctx_rline_to(c, s[i], s[i+1]);
-         if (i + 5 >= sp) return STBTT__CSERR("rlinecurve stack");
+         if (i + 5 >= sp) return STBTT__CSERR("rlinecurve sK");
          stbtt__csctx_rccurve_to(c, s[i], s[i+1], s[i+2], s[i+3], s[i+4], s[i+5]);
          break;
 
       case 0x1A: // vvcurveto
       case 0x1B: // hhcurveto
-         if (sp < 4) return STBTT__CSERR("(vv|hh)curveto stack");
+         if (sp < 4) return STBTT__CSERR("(vv|hh)curveto sK");
          f = 0.0;
          if (sp & 1) { f = s[i]; i++; }
          for (; i + 3 < sp; i += 4) {
@@ -1957,20 +1957,20 @@ static int stbtt__run_charstring(const stbtt_fontinfo *info, int glyph_index, st
          }
          // fallthrough
       case 0x1D: // callgsubr
-         if (sp < 1) return STBTT__CSERR("call(g|)subr stack");
+         if (sp < 1) return STBTT__CSERR("call(g|)subr sK");
          v = (int) s[--sp];
-         if (subr_stack_height >= 10) return STBTT__CSERR("recursion limit");
-         subr_stack[subr_stack_height++] = b;
+         if (subr_sK_height >= 10) return STBTT__CSERR("recursion limit");
+         subr_sK[subr_sK_height++] = b;
          b = stbtt__get_subr(b0 == 0x0A ? subrs : info->gsubrs, v);
          if (b.size == 0) return STBTT__CSERR("subr not found");
          b.cursor = 0;
-         clear_stack = 0;
+         clear_sK = 0;
          break;
 
       case 0x0B: // return
-         if (subr_stack_height <= 0) return STBTT__CSERR("return outside subr");
-         b = subr_stack[--subr_stack_height];
-         clear_stack = 0;
+         if (subr_sK_height <= 0) return STBTT__CSERR("return outside subr");
+         b = subr_sK[--subr_sK_height];
+         clear_sK = 0;
          break;
 
       case 0x0E: // endchar
@@ -1983,7 +1983,7 @@ static int stbtt__run_charstring(const stbtt_fontinfo *info, int glyph_index, st
          int b1 = stbtt__buf_get8(&b);
          switch (b1) {
          case 0x22: // hflex
-            if (sp < 7) return STBTT__CSERR("hflex stack");
+            if (sp < 7) return STBTT__CSERR("hflex sK");
             dx1 = s[0];
             dx2 = s[1];
             dy2 = s[2];
@@ -1996,7 +1996,7 @@ static int stbtt__run_charstring(const stbtt_fontinfo *info, int glyph_index, st
             break;
 
          case 0x23: // flex
-            if (sp < 13) return STBTT__CSERR("flex stack");
+            if (sp < 13) return STBTT__CSERR("flex sK");
             dx1 = s[0];
             dy1 = s[1];
             dx2 = s[2];
@@ -2015,7 +2015,7 @@ static int stbtt__run_charstring(const stbtt_fontinfo *info, int glyph_index, st
             break;
 
          case 0x24: // hflex1
-            if (sp < 9) return STBTT__CSERR("hflex1 stack");
+            if (sp < 9) return STBTT__CSERR("hflex1 sK");
             dx1 = s[0];
             dy1 = s[1];
             dx2 = s[2];
@@ -2030,7 +2030,7 @@ static int stbtt__run_charstring(const stbtt_fontinfo *info, int glyph_index, st
             break;
 
          case 0x25: // flex1
-            if (sp < 11) return STBTT__CSERR("flex1 stack");
+            if (sp < 11) return STBTT__CSERR("flex1 sK");
             dx1 = s[0];
             dy1 = s[1];
             dx2 = s[2];
@@ -2068,12 +2068,12 @@ static int stbtt__run_charstring(const stbtt_fontinfo *info, int glyph_index, st
             stbtt__buf_skip(&b, -1);
             f = (float)(stbtt_int16)stbtt__cff_int(&b);
          }
-         if (sp >= 48) return STBTT__CSERR("push stack overflow");
+         if (sp >= 48) return STBTT__CSERR("push sK overflow");
          s[sp++] = f;
-         clear_stack = 0;
+         clear_sK = 0;
          break;
       }
-      if (clear_stack) sp = 0;
+      if (clear_sK) sp = 0;
    }
    return STBTT__CSERR("no endchar");
 

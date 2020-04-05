@@ -1,49 +1,53 @@
-#include "shell/tacDesktopApp.h"
-#include "shell/tacDesktopWindowManager.h"
+#include "src/shell/tacDesktopApp.h"
+#include "src/shell/tacDesktopWindowManager.h"
+#include "src/common/graphics/tacRenderer.h"
+#include "src/common/graphics/tacUI2D.h"
+#include "src/common/graphics/tacUI.h"
+#include "src/common/tacOS.h"
+#include "src/common/tacKeyboardInput.h" // temp
+#include "src/common/profile/tacProfile.h"
 
-#include "common/graphics/tacRenderer.h"
-#include "common/graphics/tacUI2D.h"
-#include "common/graphics/tacUI.h"
-#include "common/tacOS.h"
-#include "common/tackeyboardinput.h" // temp
-#include "common/profile/tacProfile.h"
+namespace Tac
+{
 
+thread_local ThreadType gThreadType = ThreadType::Unknown;
 
-TacDesktopApp* TacDesktopApp::Instance = nullptr;
+DesktopApp* DesktopApp::Instance = nullptr;
 
-TacDesktopApp::TacDesktopApp()
+DesktopApp::DesktopApp()
 {
   Instance = this;
-  new TacShell;
+  new Shell;
 }
 
-TacDesktopApp::~TacDesktopApp()
+DesktopApp::~DesktopApp()
 {
   for( auto window : mMainWindows )
     delete window;
 }
 
-static void StuffThread( TacErrors& errors )
+static void StuffThread( Errors& errors )
 {
-  new TacProfileSystem;
-  TacProfileSystem::Instance->Init();
-  while( !TacOS::Instance->mShouldStopRunning )
+  gThreadType = ThreadType::Stuff;
+  new ProfileSystem;
+  ProfileSystem::Instance->Init();
+  while( !OS::Instance->mShouldStopRunning )
   {
-    TacShell::Instance->Update( errors );
+    Shell::Instance->Update( errors );
     TAC_HANDLE_ERROR( errors );
 
-    TacUpdateThing::Instance->Update( errors );
+    UpdateThing::Instance->Update( errors );
     TAC_HANDLE_ERROR( errors );
   }
 }
 
-void TacDesktopApp::KillDeadWindows()
+void DesktopApp::KillDeadWindows()
 {
   int windowCount = mMainWindows.size();
   int iWindow = 0;
   while( iWindow < windowCount )
   {
-    TacDesktopWindow* window = mMainWindows[ iWindow ];
+    DesktopWindow* window = mMainWindows[ iWindow ];
     if( window->mRequestDeletion )
     {
       mMainWindows[ iWindow ] = mMainWindows[ windowCount - 1 ];
@@ -58,48 +62,49 @@ void TacDesktopApp::KillDeadWindows()
   }
 }
 
-void TacDesktopApp::Init( TacErrors& errors )
+void DesktopApp::Init( Errors& errors )
 {
-  new TacDesktopWindowManager;
+  gThreadType = ThreadType::Main;
+  new DesktopWindowManager;
 
-  TacExecutableStartupInfo info;
+  ExecutableStartupInfo info;
   info.Init( errors );
   TAC_HANDLE_ERROR( errors );
 
-  TacString appDataPath;
+  String appDataPath;
   bool appDataPathExists;
-  TacOS::Instance->GetApplicationDataPath( appDataPath, errors );
-  TacOS::Instance->DoesFolderExist( appDataPath, appDataPathExists, errors );
-  TacAssert( appDataPathExists );
+  OS::Instance->GetApplicationDataPath( appDataPath, errors );
+  OS::Instance->DoesFolderExist( appDataPath, appDataPathExists, errors );
+  TAC_ASSERT( appDataPathExists );
 
-  TacString appName = info.mAppName;
-  TacString studioPath = appDataPath + "\\" + info.mStudioName + "\\";
-  TacString prefPath = studioPath + appName;
+  String appName = info.mAppName;
+  String studioPath = appDataPath + "\\" + info.mStudioName + "\\";
+  String prefPath = studioPath + appName;
 
-  TacOS::Instance->CreateFolderIfNotExist( studioPath, errors );
+  OS::Instance->CreateFolderIfNotExist( studioPath, errors );
   TAC_HANDLE_ERROR( errors );
 
-  TacOS::Instance->CreateFolderIfNotExist( prefPath, errors );
+  OS::Instance->CreateFolderIfNotExist( prefPath, errors );
   TAC_HANDLE_ERROR( errors );
 
-  TacString workingDir;
-  TacOS::Instance->GetWorkingDir( workingDir, errors );
+  String workingDir;
+  OS::Instance->GetWorkingDir( workingDir, errors );
   TAC_HANDLE_ERROR( errors );
 
-  new TacShell;
-  TacShell::Instance->mAppName = appName;
-  TacShell::Instance->mPrefPath = prefPath;
-  TacShell::Instance->mInitialWorkingDir = workingDir;
-  TacShell::Instance->Init( errors );
+  new Shell;
+  Shell::Instance->mAppName = appName;
+  Shell::Instance->mPrefPath = prefPath;
+  Shell::Instance->mInitialWorkingDir = workingDir;
+  Shell::Instance->Init( errors );
   TAC_HANDLE_ERROR( errors );
 
-  TacUpdateThing::Instance->Init( errors );
+  UpdateThing::Instance->Init( errors );
   TAC_HANDLE_ERROR( errors );
 
 }
-void TacDesktopApp::Run()
+void DesktopApp::Run()
 {
-  TacErrors& errors = mErrorsMainThread;
+  Errors& errors = mErrorsMainThread;
 
   Init( errors );
   TAC_HANDLE_ERROR( errors );
@@ -107,7 +112,7 @@ void TacDesktopApp::Run()
   mStuffThread = std::thread( StuffThread, mErrorsStuffThread );
   for( ;; )
   {
-    if( TacOS::Instance->mShouldStopRunning )
+    if( OS::Instance->mShouldStopRunning )
       break;
 
     Poll( errors );
@@ -115,30 +120,30 @@ void TacDesktopApp::Run()
 
     KillDeadWindows();
 
-    TacRenderer::Instance->Render( errors );
+    Renderer::Instance->Render( errors );
     TAC_HANDLE_ERROR( errors );
   }
 }
 
-void TacDesktopApp::SpawnWindow( const TacWindowParams& windowParams, TacDesktopWindow** ppDesktopWindow, TacErrors& errors )
+void DesktopApp::SpawnWindow( const WindowParams& windowParams, DesktopWindow** ppDesktopWindow, Errors& errors )
 {
-  TacDesktopWindow* desktopWindow;
+  DesktopWindow* desktopWindow;
   SpawnWindowAux( windowParams, &desktopWindow, errors );
   TAC_HANDLE_ERROR( errors );
 
-  TacRenderer::Instance->CreateWindowContext( desktopWindow, errors );
+  Renderer::Instance->CreateWindowContext( desktopWindow, errors );
 
-  //struct TacOnWindowResize : public TacEvent<>::Handler
+  //struct OnWindowResize : public Event<>::Handler
   //{
   //  void HandleEvent() override
   //  {
-  //    TacErrors errors;
+  //    Errors errors;
   //    mRendererWindowData->OnResize( errors );
   //  }
-  //  TacRendererWindowData* mRendererWindowData = nullptr;
-  //  TacDesktopWindow* mDesktopWindow = nullptr;
+  //  RendererWindowData* mRendererWindowData = nullptr;
+  //  DesktopWindow* mDesktopWindow = nullptr;
   //};
-  //auto onWindowResize = new TacOnWindowResize;
+  //auto onWindowResize = new OnWindowResize;
   //onWindowResize->mDesktopWindow = desktopWindow;
   //onWindowResize->mRendererWindowData = desktopWindow->mRendererData;
 
@@ -155,3 +160,4 @@ void TacDesktopApp::SpawnWindow( const TacWindowParams& windowParams, TacDesktop
   *ppDesktopWindow = desktopWindow;
 }
 
+}

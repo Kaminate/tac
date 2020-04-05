@@ -1,23 +1,27 @@
-#include "creation/tacCreationGameWindow.h"
-#include "creation/tacCreation.h"
-#include "common/tacShell.h"
-#include "common/tacDesktopWindow.h"
-#include "common/graphics/tacRenderer.h"
-#include "common/graphics/tacUI2D.h"
-#include "common/graphics/tacUI.h"
-#include "common/graphics/imgui/tacImGui.h"
-#include "common/tackeyboardinput.h"
-#include "common/graphics/tacDebug3D.h"
-#include "common/assetmanagers/tacTextureAssetManager.h"
-#include "common/assetmanagers/tacModelAssetManager.h"
-#include "common/tacOS.h"
-#include "shell/tacDesktopApp.h"
-#include "space/tacGhost.h"
-#include "space/graphics/tacgraphics.h"
-#include "space/tacworld.h"
-#include "space/tacentity.h"
-#include "space/presentation/tacGamePresentation.h"
-#include "space/presentation/tacSkyboxPresentation.h"
+#include "src/creation/tacCreationGameWindow.h"
+#include "src/creation/tacCreation.h"
+#include "src/common/tacShell.h"
+#include "src/common/tacDesktopWindow.h"
+#include "src/common/graphics/tacRenderer.h"
+#include "src/common/graphics/tacUI2D.h"
+#include "src/common/graphics/tacUI.h"
+#include "src/common/graphics/imgui/tacImGui.h"
+#include "src/common/tacKeyboardinput.h"
+#include "src/common/graphics/tacDebug3D.h"
+#include "src/common/assetmanagers/tacTextureAssetManager.h"
+#include "src/common/assetmanagers/tacModelAssetManager.h"
+#include "src/common/tacOS.h"
+#include "src/shell/tacDesktopApp.h"
+#include "src/space/tacGhost.h"
+#include "src/space/graphics/tacGraphics.h"
+#include "src/space/tacWorld.h"
+#include "src/space/tacEntity.h"
+#include "src/space/presentation/tacGamePresentation.h"
+#include "src/space/presentation/tacSkyboxPresentation.h"
+
+namespace Tac
+{
+
 
 // http://palitri.com/vault/stuff/maths/Rays%20closest%20point.pdf
 //
@@ -68,11 +72,11 @@ static void ClosestPointTwoRays(
   float* e )
 {
   v3 c = B - A;
-  float ab = TacDot( a, b );
-  float bc = TacDot( b, c );
-  float ac = TacDot( a, c );
-  float aa = TacDot( a, a );
-  float bb = TacDot( b, b );
+  float ab = Dot( a, b );
+  float bc = Dot( b, c );
+  float ac = Dot( a, c );
+  float aa = Dot( a, a );
+  float bb = Dot( b, b );
   float denom = aa * bb - ab * ab;
 
   if( d )
@@ -85,120 +89,120 @@ static void ClosestPointTwoRays(
   }
 }
 
-TacCreationGameWindow::~TacCreationGameWindow()
+CreationGameWindow::~CreationGameWindow()
 {
-  TacRenderer::Instance->RemoveRendererResource( m3DShader );
-  TacRenderer::Instance->RemoveRendererResource( m3DVertexFormat );
-  TacRenderer::Instance->RemoveRendererResource( mPerFrame );
-  TacRenderer::Instance->RemoveRendererResource( mPerObj );
-  TacRenderer::Instance->RemoveRendererResource( mDepthState );
-  TacRenderer::Instance->RemoveRendererResource( mBlendState );
-  TacRenderer::Instance->RemoveRendererResource( mRasterizerState );
-  TacRenderer::Instance->RemoveRendererResource( mSamplerState );
+  Renderer::Instance->RemoveRendererResource( m3DShader );
+  Renderer::Instance->RemoveRendererResource( m3DVertexFormat );
+  Renderer::Instance->RemoveRendererResource( mPerFrame );
+  Renderer::Instance->RemoveRendererResource( mPerObj );
+  Renderer::Instance->RemoveRendererResource( mDepthState );
+  Renderer::Instance->RemoveRendererResource( mBlendState );
+  Renderer::Instance->RemoveRendererResource( mRasterizerState );
+  Renderer::Instance->RemoveRendererResource( mSamplerState );
   delete mUI2DDrawData;
   delete mDebug3DDrawData;
 }
-void TacCreationGameWindow::CreateGraphicsObjects( TacErrors& errors )
+void CreationGameWindow::CreateGraphicsObjects( Errors& errors )
 {
-  TacCBufferData cBufferDataPerFrame = {};
+  CBufferData cBufferDataPerFrame = {};
   cBufferDataPerFrame.mName = "tac 3d per frame";
-  cBufferDataPerFrame.mStackFrame = TAC_STACK_FRAME;
+  cBufferDataPerFrame.mFrame = TAC_FRAME;
   cBufferDataPerFrame.shaderRegister = 0;
-  cBufferDataPerFrame.byteCount = sizeof( TacDefaultCBufferPerFrame );
-  TacRenderer::Instance->AddConstantBuffer( &mPerFrame, cBufferDataPerFrame, errors );
+  cBufferDataPerFrame.byteCount = sizeof( DefaultCBufferPerFrame );
+  Renderer::Instance->AddConstantBuffer( &mPerFrame, cBufferDataPerFrame, errors );
   TAC_HANDLE_ERROR( errors );
 
-  TacCBufferData cBufferDataPerObj = {};
+  CBufferData cBufferDataPerObj = {};
   cBufferDataPerObj.mName = "tac 3d per obj";
-  cBufferDataPerObj.mStackFrame = TAC_STACK_FRAME;
+  cBufferDataPerObj.mFrame = TAC_FRAME;
   cBufferDataPerObj.shaderRegister = 1;
-  cBufferDataPerObj.byteCount = sizeof( TacDefaultCBufferPerObject );
-  TacRenderer::Instance->AddConstantBuffer( &mPerObj, cBufferDataPerObj, errors );
+  cBufferDataPerObj.byteCount = sizeof( DefaultCBufferPerObject );
+  Renderer::Instance->AddConstantBuffer( &mPerObj, cBufferDataPerObj, errors );
   TAC_HANDLE_ERROR( errors );
 
 
-  TacShaderData shaderData;
-  shaderData.mStackFrame = TAC_STACK_FRAME;
+  ShaderData shaderData;
+  shaderData.mFrame = TAC_FRAME;
   shaderData.mName = "game window 3d shader";
   shaderData.mShaderPath = "3DTest";
   shaderData.mCBuffers = { mPerFrame, mPerObj };
-  TacRenderer::Instance->AddShader( &m3DShader, shaderData, errors );
+  Renderer::Instance->AddShader( &m3DShader, shaderData, errors );
   TAC_HANDLE_ERROR( errors );
 
-  TacVertexDeclaration posDecl;
+  VertexDeclaration posDecl;
   posDecl.mAlignedByteOffset = 0;
-  posDecl.mAttribute = TacAttribute::Position;
+  posDecl.mAttribute = Attribute::Position;
   posDecl.mTextureFormat.mElementCount = 3;
   posDecl.mTextureFormat.mPerElementByteCount = sizeof( float );
-  posDecl.mTextureFormat.mPerElementDataType = TacGraphicsType::real;
-  TacVertexFormatData vertexFormatData = {};
+  posDecl.mTextureFormat.mPerElementDataType = GraphicsType::real;
+  VertexFormatData vertexFormatData = {};
   vertexFormatData.shader = m3DShader;
   vertexFormatData.vertexFormatDatas = { posDecl };
-  vertexFormatData.mStackFrame = TAC_STACK_FRAME;
+  vertexFormatData.mFrame = TAC_FRAME;
   vertexFormatData.mName = "game window renderer"; // cpresentation?
-  TacRenderer::Instance->AddVertexFormat( &m3DVertexFormat, vertexFormatData, errors );
+  Renderer::Instance->AddVertexFormat( &m3DVertexFormat, vertexFormatData, errors );
   TAC_HANDLE_ERROR( errors );
 
-  TacBlendStateData blendStateData;
-  blendStateData.srcRGB = TacBlendConstants::One;
-  blendStateData.dstRGB = TacBlendConstants::Zero;
-  blendStateData.blendRGB = TacBlendMode::Add;
-  blendStateData.srcA = TacBlendConstants::Zero;
-  blendStateData.dstA = TacBlendConstants::One;
-  blendStateData.blendA = TacBlendMode::Add;
+  BlendStateData blendStateData;
+  blendStateData.srcRGB = BlendConstants::One;
+  blendStateData.dstRGB = BlendConstants::Zero;
+  blendStateData.blendRGB = BlendMode::Add;
+  blendStateData.srcA = BlendConstants::Zero;
+  blendStateData.dstA = BlendConstants::One;
+  blendStateData.blendA = BlendMode::Add;
   blendStateData.mName = "tac 3d opaque blend";
-  blendStateData.mStackFrame = TAC_STACK_FRAME;
-  TacRenderer::Instance->AddBlendState( &mBlendState, blendStateData, errors );
+  blendStateData.mFrame = TAC_FRAME;
+  Renderer::Instance->AddBlendState( &mBlendState, blendStateData, errors );
   TAC_HANDLE_ERROR( errors );
 
-  TacDepthStateData depthStateData;
+  DepthStateData depthStateData;
   depthStateData.depthTest = true;
   depthStateData.depthWrite = true;
-  depthStateData.depthFunc = TacDepthFunc::Less;
+  depthStateData.depthFunc = DepthFunc::Less;
   depthStateData.mName = "tac 3d depth state";
-  depthStateData.mStackFrame = TAC_STACK_FRAME;
-  TacRenderer::Instance->AddDepthState( &mDepthState, depthStateData, errors );
+  depthStateData.mFrame = TAC_FRAME;
+  Renderer::Instance->AddDepthState( &mDepthState, depthStateData, errors );
   TAC_HANDLE_ERROR( errors );
 
-  TacRasterizerStateData rasterizerStateData;
-  rasterizerStateData.cullMode = TacCullMode::None; // todo
-  rasterizerStateData.fillMode = TacFillMode::Solid;
+  RasterizerStateData rasterizerStateData;
+  rasterizerStateData.cullMode = CullMode::None; // todo
+  rasterizerStateData.fillMode = FillMode::Solid;
   rasterizerStateData.frontCounterClockwise = true;
   rasterizerStateData.mName = "tac 3d rast state";
-  rasterizerStateData.mStackFrame = TAC_STACK_FRAME;
+  rasterizerStateData.mFrame = TAC_FRAME;
   rasterizerStateData.multisample = false;
   rasterizerStateData.scissor = true;
-  TacRenderer::Instance->AddRasterizerState( &mRasterizerState, rasterizerStateData, errors );
+  Renderer::Instance->AddRasterizerState( &mRasterizerState, rasterizerStateData, errors );
   TAC_HANDLE_ERROR( errors );
 
-  TacSamplerStateData samplerStateData;
+  SamplerStateData samplerStateData;
   samplerStateData.mName = "tac 3d tex sampler";
-  samplerStateData.mStackFrame = TAC_STACK_FRAME;
-  samplerStateData.filter = TacFilter::Linear;
-  TacRenderer::Instance->AddSamplerState( &mSamplerState, samplerStateData, errors );
+  samplerStateData.mFrame = TAC_FRAME;
+  samplerStateData.filter = Filter::Linear;
+  Renderer::Instance->AddSamplerState( &mSamplerState, samplerStateData, errors );
   TAC_HANDLE_ERROR( errors );
 }
-void TacCreationGameWindow::Init( TacErrors& errors )
+void CreationGameWindow::Init( Errors& errors )
 {
-  TacShell* shell = TacShell::Instance;
+  Shell* shell = Shell::Instance;
 
-  auto uI2DDrawData = new TacUI2DDrawData();
+  auto uI2DDrawData = new UI2DDrawData();
   uI2DDrawData->mRenderView = mDesktopWindow->mRenderView;
   mUI2DDrawData = uI2DDrawData;
-  mUIRoot = new TacUIRoot;
-  mUIRoot->mElapsedSeconds = &TacShell::Instance->mElapsedSeconds;
+  mUIRoot = new UIRoot;
+  mUIRoot->mElapsedSeconds = &Shell::Instance->mElapsedSeconds;
   mUIRoot->mUI2DDrawData = mUI2DDrawData;
   mUIRoot->mDesktopWindow = mDesktopWindow;
   CreateGraphicsObjects( errors );
   TAC_HANDLE_ERROR( errors );
 
-  mSkyboxPresentation = new TacSkyboxPresentation;
+  mSkyboxPresentation = new SkyboxPresentation;
   mSkyboxPresentation->mCamera = &mCreation->mEditorCamera;
   mSkyboxPresentation->mDesktopWindow = mDesktopWindow;
   mSkyboxPresentation->Init( errors );
   TAC_HANDLE_ERROR( errors );
 
-  mGamePresentation = new TacGamePresentation;
+  mGamePresentation = new GamePresentation;
   mGamePresentation->mWorld = mCreation->mWorld;
   mGamePresentation->mCamera = &mCreation->mEditorCamera;
   mGamePresentation->mDesktopWindow = mDesktopWindow;
@@ -207,34 +211,34 @@ void TacCreationGameWindow::Init( TacErrors& errors )
   TAC_HANDLE_ERROR( errors );
 
 
-  TacModelAssetManager::Instance->GetMesh(
+  ModelAssetManager::Instance->GetMesh(
     &mCenteredUnitCube,
     "assets/editor/box.gltf",
     m3DVertexFormat,
     errors );
   TAC_HANDLE_ERROR( errors );
 
-  TacModelAssetManager::Instance->GetMesh(
+  ModelAssetManager::Instance->GetMesh(
     &mArrow,
     "assets/editor/arrow.gltf",
     m3DVertexFormat,
     errors );
   TAC_HANDLE_ERROR( errors );
 
-  mDebug3DDrawData = new TacDebug3DDrawData;
-  //mDebug3DDrawData->mCommonData = shell->TacDebug3DCommonData::Instance;
+  mDebug3DDrawData = new Debug3DDrawData;
+  //mDebug3DDrawData->mCommonData = shell->Debug3DCommonData::Instance;
   //mDebug3DDrawData->mRenderView = mDesktopWindow->mRenderView;
 
   PlayGame( errors );
   TAC_HANDLE_ERROR( errors );
 }
 
-void TacCreationGameWindow::MousePickingAll()
+void CreationGameWindow::MousePickingAll()
 {
   if( !mDesktopWindow->mCursorUnobscured )
     return;
 
-  enum PickedObject
+  enum class PickedObject
   {
     None,
     Entity,
@@ -248,7 +252,7 @@ void TacCreationGameWindow::MousePickingAll()
     float closestDist = 0;
     union
     {
-      TacEntity* closest;
+      Entity* closest;
       int arrowAxis;
     };
     bool IsNewClosest( float dist )
@@ -261,7 +265,7 @@ void TacCreationGameWindow::MousePickingAll()
   bool hit;
   float dist;
 
-  for( TacEntity* entity : mCreation->mWorld->mEntities )
+  for( Entity* entity : mCreation->mWorld->mEntities )
   {
     MousePickingEntity( entity, &hit, &dist );
     if( !hit || !pickData.IsNewClosest( dist ) )
@@ -315,7 +319,7 @@ void TacCreationGameWindow::MousePickingAll()
     mDebug3DDrawData->DebugDrawSphere( worldSpaceHitPoint, 0.2f, v3( 1, 1, 0 ) );
   }
 
-  if( TacKeyboardInput::Instance->IsKeyJustDown( TacKey::MouseLeft ) )
+  if( KeyboardInput::Instance->IsKeyJustDown( Key::MouseLeft ) )
   {
     switch( pickData.pickedObject )
     {
@@ -327,7 +331,7 @@ void TacCreationGameWindow::MousePickingAll()
         arrowDir[ pickData.arrowAxis ] = 1;
         mCreation->mSelectedGizmo = true;
         mCreation->mTranslationGizmoDir = arrowDir;
-        mCreation->mTranslationGizmoOffset = TacDot(
+        mCreation->mTranslationGizmoOffset = Dot(
           arrowDir,
           worldSpaceHitPoint - gizmoOrigin );
       } break;
@@ -346,13 +350,13 @@ void TacCreationGameWindow::MousePickingAll()
     }
   }
 }
-void TacCreationGameWindow::MousePickingInit()
+void CreationGameWindow::MousePickingInit()
 {
   float w = ( float )mDesktopWindow->mWidth;
   float h = ( float )mDesktopWindow->mHeight;
   v2 screenspaceCursorPos;
-  TacErrors errors;
-  TacOS::Instance->GetScreenspaceCursorPos( screenspaceCursorPos, errors );
+  Errors errors;
+  OS::Instance->GetScreenspaceCursorPos( screenspaceCursorPos, errors );
   if( errors )
     return;
   float xNDC = ( ( screenspaceCursorPos.x - mDesktopWindow->mX ) / w );
@@ -383,12 +387,12 @@ void TacCreationGameWindow::MousePickingInit()
   v4 worldSpaceMouseDir4 = viewInv * viewSpaceMouseDir4;
   worldSpaceMouseDir = worldSpaceMouseDir4.xyz();
 }
-void TacCreationGameWindow::MousePickingEntity(
-  const TacEntity* entity,
+void CreationGameWindow::MousePickingEntity(
+  const Entity* entity,
   bool* hit,
   float* dist )
 {
-  const TacModel* model = TacModel::GetModel( entity );
+  const Model* model = Model::GetModel( entity );
   if( !model || !model->mesh )
   {
     *hit = false;
@@ -418,11 +422,11 @@ void TacCreationGameWindow::MousePickingEntity(
     *dist = Distance( mCreation->mEditorCamera.mPos, worldSpaceHitPoint );
   }
 }
-void TacCreationGameWindow::AddDrawCall( const TacMesh* mesh, const TacDefaultCBufferPerObject& cbuf )
+void CreationGameWindow::AddDrawCall( const Mesh* mesh, const DefaultCBufferPerObject& cbuf )
 {
-  for( const TacSubMesh& subMesh : mesh->mSubMeshes )
+  for( const SubMesh& subMesh : mesh->mSubMeshes )
   {
-    TacDrawCall2 drawCall = {};
+    DrawCall2 drawCall = {};
     drawCall.mShader = mesh->mVertexFormat->shader;
     drawCall.mVertexBuffer = subMesh.mVertexBuffer;
     drawCall.mIndexBuffer = subMesh.mIndexBuffer;
@@ -435,12 +439,12 @@ void TacCreationGameWindow::AddDrawCall( const TacMesh* mesh, const TacDefaultCB
     drawCall.mDepthState = mDepthState;
     drawCall.mVertexFormat = mesh->mVertexFormat;
     drawCall.mUniformDst = mPerObj;
-    drawCall.mUniformSrcc = TacTemporaryMemoryFromT( cbuf );
-    drawCall.mStackFrame = TAC_STACK_FRAME;
-    TacRenderer::Instance->AddDrawCall( drawCall );
+    drawCall.mUniformSrcc = TemporaryMemoryFromT( cbuf );
+    drawCall.mFrame = TAC_FRAME;
+    Renderer::Instance->AddDrawCall( drawCall );
   }
 }
-void TacCreationGameWindow::ComputeArrowLen()
+void CreationGameWindow::ComputeArrowLen()
 {
   if( !mCreation->IsAnythingSelected() )
   {
@@ -457,7 +461,7 @@ void TacCreationGameWindow::ComputeArrowLen()
   float arrowLen = clip_height * 0.2f;
   mArrowLen = arrowLen;
 }
-void TacCreationGameWindow::RenderGameWorldToGameWindow()
+void CreationGameWindow::RenderGameWorldToGameWindow()
 {
   MousePickingAll();
 
@@ -466,23 +470,23 @@ void TacCreationGameWindow::RenderGameWorldToGameWindow()
   float h = ( float )mDesktopWindow->mHeight;
   float a;
   float b;
-  TacRenderer::Instance->GetPerspectiveProjectionAB(
+  Renderer::Instance->GetPerspectiveProjectionAB(
     mCreation->mEditorCamera.mFarPlane,
     mCreation->mEditorCamera.mNearPlane,
     a,
     b );
   float aspect = w / h;
   m4 proj = M4ProjPerspective( a, b, mCreation->mEditorCamera.mFovyrad, aspect );
-  TacDefaultCBufferPerFrame perFrameData;
+  DefaultCBufferPerFrame perFrameData;
   perFrameData.mFar = mCreation->mEditorCamera.mFarPlane;
   perFrameData.mNear = mCreation->mEditorCamera.mNearPlane;
   perFrameData.mView = view;
   perFrameData.mProjection = proj;
   perFrameData.mGbufferSize = { w, h };
-  TacDrawCall2 setPerFrame = {};
+  DrawCall2 setPerFrame = {};
   setPerFrame.mUniformDst = mPerFrame;
   setPerFrame.CopyUniformSource(perFrameData);
-  TacRenderer::Instance->AddDrawCall( setPerFrame );
+  Renderer::Instance->AddDrawCall( setPerFrame );
   if( mCreation->IsAnythingSelected() )
   {
     v3 selectionGizmoOrigin = mCreation->GetSelectionGizmoOrigin();
@@ -498,7 +502,7 @@ void TacCreationGameWindow::RenderGameWorldToGameWindow()
     for( int i = 0; i < 3; ++i )
     {
       // Widget Translation Arrow
-      TacDefaultCBufferPerObject perObjectData;
+      DefaultCBufferPerObject perObjectData;
       perObjectData.Color = { colors[ i ], 1 };
       perObjectData.World =
         M4Translate( selectionGizmoOrigin ) *
@@ -519,7 +523,7 @@ void TacCreationGameWindow::RenderGameWorldToGameWindow()
     }
   }
 
-  TacErrors ignored;
+  Errors ignored;
   mDebug3DDrawData->DrawToTexture(
     ignored,
     &perFrameData,
@@ -527,22 +531,22 @@ void TacCreationGameWindow::RenderGameWorldToGameWindow()
 
   mGamePresentation->RenderGameWorldToDesktopView();
 }
-void TacCreationGameWindow::PlayGame( TacErrors& errors )
+void CreationGameWindow::PlayGame( Errors& errors )
 {
   if( mSoul )
     return;
-  auto ghost = new TacGhost;
+  auto ghost = new Ghost;
   ghost->mRenderView = mDesktopWindow->mRenderView;
   ghost->Init( errors );
   TAC_HANDLE_ERROR( errors );
   mSoul = ghost;
 }
-void TacCreationGameWindow::DrawPlaybackOverlay( TacErrors& errors )
+void CreationGameWindow::DrawPlaybackOverlay( Errors& errors )
 {
-  TacImGuiBegin( "gameplay overlay", { 300, 75 } );
+  ImGuiBegin( "gameplay overlay", { 300, 75 } );
   if( mSoul )
   {
-    if( TacImGuiButton( "End simulation" ) )
+    if( ImGuiButton( "End simulation" ) )
     {
       delete mSoul;
       mSoul = nullptr;
@@ -550,32 +554,32 @@ void TacCreationGameWindow::DrawPlaybackOverlay( TacErrors& errors )
   }
   else
   {
-    if( TacImGuiButton( "Begin simulation" ) )
+    if( ImGuiButton( "Begin simulation" ) )
     {
       PlayGame( errors );
       TAC_HANDLE_ERROR( errors );
     }
   }
 
-  if( TacShell::Instance->mElapsedSeconds < mStatusMessageEndTime )
+  if( Shell::Instance->mElapsedSeconds < mStatusMessageEndTime )
   {
-    TacImGuiText( mStatusMessage );
+    ImGuiText( mStatusMessage );
   }
 
-  TacImGuiEnd();
+  ImGuiEnd();
 }
-void TacCreationGameWindow::CameraControls()
+void CreationGameWindow::CameraControls()
 {
   if( !mDesktopWindow->mCursorUnobscured )
     return;
-  TacCamera oldCamera = mCreation->mEditorCamera;
+  Camera oldCamera = mCreation->mEditorCamera;
 
-  if( TacKeyboardInput::Instance->IsKeyDown( TacKey::MouseRight ) &&
-    TacKeyboardInput::Instance->mMouseDeltaPosScreenspace != v2( 0, 0 ) )
+  if( KeyboardInput::Instance->IsKeyDown( Key::MouseRight ) &&
+    KeyboardInput::Instance->mMouseDeltaPosScreenspace != v2( 0, 0 ) )
   {
     float pixelsPerDeg = 400.0f / 90.0f;
     float radiansPerPixel = ( 1.0f / pixelsPerDeg ) * ( 3.14f / 180.0f );
-    v2 angleRadians = TacKeyboardInput::Instance->mMouseDeltaPosScreenspace * radiansPerPixel;
+    v2 angleRadians = KeyboardInput::Instance->mMouseDeltaPosScreenspace * radiansPerPixel;
 
     if( angleRadians.x != 0 )
     {
@@ -609,26 +613,26 @@ void TacCreationGameWindow::CameraControls()
     mCreation->mEditorCamera.mUp.Normalize();
   }
 
-  if( TacKeyboardInput::Instance->IsKeyDown( TacKey::MouseMiddle ) &&
-    TacKeyboardInput::Instance->mMouseDeltaPosScreenspace != v2( 0, 0 ) )
+  if( KeyboardInput::Instance->IsKeyDown( Key::MouseMiddle ) &&
+    KeyboardInput::Instance->mMouseDeltaPosScreenspace != v2( 0, 0 ) )
   {
     float unitsPerPixel = 5.0f / 100.0f;
     mCreation->mEditorCamera.mPos +=
       mCreation->mEditorCamera.mRight *
-      -TacKeyboardInput::Instance->mMouseDeltaPosScreenspace.x *
+      -KeyboardInput::Instance->mMouseDeltaPosScreenspace.x *
       unitsPerPixel;
     mCreation->mEditorCamera.mPos +=
       mCreation->mEditorCamera.mUp *
-      TacKeyboardInput::Instance->mMouseDeltaPosScreenspace.y *
+      KeyboardInput::Instance->mMouseDeltaPosScreenspace.y *
       unitsPerPixel;
   }
 
-  if( TacKeyboardInput::Instance->mMouseDeltaScroll )
+  if( KeyboardInput::Instance->mMouseDeltaScroll )
   {
     float unitsPerTick = 0.35f;
     mCreation->mEditorCamera.mPos +=
       mCreation->mEditorCamera.mForwards *
-      ( float )TacKeyboardInput::Instance->mMouseDeltaScroll;
+      ( float )KeyboardInput::Instance->mMouseDeltaScroll;
   }
 
   if(
@@ -637,26 +641,26 @@ void TacCreationGameWindow::CameraControls()
     oldCamera.mRight != mCreation->mEditorCamera.mRight ||
     oldCamera.mUp != mCreation->mEditorCamera.mUp )
   {
-    for( TacPrefab* prefab : mCreation->mPrefabs )
+    for( Prefab* prefab : mCreation->mPrefabs )
     {
       mCreation->SavePrefabCameraPosition( prefab );
     }
   }
 }
-void TacCreationGameWindow::Update( TacErrors& errors )
+void CreationGameWindow::Update( Errors& errors )
 {
   mDesktopWindow->SetRenderViewDefaults();
   SetCreationWindowImGuiGlobals( mDesktopWindow, mUI2DDrawData );
-  if( auto ghost = ( TacGhost* )mSoul )
+  if( auto ghost = ( Ghost* )mSoul )
   {
     //static bool once;
     //if( !once )
     //{
     //  once = true;
-    //  TacEntity* entity = mCreation->CreateEntity();
+    //  Entity* entity = mCreation->CreateEntity();
     //  entity->mName = "Starry-eyed girl";
     //  entity->mPosition = {}; // { 4.5f, -4.0f, -0.5f };
-    //  auto model = ( TacModel* )entity->AddNewComponent( TacComponentRegistryEntryIndex::Model );
+    //  auto model = ( Model* )entity->AddNewComponent( ComponentRegistryEntryIndex::Model );
     //  model->mGLTFPath = "assets/editor/Box.gltf";
     //}
     ghost->Update( errors );
@@ -694,15 +698,15 @@ void TacCreationGameWindow::Update( TacErrors& errors )
       &secondDist );
     v3 translate = mCreation->mTranslationGizmoDir *
       ( secondDist - mCreation->mTranslationGizmoOffset );
-    for( TacEntity* entity : mCreation->mSelectedEntities )
+    for( Entity* entity : mCreation->mSelectedEntities )
     {
       entity->mRelativeSpace.mPosition += translate;
     }
-    //for( TacPrefab* prefab : mCreation->mSelectedPrefabs )
+    //for( Prefab* prefab : mCreation->mSelectedPrefabs )
     //{
     //  prefab->mPosition += translate;
     //}
-    if( !TacKeyboardInput::Instance->IsKeyDown( TacKey::MouseLeft ) )
+    if( !KeyboardInput::Instance->IsKeyDown( Key::MouseLeft ) )
     {
       mCreation->mSelectedGizmo = false;
     }
@@ -713,4 +717,5 @@ void TacCreationGameWindow::Update( TacErrors& errors )
 
   mUI2DDrawData->DrawToTexture( errors );
   TAC_HANDLE_ERROR( errors );
+}
 }

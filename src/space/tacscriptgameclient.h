@@ -1,23 +1,27 @@
 #pragma once
-#include "space/tacscript.h"
-#include "common/graphics/tacFont.h"
+#include "src/space/tacScript.h"
+#include "src/common/graphics/tacFont.h"
 #include <list>
 #include <set>
 
-struct TacUILayout;
-struct TacUIText;
-struct TacJob;
-struct TacGhost;
-struct TacSocket;
-struct TacScriptMainMenu;
-struct TacScriptSplash;
-struct TacScriptMatchmaker;
-struct TacScriptGameClient;
+struct UILayout;
+struct UIText;
+struct Job;
+struct Ghost;
+struct Socket;
+struct ScriptMainMenu;
+struct ScriptSplash;
+struct ScriptMatchmaker;
+struct ScriptGameClient;
 
-
-struct TacTimelineAction
+namespace Tac
 {
-  virtual ~TacTimelineAction();
+
+
+
+struct TimelineAction
+{
+  virtual ~TimelineAction();
   virtual void Begin();
   virtual void End();
   virtual void Update( float percent );
@@ -29,9 +33,9 @@ struct TacTimelineAction
 };
 
 template< typename T >
-struct TacTimelineOnceAux : public TacTimelineAction
+struct TimelineOnceAux : public TimelineAction
 {
-  TacTimelineOnceAux( double time, T t ) : mT( t )
+  TimelineOnceAux( double time, T t ) : mT( t )
   {
     mTimeBegin = time;
     mTimeEnd = time;
@@ -43,28 +47,24 @@ struct TacTimelineOnceAux : public TacTimelineAction
   T mT;
 };
 
-#define TacTimelineOnce( time, lambdaName ) TacTimelineOnceAux< decltype( lambdaName ) >( time, lambdaName )
-
-//#define TacTimelineOnce2( code, timelineLambdaName, timelineInstanceName )\
-//  auto timelineLambdaName = [&](){ code; };\
-//  OnDestructAux< decltype( lambdaName ) > dtorName( lambdaName );
-//#define TacTimelineOnce( code ) TacTimelineOnce2( code, TacConcat( timelineLambda, __LINE__ ), TacConcat( timelineInstance, __LINE__ ) )
+#define TimelineOnce( time, lambdaName ) TimelineOnceAux< decltype( lambdaName ) >( time, lambdaName )
 
 
-struct TacTimeline
+
+struct Timeline
 {
-  ~TacTimeline();
-  void Update( double time, TacErrors& errors );
-  void Add( TacTimelineAction* timelineAction );
-  TacVector< TacTimelineAction* > mTimelineActions;
+  ~Timeline();
+  void Update( double time, Errors& errors );
+  void Add( TimelineAction* timelineAction );
+  Vector< TimelineAction* > mTimelineActions;
 };
 
 
-//struct TacScriptFader : public TacScriptThread
+//struct ScriptFader : public ScriptThread
 //{
-//  TacScriptFader();
-//  void Update( float seconds, TacErrors& errors ) override;
-//  void DebugImgui( TacErrors& errors ) override;
+//  ScriptFader();
+//  void Update( float seconds, Errors& errors ) override;
+//  void DebugImgui( Errors& errors ) override;
 //  void SetAlpha( float alpha );
 //
 //  float mValueInitial = 0;
@@ -77,41 +77,41 @@ struct TacTimeline
 //  float* mValue = nullptr;
 //};
 
-struct TacScriptSplash : public TacScriptThread
+struct ScriptSplash : public ScriptThread
 {
-  TacScriptSplash();
-  ~TacScriptSplash();
-  void Update( float seconds, TacErrors& errors ) override;
-  void DebugImgui( TacErrors& errors ) override;
+  ScriptSplash();
+  ~ScriptSplash();
+  void Update( float seconds, Errors& errors ) override;
+  void DebugImgui( Errors& errors ) override;
 
-  TacUIText* mStudioName = nullptr;
+  UIText* mStudioName = nullptr;
   float mFullyVisibleSec;
   float mFadeSecTotal;
   bool mSkipSplashScreen;
 };
 
-struct TacScriptGameClient : public TacScriptThread
+struct ScriptGameClient : public ScriptThread
 {
-  TacScriptGameClient();
-  void Update( float seconds, TacErrors& errors ) override;
-  void DebugImgui( TacErrors& errors ) override;
+  ScriptGameClient();
+  void Update( float seconds, Errors& errors ) override;
+  void DebugImgui( Errors& errors ) override;
 };
 
-struct TacScriptMatchmaker : public TacScriptThread
+struct ScriptMatchmaker : public ScriptThread
 {
-  TacScriptMatchmaker();
-  void Update( float seconds, TacErrors& errors ) override;
-  void DebugImgui( TacErrors& errors ) override;
-  void OnScriptGameConnectionClosed( TacSocket* socket );
-  void OnScriptGameMessage( TacSocket* socket, void* bytes, int byteCount );
-  void PokeServer( TacErrors& errors );
-  void ClearServerLog( TacErrors& errors );
-  void Log( const TacString& text );
+  ScriptMatchmaker();
+  void Update( float seconds, Errors& errors ) override;
+  void DebugImgui( Errors& errors ) override;
+  void OnScriptGameConnectionClosed( Socket* socket );
+  void OnScriptGameMessage( Socket* socket, void* bytes, int byteCount );
+  void PokeServer( Errors& errors );
+  void ClearServerLog( Errors& errors );
+  void Log( const String& text );
   void TryConnect();
 
-  TacSocket* mSocket = nullptr;
-  TacString mHostname;
-  TacErrors mConnectionErrors;
+  Socket* mSocket = nullptr;
+  String mHostname;
+  Errors mConnectionErrors;
   uint16_t mPort;
   bool mPrintHTTPRequest;
   bool mPretendWebsocketHandshakeDone = false;
@@ -123,51 +123,52 @@ struct TacScriptMatchmaker : public TacScriptThread
 };
 
 // Mirrored in server.js
-const TacString MatchMessageCreateRoom = "create room";
+const String MatchMessageCreateRoom = "create room";
 
-static const TacString scriptMatchmakerName = "matchmaker";
-static const TacString scriptMsgDisconnect = "websocket disconnect";
-static const TacString scriptMsgConnect = "websocket connect";
+static const String scriptMatchmakerName = "matchmaker";
+static const String scriptMsgDisconnect = "websocket disconnect";
+static const String scriptMsgConnect = "websocket connect";
 
-typedef void ( TacScriptMainMenu:: *TacScriptMainMenuMessageCallback )( const TacScriptMsg* scriptMsg );
-struct TacScriptMainMenu : public TacScriptThread
+typedef void ( ScriptMainMenu:: *ScriptMainMenuMessageCallback )( const ScriptMsg* scriptMsg );
+struct ScriptMainMenu : public ScriptThread
 {
-  TacScriptMainMenu();
-  void Update( float seconds, TacErrors& errors ) override;
-  void DebugImgui( TacErrors& errors ) override;
+  ScriptMainMenu();
+  void Update( float seconds, Errors& errors ) override;
+  void DebugImgui( Errors& errors ) override;
 
   void AddCallbackConnect();
   void AddCallbackDisconnect();
 
   float mFadeSecTotal = 0.2f;
-  std::set< TacScriptMainMenuMessageCallback > mMsgCallbacks;
-  std::set< TacScriptMainMenuMessageCallback > mMsgCallbacksToRemove;
+  std::set< ScriptMainMenuMessageCallback > mMsgCallbacks;
+  std::set< ScriptMainMenuMessageCallback > mMsgCallbacksToRemove;
 
-  TacTimeline mTimeline;
+  Timeline mTimeline;
 
-  TacUILayout* mMenu = nullptr;
-  TacUIText* mUITextServerConnectionStatus = nullptr;
-  TacUIText* mUITextDisconnectFromServer = nullptr;
-  TacUIText* mUITextCreateRoom = nullptr;
-  TacUIText* mUITextServerAutoconnect = nullptr;
-  TacUIText* mUITextPressStart = nullptr;
+  UILayout* mMenu = nullptr;
+  UIText* mUITextServerConnectionStatus = nullptr;
+  UIText* mUITextDisconnectFromServer = nullptr;
+  UIText* mUITextCreateRoom = nullptr;
+  UIText* mUITextServerAutoconnect = nullptr;
+  UIText* mUITextPressStart = nullptr;
   bool mPressStart = false;
 
 
   bool mCreatePressStartButton;
   bool mCreateGraveStoryButton;
 
-  TacTexture* mPower = nullptr;
+  Texture* mPower = nullptr;
 };
 
-struct TacScriptMainMenu2 : public TacScriptThread
+struct ScriptMainMenu2 : public ScriptThread
 {
-  TacScriptMainMenu2();
-  ~TacScriptMainMenu2();
+  ScriptMainMenu2();
+  ~ScriptMainMenu2();
   void RenderMainMenu();
-  void Update( float seconds, TacErrors& errors ) override;
-  TacJob* mConnectToServerJob = nullptr;
+  void Update( float seconds, Errors& errors ) override;
+  Job* mConnectToServerJob = nullptr;
 };
 
 
 
+}

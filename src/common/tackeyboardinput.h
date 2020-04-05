@@ -1,10 +1,13 @@
 #pragma once
-#include "common/tacString.h"
-#include "common/tacLocalization.h"
-#include "common/math/tacVector2.h"
+#include "src/common/tacString.h"
+#include "src/common/tacLocalization.h"
+#include "src/common/math/tacVector2.h"
 #include <set>
+namespace Tac
+{
 
-enum class TacKey
+
+enum class Key
 {
   UpArrow, DownArrow, LeftArrow, RightArrow,
   Spacebar,
@@ -24,38 +27,39 @@ enum class TacKey
 };
 
 
-TacString ToString( TacKey key );
+String ToString( Key key );
 
 
-struct TacKeyboardInputFrame
+struct KeyboardInputFrame
 {
-  bool IsKeyDown( TacKey key );
-  TacString GetPressedKeyDescriptions();
+  bool IsKeyDown( Key key );
+  String GetPressedKeyDescriptions();
 
-  std::set< TacKey > mCurrDown;
+  std::set< Key > mCurrDown;
   v2 mScreenspaceCursorPos = {};
   int mMouseScroll = 0;
 };
 
-struct TacKeyboardInput
+struct KeyboardInput
 {
-  static TacKeyboardInput* Instance;
-  TacKeyboardInput();
-  bool HasKeyJustBeenReleased( TacKey key );
-  bool IsKeyJustDown( TacKey key );
-  bool IsKeyDown( TacKey key );
+  static KeyboardInput* Instance;
+  KeyboardInput();
+  bool HasKeyJustBeenReleased( Key key );
+  bool IsKeyJustDown( Key key );
+  bool IsKeyDown( Key key );
   void DebugImgui();
   void DebugPrintWhenKeysChange();
-  void SetIsKeyDown( TacKey key, bool isDown );
+  void SetIsKeyDown( Key key, bool isDown );
 
   // Called after input has been gathered, but before the game updates
   void BeginFrame();
   void EndFrame();
 
-  TacKeyboardInputFrame mCurr;
-  TacKeyboardInputFrame mPrev;
+  KeyboardInputFrame mCurr;
+  KeyboardInputFrame mPrev;
 
-  TacCodepoint mWMCharPressedHax = 0;
+  Codepoint mWMCharPressedHax = 0;
   v2 mMouseDeltaPosScreenspace = {};
   int mMouseDeltaScroll = 0;
 };
+}
