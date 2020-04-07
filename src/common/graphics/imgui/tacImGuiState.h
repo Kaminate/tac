@@ -56,10 +56,6 @@ struct GroupData
 };
 
 
-struct ImGuiWindowResource
-{
-  virtual ~ImGuiWindowResource() = default;
-};
 
 struct ImGuiWindow
 {
@@ -72,6 +68,12 @@ struct ImGuiWindow
   ImGuiId GetID();
   void SeTiveID( ImGuiId );
   ImGuiId GeTiveID();
+
+  typedef int ResourceId;
+  static ResourceId RegisterResource(
+    StringView name,
+    void* initialDataBytes,
+    int initialDataByteCount );
 
   String mName;
   ImGuiWindow* mParent = nullptr;
@@ -110,21 +112,15 @@ struct ImGuiWindow
 
   bool mIsAppendingToMenu = false;
 
+  void* GetWindowResource(ResourceId id);
 
-  template< typename T > T* GetOrCreateResource()
+  struct ImGuiWindowResource
   {
-    ImGuiId id = GetID();
-    ImGuiWindowResource* resource = mResources[id];
-    T* t = dynamic_cast< T* >( resource );
-    if( !t )
-    {
-      delete resource;
-      t = new T;
-      mResources[id] = t;
-    }
-    return t;
-  }
-  std::map< ImGuiId, ImGuiWindowResource* > mResources;
+    ImGuiId mImGuiId;
+    ResourceId mResourceId;
+    Vector<char> mData;
+  };
+  Vector<ImGuiWindowResource> mResources;
 };
 
 struct ImGuiGlobals

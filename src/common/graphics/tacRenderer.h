@@ -29,419 +29,419 @@
 
 namespace Tac
 {
-struct DesktopWindow;
-struct Renderer;
-struct CBuffer;
-struct Shell;
+  struct DesktopWindow;
+  struct Renderer;
+  struct CBuffer;
+  struct Shell;
 
 
 
-    const v4 colorGrey = v4( v3( 1, 1, 1 ) * 95.0f, 255 ) / 255.0f;
-    const v4 colorOrange = v4( 255, 200, 84, 255 ) / 255.0f;
-    const v4 colorGreen = v4( 0, 255, 112, 255 ) / 255.0f;
-    const v4 colorBlue = v4( 84, 255, 255, 255 ) / 255.0f;
-    const v4 colorRed = v4( 255, 84, 84, 255 ) / 255.0f;
-    const v4 colorMagenta = v4( 255, 84, 255, 255 ) / 255.0f;
-
-
-
-
-    enum class Attribute // Used to hardcode shader semantics/indexes
-    {
-      Position,
-      Normal,
-      Texcoord,
-      Color,
-      BoneIndex,
-      BoneWeight,
-      Coeffs,
-      Count
-    };
-    enum class GraphicsType
-    {
-      unknown,
-      sint,
-      uint,
-      snorm,
-      unorm,
-      real
-    };
-    enum class DepthFunc
-    {
-      Less,
-      LessOrEqual,
-    };
-    enum class AddressMode
-    {
-      Wrap,
-      Clamp,
-      Border,
-    };
-    enum class Comparison
-    {
-      Always,
-      Never,
-    };
-    enum class Filter
-    {
-      Point,
-      Linear,
-      Aniso,
-    };
-    enum class ShaderType
-    {
-      Vertex,
-      Fragment,
-      Count,
-    };
-    enum class Access
-    {
-      Static, // Never gonna change
-      Default, // ?
-      Dynamic, // Gonna change ( debug draw, animation )
-    };
-    enum class CPUAccess
-    {
-      Read,
-      Write
-    };
-    enum class Map
-    {
-      Read,
-      Write,
-      ReadWrite,
-      WriteDiscard, // the previous contents will be discarded
-    };
-    enum class Primitive
-    {
-      TriangleList,
-      LineList
-    };
-    enum class BlendMode
-    {
-      Add,
-    };
-    enum class BlendConstants
-    {
-      One,
-      Zero,
-      SrcRGB,
-      SrcA,
-      OneMinusSrcA,
-    };
-    enum class FillMode
-    {
-      Solid,
-      Wireframe
-    };
-    enum class CullMode
-    {
-      None,
-      Back,
-      Front
-    };
-    enum class Binding
-    {
-      ShaderResource,
-      RenderTarget,
-    };
-
-    const char* GetSemanticName( Attribute attribType );
-
-    // Used so the gpu can translate from cpu types to gpu types
-    struct Format
-    {
-      int CalculateTotalByteCount() const;
-      int mElementCount = 0;
-      int mPerElementByteCount = 0;
-      GraphicsType mPerElementDataType = GraphicsType::unknown;
-    };
-
-    const Format formatv2 = { 2, sizeof( float ), GraphicsType::real };
-    const Format formatv3 = { 3, sizeof( float ), GraphicsType::real };
-
-
-    struct Image
-    {
-      int mWidth = 0;
-      int mHeight = 0;
-
-      // comment?
-      int mPitch = 0;
-      void* mData = nullptr;
-      Format mFormat;
-    };
-    struct Constant
-    {
-      String mName;
-      int mOffset = 0;
-      int mSize = 0;
-    };
-    struct VertexDeclaration
-    {
-      Attribute mAttribute = Attribute::Count;
-      Format mTextureFormat;
-
-      // Offset of the variable from the vertex buffer
-      // ie: OffsetOf( MyVertexType, mPosition)
-      int mAlignedByteOffset = 0;
-    };
+  const v4 colorGrey = v4( v3( 1, 1, 1 ) * 95.0f, 255 ) / 255.0f;
+  const v4 colorOrange = v4( 255, 200, 84, 255 ) / 255.0f;
+  const v4 colorGreen = v4( 0, 255, 112, 255 ) / 255.0f;
+  const v4 colorBlue = v4( 84, 255, 255, 255 ) / 255.0f;
+  const v4 colorRed = v4( 255, 84, 84, 255 ) / 255.0f;
+  const v4 colorMagenta = v4( 255, 84, 255, 255 ) / 255.0f;
 
 
 
 
-    // don't store these in a Owned, they should be both new'd and delete'd by the renderer
-    struct RendererResource
-    {
-      virtual ~RendererResource()
-      {
-        // Please call remove renderer resource instead of deleting directly
-        TAC_ASSERT( mActive == false );
-      }
-      bool mActive = false;
-      String mName;
-      Frame mFrame;
-    };
+  enum class Attribute // Used to hardcode shader semantics/indexes
+  {
+    Position,
+    Normal,
+    Texcoord,
+    Color,
+    BoneIndex,
+    BoneWeight,
+    Coeffs,
+    Count
+  };
+  enum class GraphicsType
+  {
+    unknown,
+    sint,
+    uint,
+    snorm,
+    unorm,
+    real
+  };
+  enum class DepthFunc
+  {
+    Less,
+    LessOrEqual,
+  };
+  enum class AddressMode
+  {
+    Wrap,
+    Clamp,
+    Border,
+  };
+  enum class Comparison
+  {
+    Always,
+    Never,
+  };
+  enum class Filter
+  {
+    Point,
+    Linear,
+    Aniso,
+  };
+  enum class ShaderType
+  {
+    Vertex,
+    Fragment,
+    Count,
+  };
+  enum class Access
+  {
+    Static, // Never gonna change
+    Default, // ?
+    Dynamic, // Gonna change ( debug draw, animation )
+  };
+  enum class CPUAccess
+  {
+    Read,
+    Write
+  };
+  enum class Map
+  {
+    Read,
+    Write,
+    ReadWrite,
+    WriteDiscard, // the previous contents will be discarded
+  };
+  enum class Primitive
+  {
+    TriangleList,
+    LineList
+  };
+  enum class BlendMode
+  {
+    Add,
+  };
+  enum class BlendConstants
+  {
+    One,
+    Zero,
+    SrcRGB,
+    SrcA,
+    OneMinusSrcA,
+  };
+  enum class FillMode
+  {
+    Solid,
+    Wireframe
+  };
+  enum class CullMode
+  {
+    None,
+    Back,
+    Front
+  };
+  enum class Binding
+  {
+    ShaderResource,
+    RenderTarget,
+  };
 
-    struct ShaderData : public RendererResource
-    {
-      // can load from either
-      String mShaderPath;
-      String mShaderStr;
+  const char* GetSemanticName( Attribute attribType );
 
-      Vector< CBuffer* > mCBuffers;
-    };
-    struct Shader : public ShaderData { };// for now, this encompasses both the vertex & pixel shader 
-    struct VertexBufferData : public RendererResource
-    {
-      Access mAccess = Access::Default;
-      void* mOptionalData = nullptr;
-      int mNumVertexes = 0;
-      int mStrideBytesBetweenVertexes = 0;
-    };
-    struct VertexBuffer : public VertexBufferData
-    {
-      virtual void Overwrite( void* data, int byteCount, Errors& errors ) { TAC_UNIMPLEMENTED; };
-    };
-    struct IndexBufferData : public RendererResource
-    {
-      Access mAccess = Access::Default;
-      const void* mData = nullptr;
-      int mIndexCount = 0;
-      Format mFormat;
-    };
-    struct IndexBuffer : public IndexBufferData
-    {
-      virtual void Overwrite( void* data, int byteCount, Errors& errors ) { TAC_UNIMPLEMENTED; };
-    };
-    struct SamplerStateData : public RendererResource
-    {
-      AddressMode u = ( AddressMode )0;
-      AddressMode v = ( AddressMode )0;
-      AddressMode w = ( AddressMode )0;
-      Comparison compare = ( Comparison )0;
-      Filter filter = ( Filter )0;
-    };
-    struct SamplerState : public SamplerStateData { };
-    struct TextureData : public RendererResource
-    {
-      virtual void* GetImguiTextureID() { return nullptr; }
-      float GetAspect() { return ( float )myImage.mWidth / ( float )myImage.mHeight; }
-      Image myImage;
-      Access access = Access::Default;
-      std::set< CPUAccess > cpuAccess;
-      std::set< Binding > binding;
-    };
-    struct Texture : public TextureData
-    {
-      virtual void Clear() {}
-    };
-    struct DepthBufferData : public RendererResource
-    {
-      int width = 0;
-      int height = 0;
+  // Used so the gpu can translate from cpu types to gpu types
+  struct Format
+  {
+    int CalculateTotalByteCount() const;
+    int mElementCount = 0;
+    int mPerElementByteCount = 0;
+    GraphicsType mPerElementDataType = GraphicsType::unknown;
+  };
 
-      int mDepthBitCount = 0;
-      GraphicsType mDepthGraphicsType = GraphicsType::unknown;
+  const Format formatv2 = { 2, sizeof( float ), GraphicsType::real };
+  const Format formatv3 = { 3, sizeof( float ), GraphicsType::real };
 
-      int mStencilBitCount = 0;
-      GraphicsType mStencilType = GraphicsType::unknown;
-    };
-    struct DepthBuffer : public DepthBufferData
-    {
-      virtual void Clear() {}
-    };
-    struct CBufferData : public RendererResource
-    {
-      int shaderRegister = 0;
-      int byteCount = 0;
-      virtual void SendUniforms( void* bytes ) {}
-    };
-    struct CBuffer : public CBufferData { };
-    struct BlendStateData : public RendererResource
-    {
-      // TODO: init defaults
-      BlendConstants srcRGB;
-      BlendConstants dstRGB;
-      BlendMode blendRGB;
-      BlendConstants srcA;
-      BlendConstants dstA;
-      BlendMode blendA;
-    };
-    struct BlendState : public BlendStateData { };
-    struct RasterizerStateData : public RendererResource
-    {
-      FillMode fillMode = ( FillMode )0;
-      CullMode cullMode = ( CullMode )0;
-      bool frontCounterClockwise = false;
-      bool scissor = false;
-      bool multisample = false;
-    };
-    struct RasterizerState : public RasterizerStateData { };
-    struct DepthStateData : public RendererResource
-    {
-      bool depthTest = false;
-      bool depthWrite = false;
-      DepthFunc depthFunc = ( DepthFunc )0;
-    };
-    struct DepthState : public DepthStateData { };
-    struct VertexFormatData : public RendererResource
-    {
-      Vector< VertexDeclaration > vertexFormatDatas;
-      Shader* shader = nullptr;
-    };
-    struct VertexFormat : public VertexFormatData { };
 
-    struct DefaultCBufferPerFrame
-    {
-      m4 mView;
-      m4 mProjection;
-      float mFar;
-      float mNear;
-      v2 mGbufferSize;
-      static String name_view() { return "View"; };
-      static String name_proj() { return "Projection"; };
-      static String name_far() { return "far"; };
-      static String name_near() { return "near"; };
-      static String name_gbuffersize() { return "gbufferSize"; };
-      static const int shaderRegister = 0;
-    };
-    struct DefaultCBufferPerObject
-    {
-      m4 World;
-      v4 Color;
-      static String name_world() { return "World"; };
-      static String name_color() { return "Color"; };
-      static const int shaderRegister = 1;
-    };
+  struct Image
+  {
+    int mWidth = 0;
+    int mHeight = 0;
 
-    v4 ToColorAlphaPremultiplied( v4 colorAlphaUnassociated );
+    // comment?
+    int mPitch = 0;
+    void* mData = nullptr;
+    Format mFormat;
+  };
+  struct Constant
+  {
+    String mName;
+    int mOffset = 0;
+    int mSize = 0;
+  };
+  struct VertexDeclaration
+  {
+    Attribute mAttribute = Attribute::Count;
+    Format mTextureFormat;
 
-    struct ScissorRect
-    {
-      float mXMinRelUpperLeftCornerPixel = 0;
-      float mYMinRelUpperLeftCornerPixel = 0;
-      float mXMaxRelUpperLeftCornerPixel = 0;
-      float mYMaxRelUpperLeftCornerPixel = 0;
-    };
-
-    // glViewport lets opengl know how to map the NDC coordinates to the framebuffer coordinates.
-    struct Viewport
-    {
-      float mViewportBottomLeftCornerRelFramebufferBottomLeftCornerX = 0;
-      float mViewportBottomLeftCornerRelFramebufferBottomLeftCornerY = 0;
-      float mViewportPixelWidthIncreasingRight = 0;
-      float mViewportPixelHeightIncreasingUp = 0;
-      float mMinDepth = 0;
-      float mMaxDepth = 1;
-    };
-
-    struct RenderView
-    {
-      Texture* mFramebuffer = nullptr;
-      DepthBuffer* mFramebufferDepth = nullptr;
-      Viewport mViewportRect;
-      ScissorRect mScissorRect;
-      m4 mView = m4::Identity();
-      m4 mProj = m4::Identity();
-      v4 mClearColorRGBA = v4( 0, 0, 0, 1 );
-    };
-
-    enum PrimitiveTopology
-    {
-      TriangleList,
-      LineList,
-      Count,
-    };
-
-    struct DrawCall2
-    {
-      Shader* mShader = nullptr;
-      VertexBuffer* mVertexBuffer = nullptr;
-      IndexBuffer* mIndexBuffer = nullptr;
-      int mStartIndex = 0;
-      int mIndexCount = 0;
-      int mVertexCount = 0;
-      RenderView* mRenderView = nullptr;
-      BlendState* mBlendState = nullptr;
-      RasterizerState* mRasterizerState = nullptr;
-      SamplerState* mSamplerState = nullptr;
-      DepthState* mDepthState = nullptr;
-      VertexFormat* mVertexFormat = nullptr;
-      Vector< const Texture* > mTextures;
-      CBuffer* mUniformDst = nullptr;
-      Vector< char > mUniformSrcc;
-      Frame mFrame;
-      PrimitiveTopology mPrimitiveTopology = PrimitiveTopology::TriangleList;
-
-      template< typename T>
-      void CopyUniformSource( const T& t ) { CopyUniformSource( &t, sizeof( T ) ); }
-      void CopyUniformSource( const void* bytes, int byteCount );
-    };
+    // Offset of the variable from the vertex buffer
+    // ie: OffsetOf( MyVertexType, mPosition)
+    int mAlignedByteOffset = 0;
+  };
 
 
 
 
+  // don't store these in a Owned, they should be both new'd and delete'd by the renderer
+  struct RendererResource
+  {
+    virtual ~RendererResource()
+    {
+      // Please call remove renderer resource instead of deleting directly
+      TAC_ASSERT( mActive == false );
+    }
+    bool mActive = false;
+    String mName;
+    Frame mFrame;
+  };
+
+  struct ShaderData : public RendererResource
+  {
+    // can load from either
+    String mShaderPath;
+    String mShaderStr;
+
+    Vector< CBuffer* > mCBuffers;
+  };
+  struct Shader : public ShaderData { };// for now, this encompasses both the vertex & pixel shader 
+  struct VertexBufferData : public RendererResource
+  {
+    Access mAccess = Access::Default;
+    void* mOptionalData = nullptr;
+    int mNumVertexes = 0;
+    int mStrideBytesBetweenVertexes = 0;
+  };
+  struct VertexBuffer : public VertexBufferData
+  {
+    virtual void Overwrite( void* data, int byteCount, Errors& errors ) { TAC_UNIMPLEMENTED; };
+  };
+  struct IndexBufferData : public RendererResource
+  {
+    Access mAccess = Access::Default;
+    const void* mData = nullptr;
+    int mIndexCount = 0;
+    Format mFormat;
+  };
+  struct IndexBuffer : public IndexBufferData
+  {
+    virtual void Overwrite( void* data, int byteCount, Errors& errors ) { TAC_UNIMPLEMENTED; };
+  };
+  struct SamplerStateData : public RendererResource
+  {
+    AddressMode u = ( AddressMode )0;
+    AddressMode v = ( AddressMode )0;
+    AddressMode w = ( AddressMode )0;
+    Comparison compare = ( Comparison )0;
+    Filter filter = ( Filter )0;
+  };
+  struct SamplerState : public SamplerStateData { };
+  struct TextureData : public RendererResource
+  {
+    virtual void* GetImguiTextureID() { return nullptr; }
+    float GetAspect() { return ( float )myImage.mWidth / ( float )myImage.mHeight; }
+    Image myImage;
+    Access access = Access::Default;
+    std::set< CPUAccess > cpuAccess;
+    std::set< Binding > binding;
+  };
+  struct Texture : public TextureData
+  {
+    virtual void Clear() {}
+  };
+  struct DepthBufferData : public RendererResource
+  {
+    int width = 0;
+    int height = 0;
+
+    int mDepthBitCount = 0;
+    GraphicsType mDepthGraphicsType = GraphicsType::unknown;
+
+    int mStencilBitCount = 0;
+    GraphicsType mStencilType = GraphicsType::unknown;
+  };
+  struct DepthBuffer : public DepthBufferData
+  {
+    virtual void Clear() {}
+  };
+  struct CBufferData : public RendererResource
+  {
+    int shaderRegister = 0;
+    int byteCount = 0;
+    virtual void SendUniforms( void* bytes ) {}
+  };
+  struct CBuffer : public CBufferData { };
+  struct BlendStateData : public RendererResource
+  {
+    // TODO: init defaults
+    BlendConstants srcRGB;
+    BlendConstants dstRGB;
+    BlendMode blendRGB;
+    BlendConstants srcA;
+    BlendConstants dstA;
+    BlendMode blendA;
+  };
+  struct BlendState : public BlendStateData { };
+  struct RasterizerStateData : public RendererResource
+  {
+    FillMode fillMode = ( FillMode )0;
+    CullMode cullMode = ( CullMode )0;
+    bool frontCounterClockwise = false;
+    bool scissor = false;
+    bool multisample = false;
+  };
+  struct RasterizerState : public RasterizerStateData { };
+  struct DepthStateData : public RendererResource
+  {
+    bool depthTest = false;
+    bool depthWrite = false;
+    DepthFunc depthFunc = ( DepthFunc )0;
+  };
+  struct DepthState : public DepthStateData { };
+  struct VertexFormatData : public RendererResource
+  {
+    Vector< VertexDeclaration > vertexFormatDatas;
+    Shader* shader = nullptr;
+  };
+  struct VertexFormat : public VertexFormatData { };
+
+  struct DefaultCBufferPerFrame
+  {
+    m4 mView;
+    m4 mProjection;
+    float mFar;
+    float mNear;
+    v2 mGbufferSize;
+    static String name_view() { return "View"; };
+    static String name_proj() { return "Projection"; };
+    static String name_far() { return "far"; };
+    static String name_near() { return "near"; };
+    static String name_gbuffersize() { return "gbufferSize"; };
+    static const int shaderRegister = 0;
+  };
+  struct DefaultCBufferPerObject
+  {
+    m4 World;
+    v4 Color;
+    static String name_world() { return "World"; };
+    static String name_color() { return "Color"; };
+    static const int shaderRegister = 1;
+  };
+
+  v4 ToColorAlphaPremultiplied( v4 colorAlphaUnassociated );
+
+  struct ScissorRect
+  {
+    float mXMinRelUpperLeftCornerPixel = 0;
+    float mYMinRelUpperLeftCornerPixel = 0;
+    float mXMaxRelUpperLeftCornerPixel = 0;
+    float mYMaxRelUpperLeftCornerPixel = 0;
+  };
+
+  // glViewport lets opengl know how to map the NDC coordinates to the framebuffer coordinates.
+  struct Viewport
+  {
+    float mViewportBottomLeftCornerRelFramebufferBottomLeftCornerX = 0;
+    float mViewportBottomLeftCornerRelFramebufferBottomLeftCornerY = 0;
+    float mViewportPixelWidthIncreasingRight = 0;
+    float mViewportPixelHeightIncreasingUp = 0;
+    float mMinDepth = 0;
+    float mMaxDepth = 1;
+  };
+
+  struct RenderView
+  {
+    Texture* mFramebuffer = nullptr;
+    DepthBuffer* mFramebufferDepth = nullptr;
+    Viewport mViewportRect;
+    ScissorRect mScissorRect;
+    m4 mView = m4::Identity();
+    m4 mProj = m4::Identity();
+    v4 mClearColorRGBA = v4( 0, 0, 0, 1 );
+  };
+
+  enum PrimitiveTopology
+  {
+    TriangleList,
+    LineList,
+    Count,
+  };
+
+  struct DrawCall2
+  {
+    Shader* mShader = nullptr;
+    VertexBuffer* mVertexBuffer = nullptr;
+    IndexBuffer* mIndexBuffer = nullptr;
+    int mStartIndex = 0;
+    int mIndexCount = 0;
+    int mVertexCount = 0;
+    RenderView* mRenderView = nullptr;
+    BlendState* mBlendState = nullptr;
+    RasterizerState* mRasterizerState = nullptr;
+    SamplerState* mSamplerState = nullptr;
+    DepthState* mDepthState = nullptr;
+    VertexFormat* mVertexFormat = nullptr;
+    Vector< const Texture* > mTextures;
+    CBuffer* mUniformDst = nullptr;
+    Vector< char > mUniformSrcc;
+    Frame mFrame;
+    PrimitiveTopology mPrimitiveTopology = PrimitiveTopology::TriangleList;
+
+    template< typename T>
+    void CopyUniformSource( const T& t ) { CopyUniformSource( &t, sizeof( T ) ); }
+    void CopyUniformSource( const void* bytes, int byteCount );
+  };
 
 
 
 
 
 
-    typedef int ResourceId;
-    const ResourceId NullRendererRessourceId = -1;
-    struct ResourceHandle
-    {
-      ResourceId mId = -1;
-    };
+
+
+
+
+  typedef int ResourceId;
+  const ResourceId NullRendererRessourceId = -1;
+  struct ResourceHandle
+  {
+    ResourceId mId = -1;
+  };
 
 #define DefineResourceHandle(T) struct T : public ResourceHandle {}
-    DefineResourceHandle( VertexBufferHandle );
-    DefineResourceHandle( IndexBufferHandle );
+  DefineResourceHandle( VertexBufferHandle );
+  DefineResourceHandle( IndexBufferHandle );
 
-    struct IdCollection
-    {
-      ResourceId                       Alloc( StringView name, Frame frame );
-      void                             Free( ResourceId, Errors& );
-      Vector< ResourceId >          mFree;
-      int                              mAllocCounter = 0;
-      Vector< String >           mNames;
-      Vector< Frame >       mFrames;
-    };
-    struct ResourceManager
-    {
-      ResourceManager();
-      VertexBufferHandle               CreateVertexBuffer( VertexBufferData );
-      void                             FreeVertexBuffer( VertexBufferHandle );
-      IndexBufferHandle                CreateIndexBuffer();
-      void                             FreeIndexBuffer( IndexBufferHandle );
-      static ResourceManager*          Instance;
+  struct IdCollection
+  {
+    ResourceId                       Alloc( StringView name, Frame frame );
+    void                             Free( ResourceId, Errors& );
+    Vector< ResourceId >          mFree;
+    int                              mAllocCounter = 0;
+    Vector< String >           mNames;
+    Vector< Frame >       mFrames;
+  };
+  struct ResourceManager
+  {
+    ResourceManager();
+    VertexBufferHandle               CreateVertexBuffer( VertexBufferData );
+    void                             FreeVertexBuffer( VertexBufferHandle );
+    IndexBufferHandle                CreateIndexBuffer();
+    void                             FreeIndexBuffer( IndexBufferHandle );
+    static ResourceManager*          Instance;
 
-      // why do i need a mutex?
-      std::mutex                       ResourceLock;
-      IdCollection                     mIdCollectionVertex;
-      IdCollection                     mIdCollectionIndex;
-    };
+    // why do i need a mutex?
+    std::mutex                       ResourceLock;
+    IdCollection                     mIdCollectionVertex;
+    IdCollection                     mIdCollectionIndex;
+  };
 
 
 
@@ -677,9 +677,9 @@ struct Shell;
     Vector< RendererFactory* > mFactories;
   };
 
-    String ToString( Renderer::Type );
-    const static String RendererNameVulkan = "Vulkan";
-    const static String RendererNameOpenGL4 = "OpenGL4";
-    const static String RendererNameDirectX11 = "DirectX11";
-    const static String RendererNameDirectX12 = "DirectX12";
-    }
+  String ToString( Renderer::Type );
+  const static String RendererNameVulkan = "Vulkan";
+  const static String RendererNameOpenGL4 = "OpenGL4";
+  const static String RendererNameDirectX11 = "DirectX11";
+  const static String RendererNameDirectX12 = "DirectX12";
+}
