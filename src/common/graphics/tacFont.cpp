@@ -1,7 +1,6 @@
 #include "src/common/tacUtility.h"
 #include "src/common/graphics/tacFont.h"
 #include "src/common/graphics/tacRenderer.h"
-#include "src/common/math/tacMath.h"
 #include "src/common/tacShell.h"
 #include "src/common/tacSettings.h"
 #include "src/common/tacMemory.h"
@@ -86,7 +85,7 @@ void FontStuff::Load( Settings* settings, int atlasVramBytes, Errors& errors )
   mRowCount = ( int )std::sqrt( atlasVramBytes ) / FontCellWidth;
   int size = mRowCount * FontCellWidth;
   // fill the atlas with a color other than black so we can see the borders of cells as they get come in
-  Vector< uint8_t > initialAtlas( Square( size ), ( uint8_t )( 0.3f * 255 ) );
+  Vector< uint8_t > initialAtlas( size * size, ( uint8_t )( 0.3f * 255 ) );
 
   Image image;
   image.mData = initialAtlas.data();
@@ -348,7 +347,7 @@ void FontStuff::GetCharacter(
 }
 FontAtlasCell* FontStuff::GetCell()
 {
-  if( mCells.size() < Square( mRowCount ) )
+  if( mCells.size() < mRowCount * mRowCount )
   {
     auto cellIndex = ( int )mCells.size();
     auto cell = new FontAtlasCell();

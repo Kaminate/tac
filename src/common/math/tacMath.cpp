@@ -60,5 +60,18 @@ namespace Tac
     return ( ( numToRound + ( multiple - 1 ) ) / multiple ) * multiple;
   }
 
+  float Saturate( float value )
+  {
+    return Clamp( value, 0.0f, 1.0f );
+  }
+  float Clamp( float x, float xMin, float xMax )
+  {
+    if( x < xMin )
+      return xMin;
+    if( x > xMax )
+      return xMax;
+    return x;
+  }
+
 }
 

@@ -60,39 +60,6 @@ template< typename T > T Random( const Vector< T >& ts ) { return RandomAccess( 
 template< typename T, size_t U > T Random( const std::array< T, U >& ts ) { return RandomAccess( ts ); }
 template< typename T > T Random( std::initializer_list<T> ts ) { return RandomNoAccess( ts ); }
 
-template< typename TElement, typename TContainer >
-int IndexOf( const TElement& element, const TContainer& container )
-{
-  int i = 0;
-  for( const TElement& curElement : container )
-  {
-    if( curElement == element )
-    {
-      break;
-    }
-    i++;
-  }
-  return i;
-}
-
-// Not sure if this will be that useful...
-// A lot of the time, you find an element from a key,
-// do some stuff with it, and then remove it from the container.
-// std::find_if returns an iterator that you can then use to remove the element
-template< typename TElement, typename TContainer, typename TPredicate >
-bool FindIf( TElement* foundElement, TContainer& elements, TPredicate predicate )
-{
-  for( TElement& currentElement : elements )
-  {
-    if( predicate( currentElement ) )
-    {
-      *foundElement = currentElement;
-      return true;
-    }
-  }
-  return false;
-}
-
 template< typename T >
 void Swap( T& a, T& b )
 {

@@ -74,33 +74,37 @@ void Shell::Init( Errors& errors )
 
   // create renderer
   {
-    Vector< RendererFactory* >& rendererFactories = RendererRegistry::Instance().mFactories;
-    if( rendererFactories.empty() )
+    RendererRegistry& registry = RendererRegistry::Instance();
+    if( registry.mFactories.empty() )
     {
       errors = "No renderers available";
       TAC_HANDLE_ERROR( errors );
     }
 
-    RendererFactory* rendererFactory = rendererFactories[ 0 ];
     String defaultRendererName = OS::Instance->GetDefaultRendererName();
-    if( !defaultRendererName.empty() )
-    {
-      for( RendererFactory* curRendererFactory : rendererFactories )
+    String settingsRendererName = mSettings->GetString( nullptr, { "DefaultRenderer" }, "", errors );
+    RendererFactory* settingsRendererFactory = registry.FindFactory( settingsRendererName );
+    RendererFactory* defaultOSRendererFactory = registry.FindFactory( defaultRendererName );
+    RendererFactory* firstRendererFactory = registry.mFactories[ 0 ];
+    for( RendererFactory* factory :
       {
-        if( curRendererFactory->mRendererName == defaultRendererName )
-        {
-          rendererFactory = curRendererFactory;
-        }
-      }
+        settingsRendererFactory,
+        defaultOSRendererFactory,
+        firstRendererFactory
+      } )
+    {
+      if( !factory )
+        continue;
+      factory->CreateRendererOuter();
+      break;
     }
 
+    if( !Renderer::Instance )
+    {
+      errors = "Failed to create renderer";
+      TAC_HANDLE_ERROR( errors );
+    }
 
-    String rendererName = rendererFactory->mRendererName;
-    rendererName = mSettings->GetString( nullptr, { "DefaultRenderer" }, rendererName, errors );
-    TAC_HANDLE_ERROR( errors );
-    if( !FindIf( &rendererFactory, rendererFactories, [ & ]( RendererFactory* fact ) { return fact->mRendererName == rendererName; } ) )
-      std::cout << "Failed to find " + rendererName + " renderer";
-    rendererFactory->CreateRendererOuter();
     Renderer::Instance->Init( errors );
   }
 

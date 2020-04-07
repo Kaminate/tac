@@ -153,6 +153,15 @@ namespace Tac
     static RendererRegistry RendererRegistryInstance;
     return RendererRegistryInstance;
   }
+
+  RendererFactory* RendererRegistry::FindFactory( StringView name )
+  {
+    for( RendererFactory* factory : mFactories )
+      if( factory->mRendererName == name )
+        return factory;
+      return nullptr;
+  }
+
   void Renderer::RemoveRendererResource( RendererResource* rendererResource )
   {
     if( !rendererResource )
