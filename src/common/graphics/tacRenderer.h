@@ -674,6 +674,8 @@ namespace Tac
   struct RendererRegistry
   {
     static RendererRegistry& Instance();
+    RendererFactory* FindFactory( StringView name );
+
     Vector< RendererFactory* > mFactories;
   };
 

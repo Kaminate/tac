@@ -794,9 +794,9 @@ void Timeline::Update( double time, Errors& errors )
       timelineAction->mPlayedBegin = true;
     }
 
-    double percent = ( time - timelineAction->mTimeBegin ) / ( timelineAction->mTimeEnd - timelineAction->mTimeBegin );
+    float percent = ( float )( ( time - timelineAction->mTimeBegin ) / ( timelineAction->mTimeEnd - timelineAction->mTimeBegin ) );
     percent = Saturate( percent );
-    timelineAction->Update( ( float )percent );
+    timelineAction->Update( percent );
 
     if( time > timelineAction->mTimeEnd )
     {
@@ -873,7 +873,7 @@ void ScriptMainMenu2::RenderMainMenu()
     ImGuiInputText( "Hostname", scriptMatchmaker->mHostname );
     String portString = ToString( scriptMatchmaker->mPort );
     if( ImGuiInputText( "Port", portString ) )
-      scriptMatchmaker->mPort = Clamp( std::atoi( portString.c_str() ), 0, 65535 );
+      scriptMatchmaker->mPort = ( uint16_t )std::atoi( portString.c_str() );
     AsyncLoadStatus status = mConnectToServerJob->GetStatus();
     if( status == AsyncLoadStatus::ThreadQueued ||
       status == AsyncLoadStatus::ThreadRunning )

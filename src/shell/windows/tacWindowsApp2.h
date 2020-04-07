@@ -42,6 +42,7 @@ namespace Tac
     //       combining them all into one tab group
     void SpawnWindowAux( const WindowParams&, DesktopWindow**, Errors& ) override;
     void GetPrimaryMonitor( Monitor* monitor, Errors& errors ) override;
+    void RemoveWindow( Win32DesktopWindow* );
     Win32DesktopWindow* FindWindow( HWND hwnd );
 
     Win32DesktopWindow* GetCursorUnobscuredWindow();

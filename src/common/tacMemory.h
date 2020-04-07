@@ -26,40 +26,4 @@ void WriteToFile( const String& path,  void* bytes, int byteCount , Errors& erro
 //
 //};
 
-template< typename T >
-struct Owned
-{
-  Owned() = default;
-  Owned( T* t ) : mT( t ) {}
-  ~Owned()
-  {
-    delete mT;
-    mT = nullptr;
-  }
-  Owned& GainOwnershipFrom( Owned< T >& rhs )
-  {
-    delete mT;
-    mT = rhs.mT;
-    rhs.mT = nullptr;
-    return *this;
-  }
-  Owned& operator = ( Owned< T >&& rhs )
-  {
-    return GainOwnershipFrom( rhs );
-  }
-  Owned& operator = ( Owned< T >& rhs )
-  {
-    return GainOwnershipFrom( rhs );
-  }
-  T* operator = ( T* t )
-  {
-    delete mT;
-    mT = t;
-    return t;
-  }
-  operator T*( ) { return mT; }
-  T* operator ->() { return mT; }
-  T* mT = nullptr;
-};
-
 }

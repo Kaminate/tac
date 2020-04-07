@@ -518,15 +518,23 @@ namespace Tac
 
     createdWindow->mOnDestroyed.AddCallbackFunctional( []( DesktopWindow* desktopWindow )
       {
-        WindowsApplication2* app = WindowsApplication2::Instance;
-        auto createdWindow = ( Win32DesktopWindow* )desktopWindow;
-        int i = IndexOf( createdWindow, app->mWindows );
-        app->mWindows[ i ] = app->mWindows.back();
-        app->mWindows.pop_back();
+        WindowsApplication2::Instance->RemoveWindow( ( Win32DesktopWindow* )desktopWindow );
       } );
 
     // Used to combine all the windows into one tab group.
     if( mParentHWND == NULL )
       mParentHWND = hwnd;
+  }
+  void WindowsApplication2::RemoveWindow( Win32DesktopWindow*  createdWindow )
+  {
+    for( int i = 0; i < mWindows.size(); ++i )
+    {
+      if( mWindows[ i ] == createdWindow )
+      {
+        mWindows[ i ] = mWindows.back();
+        mWindows.pop_back();
+        return;
+      }
+    }
   }
 }
