@@ -361,7 +361,6 @@ struct UIRoot
 
 
   UI2DDrawData* mUI2DDrawData = nullptr;
-  FontStuff* mFontStuff = nullptr;
   KeyboardInput* mKeyboardInput = nullptr;
 
 

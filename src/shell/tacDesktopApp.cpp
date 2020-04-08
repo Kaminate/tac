@@ -29,8 +29,16 @@ namespace Tac
   static void StuffThread( Errors& errors )
   {
     gThreadType = ThreadType::Stuff;
+
     new ProfileSystem;
     ProfileSystem::Instance->Init();
+
+    new FontStuff;
+    FontStuff::Instance->Load( errors );
+    TAC_HANDLE_ERROR( errors );
+
+
+
     while( !OS::Instance->mShouldStopRunning )
     {
       Shell::Instance->Update( errors );

@@ -17,31 +17,19 @@ namespace Tac
   }
   DesktopWindowManager* DesktopWindowManager::Instance = nullptr;
 
-  void DesktopWindowManager::SetWindowCreationData(
-    const StringView& windowName,
-    int width,
-    int height,
-    int x,
-    int y )
+  void DesktopWindowManager::SetWindowParams( WindowParams windowParams )
   {
-    WindowCreationData* pData = FindWindowCreationData( windowName );
-    if( !pData )
-    {
-      mWindowCreationData.resize( mWindowCreationData.size() + 1 );
-      pData = &mWindowCreationData.back();
-      pData->mWindowName = windowName;
-    }
-
-    pData->mWidth = width;
-    pData->mHeight = height;
-    pData->mX = x;
-    pData->mY = y;
+    WindowParams* pParams = FindWindowParams( windowParams.mName );
+    if( pParams )
+      *pParams = windowParams;
+    else
+      mWindowParams.push_back( windowParams );
   }
 
-  WindowCreationData* DesktopWindowManager::FindWindowCreationData( const StringView& windowName )
+  WindowParams* DesktopWindowManager::FindWindowParams( const StringView& windowName )
   {
-    for( WindowCreationData& data : mWindowCreationData )
-      if( data.mWindowName == windowName )
+    for( WindowParams& data : mWindowParams )
+      if( data.mName == windowName )
         return &data;
     return nullptr;
   }
@@ -61,14 +49,14 @@ namespace Tac
       if( window )
         continue;
 
-      WindowCreationData* pData = FindWindowCreationData( windowName );
+      WindowParams* pParams = FindWindowParams( windowName );
 
       WindowParams params;
-      params.mHeight = pData ? pData->mHeight : 800;
+      params.mHeight = pParams ? pParams->mHeight : 800;
       params.mName = windowName;
-      params.mWidth = pData ? pData->mWidth : 600;
-      params.mX = pData ? pData->mX : 50;
-      params.mY = pData ? pData->mY : 50;
+      params.mWidth = pParams ? pParams->mWidth : 600;
+      params.mX = pParams ? pParams->mX : 50;
+      params.mY = pParams ? pParams->mY : 50;
       DesktopApp::Instance->SpawnWindow( params, &window, errors );
       TAC_HANDLE_ERROR( errors );
     }

@@ -47,7 +47,6 @@ struct UI2DCommonData
   void Init( Errors& errors );
 
   Texture* m1x1White = nullptr;
-  FontStuff* mFontStuff = nullptr;
   VertexFormat* mFormat = nullptr;
   Shader* mShader = nullptr;
   Shader* m2DTextShader = nullptr;

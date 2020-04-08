@@ -418,12 +418,12 @@ namespace Tac
     const ResourceId NullRendererRessourceId = -1;
     struct ResourceHandle
     {
-      ResourceId mId = -1;
+      ResourceId mId = -1; // 0 better or -1 better?
     };
 
-  #define DefineResourceHandle(T) struct T : public ResourceHandle {}
-    DefineResourceHandle( VertexBufferHandle );
-    DefineResourceHandle( IndexBufferHandle );
+    struct VertexBufferHandle : public ResourceHandle {};
+    struct IndexBufferHandle : public ResourceHandle {};
+    struct TextureHandle : public ResourceHandle {};
 
     struct IdCollection
     {
@@ -438,16 +438,17 @@ namespace Tac
     struct ResourceManager
     {
       ResourceManager();
-      VertexBufferHandle               CreateVertexBuffer( VertexBufferData );
-      void                             FreeVertexBuffer( VertexBufferHandle );
+      VertexBufferHandle               CreateVertexBuffer();
+      void                             DestroyVertexBuffer( VertexBufferHandle );
       IndexBufferHandle                CreateIndexBuffer();
-      void                             FreeIndexBuffer( IndexBufferHandle );
+      void                             DestroyIndexBuffer( IndexBufferHandle );
       static ResourceManager*          Instance;
 
       // why do i need a mutex?
       std::mutex                       ResourceLock;
-      IdCollection                     mIdCollectionVertex;
-      IdCollection                     mIdCollectionIndex;
+      IdCollection                     mIdCollectionVertexBuffer;
+      IdCollection                     mIdCollectionIndexBuffer;
+      IdCollection                     mIdCollectionTexture;
     };
 
 
@@ -456,11 +457,15 @@ namespace Tac
 
     };
 
-    enum CommandType
+    enum class CommandType
     {
       CreateVertexBuffer,
       CreateIndexBuffer,
+      UpdateTextureRegion,
+    };
 
+    struct UpdateTextureRegionCommandData
+    {
     };
 
     struct CommandBuffer
@@ -477,9 +482,14 @@ namespace Tac
       CommandBuffer mCommandBuffer;
     };
 
-
     extern Frame gRenderFrame;
     extern Frame gSubmitFrame;
+
+    void APIUpdateTextureRegion(
+      TextureHandle mDst,
+      Image mSrc,
+      int mDstX,
+      int mDstY );
   }
 
   struct Renderer

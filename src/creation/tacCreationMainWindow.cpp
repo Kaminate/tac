@@ -82,7 +82,7 @@ namespace Tac
   }
   void CreationMainWindow::ImGui()
   {
-    SetCreationWindowImGuiGlobals( mDesktopWindow, mUI2DDrawData );
+    SetCreationWindowImGuiGlobals( mDesktopWindow, mUI2DDrawData, gMainWindowName );
     ImGuiBegin( "Main Window", {} );
     ImGuiBeginMenuBar();
     ImGuiText( "file | edit | window" );
@@ -143,10 +143,7 @@ namespace Tac
   }
   void CreationMainWindow::Update( Errors& errors )
   {
-
-
-    ;
-    mDesktopWindow->SetRenderViewDefaults();
+    //mDesktopWindow->SetRenderViewDefaults();
 
     LoadTextures( errors );
     TAC_HANDLE_ERROR( errors );

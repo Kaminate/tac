@@ -650,7 +650,7 @@ void CreationGameWindow::CameraControls()
 void CreationGameWindow::Update( Errors& errors )
 {
   mDesktopWindow->SetRenderViewDefaults();
-  SetCreationWindowImGuiGlobals( mDesktopWindow, mUI2DDrawData );
+  SetCreationWindowImGuiGlobals( mDesktopWindow, mUI2DDrawData, gGameWindowName );
   if( auto ghost = ( Ghost* )mSoul )
   {
     //static bool once;

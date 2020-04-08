@@ -57,14 +57,20 @@ FontStuff::~FontStuff()
   }
   Renderer::Instance->RemoveRendererResource( mTexture );
 }
-void FontStuff::Load( Settings* settings, int atlasVramBytes, Errors& errors )
+void FontStuff::Load( Errors& errors )
 {
+  const int atlasVramBytes = 40 * 1024 * 1024;
+
   for( int iLanguage = 0; iLanguage < ( int )Language::Count; ++iLanguage )
   {
     auto language = Language( iLanguage );
     const String& languageString = LanguageToStr( language );
     String fontFilePathDefault = language == Language::English ? "assets/fonts/english_srcpro.ttf" : "";
-    String fontFilePath = settings->GetString( nullptr, { "defaultfonts", languageString }, fontFilePathDefault, errors );
+    String fontFilePath = Shell::Instance->mSettings->GetString(
+      nullptr,
+      { "defaultfonts", languageString },
+      fontFilePathDefault,
+      errors );
     if( fontFilePath.empty() )
       continue;
 
@@ -101,6 +107,9 @@ void FontStuff::Load( Settings* settings, int atlasVramBytes, Errors& errors )
   textureData.mFrame = TAC_STACK_FRAME;
   textureData.myImage = image;
   Renderer::Instance->AddTextureResource( &mTexture, textureData, errors );
+
+  Render::;
+
   TAC_HANDLE_ERROR( errors );
 
 
@@ -340,7 +349,10 @@ void FontStuff::GetCharacter(
     // TODO: this function de/allocates a temporary texture every time.
     // Instead, create a texture once, and write to it with D3D11_MAP_DISCARD
 
-    Renderer::Instance->CopyTextureRegion( mTexture, src, x, y, errors );
+    // Renderer::Instance->CopyTextureRegion( mTexture, src, x, y, errors );
+
+    Render::UpdateTextureRegion( mTextureId, src, x, y );
+
     TAC_HANDLE_ERROR( errors );
   }
   *fontAtlasCell = cell;

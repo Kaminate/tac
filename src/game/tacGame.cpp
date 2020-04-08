@@ -61,7 +61,8 @@ struct Game
       mousePositionDesktopWindowspace,
       isWindowDirectlyUnderCursor,
       Shell::Instance->mElapsedSeconds,
-      mUi2DDrawData );
+      mUi2DDrawData,
+      mDesktopWindow->mName);
   }
   void Update( Errors& errors )
   {

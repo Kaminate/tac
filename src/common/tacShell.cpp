@@ -115,10 +115,6 @@ void Shell::Init( Errors& errors )
 
   new ModelAssetManager;
 
-  new FontStuff;
-  FontStuff::Instance->Load( mSettings, FontAtlasDefaultVramByteCount, errors );
-  TAC_HANDLE_ERROR( errors );
-
   new Localization;
   Localization::Instance->Load( "assets/localization.txt", errors );
   TAC_HANDLE_ERROR( errors );

@@ -36,7 +36,8 @@ void ImGuiSetGlobals(
   v2 mousePositionDesktopWindowspace,
   bool isWindowDirectlyUnderCursor,
   double elapsedSeconds,
-  UI2DDrawData* ui2DDrawData);
+  UI2DDrawData* ui2DDrawData,
+  StringView desktopWindowName);
 
 void ImGuiBeginMenuBar();
 //void ImGuiBeginMenu( const String& label );

@@ -232,6 +232,19 @@ namespace Tac
     Frame gRenderFrame;
     Frame gSubmitFrame;
 
+    void UpdateTextureRegion(
+      TextureHandle mDst,
+      Image mSrc,
+      int mDstX,
+      int mDstY )
+    {
+      gSubmitFrame.mCommandBuffer.Push( CommandType::UpdateTextureRegion );
+      gSubmitFrame.mCommandBuffer.Push( &mDst );
+      gSubmitFrame.mCommandBuffer.Push( &mSrc );
+      gSubmitFrame.mCommandBuffer.Push( &mDstX );
+      gSubmitFrame.mCommandBuffer.Push( &mDstY );
+    }
+
   }
 
 }

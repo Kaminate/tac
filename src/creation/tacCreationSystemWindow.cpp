@@ -33,7 +33,7 @@ void CreationSystemWindow::ImGui()
   ;
   SystemRegistry* systemRegistry = SystemRegistry::Instance();
 
-  SetCreationWindowImGuiGlobals( mDesktopWindow, mUI2DDrawData );
+  SetCreationWindowImGuiGlobals( mDesktopWindow, mUI2DDrawData, gSystemWindowName );
   ImGuiBegin( "System Window", {} );
 
   if( ImGuiCollapsingHeader( "Select System" ) )

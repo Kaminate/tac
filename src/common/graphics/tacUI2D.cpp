@@ -368,7 +368,6 @@ namespace Tac
     v4 color,
     Errors& errors )
   {
-    FontStuff* fontStuff = UI2DCommonData::Instance->mFontStuff;
     const m3& transform = mTransform;
 
     Vector< Codepoint > codepoints;
@@ -414,7 +413,7 @@ namespace Tac
 
 
       FontAtlasCell* fontAtlasCell;
-      fontStuff->GetCharacter( defaultLanguage, codepoint, &fontAtlasCell, errors );
+      FontStuff::Instance->GetCharacter( defaultLanguage, codepoint, &fontAtlasCell, errors );
       TAC_HANDLE_ERROR( errors );
       if( !fontAtlasCell )
         continue;
@@ -474,7 +473,7 @@ namespace Tac
     drawCall.mIIndexStart = oldIndexCount;
     drawCall.mVertexCount = ( int )mUI2DDrawData->mDefaultVertex2Ds.size() - oldVertexCount;
     drawCall.mIVertexStart = oldVertexCount;
-    drawCall.mTexture = fontStuff->mTexture;
+    drawCall.mTexture = FontStuff::Instance->mTexture;
     drawCall.mShader = UI2DCommonData::Instance->m2DTextShader;
     drawCall.mUniformSource = TemporaryMemoryFromT( perObjectData );
     //if( !drawCall.mScissorDebugging )
@@ -514,9 +513,8 @@ namespace Tac
     float xUISpace = 0;
 
 
-    FontStuff* fontStuff = UI2DCommonData::Instance->mFontStuff;
     Language defaultLanguage = Language::English;
-    FontFile* fontFile = fontStuff->mDefaultFonts[ defaultLanguage ];
+    FontFile* fontFile = FontStuff::Instance->mDefaultFonts[ defaultLanguage ];
 
     int lineCount = 1;
 
@@ -553,7 +551,7 @@ namespace Tac
       // ignored...
       Errors errors;
 
-      fontStuff->GetCharacter( defaultLanguage, codepoint, &fontAtlasCell, errors );
+      FontStuff::Instance->GetCharacter( defaultLanguage, codepoint, &fontAtlasCell, errors );
 
       if( !fontAtlasCell )
         continue;
@@ -685,7 +683,12 @@ namespace Tac
   //  Vector< v2 > normals;
   //}
 
-  void UI2DDrawData::AddText( v2 textPos, int fontSize, const String& utf8, v4 color, const ImGuiRect* clipRect )
+  void UI2DDrawData::AddText(
+    const v2 textPos, 
+    const int fontSize,
+    const String& utf8,
+    const v4 color,
+    const ImGuiRect* clipRect )
   {
     if( utf8.empty() )
       return;
@@ -696,9 +699,8 @@ namespace Tac
     Vector< Codepoint > codepoints;
     UTF8Converter::Convert( utf8, codepoints, errors );
 
-    FontStuff* fontStuff = UI2DCommonData::Instance->mFontStuff;
     Language defaultLanguage = Language::English;
-    FontFile* fontFile = fontStuff->mDefaultFonts[ defaultLanguage ];
+    FontFile* fontFile = FontStuff::Instance->mDefaultFonts[ defaultLanguage ];
 
     float scaleUIToPx = ( float )fontSize / ( float )FontCellWidth;
     float scaleFontToPx = fontFile->mScale * scaleUIToPx;
@@ -731,7 +733,7 @@ namespace Tac
       }
 
       FontAtlasCell* fontAtlasCell = nullptr;
-      fontStuff->GetCharacter( defaultLanguage, codepoint, &fontAtlasCell, errors );
+      FontStuff::Instance->GetCharacter( defaultLanguage, codepoint, &fontAtlasCell, errors );
       // ^ ignore errors...
 
       if( !fontAtlasCell )
@@ -818,7 +820,7 @@ namespace Tac
     drawCall.mIIndexStart = indexStart;
     drawCall.mVertexCount = vertexCount;
     drawCall.mIVertexStart = vertexStart;
-    drawCall.mTexture = fontStuff->mTexture;
+    drawCall.mTexture = FontStuff::Instance->mTexture;
     drawCall.mShader = UI2DCommonData::Instance->m2DTextShader;
     drawCall.mUniformSource = TemporaryMemoryFromT( perObjectData );
     mDrawCall2Ds.push_back( drawCall );

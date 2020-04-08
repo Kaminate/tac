@@ -114,7 +114,8 @@ struct Creation : public UpdateThing
 
 void SetCreationWindowImGuiGlobals(
   DesktopWindow* desktopWindow,
-  UI2DDrawData* ui2DDrawData );
+  UI2DDrawData* ui2DDrawData,
+  StringView desktopWindowName );
 
 const v4 textColor = v4( v3( 1, 1, 1 ) * 0.0f, 1 );
 

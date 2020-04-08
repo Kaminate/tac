@@ -31,7 +31,7 @@ void CreationProfileWindow::ImGuiProfile()
 }
 void CreationProfileWindow::ImGui()
 {
-  SetCreationWindowImGuiGlobals( mDesktopWindow, mUI2DDrawData );
+  SetCreationWindowImGuiGlobals( mDesktopWindow, mUI2DDrawData, gProfileWindowName );
   ImGuiBegin( "Profile Window", {} );
 
   ImGuiText( "i am the profile window" );

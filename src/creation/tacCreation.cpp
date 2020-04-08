@@ -347,7 +347,13 @@ namespace Tac
         monitor );
     }
 
-    DesktopWindowManager::Instance->SetWindowCreationData( name, width, height, x, y );
+    WindowParams params;
+    params.mName = name;
+    params.mWidth = width;
+    params.mHeight = height;
+    params.mX = x;
+    params.mY = y;
+    DesktopWindowManager::Instance->SetWindowParams( params );
   }
   void Creation::SetSavedWindowsData( Errors& errors )
   {
@@ -810,14 +816,15 @@ namespace Tac
 
   void SetCreationWindowImGuiGlobals(
     DesktopWindow* desktopWindow,
-    UI2DDrawData* ui2DDrawData )
+    UI2DDrawData* ui2DDrawData,
+    StringView desktopWindowName )
   {
     Errors screenspaceCursorPosErrors;
     v2 screenspaceCursorPos = {};
     OS::Instance->GetScreenspaceCursorPos( screenspaceCursorPos, screenspaceCursorPosErrors );
     bool isWindowDirectlyUnderCursor = false;
     v2 mousePositionDestopWindowspace = {};
-    if( screenspaceCursorPosErrors.empty() )
+    if( screenspaceCursorPosErrors.empty() && desktopWindow )
     {
       mousePositionDestopWindowspace = {
         screenspaceCursorPos.x - desktopWindow->mX,
@@ -829,7 +836,8 @@ namespace Tac
       mousePositionDestopWindowspace,
       isWindowDirectlyUnderCursor,
       Shell::Instance->mElapsedSeconds,
-      ui2DDrawData );
+      ui2DDrawData,
+      desktopWindowName);
   }
 
 }
