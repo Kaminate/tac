@@ -438,10 +438,14 @@ namespace Tac
     struct ResourceManager
     {
       ResourceManager();
-      VertexBufferHandle               CreateVertexBuffer();
+
+      VertexBufferHandle               CreateVertexBuffer(StringView, StackFrame);
       void                             DestroyVertexBuffer( VertexBufferHandle );
-      IndexBufferHandle                CreateIndexBuffer();
+      IndexBufferHandle                CreateIndexBuffer(StringView, StackFrame);
       void                             DestroyIndexBuffer( IndexBufferHandle );
+      TextureHandle                    CreateTexture(StringView, StackFrame);
+      void                             DestroyTexture(TextureHandle);
+
       static ResourceManager*          Instance;
 
       // why do i need a mutex?
@@ -461,6 +465,7 @@ namespace Tac
     {
       CreateVertexBuffer,
       CreateIndexBuffer,
+      CreateTexture,
       UpdateTextureRegion,
     };
 

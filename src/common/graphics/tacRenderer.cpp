@@ -52,6 +52,7 @@ namespace Tac
 
 
   Renderer* Renderer::Instance = nullptr;
+
   Renderer::Renderer()
   {
     Instance = this;
@@ -189,6 +190,50 @@ namespace Tac
     {
       Instance = this;
     }
+
+    VertexBufferHandle ResourceManager::CreateVertexBuffer(StringView name, StackFrame frame)
+    {
+      const ResourceId id = mIdCollectionVertexBuffer.Alloc( name, frame );
+      gSubmitFrame.mCommandBuffer.Push( CommandType::CreateVertexBuffer );
+      gSubmitFrame.mCommandBuffer.Push( id );
+      VertexBufferHandle result;
+      result.mId = id;
+      return result;
+    }
+    void ResourceManager::DestroyVertexBuffer( VertexBufferHandle handle )
+    {
+      TAC_UNIMPLEMENTED;
+    }
+    IndexBufferHandle ResourceManager::CreateIndexBuffer(StringView name, StackFrame frame)
+    {
+      const ResourceId id = mIdCollectionIndexBuffer.Alloc( name, frame );
+      gSubmitFrame.mCommandBuffer.Push( CommandType::CreateIndexBuffer );
+      gSubmitFrame.mCommandBuffer.Push( id );
+      IndexBufferHandle result;
+      result.mId = id;
+      return result;
+    }
+    void ResourceManager::DestroyIndexBuffer( IndexBufferHandle handle )
+    {
+
+      TAC_UNIMPLEMENTED;
+    }
+    TextureHandle ResourceManager::CreateTexture(StringView name, StackFrame frame)
+    {
+      const ResourceId id = mIdCollectionTexture.Alloc( name, frame );
+      gSubmitFrame.mCommandBuffer.Push( CommandType::CreateTexture );
+      gSubmitFrame.mCommandBuffer.Push( id );
+      TextureHandle result;
+      result.mId = id;
+      return result;
+    }
+    void ResourceManager::DestroyTexture( TextureHandle handle )
+    {
+      TAC_UNIMPLEMENTED;
+
+    }
+
+
 
     ResourceId IdCollection::Alloc( StringView name, Tac::StackFrame frame )
     {

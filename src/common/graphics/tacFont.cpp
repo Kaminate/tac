@@ -108,7 +108,8 @@ void FontStuff::Load( Errors& errors )
   textureData.myImage = image;
   Renderer::Instance->AddTextureResource( &mTexture, textureData, errors );
 
-  Render::;
+  mTextureId = Render::ResourceManager::Instance->CreateTexture( "texture atlas", TAC_STACK_FRAME );
+
 
   TAC_HANDLE_ERROR( errors );
 
@@ -351,7 +352,7 @@ void FontStuff::GetCharacter(
 
     // Renderer::Instance->CopyTextureRegion( mTexture, src, x, y, errors );
 
-    Render::UpdateTextureRegion( mTextureId, src, x, y );
+    Render::APIUpdateTextureRegion( mTextureId, src, x, y );
 
     TAC_HANDLE_ERROR( errors );
   }
