@@ -30,7 +30,7 @@ void AsyncTextureSingleData::CreateTexture(
 {
   TextureData textureData;
   textureData.mName = mFilepath;
-  textureData.mFrame = TAC_FRAME;
+  textureData.mFrame = TAC_STACK_FRAME;
   textureData.myImage = mImage;
   textureData.binding = { Binding::ShaderResource };
   Renderer::Instance->AddTextureResource( texture, textureData, errors );
@@ -54,7 +54,7 @@ void AsyncTextureCubeData::CreateTexture(
 
   TextureData textureData;
   textureData.mName = mDir;
-  textureData.mFrame = TAC_FRAME;
+  textureData.mFrame = TAC_STACK_FRAME;
   textureData.myImage = mImage;
   textureData.binding = { Binding::ShaderResource };
   Renderer::Instance->AddTextureResourceCube( texture, textureData, cubedatas, errors );

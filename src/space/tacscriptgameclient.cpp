@@ -115,7 +115,7 @@ ScriptSplash::~ScriptSplash()
 void ScriptSplash::Update( float seconds, Errors& errors )
 {
   Ghost* ghost = mScriptRoot->mGhost;
-  Shell* shell = Shell::Instance;
+  ;
   //UIRoot* uiRoot = ghost->mUIRoot;
 
 
@@ -200,7 +200,7 @@ void ScriptMatchmaker::ClearServerLog( Errors& errors )
   TAC_ASSERT( mSocket );
   if( !mSocket->mTCPIsConnected )
     return;
-  Shell* shell = Shell::Instance;
+  ;
   Json json;
   json[ "name" ] = "clear console";
   String toSend = json.Stringify();
@@ -224,8 +224,7 @@ void ScriptMatchmaker::TryConnect()
 }
 void ScriptMatchmaker::Update( float seconds, Errors& errors )
 {
-  Shell* shell = Shell::Instance;
-  auto settings = shell->mSettings;
+  Settings* settings = Shell::Instance->mSettings;
   TAC_TIMELINE_BEGIN;
   mSocket = Net::Instance->CreateSocket( "Matchmaking socket", AddressFamily::IPv4, SocketType::TCP, errors );
   TAC_HANDLE_ERROR( errors );
@@ -251,7 +250,7 @@ void ScriptMatchmaker::Update( float seconds, Errors& errors )
   String hostname = settings->GetString( nullptr, { "hostname" }, defaultHostname, errors );
   mPort = ( uint16_t )settings->GetNumber( nullptr, { "port" }, ( JsonNumber )defaultPort, errors );
 
-  mConnectionAttemptStartSeconds = shell->mElapsedSeconds;
+  mConnectionAttemptStartSeconds = Shell::Instance->mElapsedSeconds;
   String text = "Attempting to connect to " + mHostname + ":" + ToString( mPort );
   Log( text );
   TAC_TIMELINE_KEYFRAME;
@@ -399,7 +398,7 @@ void ScriptMainMenu::AddCallbackDisconnect()
 void ScriptMainMenu::Update( float seconds, Errors& errors )
 {
   Ghost* ghost = mScriptRoot->mGhost;
-  Shell* shell = Shell::Instance;
+  ;
   //UIRoot* uiRoot = ghost->mUIRoot;
   auto* scriptMatchmaker = ( ScriptMatchmaker* )mScriptRoot->GetThread( scriptMatchmakerName );
   ServerData* serverData = ghost->mServerData;
@@ -465,7 +464,7 @@ void ScriptMainMenu::Update( float seconds, Errors& errors )
     textureData.binding = { Binding::ShaderResource };
     textureData.cpuAccess = {};
     textureData.mName = "power";
-    textureData.mFrame = TAC_FRAME;
+    textureData.mFrame = TAC_STACK_FRAME;
     textureData.myImage = image;
     Renderer::Instance->AddTextureResource( &mPower, textureData, errors );
     TAC_HANDLE_ERROR( errors );
@@ -476,7 +475,7 @@ void ScriptMainMenu::Update( float seconds, Errors& errors )
   {
     String utf8 = "Trying to connect";
     int maxDotCount = 3;
-    double elapsedSeconds = shell->mElapsedSeconds - scriptMatchmaker->mConnectionAttemptStartSeconds;
+    double elapsedSeconds = Shell::Instance->mElapsedSeconds - scriptMatchmaker->mConnectionAttemptStartSeconds;
     double partialDotSeconds = std::fmod( elapsedSeconds, ( double )( ( maxDotCount + 1 ) * dotPeriodSeconds ) );
     for( int i = 0; i < int( partialDotSeconds / dotPeriodSeconds ); ++i )
       utf8 += '.';
@@ -489,7 +488,7 @@ void ScriptMainMenu::Update( float seconds, Errors& errors )
   if( mUITextPressStart )
   {
     double pressStartPeriod = 2.0f;
-    double s = std::fmod( shell->mElapsedSeconds, pressStartPeriod );
+    double s = std::fmod( Shell::Instance->mElapsedSeconds, pressStartPeriod );
     bool b = s > pressStartPeriod * 0.5f;
     if( mPressStart != b )
     {
@@ -511,7 +510,7 @@ void ScriptMainMenu::Update( float seconds, Errors& errors )
   UIAnchorHorizontal menuAnchorHorizontal = UIAnchorHorizontal::Left;
   UIAnchorVertical menuAnchorVertical = UIAnchorVertical::Center;
 
-  double timelineSeconds = shell->mElapsedSeconds;
+  double timelineSeconds = Shell::Instance->mElapsedSeconds;
 
   //auto createGameTitle = [ = ]()
   //{

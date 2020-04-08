@@ -13,11 +13,11 @@ namespace Tac
 
   struct ProfileBlock
   {
-    ProfileBlock( Frame frame );
+    ProfileBlock( StackFrame frame );
     ~ProfileBlock();
     ProfileFunction* mFunction = nullptr;
   };
-#define TAC_PROFILE_BLOCK ProfileBlock b##__LINE__ (TAC_FRAME);
+#define TAC_PROFILE_BLOCK ProfileBlock b##__LINE__ (TAC_STACK_FRAME);
 
   struct ProfileFunction
   {
@@ -29,7 +29,7 @@ namespace Tac
     ProfileFunction* mChildren = nullptr;
     Timepoint        mBeginTime;
     Timepoint        mEndTime;
-    Frame            mFrame;
+    StackFrame            mFrame;
   };
 
   struct ProfileSystem

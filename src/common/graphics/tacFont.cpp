@@ -98,7 +98,7 @@ void FontStuff::Load( Settings* settings, int atlasVramBytes, Errors& errors )
   textureData.binding = { Binding::ShaderResource };
   textureData.cpuAccess = { CPUAccess::Write };
   textureData.mName = "texture atlas";
-  textureData.mFrame = TAC_FRAME;
+  textureData.mFrame = TAC_STACK_FRAME;
   textureData.myImage = image;
   Renderer::Instance->AddTextureResource( &mTexture, textureData, errors );
   TAC_HANDLE_ERROR( errors );

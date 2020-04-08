@@ -19,6 +19,7 @@ struct CreationGameObjectMenuWindow;
 
 struct CreationMainWindow
 {
+  CreationMainWindow();
   ~CreationMainWindow();
   void Init( Errors& errors );
   void Update( Errors& errors );

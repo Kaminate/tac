@@ -1,13 +1,14 @@
-#include "src/shell/windows/tacRendererDirectX11.h"
-#include "src/common/tacDesktopWindow.h"
-#include "src/common/tacShell.h"
-#include "src/common/tacPreprocessor.h"
-#include "src/common/profile/tacProfile.h"
-#include "src/common/tacMemory.h"
 #include "src/common/containers/tacArray.h"
-#include "src/common/tacAlgorithm.h"
 #include "src/common/math/tacMath.h"
+#include "src/common/profile/tacProfile.h"
+#include "src/common/tacAlgorithm.h"
+#include "src/common/tacDesktopWindow.h"
+#include "src/common/tacMemory.h"
+#include "src/common/tacPreprocessor.h"
+#include "src/common/tacShell.h"
+#include "src/shell/tacDesktopApp.h"
 #include "src/shell/windows/tacDXGI.h"
+#include "src/shell/windows/tacRendererDirectX11.h"
 
 #include <initguid.h>
 #include <dxgidebug.h>
@@ -25,6 +26,11 @@
 
 namespace Tac
 {
+  static void AssertRenderThread()
+  {
+    const bool isMainThread = gThreadType == ThreadType::Main;
+    TAC_ASSERT( isMainThread );
+  }
 
 
 #define TAC_DX11_CALL( errors, call, ... )\
@@ -362,7 +368,7 @@ void DX11Window::CreateRenderTarget( Errors& errors )
       textureData.myImage.mWidth = desc.BufferDesc.Width;
       textureData.myImage.mHeight = desc.BufferDesc.Height;
       textureData.mName = "tac backbuffer color";
-      textureData.mFrame = TAC_FRAME;
+      textureData.mFrame = TAC_STACK_FRAME;
       Renderer::Instance->AddRendererResource( &mBackbufferColor, textureData );
     }
     mBackbufferColor->mRTV = rtv;
@@ -384,7 +390,7 @@ void DX11Window::CreateRenderTarget( Errors& errors )
       depthBufferData.width = desc.BufferDesc.Width;
       depthBufferData.height = desc.BufferDesc.Height;
       depthBufferData.mName = "backbuffer depth";
-      depthBufferData.mFrame = TAC_FRAME;
+      depthBufferData.mFrame = TAC_STACK_FRAME;
       Renderer::Instance->AddDepthBuffer( &mDepthBuffer, depthBufferData, errors );
       TAC_HANDLE_ERROR( errors );
     }
@@ -461,10 +467,11 @@ void RendererDirectX11::Init( Errors& errors )
   mDxgi.Init( errors );
   TAC_HANDLE_ERROR( errors );
 
-  mRenderThread = std::thread(RenderThreadFunction);
 }
 void RendererDirectX11::RenderFlush()
 {
+  AssertRenderThread();
+  TAC_ASSERT( gThreadType == ThreadType::Main );
   mDeviceContext->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
 
   for( DrawCall2& drawCall : mDrawCall2s )
@@ -708,6 +715,7 @@ void RendererDirectX11::RenderFlush()
 }
 void RendererDirectX11::Render( Errors& errors )
 {
+  AssertRenderThread();
   TAC_PROFILE_BLOCK;
   RenderFlush();
 
@@ -722,6 +730,7 @@ void RendererDirectX11::Render( Errors& errors )
 }
 void RendererDirectX11::CreateWindowContext( DesktopWindow* desktopWindow, Errors& errors )
 {
+  AssertRenderThread();
   auto hwnd = ( HWND )desktopWindow->mOperatingSystemHandle;
   IUnknown* pDevice = mDevice;
   IDXGISwapChain* mSwapChain;
@@ -753,6 +762,7 @@ void RendererDirectX11::CreateWindowContext( DesktopWindow* desktopWindow, Error
 }
 void RendererDirectX11::AddVertexBuffer( VertexBuffer** outputVertexBuffer, const VertexBufferData& vbData, Errors& errors )
 {
+  AssertRenderThread();
   D3D11_BUFFER_DESC bd = {};
   bd.ByteWidth = vbData.mNumVertexes * vbData.mStrideBytesBetweenVertexes;
   bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
@@ -779,6 +789,7 @@ void RendererDirectX11::AddIndexBuffer(
   const IndexBufferData& indexBufferData,
   Errors& errors )
 {
+  AssertRenderThread();
   TAC_ASSERT( indexBufferData.mIndexCount > 0 );
   UINT totalBufferSize
     = indexBufferData.mIndexCount
@@ -810,6 +821,7 @@ void RendererDirectX11::ClearColor(
   Texture* texture,
   v4 rgba )
 {
+  AssertRenderThread();
   TAC_ASSERT( texture );
   auto* textureDX11 = ( TextureDX11* )texture;
   TAC_ASSERT( textureDX11->mRTV );
@@ -824,6 +836,7 @@ void RendererDirectX11::ClearDepthStencil(
   bool shouldClearStencil,
   uint8_t stencil )
 {
+  AssertRenderThread();
   UINT clearFlags = 0;
   if( shouldClearDepth ) clearFlags |= D3D11_CLEAR_DEPTH;
   if( shouldClearStencil ) clearFlags |= D3D11_CLEAR_STENCIL;
@@ -840,6 +853,7 @@ static void CompileShaderFromString(
   const char* shaderModel,
   Errors& errors )
 {
+  AssertRenderThread();
   DWORD dwShaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
   if( IsDebugMode() )
   {
@@ -867,6 +881,7 @@ static void CompileShaderFromString(
 }
 void RendererDirectX11::AddShader( Shader** outputShader, const ShaderData& shaderData, Errors& errors )
 {
+  AssertRenderThread();
   for( CBuffer* cbuf : shaderData.mCBuffers )
     TAC_ASSERT( cbuf );
   ShaderDX11* shader;
@@ -907,6 +922,7 @@ void RendererDirectX11::LoadShaderInternal(
   String str,
   Errors& errors )
 {
+  AssertRenderThread();
   auto temporaryMemory = TemporaryMemoryFromFile( GetDirectX11ShaderPath( "common" ), errors );
   TAC_HANDLE_ERROR( errors );
 
@@ -969,6 +985,7 @@ void RendererDirectX11::LoadShaderInternal(
 }
 void RendererDirectX11::ReloadShader( Shader* shader, Errors& errors )
 {
+  AssertRenderThread();
   TAC_ASSERT( shader );
   auto* shaderDX11 = ( ShaderDX11* )shader;
   if( shaderDX11->mShaderPath.empty() )
@@ -988,6 +1005,7 @@ void RendererDirectX11::ReloadShader( Shader* shader, Errors& errors )
 }
 void RendererDirectX11::GetShaders( Vector< Shader* >&shaders )
 {
+  AssertRenderThread();
   for( auto shader : mShaders )
     shaders.push_back( shader );
 }
@@ -996,6 +1014,7 @@ void RendererDirectX11::AddSamplerState(
   const SamplerStateData& samplerStateData,
   Errors& errors )
 {
+  AssertRenderThread();
   D3D11_SAMPLER_DESC desc = {};
   desc.Filter = GetFilter( samplerStateData.filter );
   desc.AddressU = GetAddressMode( samplerStateData.u );
@@ -1022,6 +1041,7 @@ void RendererDirectX11::AddSampler(
   ShaderType shaderType,
   int samplerIndex )
 {
+  AssertRenderThread();
   auto* shaderDX11 = ( ShaderDX11* )shader;
 
   auto mySampler = new Sampler();
@@ -1035,6 +1055,7 @@ void RendererDirectX11::SetSamplerState(
   const String& samplerName,
   SamplerState* samplerState )
 {
+  AssertRenderThread();
   //Assert( mCurrentShader );
   //auto sampler = mCurrentShader->FindSampler( samplerName );
   //Assert( sampler );
@@ -1053,6 +1074,7 @@ void RendererDirectX11::AddTextureResourceCube(
   void** sixCubeDatas,
   Errors& errors )
 {
+  AssertRenderThread();
   const Image& myImage = textureData.myImage;
 
   D3D11_TEXTURE2D_DESC texDesc = {};
@@ -1123,6 +1145,7 @@ void RendererDirectX11::AddTextureResource(
   const TextureData& textureData,
   Errors& errors )
 {
+  AssertRenderThread();
   ID3D11Resource* dXObj;
   CreateTexture(
     textureData.myImage,
@@ -1176,6 +1199,7 @@ void RendererDirectX11::AddTexture(
   ShaderType shaderType,
   int samplerIndex )
 {
+  AssertRenderThread();
   TAC_ASSERT( shaderID );
   auto* shader = ( ShaderDX11* )shaderID;
 
@@ -1202,6 +1226,7 @@ void RendererDirectX11::SetTexture(
   const String& name,
   Texture* texture )
 {
+  AssertRenderThread();
   //Assert( mCurrentShader );
   //auto sampler = mCurrentShader->FindTexture( name );
   //Assert( sampler );
@@ -1221,6 +1246,7 @@ void RendererDirectX11::CopyTextureRegion(
   int y,
   Errors& errors )
 {
+  AssertRenderThread();
   int z = 0;
   D3D11_BOX srcBox = {};
   srcBox.right = src.mWidth;
@@ -1233,7 +1259,7 @@ void RendererDirectX11::CopyTextureRegion(
   textureData.binding = {};
   textureData.cpuAccess = {};
   textureData.mName = "temp copy texture";
-  textureData.mFrame = TAC_FRAME;
+  textureData.mFrame = TAC_STACK_FRAME;
   textureData.myImage = src;
   AddTextureResource( &srcTexture, textureData, errors );
   TAC_HANDLE_ERROR( errors );
@@ -1266,6 +1292,7 @@ void RendererDirectX11::CreateTexture(
   const String& debugName,
   Errors& errors )
 {
+  AssertRenderThread();
   D3D11_TEXTURE2D_DESC texDesc = {};
   texDesc.Width = myImage.mWidth;
   texDesc.Height = myImage.mHeight;
@@ -1331,6 +1358,7 @@ void RendererDirectX11::CreateShaderResourceView(
   const String& debugName,
   Errors& errors )
 {
+  AssertRenderThread();
   D3D11_RESOURCE_DIMENSION type;
   resource->GetType( &type );
 
@@ -1378,6 +1406,7 @@ void RendererDirectX11::AddDepthBuffer(
   const DepthBufferData& depthBufferData,
   Errors& errors )
 {
+  AssertRenderThread();
   DepthBufferDX11* depthBufferDX11;
   AddRendererResource( &depthBufferDX11, depthBufferData );
   depthBufferDX11->Init( errors );
@@ -1389,6 +1418,7 @@ void RendererDirectX11::AddConstantBuffer(
   const CBufferData& cBufferData,
   Errors& errors )
 {
+  AssertRenderThread();
   ID3D11Buffer* cbufferhandle;
   D3D11_BUFFER_DESC bd = {};
   bd.ByteWidth = RoundUpToNearestMultiple( cBufferData.byteCount, 16 );
@@ -1406,6 +1436,7 @@ void RendererDirectX11::AddBlendState(
   const BlendStateData& blendStateData,
   Errors& errors )
 {
+  AssertRenderThread();
   D3D11_RENDER_TARGET_BLEND_DESC d3d11rtbd = {};
   d3d11rtbd.BlendEnable = true;
   d3d11rtbd.SrcBlend = GetBlend( blendStateData.srcRGB );
@@ -1432,6 +1463,7 @@ void RendererDirectX11::AddRasterizerState(
   const RasterizerStateData& rasterizerStateData,
   Errors& errors )
 {
+  AssertRenderThread();
   D3D11_RASTERIZER_DESC desc = {};
   desc.FillMode = GetFillMode( rasterizerStateData.fillMode );
   desc.CullMode = GetCullMode( rasterizerStateData.cullMode );
@@ -1453,6 +1485,7 @@ void RendererDirectX11::AddDepthState(
   const DepthStateData& depthStateData,
   Errors& errors )
 {
+  AssertRenderThread();
   D3D11_DEPTH_STENCIL_DESC desc = {};
   desc.DepthFunc = GetDepthFunc( depthStateData.depthFunc );
   desc.DepthEnable = depthStateData.depthTest;
@@ -1474,6 +1507,7 @@ void RendererDirectX11::AddVertexFormat(
   const VertexFormatData& vertexFormatDataa,
   Errors& errors )
 {
+  AssertRenderThread();
   Vector< D3D11_INPUT_ELEMENT_DESC > inputElementDescs;
   for( VertexDeclaration curFormat : vertexFormatDataa.vertexFormatDatas )
   {
@@ -1512,6 +1546,7 @@ void RendererDirectX11::AddVertexFormat(
 
 void RendererDirectX11::DebugBegin( const String& section )
 {
+  AssertRenderThread();
   if( !IsDebugMode() )
     return;
   std::wstring s( section.data(), section.c_str() + section.size() );
@@ -1520,6 +1555,7 @@ void RendererDirectX11::DebugBegin( const String& section )
 
 void RendererDirectX11::DebugMark( const String& remark )
 {
+  AssertRenderThread();
   if( !IsDebugMode() )
     return;
   std::wstring s( remark.c_str(), remark.c_str() + remark.size() );
@@ -1528,6 +1564,7 @@ void RendererDirectX11::DebugMark( const String& remark )
 
 void RendererDirectX11::DebugEnd()
 {
+  AssertRenderThread();
   if( !IsDebugMode() )
     return;
   mUserAnnotationDEBUG->EndEvent();
@@ -1536,6 +1573,7 @@ void RendererDirectX11::DebugEnd()
 // TODO: remove this function?
 void RendererDirectX11::DrawNonIndexed( int vertCount )
 {
+  AssertRenderThread();
   TAC_INVALID_CODE_PATH;
   mDeviceContext->Draw( vertCount, 0 );
 }
@@ -1546,6 +1584,7 @@ void RendererDirectX11::DrawIndexed(
   int idxOffset,
   int vtxOffset )
 {
+  AssertRenderThread();
   TAC_INVALID_CODE_PATH;
   mDeviceContext->DrawIndexed( elementCount, idxOffset, vtxOffset );
 }
@@ -1553,6 +1592,7 @@ void RendererDirectX11::DrawIndexed(
 
 void RendererDirectX11::Apply()
 {
+  AssertRenderThread();
   //Assert( mCurrentShader );
 
   if( !mCurrentSamplersDirty.empty() )
@@ -1619,6 +1659,7 @@ void RendererDirectX11::Apply()
 
 void RendererDirectX11::SetPrimitiveTopology( Primitive primitive )
 {
+  AssertRenderThread();
   const D3D_PRIMITIVE_TOPOLOGY dxPrimitiveTopology = [ primitive ]()
   {
     switch( primitive )
@@ -1653,6 +1694,7 @@ void RendererDirectX11::SetPrimitiveTopology( Primitive primitive )
 // TODO: wtf, hr is reassigned before being used
 String RendererDirectX11::AppendInfoQueueMessage( HRESULT hr )
 {
+  AssertRenderThread();
   if( !IsDebugMode() )
     return "";
   // GetMessage() is called...
@@ -1694,6 +1736,7 @@ void RendererDirectX11::SetDebugName(
   ID3D11DeviceChild* directXObject,
   const String& name )
 {
+  AssertRenderThread();
   TAC_ASSERT( name.size() );
   if( !IsDebugMode() )
     return;
@@ -1736,6 +1779,7 @@ void RendererDirectX11::SetDebugName(
 // Make this static?
 Sampler* ShaderDX11::Find( Vector< Sampler* >& samplers, const String& name )
 {
+  AssertRenderThread();
   for( auto sampler : samplers )
   {
     if( sampler->mName == name )
@@ -1746,11 +1790,13 @@ Sampler* ShaderDX11::Find( Vector< Sampler* >& samplers, const String& name )
 
 void ShaderDX11LoadData::Release()
 {
+  AssertRenderThread();
   TAC_RELEASE_IUNKNOWN( mVertexShader );
   TAC_RELEASE_IUNKNOWN( mPixelShader );
 }
 ShaderDX11::~ShaderDX11()
 {
+  AssertRenderThread();
   mLoadData.Release();
   if( RendererDirectX11::Instance->mCurrentlyBoundShader == this )
     RendererDirectX11::Instance->mCurrentlyBoundShader = nullptr;
@@ -1758,17 +1804,20 @@ ShaderDX11::~ShaderDX11()
 
 Sampler* ShaderDX11::FindTexture( const String& name )
 {
+  AssertRenderThread();
   return Find( mTextures, name );
 }
 
 Sampler* ShaderDX11::FindSampler( const String& name )
 {
+  AssertRenderThread();
   return Find( mSamplers, name );
 }
 
 bool debugTextureLifespan = false;
 TextureDX11::TextureDX11()
 {
+  AssertRenderThread();
   if( debugTextureLifespan )
   {
     std::cout
@@ -1779,6 +1828,7 @@ TextureDX11::TextureDX11()
 
 TextureDX11::~TextureDX11()
 {
+  AssertRenderThread();
   if( debugTextureLifespan )
   {
     std::cout
@@ -1791,6 +1841,7 @@ TextureDX11::~TextureDX11()
 
 void TextureDX11::Clear()
 {
+  AssertRenderThread();
   TAC_RELEASE_IUNKNOWN( mDXObj );
   TAC_RELEASE_IUNKNOWN( mSrv );
   TAC_RELEASE_IUNKNOWN( mRTV );
@@ -1805,6 +1856,7 @@ void* TextureDX11::GetImguiTextureID()
 
 static void Overwrite( ID3D11Resource* resource, void* data, int byteCount, Errors& errors )
 {
+  AssertRenderThread();
   ID3D11DeviceContext* deviceContext = RendererDirectX11::Instance->mDeviceContext;
   D3D11_MAP d3d11mapType = GetD3D11_MAP( Map::WriteDiscard );
   D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -1823,6 +1875,7 @@ VertexBufferDX11::~VertexBufferDX11()
 
 void VertexBufferDX11::Overwrite( void* data, int byteCount, Errors& errors )
 {
+  AssertRenderThread();
   Tac::Overwrite( mDXObj, data, byteCount, errors );
 }
 
@@ -1835,6 +1888,7 @@ IndexBufferDX11::~IndexBufferDX11()
 
 void IndexBufferDX11::Overwrite( void* data, int byteCount, Errors& errors )
 {
+  AssertRenderThread();
   Tac::Overwrite(  mDXObj, data, byteCount, errors );
 }
 
@@ -1879,6 +1933,7 @@ DepthBufferDX11::~DepthBufferDX11()
 
 void DepthBufferDX11::Init( Errors& errors )
 {
+  AssertRenderThread();
   D3D11_TEXTURE2D_DESC texture2dDesc = {};
   texture2dDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
   texture2dDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
@@ -1949,10 +2004,5 @@ VertexFormatDX11::~VertexFormatDX11()
     RendererDirectX11::Instance->mCurrentlyBoundVertexFormat = nullptr;
 }
 
-
-void RendererDirectX11::RenderThreadFunction()
-{
-
-}
 
 }

@@ -173,6 +173,7 @@ void ImGuiBegin( const String& name, v2 size )
   {
     window = new ImGuiWindow;
     window->mName = name;
+    window->mDrawData = new UI2DDrawData;
     ImGuiGlobals::Instance.mAllWindows.push_back( window );
   }
   if( ImGuiGlobals::Instance.mNextWindowPos != v2( 0, 0 ) )
@@ -184,17 +185,17 @@ void ImGuiBegin( const String& name, v2 size )
   window->mSize = {
     size.x > 0 ? size.x : size.x + image.mWidth,
     size.y > 0 ? size.y : size.y + image.mHeight };
-  TAC_ASSERT( ImGuiGlobals::Instance.mWindowSK.empty() );
-  ImGuiGlobals::Instance.mWindowSK = { window };
+  TAC_ASSERT( ImGuiGlobals::Instance.mWindowStack.empty() );
+  ImGuiGlobals::Instance.mWindowStack = { window };
   ImGuiGlobals::Instance.mCurrentWindow = window;
   window->BeginFrame();
 }
 void ImGuiEnd()
 {
-  ImGuiGlobals::Instance.mWindowSK.pop_back();
+  ImGuiGlobals::Instance.mWindowStack.pop_back();
   ImGuiGlobals::Instance.mCurrentWindow =
-    ImGuiGlobals::Instance.mWindowSK.empty() ? nullptr :
-    ImGuiGlobals::Instance.mWindowSK.back();
+    ImGuiGlobals::Instance.mWindowStack.empty() ? nullptr :
+    ImGuiGlobals::Instance.mWindowStack.back();
 }
 
 void ImGuiSetGlobals(
@@ -218,12 +219,13 @@ void ImGuiBeginChild( const String& name, v2 size )
     child = new ImGuiWindow;
     child->mName = name;
     child->mParent = parent;
+    child->mDrawData = parent->mDrawData;
     ImGuiGlobals::Instance.mAllWindows.push_back( child );
   }
   child->mSize = {
     size.x > 0 ? size.x : size.x + parent->mSize.x,
     size.y > 0 ? size.y : size.y + parent->mSize.y };
-  ImGuiGlobals::Instance.mWindowSK.push_back( child );
+  ImGuiGlobals::Instance.mWindowStack.push_back( child );
   ImGuiGlobals::Instance.mCurrentWindow = child;
   child->BeginFrame();
 }
@@ -231,8 +233,8 @@ void ImGuiEndChild()
 {
   ImGuiWindow* child = ImGuiGlobals::Instance.mCurrentWindow;
   child->mParent->ItemSize( child->mSize );
-  ImGuiGlobals::Instance.mWindowSK.pop_back();
-  ImGuiGlobals::Instance.mCurrentWindow = ImGuiGlobals::Instance.mWindowSK.back();
+  ImGuiGlobals::Instance.mWindowStack.pop_back();
+  ImGuiGlobals::Instance.mCurrentWindow = ImGuiGlobals::Instance.mWindowStack.back();
 }
 void ImGuiBeginGroup()
 {

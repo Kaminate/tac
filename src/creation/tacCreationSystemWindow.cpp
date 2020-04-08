@@ -21,16 +21,16 @@ CreationSystemWindow::~CreationSystemWindow()
 }
 void CreationSystemWindow::Init( Errors& errors )
 {
-  Shell* shell = Shell::Instance;
+  ;
   mUI2DDrawData = new UI2DDrawData;
   mUI2DDrawData->mRenderView = mDesktopWindow->mRenderView;
 
-  Settings* settings = shell->mSettings;
+  Settings* settings = Shell::Instance->mSettings;
   mSystemIndex = ( int )settings->GetNumber( nullptr, iSysPath, -1, errors );
 };
 void CreationSystemWindow::ImGui()
 {
-  Shell* shell = Shell::Instance;
+  ;
   SystemRegistry* systemRegistry = SystemRegistry::Instance();
 
   SetCreationWindowImGuiGlobals( mDesktopWindow, mUI2DDrawData );
@@ -46,7 +46,7 @@ void CreationSystemWindow::ImGui()
       {
         mSystemIndex = i;
         Errors e;
-        shell->mSettings->SetNumber( nullptr, iSysPath, mSystemIndex, e);
+        Shell::Instance->mSettings->SetNumber( nullptr, iSysPath, mSystemIndex, e);
       }
       if( mSystemIndex == i )
       {
@@ -76,7 +76,7 @@ void CreationSystemWindow::ImGui()
 }
 void CreationSystemWindow::Update( Errors& errors )
 {
-  Shell* shell = Shell::Instance;
+  ;
   mDesktopWindow->SetRenderViewDefaults();
   ImGui();
   mUI2DDrawData->DrawToTexture( errors );

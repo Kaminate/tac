@@ -17,7 +17,7 @@ void OS::CreateFolderIfNotExist( const String& path, Errors& errors )
   TAC_HANDLE_ERROR( errors );
 }
 
-void OS::DebugAssert( const String& msg, const Frame& frame )
+void OS::DebugAssert( const String& msg, const StackFrame& frame )
 {
   String s = msg + "\n" + frame.ToString();
   if( !IsDebugMode() )

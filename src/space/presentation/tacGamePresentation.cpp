@@ -150,7 +150,7 @@ namespace Tac
         vertexBufferData.mOptionalData = vertexes.data();
         vertexBufferData.mStrideBytesBetweenVertexes = sizeof( TerrainVertex );
         vertexBufferData.mName = terrain->mHeightmapTexturePath + "terrain vtx buffer";
-        vertexBufferData.mFrame = TAC_FRAME;
+        vertexBufferData.mFrame = TAC_STACK_FRAME;
         Renderer::Instance->AddVertexBuffer( &terrain->mVertexBuffer, vertexBufferData, rendererResourceErrors );
         if( rendererResourceErrors )
           continue;
@@ -163,7 +163,7 @@ namespace Tac
         indexBufferData.mFormat.mPerElementDataType = GraphicsType::uint;
         indexBufferData.mIndexCount = indexes.size();
         indexBufferData.mName = terrain->mHeightmapTexturePath + "terrain idx buffer";
-        indexBufferData.mFrame = TAC_FRAME;
+        indexBufferData.mFrame = TAC_STACK_FRAME;
         Renderer::Instance->AddIndexBuffer( &terrain->mIndexBuffer, indexBufferData, rendererResourceErrors );
         if( rendererResourceErrors )
           continue;
@@ -193,7 +193,7 @@ namespace Tac
       drawCall.mRenderView = mDesktopWindow->mRenderView;
       drawCall.mSamplerState = mSamplerState;
       drawCall.mShader = mTerrainShader;
-      drawCall.mFrame = TAC_FRAME;
+      drawCall.mFrame = TAC_STACK_FRAME;
       drawCall.mStartIndex = 0;
       drawCall.mTextures = { terrainTexture, noiseTexture };
       drawCall.mUniformDst = mPerObj;
@@ -218,7 +218,7 @@ namespace Tac
   void GamePresentation::CreateTerrainShader( Errors& errors )
   {
     ShaderData shaderData;
-    shaderData.mFrame = TAC_FRAME;
+    shaderData.mFrame = TAC_STACK_FRAME;
     shaderData.mName = "game window terrain shader";
     shaderData.mShaderPath = "Terrain";
     shaderData.mCBuffers = { mPerFrame, mPerObj };
@@ -227,7 +227,7 @@ namespace Tac
   void GamePresentation::Create3DShader( Errors& errors )
   {
     ShaderData shaderData;
-    shaderData.mFrame = TAC_FRAME;
+    shaderData.mFrame = TAC_STACK_FRAME;
     shaderData.mName = "game window 3d shader";
     shaderData.mShaderPath = "3DTest";
     shaderData.mCBuffers = { mPerFrame, mPerObj };
@@ -244,7 +244,7 @@ namespace Tac
     VertexFormatData vertexFormatData = {};
     vertexFormatData.shader = m3DShader;
     vertexFormatData.vertexFormatDatas = { posDecl };
-    vertexFormatData.mFrame = TAC_FRAME;
+    vertexFormatData.mFrame = TAC_STACK_FRAME;
     vertexFormatData.mName = "game window renderer"; // cpresentation?
     Renderer::Instance->AddVertexFormat( &m3DVertexFormat, vertexFormatData, errors );
   }
@@ -271,7 +271,7 @@ namespace Tac
       terrainPosDecl,
       terrainTexCoordDecl
     };
-    vertexFormatData.mFrame = TAC_FRAME;
+    vertexFormatData.mFrame = TAC_STACK_FRAME;
     vertexFormatData.mName = "terrain vertex format";
     Renderer::Instance->AddVertexFormat( &mTerrainVertexFormat, vertexFormatData, errors );
   }
@@ -279,7 +279,7 @@ namespace Tac
   {
     CBufferData cBufferDataPerFrame = {};
     cBufferDataPerFrame.mName = "tac 3d per frame";
-    cBufferDataPerFrame.mFrame = TAC_FRAME;
+    cBufferDataPerFrame.mFrame = TAC_STACK_FRAME;
     cBufferDataPerFrame.shaderRegister = 0;
     cBufferDataPerFrame.byteCount = sizeof( DefaultCBufferPerFrame );
     Renderer::Instance->AddConstantBuffer( &mPerFrame, cBufferDataPerFrame, errors );
@@ -288,7 +288,7 @@ namespace Tac
   {
     CBufferData cBufferDataPerObj = {};
     cBufferDataPerObj.mName = "tac 3d per obj";
-    cBufferDataPerObj.mFrame = TAC_FRAME;
+    cBufferDataPerObj.mFrame = TAC_STACK_FRAME;
     cBufferDataPerObj.shaderRegister = 1;
     cBufferDataPerObj.byteCount = sizeof( DefaultCBufferPerObject );
     Renderer::Instance->AddConstantBuffer( &mPerObj, cBufferDataPerObj, errors );
@@ -300,7 +300,7 @@ namespace Tac
     depthStateData.depthWrite = true;
     depthStateData.depthFunc = DepthFunc::Less;
     depthStateData.mName = "tac 3d depth state";
-    depthStateData.mFrame = TAC_FRAME;
+    depthStateData.mFrame = TAC_STACK_FRAME;
     Renderer::Instance->AddDepthState( &mDepthState, depthStateData, errors );
   }
   void GamePresentation::CreateBlendState( Errors& errors )
@@ -313,7 +313,7 @@ namespace Tac
     blendStateData.dstA = BlendConstants::One;
     blendStateData.blendA = BlendMode::Add;
     blendStateData.mName = "tac 3d opaque blend";
-    blendStateData.mFrame = TAC_FRAME;
+    blendStateData.mFrame = TAC_STACK_FRAME;
     Renderer::Instance->AddBlendState( &mBlendState, blendStateData, errors );
   }
   void GamePresentation::CreateRasterizerState( Errors& errors )
@@ -323,7 +323,7 @@ namespace Tac
     rasterizerStateData.fillMode = FillMode::Solid;
     rasterizerStateData.frontCounterClockwise = true;
     rasterizerStateData.mName = "tac 3d rast state";
-    rasterizerStateData.mFrame = TAC_FRAME;
+    rasterizerStateData.mFrame = TAC_STACK_FRAME;
     rasterizerStateData.multisample = false;
     rasterizerStateData.scissor = true;
     Renderer::Instance->AddRasterizerState( &mRasterizerState, rasterizerStateData, errors );
@@ -332,7 +332,7 @@ namespace Tac
   {
     SamplerStateData samplerStateData;
     samplerStateData.mName = "tac 3d tex sampler";
-    samplerStateData.mFrame = TAC_FRAME;
+    samplerStateData.mFrame = TAC_STACK_FRAME;
     samplerStateData.filter = Filter::Aniso;
     Renderer::Instance->AddSamplerState( &mSamplerState, samplerStateData, errors );
   }
@@ -388,7 +388,7 @@ namespace Tac
       drawCall.mVertexFormat = mesh->mVertexFormat;
       drawCall.mUniformDst = mPerObj;
       drawCall.mUniformSrcc = TemporaryMemoryFromT( cbuf );
-      drawCall.mFrame = TAC_FRAME;
+      drawCall.mFrame = TAC_STACK_FRAME;
       Renderer::Instance->AddDrawCall( drawCall );
     }
   }

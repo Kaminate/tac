@@ -15,7 +15,7 @@ String Errors::ToString() const
 {
   String result;
   result += mMessage + "\n";
-  for(const Frame& frame : mFrames)
+  for(const StackFrame& frame : mFrames)
     result += frame.ToString() + "\n";
   return result;
 }
@@ -45,7 +45,7 @@ void Errors::clear()
 //{
 //  Assert( size() );
 //}
-void Errors::Append( const Frame& frame )
+void Errors::Append( const StackFrame& frame )
 {
   TAC_ASSERT( size() );
   mFrames.push_back( frame );

@@ -25,8 +25,7 @@ CreationGameObjectMenuWindow::~CreationGameObjectMenuWindow()
 }
 void CreationGameObjectMenuWindow::Init( Errors& errors )
 {
-  Shell* shell = Shell::Instance;
-  mCreationSeconds = shell->mElapsedSeconds;
+  mCreationSeconds = Shell::Instance->mElapsedSeconds;
   WindowParams windowParams;
   windowParams.mName = "game object menu";
   windowParams.mWidth = 300;

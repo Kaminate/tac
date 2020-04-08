@@ -20,17 +20,17 @@ namespace Tac
     //void Push( String message, Frame frame );
     //void Push( Frame frame );
 
-    void Append( const Frame& frame );
+    void Append( const StackFrame& frame );
     void Append( const StringView& message );
 
     String mMessage;
-    Vector< Frame > mFrames;
+    Vector< StackFrame > mFrames;
   };
 
 #define TAC_HANDLE_ERROR( errors )\
 if( errors )\
 {\
-  errors.Append( TAC_FRAME );\
+  errors.Append( TAC_STACK_FRAME );\
   return;\
 }
 

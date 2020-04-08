@@ -14,165 +14,168 @@
 #include "src/space/tacWorld.h"
 #include "src/space/tacEntity.h"
 #include "src/shell/tacDesktopApp.h"
+#include "src/shell/tacDesktopWindowManager.h"
 
 namespace Tac
 {
-CreationMainWindow::~CreationMainWindow()
-{
-  delete mUI2DDrawData;
-  delete mUIRoot;
-}
-void CreationMainWindow::Init( Errors& errors )
-{
-  mUI2DDrawData = new UI2DDrawData;
-  mUI2DDrawData->mRenderView = mDesktopWindow->mRenderView;
-  mUIRoot = new UIRoot;
-  mUIRoot->mUI2DDrawData = mUI2DDrawData;
-  mUIRoot->mDesktopWindow = mDesktopWindow;
-}
-void CreationMainWindow::LoadTextures( Errors& errors )
-{
-  if( mAreTexturesLoaded )
-    return;
-  struct TextureAndPath
+  CreationMainWindow::CreationMainWindow() {};
+  CreationMainWindow::~CreationMainWindow()
   {
-    Texture** texture;
-    const char* path;
-  };
-  Vector< TextureAndPath > textureAndPaths = {
-    { &mIconWindow, "assets/grave.png" },
-  { &mIconClose, "assets/icons/close.png" },
-  { &mIconMinimize, "assets/icons/minimize.png" },
-  { &mIconMaximize, "assets/icons/maximize.png" },
-  };
-  int loadedTextureCount = 0;
-  for( TextureAndPath textureAndPath : textureAndPaths )
-  {
-    TextureAssetManager::Instance->GetTexture( textureAndPath.texture, textureAndPath.path, errors );
-    TAC_HANDLE_ERROR( errors );
-    if( *textureAndPath.texture )
-      loadedTextureCount++;
+    delete mUI2DDrawData;
+    //delete mUIRoot;
   }
-  if( loadedTextureCount == textureAndPaths.size() )
-    mAreTexturesLoaded = true;
-
-}
-
-void CreationMainWindow::ImGuiWindows()
-{
-  ImGuiText( "Windows" );
-  ImGuiIndent();
-
-  // static because hackery ( the errors get saved in a lambda,
-  // which then turns into garbage when it goes out of scope... )
-  static Errors createWindowErrors;
-  if( ImGuiButton( "System" ) )
-    mCreation->CreateSystemWindow( createWindowErrors );
-  if( ImGuiButton( "Game" ) )
-    mCreation->CreateGameWindow( createWindowErrors );
-  if( ImGuiButton( "Properties" ) )
-    mCreation->CreatePropertyWindow( createWindowErrors );
-  if( ImGuiButton( "Profile" ) )
-    mCreation->CreateProfileWindow( createWindowErrors );
-  if( createWindowErrors )
-    ImGuiText( createWindowErrors.ToString() );
-  ImGuiUnindent();
-}
-void CreationMainWindow::ImGui()
-{
-  SetCreationWindowImGuiGlobals( mDesktopWindow, mUI2DDrawData );
-  ImGuiBegin( "Main Window", {} );
-  ImGuiBeginMenuBar();
-  ImGuiText( "file | edit | window" );
-  ImGuiEndMenuBar();
-  if( ImGuiButton( "save as" ) )
+  void CreationMainWindow::Init( Errors& errors )
   {
-    World* world = mCreation->mWorld;
-
-
-    Shell* shell = Shell::Instance;
-    OS* os = OS::Instance;
-
-    for( Entity* entity : world->mEntities )
+    mUI2DDrawData = new UI2DDrawData;
+    //mUI2DDrawData->mRenderView = mDesktopWindow->mRenderView;
+    //mUIRoot = new UIRoot;
+    //mUIRoot->mUI2DDrawData = mUI2DDrawData;
+    //mUIRoot->mDesktopWindow = mDesktopWindow;
+  }
+  void CreationMainWindow::LoadTextures( Errors& errors )
+  {
+    if( mAreTexturesLoaded )
+      return;
+    struct TextureAndPath
     {
-      if( entity->mParent )
-        continue;
+      Texture** texture;
+      const char* path;
+    };
+    Vector< TextureAndPath > textureAndPaths = {
+      { &mIconWindow, "assets/grave.png" },
+    { &mIconClose, "assets/icons/close.png" },
+    { &mIconMinimize, "assets/icons/minimize.png" },
+    { &mIconMaximize, "assets/icons/maximize.png" },
+    };
+    int loadedTextureCount = 0;
+    for( TextureAndPath textureAndPath : textureAndPaths )
+    {
+      TextureAssetManager::Instance->GetTexture( textureAndPath.texture, textureAndPath.path, errors );
+      TAC_HANDLE_ERROR( errors );
+      if( *textureAndPath.texture )
+        loadedTextureCount++;
+    }
+    if( loadedTextureCount == textureAndPaths.size() )
+      mAreTexturesLoaded = true;
 
-      String savePath;
-      String suggestedName =
-        entity->mName +
-        ".prefab";
-      Errors saveDialogErrors;
-      os->SaveDialog( savePath, suggestedName, saveDialogErrors );
-      if( saveDialogErrors )
+  }
+
+  void CreationMainWindow::ImGuiWindows()
+  {
+    ImGuiText( "Windows" );
+    ImGuiIndent();
+
+    // static because hackery ( the errors get saved in a lambda,
+    // which then turns into garbage when it goes out of scope... )
+    static Errors createWindowErrors;
+    if( ImGuiButton( "System" ) )
+      mCreation->CreateSystemWindow( createWindowErrors );
+    if( ImGuiButton( "Game" ) )
+      mCreation->CreateGameWindow( createWindowErrors );
+    if( ImGuiButton( "Properties" ) )
+      mCreation->CreatePropertyWindow( createWindowErrors );
+    if( ImGuiButton( "Profile" ) )
+      mCreation->CreateProfileWindow( createWindowErrors );
+    if( createWindowErrors )
+      ImGuiText( createWindowErrors.ToString() );
+    ImGuiUnindent();
+  }
+  void CreationMainWindow::ImGui()
+  {
+    SetCreationWindowImGuiGlobals( mDesktopWindow, mUI2DDrawData );
+    ImGuiBegin( "Main Window", {} );
+    ImGuiBeginMenuBar();
+    ImGuiText( "file | edit | window" );
+    ImGuiEndMenuBar();
+    if( ImGuiButton( "save as" ) )
+    {
+      World* world = mCreation->mWorld;
+
+
+      ;
+
+      for( Entity* entity : world->mEntities )
       {
-        // todo: log it, user feedback
-        std::cout << saveDialogErrors.ToString() << std::endl;
-        continue;
+        if( entity->mParent )
+          continue;
+
+        String savePath;
+        String suggestedName =
+          entity->mName +
+          ".prefab";
+        Errors saveDialogErrors;
+        OS::Instance->SaveDialog( savePath, suggestedName, saveDialogErrors );
+        if( saveDialogErrors )
+        {
+          // todo: log it, user feedback
+          std::cout << saveDialogErrors.ToString() << std::endl;
+          continue;
+        }
+
+        mCreation->ModifyPathRelative( savePath );
+
+        Json entityJson;
+        entity->Save( entityJson );
+
+        String prefabJsonString = entityJson.Stringify();
+        Errors saveToFileErrors;
+        void* bytes = prefabJsonString.data();
+        int byteCount = prefabJsonString.size();
+        OS::Instance->SaveToFile( savePath, bytes, byteCount, saveToFileErrors );
+        if( saveToFileErrors )
+        {
+          // todo: log it, user feedback
+          std::cout << saveToFileErrors.ToString() << std::endl;
+          continue;
+        }
       }
+    }
 
-      mCreation->ModifyPathRelative( savePath );
+    ImGuiWindows();
 
-      Json entityJson;
-      entity->Save( entityJson );
+    // to force directx graphics specific window debugging
+    if( ImGuiButton( "close window" ) )
+    {
+      mDesktopWindow->mRequestDeletion = true;
+    }
 
-      String prefabJsonString = entityJson.Stringify();
-      Errors saveToFileErrors;
-      void* bytes = prefabJsonString.data();
-      int byteCount = prefabJsonString.size();
-      os->SaveToFile( savePath, bytes, byteCount, saveToFileErrors );
-      if( saveToFileErrors )
+    ImGuiEnd();
+  }
+  void CreationMainWindow::Update( Errors& errors )
+  {
+
+
+    ;
+    mDesktopWindow->SetRenderViewDefaults();
+
+    LoadTextures( errors );
+    TAC_HANDLE_ERROR( errors );
+
+    ImGui();
+
+    mUI2DDrawData->DrawToTexture( errors );
+    TAC_HANDLE_ERROR( errors );
+
+    if( mButtonCallbackErrors )
+    {
+      errors = mButtonCallbackErrors;
+      TAC_HANDLE_ERROR( errors );
+    }
+
+    if( mGameObjectMenuWindow )
+    {
+      mGameObjectMenuWindow->Update( errors );
+      TAC_HANDLE_ERROR( errors );
+
+      if( KeyboardInput::Instance->IsKeyJustDown( Key::MouseLeft ) &&
+        !mGameObjectMenuWindow->mDesktopWindow->mCursorUnobscured &&
+        Shell::Instance->mElapsedSeconds != mGameObjectMenuWindow->mCreationSeconds )
       {
-        // todo: log it, user feedback
-        std::cout << saveToFileErrors.ToString() << std::endl;
-        continue;
+        delete mGameObjectMenuWindow;
+        mGameObjectMenuWindow = nullptr;
       }
     }
   }
-
-  ImGuiWindows();
-
-  // to force directx graphics specific window debugging
-  if( ImGuiButton( "close window" ) )
-  {
-    mDesktopWindow->mRequestDeletion = true;
-  }
-
-  ImGuiEnd();
-}
-void CreationMainWindow::Update( Errors& errors )
-{
-  Shell* shell = Shell::Instance;
-  mDesktopWindow->SetRenderViewDefaults();
-
-  LoadTextures( errors );
-  TAC_HANDLE_ERROR( errors );
-
-  ImGui();
-
-  mUI2DDrawData->DrawToTexture( errors );
-  TAC_HANDLE_ERROR( errors );
-
-  if( mButtonCallbackErrors )
-  {
-    errors = mButtonCallbackErrors;
-    TAC_HANDLE_ERROR( errors );
-  }
-
-  if( mGameObjectMenuWindow )
-  {
-    mGameObjectMenuWindow->Update( errors );
-    TAC_HANDLE_ERROR( errors );
-
-    if( KeyboardInput::Instance->IsKeyJustDown( Key::MouseLeft ) &&
-      !mGameObjectMenuWindow->mDesktopWindow->mCursorUnobscured &&
-      shell->mElapsedSeconds != mGameObjectMenuWindow->mCreationSeconds )
-    {
-      delete mGameObjectMenuWindow;
-      mGameObjectMenuWindow = nullptr;
-    }
-  }
-}
 
 
 }

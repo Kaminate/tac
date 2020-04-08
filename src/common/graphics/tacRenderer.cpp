@@ -66,7 +66,7 @@ namespace Tac
         rendererResource->mName +
         " created at " +
         rendererResource->mFrame.ToString();
-      OS::Instance->DebugAssert( errorMessage, TAC_FRAME );
+      OS::Instance->DebugAssert( errorMessage, TAC_STACK_FRAME );
     }
   }
 
@@ -159,7 +159,7 @@ namespace Tac
     for( RendererFactory* factory : mFactories )
       if( factory->mRendererName == name )
         return factory;
-      return nullptr;
+    return nullptr;
   }
 
   void Renderer::RemoveRendererResource( RendererResource* rendererResource )
@@ -181,45 +181,58 @@ namespace Tac
   }
 
 
-
-  ResourceManager* ResourceManager::Instance = nullptr;
-  ResourceManager::ResourceManager()
+  namespace Render
   {
-    Instance = this;
-  }
 
-  ResourceId IdCollection::Alloc( StringView name, Frame frame )
-  {
-    if( mFree.empty() )
+    ResourceManager* ResourceManager::Instance = nullptr;
+    ResourceManager::ResourceManager()
     {
-      mNames.push_back( name );
-      mFrames.push_back( frame );
-      return mAllocCounter++;
-    }
-    const ResourceId result = mFree.back();
-    mNames[ result ] = name;
-    mFrames[ result ] = frame;
-    mFree.pop_back();
-    return result;
-  }
-
-  void IdCollection::Free( ResourceId id, Errors& errors )
-  {
-    if( ( unsigned )id >= (unsigned)mAllocCounter )
-    {
-      errors = "range error";
-      TAC_HANDLE_ERROR( errors );
+      Instance = this;
     }
 
-    if( Contains( mFree, id ) )
+    ResourceId IdCollection::Alloc( StringView name, Tac::StackFrame frame )
     {
-      errors = "double free";
-      TAC_HANDLE_ERROR( errors );
+      if( mFree.empty() )
+      {
+        mNames.push_back( name );
+        mFrames.push_back( frame );
+        return mAllocCounter++;
+      }
+      const ResourceId result = mFree.back();
+      mNames[ result ] = name;
+      mFrames[ result ] = frame;
+      mFree.pop_back();
+      return result;
     }
 
-    mFree.push_back( id );
-  }
+    void IdCollection::Free( ResourceId id, Errors& errors )
+    {
+      if( ( unsigned )id >= ( unsigned )mAllocCounter )
+      {
+        errors = "range error";
+        TAC_HANDLE_ERROR( errors );
+      }
 
+      if( Contains( mFree, id ) )
+      {
+        errors = "double free";
+        TAC_HANDLE_ERROR( errors );
+      }
+
+      mFree.push_back( id );
+    }
+
+    void CommandBuffer::Push( const void* bytes, int byteCount )
+    {
+      const int bufferSize = mBuffer.size();
+      mBuffer.resize( mBuffer.size() + byteCount );
+      MemCpy( mBuffer.data() + bufferSize, bytes, byteCount );
+    }
+
+    Frame gRenderFrame;
+    Frame gSubmitFrame;
+
+  }
 
 }
 

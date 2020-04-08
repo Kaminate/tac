@@ -24,7 +24,7 @@ namespace Tac
 
     CBufferData cBufferDataPerFrame = {};
     cBufferDataPerFrame.mName = "skybox per frame";
-    cBufferDataPerFrame.mFrame = TAC_FRAME;
+    cBufferDataPerFrame.mFrame = TAC_STACK_FRAME;
     cBufferDataPerFrame.shaderRegister = 0;
     cBufferDataPerFrame.byteCount = sizeof( DefaultCBufferPerFrame );
     Renderer::Instance->AddConstantBuffer( &mPerFrame, cBufferDataPerFrame, errors );
@@ -33,7 +33,7 @@ namespace Tac
     ShaderData shaderData = {};
     shaderData.mShaderPath = "Skybox";
     shaderData.mCBuffers = { mPerFrame };
-    shaderData.mFrame = TAC_FRAME;
+    shaderData.mFrame = TAC_STACK_FRAME;
     shaderData.mName = "skybox";
     Renderer::Instance->AddShader( &mShader, shaderData, errors );
     TAC_HANDLE_ERROR( errors );
@@ -47,7 +47,7 @@ namespace Tac
 
     VertexFormatData vertexFormatData = {};
     vertexFormatData.mName = "skybox";
-    vertexFormatData.mFrame = TAC_FRAME;
+    vertexFormatData.mFrame = TAC_STACK_FRAME;
     vertexFormatData.shader = mShader;
     vertexFormatData.vertexFormatDatas = { pos };
     Renderer::Instance->AddVertexFormat( &mVertexFormat, vertexFormatData, errors );
@@ -61,7 +61,7 @@ namespace Tac
     blendStateData.dstA = BlendConstants::One;
     blendStateData.blendA = BlendMode::Add;
     blendStateData.mName = "skybox";
-    blendStateData.mFrame = TAC_FRAME;
+    blendStateData.mFrame = TAC_STACK_FRAME;
     Renderer::Instance->AddBlendState( &mBlendState, blendStateData, errors );
     TAC_HANDLE_ERROR( errors );
 
@@ -70,7 +70,7 @@ namespace Tac
     depthStateData.depthWrite = true;
     depthStateData.depthFunc = DepthFunc::LessOrEqual;
     depthStateData.mName = "skybox";
-    depthStateData.mFrame = TAC_FRAME;
+    depthStateData.mFrame = TAC_STACK_FRAME;
     Renderer::Instance->AddDepthState( &mDepthState, depthStateData, errors );
     TAC_HANDLE_ERROR( errors );
 
@@ -79,7 +79,7 @@ namespace Tac
     rasterizerStateData.fillMode = FillMode::Solid;
     rasterizerStateData.frontCounterClockwise = true;
     rasterizerStateData.mName = "skybox";
-    rasterizerStateData.mFrame = TAC_FRAME;
+    rasterizerStateData.mFrame = TAC_STACK_FRAME;
     rasterizerStateData.multisample = false;
     rasterizerStateData.scissor = true;
     Renderer::Instance->AddRasterizerState( &mRasterizerState, rasterizerStateData, errors );
@@ -87,7 +87,7 @@ namespace Tac
 
     SamplerStateData samplerStateData;
     samplerStateData.mName = "skybox";
-    samplerStateData.mFrame = TAC_FRAME;
+    samplerStateData.mFrame = TAC_STACK_FRAME;
     samplerStateData.filter = Filter::Linear;
     Renderer::Instance->AddSamplerState( &mSamplerState, samplerStateData, errors );
     TAC_HANDLE_ERROR( errors );
@@ -146,7 +146,7 @@ namespace Tac
     drawCallGeometry.mPrimitiveTopology = PrimitiveTopology::TriangleList;
     drawCallGeometry.mRasterizerState = mRasterizerState;
     drawCallGeometry.mSamplerState = mSamplerState;
-    drawCallGeometry.mFrame = TAC_FRAME;
+    drawCallGeometry.mFrame = TAC_STACK_FRAME;
     drawCallGeometry.mStartIndex = 0;
     drawCallGeometry.mTextures = { cubemap };
     drawCallGeometry.mRenderView = mDesktopWindow->mRenderView;

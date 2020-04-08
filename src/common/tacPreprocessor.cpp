@@ -27,14 +27,14 @@ namespace Tac
 #endif
   }
 
-  Frame::Frame( int line, StringView file, StringView function )
+  StackFrame::StackFrame( int line, StringView file, StringView function )
   {
     mLine = line;
     mFile = file;
     mFunction = function;
   }
 
-  String Frame::ToString()  const
+  String StackFrame::ToString()  const
   {
     SplitFilepath splitFilepath( mFile );
     String pathString = splitFilepath.mFilename;
@@ -43,7 +43,7 @@ namespace Tac
     return result;
   }
 
-  void AssertInternal( const String& message, const Frame& frame )
+  void AssertInternal( const String& message, const StackFrame& frame )
   {
     OS::Instance->DebugAssert( message, frame );
   }

@@ -31,7 +31,7 @@ void Debug3DCommonData::Init( Errors& errors )
   rasterizerStateNoCullData.fillMode = FillMode::Solid;
   rasterizerStateNoCullData.frontCounterClockwise = true;
   rasterizerStateNoCullData.mName = "no cull";
-  rasterizerStateNoCullData.mFrame = TAC_FRAME;
+  rasterizerStateNoCullData.mFrame = TAC_STACK_FRAME;
   rasterizerStateNoCullData.multisample = false;
   rasterizerStateNoCullData.scissor = true;
   Renderer::Instance->AddRasterizerState( &mRasterizerStateNoCull, rasterizerStateNoCullData, errors );
@@ -40,7 +40,7 @@ void Debug3DCommonData::Init( Errors& errors )
 
   CBufferData cBufferPerFrameData;
   cBufferPerFrameData.mName = "cbuffer per frame";
-  cBufferPerFrameData.mFrame = TAC_FRAME;
+  cBufferPerFrameData.mFrame = TAC_STACK_FRAME;
   cBufferPerFrameData.shaderRegister = DefaultCBufferPerFrame::shaderRegister;
   cBufferPerFrameData.byteCount = sizeof( DefaultCBufferPerFrame );
   Renderer::Instance->AddConstantBuffer( &mCBufferPerFrame, cBufferPerFrameData, errors );
@@ -48,7 +48,7 @@ void Debug3DCommonData::Init( Errors& errors )
 
   ShaderData data3dVertexColorShaderData;
   data3dVertexColorShaderData.mShaderPath = "3DDebug";
-  data3dVertexColorShaderData.mFrame = TAC_FRAME;
+  data3dVertexColorShaderData.mFrame = TAC_STACK_FRAME;
   data3dVertexColorShaderData.mName = "3d color";
   data3dVertexColorShaderData.mCBuffers = { mCBufferPerFrame };
   Renderer::Instance->AddShader( &m3DVertexColorShader, data3dVertexColorShaderData, errors );
@@ -59,7 +59,7 @@ void Debug3DCommonData::Init( Errors& errors )
   depthStateData.depthTest = true;
   depthStateData.depthWrite = true;
   depthStateData.mName = "depth less";
-  depthStateData.mFrame = TAC_FRAME;
+  depthStateData.mFrame = TAC_STACK_FRAME;
   Renderer::Instance->AddDepthState( &mDepthLess, depthStateData, errors );
   TAC_HANDLE_ERROR( errors );
 
@@ -73,7 +73,7 @@ void Debug3DCommonData::Init( Errors& errors )
   colorData.mAlignedByteOffset = TAC_OFFSET_OF( DefaultVertexColor, mColor );
   VertexFormatData vertexColorFormatDataa;
   vertexColorFormatDataa.mName = "vertex color format";
-  vertexColorFormatDataa.mFrame = TAC_FRAME;
+  vertexColorFormatDataa.mFrame = TAC_STACK_FRAME;
   vertexColorFormatDataa.shader = m3DVertexColorShader;
   vertexColorFormatDataa.vertexFormatDatas = { positionData, colorData };
   Renderer::Instance->AddVertexFormat( &mVertexColorFormat, vertexColorFormatDataa, errors );
@@ -87,7 +87,7 @@ void Debug3DCommonData::Init( Errors& errors )
   alphaBlendStateData.dstA = BlendConstants::OneMinusSrcA;
   alphaBlendStateData.blendA = BlendMode::Add;
   alphaBlendStateData.mName = "alpha blend";
-  alphaBlendStateData.mFrame = TAC_FRAME;
+  alphaBlendStateData.mFrame = TAC_STACK_FRAME;
   Renderer::Instance->AddBlendState( &mAlphaBlendState, alphaBlendStateData, errors );
   TAC_HANDLE_ERROR( errors );
 }
@@ -388,7 +388,7 @@ void Debug3DDrawData::DrawToTexture(
       vertexBufferData.mName = "debug 3d verts";
       vertexBufferData.mNumVertexes = vertexCount;
       vertexBufferData.mStrideBytesBetweenVertexes = sizeof( DefaultVertexColor );
-      vertexBufferData.mFrame = TAC_FRAME;
+      vertexBufferData.mFrame = TAC_STACK_FRAME;
       Renderer::Instance->AddVertexBuffer( &mVerts, vertexBufferData, errors );
       TAC_HANDLE_ERROR( errors );
     }
@@ -407,7 +407,7 @@ void Debug3DDrawData::DrawToTexture(
     drawCall.mRasterizerState = Debug3DCommonData::Instance->mRasterizerStateNoCull;
     drawCall.mSamplerState = nullptr;
     drawCall.mShader = Debug3DCommonData::Instance->m3DVertexColorShader;
-    drawCall.mFrame = TAC_FRAME;
+    drawCall.mFrame = TAC_STACK_FRAME;
     drawCall.mStartIndex = 0;
     drawCall.mUniformDst = Debug3DCommonData::Instance->mCBufferPerFrame;
     drawCall.CopyUniformSource(*cbufferperframe);

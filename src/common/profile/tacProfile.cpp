@@ -38,7 +38,7 @@ namespace Tac
   // ProfileBlock //
   /////////////////////
 
-  ProfileBlock::ProfileBlock( Frame frame )
+  ProfileBlock::ProfileBlock( StackFrame frame )
   {
     ProfileSystem* system = ProfileSystem::Instance;
     mFunction = system->Alloc();

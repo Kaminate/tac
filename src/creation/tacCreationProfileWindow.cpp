@@ -21,11 +21,8 @@ CreationProfileWindow::~CreationProfileWindow()
 }
 void CreationProfileWindow::Init( Errors& errors )
 {
-  Shell* shell = Shell::Instance;
   mUI2DDrawData = new UI2DDrawData;
   mUI2DDrawData->mRenderView = mDesktopWindow->mRenderView;
-
-  Settings* settings = shell->mSettings;
 };
 void CreationProfileWindow::ImGuiProfile()
 {
@@ -34,8 +31,6 @@ void CreationProfileWindow::ImGuiProfile()
 }
 void CreationProfileWindow::ImGui()
 {
-  Shell* shell = Shell::Instance;
-
   SetCreationWindowImGuiGlobals( mDesktopWindow, mUI2DDrawData );
   ImGuiBegin( "Profile Window", {} );
 
@@ -55,7 +50,7 @@ void CreationProfileWindow::ImGui()
 }
 void CreationProfileWindow::Update( Errors& errors )
 {
-  Shell* shell = Shell::Instance;
+  ;
   mDesktopWindow->SetRenderViewDefaults();
   ImGui();
   mUI2DDrawData->DrawToTexture( errors );

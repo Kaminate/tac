@@ -32,6 +32,7 @@ struct DesktopApp
   void KillDeadWindows();
   virtual void GetPrimaryMonitor( Monitor* monitor, Errors& errors ) = 0;
   virtual void SpawnWindowAux( const WindowParams& windowParams, DesktopWindow** desktopWindow, Errors& errors ) {};
+  DesktopWindow* FindWindow( StringView windowName );
 
   Vector< DesktopWindow* > mMainWindows;
   Errors mErrorsMainThread;

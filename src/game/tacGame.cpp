@@ -94,7 +94,6 @@ Game* Game::Instance = nullptr;
 
 void ExecutableStartupInfo::Init( Errors& errors )
 {
-  OS* os = OS::Instance;
   String appDataPath;
   OS::Instance->GetApplicationDataPath( appDataPath, errors );
 
@@ -102,29 +101,28 @@ void ExecutableStartupInfo::Init( Errors& errors )
   String prefPath = studioPath + appName;
 
   bool appDataPathExists;
-  os->DoesFolderExist( appDataPath, appDataPathExists, errors );
+  OS::Instance->DoesFolderExist( appDataPath, appDataPathExists, errors );
   TAC_ASSERT( appDataPathExists );
 
-  os->CreateFolderIfNotExist( studioPath, errors );
+  OS::Instance->CreateFolderIfNotExist( studioPath, errors );
   TAC_HANDLE_ERROR( errors );
 
-  os->CreateFolderIfNotExist( prefPath, errors );
+  OS::Instance->CreateFolderIfNotExist( prefPath, errors );
   TAC_HANDLE_ERROR( errors );
 
   String workingDir;
-  os->GetWorkingDir( workingDir, errors );
+  OS::Instance->GetWorkingDir( workingDir, errors );
   TAC_HANDLE_ERROR( errors );
 
-  Shell* shell = Shell::Instance;
-  shell->mAppName = appName;
-  shell->mPrefPath = prefPath;
-  shell->mInitialWorkingDir = workingDir;
-  shell->Init( errors );
+  Shell::Instance->mAppName = appName;
+  Shell::Instance->mPrefPath = prefPath;
+  Shell::Instance->mInitialWorkingDir = workingDir;
+  Shell::Instance->Init( errors );
   TAC_HANDLE_ERROR( errors );
 
   // should this really be on the heap?
   auto game = new Game();
-  shell->mOnUpdate.AddCallbackFunctional( []( Errors& errors ) { Game::Instance->Update( errors ); } );
+  Shell::Instance->mOnUpdate.AddCallbackFunctional( []( Errors& errors ) { Game::Instance->Update( errors ); } );
 
   game->Init( errors );
   TAC_HANDLE_ERROR( errors );

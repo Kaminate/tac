@@ -157,11 +157,6 @@ void Shell::Frame( Errors& errors )
 }
 void Shell::FrameEnd( Errors& errors )
 {
-  if( Renderer::Instance )
-  {
-    Renderer::Instance->Render( errors );
-    TAC_HANDLE_ERROR( errors );
-  }
   KeyboardInput::Instance->EndFrame();
   ProfileSystem::Instance->OnFrameEnd();
 }

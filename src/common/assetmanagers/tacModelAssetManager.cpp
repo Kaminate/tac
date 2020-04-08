@@ -229,7 +229,7 @@ namespace Tac
         IndexBufferData indexBufferData = {};
         indexBufferData.mIndexCount = ( int )indices->count;
         indexBufferData.mAccess = Access::Default;
-        indexBufferData.mFrame = TAC_FRAME;
+        indexBufferData.mFrame = TAC_STACK_FRAME;
         indexBufferData.mName = debugName;
         indexBufferData.mData = indiciesData;
         indexBufferData.mFormat = indexFormat;
@@ -295,7 +295,7 @@ namespace Tac
         VertexBufferData vertexBufferData = {};
         vertexBufferData.mAccess = Access::Default;
         vertexBufferData.mName = debugName;
-        vertexBufferData.mFrame = TAC_FRAME;
+        vertexBufferData.mFrame = TAC_STACK_FRAME;
         vertexBufferData.mNumVertexes = vertexCount;
         vertexBufferData.mOptionalData = dstVtxs.data();
         vertexBufferData.mStrideBytesBetweenVertexes = dstVtxStride;

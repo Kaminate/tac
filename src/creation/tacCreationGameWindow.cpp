@@ -106,7 +106,7 @@ void CreationGameWindow::CreateGraphicsObjects( Errors& errors )
 {
   CBufferData cBufferDataPerFrame = {};
   cBufferDataPerFrame.mName = "tac 3d per frame";
-  cBufferDataPerFrame.mFrame = TAC_FRAME;
+  cBufferDataPerFrame.mFrame = TAC_STACK_FRAME;
   cBufferDataPerFrame.shaderRegister = 0;
   cBufferDataPerFrame.byteCount = sizeof( DefaultCBufferPerFrame );
   Renderer::Instance->AddConstantBuffer( &mPerFrame, cBufferDataPerFrame, errors );
@@ -114,7 +114,7 @@ void CreationGameWindow::CreateGraphicsObjects( Errors& errors )
 
   CBufferData cBufferDataPerObj = {};
   cBufferDataPerObj.mName = "tac 3d per obj";
-  cBufferDataPerObj.mFrame = TAC_FRAME;
+  cBufferDataPerObj.mFrame = TAC_STACK_FRAME;
   cBufferDataPerObj.shaderRegister = 1;
   cBufferDataPerObj.byteCount = sizeof( DefaultCBufferPerObject );
   Renderer::Instance->AddConstantBuffer( &mPerObj, cBufferDataPerObj, errors );
@@ -122,7 +122,7 @@ void CreationGameWindow::CreateGraphicsObjects( Errors& errors )
 
 
   ShaderData shaderData;
-  shaderData.mFrame = TAC_FRAME;
+  shaderData.mFrame = TAC_STACK_FRAME;
   shaderData.mName = "game window 3d shader";
   shaderData.mShaderPath = "3DTest";
   shaderData.mCBuffers = { mPerFrame, mPerObj };
@@ -138,7 +138,7 @@ void CreationGameWindow::CreateGraphicsObjects( Errors& errors )
   VertexFormatData vertexFormatData = {};
   vertexFormatData.shader = m3DShader;
   vertexFormatData.vertexFormatDatas = { posDecl };
-  vertexFormatData.mFrame = TAC_FRAME;
+  vertexFormatData.mFrame = TAC_STACK_FRAME;
   vertexFormatData.mName = "game window renderer"; // cpresentation?
   Renderer::Instance->AddVertexFormat( &m3DVertexFormat, vertexFormatData, errors );
   TAC_HANDLE_ERROR( errors );
@@ -151,7 +151,7 @@ void CreationGameWindow::CreateGraphicsObjects( Errors& errors )
   blendStateData.dstA = BlendConstants::One;
   blendStateData.blendA = BlendMode::Add;
   blendStateData.mName = "tac 3d opaque blend";
-  blendStateData.mFrame = TAC_FRAME;
+  blendStateData.mFrame = TAC_STACK_FRAME;
   Renderer::Instance->AddBlendState( &mBlendState, blendStateData, errors );
   TAC_HANDLE_ERROR( errors );
 
@@ -160,7 +160,7 @@ void CreationGameWindow::CreateGraphicsObjects( Errors& errors )
   depthStateData.depthWrite = true;
   depthStateData.depthFunc = DepthFunc::Less;
   depthStateData.mName = "tac 3d depth state";
-  depthStateData.mFrame = TAC_FRAME;
+  depthStateData.mFrame = TAC_STACK_FRAME;
   Renderer::Instance->AddDepthState( &mDepthState, depthStateData, errors );
   TAC_HANDLE_ERROR( errors );
 
@@ -169,7 +169,7 @@ void CreationGameWindow::CreateGraphicsObjects( Errors& errors )
   rasterizerStateData.fillMode = FillMode::Solid;
   rasterizerStateData.frontCounterClockwise = true;
   rasterizerStateData.mName = "tac 3d rast state";
-  rasterizerStateData.mFrame = TAC_FRAME;
+  rasterizerStateData.mFrame = TAC_STACK_FRAME;
   rasterizerStateData.multisample = false;
   rasterizerStateData.scissor = true;
   Renderer::Instance->AddRasterizerState( &mRasterizerState, rasterizerStateData, errors );
@@ -177,14 +177,14 @@ void CreationGameWindow::CreateGraphicsObjects( Errors& errors )
 
   SamplerStateData samplerStateData;
   samplerStateData.mName = "tac 3d tex sampler";
-  samplerStateData.mFrame = TAC_FRAME;
+  samplerStateData.mFrame = TAC_STACK_FRAME;
   samplerStateData.filter = Filter::Linear;
   Renderer::Instance->AddSamplerState( &mSamplerState, samplerStateData, errors );
   TAC_HANDLE_ERROR( errors );
 }
 void CreationGameWindow::Init( Errors& errors )
 {
-  Shell* shell = Shell::Instance;
+  ;
 
   auto uI2DDrawData = new UI2DDrawData();
   uI2DDrawData->mRenderView = mDesktopWindow->mRenderView;
@@ -440,7 +440,7 @@ void CreationGameWindow::AddDrawCall( const Mesh* mesh, const DefaultCBufferPerO
     drawCall.mVertexFormat = mesh->mVertexFormat;
     drawCall.mUniformDst = mPerObj;
     drawCall.mUniformSrcc = TemporaryMemoryFromT( cbuf );
-    drawCall.mFrame = TAC_FRAME;
+    drawCall.mFrame = TAC_STACK_FRAME;
     Renderer::Instance->AddDrawCall( drawCall );
   }
 }

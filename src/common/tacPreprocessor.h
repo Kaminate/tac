@@ -37,26 +37,26 @@ namespace Tac
 
 
 
-  struct Frame
+  struct StackFrame
   {
-    Frame() = default;
-    Frame( int line, StringView file, StringView function );
+    StackFrame() = default;
+    StackFrame( int line, StringView file, StringView function );
     int mLine = 0;
     String mFile;
     String mFunction;
     String ToString() const;
   };
 
-  #define TAC_FRAME Tac::Frame( __LINE__, __FILE__, __FUNCTION__ )
+  #define TAC_STACK_FRAME Tac::StackFrame( __LINE__, __FILE__, __FUNCTION__ )
 
 
   bool IsDebugMode();
 
-  void AssertInternal( const String& message, const Frame& frame );
+  void AssertInternal( const String& message, const StackFrame& frame );
 
   // TODO: make macros TAC_CAPS
 
-#define TAC_ASSERT_MESSAGE( formatString, ... ) AssertInternal( va( formatString, ## __VA_ARGS__ ), TAC_FRAME )
+#define TAC_ASSERT_MESSAGE( formatString, ... ) AssertInternal( va( formatString, ## __VA_ARGS__ ), TAC_STACK_FRAME )
 #define TAC_ASSERT( expression ) if( !( expression ) ){ TAC_ASSERT_MESSAGE( TAC_STRINGIFY( expression ) ); }
 #define TAC_INVALID_CODE_PATH TAC_ASSERT_MESSAGE( "Invalid code path!" );
 #define TAC_UNIMPLEMENTED TAC_ASSERT_MESSAGE( "Unimplemented!" );

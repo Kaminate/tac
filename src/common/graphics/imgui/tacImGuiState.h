@@ -121,6 +121,7 @@ struct ImGuiWindow
     Vector<char> mData;
   };
   Vector<ImGuiWindowResource> mResources;
+  UI2DDrawData* mDrawData = nullptr;
 };
 
 struct ImGuiGlobals
@@ -135,7 +136,7 @@ struct ImGuiGlobals
   bool mIsWindowDirectlyUnderCursor = false;
   double mElapsedSeconds = 0;
   Vector< ImGuiWindow* > mAllWindows;
-  Vector< ImGuiWindow* > mWindowSK;
+  Vector< ImGuiWindow* > mWindowStack;
   ImGuiWindow* mCurrentWindow = nullptr;
   UI2DDrawData* mUI2DDrawData = nullptr;
   KeyboardInput* mKeyboardInput = nullptr;

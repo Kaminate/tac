@@ -9,7 +9,7 @@ namespace Tac
 
 
 struct Errors;
-struct Frame;
+struct StackFrame;
 
 struct OS
 {
@@ -23,7 +23,7 @@ struct OS
   void CreateFolderIfNotExist( const String& path, Errors& errors );
 
   virtual void DebugBreak() = 0;
-  void DebugAssert( const String& msg, const Frame& frame );
+  void DebugAssert( const String& msg, const StackFrame& frame );
   virtual void DebugPopupBox( const String& ) = 0;
 
   // Gets the path where you can save files to, such as user configs

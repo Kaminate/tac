@@ -20,7 +20,6 @@ struct TerainDebugger
         changedHeightmap = true;
       }
 
-      OS* os = OS::Instance;
       Vector< String > heightmapPaths;
       Errors errors;
       OS::Instance->GetDirFilesRecursive( heightmapPaths, "assets/heightmaps", errors );

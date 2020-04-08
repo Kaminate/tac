@@ -277,7 +277,6 @@ namespace Tac
       ID3D11DeviceChild* directXObject,
       const String& name );
 
-    static void RenderThreadFunction();
 
     ID3D11InfoQueue* mInfoQueueDEBUG = nullptr;
     ID3DUserDefinedAnnotation* mUserAnnotationDEBUG = nullptr;
