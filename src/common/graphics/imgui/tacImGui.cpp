@@ -184,16 +184,13 @@ namespace Tac
     }
 
 
-
-    // remove mDesktopWindowName and replace with desktopWindowWidth/desktopWindowHeight?
-    WindowParams* params = DesktopWindowManager::Instance->FindWindowParams( ImGuiGlobals::Instance.mDesktopWindowName );
-    const int desktopWindowWidth = params ? params->mWidth : 800;
-    const int desktopWindowHeight = params ? params->mHeight : 600;
+    TAC_ASSERT( ImGuiGlobals::Instance.mDesktopWindowWidth );
+    TAC_ASSERT( ImGuiGlobals::Instance.mDesktopWindowHeight );
 
     v2 windowSize =
     {
-      size.x > 0 ? size.x : size.x + desktopWindowWidth,
-      size.y > 0 ? size.y : size.y + desktopWindowHeight
+      size.x > 0 ? size.x : size.x + ImGuiGlobals::Instance.mDesktopWindowWidth,
+      size.y > 0 ? size.y : size.y + ImGuiGlobals::Instance.mDesktopWindowHeight
     };
 
     //const Image& image = ImGuiGlobals::Instance.mUI2DDrawData->mRenderView->mFramebuffer->myImage;
@@ -220,13 +217,15 @@ namespace Tac
     bool isWindowDirectlyUnderCursor,
     double elapsedSeconds,
     UI2DDrawData* ui2DDrawData,
-    StringView desktopWindowName )
+    int desktopWindowWidth,
+    int desktopWindowHeight )
   {
     ImGuiGlobals::Instance.mMousePositionDesktopWindowspace = mousePositionDesktopWindowspace;
     ImGuiGlobals::Instance.mIsWindowDirectlyUnderCursor = isWindowDirectlyUnderCursor;
     ImGuiGlobals::Instance.mElapsedSeconds = elapsedSeconds;
     ImGuiGlobals::Instance.mUI2DDrawData = ui2DDrawData;
-    ImGuiGlobals::Instance.mDesktopWindowName = desktopWindowName;
+    ImGuiGlobals::Instance.mDesktopWindowWidth = desktopWindowWidth;
+    ImGuiGlobals::Instance.mDesktopWindowHeight = desktopWindowHeight;
   }
 
   void ImGuiBeginChild( const String& name, v2 size )

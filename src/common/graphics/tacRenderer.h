@@ -102,8 +102,8 @@ namespace Tac
   };
   enum class CPUAccess
   {
-    Read,
-    Write
+    Read = 0b01,
+    Write = 0b10
   };
   enum class Map
   {
@@ -142,8 +142,8 @@ namespace Tac
   };
   enum class Binding
   {
-    ShaderResource,
-    RenderTarget,
+    ShaderResource = 0b01,
+    RenderTarget = 0b10,
   };
 
   const char* GetSemanticName( Attribute attribType );
@@ -400,101 +400,46 @@ namespace Tac
   };
 
 
-
-
-
-
-
-
-
-
-
-  // TODO: Make all the datas passed by const ref
-
-
   namespace Render
   {
+    typedef int ViewId;
     typedef int ResourceId;
-    const ResourceId NullRendererRessourceId = -1;
-    struct ResourceHandle
-    {
-      ResourceId mId = -1; // 0 better or -1 better?
-    };
+    const ResourceId NullResourceId = -1;
 
-    struct VertexBufferHandle : public ResourceHandle {};
-    struct IndexBufferHandle : public ResourceHandle {};
-    struct TextureHandle : public ResourceHandle {};
+    struct VertexBufferHandle { ResourceId mResourceId = NullResourceId; };
+    struct IndexBufferHandle { ResourceId mResourceId = NullResourceId; };
+    struct TextureHandle { ResourceId mResourceId = NullResourceId; };
+    struct FramebufferHandle { ResourceId mResourceId = NullResourceId; };
 
-    struct IdCollection
-    {
-      ResourceId                       Alloc( StringView name, Tac::StackFrame frame );
-      void                             Free( ResourceId, Errors& );
-      Vector< ResourceId >             mFree;
-      int                              mAllocCounter = 0;
-      Vector< String >                 mNames;
-      Vector< Tac::StackFrame >        mFrames;
-    };
+    void SubmitAllocInit( int ringBufferByteCount );
+    void* SubmitAlloc( int byteCount );
+    void* SubmitAlloc( void* bytes, int byteCount );
+    //void SubmitAllocBeginFrame();
 
-    struct ResourceManager
-    {
-      ResourceManager();
+    VertexBufferHandle               CreateVertexBuffer( StringView, StackFrame );
+    IndexBufferHandle                CreateIndexBuffer( StringView, StackFrame );
+    TextureHandle                    CreateTexture( StringView, StackFrame );
+    FramebufferHandle                CreateFramebuffer( void* nativeWindowHandle,
+                                                        int width,
+                                                        int height,
+                                                        StringView,
+                                                        StackFrame );
 
-      VertexBufferHandle               CreateVertexBuffer(StringView, StackFrame);
-      void                             DestroyVertexBuffer( VertexBufferHandle );
-      IndexBufferHandle                CreateIndexBuffer(StringView, StackFrame);
-      void                             DestroyIndexBuffer( IndexBufferHandle );
-      TextureHandle                    CreateTexture(StringView, StackFrame);
-      void                             DestroyTexture(TextureHandle);
+    void                             DestroyVertexBuffer( VertexBufferHandle );
+    void                             DestroyIndexBuffer( IndexBufferHandle );
+    void                             DestroyTexture( TextureHandle );
+    void                             DestroyFramebuffer( FramebufferHandle );
 
-      static ResourceManager*          Instance;
-
-      // why do i need a mutex?
-      std::mutex                       ResourceLock;
-      IdCollection                     mIdCollectionVertexBuffer;
-      IdCollection                     mIdCollectionIndexBuffer;
-      IdCollection                     mIdCollectionTexture;
-    };
-
-
-    struct Encoder
-    {
-
-    };
-
-    enum class CommandType
-    {
-      CreateVertexBuffer,
-      CreateIndexBuffer,
-      CreateTexture,
-      UpdateTextureRegion,
-    };
-
-    struct UpdateTextureRegionCommandData
-    {
-    };
-
-    struct CommandBuffer
-    {
-      void Push( const void* bytes, int byteCount );
-      template<typename T> void Push( const T& t ) { Push( &t, sizeof( T ) ); }
-
-      Vector<char> mBuffer;
-    };
-
-    struct Frame
-    {
-
-      CommandBuffer mCommandBuffer;
-    };
-
-    extern Frame gRenderFrame;
-    extern Frame gSubmitFrame;
-
-    void APIUpdateTextureRegion(
-      TextureHandle mDst,
-      Image mSrc,
-      int mDstX,
-      int mDstY );
+    void                             UpdateTextureRegion( TextureHandle mDst,
+                                                          Image mSrc,
+                                                          int mDstX,
+                                                          int mDstY );
+    void                             UpdateVertexBuffer( VertexBufferHandle,
+                                                         void* bytes,
+                                                         int byteCount );
+    void                             UpdateIndexBuffer( IndexBufferHandle,
+                                                        void* bytes,
+                                                        int byteCount );
   }
 
   struct Renderer

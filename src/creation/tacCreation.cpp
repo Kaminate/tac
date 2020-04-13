@@ -132,7 +132,7 @@ namespace Tac
     CreateDesktopWindow( gMainWindowName, &desktopWindow, errors );
     TAC_HANDLE_ERROR( errors );
 
-    mMainWindow = new CreationMainWindow();
+    mMainWindow = new CreationMainWindow;
     mMainWindow->mCreation = this;
     mMainWindow->mDesktopWindow = desktopWindow;
     mMainWindow->Init( errors );
@@ -190,6 +190,41 @@ namespace Tac
       } );
   }
 
+  void Creation::GetWindowsJsonData( String windowName, int* x, int* y, int* w, int* h )
+  {
+    Json* windowJson = FindWindowJson( windowName );
+    if( !windowJson  )
+    {
+      *x = 200;
+      *y = 200;
+      *w = 400;
+      *h = 300;
+      return;
+    }
+
+    Settings* settings = Shell::Instance->mSettings;
+    Errors errors;
+
+    *w = ( int )settings->GetNumber( windowJson, { "w" }, 400, errors );
+    *h = ( int )settings->GetNumber( windowJson, { "h" }, 300, errors );
+    *x = ( int )settings->GetNumber( windowJson, { "x" }, 200, errors );
+    *y = ( int )settings->GetNumber( windowJson, { "y" }, 200, errors );
+    const bool centered = ( int )settings->GetBool( windowJson, { "centered" }, false, errors );
+    TAC_HANDLE_ERROR( errors );
+
+    if( centered )
+    {
+      Monitor monitor;
+      DesktopApp::Instance->GetPrimaryMonitor( &monitor, errors );
+      TAC_HANDLE_ERROR( errors );
+      WindowParams::GetCenteredPosition(
+        *w,
+        *h,
+        x,
+        y,
+        monitor );
+    }
+  }
   void Creation::GetWindowsJson( Json** outJson, Errors& errors )
   {
     Settings* settings = Shell::Instance->mSettings;
@@ -275,7 +310,7 @@ namespace Tac
     //DesktopApp::Instance->SpawnWindow( windowParams, &desktopWindow, errors );
     TAC_HANDLE_ERROR( errors );
 
-    DesktopWindowManager::Instance->DoWindow( windowName );
+    //DesktopWindowManager::Instance->DoWindow( windowName );
 
 
     //desktopWindow->mOnResize.AddCallbackFunctional( [ windowJson, settings, desktopWindow, &errors ]()
@@ -353,7 +388,7 @@ namespace Tac
     params.mHeight = height;
     params.mX = x;
     params.mY = y;
-    DesktopWindowManager::Instance->SetWindowParams( params );
+    //DesktopWindowManager::Instance->SetWindowParams( params );
   }
   void Creation::SetSavedWindowsData( Errors& errors )
   {
@@ -496,7 +531,22 @@ namespace Tac
   void Creation::Update( Errors& errors )
   {
     /*TAC_PROFILE_BLOCK*/;
-    ;
+
+    ProcessStuffOutput processStuffOutput = DesktopEvent::ProcessStuff();
+
+    if( processStuffOutput.mCreatedWindow )
+    {
+      WindowFramebufferInfo info;
+      info.mDesktopWindowHandle = processStuffOutput.mCreatedWindowState.mDesktopWindowHandle;
+      info.mFramebufferHandle =
+        Render::CreateFramebuffer( processStuffOutput.mCreatedWindowState.mNativeWindowHandle,
+                                   processStuffOutput.mCreatedWindowState.mWidth,
+                                   processStuffOutput.mCreatedWindowState.mHeight,
+                                   "idk go fuck urself",
+                                   TAC_STACK_FRAME );
+    }
+
+
 
     if( !mMainWindow && !mGameWindow && !mPropertyWindow && !mSystemWindow && !mProfileWindow )
     {
@@ -814,10 +864,10 @@ namespace Tac
     }
   }
 
-  void SetCreationWindowImGuiGlobals(
-    DesktopWindow* desktopWindow,
-    UI2DDrawData* ui2DDrawData,
-    StringView desktopWindowName )
+  void SetCreationWindowImGuiGlobals( DesktopWindow* desktopWindow,
+                                      UI2DDrawData* ui2DDrawData,
+                                      int desktopWindowWidth,
+                                      int desktopWindowHeight )
   {
     Errors screenspaceCursorPosErrors;
     v2 screenspaceCursorPos = {};
@@ -837,7 +887,10 @@ namespace Tac
       isWindowDirectlyUnderCursor,
       Shell::Instance->mElapsedSeconds,
       ui2DDrawData,
-      desktopWindowName);
+      desktopWindowWidth,
+      desktopWindowHeight
+      
+      );
   }
 
 }

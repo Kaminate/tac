@@ -33,7 +33,10 @@ void CreationSystemWindow::ImGui()
   ;
   SystemRegistry* systemRegistry = SystemRegistry::Instance();
 
-  SetCreationWindowImGuiGlobals( mDesktopWindow, mUI2DDrawData, gSystemWindowName );
+  SetCreationWindowImGuiGlobals( mDesktopWindow,
+                                 mUI2DDrawData,
+                                 mDesktopWindowState.mWidth,
+                                 mDesktopWindowState.mHeight );
   ImGuiBegin( "System Window", {} );
 
   if( ImGuiCollapsingHeader( "Select System" ) )
@@ -79,7 +82,7 @@ void CreationSystemWindow::Update( Errors& errors )
   ;
   mDesktopWindow->SetRenderViewDefaults();
   ImGui();
-  mUI2DDrawData->DrawToTexture( errors );
+  mUI2DDrawData->DrawToTexture( 0, 0, 0, errors );
   TAC_HANDLE_ERROR( errors );
 }
 

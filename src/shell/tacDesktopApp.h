@@ -11,32 +11,59 @@ namespace Tac
 {
 
 
-enum class ThreadType
-{
-  Unknown,
-  Main,
-  Stuff
-};
+  enum class ThreadType
+  {
+    Unknown,
+    Main,
+    Stuff
+  };
 
-extern thread_local ThreadType gThreadType;
+  extern thread_local ThreadType gThreadType;
 
-struct DesktopApp
-{
-  static DesktopApp* Instance;
-  DesktopApp();
-  virtual ~DesktopApp();
-  virtual void Init( Errors& errors );
-  virtual void Poll( Errors& errors ) {}
-  void Run();
-  void SpawnWindow( const WindowParams&, DesktopWindow**, Errors& );
-  void KillDeadWindows();
-  virtual void GetPrimaryMonitor( Monitor* monitor, Errors& errors ) = 0;
-  virtual void SpawnWindowAux( const WindowParams& windowParams, DesktopWindow** desktopWindow, Errors& errors ) {};
-  DesktopWindow* FindWindow( StringView windowName );
+  struct ProcessStuffOutput
+  {
+    bool mCreatedWindow = false;
+    DesktopWindowState mCreatedWindowState;
+  };
+  namespace DesktopEvent
+  {
+    void                PushEventCreateWindow( DesktopWindowHandle desktopWindowHandle,
+                                int width,
+                                int height,
+                                void* nativeWindowHandle );
 
-  Vector< DesktopWindow* > mMainWindows;
-  Errors mErrorsMainThread;
-  Errors mErrorsStuffThread;
-  std::thread mStuffThread;
-};
+    ProcessStuffOutput  ProcessStuff();
+  }
+
+  struct DesktopApp
+  {
+    static DesktopApp* Instance;
+    DesktopApp();
+    virtual ~DesktopApp();
+    virtual void   Init( Errors& errors );
+    virtual void   Poll( Errors& errors ) {}
+    void           Run();
+    virtual void   SpawnWindow( DesktopWindowHandle handle, int x, int y, int width, int height ) = 0;
+    //void           KillDeadWindows();
+    virtual void   GetPrimaryMonitor( Monitor* monitor, Errors& errors ) = 0;
+    virtual void   SpawnWindowAux( const WindowParams& windowParams, DesktopWindow** desktopWindow, Errors& errors ) {};
+    //DesktopWindow* FindWindow( StringView windowName );
+
+    //Vector< DesktopWindow* > mMainWindows;
+    Errors mErrorsMainThread;
+    Errors mErrorsStuffThread;
+    std::thread mStuffThread;
+
+
+  };
+
+  //struct WindowState
+  //{
+  //  String mName; // replace with handle
+  //  int mWidth;
+  //  int mHeight;
+  //  void* mhwnd;
+  //};
+
+
 }

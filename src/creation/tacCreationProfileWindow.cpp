@@ -31,7 +31,10 @@ void CreationProfileWindow::ImGuiProfile()
 }
 void CreationProfileWindow::ImGui()
 {
-  SetCreationWindowImGuiGlobals( mDesktopWindow, mUI2DDrawData, gProfileWindowName );
+  SetCreationWindowImGuiGlobals( mDesktopWindow,
+                                 mUI2DDrawData,
+                                 mDesktopWindowState.mWidth,
+                                 mDesktopWindowState.mHeight );
   ImGuiBegin( "Profile Window", {} );
 
   ImGuiText( "i am the profile window" );
@@ -53,7 +56,7 @@ void CreationProfileWindow::Update( Errors& errors )
   ;
   mDesktopWindow->SetRenderViewDefaults();
   ImGui();
-  mUI2DDrawData->DrawToTexture( errors );
+  mUI2DDrawData->DrawToTexture(0, 0, 0,  errors );
   TAC_HANDLE_ERROR( errors );
 }
 

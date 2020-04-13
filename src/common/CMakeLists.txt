@@ -25,6 +25,8 @@ ${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacUI2D.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacUI2D.h
 ${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacDebug3D.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacDebug3D.h
+${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacRendererBackend.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacRendererBackend.h
 ${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacRenderer.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacRenderer.h
 ${CMAKE_CURRENT_SOURCE_DIR}/tacAlgorithm.h

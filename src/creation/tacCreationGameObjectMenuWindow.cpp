@@ -17,95 +17,96 @@
 namespace Tac
 {
 
-CreationGameObjectMenuWindow::~CreationGameObjectMenuWindow()
-{
-  mDesktopWindow->mRequestDeletion = true;
-  delete mUIRoot;
-  delete mUI2DDrawData;
-}
-void CreationGameObjectMenuWindow::Init( Errors& errors )
-{
-  mCreationSeconds = Shell::Instance->mElapsedSeconds;
-  WindowParams windowParams;
-  windowParams.mName = "game object menu";
-  windowParams.mWidth = 300;
-  windowParams.mHeight = 300;
-  windowParams.mX =
-    mMainWindow->mDesktopWindow->mX +
-    ( int )mMainWindow->mGameObjectButton->mPositionRelativeToRoot.x;
-  windowParams.mY =
-    mMainWindow->mDesktopWindow->mY +
-    ( int )mMainWindow->mGameObjectButton->mPositionRelativeToRoot.y +
-    ( int )mMainWindow->mGameObjectButton->mSize.y;
-  DesktopApp::Instance->SpawnWindow(
-    windowParams,
-    &mDesktopWindow,
-    errors );
+  CreationGameObjectMenuWindow::~CreationGameObjectMenuWindow()
+  {
+    mDesktopWindow->mRequestDeletion = true;
+    delete mUIRoot;
+    delete mUI2DDrawData;
+  }
+  void CreationGameObjectMenuWindow::Init( Errors& errors )
+  {
+    mCreationSeconds = Shell::Instance->mElapsedSeconds;
+    WindowParams windowParams;
+    windowParams.mName = "game object menu";
+    windowParams.mWidth = 300;
+    windowParams.mHeight = 300;
+    windowParams.mX =
+      mMainWindow->mDesktopWindow->mX +
+      ( int )mMainWindow->mGameObjectButton->mPositionRelativeToRoot.x;
+    windowParams.mY =
+      mMainWindow->mDesktopWindow->mY +
+      ( int )mMainWindow->mGameObjectButton->mPositionRelativeToRoot.y +
+      ( int )mMainWindow->mGameObjectButton->mSize.y;
 
-  mUI2DDrawData = new UI2DDrawData;
-  mUI2DDrawData->mRenderView = mDesktopWindow->mRenderView;
-  mUIRoot = new UIRoot;
-  mUIRoot->mUI2DDrawData = mUI2DDrawData;
-  mUIRoot->mDesktopWindow = mDesktopWindow;
+    //DesktopApp::Instance->SpawnWindow(
+    //  windowParams,
+    //  &mDesktopWindow,
+    //  errors );
 
-  CreateLayouts();
-}
-void CreationGameObjectMenuWindow::CreateLayouts()
-{
-  UIHierarchyNode* node;
-  UIHierarchyVisualText* text;
+    mUI2DDrawData = new UI2DDrawData;
+    mUI2DDrawData->mRenderView = mDesktopWindow->mRenderView;
+    mUIRoot = new UIRoot;
+    mUIRoot->mUI2DDrawData = mUI2DDrawData;
+    mUIRoot->mDesktopWindow = mDesktopWindow;
 
-  text = new UIHierarchyVisualText();
-  text->mUITextData.mUtf8 = "Audio Source";
-  text->mUITextData.mFontSize = 16;
-  text->mUITextData.mColor = textColor;
-  text->mDims = { 100, 50 };
-  node = mUIRoot->mHierarchyRoot->Split( UISplit::Before, UILayoutType::Vertical );
-  node->SetVisual( text );
+    CreateLayouts();
+  }
+  void CreationGameObjectMenuWindow::CreateLayouts()
+  {
+    UIHierarchyNode* node;
+    UIHierarchyVisualText* text;
 
-  text = new UIHierarchyVisualText();
-  text->mUITextData.mUtf8 = "Text";
-  text->mUITextData.mFontSize = 16;
-  text->mUITextData.mColor = textColor;
-  text->mDims = { 100, 50 };
-  node = mUIRoot->mHierarchyRoot->Split( UISplit::Before, UILayoutType::Vertical );
-  node->SetVisual( text );
+    text = new UIHierarchyVisualText();
+    text->mUITextData.mUtf8 = "Audio Source";
+    text->mUITextData.mFontSize = 16;
+    text->mUITextData.mColor = textColor;
+    text->mDims = { 100, 50 };
+    node = mUIRoot->mHierarchyRoot->Split( UISplit::Before, UILayoutType::Vertical );
+    node->SetVisual( text );
 
-  text = new UIHierarchyVisualText();
-  text->mUITextData.mUtf8 = "Cube";
-  text->mUITextData.mFontSize = 16;
-  text->mUITextData.mColor = textColor;
-  text->mDims = { 100, 50 };
-  node = mUIRoot->mHierarchyRoot->Split( UISplit::Before, UILayoutType::Vertical );
-  node->SetVisual( text );
+    text = new UIHierarchyVisualText();
+    text->mUITextData.mUtf8 = "Text";
+    text->mUITextData.mFontSize = 16;
+    text->mUITextData.mColor = textColor;
+    text->mDims = { 100, 50 };
+    node = mUIRoot->mHierarchyRoot->Split( UISplit::Before, UILayoutType::Vertical );
+    node->SetVisual( text );
 
-  text = new UIHierarchyVisualText();
-  text->mUITextData.mUtf8 = "Empty";
-  text->mUITextData.mFontSize = 16;
-  text->mUITextData.mColor = textColor;
-  text->mDims = { 100, 50 };
-  node = mUIRoot->mHierarchyRoot->Split( UISplit::Before, UILayoutType::Vertical );
-  node->SetVisual( text );
-  node->mOnClickEventEmitter.AddCallbackFunctional( [&]() { mCreation->CreateEntity(); } );
-}
-void CreationGameObjectMenuWindow::Update( Errors& errors )
-{
-  mDesktopWindow->SetRenderViewDefaults();
+    text = new UIHierarchyVisualText();
+    text->mUITextData.mUtf8 = "Cube";
+    text->mUITextData.mFontSize = 16;
+    text->mUITextData.mColor = textColor;
+    text->mDims = { 100, 50 };
+    node = mUIRoot->mHierarchyRoot->Split( UISplit::Before, UILayoutType::Vertical );
+    node->SetVisual( text );
 
-  v2 cursorPos;
-  OS::Instance->GetScreenspaceCursorPos( cursorPos, errors );
-  TAC_HANDLE_ERROR( errors );
+    text = new UIHierarchyVisualText();
+    text->mUITextData.mUtf8 = "Empty";
+    text->mUITextData.mFontSize = 16;
+    text->mUITextData.mColor = textColor;
+    text->mDims = { 100, 50 };
+    node = mUIRoot->mHierarchyRoot->Split( UISplit::Before, UILayoutType::Vertical );
+    node->SetVisual( text );
+    node->mOnClickEventEmitter.AddCallbackFunctional( [ & ]() { mCreation->CreateEntity(); } );
+  }
+  void CreationGameObjectMenuWindow::Update( Errors& errors )
+  {
+    mDesktopWindow->SetRenderViewDefaults();
 
-  mUIRoot->mUiCursor.x = cursorPos.x - mDesktopWindow->mX;
-  mUIRoot->mUiCursor.y = cursorPos.y - mDesktopWindow->mY;
-  mUIRoot->Update();
-  mUIRoot->Render( errors );
-  TAC_HANDLE_ERROR( errors );
+    v2 cursorPos;
+    OS::Instance->GetScreenspaceCursorPos( cursorPos, errors );
+    TAC_HANDLE_ERROR( errors );
 
-  mUI2DDrawData->DrawToTexture( errors );
-  TAC_HANDLE_ERROR( errors );
+    mUIRoot->mUiCursor.x = cursorPos.x - mDesktopWindow->mX;
+    mUIRoot->mUiCursor.y = cursorPos.y - mDesktopWindow->mY;
+    mUIRoot->Update();
+    mUIRoot->Render( errors );
+    TAC_HANDLE_ERROR( errors );
 
-}
+    mUI2DDrawData->DrawToTexture( 0, 0, 0, errors );
+    TAC_HANDLE_ERROR( errors );
+
+  }
 
 
 }

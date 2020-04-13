@@ -1,6 +1,7 @@
 #pragma once
 
 #include "src/common/tacString.h"
+#include "src/common/tacDesktopWindow.h"
 
 namespace Tac
 {
@@ -27,6 +28,8 @@ struct CreationPropertyWindow
   UI2DDrawData* mUI2DDrawData = nullptr;
   
   Creation* mCreation = nullptr;
+
+  DesktopWindowState mDesktopWindowState;
 
   //UIHierarchyNode* mHierarchyList = nullptr;
   //UIHierarchyNode* mHierarchyPane = nullptr;

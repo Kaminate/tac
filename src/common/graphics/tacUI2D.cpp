@@ -168,8 +168,11 @@ namespace Tac
     if( mIndexes )
       Renderer::Instance->RemoveRendererResource( mIndexes );
   }
-  void UI2DDrawData::DrawToTexture( Errors& errors )
+  void UI2DDrawData::DrawToTexture( int viewWidth, int viewHeight, Render::ViewId viewId, Errors& errors )
   {
+    TAC_ASSERT( viewWidth );
+    TAC_ASSERT( viewHeight );
+
     /*TAC_PROFILE_BLOCK*/;
     TAC_ASSERT( mStates.empty() );
 
@@ -182,7 +185,8 @@ namespace Tac
         if( mVerts )
           Renderer::Instance->RemoveRendererResource( mVerts );
         VertexBufferData vertexBufferData = GetVertexBufferData( TAC_STACK_FRAME, vertexCount );
-        Renderer::Instance->AddVertexBuffer( &mVerts, vertexBufferData, errors );
+        //Renderer::Instance->AddVertexBuffer( &mVerts, vertexBufferData, errors );
+        mVertexBufferHandle = Render::CreateVertexBuffer( "draw data verts", TAC_STACK_FRAME );
         TAC_HANDLE_ERROR( errors );
       }
 
@@ -191,30 +195,42 @@ namespace Tac
         if( mIndexes )
           Renderer::Instance->RemoveRendererResource( mIndexes );
         IndexBufferData indexBufferData = GetIndexBufferData( TAC_STACK_FRAME, indexCount );
-        Renderer::Instance->AddIndexBuffer( &mIndexes, indexBufferData, errors );
+        //Renderer::Instance->AddIndexBuffer( &mIndexes, indexBufferData, errors );
+        mIndexBufferHandle = Render::CreateIndexBuffer( "draw data indexes", TAC_STACK_FRAME );
         TAC_HANDLE_ERROR( errors );
       }
 
-      mVerts->Overwrite( mDefaultVertex2Ds.data(), vertexCount * sizeof( UI2DVertex ), errors );
+      //void* vertexData = Render::SubmitAlloc( mDefaultVertex2Ds.data(),
+      //                                        mDefaultVertex2Ds.size() * sizeof( UI2DVertex ) );
+      //void* indexData = Render::SubmitAlloc( mDefaultIndex2Ds.data(),
+      //                                       mDefaultIndex2Ds.size() * sizeof( UI2DIndex ) );
+
+      Render::UpdateVertexBuffer( mVertexBufferHandle,
+                                  mDefaultVertex2Ds.data(),
+                                  mDefaultVertex2Ds.size() * sizeof( UI2DVertex ) );
+      //mVerts->Overwrite( mDefaultVertex2Ds.data(), vertexCount * sizeof( UI2DVertex ), errors );
       TAC_HANDLE_ERROR( errors );
 
-      mIndexes->Overwrite( mDefaultIndex2Ds.data(), indexCount * sizeof( UI2DIndex ), errors );
+      Render::UpdateIndexBuffer( mIndexBufferHandle,
+                                 mDefaultIndex2Ds.data(),
+                                 mDefaultIndex2Ds.size() * sizeof( UI2DIndex ) );
+      //mIndexes->Overwrite( mDefaultIndex2Ds.data(), indexCount * sizeof( UI2DIndex ), errors );
       TAC_HANDLE_ERROR( errors );
 
       // mRenderView->mViewportRect.mViewportPixelWidthIncreasingRight?
-      float sx = 2.0f / mRenderView->mFramebuffer->myImage.mWidth;
-      float sy = 2.0f / mRenderView->mFramebuffer->myImage.mHeight;
+      float sx = 2.0f / viewWidth;
+      float sy = 2.0f / viewHeight;
       auto projectionPieces = MakeArray< m4 >(
-        m4( // orient to bottom left
-          1, 0, 0, 0,
-          0, -1, 0, ( float )mRenderView->mFramebuffer->myImage.mHeight,
-          0, 0, 1, 0,
-          0, 0, 0, 1 ),
-        m4( // convert to ndc
-          sx, 0, 0, -1,
-          0, sy, 0, -1,
-          0, 0, 1, 0,
-          0, 0, 0, 1 ) );
+        // orient to bottom left
+        m4( 1, 0, 0, 0,
+            0, -1, 0, ( float )viewHeight,
+            0, 0, 1, 0,
+            0, 0, 0, 1 ),
+        // convert to ndc
+        m4( sx, 0, 0, -1,
+            0, sy, 0, -1,
+            0, 0, 1, 0,
+            0, 0, 0, 1 ) );
       v4 testVector( 130, 160, 0, 1 );
       bool testing = false;
       auto PrintTestVector = [ & ]()

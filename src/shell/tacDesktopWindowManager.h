@@ -7,17 +7,14 @@
 
 namespace Tac
 {
+
+
   struct DesktopWindowManager
   {
     DesktopWindowManager();
     static DesktopWindowManager* Instance;
-    void SetWindowParams( WindowParams );
-    void DoWindow( const StringView& windowName );
+    DesktopWindowHandle CreateWindow( int x, int y, int width, int height );
     void Update( Errors& errors );
-    WindowParams* FindWindowParams( const StringView& windowName );
-  private:
-    Vector< WindowParams > mWindowParams;
-    Vector< String > mWantSpawnWindows;
   };
 
 }

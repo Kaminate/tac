@@ -2,6 +2,7 @@
 #pragma once
 
 #include "src/common/tacErrorHandling.h"
+#include "src/common/tacDesktopWindow.h"
 
 namespace Tac
 {
@@ -29,6 +30,10 @@ struct CreationMainWindow
 
   Creation* mCreation = nullptr;
   CreationGameObjectMenuWindow* mGameObjectMenuWindow = nullptr;
+
+
+  DesktopWindowState mDesktopWindowState;
+  DesktopWindowHandle mDesktopWindowHandle;
 
   DesktopWindow* mDesktopWindow = nullptr;
   UIRoot* mUIRoot = nullptr;

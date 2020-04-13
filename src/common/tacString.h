@@ -21,6 +21,7 @@ namespace Tac
 
   // std uses void*
   void MemCpy( void* dst, const void* src, int len );
+  void StrCpy( char* dst, const char* src );
 
   struct StringView
   {

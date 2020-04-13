@@ -1,5 +1,6 @@
 #include "src/shell/tacDesktopApp.h"
 #include "src/shell/tacDesktopWindowManager.h"
+#include "src/shell/tacDesktopEventBackend.h"
 #include "src/common/graphics/tacRenderer.h"
 #include "src/common/graphics/tacUI2D.h"
 #include "src/common/graphics/tacUI.h"
@@ -22,8 +23,8 @@ namespace Tac
 
   DesktopApp::~DesktopApp()
   {
-    for( auto window : mMainWindows )
-      delete window;
+    //for( auto window : mMainWindows )
+    //  delete window;
   }
 
   static void StuffThread( Errors& errors )
@@ -32,6 +33,8 @@ namespace Tac
 
     new ProfileSystem;
     ProfileSystem::Instance->Init();
+
+    Render::SubmitAllocInit( 100 * 1024 * 1024 );
 
     new FontStuff;
     FontStuff::Instance->Load( errors );
@@ -49,26 +52,26 @@ namespace Tac
     }
   }
 
-  void DesktopApp::KillDeadWindows()
-  {
-    int windowCount = mMainWindows.size();
-    int iWindow = 0;
-    while( iWindow < windowCount )
-    {
-      DesktopWindow* window = mMainWindows[ iWindow ];
-      if( window->mRequestDeletion )
-      {
-        mMainWindows[ iWindow ] = mMainWindows[ windowCount - 1 ];
-        delete window;
-        --windowCount;
-        mMainWindows.pop_back();
-      }
-      else
-      {
-        ++iWindow;
-      }
-    }
-  }
+  //void DesktopApp::KillDeadWindows()
+  //{
+  //  int windowCount = mMainWindows.size();
+  //  int iWindow = 0;
+  //  while( iWindow < windowCount )
+  //  {
+  //    DesktopWindow* window = mMainWindows[ iWindow ];
+  //    if( window->mRequestDeletion )
+  //    {
+  //      mMainWindows[ iWindow ] = mMainWindows[ windowCount - 1 ];
+  //      delete window;
+  //      --windowCount;
+  //      mMainWindows.pop_back();
+  //    }
+  //    else
+  //    {
+  //      ++iWindow;
+  //    }
+  //  }
+  //}
 
   void DesktopApp::Init( Errors& errors )
   {
@@ -130,20 +133,20 @@ namespace Tac
       DesktopWindowManager::Instance->Update( errors );
       TAC_HANDLE_ERROR( errors );
 
-      KillDeadWindows();
+      //KillDeadWindows();
 
       Renderer::Instance->Render( errors );
       TAC_HANDLE_ERROR( errors );
     }
   }
 
-  void DesktopApp::SpawnWindow( const WindowParams& windowParams, DesktopWindow** ppDesktopWindow, Errors& errors )
-  {
-    DesktopWindow* desktopWindow;
-    SpawnWindowAux( windowParams, &desktopWindow, errors );
-    TAC_HANDLE_ERROR( errors );
+  //void DesktopApp::SpawnWindow( int x, int y, int width, int height )
+  //{
+  //  DesktopWindow* desktopWindow;
+  //  SpawnWindowAux( windowParams, &desktopWindow, errors );
+  //  TAC_HANDLE_ERROR( errors );
 
-    Renderer::Instance->CreateWindowContext( desktopWindow, errors );
+    //Renderer::Instance->CreateWindowContext( desktopWindow, errors );
 
     //struct OnWindowResize : public Event<>::Handler
     //{
@@ -159,26 +162,28 @@ namespace Tac
     //onWindowResize->mDesktopWindow = desktopWindow;
     //onWindowResize->mRendererWindowData = desktopWindow->mRendererData;
 
-    desktopWindow->mOnResize.AddCallbackFunctional( [ desktopWindow, &errors ]()
-      {
-        desktopWindow->mRendererData->OnResize( errors );
-      } );
+    //desktopWindow->mOnResize.AddCallbackFunctional( [ desktopWindow, &errors ]()
+    //                                                {
+    //                                                  desktopWindow->mRendererData->OnResize( errors );
+    //                                                } );
 
 
-    TAC_HANDLE_ERROR( errors );
+    //TAC_HANDLE_ERROR( errors );
 
-    mMainWindows.push_back( desktopWindow );
+    //mMainWindows.push_back( desktopWindow );
+  //}
 
-    *ppDesktopWindow = desktopWindow;
-  }
-
-  DesktopWindow* DesktopApp::FindWindow( StringView windowName )
-  {
-    for( DesktopWindow* window : mMainWindows )
-      if( window->mName == windowName )
-        return window;
-    return nullptr;
+  //DesktopWindow* DesktopApp::FindWindow( StringView windowName )
+  //{
+  //  for( DesktopWindow* window : mMainWindows )
+  //    if( window->mName == windowName )
+  //      return window;
+  //  return nullptr;
 
 
-  }
+  //}
+
+  //static WindowState gWindowStates[ 10 ];
+
+
 }

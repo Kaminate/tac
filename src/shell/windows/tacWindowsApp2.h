@@ -40,7 +40,7 @@ namespace Tac
 
     // Note: The first window spawned will be the parent window,
     //       combining them all into one tab group
-    void SpawnWindowAux( const WindowParams&, DesktopWindow**, Errors& ) override;
+    void SpawnWindow( DesktopWindowHandle handle, int x, int y, int width, int height ) override;
     void GetPrimaryMonitor( Monitor* monitor, Errors& errors ) override;
     void RemoveWindow( Win32DesktopWindow* );
     Win32DesktopWindow* FindWindow( HWND hwnd );

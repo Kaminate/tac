@@ -23,6 +23,7 @@ struct CreationSystemWindow
   void Update( Errors& errors );
   void ImGui();
 
+  DesktopWindowState mDesktopWindowState;
   DesktopWindow* mDesktopWindow = nullptr;
   UI2DDrawData* mUI2DDrawData = nullptr;
   

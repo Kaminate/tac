@@ -22,6 +22,7 @@ struct CreationProfileWindow
   void ImGui();
   void ImGuiProfile();
 
+  DesktopWindowState mDesktopWindowState;
   DesktopWindow* mDesktopWindow = nullptr;
   UI2DDrawData* mUI2DDrawData = nullptr;
   

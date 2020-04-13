@@ -63,6 +63,17 @@ namespace Tac
     while( len-- )
       *dstChar++ = *srcChar++;
   }
+  void StrCpy( char* dst, const char* src )
+  {
+    for( ;; )
+    {
+      *dst = *src;
+      if( *src == '\0' )
+        break;
+      dst++;
+      src++;
+    }
+  }
 
   String ToString( int i )
   {

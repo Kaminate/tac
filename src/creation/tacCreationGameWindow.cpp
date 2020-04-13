@@ -650,7 +650,10 @@ void CreationGameWindow::CameraControls()
 void CreationGameWindow::Update( Errors& errors )
 {
   mDesktopWindow->SetRenderViewDefaults();
-  SetCreationWindowImGuiGlobals( mDesktopWindow, mUI2DDrawData, gGameWindowName );
+  SetCreationWindowImGuiGlobals( mDesktopWindow,
+                                 mUI2DDrawData,
+                                 mDesktopWindowState.mWidth,
+                                 mDesktopWindowState.mHeight );
   if( auto ghost = ( Ghost* )mSoul )
   {
     //static bool once;
@@ -715,7 +718,7 @@ void CreationGameWindow::Update( Errors& errors )
   DrawPlaybackOverlay( errors );
   TAC_HANDLE_ERROR( errors );
 
-  mUI2DDrawData->DrawToTexture( errors );
+  mUI2DDrawData->DrawToTexture(0, 0, 0,  errors );
   TAC_HANDLE_ERROR( errors );
 }
 }

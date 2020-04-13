@@ -32,12 +32,12 @@ struct ImGuiRect
 void ImGuiBegin( const String& name, v2 size );
 void ImGuiEnd();
 
-void ImGuiSetGlobals(
-  v2 mousePositionDesktopWindowspace,
-  bool isWindowDirectlyUnderCursor,
-  double elapsedSeconds,
-  UI2DDrawData* ui2DDrawData,
-  StringView desktopWindowName);
+void ImGuiSetGlobals( v2 mousePositionDesktopWindowspace,
+                      bool isWindowDirectlyUnderCursor,
+                      double elapsedSeconds,
+                      UI2DDrawData* ui2DDrawData,
+                      int desktopWindowWidth,
+                      int desktopWindowHeight );
 
 void ImGuiBeginMenuBar();
 //void ImGuiBeginMenu( const String& label );

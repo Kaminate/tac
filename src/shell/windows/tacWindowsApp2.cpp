@@ -1,6 +1,7 @@
 #include "src/shell/windows/tacWindowsApp2.h"
 #include "src/shell/windows/tacXInput.h"
 #include "src/shell/windows/tacNetWinsock.h"
+#include "src/shell/tacDesktopEventBackend.h"
 #include "src/common/tacSettings.h"
 #include "src/common/tacPreprocessor.h"
 #include "src/common/tacString.h"
@@ -446,19 +447,24 @@ namespace Tac
     monitor->w = w;
     monitor->h = h;
   }
-  void WindowsApplication2::SpawnWindowAux( const WindowParams& windowParams, DesktopWindow** desktopWindow, Errors& errors )
+  void WindowsApplication2::SpawnWindow( DesktopWindowHandle handle,
+                                         int x,
+                                         int y,
+                                         int width,
+                                         int height )
   {
     DWORD windowStyle = mShouldWindowHaveBorder ? WS_OVERLAPPEDWINDOW : WS_POPUP;
     //windowStyle = WS_OVERLAPPEDWINDOW;
     //if( mParentHWND )
     //  windowStyle = WS_CHILD | WS_BORDER;
     RECT windowRect = {};
-    windowRect.right = windowParams.mWidth;
-    windowRect.bottom = windowParams.mHeight;
+    windowRect.right = width;
+    windowRect.bottom = height;
     if( !AdjustWindowRect( &windowRect, windowStyle, FALSE ) )
     {
-      errors = "Failed to adjust window rect";
-      TAC_HANDLE_ERROR( errors );
+      TAC_INVALID_CODE_PATH;
+      //errors = "Failed to adjust window rect";
+      //TAC_HANDLE_ERROR( errors );
     }
 
     int windowAdjustedWidth = windowRect.right - windowRect.left;
@@ -467,10 +473,10 @@ namespace Tac
     HINSTANCE hInstance = mHInstance;
     HWND hwnd = CreateWindow(
       classname,
-      windowParams.mName.c_str(),
+      "butt", // windowParams.mName.c_str(),
       windowStyle,
-      windowParams.mX,
-      windowParams.mY,
+      x, // CW_USEDEFAULT
+      y, // CW_USEDEFAULT
       windowAdjustedWidth,
       windowAdjustedHeight,
       mParentHWND,
@@ -479,18 +485,19 @@ namespace Tac
       NULL );
     if( !hwnd )
     {
-      errors += Join( "\n",
-        {
-          // https://docs.microsoft.com/en-us/windows/desktop/api/winuser/nf-winuser-createwindowexa
-          "This function typically fails for one of the following reasons",
-          "- an invalid parameter value",
-          "- the system class was registered by a different module",
-          "- The WH_CBT hook is installed and returns a failure code",
-          "- if one of the controls in the dialog template is not registered, or its window window procedure fails WM_CREATE or WM_NCCREATE",
-          GetLastWin32ErrorString()
-        }
-      );
-      TAC_HANDLE_ERROR( errors );
+      TAC_INVALID_CODE_PATH;
+      //errors += Join( "\n",
+      //  {
+      //    // https://docs.microsoft.com/en-us/windows/desktop/api/winuser/nf-winuser-createwindowexa
+      //    "This function typically fails for one of the following reasons",
+      //    "- an invalid parameter value",
+      //    "- the system class was registered by a different module",
+      //    "- The WH_CBT hook is installed and returns a failure code",
+      //    "- if one of the controls in the dialog template is not registered, or its window window procedure fails WM_CREATE or WM_NCCREATE",
+      //    GetLastWin32ErrorString()
+      //  }
+      //);
+      //TAC_HANDLE_ERROR( errors );
     }
     // Sets the keyboard focus to the specified window
     SetFocus( hwnd );
@@ -512,9 +519,9 @@ namespace Tac
     createdWindow->mOperatingSystemHandle = hwnd;
 
 
-    *( WindowParams* )createdWindow = windowParams;
-    *desktopWindow = createdWindow;
-    mWindows.push_back( createdWindow );
+    //*( WindowParams* )createdWindow = windowParams;
+    //*desktopWindow = createdWindow;
+    //mWindows.push_back( createdWindow );
 
     createdWindow->mOnDestroyed.AddCallbackFunctional( []( DesktopWindow* desktopWindow )
       {
@@ -524,6 +531,9 @@ namespace Tac
     // Used to combine all the windows into one tab group.
     if( mParentHWND == NULL )
       mParentHWND = hwnd;
+
+
+    DesktopEvent::PushEventCreateWindow( handle, width, height, hwnd );
   }
   void WindowsApplication2::RemoveWindow( Win32DesktopWindow*  createdWindow )
   {

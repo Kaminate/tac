@@ -31,6 +31,12 @@ namespace Tac
     //mUIRoot = new UIRoot;
     //mUIRoot->mUI2DDrawData = mUI2DDrawData;
     //mUIRoot->mDesktopWindow = mDesktopWindow;
+    int x;
+    int y;
+    int w;
+    int h;
+    Creation::Instance->GetWindowsJsonData( gMainWindowName, &x, &y, &w, &h );
+    mDesktopWindowHandle = DesktopWindowManager::Instance->CreateWindow( x, y, w, h );
   }
   void CreationMainWindow::LoadTextures( Errors& errors )
   {
@@ -82,7 +88,10 @@ namespace Tac
   }
   void CreationMainWindow::ImGui()
   {
-    SetCreationWindowImGuiGlobals( mDesktopWindow, mUI2DDrawData, gMainWindowName );
+    SetCreationWindowImGuiGlobals( mDesktopWindow,
+                                   mUI2DDrawData,
+                                   mDesktopWindowState.mWidth,
+                                   mDesktopWindowState.mHeight );
     ImGuiBegin( "Main Window", {} );
     ImGuiBeginMenuBar();
     ImGuiText( "file | edit | window" );
@@ -150,7 +159,13 @@ namespace Tac
 
     ImGui();
 
-    mUI2DDrawData->DrawToTexture( errors );
+    //auto params = DesktopWindowManager::Instance->FindWindowParams( gMainWindowName );
+    //if( params )
+    //  params->mWidth;
+    //  params->mHeight;
+
+    Render::ViewId viewId = 0;
+    mUI2DDrawData->DrawToTexture( mDesktopWindow->mWidth, mDesktopWindow->mHeight, viewId, errors );
     TAC_HANDLE_ERROR( errors );
 
     if( mButtonCallbackErrors )

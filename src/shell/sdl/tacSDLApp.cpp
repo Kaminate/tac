@@ -6,117 +6,116 @@ namespace Tac
 {
 
 
-SDLWindow::~SDLWindow()
-{
-  SDL_DestroyWindow( mWindow );
-  app->mWindows.erase( this );
-}
-
-SDLApp::~SDLApp()
-{
-}
-void SDLApp::Init( Errors& errors )
-{
-  int sdl_init_result = SDL_Init( SDL_INIT_EVERYTHING );
-  if( sdl_init_result )
+  SDLWindow::~SDLWindow()
   {
-    errors = SDL_GetError();
-    return;
+    SDL_DestroyWindow( mWindow );
+    app->mWindows.erase( this );
   }
-}
-void SDLApp::Poll( Errors& errors )
-{
-  SDL_Event event;
-  while( SDL_PollEvent( &event ) )
+
+  SDLApp::~SDLApp()
   {
-    if( OS::Instance->mShouldStopRunning )
-      break;
-    switch( event.type )
+  }
+  void SDLApp::Init( Errors& errors )
+  {
+    int sdl_init_result = SDL_Init( SDL_INIT_EVERYTHING );
+    if( sdl_init_result )
     {
-    case SDL_QUIT:
+      errors = SDL_GetError();
+      return;
+    }
+  }
+  void SDLApp::Poll( Errors& errors )
+  {
+    SDL_Event event;
+    while( SDL_PollEvent( &event ) )
     {
-      OS::Instance->mShouldStopRunning = true;
-    } break;
-    case SDL_WINDOWEVENT:
-    {
-      SDLWindow* sdlWindow = FindSDLWindowByID( event.window.windowID );
-      switch( event.window.event )
+      if( OS::Instance->mShouldStopRunning )
+        break;
+      switch( event.type )
       {
-      case SDL_WINDOWEVENT_CLOSE:
-      {
-        delete sdlWindow;
-      } break;
-      case SDL_WINDOWEVENT_RESIZED:
-      {
-        sdlWindow->mWidth = ( int )event.window.data1;
-        sdlWindow->mHeight = ( int )event.window.data2;
-        sdlWindow->mRendererData->OnResize( errors );
-      } break;
+        case SDL_QUIT:
+        {
+          OS::Instance->mShouldStopRunning = true;
+        } break;
+        case SDL_WINDOWEVENT:
+        {
+          SDLWindow* sdlWindow = FindSDLWindowByID( event.window.windowID );
+          switch( event.window.event )
+          {
+            case SDL_WINDOWEVENT_CLOSE:
+            {
+              delete sdlWindow;
+            } break;
+            case SDL_WINDOWEVENT_RESIZED:
+            {
+              sdlWindow->mWidth = ( int )event.window.data1;
+              sdlWindow->mHeight = ( int )event.window.data2;
+              sdlWindow->mRendererData->OnResize( errors );
+            } break;
+          }
+        } break;
       }
-    } break;
     }
   }
-}
-void SDLApp::GetPrimaryMonitor( Monitor* monitor, Errors& errors )
-{
-  SDL_Rect rect;
-  if( SDL_GetDisplayBounds( 0, &rect ) )
+  void SDLApp::GetPrimaryMonitor( Monitor* monitor, Errors& errors )
   {
-    errors = va( "Failed to get display bounds %s", SDL_GetError() );
-    TAC_HANDLE_ERROR( errors );
-  }
-  monitor->w = rect.w;
-  monitor->h = rect.h;
-}
-SDLWindow* SDLApp::FindSDLWindowByID( Uint32 windowID )
-{
-  for( SDLWindow* linuxWindow : mWindows )
-  {
-    if( SDL_GetWindowID( linuxWindow->mWindow ) == windowID )
+    SDL_Rect rect;
+    if( SDL_GetDisplayBounds( 0, &rect ) )
     {
-      return linuxWindow;
+      errors = va( "Failed to get display bounds %s", SDL_GetError() );
+      TAC_HANDLE_ERROR( errors );
     }
+    monitor->w = rect.w;
+    monitor->h = rect.h;
   }
-  return nullptr;
-}
-void SDLApp::SpawnWindowAux( const WindowParams& windowParams, DesktopWindow** desktopWindow, Errors& errors )
-{
-  Uint32 flags =
-    SDL_WINDOW_SHOWN |
-    SDL_WINDOW_RESIZABLE |
-    //SDL_WINDOW_BORDERLESS |
-    0;
-  SDL_Window* sdlWindow = SDL_CreateWindow(
-    windowParams.mName.c_str(),
-    windowParams.mX,
-    windowParams.mY,
-    windowParams.mWidth,
-    windowParams.mHeight,
-    flags
-  );
-  SDL_RaiseWindow( sdlWindow );
-
-  void* operatingSystemHandle = nullptr;
-  void* operatingSystemApplicationHandle = nullptr;
-#if defined(SDL_VIDEO_DRIVER_WINDOWS)
-  SDL_SysWMinfo wmInfo;
-  SDL_VERSION( &wmInfo.version );
-  if( SDL_FALSE == SDL_GetWindowWMInfo( sdlWindow, &wmInfo ) )
+  SDLWindow* SDLApp::FindSDLWindowByID( Uint32 windowID )
   {
-    errors = "Failed to get sdl window wm info";
-    TAC_HANDLE_ERROR( errors );
+    for( SDLWindow* linuxWindow : mWindows )
+    {
+      if( SDL_GetWindowID( linuxWindow->mWindow ) == windowID )
+      {
+        return linuxWindow;
+      }
+    }
+    return nullptr;
   }
-  operatingSystemHandle = wmInfo.info.win.window;
-  operatingSystemApplicationHandle = wmInfo.info.win.hinstance;
+  void SDLApp::SpawnWindow( DesktopWindowHandle handle, int x, int y, int width, int height )
+  {
+    Uint32 flags =
+      SDL_WINDOW_SHOWN |
+      SDL_WINDOW_RESIZABLE |
+      //SDL_WINDOW_BORDERLESS |
+      0;
+    SDL_Window* sdlWindow = SDL_CreateWindow( "asdf",
+                                              x,
+                                              y,
+                                              width,
+                                              height,
+                                              flags );
+    SDL_RaiseWindow( sdlWindow );
+
+    void* operatingSystemHandle = nullptr;
+    void* operatingSystemApplicationHandle = nullptr;
+#if defined(SDL_VIDEO_DRIVER_WINDOWS)
+    SDL_SysWMinfo wmInfo;
+    SDL_VERSION( &wmInfo.version );
+    if( SDL_FALSE == SDL_GetWindowWMInfo( sdlWindow, &wmInfo ) )
+    {
+      TAC_INVALID_CODE_PATH;
+      //errors = "Failed to get sdl window wm info";
+      //TAC_HANDLE_ERROR( errors );
+    }
+    operatingSystemHandle = wmInfo.info.win.window;
+    operatingSystemApplicationHandle = wmInfo.info.win.hinstance;
 #endif
 
-  auto linuxWindow = new SDLWindow();
-  linuxWindow->mWindow = sdlWindow;
-  linuxWindow->app = this;
-  linuxWindow->mOperatingSystemHandle = operatingSystemHandle;
-  linuxWindow->mOperatingSystemApplicationHandle = operatingSystemApplicationHandle;
-  *( WindowParams* )linuxWindow = windowParams;
-  *desktopWindow = linuxWindow;
-  mWindows.insert( linuxWindow );
-}
+    auto linuxWindow = new SDLWindow();
+    linuxWindow->mWindow = sdlWindow;
+    linuxWindow->app = this;
+    linuxWindow->mOperatingSystemHandle = operatingSystemHandle;
+    linuxWindow->mOperatingSystemApplicationHandle = operatingSystemApplicationHandle;
+    //*( WindowParams* )linuxWindow = windowParams;
+    //*desktopWindow = linuxWindow;
+    //mWindows.insert( linuxWindow );
+  }
 }

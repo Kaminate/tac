@@ -735,7 +735,13 @@ void RendererDirectX11::CreateWindowContext( DesktopWindow* desktopWindow, Error
   IUnknown* pDevice = mDevice;
   IDXGISwapChain* mSwapChain;
   int bufferCount = 4;
-  mDxgi.CreateSwapChain( hwnd, pDevice, bufferCount, desktopWindow->mWidth, desktopWindow->mHeight, &mSwapChain, errors );
+  mDxgi.CreateSwapChain( hwnd,
+                         pDevice,
+                         bufferCount,
+                         desktopWindow->mWidth,
+                         desktopWindow->mHeight,
+                         &mSwapChain,
+                         errors );
   TAC_HANDLE_ERROR( errors );
   auto dx11Window = new DX11Window();
   dx11Window->mSwapChain = mSwapChain;

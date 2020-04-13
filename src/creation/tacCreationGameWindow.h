@@ -2,6 +2,7 @@
 
 #include "src/common/tacString.h"
 #include "src/common/math/tacVector3.h"
+#include "src/common/tacDesktopWindow.h"
 
 namespace Tac
 {
@@ -47,6 +48,7 @@ struct CreationGameWindow
   void PlayGame( Errors& errors );
 
   
+  DesktopWindowState mDesktopWindowState;
   DesktopWindow* mDesktopWindow = nullptr;
   UIRoot* mUIRoot = nullptr;
   UI2DDrawData* mUI2DDrawData = nullptr;

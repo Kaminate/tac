@@ -10,6 +10,18 @@
 namespace Tac
 {
 
+  struct WantSpawnInfo
+  {
+    DesktopWindowHandle mHandle;
+    int mX;
+    int mY;
+    int mWidth;
+    int mHeight;
+  };
+
+  static std::mutex gWindowSpawnInfoMutex;
+  Vector< WantSpawnInfo > gWantSpawnWindows;
+  static int gWindowCount;
 
   DesktopWindowManager::DesktopWindowManager()
   {
@@ -17,49 +29,61 @@ namespace Tac
   }
   DesktopWindowManager* DesktopWindowManager::Instance = nullptr;
 
-  void DesktopWindowManager::SetWindowParams( WindowParams windowParams )
-  {
-    WindowParams* pParams = FindWindowParams( windowParams.mName );
-    if( pParams )
-      *pParams = windowParams;
-    else
-      mWindowParams.push_back( windowParams );
-  }
+  //void DesktopWindowManager::SetWindowParams( WindowParams windowParams )
+  //{
+  //  WindowParams* pParams = FindWindowParams( windowParams.mName );
+  //  if( pParams )
+  //    *pParams = windowParams;
+  //  else
+  //    mWindowParams.push_back( windowParams );
+  //}
 
-  WindowParams* DesktopWindowManager::FindWindowParams( const StringView& windowName )
-  {
-    for( WindowParams& data : mWindowParams )
-      if( data.mName == windowName )
-        return &data;
-    return nullptr;
-  }
+  //WindowParams* DesktopWindowManager::FindWindowParams( const StringView& windowName )
+  //{
+  //  for( WindowParams& data : mWindowParams )
+  //    if( data.mName == windowName )
+  //      return &data;
+  //  return nullptr;
+  //}
 
-  void DesktopWindowManager::DoWindow( const StringView& windowName )
-  {
-    DesktopWindow* window = DesktopApp::Instance->FindWindow( windowName );
-    if( !window )
-      mWantSpawnWindows.push_back( windowName );
-  }
+  //void DesktopWindowManager::DoWindow( const StringView& windowName )
+  //{
+  //  DesktopWindow* window = DesktopApp::Instance->FindWindow( windowName );
+  //  if( !window )
+  //    mWantSpawnWindows.push_back( windowName );
+  //}
 
   void DesktopWindowManager::Update( Errors& errors )
   {
-    for( String windowName : mWantSpawnWindows )
+    Vector< WantSpawnInfo > wantSpawnWindows;
     {
-      DesktopWindow* window = DesktopApp::Instance->FindWindow( windowName );
-      if( window )
-        continue;
-
-      WindowParams* pParams = FindWindowParams( windowName );
-
-      WindowParams params;
-      params.mHeight = pParams ? pParams->mHeight : 800;
-      params.mName = windowName;
-      params.mWidth = pParams ? pParams->mWidth : 600;
-      params.mX = pParams ? pParams->mX : 50;
-      params.mY = pParams ? pParams->mY : 50;
-      DesktopApp::Instance->SpawnWindow( params, &window, errors );
+      std::lock_guard< std::mutex > lock( gWindowSpawnInfoMutex );
+      wantSpawnWindows = gWantSpawnWindows;
+      gWantSpawnWindows.clear();
+    }
+    for( WantSpawnInfo info : wantSpawnWindows )
+    {
+      DesktopApp::Instance->SpawnWindow(
+        info.mHandle,
+        info.mX,
+        info.mY,
+        info.mWidth,
+        info.mHeight );
       TAC_HANDLE_ERROR( errors );
     }
-    mWantSpawnWindows.clear();
+  }
+
+  DesktopWindowHandle DesktopWindowManager::CreateWindow( int x, int y, int width, int height )
+  {
+    std::lock_guard< std::mutex > lock( gWindowSpawnInfoMutex );
+    DesktopWindowHandle handle = { gWindowCount++ };
+    WantSpawnInfo info;
+    info.mX = x;
+    info.mY = y;
+    info.mWidth = width;
+    info.mHeight = height;
+    info.mHandle = handle;
+    gWantSpawnWindows.push_back( info );
+    return handle;
   }
 }
