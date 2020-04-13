@@ -314,7 +314,7 @@ namespace Tac
   {
     for( const Errors& errors : { mErrorsMainThread, mErrorsStuffThread } )
       if( errors )
-        OS::Instance->DebugPopupBox( errors.ToString() );
+        OS::DebugPopupBox( errors.ToString() );
   }
   void WindowsApplication2::Init( Errors& errors )
   {

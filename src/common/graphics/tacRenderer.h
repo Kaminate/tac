@@ -411,7 +411,21 @@ namespace Tac
     struct TextureHandle { ResourceId mResourceId = NullResourceId; };
     struct FramebufferHandle { ResourceId mResourceId = NullResourceId; };
 
-    void SubmitAllocInit( int ringBufferByteCount );
+    struct Frame;
+
+    struct Encoder
+    {
+      void Submit( ViewId viewId )
+      {
+
+      }
+    };
+
+    void RenderFrame();
+    void SubmitFrame();
+
+    void Init( int ringBufferByteCount );
+
     void* SubmitAlloc( int byteCount );
     void* SubmitAlloc( void* bytes, int byteCount );
     //void SubmitAllocBeginFrame();
@@ -440,6 +454,8 @@ namespace Tac
     void                             UpdateIndexBuffer( IndexBufferHandle,
                                                         void* bytes,
                                                         int byteCount );
+    void                             SetViewFramebuffer( ViewId viewId,
+                                                         FramebufferHandle framebufferHandle );
   }
 
   struct Renderer
@@ -622,6 +638,8 @@ namespace Tac
 
     virtual void RenderFlush() { TAC_UNIMPLEMENTED; }
     virtual void Render( Errors& errors ) { TAC_UNIMPLEMENTED; }
+    virtual void Render2( Render::Frame*, Errors& errors ) { TAC_UNIMPLEMENTED; }
+    virtual void SwapBuffers() { TAC_UNIMPLEMENTED; }
 
     virtual void SetPrimitiveTopology( Primitive primitive ) { TAC_UNIMPLEMENTED; }
 

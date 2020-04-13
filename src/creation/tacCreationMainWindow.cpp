@@ -88,10 +88,14 @@ namespace Tac
   }
   void CreationMainWindow::ImGui()
   {
+    Creation::WindowFramebufferInfo* info = Creation::Instance->FindWindowFramebufferInfo( mDesktopWindowHandle);
+    if( !info )
+      return;
+
     SetCreationWindowImGuiGlobals( mDesktopWindow,
                                    mUI2DDrawData,
-                                   mDesktopWindowState.mWidth,
-                                   mDesktopWindowState.mHeight );
+                                   info->mDesktopWindowState.mWidth,
+                                   info->mDesktopWindowState.mHeight );
     ImGuiBegin( "Main Window", {} );
     ImGuiBeginMenuBar();
     ImGuiText( "file | edit | window" );
@@ -113,7 +117,7 @@ namespace Tac
           entity->mName +
           ".prefab";
         Errors saveDialogErrors;
-        OS::Instance->SaveDialog( savePath, suggestedName, saveDialogErrors );
+        OS::SaveDialog( savePath, suggestedName, saveDialogErrors );
         if( saveDialogErrors )
         {
           // todo: log it, user feedback
@@ -130,7 +134,7 @@ namespace Tac
         Errors saveToFileErrors;
         void* bytes = prefabJsonString.data();
         int byteCount = prefabJsonString.size();
-        OS::Instance->SaveToFile( savePath, bytes, byteCount, saveToFileErrors );
+        OS::SaveToFile( savePath, bytes, byteCount, saveToFileErrors );
         if( saveToFileErrors )
         {
           // todo: log it, user feedback
@@ -152,6 +156,10 @@ namespace Tac
   }
   void CreationMainWindow::Update( Errors& errors )
   {
+    Creation::WindowFramebufferInfo* info = Creation::Instance->FindWindowFramebufferInfo( mDesktopWindowHandle);
+    if( !info )
+      return;
+
     //mDesktopWindow->SetRenderViewDefaults();
 
     LoadTextures( errors );
@@ -164,8 +172,12 @@ namespace Tac
     //  params->mWidth;
     //  params->mHeight;
 
-    Render::ViewId viewId = 0;
-    mUI2DDrawData->DrawToTexture( mDesktopWindow->mWidth, mDesktopWindow->mHeight, viewId, errors );
+    Render::SetViewFramebuffer( ViewIdMainWindow, info->mFramebufferHandle );
+    mUI2DDrawData->DrawToTexture( info->mDesktopWindowState.mWidth,
+                                  info->mDesktopWindowState.mHeight,
+                                  ViewIdMainWindow,
+                                  errors );
+
     TAC_HANDLE_ERROR( errors );
 
     if( mButtonCallbackErrors )

@@ -45,6 +45,6 @@ namespace Tac
 
   void AssertInternal( const String& message, const StackFrame& frame )
   {
-    OS::Instance->DebugAssert( message, frame );
+    OS::DebugAssert( message, frame );
   }
 }

@@ -22,7 +22,7 @@ void ModelDebugImguiChangeModel( Model* model )
     {
       firsttime = true;
       Vector< String > allfiles;
-      OS::Instance->GetDirFilesRecursive( allfiles, "assets", getfilesErrors );
+      OS::GetDirFilesRecursive( allfiles, "assets", getfilesErrors );
       for( String file : allfiles )
         if( EndsWith( ToLower( file ), ".gltf" ) )
           gltf_filepaths.push_back( file );

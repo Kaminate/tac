@@ -157,7 +157,9 @@ namespace Tac
 
     void Init( Errors& errors ) override;
     void Render( Errors& errors ) override;
+    void Render2( Render::Frame*, Errors& errors ) override;
     void RenderFlush() override;
+    void SwapBuffers() override;
 
     void CreateWindowContext( DesktopWindow* desktopWindow, Errors& errors ) override;
 

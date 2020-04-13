@@ -81,7 +81,7 @@ void Shell::Init( Errors& errors )
       TAC_HANDLE_ERROR( errors );
     }
 
-    String defaultRendererName = OS::Instance->GetDefaultRendererName();
+    String defaultRendererName = OS::GetDefaultRendererName();
     String settingsRendererName = mSettings->GetString( nullptr, { "DefaultRenderer" }, "", errors );
     RendererFactory* settingsRendererFactory = registry.FindFactory( settingsRendererName );
     RendererFactory* defaultOSRendererFactory = registry.FindFactory( defaultRendererName );

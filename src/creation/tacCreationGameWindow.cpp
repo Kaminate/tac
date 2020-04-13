@@ -356,7 +356,7 @@ void CreationGameWindow::MousePickingInit()
   float h = ( float )mDesktopWindow->mHeight;
   v2 screenspaceCursorPos;
   Errors errors;
-  OS::Instance->GetScreenspaceCursorPos( screenspaceCursorPos, errors );
+  OS::GetScreenspaceCursorPos( screenspaceCursorPos, errors );
   if( errors )
     return;
   float xNDC = ( ( screenspaceCursorPos.x - mDesktopWindow->mX ) / w );

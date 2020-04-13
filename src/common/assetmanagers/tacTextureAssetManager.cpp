@@ -142,7 +142,7 @@ void AsyncTextureCubeJob::Execute()
   Errors& errors = mErrors;
 
   Vector< String > files;
-  OS::Instance->GetDirFilesRecursive( files, mData->mDir, errors );
+  OS::GetDirFilesRecursive( files, mData->mDir, errors );
   TAC_HANDLE_ERROR( errors );
 
   if( files.size() != 6 )

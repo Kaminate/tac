@@ -34,7 +34,8 @@ namespace Tac
     new ProfileSystem;
     ProfileSystem::Instance->Init();
 
-    Render::SubmitAllocInit( 100 * 1024 * 1024 );
+    const int ringBufferByteCount = 100 * 1024 * 1024;
+    Render::Init( ringBufferByteCount );
 
     new FontStuff;
     FontStuff::Instance->Load( errors );
@@ -42,7 +43,7 @@ namespace Tac
 
 
 
-    while( !OS::Instance->mShouldStopRunning )
+    while( !OS::mShouldStopRunning )
     {
       Shell::Instance->Update( errors );
       TAC_HANDLE_ERROR( errors );
@@ -84,22 +85,22 @@ namespace Tac
 
     String appDataPath;
     bool appDataPathExists;
-    OS::Instance->GetApplicationDataPath( appDataPath, errors );
-    OS::Instance->DoesFolderExist( appDataPath, appDataPathExists, errors );
+    OS::GetApplicationDataPath( appDataPath, errors );
+    OS::DoesFolderExist( appDataPath, appDataPathExists, errors );
     TAC_ASSERT( appDataPathExists );
 
     String appName = info.mAppName;
     String studioPath = appDataPath + "\\" + info.mStudioName + "\\";
     String prefPath = studioPath + appName;
 
-    OS::Instance->CreateFolderIfNotExist( studioPath, errors );
+    OS::CreateFolderIfNotExist( studioPath, errors );
     TAC_HANDLE_ERROR( errors );
 
-    OS::Instance->CreateFolderIfNotExist( prefPath, errors );
+    OS::CreateFolderIfNotExist( prefPath, errors );
     TAC_HANDLE_ERROR( errors );
 
     String workingDir;
-    OS::Instance->GetWorkingDir( workingDir, errors );
+    OS::GetWorkingDir( workingDir, errors );
     TAC_HANDLE_ERROR( errors );
 
     new Shell;
@@ -123,7 +124,7 @@ namespace Tac
     mStuffThread = std::thread( StuffThread, mErrorsStuffThread );
     for( ;; )
     {
-      if( OS::Instance->mShouldStopRunning )
+      if( OS::mShouldStopRunning )
         break;
 
       Poll( errors );
@@ -136,6 +137,7 @@ namespace Tac
       //KillDeadWindows();
 
       Renderer::Instance->Render( errors );
+      Render::RenderFrame();
       TAC_HANDLE_ERROR( errors );
     }
   }

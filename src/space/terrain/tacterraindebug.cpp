@@ -22,7 +22,7 @@ struct TerainDebugger
 
       Vector< String > heightmapPaths;
       Errors errors;
-      OS::Instance->GetDirFilesRecursive( heightmapPaths, "assets/heightmaps", errors );
+      OS::GetDirFilesRecursive( heightmapPaths, "assets/heightmaps", errors );
       for( const String& heightmapPath : heightmapPaths )
       {
         if( ImGuiButton( heightmapPath ) )
@@ -48,11 +48,11 @@ struct TerainDebugger
     if( ImGuiButton( "Open Ground Texture" ) )
     {
       mTerrain->mTestHeightmapLoadErrors.clear();
-      OS::Instance->OpenDialog( mTerrain->mGroundTexturePath, mTerrainTextureDialogErrors );
+      OS::OpenDialog( mTerrain->mGroundTexturePath, mTerrainTextureDialogErrors );
     }
     if( ImGuiButton( "Open Noise Texture" ) )
     {
-      OS::Instance->OpenDialog( mTerrain->mNoiseTexturePath, mNoiseTextureDialogErrors );
+      OS::OpenDialog( mTerrain->mNoiseTexturePath, mNoiseTextureDialogErrors );
     }
 
     if( mTerrain->mTestHeightmapLoadErrors )

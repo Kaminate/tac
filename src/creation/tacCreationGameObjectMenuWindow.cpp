@@ -94,7 +94,7 @@ namespace Tac
     mDesktopWindow->SetRenderViewDefaults();
 
     v2 cursorPos;
-    OS::Instance->GetScreenspaceCursorPos( cursorPos, errors );
+    OS::GetScreenspaceCursorPos( cursorPos, errors );
     TAC_HANDLE_ERROR( errors );
 
     mUIRoot->mUiCursor.x = cursorPos.x - mDesktopWindow->mX;

@@ -107,13 +107,13 @@ KeyboardInput::KeyboardInput()
 {
   Instance = this;
   Errors ignored;
-  OS::Instance->GetScreenspaceCursorPos( mCurr.mScreenspaceCursorPos, ignored );
-  OS::Instance->GetScreenspaceCursorPos( mPrev.mScreenspaceCursorPos, ignored );
+  OS::GetScreenspaceCursorPos( mCurr.mScreenspaceCursorPos, ignored );
+  OS::GetScreenspaceCursorPos( mPrev.mScreenspaceCursorPos, ignored );
 }
 void KeyboardInput::BeginFrame()
 {
   Errors ignored;
-  OS::Instance->GetScreenspaceCursorPos( mCurr.mScreenspaceCursorPos, ignored );
+  OS::GetScreenspaceCursorPos( mCurr.mScreenspaceCursorPos, ignored );
   mMouseDeltaPosScreenspace =
     mCurr.mScreenspaceCursorPos -
     mPrev.mScreenspaceCursorPos;

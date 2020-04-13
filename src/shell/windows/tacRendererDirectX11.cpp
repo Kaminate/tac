@@ -728,6 +728,16 @@ void RendererDirectX11::Render( Errors& errors )
   mCurrentlyBoundView = nullptr;
   mFrameBoundRenderViews.clear();
 }
+
+void RendererDirectX11::Render2( Render::Frame* frame, Errors& errors )
+{
+
+}
+void RendererDirectX11::SwapBuffers()
+{
+
+}
+
 void RendererDirectX11::CreateWindowContext( DesktopWindow* desktopWindow, Errors& errors )
 {
   AssertRenderThread();

@@ -8,52 +8,64 @@ namespace Tac
 {
 
 
-struct Errors;
-struct StackFrame;
-
-struct OS
-{
-  virtual ~OS() = default;
-  virtual void SaveToFile( const String& path, void* bytes, int byteCount, Errors& errors ) = 0;
-
-  // SDL doesn't have this functionality
-  // Maybe we shouldn't and just rely on the folder already existing?
-  virtual void DoesFolderExist( const String& path, bool& exists, Errors& errors ) = 0;
-  virtual void CreateFolder( const String& path, Errors& errors ) = 0;
-  void CreateFolderIfNotExist( const String& path, Errors& errors );
-
-  virtual void DebugBreak() = 0;
-  void DebugAssert( const String& msg, const StackFrame& frame );
-  virtual void DebugPopupBox( const String& ) = 0;
-
-  // Gets the path where you can save files to, such as user configs
-  virtual void GetApplicationDataPath( String& path, Errors& errors ) = 0;
-
-  virtual void GetFileLastModifiedTime( time_t* time, const String& path, Errors& errors ) = 0;
-
-  virtual void GetDirFilesRecursive( Vector<String>&files, const String& dir, Errors& errors ) = 0;
-
-  virtual void SaveDialog( String& path, const String& suggestedPath, Errors& errors ) {};
-  virtual void OpenDialog( String& path, Errors& errors ) {};
-
-  // same as current dir
-  virtual void GetWorkingDir( String& dir, Errors& errors ) {};
+  struct Errors;
+  struct StackFrame;
 
 
-  // I don't think this function should exist.
-  // If you are debugging, hit a breakpoint, and THEN call this function,
-  // you're mouse is likely to have moved.
-  // What should happen is that this gets cached during the message pump,
-  // and accessed through MouseInput
-  virtual void GetScreenspaceCursorPos( v2& pos, Errors& errors ) = 0;
-  virtual void SetScreenspaceCursorPos( v2& pos, Errors& errors ) = 0;
+  namespace OS
+  {
+    void SaveToFile( const String& path, void* bytes, int byteCount, Errors& errors );
+
+    // SDL doesn't have this functionality
+    // Maybe we shouldn't and just rely on the folder already existing?
+    void DoesFolderExist( const String& path, bool& exists, Errors& errors );
+    void CreateFolder( const String& path, Errors& errors );
+    void CreateFolderIfNotExist( const String& path, Errors& errors );
+
+    void DebugBreak();
+    void DebugAssert( const String& msg, const StackFrame& frame );
+    void DebugPopupBox( const String& );
+
+    // Gets the path where you can save files to, such as user configs
+    void GetApplicationDataPath( String& path, Errors& errors );
+
+    void GetFileLastModifiedTime( time_t* time, const String& path, Errors& errors );
+
+    void GetDirFilesRecursive( Vector<String>&files, const String& dir, Errors& errors );
+
+    void SaveDialog( String& path, const String& suggestedPath, Errors& errors );
+    void OpenDialog( String& path, Errors& errors );
+
+    // same as current dir
+    void GetWorkingDir( String& dir, Errors& errors );
 
 
-  bool mShouldStopRunning = false;
+    // I don't think this function should exist.
+    // If you are debugging, hit a breakpoint, and THEN call this function,
+    // you're mouse is likely to have moved.
+    // What should happen is that this gets cached during the message pump,
+    // and accessed through MouseInput
+    void GetScreenspaceCursorPos( v2& pos, Errors& errors );
+    void SetScreenspaceCursorPos( v2& pos, Errors& errors );
 
-  virtual String GetDefaultRendererName(){return "";};
+    extern bool mShouldStopRunning;
 
-  static OS* Instance;
-};
+    String GetDefaultRendererName();
+  };
+
+  // semaphore values cannot go less than 0,
+  // so if the semaphore is currently at 0, it needs to wait for
+  // someone to increment the semaphore first.
+  namespace Semaphore
+  {
+    struct Handle
+    {
+      int mIndex = -1;
+    };
+
+    Handle Create();
+    void WaitAndDecrement( Handle );
+    void Increment( Handle ); // aka post
+  }
 
 }

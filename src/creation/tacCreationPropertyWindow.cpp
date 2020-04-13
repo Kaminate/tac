@@ -83,7 +83,7 @@ namespace Tac
     if( ImGuiButton( "Open Prefab" ) )
     {
       String prefabPath;
-      OS::Instance->OpenDialog( prefabPath, errors );
+      OS::OpenDialog( prefabPath, errors );
       TAC_HANDLE_ERROR( errors );
 
       mCreation->LoadPrefabAtPath( prefabPath, errors );

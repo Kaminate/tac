@@ -684,7 +684,7 @@ namespace Tac
             {
               Errors cursorAccessErrors;
               v2 mousePosScreenspace;
-              OS::Instance->GetScreenspaceCursorPos(
+              OS::GetScreenspaceCursorPos(
                 mousePosScreenspace,
                 cursorAccessErrors );
               if( cursorAccessErrors.empty() )
@@ -692,7 +692,7 @@ namespace Tac
                 float xOffset = moveCursorDir * clipRect.GetWidth();
                 ImGuiGlobals::Instance.mMousePositionDesktopWindowspace.x += xOffset;
                 mousePosScreenspace.x += xOffset;
-                OS::Instance->SetScreenspaceCursorPos(
+                OS::SetScreenspaceCursorPos(
                   mousePosScreenspace,
                   cursorAccessErrors );
               }

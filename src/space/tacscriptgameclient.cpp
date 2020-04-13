@@ -716,7 +716,7 @@ void ScriptMainMenu::Update( float seconds, Errors& errors )
   //    buttonCallback.mUserData = this;
   //    buttonCallback.mUserCallback = []( void* userData, Errors& errors )
   //    {
-  //      OS::Instance->mShouldStopRunning = true;
+  //      OS::mShouldStopRunning = true;
   //    };
   //    uiText->mButtonCallbacks.push_back( buttonCallback );
   //  }
@@ -894,7 +894,7 @@ void ScriptMainMenu2::RenderMainMenu()
   }
   if( ImGuiButton( "Exit Game" ) )
   {
-    OS::Instance->mShouldStopRunning = true;
+    OS::mShouldStopRunning = true;
   }
   ImGuiEnd();
 }

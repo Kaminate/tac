@@ -774,7 +774,7 @@ void UIRoot::Update()
 
   //v2 cursorPos;
   //Errors cursorPosErrors;
-  //OS::Instance->GetScreenspaceCursorPos( cursorPos, cursorPosErrors );
+  //OS::GetScreenspaceCursorPos( cursorPos, cursorPosErrors );
   //if( cursorPosErrors.empty() )
   //  mUiCursor = cursorPos - v2( ( float )mDesktopWindow->mX, ( float )mDesktopWindow->mY );
 

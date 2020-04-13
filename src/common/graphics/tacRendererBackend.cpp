@@ -1,6 +1,8 @@
 #include "src/common/graphics/tacRendererBackend.h"
 #include "src/common/graphics/tacRenderer.h"
 #include "src/common/tacAlgorithm.h"
+#include "src/common/tacOS.h"
+#include "src/shell/tacDesktopApp.h"
 
 namespace Tac
 {
@@ -37,17 +39,21 @@ namespace Tac
       FramebufferHandle mFramebufferHandle;
     };
 
+    static View gViews[ 10 ];
+
     struct Frame
     {
       CommandBuffer mCommandBuffer;
-      Vector< View > mViews;
+      //Vector< View > mViews;
     };
     //extern Frame gRenderFrame;
     //extern Frame gSubmitFrame;
     //Frame gRenderFrame;
     //Frame gSubmitFrame;
-    static Frame gRenderFrame;
-    static Frame gSubmitFrame;
+
+    static Frame gFrames[ 2 ];
+    static Frame* gRenderFrame = &gFrames[ 0 ];
+    static Frame* gSubmitFrame = &gFrames[ 1 ];
     static struct// struct ResourceManager
     {
       // why do i need a mutex?
@@ -86,11 +92,13 @@ namespace Tac
     static int gSubmitRingBufferCapacity;
     static int gSubmitRingBufferPos;
 
-    void SubmitAllocInit( const int ringBufferByteCount )
+
+    static void SubmitAllocInit( const int ringBufferByteCount )
     {
       gSubmitRingBufferCapacity = ringBufferByteCount;
       gSubmitRingBufferBytes = new char[ ringBufferByteCount ];
     }
+
 
     void* SubmitAlloc( const int byteCount )
     {
@@ -122,8 +130,8 @@ namespace Tac
       const VertexBufferHandle vertexBufferHandle = { resourceId };
       CommandDataCreateVertexBuffer commandData;
       commandData.mVertexBufferHandle = vertexBufferHandle;
-      gSubmitFrame.mCommandBuffer.Push( CommandType::CreateVertexBuffer );
-      gSubmitFrame.mCommandBuffer.Push( &commandData, sizeof( commandData ) );
+      gSubmitFrame->mCommandBuffer.Push( CommandType::CreateVertexBuffer );
+      gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
       return vertexBufferHandle;
     }
 
@@ -133,8 +141,8 @@ namespace Tac
       const IndexBufferHandle indexBufferHandle = { resourceId };
       CommandDataCreateIndexBuffer commandData;
       commandData.mIndexBufferHandle = indexBufferHandle;
-      gSubmitFrame.mCommandBuffer.Push( CommandType::CreateIndexBuffer );
-      gSubmitFrame.mCommandBuffer.Push( &commandData, sizeof( commandData ) );
+      gSubmitFrame->mCommandBuffer.Push( CommandType::CreateIndexBuffer );
+      gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
       return indexBufferHandle;
     }
 
@@ -144,8 +152,8 @@ namespace Tac
       const TextureHandle textureHandle = { resourceId };
       CommandDataCreateTexture commandData;
       commandData.mTextureHandle = textureHandle;
-      gSubmitFrame.mCommandBuffer.Push( CommandType::CreateTexture );
-      gSubmitFrame.mCommandBuffer.Push( &commandData, sizeof( commandData ) );
+      gSubmitFrame->mCommandBuffer.Push( CommandType::CreateTexture );
+      gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
       return textureHandle;
     }
 
@@ -162,8 +170,8 @@ namespace Tac
       commandData.mNativeWindowHandle = nativeWindowHandle;
       commandData.mWidth = width;
       commandData.mHeight = height;
-      gSubmitFrame.mCommandBuffer.Push( CommandType::CreateFramebuffer );
-      gSubmitFrame.mCommandBuffer.Push( &commandData, sizeof( commandData ) );
+      gSubmitFrame->mCommandBuffer.Push( CommandType::CreateFramebuffer );
+      gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
       return handle;
     }
 
@@ -171,32 +179,32 @@ namespace Tac
     {
       gResourceManager.mIdCollectionVertexBuffer.Free( handle.mResourceId );
       const CommandDataDestroyResource commandData = { handle.mResourceId };
-      gSubmitFrame.mCommandBuffer.Push( CommandType::DestroyVertexBuffer );
-      gSubmitFrame.mCommandBuffer.Push( &commandData, sizeof( commandData ) );
+      gSubmitFrame->mCommandBuffer.Push( CommandType::DestroyVertexBuffer );
+      gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
     }
 
     void DestroyIndexBuffer( IndexBufferHandle handle )
     {
       gResourceManager.mIdCollectionIndexBuffer.Free( handle.mResourceId );
       const CommandDataDestroyResource commandData = { handle.mResourceId };
-      gSubmitFrame.mCommandBuffer.Push( CommandType::DestroyIndexBuffer );
-      gSubmitFrame.mCommandBuffer.Push( &commandData, sizeof( commandData ) );
+      gSubmitFrame->mCommandBuffer.Push( CommandType::DestroyIndexBuffer );
+      gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
     }
 
     void DestroyTexture( TextureHandle handle )
     {
       gResourceManager.mIdCollectionTexture.Free( handle.mResourceId );
       const CommandDataDestroyResource commandData = { handle.mResourceId };
-      gSubmitFrame.mCommandBuffer.Push( CommandType::DestroyTexture );
-      gSubmitFrame.mCommandBuffer.Push( &commandData, sizeof( commandData ) );
+      gSubmitFrame->mCommandBuffer.Push( CommandType::DestroyTexture );
+      gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
     }
 
     void DestroyFramebuffer( FramebufferHandle handle )
     {
       gResourceManager.mIdCollectionFramebuffer.Free( handle.mResourceId );
       const CommandDataDestroyResource commandData = { handle.mResourceId };
-      gSubmitFrame.mCommandBuffer.Push( CommandType::DestroyFramebuffer );
-      gSubmitFrame.mCommandBuffer.Push( &commandData, sizeof( commandData ) );
+      gSubmitFrame->mCommandBuffer.Push( CommandType::DestroyFramebuffer );
+      gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
     }
 
     void UpdateTextureRegion(
@@ -211,8 +219,8 @@ namespace Tac
       commandData.mDstX = mDstX;
       commandData.mDstY = mDstY;
 
-      gSubmitFrame.mCommandBuffer.Push( CommandType::UpdateTextureRegion );
-      gSubmitFrame.mCommandBuffer.Push( &commandData, sizeof( commandData ) );
+      gSubmitFrame->mCommandBuffer.Push( CommandType::UpdateTextureRegion );
+      gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
     }
 
     void UpdateVertexBuffer( VertexBufferHandle handle,
@@ -223,8 +231,8 @@ namespace Tac
       commandData.mByteCount = byteCount;
       commandData.mBytes = SubmitAlloc( bytes, byteCount );
       commandData.mResourceId = handle.mResourceId;
-      gSubmitFrame.mCommandBuffer.Push( CommandType::UpdateVertexBuffer );
-      gSubmitFrame.mCommandBuffer.Push( &commandData, sizeof( commandData ) );
+      gSubmitFrame->mCommandBuffer.Push( CommandType::UpdateVertexBuffer );
+      gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
     }
 
     void UpdateIndexBuffer( IndexBufferHandle handle,
@@ -235,9 +243,56 @@ namespace Tac
       commandData.mByteCount = byteCount;
       commandData.mBytes = SubmitAlloc( bytes, byteCount );
       commandData.mResourceId = handle.mResourceId;
-      gSubmitFrame.mCommandBuffer.Push( CommandType::UpdateIndexBuffer );
-      gSubmitFrame.mCommandBuffer.Push( &commandData, sizeof( commandData ) );
+      gSubmitFrame->mCommandBuffer.Push( CommandType::UpdateIndexBuffer );
+      gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
     }
 
+    void SetViewFramebuffer( ViewId viewId, FramebufferHandle framebufferHandle )
+    {
+      gViews[ viewId ].mFramebufferHandle = framebufferHandle;
+    }
+
+
+    //static std::mutex gSubmitLock;
+    //static std::mutex gRenderLock;
+    Semaphore::Handle gSubmitSemaphore;
+    Semaphore::Handle gRenderSemaphore;
+
+    void RenderFrame()
+    {
+      TAC_ASSERT( gThreadType == ThreadType::Main );
+
+      Semaphore::WaitAndDecrement( gSubmitSemaphore );
+
+      Errors errors;
+      Renderer::Instance->Render2( gRenderFrame, errors );
+      TAC_ASSERT( errors.empty() );
+
+      Semaphore::Increment( gRenderSemaphore );
+
+      Renderer::Instance->SwapBuffers();
+    }
+
+    static int gFrameCount;
+    void SubmitFrame()
+    {
+      TAC_ASSERT( gThreadType == ThreadType::Stuff );
+      Semaphore::WaitAndDecrement( gRenderSemaphore );
+
+      // submit finish
+
+      Swap( gRenderFrame, gSubmitFrame );
+      gFrameCount++;
+
+      // submit start
+
+      Semaphore::Increment( gSubmitSemaphore );
+    }
+    void Init( int ringBufferByteCount )
+    {
+      SubmitAllocInit( ringBufferByteCount );
+      gSubmitSemaphore = Semaphore::Create();
+      gRenderSemaphore = Semaphore::Create();
+    }
   }
 }

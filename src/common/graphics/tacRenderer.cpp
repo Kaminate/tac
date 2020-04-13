@@ -67,7 +67,7 @@ namespace Tac
         rendererResource->mName +
         " created at " +
         rendererResource->mFrame.ToString();
-      OS::Instance->DebugAssert( errorMessage, TAC_STACK_FRAME );
+      OS::DebugAssert( errorMessage, TAC_STACK_FRAME );
     }
   }
 

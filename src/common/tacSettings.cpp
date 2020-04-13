@@ -19,7 +19,7 @@ void Settings::Load( Errors& errors )
 void Settings::Save( Errors& errors )
 {
   String str = mJson.Stringify();
-  OS::Instance->SaveToFile( mPath, ( void* )str.data(), ( int )str.size(), errors );
+  OS::SaveToFile( mPath, ( void* )str.data(), ( int )str.size(), errors );
   TAC_HANDLE_ERROR( errors );
 }
 

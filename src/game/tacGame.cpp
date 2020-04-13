@@ -52,7 +52,7 @@ namespace Tac
     {
       Errors screenspaceCursorPosErrors;
       v2 screenspaceCursorPos;
-      OS::Instance->GetScreenspaceCursorPos( screenspaceCursorPos, screenspaceCursorPosErrors );
+      OS::GetScreenspaceCursorPos( screenspaceCursorPos, screenspaceCursorPosErrors );
       v2 mousePositionDesktopWindowspace = {};
       bool isWindowDirectlyUnderCursor = false;
       if( screenspaceCursorPosErrors.empty() )
@@ -104,23 +104,23 @@ namespace Tac
   void ExecutableStartupInfo::Init( Errors& errors )
   {
     String appDataPath;
-    OS::Instance->GetApplicationDataPath( appDataPath, errors );
+    OS::GetApplicationDataPath( appDataPath, errors );
 
     String studioPath = appDataPath + "\\Sleeping Studio\\";
     String prefPath = studioPath + appName;
 
     bool appDataPathExists;
-    OS::Instance->DoesFolderExist( appDataPath, appDataPathExists, errors );
+    OS::DoesFolderExist( appDataPath, appDataPathExists, errors );
     TAC_ASSERT( appDataPathExists );
 
-    OS::Instance->CreateFolderIfNotExist( studioPath, errors );
+    OS::CreateFolderIfNotExist( studioPath, errors );
     TAC_HANDLE_ERROR( errors );
 
-    OS::Instance->CreateFolderIfNotExist( prefPath, errors );
+    OS::CreateFolderIfNotExist( prefPath, errors );
     TAC_HANDLE_ERROR( errors );
 
     String workingDir;
-    OS::Instance->GetWorkingDir( workingDir, errors );
+    OS::GetWorkingDir( workingDir, errors );
     TAC_HANDLE_ERROR( errors );
 
     Shell::Instance->mAppName = appName;

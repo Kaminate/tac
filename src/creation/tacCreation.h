@@ -48,6 +48,7 @@ namespace Tac
     Camera mCamera;
   };
 
+  const Render::ViewId ViewIdMainWindow = 0;
 
   struct Creation : public UpdateThing
   {
@@ -117,10 +118,11 @@ namespace Tac
 
     struct WindowFramebufferInfo
     {
-      DesktopWindowHandle mDesktopWindowHandle;
+      DesktopWindowState mDesktopWindowState;
       Render::FramebufferHandle mFramebufferHandle;
     };
     Vector<WindowFramebufferInfo> mWindowFramebufferInfos;
+    WindowFramebufferInfo* FindWindowFramebufferInfo( DesktopWindowHandle );
   };
 
   void SetCreationWindowImGuiGlobals( DesktopWindow* desktopWindow,

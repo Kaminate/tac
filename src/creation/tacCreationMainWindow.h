@@ -32,7 +32,6 @@ struct CreationMainWindow
   CreationGameObjectMenuWindow* mGameObjectMenuWindow = nullptr;
 
 
-  DesktopWindowState mDesktopWindowState;
   DesktopWindowHandle mDesktopWindowHandle;
 
   DesktopWindow* mDesktopWindow = nullptr;

@@ -123,10 +123,20 @@ namespace Tac
     Vector< UI2DDrawCall > mDrawCall2Ds;
     Vector< UI2DState > mStates;
 
+
+    // Hmm... this class shouldnt have both the mDefaultVertex2Ds and the mVertexBufferHandle
+    // it's too much responsibilty for 1 class.
+    // 
+    // instead, it should be broken up into 2 classes.
+    // the first class generates mDefaultVertex2Ds
+    // the second class interfaces with the renderer.
+
     VertexBuffer* mVerts = nullptr;
-    Render::VertexBufferHandle mVertexBufferHandle;
     IndexBuffer* mIndexes = nullptr;
+
+    Render::VertexBufferHandle mVertexBufferHandle;
     Render::IndexBufferHandle mIndexBufferHandle;
+
     RenderView* mRenderView = nullptr;
   };
 

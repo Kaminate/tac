@@ -416,10 +416,10 @@ namespace Tac
     mEditorCamera.mUp = { 0, 1, 0 };
 
     String dataPath;
-    OS::Instance->GetApplicationDataPath( dataPath, errors );
+    OS::GetApplicationDataPath( dataPath, errors );
     TAC_HANDLE_ERROR( errors );
 
-    OS::Instance->CreateFolderIfNotExist( dataPath, errors );
+    OS::CreateFolderIfNotExist( dataPath, errors );
     TAC_HANDLE_ERROR( errors );
 
     Settings* settings = Shell::Instance->mSettings;
@@ -537,7 +537,7 @@ namespace Tac
     if( processStuffOutput.mCreatedWindow )
     {
       WindowFramebufferInfo info;
-      info.mDesktopWindowHandle = processStuffOutput.mCreatedWindowState.mDesktopWindowHandle;
+      info.mDesktopWindowState = processStuffOutput.mCreatedWindowState;
       info.mFramebufferHandle =
         Render::CreateFramebuffer( processStuffOutput.mCreatedWindowState.mNativeWindowHandle,
                                    processStuffOutput.mCreatedWindowState.mWidth,
@@ -602,6 +602,8 @@ namespace Tac
         mGameWindow->mStatusMessageEndTime = Shell::Instance->mElapsedSeconds + 5.0f;
       }
     }
+
+    Render::SubmitFrame();
   }
   Entity* Creation::CreateEntity()
   {
@@ -723,7 +725,7 @@ namespace Tac
           entity->mName +
           ".prefab";
         Errors saveDialogErrors;
-        OS::Instance->SaveDialog( savePath, suggestedName, saveDialogErrors );
+        OS::SaveDialog( savePath, suggestedName, saveDialogErrors );
         if( saveDialogErrors )
         {
           // todo: log it, user feedback
@@ -746,7 +748,7 @@ namespace Tac
       Errors saveToFileErrors;
       void* bytes = prefabJsonString.data();
       int byteCount = prefabJsonString.size();
-      OS::Instance->SaveToFile( prefab->mDocumentPath, bytes, byteCount, saveToFileErrors );
+      OS::SaveToFile( prefab->mDocumentPath, bytes, byteCount, saveToFileErrors );
       if( saveToFileErrors )
       {
         // todo: log it, user feedback
@@ -864,6 +866,18 @@ namespace Tac
     }
   }
 
+  Creation::WindowFramebufferInfo* Creation::FindWindowFramebufferInfo( DesktopWindowHandle desktopWindowHandle )
+  {
+    for( WindowFramebufferInfo& info : mWindowFramebufferInfos )
+    {
+      if( info.mDesktopWindowState.mDesktopWindowHandle.mIndex == desktopWindowHandle.mIndex )
+      {
+        return &info;
+      }
+    }
+    return nullptr;
+  }
+
   void SetCreationWindowImGuiGlobals( DesktopWindow* desktopWindow,
                                       UI2DDrawData* ui2DDrawData,
                                       int desktopWindowWidth,
@@ -871,7 +885,7 @@ namespace Tac
   {
     Errors screenspaceCursorPosErrors;
     v2 screenspaceCursorPos = {};
-    OS::Instance->GetScreenspaceCursorPos( screenspaceCursorPos, screenspaceCursorPosErrors );
+    OS::GetScreenspaceCursorPos( screenspaceCursorPos, screenspaceCursorPosErrors );
     bool isWindowDirectlyUnderCursor = false;
     v2 mousePositionDestopWindowspace = {};
     if( screenspaceCursorPosErrors.empty() && desktopWindow )
