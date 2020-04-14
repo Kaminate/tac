@@ -65,5 +65,20 @@ namespace Tac
       UpdateVertexBuffer,
       UpdateIndexBuffer,
     };
+
+    struct CommandBuffer
+    {
+      void Push( CommandType type );
+
+      void Push( const void* bytes, int byteCount );
+      
+
+      Vector<char> mBuffer;
+    };
+
+    struct Frame
+    {
+      CommandBuffer mCommandBuffer;
+    };
   }
 }

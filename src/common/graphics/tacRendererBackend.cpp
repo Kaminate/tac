@@ -18,21 +18,16 @@ namespace Tac
       Vector< Tac::StackFrame >        mFrames;
     };
 
-    struct CommandBuffer
+    void CommandBuffer::Push( CommandType type )
     {
-      void Push( CommandType type )
-      {
-        Push( &type, sizeof( CommandType ) );
-      }
-      void Push( const void* bytes, int byteCount )
-      {
-        const int bufferSize = mBuffer.size();
-        mBuffer.resize( mBuffer.size() + byteCount );
-        MemCpy( mBuffer.data() + bufferSize, bytes, byteCount );
-      }
-
-      Vector<char> mBuffer;
-    };
+      Push( &type, sizeof( CommandType ) );
+    }
+    void CommandBuffer::Push( const void* bytes, int byteCount )
+    {
+      const int bufferSize = mBuffer.size();
+      mBuffer.resize( mBuffer.size() + byteCount );
+      MemCpy( mBuffer.data() + bufferSize, bytes, byteCount );
+    }
 
     struct View
     {
@@ -41,15 +36,6 @@ namespace Tac
 
     static View gViews[ 10 ];
 
-    struct Frame
-    {
-      CommandBuffer mCommandBuffer;
-      //Vector< View > mViews;
-    };
-    //extern Frame gRenderFrame;
-    //extern Frame gSubmitFrame;
-    //Frame gRenderFrame;
-    //Frame gSubmitFrame;
 
     static Frame gFrames[ 2 ];
     static Frame* gRenderFrame = &gFrames[ 0 ];
@@ -252,9 +238,10 @@ namespace Tac
       gViews[ viewId ].mFramebufferHandle = framebufferHandle;
     }
 
+    // need lots of comments pls
 
-    //static std::mutex gSubmitLock;
-    //static std::mutex gRenderLock;
+    // i think these 2 semaphores just ensure that RenderFrame() and SubmitFrame()
+    // alternate calls
     Semaphore::Handle gSubmitSemaphore;
     Semaphore::Handle gRenderSemaphore;
 
@@ -282,6 +269,7 @@ namespace Tac
       // submit finish
 
       Swap( gRenderFrame, gSubmitFrame );
+      gSubmitFrame->mCommandBuffer.mBuffer.clear();
       gFrameCount++;
 
       // submit start
@@ -293,6 +281,9 @@ namespace Tac
       SubmitAllocInit( ringBufferByteCount );
       gSubmitSemaphore = Semaphore::Create();
       gRenderSemaphore = Semaphore::Create();
+
+      // i guess well make render frame go first
+      Semaphore::Increment( gSubmitSemaphore );
     }
   }
 }
