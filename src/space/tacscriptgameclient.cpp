@@ -451,7 +451,7 @@ void ScriptMainMenu::Update( float seconds, Errors& errors )
     }
 
     Image image;
-    image.mData = loaded;
+    //image.mData = loaded;
     image.mFormat.mElementCount = 4;
     image.mFormat.mPerElementByteCount = 1;
     image.mFormat.mPerElementDataType = GraphicsType::unorm;

@@ -47,7 +47,7 @@ namespace Tac
     v3 d( 0, 0.25, 0.25 );
 
     uint32_t hash = 0;
-    for( char c : profileFunction->mFrame.mFunction )
+    for( char c : StringView( profileFunction->mFrame.mFunction ) )
       hash = hash * 31 + c;
     float t = ( std::sin( ( float )hash ) + 1.0f ) / 2.0f;
 

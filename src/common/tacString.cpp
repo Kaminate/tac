@@ -303,6 +303,10 @@ namespace Tac
   {
     assign( str.c_str(), str.size() );
   }
+  void String::operator = ( const StringView& str )
+  {
+    assign( str.data(), str.size() );
+  }
   void String::operator += ( const char* str )
   {
     int len = StrLen( str );

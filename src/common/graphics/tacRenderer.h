@@ -96,12 +96,13 @@ namespace Tac
   };
   enum class Access
   {
+    Default = 0, // ?
     Static, // Never gonna change
-    Default, // ?
     Dynamic, // Gonna change ( debug draw, animation )
   };
   enum class CPUAccess
   {
+    None = 0b00,
     Read = 0b01,
     Write = 0b10
   };
@@ -142,6 +143,7 @@ namespace Tac
   };
   enum class Binding
   {
+    None = 0b00,
     ShaderResource = 0b01,
     RenderTarget = 0b10,
   };
@@ -168,8 +170,9 @@ namespace Tac
 
     // comment?
     int mPitch = 0;
-    void* mData = nullptr;
     Format mFormat;
+
+    // byte data should be passed as a separate argument, not as a member of this class
   };
   struct Constant
   {
@@ -248,6 +251,7 @@ namespace Tac
     virtual void* GetImguiTextureID() { return nullptr; }
     float GetAspect() { return ( float )myImage.mWidth / ( float )myImage.mHeight; }
     Image myImage;
+    void* mOptionalImageBytes = nullptr;
     Access access = Access::Default;
     std::set< CPUAccess > cpuAccess;
     std::set< Binding > binding;
@@ -430,32 +434,69 @@ namespace Tac
     void* SubmitAlloc( void* bytes, int byteCount );
     //void SubmitAllocBeginFrame();
 
-    VertexBufferHandle               CreateVertexBuffer( StringView, StackFrame );
-    IndexBufferHandle                CreateIndexBuffer( StringView, StackFrame );
-    TextureHandle                    CreateTexture( StringView, StackFrame );
-    FramebufferHandle                CreateFramebuffer( void* nativeWindowHandle,
-                                                        int width,
-                                                        int height,
-                                                        StringView,
+    struct CommandDataCreateBuffer
+    {
+      int mByteCount = 0;
+      void* mOptionalInitialBytes = nullptr;
+      Access mAccess = Access::Default;
+    };
+
+    struct CommandDataCreateTexture
+    {
+      Image mImage;
+      void* mImageBytes = nullptr;
+      void* mImageBytesCubemap[ 6 ] = {};
+      Binding mBinding = Binding::None;
+      Access mAccess = Access::Default;
+      CPUAccess mCpuAccess = CPUAccess::None;
+    };
+
+    struct CommandDataCreateFramebuffer
+    {
+      int mWidth = 0;
+      int mHeight = 0;
+      void* mNativeWindowHandle = nullptr;
+    };
+
+    struct CommandDataUpdateTextureRegion
+    {
+      Image mSrc;
+      int mDstX = 0;
+      int mDstY = 0;
+    };
+
+    struct CommandDataUpdateBuffer
+    {
+      void* mBytes = nullptr;
+      int mByteCount = 0;
+    };
+
+
+    VertexBufferHandle               CreateVertexBuffer( StringView, CommandDataCreateBuffer, StackFrame );
+    IndexBufferHandle                CreateIndexBuffer( StringView, CommandDataCreateBuffer, StackFrame );
+    TextureHandle                    CreateTexture( StringView, CommandDataCreateTexture, StackFrame );
+    FramebufferHandle                CreateFramebuffer( StringView,
+                                                        CommandDataCreateFramebuffer,
                                                         StackFrame );
 
-    void                             DestroyVertexBuffer( VertexBufferHandle );
-    void                             DestroyIndexBuffer( IndexBufferHandle );
-    void                             DestroyTexture( TextureHandle );
-    void                             DestroyFramebuffer( FramebufferHandle );
+    void                             DestroyVertexBuffer( VertexBufferHandle, StackFrame );
+    void                             DestroyIndexBuffer( IndexBufferHandle, StackFrame );
+    void                             DestroyTexture( TextureHandle, StackFrame );
+    void                             DestroyFramebuffer( FramebufferHandle, StackFrame );
 
     void                             UpdateTextureRegion( TextureHandle mDst,
-                                                          Image mSrc,
-                                                          int mDstX,
-                                                          int mDstY );
+                                                          CommandDataUpdateTextureRegion,
+                                                          StackFrame );
     void                             UpdateVertexBuffer( VertexBufferHandle,
-                                                         void* bytes,
-                                                         int byteCount );
+                                                         CommandDataUpdateBuffer,
+                                                         StackFrame );
     void                             UpdateIndexBuffer( IndexBufferHandle,
-                                                        void* bytes,
-                                                        int byteCount );
+                                                        CommandDataUpdateBuffer,
+                                                        StackFrame );
     void                             SetViewFramebuffer( ViewId viewId,
                                                          FramebufferHandle framebufferHandle );
+
+
   }
 
   struct Renderer
@@ -577,8 +618,8 @@ namespace Tac
       {
         auto resource = ( RendererResource* )&resourceData;
         TAC_ASSERT( resource->mName.size() );
-        TAC_ASSERT( resource->mFrame.mFile.size() );
-        TAC_ASSERT( resource->mFrame.mFunction.size() );
+        TAC_ASSERT( resource->mFrame.mFile );
+        TAC_ASSERT( resource->mFrame.mFunction );
       }
 
       auto resource = new TResource();

@@ -31,7 +31,6 @@ namespace Tac
   struct Shell;
   struct Soul;
   struct Texture;
-  struct TextureAssetManager;
   struct ModelAssetManager;
   struct Timer;
   struct UI2DCommonData;

@@ -98,14 +98,11 @@ namespace Tac
     static String defaultSkybox = "assets/skybox/daylight";
     const String& skyboxDirToUse = skyboxDir.empty() ? defaultSkybox : skyboxDir;
 
-    TextureAssetManager* textureAssetManager = TextureAssetManager::Instance;
-    Texture* cubemap;
     Errors errors;
-    textureAssetManager->GetTextureCube( &cubemap, skyboxDirToUse, errors );
+    Render::TextureHandle cubemap = TextureAssetManager::GetTextureCube( skyboxDirToUse, errors );
     TAC_ASSERT( errors.empty() );
-    if( !cubemap )
+    if( cubemap.mResourceId == Render::NullResourceId )
       return;
-
 
     Mesh* mesh;
     ModelAssetManager::Instance->GetMesh( &mesh, "assets/editor/Box.gltf", mVertexFormat, errors );
@@ -148,7 +145,7 @@ namespace Tac
     drawCallGeometry.mSamplerState = mSamplerState;
     drawCallGeometry.mFrame = TAC_STACK_FRAME;
     drawCallGeometry.mStartIndex = 0;
-    drawCallGeometry.mTextures = { cubemap };
+    drawCallGeometry.mTextures = { nullptr }; // { cubemap };
     drawCallGeometry.mRenderView = mDesktopWindow->mRenderView;
     Renderer::Instance->AddDrawCall( drawCallGeometry );
 

@@ -53,7 +53,6 @@ Shell::~Shell()
   delete FontStuff::Instance;
   delete mLog;
   delete ModelAssetManager::Instance;
-  delete TextureAssetManager::Instance;
 
   // last, so resources can be freed
   delete Renderer::Instance;
@@ -110,8 +109,6 @@ void Shell::Init( Errors& errors )
 
   new JobQueue;
   JobQueue::Instance->Init();
-
-  new TextureAssetManager;
 
   new ModelAssetManager;
 

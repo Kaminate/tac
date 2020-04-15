@@ -27,7 +27,7 @@ namespace Tac
 #endif
   }
 
-  StackFrame::StackFrame( int line, StringView file, StringView function )
+  StackFrame::StackFrame( int line, const char* file, const char* function )
   {
     mLine = line;
     mFile = file;

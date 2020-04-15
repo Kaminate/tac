@@ -16,7 +16,6 @@ struct Renderer;
 struct SamplerState;
 struct Shader;
 struct String;
-struct TextureAssetManager;
 struct VertexFormat;
 
 struct SkyboxPresentation

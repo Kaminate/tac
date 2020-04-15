@@ -23,6 +23,8 @@ namespace Tac
   void MemCpy( void* dst, const void* src, int len );
   void StrCpy( char* dst, const char* src );
 
+  // so like if youre passing around data, i think stringview is nice because
+  // your string doesnt have to be null terminated.
   struct StringView
   {
     StringView( const char* str );
@@ -56,6 +58,7 @@ namespace Tac
     char* data() const;
     char operator[]( int i ) const;
     char& operator[]( int i );
+    void operator = ( const StringView& str );
     void operator = ( const String& str );
     void operator = ( const char* str );
     void operator += ( const char* str );

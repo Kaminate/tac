@@ -40,28 +40,28 @@ namespace Tac
   }
   void CreationMainWindow::LoadTextures( Errors& errors )
   {
-    if( mAreTexturesLoaded )
-      return;
-    struct TextureAndPath
-    {
-      Texture** texture;
-      const char* path;
-    };
-    Vector< TextureAndPath > textureAndPaths = {
-      { &mIconWindow, "assets/grave.png" },
-    { &mIconClose, "assets/icons/close.png" },
-    { &mIconMinimize, "assets/icons/minimize.png" },
-    { &mIconMaximize, "assets/icons/maximize.png" },
-    };
-    int loadedTextureCount = 0;
-    for( TextureAndPath textureAndPath : textureAndPaths )
-    {
-      TextureAssetManager::Instance->GetTexture( textureAndPath.texture, textureAndPath.path, errors );
-      TAC_HANDLE_ERROR( errors );
-      if( *textureAndPath.texture )
-        loadedTextureCount++;
-    }
-    if( loadedTextureCount == textureAndPaths.size() )
+    //if( mAreTexturesLoaded )
+    //  return;
+    //struct TextureAndPath
+    //{
+    //  Render::TextureHandle textureHandle;
+    //  const char* path;
+    //};
+    //Vector< TextureAndPath > textureAndPaths = {
+    //  { &mIconWindow, "assets/grave.png" },
+    //{ &mIconClose, "assets/icons/close.png" },
+    //{ &mIconMinimize, "assets/icons/minimize.png" },
+    //{ &mIconMaximize, "assets/icons/maximize.png" },
+    //};
+    //int loadedTextureCount = 0;
+    //for( TextureAndPath textureAndPath : textureAndPaths )
+    //{
+    //  TextureAssetManager::GetTexture( textureAndPath.path, errors );
+    //  TAC_HANDLE_ERROR( errors );
+    //  if( *textureAndPath.texture )
+    //    loadedTextureCount++;
+    //}
+    //if( loadedTextureCount == textureAndPaths.size() )
       mAreTexturesLoaded = true;
 
   }

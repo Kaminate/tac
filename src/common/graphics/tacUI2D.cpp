@@ -58,10 +58,10 @@ namespace Tac
     textureData.myImage.mWidth = 1;
     textureData.myImage.mHeight = 1;
     textureData.myImage.mPitch = sizeof( data );
-    textureData.myImage.mData = data;
     textureData.myImage.mFormat.mElementCount = 4;
     textureData.myImage.mFormat.mPerElementByteCount = 1;
     textureData.myImage.mFormat.mPerElementDataType = GraphicsType::unorm;
+    textureData.mOptionalImageBytes = data;
     textureData.mFrame = TAC_STACK_FRAME;
     textureData.mName = "1x1 white";
     textureData.binding = { Binding::ShaderResource };
@@ -186,7 +186,12 @@ namespace Tac
           Renderer::Instance->RemoveRendererResource( mVerts );
         VertexBufferData vertexBufferData = GetVertexBufferData( TAC_STACK_FRAME, vertexCount );
         //Renderer::Instance->AddVertexBuffer( &mVerts, vertexBufferData, errors );
-        mVertexBufferHandle = Render::CreateVertexBuffer( "draw data verts", TAC_STACK_FRAME );
+
+        Render::CommandDataCreateBuffer data;
+        data.mAccess = Access::Dynamic;;
+        data.mByteCount = vertexCount * sizeof( UI2DVertex );
+        data.mOptionalInitialBytes = nullptr;
+        mVertexBufferHandle = Render::CreateVertexBuffer( "draw data verts", data, TAC_STACK_FRAME );
         TAC_HANDLE_ERROR( errors );
       }
 
@@ -196,24 +201,31 @@ namespace Tac
           Renderer::Instance->RemoveRendererResource( mIndexes );
         IndexBufferData indexBufferData = GetIndexBufferData( TAC_STACK_FRAME, indexCount );
         //Renderer::Instance->AddIndexBuffer( &mIndexes, indexBufferData, errors );
-        mIndexBufferHandle = Render::CreateIndexBuffer( "draw data indexes", TAC_STACK_FRAME );
+        Render::CommandDataCreateBuffer data;
+        data.mAccess = Access::Dynamic;;
+        data.mByteCount = indexCount * sizeof( UI2DIndex );
+        data.mOptionalInitialBytes = nullptr;
+        mIndexBufferHandle = Render::CreateIndexBuffer( "draw data indexes", data, TAC_STACK_FRAME );
         TAC_HANDLE_ERROR( errors );
       }
 
-      //void* vertexData = Render::SubmitAlloc( mDefaultVertex2Ds.data(),
-      //                                        mDefaultVertex2Ds.size() * sizeof( UI2DVertex ) );
-      //void* indexData = Render::SubmitAlloc( mDefaultIndex2Ds.data(),
-      //                                       mDefaultIndex2Ds.size() * sizeof( UI2DIndex ) );
 
+      Render::CommandDataUpdateBuffer updateVertexBufferData;
+      updateVertexBufferData.mBytes = mDefaultVertex2Ds.data();
+      updateVertexBufferData.mByteCount = mDefaultVertex2Ds.size() * sizeof( UI2DVertex );
       Render::UpdateVertexBuffer( mVertexBufferHandle,
-                                  mDefaultVertex2Ds.data(),
-                                  mDefaultVertex2Ds.size() * sizeof( UI2DVertex ) );
+                                  updateVertexBufferData,
+                                  TAC_STACK_FRAME );
       //mVerts->Overwrite( mDefaultVertex2Ds.data(), vertexCount * sizeof( UI2DVertex ), errors );
       TAC_HANDLE_ERROR( errors );
 
+      Render::CommandDataUpdateBuffer updateIndexBufferData;
+      updateIndexBufferData.mBytes = mDefaultIndex2Ds.data();
+      updateIndexBufferData.mByteCount = mDefaultIndex2Ds.size() * sizeof( UI2DIndex );
+
       Render::UpdateIndexBuffer( mIndexBufferHandle,
-                                 mDefaultIndex2Ds.data(),
-                                 mDefaultIndex2Ds.size() * sizeof( UI2DIndex ) );
+                                 updateIndexBufferData,
+                                 TAC_STACK_FRAME );
       //mIndexes->Overwrite( mDefaultIndex2Ds.data(), indexCount * sizeof( UI2DIndex ), errors );
       TAC_HANDLE_ERROR( errors );
 
@@ -302,9 +314,9 @@ namespace Tac
     mDefaultVertex2Ds.clear();
     mDefaultIndex2Ds.clear();
 
-    Renderer::Instance->DebugBegin( "2d" );
-    Renderer::Instance->RenderFlush();
-    Renderer::Instance->DebugEnd();
+    //Renderer::Instance->DebugBegin( "2d" );
+    //Renderer::Instance->RenderFlush();
+    //Renderer::Instance->DebugEnd();
   }
   UI2DState* UI2DDrawData::PushState()
   {
@@ -700,7 +712,7 @@ namespace Tac
   //}
 
   void UI2DDrawData::AddText(
-    const v2 textPos, 
+    const v2 textPos,
     const int fontSize,
     const String& utf8,
     const v4 color,
@@ -793,9 +805,9 @@ namespace Tac
         // Check if completely clipped prior to clipping the edges to fit the clip rect.
         // This way we don't need to clip both sides of the glyph against the clip rect.
         if( glyphMaxX < clipRect->mMini.x ||
-          glyphMinX > clipRect->mMaxi.x ||
-          glyphMaxY < clipRect->mMini.y ||
-          glyphMinY > clipRect->mMaxi.y )
+            glyphMinX > clipRect->mMaxi.x ||
+            glyphMaxY < clipRect->mMini.y ||
+            glyphMinY > clipRect->mMaxi.y )
           continue;
         glyphMinX = Max( glyphMinX, clipRect->mMini.x );
         glyphMaxX = Min( glyphMaxX, clipRect->mMaxi.x );

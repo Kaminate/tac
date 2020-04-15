@@ -99,12 +99,12 @@ namespace Tac
 
 
     Image image;
-    image.mData = initialAtlasMemory;
     image.mWidth = mRowCount * FontCellWidth;
     image.mHeight = mRowCount * FontCellWidth;
     image.mPitch = mRowCount * FontCellWidth;
     image.mFormat = atlasFormat;
     TextureData textureData;
+    textureData.mOptionalImageBytes = initialAtlasMemory;
     textureData.access = Access::Dynamic;
     textureData.binding = { Binding::ShaderResource };
     textureData.cpuAccess = { CPUAccess::Write };
@@ -115,7 +115,13 @@ namespace Tac
 
 
 
-    mTextureId = Render::CreateTexture( "texture atlas", TAC_STACK_FRAME );
+    Render::CommandDataCreateTexture cmdData;
+    cmdData.mAccess = Access::Dynamic;
+    cmdData.mBinding = Binding::ShaderResource;
+    cmdData.mCpuAccess = CPUAccess::Write;
+    cmdData.mImage = image;
+    cmdData.mImageBytes = initialAtlasMemory;
+    mTextureId = Render::CreateTexture( "texture atlas", cmdData, TAC_STACK_FRAME );
 
 
     TAC_HANDLE_ERROR( errors );
@@ -345,7 +351,7 @@ namespace Tac
     if( bitmapWidthPx && bitmapHeightPx )
     {
       Image src;
-      src.mData = bitmapMemory.data();
+      //src.mData = bitmapMemory.data();
       src.mFormat = atlasFormat;
       src.mHeight = bitmapHeightPx;
       src.mWidth = bitmapWidthPx;
@@ -359,7 +365,12 @@ namespace Tac
 
       // Renderer::Instance->CopyTextureRegion( mTexture, src, x, y, errors );
 
-      Render::UpdateTextureRegion( mTextureId, src, x, y );
+      Render::CommandDataUpdateTextureRegion data;
+      data.mDstX = x;
+      data.mDstY = y;
+      data.mSrc = src;
+
+      Render::UpdateTextureRegion( mTextureId, data, TAC_STACK_FRAME );
 
       TAC_HANDLE_ERROR( errors );
     }

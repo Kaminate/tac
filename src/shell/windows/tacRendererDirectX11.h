@@ -191,8 +191,8 @@ namespace Tac
       const String& samplerName,
       SamplerState* samplerState ) override;
 
-    void AddTextureResource( Texture**, const TextureData&, Errors& errors ) override;
-    void AddTextureResourceCube( Texture** texture, const TextureData& textureData, void** sixCubeDatas, Errors& errors ) override;
+    void AddTextureResource( Tac::Texture**, const TextureData&, Errors& errors ) override;
+    void AddTextureResourceCube( Tac::Texture** texture, const TextureData& textureData, void** sixCubeDatas, Errors& errors ) override;
     void AddTexture(
       const String& textureName,
       Shader* shader,
@@ -200,7 +200,7 @@ namespace Tac
       int samplerIndex ) override;
     void SetTexture(
       const String& textureName,
-      Texture* texture ) override;
+      Tac::Texture* texture ) override;
 
     void AddDepthBuffer( DepthBuffer** outputDepthBuffer, const DepthBufferData&, Errors& errors ) override;
 
@@ -254,6 +254,7 @@ namespace Tac
 
     void CreateTexture(
       const Image& image,
+      void* optionalInitialBytes,
       ID3D11Resource** texture,
       Access access,
       std::set< CPUAccess > cpuAccess,
@@ -307,8 +308,39 @@ namespace Tac
     Vector< RenderView* > mFrameBoundRenderViews;
 
 
+    // --- Resources begin ---
+    static const int N = 100;
 
-    std::thread mRenderThread;
+    struct Texture
+    {
+      ID3D11Texture2D* mTexture2D = {};
+      ID3D11RenderTargetView* mTextureRTV = {};
+      ID3D11ShaderResourceView* mTextureSRV = {};
+    } mTextures[ N ] = {};
+    ID3D11Buffer* mVertexBuffers[ N ] = {};
+    ID3D11Buffer* mIndexBuffers[ N ] = {};
+    struct Framebuffer
+    {
+      IDXGISwapChain* mSwapChain = nullptr;
+      ID3D11DepthStencilView* mDepthStencilView = nullptr;
+      ID3D11Texture2D* mDepthTexture = nullptr;
+    } mFramebuffers[ N ] = {};
+
+    // this should all be virtual
+    void AddVertexBuffer( int, Render::CommandDataCreateBuffer*, Errors& );
+    void AddIndexBuffer( int, Render::CommandDataCreateBuffer*, Errors& );
+    void AddTexture( int, Render::CommandDataCreateTexture*, Errors& );
+    void AddFramebuffer( int, Render::CommandDataCreateFramebuffer*, Errors& );
+    void RemoveVertexBuffer( int, Errors& );
+    void RemoveIndexBuffer( int, Errors& );
+    void RemoveTexture( int, Errors& );
+    void RemoveFramebuffer( int, Errors& );
+    void UpdateTextureRegion( int, Render::CommandDataUpdateTextureRegion* );
+    void UpdateVertexBuffer( int, Render::CommandDataUpdateBuffer* );
+    void UpdateIndexBuffer( int, Render::CommandDataUpdateBuffer* );
+    // frame buffers?
+
+    // --- Resources end ---
 
   };
 

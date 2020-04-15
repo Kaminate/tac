@@ -28,7 +28,6 @@ namespace Tac
   struct Shell;
   struct Soul;
   struct Texture;
-  struct TextureAssetManager;
   struct UI2DDrawData;
   struct WindowParams;
   struct World;

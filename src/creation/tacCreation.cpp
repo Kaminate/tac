@@ -96,10 +96,10 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
 
     desktopWindow->mOnDestroyed.AddCallbackFunctional( []( DesktopWindow* )
-      {
-        delete Creation::Instance->mPropertyWindow;
-        Creation::Instance->mPropertyWindow = nullptr;
-      } );
+                                                       {
+                                                         delete Creation::Instance->mPropertyWindow;
+                                                         Creation::Instance->mPropertyWindow = nullptr;
+                                                       } );
   }
   void Creation::CreateGameWindow( Errors& errors )
   {
@@ -118,10 +118,10 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
 
     desktopWindow->mOnDestroyed.AddCallbackFunctional( []( DesktopWindow* )
-      {
-        delete Creation::Instance->mGameWindow;
-        Creation::Instance->mGameWindow = nullptr;
-      } );
+                                                       {
+                                                         delete Creation::Instance->mGameWindow;
+                                                         Creation::Instance->mGameWindow = nullptr;
+                                                       } );
   }
   void Creation::CreateMainWindow( Errors& errors )
   {
@@ -161,10 +161,10 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
 
     desktopWindow->mOnDestroyed.AddCallbackFunctional( []( DesktopWindow* )
-      {
-        delete Creation::Instance->mSystemWindow;
-        Creation::Instance->mSystemWindow = nullptr;
-      } );
+                                                       {
+                                                         delete Creation::Instance->mSystemWindow;
+                                                         Creation::Instance->mSystemWindow = nullptr;
+                                                       } );
   }
 
   void Creation::CreateProfileWindow( Errors& errors )
@@ -184,16 +184,16 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
 
     desktopWindow->mOnDestroyed.AddCallbackFunctional( []( DesktopWindow* )
-      {
-        delete Creation::Instance->mProfileWindow;
-        Creation::Instance->mProfileWindow = nullptr;
-      } );
+                                                       {
+                                                         delete Creation::Instance->mProfileWindow;
+                                                         Creation::Instance->mProfileWindow = nullptr;
+                                                       } );
   }
 
   void Creation::GetWindowsJsonData( String windowName, int* x, int* y, int* w, int* h )
   {
     Json* windowJson = FindWindowJson( windowName );
-    if( !windowJson  )
+    if( !windowJson )
     {
       *x = 200;
       *y = 200;
@@ -536,14 +536,18 @@ namespace Tac
 
     if( processStuffOutput.mCreatedWindow )
     {
+
+      Render::CommandDataCreateFramebuffer cmdData;
+      cmdData.mHeight = processStuffOutput.mCreatedWindowState.mHeight;
+      cmdData.mWidth = processStuffOutput.mCreatedWindowState.mWidth;
+      cmdData.mNativeWindowHandle = processStuffOutput.mCreatedWindowState.mNativeWindowHandle;
+
       WindowFramebufferInfo info;
       info.mDesktopWindowState = processStuffOutput.mCreatedWindowState;
-      info.mFramebufferHandle =
-        Render::CreateFramebuffer( processStuffOutput.mCreatedWindowState.mNativeWindowHandle,
-                                   processStuffOutput.mCreatedWindowState.mWidth,
-                                   processStuffOutput.mCreatedWindowState.mHeight,
-                                   "idk go fuck urself",
-                                   TAC_STACK_FRAME );
+      info.mFramebufferHandle = Render::CreateFramebuffer( "<3 u hope ur feeling ok",
+                                                           cmdData,
+                                                           TAC_STACK_FRAME );
+      mWindowFramebufferInfos.push_back( info );
     }
 
 
@@ -587,13 +591,13 @@ namespace Tac
     mWorld->Step( TAC_DELTA_FRAME_SECONDS );
 
     if( KeyboardInput::Instance->IsKeyJustDown( Key::Delete ) &&
-      mGameWindow->mDesktopWindow->mCursorUnobscured )
+        mGameWindow->mDesktopWindow->mCursorUnobscured )
     {
       DeleteSelectedEntities();
     }
 
     if( KeyboardInput::Instance->IsKeyJustDown( Key::S ) &&
-      KeyboardInput::Instance->IsKeyDown( Key::Modifier ) )
+        KeyboardInput::Instance->IsKeyDown( Key::Modifier ) )
     {
       SavePrefabs();
       if( mGameWindow )
@@ -903,8 +907,8 @@ namespace Tac
       ui2DDrawData,
       desktopWindowWidth,
       desktopWindowHeight
-      
-      );
+
+    );
   }
 
 }

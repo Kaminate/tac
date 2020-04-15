@@ -40,8 +40,6 @@ namespace Tac
   void GamePresentation::RenderGameWorldToDesktopView()
   {
     //_PROFILE_BLOCK;
-    TextureAssetManager* textureAssetManager = TextureAssetManager::Instance;
-    ModelAssetManager* modelAssetManager = ModelAssetManager::Instance;
 
     World* world = mWorld;
 
@@ -173,11 +171,11 @@ namespace Tac
       if( !terrain->mVertexBuffer || !terrain->mIndexBuffer )
         continue;
 
-      Texture* terrainTexture = nullptr;
-      Texture* noiseTexture = nullptr;
       Errors errors;
-      textureAssetManager->GetTexture( &terrainTexture, terrain->mGroundTexturePath, errors );
-      textureAssetManager->GetTexture( &noiseTexture, terrain->mNoiseTexturePath, errors );
+      Render::TextureHandle terrainTexture =
+        TextureAssetManager::GetTexture( terrain->mGroundTexturePath, errors );
+      Render::TextureHandle noiseTexture =
+        TextureAssetManager::GetTexture( terrain->mNoiseTexturePath, errors );
 
       DefaultCBufferPerObject cbuf = {};
       cbuf.Color = { 1, 1, 1, 1 };
@@ -195,7 +193,7 @@ namespace Tac
       drawCall.mShader = mTerrainShader;
       drawCall.mFrame = TAC_STACK_FRAME;
       drawCall.mStartIndex = 0;
-      drawCall.mTextures = { terrainTexture, noiseTexture };
+      drawCall.mTextures = { nullptr, nullptr }; // { terrainTexture, noiseTexture };
       drawCall.mUniformDst = mPerObj;
       drawCall.mUniformSrcc = TemporaryMemoryFromT( cbuf );
       drawCall.mVertexBuffer = terrain->mVertexBuffer;

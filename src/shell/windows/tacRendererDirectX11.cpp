@@ -191,6 +191,15 @@ namespace Tac
     return D3D11_USAGE_DEFAULT;
   }
 
+  static UINT GetCPUAccessFlags( CPUAccess access )
+  {
+    UINT result = 0;
+    if( ( int )access & ( int )CPUAccess::Read )
+      result |= D3D11_CPU_ACCESS_WRITE;
+    if( ( int )access & ( int )CPUAccess::Write )
+      result |= D3D11_CPU_ACCESS_WRITE;
+    return result;
+  }
   static UINT GetCPUAccessFlags( const std::set< CPUAccess >& access )
   {
     std::map< CPUAccess, UINT > accessMap;
@@ -211,6 +220,22 @@ namespace Tac
     if( Contains( binding, Binding::ShaderResource ) )
       BindFlags |= D3D11_BIND_SHADER_RESOURCE;
     return BindFlags;
+  }
+  static UINT GetBindFlags( Binding binding )
+  {
+    UINT BindFlags = 0;
+    if( ( int )binding & ( int )Binding::RenderTarget )
+      BindFlags |= D3D11_BIND_RENDER_TARGET;
+    if( ( int )binding & ( int )Binding::ShaderResource )
+      BindFlags |= D3D11_BIND_SHADER_RESOURCE;
+    return BindFlags;
+  }
+  static UINT GetMiscFlags( Binding binding )
+  {
+    if( ( int )binding & ( int )Binding::RenderTarget &&
+      ( int )binding & ( int )Binding::ShaderResource )
+      return D3D11_RESOURCE_MISC_GENERATE_MIPS;
+    return 0;
   }
 
   static D3D11_MAP GetD3D11_MAP( Map mapType )
@@ -668,7 +693,7 @@ namespace Tac
       {
         Vector< ID3D11ShaderResourceView* > srvs;
         srvs.reserve( drawCall.mTextures.size() );
-        for( const Texture* texture : drawCall.mTextures )
+        for( const Tac::Texture* texture : drawCall.mTextures )
         {
           if( !texture )
             continue;
@@ -732,8 +757,121 @@ namespace Tac
 
   void RendererDirectX11::Render2( Render::Frame* frame, Errors& errors )
   {
-    frame->mCommandBuffer;
+    // factor out this while loop out of rendererDX11 and rendererOGL
+    const char* bufferBegin = frame->mCommandBuffer.mBuffer.data();
+    const char* bufferEnd = bufferBegin + frame->mCommandBuffer.mBuffer.size();
+    const char* bufferPos = bufferBegin;
 
+    //Render::CommandDataCreateTexture* commandDataCreateTexture = nullptr;
+    //Render::CommandDataCreateFramebuffer* commandDataCreateFramebuffer = nullptr;
+    //Render::CommandDataUpdateTextureRegion* commandDataUpdateTextureRegion = nullptr;
+    //Render::CommandDataUpdateBuffer* commandDataUpdateBuffer = nullptr;
+
+    while( bufferPos < bufferEnd )
+    {
+      auto renderCommandType = ( Render::CommandType* )bufferPos;
+      bufferPos += sizeof( Render::CommandType );
+
+      auto stackFrame = ( StackFrame* )bufferPos;
+      bufferPos += sizeof( StackFrame );
+
+      switch( *renderCommandType )
+      {
+        case Render::CommandType::CreateVertexBuffer:
+        {
+          auto resourceId = ( Render::ResourceId* )bufferPos;
+          bufferPos += sizeof( Render::ResourceId );
+          auto commandDataCreateBuffer = ( Render::CommandDataCreateBuffer* ) bufferPos;
+          bufferPos += sizeof( Render::CommandDataCreateBuffer );
+          AddVertexBuffer( *resourceId, commandDataCreateBuffer, errors );
+        } break;
+
+        case Render::CommandType::CreateIndexBuffer:
+        {
+          auto resourceId = ( Render::ResourceId* )bufferPos;
+          bufferPos += sizeof( Render::ResourceId );
+          auto commandDataCreateBuffer = ( Render::CommandDataCreateBuffer* )bufferPos;
+          bufferPos += sizeof( Render::CommandDataCreateBuffer );
+          AddIndexBuffer( *resourceId, commandDataCreateBuffer, errors );
+        } break;
+
+        case Render::CommandType::CreateTexture:
+        {
+          auto resourceId = ( Render::ResourceId* )bufferPos;
+          bufferPos += sizeof( Render::ResourceId );
+          auto commandData = ( Render::CommandDataCreateTexture* )bufferPos;
+          bufferPos += sizeof( Render::CommandDataCreateTexture );
+          AddTexture( *resourceId, commandData, errors );
+        } break;
+
+        case Render::CommandType::CreateFramebuffer:
+        {
+          auto resourceId = ( Render::ResourceId* )bufferPos;
+          bufferPos += sizeof( Render::ResourceId );
+          auto commandData = ( Render::CommandDataCreateFramebuffer* )bufferPos;
+          bufferPos += sizeof( Render::CommandDataCreateFramebuffer );
+          AddFramebuffer( *resourceId, commandData, errors );
+        } break;
+
+        case Render::CommandType::DestroyVertexBuffer:
+        {
+          auto resourceId = ( Render::ResourceId* )bufferPos;
+          bufferPos += sizeof( Render::ResourceId );
+          RemoveVertexBuffer( *resourceId, errors );
+        } break;
+
+        case Render::CommandType::DestroyIndexBuffer:
+        {
+          auto resourceId = ( Render::ResourceId* )bufferPos;
+          bufferPos += sizeof( Render::ResourceId );
+          RemoveIndexBuffer( *resourceId, errors );
+        } break;
+
+        case Render::CommandType::DestroyTexture:
+        {
+          auto resourceId = ( Render::ResourceId* )bufferPos;
+          bufferPos += sizeof( Render::ResourceId );
+          RemoveTexture( *resourceId, errors );
+        } break;
+
+        case Render::CommandType::DestroyFramebuffer:
+        {
+          auto resourceId = ( Render::ResourceId* )bufferPos;
+          bufferPos += sizeof( Render::ResourceId );
+          RemoveFramebuffer( *resourceId, errors );
+        } break;
+
+        case Render::CommandType::UpdateTextureRegion:
+        {
+          auto resourceId = ( Render::ResourceId* )bufferPos;
+          bufferPos += sizeof( Render::ResourceId );
+          auto commandData = ( Render::CommandDataUpdateTextureRegion* )bufferPos;
+          bufferPos += sizeof( Render::CommandDataUpdateTextureRegion );
+          UpdateTextureRegion( *resourceId, commandData );
+        } break;
+
+        case Render::CommandType::UpdateVertexBuffer:
+        {
+          auto resourceId = ( Render::ResourceId* )bufferPos;
+          bufferPos += sizeof( Render::ResourceId );
+          auto commandData = ( Render::CommandDataUpdateBuffer* )bufferPos;
+          bufferPos += sizeof( Render::CommandDataUpdateBuffer );
+          UpdateVertexBuffer( *resourceId, commandData );
+        } break;
+
+        case Render::CommandType::UpdateIndexBuffer:
+        {
+          auto resourceId = ( Render::ResourceId* )bufferPos;
+          bufferPos += sizeof( Render::ResourceId );
+          auto commandData = ( Render::CommandDataUpdateBuffer* )bufferPos;
+          bufferPos += sizeof( Render::CommandDataUpdateBuffer );
+          UpdateIndexBuffer( *resourceId, commandData );
+        } break;
+
+        default:
+          TAC_UNIMPLEMENTED;
+      }
+    }
   }
   void RendererDirectX11::SwapBuffers()
   {
@@ -836,7 +974,7 @@ namespace Tac
     *outputIndexBuffer = indexBuffer;
   }
   void RendererDirectX11::ClearColor(
-    Texture* texture,
+    Tac::Texture* texture,
     v4 rgba )
   {
     AssertRenderThread();
@@ -1087,7 +1225,7 @@ namespace Tac
   }
 
   void RendererDirectX11::AddTextureResourceCube(
-    Texture** texture,
+    Tac::Texture** texture,
     const TextureData& textureData,
     void** sixCubeDatas,
     Errors& errors )
@@ -1159,7 +1297,7 @@ namespace Tac
     *texture = textureDX11;
   }
   void RendererDirectX11::AddTextureResource(
-    Texture** outputTexture,
+    Tac::Texture** outputTexture,
     const TextureData& textureData,
     Errors& errors )
   {
@@ -1167,6 +1305,7 @@ namespace Tac
     ID3D11Resource* dXObj;
     CreateTexture(
       textureData.myImage,
+      textureData.mOptionalImageBytes,
       &dXObj,
       textureData.access,
       textureData.cpuAccess,
@@ -1242,7 +1381,7 @@ namespace Tac
 
   void RendererDirectX11::SetTexture(
     const String& name,
-    Texture* texture )
+    Tac::Texture* texture )
   {
     AssertRenderThread();
     //Assert( mCurrentShader );
@@ -1258,7 +1397,7 @@ namespace Tac
   }
 
   void RendererDirectX11::CopyTextureRegion(
-    Texture* dst,
+    Tac::Texture* dst,
     Image src,
     int x,
     int y,
@@ -1271,7 +1410,7 @@ namespace Tac
     srcBox.bottom = src.mHeight;
     srcBox.back = 1;
 
-    Texture* srcTexture;
+    Tac::Texture* srcTexture;
     TextureData textureData;
     textureData.access = Access::Default;
     textureData.binding = {};
@@ -1303,6 +1442,7 @@ namespace Tac
   // why does this function exist?
   void RendererDirectX11::CreateTexture(
     const Image& myImage,
+    void* optionalInitialBytes,
     ID3D11Resource** resource,
     Access access,
     std::set< CPUAccess > cpuAccess,
@@ -1356,11 +1496,11 @@ namespace Tac
     // You set SysMemPitch to the distance between any two adjacent pixels on different lines.
     // You set SysMemSlicePitch to the size of the entire 2D surface in bytes.
     D3D11_SUBRESOURCE_DATA subResource = {};
-    subResource.pSysMem = myImage.mData;
+    subResource.pSysMem = optionalInitialBytes;
     subResource.SysMemPitch = myImage.mPitch;
     subResource.SysMemSlicePitch = myImage.mPitch * myImage.mHeight; // <-- I guess
 
-    D3D11_SUBRESOURCE_DATA* pSubResource = myImage.mData ? &subResource : nullptr;
+    D3D11_SUBRESOURCE_DATA* pSubResource = optionalInitialBytes ? &subResource : nullptr;
     TAC_DX11_CALL(
       errors,
       mDevice->CreateTexture2D,
@@ -2023,4 +2163,210 @@ namespace Tac
   }
 
 
+  void RendererDirectX11::AddVertexBuffer( int index,
+                                           Render::CommandDataCreateBuffer* data,
+                                           Errors& errors )
+  {
+    AssertRenderThread();
+
+    D3D11_BUFFER_DESC bd = {};
+    bd.ByteWidth = data->mByteCount;
+    bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    bd.Usage = GetUsage( data->mAccess );
+    bd.CPUAccessFlags = data->mAccess == Access::Dynamic ? D3D11_CPU_ACCESS_WRITE : 0;
+
+    D3D11_SUBRESOURCE_DATA initData = {};
+    initData.pSysMem = data->mOptionalInitialBytes;
+
+    TAC_DX11_CALL( errors,
+                   mDevice->CreateBuffer,
+                   &bd,
+                   data->mOptionalInitialBytes ? &initData : nullptr,
+                   &mVertexBuffers[ index ] );
+  }
+  void RendererDirectX11::AddIndexBuffer( int index,
+                                          Render::CommandDataCreateBuffer* data,
+                                          Errors& errors )
+  {
+    AssertRenderThread();
+
+    D3D11_BUFFER_DESC bd = {};
+    bd.ByteWidth = data->mByteCount;
+    bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+    bd.Usage = GetUsage( data->mAccess );
+    bd.CPUAccessFlags = data->mAccess == Access::Dynamic ? D3D11_CPU_ACCESS_WRITE : 0;
+
+    D3D11_SUBRESOURCE_DATA initData = {};
+    initData.pSysMem = data->mOptionalInitialBytes;
+
+    TAC_DX11_CALL( errors,
+                   mDevice->CreateBuffer,
+                   &bd,
+                   data->mOptionalInitialBytes ? &initData : nullptr,
+                   &mIndexBuffers[ index ] );
+  }
+  void RendererDirectX11::AddTexture( int index,
+                                      Render::CommandDataCreateTexture* data,
+                                      Errors& errors )
+  {
+    AssertRenderThread();
+
+    UINT MiscFlags = GetMiscFlags( data->mBinding );
+    UINT BindFlags = GetBindFlags( data->mBinding );
+    DXGI_FORMAT Format = GetDXGIFormat( data->mImage.mFormat );
+    UINT MipLevels = 1;
+
+    D3D11_TEXTURE2D_DESC texDesc = {};
+    texDesc.Width = data->mImage.mWidth;
+    texDesc.Height = data->mImage.mHeight;
+    texDesc.MipLevels = MipLevels;
+    texDesc.SampleDesc.Count = 1;
+    texDesc.ArraySize = 1;
+    texDesc.Format = Format;
+    texDesc.Usage = GetUsage( data->mAccess );
+    texDesc.BindFlags = BindFlags;
+    texDesc.CPUAccessFlags = GetCPUAccessFlags( data->mCpuAccess );
+    texDesc.MiscFlags = MiscFlags;
+
+    // D3D11_SUBRESOURCE_DATA structure
+    // https://msdn.microsoft.com/en-us/library/windows/desktop/ff476220(v=vs.85).aspx
+    // You set SysMemPitch to the distance between any two adjacent pixels on different lines.
+    // You set SysMemSlicePitch to the size of the entire 2D surface in bytes.
+    D3D11_SUBRESOURCE_DATA subResource = {};
+    subResource.pSysMem = data->mImageBytes;
+    subResource.SysMemPitch = data->mImage.mPitch;
+    subResource.SysMemSlicePitch = data->mImage.mPitch * data->mImage.mHeight; // <-- I guess
+
+    ID3D11Texture2D* texture2D;
+    TAC_DX11_CALL(
+      errors,
+      mDevice->CreateTexture2D,
+      &texDesc,
+      data->mImageBytes ? &subResource : nullptr,
+      &texture2D );
+
+    ID3D11RenderTargetView* rTV = nullptr;
+    if( BindFlags & D3D11_BIND_RENDER_TARGET )
+    {
+      TAC_DX11_CALL( errors, mDevice->CreateRenderTargetView,
+                     texture2D,
+                     nullptr,
+                     &rTV );
+    }
+
+    ID3D11ShaderResourceView* srv = nullptr;
+    if( BindFlags & D3D11_BIND_SHADER_RESOURCE )
+    {
+      D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+      srvDesc.Format = Format;
+      srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+      srvDesc.Texture2D.MipLevels = MipLevels;
+
+      TAC_DX11_CALL( errors, mDevice->CreateShaderResourceView, texture2D, &srvDesc, &srv );
+    }
+
+    if( BindFlags & D3D11_BIND_RENDER_TARGET &&
+        BindFlags & D3D11_BIND_SHADER_RESOURCE )
+      mDeviceContext->GenerateMips( srv );
+
+    Texture* texture = mTextures + index;
+    texture->mTexture2D = texture2D;
+    texture->mTextureSRV = srv;
+    texture->mTextureRTV = rTV;
+  }
+  void RendererDirectX11::AddFramebuffer( int index,
+                                          Render::CommandDataCreateFramebuffer* data,
+                                          Errors& errors )
+  {
+    AssertRenderThread();
+
+    auto hwnd = ( HWND )data->mNativeWindowHandle;
+    IUnknown* pDevice = mDevice;
+    IDXGISwapChain* swapChain;
+    int bufferCount = 4;
+    const UINT width = data->mWidth;
+    const UINT height = data->mHeight;
+    mDxgi.CreateSwapChain( hwnd,
+                           pDevice,
+                           bufferCount,
+                           width,
+                           height,
+                           &swapChain,
+                           errors );
+    TAC_HANDLE_ERROR( errors );
+
+    auto renderer = ( RendererDirectX11* )Renderer::Instance;
+    ID3D11Device* device = RendererDirectX11::Instance->mDevice;
+    //DXGI_SWAP_CHAIN_DESC swapChainDesc;
+    //swapChain->GetDesc( &swapChainDesc );
+
+    ID3D11Texture2D* pBackBuffer;
+    TAC_DXGI_CALL( errors, swapChain->GetBuffer, 0, IID_PPV_ARGS( &pBackBuffer ) );
+    ID3D11RenderTargetView* rtv = nullptr;
+    D3D11_RENDER_TARGET_VIEW_DESC* rtvDesc = nullptr;
+    TAC_DX11_CALL( errors, device->CreateRenderTargetView,
+                   pBackBuffer,
+                   rtvDesc,
+                   &rtv );
+    pBackBuffer->Release();
+
+    AssertRenderThread();
+    D3D11_TEXTURE2D_DESC texture2dDesc = {};
+    texture2dDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+    texture2dDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+    texture2dDesc.Height = height;
+    texture2dDesc.Width = width;
+    texture2dDesc.SampleDesc.Count = 1;
+    texture2dDesc.SampleDesc.Quality = 0;
+    texture2dDesc.ArraySize = 1;
+    texture2dDesc.MipLevels = 1;
+
+    ID3D11Texture2D* texture;
+    TAC_DX11_CALL( errors, mDevice->CreateTexture2D, &texture2dDesc, nullptr, &texture );
+
+    ID3D11DepthStencilView* dsv;
+    D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = {};
+    depthStencilViewDesc.Format = texture2dDesc.Format;
+    depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+    TAC_DX11_CALL( errors, mDevice->CreateDepthStencilView, texture, &depthStencilViewDesc, &dsv );
+
+    Framebuffer framebuffer = {};
+    framebuffer.mSwapChain = swapChain;
+    framebuffer.mDepthStencilView = dsv;
+    framebuffer.mDepthTexture = texture;
+    mFramebuffers[ index ] = framebuffer;
+  }
+  void RendererDirectX11::RemoveVertexBuffer( int index, Errors& errors )
+  {
+    TAC_RELEASE_IUNKNOWN( mVertexBuffers[ index ] );
+    mVertexBuffers[ index ] = {};
+  }
+  void RendererDirectX11::RemoveIndexBuffer( int index, Errors& errors )
+  {
+    TAC_RELEASE_IUNKNOWN( mIndexBuffers[ index ] );
+    mIndexBuffers[ index ] = {};
+  }
+  void RendererDirectX11::RemoveTexture( int index, Errors& errors )
+  {
+    TAC_RELEASE_IUNKNOWN( mTextures[ index ].mTexture2D );
+    TAC_RELEASE_IUNKNOWN( mTextures[ index ].mTextureRTV );
+    TAC_RELEASE_IUNKNOWN( mTextures[ index ].mTextureSRV );
+    mTextures[ index ] = {};
+  }
+  void RendererDirectX11::RemoveFramebuffer( int index, Errors& errors )
+  {
+    TAC_UNIMPLEMENTED;
+  }
+  void RendererDirectX11::UpdateTextureRegion( int index, Render::CommandDataUpdateTextureRegion* data )
+  {
+    TAC_UNIMPLEMENTED;
+  }
+  void RendererDirectX11::UpdateVertexBuffer( int index, Render::CommandDataUpdateBuffer* data )
+  {
+    TAC_UNIMPLEMENTED;
+  }
+  void RendererDirectX11::UpdateIndexBuffer( int index, Render::CommandDataUpdateBuffer* data )
+  {
+    TAC_UNIMPLEMENTED;
+  }
 }

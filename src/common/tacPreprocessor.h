@@ -40,10 +40,12 @@ namespace Tac
   struct StackFrame
   {
     StackFrame() = default;
-    StackFrame( int line, StringView file, StringView function );
+    StackFrame( int line, const char* file, const char* function );
     int mLine = 0;
-    String mFile;
-    String mFunction;
+    //String mFile;
+    //String mFunction;
+    const char* mFile = nullptr;
+    const char* mFunction = nullptr;
     String ToString() const;
   };
 

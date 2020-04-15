@@ -78,6 +78,19 @@ namespace Tac
     static int gSubmitRingBufferCapacity;
     static int gSubmitRingBufferPos;
 
+    static bool IsSubmitAllocated( void* data )
+    {
+      const bool result =
+        data >= gSubmitRingBufferBytes &&
+        data < gSubmitRingBufferBytes + gSubmitRingBufferCapacity;
+      return data;
+    }
+
+    //static void AssertSubmitAllocated( void* data )
+    //{
+    //  TAC_ASSERT( data >= gSubmitRingBufferBytes );
+    //  TAC_ASSERT( data < gSubmitRingBufferBytes + gSubmitRingBufferCapacity );
+    //}
 
     static void SubmitAllocInit( const int ringBufferByteCount )
     {
@@ -110,126 +123,120 @@ namespace Tac
     //{
     //}
 
-    VertexBufferHandle CreateVertexBuffer( StringView name, StackFrame frame )
+    VertexBufferHandle CreateVertexBuffer( StringView name,
+                                           CommandDataCreateBuffer commandData,
+                                           StackFrame frame )
     {
       const ResourceId resourceId = gResourceManager.mIdCollectionVertexBuffer.Alloc( name, frame );
-      const VertexBufferHandle vertexBufferHandle = { resourceId };
-      CommandDataCreateVertexBuffer commandData;
-      commandData.mVertexBufferHandle = vertexBufferHandle;
       gSubmitFrame->mCommandBuffer.Push( CommandType::CreateVertexBuffer );
+      gSubmitFrame->mCommandBuffer.Push( &frame, sizeof( frame ) );
+      gSubmitFrame->mCommandBuffer.Push( &resourceId, sizeof( resourceId ) );
       gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
-      return vertexBufferHandle;
+      return { resourceId };
     }
 
-    IndexBufferHandle CreateIndexBuffer( StringView name, StackFrame frame )
+    IndexBufferHandle CreateIndexBuffer( StringView name,
+                                         CommandDataCreateBuffer commandData,
+                                         StackFrame frame )
     {
       const ResourceId resourceId = gResourceManager.mIdCollectionIndexBuffer.Alloc( name, frame );
-      const IndexBufferHandle indexBufferHandle = { resourceId };
-      CommandDataCreateIndexBuffer commandData;
-      commandData.mIndexBufferHandle = indexBufferHandle;
       gSubmitFrame->mCommandBuffer.Push( CommandType::CreateIndexBuffer );
+      gSubmitFrame->mCommandBuffer.Push( &frame, sizeof( frame ) );
+      gSubmitFrame->mCommandBuffer.Push( &resourceId, sizeof( resourceId ) );
       gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
-      return indexBufferHandle;
+      return { resourceId };
     }
 
-    TextureHandle CreateTexture( StringView name, StackFrame frame )
+    TextureHandle CreateTexture( StringView name,
+                                 CommandDataCreateTexture commandData,
+                                 StackFrame frame )
     {
       const ResourceId resourceId = gResourceManager.mIdCollectionTexture.Alloc( name, frame );
-      const TextureHandle textureHandle = { resourceId };
-      CommandDataCreateTexture commandData;
-      commandData.mTextureHandle = textureHandle;
       gSubmitFrame->mCommandBuffer.Push( CommandType::CreateTexture );
+      gSubmitFrame->mCommandBuffer.Push( &frame, sizeof( frame ) );
+      gSubmitFrame->mCommandBuffer.Push( &resourceId, sizeof( resourceId ) );
       gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
-      return textureHandle;
+      return { resourceId };
     }
 
-    FramebufferHandle CreateFramebuffer( void* nativeWindowHandle,
-                                         int width,
-                                         int height,
-                                         StringView name,
+    FramebufferHandle CreateFramebuffer( StringView name,
+                                         CommandDataCreateFramebuffer commandData,
                                          StackFrame frame )
     {
       const ResourceId resourceId = gResourceManager.mIdCollectionFramebuffer.Alloc( name, frame );
-      const FramebufferHandle handle = { resourceId };
-      CommandDataCreateFramebuffer commandData;
-      commandData.mHandle = handle;
-      commandData.mNativeWindowHandle = nativeWindowHandle;
-      commandData.mWidth = width;
-      commandData.mHeight = height;
       gSubmitFrame->mCommandBuffer.Push( CommandType::CreateFramebuffer );
+      gSubmitFrame->mCommandBuffer.Push( &frame, sizeof( frame ) );
+      gSubmitFrame->mCommandBuffer.Push( &resourceId, sizeof( resourceId ) );
       gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
-      return handle;
+      return { resourceId };
     }
 
-    void DestroyVertexBuffer( VertexBufferHandle handle )
+    void DestroyVertexBuffer( VertexBufferHandle handle,
+                              StackFrame frame )
     {
       gResourceManager.mIdCollectionVertexBuffer.Free( handle.mResourceId );
-      const CommandDataDestroyResource commandData = { handle.mResourceId };
       gSubmitFrame->mCommandBuffer.Push( CommandType::DestroyVertexBuffer );
-      gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
+      gSubmitFrame->mCommandBuffer.Push( &frame, sizeof( frame ) );
+      gSubmitFrame->mCommandBuffer.Push( &handle, sizeof( handle ) );
     }
 
-    void DestroyIndexBuffer( IndexBufferHandle handle )
+    void DestroyIndexBuffer( IndexBufferHandle handle, StackFrame frame )
     {
       gResourceManager.mIdCollectionIndexBuffer.Free( handle.mResourceId );
-      const CommandDataDestroyResource commandData = { handle.mResourceId };
       gSubmitFrame->mCommandBuffer.Push( CommandType::DestroyIndexBuffer );
-      gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
+      gSubmitFrame->mCommandBuffer.Push( &frame, sizeof( frame ) );
+      gSubmitFrame->mCommandBuffer.Push( &handle, sizeof( handle ) );
     }
 
-    void DestroyTexture( TextureHandle handle )
+    void DestroyTexture( TextureHandle handle, StackFrame frame )
     {
       gResourceManager.mIdCollectionTexture.Free( handle.mResourceId );
-      const CommandDataDestroyResource commandData = { handle.mResourceId };
       gSubmitFrame->mCommandBuffer.Push( CommandType::DestroyTexture );
-      gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
+      gSubmitFrame->mCommandBuffer.Push( &frame, sizeof( frame ) );
+      gSubmitFrame->mCommandBuffer.Push( &handle, sizeof( handle ) );
     }
 
-    void DestroyFramebuffer( FramebufferHandle handle )
+    void DestroyFramebuffer( FramebufferHandle handle, StackFrame frame )
     {
       gResourceManager.mIdCollectionFramebuffer.Free( handle.mResourceId );
-      const CommandDataDestroyResource commandData = { handle.mResourceId };
       gSubmitFrame->mCommandBuffer.Push( CommandType::DestroyFramebuffer );
-      gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
+      gSubmitFrame->mCommandBuffer.Push( &frame, sizeof( frame ) );
+      gSubmitFrame->mCommandBuffer.Push( &handle, sizeof( handle ) );
     }
 
     void UpdateTextureRegion(
-      const TextureHandle mDst,
-      const Image mSrc,
-      const int mDstX,
-      const int mDstY )
+      TextureHandle handle,
+      CommandDataUpdateTextureRegion commandData,
+      StackFrame frame )
     {
-      CommandDataUpdateTextureRegion commandData;
-      commandData.mDst = mDst;
-      commandData.mSrc = mSrc;
-      commandData.mDstX = mDstX;
-      commandData.mDstY = mDstY;
-
       gSubmitFrame->mCommandBuffer.Push( CommandType::UpdateTextureRegion );
+      gSubmitFrame->mCommandBuffer.Push( &frame, sizeof( frame ) );
+      gSubmitFrame->mCommandBuffer.Push( &handle, sizeof( handle ) );
       gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
     }
 
     void UpdateVertexBuffer( VertexBufferHandle handle,
-                             void* bytes,
-                             int byteCount )
+                             CommandDataUpdateBuffer commandData,
+                             StackFrame frame )
+
     {
-      CommandDataUpdateBuffer commandData;
-      commandData.mByteCount = byteCount;
-      commandData.mBytes = SubmitAlloc( bytes, byteCount );
-      commandData.mResourceId = handle.mResourceId;
+      if( !IsSubmitAllocated(commandData.mBytes) )
+        commandData.mBytes = Render::SubmitAlloc( commandData.mBytes, commandData.mByteCount );
       gSubmitFrame->mCommandBuffer.Push( CommandType::UpdateVertexBuffer );
+      gSubmitFrame->mCommandBuffer.Push( &frame, sizeof( frame ) );
+      gSubmitFrame->mCommandBuffer.Push( &handle, sizeof( handle ) );
       gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
     }
 
     void UpdateIndexBuffer( IndexBufferHandle handle,
-                            void* bytes,
-                            int byteCount )
+                            CommandDataUpdateBuffer commandData,
+                            StackFrame frame )
     {
-      CommandDataUpdateBuffer commandData;
-      commandData.mByteCount = byteCount;
-      commandData.mBytes = SubmitAlloc( bytes, byteCount );
-      commandData.mResourceId = handle.mResourceId;
+      if( !IsSubmitAllocated(commandData.mBytes) )
+        commandData.mBytes = Render::SubmitAlloc( commandData.mBytes, commandData.mByteCount );
       gSubmitFrame->mCommandBuffer.Push( CommandType::UpdateIndexBuffer );
+      gSubmitFrame->mCommandBuffer.Push( &frame, sizeof( frame ) );
+      gSubmitFrame->mCommandBuffer.Push( &handle, sizeof( handle ) );
       gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
     }
 
