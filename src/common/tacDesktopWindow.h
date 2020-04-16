@@ -62,7 +62,7 @@ namespace Tac
 
     RendererWindowData* mRendererData = nullptr;
 
-    RenderView* mRenderView = nullptr;
+    //RenderView* mRenderView = nullptr;
 
     Event<>::Emitter mOnResize;
     Event<>::Emitter mOnMove;

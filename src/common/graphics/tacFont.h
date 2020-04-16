@@ -124,7 +124,6 @@ namespace Tac
     FontAtlasCell* GetCell();
 
     Render::TextureHandle mTextureId;
-    Texture* mTexture = nullptr;
     int mRowCount = 0;
     Vector< FontAtlasCell* > mCells;
     Vector< FontFile* > mFontFiles;

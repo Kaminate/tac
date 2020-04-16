@@ -157,7 +157,7 @@ struct ScriptMainMenu : public ScriptThread
   bool mCreatePressStartButton;
   bool mCreateGraveStoryButton;
 
-  Texture* mPower = nullptr;
+  Render::TextureHandle mPower;
 };
 
 struct ScriptMainMenu2 : public ScriptThread

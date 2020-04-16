@@ -95,8 +95,10 @@ namespace Tac
     imguiWindow->ComputeClipInfo( &boxClipped, &boxClipRect );
 
     profileFunction->mFrame.mFunction;
-    v4 boxColor = GetProfileFunctionColor( profileFunction );;
-    drawData->AddBox( boxPos, boxPos + boxSize, boxColor, nullptr, &boxClipRect );
+    v4 boxColor = GetProfileFunctionColor( profileFunction );
+
+    Render::TextureHandle texture;
+    drawData->AddBox( boxPos, boxPos + boxSize, boxColor, texture, &boxClipRect );
 
     v2 textSize = drawData->CalculateTextSize(
       profileFunction->mFrame.mFunction,

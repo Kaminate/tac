@@ -46,16 +46,16 @@ namespace Tac
     ~UI2DCommonData();
     void Init( Errors& errors );
 
-    Texture* m1x1White = nullptr;
-    VertexFormat* mFormat = nullptr;
-    Shader* mShader = nullptr;
-    Shader* m2DTextShader = nullptr;
-    DepthState* mDepthState = nullptr;
-    BlendState* mBlendState = nullptr;
-    RasterizerState* mRasterizerState = nullptr;
-    SamplerState* mSamplerState = nullptr;
-    CBuffer* mPerFrame = nullptr;
-    CBuffer* mPerObj = nullptr;
+    Render::TextureHandle m1x1White;
+    Render::VertexFormatHandle mFormat;
+    Render::ShaderHandle mShader;
+    Render::ShaderHandle m2DTextShader;
+    Render::DepthStateHandle mDepthState;
+    Render::BlendStateHandle mBlendState;
+    Render::RasterizerStateHandle mRasterizerState;
+    Render::SamplerStateHandle mSamplerState;
+    Render::ConstantBufferHandle mPerFrame;
+    Render::ConstantBufferHandle mPerObj;
   };
 
   struct UI2DState
@@ -66,7 +66,7 @@ namespace Tac
       float width,
       float height,
       v4 color = { 1, 1, 1, 1 },
-      Texture* texture = nullptr );
+      Render::TextureHandle texture = Render::TextureHandle() );
 
     void Draw2DText(
       Language mDefaultLanguage,
@@ -88,8 +88,9 @@ namespace Tac
     int mIIndexStart = 0;
     int mIndexCount = 0;
 
-    Shader* mShader = nullptr;
-    const Texture* mTexture = nullptr;
+    Render::ShaderHandle mShader;
+    //const Texture* mTexture = nullptr;
+    Render::TextureHandle mTexture;
     Vector< char > mUniformSource;
 
     void CopyUniform( const void* bytes, int byteCount );
@@ -114,7 +115,7 @@ namespace Tac
     v2 CalculateTextSize( const Vector< Codepoint >& codepoints, int fontSize );
     v2 CalculateTextSize( const Codepoint* codepoints, int codepointCount, int fontSize );
     void AddText( v2 textPos, int fontSize, const String& utf8, v4 color, const ImGuiRect* clipRect );
-    void AddBox( v2 mini, v2 maxi, v4 color, const Texture* texture, const ImGuiRect* clipRect );
+    void AddBox( v2 mini, v2 maxi, v4 color, const Render::TextureHandle texture, const ImGuiRect* clipRect );
     void AddLine( v2 p0, v2 p1, float radius, v4 color );
     //void AddPolyFill( const Vector< v2 >& points, v4 color );
 
@@ -131,13 +132,16 @@ namespace Tac
     // the first class generates mDefaultVertex2Ds
     // the second class interfaces with the renderer.
 
-    VertexBuffer* mVerts = nullptr;
-    IndexBuffer* mIndexes = nullptr;
+    Render::VertexBufferHandle mVerts ;
+    Render::IndexBufferHandle mIndexes ;
+
+    int mVertexCapacity = 0;
+    int mIndexCapacity = 0;
 
     Render::VertexBufferHandle mVertexBufferHandle;
     Render::IndexBufferHandle mIndexBufferHandle;
 
-    RenderView* mRenderView = nullptr;
+    //RenderView* mRenderView = nullptr;
   };
 
 }

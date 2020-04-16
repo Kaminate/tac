@@ -43,9 +43,6 @@ namespace Tac
   const v4 colorRed = v4( 255, 84, 84, 255 ) / 255.0f;
   const v4 colorMagenta = v4( 255, 84, 255, 255 ) / 255.0f;
 
-
-
-
   enum class Attribute // Used to hardcode shader semantics/indexes
   {
     Position,
@@ -190,131 +187,17 @@ namespace Tac
     int mAlignedByteOffset = 0;
   };
 
+  //struct DepthBufferData : public RendererResource
+  //{
+  //  int width = 0;
+  //  int height = 0;
 
+  //  int mDepthBitCount = 0;
+  //  GraphicsType mDepthGraphicsType = GraphicsType::unknown;
 
-
-  // don't store these in a Owned, they should be both new'd and delete'd by the renderer
-  struct RendererResource
-  {
-    virtual ~RendererResource()
-    {
-      // Please call remove renderer resource instead of deleting directly
-      TAC_ASSERT( mActive == false );
-    }
-    bool mActive = false;
-    String mName;
-    StackFrame mFrame;
-  };
-
-  struct ShaderData : public RendererResource
-  {
-    // can load from either
-    String mShaderPath;
-    String mShaderStr;
-
-    Vector< CBuffer* > mCBuffers;
-  };
-  struct Shader : public ShaderData { };// for now, this encompasses both the vertex & pixel shader 
-  struct VertexBufferData : public RendererResource
-  {
-    Access mAccess = Access::Default;
-    void* mOptionalData = nullptr;
-    int mNumVertexes = 0;
-    int mStrideBytesBetweenVertexes = 0;
-  };
-  struct VertexBuffer : public VertexBufferData
-  {
-    virtual void Overwrite( void* data, int byteCount, Errors& errors ) { TAC_UNIMPLEMENTED; };
-  };
-  struct IndexBufferData : public RendererResource
-  {
-    Access mAccess = Access::Default;
-    const void* mData = nullptr;
-    int mIndexCount = 0;
-    Format mFormat;
-  };
-  struct IndexBuffer : public IndexBufferData
-  {
-    virtual void Overwrite( void* data, int byteCount, Errors& errors ) { TAC_UNIMPLEMENTED; };
-  };
-  struct SamplerStateData : public RendererResource
-  {
-    AddressMode u = ( AddressMode )0;
-    AddressMode v = ( AddressMode )0;
-    AddressMode w = ( AddressMode )0;
-    Comparison compare = ( Comparison )0;
-    Filter filter = ( Filter )0;
-  };
-  struct SamplerState : public SamplerStateData { };
-  struct TextureData : public RendererResource
-  {
-    virtual void* GetImguiTextureID() { return nullptr; }
-    float GetAspect() { return ( float )myImage.mWidth / ( float )myImage.mHeight; }
-    Image myImage;
-    void* mOptionalImageBytes = nullptr;
-    Access access = Access::Default;
-    std::set< CPUAccess > cpuAccess;
-    std::set< Binding > binding;
-  };
-  struct Texture : public TextureData
-  {
-    virtual void Clear() {}
-  };
-  struct DepthBufferData : public RendererResource
-  {
-    int width = 0;
-    int height = 0;
-
-    int mDepthBitCount = 0;
-    GraphicsType mDepthGraphicsType = GraphicsType::unknown;
-
-    int mStencilBitCount = 0;
-    GraphicsType mStencilType = GraphicsType::unknown;
-  };
-  struct DepthBuffer : public DepthBufferData
-  {
-    virtual void Clear() {}
-  };
-  struct CBufferData : public RendererResource
-  {
-    int shaderRegister = 0;
-    int byteCount = 0;
-    virtual void SendUniforms( void* bytes ) {}
-  };
-  struct CBuffer : public CBufferData { };
-  struct BlendStateData : public RendererResource
-  {
-    // TODO: init defaults
-    BlendConstants srcRGB;
-    BlendConstants dstRGB;
-    BlendMode blendRGB;
-    BlendConstants srcA;
-    BlendConstants dstA;
-    BlendMode blendA;
-  };
-  struct BlendState : public BlendStateData { };
-  struct RasterizerStateData : public RendererResource
-  {
-    FillMode fillMode = ( FillMode )0;
-    CullMode cullMode = ( CullMode )0;
-    bool frontCounterClockwise = false;
-    bool scissor = false;
-    bool multisample = false;
-  };
-  struct RasterizerState : public RasterizerStateData { };
-  struct DepthStateData : public RendererResource
-  {
-    bool depthTest = false;
-    bool depthWrite = false;
-    DepthFunc depthFunc = ( DepthFunc )0;
-  };
-  struct DepthState : public DepthStateData { };
-  struct VertexFormatData : public RendererResource
-  {
-    Vector< VertexDeclaration > vertexFormatDatas;
-    Shader* shader = nullptr;
-  };
-  struct VertexFormat : public VertexFormatData { };
+  //  int mStencilBitCount = 0;
+  //  GraphicsType mStencilType = GraphicsType::unknown;
+  //};
 
   struct DefaultCBufferPerFrame
   {
@@ -360,16 +243,16 @@ namespace Tac
     float mMaxDepth = 1;
   };
 
-  struct RenderView
-  {
-    Texture* mFramebuffer = nullptr;
-    DepthBuffer* mFramebufferDepth = nullptr;
-    Viewport mViewportRect;
-    ScissorRect mScissorRect;
-    m4 mView = m4::Identity();
-    m4 mProj = m4::Identity();
-    v4 mClearColorRGBA = v4( 0, 0, 0, 1 );
-  };
+  //struct RenderView
+  //{
+  //  Texture* mFramebuffer = nullptr;
+  //  DepthBuffer* mFramebufferDepth = nullptr;
+  //  Viewport mViewportRect;
+  //  ScissorRect mScissorRect;
+  //  m4 mView = m4::Identity();
+  //  m4 mProj = m4::Identity();
+  //  v4 mClearColorRGBA = v4( 0, 0, 0, 1 );
+  //};
 
   enum PrimitiveTopology
   {
@@ -378,30 +261,6 @@ namespace Tac
     Count,
   };
 
-  struct DrawCall2
-  {
-    Shader* mShader = nullptr;
-    VertexBuffer* mVertexBuffer = nullptr;
-    IndexBuffer* mIndexBuffer = nullptr;
-    int mStartIndex = 0;
-    int mIndexCount = 0;
-    int mVertexCount = 0;
-    RenderView* mRenderView = nullptr;
-    BlendState* mBlendState = nullptr;
-    RasterizerState* mRasterizerState = nullptr;
-    SamplerState* mSamplerState = nullptr;
-    DepthState* mDepthState = nullptr;
-    VertexFormat* mVertexFormat = nullptr;
-    Vector< const Texture* > mTextures;
-    CBuffer* mUniformDst = nullptr;
-    Vector< char > mUniformSrcc;
-    StackFrame mFrame;
-    PrimitiveTopology mPrimitiveTopology = PrimitiveTopology::TriangleList;
-
-    template< typename T>
-    void CopyUniformSource( const T& t ) { CopyUniformSource( &t, sizeof( T ) ); }
-    void CopyUniformSource( const void* bytes, int byteCount );
-  };
 
 
   namespace Render
@@ -410,20 +269,30 @@ namespace Tac
     typedef int ResourceId;
     const ResourceId NullResourceId = -1;
 
-    struct VertexBufferHandle { ResourceId mResourceId = NullResourceId; };
-    struct IndexBufferHandle { ResourceId mResourceId = NullResourceId; };
-    struct TextureHandle { ResourceId mResourceId = NullResourceId; };
-    struct FramebufferHandle { ResourceId mResourceId = NullResourceId; };
+#define TAC_RENDER_HANDLE_BODY                            \
+    {                                                     \
+      ResourceId mResourceId = NullResourceId;            \
+      bool IsValid() const                                \
+      {                                                   \
+        return mResourceId != NullResourceId;             \
+      }                                                   \
+    }
+    struct ShaderHandle          TAC_RENDER_HANDLE_BODY;
+    struct VertexBufferHandle    TAC_RENDER_HANDLE_BODY;
+    struct IndexBufferHandle     TAC_RENDER_HANDLE_BODY;
+    struct ConstantBufferHandle  TAC_RENDER_HANDLE_BODY;
+    struct TextureHandle         TAC_RENDER_HANDLE_BODY;
+    struct FramebufferHandle     TAC_RENDER_HANDLE_BODY;
+    struct BlendStateHandle      TAC_RENDER_HANDLE_BODY;
+    struct RasterizerStateHandle TAC_RENDER_HANDLE_BODY;
+    struct SamplerStateHandle    TAC_RENDER_HANDLE_BODY;
+    struct DepthStateHandle      TAC_RENDER_HANDLE_BODY;
+    struct VertexFormatHandle    TAC_RENDER_HANDLE_BODY;
+#undef TAC_RENDER_HANDLE_BODY
+
 
     struct Frame;
 
-    struct Encoder
-    {
-      void Submit( ViewId viewId )
-      {
-
-      }
-    };
 
     void RenderFrame();
     void SubmitFrame();
@@ -431,7 +300,7 @@ namespace Tac
     void Init( int ringBufferByteCount );
 
     void* SubmitAlloc( int byteCount );
-    void* SubmitAlloc( void* bytes, int byteCount );
+    const void* SubmitAlloc( const void* bytes, int byteCount );
     //void SubmitAllocBeginFrame();
 
     struct CommandDataCreateBuffer
@@ -439,6 +308,58 @@ namespace Tac
       int mByteCount = 0;
       void* mOptionalInitialBytes = nullptr;
       Access mAccess = Access::Default;
+    };
+
+    struct CommandDataCreateConstantBuffer
+    {
+      int mByteCount = 0;
+      int mShaderRegister = 0;
+    };
+
+    struct CommandDataCreateBlendState
+    {
+      BlendConstants srcRGB = BlendConstants::One;
+      BlendConstants dstRGB = BlendConstants::Zero;
+      BlendMode blendRGB = BlendMode::Add;
+      BlendConstants srcA = BlendConstants::One;
+      BlendConstants dstA = BlendConstants::Zero;
+      BlendMode blendA = BlendMode::Add;
+    };
+    struct CommandDataCreateRasterizerState
+    {
+      FillMode fillMode = ( FillMode )0;
+      CullMode cullMode = ( CullMode )0;
+      bool frontCounterClockwise = false;
+      bool scissor = false;
+      bool multisample = false;
+    };
+
+    struct CommandDataCreateSamplerState
+    {
+      AddressMode u = ( AddressMode )0;
+      AddressMode v = ( AddressMode )0;
+      AddressMode w = ( AddressMode )0;
+      Comparison compare = ( Comparison )0;
+      Filter filter = ( Filter )0;
+    };
+
+    struct CommandDataCreateDepthState
+    {
+      bool depthTest = false;
+      bool depthWrite = false;
+      DepthFunc depthFunc = ( DepthFunc )0;
+    };
+
+    struct CommandDataCreateVertexFormat
+    {
+      VertexDeclaration mVertexFormatDatas[10];
+      int mVertexFormatDataCount = 0;
+      ShaderHandle mShaderHandle;
+
+      void AddVertexDeclaration( VertexDeclaration v )
+      {
+        mVertexFormatDatas[ mVertexFormatDataCount++ ] = v;
+      }
     };
 
     struct CommandDataCreateTexture
@@ -463,26 +384,54 @@ namespace Tac
       Image mSrc;
       int mDstX = 0;
       int mDstY = 0;
+      void* mSrcBytes = nullptr;
     };
 
     struct CommandDataUpdateBuffer
     {
-      void* mBytes = nullptr;
+      const void* mBytes = nullptr;
       int mByteCount = 0;
     };
 
+    struct CommandDataCreateShader
+    {
+      // can load from either
+      StringView mShaderPath;
+      StringView mShaderStr;
+      ConstantBufferHandle mConstantBuffers[10];
+      int mConstantBufferCount = 0;
+      void AddConstantBuffer(ConstantBufferHandle handle)
+      {
+        mConstantBuffers[mConstantBufferCount++] = handle;
+      }
+    };
 
+    ShaderHandle                     CreateShader( StringView, CommandDataCreateShader, StackFrame );
+    ConstantBufferHandle             CreateConstantBuffer( StringView, CommandDataCreateConstantBuffer, StackFrame );
     VertexBufferHandle               CreateVertexBuffer( StringView, CommandDataCreateBuffer, StackFrame );
     IndexBufferHandle                CreateIndexBuffer( StringView, CommandDataCreateBuffer, StackFrame );
     TextureHandle                    CreateTexture( StringView, CommandDataCreateTexture, StackFrame );
     FramebufferHandle                CreateFramebuffer( StringView,
                                                         CommandDataCreateFramebuffer,
                                                         StackFrame );
+    BlendStateHandle                 CreateBlendState( StringView, CommandDataCreateBlendState, StackFrame );
+    RasterizerStateHandle            CreateRasterizerState( StringView, CommandDataCreateRasterizerState, StackFrame );
+    SamplerStateHandle               CreateSamplerState( StringView, CommandDataCreateSamplerState, StackFrame );
+    DepthStateHandle                 CreateDepthState( StringView, CommandDataCreateDepthState, StackFrame );
+    VertexFormatHandle               CreateVertexFormat( StringView, CommandDataCreateVertexFormat, StackFrame );
 
     void                             DestroyVertexBuffer( VertexBufferHandle, StackFrame );
     void                             DestroyIndexBuffer( IndexBufferHandle, StackFrame );
     void                             DestroyTexture( TextureHandle, StackFrame );
     void                             DestroyFramebuffer( FramebufferHandle, StackFrame );
+    void                             DestroyShader( ShaderHandle, StackFrame );
+    void                             DestroyVertexFormat( VertexFormatHandle, StackFrame );
+    void                             DestroyConstantBuffer( ConstantBufferHandle, StackFrame );
+    void                             DestroyConstantBuffer( ConstantBufferHandle, StackFrame );
+    void                             DestroyDepthState( DepthStateHandle, StackFrame );
+    void                             DestroyBlendState( BlendStateHandle, StackFrame );
+    void                             DestroyRasterizerState( RasterizerStateHandle, StackFrame );
+    void                             DestroySamplerState( SamplerStateHandle, StackFrame );
 
     void                             UpdateTextureRegion( TextureHandle mDst,
                                                           CommandDataUpdateTextureRegion,
@@ -495,9 +444,34 @@ namespace Tac
                                                         StackFrame );
     void                             SetViewFramebuffer( ViewId viewId,
                                                          FramebufferHandle framebufferHandle );
-
-
+    void                             SetIndexBuffer( IndexBufferHandle, int iStart, int count );
+    void                             SetVertexBuffer( VertexBufferHandle, int iStart, int count );
+    void                             Submit( ViewId viewId );
   }
+
+  struct DrawCall2
+  {
+    Render::ShaderHandle mShader;
+    Render::VertexBufferHandle mVertexBuffer;
+    Render::IndexBufferHandle mIndexBuffer;
+    int mStartIndex = 0;
+    int mIndexCount = 0;
+    int mVertexCount = 0;
+    Render::BlendStateHandle mBlendState;
+    Render::RasterizerStateHandle mRasterizerState;
+    Render::SamplerStateHandle mSamplerState;
+    Render::DepthStateHandle mDepthState;
+    Render::VertexFormatHandle mVertexFormat;
+    Vector< Render::TextureHandle > mTextureHandles;
+    Render::ConstantBufferHandle mUniformDst;
+    Vector< char > mUniformSrcc;
+    StackFrame mFrame;
+    PrimitiveTopology mPrimitiveTopology = PrimitiveTopology::TriangleList;
+
+    template< typename T>
+    void CopyUniformSource( const T& t ) { CopyUniformSource( &t, sizeof( T ) ); }
+    void CopyUniformSource( const void* bytes, int byteCount );
+  };
 
   struct Renderer
   {
@@ -511,178 +485,49 @@ namespace Tac
 
     static Renderer* Instance;
     Renderer();
-    virtual void CreateWindowContext( DesktopWindow* desktopWindow, Errors& errors ) {}
+    //virtual void CreateWindowContext( DesktopWindow* desktopWindow, Errors& errors ) {}
 
     virtual ~Renderer();
     virtual void Init( Errors& errors ) {};
-    virtual void AddVertexBuffer(
-      VertexBuffer** vertexBuffer,
-      const VertexBufferData& vertexBufferData,
-      Errors& errors ) {
-      AddRendererResource( vertexBuffer, vertexBufferData );
-    }
+    //virtual void ClearColor( Texture* texture, v4 rgba ) { TAC_UNIMPLEMENTED; }
+    //virtual void ClearDepthStencil(
+    //  DepthBuffer* depthBuffer,
+    //  bool shouldClearDepth,
+    //  float depth,
+    //  bool shouldClearStencil,
+    //  uint8_t stencil )
+    //{
+    //  TAC_UNIMPLEMENTED;
+    //}
 
-    virtual void AddIndexBuffer(
-      IndexBuffer** indexBuffer,
-      const IndexBufferData& indexBufferData,
-      Errors& errors ) {
-      AddRendererResource( indexBuffer, indexBufferData );
-    }
+    //virtual void SetSamplerState(
+    //  const String& samplerName,
+    //  SamplerState* samplerState )
+    //{
+    //  TAC_UNIMPLEMENTED;
+    //}
 
-    virtual void ClearColor( Texture* texture, v4 rgba ) { TAC_UNIMPLEMENTED; }
-    virtual void ClearDepthStencil(
-      DepthBuffer* depthBuffer,
-      bool shouldClearDepth,
-      float depth,
-      bool shouldClearStencil,
-      uint8_t stencil )
-    {
-      TAC_UNIMPLEMENTED;
-    }
+    //virtual void AddCbufferToShader( Shader* shader, CBuffer* cbuffer, ShaderType myShaderType )
+    //{
+    //  //Unimplemented;
+    //}
 
-    virtual void ReloadShader( Shader* shader, Errors& errors ) { TAC_UNIMPLEMENTED; }
-    virtual void AddShader( Shader** shader, const ShaderData& shaderData, Errors& errors ) { AddRendererResource( shader, shaderData ); }
-    virtual void GetShaders( Vector< Shader* > & ) { TAC_UNIMPLEMENTED; }
+    //virtual void DebugBegin( const String& section ) { TAC_UNIMPLEMENTED; }
+    //virtual void DebugMark( const String& remark ) { TAC_UNIMPLEMENTED; }
+    //virtual void DebugEnd() { TAC_UNIMPLEMENTED; }
 
-    virtual void AddSamplerState( SamplerState** samplerState, const SamplerStateData& samplerStateData, Errors& errors )
-    {
-      AddRendererResource( samplerState, samplerStateData );
-    }
-    virtual void AddSampler(
-      const String& samplerName,
-      Shader* shader,
-      ShaderType shaderType,
-      int samplerIndex )
-    {
-      TAC_UNIMPLEMENTED;
-    }
-    virtual void SetSamplerState(
-      const String& samplerName,
-      SamplerState* samplerState )
-    {
-      TAC_UNIMPLEMENTED;
-    }
+    //virtual void DrawNonIndexed( int vertexCount = 0 ) { TAC_UNIMPLEMENTED; }
 
-    virtual void AddTextureResource( Texture** texture, const TextureData& textureData, Errors& errors ) {
-      AddRendererResource( texture, textureData );
-    }
-    virtual void AddTextureResourceCube( Texture** texture, const TextureData& textureData, void** sixCubeDatas, Errors& errors ) {
-      AddRendererResource( texture, textureData );
-    }
-    virtual void AddTexture(
-      const String& textureName,
-      Shader* shader,
-      ShaderType shaderType,
-      int samplerIndex )
-    {
-      TAC_UNIMPLEMENTED;
-    }
-    //virtual void MapTexture(
-    //  Texture* texture,
-    //  void** data,
-    //  Map mapType,
-    //  Errors& errors ) { Unimplemented; }
-    //virtual void UnmapTexture( Texture* texture ) { Unimplemented; }
+    //virtual void DrawIndexed( int elementCount, int idxOffset, int vtxOffset ) { TAC_UNIMPLEMENTED; }
 
-    // x-axis increases right, y-axis increases downwards, ( 0, 0 ) is top left ( directx style )
-    // x, y are also the top left corner of src image
-    virtual void CopyTextureRegion(
-      Texture* dst,
-      Image src,
-      int x,
-      int y,
-      Errors& errors )
-    {
-      TAC_UNIMPLEMENTED;
-    }
-    virtual void SetTexture(
-      const String& textureName,
-      Texture* texture )
-    {
-      TAC_UNIMPLEMENTED;
-    }
+    //virtual void Apply() { TAC_UNIMPLEMENTED; }
 
-    virtual void AddDepthBuffer(
-      DepthBuffer** outputDepthBuffer,
-      const DepthBufferData& depthBufferData,
-      Errors& errors )
-    {
-      AddRendererResource( outputDepthBuffer, depthBufferData );
-    }
-
-
-    template< typename TResource, typename TResourceData >
-    void AddRendererResource( TResource** ppResource, const TResourceData& resourceData )
-    {
-      if( IsDebugMode() )
-      {
-        auto resource = ( RendererResource* )&resourceData;
-        TAC_ASSERT( resource->mName.size() );
-        TAC_ASSERT( resource->mFrame.mFile );
-        TAC_ASSERT( resource->mFrame.mFunction );
-      }
-
-      auto resource = new TResource();
-      *( TResourceData* )resource = resourceData;
-      resource->mActive = true;
-
-      mRendererResources.insert( resource );
-
-      *ppResource = resource;
-    }
-    void RemoveRendererResource( RendererResource* rendererResource );
-
-    std::set< RendererResource* > mRendererResources;
-
-    virtual void AddConstantBuffer( CBuffer** outputCbuffer, const CBufferData& cBufferData, Errors& errors )
-    {
-      AddRendererResource( outputCbuffer, cBufferData );
-    }
-    virtual void AddCbufferToShader( Shader* shader, CBuffer* cbuffer, ShaderType myShaderType )
-    {
-      //Unimplemented;
-    }
-
-    virtual void AddBlendState( BlendState** blendState, const BlendStateData& blendStateData, Errors& errors )
-    {
-      AddRendererResource( blendState, blendStateData );
-    }
-
-    virtual void AddRasterizerState(
-      RasterizerState** rasterizerState,
-      const RasterizerStateData& rasterizerStateData,
-      Errors& errors )
-    {
-      AddRendererResource( rasterizerState, rasterizerStateData );
-    }
-
-    virtual void AddDepthState( DepthState** depthState, const DepthStateData& depthStateData, Errors& errors )
-    {
-      AddRendererResource( depthState, depthStateData );
-    }
-
-
-    virtual void AddVertexFormat( VertexFormat** vertexFormat, const VertexFormatData& vertexFormatData, Errors& errors )
-    {
-      AddRendererResource( vertexFormat, vertexFormatData );
-    }
-
-    virtual void DebugBegin( const String& section ) { TAC_UNIMPLEMENTED; }
-    virtual void DebugMark( const String& remark ) { TAC_UNIMPLEMENTED; }
-    virtual void DebugEnd() { TAC_UNIMPLEMENTED; }
-
-    virtual void DrawNonIndexed( int vertexCount = 0 ) { TAC_UNIMPLEMENTED; }
-
-    virtual void DrawIndexed( int elementCount, int idxOffset, int vtxOffset ) { TAC_UNIMPLEMENTED; }
-
-    virtual void Apply() { TAC_UNIMPLEMENTED; }
-
-    virtual void RenderFlush() { TAC_UNIMPLEMENTED; }
-    virtual void Render( Errors& errors ) { TAC_UNIMPLEMENTED; }
+    //virtual void RenderFlush() { TAC_UNIMPLEMENTED; }
+    //virtual void Render( Errors& errors ) { TAC_UNIMPLEMENTED; }
     virtual void Render2( Render::Frame*, Errors& errors ) { TAC_UNIMPLEMENTED; }
     virtual void SwapBuffers() { TAC_UNIMPLEMENTED; }
 
-    virtual void SetPrimitiveTopology( Primitive primitive ) { TAC_UNIMPLEMENTED; }
+    //virtual void SetPrimitiveTopology( Primitive primitive ) { TAC_UNIMPLEMENTED; }
 
     virtual void GetPerspectiveProjectionAB(
       float f,
@@ -691,25 +536,11 @@ namespace Tac
       float& b ) {
       TAC_UNIMPLEMENTED;
     }
-
-    //void DebugDraw(
-    //  m4 world_to_view,
-    //  m4 view_to_clip,
-    //  Texture* texture,
-    //  DepthBuffer* depth,
-    //  const Vector< DefaultVertexColor >& mDebugDrawVerts,
-    //  Errors& errors );
-    void GetUIDimensions( Texture* texture, float* width, float* height );
-    void DebugImgui();
+    //void DebugImgui();
 
 
     String mName;
-
-    // Should this resize and return a reference to theback?
-    void AddDrawCall( const DrawCall2& drawCall )
-    {
-      mDrawCall2s.push_back( drawCall );
-    }
+    void AddDrawCall( const DrawCall2& drawCall );
     Vector< DrawCall2 > mDrawCall2s;
   };
 

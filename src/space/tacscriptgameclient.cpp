@@ -319,7 +319,7 @@ ScriptMainMenu::ScriptMainMenu()
   mName = "Main Menu";
   mCreateGraveStoryButton = true;
   mCreatePressStartButton = false;
-  delete mPower;
+  Render::DestroyTexture(mPower, TAC_STACK_FRAME);
 }
 void ScriptMainMenu::AddCallbackConnect()
 {
@@ -412,7 +412,7 @@ void ScriptMainMenu::Update( float seconds, Errors& errors )
   }
 
 
-  if( !mPower )
+  if( !mPower.IsValid() )
   {
     // TODO: use the asset manager to load this shit async
     auto memory = TemporaryMemoryFromFile( "assets/power.png", errors );
@@ -459,14 +459,11 @@ void ScriptMainMenu::Update( float seconds, Errors& errors )
     image.mHeight = y;
     image.mPitch = image.mFormat.mElementCount * image.mFormat.mPerElementByteCount * image.mWidth;
 
-    TextureData textureData;
-    textureData.access = Access::Default;
-    textureData.binding = { Binding::ShaderResource };
-    textureData.cpuAccess = {};
-    textureData.mName = "power";
-    textureData.mFrame = TAC_STACK_FRAME;
-    textureData.myImage = image;
-    Renderer::Instance->AddTextureResource( &mPower, textureData, errors );
+    Render::CommandDataCreateTexture textureData;
+    textureData.mAccess = Access::Default;
+    textureData.mBinding = Binding::ShaderResource;
+    textureData.mImage = image;
+    mPower = Render::CreateTexture( "power", textureData, TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
   }
 
@@ -836,67 +833,67 @@ ScriptMainMenu2::~ScriptMainMenu2()
 }
 void ScriptMainMenu2::RenderMainMenu()
 {
-  auto* scriptMatchmaker = ( ScriptMatchmaker* )mScriptRoot->GetThread( scriptMatchmakerName );
+  //auto* scriptMatchmaker = ( ScriptMatchmaker* )mScriptRoot->GetThread( scriptMatchmakerName );
 
-  Image* image = &mScriptRoot->mGhost->mRenderView->mFramebuffer->myImage;
-  v2 mainMenuSize = { 400, 200 };
-  v2 mainMenuPos = { 100, ( image->mHeight - mainMenuSize.y ) / 2 };
+  //Image* image = &mScriptRoot->mGhost->mRenderView->mFramebuffer->myImage;
+  //v2 mainMenuSize = { 400, 200 };
+  //v2 mainMenuPos = { 100, ( image->mHeight - mainMenuSize.y ) / 2 };
 
-  ImGuiSetNextWindowPos( mainMenuPos );
-  ImGuiBegin( "Main Menu", mainMenuSize );
+  //ImGuiSetNextWindowPos( mainMenuPos );
+  //ImGuiBegin( "Main Menu", mainMenuSize );
 
-  ImGuiPushFontSize( 70 );
-  ImGuiText( "Gravestory" );
-  ImGuiPopFontSize();
+  //ImGuiPushFontSize( 70 );
+  //ImGuiText( "Gravestory" );
+  //ImGuiPopFontSize();
 
-  if( scriptMatchmaker->mSocket->mTCPIsConnected )
-  {
-    String serverDispalyName =
-      scriptMatchmaker->mHostname +
-      String( ":" ) +
-      ToString( scriptMatchmaker->mPort );
-    ImGuiText( "Connected to server: " + serverDispalyName );
-    if( ImGuiButton( "Disconnect from server" ) )
-      scriptMatchmaker->mSocket->mRequestDeletion = true;
-    if( ImGuiButton( "Create room" ) )
-    {
-      Json json;
-      json[ "name" ] = "create room";
-      String toSend = json.Stringify();
-      Socket* socket = scriptMatchmaker->mSocket;
-      socket->Send( ( void* )toSend.data(), ( int )toSend.size(), scriptMatchmaker->mConnectionErrors );
-    }
-  }
-  else
-  {
-    ImGuiInputText( "Hostname", scriptMatchmaker->mHostname );
-    String portString = ToString( scriptMatchmaker->mPort );
-    if( ImGuiInputText( "Port", portString ) )
-      scriptMatchmaker->mPort = ( uint16_t )std::atoi( portString.c_str() );
-    AsyncLoadStatus status = mConnectToServerJob->GetStatus();
-    if( status == AsyncLoadStatus::ThreadQueued ||
-      status == AsyncLoadStatus::ThreadRunning )
-    {
-      String text = "Connecting to server";
-      for( int i = 0; i < ( int )Shell::Instance->mElapsedSeconds % 4; ++i )
-        text += ".";
-      ImGuiText( text );
-    }
-    else
-    {
-      if( status == AsyncLoadStatus::ThreadFailed )
-        ImGuiText( mConnectToServerJob->mErrors.mMessage );
-      if( ImGuiButton( "Connect to server" ) )
-      {
-        JobQueue::Instance->Push( mConnectToServerJob );
-      }
-    }
-  }
-  if( ImGuiButton( "Exit Game" ) )
-  {
-    OS::mShouldStopRunning = true;
-  }
-  ImGuiEnd();
+  //if( scriptMatchmaker->mSocket->mTCPIsConnected )
+  //{
+  //  String serverDispalyName =
+  //    scriptMatchmaker->mHostname +
+  //    String( ":" ) +
+  //    ToString( scriptMatchmaker->mPort );
+  //  ImGuiText( "Connected to server: " + serverDispalyName );
+  //  if( ImGuiButton( "Disconnect from server" ) )
+  //    scriptMatchmaker->mSocket->mRequestDeletion = true;
+  //  if( ImGuiButton( "Create room" ) )
+  //  {
+  //    Json json;
+  //    json[ "name" ] = "create room";
+  //    String toSend = json.Stringify();
+  //    Socket* socket = scriptMatchmaker->mSocket;
+  //    socket->Send( ( void* )toSend.data(), ( int )toSend.size(), scriptMatchmaker->mConnectionErrors );
+  //  }
+  //}
+  //else
+  //{
+  //  ImGuiInputText( "Hostname", scriptMatchmaker->mHostname );
+  //  String portString = ToString( scriptMatchmaker->mPort );
+  //  if( ImGuiInputText( "Port", portString ) )
+  //    scriptMatchmaker->mPort = ( uint16_t )std::atoi( portString.c_str() );
+  //  AsyncLoadStatus status = mConnectToServerJob->GetStatus();
+  //  if( status == AsyncLoadStatus::ThreadQueued ||
+  //    status == AsyncLoadStatus::ThreadRunning )
+  //  {
+  //    String text = "Connecting to server";
+  //    for( int i = 0; i < ( int )Shell::Instance->mElapsedSeconds % 4; ++i )
+  //      text += ".";
+  //    ImGuiText( text );
+  //  }
+  //  else
+  //  {
+  //    if( status == AsyncLoadStatus::ThreadFailed )
+  //      ImGuiText( mConnectToServerJob->mErrors.mMessage );
+  //    if( ImGuiButton( "Connect to server" ) )
+  //    {
+  //      JobQueue::Instance->Push( mConnectToServerJob );
+  //    }
+  //  }
+  //}
+  //if( ImGuiButton( "Exit Game" ) )
+  //{
+  //  OS::mShouldStopRunning = true;
+  //}
+  //ImGuiEnd();
 }
 void ScriptMainMenu2::Update( float seconds, Errors& errors )
 {

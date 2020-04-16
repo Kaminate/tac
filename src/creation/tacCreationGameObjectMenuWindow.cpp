@@ -44,7 +44,7 @@ namespace Tac
     //  errors );
 
     mUI2DDrawData = new UI2DDrawData;
-    mUI2DDrawData->mRenderView = mDesktopWindow->mRenderView;
+    //mUI2DDrawData->mRenderView = mDesktopWindow->mRenderView;
     mUIRoot = new UIRoot;
     mUIRoot->mUI2DDrawData = mUI2DDrawData;
     mUIRoot->mDesktopWindow = mDesktopWindow;

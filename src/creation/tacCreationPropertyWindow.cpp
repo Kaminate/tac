@@ -28,7 +28,6 @@ namespace Tac
   void CreationPropertyWindow::Init( Errors& errors )
   {
     mUI2DDrawData = new UI2DDrawData;
-    mUI2DDrawData->mRenderView = mDesktopWindow->mRenderView;
     mUIRoot = new UIRoot;
     mUIRoot->mElapsedSeconds = &Shell::Instance->mElapsedSeconds;
     mUIRoot->mUI2DDrawData = mUI2DDrawData;

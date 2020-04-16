@@ -8,19 +8,30 @@ namespace Tac
   {
     enum class CommandType
     {
-      CreateVertexBuffer,
-      CreateIndexBuffer,
-      CreateTexture,
+      CreateBlendState,
+      CreateConstantBuffer,
+      CreateDepthState,
       CreateFramebuffer,
-
-      DestroyVertexBuffer,
-      DestroyIndexBuffer,
-      DestroyTexture,
+      CreateIndexBuffer,
+      CreateRasterizerState,
+      CreateSamplerState,
+      CreateTexture,
+      CreateVertexBuffer,
+      CreateVertexFormat,
+      DestroyBlendState,
+      DestroyConstantBuffer,
+      DestroyDepthState,
       DestroyFramebuffer,
-
+      DestroyIndexBuffer,
+      DestroyRasterizerState,
+      DestroySamplerState,
+      DestroyShader,
+      DestroyTexture,
+      DestroyVertexBuffer,
+      DestroyVertexFormat,
+      UpdateIndexBuffer,
       UpdateTextureRegion,
       UpdateVertexBuffer,
-      UpdateIndexBuffer,
     };
 
     struct CommandBuffer
@@ -32,8 +43,18 @@ namespace Tac
       Vector<char> mBuffer;
     };
 
+    struct DrawCall3
+    {
+      VertexBufferHandle mVertexBufferHandle;
+      IndexBufferHandle mIndexBufferHandle;
+    };
+
     struct Frame
     {
+      // can add a mutex here so multiple threads can add draw calls at once
+      DrawCall3 mDrawCalls[ 100 ];
+      int mDrawCallCount = 0;
+
       CommandBuffer mCommandBuffer;
     };
   }

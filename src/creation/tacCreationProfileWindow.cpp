@@ -22,7 +22,6 @@ CreationProfileWindow::~CreationProfileWindow()
 void CreationProfileWindow::Init( Errors& errors )
 {
   mUI2DDrawData = new UI2DDrawData;
-  mUI2DDrawData->mRenderView = mDesktopWindow->mRenderView;
 };
 void CreationProfileWindow::ImGuiProfile()
 {

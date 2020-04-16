@@ -107,7 +107,7 @@ namespace Tac
     virtual void OnResize( Errors& errors ) {};
 
     DesktopWindow* mDesktopWindow = nullptr;
-    DepthBuffer* mDepthBuffer = nullptr;
+    //DepthBuffer* mDepthBuffer = nullptr;
   };
 
 

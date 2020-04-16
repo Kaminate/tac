@@ -8,12 +8,12 @@ namespace Tac
 {
   DesktopWindow::DesktopWindow()
   {
-    mRenderView = new RenderView;
+    //mRenderView = new RenderView;
   }
   DesktopWindow::~DesktopWindow()
   {
     mOnDestroyed.EmitEvent( this );
-    delete mRenderView;
+    //delete mRenderView;
   }
 
 
@@ -32,22 +32,22 @@ namespace Tac
 
   void DesktopWindow::SetRenderViewDefaults()
   {
-    Texture* currentBackbufferTexture = nullptr;
-    mRendererData->GetCurrentBackbufferTexture( &currentBackbufferTexture );
-    TAC_ASSERT( currentBackbufferTexture );
+    //Texture* currentBackbufferTexture = nullptr;
+    //mRendererData->GetCurrentBackbufferTexture( &currentBackbufferTexture );
+    //TAC_ASSERT( currentBackbufferTexture );
 
-    ScissorRect scissorRect;
-    scissorRect.mXMaxRelUpperLeftCornerPixel = ( float )currentBackbufferTexture->myImage.mWidth;
-    scissorRect.mYMaxRelUpperLeftCornerPixel = ( float )currentBackbufferTexture->myImage.mHeight;
+    //ScissorRect scissorRect;
+    //scissorRect.mXMaxRelUpperLeftCornerPixel = ( float )currentBackbufferTexture->myImage.mWidth;
+    //scissorRect.mYMaxRelUpperLeftCornerPixel = ( float )currentBackbufferTexture->myImage.mHeight;
 
-    Viewport viewport;
-    viewport.mViewportPixelWidthIncreasingRight = ( float )currentBackbufferTexture->myImage.mWidth;
-    viewport.mViewportPixelHeightIncreasingUp = ( float )currentBackbufferTexture->myImage.mHeight;
+    //Viewport viewport;
+    //viewport.mViewportPixelWidthIncreasingRight = ( float )currentBackbufferTexture->myImage.mWidth;
+    //viewport.mViewportPixelHeightIncreasingUp = ( float )currentBackbufferTexture->myImage.mHeight;
 
-    mRenderView->mFramebuffer = currentBackbufferTexture;
-    mRenderView->mFramebufferDepth = mRendererData->mDepthBuffer;
-    mRenderView->mScissorRect = scissorRect;
-    mRenderView->mViewportRect = viewport;
+    //mRenderView->mFramebuffer = currentBackbufferTexture;
+    //mRenderView->mFramebufferDepth = mRendererData->mDepthBuffer;
+    //mRenderView->mScissorRect = scissorRect;
+    //mRenderView->mViewportRect = viewport;
   }
 
 }

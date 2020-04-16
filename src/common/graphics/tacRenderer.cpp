@@ -60,19 +60,19 @@ namespace Tac
 
   Renderer::~Renderer()
   {
-    for( RendererResource* rendererResource : mRendererResources )
-    {
-      String errorMessage =
-        "Resource leaked: " +
-        rendererResource->mName +
-        " created at " +
-        rendererResource->mFrame.ToString();
-      OS::DebugAssert( errorMessage, TAC_STACK_FRAME );
-    }
+    //for( RendererResource* rendererResource : mRendererResources )
+    //{
+    //  String errorMessage =
+    //    "Resource leaked: " +
+    //    rendererResource->mName +
+    //    " created at " +
+    //    rendererResource->mFrame.ToString();
+    //  OS::DebugAssert( errorMessage, TAC_STACK_FRAME );
+    //}
   }
 
-  void Renderer::DebugImgui()
-  {
+  //void Renderer::DebugImgui()
+  //{
     //if( !ImGui::CollapsingHeader( "Renderer" ) )
     //  return;
     //ImGui::Indent();
@@ -93,7 +93,6 @@ namespace Tac
     //  }
     //  ImGui::Text( mShaderReloadErrors.mMessage );
     //}
-
     //if( ImGui::CollapsingHeader( "Textures" ) )
     //{
     //  ImGui::Indent();
@@ -118,26 +117,26 @@ namespace Tac
     //    }
     //  }
     //}
-  }
+  //}
 
   const float sizeInMagicUISpaceUnits = 1024.0f;
 
   // Make this static?
-  void Renderer::GetUIDimensions(
-    Texture* texture,
-    float* width,
-    float* height )
-  {
-    float aspect = texture->GetAspect();
-    float scaleWidth = 1;
-    float scaleHeight = 1;
-    if( aspect > 1 )
-      scaleWidth = aspect;
-    else
-      scaleHeight = 1.0f / aspect;
-    *width = scaleWidth * sizeInMagicUISpaceUnits;
-    *height = scaleHeight * sizeInMagicUISpaceUnits;
-  }
+  //void Renderer::GetUIDimensions(
+  //  Texture* texture,
+  //  float* width,
+  //  float* height )
+  //{
+  //  float aspect = texture->GetAspect();
+  //  float scaleWidth = 1;
+  //  float scaleHeight = 1;
+  //  if( aspect > 1 )
+  //    scaleWidth = aspect;
+  //  else
+  //    scaleHeight = 1.0f / aspect;
+  //  *width = scaleWidth * sizeInMagicUISpaceUnits;
+  //  *height = scaleHeight * sizeInMagicUISpaceUnits;
+  //}
 
 
   void RendererFactory::CreateRendererOuter()
@@ -163,22 +162,27 @@ namespace Tac
     return nullptr;
   }
 
-  void Renderer::RemoveRendererResource( RendererResource* rendererResource )
-  {
-    if( !rendererResource )
-      return;
-    bool found = Contains( mRendererResources, rendererResource );
-    TAC_ASSERT( found );
-    mRendererResources.erase( rendererResource );
-    rendererResource->mActive = false;
-    delete rendererResource;
-  }
+  //void Renderer::RemoveRendererResource( RendererResource* rendererResource )
+  //{
+  //  if( !rendererResource )
+  //    return;
+  //  bool found = Contains( mRendererResources, rendererResource );
+  //  TAC_ASSERT( found );
+  //  mRendererResources.erase( rendererResource );
+  //  rendererResource->mActive = false;
+  //  delete rendererResource;
+  //}
 
   void DrawCall2::CopyUniformSource( const void* bytes, int byteCount )
   {
     mUniformSrcc.resize( byteCount );
     MemCpy( mUniformSrcc.data(), bytes, byteCount );
 
+  }
+  void Renderer::AddDrawCall( const DrawCall2& drawCall )
+  {
+    TAC_INVALID_CODE_PATH;
+    mDrawCall2s.push_back( drawCall );
   }
 
 }

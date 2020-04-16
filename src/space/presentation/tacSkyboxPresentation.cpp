@@ -15,27 +15,23 @@ namespace Tac
 
   SkyboxPresentation::~SkyboxPresentation()
   {
-    Renderer::Instance->RemoveRendererResource( mShader );
-    Renderer::Instance->RemoveRendererResource( mVertexFormat );
-    Renderer::Instance->RemoveRendererResource( mPerFrame );
+    Render::DestroyShader( mShader, TAC_STACK_FRAME );
+    Render::DestroyVertexFormat( mVertexFormat, TAC_STACK_FRAME );
+    Render::DestroyConstantBuffer( mPerFrame, TAC_STACK_FRAME );
   }
   void SkyboxPresentation::Init( Errors& errors )
   {
 
-    CBufferData cBufferDataPerFrame = {};
-    cBufferDataPerFrame.mName = "skybox per frame";
-    cBufferDataPerFrame.mFrame = TAC_STACK_FRAME;
-    cBufferDataPerFrame.shaderRegister = 0;
-    cBufferDataPerFrame.byteCount = sizeof( DefaultCBufferPerFrame );
-    Renderer::Instance->AddConstantBuffer( &mPerFrame, cBufferDataPerFrame, errors );
+    Render::CommandDataCreateConstantBuffer cBufferDataPerFrame = {};
+    cBufferDataPerFrame.mShaderRegister = 0;
+    cBufferDataPerFrame.mByteCount = sizeof( DefaultCBufferPerFrame );
+    mPerFrame = Render::CreateConstantBuffer( "skybox per frame", cBufferDataPerFrame, TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
-    ShaderData shaderData = {};
+    Render::CommandDataCreateShader shaderData = {};
     shaderData.mShaderPath = "Skybox";
-    shaderData.mCBuffers = { mPerFrame };
-    shaderData.mFrame = TAC_STACK_FRAME;
-    shaderData.mName = "skybox";
-    Renderer::Instance->AddShader( &mShader, shaderData, errors );
+    shaderData.AddConstantBuffer( mPerFrame );
+    mShader = Render::CreateShader( "skybox", shaderData, TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
     VertexDeclaration pos;
@@ -45,51 +41,42 @@ namespace Tac
     pos.mTextureFormat.mPerElementByteCount = sizeof( float );
     pos.mTextureFormat.mPerElementDataType = GraphicsType::real;
 
-    VertexFormatData vertexFormatData = {};
-    vertexFormatData.mName = "skybox";
-    vertexFormatData.mFrame = TAC_STACK_FRAME;
-    vertexFormatData.shader = mShader;
-    vertexFormatData.vertexFormatDatas = { pos };
-    Renderer::Instance->AddVertexFormat( &mVertexFormat, vertexFormatData, errors );
+    Render::CommandDataCreateVertexFormat vertexFormatData = {};
+    vertexFormatData.mShaderHandle = mShader;
+    vertexFormatData.AddVertexDeclaration( pos );
+    mVertexFormat = Render::CreateVertexFormat( "skybox", vertexFormatData, TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
-    BlendStateData blendStateData;
+    mVertexDecls[ 0 ] = pos;
+
+    Render::CommandDataCreateBlendState blendStateData;
     blendStateData.srcRGB = BlendConstants::One;
     blendStateData.dstRGB = BlendConstants::Zero;
     blendStateData.blendRGB = BlendMode::Add;
     blendStateData.srcA = BlendConstants::Zero;
     blendStateData.dstA = BlendConstants::One;
     blendStateData.blendA = BlendMode::Add;
-    blendStateData.mName = "skybox";
-    blendStateData.mFrame = TAC_STACK_FRAME;
-    Renderer::Instance->AddBlendState( &mBlendState, blendStateData, errors );
-    TAC_HANDLE_ERROR( errors );
+    mBlendState = Render::CreateBlendState( "skybox", blendStateData, TAC_STACK_FRAME );
 
-    DepthStateData depthStateData;
+    Render::CommandDataCreateDepthState depthStateData;
     depthStateData.depthTest = true;
     depthStateData.depthWrite = true;
     depthStateData.depthFunc = DepthFunc::LessOrEqual;
-    depthStateData.mName = "skybox";
-    depthStateData.mFrame = TAC_STACK_FRAME;
-    Renderer::Instance->AddDepthState( &mDepthState, depthStateData, errors );
+    mDepthState = Render::CreateDepthState( "skybox", depthStateData, TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
-    RasterizerStateData rasterizerStateData;
+    Render::CommandDataCreateRasterizerState rasterizerStateData;
     rasterizerStateData.cullMode = CullMode::None; // todo
     rasterizerStateData.fillMode = FillMode::Solid;
     rasterizerStateData.frontCounterClockwise = true;
-    rasterizerStateData.mName = "skybox";
-    rasterizerStateData.mFrame = TAC_STACK_FRAME;
     rasterizerStateData.multisample = false;
     rasterizerStateData.scissor = true;
-    Renderer::Instance->AddRasterizerState( &mRasterizerState, rasterizerStateData, errors );
+    mRasterizerState = Render::CreateRasterizerState( "skybox", rasterizerStateData, TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
-    SamplerStateData samplerStateData;
-    samplerStateData.mName = "skybox";
-    samplerStateData.mFrame = TAC_STACK_FRAME;
+    Render::CommandDataCreateSamplerState samplerStateData;
     samplerStateData.filter = Filter::Linear;
-    Renderer::Instance->AddSamplerState( &mSamplerState, samplerStateData, errors );
+    mSamplerState = Render::CreateSamplerState( "skybox", samplerStateData, TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
   }
   void SkyboxPresentation::RenderSkybox( const String& skyboxDir )
@@ -105,7 +92,12 @@ namespace Tac
       return;
 
     Mesh* mesh;
-    ModelAssetManager::Instance->GetMesh( &mesh, "assets/editor/Box.gltf", mVertexFormat, errors );
+    ModelAssetManager::Instance->GetMesh( &mesh,
+                                          "assets/editor/Box.gltf",
+                                          mVertexFormat,
+                                          mVertexDecls,
+                                          kVertexFormatDeclCount,
+                                          errors );
     TAC_ASSERT( errors.empty() );
     if( !mesh )
       return;
@@ -135,7 +127,7 @@ namespace Tac
     DrawCall2 drawCallGeometry = {};
     drawCallGeometry.mVertexBuffer = subMesh->mVertexBuffer;
     drawCallGeometry.mIndexBuffer = subMesh->mIndexBuffer;
-    drawCallGeometry.mIndexCount = subMesh->mIndexBuffer->mIndexCount;
+    drawCallGeometry.mIndexCount = subMesh->mIndexCount;
     drawCallGeometry.mVertexFormat = mVertexFormat;
     drawCallGeometry.mShader = mShader;
     drawCallGeometry.mBlendState = mBlendState;
@@ -145,12 +137,11 @@ namespace Tac
     drawCallGeometry.mSamplerState = mSamplerState;
     drawCallGeometry.mFrame = TAC_STACK_FRAME;
     drawCallGeometry.mStartIndex = 0;
-    drawCallGeometry.mTextures = { nullptr }; // { cubemap };
-    drawCallGeometry.mRenderView = mDesktopWindow->mRenderView;
+    drawCallGeometry.mTextureHandles = { cubemap };
     Renderer::Instance->AddDrawCall( drawCallGeometry );
 
-    Renderer::Instance->DebugBegin( "Skybox" );
-    Renderer::Instance->RenderFlush();
-    Renderer::Instance->DebugEnd();
+    //Renderer::Instance->DebugBegin( "Skybox" );
+    //Renderer::Instance->RenderFlush();
+    //Renderer::Instance->DebugEnd();
   }
 }

@@ -28,14 +28,14 @@ namespace Tac
 
   GamePresentation::~GamePresentation()
   {
-    Renderer::Instance->RemoveRendererResource( m3DShader );
-    Renderer::Instance->RemoveRendererResource( m3DVertexFormat );
-    Renderer::Instance->RemoveRendererResource( mPerFrame );
-    Renderer::Instance->RemoveRendererResource( mPerObj );
-    Renderer::Instance->RemoveRendererResource( mDepthState );
-    Renderer::Instance->RemoveRendererResource( mBlendState );
-    Renderer::Instance->RemoveRendererResource( mRasterizerState );
-    Renderer::Instance->RemoveRendererResource( mSamplerState );
+    Render::DestroyShader( m3DShader, TAC_STACK_FRAME );
+    Render::DestroyVertexFormat( m3DVertexFormat, TAC_STACK_FRAME );
+    Render::DestroyConstantBuffer( mPerFrame, TAC_STACK_FRAME );
+    Render::DestroyConstantBuffer( mPerObj, TAC_STACK_FRAME );
+    Render::DestroyDepthState( mDepthState, TAC_STACK_FRAME );
+    Render::DestroyBlendState( mBlendState, TAC_STACK_FRAME );
+    Render::DestroyRasterizerState( mRasterizerState, TAC_STACK_FRAME );
+    Render::DestroySamplerState( mSamplerState, TAC_STACK_FRAME );
   }
   void GamePresentation::RenderGameWorldToDesktopView()
   {
@@ -76,7 +76,12 @@ namespace Tac
         if( model->mGLTFPath.empty() )
           continue;
         Errors getmeshErrors;
-        ModelAssetManager::Instance->GetMesh( &mesh, model->mGLTFPath, m3DVertexFormat, getmeshErrors );
+        ModelAssetManager::Instance->GetMesh( &mesh,
+                                              model->mGLTFPath,
+                                              m3DVertexFormat,
+                                              m3DVertexFormatDecls,
+                                              k3DVertexFormatDeclCount,
+                                              getmeshErrors );
         if( getmeshErrors.empty() )
           model->mesh = mesh;
         else
@@ -92,7 +97,7 @@ namespace Tac
     }
     for( Terrain* terrain : physics->mTerrains )
     {
-      if( !terrain->mVertexBuffer || !terrain->mIndexBuffer )
+      if( !terrain->mVertexBuffer.IsValid() || !terrain->mIndexBuffer.IsValid() )
       {
         if( terrain->mRowMajorGrid.empty() )
           continue;
@@ -142,33 +147,32 @@ namespace Tac
 
         Errors rendererResourceErrors;
 
-        VertexBufferData vertexBufferData = {};
+        Render::CommandDataCreateBuffer vertexBufferData = {};
+
         vertexBufferData.mAccess = Access::Default;
-        vertexBufferData.mNumVertexes = vertexes.size();
-        vertexBufferData.mOptionalData = vertexes.data();
-        vertexBufferData.mStrideBytesBetweenVertexes = sizeof( TerrainVertex );
-        vertexBufferData.mName = terrain->mHeightmapTexturePath + "terrain vtx buffer";
-        vertexBufferData.mFrame = TAC_STACK_FRAME;
-        Renderer::Instance->AddVertexBuffer( &terrain->mVertexBuffer, vertexBufferData, rendererResourceErrors );
+        vertexBufferData.mByteCount = vertexes.size() * sizeof( TerrainVertex );
+        vertexBufferData.mOptionalInitialBytes = vertexes.data();
+        String vertexBufferName = terrain->mHeightmapTexturePath + "terrain vtx buffer";
+        terrain->mVertexBuffer = Render::CreateVertexBuffer( vertexBufferName,
+                                                             vertexBufferData,
+                                                             TAC_STACK_FRAME );
         if( rendererResourceErrors )
           continue;
 
-        IndexBufferData indexBufferData = {};
+        Render::CommandDataCreateBuffer indexBufferData = {};
         indexBufferData.mAccess = Access::Default;
-        indexBufferData.mData = indexes.data();
-        indexBufferData.mFormat.mElementCount = 1;
-        indexBufferData.mFormat.mPerElementByteCount = sizeof( TerrainIndex );
-        indexBufferData.mFormat.mPerElementDataType = GraphicsType::uint;
-        indexBufferData.mIndexCount = indexes.size();
-        indexBufferData.mName = terrain->mHeightmapTexturePath + "terrain idx buffer";
-        indexBufferData.mFrame = TAC_STACK_FRAME;
-        Renderer::Instance->AddIndexBuffer( &terrain->mIndexBuffer, indexBufferData, rendererResourceErrors );
+        indexBufferData.mByteCount = indexes.size() * sizeof( TerrainIndex );
+        indexBufferData.mOptionalInitialBytes = indexes.data();
+        String indexBufferName = terrain->mHeightmapTexturePath + "terrain idx buffer";
+        terrain->mIndexBuffer = Render::CreateIndexBuffer( indexBufferName,
+                                                           indexBufferData,
+                                                           TAC_STACK_FRAME );
         if( rendererResourceErrors )
           continue;
 
       }
 
-      if( !terrain->mVertexBuffer || !terrain->mIndexBuffer )
+      if( !terrain->mVertexBuffer.IsValid() || !terrain->mIndexBuffer.IsValid() )
         continue;
 
       Errors errors;
@@ -185,51 +189,53 @@ namespace Tac
       drawCall.mBlendState = mBlendState;
       drawCall.mDepthState = mDepthState;
       drawCall.mIndexBuffer = terrain->mIndexBuffer;
-      drawCall.mIndexCount = terrain->mIndexBuffer->mIndexCount;
+      drawCall.mIndexCount = terrain->mIndexCapacity;
       drawCall.mPrimitiveTopology = PrimitiveTopology::TriangleList;
       drawCall.mRasterizerState = mRasterizerState;
-      drawCall.mRenderView = mDesktopWindow->mRenderView;
+      //drawCall.mRenderView = mDesktopWindow->mRenderView;
       drawCall.mSamplerState = mSamplerState;
       drawCall.mShader = mTerrainShader;
       drawCall.mFrame = TAC_STACK_FRAME;
       drawCall.mStartIndex = 0;
-      drawCall.mTextures = { nullptr, nullptr }; // { terrainTexture, noiseTexture };
+      drawCall.mTextureHandles = { terrainTexture, noiseTexture };
       drawCall.mUniformDst = mPerObj;
       drawCall.mUniformSrcc = TemporaryMemoryFromT( cbuf );
       drawCall.mVertexBuffer = terrain->mVertexBuffer;
-      drawCall.mVertexCount = terrain->mVertexBuffer->mNumVertexes;
+      drawCall.mVertexCount = terrain->mVertexCapacity;
       drawCall.mVertexFormat = mTerrainVertexFormat;
 
       Renderer::Instance->AddDrawCall( drawCall );
     }
-    Renderer::Instance->DebugBegin( "Render game world" );
-    Renderer::Instance->RenderFlush();
-    Renderer::Instance->DebugEnd();
+    //Renderer::Instance->DebugBegin( "Render game world" );
+    //Renderer::Instance->RenderFlush();
+    //Renderer::Instance->DebugEnd();
     mSkyboxPresentation->RenderSkybox( world->mSkyboxDir );
 
     Errors ignored;
-    world->mDebug3DDrawData->DrawToTexture(
-      ignored,
-      &perFrameData,
-      mDesktopWindow->mRenderView );
+    //world->mDebug3DDrawData->DrawToTexture(
+    //  ignored,
+    //  &perFrameData,
+    //  mDesktopWindow->mRenderView );
   }
   void GamePresentation::CreateTerrainShader( Errors& errors )
   {
-    ShaderData shaderData;
-    shaderData.mFrame = TAC_STACK_FRAME;
-    shaderData.mName = "game window terrain shader";
+    Render::CommandDataCreateShader shaderData;
     shaderData.mShaderPath = "Terrain";
-    shaderData.mCBuffers = { mPerFrame, mPerObj };
-    Renderer::Instance->AddShader( &mTerrainShader, shaderData, errors );
+    shaderData.AddConstantBuffer(mPerFrame);
+    shaderData.AddConstantBuffer(mPerObj );
+    mTerrainShader = Render::CreateShader(  "game window terrain shader",
+                                           shaderData,
+                                           TAC_STACK_FRAME );
   }
   void GamePresentation::Create3DShader( Errors& errors )
   {
-    ShaderData shaderData;
-    shaderData.mFrame = TAC_STACK_FRAME;
-    shaderData.mName = "game window 3d shader";
+    Render::CommandDataCreateShader shaderData;
     shaderData.mShaderPath = "3DTest";
-    shaderData.mCBuffers = { mPerFrame, mPerObj };
-    Renderer::Instance->AddShader( &m3DShader, shaderData, errors );
+    shaderData.AddConstantBuffer(mPerFrame);
+    shaderData.AddConstantBuffer(mPerObj );
+    m3DShader = Render::CreateShader(  "game window 3d shader",
+                                      shaderData,
+                                      TAC_STACK_FRAME );
   }
   void GamePresentation::Create3DVertexFormat( Errors& errors )
   {
@@ -239,12 +245,13 @@ namespace Tac
     posDecl.mTextureFormat.mElementCount = 3;
     posDecl.mTextureFormat.mPerElementByteCount = sizeof( float );
     posDecl.mTextureFormat.mPerElementDataType = GraphicsType::real;
-    VertexFormatData vertexFormatData = {};
-    vertexFormatData.shader = m3DShader;
-    vertexFormatData.vertexFormatDatas = { posDecl };
-    vertexFormatData.mFrame = TAC_STACK_FRAME;
-    vertexFormatData.mName = "game window renderer"; // cpresentation?
-    Renderer::Instance->AddVertexFormat( &m3DVertexFormat, vertexFormatData, errors );
+    Render::CommandDataCreateVertexFormat vertexFormatData = {};
+    vertexFormatData.mShaderHandle = m3DShader;
+    vertexFormatData.AddVertexDeclaration( posDecl );
+    m3DVertexFormat = Render::CreateVertexFormat( "game window renderer",
+                                                  vertexFormatData,
+                                                  TAC_STACK_FRAME );
+    m3DVertexFormatDecls[ 0 ] = posDecl;
   }
   void GamePresentation::CreateTerrainVertexFormat( Errors& errors )
   {
@@ -262,77 +269,66 @@ namespace Tac
     terrainTexCoordDecl.mTextureFormat.mPerElementDataType = GraphicsType::real;
     terrainTexCoordDecl.mAlignedByteOffset = TAC_OFFSET_OF( TerrainVertex, mUV );
 
-    VertexFormatData vertexFormatData = {};
-    vertexFormatData.shader = mTerrainShader;
-    vertexFormatData.vertexFormatDatas =
-    {
-      terrainPosDecl,
-      terrainTexCoordDecl
-    };
-    vertexFormatData.mFrame = TAC_STACK_FRAME;
-    vertexFormatData.mName = "terrain vertex format";
-    Renderer::Instance->AddVertexFormat( &mTerrainVertexFormat, vertexFormatData, errors );
+    Render::CommandDataCreateVertexFormat vertexFormatData = {};
+    vertexFormatData.mShaderHandle = mTerrainShader;
+    vertexFormatData.AddVertexDeclaration( terrainPosDecl );
+    vertexFormatData.AddVertexDeclaration( terrainTexCoordDecl );
+    mTerrainVertexFormat = Render::CreateVertexFormat( "terrain vertex format",
+                                                       vertexFormatData,
+                                                       TAC_STACK_FRAME );
   }
   void GamePresentation::CreatePerFrame( Errors& errors )
   {
-    CBufferData cBufferDataPerFrame = {};
-    cBufferDataPerFrame.mName = "tac 3d per frame";
-    cBufferDataPerFrame.mFrame = TAC_STACK_FRAME;
-    cBufferDataPerFrame.shaderRegister = 0;
-    cBufferDataPerFrame.byteCount = sizeof( DefaultCBufferPerFrame );
-    Renderer::Instance->AddConstantBuffer( &mPerFrame, cBufferDataPerFrame, errors );
+    Render::CommandDataCreateConstantBuffer commandData = {};
+    commandData.mShaderRegister = 0;
+    commandData.mByteCount = sizeof( DefaultCBufferPerFrame );
+    mPerFrame = Render::CreateConstantBuffer( "tac 3d per frame", commandData, TAC_STACK_FRAME );
   }
   void GamePresentation::CreatePerObj( Errors& errors )
   {
-    CBufferData cBufferDataPerObj = {};
-    cBufferDataPerObj.mName = "tac 3d per obj";
-    cBufferDataPerObj.mFrame = TAC_STACK_FRAME;
-    cBufferDataPerObj.shaderRegister = 1;
-    cBufferDataPerObj.byteCount = sizeof( DefaultCBufferPerObject );
-    Renderer::Instance->AddConstantBuffer( &mPerObj, cBufferDataPerObj, errors );
+    Render::CommandDataCreateConstantBuffer cBufferDataPerObj = {};
+    cBufferDataPerObj.mShaderRegister = 1;
+    cBufferDataPerObj.mByteCount = sizeof( DefaultCBufferPerObject );
+    mPerObj = Render::CreateConstantBuffer( "tac 3d per obj", cBufferDataPerObj, TAC_STACK_FRAME );
   }
   void GamePresentation::CreateDepthState( Errors& errors )
   {
-    DepthStateData depthStateData;
+    Render::CommandDataCreateDepthState depthStateData;
     depthStateData.depthTest = true;
     depthStateData.depthWrite = true;
     depthStateData.depthFunc = DepthFunc::Less;
-    depthStateData.mName = "tac 3d depth state";
-    depthStateData.mFrame = TAC_STACK_FRAME;
-    Renderer::Instance->AddDepthState( &mDepthState, depthStateData, errors );
+    mDepthState = Render::CreateDepthState(  "tac 3d depth state", depthStateData, TAC_STACK_FRAME );
   }
   void GamePresentation::CreateBlendState( Errors& errors )
   {
-    BlendStateData blendStateData;
+    Render::CommandDataCreateBlendState blendStateData;
     blendStateData.srcRGB = BlendConstants::One;
     blendStateData.dstRGB = BlendConstants::Zero;
     blendStateData.blendRGB = BlendMode::Add;
     blendStateData.srcA = BlendConstants::Zero;
     blendStateData.dstA = BlendConstants::One;
     blendStateData.blendA = BlendMode::Add;
-    blendStateData.mName = "tac 3d opaque blend";
-    blendStateData.mFrame = TAC_STACK_FRAME;
-    Renderer::Instance->AddBlendState( &mBlendState, blendStateData, errors );
+    mBlendState = Render::CreateBlendState( "tac 3d opaque blend", blendStateData, TAC_STACK_FRAME );
   }
   void GamePresentation::CreateRasterizerState( Errors& errors )
   {
-    RasterizerStateData rasterizerStateData;
+    Render::CommandDataCreateRasterizerState rasterizerStateData;
     rasterizerStateData.cullMode = CullMode::None; // todo
     rasterizerStateData.fillMode = FillMode::Solid;
     rasterizerStateData.frontCounterClockwise = true;
-    rasterizerStateData.mName = "tac 3d rast state";
-    rasterizerStateData.mFrame = TAC_STACK_FRAME;
     rasterizerStateData.multisample = false;
     rasterizerStateData.scissor = true;
-    Renderer::Instance->AddRasterizerState( &mRasterizerState, rasterizerStateData, errors );
+    mRasterizerState = Render::CreateRasterizerState( "tac 3d rast state",
+                                                      rasterizerStateData,
+                                                      TAC_STACK_FRAME );
   }
   void GamePresentation::CreateSamplerState( Errors& errors )
   {
-    SamplerStateData samplerStateData;
-    samplerStateData.mName = "tac 3d tex sampler";
-    samplerStateData.mFrame = TAC_STACK_FRAME;
+    Render::CommandDataCreateSamplerState samplerStateData;
     samplerStateData.filter = Filter::Aniso;
-    Renderer::Instance->AddSamplerState( &mSamplerState, samplerStateData, errors );
+    mSamplerState = Render::CreateSamplerState( "tac 3d tex sampler",
+                                                samplerStateData,
+                                                TAC_STACK_FRAME );
   }
   void GamePresentation::CreateGraphicsObjects( Errors& errors )
   {
@@ -373,12 +369,10 @@ namespace Tac
     for( const SubMesh& subMesh : mesh->mSubMeshes )
     {
       DrawCall2 drawCall = {};
-      drawCall.mShader = mesh->mVertexFormat->shader;
       drawCall.mVertexBuffer = subMesh.mVertexBuffer;
       drawCall.mIndexBuffer = subMesh.mIndexBuffer;
       drawCall.mStartIndex = 0;
-      drawCall.mIndexCount = subMesh.mIndexBuffer->mIndexCount;
-      drawCall.mRenderView = mDesktopWindow->mRenderView;
+      drawCall.mIndexCount = subMesh.mIndexCount;
       drawCall.mBlendState = mBlendState;
       drawCall.mRasterizerState = mRasterizerState;
       drawCall.mSamplerState = mSamplerState;

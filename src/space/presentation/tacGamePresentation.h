@@ -1,5 +1,7 @@
 #pragma once
 
+#include "src/common/graphics/tacRenderer.h"
+
 namespace Tac
 {
 
@@ -36,16 +38,19 @@ namespace Tac
     SkyboxPresentation* mSkyboxPresentation = nullptr;
 
     // Renderer resources
-    Shader* m3DShader = nullptr;
-    Shader* mTerrainShader = nullptr;
-    VertexFormat* m3DVertexFormat = nullptr;
-    VertexFormat* mTerrainVertexFormat = nullptr;
-    CBuffer* mPerFrame = nullptr;
-    CBuffer* mPerObj = nullptr;
-    DepthState* mDepthState = nullptr;
-    BlendState* mBlendState = nullptr;
-    RasterizerState* mRasterizerState = nullptr;
-    SamplerState* mSamplerState = nullptr;
+    Render::ShaderHandle m3DShader;
+    Render::ShaderHandle mTerrainShader;
+    Render::VertexFormatHandle m3DVertexFormat;
+    Render::VertexFormatHandle mTerrainVertexFormat;
+    Render::ConstantBufferHandle mPerFrame;
+    Render::ConstantBufferHandle mPerObj;
+    Render::DepthStateHandle mDepthState;
+    Render::BlendStateHandle mBlendState;
+    Render::RasterizerStateHandle mRasterizerState;
+    Render::SamplerStateHandle mSamplerState;
+
+    static const int k3DVertexFormatDeclCount = 1;
+    VertexDeclaration m3DVertexFormatDecls[k3DVertexFormatDeclCount];
 
   private:
     void Create3DShader( Errors& errors );

@@ -160,12 +160,17 @@ namespace Tac
       Mesh* mesh = pair.second;
       for( SubMesh& submesh : mesh->mSubMeshes )
       {
-        Renderer::Instance->RemoveRendererResource( submesh.mIndexBuffer );
-        Renderer::Instance->RemoveRendererResource( submesh.mVertexBuffer );
+        Render::DestroyIndexBuffer( submesh.mIndexBuffer, TAC_STACK_FRAME );
+        Render::DestroyVertexBuffer( submesh.mVertexBuffer, TAC_STACK_FRAME );
       }
     }
   }
-  void ModelAssetManager::GetMesh( Mesh** mesh, const String& path, VertexFormat* vertexFormat, Errors& errors )
+  void ModelAssetManager::GetMesh( Mesh** mesh,
+                                   const String& path,
+                                   Render::VertexFormatHandle vertexFormat,
+                                   VertexDeclaration* vertexDeclarations,
+                                   int vertexDeclarationCount,
+                                   Errors& errors )
   {
     auto it = mMeshes.find( path );
     if( it != mMeshes.end() )
@@ -225,21 +230,20 @@ namespace Tac
         TAC_ASSERT( indices->type == cgltf_type_scalar );
         Format indexFormat;
         FillDataType( indices, &indexFormat );
-        IndexBuffer* indexBuffer;
-        IndexBufferData indexBufferData = {};
-        indexBufferData.mIndexCount = ( int )indices->count;
+        Render::IndexBufferHandle indexBuffer;
+        Render::CommandDataCreateBuffer indexBufferData = {};
+        indexBufferData.mByteCount = ( int )indices->count * ( int )sizeof( indexFormat.CalculateTotalByteCount() );
         indexBufferData.mAccess = Access::Default;
-        indexBufferData.mFrame = TAC_STACK_FRAME;
-        indexBufferData.mName = debugName;
-        indexBufferData.mData = indiciesData;
-        indexBufferData.mFormat = indexFormat;
+        indexBufferData.mOptionalInitialBytes = indiciesData;
         Errors indexBufferErrors;
-        Renderer::Instance->AddIndexBuffer( &indexBuffer, indexBufferData, indexBufferErrors );
+        indexBuffer = Render::CreateIndexBuffer( debugName, indexBufferData, TAC_STACK_FRAME );
 
         int vertexCount = ( int )parsedPrim->attributes[ 0 ].data->count;
         int dstVtxStride = 0;
-        for( const VertexDeclaration& vertexDeclaration : vertexFormat->vertexFormatDatas )
+
+        for( int iVertexDeclaration = 0; iVertexDeclaration < vertexDeclarationCount; ++iVertexDeclaration )
         {
+          const VertexDeclaration& vertexDeclaration = vertexDeclarations[ iVertexDeclaration ];
           int vertexEnd =
             vertexDeclaration.mAlignedByteOffset +
             vertexDeclaration.mTextureFormat.CalculateTotalByteCount();
@@ -247,8 +251,9 @@ namespace Tac
         }
         Vector< char > dstVtxs( vertexCount * dstVtxStride, ( char )0 );
 
-        for( const VertexDeclaration& vertexDeclaration : vertexFormat->vertexFormatDatas )
+        for( int iVertexDeclaration = 0; iVertexDeclaration < vertexDeclarationCount; ++iVertexDeclaration )
         {
+          const VertexDeclaration& vertexDeclaration = vertexDeclarations[ iVertexDeclaration ];
           const Format& dstFormat = vertexDeclaration.mTextureFormat;
           cgltf_attribute_type gltfVertAttributeType = GetGltfFromAttribute( vertexDeclaration.mAttribute );
           cgltf_attribute* gltfVertAttribute = FindAttributeOfType( parsedPrim, gltfVertAttributeType );
@@ -270,7 +275,7 @@ namespace Tac
             for( int iElement = 0; iElement < elementCount; ++iElement )
             {
               if( srcFormat.mPerElementDataType == dstFormat.mPerElementDataType &&
-                srcFormat.mPerElementByteCount == dstFormat.mPerElementByteCount )
+                  srcFormat.mPerElementByteCount == dstFormat.mPerElementByteCount )
               {
                 MemCpy( dstElement, srcElement, srcFormat.mPerElementByteCount );
               }
@@ -291,16 +296,15 @@ namespace Tac
         Vector< Array< v3, 3 >> tris;
         GetTris( parsedPrim, tris );
 
-        VertexBuffer* vertexBuffer;
-        VertexBufferData vertexBufferData = {};
+        Render::VertexBufferHandle vertexBuffer;
+        Render::CommandDataCreateBuffer vertexBufferData = {};
         vertexBufferData.mAccess = Access::Default;
-        vertexBufferData.mName = debugName;
-        vertexBufferData.mFrame = TAC_STACK_FRAME;
-        vertexBufferData.mNumVertexes = vertexCount;
-        vertexBufferData.mOptionalData = dstVtxs.data();
-        vertexBufferData.mStrideBytesBetweenVertexes = dstVtxStride;
+        vertexBufferData.mByteCount = dstVtxs.size() * dstVtxStride;
+        vertexBufferData.mOptionalInitialBytes = dstVtxs.data();
         Errors vertexBufferErrors;
-        Renderer::Instance->AddVertexBuffer( &vertexBuffer, vertexBufferData, vertexBufferErrors );
+        vertexBuffer = Render::CreateVertexBuffer( debugName,
+                                                   vertexBufferData,
+                                                   TAC_STACK_FRAME );
 
         SubMesh subMesh;
         subMesh.mIndexBuffer = indexBuffer;

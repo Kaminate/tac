@@ -136,7 +136,7 @@ namespace Tac
 
       //KillDeadWindows();
 
-      Renderer::Instance->Render( errors );
+      //Renderer::Instance->Render( errors );
       Render::RenderFrame();
       TAC_HANDLE_ERROR( errors );
     }

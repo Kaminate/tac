@@ -23,7 +23,6 @@ void CreationSystemWindow::Init( Errors& errors )
 {
   ;
   mUI2DDrawData = new UI2DDrawData;
-  mUI2DDrawData->mRenderView = mDesktopWindow->mRenderView;
 
   Settings* settings = Shell::Instance->mSettings;
   mSystemIndex = ( int )settings->GetNumber( nullptr, iSysPath, -1, errors );

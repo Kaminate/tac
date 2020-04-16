@@ -41,10 +41,9 @@ namespace Tac
       TAC_HANDLE_ERROR( errors );
 
       mUi2DDrawData = new UI2DDrawData;
-      mUi2DDrawData->mRenderView = mDesktopWindow->mRenderView;
 
       auto ghost = new Ghost;
-      ghost->mRenderView = mDesktopWindow->mRenderView;
+      //ghost->mRenderView = mDesktopWindow->mRenderView;
       ghost->Init( errors );
       TAC_HANDLE_ERROR( errors );
     }
@@ -85,11 +84,11 @@ namespace Tac
       Texture* framebuffer;
       mDesktopWindow->mRendererData->GetCurrentBackbufferTexture( &framebuffer );
 
-      RenderView* renderView = mDesktopWindow->mRenderView;
-      renderView->mFramebuffer = framebuffer;
-      renderView->mFramebufferDepth = mDesktopWindow->mRendererData->mDepthBuffer;
-      renderView->mViewportRect = viewport;
-      renderView->mScissorRect = scissorRect;
+      //RenderView* renderView = mDesktopWindow->mRenderView;
+      //renderView->mFramebuffer = framebuffer;
+      //renderView->mFramebufferDepth = mDesktopWindow->mRendererData->mDepthBuffer;
+      //renderView->mViewportRect = viewport;
+      //renderView->mScissorRect = scissorRect;
 
       mUi2DDrawData->DrawToTexture( 0, 0, 0, errors );
       TAC_HANDLE_ERROR( errors );

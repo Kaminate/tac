@@ -3,6 +3,7 @@
 #include "src/common/math/tacVector3.h"
 #include "src/common/math/tacMatrix4.h"
 #include "src/common/tacErrorHandling.h"
+#include "src/common/graphics/tacRenderer.h"
 #include "src/space/tacComponent.h"
 
 namespace Tac
@@ -46,8 +47,10 @@ struct Terrain : public Component
   float mPower = 1;
   Vector< uint8_t > mTestHeightmapImageMemory;
   m4 mWorldCreationTransform = {};
-  VertexBuffer* mVertexBuffer = nullptr;
-  IndexBuffer* mIndexBuffer = nullptr;
+  Render::VertexBufferHandle mVertexBuffer;
+  Render::IndexBufferHandle mIndexBuffer;
+  int mVertexCapacity;
+  int mIndexCapacity;
   Vector< TerrainOBB > mTerrainOBBs;
   Errors mTestHeightmapLoadErrors;
 };

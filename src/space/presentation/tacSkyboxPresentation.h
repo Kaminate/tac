@@ -1,38 +1,32 @@
 #pragma once
 
+#include "src/common/graphics/tacRenderer.h"
+
 namespace Tac
 {
 
+  struct Camera;
+  struct DesktopWindow;
 
-struct BlendState;
-struct CBuffer;
-struct Camera;
-struct DepthState;
-struct DesktopWindow;
-struct Errors;
-struct ModelAssetManager;
-struct RasterizerState;
-struct Renderer;
-struct SamplerState;
-struct Shader;
-struct String;
-struct VertexFormat;
 
-struct SkyboxPresentation
-{
-  ~SkyboxPresentation();
-  void RenderSkybox( const String& skyboxDir );
-  void Init( Errors& errors );
+  struct SkyboxPresentation
+  {
+    ~SkyboxPresentation();
+    void RenderSkybox( const String& skyboxDir );
+    void Init( Errors& errors );
 
-  Camera* mCamera = nullptr;
-  DesktopWindow* mDesktopWindow = nullptr;
+    Camera* mCamera = nullptr;
+    DesktopWindow* mDesktopWindow = nullptr;
 
-  VertexFormat* mVertexFormat = nullptr;
-  Shader* mShader = nullptr;
-  CBuffer* mPerFrame = nullptr;
-  BlendState* mBlendState = nullptr;
-  DepthState* mDepthState  = nullptr;
-  RasterizerState* mRasterizerState = nullptr;
-  SamplerState* mSamplerState = nullptr;
-};
+    Render::VertexFormatHandle mVertexFormat;
+    Render::ShaderHandle mShader;
+    Render::ConstantBufferHandle mPerFrame;
+    Render::BlendStateHandle mBlendState;
+    Render::DepthStateHandle mDepthState;
+    Render::RasterizerStateHandle mRasterizerState;
+    Render::SamplerStateHandle mSamplerState;
+
+    static const int kVertexFormatDeclCount = 1;
+    VertexDeclaration mVertexDecls[ kVertexFormatDeclCount ];
+  };
 }

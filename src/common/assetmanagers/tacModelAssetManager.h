@@ -5,51 +5,51 @@
 #include "src/common/containers/tacArray.h"
 #include "src/common/math/tacVector3.h"
 #include "src/common/math/tacMatrix4.h"
+#include "src/common/graphics/tacRenderer.h"
 #include <map>
 
 namespace Tac
 {
 
 
-struct LoadingMesh;
-struct JobQueue;
-struct Renderer;
-struct VertexFormat;
-struct VertexBuffer;
-struct IndexBuffer;
+  struct LoadingMesh;
+  struct JobQueue;
+  struct Renderer;
 
-typedef Array< v3, 3 > SubMeshTriangle;
-v3 GetNormal( const SubMeshTriangle& tri );
+  typedef Array< v3, 3 > SubMeshTriangle;
+  v3 GetNormal( const SubMeshTriangle& tri );
 
-struct SubMesh
-{
-  VertexBuffer* mVertexBuffer = nullptr;
-  IndexBuffer* mIndexBuffer = nullptr;
-  Vector< SubMeshTriangle > mTris;
-  void Raycast( v3 inRayPos, v3 inRayDir, bool* outHit, float* outDist );
-};
+  struct SubMesh
+  {
+    Render::VertexBufferHandle mVertexBuffer;
+    Render::IndexBufferHandle mIndexBuffer;
+    Vector< SubMeshTriangle > mTris;
+    void Raycast( v3 inRayPos, v3 inRayDir, bool* outHit, float* outDist );
+    int mIndexCount = 0;
+  };
 
-struct Mesh
-{
-  Vector< SubMesh > mSubMeshes;
-  VertexFormat* mVertexFormat = nullptr;
-  void Raycast( v3 inRayPos, v3 inRayDir, bool* outHit, float* outDist );
-  m4 mTransform = m4::Identity();
-  m4 mTransformInv = m4::Identity();
-};
+  struct Mesh
+  {
+    Vector< SubMesh > mSubMeshes;
+    Render::VertexFormatHandle mVertexFormat;
+    void Raycast( v3 inRayPos, v3 inRayDir, bool* outHit, float* outDist );
+    m4 mTransform = m4::Identity();
+    m4 mTransformInv = m4::Identity();
+  };
 
-struct ModelAssetManager
-{
-  static ModelAssetManager* Instance;
-  ModelAssetManager();
-  ~ModelAssetManager();
-  void GetMesh(
-    Mesh** mesh,
-    const String& path,
-    VertexFormat* vertexFormat,
-    Errors& errors );
-  std::map< String, Mesh* > mMeshes;
-};
+  struct ModelAssetManager
+  {
+    static ModelAssetManager* Instance;
+    ModelAssetManager();
+    ~ModelAssetManager();
+    void GetMesh( Mesh** mesh,
+                  const String& path,
+                  Render::VertexFormatHandle vertexFormat,
+                  VertexDeclaration* vertexDeclarations,
+                  int vertexDeclarationCount,
+                  Errors& errors );
+    std::map< String, Mesh* > mMeshes;
+  };
 
 
 }

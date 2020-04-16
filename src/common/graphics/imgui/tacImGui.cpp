@@ -98,7 +98,11 @@ namespace Tac
         textPos.x + maxCaretPos,
         textPos.y + ImGuiGlobals::Instance.mUIStyle.fontSize };
 
-      drawData->AddBox( selectionMini, selectionMaxi, { 0.5f, 0.5f, 0.0f, 1 }, nullptr, clipRect );
+      drawData->AddBox( selectionMini,
+                        selectionMaxi,
+                        { 0.5f, 0.5f, 0.0f, 1 },
+                        Render::TextureHandle(),
+                        clipRect );
     }
 
     if( inputData->mCaretCount == 1 )
@@ -117,7 +121,8 @@ namespace Tac
         textPos.y + ImGuiGlobals::Instance.mUIStyle.fontSize - caretYPadding };
       float caretColorAlpha = ( ( std::sin( 6.0f * ( float )ImGuiGlobals::Instance.mElapsedSeconds ) + 1.0f ) / 2.0f );
       v4 caretColor = { 0, 0, 0, caretColorAlpha };
-      drawData->AddBox( caretMini, caretMaxi, caretColor, nullptr, clipRect );
+      Render::TextureHandle texture;
+      drawData->AddBox( caretMini, caretMaxi, caretColor, texture, clipRect );
     }
   }
 
@@ -364,10 +369,12 @@ namespace Tac
     v2 textPos = {
       pos.x + ImGuiGlobals::Instance.mUIStyle.buttonPadding,
       pos.y };
-    drawData->AddBox(
-      pos,
+    Render::TextureHandle texture;
+    drawData->AddBox( pos,
       textBackgroundMaxi,
-      v4( textBackgroundColor3, 1 ), nullptr, &clipRect );
+      v4( textBackgroundColor3, 1 ),
+      texture,
+      &clipRect );
 
     if( window->GeTiveID() == id )
     {
@@ -461,7 +468,8 @@ namespace Tac
 
     v4 color( color3, 1 );
 
-    drawData->AddBox( pos, pos + buttonSize, color, nullptr, &clipRect );
+    Render::TextureHandle texture;
+    drawData->AddBox( pos, pos + buttonSize, color, texture, &clipRect );
     drawData->AddText( pos, ImGuiGlobals::Instance.mUIStyle.fontSize, str, ImGuiGlobals::Instance.mUIStyle.textColor, &clipRect );
     return clicked;
   }
@@ -498,7 +506,8 @@ namespace Tac
       }
     }
 
-    drawData->AddBox( pos, pos + buttonSize, v4( outerBoxColor, 1 ), nullptr, &clipRect );
+    Render::TextureHandle texture;
+    drawData->AddBox( pos, pos + buttonSize, v4( outerBoxColor, 1 ), texture, &clipRect );
 
     v2 textPos = {
       pos.x + ImGuiGlobals::Instance.mUIStyle.buttonPadding,
@@ -544,7 +553,8 @@ namespace Tac
       }
     }
 
-    drawData->AddBox( pos, pos + boxSize, outerBoxColor, nullptr, &clipRect );
+    Render::TextureHandle noTexture;
+    drawData->AddBox( pos, pos + boxSize, outerBoxColor, noTexture, &clipRect );
     if( *value )
     {
       v4 checkmarkColor = v4( outerBoxColor.xyz() / 2.0f, 1.0f );
@@ -602,7 +612,11 @@ namespace Tac
       else
       {
         v2 innerPadding = v2( 1, 1 ) * 3;
-        drawData->AddBox( pos + innerPadding, pos + boxSize - innerPadding, checkmarkColor, nullptr, &clipRect );
+        drawData->AddBox( pos + innerPadding,
+                          pos + boxSize - innerPadding,
+                          checkmarkColor,
+                          Render::TextureHandle(),
+                          &clipRect );
       }
     }
 
@@ -758,7 +772,8 @@ namespace Tac
     v2 backgroundBoxMaxi = {
       pos.x + totalSize.x * ( 2.0f / 3.0f ),
       pos.y + totalSize.y };
-    drawData->AddBox( pos, backgroundBoxMaxi, backgroundBoxColor, nullptr, &clipRect );
+    Render::TextureHandle texture;
+    drawData->AddBox( pos, backgroundBoxMaxi, backgroundBoxColor, texture, &clipRect );
 
     if( dragFloatData.mMode == DragMode::TextInput )
       TextInputDataDrawSelection( inputData, valuePos, &clipRect );
@@ -844,7 +859,11 @@ namespace Tac
         isOpen = !isOpen;
     }
 
-    drawData->AddBox( pos, pos + totalSize, backgroundBoxColor, nullptr, &clipRect );
+    drawData->AddBox( pos,
+                      pos + totalSize,
+                      backgroundBoxColor,
+                      Render::TextureHandle(),
+                      &clipRect );
 
     v4 textColor = { 1, 1, 1, 1 };
     v2 textPos = { pos.x + ImGuiGlobals::Instance.mUIStyle.buttonPadding, pos.y };
@@ -874,7 +893,7 @@ namespace Tac
     window->mIsAppendingToMenu = true;
     v2 size = { window->mSize.x, ImGuiGlobals::Instance.mUIStyle.fontSize + ImGuiGlobals::Instance.mUIStyle.buttonPadding * 2 };
     v4 color = { v3( 69, 45, 83 ) / 255.0f, 1.0f };
-    Texture* texture = nullptr;
+    Render::TextureHandle texture;
     ImGuiRect* cliprect = nullptr;
     drawData->AddBox( {}, size, color, texture, cliprect );
   }

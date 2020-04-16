@@ -326,14 +326,14 @@ void Ghost::Draw( Errors& errors )
   World* world = mServerData->mWorld;
   Graphics* graphics = Graphics::GetSystem( world );
 
-  Renderer::Instance->DebugBegin( "Draw world" );
-  TAC_ON_DESTRUCT( Renderer::Instance->DebugEnd() );
+  //Renderer::Instance->DebugBegin( "Draw world" );
+  //TAC_ON_DESTRUCT( Renderer::Instance->DebugEnd() );
   //Texture* fboTexture = mDrawTexture;
   //DepthBuffer* fboDepth = mDrawDepthBuffer;
-  Texture* fboTexture = mRenderView->mFramebuffer;
-  DepthBuffer* fboDepth = mRenderView->mFramebufferDepth;
+  //Texture* fboTexture = mRenderView->mFramebuffer;
+  //DepthBuffer* fboDepth = mRenderView->mFramebufferDepth;
 
-  const float aspect = fboTexture->GetAspect();
+  //const float aspect = fboTexture->GetAspect();
   //Renderer::Instance->ClearColor( fboTexture, mClearColor );
   //Renderer::Instance->ClearDepthStencil( fboDepth, true, 1.0f, false, 0 );
   //Renderer::Instance->SetRenderTarget( fboTexture, fboDepth );
@@ -365,7 +365,7 @@ void Ghost::Draw( Errors& errors )
   Renderer::Instance->GetPerspectiveProjectionAB( farPlane, nearPlane, projA, projB );
 
   auto world_to_view = M4View( camPos, camViewDir, camR, camU );
-  auto view_to_clip = M4ProjPerspective( projA, projB, fovYRad, aspect );
+  //auto view_to_clip = M4ProjPerspective( projA, projB, fovYRad, aspect );
 
   //InvalidCodePath;
   //Renderer::Instance->SetBlendState( nullptr );

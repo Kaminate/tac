@@ -45,7 +45,8 @@ namespace Tac
         if( !clipped )
         {
           v4 childWindowColor = v4( 0.1f, 0.15f, 0.2f, 1.0f );
-          ui2DDrawData->AddBox( mPos, mPos + mSize, childWindowColor, nullptr, nullptr );
+          Render::TextureHandle texture;
+          ui2DDrawData->AddBox( mPos, mPos + mSize, childWindowColor, texture, nullptr );
         }
       }
 
@@ -60,7 +61,9 @@ namespace Tac
         mPos.y };
       v2 maxi = mPos + mSize;
       v4 scrollbarBackgroundColor = v4( 0.4f, 0.2f, 0.8f, 1.0f );
-      ui2DDrawData->AddBox( mini, maxi, scrollbarBackgroundColor, nullptr, nullptr );
+          Render::TextureHandle invalidTexture;
+
+      ui2DDrawData->AddBox( mini, maxi, scrollbarBackgroundColor, invalidTexture, nullptr );
 
       float contentAllMinY = mPos.y - mScroll;
       float contentAllMaxY = mMaxiCursorDrawPos.y;
@@ -77,7 +80,7 @@ namespace Tac
       maxi -= padding;
 
       v4 scrollbarForegroundColor = v4( ( scrollbarBackgroundColor.xyz() + v3( 1, 1, 1 ) ) / 2.0f, 1.0f );
-      ui2DDrawData->AddBox( mini, maxi, scrollbarForegroundColor, nullptr, nullptr );
+      ui2DDrawData->AddBox( mini, maxi, scrollbarForegroundColor, invalidTexture, nullptr );
 
 
       if( mScrolling )

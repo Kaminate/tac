@@ -27,6 +27,7 @@ namespace Tac
   // your string doesnt have to be null terminated.
   struct StringView
   {
+    StringView() = default;
     StringView( const char* str );
     StringView( const char* str, int len );
     StringView( const String& str );

@@ -55,7 +55,7 @@ namespace Tac
     {
       delete fontAtlasCell;
     }
-    Renderer::Instance->RemoveRendererResource( mTexture );
+    Render::DestroyTexture( mTextureId, TAC_STACK_FRAME );
   }
   void FontStuff::Load( Errors& errors )
   {
@@ -103,17 +103,6 @@ namespace Tac
     image.mHeight = mRowCount * FontCellWidth;
     image.mPitch = mRowCount * FontCellWidth;
     image.mFormat = atlasFormat;
-    TextureData textureData;
-    textureData.mOptionalImageBytes = initialAtlasMemory;
-    textureData.access = Access::Dynamic;
-    textureData.binding = { Binding::ShaderResource };
-    textureData.cpuAccess = { CPUAccess::Write };
-    textureData.mName = "texture atlas";
-    textureData.mFrame = TAC_STACK_FRAME;
-    textureData.myImage = image;
-    //Renderer::Instance->AddTextureResource( &mTexture, textureData, errors );
-
-
 
     Render::CommandDataCreateTexture cmdData;
     cmdData.mAccess = Access::Dynamic;
@@ -369,6 +358,7 @@ namespace Tac
       data.mDstX = x;
       data.mDstY = y;
       data.mSrc = src;
+      data.mSrcBytes = bitmapMemory.data();
 
       Render::UpdateTextureRegion( mTextureId, data, TAC_STACK_FRAME );
 
