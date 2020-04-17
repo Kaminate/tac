@@ -316,6 +316,11 @@ namespace Tac
       if( errors )
         OS::DebugPopupBox( errors.ToString() );
   }
+
+  void WindowsApplication2::CreateControllerInput( Errors&errors )
+  {
+    new XInput( mHInstance, errors );
+  }
   void WindowsApplication2::Init( Errors& errors )
   {
     DesktopApp::Init( errors );
@@ -323,8 +328,6 @@ namespace Tac
 
     RerouteStdOutToOutputDebugString();
 
-    new XInput( mHInstance, errors );
-    TAC_HANDLE_ERROR( errors );
 
     new NetWinsock( errors );
     TAC_HANDLE_ERROR( errors );
@@ -386,8 +389,8 @@ namespace Tac
     HWND topZSortedHwnd = GetTopWindow( NULL );
     int totalWindowCount = 0;
     for( HWND curZSortedHwnd = topZSortedHwnd;
-      curZSortedHwnd != NULL;
-      curZSortedHwnd = GetWindow( curZSortedHwnd, GW_HWNDNEXT ) )
+         curZSortedHwnd != NULL;
+         curZSortedHwnd = GetWindow( curZSortedHwnd, GW_HWNDNEXT ) )
     {
       totalWindowCount++;
       // I tried removing this for loop and just returning an HWND which
@@ -524,9 +527,9 @@ namespace Tac
     //mWindows.push_back( createdWindow );
 
     createdWindow->mOnDestroyed.AddCallbackFunctional( []( DesktopWindow* desktopWindow )
-      {
-        WindowsApplication2::Instance->RemoveWindow( ( Win32DesktopWindow* )desktopWindow );
-      } );
+                                                       {
+                                                         WindowsApplication2::Instance->RemoveWindow( ( Win32DesktopWindow* )desktopWindow );
+                                                       } );
 
     // Used to combine all the windows into one tab group.
     if( mParentHWND == NULL )

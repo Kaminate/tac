@@ -65,7 +65,6 @@ namespace Tac
       mAreTexturesLoaded = true;
 
   }
-
   void CreationMainWindow::ImGuiWindows()
   {
     ImGuiText( "Windows" );

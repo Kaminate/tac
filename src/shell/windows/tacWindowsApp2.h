@@ -43,6 +43,7 @@ namespace Tac
     void SpawnWindow( DesktopWindowHandle handle, int x, int y, int width, int height ) override;
     void GetPrimaryMonitor( Monitor* monitor, Errors& errors ) override;
     void RemoveWindow( Win32DesktopWindow* );
+    void CreateControllerInput(Errors&) override;
     Win32DesktopWindow* FindWindow( HWND hwnd );
 
     Win32DesktopWindow* GetCursorUnobscuredWindow();

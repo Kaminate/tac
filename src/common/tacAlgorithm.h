@@ -16,6 +16,11 @@ namespace Tac
   {
     return std::find( elements.begin(), elements.end(), element ) != elements.end();
   }
+  template< typename T>
+  bool Contains( const T* beginElement, const T* endElement, const T& element )
+  {
+    return std::find( beginElement, endElement, element ) != endElement;
+  }
   template< typename U >
   bool Contains( const std::set< U>& elements, const U& element )
   {

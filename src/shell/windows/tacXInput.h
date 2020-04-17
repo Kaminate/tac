@@ -16,27 +16,27 @@ namespace Tac
 
 
 
-struct DirectInputPerController : public Controller
-{
-  ~DirectInputPerController();
-  void DebugImguiInner() override;
+  struct DirectInputPerController : public Controller
+  {
+    ~DirectInputPerController();
+    void DebugImguiInner() override;
 
-  DIDEVICEINSTANCE mInstance = {};
-  IDirectInputDevice8* mDivice = nullptr;
-  DIJOYSTATE2 mJoystate = {};
-};
+    DIDEVICEINSTANCE mInstance = {};
+    IDirectInputDevice8* mDivice = nullptr;
+    DIJOYSTATE2 mJoystate = {};
+  };
 
-struct XInput : public ControllerInput
-{
-  XInput( HINSTANCE hInstance, Errors& errors );
-  ~XInput();
-  void UpdateInner() override;
-  void DebugImguiInner() override;
-  void EnumerateController( const DIDEVICEINSTANCE* pdidInstance );
-  DirectInputPerController* FindDInputController( const DIDEVICEINSTANCE* mDeviceInstance );
+  struct XInput : public ControllerInput
+  {
+    XInput( HINSTANCE, Errors& );
+    ~XInput();
+    void UpdateInner() override;
+    void DebugImguiInner() override;
+    void EnumerateController( const DIDEVICEINSTANCE* pdidInstance );
+    DirectInputPerController* FindDInputController( const DIDEVICEINSTANCE* mDeviceInstance );
 
-  IDirectInput8* directInput = nullptr;
-  float mSecondsTillDisconver = 0;
-  float mSecondsTillDiscoverMax = 1;
-};
+    IDirectInput8* directInput = nullptr;
+    float mSecondsTillDisconver = 0;
+    float mSecondsTillDiscoverMax = 1;
+  };
 }

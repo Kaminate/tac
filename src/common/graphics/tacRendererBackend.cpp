@@ -8,14 +8,46 @@ namespace Tac
 {
   namespace Render
   {
+
+
+    template< int N >
     struct IdCollection
     {
-      ResourceId                       Alloc( StringView name, Tac::StackFrame frame );
-      void                             Free( ResourceId );
-      Vector< ResourceId >             mFree;
-      int                              mAllocCounter = 0;
-      Vector< String >                 mNames;
-      Vector< Tac::StackFrame >        mFrames;
+      ResourceId      Alloc( StringView name, Tac::StackFrame frame )
+      {
+        return mFreeCount ? AllocFreeId( name, frame ) : AllocNewId( name, frame );
+      }
+
+      void            Free( ResourceId id )
+      {
+        TAC_ASSERT( ( unsigned )id < ( unsigned )mAllocCounter );
+        TAC_ASSERT( !Contains( mFree, mFree + mFreeCount, id ) );
+        mFree[ mFreeCount++ ] = id;
+        TAC_ASSERT( mFreeCount <= N );
+      }
+
+    private:
+      ResourceId      AllocFreeId( StringView name, Tac::StackFrame frame )
+      {
+        const ResourceId result = mFree[ --mFreeCount ];
+        mNames[ result ] = name;
+        mFrames[ result ] = frame;
+        return result;
+      }
+
+      ResourceId      AllocNewId( StringView name, Tac::StackFrame frame )
+      {
+        TAC_ASSERT( mAllocCounter < N );
+        mNames[ mAllocCounter ] = name;
+        mFrames[ mAllocCounter ] = frame;
+        return mAllocCounter++;
+      }
+
+      ResourceId      mFree[ N ];
+      int             mFreeCount = 0;
+      int             mAllocCounter = 0;
+      String          mNames[ N ];
+      Tac::StackFrame mFrames[ N ];
     };
 
     void CommandBuffer::Push( CommandType type )
@@ -41,39 +73,19 @@ namespace Tac
     static Frame* gRenderFrame = &gFrames[ 0 ];
     static Frame* gSubmitFrame = &gFrames[ 1 ];
 
-    static IdCollection                     mIdCollectionShader;
-    static IdCollection                     mIdCollectionVertexBuffer;
-    static IdCollection                     mIdCollectionIndexBuffer;
-    static IdCollection                     mIdCollectionTexture;
-    static IdCollection                     mIdCollectionFramebuffer;
-    static IdCollection                     mIdCollectionVertexFormat;
-    static IdCollection                     mIdCollectionDepthState;
-    static IdCollection                     mIdCollectionSamplerState;
-    static IdCollection                     mIdCollectionRasterizerState;
-    static IdCollection                     mIdCollectionBlendState;
-    static IdCollection                     mIdCollectionConstantBuffer;
 
-    ResourceId IdCollection::Alloc( StringView name, Tac::StackFrame frame )
-    {
-      if( mFree.empty() )
-      {
-        mNames.push_back( name );
-        mFrames.push_back( frame );
-        return mAllocCounter++;
-      }
-      const ResourceId result = mFree.back();
-      mNames[ result ] = name;
-      mFrames[ result ] = frame;
-      mFree.pop_back();
-      return result;
-    }
+    static IdCollection<kMaxBlendStates> mIdCollectionBlendState;
+    static IdCollection<kMaxConstantBuffers> mIdCollectionConstantBuffer;
+    static IdCollection<kMaxDepthStencilStates> mIdCollectionDepthState;
+    static IdCollection<kMaxFramebuffers> mIdCollectionFramebuffer;
+    static IdCollection<kMaxIndexBuffers> mIdCollectionIndexBuffer;
+    static IdCollection<kMaxRasterizerStates> mIdCollectionRasterizerState;
+    static IdCollection<kMaxPrograms> mIdCollectionShader;
+    static IdCollection<kMaxVertexBuffers> mIdCollectionVertexBuffer;
+    static IdCollection<kMaxSamplerStates> mIdCollectionSamplerState;
+    static IdCollection<kMaxTextures> mIdCollectionTexture;
+    static IdCollection<kMaxInputLayouts> mIdCollectionVertexFormat;
 
-    void IdCollection::Free( ResourceId id )
-    {
-      TAC_ASSERT( ( unsigned )id < ( unsigned )mAllocCounter );
-      TAC_ASSERT( !Contains( mFree, id ) );
-      mFree.push_back( id );
-    }
 
     struct Encoder
     {
@@ -87,11 +99,11 @@ namespace Tac
 
     static thread_local Encoder gEncoder;
 
-    static char* gSubmitRingBufferBytes;
-    static int gSubmitRingBufferCapacity;
+    static const int gSubmitRingBufferCapacity = 100 * 1024 * 1024;
+    static char gSubmitRingBufferBytes[ gSubmitRingBufferCapacity ];
     static int gSubmitRingBufferPos;
 
-    static bool IsSubmitAllocated( const void* data )
+    bool IsSubmitAllocated( const void* data )
     {
       const bool result =
         data >= gSubmitRingBufferBytes &&
@@ -105,24 +117,13 @@ namespace Tac
     //  TAC_ASSERT( data < gSubmitRingBufferBytes + gSubmitRingBufferCapacity );
     //}
 
-    static void SubmitAllocInit( const int ringBufferByteCount )
-    {
-      gSubmitRingBufferCapacity = ringBufferByteCount;
-      gSubmitRingBufferBytes = new char[ ringBufferByteCount ];
-    }
-
-
     void* SubmitAlloc( const int byteCount )
     {
-      if( gSubmitRingBufferPos + byteCount >= gSubmitRingBufferCapacity )
-      {
-        gSubmitRingBufferPos = byteCount;
-        return gSubmitRingBufferBytes;
-      }
-
-      void* result = ( void* )( gSubmitRingBufferBytes + gSubmitRingBufferPos );
-      gSubmitRingBufferPos += byteCount;
-      return result;
+      const int beginPos = gSubmitRingBufferPos + byteCount > gSubmitRingBufferCapacity
+        ? 0
+        : gSubmitRingBufferPos;
+      gSubmitRingBufferPos = beginPos + byteCount;
+      return gSubmitRingBufferBytes + beginPos;
     }
 
     const void* SubmitAlloc( const void* bytes, int byteCount )
@@ -158,7 +159,7 @@ namespace Tac
       commandData.mShaderPath = SubmitAlloc( commandData.mShaderPath );
       commandData.mShaderStr = SubmitAlloc( commandData.mShaderStr );
       const ResourceId resourceId = mIdCollectionShader.Alloc( name, stackFrame );
-      gSubmitFrame->mCommandBuffer.Push( CommandType::CreateVertexBuffer );
+      gSubmitFrame->mCommandBuffer.Push( CommandType::CreateShader );
       gSubmitFrame->mCommandBuffer.Push( &stackFrame, sizeof( stackFrame ) );
       gSubmitFrame->mCommandBuffer.Push( &resourceId, sizeof( resourceId ) );
       gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
@@ -361,6 +362,7 @@ namespace Tac
     }
 
 
+
     void UpdateTextureRegion(
       TextureHandle handle,
       CommandDataUpdateTextureRegion commandData,
@@ -417,8 +419,8 @@ namespace Tac
 
     // i think these 2 semaphores just ensure that RenderFrame() and SubmitFrame()
     // alternate calls
-    Semaphore::Handle gSubmitSemaphore;
-    Semaphore::Handle gRenderSemaphore;
+    static Semaphore::Handle gSubmitSemaphore;
+    static Semaphore::Handle gRenderSemaphore;
 
     void RenderFrame()
     {
@@ -445,6 +447,7 @@ namespace Tac
 
       Swap( gRenderFrame, gSubmitFrame );
       gSubmitFrame->mCommandBuffer.mBuffer.clear();
+      gSubmitFrame->mDrawCallCount = 0;
       gFrameCount++;
 
       // submit start
@@ -452,9 +455,8 @@ namespace Tac
       Semaphore::Increment( gSubmitSemaphore );
     }
 
-    void Init( int ringBufferByteCount )
+    void Init()
     {
-      SubmitAllocInit( ringBufferByteCount );
       gSubmitSemaphore = Semaphore::Create();
       gRenderSemaphore = Semaphore::Create();
 
@@ -464,6 +466,12 @@ namespace Tac
 
     void Submit( ViewId viewId )
     {
+      if( gSubmitFrame->mDrawCallCount == kDrawCallCapacity )
+      {
+        OS::DebugBreak();
+        return;
+      }
+
       int iDrawCall = gSubmitFrame->mDrawCallCount++;
       DrawCall3* drawCall = &gSubmitFrame->mDrawCalls[ iDrawCall ];
       drawCall->mIndexBufferHandle = gEncoder.mIndexBufferHandle;

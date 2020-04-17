@@ -5,7 +5,8 @@
 #include "src/common/graphics/tacUI2D.h"
 #include "src/common/graphics/tacUI.h"
 #include "src/common/tacOS.h"
-#include "src/common/tacKeyboardInput.h" // temp
+#include "src/common/tacControllerInput.h"
+#include "src/common/tacKeyboardInput.h"
 #include "src/common/profile/tacProfile.h"
 
 namespace Tac
@@ -34,14 +35,14 @@ namespace Tac
     new ProfileSystem;
     ProfileSystem::Instance->Init();
 
-    const int ringBufferByteCount = 100 * 1024 * 1024;
-    Render::Init( ringBufferByteCount );
+    Render::Init();
 
     new FontStuff;
     FontStuff::Instance->Load( errors );
     TAC_HANDLE_ERROR( errors );
 
-
+    DesktopApp::Instance->CreateControllerInput( errors );
+    TAC_HANDLE_ERROR( errors );
 
     while( !OS::mShouldStopRunning )
     {

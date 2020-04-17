@@ -21,155 +21,155 @@
 namespace Tac
 {
 
-UpdateThing::UpdateThing()
-{
-  Instance = this;
-}
-UpdateThing* UpdateThing::Instance = nullptr;
-
-const Key ToggleMainMenuKey = Key::Backtick;
-
-Soul::Soul()
-{
-  mIsImGuiVisible = true;
-}
-
-Shell* Shell::Instance = nullptr;
-Shell::Shell()
-{
-  //mTimer = new Timer();
-  new KeyboardInput();
-  //mTimer->Start();
-  if( IsDebugMode() )
-    mLog = new Log();
-  Instance = this;
-  mLastTick = GetCurrentTime();
-}
-Shell::~Shell()
-{
-  delete UI2DCommonData::Instance;
-  delete Debug3DCommonData::Instance;
-  delete Localization::Instance;
-  delete FontStuff::Instance;
-  delete mLog;
-  delete ModelAssetManager::Instance;
-
-  // last, so resources can be freed
-  delete Renderer::Instance;
-
-  Instance = nullptr;
-}
-void Shell::Init( Errors& errors )
-{
-  // load settings
+  UpdateThing::UpdateThing()
   {
-    String settingsFilename = mAppName + "Settings.txt";
-    auto settings = new Settings();
-    settings->mPath = mPrefPath + "/" + settingsFilename;
-    settings->Load( errors );
-    TAC_HANDLE_ERROR( errors );
-    mSettings = settings;
+    Instance = this;
+  }
+  UpdateThing* UpdateThing::Instance = nullptr;
+
+  const Key ToggleMainMenuKey = Key::Backtick;
+
+  Soul::Soul()
+  {
+    mIsImGuiVisible = true;
   }
 
-  // create renderer
+  Shell* Shell::Instance = nullptr;
+  Shell::Shell()
   {
-    RendererRegistry& registry = RendererRegistry::Instance();
-    if( registry.mFactories.empty() )
+    //mTimer = new Timer();
+    new KeyboardInput();
+    //mTimer->Start();
+    if( IsDebugMode() )
+      mLog = new Log();
+    Instance = this;
+    mLastTick = GetCurrentTime();
+  }
+  Shell::~Shell()
+  {
+    delete UI2DCommonData::Instance;
+    delete Debug3DCommonData::Instance;
+    delete Localization::Instance;
+    delete FontStuff::Instance;
+    delete mLog;
+    delete ModelAssetManager::Instance;
+
+    // last, so resources can be freed
+    delete Renderer::Instance;
+
+    Instance = nullptr;
+  }
+  void Shell::Init( Errors& errors )
+  {
+    // load settings
     {
-      errors = "No renderers available";
+      String settingsFilename = mAppName + "Settings.txt";
+      auto settings = new Settings();
+      settings->mPath = mPrefPath + "/" + settingsFilename;
+      settings->Load( errors );
       TAC_HANDLE_ERROR( errors );
+      mSettings = settings;
     }
 
-    String defaultRendererName = OS::GetDefaultRendererName();
-    String settingsRendererName = mSettings->GetString( nullptr, { "DefaultRenderer" }, "", errors );
-    RendererFactory* settingsRendererFactory = registry.FindFactory( settingsRendererName );
-    RendererFactory* defaultOSRendererFactory = registry.FindFactory( defaultRendererName );
-    RendererFactory* firstRendererFactory = registry.mFactories[ 0 ];
-    for( RendererFactory* factory :
+    // create renderer
+    {
+      RendererRegistry& registry = RendererRegistry::Instance();
+      if( registry.mFactories.empty() )
       {
-        settingsRendererFactory,
-        defaultOSRendererFactory,
-        firstRendererFactory
-      } )
-    {
-      if( !factory )
-        continue;
-      factory->CreateRendererOuter();
-      break;
+        errors = "No renderers available";
+        TAC_HANDLE_ERROR( errors );
+      }
+
+      String defaultRendererName = OS::GetDefaultRendererName();
+      String settingsRendererName = mSettings->GetString( nullptr, { "DefaultRenderer" }, "", errors );
+      RendererFactory* settingsRendererFactory = registry.FindFactory( settingsRendererName );
+      RendererFactory* defaultOSRendererFactory = registry.FindFactory( defaultRendererName );
+      RendererFactory* firstRendererFactory = registry.mFactories[ 0 ];
+      for( RendererFactory* factory :
+           {
+             settingsRendererFactory,
+             defaultOSRendererFactory,
+             firstRendererFactory
+           } )
+      {
+        if( !factory )
+          continue;
+        factory->CreateRendererOuter();
+        break;
+      }
+
+      if( !Renderer::Instance )
+      {
+        errors = "Failed to create renderer";
+        TAC_HANDLE_ERROR( errors );
+      }
+
+      Renderer::Instance->Init( errors );
     }
 
-    if( !Renderer::Instance )
+    new JobQueue;
+    JobQueue::Instance->Init();
+
+    new ModelAssetManager;
+
+    new Localization;
+    Localization::Instance->Load( "assets/localization.txt", errors );
+    TAC_HANDLE_ERROR( errors );
+
+    new Debug3DCommonData;
+    Debug3DCommonData::Instance->Init( errors );
+    TAC_HANDLE_ERROR( errors );
+
+    new UI2DCommonData;
+    UI2DCommonData::Instance->Init( errors );
+    TAC_HANDLE_ERROR( errors );
+
+    new ProfileSystem;
+    ProfileSystem::Instance->Init();
+  }
+  void Shell::FrameBegin( Errors& errors )
+  {
+    KeyboardInput::Instance->BeginFrame();
+    ProfileSystem::Instance->OnFrameBegin();
+  }
+  void Shell::Frame( Errors& errors )
+  {
+    TAC_PROFILE_BLOCK;
+    FrameBegin( errors );
+
+    if( Net::Instance )
     {
-      errors = "Failed to create renderer";
+      Net::Instance->Update( errors );
       TAC_HANDLE_ERROR( errors );
     }
 
-    Renderer::Instance->Init( errors );
+    mOnUpdate.EmitEvent( errors );
+    ControllerInput::Instance->Update();
+
+    FrameEnd( errors );
   }
-
-  new JobQueue;
-  JobQueue::Instance->Init();
-
-  new ModelAssetManager;
-
-  new Localization;
-  Localization::Instance->Load( "assets/localization.txt", errors );
-  TAC_HANDLE_ERROR( errors );
-
-  new Debug3DCommonData;
-  Debug3DCommonData::Instance->Init( errors );
-  TAC_HANDLE_ERROR( errors );
-
-  new UI2DCommonData;
-  UI2DCommonData::Instance->Init( errors );
-  TAC_HANDLE_ERROR( errors );
-
-  new ProfileSystem;
-  ProfileSystem::Instance->Init();
-}
-void Shell::FrameBegin( Errors& errors )
-{
-  KeyboardInput::Instance->BeginFrame();
-  ProfileSystem::Instance->OnFrameBegin();
-}
-void Shell::Frame( Errors& errors )
-{
-  TAC_PROFILE_BLOCK;
-  FrameBegin( errors );
-
-  if( Net::Instance )
+  void Shell::FrameEnd( Errors& errors )
   {
-    Net::Instance->Update( errors );
-    TAC_HANDLE_ERROR( errors );
+    KeyboardInput::Instance->EndFrame();
+    ProfileSystem::Instance->OnFrameEnd();
+  }
+  void Shell::Update( Errors& errors )
+  {
+    Timepoint curTime = GetCurrentTime();
+    mAccumulatorSeconds += TimepointSubtractSeconds( curTime, mLastTick );
+    mLastTick = curTime;
+    if( mAccumulatorSeconds < TAC_DELTA_FRAME_SECONDS )
+      return;
+    mAccumulatorSeconds -= TAC_DELTA_FRAME_SECONDS;
+    mElapsedSeconds += TAC_DELTA_FRAME_SECONDS;
+
+    Frame( errors );
   }
 
-  mOnUpdate.EmitEvent( errors );
-  ControllerInput::Instance->Update();
 
-  FrameEnd( errors );
-}
-void Shell::FrameEnd( Errors& errors )
-{
-  KeyboardInput::Instance->EndFrame();
-  ProfileSystem::Instance->OnFrameEnd();
-}
-void Shell::Update( Errors& errors )
-{
-  Timepoint curTime = GetCurrentTime();
-  mAccumulatorSeconds += TimepointSubtractSeconds(curTime, mLastTick);
-  mLastTick = curTime;
-  if( mAccumulatorSeconds < TAC_DELTA_FRAME_SECONDS )
-    return;
-  mAccumulatorSeconds -= TAC_DELTA_FRAME_SECONDS;
-  mElapsedSeconds += TAC_DELTA_FRAME_SECONDS;
-
-  Frame( errors );
-}
-
-
-RendererWindowData::~RendererWindowData()
-{
-  static int i;
-  ++i;
-}
+  RendererWindowData::~RendererWindowData()
+  {
+    static int i;
+    ++i;
+  }
 }

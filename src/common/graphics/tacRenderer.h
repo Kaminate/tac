@@ -297,7 +297,7 @@ namespace Tac
     void RenderFrame();
     void SubmitFrame();
 
-    void Init( int ringBufferByteCount );
+    void Init();
 
     void* SubmitAlloc( int byteCount );
     const void* SubmitAlloc( const void* bytes, int byteCount );

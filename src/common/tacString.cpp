@@ -140,6 +140,10 @@ namespace Tac
   {
     return data();
   }
+  bool StringView::empty() const
+  {
+    return mLen == 0;
+  }
 
   String::String()
   {

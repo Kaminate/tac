@@ -15,6 +15,7 @@ namespace Tac
       CreateIndexBuffer,
       CreateRasterizerState,
       CreateSamplerState,
+      CreateShader,
       CreateTexture,
       CreateVertexBuffer,
       CreateVertexFormat,
@@ -49,13 +50,29 @@ namespace Tac
       IndexBufferHandle mIndexBufferHandle;
     };
 
+    const int kDrawCallCapacity = 1000;
     struct Frame
     {
       // can add a mutex here so multiple threads can add draw calls at once
-      DrawCall3 mDrawCalls[ 100 ];
-      int mDrawCallCount = 0;
 
       CommandBuffer mCommandBuffer;
+
+      DrawCall3 mDrawCalls[ kDrawCallCapacity ];
+      int mDrawCallCount = 0;
     };
+
+    const int kMaxTextures = 1000;
+    const int kMaxVertexBuffers = 1000;
+    const int kMaxIndexBuffers = 1000;
+    const int kMaxFramebuffers = 100;
+    const int kMaxRasterizerStates = 100;
+    const int kMaxSamplerStates = 100;
+    const int kMaxDepthStencilStates = 100;
+    const int kMaxInputLayouts = 100;
+    const int kMaxBlendStates = 100;
+    const int kMaxConstantBuffers = 100;
+    const int kMaxPrograms = 100;
+
+    bool IsSubmitAllocated( const void* data );
   }
 }

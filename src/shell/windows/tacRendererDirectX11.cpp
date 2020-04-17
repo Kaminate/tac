@@ -40,7 +40,6 @@ namespace Tac
   if( FAILED( result ) )\
   {\
     DX11CallAux( TAC_STRINGIFY( call ) "( " #__VA_ARGS__ " )", result, errors );\
-    TAC_HANDLE_ERROR( errors );\
   }\
 }
 
@@ -390,6 +389,7 @@ namespace Tac
   //                   pBackBuffer,
   //                   rtvDesc,
   //                   &rtv );
+  //    TAC_HANDLE_ERRORS( errors );
   //    RendererDirectX11::Instance->SetDebugName( rtv, "backbuffer color rtv" );
   //    if( !mBackbufferColor )
   //    //{
@@ -486,12 +486,15 @@ namespace Tac
                    &mDevice,
                    &featureLevel,
                    &mDeviceContext );
+    TAC_HANDLE_ERROR( errors );
     // If you're directx is crashing / throwing exception, don't forget to check
     // your output window, it likes to put error messages there
     if( IsDebugMode() )
     {
       TAC_DX11_CALL( errors, mDevice->QueryInterface, IID_PPV_ARGS( &mInfoQueueDEBUG ) );
+      TAC_HANDLE_ERROR( errors );
       TAC_DX11_CALL( errors, mDeviceContext->QueryInterface, IID_PPV_ARGS( &mUserAnnotationDEBUG ) );
+      TAC_HANDLE_ERROR( errors );
     }
 
     mDxgi.Init( errors );
@@ -783,8 +786,8 @@ namespace Tac
       {
         case Render::CommandType::CreateVertexBuffer:
         {
-          auto resourceId = ( Render::ResourceId* )bufferPos;
-          bufferPos += sizeof( Render::ResourceId );
+          auto resourceId = ( Render::VertexBufferHandle* )bufferPos;
+          bufferPos += sizeof( Render::VertexBufferHandle );
           auto commandDataCreateBuffer = ( Render::CommandDataCreateBuffer* ) bufferPos;
           bufferPos += sizeof( Render::CommandDataCreateBuffer );
           AddVertexBuffer( *resourceId, commandDataCreateBuffer, errors );
@@ -792,8 +795,8 @@ namespace Tac
 
         case Render::CommandType::CreateIndexBuffer:
         {
-          auto resourceId = ( Render::ResourceId* )bufferPos;
-          bufferPos += sizeof( Render::ResourceId );
+          auto resourceId = ( Render::IndexBufferHandle* )bufferPos;
+          bufferPos += sizeof( Render::IndexBufferHandle );
           auto commandDataCreateBuffer = ( Render::CommandDataCreateBuffer* )bufferPos;
           bufferPos += sizeof( Render::CommandDataCreateBuffer );
           AddIndexBuffer( *resourceId, commandDataCreateBuffer, errors );
@@ -801,8 +804,8 @@ namespace Tac
 
         case Render::CommandType::CreateTexture:
         {
-          auto resourceId = ( Render::ResourceId* )bufferPos;
-          bufferPos += sizeof( Render::ResourceId );
+          auto resourceId = ( Render::TextureHandle* )bufferPos;
+          bufferPos += sizeof( Render::TextureHandle );
           auto commandData = ( Render::CommandDataCreateTexture* )bufferPos;
           bufferPos += sizeof( Render::CommandDataCreateTexture );
           AddTexture( *resourceId, commandData, errors );
@@ -810,8 +813,8 @@ namespace Tac
 
         case Render::CommandType::CreateFramebuffer:
         {
-          auto resourceId = ( Render::ResourceId* )bufferPos;
-          bufferPos += sizeof( Render::ResourceId );
+          auto resourceId = ( Render::FramebufferHandle* )bufferPos;
+          bufferPos += sizeof( Render::FramebufferHandle );
           auto commandData = ( Render::CommandDataCreateFramebuffer* )bufferPos;
           bufferPos += sizeof( Render::CommandDataCreateFramebuffer );
           AddFramebuffer( *resourceId, commandData, errors );
@@ -819,45 +822,45 @@ namespace Tac
 
         case Render::CommandType::DestroyVertexBuffer:
         {
-          auto resourceId = ( Render::ResourceId* )bufferPos;
-          bufferPos += sizeof( Render::ResourceId );
+          auto resourceId = ( Render::VertexBufferHandle* )bufferPos;
+          bufferPos += sizeof( Render::VertexBufferHandle );
           RemoveVertexBuffer( *resourceId, errors );
         } break;
 
         case Render::CommandType::DestroyIndexBuffer:
         {
-          auto resourceId = ( Render::ResourceId* )bufferPos;
-          bufferPos += sizeof( Render::ResourceId );
+          auto resourceId = ( Render::IndexBufferHandle* )bufferPos;
+          bufferPos += sizeof( Render::IndexBufferHandle );
           RemoveIndexBuffer( *resourceId, errors );
         } break;
 
         case Render::CommandType::DestroyTexture:
         {
-          auto resourceId = ( Render::ResourceId* )bufferPos;
-          bufferPos += sizeof( Render::ResourceId );
+          auto resourceId = ( Render::TextureHandle* )bufferPos;
+          bufferPos += sizeof( Render::TextureHandle );
           RemoveTexture( *resourceId, errors );
         } break;
 
         case Render::CommandType::DestroyFramebuffer:
         {
-          auto resourceId = ( Render::ResourceId* )bufferPos;
-          bufferPos += sizeof( Render::ResourceId );
+          auto resourceId = ( Render::FramebufferHandle* )bufferPos;
+          bufferPos += sizeof( Render::FramebufferHandle );
           RemoveFramebuffer( *resourceId, errors );
         } break;
 
         case Render::CommandType::UpdateTextureRegion:
         {
-          auto resourceId = ( Render::ResourceId* )bufferPos;
-          bufferPos += sizeof( Render::ResourceId );
+          auto resourceId = ( Render::TextureHandle* )bufferPos;
+          bufferPos += sizeof( Render::TextureHandle );
           auto commandData = ( Render::CommandDataUpdateTextureRegion* )bufferPos;
           bufferPos += sizeof( Render::CommandDataUpdateTextureRegion );
-          UpdateTextureRegion( *resourceId, commandData , errors);
+          UpdateTextureRegion( *resourceId, commandData, errors );
         } break;
 
         case Render::CommandType::UpdateVertexBuffer:
         {
-          auto resourceId = ( Render::ResourceId* )bufferPos;
-          bufferPos += sizeof( Render::ResourceId );
+          auto resourceId = ( Render::VertexBufferHandle* )bufferPos;
+          bufferPos += sizeof( Render::VertexBufferHandle );
           auto commandData = ( Render::CommandDataUpdateBuffer* )bufferPos;
           bufferPos += sizeof( Render::CommandDataUpdateBuffer );
           UpdateVertexBuffer( *resourceId, commandData, errors );
@@ -865,11 +868,123 @@ namespace Tac
 
         case Render::CommandType::UpdateIndexBuffer:
         {
-          auto resourceId = ( Render::ResourceId* )bufferPos;
-          bufferPos += sizeof( Render::ResourceId );
+          auto resourceId = ( Render::IndexBufferHandle* )bufferPos;
+          bufferPos += sizeof( Render::IndexBufferHandle );
           auto commandData = ( Render::CommandDataUpdateBuffer* )bufferPos;
           bufferPos += sizeof( Render::CommandDataUpdateBuffer );
           UpdateIndexBuffer( *resourceId, commandData, errors );
+        } break;
+
+        case Render::CommandType::CreateBlendState:
+        {
+          auto resourceId = ( Render::BlendStateHandle* )bufferPos;
+          bufferPos += sizeof( Render::BlendStateHandle );
+          auto commandData = ( Render::CommandDataCreateBlendState* )bufferPos;
+          bufferPos += sizeof( Render::CommandDataCreateBlendState );
+          AddBlendState( *resourceId, commandData, errors );
+        } break;
+
+        case Render::CommandType::CreateConstantBuffer:
+        {
+          auto resourceId = ( Render::ConstantBufferHandle* )bufferPos;
+          bufferPos += sizeof( Render::ConstantBufferHandle );
+          auto commandData = ( Render::CommandDataCreateConstantBuffer* )bufferPos;
+          bufferPos += sizeof( Render::CommandDataCreateConstantBuffer );
+          AddConstantBuffer( *resourceId, commandData, errors );
+        } break;
+
+        case Render::CommandType::CreateDepthState:
+        {
+          auto resourceId = ( Render::DepthStateHandle* )bufferPos;
+          bufferPos += sizeof( Render::DepthStateHandle );
+          auto commandData = ( Render::CommandDataCreateDepthState* )bufferPos;
+          bufferPos += sizeof( Render::CommandDataCreateDepthState );
+          AddDepthState( *resourceId, commandData, errors );
+        } break;
+
+        case Render::CommandType::CreateRasterizerState:
+        {
+          auto resourceId = ( Render::RasterizerStateHandle* )bufferPos;
+          bufferPos += sizeof( Render::RasterizerStateHandle );
+          auto commandData = ( Render::CommandDataCreateRasterizerState* )bufferPos;
+          bufferPos += sizeof( Render::CommandDataCreateRasterizerState );
+          AddRasterizerState( *resourceId, commandData, errors );
+        } break;
+
+        case Render::CommandType::CreateSamplerState:
+        {
+          auto resourceId = ( Render::SamplerStateHandle* )bufferPos;
+          bufferPos += sizeof( Render::SamplerStateHandle );
+          auto commandData = ( Render::CommandDataCreateSamplerState* )bufferPos;
+          bufferPos += sizeof( Render::CommandDataCreateSamplerState );
+          AddSamplerState( *resourceId, commandData, errors );
+        } break;
+
+        case Render::CommandType::CreateShader:
+        {
+          auto resourceId = ( Render::ShaderHandle* )bufferPos;
+          bufferPos += sizeof( Render::ShaderHandle );
+          auto commandData = ( Render::CommandDataCreateShader* )bufferPos;
+          bufferPos += sizeof( Render::CommandDataCreateShader );
+          AddShader( *resourceId, commandData, errors );
+        } break;
+
+        case Render::CommandType::CreateVertexFormat:
+        {
+          auto resourceId = ( Render::VertexFormatHandle* )bufferPos;
+          bufferPos += sizeof( Render::VertexFormatHandle );
+          auto commandData = ( Render::CommandDataCreateVertexFormat* )bufferPos;
+          bufferPos += sizeof( Render::CommandDataCreateVertexFormat );
+          AddVertexFormat( *resourceId, commandData, errors );
+        } break;
+
+        case Render::CommandType::DestroyBlendState:
+        {
+          auto resourceId = ( Render::BlendStateHandle* )bufferPos;
+          bufferPos += sizeof( Render::BlendStateHandle );
+          RemoveBlendState( *resourceId, errors );
+        } break;
+
+        case Render::CommandType::DestroyConstantBuffer:
+        {
+          auto resourceId = ( Render::ConstantBufferHandle* )bufferPos;
+          bufferPos += sizeof( Render::ConstantBufferHandle );
+          RemoveConstantBuffer( *resourceId, errors );
+        } break;
+
+        case Render::CommandType::DestroyDepthState:
+        {
+          auto resourceId = ( Render::DepthStateHandle* )bufferPos;
+          bufferPos += sizeof( Render::DepthStateHandle );
+          RemoveDepthState( *resourceId, errors );
+        } break;
+
+        case Render::CommandType::DestroyRasterizerState:
+        {
+          auto resourceId = ( Render::RasterizerStateHandle* )bufferPos;
+          bufferPos += sizeof( Render::RasterizerStateHandle );
+          RemoveRasterizerState( *resourceId, errors );
+        } break;
+
+        case Render::CommandType::DestroySamplerState:
+        {
+          auto resourceId = ( Render::SamplerStateHandle* )bufferPos;
+          bufferPos += sizeof( Render::SamplerStateHandle );
+          RemoveSamplerState( *resourceId, errors );
+        } break;
+
+        case Render::CommandType::DestroyShader:
+        {
+          auto resourceId = ( Render::ShaderHandle* )bufferPos;
+          bufferPos += sizeof( Render::ShaderHandle );
+          RemoveShader( *resourceId, errors );
+        } break;
+
+        case Render::CommandType::DestroyVertexFormat:
+        {
+          auto resourceId = ( Render::VertexFormatHandle* )bufferPos;
+          bufferPos += sizeof( Render::VertexFormatHandle );
+          RemoveVertexFormat( *resourceId, errors );
         } break;
 
         default:
@@ -938,6 +1053,7 @@ namespace Tac
   //  }
   //  ID3D11Buffer* buffer;
   //  TAC_DX11_CALL( errors, mDevice->CreateBuffer, &bd, pInitialData, &buffer );
+   // TAC_HANDLE_ERROR( errors );
   //  SetDebugName( buffer, vbData.mName + " verts" );
   //  VertexBufferDX11* vertexBuffer;
   //  AddRendererResource( &vertexBuffer, vbData );
@@ -971,6 +1087,8 @@ namespace Tac
   //    initData.pSysMem = indexBufferData.mData;
   //  }
   //  TAC_DX11_CALL( errors, mDevice->CreateBuffer, &bd, pInitData, &mDXObj );
+
+    //TAC_HANDLE_ERROR( errors );
   //  SetDebugName( mDXObj, indexBufferData.mName + " indexes" );
   //  IndexBufferDX11* indexBuffer;
   //  AddRendererResource( &indexBuffer, indexBufferData );
@@ -1191,6 +1309,7 @@ namespace Tac
   //  desc.BorderColor[ 3 ] = 1;
   //  ID3D11SamplerState* samplerState;
   //  TAC_DX11_CALL( errors, mDevice->CreateSamplerState, &desc, &samplerState );
+   // TAC_HANDLE_ERROR( errors );
   //  SetDebugName( samplerState, samplerStateData.mName );
   //  SamplerStateDX11* samplerStateDX11;
   //  AddRendererResource( &samplerStateDX11, samplerStateData );
@@ -1267,6 +1386,7 @@ namespace Tac
   //  }
   //  ID3D11Resource* resource = nullptr;
   //  TAC_DX11_CALL( errors, mDevice->CreateTexture2D, &texDesc, pSubResource, ( ID3D11Texture2D** )&resource );
+// TAC_HANDLE_ERROR( errors );
   //  SetDebugName( resource, textureData.mName + " tex2d" );
   //  ID3D11RenderTargetView* rTV = nullptr;
   //  if( Contains( textureData.binding, Binding::RenderTarget ) )
@@ -1275,6 +1395,7 @@ namespace Tac
   //                   resource,
   //                   nullptr,
   //                   &rTV );
+// TAC_HANDLE_ERROR( errors );
   //    SetDebugName( rTV, textureData.mName + " rtv" );
   //  }
   //  ID3D11ShaderResourceView* srv = nullptr;
@@ -1286,6 +1407,7 @@ namespace Tac
   //    srvDesc.TextureCube.MostDetailedMip = 0;
   //    srvDesc.TextureCube.MipLevels = -1;
   //    TAC_DX11_CALL( errors, mDevice->CreateShaderResourceView, resource, &srvDesc, &srv );
+// TAC_HANDLE_ERROR( errors );
   //    SetDebugName( srv, textureData.mName + " srv" );
   //  }
   //  TextureDX11* textureDX11;
@@ -1318,6 +1440,7 @@ namespace Tac
   //  if( Contains( textureData.binding, Binding::RenderTarget ) )
   //  {
   //    TAC_DX11_CALL( errors, mDevice->CreateRenderTargetView,
+// TAC_HANDLE_ERROR( errors );
   //                   dXObj,
   //                   nullptr,
   //                   &rTV );
@@ -1489,6 +1612,8 @@ namespace Tac
   //    &texDesc,
   //    pSubResource,
   //    ( ID3D11Texture2D** )resource );
+
+    //TAC_HANDLE_ERROR( errors );
   //}
 
   //void RendererDirectX11::CreateShaderResourceView(
@@ -1535,6 +1660,7 @@ namespace Tac
   //    } break;
   //  }
   //  TAC_DX11_CALL( errors, mDevice->CreateShaderResourceView, resource, &srvDesc, srv );
+// TAC_HANDLE_ERROR( errors );
   //  SetDebugName( *srv, debugName + " srv" );
   //}
 
@@ -1561,6 +1687,7 @@ namespace Tac
   //  bd.ByteWidth = RoundUpToNearestMultiple( cBufferData.byteCount, 16 );
   //  bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
   //  TAC_DX11_CALL( errors, mDevice->CreateBuffer, &bd, nullptr, &cbufferhandle );
+// TAC_HANDLE_ERROR( errors );
   //  SetDebugName( cbufferhandle, cBufferData.mName );
   //  CBufferDX11* cBufferDX11;
   //  AddRendererResource( &cBufferDX11, cBufferData );
@@ -1587,6 +1714,7 @@ namespace Tac
   //  desc.RenderTarget[ 0 ] = d3d11rtbd;
   //  ID3D11BlendState* mDXObj;
   //  TAC_DX11_CALL( errors, mDevice->CreateBlendState, &desc, &mDXObj );
+// TAC_HANDLE_ERROR( errors );
   //  SetDebugName( mDXObj, blendStateData.mName );
   //  BlendStateDX11* blendState;
   //  AddRendererResource( &blendState, blendStateData );
@@ -1610,6 +1738,7 @@ namespace Tac
   //  desc.FrontCounterClockwise = rasterizerStateData.frontCounterClockwise;
   //  ID3D11RasterizerState* rasterizerState;
   //  TAC_DX11_CALL( errors, mDevice->CreateRasterizerState, &desc, &rasterizerState );
+    // TAC_HANDLE_ERROR( errors );
   //  SetDebugName( rasterizerState, rasterizerStateData.mName );
   //  RasterizerStateDX11* rasterizerStateDX11;
   //  AddRendererResource( &rasterizerStateDX11, rasterizerStateData );
@@ -1632,6 +1761,7 @@ namespace Tac
   //    : D3D11_DEPTH_WRITE_MASK_ZERO;
   //  ID3D11DepthStencilState* depthStencilState;
   //  TAC_DX11_CALL( errors, mDevice->CreateDepthStencilState, &desc, &depthStencilState );
+    //TAC_HANDLE_ERROR( errors );
   //  SetDebugName( depthStencilState, depthStateData.mName );
   //  DepthStateDX11* depthState;
   //  AddRendererResource( &depthState, depthStateData );
@@ -1672,6 +1802,7 @@ namespace Tac
   //    myShaderDX11->mLoadData.mInputSig->GetBufferPointer(),
   //    myShaderDX11->mLoadData.mInputSig->GetBufferSize(),
   //    &inputLayout );
+    //TAC_HANDLE_ERROR( errors );
   //  SetDebugName( inputLayout, vertexFormatDataa.mName );
   //  VertexFormatDX11* vertexFormatDX11;
   //  AddRendererResource( &vertexFormatDX11, vertexFormatDataa );
@@ -1997,6 +2128,7 @@ namespace Tac
   //  D3D11_MAP d3d11mapType = GetD3D11_MAP( Map::WriteDiscard );
   //  D3D11_MAPPED_SUBRESOURCE mappedResource;
   //  TAC_DX11_CALL( errors, deviceContext->Map, resource, 0, d3d11mapType, 0, &mappedResource );
+   // TAC_HANDLE_ERROR( errors );
   //  MemCpy( mappedResource.pData, data, byteCount );
   //  RendererDirectX11::Instance->mDeviceContext->Unmap( resource, 0 );
   //}
@@ -2084,6 +2216,7 @@ namespace Tac
 
   //  ID3D11Texture2D* texture;
   //  TAC_DX11_CALL( errors, mDevice->CreateTexture2D, &texture2dDesc, nullptr, &texture );
+  //  TAC_HANDLE_ERROR( errors );
   //  RendererDirectX11::Instance->SetDebugName( texture, mName + " tex2d" );
 
   //  ID3D11DepthStencilView* dsv;
@@ -2091,6 +2224,7 @@ namespace Tac
   //  desc.Format = texture2dDesc.Format;
   //  desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
   //  TAC_DX11_CALL( errors, mDevice->CreateDepthStencilView, texture, &desc, &dsv );
+  //  TAC_HANDLE_ERROR( errors );
   //  RendererDirectX11::Instance->SetDebugName( dsv, mName + " dsv" );
 
   //  mDXObj = texture;
@@ -2141,49 +2275,217 @@ namespace Tac
   //}
 
 
-  void RendererDirectX11::AddVertexBuffer( int index,
+  void RendererDirectX11::AddVertexBuffer( Render::VertexBufferHandle index,
                                            Render::CommandDataCreateBuffer* data,
                                            Errors& errors )
   {
     AssertRenderThread();
-
     D3D11_BUFFER_DESC bd = {};
     bd.ByteWidth = data->mByteCount;
     bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
     bd.Usage = GetUsage( data->mAccess );
     bd.CPUAccessFlags = data->mAccess == Access::Dynamic ? D3D11_CPU_ACCESS_WRITE : 0;
-
     D3D11_SUBRESOURCE_DATA initData = {};
     initData.pSysMem = data->mOptionalInitialBytes;
-
     TAC_DX11_CALL( errors,
                    mDevice->CreateBuffer,
                    &bd,
                    data->mOptionalInitialBytes ? &initData : nullptr,
-                   &mVertexBuffers[ index ] );
+                   &mVertexBuffers[ index.mResourceId ] );
   }
-  void RendererDirectX11::AddIndexBuffer( int index,
+
+  void RendererDirectX11::AddVertexFormat( Render::VertexFormatHandle vertexFormatHandle,
+                                           Render::CommandDataCreateVertexFormat* commandData,
+                                           Errors& errors )
+  {
+    AssertRenderThread();
+    Vector< D3D11_INPUT_ELEMENT_DESC > inputElementDescs;
+    commandData->mShaderHandle;
+    for( int iVertexFormatData = 0; iVertexFormatData < commandData->mVertexFormatDataCount; ++iVertexFormatData )
+    {
+      VertexDeclaration curFormat = commandData->mVertexFormatDatas[ iVertexFormatData ];
+
+      D3D11_INPUT_ELEMENT_DESC curDX11Input = {};
+      curDX11Input.Format = GetDXGIFormat( curFormat.mTextureFormat );
+      curDX11Input.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+      curDX11Input.InstanceDataStepRate = 0;
+      curDX11Input.InputSlot = 0;
+      curDX11Input.SemanticName = GetSemanticName( curFormat.mAttribute );
+      // MSDN:
+      // A semantic index modifies a semantic, with an integer index number.
+      // A semantic index is only needed in a case where there is more than
+      // one element with the same semantic.
+      curDX11Input.SemanticIndex;
+      curDX11Input.AlignedByteOffset = curFormat.mAlignedByteOffset;
+      inputElementDescs.push_back( curDX11Input );
+    }
+    ID3DBlob* inputSig = mPrograms[ commandData->mShaderHandle.mResourceId ].mInputSig;
+    ID3D11InputLayout* inputLayout;
+    TAC_DX11_CALL(
+      errors,
+      mDevice->CreateInputLayout,
+      inputElementDescs.data(),
+      ( UINT )inputElementDescs.size(),
+      inputSig->GetBufferPointer(),
+      inputSig->GetBufferSize(),
+      &inputLayout );
+    TAC_HANDLE_ERROR( errors );
+    mInputLayouts[ vertexFormatHandle.mResourceId ] = inputLayout;
+  }
+
+
+  void RendererDirectX11::AddIndexBuffer( Render::IndexBufferHandle index,
                                           Render::CommandDataCreateBuffer* data,
                                           Errors& errors )
   {
     AssertRenderThread();
-
     D3D11_BUFFER_DESC bd = {};
     bd.ByteWidth = data->mByteCount;
     bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
     bd.Usage = GetUsage( data->mAccess );
     bd.CPUAccessFlags = data->mAccess == Access::Dynamic ? D3D11_CPU_ACCESS_WRITE : 0;
-
     D3D11_SUBRESOURCE_DATA initData = {};
     initData.pSysMem = data->mOptionalInitialBytes;
-
     TAC_DX11_CALL( errors,
                    mDevice->CreateBuffer,
                    &bd,
                    data->mOptionalInitialBytes ? &initData : nullptr,
-                   &mIndexBuffers[ index ] );
+                   &mIndexBuffers[ index.mResourceId ] );
   }
-  void RendererDirectX11::AddTexture( int index,
+
+  void RendererDirectX11::AddRasterizerState( Render::RasterizerStateHandle rasterizerStateHandle,
+                                              Render::CommandDataCreateRasterizerState* commandData,
+                                              Errors& errors )
+  {
+    AssertRenderThread();
+    D3D11_RASTERIZER_DESC desc = {};
+    desc.FillMode = GetFillMode( commandData->fillMode );
+    desc.CullMode = GetCullMode( commandData->cullMode );
+    desc.ScissorEnable = commandData->scissor;
+    desc.MultisampleEnable = commandData->multisample;
+    desc.DepthClipEnable = true;
+    desc.FrontCounterClockwise = commandData->frontCounterClockwise;
+    ID3D11RasterizerState* rasterizerState;
+    TAC_DX11_CALL( errors, mDevice->CreateRasterizerState, &desc, &rasterizerState );
+    mRasterizerStates[ rasterizerStateHandle.mResourceId ] = rasterizerState;
+  }
+
+  void RendererDirectX11::AddSamplerState( Render::SamplerStateHandle samplerStateHandle,
+                                           Render::CommandDataCreateSamplerState* commandData,
+                                           Errors& errors )
+  {
+    Render::CommandDataCreateSamplerState &samplerStateData = *commandData;
+    AssertRenderThread();
+    D3D11_SAMPLER_DESC desc = {};
+    desc.Filter = GetFilter( samplerStateData.filter );
+    desc.AddressU = GetAddressMode( samplerStateData.u );
+    desc.AddressV = GetAddressMode( samplerStateData.v );
+    desc.AddressW = GetAddressMode( samplerStateData.w );
+    desc.ComparisonFunc = GetCompare( samplerStateData.compare );
+    desc.BorderColor[ 0 ] = 1;
+    desc.BorderColor[ 1 ] = 0;
+    desc.BorderColor[ 2 ] = 0;
+    desc.BorderColor[ 3 ] = 1;
+    ID3D11SamplerState* samplerState;
+    TAC_DX11_CALL( errors, mDevice->CreateSamplerState, &desc, &samplerState );
+    mSamplerStates[ samplerStateHandle.mResourceId ] = samplerState;
+  }
+
+  void RendererDirectX11::AddShader( Render::ShaderHandle index,
+                                     Render::CommandDataCreateShader* commandData,
+                                     Errors& errors )
+  {
+    AssertRenderThread();
+
+    //   StringView mShaderPath;
+    //   StringView mShaderStr;
+    //   ConstantBufferHandle mConstantBuffers[10];
+    //   int mConstantBufferCount = 0;
+
+    ID3D11VertexShader* vertexShader = nullptr;
+    ID3D11PixelShader* pixelShader = nullptr;
+    ID3DBlob* inputSignature = nullptr;
+
+    for( ;; )
+    {
+      if( errors )
+      {
+        if( IsDebugMode() )
+        {
+          DebugBreak();
+          errors.clear();
+        }
+        else
+        {
+          TAC_HANDLE_ERROR( errors );
+        }
+      }
+
+      String shaderPart1 = FileToString( GetDirectX11ShaderPath( "common" ), errors );
+      String shaderPart2 = commandData->mShaderPath.size()
+        ? FileToString( GetDirectX11ShaderPath( commandData->mShaderPath ), errors )
+        : commandData->mShaderStr;
+      String fullShaderString = shaderPart1 + "\n" + shaderPart2;
+
+      // vertex shader
+      ID3DBlob* pVSBlob;
+
+      CompileShaderFromString( &pVSBlob,
+                               fullShaderString,
+                               "VS",
+                               "vs_4_0",
+                               errors );
+      if( errors )
+        continue;
+      TAC_ON_DESTRUCT( pVSBlob->Release() );
+
+      TAC_DX11_CALL( errors,
+                     mDevice->CreateVertexShader,
+                     pVSBlob->GetBufferPointer(),
+                     pVSBlob->GetBufferSize(),
+                     nullptr,
+                     &vertexShader );
+      if( errors )
+        continue;
+
+      TAC_DX11_CALL( errors,
+                     D3DGetBlobPart,
+                     pVSBlob->GetBufferPointer(),
+                     pVSBlob->GetBufferSize(),
+                     D3D_BLOB_INPUT_SIGNATURE_BLOB,
+                     0,
+                     &inputSignature );
+      if( errors )
+        continue;
+
+      ID3DBlob* pPSBlob;
+      CompileShaderFromString( &pPSBlob,
+                               fullShaderString,
+                               "PS",
+                               "ps_4_0",
+                               errors );
+      if( errors )
+        continue;
+      TAC_ON_DESTRUCT( pPSBlob->Release() );
+
+      TAC_DX11_CALL( errors,
+                     mDevice->CreatePixelShader,
+                     pPSBlob->GetBufferPointer(),
+                     pPSBlob->GetBufferSize(),
+                     nullptr,
+                     &pixelShader );
+      if( errors )
+        continue;
+
+      break;
+    }
+
+    mPrograms[ index.mResourceId ].mInputSig = inputSignature;
+    mPrograms[ index.mResourceId ].mVertexShader = vertexShader;
+    mPrograms[ index.mResourceId ].mPixelShader = pixelShader;
+  }
+
+  void RendererDirectX11::AddTexture( Render::TextureHandle index,
                                       Render::CommandDataCreateTexture* data,
                                       Errors& errors )
   {
@@ -2247,12 +2549,67 @@ namespace Tac
         BindFlags & D3D11_BIND_SHADER_RESOURCE )
       mDeviceContext->GenerateMips( srv );
 
-    Texture* texture = mTextures + index;
+    Texture* texture = mTextures + index.mResourceId;
     texture->mTexture2D = texture2D;
     texture->mTextureSRV = srv;
     texture->mTextureRTV = rTV;
   }
-  void RendererDirectX11::AddFramebuffer( int index,
+
+  void RendererDirectX11::AddBlendState( Render::BlendStateHandle blendStateHandle,
+                                         Render::CommandDataCreateBlendState* commandData,
+                                         Errors& errors )
+  {
+    Render::CommandDataCreateBlendState& blendStateData = *commandData;
+    AssertRenderThread();
+    D3D11_BLEND_DESC desc = {};
+    D3D11_RENDER_TARGET_BLEND_DESC* d3d11rtbd = &desc.RenderTarget[ 0 ];
+    d3d11rtbd->BlendEnable = true;
+    d3d11rtbd->SrcBlend = GetBlend( blendStateData.srcRGB );
+    d3d11rtbd->DestBlend = GetBlend( blendStateData.dstRGB );
+    d3d11rtbd->BlendOp = GetBlendOp( blendStateData.blendRGB );
+    d3d11rtbd->SrcBlendAlpha = GetBlend( blendStateData.srcA );
+    d3d11rtbd->DestBlendAlpha = GetBlend( blendStateData.dstA );
+    d3d11rtbd->BlendOpAlpha = GetBlendOp( blendStateData.blendA );
+    d3d11rtbd->RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+    ID3D11BlendState* blendState;
+    TAC_DX11_CALL( errors, mDevice->CreateBlendState, &desc, &blendState );
+    TAC_HANDLE_ERROR( errors );
+    mBlendStates[ blendStateHandle.mResourceId ] = blendState;
+  }
+
+  void RendererDirectX11::AddConstantBuffer( Render::ConstantBufferHandle constantBufferhandle,
+                                             Render::CommandDataCreateConstantBuffer* commandData,
+                                             Errors& errors )
+  {
+    AssertRenderThread();
+    ID3D11Buffer* cbufferhandle;
+    D3D11_BUFFER_DESC bd = {};
+    bd.ByteWidth = RoundUpToNearestMultiple( commandData->mByteCount, 16 );
+    bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    TAC_DX11_CALL( errors, mDevice->CreateBuffer, &bd, nullptr, &cbufferhandle );
+    mConstantBuffers[ constantBufferhandle.mResourceId ].mBuffer = cbufferhandle;
+    mConstantBuffers[ constantBufferhandle.mResourceId ].mShaderRegister = commandData->mShaderRegister;
+  }
+
+  void RendererDirectX11::AddDepthState( Render::DepthStateHandle depthStateHandle,
+                                         Render::CommandDataCreateDepthState* commandData,
+                                         Errors& errors )
+  {
+    AssertRenderThread();
+    D3D11_DEPTH_STENCIL_DESC desc = {};
+    desc.DepthFunc = GetDepthFunc( commandData->depthFunc );
+    desc.DepthEnable = commandData->depthTest;
+    desc.DepthWriteMask
+      = commandData->depthWrite
+      ? D3D11_DEPTH_WRITE_MASK_ALL
+      : D3D11_DEPTH_WRITE_MASK_ZERO;
+    ID3D11DepthStencilState* depthStencilState;
+    TAC_DX11_CALL( errors, mDevice->CreateDepthStencilState, &desc, &depthStencilState );
+    TAC_HANDLE_ERROR( errors );
+    mDepthStencilStates[ depthStateHandle.mResourceId ] = depthStencilState;
+  }
+
+  void RendererDirectX11::AddFramebuffer( Render::FramebufferHandle index,
                                           Render::CommandDataCreateFramebuffer* data,
                                           Errors& errors )
   {
@@ -2312,34 +2669,82 @@ namespace Tac
     framebuffer.mSwapChain = swapChain;
     framebuffer.mDepthStencilView = dsv;
     framebuffer.mDepthTexture = texture;
-    mFramebuffers[ index ] = framebuffer;
+    mFramebuffers[ index.mResourceId ] = framebuffer;
   }
-  void RendererDirectX11::RemoveVertexBuffer( int index, Errors& errors )
+
+  void RendererDirectX11::RemoveVertexBuffer( Render::VertexBufferHandle index, Errors& errors )
   {
-    TAC_RELEASE_IUNKNOWN( mVertexBuffers[ index ] );
-    mVertexBuffers[ index ] = {};
+    TAC_RELEASE_IUNKNOWN( mVertexBuffers[ index.mResourceId ] );
+    mVertexBuffers[ index.mResourceId ] = {};
   }
-  void RendererDirectX11::RemoveIndexBuffer( int index, Errors& errors )
+
+  void RendererDirectX11::RemoveVertexFormat( Render::VertexFormatHandle, Errors& )
   {
-    TAC_RELEASE_IUNKNOWN( mIndexBuffers[ index ] );
-    mIndexBuffers[ index ] = {};
+
+    TAC_UNIMPLEMENTED;
   }
-  void RendererDirectX11::RemoveTexture( int index, Errors& errors )
+
+  void RendererDirectX11::RemoveIndexBuffer( Render::IndexBufferHandle index, Errors& errors )
   {
-    TAC_RELEASE_IUNKNOWN( mTextures[ index ].mTexture2D );
-    TAC_RELEASE_IUNKNOWN( mTextures[ index ].mTextureRTV );
-    TAC_RELEASE_IUNKNOWN( mTextures[ index ].mTextureSRV );
-    mTextures[ index ] = {};
+    TAC_RELEASE_IUNKNOWN( mIndexBuffers[ index.mResourceId ] );
+    mIndexBuffers[ index.mResourceId ] = {};
   }
-  void RendererDirectX11::RemoveFramebuffer( int index, Errors& errors )
+
+  void RendererDirectX11::RemoveRasterizerState( Render::RasterizerStateHandle, Errors& )
+  {
+
+    TAC_UNIMPLEMENTED;
+  }
+
+  void RendererDirectX11::RemoveSamplerState( Render::SamplerStateHandle, Errors& )
+  {
+
+    TAC_UNIMPLEMENTED;
+  }
+
+  void RendererDirectX11::RemoveShader( Render::ShaderHandle, Errors& )
+  {
+
+    TAC_UNIMPLEMENTED;
+  }
+
+  void RendererDirectX11::RemoveTexture( Render::TextureHandle index, Errors& errors )
+  {
+    TAC_RELEASE_IUNKNOWN( mTextures[ index.mResourceId ].mTexture2D );
+    TAC_RELEASE_IUNKNOWN( mTextures[ index.mResourceId ].mTextureRTV );
+    TAC_RELEASE_IUNKNOWN( mTextures[ index.mResourceId ].mTextureSRV );
+    mTextures[ index.mResourceId ] = {};
+  }
+
+  void RendererDirectX11::RemoveFramebuffer( Render::FramebufferHandle index, Errors& errors )
   {
     TAC_UNIMPLEMENTED;
   }
-  void RendererDirectX11::UpdateTextureRegion( int index,
+
+  void RendererDirectX11::RemoveBlendState( Render::BlendStateHandle, Errors& )
+  {
+
+    TAC_UNIMPLEMENTED;
+  }
+
+  void RendererDirectX11::RemoveConstantBuffer( Render::ConstantBufferHandle, Errors& )
+  {
+
+    TAC_UNIMPLEMENTED;
+  }
+
+  void RendererDirectX11::RemoveDepthState( Render::DepthStateHandle, Errors& )
+  {
+
+    TAC_UNIMPLEMENTED;
+  }
+
+  void RendererDirectX11::UpdateTextureRegion( Render::TextureHandle index,
                                                Render::CommandDataUpdateTextureRegion* data,
                                                Errors& errors )
   {
     AssertRenderThread();
+    TAC_ASSERT( Render::IsSubmitAllocated( data->mSrcBytes ) );
 
     const UINT dstX = data->mDstX;
     const UINT dstY = data->mDstY;
@@ -2367,7 +2772,7 @@ namespace Tac
     subResource.SysMemPitch = data->mSrc.mPitch;
     subResource.SysMemSlicePitch = data->mSrc.mPitch * data->mSrc.mHeight;
 
-    ID3D11Resource* dstTex = mTextures[ index ].mTexture2D;
+    ID3D11Resource* dstTex = mTextures[ index.mResourceId ].mTexture2D;
     ID3D11Texture2D* srcTex;
     TAC_DX11_CALL( errors,
                    mDevice->CreateTexture2D,
@@ -2387,24 +2792,26 @@ namespace Tac
     TAC_RELEASE_IUNKNOWN( srcTex );
   }
 
-  void RendererDirectX11::UpdateVertexBuffer( int index,
+  void RendererDirectX11::UpdateVertexBuffer( Render::VertexBufferHandle index,
                                               Render::CommandDataUpdateBuffer* data,
                                               Errors& errors )
   {
     AssertRenderThread();
-    ID3D11Buffer* vertexBuffer = mVertexBuffers[ index ];
+    TAC_ASSERT( Render::IsSubmitAllocated( data->mBytes ) );
+    ID3D11Buffer* vertexBuffer = mVertexBuffers[ index.mResourceId ];
     D3D11_MAPPED_SUBRESOURCE mappedResource;
     TAC_DX11_CALL( errors, mDeviceContext->Map, vertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource );
     MemCpy( mappedResource.pData, data->mBytes, data->mByteCount );
     RendererDirectX11::Instance->mDeviceContext->Unmap( vertexBuffer, 0 );
   }
 
-  void RendererDirectX11::UpdateIndexBuffer( int index,
+  void RendererDirectX11::UpdateIndexBuffer( Render::IndexBufferHandle index,
                                              Render::CommandDataUpdateBuffer* data,
                                              Errors& errors )
   {
     AssertRenderThread();
-    ID3D11Buffer* indexBuffer = mIndexBuffers[ index ];
+    TAC_ASSERT( Render::IsSubmitAllocated( data->mBytes ) );
+    ID3D11Buffer* indexBuffer = mIndexBuffers[ index.mResourceId ];
     D3D11_MAPPED_SUBRESOURCE mappedResource;
     TAC_DX11_CALL( errors, mDeviceContext->Map, indexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource );
     MemCpy( mappedResource.pData, data->mBytes, data->mByteCount );

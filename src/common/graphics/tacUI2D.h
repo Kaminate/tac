@@ -132,9 +132,6 @@ namespace Tac
     // the first class generates mDefaultVertex2Ds
     // the second class interfaces with the renderer.
 
-    Render::VertexBufferHandle mVerts ;
-    Render::IndexBufferHandle mIndexes ;
-
     int mVertexCapacity = 0;
     int mIndexCapacity = 0;
 

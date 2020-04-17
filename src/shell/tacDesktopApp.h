@@ -47,6 +47,7 @@ namespace Tac
     //void           KillDeadWindows();
     virtual void   GetPrimaryMonitor( Monitor* monitor, Errors& errors ) = 0;
     virtual void   SpawnWindowAux( const WindowParams& windowParams, DesktopWindow** desktopWindow, Errors& errors ) {};
+    virtual void   CreateControllerInput(Errors&) {};
     //DesktopWindow* FindWindow( StringView windowName );
 
     //Vector< DesktopWindow* > mMainWindows;

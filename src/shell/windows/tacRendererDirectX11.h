@@ -2,6 +2,7 @@
 
 #pragma once
 #include "src/common/graphics/tacRenderer.h"
+#include "src/common/graphics/tacRendererBackend.h"
 #include "src/common/tacShell.h"
 #include "src/shell/windows/tacWindows.h"
 #include "src/shell/windows/tacDXGI.h"
@@ -307,35 +308,65 @@ namespace Tac
 
 
     // --- Resources begin ---
-    static const int N = 100;
 
     struct Texture
     {
       ID3D11Texture2D* mTexture2D = {};
       ID3D11RenderTargetView* mTextureRTV = {};
       ID3D11ShaderResourceView* mTextureSRV = {};
-    } mTextures[ N ] = {};
-    ID3D11Buffer* mVertexBuffers[ N ] = {};
-    ID3D11Buffer* mIndexBuffers[ N ] = {};
+    } mTextures[ Render::kMaxTextures  ] = {};
+    ID3D11Buffer* mVertexBuffers[ Render::kMaxVertexBuffers ] = {};
+    ID3D11Buffer* mIndexBuffers[ Render::kMaxIndexBuffers  ] = {};
     struct Framebuffer
     {
       IDXGISwapChain* mSwapChain = nullptr;
       ID3D11DepthStencilView* mDepthStencilView = nullptr;
       ID3D11Texture2D* mDepthTexture = nullptr;
-    } mFramebuffers[ N ] = {};
+    } mFramebuffers[ Render::kMaxFramebuffers  ] = {};
+    ID3D11RasterizerState* mRasterizerStates[ Render::kMaxRasterizerStates ] = {};
+    ID3D11SamplerState* mSamplerStates[ Render::kMaxSamplerStates  ] = {};
+    ID3D11DepthStencilState* mDepthStencilStates[ Render::kMaxDepthStencilStates  ] = {};
+    ID3D11InputLayout* mInputLayouts[ Render::kMaxInputLayouts  ] = {};
+    ID3D11BlendState* mBlendStates[ Render::kMaxBlendStates  ] = {};
+    struct ConstantBuffer
+    {
+      ID3D11Buffer* mBuffer = nullptr;
+      int mShaderRegister = 0;
+    } mConstantBuffers[ Render::kMaxConstantBuffers  ] = {};
+    struct Program
+    {
+      ID3D11VertexShader* mVertexShader = nullptr;
+      ID3D11PixelShader* mPixelShader = nullptr;
+      ID3DBlob* mInputSig = nullptr;
+    } mPrograms[ Render::kMaxPrograms  ] = {};
+
 
     // this should all be virtual
-    void AddVertexBuffer( int, Render::CommandDataCreateBuffer*, Errors& );
-    void AddIndexBuffer( int, Render::CommandDataCreateBuffer*, Errors& );
-    void AddTexture( int, Render::CommandDataCreateTexture*, Errors& );
-    void AddFramebuffer( int, Render::CommandDataCreateFramebuffer*, Errors& );
-    void RemoveVertexBuffer( int, Errors& );
-    void RemoveIndexBuffer( int, Errors& );
-    void RemoveTexture( int, Errors& );
-    void RemoveFramebuffer( int, Errors& );
-    void UpdateTextureRegion( int, Render::CommandDataUpdateTextureRegion*, Errors& );
-    void UpdateVertexBuffer( int, Render::CommandDataUpdateBuffer*, Errors& );
-    void UpdateIndexBuffer( int, Render::CommandDataUpdateBuffer* , Errors&);
+    void AddBlendState( Render::BlendStateHandle, Render::CommandDataCreateBlendState*, Errors& );
+    void AddConstantBuffer( Render::ConstantBufferHandle, Render::CommandDataCreateConstantBuffer*, Errors& );
+    void AddDepthState( Render::DepthStateHandle, Render::CommandDataCreateDepthState*, Errors& );
+    void AddFramebuffer( Render::FramebufferHandle, Render::CommandDataCreateFramebuffer*, Errors& );
+    void AddIndexBuffer( Render::IndexBufferHandle, Render::CommandDataCreateBuffer*, Errors& );
+    void AddRasterizerState( Render::RasterizerStateHandle, Render::CommandDataCreateRasterizerState*, Errors& );
+    void AddSamplerState( Render::SamplerStateHandle, Render::CommandDataCreateSamplerState*, Errors& );
+    void AddShader( Render::ShaderHandle, Render::CommandDataCreateShader*, Errors& );
+    void AddTexture( Render::TextureHandle, Render::CommandDataCreateTexture*, Errors& );
+    void AddVertexBuffer( Render::VertexBufferHandle, Render::CommandDataCreateBuffer*, Errors& );
+    void AddVertexFormat( Render::VertexFormatHandle, Render::CommandDataCreateVertexFormat*, Errors& );
+    void RemoveBlendState( Render::BlendStateHandle, Errors& );
+    void RemoveConstantBuffer( Render::ConstantBufferHandle, Errors& );
+    void RemoveDepthState( Render::DepthStateHandle, Errors& );
+    void RemoveFramebuffer( Render::FramebufferHandle, Errors& );
+    void RemoveIndexBuffer( Render::IndexBufferHandle, Errors& );
+    void RemoveRasterizerState( Render::RasterizerStateHandle, Errors& );
+    void RemoveSamplerState( Render::SamplerStateHandle, Errors& );
+    void RemoveShader( Render::ShaderHandle, Errors& );
+    void RemoveTexture( Render::TextureHandle, Errors& );
+    void RemoveVertexBuffer( Render::VertexBufferHandle, Errors& );
+    void RemoveVertexFormat( Render::VertexFormatHandle, Errors& );
+    void UpdateIndexBuffer( Render::IndexBufferHandle, Render::CommandDataUpdateBuffer*, Errors& );
+    void UpdateTextureRegion( Render::TextureHandle, Render::CommandDataUpdateTextureRegion*, Errors& );
+    void UpdateVertexBuffer( Render::VertexBufferHandle, Render::CommandDataUpdateBuffer*, Errors& );
     // frame buffers?
 
     // --- Resources end ---

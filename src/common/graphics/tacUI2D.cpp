@@ -159,10 +159,10 @@ namespace Tac
   }
   UI2DDrawData::~UI2DDrawData()
   {
-    if( mVerts.IsValid() )
-      Render::DestroyVertexBuffer( mVerts, TAC_STACK_FRAME );
-    if( mIndexes.IsValid() )
-      Render::DestroyIndexBuffer( mIndexes , TAC_STACK_FRAME);
+    if( mVertexBufferHandle.IsValid() )
+      Render::DestroyVertexBuffer( mVertexBufferHandle, TAC_STACK_FRAME );
+    if( mIndexBufferHandle.IsValid() )
+      Render::DestroyIndexBuffer( mIndexBufferHandle, TAC_STACK_FRAME );
   }
   void UI2DDrawData::DrawToTexture( int viewWidth, int viewHeight, Render::ViewId viewId, Errors& errors )
   {
@@ -176,10 +176,10 @@ namespace Tac
     int indexCount = mDefaultIndex2Ds.size();
     if( vertexCount && indexCount )
     {
-      if( !mVerts.IsValid() || mVertexCapacity < vertexCount )
+      if( !mVertexBufferHandle.IsValid() || mVertexCapacity < vertexCount )
       {
-        if( mVerts.IsValid() )
-          Render::DestroyVertexBuffer( mVerts, TAC_STACK_FRAME );
+        if( mVertexBufferHandle.IsValid() )
+          Render::DestroyVertexBuffer( mVertexBufferHandle, TAC_STACK_FRAME );
         Render::CommandDataCreateBuffer vertexBufferData = {};
         vertexBufferData.mAccess = Access::Dynamic;
         vertexBufferData.mByteCount = mVertexCapacity * sizeof( UI2DVertex );
@@ -195,10 +195,10 @@ namespace Tac
         mVertexCapacity = vertexCount;
       }
 
-      if( !mIndexes.IsValid() || mIndexCapacity < indexCount )
+      if( !mIndexBufferHandle.IsValid() || mIndexCapacity < indexCount )
       {
-        if( mIndexes.IsValid() )
-          Render::DestroyIndexBuffer( mIndexes, TAC_STACK_FRAME );
+        if( mIndexBufferHandle.IsValid() )
+          Render::DestroyIndexBuffer( mIndexBufferHandle, TAC_STACK_FRAME );
         Render::CommandDataCreateBuffer indexBufferData;
         indexBufferData.mAccess = Access::Dynamic;
         indexBufferData.mByteCount = mIndexCapacity * sizeof( UI2DIndex );
