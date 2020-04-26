@@ -4,6 +4,7 @@
 #include "src/common/tacOS.h"
 #include "src/shell/tacDesktopApp.h"
 
+static uint32_t gRaven = 0xcaacaaaa;
 namespace Tac
 {
   namespace Render
@@ -50,6 +51,10 @@ namespace Tac
       Tac::StackFrame mFrames[ N ];
     };
 
+    void CommandBuffer::PushCommandEnd()
+    {
+      Push( "end", 3 );
+    }
     void CommandBuffer::Push( CommandType type )
     {
       Push( &type, sizeof( CommandType ) );
@@ -72,7 +77,8 @@ namespace Tac
     static Frame gFrames[ 2 ];
     static Frame* gRenderFrame = &gFrames[ 0 ];
     static Frame* gSubmitFrame = &gFrames[ 1 ];
-
+    static uint32_t gCrow = 0xcaacaaaa;
+    int i = gCrow + 1;
 
     static IdCollection<kMaxBlendStates> mIdCollectionBlendState;
     static IdCollection<kMaxConstantBuffers> mIdCollectionConstantBuffer;
@@ -95,6 +101,11 @@ namespace Tac
       int mStartVertex;
       int mIndexCount;
       int mVertexCount;
+      BlendStateHandle mBlendStateHandle;
+      RasterizerStateHandle mRasterizerStateHandle;
+      SamplerStateHandle mSamplerStateHandle;
+      DepthStateHandle mDepthStateHandle;
+      VertexFormatHandle mVertexFormatHandle;
     };
 
     static thread_local Encoder gEncoder;
@@ -103,12 +114,19 @@ namespace Tac
     static char gSubmitRingBufferBytes[ gSubmitRingBufferCapacity ];
     static int gSubmitRingBufferPos;
 
+    void DebugPrintSubmitAllocInfo()
+    {
+      std::cout << "gSubmitRingBufferCapacity: " << gSubmitRingBufferCapacity << std::endl;
+      std::cout << "gSubmitRingBufferBytes: " << ( void* )gSubmitRingBufferBytes << std::endl;
+      std::cout << "gSubmitRingBufferPos : " << gSubmitRingBufferPos << std::endl;
+    }
+
     bool IsSubmitAllocated( const void* data )
     {
       const bool result =
         data >= gSubmitRingBufferBytes &&
         data < gSubmitRingBufferBytes + gSubmitRingBufferCapacity;
-      return data;
+      return result;
     }
 
     //static void AssertSubmitAllocated( void* data )
@@ -163,6 +181,7 @@ namespace Tac
       gSubmitFrame->mCommandBuffer.Push( &stackFrame, sizeof( stackFrame ) );
       gSubmitFrame->mCommandBuffer.Push( &resourceId, sizeof( resourceId ) );
       gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
+      gSubmitFrame->mCommandBuffer.PushCommandEnd();
       return { resourceId };
     }
     VertexBufferHandle CreateVertexBuffer( StringView name,
@@ -174,6 +193,7 @@ namespace Tac
       gSubmitFrame->mCommandBuffer.Push( &frame, sizeof( frame ) );
       gSubmitFrame->mCommandBuffer.Push( &resourceId, sizeof( resourceId ) );
       gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
+      gSubmitFrame->mCommandBuffer.PushCommandEnd();
       return { resourceId };
     }
 
@@ -187,6 +207,7 @@ namespace Tac
       gSubmitFrame->mCommandBuffer.Push( &frame, sizeof( frame ) );
       gSubmitFrame->mCommandBuffer.Push( &resourceId, sizeof( resourceId ) );
       gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
+      gSubmitFrame->mCommandBuffer.PushCommandEnd();
       return { resourceId };
     }
     IndexBufferHandle CreateIndexBuffer( StringView name,
@@ -198,6 +219,7 @@ namespace Tac
       gSubmitFrame->mCommandBuffer.Push( &frame, sizeof( frame ) );
       gSubmitFrame->mCommandBuffer.Push( &resourceId, sizeof( resourceId ) );
       gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
+      gSubmitFrame->mCommandBuffer.PushCommandEnd();
       return { resourceId };
     }
 
@@ -210,6 +232,7 @@ namespace Tac
       gSubmitFrame->mCommandBuffer.Push( &frame, sizeof( frame ) );
       gSubmitFrame->mCommandBuffer.Push( &resourceId, sizeof( resourceId ) );
       gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
+      gSubmitFrame->mCommandBuffer.PushCommandEnd();
       return { resourceId };
     }
 
@@ -222,6 +245,7 @@ namespace Tac
       gSubmitFrame->mCommandBuffer.Push( &frame, sizeof( frame ) );
       gSubmitFrame->mCommandBuffer.Push( &resourceId, sizeof( resourceId ) );
       gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
+      gSubmitFrame->mCommandBuffer.PushCommandEnd();
       return { resourceId };
     }
 
@@ -235,6 +259,7 @@ namespace Tac
       gSubmitFrame->mCommandBuffer.Push( &frame, sizeof( frame ) );
       gSubmitFrame->mCommandBuffer.Push( &resourceId, sizeof( resourceId ) );
       gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
+      gSubmitFrame->mCommandBuffer.PushCommandEnd();
       return { resourceId };
     }
     RasterizerStateHandle CreateRasterizerState( StringView name,
@@ -246,6 +271,7 @@ namespace Tac
       gSubmitFrame->mCommandBuffer.Push( &frame, sizeof( frame ) );
       gSubmitFrame->mCommandBuffer.Push( &resourceId, sizeof( resourceId ) );
       gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
+      gSubmitFrame->mCommandBuffer.PushCommandEnd();
       return { resourceId };
     }
     SamplerStateHandle CreateSamplerState( StringView name,
@@ -257,6 +283,7 @@ namespace Tac
       gSubmitFrame->mCommandBuffer.Push( &frame, sizeof( frame ) );
       gSubmitFrame->mCommandBuffer.Push( &resourceId, sizeof( resourceId ) );
       gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
+      gSubmitFrame->mCommandBuffer.PushCommandEnd();
       return { resourceId };
     }
     DepthStateHandle CreateDepthState( StringView name,
@@ -268,6 +295,7 @@ namespace Tac
       gSubmitFrame->mCommandBuffer.Push( &frame, sizeof( frame ) );
       gSubmitFrame->mCommandBuffer.Push( &resourceId, sizeof( resourceId ) );
       gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
+      gSubmitFrame->mCommandBuffer.PushCommandEnd();
       return { resourceId };
     }
     VertexFormatHandle CreateVertexFormat( StringView name,
@@ -279,6 +307,7 @@ namespace Tac
       gSubmitFrame->mCommandBuffer.Push( &frame, sizeof( frame ) );
       gSubmitFrame->mCommandBuffer.Push( &resourceId, sizeof( resourceId ) );
       gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
+      gSubmitFrame->mCommandBuffer.PushCommandEnd();
       return { resourceId };
     }
 
@@ -289,6 +318,7 @@ namespace Tac
       gSubmitFrame->mCommandBuffer.Push( CommandType::DestroyVertexBuffer );
       gSubmitFrame->mCommandBuffer.Push( &frame, sizeof( frame ) );
       gSubmitFrame->mCommandBuffer.Push( &handle, sizeof( handle ) );
+      gSubmitFrame->mCommandBuffer.PushCommandEnd();
     }
     void DestroyIndexBuffer( IndexBufferHandle handle, StackFrame frame )
     {
@@ -296,6 +326,7 @@ namespace Tac
       gSubmitFrame->mCommandBuffer.Push( CommandType::DestroyIndexBuffer );
       gSubmitFrame->mCommandBuffer.Push( &frame, sizeof( frame ) );
       gSubmitFrame->mCommandBuffer.Push( &handle, sizeof( handle ) );
+      gSubmitFrame->mCommandBuffer.PushCommandEnd();
     }
     void DestroyTexture( TextureHandle handle, StackFrame frame )
     {
@@ -303,6 +334,7 @@ namespace Tac
       gSubmitFrame->mCommandBuffer.Push( CommandType::DestroyTexture );
       gSubmitFrame->mCommandBuffer.Push( &frame, sizeof( frame ) );
       gSubmitFrame->mCommandBuffer.Push( &handle, sizeof( handle ) );
+      gSubmitFrame->mCommandBuffer.PushCommandEnd();
     }
     void DestroyFramebuffer( FramebufferHandle handle, StackFrame frame )
     {
@@ -310,6 +342,7 @@ namespace Tac
       gSubmitFrame->mCommandBuffer.Push( CommandType::DestroyFramebuffer );
       gSubmitFrame->mCommandBuffer.Push( &frame, sizeof( frame ) );
       gSubmitFrame->mCommandBuffer.Push( &handle, sizeof( handle ) );
+      gSubmitFrame->mCommandBuffer.PushCommandEnd();
     }
     void DestroyShader( ShaderHandle handle, StackFrame stackFrame )
     {
@@ -317,6 +350,7 @@ namespace Tac
       gSubmitFrame->mCommandBuffer.Push( CommandType::DestroyShader );
       gSubmitFrame->mCommandBuffer.Push( &stackFrame, sizeof( stackFrame ) );
       gSubmitFrame->mCommandBuffer.Push( &handle, sizeof( handle ) );
+      gSubmitFrame->mCommandBuffer.PushCommandEnd();
     }
     void DestroyVertexFormat( VertexFormatHandle handle, StackFrame stackFrame )
     {
@@ -324,6 +358,7 @@ namespace Tac
       gSubmitFrame->mCommandBuffer.Push( CommandType::DestroyVertexFormat );
       gSubmitFrame->mCommandBuffer.Push( &stackFrame, sizeof( stackFrame ) );
       gSubmitFrame->mCommandBuffer.Push( &handle, sizeof( handle ) );
+      gSubmitFrame->mCommandBuffer.PushCommandEnd();
     }
     void DestroyConstantBuffer( ConstantBufferHandle handle, StackFrame stackFrame )
     {
@@ -331,6 +366,7 @@ namespace Tac
       gSubmitFrame->mCommandBuffer.Push( CommandType::DestroyConstantBuffer );
       gSubmitFrame->mCommandBuffer.Push( &stackFrame, sizeof( stackFrame ) );
       gSubmitFrame->mCommandBuffer.Push( &handle, sizeof( handle ) );
+      gSubmitFrame->mCommandBuffer.PushCommandEnd();
     }
     void DestroyDepthState( DepthStateHandle handle, StackFrame stackFrame )
     {
@@ -338,6 +374,7 @@ namespace Tac
       gSubmitFrame->mCommandBuffer.Push( CommandType::DestroyDepthState );
       gSubmitFrame->mCommandBuffer.Push( &stackFrame, sizeof( stackFrame ) );
       gSubmitFrame->mCommandBuffer.Push( &handle, sizeof( handle ) );
+      gSubmitFrame->mCommandBuffer.PushCommandEnd();
     }
     void DestroyBlendState( BlendStateHandle handle, StackFrame stackFrame )
     {
@@ -345,6 +382,7 @@ namespace Tac
       gSubmitFrame->mCommandBuffer.Push( CommandType::DestroyBlendState );
       gSubmitFrame->mCommandBuffer.Push( &stackFrame, sizeof( stackFrame ) );
       gSubmitFrame->mCommandBuffer.Push( &handle, sizeof( handle ) );
+      gSubmitFrame->mCommandBuffer.PushCommandEnd();
     }
     void DestroyRasterizerState( RasterizerStateHandle handle, StackFrame stackFrame )
     {
@@ -352,6 +390,7 @@ namespace Tac
       gSubmitFrame->mCommandBuffer.Push( CommandType::DestroyRasterizerState );
       gSubmitFrame->mCommandBuffer.Push( &stackFrame, sizeof( stackFrame ) );
       gSubmitFrame->mCommandBuffer.Push( &handle, sizeof( handle ) );
+      gSubmitFrame->mCommandBuffer.PushCommandEnd();
     }
     void DestroySamplerState( SamplerStateHandle handle, StackFrame stackFrame )
     {
@@ -359,19 +398,22 @@ namespace Tac
       gSubmitFrame->mCommandBuffer.Push( CommandType::DestroySamplerState );
       gSubmitFrame->mCommandBuffer.Push( &stackFrame, sizeof( stackFrame ) );
       gSubmitFrame->mCommandBuffer.Push( &handle, sizeof( handle ) );
+      gSubmitFrame->mCommandBuffer.PushCommandEnd();
     }
 
 
 
-    void UpdateTextureRegion(
-      TextureHandle handle,
-      CommandDataUpdateTextureRegion commandData,
-      StackFrame frame )
+    void UpdateTextureRegion( TextureHandle handle,
+                              CommandDataUpdateTextureRegion commandData,
+                              StackFrame frame )
     {
+      const int byteCount = commandData.mSrc.mHeight * commandData.mPitch;
+      commandData.mSrcBytes = Render::SubmitAlloc( commandData.mSrcBytes, byteCount );
       gSubmitFrame->mCommandBuffer.Push( CommandType::UpdateTextureRegion );
       gSubmitFrame->mCommandBuffer.Push( &frame, sizeof( frame ) );
       gSubmitFrame->mCommandBuffer.Push( &handle, sizeof( handle ) );
       gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
+      gSubmitFrame->mCommandBuffer.PushCommandEnd();
     }
 
     void UpdateVertexBuffer( VertexBufferHandle handle,
@@ -379,11 +421,24 @@ namespace Tac
                              StackFrame frame )
 
     {
+      //std::cout << "UpdateVertexBuffer begin " << std::endl;;
       commandData.mBytes = Render::SubmitAlloc( commandData.mBytes, commandData.mByteCount );
+      //std::cout <<  "commandData.mBytes: " <<  (void*)commandData.mBytes << std::endl;;
+
+      ( ( char* )commandData.mBytes )[ 0 ] = 'h';
+      ( ( char* )commandData.mBytes )[ 1 ] = 'e';
+      ( ( char* )commandData.mBytes )[ 2 ] = 'l';
+      ( ( char* )commandData.mBytes )[ 3 ] = 'l';
+      ( ( char* )commandData.mBytes )[ 4 ] = 'o';
+      ( ( char* )commandData.mBytes )[ 5 ] = '\0';
+
+      //DebugPrintSubmitAllocInfo();
       gSubmitFrame->mCommandBuffer.Push( CommandType::UpdateVertexBuffer );
       gSubmitFrame->mCommandBuffer.Push( &frame, sizeof( frame ) );
       gSubmitFrame->mCommandBuffer.Push( &handle, sizeof( handle ) );
       gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
+      gSubmitFrame->mCommandBuffer.PushCommandEnd();
+      //std::cout <<  "UpdateVertexBuffer end " << std::endl;;
     }
 
     void UpdateIndexBuffer( IndexBufferHandle handle,
@@ -395,6 +450,19 @@ namespace Tac
       gSubmitFrame->mCommandBuffer.Push( &frame, sizeof( frame ) );
       gSubmitFrame->mCommandBuffer.Push( &handle, sizeof( handle ) );
       gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
+      gSubmitFrame->mCommandBuffer.PushCommandEnd();
+    }
+
+    void UpdateConstantBuffer( ConstantBufferHandle handle,
+                               CommandDataUpdateBuffer commandData,
+                               StackFrame stackFrame )
+    {
+      commandData.mBytes = Render::SubmitAlloc( commandData.mBytes, commandData.mByteCount );
+      gSubmitFrame->mCommandBuffer.Push( CommandType::UpdateConstantBuffer );
+      gSubmitFrame->mCommandBuffer.Push( &stackFrame, sizeof( StackFrame ) );
+      gSubmitFrame->mCommandBuffer.Push( &handle, sizeof( handle ) );
+      gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
+      gSubmitFrame->mCommandBuffer.PushCommandEnd();
     }
 
     void SetViewFramebuffer( ViewId viewId, FramebufferHandle framebufferHandle )
@@ -408,12 +476,54 @@ namespace Tac
       gEncoder.mStartVertex = startVertex;
       gEncoder.mVertexCount = vertexCount;
     }
+
     void SetIndexBuffer( IndexBufferHandle indexBufferHandle, int startIndex, int indexCount )
     {
       gEncoder.mIndexBufferHandle = indexBufferHandle;
       gEncoder.mStartIndex = startIndex;
       gEncoder.mIndexCount = indexCount;
     }
+
+    void SetBlendState( BlendStateHandle blendStateHandle )
+    {
+      gEncoder.mBlendStateHandle = blendStateHandle;
+    }
+
+    void SetRasterizerState( RasterizerStateHandle rasterizerStateHandle )
+    {
+      gEncoder.mRasterizerStateHandle = rasterizerStateHandle;
+    }
+
+    void SetSamplerState( SamplerStateHandle samplerStateHandle )
+    {
+      gEncoder.mSamplerStateHandle = samplerStateHandle;
+    }
+
+    void SetDepthState( DepthStateHandle depthStateHandle )
+    {
+      gEncoder.mDepthStateHandle = depthStateHandle;
+    }
+
+    void SetVertexFormat( VertexFormatHandle vertexFormatHandle )
+    {
+      gEncoder.mVertexFormatHandle = vertexFormatHandle;
+    }
+
+    static const void* AllocateUniform( const void* bytes, int byteCount )
+    {
+      void* submitBytes = gSubmitFrame->mUniformBuffer.mBytes;
+      gSubmitFrame->mUniformBuffer.mByteCount += byteCount;
+      MemCpy( submitBytes, bytes, byteCount );
+      return submitBytes;
+    }
+
+    //void SetUniform( ConstantBufferHandle constantBufferHandle, const void* bytes, int byteCount )
+    //{
+    //  const void* uniformBytes = AllocateUniform( bytes, byteCount );
+    //  gEncoder.
+
+    //}
+
 
     // need lots of comments pls
 
@@ -457,11 +567,15 @@ namespace Tac
 
     void Init()
     {
+      //std::cout << "Render::Init begin" << std::endl;
       gSubmitSemaphore = Semaphore::Create();
       gRenderSemaphore = Semaphore::Create();
 
       // i guess well make render frame go first
       Semaphore::Increment( gSubmitSemaphore );
+
+      //DebugPrintSubmitAllocInfo();
+      //std::cout << "Render::Init end" << std::endl;
     }
 
     void Submit( ViewId viewId )
@@ -476,8 +590,18 @@ namespace Tac
       DrawCall3* drawCall = &gSubmitFrame->mDrawCalls[ iDrawCall ];
       drawCall->mIndexBufferHandle = gEncoder.mIndexBufferHandle;
       drawCall->mVertexBufferHandle = gEncoder.mVertexBufferHandle;
+      drawCall->mBlendStateHandle = gEncoder.mBlendStateHandle;
+      drawCall->mRasterizerStateHandle = gEncoder.mRasterizerStateHandle;
+      drawCall->mSamplerStateHandle = gEncoder.mSamplerStateHandle;
+      drawCall->mDepthStateHandle = gEncoder.mDepthStateHandle;
+      drawCall->mVertexFormatHandle = gEncoder.mVertexFormatHandle;
       gEncoder.mIndexBufferHandle = IndexBufferHandle();
       gEncoder.mVertexBufferHandle = VertexBufferHandle();
+      gEncoder.mBlendStateHandle = BlendStateHandle();
+      gEncoder.mRasterizerStateHandle = RasterizerStateHandle();
+      gEncoder.mSamplerStateHandle = SamplerStateHandle();
+      gEncoder.mDepthStateHandle = DepthStateHandle();
+      gEncoder.mVertexFormatHandle = VertexFormatHandle();
     }
   }
 }

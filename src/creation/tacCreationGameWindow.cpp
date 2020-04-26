@@ -621,7 +621,7 @@ namespace Tac
 
     if( KeyboardInput::Instance->mMouseDeltaScroll )
     {
-      float unitsPerTick = 0.35f;
+      //float unitsPerTick = 0.35f;
       mCreation->mEditorCamera.mPos +=
         mCreation->mEditorCamera.mForwards *
         ( float )KeyboardInput::Instance->mMouseDeltaScroll;

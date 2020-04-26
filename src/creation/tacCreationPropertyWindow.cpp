@@ -27,6 +27,7 @@ namespace Tac
 
   void CreationPropertyWindow::Init( Errors& errors )
   {
+    TAC_UNUSED_PARAMETER( errors );
     mUI2DDrawData = new UI2DDrawData;
     mUIRoot = new UIRoot;
     mUIRoot->mElapsedSeconds = &Shell::Instance->mElapsedSeconds;

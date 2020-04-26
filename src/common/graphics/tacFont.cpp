@@ -101,7 +101,6 @@ namespace Tac
     Image image;
     image.mWidth = mRowCount * FontCellWidth;
     image.mHeight = mRowCount * FontCellWidth;
-    image.mPitch = mRowCount * FontCellWidth;
     image.mFormat = atlasFormat;
 
     Render::CommandDataCreateTexture cmdData;
@@ -110,6 +109,7 @@ namespace Tac
     cmdData.mCpuAccess = CPUAccess::Write;
     cmdData.mImage = image;
     cmdData.mImageBytes = initialAtlasMemory;
+    cmdData.mPitch = mRowCount * FontCellWidth;
     mTextureId = Render::CreateTexture( "texture atlas", cmdData, TAC_STACK_FRAME );
 
 
@@ -344,7 +344,6 @@ namespace Tac
       src.mFormat = atlasFormat;
       src.mHeight = bitmapHeightPx;
       src.mWidth = bitmapWidthPx;
-      src.mPitch = bitmapWidthPx;
 
       int x = cell->mColumn * FontCellWidth;
       int y = cell->mRow * FontCellWidth;
@@ -359,6 +358,7 @@ namespace Tac
       data.mDstY = y;
       data.mSrc = src;
       data.mSrcBytes = bitmapMemory.data();
+      data.mPitch = bitmapWidthPx;
 
       Render::UpdateTextureRegion( mTextureId, data, TAC_STACK_FRAME );
 

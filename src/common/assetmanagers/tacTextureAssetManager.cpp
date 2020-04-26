@@ -123,7 +123,6 @@ namespace Tac
         image.mFormat = format;
         image.mWidth = x;
         image.mHeight = y;
-        image.mPitch = pitch;
       }
       AsyncTextureSingleData* mData = nullptr;
     };
@@ -219,7 +218,6 @@ namespace Tac
         image.mFormat = format;
         image.mWidth = prevWidth;
         image.mHeight = prevHeight;
-        image.mPitch = prevWidth * format.mElementCount * format.mPerElementByteCount;
       }
       AsyncTextureCubeData* mData = nullptr;
     };

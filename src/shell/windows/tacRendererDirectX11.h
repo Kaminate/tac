@@ -314,31 +314,31 @@ namespace Tac
       ID3D11Texture2D* mTexture2D = {};
       ID3D11RenderTargetView* mTextureRTV = {};
       ID3D11ShaderResourceView* mTextureSRV = {};
-    } mTextures[ Render::kMaxTextures  ] = {};
+    } mTextures[ Render::kMaxTextures ] = {};
     ID3D11Buffer* mVertexBuffers[ Render::kMaxVertexBuffers ] = {};
-    ID3D11Buffer* mIndexBuffers[ Render::kMaxIndexBuffers  ] = {};
+    ID3D11Buffer* mIndexBuffers[ Render::kMaxIndexBuffers ] = {};
     struct Framebuffer
     {
       IDXGISwapChain* mSwapChain = nullptr;
       ID3D11DepthStencilView* mDepthStencilView = nullptr;
       ID3D11Texture2D* mDepthTexture = nullptr;
-    } mFramebuffers[ Render::kMaxFramebuffers  ] = {};
+    } mFramebuffers[ Render::kMaxFramebuffers ] = {};
     ID3D11RasterizerState* mRasterizerStates[ Render::kMaxRasterizerStates ] = {};
-    ID3D11SamplerState* mSamplerStates[ Render::kMaxSamplerStates  ] = {};
-    ID3D11DepthStencilState* mDepthStencilStates[ Render::kMaxDepthStencilStates  ] = {};
-    ID3D11InputLayout* mInputLayouts[ Render::kMaxInputLayouts  ] = {};
-    ID3D11BlendState* mBlendStates[ Render::kMaxBlendStates  ] = {};
+    ID3D11SamplerState* mSamplerStates[ Render::kMaxSamplerStates ] = {};
+    ID3D11DepthStencilState* mDepthStencilStates[ Render::kMaxDepthStencilStates ] = {};
+    ID3D11InputLayout* mInputLayouts[ Render::kMaxInputLayouts ] = {};
+    ID3D11BlendState* mBlendStates[ Render::kMaxBlendStates ] = {};
     struct ConstantBuffer
     {
       ID3D11Buffer* mBuffer = nullptr;
       int mShaderRegister = 0;
-    } mConstantBuffers[ Render::kMaxConstantBuffers  ] = {};
+    } mConstantBuffers[ Render::kMaxConstantBuffers ] = {};
     struct Program
     {
       ID3D11VertexShader* mVertexShader = nullptr;
       ID3D11PixelShader* mPixelShader = nullptr;
       ID3DBlob* mInputSig = nullptr;
-    } mPrograms[ Render::kMaxPrograms  ] = {};
+    } mPrograms[ Render::kMaxPrograms ] = {};
 
 
     // this should all be virtual
@@ -367,9 +367,13 @@ namespace Tac
     void UpdateIndexBuffer( Render::IndexBufferHandle, Render::CommandDataUpdateBuffer*, Errors& );
     void UpdateTextureRegion( Render::TextureHandle, Render::CommandDataUpdateTextureRegion*, Errors& );
     void UpdateVertexBuffer( Render::VertexBufferHandle, Render::CommandDataUpdateBuffer*, Errors& );
+    void UpdateConstantBuffer( Render::ConstantBufferHandle, Render::CommandDataUpdateBuffer*, Errors& );
     // frame buffers?
 
     // --- Resources end ---
+
+    void UpdateBuffer( ID3D11Buffer* buffer, const void* bytes, int byteCount, Errors& errors  );
+    void UpdateBuffer( ID3D11Buffer* buffer, Render::CommandDataUpdateBuffer*, Errors& errors  );
 
   };
 

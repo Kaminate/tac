@@ -102,9 +102,9 @@ namespace Tac
   struct RendererWindowData
   {
     virtual ~RendererWindowData();
-    virtual void Submit( Errors& errors ) {};
-    virtual void GetCurrentBackbufferTexture( Texture** texture ) { TAC_UNIMPLEMENTED; };
-    virtual void OnResize( Errors& errors ) {};
+    virtual void Submit( Errors& ) {};
+    virtual void GetCurrentBackbufferTexture( Texture** ) { TAC_UNIMPLEMENTED; };
+    virtual void OnResize( Errors& ) {};
 
     DesktopWindow* mDesktopWindow = nullptr;
     //DepthBuffer* mDepthBuffer = nullptr;

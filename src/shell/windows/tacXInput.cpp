@@ -138,7 +138,6 @@ namespace Tac
   }
   void XInput::UpdateInner()
   {
-    return;
 
     mSecondsTillDisconver -= TAC_DELTA_FRAME_SECONDS;
     if( mSecondsTillDisconver < 0 )
@@ -150,17 +149,14 @@ namespace Tac
                                 DIEDFL_ATTACHEDONLY );
     }
     HRESULT hr = S_OK;
-    int iController = 0;
-    for( Controller* controller : mControllers )
+    for( int iController = 0; iController < TAC_CONTROLLER_COUNT_MAX; ++iController)
     {
+      Controller* controller = mControllers[ iController ];
       if( !controller )
         continue;
       DirectInputPerController* directInputPerController = ( DirectInputPerController* )controller;
       if( mForceIndexOverride && ( iController != mIndexOverride ) )
         continue;
-
-      TAC_ON_DESTRUCT( iController++ );
-      Controller* controller = mControllers[ iController ];
 
       IDirectInputDevice8* joystick = directInputPerController->mDivice;
       hr = joystick->Poll();

@@ -28,8 +28,11 @@ namespace Tac
     //  delete window;
   }
 
-  static void StuffThread( Errors& errors )
+  static void StuffThread( void* userData)// Errors& errors )
   {
+    auto desktopApp = ( DesktopApp* )userData;
+    Errors& errors = desktopApp->mErrorsStuffThread;
+
     gThreadType = ThreadType::Stuff;
 
     new ProfileSystem;
@@ -122,7 +125,8 @@ namespace Tac
     Init( errors );
     TAC_HANDLE_ERROR( errors );
 
-    mStuffThread = std::thread( StuffThread, mErrorsStuffThread );
+    std::thread stuffThread( StuffThread, this );// mErrorsStuffThread );
+    //std::thread stuffThread;
     for( ;; )
     {
       if( OS::mShouldStopRunning )
@@ -141,6 +145,7 @@ namespace Tac
       Render::RenderFrame();
       TAC_HANDLE_ERROR( errors );
     }
+    stuffThread.join();
   }
 
   //void DesktopApp::SpawnWindow( int x, int y, int width, int height )

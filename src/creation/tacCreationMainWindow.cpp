@@ -24,7 +24,7 @@ namespace Tac
     delete mUI2DDrawData;
     //delete mUIRoot;
   }
-  void CreationMainWindow::Init( Errors& errors )
+  void CreationMainWindow::Init( Errors& )
   {
     mUI2DDrawData = new UI2DDrawData;
     //mUI2DDrawData->mRenderView = mDesktopWindow->mRenderView;
@@ -40,6 +40,7 @@ namespace Tac
   }
   void CreationMainWindow::LoadTextures( Errors& errors )
   {
+    TAC_UNUSED_PARAMETER( errors );
     //if( mAreTexturesLoaded )
     //  return;
     //struct TextureAndPath

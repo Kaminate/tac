@@ -33,13 +33,13 @@
 namespace Tac
 {
   const static String prefabSettingsPath = "prefabs";
-  static v4 GetClearColor( Shell* shell )
-  {
-    return v4( 1, 0, 0, 1 );
-    float visualStudioBackground = 45 / 255.0f;
-    visualStudioBackground += 0.3f;
-    return GetColorSchemeA( ( float )shell->mElapsedSeconds );
-  }
+  //static v4 GetClearColor( Shell* shell )
+  //{
+  //  return v4( 1, 0, 0, 1 );
+  //  float visualStudioBackground = 45 / 255.0f;
+  //  visualStudioBackground += 0.3f;
+  //  return GetColorSchemeA( ( float )shell->mElapsedSeconds );
+  //}
   const static String refFrameVecNames[] = {
     "mPos",
     "mForwards",
@@ -51,6 +51,7 @@ namespace Tac
 
   void ExecutableStartupInfo::Init( Errors& errors )
   {
+    TAC_UNUSED_PARAMETER( errors );
     mAppName = "Creation";
     mStudioName = "Sleeping Studio";
     new Creation;
@@ -392,7 +393,6 @@ namespace Tac
   }
   void Creation::SetSavedWindowsData( Errors& errors )
   {
-    Settings* settings = Shell::Instance->mSettings;
 
     Json* windows;
     GetWindowsJson( &windows, errors );
@@ -616,7 +616,7 @@ namespace Tac
     int parenNumber = 1;
     for( ;; )
     {
-      bool isEntityNameUnique = false;
+      //bool isEntityNameUnique = false;
       Entity* entity = world->FindEntity( desiredEntityName );
       if( !entity )
         break;
@@ -659,6 +659,7 @@ namespace Tac
   }
   void Creation::GetSavedPrefabs( Vector< String > & paths, Errors& errors )
   {
+    TAC_UNUSED_PARAMETER( errors );
     Settings* settings = Shell::Instance->mSettings;
     Json& prefabs = settings->mJson[ prefabSettingsPath ];
     prefabs.mType = JsonType::Array;

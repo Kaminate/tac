@@ -457,12 +457,12 @@ void ScriptMainMenu::Update( float seconds, Errors& errors )
     image.mFormat.mPerElementDataType = GraphicsType::unorm;
     image.mWidth = x;
     image.mHeight = y;
-    image.mPitch = image.mFormat.mElementCount * image.mFormat.mPerElementByteCount * image.mWidth;
 
     Render::CommandDataCreateTexture textureData;
     textureData.mAccess = Access::Default;
     textureData.mBinding = Binding::ShaderResource;
     textureData.mImage = image;
+    textureData.mPitch = image.mFormat.mElementCount * image.mFormat.mPerElementByteCount * image.mWidth;
     mPower = Render::CreateTexture( "power", textureData, TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
   }

@@ -163,6 +163,7 @@ namespace Tac
     mAccumulatorSeconds -= TAC_DELTA_FRAME_SECONDS;
     mElapsedSeconds += TAC_DELTA_FRAME_SECONDS;
 
+    //OS::mShouldStopRunning =  mElapsedSeconds > 5 ;
     Frame( errors );
   }
 

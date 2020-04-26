@@ -25,6 +25,7 @@ namespace Tac
   }
   void CreationGameObjectMenuWindow::Init( Errors& errors )
   {
+    TAC_UNUSED_PARAMETER( errors );
     mCreationSeconds = Shell::Instance->mElapsedSeconds;
     WindowParams windowParams;
     windowParams.mName = "game object menu";

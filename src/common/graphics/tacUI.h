@@ -94,7 +94,7 @@ namespace Tac
     UILayoutable( const String& debugName );
     virtual ~UILayoutable() = default;
     virtual void DebugImgui();
-    virtual void Update( UILayoutData* uiLayoutData ) {};
+    virtual void Update( UILayoutData* ) {};
     virtual void TransitionOut() {};
     virtual void TransitionIn() {};
     virtual void Render( Errors& errors );
@@ -276,7 +276,7 @@ namespace Tac
   struct UIHierarchyVisual
   {
     virtual ~UIHierarchyVisual() = default;
-    virtual void Render( Errors& errors ) {}
+    virtual void Render( Errors& ) {}
     virtual String GetDebugName() = 0;
     UIHierarchyNode* mHierarchyNode = nullptr;
     v2 mDims;

@@ -165,8 +165,6 @@ namespace Tac
     int mWidth = 0;
     int mHeight = 0;
 
-    // comment?
-    int mPitch = 0;
     Format mFormat;
 
     // byte data should be passed as a separate argument, not as a member of this class
@@ -365,8 +363,9 @@ namespace Tac
     struct CommandDataCreateTexture
     {
       Image mImage;
-      void* mImageBytes = nullptr;
-      void* mImageBytesCubemap[ 6 ] = {};
+      int mPitch = 0; // byte count between texel rows
+      const void* mImageBytes = nullptr;
+      const void* mImageBytesCubemap[ 6 ] = {};
       Binding mBinding = Binding::None;
       Access mAccess = Access::Default;
       CPUAccess mCpuAccess = CPUAccess::None;
@@ -384,7 +383,8 @@ namespace Tac
       Image mSrc;
       int mDstX = 0;
       int mDstY = 0;
-      void* mSrcBytes = nullptr;
+      const void* mSrcBytes = nullptr;
+      int mPitch = 0; // byte count between pixel rows
     };
 
     struct CommandDataUpdateBuffer
@@ -442,10 +442,21 @@ namespace Tac
     void                             UpdateIndexBuffer( IndexBufferHandle,
                                                         CommandDataUpdateBuffer,
                                                         StackFrame );
+    void                             UpdateConstantBuffer( ConstantBufferHandle,
+                                                           CommandDataUpdateBuffer,
+                                                           StackFrame );
+
     void                             SetViewFramebuffer( ViewId viewId,
                                                          FramebufferHandle framebufferHandle );
     void                             SetIndexBuffer( IndexBufferHandle, int iStart, int count );
     void                             SetVertexBuffer( VertexBufferHandle, int iStart, int count );
+    void                             SetBlendState( BlendStateHandle );
+    void                             SetRasterizerState( RasterizerStateHandle );
+    void                             SetSamplerState( SamplerStateHandle );
+    void                             SetDepthState( DepthStateHandle );
+    void                             SetVertexFormat( VertexFormatHandle );
+    //void                             SetUniform( ConstantBufferHandle, const void* bytes, int byteCount );
+
     void                             Submit( ViewId viewId );
   }
 
@@ -488,7 +499,7 @@ namespace Tac
     //virtual void CreateWindowContext( DesktopWindow* desktopWindow, Errors& errors ) {}
 
     virtual ~Renderer();
-    virtual void Init( Errors& errors ) {};
+    virtual void Init( Errors& ) {};
     //virtual void ClearColor( Texture* texture, v4 rgba ) { TAC_UNIMPLEMENTED; }
     //virtual void ClearDepthStencil(
     //  DepthBuffer* depthBuffer,
@@ -524,7 +535,7 @@ namespace Tac
 
     //virtual void RenderFlush() { TAC_UNIMPLEMENTED; }
     //virtual void Render( Errors& errors ) { TAC_UNIMPLEMENTED; }
-    virtual void Render2( Render::Frame*, Errors& errors ) { TAC_UNIMPLEMENTED; }
+    virtual void Render2( Render::Frame*, Errors& ) { TAC_UNIMPLEMENTED; }
     virtual void SwapBuffers() { TAC_UNIMPLEMENTED; }
 
     //virtual void SetPrimitiveTopology( Primitive primitive ) { TAC_UNIMPLEMENTED; }
@@ -533,7 +544,12 @@ namespace Tac
       float f,
       float n,
       float& a,
-      float& b ) {
+      float& b )
+    {
+      TAC_UNUSED_PARAMETER( f );
+      TAC_UNUSED_PARAMETER( n );
+      TAC_UNUSED_PARAMETER( a );
+      TAC_UNUSED_PARAMETER( b );
       TAC_UNIMPLEMENTED;
     }
     //void DebugImgui();

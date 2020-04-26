@@ -57,7 +57,7 @@ namespace Tac
     Render::CommandDataCreateTexture textureData = {};
     textureData.mImage.mWidth = 1;
     textureData.mImage.mHeight = 1;
-    textureData.mImage.mPitch = sizeof( data );
+    textureData.mPitch = 1;
     textureData.mImage.mFormat.mElementCount = 4;
     textureData.mImage.mFormat.mPerElementByteCount = 1;
     textureData.mImage.mFormat.mPerElementDataType = GraphicsType::unorm;
@@ -277,6 +277,11 @@ namespace Tac
       DefaultCBufferPerFrame perFrameData = {};
       perFrameData.mView = m4::Identity();
       perFrameData.mProjection = projection;
+
+      Render::CommandDataUpdateBuffer updateConstantBufferData;
+      updateConstantBufferData.mByteCount = sizeof(DefaultCBufferPerFrame);
+      updateConstantBufferData.mBytes = &perFrameData;
+
       DrawCall2 perFrame = {};
       //perFrame.mRenderView = mRenderView;
       perFrame.mBlendState = UI2DCommonData::Instance->mBlendState;
@@ -289,6 +294,13 @@ namespace Tac
       perFrame.mFrame = TAC_STACK_FRAME;
       //Renderer::Instance->AddDrawCall( perFrame );
 
+      Render::SetBlendState( UI2DCommonData::Instance->mBlendState );
+      Render::SetRasterizerState( UI2DCommonData::Instance->mRasterizerState );
+      Render::SetSamplerState( UI2DCommonData::Instance->mSamplerState );
+      Render::SetDepthState( UI2DCommonData::Instance->mDepthState );
+      Render::SetVertexFormat( UI2DCommonData::Instance->mFormat );
+
+      Render::UpdateConstantBuffer( UI2DCommonData::Instance->mPerFrame, updateConstantBufferData, TAC_STACK_FRAME );
       Render::Submit( viewId );
 
       for( UI2DDrawCall& uidrawCall : mDrawCall2Ds )

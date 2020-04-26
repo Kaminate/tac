@@ -63,7 +63,7 @@ namespace Tac
       {
         DesktopEvent::Type desktopEventType;
         if( !DesktopEvent::QueuePop( &desktopEventType ) )
-          return result;
+          break;
 
         switch( desktopEventType )
         {

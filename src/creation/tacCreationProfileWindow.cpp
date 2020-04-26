@@ -21,6 +21,7 @@ CreationProfileWindow::~CreationProfileWindow()
 }
 void CreationProfileWindow::Init( Errors& errors )
 {
+    TAC_UNUSED_PARAMETER( errors );
   mUI2DDrawData = new UI2DDrawData;
 };
 void CreationProfileWindow::ImGuiProfile()

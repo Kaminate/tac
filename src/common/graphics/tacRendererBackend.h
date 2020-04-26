@@ -33,24 +33,40 @@ namespace Tac
       UpdateIndexBuffer,
       UpdateTextureRegion,
       UpdateVertexBuffer,
+      UpdateConstantBuffer,
+    };
+
+
+    struct DrawCall3
+    {
+      VertexBufferHandle mVertexBufferHandle;
+      IndexBufferHandle mIndexBufferHandle;
+      BlendStateHandle mBlendStateHandle;
+      RasterizerStateHandle mRasterizerStateHandle;
+      SamplerStateHandle mSamplerStateHandle;
+      DepthStateHandle mDepthStateHandle;
+      VertexFormatHandle mVertexFormatHandle;
     };
 
     struct CommandBuffer
     {
       void Push( CommandType );
       void Push( const void* bytes, int byteCount );
+      void PushCommandEnd();
 
-      
+
       Vector<char> mBuffer;
     };
 
-    struct DrawCall3
+    const int kDrawCallCapacity = 1000;
+
+    struct UniformBuffer
     {
-      VertexBufferHandle mVertexBufferHandle;
-      IndexBufferHandle mIndexBufferHandle;
+      static const int kByteCapacity = 256 * 1024;
+      char mBytes[ kByteCapacity ] = {};
+      int mByteCount = 0;
     };
 
-    const int kDrawCallCapacity = 1000;
     struct Frame
     {
       // can add a mutex here so multiple threads can add draw calls at once
@@ -59,6 +75,8 @@ namespace Tac
 
       DrawCall3 mDrawCalls[ kDrawCallCapacity ];
       int mDrawCallCount = 0;
+
+      UniformBuffer mUniformBuffer;
     };
 
     const int kMaxTextures = 1000;
@@ -74,5 +92,7 @@ namespace Tac
     const int kMaxPrograms = 100;
 
     bool IsSubmitAllocated( const void* data );
+
+    void DebugPrintSubmitAllocInfo();
   }
 }

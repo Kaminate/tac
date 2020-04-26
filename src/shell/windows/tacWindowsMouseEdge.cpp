@@ -53,6 +53,7 @@ HCURSOR Win32Cursors::GetCursor( CursorDir cursorDir )
 
 BOOL enumfunc( HWND hwndchild, LPARAM userdata )
 {
+  TAC_UNUSED_PARAMETER( userdata );
   std::cout << "child " << hwndchild << std::endl;
 
   return TRUE; // to continue enumerating

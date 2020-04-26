@@ -63,12 +63,12 @@ void SocketWinsock::Send( void* bytes, int byteCount, Errors& errors )
   if( mRequiresWebsocketFrame )
   {
     uint8_t payloadByteCount7Bit = 0;
-    int payloadByteCountExtra = 0;
+    //int payloadByteCountExtra = 0;
     Writer writer;
     writer.mFrom = GetEndianness();
     writer.mTo = Endianness::Big;
     if( byteCount < 126 )
-      payloadByteCount7Bit = byteCount;
+      payloadByteCount7Bit = (uint8_t)byteCount;
     else if( byteCount < 1 << 16 )
     {
       payloadByteCount7Bit = 126;
