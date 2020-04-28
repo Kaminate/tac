@@ -147,7 +147,7 @@ namespace Tac
 
         Errors rendererResourceErrors;
 
-        Render::CommandDataCreateBuffer vertexBufferData = {};
+        Render::CommandDataCreateVertexBuffer vertexBufferData = {};
 
         vertexBufferData.mAccess = Access::Default;
         vertexBufferData.mByteCount = vertexes.size() * sizeof( TerrainVertex );
@@ -159,10 +159,13 @@ namespace Tac
         if( rendererResourceErrors )
           continue;
 
-        Render::CommandDataCreateBuffer indexBufferData = {};
+        Render::CommandDataCreateIndexBuffer indexBufferData = {};
         indexBufferData.mAccess = Access::Default;
         indexBufferData.mByteCount = indexes.size() * sizeof( TerrainIndex );
         indexBufferData.mOptionalInitialBytes = indexes.data();
+        indexBufferData.mFormat.mElementCount = 1;
+        indexBufferData.mFormat.mPerElementByteCount = sizeof( TerrainIndex );
+        indexBufferData.mFormat.mPerElementDataType = GraphicsType::uint;
         String indexBufferName = terrain->mHeightmapTexturePath + "terrain idx buffer";
         terrain->mIndexBuffer = Render::CreateIndexBuffer( indexBufferName,
                                                            indexBufferData,
@@ -221,9 +224,9 @@ namespace Tac
   {
     Render::CommandDataCreateShader shaderData;
     shaderData.mShaderPath = "Terrain";
-    shaderData.AddConstantBuffer(mPerFrame);
-    shaderData.AddConstantBuffer(mPerObj );
-    mTerrainShader = Render::CreateShader(  "game window terrain shader",
+    shaderData.AddConstantBuffer( mPerFrame );
+    shaderData.AddConstantBuffer( mPerObj );
+    mTerrainShader = Render::CreateShader( "game window terrain shader",
                                            shaderData,
                                            TAC_STACK_FRAME );
   }
@@ -231,9 +234,9 @@ namespace Tac
   {
     Render::CommandDataCreateShader shaderData;
     shaderData.mShaderPath = "3DTest";
-    shaderData.AddConstantBuffer(mPerFrame);
-    shaderData.AddConstantBuffer(mPerObj );
-    m3DShader = Render::CreateShader(  "game window 3d shader",
+    shaderData.AddConstantBuffer( mPerFrame );
+    shaderData.AddConstantBuffer( mPerObj );
+    m3DShader = Render::CreateShader( "game window 3d shader",
                                       shaderData,
                                       TAC_STACK_FRAME );
   }
@@ -297,7 +300,7 @@ namespace Tac
     depthStateData.depthTest = true;
     depthStateData.depthWrite = true;
     depthStateData.depthFunc = DepthFunc::Less;
-    mDepthState = Render::CreateDepthState(  "tac 3d depth state", depthStateData, TAC_STACK_FRAME );
+    mDepthState = Render::CreateDepthState( "tac 3d depth state", depthStateData, TAC_STACK_FRAME );
   }
   void GamePresentation::CreateBlendState( Errors& errors )
   {

@@ -315,13 +315,23 @@ namespace Tac
       ID3D11RenderTargetView* mTextureRTV = {};
       ID3D11ShaderResourceView* mTextureSRV = {};
     } mTextures[ Render::kMaxTextures ] = {};
-    ID3D11Buffer* mVertexBuffers[ Render::kMaxVertexBuffers ] = {};
-    ID3D11Buffer* mIndexBuffers[ Render::kMaxIndexBuffers ] = {};
+    struct VertexBuffer
+    {
+      ID3D11Buffer* mBuffer;
+      UINT mStride;
+      //Format mFormat; bad. format is in the vertexformat
+    } mVertexBuffers[ Render::kMaxVertexBuffers ] = {};;
+    struct IndexBuffer
+    {
+      ID3D11Buffer* mBuffer;
+      Format mFormat;
+    }mIndexBuffers[ Render::kMaxIndexBuffers ] = {};;
     struct Framebuffer
     {
       IDXGISwapChain* mSwapChain = nullptr;
       ID3D11DepthStencilView* mDepthStencilView = nullptr;
       ID3D11Texture2D* mDepthTexture = nullptr;
+      HWND mHwnd = nullptr;
     } mFramebuffers[ Render::kMaxFramebuffers ] = {};
     ID3D11RasterizerState* mRasterizerStates[ Render::kMaxRasterizerStates ] = {};
     ID3D11SamplerState* mSamplerStates[ Render::kMaxSamplerStates ] = {};
@@ -346,12 +356,12 @@ namespace Tac
     void AddConstantBuffer( Render::ConstantBufferHandle, Render::CommandDataCreateConstantBuffer*, Errors& );
     void AddDepthState( Render::DepthStateHandle, Render::CommandDataCreateDepthState*, Errors& );
     void AddFramebuffer( Render::FramebufferHandle, Render::CommandDataCreateFramebuffer*, Errors& );
-    void AddIndexBuffer( Render::IndexBufferHandle, Render::CommandDataCreateBuffer*, Errors& );
+    void AddIndexBuffer( Render::IndexBufferHandle, Render::CommandDataCreateIndexBuffer*, Errors& );
     void AddRasterizerState( Render::RasterizerStateHandle, Render::CommandDataCreateRasterizerState*, Errors& );
     void AddSamplerState( Render::SamplerStateHandle, Render::CommandDataCreateSamplerState*, Errors& );
     void AddShader( Render::ShaderHandle, Render::CommandDataCreateShader*, Errors& );
     void AddTexture( Render::TextureHandle, Render::CommandDataCreateTexture*, Errors& );
-    void AddVertexBuffer( Render::VertexBufferHandle, Render::CommandDataCreateBuffer*, Errors& );
+    void AddVertexBuffer( Render::VertexBufferHandle, Render::CommandDataCreateVertexBuffer*, Errors& );
     void AddVertexFormat( Render::VertexFormatHandle, Render::CommandDataCreateVertexFormat*, Errors& );
     void RemoveBlendState( Render::BlendStateHandle, Errors& );
     void RemoveConstantBuffer( Render::ConstantBufferHandle, Errors& );
@@ -364,16 +374,12 @@ namespace Tac
     void RemoveTexture( Render::TextureHandle, Errors& );
     void RemoveVertexBuffer( Render::VertexBufferHandle, Errors& );
     void RemoveVertexFormat( Render::VertexFormatHandle, Errors& );
-    void UpdateIndexBuffer( Render::IndexBufferHandle, Render::CommandDataUpdateBuffer*, Errors& );
     void UpdateTextureRegion( Render::TextureHandle, Render::CommandDataUpdateTextureRegion*, Errors& );
-    void UpdateVertexBuffer( Render::VertexBufferHandle, Render::CommandDataUpdateBuffer*, Errors& );
-    void UpdateConstantBuffer( Render::ConstantBufferHandle, Render::CommandDataUpdateBuffer*, Errors& );
     // frame buffers?
 
     // --- Resources end ---
 
-    void UpdateBuffer( ID3D11Buffer* buffer, const void* bytes, int byteCount, Errors& errors  );
-    void UpdateBuffer( ID3D11Buffer* buffer, Render::CommandDataUpdateBuffer*, Errors& errors  );
+    void UpdateBuffer( ID3D11Buffer* buffer, const void* bytes, int byteCount, Errors& errors );
 
   };
 

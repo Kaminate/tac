@@ -33,9 +33,20 @@ namespace Tac
       UpdateIndexBuffer,
       UpdateTextureRegion,
       UpdateVertexBuffer,
-      UpdateConstantBuffer,
+      //UpdateConstantBuffer,
     };
 
+    struct UpdateConstantBuffers
+    {
+      static const int kCapacity = 2;
+      struct UpdateConstantBuffer
+      {
+        Render::CommandDataUpdateBuffer mData;
+        ConstantBufferHandle mConstantBufferHandle;
+      } mUpdateConstantBufferDatas[ kCapacity ];
+      int mUpdateConstantBufferDataCount;
+      void Push( ConstantBufferHandle, Render::CommandDataUpdateBuffer );
+    };
 
     struct DrawCall3
     {
@@ -46,6 +57,11 @@ namespace Tac
       SamplerStateHandle mSamplerStateHandle;
       DepthStateHandle mDepthStateHandle;
       VertexFormatHandle mVertexFormatHandle;
+      UpdateConstantBuffers mUpdateConstantBuffers;
+      int mStartIndex;
+      int mStartVertex;
+      int mIndexCount;
+      int mVertexCount;
     };
 
     struct CommandBuffer

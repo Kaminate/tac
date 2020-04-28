@@ -301,11 +301,21 @@ namespace Tac
     const void* SubmitAlloc( const void* bytes, int byteCount );
     //void SubmitAllocBeginFrame();
 
-    struct CommandDataCreateBuffer
+    struct CommandDataCreateVertexBuffer
+    {
+      int mByteCount = 0;
+      void* mOptionalInitialBytes = nullptr;
+      int mStride;
+      //Format mFormat; no. format goes in the inputlayout
+      Access mAccess = Access::Default;
+    };
+
+    struct CommandDataCreateIndexBuffer
     {
       int mByteCount = 0;
       void* mOptionalInitialBytes = nullptr;
       Access mAccess = Access::Default;
+      Format mFormat;
     };
 
     struct CommandDataCreateConstantBuffer
@@ -408,8 +418,8 @@ namespace Tac
 
     ShaderHandle                     CreateShader( StringView, CommandDataCreateShader, StackFrame );
     ConstantBufferHandle             CreateConstantBuffer( StringView, CommandDataCreateConstantBuffer, StackFrame );
-    VertexBufferHandle               CreateVertexBuffer( StringView, CommandDataCreateBuffer, StackFrame );
-    IndexBufferHandle                CreateIndexBuffer( StringView, CommandDataCreateBuffer, StackFrame );
+    VertexBufferHandle               CreateVertexBuffer( StringView, CommandDataCreateVertexBuffer, StackFrame );
+    IndexBufferHandle                CreateIndexBuffer( StringView, CommandDataCreateIndexBuffer, StackFrame );
     TextureHandle                    CreateTexture( StringView, CommandDataCreateTexture, StackFrame );
     FramebufferHandle                CreateFramebuffer( StringView,
                                                         CommandDataCreateFramebuffer,

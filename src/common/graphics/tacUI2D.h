@@ -3,13 +3,14 @@
 
 #pragma once
 
-#include "src/common/tacMemory.h"
+#include "src/common/graphics/tacFont.h"
+#include "src/common/graphics/tacRenderer.h"
+#include "src/common/math/tacMatrix3.h"
 #include "src/common/math/tacVector2.h"
 #include "src/common/math/tacVector4.h"
-#include "src/common/math/tacMatrix3.h"
-#include "src/common/tacLocalization.h"
-#include "src/common/graphics/tacFont.h"
 #include "src/common/tacErrorHandling.h"
+#include "src/common/tacLocalization.h"
+#include "src/common/tacMemory.h"
 
 namespace Tac
 {
@@ -91,12 +92,12 @@ namespace Tac
     Render::ShaderHandle mShader;
     //const Texture* mTexture = nullptr;
     Render::TextureHandle mTexture;
-    Vector< char > mUniformSource;
+    DefaultCBufferPerObject mUniformSource;
 
-    void CopyUniform( const void* bytes, int byteCount );
+    //void CopyUniform( const void* bytes, int byteCount );
 
-    template< typename T>
-    void CopyUniform( T& t ) { CopyUniform( &t, sizeof( T ) ); }
+    //template< typename T>
+    //void CopyUniform( T& t ) { CopyUniform( &t, sizeof( T ) ); }
   };
 
   struct ImGuiRect;

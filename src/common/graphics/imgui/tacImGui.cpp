@@ -606,7 +606,7 @@ namespace Tac
         drawCall.mVertexCount = 4;
         drawCall.mIVertexStart = iVert;
         drawCall.mShader = UI2DCommonData::Instance->mShader;
-        drawCall.mUniformSource = TemporaryMemoryFromT( perObjectData );
+        drawCall.mUniformSource = perObjectData;
         drawData->mDrawCall2Ds.push_back( drawCall );
       }
       else

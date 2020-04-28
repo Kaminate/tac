@@ -380,7 +380,7 @@ namespace Tac
       {
         if( mVerts.IsValid() )
           Render::DestroyVertexBuffer( mVerts, TAC_STACK_FRAME );
-        Render::CommandDataCreateBuffer vertexBufferData = {};
+        Render::CommandDataCreateVertexBuffer vertexBufferData = {};
         vertexBufferData.mAccess = Access::Dynamic;
         vertexBufferData.mByteCount = vertexCount * sizeof( DefaultVertexColor );
         vertexBufferData.mOptionalInitialBytes = mDebugDrawVerts.data();

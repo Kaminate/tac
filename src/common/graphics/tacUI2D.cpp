@@ -180,16 +180,17 @@ namespace Tac
       {
         if( mVertexBufferHandle.IsValid() )
           Render::DestroyVertexBuffer( mVertexBufferHandle, TAC_STACK_FRAME );
-        Render::CommandDataCreateBuffer vertexBufferData = {};
+        Render::CommandDataCreateVertexBuffer vertexBufferData = {};
         vertexBufferData.mAccess = Access::Dynamic;
         vertexBufferData.mByteCount = mVertexCapacity * sizeof( UI2DVertex );
         vertexBufferData.mOptionalInitialBytes = mDefaultVertex2Ds.data();
         //Renderer::Instance->AddVertexBuffer( &mVerts, vertexBufferData, errors );
 
-        Render::CommandDataCreateBuffer data;
-        data.mAccess = Access::Dynamic;;
+        Render::CommandDataCreateVertexBuffer data;
+        data.mAccess = Access::Dynamic;
         data.mByteCount = vertexCount * sizeof( UI2DVertex );
         data.mOptionalInitialBytes = nullptr;
+        data.mStride = sizeof( UI2DVertex );
         mVertexBufferHandle = Render::CreateVertexBuffer( "draw data verts", data, TAC_STACK_FRAME );
         TAC_HANDLE_ERROR( errors );
         mVertexCapacity = vertexCount;
@@ -199,15 +200,18 @@ namespace Tac
       {
         if( mIndexBufferHandle.IsValid() )
           Render::DestroyIndexBuffer( mIndexBufferHandle, TAC_STACK_FRAME );
-        Render::CommandDataCreateBuffer indexBufferData;
+        Render::CommandDataCreateVertexBuffer indexBufferData;
         indexBufferData.mAccess = Access::Dynamic;
         indexBufferData.mByteCount = mIndexCapacity * sizeof( UI2DIndex );
         indexBufferData.mOptionalInitialBytes = mDefaultIndex2Ds.data();
 
-        Render::CommandDataCreateBuffer data;
+        Render::CommandDataCreateIndexBuffer data;
         data.mAccess = Access::Dynamic;;
         data.mByteCount = indexCount * sizeof( UI2DIndex );
         data.mOptionalInitialBytes = nullptr;
+        data.mFormat.mElementCount = 1;
+        data.mFormat.mPerElementByteCount = sizeof( UI2DIndex );
+        data.mFormat.mPerElementDataType = GraphicsType::uint;
         mIndexBufferHandle = Render::CreateIndexBuffer( "draw data indexes", data, TAC_STACK_FRAME );
         TAC_HANDLE_ERROR( errors );
         mIndexCapacity = indexCount;
@@ -279,7 +283,7 @@ namespace Tac
       perFrameData.mProjection = projection;
 
       Render::CommandDataUpdateBuffer updateConstantBufferData;
-      updateConstantBufferData.mByteCount = sizeof(DefaultCBufferPerFrame);
+      updateConstantBufferData.mByteCount = sizeof( DefaultCBufferPerFrame );
       updateConstantBufferData.mBytes = &perFrameData;
 
       DrawCall2 perFrame = {};
@@ -301,7 +305,7 @@ namespace Tac
       Render::SetVertexFormat( UI2DCommonData::Instance->mFormat );
 
       Render::UpdateConstantBuffer( UI2DCommonData::Instance->mPerFrame, updateConstantBufferData, TAC_STACK_FRAME );
-      Render::Submit( viewId );
+      Render::Submit( viewId ); // this should be unnecessary
 
       for( UI2DDrawCall& uidrawCall : mDrawCall2Ds )
       {
@@ -309,6 +313,11 @@ namespace Tac
         Render::TextureHandle texture = uidrawCall.mTexture.mResourceId == Render::NullResourceId ?
           UI2DCommonData::Instance->m1x1White :
           uidrawCall.mTexture;
+
+        uidrawCall.mUniformSource;
+        updateConstantBufferData.mByteCount = sizeof( DefaultCBufferPerObject );
+        updateConstantBufferData.mBytes = &uidrawCall.mUniformSource;
+        Render::UpdateConstantBuffer( UI2DCommonData::Instance->mPerObj, updateConstantBufferData, TAC_STACK_FRAME );
 
         DrawCall2 drawCall2 = {};
         drawCall2.mUniformDst = UI2DCommonData::Instance->mPerObj;
@@ -328,7 +337,7 @@ namespace Tac
 
         drawCall2.mTextureHandles = { texture };
         drawCall2.mShader = uidrawCall.mShader;
-        drawCall2.mUniformSrcc = uidrawCall.mUniformSource;
+        drawCall2.mUniformSrcc = TemporaryMemoryFromT( uidrawCall.mUniformSource );
         drawCall2.mFrame = TAC_STACK_FRAME;
         //Renderer::Instance->AddDrawCall( drawCall2 );
         Render::Submit( viewId );
@@ -408,7 +417,7 @@ namespace Tac
     drawCall.mIndexCount = 6;
     drawCall.mTexture = texture;
     drawCall.mShader = UI2DCommonData::Instance->mShader;
-    drawCall.mUniformSource = TemporaryMemoryFromT( perObjectData );
+    drawCall.mUniformSource = perObjectData;
 
     mUI2DDrawData->mDrawCall2Ds.push_back( drawCall );
   }
@@ -528,7 +537,7 @@ namespace Tac
     drawCall.mIVertexStart = oldVertexCount;
     drawCall.mTexture = FontStuff::Instance->mTextureId;
     drawCall.mShader = UI2DCommonData::Instance->m2DTextShader;
-    drawCall.mUniformSource = TemporaryMemoryFromT( perObjectData );
+    drawCall.mUniformSource = perObjectData;
     //if( !drawCall.mScissorDebugging )
     //{
     //  drawCall.mScissorTest = true;
@@ -668,7 +677,7 @@ namespace Tac
     drawCall.mIndexCount = 6;
     drawCall.mTexture = texture;
     drawCall.mShader = UI2DCommonData::Instance->mShader;
-    drawCall.mUniformSource = TemporaryMemoryFromT( perObjectData );
+    drawCall.mUniformSource = perObjectData;
 
     mDrawCall2Ds.push_back( drawCall );
   }
@@ -712,7 +721,7 @@ namespace Tac
     drawCall.mIndexCount = 6;
     drawCall.mTexture;
     drawCall.mShader = UI2DCommonData::Instance->mShader;
-    drawCall.mUniformSource = TemporaryMemoryFromT( perObjectData );
+    drawCall.mUniformSource = perObjectData;
 
     mDrawCall2Ds.push_back( drawCall );
   }
@@ -875,7 +884,7 @@ namespace Tac
     drawCall.mIVertexStart = vertexStart;
     drawCall.mTexture = FontStuff::Instance->mTextureId;
     drawCall.mShader = UI2DCommonData::Instance->m2DTextShader;
-    drawCall.mUniformSource = TemporaryMemoryFromT( perObjectData );
+    drawCall.mUniformSource = perObjectData;
     mDrawCall2Ds.push_back( drawCall );
   }
 
@@ -889,9 +898,9 @@ namespace Tac
   }
 
 
-  void UI2DDrawCall::CopyUniform( const void* bytes, int byteCount )
-  {
-    mUniformSource.resize( byteCount );
-    MemCpy( mUniformSource.data(), bytes, byteCount );
-  }
+  //void UI2DDrawCall::CopyUniform( const void* bytes, int byteCount )
+  //{
+  //  mUniformSource.resize( byteCount );
+  //  MemCpy( mUniformSource.data(), bytes, byteCount );
+  //}
 }

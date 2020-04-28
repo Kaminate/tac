@@ -231,10 +231,11 @@ namespace Tac
         Format indexFormat;
         FillDataType( indices, &indexFormat );
         Render::IndexBufferHandle indexBuffer;
-        Render::CommandDataCreateBuffer indexBufferData = {};
+        Render::CommandDataCreateIndexBuffer indexBufferData = {};
         indexBufferData.mByteCount = ( int )indices->count * ( int )sizeof( indexFormat.CalculateTotalByteCount() );
         indexBufferData.mAccess = Access::Default;
         indexBufferData.mOptionalInitialBytes = indiciesData;
+        indexBufferData.mFormat = indexFormat;
         Errors indexBufferErrors;
         indexBuffer = Render::CreateIndexBuffer( debugName, indexBufferData, TAC_STACK_FRAME );
 
@@ -297,7 +298,7 @@ namespace Tac
         GetTris( parsedPrim, tris );
 
         Render::VertexBufferHandle vertexBuffer;
-        Render::CommandDataCreateBuffer vertexBufferData = {};
+        Render::CommandDataCreateVertexBuffer vertexBufferData = {};
         vertexBufferData.mAccess = Access::Default;
         vertexBufferData.mByteCount = dstVtxs.size() * dstVtxStride;
         vertexBufferData.mOptionalInitialBytes = dstVtxs.data();

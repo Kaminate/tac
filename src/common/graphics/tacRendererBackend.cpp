@@ -92,6 +92,15 @@ namespace Tac
     static IdCollection<kMaxTextures> mIdCollectionTexture;
     static IdCollection<kMaxInputLayouts> mIdCollectionVertexFormat;
 
+    void UpdateConstantBuffers::Push( ConstantBufferHandle constantBufferHandle,
+                                      Render::CommandDataUpdateBuffer data )
+    {
+      TAC_ASSERT( mUpdateConstantBufferDataCount < kCapacity );
+      UpdateConstantBuffer* updateConstantBuffer = &mUpdateConstantBufferDatas[ mUpdateConstantBufferDataCount++ ];
+      updateConstantBuffer->mConstantBufferHandle = constantBufferHandle;
+      updateConstantBuffer->mData = data;
+    }
+
 
     struct Encoder
     {
@@ -106,6 +115,7 @@ namespace Tac
       SamplerStateHandle mSamplerStateHandle;
       DepthStateHandle mDepthStateHandle;
       VertexFormatHandle mVertexFormatHandle;
+      UpdateConstantBuffers mUpdateConstantBuffers;
     };
 
     static thread_local Encoder gEncoder;
@@ -185,7 +195,7 @@ namespace Tac
       return { resourceId };
     }
     VertexBufferHandle CreateVertexBuffer( StringView name,
-                                           CommandDataCreateBuffer commandData,
+                                           CommandDataCreateVertexBuffer commandData,
                                            StackFrame frame )
     {
       const ResourceId resourceId = mIdCollectionVertexBuffer.Alloc( name, frame );
@@ -211,7 +221,7 @@ namespace Tac
       return { resourceId };
     }
     IndexBufferHandle CreateIndexBuffer( StringView name,
-                                         CommandDataCreateBuffer commandData,
+                                         CommandDataCreateIndexBuffer commandData,
                                          StackFrame frame )
     {
       const ResourceId resourceId = mIdCollectionIndexBuffer.Alloc( name, frame );
@@ -458,11 +468,13 @@ namespace Tac
                                StackFrame stackFrame )
     {
       commandData.mBytes = Render::SubmitAlloc( commandData.mBytes, commandData.mByteCount );
-      gSubmitFrame->mCommandBuffer.Push( CommandType::UpdateConstantBuffer );
-      gSubmitFrame->mCommandBuffer.Push( &stackFrame, sizeof( StackFrame ) );
-      gSubmitFrame->mCommandBuffer.Push( &handle, sizeof( handle ) );
-      gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
-      gSubmitFrame->mCommandBuffer.PushCommandEnd();
+      //gSubmitFrame->mCommandBuffer.Push( CommandType::UpdateConstantBuffer );
+      //gSubmitFrame->mCommandBuffer.Push( &stackFrame, sizeof( StackFrame ) );
+      //gSubmitFrame->mCommandBuffer.Push( &handle, sizeof( handle ) );
+      //gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
+      //gSubmitFrame->mCommandBuffer.PushCommandEnd();
+      TAC_UNUSED_PARAMETER( stackFrame );
+      gEncoder.mUpdateConstantBuffers.Push( handle, commandData );
     }
 
     void SetViewFramebuffer( ViewId viewId, FramebufferHandle framebufferHandle )
@@ -595,6 +607,7 @@ namespace Tac
       drawCall->mSamplerStateHandle = gEncoder.mSamplerStateHandle;
       drawCall->mDepthStateHandle = gEncoder.mDepthStateHandle;
       drawCall->mVertexFormatHandle = gEncoder.mVertexFormatHandle;
+      drawCall->mUpdateConstantBuffers = gEncoder.mUpdateConstantBuffers;
       gEncoder.mIndexBufferHandle = IndexBufferHandle();
       gEncoder.mVertexBufferHandle = VertexBufferHandle();
       gEncoder.mBlendStateHandle = BlendStateHandle();
@@ -602,6 +615,7 @@ namespace Tac
       gEncoder.mSamplerStateHandle = SamplerStateHandle();
       gEncoder.mDepthStateHandle = DepthStateHandle();
       gEncoder.mVertexFormatHandle = VertexFormatHandle();
+      gEncoder.mUpdateConstantBuffers.mUpdateConstantBufferDataCount = 0;
     }
   }
 }
