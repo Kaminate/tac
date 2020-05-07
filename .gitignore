@@ -10,3 +10,4 @@ assets/imgui.ini
 *.swp
 
 run_cloc.bat
+*.rdc
