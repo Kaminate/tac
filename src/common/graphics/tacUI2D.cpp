@@ -660,12 +660,16 @@ namespace Tac
     UI2DVertex* defaultVertex2D = &mDefaultVertex2Ds[ iVert ];
 
     defaultVertex2D->mPosition = { mini.x, mini.y };
+    defaultVertex2D->mGLTexCoord = {};
     defaultVertex2D++;
     defaultVertex2D->mPosition = { mini.x, maxi.y };
+    defaultVertex2D->mGLTexCoord = {};
     defaultVertex2D++;
     defaultVertex2D->mPosition = { maxi.x, maxi.y };
+    defaultVertex2D->mGLTexCoord = {};
     defaultVertex2D++;
     defaultVertex2D->mPosition = { maxi.x, mini.y };
+    defaultVertex2D->mGLTexCoord = {};
 
     DefaultCBufferPerObject perObjectData = {};
     perObjectData.World = m4::Identity();
@@ -700,9 +704,13 @@ namespace Tac
     int iIndex = mDefaultIndex2Ds.size();
     mDefaultVertex2Ds.resize( iVert + 4 );
     mDefaultVertex2Ds[ iVert + 0 ].mPosition = p0 + dphatccw * radius;
+    mDefaultVertex2Ds[ iVert + 0 ].mGLTexCoord = {};
     mDefaultVertex2Ds[ iVert + 1 ].mPosition = p0 - dphatccw * radius;
+    mDefaultVertex2Ds[ iVert + 1 ].mGLTexCoord = {};
     mDefaultVertex2Ds[ iVert + 2 ].mPosition = p1 + dphatccw * radius;
+    mDefaultVertex2Ds[ iVert + 2 ].mGLTexCoord = {};
     mDefaultVertex2Ds[ iVert + 3 ].mPosition = p1 - dphatccw * radius;
+    mDefaultVertex2Ds[ iVert + 3 ].mGLTexCoord = {};
     mDefaultIndex2Ds.resize( iIndex + 6 );
     mDefaultIndex2Ds[ iIndex + 0 ] = iVert + 0;
     mDefaultIndex2Ds[ iIndex + 1 ] = iVert + 1;

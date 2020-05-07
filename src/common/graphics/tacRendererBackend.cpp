@@ -428,12 +428,12 @@ namespace Tac
       commandData.mBytes = Render::SubmitAlloc( commandData.mBytes, commandData.mByteCount );
       //std::cout <<  "commandData.mBytes: " <<  (void*)commandData.mBytes << std::endl;;
 
-      ( ( char* )commandData.mBytes )[ 0 ] = 'h';
-      ( ( char* )commandData.mBytes )[ 1 ] = 'e';
-      ( ( char* )commandData.mBytes )[ 2 ] = 'l';
-      ( ( char* )commandData.mBytes )[ 3 ] = 'l';
-      ( ( char* )commandData.mBytes )[ 4 ] = 'o';
-      ( ( char* )commandData.mBytes )[ 5 ] = '\0';
+      //( ( char* )commandData.mBytes )[ 0 ] = 'h';
+      //( ( char* )commandData.mBytes )[ 1 ] = 'e';
+      //( ( char* )commandData.mBytes )[ 2 ] = 'l';
+      //( ( char* )commandData.mBytes )[ 3 ] = 'l';
+      //( ( char* )commandData.mBytes )[ 4 ] = 'o';
+      //( ( char* )commandData.mBytes )[ 5 ] = '\0';
 
       //DebugPrintSubmitAllocInfo();
       gSubmitFrame->mCommandBuffer.Push( CommandType::UpdateVertexBuffer );
