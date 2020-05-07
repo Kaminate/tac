@@ -66,14 +66,6 @@ namespace Tac
       MemCpy( mBuffer.data() + bufferSize, bytes, byteCount );
     }
 
-    struct View
-    {
-      FramebufferHandle mFramebufferHandle;
-    };
-
-    static View gViews[ 10 ];
-
-
     static Frame gFrames[ 2 ];
     static Frame* gRenderFrame = &gFrames[ 0 ];
     static Frame* gSubmitFrame = &gFrames[ 1 ];
@@ -116,6 +108,7 @@ namespace Tac
       DepthStateHandle mDepthStateHandle;
       VertexFormatHandle mVertexFormatHandle;
       UpdateConstantBuffers mUpdateConstantBuffers;
+      ShaderHandle mShaderHandle;
     };
 
     static thread_local Encoder gEncoder;
@@ -479,7 +472,25 @@ namespace Tac
 
     void SetViewFramebuffer( ViewId viewId, FramebufferHandle framebufferHandle )
     {
-      gViews[ viewId ].mFramebufferHandle = framebufferHandle;
+      View* view = &gSubmitFrame->mViews[ viewId ];
+      view->mFrameBufferHandle = framebufferHandle;
+    }
+
+    void SetViewScissorRect( ViewId viewId, ScissorRect scissorRect )
+    {
+      View* view = &gSubmitFrame->mViews[ viewId ];
+      view->mScissorRect = scissorRect;
+    }
+
+    void SetViewport( ViewId viewId, Viewport viewport)
+    {
+      View* view = &gSubmitFrame->mViews[ viewId ];
+      view->mViewport = viewport;
+    }
+
+    void SetShader( ShaderHandle shaderHandle )
+    {
+      gEncoder.mShaderHandle = shaderHandle;
     }
 
     void SetVertexBuffer( VertexBufferHandle vertexBufferHandle, int startVertex, int vertexCount )
@@ -608,6 +619,12 @@ namespace Tac
       drawCall->mDepthStateHandle = gEncoder.mDepthStateHandle;
       drawCall->mVertexFormatHandle = gEncoder.mVertexFormatHandle;
       drawCall->mUpdateConstantBuffers = gEncoder.mUpdateConstantBuffers;
+      drawCall->mStartIndex = gEncoder.mStartIndex;
+      drawCall->mStartVertex = gEncoder.mStartVertex;
+      drawCall->mIndexCount = gEncoder.mIndexCount;
+      drawCall->mVertexCount = gEncoder.mVertexCount;
+      drawCall->mShaderHandle = gEncoder.mShaderHandle;
+      drawCall->mViewId = viewId;
       gEncoder.mIndexBufferHandle = IndexBufferHandle();
       gEncoder.mVertexBufferHandle = VertexBufferHandle();
       gEncoder.mBlendStateHandle = BlendStateHandle();
@@ -616,6 +633,8 @@ namespace Tac
       gEncoder.mDepthStateHandle = DepthStateHandle();
       gEncoder.mVertexFormatHandle = VertexFormatHandle();
       gEncoder.mUpdateConstantBuffers.mUpdateConstantBufferDataCount = 0;
+      gEncoder.mVertexCount = 0;
+      gEncoder.mIndexCount = 0;
     }
   }
 }

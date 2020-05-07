@@ -323,11 +323,11 @@ namespace Tac
         drawCall2.mUniformDst = UI2DCommonData::Instance->mPerObj;
         //drawCall2.mVertexBuffer = mVerts;
         //drawCall2.mRenderView = mRenderView;
-        drawCall2.mBlendState = UI2DCommonData::Instance->mBlendState;
-        drawCall2.mRasterizerState = UI2DCommonData::Instance->mRasterizerState;
-        drawCall2.mSamplerState = UI2DCommonData::Instance->mSamplerState;
-        drawCall2.mDepthState = UI2DCommonData::Instance->mDepthState;
-        drawCall2.mVertexFormat = UI2DCommonData::Instance->mFormat;
+        //drawCall2.mBlendState = UI2DCommonData::Instance->mBlendState;
+        //drawCall2.mRasterizerState = UI2DCommonData::Instance->mRasterizerState;
+        //drawCall2.mSamplerState = UI2DCommonData::Instance->mSamplerState;
+        //drawCall2.mDepthState = UI2DCommonData::Instance->mDepthState;
+        //drawCall2.mVertexFormat = UI2DCommonData::Instance->mFormat;
         Render::SetVertexBuffer( mVertexBufferHandle, uidrawCall.mIVertexStart, uidrawCall.mVertexCount );
         Render::SetIndexBuffer( mIndexBufferHandle, uidrawCall.mIIndexStart, uidrawCall.mIndexCount );
         //drawCall2.mIndexBuffer = mIndexes;
@@ -336,9 +336,10 @@ namespace Tac
 
 
         drawCall2.mTextureHandles = { texture };
-        drawCall2.mShader = uidrawCall.mShader;
+        //drawCall2.mShader = uidrawCall.mShader;
         drawCall2.mUniformSrcc = TemporaryMemoryFromT( uidrawCall.mUniformSource );
         drawCall2.mFrame = TAC_STACK_FRAME;
+        Render::SetShader( uidrawCall.mShader );
         //Renderer::Instance->AddDrawCall( drawCall2 );
         Render::Submit( viewId );
       }

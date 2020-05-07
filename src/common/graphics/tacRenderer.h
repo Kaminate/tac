@@ -233,10 +233,10 @@ namespace Tac
   // glViewport lets opengl know how to map the NDC coordinates to the framebuffer coordinates.
   struct Viewport
   {
-    float mViewportBottomLeftCornerRelFramebufferBottomLeftCornerX = 0;
-    float mViewportBottomLeftCornerRelFramebufferBottomLeftCornerY = 0;
-    float mViewportPixelWidthIncreasingRight = 0;
-    float mViewportPixelHeightIncreasingUp = 0;
+    float mBottomLeftX = 0;
+    float mBottomLeftY = 0;
+    float mWidth = 0;
+    float mHeight = 0;
     float mMinDepth = 0;
     float mMaxDepth = 1;
   };
@@ -264,6 +264,8 @@ namespace Tac
   namespace Render
   {
     typedef int ViewId;
+    const ViewId InvalidViewId = -1;
+
     typedef int ResourceId;
     const ResourceId NullResourceId = -1;
 
@@ -456,8 +458,9 @@ namespace Tac
                                                            CommandDataUpdateBuffer,
                                                            StackFrame );
 
-    void                             SetViewFramebuffer( ViewId viewId,
-                                                         FramebufferHandle framebufferHandle );
+    void                             SetViewFramebuffer( ViewId, FramebufferHandle );
+    void                             SetViewScissorRect( ViewId, ScissorRect );
+    void                             SetViewport( ViewId, Viewport );
     void                             SetIndexBuffer( IndexBufferHandle, int iStart, int count );
     void                             SetVertexBuffer( VertexBufferHandle, int iStart, int count );
     void                             SetBlendState( BlendStateHandle );
@@ -465,6 +468,8 @@ namespace Tac
     void                             SetSamplerState( SamplerStateHandle );
     void                             SetDepthState( DepthStateHandle );
     void                             SetVertexFormat( VertexFormatHandle );
+    void                             SetShader( ShaderHandle );
+
     //void                             SetUniform( ConstantBufferHandle, const void* bytes, int byteCount );
 
     void                             Submit( ViewId viewId );
@@ -545,7 +550,7 @@ namespace Tac
 
     //virtual void RenderFlush() { TAC_UNIMPLEMENTED; }
     //virtual void Render( Errors& errors ) { TAC_UNIMPLEMENTED; }
-    virtual void Render2( Render::Frame*, Errors& ) { TAC_UNIMPLEMENTED; }
+    virtual void Render2( const Render::Frame*, Errors& ) { TAC_UNIMPLEMENTED; }
     virtual void SwapBuffers() { TAC_UNIMPLEMENTED; }
 
     //virtual void SetPrimitiveTopology( Primitive primitive ) { TAC_UNIMPLEMENTED; }

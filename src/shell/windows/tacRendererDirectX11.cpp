@@ -770,20 +770,14 @@ namespace Tac
     bufferPos += 3;
   }
 
-  void RendererDirectX11::Render2( Render::Frame* frame, Errors& errors )
+  void RendererDirectX11::Render2( const Render::Frame* frame, Errors& errors )
   {
+    std::cout << "Render2::Begin\n" ;
+
     // factor out this while loop out of rendererDX11 and rendererOGL
     const char* bufferBegin = frame->mCommandBuffer.mBuffer.data();
     const char* bufferEnd = bufferBegin + frame->mCommandBuffer.mBuffer.size();
     const char* bufferPos = bufferBegin;
-
-    //Render::CommandDataCreateTexture* commandDataCreateTexture = nullptr;
-    //Render::CommandDataCreateFramebuffer* commandDataCreateFramebuffer = nullptr;
-    //Render::CommandDataUpdateTextureRegion* commandDataUpdateTextureRegion = nullptr;
-    //Render::CommandDataUpdateBuffer* commandDataUpdateBuffer = nullptr;
-
-    static int i = 0;
-    ++i;
 
     while( bufferPos < bufferEnd )
     {
@@ -799,88 +793,107 @@ namespace Tac
       {
         case Render::CommandType::CreateVertexBuffer:
         {
+          std::cout << "CreateVertexBuffer::Begin\n" ;
           auto resourceId = ( Render::VertexBufferHandle* )bufferPos;
           bufferPos += sizeof( Render::VertexBufferHandle );
           auto commandDataCreateBuffer = ( Render::CommandDataCreateVertexBuffer* ) bufferPos;
           bufferPos += sizeof( Render::CommandDataCreateVertexBuffer );
           PopCheep( bufferPos );
           AddVertexBuffer( *resourceId, commandDataCreateBuffer, errors );
+          std::cout << "CreateVertexBuffer::End\n" ;
         } break;
 
         case Render::CommandType::CreateIndexBuffer:
         {
+          std::cout << "CreateIndexBuffer::Begin\n" ;
           auto resourceId = ( Render::IndexBufferHandle* )bufferPos;
           bufferPos += sizeof( Render::IndexBufferHandle );
           auto commandDataCreateBuffer = ( Render::CommandDataCreateIndexBuffer* )bufferPos;
           bufferPos += sizeof( Render::CommandDataCreateIndexBuffer );
           PopCheep( bufferPos );
           AddIndexBuffer( *resourceId, commandDataCreateBuffer, errors );
+          std::cout << "CreateIndexBuffer::End\n" ;
         } break;
 
         case Render::CommandType::CreateTexture:
         {
+          std::cout << "CreateTexture::Begin\n" ;
           auto resourceId = ( Render::TextureHandle* )bufferPos;
           bufferPos += sizeof( Render::TextureHandle );
           auto commandData = ( Render::CommandDataCreateTexture* )bufferPos;
           bufferPos += sizeof( Render::CommandDataCreateTexture );
           PopCheep( bufferPos );
           AddTexture( *resourceId, commandData, errors );
+          std::cout << "CreateTexture::End\n" ;
         } break;
 
         case Render::CommandType::CreateFramebuffer:
         {
+          std::cout << "CreateFramebuffer::Begin\n" ;
           auto resourceId = ( Render::FramebufferHandle* )bufferPos;
           bufferPos += sizeof( Render::FramebufferHandle );
           auto commandData = ( Render::CommandDataCreateFramebuffer* )bufferPos;
           bufferPos += sizeof( Render::CommandDataCreateFramebuffer );
           PopCheep( bufferPos );
           AddFramebuffer( *resourceId, commandData, errors );
+          std::cout << "CreateFramebuffer::End\n" ;
         } break;
 
         case Render::CommandType::DestroyVertexBuffer:
         {
+          std::cout << "DestroyVertexBuffer::Begin\n" ;
           auto resourceId = ( Render::VertexBufferHandle* )bufferPos;
           bufferPos += sizeof( Render::VertexBufferHandle );
           PopCheep( bufferPos );
           RemoveVertexBuffer( *resourceId, errors );
+          std::cout << "DestroyVertexBuffer::End\n" ;
         } break;
 
         case Render::CommandType::DestroyIndexBuffer:
         {
+          std::cout << "DestroyIndexBuffer::Begin\n" ;
           auto resourceId = ( Render::IndexBufferHandle* )bufferPos;
           bufferPos += sizeof( Render::IndexBufferHandle );
           PopCheep( bufferPos );
           RemoveIndexBuffer( *resourceId, errors );
+          std::cout << "DestroyIndexBuffer::End\n" ;
         } break;
 
         case Render::CommandType::DestroyTexture:
         {
+          std::cout << "DestroyTexture::Begin\n" ;
           auto resourceId = ( Render::TextureHandle* )bufferPos;
           bufferPos += sizeof( Render::TextureHandle );
           RemoveTexture( *resourceId, errors );
           PopCheep( bufferPos );
+          std::cout << "DestroyTexture::End\n" ;
         } break;
 
         case Render::CommandType::DestroyFramebuffer:
         {
+          std::cout << "DestroyFramebuffer::Begin\n" ;
           auto resourceId = ( Render::FramebufferHandle* )bufferPos;
           bufferPos += sizeof( Render::FramebufferHandle );
           PopCheep( bufferPos );
           RemoveFramebuffer( *resourceId, errors );
+          std::cout << "DestroyFramebuffer::End\n" ;
         } break;
 
         case Render::CommandType::UpdateTextureRegion:
         {
+          std::cout << "UpdateTextureRegion::Begin\n" ;
           auto resourceId = ( Render::TextureHandle* )bufferPos;
           bufferPos += sizeof( Render::TextureHandle );
           auto commandData = ( Render::CommandDataUpdateTextureRegion* )bufferPos;
           bufferPos += sizeof( Render::CommandDataUpdateTextureRegion );
           PopCheep( bufferPos );
           UpdateTextureRegion( *resourceId, commandData, errors );
+          std::cout << "UpdateTextureRegion::End\n" ;
         } break;
 
         case Render::CommandType::UpdateVertexBuffer:
         {
+          std::cout << "UpdateVertexBuffer::Begin\n" ;
           auto resourceId = ( Render::VertexBufferHandle* )bufferPos;
           bufferPos += sizeof( Render::VertexBufferHandle );
           auto commandData = ( Render::CommandDataUpdateBuffer* )bufferPos;
@@ -889,10 +902,12 @@ namespace Tac
 
           ID3D11Buffer* buffer = mVertexBuffers[ resourceId->mResourceId ].mBuffer;
           UpdateBuffer( buffer, commandData->mBytes, commandData->mByteCount, errors );
+          std::cout << "UpdateVertexBuffer::End\n" ;
         } break;
 
         case Render::CommandType::UpdateIndexBuffer:
         {
+          std::cout << "UpdateIndexBuffer::Begin\n" ;
           auto resourceId = ( Render::IndexBufferHandle* )bufferPos;
           bufferPos += sizeof( Render::IndexBufferHandle );
           auto commandData = ( Render::CommandDataUpdateBuffer* )bufferPos;
@@ -900,6 +915,7 @@ namespace Tac
           PopCheep( bufferPos );
           ID3D11Buffer* buffer = mIndexBuffers[ resourceId->mResourceId ].mBuffer;
           UpdateBuffer( buffer, commandData->mBytes, commandData->mByteCount, errors );
+          std::cout << "UpdateIndexBuffer::End\n" ;
         } break;
 
         //case Render::CommandType::UpdateConstantBuffer:
@@ -914,128 +930,156 @@ namespace Tac
 
         case Render::CommandType::CreateBlendState:
         {
+          std::cout << "CreateBlendState::Begin\n" ;
           auto resourceId = ( Render::BlendStateHandle* )bufferPos;
           bufferPos += sizeof( Render::BlendStateHandle );
           auto commandData = ( Render::CommandDataCreateBlendState* )bufferPos;
           bufferPos += sizeof( Render::CommandDataCreateBlendState );
           PopCheep( bufferPos );
           AddBlendState( *resourceId, commandData, errors );
+          std::cout << "CreateBlendState::End\n" ;
         } break;
 
         case Render::CommandType::CreateConstantBuffer:
         {
+          std::cout << "CreateConstantBuffer::Begin\n" ;
           auto resourceId = ( Render::ConstantBufferHandle* )bufferPos;
           bufferPos += sizeof( Render::ConstantBufferHandle );
           auto commandData = ( Render::CommandDataCreateConstantBuffer* )bufferPos;
           bufferPos += sizeof( Render::CommandDataCreateConstantBuffer );
           PopCheep( bufferPos );
           AddConstantBuffer( *resourceId, commandData, errors );
+          std::cout << "CreateConstantBuffer::End\n" ;
         } break;
 
         case Render::CommandType::CreateDepthState:
         {
+          std::cout << "CreateDepthState::Begin\n" ;
           auto resourceId = ( Render::DepthStateHandle* )bufferPos;
           bufferPos += sizeof( Render::DepthStateHandle );
           auto commandData = ( Render::CommandDataCreateDepthState* )bufferPos;
           bufferPos += sizeof( Render::CommandDataCreateDepthState );
           PopCheep( bufferPos );
           AddDepthState( *resourceId, commandData, errors );
+          std::cout << "CreateDepthState::End\n" ;
         } break;
 
         case Render::CommandType::CreateRasterizerState:
         {
+          std::cout << "CreateRasterizerState::Begin\n" ;
           auto resourceId = ( Render::RasterizerStateHandle* )bufferPos;
           bufferPos += sizeof( Render::RasterizerStateHandle );
           auto commandData = ( Render::CommandDataCreateRasterizerState* )bufferPos;
           bufferPos += sizeof( Render::CommandDataCreateRasterizerState );
           PopCheep( bufferPos );
           AddRasterizerState( *resourceId, commandData, errors );
+          std::cout << "CreateRasterizerState::End\n" ;
         } break;
 
         case Render::CommandType::CreateSamplerState:
         {
+          std::cout << "CreateSamplerState::Begin\n" ;
           auto resourceId = ( Render::SamplerStateHandle* )bufferPos;
           bufferPos += sizeof( Render::SamplerStateHandle );
           auto commandData = ( Render::CommandDataCreateSamplerState* )bufferPos;
           bufferPos += sizeof( Render::CommandDataCreateSamplerState );
           PopCheep( bufferPos );
           AddSamplerState( *resourceId, commandData, errors );
+          std::cout << "CreateSamplerState::End\n" ;
         } break;
 
         case Render::CommandType::CreateShader:
         {
+          std::cout << "CreateShader::Begin\n" ;
           auto resourceId = ( Render::ShaderHandle* )bufferPos;
           bufferPos += sizeof( Render::ShaderHandle );
           auto commandData = ( Render::CommandDataCreateShader* )bufferPos;
           bufferPos += sizeof( Render::CommandDataCreateShader );
           PopCheep( bufferPos );
           AddShader( *resourceId, commandData, errors );
+          std::cout << "CreateShader::End\n" ;
         } break;
 
         case Render::CommandType::CreateVertexFormat:
         {
+          std::cout << "CreateVertexFormat::Begin\n" ;
           auto resourceId = ( Render::VertexFormatHandle* )bufferPos;
           bufferPos += sizeof( Render::VertexFormatHandle );
           auto commandData = ( Render::CommandDataCreateVertexFormat* )bufferPos;
           bufferPos += sizeof( Render::CommandDataCreateVertexFormat );
           PopCheep( bufferPos );
           AddVertexFormat( *resourceId, commandData, errors );
+          std::cout << "CreateVertexFormat::End\n" ;
         } break;
 
         case Render::CommandType::DestroyBlendState:
         {
+          std::cout << "DestroyBlendState::Begin\n" ;
           auto resourceId = ( Render::BlendStateHandle* )bufferPos;
           bufferPos += sizeof( Render::BlendStateHandle );
           PopCheep( bufferPos );
           RemoveBlendState( *resourceId, errors );
+          std::cout << "DestroyBlendState::End\n" ;
         } break;
 
         case Render::CommandType::DestroyConstantBuffer:
         {
+          std::cout << "DestroyConstantBuffer::Begin\n" ;
           auto resourceId = ( Render::ConstantBufferHandle* )bufferPos;
           bufferPos += sizeof( Render::ConstantBufferHandle );
           PopCheep( bufferPos );
           RemoveConstantBuffer( *resourceId, errors );
+          std::cout << "DestroyConstantBuffer::End\n" ;
         } break;
 
         case Render::CommandType::DestroyDepthState:
         {
+          std::cout << "DestroyDepthState::Begin\n" ;
           auto resourceId = ( Render::DepthStateHandle* )bufferPos;
           bufferPos += sizeof( Render::DepthStateHandle );
           PopCheep( bufferPos );
           RemoveDepthState( *resourceId, errors );
+          std::cout << "DestroyDepthState::End\n" ;
         } break;
 
         case Render::CommandType::DestroyRasterizerState:
         {
+          std::cout << "DestroyRasterizerState::Begin\n" ;
           auto resourceId = ( Render::RasterizerStateHandle* )bufferPos;
           bufferPos += sizeof( Render::RasterizerStateHandle );
           PopCheep( bufferPos );
           RemoveRasterizerState( *resourceId, errors );
+          std::cout << "DestroyRasterizerState::End\n" ;
         } break;
 
         case Render::CommandType::DestroySamplerState:
         {
+          std::cout << "DestroySamplerState::Begin\n" ;
           auto resourceId = ( Render::SamplerStateHandle* )bufferPos;
           bufferPos += sizeof( Render::SamplerStateHandle );
           PopCheep( bufferPos );
           RemoveSamplerState( *resourceId, errors );
+          std::cout << "DestroySamplerState::End\n" ;
         } break;
 
         case Render::CommandType::DestroyShader:
         {
+          std::cout << "DestroyShader::Begin\n" ;
           auto resourceId = ( Render::ShaderHandle* )bufferPos;
           bufferPos += sizeof( Render::ShaderHandle );
           PopCheep( bufferPos );
           RemoveShader( *resourceId, errors );
+          std::cout << "DestroyShader::End\n" ;
         } break;
 
         case Render::CommandType::DestroyVertexFormat:
         {
+          std::cout << "DestroyVertexFormat::Begin\n" ;
           auto resourceId = ( Render::VertexFormatHandle* )bufferPos;
           bufferPos += sizeof( Render::VertexFormatHandle );
           PopCheep( bufferPos );
           RemoveVertexFormat( *resourceId, errors );
+          std::cout << "DestroyVertexFormat::End\n" ;
         } break;
 
         default:
@@ -1045,10 +1089,19 @@ namespace Tac
 
     ID3D11BlendState* blendState = nullptr;
     ID3D11DepthStencilState* depthStencilState = nullptr;
+    Render::ViewId viewId = Render::InvalidViewId;
     for( int iDrawCall = 0; iDrawCall < frame->mDrawCallCount; ++iDrawCall )
     {
-      Render::DrawCall3* drawCall = &frame->mDrawCalls[ iDrawCall ];
-      drawCall->mBlendStateHandle;
+      const Render::DrawCall3* drawCall = &frame->mDrawCalls[ iDrawCall ];
+
+      if( drawCall->mShaderHandle.IsValid() )
+      {
+        Program* program = &mPrograms[ drawCall->mShaderHandle.mResourceId ];
+        ID3D11VertexShader* vertexShader = program->mVertexShader;
+        ID3D11PixelShader* pixelShader = program->mPixelShader;
+        mDeviceContext->VSSetShader( vertexShader, NULL, 0 );
+        mDeviceContext->PSSetShader( pixelShader, NULL, 0 );
+      }
 
       if( drawCall->mBlendStateHandle.IsValid() && blendState != mBlendStates[ drawCall->mBlendStateHandle.mResourceId ] )
       {
@@ -1069,7 +1122,7 @@ namespace Tac
       {
         const IndexBuffer* indexBuffer = &mIndexBuffers[ drawCall->mIndexBufferHandle.mResourceId ];
         const DXGI_FORMAT dxgiFormat = GetDXGIFormat( indexBuffer->mFormat );
-        const UINT byteOffset = drawCall->mStartIndex * indexBuffer->mFormat.mPerElementByteCount;
+        const UINT byteOffset = 0; //  drawCall->mStartIndex * indexBuffer->mFormat.mPerElementByteCount;
         mDeviceContext->IASetIndexBuffer( indexBuffer->mBuffer,
                                           dxgiFormat,
                                           byteOffset );
@@ -1081,7 +1134,11 @@ namespace Tac
         const UINT startSlot = 0;
         const UINT NumBuffers = 1;
         const UINT Strides[ NumBuffers ] = { ( UINT )vertexBuffer->mStride };
-        const UINT ByteOffsets[ NumBuffers ] = { ( UINT )( drawCall->mStartVertex * vertexBuffer->mStride ) };
+        const UINT ByteOffsets[ NumBuffers ] =
+        {
+          0
+          // ( UINT )( drawCall->mStartVertex * vertexBuffer->mStride )
+        }; 
         ID3D11Buffer* buffers[ NumBuffers ] = { vertexBuffer->mBuffer };
         mDeviceContext->IASetVertexBuffers( startSlot,
                                             NumBuffers,
@@ -1105,29 +1162,83 @@ namespace Tac
         mDeviceContext->PSSetSamplers( StartSlot, NumSamplers, Samplers );
       }
 
+      if( drawCall->mVertexFormatHandle.IsValid() )
+      {
+        ID3D11InputLayout* inputLayout = mInputLayouts[ drawCall->mVertexFormatHandle.mResourceId ];
+        mDeviceContext->IASetInputLayout( inputLayout );
+      }
+
+      if( drawCall->mViewId != Render::InvalidViewId )
+      {
+        const Render::View* view = &frame->mViews[ drawCall->mViewId ];
+        Render::FramebufferHandle framebufferHandle = view->mFrameBufferHandle;
+        Framebuffer* framebuffer = &mFramebuffers[ framebufferHandle.mResourceId ];
+        ID3D11RenderTargetView* renderTargetView = framebuffer->mRenderTargetView;
+        ID3D11DepthStencilView* depthStencilView = framebuffer->mDepthStencilView;
+        UINT NumViews = 1;
+        ID3D11RenderTargetView* RenderTargetViews[] = { renderTargetView };
+        mDeviceContext->OMSetRenderTargets( NumViews, RenderTargetViews, depthStencilView );
+      }
+
       for( int iConstantBuffer = 0;
            iConstantBuffer < drawCall->mUpdateConstantBuffers.mUpdateConstantBufferDataCount;
            ++iConstantBuffer )
       {
-        Render::UpdateConstantBuffers::UpdateConstantBuffer* stuff =
+        const Render::UpdateConstantBuffers::UpdateConstantBuffer* stuff =
           &drawCall->mUpdateConstantBuffers.mUpdateConstantBufferDatas[ iConstantBuffer ];
         ID3D11Buffer* buffer = mConstantBuffers[ stuff->mConstantBufferHandle.mResourceId ].mBuffer;
         stuff->mData.mBytes;
         UpdateBuffer( buffer, stuff->mData.mBytes, stuff->mData.mByteCount, errors );
       }
+
+      mDeviceContext->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
+
+      if( drawCall->mViewId != viewId )
+      {
+        viewId = drawCall->mViewId;
+        const Render::View* view = &frame->mViews[ drawCall->mViewId ];
+        D3D11_VIEWPORT viewport;
+        viewport.Height = view->mViewport.mHeight;
+        viewport.Width = view->mViewport.mWidth;
+        viewport.TopLeftX = view->mViewport.mBottomLeftX;
+        viewport.TopLeftY = -view->mViewport.mBottomLeftY; // convert opengl to directx
+        viewport.MinDepth = view->mViewport.mMinDepth;
+        viewport.MaxDepth = view->mViewport.mMaxDepth;
+        mDeviceContext->RSSetViewports( 1, &viewport );
+      }
+
+      if( drawCall->mIndexCount )
+      {
+        const UINT IndexCount = drawCall->mIndexCount;
+        const UINT StartIndexLocation = drawCall->mStartIndex;
+        // should this be multiplied by the sizeof vertex?
+        const INT BaseVertexLocation = drawCall->mStartVertex;
+        mDeviceContext->DrawIndexed( IndexCount, StartIndexLocation, BaseVertexLocation );
+      }
+      else if( drawCall->mVertexCount )
+      {
+        const UINT VertexCount = drawCall->mVertexCount;
+        const UINT StartVertexLocation = drawCall->mStartVertex;
+        mDeviceContext->Draw( VertexCount, StartVertexLocation );
+      }
     }
+    std::cout << "Render2::End\n" ;
   }
   void RendererDirectX11::SwapBuffers()
   {
-    for( int iFramebuffer = 0; iFramebuffer < Render::kMaxFramebuffers; ++iFramebuffer )
+    std::cout << "SwapBuffers::Begin\n" ;
+    for( int iWindow = 0; iWindow < mWindowCount; ++iWindow )
+      //for( int iFramebuffer = 0; iFramebuffer < Render::kMaxFramebuffers; ++iFramebuffer )
     {
-      Framebuffer* framebuffer = &mFramebuffers[ iFramebuffer ];
+      Render::FramebufferHandle framebufferHandle = mWindows[ iWindow ];
+      Framebuffer* framebuffer = &mFramebuffers[ framebufferHandle.mResourceId ];
       if( !framebuffer->mSwapChain )
         continue;
       const UINT SyncInterval = 0;
       const UINT Flags = 0;
       framebuffer->mSwapChain->Present( SyncInterval, Flags );
     }
+    std::cout << "SwapBuffers::End\n" ;
   }
 
   //void RendererDirectX11::CreateWindowContext( DesktopWindow* desktopWindow, Errors& errors )
@@ -2816,6 +2927,9 @@ namespace Tac
     framebuffer->mDepthStencilView = dsv;
     framebuffer->mDepthTexture = texture;
     framebuffer->mHwnd = hwnd;
+    framebuffer->mRenderTargetView = rtv;
+
+    mWindows[ mWindowCount++ ] = index;
   }
 
   void RendererDirectX11::RemoveVertexBuffer( Render::VertexBufferHandle index, Errors& errors )

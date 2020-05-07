@@ -158,7 +158,7 @@ namespace Tac
 
     void Init( Errors& errors ) override;
     //void Render( Errors& errors ) override;
-    void Render2( Render::Frame*, Errors& errors ) override;
+    void Render2( const Render::Frame*, Errors& errors ) override;
     //void RenderFlush() override;
     void SwapBuffers() override;
 
@@ -330,9 +330,12 @@ namespace Tac
     {
       IDXGISwapChain* mSwapChain = nullptr;
       ID3D11DepthStencilView* mDepthStencilView = nullptr;
+      ID3D11RenderTargetView* mRenderTargetView = nullptr;
       ID3D11Texture2D* mDepthTexture = nullptr;
       HWND mHwnd = nullptr;
     } mFramebuffers[ Render::kMaxFramebuffers ] = {};
+    Render::FramebufferHandle mWindows[ Render::kMaxFramebuffers];
+    int mWindowCount = 0;
     ID3D11RasterizerState* mRasterizerStates[ Render::kMaxRasterizerStates ] = {};
     ID3D11SamplerState* mSamplerStates[ Render::kMaxSamplerStates ] = {};
     ID3D11DepthStencilState* mDepthStencilStates[ Render::kMaxDepthStencilStates ] = {};

@@ -172,7 +172,19 @@ namespace Tac
     //  params->mWidth;
     //  params->mHeight;
 
+    Viewport viewport;
+    viewport.mWidth = (float)info->mDesktopWindowState.mWidth;
+    viewport.mHeight = (float)info->mDesktopWindowState.mHeight;
+
+    ScissorRect scissorRect;
+    scissorRect.mXMinRelUpperLeftCornerPixel = 0;
+    scissorRect.mXMaxRelUpperLeftCornerPixel = (float)info->mDesktopWindowState.mWidth;
+    scissorRect.mYMinRelUpperLeftCornerPixel = 0;
+    scissorRect.mYMaxRelUpperLeftCornerPixel = (float)info->mDesktopWindowState.mHeight;
+
     Render::SetViewFramebuffer( ViewIdMainWindow, info->mFramebufferHandle );
+    Render::SetViewport( ViewIdMainWindow, viewport );
+    Render::SetViewScissorRect( ViewIdMainWindow, scissorRect );
     mUI2DDrawData->DrawToTexture( info->mDesktopWindowState.mWidth,
                                   info->mDesktopWindowState.mHeight,
                                   ViewIdMainWindow,

@@ -74,8 +74,8 @@ namespace Tac
     {
       SetImGuiGlobals();
       Viewport viewport;
-      viewport.mViewportPixelWidthIncreasingRight = ( float )mDesktopWindow->mWidth;
-      viewport.mViewportPixelHeightIncreasingUp = ( float )mDesktopWindow->mHeight;
+      viewport.mWidth = ( float )mDesktopWindow->mWidth;
+      viewport.mHeight = ( float )mDesktopWindow->mHeight;
 
       ScissorRect scissorRect;
       scissorRect.mXMaxRelUpperLeftCornerPixel = ( float )mDesktopWindow->mWidth;

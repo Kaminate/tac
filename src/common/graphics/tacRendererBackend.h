@@ -58,10 +58,12 @@ namespace Tac
       DepthStateHandle mDepthStateHandle;
       VertexFormatHandle mVertexFormatHandle;
       UpdateConstantBuffers mUpdateConstantBuffers;
-      int mStartIndex;
-      int mStartVertex;
-      int mIndexCount;
-      int mVertexCount;
+      ShaderHandle mShaderHandle;
+      ViewId mViewId = InvalidViewId;
+      int mStartIndex = 0;
+      int mStartVertex = 0;
+      int mIndexCount = 0;
+      int mVertexCount = 0;
     };
 
     struct CommandBuffer
@@ -83,6 +85,13 @@ namespace Tac
       int mByteCount = 0;
     };
 
+    struct View
+    {
+      FramebufferHandle mFrameBufferHandle;
+      Viewport mViewport;
+      ScissorRect mScissorRect;
+    };
+
     struct Frame
     {
       // can add a mutex here so multiple threads can add draw calls at once
@@ -93,6 +102,7 @@ namespace Tac
       int mDrawCallCount = 0;
 
       UniformBuffer mUniformBuffer;
+      View mViews[100];
     };
 
     const int kMaxTextures = 1000;
