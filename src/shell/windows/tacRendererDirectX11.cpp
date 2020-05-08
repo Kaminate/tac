@@ -1154,6 +1154,8 @@ namespace Tac
 
     ID3D11BlendState* blendState = nullptr;
     ID3D11DepthStencilState* depthStencilState = nullptr;
+    ID3D11Buffer* constantBuffers[ D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT ] = {};
+    int constantBufferCount = 0;
     Render::ViewId viewId = Render::InvalidViewId;
     for( int iDrawCall = 0; iDrawCall < frame->mDrawCallCount; ++iDrawCall )
     {
@@ -1233,7 +1235,7 @@ namespace Tac
         mDeviceContext->IASetInputLayout( inputLayout );
       }
 
-      if( drawCall->mViewId != Render::InvalidViewId )
+      if( drawCall->mViewId != Render::InvalidViewId  && drawCall->mViewId != viewId )
       {
         const Render::View* view = &frame->mViews[ drawCall->mViewId ];
         Render::FramebufferHandle framebufferHandle = view->mFrameBufferHandle;
@@ -1243,25 +1245,17 @@ namespace Tac
         UINT NumViews = 1;
         ID3D11RenderTargetView* RenderTargetViews[] = { renderTargetView };
         mDeviceContext->OMSetRenderTargets( NumViews, RenderTargetViews, depthStencilView );
-      }
 
-      for( int iConstantBuffer = 0;
-           iConstantBuffer < drawCall->mUpdateConstantBuffers.mUpdateConstantBufferDataCount;
-           ++iConstantBuffer )
-      {
-        const Render::UpdateConstantBuffers::UpdateConstantBuffer* stuff =
-          &drawCall->mUpdateConstantBuffers.mUpdateConstantBufferDatas[ iConstantBuffer ];
-        ID3D11Buffer* buffer = mConstantBuffers[ stuff->mConstantBufferHandle.mResourceId ].mBuffer;
-        stuff->mData.mBytes;
-        UpdateBuffer( buffer, stuff->mData.mBytes, stuff->mData.mByteCount, errors );
-      }
+        const UINT ClearFlags = D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL;
+        const FLOAT ClearDepth = 1.0f;
+        const UINT8 ClearStencil = 0;
+        mDeviceContext->ClearDepthStencilView( depthStencilView, ClearFlags, ClearDepth, ClearStencil );
 
-      mDeviceContext->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
+        const FLOAT ClearGrey = 0.2f;
+        const FLOAT ClearColorRGBA[] = { ClearGrey, ClearGrey,ClearGrey,  1.0f };
+        mDeviceContext->ClearRenderTargetView( renderTargetView, ClearColorRGBA );
 
-      if( drawCall->mViewId != viewId )
-      {
         viewId = drawCall->mViewId;
-        const Render::View* view = &frame->mViews[ drawCall->mViewId ];
         D3D11_VIEWPORT viewport;
         viewport.Height = view->mViewport.mHeight;
         viewport.Width = view->mViewport.mWidth;
@@ -1270,7 +1264,45 @@ namespace Tac
         viewport.MinDepth = view->mViewport.mMinDepth;
         viewport.MaxDepth = view->mViewport.mMaxDepth;
         mDeviceContext->RSSetViewports( 1, &viewport );
+
+        // used if the rasterizer state ScissorEnable is TRUE
+        D3D11_RECT scissor;
+        scissor.bottom = ( LONG )view->mScissorRect.mYMaxRelUpperLeftCornerPixel;
+        scissor.left = ( LONG )view->mScissorRect.mXMinRelUpperLeftCornerPixel;
+        scissor.right = ( LONG )view->mScissorRect.mXMaxRelUpperLeftCornerPixel;
+        scissor.top = ( LONG )view->mScissorRect.mYMinRelUpperLeftCornerPixel;
+        mDeviceContext->RSSetScissorRects( 1, &scissor );
       }
+
+      if( drawCall->mTextureHandle.IsValid() )
+      {
+        Texture* texture = &mTextures[ drawCall->mTextureHandle.mResourceId ];
+        UINT StartSlot = 0;
+        UINT NumViews = 1;
+        ID3D11ShaderResourceView* ShaderResourceViews[] = { texture->mTextureSRV };
+        mDeviceContext->VSSetShaderResources( StartSlot, NumViews, ShaderResourceViews );
+        mDeviceContext->PSSetShaderResources( StartSlot, NumViews, ShaderResourceViews );
+      }
+
+      for( int iConstantBuffer = 0;
+           iConstantBuffer < drawCall->mUpdateConstantBuffers.mUpdateConstantBufferDataCount;
+           ++iConstantBuffer )
+      {
+        const Render::UpdateConstantBuffers::UpdateConstantBuffer* stuff =
+          &drawCall->mUpdateConstantBuffers.mUpdateConstantBufferDatas[ iConstantBuffer ];
+
+        const ConstantBuffer* constantBuffer = &mConstantBuffers[ stuff->mConstantBufferHandle.mResourceId ];
+        UpdateBuffer( constantBuffer->mBuffer, stuff->mData.mBytes, stuff->mData.mByteCount, errors );
+
+        constantBuffers[ constantBuffer->mShaderRegister ] = constantBuffer->mBuffer;
+        constantBufferCount = Max( constantBufferCount, constantBuffer->mShaderRegister + 1 );
+
+        const UINT StartSlot = 0;
+        mDeviceContext->PSSetConstantBuffers( StartSlot, constantBufferCount, constantBuffers );
+        mDeviceContext->VSSetConstantBuffers( StartSlot, constantBufferCount, constantBuffers );
+      }
+
+      mDeviceContext->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
 
       if( drawCall->mIndexCount )
       {

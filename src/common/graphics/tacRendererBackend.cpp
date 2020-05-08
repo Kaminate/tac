@@ -109,6 +109,7 @@ namespace Tac
       VertexFormatHandle mVertexFormatHandle;
       UpdateConstantBuffers mUpdateConstantBuffers;
       ShaderHandle mShaderHandle;
+      TextureHandle mTextureHandle;
     };
 
     static thread_local Encoder gEncoder;
@@ -532,6 +533,11 @@ namespace Tac
       gEncoder.mVertexFormatHandle = vertexFormatHandle;
     }
 
+    void SetTexture( TextureHandle textureHandle )
+    {
+      gEncoder.mTextureHandle = textureHandle;
+    }
+
     static const void* AllocateUniform( const void* bytes, int byteCount )
     {
       void* submitBytes = gSubmitFrame->mUniformBuffer.mBytes;
@@ -625,6 +631,7 @@ namespace Tac
       drawCall->mVertexCount = gEncoder.mVertexCount;
       drawCall->mShaderHandle = gEncoder.mShaderHandle;
       drawCall->mViewId = viewId;
+      drawCall->mTextureHandle = gEncoder.mTextureHandle;
       gEncoder.mIndexBufferHandle = IndexBufferHandle();
       gEncoder.mVertexBufferHandle = VertexBufferHandle();
       gEncoder.mBlendStateHandle = BlendStateHandle();
@@ -633,6 +640,8 @@ namespace Tac
       gEncoder.mDepthStateHandle = DepthStateHandle();
       gEncoder.mVertexFormatHandle = VertexFormatHandle();
       gEncoder.mUpdateConstantBuffers.mUpdateConstantBufferDataCount = 0;
+      gEncoder.mShaderHandle = ShaderHandle();
+      gEncoder.mTextureHandle = TextureHandle();
       gEncoder.mVertexCount = 0;
       gEncoder.mIndexCount = 0;
     }

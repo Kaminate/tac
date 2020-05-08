@@ -330,6 +330,7 @@ namespace Tac
         //drawCall2.mVertexFormat = UI2DCommonData::Instance->mFormat;
         Render::SetVertexBuffer( mVertexBufferHandle, uidrawCall.mIVertexStart, uidrawCall.mVertexCount );
         Render::SetIndexBuffer( mIndexBufferHandle, uidrawCall.mIIndexStart, uidrawCall.mIndexCount );
+        Render::SetTexture( texture );
         //drawCall2.mIndexBuffer = mIndexes;
         //drawCall2.mStartIndex = uidrawCall.mIIndexStart;
         //drawCall2.mIndexCount = uidrawCall.mIndexCount;

@@ -469,6 +469,7 @@ namespace Tac
     void                             SetDepthState( DepthStateHandle );
     void                             SetVertexFormat( VertexFormatHandle );
     void                             SetShader( ShaderHandle );
+    void                             SetTexture( TextureHandle );
 
     //void                             SetUniform( ConstantBufferHandle, const void* bytes, int byteCount );
 
