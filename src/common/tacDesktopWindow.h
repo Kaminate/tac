@@ -37,16 +37,22 @@ namespace Tac
   const int NullDesktopWindowHandle = - 1;
   struct DesktopWindowHandle
   {
-    int mIndex = NullDesktopWindowHandle;
+    int mIndex = NullDesktopWindowHandle; // hmm
   };
 
 	struct DesktopWindowState
 	{
 		DesktopWindowHandle mDesktopWindowHandle;
+    int                 mX = 0;
+    int                 mY = 0;
 		int                 mWidth = 0;
     int                 mHeight = 0;
     void*               mNativeWindowHandle = nullptr;
+    bool                mCursorUnobscured = false;
 	};
+
+  static const int kMaxDesktopWindowStateCount = 10;
+  typedef DesktopWindowState DesktopWindowStates[ kMaxDesktopWindowStateCount ];
 
   struct DesktopWindow : public WindowParams
   {
@@ -67,6 +73,8 @@ namespace Tac
     Event<>::Emitter mOnResize;
     Event<>::Emitter mOnMove;
     Event<DesktopWindow*>::Emitter mOnDestroyed;
+
+    DesktopWindowHandle mHandle; // a handle to uhh ourself
 
     // True if the window directly under the mouse cursor is this one
     // todo: Figure out a better variable name that can be negated

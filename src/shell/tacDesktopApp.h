@@ -20,20 +20,26 @@ namespace Tac
 
   extern thread_local ThreadType gThreadType;
 
-  struct ProcessStuffOutput
-  {
-    bool mCreatedWindow = false;
-    DesktopWindowState mCreatedWindowState;
-  };
+  //struct ProcessStuffOutput
+  //{
+  //  bool mCreatedWindow = false;
+  //  DesktopWindowState mCreatedWindowState;
+  //};
+
   namespace DesktopEvent
   {
+    void                PushEventCursorUnobscured( DesktopWindowHandle desktopWindowHandle );
     void                PushEventCreateWindow( DesktopWindowHandle desktopWindowHandle,
-                                int width,
-                                int height,
-                                void* nativeWindowHandle );
+                                               int width,
+                                               int height,
+                                               void* nativeWindowHandle );
 
-    ProcessStuffOutput  ProcessStuff();
+    void ProcessStuff( bool* createdWindows );
   }
+
+  // stuff thread
+  extern DesktopWindowStates gDesktopWindowStates;
+  DesktopWindowState* FindDeskopWindowState( DesktopWindowHandle );
 
   struct DesktopApp
   {
@@ -54,7 +60,7 @@ namespace Tac
     Errors mErrorsMainThread;
     Errors mErrorsStuffThread;
 
-
+    DesktopWindowState mDesktopWindowStates[ 10 ];
   };
 
   //struct WindowState

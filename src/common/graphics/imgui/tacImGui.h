@@ -29,7 +29,7 @@ struct ImGuiRect
 };
 
 
-void ImGuiBegin( const String& name, v2 size );
+void ImGuiBegin( const StringView& name, v2 size );
 void ImGuiEnd();
 
 void ImGuiSetGlobals( v2 mousePositionDesktopWindowspace,
@@ -48,7 +48,7 @@ void ImGuiEndMenuBar();
 void ImGuiPushFontSize( int value );
 void ImGuiPopFontSize();
 
-void ImGuiBeginChild( const String& name, v2 size );
+void ImGuiBeginChild( const StringView& name, v2 size );
 void ImGuiEndChild();
 
 void ImGuiBeginGroup();
@@ -58,15 +58,15 @@ void ImGuiIndent();
 void ImGuiUnindent();
 
 void ImGuiSetNextWindowPos( v2 pos );
-bool ImGuiCollapsingHeader( const String& name );
+bool ImGuiCollapsingHeader( const StringView& name );
 void ImGuiSameLine();
-void ImGuiText( const String& text );
-bool ImGuiInputText( const String& label, String& text );
-bool ImGuiSelectable( const String& str, bool selected );
-bool ImGuiButton( const String& str );
-void ImGuiCheckbox( const String& str, bool* value );
-bool ImGuiDragFloat( const String& str, float* value );
-bool ImGuiDragInt( const String& str, int* value );
+void ImGuiText( const StringView& text );
+bool ImGuiInputText( const StringView& label, String& text );
+bool ImGuiSelectable( const StringView& str, bool selected );
+bool ImGuiButton( const StringView& str );
+void ImGuiCheckbox( const StringView& str, bool* value );
+bool ImGuiDragFloat( const StringView& str, float* value );
+bool ImGuiDragInt( const StringView& str, int* value );
 void ImGuiDebugDraw();
 
 struct ImGuiIndentBlock {

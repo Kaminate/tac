@@ -54,6 +54,13 @@ namespace Tac
     }
     return nullptr;
   }
+
+  Win32DesktopWindow* FindWindow( DesktopWindowHandle desktopWindowHandle )
+  {
+    desktopWindowHandle.mIndex;
+
+  }
+
   static LRESULT CALLBACK WindowProc(
     HWND hwnd,
     UINT uMsg,
@@ -142,8 +149,8 @@ namespace Tac
 
     switch( uMsg )
     {
-      case WM_CLOSE:
-      case WM_DESTROY:
+      case WM_CLOSE: // fallthrough
+      case WM_DESTROY: // fallthrough
       case WM_QUIT:
       {
         mRequestDeletion = true;
@@ -428,6 +435,18 @@ namespace Tac
     for( Win32DesktopWindow* window : mWindows )
       window->mCursorUnobscured = cursorUnobscuredWindow == window;
 
+    // uhh, for now, just close everything when the user closes a window.
+    // this is so that we can kill from renderdoc
+    for( Win32DesktopWindow* window : mWindows )
+      if( window->mRequestDeletion )
+        OS::mShouldStopRunning = true;
+
+
+    DesktopWindowHandle unobscuredDesktopWindowHandle;
+    if( cursorUnobscuredWindow )
+      unobscuredDesktopWindowHandle = cursorUnobscuredWindow->mHandle;
+    DesktopEvent::PushEventCursorUnobscured( unobscuredDesktopWindowHandle );
+
     if( mMouseEdgeHandler )
     {
       mMouseEdgeHandler->Update( cursorUnobscuredWindow );
@@ -520,16 +539,11 @@ namespace Tac
     createdWindow->app = this;
     createdWindow->mHWND = hwnd;
     createdWindow->mOperatingSystemHandle = hwnd;
-
-
-    //*( WindowParams* )createdWindow = windowParams;
-    //*desktopWindow = createdWindow;
-    //mWindows.push_back( createdWindow );
-
     createdWindow->mOnDestroyed.AddCallbackFunctional( []( DesktopWindow* desktopWindow )
                                                        {
                                                          WindowsApplication2::Instance->RemoveWindow( ( Win32DesktopWindow* )desktopWindow );
                                                        } );
+    createdWindow->mHandle = handle;
 
     // Used to combine all the windows into one tab group.
     if( mParentHWND == NULL )
@@ -537,6 +551,7 @@ namespace Tac
 
 
     DesktopEvent::PushEventCreateWindow( handle, width, height, hwnd );
+    mWindows.push_back( createdWindow );
   }
   void WindowsApplication2::RemoveWindow( Win32DesktopWindow*  createdWindow )
   {

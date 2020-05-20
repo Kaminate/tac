@@ -19,11 +19,13 @@
 namespace Tac
 {
   CreationMainWindow::CreationMainWindow() {};
+
   CreationMainWindow::~CreationMainWindow()
   {
     delete mUI2DDrawData;
     //delete mUIRoot;
   }
+
   void CreationMainWindow::Init( Errors& )
   {
     mUI2DDrawData = new UI2DDrawData;
@@ -38,6 +40,7 @@ namespace Tac
     Creation::Instance->GetWindowsJsonData( gMainWindowName, &x, &y, &w, &h );
     mDesktopWindowHandle = DesktopWindowManager::Instance->CreateWindow( x, y, w, h );
   }
+
   void CreationMainWindow::LoadTextures( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
@@ -66,6 +69,7 @@ namespace Tac
       mAreTexturesLoaded = true;
 
   }
+
   void CreationMainWindow::ImGuiWindows()
   {
     ImGuiText( "Windows" );
@@ -86,16 +90,20 @@ namespace Tac
       ImGuiText( createWindowErrors.ToString() );
     ImGuiUnindent();
   }
+
   void CreationMainWindow::ImGui()
   {
-    Creation::WindowFramebufferInfo* info = Creation::Instance->FindWindowFramebufferInfo( mDesktopWindowHandle);
+    Creation::WindowFramebufferInfo* info =
+      Creation::Instance->FindWindowFramebufferInfo( mDesktopWindowHandle );
     if( !info )
       return;
 
-    SetCreationWindowImGuiGlobals( mDesktopWindow,
-                                   mUI2DDrawData,
-                                   info->mDesktopWindowState.mWidth,
-                                   info->mDesktopWindowState.mHeight );
+    SetCreationWindowImGuiGlobals( info->mDesktopWindowState,
+                                   mUI2DDrawData ); // ,
+                                   // info->mDesktopWindowState.mWidth,
+                                   // info->mDesktopWindowState.mHeight );
+
+
     ImGuiBegin( "Main Window", {} );
     ImGuiBeginMenuBar();
     ImGuiText( "file | edit | window" );
@@ -103,10 +111,6 @@ namespace Tac
     if( ImGuiButton( "save as" ) )
     {
       World* world = mCreation->mWorld;
-
-
-      ;
-
       for( Entity* entity : world->mEntities )
       {
         if( entity->mParent )
@@ -154,9 +158,11 @@ namespace Tac
 
     ImGuiEnd();
   }
+
   void CreationMainWindow::Update( Errors& errors )
   {
-    Creation::WindowFramebufferInfo* info = Creation::Instance->FindWindowFramebufferInfo( mDesktopWindowHandle);
+    Creation::WindowFramebufferInfo* info =
+      Creation::Instance->FindWindowFramebufferInfo( mDesktopWindowHandle );
     if( !info )
       return;
 
@@ -185,7 +191,10 @@ namespace Tac
     Render::SetViewFramebuffer( ViewIdMainWindow, info->mFramebufferHandle );
     Render::SetViewport( ViewIdMainWindow, viewport );
     Render::SetViewScissorRect( ViewIdMainWindow, scissorRect );
-    mUI2DDrawData->DrawToTexture( info->mDesktopWindowState.mWidth,
+    gDesktopWindowStates;
+    mUI2DDrawData->DrawToTexture( gDesktopWindowStates[])
+      
+      info->mDesktopWindowState.mWidth,
                                   info->mDesktopWindowState.mHeight,
                                   ViewIdMainWindow,
                                   errors );
@@ -212,7 +221,5 @@ namespace Tac
       }
     }
   }
-
-
 }
 

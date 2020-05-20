@@ -172,7 +172,7 @@ namespace Tac
     ImGuiGlobals::Instance.mNextWindowPos = pos;
   }
   // TODO: remove size parameter, use setnextwindowsize instead
-  void ImGuiBegin( const String& name, const v2 size )
+  void ImGuiBegin( const StringView& name, const v2 size )
   {
     ImGuiWindow* window = ImGuiGlobals::Instance.FindWindow( name );
     if( !window )
@@ -233,7 +233,7 @@ namespace Tac
     ImGuiGlobals::Instance.mDesktopWindowHeight = desktopWindowHeight;
   }
 
-  void ImGuiBeginChild( const String& name, v2 size )
+  void ImGuiBeginChild( const StringView& name, v2 size )
   {
     ImGuiWindow* child = ImGuiGlobals::Instance.FindWindow( name );
     ImGuiWindow* parent = ImGuiGlobals::Instance.mCurrentWindow;
@@ -313,7 +313,7 @@ namespace Tac
     window->mCurrLineHeight = window->mPrevLineHeight;
     //window->mCurrLineHeight = window->mPrevLineHeight;
   }
-  void ImGuiText( const String& utf8 )
+  void ImGuiText( const StringView& utf8 )
   {
     ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
     UI2DDrawData* drawData = ImGuiGlobals::Instance.mUI2DDrawData;
@@ -327,7 +327,7 @@ namespace Tac
       return;
     drawData->AddText( textPos, ImGuiGlobals::Instance.mUIStyle.fontSize, utf8, ImGuiGlobals::Instance.mUIStyle.textColor, &clipRect );
   }
-  bool ImGuiInputText( const String& label, String& text )
+  bool ImGuiInputText( const StringView& label, String& text )
   {
     ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
     TextInputData* inputData = window->inputData;
@@ -429,7 +429,7 @@ namespace Tac
 
     return textChanged;
   }
-  bool ImGuiSelectable( const String& str, bool selected )
+  bool ImGuiSelectable( const StringView& str, bool selected )
   {
     ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
     KeyboardInput* keyboardInput = ImGuiGlobals::Instance.mKeyboardInput;
@@ -473,7 +473,7 @@ namespace Tac
     drawData->AddText( pos, ImGuiGlobals::Instance.mUIStyle.fontSize, str, ImGuiGlobals::Instance.mUIStyle.textColor, &clipRect );
     return clicked;
   }
-  bool ImGuiButton( const String& str )
+  bool ImGuiButton( const StringView& str )
   {
     ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
     KeyboardInput* keyboardInput = ImGuiGlobals::Instance.mKeyboardInput;
@@ -516,7 +516,7 @@ namespace Tac
 
     return justClicked;
   }
-  void ImGuiCheckbox( const String& str, bool* value )
+  void ImGuiCheckbox( const StringView& str, bool* value )
   {
     ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
     KeyboardInput* keyboardInput = ImGuiGlobals::Instance.mKeyboardInput;
@@ -627,11 +627,11 @@ namespace Tac
   }
 
   static bool ImguiDragVal(
-    const String& str,
+    const StringView& str,
     void* valueBytes,
     int valueByteCount,
     void( *valueToStringGetter )( String& to, const void* from ),
-    void( *valueFromStringSetter )( const String& from, void* to ),
+    void( *valueFromStringSetter )( const StringView& from, void* to ),
     void( *whatToDoWithMousePixel )( float mouseChangeSinceBeginningOfDrag, const void* valAtDragStart, void* curVal ) )
   {
     v4 backgroundBoxColor = { 1, 1, 0, 1 };
@@ -787,14 +787,14 @@ namespace Tac
     return MemCmp( valueFrameCopy.data(), valueBytes, valueByteCount );
   }
 
-  bool ImGuiDragFloat( const String& str, float* value )
+  bool ImGuiDragFloat( const StringView& str, float* value )
   {
     auto getter = []( String& to, const void* from )
     {
       float i = *( ( float* )from );
       to = ToString( i );
     };
-    auto setter = []( const String& from, void* to )
+    auto setter = []( const StringView& from, void* to )
     {
       float f = ( float )std::atof( from.c_str() );
       *( ( float* )to ) = f;
@@ -810,14 +810,14 @@ namespace Tac
     return result;
   }
 
-  bool ImGuiDragInt( const String& str, int* value )
+  bool ImGuiDragInt( const StringView& str, int* value )
   {
     auto getter = []( String& to, const void* from )
     {
       int i = *( ( int* )from );
       to = ToString( i );
     };
-    auto setter = []( const String& from, void* to )
+    auto setter = []( const StringView& from, void* to )
     {
       int i = std::atoi( from.c_str() );
       *( ( int* )to ) = i;
@@ -833,7 +833,7 @@ namespace Tac
     return result;
   }
 
-  bool ImGuiCollapsingHeader( const String& name )
+  bool ImGuiCollapsingHeader( const StringView& name )
   {
     ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
     UI2DDrawData* drawData = ImGuiGlobals::Instance.mUI2DDrawData;

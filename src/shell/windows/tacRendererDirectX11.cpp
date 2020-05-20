@@ -1157,6 +1157,7 @@ namespace Tac
     ID3D11Buffer* constantBuffers[ D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT ] = {};
     int constantBufferCount = 0;
     Render::ViewId viewId = Render::InvalidViewId;
+    IndexBuffer* indexBuffer = nullptr;
     for( int iDrawCall = 0; iDrawCall < frame->mDrawCallCount; ++iDrawCall )
     {
       const Render::DrawCall3* drawCall = &frame->mDrawCalls[ iDrawCall ];
@@ -1187,7 +1188,8 @@ namespace Tac
 
       if( drawCall->mIndexBufferHandle.IsValid() )
       {
-        const IndexBuffer* indexBuffer = &mIndexBuffers[ drawCall->mIndexBufferHandle.mResourceId ];
+        //const IndexBuffer* 
+          indexBuffer = &mIndexBuffers[ drawCall->mIndexBufferHandle.mResourceId ];
         const DXGI_FORMAT dxgiFormat = GetDXGIFormat( indexBuffer->mFormat );
         const UINT byteOffset = 0; //  drawCall->mStartIndex * indexBuffer->mFormat.mPerElementByteCount;
         mDeviceContext->IASetIndexBuffer( indexBuffer->mBuffer,
@@ -1307,9 +1309,9 @@ namespace Tac
       if( drawCall->mIndexCount )
       {
         const UINT IndexCount = drawCall->mIndexCount;
-        const UINT StartIndexLocation = drawCall->mStartIndex;
+        const UINT StartIndexLocation = drawCall->mStartIndex; //  *indexBuffer->mFormat.CalculateTotalByteCount();
         // should this be multiplied by the sizeof vertex?
-        const INT BaseVertexLocation = drawCall->mStartVertex;
+        const INT BaseVertexLocation = 0; // drawCall->mStartVertex;
         mDeviceContext->DrawIndexed( IndexCount, StartIndexLocation, BaseVertexLocation );
       }
       else if( drawCall->mVertexCount )

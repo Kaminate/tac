@@ -532,7 +532,7 @@ namespace Tac
   {
     /*TAC_PROFILE_BLOCK*/;
 
-    ProcessStuffOutput processStuffOutput = DesktopEvent::ProcessStuff();
+    DesktopWindowStates desktopWindowStates = DesktopEvent::ProcessStuff();
 
     if( processStuffOutput.mCreatedWindow )
     {
@@ -883,33 +883,28 @@ namespace Tac
     return nullptr;
   }
 
-  void SetCreationWindowImGuiGlobals( DesktopWindow* desktopWindow,
-                                      UI2DDrawData* ui2DDrawData,
-                                      int desktopWindowWidth,
-                                      int desktopWindowHeight )
+  void SetCreationWindowImGuiGlobals( const DesktopWindowState* desktopWindowState,
+                                      UI2DDrawData* ui2DDrawData )
   {
     Errors screenspaceCursorPosErrors;
     v2 screenspaceCursorPos = {};
     OS::GetScreenspaceCursorPos( screenspaceCursorPos, screenspaceCursorPosErrors );
     bool isWindowDirectlyUnderCursor = false;
     v2 mousePositionDestopWindowspace = {};
-    if( screenspaceCursorPosErrors.empty() && desktopWindow )
+    if( screenspaceCursorPosErrors.empty() ) // && desktopWindow )
     {
       mousePositionDestopWindowspace = {
-        screenspaceCursorPos.x - desktopWindow->mX,
-        screenspaceCursorPos.y - desktopWindow->mY };
-      isWindowDirectlyUnderCursor = desktopWindow->mCursorUnobscured;
+        screenspaceCursorPos.x - desktopWindowState->mX,
+        screenspaceCursorPos.y - desktopWindowState->mY };
+      isWindowDirectlyUnderCursor = desktopWindowState->mCursorUnobscured;
     }
 
-    ImGuiSetGlobals(
-      mousePositionDestopWindowspace,
-      isWindowDirectlyUnderCursor,
-      Shell::Instance->mElapsedSeconds,
-      ui2DDrawData,
-      desktopWindowWidth,
-      desktopWindowHeight
-
-    );
+    ImGuiSetGlobals( mousePositionDestopWindowspace,
+                     isWindowDirectlyUnderCursor,
+                     Shell::Instance->mElapsedSeconds,
+                     ui2DDrawData,
+                     desktopWindowState->mWidth,
+                     desktopWindowState->mHeight );
   }
 
 }

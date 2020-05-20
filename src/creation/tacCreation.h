@@ -114,20 +114,19 @@ namespace Tac
     Vector< Prefab* > mPrefabs;
 
 
+    //DesktopWindowStates mDesktopWindowStates;
 
     struct WindowFramebufferInfo
     {
-      DesktopWindowState mDesktopWindowState;
+      DesktopWindowHandle mDesktopWindowHandle;
       Render::FramebufferHandle mFramebufferHandle;
     };
     Vector<WindowFramebufferInfo> mWindowFramebufferInfos;
     WindowFramebufferInfo* FindWindowFramebufferInfo( DesktopWindowHandle );
   };
 
-  void SetCreationWindowImGuiGlobals( DesktopWindow* desktopWindow,
-                                      UI2DDrawData* ui2DDrawData,
-                                      int desktopWindowWidth,
-                                      int desktopWindowHeight );
+  void SetCreationWindowImGuiGlobals( const DesktopWindowState* desktopWindowState,
+                                      UI2DDrawData* ui2DDrawData );
 
   const v4 textColor = v4( v3( 1, 1, 1 ) * 0.0f, 1 );
 
