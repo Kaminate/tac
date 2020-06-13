@@ -29,13 +29,13 @@ void CreationSystemWindow::Init( Errors& errors )
 };
 void CreationSystemWindow::ImGui()
 {
-  ;
   SystemRegistry* systemRegistry = SystemRegistry::Instance();
 
-  SetCreationWindowImGuiGlobals( mDesktopWindow,
-                                 mUI2DDrawData,
-                                 mDesktopWindowState.mWidth,
-                                 mDesktopWindowState.mHeight );
+  TAC_INVALID_CODE_PATH;
+  //SetCreationWindowImGuiGlobals( mDesktopWindow,
+  //                               mUI2DDrawData,
+  //                               mDesktopWindowState.mWidth,
+  //                               mDesktopWindowState.mHeight );
   ImGuiBegin( "System Window", {} );
 
   if( ImGuiCollapsingHeader( "Select System" ) )

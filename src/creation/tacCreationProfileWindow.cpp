@@ -31,29 +31,29 @@ void CreationProfileWindow::ImGuiProfile()
 }
 void CreationProfileWindow::ImGui()
 {
-  SetCreationWindowImGuiGlobals( mDesktopWindow,
-                                 mUI2DDrawData,
-                                 mDesktopWindowState.mWidth,
-                                 mDesktopWindowState.mHeight );
-  ImGuiBegin( "Profile Window", {} );
+  //FindDesktopWindowState()
+  //SetCreationWindowImGuiGlobals( mDesktopWindow,
+  //                               mUI2DDrawData,
+  //                               mDesktopWindowState.mWidth,
+  //                               mDesktopWindowState.mHeight );
+  //ImGuiBegin( "Profile Window", {} );
 
-  ImGuiText( "i am the profile window" );
+  //ImGuiText( "i am the profile window" );
 
-  // to force directx graphics specific window debugging
-  if( ImGuiButton( "close window" ) )
-  {
-    mDesktopWindow->mRequestDeletion = true;
-  }
+  //// to force directx graphics specific window debugging
+  //if( ImGuiButton( "close window" ) )
+  //{
+  //  mDesktopWindow->mRequestDeletion = true;
+  //}
 
-  ImGuiProfile();
+  //ImGuiProfile();
 
 
 
-  ImGuiEnd();
+  //ImGuiEnd();
 }
 void CreationProfileWindow::Update( Errors& errors )
 {
-  ;
   mDesktopWindow->SetRenderViewDefaults();
   ImGui();
   mUI2DDrawData->DrawToTexture(0, 0, 0,  errors );

@@ -50,5 +50,10 @@ namespace Tac
     //mRenderView->mViewportRect = viewport;
   }
 
+  bool DesktopWindowHandle::IsValid()
+  {
+    return mIndex != NullDesktopWindowHandle;
+  }
+
 }
 

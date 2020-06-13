@@ -1,5 +1,3 @@
-
-
 #pragma once
 
 #include "src/common/tacString.h"
@@ -38,6 +36,7 @@ namespace Tac
   struct DesktopWindowHandle
   {
     int mIndex = NullDesktopWindowHandle; // hmm
+    bool IsValid();
   };
 
 	struct DesktopWindowState

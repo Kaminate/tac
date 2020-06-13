@@ -98,13 +98,14 @@ namespace Tac
     if( !info )
       return;
 
-    SetCreationWindowImGuiGlobals( info->mDesktopWindowState,
-                                   mUI2DDrawData ); // ,
-                                   // info->mDesktopWindowState.mWidth,
-                                   // info->mDesktopWindowState.mHeight );
+    DesktopWindowState* desktopWindowState = FindDesktopWindowState( info->mDesktopWindowHandle );
+    if( !desktopWindowState )
+      return;
 
+    SetCreationWindowImGuiGlobals( desktopWindowState, mUI2DDrawData );
 
     ImGuiBegin( "Main Window", {} );
+#if 0
     ImGuiBeginMenuBar();
     ImGuiText( "file | edit | window" );
     ImGuiEndMenuBar();
@@ -156,6 +157,10 @@ namespace Tac
       mDesktopWindow->mRequestDeletion = true;
     }
 
+#endif
+
+    ImGuiButton( "asdf" );
+
     ImGuiEnd();
   }
 
@@ -178,27 +183,29 @@ namespace Tac
     //  params->mWidth;
     //  params->mHeight;
 
+
+    DesktopWindowState* desktopWindowState = FindDesktopWindowState( info->mDesktopWindowHandle );
+    if( !desktopWindowState )
+      return;
+
     Viewport viewport;
-    viewport.mWidth = (float)info->mDesktopWindowState.mWidth;
-    viewport.mHeight = (float)info->mDesktopWindowState.mHeight;
+    viewport.mWidth = (float)desktopWindowState->mWidth;
+    viewport.mHeight = (float)desktopWindowState->mHeight;
 
     ScissorRect scissorRect;
     scissorRect.mXMinRelUpperLeftCornerPixel = 0;
-    scissorRect.mXMaxRelUpperLeftCornerPixel = (float)info->mDesktopWindowState.mWidth;
+    scissorRect.mXMaxRelUpperLeftCornerPixel = (float)desktopWindowState->mWidth;
     scissorRect.mYMinRelUpperLeftCornerPixel = 0;
-    scissorRect.mYMaxRelUpperLeftCornerPixel = (float)info->mDesktopWindowState.mHeight;
+    scissorRect.mYMaxRelUpperLeftCornerPixel = (float)desktopWindowState->mHeight;
 
     Render::SetViewFramebuffer( ViewIdMainWindow, info->mFramebufferHandle );
     Render::SetViewport( ViewIdMainWindow, viewport );
     Render::SetViewScissorRect( ViewIdMainWindow, scissorRect );
-    gDesktopWindowStates;
-    mUI2DDrawData->DrawToTexture( gDesktopWindowStates[])
-      
-      info->mDesktopWindowState.mWidth,
-                                  info->mDesktopWindowState.mHeight,
+
+    mUI2DDrawData->DrawToTexture( desktopWindowState->mWidth,
+                                  desktopWindowState->mHeight,
                                   ViewIdMainWindow,
                                   errors );
-
     TAC_HANDLE_ERROR( errors );
 
     if( mButtonCallbackErrors )

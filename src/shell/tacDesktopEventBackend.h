@@ -10,6 +10,8 @@ namespace Tac
       DesktopWindowHandle mDesktopWindowHandle;
       int                 mWidth;
       int                 mHeight;
+      int                 mX;
+      int                 mY;
       void*               mNativeWindowHandle;
     };
 
@@ -18,13 +20,29 @@ namespace Tac
       DesktopWindowHandle mDesktopWindowHandle;
     };
 
+    struct DataWindowResize
+    {
+      DesktopWindowHandle mDesktopWindowHandle;
+      int                 mWidth;
+      int                 mHeight;
+    };
+
+    struct DataWindowMove
+    {
+      DesktopWindowHandle mDesktopWindowHandle;
+      int                 mX;
+      int                 mY;
+    };
+
     enum class Type
     {
       CreateWindow,
+      ResizeWindow,
+      MoveWindow,
       CursorUnobscured,
     };
 
-    void                  QueuePush( Type, void* bytes, int byteCount );
-    bool                  QueuePop( Type* type, void* bytes, int byteCount );
+    bool                  QueuePop( Type* type );
+    bool                  QueuePop( void* dataBytes, int dataByteCount );
   }
 }

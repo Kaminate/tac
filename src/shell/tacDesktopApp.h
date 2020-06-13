@@ -28,18 +28,26 @@ namespace Tac
 
   namespace DesktopEvent
   {
-    void                PushEventCursorUnobscured( DesktopWindowHandle desktopWindowHandle );
-    void                PushEventCreateWindow( DesktopWindowHandle desktopWindowHandle,
+    void                PushEventCursorUnobscured( DesktopWindowHandle );
+    void                PushEventCreateWindow( DesktopWindowHandle,
                                                int width,
                                                int height,
+                                               int x,
+                                               int y,
                                                void* nativeWindowHandle );
+    void                PushEventMoveWindow( DesktopWindowHandle,
+                                             int x,
+                                             int y );
+    void                PushEventResizeWindow( DesktopWindowHandle,
+                                               int w,
+                                               int h );
 
     void ProcessStuff( bool* createdWindows );
   }
 
   // stuff thread
   extern DesktopWindowStates gDesktopWindowStates;
-  DesktopWindowState* FindDeskopWindowState( DesktopWindowHandle );
+  DesktopWindowState* FindDesktopWindowState( DesktopWindowHandle );
 
   struct DesktopApp
   {
@@ -52,8 +60,8 @@ namespace Tac
     virtual void   SpawnWindow( DesktopWindowHandle handle, int x, int y, int width, int height ) = 0;
     //void           KillDeadWindows();
     virtual void   GetPrimaryMonitor( Monitor* monitor, Errors& errors ) = 0;
-    virtual void   SpawnWindowAux( const WindowParams& , DesktopWindow** , Errors& ) {};
-    virtual void   CreateControllerInput(Errors&) {};
+    virtual void   SpawnWindowAux( const WindowParams&, DesktopWindow**, Errors& ) {};
+    virtual void   CreateControllerInput( Errors& ) {};
     //DesktopWindow* FindWindow( StringView windowName );
 
     //Vector< DesktopWindow* > mMainWindows;

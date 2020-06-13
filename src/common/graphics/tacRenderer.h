@@ -387,7 +387,7 @@ namespace Tac
     {
       int mWidth = 0;
       int mHeight = 0;
-      void* mNativeWindowHandle = nullptr;
+      const void* mNativeWindowHandle = nullptr;
     };
 
     struct CommandDataUpdateTextureRegion

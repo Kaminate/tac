@@ -44,9 +44,9 @@ namespace Tac
     void GetPrimaryMonitor( Monitor* monitor, Errors& errors ) override;
     void RemoveWindow( Win32DesktopWindow* );
     void CreateControllerInput(Errors&) override;
-    Win32DesktopWindow* FindWindow( DesktopWindowHandle );
-    Win32DesktopWindow* FindWindow( HWND hwnd );
 
+    Win32DesktopWindow* FindWin32DesktopWindow( DesktopWindowHandle );
+    Win32DesktopWindow* FindWin32DesktopWindow( HWND hwnd );
     Win32DesktopWindow* GetCursorUnobscuredWindow();
 
     // WinMain arguments

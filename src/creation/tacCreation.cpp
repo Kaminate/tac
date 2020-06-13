@@ -532,18 +532,30 @@ namespace Tac
   {
     /*TAC_PROFILE_BLOCK*/;
 
-    DesktopWindowStates desktopWindowStates = DesktopEvent::ProcessStuff();
+    bool createdWindows[ kMaxDesktopWindowStateCount ] = {};
+    DesktopEvent::ProcessStuff( createdWindows );
 
-    if( processStuffOutput.mCreatedWindow )
+    for( int iDesktopWindowState = 0;
+         iDesktopWindowState < kMaxDesktopWindowStateCount;
+         iDesktopWindowState++ )
     {
+      const bool created = createdWindows[ iDesktopWindowState ];
+      if( !created )
+        continue;
+
+      DesktopWindowState* desktopWindowState = &gDesktopWindowStates[ iDesktopWindowState ];
+      const void* nativeWindowHandle =  desktopWindowState->mNativeWindowHandle;
 
       Render::CommandDataCreateFramebuffer cmdData;
-      cmdData.mHeight = processStuffOutput.mCreatedWindowState.mHeight;
-      cmdData.mWidth = processStuffOutput.mCreatedWindowState.mWidth;
-      cmdData.mNativeWindowHandle = processStuffOutput.mCreatedWindowState.mNativeWindowHandle;
+      cmdData.mWidth = desktopWindowState->mWidth;
+      cmdData.mHeight = desktopWindowState->mHeight;
+      cmdData.mNativeWindowHandle = nativeWindowHandle;
+
+      DesktopWindowHandle desktopWindowHandle;
+      desktopWindowHandle.mIndex = iDesktopWindowState; // ???
 
       WindowFramebufferInfo info;
-      info.mDesktopWindowState = processStuffOutput.mCreatedWindowState;
+      info.mDesktopWindowHandle = desktopWindowHandle;
       info.mFramebufferHandle = Render::CreateFramebuffer( "<3 u hope ur feeling ok",
                                                            cmdData,
                                                            TAC_STACK_FRAME );
@@ -875,7 +887,10 @@ namespace Tac
   {
     for( WindowFramebufferInfo& info : mWindowFramebufferInfos )
     {
-      if( info.mDesktopWindowState.mDesktopWindowHandle.mIndex == desktopWindowHandle.mIndex )
+      //DesktopWindowHandle desktopWindowHandle = info.mDesktopWindowHandle;
+      //DesktopWindowState* desktopWindowState = FindDesktopWindowState( desktopWindowHandle);
+      if( info.mDesktopWindowHandle.mIndex == desktopWindowHandle.mIndex )
+      //if( info.mDesktopWindowState.mDesktopWindowHandle.mIndex == desktopWindowHandle.mIndex )
       {
         return &info;
       }

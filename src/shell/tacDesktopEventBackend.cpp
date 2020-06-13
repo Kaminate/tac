@@ -6,6 +6,20 @@
 
 namespace Tac
 {
+  DesktopWindowStates gDesktopWindowStates; // non-static
+
+    // oh yeah this is a great file for this shit
+  DesktopWindowState* FindDesktopWindowState( DesktopWindowHandle desktopWindowHandle )
+  {
+    if( !desktopWindowHandle.IsValid() )
+      return nullptr;
+    for( DesktopWindowState& state : gDesktopWindowStates )
+      if( state.mDesktopWindowHandle.mIndex == desktopWindowHandle.mIndex )
+        return &state;
+    return nullptr;
+  }
+
+
   namespace DesktopEvent
   {
     const int kQueueCapacity = 1024;
@@ -25,27 +39,34 @@ namespace Tac
     //  gQueueTail = gQueuePreTail + totalByteCount;
     //}
 
-    void QueuePush( Type type, void* dataBytes, int dataByteCount )
+    static void QueuePush( void* dataBytes, int dataByteCount )
     {
-      const int totalByteCount = sizeof( Type ) + dataByteCount;
-      std::lock_guard< std::mutex > lockGuard( gMutex );
-      int offset = (gQueueTail + totalByteCount) > kQueueCapacity ? 0 : gQueueTail;
+      int offset = ( gQueueTail + dataByteCount ) > kQueueCapacity ? 0 : gQueueTail;
 
-      MemCpy( gQueue + offset, &type, sizeof( Type ) );
-      offset += sizeof( Type );
-
-      MemCpy( gQueue + offset, dataBytes, totalByteCount );
-      offset += totalByteCount;
+      MemCpy( gQueue + offset, dataBytes, dataByteCount );
+      offset += dataByteCount;
 
       gQueueTail = offset;
     }
 
-    bool QueuePop( Type* type, void* dataBytes, int dataByteCount )
+    static void QueuePush( Type type, void* dataBytes, int dataByteCount )
+    {
+      std::lock_guard< std::mutex > lockGuard( gMutex );
+      QueuePush( &type, sizeof( Type ) );
+      QueuePush( dataBytes, dataByteCount );
+    }
+
+    bool QueuePop( Type* type )
+    {
+      return QueuePop( type, sizeof( Type ) );
+    }
+
+    bool QueuePop( void* dataBytes, int dataByteCount )
     {
       std::lock_guard< std::mutex > lockGuard( gMutex );
       if( gQueueHead == gQueueTail )
         return false;
-      const int totalByteCount = sizeof( Type ) + dataByteCount;
+      const int totalByteCount = dataByteCount;
       //const int gQueuePreHead = ( gQueueHead + totalByteCount ) > kQueueCapacity ? 0 : gQueueHead;
       //MemCpy( bytes, gQueue + gQueuePreHead, byteCount );
       //gQueueHead = gQueuePreHead + byteCount;
@@ -53,9 +74,6 @@ namespace Tac
 
 
       int offset = ( gQueueHead + totalByteCount ) > kQueueCapacity ? 0 : gQueueHead;
-
-      MemCpy( type, gQueue + offset, sizeof( Type ) );
-      offset += sizeof( Type );
 
       MemCpy( dataBytes, gQueue + offset, dataByteCount );
       offset += dataByteCount;
@@ -70,13 +88,14 @@ namespace Tac
     {
       DataCursorUnobscured data;
       data.mDesktopWindowHandle = desktopWindowHandle;
-      QueuePush( Type::CursorUnobscured );
-      QueuePush( &data, sizeof( data ) );
+      QueuePush( Type::CursorUnobscured, &data, sizeof( data ) );
     }
 
     void PushEventCreateWindow( DesktopWindowHandle desktopWindowHandle,
                                 int width,
                                 int height,
+                                int x,
+                                int y,
                                 void* nativeWindowHandle )
     {
       DataCreateWindow data;
@@ -84,26 +103,25 @@ namespace Tac
       data.mWidth = width;
       data.mHeight = height;
       data.mNativeWindowHandle = nativeWindowHandle;
-      QueuePush( Type::CreateWindow );
-      QueuePush( &data, sizeof( data ) );
+      data.mX = x;
+      data.mY = y;
+      QueuePush( Type::CreateWindow, &data, sizeof( data ) );
     }
 
-
-    DesktopWindowStates gDesktopWindowStates; // non-static
-
-    // oh yeah this is a great file for this shit
-    DesktopWindowState* FindDeskopWindowState( DesktopWindowHandle desktopWindowHandle )
+    void                PushEventMoveWindow( DesktopWindowHandle desktopWindowHandle,
+                                             int x,
+                                             int y )
     {
-      
-      for( DesktopWindowState& state : gDesktopWindowStates )
-      {
-        desktopWindowHandle.mIndex;
-
-        if(state.mDesktopWindowHandle  )
-
-      }
 
     }
+    void                PushEventResizeWindow( DesktopWindowHandle desktopWindowHandle,
+                                               int w,
+                                               int h )
+    {
+
+    }
+
+
 
     static int GetIUnusedDesktopWindow()
     {
@@ -135,6 +153,8 @@ namespace Tac
             desktopWindowState->mHeight = data.mHeight;
             desktopWindowState->mNativeWindowHandle = data.mNativeWindowHandle;
             desktopWindowState->mDesktopWindowHandle = data.mDesktopWindowHandle;
+            desktopWindowState->mX = data.mX;
+            desktopWindowState->mY = data.mY;
             createdWindows[ iCreatedWindow ] = true;
           } break;
           case DesktopEvent::Type::CursorUnobscured:

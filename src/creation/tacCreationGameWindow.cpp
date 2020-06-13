@@ -642,10 +642,11 @@ namespace Tac
   void CreationGameWindow::Update( Errors& errors )
   {
     mDesktopWindow->SetRenderViewDefaults();
-    SetCreationWindowImGuiGlobals( mDesktopWindow,
-                                   mUI2DDrawData,
-                                   mDesktopWindowState.mWidth,
-                                   mDesktopWindowState.mHeight );
+    TAC_INVALID_CODE_PATH;
+    //SetCreationWindowImGuiGlobals( mDesktopWindow,
+    //                               mUI2DDrawData,
+    //                               mDesktopWindowState.mWidth,
+    //                               mDesktopWindowState.mHeight );
     if( auto ghost = ( Ghost* )mSoul )
     {
       //static bool once;

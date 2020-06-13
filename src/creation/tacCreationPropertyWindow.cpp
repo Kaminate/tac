@@ -59,10 +59,12 @@ namespace Tac
     //mUIRoot->Render( errors );
     TAC_HANDLE_ERROR( errors );
 
-    SetCreationWindowImGuiGlobals( mDesktopWindow,
-                                   mUI2DDrawData,
-                                   mDesktopWindowState.mWidth,
-                                   mDesktopWindowState.mHeight );
+    //mDesktopWindowState;
+    //DesktopWindowState* desktopWindowState = FindDesktopWindowState( mDesktopWindow->mHandle );
+    //SetCreationWindowImGuiGlobals( mDesktopWindow,
+    //                               mUI2DDrawData,
+    //                               mDesktopWindowState.mWidth,
+    //                               mDesktopWindowState.mHeight );
 
 
     ImGuiBegin( "Properties", {} );

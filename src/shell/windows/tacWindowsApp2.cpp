@@ -43,7 +43,7 @@ namespace Tac
   }
 
 
-  Win32DesktopWindow* WindowsApplication2::FindWindow( HWND hwnd )
+  Win32DesktopWindow* WindowsApplication2::FindWin32DesktopWindow( HWND hwnd )
   {
     for( Win32DesktopWindow* desktopWindow : mWindows )
     {
@@ -55,10 +55,12 @@ namespace Tac
     return nullptr;
   }
 
-  Win32DesktopWindow* FindWindow( DesktopWindowHandle desktopWindowHandle )
+  Win32DesktopWindow* WindowsApplication2::FindWin32DesktopWindow( DesktopWindowHandle desktopWindowHandle )
   {
     desktopWindowHandle.mIndex;
 
+    TAC_INVALID_CODE_PATH;
+    return nullptr;
   }
 
   static LRESULT CALLBACK WindowProc(
@@ -67,12 +69,10 @@ namespace Tac
     WPARAM wParam,
     LPARAM lParam )
   {
-    //static UINT uPrevMsg;
-    //uPrevMsg = uMsg;
-    Win32DesktopWindow* window = WindowsApplication2::Instance->FindWindow( hwnd );
+    Win32DesktopWindow* window = WindowsApplication2::Instance->FindWin32DesktopWindow( hwnd );
     if( window )
     {
-      LRESULT result = window->HandleWindowProc( uMsg, wParam, lParam );
+      const LRESULT result = window->HandleWindowProc( uMsg, wParam, lParam );
       if( result )
         return result;
     }
@@ -160,12 +160,27 @@ namespace Tac
         mWidth = ( int )LOWORD( lParam );
         mHeight = ( int )HIWORD( lParam );
         mOnResize.EmitEvent();
+        DesktopEvent::DataWindowResize data;
+        TAC_INVALID_CODE_PATH;
+        data.mDesktopWindowHandle = {-1 };
+        data.mWidth = mWidth;
+        data.mHeight = mHeight;
+
+        DesktopWindowHandle desktopWindowHandle = { -1 };
+        DesktopEvent::PushEventResizeWindow( desktopWindowHandle, mWidth, mHeight );
       } break;
       case WM_MOVE:
       {
         mX = ( int )LOWORD( lParam );
         mY = ( int )HIWORD( lParam );
         mOnMove.EmitEvent();
+        DesktopEvent::DataWindowMove data;
+        DesktopWindowHandle desktopWindowHandle = { -1 };
+        TAC_INVALID_CODE_PATH;
+        data.mDesktopWindowHandle = { -1 };
+        data.mX = mX;
+        data.mY = mY;
+        DesktopEvent::PushEventMoveWindow( desktopWindowHandle, mX, mY );
       } break;
       case WM_CHAR:
       {
@@ -550,7 +565,7 @@ namespace Tac
       mParentHWND = hwnd;
 
 
-    DesktopEvent::PushEventCreateWindow( handle, width, height, hwnd );
+    DesktopEvent::PushEventCreateWindow( handle, width, height, x, y, hwnd );
     mWindows.push_back( createdWindow );
   }
   void WindowsApplication2::RemoveWindow( Win32DesktopWindow*  createdWindow )
