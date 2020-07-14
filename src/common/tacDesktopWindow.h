@@ -37,6 +37,7 @@ namespace Tac
   {
     int mIndex = NullDesktopWindowHandle; // hmm
     bool IsValid();
+    bool operator == ( const DesktopWindowHandle& ) const;
   };
 
 	struct DesktopWindowState
@@ -46,7 +47,10 @@ namespace Tac
     int                 mY = 0;
 		int                 mWidth = 0;
     int                 mHeight = 0;
-    void*               mNativeWindowHandle = nullptr;
+
+    // i dont think this should be here.
+    // it should only be used in the main thread, not the stuff thread
+    //void*               mNativeWindowHandle = nullptr;
     bool                mCursorUnobscured = false;
 	};
 
@@ -61,6 +65,8 @@ namespace Tac
 
     // Used to create a vulkan surface
     void* mOperatingSystemApplicationHandle = nullptr;
+
+    // Of type HWND for Win32
     void* mOperatingSystemHandle = nullptr;
 
     bool mRequestDeletion = false;

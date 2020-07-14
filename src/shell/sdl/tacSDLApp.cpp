@@ -9,9 +9,14 @@ namespace Tac
   SDLWindow::~SDLWindow()
   {
     SDL_DestroyWindow( mWindow );
-    app->mWindows.erase( this );
+    SDLApp::Instance->mWindows.erase( this );
   }
 
+  SDLApp* SDLApp::Instance;
+  SDLApp::SDLApp()
+  {
+    Instance = this;
+  }
   SDLApp::~SDLApp()
   {
   }
@@ -111,7 +116,6 @@ namespace Tac
 
     auto linuxWindow = new SDLWindow();
     linuxWindow->mWindow = sdlWindow;
-    linuxWindow->app = this;
     linuxWindow->mOperatingSystemHandle = operatingSystemHandle;
     linuxWindow->mOperatingSystemApplicationHandle = operatingSystemApplicationHandle;
     //*( WindowParams* )linuxWindow = windowParams;

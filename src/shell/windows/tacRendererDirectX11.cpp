@@ -11,6 +11,7 @@
 #include "src/shell/tacDesktopApp.h"
 #include "src/shell/windows/tacDXGI.h"
 #include "src/shell/windows/tacRendererDirectX11.h"
+//#include "src/shell/windows/tacWindowsApp2.h"
 
 #include <initguid.h>
 #include <dxgidebug.h>
@@ -2975,10 +2976,16 @@ namespace Tac
   {
     AssertRenderThread();
 
-    auto hwnd = ( HWND )data->mNativeWindowHandle;
+    DesktopWindow* window = DesktopApp::Instance->FindDesktopWindow( data->mDesktopWindowHandle );
+
+
+    //Win32DesktopWindow* window =
+    //  WindowsApplication2::Instance->FindWin32DesktopWindow( data->mDesktopWindowHandle );
+
+    auto hwnd = ( HWND )window->mOperatingSystemHandle;
     IUnknown* pDevice = mDevice;
     IDXGISwapChain* swapChain;
-    int bufferCount = 4;
+    const int bufferCount = 4;
     const UINT width = data->mWidth;
     const UINT height = data->mHeight;
     mDxgi.CreateSwapChain( hwnd,

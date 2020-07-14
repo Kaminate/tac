@@ -46,12 +46,8 @@ namespace Tac
   Win32DesktopWindow* WindowsApplication2::FindWin32DesktopWindow( HWND hwnd )
   {
     for( Win32DesktopWindow* desktopWindow : mWindows )
-    {
       if( desktopWindow->mHWND == hwnd )
-      {
         return desktopWindow;
-      }
-    }
     return nullptr;
   }
 
@@ -181,6 +177,7 @@ namespace Tac
         data.mX = mX;
         data.mY = mY;
         DesktopEvent::PushEventMoveWindow( desktopWindowHandle, mX, mY );
+
       } break;
       case WM_CHAR:
       {
@@ -567,6 +564,7 @@ namespace Tac
 
     DesktopEvent::PushEventCreateWindow( handle, width, height, x, y, hwnd );
     mWindows.push_back( createdWindow );
+    DesktopApp::SpawnWindow( createdWindow );
   }
   void WindowsApplication2::RemoveWindow( Win32DesktopWindow*  createdWindow )
   {

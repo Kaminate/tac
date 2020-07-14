@@ -18,15 +18,16 @@ namespace Tac
   {
     ~SDLWindow();
     SDL_Window* mWindow = nullptr;
-    SDLApp* app;
   };
 
   struct SDLApp : public DesktopApp
   {
+    static SDLApp* Instance;
+    SDLApp();
     ~SDLApp();
     void Init( Errors& errors ) override;
     void Poll( Errors& errors ) override;
-    void SpawnWindow( DesktopWindowHandle handle, int x, int y, int width, int height )override;
+    void SpawnWindow( DesktopWindowHandle handle, int x, int y, int width, int height ) override;
     void GetPrimaryMonitor( Monitor* monitor, Errors& errors ) override;
     SDLWindow* FindSDLWindowByID( Uint32 windowID );
 

@@ -55,5 +55,9 @@ namespace Tac
     return mIndex != NullDesktopWindowHandle;
   }
 
+  bool DesktopWindowHandle::operator == ( const DesktopWindowHandle& rhs) const
+  {
+    return mIndex == rhs.mIndex;
+  }
 }
 

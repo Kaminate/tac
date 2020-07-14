@@ -28,9 +28,10 @@ namespace Tac
     //  delete window;
   }
 
-  static void StuffThread( void* userData)// Errors& errors )
+  //static void StuffThread( void* userData )
+  static void StuffThread( DesktopApp*  desktopApp )
   {
-    auto desktopApp = ( DesktopApp* )userData;
+    //auto desktopApp = ( DesktopApp* )userData;
     Errors& errors = desktopApp->mErrorsStuffThread;
 
     gThreadType = ThreadType::Stuff;
@@ -57,6 +58,29 @@ namespace Tac
     }
   }
 
+  static void MainThread( DesktopApp* desktopApp )
+  {
+    gThreadType = ThreadType::Main;
+    Errors& errors = desktopApp->mErrorsMainThread;
+    while( !OS::mShouldStopRunning )
+    {
+
+      desktopApp->Poll( errors );
+      TAC_HANDLE_ERROR( errors );
+
+
+      DesktopWindowManager::Instance->Update( errors );
+      TAC_HANDLE_ERROR( errors );
+
+      //KillDeadWindows();
+
+      //Renderer::Instance->Render( errors );
+      Render::RenderFrame();
+      TAC_HANDLE_ERROR( errors );
+    }
+
+  }
+
   //void DesktopApp::KillDeadWindows()
   //{
   //  int windowCount = mMainWindows.size();
@@ -80,7 +104,6 @@ namespace Tac
 
   void DesktopApp::Init( Errors& errors )
   {
-    gThreadType = ThreadType::Main;
     new DesktopWindowManager;
 
     ExecutableStartupInfo info;
@@ -125,28 +148,31 @@ namespace Tac
     Init( errors );
     TAC_HANDLE_ERROR( errors );
 
-    std::thread stuffThread( StuffThread, this );// mErrorsStuffThread );
-    //std::thread stuffThread;
-    for( ;; )
+    std::thread threads[] =
     {
-      if( OS::mShouldStopRunning )
-        break;
+    std::thread( MainThread, this ),
+    std::thread( StuffThread, this ),
+    };
 
-      Poll( errors );
-      TAC_HANDLE_ERROR( errors );
-
-
-      DesktopWindowManager::Instance->Update( errors );
-      TAC_HANDLE_ERROR( errors );
-
-      //KillDeadWindows();
-
-      //Renderer::Instance->Render( errors );
-      Render::RenderFrame();
-      TAC_HANDLE_ERROR( errors );
-    }
-    stuffThread.join();
+    for( std::thread& thread : threads )
+      thread.join();
   }
+
+  DesktopWindow* DesktopApp::FindDesktopWindow( DesktopWindowHandle desktopWindowHandle )
+  {
+    for( int i = 0; i < kMaxDesktopWindowStateCount; ++i )
+      if( mDesktopWindows[ i ] && mDesktopWindows[ i ]->mHandle == desktopWindowHandle )
+        return mDesktopWindows[ i ];
+    return nullptr;
+  }
+
+  void DesktopApp::SpawnWindow( DesktopWindow* desktopWindow )
+  {
+    for( int i = 0; i < kMaxDesktopWindowStateCount; ++i )
+      if( !mDesktopWindows[ i ] )
+        mDesktopWindows[ i ] = desktopWindow;
+  }
+
 
   //void DesktopApp::SpawnWindow( int x, int y, int width, int height )
   //{

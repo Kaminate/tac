@@ -108,25 +108,25 @@ namespace Tac
       QueuePush( Type::CreateWindow, &data, sizeof( data ) );
     }
 
-    void                PushEventMoveWindow( DesktopWindowHandle desktopWindowHandle,
-                                             int x,
-                                             int y )
-    {
-
-    }
-    void                PushEventResizeWindow( DesktopWindowHandle desktopWindowHandle,
-                                               int w,
-                                               int h )
+    void PushEventMoveWindow( DesktopWindowHandle desktopWindowHandle,
+                              int x,
+                              int y )
     {
 
     }
 
+    void PushEventResizeWindow( DesktopWindowHandle desktopWindowHandle,
+                                int w,
+                                int h )
+    {
 
+    }
 
     static int GetIUnusedDesktopWindow()
     {
       for( int i = 0; i < kMaxDesktopWindowStateCount; ++i )
-        if( !gDesktopWindowStates[ i ].mNativeWindowHandle )
+        if( !gDesktopWindowStates[ i ].mDesktopWindowHandle.IsValid() )
+        //if( !gDesktopWindowStates[ i ].mNativeWindowHandle )
           return i;
       TAC_INVALID_CODE_PATH;
       return -1;
@@ -151,7 +151,7 @@ namespace Tac
             DesktopWindowState* desktopWindowState = &gDesktopWindowStates[ iCreatedWindow ];
             desktopWindowState->mWidth = data.mWidth;
             desktopWindowState->mHeight = data.mHeight;
-            desktopWindowState->mNativeWindowHandle = data.mNativeWindowHandle;
+            //desktopWindowState->mNativeWindowHandle = data.mNativeWindowHandle;
             desktopWindowState->mDesktopWindowHandle = data.mDesktopWindowHandle;
             desktopWindowState->mX = data.mX;
             desktopWindowState->mY = data.mY;

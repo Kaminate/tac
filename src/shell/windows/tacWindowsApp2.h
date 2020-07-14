@@ -35,31 +35,35 @@ namespace Tac
     static WindowsApplication2* Instance;
     WindowsApplication2();
     ~WindowsApplication2();
-    void Init( Errors& errors ) override;
-    void Poll( Errors& errors ) override;
+    void                Init( Errors& errors ) override;
+    void                Poll( Errors& errors ) override;
 
     // Note: The first window spawned will be the parent window,
     //       combining them all into one tab group
-    void SpawnWindow( DesktopWindowHandle handle, int x, int y, int width, int height ) override;
-    void GetPrimaryMonitor( Monitor* monitor, Errors& errors ) override;
-    void RemoveWindow( Win32DesktopWindow* );
-    void CreateControllerInput(Errors&) override;
+    void                SpawnWindow( DesktopWindowHandle handle,
+                                     int x,
+                                     int y,
+                                     int width,
+                                     int height ) override;
+    void                GetPrimaryMonitor( Monitor* monitor, Errors& errors ) override;
+    void                RemoveWindow( Win32DesktopWindow* );
+    void                CreateControllerInput( Errors& ) override;
 
     Win32DesktopWindow* FindWin32DesktopWindow( DesktopWindowHandle );
     Win32DesktopWindow* FindWin32DesktopWindow( HWND hwnd );
     Win32DesktopWindow* GetCursorUnobscuredWindow();
 
     // WinMain arguments
-    HINSTANCE mHInstance = nullptr;
-    HINSTANCE mhPrevInstance = nullptr;
-    LPSTR mlpCmdLine = nullptr;
-    int mNCmdShow = 0;
+    HINSTANCE           mHInstance = nullptr;
+    HINSTANCE           mhPrevInstance = nullptr;
+    LPSTR               mlpCmdLine = nullptr;
+    int                 mNCmdShow = 0;
 
-    bool mShouldWindowHaveBorder;
+    bool                mShouldWindowHaveBorder;
     Vector< Win32DesktopWindow* > mWindows;
-    HWND mParentHWND = NULL;
+    HWND                mParentHWND = NULL;
     Win32MouseEdgeHandler* mMouseEdgeHandler = nullptr;
-    Win32Cursors* mCursors = new Win32Cursors();
+    Win32Cursors*       mCursors = new Win32Cursors();
   };
 
 }

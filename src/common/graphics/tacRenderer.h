@@ -9,6 +9,7 @@
 #include "src/common/math/tacVector3.h"
 #include "src/common/math/tacVector4.h"
 #include "src/common/math/tacMatrix4.h"
+#include "src/common/tacDesktopWindow.h"
 #include "src/common/tacString.h"
 #include "src/common/tacErrorHandling.h"
 #include "src/common/tacPreprocessor.h"
@@ -387,7 +388,8 @@ namespace Tac
     {
       int mWidth = 0;
       int mHeight = 0;
-      const void* mNativeWindowHandle = nullptr;
+      //const void* mNativeWindowHandle = nullptr;
+      DesktopWindowHandle mDesktopWindowHandle;
     };
 
     struct CommandDataUpdateTextureRegion

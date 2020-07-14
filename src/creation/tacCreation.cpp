@@ -544,12 +544,13 @@ namespace Tac
         continue;
 
       DesktopWindowState* desktopWindowState = &gDesktopWindowStates[ iDesktopWindowState ];
-      const void* nativeWindowHandle =  desktopWindowState->mNativeWindowHandle;
+      //const void* nativeWindowHandle =  desktopWindowState->mNativeWindowHandle;
 
       Render::CommandDataCreateFramebuffer cmdData;
       cmdData.mWidth = desktopWindowState->mWidth;
       cmdData.mHeight = desktopWindowState->mHeight;
-      cmdData.mNativeWindowHandle = nativeWindowHandle;
+      cmdData.mDesktopWindowHandle = desktopWindowState->mDesktopWindowHandle;
+      //cmdData.mNativeWindowHandle = nativeWindowHandle;
 
       DesktopWindowHandle desktopWindowHandle;
       desktopWindowHandle.mIndex = iDesktopWindowState; // ???
