@@ -20,27 +20,21 @@ namespace Tac
 
   extern thread_local ThreadType gThreadType;
 
-  //struct ProcessStuffOutput
-  //{
-  //  bool mCreatedWindow = false;
-  //  DesktopWindowState mCreatedWindowState;
-  //};
-
   namespace DesktopEvent
   {
-    void                PushEventCursorUnobscured( DesktopWindowHandle );
-    void                PushEventCreateWindow( DesktopWindowHandle,
-                                               int width,
-                                               int height,
-                                               int x,
-                                               int y,
-                                               void* nativeWindowHandle );
-    void                PushEventMoveWindow( DesktopWindowHandle,
-                                             int x,
-                                             int y );
-    void                PushEventResizeWindow( DesktopWindowHandle,
-                                               int w,
-                                               int h );
+    void PushEventCursorUnobscured( DesktopWindowHandle );
+    void PushEventCreateWindow( DesktopWindowHandle,
+                                int width,
+                                int height,
+                                int x,
+                                int y,
+                                void* nativeWindowHandle );
+    void PushEventMoveWindow( DesktopWindowHandle,
+                              int x,
+                              int y );
+    void PushEventResizeWindow( DesktopWindowHandle,
+                                int w,
+                                int h );
 
     void ProcessStuff( bool* createdWindows );
   }

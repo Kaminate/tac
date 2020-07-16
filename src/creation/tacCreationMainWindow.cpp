@@ -159,7 +159,13 @@ namespace Tac
 
 #endif
 
-    ImGuiButton( "asdf" );
+    static bool hello;
+    if( ImGuiButton( "asdf" ) )
+    {
+      hello = true;
+    }
+    if( hello )
+      ImGuiText( "hello" );
 
     ImGuiEnd();
   }

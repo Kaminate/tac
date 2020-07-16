@@ -1103,7 +1103,7 @@ namespace Tac
 
   String UIHierarchyVisualImage::GetDebugName()
   {
-    return "Asdf";
+    return "UIHierarchyVisualImage";
     //return mTexture->mName;
   }
 

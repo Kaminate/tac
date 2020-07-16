@@ -11,7 +11,6 @@
 #include "src/shell/tacDesktopApp.h"
 #include "src/shell/windows/tacDXGI.h"
 #include "src/shell/windows/tacRendererDirectX11.h"
-//#include "src/shell/windows/tacWindowsApp2.h"
 
 #include <initguid.h>
 #include <dxgidebug.h>

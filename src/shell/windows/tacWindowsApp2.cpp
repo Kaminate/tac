@@ -1,7 +1,7 @@
 #include "src/shell/windows/tacWindowsApp2.h"
 #include "src/shell/windows/tacXInput.h"
 #include "src/shell/windows/tacNetWinsock.h"
-#include "src/shell/tacDesktopEventBackend.h"
+//#include "src/shell/tacDesktopEventBackend.h"
 #include "src/common/tacSettings.h"
 #include "src/common/tacPreprocessor.h"
 #include "src/common/tacString.h"
@@ -156,12 +156,6 @@ namespace Tac
         mWidth = ( int )LOWORD( lParam );
         mHeight = ( int )HIWORD( lParam );
         mOnResize.EmitEvent();
-        DesktopEvent::DataWindowResize data;
-        TAC_INVALID_CODE_PATH;
-        data.mDesktopWindowHandle = {-1 };
-        data.mWidth = mWidth;
-        data.mHeight = mHeight;
-
         DesktopWindowHandle desktopWindowHandle = { -1 };
         DesktopEvent::PushEventResizeWindow( desktopWindowHandle, mWidth, mHeight );
       } break;
@@ -170,14 +164,7 @@ namespace Tac
         mX = ( int )LOWORD( lParam );
         mY = ( int )HIWORD( lParam );
         mOnMove.EmitEvent();
-        DesktopEvent::DataWindowMove data;
-        DesktopWindowHandle desktopWindowHandle = { -1 };
-        TAC_INVALID_CODE_PATH;
-        data.mDesktopWindowHandle = { -1 };
-        data.mX = mX;
-        data.mY = mY;
-        DesktopEvent::PushEventMoveWindow( desktopWindowHandle, mX, mY );
-
+        DesktopEvent::PushEventMoveWindow( mHandle, mX, mY );
       } break;
       case WM_CHAR:
       {

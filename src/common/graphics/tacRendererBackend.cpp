@@ -205,7 +205,6 @@ namespace Tac
                                                CommandDataCreateConstantBuffer commandData,
                                                StackFrame frame )
     {
-
       const ResourceId resourceId = mIdCollectionConstantBuffer.Alloc( name, frame );
       gSubmitFrame->mCommandBuffer.Push( CommandType::CreateConstantBuffer );
       gSubmitFrame->mCommandBuffer.Push( &frame, sizeof( frame ) );
@@ -232,6 +231,17 @@ namespace Tac
                                  StackFrame frame )
     {
       const ResourceId resourceId = mIdCollectionTexture.Alloc( name, frame );
+
+      const int imageByteCount = commandData.mImage.mFormat.CalculateTotalByteCount() *
+        commandData.mImage.mWidth *
+        commandData.mImage.mHeight;
+      if( commandData.mImageBytes )
+        commandData.mImageBytes = SubmitAlloc( commandData.mImageBytes, imageByteCount );
+      for( int i = 0; i < 6; ++i )
+        if( commandData.mImageBytesCubemap[ i ] )
+          commandData.mImageBytesCubemap[ i ] = SubmitAlloc( commandData.mImageBytesCubemap[ i ],
+                                                             imageByteCount );
+
       gSubmitFrame->mCommandBuffer.Push( CommandType::CreateTexture );
       gSubmitFrame->mCommandBuffer.Push( &frame, sizeof( frame ) );
       gSubmitFrame->mCommandBuffer.Push( &resourceId, sizeof( resourceId ) );
@@ -615,7 +625,7 @@ namespace Tac
         return;
       }
 
-      int iDrawCall = gSubmitFrame->mDrawCallCount++;
+      const int iDrawCall = gSubmitFrame->mDrawCallCount++;
       DrawCall3* drawCall = &gSubmitFrame->mDrawCalls[ iDrawCall ];
       drawCall->mIndexBufferHandle = gEncoder.mIndexBufferHandle;
       drawCall->mVertexBufferHandle = gEncoder.mVertexBufferHandle;

@@ -91,7 +91,7 @@ namespace Tac
       SDL_WINDOW_RESIZABLE |
       //SDL_WINDOW_BORDERLESS |
       0;
-    SDL_Window* sdlWindow = SDL_CreateWindow( "asdf",
+    SDL_Window* sdlWindow = SDL_CreateWindow( "Tac",
                                               x,
                                               y,
                                               width,

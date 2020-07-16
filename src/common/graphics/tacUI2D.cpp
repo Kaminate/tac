@@ -305,22 +305,25 @@ namespace Tac
       Render::SetVertexFormat( UI2DCommonData::Instance->mFormat );
 
       Render::UpdateConstantBuffer( UI2DCommonData::Instance->mPerFrame, updateConstantBufferData, TAC_STACK_FRAME );
-      Render::Submit( viewId ); // this should be unnecessary
+      //Render::Submit( viewId ); // this should be unnecessary
 
       for( UI2DDrawCall& uidrawCall : mDrawCall2Ds )
       {
 
-        Render::TextureHandle texture = uidrawCall.mTexture.mResourceId == Render::NullResourceId ?
-          UI2DCommonData::Instance->m1x1White :
-          uidrawCall.mTexture;
+        Render::TextureHandle texture = uidrawCall.mTexture.IsValid() ?
+          uidrawCall.mTexture :
+          UI2DCommonData::Instance->m1x1White;
+        //Render::TextureHandle texture = uidrawCall.mTexture.mResourceId == Render::NullResourceId ?
+        //  UI2DCommonData::Instance->m1x1White :
+        //  uidrawCall.mTexture;
 
         uidrawCall.mUniformSource;
         updateConstantBufferData.mByteCount = sizeof( DefaultCBufferPerObject );
         updateConstantBufferData.mBytes = &uidrawCall.mUniformSource;
         Render::UpdateConstantBuffer( UI2DCommonData::Instance->mPerObj, updateConstantBufferData, TAC_STACK_FRAME );
 
-        DrawCall2 drawCall2 = {};
-        drawCall2.mUniformDst = UI2DCommonData::Instance->mPerObj;
+        //DrawCall2 drawCall2 = {};
+        //drawCall2.mUniformDst = UI2DCommonData::Instance->mPerObj;
         //drawCall2.mVertexBuffer = mVerts;
         //drawCall2.mRenderView = mRenderView;
         //drawCall2.mBlendState = UI2DCommonData::Instance->mBlendState;
@@ -336,10 +339,10 @@ namespace Tac
         //drawCall2.mIndexCount = uidrawCall.mIndexCount;
 
 
-        drawCall2.mTextureHandles = { texture };
+        //drawCall2.mTextureHandles = { texture };
         //drawCall2.mShader = uidrawCall.mShader;
-        drawCall2.mUniformSrcc = TemporaryMemoryFromT( uidrawCall.mUniformSource );
-        drawCall2.mFrame = TAC_STACK_FRAME;
+        //drawCall2.mUniformSrcc = TemporaryMemoryFromT( uidrawCall.mUniformSource );
+        //drawCall2.mFrame = TAC_STACK_FRAME;
         Render::SetShader( uidrawCall.mShader );
         //Renderer::Instance->AddDrawCall( drawCall2 );
         Render::Submit( viewId );
