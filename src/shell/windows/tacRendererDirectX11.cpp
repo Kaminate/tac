@@ -37,6 +37,7 @@ namespace Tac
   }
 
 
+  //  why does this not call handle errors?
 #define TAC_DX11_CALL( errors, call, ... )\
 {\
   HRESULT result = call( __VA_ARGS__ );\
@@ -46,7 +47,7 @@ namespace Tac
   }\
 }
 
-  static String GetDirectX11ShaderPath( String shaderName )
+  static String GetDirectX11ShaderPath( StringView shaderName )
   {
     return "assets/hlsl/" + shaderName + ".fx";
   }
@@ -765,12 +766,23 @@ namespace Tac
   //  mFrameBoundRenderViews.clear();
   //}
 
+
   static void PopCheep( const char*& bufferPos )
   {
     TAC_ASSERT( bufferPos[ 0 ] == 'e' );
     TAC_ASSERT( bufferPos[ 1 ] == 'n' );
     TAC_ASSERT( bufferPos[ 2 ] == 'd' );
     bufferPos += 3;
+  }
+
+  template< typename T >
+  static T* PopCommandData( const char*& bufferPos )
+  {
+    auto result = ( T* )bufferPos;
+    bufferPos += sizeof( T );
+
+    PopCheep( bufferPos );
+    return result;
   }
 
   void RendererDirectX11::Render2( const Render::Frame* frame, Errors& errors )
@@ -799,12 +811,8 @@ namespace Tac
         {
           if( gVerbose )
             std::cout << "CreateVertexBuffer::Begin\n";
-          auto resourceId = ( Render::VertexBufferHandle* )bufferPos;
-          bufferPos += sizeof( Render::VertexBufferHandle );
-          auto commandDataCreateBuffer = ( Render::CommandDataCreateVertexBuffer* ) bufferPos;
-          bufferPos += sizeof( Render::CommandDataCreateVertexBuffer );
-          PopCheep( bufferPos );
-          AddVertexBuffer( *resourceId, commandDataCreateBuffer, errors );
+          auto commandData = PopCommandData< Render::CommandDataCreateVertexBuffer >( bufferPos );
+          AddVertexBuffer( commandData, errors );
           if( gVerbose )
             std::cout << "CreateVertexBuffer::End\n";
         } break;
@@ -813,12 +821,8 @@ namespace Tac
         {
           if( gVerbose )
             std::cout << "CreateIndexBuffer::Begin\n";
-          auto resourceId = ( Render::IndexBufferHandle* )bufferPos;
-          bufferPos += sizeof( Render::IndexBufferHandle );
-          auto commandDataCreateBuffer = ( Render::CommandDataCreateIndexBuffer* )bufferPos;
-          bufferPos += sizeof( Render::CommandDataCreateIndexBuffer );
-          PopCheep( bufferPos );
-          AddIndexBuffer( *resourceId, commandDataCreateBuffer, errors );
+          auto commandData = PopCommandData< Render::CommandDataCreateIndexBuffer >( bufferPos );
+          AddIndexBuffer( commandData, errors );
           if( gVerbose )
             std::cout << "CreateIndexBuffer::End\n";
         } break;
@@ -841,12 +845,8 @@ namespace Tac
         {
           if( gVerbose )
             std::cout << "CreateFramebuffer::Begin\n";
-          auto resourceId = ( Render::FramebufferHandle* )bufferPos;
-          bufferPos += sizeof( Render::FramebufferHandle );
-          auto commandData = ( Render::CommandDataCreateFramebuffer* )bufferPos;
-          bufferPos += sizeof( Render::CommandDataCreateFramebuffer );
-          PopCheep( bufferPos );
-          AddFramebuffer( *resourceId, commandData, errors );
+          auto commandData = PopCommandData< Render::CommandDataCreateFramebuffer >( bufferPos );
+          AddFramebuffer( commandData, errors );
           if( gVerbose )
             std::cout << "CreateFramebuffer::End\n";
         } break;
@@ -917,13 +917,12 @@ namespace Tac
         {
           if( gVerbose )
             std::cout << "UpdateVertexBuffer::Begin\n";
-          auto resourceId = ( Render::VertexBufferHandle* )bufferPos;
-          bufferPos += sizeof( Render::VertexBufferHandle );
-          auto commandData = ( Render::CommandDataUpdateBuffer* )bufferPos;
-          bufferPos += sizeof( Render::CommandDataUpdateBuffer );
-          PopCheep( bufferPos );
 
-          bool tryCatchGarbageData = true;
+
+          auto commandData = PopCommandData< Render::CommandDataUpdateVertexBuffer >( bufferPos );
+
+
+          static bool tryCatchGarbageData = true;
           if( tryCatchGarbageData )
           {
             const float f0 = *( float* )commandData->mBytes;
@@ -934,7 +933,7 @@ namespace Tac
           }
 
 
-          ID3D11Buffer* buffer = mVertexBuffers[ resourceId->mResourceId ].mBuffer;
+          ID3D11Buffer* buffer = mVertexBuffers[ commandData->mVertexBufferHandle.mResourceId ].mBuffer;
           UpdateBuffer( buffer, commandData->mBytes, commandData->mByteCount, errors );
           if( gVerbose )
             std::cout << "UpdateVertexBuffer::End\n";
@@ -944,12 +943,8 @@ namespace Tac
         {
           if( gVerbose )
             std::cout << "UpdateIndexBuffer::Begin\n";
-          auto resourceId = ( Render::IndexBufferHandle* )bufferPos;
-          bufferPos += sizeof( Render::IndexBufferHandle );
-          auto commandData = ( Render::CommandDataUpdateBuffer* )bufferPos;
-          bufferPos += sizeof( Render::CommandDataUpdateBuffer );
-          PopCheep( bufferPos );
-          ID3D11Buffer* buffer = mIndexBuffers[ resourceId->mResourceId ].mBuffer;
+          auto commandData = PopCommandData< Render::CommandDataUpdateIndexBuffer >( bufferPos );
+          ID3D11Buffer* buffer = mIndexBuffers[ commandData->mIndexBufferHandle.mResourceId ].mBuffer;
           UpdateBuffer( buffer, commandData->mBytes, commandData->mByteCount, errors );
           if( gVerbose )
             std::cout << "UpdateIndexBuffer::End\n";
@@ -969,12 +964,8 @@ namespace Tac
         {
           if( gVerbose )
             std::cout << "CreateBlendState::Begin\n";
-          auto resourceId = ( Render::BlendStateHandle* )bufferPos;
-          bufferPos += sizeof( Render::BlendStateHandle );
-          auto commandData = ( Render::CommandDataCreateBlendState* )bufferPos;
-          bufferPos += sizeof( Render::CommandDataCreateBlendState );
-          PopCheep( bufferPos );
-          AddBlendState( *resourceId, commandData, errors );
+          auto commandData = PopCommandData< Render::CommandDataCreateBlendState >( bufferPos );
+          AddBlendState( commandData, errors );
           if( gVerbose )
             std::cout << "CreateBlendState::End\n";
         } break;
@@ -983,12 +974,9 @@ namespace Tac
         {
           if( gVerbose )
             std::cout << "CreateConstantBuffer::Begin\n";
-          auto resourceId = ( Render::ConstantBufferHandle* )bufferPos;
-          bufferPos += sizeof( Render::ConstantBufferHandle );
-          auto commandData = ( Render::CommandDataCreateConstantBuffer* )bufferPos;
-          bufferPos += sizeof( Render::CommandDataCreateConstantBuffer );
-          PopCheep( bufferPos );
-          AddConstantBuffer( *resourceId, commandData, errors );
+
+          auto commandData = PopCommandData< Render::CommandDataCreateConstantBuffer >( bufferPos );
+          AddConstantBuffer( commandData, errors );
           if( gVerbose )
             std::cout << "CreateConstantBuffer::End\n";
         } break;
@@ -1039,12 +1027,10 @@ namespace Tac
         {
           if( gVerbose )
             std::cout << "CreateShader::Begin\n";
-          auto resourceId = ( Render::ShaderHandle* )bufferPos;
-          bufferPos += sizeof( Render::ShaderHandle );
-          auto commandData = ( Render::CommandDataCreateShader* )bufferPos;
-          bufferPos += sizeof( Render::CommandDataCreateShader );
-          PopCheep( bufferPos );
-          AddShader( *resourceId, commandData, errors );
+
+          auto commandData = PopCommandData< Render::CommandDataCreateShader >( bufferPos );
+          AddShader( commandData, errors );
+
           if( gVerbose )
             std::cout << "CreateShader::End\n";
         } break;
@@ -1053,12 +1039,8 @@ namespace Tac
         {
           if( gVerbose )
             std::cout << "CreateVertexFormat::Begin\n";
-          auto resourceId = ( Render::VertexFormatHandle* )bufferPos;
-          bufferPos += sizeof( Render::VertexFormatHandle );
-          auto commandData = ( Render::CommandDataCreateVertexFormat* )bufferPos;
-          bufferPos += sizeof( Render::CommandDataCreateVertexFormat );
-          PopCheep( bufferPos );
-          AddVertexFormat( *resourceId, commandData, errors );
+          auto commandData = PopCommandData< Render::CommandDataCreateVertexFormat >( bufferPos );
+          AddVertexFormat( commandData, errors );
           if( gVerbose )
             std::cout << "CreateVertexFormat::End\n";
         } break;
@@ -1147,8 +1129,21 @@ namespace Tac
             std::cout << "DestroyVertexFormat::End\n";
         } break;
 
-        default:
-          TAC_UNIMPLEMENTED;
+        case Render::CommandType::ResizeFramebuffer:
+        {
+          if( gVerbose )
+            std::cout << "ResizeFramebuffer::Begin\n";
+          auto commandData = ( Render::CommandDataResizeFramebuffer* )bufferPos;
+          bufferPos += sizeof( Render::CommandDataResizeFramebuffer );
+          PopCheep( bufferPos );
+
+          ResizeFramebuffer( commandData, errors );
+
+          if( gVerbose )
+            std::cout << "ResizeFramebuffer::End\n";
+        } break;
+
+        TAC_INVALID_DEFAULT_CASE( *renderCommandType );
       }
     }
 
@@ -1189,7 +1184,7 @@ namespace Tac
       if( drawCall->mIndexBufferHandle.IsValid() )
       {
         //const IndexBuffer* 
-          indexBuffer = &mIndexBuffers[ drawCall->mIndexBufferHandle.mResourceId ];
+        indexBuffer = &mIndexBuffers[ drawCall->mIndexBufferHandle.mResourceId ];
         const DXGI_FORMAT dxgiFormat = GetDXGIFormat( indexBuffer->mFormat );
         const UINT byteOffset = 0; //  drawCall->mStartIndex * indexBuffer->mFormat.mPerElementByteCount;
         mDeviceContext->IASetIndexBuffer( indexBuffer->mBuffer,
@@ -1294,7 +1289,10 @@ namespace Tac
           &drawCall->mUpdateConstantBuffers.mUpdateConstantBufferDatas[ iConstantBuffer ];
 
         const ConstantBuffer* constantBuffer = &mConstantBuffers[ stuff->mConstantBufferHandle.mResourceId ];
-        UpdateBuffer( constantBuffer->mBuffer, stuff->mData.mBytes, stuff->mData.mByteCount, errors );
+        UpdateBuffer( constantBuffer->mBuffer,
+                      stuff->mBytes,
+                      stuff->mByteCount,
+                      errors );
 
         constantBuffers[ constantBuffer->mShaderRegister ] = constantBuffer->mBuffer;
         constantBufferCount = Max( constantBufferCount, constantBuffer->mShaderRegister + 1 );
@@ -2621,12 +2619,11 @@ namespace Tac
   //}
 
 
-  void RendererDirectX11::AddVertexBuffer( Render::VertexBufferHandle index,
-                                           Render::CommandDataCreateVertexBuffer* data,
+  void RendererDirectX11::AddVertexBuffer( Render::CommandDataCreateVertexBuffer* data,
                                            Errors& errors )
   {
+    Render::VertexBufferHandle vertexBufferHandle = data->mVertexBufferHandle;
     TAC_ASSERT( data->mStride );
-    //TAC_ASSERT( data->mFormat.CalculateTotalByteCount() );
     AssertRenderThread();
     D3D11_BUFFER_DESC bd = {};
     bd.ByteWidth = data->mByteCount;
@@ -2641,20 +2638,22 @@ namespace Tac
                    &bd,
                    data->mOptionalInitialBytes ? &initData : nullptr,
                    &buffer );
-    mVertexBuffers[ index.mResourceId ].mBuffer = buffer;
-    mVertexBuffers[ index.mResourceId ].mStride = data->mStride;
+    mVertexBuffers[ vertexBufferHandle.mResourceId ].mBuffer = buffer;
+    mVertexBuffers[ vertexBufferHandle.mResourceId ].mStride = data->mStride;
   }
 
-  void RendererDirectX11::AddVertexFormat( Render::VertexFormatHandle vertexFormatHandle,
-                                           Render::CommandDataCreateVertexFormat* commandData,
+  void RendererDirectX11::AddVertexFormat( Render::CommandDataCreateVertexFormat* commandData,
                                            Errors& errors )
   {
     AssertRenderThread();
+    Render::VertexFormatHandle vertexFormatHandle = commandData->mVertexFormatHandle;
     Vector< D3D11_INPUT_ELEMENT_DESC > inputElementDescs;
     commandData->mShaderHandle;
-    for( int iVertexFormatData = 0; iVertexFormatData < commandData->mVertexFormatDataCount; ++iVertexFormatData )
+    for( int iVertexFormatData = 0;
+         iVertexFormatData < commandData->mVertexDeclarations.mVertexFormatDataCount;
+         ++iVertexFormatData )
     {
-      VertexDeclaration curFormat = commandData->mVertexFormatDatas[ iVertexFormatData ];
+      VertexDeclaration curFormat = commandData->mVertexDeclarations.mVertexFormatDatas[ iVertexFormatData ];
 
       D3D11_INPUT_ELEMENT_DESC curDX11Input = {};
       curDX11Input.Format = GetDXGIFormat( curFormat.mTextureFormat );
@@ -2685,23 +2684,23 @@ namespace Tac
   }
 
 
-  void RendererDirectX11::AddIndexBuffer( Render::IndexBufferHandle index,
-                                          Render::CommandDataCreateIndexBuffer* data,
+  void RendererDirectX11::AddIndexBuffer( Render::CommandDataCreateIndexBuffer* data,
                                           Errors& errors )
   {
     AssertRenderThread();
+    Render::IndexBufferHandle index = data->mIndexBufferHandle;
     TAC_ASSERT( data->mFormat.mPerElementDataType == GraphicsType::uint );
     TAC_ASSERT( data->mFormat.mElementCount == 1 );
     TAC_ASSERT( data->mFormat.mPerElementByteCount == 2 ||
-                data->mFormat.mPerElementByteCount == 4 )
-      D3D11_BUFFER_DESC bd = {};
+                data->mFormat.mPerElementByteCount == 4 );
+    D3D11_BUFFER_DESC bd = {};
     bd.ByteWidth = data->mByteCount;
     bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
     bd.Usage = GetUsage( data->mAccess );
     bd.CPUAccessFlags = data->mAccess == Access::Dynamic ? D3D11_CPU_ACCESS_WRITE : 0;
     D3D11_SUBRESOURCE_DATA initData = {};
     initData.pSysMem = data->mOptionalInitialBytes;
-    ID3D11Buffer* buffer = mIndexBuffers[ index.mResourceId ].mBuffer;
+    ID3D11Buffer* buffer;
     TAC_DX11_CALL( errors,
                    mDevice->CreateBuffer,
                    &bd,
@@ -2749,8 +2748,7 @@ namespace Tac
     mSamplerStates[ samplerStateHandle.mResourceId ] = samplerState;
   }
 
-  void RendererDirectX11::AddShader( Render::ShaderHandle index,
-                                     Render::CommandDataCreateShader* commandData,
+  void RendererDirectX11::AddShader( Render::CommandDataCreateShader* commandData,
                                      Errors& errors )
   {
     AssertRenderThread();
@@ -2763,6 +2761,7 @@ namespace Tac
     ID3D11VertexShader* vertexShader = nullptr;
     ID3D11PixelShader* pixelShader = nullptr;
     ID3DBlob* inputSignature = nullptr;
+    Render::ShaderHandle index = commandData->mShaderHandle;
 
     for( ;; )
     {
@@ -2779,17 +2778,25 @@ namespace Tac
         }
       }
 
-      String shaderPart1 = FileToString( GetDirectX11ShaderPath( "common" ), errors );
-      String shaderPart2 = commandData->mShaderPath.size()
-        ? FileToString( GetDirectX11ShaderPath( commandData->mShaderPath ), errors )
-        : commandData->mShaderStr;
-      String fullShaderString = shaderPart1 + "\n" + shaderPart2;
+      String shaderStringFull;
+      StringView shaderFileNoPaths[] = { "common", commandData->mShaderSource.mShaderPath };
+      for( StringView shaderFileNoPath : shaderFileNoPaths )
+      {
+        if( shaderFileNoPath.empty() )
+          continue;
+        String shaderFilePath = GetDirectX11ShaderPath( shaderFileNoPath );
+        String shaderFileContents = FileToString( shaderFilePath, errors );
+        shaderStringFull += shaderFileContents;
+        shaderStringFull += "\n";
+      }
+
+      shaderStringFull += commandData->mShaderSource.mShaderStr;
 
       // vertex shader
       ID3DBlob* pVSBlob;
 
       CompileShaderFromString( &pVSBlob,
-                               fullShaderString,
+                               shaderStringFull,
                                "VS",
                                "vs_4_0",
                                errors );
@@ -2818,7 +2825,7 @@ namespace Tac
 
       ID3DBlob* pPSBlob;
       CompileShaderFromString( &pPSBlob,
-                               fullShaderString,
+                               shaderStringFull,
                                "PS",
                                "ps_4_0",
                                errors );
@@ -2913,33 +2920,33 @@ namespace Tac
     texture->mTextureRTV = rTV;
   }
 
-  void RendererDirectX11::AddBlendState( Render::BlendStateHandle blendStateHandle,
-                                         Render::CommandDataCreateBlendState* commandData,
+  void RendererDirectX11::AddBlendState( Render::CommandDataCreateBlendState* commandData,
                                          Errors& errors )
   {
-    Render::CommandDataCreateBlendState& blendStateData = *commandData;
     AssertRenderThread();
+    Render::BlendStateHandle blendStateHandle = commandData->mBlendStateHandle;
+    Render::BlendState* blendState = &commandData->mBlendState;
     D3D11_BLEND_DESC desc = {};
     D3D11_RENDER_TARGET_BLEND_DESC* d3d11rtbd = &desc.RenderTarget[ 0 ];
     d3d11rtbd->BlendEnable = true;
-    d3d11rtbd->SrcBlend = GetBlend( blendStateData.srcRGB );
-    d3d11rtbd->DestBlend = GetBlend( blendStateData.dstRGB );
-    d3d11rtbd->BlendOp = GetBlendOp( blendStateData.blendRGB );
-    d3d11rtbd->SrcBlendAlpha = GetBlend( blendStateData.srcA );
-    d3d11rtbd->DestBlendAlpha = GetBlend( blendStateData.dstA );
-    d3d11rtbd->BlendOpAlpha = GetBlendOp( blendStateData.blendA );
+    d3d11rtbd->SrcBlend = GetBlend( blendState->srcRGB );
+    d3d11rtbd->DestBlend = GetBlend( blendState->dstRGB );
+    d3d11rtbd->BlendOp = GetBlendOp( blendState->blendRGB );
+    d3d11rtbd->SrcBlendAlpha = GetBlend( blendState->srcA );
+    d3d11rtbd->DestBlendAlpha = GetBlend( blendState->dstA );
+    d3d11rtbd->BlendOpAlpha = GetBlendOp( blendState->blendA );
     d3d11rtbd->RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-    ID3D11BlendState* blendState;
-    TAC_DX11_CALL( errors, mDevice->CreateBlendState, &desc, &blendState );
+    ID3D11BlendState* blendStateDX11;
+    TAC_DX11_CALL( errors, mDevice->CreateBlendState, &desc, &blendStateDX11 );
     TAC_HANDLE_ERROR( errors );
-    mBlendStates[ blendStateHandle.mResourceId ] = blendState;
+    mBlendStates[ blendStateHandle.mResourceId ] = blendStateDX11;
   }
 
-  void RendererDirectX11::AddConstantBuffer( Render::ConstantBufferHandle constantBufferhandle,
-                                             Render::CommandDataCreateConstantBuffer* commandData,
+  void RendererDirectX11::AddConstantBuffer( Render::CommandDataCreateConstantBuffer* commandData,
                                              Errors& errors )
   {
     AssertRenderThread();
+    Render::ConstantBufferHandle constantBufferhandle = commandData->mConstantBufferHandle;
     ID3D11Buffer* cbufferhandle;
     D3D11_BUFFER_DESC bd = {};
     bd.ByteWidth = RoundUpToNearestMultiple( commandData->mByteCount, 16 );
@@ -2969,12 +2976,10 @@ namespace Tac
     mDepthStencilStates[ depthStateHandle.mResourceId ] = depthStencilState;
   }
 
-  void RendererDirectX11::AddFramebuffer( Render::FramebufferHandle index,
-                                          Render::CommandDataCreateFramebuffer* data,
+  void RendererDirectX11::AddFramebuffer( Render::CommandDataCreateFramebuffer* data,
                                           Errors& errors )
   {
     AssertRenderThread();
-
     DesktopWindow* window = DesktopApp::Instance->FindDesktopWindow( data->mDesktopWindowHandle );
 
 
@@ -2982,13 +2987,12 @@ namespace Tac
     //  WindowsApplication2::Instance->FindWin32DesktopWindow( data->mDesktopWindowHandle );
 
     auto hwnd = ( HWND )window->mOperatingSystemHandle;
-    IUnknown* pDevice = mDevice;
     IDXGISwapChain* swapChain;
     const int bufferCount = 4;
     const UINT width = data->mWidth;
     const UINT height = data->mHeight;
     mDxgi.CreateSwapChain( hwnd,
-                           pDevice,
+                           mDevice,
                            bufferCount,
                            width,
                            height,
@@ -3030,14 +3034,15 @@ namespace Tac
     depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
     TAC_DX11_CALL( errors, mDevice->CreateDepthStencilView, texture, &depthStencilViewDesc, &dsv );
 
-    Framebuffer* framebuffer = &mFramebuffers[ index.mResourceId ];
+    Framebuffer* framebuffer = &mFramebuffers[ data->mFramebufferHandle.mResourceId ];
     framebuffer->mSwapChain = swapChain;
     framebuffer->mDepthStencilView = dsv;
     framebuffer->mDepthTexture = texture;
     framebuffer->mHwnd = hwnd;
     framebuffer->mRenderTargetView = rtv;
+    framebuffer->mBufferCount = bufferCount;
 
-    mWindows[ mWindowCount++ ] = index;
+    mWindows[ mWindowCount++ ] = data->mFramebufferHandle;
   }
 
   void RendererDirectX11::RemoveVertexBuffer( Render::VertexBufferHandle index, Errors& errors )
@@ -3166,12 +3171,71 @@ namespace Tac
     TAC_RELEASE_IUNKNOWN( srcTex );
   }
 
+
+  void RendererDirectX11::ResizeFramebuffer( Render::CommandDataResizeFramebuffer* data,
+                                             Errors& errors )
+  {
+    Render::FramebufferHandle framebufferHandle = data->mFramebufferHandle;
+
+    Framebuffer* framebuffer = &mFramebuffers[ data->mFramebufferHandle.mResourceId ];
+    IDXGISwapChain* swapChain = framebuffer->mSwapChain;
+
+    D3D11_TEXTURE2D_DESC depthTextureDesc;
+    framebuffer->mDepthTexture->GetDesc( &depthTextureDesc );
+    depthTextureDesc.Width = data->mWidth;
+    depthTextureDesc.Height = data->mHeight;
+
+    // Release outstanding back buffer references prior to calling IDXGISwapChain::ResizeBuffers
+    framebuffer->mDepthStencilView->Release();
+    framebuffer->mDepthStencilView = nullptr;
+    framebuffer->mDepthTexture->Release();
+    framebuffer->mDepthTexture = nullptr;
+    framebuffer->mRenderTargetView->Release();
+    framebuffer->mRenderTargetView = nullptr;
+
+    DXGI_SWAP_CHAIN_DESC desc;
+    TAC_HANDLE_ERROR_IF( FAILED( framebuffer->mSwapChain->GetDesc( &desc ) ),
+                         "Failed to get swap chain desc",
+                         errors );
+    framebuffer->mSwapChain->ResizeBuffers( framebuffer->mBufferCount,
+                                            data->mWidth,
+                                            data->mHeight,
+                                            DXGI_FORMAT_UNKNOWN,
+                                            desc.Flags );
+    ID3D11Texture2D* pBackBuffer;
+    TAC_DXGI_CALL( errors, swapChain->GetBuffer, 0, IID_PPV_ARGS( &pBackBuffer ) );
+    ID3D11RenderTargetView* rtv = nullptr;
+    D3D11_RENDER_TARGET_VIEW_DESC* rtvDesc = nullptr;
+    TAC_DX11_CALL( errors, mDevice->CreateRenderTargetView,
+                   pBackBuffer,
+                   rtvDesc,
+                   &rtv );
+    pBackBuffer->Release();
+
+    ID3D11Texture2D* depthTexture;
+    TAC_DX11_CALL( errors, mDevice->CreateTexture2D, &depthTextureDesc, nullptr, &depthTexture );
+
+    ID3D11DepthStencilView* dsv;
+    D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = {};
+    depthStencilViewDesc.Format = depthTextureDesc.Format;
+    depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+    TAC_DX11_CALL( errors, mDevice->CreateDepthStencilView, depthTexture, &depthStencilViewDesc, &dsv );
+
+    framebuffer->mDepthStencilView = dsv;
+    framebuffer->mDepthTexture = depthTexture;
+    framebuffer->mRenderTargetView = rtv;
+  }
+
+
   //void RendererDirectX11::UpdateBuffer( ID3D11Buffer* buffer, Render::CommandDataUpdateBuffer* data, Errors& errors )
   //{
   //  UpdateBuffer( buffer, data->mBytes, data->mByteCount, errors );
   //}
 
-  void RendererDirectX11::UpdateBuffer( ID3D11Buffer* buffer, const void* bytes, int byteCount, Errors& errors )
+  void RendererDirectX11::UpdateBuffer( ID3D11Buffer* buffer,
+                                        const void* bytes,
+                                        int byteCount,
+                                        Errors& errors )
   {
     AssertRenderThread();
     TAC_ASSERT( Render::IsSubmitAllocated( bytes ) );

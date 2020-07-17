@@ -157,14 +157,22 @@ namespace Tac
                               int x,
                               int y )
     {
-
+      DataWindowMove data;
+      data.mDesktopWindowHandle = desktopWindowHandle;
+      data.mX = x;
+      data.mY = y;
+      QueuePush( Type::MoveWindow, &data, sizeof( data ) );
     }
 
     void PushEventResizeWindow( DesktopWindowHandle desktopWindowHandle,
                                 int w,
                                 int h )
     {
-
+      DataWindowResize data;
+      data.mDesktopWindowHandle = desktopWindowHandle;
+      data.mWidth = w;
+      data.mHeight = h;
+      QueuePush( Type::ResizeWindow, &data, sizeof( data ) );
     }
 
     static int GetIUnusedDesktopWindow()
@@ -177,7 +185,7 @@ namespace Tac
       return -1;
     }
 
-    void ProcessStuff( bool* createdWindows )
+    void ProcessStuff()
     {
       for( ;; )
       {
@@ -196,11 +204,9 @@ namespace Tac
             DesktopWindowState* desktopWindowState = &gDesktopWindowStates[ iCreatedWindow ];
             desktopWindowState->mWidth = data.mWidth;
             desktopWindowState->mHeight = data.mHeight;
-            //desktopWindowState->mNativeWindowHandle = data.mNativeWindowHandle;
             desktopWindowState->mDesktopWindowHandle = data.mDesktopWindowHandle;
             desktopWindowState->mX = data.mX;
             desktopWindowState->mY = data.mY;
-            createdWindows[ iCreatedWindow ] = true;
           } break;
           case DesktopEvent::Type::CursorUnobscured:
           {
@@ -214,6 +220,23 @@ namespace Tac
               state.mCursorUnobscured = unobscured;
             }
           } break;
+          case DesktopEvent::Type::MoveWindow:
+          {
+            DesktopEvent::DataWindowMove data;
+            DesktopEvent::QueuePop( &data, sizeof( data ) );
+            DesktopWindowState* state = FindDesktopWindowState( data.mDesktopWindowHandle );
+            state->mX = data.mX;
+            state->mY = data.mY;
+          } break;
+          case DesktopEvent::Type::ResizeWindow:
+          {
+            DesktopEvent::DataWindowResize data;
+            DesktopEvent::QueuePop( &data, sizeof( data ) );
+            DesktopWindowState* state = FindDesktopWindowState( data.mDesktopWindowHandle );
+            state->mWidth = data.mWidth;
+            state->mHeight = data.mHeight;
+          } break;
+          TAC_INVALID_DEFAULT_CASE( desktopEventType );
         }
       }
     }

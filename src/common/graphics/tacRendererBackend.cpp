@@ -51,19 +51,24 @@ namespace Tac
       Tac::StackFrame mFrames[ N ];
     };
 
-    void CommandBuffer::PushCommandEnd()
-    {
-      Push( "end", 3 );
-    }
-    void CommandBuffer::Push( CommandType type )
-    {
-      Push( &type, sizeof( CommandType ) );
-    }
     void CommandBuffer::Push( const void* bytes, int byteCount )
     {
       const int bufferSize = mBuffer.size();
       mBuffer.resize( mBuffer.size() + byteCount );
       MemCpy( mBuffer.data() + bufferSize, bytes, byteCount );
+    }
+
+    void CommandBuffer::PushCommand(
+      CommandType type,
+      StackFrame stackFrame,
+      const void* bytes,
+      int byteCount )
+    {
+      StringView cheep( "end" );
+      Push( &type, sizeof( CommandType ) );
+      Push( &stackFrame, sizeof( stackFrame ) );
+      Push( bytes, byteCount );
+      Push( cheep.data(), cheep.size() );
     }
 
     static Frame gFrames[ 2 ];
@@ -85,12 +90,14 @@ namespace Tac
     static IdCollection<kMaxInputLayouts> mIdCollectionVertexFormat;
 
     void UpdateConstantBuffers::Push( ConstantBufferHandle constantBufferHandle,
-                                      Render::CommandDataUpdateBuffer data )
+                                      const void* bytes,
+                                      int byteCount )
     {
       TAC_ASSERT( mUpdateConstantBufferDataCount < kCapacity );
       UpdateConstantBuffer* updateConstantBuffer = &mUpdateConstantBufferDatas[ mUpdateConstantBufferDataCount++ ];
       updateConstantBuffer->mConstantBufferHandle = constantBufferHandle;
-      updateConstantBuffer->mData = data;
+      updateConstantBuffer->mBytes = bytes;
+      updateConstantBuffer->mByteCount = byteCount;
     }
 
 
@@ -175,55 +182,76 @@ namespace Tac
     //}
 
     ShaderHandle CreateShader( StringView name,
-                               CommandDataCreateShader commandData,
+                               ShaderSource shaderSource,
+                               ConstantBuffers constantBuffers,
                                StackFrame stackFrame )
     {
-      commandData.mShaderPath = SubmitAlloc( commandData.mShaderPath );
-      commandData.mShaderStr = SubmitAlloc( commandData.mShaderStr );
-      const ResourceId resourceId = mIdCollectionShader.Alloc( name, stackFrame );
-      gSubmitFrame->mCommandBuffer.Push( CommandType::CreateShader );
-      gSubmitFrame->mCommandBuffer.Push( &stackFrame, sizeof( stackFrame ) );
-      gSubmitFrame->mCommandBuffer.Push( &resourceId, sizeof( resourceId ) );
-      gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
-      gSubmitFrame->mCommandBuffer.PushCommandEnd();
-      return { resourceId };
+      TAC_ASSERT( constantBuffers.mConstantBufferCount );
+      const ShaderHandle shaderHandle = { mIdCollectionShader.Alloc( name, stackFrame ) };
+      CommandDataCreateShader commandData;
+      commandData.mShaderSource.mShaderPath = SubmitAlloc( shaderSource.mShaderPath );
+      commandData.mShaderSource.mShaderStr = SubmitAlloc( shaderSource.mShaderStr );
+      commandData.mShaderHandle = shaderHandle;
+      commandData.mConstantBuffers = constantBuffers;
+      gSubmitFrame->mCommandBuffer.PushCommand( CommandType::CreateShader,
+                                                stackFrame,
+                                                &commandData,
+                                                sizeof( CommandDataCreateShader ) );
+      return shaderHandle;
     }
     VertexBufferHandle CreateVertexBuffer( StringView name,
-                                           CommandDataCreateVertexBuffer commandData,
-                                           StackFrame frame )
+                                           int byteCount,
+                                           void* optionalInitialBytes,
+                                           int stride,
+                                           Access access,
+                                           StackFrame stackFrame )
     {
-      const ResourceId resourceId = mIdCollectionVertexBuffer.Alloc( name, frame );
-      gSubmitFrame->mCommandBuffer.Push( CommandType::CreateVertexBuffer );
-      gSubmitFrame->mCommandBuffer.Push( &frame, sizeof( frame ) );
-      gSubmitFrame->mCommandBuffer.Push( &resourceId, sizeof( resourceId ) );
-      gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
-      gSubmitFrame->mCommandBuffer.PushCommandEnd();
-      return { resourceId };
+
+      const VertexBufferHandle vertexBufferHandle = { mIdCollectionVertexBuffer.Alloc( name, stackFrame ) };
+      CommandDataCreateVertexBuffer commandData;
+      commandData.mAccess = access;
+      commandData.mByteCount = byteCount;
+      commandData.mOptionalInitialBytes = optionalInitialBytes;
+      commandData.mStride = stride;
+      commandData.mVertexBufferHandle = vertexBufferHandle;
+      gSubmitFrame->mCommandBuffer.PushCommand( CommandType::CreateVertexBuffer,
+                                                stackFrame,
+                                                &commandData, sizeof( CommandDataCreateVertexBuffer ) );
+      return vertexBufferHandle;
     }
 
     ConstantBufferHandle CreateConstantBuffer( StringView name,
-                                               CommandDataCreateConstantBuffer commandData,
+                                               int byteCount,
+                                               int shaderRegister,
                                                StackFrame frame )
     {
-      const ResourceId resourceId = mIdCollectionConstantBuffer.Alloc( name, frame );
-      gSubmitFrame->mCommandBuffer.Push( CommandType::CreateConstantBuffer );
-      gSubmitFrame->mCommandBuffer.Push( &frame, sizeof( frame ) );
-      gSubmitFrame->mCommandBuffer.Push( &resourceId, sizeof( resourceId ) );
-      gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
-      gSubmitFrame->mCommandBuffer.PushCommandEnd();
-      return { resourceId };
+      const ConstantBufferHandle constantBufferHandle = { mIdCollectionConstantBuffer.Alloc( name, frame ) };
+      CommandDataCreateConstantBuffer commandData;
+      commandData.mByteCount = byteCount;
+      commandData.mShaderRegister = shaderRegister;
+      commandData.mConstantBufferHandle = constantBufferHandle;
+      gSubmitFrame->mCommandBuffer.PushCommand( CommandType::CreateConstantBuffer,
+                                                frame,
+                                                &commandData,
+                                                sizeof( CommandDataCreateConstantBuffer ) );
+      return constantBufferHandle;
     }
     IndexBufferHandle CreateIndexBuffer( StringView name,
-                                         CommandDataCreateIndexBuffer commandData,
+                                         int byteCount,
+                                         void* optionalInitialBytes,
+                                         Access access,
+                                         Format format,
                                          StackFrame frame )
     {
-      const ResourceId resourceId = mIdCollectionIndexBuffer.Alloc( name, frame );
-      gSubmitFrame->mCommandBuffer.Push( CommandType::CreateIndexBuffer );
-      gSubmitFrame->mCommandBuffer.Push( &frame, sizeof( frame ) );
-      gSubmitFrame->mCommandBuffer.Push( &resourceId, sizeof( resourceId ) );
-      gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
-      gSubmitFrame->mCommandBuffer.PushCommandEnd();
-      return { resourceId };
+      const IndexBufferHandle indexBufferHandle = { mIdCollectionIndexBuffer.Alloc( name, frame ) };
+      CommandDataCreateIndexBuffer commandData;
+      commandData.mByteCount = byteCount;
+      commandData.mOptionalInitialBytes = optionalInitialBytes;
+      commandData.mAccess = access;
+      commandData.mFormat = format;
+      commandData.mIndexBufferHandle = indexBufferHandle;
+      gSubmitFrame->mCommandBuffer.PushCommand( CommandType::CreateIndexBuffer, frame, &commandData, sizeof( commandData ) );
+      return indexBufferHandle;
     }
 
     TextureHandle CreateTexture( StringView name,
@@ -250,31 +278,54 @@ namespace Tac
       return { resourceId };
     }
 
+    void ResizeFramebuffer( FramebufferHandle framebufferHandle,
+                            int w,
+                            int h,
+                            StackFrame frame )
+    {
+      CommandDataResizeFramebuffer commandData;
+      commandData.mWidth = w;
+      commandData.mHeight = h;
+      commandData.mFramebufferHandle = framebufferHandle;
+      gSubmitFrame->mCommandBuffer.PushCommand( CommandType::ResizeFramebuffer,
+                                                frame,
+                                                &commandData,
+                                                sizeof( CommandDataResizeFramebuffer ) );
+    }
+
     FramebufferHandle CreateFramebuffer( StringView name,
-                                         CommandDataCreateFramebuffer commandData,
+                                         DesktopWindowHandle desktopWindowHandle,
+                                         int width,
+                                         int height,
                                          StackFrame frame )
     {
-      const ResourceId resourceId = mIdCollectionFramebuffer.Alloc( name, frame );
-      gSubmitFrame->mCommandBuffer.Push( CommandType::CreateFramebuffer );
-      gSubmitFrame->mCommandBuffer.Push( &frame, sizeof( frame ) );
-      gSubmitFrame->mCommandBuffer.Push( &resourceId, sizeof( resourceId ) );
-      gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
-      gSubmitFrame->mCommandBuffer.PushCommandEnd();
-      return { resourceId };
+      const FramebufferHandle framebufferHandle = mIdCollectionFramebuffer.Alloc( name, frame );
+      CommandDataCreateFramebuffer commandData;
+      commandData.mDesktopWindowHandle = desktopWindowHandle;
+      commandData.mWidth = width;
+      commandData.mHeight = height;
+      commandData.mFramebufferHandle = framebufferHandle;
+      gSubmitFrame->mCommandBuffer.PushCommand( CommandType::CreateFramebuffer,
+                                                frame,
+                                                &commandData,
+                                                sizeof( CommandDataCreateFramebuffer ) );
+      return framebufferHandle;
     }
 
 
     BlendStateHandle CreateBlendState( StringView name,
-                                       CommandDataCreateBlendState commandData,
+                                       BlendState blendState,
                                        StackFrame frame )
     {
-      const ResourceId resourceId = mIdCollectionBlendState.Alloc( name, frame );
-      gSubmitFrame->mCommandBuffer.Push( CommandType::CreateBlendState );
-      gSubmitFrame->mCommandBuffer.Push( &frame, sizeof( frame ) );
-      gSubmitFrame->mCommandBuffer.Push( &resourceId, sizeof( resourceId ) );
-      gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
-      gSubmitFrame->mCommandBuffer.PushCommandEnd();
-      return { resourceId };
+      const BlendStateHandle blendStateHandle = mIdCollectionBlendState.Alloc( name, frame );
+      CommandDataCreateBlendState commandData;
+      commandData.mBlendState = blendState;
+      commandData.mBlendStateHandle = blendStateHandle;
+      gSubmitFrame->mCommandBuffer.PushCommand( CommandType::CreateBlendState,
+                                                frame,
+                                                &commandData,
+                                                sizeof( CommandDataCreateBlendState ) );
+      return blendStateHandle;
     }
     RasterizerStateHandle CreateRasterizerState( StringView name,
                                                  CommandDataCreateRasterizerState commandData,
@@ -313,16 +364,20 @@ namespace Tac
       return { resourceId };
     }
     VertexFormatHandle CreateVertexFormat( StringView name,
-                                           CommandDataCreateVertexFormat commandData,
+                                           VertexDeclarations vertexDeclarations,
+                                           ShaderHandle shaderHandle,
                                            StackFrame frame )
     {
-      const ResourceId resourceId = mIdCollectionVertexFormat.Alloc( name, frame );
-      gSubmitFrame->mCommandBuffer.Push( CommandType::CreateVertexFormat );
-      gSubmitFrame->mCommandBuffer.Push( &frame, sizeof( frame ) );
-      gSubmitFrame->mCommandBuffer.Push( &resourceId, sizeof( resourceId ) );
-      gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
-      gSubmitFrame->mCommandBuffer.PushCommandEnd();
-      return { resourceId };
+      const VertexFormatHandle vertexFormatHandle = mIdCollectionVertexFormat.Alloc( name, frame );
+      CommandDataCreateVertexFormat commandData;
+      commandData.mShaderHandle = shaderHandle;
+      commandData.mVertexDeclarations = vertexDeclarations;
+      commandData.mVertexFormatHandle = vertexFormatHandle;
+      gSubmitFrame->mCommandBuffer.PushCommand( CommandType::CreateVertexFormat,
+                                                frame,
+                                                &commandData,
+                                                sizeof( CommandDataCreateVertexFormat ) );
+      return vertexFormatHandle;
     }
 
 
@@ -418,67 +473,59 @@ namespace Tac
 
 
     void UpdateTextureRegion( TextureHandle handle,
-                              CommandDataUpdateTextureRegion commandData,
+                              TexUpdate texUpdate,
                               StackFrame frame )
     {
-      const int byteCount = commandData.mSrc.mHeight * commandData.mPitch;
-      commandData.mSrcBytes = Render::SubmitAlloc( commandData.mSrcBytes, byteCount );
-      gSubmitFrame->mCommandBuffer.Push( CommandType::UpdateTextureRegion );
-      gSubmitFrame->mCommandBuffer.Push( &frame, sizeof( frame ) );
-      gSubmitFrame->mCommandBuffer.Push( &handle, sizeof( handle ) );
-      gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
-      gSubmitFrame->mCommandBuffer.PushCommandEnd();
+      const int byteCount = texUpdate.mSrc.mHeight * texUpdate.mPitch;
+      texUpdate.mSrcBytes = Render::SubmitAlloc( texUpdate.mSrcBytes, byteCount );
+      CommandDataUpdateTextureRegion commandData;
+      commandData.mTexUpdate = texUpdate;
+      commandData.mTextureHandle = handle;
+      gSubmitFrame->mCommandBuffer.PushCommand( CommandType::UpdateTextureRegion,
+                                                frame,
+                                                &commandData,
+                                                sizeof( CommandDataUpdateTextureRegion ) );
     }
 
     void UpdateVertexBuffer( VertexBufferHandle handle,
-                             CommandDataUpdateBuffer commandData,
+                             const void* bytes,
+                             const int byteCount,
                              StackFrame frame )
-
     {
-      //std::cout << "UpdateVertexBuffer begin " << std::endl;;
-      commandData.mBytes = Render::SubmitAlloc( commandData.mBytes, commandData.mByteCount );
-      //std::cout <<  "commandData.mBytes: " <<  (void*)commandData.mBytes << std::endl;;
-
-      //( ( char* )commandData.mBytes )[ 0 ] = 'h';
-      //( ( char* )commandData.mBytes )[ 1 ] = 'e';
-      //( ( char* )commandData.mBytes )[ 2 ] = 'l';
-      //( ( char* )commandData.mBytes )[ 3 ] = 'l';
-      //( ( char* )commandData.mBytes )[ 4 ] = 'o';
-      //( ( char* )commandData.mBytes )[ 5 ] = '\0';
-
-      //DebugPrintSubmitAllocInfo();
-      gSubmitFrame->mCommandBuffer.Push( CommandType::UpdateVertexBuffer );
-      gSubmitFrame->mCommandBuffer.Push( &frame, sizeof( frame ) );
-      gSubmitFrame->mCommandBuffer.Push( &handle, sizeof( handle ) );
-      gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
-      gSubmitFrame->mCommandBuffer.PushCommandEnd();
-      //std::cout <<  "UpdateVertexBuffer end " << std::endl;;
+      CommandDataUpdateVertexBuffer commandData;
+      commandData.mBytes = Render::SubmitAlloc( bytes, byteCount );
+      commandData.mByteCount = byteCount;
+      commandData.mVertexBufferHandle = handle;
+      gSubmitFrame->mCommandBuffer.PushCommand( CommandType::UpdateVertexBuffer,
+                                                frame,
+                                                &commandData,
+                                                sizeof( CommandDataUpdateVertexBuffer ) );
     }
 
     void UpdateIndexBuffer( IndexBufferHandle handle,
-                            CommandDataUpdateBuffer commandData,
+                            const void* bytes,
+                            const int byteCount,
                             StackFrame frame )
     {
-      commandData.mBytes = Render::SubmitAlloc( commandData.mBytes, commandData.mByteCount );
-      gSubmitFrame->mCommandBuffer.Push( CommandType::UpdateIndexBuffer );
-      gSubmitFrame->mCommandBuffer.Push( &frame, sizeof( frame ) );
-      gSubmitFrame->mCommandBuffer.Push( &handle, sizeof( handle ) );
-      gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
-      gSubmitFrame->mCommandBuffer.PushCommandEnd();
+      CommandDataUpdateIndexBuffer commandData;
+      commandData.mBytes = Render::SubmitAlloc( bytes, byteCount );
+      commandData.mByteCount = byteCount;
+      commandData.mIndexBufferHandle = handle;
+      gSubmitFrame->mCommandBuffer.PushCommand( CommandType::UpdateIndexBuffer,
+                                                frame,
+                                                &commandData,
+                                                sizeof( CommandDataUpdateIndexBuffer ) );
     }
 
     void UpdateConstantBuffer( ConstantBufferHandle handle,
-                               CommandDataUpdateBuffer commandData,
+                               const void* bytes,
+                               const int byteCount,
                                StackFrame stackFrame )
     {
-      commandData.mBytes = Render::SubmitAlloc( commandData.mBytes, commandData.mByteCount );
-      //gSubmitFrame->mCommandBuffer.Push( CommandType::UpdateConstantBuffer );
-      //gSubmitFrame->mCommandBuffer.Push( &stackFrame, sizeof( StackFrame ) );
-      //gSubmitFrame->mCommandBuffer.Push( &handle, sizeof( handle ) );
-      //gSubmitFrame->mCommandBuffer.Push( &commandData, sizeof( commandData ) );
-      //gSubmitFrame->mCommandBuffer.PushCommandEnd();
       TAC_UNUSED_PARAMETER( stackFrame );
-      gEncoder.mUpdateConstantBuffers.Push( handle, commandData );
+      gEncoder.mUpdateConstantBuffers.Push( handle,
+                                            Render::SubmitAlloc( bytes, byteCount ),
+                                            byteCount );
     }
 
     void SetViewFramebuffer( ViewId viewId, FramebufferHandle framebufferHandle )
@@ -493,7 +540,7 @@ namespace Tac
       view->mScissorRect = scissorRect;
     }
 
-    void SetViewport( ViewId viewId, Viewport viewport)
+    void SetViewport( ViewId viewId, Viewport viewport )
     {
       View* view = &gSubmitFrame->mViews[ viewId ];
       view->mViewport = viewport;
@@ -655,5 +702,77 @@ namespace Tac
       gEncoder.mVertexCount = 0;
       gEncoder.mIndexCount = 0;
     }
+
+    void GetPerspectiveProjectionAB( float f, float n, float& a, float& b )
+    {
+      Renderer::Instance->GetPerspectiveProjectionAB( f, n, a, b );
+    }
+
+    void AddDrawCall( const DrawCall2& drawCall )
+    {
+      Renderer::Instance->mDrawCall2s.push_back( drawCall );
+    }
+
+    void Init( Errors& errors )
+    {
+      Renderer::Instance->Init( errors );
+    }
+
+    void Uninit()
+    {
+      delete Renderer::Instance;
+    }
   }
+
+
+
+  Renderer* Renderer::Instance = nullptr;
+
+  Renderer::Renderer()
+  {
+    Instance = this;
+  }
+
+  Renderer::~Renderer()
+  {
+
+  }
+
+  String RendererTypeToString( const Renderer::Type rendererType )
+  {
+    switch( rendererType )
+    {
+      case Renderer::Type::Vulkan: return RendererNameVulkan;
+      case Renderer::Type::OpenGL4: return RendererNameOpenGL4;
+      case Renderer::Type::DirectX11: return RendererNameDirectX11;
+      case Renderer::Type::DirectX12: return RendererNameDirectX12;
+        TAC_INVALID_DEFAULT_CASE( rendererType );
+    }
+    TAC_INVALID_CODE_PATH;
+    return "";
+  }
+
+  void RendererFactory::CreateRendererOuter()
+  {
+    CreateRenderer();
+    Renderer::Instance->mName = mRendererName;
+  }
+
+  RendererRegistry& RendererRegistry::Instance()
+  {
+    // This variable must be inside this function or else the
+    // renderers will add themselves too early or something
+    // and then be stomped with an empty registry
+    static RendererRegistry RendererRegistryInstance;
+    return RendererRegistryInstance;
+  }
+
+  RendererFactory* RendererRegistry::FindFactory( StringView name )
+  {
+    for( RendererFactory* factory : mFactories )
+      if( factory->mRendererName == name )
+        return factory;
+    return nullptr;
+  }
+
 }

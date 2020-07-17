@@ -34,4 +34,12 @@ if( errors )\
   return;\
 }
 
+#define TAC_HANDLE_ERROR_IF( pred, msg, errors )\
+if( pred )\
+{\
+  errors.Append( msg );\
+  errors.Append( TAC_STACK_FRAME );\
+  return;\
+}
+
 }

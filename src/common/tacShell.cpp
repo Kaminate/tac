@@ -55,7 +55,7 @@ namespace Tac
     delete ModelAssetManager::Instance;
 
     // last, so resources can be freed
-    delete Renderer::Instance;
+    Render::Uninit();
 
     Instance = nullptr;
   }
@@ -98,13 +98,7 @@ namespace Tac
         break;
       }
 
-      if( !Renderer::Instance )
-      {
-        errors = "Failed to create renderer";
-        TAC_HANDLE_ERROR( errors );
-      }
-
-      Renderer::Instance->Init( errors );
+      Render::Init( errors );
     }
 
     new JobQueue;

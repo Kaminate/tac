@@ -33,6 +33,7 @@ namespace Tac
       UpdateIndexBuffer,
       UpdateTextureRegion,
       UpdateVertexBuffer,
+      ResizeFramebuffer,
       //UpdateConstantBuffer,
     };
 
@@ -41,11 +42,12 @@ namespace Tac
       static const int kCapacity = 2;
       struct UpdateConstantBuffer
       {
-        Render::CommandDataUpdateBuffer mData;
+        const void* mBytes;
+        int mByteCount;
         ConstantBufferHandle mConstantBufferHandle;
       } mUpdateConstantBufferDatas[ kCapacity ];
       int mUpdateConstantBufferDataCount;
-      void Push( ConstantBufferHandle, Render::CommandDataUpdateBuffer );
+      void Push( ConstantBufferHandle, const void* bytes, int byteCount );
     };
 
     struct DrawCall3
@@ -69,12 +71,13 @@ namespace Tac
 
     struct CommandBuffer
     {
-      void Push( CommandType );
+      void PushCommand( CommandType type,
+                        StackFrame stackFrame,
+                        const void* bytes,
+                        int byteCount );
+    private:
       void Push( const void* bytes, int byteCount );
-      void PushCommandEnd();
-
-
-      Vector<char> mBuffer;
+      Vector< char > mBuffer;
     };
 
     const int kDrawCallCapacity = 1000;
@@ -103,7 +106,7 @@ namespace Tac
       int mDrawCallCount = 0;
 
       UniformBuffer mUniformBuffer;
-      View mViews[100];
+      View mViews[ 100 ];
     };
 
     const int kMaxTextures = 1000;
@@ -121,5 +124,205 @@ namespace Tac
     bool IsSubmitAllocated( const void* data );
 
     void DebugPrintSubmitAllocInfo();
+
+    struct CommandDataResizeFramebuffer
+    {
+      int mWidth = 0;
+      int mHeight = 0;
+      FramebufferHandle mFramebufferHandle;
+    };
+
+    struct CommandDataCreateShader
+    {
+      ShaderSource mShaderSource;
+      ConstantBuffers mConstantBuffers;
+      ShaderHandle mShaderHandle;
+    };
+
+    struct CommandDataCreateConstantBuffer
+    {
+      ConstantBufferHandle mConstantBufferHandle;
+      int mByteCount = 0;
+      int mShaderRegister = 0;
+    };
+
+    struct CommandDataCreateVertexBuffer
+    {
+      VertexBufferHandle mVertexBufferHandle;
+      int mByteCount = 0;
+      void* mOptionalInitialBytes = nullptr;
+      int mStride = 0;
+      Access mAccess = Access::Default;
+    };
+
+    struct CommandDataCreateIndexBuffer
+    {
+      IndexBufferHandle mIndexBufferHandle;
+      int mByteCount;
+      void* mOptionalInitialBytes;
+      Access mAccess;
+      Format mFormat;
+    };
+
+    struct CommandDataCreateBlendState
+    {
+      BlendStateHandle mBlendStateHandle;
+      BlendState mBlendState;
+    };
+
+    struct CommandDataCreateVertexFormat
+    {
+      VertexFormatHandle mVertexFormatHandle;
+      VertexDeclarations mVertexDeclarations;
+      ShaderHandle mShaderHandle;
+    };
+
+    struct CommandDataUpdateVertexBuffer
+    {
+      VertexBufferHandle mVertexBufferHandle;
+      const void* mBytes = nullptr;
+      int mByteCount = 0;
+    };
+
+    struct CommandDataUpdateIndexBuffer
+    {
+      IndexBufferHandle mIndexBufferHandle;
+      const void* mBytes = nullptr;
+      int mByteCount = 0;
+    };
+
+    //struct CommandDataUpdateConstantBuffer
+    //{
+    //  ConstantBufferHandle mConstantBufferHandle;
+    //  const void* mBytes = nullptr;
+    //  int mByteCount = 0;
+    //};
+
+    struct CommandDataCreateFramebuffer
+    {
+      FramebufferHandle mFramebufferHandle;
+      DesktopWindowHandle mDesktopWindowHandle;
+      int mWidth = 0;
+      int mHeight = 0;
+    };
+
+    struct CommandDataCreateDepthState
+    {
+      DepthStateHandle mDepthStateHandle;
+      DepthState mDepthState;
+    };
+
+
+    struct CommandDataCreateTexture
+    {
+      TextureHandle mTextureHandle;
+      TexSpec mTexSpec;
+    };
+
+    struct CommandDataUpdateTextureRegion
+    {
+      TextureHandle mTextureHandle;
+      TexUpdate mTexUpdate;
+
+    };
+
+    struct CommandDataCreateRasterizerState
+    {
+      RasterizerStateHandle mRasterizerStateHandle;
+      RasterizerState mRasterizerState;
+    };
+
+    struct CommandDataCreateSamplerState
+    {
+      SamplerState mSamplerState;
+      SamplerStateHandle mSamplerStateHandle;
+    };
+
+
   }
+
+  struct Renderer
+  {
+    enum class Type
+    {
+      Vulkan,
+      OpenGL4,
+      DirectX11,
+      DirectX12,
+      Count,
+    };
+
+    static Renderer* Instance;
+    Renderer();
+    //virtual void CreateWindowContext( DesktopWindow* desktopWindow, Errors& errors ) {}
+
+    virtual ~Renderer();
+    virtual void Init( Errors& ) {};
+    //virtual void ClearColor( Texture* texture, v4 rgba ) { TAC_UNIMPLEMENTED; }
+    //virtual void ClearDepthStencil(
+    //  DepthBuffer* depthBuffer,
+    //  bool shouldClearDepth,
+    //  float depth,
+    //  bool shouldClearStencil,
+    //  uint8_t stencil )
+    //{
+    //  TAC_UNIMPLEMENTED;
+    //}
+
+    //virtual void SetSamplerState(
+    //  const String& samplerName,
+    //  SamplerState* samplerState )
+    //{
+    //  TAC_UNIMPLEMENTED;
+    //}
+
+    //virtual void AddCbufferToShader( Shader* shader, CBuffer* cbuffer, ShaderType myShaderType )
+    //{
+    //  //Unimplemented;
+    //}
+
+    //virtual void DebugBegin( const String& section ) { TAC_UNIMPLEMENTED; }
+    //virtual void DebugMark( const String& remark ) { TAC_UNIMPLEMENTED; }
+    //virtual void DebugEnd() { TAC_UNIMPLEMENTED; }
+
+    //virtual void DrawNonIndexed( int vertexCount = 0 ) { TAC_UNIMPLEMENTED; }
+
+    //virtual void DrawIndexed( int elementCount, int idxOffset, int vtxOffset ) { TAC_UNIMPLEMENTED; }
+
+    //virtual void Apply() { TAC_UNIMPLEMENTED; }
+
+    //virtual void RenderFlush() { TAC_UNIMPLEMENTED; }
+    //virtual void Render( Errors& errors ) { TAC_UNIMPLEMENTED; }
+    virtual void Render2( const Render::Frame*, Errors& ) { TAC_UNIMPLEMENTED; }
+    virtual void SwapBuffers() { TAC_UNIMPLEMENTED; }
+
+    //virtual void SetPrimitiveTopology( Primitive primitive ) { TAC_UNIMPLEMENTED; }
+
+    virtual void GetPerspectiveProjectionAB(
+      float f,
+      float n,
+      float& a,
+      float& b )
+    {
+      TAC_UNUSED_PARAMETER( f );
+      TAC_UNUSED_PARAMETER( n );
+      TAC_UNUSED_PARAMETER( a );
+      TAC_UNUSED_PARAMETER( b );
+      TAC_UNIMPLEMENTED;
+    }
+    //void DebugImgui();
+
+    virtual void AddShader( Render::CommandDataCreateShader*, Errors& ) = 0;
+    virtual void AddConstantBuffer( Render::CommandDataCreateConstantBuffer*, Errors& ) = 0;
+    virtual void AddVertexBuffer( Render::CommandDataCreateVertexBuffer*, Errors& ) = 0;
+    virtual void AddIndexBuffer( Render::CommandDataCreateIndexBuffer*, Errors& ) = 0;
+    virtual void AddBlendState( Render::CommandDataCreateBlendState*, Errors& ) = 0;
+    virtual void AddVertexFormat( Render::CommandDataCreateVertexFormat*, Errors& ) = 0;
+    virtual void AddFramebuffer( Render::CommandDataCreateFramebuffer*, Errors& ) = 0;
+
+    String mName;
+    Vector< DrawCall2 > mDrawCall2s;
+  };
+  String RendererTypeToString( Renderer::Type );
+
 }

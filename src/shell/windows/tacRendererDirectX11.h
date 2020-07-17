@@ -328,6 +328,7 @@ namespace Tac
     }mIndexBuffers[ Render::kMaxIndexBuffers ] = {};;
     struct Framebuffer
     {
+      int mBufferCount = 0;
       IDXGISwapChain* mSwapChain = nullptr;
       ID3D11DepthStencilView* mDepthStencilView = nullptr;
       ID3D11RenderTargetView* mRenderTargetView = nullptr;
@@ -355,17 +356,17 @@ namespace Tac
 
 
     // this should all be virtual
-    void AddBlendState( Render::BlendStateHandle, Render::CommandDataCreateBlendState*, Errors& );
-    void AddConstantBuffer( Render::ConstantBufferHandle, Render::CommandDataCreateConstantBuffer*, Errors& );
+    void AddBlendState(  Render::CommandDataCreateBlendState*, Errors& ) override;
+    void AddConstantBuffer(  Render::CommandDataCreateConstantBuffer*, Errors& ) override;
     void AddDepthState( Render::DepthStateHandle, Render::CommandDataCreateDepthState*, Errors& );
-    void AddFramebuffer( Render::FramebufferHandle, Render::CommandDataCreateFramebuffer*, Errors& );
-    void AddIndexBuffer( Render::IndexBufferHandle, Render::CommandDataCreateIndexBuffer*, Errors& );
+    void AddFramebuffer( Render::CommandDataCreateFramebuffer*, Errors& ) override;
+    void AddIndexBuffer( Render::CommandDataCreateIndexBuffer*, Errors& ) override;
     void AddRasterizerState( Render::RasterizerStateHandle, Render::CommandDataCreateRasterizerState*, Errors& );
     void AddSamplerState( Render::SamplerStateHandle, Render::CommandDataCreateSamplerState*, Errors& );
-    void AddShader( Render::ShaderHandle, Render::CommandDataCreateShader*, Errors& );
+    void AddShader( Render::CommandDataCreateShader*, Errors& ) override;
     void AddTexture( Render::TextureHandle, Render::CommandDataCreateTexture*, Errors& );
-    void AddVertexBuffer( Render::VertexBufferHandle, Render::CommandDataCreateVertexBuffer*, Errors& );
-    void AddVertexFormat( Render::VertexFormatHandle, Render::CommandDataCreateVertexFormat*, Errors& );
+    void AddVertexBuffer( Render::CommandDataCreateVertexBuffer*, Errors& ) override;
+    void AddVertexFormat( Render::CommandDataCreateVertexFormat*, Errors& ) override;
     void RemoveBlendState( Render::BlendStateHandle, Errors& );
     void RemoveConstantBuffer( Render::ConstantBufferHandle, Errors& );
     void RemoveDepthState( Render::DepthStateHandle, Errors& );
@@ -378,6 +379,7 @@ namespace Tac
     void RemoveVertexBuffer( Render::VertexBufferHandle, Errors& );
     void RemoveVertexFormat( Render::VertexFormatHandle, Errors& );
     void UpdateTextureRegion( Render::TextureHandle, Render::CommandDataUpdateTextureRegion*, Errors& );
+    void ResizeFramebuffer(  Render::CommandDataResizeFramebuffer*, Errors& );
     // frame buffers?
 
     // --- Resources end ---

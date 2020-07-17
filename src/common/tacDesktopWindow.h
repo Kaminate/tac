@@ -36,7 +36,7 @@ namespace Tac
   struct DesktopWindowHandle
   {
     int mIndex = NullDesktopWindowHandle; // hmm
-    bool IsValid();
+    bool IsValid() const;
     bool operator == ( const DesktopWindowHandle& ) const;
   };
 

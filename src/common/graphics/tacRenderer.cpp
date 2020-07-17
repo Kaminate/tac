@@ -23,18 +23,6 @@ namespace Tac
     return nullptr;
   }
 
-  String ToString( Renderer::Type rendererType )
-  {
-    switch( rendererType )
-    {
-      case Renderer::Type::Vulkan: return "Vulkan";
-      case Renderer::Type::OpenGL4: return "OpenGL4";
-      case Renderer::Type::DirectX12: return "DirectX12";
-        TAC_INVALID_DEFAULT_CASE( rendererType );
-    }
-    TAC_INVALID_CODE_PATH;
-    return "";
-  }
   v4 ToColorAlphaPremultiplied( v4 colorAlphaUnassociated )
   {
     return {
@@ -51,15 +39,8 @@ namespace Tac
   }
 
 
-  Renderer* Renderer::Instance = nullptr;
-
-  Renderer::Renderer()
-  {
-    Instance = this;
-  }
-
-  Renderer::~Renderer()
-  {
+  //Renderer::~Renderer()
+  //{
     //for( RendererResource* rendererResource : mRendererResources )
     //{
     //  String errorMessage =
@@ -69,7 +50,7 @@ namespace Tac
     //    rendererResource->mFrame.ToString();
     //  OS::DebugAssert( errorMessage, TAC_STACK_FRAME );
     //}
-  }
+  //}
 
   //void Renderer::DebugImgui()
   //{
@@ -139,29 +120,6 @@ namespace Tac
   //}
 
 
-  void RendererFactory::CreateRendererOuter()
-  {
-    CreateRenderer();
-    Renderer::Instance->mName = mRendererName;
-  }
-
-  RendererRegistry& RendererRegistry::Instance()
-  {
-    // This variable must be inside this function or else the
-    // renderers will add themselves too early or something
-    // and then be stomped with an empty registry
-    static RendererRegistry RendererRegistryInstance;
-    return RendererRegistryInstance;
-  }
-
-  RendererFactory* RendererRegistry::FindFactory( StringView name )
-  {
-    for( RendererFactory* factory : mFactories )
-      if( factory->mRendererName == name )
-        return factory;
-    return nullptr;
-  }
-
   //void Renderer::RemoveRendererResource( RendererResource* rendererResource )
   //{
   //  if( !rendererResource )
@@ -177,13 +135,61 @@ namespace Tac
   {
     mUniformSrcc.resize( byteCount );
     MemCpy( mUniformSrcc.data(), bytes, byteCount );
-
   }
-  void Renderer::AddDrawCall( const DrawCall2& drawCall )
+
+  namespace Render
   {
-    TAC_INVALID_CODE_PATH;
-    mDrawCall2s.push_back( drawCall );
-  }
 
+    ConstantBuffers::ConstantBuffers( ConstantBufferHandle constantBufferHandle )
+    {
+      AddConstantBuffer( constantBufferHandle );
+
+    }
+    ConstantBuffers::ConstantBuffers( ConstantBufferHandle a,
+                                      ConstantBufferHandle b )
+    {
+      AddConstantBuffer( a );
+      AddConstantBuffer( b );
+    }
+    ConstantBuffers::ConstantBuffers( ConstantBufferHandle* constantBufferHandles, int n )
+    {
+      while( n-- )
+        AddConstantBuffer( *constantBufferHandles++ );
+
+    }
+    void ConstantBuffers::AddConstantBuffer( ConstantBufferHandle handle )
+    {
+      mConstantBuffers[ mConstantBufferCount++ ] = handle;
+    }
+
+    void VertexDeclarations::AddVertexDeclaration( VertexDeclaration v )
+    {
+      mVertexFormatDatas[ mVertexFormatDataCount++ ] = v;
+    }
+    VertexDeclarations::VertexDeclarations( VertexDeclaration a )
+    {
+      AddVertexDeclaration( a );
+    }
+    VertexDeclarations::VertexDeclarations( VertexDeclaration a, VertexDeclaration b )
+    {
+      AddVertexDeclaration( a );
+      AddVertexDeclaration( b );
+    }
+
+    ShaderSource ShaderSource::FromPath( StringView path )
+    {
+      ShaderSource result;
+      result.mShaderPath = path;
+      return result;
+    }
+
+    ShaderSource ShaderSource::FromStr( StringView str )
+    {
+      ShaderSource result;
+      result.mShaderStr = str;
+      return result;
+
+    }
+  }
 }
 

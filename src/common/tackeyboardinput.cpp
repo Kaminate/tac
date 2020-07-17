@@ -59,7 +59,8 @@ String ToString( Key key )
 
 bool KeyboardInputFrame::IsKeyDown( Key key )
 {
-  return mCurrDown.find( key ) != mCurrDown.end();
+  return mCurrDown[ (int)key ];
+  //return mCurrDown.find( key ) != mCurrDown.end();
 }
 String KeyboardInputFrame::GetPressedKeyDescriptions()
 {
@@ -92,14 +93,15 @@ void KeyboardInput::DebugImgui()
 }
 void KeyboardInput::SetIsKeyDown( Key key, bool isDown )
 {
-  if( isDown )
-  {
-    mCurr.mCurrDown.insert( key );
-  }
-  else
-  {
-    mCurr.mCurrDown.erase( key );
-  }
+  mCurr.mCurrDown[ ( int )key ] = isDown;
+  //if( isDown )
+  //{
+  //  mCurr.mCurrDown.insert( key );
+  //}
+  //else
+  //{
+  //  mCurr.mCurrDown.erase( key );
+  //}
 }
 
 KeyboardInput* KeyboardInput::Instance;

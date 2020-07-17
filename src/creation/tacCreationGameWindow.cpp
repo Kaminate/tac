@@ -104,24 +104,22 @@ namespace Tac
   }
   void CreationGameWindow::CreateGraphicsObjects( Errors& errors )
   {
-    Render::CommandDataCreateConstantBuffer cBufferDataPerFrame = {};
-    cBufferDataPerFrame.mShaderRegister = 0;
-    cBufferDataPerFrame.mByteCount = sizeof( DefaultCBufferPerFrame );
-    mPerFrame = Render::CreateConstantBuffer( "tac 3d per frame", cBufferDataPerFrame, TAC_STACK_FRAME );
+    mPerFrame = Render::CreateConstantBuffer( "tac 3d per frame",
+                                              sizeof( DefaultCBufferPerFrame ),
+                                              0,
+                                              TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
-    Render::CommandDataCreateConstantBuffer cBufferDataPerObj = {};
-    cBufferDataPerObj.mShaderRegister = 1;
-    cBufferDataPerObj.mByteCount = sizeof( DefaultCBufferPerObject );
-    mPerObj = Render::CreateConstantBuffer( "tac 3d per obj", cBufferDataPerObj, TAC_STACK_FRAME );
+    mPerObj = Render::CreateConstantBuffer( "tac 3d per obj",
+                                            sizeof( DefaultCBufferPerObject ),
+                                            1,
+                                            TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
-
-    Render::CommandDataCreateShader shaderData;
-    shaderData.mShaderPath = "3DTest";
-    shaderData.mConstantBuffers[ 0 ] = { mPerFrame };
-    shaderData.mConstantBuffers[ 1 ] = { mPerObj };
-    m3DShader = Render::CreateShader( "game window 3d shader", shaderData, TAC_STACK_FRAME );
+    m3DShader = Render::CreateShader( "game window 3d shader",
+                                      Render::ShaderSource::FromPath( "3DTest" ),
+                                      Render::ConstantBuffers( mPerFrame, mPerObj ),
+                                      TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
     VertexDeclaration posDecl;
@@ -131,16 +129,14 @@ namespace Tac
     posDecl.mTextureFormat.mPerElementByteCount = sizeof( float );
     posDecl.mTextureFormat.mPerElementDataType = GraphicsType::real;
 
-    Render::CommandDataCreateVertexFormat vertexFormatData = {};
-    vertexFormatData.mShaderHandle = m3DShader;
-    vertexFormatData.mVertexFormatDatas[ vertexFormatData.mVertexFormatDataCount++ ] = posDecl;
     m3DVertexFormat = Render::CreateVertexFormat( "game window renderer",
-                                                  vertexFormatData,
+                                                  Render::VertexDeclarations( posDecl ),
+                                                  m3DShader,
                                                   TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
     m3DvertexFormatDecls[ 0 ] = posDecl;
 
-    Render::CommandDataCreateBlendState blendStateData;
+    Render::BlendState blendStateData;
     blendStateData.srcRGB = BlendConstants::One;
     blendStateData.dstRGB = BlendConstants::Zero;
     blendStateData.blendRGB = BlendMode::Add;
@@ -433,7 +429,7 @@ namespace Tac
       drawCall.mUniformDst = mPerObj;
       drawCall.mUniformSrcc = TemporaryMemoryFromT( cbuf );
       drawCall.mFrame = TAC_STACK_FRAME;
-      Renderer::Instance->AddDrawCall( drawCall );
+      Render::AddDrawCall( drawCall );
     }
   }
   void CreationGameWindow::ComputeArrowLen()
@@ -462,7 +458,7 @@ namespace Tac
     float h = ( float )mDesktopWindow->mHeight;
     float a;
     float b;
-    Renderer::Instance->GetPerspectiveProjectionAB(
+    Render::GetPerspectiveProjectionAB(
       mCreation->mEditorCamera.mFarPlane,
       mCreation->mEditorCamera.mNearPlane,
       a,
@@ -478,7 +474,7 @@ namespace Tac
     DrawCall2 setPerFrame = {};
     setPerFrame.mUniformDst = mPerFrame;
     setPerFrame.CopyUniformSource( perFrameData );
-    Renderer::Instance->AddDrawCall( setPerFrame );
+    Render::AddDrawCall( setPerFrame );
     if( mCreation->IsAnythingSelected() )
     {
       v3 selectionGizmoOrigin = mCreation->GetSelectionGizmoOrigin();

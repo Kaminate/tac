@@ -66,34 +66,29 @@ namespace Tac
     m1x1White = Render::CreateTexture( "1x1 white", textureData, TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
-    Render::CommandDataCreateConstantBuffer cBufferDataPerFrame = {};
-    cBufferDataPerFrame.mShaderRegister = 0;
-    cBufferDataPerFrame.mByteCount = sizeof( DefaultCBufferPerFrame );
     mPerFrame = Render::CreateConstantBuffer( "tac ui 2d per frame",
-                                              cBufferDataPerFrame,
+                                              sizeof( DefaultCBufferPerFrame ),
+                                              0,
+
                                               TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
-    Render::CommandDataCreateConstantBuffer cBufferDataPerObj = {};
-    cBufferDataPerObj.mShaderRegister = 1;
-    cBufferDataPerObj.mByteCount = sizeof( DefaultCBufferPerObject );
     mPerObj = Render::CreateConstantBuffer( "tac ui 2d per obj",
-                                            cBufferDataPerObj,
+                                            sizeof( DefaultCBufferPerObject ),
+                                            1,
                                             TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
-    Render::CommandDataCreateShader shaderData;
-    shaderData.mShaderPath = "2D";
-    shaderData.mConstantBuffers[ 0 ] = mPerFrame;
-    shaderData.mConstantBuffers[ 1 ] = mPerObj;
-    mShader = Render::CreateShader( "tac 2d ui shader", shaderData, TAC_STACK_FRAME );
+    mShader = Render::CreateShader( "tac 2d ui shader",
+                                    Render::ShaderSource::FromPath( "2D" ),
+                                    Render::ConstantBuffers( mPerFrame, mPerObj ),
+                                    TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
-    Render::CommandDataCreateShader textShaderData;
-    textShaderData.mShaderPath = "2Dtext";
-    textShaderData.mConstantBuffers[ 0 ] = mPerFrame;
-    textShaderData.mConstantBuffers[ 1 ] = mPerObj;
-    m2DTextShader = Render::CreateShader( "tac 2d ui text shader", textShaderData, TAC_STACK_FRAME );
+    m2DTextShader = Render::CreateShader( "tac 2d ui text shader",
+                                          Render::ShaderSource::FromPath( "2Dtext" ),
+                                          Render::ConstantBuffers( mPerFrame, mPerObj ),
+                                          TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
     VertexDeclaration posData;
@@ -104,16 +99,16 @@ namespace Tac
     uvData.mAlignedByteOffset = TAC_OFFSET_OF( UI2DVertex, mGLTexCoord );
     uvData.mAttribute = Attribute::Texcoord;
     uvData.mTextureFormat = formatv2;
-    Render::CommandDataCreateVertexFormat vertexFormatData = {};
-    vertexFormatData.mShaderHandle = mShader;
-    vertexFormatData.AddVertexDeclaration( posData );
-    vertexFormatData.AddVertexDeclaration( uvData );
+    Render::VertexDeclarations vertexDeclarations;
+    vertexDeclarations.AddVertexDeclaration( posData );
+    vertexDeclarations.AddVertexDeclaration( uvData );
     mFormat = Render::CreateVertexFormat( "tac 2d ui vertex format",
-                                          vertexFormatData,
+                                          vertexDeclarations,
+                                          mShader,
                                           TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
-    Render::CommandDataCreateBlendState blendStateData;
+    Render::BlendState blendStateData;
     blendStateData.srcRGB = BlendConstants::One;
     blendStateData.dstRGB = BlendConstants::OneMinusSrcA;
     blendStateData.blendRGB = BlendMode::Add;
@@ -180,19 +175,12 @@ namespace Tac
       {
         if( mVertexBufferHandle.IsValid() )
           Render::DestroyVertexBuffer( mVertexBufferHandle, TAC_STACK_FRAME );
-        Render::CommandDataCreateVertexBuffer vertexBufferData = {};
-        vertexBufferData.mAccess = Access::Dynamic;
-        vertexBufferData.mByteCount = mVertexCapacity * sizeof( UI2DVertex );
-        vertexBufferData.mOptionalInitialBytes = mDefaultVertex2Ds.data();
-        //Renderer::Instance->AddVertexBuffer( &mVerts, vertexBufferData, errors );
-
-        Render::CommandDataCreateVertexBuffer data;
-        data.mAccess = Access::Dynamic;
-        data.mByteCount = vertexCount * sizeof( UI2DVertex );
-        data.mOptionalInitialBytes = nullptr;
-        data.mStride = sizeof( UI2DVertex );
-        mVertexBufferHandle = Render::CreateVertexBuffer( "draw data verts", data, TAC_STACK_FRAME );
-        TAC_HANDLE_ERROR( errors );
+        mVertexBufferHandle = Render::CreateVertexBuffer( "draw data verts",
+                                                          mDefaultVertex2Ds.size() * sizeof( UI2DVertex ),
+                                                          nullptr,
+                                                          sizeof( UI2DVertex ),
+                                                          Access::Dynamic,
+                                                          TAC_STACK_FRAME );
         mVertexCapacity = vertexCount;
       }
 
@@ -200,39 +188,30 @@ namespace Tac
       {
         if( mIndexBufferHandle.IsValid() )
           Render::DestroyIndexBuffer( mIndexBufferHandle, TAC_STACK_FRAME );
-        Render::CommandDataCreateVertexBuffer indexBufferData;
-        indexBufferData.mAccess = Access::Dynamic;
-        indexBufferData.mByteCount = mIndexCapacity * sizeof( UI2DIndex );
-        indexBufferData.mOptionalInitialBytes = mDefaultIndex2Ds.data();
-
-        Render::CommandDataCreateIndexBuffer data;
-        data.mAccess = Access::Dynamic;;
-        data.mByteCount = indexCount * sizeof( UI2DIndex );
-        data.mOptionalInitialBytes = nullptr;
-        data.mFormat.mElementCount = 1;
-        data.mFormat.mPerElementByteCount = sizeof( UI2DIndex );
-        data.mFormat.mPerElementDataType = GraphicsType::uint;
-        mIndexBufferHandle = Render::CreateIndexBuffer( "draw data indexes", data, TAC_STACK_FRAME );
+        Format format;
+        format.mElementCount = 1;
+        format.mPerElementByteCount = sizeof( UI2DIndex );
+        format.mPerElementDataType = GraphicsType::uint;
+        mIndexBufferHandle = Render::CreateIndexBuffer( "draw data indexes",
+                                                        indexCount * sizeof( UI2DIndex ),
+                                                        nullptr,
+                                                        Access::Dynamic,
+                                                        format,
+                                                        TAC_STACK_FRAME );
         TAC_HANDLE_ERROR( errors );
         mIndexCapacity = indexCount;
       }
 
 
-      Render::CommandDataUpdateBuffer updateVertexBufferData;
-      updateVertexBufferData.mBytes = mDefaultVertex2Ds.data();
-      updateVertexBufferData.mByteCount = mDefaultVertex2Ds.size() * sizeof( UI2DVertex );
       Render::UpdateVertexBuffer( mVertexBufferHandle,
-                                  updateVertexBufferData,
+                                  mDefaultVertex2Ds.data(),
+                                  mDefaultVertex2Ds.size() * sizeof( UI2DVertex ),
                                   TAC_STACK_FRAME );
-      //mVerts->Overwrite( mDefaultVertex2Ds.data(), vertexCount * sizeof( UI2DVertex ), errors );
       TAC_HANDLE_ERROR( errors );
 
-      Render::CommandDataUpdateBuffer updateIndexBufferData;
-      updateIndexBufferData.mBytes = mDefaultIndex2Ds.data();
-      updateIndexBufferData.mByteCount = mDefaultIndex2Ds.size() * sizeof( UI2DIndex );
-
       Render::UpdateIndexBuffer( mIndexBufferHandle,
-                                 updateIndexBufferData,
+                                 mDefaultIndex2Ds.data(),
+                                 mDefaultIndex2Ds.size() * sizeof( UI2DIndex ),
                                  TAC_STACK_FRAME );
       //mIndexes->Overwrite( mDefaultIndex2Ds.data(), indexCount * sizeof( UI2DIndex ), errors );
       TAC_HANDLE_ERROR( errors );
@@ -251,11 +230,14 @@ namespace Tac
             0, sy, 0, -1,
             0, 0, 1, 0,
             0, 0, 0, 1 ) );
-      v4 testVector( 130, 160, 0, 1 );
-      bool testing = false;
+      static v4 testVectorOrig( 130, 160, 0, 1 );
+      v4 testVector = testVectorOrig;
+      static bool testVectorMultiply = true;
+      static bool testVectorPrint = false;
       auto PrintTestVector = [ & ]()
       {
-        std::cout
+        if( testVectorPrint )
+          std::cout
           << va(
             "Test vector: %.2f, %.2f, %.2f\n",
             testVector.x,
@@ -263,28 +245,19 @@ namespace Tac
             testVector.z )
           << std::endl;
       };
-      if( testing )
-      {
-        PrintTestVector();
-      }
+      PrintTestVector();
       m4 projection = m4::Identity();
       for( m4 projectionPiece : projectionPieces )
       {
         projection = projectionPiece * projection;
-        if( testing )
-        {
-          testVector = projectionPiece * testVector;
-          PrintTestVector();
-        }
+        testVector = projectionPiece * testVector;
+        PrintTestVector();
       }
 
       DefaultCBufferPerFrame perFrameData = {};
       perFrameData.mView = m4::Identity();
       perFrameData.mProjection = projection;
 
-      Render::CommandDataUpdateBuffer updateConstantBufferData;
-      updateConstantBufferData.mByteCount = sizeof( DefaultCBufferPerFrame );
-      updateConstantBufferData.mBytes = &perFrameData;
 
       DrawCall2 perFrame = {};
       //perFrame.mRenderView = mRenderView;
@@ -296,7 +269,7 @@ namespace Tac
       perFrame.mUniformDst = UI2DCommonData::Instance->mPerFrame;
       perFrame.mUniformSrcc = TemporaryMemoryFromT( perFrameData );
       perFrame.mFrame = TAC_STACK_FRAME;
-      //Renderer::Instance->AddDrawCall( perFrame );
+      //Render::AddDrawCall( perFrame );
 
       Render::SetBlendState( UI2DCommonData::Instance->mBlendState );
       Render::SetRasterizerState( UI2DCommonData::Instance->mRasterizerState );
@@ -304,8 +277,10 @@ namespace Tac
       Render::SetDepthState( UI2DCommonData::Instance->mDepthState );
       Render::SetVertexFormat( UI2DCommonData::Instance->mFormat );
 
-      Render::UpdateConstantBuffer( UI2DCommonData::Instance->mPerFrame, updateConstantBufferData, TAC_STACK_FRAME );
-      //Render::Submit( viewId ); // this should be unnecessary
+      Render::UpdateConstantBuffer( UI2DCommonData::Instance->mPerFrame,
+                                    &perFrameData,
+                                    sizeof( DefaultCBufferPerFrame ),
+                                    TAC_STACK_FRAME );
 
       for( UI2DDrawCall& uidrawCall : mDrawCall2Ds )
       {
@@ -313,14 +288,11 @@ namespace Tac
         Render::TextureHandle texture = uidrawCall.mTexture.IsValid() ?
           uidrawCall.mTexture :
           UI2DCommonData::Instance->m1x1White;
-        //Render::TextureHandle texture = uidrawCall.mTexture.mResourceId == Render::NullResourceId ?
-        //  UI2DCommonData::Instance->m1x1White :
-        //  uidrawCall.mTexture;
 
-        uidrawCall.mUniformSource;
-        updateConstantBufferData.mByteCount = sizeof( DefaultCBufferPerObject );
-        updateConstantBufferData.mBytes = &uidrawCall.mUniformSource;
-        Render::UpdateConstantBuffer( UI2DCommonData::Instance->mPerObj, updateConstantBufferData, TAC_STACK_FRAME );
+        Render::UpdateConstantBuffer( UI2DCommonData::Instance->mPerObj,
+                                      &uidrawCall.mUniformSource,
+                                      sizeof( DefaultCBufferPerObject ),
+                                      TAC_STACK_FRAME );
 
         //DrawCall2 drawCall2 = {};
         //drawCall2.mUniformDst = UI2DCommonData::Instance->mPerObj;
@@ -344,7 +316,7 @@ namespace Tac
         //drawCall2.mUniformSrcc = TemporaryMemoryFromT( uidrawCall.mUniformSource );
         //drawCall2.mFrame = TAC_STACK_FRAME;
         Render::SetShader( uidrawCall.mShader );
-        //Renderer::Instance->AddDrawCall( drawCall2 );
+        //Render::AddDrawCall( drawCall2 );
         Render::Submit( viewId );
       }
     }

@@ -362,7 +362,7 @@ void Ghost::Draw( Errors& errors )
   float fovYRad = 100.0f * ( 3.14f / 180.0f );
   float projA;
   float projB;
-  Renderer::Instance->GetPerspectiveProjectionAB( farPlane, nearPlane, projA, projB );
+  Render::GetPerspectiveProjectionAB( farPlane, nearPlane, projA, projB );
 
   auto world_to_view = M4View( camPos, camViewDir, camR, camU );
   //auto view_to_clip = M4ProjPerspective( projA, projB, fovYRad, aspect );

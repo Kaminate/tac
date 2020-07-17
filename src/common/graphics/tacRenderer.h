@@ -34,6 +34,7 @@ namespace Tac
   struct Renderer;
   struct CBuffer;
   struct Shell;
+  struct DrawCall2;
 
 
 
@@ -270,26 +271,29 @@ namespace Tac
     typedef int ResourceId;
     const ResourceId NullResourceId = -1;
 
-#define TAC_RENDER_HANDLE_BODY                            \
-    {                                                     \
-      ResourceId mResourceId = NullResourceId;            \
-      bool IsValid() const                                \
-      {                                                   \
-        return mResourceId != NullResourceId;             \
-      }                                                   \
+#define TAC_DEFINE_RENDER_HANDLE( name )                          \
+    struct name                                                   \
+    {                                                             \
+      name() = default;                                           \
+      name( ResourceId resourceId ) : mResourceId( resourceId ){} \
+      ResourceId mResourceId = NullResourceId;                    \
+      bool IsValid() const                                        \
+      {                                                           \
+        return mResourceId != NullResourceId;                     \
+      }                                                           \
     }
-    struct ShaderHandle          TAC_RENDER_HANDLE_BODY;
-    struct VertexBufferHandle    TAC_RENDER_HANDLE_BODY;
-    struct IndexBufferHandle     TAC_RENDER_HANDLE_BODY;
-    struct ConstantBufferHandle  TAC_RENDER_HANDLE_BODY;
-    struct TextureHandle         TAC_RENDER_HANDLE_BODY;
-    struct FramebufferHandle     TAC_RENDER_HANDLE_BODY;
-    struct BlendStateHandle      TAC_RENDER_HANDLE_BODY;
-    struct RasterizerStateHandle TAC_RENDER_HANDLE_BODY;
-    struct SamplerStateHandle    TAC_RENDER_HANDLE_BODY;
-    struct DepthStateHandle      TAC_RENDER_HANDLE_BODY;
-    struct VertexFormatHandle    TAC_RENDER_HANDLE_BODY;
-#undef TAC_RENDER_HANDLE_BODY
+    TAC_DEFINE_RENDER_HANDLE( ShaderHandle );
+    TAC_DEFINE_RENDER_HANDLE( VertexBufferHandle );
+    TAC_DEFINE_RENDER_HANDLE( IndexBufferHandle );
+    TAC_DEFINE_RENDER_HANDLE( ConstantBufferHandle );
+    TAC_DEFINE_RENDER_HANDLE( TextureHandle );
+    TAC_DEFINE_RENDER_HANDLE( FramebufferHandle );
+    TAC_DEFINE_RENDER_HANDLE( BlendStateHandle );
+    TAC_DEFINE_RENDER_HANDLE( RasterizerStateHandle );
+    TAC_DEFINE_RENDER_HANDLE( SamplerStateHandle );
+    TAC_DEFINE_RENDER_HANDLE( DepthStateHandle );
+    TAC_DEFINE_RENDER_HANDLE( VertexFormatHandle );
+#undef TAC_DEFINE_RENDER_HANDLE
 
 
     struct Frame;
@@ -304,31 +308,10 @@ namespace Tac
     const void* SubmitAlloc( const void* bytes, int byteCount );
     //void SubmitAllocBeginFrame();
 
-    struct CommandDataCreateVertexBuffer
-    {
-      int mByteCount = 0;
-      void* mOptionalInitialBytes = nullptr;
-      int mStride;
-      //Format mFormat; no. format goes in the inputlayout
-      Access mAccess = Access::Default;
-    };
 
-    struct CommandDataCreateIndexBuffer
+    struct BlendState
     {
-      int mByteCount = 0;
-      void* mOptionalInitialBytes = nullptr;
-      Access mAccess = Access::Default;
-      Format mFormat;
-    };
-
-    struct CommandDataCreateConstantBuffer
-    {
-      int mByteCount = 0;
-      int mShaderRegister = 0;
-    };
-
-    struct CommandDataCreateBlendState
-    {
+      // prefix w/ m please
       BlendConstants srcRGB = BlendConstants::One;
       BlendConstants dstRGB = BlendConstants::Zero;
       BlendMode blendRGB = BlendMode::Add;
@@ -336,44 +319,46 @@ namespace Tac
       BlendConstants dstA = BlendConstants::Zero;
       BlendMode blendA = BlendMode::Add;
     };
-    struct CommandDataCreateRasterizerState
+
+
+    struct VertexDeclarations
     {
-      FillMode fillMode = ( FillMode )0;
-      CullMode cullMode = ( CullMode )0;
-      bool frontCounterClockwise = false;
-      bool scissor = false;
-      bool multisample = false;
+      VertexDeclarations() = default;
+      VertexDeclarations( VertexDeclaration a );
+      VertexDeclarations( VertexDeclaration a, VertexDeclaration b );
+      void              AddVertexDeclaration( VertexDeclaration v );
+      VertexDeclaration mVertexFormatDatas[ 10 ];
+      int               mVertexFormatDataCount = 0;
     };
 
-    struct CommandDataCreateSamplerState
+    struct ShaderSource
     {
-      AddressMode u = ( AddressMode )0;
-      AddressMode v = ( AddressMode )0;
-      AddressMode w = ( AddressMode )0;
-      Comparison compare = ( Comparison )0;
-      Filter filter = ( Filter )0;
+      // can load from either
+      StringView mShaderPath;
+      StringView mShaderStr;
+      static ShaderSource FromPath( StringView );
+      static ShaderSource FromStr( StringView );
     };
 
-    struct CommandDataCreateDepthState
+    struct ConstantBuffers
     {
-      bool depthTest = false;
-      bool depthWrite = false;
-      DepthFunc depthFunc = ( DepthFunc )0;
+      ConstantBuffers() = default;
+      ConstantBuffers( ConstantBufferHandle );
+      ConstantBuffers( ConstantBufferHandle, ConstantBufferHandle );
+      ConstantBuffers( ConstantBufferHandle*, int );
+      void                 AddConstantBuffer( ConstantBufferHandle handle );
+      ConstantBufferHandle mConstantBuffers[ 10 ];
+      int                  mConstantBufferCount = 0;
     };
 
-    struct CommandDataCreateVertexFormat
+    struct DepthState
     {
-      VertexDeclaration mVertexFormatDatas[10];
-      int mVertexFormatDataCount = 0;
-      ShaderHandle mShaderHandle;
-
-      void AddVertexDeclaration( VertexDeclaration v )
-      {
-        mVertexFormatDatas[ mVertexFormatDataCount++ ] = v;
-      }
+      bool mDepthTest = false;
+      bool mDepthWrite = false;
+      DepthFunc mDepthFunc = ( DepthFunc )0;
     };
 
-    struct CommandDataCreateTexture
+    struct TexSpec
     {
       Image mImage;
       int mPitch = 0; // byte count between texel rows
@@ -384,55 +369,64 @@ namespace Tac
       CPUAccess mCpuAccess = CPUAccess::None;
     };
 
-    struct CommandDataCreateFramebuffer
-    {
-      int mWidth = 0;
-      int mHeight = 0;
-      //const void* mNativeWindowHandle = nullptr;
-      DesktopWindowHandle mDesktopWindowHandle;
-    };
 
-    struct CommandDataUpdateTextureRegion
+    struct TexUpdate
     {
+
       Image mSrc;
       int mDstX = 0;
       int mDstY = 0;
       const void* mSrcBytes = nullptr;
       int mPitch = 0; // byte count between pixel rows
     };
-
-    struct CommandDataUpdateBuffer
+    struct RasterizerState
     {
-      const void* mBytes = nullptr;
-      int mByteCount = 0;
+
+      FillMode mFillMode = ( FillMode )0;
+      CullMode mCullMode = ( CullMode )0;
+      bool mFrontCounterClockwise = false;
+      bool mScissor = false;
+      bool mMultisample = false;
+    };
+    struct SamplerState
+    {
+
+      AddressMode mU = ( AddressMode )0;
+      AddressMode mV = ( AddressMode )0;
+      AddressMode mW = ( AddressMode )0;
+      Comparison mCompare = ( Comparison )0;
+      Filter mFilter = ( Filter )0;
     };
 
-    struct CommandDataCreateShader
-    {
-      // can load from either
-      StringView mShaderPath;
-      StringView mShaderStr;
-      ConstantBufferHandle mConstantBuffers[10];
-      int mConstantBufferCount = 0;
-      void AddConstantBuffer(ConstantBufferHandle handle)
-      {
-        mConstantBuffers[mConstantBufferCount++] = handle;
-      }
-    };
 
-    ShaderHandle                     CreateShader( StringView, CommandDataCreateShader, StackFrame );
-    ConstantBufferHandle             CreateConstantBuffer( StringView, CommandDataCreateConstantBuffer, StackFrame );
-    VertexBufferHandle               CreateVertexBuffer( StringView, CommandDataCreateVertexBuffer, StackFrame );
-    IndexBufferHandle                CreateIndexBuffer( StringView, CommandDataCreateIndexBuffer, StackFrame );
-    TextureHandle                    CreateTexture( StringView, CommandDataCreateTexture, StackFrame );
-    FramebufferHandle                CreateFramebuffer( StringView,
-                                                        CommandDataCreateFramebuffer,
+    ShaderHandle                     CreateShader( StringView, ShaderSource, ConstantBuffers, StackFrame );
+    ConstantBufferHandle             CreateConstantBuffer( StringView,
+                                                           int mByteCount,
+                                                           int mShaderRegister,
+                                                           StackFrame );
+    VertexBufferHandle               CreateVertexBuffer( StringView,
+                                                         int mByteCount,
+                                                         void* mOptionalInitialBytes,
+                                                         int mStride,
+                                                         Access mAccess,
+                                                         StackFrame );
+    IndexBufferHandle                CreateIndexBuffer( StringView,
+                                                        int byteCount,
+                                                        void* optionalInitialBytes,
+                                                        Access access,
+                                                        Format format,
                                                         StackFrame );
-    BlendStateHandle                 CreateBlendState( StringView, CommandDataCreateBlendState, StackFrame );
-    RasterizerStateHandle            CreateRasterizerState( StringView, CommandDataCreateRasterizerState, StackFrame );
-    SamplerStateHandle               CreateSamplerState( StringView, CommandDataCreateSamplerState, StackFrame );
-    DepthStateHandle                 CreateDepthState( StringView, CommandDataCreateDepthState, StackFrame );
-    VertexFormatHandle               CreateVertexFormat( StringView, CommandDataCreateVertexFormat, StackFrame );
+    TextureHandle                    CreateTexture( StringView, TexSpec, StackFrame );
+    FramebufferHandle                CreateFramebuffer( StringView,
+                                                        DesktopWindowHandle,
+                                                        int width,
+                                                        int weight,
+                                                        StackFrame );
+    BlendStateHandle                 CreateBlendState( StringView, BlendState, StackFrame );
+    RasterizerStateHandle            CreateRasterizerState( StringView, RasterizerState, StackFrame );
+    SamplerStateHandle               CreateSamplerState( StringView, SamplerState, StackFrame );
+    DepthStateHandle                 CreateDepthState( StringView, DepthState, StackFrame );
+    VertexFormatHandle               CreateVertexFormat( StringView, VertexDeclarations, ShaderHandle, StackFrame );
 
     void                             DestroyVertexBuffer( VertexBufferHandle, StackFrame );
     void                             DestroyIndexBuffer( IndexBufferHandle, StackFrame );
@@ -447,18 +441,26 @@ namespace Tac
     void                             DestroyRasterizerState( RasterizerStateHandle, StackFrame );
     void                             DestroySamplerState( SamplerStateHandle, StackFrame );
 
-    void                             UpdateTextureRegion( TextureHandle mDst,
-                                                          CommandDataUpdateTextureRegion,
+    void                             UpdateTextureRegion( TextureHandle,
+                                                          TexUpdate,
                                                           StackFrame );
     void                             UpdateVertexBuffer( VertexBufferHandle,
-                                                         CommandDataUpdateBuffer,
+                                                         const void*,
+                                                         int,
                                                          StackFrame );
     void                             UpdateIndexBuffer( IndexBufferHandle,
-                                                        CommandDataUpdateBuffer,
+                                                        const void*,
+                                                        int,
                                                         StackFrame );
     void                             UpdateConstantBuffer( ConstantBufferHandle,
-                                                           CommandDataUpdateBuffer,
+                                                           const void*,
+                                                           int,
                                                            StackFrame );
+
+    void                             ResizeFramebuffer( FramebufferHandle,
+                                                        int w,
+                                                        int h,
+                                                        StackFrame );
 
     void                             SetViewFramebuffer( ViewId, FramebufferHandle );
     void                             SetViewScissorRect( ViewId, ScissorRect );
@@ -475,9 +477,14 @@ namespace Tac
 
     //void                             SetUniform( ConstantBufferHandle, const void* bytes, int byteCount );
 
-    void                             Submit( ViewId viewId );
+    void                             Submit( ViewId );
+    void                             AddDrawCall( const DrawCall2& );
+    void                             GetPerspectiveProjectionAB( float f, float n, float& a, float& b );
+    void                             Init( Errors& );
+    void                             Uninit();
   }
 
+  // todo: delete in favor of drawcall3
   struct DrawCall2
   {
     Render::ShaderHandle mShader;
@@ -502,81 +509,6 @@ namespace Tac
     void CopyUniformSource( const void* bytes, int byteCount );
   };
 
-  struct Renderer
-  {
-    enum class Type
-    {
-      Vulkan,
-      OpenGL4,
-      DirectX12,
-      Count,
-    };
-
-    static Renderer* Instance;
-    Renderer();
-    //virtual void CreateWindowContext( DesktopWindow* desktopWindow, Errors& errors ) {}
-
-    virtual ~Renderer();
-    virtual void Init( Errors& ) {};
-    //virtual void ClearColor( Texture* texture, v4 rgba ) { TAC_UNIMPLEMENTED; }
-    //virtual void ClearDepthStencil(
-    //  DepthBuffer* depthBuffer,
-    //  bool shouldClearDepth,
-    //  float depth,
-    //  bool shouldClearStencil,
-    //  uint8_t stencil )
-    //{
-    //  TAC_UNIMPLEMENTED;
-    //}
-
-    //virtual void SetSamplerState(
-    //  const String& samplerName,
-    //  SamplerState* samplerState )
-    //{
-    //  TAC_UNIMPLEMENTED;
-    //}
-
-    //virtual void AddCbufferToShader( Shader* shader, CBuffer* cbuffer, ShaderType myShaderType )
-    //{
-    //  //Unimplemented;
-    //}
-
-    //virtual void DebugBegin( const String& section ) { TAC_UNIMPLEMENTED; }
-    //virtual void DebugMark( const String& remark ) { TAC_UNIMPLEMENTED; }
-    //virtual void DebugEnd() { TAC_UNIMPLEMENTED; }
-
-    //virtual void DrawNonIndexed( int vertexCount = 0 ) { TAC_UNIMPLEMENTED; }
-
-    //virtual void DrawIndexed( int elementCount, int idxOffset, int vtxOffset ) { TAC_UNIMPLEMENTED; }
-
-    //virtual void Apply() { TAC_UNIMPLEMENTED; }
-
-    //virtual void RenderFlush() { TAC_UNIMPLEMENTED; }
-    //virtual void Render( Errors& errors ) { TAC_UNIMPLEMENTED; }
-    virtual void Render2( const Render::Frame*, Errors& ) { TAC_UNIMPLEMENTED; }
-    virtual void SwapBuffers() { TAC_UNIMPLEMENTED; }
-
-    //virtual void SetPrimitiveTopology( Primitive primitive ) { TAC_UNIMPLEMENTED; }
-
-    virtual void GetPerspectiveProjectionAB(
-      float f,
-      float n,
-      float& a,
-      float& b )
-    {
-      TAC_UNUSED_PARAMETER( f );
-      TAC_UNUSED_PARAMETER( n );
-      TAC_UNUSED_PARAMETER( a );
-      TAC_UNUSED_PARAMETER( b );
-      TAC_UNIMPLEMENTED;
-    }
-    //void DebugImgui();
-
-
-    String mName;
-    void AddDrawCall( const DrawCall2& drawCall );
-    Vector< DrawCall2 > mDrawCall2s;
-  };
 
   struct RendererFactory
   {
@@ -596,7 +528,6 @@ namespace Tac
     Vector< RendererFactory* > mFactories;
   };
 
-  String ToString( Renderer::Type );
   const static String RendererNameVulkan = "Vulkan";
   const static String RendererNameOpenGL4 = "OpenGL4";
   const static String RendererNameDirectX11 = "DirectX11";

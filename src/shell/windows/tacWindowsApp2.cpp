@@ -141,7 +141,10 @@ namespace Tac
     WPARAM wParam,
     LPARAM lParam )
   {
-    bool mouseInWindowVerbose = false;
+    static bool verboseMouseInWindow = false;
+    static bool verboseFocus = false;
+    static bool verboseActivate = false;
+    static bool verboseCapture = false;
 
     switch( uMsg )
     {
@@ -156,8 +159,7 @@ namespace Tac
         mWidth = ( int )LOWORD( lParam );
         mHeight = ( int )HIWORD( lParam );
         mOnResize.EmitEvent();
-        DesktopWindowHandle desktopWindowHandle = { -1 };
-        DesktopEvent::PushEventResizeWindow( desktopWindowHandle, mWidth, mHeight );
+        DesktopEvent::PushEventResizeWindow( mHandle, mWidth, mHeight );
       } break;
       case WM_MOVE:
       {
@@ -188,12 +190,14 @@ namespace Tac
 
       case WM_SETFOCUS:
       {
-        //std::cout << "window gained keyboard focus " << std::endl;
+        if( verboseFocus )
+          std::cout << "window gained keyboard focus " << std::endl;
       } break;
       case WM_KILLFOCUS:
       {
         //KeyboardInput::Instance->mCurrDown.clear();
-        //std::cout << "window about to lose keyboard focus" << std::endl;
+        if( verboseFocus )
+          std::cout << "window about to lose keyboard focus" << std::endl;
       } break;
 
       // Sent when a window belonging to a different application than the active window
@@ -205,27 +209,29 @@ namespace Tac
       {
         if( wParam == TRUE )
         {
-          // The window is being activated
+          if( verboseActivate )
+            std::cout << "The window is being activated" << std::endl;
         }
         else
         {
-          // The window is being deactivated
+          if( verboseActivate )
+            std::cout << "The window is being deactivated" << std::endl;
         }
       } break;
 
       case WM_CAPTURECHANGED:
       {
-        //std::cout << "WM_CAPTURECHANGED ( mouse capture lost )" << std::endl;
+        if( verboseCapture )
+          std::cout << "WM_CAPTURECHANGED ( mouse capture lost )" << std::endl;
       } break;
 
-      case WM_LBUTTONDOWN:
+
+      // this is XBUTTON1 or XBUTTON2 ( side mouse buttons )
+      case WM_XBUTTONDOWN:
       {
-        //std::cout << "WM_LBUTTONDOWN" << std::endl;
-        KeyboardInput::Instance->SetIsKeyDown( Key::MouseLeft, true );
-        //SeTiveWindow( mHWND );
-        //SetForegroundWindow( mHWND );
-
+        SetActiveWindow( mHWND );
       } break;
+
 
       // https://docs.microsoft.com/en-us/windows/desktop/inputdev/wm-nclbuttonup
       // Posted when the user releases the left mouse button while the cursor is
@@ -233,6 +239,16 @@ namespace Tac
       // This message is posted to the window that contains the cursor.
       // If a window has captured the mouse, this message is not posted.
       // case WM_NCLBUTTONUP:
+
+      case WM_LBUTTONDOWN:
+      {
+        //std::cout << "WM_LBUTTONDOWN" << std::endl;
+        KeyboardInput::Instance->SetIsKeyDown( Key::MouseLeft, true );
+        SetActiveWindow( mHWND ); // make it so clicking the window brings the window to the top of the z order
+        //SetForegroundWindow( mHWND );
+
+      } break;
+
       case WM_LBUTTONUP:
       {
         //if( uMsg == WM_LBUTTONUP ) { std::cout << "WM_LBUTTONUP" << std::endl; }
@@ -243,6 +259,8 @@ namespace Tac
       case WM_RBUTTONDOWN:
       {
         KeyboardInput::Instance->SetIsKeyDown( Key::MouseRight, true );
+        //BringWindowToTop( mHWND );
+        SetActiveWindow( mHWND ); // make it so clicking the window brings the window to the top of the z order
       } break;
       case WM_RBUTTONUP:
       {
@@ -252,6 +270,8 @@ namespace Tac
       case WM_MBUTTONDOWN:
       {
         KeyboardInput::Instance->SetIsKeyDown( Key::MouseMiddle, true );
+        //BringWindowToTop( mHWND );
+        SetActiveWindow( mHWND ); // make it so clicking the window brings the window to the top of the z order
       } break;
       case WM_MBUTTONUP:
       {
@@ -272,22 +292,27 @@ namespace Tac
 
           // Allows this windows to receive mouse-move messages past the edge of the window
           SetCapture( mHWND );
+          if( verboseCapture )
+            std::cout << "Setting mouse capture to window" << std::endl;
 
-          if( mouseInWindowVerbose )
+
+          if( verboseMouseInWindow )
             std::cout << mName << " mouse enter " << std::endl;
           mIsMouseInWindow = true;
         }
       } break;
+
       case WM_MOUSEWHEEL:
       {
         short wheelDeltaParam = GET_WHEEL_DELTA_WPARAM( wParam );
         short ticks = wheelDeltaParam / WHEEL_DELTA;
         KeyboardInput::Instance->mCurr.mMouseScroll += ( int )ticks;
       } break;
+
       case WM_MOUSELEAVE:
       {
-        if( mouseInWindowVerbose )
-          std::cout << mName << " mouse leave " << std::endl;
+        if( verboseMouseInWindow )
+          std::cout << mName << " mouse leave" << std::endl;
         mIsMouseInWindow = false;
         //ReleaseCapture();
         //mCurrDown.clear();

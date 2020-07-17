@@ -230,14 +230,13 @@ namespace Tac
         TAC_ASSERT( indices->type == cgltf_type_scalar );
         Format indexFormat;
         FillDataType( indices, &indexFormat );
-        Render::IndexBufferHandle indexBuffer;
-        Render::CommandDataCreateIndexBuffer indexBufferData = {};
-        indexBufferData.mByteCount = ( int )indices->count * ( int )sizeof( indexFormat.CalculateTotalByteCount() );
-        indexBufferData.mAccess = Access::Default;
-        indexBufferData.mOptionalInitialBytes = indiciesData;
-        indexBufferData.mFormat = indexFormat;
-        Errors indexBufferErrors;
-        indexBuffer = Render::CreateIndexBuffer( debugName, indexBufferData, TAC_STACK_FRAME );
+        const int indexByteCount = ( int )indices->count * ( int )sizeof( indexFormat.CalculateTotalByteCount() );
+        Render::IndexBufferHandle indexBuffer = Render::CreateIndexBuffer( debugName,
+                                                 indexByteCount,
+                                                 indiciesData,
+                                                 Access::Default,
+                                                 indexFormat,
+                                                 TAC_STACK_FRAME );
 
         int vertexCount = ( int )parsedPrim->attributes[ 0 ].data->count;
         int dstVtxStride = 0;
@@ -297,15 +296,13 @@ namespace Tac
         Vector< Array< v3, 3 >> tris;
         GetTris( parsedPrim, tris );
 
-        Render::VertexBufferHandle vertexBuffer;
-        Render::CommandDataCreateVertexBuffer vertexBufferData = {};
-        vertexBufferData.mAccess = Access::Default;
-        vertexBufferData.mByteCount = dstVtxs.size() * dstVtxStride;
-        vertexBufferData.mOptionalInitialBytes = dstVtxs.data();
-        Errors vertexBufferErrors;
-        vertexBuffer = Render::CreateVertexBuffer( debugName,
-                                                   vertexBufferData,
-                                                   TAC_STACK_FRAME );
+        const int dstVtxsByteCount = dstVtxs.size() * dstVtxStride;
+        Render::VertexBufferHandle vertexBuffer = Render::CreateVertexBuffer( debugName,
+                                                                              dstVtxsByteCount,
+                                                                              dstVtxs.data(),
+                                                                              dstVtxStride,
+                                                                              Access::Default,
+                                                                              TAC_STACK_FRAME );
 
         SubMesh subMesh;
         subMesh.mIndexBuffer = indexBuffer;

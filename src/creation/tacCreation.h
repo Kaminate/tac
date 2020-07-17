@@ -116,12 +116,14 @@ namespace Tac
 
     //DesktopWindowStates mDesktopWindowStates;
 
+    // the desktopwindowstate doesnt keep track of framebuffers,
+    // so this class was designed for that responsibility
     struct WindowFramebufferInfo
     {
       DesktopWindowHandle mDesktopWindowHandle;
       Render::FramebufferHandle mFramebufferHandle;
     };
-    Vector<WindowFramebufferInfo> mWindowFramebufferInfos;
+    Vector< WindowFramebufferInfo > mWindowFramebufferInfos;
     WindowFramebufferInfo* FindWindowFramebufferInfo( DesktopWindowHandle );
   };
 

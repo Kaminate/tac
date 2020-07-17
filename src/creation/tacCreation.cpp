@@ -532,35 +532,46 @@ namespace Tac
   {
     /*TAC_PROFILE_BLOCK*/;
 
-    bool createdWindows[ kMaxDesktopWindowStateCount ] = {};
-    DesktopEvent::ProcessStuff( createdWindows );
+    DesktopWindowStates oldDesktopWindowStates;
+    MemCpy( &oldDesktopWindowStates, gDesktopWindowStates, sizeof( DesktopWindowStates ) );
+    DesktopEvent::ProcessStuff();
 
     for( int iDesktopWindowState = 0;
          iDesktopWindowState < kMaxDesktopWindowStateCount;
          iDesktopWindowState++ )
     {
-      const bool created = createdWindows[ iDesktopWindowState ];
-      if( !created )
+      const DesktopWindowState* newState = &gDesktopWindowStates[ iDesktopWindowState ];
+      const DesktopWindowState* oldState = &oldDesktopWindowStates[ iDesktopWindowState ];
+      if( !newState->mDesktopWindowHandle.IsValid() )
         continue;
 
-      DesktopWindowState* desktopWindowState = &gDesktopWindowStates[ iDesktopWindowState ];
-      //const void* nativeWindowHandle =  desktopWindowState->mNativeWindowHandle;
+      if( oldState->mDesktopWindowHandle.IsValid() )
+      {
+        const bool sameSize =
+          oldState->mWidth == newState->mWidth &&
+          oldState->mHeight == newState->mHeight;
+        if( !sameSize )
+        {
+          WindowFramebufferInfo* info = FindWindowFramebufferInfo( newState->mDesktopWindowHandle );
+          Render::ResizeFramebuffer( info->mFramebufferHandle,
+                                     newState->mWidth,
+                                     newState->mHeight,
+                                     TAC_STACK_FRAME );
+        }
+      }
+      else
+      {
+        WindowFramebufferInfo info;
+        info.mDesktopWindowHandle = newState->mDesktopWindowHandle;
+        info.mFramebufferHandle = Render::CreateFramebuffer( "<3 u hope ur feeling ok",
+                                                             newState->mDesktopWindowHandle,
+                                                             newState->mWidth,
+                                                             newState->mHeight,
+                                                             TAC_STACK_FRAME );
+        mWindowFramebufferInfos.push_back( info );
+      }
 
-      Render::CommandDataCreateFramebuffer cmdData;
-      cmdData.mWidth = desktopWindowState->mWidth;
-      cmdData.mHeight = desktopWindowState->mHeight;
-      cmdData.mDesktopWindowHandle = desktopWindowState->mDesktopWindowHandle;
-      //cmdData.mNativeWindowHandle = nativeWindowHandle;
 
-      DesktopWindowHandle desktopWindowHandle;
-      desktopWindowHandle.mIndex = iDesktopWindowState; // ???
-
-      WindowFramebufferInfo info;
-      info.mDesktopWindowHandle = desktopWindowHandle;
-      info.mFramebufferHandle = Render::CreateFramebuffer( "<3 u hope ur feeling ok",
-                                                           cmdData,
-                                                           TAC_STACK_FRAME );
-      mWindowFramebufferInfos.push_back( info );
     }
 
 
@@ -891,7 +902,7 @@ namespace Tac
       //DesktopWindowHandle desktopWindowHandle = info.mDesktopWindowHandle;
       //DesktopWindowState* desktopWindowState = FindDesktopWindowState( desktopWindowHandle);
       if( info.mDesktopWindowHandle.mIndex == desktopWindowHandle.mIndex )
-      //if( info.mDesktopWindowState.mDesktopWindowHandle.mIndex == desktopWindowHandle.mIndex )
+        //if( info.mDesktopWindowState.mDesktopWindowHandle.mIndex == desktopWindowHandle.mIndex )
       {
         return &info;
       }

@@ -22,16 +22,16 @@ namespace Tac
   void SkyboxPresentation::Init( Errors& errors )
   {
 
-    Render::CommandDataCreateConstantBuffer cBufferDataPerFrame = {};
-    cBufferDataPerFrame.mShaderRegister = 0;
-    cBufferDataPerFrame.mByteCount = sizeof( DefaultCBufferPerFrame );
-    mPerFrame = Render::CreateConstantBuffer( "skybox per frame", cBufferDataPerFrame, TAC_STACK_FRAME );
+    mPerFrame = Render::CreateConstantBuffer( "skybox per frame",
+     sizeof( DefaultCBufferPerFrame ),
+     0,
+                                              TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
-    Render::CommandDataCreateShader shaderData = {};
-    shaderData.mShaderPath = "Skybox";
-    shaderData.AddConstantBuffer( mPerFrame );
-    mShader = Render::CreateShader( "skybox", shaderData, TAC_STACK_FRAME );
+    mShader = Render::CreateShader( "skybox",
+                                    Render::ShaderSource::FromPath( "Skybox" ),
+                                    Render::ConstantBuffers( mPerFrame ),
+                                    TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
     VertexDeclaration pos;
@@ -41,15 +41,15 @@ namespace Tac
     pos.mTextureFormat.mPerElementByteCount = sizeof( float );
     pos.mTextureFormat.mPerElementDataType = GraphicsType::real;
 
-    Render::CommandDataCreateVertexFormat vertexFormatData = {};
-    vertexFormatData.mShaderHandle = mShader;
-    vertexFormatData.AddVertexDeclaration( pos );
-    mVertexFormat = Render::CreateVertexFormat( "skybox", vertexFormatData, TAC_STACK_FRAME );
+    mVertexFormat = Render::CreateVertexFormat( "skybox",
+                                                Render::VertexDeclarations(pos),
+                                                mShader,
+                                                TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
     mVertexDecls[ 0 ] = pos;
 
-    Render::CommandDataCreateBlendState blendStateData;
+    Render::BlendState blendStateData;
     blendStateData.srcRGB = BlendConstants::One;
     blendStateData.dstRGB = BlendConstants::Zero;
     blendStateData.blendRGB = BlendMode::Add;
@@ -102,12 +102,9 @@ namespace Tac
     if( !mesh )
       return;
 
-    static int i;
-    ++i;
-
     float a;
     float b;
-    Renderer::Instance->GetPerspectiveProjectionAB( mCamera->mFarPlane, mCamera->mNearPlane, a, b );
+    Render::GetPerspectiveProjectionAB( mCamera->mFarPlane, mCamera->mNearPlane, a, b );
     float aspect = ( float )mDesktopWindow->mWidth / ( float )mDesktopWindow->mHeight;
 
     DefaultCBufferPerFrame perFrame;
@@ -120,7 +117,7 @@ namespace Tac
     DrawCall2 drawCallPerFrame = {};
     drawCallPerFrame.mUniformDst = mPerFrame;
     drawCallPerFrame.mUniformSrcc = TemporaryMemoryFromT( perFrame );
-    Renderer::Instance->AddDrawCall( drawCallPerFrame );
+    Render::AddDrawCall( drawCallPerFrame );
 
     SubMesh* subMesh = &mesh->mSubMeshes[ 0 ];
 
@@ -138,7 +135,7 @@ namespace Tac
     drawCallGeometry.mFrame = TAC_STACK_FRAME;
     drawCallGeometry.mStartIndex = 0;
     drawCallGeometry.mTextureHandles = { cubemap };
-    Renderer::Instance->AddDrawCall( drawCallGeometry );
+    Render::AddDrawCall( drawCallGeometry );
 
     //Renderer::Instance->DebugBegin( "Skybox" );
     //Renderer::Instance->RenderFlush();

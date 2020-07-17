@@ -36,7 +36,7 @@ namespace Tac
                                 int w,
                                 int h );
 
-    void ProcessStuff( bool* createdWindows );
+    void ProcessStuff();
   }
 
   // stuff thread

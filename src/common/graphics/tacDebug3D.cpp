@@ -38,19 +38,15 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
 
 
-    Render::CommandDataCreateConstantBuffer cBufferPerFrameData;
-    cBufferPerFrameData.mShaderRegister = DefaultCBufferPerFrame::shaderRegister;
-    cBufferPerFrameData.mByteCount = sizeof( DefaultCBufferPerFrame );
     mCBufferPerFrame = Render::CreateConstantBuffer( "cbuffer per frame",
-                                                     cBufferPerFrameData,
+                                                     sizeof( DefaultCBufferPerFrame ),
+                                                     DefaultCBufferPerFrame::shaderRegister,
                                                      TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
-    Render::CommandDataCreateShader data3dVertexColorShaderData;
-    data3dVertexColorShaderData.mShaderPath = "3DDebug";
-    data3dVertexColorShaderData.mConstantBuffers[ 0 ] = mCBufferPerFrame;
     m3DVertexColorShader = Render::CreateShader( "3d color",
-                                                 data3dVertexColorShaderData,
+                                                 Render::ShaderSource::FromPath( "3DDebug" ),
+                                                 Render::ConstantBuffers( mCBufferPerFrame ),
                                                  TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
@@ -69,16 +65,17 @@ namespace Tac
     colorData.mAttribute = Attribute::Color;
     colorData.mTextureFormat = formatv3;
     colorData.mAlignedByteOffset = TAC_OFFSET_OF( DefaultVertexColor, mColor );
-    Render::CommandDataCreateVertexFormat vertexColorFormatDataa;
-    vertexColorFormatDataa.mShaderHandle = m3DVertexColorShader;
-    vertexColorFormatDataa.mVertexFormatDatas[ vertexColorFormatDataa.mVertexFormatDataCount++ ] = positionData;
-    vertexColorFormatDataa.mVertexFormatDatas[ vertexColorFormatDataa.mVertexFormatDataCount++ ] = colorData;
+
+    Render::VertexDeclarations vertexDeclarations;
+    vertexDeclarations.AddVertexDeclaration( positionData );
+    vertexDeclarations.AddVertexDeclaration( colorData );
     mVertexColorFormat = Render::CreateVertexFormat( "vertex color format",
-                                                     vertexColorFormatDataa,
+                                                     vertexDeclarations,
+                                                     m3DVertexColorShader,
                                                      TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
-    Render::CommandDataCreateBlendState alphaBlendStateData;
+    Render::BlendState alphaBlendStateData;
     alphaBlendStateData.srcRGB = BlendConstants::One;
     alphaBlendStateData.dstRGB = BlendConstants::OneMinusSrcA;
     alphaBlendStateData.blendRGB = BlendMode::Add;
@@ -373,35 +370,35 @@ namespace Tac
     RenderView* renderView )
   {
     //_PROFILE_BLOCK;
-    int vertexCount = mDebugDrawVerts.size();
-    if( vertexCount )
+    if( mDebugDrawVerts.size() )
     {
-      if( !mVerts.IsValid() || mCapacity < vertexCount )
+      if( !mVerts.IsValid() || mCapacity < mDebugDrawVerts.size() )
       {
         if( mVerts.IsValid() )
           Render::DestroyVertexBuffer( mVerts, TAC_STACK_FRAME );
-        Render::CommandDataCreateVertexBuffer vertexBufferData = {};
-        vertexBufferData.mAccess = Access::Dynamic;
-        vertexBufferData.mByteCount = vertexCount * sizeof( DefaultVertexColor );
-        vertexBufferData.mOptionalInitialBytes = mDebugDrawVerts.data();
-        mVerts = Render::CreateVertexBuffer( "debug 3d verts", vertexBufferData, TAC_STACK_FRAME );
+        mVerts = Render::CreateVertexBuffer( "debug 3d verts",
+                                             mDebugDrawVerts.size() * sizeof( DefaultVertexColor ),
+                                             mDebugDrawVerts.data(),
+                                             0,
+                                             Access::Dynamic,
+                                             TAC_STACK_FRAME );
         TAC_HANDLE_ERROR( errors );
 
-        mCapacity = vertexCount;
+        mCapacity = mDebugDrawVerts.size();
       }
       else
       {
-        Render::CommandDataUpdateBuffer commandData = {};
-        commandData.mByteCount = vertexCount * sizeof( DefaultVertexColor );
-        commandData.mBytes = mDebugDrawVerts.data();
-        Render::UpdateVertexBuffer( mVerts, commandData, TAC_STACK_FRAME );
+        Render::UpdateVertexBuffer( mVerts,
+                                    mDebugDrawVerts.data(),
+                                    mDebugDrawVerts.size() * sizeof( DefaultVertexColor ),
+                                    TAC_STACK_FRAME );
       }
 
       DrawCall2 drawCall;
       drawCall.mBlendState = Debug3DCommonData::Instance->mAlphaBlendState;
       drawCall.mDepthState = Debug3DCommonData::Instance->mDepthLess;
       drawCall.mIndexCount = 0;
-      drawCall.mVertexCount = vertexCount;
+      drawCall.mVertexCount = mDebugDrawVerts.size();
       drawCall.mPrimitiveTopology = PrimitiveTopology::LineList;
       drawCall.mRasterizerState = Debug3DCommonData::Instance->mRasterizerStateNoCull;
       drawCall.mShader = Debug3DCommonData::Instance->m3DVertexColorShader;
@@ -411,7 +408,7 @@ namespace Tac
       drawCall.CopyUniformSource( *cbufferperframe );
       drawCall.mVertexBuffer = mVerts;
       drawCall.mVertexFormat = Debug3DCommonData::Instance->mVertexColorFormat;
-      Renderer::Instance->AddDrawCall( drawCall );
+      Render::AddDrawCall( drawCall );
 
       mDebugDrawVerts.clear();
     }

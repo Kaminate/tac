@@ -7,59 +7,60 @@ namespace Tac
 {
 
 
-enum class Key
-{
-  UpArrow, DownArrow, LeftArrow, RightArrow,
-  Spacebar,
-  Debug,
-  Backspace,
-  Delete,
-  MouseLeft, MouseRight, MouseMiddle,
-  Modifier,
+  enum class Key
+  {
+    UpArrow, DownArrow, LeftArrow, RightArrow,
+    Spacebar,
+    Debug,
+    Backspace,
+    Delete,
+    MouseLeft, MouseRight, MouseMiddle,
+    Modifier,
 
-  A, B, C, D, E, F, G, H, I, J, K, L, M,
-  N, O, P, Q, R, S, T, U, V, W, X, Y, Z,
+    A, B, C, D, E, F, G, H, I, J, K, L, M,
+    N, O, P, Q, R, S, T, U, V, W, X, Y, Z,
 
-  Tab,
-  Backtick,
-  F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12,
-  Count,
-};
-
-
-String ToString( Key key );
+    Tab,
+    Backtick,
+    F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12,
+    Count,
+  };
 
 
-struct KeyboardInputFrame
-{
-  bool IsKeyDown( Key key );
-  String GetPressedKeyDescriptions();
+  String ToString( Key key );
 
-  std::set< Key > mCurrDown;
-  v2 mScreenspaceCursorPos = {};
-  int mMouseScroll = 0;
-};
 
-struct KeyboardInput
-{
-  static KeyboardInput* Instance;
-  KeyboardInput();
-  bool HasKeyJustBeenReleased( Key key );
-  bool IsKeyJustDown( Key key );
-  bool IsKeyDown( Key key );
-  void DebugImgui();
-  void DebugPrintWhenKeysChange();
-  void SetIsKeyDown( Key key, bool isDown );
+  struct KeyboardInputFrame
+  {
+    bool IsKeyDown( Key key );
+    String GetPressedKeyDescriptions();
 
-  // Called after input has been gathered, but before the game updates
-  void BeginFrame();
-  void EndFrame();
+    bool mCurrDown[ ( int )Key::Count ];
+    //std::set< Key > mCurrDown;
+    v2 mScreenspaceCursorPos = {};
+    int mMouseScroll = 0;
+  };
 
-  KeyboardInputFrame mCurr;
-  KeyboardInputFrame mPrev;
+  struct KeyboardInput
+  {
+    static KeyboardInput* Instance;
+    KeyboardInput();
+    bool HasKeyJustBeenReleased( Key key );
+    bool IsKeyJustDown( Key key );
+    bool IsKeyDown( Key key );
+    void DebugImgui();
+    void DebugPrintWhenKeysChange();
+    void SetIsKeyDown( Key key, bool isDown );
 
-  Codepoint mWMCharPressedHax = 0;
-  v2 mMouseDeltaPosScreenspace = {};
-  int mMouseDeltaScroll = 0;
-};
+    // Called after input has been gathered, but before the game updates
+    void BeginFrame();
+    void EndFrame();
+
+    KeyboardInputFrame mCurr;
+    KeyboardInputFrame mPrev;
+
+    Codepoint mWMCharPressedHax = 0;
+    v2 mMouseDeltaPosScreenspace = {};
+    int mMouseDeltaScroll = 0;
+  };
 }
