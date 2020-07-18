@@ -20,6 +20,7 @@ struct CreationGameObjectMenuWindow;
 
 struct CreationMainWindow
 {
+  static CreationMainWindow* Instance;
   CreationMainWindow();
   ~CreationMainWindow();
   void Init( Errors& errors );
@@ -28,7 +29,6 @@ struct CreationMainWindow
   void ImGui();
   void ImGuiWindows();
 
-  Creation* mCreation = nullptr;
   CreationGameObjectMenuWindow* mGameObjectMenuWindow = nullptr;
 
 

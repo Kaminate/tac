@@ -64,131 +64,95 @@ namespace Tac
   }
   Creation::~Creation()
   {
-    if( mMainWindow )
+    if( CreationMainWindow* mainWindow = CreationMainWindow::Instance )
     {
-      mMainWindow->mDesktopWindow->mOnDestroyed.clear();
-      delete mMainWindow;
+      mainWindow->mDesktopWindow->mOnDestroyed.clear();
+      delete mainWindow;
     }
-    if( mGameWindow )
+    if( CreationGameWindow*  gameWindow = CreationGameWindow::Instance )
     {
-      mGameWindow->mDesktopWindow->mOnDestroyed.clear();
-      delete mGameWindow;
+      gameWindow->mDesktopWindow->mOnDestroyed.clear();
+      delete gameWindow;
     }
-    if( mPropertyWindow )
+    if( CreationPropertyWindow* propertyWindow = CreationPropertyWindow::Instance )
     {
-      mPropertyWindow->mDesktopWindow->mOnDestroyed.clear();
-      delete mPropertyWindow;
+      propertyWindow->mDesktopWindow->mOnDestroyed.clear();
+      delete propertyWindow;
     }
   }
 
   void Creation::CreatePropertyWindow( Errors& errors )
   {
-    if( mPropertyWindow )
+    CreationPropertyWindow* propertyWindow = CreationPropertyWindow::Instance;
+    if( propertyWindow )
       return;
 
     DesktopWindow* desktopWindow;
     CreateDesktopWindow( gPropertyWindowName, &desktopWindow, errors );
     TAC_HANDLE_ERROR( errors );
 
-    mPropertyWindow = new CreationPropertyWindow;
-    mPropertyWindow->mCreation = this;
-    mPropertyWindow->mDesktopWindow = desktopWindow;
-    mPropertyWindow->Init( errors );
+    propertyWindow = new CreationPropertyWindow;
+    propertyWindow->mDesktopWindow = desktopWindow;
+    propertyWindow->Init( errors );
     TAC_HANDLE_ERROR( errors );
-
-    desktopWindow->mOnDestroyed.AddCallbackFunctional( []( DesktopWindow* )
-                                                       {
-                                                         delete Creation::Instance->mPropertyWindow;
-                                                         Creation::Instance->mPropertyWindow = nullptr;
-                                                       } );
   }
   void Creation::CreateGameWindow( Errors& errors )
   {
-    if( mGameWindow )
+    CreationGameWindow* gameWindow = CreationGameWindow::Instance;
+    if( gameWindow )
       return;
 
     DesktopWindow* desktopWindow;
     CreateDesktopWindow( gGameWindowName, &desktopWindow, errors );
     TAC_HANDLE_ERROR( errors );
 
-    TAC_ASSERT( !mGameWindow );
-    mGameWindow = new CreationGameWindow();
-    mGameWindow->mCreation = this;
-    mGameWindow->mDesktopWindow = desktopWindow;
-    mGameWindow->Init( errors );
+    gameWindow = new CreationGameWindow();
+    gameWindow->mDesktopWindow = desktopWindow;
+    gameWindow->Init( errors );
     TAC_HANDLE_ERROR( errors );
-
-    desktopWindow->mOnDestroyed.AddCallbackFunctional( []( DesktopWindow* )
-                                                       {
-                                                         delete Creation::Instance->mGameWindow;
-                                                         Creation::Instance->mGameWindow = nullptr;
-                                                       } );
   }
   void Creation::CreateMainWindow( Errors& errors )
   {
-    if( mMainWindow )
+    CreationMainWindow* mainWindow = CreationMainWindow::Instance;
+    if( mainWindow )
       return;
 
-    DesktopWindow* desktopWindow = nullptr;
-    CreateDesktopWindow( gMainWindowName, &desktopWindow, errors );
+    mainWindow = new CreationMainWindow;
+    mainWindow->Init( errors );
     TAC_HANDLE_ERROR( errors );
-
-    mMainWindow = new CreationMainWindow;
-    mMainWindow->mCreation = this;
-    mMainWindow->mDesktopWindow = desktopWindow;
-    mMainWindow->Init( errors );
-    TAC_HANDLE_ERROR( errors );
-
-    //desktopWindow->mOnDestroyed.AddCallbackFunctional( []( DesktopWindow* )
-    //  {
-    //    delete Creation::Instance->mMainWindow;
-    //    Creation::Instance->mMainWindow = nullptr;
-    //  } );
   }
   void Creation::CreateSystemWindow( Errors& errors )
   {
-    if( mSystemWindow )
+    CreationSystemWindow* systemWindow = CreationSystemWindow::Instance;
+    if( systemWindow )
       return;
 
-    ;
     DesktopWindow* desktopWindow;
     CreateDesktopWindow( gSystemWindowName, &desktopWindow, errors );
     TAC_HANDLE_ERROR( errors );
 
-    mSystemWindow = new CreationSystemWindow();
-    mSystemWindow->mCreation = this;
-    mSystemWindow->mDesktopWindow = desktopWindow;
-    mSystemWindow->Init( errors );
+    systemWindow = new CreationSystemWindow();
+    systemWindow->mDesktopWindow = desktopWindow;
+    systemWindow->Init( errors );
     TAC_HANDLE_ERROR( errors );
 
-    desktopWindow->mOnDestroyed.AddCallbackFunctional( []( DesktopWindow* )
-                                                       {
-                                                         delete Creation::Instance->mSystemWindow;
-                                                         Creation::Instance->mSystemWindow = nullptr;
-                                                       } );
   }
 
   void Creation::CreateProfileWindow( Errors& errors )
   {
-    if( mProfileWindow )
+    CreationProfileWindow* profileWindow = CreationProfileWindow::Instance;
+    if( profileWindow )
       return;
 
-    ;
     DesktopWindow* desktopWindow;
     CreateDesktopWindow( gProfileWindowName, &desktopWindow, errors );
     TAC_HANDLE_ERROR( errors );
 
-    mProfileWindow = new CreationProfileWindow();
-    mProfileWindow->mCreation = this;
-    mProfileWindow->mDesktopWindow = desktopWindow;
-    mProfileWindow->Init( errors );
+    profileWindow = new CreationProfileWindow();
+    profileWindow->mDesktopWindow = desktopWindow;
+    profileWindow->Init( errors );
     TAC_HANDLE_ERROR( errors );
 
-    desktopWindow->mOnDestroyed.AddCallbackFunctional( []( DesktopWindow* )
-                                                       {
-                                                         delete Creation::Instance->mProfileWindow;
-                                                         Creation::Instance->mProfileWindow = nullptr;
-                                                       } );
   }
 
   void Creation::GetWindowsJsonData( String windowName, int* x, int* y, int* w, int* h )
@@ -576,46 +540,50 @@ namespace Tac
 
 
 
-    if( !mMainWindow && !mGameWindow && !mPropertyWindow && !mSystemWindow && !mProfileWindow )
+    if( !CreationMainWindow::Instance &&
+        !CreationGameWindow::Instance &&
+        !CreationPropertyWindow::Instance &&
+        !CreationSystemWindow::Instance &&
+        !CreationProfileWindow::Instance )
     {
       CreateMainWindow( errors );
       TAC_HANDLE_ERROR( errors );
     }
 
-    if( mMainWindow )
+    if( CreationMainWindow::Instance )
     {
-      mMainWindow->Update( errors );
+      CreationMainWindow::Instance->Update( errors );
       TAC_HANDLE_ERROR( errors );
     }
 
-    if( mGameWindow )
+    if( CreationGameWindow::Instance )
     {
-      mGameWindow->Update( errors );
+      CreationGameWindow::Instance->Update( errors );
       TAC_HANDLE_ERROR( errors );
     }
 
-    if( mPropertyWindow )
+    if( CreationPropertyWindow::Instance )
     {
-      mPropertyWindow->Update( errors );
+      CreationPropertyWindow::Instance->Update( errors );
       TAC_HANDLE_ERROR( errors );
     }
 
-    if( mSystemWindow )
+    if( CreationSystemWindow::Instance )
     {
-      mSystemWindow->Update( errors );
+      CreationSystemWindow::Instance->Update( errors );
       TAC_HANDLE_ERROR( errors );
     }
 
-    if( mProfileWindow )
+    if( CreationProfileWindow::Instance )
     {
-      mProfileWindow->Update( errors );
+      CreationProfileWindow::Instance->Update( errors );
       TAC_HANDLE_ERROR( errors );
     }
 
     mWorld->Step( TAC_DELTA_FRAME_SECONDS );
 
     if( KeyboardInput::Instance->IsKeyJustDown( Key::Delete ) &&
-        mGameWindow->mDesktopWindow->mCursorUnobscured )
+        CreationGameWindow::Instance->mDesktopWindow->mCursorUnobscured )
     {
       DeleteSelectedEntities();
     }
@@ -624,10 +592,10 @@ namespace Tac
         KeyboardInput::Instance->IsKeyDown( Key::Modifier ) )
     {
       SavePrefabs();
-      if( mGameWindow )
+      if( CreationGameWindow::Instance )
       {
-        mGameWindow->mStatusMessage = "Saved prefabs!";
-        mGameWindow->mStatusMessageEndTime = Shell::Instance->mElapsedSeconds + 5.0f;
+        CreationGameWindow::Instance->mStatusMessage = "Saved prefabs!";
+        CreationGameWindow::Instance->mStatusMessageEndTime = Shell::Instance->mElapsedSeconds + 5.0f;
       }
     }
 

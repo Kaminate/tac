@@ -15,50 +15,56 @@
 
 namespace Tac
 {
-CreationProfileWindow::~CreationProfileWindow()
-{
-  delete mUI2DDrawData;
-}
-void CreationProfileWindow::Init( Errors& errors )
-{
+  CreationProfileWindow* CreationProfileWindow::Instance = nullptr;
+  CreationProfileWindow::CreationProfileWindow()
+  {
+    Instance = this;
+  }
+  CreationProfileWindow::~CreationProfileWindow()
+  {
+    Instance = nullptr;
+    delete mUI2DDrawData;
+  }
+  void CreationProfileWindow::Init( Errors& errors )
+  {
     TAC_UNUSED_PARAMETER( errors );
-  mUI2DDrawData = new UI2DDrawData;
-};
-void CreationProfileWindow::ImGuiProfile()
-{
-  ProfileSystem* profileSystem = ProfileSystem::Instance;
-  ImGuiProfileWidget( profileSystem->mLastFrame );
-}
-void CreationProfileWindow::ImGui()
-{
-  //FindDesktopWindowState()
-  //SetCreationWindowImGuiGlobals( mDesktopWindow,
-  //                               mUI2DDrawData,
-  //                               mDesktopWindowState.mWidth,
-  //                               mDesktopWindowState.mHeight );
-  //ImGuiBegin( "Profile Window", {} );
+    mUI2DDrawData = new UI2DDrawData;
+  };
+  void CreationProfileWindow::ImGuiProfile()
+  {
+    ProfileSystem* profileSystem = ProfileSystem::Instance;
+    ImGuiProfileWidget( profileSystem->mLastFrame );
+  }
+  void CreationProfileWindow::ImGui()
+  {
+    //FindDesktopWindowState()
+    //SetCreationWindowImGuiGlobals( mDesktopWindow,
+    //                               mUI2DDrawData,
+    //                               mDesktopWindowState.mWidth,
+    //                               mDesktopWindowState.mHeight );
+    //ImGuiBegin( "Profile Window", {} );
 
-  //ImGuiText( "i am the profile window" );
+    //ImGuiText( "i am the profile window" );
 
-  //// to force directx graphics specific window debugging
-  //if( ImGuiButton( "close window" ) )
-  //{
-  //  mDesktopWindow->mRequestDeletion = true;
-  //}
+    //// to force directx graphics specific window debugging
+    //if( ImGuiButton( "close window" ) )
+    //{
+    //  mDesktopWindow->mRequestDeletion = true;
+    //}
 
-  //ImGuiProfile();
+    //ImGuiProfile();
 
 
 
-  //ImGuiEnd();
-}
-void CreationProfileWindow::Update( Errors& errors )
-{
-  mDesktopWindow->SetRenderViewDefaults();
-  ImGui();
-  mUI2DDrawData->DrawToTexture(0, 0, 0,  errors );
-  TAC_HANDLE_ERROR( errors );
-}
+    //ImGuiEnd();
+  }
+  void CreationProfileWindow::Update( Errors& errors )
+  {
+    mDesktopWindow->SetRenderViewDefaults();
+    ImGui();
+    mUI2DDrawData->DrawToTexture( 0, 0, 0, errors );
+    TAC_HANDLE_ERROR( errors );
+  }
 
 
 }

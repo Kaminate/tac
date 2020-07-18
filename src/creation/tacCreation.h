@@ -89,12 +89,6 @@ namespace Tac
     void GetWindowsJsonData( String windowName, int* x, int* y, int* w, int* h );
     Json* FindWindowJson( StringView windowName );
 
-    CreationMainWindow* mMainWindow = nullptr;
-    CreationGameWindow* mGameWindow = nullptr;
-    CreationPropertyWindow* mPropertyWindow = nullptr;
-    CreationSystemWindow* mSystemWindow = nullptr;
-    CreationProfileWindow* mProfileWindow = nullptr;
-
     String mOnlyCreateWindowNamed;
 
     World* mWorld = nullptr;

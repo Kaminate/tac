@@ -18,10 +18,15 @@
 
 namespace Tac
 {
-  CreationMainWindow::CreationMainWindow() {};
+  CreationMainWindow* CreationMainWindow::Instance = nullptr;
+  CreationMainWindow::CreationMainWindow()
+  {
+    Instance = this;
+  }
 
   CreationMainWindow::~CreationMainWindow()
   {
+    Instance = nullptr;
     delete mUI2DDrawData;
     //delete mUIRoot;
   }
@@ -74,18 +79,19 @@ namespace Tac
   {
     ImGuiText( "Windows" );
     ImGuiIndent();
+    Creation* creation = Creation::Instance;
 
     // static because hackery ( the errors get saved in a lambda,
     // which then turns into garbage when it goes out of scope... )
     static Errors createWindowErrors;
     if( ImGuiButton( "System" ) )
-      mCreation->CreateSystemWindow( createWindowErrors );
+      creation->CreateSystemWindow( createWindowErrors );
     if( ImGuiButton( "Game" ) )
-      mCreation->CreateGameWindow( createWindowErrors );
+      creation->CreateGameWindow( createWindowErrors );
     if( ImGuiButton( "Properties" ) )
-      mCreation->CreatePropertyWindow( createWindowErrors );
+      creation->CreatePropertyWindow( createWindowErrors );
     if( ImGuiButton( "Profile" ) )
-      mCreation->CreateProfileWindow( createWindowErrors );
+      creation->CreateProfileWindow( createWindowErrors );
     if( createWindowErrors )
       ImGuiText( createWindowErrors.ToString() );
     ImGuiUnindent();
@@ -93,6 +99,8 @@ namespace Tac
 
   void CreationMainWindow::ImGui()
   {
+    Creation* creation = Creation::Instance;
+
     Creation::WindowFramebufferInfo* info =
       Creation::Instance->FindWindowFramebufferInfo( mDesktopWindowHandle );
     if( !info )
@@ -105,13 +113,13 @@ namespace Tac
     SetCreationWindowImGuiGlobals( desktopWindowState, mUI2DDrawData );
 
     ImGuiBegin( "Main Window", {} );
-#if 0
+#if 1
     ImGuiBeginMenuBar();
     ImGuiText( "file | edit | window" );
     ImGuiEndMenuBar();
     if( ImGuiButton( "save as" ) )
     {
-      World* world = mCreation->mWorld;
+      World* world = creation->mWorld;
       for( Entity* entity : world->mEntities )
       {
         if( entity->mParent )
@@ -130,7 +138,7 @@ namespace Tac
           continue;
         }
 
-        mCreation->ModifyPathRelative( savePath );
+        creation->ModifyPathRelative( savePath );
 
         Json entityJson;
         entity->Save( entityJson );
@@ -159,13 +167,13 @@ namespace Tac
 
 #endif
 
-    static bool hello;
-    if( ImGuiButton( "asdf" ) )
-    {
-      hello = true;
-    }
-    if( hello )
-      ImGuiText( "hello" );
+    //static bool hello;
+    //if( ImGuiButton( "asdf" ) )
+    //{
+    //  hello = true;
+    //}
+    //if( hello )
+    //  ImGuiText( "hello" );
 
     ImGuiEnd();
   }

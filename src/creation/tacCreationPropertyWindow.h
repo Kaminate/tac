@@ -18,6 +18,8 @@ struct UIRoot;
 
 struct CreationPropertyWindow
 {
+  static CreationPropertyWindow* Instance;
+  CreationPropertyWindow();
   ~CreationPropertyWindow();
   void Init( Errors& errors );
   void Update( Errors& errors );
@@ -27,7 +29,6 @@ struct CreationPropertyWindow
   UIRoot* mUIRoot = nullptr;
   UI2DDrawData* mUI2DDrawData = nullptr;
   
-  Creation* mCreation = nullptr;
 
   DesktopWindowState mDesktopWindowState;
 

@@ -16,6 +16,8 @@ struct UIRoot;
 
 struct CreationProfileWindow
 {
+  static CreationProfileWindow* Instance;
+  CreationProfileWindow();
   ~CreationProfileWindow();
   void Init( Errors& errors );
   void Update( Errors& errors );
@@ -26,7 +28,6 @@ struct CreationProfileWindow
   DesktopWindow* mDesktopWindow = nullptr;
   UI2DDrawData* mUI2DDrawData = nullptr;
   
-  Creation* mCreation = nullptr;
 };
 
 const String gProfileWindowName = "ProfileWindow";

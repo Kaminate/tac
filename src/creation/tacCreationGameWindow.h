@@ -34,6 +34,9 @@ namespace Tac
 
   struct CreationGameWindow
   {
+    // TODO: multiple game windows?
+    static CreationGameWindow* Instance;
+    CreationGameWindow();
     ~CreationGameWindow();
     void Init( Errors& errors );
     void Update( Errors& errors );
@@ -54,7 +57,6 @@ namespace Tac
     UIRoot* mUIRoot = nullptr;
     UI2DDrawData* mUI2DDrawData = nullptr;
     Soul* mSoul = nullptr;
-    Creation* mCreation = nullptr;
 
     // Renderer resources
     Render::ShaderHandle m3DShader;

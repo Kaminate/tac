@@ -19,9 +19,16 @@
 namespace Tac
 {
 
+  CreationPropertyWindow* CreationPropertyWindow::Instance = nullptr;
+
+  CreationPropertyWindow::CreationPropertyWindow()
+  {
+    Instance = this;
+  }
 
   CreationPropertyWindow::~CreationPropertyWindow()
   {
+    Instance = nullptr;
     delete mUI2DDrawData;
   }
 
@@ -38,11 +45,11 @@ namespace Tac
 
   void CreationPropertyWindow::RecursiveEntityHierarchyElement( Entity* entity )
   {
-    bool previouslySelected = Contains( mCreation->mSelectedEntities, entity );
+    bool previouslySelected = Contains( Creation::Instance->mSelectedEntities, entity );
     if( ImGuiSelectable( entity->mName, previouslySelected ) )
     {
-      mCreation->ClearSelection();
-      mCreation->mSelectedEntities = { entity };
+      Creation::Instance->ClearSelection();
+      Creation::Instance->mSelectedEntities = { entity };
     }
     if( entity->mChildren.empty() )
       return;
@@ -54,6 +61,7 @@ namespace Tac
   }
   void CreationPropertyWindow::Update( Errors& errors )
   {
+    Creation* creation = Creation::Instance;
     mDesktopWindow->SetRenderViewDefaults();
     mUIRoot->Update();
     //mUIRoot->Render( errors );
@@ -73,7 +81,7 @@ namespace Tac
 
     ImGuiBeginGroup();
     ImGuiBeginChild( "Hierarchy", v2( 250, -100 ) );
-    World* world = mCreation->mWorld;
+    World* world = creation->mWorld;
     for( Entity* entity : world->mEntities )
     {
       if( !entity->mParent )
@@ -81,21 +89,21 @@ namespace Tac
     }
     ImGuiEndChild();
     if( ImGuiButton( "Create Entity" ) )
-      mCreation->CreateEntity();
+      creation->CreateEntity();
     if( ImGuiButton( "Open Prefab" ) )
     {
       String prefabPath;
       OS::OpenDialog( prefabPath, errors );
       TAC_HANDLE_ERROR( errors );
 
-      mCreation->LoadPrefabAtPath( prefabPath, errors );
+      creation->LoadPrefabAtPath( prefabPath, errors );
       TAC_HANDLE_ERROR( errors );
     }
     ImGuiEndGroup();
     ImGuiSameLine();
     ImGuiBeginGroup();
 
-    for( Entity* entity : mCreation->mSelectedEntities )
+    for( Entity* entity : creation->mSelectedEntities )
     {
       static String occupation = "Bartender";
       ImGuiInputText( "Name", entity->mName );
@@ -137,7 +145,7 @@ namespace Tac
         }
       }
       Vector< Entity* > potentialParents;
-      for( Entity* potentialParent : mCreation->mWorld->mEntities )
+      for( Entity* potentialParent : creation->mWorld->mEntities )
       {
         if( potentialParent == entity )
           continue;

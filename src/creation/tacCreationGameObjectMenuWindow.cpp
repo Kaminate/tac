@@ -16,15 +16,21 @@
 
 namespace Tac
 {
-
+  CreationGameObjectMenuWindow* CreationGameObjectMenuWindow::Instance = nullptr;
+  CreationGameObjectMenuWindow::CreationGameObjectMenuWindow()
+  {
+    Instance = this;
+  }
   CreationGameObjectMenuWindow::~CreationGameObjectMenuWindow()
   {
     mDesktopWindow->mRequestDeletion = true;
     delete mUIRoot;
     delete mUI2DDrawData;
+    Instance = nullptr;
   }
   void CreationGameObjectMenuWindow::Init( Errors& errors )
   {
+    CreationMainWindow* mainWindow = CreationMainWindow::Instance;
     TAC_UNUSED_PARAMETER( errors );
     mCreationSeconds = Shell::Instance->mElapsedSeconds;
     WindowParams windowParams;
@@ -32,12 +38,12 @@ namespace Tac
     windowParams.mWidth = 300;
     windowParams.mHeight = 300;
     windowParams.mX =
-      mMainWindow->mDesktopWindow->mX +
-      ( int )mMainWindow->mGameObjectButton->mPositionRelativeToRoot.x;
+      mainWindow->mDesktopWindow->mX +
+      ( int )mainWindow->mGameObjectButton->mPositionRelativeToRoot.x;
     windowParams.mY =
-      mMainWindow->mDesktopWindow->mY +
-      ( int )mMainWindow->mGameObjectButton->mPositionRelativeToRoot.y +
-      ( int )mMainWindow->mGameObjectButton->mSize.y;
+      mainWindow->mDesktopWindow->mY +
+      ( int )mainWindow->mGameObjectButton->mPositionRelativeToRoot.y +
+      ( int )mainWindow->mGameObjectButton->mSize.y;
 
     //DesktopApp::Instance->SpawnWindow(
     //  windowParams,
@@ -54,6 +60,7 @@ namespace Tac
   }
   void CreationGameObjectMenuWindow::CreateLayouts()
   {
+    Creation* creation = Creation::Instance;
     UIHierarchyNode* node;
     UIHierarchyVisualText* text;
 
@@ -88,7 +95,7 @@ namespace Tac
     text->mDims = { 100, 50 };
     node = mUIRoot->mHierarchyRoot->Split( UISplit::Before, UILayoutType::Vertical );
     node->SetVisual( text );
-    node->mOnClickEventEmitter.AddCallbackFunctional( [ & ]() { mCreation->CreateEntity(); } );
+    node->mOnClickEventEmitter.AddCallbackFunctional( [ & ]() { creation->CreateEntity(); } );
   }
   void CreationGameObjectMenuWindow::Update( Errors& errors )
   {
