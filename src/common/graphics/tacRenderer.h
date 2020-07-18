@@ -30,13 +30,7 @@
 
 namespace Tac
 {
-  struct DesktopWindow;
-  struct Renderer;
-  struct CBuffer;
-  struct Shell;
   struct DrawCall2;
-
-
 
   const v4 colorGrey = v4( v3( 1, 1, 1 ) * 95.0f, 255 ) / 255.0f;
   const v4 colorOrange = v4( 255, 200, 84, 255 ) / 255.0f;
@@ -320,7 +314,6 @@ namespace Tac
       BlendMode blendA = BlendMode::Add;
     };
 
-
     struct VertexDeclarations
     {
       VertexDeclarations() = default;
@@ -369,7 +362,6 @@ namespace Tac
       CPUAccess mCpuAccess = CPUAccess::None;
     };
 
-
     struct TexUpdate
     {
 
@@ -379,6 +371,7 @@ namespace Tac
       const void* mSrcBytes = nullptr;
       int mPitch = 0; // byte count between pixel rows
     };
+
     struct RasterizerState
     {
 
@@ -388,6 +381,7 @@ namespace Tac
       bool mScissor = false;
       bool mMultisample = false;
     };
+
     struct SamplerState
     {
 

@@ -139,24 +139,26 @@ namespace Tac
 
   namespace Render
   {
-
     ConstantBuffers::ConstantBuffers( ConstantBufferHandle constantBufferHandle )
     {
       AddConstantBuffer( constantBufferHandle );
 
     }
+
     ConstantBuffers::ConstantBuffers( ConstantBufferHandle a,
                                       ConstantBufferHandle b )
     {
       AddConstantBuffer( a );
       AddConstantBuffer( b );
     }
+
     ConstantBuffers::ConstantBuffers( ConstantBufferHandle* constantBufferHandles, int n )
     {
       while( n-- )
         AddConstantBuffer( *constantBufferHandles++ );
 
     }
+
     void ConstantBuffers::AddConstantBuffer( ConstantBufferHandle handle )
     {
       mConstantBuffers[ mConstantBufferCount++ ] = handle;
@@ -166,10 +168,12 @@ namespace Tac
     {
       mVertexFormatDatas[ mVertexFormatDataCount++ ] = v;
     }
+
     VertexDeclarations::VertexDeclarations( VertexDeclaration a )
     {
       AddVertexDeclaration( a );
     }
+
     VertexDeclarations::VertexDeclarations( VertexDeclaration a, VertexDeclaration b )
     {
       AddVertexDeclaration( a );
