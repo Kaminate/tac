@@ -28,6 +28,7 @@
 // the worker thread encoders use a encoder semaphore
 
 
+
 namespace Tac
 {
   struct DrawCall2;
