@@ -75,6 +75,9 @@ namespace Tac
                         StackFrame stackFrame,
                         const void* bytes,
                         int byteCount );
+      void Clear();
+      const char* Data() const;
+      int Size() const;
     private:
       void Push( const void* bytes, int byteCount );
       Vector< char > mBuffer;
@@ -312,13 +315,37 @@ namespace Tac
     }
     //void DebugImgui();
 
-    virtual void AddShader( Render::CommandDataCreateShader*, Errors& ) = 0;
-    virtual void AddConstantBuffer( Render::CommandDataCreateConstantBuffer*, Errors& ) = 0;
-    virtual void AddVertexBuffer( Render::CommandDataCreateVertexBuffer*, Errors& ) = 0;
-    virtual void AddIndexBuffer( Render::CommandDataCreateIndexBuffer*, Errors& ) = 0;
+    void ExecuteCommands( Render::CommandBuffer*, Errors& );
+
     virtual void AddBlendState( Render::CommandDataCreateBlendState*, Errors& ) = 0;
-    virtual void AddVertexFormat( Render::CommandDataCreateVertexFormat*, Errors& ) = 0;
+    virtual void AddConstantBuffer( Render::CommandDataCreateConstantBuffer*, Errors& ) = 0;
+    virtual void AddDepthState( Render::CommandDataCreateDepthState*, Errors& ) = 0;
     virtual void AddFramebuffer( Render::CommandDataCreateFramebuffer*, Errors& ) = 0;
+    virtual void AddIndexBuffer( Render::CommandDataCreateIndexBuffer*, Errors& ) = 0;
+    virtual void AddRasterizerState( Render::CommandDataCreateRasterizerState*, Errors& ) = 0;
+    virtual void AddSamplerState( Render::CommandDataCreateSamplerState*, Errors& ) = 0;
+    virtual void AddShader( Render::CommandDataCreateShader*, Errors& ) = 0;
+    virtual void AddTexture( Render::CommandDataCreateTexture*, Errors& ) = 0;
+    virtual void AddVertexBuffer( Render::CommandDataCreateVertexBuffer*, Errors& ) = 0;
+    virtual void AddVertexFormat( Render::CommandDataCreateVertexFormat*, Errors& ) = 0;
+
+    virtual void UpdateTextureRegion( Render::CommandDataUpdateTextureRegion*, Errors& ) = 0;
+    virtual void UpdateVertexBuffer( Render::CommandDataUpdateVertexBuffer*, Errors& ) = 0;
+    virtual void UpdateIndexBuffer( Render::CommandDataUpdateIndexBuffer*, Errors& ) = 0;
+    virtual void ResizeFramebuffer( Render::CommandDataResizeFramebuffer*, Errors& ) = 0;
+
+    virtual void RemoveBlendState( Render::BlendStateHandle, Errors& ) = 0;
+    virtual void RemoveConstantBuffer( Render::ConstantBufferHandle, Errors& ) = 0;
+    virtual void RemoveDepthState( Render::DepthStateHandle, Errors& ) = 0;
+    virtual void RemoveRasterizerState( Render::RasterizerStateHandle, Errors& ) = 0;
+    virtual void RemoveSamplerState( Render::SamplerStateHandle, Errors& ) = 0;
+    virtual void RemoveShader( Render::ShaderHandle, Errors& ) = 0;
+    virtual void RemoveVertexFormat( Render::VertexFormatHandle, Errors& ) = 0;
+    virtual void RemoveVertexBuffer( Render::VertexBufferHandle, Errors& ) = 0;
+    virtual void RemoveIndexBuffer( Render::IndexBufferHandle, Errors& ) = 0;
+    virtual void RemoveTexture( Render::TextureHandle, Errors& ) = 0;
+    virtual void RemoveFramebuffer( Render::FramebufferHandle, Errors& ) = 0;
+
 
     String mName;
     Vector< DrawCall2 > mDrawCall2s;

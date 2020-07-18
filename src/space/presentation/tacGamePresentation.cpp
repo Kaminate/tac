@@ -280,10 +280,10 @@ namespace Tac
   }
   void GamePresentation::CreateDepthState( Errors& errors )
   {
-    Render::CommandDataCreateDepthState depthStateData;
-    depthStateData.depthTest = true;
-    depthStateData.depthWrite = true;
-    depthStateData.depthFunc = DepthFunc::Less;
+    Render::DepthState depthStateData;
+    depthStateData.mDepthTest = true;
+    depthStateData.mDepthWrite = true;
+    depthStateData.mDepthFunc = DepthFunc::Less;
     mDepthState = Render::CreateDepthState( "tac 3d depth state", depthStateData, TAC_STACK_FRAME );
   }
   void GamePresentation::CreateBlendState( Errors& errors )
@@ -299,20 +299,20 @@ namespace Tac
   }
   void GamePresentation::CreateRasterizerState( Errors& errors )
   {
-    Render::CommandDataCreateRasterizerState rasterizerStateData;
-    rasterizerStateData.cullMode = CullMode::None; // todo
-    rasterizerStateData.fillMode = FillMode::Solid;
-    rasterizerStateData.frontCounterClockwise = true;
-    rasterizerStateData.multisample = false;
-    rasterizerStateData.scissor = true;
+    Render::RasterizerState rasterizerStateData;
+    rasterizerStateData.mCullMode = CullMode::None; // todo
+    rasterizerStateData.mFillMode = FillMode::Solid;
+    rasterizerStateData.mFrontCounterClockwise = true;
+    rasterizerStateData.mMultisample = false;
+    rasterizerStateData.mScissor = true;
     mRasterizerState = Render::CreateRasterizerState( "tac 3d rast state",
                                                       rasterizerStateData,
                                                       TAC_STACK_FRAME );
   }
   void GamePresentation::CreateSamplerState( Errors& errors )
   {
-    Render::CommandDataCreateSamplerState samplerStateData;
-    samplerStateData.filter = Filter::Aniso;
+    Render::SamplerState samplerStateData;
+    samplerStateData.mFilter = Filter::Aniso;
     mSamplerState = Render::CreateSamplerState( "tac 3d tex sampler",
                                                 samplerStateData,
                                                 TAC_STACK_FRAME );

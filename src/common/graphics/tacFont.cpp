@@ -103,7 +103,7 @@ namespace Tac
     image.mHeight = mRowCount * FontCellWidth;
     image.mFormat = atlasFormat;
 
-    Render::CommandDataCreateTexture cmdData;
+    Render::TexSpec cmdData;
     cmdData.mAccess = Access::Dynamic;
     cmdData.mBinding = Binding::ShaderResource;
     cmdData.mCpuAccess = CPUAccess::Write;
@@ -353,7 +353,7 @@ namespace Tac
 
       // Renderer::Instance->CopyTextureRegion( mTexture, src, x, y, errors );
 
-      Render::CommandDataUpdateTextureRegion data;
+      Render::TexUpdate data;
       data.mDstX = x;
       data.mDstY = y;
       data.mSrc = src;

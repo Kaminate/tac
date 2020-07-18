@@ -458,7 +458,7 @@ void ScriptMainMenu::Update( float seconds, Errors& errors )
     image.mWidth = x;
     image.mHeight = y;
 
-    Render::CommandDataCreateTexture textureData;
+    Render::TexSpec textureData;
     textureData.mAccess = Access::Default;
     textureData.mBinding = Binding::ShaderResource;
     textureData.mImage = image;

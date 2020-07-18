@@ -29,7 +29,7 @@ namespace Tac
     {
       void CreateTexture( Render::TextureHandle* texture, Tac::Errors& errors ) override
       {
-        Render::CommandDataCreateTexture commandData = {};
+        Render::TexSpec commandData = {};
         commandData.mBinding = Binding::ShaderResource;
         commandData.mImage = mImage;
         commandData.mImageBytes = mImageData.data();
@@ -46,7 +46,7 @@ namespace Tac
     {
       void CreateTexture( Render::TextureHandle* texture, Tac::Errors& errors ) override
       {
-        Render::CommandDataCreateTexture commandData = {};
+        Render::TexSpec commandData = {};
         commandData.mBinding = Binding::ShaderResource;
         commandData.mImage = mImage;
         commandData.mImageBytesCubemap[ 0 ] = mImageData[ 0 ].data();

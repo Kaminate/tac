@@ -26,12 +26,12 @@ namespace Tac
   }
   void Debug3DCommonData::Init( Errors& errors )
   {
-    Render::CommandDataCreateRasterizerState rasterizerStateNoCullData;
-    rasterizerStateNoCullData.cullMode = CullMode::None;
-    rasterizerStateNoCullData.fillMode = FillMode::Solid;
-    rasterizerStateNoCullData.frontCounterClockwise = true;
-    rasterizerStateNoCullData.multisample = false;
-    rasterizerStateNoCullData.scissor = true;
+    Render::RasterizerState rasterizerStateNoCullData;
+    rasterizerStateNoCullData.mCullMode = CullMode::None;
+    rasterizerStateNoCullData.mFillMode = FillMode::Solid;
+    rasterizerStateNoCullData.mFrontCounterClockwise = true;
+    rasterizerStateNoCullData.mMultisample = false;
+    rasterizerStateNoCullData.mScissor = true;
     mRasterizerStateNoCull = Render::CreateRasterizerState( "no cull",
                                                             rasterizerStateNoCullData,
                                                             TAC_STACK_FRAME );
@@ -50,10 +50,10 @@ namespace Tac
                                                  TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
-    Render::CommandDataCreateDepthState depthStateData;
-    depthStateData.depthFunc = DepthFunc::Less;
-    depthStateData.depthTest = true;
-    depthStateData.depthWrite = true;
+    Render::DepthState depthStateData;
+    depthStateData.mDepthFunc = DepthFunc::Less;
+    depthStateData.mDepthTest = true;
+    depthStateData.mDepthWrite = true;
     mDepthLess = Render::CreateDepthState( "depth less", depthStateData, TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 

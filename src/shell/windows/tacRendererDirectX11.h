@@ -335,7 +335,7 @@ namespace Tac
       ID3D11Texture2D* mDepthTexture = nullptr;
       HWND mHwnd = nullptr;
     } mFramebuffers[ Render::kMaxFramebuffers ] = {};
-    Render::FramebufferHandle mWindows[ Render::kMaxFramebuffers];
+    Render::FramebufferHandle mWindows[ Render::kMaxFramebuffers ];
     int mWindowCount = 0;
     ID3D11RasterizerState* mRasterizerStates[ Render::kMaxRasterizerStates ] = {};
     ID3D11SamplerState* mSamplerStates[ Render::kMaxSamplerStates ] = {};
@@ -356,30 +356,36 @@ namespace Tac
 
 
     // this should all be virtual
-    void AddBlendState(  Render::CommandDataCreateBlendState*, Errors& ) override;
-    void AddConstantBuffer(  Render::CommandDataCreateConstantBuffer*, Errors& ) override;
-    void AddDepthState( Render::DepthStateHandle, Render::CommandDataCreateDepthState*, Errors& );
+    void AddBlendState( Render::CommandDataCreateBlendState*, Errors& ) override;
+    void AddConstantBuffer( Render::CommandDataCreateConstantBuffer*, Errors& ) override;
+    void AddDepthState( Render::CommandDataCreateDepthState*, Errors& ) override;
     void AddFramebuffer( Render::CommandDataCreateFramebuffer*, Errors& ) override;
     void AddIndexBuffer( Render::CommandDataCreateIndexBuffer*, Errors& ) override;
-    void AddRasterizerState( Render::RasterizerStateHandle, Render::CommandDataCreateRasterizerState*, Errors& );
-    void AddSamplerState( Render::SamplerStateHandle, Render::CommandDataCreateSamplerState*, Errors& );
+    void AddRasterizerState( Render::CommandDataCreateRasterizerState*, Errors& ) override;
+    void AddSamplerState( Render::CommandDataCreateSamplerState*, Errors& ) override;
     void AddShader( Render::CommandDataCreateShader*, Errors& ) override;
-    void AddTexture( Render::TextureHandle, Render::CommandDataCreateTexture*, Errors& );
+    void AddTexture( Render::CommandDataCreateTexture*, Errors& ) override;
     void AddVertexBuffer( Render::CommandDataCreateVertexBuffer*, Errors& ) override;
     void AddVertexFormat( Render::CommandDataCreateVertexFormat*, Errors& ) override;
-    void RemoveBlendState( Render::BlendStateHandle, Errors& );
-    void RemoveConstantBuffer( Render::ConstantBufferHandle, Errors& );
-    void RemoveDepthState( Render::DepthStateHandle, Errors& );
-    void RemoveFramebuffer( Render::FramebufferHandle, Errors& );
-    void RemoveIndexBuffer( Render::IndexBufferHandle, Errors& );
-    void RemoveRasterizerState( Render::RasterizerStateHandle, Errors& );
-    void RemoveSamplerState( Render::SamplerStateHandle, Errors& );
-    void RemoveShader( Render::ShaderHandle, Errors& );
-    void RemoveTexture( Render::TextureHandle, Errors& );
-    void RemoveVertexBuffer( Render::VertexBufferHandle, Errors& );
-    void RemoveVertexFormat( Render::VertexFormatHandle, Errors& );
-    void UpdateTextureRegion( Render::TextureHandle, Render::CommandDataUpdateTextureRegion*, Errors& );
-    void ResizeFramebuffer(  Render::CommandDataResizeFramebuffer*, Errors& );
+    void RemoveBlendState( Render::BlendStateHandle, Errors& ) override;
+    void RemoveConstantBuffer( Render::ConstantBufferHandle, Errors& ) override;
+    void RemoveDepthState( Render::DepthStateHandle, Errors& ) override;
+    void RemoveFramebuffer( Render::FramebufferHandle, Errors& ) override;
+    void RemoveIndexBuffer( Render::IndexBufferHandle, Errors& ) override;
+    void RemoveRasterizerState( Render::RasterizerStateHandle, Errors& ) override;
+    void RemoveSamplerState( Render::SamplerStateHandle, Errors& ) override;
+    void RemoveShader( Render::ShaderHandle, Errors& ) override;
+    void RemoveTexture( Render::TextureHandle, Errors& ) override;
+    void RemoveVertexBuffer( Render::VertexBufferHandle, Errors& ) override;
+    void RemoveVertexFormat( Render::VertexFormatHandle, Errors& ) override;
+    void ResizeFramebuffer( Render::CommandDataResizeFramebuffer*, Errors& ) override;
+    void UpdateIndexBuffer( Render::CommandDataUpdateIndexBuffer*, Errors& ) override;
+    void UpdateTextureRegion( Render::CommandDataUpdateTextureRegion*, Errors& ) override;
+    void UpdateVertexBuffer( Render::CommandDataUpdateVertexBuffer*, Errors& ) override;
+
+
+
+
     // frame buffers?
 
     // --- Resources end ---

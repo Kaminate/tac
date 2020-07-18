@@ -54,7 +54,7 @@ namespace Tac
   void UI2DCommonData::Init( Errors& errors )
   {
     uint8_t data[] = { 255, 255, 255, 255 };
-    Render::CommandDataCreateTexture textureData = {};
+    Render::TexSpec textureData = {};
     textureData.mImage.mWidth = 1;
     textureData.mImage.mHeight = 1;
     textureData.mPitch = 1;
@@ -120,27 +120,27 @@ namespace Tac
                                             TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
-    Render::CommandDataCreateDepthState depthStateData;
-    depthStateData.depthTest = false;
-    depthStateData.depthWrite = false;
-    depthStateData.depthFunc = DepthFunc::Less;
+    Render::DepthState depthStateData;
+    depthStateData.mDepthTest = false;
+    depthStateData.mDepthWrite = false;
+    depthStateData.mDepthFunc = DepthFunc::Less;
     mDepthState = Render::CreateDepthState( "tac 2d ui no depth read/write",
                                             depthStateData,
                                             TAC_STACK_FRAME );
 
-    Render::CommandDataCreateRasterizerState rasterizerStateData;
-    rasterizerStateData.cullMode = CullMode::None;
-    rasterizerStateData.fillMode = FillMode::Solid;
-    rasterizerStateData.frontCounterClockwise = true;
-    rasterizerStateData.multisample = false;
-    rasterizerStateData.scissor = true;
+    Render::RasterizerState rasterizerStateData;
+    rasterizerStateData.mCullMode = CullMode::None;
+    rasterizerStateData.mFillMode = FillMode::Solid;
+    rasterizerStateData.mFrontCounterClockwise = true;
+    rasterizerStateData.mMultisample = false;
+    rasterizerStateData.mScissor = true;
     mRasterizerState = Render::CreateRasterizerState( "tac 2d ui no cull",
                                                       rasterizerStateData,
                                                       TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
-    Render::CommandDataCreateSamplerState samplerStateData;
-    samplerStateData.filter = Filter::Linear;
+    Render::SamplerState samplerStateData;
+    samplerStateData.mFilter = Filter::Linear;
     mSamplerState = Render::CreateSamplerState( "tac 2d ui tex sampler",
                                                 samplerStateData,
                                                 TAC_STACK_FRAME );

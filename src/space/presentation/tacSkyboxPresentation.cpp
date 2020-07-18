@@ -58,24 +58,24 @@ namespace Tac
     blendStateData.blendA = BlendMode::Add;
     mBlendState = Render::CreateBlendState( "skybox", blendStateData, TAC_STACK_FRAME );
 
-    Render::CommandDataCreateDepthState depthStateData;
-    depthStateData.depthTest = true;
-    depthStateData.depthWrite = true;
-    depthStateData.depthFunc = DepthFunc::LessOrEqual;
+    Render::DepthState depthStateData;
+    depthStateData.mDepthTest = true;
+    depthStateData.mDepthWrite = true;
+    depthStateData.mDepthFunc = DepthFunc::LessOrEqual;
     mDepthState = Render::CreateDepthState( "skybox", depthStateData, TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
-    Render::CommandDataCreateRasterizerState rasterizerStateData;
-    rasterizerStateData.cullMode = CullMode::None; // todo
-    rasterizerStateData.fillMode = FillMode::Solid;
-    rasterizerStateData.frontCounterClockwise = true;
-    rasterizerStateData.multisample = false;
-    rasterizerStateData.scissor = true;
+    Render::RasterizerState rasterizerStateData;
+    rasterizerStateData.mCullMode = CullMode::None; // todo
+    rasterizerStateData.mFillMode = FillMode::Solid;
+    rasterizerStateData.mFrontCounterClockwise = true;
+    rasterizerStateData.mMultisample = false;
+    rasterizerStateData.mScissor = true;
     mRasterizerState = Render::CreateRasterizerState( "skybox", rasterizerStateData, TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
-    Render::CommandDataCreateSamplerState samplerStateData;
-    samplerStateData.filter = Filter::Linear;
+    Render::SamplerState samplerStateData;
+    samplerStateData.mFilter = Filter::Linear;
     mSamplerState = Render::CreateSamplerState( "skybox", samplerStateData, TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
   }
