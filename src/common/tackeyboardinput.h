@@ -35,7 +35,7 @@ namespace Tac
     bool IsKeyDown( Key key );
     String GetPressedKeyDescriptions();
 
-    bool mCurrDown[ ( int )Key::Count ];
+    bool mCurrDown[ ( int )Key::Count ] = {};
     //std::set< Key > mCurrDown;
     v2 mScreenspaceCursorPos = {};
     int mMouseScroll = 0;

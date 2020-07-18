@@ -371,10 +371,10 @@ namespace Tac
       pos.y };
     Render::TextureHandle texture;
     drawData->AddBox( pos,
-      textBackgroundMaxi,
-      v4( textBackgroundColor3, 1 ),
-      texture,
-      &clipRect );
+                      textBackgroundMaxi,
+                      v4( textBackgroundColor3, 1 ),
+                      texture,
+                      &clipRect );
 
     if( window->GeTiveID() == id )
     {
@@ -392,12 +392,12 @@ namespace Tac
       static double lastMouseReleaseSeconds;
       static v2 lastMousePositionDesktopWindowspace;
       if( KeyboardInput::Instance->HasKeyJustBeenReleased( Key::MouseLeft ) &&
-        ImGuiGlobals::Instance.IsHovered( clipRect ) &&
-        !inputData->mCodepoints.empty() )
+          ImGuiGlobals::Instance.IsHovered( clipRect ) &&
+          !inputData->mCodepoints.empty() )
       {
         auto mouseReleaseSeconds = ImGuiGlobals::Instance.mElapsedSeconds;
         if( mouseReleaseSeconds - lastMouseReleaseSeconds < 0.5f &&
-          lastMousePositionDesktopWindowspace == ImGuiGlobals::Instance.mMousePositionDesktopWindowspace )
+            lastMousePositionDesktopWindowspace == ImGuiGlobals::Instance.mMousePositionDesktopWindowspace )
         {
           inputData->mNumGlyphsBeforeCaret[ 0 ] = 0;
           inputData->mNumGlyphsBeforeCaret[ 1 ] = inputData->mCodepoints.size();
@@ -436,7 +436,7 @@ namespace Tac
     UI2DDrawData* drawData = ImGuiGlobals::Instance.mUI2DDrawData;
     bool clicked = false;
     v2 pos = window->mCurrCursorDrawPos;
-    v2 buttonSize = {
+    const v2 buttonSize = {
       window->mContentRect.mMaxi.x - pos.x,
       ( float )ImGuiGlobals::Instance.mUIStyle.fontSize };
 
@@ -478,8 +478,10 @@ namespace Tac
     ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
     KeyboardInput* keyboardInput = ImGuiGlobals::Instance.mKeyboardInput;
     UI2DDrawData* drawData = ImGuiGlobals::Instance.mUI2DDrawData;
-    v2 textSize = drawData->CalculateTextSize( str, ImGuiGlobals::Instance.mUIStyle.fontSize );
-    v2 buttonSize = { textSize.x + 2 * ImGuiGlobals::Instance.mUIStyle.buttonPadding, textSize.y };
+    const v2 textSize = drawData->CalculateTextSize( str, ImGuiGlobals::Instance.mUIStyle.fontSize );
+    const v2 buttonSize = {
+      textSize.x + 2 * ImGuiGlobals::Instance.mUIStyle.buttonPadding,
+      textSize.y };
     v2 pos = window->mCurrCursorDrawPos;
     window->ItemSize( textSize );
 
@@ -490,7 +492,8 @@ namespace Tac
     if( clipped )
       return false;
 
-    bool hovered = ImGuiGlobals::Instance.IsHovered( clipRect );
+
+    const bool hovered = ImGuiGlobals::Instance.IsHovered( clipRect );
     bool justClicked = false;
     v3 outerBoxColor = v3( .23f, .28f, .38f );
     if( hovered )
@@ -512,7 +515,11 @@ namespace Tac
     v2 textPos = {
       pos.x + ImGuiGlobals::Instance.mUIStyle.buttonPadding,
       pos.y };
-    drawData->AddText( textPos, ImGuiGlobals::Instance.mUIStyle.fontSize, str, ImGuiGlobals::Instance.mUIStyle.textColor, &clipRect );
+    drawData->AddText( textPos,
+                       ImGuiGlobals::Instance.mUIStyle.fontSize,
+                       str,
+                       ImGuiGlobals::Instance.mUIStyle.textColor,
+                       &clipRect );
 
     return justClicked;
   }
@@ -728,11 +735,11 @@ namespace Tac
         static double lastMouseReleaseSeconds;
         static v2 lastMousePositionDesktopWindowspace;
         if( KeyboardInput::Instance->HasKeyJustBeenReleased( Key::MouseLeft ) &&
-          ImGuiGlobals::Instance.IsHovered( clipRect ) )
+            ImGuiGlobals::Instance.IsHovered( clipRect ) )
         {
           auto mouseReleaseSeconds = ImGuiGlobals::Instance.mElapsedSeconds;
           if( mouseReleaseSeconds - lastMouseReleaseSeconds < 0.5f &&
-            lastMousePositionDesktopWindowspace == ImGuiGlobals::Instance.mMousePositionDesktopWindowspace )
+              lastMousePositionDesktopWindowspace == ImGuiGlobals::Instance.mMousePositionDesktopWindowspace )
           {
             Vector< Codepoint > codepoints;
             Errors ignoredUTF8ConversionErrors;

@@ -34,10 +34,6 @@ namespace Tac
   void CreationMainWindow::Init( Errors& )
   {
     mUI2DDrawData = new UI2DDrawData;
-    //mUI2DDrawData->mRenderView = mDesktopWindow->mRenderView;
-    //mUIRoot = new UIRoot;
-    //mUIRoot->mUI2DDrawData = mUI2DDrawData;
-    //mUIRoot->mDesktopWindow = mDesktopWindow;
     int x;
     int y;
     int w;
@@ -81,8 +77,6 @@ namespace Tac
     ImGuiIndent();
     Creation* creation = Creation::Instance;
 
-    // static because hackery ( the errors get saved in a lambda,
-    // which then turns into garbage when it goes out of scope... )
     static Errors createWindowErrors;
     if( ImGuiButton( "System" ) )
       creation->CreateSystemWindow( createWindowErrors );

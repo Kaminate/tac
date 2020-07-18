@@ -54,6 +54,7 @@ namespace Tac
 
     DesktopWindowState mDesktopWindowState;
     DesktopWindow* mDesktopWindow = nullptr;
+    DesktopWindowHandle mDesktopWindowHandle;
     UIRoot* mUIRoot = nullptr;
     UI2DDrawData* mUI2DDrawData = nullptr;
     Soul* mSoul = nullptr;

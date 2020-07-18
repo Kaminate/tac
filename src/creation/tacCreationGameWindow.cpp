@@ -1,23 +1,24 @@
-#include "src/creation/tacCreationGameWindow.h"
-#include "src/creation/tacCreation.h"
-#include "src/common/tacShell.h"
-#include "src/common/tacDesktopWindow.h"
-#include "src/common/graphics/tacRenderer.h"
-#include "src/common/graphics/tacUI2D.h"
-#include "src/common/graphics/tacUI.h"
-#include "src/common/graphics/imgui/tacImGui.h"
-#include "src/common/tacKeyboardinput.h"
-#include "src/common/graphics/tacDebug3D.h"
-#include "src/common/assetmanagers/tacTextureAssetManager.h"
 #include "src/common/assetmanagers/tacModelAssetManager.h"
+#include "src/common/assetmanagers/tacTextureAssetManager.h"
+#include "src/common/graphics/imgui/tacImGui.h"
+#include "src/common/graphics/tacDebug3D.h"
+#include "src/common/graphics/tacRenderer.h"
+#include "src/common/graphics/tacUI.h"
+#include "src/common/graphics/tacUI2D.h"
+#include "src/common/tacDesktopWindow.h"
+#include "src/common/tacKeyboardinput.h"
 #include "src/common/tacOS.h"
+#include "src/common/tacShell.h"
+#include "src/creation/tacCreation.h"
+#include "src/creation/tacCreationGameWindow.h"
 #include "src/shell/tacDesktopApp.h"
-#include "src/space/tacGhost.h"
+#include "src/shell/tacDesktopWindowManager.h"
 #include "src/space/graphics/tacGraphics.h"
-#include "src/space/tacWorld.h"
-#include "src/space/tacEntity.h"
 #include "src/space/presentation/tacGamePresentation.h"
 #include "src/space/presentation/tacSkyboxPresentation.h"
+#include "src/space/tacEntity.h"
+#include "src/space/tacGhost.h"
+#include "src/space/tacWorld.h"
 
 namespace Tac
 {
@@ -179,6 +180,13 @@ namespace Tac
   }
   void CreationGameWindow::Init( Errors& errors )
   {
+    int x;
+    int y;
+    int w;
+    int h;
+    Creation::Instance->GetWindowsJsonData( gGameWindowName, &x, &y, &w, &h );
+    mDesktopWindowHandle = DesktopWindowManager::Instance->CreateWindow( x, y, w, h );
+
     Creation* creation = Creation::Instance;
     auto uI2DDrawData = new UI2DDrawData();
     mUI2DDrawData = uI2DDrawData;
