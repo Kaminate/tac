@@ -546,7 +546,8 @@ namespace Tac
         !CreationSystemWindow::Instance &&
         !CreationProfileWindow::Instance )
     {
-      CreateMainWindow( errors );
+      //CreateMainWindow( errors );
+      CreateGameWindow( errors );
       TAC_HANDLE_ERROR( errors );
     }
 

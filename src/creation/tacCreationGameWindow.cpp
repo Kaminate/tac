@@ -543,16 +543,6 @@ namespace Tac
         AddDrawCall( mCenteredUnitCube, perObjectData );
       }
     }
-
-    Errors ignored;
-    //mDebug3DDrawData->DrawToTexture(
-    //  ignored,
-    //  &perFrameData,
-    //  mDesktopWindow->mRenderView );
-
-    mGamePresentation->RenderGameWorldToDesktopView( desktopWindowState->mWidth,
-                                                     desktopWindowState->mHeight,
-                                                     ViewIdGameWindow );
   }
   void CreationGameWindow::PlayGame( Errors& errors )
   {
@@ -704,10 +694,8 @@ namespace Tac
 
     //mDesktopWindow->SetRenderViewDefaults();
     //TAC_INVALID_CODE_PATH;
-    //SetCreationWindowImGuiGlobals( mDesktopWindow,
-    //                               mUI2DDrawData,
-    //                               mDesktopWindowState.mWidth,
-    //                               mDesktopWindowState.mHeight );
+    SetCreationWindowImGuiGlobals( desktopWindowState,
+                                   mUI2DDrawData );
     if( mSoul )
     {
       //static bool once;
@@ -739,7 +727,14 @@ namespace Tac
     CameraControls();
     ComputeArrowLen();
     RenderGameWorldToGameWindow();
-    TAC_HANDLE_ERROR( errors );
+
+    //mDebug3DDrawData->DrawToTexture( errors,
+    //                                 &perFrameData,
+    //                                 mDesktopWindow->mRenderView );
+
+    mGamePresentation->RenderGameWorldToDesktopView( desktopWindowState->mWidth,
+                                                     desktopWindowState->mHeight,
+                                                     ViewIdGameWindow );
 
     if( creation->mSelectedGizmo )
     {

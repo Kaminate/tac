@@ -45,15 +45,18 @@ namespace Tac
 
     World* world = mWorld;
 
-    m4 view = mCamera->View();
     float a;
     float b;
-    Render::GetPerspectiveProjectionAB( mCamera->mFarPlane, mCamera->mNearPlane, a, b );
+    Render::GetPerspectiveProjectionAB( mCamera->mFarPlane,
+                                        mCamera->mNearPlane,
+                                        a,
+                                        b );
 
     const float w = ( float )viewWidth;
     const float h = ( float )viewHeight;
     const float aspect = w / h;
-    m4 proj = mCamera->Proj( a, b, aspect );
+    const m4 view = mCamera->View();
+    const m4 proj = mCamera->Proj( a, b, aspect );
 
     DefaultCBufferPerFrame perFrameData;
     perFrameData.mFar = mCamera->mFarPlane;
@@ -66,9 +69,15 @@ namespace Tac
     setPerFrame.CopyUniformSource( perFrameData );
     Render::AddDrawCall( setPerFrame );
 
+    Render::UpdateConstantBuffer( mPerFrame,
+                                  &perFrameData,
+                                  sizeof( DefaultCBufferPerFrame ),
+                                  TAC_STACK_FRAME );
+
+    Render::Submit( viewId );
+
 
     Graphics* graphics = Graphics::GetSystem( world );
-    Physics* physics = Physics::GetSystem( world );
     for( Model* model : graphics->mModels )
     {
       Mesh* mesh = model->mesh;
@@ -95,8 +104,10 @@ namespace Tac
       DefaultCBufferPerObject perObjectData;
       perObjectData.Color = { model->mColorRGB, 1 }; // { 0.23f, 0.7f, 0.5f, 1 };
       perObjectData.World = entity->mWorldTransform;
-      RenderGameWorldAddDrawCall( mesh, perObjectData );
+      RenderGameWorldAddDrawCall( mesh, perObjectData, viewId );
     }
+
+    Physics* physics = Physics::GetSystem( world );
     for( Terrain* terrain : physics->mTerrains )
     {
       if( !terrain->mVertexBuffer.IsValid() || !terrain->mIndexBuffer.IsValid() )
@@ -203,6 +214,7 @@ namespace Tac
 
       Render::AddDrawCall( drawCall );
     }
+
     //Renderer::Instance->DebugBegin( "Render game world" );
     //Renderer::Instance->RenderFlush();
     //Renderer::Instance->DebugEnd();
@@ -351,9 +363,9 @@ namespace Tac
     CreateSamplerState( errors );
     TAC_HANDLE_ERROR( errors );
   }
-  void GamePresentation::RenderGameWorldAddDrawCall(
-    const Mesh* mesh,
-    const DefaultCBufferPerObject& cbuf )
+  void GamePresentation::RenderGameWorldAddDrawCall( const Mesh* mesh,
+                                                     const DefaultCBufferPerObject& cbuf,
+                                                     const Render::ViewId viewId )
   {
     for( const SubMesh& subMesh : mesh->mSubMeshes )
     {
@@ -371,6 +383,23 @@ namespace Tac
       drawCall.mUniformSrcc = TemporaryMemoryFromT( cbuf );
       drawCall.mFrame = TAC_STACK_FRAME;
       Render::AddDrawCall( drawCall );
+
+      // ^ old
+      // ------------------------------------------------------------
+      // ^ new
+
+      Render::SetVertexBuffer( subMesh.mVertexBuffer, 0, 0 );
+      Render::SetIndexBuffer( subMesh.mIndexBuffer, 0, subMesh.mIndexCount );
+      Render::SetBlendState( mBlendState );
+      Render::SetRasterizerState( mRasterizerState );
+      Render::SetSamplerState( mSamplerState );
+      Render::SetDepthState( mDepthState );
+      Render::SetVertexFormat( mesh->mVertexFormat );
+      Render::UpdateConstantBuffer( mPerObj,
+                                    &cbuf,
+                                    sizeof( DefaultCBufferPerObject ),
+                                    TAC_STACK_FRAME );
+      Render::Submit( viewId );
     }
   }
 }
