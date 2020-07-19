@@ -66,17 +66,17 @@ namespace Tac
   {
     if( CreationMainWindow* mainWindow = CreationMainWindow::Instance )
     {
-      mainWindow->mDesktopWindow->mOnDestroyed.clear();
+      //mainWindow->mDesktopWindow->mOnDestroyed.clear();
       delete mainWindow;
     }
-    if( CreationGameWindow*  gameWindow = CreationGameWindow::Instance )
+    if( CreationGameWindow* gameWindow = CreationGameWindow::Instance )
     {
-      gameWindow->mDesktopWindow->mOnDestroyed.clear();
+      //gameWindow->mDesktopWindow->mOnDestroyed.clear();
       delete gameWindow;
     }
     if( CreationPropertyWindow* propertyWindow = CreationPropertyWindow::Instance )
     {
-      propertyWindow->mDesktopWindow->mOnDestroyed.clear();
+      //propertyWindow->mDesktopWindow->mOnDestroyed.clear();
       delete propertyWindow;
     }
   }
@@ -107,7 +107,7 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
 
     gameWindow = new CreationGameWindow();
-    gameWindow->mDesktopWindow = desktopWindow;
+    //gameWindow->mDesktopWindow = desktopWindow;
     gameWindow->Init( errors );
     TAC_HANDLE_ERROR( errors );
   }
@@ -582,11 +582,8 @@ namespace Tac
 
     mWorld->Step( TAC_DELTA_FRAME_SECONDS );
 
-    if( KeyboardInput::Instance->IsKeyJustDown( Key::Delete ) &&
-        CreationGameWindow::Instance->mDesktopWindow->mCursorUnobscured )
-    {
-      DeleteSelectedEntities();
-    }
+
+    CheckDeleteSelected();
 
     if( KeyboardInput::Instance->IsKeyJustDown( Key::S ) &&
         KeyboardInput::Instance->IsKeyDown( Key::Modifier ) )
@@ -648,6 +645,21 @@ namespace Tac
   {
     mSelectedEntities.clear();
     mSelectedHitOffsetExists = false;
+  }
+  void Creation::CheckDeleteSelected()
+  {
+    CreationGameWindow* gameWindow = CreationGameWindow::Instance;
+
+    if( !gameWindow || !gameWindow->mDesktopWindowHandle.IsValid() )
+      return;
+
+    DesktopWindowState* gameWindowState = FindDesktopWindowState( gameWindow->mDesktopWindowHandle );
+    if( !gameWindowState || !gameWindowState->mCursorUnobscured )
+      return;
+
+    if( !KeyboardInput::Instance->IsKeyJustDown( Key::Delete ) )
+      return;
+    DeleteSelectedEntities();
   }
   void Creation::GetSavedPrefabs( Vector< String > & paths, Errors& errors )
   {

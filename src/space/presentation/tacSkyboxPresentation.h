@@ -12,7 +12,10 @@ namespace Tac
   struct SkyboxPresentation
   {
     ~SkyboxPresentation();
-    void RenderSkybox( const String& skyboxDir );
+    void RenderSkybox( int viewWidth,
+                       int viewHeight,
+                       Render::ViewId viewId,
+                       const String& skyboxDir );
     void Init( Errors& errors );
 
     Camera* mCamera = nullptr;

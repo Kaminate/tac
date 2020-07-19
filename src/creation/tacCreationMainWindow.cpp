@@ -156,6 +156,7 @@ namespace Tac
     // to force directx graphics specific window debugging
     if( ImGuiButton( "close window" ) )
     {
+      if(mDesktopWindow)
       mDesktopWindow->mRequestDeletion = true;
     }
 
@@ -192,7 +193,7 @@ namespace Tac
     //  params->mHeight;
 
 
-    DesktopWindowState* desktopWindowState = FindDesktopWindowState( info->mDesktopWindowHandle );
+    DesktopWindowState* desktopWindowState = FindDesktopWindowState( mDesktopWindowHandle );
     if( !desktopWindowState )
       return;
 

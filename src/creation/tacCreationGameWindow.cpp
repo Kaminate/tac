@@ -193,20 +193,20 @@ namespace Tac
     mUIRoot = new UIRoot;
     mUIRoot->mElapsedSeconds = &Shell::Instance->mElapsedSeconds;
     mUIRoot->mUI2DDrawData = mUI2DDrawData;
-    mUIRoot->mDesktopWindow = mDesktopWindow;
+    //mUIRoot->mDesktopWindow = mDesktopWindow;
     CreateGraphicsObjects( errors );
     TAC_HANDLE_ERROR( errors );
 
     mSkyboxPresentation = new SkyboxPresentation;
     mSkyboxPresentation->mCamera = &creation->mEditorCamera;
-    mSkyboxPresentation->mDesktopWindow = mDesktopWindow;
+    //mSkyboxPresentation->mDesktopWindow = mDesktopWindow;
     mSkyboxPresentation->Init( errors );
     TAC_HANDLE_ERROR( errors );
 
     mGamePresentation = new GamePresentation;
     mGamePresentation->mWorld = creation->mWorld;
     mGamePresentation->mCamera = &creation->mEditorCamera;
-    mGamePresentation->mDesktopWindow = mDesktopWindow;
+    //mGamePresentation->mDesktopWindow = mDesktopWindow;
     mGamePresentation->mSkyboxPresentation = mSkyboxPresentation;
     mGamePresentation->CreateGraphicsObjects( errors );
     TAC_HANDLE_ERROR( errors );
@@ -240,7 +240,10 @@ namespace Tac
 
   void CreationGameWindow::MousePickingAll()
   {
-    if( !mDesktopWindow->mCursorUnobscured )
+    DesktopWindowState* desktopWindowState = FindDesktopWindowState( mDesktopWindowHandle );
+    if( !desktopWindowState )
+      return;
+    if( !desktopWindowState->mCursorUnobscured )
       return;
     Creation* creation = Creation::Instance;
 
@@ -358,40 +361,46 @@ namespace Tac
   }
   void CreationGameWindow::MousePickingInit()
   {
+    DesktopWindowState* desktopWindowState = FindDesktopWindowState( mDesktopWindowHandle );
+    if( !desktopWindowState )
+      return;
+
     Creation* creation = Creation::Instance;
-    float w = ( float )mDesktopWindow->mWidth;
-    float h = ( float )mDesktopWindow->mHeight;
+    const float w = ( float )desktopWindowState->mWidth;
+    const float h = ( float )desktopWindowState->mHeight;
+    const float x = ( float )desktopWindowState->mX;
+    const float y = ( float )desktopWindowState->mY;
     v2 screenspaceCursorPos;
     Errors errors;
     OS::GetScreenspaceCursorPos( screenspaceCursorPos, errors );
     if( errors )
       return;
-    float xNDC = ( ( screenspaceCursorPos.x - mDesktopWindow->mX ) / w );
-    float yNDC = ( ( screenspaceCursorPos.y - mDesktopWindow->mY ) / h );
+    float xNDC = ( ( screenspaceCursorPos.x - x ) / w );
+    float yNDC = ( ( screenspaceCursorPos.y - y ) / h );
     yNDC = 1 - yNDC;
     xNDC = xNDC * 2 - 1;
     yNDC = yNDC * 2 - 1;
-    float aspect = w / h;
-    float theta = creation->mEditorCamera.mFovyrad / 2.0f;
-    float cotTheta = 1.0f / std::tan( theta );
-    float sX = cotTheta / aspect;
-    float sY = cotTheta;
+    const float aspect = w / h;
+    const float theta = creation->mEditorCamera.mFovyrad / 2.0f;
+    const float cotTheta = 1.0f / std::tan( theta );
+    const float sX = cotTheta / aspect;
+    const float sY = cotTheta;
 
-    m4 viewInv = M4ViewInv(
+    const m4 viewInv = M4ViewInv(
       creation->mEditorCamera.mPos,
       creation->mEditorCamera.mForwards,
       creation->mEditorCamera.mRight,
       creation->mEditorCamera.mUp );
-    v3 viewSpaceMousePosNearPlane =
+    const v3 viewSpaceMousePosNearPlane =
     {
       xNDC / sX,
       yNDC / sY,
       -1,
     };
 
-    v3 viewSpaceMouseDir = Normalize( viewSpaceMousePosNearPlane );
-    v4 viewSpaceMouseDir4 = v4( viewSpaceMouseDir, 0 );
-    v4 worldSpaceMouseDir4 = viewInv * viewSpaceMouseDir4;
+    const v3 viewSpaceMouseDir = Normalize( viewSpaceMousePosNearPlane );
+    const v4 viewSpaceMouseDir4 = v4( viewSpaceMouseDir, 0 );
+    const v4 worldSpaceMouseDir4 = viewInv * viewSpaceMouseDir4;
     worldSpaceMouseDir = worldSpaceMouseDir4.xyz();
   }
   void CreationGameWindow::MousePickingEntity(
@@ -473,10 +482,13 @@ namespace Tac
   {
     MousePickingAll();
     Creation* creation = Creation::Instance;
+    DesktopWindowState* desktopWindowState = FindDesktopWindowState( mDesktopWindowHandle );
+    if( !desktopWindowState )
+      return;
 
     m4 view = creation->mEditorCamera.View();
-    float w = ( float )mDesktopWindow->mWidth;
-    float h = ( float )mDesktopWindow->mHeight;
+    float w = ( float )desktopWindowState->mWidth;
+    float h = ( float )desktopWindowState->mHeight;
     float a;
     float b;
     Render::GetPerspectiveProjectionAB(
@@ -484,8 +496,8 @@ namespace Tac
       creation->mEditorCamera.mNearPlane,
       a,
       b );
-    float aspect = w / h;
-    m4 proj = M4ProjPerspective( a, b, creation->mEditorCamera.mFovyrad, aspect );
+    const float aspect = w / h;
+    const m4 proj = M4ProjPerspective( a, b, creation->mEditorCamera.mFovyrad, aspect );
     DefaultCBufferPerFrame perFrameData;
     perFrameData.mFar = creation->mEditorCamera.mFarPlane;
     perFrameData.mNear = creation->mEditorCamera.mNearPlane;
@@ -538,7 +550,9 @@ namespace Tac
     //  &perFrameData,
     //  mDesktopWindow->mRenderView );
 
-    mGamePresentation->RenderGameWorldToDesktopView();
+    mGamePresentation->RenderGameWorldToDesktopView( desktopWindowState->mWidth,
+                                                     desktopWindowState->mHeight,
+                                                     ViewIdGameWindow );
   }
   void CreationGameWindow::PlayGame( Errors& errors )
   {
@@ -579,7 +593,10 @@ namespace Tac
   }
   void CreationGameWindow::CameraControls()
   {
-    if( !mDesktopWindow->mCursorUnobscured )
+    DesktopWindowState* desktopWindowState = FindDesktopWindowState( mDesktopWindowHandle );
+    if( !desktopWindowState )
+      return;
+    if( !desktopWindowState->mCursorUnobscured )
       return;
     Creation* creation = Creation::Instance;
     Camera oldCamera = creation->mEditorCamera;
@@ -660,13 +677,38 @@ namespace Tac
   void CreationGameWindow::Update( Errors& errors )
   {
     Creation* creation = Creation::Instance;
-    mDesktopWindow->SetRenderViewDefaults();
-    TAC_INVALID_CODE_PATH;
+
+
+
+
+
+    Creation::WindowFramebufferInfo* info =
+      Creation::Instance->FindWindowFramebufferInfo( mDesktopWindowHandle );
+
+    DesktopWindowState* desktopWindowState = FindDesktopWindowState( mDesktopWindowHandle );
+    if( !desktopWindowState )
+      return;
+
+    Viewport viewport(
+      ( float )desktopWindowState->mWidth,
+      ( float )desktopWindowState->mHeight );
+
+    ScissorRect scissorRect(
+      ( float )desktopWindowState->mWidth,
+      ( float )desktopWindowState->mHeight );
+
+    Render::SetViewFramebuffer( ViewIdGameWindow, info->mFramebufferHandle );
+    Render::SetViewport( ViewIdGameWindow, viewport );
+    Render::SetViewScissorRect( ViewIdGameWindow, scissorRect );
+
+
+    //mDesktopWindow->SetRenderViewDefaults();
+    //TAC_INVALID_CODE_PATH;
     //SetCreationWindowImGuiGlobals( mDesktopWindow,
     //                               mUI2DDrawData,
     //                               mDesktopWindowState.mWidth,
     //                               mDesktopWindowState.mHeight );
-    if( auto ghost = ( Ghost* )mSoul )
+    if( mSoul )
     {
       //static bool once;
       //if( !once )
@@ -678,7 +720,7 @@ namespace Tac
       //  auto model = ( Model* )entity->AddNewComponent( ComponentRegistryEntryIndex::Model );
       //  model->mGLTFPath = "assets/editor/Box.gltf";
       //}
-      ghost->Update( errors );
+      mSoul->Update( errors );
       TAC_HANDLE_ERROR( errors );
     }
 
@@ -730,7 +772,10 @@ namespace Tac
     DrawPlaybackOverlay( errors );
     TAC_HANDLE_ERROR( errors );
 
-    mUI2DDrawData->DrawToTexture( 0, 0, 0, errors );
+    mUI2DDrawData->DrawToTexture( desktopWindowState->mWidth,
+                                  desktopWindowState->mHeight,
+                                  ViewIdGameWindow,
+                                  errors );
     TAC_HANDLE_ERROR( errors );
   }
 }

@@ -15,6 +15,7 @@ struct v4
   float* data();
   const float* data() const;
   v3& xyz();
+  const v3& xyz() const;
   v4() = default;
   v4( float xx, float yy, float zz, float ww );
   v4( const v3& xyz, float ww );

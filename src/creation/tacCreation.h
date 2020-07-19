@@ -48,6 +48,7 @@ namespace Tac
   };
 
   const Render::ViewId ViewIdMainWindow = 0;
+  const Render::ViewId ViewIdGameWindow = 1;
 
   struct Creation : public UpdateThing
   {
@@ -62,6 +63,7 @@ namespace Tac
     bool IsAnythingSelected();
     v3 GetSelectionGizmoOrigin();
     void ClearSelection();
+    void CheckDeleteSelected();
 
     // Prefabs
     void UpdateSavedPrefabs();

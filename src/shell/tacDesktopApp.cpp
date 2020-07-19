@@ -169,8 +169,13 @@ namespace Tac
   void DesktopApp::SpawnWindow( DesktopWindow* desktopWindow )
   {
     for( int i = 0; i < kMaxDesktopWindowStateCount; ++i )
-      if( !mDesktopWindows[ i ] )
-        mDesktopWindows[ i ] = desktopWindow;
+    {
+      if( mDesktopWindows[ i ] )
+        continue;
+
+      mDesktopWindows[ i ] = desktopWindow;
+      return;
+    }
   }
 
 

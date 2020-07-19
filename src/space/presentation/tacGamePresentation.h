@@ -28,11 +28,10 @@ namespace Tac
   {
     ~GamePresentation();
     void CreateGraphicsObjects( Errors& errors );
-    void RenderGameWorldToDesktopView();
+    void RenderGameWorldToDesktopView(int viewWidth, int viewHeight, Render::ViewId viewId );
     void RenderGameWorldAddDrawCall( const Mesh* mesh, const DefaultCBufferPerObject& cbuf );
 
     Camera* mCamera = nullptr;
-    DesktopWindow* mDesktopWindow = nullptr;
     World* mWorld = nullptr;
 
     SkyboxPresentation* mSkyboxPresentation = nullptr;

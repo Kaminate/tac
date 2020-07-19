@@ -221,6 +221,12 @@ namespace Tac
 
   struct ScissorRect
   {
+    ScissorRect() = default;
+    ScissorRect( float w, float h ) 
+    {
+      mXMaxRelUpperLeftCornerPixel = w;
+      mYMaxRelUpperLeftCornerPixel = h;
+    }
     float mXMinRelUpperLeftCornerPixel = 0;
     float mYMinRelUpperLeftCornerPixel = 0;
     float mXMaxRelUpperLeftCornerPixel = 0;
@@ -230,6 +236,12 @@ namespace Tac
   // glViewport lets opengl know how to map the NDC coordinates to the framebuffer coordinates.
   struct Viewport
   {
+    Viewport() = default;
+    Viewport( float w, float h )
+    {
+      mWidth = w;
+      mHeight = h;
+    }
     float mBottomLeftX = 0;
     float mBottomLeftY = 0;
     float mWidth = 0;

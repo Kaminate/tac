@@ -198,7 +198,7 @@ namespace Tac
   {
     UINT result = 0;
     if( ( int )access & ( int )CPUAccess::Read )
-      result |= D3D11_CPU_ACCESS_WRITE;
+      result |= D3D11_CPU_ACCESS_READ;
     if( ( int )access & ( int )CPUAccess::Write )
       result |= D3D11_CPU_ACCESS_WRITE;
     return result;
@@ -2250,7 +2250,6 @@ namespace Tac
   void RendererDirectX11::AddVertexBuffer( Render::CommandDataCreateVertexBuffer* data,
                                            Errors& errors )
   {
-    Render::VertexBufferHandle vertexBufferHandle = data->mVertexBufferHandle;
     TAC_ASSERT( data->mStride );
     AssertRenderThread();
     D3D11_BUFFER_DESC bd = {};
@@ -2260,14 +2259,16 @@ namespace Tac
     bd.CPUAccessFlags = data->mAccess == Access::Dynamic ? D3D11_CPU_ACCESS_WRITE : 0;
     D3D11_SUBRESOURCE_DATA initData = {};
     initData.pSysMem = data->mOptionalInitialBytes;
+    D3D11_SUBRESOURCE_DATA *pInitData = data->mOptionalInitialBytes ? &initData : nullptr;
     ID3D11Buffer* buffer;
     TAC_DX11_CALL( errors,
                    mDevice->CreateBuffer,
                    &bd,
-                   data->mOptionalInitialBytes ? &initData : nullptr,
+                   pInitData,
                    &buffer );
-    mVertexBuffers[ vertexBufferHandle.mResourceId ].mBuffer = buffer;
-    mVertexBuffers[ vertexBufferHandle.mResourceId ].mStride = data->mStride;
+    VertexBuffer* vertexBuffer = &mVertexBuffers[ data->mVertexBufferHandle.mResourceId ];
+    vertexBuffer->mBuffer = buffer;
+    vertexBuffer->mStride = data->mStride;
   }
 
   void RendererDirectX11::AddVertexFormat( Render::CommandDataCreateVertexFormat* commandData,
@@ -2500,6 +2501,7 @@ namespace Tac
     texDesc.CPUAccessFlags = GetCPUAccessFlags( data->mTexSpec.mCpuAccess );
     texDesc.MiscFlags = MiscFlags;
 
+
     // D3D11_SUBRESOURCE_DATA structure
     // https://msdn.microsoft.com/en-us/library/windows/desktop/ff476220(v=vs.85).aspx
     // You set SysMemPitch to the distance between any two adjacent pixels on different lines.
@@ -2509,6 +2511,7 @@ namespace Tac
     subResource.SysMemPitch = data->mTexSpec.mPitch;
     subResource.SysMemSlicePitch = data->mTexSpec.mPitch * data->mTexSpec.mImage.mHeight; // <-- I guess
     D3D11_SUBRESOURCE_DATA *pInitialData = data->mTexSpec.mImageBytes ? &subResource : nullptr;
+    TAC_ASSERT( !data->mTexSpec.mImageBytes || data->mTexSpec.mPitch );
 
     ID3D11Texture2D* texture2D;
     TAC_DX11_CALL(
@@ -2517,6 +2520,7 @@ namespace Tac
       &texDesc,
       pInitialData,
       &texture2D );
+    TAC_HANDLE_ERROR( errors );
 
     ID3D11RenderTargetView* rTV = nullptr;
     if( BindFlags & D3D11_BIND_RENDER_TARGET )
@@ -2536,6 +2540,11 @@ namespace Tac
       srvDesc.Texture2D.MipLevels = MipLevels;
 
       TAC_DX11_CALL( errors, mDevice->CreateShaderResourceView, texture2D, &srvDesc, &srv );
+      TAC_HANDLE_ERROR( errors );
+
+      static int asdf;
+      if( errors.size() )
+        ++ asdf;
     }
 
     if( BindFlags & D3D11_BIND_RENDER_TARGET &&

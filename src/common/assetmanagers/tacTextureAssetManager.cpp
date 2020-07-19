@@ -33,6 +33,7 @@ namespace Tac
         commandData.mBinding = Binding::ShaderResource;
         commandData.mImage = mImage;
         commandData.mImageBytes = mImageData.data();
+        commandData.mPitch = mImage.mFormat.CalculateTotalByteCount() * mImage.mWidth;
         *texture = Render::CreateTexture( mFilepath, commandData, TAC_STACK_FRAME );
         TAC_HANDLE_ERROR( errors );
       }

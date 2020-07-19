@@ -9,9 +9,11 @@ v4::v4( float xx, float yy, float zz, float ww ) : x( xx ), y( yy ), z( zz ), w(
 v4::v4( const v3& xyz, float ww ) { *this = { xyz.x, xyz.y, xyz.z, ww }; }
 v3& v4::xyz()
 {
-  auto pv = ( v3* )data();
-  v3& rv = *pv;
-  return rv;
+  return ( v3& )x;
+}
+const v3& v4::xyz() const
+{
+  return ( v3& )x;
 }
 float* v4::begin() { return data(); }
 float* v4::end() { return data() + 4; }

@@ -23,8 +23,8 @@ namespace Tac
   {
 
     mPerFrame = Render::CreateConstantBuffer( "skybox per frame",
-     sizeof( DefaultCBufferPerFrame ),
-     0,
+                                              sizeof( DefaultCBufferPerFrame ),
+                                              0,
                                               TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
@@ -42,7 +42,7 @@ namespace Tac
     pos.mTextureFormat.mPerElementDataType = GraphicsType::real;
 
     mVertexFormat = Render::CreateVertexFormat( "skybox",
-                                                Render::VertexDeclarations(pos),
+                                                Render::VertexDeclarations( pos ),
                                                 mShader,
                                                 TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
@@ -79,7 +79,10 @@ namespace Tac
     mSamplerState = Render::CreateSamplerState( "skybox", samplerStateData, TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
   }
-  void SkyboxPresentation::RenderSkybox( const String& skyboxDir )
+  void SkyboxPresentation::RenderSkybox( const int viewWidth,
+                                         const int viewHeight,
+                                         const Render::ViewId viewId,
+                                         const String& skyboxDir )
   {
     /*TAC_PROFILE_BLOCK*/;
     static String defaultSkybox = "assets/skybox/daylight";
@@ -105,13 +108,22 @@ namespace Tac
     float a;
     float b;
     Render::GetPerspectiveProjectionAB( mCamera->mFarPlane, mCamera->mNearPlane, a, b );
-    float aspect = ( float )mDesktopWindow->mWidth / ( float )mDesktopWindow->mHeight;
+    const float aspect =
+      ( float )viewWidth /
+      ( float )viewHeight;
+
+    const v3 camPos = {};
 
     DefaultCBufferPerFrame perFrame;
     perFrame.mFar = mCamera->mFarPlane;
     perFrame.mNear = mCamera->mNearPlane;
-    perFrame.mGbufferSize = { ( float )mDesktopWindow->mWidth, ( float )mDesktopWindow->mHeight };
-    perFrame.mView = M4ViewInv( v3( 0, 0, 0 ), mCamera->mForwards, mCamera->mRight, mCamera->mUp );
+    perFrame.mGbufferSize = {
+      ( float )viewWidth,
+      ( float )viewHeight };
+    perFrame.mView = M4ViewInv( camPos,
+                                mCamera->mForwards,
+                                mCamera->mRight,
+                                mCamera->mUp );
     perFrame.mProjection = mCamera->Proj( a, b, aspect );
 
     DrawCall2 drawCallPerFrame = {};

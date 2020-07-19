@@ -37,7 +37,9 @@ namespace Tac
     Render::DestroyRasterizerState( mRasterizerState, TAC_STACK_FRAME );
     Render::DestroySamplerState( mSamplerState, TAC_STACK_FRAME );
   }
-  void GamePresentation::RenderGameWorldToDesktopView()
+  void GamePresentation::RenderGameWorldToDesktopView( const int viewWidth,
+                                                       const int viewHeight,
+                                                       const Render::ViewId viewId )
   {
     //_PROFILE_BLOCK;
 
@@ -48,9 +50,9 @@ namespace Tac
     float b;
     Render::GetPerspectiveProjectionAB( mCamera->mFarPlane, mCamera->mNearPlane, a, b );
 
-    float w = ( float )mDesktopWindow->mWidth;
-    float h = ( float )mDesktopWindow->mHeight;
-    float aspect = w / h;
+    const float w = ( float )viewWidth;
+    const float h = ( float )viewHeight;
+    const float aspect = w / h;
     m4 proj = mCamera->Proj( a, b, aspect );
 
     DefaultCBufferPerFrame perFrameData;
@@ -149,7 +151,7 @@ namespace Tac
         terrain->mVertexBuffer = Render::CreateVertexBuffer( vertexBufferName,
                                                              vertexes.size() * sizeof( TerrainVertex ),
                                                              vertexes.data(),
-                                                             0,
+                                                             sizeof( TerrainVertex ),
                                                              Access::Default,
                                                              TAC_STACK_FRAME );
 
@@ -204,7 +206,7 @@ namespace Tac
     //Renderer::Instance->DebugBegin( "Render game world" );
     //Renderer::Instance->RenderFlush();
     //Renderer::Instance->DebugEnd();
-    mSkyboxPresentation->RenderSkybox( world->mSkyboxDir );
+    mSkyboxPresentation->RenderSkybox( viewWidth, viewHeight, viewId, world->mSkyboxDir );
 
     Errors ignored;
     //world->mDebug3DDrawData->DrawToTexture(
