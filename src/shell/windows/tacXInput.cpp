@@ -190,11 +190,6 @@ namespace Tac
 
       ControllerState controllerState = ToControllerState( js );
       controller->mControllerStateCurr = controllerState;
-
-
-
-
-
     }
   }
   void XInput::EnumerateController( const DIDEVICEINSTANCE* pdidInstance )
@@ -203,9 +198,11 @@ namespace Tac
     if( controller )
       return;
     IDirectInputDevice8* joystick = nullptr;
-    HRESULT hr = directInput->CreateDevice( pdidInstance->guidInstance, &joystick, NULL );
+    HRESULT hr = directInput->CreateDevice( pdidInstance->guidInstance,
+                                            &joystick,
+                                            NULL );
     TAC_ASSERT( SUCCEEDED( hr ) ); // ???
-    controller = new DirectInputPerController();
+    controller = TAC_NEW DirectInputPerController;
     controller->mDivice = joystick;
     controller->mInstance = *pdidInstance;
     controller->mName = pdidInstance->tszInstanceName;

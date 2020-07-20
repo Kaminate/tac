@@ -19,7 +19,7 @@ namespace Tac
   DesktopApp::DesktopApp()
   {
     Instance = this;
-    new Shell;
+    TAC_NEW Shell;
   }
 
   DesktopApp::~DesktopApp()
@@ -36,12 +36,12 @@ namespace Tac
 
     gThreadType = ThreadType::Stuff;
 
-    new ProfileSystem;
+    TAC_NEW ProfileSystem;
     ProfileSystem::Instance->Init();
 
     Render::Init();
 
-    new FontStuff;
+    TAC_NEW FontStuff;
     FontStuff::Instance->Load( errors );
     TAC_HANDLE_ERROR( errors );
 
@@ -104,7 +104,7 @@ namespace Tac
 
   void DesktopApp::Init( Errors& errors )
   {
-    new DesktopWindowManager;
+    TAC_NEW DesktopWindowManager;
 
     ExecutableStartupInfo info;
     info.Init( errors );
@@ -130,7 +130,7 @@ namespace Tac
     OS::GetWorkingDir( workingDir, errors );
     TAC_HANDLE_ERROR( errors );
 
-    new Shell;
+    TAC_NEW Shell;
     Shell::Instance->mAppName = appName;
     Shell::Instance->mPrefPath = prefPath;
     Shell::Instance->mInitialWorkingDir = workingDir;
@@ -197,7 +197,7 @@ namespace Tac
     //  RendererWindowData* mRendererWindowData = nullptr;
     //  DesktopWindow* mDesktopWindow = nullptr;
     //};
-    //auto onWindowResize = new OnWindowResize;
+    //auto onWindowResize = TAC_NEW OnWindowResize;
     //onWindowResize->mDesktopWindow = desktopWindow;
     //onWindowResize->mRendererWindowData = desktopWindow->mRendererData;
 

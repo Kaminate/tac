@@ -3,6 +3,7 @@
 #include "src/common/tacAlgorithm.h"
 #include "src/common/tacJobQueue.h"
 #include "src/common/tacMemory.h"
+#include "src/common/tacTemporaryMemory.h"
 #include "src/common/tacOS.h"
 #include "src/common/tacUtility.h"
 #include "src/common/thirdparty/stb_image.h"
@@ -292,13 +293,13 @@ namespace Tac
         return texture;
       }
 
-      auto data = new AsyncTextureSingleData;
+      auto data = TAC_NEW AsyncTextureSingleData;
       data->mFilepath = textureFilepath;
 
-      auto job = new AsyncTextureSingleJob;
+      auto job = TAC_NEW AsyncTextureSingleJob;
       job->mData = data;
 
-      asyncTexture = new AsyncTexture;
+      asyncTexture = TAC_NEW AsyncTexture;
       asyncTexture->mData = data;
       asyncTexture->mJob = job;
 
@@ -321,13 +322,13 @@ namespace Tac
         return texture;
       }
 
-      auto data = new AsyncTextureCubeData;
+      auto data = TAC_NEW AsyncTextureCubeData;
       data->mDir = textureDir;
 
-      auto job = new AsyncTextureCubeJob;
+      auto job = TAC_NEW AsyncTextureCubeJob;
       job->mData = data;
 
-      asyncTexture = new AsyncTexture;
+      asyncTexture = TAC_NEW AsyncTexture;
       asyncTexture->mJob = job;
       asyncTexture->mData = data;
       mLoadingTextures[ textureDir ] = asyncTexture;

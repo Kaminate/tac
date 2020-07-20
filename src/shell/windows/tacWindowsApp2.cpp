@@ -341,6 +341,17 @@ namespace Tac
   {
     Instance = this;
   }
+  WindowsApplication2::WindowsApplication2(
+    HINSTANCE hInstance,
+    HINSTANCE hPrevInstance,
+    LPSTR lpCmdLine,
+    int nCmdShow ) : WindowsApplication2()
+  {
+    mHInstance = hInstance;
+    mlpCmdLine = lpCmdLine;
+    mNCmdShow = nCmdShow;
+    mhPrevInstance = hPrevInstance;
+  }
   WindowsApplication2::~WindowsApplication2()
   {
     for( const Errors& errors : { mErrorsMainThread, mErrorsStuffThread } )
@@ -350,25 +361,25 @@ namespace Tac
 
   void WindowsApplication2::CreateControllerInput( Errors&errors )
   {
-    new XInput( mHInstance, errors );
+    TAC_NEW XInput( mHInstance, errors );
   }
   void WindowsApplication2::Init( Errors& errors )
   {
+
     DesktopApp::Init( errors );
     TAC_HANDLE_ERROR( errors );
 
     RerouteStdOutToOutputDebugString();
 
-
-    new NetWinsock( errors );
+    TAC_NEW Win32Cursors;
+    TAC_NEW NetWinsock( errors );
     TAC_HANDLE_ERROR( errors );
 
     // window borders should be a higher-level concept, right?
     mShouldWindowHaveBorder = Shell::Instance->mSettings->GetBool( nullptr, { "areWindowsBordered" }, false, errors );
     if( !mShouldWindowHaveBorder )
     {
-      mMouseEdgeHandler = new Win32MouseEdgeHandler();
-      mMouseEdgeHandler->mCursors = mCursors;
+      mMouseEdgeHandler = TAC_NEW Win32MouseEdgeHandler();
     }
 
 
@@ -383,7 +394,7 @@ namespace Tac
     wc.cbSize = sizeof( WNDCLASSEX );
     wc.style = CS_HREDRAW | CS_VREDRAW; // redraw window on movement or size adjustment
     wc.hIcon = ( HICON )LoadImage( nullptr, "grave.ico", IMAGE_ICON, 0, 0, fuLoad );
-    wc.hCursor = mShouldWindowHaveBorder ? mCursors->cursorArrow : nullptr;
+    wc.hCursor = mShouldWindowHaveBorder ? Win32Cursors::Instance->cursorArrow : nullptr;
     wc.hbrBackground = ( HBRUSH )GetStockObject( BLACK_BRUSH );
     wc.lpfnWndProc = WindowProc;
     wc.hInstance = mHInstance;
@@ -549,7 +560,7 @@ namespace Tac
     ShowWindow( hwnd, mNCmdShow );
 
 
-    auto createdWindow = new Win32DesktopWindow();
+    auto createdWindow = TAC_NEW Win32DesktopWindow();
     createdWindow->mHWND = hwnd;
     createdWindow->mOperatingSystemHandle = hwnd;
     createdWindow->mOnDestroyed.AddCallbackFunctional(

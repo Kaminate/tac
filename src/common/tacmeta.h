@@ -53,7 +53,7 @@ struct MetaPodType : public MetaType
 {
   //MetaPod mMetaPod = MetaPod::Unknown;
 };
-struct MeOmpositeType : public MetaType
+struct MetaCompositeType : public MetaType
 {
   Vector< MetaVar* > mMetaVars;
 };

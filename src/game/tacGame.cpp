@@ -40,9 +40,9 @@ namespace Tac
                                                                                               windowParams.mHeight );
       TAC_HANDLE_ERROR( errors );
 
-      mUi2DDrawData = new UI2DDrawData;
+      mUi2DDrawData = TAC_NEW UI2DDrawData;
 
-      auto ghost = new Ghost;
+      auto ghost = TAC_NEW Ghost;
       //ghost->mRenderView = mDesktopWindow->mRenderView;
       ghost->Init( errors );
       TAC_HANDLE_ERROR( errors );
@@ -129,7 +129,7 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
 
     // should this really be on the heap?
-    auto game = new Game();
+    auto game = TAC_NEW Game();
     Shell::Instance->mOnUpdate.AddCallbackFunctional( []( Errors& errors ) { Game::Instance->Update( errors ); } );
 
     game->Init( errors );

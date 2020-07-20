@@ -5,8 +5,6 @@
 
 namespace Tac
 {
-
-
   char* va( const char* format, ... )
   {
     const int bufferCount = 512;
@@ -34,16 +32,13 @@ namespace Tac
     mFunction = function;
   }
 
-  String StackFrame::ToString()  const
+  const char* StackFrame::ToString()  const
   {
     SplitFilepath splitFilepath( mFile );
-    String pathString = splitFilepath.mFilename;
-    String lineString = Tac::ToString( mLine );
-    String result = pathString + ":" + lineString + " " + mFunction;
-    return result;
+    return va( "%s:%i %s", splitFilepath.mFilename.c_str(), mLine, mFunction );
   }
 
-  void AssertInternal( const String& message, const StackFrame& frame )
+  void AssertInternal( const char* message, const StackFrame& frame )
   {
     OS::DebugAssert( message, frame );
   }

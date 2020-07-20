@@ -5,8 +5,6 @@
 #include "src/common/tacPreprocessor.h"
 namespace Tac
 {
-
-
   struct Errors
   {
     void operator=( const StringView& message );
@@ -16,9 +14,6 @@ namespace Tac
     void clear();
     operator bool() const;
     String ToString() const;
-    //void Push( String message );
-    //void Push( String message, Frame frame );
-    //void Push( Frame frame );
 
     void Append( const StackFrame& frame );
     void Append( const StringView& message );

@@ -8,6 +8,7 @@
 #include "src/space/collider/tacCollider.h"
 #include "src/common/graphics/tacDebug3D.h"
 #include "src/common/profile/tacProfile.h"
+#include "src/common/tacMemory.h"
 
 #include <algorithm>
 
@@ -24,7 +25,7 @@ World::World()
     system->mWorld = this;
     mSystems.push_back( system );
   }
-  mDebug3DDrawData = new Debug3DDrawData;
+  mDebug3DDrawData = TAC_NEW Debug3DDrawData;
 }
 World::~World()
 {
@@ -37,7 +38,7 @@ World::~World()
 }
 Entity* World::SpawnEntity( EntityUUID entityUUID )
 {
-  auto entity = new Entity();
+  auto entity = TAC_NEW Entity();
   entity->mEntityUUID = entityUUID;
   entity->mWorld = this;
   mEntities.push_back( entity );
@@ -133,7 +134,7 @@ void World::KillEntity( EntityUUID entityUUID )
 }
 Player* World::SpawnPlayer( PlayerUUID playerUUID )
 {
-  auto player = new Player();
+  auto player = TAC_NEW Player();
   player->mPlayerUUID = playerUUID;
   player->mWorld = this;
   mPlayers.push_back( player );
@@ -265,7 +266,7 @@ void World::DeepCopy( const World& world )
 
   for( Player* fromPlayer : world.mPlayers )
   {
-    Player*  player = new Player();
+    Player*  player = TAC_NEW Player();
     *player = *fromPlayer;
     mPlayers.push_back( player );
   }

@@ -35,8 +35,8 @@ namespace Tac
   void CreationPropertyWindow::Init( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
-    mUI2DDrawData = new UI2DDrawData;
-    mUIRoot = new UIRoot;
+    mUI2DDrawData = TAC_NEW UI2DDrawData;
+    mUIRoot = TAC_NEW UIRoot;
     mUIRoot->mElapsedSeconds = &Shell::Instance->mElapsedSeconds;
     mUIRoot->mUI2DDrawData = mUI2DDrawData;
     mUIRoot->mDesktopWindow = mDesktopWindow;

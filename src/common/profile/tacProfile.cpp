@@ -1,6 +1,7 @@
 
 #include "src/common/profile/tacProfile.h"
 #include "src/common/tacPreprocessor.h"
+#include "src/common/tacMemory.h"
 namespace Tac
 {
 
@@ -80,7 +81,7 @@ namespace Tac
     }
     else
     {
-      result = new ProfileFunction;
+      result = TAC_NEW ProfileFunction;
     }
 
 

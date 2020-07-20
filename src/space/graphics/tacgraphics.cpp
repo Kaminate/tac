@@ -2,6 +2,7 @@
 #include "src/common/graphics/tacFont.h"
 #include "src/common/graphics/imgui/tacImGui.h"
 #include "src/common/math/tacMath.h"
+#include "src/common/tacMemory.h"
 #include "src/space/tacWorld.h"
 #include "src/space/graphics/tacGraphics.h"
 #include "src/space/tacComponent.h"
@@ -15,7 +16,7 @@ namespace Tac
 
 Model* Graphics::CreateModelComponent()
 {
-  auto model = new Model();
+  auto model = TAC_NEW Model();
   mModels.insert( model );
   return model;
 }
@@ -32,14 +33,14 @@ Graphics* Graphics::GetSystem( World* world )
 //  {
 //    //case ComponentRegistryEntryIndex::Say:
 //    //{
-//    //  auto say = new Say();
+//    //  auto say = TAC_NEW Say();
 //    //  mSays.insert( say );
 //    //  return say;
 //    //}
 //
 //  case ComponentRegistryEntryIndex::Model:
 //  {
-//    auto model = new Model();
+//    auto model = TAC_NEW Model();
 //    mModels.insert( model );
 //    return model;
 //  }
@@ -99,7 +100,7 @@ void Graphics::DebugImgui()
 SystemRegistryEntry* Graphics::GraphicsSystemRegistryEntry;
 static System* CreateGraphicsSystem()
 {
-  return new Graphics;
+  return TAC_NEW Graphics;
 }
 
 void GraphicsDebugImgui(System*);

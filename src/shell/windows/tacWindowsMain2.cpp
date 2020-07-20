@@ -2,19 +2,16 @@
 
 #include "src/shell/windows/tacWindowsApp2.h"
 
-int CALLBACK WinMain(
-  HINSTANCE hInstance,
-  HINSTANCE hPrevInstance,
-  LPSTR lpCmdLine,
-  int nCmdShow )
+int CALLBACK WinMain( HINSTANCE hInstance,
+                      HINSTANCE hPrevInstance,
+                      LPSTR lpCmdLine,
+                      int nCmdShow )
 {
-  auto windowsApplication = new Tac::WindowsApplication2();
-  windowsApplication->mHInstance = hInstance;
-  windowsApplication->mlpCmdLine = lpCmdLine;
-  windowsApplication->mNCmdShow = nCmdShow;
-  windowsApplication->mhPrevInstance = hPrevInstance;
-  windowsApplication->Run();
-  delete windowsApplication;
-
+  TAC_NEW Tac::WindowsApplication2( hInstance,
+                                    hPrevInstance,
+                                    lpCmdLine,
+                                    nCmdShow );
+  Tac::WindowsApplication2::Instance->Run();
+  delete Tac::WindowsApplication2::Instance;
   return 0;
 }

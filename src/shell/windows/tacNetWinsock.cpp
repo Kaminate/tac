@@ -5,6 +5,7 @@
 #include "src/common/tacSerialization.h"
 #include "src/common/tacSettings.h"
 #include "src/common/tacAlgorithm.h"
+#include "src/common/tacMemory.h"
 #include <iostream>
 #include <thread> // std::this_thread::sleep_for
 #include <chrono> // std::chrono::miliseconds
@@ -217,7 +218,7 @@ Socket* NetWinsock::CreateSocket(
     return nullptr;
   }
 
-  auto netWinsocket = new SocketWinsock();
+  auto netWinsocket = TAC_NEW SocketWinsock();
   TAC_ON_DESTRUCT( if( errors ) delete netWinsocket );
   netWinsocket->mSocket = winsockSocket;
   netWinsocket->mName = name;

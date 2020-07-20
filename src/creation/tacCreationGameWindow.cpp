@@ -188,22 +188,22 @@ namespace Tac
     mDesktopWindowHandle = DesktopWindowManager::Instance->CreateWindow( x, y, w, h );
 
     Creation* creation = Creation::Instance;
-    auto uI2DDrawData = new UI2DDrawData();
+    auto uI2DDrawData = TAC_NEW UI2DDrawData();
     mUI2DDrawData = uI2DDrawData;
-    mUIRoot = new UIRoot;
+    mUIRoot = TAC_NEW UIRoot;
     mUIRoot->mElapsedSeconds = &Shell::Instance->mElapsedSeconds;
     mUIRoot->mUI2DDrawData = mUI2DDrawData;
     //mUIRoot->mDesktopWindow = mDesktopWindow;
     CreateGraphicsObjects( errors );
     TAC_HANDLE_ERROR( errors );
 
-    mSkyboxPresentation = new SkyboxPresentation;
+    mSkyboxPresentation = TAC_NEW SkyboxPresentation;
     mSkyboxPresentation->mCamera = &creation->mEditorCamera;
     //mSkyboxPresentation->mDesktopWindow = mDesktopWindow;
     mSkyboxPresentation->Init( errors );
     TAC_HANDLE_ERROR( errors );
 
-    mGamePresentation = new GamePresentation;
+    mGamePresentation = TAC_NEW GamePresentation;
     mGamePresentation->mWorld = creation->mWorld;
     mGamePresentation->mCamera = &creation->mEditorCamera;
     //mGamePresentation->mDesktopWindow = mDesktopWindow;
@@ -230,7 +230,7 @@ namespace Tac
       errors );
     TAC_HANDLE_ERROR( errors );
 
-    mDebug3DDrawData = new Debug3DDrawData;
+    mDebug3DDrawData = TAC_NEW Debug3DDrawData;
     //mDebug3DDrawData->mCommonData = shell->Debug3DCommonData::Instance;
     //mDebug3DDrawData->mRenderView = mDesktopWindow->mRenderView;
 
@@ -444,20 +444,20 @@ namespace Tac
   {
     for( const SubMesh& subMesh : mesh->mSubMeshes )
     {
-      DrawCall2 drawCall = {};
-      drawCall.mVertexBuffer = subMesh.mVertexBuffer;
-      drawCall.mIndexBuffer = subMesh.mIndexBuffer;
-      drawCall.mStartIndex = 0;
-      drawCall.mIndexCount = subMesh.mIndexCount;
-      drawCall.mBlendState = mBlendState;
-      drawCall.mRasterizerState = mRasterizerState;
-      drawCall.mSamplerState = mSamplerState;
-      drawCall.mDepthState = mDepthState;
-      drawCall.mVertexFormat = mesh->mVertexFormat;
-      drawCall.mUniformDst = mPerObj;
-      drawCall.mUniformSrcc = TemporaryMemoryFromT( cbuf );
-      drawCall.mFrame = TAC_STACK_FRAME;
-      Render::AddDrawCall( drawCall );
+      //DrawCall2 drawCall = {};
+      //drawCall.mVertexBuffer = subMesh.mVertexBuffer;
+      //drawCall.mIndexBuffer = subMesh.mIndexBuffer;
+      //drawCall.mStartIndex = 0;
+      //drawCall.mIndexCount = subMesh.mIndexCount;
+      //drawCall.mBlendState = mBlendState;
+      //drawCall.mRasterizerState = mRasterizerState;
+      //drawCall.mSamplerState = mSamplerState;
+      //drawCall.mDepthState = mDepthState;
+      //drawCall.mVertexFormat = mesh->mVertexFormat;
+      //drawCall.mUniformDst = mPerObj;
+      //drawCall.mUniformSrcc = TemporaryMemoryFromT( cbuf );
+      //drawCall.mFrame = TAC_STACK_FRAME;
+      //Render::AddDrawCall( drawCall );
     }
   }
   void CreationGameWindow::ComputeArrowLen()
@@ -548,7 +548,7 @@ namespace Tac
   {
     if( mSoul )
       return;
-    auto ghost = new Ghost;
+    auto ghost = TAC_NEW Ghost;
     //ghost->mRenderView = mDesktopWindow->mRenderView;
     ghost->Init( errors );
     TAC_HANDLE_ERROR( errors );

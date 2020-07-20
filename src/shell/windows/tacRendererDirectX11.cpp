@@ -8,6 +8,7 @@
 #include "src/common/tacPreprocessor.h"
 #include "src/common/tacShell.h"
 #include "src/common/tacOS.h"
+#include "src/common/tacTemporaryMemory.h"
 #include "src/shell/tacDesktopApp.h"
 #include "src/shell/windows/tacDXGI.h"
 #include "src/shell/windows/tacRendererDirectX11.h"
@@ -2159,7 +2160,7 @@ namespace Tac
       }
       void CreateRenderer() override
       {
-        new RendererDirectX11;
+        TAC_NEW RendererDirectX11;
       }
     } factory;
     RendererRegistry::Instance().mFactories.push_back( &factory );

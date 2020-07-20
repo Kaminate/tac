@@ -126,28 +126,28 @@ namespace Tac
                                 mCamera->mUp );
     perFrame.mProjection = mCamera->Proj( a, b, aspect );
 
-    DrawCall2 drawCallPerFrame = {};
-    drawCallPerFrame.mUniformDst = mPerFrame;
-    drawCallPerFrame.mUniformSrcc = TemporaryMemoryFromT( perFrame );
-    Render::AddDrawCall( drawCallPerFrame );
+    //DrawCall2 drawCallPerFrame = {};
+    //drawCallPerFrame.mUniformDst = mPerFrame;
+    //drawCallPerFrame.mUniformSrcc = TemporaryMemoryFromT( perFrame );
+    //Render::AddDrawCall( drawCallPerFrame );
 
-    SubMesh* subMesh = &mesh->mSubMeshes[ 0 ];
+    //SubMesh* subMesh = &mesh->mSubMeshes[ 0 ];
 
-    DrawCall2 drawCallGeometry = {};
-    drawCallGeometry.mVertexBuffer = subMesh->mVertexBuffer;
-    drawCallGeometry.mIndexBuffer = subMesh->mIndexBuffer;
-    drawCallGeometry.mIndexCount = subMesh->mIndexCount;
-    drawCallGeometry.mVertexFormat = mVertexFormat;
-    drawCallGeometry.mShader = mShader;
-    drawCallGeometry.mBlendState = mBlendState;
-    drawCallGeometry.mDepthState = mDepthState;
-    drawCallGeometry.mPrimitiveTopology = PrimitiveTopology::TriangleList;
-    drawCallGeometry.mRasterizerState = mRasterizerState;
-    drawCallGeometry.mSamplerState = mSamplerState;
-    drawCallGeometry.mFrame = TAC_STACK_FRAME;
-    drawCallGeometry.mStartIndex = 0;
-    drawCallGeometry.mTextureHandles = { cubemap };
-    Render::AddDrawCall( drawCallGeometry );
+    //DrawCall2 drawCallGeometry = {};
+    //drawCallGeometry.mVertexBuffer = subMesh->mVertexBuffer;
+    //drawCallGeometry.mIndexBuffer = subMesh->mIndexBuffer;
+    //drawCallGeometry.mIndexCount = subMesh->mIndexCount;
+    //drawCallGeometry.mVertexFormat = mVertexFormat;
+    //drawCallGeometry.mShader = mShader;
+    //drawCallGeometry.mBlendState = mBlendState;
+    //drawCallGeometry.mDepthState = mDepthState;
+    //drawCallGeometry.mPrimitiveTopology = PrimitiveTopology::TriangleList;
+    //drawCallGeometry.mRasterizerState = mRasterizerState;
+    //drawCallGeometry.mSamplerState = mSamplerState;
+    //drawCallGeometry.mFrame = TAC_STACK_FRAME;
+    //drawCallGeometry.mStartIndex = 0;
+    //drawCallGeometry.mTextureHandles = { cubemap };
+    //Render::AddDrawCall( drawCallGeometry );
 
     //Renderer::Instance->DebugBegin( "Skybox" );
     //Renderer::Instance->RenderFlush();

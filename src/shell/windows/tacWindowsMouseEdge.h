@@ -29,6 +29,7 @@ namespace Tac
   struct Win32Cursors
   {
     Win32Cursors();
+    static Win32Cursors* Instance;
     HCURSOR cursorArrow;
     HCURSOR cursorArrowNS;
     HCURSOR cursorArrowWE;
@@ -45,7 +46,6 @@ namespace Tac
     void Update( Win32DesktopWindow* window );
     void ResetCursorLock();
 
-    Win32Cursors* mCursors = nullptr;
 
   private:
 

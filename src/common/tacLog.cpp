@@ -159,7 +159,7 @@ void Log::ClearData()
 void Log::Clear()
 {
   ClearData();
-  delete mBytes;
+  TAC_DELETE[] mBytes;
   mBytes = nullptr;
   mByteCount = 0;
 }
@@ -167,7 +167,7 @@ void Log::Resize( int byteCount )
 {
   Clear();
   mByteCount = byteCount;
-  mBytes = new char[ byteCount ];
+  mBytes = TAC_NEW char[ byteCount ];
   ClearData();
 }
 void Log::Write( void* src, int bytes )

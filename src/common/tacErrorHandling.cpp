@@ -13,11 +13,10 @@ void Errors::operator+=( const StringView& message )
 }
 String Errors::ToString() const
 {
-  String result;
-  result += mMessage + "\n";
-  for(const StackFrame& frame : mFrames)
-    result += frame.ToString() + "\n";
-  return result;
+  Vector< String > strings = { mMessage };
+  for( const StackFrame& frame : mFrames )
+    strings.push_back( frame.ToString() );
+  return Join( "\n", strings );
 }
 bool Errors::size() const
 {

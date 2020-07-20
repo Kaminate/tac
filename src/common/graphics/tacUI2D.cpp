@@ -261,14 +261,14 @@ namespace Tac
 
       DrawCall2 perFrame = {};
       //perFrame.mRenderView = mRenderView;
-      perFrame.mBlendState = UI2DCommonData::Instance->mBlendState;
-      perFrame.mRasterizerState = UI2DCommonData::Instance->mRasterizerState;
-      perFrame.mSamplerState = UI2DCommonData::Instance->mSamplerState;
-      perFrame.mDepthState = UI2DCommonData::Instance->mDepthState;
-      perFrame.mVertexFormat = UI2DCommonData::Instance->mFormat;
-      perFrame.mUniformDst = UI2DCommonData::Instance->mPerFrame;
-      perFrame.mUniformSrcc = TemporaryMemoryFromT( perFrameData );
-      perFrame.mFrame = TAC_STACK_FRAME;
+      //perFrame.mBlendState = UI2DCommonData::Instance->mBlendState;
+      //perFrame.mRasterizerState = UI2DCommonData::Instance->mRasterizerState;
+      //perFrame.mSamplerState = UI2DCommonData::Instance->mSamplerState;
+      //perFrame.mDepthState = UI2DCommonData::Instance->mDepthState;
+      //perFrame.mVertexFormat = UI2DCommonData::Instance->mFormat;
+      //perFrame.mUniformDst = UI2DCommonData::Instance->mPerFrame;
+      //perFrame.mUniformSrcc = TemporaryMemoryFromT( perFrameData );
+      //perFrame.mFrame = TAC_STACK_FRAME;
       //Render::AddDrawCall( perFrame );
 
       Render::SetBlendState( UI2DCommonData::Instance->mBlendState );

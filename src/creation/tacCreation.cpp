@@ -1,4 +1,3 @@
-
 #include "src/common/assetmanagers/tacTextureAssetManager.h"
 #include "src/common/graphics/tacColorUtil.h"
 #include "src/common/graphics/tacFont.h"
@@ -12,6 +11,7 @@
 #include "src/common/tacPreprocessor.h"
 #include "src/common/tacKeyboardinput.h"
 #include "src/common/profile/tacProfile.h"
+#include "src/common/tacTemporaryMemory.h"
 #include "src/creation/tacCreation.h"
 #include "src/creation/tacCreationGameWindow.h"
 #include "src/creation/tacCreationPropertyWindow.h"
@@ -54,7 +54,7 @@ namespace Tac
     TAC_UNUSED_PARAMETER( errors );
     mAppName = "Creation";
     mStudioName = "Sleeping Studio";
-    new Creation;
+    TAC_NEW Creation;
   }
 
   Creation* Creation::Instance = nullptr;
@@ -91,7 +91,7 @@ namespace Tac
     CreateDesktopWindow( gPropertyWindowName, &desktopWindow, errors );
     TAC_HANDLE_ERROR( errors );
 
-    propertyWindow = new CreationPropertyWindow;
+    propertyWindow = TAC_NEW CreationPropertyWindow;
     propertyWindow->mDesktopWindow = desktopWindow;
     propertyWindow->Init( errors );
     TAC_HANDLE_ERROR( errors );
@@ -106,7 +106,7 @@ namespace Tac
     CreateDesktopWindow( gGameWindowName, &desktopWindow, errors );
     TAC_HANDLE_ERROR( errors );
 
-    gameWindow = new CreationGameWindow();
+    gameWindow = TAC_NEW CreationGameWindow();
     //gameWindow->mDesktopWindow = desktopWindow;
     gameWindow->Init( errors );
     TAC_HANDLE_ERROR( errors );
@@ -117,7 +117,7 @@ namespace Tac
     if( mainWindow )
       return;
 
-    mainWindow = new CreationMainWindow;
+    mainWindow = TAC_NEW CreationMainWindow;
     mainWindow->Init( errors );
     TAC_HANDLE_ERROR( errors );
   }
@@ -131,7 +131,7 @@ namespace Tac
     CreateDesktopWindow( gSystemWindowName, &desktopWindow, errors );
     TAC_HANDLE_ERROR( errors );
 
-    systemWindow = new CreationSystemWindow();
+    systemWindow = TAC_NEW CreationSystemWindow();
     systemWindow->mDesktopWindow = desktopWindow;
     systemWindow->Init( errors );
     TAC_HANDLE_ERROR( errors );
@@ -148,7 +148,7 @@ namespace Tac
     CreateDesktopWindow( gProfileWindowName, &desktopWindow, errors );
     TAC_HANDLE_ERROR( errors );
 
-    profileWindow = new CreationProfileWindow();
+    profileWindow = TAC_NEW CreationProfileWindow();
     profileWindow->mDesktopWindow = desktopWindow;
     profileWindow->Init( errors );
     TAC_HANDLE_ERROR( errors );
@@ -194,10 +194,10 @@ namespace Tac
   {
     Settings* settings = Shell::Instance->mSettings;
     Vector< String > settingsPaths = { "Windows" };
-    auto windowDefault = new Json();
+    auto windowDefault = TAC_NEW Json();
     ( *windowDefault )[ "Name" ] = gMainWindowName;
 
-    auto windowsDefault = new Json();
+    auto windowsDefault = TAC_NEW Json();
     windowsDefault->mType = JsonType::Array;
     windowsDefault->mElements.push_back( windowDefault );
     Json* windows = settings->GetArray( nullptr, { "Windows" }, windowsDefault, errors );
@@ -229,7 +229,7 @@ namespace Tac
 
     if( !settingsWindowJson )
     {
-      settingsWindowJson = new Json;
+      settingsWindowJson = TAC_NEW Json;
       ( *settingsWindowJson )[ "Name" ] = windowName;
       windows->mElements.push_back( settingsWindowJson );
     }
@@ -373,7 +373,7 @@ namespace Tac
   {
 
     SpaceInit();
-    mWorld = new World;
+    mWorld = TAC_NEW World;
     mEditorCamera.mPos = { 0, 1, 5 };
     mEditorCamera.mForwards = { 0, 0, -1 };
     mEditorCamera.mRight = { 1, 0, 0 };
@@ -692,7 +692,7 @@ namespace Tac
         continue;
       if( Contains( alreadySavedPrefabs, path ) )
         continue;
-      prefabs.mElements.push_back( new Json( path ) );
+      prefabs.mElements.push_back( TAC_NEW Json( path ) );
     }
 
     settings->Save( errors );
@@ -720,7 +720,7 @@ namespace Tac
       Prefab* prefab = FindPrefab( entity );
       if( !prefab )
       {
-        prefab = new Prefab;
+        prefab = TAC_NEW Prefab;
         prefab->mEntities = { entity };
         mPrefabs.push_back( prefab );
       }
@@ -787,7 +787,7 @@ namespace Tac
     Entity* entity = mWorld->SpawnEntity( NullEntityUUID );
     entity->Load( prefabJson );
 
-    auto prefab = new Prefab;
+    auto prefab = TAC_NEW Prefab;
     prefab->mDocumentPath = prefabPath;
     prefab->mEntities = { entity };
     mPrefabs.push_back( prefab );

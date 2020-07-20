@@ -37,11 +37,9 @@ namespace Tac
   Shell* Shell::Instance = nullptr;
   Shell::Shell()
   {
-    //mTimer = new Timer();
-    new KeyboardInput();
-    //mTimer->Start();
+    TAC_NEW KeyboardInput();
     if( IsDebugMode() )
-      mLog = new Log();
+      mLog = TAC_NEW Log();
     Instance = this;
     mLastTick = GetCurrentTime();
   }
@@ -64,7 +62,7 @@ namespace Tac
     // load settings
     {
       String settingsFilename = mAppName + "Settings.txt";
-      auto settings = new Settings();
+      auto settings = TAC_NEW Settings();
       settings->mPath = mPrefPath + "/" + settingsFilename;
       settings->Load( errors );
       TAC_HANDLE_ERROR( errors );
@@ -101,24 +99,24 @@ namespace Tac
       Render::Init( errors );
     }
 
-    new JobQueue;
+    TAC_NEW JobQueue;
     JobQueue::Instance->Init();
 
-    new ModelAssetManager;
+    TAC_NEW ModelAssetManager;
 
-    new Localization;
+    TAC_NEW Localization;
     Localization::Instance->Load( "assets/localization.txt", errors );
     TAC_HANDLE_ERROR( errors );
 
-    new Debug3DCommonData;
+    TAC_NEW Debug3DCommonData;
     Debug3DCommonData::Instance->Init( errors );
     TAC_HANDLE_ERROR( errors );
 
-    new UI2DCommonData;
+    TAC_NEW UI2DCommonData;
     UI2DCommonData::Instance->Init( errors );
     TAC_HANDLE_ERROR( errors );
 
-    new ProfileSystem;
+    TAC_NEW ProfileSystem;
     ProfileSystem::Instance->Init();
   }
   void Shell::FrameBegin( Errors& errors )

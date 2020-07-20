@@ -47,6 +47,8 @@ ${CMAKE_CURRENT_SOURCE_DIR}/tacLocalization.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/tacLocalization.h
 ${CMAKE_CURRENT_SOURCE_DIR}/tacLog.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/tacLog.h
+${CMAKE_CURRENT_SOURCE_DIR}/tacTemporaryMemory.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/tacTemporaryMemory.h
 ${CMAKE_CURRENT_SOURCE_DIR}/tacMemory.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/tacMemory.h
 ${CMAKE_CURRENT_SOURCE_DIR}/profile/tacProfile.cpp

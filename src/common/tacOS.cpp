@@ -19,7 +19,7 @@ namespace Tac
       TAC_HANDLE_ERROR( errors );
     }
 
-    void OS::DebugAssert( const String& msg, const StackFrame& frame )
+    void OS::DebugAssert( const StringView& msg, const StackFrame& frame )
     {
       String s = msg + "\n" + frame.ToString();
       if( !IsDebugMode() )

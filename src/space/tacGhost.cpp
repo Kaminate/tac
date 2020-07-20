@@ -15,6 +15,7 @@
 #include "src/common/tacControllerinput.h"
 #include "src/common/tacKeyboardinput.h"
 #include "src/common/tacMeta.h"
+#include "src/common/tacMemory.h"
 #include "src/space/tacGhost.h"
 #include "src/space/tacClient.h"
 #include "src/space/collider/tacCollider.h"
@@ -79,9 +80,9 @@ void User::Update( Errors& errors )
 
 Ghost::Ghost()
 {
-  mScriptRoot = new ScriptRoot;
+  mScriptRoot = TAC_NEW ScriptRoot;
   //mUIRoot = new UIRoot;
-  mServerData = new ServerData;
+  mServerData = TAC_NEW ServerData;
 }
 void Ghost::Init( Errors& errors )
 {

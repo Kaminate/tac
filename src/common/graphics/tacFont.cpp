@@ -4,6 +4,7 @@
 #include "src/common/tacShell.h"
 #include "src/common/tacSettings.h"
 #include "src/common/tacMemory.h"
+#include "src/common/tacTemporaryMemory.h"
 
 namespace Tac
 {
@@ -78,7 +79,7 @@ namespace Tac
       if( fontFilePath.empty() )
         continue;
 
-      auto fontFile = new FontFile( fontFilePath, errors );
+      auto fontFile = TAC_NEW FontFile( fontFilePath, errors );
       TAC_HANDLE_ERROR( errors );
 
       mFontFiles.push_back( fontFile );
@@ -189,7 +190,7 @@ namespace Tac
         return;
       }
 
-      auto perCodepoint = new PerCodepoint();
+      auto perCodepoint = TAC_NEW PerCodepoint();
       perCodepoint->mPackedChar = packedchar;
       perCodepoint->uiSpaceCharHalfWidth = 0.5f * ( packedchar.x1 - packedchar.x0 );
       perCodepoint->uiSpaceCharHalfHeight = 0.5f * ( packedchar.y1 - packedchar.y0 );
@@ -371,7 +372,7 @@ namespace Tac
     if( mCells.size() < mRowCount * mRowCount )
     {
       auto cellIndex = ( int )mCells.size();
-      auto cell = new FontAtlasCell();
+      auto cell = TAC_NEW FontAtlasCell();
       cell->mRow = cellIndex / mRowCount;
       cell->mColumn = cellIndex % mRowCount;
       mCells.push_back( cell );

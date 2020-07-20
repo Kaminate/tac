@@ -25,8 +25,10 @@ namespace Tac
     return result;
   }
 
+  Win32Cursors* Win32Cursors::Instance = nullptr;
   Win32Cursors::Win32Cursors()
   {
+    Instance = this;
     cursorArrow = LoadCursor( NULL, IDC_ARROW );
     cursorArrowNS = LoadCursor( NULL, IDC_SIZENS );
     cursorArrowWE = LoadCursor( NULL, IDC_SIZEWE );
@@ -111,16 +113,16 @@ namespace Tac
     if( mCursorLock != cursorLock || !mEverSet )
     {
       mEverSet = true;
-      HCURSOR cursor = mCursors->GetCursor( cursorLock );
+      HCURSOR cursor = Win32Cursors::Instance->GetCursor( cursorLock );
       SetCursor( cursor );
       SetCursorLock( cursorLock );
     }
     if( KeyboardInput::Instance->IsKeyJustDown( Key::MouseLeft ) )
     {
       if( cursorLock )
-        mHandler = new ResizeHandler();
+        mHandler = TAC_NEW ResizeHandler();
       else if( cursorPos.y < windowRect.top + edgeDistMovePx )
-        mHandler = new MoveHandler();
+        mHandler = TAC_NEW MoveHandler();
     }
 
     if( mHandler )

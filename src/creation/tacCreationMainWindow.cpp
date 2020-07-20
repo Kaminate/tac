@@ -33,7 +33,7 @@ namespace Tac
 
   void CreationMainWindow::Init( Errors& )
   {
-    mUI2DDrawData = new UI2DDrawData;
+    mUI2DDrawData = TAC_NEW UI2DDrawData;
     int x;
     int y;
     int w;

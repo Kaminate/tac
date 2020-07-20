@@ -11,6 +11,7 @@
 #include "src/common/tacSettings.h"
 #include "src/common/tacShell.h"
 #include "src/common/tacTime.h"
+#include "src/common/tacTemporaryMemory.h"
 #include "src/common/thirdparty/stb_image.h"
 #include "src/space/tacGhost.h"
 #include "src/space/graphics/tacGraphics.h"
@@ -85,10 +86,10 @@ void ScriptGameClient::Update( float seconds, Errors& errors )
   auto shell = Shell::Instance;
   TAC_TIMELINE_BEGIN;
 
-  auto scriptMatchmaker = new ScriptMatchmaker();
+  auto scriptMatchmaker = TAC_NEW ScriptMatchmaker();
   mScriptRoot->AddChild( scriptMatchmaker );
 
-  auto scriptSplash = new ScriptSplash();
+  auto scriptSplash = TAC_NEW ScriptSplash();
   mScriptRoot->AddChild( scriptSplash );
 
   TAC_TIMELINE_KEYFRAME;
@@ -109,8 +110,8 @@ ScriptSplash::ScriptSplash()
 }
 ScriptSplash::~ScriptSplash()
 {
-  //mScriptRoot->AddChild( new ScriptMainMenu() );
-  mScriptRoot->AddChild( new ScriptMainMenu2() );
+  //mScriptRoot->AddChild( TAC_NEW ScriptMainMenu() );
+  mScriptRoot->AddChild( TAC_NEW ScriptMainMenu2() );
 }
 void ScriptSplash::Update( float seconds, Errors& errors )
 {
@@ -136,7 +137,7 @@ void ScriptSplash::Update( float seconds, Errors& errors )
   //auto child4 = ogroot->Split( UISplit::After, UILayoutType::Horizontal );
   //child4->mDebugName = "child4";
 
-  //auto vis = new UIHierarchyVisualText;
+  //auto vis = TAC_NEW UIHierarchyVisualText;
   //vis->mUITextData.mUtf8 = "Moachers";
   //uiRoot->mHierarchyRoot->SetVisual( vis );
   TAC_TIMELINE_KEYFRAME;
@@ -190,7 +191,7 @@ void ScriptMatchmaker::PokeServer( Errors& errors )
   json[ "name" ] = "Ping";
   Json& args = json[ "args" ];
   args.mType = JsonType::Array;
-  args.mElements.push_back( new Json( s ) );
+  args.mElements.push_back( TAC_NEW Json( s ) );
 
   String toSend = json.Stringify();
   mSocket->Send( ( void* )toSend.data(), ( int )toSend.size(), errors );
@@ -529,7 +530,7 @@ void ScriptMainMenu::Update( float seconds, Errors& errors )
   //  uiText->SetText( uiTextData );
   //  uiText->GoNuts();
   //};
-  //mTimeline.Add( new TimelineOnce( timelineSeconds, createGameTitle ) );
+  //mTimeline.Add( TAC_NEW TimelineOnce( timelineSeconds, createGameTitle ) );
   //timelineSeconds += 0.2f;
 
   //auto createMainMenu = [ = ]()->void
@@ -720,7 +721,7 @@ void ScriptMainMenu::Update( float seconds, Errors& errors )
 
   //  mMenu = uiMenu;
   //};
-  //mTimeline.Add( new TimelineOnce( timelineSeconds, createMainMenu ) );
+  //mTimeline.Add( TAC_NEW TimelineOnce( timelineSeconds, createMainMenu ) );
   //timelineSeconds += 0.2f;
 
   //auto createPressStart = [ = ]()
@@ -735,7 +736,7 @@ void ScriptMainMenu::Update( float seconds, Errors& errors )
   //  auto* uiText = uiMenu->Add< UIText >( "press start text" );
   //  mUITextPressStart = uiText;
   //};
-  //mTimeline.Add( new TimelineOnce( timelineSeconds, createPressStart ) );
+  //mTimeline.Add( TAC_NEW TimelineOnce( timelineSeconds, createPressStart ) );
   //timelineSeconds += 0.2f;
 
 
@@ -899,7 +900,7 @@ void ScriptMainMenu2::Update( float seconds, Errors& errors )
 {
   TAC_TIMELINE_BEGIN;
 
-  auto job = new ConnectToServerJob;
+  auto job = TAC_NEW ConnectToServerJob;
   job->mMatchmaker = ( ScriptMatchmaker* )mScriptRoot->GetThread( scriptMatchmakerName );
   mConnectToServerJob = job;
 

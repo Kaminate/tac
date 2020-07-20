@@ -23,7 +23,7 @@ namespace Tac
     void CreateFolderIfNotExist( const String& path, Errors& errors );
 
     void DebugBreak();
-    void DebugAssert( const String& msg, const StackFrame& frame );
+    void DebugAssert( const StringView& msg, const StackFrame& frame );
     void DebugPopupBox( const String& );
 
     // Gets the path where you can save files to, such as user configs

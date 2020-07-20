@@ -3,6 +3,7 @@
 #include "src/space/tacWorld.h"
 #include "src/space/terrain/tacTerrain.h"
 #include "src/common/graphics/tacDebug3D.h"
+#include "src/common/tacTemporaryMemory.h"
 #include "src/common/graphics/tacRenderer.h"
 #include "src/common/tacJson.h"
 #include "src/common/tacMemory.h"
@@ -74,7 +75,7 @@ namespace Tac
       return; // tried to load already, but load failed
 
 
-    Vector< char > imageMemory = TemporaryMemoryFromFile( mHeightmapTexturePath, mTestHeightmapLoadErrors );
+    TemporaryMemory imageMemory = TemporaryMemoryFromFile( mHeightmapTexturePath, mTestHeightmapLoadErrors );
     if( mTestHeightmapLoadErrors )
       return;
 

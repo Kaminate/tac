@@ -193,26 +193,25 @@ namespace Tac
       cbuf.Color = { 1, 1, 1, 1 };
       cbuf.World = m4::Identity();
 
-      DrawCall2 drawCall = {};
-      drawCall.mBlendState = mBlendState;
-      drawCall.mDepthState = mDepthState;
-      drawCall.mIndexBuffer = terrain->mIndexBuffer;
-      drawCall.mIndexCount = terrain->mIndexCapacity;
-      drawCall.mPrimitiveTopology = PrimitiveTopology::TriangleList;
-      drawCall.mRasterizerState = mRasterizerState;
+      //DrawCall2 drawCall = {};
+      //drawCall.mBlendState = mBlendState;
+      //drawCall.mDepthState = mDepthState;
+      //drawCall.mIndexBuffer = terrain->mIndexBuffer;
+      //drawCall.mIndexCount = terrain->mIndexCapacity;
+      //drawCall.mPrimitiveTopology = PrimitiveTopology::TriangleList;
+      //drawCall.mRasterizerState = mRasterizerState;
       //drawCall.mRenderView = mDesktopWindow->mRenderView;
-      drawCall.mSamplerState = mSamplerState;
-      drawCall.mShader = mTerrainShader;
-      drawCall.mFrame = TAC_STACK_FRAME;
-      drawCall.mStartIndex = 0;
-      drawCall.mTextureHandles = { terrainTexture, noiseTexture };
-      drawCall.mUniformDst = mPerObj;
-      drawCall.mUniformSrcc = TemporaryMemoryFromT( cbuf );
-      drawCall.mVertexBuffer = terrain->mVertexBuffer;
-      drawCall.mVertexCount = terrain->mVertexCapacity;
-      drawCall.mVertexFormat = mTerrainVertexFormat;
-
-      Render::AddDrawCall( drawCall );
+      //drawCall.mSamplerState = mSamplerState;
+      //drawCall.mShader = mTerrainShader;
+      //drawCall.mFrame = TAC_STACK_FRAME;
+      //drawCall.mStartIndex = 0;
+      //drawCall.mTextureHandles = { terrainTexture, noiseTexture };
+      //drawCall.mUniformDst = mPerObj;
+      //drawCall.mUniformSrcc = TemporaryMemoryFromT( cbuf );
+      //drawCall.mVertexBuffer = terrain->mVertexBuffer;
+      //drawCall.mVertexCount = terrain->mVertexCapacity;
+      //drawCall.mVertexFormat = mTerrainVertexFormat;
+      //Render::AddDrawCall( drawCall );
     }
 
     //Renderer::Instance->DebugBegin( "Render game world" );
@@ -369,20 +368,20 @@ namespace Tac
   {
     for( const SubMesh& subMesh : mesh->mSubMeshes )
     {
-      DrawCall2 drawCall = {};
-      drawCall.mVertexBuffer = subMesh.mVertexBuffer;
-      drawCall.mIndexBuffer = subMesh.mIndexBuffer;
-      drawCall.mStartIndex = 0;
-      drawCall.mIndexCount = subMesh.mIndexCount;
-      drawCall.mBlendState = mBlendState;
-      drawCall.mRasterizerState = mRasterizerState;
-      drawCall.mSamplerState = mSamplerState;
-      drawCall.mDepthState = mDepthState;
-      drawCall.mVertexFormat = mesh->mVertexFormat;
-      drawCall.mUniformDst = mPerObj;
-      drawCall.mUniformSrcc = TemporaryMemoryFromT( cbuf );
-      drawCall.mFrame = TAC_STACK_FRAME;
-      Render::AddDrawCall( drawCall );
+      //DrawCall2 drawCall = {};
+      //drawCall.mVertexBuffer = subMesh.mVertexBuffer;
+      //drawCall.mIndexBuffer = subMesh.mIndexBuffer;
+      //drawCall.mStartIndex = 0;
+      //drawCall.mIndexCount = subMesh.mIndexCount;
+      //drawCall.mBlendState = mBlendState;
+      //drawCall.mRasterizerState = mRasterizerState;
+      //drawCall.mSamplerState = mSamplerState;
+      //drawCall.mDepthState = mDepthState;
+      //drawCall.mVertexFormat = mesh->mVertexFormat;
+      //drawCall.mUniformDst = mPerObj;
+      //drawCall.mUniformSrcc = TemporaryMemoryFromT( cbuf );
+      //drawCall.mFrame = TAC_STACK_FRAME;
+      //Render::AddDrawCall( drawCall );
 
       // ^ old
       // ------------------------------------------------------------

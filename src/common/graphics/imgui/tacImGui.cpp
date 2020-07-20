@@ -177,9 +177,9 @@ namespace Tac
     ImGuiWindow* window = ImGuiGlobals::Instance.FindWindow( name );
     if( !window )
     {
-      window = new ImGuiWindow;
+      window = TAC_NEW ImGuiWindow;
       window->mName = name;
-      window->mDrawData = new UI2DDrawData;
+      window->mDrawData = TAC_NEW UI2DDrawData;
       ImGuiGlobals::Instance.mAllWindows.push_back( window );
     }
     if( ImGuiGlobals::Instance.mNextWindowPos != v2( 0, 0 ) )
@@ -239,7 +239,7 @@ namespace Tac
     ImGuiWindow* parent = ImGuiGlobals::Instance.mCurrentWindow;
     if( !child )
     {
-      child = new ImGuiWindow;
+      child = TAC_NEW ImGuiWindow;
       child->mName = name;
       child->mParent = parent;
       child->mDrawData = parent->mDrawData;
@@ -269,7 +269,6 @@ namespace Tac
     window->mXOffsets.push_back( window->mCurrCursorDrawPos.x - window->mPos.x );
     window->mCurrLineHeight = 0;
 
-    // new
     //window->mMaxiCursorDrawPos = window->mCurrCursorDrawPos;
 
     window->mGroupSK.push_back( groupData );

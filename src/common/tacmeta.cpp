@@ -3,6 +3,7 @@
 #include "src/common/tacSerialization.h"
 #include "src/common/tacPreprocessor.h"
 #include "src/common/tacUtility.h"
+#include "src/common/tacMemory.h"
 #include <fstream>
 
 namespace Tac
@@ -12,38 +13,38 @@ Meta::Meta()
 {
   // float
   {
-    auto metaFloat = new MetaPodType< float >();
+    auto metaFloat = TAC_NEW MetaPodType< float >();
     metaFloat->mName = TAC_STRINGIFY( float );
     metaFloat->mSize = sizeof( float );
     AddType( metaFloat );
   }
   // int32_t
   {
-    auto metaint32_t = new MetaPodType< int32_t >();
+    auto metaint32_t = TAC_NEW MetaPodType< int32_t >();
     metaint32_t->mName = TAC_STRINGIFY( int32_t );
     metaint32_t->mSize = sizeof( int32_t );
     AddType( metaint32_t );
   }
   // int
   {
-    auto metaint = new MetaPodType< int >();
+    auto metaint = TAC_NEW MetaPodType< int >();
     metaint->mName = TAC_STRINGIFY( int );
     metaint->mSize = sizeof( int );
     AddType( metaint );
   }
   // v2
   {
-    auto x = new MetaVar;
+    auto x = TAC_NEW MetaVar;
     x->mMetaType = GetType( "float" );
     x->mName = "x";
     x->mOffset = TAC_OFFSET_OF( v4, x );
 
-    auto y = new MetaVar;
+    auto y = TAC_NEW MetaVar;
     y->mMetaType = GetType( "float" );
     y->mName = "y";
     y->mOffset = TAC_OFFSET_OF( v4, y );
 
-    auto metav2 = new MeOmpositeType();
+    auto metav2 = TAC_NEW MetaCompositeType();
     metav2->mName = TAC_STRINGIFY( v2 );
     metav2->mMetaVars = { x, y };
     metav2->mSize = sizeof( v2 );
@@ -51,22 +52,22 @@ Meta::Meta()
   }
   // v3
   {
-    auto x = new MetaVar;
+    auto x = TAC_NEW MetaVar;
     x->mMetaType = GetType( "float" );
     x->mName = "x";
     x->mOffset = TAC_OFFSET_OF( v3, x );
 
-    auto y = new MetaVar;
+    auto y = TAC_NEW MetaVar;
     y->mMetaType = GetType( "float" );
     y->mName = "y";
     y->mOffset = TAC_OFFSET_OF( v3, y );
 
-    auto z = new MetaVar;
+    auto z = TAC_NEW MetaVar;
     z->mMetaType = GetType( "float" );
     z->mName = "z";
     z->mOffset = TAC_OFFSET_OF( v3, z );
 
-    auto metav3 = new MeOmpositeType();
+    auto metav3 = TAC_NEW MetaCompositeType();
     metav3->mName = TAC_STRINGIFY( v3 );
     metav3->mMetaVars = { x, y, z };
     metav3->mSize = sizeof( v3 );
@@ -74,27 +75,27 @@ Meta::Meta()
   }
   // v4
   {
-    auto x = new MetaVar;
+    auto x = TAC_NEW MetaVar;
     x->mMetaType = GetType( "float" );
     x->mName = "x";
     x->mOffset = TAC_OFFSET_OF( v4, x );
 
-    auto y = new MetaVar;
+    auto y = TAC_NEW MetaVar;
     y->mMetaType = GetType( "float" );
     y->mName = "y";
     y->mOffset = TAC_OFFSET_OF( v4, y );
 
-    auto z = new MetaVar;
+    auto z = TAC_NEW MetaVar;
     z->mMetaType = GetType( "float" );
     z->mName = "z";
     z->mOffset = TAC_OFFSET_OF( v4, z );
 
-    auto w = new MetaVar;
+    auto w = TAC_NEW MetaVar;
     w->mMetaType = GetType( "float" );
     w->mName = "w";
     w->mOffset = TAC_OFFSET_OF( v4, w );
 
-    auto metav4 = new MeOmpositeType();
+    auto metav4 = TAC_NEW MetaCompositeType();
     metav4->mName = TAC_STRINGIFY( v4 );
     metav4->mMetaVars = { x, y, z, w };
     metav4->mSize = sizeof( v4 );

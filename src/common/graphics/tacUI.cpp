@@ -699,7 +699,7 @@ namespace Tac
   {
     transitionDurationSeconds = 0.3f;
 
-    mHierarchyRoot = new UIHierarchyNode();
+    mHierarchyRoot = TAC_NEW UIHierarchyNode();
     mHierarchyRoot->mUIRoot = this;
 
   }
@@ -738,7 +738,7 @@ namespace Tac
   }
   UILayout* UIRoot::AddMenu( const String& debugName )
   {
-    auto* uiMenu = new UILayout( debugName );
+    auto* uiMenu = TAC_NEW UILayout( debugName );
     uiMenu->mUIRoot = this;
     uiMenu->mTransitionStartSeconds = GetElapsedSeconds();
     mUIMenus.push_back( uiMenu );
@@ -897,7 +897,7 @@ namespace Tac
       else if( !mParent )
       {
         // get my parent who is vertically split
-        parent = new UIHierarchyNode();
+        parent = TAC_NEW UIHierarchyNode();
         parent->mChildren = { this };
         parent->mUIRoot = mUIRoot;
         parent->mLayoutType = layoutType;
@@ -907,7 +907,7 @@ namespace Tac
     }
     else if( !mParent )
     {
-      parent = new UIHierarchyNode();
+      parent = TAC_NEW UIHierarchyNode();
       parent->mChildren = { this };
       parent->mUIRoot = mUIRoot;
       parent->mLayoutType = layoutType;
@@ -924,7 +924,7 @@ namespace Tac
         }
         else
         {
-          parent = new UIHierarchyNode();
+          parent = TAC_NEW UIHierarchyNode();
           parent->mChildren = { this };
           parent->mUIRoot = mUIRoot;
           parent->mLayoutType = layoutType;
@@ -948,7 +948,7 @@ namespace Tac
 
     TAC_ASSERT( parent );
 
-    auto newChild = new UIHierarchyNode();
+    auto newChild = TAC_NEW UIHierarchyNode();
     newChild->mUIRoot = mUIRoot;
     newChild->mParent = parent;
 
@@ -978,7 +978,7 @@ namespace Tac
 
   UIHierarchyNode* UIHierarchyNode::AddChild()
   {
-    auto newChild = new UIHierarchyNode();
+    auto newChild = TAC_NEW UIHierarchyNode();
     newChild->mUIRoot = mUIRoot;
     newChild->mParent = this;
     mChildren.push_back( newChild );

@@ -1,7 +1,9 @@
 // Contains common defines, template utility functions, preprocessor magic/hackery
+//
+// no dependencies i guess
+//
 
 #pragma once
-#include "src/common/tacString.h"
 
 namespace Tac
 {
@@ -46,7 +48,7 @@ namespace Tac
     //String mFunction;
     const char* mFile = nullptr;
     const char* mFunction = nullptr;
-    String ToString() const;
+    const char* ToString() const;
   };
 
   #define TAC_STACK_FRAME Tac::StackFrame( __LINE__, __FILE__, __FUNCTION__ )
@@ -54,7 +56,7 @@ namespace Tac
 
   bool IsDebugMode();
 
-  void AssertInternal( const String& message, const StackFrame& frame );
+  void AssertInternal( const char* message, const StackFrame& frame );
 
   // TODO: make macros TAC_CAPS
 

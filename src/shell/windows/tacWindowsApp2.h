@@ -33,6 +33,11 @@ namespace Tac
   {
     static WindowsApplication2* Instance;
     WindowsApplication2();
+    WindowsApplication2(
+      HINSTANCE hInstance,
+      HINSTANCE hPrevInstance,
+      LPSTR lpCmdLine,
+      int nCmdShow );
     ~WindowsApplication2();
     void                Init( Errors& errors ) override;
     void                Poll( Errors& errors ) override;
@@ -62,7 +67,6 @@ namespace Tac
     Vector< Win32DesktopWindow* > mWindows;
     HWND                mParentHWND = NULL;
     Win32MouseEdgeHandler* mMouseEdgeHandler = nullptr;
-    Win32Cursors*       mCursors = new Win32Cursors();
   };
 
 }

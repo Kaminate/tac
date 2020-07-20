@@ -2,6 +2,7 @@
 #include "src/common/tacUtility.h"
 #include "src/common/tacMemory.h"
 #include "src/common/tacAlgorithm.h"
+#include "src/common/tacTemporaryMemory.h"
 
 namespace Tac
 {

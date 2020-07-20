@@ -3,6 +3,7 @@
 #include "src/common/tacJobQueue.h"
 #include "src/common/graphics/tacRenderer.h"
 #include "src/common/math/tacMath.h"
+#include "src/common/tacTemporaryMemory.h"
 #include "src/common/tacUtility.h"
 
 namespace Tac
