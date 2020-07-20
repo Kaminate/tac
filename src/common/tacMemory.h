@@ -4,6 +4,14 @@
 #include "src/common/tacString.h"
 #include "src/common/containers/tacVector.h"
 
+
+void* operator new ( std::size_t size );
+//void* operator new( std::size_t, Tac::StackFrame );
+//#define TAC_NEW new(TAC_STACK_FRAME)
+//
+//void operator delete( void* ) noexcept;
+//#define TAC_DELETE delete
+
 namespace Tac
 {
 
@@ -27,4 +35,17 @@ namespace Tac
   //
   //};
 
+
+  //template <typename T, typename... Args>
+  //T* New(StackFrame stackFrame, Args&&... args)
+  //{
+  //    // log ...
+  //    return new T { std::forward<Args>(args)... };
+  //}
+
+  void SetNewStackFrame( StackFrame );
+
 }
+
+#define TAC_NEW SetNewStackFrame( TAC_STACK_FRAME ), new
+

@@ -374,9 +374,6 @@ namespace Tac
 
     // If you set the cursor here, calls to SetCursor cause it to flicker to the new cursor
     // before reverting back to the old cursor.
-    HCURSOR hCursor = NULL;
-    if( mShouldWindowHaveBorder )
-      hCursor = mCursors->cursorArrow;
 
     UINT fuLoad
       = LR_LOADFROMFILE // load a file ( not a resource )
@@ -386,7 +383,7 @@ namespace Tac
     wc.cbSize = sizeof( WNDCLASSEX );
     wc.style = CS_HREDRAW | CS_VREDRAW; // redraw window on movement or size adjustment
     wc.hIcon = ( HICON )LoadImage( nullptr, "grave.ico", IMAGE_ICON, 0, 0, fuLoad );
-    wc.hCursor = hCursor;
+    wc.hCursor = mShouldWindowHaveBorder ? mCursors->cursorArrow : nullptr;
     wc.hbrBackground = ( HBRUSH )GetStockObject( BLACK_BRUSH );
     wc.lpfnWndProc = WindowProc;
     wc.hInstance = mHInstance;
@@ -394,17 +391,10 @@ namespace Tac
     wc.hIconSm = NULL; // If null, the system searches for a small icon from the hIcon member
     if( !RegisterClassEx( &wc ) )
     {
-      String errorMessage;
-      errorMessage += "Failed to register window class ";
-      errorMessage += classname;
-      errors.mMessage = errorMessage;
+      errors.mMessage = "Failed to register window class " + String( classname );
       TAC_HANDLE_ERROR( errors );
     }
 
-    // Set the initial cursor, or else the cursor will remain as what it was before
-    // the application was launched
-    if( hCursor == NULL )
-      SetCursor( mCursors->cursorArrow );
   }
   Win32DesktopWindow* WindowsApplication2::GetCursorUnobscuredWindow()
   {
@@ -560,13 +550,13 @@ namespace Tac
 
 
     auto createdWindow = new Win32DesktopWindow();
-    createdWindow->app = this;
     createdWindow->mHWND = hwnd;
     createdWindow->mOperatingSystemHandle = hwnd;
-    createdWindow->mOnDestroyed.AddCallbackFunctional( []( DesktopWindow* desktopWindow )
-                                                       {
-                                                         WindowsApplication2::Instance->RemoveWindow( ( Win32DesktopWindow* )desktopWindow );
-                                                       } );
+    createdWindow->mOnDestroyed.AddCallbackFunctional(
+      []( DesktopWindow* desktopWindow )
+      {
+        WindowsApplication2::Instance->RemoveWindow( ( Win32DesktopWindow* )desktopWindow );
+      } );
     createdWindow->mHandle = handle;
 
     // Used to combine all the windows into one tab group.

@@ -49,7 +49,7 @@ namespace Tac
 
   static void TextInputDataUpdateKeys( TextInputData* inputData, v2 textPos )
   {
-    KeyboardInput* keyboardInput = ImGuiGlobals::Instance.mKeyboardInput;
+    KeyboardInput* keyboardInput = KeyboardInput::Instance;
     UI2DDrawData* drawData = ImGuiGlobals::Instance.mUI2DDrawData;
     static std::map< Key, TextInputKey > foo =
     {
@@ -331,7 +331,7 @@ namespace Tac
   {
     ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
     TextInputData* inputData = window->inputData;
-    KeyboardInput* keyboardInput = ImGuiGlobals::Instance.mKeyboardInput;
+    KeyboardInput* keyboardInput = KeyboardInput::Instance;
     UI2DDrawData* drawData = ImGuiGlobals::Instance.mUI2DDrawData;
     ImGuiId id = window->GetID();
 
@@ -432,7 +432,7 @@ namespace Tac
   bool ImGuiSelectable( const StringView& str, bool selected )
   {
     ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
-    KeyboardInput* keyboardInput = ImGuiGlobals::Instance.mKeyboardInput;
+    KeyboardInput* keyboardInput = KeyboardInput::Instance;
     UI2DDrawData* drawData = ImGuiGlobals::Instance.mUI2DDrawData;
     bool clicked = false;
     v2 pos = window->mCurrCursorDrawPos;
@@ -476,7 +476,7 @@ namespace Tac
   bool ImGuiButton( const StringView& str )
   {
     ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
-    KeyboardInput* keyboardInput = ImGuiGlobals::Instance.mKeyboardInput;
+    KeyboardInput* keyboardInput = KeyboardInput::Instance;
     UI2DDrawData* drawData = ImGuiGlobals::Instance.mUI2DDrawData;
     const v2 textSize = drawData->CalculateTextSize( str, ImGuiGlobals::Instance.mUIStyle.fontSize );
     const v2 buttonSize = {
@@ -526,7 +526,7 @@ namespace Tac
   void ImGuiCheckbox( const StringView& str, bool* value )
   {
     ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
-    KeyboardInput* keyboardInput = ImGuiGlobals::Instance.mKeyboardInput;
+    KeyboardInput* keyboardInput = KeyboardInput::Instance;
     UI2DDrawData* drawData = ImGuiGlobals::Instance.mUI2DDrawData;
     v2 pos = window->mCurrCursorDrawPos;
 
@@ -646,7 +646,7 @@ namespace Tac
     valueToStringGetter( valueStr, valueBytes );
 
     ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
-    KeyboardInput* keyboardInput = ImGuiGlobals::Instance.mKeyboardInput;
+    KeyboardInput* keyboardInput = KeyboardInput::Instance;
     UI2DDrawData* drawData = ImGuiGlobals::Instance.mUI2DDrawData;
     TextInputData* inputData = window->inputData;
     v2 pos = window->mCurrCursorDrawPos;
@@ -844,7 +844,7 @@ namespace Tac
   {
     ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
     UI2DDrawData* drawData = ImGuiGlobals::Instance.mUI2DDrawData;
-    KeyboardInput* keyboardInput = ImGuiGlobals::Instance.mKeyboardInput;
+    KeyboardInput* keyboardInput = KeyboardInput::Instance;
     v2 pos = window->mCurrCursorDrawPos;
     v2 totalSize = {
       window->mContentRect.mMaxi.x - pos.x,

@@ -140,7 +140,6 @@ namespace Tac
     ImGuiWindow* mCurrentWindow = nullptr;
     UI2DDrawData* mUI2DDrawData = nullptr;
     String mDesktopWindowName;
-    KeyboardInput* mKeyboardInput = nullptr;
     Vector< int > mFontSizeSK;
     UIStyle mUIStyle;
     int mDesktopWindowWidth = 0;

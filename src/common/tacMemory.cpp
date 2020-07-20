@@ -46,4 +46,23 @@ namespace Tac
     String result( temporaryMemory.data(), ( int )temporaryMemory.size() );
     return result;
   }
+
+  static thread_local StackFrame sNewStackFrame;
+  void SetNewStackFrame( StackFrame stackFrame )
+  {
+    sNewStackFrame = stackFrame;
+  }
+}
+
+void operator delete( void* ptr ) noexcept
+{
+  std::free( ptr );
+}
+
+void* operator new( std::size_t sz )
+//void* operator new( std::size_t sz, Tac::StackFrame stackFrame )
+{
+  Tac::sNewStackFrame;
+  void* result = std::malloc( sz );
+  return result;
 }

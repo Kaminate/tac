@@ -31,7 +31,7 @@ namespace Tac
   void ImGuiWindow::BeginFrame()
   {
     UI2DDrawData* ui2DDrawData = ImGuiGlobals::Instance.mUI2DDrawData;
-    KeyboardInput* keyboardInput = ImGuiGlobals::Instance.mKeyboardInput;
+    KeyboardInput* keyboardInput = KeyboardInput::Instance;
 
 
     if( mParent )

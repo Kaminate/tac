@@ -12,77 +12,75 @@ namespace Tac
 {
 
 
-struct Win32DesktopWindow;
-struct WindowsApplication2;
-struct KeyboardInput;
+  struct Win32DesktopWindow;
 
-typedef int CursorDirType;
-enum CursorDir : CursorDirType
-{
-  N = 1 << 0,
-  W = 1 << 1,
-  S = 1 << 2,
-  E = 1 << 3,
-};
-
-
-String ToString( CursorDir cursorType );
-
-struct Win32Cursors
-{
-  Win32Cursors();
-  HCURSOR cursorArrow;
-  HCURSOR cursorArrowNS;
-  HCURSOR cursorArrowWE;
-  HCURSOR cursorArrowNE_SW;
-  HCURSOR cursorArrowNW_SE;
-  HCURSOR GetCursor( CursorDir cursorDir = ( CursorDir )0 );
-};
-
-struct Win32MouseEdgeHandler
-{
-  Win32MouseEdgeHandler();
-  ~Win32MouseEdgeHandler();
-  KeyboardInput* mKeyboardInput = nullptr;
-
-  void Update(Win32DesktopWindow* window);
-  void ResetCursorLock();
-
-  Win32Cursors* mCursors = nullptr;
-
-private:
-
-  // care to describe what this function does?
-  void SetCursorLock( CursorDir cursorDir );
-
-  // Used to set the cursor icon
-  CursorDir mCursorLock = {};
-  POINT mCursorPositionOnClick = {};
-  RECT mWindowRectOnClick = {};
-  int edgeDistResizePx;
-  int edgeDistMovePx;
-
-  struct Handler
+  typedef int CursorDirType;
+  enum CursorDir : CursorDirType
   {
-    virtual ~Handler() = default;
-    virtual void Init() {};
-    virtual void Update() {};
-    Win32MouseEdgeHandler* mHandler = nullptr;
-    bool mIsFinished = false;
-    HWND mHwnd = NULL;
+    N = 1 << 0,
+    W = 1 << 1,
+    S = 1 << 2,
+    E = 1 << 3,
   };
 
-  struct MoveHandler : public Handler
+
+  String ToString( CursorDir cursorType );
+
+  struct Win32Cursors
   {
-    void Update() override;
+    Win32Cursors();
+    HCURSOR cursorArrow;
+    HCURSOR cursorArrowNS;
+    HCURSOR cursorArrowWE;
+    HCURSOR cursorArrowNE_SW;
+    HCURSOR cursorArrowNW_SE;
+    HCURSOR GetCursor( CursorDir cursorDir = ( CursorDir )0 );
   };
 
-  struct ResizeHandler : public Handler
+  struct Win32MouseEdgeHandler
   {
-    void Update() override;
-  };
+    Win32MouseEdgeHandler();
+    ~Win32MouseEdgeHandler();
 
-  Handler* mHandler = nullptr;
-};
+    void Update( Win32DesktopWindow* window );
+    void ResetCursorLock();
+
+    Win32Cursors* mCursors = nullptr;
+
+  private:
+
+    // care to describe what this function does?
+    void SetCursorLock( CursorDir cursorDir );
+
+    // Used to set the cursor icon
+    CursorDir mCursorLock = {};
+    POINT mCursorPositionOnClick = {};
+    RECT mWindowRectOnClick = {};
+    int edgeDistResizePx;
+    int edgeDistMovePx;
+    bool mEverSet = false;
+
+    struct Handler
+    {
+      virtual ~Handler() = default;
+      virtual void Init() {};
+      virtual void Update() {};
+      Win32MouseEdgeHandler* mHandler = nullptr;
+      bool mIsFinished = false;
+      HWND mHwnd = NULL;
+    };
+
+    struct MoveHandler : public Handler
+    {
+      void Update() override;
+    };
+
+    struct ResizeHandler : public Handler
+    {
+      void Update() override;
+    };
+
+    Handler* mHandler = nullptr;
+  };
 
 }

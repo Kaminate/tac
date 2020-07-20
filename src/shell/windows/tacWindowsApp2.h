@@ -23,7 +23,6 @@ namespace Tac
     LRESULT HandleWindowProc( UINT uMsg, WPARAM wParam, LPARAM lParam );
     void Poll( Errors& errors );
 
-    WindowsApplication2* app = nullptr;
     HWND mHWND = NULL;
     bool mIsMouseInWindow = false;
     Errors mWindowProcErrors;

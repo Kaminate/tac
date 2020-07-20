@@ -362,7 +362,6 @@ namespace Tac
 
 
     UI2DDrawData* mUI2DDrawData = nullptr;
-    KeyboardInput* mKeyboardInput = nullptr;
 
 
     // | The ui shouldn't know about the window it's rendering to
