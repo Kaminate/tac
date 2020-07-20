@@ -2257,6 +2257,7 @@ namespace Tac
     bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
     bd.Usage = GetUsage( data->mAccess );
     bd.CPUAccessFlags = data->mAccess == Access::Dynamic ? D3D11_CPU_ACCESS_WRITE : 0;
+    TAC_ASSERT( !data->mOptionalInitialBytes || Render::IsSubmitAllocated( data->mOptionalInitialBytes ) );
     D3D11_SUBRESOURCE_DATA initData = {};
     initData.pSysMem = data->mOptionalInitialBytes;
     D3D11_SUBRESOURCE_DATA *pInitData = data->mOptionalInitialBytes ? &initData : nullptr;
@@ -2322,6 +2323,7 @@ namespace Tac
     TAC_ASSERT( data->mFormat.mElementCount == 1 );
     TAC_ASSERT( data->mFormat.mPerElementByteCount == 2 ||
                 data->mFormat.mPerElementByteCount == 4 );
+    TAC_ASSERT( !data->mOptionalInitialBytes || Render::IsSubmitAllocated( data->mOptionalInitialBytes ) );
     D3D11_BUFFER_DESC bd = {};
     bd.ByteWidth = data->mByteCount;
     bd.BindFlags = D3D11_BIND_INDEX_BUFFER;

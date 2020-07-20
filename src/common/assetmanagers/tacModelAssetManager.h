@@ -17,13 +17,15 @@ namespace Tac
   struct Renderer;
 
   typedef Array< v3, 3 > SubMeshTriangle;
+  typedef Vector< SubMeshTriangle > SubMeshTriangles;
+
   v3 GetNormal( const SubMeshTriangle& tri );
 
   struct SubMesh
   {
     Render::VertexBufferHandle mVertexBuffer;
     Render::IndexBufferHandle mIndexBuffer;
-    Vector< SubMeshTriangle > mTris;
+    SubMeshTriangles mTris;
     void Raycast( v3 inRayPos, v3 inRayDir, bool* outHit, float* outDist );
     int mIndexCount = 0;
   };

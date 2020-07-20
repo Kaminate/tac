@@ -153,7 +153,7 @@ namespace Tac
     {
       VertexBufferHandle mVertexBufferHandle;
       int mByteCount = 0;
-      void* mOptionalInitialBytes = nullptr;
+      const void* mOptionalInitialBytes = nullptr;
       int mStride = 0;
       Access mAccess = Access::Default;
     };
@@ -162,7 +162,7 @@ namespace Tac
     {
       IndexBufferHandle mIndexBufferHandle;
       int mByteCount;
-      void* mOptionalInitialBytes;
+      const void* mOptionalInitialBytes;
       Access mAccess;
       Format mFormat;
     };

@@ -413,13 +413,13 @@ namespace Tac
                                                            StackFrame );
     VertexBufferHandle               CreateVertexBuffer( StringView,
                                                          int mByteCount,
-                                                         void* mOptionalInitialBytes,
+                                                         const void* mOptionalInitialBytes,
                                                          int mStride,
                                                          Access mAccess,
                                                          StackFrame );
     IndexBufferHandle                CreateIndexBuffer( StringView,
                                                         int byteCount,
-                                                        void* optionalInitialBytes,
+                                                        const void* optionalInitialBytes,
                                                         Access access,
                                                         Format format,
                                                         StackFrame );

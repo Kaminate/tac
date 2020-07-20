@@ -109,7 +109,7 @@ namespace Tac
     return result;
   }
 
-  static void GetTris( cgltf_primitive* parsedPrim, Vector< Array< v3, 3 >>& tris )
+  static void GetTris( cgltf_primitive* parsedPrim, SubMeshTriangles& tris )
   {
     cgltf_attribute* posAttribute = FindAttributeOfType( parsedPrim, cgltf_attribute_type_position );
     if( !posAttribute )
@@ -133,7 +133,7 @@ namespace Tac
       posAttribute->data->buffer_view->buffer->data +
       posAttribute->data->buffer_view->offset +
       posAttribute->data->offset;
-    Array< v3, 3 > tri = {};
+    SubMeshTriangle tri = {};
     int iVert = 0;
     for( int i : indexes )
     {
@@ -232,11 +232,11 @@ namespace Tac
         FillDataType( indices, &indexFormat );
         const int indexByteCount = ( int )indices->count * ( int )sizeof( indexFormat.CalculateTotalByteCount() );
         Render::IndexBufferHandle indexBuffer = Render::CreateIndexBuffer( debugName,
-                                                 indexByteCount,
-                                                 indiciesData,
-                                                 Access::Default,
-                                                 indexFormat,
-                                                 TAC_STACK_FRAME );
+                                                                           indexByteCount,
+                                                                           indiciesData,
+                                                                           Access::Default,
+                                                                           indexFormat,
+                                                                           TAC_STACK_FRAME );
 
         int vertexCount = ( int )parsedPrim->attributes[ 0 ].data->count;
         int dstVtxStride = 0;
@@ -249,7 +249,7 @@ namespace Tac
             vertexDeclaration.mTextureFormat.CalculateTotalByteCount();
           dstVtxStride = Max( dstVtxStride, vertexEnd );
         }
-        Vector< char > dstVtxs( vertexCount * dstVtxStride, ( char )0 );
+        Vector< char > dstVtxBytes( vertexCount * dstVtxStride, ( char )0 );
 
         for( int iVertexDeclaration = 0; iVertexDeclaration < vertexDeclarationCount; ++iVertexDeclaration )
         {
@@ -263,7 +263,7 @@ namespace Tac
           Format srcFormat;
           FillDataType( gltfVertAttributeData, &srcFormat );
           TAC_ASSERT( vertexCount == ( int )gltfVertAttributeData->count );
-          char* dstVtx = dstVtxs.data();
+          char* dstVtx = dstVtxBytes.data();
           char* srcVtx = ( char* )gltfVertAttributeData->buffer_view->buffer->data +
             gltfVertAttributeData->offset +
             gltfVertAttributeData->buffer_view->offset;
@@ -293,16 +293,16 @@ namespace Tac
           }
         }
 
-        Vector< Array< v3, 3 >> tris;
-        GetTris( parsedPrim, tris );
 
-        const int dstVtxsByteCount = dstVtxs.size() * dstVtxStride;
         Render::VertexBufferHandle vertexBuffer = Render::CreateVertexBuffer( debugName,
-                                                                              dstVtxsByteCount,
-                                                                              dstVtxs.data(),
+                                                                              dstVtxBytes.size(),
+                                                                              dstVtxBytes.data(),
                                                                               dstVtxStride,
                                                                               Access::Default,
                                                                               TAC_STACK_FRAME );
+
+        SubMeshTriangles tris;
+        GetTris( parsedPrim, tris );
 
         SubMesh subMesh;
         subMesh.mIndexBuffer = indexBuffer;
@@ -388,7 +388,12 @@ namespace Tac
     {
       const SubMeshTriangle& tri = mTris[ iTri ];
       float triDist;
-      bool triHit = RaycastTriangle( tri[ 0 ], tri[ 1 ], tri[ 2 ], inRayPos, inRayDir, triDist );
+      const bool triHit = RaycastTriangle( tri[ 0 ],
+                                           tri[ 1 ],
+                                           tri[ 2 ],
+                                           inRayPos,
+                                           inRayDir,
+                                           triDist );
       if( !triHit )
         continue;
       if( submeshHit && triDist > submeshDist )
@@ -405,8 +410,6 @@ namespace Tac
     v4 inRayPos4 = { inRayPos, 1 };
     inRayPos4 = mTransformInv * inRayPos4;
     inRayPos = inRayPos4.xyz();
-
-
 
     bool meshHit = false;
     float meshDist = 0;

@@ -189,6 +189,8 @@ namespace Tac
 
     void* SubmitAlloc( const int byteCount )
     {
+      if( !byteCount )
+        return nullptr;
       const int beginPos = gSubmitRingBufferPos + byteCount > gSubmitRingBufferCapacity
         ? 0
         : gSubmitRingBufferPos;
@@ -198,6 +200,8 @@ namespace Tac
 
     const void* SubmitAlloc( const void* bytes, int byteCount )
     {
+      if( !bytes )
+        return nullptr;
       if( IsSubmitAllocated( bytes ) )
         return bytes;
       void* dst = SubmitAlloc( byteCount );
@@ -240,19 +244,19 @@ namespace Tac
                                                 sizeof( CommandDataCreateShader ) );
       return shaderHandle;
     }
-    VertexBufferHandle CreateVertexBuffer( StringView name,
-                                           int byteCount,
-                                           void* optionalInitialBytes,
-                                           int stride,
-                                           Access access,
-                                           StackFrame stackFrame )
+    VertexBufferHandle CreateVertexBuffer( const StringView name,
+                                           const int byteCount,
+                                           const void* optionalInitialBytes,
+                                           const int stride,
+                                           const Access access,
+                                           const StackFrame stackFrame )
     {
 
       const VertexBufferHandle vertexBufferHandle = { mIdCollectionVertexBuffer.Alloc( name, stackFrame ) };
       CommandDataCreateVertexBuffer commandData;
       commandData.mAccess = access;
       commandData.mByteCount = byteCount;
-      commandData.mOptionalInitialBytes = optionalInitialBytes;
+      commandData.mOptionalInitialBytes = SubmitAlloc( optionalInitialBytes, byteCount );
       commandData.mStride = stride;
       commandData.mVertexBufferHandle = vertexBufferHandle;
       gSubmitFrame->mCommandBuffer.PushCommand( CommandType::CreateVertexBuffer,
@@ -277,17 +281,17 @@ namespace Tac
                                                 sizeof( CommandDataCreateConstantBuffer ) );
       return constantBufferHandle;
     }
-    IndexBufferHandle CreateIndexBuffer( StringView name,
-                                         int byteCount,
-                                         void* optionalInitialBytes,
-                                         Access access,
-                                         Format format,
-                                         StackFrame frame )
+    IndexBufferHandle CreateIndexBuffer( const StringView name,
+                                         const int byteCount,
+                                         const void* optionalInitialBytes,
+                                         const Access access,
+                                         const Format format,
+                                         const StackFrame frame )
     {
       const IndexBufferHandle indexBufferHandle = { mIdCollectionIndexBuffer.Alloc( name, frame ) };
       CommandDataCreateIndexBuffer commandData;
       commandData.mByteCount = byteCount;
-      commandData.mOptionalInitialBytes = optionalInitialBytes;
+      commandData.mOptionalInitialBytes = SubmitAlloc( optionalInitialBytes, byteCount );
       commandData.mAccess = access;
       commandData.mFormat = format;
       commandData.mIndexBufferHandle = indexBufferHandle;
@@ -550,10 +554,10 @@ namespace Tac
                                                 sizeof( CommandDataUpdateVertexBuffer ) );
     }
 
-    void UpdateIndexBuffer( IndexBufferHandle handle,
+    void UpdateIndexBuffer( const IndexBufferHandle handle,
                             const void* bytes,
                             const int byteCount,
-                            StackFrame frame )
+                            const StackFrame frame )
     {
       CommandDataUpdateIndexBuffer commandData;
       commandData.mBytes = Render::SubmitAlloc( bytes, byteCount );
@@ -565,10 +569,10 @@ namespace Tac
                                                 sizeof( CommandDataUpdateIndexBuffer ) );
     }
 
-    void UpdateConstantBuffer( ConstantBufferHandle handle,
+    void UpdateConstantBuffer( const ConstantBufferHandle handle,
                                const void* bytes,
                                const int byteCount,
-                               StackFrame stackFrame )
+                               const StackFrame stackFrame )
     {
       TAC_UNUSED_PARAMETER( stackFrame );
       gEncoder.mUpdateConstantBuffers.Push( handle,
