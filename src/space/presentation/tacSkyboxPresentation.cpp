@@ -82,11 +82,11 @@ namespace Tac
   void SkyboxPresentation::RenderSkybox( const int viewWidth,
                                          const int viewHeight,
                                          const Render::ViewId viewId,
-                                         const String& skyboxDir )
+                                         const StringView skyboxDir )
   {
     /*TAC_PROFILE_BLOCK*/;
-    static String defaultSkybox = "assets/skybox/daylight";
-    const String& skyboxDirToUse = skyboxDir.empty() ? defaultSkybox : skyboxDir;
+    const StringView defaultSkybox = "assets/skybox/daylight";
+    const StringView skyboxDirToUse = skyboxDir.empty() ? defaultSkybox : skyboxDir;
 
     Errors errors;
     Render::TextureHandle cubemap = TextureAssetManager::GetTextureCube( skyboxDirToUse, errors );

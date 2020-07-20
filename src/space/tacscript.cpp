@@ -105,13 +105,13 @@ void ScriptRoot::OnMsg( const ScriptMsg* scriptMsg )
   for( auto child : mChildren )
     child->OnMsg( scriptMsg );
 }
-void ScriptRoot::OnMsg( const String& scriptMsgType )
+void ScriptRoot::OnMsg( StringView scriptMsgType )
 {
   ScriptMsg scriptMsg;
   scriptMsg.mType = scriptMsgType;
   OnMsg( &scriptMsg );
 }
-ScriptThread* ScriptRoot::GetThread( const String& name )
+ScriptThread* ScriptRoot::GetThread( StringView name )
 {
   for( auto scriptThread : mChildren )
   {

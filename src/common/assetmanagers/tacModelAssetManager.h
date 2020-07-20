@@ -45,7 +45,7 @@ namespace Tac
     ModelAssetManager();
     ~ModelAssetManager();
     void GetMesh( Mesh** mesh,
-                  const String& path,
+                  StringView path,
                   Render::VertexFormatHandle vertexFormat,
                   VertexDeclaration* vertexDeclarations,
                   int vertexDeclarationCount,

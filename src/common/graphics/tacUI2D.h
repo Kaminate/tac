@@ -63,19 +63,17 @@ namespace Tac
   {
     void Translate( v2 pos );
     void Translate( float x, float y );
-    void Draw2DBox(
-      float width,
-      float height,
-      v4 color = { 1, 1, 1, 1 },
-      Render::TextureHandle texture = Render::TextureHandle() );
+    void Draw2DBox( float width,
+                    float height,
+                    v4 color = { 1, 1, 1, 1 },
+                    Render::TextureHandle texture = Render::TextureHandle() );
 
-    void Draw2DText(
-      Language mDefaultLanguage,
-      int fontSize,
-      const String& text,
-      float* heightBetweenBaselines,
-      v4 color,
-      Errors& errors );
+    void Draw2DText( Language mDefaultLanguage,
+                     int fontSize,
+                     StringView text,
+                     float* heightBetweenBaselines,
+                     v4 color,
+                     Errors& errors );
 
     m3 mTransform = m3::Identity();
 
@@ -112,10 +110,10 @@ namespace Tac
     UI2DState* PushState();
     void PopState();
 
-    v2 CalculateTextSize( const String& text, int fontSize );
+    v2 CalculateTextSize( StringView text, int fontSize );
     v2 CalculateTextSize( const Vector< Codepoint >& codepoints, int fontSize );
     v2 CalculateTextSize( const Codepoint* codepoints, int codepointCount, int fontSize );
-    void AddText( v2 textPos, int fontSize, const String& utf8, v4 color, const ImGuiRect* clipRect );
+    void AddText( v2 textPos, int fontSize, StringView utf8, v4 color, const ImGuiRect* clipRect );
     void AddBox( v2 mini, v2 maxi, v4 color, const Render::TextureHandle texture, const ImGuiRect* clipRect );
     void AddLine( v2 p0, v2 p1, float radius, v4 color );
     //void AddPolyFill( const Vector< v2 >& points, v4 color );

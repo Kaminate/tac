@@ -127,7 +127,7 @@ namespace Tac
   struct ImGuiGlobals
   {
     static ImGuiGlobals Instance;
-    ImGuiWindow* FindWindow( const String& name );
+    ImGuiWindow* FindWindow( StringView name );
     bool IsHovered( const ImGuiRect& rect );
 
     v2 mNextWindowPos = {};

@@ -45,7 +45,7 @@ struct World
   void KillEntity( EntityIterator it );
   Entity* FindEntity( PlayerUUID playerUUID );
   Entity* FindEntity( EntityUUID entityUUID );
-  Entity* FindEntity( const String& name );
+  Entity* FindEntity( StringView name );
 
   // Player api
   Player* SpawnPlayer( PlayerUUID playerUUID );

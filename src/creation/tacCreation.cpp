@@ -687,12 +687,11 @@ namespace Tac
 
     for( Prefab* prefab : mPrefabs )
     {
-      const String& path = prefab->mDocumentPath;
-      if( path.empty() )
+      if( prefab->mDocumentPath.empty() )
         continue;
-      if( Contains( alreadySavedPrefabs, path ) )
+      if( Contains( alreadySavedPrefabs, prefab->mDocumentPath ) )
         continue;
-      prefabs.mElements.push_back( TAC_NEW Json( path ) );
+      prefabs.mElements.push_back( TAC_NEW Json( prefab->mDocumentPath ) );
     }
 
     settings->Save( errors );
@@ -799,7 +798,7 @@ namespace Tac
   {
     Vector< String > prefabPaths;
     GetSavedPrefabs( prefabPaths, errors );
-    for( const String& prefabPath : prefabPaths )
+    for( auto& prefabPath : prefabPaths )
     {
       LoadPrefabAtPath( prefabPath, errors );
       TAC_HANDLE_ERROR( errors );
@@ -820,10 +819,10 @@ namespace Tac
     for( int iRefFrameVec = 0; iRefFrameVec < 4; ++iRefFrameVec )
     {
       v3* refFrameVec = refFrameVecs[ iRefFrameVec ];
-      String refFrameVecName = refFrameVecNames[ iRefFrameVec ];
+      const StringView refFrameVecName = refFrameVecNames[ iRefFrameVec ];
       for( int iAxis = 0; iAxis < 3; ++iAxis )
       {
-        const String& axisName = axisNames[ iAxis ];
+        const StringView axisName = axisNames[ iAxis ];
 
         Vector< String > settingsPath = {
           "prefabCameraRefFrames",
@@ -862,7 +861,7 @@ namespace Tac
       String refFrameVecName = refFrameVecNames[ iRefFrameVec ];
       for( int iAxis = 0; iAxis < 3; ++iAxis )
       {
-        const String& axisName = axisNames[ iAxis ];
+        const StringView axisName = axisNames[ iAxis ];
 
         Vector< String > settingsPath = {
           "prefabCameraRefFrames",

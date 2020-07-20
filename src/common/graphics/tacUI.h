@@ -91,7 +91,7 @@ namespace Tac
 
   struct UILayoutable // yee haw
   {
-    UILayoutable( const String& debugName );
+    UILayoutable( StringView debugName );
     virtual ~UILayoutable() = default;
     virtual void DebugImgui();
     virtual void Update( UILayoutData* ) {};
@@ -159,7 +159,7 @@ namespace Tac
 
   struct UIText : public UILayoutable
   {
-    UIText( const String& debugName );
+    UIText( StringView debugName );
     ~UIText();
     void UpdateTransitions();
     void Update( UILayoutData* uiLayoutData ) override;
@@ -207,7 +207,7 @@ namespace Tac
 
   struct UILayout : public UILayoutable
   {
-    UILayout( const String& debugName );
+    UILayout( StringView debugName );
     ~UILayout();
     void DebugImgui() override;
     void Update( UILayoutData* uiLayoutData ) override;
@@ -215,7 +215,7 @@ namespace Tac
     v2 GetWindowspacePosition() override;
 
     template< typename T >
-    T* Add( const String& debugName )
+    T* Add( StringView debugName )
     {
       UILayoutable* t = new T( debugName );
       t->mUIRoot = mUIRoot;
@@ -352,7 +352,7 @@ namespace Tac
   {
     UIRoot();
     ~UIRoot();
-    UILayout* AddMenu( const String& debugName );
+    UILayout* AddMenu( StringView debugName );
     void Update();
     void Render( Errors& errors );
     void DebugImgui();

@@ -272,9 +272,8 @@ namespace Tac
     //  Errors& errors );
 
     String AppendInfoQueueMessage( HRESULT hr );
-    void SetDebugName(
-      ID3D11DeviceChild* directXObject,
-      const String& name );
+    void SetDebugName( ID3D11DeviceChild* directXObject,
+      StringView name );
 
 
     ID3D11InfoQueue* mInfoQueueDEBUG = nullptr;

@@ -15,7 +15,7 @@ namespace Tac
     void RenderSkybox( int viewWidth,
                        int viewHeight,
                        Render::ViewId viewId,
-                       const String& skyboxDir );
+                       StringView skyboxDir );
     void Init( Errors& errors );
 
     Camera* mCamera = nullptr;

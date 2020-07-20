@@ -34,7 +34,7 @@ struct DXGI
 Format GetFormat( DXGI_FORMAT format );
 DXGI_FORMAT GetDXGIFormat( Format textureFormat );
 
-void NameDXGIObject( IDXGIObject* object, const String& name );
+void NameDXGIObject( IDXGIObject* object, StringView name );
 
 void DXGICallAux( const char* fnCallWithArgs, HRESULT res, Errors& errors );
 

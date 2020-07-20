@@ -3,9 +3,7 @@
 
 namespace Tac
 {
-
-
-  TemporaryMemory TemporaryMemoryFromFile( const StringView& path, Errors& errors )
+  TemporaryMemory TemporaryMemoryFromFile( StringView path, Errors& errors )
   {
     std::ifstream ifs( path.c_str(), std::ifstream::binary );
     if( !ifs.is_open() )
@@ -27,7 +25,7 @@ namespace Tac
     return result;
   }
 
-  void WriteToFile( const String& path, void* bytes, int byteCount, Errors& errors )
+  void WriteToFile( StringView path, void* bytes, int byteCount, Errors& errors )
   {
     std::ofstream ofs( path.c_str(), std::ofstream::binary );
     if( !ofs.is_open() )
@@ -37,7 +35,7 @@ namespace Tac
     }
     ofs.write( ( const char* )bytes, ( std::streamsize ) byteCount );
   }
-  String FileToString( const StringView& path, Errors& errors )
+  String FileToString( StringView path, Errors& errors )
   {
     TemporaryMemory temporaryMemory = TemporaryMemoryFromFile( path, errors );
     if( errors )
@@ -46,4 +44,13 @@ namespace Tac
     return result;
   }
 
+  static thread_local RingBuffer* sFrameAllocator;
+  void* TemporaryFrameMemory( int byteCount )
+  {
+    return sFrameAllocator->Allocate( byteCount );
+  }
+  void SetThreadFrameAllocator( RingBuffer* ringBuffer )
+  {
+    sFrameAllocator = ringBuffer;
+  }
 }

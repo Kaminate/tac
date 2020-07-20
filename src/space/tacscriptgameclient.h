@@ -106,7 +106,7 @@ struct ScriptMatchmaker : public ScriptThread
   void OnScriptGameMessage( Socket* socket, void* bytes, int byteCount );
   void PokeServer( Errors& errors );
   void ClearServerLog( Errors& errors );
-  void Log( const String& text );
+  void Log( StringView text );
   void TryConnect();
 
   Socket* mSocket = nullptr;

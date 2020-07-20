@@ -33,7 +33,9 @@
 
 namespace Tac
 {
-User::User( Ghost* ghost, const String& name, Errors& errors )
+User::User( Ghost* ghost,
+            StringView name,
+            Errors& errors )
 {
   mName = name;
   mGhost = ghost;
@@ -154,7 +156,8 @@ Ghost::~Ghost()
   delete mServerData;
   delete mClientData;
 }
-User* Ghost::AddPlayer( const String& name, Errors& errors )
+User* Ghost::AddPlayer( StringView name,
+                        Errors& errors )
 {
   auto* user = new User( this, name, errors );
   mUsers.push_back( user );

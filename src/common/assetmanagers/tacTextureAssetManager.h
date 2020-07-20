@@ -1,10 +1,10 @@
-
 #pragma once
 
 namespace Tac
 {
   struct StringView;
   struct Errors;
+
   namespace Render
   {
     struct TextureHandle;
@@ -12,9 +12,9 @@ namespace Tac
 
   namespace TextureAssetManager
   {
-    Render::TextureHandle GetTexture( const StringView& textureFilepath,
-                                      Tac::Errors& errors );
-    Render::TextureHandle GetTextureCube( const StringView& textureDir,
+    Render::TextureHandle GetTexture( StringView textureFilepath,
+                                      Errors& errors );
+    Render::TextureHandle GetTextureCube( StringView textureDir,
                                           Errors& errors );
   };
 }

@@ -14,26 +14,26 @@ namespace Tac
 
   namespace OS
   {
-    void SaveToFile( const String& path, void* bytes, int byteCount, Errors& errors );
+    void SaveToFile( StringView path, void* bytes, int byteCount, Errors& errors );
 
     // SDL doesn't have this functionality
     // Maybe we shouldn't and just rely on the folder already existing?
-    void DoesFolderExist( const String& path, bool& exists, Errors& errors );
-    void CreateFolder( const String& path, Errors& errors );
-    void CreateFolderIfNotExist( const String& path, Errors& errors );
+    void DoesFolderExist( StringView path, bool& exists, Errors& errors );
+    void CreateFolder( StringView path, Errors& errors );
+    void CreateFolderIfNotExist( StringView path, Errors& errors );
 
     void DebugBreak();
-    void DebugAssert( const StringView& msg, const StackFrame& frame );
-    void DebugPopupBox( const String& );
+    void DebugAssert( StringView msg, const StackFrame& frame );
+    void DebugPopupBox( StringView );
 
     // Gets the path where you can save files to, such as user configs
     void GetApplicationDataPath( String& path, Errors& errors );
 
-    void GetFileLastModifiedTime( time_t* time, const String& path, Errors& errors );
+    void GetFileLastModifiedTime( time_t* time, StringView path, Errors& errors );
 
-    void GetDirFilesRecursive( Vector<String>&files, const String& dir, Errors& errors );
+    void GetDirFilesRecursive( Vector< String >& files, StringView dir, Errors& errors );
 
-    void SaveDialog( String& path, const String& suggestedPath, Errors& errors );
+    void SaveDialog( String& path, StringView suggestedPath, Errors& errors );
     void OpenDialog( String& path, Errors& errors );
 
     // same as current dir

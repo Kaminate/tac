@@ -3,11 +3,11 @@
 namespace Tac
 {
 
-void Errors::operator=( const StringView& message )
+void Errors::operator=( StringView message )
 {
   mMessage = message;
 }
-void Errors::operator+=( const StringView& message )
+void Errors::operator+=( StringView message )
 {
   mMessage += message;
 }
@@ -49,7 +49,7 @@ void Errors::Append( const StackFrame& frame )
   TAC_ASSERT( size() );
   mFrames.push_back( frame );
 }
-void Errors::Append( const StringView& message )
+void Errors::Append( StringView message )
 {
   TAC_ASSERT( size() );
   mMessage += message;

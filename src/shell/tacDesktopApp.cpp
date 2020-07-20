@@ -1,13 +1,14 @@
-#include "src/shell/tacDesktopApp.h"
-#include "src/shell/tacDesktopWindowManager.h"
-//#include "src/shell/tacDesktopEventBackend.h"
+#include "src/common/containers/tacRingBuffer.h"
 #include "src/common/graphics/tacRenderer.h"
-#include "src/common/graphics/tacUI2D.h"
 #include "src/common/graphics/tacUI.h"
-#include "src/common/tacOS.h"
+#include "src/common/graphics/tacUI2D.h"
+#include "src/common/profile/tacProfile.h"
 #include "src/common/tacControllerInput.h"
 #include "src/common/tacKeyboardInput.h"
-#include "src/common/profile/tacProfile.h"
+#include "src/common/tacOS.h"
+#include "src/common/tacTemporaryMemory.h"
+#include "src/shell/tacDesktopApp.h"
+#include "src/shell/tacDesktopWindowManager.h"
 
 namespace Tac
 {
@@ -28,6 +29,9 @@ namespace Tac
     //  delete window;
   }
 
+  static RingBuffer sAllocatorStuff;
+  static RingBuffer sAllocatorMain;
+
   //static void StuffThread( void* userData )
   static void StuffThread( DesktopApp*  desktopApp )
   {
@@ -35,6 +39,9 @@ namespace Tac
     Errors& errors = desktopApp->mErrorsStuffThread;
 
     gThreadType = ThreadType::Stuff;
+
+    sAllocatorStuff.Init( 1024 * 1024 * 10 );
+    SetThreadFrameAllocator( &sAllocatorStuff );
 
     TAC_NEW ProfileSystem;
     ProfileSystem::Instance->Init();
@@ -61,6 +68,8 @@ namespace Tac
   static void MainThread( DesktopApp* desktopApp )
   {
     gThreadType = ThreadType::Main;
+    sAllocatorMain.Init( 1024 * 1024 * 10 );
+    SetThreadFrameAllocator( &sAllocatorMain );
     Errors& errors = desktopApp->mErrorsMainThread;
     while( !OS::mShouldStopRunning )
     {

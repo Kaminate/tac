@@ -52,7 +52,7 @@ struct ComponentRegistry
 {
   static ComponentRegistry* Instance();
   ComponentRegistryEntry* RegisterNewEntry();
-  ComponentRegistryEntry* FindEntryNamed( const String& name );
+  ComponentRegistryEntry* FindEntryNamed( StringView name );
 
   // I wonder if these can be out of sync between different builds of the exe
   // or between server/clients

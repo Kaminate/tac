@@ -17,90 +17,88 @@ namespace Tac
 {
 
 
-enum class Language
-{
-  Arabic,
-  Chinese,
-  English,
-  Japanese,
-  Korean,
-  Russian,
-  Spanish,
-  Count
-};
+  enum class Language
+  {
+    Arabic,
+    Chinese,
+    English,
+    Japanese,
+    Korean,
+    Russian,
+    Spanish,
+    Count
+  };
 
-const String Languages[ ( int )Language::Count ] =
-{
-  "Arabic",
-  "Chinese",
-  "English",
-  "Japanese",
-  "Korean",
-  "Russian",
-  "Spanish",
-};
+  const String Languages[ ( int )Language::Count ] =
+  {
+    "Arabic",
+    "Chinese",
+    "English",
+    "Japanese",
+    "Korean",
+    "Russian",
+    "Spanish",
+  };
 
-inline const String& LanguageToStr( Language language )
-{
-  return Languages[ ( int )language ];
-}
-inline Language GetLanguage( const String& str )
-{
-  for( int i = 0; i < ( int )Language::Count; ++i )
-    if( Languages[ i ] == str )
-      return ( Language )i;
-  return Language::Count;
-}
-void LanguageDebugImgui( const String& name, Language* language );
+  inline StringView LanguageToStr( Language language )
+  {
+    return Languages[ ( int )language ];
+  }
+  inline Language GetLanguage( StringView str )
+  {
+    for( int i = 0; i < ( int )Language::Count; ++i )
+      if( Languages[ i ] == str )
+        return ( Language )i;
+    return Language::Count;
+  }
+  void LanguageDebugImgui( StringView name, Language* language );
 
-typedef uint32_t Codepoint;
+  typedef uint32_t Codepoint;
 
-bool IsAsciiCharacter( Codepoint codepoint );
+  bool IsAsciiCharacter( Codepoint codepoint );
 
-struct UTF8Converter
-{
-  static void Convert(
-    const String& text,
-    Vector< Codepoint >& codepoints,
-    Errors& errors );
-  static void Convert(
-    const Vector< Codepoint >& codepoints,
-    String& text );
-  void Run( Vector< Codepoint >& codepoints, Errors& errors );
-  void IterateUTF8( Codepoint* codepoint, Errors& errors );
-  char GetNextByte( Errors& errors );
-  const char* mBegin = nullptr;
-  const char* mEnd = nullptr;
-};
+  struct UTF8Converter
+  {
+    static void Convert( StringView text,
+                         Vector< Codepoint >& codepoints,
+                         Errors& errors );
+    static void Convert( const Vector< Codepoint >& codepoints,
+                         String& text );
+    void Run( Vector< Codepoint >& codepoints, Errors& errors );
+    void IterateUTF8( Codepoint* codepoint, Errors& errors );
+    char GetNextByte( Errors& errors );
+    const char* mBegin = nullptr;
+    const char* mEnd = nullptr;
+  };
 
-struct LocalizedStringStuff
-{
-  // TODO: don't bother storing the codepoints, just compute them on the fly
-  Vector< Codepoint > mCodepoints;
-  String mUTF8String;
-};
+  struct LocalizedStringStuff
+  {
+    // TODO: don't bother storing the codepoints, just compute them on the fly
+    Vector< Codepoint > mCodepoints;
+    String mUTF8String;
+  };
 
-struct LocalizedString
-{
-  String mReference;
-  std::map< Language, LocalizedStringStuff > mCodepoints;
-};
+  struct LocalizedString
+  {
+    String mReference;
+    std::map< Language, LocalizedStringStuff > mCodepoints;
+  };
 
-struct Localization
-{
-  Localization();
-  static Localization* Instance;
-  const Vector< Codepoint >& GetString( Language language, const String& reference );
-  void Load( const String& path, Errors& errors );
-  bool EatWhitespace();
-  bool EatNewLine();
-  String EatWord();
-  void DebugImgui();
+  struct Localization
+  {
+    Localization();
+    static Localization* Instance;
+    const Vector< Codepoint >& GetString( Language language, StringView reference );
+    void Load( StringView path, Errors& errors );
+    bool EatWhitespace();
+    bool EatNewLine();
+    String EatWord();
+    void DebugImgui();
 
-  char* mBegin = nullptr;
-  char* mEnd = nullptr;
-  Vector< char > mBytes;
-  Vector< LocalizedString > mLocalizedStrings;
-};
+    char* mBegin = nullptr;
+    char* mEnd = nullptr;
+    Vector< char > mBytes;
+    Vector< LocalizedString > mLocalizedStrings;
+  };
 
 }

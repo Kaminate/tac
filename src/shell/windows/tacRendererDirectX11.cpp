@@ -1103,7 +1103,7 @@ namespace Tac
 
   static void CompileShaderFromString(
     ID3DBlob** ppBlobOut,
-    const String& shaderStr,
+    const StringView shaderStr,
     const char* entryPoint,
     const char* shaderModel,
     Errors& errors )
@@ -1972,9 +1972,8 @@ namespace Tac
     b = f * invDenom * n;
   }
 
-  void RendererDirectX11::SetDebugName(
-    ID3D11DeviceChild* directXObject,
-    const String& name )
+  void RendererDirectX11::SetDebugName( ID3D11DeviceChild* directXObject,
+                                        StringView name )
   {
     AssertRenderThread();
     TAC_ASSERT( name.size() );
@@ -2547,7 +2546,7 @@ namespace Tac
 
       static int asdf;
       if( errors.size() )
-        ++ asdf;
+        ++asdf;
     }
 
     if( BindFlags & D3D11_BIND_RENDER_TARGET &&

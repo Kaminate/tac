@@ -39,6 +39,12 @@ namespace Tac
     const char* c_str() const;
     bool empty() const;
 
+    // searches this stringview for the last character which matches any of the characters in s,
+    // return npos if no matches
+    int find_last_of( StringView s ) const;
+    StringView substr( int pos = 0, int len = npos ) const;
+
+    static const int npos = -1; // mimicking the standard library
     const char* mStr = nullptr;
     int mLen = 0;
   };
@@ -46,7 +52,7 @@ namespace Tac
   struct String
   {
     String();
-    String( const StringView& rhs );
+    String( StringView rhs );
     String( const String& rhs );
     String( const char* begin, const char* end );
     String( const char* str, int len );
@@ -60,7 +66,7 @@ namespace Tac
     char* data() const;
     char operator[]( int i ) const;
     char& operator[]( int i );
-    void operator = ( const StringView& str );
+    void operator = ( StringView str );
     void operator = ( const String& str );
     void operator = ( const char* str );
     void operator += ( const char* str );
@@ -119,6 +125,7 @@ namespace Tac
   bool operator != ( const String& a, const String& b );
   bool operator < ( const String& a, const String& b );
 
-  std::ostream& operator << ( std::ostream& os, const String& s ); // temp?
-  std::istream& operator >> ( std::istream& is, String& s ); // temp?
+  // For printing Tac::String to std::cout
+  std::ostream& operator << ( std::ostream& os, StringView s );
+  std::istream& operator >> ( std::istream& is, String& s );
 }

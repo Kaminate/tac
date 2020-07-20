@@ -61,7 +61,7 @@ namespace Tac
 
   struct FontFile
   {
-    FontFile( const String& filepath, Errors& errors );
+    FontFile( StringView filepath, Errors& );
     String mFilepath;
     std::map< Codepoint, FontAtlasCell* > mCells;
     Vector< char > mFontMemory;

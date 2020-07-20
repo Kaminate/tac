@@ -38,7 +38,7 @@ namespace Tac
   //    mWindowParams.push_back( windowParams );
   //}
 
-  //WindowParams* DesktopWindowManager::FindWindowParams( const StringView& windowName )
+  //WindowParams* DesktopWindowManager::FindWindowParams( StringView windowName )
   //{
   //  for( WindowParams& data : mWindowParams )
   //    if( data.mName == windowName )
@@ -46,7 +46,7 @@ namespace Tac
   //  return nullptr;
   //}
 
-  //void DesktopWindowManager::DoWindow( const StringView& windowName )
+  //void DesktopWindowManager::DoWindow( StringView windowName )
   //{
   //  DesktopWindow* window = DesktopApp::Instance->FindWindow( windowName );
   //  if( !window )

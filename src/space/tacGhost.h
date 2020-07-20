@@ -39,7 +39,7 @@ struct NewI;
 //
 struct User
 {
-  User( Ghost* ghost, const String& name, Errors& errors );
+  User( Ghost* ghost, StringView name, Errors& errors );
   void Update( Errors& errors );
   void DebugImgui();
   Player* mPlayer = nullptr;
@@ -66,7 +66,7 @@ struct Ghost : public Soul
   void Init( Errors& errors ) override;
   void Update( Errors& errors ) override;
   void ImguiCreatePlayerPopup( Errors& errors );
-  User* AddPlayer( const String& name, Errors& errors );
+  User* AddPlayer( StringView name, Errors& errors );
   void DebugImgui( Errors& errors ) override;
   void PopulateWorldInitial();
   void Draw( Errors& errors );

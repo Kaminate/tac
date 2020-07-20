@@ -8,7 +8,7 @@ namespace Tac
 
     bool mShouldStopRunning = false;
 
-    void CreateFolderIfNotExist( const String& path, Errors& errors )
+    void CreateFolderIfNotExist( StringView path, Errors& errors )
     {
       bool exist;
       DoesFolderExist( path, exist, errors );
@@ -19,7 +19,7 @@ namespace Tac
       TAC_HANDLE_ERROR( errors );
     }
 
-    void OS::DebugAssert( const StringView& msg, const StackFrame& frame )
+    void OS::DebugAssert( StringView msg, const StackFrame& frame )
     {
       String s = msg + "\n" + frame.ToString();
       if( !IsDebugMode() )

@@ -63,7 +63,7 @@ namespace Tac
   }
 
 
-  UIText::UIText( const String& debugName ) :UILayoutable( debugName )
+  UIText::UIText( StringView debugName ) : UILayoutable( debugName )
   {
   }
   UIText::~UIText() = default;
@@ -390,7 +390,7 @@ namespace Tac
 
   }
 
-  UILayoutable::UILayoutable( const String& debugName )
+  UILayoutable::UILayoutable( StringView debugName )
   {
     mDebugName = debugName;
   }
@@ -438,7 +438,7 @@ namespace Tac
     return result;
   }
 
-  UILayout::UILayout( const String& debugName ) : UILayoutable( debugName )
+  UILayout::UILayout( StringView debugName ) : UILayoutable( debugName )
   {
     mColor = v4(
       RandomFloat0To1(),
@@ -736,7 +736,7 @@ namespace Tac
     //  uiMenu->DebugImgui();
     //}
   }
-  UILayout* UIRoot::AddMenu( const String& debugName )
+  UILayout* UIRoot::AddMenu( StringView debugName )
   {
     auto* uiMenu = TAC_NEW UILayout( debugName );
     uiMenu->mUIRoot = this;

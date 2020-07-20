@@ -254,7 +254,7 @@ void Entity::Load( Json& prefabJson )
   // I think these should have its own mComponents json node
   for( auto& prefabJson : prefabJson.mChildren )
   {
-    const String& key = prefabJson.first;
+    StringView key = prefabJson.first;
     Json* componentJson = prefabJson.second;
     ComponentRegistryEntry* componentRegistryEntry = componentRegistry->FindEntryNamed( key );
     if( !componentRegistryEntry )

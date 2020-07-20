@@ -180,7 +180,7 @@ DXGI_FORMAT GetDXGIFormat( Format textureFormat )
 }
 
 
-void NameDXGIObject( IDXGIObject* object, const String& name )
+void NameDXGIObject( IDXGIObject* object, StringView name )
 {
   // https://docs.microsoft.com/en-us/windows/desktop/api/dxgi/nf-dxgi-idxgiobject-setprivatedata
   HRESULT hr = object->SetPrivateData( WKPDID_D3DDebugObjectName, name.size(), name.data() );

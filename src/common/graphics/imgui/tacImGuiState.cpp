@@ -250,7 +250,7 @@ namespace Tac
     return resource.mData.data();
   }
 
-  ImGuiWindow* ImGuiGlobals::FindWindow( const String& name )
+  ImGuiWindow* ImGuiGlobals::FindWindow( StringView name )
   {
     for( ImGuiWindow* window : mAllWindows )
       if( window->mName == name )

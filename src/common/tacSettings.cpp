@@ -34,7 +34,7 @@ void Settings::GetSetting(
 {
   if( !settingTree )
     settingTree = &mJson;
-  const String& settingVariable = settingVariables[ iPath ];
+  const StringView settingVariable = settingVariables[ iPath ];
   Json& child = settingTree->operator[]( settingVariable );
   bool isLeaf = iPath == ( int )settingVariables.size() - 1;
   if( isLeaf )
@@ -68,7 +68,7 @@ void Settings::SetSetting(
 {
   if( !settingTree )
     settingTree = &mJson;
-  const String& settingVariable = paths[ iPath ];
+  const StringView settingVariable = paths[ iPath ];
   Json& child = settingTree->operator[]( settingVariable );
   bool isLeaf = iPath == ( int )paths.size() - 1;
   if( isLeaf )

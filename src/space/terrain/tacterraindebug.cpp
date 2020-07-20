@@ -23,7 +23,7 @@ struct TerainDebugger
       Vector< String > heightmapPaths;
       Errors errors;
       OS::GetDirFilesRecursive( heightmapPaths, "assets/heightmaps", errors );
-      for( const String& heightmapPath : heightmapPaths )
+      for( auto& heightmapPath : heightmapPaths )
       {
         if( ImGuiButton( heightmapPath ) )
         {

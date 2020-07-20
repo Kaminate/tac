@@ -1,6 +1,7 @@
 
 #include "src/common/tacString.h"
 #include "src/common/math/tacMath.h"
+#include "src/common/tacAlgorithm.h"
 
 
 #include <string>
@@ -113,9 +114,21 @@ namespace Tac
   }
 
 
-  StringView::StringView( const char* str ) : mStr( str ), mLen( StrLen( str ) ) { }
-  StringView::StringView( const char* str, int len ) : mStr( str ), mLen( len ) {}
-  StringView::StringView( const String& str ) : mStr( str.mStr ), mLen( str.mLen ) {}
+  StringView::StringView( const char* str )
+  {
+    mStr = str;
+    mLen = StrLen( str );
+  }
+  StringView::StringView( const char* str, int len )
+  {
+    mStr = str;
+    mLen = len;
+  }
+  StringView::StringView( const String& str )
+  {
+    mStr = str.mStr;
+    mLen = str.mLen;
+  }
   char StringView::operator[]( int i ) const
   {
     return mStr[ i ];
@@ -144,13 +157,28 @@ namespace Tac
   {
     return mLen == 0;
   }
+  int StringView::find_last_of( StringView s ) const
+  {
+    int result = npos;
+    for( int i = 0; i < mLen; ++i )
+      if( Contains( s, mStr[ i ] ) )
+        result = i;
+    return result;
+  }
+
+  StringView StringView::substr( const int pos,
+                                 const int len ) const
+  {
+    return StringView( mStr + pos,
+                       len == npos ? mLen - pos : len );
+  }
 
   String::String()
   {
     clear();
   }
 
-  String::String( const StringView& rhs )
+  String::String( StringView rhs )
   {
     append( rhs.mStr, rhs.mLen );
   }
@@ -307,7 +335,7 @@ namespace Tac
   {
     assign( str.c_str(), str.size() );
   }
-  void String::operator = ( const StringView& str )
+  void String::operator = ( StringView str )
   {
     assign( str.data(), str.size() );
   }
@@ -403,7 +431,7 @@ namespace Tac
     return mStr + mLen;
   }
 
-  std::ostream& operator << ( std::ostream& os, const String& s )
+  std::ostream& operator << ( std::ostream& os, StringView s )
   {
     return os << s.c_str();
   }

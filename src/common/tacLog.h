@@ -20,8 +20,7 @@ struct Log
   void ClearData();
   void Clear();
   void Resize( int );
-  void Push( const String& s );
-  void Push( const char* );
+  void Push( StringView s );
   void Pop();
   void Read( char* dst, int beginIndex, int bytes );
   LogNumber ReadStringLength( int beginIndex );

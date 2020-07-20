@@ -32,12 +32,13 @@ void Log::Pop()
   mBytesUsed -= freedByteCount;
   mStringCount--;
 }
-void Log::Push( const char* stringData )
+void Log::Push( StringView stringView )
 {
+  const char* stringData = stringView.data();
   if( mByteCount < ( int )sizeof( LogNumber ) )
     return;
   LogNumber stringLenMax = mByteCount - sizeof( LogNumber );
-  auto stringLenOld = ( LogNumber )strlen( stringData );
+  auto stringLenOld = ( LogNumber )stringView.size();
   LogNumber stringLen = Min( stringLenOld, stringLenMax );
   LogNumber requiredByteCount = stringLen + sizeof( LogNumber );
   for( ;; )
@@ -51,10 +52,6 @@ void Log::Push( const char* stringData )
   Write( ( void* )stringData, stringLen );
   mStringCount++;
   mScrollToBottom = true;
-}
-void Log::Push( const String& s )
-{
-  Push( s.c_str() );
 }
 String Log::VisualizeLog()
 {

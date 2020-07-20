@@ -103,7 +103,7 @@ Meta::Meta()
   }
 }
 
-MetaType* Meta::GetType( const String& name )
+MetaType* Meta::GetType( StringView name )
 {
   auto it = metaTypes.find( name );
   if( it == metaTypes.end() )

@@ -399,13 +399,12 @@ namespace Tac
     mUI2DDrawData->mDrawCall2Ds.push_back( drawCall );
   }
 
-  void UI2DState::Draw2DText(
-    Language defaultLanguage,
-    int fontSize,
-    const String& text,
-    float* heightBetweenBaselines,
-    v4 color,
-    Errors& errors )
+  void UI2DState::Draw2DText( Language defaultLanguage,
+                              int fontSize,
+                              StringView text,
+                              float* heightBetweenBaselines,
+                              v4 color,
+                              Errors& errors )
   {
     const m3& transform = mTransform;
 
@@ -530,7 +529,7 @@ namespace Tac
   }
 
   // cache the results?
-  v2 UI2DDrawData::CalculateTextSize( const String& text, int fontSize )
+  v2 UI2DDrawData::CalculateTextSize( StringView text, int fontSize )
   {
     Vector< Codepoint > codepoints;
 
@@ -733,7 +732,7 @@ namespace Tac
   void UI2DDrawData::AddText(
     const v2 textPos,
     const int fontSize,
-    const String& utf8,
+    StringView utf8,
     const v4 color,
     const ImGuiRect* clipRect )
   {

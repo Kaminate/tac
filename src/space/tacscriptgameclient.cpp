@@ -207,7 +207,7 @@ void ScriptMatchmaker::ClearServerLog( Errors& errors )
   String toSend = json.Stringify();
   mSocket->Send( ( void* )toSend.data(), ( int )toSend.size(), errors );
 }
-void ScriptMatchmaker::Log( const String& text )
+void ScriptMatchmaker::Log( StringView text )
 {
   if( !mShouldLog )
     return;

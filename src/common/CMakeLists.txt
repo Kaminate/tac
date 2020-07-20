@@ -69,6 +69,8 @@ ${CMAKE_CURRENT_SOURCE_DIR}/tacOS.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/tacOS.h
 ${CMAKE_CURRENT_SOURCE_DIR}/tacPreprocessor.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/tacPreprocessor.h
+${CMAKE_CURRENT_SOURCE_DIR}/containers/tacRingBuffer.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/containers/tacRingBuffer.h
 ${CMAKE_CURRENT_SOURCE_DIR}/containers/tacRingVector.h
 ${CMAKE_CURRENT_SOURCE_DIR}/tacSerialization.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/tacSerialization.h

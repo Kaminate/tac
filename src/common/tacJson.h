@@ -42,8 +42,7 @@ struct Json
 {
 
   Json();
-  Json( const char* str );
-  Json( const String& s );
+  Json( StringView s );
   Json( JsonNumber number );
   Json( int number );
   Json( bool b );
@@ -53,15 +52,13 @@ struct Json
   String Stringify( Indentation* indentation ) const;
   String Stringify() const;
   void Parse( const char* bytes, int byteCount, Errors& errors );
-  void Parse( const String& s, Errors& errors );
+  void Parse( StringView, Errors& errors );
 
   Json& GetChild( StringView key );
-  Json& operator[]( const String& key );
-  Json& operator[]( const char* key );
+  Json& operator[]( StringView key );
   void operator = ( const Json& json );
   void operator = ( const Json* json );
-  void operator = ( const char* str );
-  void operator = ( const String& str );
+  void operator = ( StringView str );
   void operator = ( JsonNumber number );
   void operator = ( int number );
   void operator = ( bool b );

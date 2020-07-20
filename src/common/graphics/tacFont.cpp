@@ -21,7 +21,7 @@ namespace Tac
       colorAlphaUnassociated.w };
   }
 
-  FontFile::FontFile( const String& filepath, Errors& errors )
+  FontFile::FontFile( StringView filepath, Errors& errors )
   {
     mFilepath = filepath;
     mFontMemory = TemporaryMemoryFromFile( mFilepath, errors );
@@ -69,13 +69,12 @@ namespace Tac
     for( int iLanguage = 0; iLanguage < ( int )Language::Count; ++iLanguage )
     {
       auto language = Language( iLanguage );
-      const String& languageString = LanguageToStr( language );
+      StringView languageString = LanguageToStr( language );
       String fontFilePathDefault = language == Language::English ? "assets/fonts/english_srcpro.ttf" : "";
-      String fontFilePath = Shell::Instance->mSettings->GetString(
-        nullptr,
-        { "defaultfonts", languageString },
-        fontFilePathDefault,
-        errors );
+      String fontFilePath = Shell::Instance->mSettings->GetString( nullptr,
+                                                                   { "defaultfonts", languageString },
+                                                                   fontFilePathDefault,
+                                                                   errors );
       if( fontFilePath.empty() )
         continue;
 

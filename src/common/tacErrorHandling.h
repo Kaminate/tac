@@ -7,8 +7,8 @@ namespace Tac
 {
   struct Errors
   {
-    void operator=( const StringView& message );
-    void operator+=( const StringView& message );
+    void operator=( StringView message );
+    void operator+=( StringView message );
     bool size() const;
     bool empty() const;
     void clear();
@@ -16,7 +16,7 @@ namespace Tac
     String ToString() const;
 
     void Append( const StackFrame& frame );
-    void Append( const StringView& message );
+    void Append( StringView message );
 
     String mMessage;
     Vector< StackFrame > mFrames;

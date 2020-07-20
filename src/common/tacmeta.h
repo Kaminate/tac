@@ -12,62 +12,62 @@
 
 namespace Tac
 {
-struct Meta;
-struct MetaVar;
-struct MetaVarCArray;
-struct MetaVarDynArray;
-struct MetaType;
+  struct Meta;
+  struct MetaVar;
+  struct MetaVarCArray;
+  struct MetaVarDynArray;
+  struct MetaType;
 
-//enum MetaPod
-//{
-//  Unknown,
-//  Float,
-//  Int32,
-//};
+  //enum MetaPod
+  //{
+  //  Unknown,
+  //  Float,
+  //  Int32,
+  //};
 
-struct MetaVar
-{
-  String mName;
-  int mOffset = 0;
-  MetaType* mMetaType = nullptr;
-};
+  struct MetaVar
+  {
+    String mName;
+    int mOffset = 0;
+    MetaType* mMetaType = nullptr;
+  };
 
-struct MetaVarCArray : public MetaVar
-{
-  int mCArrayCount = 0;
-};
+  struct MetaVarCArray : public MetaVar
+  {
+    int mCArrayCount = 0;
+  };
 
-struct MetaVarDynArray : public MetaVar
-{
-  std::function<void( void*, int )>mResizeFunction;
-  std::function<void*( void* )>mDataFunction;
-};
+  struct MetaVarDynArray : public MetaVar
+  {
+    std::function<void( void*, int )>mResizeFunction;
+    std::function<void*( void* )>mDataFunction;
+  };
 
-struct MetaType
-{
-  String mName;
-  int mSize = 0;
-};
-template< typename T >
-struct MetaPodType : public MetaType
-{
-  //MetaPod mMetaPod = MetaPod::Unknown;
-};
-struct MetaCompositeType : public MetaType
-{
-  Vector< MetaVar* > mMetaVars;
-};
+  struct MetaType
+  {
+    String mName;
+    int mSize = 0;
+  };
+  template< typename T >
+  struct MetaPodType : public MetaType
+  {
+    //MetaPod mMetaPod = MetaPod::Unknown;
+  };
+  struct MetaCompositeType : public MetaType
+  {
+    Vector< MetaVar* > mMetaVars;
+  };
 
-struct Meta
-{
-  Meta();
-  static Meta* GetInstance();
-  MetaType* GetType( const String& name );
-  void AddType( MetaType* metaType );
-  //void Load( std::ifstream& ifs, MetaType* metaType, void* data, Errors& errors );
+  struct Meta
+  {
+    Meta();
+    static Meta* GetInstance();
+    MetaType* GetType( StringView name );
+    void AddType( MetaType* metaType );
+    //void Load( std::ifstream& ifs, MetaType* metaType, void* data, Errors& errors );
 
-  std::map< String, MetaType* > metaTypes;
-};
+    std::map< String, MetaType* > metaTypes;
+  };
 
 
 }

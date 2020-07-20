@@ -8,7 +8,7 @@ namespace Tac
 
   struct TimeFormatter
   {
-    void AddUnit( const String& name, double units, double unitsPerNext )
+    void AddUnit( StringView name, double units, double unitsPerNext )
     {
       auto unitDisplay = ( int )units;
       if( !unitDisplay )

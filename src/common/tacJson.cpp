@@ -7,23 +7,16 @@ namespace Tac
 
 
 
-  static String CharToString( char c )
+  static String DoubleQuote( StringView s )
   {
-    return String( 1, c );
-  }
-  static String Surround( const String& inner, const String& outer )
-  {
-    return outer + inner + outer;
-  }
-  static String DoubleQuote( const String& s )
-  {
-    return Surround( s, CharToString( '\"' ) );
+    String quote = String( 1, '\"' );
+    return quote + s + quote;
   }
   static void ExpectCharacter( char c, char expected, Errors& errors )
   {
     if( c == expected )
       return;
-    errors += "Unexpected character " + CharToString( c ) + ", expected " + CharToString( expected );
+    errors += "Unexpected character " + String( 1, c ) + ", expected " + String( 1, expected );
   }
 
   struct ParseData
@@ -42,7 +35,7 @@ namespace Tac
 
     void ParseNumber( JsonNumber& jsonNumber, Errors& errors );
     void ParseString( String& stringToParse, Errors& errors );
-    void ParseStringExpected( const String& expected, Errors& errors );
+    void ParseStringExpected( StringView expected, Errors& errors );
   };
 
   void ParseData::ByteEat( char& c, Errors& errors )
@@ -129,7 +122,7 @@ namespace Tac
     }
   }
 
-  void ParseData::ParseStringExpected( const String& expected, Errors& errors )
+  void ParseData::ParseStringExpected( StringView expected, Errors& errors )
   {
     int expectedByteCount = expected.size();
     int remainingByteCount = mByteCount - mIByte;
@@ -333,8 +326,7 @@ namespace Tac
     // it contains a json object
     mType = JsonType::Object;
   }
-  Json::Json( const char* str ) { mType = JsonType::String; mString = str; }
-  Json::Json( const String& s ) { mType = JsonType::String; mString = s; }
+  Json::Json( StringView s ) { mType = JsonType::String; mString = s; }
   Json::Json( const Json& other )
   {
     *this = other;
@@ -363,7 +355,10 @@ namespace Tac
     auto GetSeparator = [ & ]( int childCount ) { return iChild++ != childCount - 1 ? "," : ""; };
     switch( mType )
     {
-      case JsonType::String: result = DoubleQuote( mString ); break;
+      case JsonType::String:
+      {
+        result = DoubleQuote( mString );
+      } break;
       case JsonType::Number:
       {
         if( ( ( JsonNumber )( ( int )mNumber ) ) == mNumber )
@@ -371,8 +366,14 @@ namespace Tac
         else
           result = ToString( mNumber );
       } break;
-      case JsonType::Null: result = "null"; break;
-      case JsonType::Bool: result = mBoolean ? "true" : "false"; break;
+      case JsonType::Null:
+      {
+        result = "null";
+      } break;
+      case JsonType::Bool:
+      {
+        result = mBoolean ? "true" : "false";
+      } break;
       case JsonType::Object:
       {
         result += indentation->ToString() + "{\n";
@@ -421,7 +422,7 @@ namespace Tac
     ParseData parseData = { bytes, byteCount, 0 };
     ParseUnknownType( this, &parseData, errors );
   }
-  void Json::Parse( const String& s, Errors& errors )
+  void Json::Parse( StringView s, Errors& errors )
   {
     Parse( s.data(), s.size(), errors );
   }
@@ -438,11 +439,7 @@ namespace Tac
     mType = JsonType::Object;
     return *child;
   }
-  Json& Json::operator[]( const char* key )
-  {
-    return GetChild( key );
-  }
-  Json& Json::operator[]( const String& key )
+  Json& Json::operator[]( StringView key )
   {
     return GetChild( key );
   }
@@ -471,8 +468,7 @@ namespace Tac
       mElements.push_back( childCopy );
     }
   }
-  void Json::operator = ( const char* str ) { *this = Json( str ); }
-  void Json::operator = ( const String& str ) { *this = Json( str ); }
+  void Json::operator = ( StringView str ) { *this = Json( str ); }
   void Json::operator = ( JsonNumber number ) { *this = Json( number ); }
   void Json::operator = ( int number ) { *this = Json( number ); }
   void Json::operator = ( bool b ) { *this = Json( b ); }

@@ -57,7 +57,7 @@ Entity* World::FindEntity( EntityUUID entityUUID )
       return entity;
   return nullptr;
 }
-Entity* World::FindEntity( const String& name )
+Entity* World::FindEntity( StringView name )
 {
   for( Entity* entity : mEntities )
     if( entity->mName == name )

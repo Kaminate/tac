@@ -7,19 +7,19 @@ namespace Tac
 
 
 
-SplitFilepath::SplitFilepath( const String& entireFilepath )
+SplitFilepath::SplitFilepath( StringView entireFilepath )
 {
   auto found = entireFilepath.find_last_of( "/\\" );
   mDirectory = entireFilepath.substr( 0, found );
   mFilename = entireFilepath.substr( found + 1 );
 }
-String StripExt( const String& path )
+String StripExt( StringView path )
 {
   auto found = path.find_last_of( "." );
   TAC_ASSERT( found != String::npos );
   return path.substr( 0, found );
 }
-String StripLeadingSlashes( const String& path )
+String StripLeadingSlashes( StringView path )
 {
   int i;
   for( i = 0; i < path.size(); i++ )
@@ -28,7 +28,7 @@ String StripLeadingSlashes( const String& path )
   String result = path.substr( i );
   return result;
 }
-void SaveToFile( const String& path, void* bytes, int byteCount, Errors& errors )
+void SaveToFile( StringView path, void* bytes, int byteCount, Errors& errors )
 {
   std::ofstream ofs( path.c_str(), std::ofstream::binary );
   if( !ofs.is_open() )
@@ -38,13 +38,13 @@ void SaveToFile( const String& path, void* bytes, int byteCount, Errors& errors 
   }
   ofs.write( ( const char* )bytes, byteCount );
 }
-bool IsOfExt( const String& str, const String& ext )
+bool IsOfExt( StringView str, StringView ext )
 {
   auto lower_str = ToLower( str );
   auto lower_ext = ToLower( ext );
   return EndsWith( lower_str, lower_ext );
 }
-bool FileExist( const String& str )
+bool FileExist( StringView str )
 {
   return std::ifstream( str.c_str() ).good();
 }
@@ -52,11 +52,11 @@ bool FileExist( const String& str )
 //
 // String-manipulation
 //
-String SeparateStrings( const Vector< String>& lines, const String& separator )
+String SeparateStrings( const Vector< String>& lines, StringView separator )
 {
   String curSeparator;
   String result;
-  for( const String& line : lines )
+  for( StringView line : lines )
   {
     result += curSeparator;
     curSeparator = separator;
@@ -73,7 +73,7 @@ String SeparateSpace( const Vector< String>& lines )
   return SeparateStrings( lines, " " );
 }
 
-bool StartsWith( const String& str, const String& prefix )
+bool StartsWith( StringView str, StringView prefix )
 {
   if( str.size() < prefix.size() )
     return false;
@@ -82,7 +82,7 @@ bool StartsWith( const String& str, const String& prefix )
       return false;
   return true;
 }
-bool EndsWith( const String& str, const String& suffix )
+bool EndsWith( StringView str, StringView suffix )
 {
   if( str.size() < suffix.size() )
     return false;
@@ -91,7 +91,7 @@ bool EndsWith( const String& str, const String& suffix )
       return false;
   return true;
 }
-String ToLower( const String& str )
+String ToLower( StringView str )
 {
   String result;
   for( auto c : str )

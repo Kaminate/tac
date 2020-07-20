@@ -190,14 +190,14 @@ namespace Tac
 
       path = outBuf;
 
-      const String& workingDir = Shell::Instance->mInitialWorkingDir;
+      StringView workingDir = Shell::Instance->mInitialWorkingDir;
       if( StartsWith( path, workingDir ) )
       {
         path = path.substr( workingDir.size() );
         path = StripLeadingSlashes( path );
       }
     }
-    void SaveDialog( String& path, const String& suggestedPath, Errors& errors )
+    void SaveDialog( String& path, StringView suggestedPath, Errors& errors )
     {
       //IFileDialog *pfd = NULL;
       //// CoCreate the File Open Dialog object.
@@ -271,7 +271,7 @@ namespace Tac
       errors += GetLastWin32ErrorString();
       TAC_HANDLE_ERROR( errors );
     }
-    void DoesFolderExist( const String& path, bool& exists, Errors& errors )
+    void DoesFolderExist( StringView path, bool& exists, Errors& errors )
     {
       String expandedPath;
       const char* pathBytes = path.c_str();
@@ -301,7 +301,7 @@ namespace Tac
       }
       exists = true;
     }
-    void CreateFolder( const String& path, Errors& errors )
+    void CreateFolder( StringView path, Errors& errors )
     {
       BOOL createDirectoryResult = CreateDirectoryA( path.c_str(), NULL );
       if( createDirectoryResult == 0 )
@@ -310,7 +310,7 @@ namespace Tac
         TAC_HANDLE_ERROR( errors );
       }
     }
-    void SaveToFile( const String& path, void* bytes, int byteCount, Errors& errors )
+    void SaveToFile( StringView path, void* bytes, int byteCount, Errors& errors )
     {
       SplitFilepath splitFilepath( path );
       CreateFolderIfNotExist( splitFilepath.mDirectory, errors );
@@ -357,7 +357,7 @@ namespace Tac
     {
       WindowsDebugBreak();
     }
-    void DebugPopupBox( const String& s )
+    void DebugPopupBox( StringView s )
     {
       MessageBox( nullptr, s.data(), nullptr, MB_OK );
     }
@@ -377,7 +377,9 @@ namespace Tac
     {
       return RendererNameDirectX11;
     }
-    void GetFileLastModifiedTime( time_t* time, const String& path, Errors& errors )
+    void GetFileLastModifiedTime( time_t* time,
+                                  StringView path,
+                                  Errors& errors )
     {
       HANDLE handle = CreateFile(
         path.c_str(),
@@ -426,10 +428,9 @@ namespace Tac
 
       *time = result;
     }
-    void GetDirFilesRecrusiveAux(
-      const WIN32_FIND_DATA& data,
+    void GetDirFilesRecrusiveAux( const WIN32_FIND_DATA& data,
       Vector<String>&files,
-      const String& dir,
+      StringView dir,
       Errors& errors )
     {
       String dataFilename = data.cFileName;
@@ -446,7 +447,9 @@ namespace Tac
         files.push_back( dataFilepath );
       }
     }
-    void GetDirFilesRecursive( Vector<String>&files, const String& dir, Errors& errors )
+    void GetDirFilesRecursive( Vector<String>&files,
+                               StringView dir,
+                               Errors& errors )
     {
       String path = dir + "/*";
       WIN32_FIND_DATA data;

@@ -63,8 +63,8 @@ struct ScriptRoot
   void Update( float seconds, Errors& errors );
   void DebugImgui( Errors& errors );
   void OnMsg( const ScriptMsg* scriptMsg );
-  void OnMsg( const String& scriptMsgType );
-  ScriptThread* GetThread( const String& name );
+  void OnMsg( StringView scriptMsgType );
+  ScriptThread* GetThread( StringView name );
   std::set< ScriptThread* > mChildren;
   Ghost* mGhost = nullptr;
 };

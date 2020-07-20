@@ -31,7 +31,7 @@ ComponentRegistryEntry* ComponentRegistry::RegisterNewEntry()
   return entry;
 }
 
-ComponentRegistryEntry* ComponentRegistry::FindEntryNamed( const String& name )
+ComponentRegistryEntry* ComponentRegistry::FindEntryNamed( StringView name )
 {
   for( auto entry  : mEntries )
   {

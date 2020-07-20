@@ -146,7 +146,7 @@ namespace Tac
           TAC_HANDLE_ERROR( errors );
         }
 
-        auto TrySortPart = [ & ]( const String& face, int desiredIndex )
+        auto TrySortPart = [ & ]( StringView face, int desiredIndex )
         {
           for( int i = 0; i < 6; ++i )
           {
@@ -177,7 +177,7 @@ namespace Tac
         int prevHeight = 0;
         for( int iFile = 0; iFile < 6; ++iFile )
         {
-          const String& filepath = files[ iFile ];
+          StringView filepath = files[ iFile ];
           auto memory = TemporaryMemoryFromFile( filepath, errors );
           TAC_HANDLE_ERROR( mErrors );
 
@@ -201,7 +201,7 @@ namespace Tac
 
           if( iFile && !( x == prevWidth && y == prevHeight ) )
           {
-            const String& filepathPrev = files[ iFile - 1 ];
+            StringView filepathPrev = files[ iFile - 1 ];
             errors = filepath + " has dimensions " +
               ToString( x ) + "x" + ToString( y ) +
               " which is different from " + filepathPrev + " dimensions " +
@@ -225,7 +225,7 @@ namespace Tac
     };
 
 
-    static Render::TextureHandle FindLoadedTexture( const StringView& key )
+    static Render::TextureHandle FindLoadedTexture( StringView key )
     {
       auto it = mLoadedTextures.find( key );
       if( it == mLoadedTextures.end() )
@@ -233,7 +233,7 @@ namespace Tac
       return ( *it ).second;
     }
 
-    static AsyncTexture* FindLoadingTexture( const StringView& key )
+    static AsyncTexture* FindLoadingTexture( StringView key )
     {
       auto it = mLoadingTextures.find( key );
       if( it == mLoadingTextures.end() )
@@ -242,7 +242,7 @@ namespace Tac
     }
 
 
-    static void UpdateAsyncTexture( const StringView& key,
+    static void UpdateAsyncTexture( StringView key,
                                     AsyncTexture* asyncTexture,
                                     Tac::Errors& errors )
     {
@@ -279,8 +279,8 @@ namespace Tac
       }
     }
 
-    Render::TextureHandle GetTexture( const Tac::StringView& textureFilepath,
-                                      Tac::Errors & errors )
+    Render::TextureHandle GetTexture( StringView textureFilepath,
+                                      Errors& errors )
     {
       Render::TextureHandle texture = FindLoadedTexture( textureFilepath );
       if( texture.mResourceId != Render::NullResourceId )
@@ -308,7 +308,7 @@ namespace Tac
       return texture;
     }
 
-    Render::TextureHandle GetTextureCube( const StringView& textureDir,
+    Render::TextureHandle GetTextureCube( StringView textureDir,
                                           Errors& errors )
     {
       Render::TextureHandle texture = FindLoadedTexture( textureDir );
