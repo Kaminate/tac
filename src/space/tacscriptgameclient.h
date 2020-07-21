@@ -32,22 +32,22 @@ struct TimelineAction
   bool mPlayedUpdate = false;
 };
 
-template< typename T >
-struct TimelineOnceAux : public TimelineAction
-{
-  TimelineOnceAux( double time, T t ) : mT( t )
-  {
-    mTimeBegin = time;
-    mTimeEnd = time;
-  }
-  void Begin() override
-  {
-    mT();
-  }
-  T mT;
-};
-
-#define TimelineOnce( time, lambdaName ) TimelineOnceAux< decltype( lambdaName ) >( time, lambdaName )
+//template< typename T >
+//struct TimelineOnceAux : public TimelineAction
+//{
+//  TimelineOnceAux( double time, T t ) : mT( t )
+//  {
+//    mTimeBegin = time;
+//    mTimeEnd = time;
+//  }
+//  void Begin() override
+//  {
+//    mT();
+//  }
+//  T mT;
+//};
+//
+//#define TimelineOnce( time, lambdaName ) TimelineOnceAux< decltype( lambdaName ) >( time, lambdaName )
 
 
 

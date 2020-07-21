@@ -1,7 +1,7 @@
 #pragma once
 
 #include <iostream> // temp?
-#include <initializer_list>
+//#include <initializer_list>
 
 namespace Tac
 {
@@ -99,23 +99,24 @@ namespace Tac
   String ToString( uint32_t val );
   StringView Va( const char* format, ... );
 
-  String Join( const String&, std::initializer_list< String > );
-  String Join( const String&, const String*, int );
+  // this is SeparateStrings in tacUtility.h
+  //String Join( const String&, std::initializer_list< String > );
+  //String Join( const String&, const String*, int );
 
-  template< typename T >
-  String Join( const String& sep, const T& ts )
-  {
-    String result;
-    for( int i = 0; i < ts.size(); ++i )
-    {
-      if( i )
-      {
-        result += sep;
-      }
-      result += ts[ i ];
-    }
-    return result;
-  }
+  //template< typename T >
+  //String Join( const String& sep, const T& ts )
+  //{
+  //  String result;
+  //  for( int i = 0; i < ts.size(); ++i )
+  //  {
+  //    if( i )
+  //    {
+  //      result += sep;
+  //    }
+  //    result += ts[ i ];
+  //  }
+  //  return result;
+  //}
 
   String operator + ( char c, const String& s );
   String operator + ( const String& s, char c );
@@ -128,4 +129,23 @@ namespace Tac
   // For printing Tac::String to std::cout
   std::ostream& operator << ( std::ostream& os, StringView s );
   std::istream& operator >> ( std::istream& is, String& s );
+
+  bool operator == ( const StringView& a, const StringView& b );
+  bool operator == ( const StringView& a, const String& b );
+  bool operator == ( const StringView& a, const char* b );
+  bool operator == ( const String& a, const StringView& b );
+  bool operator == ( const String& a, const char* b );
+
+  struct StringID
+  {
+    StringID( StringView );
+    static int Hash( StringView );
+    int mHash = 0;
+  };
+
+  bool operator < ( StringID a, StringID b );
+  bool operator == ( StringID a, StringID b );
+
+
+  StringView DebugLookupString( StringID );
 }

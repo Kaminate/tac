@@ -120,9 +120,9 @@ namespace Tac
     if( KeyboardInput::Instance->IsKeyJustDown( Key::MouseLeft ) )
     {
       if( cursorLock )
-        mHandler = TAC_NEW ResizeHandler();
+        mHandler = TAC_NEW ResizeHandler;
       else if( cursorPos.y < windowRect.top + edgeDistMovePx )
-        mHandler = TAC_NEW MoveHandler();
+        mHandler = TAC_NEW MoveHandler;
     }
 
     if( mHandler )

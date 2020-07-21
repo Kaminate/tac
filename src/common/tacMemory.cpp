@@ -1,4 +1,5 @@
 #include "src/common/tacMemory.h"
+#include "src/shell/tacDesktopApp.h" // temp
 
 #include <fstream>
 
@@ -13,7 +14,16 @@ namespace Tac
   {
     TAC_UNUSED_PARAMETER( stackFrame );
     void* result = std::malloc( sz );
+
+    // track dynamic memory allocations
+    if( Shell::Instance && Shell::Instance->mElapsedSeconds > 2)
+    {
+      static int asdf;
+      ++asdf;
+    }
     return result;
+
+
   }
   static void Deallocate( void* ptr )
   {

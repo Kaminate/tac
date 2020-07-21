@@ -31,5 +31,7 @@ namespace Tac
 
     static const int kVertexFormatDeclCount = 1;
     VertexDeclaration mVertexDecls[ kVertexFormatDeclCount ];
+    Errors mGetSkyboxTextureErrors;
+    Errors mGetSkyboxMeshErrors;
   };
 }

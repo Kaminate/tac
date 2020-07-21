@@ -78,13 +78,13 @@ Physics::Physics()
 
 Collider* Physics::CreateCollider()
 {
-  auto collider = new Collider();
+  auto collider = TAC_NEW Collider;
   mColliders.insert( collider );
   return collider;
 }
 Terrain* Physics::CreateTerrain()
 {
-  auto terrain = new Terrain();
+  auto terrain = TAC_NEW Terrain;
   mTerrains.insert( terrain );
   return terrain;
 }
@@ -344,7 +344,7 @@ CollideResult Collide( const Heightmap* heightmap, const Collider* collider )
 
 SystemRegistryEntry* Physics::PhysicsSystemRegistryEntry;
 
-static System* CreatePhysicsSystem() { return new Physics; }
+static System* CreatePhysicsSystem() { return TAC_NEW Physics; }
 
 
 void PhysicsDebugImgui( System* );

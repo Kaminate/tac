@@ -15,12 +15,11 @@ namespace Tac
   float EaseInOutQuart( float t );
   float Pow( float base, float exp );
   int RoundUpToNearestMultiple( int numToRound, int multiple );
-  void Spring(
-    float* posCurrent,
-    float* velCurrent,
-    float posTarget,
-    float springyness,
-    float deltaTimeSeconds );
+  void Spring( float* posCurrent,
+               float* velCurrent,
+               float posTarget,
+               float springyness,
+               float deltaTimeSeconds );
 
 }
 

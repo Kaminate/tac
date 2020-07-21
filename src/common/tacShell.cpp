@@ -37,9 +37,9 @@ namespace Tac
   Shell* Shell::Instance = nullptr;
   Shell::Shell()
   {
-    TAC_NEW KeyboardInput();
+    TAC_NEW KeyboardInput;
     if( IsDebugMode() )
-      mLog = TAC_NEW Log();
+      mLog = TAC_NEW Log;
     Instance = this;
     mLastTick = GetCurrentTime();
   }
@@ -62,7 +62,7 @@ namespace Tac
     // load settings
     {
       String settingsFilename = mAppName + "Settings.txt";
-      auto settings = TAC_NEW Settings();
+      auto settings = TAC_NEW Settings;
       settings->mPath = mPrefPath + "/" + settingsFilename;
       settings->Load( errors );
       TAC_HANDLE_ERROR( errors );

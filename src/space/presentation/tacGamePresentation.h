@@ -66,6 +66,8 @@ namespace Tac
     void CreateBlendState( Errors& errors );
     void CreateRasterizerState( Errors& errors );
     void CreateSamplerState( Errors& errors );
+    Errors mGetTextureErrorsGround;
+    Errors mGetTextureErrorsNoise;
   };
 }
 

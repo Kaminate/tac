@@ -11,26 +11,32 @@
 //   void Foo( span< int > elements )
 //
 
-#pragma once
+// nahh span is garbo
 
-namespace Tac
-{
-template< typename T >
-struct Span
-{
-  int size(){ return mCount; }
-  T* data(){ return mElements; }
-  T& operator[]( int index ){ return mElements[ index ]; }
-
-  T* mElements = nullptr;
-  int mCount = 0;
-};
-
-typedef Span< char > MemorySpan;
-
-// cant do this or else the operator[] returns a void&
-//typedef Span< void > MemorySpan;
-
-
-}
-
+//#pragma once
+//
+//namespace Tac
+//{
+//  template< typename T >
+//  struct Span
+//  {
+//    Span() = default;
+//    Span( T* elements, int count ) : mElements( elements ), mCount( count ) {}
+//    int    size() { return mCount; }
+//    T*     begin() { return mElements; };
+//    T*     end() { return mElements + mCount; }
+//    T*     data() { return mElements; }
+//    T&     operator[]( int index ) { return mElements[ index ]; }
+//
+//    T*     mElements = nullptr;
+//    int    mCount = 0;
+//  };
+//
+//  typedef Span< char > MemorySpan;
+//
+//  // cant do this or else the operator[] returns a void&
+//  //typedef Span< void > MemorySpan;
+//
+//
+//}
+//

@@ -364,8 +364,7 @@ namespace Tac
   {
     DebugDrawTriangle( p0, p1, p2, color, color, color );
   }
-  void Debug3DDrawData::DrawToTexture(
-    Errors& errors,
+  void Debug3DDrawData::DrawToTexture( Errors& errors,
     const DefaultCBufferPerFrame* cbufferperframe,
     RenderView* renderView )
   {
@@ -394,21 +393,21 @@ namespace Tac
                                     TAC_STACK_FRAME );
       }
 
-      DrawCall2 drawCall;
-      drawCall.mBlendState = Debug3DCommonData::Instance->mAlphaBlendState;
-      drawCall.mDepthState = Debug3DCommonData::Instance->mDepthLess;
-      drawCall.mIndexCount = 0;
-      drawCall.mVertexCount = mDebugDrawVerts.size();
-      drawCall.mPrimitiveTopology = PrimitiveTopology::LineList;
-      drawCall.mRasterizerState = Debug3DCommonData::Instance->mRasterizerStateNoCull;
-      drawCall.mShader = Debug3DCommonData::Instance->m3DVertexColorShader;
-      drawCall.mFrame = TAC_STACK_FRAME;
-      drawCall.mStartIndex = 0;
-      drawCall.mUniformDst = Debug3DCommonData::Instance->mCBufferPerFrame;
-      drawCall.CopyUniformSource( *cbufferperframe );
-      drawCall.mVertexBuffer = mVerts;
-      drawCall.mVertexFormat = Debug3DCommonData::Instance->mVertexColorFormat;
-      Render::AddDrawCall( drawCall );
+      //DrawCall2 drawCall;
+      //drawCall.mBlendState = Debug3DCommonData::Instance->mAlphaBlendState;
+      //drawCall.mDepthState = Debug3DCommonData::Instance->mDepthLess;
+      //drawCall.mIndexCount = 0;
+      //drawCall.mVertexCount = mDebugDrawVerts.size();
+      //drawCall.mPrimitiveTopology = PrimitiveTopology::LineList;
+      //drawCall.mRasterizerState = Debug3DCommonData::Instance->mRasterizerStateNoCull;
+      //drawCall.mShader = Debug3DCommonData::Instance->m3DVertexColorShader;
+      //drawCall.mFrame = TAC_STACK_FRAME;
+      //drawCall.mStartIndex = 0;
+      //drawCall.mUniformDst = Debug3DCommonData::Instance->mCBufferPerFrame;
+      //drawCall.CopyUniformSource( *cbufferperframe );
+      //drawCall.mVertexBuffer = mVerts;
+      //drawCall.mVertexFormat = Debug3DCommonData::Instance->mVertexColorFormat;
+      //Render::AddDrawCall( drawCall );
 
       mDebugDrawVerts.clear();
     }

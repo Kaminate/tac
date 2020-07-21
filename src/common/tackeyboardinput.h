@@ -39,6 +39,7 @@ namespace Tac
     //std::set< Key > mCurrDown;
     v2 mScreenspaceCursorPos = {};
     int mMouseScroll = 0;
+    Errors mScreenspaceCursorPosErrors;
   };
 
   struct KeyboardInput
@@ -60,7 +61,10 @@ namespace Tac
     KeyboardInputFrame mPrev;
 
     Codepoint mWMCharPressedHax = 0;
+
+    // valid only if curr & prev cursor pos errors are empty
     v2 mMouseDeltaPosScreenspace = {};
+
     int mMouseDeltaScroll = 0;
   };
 }

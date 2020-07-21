@@ -22,8 +22,8 @@ namespace Tac
       Job* mJob = nullptr;
       AsyncTextureData* mData = nullptr;
     };
-    static std::map< String, AsyncTexture* > mLoadingTextures;
-    static std::map< String, Render::TextureHandle > mLoadedTextures;
+    static std::map< StringID, AsyncTexture* > mLoadingTextures;
+    static std::map< StringID, Render::TextureHandle > mLoadedTextures;
 
 
     struct AsyncTextureSingleData : AsyncTextureData

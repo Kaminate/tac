@@ -131,11 +131,11 @@ namespace Tac
   //  delete rendererResource;
   //}
 
-  void DrawCall2::CopyUniformSource( const void* bytes, int byteCount )
-  {
-    mUniformSrcc.resize( byteCount );
-    MemCpy( mUniformSrcc.data(), bytes, byteCount );
-  }
+  //void DrawCall2::CopyUniformSource( const void* bytes, int byteCount )
+  //{
+  //  mUniformSrcc.resize( byteCount );
+  //  MemCpy( mUniformSrcc.data(), bytes, byteCount );
+  //}
 
   namespace Render
   {

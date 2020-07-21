@@ -214,15 +214,16 @@ namespace Tac
     void Render( Errors& errors ) override;
     v2 GetWindowspacePosition() override;
 
-    template< typename T >
-    T* Add( StringView debugName )
-    {
-      UILayoutable* t = new T( debugName );
-      t->mUIRoot = mUIRoot;
-      t->mParent = this;
-      mUILayoutables.push_back( t );
-      return ( T* )t;
-    }
+    // Can we get rid of this template
+    //template< typename T >
+    //T* Add( StringView debugName )
+    //{
+    //  UILayoutable* t = TAC_NEW T( debugName );
+    //  t->mUIRoot = mUIRoot;
+    //  t->mParent = this;
+    //  mUILayoutables.push_back( t );
+    //  return ( T* )t;
+    //}
 
     float GetInitialDelaySeconds( int index );
     float GetInitialDelaySeconds();

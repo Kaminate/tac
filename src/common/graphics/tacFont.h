@@ -116,11 +116,9 @@ namespace Tac
     void Load( Errors& errors );
     void DebugImgui();
 
-    void GetCharacter(
-      Language defaultLanguage,
-      Codepoint codepoint,
-      FontAtlasCell** fontAtlasCell,
-      Errors& errors );
+    void GetCharacter( Language defaultLanguage,
+                       Codepoint codepoint,
+                       FontAtlasCell** fontAtlasCell );
     FontAtlasCell* GetCell();
 
     Render::TextureHandle mTextureId;

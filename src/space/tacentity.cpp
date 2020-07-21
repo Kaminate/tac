@@ -93,7 +93,7 @@ void Entity::RemoveComponent( ComponentRegistryEntry* entry )
 
 void Entity::DeepCopy( const Entity& entity )
 {
-  TAC_ASSERT( mWorld && entity.mWorld && mWorld != entity.mWorld );
+  //TAC_ASSERT( mWorld && entity.mWorld && mWorld != entity.mWorld );
   mEntityUUID = entity.mEntityUUID;
   RemoveAllComponents();
   //for( auto oldComponent : entity.mComponents )

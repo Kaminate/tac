@@ -75,6 +75,7 @@ namespace Tac
                         StackFrame stackFrame,
                         const void* bytes,
                         int byteCount );
+      void Resize( int newSize );
       void Clear();
       const char* Data() const;
       int Size() const;
@@ -348,7 +349,7 @@ namespace Tac
 
 
     String mName;
-    Vector< DrawCall2 > mDrawCall2s;
+    //Vector< DrawCall2 > mDrawCall2s;
   };
   String RendererTypeToString( Renderer::Type );
 

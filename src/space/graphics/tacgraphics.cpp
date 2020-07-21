@@ -16,7 +16,7 @@ namespace Tac
 
 Model* Graphics::CreateModelComponent()
 {
-  auto model = TAC_NEW Model();
+  auto model = TAC_NEW Model;
   mModels.insert( model );
   return model;
 }
@@ -33,14 +33,14 @@ Graphics* Graphics::GetSystem( World* world )
 //  {
 //    //case ComponentRegistryEntryIndex::Say:
 //    //{
-//    //  auto say = TAC_NEW Say();
+//    //  auto say = TAC_NEW Say;
 //    //  mSays.insert( say );
 //    //  return say;
 //    //}
 //
 //  case ComponentRegistryEntryIndex::Model:
 //  {
-//    auto model = TAC_NEW Model();
+//    auto model = TAC_NEW Model;
 //    mModels.insert( model );
 //    return model;
 //  }

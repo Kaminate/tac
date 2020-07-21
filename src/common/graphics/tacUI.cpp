@@ -7,6 +7,7 @@
 #include "src/common/math/tacMath.h"
 #include "src/common/tacAlgorithm.h"
 #include "src/common/tacTime.h"
+#include "src/common/tacUtility.h"
 #include "src/common/tacDesktopWindow.h"
 #include "src/common/graphics/tacColorUtil.h"
 
@@ -699,7 +700,7 @@ namespace Tac
   {
     transitionDurationSeconds = 0.3f;
 
-    mHierarchyRoot = TAC_NEW UIHierarchyNode();
+    mHierarchyRoot = TAC_NEW UIHierarchyNode;
     mHierarchyRoot->mUIRoot = this;
 
   }
@@ -863,7 +864,7 @@ namespace Tac
 
     lines.push_back( "}" );
 
-    String stringified = Join( "\n", lines );
+    String stringified = Join( lines, "\n" );
     return stringified;
 
   }
@@ -897,7 +898,7 @@ namespace Tac
       else if( !mParent )
       {
         // get my parent who is vertically split
-        parent = TAC_NEW UIHierarchyNode();
+        parent = TAC_NEW UIHierarchyNode;
         parent->mChildren = { this };
         parent->mUIRoot = mUIRoot;
         parent->mLayoutType = layoutType;
@@ -907,7 +908,7 @@ namespace Tac
     }
     else if( !mParent )
     {
-      parent = TAC_NEW UIHierarchyNode();
+      parent = TAC_NEW UIHierarchyNode;
       parent->mChildren = { this };
       parent->mUIRoot = mUIRoot;
       parent->mLayoutType = layoutType;
@@ -924,7 +925,7 @@ namespace Tac
         }
         else
         {
-          parent = TAC_NEW UIHierarchyNode();
+          parent = TAC_NEW UIHierarchyNode;
           parent->mChildren = { this };
           parent->mUIRoot = mUIRoot;
           parent->mLayoutType = layoutType;
@@ -948,7 +949,7 @@ namespace Tac
 
     TAC_ASSERT( parent );
 
-    auto newChild = TAC_NEW UIHierarchyNode();
+    auto newChild = TAC_NEW UIHierarchyNode;
     newChild->mUIRoot = mUIRoot;
     newChild->mParent = parent;
 
@@ -978,7 +979,7 @@ namespace Tac
 
   UIHierarchyNode* UIHierarchyNode::AddChild()
   {
-    auto newChild = TAC_NEW UIHierarchyNode();
+    auto newChild = TAC_NEW UIHierarchyNode;
     newChild->mUIRoot = mUIRoot;
     newChild->mParent = this;
     mChildren.push_back( newChild );

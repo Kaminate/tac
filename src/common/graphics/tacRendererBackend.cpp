@@ -41,36 +41,11 @@ namespace Tac
     template< int N >
     struct IdCollection
     {
-      ResourceId      Alloc( StringView name, Tac::StackFrame frame )
-      {
-        return mFreeCount ? AllocFreeId( name, frame ) : AllocNewId( name, frame );
-      }
-
-      void            Free( ResourceId id )
-      {
-        TAC_ASSERT( ( unsigned )id < ( unsigned )mAllocCounter );
-        TAC_ASSERT( !Contains( mFree, mFree + mFreeCount, id ) );
-        mFree[ mFreeCount++ ] = id;
-        TAC_ASSERT( mFreeCount <= N );
-      }
-
+      ResourceId      Alloc( StringView name, Tac::StackFrame frame );
+      void            Free( ResourceId id );
     private:
-      ResourceId      AllocFreeId( StringView name, Tac::StackFrame frame )
-      {
-        const ResourceId result = mFree[ --mFreeCount ];
-        mNames[ result ] = name;
-        mFrames[ result ] = frame;
-        return result;
-      }
-
-      ResourceId      AllocNewId( StringView name, Tac::StackFrame frame )
-      {
-        TAC_ASSERT( mAllocCounter < N );
-        mNames[ mAllocCounter ] = name;
-        mFrames[ mAllocCounter ] = frame;
-        return mAllocCounter++;
-      }
-
+      ResourceId      AllocFreeId( StringView name, Tac::StackFrame frame );
+      ResourceId      AllocNewId( StringView name, Tac::StackFrame frame );
       ResourceId      mFree[ N ];
       int             mFreeCount = 0;
       int             mAllocCounter = 0;
@@ -78,24 +53,59 @@ namespace Tac
       Tac::StackFrame mFrames[ N ];
     };
 
-    void CommandBuffer::Push( const void* bytes, int byteCount )
+    template< int N > ResourceId IdCollection<N>::Alloc( StringView name, Tac::StackFrame frame )
+    {
+      return mFreeCount ? AllocFreeId( name, frame ) : AllocNewId( name, frame );
+    }
+
+    template< int N > void IdCollection<N>::Free( ResourceId id )
+    {
+      TAC_ASSERT( ( unsigned )id < ( unsigned )mAllocCounter );
+      TAC_ASSERT( !Contains( mFree, mFree + mFreeCount, id ) );
+      mFree[ mFreeCount++ ] = id;
+      TAC_ASSERT( mFreeCount <= N );
+    }
+
+    template< int N > ResourceId IdCollection<N>::AllocFreeId( StringView name, Tac::StackFrame frame )
+    {
+      const ResourceId result = mFree[ --mFreeCount ];
+      mNames[ result ] = name;
+      mFrames[ result ] = frame;
+      return result;
+    }
+
+    template< int N > ResourceId IdCollection<N>::AllocNewId( StringView name, Tac::StackFrame frame )
+    {
+      TAC_ASSERT( mAllocCounter < N );
+      mNames[ mAllocCounter ] = name;
+      mFrames[ mAllocCounter ] = frame;
+      return mAllocCounter++;
+    }
+
+
+    void CommandBuffer::Push( const void* bytes,
+                              int byteCount )
     {
       const int bufferSize = mBuffer.size();
       mBuffer.resize( mBuffer.size() + byteCount );
       MemCpy( mBuffer.data() + bufferSize, bytes, byteCount );
     }
 
-    void CommandBuffer::PushCommand(
-      CommandType type,
-      StackFrame stackFrame,
-      const void* bytes,
-      int byteCount )
+    void CommandBuffer::PushCommand( CommandType type,
+                                     StackFrame stackFrame,
+                                     const void* bytes,
+                                     int byteCount )
     {
       StringView cheep( "end" );
       Push( &type, sizeof( CommandType ) );
       Push( &stackFrame, sizeof( stackFrame ) );
       Push( bytes, byteCount );
       Push( cheep.data(), cheep.size() );
+    }
+
+    void CommandBuffer::Resize( int newSize )
+    {
+      mBuffer.resize( newSize );
     }
     void CommandBuffer::Clear()
     {
@@ -670,13 +680,12 @@ namespace Tac
     static Semaphore::Handle gSubmitSemaphore;
     static Semaphore::Handle gRenderSemaphore;
 
-    void RenderFrame()
+    void RenderFrame( Errors& errors )
     {
       TAC_ASSERT( gThreadType == ThreadType::Main );
 
       Semaphore::WaitAndDecrement( gSubmitSemaphore );
 
-      Errors errors;
       Renderer::Instance->ExecuteCommands( &gRenderFrame->mCommandBuffer, errors );
       TAC_ASSERT( errors.empty() );
 
@@ -697,7 +706,7 @@ namespace Tac
       // submit finish
 
       Swap( gRenderFrame, gSubmitFrame );
-      gSubmitFrame->mCommandBuffer.Clear();
+      gSubmitFrame->mCommandBuffer.Resize( 0 );
       gSubmitFrame->mDrawCallCount = 0;
       gFrameCount++;
 
@@ -763,10 +772,10 @@ namespace Tac
       Renderer::Instance->GetPerspectiveProjectionAB( f, n, a, b );
     }
 
-    void AddDrawCall( const DrawCall2& drawCall )
-    {
-      Renderer::Instance->mDrawCall2s.push_back( drawCall );
-    }
+    //void AddDrawCall( const DrawCall2& drawCall )
+    //{
+    //  Renderer::Instance->mDrawCall2s.push_back( drawCall );
+    //}
 
     void Init( Errors& errors )
     {
@@ -936,7 +945,7 @@ namespace Tac
             std::cout << "UpdateIndexBuffer::Begin\n";
           auto commandData = PopCommandData< Render::CommandDataUpdateIndexBuffer >( bufferPos );
           UpdateIndexBuffer( commandData, errors );
-          
+
           if( gVerbose )
             std::cout << "UpdateIndexBuffer::End\n";
         } break;

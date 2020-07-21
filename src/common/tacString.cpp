@@ -453,21 +453,77 @@ namespace Tac
     return is;
   }
 
-  String Join( const String& separator, std::initializer_list< String > strings )
+  bool operator == ( const StringView& a, const StringView& b )
   {
-    const auto stringCount = strings.size();
-    return Join( separator, strings.begin(), ( int )strings.size() );
+    return a.size() == b.size() && !StrCmp( a.data(), b.data() );
+  }
+  bool operator == ( const StringView& a, const String& b )
+  {
+    return a == StringView( b );
+  }
+  bool operator == ( const String& a, const StringView& b )
+  {
+    return StringView( a ) == b;
+  }
+  bool operator == ( const String& a, const char* b )
+  {
+    return StringView( a ) == StringView( b );
+  }
+  bool operator == ( const StringView& a, const char* b )
+  {
+    return a == StringView( b );
   }
 
-  String Join( const String& separator, const String* strings, int stringCount )
+  const int kMaxStringDictionaryEntries = 1024;
+  String gStringLookup[ kMaxStringDictionaryEntries ];
+
+  StringView DebugLookupString( StringID stringID )
   {
-    String result;
-    for( int i = 0; i < stringCount; ++i )
-    {
-      if( i )
-        result += separator;
-      result += strings[ i ];
-    }
-    return result;
+    return gStringLookup[ stringID.mHash ];
   }
+
+  int StringID::Hash( StringView stringView )
+  {
+    int hash = 0;
+    for( char c : stringView )
+      hash = 37 * hash + c;
+    hash %= kMaxStringDictionaryEntries;
+    return hash;
+  }
+
+  StringID::StringID( StringView stringView )
+  {
+    mHash = Hash( stringView );
+    if( IsDebugMode() && mHash && gStringLookup[ mHash ].empty() )
+      gStringLookup[ mHash ] = stringView;
+  }
+
+  bool operator < ( StringID a, StringID b )
+  {
+    return a.mHash < b.mHash;
+  }
+
+  bool operator == ( StringID a, StringID b )
+  {
+    return a.mHash == b.mHash;
+  }
+
+
+  //String Join( const String& separator, std::initializer_list< String > strings )
+  //{
+  //  const auto stringCount = strings.size();
+  //  return Join( separator, strings.begin(), ( int )strings.size() );
+  //}
+
+  //String Join( const String& separator, const String* strings, int stringCount )
+  //{
+  //  String result;
+  //  for( int i = 0; i < stringCount; ++i )
+  //  {
+  //    if( i )
+  //      result += separator;
+  //    result += strings[ i ];
+  //  }
+  //  return result;
+  //}
 }

@@ -6,15 +6,14 @@
 
 namespace Tac
 {
-  void BarycentricTriangle(
-    v3 p,
-    v3 tri0,
-    v3 tri1,
-    v3 tri2,
-    bool& fucked,
-    float& bary0,
-    float& bary1,
-    float& bary2 )
+  void BarycentricTriangle( v3 p,
+                            v3 tri0,
+                            v3 tri1,
+                            v3 tri2,
+                            bool& fucked,
+                            float& bary0,
+                            float& bary1,
+                            float& bary2 )
   {
     v3 v0 = tri1 - tri0;
     v3 v1 = tri2 - tri0;
@@ -37,17 +36,16 @@ namespace Tac
     bary2 = w;
   }
 
-  void BarycentricTetrahedron(
-    v3 p,
-    v3 tet0,
-    v3 tet1,
-    v3 tet2,
-    v3 tet3,
-    bool& fucked,
-    float& bary0,
-    float& bary1,
-    float& bary2,
-    float& bary3 )
+  void BarycentricTetrahedron( v3 p,
+                               v3 tet0,
+                               v3 tet1,
+                               v3 tet2,
+                               v3 tet3,
+                               bool& fucked,
+                               float& bary0,
+                               float& bary1,
+                               float& bary2,
+                               float& bary3 )
   {
     v3 a = tet1 - tet0;
     v3 b = tet2 - tet0;
@@ -110,7 +108,9 @@ namespace Tac
     mRadius = radius;
   }
 
-  ConvexPolygonSupport::ConvexPolygonSupport( v3 obbPos, v3 obbHalfExtents, v3 obbEulerRads )
+  ConvexPolygonSupport::ConvexPolygonSupport( v3 obbPos,
+                                              v3 obbHalfExtents,
+                                              v3 obbEulerRads )
   {
     mPoints = {
       { -1, -1, -1 },
@@ -134,7 +134,9 @@ namespace Tac
     return result;
   }
 
-  CapsuleSupport::CapsuleSupport( v3 base, float height, float radius )
+  CapsuleSupport::CapsuleSupport( v3 base,
+                                  float height,
+                                  float radius )
   {
     v3 up( 0, 1, 0 );
     mBotSpherePos = base + up * radius;
@@ -358,99 +360,99 @@ namespace Tac
         auto adb = Cross( ad, ab );
 
         if( // vertex a
-          Dot( ao, ab ) < 0 &&
-          Dot( ao, ac ) < 0 &&
-          Dot( ao, ad ) < 0 )
+            Dot( ao, ab ) < 0 &&
+            Dot( ao, ac ) < 0 &&
+            Dot( ao, ad ) < 0 )
         {
           mSupports = { a };
           mClosestPoint = a.mDiffPt;
         }
         else if( // vertex b
-          Dot( bo, ba ) < 0 &&
-          Dot( bo, bc ) < 0 &&
-          Dot( bo, bd ) < 0 )
+                 Dot( bo, ba ) < 0 &&
+                 Dot( bo, bc ) < 0 &&
+                 Dot( bo, bd ) < 0 )
         {
           mSupports = { b };
           mClosestPoint = b.mDiffPt;
         }
         else if( // vertex c
-          Dot( co, ca ) < 0 &&
-          Dot( co, cb ) < 0 &&
-          Dot( co, cd ) < 0 )
+                 Dot( co, ca ) < 0 &&
+                 Dot( co, cb ) < 0 &&
+                 Dot( co, cd ) < 0 )
         {
           mSupports = { c };
           mClosestPoint = c.mDiffPt;
         }
         else if( // vertex d
-          Dot( d_o, da ) < 0 &&
-          Dot( d_o, db ) < 0 &&
-          Dot( d_o, dc ) < 0 )
+                 Dot( d_o, da ) < 0 &&
+                 Dot( d_o, db ) < 0 &&
+                 Dot( d_o, dc ) < 0 )
         {
           mSupports = { d };
           mClosestPoint = d.mDiffPt;
         }
         else if( // edge ab
-          Dot( ao, Cross( ab, abc ) ) > 0 &&
-          Dot( ao, Cross( adb, ab ) ) > 0 )
+                 Dot( ao, Cross( ab, abc ) ) > 0 &&
+                 Dot( ao, Cross( adb, ab ) ) > 0 )
         {
           mSupports = { a, b };
           mClosestPoint = a.mDiffPt + Project( ab, ao );
         }
         else if( // edge ac
-          Dot( ao, Cross( abc, ac ) ) > 0 &&
-          Dot( ao, Cross( ac, acd ) ) > 0 )
+                 Dot( ao, Cross( abc, ac ) ) > 0 &&
+                 Dot( ao, Cross( ac, acd ) ) > 0 )
         {
           mSupports = { a, c };
           mClosestPoint = a.mDiffPt + Project( ac, ao );
         }
         else if( // edge ad
-          Dot( ao, Cross( ad, adb ) ) > 0 &&
-          Dot( ao, Cross( acd, ad ) ) > 0 )
+                 Dot( ao, Cross( ad, adb ) ) > 0 &&
+                 Dot( ao, Cross( acd, ad ) ) > 0 )
         {
           mSupports = { a, d };
           mClosestPoint = a.mDiffPt + Project( ad, ao );
         }
         else if( // edge bc
-          Dot( bo, Cross( bc, abc ) ) > 0 &&
-          Dot( bo, Cross( bdc, bc ) ) > 0 )
+                 Dot( bo, Cross( bc, abc ) ) > 0 &&
+                 Dot( bo, Cross( bdc, bc ) ) > 0 )
         {
           mSupports = { b, c };
           mClosestPoint = b.mDiffPt + Project( bc, bo );
         }
         else if( // edge bd
-          Dot( bo, Cross( bd, bdc ) ) > 0 &&
-          Dot( bo, Cross( adb, bd ) ) > 0 )
+                 Dot( bo, Cross( bd, bdc ) ) > 0 &&
+                 Dot( bo, Cross( adb, bd ) ) > 0 )
         {
           mSupports = { b, d };
           mClosestPoint = b.mDiffPt + Project( bd, bo );
         }
         else if( // edge cd
-          Dot( co, Cross( cd, acd ) ) > 0 &&
-          Dot( co, Cross( bdc, cd ) ) > 0 )
+                 Dot( co, Cross( cd, acd ) ) > 0 &&
+                 Dot( co, Cross( bdc, cd ) ) > 0 )
         {
           mSupports = { c, d };
           mClosestPoint = c.mDiffPt + Project( cd, co );
         }
         else if( // face abc
-          Dot( ao, abc ) > 0 )
+                 Dot( ao, abc ) > 0 )
         {
           mSupports = { a, b, c };
           mClosestPoint = Project( abc, a.mDiffPt );
         }
         else if( // face abd
-          Dot( ao, adb ) > 0 )
+                 Dot( ao, adb ) > 0 )
         {
           mSupports = { a, b, d };
           mClosestPoint = Project( Normalize( adb ), a.mDiffPt );
         }
         else if( // face acd
-          Dot( ao, acd ) > 0 )
+                 Dot( ao, acd ) > 0 )
         {
           mSupports = { a, c, d };
           mClosestPoint = Project( Normalize( acd ), a.mDiffPt );
         }
         else if( // face bcd
-          Dot( bo, bdc ) > 0 )
+                 Dot( bo, bdc ) > 0 )
         {
           mSupports = { b, c, d };
           mClosestPoint = Project( bdc, b.mDiffPt );
@@ -632,11 +634,10 @@ namespace Tac
     return result;
   }
 
-  EPATriangle::EPATriangle(
-    CompoundSupport v0,
-    CompoundSupport v1,
-    CompoundSupport v2,
-    v3 toNormalize )
+  EPATriangle::EPATriangle( CompoundSupport v0,
+                            CompoundSupport v1,
+                            CompoundSupport v2,
+                            v3 toNormalize )
   {
     mV0 = v0;
     mV1 = v1;
@@ -645,10 +646,9 @@ namespace Tac
     ComputeDist();
   }
 
-  EPATriangle::EPATriangle(
-    CompoundSupport v0,
-    CompoundSupport v1,
-    CompoundSupport v2 )
+  EPATriangle::EPATriangle( CompoundSupport v0,
+                            CompoundSupport v1,
+                            CompoundSupport v2 )
   {
     mV0 = v0;
     mV1 = v1;
@@ -671,7 +671,8 @@ namespace Tac
     //Assert( mPlaneDist >= 0.0f );
   }
 
-  EPAHalfEdge::EPAHalfEdge( CompoundSupport from, CompoundSupport to )
+  EPAHalfEdge::EPAHalfEdge( CompoundSupport from,
+                            CompoundSupport to )
   {
     mFrom = from;
     mTo = to;

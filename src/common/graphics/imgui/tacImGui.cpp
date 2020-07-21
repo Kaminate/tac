@@ -76,27 +76,25 @@ namespace Tac
   }
 
 
-  static void TextInputDataDrawSelection( TextInputData* inputData, v2 textPos, const ImGuiRect* clipRect )
+  static void TextInputDataDrawSelection( TextInputData* inputData,
+                                          const v2 textPos,
+                                          const ImGuiRect* clipRect )
   {
     UI2DDrawData* drawData = ImGuiGlobals::Instance.mUI2DDrawData;
     if( inputData->mCaretCount == 2 )
     {
-      float minCaretPos = drawData->CalculateTextSize(
-        inputData->mCodepoints.data(),
-        inputData->GetMinCaret(),
-        ImGuiGlobals::Instance.mUIStyle.fontSize ).x;
+      const float minCaretPos = drawData->CalculateTextSize( inputData->mCodepoints.data(),
+                                                             inputData->GetMinCaret(),
+                                                             ImGuiGlobals::Instance.mUIStyle.fontSize ).x;
 
-      float maxCaretPos = drawData->CalculateTextSize(
-        inputData->mCodepoints.data(),
-        inputData->GetMaxCaret(),
-        ImGuiGlobals::Instance.mUIStyle.fontSize ).x;
+      const float maxCaretPos = drawData->CalculateTextSize( inputData->mCodepoints.data(),
+                                                             inputData->GetMaxCaret(),
+                                                             ImGuiGlobals::Instance.mUIStyle.fontSize ).x;
 
-      v2 selectionMini = {
-        textPos.x + minCaretPos,
-        textPos.y };
-      v2 selectionMaxi = {
-        textPos.x + maxCaretPos,
-        textPos.y + ImGuiGlobals::Instance.mUIStyle.fontSize };
+      const v2 selectionMini = v2( textPos.x + minCaretPos,
+                                   textPos.y );
+      const v2 selectionMaxi = v2( textPos.x + maxCaretPos,
+                                   textPos.y + ImGuiGlobals::Instance.mUIStyle.fontSize );
 
       drawData->AddBox( selectionMini,
                         selectionMaxi,
@@ -107,36 +105,20 @@ namespace Tac
 
     if( inputData->mCaretCount == 1 )
     {
-      float caretPos = drawData->CalculateTextSize(
-        inputData->mCodepoints.data(),
-        inputData->mNumGlyphsBeforeCaret[ 0 ],
-        ImGuiGlobals::Instance.mUIStyle.fontSize ).x;
-      float caretYPadding = 2.0f;
-      float caretHalfWidth = 0.5f;
-      v2 caretMini = {
-        textPos.x + caretPos - caretHalfWidth,
-        textPos.y + caretYPadding };
-      v2 caretMaxi = {
-        textPos.x + caretPos + caretHalfWidth,
-        textPos.y + ImGuiGlobals::Instance.mUIStyle.fontSize - caretYPadding };
-      float caretColorAlpha = ( ( std::sin( 6.0f * ( float )ImGuiGlobals::Instance.mElapsedSeconds ) + 1.0f ) / 2.0f );
-      v4 caretColor = { 0, 0, 0, caretColorAlpha };
+      const float caretPos = drawData->CalculateTextSize( inputData->mCodepoints.data(),
+                                                          inputData->mNumGlyphsBeforeCaret[ 0 ],
+                                                          ImGuiGlobals::Instance.mUIStyle.fontSize ).x;
+      const float caretYPadding = 2.0f;
+      const float caretHalfWidth = 0.5f;
+      const v2 caretMini = v2( textPos.x + caretPos - caretHalfWidth,
+                               textPos.y + caretYPadding );
+      const v2 caretMaxi = v2( textPos.x + caretPos + caretHalfWidth,
+                               textPos.y + ImGuiGlobals::Instance.mUIStyle.fontSize - caretYPadding );
+      const float caretColorAlpha = ( ( std::sin( 6.0f * ( float )ImGuiGlobals::Instance.mElapsedSeconds ) + 1.0f ) / 2.0f );
+      const v4 caretColor = { 0, 0, 0, caretColorAlpha };
       Render::TextureHandle texture;
       drawData->AddBox( caretMini, caretMaxi, caretColor, texture, clipRect );
     }
-  }
-
-  static bool AreEqual(
-    const Vector< Codepoint >& a,
-    const Vector< Codepoint >& b )
-  {
-    int aSize = a.size();
-    if( aSize != b.size() )
-      return false;
-    for( int i = 0; i < aSize; ++i )
-      if( a[ i ] != b[ i ] )
-        return false;
-    return true;
   }
 
   ImGuiRect ImGuiRect::FromPosSize( v2 pos, v2 size )
@@ -205,7 +187,7 @@ namespace Tac
     window->mSize = windowSize;
 
     TAC_ASSERT( ImGuiGlobals::Instance.mWindowStack.empty() );
-    ImGuiGlobals::Instance.mWindowStack = { window };
+    ImGuiGlobals::Instance.mWindowStack.push_back( window );
     ImGuiGlobals::Instance.mCurrentWindow = window;
     window->BeginFrame();
   }
@@ -217,13 +199,12 @@ namespace Tac
       ImGuiGlobals::Instance.mWindowStack.back();
   }
 
-  void ImGuiSetGlobals(
-    v2 mousePositionDesktopWindowspace,
-    bool isWindowDirectlyUnderCursor,
-    double elapsedSeconds,
-    UI2DDrawData* ui2DDrawData,
-    int desktopWindowWidth,
-    int desktopWindowHeight )
+  void ImGuiSetGlobals( v2 mousePositionDesktopWindowspace,
+                        bool isWindowDirectlyUnderCursor,
+                        double elapsedSeconds,
+                        UI2DDrawData* ui2DDrawData,
+                        int desktopWindowWidth,
+                        int desktopWindowHeight )
   {
     ImGuiGlobals::Instance.mMousePositionDesktopWindowspace = mousePositionDesktopWindowspace;
     ImGuiGlobals::Instance.mIsWindowDirectlyUnderCursor = isWindowDirectlyUnderCursor;
@@ -377,12 +358,13 @@ namespace Tac
 
     if( window->GeTiveID() == id )
     {
-      Vector< Codepoint > codepoints;
-      Errors ignoredUTF8ConversionErrors;
-      UTF8Converter::Convert( text, codepoints, ignoredUTF8ConversionErrors );
-      if( !AreEqual( inputData->mCodepoints, codepoints ) )
+      CodepointView oldCodepoints = UTF8ToCodepoints( text );
+      CodepointView newCodepoints = CodepointView( inputData->mCodepoints.data(),
+                                                   inputData->mCodepoints.size() );
+
+      if( oldCodepoints != newCodepoints )
       {
-        inputData->mCodepoints = codepoints;
+        inputData->SetCodepoints( newCodepoints );
         inputData->mCaretCount = 0;
       }
       TextInputDataUpdateKeys( inputData, textPos );
@@ -409,9 +391,7 @@ namespace Tac
       TextInputDataDrawSelection( inputData, textPos, &clipRect );
 
 
-
-      String newText;
-      UTF8Converter::Convert( inputData->mCodepoints, newText );
+      StringView newText = CodepointsToUTF8( newCodepoints );
       if( text != newText )
       {
         text = newText;
@@ -419,12 +399,19 @@ namespace Tac
       }
     }
 
-    drawData->AddText( textPos, ImGuiGlobals::Instance.mUIStyle.fontSize, text, editTextColor, &clipRect );
+    drawData->AddText( textPos,
+                       ImGuiGlobals::Instance.mUIStyle.fontSize,
+                       text,
+                       editTextColor,
+                       &clipRect );
 
-    v2 labelPos = {
-      textBackgroundMaxi.x + ImGuiGlobals::Instance.mUIStyle.itemSpacing.x,
-      pos.y };
-    drawData->AddText( labelPos, ImGuiGlobals::Instance.mUIStyle.fontSize, label, ImGuiGlobals::Instance.mUIStyle.textColor, &clipRect );
+    const v2 labelPos = v2( textBackgroundMaxi.x + ImGuiGlobals::Instance.mUIStyle.itemSpacing.x,
+                            pos.y );
+    drawData->AddText( labelPos,
+                       ImGuiGlobals::Instance.mUIStyle.fontSize,
+                       label,
+                       ImGuiGlobals::Instance.mUIStyle.textColor,
+                       &clipRect );
 
     return textChanged;
   }
@@ -469,7 +456,11 @@ namespace Tac
 
     Render::TextureHandle texture;
     drawData->AddBox( pos, pos + buttonSize, color, texture, &clipRect );
-    drawData->AddText( pos, ImGuiGlobals::Instance.mUIStyle.fontSize, str, ImGuiGlobals::Instance.mUIStyle.textColor, &clipRect );
+    drawData->AddText( pos,
+                       ImGuiGlobals::Instance.mUIStyle.fontSize,
+                       str,
+                       ImGuiGlobals::Instance.mUIStyle.textColor,
+                       &clipRect );
     return clicked;
   }
   bool ImGuiButton( StringView str )
@@ -632,13 +623,12 @@ namespace Tac
     drawData->AddText( textPos, ImGuiGlobals::Instance.mUIStyle.fontSize, str, ImGuiGlobals::Instance.mUIStyle.textColor, &clipRect );
   }
 
-  static bool ImguiDragVal(
-    StringView str,
-    void* valueBytes,
-    int valueByteCount,
-    void( *valueToStringGetter )( String& to, const void* from ),
-    void( *valueFromStringSetter )( StringView from, void* to ),
-    void( *whatToDoWithMousePixel )( float mouseChangeSinceBeginningOfDrag, const void* valAtDragStart, void* curVal ) )
+  static bool ImguiDragVal( StringView str,
+                            void* valueBytes,
+                            int valueByteCount,
+                            void( *valueToStringGetter )( String& to, const void* from ),
+                            void( *valueFromStringSetter )( StringView from, void* to ),
+                            void( *whatToDoWithMousePixel )( float mouseChangeSinceBeginningOfDrag, const void* valAtDragStart, void* curVal ) )
   {
     v4 backgroundBoxColor = { 1, 1, 0, 1 };
     String valueStr;
@@ -740,10 +730,8 @@ namespace Tac
           if( mouseReleaseSeconds - lastMouseReleaseSeconds < 0.5f &&
               lastMousePositionDesktopWindowspace == ImGuiGlobals::Instance.mMousePositionDesktopWindowspace )
           {
-            Vector< Codepoint > codepoints;
-            Errors ignoredUTF8ConversionErrors;
-            UTF8Converter::Convert( valueStr, codepoints, ignoredUTF8ConversionErrors );
-            inputData->mCodepoints = codepoints;
+            CodepointView codepoints = UTF8ToCodepoints( valueStr );
+            inputData->SetCodepoints( codepoints );
             inputData->mCaretCount = 2;
             inputData->mNumGlyphsBeforeCaret[ 0 ] = 0;
             inputData->mNumGlyphsBeforeCaret[ 1 ] = codepoints.size();
@@ -759,8 +747,9 @@ namespace Tac
       if( dragFloatData.mMode == DragMode::TextInput )
       {
         TextInputDataUpdateKeys( inputData, valuePos );
-        String newText;
-        UTF8Converter::Convert( inputData->mCodepoints, newText );
+
+        StringView newText = CodepointsToUTF8( CodepointView( inputData->mCodepoints.data(),
+                                                              inputData->mCodepoints.size() ));
         valueFromStringSetter( newText, valueBytes );
         valueStr = newText;
 

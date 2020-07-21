@@ -75,18 +75,14 @@ namespace Tac
     }
     void push_back( T t )
     {
-      int newSize = mTCount + 1;
+      const int newSize = mTCount + 1;
       if( newSize > mTCapacity )
-      {
-        int newCapacity = int( mTCount * 1.5f );
-        if( newCapacity < newSize )
-          newCapacity = newSize;
-        reserve( newCapacity );
-      }
+        reserve( int( newSize * 1.5f ) );
       mTs[ mTCount++ ] = t;
     }
     void pop_back()
     {
+      TAC_ASSERT( mTCount );
       mTCount--;
     }
     bool empty() const { return !mTCount; }
@@ -98,7 +94,7 @@ namespace Tac
     }
     void reserve( int capacity )
     {
-      if( capacity < mTCapacity )
+      if( capacity <= mTCapacity )
         return;
       T* newTs = TAC_NEW T[ capacity ];
       for( int i = 0; i < mTCount; ++i )

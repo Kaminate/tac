@@ -443,6 +443,10 @@ namespace Tac
   {
     return GetChild( key );
   }
+  Json& Json::operator[]( const char* key )
+  {
+    return GetChild( key );
+  }
   void Json::operator = ( const Json* json )
   {
     *this = *json;

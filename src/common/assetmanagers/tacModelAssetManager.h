@@ -50,7 +50,7 @@ namespace Tac
                   VertexDeclaration* vertexDeclarations,
                   int vertexDeclarationCount,
                   Errors& errors );
-    std::map< String, Mesh* > mMeshes;
+    std::map< StringID, Mesh* > mMeshes;
   };
 
 

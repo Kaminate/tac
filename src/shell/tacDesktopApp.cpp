@@ -6,7 +6,8 @@
 #include "src/common/tacControllerInput.h"
 #include "src/common/tacKeyboardInput.h"
 #include "src/common/tacOS.h"
-#include "src/common/tacTemporaryMemory.h"
+#include "src/common/tacFrameMemory.h"
+#include "src/common/containers/tacFrameVector.h"
 #include "src/shell/tacDesktopApp.h"
 #include "src/shell/tacDesktopWindowManager.h"
 
@@ -32,16 +33,20 @@ namespace Tac
   static RingBuffer sAllocatorStuff;
   static RingBuffer sAllocatorMain;
 
-  //static void StuffThread( void* userData )
-  static void StuffThread( DesktopApp*  desktopApp )
+  static void DontMaxOutCpuGpuPowerUsage()
   {
-    //auto desktopApp = ( DesktopApp* )userData;
-    Errors& errors = desktopApp->mErrorsStuffThread;
+    std::this_thread::sleep_for( std::chrono::milliseconds( 1 ) );
+  }
+
+  //static void StuffThread( void* userData )
+  static void StuffThread()
+  {
+    Errors& errors = DesktopApp::Instance->mErrorsStuffThread;
 
     gThreadType = ThreadType::Stuff;
 
     sAllocatorStuff.Init( 1024 * 1024 * 10 );
-    SetThreadFrameAllocator( &sAllocatorStuff );
+    FrameMemory::SetThreadAllocator( &sAllocatorStuff );
 
     TAC_NEW ProfileSystem;
     ProfileSystem::Instance->Init();
@@ -62,19 +67,18 @@ namespace Tac
 
       UpdateThing::Instance->Update( errors );
       TAC_HANDLE_ERROR( errors );
+
+      DontMaxOutCpuGpuPowerUsage();
     }
   }
 
-  static void MainThread( DesktopApp* desktopApp )
+  static void MainThread()
   {
-    gThreadType = ThreadType::Main;
-    sAllocatorMain.Init( 1024 * 1024 * 10 );
-    SetThreadFrameAllocator( &sAllocatorMain );
-    Errors& errors = desktopApp->mErrorsMainThread;
+    Errors& errors = DesktopApp::Instance->mErrorsMainThread;
     while( !OS::mShouldStopRunning )
     {
 
-      desktopApp->Poll( errors );
+      DesktopApp::Instance->Poll( errors );
       TAC_HANDLE_ERROR( errors );
 
 
@@ -84,8 +88,10 @@ namespace Tac
       //KillDeadWindows();
 
       //Renderer::Instance->Render( errors );
-      Render::RenderFrame();
+      Render::RenderFrame( errors );
       TAC_HANDLE_ERROR( errors );
+
+      DontMaxOutCpuGpuPowerUsage();
     }
 
   }
@@ -113,6 +119,10 @@ namespace Tac
 
   void DesktopApp::Init( Errors& errors )
   {
+    gThreadType = ThreadType::Main;
+    sAllocatorMain.Init( 1024 * 1024 * 10 );
+    FrameMemory::SetThreadAllocator( &sAllocatorMain );
+
     TAC_NEW DesktopWindowManager;
 
     ExecutableStartupInfo info;
@@ -159,9 +169,10 @@ namespace Tac
 
     std::thread threads[] =
     {
-    std::thread( MainThread, this ),
-    std::thread( StuffThread, this ),
+      std::thread( StuffThread ),
     };
+
+    MainThread();
 
     for( std::thread& thread : threads )
       thread.join();

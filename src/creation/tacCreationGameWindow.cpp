@@ -188,7 +188,7 @@ namespace Tac
     mDesktopWindowHandle = DesktopWindowManager::Instance->CreateWindow( x, y, w, h );
 
     Creation* creation = Creation::Instance;
-    auto uI2DDrawData = TAC_NEW UI2DDrawData();
+    auto uI2DDrawData = TAC_NEW UI2DDrawData;
     mUI2DDrawData = uI2DDrawData;
     mUIRoot = TAC_NEW UIRoot;
     mUIRoot->mElapsedSeconds = &Shell::Instance->mElapsedSeconds;
@@ -370,11 +370,9 @@ namespace Tac
     const float h = ( float )desktopWindowState->mHeight;
     const float x = ( float )desktopWindowState->mX;
     const float y = ( float )desktopWindowState->mY;
-    v2 screenspaceCursorPos;
-    Errors errors;
-    OS::GetScreenspaceCursorPos( screenspaceCursorPos, errors );
-    if( errors )
+    if( KeyboardInput::Instance->mCurr.mScreenspaceCursorPosErrors )
       return;
+    const v2 screenspaceCursorPos = KeyboardInput::Instance->mCurr.mScreenspaceCursorPos;
     float xNDC = ( ( screenspaceCursorPos.x - x ) / w );
     float yNDC = ( ( screenspaceCursorPos.y - y ) / h );
     yNDC = 1 - yNDC;
@@ -403,10 +401,9 @@ namespace Tac
     const v4 worldSpaceMouseDir4 = viewInv * viewSpaceMouseDir4;
     worldSpaceMouseDir = worldSpaceMouseDir4.xyz();
   }
-  void CreationGameWindow::MousePickingEntity(
-    const Entity* entity,
-    bool* hit,
-    float* dist )
+  void CreationGameWindow::MousePickingEntity( const Entity* entity,
+                                               bool* hit,
+                                               float* dist )
   {
     const Model* model = Model::GetModel( entity );
     if( !model || !model->mesh )
@@ -504,10 +501,12 @@ namespace Tac
     perFrameData.mView = view;
     perFrameData.mProjection = proj;
     perFrameData.mGbufferSize = { w, h };
-    DrawCall2 setPerFrame = {};
-    setPerFrame.mUniformDst = mPerFrame;
-    setPerFrame.CopyUniformSource( perFrameData );
-    Render::AddDrawCall( setPerFrame );
+
+    //DrawCall2 setPerFrame = {};
+    //setPerFrame.mUniformDst = mPerFrame;
+    //setPerFrame.CopyUniformSource( perFrameData );
+    //Render::AddDrawCall( setPerFrame );
+
     if( creation->IsAnythingSelected() )
     {
       v3 selectionGizmoOrigin = creation->GetSelectionGizmoOrigin();

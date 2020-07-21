@@ -22,7 +22,7 @@ namespace Tac
 
   ImGuiWindow::ImGuiWindow()
   {
-    inputData = new TextInputData;
+    inputData = TAC_NEW TextInputData;
   }
   ImGuiWindow::~ImGuiWindow()
   {
@@ -123,7 +123,8 @@ namespace Tac
     mContentRect.mMini += padVec;
     mContentRect.mMaxi -= padVec;
 
-    mXOffsets = { ImGuiGlobals::Instance.mUIStyle.windowPadding };
+    mXOffsets.resize( 0 );
+    mXOffsets.push_back( ImGuiGlobals::Instance.mUIStyle.windowPadding );
     v2 drawPos = {
       //       +----- grody ------+
       //       |                  |
@@ -139,7 +140,7 @@ namespace Tac
     if( !mParent )
     {
       if( !mIDAllocator )
-        mIDAllocator = new ImGuiIDAllocator;
+        mIDAllocator = TAC_NEW ImGuiIDAllocator;
       mIDAllocator->mIDCounter = 0;
       if( !ImGuiGlobals::Instance.mIsWindowDirectlyUnderCursor &&
         KeyboardInput::Instance->IsKeyJustDown( Key::MouseLeft ) )

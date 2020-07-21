@@ -189,7 +189,7 @@ namespace Tac
         return;
       }
 
-      auto perCodepoint = TAC_NEW PerCodepoint();
+      auto perCodepoint = TAC_NEW PerCodepoint;
       perCodepoint->mPackedChar = packedchar;
       perCodepoint->uiSpaceCharHalfWidth = 0.5f * ( packedchar.x1 - packedchar.x0 );
       perCodepoint->uiSpaceCharHalfHeight = 0.5f * ( packedchar.y1 - packedchar.y0 );
@@ -226,11 +226,9 @@ namespace Tac
 
 #endif
   }
-  void FontStuff::GetCharacter(
-    Language defaultLanguage,
-    Codepoint codepoint,
-    FontAtlasCell** fontAtlasCell,
-    Errors& errors )
+  void FontStuff::GetCharacter( Language defaultLanguage,
+                                Codepoint codepoint,
+                                FontAtlasCell** fontAtlasCell )
   {
     //LanguageStuff* languageStuff = mLanguageStuffs[ defaultLanguage ];
     //FontStyle fontStyle = FontStyle::NormalText;
@@ -323,13 +321,10 @@ namespace Tac
     cell->mCodepoint = codepoint;
     cell->mCodepointAscii = codepoint < 128 ? ( char )codepoint : '?';
     cell->mOwner = fontFile;
-
     cell->mAdvanceWidth = ( float )advanceWidth;
     cell->mUISpaceAdvanceWidth = advanceWidth * fontFile->mScale;
-
     cell->mUISpaceLeftSideBearing = leftSideBearing * fontFile->mScale;
     cell->mLeftSideBearing = ( float )leftSideBearing;
-
     cell->mBitmapWidth = bitmapWidthPx;
     cell->mBitmapHeight = bitmapHeightPx;
     cell->mMinGLTexCoord = minGLTexCoord;
@@ -361,8 +356,6 @@ namespace Tac
       data.mPitch = bitmapWidthPx;
 
       Render::UpdateTextureRegion( mTextureId, data, TAC_STACK_FRAME );
-
-      TAC_HANDLE_ERROR( errors );
     }
     *fontAtlasCell = cell;
   }
@@ -371,7 +364,7 @@ namespace Tac
     if( mCells.size() < mRowCount * mRowCount )
     {
       auto cellIndex = ( int )mCells.size();
-      auto cell = TAC_NEW FontAtlasCell();
+      auto cell = TAC_NEW FontAtlasCell;
       cell->mRow = cellIndex / mRowCount;
       cell->mColumn = cellIndex % mRowCount;
       mCells.push_back( cell );

@@ -159,7 +159,10 @@ namespace Tac
     if( mIndexBufferHandle.IsValid() )
       Render::DestroyIndexBuffer( mIndexBufferHandle, TAC_STACK_FRAME );
   }
-  void UI2DDrawData::DrawToTexture( int viewWidth, int viewHeight, Render::ViewId viewId, Errors& errors )
+  void UI2DDrawData::DrawToTexture( int viewWidth,
+                                    int viewHeight,
+                                    Render::ViewId viewId,
+                                    Errors& errors )
   {
     TAC_ASSERT( viewWidth );
     TAC_ASSERT( viewHeight );
@@ -259,7 +262,7 @@ namespace Tac
       perFrameData.mProjection = projection;
 
 
-      DrawCall2 perFrame = {};
+      //DrawCall2 perFrame = {};
       //perFrame.mRenderView = mRenderView;
       //perFrame.mBlendState = UI2DCommonData::Instance->mBlendState;
       //perFrame.mRasterizerState = UI2DCommonData::Instance->mRasterizerState;
@@ -321,9 +324,12 @@ namespace Tac
       }
     }
 
-    mDrawCall2Ds.clear();
-    mDefaultVertex2Ds.clear();
-    mDefaultIndex2Ds.clear();
+    //mDrawCall2Ds.clear();
+    //mDefaultVertex2Ds.clear();
+    //mDefaultIndex2Ds.clear();
+    mDrawCall2Ds.resize(0);
+    mDefaultVertex2Ds.resize(0);
+    mDefaultIndex2Ds.resize(0);
 
     //Renderer::Instance->DebugBegin( "2d" );
     //Renderer::Instance->RenderFlush();
@@ -408,9 +414,7 @@ namespace Tac
   {
     const m3& transform = mTransform;
 
-    Vector< Codepoint > codepoints;
-    UTF8Converter::Convert( text, codepoints, errors );
-    TAC_HANDLE_ERROR( errors );
+    CodepointView codepoints = UTF8ToCodepoints( text );
     auto oldIndexCount = ( int )mUI2DDrawData->mDefaultIndex2Ds.size();
     auto oldVertexCount = ( int )mUI2DDrawData->mDefaultVertex2Ds.size();
     float scale = ( float )fontSize / FontCellWidth;
@@ -451,7 +455,7 @@ namespace Tac
 
 
       FontAtlasCell* fontAtlasCell;
-      FontStuff::Instance->GetCharacter( defaultLanguage, codepoint, &fontAtlasCell, errors );
+      FontStuff::Instance->GetCharacter( defaultLanguage, codepoint, &fontAtlasCell );
       TAC_HANDLE_ERROR( errors );
       if( !fontAtlasCell )
         continue;
@@ -529,22 +533,23 @@ namespace Tac
   }
 
   // cache the results?
-  v2 UI2DDrawData::CalculateTextSize( StringView text, int fontSize )
+  v2 UI2DDrawData::CalculateTextSize( const StringView text,
+                                      const int fontSize )
   {
-    Vector< Codepoint > codepoints;
-
-    // ignored
-    Errors errors;
-
-    UTF8Converter::Convert( text, codepoints, errors );
+    const CodepointView codepoints = UTF8ToCodepoints( text );
     return CalculateTextSize( codepoints, fontSize );
   }
 
-  v2 UI2DDrawData::CalculateTextSize( const Vector< Codepoint >& codepoints, int fontSize )
+  v2 UI2DDrawData::CalculateTextSize( const CodepointView codepoints,
+                                      const int fontSize )
   {
-    return CalculateTextSize( codepoints.data(), ( int )codepoints.size(), fontSize );
+    return CalculateTextSize( codepoints.data(),
+                              codepoints.size(),
+                              fontSize );
   }
-  v2 UI2DDrawData::CalculateTextSize( const Codepoint* codepoints, int codepointCount, int fontSize )
+  v2 UI2DDrawData::CalculateTextSize( const Codepoint* codepoints,
+                                      const int codepointCount,
+                                      const int fontSize )
   {
     float lineWidthUISpaceMax = 0;
     float lineWidthUISpace = 0;
@@ -570,7 +575,6 @@ namespace Tac
       Codepoint codepoint = codepoints[ iCodepoint ];
       if( !codepoint )
         continue;
-
       if( IsAsciiCharacter( codepoint ) )
       {
         if( codepoint == '\n' )
@@ -585,12 +589,7 @@ namespace Tac
       }
 
       FontAtlasCell* fontAtlasCell = nullptr;
-
-      // ignored...
-      Errors errors;
-
-      FontStuff::Instance->GetCharacter( defaultLanguage, codepoint, &fontAtlasCell, errors );
-
+      FontStuff::Instance->GetCharacter( defaultLanguage, codepoint, &fontAtlasCell );
       if( !fontAtlasCell )
         continue;
 
@@ -609,7 +608,11 @@ namespace Tac
     return textSize;
   }
 
-  void UI2DDrawData::AddBox( v2 mini, v2 maxi, v4 color, Render::TextureHandle texture, const ImGuiRect* clipRect )
+  void UI2DDrawData::AddBox( v2 mini,
+                             v2 maxi,
+                             v4 color,
+                             Render::TextureHandle texture,
+                             const ImGuiRect* clipRect )
   {
     if( clipRect )
     {
@@ -662,7 +665,10 @@ namespace Tac
     mDrawCall2Ds.push_back( drawCall );
   }
 
-  void UI2DDrawData::AddLine( v2 p0, v2 p1, float radius, v4 color )
+  void UI2DDrawData::AddLine( v2 p0,
+                              v2 p1,
+                              float radius,
+                              v4 color )
   {
     v2 dp = p1 - p0;
     float quadrance = dp.Quadrance();
@@ -729,21 +735,16 @@ namespace Tac
   //  Vector< v2 > normals;
   //}
 
-  void UI2DDrawData::AddText(
-    const v2 textPos,
-    const int fontSize,
-    StringView utf8,
-    const v4 color,
-    const ImGuiRect* clipRect )
+  void UI2DDrawData::AddText( const v2 textPos,
+                              const int fontSize,
+                              StringView utf8,
+                              const v4 color,
+                              const ImGuiRect* clipRect )
   {
     if( utf8.empty() )
       return;
 
-    // ignored
-    Errors errors;
-
-    Vector< Codepoint > codepoints;
-    UTF8Converter::Convert( utf8, codepoints, errors );
+    CodepointView codepoints = UTF8ToCodepoints( utf8 );
 
     Language defaultLanguage = Language::English;
     FontFile* fontFile = FontStuff::Instance->mDefaultFonts[ defaultLanguage ];
@@ -779,7 +780,7 @@ namespace Tac
       }
 
       FontAtlasCell* fontAtlasCell = nullptr;
-      FontStuff::Instance->GetCharacter( defaultLanguage, codepoint, &fontAtlasCell, errors );
+      FontStuff::Instance->GetCharacter( defaultLanguage, codepoint, &fontAtlasCell );
       // ^ ignore errors...
 
       if( !fontAtlasCell )
@@ -811,12 +812,6 @@ namespace Tac
       //   |
       //   v
       //   y
-
-      if( utf8 == "Entity 1" && ( char )codepoint == '1' )
-      {
-        static int i;
-        ++i;
-      }
 
       if( clipRect )
       {
@@ -876,7 +871,8 @@ namespace Tac
   {
     Translate( pos.x, pos.y );
   }
-  void UI2DState::Translate( float x, float y )
+  void UI2DState::Translate( float x,
+                             float y )
   {
     mTransform = mTransform * M3Translate( x, y );
   }

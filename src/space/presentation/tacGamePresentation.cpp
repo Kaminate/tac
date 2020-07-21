@@ -64,10 +64,10 @@ namespace Tac
     perFrameData.mView = view;
     perFrameData.mProjection = proj;
     perFrameData.mGbufferSize = { w, h };
-    DrawCall2 setPerFrame = {};
-    setPerFrame.mUniformDst = mPerFrame;
-    setPerFrame.CopyUniformSource( perFrameData );
-    Render::AddDrawCall( setPerFrame );
+    //DrawCall2 setPerFrame = {};
+    //setPerFrame.mUniformDst = mPerFrame;
+    //setPerFrame.CopyUniformSource( perFrameData );
+    //Render::AddDrawCall( setPerFrame );
 
     Render::UpdateConstantBuffer( mPerFrame,
                                   &perFrameData,
@@ -183,11 +183,10 @@ namespace Tac
       if( !terrain->mVertexBuffer.IsValid() || !terrain->mIndexBuffer.IsValid() )
         continue;
 
-      Errors errors;
       Render::TextureHandle terrainTexture =
-        TextureAssetManager::GetTexture( terrain->mGroundTexturePath, errors );
+        TextureAssetManager::GetTexture( terrain->mGroundTexturePath, mGetTextureErrorsGround );
       Render::TextureHandle noiseTexture =
-        TextureAssetManager::GetTexture( terrain->mNoiseTexturePath, errors );
+        TextureAssetManager::GetTexture( terrain->mNoiseTexturePath, mGetTextureErrorsNoise );
 
       DefaultCBufferPerObject cbuf = {};
       cbuf.Color = { 1, 1, 1, 1 };
@@ -219,7 +218,6 @@ namespace Tac
     //Renderer::Instance->DebugEnd();
     mSkyboxPresentation->RenderSkybox( viewWidth, viewHeight, viewId, world->mSkyboxDir );
 
-    Errors ignored;
     //world->mDebug3DDrawData->DrawToTexture(
     //  ignored,
     //  &perFrameData,

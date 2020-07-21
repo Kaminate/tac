@@ -43,14 +43,4 @@ namespace Tac
     String result( temporaryMemory.data(), ( int )temporaryMemory.size() );
     return result;
   }
-
-  static thread_local RingBuffer* sFrameAllocator;
-  void* TemporaryFrameMemory( int byteCount )
-  {
-    return sFrameAllocator->Allocate( byteCount );
-  }
-  void SetThreadFrameAllocator( RingBuffer* ringBuffer )
-  {
-    sFrameAllocator = ringBuffer;
-  }
 }

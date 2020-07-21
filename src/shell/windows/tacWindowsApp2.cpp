@@ -379,7 +379,7 @@ namespace Tac
     mShouldWindowHaveBorder = Shell::Instance->mSettings->GetBool( nullptr, { "areWindowsBordered" }, false, errors );
     if( !mShouldWindowHaveBorder )
     {
-      mMouseEdgeHandler = TAC_NEW Win32MouseEdgeHandler();
+      mMouseEdgeHandler = TAC_NEW Win32MouseEdgeHandler;
     }
 
 
@@ -560,7 +560,7 @@ namespace Tac
     ShowWindow( hwnd, mNCmdShow );
 
 
-    auto createdWindow = TAC_NEW Win32DesktopWindow();
+    auto createdWindow = TAC_NEW Win32DesktopWindow;
     createdWindow->mHWND = hwnd;
     createdWindow->mOperatingSystemHandle = hwnd;
     createdWindow->mOnDestroyed.AddCallbackFunctional(

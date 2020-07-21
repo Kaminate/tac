@@ -219,7 +219,7 @@ namespace Tac
       return nullptr;
     }
 
-    auto netWinsocket = TAC_NEW SocketWinsock();
+    auto netWinsocket = TAC_NEW SocketWinsock;
     TAC_ON_DESTRUCT( if( errors ) delete netWinsocket );
     netWinsocket->mSocket = winsockSocket;
     netWinsocket->mName = name;

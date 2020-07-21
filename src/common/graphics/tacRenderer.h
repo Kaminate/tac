@@ -31,7 +31,7 @@
 
 namespace Tac
 {
-  struct DrawCall2;
+  //struct DrawCall2;
 
   const v4 colorGrey = v4( v3( 1, 1, 1 ) * 95.0f, 255 ) / 255.0f;
   const v4 colorOrange = v4( 255, 200, 84, 255 ) / 255.0f;
@@ -306,7 +306,7 @@ namespace Tac
     struct Frame;
 
 
-    void RenderFrame();
+    void RenderFrame( Errors& );
     void SubmitFrame();
 
     void Init();
@@ -485,36 +485,35 @@ namespace Tac
     //void                             SetUniform( ConstantBufferHandle, const void* bytes, int byteCount );
 
     void                             Submit( ViewId );
-    void                             AddDrawCall( const DrawCall2& );
+    //void                             AddDrawCall( const DrawCall2& );
     void                             GetPerspectiveProjectionAB( float f, float n, float& a, float& b );
     void                             Init( Errors& );
     void                             Uninit();
   }
 
   // todo: delete in favor of drawcall3
-  struct DrawCall2
-  {
-    Render::ShaderHandle mShader;
-    Render::VertexBufferHandle mVertexBuffer;
-    Render::IndexBufferHandle mIndexBuffer;
-    int mStartIndex = 0;
-    int mIndexCount = 0;
-    int mVertexCount = 0;
-    Render::BlendStateHandle mBlendState;
-    Render::RasterizerStateHandle mRasterizerState;
-    Render::SamplerStateHandle mSamplerState;
-    Render::DepthStateHandle mDepthState;
-    Render::VertexFormatHandle mVertexFormat;
-    Vector< Render::TextureHandle > mTextureHandles;
-    Render::ConstantBufferHandle mUniformDst;
-    Vector< char > mUniformSrcc;
-    StackFrame mFrame;
-    PrimitiveTopology mPrimitiveTopology = PrimitiveTopology::TriangleList;
-
-    template< typename T>
-    void CopyUniformSource( const T& t ) { CopyUniformSource( &t, sizeof( T ) ); }
-    void CopyUniformSource( const void* bytes, int byteCount );
-  };
+  //struct DrawCall2
+  //{
+  //  Render::ShaderHandle mShader;
+  //  Render::VertexBufferHandle mVertexBuffer;
+  //  Render::IndexBufferHandle mIndexBuffer;
+  //  int mStartIndex = 0;
+  //  int mIndexCount = 0;
+  //  int mVertexCount = 0;
+  //  Render::BlendStateHandle mBlendState;
+  //  Render::RasterizerStateHandle mRasterizerState;
+  //  Render::SamplerStateHandle mSamplerState;
+  //  Render::DepthStateHandle mDepthState;
+  //  Render::VertexFormatHandle mVertexFormat;
+  //  Vector< Render::TextureHandle > mTextureHandles;
+  //  Render::ConstantBufferHandle mUniformDst;
+  //  Vector< char > mUniformSrcc;
+  //  StackFrame mFrame;
+  //  PrimitiveTopology mPrimitiveTopology = PrimitiveTopology::TriangleList;
+  //  template< typename T>
+  //  void CopyUniformSource( const T& t ) { CopyUniformSource( &t, sizeof( T ) ); }
+  //  void CopyUniformSource( const void* bytes, int byteCount );
+  //};
 
 
   struct RendererFactory

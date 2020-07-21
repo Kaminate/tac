@@ -1,6 +1,7 @@
 #include "src/common/tacLocalization.h"
 #include "src/common/tacUtility.h"
 #include "src/common/tacMemory.h"
+#include "src/common/tacFrameMemory.h"
 #include "src/common/tacAlgorithm.h"
 #include "src/common/tacTemporaryMemory.h"
 
@@ -13,99 +14,242 @@ namespace Tac
     return codepoint < ( Codepoint )128;
   }
 
-  char UTF8Converter::GetNextByte( Errors& errors )
+  void LocalizedStringStuff::SetCodepoints( CodepointView codepoints )
   {
-    if( mBegin >= mEnd )
-    {
-      errors = "utf8 get next byte failed";
-      return 0;
-    }
-    return *mBegin++;
+    mCodepoints.resize( codepoints.size() );
+    for( int i = 0; i < codepoints.size(); ++i )
+      mCodepoints[ i ] = codepoints[ i ];
   }
-  void UTF8Converter::IterateUTF8( Codepoint* codepoint, Errors& errors )
+
+  //struct UTF8Converter
+  //{
+  //  static void Convert( StringView text,
+  //                       Vector< Codepoint >& codepoints,
+  //                       Errors& errors );
+  //  static void Convert( const Vector< Codepoint >& codepoints,
+  //                       String& text );
+  //  void Run( Vector< Codepoint >& codepoints, Errors& errors );
+  //  void IterateUTF8( Codepoint* codepoint, Errors& errors );
+  //  char GetNextByte( Errors& errors );
+  //  const char* mBegin = nullptr;
+  //  const char* mEnd = nullptr;
+  //};
+
+
+  //char UTF8Converter::GetNextByte( Errors& errors )
+  //{
+  //  if( mBegin >= mEnd )
+  //  {
+  //    errors = "utf8 get next byte failed";
+  //    return 0;
+  //  }
+  //  return *mBegin++;
+  //}
+  //void UTF8Converter::IterateUTF8( Codepoint* codepoint, Errors& errors )
+  //{
+  //}
+  //void UTF8Converter::Run( Vector< Codepoint >& codepoints, Errors& errors )
+  //{
+  //  while( mBegin < mEnd )
+  //  {
+  //    Codepoint codepoint;
+  //    IterateUTF8( &codepoint, errors );
+  //    TAC_HANDLE_ERROR( errors );
+  //    codepoints.push_back( codepoint );
+  //  }
+  //}
+  //void UTF8Converter::Convert( StringView text, Vector< Codepoint >& codepoints )
+  //{
+  //  UTF8Converter converter;
+  //  converter.mBegin = text.data();
+  //  converter.mEnd = text.data() + text.size();
+  //  converter.Run( codepoints, errors );
+  //}
+  //void UTF8Converter::Convert( const Vector< Codepoint >& codepoints,
+  //                             String& text )
+  //{
+  //  for( Codepoint codepoint : codepoints )
+  //  {
+  //    if( codepoint >= 0x10000 )
+  //    {
+  //      text.push_back( 0b11110000 | ( 0b00000111 & ( codepoint >> 18 ) ) );
+  //      text.push_back( 0b10000000 | ( 0b00111111 & ( codepoint >> 12 ) ) );
+  //      text.push_back( 0b10000000 | ( 0b00111111 & ( codepoint >> 6 ) ) );
+  //      text.push_back( 0b10000000 | ( 0b00111111 & ( codepoint >> 0 ) ) );
+  //    }
+  //    else if( codepoint >= 0x800 )
+  //    {
+  //      text.push_back( 0b11100000 | ( 0b00001111 & ( codepoint >> 12 ) ) );
+  //      text.push_back( 0b10000000 | ( 0b00111111 & ( codepoint >> 6 ) ) );
+  //      text.push_back( 0b10000000 | ( 0b00111111 & ( codepoint >> 0 ) ) );
+  //    }
+  //    else if( codepoint > 0x80 )
+  //    {
+  //      text.push_back( 0b11000000 | ( 0b00011111 & ( codepoint >> 6 ) ) );
+  //      text.push_back( 0b10000000 | ( 0b00111111 & ( codepoint >> 0 ) ) );
+  //    }
+  //    else
+  //    {
+  //      text.push_back( 0b01111111 & codepoint );
+  //    }
+  //  }
+  //}
+
+
+
+  struct Converter
   {
-    char b0 = GetNextByte( errors );
-    TAC_HANDLE_ERROR( errors );
-    if( ( b0 & ( 1 << 7 ) ) == 0 )
+    Converter( StringView stringView );
+    Codepoint Extract();
+  private:
+    char GetNextByte();
+    const char* mBegin = nullptr;
+    const char* mEnd = nullptr;
+  };
+  Converter::Converter( StringView stringView )
+  {
+    mBegin = stringView.begin();
+    mEnd = stringView.end();
+  }
+  Codepoint Converter::Extract()
+  {
+    const char b0 = GetNextByte();
+    if( !b0 )
+      return 0;
+    if( ( b0 & 0b10000000 ) == 0 )
     {
-      *codepoint = ( 0b01111111 & b0 ) << 0;
-      return;
+      return ( 0b01111111 & b0 ) << 0;
     }
-    char b1 = GetNextByte( errors );
-    TAC_HANDLE_ERROR( errors );
-    if( ( b0 & ( 1 << 5 ) ) == 0 )
+
+    const char b1 = GetNextByte();
+    if( !b1 )
+      return 0;
+    if( ( b0 & 0b00100000 ) == 0 )
     {
-      *codepoint =
+      return
         ( ( 0b00111111 & b1 ) << 0 ) |
         ( ( 0b00011111 & b0 ) << 6 );
-      return;
     }
-    char b2 = GetNextByte( errors );
-    TAC_HANDLE_ERROR( errors );
-    if( ( b0 & ( 1 << 4 ) ) == 0 )
+
+    const char b2 = GetNextByte();
+    if( !b2 )
+      return 0;
+    if( ( b0 & 0b00010000 ) == 0 )
     {
-      *codepoint =
+      return
         ( ( 0b00111111 & b2 ) << 0 ) |
         ( ( 0b00111111 & b1 ) << 6 ) |
         ( ( 0b00001111 & b0 ) << 12 );
-      return;
     }
-    char b3 = GetNextByte( errors );
-    TAC_HANDLE_ERROR( errors );
-    *codepoint =
+
+    const char b3 = GetNextByte();
+    if( !b3 )
+      return 0;
+    return
       ( ( 0b00111111 & b3 ) << 0 ) |
       ( ( 0b00111111 & b2 ) << 6 ) |
       ( ( 0b00111111 & b1 ) << 12 ) |
       ( ( 0b00000111 & b0 ) << 18 );
   }
-  void UTF8Converter::Run( Vector< Codepoint >& codepoints, Errors& errors )
+  char Converter::GetNextByte()
   {
-    while( mBegin < mEnd )
-    {
-      Codepoint codepoint;
-      IterateUTF8( &codepoint, errors );
-      TAC_HANDLE_ERROR( errors );
-      codepoints.push_back( codepoint );
-    }
+    return mBegin < mEnd ? *mBegin++ : 0;
   }
-  void UTF8Converter::Convert( StringView text,
-                               Vector< Codepoint >& codepoints,
-                               Errors& errors )
+
+
+
+  CodepointView::CodepointView( const Codepoint* codepoints, int codepointCount )
   {
-    UTF8Converter converter;
-    converter.mBegin = text.data();
-    converter.mEnd = text.data() + text.size();
-    converter.Run( codepoints, errors );
+    mCodepoints = codepoints;
+    mCodepointCount = codepointCount;
   }
-  void UTF8Converter::Convert( const Vector< Codepoint >& codepoints,
-                               String& text )
+  const Codepoint* CodepointView::data() const
   {
-    for( Codepoint codepoint : codepoints )
+    return mCodepoints;
+
+  }
+  const Codepoint* CodepointView::begin() const
+  {
+    return mCodepoints;
+  }
+  const Codepoint* CodepointView::end() const
+  {
+    return mCodepoints + mCodepointCount;
+  }
+  int CodepointView::size() const
+  {
+    return mCodepointCount;
+  }
+  bool CodepointView::empty() const
+  {
+    return mCodepointCount == 0;
+  }
+  Codepoint CodepointView::operator[]( int i ) const
+  {
+    return mCodepoints[ i ];
+  }
+
+  bool operator != ( CodepointView a, CodepointView b )
+  {
+    return !( a == b );
+  }
+  bool operator == ( CodepointView a, CodepointView b )
+  {
+    if( a.size() != b.size() )
+      return false;
+    for( int i = 0; i < a.size(); ++i )
+      if( a[ i ] != b[ i ] )
+        return false;
+    return true;
+  }
+
+
+  CodepointView UTF8ToCodepoints( StringView stringView )
+  {
+    auto codepoints = ( Codepoint* )FrameMemory::Allocate( stringView.size() * sizeof( Codepoint ) );
+    int n = 0;
+    Converter converter( stringView );
+    while( Codepoint codepoint = converter.Extract() )
+      codepoints[ n++ ] = codepoint;
+    return CodepointView( codepoints, n );
+  }
+  StringView CodepointsToUTF8( CodepointView codepointView )
+  {
+    auto str = ( char* )FrameMemory::Allocate( codepointView.size() * sizeof( Codepoint ) );
+    int len = 0;
+
+    for( Codepoint codepoint : codepointView )
     {
       if( codepoint >= 0x10000 )
       {
-        text.push_back( 0b11110000 | ( 0b00000111 & ( codepoint >> 18 ) ) );
-        text.push_back( 0b10000000 | ( 0b00111111 & ( codepoint >> 12 ) ) );
-        text.push_back( 0b10000000 | ( 0b00111111 & ( codepoint >> 6 ) ) );
-        text.push_back( 0b10000000 | ( 0b00111111 & ( codepoint >> 0 ) ) );
+        str[ len++ ] = 0b11110000 | ( 0b00000111 & ( codepoint >> 18 ) );
+        str[ len++ ] = 0b10000000 | ( 0b00111111 & ( codepoint >> 12 ) );
+        str[ len++ ] = 0b10000000 | ( 0b00111111 & ( codepoint >> 6 ) );
+        str[ len++ ] = 0b10000000 | ( 0b00111111 & ( codepoint >> 0 ) );
       }
       else if( codepoint >= 0x800 )
       {
-        text.push_back( 0b11100000 | ( 0b00001111 & ( codepoint >> 12 ) ) );
-        text.push_back( 0b10000000 | ( 0b00111111 & ( codepoint >> 6 ) ) );
-        text.push_back( 0b10000000 | ( 0b00111111 & ( codepoint >> 0 ) ) );
+        str[ len++ ] = 0b11100000 | ( 0b00001111 & ( codepoint >> 12 ) );
+        str[ len++ ] = 0b10000000 | ( 0b00111111 & ( codepoint >> 6 ) );
+        str[ len++ ] = 0b10000000 | ( 0b00111111 & ( codepoint >> 0 ) );
       }
       else if( codepoint > 0x80 )
       {
-        text.push_back( 0b11000000 | ( 0b00011111 & ( codepoint >> 6 ) ) );
-        text.push_back( 0b10000000 | ( 0b00111111 & ( codepoint >> 0 ) ) );
+        str[ len++ ] = 0b11000000 | ( 0b00011111 & ( codepoint >> 6 ) );
+        str[ len++ ] = 0b10000000 | ( 0b00111111 & ( codepoint >> 0 ) );
       }
       else
       {
-        text.push_back( 0b01111111 & codepoint );
+        str[ len++ ] = 0b01111111 & codepoint;
       }
+
     }
+    return StringView( str, len );
   }
+
+
+
+
   String Localization::EatWord()
   {
     String result;
@@ -160,27 +304,25 @@ namespace Tac
           break;
         }
         EatWhitespace();
-        UTF8Converter converter;
-        converter.mBegin = mBegin;
-        converter.mEnd = mBegin;
+
+        const char* stringBegin = mBegin;
         while( mBegin < mEnd )
         {
-          converter.mEnd = mBegin;
           if( EatNewLine() )
             break;
           mBegin++;
         }
-        String utf8String( converter.mBegin, converter.mEnd );
 
-        Vector< Codepoint > codepoints;
-        converter.Run( codepoints, errors );
-        if( !errors.empty() )
+        StringView utf8String( stringBegin, ( int )( mBegin - stringBegin ) );
+        CodepointView codepoints = UTF8ToCodepoints( utf8String );
+
+        if( codepoints.empty() )
         {
           errors += "Failed reading " + reference + " of " + word;
           return;
         }
         LocalizedStringStuff localizedStringStuff;
-        localizedStringStuff.mCodepoints = codepoints;
+        localizedStringStuff.SetCodepoints( codepoints );
         localizedStringStuff.mUTF8String = utf8String;
         localizedString.mCodepoints[ language ] = localizedStringStuff;
       }

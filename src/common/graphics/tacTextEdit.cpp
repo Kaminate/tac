@@ -66,7 +66,7 @@ namespace Tac
     for( int iCodepoint = 0; iCodepoint < mCodepoints.size(); ++iCodepoint )
     {
       if( iCodepoint >= deletedCodepointsStartIndex &&
-        iCodepoint < deletedCodepointsStartIndex + deletedCodepointCount )
+          iCodepoint < deletedCodepointsStartIndex + deletedCodepointCount )
         continue;
       newCodepoints.push_back( mCodepoints[ iCodepoint ] );
     }
@@ -100,7 +100,7 @@ namespace Tac
   void TextInputData::OnCodepoint( Codepoint codepoint )
   {
     if( !mCaretCount ||
-      codepoint == '\b' ) // handled by OnKeyPressed( TextInputKey::Backspace )
+        codepoint == '\b' ) // handled by OnKeyPressed( TextInputKey::Backspace )
       return;
     if( mCaretCount == 2 )
       OnDestructivePressed( -1 ); // -1 will be overridden
@@ -113,5 +113,12 @@ namespace Tac
       newCodepoints.push_back( mCodepoints[ iCodepoint++ ] );
     mCodepoints = newCodepoints;
     mNumGlyphsBeforeCaret[ 0 ] ++;
+  }
+
+  void TextInputData::SetCodepoints( CodepointView codepointView )
+  {
+    mCodepoints.resize( codepointView.size() );
+    for( int i = 0; i < codepointView.size(); ++i )
+      mCodepoints[ i ] = codepointView[ i ];
   }
 }

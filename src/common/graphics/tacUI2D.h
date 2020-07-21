@@ -11,6 +11,7 @@
 #include "src/common/tacErrorHandling.h"
 #include "src/common/tacLocalization.h"
 #include "src/common/tacMemory.h"
+#include "src/common/tacSpan.h"
 
 namespace Tac
 {
@@ -111,8 +112,9 @@ namespace Tac
     void PopState();
 
     v2 CalculateTextSize( StringView text, int fontSize );
-    v2 CalculateTextSize( const Vector< Codepoint >& codepoints, int fontSize );
+    v2 CalculateTextSize( CodepointView codepoints, int fontSize );
     v2 CalculateTextSize( const Codepoint* codepoints, int codepointCount, int fontSize );
+
     void AddText( v2 textPos, int fontSize, StringView utf8, v4 color, const ImGuiRect* clipRect );
     void AddBox( v2 mini, v2 maxi, v4 color, const Render::TextureHandle texture, const ImGuiRect* clipRect );
     void AddLine( v2 p0, v2 p1, float radius, v4 color );

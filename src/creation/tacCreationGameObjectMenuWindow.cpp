@@ -64,7 +64,7 @@ namespace Tac
     UIHierarchyNode* node;
     UIHierarchyVisualText* text;
 
-    text = TAC_NEW UIHierarchyVisualText();
+    text = TAC_NEW UIHierarchyVisualText;
     text->mUITextData.mUtf8 = "Audio Source";
     text->mUITextData.mFontSize = 16;
     text->mUITextData.mColor = textColor;
@@ -72,7 +72,7 @@ namespace Tac
     node = mUIRoot->mHierarchyRoot->Split( UISplit::Before, UILayoutType::Vertical );
     node->SetVisual( text );
 
-    text = TAC_NEW UIHierarchyVisualText();
+    text = TAC_NEW UIHierarchyVisualText;
     text->mUITextData.mUtf8 = "Text";
     text->mUITextData.mFontSize = 16;
     text->mUITextData.mColor = textColor;
@@ -80,7 +80,7 @@ namespace Tac
     node = mUIRoot->mHierarchyRoot->Split( UISplit::Before, UILayoutType::Vertical );
     node->SetVisual( text );
 
-    text = TAC_NEW UIHierarchyVisualText();
+    text = TAC_NEW UIHierarchyVisualText;
     text->mUITextData.mUtf8 = "Cube";
     text->mUITextData.mFontSize = 16;
     text->mUITextData.mColor = textColor;
@@ -88,7 +88,7 @@ namespace Tac
     node = mUIRoot->mHierarchyRoot->Split( UISplit::Before, UILayoutType::Vertical );
     node->SetVisual( text );
 
-    text = TAC_NEW UIHierarchyVisualText();
+    text = TAC_NEW UIHierarchyVisualText;
     text->mUITextData.mUtf8 = "Empty";
     text->mUITextData.mFontSize = 16;
     text->mUITextData.mColor = textColor;

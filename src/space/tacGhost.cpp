@@ -126,7 +126,7 @@ void Ghost::Init( Errors& errors )
   TAC_HANDLE_ERROR( errors );
   ScriptThread* child = nullptr;
   if( serverType == serverTypeGameClient )
-    child = new ScriptGameClient();
+    child = TAC_NEW ScriptGameClient;
   else
     TAC_INVALID_CODE_PATH;
   mScriptRoot->AddChild( child );
@@ -159,7 +159,7 @@ Ghost::~Ghost()
 User* Ghost::AddPlayer( StringView name,
                         Errors& errors )
 {
-  auto* user = new User( this, name, errors );
+  auto* user = TAC_NEW User( this, name, errors );
   mUsers.push_back( user );
   ScriptMsg scriptMsg;
   scriptMsg.mType = scriptMsgNameUserConnect;
@@ -213,7 +213,7 @@ void Ghost::Update( Errors& errors )
   for( auto user : mUsers )
     user->Update( errors );
   mScriptRoot->Update( TAC_DELTA_FRAME_SECONDS, errors );
-  mServerData->Update( TAC_DELTA_FRAME_SECONDS, nullptr, nullptr, errors );
+  //mServerData->Update( TAC_DELTA_FRAME_SECONDS, nullptr, nullptr, errors );
   TAC_HANDLE_ERROR( errors );
   //mUIRoot->Update();
   Draw( errors );

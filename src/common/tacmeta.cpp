@@ -13,21 +13,21 @@ Meta::Meta()
 {
   // float
   {
-    auto metaFloat = TAC_NEW MetaPodType< float >();
+    auto metaFloat = TAC_NEW MetaPodType< float >;
     metaFloat->mName = TAC_STRINGIFY( float );
     metaFloat->mSize = sizeof( float );
     AddType( metaFloat );
   }
   // int32_t
   {
-    auto metaint32_t = TAC_NEW MetaPodType< int32_t >();
+    auto metaint32_t = TAC_NEW MetaPodType< int32_t >;
     metaint32_t->mName = TAC_STRINGIFY( int32_t );
     metaint32_t->mSize = sizeof( int32_t );
     AddType( metaint32_t );
   }
   // int
   {
-    auto metaint = TAC_NEW MetaPodType< int >();
+    auto metaint = TAC_NEW MetaPodType< int >;
     metaint->mName = TAC_STRINGIFY( int );
     metaint->mSize = sizeof( int );
     AddType( metaint );
@@ -44,7 +44,7 @@ Meta::Meta()
     y->mName = "y";
     y->mOffset = TAC_OFFSET_OF( v4, y );
 
-    auto metav2 = TAC_NEW MetaCompositeType();
+    auto metav2 = TAC_NEW MetaCompositeType;
     metav2->mName = TAC_STRINGIFY( v2 );
     metav2->mMetaVars = { x, y };
     metav2->mSize = sizeof( v2 );
@@ -67,7 +67,7 @@ Meta::Meta()
     z->mName = "z";
     z->mOffset = TAC_OFFSET_OF( v3, z );
 
-    auto metav3 = TAC_NEW MetaCompositeType();
+    auto metav3 = TAC_NEW MetaCompositeType;
     metav3->mName = TAC_STRINGIFY( v3 );
     metav3->mMetaVars = { x, y, z };
     metav3->mSize = sizeof( v3 );
@@ -95,7 +95,7 @@ Meta::Meta()
     w->mName = "w";
     w->mOffset = TAC_OFFSET_OF( v4, w );
 
-    auto metav4 = TAC_NEW MetaCompositeType();
+    auto metav4 = TAC_NEW MetaCompositeType;
     metav4->mName = TAC_STRINGIFY( v4 );
     metav4->mMetaVars = { x, y, z, w };
     metav4->mSize = sizeof( v4 );

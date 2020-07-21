@@ -129,8 +129,14 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
 
     // should this really be on the heap?
-    auto game = TAC_NEW Game();
-    Shell::Instance->mOnUpdate.AddCallbackFunctional( []( Errors& errors ) { Game::Instance->Update( errors ); } );
+    auto game = TAC_NEW Game;
+    Shell::Instance->mOnUpdate.AddCallbackFunctional
+    (
+      []( Errors& errors )
+      {
+        Game::Instance->Update( errors );
+      }
+    );
 
     game->Init( errors );
     TAC_HANDLE_ERROR( errors );

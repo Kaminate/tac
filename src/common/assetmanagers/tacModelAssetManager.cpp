@@ -323,7 +323,7 @@ namespace Tac
       transformInv = M4Translate( -pos );
     }
 
-    auto newMesh = new Mesh;
+    auto newMesh = TAC_NEW Mesh;
     newMesh->mSubMeshes = submeshes;
     newMesh->mVertexFormat = vertexFormat;
     newMesh->mTransform = transform;

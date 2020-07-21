@@ -56,6 +56,7 @@ struct Json
 
   Json& GetChild( StringView key );
   Json& operator[]( StringView key );
+  Json& operator[]( const char* key );
   void operator = ( const Json& json );
   void operator = ( const Json* json );
   void operator = ( StringView str );

@@ -106,7 +106,7 @@ namespace Tac
     CreateDesktopWindow( gGameWindowName, &desktopWindow, errors );
     TAC_HANDLE_ERROR( errors );
 
-    gameWindow = TAC_NEW CreationGameWindow();
+    gameWindow = TAC_NEW CreationGameWindow;
     //gameWindow->mDesktopWindow = desktopWindow;
     gameWindow->Init( errors );
     TAC_HANDLE_ERROR( errors );
@@ -131,7 +131,7 @@ namespace Tac
     CreateDesktopWindow( gSystemWindowName, &desktopWindow, errors );
     TAC_HANDLE_ERROR( errors );
 
-    systemWindow = TAC_NEW CreationSystemWindow();
+    systemWindow = TAC_NEW CreationSystemWindow;
     systemWindow->mDesktopWindow = desktopWindow;
     systemWindow->Init( errors );
     TAC_HANDLE_ERROR( errors );
@@ -148,7 +148,7 @@ namespace Tac
     CreateDesktopWindow( gProfileWindowName, &desktopWindow, errors );
     TAC_HANDLE_ERROR( errors );
 
-    profileWindow = TAC_NEW CreationProfileWindow();
+    profileWindow = TAC_NEW CreationProfileWindow;
     profileWindow->mDesktopWindow = desktopWindow;
     profileWindow->Init( errors );
     TAC_HANDLE_ERROR( errors );
@@ -194,10 +194,10 @@ namespace Tac
   {
     Settings* settings = Shell::Instance->mSettings;
     Vector< String > settingsPaths = { "Windows" };
-    auto windowDefault = TAC_NEW Json();
+    auto windowDefault = TAC_NEW Json;
     ( *windowDefault )[ "Name" ] = gMainWindowName;
 
-    auto windowsDefault = TAC_NEW Json();
+    auto windowsDefault = TAC_NEW Json;
     windowsDefault->mType = JsonType::Array;
     windowsDefault->mElements.push_back( windowDefault );
     Json* windows = settings->GetArray( nullptr, { "Windows" }, windowsDefault, errors );
@@ -709,8 +709,6 @@ namespace Tac
   }
   void Creation::SavePrefabs()
   {
-    ;
-
     for( Entity* entity : mWorld->mEntities )
     {
       if( entity->mParent )
@@ -893,26 +891,18 @@ namespace Tac
   void SetCreationWindowImGuiGlobals( const DesktopWindowState* desktopWindowState,
                                       UI2DDrawData* ui2DDrawData )
   {
-    Errors screenspaceCursorPosErrors;
-    v2 screenspaceCursorPos = {};
-    OS::GetScreenspaceCursorPos( screenspaceCursorPos, screenspaceCursorPosErrors );
-    bool isWindowDirectlyUnderCursor = false;
-    v2 mousePositionDestopWindowspace = {};
-    if( screenspaceCursorPosErrors.empty() ) // && desktopWindow )
-    {
-      mousePositionDestopWindowspace = {
-        screenspaceCursorPos.x - desktopWindowState->mX,
-        screenspaceCursorPos.y - desktopWindowState->mY };
-      isWindowDirectlyUnderCursor = desktopWindowState->mCursorUnobscured;
-    }
-
+    const v2 desktopWindowPos = v2( static_cast< float >( desktopWindowState->mX ),
+                                    static_cast< float >( desktopWindowState->mY ) );
+    const v2 mousePositionDestopWindowspace
+      = KeyboardInput::Instance->mCurr.mScreenspaceCursorPosErrors.empty()
+      ? KeyboardInput::Instance->mCurr.mScreenspaceCursorPos - desktopWindowPos
+      : v2{}; // eww. Should imgui have a bool mousePosValid?
     ImGuiSetGlobals( mousePositionDestopWindowspace,
-                     isWindowDirectlyUnderCursor,
+                     desktopWindowState->mCursorUnobscured,
                      Shell::Instance->mElapsedSeconds,
                      ui2DDrawData,
                      desktopWindowState->mWidth,
                      desktopWindowState->mHeight );
   }
-
 }
 

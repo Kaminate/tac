@@ -88,9 +88,9 @@ namespace Tac
     const StringView defaultSkybox = "assets/skybox/daylight";
     const StringView skyboxDirToUse = skyboxDir.empty() ? defaultSkybox : skyboxDir;
 
-    Errors errors;
-    Render::TextureHandle cubemap = TextureAssetManager::GetTextureCube( skyboxDirToUse, errors );
-    TAC_ASSERT( errors.empty() );
+    Render::TextureHandle cubemap = TextureAssetManager::GetTextureCube( skyboxDirToUse,
+                                                                         mGetSkyboxTextureErrors );
+    TAC_ASSERT( mGetSkyboxTextureErrors.empty() );
     if( cubemap.mResourceId == Render::NullResourceId )
       return;
 
@@ -100,8 +100,8 @@ namespace Tac
                                           mVertexFormat,
                                           mVertexDecls,
                                           kVertexFormatDeclCount,
-                                          errors );
-    TAC_ASSERT( errors.empty() );
+                                          mGetSkyboxMeshErrors );
+    TAC_ASSERT( mGetSkyboxMeshErrors.empty() );
     if( !mesh )
       return;
 

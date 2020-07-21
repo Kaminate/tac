@@ -120,9 +120,7 @@ namespace Tac
           continue;
 
         String savePath;
-        String suggestedName =
-          entity->mName +
-          ".prefab";
+        String suggestedName = entity->mName + ".prefab";
         Errors saveDialogErrors;
         OS::SaveDialog( savePath, suggestedName, saveDialogErrors );
         if( saveDialogErrors )

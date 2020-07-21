@@ -256,28 +256,19 @@ namespace Tac
     {
       // Note: this could return error access denied, for example if your computer goes to sleep
       POINT point;
-      if( !GetCursorPos( &point ) )
-      {
-        errors += GetLastWin32ErrorString();
-        TAC_HANDLE_ERROR( errors );
-      }
-      pos.x = ( float )point.x;
-      pos.y = ( float )point.y;
+      TAC_HANDLE_ERROR_IF( !GetCursorPos( &point ), GetLastWin32ErrorString(), errors );
+      pos = { ( float )point.x, ( float )point.y };
     }
     void SetScreenspaceCursorPos( v2& pos, Errors& errors )
     {
-      if( SetCursorPos( ( int )pos.x, ( int )pos.y ) )
-        return;
-      errors += GetLastWin32ErrorString();
-      TAC_HANDLE_ERROR( errors );
+      TAC_HANDLE_ERROR_IF( !SetCursorPos( ( int )pos.x, ( int )pos.y ), GetLastWin32ErrorString(), errors );
     }
     void DoesFolderExist( StringView path, bool& exists, Errors& errors )
     {
       String expandedPath;
       const char* pathBytes = path.c_str();
 
-      bool isFullPath =
-        IsAlpha( path[ 0 ] ) &&
+      bool isFullPath = IsAlpha( path[ 0 ] ) &&
         ':' == path[ 1 ] &&
         '\\' == path[ 2 ];
       if( !isFullPath )

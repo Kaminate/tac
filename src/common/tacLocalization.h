@@ -57,22 +57,31 @@ namespace Tac
 
   bool IsAsciiCharacter( Codepoint codepoint );
 
-  struct UTF8Converter
+
+  struct CodepointView
   {
-    static void Convert( StringView text,
-                         Vector< Codepoint >& codepoints,
-                         Errors& errors );
-    static void Convert( const Vector< Codepoint >& codepoints,
-                         String& text );
-    void Run( Vector< Codepoint >& codepoints, Errors& errors );
-    void IterateUTF8( Codepoint* codepoint, Errors& errors );
-    char GetNextByte( Errors& errors );
-    const char* mBegin = nullptr;
-    const char* mEnd = nullptr;
+    CodepointView() = default;
+    CodepointView( const Codepoint*, int );
+    Codepoint operator[]( int i ) const;
+    const Codepoint* data() const;
+    const Codepoint* begin() const;
+    const Codepoint* end() const;
+    int size() const;
+    bool empty() const;
+    const Codepoint* mCodepoints = nullptr;
+    int mCodepointCount = 0;
   };
+
+  bool operator == ( CodepointView a, CodepointView b );
+  bool operator != ( CodepointView a, CodepointView b );
+
+  CodepointView UTF8ToCodepoints( StringView );
+  StringView CodepointsToUTF8( CodepointView );
+
 
   struct LocalizedStringStuff
   {
+    void SetCodepoints( CodepointView codepoints );
     // TODO: don't bother storing the codepoints, just compute them on the fly
     Vector< Codepoint > mCodepoints;
     String mUTF8String;

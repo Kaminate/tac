@@ -86,10 +86,10 @@ void ScriptGameClient::Update( float seconds, Errors& errors )
   auto shell = Shell::Instance;
   TAC_TIMELINE_BEGIN;
 
-  auto scriptMatchmaker = TAC_NEW ScriptMatchmaker();
+  auto scriptMatchmaker = TAC_NEW ScriptMatchmaker;
   mScriptRoot->AddChild( scriptMatchmaker );
 
-  auto scriptSplash = TAC_NEW ScriptSplash();
+  auto scriptSplash = TAC_NEW ScriptSplash;
   mScriptRoot->AddChild( scriptSplash );
 
   TAC_TIMELINE_KEYFRAME;
@@ -110,8 +110,8 @@ ScriptSplash::ScriptSplash()
 }
 ScriptSplash::~ScriptSplash()
 {
-  //mScriptRoot->AddChild( TAC_NEW ScriptMainMenu() );
-  mScriptRoot->AddChild( TAC_NEW ScriptMainMenu2() );
+  //mScriptRoot->AddChild( TAC_NEW ScriptMainMenu );
+  mScriptRoot->AddChild( TAC_NEW ScriptMainMenu2 );
 }
 void ScriptSplash::Update( float seconds, Errors& errors )
 {

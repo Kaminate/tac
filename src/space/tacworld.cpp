@@ -266,7 +266,7 @@ void World::DeepCopy( const World& world )
 
   for( Player* fromPlayer : world.mPlayers )
   {
-    Player*  player = TAC_NEW Player();
+    Player* player = TAC_NEW Player;
     *player = *fromPlayer;
     mPlayers.push_back( player );
   }

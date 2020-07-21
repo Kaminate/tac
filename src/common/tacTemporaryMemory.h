@@ -13,9 +13,5 @@ namespace Tac
   TemporaryMemory TemporaryMemoryFromBytes( const void* bytes, int byteCount );
   String FileToString( StringView path, Errors& errors );
   void WriteToFile( StringView path, void* bytes, int byteCount, Errors& errors );
-
-  void SetThreadFrameAllocator( RingBuffer* );
-  void* TemporaryFrameMemory( int byteCount );
-
 }
 

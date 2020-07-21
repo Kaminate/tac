@@ -52,7 +52,7 @@ bool FileExist( StringView str )
 //
 // String-manipulation
 //
-String SeparateStrings( const Vector< String>& lines, StringView separator )
+String Join( const Vector< String>& lines, StringView separator )
 {
   String curSeparator;
   String result;
@@ -66,11 +66,11 @@ String SeparateStrings( const Vector< String>& lines, StringView separator )
 }
 String SeparateNewline( const Vector< String>& lines )
 {
-  return SeparateStrings( lines, "\n" );
+  return Join( lines, "\n" );
 }
 String SeparateSpace( const Vector< String>& lines )
 {
-  return SeparateStrings( lines, " " );
+  return Join( lines, " " );
 }
 
 bool StartsWith( StringView str, StringView prefix )
