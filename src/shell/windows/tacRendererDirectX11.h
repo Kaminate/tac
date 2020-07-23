@@ -273,7 +273,7 @@ namespace Tac
 
     String AppendInfoQueueMessage( HRESULT hr );
     void SetDebugName( ID3D11DeviceChild* directXObject,
-      StringView name );
+                       StringView name );
 
 
     ID3D11InfoQueue* mInfoQueueDEBUG = nullptr;
@@ -319,12 +319,12 @@ namespace Tac
       ID3D11Buffer* mBuffer;
       UINT mStride;
       //Format mFormat; bad. format is in the vertexformat
-    } mVertexBuffers[ Render::kMaxVertexBuffers ] = {};;
+    } mVertexBuffers[ Render::kMaxVertexBuffers ] = {};
     struct IndexBuffer
     {
       ID3D11Buffer* mBuffer;
       Format mFormat;
-    }mIndexBuffers[ Render::kMaxIndexBuffers ] = {};;
+    } mIndexBuffers[ Render::kMaxIndexBuffers ] = {};
     struct Framebuffer
     {
       int mBufferCount = 0;

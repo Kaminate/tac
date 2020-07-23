@@ -179,6 +179,36 @@ namespace Tac
       AddVertexDeclaration( a );
       AddVertexDeclaration( b );
     }
+    DrawCallTextures::DrawCallTextures( TextureHandle a )
+    {
+
+      AddTexture( a );
+    }
+    DrawCallTextures::DrawCallTextures( TextureHandle a, TextureHandle b )
+    {
+
+      AddTexture( a );
+      AddTexture( b );
+    }
+    void DrawCallTextures::AddTexture( TextureHandle v )
+    {
+
+      mTextures[ mTextureCount++ ] = v;
+
+    }
+    const TextureHandle* DrawCallTextures::begin() const
+    {
+      return mTextures;
+    }
+    const TextureHandle* DrawCallTextures::end() const
+    {
+      return mTextures + mTextureCount;
+    }
+
+    TextureHandle DrawCallTextures::operator[]( int i ) const
+    {
+      return mTextures[ i ];
+    }
 
     ShaderSource ShaderSource::FromPath( StringView path )
     {

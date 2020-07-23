@@ -478,26 +478,25 @@ namespace Tac
   void CreationGameWindow::RenderGameWorldToGameWindow()
   {
     MousePickingAll();
-    Creation* creation = Creation::Instance;
+    Camera* camera = &Creation::Instance->mEditorCamera;
     DesktopWindowState* desktopWindowState = FindDesktopWindowState( mDesktopWindowHandle );
     if( !desktopWindowState )
       return;
 
-    m4 view = creation->mEditorCamera.View();
+    const m4 view = camera->View();
     float w = ( float )desktopWindowState->mWidth;
     float h = ( float )desktopWindowState->mHeight;
     float a;
     float b;
-    Render::GetPerspectiveProjectionAB(
-      creation->mEditorCamera.mFarPlane,
-      creation->mEditorCamera.mNearPlane,
-      a,
-      b );
+    Render::GetPerspectiveProjectionAB( camera->mFarPlane,
+                                        camera->mNearPlane,
+                                        a,
+                                        b );
     const float aspect = w / h;
-    const m4 proj = M4ProjPerspective( a, b, creation->mEditorCamera.mFovyrad, aspect );
+    const m4 proj = M4ProjPerspective( a, b, camera->mFovyrad, aspect );
     DefaultCBufferPerFrame perFrameData;
-    perFrameData.mFar = creation->mEditorCamera.mFarPlane;
-    perFrameData.mNear = creation->mEditorCamera.mNearPlane;
+    perFrameData.mFar = camera->mFarPlane;
+    perFrameData.mNear = camera->mNearPlane;
     perFrameData.mView = view;
     perFrameData.mProjection = proj;
     perFrameData.mGbufferSize = { w, h };
@@ -507,9 +506,9 @@ namespace Tac
     //setPerFrame.CopyUniformSource( perFrameData );
     //Render::AddDrawCall( setPerFrame );
 
-    if( creation->IsAnythingSelected() )
+    if( Creation::Instance->IsAnythingSelected() )
     {
-      v3 selectionGizmoOrigin = creation->GetSelectionGizmoOrigin();
+      v3 selectionGizmoOrigin = Creation::Instance->GetSelectionGizmoOrigin();
       v3 colors[] = {
         { 1, 0, 0 },
       { 0, 1, 0 },
@@ -740,13 +739,12 @@ namespace Tac
       v3 origin = creation->GetSelectionGizmoOrigin();
       float gizmoMouseDist;
       float secondDist;
-      ClosestPointTwoRays(
-        creation->mEditorCamera.mPos,
-        worldSpaceMouseDir,
-        origin,
-        creation->mTranslationGizmoDir,
-        &gizmoMouseDist,
-        &secondDist );
+      ClosestPointTwoRays( creation->mEditorCamera.mPos,
+                           worldSpaceMouseDir,
+                           origin,
+                           creation->mTranslationGizmoDir,
+                           &gizmoMouseDist,
+                           &secondDist );
       v3 translate = creation->mTranslationGizmoDir *
         ( secondDist - creation->mTranslationGizmoOffset );
       for( Entity* entity : creation->mSelectedEntities )

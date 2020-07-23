@@ -167,7 +167,7 @@ namespace Tac
       VertexFormatHandle mVertexFormatHandle;
       UpdateConstantBuffers mUpdateConstantBuffers;
       ShaderHandle mShaderHandle;
-      TextureHandle mTextureHandle;
+      DrawCallTextures mTextureHandle;
     };
 
     static thread_local Encoder gEncoder;
@@ -652,7 +652,7 @@ namespace Tac
       gEncoder.mVertexFormatHandle = vertexFormatHandle;
     }
 
-    void SetTexture( TextureHandle textureHandle )
+    void SetTexture( DrawCallTextures textureHandle )
     {
       gEncoder.mTextureHandle = textureHandle;
     }

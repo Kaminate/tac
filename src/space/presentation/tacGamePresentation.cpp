@@ -37,6 +37,93 @@ namespace Tac
     Render::DestroyRasterizerState( mRasterizerState, TAC_STACK_FRAME );
     Render::DestroySamplerState( mSamplerState, TAC_STACK_FRAME );
   }
+  void GamePresentation::LoadTerrain( Terrain* terrain )
+  {
+    if( terrain->mVertexBuffer.IsValid() && terrain->mIndexBuffer.IsValid() )
+      return;
+
+    if( terrain->mRowMajorGrid.empty() )
+      return;
+
+    typedef uint32_t TerrainIndex;
+
+    Vector< TerrainVertex > vertexes;
+    Vector< TerrainIndex > indexes;
+
+    for( int iRow = 1; iRow < terrain->mSideVertexCount; ++iRow )
+    {
+      for( int iCol = 1; iCol < terrain->mSideVertexCount; ++iCol )
+      {
+        TerrainVertex vertexTL = {};
+        vertexTL.mPos = terrain->GetGridVal( iRow - 1, iCol - 1 );
+        vertexTL.mUV = { 0, 1 };
+        int iVertexTL = vertexes.size();
+        vertexes.push_back( vertexTL );
+
+        TerrainVertex vertexTR = {};
+        vertexTR.mPos = terrain->GetGridVal( iRow - 1, iCol );
+        vertexTR.mUV = { 1, 1 };
+        int iVertexTR = vertexes.size();
+        vertexes.push_back( vertexTR );
+
+        TerrainVertex vertexBL = {};
+        vertexBL.mPos = terrain->GetGridVal( iRow, iCol - 1 );
+        vertexBL.mUV = { 0, 0 };
+        int iVertexBL = vertexes.size();
+        vertexes.push_back( vertexBL );
+
+        TerrainVertex vertexBR = {};
+        vertexBR.mPos = terrain->GetGridVal( iRow, iCol );
+        vertexBR.mUV = { 1, 0 };
+        int iVertexBR = vertexes.size();
+        vertexes.push_back( vertexBR );
+
+        indexes.push_back( iVertexBR );
+        indexes.push_back( iVertexTL );
+        indexes.push_back( iVertexBL );
+
+        indexes.push_back( iVertexBR );
+        indexes.push_back( iVertexTR );
+        indexes.push_back( iVertexTL );
+      }
+    }
+
+    String vertexBufferName = terrain->mHeightmapTexturePath + "terrain vtx buffer";
+    terrain->mVertexBuffer = Render::CreateVertexBuffer( vertexBufferName,
+                                                         vertexes.size() * sizeof( TerrainVertex ),
+                                                         vertexes.data(),
+                                                         sizeof( TerrainVertex ),
+                                                         Access::Default,
+                                                         TAC_STACK_FRAME );
+
+    Format format;
+    format.mElementCount = 1;
+    format.mPerElementByteCount = sizeof( TerrainIndex );
+    format.mPerElementDataType = GraphicsType::uint;
+    String indexBufferName = terrain->mHeightmapTexturePath + "terrain idx buffer";
+    terrain->mIndexBuffer = Render::CreateIndexBuffer( indexBufferName,
+                                                       indexes.size() * sizeof( TerrainIndex ),
+                                                       indexes.data(),
+                                                       Access::Default,
+                                                       format,
+                                                       TAC_STACK_FRAME );
+    terrain->mIndexCount = indexes.size();
+
+  }
+  void GamePresentation::LoadModel( Model* model )
+  {
+    if( model->mesh )
+      return;
+    if( model->mGLTFPath.empty() )
+      return;
+    Errors getmeshErrors;
+    ModelAssetManager::Instance->GetMesh( &model->mesh,
+                                          model->mGLTFPath,
+                                          m3DVertexFormat,
+                                          m3DVertexFormatDecls,
+                                          k3DVertexFormatDeclCount,
+                                          getmeshErrors );
+  }
   void GamePresentation::RenderGameWorldToDesktopView( const int viewWidth,
                                                        const int viewHeight,
                                                        const Render::ViewId viewId )
@@ -80,105 +167,20 @@ namespace Tac
     Graphics* graphics = Graphics::GetSystem( world );
     for( Model* model : graphics->mModels )
     {
-      Mesh* mesh = model->mesh;
-      if( !mesh )
-      {
-        // Try load mesh
-        if( model->mGLTFPath.empty() )
-          continue;
-        Errors getmeshErrors;
-        ModelAssetManager::Instance->GetMesh( &mesh,
-                                              model->mGLTFPath,
-                                              m3DVertexFormat,
-                                              m3DVertexFormatDecls,
-                                              k3DVertexFormatDeclCount,
-                                              getmeshErrors );
-        if( getmeshErrors.empty() )
-          model->mesh = mesh;
-        else
-          continue;
-      }
-
-      Entity* entity = model->mEntity;
+      LoadModel( model );
+      if( !model->mesh )
+        continue;
 
       DefaultCBufferPerObject perObjectData;
       perObjectData.Color = { model->mColorRGB, 1 }; // { 0.23f, 0.7f, 0.5f, 1 };
-      perObjectData.World = entity->mWorldTransform;
-      RenderGameWorldAddDrawCall( mesh, perObjectData, viewId );
+      perObjectData.World = model->mEntity->mWorldTransform;
+      RenderGameWorldAddDrawCall( model->mesh, perObjectData, viewId );
     }
 
     Physics* physics = Physics::GetSystem( world );
     for( Terrain* terrain : physics->mTerrains )
     {
-      if( !terrain->mVertexBuffer.IsValid() || !terrain->mIndexBuffer.IsValid() )
-      {
-        if( terrain->mRowMajorGrid.empty() )
-          continue;
-
-        typedef uint32_t TerrainIndex;
-
-        Vector< TerrainVertex > vertexes;
-        Vector< TerrainIndex > indexes;
-
-        for( int iRow = 1; iRow < terrain->mSideVertexCount; ++iRow )
-        {
-          for( int iCol = 1; iCol < terrain->mSideVertexCount; ++iCol )
-          {
-            TerrainVertex vertexTL = {};
-            vertexTL.mPos = terrain->GetGridVal( iRow - 1, iCol - 1 );
-            vertexTL.mUV = { 0, 1 };
-            int iVertexTL = vertexes.size();
-            vertexes.push_back( vertexTL );
-
-            TerrainVertex vertexTR = {};
-            vertexTR.mPos = terrain->GetGridVal( iRow - 1, iCol );
-            vertexTR.mUV = { 1, 1 };
-            int iVertexTR = vertexes.size();
-            vertexes.push_back( vertexTR );
-
-            TerrainVertex vertexBL = {};
-            vertexBL.mPos = terrain->GetGridVal( iRow, iCol - 1 );
-            vertexBL.mUV = { 0, 0 };
-            int iVertexBL = vertexes.size();
-            vertexes.push_back( vertexBL );
-
-            TerrainVertex vertexBR = {};
-            vertexBR.mPos = terrain->GetGridVal( iRow, iCol );
-            vertexBR.mUV = { 1, 0 };
-            int iVertexBR = vertexes.size();
-            vertexes.push_back( vertexBR );
-
-            indexes.push_back( iVertexBR );
-            indexes.push_back( iVertexTL );
-            indexes.push_back( iVertexBL );
-
-            indexes.push_back( iVertexBR );
-            indexes.push_back( iVertexTR );
-            indexes.push_back( iVertexTL );
-          }
-        }
-
-        String vertexBufferName = terrain->mHeightmapTexturePath + "terrain vtx buffer";
-        terrain->mVertexBuffer = Render::CreateVertexBuffer( vertexBufferName,
-                                                             vertexes.size() * sizeof( TerrainVertex ),
-                                                             vertexes.data(),
-                                                             sizeof( TerrainVertex ),
-                                                             Access::Default,
-                                                             TAC_STACK_FRAME );
-
-        Format format;
-        format.mElementCount = 1;
-        format.mPerElementByteCount = sizeof( TerrainIndex );
-        format.mPerElementDataType = GraphicsType::uint;
-        String indexBufferName = terrain->mHeightmapTexturePath + "terrain idx buffer";
-        terrain->mIndexBuffer = Render::CreateIndexBuffer( indexBufferName,
-                                                           indexes.size() * sizeof( TerrainIndex ),
-                                                           indexes.data(),
-                                                           Access::Default,
-                                                           format,
-                                                           TAC_STACK_FRAME );
-
-      }
+      LoadTerrain( terrain );
 
       if( !terrain->mVertexBuffer.IsValid() || !terrain->mIndexBuffer.IsValid() )
         continue;
@@ -192,25 +194,20 @@ namespace Tac
       cbuf.Color = { 1, 1, 1, 1 };
       cbuf.World = m4::Identity();
 
-      //DrawCall2 drawCall = {};
-      //drawCall.mBlendState = mBlendState;
-      //drawCall.mDepthState = mDepthState;
+      Render::SetTexture( Render::DrawCallTextures( terrainTexture, noiseTexture ) );
+      Render::UpdateConstantBuffer( mPerObj, &cbuf, sizeof( DefaultCBufferPerObject ), TAC_STACK_FRAME );
+      //drawCall.mPrimitiveTopology = PrimitiveTopology::TriangleList;
+      Render::SetDepthState( mDepthState );
+      Render::SetBlendState( mBlendState );
+      Render::SetRasterizerState( mRasterizerState );
+      Render::SetSamplerState( mSamplerState );
+      Render::SetShader( mTerrainShader );
+      Render::SetIndexBuffer( terrain->mIndexBuffer, 0, terrain->mIndexCount );
       //drawCall.mIndexBuffer = terrain->mIndexBuffer;
       //drawCall.mIndexCount = terrain->mIndexCapacity;
-      //drawCall.mPrimitiveTopology = PrimitiveTopology::TriangleList;
-      //drawCall.mRasterizerState = mRasterizerState;
-      //drawCall.mRenderView = mDesktopWindow->mRenderView;
-      //drawCall.mSamplerState = mSamplerState;
-      //drawCall.mShader = mTerrainShader;
-      //drawCall.mFrame = TAC_STACK_FRAME;
-      //drawCall.mStartIndex = 0;
-      //drawCall.mTextureHandles = { terrainTexture, noiseTexture };
-      //drawCall.mUniformDst = mPerObj;
-      //drawCall.mUniformSrcc = TemporaryMemoryFromT( cbuf );
-      //drawCall.mVertexBuffer = terrain->mVertexBuffer;
-      //drawCall.mVertexCount = terrain->mVertexCapacity;
-      //drawCall.mVertexFormat = mTerrainVertexFormat;
-      //Render::AddDrawCall( drawCall );
+      Render::SetVertexBuffer( terrain->mVertexBuffer, 0, 0 );
+      Render::SetVertexFormat( mTerrainVertexFormat );
+      Render::Submit( viewId );
     }
 
     //Renderer::Instance->DebugBegin( "Render game world" );

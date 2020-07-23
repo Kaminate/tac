@@ -47,10 +47,13 @@ struct Terrain : public Component
   float mPower = 1;
   Vector< uint8_t > mTestHeightmapImageMemory;
   m4 mWorldCreationTransform = {};
+
+
+  // do you think this shit should actually be owned by the game presentation?
   Render::VertexBufferHandle mVertexBuffer;
   Render::IndexBufferHandle mIndexBuffer;
-  int mVertexCapacity;
-  int mIndexCapacity;
+  int mIndexCount = 0;
+
   Vector< TerrainOBB > mTerrainOBBs;
   Errors mTestHeightmapLoadErrors;
 };

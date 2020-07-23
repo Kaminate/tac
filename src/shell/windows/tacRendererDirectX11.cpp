@@ -900,12 +900,20 @@ namespace Tac
         mDeviceContext->RSSetScissorRects( 1, &scissor );
       }
 
-      if( drawCall->mTextureHandle.IsValid() )
+      if( drawCall->mTextureHandle.mTextureCount )
       {
-        Texture* texture = &mTextures[ drawCall->mTextureHandle.mResourceId ];
-        UINT StartSlot = 0;
-        UINT NumViews = 1;
-        ID3D11ShaderResourceView* ShaderResourceViews[] = { texture->mTextureSRV };
+        const UINT StartSlot = 0;
+        const UINT NumViews = drawCall->mTextureHandle.mTextureCount;
+        ID3D11ShaderResourceView* ShaderResourceViews[ D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT ] = {};
+        for( int iSlot = 0; iSlot < drawCall->mTextureHandle.mTextureCount; ++iSlot )
+        {
+          const Render::TextureHandle textureHandle = drawCall->mTextureHandle[ iSlot ];
+          if( !textureHandle.IsValid() )
+            continue;
+          const Texture* texture = &mTextures[ textureHandle.mResourceId ] ;
+          ShaderResourceViews[ iSlot ] = texture->mTextureSRV;
+        }
+
         mDeviceContext->VSSetShaderResources( StartSlot, NumViews, ShaderResourceViews );
         mDeviceContext->PSSetShaderResources( StartSlot, NumViews, ShaderResourceViews );
       }
@@ -932,6 +940,12 @@ namespace Tac
       }
 
       mDeviceContext->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
+
+      // not quite convinced this assert should be here.
+      // on one hand, it prevents u from forgetting to set index count. ( good )
+      // on the other, it prevents u from setting start index/index count
+      //   seperately from setting the index buffer ( bad? )
+      TAC_ASSERT( !drawCall->mIndexBufferHandle.IsValid() || drawCall->mIndexCount );
 
       if( drawCall->mIndexCount )
       {

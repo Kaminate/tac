@@ -8,20 +8,22 @@ namespace Tac
   struct BlendState;
   struct CBuffer;
   struct Camera;
+  struct Debug3DCommonData;
   struct DefaultCBufferPerObject;
   struct DepthState;
   struct DesktopWindow;
   struct Entity;
   struct Mesh;
+  struct Model;
   struct ModelAssetManager;
   struct RasterizerState;
   struct Renderer;
   struct SamplerState;
   struct Shader;
   struct SkyboxPresentation;
+  struct Terrain;
   struct VertexFormat;
   struct World;
-  struct Debug3DCommonData;
 
 
   struct GamePresentation
@@ -34,6 +36,9 @@ namespace Tac
     void RenderGameWorldAddDrawCall( const Mesh* mesh,
                                      const DefaultCBufferPerObject& cbuf,
                                      Render::ViewId viewId );
+
+    void LoadTerrain(Terrain*);
+    void LoadModel(Model*);
 
     Camera* mCamera = nullptr;
     World* mWorld = nullptr;

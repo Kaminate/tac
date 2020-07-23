@@ -337,6 +337,19 @@ namespace Tac
       int               mVertexFormatDataCount = 0;
     };
 
+    struct DrawCallTextures
+    {
+      DrawCallTextures() = default;
+      DrawCallTextures( TextureHandle a );
+      DrawCallTextures( TextureHandle a, TextureHandle b );
+      void              AddTexture( TextureHandle v );
+      const TextureHandle*    begin() const;
+      const TextureHandle*    end() const;
+      TextureHandle     operator[]( int i ) const;
+      TextureHandle     mTextures[ 2 ];
+      int               mTextureCount = 0;
+    };
+
     struct ShaderSource
     {
       // can load from either
@@ -480,7 +493,7 @@ namespace Tac
     void                             SetDepthState( DepthStateHandle );
     void                             SetVertexFormat( VertexFormatHandle );
     void                             SetShader( ShaderHandle );
-    void                             SetTexture( TextureHandle );
+    void                             SetTexture( DrawCallTextures );
 
     //void                             SetUniform( ConstantBufferHandle, const void* bytes, int byteCount );
 

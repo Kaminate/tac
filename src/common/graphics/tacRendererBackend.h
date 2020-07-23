@@ -61,7 +61,7 @@ namespace Tac
       VertexFormatHandle mVertexFormatHandle;
       UpdateConstantBuffers mUpdateConstantBuffers;
       ShaderHandle mShaderHandle;
-      TextureHandle mTextureHandle;
+      DrawCallTextures mTextureHandle;
       ViewId mViewId = InvalidViewId;
       int mStartIndex = 0;
       int mStartVertex = 0;
