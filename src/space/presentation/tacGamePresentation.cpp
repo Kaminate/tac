@@ -151,17 +151,13 @@ namespace Tac
     perFrameData.mView = view;
     perFrameData.mProjection = proj;
     perFrameData.mGbufferSize = { w, h };
-    //DrawCall2 setPerFrame = {};
-    //setPerFrame.mUniformDst = mPerFrame;
-    //setPerFrame.CopyUniformSource( perFrameData );
-    //Render::AddDrawCall( setPerFrame );
 
     Render::UpdateConstantBuffer( mPerFrame,
                                   &perFrameData,
                                   sizeof( DefaultCBufferPerFrame ),
                                   TAC_STACK_FRAME );
 
-    Render::Submit( viewId );
+    Render::Submit( viewId, TAC_STACK_FRAME );
 
 
     Graphics* graphics = Graphics::GetSystem( world );
@@ -196,23 +192,17 @@ namespace Tac
 
       Render::SetTexture( Render::DrawCallTextures( terrainTexture, noiseTexture ) );
       Render::UpdateConstantBuffer( mPerObj, &cbuf, sizeof( DefaultCBufferPerObject ), TAC_STACK_FRAME );
-      //drawCall.mPrimitiveTopology = PrimitiveTopology::TriangleList;
       Render::SetDepthState( mDepthState );
       Render::SetBlendState( mBlendState );
       Render::SetRasterizerState( mRasterizerState );
       Render::SetSamplerState( mSamplerState );
       Render::SetShader( mTerrainShader );
       Render::SetIndexBuffer( terrain->mIndexBuffer, 0, terrain->mIndexCount );
-      //drawCall.mIndexBuffer = terrain->mIndexBuffer;
-      //drawCall.mIndexCount = terrain->mIndexCapacity;
       Render::SetVertexBuffer( terrain->mVertexBuffer, 0, 0 );
       Render::SetVertexFormat( mTerrainVertexFormat );
-      Render::Submit( viewId );
+      Render::Submit( viewId, TAC_STACK_FRAME );
     }
 
-    //Renderer::Instance->DebugBegin( "Render game world" );
-    //Renderer::Instance->RenderFlush();
-    //Renderer::Instance->DebugEnd();
     mSkyboxPresentation->RenderSkybox( viewWidth, viewHeight, viewId, world->mSkyboxDir );
 
     //world->mDebug3DDrawData->DrawToTexture(
@@ -393,7 +383,7 @@ namespace Tac
                                     &cbuf,
                                     sizeof( DefaultCBufferPerObject ),
                                     TAC_STACK_FRAME );
-      Render::Submit( viewId );
+      Render::Submit( viewId, TAC_STACK_FRAME );
     }
   }
 }

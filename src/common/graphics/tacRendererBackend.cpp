@@ -728,7 +728,7 @@ namespace Tac
       //std::cout << "Render::Init end" << std::endl;
     }
 
-    void Submit( ViewId viewId )
+    void Submit( ViewId viewId, StackFrame stackFrame )
     {
       if( gSubmitFrame->mDrawCallCount == kDrawCallCapacity )
       {
@@ -738,6 +738,7 @@ namespace Tac
 
       const int iDrawCall = gSubmitFrame->mDrawCallCount++;
       DrawCall3* drawCall = &gSubmitFrame->mDrawCalls[ iDrawCall ];
+      drawCall->mStackFrame = stackFrame;
       drawCall->mIndexBufferHandle = gEncoder.mIndexBufferHandle;
       drawCall->mVertexBufferHandle = gEncoder.mVertexBufferHandle;
       drawCall->mBlendStateHandle = gEncoder.mBlendStateHandle;

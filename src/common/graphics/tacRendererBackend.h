@@ -52,6 +52,7 @@ namespace Tac
 
     struct DrawCall3
     {
+      StackFrame mStackFrame;
       VertexBufferHandle mVertexBufferHandle;
       IndexBufferHandle mIndexBufferHandle;
       BlendStateHandle mBlendStateHandle;

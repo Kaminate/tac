@@ -782,9 +782,10 @@ namespace Tac
     int constantBufferCount = 0;
     Render::ViewId viewId = Render::InvalidViewId;
     IndexBuffer* indexBuffer = nullptr;
+    const Render::DrawCall3* drawCall = nullptr;
     for( int iDrawCall = 0; iDrawCall < frame->mDrawCallCount; ++iDrawCall )
     {
-      const Render::DrawCall3* drawCall = &frame->mDrawCalls[ iDrawCall ];
+      drawCall = &frame->mDrawCalls[ iDrawCall ];
 
       if( drawCall->mShaderHandle.IsValid() )
       {
@@ -1212,8 +1213,7 @@ namespace Tac
       TAC_HANDLE_ERROR( errors );
       TAC_ON_DESTRUCT( pVSBlob->Release() );
 
-      TAC_DX11_CALL(
-        errors,
+      TAC_DX11_CALL( errors,
         mDevice->CreateVertexShader,
         pVSBlob->GetBufferPointer(),
         pVSBlob->GetBufferSize(),
@@ -1221,8 +1221,7 @@ namespace Tac
         &loadData->mVertexShader );
       SetDebugName( loadData->mVertexShader, name + " vtx shader" );
 
-      TAC_DX11_CALL(
-        errors,
+      TAC_DX11_CALL( errors,
         D3DGetBlobPart,
         pVSBlob->GetBufferPointer(),
         pVSBlob->GetBufferSize(),
@@ -1243,8 +1242,7 @@ namespace Tac
       TAC_HANDLE_ERROR( errors );
       TAC_ON_DESTRUCT( pPSBlob->Release() );
 
-      TAC_DX11_CALL(
-        errors,
+      TAC_DX11_CALL( errors,
         mDevice->CreatePixelShader,
         pPSBlob->GetBufferPointer(),
         pPSBlob->GetBufferSize(),
@@ -2315,8 +2313,7 @@ namespace Tac
     }
     ID3DBlob* inputSig = mPrograms[ commandData->mShaderHandle.mResourceId ].mInputSig;
     ID3D11InputLayout* inputLayout;
-    TAC_DX11_CALL(
-      errors,
+    TAC_DX11_CALL( errors,
       mDevice->CreateInputLayout,
       inputElementDescs.data(),
       ( UINT )inputElementDescs.size(),
@@ -2499,43 +2496,58 @@ namespace Tac
                                       Errors& errors )
   {
     AssertRenderThread();
+    // D3D11_SUBRESOURCE_DATA structure
+    // https://msdn.microsoft.com/en-us/library/windows/desktop/ff476220(v=vs.85).aspx
+    // You set SysMemPitch to the distance between any two adjacent pixels on different lines.
+    // You set SysMemSlicePitch to the size of the entire 2D surface in bytes.
+    D3D11_SUBRESOURCE_DATA subResources[ 6 ] = {};
+    int iSubresource = 0;
+    if( data->mTexSpec.mImageBytes )
+    {
+      D3D11_SUBRESOURCE_DATA* subResource = &subResources[ iSubresource++ ];
+      subResource->pSysMem = data->mTexSpec.mImageBytes;
+      subResource->SysMemPitch = data->mTexSpec.mPitch;
+      subResource->SysMemSlicePitch = data->mTexSpec.mPitch * data->mTexSpec.mImage.mHeight;
+    }
+    for( const void* imageBytesCubemap : data->mTexSpec.mImageBytesCubemap )
+    {
+      if( !imageBytesCubemap )
+        continue;
+      D3D11_SUBRESOURCE_DATA* subResource = &subResources[ iSubresource++ ];
+      subResource->pSysMem = imageBytesCubemap;
+      subResource->SysMemPitch = data->mTexSpec.mPitch;
+      subResource->SysMemSlicePitch = data->mTexSpec.mPitch * data->mTexSpec.mImage.mHeight;
+    }
+    const bool isCubemap = iSubresource == 6;
+    D3D11_SUBRESOURCE_DATA *pInitialData = iSubresource ? subResources : nullptr;
 
-    const UINT MiscFlags = GetMiscFlags( data->mTexSpec.mBinding );
+    const UINT MiscFlags = GetMiscFlags( data->mTexSpec.mBinding ) |
+      ( isCubemap ? D3D11_RESOURCE_MISC_TEXTURECUBE : 0 );
     const UINT BindFlags = GetBindFlags( data->mTexSpec.mBinding );
     const DXGI_FORMAT Format = GetDXGIFormat( data->mTexSpec.mImage.mFormat );
     const UINT MipLevels = 1;
+    const UINT ArraySize = iSubresource;
 
     D3D11_TEXTURE2D_DESC texDesc = {};
     texDesc.Width = data->mTexSpec.mImage.mWidth;
     texDesc.Height = data->mTexSpec.mImage.mHeight;
     texDesc.MipLevels = MipLevels;
     texDesc.SampleDesc.Count = 1;
-    texDesc.ArraySize = 1;
+    texDesc.ArraySize = ArraySize;
     texDesc.Format = Format;
     texDesc.Usage = GetUsage( data->mTexSpec.mAccess );
     texDesc.BindFlags = BindFlags;
     texDesc.CPUAccessFlags = GetCPUAccessFlags( data->mTexSpec.mCpuAccess );
     texDesc.MiscFlags = MiscFlags;
-
-
-    // D3D11_SUBRESOURCE_DATA structure
-    // https://msdn.microsoft.com/en-us/library/windows/desktop/ff476220(v=vs.85).aspx
-    // You set SysMemPitch to the distance between any two adjacent pixels on different lines.
-    // You set SysMemSlicePitch to the size of the entire 2D surface in bytes.
-    D3D11_SUBRESOURCE_DATA subResource = {};
-    subResource.pSysMem = data->mTexSpec.mImageBytes;
-    subResource.SysMemPitch = data->mTexSpec.mPitch;
-    subResource.SysMemSlicePitch = data->mTexSpec.mPitch * data->mTexSpec.mImage.mHeight; // <-- I guess
-    D3D11_SUBRESOURCE_DATA *pInitialData = data->mTexSpec.mImageBytes ? &subResource : nullptr;
+    
     TAC_ASSERT( !data->mTexSpec.mImageBytes || data->mTexSpec.mPitch );
 
     ID3D11Texture2D* texture2D;
-    TAC_DX11_CALL(
-      errors,
-      mDevice->CreateTexture2D,
-      &texDesc,
-      pInitialData,
-      &texture2D );
+    TAC_DX11_CALL( errors,
+                   mDevice->CreateTexture2D,
+                   &texDesc,
+                   pInitialData,
+                   &texture2D );
     TAC_HANDLE_ERROR( errors );
 
     ID3D11RenderTargetView* rTV = nullptr;
@@ -2552,15 +2564,11 @@ namespace Tac
     {
       D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
       srvDesc.Format = Format;
-      srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+      srvDesc.ViewDimension =  isCubemap ? D3D11_SRV_DIMENSION_TEXTURECUBE : D3D11_SRV_DIMENSION_TEXTURE2D;
       srvDesc.Texture2D.MipLevels = MipLevels;
 
       TAC_DX11_CALL( errors, mDevice->CreateShaderResourceView, texture2D, &srvDesc, &srv );
       TAC_HANDLE_ERROR( errors );
-
-      static int asdf;
-      if( errors.size() )
-        ++asdf;
     }
 
     if( BindFlags & D3D11_BIND_RENDER_TARGET &&

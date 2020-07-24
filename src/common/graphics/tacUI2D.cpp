@@ -320,7 +320,7 @@ namespace Tac
         //drawCall2.mFrame = TAC_STACK_FRAME;
         Render::SetShader( uidrawCall.mShader );
         //Render::AddDrawCall( drawCall2 );
-        Render::Submit( viewId );
+        Render::Submit( viewId, TAC_STACK_FRAME );
       }
     }
 

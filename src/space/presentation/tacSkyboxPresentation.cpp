@@ -108,49 +108,33 @@ namespace Tac
     float a;
     float b;
     Render::GetPerspectiveProjectionAB( mCamera->mFarPlane, mCamera->mNearPlane, a, b );
-    const float aspect =
-      ( float )viewWidth /
-      ( float )viewHeight;
-
-    const v3 camPos = {};
+    const float aspect = ( float )viewWidth / ( float )viewHeight;
+    const m4 view = M4ViewInv( v3( 0, 0, 0 ),
+                               mCamera->mForwards,
+                               mCamera->mRight,
+                               mCamera->mUp );
 
     DefaultCBufferPerFrame perFrame;
     perFrame.mFar = mCamera->mFarPlane;
     perFrame.mNear = mCamera->mNearPlane;
-    perFrame.mGbufferSize = {
-      ( float )viewWidth,
-      ( float )viewHeight };
-    perFrame.mView = M4ViewInv( camPos,
-                                mCamera->mForwards,
-                                mCamera->mRight,
-                                mCamera->mUp );
+    perFrame.mGbufferSize = { ( float )viewWidth, ( float )viewHeight };
+    perFrame.mView = view;
     perFrame.mProjection = mCamera->Proj( a, b, aspect );
 
-    //DrawCall2 drawCallPerFrame = {};
-    //drawCallPerFrame.mUniformDst = mPerFrame;
-    //drawCallPerFrame.mUniformSrcc = TemporaryMemoryFromT( perFrame );
-    //Render::AddDrawCall( drawCallPerFrame );
+    const SubMesh* subMesh = &mesh->mSubMeshes[ 0 ];
 
-    //SubMesh* subMesh = &mesh->mSubMeshes[ 0 ];
+    Render::UpdateConstantBuffer( mPerFrame, &perFrame, sizeof( DefaultCBufferPerFrame ), TAC_STACK_FRAME );
+    Render::SetVertexBuffer( subMesh->mVertexBuffer, 0, 0 );
+    Render::SetIndexBuffer( subMesh->mIndexBuffer, 0, subMesh->mIndexCount );
+    Render::SetVertexFormat( mVertexFormat );
+    Render::SetShader( mShader );
+    Render::SetBlendState( mBlendState );
+    Render::SetDepthState( mDepthState );
+    Render::SetRasterizerState( mRasterizerState );
+    Render::SetSamplerState( mSamplerState );
+    Render::SetTexture( Render::DrawCallTextures( cubemap ) );
 
-    //DrawCall2 drawCallGeometry = {};
-    //drawCallGeometry.mVertexBuffer = subMesh->mVertexBuffer;
-    //drawCallGeometry.mIndexBuffer = subMesh->mIndexBuffer;
-    //drawCallGeometry.mIndexCount = subMesh->mIndexCount;
-    //drawCallGeometry.mVertexFormat = mVertexFormat;
-    //drawCallGeometry.mShader = mShader;
-    //drawCallGeometry.mBlendState = mBlendState;
-    //drawCallGeometry.mDepthState = mDepthState;
-    //drawCallGeometry.mPrimitiveTopology = PrimitiveTopology::TriangleList;
-    //drawCallGeometry.mRasterizerState = mRasterizerState;
-    //drawCallGeometry.mSamplerState = mSamplerState;
-    //drawCallGeometry.mFrame = TAC_STACK_FRAME;
-    //drawCallGeometry.mStartIndex = 0;
-    //drawCallGeometry.mTextureHandles = { cubemap };
-    //Render::AddDrawCall( drawCallGeometry );
 
-    //Renderer::Instance->DebugBegin( "Skybox" );
-    //Renderer::Instance->RenderFlush();
-    //Renderer::Instance->DebugEnd();
+    Render::Submit( viewId, TAC_STACK_FRAME );
   }
 }

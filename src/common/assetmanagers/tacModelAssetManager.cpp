@@ -309,6 +309,7 @@ namespace Tac
         subMesh.mIndexBuffer = indexBuffer;
         subMesh.mVertexBuffer = vertexBuffer;
         subMesh.mTris = tris;
+        subMesh.mIndexCount = ( int )indices->count;
         submeshes.push_back( subMesh );
       }
     }

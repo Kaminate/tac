@@ -34,10 +34,11 @@ namespace Tac
         commandData.mBinding = Binding::ShaderResource;
         commandData.mImage = mImage;
         commandData.mImageBytes = mImageData.data();
-        commandData.mPitch = mImage.mFormat.CalculateTotalByteCount() * mImage.mWidth;
+        commandData.mPitch = mPitch; // mImage.mFormat.CalculateTotalByteCount() * mImage.mWidth;
         *texture = Render::CreateTexture( mFilepath, commandData, TAC_STACK_FRAME );
         TAC_HANDLE_ERROR( errors );
       }
+      int mPitch = 0;
       Image mImage;
       Vector< char > mImageData;
       String mFilepath;
@@ -57,9 +58,11 @@ namespace Tac
         commandData.mImageBytesCubemap[ 3 ] = mImageData[ 3 ].data();
         commandData.mImageBytesCubemap[ 4 ] = mImageData[ 4 ].data();
         commandData.mImageBytesCubemap[ 5 ] = mImageData[ 5 ].data();
+        commandData.mPitch = mPitch;
         *texture = Render::CreateTexture( mDir, commandData, TAC_STACK_FRAME );
         TAC_HANDLE_ERROR( errors );
       }
+      int mPitch = 0;
       Image mImage;
       Vector< char > mImageData[ 6 ];
       String mDir;
@@ -81,13 +84,14 @@ namespace Tac
         int desiredChannelCount = 4;
 
         // rgba
-        stbi_uc* loaded = stbi_load_from_memory(
-          ( const stbi_uc* )memory.data(),
-          ( int )memory.size(),
-          &x,
-          &y,
-          &previousChannelCount,
-          desiredChannelCount );
+        const auto memoryByteCount = ( int )memory.size();
+        const auto memoryData = ( const stbi_uc* )memory.data();
+        stbi_uc* loaded = stbi_load_from_memory( memoryData,
+                                                 memoryByteCount,
+                                                 &x,
+                                                 &y,
+                                                 &previousChannelCount,
+                                                 desiredChannelCount );
         TAC_ON_DESTRUCT( stbi_image_free( loaded ) );
 
         bool shouldConvertToPremultipliedAlpha = true;
@@ -102,7 +106,7 @@ namespace Tac
               uint8_t* g = l++;
               uint8_t* b = l++;
               uint8_t* a = l++;
-              float percent = *a / 255.0f;
+              const float percent = *a / 255.0f;
               *r = ( uint8_t )( *r * percent );
               *g = ( uint8_t )( *g * percent );
               *b = ( uint8_t )( *b * percent );
@@ -115,16 +119,16 @@ namespace Tac
         format.mPerElementByteCount = 1;
         format.mPerElementDataType = GraphicsType::unorm;
 
-        int pitch = x * format.mElementCount * format.mPerElementByteCount;
-        int imageDataByteCount = y * pitch;
+        const int pitch = x * format.mElementCount * format.mPerElementByteCount;
+        const int imageDataByteCount = y * pitch;
         mData->mImageData.resize( imageDataByteCount );
         MemCpy( mData->mImageData.data(), loaded, imageDataByteCount );
 
         Image& image = mData->mImage;
-        //image.mData = mData->mImageData.data();
         image.mFormat = format;
         image.mWidth = x;
         image.mHeight = y;
+        mData->mPitch = pitch;
       }
       AsyncTextureSingleData* mData = nullptr;
     };
@@ -185,13 +189,14 @@ namespace Tac
           int y;
           int previousChannelCount;
           // rgba
-          stbi_uc* loaded = stbi_load_from_memory(
-            ( const stbi_uc* )memory.data(),
-            ( int )memory.size(),
-            &x,
-            &y,
-            &previousChannelCount,
-            format.mElementCount );
+          const auto memoryByteCount = ( int )memory.size();
+          const auto memoryData = ( const stbi_uc* )memory.data();
+          stbi_uc* loaded = stbi_load_from_memory( memoryData,
+                                                   memoryByteCount,
+                                                   &x,
+                                                   &y,
+                                                   &previousChannelCount,
+                                                   format.mElementCount );
           TAC_ON_DESTRUCT
           (
             stbi_image_free( loaded );
@@ -209,11 +214,12 @@ namespace Tac
             TAC_HANDLE_ERROR( errors );
           }
 
-          int pitch = x * format.mElementCount * format.mPerElementByteCount;
-          int imageDataByteCount = y * pitch;
+          const int pitch = x * format.mElementCount * format.mPerElementByteCount;
+          const int imageDataByteCount = y * pitch;
           Vector< char >& imageData = mData->mImageData[ iFile ];
           imageData.resize( imageDataByteCount );
           MemCpy( imageData.data(), loaded, imageDataByteCount );
+          mData->mPitch = pitch;
         }
 
         Image& image = mData->mImage;
@@ -312,7 +318,7 @@ namespace Tac
                                           Errors& errors )
     {
       Render::TextureHandle texture = FindLoadedTexture( textureDir );
-      if( texture.mResourceId != Render::NullResourceId )
+      if( texture.IsValid() )
         return texture;
 
       AsyncTexture* asyncTexture = FindLoadingTexture( textureDir );

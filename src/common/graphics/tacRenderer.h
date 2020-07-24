@@ -497,7 +497,7 @@ namespace Tac
 
     //void                             SetUniform( ConstantBufferHandle, const void* bytes, int byteCount );
 
-    void                             Submit( ViewId );
+    void                             Submit( ViewId, StackFrame );
     //void                             AddDrawCall( const DrawCall2& );
     void                             GetPerspectiveProjectionAB( float f, float n, float& a, float& b );
     void                             Init( Errors& );
