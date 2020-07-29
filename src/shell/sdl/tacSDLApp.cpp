@@ -11,6 +11,10 @@ namespace Tac
     SDL_DestroyWindow( mWindow );
     SDLApp::Instance->mWindows.erase( this );
   }
+  void* SDLWindow::GetOperatingSystemHandle()
+  {
+    return mOperatingSystemHandle;
+  }
 
   SDLApp* SDLApp::Instance;
   SDLApp::SDLApp()
@@ -55,7 +59,7 @@ namespace Tac
             {
               sdlWindow->mWidth = ( int )event.window.data1;
               sdlWindow->mHeight = ( int )event.window.data2;
-              sdlWindow->mRendererData->OnResize( errors );
+              //sdlWindow->mRendererData->OnResize( errors );
             } break;
           }
         } break;
@@ -84,7 +88,11 @@ namespace Tac
     }
     return nullptr;
   }
-  void SDLApp::SpawnWindow( DesktopWindowHandle handle, int x, int y, int width, int height )
+  void SDLApp::SpawnWindow( DesktopWindowHandle handle,
+                            int x,
+                            int y,
+                            int width,
+                            int height )
   {
     Uint32 flags =
       SDL_WINDOW_SHOWN |

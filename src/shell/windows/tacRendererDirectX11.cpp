@@ -866,6 +866,7 @@ namespace Tac
       {
         const Render::View* view = &frame->mViews[ drawCall->mViewId ];
         Render::FramebufferHandle framebufferHandle = view->mFrameBufferHandle;
+        TAC_ASSERT( framebufferHandle.IsValid() );
         Framebuffer* framebuffer = &mFramebuffers[ framebufferHandle.mResourceId ];
         ID3D11RenderTargetView* renderTargetView = framebuffer->mRenderTargetView;
         ID3D11DepthStencilView* depthStencilView = framebuffer->mDepthStencilView;
@@ -882,6 +883,7 @@ namespace Tac
         const FLOAT ClearColorRGBA[] = { ClearGrey, ClearGrey,ClearGrey,  1.0f };
         mDeviceContext->ClearRenderTargetView( renderTargetView, ClearColorRGBA );
 
+        TAC_ASSERT( view->mViewportSet );
         viewId = drawCall->mViewId;
         D3D11_VIEWPORT viewport;
         viewport.Height = view->mViewport.mHeight;
@@ -892,6 +894,7 @@ namespace Tac
         viewport.MaxDepth = view->mViewport.mMaxDepth;
         mDeviceContext->RSSetViewports( 1, &viewport );
 
+        TAC_ASSERT( view->mScissorSet );
         // used if the rasterizer state ScissorEnable is TRUE
         D3D11_RECT scissor;
         scissor.bottom = ( LONG )view->mScissorRect.mYMaxRelUpperLeftCornerPixel;
@@ -2647,7 +2650,7 @@ namespace Tac
     //Win32DesktopWindow* window =
     //  WindowsApplication2::Instance->FindWin32DesktopWindow( data->mDesktopWindowHandle );
 
-    auto hwnd = ( HWND )window->mOperatingSystemHandle;
+    auto hwnd = ( HWND )window->GetOperatingSystemHandle();
     IDXGISwapChain* swapChain;
     const int bufferCount = 4;
     const UINT width = data->mWidth;

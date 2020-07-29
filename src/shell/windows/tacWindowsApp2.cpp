@@ -59,11 +59,11 @@ namespace Tac
     return nullptr;
   }
 
-  static LRESULT CALLBACK WindowProc(
-    HWND hwnd,
-    UINT uMsg,
-    WPARAM wParam,
-    LPARAM lParam )
+
+  static LRESULT CALLBACK WindowProc( HWND hwnd,
+                                      UINT uMsg,
+                                      WPARAM wParam,
+                                      LPARAM lParam )
   {
     Win32DesktopWindow* window = WindowsApplication2::Instance->FindWin32DesktopWindow( hwnd );
     if( window )
@@ -136,10 +136,17 @@ namespace Tac
   {
     DestroyWindow( mHWND );
   }
-  LRESULT Win32DesktopWindow::HandleWindowProc(
-    UINT uMsg,
-    WPARAM wParam,
-    LPARAM lParam )
+
+
+  void* Win32DesktopWindow::GetOperatingSystemHandle()
+  {
+
+    return mHWND ;
+    }
+
+  LRESULT Win32DesktopWindow::HandleWindowProc( UINT uMsg,
+                                                WPARAM wParam,
+                                                LPARAM lParam )
   {
     static bool verboseMouseInWindow = false;
     static bool verboseFocus = false;
@@ -152,20 +159,20 @@ namespace Tac
       case WM_DESTROY: // fallthrough
       case WM_QUIT:
       {
-        mRequestDeletion = true;
+        //mRequestDeletion = true;
       } return 0;
       case WM_SIZE:
       {
         mWidth = ( int )LOWORD( lParam );
         mHeight = ( int )HIWORD( lParam );
-        mOnResize.EmitEvent();
+        //mOnResize.EmitEvent();
         DesktopEvent::PushEventResizeWindow( mHandle, mWidth, mHeight );
       } break;
       case WM_MOVE:
       {
         mX = ( int )LOWORD( lParam );
         mY = ( int )HIWORD( lParam );
-        mOnMove.EmitEvent();
+        //mOnMove.EmitEvent();
         DesktopEvent::PushEventMoveWindow( mHandle, mX, mY );
       } break;
       case WM_CHAR:
@@ -341,11 +348,10 @@ namespace Tac
   {
     Instance = this;
   }
-  WindowsApplication2::WindowsApplication2(
-    HINSTANCE hInstance,
-    HINSTANCE hPrevInstance,
-    LPSTR lpCmdLine,
-    int nCmdShow ) : WindowsApplication2()
+  WindowsApplication2::WindowsApplication2( HINSTANCE hInstance,
+                                            HINSTANCE hPrevInstance,
+                                            LPSTR lpCmdLine,
+                                            int nCmdShow ) : WindowsApplication2()
   {
     mHInstance = hInstance;
     mlpCmdLine = lpCmdLine;
@@ -462,9 +468,9 @@ namespace Tac
 
     // uhh, for now, just close everything when the user closes a window.
     // this is so that we can kill from renderdoc
-    for( Win32DesktopWindow* window : mWindows )
-      if( window->mRequestDeletion )
-        OS::mShouldStopRunning = true;
+    //for( Win32DesktopWindow* window : mWindows )
+    //  if( window->mRequestDeletion )
+    //    OS::mShouldStopRunning = true;
 
 
     DesktopWindowHandle unobscuredDesktopWindowHandle;
@@ -518,18 +524,17 @@ namespace Tac
     int windowAdjustedHeight = windowRect.bottom - windowRect.top;
 
     HINSTANCE hInstance = mHInstance;
-    HWND hwnd = CreateWindow(
-      classname,
-      "butt", // windowParams.mName.c_str(),
-      windowStyle,
-      x, // CW_USEDEFAULT
-      y, // CW_USEDEFAULT
-      windowAdjustedWidth,
-      windowAdjustedHeight,
-      mParentHWND,
-      NULL,
-      hInstance,
-      NULL );
+    HWND hwnd = CreateWindow( classname,
+                              "butt", // windowParams.mName.c_str(),
+                              windowStyle,
+                              x, // CW_USEDEFAULT
+                              y, // CW_USEDEFAULT
+                              windowAdjustedWidth,
+                              windowAdjustedHeight,
+                              mParentHWND,
+                              NULL,
+                              hInstance,
+                              NULL );
     if( !hwnd )
     {
       TAC_INVALID_CODE_PATH;
@@ -562,12 +567,12 @@ namespace Tac
 
     auto createdWindow = TAC_NEW Win32DesktopWindow;
     createdWindow->mHWND = hwnd;
-    createdWindow->mOperatingSystemHandle = hwnd;
-    createdWindow->mOnDestroyed.AddCallbackFunctional(
-      []( DesktopWindow* desktopWindow )
-      {
-        WindowsApplication2::Instance->RemoveWindow( ( Win32DesktopWindow* )desktopWindow );
-      } );
+    //createdWindow->mOperatingSystemHandle = hwnd;
+    //createdWindow->mOnDestroyed.AddCallbackFunctional(
+    //  []( DesktopWindow* desktopWindow )
+    //  {
+    //    WindowsApplication2::Instance->RemoveWindow( ( Win32DesktopWindow* )desktopWindow );
+    //  } );
     createdWindow->mHandle = handle;
 
     // Used to combine all the windows into one tab group.

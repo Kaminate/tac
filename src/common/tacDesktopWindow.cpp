@@ -12,7 +12,7 @@ namespace Tac
   }
   DesktopWindow::~DesktopWindow()
   {
-    mOnDestroyed.EmitEvent( this );
+    //mOnDestroyed.EmitEvent( this );
     //delete mRenderView;
   }
 
@@ -30,8 +30,8 @@ namespace Tac
     *y = ( monitor.h - h ) / 2;
   }
 
-  void DesktopWindow::SetRenderViewDefaults()
-  {
+  //void DesktopWindow::SetRenderViewDefaults()
+  //{
     //Texture* currentBackbufferTexture = nullptr;
     //mRendererData->GetCurrentBackbufferTexture( &currentBackbufferTexture );
     //TAC_ASSERT( currentBackbufferTexture );
@@ -48,7 +48,7 @@ namespace Tac
     //mRenderView->mFramebufferDepth = mRendererData->mDepthBuffer;
     //mRenderView->mScissorRect = scissorRect;
     //mRenderView->mViewportRect = viewport;
-  }
+  //}
 
   bool DesktopWindowHandle::IsValid() const
   {

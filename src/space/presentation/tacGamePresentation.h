@@ -11,7 +11,7 @@ namespace Tac
   struct Debug3DCommonData;
   struct DefaultCBufferPerObject;
   struct DepthState;
-  struct DesktopWindow;
+  /*struct DesktopWindow*/;
   struct Entity;
   struct Mesh;
   struct Model;

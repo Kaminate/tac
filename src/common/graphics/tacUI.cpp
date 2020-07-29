@@ -1018,7 +1018,7 @@ namespace Tac
     if( mDrawOutline )
     {
       v4 color = mColor;
-      if( mUIRoot->mDesktopWindow->mCursorUnobscured &&
+      if( true && //mUIRoot->mDesktopWindow->mCursorUnobscured &&
           mOnClickEventEmitter.size() &&
           mUIRoot->mUiCursor.x > mPositionRelativeToRoot.x &&
           mUIRoot->mUiCursor.x < mPositionRelativeToRoot.x + mSize.x &&

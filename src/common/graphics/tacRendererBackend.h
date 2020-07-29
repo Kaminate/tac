@@ -97,8 +97,10 @@ namespace Tac
     struct View
     {
       FramebufferHandle mFrameBufferHandle;
-      Viewport mViewport;
-      ScissorRect mScissorRect;
+      Viewport          mViewport;
+      ScissorRect       mScissorRect;
+      bool              mViewportSet = false;
+      bool              mScissorSet = false;
     };
 
     struct Frame

@@ -60,7 +60,7 @@ namespace Tac
   }
   void CreationProfileWindow::Update( Errors& errors )
   {
-    mDesktopWindow->SetRenderViewDefaults();
+    //mDesktopWindow->SetRenderViewDefaults();
     ImGui();
     mUI2DDrawData->DrawToTexture( 0, 0, 0, errors );
     TAC_HANDLE_ERROR( errors );

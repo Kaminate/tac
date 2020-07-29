@@ -1,19 +1,21 @@
 
-#include "src/common/graphics/tacUI2D.h"
-#include "src/common/tacShell.h"
-#include "src/common/tacDesktopWindow.h"
+
 #include "src/common/graphics/imgui/tacImGui.h"
+#include "src/common/graphics/tacUI2D.h"
+#include "src/common/tacDesktopWindow.h"
 #include "src/common/tacOS.h"
+#include "src/common/tacShell.h"
 #include "src/creation/tacCreation.h"
 #include "src/creation/tacCreationSystemWindow.h"
-#include "src/space/tacWorld.h"
+#include "src/shell/tacDesktopApp.h"
+#include "src/shell/tacDesktopWindowManager.h"
 #include "src/space/tacEntity.h"
 #include "src/space/tacSystem.h"
-#include "src/shell/tacDesktopApp.h"
+#include "src/space/tacWorld.h"
 
 namespace Tac
 {
-  const  SettingPath iSysPath = { "SystemWindow", "iSys" };
+  const SettingPath nSysPath = { "SystemWindow", "nSys" };
 
   CreationSystemWindow* CreationSystemWindow::Instance = nullptr;
   CreationSystemWindow::CreationSystemWindow()
@@ -29,33 +31,33 @@ namespace Tac
   {
     mUI2DDrawData = new UI2DDrawData;
     Settings* settings = Shell::Instance->mSettings;
-    mSystemIndex = ( int )settings->GetNumber( nullptr, iSysPath, -1, errors );
+    mSystemName = settings->GetString( nullptr, nSysPath, "", errors );
+    int x, y, w, h;
+    Creation::Instance->GetWindowsJsonData( gSystemWindowName, &x, &y, &w, &h );
+    mDesktopWindowHandle = DesktopWindowManager::Instance->CreateWindow( x, y, w, h );
   };
   void CreationSystemWindow::ImGui()
   {
-    SystemRegistry* systemRegistry = SystemRegistry::Instance();
-    Creation* creation = Creation::Instance;
+    DesktopWindowState* desktopWindowState = FindDesktopWindowState( mDesktopWindowHandle );
+    if( !desktopWindowState )
+      return;
 
-    TAC_INVALID_CODE_PATH;
-    //SetCreationWindowImGuiGlobals( mDesktopWindow,
-    //                               mUI2DDrawData,
-    //                               mDesktopWindowState.mWidth,
-    //                               mDesktopWindowState.mHeight );
+    SetCreationWindowImGuiGlobals( desktopWindowState, mUI2DDrawData );
     ImGuiBegin( "System Window", {} );
 
+    ImGuiText( "hello" );
     if( ImGuiCollapsingHeader( "Select System" ) )
     {
       TAC_IMGUI_INDENT_BLOCK;
-      for( int i = 0; i < systemRegistry->mEntries.size(); ++i )
+      for( const SystemRegistryEntry& systemRegistryEntry : *SystemRegistry::Instance() )
       {
-        SystemRegistryEntry* systemRegistryEntry = systemRegistry->mEntries[ i ];
-        if( ImGuiButton( systemRegistryEntry->mName ) )
+        if( ImGuiButton( systemRegistryEntry.mName ) )
         {
-          mSystemIndex = i;
+          mSystemName = systemRegistryEntry.mName;
           Errors e;
-          Shell::Instance->mSettings->SetNumber( nullptr, iSysPath, mSystemIndex, e );
+          Shell::Instance->mSettings->SetString( nullptr, nSysPath, mSystemName, e );
         }
-        if( mSystemIndex == i )
+        if( mSystemName == systemRegistryEntry.mName )
         {
           ImGuiSameLine();
           ImGuiText( "<-- currently selected" );
@@ -63,30 +65,41 @@ namespace Tac
       }
     }
 
-    if( mSystemIndex >= 0 && mSystemIndex < systemRegistry->mEntries.size() )
+    if( !mSystemName.empty() )
     {
-      SystemRegistryEntry* systemRegistryEntry = systemRegistry->mEntries[ mSystemIndex ];
+      const SystemRegistryEntry* systemRegistryEntry = SystemRegistry::Instance()->Find( mSystemName );
       ImGuiText( systemRegistryEntry->mName );
       if( systemRegistryEntry->mDebugImGui )
       {
-        System* system = creation->mWorld->GetSystem( systemRegistryEntry );
+        System* system = Creation::Instance->mWorld->GetSystem( systemRegistryEntry );
         systemRegistryEntry->mDebugImGui( system );
       }
     }
 
     // to force directx graphics specific window debugging
-    if( ImGuiButton( "close window" ) )
-    {
-      mDesktopWindow->mRequestDeletion = true;
-    }
+    //if( ImGuiButton( "close window" ) )
+    //{
+    //  mDesktopWindow->mRequestDeletion = true;
+    //}
     ImGuiEnd();
   }
   void CreationSystemWindow::Update( Errors& errors )
   {
-    ;
-    mDesktopWindow->SetRenderViewDefaults();
+    DesktopWindowState* desktopWindowState = FindDesktopWindowState( mDesktopWindowHandle );
+    if( !desktopWindowState )
+      return;
     ImGui();
-    mUI2DDrawData->DrawToTexture( 0, 0, 0, errors );
+    const float w = ( float )desktopWindowState->mWidth;
+    const float h = ( float )desktopWindowState->mHeight;
+    Creation::WindowFramebufferInfo* info =
+      Creation::Instance->FindWindowFramebufferInfo( mDesktopWindowHandle );
+    Render::SetViewFramebuffer( ViewIdSystemWindow, info->mFramebufferHandle );
+    Render::SetViewport( ViewIdSystemWindow, Viewport( w, h ) );
+    Render::SetViewScissorRect( ViewIdSystemWindow, ScissorRect( w, h ) );
+    mUI2DDrawData->DrawToTexture( desktopWindowState->mWidth,
+                                  desktopWindowState->mHeight,
+                                  ViewIdSystemWindow,
+                                  errors );
     TAC_HANDLE_ERROR( errors );
   }
 

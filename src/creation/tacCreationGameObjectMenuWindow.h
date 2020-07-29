@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include "src/common/tacDesktopWindow.h"
 #include "src/common/tacErrorHandling.h"
 
 namespace Tac
@@ -8,7 +9,7 @@ namespace Tac
   struct UILayout;
   struct Shell;
   struct UIText;
-  struct DesktopWindow;
+  /*struct DesktopWindow*/;
   struct DesktopApp;
   struct Creation;
   struct UIRoot;
@@ -27,8 +28,9 @@ namespace Tac
 
     static CreationGameObjectMenuWindow* Instance;
 
-    DesktopWindow* mDesktopWindow = nullptr;
-    UIRoot* mUIRoot = nullptr;
+    DesktopWindowHandle mDesktopWindowHandle;
+    //DesktopWindow* mDesktopWindow = nullptr;
+    //UIRoot* mUIRoot = nullptr;
     UI2DDrawData* mUI2DDrawData = nullptr;
     double mCreationSeconds;
   };

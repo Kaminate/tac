@@ -83,74 +83,67 @@ namespace Tac
 
   void Creation::CreatePropertyWindow( Errors& errors )
   {
-    CreationPropertyWindow* propertyWindow = CreationPropertyWindow::Instance;
-    if( propertyWindow )
+    if( CreationPropertyWindow::Instance )
       return;
 
     DesktopWindow* desktopWindow;
     CreateDesktopWindow( gPropertyWindowName, &desktopWindow, errors );
     TAC_HANDLE_ERROR( errors );
 
-    propertyWindow = TAC_NEW CreationPropertyWindow;
-    propertyWindow->mDesktopWindow = desktopWindow;
-    propertyWindow->Init( errors );
+    TAC_NEW CreationPropertyWindow;
+    //propertyWindow->mDesktopWindow = desktopWindow;
+    CreationPropertyWindow::Instance->Init( errors );
     TAC_HANDLE_ERROR( errors );
   }
   void Creation::CreateGameWindow( Errors& errors )
   {
-    CreationGameWindow* gameWindow = CreationGameWindow::Instance;
-    if( gameWindow )
+    if( CreationGameWindow::Instance )
       return;
 
     DesktopWindow* desktopWindow;
     CreateDesktopWindow( gGameWindowName, &desktopWindow, errors );
     TAC_HANDLE_ERROR( errors );
 
-    gameWindow = TAC_NEW CreationGameWindow;
+    TAC_NEW CreationGameWindow;
     //gameWindow->mDesktopWindow = desktopWindow;
-    gameWindow->Init( errors );
+    CreationGameWindow::Instance->Init( errors );
     TAC_HANDLE_ERROR( errors );
   }
   void Creation::CreateMainWindow( Errors& errors )
   {
-    CreationMainWindow* mainWindow = CreationMainWindow::Instance;
-    if( mainWindow )
+    if( CreationMainWindow::Instance )
       return;
 
-    mainWindow = TAC_NEW CreationMainWindow;
-    mainWindow->Init( errors );
+    TAC_NEW CreationMainWindow;
+    CreationMainWindow::Instance->Init( errors );
     TAC_HANDLE_ERROR( errors );
   }
   void Creation::CreateSystemWindow( Errors& errors )
   {
-    CreationSystemWindow* systemWindow = CreationSystemWindow::Instance;
-    if( systemWindow )
+    if( CreationSystemWindow::Instance )
       return;
 
     DesktopWindow* desktopWindow;
     CreateDesktopWindow( gSystemWindowName, &desktopWindow, errors );
     TAC_HANDLE_ERROR( errors );
 
-    systemWindow = TAC_NEW CreationSystemWindow;
-    systemWindow->mDesktopWindow = desktopWindow;
-    systemWindow->Init( errors );
+    TAC_NEW CreationSystemWindow;
+    CreationSystemWindow::Instance->Init( errors );
     TAC_HANDLE_ERROR( errors );
 
   }
 
   void Creation::CreateProfileWindow( Errors& errors )
   {
-    CreationProfileWindow* profileWindow = CreationProfileWindow::Instance;
-    if( profileWindow )
+    if( CreationProfileWindow::Instance )
       return;
 
     DesktopWindow* desktopWindow;
     CreateDesktopWindow( gProfileWindowName, &desktopWindow, errors );
     TAC_HANDLE_ERROR( errors );
 
-    profileWindow = TAC_NEW CreationProfileWindow;
-    profileWindow->mDesktopWindow = desktopWindow;
-    profileWindow->Init( errors );
+    TAC_NEW CreationProfileWindow;
+    CreationProfileWindow::Instance->Init( errors );
     TAC_HANDLE_ERROR( errors );
 
   }
@@ -182,8 +175,7 @@ namespace Tac
       Monitor monitor;
       DesktopApp::Instance->GetPrimaryMonitor( &monitor, errors );
       TAC_HANDLE_ERROR( errors );
-      WindowParams::GetCenteredPosition(
-        *w,
+      WindowParams::GetCenteredPosition( *w,
         *h,
         x,
         y,
@@ -395,8 +387,10 @@ namespace Tac
     GetWindowsJson( &windows, errors );
     TAC_HANDLE_ERROR( errors );
 
-    mOnlyCreateWindowNamed = settings->GetString(
-      nullptr, { "onlyCreateWindowNamed" }, "", errors );
+    mOnlyCreateWindowNamed = settings->GetString( nullptr,
+                                                  { "onlyCreateWindowNamed" },
+                                                  "",
+                                                  errors );
     TAC_HANDLE_ERROR( errors );
 
     // The first window spawned becomes the parent window
@@ -547,7 +541,7 @@ namespace Tac
         !CreationProfileWindow::Instance )
     {
       //CreateMainWindow( errors );
-      CreateGameWindow( errors );
+      CreateSystemWindow( errors );
       TAC_HANDLE_ERROR( errors );
     }
 
@@ -861,11 +855,13 @@ namespace Tac
       {
         const StringView axisName = axisNames[ iAxis ];
 
-        Vector< String > settingsPath = {
+        Vector< String > settingsPath =
+        {
           "prefabCameraRefFrames",
           prefab->mDocumentPath,
           refFrameVecName,
-          axisName };
+          axisName
+        };
 
         Errors ignored;
         settings->SetNumber( root, settingsPath, refFrameVec[ iAxis ], ignored );
@@ -891,8 +887,8 @@ namespace Tac
   void SetCreationWindowImGuiGlobals( const DesktopWindowState* desktopWindowState,
                                       UI2DDrawData* ui2DDrawData )
   {
-    const v2 desktopWindowPos = v2( static_cast< float >( desktopWindowState->mX ),
-                                    static_cast< float >( desktopWindowState->mY ) );
+    const v2 desktopWindowPos( static_cast< float >( desktopWindowState->mX ),
+                               static_cast< float >( desktopWindowState->mY ) );
     const v2 mousePositionDestopWindowspace
       = KeyboardInput::Instance->mCurr.mScreenspaceCursorPosErrors.empty()
       ? KeyboardInput::Instance->mCurr.mScreenspaceCursorPos - desktopWindowPos

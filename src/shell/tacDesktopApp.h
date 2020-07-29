@@ -51,10 +51,14 @@ namespace Tac
     virtual void           Init( Errors& );
     virtual void           Poll( Errors& ) {}
     void                   Run();
-    virtual void           SpawnWindow( DesktopWindowHandle handle, int x, int y, int width, int height ) = 0;
+    virtual void           SpawnWindow( DesktopWindowHandle handle,
+                                        int x,
+                                        int y,
+                                        int width,
+                                        int height ) = 0;
     void                   SpawnWindow( DesktopWindow* );
     virtual void           GetPrimaryMonitor( Monitor* monitor, Errors& errors ) = 0;
-    virtual void           SpawnWindowAux( const WindowParams&, DesktopWindow**, Errors& ) {};
+    //virtual void           SpawnWindowAux( const WindowParams&, DesktopWindow**, Errors& ) {};
     virtual void           CreateControllerInput( Errors& ) {};
     DesktopWindow*         FindDesktopWindow( DesktopWindowHandle );
 

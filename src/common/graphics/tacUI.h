@@ -43,7 +43,7 @@ namespace Tac
   struct UI2DDrawData;
   struct UIHierarchyNode;
   struct DepthBuffer;
-  struct DesktopWindow;
+  /*struct DesktopWindow*/;
   struct KeyboardInput;
   struct Texture;
   struct FontStuff;
@@ -371,7 +371,7 @@ namespace Tac
     // | Although the above is true, we still need to know if our window
     // | is the cursor unobscured window
     // v
-    DesktopWindow* mDesktopWindow = nullptr;
+    //DesktopWindow* mDesktopWindow = nullptr;
     double* mElapsedSeconds = 0;
 
     Language mDefaultLanguage = Language::English;

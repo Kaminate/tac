@@ -1,20 +1,20 @@
-#include "src/creation/tacCreationPropertyWindow.h"
-#include "src/creation/tacCreation.h"
-#include "src/common/tacErrorHandling.h"
-#include "src/common/tacAlgorithm.h"
-#include "src/common/graphics/tacUI.h"
 #include "src/common/graphics/imgui/tacImGui.h"
+#include "src/common/graphics/tacUI.h"
 #include "src/common/graphics/tacUI2D.h"
+#include "src/common/tacAlgorithm.h"
 #include "src/common/tacDesktopWindow.h"
+#include "src/common/tacErrorHandling.h"
 #include "src/common/tacOS.h"
 #include "src/common/tacShell.h"
 #include "src/common/tacUtility.h"
-#include "src/space/tacEntity.h"
-#include "src/space/tacWorld.h"
-#include "src/space/tacComponent.h"
-#include "src/space/tacSystem.h"
-#include "src/space/tacSpacetypes.h"
+#include "src/creation/tacCreation.h"
+#include "src/creation/tacCreationPropertyWindow.h"
 #include "src/space/model/tacModel.h"
+#include "src/space/tacComponent.h"
+#include "src/space/tacEntity.h"
+#include "src/space/tacSpacetypes.h"
+#include "src/space/tacSystem.h"
+#include "src/space/tacWorld.h"
 
 namespace Tac
 {
@@ -36,11 +36,11 @@ namespace Tac
   {
     TAC_UNUSED_PARAMETER( errors );
     mUI2DDrawData = TAC_NEW UI2DDrawData;
-    mUIRoot = TAC_NEW UIRoot;
-    mUIRoot->mElapsedSeconds = &Shell::Instance->mElapsedSeconds;
-    mUIRoot->mUI2DDrawData = mUI2DDrawData;
-    mUIRoot->mDesktopWindow = mDesktopWindow;
-    mUIRoot->mHierarchyRoot->mLayoutType = UILayoutType::Horizontal;
+    //mUIRoot = TAC_NEW UIRoot;
+    //mUIRoot->mElapsedSeconds = &Shell::Instance->mElapsedSeconds;
+    //mUIRoot->mUI2DDrawData = mUI2DDrawData;
+    //mUIRoot->mDesktopWindow = mDesktopWindow;
+    //mUIRoot->mHierarchyRoot->mLayoutType = UILayoutType::Horizontal;
   }
 
   void CreationPropertyWindow::RecursiveEntityHierarchyElement( Entity* entity )
@@ -62,8 +62,8 @@ namespace Tac
   void CreationPropertyWindow::Update( Errors& errors )
   {
     Creation* creation = Creation::Instance;
-    mDesktopWindow->SetRenderViewDefaults();
-    mUIRoot->Update();
+    //mDesktopWindow->SetRenderViewDefaults();
+    //mUIRoot->Update();
     //mUIRoot->Render( errors );
     TAC_HANDLE_ERROR( errors );
 
@@ -121,7 +121,7 @@ namespace Tac
       changed |= ImGuiDragFloat( "Z Eul Deg: ", &rotDeg.z );
       if( changed )
         entity->mRelativeSpace.mEulerRads = rotDeg * ( 3.14f / 180.0f );
-      Vector< ComponentRegistryEntry* > addableComponentTypes;
+      Vector< const ComponentRegistryEntry* > addableComponentTypes;
 
       if( entity->mParent )
       {
@@ -172,27 +172,27 @@ namespace Tac
       ImGuiUnindent();
 
       //for( int i = 0; i < ( int )ComponentRegistryEntryIndex::Count; ++i )
-      for( ComponentRegistryEntry* componentRegistryEntry : ComponentRegistry::Instance()->mEntries )
+      for( const ComponentRegistryEntry& componentRegistryEntry : ComponentRegistry::Instance()->mEntries )
       {
         //ComponentRegistryEntryIndex componentType = ( ComponentRegistryEntryIndex )i;
-        if( !entity->HasComponent( componentRegistryEntry ) )
+        if( !entity->HasComponent( &componentRegistryEntry ) )
         {
-          addableComponentTypes.push_back( componentRegistryEntry );
+          addableComponentTypes.push_back( &componentRegistryEntry );
           continue;
         }
-        Component* component = entity->GetComponent( componentRegistryEntry );
-        if( ImGuiCollapsingHeader( componentRegistryEntry->mName ) )
+        Component* component = entity->GetComponent( &componentRegistryEntry );
+        if( ImGuiCollapsingHeader( componentRegistryEntry.mName ) )
         {
           TAC_IMGUI_INDENT_BLOCK;
           if( ImGuiButton( "Remove component" ) )
           {
-            entity->RemoveComponent( componentRegistryEntry );
+            entity->RemoveComponent( &componentRegistryEntry );
             break;
           }
 
-          if( componentRegistryEntry->mDebugImguiFn )
+          if( componentRegistryEntry.mDebugImguiFn )
           {
-            componentRegistryEntry->mDebugImguiFn( component );
+            componentRegistryEntry.mDebugImguiFn( component );
           }
         }
       }
@@ -200,18 +200,21 @@ namespace Tac
       if( !addableComponentTypes.empty() && ImGuiCollapsingHeader( "Add component" ) )
       {
         TAC_IMGUI_INDENT_BLOCK;
-        for( ComponentRegistryEntry* componentType : addableComponentTypes )
+        for( const ComponentRegistryEntry* componentType : addableComponentTypes )
         {
           if( ImGuiButton( va( "Add %s component", componentType->mName.c_str() ) ) )
+          {
             entity->AddNewComponent( componentType );
+          }
         }
       }
     }
     ImGuiEndGroup();
 
 
-    if( ImGuiButton( "Close window" ) )
-      mDesktopWindow->mRequestDeletion = true;
+    ImGuiText( "close window button goes here" );
+    //if( ImGuiButton( "Close window" ) )
+    //  mDesktopWindow->mRequestDeletion = true;
 
     // temp begin
     ImGuiDebugDraw();

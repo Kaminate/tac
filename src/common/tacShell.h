@@ -17,7 +17,7 @@ namespace Tac
 
   struct ControllerInput;
   struct DepthBuffer;
-  struct DesktopWindow;
+  /*struct DesktopWindow*/;
   struct FontStuff;
   struct Ghost;
   struct JobQueue;
@@ -99,16 +99,15 @@ namespace Tac
     float mAccumulatorSeconds = 0;
   };
 
-  struct RendererWindowData
-  {
-    virtual ~RendererWindowData();
-    virtual void Submit( Errors& ) {};
-    virtual void GetCurrentBackbufferTexture( Texture** ) { TAC_UNIMPLEMENTED; };
-    virtual void OnResize( Errors& ) {};
-
-    DesktopWindow* mDesktopWindow = nullptr;
-    //DepthBuffer* mDepthBuffer = nullptr;
-  };
+  //struct RendererWindowData
+  //{
+  //  virtual ~RendererWindowData();
+  //  virtual void Submit( Errors& ) {};
+  //  virtual void GetCurrentBackbufferTexture( Texture** ) { TAC_UNIMPLEMENTED; };
+  //  virtual void OnResize( Errors& ) {};
+  //  DesktopWindow* mDesktopWindow = nullptr;
+  //  //DepthBuffer* mDepthBuffer = nullptr;
+  //};
 
 
 }

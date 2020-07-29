@@ -600,12 +600,14 @@ namespace Tac
     {
       View* view = &gSubmitFrame->mViews[ viewId ];
       view->mScissorRect = scissorRect;
+      view->mScissorSet = true;
     }
 
     void SetViewport( ViewId viewId, Viewport viewport )
     {
       View* view = &gSubmitFrame->mViews[ viewId ];
       view->mViewport = viewport;
+      view->mViewportSet = true;
     }
 
     void SetShader( ShaderHandle shaderHandle )

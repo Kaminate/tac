@@ -63,12 +63,11 @@ namespace Tac
     }
     for( WantSpawnInfo info : wantSpawnWindows )
     {
-      DesktopApp::Instance->SpawnWindow(
-        info.mHandle,
-        info.mX,
-        info.mY,
-        info.mWidth,
-        info.mHeight );
+      DesktopApp::Instance->SpawnWindow( info.mHandle,
+                                         info.mX,
+                                         info.mY,
+                                         info.mWidth,
+                                         info.mHeight );
       TAC_HANDLE_ERROR( errors );
     }
   }

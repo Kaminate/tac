@@ -209,7 +209,7 @@ namespace Tac
         for( int iComponentType = 0; iComponentType < registeredComponentCount; ++iComponentType )
         {
           auto componentType = ( ComponentRegistryEntryIndex )iComponentType;
-          ComponentRegistryEntry* componentData = componentRegistry->mEntries[ iComponentType ];
+          const ComponentRegistryEntry* componentData = &componentRegistry->mEntries[ iComponentType ];
           Component* oldComponent = nullptr;
           if( oldEntity )
             oldComponent = oldEntity->GetComponent( componentData );
@@ -261,13 +261,12 @@ namespace Tac
           if( !( changedComponentsBitfield & iComponentType ) )
             continue;
           auto componentType = ( ComponentRegistryEntryIndex )iComponentType;
-          ComponentRegistryEntry* componentRegistryEntry = componentRegistry->mEntries[ iComponentType ];
+          const ComponentRegistryEntry* componentRegistryEntry = &componentRegistry->mEntries[ iComponentType ];
           Component* component = entityDifference.mNewEntity->GetComponent( componentRegistryEntry );
           auto componentBitfield = entityDifference.mChangedComponentBitfields.at( componentType );
-          writer->Write(
-            component,
-            componentBitfield,
-            componentRegistryEntry->mNetworkBits );
+          writer->Write( component,
+                         componentBitfield,
+                         componentRegistryEntry->mNetworkBits );
         }
       }
     }
@@ -357,11 +356,10 @@ namespace Tac
       Vector< char > savedNetMsg;
       while( otherPlayer->delayedNetMsg.TryPopSavedMessage( savedNetMsg, mWorld->mElapsedSecs ) )
       {
-        ExecuteNetMsg(
-          otherPlayer->mConnectionUUID,
-          savedNetMsg.data(),
-          ( int )savedNetMsg.size(),
-          errors );
+        ExecuteNetMsg( otherPlayer->mConnectionUUID,
+                       savedNetMsg.data(),
+                       ( int )savedNetMsg.size(),
+                       errors );
         TAC_HANDLE_ERROR( errors );
       }
     }

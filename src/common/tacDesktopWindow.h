@@ -10,7 +10,7 @@ namespace Tac
   struct UI2DDrawData;
   struct UIRoot;
   struct WindowParams;
-  struct DesktopWindow;
+  /*struct DesktopWindow*/;
   struct Shell;
 
   struct Monitor
@@ -32,7 +32,7 @@ namespace Tac
     static void GetCenteredPosition( int w, int h, int* x, int* y, Monitor );
   };
 
-  const int NullDesktopWindowHandle = - 1;
+  const int NullDesktopWindowHandle = -1;
   struct DesktopWindowHandle
   {
     int mIndex = NullDesktopWindowHandle; // hmm
@@ -40,19 +40,19 @@ namespace Tac
     bool operator == ( const DesktopWindowHandle& ) const;
   };
 
-	struct DesktopWindowState
-	{
-		DesktopWindowHandle mDesktopWindowHandle;
+  struct DesktopWindowState
+  {
+    DesktopWindowHandle mDesktopWindowHandle;
     int                 mX = 0;
     int                 mY = 0;
-		int                 mWidth = 0;
+    int                 mWidth = 0;
     int                 mHeight = 0;
 
     // i dont think this should be here.
     // it should only be used in the main thread, not the stuff thread
     //void*               mNativeWindowHandle = nullptr;
     bool                mCursorUnobscured = false;
-	};
+  };
 
   static const int kMaxDesktopWindowStateCount = 10;
   typedef DesktopWindowState DesktopWindowStates[ kMaxDesktopWindowStateCount ];
@@ -61,31 +61,21 @@ namespace Tac
   {
     DesktopWindow();
     virtual ~DesktopWindow();
-    void SetRenderViewDefaults();
-
-    // Used to create a vulkan surface
-    void* mOperatingSystemApplicationHandle = nullptr;
-
-    // Of type HWND for Win32
-    void* mOperatingSystemHandle = nullptr;
-
-    bool mRequestDeletion = false;
-
-    RendererWindowData* mRendererData = nullptr;
-
-    //RenderView* mRenderView = nullptr;
-
-    Event<>::Emitter mOnResize;
-    Event<>::Emitter mOnMove;
-    Event<DesktopWindow*>::Emitter mOnDestroyed;
-
+    //  void SetRenderViewDefaults();
+    //  // Used to create a vulkan surface
+    //  void* mOperatingSystemApplicationHandle = nullptr;
+    //  // Of type HWND for Win32
+    virtual void* GetOperatingSystemHandle() = 0;
+    //  bool mRequestDeletion = false;
+    //  RendererWindowData* mRendererData = nullptr;
+    //  //RenderView* mRenderView = nullptr;
+    //  Event<>::Emitter mOnResize;
+    //  Event<>::Emitter mOnMove;
+    //  Event<DesktopWindow*>::Emitter mOnDestroyed;
     DesktopWindowHandle mHandle; // a handle to uhh ourself
-
-    // True if the window directly under the mouse cursor is this one
-    // todo: Figure out a better variable name that can be negated
+  //  // True if the window directly under the mouse cursor is this one
+  //  // todo: Figure out a better variable name that can be negated
     bool mCursorUnobscured = false;
   };
-
-
 }
 

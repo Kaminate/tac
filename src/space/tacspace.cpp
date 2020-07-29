@@ -6,21 +6,21 @@
 namespace Tac
 {
 
-void SpaceInit()
-{
-  Graphics::SpaceInitGraphics();
-  Physics::SpaceInitPhysics();
-
-  for( SystemRegistryEntry* entry : SystemRegistry::Instance()->mEntries )
+  void SpaceInit()
   {
-    TAC_ASSERT( entry->mName.size() );
-  }
+    Graphics::SpaceInitGraphics();
+    Physics::SpaceInitPhysics();
 
-  for( ComponentRegistryEntry* entry : ComponentRegistry::Instance()->mEntries )
-  {
-    TAC_ASSERT( entry->mName.size() );
+    for( SystemRegistryEntry& entry : SystemRegistry::Instance()->mEntries )
+    {
+      TAC_ASSERT( entry.mName.size() );
+    }
+
+    for( ComponentRegistryEntry& entry : ComponentRegistry::Instance()->mEntries )
+    {
+      TAC_ASSERT( entry.mName.size() );
+    }
   }
-}
 
 }
 

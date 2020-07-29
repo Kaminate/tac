@@ -160,9 +160,7 @@ namespace Tac
   }
 
 
-  RendererWindowData::~RendererWindowData()
-  {
-    static int i;
-    ++i;
-  }
+  //RendererWindowData::~RendererWindowData()
+  //{
+  //}
 }

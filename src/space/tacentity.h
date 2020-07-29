@@ -9,65 +9,65 @@
 
 namespace Tac
 {
-struct World;
-struct Component;
-struct ComponentRegistryEntry;
-struct Json;
+  struct World;
+  struct Component;
+  struct ComponentRegistryEntry;
+  struct Json;
 
-struct RelativeSpace
-{
-  v3 mPosition = {};
-  v3 mEulerRads = {};
-  v3 mScale = { 1, 1, 1 };
-};
+  struct RelativeSpace
+  {
+    v3 mPosition = {};
+    v3 mEulerRads = {};
+    v3 mScale = { 1, 1, 1 };
+  };
 
-struct Entity
-{
-  ~Entity();
+  struct Entity
+  {
+    ~Entity();
 
-  void RemoveAllComponents();
-  
-  Component* GetComponent( ComponentRegistryEntry* );
-  const Component* GetComponent( ComponentRegistryEntry* ) const;
-  bool HasComponent( ComponentRegistryEntry* );
-  Component* AddNewComponent( ComponentRegistryEntry* );
-  void RemoveComponent( ComponentRegistryEntry* );
+    void             RemoveAllComponents();
 
-  void DeepCopy( const Entity& );
-  void DebugImgui();
-  //void Integrate( float time );
-  void Unparent();
-  void AddChild( Entity* child );
-  void Save( Json& entityJson );
-  void Load( Json& entityJson );
+    Component*       GetComponent( const ComponentRegistryEntry* );
+    const Component* GetComponent( const ComponentRegistryEntry* ) const;
+    bool             HasComponent( const ComponentRegistryEntry* );
+    Component*       AddNewComponent( const ComponentRegistryEntry* );
+    void             RemoveComponent( const ComponentRegistryEntry* );
 
-  Entity* mParent = nullptr;
-  Vector< Entity* > mChildren;
-  World* mWorld = nullptr;
-  EntityUUID mEntityUUID = NullEntityUUID;
-  std::list< Component* > mComponents;
+    void             DeepCopy( const Entity& );
+    void             DebugImgui();
+    //void Integrate( float time );
+    void             Unparent();
+    void             AddChild( Entity* child );
+    void             Save( Json& entityJson );
+    void             Load( Json& entityJson );
 
-  RelativeSpace mRelativeSpace;
-  bool mInheritParentScale = false;
+    Entity* mParent = nullptr;
+    Vector< Entity* > mChildren;
+    World* mWorld = nullptr;
+    EntityUUID mEntityUUID = NullEntityUUID;
+    std::list< Component* > mComponents;
 
-  v3 mWorldPosition = {};
-  m4 mWorldTransform = m4::Identity();
+    RelativeSpace mRelativeSpace;
+    bool mInheritParentScale = false;
 
-  //v3 mLocalPosition = {};
-  //v3 mLocalEulerRads = {};
-  //v3 mLocalScale = { 1, 1, 1 };
+    v3 mWorldPosition = {};
+    m4 mWorldTransform = m4::Identity();
 
-  //m4 mLocalTransform;
+    //v3 mLocalPosition = {};
+    //v3 mLocalEulerRads = {};
+    //v3 mLocalScale = { 1, 1, 1 };
 
-  //m4 mWorldTransformNoScale;
+    //m4 mLocalTransform;
 
-  String mName;
-};
+    //m4 mWorldTransformNoScale;
 
-const Vector< NetworkBit > EntityBits =
-{
-  //{ "mPosition", OffsetOf( Entity, mLocalPosition ), sizeof( float ), 3 },
-};
+    String mName;
+  };
+
+  const Vector< NetworkBit > EntityBits =
+  {
+    //{ "mPosition", OffsetOf( Entity, mLocalPosition ), sizeof( float ), 3 },
+  };
 
 
 }

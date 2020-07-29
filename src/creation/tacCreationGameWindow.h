@@ -12,7 +12,7 @@ namespace Tac
   struct Entity;
   struct Model;
   struct Errors;
-  struct DesktopWindow;
+  /*struct DesktopWindow*/;
   struct Creation;
   struct UIRoot;
   struct Debug3DDrawData;

@@ -6,7 +6,7 @@
 namespace Tac
 {
   struct Creation;
-  struct DesktopWindow;
+  /*struct DesktopWindow*/;
   struct Entity;
   struct Errors;
   struct Shell;
@@ -25,12 +25,13 @@ namespace Tac
     void Update( Errors& errors );
     void ImGui();
 
-    DesktopWindowState mDesktopWindowState;
-    DesktopWindow* mDesktopWindow = nullptr;
+    /*DesktopWindowState mDesktopWindowState*/;
+    //DesktopWindow* mDesktopWindow = nullptr;
     UI2DDrawData* mUI2DDrawData = nullptr;
+    DesktopWindowHandle mDesktopWindowHandle;
 
 
-    int mSystemIndex = -1;
+    String mSystemName;
   };
 
   const String gSystemWindowName = "SystemWindow";

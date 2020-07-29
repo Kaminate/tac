@@ -5,32 +5,32 @@
 
 namespace Tac
 {
-struct Creation;
-struct DesktopWindow;
-struct Entity;
-struct Errors;
-struct Shell;
-struct UI2DDrawData;
-struct UIHierarchyNode;
-struct UIRoot;
+  struct Creation;
+  /*struct DesktopWindow*/;
+  struct Entity;
+  struct Errors;
+  struct Shell;
+  struct UI2DDrawData;
+  struct UIHierarchyNode;
+  struct UIRoot;
 
-struct CreationProfileWindow
-{
-  static CreationProfileWindow* Instance;
-  CreationProfileWindow();
-  ~CreationProfileWindow();
-  void Init( Errors& errors );
-  void Update( Errors& errors );
-  void ImGui();
-  void ImGuiProfile();
+  struct CreationProfileWindow
+  {
+    static CreationProfileWindow* Instance;
+    CreationProfileWindow();
+    ~CreationProfileWindow();
+    void Init( Errors& errors );
+    void Update( Errors& errors );
+    void ImGui();
+    void ImGuiProfile();
 
-  DesktopWindowState mDesktopWindowState;
-  DesktopWindow* mDesktopWindow = nullptr;
-  UI2DDrawData* mUI2DDrawData = nullptr;
-  
-};
+    /*DesktopWindowState mDesktopWindowState*/;
+    //DesktopWindow* mDesktopWindow*/ = nullptr;
+    UI2DDrawData* mUI2DDrawData = nullptr;
 
-const String gProfileWindowName = "ProfileWindow";
+  };
+
+  const String gProfileWindowName = "ProfileWindow";
 
 }
 

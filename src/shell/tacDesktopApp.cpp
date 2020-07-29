@@ -192,7 +192,6 @@ namespace Tac
     {
       if( mDesktopWindows[ i ] )
         continue;
-
       mDesktopWindows[ i ] = desktopWindow;
       return;
     }

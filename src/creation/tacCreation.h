@@ -22,7 +22,7 @@ namespace Tac
   struct CreationSystemWindow;
   struct CreationProfileWindow;
   struct DesktopApp;
-  struct DesktopWindow;
+  /*struct DesktopWindow*/;
   struct Entity;
   struct Renderer;
   struct Shell;
@@ -49,6 +49,9 @@ namespace Tac
 
   const Render::ViewId ViewIdMainWindow = 0;
   const Render::ViewId ViewIdGameWindow = 1;
+  const Render::ViewId ViewIdPropertyWindow = 2;
+  const Render::ViewId ViewIdSystemWindow = 3;
+  const Render::ViewId ViewIdProfileWindow = 4;
 
   struct Creation : public UpdateThing
   {

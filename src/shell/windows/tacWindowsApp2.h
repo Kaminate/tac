@@ -20,12 +20,15 @@ namespace Tac
   struct Win32DesktopWindow : public DesktopWindow
   {
     ~Win32DesktopWindow();
-    LRESULT HandleWindowProc( UINT uMsg, WPARAM wParam, LPARAM lParam );
-    void Poll( Errors& errors );
+    LRESULT HandleWindowProc( UINT uMsg,
+                              WPARAM wParam,
+                              LPARAM lParam );
+    void    Poll( Errors& errors );
+    void*   GetOperatingSystemHandle() override;
 
-    HWND mHWND = NULL;
-    bool mIsMouseInWindow = false;
-    Errors mWindowProcErrors;
+    HWND    mHWND = NULL;
+    bool    mIsMouseInWindow = false;
+    Errors  mWindowProcErrors;
   };
 
 
@@ -33,11 +36,10 @@ namespace Tac
   {
     static WindowsApplication2* Instance;
     WindowsApplication2();
-    WindowsApplication2(
-      HINSTANCE hInstance,
-      HINSTANCE hPrevInstance,
-      LPSTR lpCmdLine,
-      int nCmdShow );
+    WindowsApplication2( HINSTANCE hInstance,
+                         HINSTANCE hPrevInstance,
+                         LPSTR lpCmdLine,
+                         int nCmdShow );
     ~WindowsApplication2();
     void                Init( Errors& errors ) override;
     void                Poll( Errors& errors ) override;
@@ -49,12 +51,12 @@ namespace Tac
                                      int y,
                                      int width,
                                      int height ) override;
-    void                GetPrimaryMonitor( Monitor* monitor, Errors& errors ) override;
+    void                GetPrimaryMonitor( Monitor*, Errors& ) override;
     void                RemoveWindow( Win32DesktopWindow* );
     void                CreateControllerInput( Errors& ) override;
 
     Win32DesktopWindow* FindWin32DesktopWindow( DesktopWindowHandle );
-    Win32DesktopWindow* FindWin32DesktopWindow( HWND hwnd );
+    Win32DesktopWindow* FindWin32DesktopWindow( HWND );
     Win32DesktopWindow* GetCursorUnobscuredWindow();
 
     // WinMain arguments

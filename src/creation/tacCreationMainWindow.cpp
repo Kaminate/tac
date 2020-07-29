@@ -152,11 +152,11 @@ namespace Tac
     ImGuiWindows();
 
     // to force directx graphics specific window debugging
-    if( ImGuiButton( "close window" ) )
-    {
-      if(mDesktopWindow)
-      mDesktopWindow->mRequestDeletion = true;
-    }
+    //if( ImGuiButton( "close window" ) )
+    //{
+    //  if(mDesktopWindow)
+    //  mDesktopWindow->mRequestDeletion = true;
+    //}
 
 #endif
 
@@ -221,17 +221,19 @@ namespace Tac
       TAC_HANDLE_ERROR( errors );
     }
 
-    if( mGameObjectMenuWindow )
+    if( CreationGameObjectMenuWindow::Instance )
     {
-      mGameObjectMenuWindow->Update( errors );
+      DesktopWindowState* menu = FindDesktopWindowState( CreationGameObjectMenuWindow::Instance->mDesktopWindowHandle );
+
+
+      CreationGameObjectMenuWindow::Instance->Update( errors );
       TAC_HANDLE_ERROR( errors );
 
       if( KeyboardInput::Instance->IsKeyJustDown( Key::MouseLeft ) &&
-        !mGameObjectMenuWindow->mDesktopWindow->mCursorUnobscured &&
-        Shell::Instance->mElapsedSeconds != mGameObjectMenuWindow->mCreationSeconds )
+        !menu->mCursorUnobscured &&
+        Shell::Instance->mElapsedSeconds != CreationGameObjectMenuWindow::Instance->mCreationSeconds )
       {
-        delete mGameObjectMenuWindow;
-        mGameObjectMenuWindow = nullptr;
+        delete CreationGameObjectMenuWindow::Instance;
       }
     }
   }

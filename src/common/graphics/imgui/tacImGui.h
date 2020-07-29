@@ -9,7 +9,7 @@ namespace Tac
 {
 
 
-struct DesktopWindow;
+/*struct DesktopWindow*/;
 struct ImGuiWindow;
 struct KeyboardInput;
 struct Shell;

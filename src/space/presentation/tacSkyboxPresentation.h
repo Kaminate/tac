@@ -6,7 +6,7 @@ namespace Tac
 {
 
   struct Camera;
-  struct DesktopWindow;
+  /*struct DesktopWindow*/;
 
 
   struct SkyboxPresentation
@@ -19,7 +19,7 @@ namespace Tac
     void Init( Errors& errors );
 
     Camera* mCamera = nullptr;
-    DesktopWindow* mDesktopWindow = nullptr;
+    //DesktopWindow* mDesktopWindow = nullptr;
 
     Render::VertexFormatHandle mVertexFormat;
     Render::ShaderHandle mShader;
