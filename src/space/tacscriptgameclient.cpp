@@ -225,7 +225,7 @@ void ScriptMatchmaker::TryConnect()
 }
 void ScriptMatchmaker::Update( float seconds, Errors& errors )
 {
-  Settings* settings = Shell::Instance->mSettings;
+  Settings* settings = Settings::Instance;
   TAC_TIMELINE_BEGIN;
   mSocket = Net::Instance->CreateSocket( "Matchmaking socket", AddressFamily::IPv4, SocketType::TCP, errors );
   TAC_HANDLE_ERROR( errors );

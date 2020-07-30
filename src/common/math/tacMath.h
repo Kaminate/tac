@@ -12,6 +12,7 @@ namespace Tac
   float RandomFloat0To1();
   float RandomFloatMinus1To1();
   float RandomFloatBetween( float a, float b );
+  int RandomIndex( int );
   float EaseInOutQuart( float t );
   float Pow( float base, float exp );
   int RoundUpToNearestMultiple( int numToRound, int multiple );

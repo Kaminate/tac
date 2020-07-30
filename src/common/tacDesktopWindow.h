@@ -61,20 +61,8 @@ namespace Tac
   {
     DesktopWindow();
     virtual ~DesktopWindow();
-    //  void SetRenderViewDefaults();
-    //  // Used to create a vulkan surface
-    //  void* mOperatingSystemApplicationHandle = nullptr;
-    //  // Of type HWND for Win32
     virtual void* GetOperatingSystemHandle() = 0;
-    //  bool mRequestDeletion = false;
-    //  RendererWindowData* mRendererData = nullptr;
-    //  //RenderView* mRenderView = nullptr;
-    //  Event<>::Emitter mOnResize;
-    //  Event<>::Emitter mOnMove;
-    //  Event<DesktopWindow*>::Emitter mOnDestroyed;
     DesktopWindowHandle mHandle; // a handle to uhh ourself
-  //  // True if the window directly under the mouse cursor is this one
-  //  // todo: Figure out a better variable name that can be negated
     bool mCursorUnobscured = false;
   };
 }

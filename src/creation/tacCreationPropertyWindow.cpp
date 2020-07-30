@@ -9,6 +9,8 @@
 #include "src/common/tacUtility.h"
 #include "src/creation/tacCreation.h"
 #include "src/creation/tacCreationPropertyWindow.h"
+#include "src/shell/tacDesktopApp.h"
+#include "src/shell/tacDesktopWindowManager.h"
 #include "src/space/model/tacModel.h"
 #include "src/space/tacComponent.h"
 #include "src/space/tacEntity.h"
@@ -36,11 +38,7 @@ namespace Tac
   {
     TAC_UNUSED_PARAMETER( errors );
     mUI2DDrawData = TAC_NEW UI2DDrawData;
-    //mUIRoot = TAC_NEW UIRoot;
-    //mUIRoot->mElapsedSeconds = &Shell::Instance->mElapsedSeconds;
-    //mUIRoot->mUI2DDrawData = mUI2DDrawData;
-    //mUIRoot->mDesktopWindow = mDesktopWindow;
-    //mUIRoot->mHierarchyRoot->mLayoutType = UILayoutType::Horizontal;
+    mDesktopWindowHandle = Creation::Instance->CreateWindow( gPropertyWindowName );
   }
 
   void CreationPropertyWindow::RecursiveEntityHierarchyElement( Entity* entity )
@@ -67,12 +65,10 @@ namespace Tac
     //mUIRoot->Render( errors );
     TAC_HANDLE_ERROR( errors );
 
-    //mDesktopWindowState;
-    //DesktopWindowState* desktopWindowState = FindDesktopWindowState( mDesktopWindow->mHandle );
-    //SetCreationWindowImGuiGlobals( mDesktopWindow,
-    //                               mUI2DDrawData,
-    //                               mDesktopWindowState.mWidth,
-    //                               mDesktopWindowState.mHeight );
+    DesktopWindowState* desktopWindowState = FindDesktopWindowState( mDesktopWindowHandle );
+    if( !desktopWindowState )
+      return;
+    SetCreationWindowImGuiGlobals( desktopWindowState, mUI2DDrawData );
 
 
     ImGuiBegin( "Properties", {} );
@@ -222,7 +218,19 @@ namespace Tac
 
     ImGuiEnd();
 
-    mUI2DDrawData->DrawToTexture( 0, 0, 0, errors );
+    Creation::WindowFramebufferInfo* info =
+      Creation::Instance->FindWindowFramebufferInfo( mDesktopWindowHandle );
+    if( !info )
+      return;
+    const float w = ( float )desktopWindowState->mWidth;
+    const float h = ( float )desktopWindowState->mHeight;
+    Render::SetViewFramebuffer( ViewIdPropertyWindow, info->mFramebufferHandle );
+    Render::SetViewport( ViewIdPropertyWindow, Viewport( w, h ) );
+    Render::SetViewScissorRect( ViewIdPropertyWindow, ScissorRect( w, h ) );
+    mUI2DDrawData->DrawToTexture( desktopWindowState->mWidth,
+                                  desktopWindowState->mHeight,
+                                  ViewIdPropertyWindow,
+                                  errors );
     TAC_HANDLE_ERROR( errors );
   }
 }

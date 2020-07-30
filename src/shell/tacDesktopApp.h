@@ -5,7 +5,7 @@
 #include "src/common/tacErrorHandling.h"
 #include "src/common/tacDesktopWindow.h"
 #include "src/common/tacMemory.h"
-#include <thread>
+#include "src/common/tackeyboardinput.h"
 
 namespace Tac
 {
@@ -35,6 +35,9 @@ namespace Tac
     void PushEventResizeWindow( DesktopWindowHandle,
                                 int w,
                                 int h );
+    void PushEventKeyState( Key, bool );
+    void PushEventKeyInput( Codepoint );
+    void PushEventMouseWheel( int ticks );
 
     void ProcessStuff();
   }
@@ -66,6 +69,9 @@ namespace Tac
     DesktopWindow*         mDesktopWindows[ kMaxDesktopWindowStateCount ] = {};
     Errors                 mErrorsMainThread;
     Errors                 mErrorsStuffThread;
+    String                 mAppName;
+    String                 mPrefPath;
+    String                 mInitialWorkingDir;
   };
 
   //struct WindowState

@@ -12,6 +12,10 @@ namespace Tac
 
   struct Settings
   {
+    static Settings* Instance;
+    void Init(Errors&);
+    Settings();
+    ~Settings();
     Json mJson;
     String mPath;
     void Load( Errors& errors );

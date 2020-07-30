@@ -685,6 +685,8 @@ namespace Tac
     void RenderFrame( Errors& errors )
     {
       TAC_ASSERT( gThreadType == ThreadType::Main );
+      if( !Renderer::Instance )
+        return;
 
       Semaphore::WaitAndDecrement( gSubmitSemaphore );
 

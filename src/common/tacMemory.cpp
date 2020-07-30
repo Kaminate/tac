@@ -18,8 +18,8 @@ namespace Tac
     // track dynamic memory allocations
     if( Shell::Instance && Shell::Instance->mElapsedSeconds > 2)
     {
-      static int asdf;
-      ++asdf;
+      static int memAllocCounter;
+      ++memAllocCounter;
     }
     return result;
 

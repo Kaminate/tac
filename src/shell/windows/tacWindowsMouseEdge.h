@@ -6,25 +6,16 @@
 #pragma once
 
 #include "src/shell/windows/tacWindows.h"
-#include "src/common/tacMemory.h"
 
 namespace Tac
 {
+  typedef int CursorDir;
+  const CursorDir CursorDirN = 0b0001;
+  const CursorDir CursorDirW = 0b0010;
+  const CursorDir CursorDirS = 0b0100;
+  const CursorDir CursorDirE = 0b1000;
 
-
-  struct Win32DesktopWindow;
-
-  typedef int CursorDirType;
-  enum CursorDir : CursorDirType
-  {
-    N = 1 << 0,
-    W = 1 << 1,
-    S = 1 << 2,
-    E = 1 << 3,
-  };
-
-
-  String ToString( CursorDir cursorType );
+  String CursorDirToString( CursorDir cursorType );
 
   struct Win32Cursors
   {
@@ -35,22 +26,32 @@ namespace Tac
     HCURSOR cursorArrowWE;
     HCURSOR cursorArrowNE_SW;
     HCURSOR cursorArrowNW_SE;
-    HCURSOR GetCursor( CursorDir cursorDir = ( CursorDir )0 );
+    HCURSOR GetCursor( CursorDir cursorDir );
   };
 
   struct Win32MouseEdgeHandler
   {
     Win32MouseEdgeHandler();
-    ~Win32MouseEdgeHandler();
 
-    void Update( Win32DesktopWindow* window );
+    void Update( HWND );
     void ResetCursorLock();
 
 
   private:
 
+    enum HandlerType
+    {
+      None,
+      Move,
+      Resize,
+    };
+
     // care to describe what this function does?
-    void SetCursorLock( CursorDir cursorDir );
+    void SetCursorLock( CursorDir );
+
+    void UpdateIdle( HWND );
+    void UpdateResize();
+    void UpdateMove();
 
     // Used to set the cursor icon
     CursorDir mCursorLock = {};
@@ -59,28 +60,12 @@ namespace Tac
     int edgeDistResizePx;
     int edgeDistMovePx;
     bool mEverSet = false;
+    HandlerType mHandlerType = HandlerType::None;
+    bool mIsFinished = false;
+    HWND mHwnd = NULL;
 
-    struct Handler
-    {
-      virtual ~Handler() = default;
-      virtual void Init() {};
-      virtual void Update() {};
-      Win32MouseEdgeHandler* mHandler = nullptr;
-      bool mIsFinished = false;
-      HWND mHwnd = NULL;
-    };
-
-    struct MoveHandler : public Handler
-    {
-      void Update() override;
-    };
-
-    struct ResizeHandler : public Handler
-    {
-      void Update() override;
-    };
-
-    Handler* mHandler = nullptr;
+    bool mMouseDownCurr = false;
+    bool mMouseDownPrev = false;
   };
 
 }

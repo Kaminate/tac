@@ -24,8 +24,7 @@ namespace Tac
     void ImGui();
     void ImGuiProfile();
 
-    /*DesktopWindowState mDesktopWindowState*/;
-    //DesktopWindow* mDesktopWindow*/ = nullptr;
+    DesktopWindowHandle mDesktopWindowHandle;
     UI2DDrawData* mUI2DDrawData = nullptr;
 
   };

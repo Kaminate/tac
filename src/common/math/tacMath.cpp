@@ -45,6 +45,12 @@ namespace Tac
   {
     return ( float )std::rand() / RAND_MAX;
   }
+
+  int RandomIndex( int n )
+  {
+    return std::rand() % n;
+  }
+
   float RandomFloatMinus1To1()
   {
     return ( RandomFloat0To1() * 2.0f ) - 1.0f;

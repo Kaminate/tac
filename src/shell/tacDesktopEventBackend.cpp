@@ -53,6 +53,21 @@ namespace Tac
       int                 mHeight;
     };
 
+    struct DataKeyState
+    {
+      Key                 mKey;
+      bool                mDown;
+    };
+
+    struct DataKeyInput
+    {
+      Codepoint mCodepoint;
+    };
+    struct DataMouseWheel
+    {
+      int mDelta;
+    };
+
     struct DataWindowMove
     {
       DesktopWindowHandle mDesktopWindowHandle;
@@ -66,6 +81,9 @@ namespace Tac
       ResizeWindow,
       MoveWindow,
       CursorUnobscured,
+      KeyState,
+      KeyInput,
+      MouseWheel,
     };
 
     bool                  QueuePop( Type* type );
@@ -175,11 +193,34 @@ namespace Tac
       QueuePush( Type::ResizeWindow, &data, sizeof( data ) );
     }
 
+    void PushEventMouseWheel(  int ticks )
+    {
+      DataMouseWheel data;
+      data.mDelta = ticks;
+      QueuePush( Type::MouseWheel, &data, sizeof( data ) );
+    }
+
+    void PushEventKeyState( Key key, bool down )
+    {
+      DataKeyState data;
+      data.mDown = down;
+      data.mKey = key;
+      QueuePush( Type::KeyState, &data, sizeof( data ) );
+    }
+
+    void PushEventKeyInput( Codepoint codepoint )
+    {
+      DataKeyInput data;
+      data.mCodepoint = codepoint;
+      QueuePush( Type::KeyInput, &data, sizeof( data ) );
+
+    }
+
     static int GetIUnusedDesktopWindow()
     {
       for( int i = 0; i < kMaxDesktopWindowStateCount; ++i )
         if( !gDesktopWindowStates[ i ].mDesktopWindowHandle.IsValid() )
-        //if( !gDesktopWindowStates[ i ].mNativeWindowHandle )
+          //if( !gDesktopWindowStates[ i ].mNativeWindowHandle )
           return i;
       TAC_INVALID_CODE_PATH;
       return -1;
@@ -235,6 +276,24 @@ namespace Tac
             DesktopWindowState* state = FindDesktopWindowState( data.mDesktopWindowHandle );
             state->mWidth = data.mWidth;
             state->mHeight = data.mHeight;
+          } break;
+          case DesktopEvent::Type::KeyInput:
+          {
+            DesktopEvent::DataKeyInput data;
+            DesktopEvent::QueuePop( &data, sizeof( data ) );
+            KeyboardInput::Instance->mWMCharPressedHax = data.mCodepoint;
+          } break;
+          case DesktopEvent::Type::KeyState:
+          {
+            DesktopEvent::DataKeyState data;
+            DesktopEvent::QueuePop( &data, sizeof( data ) );
+            KeyboardInput::Instance->SetIsKeyDown( data.mKey, data.mDown );
+          } break;
+          case DesktopEvent::Type::MouseWheel:
+          {
+            DesktopEvent::DataMouseWheel data;
+            DesktopEvent::QueuePop( &data, sizeof( data ) );
+            KeyboardInput::Instance->mCurr.mMouseScroll += data.mDelta;
           } break;
           TAC_INVALID_DEFAULT_CASE( desktopEventType );
         }

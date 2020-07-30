@@ -1,6 +1,7 @@
 #include "src/shell/windows/tacWindowsApp2.h"
 #include "src/shell/windows/tacXInput.h"
 #include "src/shell/windows/tacNetWinsock.h"
+#include "src/common/math/tacMath.h"
 //#include "src/shell/tacDesktopEventBackend.h"
 #include "src/common/tacSettings.h"
 #include "src/common/tacPreprocessor.h"
@@ -141,8 +142,8 @@ namespace Tac
   void* Win32DesktopWindow::GetOperatingSystemHandle()
   {
 
-    return mHWND ;
-    }
+    return mHWND;
+  }
 
   LRESULT Win32DesktopWindow::HandleWindowProc( UINT uMsg,
                                                 WPARAM wParam,
@@ -165,20 +166,17 @@ namespace Tac
       {
         mWidth = ( int )LOWORD( lParam );
         mHeight = ( int )HIWORD( lParam );
-        //mOnResize.EmitEvent();
         DesktopEvent::PushEventResizeWindow( mHandle, mWidth, mHeight );
       } break;
       case WM_MOVE:
       {
         mX = ( int )LOWORD( lParam );
         mY = ( int )HIWORD( lParam );
-        //mOnMove.EmitEvent();
         DesktopEvent::PushEventMoveWindow( mHandle, mX, mY );
       } break;
       case WM_CHAR:
       {
-        // TODO: convert to unicode
-        KeyboardInput::Instance->mWMCharPressedHax = ( char )wParam;
+        DesktopEvent::PushEventKeyInput( ( Codepoint )wParam );
       } break;
       case WM_SYSKEYDOWN: // fallthrough
       case WM_SYSKEYUP: // fallthrough
@@ -192,7 +190,7 @@ namespace Tac
         Key key = GetKey( ( uint8_t )wParam );
         if( key == Key::Count )
           break;
-        KeyboardInput::Instance->SetIsKeyDown( key, isDown );
+        DesktopEvent::PushEventKeyState( key, isDown );
       } break;
 
       case WM_SETFOCUS:
@@ -202,7 +200,6 @@ namespace Tac
       } break;
       case WM_KILLFOCUS:
       {
-        //KeyboardInput::Instance->mCurrDown.clear();
         if( verboseFocus )
           std::cout << "window about to lose keyboard focus" << std::endl;
       } break;
@@ -250,7 +247,7 @@ namespace Tac
       case WM_LBUTTONDOWN:
       {
         //std::cout << "WM_LBUTTONDOWN" << std::endl;
-        KeyboardInput::Instance->SetIsKeyDown( Key::MouseLeft, true );
+        DesktopEvent::PushEventKeyState( Key::MouseLeft, true );
         SetActiveWindow( mHWND ); // make it so clicking the window brings the window to the top of the z order
         //SetForegroundWindow( mHWND );
 
@@ -260,29 +257,29 @@ namespace Tac
       {
         //if( uMsg == WM_LBUTTONUP ) { std::cout << "WM_LBUTTONUP" << std::endl; }
         //else { std::cout << "WM_NCLBUTTONUP" << std::endl; }
-        KeyboardInput::Instance->SetIsKeyDown( Key::MouseLeft, false );
+        DesktopEvent::PushEventKeyState( Key::MouseLeft, false );
       } break;
 
       case WM_RBUTTONDOWN:
       {
-        KeyboardInput::Instance->SetIsKeyDown( Key::MouseRight, true );
+        DesktopEvent::PushEventKeyState( Key::MouseRight, true );
         //BringWindowToTop( mHWND );
         SetActiveWindow( mHWND ); // make it so clicking the window brings the window to the top of the z order
       } break;
       case WM_RBUTTONUP:
       {
-        KeyboardInput::Instance->SetIsKeyDown( Key::MouseRight, false );
+        DesktopEvent::PushEventKeyState( Key::MouseRight, false );
       } break;
 
       case WM_MBUTTONDOWN:
       {
-        KeyboardInput::Instance->SetIsKeyDown( Key::MouseMiddle, true );
+        DesktopEvent::PushEventKeyState( Key::MouseMiddle, true );
         //BringWindowToTop( mHWND );
         SetActiveWindow( mHWND ); // make it so clicking the window brings the window to the top of the z order
       } break;
       case WM_MBUTTONUP:
       {
-        KeyboardInput::Instance->SetIsKeyDown( Key::MouseMiddle, false );
+        DesktopEvent::PushEventKeyState( Key::MouseMiddle, false );
       } break;
 
       case WM_MOUSEMOVE:
@@ -307,13 +304,15 @@ namespace Tac
             std::cout << mName << " mouse enter " << std::endl;
           mIsMouseInWindow = true;
         }
+        const int xPos = ( ( int )( short )LOWORD( lParam ) );
+        const int yPos = ( ( int )( short )HIWORD( lParam ) );
       } break;
 
       case WM_MOUSEWHEEL:
       {
-        short wheelDeltaParam = GET_WHEEL_DELTA_WPARAM( wParam );
-        short ticks = wheelDeltaParam / WHEEL_DELTA;
-        KeyboardInput::Instance->mCurr.mMouseScroll += ( int )ticks;
+        const short wheelDeltaParam = GET_WHEEL_DELTA_WPARAM( wParam );
+        const short ticks = wheelDeltaParam / WHEEL_DELTA;
+        DesktopEvent::PushEventMouseWheel( ( int )ticks );
       } break;
 
       case WM_MOUSELEAVE:
@@ -382,7 +381,7 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
 
     // window borders should be a higher-level concept, right?
-    mShouldWindowHaveBorder = Shell::Instance->mSettings->GetBool( nullptr, { "areWindowsBordered" }, false, errors );
+    mShouldWindowHaveBorder = false; // Shell::Instance->mSettings->GetBool( nullptr, { "areWindowsBordered" }, false, errors );
     if( !mShouldWindowHaveBorder )
     {
       mMouseEdgeHandler = TAC_NEW Win32MouseEdgeHandler;
@@ -472,6 +471,22 @@ namespace Tac
     //  if( window->mRequestDeletion )
     //    OS::mShouldStopRunning = true;
 
+    //static std::map< std::string, int > mymap;
+    //static double time = 0;
+    //if( Shell::Instance && Shell::Instance->mElapsedSeconds - time > 3 )
+    //{
+    //  time = Shell::Instance->mElapsedSeconds;
+    //  std::string s;
+    //  for( int i = 0; i < 5; ++i )
+    //  {
+    //    char c = Random( { 'a', 'b', 'c', 'd', 'e' } );
+    //    s += c;
+    //  }
+    //  int i = RandomIndex( 5 );
+    //  mymap.insert( { s, i} );
+    //}
+    //const int n = mymap.size();
+    //std::cout << n << std::endl;
 
     DesktopWindowHandle unobscuredDesktopWindowHandle;
     if( cursorUnobscuredWindow )
@@ -480,7 +495,7 @@ namespace Tac
 
     if( mMouseEdgeHandler )
     {
-      mMouseEdgeHandler->Update( cursorUnobscuredWindow );
+      mMouseEdgeHandler->Update( cursorUnobscuredWindow ? cursorUnobscuredWindow->mHWND : nullptr );
 
       // if the mouse just left the window, reset the cursor lock
       //if( mMouseEdgeHandler && !mMouseEdgeHandler->IsHandling() )

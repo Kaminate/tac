@@ -30,11 +30,8 @@ namespace Tac
   void CreationSystemWindow::Init( Errors& errors )
   {
     mUI2DDrawData = new UI2DDrawData;
-    Settings* settings = Shell::Instance->mSettings;
-    mSystemName = settings->GetString( nullptr, nSysPath, "", errors );
-    int x, y, w, h;
-    Creation::Instance->GetWindowsJsonData( gSystemWindowName, &x, &y, &w, &h );
-    mDesktopWindowHandle = DesktopWindowManager::Instance->CreateWindow( x, y, w, h );
+    mSystemName = Settings::Instance->GetString( nullptr, nSysPath, "", errors );
+    mDesktopWindowHandle = Creation::Instance->CreateWindow( gSystemWindowName );
   };
   void CreationSystemWindow::ImGui()
   {
@@ -55,7 +52,7 @@ namespace Tac
         {
           mSystemName = systemRegistryEntry.mName;
           Errors e;
-          Shell::Instance->mSettings->SetString( nullptr, nSysPath, mSystemName, e );
+          Settings::Instance->SetString( nullptr, nSysPath, mSystemName, e );
         }
         if( mSystemName == systemRegistryEntry.mName )
         {

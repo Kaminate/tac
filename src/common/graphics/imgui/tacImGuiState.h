@@ -56,6 +56,11 @@ namespace Tac
   };
 
 
+  typedef int ImGuiResourceId;
+
+  ImGuiResourceId ImGuiRegisterWindowResource( StringView name,
+                                               void* initialDataBytes,
+                                               int initialDataByteCount );
 
   struct ImGuiWindow
   {
@@ -66,14 +71,9 @@ namespace Tac
     void ComputeClipInfo( bool* clipped, ImGuiRect* clipRect );
     void UpdateMaxCursorDrawPos( v2 pos );
     ImGuiId GetID();
-    void SeTiveID( ImGuiId );
-    ImGuiId GeTiveID();
+    void SetActiveID( ImGuiId );
+    ImGuiId GetActiveID();
 
-    typedef int ResourceId;
-    static ResourceId RegisterResource(
-      StringView name,
-      void* initialDataBytes,
-      int initialDataByteCount );
 
     String mName;
     ImGuiWindow* mParent = nullptr;
@@ -112,12 +112,12 @@ namespace Tac
 
     bool mIsAppendingToMenu = false;
 
-    void* GetWindowResource( ResourceId id );
+    void* GetWindowResource( ImGuiResourceId id );
 
     struct ImGuiWindowResource
     {
       ImGuiId mImGuiId;
-      ResourceId mResourceId;
+      ImGuiResourceId mResourceId;
       Vector<char> mData;
     };
     Vector<ImGuiWindowResource> mResources;

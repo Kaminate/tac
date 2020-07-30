@@ -34,12 +34,7 @@ namespace Tac
   void CreationMainWindow::Init( Errors& )
   {
     mUI2DDrawData = TAC_NEW UI2DDrawData;
-    int x;
-    int y;
-    int w;
-    int h;
-    Creation::Instance->GetWindowsJsonData( gMainWindowName, &x, &y, &w, &h );
-    mDesktopWindowHandle = DesktopWindowManager::Instance->CreateWindow( x, y, w, h );
+    mDesktopWindowHandle = Creation::Instance->CreateWindow( gMainWindowName );
   }
 
   void CreationMainWindow::LoadTextures( Errors& errors )
@@ -160,13 +155,6 @@ namespace Tac
 
 #endif
 
-    //static bool hello;
-    //if( ImGuiButton( "asdf" ) )
-    //{
-    //  hello = true;
-    //}
-    //if( hello )
-    //  ImGuiText( "hello" );
 
     ImGuiEnd();
   }

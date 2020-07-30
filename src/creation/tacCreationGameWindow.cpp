@@ -180,12 +180,7 @@ namespace Tac
   }
   void CreationGameWindow::Init( Errors& errors )
   {
-    int x;
-    int y;
-    int w;
-    int h;
-    Creation::Instance->GetWindowsJsonData( gGameWindowName, &x, &y, &w, &h );
-    mDesktopWindowHandle = DesktopWindowManager::Instance->CreateWindow( x, y, w, h );
+    mDesktopWindowHandle = Creation::Instance->CreateWindow( gGameWindowName );
 
     Creation* creation = Creation::Instance;
     auto uI2DDrawData = TAC_NEW UI2DDrawData;

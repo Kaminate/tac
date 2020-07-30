@@ -32,19 +32,18 @@ namespace Tac
 
   struct KeyboardInputFrame
   {
-    bool IsKeyDown( Key key );
-    String GetPressedKeyDescriptions();
-
-    bool mCurrDown[ ( int )Key::Count ] = {};
-    //std::set< Key > mCurrDown;
-    v2 mScreenspaceCursorPos = {};
-    int mMouseScroll = 0;
-    Errors mScreenspaceCursorPosErrors;
+    bool    IsKeyDown( Key key );
+    String  GetPressedKeyDescriptions();
+    bool    mCurrDown[ ( int )Key::Count ] = {};
+    v2      mScreenspaceCursorPos = {};
+    int     mMouseScroll = 0;
+    Errors  mScreenspaceCursorPosErrors;
   };
+
 
   struct KeyboardInput
   {
-    static KeyboardInput* Instance;
+    static thread_local KeyboardInput* Instance;
     KeyboardInput();
     bool HasKeyJustBeenReleased( Key key );
     bool IsKeyJustDown( Key key );

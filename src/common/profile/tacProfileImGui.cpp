@@ -12,12 +12,11 @@ namespace Tac
   struct ImguiProfileWidgetData
   {
     float mLMiliseconds = miniMiliseconds;
-    //float mRMiliseconds = 17.0f;
     float mRMiliseconds = 47.0f;
   };
 
-  static const ImGuiWindow::ResourceId profileWidgetId =
-    ImGuiWindow::RegisterResource(
+  static const ImGuiResourceId profileWidgetId =
+    ImGuiRegisterWindowResource(
       TAC_STRINGIFY( ImguiProfileWidgetData ),
       &( ImguiProfileWidgetData() ),
       sizeof( ImguiProfileWidgetData ) );
@@ -115,27 +114,24 @@ namespace Tac
 
 
     v4 textColor = v4( v3( 1, 1, 1 ) * ( ( boxColor.x + boxColor.y + boxColor.z / 3.0f ) > 0.5f ? 0.0f : 1.0f ), 1 );
-    drawData->AddText(
-      textPos,
-      ImGuiGlobals::Instance.mUIStyle.fontSize,
-      profileFunction->mFrame.mFunction,
-      textColor,
-      &textClipRect );
+    drawData->AddText( textPos,
+                       ImGuiGlobals::Instance.mUIStyle.fontSize,
+                       profileFunction->mFrame.mFunction,
+                       textColor,
+                       &textClipRect );
 
-    ImGuiProfileWidgetFunction(
-      profileWidgetData,
-      profileFunction->mNext,
-      timelineLeft,
-      timelineRight,
-      frameBeginTime,
-      depth );
-    ImGuiProfileWidgetFunction(
-      profileWidgetData,
-      profileFunction->mChildren,
-      timelineLeft,
-      timelineRight,
-      frameBeginTime,
-      depth + 1 );
+    ImGuiProfileWidgetFunction( profileWidgetData,
+                                profileFunction->mNext,
+                                timelineLeft,
+                                timelineRight,
+                                frameBeginTime,
+                                depth );
+    ImGuiProfileWidgetFunction( profileWidgetData,
+                                profileFunction->mChildren,
+                                timelineLeft,
+                                timelineRight,
+                                frameBeginTime,
+                                depth + 1 );
   }
 
   void ImGuiProfileWidget( ProfileFunction* profileFunction )
@@ -187,21 +183,19 @@ namespace Tac
       String timestamp( timestampSV.data(), timestampSV.size() );
 
       v2 rSize = drawData->CalculateTextSize( timestamp, ImGuiGlobals::Instance.mUIStyle.fontSize );
-      drawData->AddText(
-        tickTop - v2( rSize.x / 2.0f, ( float )ImGuiGlobals::Instance.mUIStyle.fontSize ),
-        ImGuiGlobals::Instance.mUIStyle.fontSize,
-        timestamp,
-        ImGuiGlobals::Instance.mUIStyle.textColor, nullptr );
+      drawData->AddText( tickTop - v2( rSize.x / 2.0f, ( float )ImGuiGlobals::Instance.mUIStyle.fontSize ),
+                         ImGuiGlobals::Instance.mUIStyle.fontSize,
+                         timestamp,
+                         ImGuiGlobals::Instance.mUIStyle.textColor, nullptr );
     }
 
     Timepoint frameBeginTime = profileFunction->mBeginTime;
-    ImGuiProfileWidgetFunction(
-      profileWidgetData,
-      profileFunction,
-      timelineLeft,
-      timelineRight,
-      frameBeginTime,
-      0 );
+    ImGuiProfileWidgetFunction( profileWidgetData,
+                                profileFunction,
+                                timelineLeft,
+                                timelineRight,
+                                frameBeginTime,
+                                0 );
 
     if( outputWindowFrameTimes )
     {

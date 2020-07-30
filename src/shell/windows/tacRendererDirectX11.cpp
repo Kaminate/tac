@@ -866,7 +866,10 @@ namespace Tac
       {
         const Render::View* view = &frame->mViews[ drawCall->mViewId ];
         Render::FramebufferHandle framebufferHandle = view->mFrameBufferHandle;
+
+        // Did you forget to call Render::SetViewFramebuffer?
         TAC_ASSERT( framebufferHandle.IsValid() );
+
         Framebuffer* framebuffer = &mFramebuffers[ framebufferHandle.mResourceId ];
         ID3D11RenderTargetView* renderTargetView = framebuffer->mRenderTargetView;
         ID3D11DepthStencilView* depthStencilView = framebuffer->mDepthStencilView;
@@ -879,7 +882,7 @@ namespace Tac
         const UINT8 ClearStencil = 0;
         mDeviceContext->ClearDepthStencilView( depthStencilView, ClearFlags, ClearDepth, ClearStencil );
 
-        const FLOAT ClearGrey = 0.2f;
+        const FLOAT ClearGrey = 0.1f;
         const FLOAT ClearColorRGBA[] = { ClearGrey, ClearGrey,ClearGrey,  1.0f };
         mDeviceContext->ClearRenderTargetView( renderTargetView, ClearColorRGBA );
 

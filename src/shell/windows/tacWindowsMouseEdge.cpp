@@ -1,27 +1,16 @@
-#include "src/common/tacKeyboardinput.h"
-#include "src/common/tacAlgorithm.h"
 #include "src/shell/windows/tacWindowsMouseEdge.h"
-#include "src/shell/windows/tacWindowsApp2.h"
 
 namespace Tac
 {
-
-
-  // enum classes amiright
-  static void operator |= ( CursorDir& lhs, CursorDir rhs )
-  {
-    lhs = ( CursorDir )( ( CursorDirType )lhs | ( CursorDirType )rhs );
-  }
-
-  String ToString( CursorDir cursorType )
+  String CursorDirToString( CursorDir cursorType )
   {
     if( !cursorType )
       return "Default";
     String result;
-    if( cursorType & CursorDir::N ) result += "N";
-    if( cursorType & CursorDir::W ) result += "W";
-    if( cursorType & CursorDir::S ) result += "S";
-    if( cursorType & CursorDir::E ) result += "E";
+    if( cursorType & CursorDirN ) result += "N";
+    if( cursorType & CursorDirW ) result += "W";
+    if( cursorType & CursorDirS ) result += "S";
+    if( cursorType & CursorDirE ) result += "E";
     return result;
   }
 
@@ -39,26 +28,18 @@ namespace Tac
   HCURSOR Win32Cursors::GetCursor( CursorDir cursorDir )
   {
     // switch by the integral type cuz of the bit-twiddling
-    switch( ( CursorDirType )cursorDir )
+    switch( cursorDir )
     {
-      case CursorDir::N: return cursorArrowNS;
-      case CursorDir::W: return cursorArrowWE;
-      case CursorDir::S: return cursorArrowNS;
-      case CursorDir::E: return cursorArrowWE;
-      case CursorDir::N | CursorDir::E: return cursorArrowNE_SW;
-      case CursorDir::S | CursorDir::W: return cursorArrowNE_SW;
-      case CursorDir::N | CursorDir::W: return cursorArrowNW_SE;
-      case CursorDir::S | CursorDir::E: return cursorArrowNW_SE;
+      case CursorDirN: return cursorArrowNS;
+      case CursorDirW: return cursorArrowWE;
+      case CursorDirS: return cursorArrowNS;
+      case CursorDirE: return cursorArrowWE;
+      case CursorDirN | CursorDirE: return cursorArrowNE_SW;
+      case CursorDirS | CursorDirW: return cursorArrowNE_SW;
+      case CursorDirN | CursorDirW: return cursorArrowNW_SE;
+      case CursorDirS | CursorDirE: return cursorArrowNW_SE;
       default: return cursorArrow;
     }
-  }
-
-  BOOL enumfunc( HWND hwndchild, LPARAM userdata )
-  {
-    TAC_UNUSED_PARAMETER( userdata );
-    std::cout << "child " << hwndchild << std::endl;
-
-    return TRUE; // to continue enumerating
   }
 
   Win32MouseEdgeHandler::Win32MouseEdgeHandler()
@@ -72,26 +53,30 @@ namespace Tac
     // completely obscure the move border and youd never be able to move your window.
     TAC_ASSERT( edgeDistMovePx > edgeDistResizePx );
   }
-  Win32MouseEdgeHandler::~Win32MouseEdgeHandler()
+  void Win32MouseEdgeHandler::Update( HWND hwnd )
   {
-    delete mHandler;
-  }
-  void Win32MouseEdgeHandler::Update( Win32DesktopWindow* window )
-  {
-    if( mHandler )
+    mMouseDownPrev = mMouseDownCurr;
+    mMouseDownCurr = GetKeyState( VK_LBUTTON ) & 0x100;
+
+    if( mHandlerType == HandlerType::None )
     {
-      mHandler->Update();
-      if( !KeyboardInput::Instance->IsKeyDown( Key::MouseLeft ) )
-      {
-        delete mHandler;
-        mHandler = nullptr;
-      }
-      return;
+      UpdateIdle( hwnd );
+    }
+    else
+    {
+      if( !mMouseDownCurr )
+        mHandlerType = HandlerType::None;
+      if( mHandlerType == HandlerType::Move )
+        UpdateMove();
+      if( mHandlerType == HandlerType::Resize )
+        UpdateResize();
     }
 
-    if( !window )
+  }
+  void Win32MouseEdgeHandler::UpdateIdle( HWND windowHandle )
+  {
+    if( !windowHandle )
       return;
-    HWND windowHandle = window->mHWND;
 
     POINT cursorPos;
     GetCursorPos( &cursorPos );
@@ -106,10 +91,11 @@ namespace Tac
       return;
 
     CursorDir cursorLock = {};
-    if( cursorPos.x < windowRect.left + edgeDistResizePx ) cursorLock |= CursorDir::E;
-    if( cursorPos.x > windowRect.right - edgeDistResizePx ) cursorLock |= CursorDir::W;
-    if( cursorPos.y > windowRect.bottom - edgeDistResizePx ) cursorLock |= CursorDir::N;
-    if( cursorPos.y < windowRect.top + edgeDistResizePx ) cursorLock |= CursorDir::S;
+    cursorLock |= cursorPos.x < windowRect.left + edgeDistResizePx ? CursorDirE : 0;
+    cursorLock |= cursorPos.x > windowRect.right - edgeDistResizePx ? CursorDirW : 0;
+    cursorLock |= cursorPos.y > windowRect.bottom - edgeDistResizePx ? CursorDirN : 0;
+    cursorLock |= cursorPos.y < windowRect.top + edgeDistResizePx ? CursorDirS : 0;
+
     if( mCursorLock != cursorLock || !mEverSet )
     {
       mEverSet = true;
@@ -117,22 +103,17 @@ namespace Tac
       SetCursor( cursor );
       SetCursorLock( cursorLock );
     }
-    if( KeyboardInput::Instance->IsKeyJustDown( Key::MouseLeft ) )
+    if( mMouseDownCurr && !mMouseDownPrev )
     {
       if( cursorLock )
-        mHandler = TAC_NEW ResizeHandler;
+        mHandlerType = HandlerType::Resize;
       else if( cursorPos.y < windowRect.top + edgeDistMovePx )
-        mHandler = TAC_NEW MoveHandler;
+        mHandlerType = HandlerType::Move;
     }
 
-    if( mHandler )
-    {
-      mCursorPositionOnClick = cursorPos;
-      mWindowRectOnClick = windowRect;
-      mHandler->mHandler = this;
-      mHandler->mHwnd = windowHandle;
-    }
-
+    mCursorPositionOnClick = cursorPos;
+    mWindowRectOnClick = windowRect;
+    mHwnd = windowHandle;
   }
   void Win32MouseEdgeHandler::ResetCursorLock()
   {
@@ -143,35 +124,36 @@ namespace Tac
     bool verbose = false;
     if( verbose )
     {
-      std::cout << "Cursor lock: " << ToString( cursorDir ) << std::endl;;
+      std::cout << "Cursor lock: " << CursorDirToString( cursorDir ) << std::endl;;
     }
     mCursorLock = cursorDir;
   }
-  void Win32MouseEdgeHandler::ResizeHandler::Update()
+
+  void Win32MouseEdgeHandler::UpdateResize()
   {
     POINT cursorPos;
     GetCursorPos( &cursorPos );
-    LONG dx = cursorPos.x - mHandler->mCursorPositionOnClick.x;
-    LONG dy = cursorPos.y - mHandler->mCursorPositionOnClick.y;
-    RECT rect = mHandler->mWindowRectOnClick;
-    if( mHandler->mCursorLock & CursorDir::N ) rect.bottom += dy;
-    if( mHandler->mCursorLock & CursorDir::S ) rect.top += dy;
-    if( mHandler->mCursorLock & CursorDir::E ) rect.left += dx;
-    if( mHandler->mCursorLock & CursorDir::W ) rect.right += dx;
+    LONG dx = cursorPos.x - mCursorPositionOnClick.x;
+    LONG dy = cursorPos.y - mCursorPositionOnClick.y;
+    RECT rect = mWindowRectOnClick;
+    rect.bottom += mCursorLock & CursorDirN ? dy : 0;
+    rect.top += mCursorLock & CursorDirS ? dy : 0;
+    rect.left += mCursorLock & CursorDirE ? dx : 0;
+    rect.right += mCursorLock & CursorDirW ? dx : 0;
     int x = rect.left;
     int y = rect.top;
     int w = rect.right - rect.left;
     int h = rect.bottom - rect.top;
     MoveWindow( mHwnd, x, y, w, h, TRUE );
   }
-  void Win32MouseEdgeHandler::MoveHandler::Update()
+  void Win32MouseEdgeHandler::UpdateMove()
   {
     POINT cursorPos;
     GetCursorPos( &cursorPos );
-    int x = mHandler->mWindowRectOnClick.left + cursorPos.x - mHandler->mCursorPositionOnClick.x;
-    int y = mHandler->mWindowRectOnClick.top + cursorPos.y - mHandler->mCursorPositionOnClick.y;
-    int w = mHandler->mWindowRectOnClick.right - mHandler->mWindowRectOnClick.left;
-    int h = mHandler->mWindowRectOnClick.bottom - mHandler->mWindowRectOnClick.top;
+    int x = mWindowRectOnClick.left + cursorPos.x - mCursorPositionOnClick.x;
+    int y = mWindowRectOnClick.top + cursorPos.y - mCursorPositionOnClick.y;
+    int w = mWindowRectOnClick.right - mWindowRectOnClick.left;
+    int h = mWindowRectOnClick.bottom - mWindowRectOnClick.top;
     MoveWindow( mHwnd, x, y, w, h, TRUE );
   }
 

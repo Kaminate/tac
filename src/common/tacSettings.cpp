@@ -3,9 +3,29 @@
 #include "src/common/tacMemory.h"
 #include "src/common/tacOS.h"
 #include "src/common/tacTemporaryMemory.h"
+#include "src/shell/tacDesktopApp.h"
 
 namespace Tac
 {
+  Settings* Settings::Instance = nullptr;
+
+  Settings::~Settings()
+  {
+    Instance = nullptr;
+
+  }
+  Settings::Settings()
+  {
+    Instance = this;
+  }
+  void Settings::Init( Errors& errors )
+  {
+    StringView appName = DesktopApp::Instance->mAppName;
+    StringView prefPath = DesktopApp::Instance->mPrefPath;
+    mPath = prefPath + "/" + appName + "Settings.txt";
+    Load( errors );
+    TAC_HANDLE_ERROR( errors );
+  }
   void Settings::Load( Errors& errors )
   {
     if( !FileExist( mPath ) )

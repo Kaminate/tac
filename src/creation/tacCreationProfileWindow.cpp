@@ -29,6 +29,7 @@ namespace Tac
   {
     TAC_UNUSED_PARAMETER( errors );
     mUI2DDrawData = TAC_NEW UI2DDrawData;
+    mDesktopWindowHandle = Creation::Instance->CreateWindow( gProfileWindowName );
   };
   void CreationProfileWindow::ImGuiProfile()
   {
@@ -37,14 +38,16 @@ namespace Tac
   }
   void CreationProfileWindow::ImGui()
   {
-    //FindDesktopWindowState()
-    //SetCreationWindowImGuiGlobals( mDesktopWindow,
+    DesktopWindowState* desktopWindowState = FindDesktopWindowState( mDesktopWindowHandle );
+    if( !desktopWindowState )
+      return;
+    SetCreationWindowImGuiGlobals( desktopWindowState, mUI2DDrawData );
     //                               mUI2DDrawData,
     //                               mDesktopWindowState.mWidth,
     //                               mDesktopWindowState.mHeight );
-    //ImGuiBegin( "Profile Window", {} );
+    ImGuiBegin( "Profile Window", {} );
 
-    //ImGuiText( "i am the profile window" );
+    ImGuiText( "i am the profile window" );
 
     //// to force directx graphics specific window debugging
     //if( ImGuiButton( "close window" ) )
@@ -52,17 +55,29 @@ namespace Tac
     //  mDesktopWindow->mRequestDeletion = true;
     //}
 
-    //ImGuiProfile();
+    ImGuiProfile();
 
 
 
-    //ImGuiEnd();
+    ImGuiEnd();
   }
   void CreationProfileWindow::Update( Errors& errors )
   {
-    //mDesktopWindow->SetRenderViewDefaults();
+    DesktopWindowState* desktopWindowState = FindDesktopWindowState( mDesktopWindowHandle );
+    if( !desktopWindowState )
+      return;
+    const float w = ( float )desktopWindowState->mWidth;
+    const float h = ( float )desktopWindowState->mHeight;
+    Creation::WindowFramebufferInfo* info =
+      Creation::Instance->FindWindowFramebufferInfo( mDesktopWindowHandle );
+    Render::SetViewFramebuffer( ViewIdProfileWindow, info->mFramebufferHandle );
+    Render::SetViewport( ViewIdProfileWindow, Viewport( w, h ) );
+    Render::SetViewScissorRect( ViewIdProfileWindow, ScissorRect( w, h ) );
     ImGui();
-    mUI2DDrawData->DrawToTexture( 0, 0, 0, errors );
+    mUI2DDrawData->DrawToTexture( desktopWindowState->mWidth ,
+                                  desktopWindowState->mHeight ,
+                                  ViewIdProfileWindow,
+                                  errors );
     TAC_HANDLE_ERROR( errors );
   }
 

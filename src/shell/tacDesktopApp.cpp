@@ -8,6 +8,7 @@
 #include "src/common/tacOS.h"
 #include "src/common/tacFrameMemory.h"
 #include "src/common/containers/tacFrameVector.h"
+#include "src/common/tacSettings.h"
 #include "src/shell/tacDesktopApp.h"
 #include "src/shell/tacDesktopWindowManager.h"
 
@@ -21,7 +22,6 @@ namespace Tac
   DesktopApp::DesktopApp()
   {
     Instance = this;
-    TAC_NEW Shell;
   }
 
   DesktopApp::~DesktopApp()
@@ -42,11 +42,25 @@ namespace Tac
   static void StuffThread()
   {
     Errors& errors = DesktopApp::Instance->mErrorsStuffThread;
+    TAC_ON_DESTRUCT( if( errors.size() ) OS::mShouldStopRunning = true );
 
     gThreadType = ThreadType::Stuff;
 
     sAllocatorStuff.Init( 1024 * 1024 * 10 );
     FrameMemory::SetThreadAllocator( &sAllocatorStuff );
+
+    
+    TAC_NEW KeyboardInput;
+    TAC_NEW Shell;
+    Shell::Instance->mAppName = DesktopApp::Instance->mAppName;
+    Shell::Instance->mPrefPath = DesktopApp::Instance->mPrefPath;
+    Shell::Instance->mInitialWorkingDir = DesktopApp::Instance->mInitialWorkingDir;
+    Shell::Instance->Init( errors );
+    TAC_HANDLE_ERROR( errors );
+
+    TAC_NEW Settings;
+    Settings::Instance->Init( errors );
+    Settings::Instance->Load( errors );
 
     TAC_NEW ProfileSystem;
     ProfileSystem::Instance->Init();
@@ -60,13 +74,17 @@ namespace Tac
     DesktopApp::Instance->CreateControllerInput( errors );
     TAC_HANDLE_ERROR( errors );
 
+    UpdateThing::Instance->Init( errors );
+
     while( !OS::mShouldStopRunning )
     {
+      KeyboardInput::Instance->BeginFrame();
       Shell::Instance->Update( errors );
       TAC_HANDLE_ERROR( errors );
 
       UpdateThing::Instance->Update( errors );
       TAC_HANDLE_ERROR( errors );
+      KeyboardInput::Instance->EndFrame();
 
       DontMaxOutCpuGpuPowerUsage();
     }
@@ -74,7 +92,9 @@ namespace Tac
 
   static void MainThread()
   {
+    //TAC_NEW KeyboardInput;
     Errors& errors = DesktopApp::Instance->mErrorsMainThread;
+    TAC_ON_DESTRUCT( if( errors.size() ) OS::mShouldStopRunning = true );
     while( !OS::mShouldStopRunning )
     {
 
@@ -149,14 +169,11 @@ namespace Tac
     OS::GetWorkingDir( workingDir, errors );
     TAC_HANDLE_ERROR( errors );
 
-    TAC_NEW Shell;
-    Shell::Instance->mAppName = appName;
-    Shell::Instance->mPrefPath = prefPath;
-    Shell::Instance->mInitialWorkingDir = workingDir;
-    Shell::Instance->Init( errors );
-    TAC_HANDLE_ERROR( errors );
+    mAppName = appName;
+    mPrefPath = prefPath;
+    mInitialWorkingDir = workingDir;
 
-    UpdateThing::Instance->Init( errors );
+
     TAC_HANDLE_ERROR( errors );
 
   }

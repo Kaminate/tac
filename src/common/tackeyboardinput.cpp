@@ -60,7 +60,6 @@ namespace Tac
   bool KeyboardInputFrame::IsKeyDown( Key key )
   {
     return mCurrDown[ ( int )key ];
-    //return mCurrDown.find( key ) != mCurrDown.end();
   }
   String KeyboardInputFrame::GetPressedKeyDescriptions()
   {
@@ -94,17 +93,10 @@ namespace Tac
   void KeyboardInput::SetIsKeyDown( Key key, bool isDown )
   {
     mCurr.mCurrDown[ ( int )key ] = isDown;
-    //if( isDown )
-    //{
-    //  mCurr.mCurrDown.insert( key );
-    //}
-    //else
-    //{
-    //  mCurr.mCurrDown.erase( key );
-    //}
   }
 
-  KeyboardInput* KeyboardInput::Instance;
+  // should only be used in the stuffthread
+  thread_local KeyboardInput* KeyboardInput::Instance;
   KeyboardInput::KeyboardInput()
   {
     Instance = this;

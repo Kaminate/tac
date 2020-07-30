@@ -12,11 +12,57 @@ namespace Tac
   {
     String mName;
     Vector<char> mInitialData;
-    ImGuiWindow::ResourceId mId;
+    ImGuiResourceId mId;
   };
 
-  static Vector<RegisteredWindowResource> gRegisteredWindowResources;
+  struct WindowResourceRegistry
+  {
+    static WindowResourceRegistry* GetInstance();
+    ImGuiResourceId                RegisterResource( StringView name,
+                                                     void* initialDataBytes,
+                                                     int initialDataByteCount );
+    RegisteredWindowResource*      FindResource( ImGuiResourceId  resourceId );
+  private:
+    Vector< RegisteredWindowResource > mRegisteredWindowResources;
+    int mResourceCounter = 0;
+  };
+  RegisteredWindowResource* WindowResourceRegistry::FindResource( ImGuiResourceId  resourceId )
+  {
+    for( RegisteredWindowResource& resource : mRegisteredWindowResources )
+      if( resource.mId == resourceId )
+        return &resource;
+    return nullptr;
+  }
+  WindowResourceRegistry* WindowResourceRegistry::GetInstance()
+  {
+    static WindowResourceRegistry instance;
+    return &instance;
+  }
 
+  ImGuiResourceId WindowResourceRegistry::RegisterResource( StringView name,
+                                                            void* initialDataBytes,
+                                                            int initialDataByteCount )
+  {
+    const char* dataBegin = ( char* )initialDataBytes;
+    const char* dataEnd = ( char* )initialDataBytes + initialDataByteCount;
+    const ImGuiResourceId id = mResourceCounter++;
+    RegisteredWindowResource resource;
+    resource.mInitialData = Vector< char >( dataBegin, dataEnd );
+    resource.mName = name;
+    resource.mId = id;
+    mRegisteredWindowResources.push_back( resource );
+    return id;
+  }
+
+  ImGuiResourceId ImGuiRegisterWindowResource( StringView name,
+                                               void* initialDataBytes,
+                                               int initialDataByteCount )
+  {
+    return WindowResourceRegistry::GetInstance()->RegisterResource( name,
+                                                                    initialDataBytes,
+                                                                    initialDataByteCount );
+
+  }
 
   ImGuiGlobals ImGuiGlobals::Instance;
 
@@ -61,7 +107,7 @@ namespace Tac
         mPos.y };
       v2 maxi = mPos + mSize;
       v4 scrollbarBackgroundColor = v4( 0.4f, 0.2f, 0.8f, 1.0f );
-          Render::TextureHandle invalidTexture;
+      Render::TextureHandle invalidTexture;
 
       ui2DDrawData->AddBox( mini, maxi, scrollbarBackgroundColor, invalidTexture, nullptr );
 
@@ -100,7 +146,7 @@ namespace Tac
           mScrolling = false;
       }
       else if( KeyboardInput::Instance->IsKeyJustDown( Key::MouseLeft ) &&
-        ImGuiGlobals::Instance.IsHovered( ImGuiRect::FromMinMax( mini, maxi ) ) )
+               ImGuiGlobals::Instance.IsHovered( ImGuiRect::FromMinMax( mini, maxi ) ) )
       {
         Errors mouseErrors;
         v2 mousePosScreenspace;
@@ -143,7 +189,7 @@ namespace Tac
         mIDAllocator = TAC_NEW ImGuiIDAllocator;
       mIDAllocator->mIDCounter = 0;
       if( !ImGuiGlobals::Instance.mIsWindowDirectlyUnderCursor &&
-        KeyboardInput::Instance->IsKeyJustDown( Key::MouseLeft ) )
+          KeyboardInput::Instance->IsKeyJustDown( Key::MouseLeft ) )
       {
         mIDAllocator->mActiveID = ImGuiIdNull;
       }
@@ -159,7 +205,8 @@ namespace Tac
     //}
     //mActiveIDPrev = mActiveID;
   }
-  void ImGuiWindow::ComputeClipInfo( bool* clipped, ImGuiRect* clipRect )
+  void ImGuiWindow::ComputeClipInfo( bool* clipped,
+                                     ImGuiRect* clipRect )
   {
     auto windowRect = ImGuiRect::FromPosSize( mPos, mSize );
     *clipped =
@@ -189,11 +236,11 @@ namespace Tac
     mMaxiCursorDrawPos.x = Max( mMaxiCursorDrawPos.x, pos.x );
     mMaxiCursorDrawPos.y = Max( mMaxiCursorDrawPos.y, pos.y );
   }
-  ImGuiId  ImGuiWindow::GeTiveID()
+  ImGuiId ImGuiWindow::GetActiveID()
   {
     return mIDAllocator->mActiveID;
   }
-  void ImGuiWindow::SeTiveID( ImGuiId id )
+  void ImGuiWindow::SetActiveID( ImGuiId id )
   {
     mIDAllocator->mActiveID = id;
   }
@@ -202,45 +249,15 @@ namespace Tac
     return mIDAllocator->mIDCounter++;
   }
 
-  ImGuiWindow::ResourceId ImGuiWindow::RegisterResource(
-    StringView name,
-    void* initialDataBytes,
-    int initialDataByteCount )
-  {
-    static int resourceCounter;
-    ImGuiWindow::ResourceId id = resourceCounter++;
 
-
-    RegisteredWindowResource resource;
-    resource.mInitialData = Vector<char>( ( char* )initialDataBytes, ( char* )initialDataBytes + initialDataByteCount );
-    resource.mName = name;
-    resource.mId = id;
-    gRegisteredWindowResources.push_back( resource );
-    return id;
-  }
-
-  void* ImGuiWindow::GetWindowResource( ResourceId resourceId )
+  void* ImGuiWindow::GetWindowResource( ImGuiResourceId resourceId )
   {
     ImGuiId imGuiId = GetID();
     for( ImGuiWindowResource& resource : mResources )
-    {
       if( resource.mImGuiId == imGuiId && resource.mResourceId == resourceId )
-      {
         return resource.mData.data();
-      }
-    }
 
-
-
-    RegisteredWindowResource* pRegistered = nullptr;
-    for( RegisteredWindowResource& resource : gRegisteredWindowResources )
-    {
-      if( resource.mId == resourceId )
-      {
-        pRegistered = &resource;
-      }
-    }
-
+    RegisteredWindowResource* pRegistered = WindowResourceRegistry::GetInstance()->FindResource( resourceId );
     TAC_ASSERT( pRegistered );
 
     mResources.resize( mResources.size() + 1 );

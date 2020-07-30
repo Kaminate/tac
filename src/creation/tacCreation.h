@@ -87,8 +87,9 @@ namespace Tac
     void CreateMainWindow( Errors& errors );
     void CreateSystemWindow( Errors& errors );
     void CreateProfileWindow( Errors& errors );
+    DesktopWindowHandle CreateWindow( StringView );
 
-    void CreateDesktopWindow( String windowName, DesktopWindow** outDesktopWindow, Errors& errors );
+    //void CreateDesktopWindow( String windowName, DesktopWindow** outDesktopWindow, Errors& errors );
     bool ShouldCreateWindowNamed( StringView name );
     void GetWindowsJson( Json** outJson, Errors& errors );
     void GetWindowsJsonData( String windowName, int* x, int* y, int* w, int* h );

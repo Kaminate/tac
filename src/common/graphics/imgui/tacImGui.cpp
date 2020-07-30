@@ -338,7 +338,7 @@ namespace Tac
       return textChanged;
 
     if( ImGuiGlobals::Instance.IsHovered( clipRect ) && KeyboardInput::Instance->IsKeyJustDown( Key::MouseLeft ) )
-      window->SeTiveID( id );
+      window->SetActiveID( id );
 
     v3 textBackgroundColor3 = { 1, 1, 0 };
 
@@ -356,7 +356,7 @@ namespace Tac
                       texture,
                       &clipRect );
 
-    if( window->GeTiveID() == id )
+    if( window->GetActiveID() == id )
     {
       CodepointView oldCodepoints = UTF8ToCodepoints( text );
       CodepointView newCodepoints = CodepointView( inputData->mCodepoints.data(),
@@ -448,7 +448,7 @@ namespace Tac
       {
         color3 /= 2.0f;
         clicked = true;
-        window->SeTiveID( id );
+        window->SetActiveID( id );
       }
     }
 
@@ -663,9 +663,9 @@ namespace Tac
 
     if( ImGuiGlobals::Instance.IsHovered( clipRect ) && KeyboardInput::Instance->IsKeyJustDown( Key::MouseLeft ) )
     {
-      window->SeTiveID( id );
+      window->SetActiveID( id );
     }
-    if( window->GeTiveID() == id )
+    if( window->GetActiveID() == id )
     {
       if( dragFloatData.mMode == DragMode::Drag )
       {
@@ -758,7 +758,7 @@ namespace Tac
       }
     }
 
-    if( dragFloatData.mMode == DragMode::TextInput && id != window->GeTiveID() )
+    if( dragFloatData.mMode == DragMode::TextInput && id != window->GetActiveID() )
     {
       dragFloatData.mMode = DragMode::Drag;
       dragFloatData.mDragDistPx = 0;
@@ -852,6 +852,9 @@ namespace Tac
       backgroundBoxColor.xyz() /= 2.0f;
       if( KeyboardInput::Instance->IsKeyJustDown( Key::MouseLeft ) )
         isOpen = !isOpen;
+
+      //const bool down = KeyboardInput::Instance->IsKeyDown( Key::MouseLeft );
+      //std::cout << "down: " << ( down? "true" : "false" ) << std::endl;
     }
 
     drawData->AddBox( pos,
@@ -918,7 +921,7 @@ namespace Tac
   {
     String text =
       "Cur window active id: " +
-      ToString( ImGuiGlobals::Instance.mCurrentWindow->GeTiveID() );
+      ToString( ImGuiGlobals::Instance.mCurrentWindow->GetActiveID() );
     ImGuiText( text );
   }
 

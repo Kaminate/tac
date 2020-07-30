@@ -84,35 +84,36 @@ namespace Tac
   void Creation::CreatePropertyWindow( Errors& errors )
   {
     if( CreationPropertyWindow::Instance )
+    {
+      TAC_DELETE CreationPropertyWindow::Instance;
       return;
+    }
 
-    DesktopWindow* desktopWindow;
-    CreateDesktopWindow( gPropertyWindowName, &desktopWindow, errors );
-    TAC_HANDLE_ERROR( errors );
 
     TAC_NEW CreationPropertyWindow;
-    //propertyWindow->mDesktopWindow = desktopWindow;
     CreationPropertyWindow::Instance->Init( errors );
     TAC_HANDLE_ERROR( errors );
   }
   void Creation::CreateGameWindow( Errors& errors )
   {
     if( CreationGameWindow::Instance )
+    {
+      TAC_DELETE CreationGameWindow::Instance;
       return;
-
-    DesktopWindow* desktopWindow;
-    CreateDesktopWindow( gGameWindowName, &desktopWindow, errors );
-    TAC_HANDLE_ERROR( errors );
+    }
 
     TAC_NEW CreationGameWindow;
-    //gameWindow->mDesktopWindow = desktopWindow;
     CreationGameWindow::Instance->Init( errors );
     TAC_HANDLE_ERROR( errors );
   }
   void Creation::CreateMainWindow( Errors& errors )
   {
     if( CreationMainWindow::Instance )
+    {
+      TAC_DELETE CreationMainWindow::Instance;
+
       return;
+    }
 
     TAC_NEW CreationMainWindow;
     CreationMainWindow::Instance->Init( errors );
@@ -121,11 +122,10 @@ namespace Tac
   void Creation::CreateSystemWindow( Errors& errors )
   {
     if( CreationSystemWindow::Instance )
+    {
+      TAC_DELETE CreationSystemWindow::Instance;
       return;
-
-    DesktopWindow* desktopWindow;
-    CreateDesktopWindow( gSystemWindowName, &desktopWindow, errors );
-    TAC_HANDLE_ERROR( errors );
+    }
 
     TAC_NEW CreationSystemWindow;
     CreationSystemWindow::Instance->Init( errors );
@@ -136,16 +136,21 @@ namespace Tac
   void Creation::CreateProfileWindow( Errors& errors )
   {
     if( CreationProfileWindow::Instance )
+    {
+      TAC_DELETE CreationProfileWindow::Instance;
       return;
-
-    DesktopWindow* desktopWindow;
-    CreateDesktopWindow( gProfileWindowName, &desktopWindow, errors );
-    TAC_HANDLE_ERROR( errors );
+    }
 
     TAC_NEW CreationProfileWindow;
     CreationProfileWindow::Instance->Init( errors );
     TAC_HANDLE_ERROR( errors );
 
+  }
+  DesktopWindowHandle Creation::CreateWindow( StringView name )
+  {
+    int x, y, w, h;
+    GetWindowsJsonData( name, &x, &y, &w, &h );
+    return DesktopWindowManager::Instance->CreateWindow( x, y, w, h );
   }
 
   void Creation::GetWindowsJsonData( String windowName, int* x, int* y, int* w, int* h )
@@ -160,7 +165,7 @@ namespace Tac
       return;
     }
 
-    Settings* settings = Shell::Instance->mSettings;
+    Settings* settings = Settings::Instance;
     Errors errors;
 
     *w = ( int )settings->GetNumber( windowJson, { "w" }, 400, errors );
@@ -176,15 +181,15 @@ namespace Tac
       DesktopApp::Instance->GetPrimaryMonitor( &monitor, errors );
       TAC_HANDLE_ERROR( errors );
       WindowParams::GetCenteredPosition( *w,
-        *h,
-        x,
-        y,
-        monitor );
+                                         *h,
+                                         x,
+                                         y,
+                                         monitor );
     }
   }
   void Creation::GetWindowsJson( Json** outJson, Errors& errors )
   {
-    Settings* settings = Shell::Instance->mSettings;
+    Settings* settings = Settings::Instance;
     Vector< String > settingsPaths = { "Windows" };
     auto windowDefault = TAC_NEW Json;
     ( *windowDefault )[ "Name" ] = gMainWindowName;
@@ -197,96 +202,6 @@ namespace Tac
 
     *outJson = windows;
   }
-  void Creation::CreateDesktopWindow(
-    String windowName,
-    DesktopWindow** outDesktopWindow,
-    Errors& errors )
-  {
-    Settings* settings = Shell::Instance->mSettings;
-    Json* windows;
-    GetWindowsJson( &windows, errors );
-    TAC_HANDLE_ERROR( errors );
-
-
-    Json* settingsWindowJson = nullptr;
-    for( Json* windowJson : windows->mElements )
-    {
-      String curWindowName = windowJson->mChildren[ "Name" ]->mString;
-      if( curWindowName == windowName )
-      {
-        settingsWindowJson = windowJson;
-        break;
-      }
-    }
-
-    if( !settingsWindowJson )
-    {
-      settingsWindowJson = TAC_NEW Json;
-      ( *settingsWindowJson )[ "Name" ] = windowName;
-      windows->mElements.push_back( settingsWindowJson );
-    }
-
-    Json* windowJson = settingsWindowJson;
-
-    const int width = ( int )settings->GetNumber( windowJson, { "w" }, 400, errors );
-    TAC_HANDLE_ERROR( errors );
-
-    const int height = ( int )settings->GetNumber( windowJson, { "h" }, 300, errors );
-    TAC_HANDLE_ERROR( errors );
-
-    int x = ( int )settings->GetNumber( windowJson, { "x" }, 200, errors );
-    TAC_HANDLE_ERROR( errors );
-
-    int y = ( int )settings->GetNumber( windowJson, { "y" }, 200, errors );
-    TAC_HANDLE_ERROR( errors );
-
-    const bool centered = ( int )settings->GetBool( windowJson, { "centered" }, false, errors );
-    TAC_HANDLE_ERROR( errors );
-
-    if( centered )
-    {
-      Monitor monitor;
-      DesktopApp::Instance->GetPrimaryMonitor( &monitor, errors );
-      TAC_HANDLE_ERROR( errors );
-      WindowParams::GetCenteredPosition(
-        width,
-        height,
-        &x,
-        &y,
-        monitor );
-    }
-
-    WindowParams windowParams = {};
-    windowParams.mName = windowName;
-    windowParams.mX = x;
-    windowParams.mY = y;
-    windowParams.mWidth = width;
-    windowParams.mHeight = height;
-
-    //DesktopWindow* desktopWindow;
-    //DesktopApp::Instance->SpawnWindow( windowParams, &desktopWindow, errors );
-    TAC_HANDLE_ERROR( errors );
-
-    //DesktopWindowManager::Instance->DoWindow( windowName );
-
-
-    //desktopWindow->mOnResize.AddCallbackFunctional( [ windowJson, settings, desktopWindow, &errors ]()
-    //  {
-    //    windowJson->operator[]( "w" ) = desktopWindow->mWidth;
-    //    windowJson->operator[]( "h" ) = desktopWindow->mHeight;
-    //    settings->Save( errors );
-    //  } );
-
-    //desktopWindow->mOnMove.AddCallbackFunctional( [ windowJson, settings, desktopWindow, &errors ]()
-    //  {
-    //    windowJson->operator[]( "x" ) = desktopWindow->mX;
-    //    windowJson->operator[]( "y" ) = desktopWindow->mY;
-    //    settings->Save( errors );
-    //  } );
-
-    //*outDesktopWindow = desktopWindow;
-    *outDesktopWindow = nullptr;
-  }
 
   bool Creation::ShouldCreateWindowNamed( StringView name )
   {
@@ -296,7 +211,7 @@ namespace Tac
     if( !windowJson )
       return false;
 
-    Settings* settings = Shell::Instance->mSettings;
+    Settings* settings = Settings::Instance;
     Errors errors;
     const bool create = settings->GetBool( windowJson, { "Create" }, false, errors );
     if( errors )
@@ -306,7 +221,7 @@ namespace Tac
 
   void Creation::SetSavedWindowData( Json* windowJson, Errors& errors )
   {
-    Settings* settings = Shell::Instance->mSettings;
+    Settings* settings = Settings::Instance;
 
     const StringView name = settings->GetString( windowJson, { "Name" }, gMainWindowName, errors );
     TAC_HANDLE_ERROR( errors );
@@ -378,7 +293,7 @@ namespace Tac
     OS::CreateFolderIfNotExist( dataPath, errors );
     TAC_HANDLE_ERROR( errors );
 
-    Settings* settings = Shell::Instance->mSettings;
+    Settings* settings = Settings::Instance;
 
     SetSavedWindowsData( errors );
     TAC_HANDLE_ERROR( errors );
@@ -540,8 +455,8 @@ namespace Tac
         !CreationSystemWindow::Instance &&
         !CreationProfileWindow::Instance )
     {
-      //CreateMainWindow( errors );
-      CreateSystemWindow( errors );
+      CreateMainWindow( errors );
+      //CreateSystemWindow( errors );
       TAC_HANDLE_ERROR( errors );
     }
 
@@ -600,7 +515,6 @@ namespace Tac
     int parenNumber = 1;
     for( ;; )
     {
-      //bool isEntityNameUnique = false;
       Entity* entity = world->FindEntity( desiredEntityName );
       if( !entity )
         break;
@@ -659,8 +573,7 @@ namespace Tac
   void Creation::GetSavedPrefabs( Vector< String > & paths, Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
-    Settings* settings = Shell::Instance->mSettings;
-    Json& prefabs = settings->mJson[ prefabSettingsPath ];
+    Json& prefabs = Settings::Instance->mJson[ prefabSettingsPath ];
     prefabs.mType = JsonType::Array;
 
     Vector< String > alreadySavedPrefabs;
@@ -670,8 +583,7 @@ namespace Tac
   }
   void Creation::UpdateSavedPrefabs()
   {
-    Settings* settings = Shell::Instance->mSettings;
-    Json& prefabs = settings->mJson[ prefabSettingsPath ];
+    Json& prefabs = Settings::Instance->mJson[ prefabSettingsPath ];
     prefabs.mType = JsonType::Array;
 
     Errors errors;
@@ -688,7 +600,7 @@ namespace Tac
       prefabs.mElements.push_back( TAC_NEW Json( prefab->mDocumentPath ) );
     }
 
-    settings->Save( errors );
+    Settings::Instance->Save( errors );
   }
   Prefab* Creation::FindPrefab( Entity* entity )
   {
@@ -800,7 +712,7 @@ namespace Tac
   {
     if( prefab->mDocumentPath.empty() )
       return;
-    Settings* settings = Shell::Instance->mSettings;
+    Settings* settings = Settings::Instance;
     Json* root = nullptr;
     v3* refFrameVecs[] = {
       &mEditorCamera.mPos,
@@ -839,7 +751,7 @@ namespace Tac
     if( prefab->mDocumentPath.empty() )
       return;
     Json* root = nullptr;
-    Settings* settings = Shell::Instance->mSettings;
+    Settings* settings = Settings::Instance;
 
     v3 refFrameVecs[] = {
       mEditorCamera.mPos,

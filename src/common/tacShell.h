@@ -85,7 +85,6 @@ namespace Tac
     Event< const String& >::Emitter mLogData;
     Event< Errors& >::Emitter mOnUpdate;
     Log* mLog = nullptr;
-    Settings* mSettings = nullptr;
     String mAppName;
     // This is the directory where files can be written.
     // Unique per user, per application.

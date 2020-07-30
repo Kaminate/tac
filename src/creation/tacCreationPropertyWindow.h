@@ -25,12 +25,8 @@ namespace Tac
     void Update( Errors& errors );
     void RecursiveEntityHierarchyElement( Entity* );
 
-    //DesktopWindow* mDesktopWindow = nullptr;
-    //UIRoot* mUIRoot = nullptr;
+    DesktopWindowHandle mDesktopWindowHandle;
     UI2DDrawData* mUI2DDrawData = nullptr;
-
-
-    /*DesktopWindowState mDesktopWindowState*/;
 
     //UIHierarchyNode* mHierarchyList = nullptr;
     //UIHierarchyNode* mHierarchyPane = nullptr;

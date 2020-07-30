@@ -71,7 +71,7 @@ namespace Tac
       auto language = Language( iLanguage );
       StringView languageString = LanguageToStr( language );
       String fontFilePathDefault = language == Language::English ? "assets/fonts/english_srcpro.ttf" : "";
-      String fontFilePath = Shell::Instance->mSettings->GetString( nullptr,
+      String fontFilePath = Settings::Instance->GetString( nullptr,
                                                                    { "defaultfonts", languageString },
                                                                    fontFilePathDefault,
                                                                    errors );
