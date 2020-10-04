@@ -2,11 +2,23 @@
 
 namespace Tac
 {
-  struct RingBuffer;
+
+  struct ThreadAllocator
+  {
+    void  Init( int byteCount );
+    void* Allocate( int byteCount );
+
+  private:
+    int   mCapacity = 0;
+    int   mIndex = 0;
+    char* mBytes = nullptr;
+  };
+
+
   namespace FrameMemory
   {
-    void SetThreadAllocator( RingBuffer* );
-    void* Allocate( int byteCount );
+    void SetThreadAllocator( ThreadAllocator* );
+    void* Allocate( int );
   }
 }
 

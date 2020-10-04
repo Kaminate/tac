@@ -20,8 +20,10 @@ namespace Tac
 
   extern thread_local ThreadType gThreadType;
 
-  namespace DesktopEvent
+  struct DesktopEventQueue
   {
+    static DesktopEventQueue Instance;
+    void Init();
     void PushEventCursorUnobscured( DesktopWindowHandle );
     void PushEventCreateWindow( DesktopWindowHandle,
                                 int width,
@@ -39,21 +41,19 @@ namespace Tac
     void PushEventKeyInput( Codepoint );
     void PushEventMouseWheel( int ticks );
 
-    void ProcessStuff();
-  }
+    void ApplyQueuedEvents( DesktopWindowStateCollection* );
+  };
 
-  // stuff thread
-  extern DesktopWindowStates gDesktopWindowStates;
-  DesktopWindowState* FindDesktopWindowState( DesktopWindowHandle );
 
-  struct DesktopApp
+  struct DesktopApp // final
   {
     static DesktopApp* Instance;
     DesktopApp();
-    virtual ~DesktopApp();
+    ~DesktopApp();
+    void                   Run();
     virtual void           Init( Errors& );
     virtual void           Poll( Errors& ) {}
-    void                   Run();
+    //void                   Run();
     virtual void           SpawnWindow( DesktopWindowHandle handle,
                                         int x,
                                         int y,
@@ -61,7 +61,6 @@ namespace Tac
                                         int height ) = 0;
     void                   SpawnWindow( DesktopWindow* );
     virtual void           GetPrimaryMonitor( Monitor* monitor, Errors& errors ) = 0;
-    //virtual void           SpawnWindowAux( const WindowParams&, DesktopWindow**, Errors& ) {};
     virtual void           CreateControllerInput( Errors& ) {};
     DesktopWindow*         FindDesktopWindow( DesktopWindowHandle );
 
@@ -72,6 +71,8 @@ namespace Tac
     String                 mAppName;
     String                 mPrefPath;
     String                 mInitialWorkingDir;
+    void( *mProjectInit )( Errors& ) = 0;
+    void( *mProjectUpdate )( Errors& ) = 0;
   };
 
   //struct WindowState

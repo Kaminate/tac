@@ -50,19 +50,21 @@ namespace Tac
     Language mLanguage = Language::English;
   };
 
-  struct UpdateThing
-  {
-    UpdateThing();
-    static UpdateThing* Instance;
-    virtual void Init( Errors& errors ) = 0;
-    virtual void Update( Errors& errors ) = 0;
-  };
+  //struct UpdateThing
+  //{
+  //  UpdateThing();
+  //  static UpdateThing* Instance;
+  //  virtual void Init( Errors& errors ) = 0;
+  //  virtual void Update( Errors& errors ) = 0;
+  //};
 
   struct ExecutableStartupInfo
   {
     void Init( Errors& errors );
     String mAppName;
-    String mStudioName;
+    String mStudioName = "Sleeping Studio";
+    void( *mProjectInit )( Errors& ) = 0;
+    void( *mProjectUpdate )( Errors& ) = 0;
   };
 
   //
@@ -83,7 +85,7 @@ namespace Tac
 
 
     Event< const String& >::Emitter mLogData;
-    Event< Errors& >::Emitter mOnUpdate;
+    //Event< Errors& >::Emitter mOnUpdate;
     Log* mLog = nullptr;
     String mAppName;
     // This is the directory where files can be written.

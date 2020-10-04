@@ -38,7 +38,7 @@ namespace Tac
   }
   void CreationProfileWindow::ImGui()
   {
-    DesktopWindowState* desktopWindowState = FindDesktopWindowState( mDesktopWindowHandle );
+    DesktopWindowState* desktopWindowState = DesktopWindowStateCollection::InstanceStuffThread. FindDesktopWindowState( mDesktopWindowHandle );
     if( !desktopWindowState )
       return;
     SetCreationWindowImGuiGlobals( desktopWindowState, mUI2DDrawData );
@@ -48,6 +48,7 @@ namespace Tac
     ImGuiBegin( "Profile Window", {} );
 
     ImGuiText( "i am the profile window" );
+    ImGuiText( "i am... inevitable" );
 
     //// to force directx graphics specific window debugging
     //if( ImGuiButton( "close window" ) )
@@ -63,13 +64,12 @@ namespace Tac
   }
   void CreationProfileWindow::Update( Errors& errors )
   {
-    DesktopWindowState* desktopWindowState = FindDesktopWindowState( mDesktopWindowHandle );
+    DesktopWindowState* desktopWindowState = DesktopWindowStateCollection::InstanceStuffThread. FindDesktopWindowState( mDesktopWindowHandle );
     if( !desktopWindowState )
       return;
     const float w = ( float )desktopWindowState->mWidth;
     const float h = ( float )desktopWindowState->mHeight;
-    Creation::WindowFramebufferInfo* info =
-      Creation::Instance->FindWindowFramebufferInfo( mDesktopWindowHandle );
+    WindowFramebufferInfo* info = WindowFramebufferManager::Instance .FindWindowFramebufferInfo( mDesktopWindowHandle );
     Render::SetViewFramebuffer( ViewIdProfileWindow, info->mFramebufferHandle );
     Render::SetViewport( ViewIdProfileWindow, Viewport( w, h ) );
     Render::SetViewScissorRect( ViewIdProfileWindow, ScissorRect( w, h ) );

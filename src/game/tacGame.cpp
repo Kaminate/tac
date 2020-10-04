@@ -6,17 +6,22 @@
 #include "src/shell/tacDesktopApp.h"
 #include "src/shell/tacDesktopWindowManager.h"
 #include "src/space/tacGhost.h"
+#include "src/space/tacSpace.h"
 
 #include <functional> // std::function
 
 namespace Tac
 {
   String appName = "Gravestory";
+  static Game gGame;
+  void GameCallbackInit( Errors& errors ) { gGame.Init( errors ); }
+  void GameCallbackUpdate( Errors& errors ) { gGame.Update( errors ); }
 
   Game* Game::Instance = nullptr;
 
   void Game::Init( Errors& errors )
   {
+    SpaceInit();
     Instance = this;
     Monitor monitor;
     DesktopApp::Instance->GetPrimaryMonitor( &monitor, errors );
@@ -47,7 +52,7 @@ namespace Tac
   }
   void Game::SetImGuiGlobals()
   {
-    DesktopWindowState* desktopWindowState = FindDesktopWindowState( mDesktopWindowHandle );
+    DesktopWindowState* desktopWindowState = DesktopWindowStateCollection::InstanceStuffThread.FindDesktopWindowState( mDesktopWindowHandle );
     Errors screenspaceCursorPosErrors;
     v2 screenspaceCursorPos;
     OS::GetScreenspaceCursorPos( screenspaceCursorPos, screenspaceCursorPosErrors );
@@ -70,7 +75,9 @@ namespace Tac
   }
   void Game::Update( Errors& errors )
   {
-    DesktopWindowState* desktopWindowState = FindDesktopWindowState( mDesktopWindowHandle );
+    DesktopWindowState* desktopWindowState = DesktopWindowStateCollection::InstanceStuffThread.FindDesktopWindowState( mDesktopWindowHandle );
+    if( !desktopWindowState )
+      return;
     SetImGuiGlobals();
     Viewport viewport;
     viewport.mWidth = ( float )desktopWindowState->mWidth;
@@ -79,15 +86,6 @@ namespace Tac
     ScissorRect scissorRect;
     scissorRect.mXMaxRelUpperLeftCornerPixel = ( float )desktopWindowState->mWidth;
     scissorRect.mYMaxRelUpperLeftCornerPixel = ( float )desktopWindowState->mHeight;
-
-    //Texture* framebuffer;
-    //mDesktopWindow->mRendererData->GetCurrentBackbufferTexture( &framebuffer );
-
-    //RenderView* renderView = mDesktopWindow->mRenderView;
-    //renderView->mFramebuffer = framebuffer;
-    //renderView->mFramebufferDepth = mDesktopWindow->mRendererData->mDepthBuffer;
-    //renderView->mViewportRect = viewport;
-    //renderView->mScissorRect = scissorRect;
 
     const Render::ViewId viewId = 0;
 
@@ -101,48 +99,10 @@ namespace Tac
 
   void ExecutableStartupInfo::Init( Errors& errors )
   {
-    String appDataPath;
-    OS::GetApplicationDataPath( appDataPath, errors );
-
-    String studioPath = appDataPath + "\\Sleeping Studio\\";
-    String prefPath = studioPath + appName;
-
-    bool appDataPathExists;
-    OS::DoesFolderExist( appDataPath, appDataPathExists, errors );
-    TAC_ASSERT( appDataPathExists );
-
-    OS::CreateFolderIfNotExist( studioPath, errors );
-    TAC_HANDLE_ERROR( errors );
-
-    OS::CreateFolderIfNotExist( prefPath, errors );
-    TAC_HANDLE_ERROR( errors );
-
-    String workingDir;
-    OS::GetWorkingDir( workingDir, errors );
-    TAC_HANDLE_ERROR( errors );
-
-    Shell::Instance->mAppName = appName;
-    Shell::Instance->mPrefPath = prefPath;
-    Shell::Instance->mInitialWorkingDir = workingDir;
-    Shell::Instance->Init( errors );
-    TAC_HANDLE_ERROR( errors );
-
-    // should this really be on the heap?
-    auto game = TAC_NEW Game;
-    Shell::Instance->mOnUpdate.AddCallbackFunctional
-    (
-      []( Errors& errors )
-      {
-        Game::Instance->Update( errors );
-      }
-    );
-
-    game->Init( errors );
-    TAC_HANDLE_ERROR( errors );
-
-    delete game;
+    mAppName = "Game";
+    mProjectInit = GameCallbackInit;
+    mProjectUpdate = GameCallbackUpdate;
   }
-
 
 }
 

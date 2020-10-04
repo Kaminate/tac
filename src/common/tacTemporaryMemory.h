@@ -4,7 +4,6 @@
 #include "src/common/tacString.h"
 #include "src/common/tacPreprocessor.h"
 #include "src/common/containers/tacVector.h"
-#include "src/common/containers/tacRingBuffer.h"
 
 namespace Tac
 {

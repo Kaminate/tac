@@ -90,12 +90,11 @@ namespace Tac
   {
     Creation* creation = Creation::Instance;
 
-    Creation::WindowFramebufferInfo* info =
-      Creation::Instance->FindWindowFramebufferInfo( mDesktopWindowHandle );
+    WindowFramebufferInfo* info = WindowFramebufferManager::Instance.FindWindowFramebufferInfo( mDesktopWindowHandle );
     if( !info )
       return;
 
-    DesktopWindowState* desktopWindowState = FindDesktopWindowState( info->mDesktopWindowHandle );
+    DesktopWindowState* desktopWindowState = DesktopWindowStateCollection::InstanceStuffThread.FindDesktopWindowState( info->mDesktopWindowHandle );
     if( !desktopWindowState )
       return;
 
@@ -161,8 +160,7 @@ namespace Tac
 
   void CreationMainWindow::Update( Errors& errors )
   {
-    Creation::WindowFramebufferInfo* info =
-      Creation::Instance->FindWindowFramebufferInfo( mDesktopWindowHandle );
+    WindowFramebufferInfo* info = WindowFramebufferManager::Instance.FindWindowFramebufferInfo( mDesktopWindowHandle );
     if( !info )
       return;
 
@@ -179,7 +177,7 @@ namespace Tac
     //  params->mHeight;
 
 
-    DesktopWindowState* desktopWindowState = FindDesktopWindowState( mDesktopWindowHandle );
+    DesktopWindowState* desktopWindowState = DesktopWindowStateCollection::InstanceStuffThread. FindDesktopWindowState( mDesktopWindowHandle );
     if( !desktopWindowState )
       return;
 
@@ -211,7 +209,7 @@ namespace Tac
 
     if( CreationGameObjectMenuWindow::Instance )
     {
-      DesktopWindowState* menu = FindDesktopWindowState( CreationGameObjectMenuWindow::Instance->mDesktopWindowHandle );
+      DesktopWindowState* menu = DesktopWindowStateCollection::InstanceStuffThread. FindDesktopWindowState( CreationGameObjectMenuWindow::Instance->mDesktopWindowHandle );
 
 
       CreationGameObjectMenuWindow::Instance->Update( errors );

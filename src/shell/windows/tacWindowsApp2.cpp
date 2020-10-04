@@ -2,7 +2,6 @@
 #include "src/shell/windows/tacXInput.h"
 #include "src/shell/windows/tacNetWinsock.h"
 #include "src/common/math/tacMath.h"
-//#include "src/shell/tacDesktopEventBackend.h"
 #include "src/common/tacSettings.h"
 #include "src/common/tacPreprocessor.h"
 #include "src/common/tacString.h"
@@ -166,31 +165,31 @@ namespace Tac
       {
         mWidth = ( int )LOWORD( lParam );
         mHeight = ( int )HIWORD( lParam );
-        DesktopEvent::PushEventResizeWindow( mHandle, mWidth, mHeight );
+        DesktopEventQueue::Instance.PushEventResizeWindow( mHandle, mWidth, mHeight );
       } break;
       case WM_MOVE:
       {
         mX = ( int )LOWORD( lParam );
         mY = ( int )HIWORD( lParam );
-        DesktopEvent::PushEventMoveWindow( mHandle, mX, mY );
+        DesktopEventQueue::Instance.PushEventMoveWindow( mHandle, mX, mY );
       } break;
       case WM_CHAR:
       {
-        DesktopEvent::PushEventKeyInput( ( Codepoint )wParam );
+        DesktopEventQueue::Instance.PushEventKeyInput( ( Codepoint )wParam );
       } break;
       case WM_SYSKEYDOWN: // fallthrough
       case WM_SYSKEYUP: // fallthrough
       case WM_KEYDOWN: // fallthrough
       case WM_KEYUP: // fallthrough
       {
-        bool wasDown = ( lParam & ( ( LPARAM )1 << 30 ) ) != 0;
-        bool isDown = ( lParam & ( ( LPARAM )1 << 31 ) ) == 0;
+        const bool wasDown = ( lParam & ( ( LPARAM )1 << 30 ) ) != 0;
+        const bool isDown = ( lParam & ( ( LPARAM )1 << 31 ) ) == 0;
         if( isDown == wasDown )
           break;
-        Key key = GetKey( ( uint8_t )wParam );
+        const Key key = GetKey( ( uint8_t )wParam );
         if( key == Key::Count )
           break;
-        DesktopEvent::PushEventKeyState( key, isDown );
+        DesktopEventQueue::Instance.PushEventKeyState( key, isDown );
       } break;
 
       case WM_SETFOCUS:
@@ -247,7 +246,7 @@ namespace Tac
       case WM_LBUTTONDOWN:
       {
         //std::cout << "WM_LBUTTONDOWN" << std::endl;
-        DesktopEvent::PushEventKeyState( Key::MouseLeft, true );
+        DesktopEventQueue::Instance.PushEventKeyState( Key::MouseLeft, true );
         SetActiveWindow( mHWND ); // make it so clicking the window brings the window to the top of the z order
         //SetForegroundWindow( mHWND );
 
@@ -257,29 +256,29 @@ namespace Tac
       {
         //if( uMsg == WM_LBUTTONUP ) { std::cout << "WM_LBUTTONUP" << std::endl; }
         //else { std::cout << "WM_NCLBUTTONUP" << std::endl; }
-        DesktopEvent::PushEventKeyState( Key::MouseLeft, false );
+        DesktopEventQueue::Instance.PushEventKeyState( Key::MouseLeft, false );
       } break;
 
       case WM_RBUTTONDOWN:
       {
-        DesktopEvent::PushEventKeyState( Key::MouseRight, true );
+        DesktopEventQueue::Instance.PushEventKeyState( Key::MouseRight, true );
         //BringWindowToTop( mHWND );
         SetActiveWindow( mHWND ); // make it so clicking the window brings the window to the top of the z order
       } break;
       case WM_RBUTTONUP:
       {
-        DesktopEvent::PushEventKeyState( Key::MouseRight, false );
+        DesktopEventQueue::Instance.PushEventKeyState( Key::MouseRight, false );
       } break;
 
       case WM_MBUTTONDOWN:
       {
-        DesktopEvent::PushEventKeyState( Key::MouseMiddle, true );
+        DesktopEventQueue::Instance.PushEventKeyState( Key::MouseMiddle, true );
         //BringWindowToTop( mHWND );
         SetActiveWindow( mHWND ); // make it so clicking the window brings the window to the top of the z order
       } break;
       case WM_MBUTTONUP:
       {
-        DesktopEvent::PushEventKeyState( Key::MouseMiddle, false );
+        DesktopEventQueue::Instance.PushEventKeyState( Key::MouseMiddle, false );
       } break;
 
       case WM_MOUSEMOVE:
@@ -312,7 +311,7 @@ namespace Tac
       {
         const short wheelDeltaParam = GET_WHEEL_DELTA_WPARAM( wParam );
         const short ticks = wheelDeltaParam / WHEEL_DELTA;
-        DesktopEvent::PushEventMouseWheel( ( int )ticks );
+        DesktopEventQueue::Instance.PushEventMouseWheel( ( int )ticks );
       } break;
 
       case WM_MOUSELEAVE:
@@ -488,14 +487,23 @@ namespace Tac
     //const int n = mymap.size();
     //std::cout << n << std::endl;
 
-    DesktopWindowHandle unobscuredDesktopWindowHandle;
-    if( cursorUnobscuredWindow )
-      unobscuredDesktopWindowHandle = cursorUnobscuredWindow->mHandle;
-    DesktopEvent::PushEventCursorUnobscured( unobscuredDesktopWindowHandle );
+    DesktopWindowHandle unobscuredDesktopWindowHandle
+      = cursorUnobscuredWindow
+      ? cursorUnobscuredWindow->mHandle
+      : DesktopWindowHandle();
+    if( !AreWindowHandlesEqual( mUnobscuredDesktopWindowHandle , unobscuredDesktopWindowHandle ) )
+    {
+      DesktopEventQueue::Instance.PushEventCursorUnobscured( unobscuredDesktopWindowHandle );
+      mUnobscuredDesktopWindowHandle = unobscuredDesktopWindowHandle;
+    }
 
     if( mMouseEdgeHandler )
     {
-      mMouseEdgeHandler->Update( cursorUnobscuredWindow ? cursorUnobscuredWindow->mHWND : nullptr );
+      const HWND unobscuredHWND
+        = cursorUnobscuredWindow
+        ? cursorUnobscuredWindow->mHWND
+        : nullptr;
+      mMouseEdgeHandler->Update( unobscuredHWND );
 
       // if the mouse just left the window, reset the cursor lock
       //if( mMouseEdgeHandler && !mMouseEdgeHandler->IsHandling() )
@@ -595,7 +603,7 @@ namespace Tac
       mParentHWND = hwnd;
 
 
-    DesktopEvent::PushEventCreateWindow( handle, width, height, x, y, hwnd );
+    DesktopEventQueue::Instance.PushEventCreateWindow( handle, width, height, x, y, hwnd );
     mWindows.push_back( createdWindow );
     DesktopApp::SpawnWindow( createdWindow );
   }

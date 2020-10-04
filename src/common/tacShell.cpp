@@ -21,11 +21,11 @@
 namespace Tac
 {
 
-  UpdateThing::UpdateThing()
-  {
-    Instance = this;
-  }
-  UpdateThing* UpdateThing::Instance = nullptr;
+  //UpdateThing::UpdateThing()
+  //{
+  //  Instance = this;
+  //}
+  //UpdateThing* UpdateThing::Instance = nullptr;
 
   const Key ToggleMainMenuKey = Key::Backtick;
 
@@ -122,7 +122,7 @@ namespace Tac
       TAC_HANDLE_ERROR( errors );
     }
 
-    mOnUpdate.EmitEvent( errors );
+    //mOnUpdate.EmitEvent( errors );
     ControllerInput::Instance->Update();
 
     FrameEnd( errors );

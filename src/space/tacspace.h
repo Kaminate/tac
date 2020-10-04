@@ -4,7 +4,7 @@
 namespace Tac
 {
 
-void SpaceInit();
+  void SpaceInit();
 
 
 }

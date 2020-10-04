@@ -32,13 +32,13 @@ namespace Tac
     static void GetCenteredPosition( int w, int h, int* x, int* y, Monitor );
   };
 
-  const int NullDesktopWindowHandle = -1;
   struct DesktopWindowHandle
   {
-    int mIndex = NullDesktopWindowHandle; // hmm
-    bool IsValid() const;
-    bool operator == ( const DesktopWindowHandle& ) const;
+    int mIndex = -1;
   };
+
+  bool AreWindowHandlesEqual( const DesktopWindowHandle&, const DesktopWindowHandle& );
+  bool IsWindowHandleValid( const DesktopWindowHandle& );
 
   struct DesktopWindowState
   {
@@ -55,15 +55,24 @@ namespace Tac
   };
 
   static const int kMaxDesktopWindowStateCount = 10;
-  typedef DesktopWindowState DesktopWindowStates[ kMaxDesktopWindowStateCount ];
-
-  struct DesktopWindow : public WindowParams
+  struct DesktopWindowStateCollection
   {
-    DesktopWindow();
-    virtual ~DesktopWindow();
-    virtual void* GetOperatingSystemHandle() = 0;
+    DesktopWindowState* GetStateAtIndex( int );
+    DesktopWindowState* FindDesktopWindowState( DesktopWindowHandle );
+    DesktopWindowState mStates[ kMaxDesktopWindowStateCount ];
+    static DesktopWindowStateCollection InstanceStuffThread;
+  };
+
+  struct DesktopWindow
+  {
+    virtual void*       GetOperatingSystemHandle() = 0;
     DesktopWindowHandle mHandle; // a handle to uhh ourself
-    bool mCursorUnobscured = false;
+    bool                mCursorUnobscured = false;
+    String              mName;
+    int                 mWidth = 0;
+    int                 mHeight = 0;
+    int                 mX = 0;
+    int                 mY = 0;
   };
 }
 

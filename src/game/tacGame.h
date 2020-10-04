@@ -1,15 +1,14 @@
-
 #pragma once
+#include "src/common/tacShell.h"
 namespace Tac
 {
-  struct Game
+  struct Game //: public UpdateThing
   {
     static Game* Instance;
-    void Init( Errors& errors );
+    void Init( Errors& errors );// override;
     void SetImGuiGlobals();
-    void Update( Errors& errors );
+    void Update( Errors& errors );// override;
 
-    /*DesktopWindowState mDesktopWindowState*/;
     UI2DDrawData* mUi2DDrawData;
     DesktopWindowHandle mDesktopWindowHandle;
   };

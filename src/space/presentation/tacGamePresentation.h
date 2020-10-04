@@ -37,8 +37,8 @@ namespace Tac
                                      const DefaultCBufferPerObject& cbuf,
                                      Render::ViewId viewId );
 
-    void LoadTerrain(Terrain*);
-    void LoadModel(Model*);
+    void LoadTerrain( Terrain* );
+    void LoadModel( Model* );
 
     Camera* mCamera = nullptr;
     World* mWorld = nullptr;
@@ -58,7 +58,7 @@ namespace Tac
     Render::SamplerStateHandle mSamplerState;
 
     static const int k3DVertexFormatDeclCount = 1;
-    VertexDeclaration m3DVertexFormatDecls[k3DVertexFormatDeclCount];
+    VertexDeclaration m3DVertexFormatDecls[ k3DVertexFormatDeclCount ];
 
   private:
     void Create3DShader( Errors& errors );

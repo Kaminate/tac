@@ -69,6 +69,7 @@ namespace Tac
     Vector< Win32DesktopWindow* > mWindows;
     HWND                mParentHWND = NULL;
     Win32MouseEdgeHandler* mMouseEdgeHandler = nullptr;
+    DesktopWindowHandle mUnobscuredDesktopWindowHandle;
   };
 
 }

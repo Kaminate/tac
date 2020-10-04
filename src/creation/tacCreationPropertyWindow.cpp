@@ -65,7 +65,7 @@ namespace Tac
     //mUIRoot->Render( errors );
     TAC_HANDLE_ERROR( errors );
 
-    DesktopWindowState* desktopWindowState = FindDesktopWindowState( mDesktopWindowHandle );
+    DesktopWindowState* desktopWindowState = DesktopWindowStateCollection::InstanceStuffThread.FindDesktopWindowState( mDesktopWindowHandle );
     if( !desktopWindowState )
       return;
     SetCreationWindowImGuiGlobals( desktopWindowState, mUI2DDrawData );
@@ -218,8 +218,7 @@ namespace Tac
 
     ImGuiEnd();
 
-    Creation::WindowFramebufferInfo* info =
-      Creation::Instance->FindWindowFramebufferInfo( mDesktopWindowHandle );
+    WindowFramebufferInfo* info = WindowFramebufferManager::Instance.FindWindowFramebufferInfo( mDesktopWindowHandle );
     if( !info )
       return;
     const float w = ( float )desktopWindowState->mWidth;

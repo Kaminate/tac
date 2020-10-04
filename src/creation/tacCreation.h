@@ -53,15 +53,31 @@ namespace Tac
   const Render::ViewId ViewIdSystemWindow = 3;
   const Render::ViewId ViewIdProfileWindow = 4;
 
-  struct Creation : public UpdateThing
+
+  struct WindowFramebufferInfo
+  {
+    DesktopWindowHandle mDesktopWindowHandle;
+    Render::FramebufferHandle mFramebufferHandle;
+  };
+
+  struct WindowFramebufferManager
+  {
+    static WindowFramebufferManager Instance;
+    Vector< WindowFramebufferInfo > mWindowFramebufferInfos;
+    WindowFramebufferInfo* FindWindowFramebufferInfo( DesktopWindowHandle );
+    void Update( DesktopWindowStateCollection* oldStates,
+                 DesktopWindowStateCollection* newStates  );
+  };
+
+  struct Creation // : public UpdateThing
   {
     static Creation* Instance;
     Creation();
     ~Creation();
-    void Init( Errors& errors );
+    void Init( Errors& errors );// override;
     void SetSavedWindowData( Json* windowJson, Errors& errors );
     void SetSavedWindowsData( Errors& errors );
-    void Update( Errors& errors );
+    void Update( Errors& errors );// override;
     Entity* CreateEntity();
     bool IsAnythingSelected();
     v3 GetSelectionGizmoOrigin();
@@ -116,15 +132,6 @@ namespace Tac
 
     //DesktopWindowStates mDesktopWindowStates;
 
-    // the desktopwindowstate doesnt keep track of framebuffers,
-    // so this class was designed for that responsibility
-    struct WindowFramebufferInfo
-    {
-      DesktopWindowHandle mDesktopWindowHandle;
-      Render::FramebufferHandle mFramebufferHandle;
-    };
-    Vector< WindowFramebufferInfo > mWindowFramebufferInfos;
-    WindowFramebufferInfo* FindWindowFramebufferInfo( DesktopWindowHandle );
   };
 
   void SetCreationWindowImGuiGlobals( const DesktopWindowState* desktopWindowState,

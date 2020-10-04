@@ -35,7 +35,7 @@ namespace Tac
   };
   void CreationSystemWindow::ImGui()
   {
-    DesktopWindowState* desktopWindowState = FindDesktopWindowState( mDesktopWindowHandle );
+    DesktopWindowState* desktopWindowState = DesktopWindowStateCollection::InstanceStuffThread.FindDesktopWindowState( mDesktopWindowHandle );
     if( !desktopWindowState )
       return;
 
@@ -82,14 +82,13 @@ namespace Tac
   }
   void CreationSystemWindow::Update( Errors& errors )
   {
-    DesktopWindowState* desktopWindowState = FindDesktopWindowState( mDesktopWindowHandle );
+    DesktopWindowState* desktopWindowState = DesktopWindowStateCollection::InstanceStuffThread. FindDesktopWindowState( mDesktopWindowHandle );
     if( !desktopWindowState )
       return;
     ImGui();
     const float w = ( float )desktopWindowState->mWidth;
     const float h = ( float )desktopWindowState->mHeight;
-    Creation::WindowFramebufferInfo* info =
-      Creation::Instance->FindWindowFramebufferInfo( mDesktopWindowHandle );
+    WindowFramebufferInfo* info = WindowFramebufferManager::Instance.FindWindowFramebufferInfo( mDesktopWindowHandle );
     Render::SetViewFramebuffer( ViewIdSystemWindow, info->mFramebufferHandle );
     Render::SetViewport( ViewIdSystemWindow, Viewport( w, h ) );
     Render::SetViewScissorRect( ViewIdSystemWindow, ScissorRect( w, h ) );

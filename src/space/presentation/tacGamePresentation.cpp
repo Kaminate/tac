@@ -353,25 +353,6 @@ namespace Tac
   {
     for( const SubMesh& subMesh : mesh->mSubMeshes )
     {
-      //DrawCall2 drawCall = {};
-      //drawCall.mVertexBuffer = subMesh.mVertexBuffer;
-      //drawCall.mIndexBuffer = subMesh.mIndexBuffer;
-      //drawCall.mStartIndex = 0;
-      //drawCall.mIndexCount = subMesh.mIndexCount;
-      //drawCall.mBlendState = mBlendState;
-      //drawCall.mRasterizerState = mRasterizerState;
-      //drawCall.mSamplerState = mSamplerState;
-      //drawCall.mDepthState = mDepthState;
-      //drawCall.mVertexFormat = mesh->mVertexFormat;
-      //drawCall.mUniformDst = mPerObj;
-      //drawCall.mUniformSrcc = TemporaryMemoryFromT( cbuf );
-      //drawCall.mFrame = TAC_STACK_FRAME;
-      //Render::AddDrawCall( drawCall );
-
-      // ^ old
-      // ------------------------------------------------------------
-      // ^ new
-
       Render::SetVertexBuffer( subMesh.mVertexBuffer, 0, 0 );
       Render::SetIndexBuffer( subMesh.mIndexBuffer, 0, subMesh.mIndexCount );
       Render::SetBlendState( mBlendState );

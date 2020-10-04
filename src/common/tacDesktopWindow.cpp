@@ -6,16 +6,7 @@
 
 namespace Tac
 {
-  DesktopWindow::DesktopWindow()
-  {
-    //mRenderView = new RenderView;
-  }
-  DesktopWindow::~DesktopWindow()
-  {
-    //mOnDestroyed.EmitEvent( this );
-    //delete mRenderView;
-  }
-
+  DesktopWindowStateCollection DesktopWindowStateCollection::InstanceStuffThread;
 
   WindowParams::WindowParams()
   {
@@ -30,34 +21,34 @@ namespace Tac
     *y = ( monitor.h - h ) / 2;
   }
 
-  //void DesktopWindow::SetRenderViewDefaults()
-  //{
-    //Texture* currentBackbufferTexture = nullptr;
-    //mRendererData->GetCurrentBackbufferTexture( &currentBackbufferTexture );
-    //TAC_ASSERT( currentBackbufferTexture );
-
-    //ScissorRect scissorRect;
-    //scissorRect.mXMaxRelUpperLeftCornerPixel = ( float )currentBackbufferTexture->myImage.mWidth;
-    //scissorRect.mYMaxRelUpperLeftCornerPixel = ( float )currentBackbufferTexture->myImage.mHeight;
-
-    //Viewport viewport;
-    //viewport.mViewportPixelWidthIncreasingRight = ( float )currentBackbufferTexture->myImage.mWidth;
-    //viewport.mViewportPixelHeightIncreasingUp = ( float )currentBackbufferTexture->myImage.mHeight;
-
-    //mRenderView->mFramebuffer = currentBackbufferTexture;
-    //mRenderView->mFramebufferDepth = mRendererData->mDepthBuffer;
-    //mRenderView->mScissorRect = scissorRect;
-    //mRenderView->mViewportRect = viewport;
-  //}
-
-  bool DesktopWindowHandle::IsValid() const
+  bool AreWindowHandlesEqual( const DesktopWindowHandle& l, const DesktopWindowHandle& r)
   {
-    return mIndex != NullDesktopWindowHandle;
+    return l.mIndex == r.mIndex;
   }
 
-  bool DesktopWindowHandle::operator == ( const DesktopWindowHandle& rhs) const
+  bool IsWindowHandleValid( const DesktopWindowHandle& desktopWindowHandle)
   {
-    return mIndex == rhs.mIndex;
+    return desktopWindowHandle.mIndex != -1;
+  }
+
+  bool operator == ( const DesktopWindowHandle& rhs,  const DesktopWindowHandle& lhs )
+  {
+    return lhs.mIndex == rhs.mIndex;
+  }
+
+  DesktopWindowState* DesktopWindowStateCollection::FindDesktopWindowState( DesktopWindowHandle desktopWindowHandle )
+  {
+    if( !IsWindowHandleValid( desktopWindowHandle))
+      return nullptr;
+    for( DesktopWindowState& state : mStates )
+      if( state.mDesktopWindowHandle.mIndex == desktopWindowHandle.mIndex )
+        return &state;
+    return nullptr;
+  }
+
+  DesktopWindowState* DesktopWindowStateCollection::GetStateAtIndex( int i )
+  {
+    return &mStates[ i ];
   }
 }
 

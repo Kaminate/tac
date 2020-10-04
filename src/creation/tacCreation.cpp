@@ -32,6 +32,10 @@
 
 namespace Tac
 {
+  static Creation gCreation;
+  static void CreationInitCallback( Errors& errors ) { gCreation.Init( errors ); }
+  static void CreationUpdateCallback( Errors& errors ) { gCreation.Update( errors ); }
+
   const static String prefabSettingsPath = "prefabs";
   //static v4 GetClearColor( Shell* shell )
   //{
@@ -54,7 +58,9 @@ namespace Tac
     TAC_UNUSED_PARAMETER( errors );
     mAppName = "Creation";
     mStudioName = "Sleeping Studio";
-    TAC_NEW Creation;
+    mProjectInit = CreationInitCallback;
+    mProjectUpdate = CreationUpdateCallback;
+    //TAC_NEW Creation;
   }
 
   Creation* Creation::Instance = nullptr;
@@ -64,21 +70,9 @@ namespace Tac
   }
   Creation::~Creation()
   {
-    if( CreationMainWindow* mainWindow = CreationMainWindow::Instance )
-    {
-      //mainWindow->mDesktopWindow->mOnDestroyed.clear();
-      delete mainWindow;
-    }
-    if( CreationGameWindow* gameWindow = CreationGameWindow::Instance )
-    {
-      //gameWindow->mDesktopWindow->mOnDestroyed.clear();
-      delete gameWindow;
-    }
-    if( CreationPropertyWindow* propertyWindow = CreationPropertyWindow::Instance )
-    {
-      //propertyWindow->mDesktopWindow->mOnDestroyed.clear();
-      delete propertyWindow;
-    }
+    delete CreationMainWindow::Instance;
+    delete CreationGameWindow::Instance;
+    delete CreationPropertyWindow::Instance;
   }
 
   void Creation::CreatePropertyWindow( Errors& errors )
@@ -111,7 +105,6 @@ namespace Tac
     if( CreationMainWindow::Instance )
     {
       TAC_DELETE CreationMainWindow::Instance;
-
       return;
     }
 
@@ -278,7 +271,6 @@ namespace Tac
   }
   void Creation::Init( Errors& errors )
   {
-
     SpaceInit();
     mWorld = TAC_NEW World;
     mEditorCamera.mPos = { 0, 1, 5 };
@@ -401,24 +393,22 @@ namespace Tac
     }
     mSelectedEntities.clear();
   }
-  void Creation::Update( Errors& errors )
+
+  WindowFramebufferManager WindowFramebufferManager::Instance;
+
+  void WindowFramebufferManager::Update( DesktopWindowStateCollection* oldStates,
+                                         DesktopWindowStateCollection* newStates )
   {
-    /*TAC_PROFILE_BLOCK*/;
-
-    DesktopWindowStates oldDesktopWindowStates;
-    MemCpy( &oldDesktopWindowStates, gDesktopWindowStates, sizeof( DesktopWindowStates ) );
-    DesktopEvent::ProcessStuff();
-
     for( int iDesktopWindowState = 0;
          iDesktopWindowState < kMaxDesktopWindowStateCount;
          iDesktopWindowState++ )
     {
-      const DesktopWindowState* newState = &gDesktopWindowStates[ iDesktopWindowState ];
-      const DesktopWindowState* oldState = &oldDesktopWindowStates[ iDesktopWindowState ];
-      if( !newState->mDesktopWindowHandle.IsValid() )
+      const DesktopWindowState* newState = newStates->GetStateAtIndex( iDesktopWindowState );
+      const DesktopWindowState* oldState = oldStates->GetStateAtIndex( iDesktopWindowState );
+      if( !IsWindowHandleValid( newState->mDesktopWindowHandle ) )
         continue;
 
-      if( oldState->mDesktopWindowHandle.IsValid() )
+      if( IsWindowHandleValid( oldState->mDesktopWindowHandle ) )
       {
         const bool sameSize =
           oldState->mWidth == newState->mWidth &&
@@ -443,11 +433,17 @@ namespace Tac
                                                              TAC_STACK_FRAME );
         mWindowFramebufferInfos.push_back( info );
       }
-
-
     }
+  }
 
+  void Creation::Update( Errors& errors )
+  {
+    /*TAC_PROFILE_BLOCK*/;
 
+    DesktopWindowStateCollection oldWindowStates = DesktopWindowStateCollection::InstanceStuffThread;
+    DesktopEventQueue::Instance.ApplyQueuedEvents( &DesktopWindowStateCollection::InstanceStuffThread );
+    WindowFramebufferManager::Instance.Update( &oldWindowStates,
+                                               &DesktopWindowStateCollection::InstanceStuffThread );
 
     if( !CreationMainWindow::Instance &&
         !CreationGameWindow::Instance &&
@@ -506,7 +502,7 @@ namespace Tac
       }
     }
 
-    Render::SubmitFrame();
+
   }
   Entity* Creation::CreateEntity()
   {
@@ -559,10 +555,10 @@ namespace Tac
   {
     CreationGameWindow* gameWindow = CreationGameWindow::Instance;
 
-    if( !gameWindow || !gameWindow->mDesktopWindowHandle.IsValid() )
+    if( !gameWindow || !IsWindowHandleValid( gameWindow->mDesktopWindowHandle ) )
       return;
 
-    DesktopWindowState* gameWindowState = FindDesktopWindowState( gameWindow->mDesktopWindowHandle );
+    DesktopWindowState* gameWindowState = DesktopWindowStateCollection::InstanceStuffThread.FindDesktopWindowState( gameWindow->mDesktopWindowHandle );
     if( !gameWindowState || !gameWindowState->mCursorUnobscured )
       return;
 
@@ -781,18 +777,11 @@ namespace Tac
     }
   }
 
-  Creation::WindowFramebufferInfo* Creation::FindWindowFramebufferInfo( DesktopWindowHandle desktopWindowHandle )
+  WindowFramebufferInfo* WindowFramebufferManager::FindWindowFramebufferInfo( DesktopWindowHandle desktopWindowHandle )
   {
     for( WindowFramebufferInfo& info : mWindowFramebufferInfos )
-    {
-      //DesktopWindowHandle desktopWindowHandle = info.mDesktopWindowHandle;
-      //DesktopWindowState* desktopWindowState = FindDesktopWindowState( desktopWindowHandle);
       if( info.mDesktopWindowHandle.mIndex == desktopWindowHandle.mIndex )
-        //if( info.mDesktopWindowState.mDesktopWindowHandle.mIndex == desktopWindowHandle.mIndex )
-      {
         return &info;
-      }
-    }
     return nullptr;
   }
 
@@ -812,5 +801,15 @@ namespace Tac
                      desktopWindowState->mWidth,
                      desktopWindowState->mHeight );
   }
+
+
+
+
+
+
+  // ----------------------- creation 2 ------------------------
+
+
+
 }
 

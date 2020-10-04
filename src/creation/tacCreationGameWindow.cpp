@@ -235,7 +235,7 @@ namespace Tac
 
   void CreationGameWindow::MousePickingAll()
   {
-    DesktopWindowState* desktopWindowState = FindDesktopWindowState( mDesktopWindowHandle );
+    DesktopWindowState* desktopWindowState = DesktopWindowStateCollection::InstanceStuffThread.FindDesktopWindowState( mDesktopWindowHandle );
     if( !desktopWindowState )
       return;
     if( !desktopWindowState->mCursorUnobscured )
@@ -356,7 +356,7 @@ namespace Tac
   }
   void CreationGameWindow::MousePickingInit()
   {
-    DesktopWindowState* desktopWindowState = FindDesktopWindowState( mDesktopWindowHandle );
+    DesktopWindowState* desktopWindowState = DesktopWindowStateCollection::InstanceStuffThread.FindDesktopWindowState( mDesktopWindowHandle );
     if( !desktopWindowState )
       return;
 
@@ -474,7 +474,7 @@ namespace Tac
   {
     MousePickingAll();
     Camera* camera = &Creation::Instance->mEditorCamera;
-    DesktopWindowState* desktopWindowState = FindDesktopWindowState( mDesktopWindowHandle );
+    DesktopWindowState* desktopWindowState = DesktopWindowStateCollection::InstanceStuffThread.FindDesktopWindowState( mDesktopWindowHandle );
     if( !desktopWindowState )
       return;
 
@@ -576,7 +576,7 @@ namespace Tac
   }
   void CreationGameWindow::CameraControls()
   {
-    DesktopWindowState* desktopWindowState = FindDesktopWindowState( mDesktopWindowHandle );
+    DesktopWindowState* desktopWindowState = DesktopWindowStateCollection::InstanceStuffThread.FindDesktopWindowState( mDesktopWindowHandle );
     if( !desktopWindowState )
       return;
     if( !desktopWindowState->mCursorUnobscured )
@@ -665,10 +665,9 @@ namespace Tac
 
 
 
-    Creation::WindowFramebufferInfo* info =
-      Creation::Instance->FindWindowFramebufferInfo( mDesktopWindowHandle );
+    WindowFramebufferInfo* info = WindowFramebufferManager::Instance.FindWindowFramebufferInfo( mDesktopWindowHandle );
 
-    DesktopWindowState* desktopWindowState = FindDesktopWindowState( mDesktopWindowHandle );
+    DesktopWindowState* desktopWindowState = DesktopWindowStateCollection::InstanceStuffThread. FindDesktopWindowState( mDesktopWindowHandle );
     if( !desktopWindowState )
       return;
 
