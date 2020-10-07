@@ -5,129 +5,129 @@
 namespace Tac
 {
 
-
-  SDLWindow::~SDLWindow()
-  {
-    SDL_DestroyWindow( mWindow );
-    SDLApp::Instance->mWindows.erase( this );
-  }
-  void* SDLWindow::GetOperatingSystemHandle()
-  {
-    return mOperatingSystemHandle;
-  }
-
-  SDLApp* SDLApp::Instance;
-  SDLApp::SDLApp()
-  {
-    Instance = this;
-  }
-  SDLApp::~SDLApp()
-  {
-  }
-  void SDLApp::Init( Errors& errors )
-  {
-    int sdl_init_result = SDL_Init( SDL_INIT_EVERYTHING );
-    if( sdl_init_result )
-    {
-      errors = SDL_GetError();
-      return;
-    }
-  }
-  void SDLApp::Poll( Errors& errors )
-  {
-    SDL_Event event;
-    while( SDL_PollEvent( &event ) )
-    {
-      if( OS::mShouldStopRunning )
-        break;
-      switch( event.type )
-      {
-        case SDL_QUIT:
-        {
-          OS::mShouldStopRunning = true;
-        } break;
-        case SDL_WINDOWEVENT:
-        {
-          SDLWindow* sdlWindow = FindSDLWindowByID( event.window.windowID );
-          switch( event.window.event )
-          {
-            case SDL_WINDOWEVENT_CLOSE:
-            {
-              delete sdlWindow;
-            } break;
-            case SDL_WINDOWEVENT_RESIZED:
-            {
-              sdlWindow->mWidth = ( int )event.window.data1;
-              sdlWindow->mHeight = ( int )event.window.data2;
-              //sdlWindow->mRendererData->OnResize( errors );
-            } break;
-          }
-        } break;
-      }
-    }
-  }
-  void SDLApp::GetPrimaryMonitor( Monitor* monitor, Errors& errors )
-  {
-    SDL_Rect rect;
-    if( SDL_GetDisplayBounds( 0, &rect ) )
-    {
-      errors = va( "Failed to get display bounds %s", SDL_GetError() );
-      TAC_HANDLE_ERROR( errors );
-    }
-    monitor->w = rect.w;
-    monitor->h = rect.h;
-  }
-  SDLWindow* SDLApp::FindSDLWindowByID( Uint32 windowID )
-  {
-    for( SDLWindow* linuxWindow : mWindows )
-    {
-      if( SDL_GetWindowID( linuxWindow->mWindow ) == windowID )
-      {
-        return linuxWindow;
-      }
-    }
-    return nullptr;
-  }
-  void SDLApp::SpawnWindow( DesktopWindowHandle handle,
-                            int x,
-                            int y,
-                            int width,
-                            int height )
-  {
-    Uint32 flags =
-      SDL_WINDOW_SHOWN |
-      SDL_WINDOW_RESIZABLE |
-      //SDL_WINDOW_BORDERLESS |
-      0;
-    SDL_Window* sdlWindow = SDL_CreateWindow( "Tac",
-                                              x,
-                                              y,
-                                              width,
-                                              height,
-                                              flags );
-    SDL_RaiseWindow( sdlWindow );
-
-    void* operatingSystemHandle = nullptr;
-    void* operatingSystemApplicationHandle = nullptr;
-#if defined(SDL_VIDEO_DRIVER_WINDOWS)
-    SDL_SysWMinfo wmInfo;
-    SDL_VERSION( &wmInfo.version );
-    if( SDL_FALSE == SDL_GetWindowWMInfo( sdlWindow, &wmInfo ) )
-    {
-      TAC_INVALID_CODE_PATH;
-      //errors = "Failed to get sdl window wm info";
-      //TAC_HANDLE_ERROR( errors );
-    }
-    operatingSystemHandle = wmInfo.info.win.window;
-    operatingSystemApplicationHandle = wmInfo.info.win.hinstance;
-#endif
-
-    auto linuxWindow = new SDLWindow();
-    linuxWindow->mWindow = sdlWindow;
-    linuxWindow->mOperatingSystemHandle = operatingSystemHandle;
-    linuxWindow->mOperatingSystemApplicationHandle = operatingSystemApplicationHandle;
-    //*( WindowParams* )linuxWindow = windowParams;
-    //*desktopWindow = linuxWindow;
-    //mWindows.insert( linuxWindow );
-  }
+//
+//  SDLWindow::~SDLWindow()
+//  {
+//    SDL_DestroyWindow( mWindow );
+//    SDLApp::Instance->mWindows.erase( this );
+//  }
+//  void* SDLWindow::GetOperatingSystemHandle()
+//  {
+//    return mOperatingSystemHandle;
+//  }
+//
+//  SDLApp* SDLApp::Instance;
+//  SDLApp::SDLApp()
+//  {
+//    Instance = this;
+//  }
+//  SDLApp::~SDLApp()
+//  {
+//  }
+//  void SDLApp::Init( Errors& errors )
+//  {
+//    int sdl_init_result = SDL_Init( SDL_INIT_EVERYTHING );
+//    if( sdl_init_result )
+//    {
+//      errors = SDL_GetError();
+//      return;
+//    }
+//  }
+//  void SDLApp::Poll( Errors& errors )
+//  {
+//    SDL_Event event;
+//    while( SDL_PollEvent( &event ) )
+//    {
+//      if( OS::mShouldStopRunning )
+//        break;
+//      switch( event.type )
+//      {
+//        case SDL_QUIT:
+//        {
+//          OS::mShouldStopRunning = true;
+//        } break;
+//        case SDL_WINDOWEVENT:
+//        {
+//          SDLWindow* sdlWindow = FindSDLWindowByID( event.window.windowID );
+//          switch( event.window.event )
+//          {
+//            case SDL_WINDOWEVENT_CLOSE:
+//            {
+//              delete sdlWindow;
+//            } break;
+//            case SDL_WINDOWEVENT_RESIZED:
+//            {
+//              sdlWindow->mWidth = ( int )event.window.data1;
+//              sdlWindow->mHeight = ( int )event.window.data2;
+//              //sdlWindow->mRendererData->OnResize( errors );
+//            } break;
+//          }
+//        } break;
+//      }
+//    }
+//  }
+//  void SDLApp::GetPrimaryMonitor( Monitor* monitor, Errors& errors )
+//  {
+//    SDL_Rect rect;
+//    if( SDL_GetDisplayBounds( 0, &rect ) )
+//    {
+//      errors = va( "Failed to get display bounds %s", SDL_GetError() );
+//      TAC_HANDLE_ERROR( errors );
+//    }
+//    monitor->w = rect.w;
+//    monitor->h = rect.h;
+//  }
+//  SDLWindow* SDLApp::FindSDLWindowByID( Uint32 windowID )
+//  {
+//    for( SDLWindow* linuxWindow : mWindows )
+//    {
+//      if( SDL_GetWindowID( linuxWindow->mWindow ) == windowID )
+//      {
+//        return linuxWindow;
+//      }
+//    }
+//    return nullptr;
+//  }
+//  void SDLApp::SpawnWindow( DesktopWindowHandle handle,
+//                            int x,
+//                            int y,
+//                            int width,
+//                            int height )
+//  {
+//    Uint32 flags =
+//      SDL_WINDOW_SHOWN |
+//      SDL_WINDOW_RESIZABLE |
+//      //SDL_WINDOW_BORDERLESS |
+//      0;
+//    SDL_Window* sdlWindow = SDL_CreateWindow( "Tac",
+//                                              x,
+//                                              y,
+//                                              width,
+//                                              height,
+//                                              flags );
+//    SDL_RaiseWindow( sdlWindow );
+//
+//    void* operatingSystemHandle = nullptr;
+//    void* operatingSystemApplicationHandle = nullptr;
+//#if defined(SDL_VIDEO_DRIVER_WINDOWS)
+//    SDL_SysWMinfo wmInfo;
+//    SDL_VERSION( &wmInfo.version );
+//    if( SDL_FALSE == SDL_GetWindowWMInfo( sdlWindow, &wmInfo ) )
+//    {
+//      TAC_INVALID_CODE_PATH;
+//      //errors = "Failed to get sdl window wm info";
+//      //TAC_HANDLE_ERROR( errors );
+//    }
+//    operatingSystemHandle = wmInfo.info.win.window;
+//    operatingSystemApplicationHandle = wmInfo.info.win.hinstance;
+//#endif
+//
+//    auto linuxWindow = new SDLWindow();
+//    linuxWindow->mWindow = sdlWindow;
+//    linuxWindow->mOperatingSystemHandle = operatingSystemHandle;
+//    linuxWindow->mOperatingSystemApplicationHandle = operatingSystemApplicationHandle;
+//    //*( WindowParams* )linuxWindow = windowParams;
+//    //*desktopWindow = linuxWindow;
+//    //mWindows.insert( linuxWindow );
+//  }
 }

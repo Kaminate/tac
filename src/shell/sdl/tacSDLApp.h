@@ -11,35 +11,35 @@ namespace Tac
 {
 
 
-  struct SDLWindow;
-  struct SDLApp;
+  //struct SDLWindow;
+  //struct SDLApp;
 
-  struct SDLWindow : public DesktopWindow
-  {
-    ~SDLWindow();
-    void*       GetOperatingSystemHandle() override;
-    SDL_Window* mWindow = nullptr;
-    void*       mOperatingSystemHandle = nullptr;
-    void*       mOperatingSystemApplicationHandle = nullptr;
-  };
+  //struct SDLWindow : public DesktopWindow
+  //{
+  //  ~SDLWindow();
+  //  void*       GetOperatingSystemHandle() override;
+  //  SDL_Window* mWindow = nullptr;
+  //  void*       mOperatingSystemHandle = nullptr;
+  //  void*       mOperatingSystemApplicationHandle = nullptr;
+  //};
 
-  struct SDLApp : public DesktopApp
-  {
-    static SDLApp* Instance;
-    SDLApp();
-    ~SDLApp();
-    void Init( Errors& errors ) override;
-    void Poll( Errors& errors ) override;
-    void SpawnWindow( DesktopWindowHandle handle,
-                      int x,
-                      int y,
-                      int width,
-                      int height ) override;
-    void GetPrimaryMonitor( Monitor* monitor,
-                            Errors& errors ) override;
-    SDLWindow* FindSDLWindowByID( Uint32 windowID );
+  //struct SDLApp : public DesktopApp
+  //{
+  //  static SDLApp* Instance;
+  //  SDLApp();
+  //  ~SDLApp();
+  //  void Init( Errors& errors ) override;
+  //  void Poll( Errors& errors ) override;
+  //  void SpawnWindow( DesktopWindowHandle handle,
+  //                    int x,
+  //                    int y,
+  //                    int width,
+  //                    int height ) override;
+  //  void GetPrimaryMonitor( Monitor* monitor,
+  //                          Errors& errors ) override;
+  //  SDLWindow* FindSDLWindowByID( Uint32 windowID );
 
-    std::set< SDLWindow* > mWindows;
-  };
+  //  std::set< SDLWindow* > mWindows;
+  //};
 
 }

@@ -20,8 +20,8 @@ namespace Tac
   }
   void Settings::Init( Errors& errors )
   {
-    StringView appName = DesktopApp::Instance->mAppName;
-    StringView prefPath = DesktopApp::Instance->mPrefPath;
+    StringView appName = Shell::Instance. mAppName;
+    StringView prefPath = Shell::Instance.mPrefPath;
     mPath = prefPath + "/" + appName + "Settings.txt";
     Load( errors );
     TAC_HANDLE_ERROR( errors );

@@ -16,14 +16,12 @@ namespace Tac
     void* result = std::malloc( sz );
 
     // track dynamic memory allocations
-    if( Shell::Instance && Shell::Instance->mElapsedSeconds > 2)
+    if( Shell::Instance.mElapsedSeconds > 2)
     {
       static int memAllocCounter;
       ++memAllocCounter;
     }
     return result;
-
-
   }
   static void Deallocate( void* ptr )
   {

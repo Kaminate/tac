@@ -186,7 +186,7 @@ namespace Tac
     auto uI2DDrawData = TAC_NEW UI2DDrawData;
     mUI2DDrawData = uI2DDrawData;
     mUIRoot = TAC_NEW UIRoot;
-    mUIRoot->mElapsedSeconds = &Shell::Instance->mElapsedSeconds;
+    mUIRoot->mElapsedSeconds = &Shell::Instance.mElapsedSeconds;
     mUIRoot->mUI2DDrawData = mUI2DDrawData;
     //mUIRoot->mDesktopWindow = mDesktopWindow;
     CreateGraphicsObjects( errors );
@@ -567,7 +567,7 @@ namespace Tac
       }
     }
 
-    if( Shell::Instance->mElapsedSeconds < mStatusMessageEndTime )
+    if( Shell::Instance.mElapsedSeconds < mStatusMessageEndTime )
     {
       ImGuiText( mStatusMessage );
     }

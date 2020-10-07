@@ -1,4 +1,4 @@
-#include "src/shell/windows/tacWindows.h"
+#include "src/shell/windows/tacWin32.h"
 #include "src/common/tacPreprocessor.h"
 #include "src/common/tacUtility.h"
 #include "src/common/tacOS.h"
@@ -19,8 +19,10 @@
 
 namespace Tac
 {
-
-
+  HINSTANCE ghInstance;
+  HINSTANCE ghPrevInstance;
+  LPSTR     glpCmdLine;
+  int       gnCmdShow;
 
   String Win32ErrorToString( DWORD winErrorValue )
   {
@@ -100,16 +102,15 @@ namespace Tac
     DebugBreak();
   }
 
-  void WindowsPopup( String s )
+  void WindowsPopup( const StringView& s )
   {
     MessageBox( NULL, s.c_str(), "Message", MB_OK );
   }
 
-  void WindowsOutput( String s )
+  void WindowsOutput( const StringView& s )
   {
     OutputDebugString( s.c_str() );
   }
-
 
   static String WideStringToUTF8( WCHAR* inputWideStr )
   {
@@ -154,6 +155,11 @@ namespace Tac
 
   namespace OS
   {
+    void GetPrimaryMonitor( int* w, int* h )
+    {
+      * w = GetSystemMetrics( SM_CXSCREEN );
+      * h = GetSystemMetrics( SM_CYSCREEN );
+    }
 
     void GetWorkingDir( String& dir, Errors& errors )
     {
@@ -190,7 +196,7 @@ namespace Tac
 
       path = outBuf;
 
-      StringView workingDir = Shell::Instance->mInitialWorkingDir;
+      StringView workingDir = Shell::Instance.mInitialWorkingDir;
       if( StartsWith( path, workingDir ) )
       {
         path = path.substr( workingDir.size() );
@@ -199,37 +205,12 @@ namespace Tac
     }
     void SaveDialog( String& path, StringView suggestedPath, Errors& errors )
     {
-      //IFileDialog *pfd = NULL;
-      //// CoCreate the File Open Dialog object.
-      //HRESULT hr = CoCreateInstance(
-      //  CLSID_FileSaveDialog,
-      //  NULL,
-      //  CLSCTX_INPROC_SERVER,
-      //  IID_PPV_ARGS( &pfd ) );
-      //if( FAILED( hr ) )
-      //{
-      //  errors = "cocreateinstance failed";
-      //  return;
-      //}
-      //// Create an event handling object, and hook it up to the dialog.
-      //IFileDialogEvents *pfde = NULL;
-      //hr = CDialogEventHandler_CreateInstance( IID_PPV_ARGS( &pfde ) );
-      // ^ this is a helper fn from a windows sample...
-
       const int outBufSize = 256;
       char outBuf[ outBufSize ] = {};
       MemCpy( outBuf, suggestedPath.c_str(), suggestedPath.size() );
 
-      // https://devblogs.microsoft.com/oldnewthing/20101112-00/?p=12293
-      // When you change folders in a common file dialog,
-      // the common file dialog calls Set­Current­Directory to match the
-      // directory you are viewing.
-      //
-      // Many programs require that the current directory match the
-      // directory containing the document being opened.
-      //
-      // OFN_NOCHANGEDIR avoids this ( doesn't work on GetOpenFileName )
-      DWORD flags = OFN_NOCHANGEDIR;
+      // Prevent common file dialog from calling SetCurrentDirectory
+      const DWORD flags = OFN_NOCHANGEDIR;
 
       OPENFILENAME dialogParams = {};
       dialogParams.lStructSize = sizeof( OPENFILENAME );
@@ -237,14 +218,9 @@ namespace Tac
       dialogParams.lpstrFile = outBuf;
       dialogParams.nMaxFile = outBufSize;
       dialogParams.Flags = flags;
+      // dialogParams.lpstrInitialDir = (LPCSTR)Shell::Instance.mPrefPath.c_str();
 
-
-      // | actually, no.
-      // v we want the prefabs to be saved in the install ( working ) dir
-      // dialogParams.lpstrInitialDir = (LPCSTR)Shell::Instance->mPrefPath.c_str();
-
-      BOOL getSaveFileNameResult = GetSaveFileNameA( &dialogParams );
-      if( 0 == getSaveFileNameResult )
+      if( !GetSaveFileNameA( &dialogParams ) )
       {
         errors = GetFileDialogErrors();
         return;

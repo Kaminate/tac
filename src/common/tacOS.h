@@ -39,6 +39,8 @@ namespace Tac
     // same as current dir
     void GetWorkingDir( String& dir, Errors& errors );
 
+    void GetPrimaryMonitor( int* w, int* h );
+  
 
     // I don't think this function should exist.
     // If you are debugging, hit a breakpoint, and THEN call this function,

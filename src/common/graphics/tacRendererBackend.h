@@ -208,7 +208,8 @@ namespace Tac
     struct CommandDataCreateFramebuffer
     {
       FramebufferHandle mFramebufferHandle;
-      DesktopWindowHandle mDesktopWindowHandle;
+      void* mNativeWindowHandle = nullptr;
+      // DesktopWindowHandle mDesktopWindowHandle;
       int mWidth = 0;
       int mHeight = 0;
     };

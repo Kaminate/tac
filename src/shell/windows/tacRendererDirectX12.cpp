@@ -816,7 +816,7 @@ void RendererDX12::AddShader( Shader** shader, const ShaderData& shaderData, Err
       return;
 
 
-    String compositeShaderPath = Shell::Instance->mPrefPath + "/FailedShader.txt";
+    String compositeShaderPath = Shell::Instance.mPrefPath + "/FailedShader.txt";
     Errors compositeShaderErrors;
     WriteToFile( compositeShaderPath, shaderMemory.data(), shaderMemory.size(), compositeShaderErrors );
     String compositeShaderErrorString =

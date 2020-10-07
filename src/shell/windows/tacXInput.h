@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "src/shell/windows/tacWindows.h" // include windows.h before xinput.h or else you get 'no target architecture' errors
+#include "src/shell/windows/tacWin32.h" // include windows.h before xinput.h or else you get 'no target architecture' errors
 #include "src/common/tacString.h"
 #include "src/common/tacControllerInput.h"
 #include "src/common/tacErrorHandling.h"
@@ -21,22 +21,21 @@ namespace Tac
     ~DirectInputPerController();
     void DebugImguiInner() override;
 
-    DIDEVICEINSTANCE mInstance = {};
+    DIDEVICEINSTANCE     mInstance = {};
     IDirectInputDevice8* mDivice = nullptr;
-    DIJOYSTATE2 mJoystate = {};
+    DIJOYSTATE2          mJoystate = {};
   };
 
   struct XInput : public ControllerInput
   {
-    XInput( HINSTANCE, Errors& );
-    ~XInput();
-    void UpdateInner() override;
-    void DebugImguiInner() override;
-    void EnumerateController( const DIDEVICEINSTANCE* pdidInstance );
+    void                      Init( Errors& );
+    void                      UpdateInner() override;
+    void                      DebugImguiInner() override;
+    void                      EnumerateController( const DIDEVICEINSTANCE* pdidInstance );
     DirectInputPerController* FindDInputController( const DIDEVICEINSTANCE* mDeviceInstance );
 
-    IDirectInput8* directInput = nullptr;
-    float mSecondsTillDisconver = 0;
-    float mSecondsTillDiscoverMax = 1;
+    IDirectInput8*            directInput = nullptr;
+    float                     mSecondsTillDisconver = 0;
+    float                     mSecondsTillDiscoverMax = 1;
   };
 }

@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "src/shell/windows/tacWindows.h"
+#include "src/shell/windows/tacWin32.h"
 
 namespace Tac
 {
@@ -17,20 +17,10 @@ namespace Tac
 
   String CursorDirToString( CursorDir cursorType );
 
-  struct Win32Cursors
-  {
-    Win32Cursors();
-    static Win32Cursors* Instance;
-    HCURSOR cursorArrow;
-    HCURSOR cursorArrowNS;
-    HCURSOR cursorArrowWE;
-    HCURSOR cursorArrowNE_SW;
-    HCURSOR cursorArrowNW_SE;
-    HCURSOR GetCursor( CursorDir cursorDir );
-  };
 
   struct Win32MouseEdgeHandler
   {
+    static Win32MouseEdgeHandler Instance;
     Win32MouseEdgeHandler();
 
     void Update( HWND );

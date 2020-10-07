@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "src/shell/windows/tacWindows.h"
+#include "src/shell/windows/tacWin32.h"
 #include "src/common/tacString.h"
 #include "src/common/tacErrorHandling.h"
 #include "src/common/containers/tacVector.h"
@@ -33,8 +33,9 @@ namespace Tac
 
   struct NetWinsock : public Net
   {
-    NetWinsock( Errors& errors );
+    static NetWinsock Instance;
     ~NetWinsock();
+    void Init( Errors& );
     void DebugImgui() override;
     void Update( Errors& errors ) override;
     Socket* CreateSocket( StringView name,

@@ -29,7 +29,7 @@ namespace Tac
   struct Soul;
   struct Texture;
   struct UI2DDrawData;
-  struct WindowParams;
+  //struct WindowParams;
   struct World;
 
 

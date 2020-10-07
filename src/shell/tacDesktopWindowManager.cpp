@@ -1,7 +1,9 @@
 #include "src/shell/tacDesktopWindowManager.h"
 #include "src/shell/tacDesktopApp.h"
+#include "src/common/containers/tacFixedVector.h"
 #include "src/common/graphics/tacRenderer.h"
 #include "src/common/graphics/tacUI2D.h"
+#include "src/common/tacFrameMemory.h"
 #include "src/common/graphics/tacUI.h"
 #include "src/common/tacOS.h"
 #include "src/common/tacKeyboardinput.h" // temp
@@ -19,15 +21,69 @@ namespace Tac
     int mHeight;
   };
 
-  static std::mutex gWindowSpawnInfoMutex;
-  Vector< WantSpawnInfo > gWantSpawnWindows;
-  static int gWindowCount;
 
-  DesktopWindowManager::DesktopWindowManager()
+  //struct
+  //{
+  //  void Init()
+  //  {
+  //    sDesktopWindowHandleIDs.Init( kMaxDesktopWindowStateCount );
+  //  }
+
+  //  IdCollection* GetDesktopWindowHandleIDs( BathroomKey* bathroomKey )
+  //  {
+  //    sWindowHandleLock.lock();
+  //    bathroomKey->mCallback = []() { sBathroom.sWindowHandleLock.unlock(); };
+  //    return &sDesktopWindowHandleIDs;
+  //  }
+
+  std::mutex sWindowHandleLock;
+  IdCollection sDesktopWindowHandleIDs;
+  //} sBathroom;
+
+  typedef FixedVector< WantSpawnInfo, kMaxDesktopWindowStateCount > WindowRequests;
+  static WindowRequests sWindowRequests;
+  //static DesktopWindow* mDesktopWindows[ kMaxDesktopWindowStateCount ] = {};
+
+  WindowHandleIterator::WindowHandleIterator()
   {
-    Instance = this;
+    sWindowHandleLock.lock();
   }
-  DesktopWindowManager* DesktopWindowManager::Instance = nullptr;
+
+  WindowHandleIterator::~WindowHandleIterator()
+  {
+    sWindowHandleLock.unlock();
+
+  }
+  int* WindowHandleIterator::begin()
+  {
+    return sDesktopWindowHandleIDs.begin();
+  }
+  int* WindowHandleIterator::end()
+  {
+    return sDesktopWindowHandleIDs.end();
+  }
+
+//  WindowHandleIterator GetDesktopWindowHandleIDs()
+//  {
+//WindowHandleIterator
+//  }
+
+  void DesktopWindowManagerInit()
+  {
+    sDesktopWindowHandleIDs.Init( kMaxDesktopWindowStateCount );
+  }
+
+  //DesktopWindowHandle* GetDesktopWindowHandles()
+  //{
+  //  sWindowHandleLock.lock();
+  //  DesktopWindowHandle* result = FrameMemory::Allocate(
+  //    sizeof( DesktopWindowHandle ) *
+  //    sDesktopWindowHandleIDs. );
+
+  //    void* Allocate( int );
+  //  sWindowHandleLock.unlock();
+  //}
+
 
   //void DesktopWindowManager::SetWindowParams( WindowParams windowParams )
   //{
@@ -53,36 +109,62 @@ namespace Tac
   //    mWantSpawnWindows.push_back( windowName );
   //}
 
-  void DesktopWindowManager::Update( Errors& errors )
+  void DesktopWindowPollCreationRequests( Errors& errors )
   {
-    Vector< WantSpawnInfo > wantSpawnWindows;
+    WindowRequests spawnRequests;
+    sWindowHandleLock.lock();
+    spawnRequests = sWindowRequests;
+    sWindowRequests.clear();
+    sWindowHandleLock.unlock();
+    for( WantSpawnInfo info : spawnRequests )
     {
-      std::lock_guard< std::mutex > lock( gWindowSpawnInfoMutex );
-      wantSpawnWindows = gWantSpawnWindows;
-      gWantSpawnWindows.clear();
-    }
-    for( WantSpawnInfo info : wantSpawnWindows )
-    {
-      DesktopApp::Instance->SpawnWindow( info.mHandle,
-                                         info.mX,
-                                         info.mY,
-                                         info.mWidth,
-                                         info.mHeight );
+      //DesktopApp::Instance->SpawnWindow( info.mHandle,
+      //                                   info.mX,
+      //                                   info.mY,
+      //                                   info.mWidth,
+      //                                   info.mHeight );
       TAC_HANDLE_ERROR( errors );
     }
   }
 
-  DesktopWindowHandle DesktopWindowManager::CreateWindow( int x, int y, int width, int height )
+  static bool usedWindowHandles[ kMaxDesktopWindowStateCount ];
+
+  DesktopWindowHandle DesktopWindowCreate( int x, int y, int width, int height )
   {
-    std::lock_guard< std::mutex > lock( gWindowSpawnInfoMutex );
-    DesktopWindowHandle handle = { gWindowCount++ };
+    static int gWindowCounter;
+    std::lock_guard< std::mutex > lock( sWindowHandleLock );
+    DesktopWindowHandle handle = { gWindowCounter++ };
     WantSpawnInfo info;
     info.mX = x;
     info.mY = y;
     info.mWidth = width;
     info.mHeight = height;
     info.mHandle = handle;
-    gWantSpawnWindows.push_back( info );
+    sWindowRequests.push_back( info );
     return handle;
   }
+
+  //DesktopWindow* DesktopApp::FindDesktopWindow( DesktopWindowHandle desktopWindowHandle )
+  //{
+  //  for( int i = 0; i < kMaxDesktopWindowStateCount; ++i )
+  //  {
+  //    DesktopWindow* desktopWindow = mDesktopWindows[ i ];
+  //    if( !desktopWindow )
+  //      continue;
+  //    if( AreWindowHandlesEqual( desktopWindow->mHandle, desktopWindowHandle ) )
+  //      return desktopWindow;
+  //  }
+  //  return nullptr;
+  //}
+
+  //void DesktopApp::SpawnWindow( DesktopWindow* desktopWindow )
+  //{
+  //  for( int i = 0; i < kMaxDesktopWindowStateCount; ++i )
+  //  {
+  //    if( mDesktopWindows[ i ] )
+  //      continue;
+  //    mDesktopWindows[ i ] = desktopWindow;
+  //    return;
+  //  }
+  //}
 }

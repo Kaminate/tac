@@ -40,48 +40,32 @@ namespace Tac
     void PushEventKeyState( Key, bool );
     void PushEventKeyInput( Codepoint );
     void PushEventMouseWheel( int ticks );
+    void PushEventMouseMove( DesktopWindowHandle, int x, int y );
 
     void ApplyQueuedEvents( DesktopWindowStateCollection* );
   };
 
-
-  struct DesktopApp // final
+  struct AppInterfaceProject
   {
-    static DesktopApp* Instance;
-    DesktopApp();
-    ~DesktopApp();
-    void                   Run();
-    virtual void           Init( Errors& );
-    virtual void           Poll( Errors& ) {}
-    //void                   Run();
-    virtual void           SpawnWindow( DesktopWindowHandle handle,
-                                        int x,
-                                        int y,
-                                        int width,
-                                        int height ) = 0;
-    void                   SpawnWindow( DesktopWindow* );
-    virtual void           GetPrimaryMonitor( Monitor* monitor, Errors& errors ) = 0;
-    virtual void           CreateControllerInput( Errors& ) {};
-    DesktopWindow*         FindDesktopWindow( DesktopWindowHandle );
-
-    // maybe these dont have to be pointers
-    DesktopWindow*         mDesktopWindows[ kMaxDesktopWindowStateCount ] = {};
-    Errors                 mErrorsMainThread;
-    Errors                 mErrorsStuffThread;
-    String                 mAppName;
-    String                 mPrefPath;
-    String                 mInitialWorkingDir;
     void( *mProjectInit )( Errors& ) = 0;
     void( *mProjectUpdate )( Errors& ) = 0;
   };
 
-  //struct WindowState
-  //{
-  //  String mName; // replace with handle
-  //  int mWidth;
-  //  int mHeight;
-  //  void* mhwnd;
-  //};
+  struct AppInterfacePlatform
+  {
+    void( *mPlatformPoll )( Errors& );
+    void( *mPlatformSpawnWindow )( DesktopWindowHandle handle,
+                                   int x,
+                                   int y,
+                                   int width,
+                                   int height );
+  };
+
+  void                    DesktopAppInit( AppInterfacePlatform,
+                                          Errors& );
+  void                    DesktopAppRun( Errors& );
+  extern Errors           sPlatformThreadErrors;
+  extern Errors           sLogicThreadErrors;
 
 
 }

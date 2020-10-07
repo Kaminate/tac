@@ -32,7 +32,7 @@ namespace Tac
     //  return;
     //ImGui::Indent();
     //OnDestruct( ImGui::Unindent() );
-    //String time = FormatFrameTime( mNet->Shell::Instance->mElapsedSeconds - mElapsedSecondsOnLastRecv );
+    //String time = FormatFrameTime( mNet->Shell::Instance.mElapsedSeconds - mElapsedSecondsOnLastRecv );
     //ImGui::Text( "Address Family: %s", ToString( mAddressFamily ).c_str() );
     //ImGui::Text( "Socket Type: %s", ToString( mSocketType ).c_str() );
     //ImGui::Text( "Last recvd msg: %s", time.c_str() );

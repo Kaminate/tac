@@ -15,6 +15,7 @@
 
 namespace Tac
 {
+  NetWinsock NetWinsock::Instance;
   static int GetWinsockAddressFamily( AddressFamily addressFamily )
   {
     switch( addressFamily )
@@ -186,7 +187,7 @@ namespace Tac
     mTCPIsConnected = true;
   }
 
-  NetWinsock::NetWinsock( Errors& errors )
+  void NetWinsock::Init( Errors& errors )
   {
     WORD wsaVersion = MAKEWORD( 2, 2 );
     WSAData wsaData;
@@ -228,7 +229,7 @@ namespace Tac
     netWinsocket->mSocketType = socketType;
     netWinsocket->mWinsockAddressFamily = winsockAddressFamily;
     netWinsocket->mWinsockSocketType = winsockSocketType;
-    netWinsocket->mElapsedSecondsOnLastRecv = Shell::Instance->mElapsedSeconds;
+    netWinsocket->mElapsedSecondsOnLastRecv = Shell::Instance.mElapsedSeconds;
     netWinsocket->SetKeepalive( true, errors );
     if( errors )
       return nullptr;
@@ -262,7 +263,7 @@ namespace Tac
   }
   void NetWinsock::Update( Errors& errors )
   {
-    bool shouldSendKeepalive = Shell::Instance->mElapsedSeconds > mKeepaliveNextSeconds;
+    bool shouldSendKeepalive = Shell::Instance.mElapsedSeconds > mKeepaliveNextSeconds;
     if( shouldSendKeepalive )
       mKeepaliveNextSeconds += mKeepaliveIntervalSeconds;
 
@@ -312,7 +313,7 @@ namespace Tac
         socketWinsock->mRequestDeletion = true;
         continue;
       }
-      socketWinsock->mElapsedSecondsOnLastRecv = Shell::Instance->mElapsedSeconds;
+      socketWinsock->mElapsedSecondsOnLastRecv = Shell::Instance.mElapsedSeconds;
       if( mPrintReceivedMessages )
       {
         auto recvString = String( recvBuf, recvResult );

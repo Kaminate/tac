@@ -46,8 +46,8 @@ if( WIN32 )
     "${CMAKE_SOURCE_DIR}/src/shell/windows/tacRendererDirectX11.h"
     "${CMAKE_SOURCE_DIR}/src/shell/windows/tacRendererDirectX12.cpp"
     "${CMAKE_SOURCE_DIR}/src/shell/windows/tacRendererDirectX12.h"
-    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWindows.cpp"
-    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWindows.h"
+    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWin32.cpp"
+    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWin32.h"
     "${CMAKE_SOURCE_DIR}/src/shell/windows/tacXInput.cpp"
     "${CMAKE_SOURCE_DIR}/src/shell/windows/tacXInput.h"
     )
@@ -185,11 +185,12 @@ if( WIN32 )
   tac_target( "Win32" )
   set( TAC_SOURCES 
     ${TAC_SOURCES}
-    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWindowsMouseEdge.cpp"
-    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWindowsMouseEdge.h"
-    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWindowsApp2.cpp"
-    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWindowsApp2.h"
-    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWindowsMain2.cpp" )
+    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWin32MouseEdge.cpp"
+    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWin32MouseEdge.h"
+    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWin32DesktopWindowManager.cpp"
+    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWin32DesktopWindowManager.h"
+    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWin32Main.cpp"
+    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWin32Main.h" )
   include_directories( ${TAC_INCLUDE_DIRECTORIES} )
 
   # the win32 here changes the

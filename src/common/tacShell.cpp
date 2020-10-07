@@ -34,15 +34,8 @@ namespace Tac
     mIsImGuiVisible = true;
   }
 
-  Shell* Shell::Instance = nullptr;
-  Shell::Shell()
-  {
-    if( IsDebugMode() )
-      mLog = TAC_NEW Log;
-    Instance = this;
-    mLastTick = GetCurrentTime();
-  }
-  Shell::~Shell()
+  Shell Shell::Instance;
+  void Shell::Uninit()
   {
     delete UI2DCommonData::Instance;
     delete Debug3DCommonData::Instance;
@@ -53,8 +46,6 @@ namespace Tac
 
     // last, so resources can be freed
     Render::Uninit();
-
-    Instance = nullptr;
   }
   void Shell::Init( Errors& errors )
   {

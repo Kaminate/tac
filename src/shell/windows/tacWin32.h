@@ -10,8 +10,6 @@
 
 #pragma once
 
-
-
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
@@ -22,21 +20,27 @@
 
 #include <Windows.h>
 
-#include "src/common/tacPreprocessor.h"
-#include "src/common/tacString.h"
+//#include "src/common/tacPreprocessor.h"
+//#include "src/common/tacString.h"
 
 namespace Tac
 {
-struct Errors;
+  extern HINSTANCE ghInstance;
+  extern HINSTANCE ghPrevInstance;
+  extern LPSTR     glpCmdLine;
+  extern int       gnCmdShow;
 
-String Win32ErrorToString( DWORD winErrorValue );
-String GetLastWin32ErrorString();
-String GetWin32WindowName( HWND hwnd );
+  //struct Errors;
+  struct String;
+  struct StringView;
+  struct Errors;
 
-void WindowsAssert( const Errors& errors );
-void WindowsDebugBreak();
-void WindowsPopup( String );
-void WindowsOutput( String );
+  String Win32ErrorToString( DWORD winErrorValue );
+  String GetLastWin32ErrorString();
+  String GetWin32WindowName( HWND hwnd );
 
-
+  void WindowsAssert( const Errors& );
+  void WindowsDebugBreak();
+  void WindowsPopup( const StringView& );
+  void WindowsOutput( const StringView& );
 }

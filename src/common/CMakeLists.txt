@@ -37,6 +37,8 @@ ${CMAKE_CURRENT_SOURCE_DIR}/tacDesktopWindow.h
 ${CMAKE_CURRENT_SOURCE_DIR}/tacErrorHandling.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/tacErrorHandling.h
 ${CMAKE_CURRENT_SOURCE_DIR}/tacEvent.h
+${CMAKE_CURRENT_SOURCE_DIR}/tacIDCollection.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/tacIDCollection.h
 ${CMAKE_CURRENT_SOURCE_DIR}/taccontrollerinput.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/taccontrollerinput.h
 ${CMAKE_CURRENT_SOURCE_DIR}/tackeyboardinput.cpp

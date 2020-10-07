@@ -142,7 +142,7 @@ namespace Tac
       TAC_HANDLE_ERROR( errors );
     }
 
-    //mUIRoot->mElapsedSeconds = &Shell::Instance->mElapsedSeconds; // eww
+    //mUIRoot->mElapsedSeconds = &Shell::Instance.mElapsedSeconds; // eww
     //mUIRoot->mGhost = this;
   }
   Ghost::~Ghost()
@@ -190,20 +190,20 @@ namespace Tac
 
     if( CanDrawImgui() )
     {
-      //mMouserCursorNDC.x = ( ( float )Shell::Instance->mMouseRelTopLeftX - mImguiImagePosRelTopLeftX ) / mImguiImageW;
-      //mMouserCursorNDC.y = ( ( float )Shell::Instance->mMouseRelTopLeftY - mImguiImagePosRelTopLeftY ) / mImguiImageH;
-      //mMouseHoveredOverWindow &= Shell::Instance->mMouseInWindow;
+      //mMouserCursorNDC.x = ( ( float )Shell::Instance.mMouseRelTopLeftX - mImguiImagePosRelTopLeftX ) / mImguiImageW;
+      //mMouserCursorNDC.y = ( ( float )Shell::Instance.mMouseRelTopLeftY - mImguiImagePosRelTopLeftY ) / mImguiImageH;
+      //mMouseHoveredOverWindow &= Shell::Instance.mMouseInWindow;
       //mDrawDepthBuffer = mFBODepthBuffer;
       //mDrawTexture = mFBOTexture;
     }
     else
     {
       //InvalidCodePath;
-      //Shell::Instance->Renderer::Instance->GetBackbufferColor( &mDrawTexture  );
-      //Shell::Instance->Renderer::Instance->GetBackbufferDepth( &mDrawDepthBuffer );
-      //mMouserCursorNDC.x = ( float )Shell::Instance->mMouseRelTopLeftX / mDrawTexture->myImage.mWidth;
-      //mMouserCursorNDC.y = ( float )Shell::Instance->mMouseRelTopLeftY / mDrawTexture->myImage.mHeight;
-      //mMouseHoveredOverWindow = Shell::Instance->mMouseInWindow;
+      //Shell::Instance.Renderer::Instance->GetBackbufferColor( &mDrawTexture  );
+      //Shell::Instance.Renderer::Instance->GetBackbufferDepth( &mDrawDepthBuffer );
+      //mMouserCursorNDC.x = ( float )Shell::Instance.mMouseRelTopLeftX / mDrawTexture->myImage.mWidth;
+      //mMouserCursorNDC.y = ( float )Shell::Instance.mMouseRelTopLeftY / mDrawTexture->myImage.mHeight;
+      //mMouseHoveredOverWindow = Shell::Instance.mMouseInWindow;
     }
     mMouserCursorNDC.y = 1 - mMouserCursorNDC.y;
     mMouserCursorNDC *= 2;

@@ -32,7 +32,7 @@ namespace Tac
   {
     //CreationMainWindow* mainWindow = CreationMainWindow::Instance;
     TAC_UNUSED_PARAMETER( errors );
-    mCreationSeconds = Shell::Instance->mElapsedSeconds;
+    mCreationSeconds = Shell::Instance.mElapsedSeconds;
     //WindowParams windowParams;
     //windowParams.mName = "game object menu";
     //windowParams.mWidth = 300;

@@ -143,7 +143,7 @@ namespace Tac
   {
     int x, y, w, h;
     GetWindowsJsonData( name, &x, &y, &w, &h );
-    return DesktopWindowManager::Instance->CreateWindow( x, y, w, h );
+    return DesktopWindowCreate( x, y, w, h );
   }
 
   void Creation::GetWindowsJsonData( String windowName, int* x, int* y, int* w, int* h )
@@ -170,14 +170,7 @@ namespace Tac
 
     if( centered )
     {
-      Monitor monitor;
-      DesktopApp::Instance->GetPrimaryMonitor( &monitor, errors );
-      TAC_HANDLE_ERROR( errors );
-      WindowParams::GetCenteredPosition( *w,
-                                         *h,
-                                         x,
-                                         y,
-                                         monitor );
+      CenterWindow( x, y, *w, *h );
     }
   }
   void Creation::GetWindowsJson( Json** outJson, Errors& errors )
@@ -236,23 +229,15 @@ namespace Tac
 
     if( centered )
     {
-      Monitor monitor;
-      DesktopApp::Instance->GetPrimaryMonitor( &monitor, errors );
-      TAC_HANDLE_ERROR( errors );
-      WindowParams::GetCenteredPosition(
-        width,
-        height,
-        &x,
-        &y,
-        monitor );
+      CenterWindow( &x, &y, width, height );
     }
 
-    WindowParams params;
-    params.mName = name;
-    params.mWidth = width;
-    params.mHeight = height;
-    params.mX = x;
-    params.mY = y;
+    //WindowParams params;
+    //params.mName = name;
+    //params.mWidth = width;
+    //params.mHeight = height;
+    //params.mX = x;
+    //params.mY = y;
     //DesktopWindowManager::Instance->SetWindowParams( params );
   }
   void Creation::SetSavedWindowsData( Errors& errors )
@@ -426,8 +411,8 @@ namespace Tac
       {
         WindowFramebufferInfo info;
         info.mDesktopWindowHandle = newState->mDesktopWindowHandle;
-        info.mFramebufferHandle = Render::CreateFramebuffer( "<3 u hope ur feeling ok",
-                                                             newState->mDesktopWindowHandle,
+        info.mFramebufferHandle = Render::CreateFramebuffer( "",
+                                                             newState->mNativeWindowHandle,
                                                              newState->mWidth,
                                                              newState->mHeight,
                                                              TAC_STACK_FRAME );
@@ -498,7 +483,7 @@ namespace Tac
       if( CreationGameWindow::Instance )
       {
         CreationGameWindow::Instance->mStatusMessage = "Saved prefabs!";
-        CreationGameWindow::Instance->mStatusMessageEndTime = Shell::Instance->mElapsedSeconds + 5.0f;
+        CreationGameWindow::Instance->mStatusMessageEndTime = Shell::Instance.mElapsedSeconds + 5.0f;
       }
     }
 
@@ -668,9 +653,9 @@ namespace Tac
   }
   void Creation::ModifyPathRelative( String& savePath )
   {
-    if( StartsWith( savePath, Shell::Instance->mInitialWorkingDir ) )
+    if( StartsWith( savePath, Shell::Instance.mInitialWorkingDir ) )
     {
-      savePath = savePath.substr( Shell::Instance->mInitialWorkingDir.size() );
+      savePath = savePath.substr( Shell::Instance.mInitialWorkingDir.size() );
       savePath = StripLeadingSlashes( savePath );
     }
   }
@@ -796,7 +781,7 @@ namespace Tac
       : v2{}; // eww. Should imgui have a bool mousePosValid?
     ImGuiSetGlobals( mousePositionDestopWindowspace,
                      desktopWindowState->mCursorUnobscured,
-                     Shell::Instance->mElapsedSeconds,
+                     Shell::Instance.mElapsedSeconds,
                      ui2DDrawData,
                      desktopWindowState->mWidth,
                      desktopWindowState->mHeight );

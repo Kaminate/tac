@@ -217,7 +217,7 @@ namespace Tac
 
       if( KeyboardInput::Instance->IsKeyJustDown( Key::MouseLeft ) &&
         !menu->mCursorUnobscured &&
-        Shell::Instance->mElapsedSeconds != CreationGameObjectMenuWindow::Instance->mCreationSeconds )
+        Shell::Instance.mElapsedSeconds != CreationGameObjectMenuWindow::Instance->mCreationSeconds )
       {
         delete CreationGameObjectMenuWindow::Instance;
       }

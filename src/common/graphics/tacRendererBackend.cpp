@@ -2,6 +2,7 @@
 #include "src/common/graphics/tacRenderer.h"
 #include "src/common/tacAlgorithm.h"
 #include "src/common/tacOS.h"
+#include "src/common/tacIDCollection.h"
 #include "src/shell/tacDesktopApp.h"
 
 static uint32_t gRaven = 0xcaacaaaa;
@@ -38,49 +39,49 @@ namespace Tac
   {
 
 
-    template< int N >
-    struct IdCollection
-    {
-      ResourceId      Alloc( StringView name, Tac::StackFrame frame );
-      void            Free( ResourceId id );
-    private:
-      ResourceId      AllocFreeId( StringView name, Tac::StackFrame frame );
-      ResourceId      AllocNewId( StringView name, Tac::StackFrame frame );
-      ResourceId      mFree[ N ];
-      int             mFreeCount = 0;
-      int             mAllocCounter = 0;
-      String          mNames[ N ];
-      Tac::StackFrame mFrames[ N ];
-    };
+    //template< int N >
+    //struct IdCollection
+    //{
+    //  ResourceId      Alloc( StringView name, Tac::StackFrame frame );
+    //  void            Free( ResourceId id );
+    //private:
+    //  ResourceId      AllocFreeId( StringView name, Tac::StackFrame frame );
+    //  ResourceId      AllocNewId( StringView name, Tac::StackFrame frame );
+    //  ResourceId      mFree[ N ];
+    //  int             mFreeCount = 0;
+    //  int             mAllocCounter = 0;
+    //  String          mNames[ N ];
+    //  Tac::StackFrame mFrames[ N ];
+    //};
 
-    template< int N > ResourceId IdCollection<N>::Alloc( StringView name, Tac::StackFrame frame )
-    {
-      return mFreeCount ? AllocFreeId( name, frame ) : AllocNewId( name, frame );
-    }
+    //template< int N > ResourceId IdCollection<N>::Alloc( StringView name, Tac::StackFrame frame )
+    //{
+    //  return mFreeCount ? AllocFreeId( name, frame ) : AllocNewId( name, frame );
+    //}
 
-    template< int N > void IdCollection<N>::Free( ResourceId id )
-    {
-      TAC_ASSERT( ( unsigned )id < ( unsigned )mAllocCounter );
-      TAC_ASSERT( !Contains( mFree, mFree + mFreeCount, id ) );
-      mFree[ mFreeCount++ ] = id;
-      TAC_ASSERT( mFreeCount <= N );
-    }
+    //template< int N > void IdCollection<N>::Free( ResourceId id )
+    //{
+    //  TAC_ASSERT( ( unsigned )id < ( unsigned )mAllocCounter );
+    //  TAC_ASSERT( !Contains( mFree, mFree + mFreeCount, id ) );
+    //  mFree[ mFreeCount++ ] = id;
+    //  TAC_ASSERT( mFreeCount <= N );
+    //}
 
-    template< int N > ResourceId IdCollection<N>::AllocFreeId( StringView name, Tac::StackFrame frame )
-    {
-      const ResourceId result = mFree[ --mFreeCount ];
-      mNames[ result ] = name;
-      mFrames[ result ] = frame;
-      return result;
-    }
+    //template< int N > ResourceId IdCollection<N>::AllocFreeId( StringView name, Tac::StackFrame frame )
+    //{
+    //  const ResourceId result = mFree[ --mFreeCount ];
+    //  mNames[ result ] = name;
+    //  mFrames[ result ] = frame;
+    //  return result;
+    //}
 
-    template< int N > ResourceId IdCollection<N>::AllocNewId( StringView name, Tac::StackFrame frame )
-    {
-      TAC_ASSERT( mAllocCounter < N );
-      mNames[ mAllocCounter ] = name;
-      mFrames[ mAllocCounter ] = frame;
-      return mAllocCounter++;
-    }
+    //template< int N > ResourceId IdCollection<N>::AllocNewId( StringView name, Tac::StackFrame frame )
+    //{
+    //  TAC_ASSERT( mAllocCounter < N );
+    //  mNames[ mAllocCounter ] = name;
+    //  mFrames[ mAllocCounter ] = frame;
+    //  return mAllocCounter++;
+    //}
 
 
     void CommandBuffer::Push( const void* bytes,
@@ -128,17 +129,17 @@ namespace Tac
     static uint32_t gCrow = 0xcaacaaaa;
     int i = gCrow + 1;
 
-    static IdCollection<kMaxBlendStates> mIdCollectionBlendState;
-    static IdCollection<kMaxConstantBuffers> mIdCollectionConstantBuffer;
-    static IdCollection<kMaxDepthStencilStates> mIdCollectionDepthState;
-    static IdCollection<kMaxFramebuffers> mIdCollectionFramebuffer;
-    static IdCollection<kMaxIndexBuffers> mIdCollectionIndexBuffer;
-    static IdCollection<kMaxRasterizerStates> mIdCollectionRasterizerState;
-    static IdCollection<kMaxPrograms> mIdCollectionShader;
-    static IdCollection<kMaxVertexBuffers> mIdCollectionVertexBuffer;
-    static IdCollection<kMaxSamplerStates> mIdCollectionSamplerState;
-    static IdCollection<kMaxTextures> mIdCollectionTexture;
-    static IdCollection<kMaxInputLayouts> mIdCollectionVertexFormat;
+    static IdCollection mIdCollectionBlendState;
+    static IdCollection mIdCollectionConstantBuffer;
+    static IdCollection mIdCollectionDepthState;
+    static IdCollection mIdCollectionFramebuffer;
+    static IdCollection mIdCollectionIndexBuffer;
+    static IdCollection mIdCollectionRasterizerState;
+    static IdCollection mIdCollectionShader;
+    static IdCollection mIdCollectionVertexBuffer;
+    static IdCollection mIdCollectionSamplerState;
+    static IdCollection mIdCollectionTexture;
+    static IdCollection mIdCollectionVertexFormat;
 
     void UpdateConstantBuffers::Push( ConstantBufferHandle constantBufferHandle,
                                       const void* bytes,
@@ -242,7 +243,7 @@ namespace Tac
                                StackFrame stackFrame )
     {
       TAC_ASSERT( constantBuffers.mConstantBufferCount );
-      const ShaderHandle shaderHandle = { mIdCollectionShader.Alloc( name, stackFrame ) };
+      const ShaderHandle shaderHandle = { mIdCollectionShader.Alloc() };
       CommandDataCreateShader commandData;
       commandData.mShaderSource.mShaderPath = SubmitAlloc( shaderSource.mShaderPath );
       commandData.mShaderSource.mShaderStr = SubmitAlloc( shaderSource.mShaderStr );
@@ -262,7 +263,7 @@ namespace Tac
                                            const StackFrame stackFrame )
     {
 
-      const VertexBufferHandle vertexBufferHandle = { mIdCollectionVertexBuffer.Alloc( name, stackFrame ) };
+      const VertexBufferHandle vertexBufferHandle = { mIdCollectionVertexBuffer.Alloc() };
       CommandDataCreateVertexBuffer commandData;
       commandData.mAccess = access;
       commandData.mByteCount = byteCount;
@@ -280,7 +281,7 @@ namespace Tac
                                                int shaderRegister,
                                                StackFrame frame )
     {
-      const ConstantBufferHandle constantBufferHandle = { mIdCollectionConstantBuffer.Alloc( name, frame ) };
+      const ConstantBufferHandle constantBufferHandle = { mIdCollectionConstantBuffer.Alloc() };
       CommandDataCreateConstantBuffer commandData;
       commandData.mByteCount = byteCount;
       commandData.mShaderRegister = shaderRegister;
@@ -298,7 +299,7 @@ namespace Tac
                                          const Format format,
                                          const StackFrame frame )
     {
-      const IndexBufferHandle indexBufferHandle = { mIdCollectionIndexBuffer.Alloc( name, frame ) };
+      const IndexBufferHandle indexBufferHandle = { mIdCollectionIndexBuffer.Alloc() };
       CommandDataCreateIndexBuffer commandData;
       commandData.mByteCount = byteCount;
       commandData.mOptionalInitialBytes = SubmitAlloc( optionalInitialBytes, byteCount );
@@ -323,7 +324,7 @@ namespace Tac
         if( texSpec.mImageBytesCubemap[ i ] )
           texSpec.mImageBytesCubemap[ i ] = SubmitAlloc( texSpec.mImageBytesCubemap[ i ],
                                                          imageByteCount );
-      const TextureHandle textureHandle = mIdCollectionTexture.Alloc( name, frame );
+      const TextureHandle textureHandle = mIdCollectionTexture.Alloc();
       CommandDataCreateTexture commandData;
       commandData.mTexSpec = texSpec;
       commandData.mTextureHandle = textureHandle;
@@ -352,14 +353,15 @@ namespace Tac
     }
 
     FramebufferHandle CreateFramebuffer( StringView name,
-                                         DesktopWindowHandle desktopWindowHandle,
+                                         void* nativeWindowHandle, // DesktopWindowHandle desktopWindowHandle,
                                          int width,
                                          int height,
                                          StackFrame frame )
     {
-      const FramebufferHandle framebufferHandle = mIdCollectionFramebuffer.Alloc( name, frame );
+      const FramebufferHandle framebufferHandle = mIdCollectionFramebuffer.Alloc();
       CommandDataCreateFramebuffer commandData;
-      commandData.mDesktopWindowHandle = desktopWindowHandle;
+      //commandData.mDesktopWindowHandle = desktopWindowHandle;
+      commandData.mNativeWindowHandle = nativeWindowHandle;
       commandData.mWidth = width;
       commandData.mHeight = height;
       commandData.mFramebufferHandle = framebufferHandle;
@@ -375,7 +377,7 @@ namespace Tac
                                        BlendState blendState,
                                        StackFrame frame )
     {
-      const BlendStateHandle blendStateHandle = mIdCollectionBlendState.Alloc( name, frame );
+      const BlendStateHandle blendStateHandle = mIdCollectionBlendState.Alloc();
       CommandDataCreateBlendState commandData;
       commandData.mBlendState = blendState;
       commandData.mBlendStateHandle = blendStateHandle;
@@ -389,7 +391,7 @@ namespace Tac
                                                  RasterizerState rasterizerState,
                                                  StackFrame frame )
     {
-      const RasterizerStateHandle rasterizerStateHandle = mIdCollectionRasterizerState.Alloc( name, frame );
+      const RasterizerStateHandle rasterizerStateHandle = mIdCollectionRasterizerState.Alloc();
       CommandDataCreateRasterizerState commandData;
       commandData.mRasterizerState = rasterizerState;
       commandData.mRasterizerStateHandle = rasterizerStateHandle;
@@ -403,7 +405,7 @@ namespace Tac
                                            SamplerState samplerState,
                                            StackFrame frame )
     {
-      const SamplerStateHandle samplerStateHandle = mIdCollectionSamplerState.Alloc( name, frame );
+      const SamplerStateHandle samplerStateHandle = mIdCollectionSamplerState.Alloc();
       CommandDataCreateSamplerState commandData;
       commandData.mSamplerState = samplerState;
       commandData.mSamplerStateHandle = samplerStateHandle;
@@ -417,7 +419,7 @@ namespace Tac
                                        DepthState depthState,
                                        StackFrame frame )
     {
-      const DepthStateHandle depthStateHandle = mIdCollectionDepthState.Alloc( name, frame );
+      const DepthStateHandle depthStateHandle = mIdCollectionDepthState.Alloc();
       CommandDataCreateDepthState commandData;
       commandData.mDepthState = depthState;
       commandData.mDepthStateHandle = depthStateHandle;
@@ -431,7 +433,7 @@ namespace Tac
                                            ShaderHandle shaderHandle,
                                            StackFrame frame )
     {
-      const VertexFormatHandle vertexFormatHandle = mIdCollectionVertexFormat.Alloc( name, frame );
+      const VertexFormatHandle vertexFormatHandle = mIdCollectionVertexFormat.Alloc();
       CommandDataCreateVertexFormat commandData;
       commandData.mShaderHandle = shaderHandle;
       commandData.mVertexDeclarations = vertexDeclarations;
@@ -785,6 +787,18 @@ namespace Tac
     void Init( Errors& errors )
     {
       Renderer::Instance->Init( errors );
+
+     mIdCollectionBlendState.Init(kMaxBlendStates);
+     mIdCollectionConstantBuffer.Init(kMaxConstantBuffers);
+     mIdCollectionDepthState.Init(kMaxDepthStencilStates);
+     mIdCollectionFramebuffer.Init(kMaxFramebuffers);
+     mIdCollectionIndexBuffer.Init(kMaxIndexBuffers);
+     mIdCollectionRasterizerState.Init(kMaxRasterizerStates);
+     mIdCollectionShader.Init(kMaxPrograms);
+     mIdCollectionVertexBuffer.Init(kMaxVertexBuffers);
+     mIdCollectionSamplerState.Init(kMaxSamplerStates);
+     mIdCollectionTexture.Init(kMaxTextures);
+     mIdCollectionVertexFormat.Init(kMaxInputLayouts);
     }
 
     void Uninit()

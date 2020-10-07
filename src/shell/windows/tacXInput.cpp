@@ -1,10 +1,9 @@
 #include "src/shell/windows/tacXInput.h"
-#include "src/shell/windows/tacWindowsApp2.h"
+#include "src/shell/windows/tacWin32Main.h"
 #include "src/common/tacPreprocessor.h"
 #include "src/common/math/tacMath.h"
 #include "src/common/tacShell.h"
 #include "src/common/tacTime.h"
-
 
 #include <algorithm>
 #include <cmath>
@@ -14,17 +13,23 @@
 
 namespace Tac
 {
+  static BOOL CALLBACK enumDirectInputDevices( const DIDEVICEINSTANCE* pdidInstance,
+                                               LPVOID pvRef )
+  {
+    XInput* xInput = ( XInput* )pvRef;
+    xInput->EnumerateController( pdidInstance );
+    return DIENUM_CONTINUE;
+  }
 
-
-
-  float ConvertDirectInputUnsigned( LONG inputVal )
+  static float ConvertDirectInputUnsigned( LONG inputVal )
   {
     float result = ( float )inputVal;
     result /= 65535.0f;
     result = Saturate( result );
     return result;
   }
-  float ConvertDirectInputSigned( LONG inputVal, float deadzonePercent )
+
+  static float ConvertDirectInputSigned( LONG inputVal, float deadzonePercent )
   {
     float result = ( float )inputVal;
     result /= 65535.0f;
@@ -54,6 +59,7 @@ namespace Tac
   {
     mDivice->Release();
   }
+
   void DirectInputPerController::DebugImguiInner()
   {
     //if( !ImGui::CollapsingHeader( "Direct Input" ) )
@@ -94,23 +100,33 @@ namespace Tac
     //ImGui::Text( "rglFSlider: %i %i", js.rglFSlider[ 0 ], js.rglFSlider[ 1 ] );
   }
 
-  XInput::XInput( HINSTANCE hInstance, Errors& errors )
+  void XInput::Init( Errors& errors )
   {
-    REFIID riidltf = IID_IDirectInput8;
-    HRESULT hr = DirectInput8Create( hInstance, DIRECTINPUT_VERSION, riidltf, ( LPVOID* )&directInput, NULL );
+    const HRESULT hr = DirectInput8Create( ghInstance,
+                                           DIRECTINPUT_VERSION,
+                                           IID_IDirectInput8,
+                                           ( LPVOID* )&directInput,
+                                           NULL );
     switch( hr )
     {
-      case DI_OK: break;
-      case DIERR_BETADIRECTINPUTVERSION: errors = "DIERR_BETADIRECTINPUTVERSION"; return;
-      case DIERR_INVALIDPARAM:errors = "DIERR_INVALIDPARAM"; return;
-      case DIERR_OLDDIRECTINPUTVERSION:errors = "DIERR_OLDDIRECTINPUTVERSION"; return;
-      case DIERR_OUTOFMEMORY:errors = "DIERR_OUTOFMEMORY"; return;
+      case DI_OK:
+        break;
+      case DIERR_BETADIRECTINPUTVERSION:
+        errors = "DIERR_BETADIRECTINPUTVERSION";
+        return;
+      case DIERR_INVALIDPARAM:
+        errors = "DIERR_INVALIDPARAM";
+        return;
+      case DIERR_OLDDIRECTINPUTVERSION:
+        errors = "DIERR_OLDDIRECTINPUTVERSION";
+        return;
+      case DIERR_OUTOFMEMORY:
+        errors = "DIERR_OUTOFMEMORY";
+        return;
         TAC_INVALID_DEFAULT_CASE( hr );
     }
   }
-  XInput::~XInput()
-  {
-  }
+
   DirectInputPerController* XInput::FindDInputController( const DIDEVICEINSTANCE* mDeviceInstance )
   {
     for( Controller* controller : mControllers )
@@ -123,19 +139,13 @@ namespace Tac
     }
     return nullptr;
   }
+
   void XInput::DebugImguiInner()
   {
     //ImGui::DragFloat( "Seconds till discover cur", &mSecondsTillDisconver );
     //ImGui::DragFloat( "Seconds till discover max", &mSecondsTillDiscoverMax );
   }
 
-  static BOOL CALLBACK enumDirectInputDevices( const DIDEVICEINSTANCE* pdidInstance,
-                                               LPVOID pvRef )
-  {
-    XInput* xInput = ( XInput* )pvRef;
-    xInput->EnumerateController( pdidInstance );
-    return DIENUM_CONTINUE;
-  }
   void XInput::UpdateInner()
   {
 
@@ -192,6 +202,7 @@ namespace Tac
       controller->mControllerStateCurr = controllerState;
     }
   }
+
   void XInput::EnumerateController( const DIDEVICEINSTANCE* pdidInstance )
   {
     DirectInputPerController* controller = FindDInputController( pdidInstance );

@@ -1,7 +1,16 @@
-#include "src/shell/windows/tacWindowsMouseEdge.h"
+#include "src/shell/windows/tacWin32MouseEdge.h"
+#include "src/common/tacString.h"
+#include "src/common/tacPreprocessor.h"
 
 namespace Tac
 {
+  static HCURSOR cursorArrow;
+  static HCURSOR cursorArrowNS;
+  static HCURSOR cursorArrowWE;
+  static HCURSOR cursorArrowNE_SW;
+  static HCURSOR cursorArrowNW_SE;
+
+  Win32MouseEdgeHandler Win32MouseEdgeHandler::Instance;
   String CursorDirToString( CursorDir cursorType )
   {
     if( !cursorType )
@@ -14,18 +23,7 @@ namespace Tac
     return result;
   }
 
-  Win32Cursors* Win32Cursors::Instance = nullptr;
-  Win32Cursors::Win32Cursors()
-  {
-    Instance = this;
-    cursorArrow = LoadCursor( NULL, IDC_ARROW );
-    cursorArrowNS = LoadCursor( NULL, IDC_SIZENS );
-    cursorArrowWE = LoadCursor( NULL, IDC_SIZEWE );
-    cursorArrowNE_SW = LoadCursor( NULL, IDC_SIZENESW );
-    cursorArrowNW_SE = LoadCursor( NULL, IDC_SIZENWSE );
-  }
-
-  HCURSOR Win32Cursors::GetCursor( CursorDir cursorDir )
+  static HCURSOR GetCursor( CursorDir cursorDir )
   {
     // switch by the integral type cuz of the bit-twiddling
     switch( cursorDir )
@@ -44,6 +42,11 @@ namespace Tac
 
   Win32MouseEdgeHandler::Win32MouseEdgeHandler()
   {
+    cursorArrow = LoadCursor( NULL, IDC_ARROW );
+    cursorArrowNS = LoadCursor( NULL, IDC_SIZENS );
+    cursorArrowWE = LoadCursor( NULL, IDC_SIZEWE );
+    cursorArrowNE_SW = LoadCursor( NULL, IDC_SIZENESW );
+    cursorArrowNW_SE = LoadCursor( NULL, IDC_SIZENWSE );
     edgeDistResizePx = 7;
     edgeDistMovePx = edgeDistResizePx + 6;
 
@@ -99,7 +102,7 @@ namespace Tac
     if( mCursorLock != cursorLock || !mEverSet )
     {
       mEverSet = true;
-      HCURSOR cursor = Win32Cursors::Instance->GetCursor( cursorLock );
+      const HCURSOR cursor = GetCursor( cursorLock );
       SetCursor( cursor );
       SetCursorLock( cursorLock );
     }

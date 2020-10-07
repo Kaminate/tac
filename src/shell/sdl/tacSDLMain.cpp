@@ -4,7 +4,7 @@
 
 int main( int argc, char **argv )
 {
-  ( new Tac::SDLApp )->Run();
+  //( new Tac::SDLApp )->Run();
   return 0;
 }
 

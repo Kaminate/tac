@@ -183,10 +183,9 @@ void ScriptMatchmaker::PokeServer( Errors& errors )
   TAC_ASSERT( mSocket );
   if( !mSocket->mTCPIsConnected )
     return;
-  auto shell = Shell::Instance;
   String s =
     "ScriptGameClient messsage: elapsed time is " +
-    FormatFrameTime( shell->mElapsedSeconds );
+    FormatFrameTime( Shell::Instance.mElapsedSeconds );
   Json json;
   json[ "name" ] = "Ping";
   Json& args = json[ "args" ];
@@ -211,7 +210,7 @@ void ScriptMatchmaker::Log( StringView text )
 {
   if( !mShouldLog )
     return;
-  auto log = Shell::Instance->mLog;
+  auto log = Shell::Instance.mLog;
   if( !log )
     return;
   log->Push( "ScriptGameClient: " + text );
@@ -251,7 +250,7 @@ void ScriptMatchmaker::Update( float seconds, Errors& errors )
   String hostname = settings->GetString( nullptr, { "hostname" }, defaultHostname, errors );
   mPort = ( uint16_t )settings->GetNumber( nullptr, { "port" }, ( JsonNumber )defaultPort, errors );
 
-  mConnectionAttemptStartSeconds = Shell::Instance->mElapsedSeconds;
+  mConnectionAttemptStartSeconds = Shell::Instance.mElapsedSeconds;
   String text = "Attempting to connect to " + mHostname + ":" + ToString( mPort );
   Log( text );
   TAC_TIMELINE_KEYFRAME;
@@ -473,7 +472,7 @@ void ScriptMainMenu::Update( float seconds, Errors& errors )
   {
     String utf8 = "Trying to connect";
     int maxDotCount = 3;
-    double elapsedSeconds = Shell::Instance->mElapsedSeconds - scriptMatchmaker->mConnectionAttemptStartSeconds;
+    double elapsedSeconds = Shell::Instance.mElapsedSeconds - scriptMatchmaker->mConnectionAttemptStartSeconds;
     double partialDotSeconds = std::fmod( elapsedSeconds, ( double )( ( maxDotCount + 1 ) * dotPeriodSeconds ) );
     for( int i = 0; i < int( partialDotSeconds / dotPeriodSeconds ); ++i )
       utf8 += '.';
@@ -486,7 +485,7 @@ void ScriptMainMenu::Update( float seconds, Errors& errors )
   if( mUITextPressStart )
   {
     double pressStartPeriod = 2.0f;
-    double s = std::fmod( Shell::Instance->mElapsedSeconds, pressStartPeriod );
+    double s = std::fmod( Shell::Instance.mElapsedSeconds, pressStartPeriod );
     bool b = s > pressStartPeriod * 0.5f;
     if( mPressStart != b )
     {
@@ -508,7 +507,7 @@ void ScriptMainMenu::Update( float seconds, Errors& errors )
   UIAnchorHorizontal menuAnchorHorizontal = UIAnchorHorizontal::Left;
   UIAnchorVertical menuAnchorVertical = UIAnchorVertical::Center;
 
-  double timelineSeconds = Shell::Instance->mElapsedSeconds;
+  double timelineSeconds = Shell::Instance.mElapsedSeconds;
 
   //auto createGameTitle = [ = ]()
   //{
@@ -744,7 +743,7 @@ void ScriptMainMenu::Update( float seconds, Errors& errors )
   TAC_TIMELINE_KEYFRAME;
 
 
-  mTimeline.Update( Shell::Instance->mElapsedSeconds, errors );
+  mTimeline.Update( Shell::Instance.mElapsedSeconds, errors );
   TAC_HANDLE_ERROR( errors );
 
   return;
@@ -876,7 +875,7 @@ void ScriptMainMenu2::RenderMainMenu()
   //    status == AsyncLoadStatus::ThreadRunning )
   //  {
   //    String text = "Connecting to server";
-  //    for( int i = 0; i < ( int )Shell::Instance->mElapsedSeconds % 4; ++i )
+  //    for( int i = 0; i < ( int )Shell::Instance.mElapsedSeconds % 4; ++i )
   //      text += ".";
   //    ImGuiText( text );
   //  }

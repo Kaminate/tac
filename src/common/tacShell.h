@@ -73,10 +73,9 @@ namespace Tac
   //
   struct Shell
   {
-    static Shell* Instance;
-    Shell();
-    ~Shell();
+    static Shell Instance;
     void Init( Errors& errors );
+    void Uninit();
     void Update( Errors& errors );
 
     void FrameBegin( Errors& errors );

@@ -23,24 +23,20 @@ namespace Tac
   {
     SpaceInit();
     Instance = this;
-    Monitor monitor;
-    DesktopApp::Instance->GetPrimaryMonitor( &monitor, errors );
-    TAC_HANDLE_ERROR( errors );
 
-    WindowParams windowParams = {};
-    windowParams.mName = appName;
-    windowParams.mWidth = ( int )( 0.8f * monitor.w );
-    windowParams.mHeight = ( int )( 0.8f * monitor.h );
-    WindowParams::GetCenteredPosition( windowParams.mWidth,
-                                       windowParams.mHeight,
-                                       &windowParams.mX,
-                                       &windowParams.mY,
-                                       monitor );
+    int monitorWidth;
+    int monitorHeight;
+    OS::GetPrimaryMonitor( &monitorWidth, &monitorHeight );
 
-    mDesktopWindowHandle = DesktopWindowManager::Instance->CreateWindow( windowParams.mX,
-                                                                         windowParams.mY,
-                                                                         windowParams.mWidth,
-                                                                         windowParams.mHeight );
+    int windowWidth = ( int )( 0.8f * monitorWidth );
+    int windowHeight = ( int )( 0.8f * monitorHeight );
+    int windowX;
+    int windowY;
+    CenterWindow( &windowX, &windowY, windowWidth, windowHeight );
+    mDesktopWindowHandle = DesktopWindowCreate( windowX,
+                                                                         windowY,
+                                                                         windowWidth,
+                                                                         windowHeight );
     TAC_HANDLE_ERROR( errors );
 
     mUi2DDrawData = TAC_NEW UI2DDrawData;
@@ -67,7 +63,7 @@ namespace Tac
     }
     ImGuiSetGlobals( mousePositionDesktopWindowspace,
                      isWindowDirectlyUnderCursor,
-                     Shell::Instance->mElapsedSeconds,
+                     Shell::Instance.mElapsedSeconds,
                      mUi2DDrawData,
                      desktopWindowState->mWidth,
                      desktopWindowState->mHeight );

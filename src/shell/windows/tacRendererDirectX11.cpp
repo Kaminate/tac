@@ -2647,13 +2647,9 @@ namespace Tac
                                           Errors& errors )
   {
     AssertRenderThread();
-    DesktopWindow* window = DesktopApp::Instance->FindDesktopWindow( data->mDesktopWindowHandle );
+    //DesktopWindow* window = DesktopApp::Instance->FindDesktopWindow( data->mDesktopWindowHandle );
 
-
-    //Win32DesktopWindow* window =
-    //  WindowsApplication2::Instance->FindWin32DesktopWindow( data->mDesktopWindowHandle );
-
-    auto hwnd = ( HWND )window->GetOperatingSystemHandle();
+    auto hwnd = ( HWND )data->mNativeWindowHandle; // window->GetOperatingSystemHandle();
     IDXGISwapChain* swapChain;
     const int bufferCount = 4;
     const UINT width = data->mWidth;
