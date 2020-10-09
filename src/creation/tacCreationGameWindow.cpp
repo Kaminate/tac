@@ -235,7 +235,7 @@ namespace Tac
 
   void CreationGameWindow::MousePickingAll()
   {
-    DesktopWindowState* desktopWindowState = DesktopWindowStateCollection::InstanceStuffThread.FindDesktopWindowState( mDesktopWindowHandle );
+    DesktopWindowState* desktopWindowState = &sDesktopWindowStates[ mDesktopWindowHandle.mIndex ];
     if( !desktopWindowState )
       return;
     if( !desktopWindowState->mCursorUnobscured )
@@ -356,7 +356,7 @@ namespace Tac
   }
   void CreationGameWindow::MousePickingInit()
   {
-    DesktopWindowState* desktopWindowState = DesktopWindowStateCollection::InstanceStuffThread.FindDesktopWindowState( mDesktopWindowHandle );
+    DesktopWindowState* desktopWindowState = &sDesktopWindowStates[ mDesktopWindowHandle.mIndex ];
     if( !desktopWindowState )
       return;
 
@@ -474,7 +474,7 @@ namespace Tac
   {
     MousePickingAll();
     Camera* camera = &Creation::Instance->mEditorCamera;
-    DesktopWindowState* desktopWindowState = DesktopWindowStateCollection::InstanceStuffThread.FindDesktopWindowState( mDesktopWindowHandle );
+    DesktopWindowState* desktopWindowState = &sDesktopWindowStates[ mDesktopWindowHandle.mIndex ];
     if( !desktopWindowState )
       return;
 
@@ -576,7 +576,7 @@ namespace Tac
   }
   void CreationGameWindow::CameraControls()
   {
-    DesktopWindowState* desktopWindowState = DesktopWindowStateCollection::InstanceStuffThread.FindDesktopWindowState( mDesktopWindowHandle );
+    DesktopWindowState* desktopWindowState = &sDesktopWindowStates[ mDesktopWindowHandle.mIndex ];
     if( !desktopWindowState )
       return;
     if( !desktopWindowState->mCursorUnobscured )
@@ -667,7 +667,7 @@ namespace Tac
 
     WindowFramebufferInfo* info = WindowFramebufferManager::Instance.FindWindowFramebufferInfo( mDesktopWindowHandle );
 
-    DesktopWindowState* desktopWindowState = DesktopWindowStateCollection::InstanceStuffThread. FindDesktopWindowState( mDesktopWindowHandle );
+    DesktopWindowState* desktopWindowState = &sDesktopWindowStates[ mDesktopWindowHandle.mIndex ];
     if( !desktopWindowState )
       return;
 

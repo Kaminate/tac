@@ -1,16 +1,16 @@
 #pragma once
 
-#include "src/common/tacString.h"
-#include "src/common/containers/tacVector.h"
-#include "src/common/tacErrorHandling.h"
-#include "src/common/tacDesktopWindow.h"
-#include "src/common/tacIDCollection.h"
+//#include "src/common/tacString.h"
+//#include "src/common/containers/tacVector.h"
+//#include "src/common/tacErrorHandling.h"
+//#include "src/common/tacDesktopWindow.h"
+//#include "src/common/tacIDCollection.h"
 
 namespace Tac
 {
-  void                 DesktopWindowManagerInit();
-  DesktopWindowHandle  DesktopWindowCreate( int x, int y, int width, int height );
-  void                 DesktopWindowPollCreationRequests( Errors& errors );
+  //void                 DesktopWindowManagerInit();
+  //DesktopWindowHandle  DesktopWindowCreate( int x, int y, int width, int height );
+  //void                 DesktopWindowPollCreationRequests( Errors& errors );
   //DesktopWindowHandle* GetDesktopWindowHandles();
   //struct BathroomKey
   //{
@@ -18,13 +18,6 @@ namespace Tac
   //  void( *mCallback )( ) = 0;
   //};
 
-  struct WindowHandleIterator
-  {
-    WindowHandleIterator();
-    ~WindowHandleIterator();
-    int* begin();
-    int* end();
-  };
 
   //WindowHandleIterator GetDesktopWindowHandleIDs();
 }

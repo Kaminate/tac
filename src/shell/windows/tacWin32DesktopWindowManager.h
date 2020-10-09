@@ -25,7 +25,7 @@ namespace Tac
                                   int y,
                                   int width,
                                   int height );
-  void CreateWin32ControllerInput( Errors& );
+  //void CreateWin32ControllerInput( Errors& );
 
   // -- old --
 
@@ -43,21 +43,21 @@ namespace Tac
   //};
 
 
-  struct WindowsApplication2
-  {
-    //void                RemoveWindow( Win32DesktopWindow* );
+  //struct WindowsApplication2
+  //{
+  //  //void                RemoveWindow( Win32DesktopWindow* );
 
-    //Win32DesktopWindow* FindWin32DesktopWindow( HWND );
-    //Win32DesktopWindow* GetCursorUnobscuredWindow();
+  //  //Win32DesktopWindow* FindWin32DesktopWindow( HWND );
+  //  //Win32DesktopWindow* GetCursorUnobscuredWindow();
 
-    // WinMain arguments
-    HINSTANCE           mHInstance = nullptr;
-    HINSTANCE           mhPrevInstance = nullptr;
-    LPSTR               mlpCmdLine = nullptr;
-    int                 mNCmdShow = 0;
+  //  // WinMain arguments
+  //  HINSTANCE           mHInstance = nullptr;
+  //  HINSTANCE           mhPrevInstance = nullptr;
+  //  LPSTR               mlpCmdLine = nullptr;
+  //  int                 mNCmdShow = 0;
 
-    //Vector< Win32DesktopWindow* > mWindows;
-    DesktopWindowHandle mUnobscuredDesktopWindowHandle;
-  };
+  //  //Vector< Win32DesktopWindow* > mWindows;
+  //  DesktopWindowHandle mUnobscuredDesktopWindowHandle;
+  //};
 
 }

@@ -38,7 +38,7 @@ namespace Tac
   }
   void CreationProfileWindow::ImGui()
   {
-    DesktopWindowState* desktopWindowState = DesktopWindowStateCollection::InstanceStuffThread. FindDesktopWindowState( mDesktopWindowHandle );
+    DesktopWindowState* desktopWindowState = &sDesktopWindowStates[ mDesktopWindowHandle.mIndex ];
     if( !desktopWindowState )
       return;
     SetCreationWindowImGuiGlobals( desktopWindowState, mUI2DDrawData );
@@ -64,7 +64,7 @@ namespace Tac
   }
   void CreationProfileWindow::Update( Errors& errors )
   {
-    DesktopWindowState* desktopWindowState = DesktopWindowStateCollection::InstanceStuffThread. FindDesktopWindowState( mDesktopWindowHandle );
+    DesktopWindowState* desktopWindowState = &sDesktopWindowStates[ mDesktopWindowHandle.mIndex ];
     if( !desktopWindowState )
       return;
     const float w = ( float )desktopWindowState->mWidth;

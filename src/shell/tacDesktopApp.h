@@ -25,11 +25,13 @@ namespace Tac
     static DesktopEventQueue Instance;
     void Init();
     void PushEventCursorUnobscured( DesktopWindowHandle );
-    void PushEventCreateWindow( DesktopWindowHandle,
-                                int width,
-                                int height,
-                                int x,
-                                int y,
+    //void PushEventCreateWindow( DesktopWindowHandle,
+    //                            int width,
+    //                            int height,
+    //                            int x,
+    //                            int y,
+    //                            void* nativeWindowHandle );
+    void PushEventAssignHandle( DesktopWindowHandle,
                                 void* nativeWindowHandle );
     void PushEventMoveWindow( DesktopWindowHandle,
                               int x,
@@ -42,7 +44,7 @@ namespace Tac
     void PushEventMouseWheel( int ticks );
     void PushEventMouseMove( DesktopWindowHandle, int x, int y );
 
-    void ApplyQueuedEvents( DesktopWindowStateCollection* );
+    void ApplyQueuedEvents( DesktopWindowStates* );
   };
 
   struct AppInterfaceProject
@@ -61,11 +63,20 @@ namespace Tac
                                    int height );
   };
 
-  void                    DesktopAppInit( AppInterfacePlatform,
-                                          Errors& );
+  void                    DesktopAppInit( AppInterfacePlatform, Errors& );
   void                    DesktopAppRun( Errors& );
+  DesktopWindowHandle     DesktopWindowCreate( int x, int y, int width, int height );
+  void                    DesktopWindowPollCreationRequests( Errors& errors );
+
   extern Errors           sPlatformThreadErrors;
   extern Errors           sLogicThreadErrors;
 
+  struct WindowHandleIterator
+  {
+    WindowHandleIterator();
+    ~WindowHandleIterator();
+    int* begin();
+    int* end();
+  };
 
 }

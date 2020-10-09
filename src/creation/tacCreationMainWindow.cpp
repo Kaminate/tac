@@ -62,7 +62,7 @@ namespace Tac
     //    loadedTextureCount++;
     //}
     //if( loadedTextureCount == textureAndPaths.size() )
-      mAreTexturesLoaded = true;
+    mAreTexturesLoaded = true;
 
   }
 
@@ -94,7 +94,7 @@ namespace Tac
     if( !info )
       return;
 
-    DesktopWindowState* desktopWindowState = DesktopWindowStateCollection::InstanceStuffThread.FindDesktopWindowState( info->mDesktopWindowHandle );
+    DesktopWindowState* desktopWindowState = &sDesktopWindowStates[ info->mDesktopWindowHandle.mIndex ];
     if( !desktopWindowState )
       return;
 
@@ -177,19 +177,19 @@ namespace Tac
     //  params->mHeight;
 
 
-    DesktopWindowState* desktopWindowState = DesktopWindowStateCollection::InstanceStuffThread. FindDesktopWindowState( mDesktopWindowHandle );
+    DesktopWindowState* desktopWindowState = &sDesktopWindowStates[ mDesktopWindowHandle.mIndex ];
     if( !desktopWindowState )
       return;
 
     Viewport viewport;
-    viewport.mWidth = (float)desktopWindowState->mWidth;
-    viewport.mHeight = (float)desktopWindowState->mHeight;
+    viewport.mWidth = ( float )desktopWindowState->mWidth;
+    viewport.mHeight = ( float )desktopWindowState->mHeight;
 
     ScissorRect scissorRect;
     scissorRect.mXMinRelUpperLeftCornerPixel = 0;
-    scissorRect.mXMaxRelUpperLeftCornerPixel = (float)desktopWindowState->mWidth;
+    scissorRect.mXMaxRelUpperLeftCornerPixel = ( float )desktopWindowState->mWidth;
     scissorRect.mYMinRelUpperLeftCornerPixel = 0;
-    scissorRect.mYMaxRelUpperLeftCornerPixel = (float)desktopWindowState->mHeight;
+    scissorRect.mYMaxRelUpperLeftCornerPixel = ( float )desktopWindowState->mHeight;
 
     Render::SetViewFramebuffer( ViewIdMainWindow, info->mFramebufferHandle );
     Render::SetViewport( ViewIdMainWindow, viewport );
@@ -209,15 +209,16 @@ namespace Tac
 
     if( CreationGameObjectMenuWindow::Instance )
     {
-      DesktopWindowState* menu = DesktopWindowStateCollection::InstanceStuffThread. FindDesktopWindowState( CreationGameObjectMenuWindow::Instance->mDesktopWindowHandle );
+      const int iDesktopWindowState = CreationGameObjectMenuWindow::Instance->mDesktopWindowHandle.mIndex;
+      DesktopWindowState* menu = &sDesktopWindowStates[ iDesktopWindowState ];
 
 
       CreationGameObjectMenuWindow::Instance->Update( errors );
       TAC_HANDLE_ERROR( errors );
 
       if( KeyboardInput::Instance->IsKeyJustDown( Key::MouseLeft ) &&
-        !menu->mCursorUnobscured &&
-        Shell::Instance.mElapsedSeconds != CreationGameObjectMenuWindow::Instance->mCreationSeconds )
+          !menu->mCursorUnobscured &&
+          Shell::Instance.mElapsedSeconds != CreationGameObjectMenuWindow::Instance->mCreationSeconds )
       {
         delete CreationGameObjectMenuWindow::Instance;
       }

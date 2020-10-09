@@ -65,8 +65,8 @@ namespace Tac
     static WindowFramebufferManager Instance;
     Vector< WindowFramebufferInfo > mWindowFramebufferInfos;
     WindowFramebufferInfo* FindWindowFramebufferInfo( DesktopWindowHandle );
-    void Update( DesktopWindowStateCollection* oldStates,
-                 DesktopWindowStateCollection* newStates  );
+    void Update( DesktopWindowStates* oldStates,
+                 DesktopWindowStates* newStates  );
   };
 
   struct Creation // : public UpdateThing

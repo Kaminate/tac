@@ -87,6 +87,7 @@ namespace Tac
     for( int i : WindowHandleIterator() )
       if( sHWNDs[ i ] == hwnd )
         return { i };
+    return { -1 };
   }
 
   static LRESULT CALLBACK WindowProc( HWND hwnd,
@@ -455,16 +456,16 @@ namespace Tac
     //Win32MouseEdgeHandler::Instance.Update( unobscuredHWND );
   }
 
-  void WindowsManagerSpawnWindow( DesktopWindowHandle desktopWindowHandle,
-                                  int x,
-                                  int y,
-                                  int width,
-                                  int height )
+  void WindowsManagerSpawnWindow( const DesktopWindowHandle desktopWindowHandle,
+                                  const int x,
+                                  const int y,
+                                  const int requestedWidth,
+                                  const int requestedHeight)
   {
     DWORD windowStyle = WS_POPUP;
     RECT windowRect = {};
-    windowRect.right = width;
-    windowRect.bottom = height;
+    windowRect.right = requestedWidth;
+    windowRect.bottom = requestedHeight;
     if( !AdjustWindowRect( &windowRect, windowStyle, FALSE ) )
     {
       TAC_INVALID_CODE_PATH;
@@ -472,8 +473,8 @@ namespace Tac
       //TAC_HANDLE_ERROR( errors );
     }
 
-    int windowAdjustedWidth = windowRect.right - windowRect.left;
-    int windowAdjustedHeight = windowRect.bottom - windowRect.top;
+    const int windowAdjustedWidth = windowRect.right - windowRect.left;
+    const int windowAdjustedHeight = windowRect.bottom - windowRect.top;
 
     static HWND mParentHWND = NULL;
     const HWND hwnd = CreateWindow( classname,
@@ -518,7 +519,7 @@ namespace Tac
 
     ShowWindow( hwnd, gnCmdShow );
 
-    
+
     sHWNDs[ desktopWindowHandle.mIndex ] = hwnd;
 
     //auto createdWindow = TAC_NEW Win32DesktopWindow;
@@ -530,7 +531,14 @@ namespace Tac
       mParentHWND = hwnd;
 
 
-    DesktopEventQueue::Instance.PushEventCreateWindow( desktopWindowHandle, width, height, x, y, hwnd );
+    DesktopEventQueue::Instance.PushEventAssignHandle( desktopWindowHandle, hwnd );
+
+    // hack
+    DesktopEventQueue::Instance.PushEventMoveWindow( desktopWindowHandle, x, y );
+    DesktopEventQueue::Instance.PushEventResizeWindow( desktopWindowHandle,
+                                                       windowAdjustedWidth,
+                                                       windowAdjustedHeight );
+
     //mWindows.push_back( createdWindow );
     //DesktopApp::SpawnWindow( createdWindow );
   }

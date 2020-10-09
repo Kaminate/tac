@@ -52,6 +52,58 @@ namespace Tac
   };
   const static String axisNames[] = { "x", "y", "z" };
 
+  // ---
+
+  WindowFramebufferManager WindowFramebufferManager::Instance;
+
+  void WindowFramebufferManager::Update( DesktopWindowStates* oldStates,
+                                         DesktopWindowStates* newStates )
+  {
+    for( int iDesktopWindowState = 0;
+         iDesktopWindowState < kMaxDesktopWindowStateCount;
+         iDesktopWindowState++ )
+    {
+      const DesktopWindowState* oldState = &( *oldStates )[ iDesktopWindowState ];
+      const DesktopWindowState* newState = &( *newStates )[ iDesktopWindowState ];
+
+      if( oldState->mNativeWindowHandle &&
+          newState->mNativeWindowHandle &&
+          ( oldState->mWidth != newState->mWidth || oldState->mHeight != newState->mHeight ) )
+      {
+        WindowFramebufferInfo* info = FindWindowFramebufferInfo( { iDesktopWindowState } );
+        Render::ResizeFramebuffer( info->mFramebufferHandle,
+                                   newState->mWidth,
+                                   newState->mHeight,
+                                   TAC_STACK_FRAME );
+      }
+
+      if(
+        !oldState->mNativeWindowHandle &&
+        newState->mNativeWindowHandle )
+      {
+        WindowFramebufferInfo info;
+        info.mDesktopWindowHandle = { iDesktopWindowState }; // newState->mDesktopWindowHandle;
+        info.mFramebufferHandle = Render::CreateFramebuffer( "",
+                                                             newState->mNativeWindowHandle,
+                                                             newState->mWidth,
+                                                             newState->mHeight,
+                                                             TAC_STACK_FRAME );
+        mWindowFramebufferInfos.push_back( info );
+      }
+    }
+  }
+
+
+  WindowFramebufferInfo* WindowFramebufferManager::FindWindowFramebufferInfo( DesktopWindowHandle desktopWindowHandle )
+  {
+    for( WindowFramebufferInfo& info : mWindowFramebufferInfos )
+      if( info.mDesktopWindowHandle.mIndex == desktopWindowHandle.mIndex )
+        return &info;
+    return nullptr;
+  }
+
+  // ---
+
 
   void ExecutableStartupInfo::Init( Errors& errors )
   {
@@ -379,56 +431,15 @@ namespace Tac
     mSelectedEntities.clear();
   }
 
-  WindowFramebufferManager WindowFramebufferManager::Instance;
-
-  void WindowFramebufferManager::Update( DesktopWindowStateCollection* oldStates,
-                                         DesktopWindowStateCollection* newStates )
-  {
-    for( int iDesktopWindowState = 0;
-         iDesktopWindowState < kMaxDesktopWindowStateCount;
-         iDesktopWindowState++ )
-    {
-      const DesktopWindowState* newState = newStates->GetStateAtIndex( iDesktopWindowState );
-      const DesktopWindowState* oldState = oldStates->GetStateAtIndex( iDesktopWindowState );
-      if( !IsWindowHandleValid( newState->mDesktopWindowHandle ) )
-        continue;
-
-      if( IsWindowHandleValid( oldState->mDesktopWindowHandle ) )
-      {
-        const bool sameSize =
-          oldState->mWidth == newState->mWidth &&
-          oldState->mHeight == newState->mHeight;
-        if( !sameSize )
-        {
-          WindowFramebufferInfo* info = FindWindowFramebufferInfo( newState->mDesktopWindowHandle );
-          Render::ResizeFramebuffer( info->mFramebufferHandle,
-                                     newState->mWidth,
-                                     newState->mHeight,
-                                     TAC_STACK_FRAME );
-        }
-      }
-      else
-      {
-        WindowFramebufferInfo info;
-        info.mDesktopWindowHandle = newState->mDesktopWindowHandle;
-        info.mFramebufferHandle = Render::CreateFramebuffer( "",
-                                                             newState->mNativeWindowHandle,
-                                                             newState->mWidth,
-                                                             newState->mHeight,
-                                                             TAC_STACK_FRAME );
-        mWindowFramebufferInfos.push_back( info );
-      }
-    }
-  }
 
   void Creation::Update( Errors& errors )
   {
     /*TAC_PROFILE_BLOCK*/;
 
-    DesktopWindowStateCollection oldWindowStates = DesktopWindowStateCollection::InstanceStuffThread;
-    DesktopEventQueue::Instance.ApplyQueuedEvents( &DesktopWindowStateCollection::InstanceStuffThread );
+    DesktopWindowStates oldWindowStates = sDesktopWindowStates;
+    DesktopEventQueue::Instance.ApplyQueuedEvents( &sDesktopWindowStates );
     WindowFramebufferManager::Instance.Update( &oldWindowStates,
-                                               &DesktopWindowStateCollection::InstanceStuffThread );
+                                               &sDesktopWindowStates );
 
     if( !CreationMainWindow::Instance &&
         !CreationGameWindow::Instance &&
@@ -543,8 +554,9 @@ namespace Tac
     if( !gameWindow || !IsWindowHandleValid( gameWindow->mDesktopWindowHandle ) )
       return;
 
-    DesktopWindowState* gameWindowState = DesktopWindowStateCollection::InstanceStuffThread.FindDesktopWindowState( gameWindow->mDesktopWindowHandle );
-    if( !gameWindowState || !gameWindowState->mCursorUnobscured )
+    DesktopWindowState* desktopWindowState = &sDesktopWindowStates[ gameWindow->mDesktopWindowHandle.mIndex ];
+
+    if( !desktopWindowState || !desktopWindowState->mCursorUnobscured )
       return;
 
     if( !KeyboardInput::Instance->IsKeyJustDown( Key::Delete ) )
@@ -762,13 +774,6 @@ namespace Tac
     }
   }
 
-  WindowFramebufferInfo* WindowFramebufferManager::FindWindowFramebufferInfo( DesktopWindowHandle desktopWindowHandle )
-  {
-    for( WindowFramebufferInfo& info : mWindowFramebufferInfos )
-      if( info.mDesktopWindowHandle.mIndex == desktopWindowHandle.mIndex )
-        return &info;
-    return nullptr;
-  }
 
   void SetCreationWindowImGuiGlobals( const DesktopWindowState* desktopWindowState,
                                       UI2DDrawData* ui2DDrawData )

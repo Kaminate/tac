@@ -35,7 +35,7 @@ namespace Tac
   };
   void CreationSystemWindow::ImGui()
   {
-    DesktopWindowState* desktopWindowState = DesktopWindowStateCollection::InstanceStuffThread.FindDesktopWindowState( mDesktopWindowHandle );
+    DesktopWindowState* desktopWindowState = &sDesktopWindowStates[ mDesktopWindowHandle.mIndex ];
     if( !desktopWindowState )
       return;
 
@@ -82,7 +82,7 @@ namespace Tac
   }
   void CreationSystemWindow::Update( Errors& errors )
   {
-    DesktopWindowState* desktopWindowState = DesktopWindowStateCollection::InstanceStuffThread. FindDesktopWindowState( mDesktopWindowHandle );
+    DesktopWindowState* desktopWindowState = &sDesktopWindowStates[ mDesktopWindowHandle.mIndex ];
     if( !desktopWindowState )
       return;
     ImGui();

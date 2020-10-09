@@ -48,7 +48,7 @@ namespace Tac
   }
   void Game::SetImGuiGlobals()
   {
-    DesktopWindowState* desktopWindowState = DesktopWindowStateCollection::InstanceStuffThread.FindDesktopWindowState( mDesktopWindowHandle );
+    DesktopWindowState* desktopWindowState = &sDesktopWindowStates[ mDesktopWindowHandle.mIndex ];
     Errors screenspaceCursorPosErrors;
     v2 screenspaceCursorPos;
     OS::GetScreenspaceCursorPos( screenspaceCursorPos, screenspaceCursorPosErrors );
@@ -71,7 +71,7 @@ namespace Tac
   }
   void Game::Update( Errors& errors )
   {
-    DesktopWindowState* desktopWindowState = DesktopWindowStateCollection::InstanceStuffThread.FindDesktopWindowState( mDesktopWindowHandle );
+    DesktopWindowState* desktopWindowState = &sDesktopWindowStates[ mDesktopWindowHandle.mIndex ];
     if( !desktopWindowState )
       return;
     SetImGuiGlobals();
