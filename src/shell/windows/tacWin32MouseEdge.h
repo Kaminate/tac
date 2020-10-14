@@ -16,7 +16,7 @@ namespace Tac
   const CursorDir CursorDirE = 0b1000;
 
   String CursorDirToString( CursorDir cursorType );
-
+  void SetCursor( CursorDir );
 
   struct Win32MouseEdgeHandler
   {

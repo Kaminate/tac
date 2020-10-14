@@ -13,14 +13,45 @@
 #include "src/shell/windows/tacWin32Main.h"
 #include "src/shell/windows/tacXInput.h"
 
-//#include <thread>
-//#include <iostream>
-//#include <set>
+namespace Tac
+{
+  static Errors sWinMainErrors;
+  static void WinMainAux( HINSTANCE hInstance,
+                          HINSTANCE hPrevInstance,
+                          LPSTR lpCmdLine,
+                          int nCmdShow );
+}
+
+
+int CALLBACK WinMain( HINSTANCE hInstance,
+                      HINSTANCE hPrevInstance,
+                      LPSTR lpCmdLine,
+                      int nCmdShow )
+{
+  using namespace Tac;
+  WinMainAux( hInstance, hPrevInstance, lpCmdLine, nCmdShow );
+  auto ReportError = []( StringView desc, Errors& errors ) { if( errors ) {
+      OS::DebugPopupBox( desc + errors.ToString() ); } };
+  ReportError( "WinMain", sWinMainErrors );
+  ReportError( "Platform thread", gPlatformThreadErrors );
+  ReportError( "Logic thread", gLogicThreadErrors );
+  return 0;
+}
 
 namespace Tac
 {
-  static void RedirectDebugStreams()
+
+  // This function exists because TAC_HANDLE_ERROR cannot be used in WinMain
+  static void WinMainAux( const HINSTANCE hInstance,
+                          const HINSTANCE hPrevInstance,
+                          const LPSTR lpCmdLine,
+                          const int nCmdShow )
   {
+    ghInstance = hInstance;
+    ghPrevInstance = hPrevInstance;
+    glpCmdLine = lpCmdLine;
+    gnCmdShow = nCmdShow;
+    Errors& errors = sWinMainErrors;
     static struct : public std::streambuf
     {
       int overflow( int c ) override
@@ -36,22 +67,6 @@ namespace Tac
     std::cout.rdbuf( &streamBuf );
     std::cerr.rdbuf( &streamBuf );
     std::clog.rdbuf( &streamBuf );
-  }
-  static void ReportError( StringView desc, Errors& errors )
-  {
-    if( errors )
-      OS::DebugPopupBox( desc + errors.ToString() );
-  }
-
-  //auto ReportError = []( StringView desc, Errors& errors )
-  //{
-  //  if( errors )
-  //    OS::DebugPopupBox( desc + " errors: " + errors.ToString() );
-  //};
-
-  static void WinMainAux( Errors& errors )
-  {
-    RedirectDebugStreams();
 
     auto xInput = TAC_NEW XInput();
     xInput->Init( errors );
@@ -72,23 +87,4 @@ namespace Tac
     DesktopAppRun( errors );
     TAC_HANDLE_ERROR( errors );
   }
-}
-
-
-int CALLBACK WinMain( HINSTANCE hInstance,
-                      HINSTANCE hPrevInstance,
-                      LPSTR lpCmdLine,
-                      int nCmdShow )
-{
-  using namespace Tac;
-  ghInstance = hInstance;
-  ghPrevInstance = hPrevInstance;
-  glpCmdLine = lpCmdLine;
-  gnCmdShow = nCmdShow;
-  Errors errors;
-  WinMainAux( errors );
-  ReportError( "WinMain", errors );
-  ReportError( "Platform thread", sPlatformThreadErrors );
-  ReportError( "Logic thread", sLogicThreadErrors );
-  return 0;
 }

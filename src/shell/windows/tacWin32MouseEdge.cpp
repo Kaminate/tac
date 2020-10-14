@@ -23,6 +23,7 @@ namespace Tac
     return result;
   }
 
+
   static HCURSOR GetCursor( CursorDir cursorDir )
   {
     // switch by the integral type cuz of the bit-twiddling
@@ -38,6 +39,12 @@ namespace Tac
       case CursorDirS | CursorDirE: return cursorArrowNW_SE;
       default: return cursorArrow;
     }
+  }
+
+  void SetCursor( CursorDir cursorDir )
+  {
+    const HCURSOR cursor = GetCursor( cursorDir );
+    SetCursor( cursor );
   }
 
   Win32MouseEdgeHandler::Win32MouseEdgeHandler()
@@ -102,8 +109,9 @@ namespace Tac
     if( mCursorLock != cursorLock || !mEverSet )
     {
       mEverSet = true;
-      const HCURSOR cursor = GetCursor( cursorLock );
-      SetCursor( cursor );
+      //const HCURSOR cursor = GetCursor( cursorLock );
+      SetCursor( cursorLock );
+      //SetCursor( cursor );
       SetCursorLock( cursorLock );
     }
     if( mMouseDownCurr && !mMouseDownPrev )

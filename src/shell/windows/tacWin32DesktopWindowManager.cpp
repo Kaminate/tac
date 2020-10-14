@@ -306,20 +306,21 @@ namespace Tac
     // If you set the cursor here, calls to SetCursor cause it to flicker to the new cursor
     // before reverting back to the old cursor.
 
-    UINT fuLoad
+    const UINT fuLoad
       = LR_LOADFROMFILE // load a file ( not a resource )
       | LR_DEFAULTSIZE // default metrics based on the type (IMAGE_ICON, 32x32)
       | LR_SHARED;
+    const HICON icon = ( HICON )LoadImage( nullptr, "grave.ico", IMAGE_ICON, 0, 0, fuLoad );;
     WNDCLASSEX wc = {};
     wc.cbSize = sizeof( WNDCLASSEX );
-    wc.style = CS_HREDRAW | CS_VREDRAW; // redraw window on movement or size adjustment
-    wc.hIcon = ( HICON )LoadImage( nullptr, "grave.ico", IMAGE_ICON, 0, 0, fuLoad );
-    wc.hCursor = nullptr;
+    wc.hCursor = LoadCursor( NULL, IDC_ARROW );
+    wc.hIcon = icon;
+    wc.hIconSm = NULL; // If null, the system searches for a small icon from the hIcon member
+    wc.hInstance = ghInstance;
     wc.hbrBackground = ( HBRUSH )GetStockObject( BLACK_BRUSH );
     wc.lpfnWndProc = WindowProc;
-    wc.hInstance = ghInstance;
     wc.lpszClassName = classname;
-    wc.hIconSm = NULL; // If null, the system searches for a small icon from the hIcon member
+    wc.style = CS_HREDRAW | CS_VREDRAW; // redraw window on movement or size adjustment
     if( !RegisterClassEx( &wc ) )
     {
       errors.mMessage = "Failed to register window class " + String( classname );
@@ -538,7 +539,6 @@ namespace Tac
     DesktopEventQueue::Instance.PushEventResizeWindow( desktopWindowHandle,
                                                        windowAdjustedWidth,
                                                        windowAdjustedHeight );
-
     //mWindows.push_back( createdWindow );
     //DesktopApp::SpawnWindow( createdWindow );
   }

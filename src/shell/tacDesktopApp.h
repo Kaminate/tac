@@ -68,8 +68,8 @@ namespace Tac
   DesktopWindowHandle     DesktopWindowCreate( int x, int y, int width, int height );
   void                    DesktopWindowPollCreationRequests( Errors& errors );
 
-  extern Errors           sPlatformThreadErrors;
-  extern Errors           sLogicThreadErrors;
+  extern Errors           gPlatformThreadErrors;
+  extern Errors           gLogicThreadErrors;
 
   struct WindowHandleIterator
   {

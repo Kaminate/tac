@@ -54,8 +54,8 @@ namespace Tac
 
   typedef FixedVector< WantSpawnInfo, kMaxDesktopWindowStateCount > WindowRequests;
 
-  Errors                       sPlatformThreadErrors;
-  Errors                       sLogicThreadErrors;
+  Errors                       gPlatformThreadErrors;
+  Errors                       gLogicThreadErrors;
   AppInterfacePlatform         sAppInterfacePlatform;
   AppInterfaceProject          sAppInterfaceProject;
   static std::mutex            sWindowHandleLock;
@@ -280,6 +280,16 @@ namespace Tac
           sEventQueue.QueuePop( &data, sizeof( data ) );
           KeyboardInput::Instance->mCurr.mMouseScroll += data.mDelta;
         } break;
+        case DesktopEventType::MouseMove:
+        {
+          DesktopEventDataMouseMove data;
+          sEventQueue.QueuePop( &data, sizeof( data ) );
+          KeyboardInput::Instance->mCurr.mScreenspaceCursorPos =
+          {
+            ( float )data.mX,
+            ( float )data.mY
+          };
+        } break;
         default:
         {
           OS::DebugBreak();
@@ -401,7 +411,7 @@ namespace Tac
 
   static void LogicThread()
   {
-    Errors& errors = sLogicThreadErrors;
+    Errors& errors = gLogicThreadErrors;
     TAC_ON_DESTRUCT( if( errors.size() ) OS::mShouldStopRunning = true );
 
     gThreadType = ThreadType::Stuff;
@@ -452,7 +462,7 @@ namespace Tac
 
   static void PlatformThread()
   {
-    Errors& errors = sPlatformThreadErrors;
+    Errors& errors = gPlatformThreadErrors;
     TAC_ON_DESTRUCT( if( errors.size() ) OS::mShouldStopRunning = true );
     while( !OS::mShouldStopRunning )
     {
