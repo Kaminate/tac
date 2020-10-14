@@ -1,7 +1,5 @@
 #pragma once
 
-#include "src/common/tacString.h"
-#include "src/common/tacEvent.h"
 #include "src/common/containers/tacArray.h"
 
 namespace Tac
@@ -22,7 +20,6 @@ namespace Tac
   };
 
   static const int kMaxDesktopWindowStateCount = 10;
-  //extern DesktopWindowState sDesktopWindowStates[ kMaxDesktopWindowStateCount ];
   typedef Array< DesktopWindowState, kMaxDesktopWindowStateCount > DesktopWindowStates;
   extern DesktopWindowStates sDesktopWindowStates;
 

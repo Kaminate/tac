@@ -9,53 +9,6 @@
 
 namespace Tac
 {
-  typedef int CursorDir;
-  const CursorDir CursorDirN = 0b0001;
-  const CursorDir CursorDirW = 0b0010;
-  const CursorDir CursorDirS = 0b0100;
-  const CursorDir CursorDirE = 0b1000;
-
-  String CursorDirToString( CursorDir cursorType );
-  void SetCursor( CursorDir );
-
-  struct Win32MouseEdgeHandler
-  {
-    static Win32MouseEdgeHandler Instance;
-    Win32MouseEdgeHandler();
-
-    void Update( HWND );
-    void ResetCursorLock();
-
-
-  private:
-
-    enum HandlerType
-    {
-      None,
-      Move,
-      Resize,
-    };
-
-    // care to describe what this function does?
-    void SetCursorLock( CursorDir );
-
-    void UpdateIdle( HWND );
-    void UpdateResize();
-    void UpdateMove();
-
-    // Used to set the cursor icon
-    CursorDir mCursorLock = {};
-    POINT mCursorPositionOnClick = {};
-    RECT mWindowRectOnClick = {};
-    int edgeDistResizePx;
-    int edgeDistMovePx;
-    bool mEverSet = false;
-    HandlerType mHandlerType = HandlerType::None;
-    bool mIsFinished = false;
-    HWND mHwnd = NULL;
-
-    bool mMouseDownCurr = false;
-    bool mMouseDownPrev = false;
-  };
-
+  void Win32MouseEdgeInit();
+  void Win32MouseEdgeUpdate( HWND );
 }

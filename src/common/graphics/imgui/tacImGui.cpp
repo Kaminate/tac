@@ -11,7 +11,6 @@
 #include "src/common/tacOS.h"
 #include "src/common/tacPreprocessor.h"
 #include "src/common/tacShell.h"
-#include "src/shell/tacDesktopWindowManager.h"
 #include <cstdlib> // atof
 
 namespace Tac

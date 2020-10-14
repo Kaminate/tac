@@ -12,7 +12,6 @@
 #include "src/creation/tacCreation.h"
 #include "src/creation/tacCreationGameWindow.h"
 #include "src/shell/tacDesktopApp.h"
-#include "src/shell/tacDesktopWindowManager.h"
 #include "src/space/graphics/tacGraphics.h"
 #include "src/space/presentation/tacGamePresentation.h"
 #include "src/space/presentation/tacSkyboxPresentation.h"

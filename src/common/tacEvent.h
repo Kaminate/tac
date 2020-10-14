@@ -1,3 +1,4 @@
+// delete this file?
 #pragma once
 #include "src/common/containers/tacVector.h"
 #include <functional>
@@ -5,34 +6,34 @@ namespace Tac
 {
 
 
-template< typename... Args >
-struct Event
-{
-  struct Emitter
+  template< typename... Args >
+  struct Event
   {
-    void AddCallbackFunctional( std::function< void( Args... ) > callback )
+    struct Emitter
     {
-      mFunctionalHandlerSlots.push_back( callback );
-    }
-    void EmitEvent( Args... eventArgs )
-    {
-      for( const auto& callback : mFunctionalHandlerSlots )
+      void AddCallbackFunctional( std::function< void( Args... ) > callback )
       {
-        callback( eventArgs... );
+        mFunctionalHandlerSlots.push_back( callback );
       }
-    }
-    int size()
-    {
-      return mFunctionalHandlerSlots.size();
-    }
-    void clear()
-    {
-      mFunctionalHandlerSlots.clear();
-    }
-  private:
-    Vector< std::function< void( Args... ) > > mFunctionalHandlerSlots;
+      void EmitEvent( Args... eventArgs )
+      {
+        for( const auto& callback : mFunctionalHandlerSlots )
+        {
+          callback( eventArgs... );
+        }
+      }
+      int size()
+      {
+        return mFunctionalHandlerSlots.size();
+      }
+      void clear()
+      {
+        mFunctionalHandlerSlots.clear();
+      }
+    private:
+      Vector< std::function< void( Args... ) > > mFunctionalHandlerSlots;
+    };
   };
-};
 
 
 }

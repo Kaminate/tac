@@ -1,5 +1,4 @@
 #include "src/shell/windows/tacXInput.h"
-#include "src/shell/windows/tacWin32Main.h"
 #include "src/common/tacPreprocessor.h"
 #include "src/common/math/tacMath.h"
 #include "src/common/tacShell.h"

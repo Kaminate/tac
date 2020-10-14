@@ -47,7 +47,7 @@ namespace Tac
     return result;
   }
 
-  String GetLastWin32ErrorString()
+  String Win32GetLastErrorString()
   {
     DWORD winErrorValue = GetLastError();
     return Win32ErrorToString( winErrorValue );
@@ -75,39 +75,39 @@ namespace Tac
     return buffer;
   }
 
-  String GetWin32WindowName( HWND hwnd )
+  String Win32GetWindowName( HWND hwnd )
   {
     String className = GetWin32WindowClass( hwnd );
     String windowName = GetWin32WindowNameAux( hwnd );
     return className + " " + windowName;
   }
 
-  void WindowsAssert( Errors& errors )
+  void Win32Assert( Errors& errors )
   {
     String s = errors.ToString();
     std::cout << s << std::endl;
     //s += "\n";
     //OutputDebugString( s.c_str() );
-    WindowsDebugBreak();
+    Win32DebugBreak();
     if( IsDebugMode() )
       return;
     MessageBox( NULL, s.c_str(), "Tac Assert", MB_OK );
     exit( -1 );
   }
 
-  void WindowsDebugBreak()
+  void Win32DebugBreak()
   {
     if( !IsDebugMode() )
       return;
     DebugBreak();
   }
 
-  void WindowsPopup( const StringView& s )
+  void Win32PopupBox( const StringView& s )
   {
     MessageBox( NULL, s.c_str(), "Message", MB_OK );
   }
 
-  void WindowsOutput( const StringView& s )
+  void Win32Output( const StringView& s )
   {
     OutputDebugString( s.c_str() );
   }
@@ -170,7 +170,7 @@ namespace Tac
         buf );
       if( 0 == getCurrentDirectoryResult )
       {
-        errors = GetLastWin32ErrorString();
+        errors = Win32GetLastErrorString();
         return;
       }
       dir = String( buf, getCurrentDirectoryResult );
@@ -232,12 +232,12 @@ namespace Tac
     {
       // Note: this could return error access denied, for example if your computer goes to sleep
       POINT point;
-      TAC_HANDLE_ERROR_IF( !GetCursorPos( &point ), GetLastWin32ErrorString(), errors );
+      TAC_HANDLE_ERROR_IF( !GetCursorPos( &point ), Win32GetLastErrorString(), errors );
       pos = { ( float )point.x, ( float )point.y };
     }
     void SetScreenspaceCursorPos( v2& pos, Errors& errors )
     {
-      TAC_HANDLE_ERROR_IF( !SetCursorPos( ( int )pos.x, ( int )pos.y ), GetLastWin32ErrorString(), errors );
+      TAC_HANDLE_ERROR_IF( !SetCursorPos( ( int )pos.x, ( int )pos.y ), Win32GetLastErrorString(), errors );
     }
     void DoesFolderExist( StringView path, bool& exists, Errors& errors )
     {
@@ -273,7 +273,7 @@ namespace Tac
       BOOL createDirectoryResult = CreateDirectoryA( path.c_str(), NULL );
       if( createDirectoryResult == 0 )
       {
-        errors = "Failed to create folder at " + path + " because " + GetLastWin32ErrorString();
+        errors = "Failed to create folder at " + path + " because " + Win32GetLastErrorString();
         TAC_HANDLE_ERROR( errors );
       }
     }
@@ -308,21 +308,21 @@ namespace Tac
         hTemplateFile );
       if( handle == INVALID_HANDLE_VALUE )
       {
-        errors = "Cannot save to file " + path + " because " + GetLastWin32ErrorString();
+        errors = "Cannot save to file " + path + " because " + Win32GetLastErrorString();
         TAC_HANDLE_ERROR( errors );
       }
       TAC_ON_DESTRUCT( CloseHandle( handle ) );
       DWORD bytesWrittenCount;
       if( !WriteFile( handle, bytes, byteCount, &bytesWrittenCount, NULL ) )
       {
-        errors = "failed to save file " + path + " because " + GetLastWin32ErrorString();
+        errors = "failed to save file " + path + " because " + Win32GetLastErrorString();
         TAC_HANDLE_ERROR( errors );
       }
       // Should we check that bytesWrittenCount == byteCount?
     }
     void DebugBreak()
     {
-      WindowsDebugBreak();
+      Win32DebugBreak();
     }
     void DebugPopupBox( StringView s )
     {
@@ -364,14 +364,14 @@ namespace Tac
       BY_HANDLE_FILE_INFORMATION fileInfo;
       if( !GetFileInformationByHandle( handle, &fileInfo ) )
       {
-        errors += GetLastWin32ErrorString();
+        errors += Win32GetLastErrorString();
         TAC_HANDLE_ERROR( errors );
       }
 
       SYSTEMTIME lastWrite;
       if( !FileTimeToSystemTime( &fileInfo.ftLastWriteTime, &lastWrite ) )
       {
-        errors += GetLastWin32ErrorString();
+        errors += Win32GetLastErrorString();
         TAC_HANDLE_ERROR( errors );
       }
 

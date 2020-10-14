@@ -51,14 +51,12 @@ namespace Tac
     const char* ToString() const;
   };
 
-  #define TAC_STACK_FRAME Tac::StackFrame( __LINE__, __FILE__, __FUNCTION__ )
+#define TAC_STACK_FRAME Tac::StackFrame( __LINE__, __FILE__, __FUNCTION__ )
 
 
   bool IsDebugMode();
 
   void AssertInternal( const char* message, const StackFrame& frame );
-
-  // TODO: make macros TAC_CAPS
 
 #define TAC_ASSERT_MESSAGE( formatString, ... ) AssertInternal( va( formatString, ## __VA_ARGS__ ), TAC_STACK_FRAME )
 #define TAC_ASSERT( expression ) if( !( expression ) ){ TAC_ASSERT_MESSAGE( TAC_STRINGIFY( expression ) ); }
@@ -67,17 +65,6 @@ namespace Tac
 #define TAC_INVALID_DEFAULT_CASE( var ) default: TAC_ASSERT_MESSAGE( "Invalid default case, %s = %i", TAC_STRINGIFY( var ), var ); break;
 #define TAC_OFFSET_OF( type, member ) ((size_t)&reinterpret_cast<char const volatile&>((((type*)0)->member)))
 
-  /* is this a good idea?
-  template< typename TDerived, typename TBaseData >
-  void DataSpawn( TDerived** ppResource, const TBaseData& resourceData )
-  {
-    auto resource = new TDerived();
-    *( TBaseData* )resource = resourceData;
-    *ppResource = resource;
-  }
-  */
-
-  // ie: OnDestruct( i++ )
   template< typename T>
   struct OnDestructAux
   {

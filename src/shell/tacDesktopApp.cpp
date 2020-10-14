@@ -13,7 +13,6 @@
 #include "src/common/tacSettings.h"
 #include "src/common/tacString.h"
 #include "src/shell/tacDesktopApp.h"
-#include "src/shell/tacDesktopWindowManager.h"
 #include "src/common/tacIDCollection.h"
 #include "src/common/containers/tacFixedVector.h"
 

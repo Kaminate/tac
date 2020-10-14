@@ -4,7 +4,6 @@
 #include "src/common/tacOS.h"
 #include "src/game/tacGame.h"
 #include "src/shell/tacDesktopApp.h"
-#include "src/shell/tacDesktopWindowManager.h"
 #include "src/space/tacGhost.h"
 #include "src/space/tacSpace.h"
 

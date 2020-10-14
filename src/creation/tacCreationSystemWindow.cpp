@@ -8,7 +8,6 @@
 #include "src/creation/tacCreation.h"
 #include "src/creation/tacCreationSystemWindow.h"
 #include "src/shell/tacDesktopApp.h"
-#include "src/shell/tacDesktopWindowManager.h"
 #include "src/space/tacEntity.h"
 #include "src/space/tacSystem.h"
 #include "src/space/tacWorld.h"

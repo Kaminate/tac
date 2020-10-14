@@ -25,12 +25,6 @@ namespace Tac
     static DesktopEventQueue Instance;
     void Init();
     void PushEventCursorUnobscured( DesktopWindowHandle );
-    //void PushEventCreateWindow( DesktopWindowHandle,
-    //                            int width,
-    //                            int height,
-    //                            int x,
-    //                            int y,
-    //                            void* nativeWindowHandle );
     void PushEventAssignHandle( DesktopWindowHandle,
                                 void* nativeWindowHandle );
     void PushEventMoveWindow( DesktopWindowHandle,
@@ -56,7 +50,7 @@ namespace Tac
   struct AppInterfacePlatform
   {
     void( *mPlatformPoll )( Errors& );
-    void( *mPlatformSpawnWindow )( DesktopWindowHandle handle,
+    void( *mPlatformSpawnWindow )( const DesktopWindowHandle& handle,
                                    int x,
                                    int y,
                                    int width,

@@ -20,27 +20,17 @@
 
 #include <Windows.h>
 
-//#include "src/common/tacPreprocessor.h"
-//#include "src/common/tacString.h"
-
 namespace Tac
 {
   extern HINSTANCE ghInstance;
   extern HINSTANCE ghPrevInstance;
   extern LPSTR     glpCmdLine;
   extern int       gnCmdShow;
-
-  //struct Errors;
-  struct String;
-  struct StringView;
-  struct Errors;
-
-  String Win32ErrorToString( DWORD winErrorValue );
-  String GetLastWin32ErrorString();
-  String GetWin32WindowName( HWND hwnd );
-
-  void WindowsAssert( const Errors& );
-  void WindowsDebugBreak();
-  void WindowsPopup( const StringView& );
-  void WindowsOutput( const StringView& );
+  struct String    Win32ErrorToString( DWORD winErrorValue );
+  struct String    Win32GetLastErrorString();
+  struct String    Win32GetWindowName( HWND hwnd );
+  void             Win32Assert( const struct Errors& );
+  void             Win32DebugBreak();
+  void             Win32PopupBox( const struct StringView& );
+  void             Win32Output( const struct StringView& );
 }

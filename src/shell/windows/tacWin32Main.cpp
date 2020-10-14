@@ -10,7 +10,6 @@
 #include "src/shell/windows/tacNetWinsock.h"
 #include "src/shell/windows/tacWin32.h"
 #include "src/shell/windows/tacWin32DesktopWindowManager.h"
-#include "src/shell/windows/tacWin32Main.h"
 #include "src/shell/windows/tacXInput.h"
 
 namespace Tac

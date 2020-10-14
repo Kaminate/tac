@@ -14,7 +14,6 @@
 #include "src/space/tacWorld.h"
 #include "src/space/tacEntity.h"
 #include "src/shell/tacDesktopApp.h"
-#include "src/shell/tacDesktopWindowManager.h"
 
 namespace Tac
 {

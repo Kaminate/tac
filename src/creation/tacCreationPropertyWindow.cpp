@@ -10,7 +10,6 @@
 #include "src/creation/tacCreation.h"
 #include "src/creation/tacCreationPropertyWindow.h"
 #include "src/shell/tacDesktopApp.h"
-#include "src/shell/tacDesktopWindowManager.h"
 #include "src/space/model/tacModel.h"
 #include "src/space/tacComponent.h"
 #include "src/space/tacEntity.h"

@@ -52,36 +52,36 @@ namespace Tac
 
     struct DrawCall3
     {
-      StackFrame mStackFrame;
-      VertexBufferHandle mVertexBufferHandle;
-      IndexBufferHandle mIndexBufferHandle;
-      BlendStateHandle mBlendStateHandle;
+      StackFrame            mStackFrame;
+      VertexBufferHandle    mVertexBufferHandle;
+      IndexBufferHandle     mIndexBufferHandle;
+      BlendStateHandle      mBlendStateHandle;
       RasterizerStateHandle mRasterizerStateHandle;
-      SamplerStateHandle mSamplerStateHandle;
-      DepthStateHandle mDepthStateHandle;
-      VertexFormatHandle mVertexFormatHandle;
+      SamplerStateHandle    mSamplerStateHandle;
+      DepthStateHandle      mDepthStateHandle;
+      VertexFormatHandle    mVertexFormatHandle;
       UpdateConstantBuffers mUpdateConstantBuffers;
-      ShaderHandle mShaderHandle;
-      DrawCallTextures mTextureHandle;
-      ViewId mViewId = InvalidViewId;
-      int mStartIndex = 0;
-      int mStartVertex = 0;
-      int mIndexCount = 0;
-      int mVertexCount = 0;
+      ShaderHandle          mShaderHandle;
+      DrawCallTextures      mTextureHandle;
+      ViewId                mViewId = InvalidViewId;
+      int                   mStartIndex = 0;
+      int                   mStartVertex = 0;
+      int                   mIndexCount = 0;
+      int                   mVertexCount = 0;
     };
 
     struct CommandBuffer
     {
-      void PushCommand( CommandType type,
-                        StackFrame stackFrame,
-                        const void* bytes,
-                        int byteCount );
-      void Resize( int newSize );
-      void Clear();
-      const char* Data() const;
-      int Size() const;
+      void           PushCommand( CommandType type,
+                                  StackFrame stackFrame,
+                                  const void* bytes,
+                                  int byteCount );
+      void           Resize( int newSize );
+      void           Clear();
+      const char*    Data() const;
+      int            Size() const;
     private:
-      void Push( const void* bytes, int byteCount );
+      void           Push( const void* bytes, int byteCount );
       Vector< char > mBuffer;
     };
 
@@ -90,8 +90,8 @@ namespace Tac
     struct UniformBuffer
     {
       static const int kByteCapacity = 256 * 1024;
-      char mBytes[ kByteCapacity ] = {};
-      int mByteCount = 0;
+      char             mBytes[ kByteCapacity ] = {};
+      int              mByteCount = 0;
     };
 
     struct View
@@ -209,7 +209,6 @@ namespace Tac
     {
       FramebufferHandle mFramebufferHandle;
       void* mNativeWindowHandle = nullptr;
-      // DesktopWindowHandle mDesktopWindowHandle;
       int mWidth = 0;
       int mHeight = 0;
     };
@@ -262,66 +261,15 @@ namespace Tac
 
     static Renderer* Instance;
     Renderer();
-    //virtual void CreateWindowContext( DesktopWindow* desktopWindow, Errors& errors ) {}
-
     virtual ~Renderer();
     virtual void Init( Errors& ) {};
-    //virtual void ClearColor( Texture* texture, v4 rgba ) { TAC_UNIMPLEMENTED; }
-    //virtual void ClearDepthStencil(
-    //  DepthBuffer* depthBuffer,
-    //  bool shouldClearDepth,
-    //  float depth,
-    //  bool shouldClearStencil,
-    //  uint8_t stencil )
-    //{
-    //  TAC_UNIMPLEMENTED;
-    //}
-
-    //virtual void SetSamplerState(
-    //  const String& samplerName,
-    //  SamplerState* samplerState )
-    //{
-    //  TAC_UNIMPLEMENTED;
-    //}
-
-    //virtual void AddCbufferToShader( Shader* shader, CBuffer* cbuffer, ShaderType myShaderType )
-    //{
-    //  //Unimplemented;
-    //}
-
-    //virtual void DebugBegin( const String& section ) { TAC_UNIMPLEMENTED; }
-    //virtual void DebugMark( const String& remark ) { TAC_UNIMPLEMENTED; }
-    //virtual void DebugEnd() { TAC_UNIMPLEMENTED; }
-
-    //virtual void DrawNonIndexed( int vertexCount = 0 ) { TAC_UNIMPLEMENTED; }
-
-    //virtual void DrawIndexed( int elementCount, int idxOffset, int vtxOffset ) { TAC_UNIMPLEMENTED; }
-
-    //virtual void Apply() { TAC_UNIMPLEMENTED; }
-
-    //virtual void RenderFlush() { TAC_UNIMPLEMENTED; }
-    //virtual void Render( Errors& errors ) { TAC_UNIMPLEMENTED; }
     virtual void Render2( const Render::Frame*, Errors& ) { TAC_UNIMPLEMENTED; }
     virtual void SwapBuffers() { TAC_UNIMPLEMENTED; }
-
-    //virtual void SetPrimitiveTopology( Primitive primitive ) { TAC_UNIMPLEMENTED; }
-
-    virtual void GetPerspectiveProjectionAB(
-      float f,
-      float n,
-      float& a,
-      float& b )
-    {
-      TAC_UNUSED_PARAMETER( f );
-      TAC_UNUSED_PARAMETER( n );
-      TAC_UNUSED_PARAMETER( a );
-      TAC_UNUSED_PARAMETER( b );
-      TAC_UNIMPLEMENTED;
-    }
-    //void DebugImgui();
-
+    virtual void GetPerspectiveProjectionAB( float f,
+                                             float n,
+                                             float& a,
+                                             float& b ) = 0;
     void ExecuteCommands( Render::CommandBuffer*, Errors& );
-
     virtual void AddBlendState( Render::CommandDataCreateBlendState*, Errors& ) = 0;
     virtual void AddConstantBuffer( Render::CommandDataCreateConstantBuffer*, Errors& ) = 0;
     virtual void AddDepthState( Render::CommandDataCreateDepthState*, Errors& ) = 0;
@@ -333,12 +281,10 @@ namespace Tac
     virtual void AddTexture( Render::CommandDataCreateTexture*, Errors& ) = 0;
     virtual void AddVertexBuffer( Render::CommandDataCreateVertexBuffer*, Errors& ) = 0;
     virtual void AddVertexFormat( Render::CommandDataCreateVertexFormat*, Errors& ) = 0;
-
     virtual void UpdateTextureRegion( Render::CommandDataUpdateTextureRegion*, Errors& ) = 0;
     virtual void UpdateVertexBuffer( Render::CommandDataUpdateVertexBuffer*, Errors& ) = 0;
     virtual void UpdateIndexBuffer( Render::CommandDataUpdateIndexBuffer*, Errors& ) = 0;
     virtual void ResizeFramebuffer( Render::CommandDataResizeFramebuffer*, Errors& ) = 0;
-
     virtual void RemoveBlendState( Render::BlendStateHandle, Errors& ) = 0;
     virtual void RemoveConstantBuffer( Render::ConstantBufferHandle, Errors& ) = 0;
     virtual void RemoveDepthState( Render::DepthStateHandle, Errors& ) = 0;
@@ -350,10 +296,7 @@ namespace Tac
     virtual void RemoveIndexBuffer( Render::IndexBufferHandle, Errors& ) = 0;
     virtual void RemoveTexture( Render::TextureHandle, Errors& ) = 0;
     virtual void RemoveFramebuffer( Render::FramebufferHandle, Errors& ) = 0;
-
-
     String mName;
-    //Vector< DrawCall2 > mDrawCall2s;
   };
   String RendererTypeToString( Renderer::Type );
 

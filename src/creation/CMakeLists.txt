@@ -32,8 +32,6 @@ set( TAC_SOURCES
   "${CMAKE_SOURCE_DIR}/src/creation/tacEditorWindow.h"
   "${CMAKE_SOURCE_DIR}/src/shell/tacDesktopApp.cpp"
   "${CMAKE_SOURCE_DIR}/src/shell/tacDesktopApp.h"
-  "${CMAKE_SOURCE_DIR}/src/shell/tacDesktopWindowManager.cpp"
-  "${CMAKE_SOURCE_DIR}/src/shell/tacDesktopWindowManager.h"
   )
 if( WIN32 )
   set( TAC_SOURCES 
@@ -189,8 +187,7 @@ if( WIN32 )
     "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWin32MouseEdge.h"
     "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWin32DesktopWindowManager.cpp"
     "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWin32DesktopWindowManager.h"
-    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWin32Main.cpp"
-    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWin32Main.h" )
+    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWin32Main.cpp" )
   include_directories( ${TAC_INCLUDE_DIRECTORIES} )
 
   # the win32 here changes the

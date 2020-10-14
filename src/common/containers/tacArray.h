@@ -41,11 +41,6 @@ namespace Tac
   {
     return { std::forward< T >( values )... };
   }
-
-
-
-
-
 }
 
 
