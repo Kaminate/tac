@@ -20,7 +20,7 @@
 namespace Tac
 {
   static const char* classname = "tac";
-  static HWND sHWNDs[ kMaxDesktopWindowStateCount ];
+  static HWND sHWNDs[ kDesktopWindowCapacity ];
   static Key GetKey( uint8_t keyCode )
   {
 
@@ -374,6 +374,19 @@ namespace Tac
   //  }
   //}
 
+
+  DesktopWindowHandle GetCursorUnobscuredWindow2()
+  {
+    POINT cursorPos;
+    const bool cursorPosValid = 0 != ::GetCursorPos( &cursorPos );
+    if( !cursorPosValid )
+      return DesktopWindowHandle();
+
+    const HWND hoveredHwnd = ::WindowFromPoint( cursorPos );
+    const DesktopWindowHandle desktopWindowHandle = FindDesktopWindowHandle( hoveredHwnd );
+    return desktopWindowHandle;
+  }
+
   // | each window should have its own copy of mouse xyz to fix this problem?
   // |
   // v
@@ -460,7 +473,7 @@ namespace Tac
                                   const int x,
                                   const int y,
                                   const int requestedWidth,
-                                  const int requestedHeight)
+                                  const int requestedHeight )
   {
     DWORD windowStyle = WS_POPUP;
     RECT windowRect = {};

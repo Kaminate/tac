@@ -10,6 +10,7 @@
 #include "src/creation/tacCreation.h"
 #include "src/creation/tacCreationPropertyWindow.h"
 #include "src/shell/tacDesktopApp.h"
+#include "src/shell/tacDesktopWindowGraphics.h"
 #include "src/space/model/tacModel.h"
 #include "src/space/tacComponent.h"
 #include "src/space/tacEntity.h"
@@ -64,13 +65,12 @@ namespace Tac
     //mUIRoot->Render( errors );
     TAC_HANDLE_ERROR( errors );
 
-    DesktopWindowState* desktopWindowState = &sDesktopWindowStates[ mDesktopWindowHandle.mIndex ];
+    DesktopWindowState* desktopWindowState = GetDesktopWindowState(mDesktopWindowHandle);
     if( !desktopWindowState )
       return;
-    SetCreationWindowImGuiGlobals( desktopWindowState, mUI2DDrawData );
 
 
-    ImGuiBegin( "Properties", {} );
+    ImGuiBegin( "Properties", {}, mDesktopWindowHandle );
 
 
 
@@ -217,17 +217,16 @@ namespace Tac
 
     ImGuiEnd();
 
-    WindowFramebufferInfo* info = WindowFramebufferManager::Instance.FindWindowFramebufferInfo( mDesktopWindowHandle );
-    if( !info )
-      return;
+    const Render::FramebufferHandle framebufferHandle = WindowGraphicsGetFramebuffer( mDesktopWindowHandle );
+    const Render::ViewHandle viewHandle = WindowGraphicsGetView( mDesktopWindowHandle );;
     const float w = ( float )desktopWindowState->mWidth;
     const float h = ( float )desktopWindowState->mHeight;
-    Render::SetViewFramebuffer( ViewIdPropertyWindow, info->mFramebufferHandle );
-    Render::SetViewport( ViewIdPropertyWindow, Viewport( w, h ) );
-    Render::SetViewScissorRect( ViewIdPropertyWindow, ScissorRect( w, h ) );
-    mUI2DDrawData->DrawToTexture( desktopWindowState->mWidth,
+    Render::SetViewFramebuffer( viewHandle, framebufferHandle );
+    Render::SetViewport( viewHandle, Viewport( w, h ) );
+    Render::SetViewScissorRect( viewHandle, ScissorRect( w, h ) );
+    mUI2DDrawData->DrawToTexture( viewHandle,
+                                  desktopWindowState->mWidth,
                                   desktopWindowState->mHeight,
-                                  ViewIdPropertyWindow,
                                   errors );
     TAC_HANDLE_ERROR( errors );
   }

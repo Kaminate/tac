@@ -9,7 +9,6 @@
 #include "src/common/math/tacVector3.h"
 #include "src/common/math/tacVector4.h"
 #include "src/common/math/tacMatrix4.h"
-#include "src/common/tacDesktopWindow.h"
 #include "src/common/tacString.h"
 #include "src/common/tacErrorHandling.h"
 #include "src/common/tacPreprocessor.h"
@@ -272,36 +271,18 @@ namespace Tac
 
   namespace Render
   {
-    typedef int ViewId;
-    const ViewId InvalidViewId = -1;
-
-    typedef int ResourceId;
-    const ResourceId NullResourceId = -1;
-
-#define TAC_DEFINE_RENDER_HANDLE( name )                          \
-    struct name                                                   \
-    {                                                             \
-      name() = default;                                           \
-      name( ResourceId resourceId ) : mResourceId( resourceId ){} \
-      ResourceId mResourceId = NullResourceId;                    \
-      bool IsValid() const                                        \
-      {                                                           \
-        return mResourceId != NullResourceId;                     \
-      }                                                           \
-    }
-    TAC_DEFINE_RENDER_HANDLE( ShaderHandle );
-    TAC_DEFINE_RENDER_HANDLE( VertexBufferHandle );
-    TAC_DEFINE_RENDER_HANDLE( IndexBufferHandle );
-    TAC_DEFINE_RENDER_HANDLE( ConstantBufferHandle );
-    TAC_DEFINE_RENDER_HANDLE( TextureHandle );
-    TAC_DEFINE_RENDER_HANDLE( FramebufferHandle );
-    TAC_DEFINE_RENDER_HANDLE( BlendStateHandle );
-    TAC_DEFINE_RENDER_HANDLE( RasterizerStateHandle );
-    TAC_DEFINE_RENDER_HANDLE( SamplerStateHandle );
-    TAC_DEFINE_RENDER_HANDLE( DepthStateHandle );
-    TAC_DEFINE_RENDER_HANDLE( VertexFormatHandle );
-#undef TAC_DEFINE_RENDER_HANDLE
-
+    TAC_DEFINE_HANDLE( ShaderHandle );
+    TAC_DEFINE_HANDLE( VertexBufferHandle );
+    TAC_DEFINE_HANDLE( IndexBufferHandle );
+    TAC_DEFINE_HANDLE( ConstantBufferHandle );
+    TAC_DEFINE_HANDLE( TextureHandle );
+    TAC_DEFINE_HANDLE( FramebufferHandle );
+    TAC_DEFINE_HANDLE( BlendStateHandle );
+    TAC_DEFINE_HANDLE( RasterizerStateHandle );
+    TAC_DEFINE_HANDLE( SamplerStateHandle );
+    TAC_DEFINE_HANDLE( DepthStateHandle );
+    TAC_DEFINE_HANDLE( VertexFormatHandle );
+    TAC_DEFINE_HANDLE( ViewHandle );
 
     struct Frame;
 
@@ -419,6 +400,7 @@ namespace Tac
     };
 
 
+    ViewHandle                       CreateView();
     ShaderHandle                     CreateShader( StringView, ShaderSource, ConstantBuffers, StackFrame );
     ConstantBufferHandle             CreateConstantBuffer( StringView,
                                                            int mByteCount,
@@ -438,7 +420,7 @@ namespace Tac
                                                         StackFrame );
     TextureHandle                    CreateTexture( StringView, TexSpec, StackFrame );
     FramebufferHandle                CreateFramebuffer( StringView,
-                                                        void* nativeWindowHandle, // DesktopWindowHandle,
+                                                        void* nativeWindowHandle,
                                                         int width,
                                                         int weight,
                                                         StackFrame );
@@ -482,9 +464,9 @@ namespace Tac
                                                         int h,
                                                         StackFrame );
 
-    void                             SetViewFramebuffer( ViewId, FramebufferHandle );
-    void                             SetViewScissorRect( ViewId, ScissorRect );
-    void                             SetViewport( ViewId, Viewport );
+    void                             SetViewFramebuffer( ViewHandle, FramebufferHandle );
+    void                             SetViewScissorRect( ViewHandle, ScissorRect );
+    void                             SetViewport( ViewHandle, Viewport );
     void                             SetIndexBuffer( IndexBufferHandle, int iStart, int count );
     void                             SetVertexBuffer( VertexBufferHandle, int iStart, int count );
     void                             SetBlendState( BlendStateHandle );
@@ -497,7 +479,7 @@ namespace Tac
 
     //void                             SetUniform( ConstantBufferHandle, const void* bytes, int byteCount );
 
-    void                             Submit( ViewId, StackFrame );
+    void                             Submit( ViewHandle, StackFrame );
     //void                             AddDrawCall( const DrawCall2& );
     void                             GetPerspectiveProjectionAB( float f, float n, float& a, float& b );
     void                             Init( Errors& );
@@ -531,12 +513,8 @@ namespace Tac
 
   struct RendererFactory
   {
-  public:
-    virtual ~RendererFactory() = default;
-    void CreateRendererOuter();
     String mRendererName;
-  protected:
-    virtual void CreateRenderer() { TAC_UNIMPLEMENTED; }
+    void( *mCreateRenderer )( );
   };
 
   struct RendererRegistry

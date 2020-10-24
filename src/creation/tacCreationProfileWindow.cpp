@@ -12,6 +12,7 @@
 #include "src/space/tacEntity.h"
 #include "src/space/tacSystem.h"
 #include "src/shell/tacDesktopApp.h"
+#include "src/shell/tacDesktopWindowGraphics.h"
 
 namespace Tac
 {
@@ -38,14 +39,10 @@ namespace Tac
   }
   void CreationProfileWindow::ImGui()
   {
-    DesktopWindowState* desktopWindowState = &sDesktopWindowStates[ mDesktopWindowHandle.mIndex ];
+    DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
     if( !desktopWindowState )
       return;
-    SetCreationWindowImGuiGlobals( desktopWindowState, mUI2DDrawData );
-    //                               mUI2DDrawData,
-    //                               mDesktopWindowState.mWidth,
-    //                               mDesktopWindowState.mHeight );
-    ImGuiBegin( "Profile Window", {} );
+    ImGuiBegin( "Profile Window", {}, mDesktopWindowHandle );
 
     ImGuiText( "i am the profile window" );
     ImGuiText( "i am... inevitable" );
@@ -64,19 +61,21 @@ namespace Tac
   }
   void CreationProfileWindow::Update( Errors& errors )
   {
-    DesktopWindowState* desktopWindowState = &sDesktopWindowStates[ mDesktopWindowHandle.mIndex ];
+    DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
     if( !desktopWindowState )
       return;
     const float w = ( float )desktopWindowState->mWidth;
     const float h = ( float )desktopWindowState->mHeight;
-    WindowFramebufferInfo* info = WindowFramebufferManager::Instance .FindWindowFramebufferInfo( mDesktopWindowHandle );
-    Render::SetViewFramebuffer( ViewIdProfileWindow, info->mFramebufferHandle );
-    Render::SetViewport( ViewIdProfileWindow, Viewport( w, h ) );
-    Render::SetViewScissorRect( ViewIdProfileWindow, ScissorRect( w, h ) );
+
+    const Render::ViewHandle viewHandle = WindowGraphicsGetView( mDesktopWindowHandle );
+    const Render::FramebufferHandle framebufferHandle = WindowGraphicsGetFramebuffer( mDesktopWindowHandle );
+    Render::SetViewFramebuffer( viewHandle, framebufferHandle );
+    Render::SetViewport( viewHandle, Viewport( w, h ) );
+    Render::SetViewScissorRect( viewHandle, ScissorRect( w, h ) );
     ImGui();
-    mUI2DDrawData->DrawToTexture( desktopWindowState->mWidth ,
-                                  desktopWindowState->mHeight ,
-                                  ViewIdProfileWindow,
+    mUI2DDrawData->DrawToTexture( viewHandle,
+                                  desktopWindowState->mWidth,
+                                  desktopWindowState->mHeight,
                                   errors );
     TAC_HANDLE_ERROR( errors );
   }

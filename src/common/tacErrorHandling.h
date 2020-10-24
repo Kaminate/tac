@@ -7,19 +7,20 @@ namespace Tac
 {
   struct Errors
   {
-    void operator=( StringView message );
-    void operator+=( StringView message );
-    bool size() const;
-    bool empty() const;
-    void clear();
-    operator bool() const;
-    String ToString() const;
-
-    void Append( const StackFrame& frame );
-    void Append( StringView message );
-
-    String mMessage;
+    Errors( bool breakOnAppend = false );
+    bool                 size() const;
+    bool                 empty() const;
+    void                 clear();
+    String               ToString() const;
+    void                 Append( const StackFrame& frame );
+    void                 Append( StringView message );
+    void                 operator=( const char* );
+    void                 operator=( StringView );
+    void                 operator+=( StringView );
+    operator             bool() const;
+    String               mMessage;
     Vector< StackFrame > mFrames;
+    bool                 mBreakOnAppend;
   };
 
 #define TAC_HANDLE_ERROR( errors )\

@@ -8,6 +8,29 @@
 namespace Tac
 {
 
+  const String Languages[ ( int )Language::Count ] =
+  {
+    "Arabic",
+    "Chinese",
+    "English",
+    "Japanese",
+    "Korean",
+    "Russian",
+    "Spanish",
+  };
+
+  StringView LanguageToStr( Language language )
+  {
+    return Languages[ ( int )language ];
+  }
+
+  Language GetLanguage( StringView str )
+  {
+    for( int i = 0; i < ( int )Language::Count; ++i )
+      if( Languages[ i ] == str )
+        return ( Language )i;
+    return Language::Count;
+  }
 
   bool IsAsciiCharacter( Codepoint codepoint )
   {
@@ -106,11 +129,13 @@ namespace Tac
     const char* mBegin = nullptr;
     const char* mEnd = nullptr;
   };
+
   Converter::Converter( StringView stringView )
   {
     mBegin = stringView.begin();
     mEnd = stringView.end();
   }
+
   Codepoint Converter::Extract()
   {
     const char b0 = GetNextByte();
@@ -151,6 +176,7 @@ namespace Tac
       ( ( 0b00111111 & b1 ) << 12 ) |
       ( ( 0b00000111 & b0 ) << 18 );
   }
+
   char Converter::GetNextByte()
   {
     return mBegin < mEnd ? *mBegin++ : 0;
@@ -163,27 +189,33 @@ namespace Tac
     mCodepoints = codepoints;
     mCodepointCount = codepointCount;
   }
+
   const Codepoint* CodepointView::data() const
   {
     return mCodepoints;
 
   }
+
   const Codepoint* CodepointView::begin() const
   {
     return mCodepoints;
   }
+
   const Codepoint* CodepointView::end() const
   {
     return mCodepoints + mCodepointCount;
   }
+
   int CodepointView::size() const
   {
     return mCodepointCount;
   }
+
   bool CodepointView::empty() const
   {
     return mCodepointCount == 0;
   }
+  
   Codepoint CodepointView::operator[]( int i ) const
   {
     return mCodepoints[ i ];
@@ -193,6 +225,7 @@ namespace Tac
   {
     return !( a == b );
   }
+
   bool operator == ( CodepointView a, CodepointView b )
   {
     if( a.size() != b.size() )
@@ -213,6 +246,7 @@ namespace Tac
       codepoints[ n++ ] = codepoint;
     return CodepointView( codepoints, n );
   }
+
   StringView CodepointsToUTF8( CodepointView codepointView )
   {
     auto str = ( char* )FrameMemory::Allocate( codepointView.size() * sizeof( Codepoint ) );
@@ -248,8 +282,6 @@ namespace Tac
   }
 
 
-
-
   String Localization::EatWord()
   {
     String result;
@@ -276,10 +308,12 @@ namespace Tac
   }
 
   Localization* Localization::Instance = nullptr;
+  
   Localization::Localization()
   {
     Instance = this;
   }
+
   void Localization::Load( StringView path, Errors& errors )
   {
     mBytes = TemporaryMemoryFromFile( path, errors );
@@ -332,6 +366,7 @@ namespace Tac
     mBegin = nullptr;
     mEnd = nullptr;
   }
+
   bool Localization::EatNewLine()
   {
     auto oldBegin = mBegin;
@@ -348,6 +383,7 @@ namespace Tac
     }
     return oldBegin < mBegin;
   }
+
   bool Localization::EatWhitespace()
   {
     auto oldBegin = mBegin;
@@ -359,7 +395,6 @@ namespace Tac
     }
     return oldBegin < mBegin;
   }
-
 
   void Localization::DebugImgui()
   {

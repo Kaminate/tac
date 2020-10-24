@@ -63,7 +63,7 @@ namespace Tac
       UpdateConstantBuffers mUpdateConstantBuffers;
       ShaderHandle          mShaderHandle;
       DrawCallTextures      mTextureHandle;
-      ViewId                mViewId = InvalidViewId;
+      ViewHandle            mViewHandle;
       int                   mStartIndex = 0;
       int                   mStartVertex = 0;
       int                   mIndexCount = 0;

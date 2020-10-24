@@ -278,7 +278,7 @@ namespace Tac
     }
 
 
-    float heightBetweenBaselines;
+    //float heightBetweenBaselines;
     float maxHeightBaselines = 0;
 
 
@@ -290,8 +290,8 @@ namespace Tac
     buttonYMax = -std::numeric_limits< float >::max();
 
     UI2DDrawData* ui2DDrawData = uiRoot->mUI2DDrawData;
-    UI2DState* state = ui2DDrawData->PushState();
-    TAC_ON_DESTRUCT( ui2DDrawData->PopState() );
+    //UI2DState* state = ui2DDrawData->PushState();
+    //TAC_ON_DESTRUCT( ui2DDrawData->PopState() );
 
     for( const UITextTransition& transition : mTransitions )
     {
@@ -299,14 +299,13 @@ namespace Tac
 
       v4 uiTextColor = uiTextInfo->mColor;
       uiTextColor.xyz() += v3( 1, 1, 1 ) * extraColorScale;
-      state->Translate( mPositionAnchored );
-      state->Draw2DText(
-        uiRoot->mDefaultLanguage,
-        uiTextInfo->mFontSize,
-        uiTextInfo->mUtf8,
-        &heightBetweenBaselines,
-        uiTextColor,
-        errors );
+      //state->Translate( mPositionAnchored );
+      //state->Draw2DText( uiRoot->mDefaultLanguage,
+      //                   uiTextInfo->mFontSize,
+      //                   uiTextInfo->mUtf8,
+      //                   &heightBetweenBaselines,
+      //                   uiTextColor,
+      //                   errors );
       TAC_HANDLE_ERROR( errors );
 
       //DrawCall* drawCall = graphics->GetLastDrawCall();
@@ -353,8 +352,8 @@ namespace Tac
     {
       float buttonW = buttonXMax - buttonXMin;
       float buttonH = buttonYMax - buttonYMin;
-      state->mTransform = M3Translate( buttonXMin, buttonYMax );
-      state->Draw2DBox( buttonW, buttonH );
+      //state->mTransform = M3Translate( buttonXMin, buttonYMax );
+      //state->Draw2DBox( buttonW, buttonH );
     }
 
     mUiHeight = maxHeightBaselines;
@@ -408,16 +407,16 @@ namespace Tac
   }
   void UILayoutable::Render( Errors& errors )
   {
-    if( mDebug )
-    {
-      UI2DDrawData* ui2DDrawData = mUIRoot->mUI2DDrawData;
-      UI2DState* state = ui2DDrawData->PushState();
-      state->Translate( mPositionAnchored );
-      state->Draw2DBox( // Color?
-                        mUiWidth,
-                        mUiHeight );
-      ui2DDrawData->PopState();
-    }
+    //if( mDebug )
+    //{
+    //  UI2DDrawData* ui2DDrawData = mUIRoot->mUI2DDrawData;
+    //  UI2DState* state = ui2DDrawData->PushState();
+    //  state->Translate( mPositionAnchored );
+    //  state->Draw2DBox( // Color?
+    //                    mUiWidth,
+    //                    mUiHeight );
+    //  ui2DDrawData->PopState();
+    //}
   }
   bool UILayoutable::IsHovered()
   {
@@ -655,26 +654,26 @@ namespace Tac
     UILayoutable::Render( errors );
     TAC_HANDLE_ERROR( errors );
     UI2DDrawData* ui2DDrawData = mUIRoot->mUI2DDrawData;
-    UI2DState* state = ui2DDrawData->PushState();
+    //UI2DState* state = ui2DDrawData->PushState();
 
     v4 menuColor = mColor;
     if( IsHovered() )
       menuColor.xyz() *= 1.30f;
 
     v2 windowSpacePosition = GetWindowspacePosition();
-    state->Translate( windowSpacePosition );
-    state->Draw2DBox(
-      mUiWidth,
-      mUiHeight,
-      menuColor,
-      mTexture );
+    //state->Translate( windowSpacePosition );
+    //state->Draw2DBox(
+    //  mUiWidth,
+    //  mUiHeight,
+    //  menuColor,
+    //  mTexture );
 
     for( UILayoutable* uiLayoutable : mUILayoutables )
     {
       uiLayoutable->Render( errors );
       TAC_HANDLE_ERROR( errors );
     }
-    ui2DDrawData->PopState();
+    //ui2DDrawData->PopState();
   }
   v2 UILayout::GetWindowspacePosition()
   {
@@ -1012,9 +1011,9 @@ namespace Tac
       expandedChild->mSize[ ( int )mLayoutType ] = expandedChildSize;
     }
 
-    UI2DState* state = mUIRoot->mUI2DDrawData->PushState();
+    //UI2DState* state = mUIRoot->mUI2DDrawData->PushState();
     float padding = 0;
-    state->Translate( mPositionRelativeToParent + v2( 1, 1 ) * padding );
+    //state->Translate( mPositionRelativeToParent + v2( 1, 1 ) * padding );
     if( mDrawOutline )
     {
       v4 color = mColor;
@@ -1034,10 +1033,9 @@ namespace Tac
       bool debugdrawNodeBackground = true;
       if( debugdrawNodeBackground )
       {
-        state->Draw2DBox(
-          mSize[ 0 ] - ( padding * 2 ),
-          mSize[ 1 ] - ( padding * 2 ),
-          color );
+        //state->Draw2DBox( mSize[ 0 ] - ( padding * 2 ),
+        //                  mSize[ 1 ] - ( padding * 2 ),
+        //                  color );
       }
 
       bool debugdrawNodeName = true;
@@ -1045,7 +1043,7 @@ namespace Tac
       {
         v4 debugTextColor = mColor.xyz().Length() < 0.5f ? v4( 1, 1, 1, 1 ) : v4( 0, 0, 0, 1 );
         debugTextColor = { 0, 0, 0, 1 };
-        state->Draw2DText( Language::English, 16, mDebugName, nullptr, debugTextColor, errors );
+        //state->Draw2DText( Language::English, 16, mDebugName, nullptr, debugTextColor, errors );
         TAC_HANDLE_ERROR( errors );
       }
     }
@@ -1065,7 +1063,7 @@ namespace Tac
       TAC_HANDLE_ERROR( errors );
       runningPixelX += child->mSize[ ( int )mLayoutType ];
     }
-    mUIRoot->mUI2DDrawData->PopState();
+    //mUIRoot->mUI2DDrawData->PopState();
   }
 
   void UIHierarchyNode::SetVisual( UIHierarchyVisual* visual )
@@ -1080,26 +1078,24 @@ namespace Tac
   {
     if( mUITextData.mUtf8.empty() )
       return;
-    float why_the_fuck_do_i_care_about_this;
-    UIRoot* uiRoot = mHierarchyNode->mUIRoot;
-    uiRoot->mUI2DDrawData->mStates.back().Draw2DText(
-      uiRoot->mDefaultLanguage,
-      mUITextData.mFontSize,
-      mUITextData.mUtf8,
-      &why_the_fuck_do_i_care_about_this,
-      mUITextData.mColor,
-      errors );
+    //float why_the_fuck_do_i_care_about_this;
+    //UIRoot* uiRoot = mHierarchyNode->mUIRoot;
+    //uiRoot->mUI2DDrawData->mStates.back().Draw2DText( uiRoot->mDefaultLanguage,
+    //                                                  mUITextData.mFontSize,
+    //                                                  mUITextData.mUtf8,
+    //                                                  &why_the_fuck_do_i_care_about_this,
+    //                                                  mUITextData.mColor,
+    //                                                  errors );
     TAC_HANDLE_ERROR( errors );
   }
 
   void UIHierarchyVisualImage::Render( Errors& errors )
   {
     UIRoot* uiRoot = mHierarchyNode->mUIRoot;
-    uiRoot->mUI2DDrawData->mStates.back().Draw2DBox(
-      mDims[ 0 ],
-      mDims[ 1 ],
-      v4( 1, 1, 1, 1 ),
-      mTexture );
+    //uiRoot->mUI2DDrawData->mStates.back().Draw2DBox( mDims[ 0 ],
+    //                                                 mDims[ 1 ],
+    //                                                 v4( 1, 1, 1, 1 ),
+    //                                                 mTexture );
   }
 
   String UIHierarchyVisualImage::GetDebugName()

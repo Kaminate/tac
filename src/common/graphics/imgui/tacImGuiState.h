@@ -3,10 +3,16 @@
 #include "src/common/graphics/imgui/tacImGui.h"
 #include "src/common/math/tacVector2.h"
 #include "src/common/math/tacVector4.h"
+#include "src/common/containers/tacVector.h"
+#include "src/common/tacString.h"
+#include "src/common/tacDesktopWindow.h"
+
+#include <map>
 
 namespace Tac
 {
-
+  //struct UI2DDrawData;
+  //struct TextInputData;
 
   struct UIStyle
   {
@@ -56,93 +62,90 @@ namespace Tac
   };
 
 
-  typedef int ImGuiResourceId;
+  typedef int ImGuiindex;
 
-  ImGuiResourceId ImGuiRegisterWindowResource( StringView name,
+  ImGuiindex ImGuiRegisterWindowResource( StringView name,
                                                void* initialDataBytes,
                                                int initialDataByteCount );
+
+  struct ImGuiWindowResource
+  {
+    ImGuiId                       mImGuiId;
+    ImGuiindex               mIndex;
+    Vector< char >                mData;
+  };
 
   struct ImGuiWindow
   {
     ImGuiWindow();
     ~ImGuiWindow();
-    void BeginFrame();
-    void ItemSize( v2 size );
-    void ComputeClipInfo( bool* clipped, ImGuiRect* clipRect );
-    void UpdateMaxCursorDrawPos( v2 pos );
-    ImGuiId GetID();
-    void SetActiveID( ImGuiId );
-    ImGuiId GetActiveID();
+    void                          BeginFrame();
+    void                          ItemSize( v2 size );
+    void                          ComputeClipInfo( bool* clipped, ImGuiRect* clipRect );
+    void                          UpdateMaxCursorDrawPos( v2 pos );
+    ImGuiId                       GetID();
+    void                          SetActiveID( ImGuiId );
+    ImGuiId                       GetActiveID();
+    void*                         GetWindowResource( ImGuiindex id );
+    bool                          IsHovered( const ImGuiRect& );
+    v2                            GetRelativeMousePosition();
 
 
-    String mName;
-    ImGuiWindow* mParent = nullptr;
+    String                        mName;
+    ImGuiWindow*                  mParent = nullptr;
 
     // The most bottom right the cursor has ever been,
     // updated during ItemSize()
-    v2 mMaxiCursorDrawPos;
-    v2 mCurrCursorDrawPos;
-    v2 mPrevCursorDrawPos;
+    v2                            mMaxiCursorDrawPos;
+    v2                            mCurrCursorDrawPos;
+    v2                            mPrevCursorDrawPos;
 
-    // ( rename to mPosDesktopWindowspace )
-    // Position of this ImGuiWindow relative to the desktop window (?)
-    v2 mPos = {};
-    v2 mSize = {};
-    ImGuiRect mContentRect;
-    float mCurrLineHeight = 0;
-    float mPrevLineHeight = 0;
+    v2                            mPos = {}; // screenspace
+    v2                            mSize = {};
+    ImGuiRect                     mContentRect;
+    float                         mCurrLineHeight = 0;
+    float                         mPrevLineHeight = 0;
 
-    float mScroll = 0;
-    v2 mScrollMousePosScreenspaceInitial;
-    bool mScrolling = false;
+    float                         mScroll = 0;
+    v2                            mScrollMousePosScreenspaceInitial;
+    bool                          mScrolling = false;
 
-    Vector< GroupData > mGroupSK;
+    Vector< GroupData >           mGroupSK;
 
     // The mXOffsets.back() represents the horizontal tabbing distance
     // from the window mPos and the stuff that's about to be drawn
-    Vector< float > mXOffsets;
+    Vector< float >               mXOffsets;
 
     // Shared between sub-windows
-    ImGuiIDAllocator* mIDAllocator = nullptr;
-
-    TextInputData* inputData;
-    std::map< ImGuiId, bool > mCollapsingHeaderStates;
-
+    ImGuiIDAllocator*             mIDAllocator = nullptr;
+    struct TextInputData*         mTextInputData = nullptr;
+    std::map< ImGuiId, bool >     mCollapsingHeaderStates;
     std::map< ImGuiId, DragData > mDragDatas;
-
-    bool mIsAppendingToMenu = false;
-
-    void* GetWindowResource( ImGuiResourceId id );
-
-    struct ImGuiWindowResource
-    {
-      ImGuiId mImGuiId;
-      ImGuiResourceId mResourceId;
-      Vector<char> mData;
-    };
-    Vector<ImGuiWindowResource> mResources;
-    UI2DDrawData* mDrawData = nullptr;
+    bool                          mIsAppendingToMenu = false;
+    Vector< ImGuiWindowResource > mResources;
+    struct UI2DDrawData*          mDrawData = nullptr;
+    DesktopWindowHandle           mDesktopWindowHandle;
+    bool                          mDesktopWindowHandleOwned = false;
   };
 
   struct ImGuiGlobals
   {
-    static ImGuiGlobals Instance;
-    ImGuiWindow* FindWindow( StringView name );
-    bool IsHovered( const ImGuiRect& rect );
-
-    v2 mNextWindowPos = {};
+    static ImGuiGlobals           Instance;
+    ImGuiWindow*                  FindWindow( StringView name );
+    v2                            mNextWindowPos = {};
     // TODO: different space
-    v2 mMousePositionDesktopWindowspace = {};
-    bool mIsWindowDirectlyUnderCursor = false;
-    double mElapsedSeconds = 0;
-    Vector< ImGuiWindow* > mAllWindows;
-    Vector< ImGuiWindow* > mWindowStack;
-    ImGuiWindow* mCurrentWindow = nullptr;
-    UI2DDrawData* mUI2DDrawData = nullptr;
-    String mDesktopWindowName;
-    Vector< int > mFontSizeSK;
-    UIStyle mUIStyle;
-    int mDesktopWindowWidth = 0;
-    int mDesktopWindowHeight = 0;
+    //v2 mMousePositionDesktopWindowspace = {};
+    //bool mIsWindowDirectlyUnderCursor = false;
+    double                        mElapsedSeconds = 0;
+    Vector< ImGuiWindow* >        mAllWindows;
+    Vector< ImGuiWindow* >        mWindowStack;
+    ImGuiWindow*                  mCurrentWindow = nullptr;
+    //UI2DDrawData* mUI2DDrawData = nullptr;
+    String                        mDesktopWindowName;
+    Vector< int >                 mFontSizeSK;
+    UIStyle                       mUIStyle;
+    //int                           mDesktopWindowWidth = 0;
+    //int                           mDesktopWindowHeight = 0;
+    DesktopWindowHandle           mMouseHoveredWindow;
   };
 }

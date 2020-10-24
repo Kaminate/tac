@@ -289,7 +289,7 @@ namespace Tac
                                       Errors& errors )
     {
       Render::TextureHandle texture = FindLoadedTexture( textureFilepath );
-      if( texture.mResourceId != Render::NullResourceId )
+      if( texture.IsValid() )
         return texture;
 
       AsyncTexture* asyncTexture = FindLoadingTexture( textureFilepath );

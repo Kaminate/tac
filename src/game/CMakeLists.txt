@@ -13,7 +13,9 @@ set( TAC_SOURCES
   "${CMAKE_SOURCE_DIR}/src/game/tacGame.cpp"
   "${CMAKE_SOURCE_DIR}/src/game/tacGame.h"
   "${CMAKE_SOURCE_DIR}/src/shell/tacDesktopApp.cpp"
-  "${CMAKE_SOURCE_DIR}/src/shell/tacDesktopApp.h" )
+  "${CMAKE_SOURCE_DIR}/src/shell/tacDesktopApp.h"
+  "${CMAKE_SOURCE_DIR}/src/shell/tacDesktopWindowGraphics.cpp"
+  "${CMAKE_SOURCE_DIR}/src/shell/tacDesktopWindowGraphics.h" )
 if( WIN32 )
   set( TAC_SOURCES 
     ${TAC_SOURCES}

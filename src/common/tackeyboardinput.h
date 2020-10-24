@@ -36,8 +36,8 @@ namespace Tac
     String  GetPressedKeyDescriptions();
     bool    mCurrDown[ ( int )Key::Count ] = {};
     v2      mScreenspaceCursorPos = {};
-    int     mMouseScroll = 0;
     Errors  mScreenspaceCursorPosErrors;
+    int     mMouseScroll = 0;
   };
 
 
@@ -66,4 +66,5 @@ namespace Tac
 
     int                 mMouseDeltaScroll = 0;
   };
+
 }

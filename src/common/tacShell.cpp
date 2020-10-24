@@ -70,7 +70,7 @@ namespace Tac
       {
         if( !factory )
           continue;
-        factory->CreateRendererOuter();
+        factory->mCreateRenderer();
         break;
       }
 

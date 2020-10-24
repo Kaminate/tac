@@ -9,35 +9,78 @@
 namespace Tac
 {
 
-  //static VertexBufferData GetVertexBufferData( const StackFrame& frame, int vertexCount )
-  //{
-  //  VertexBufferData vertexBufferData = {};
-  //  vertexBufferData.mAccess = Access::Dynamic;
-  //  vertexBufferData.mName = "draw data verts";
-  //  vertexBufferData.mStrideBytesBetweenVertexes = sizeof( UI2DVertex );
-  //  vertexBufferData.mNumVertexes = vertexCount;
-  //  vertexBufferData.mFrame = frame;
-  //  return vertexBufferData;
-  //}
+  static m4 OrthographicUIMatrix2( const float w, const float h )
+  {
+    // mRenderView->mViewportRect.mViewportPixelWidthIncreasingRight?
+    float sx = 2.0f / w;
+    float sy = 2.0f / h;
+    auto projectionPieces = MakeArray< m4 >(
+      // orient to bottom left
+      m4( 1, 0, 0, 0,
+          0, -1, 0, ( float )h,
+          0, 0, 1, 0,
+          0, 0, 0, 1 ),
+      // convert to ndc
+      m4( sx, 0, 0, -1,
+          0, sy, 0, -1,
+          0, 0, 1, 0,
+          0, 0, 0, 1 ) );
+    m4 projection = m4::Identity();
+    for( m4 projectionPiece : projectionPieces )
+      projection = projectionPiece * projection;
+    return projection;
+  }
 
-  //static IndexBufferData GetIndexBufferData( const StackFrame& frame, int indexCount )
-  //{
-  //  IndexBufferData indexBufferData;
-  //  indexBufferData.mAccess = Access::Dynamic;
-  //  indexBufferData.mName = "draw data indexes";
-  //  indexBufferData.mFormat.mPerElementDataType = GraphicsType::uint;
-  //  indexBufferData.mFormat.mElementCount = 1;
-  //  indexBufferData.mFormat.mPerElementByteCount = sizeof( UI2DIndex );
-  //  indexBufferData.mFrame = frame;
-  //  indexBufferData.mIndexCount = indexCount;
-  //  return indexBufferData;
-  //}
+  // Converts from UI space to NDC space
+  static m4 OrthographicUIMatrix( const float w, const float h )
+  {
+    const float L = 0;
+    const float R = w;
+    const float T = 0;
+    const float B = h;
+    // Derivation:
+    // L < x < R
+    // 0 < x - L < R - L
+    // 0 < ( x - L ) / ( R - L ) < 1
+    // 0 < 2 ( x - L ) / ( R - L ) < 2
+    // -1 < ( 2 ( x - L ) / ( R - L ) ) - 1 < -1
+    // -1 < 2x/(R-L) - (R+L)/(R-L) < -1
+    return
+    {
+      2 / ( R - L ), 0, 0, ( R + L ) / ( R - L ),
+      0, 2 / ( T - B ), 0, ( T + B ) / ( T - B ),
+      0, 0, 1, 0,
+      0, 0, 0, 1
+    };
+  }
+
+  static void OrthographicUIMatrixUnitTest( m4( *mtxFn )( float, float ) )
+  {
+    const float w = 400;
+    const float h = 300;
+    const m4 m = mtxFn( w, h );
+    TAC_ASSERT( Distance( m * v4( 0, 0, 0, 1 ), v4( -1, 1, 0, 1 ) ) < 0.01f );
+    TAC_ASSERT( Distance( m * v4( w, 0, 0, 1 ), v4( 1, 1, 0, 1 ) ) < 0.01f );
+    TAC_ASSERT( Distance( m * v4( 0, h, 0, 1 ), v4( -1, -1, 0, 1 ) ) < 0.01f );
+    TAC_ASSERT( Distance( m * v4( w, h, 0, 1 ), v4( 1, -1, 0, 1 ) ) < 0.01f );
+    TAC_ASSERT( Distance( m * v4( w / 2, h / 2, 0, 1 ), v4( 0, 0, 0, 1 ) ) < 0.01f );
+  }
+
+  static void OrthographicUIMatrixUnitTest()
+  {
+    OrthographicUIMatrixUnitTest( OrthographicUIMatrix );
+    OrthographicUIMatrixUnitTest( OrthographicUIMatrix2 );
+  }
+
+
 
   UI2DCommonData* UI2DCommonData::Instance = nullptr;
+
   UI2DCommonData::UI2DCommonData()
   {
     Instance = this;
   }
+
   UI2DCommonData::~UI2DCommonData()
   {
     Render::DestroyTexture( m1x1White, TAC_STACK_FRAME );
@@ -51,6 +94,7 @@ namespace Tac
     Render::DestroyConstantBuffer( mPerFrame, TAC_STACK_FRAME );
     Render::DestroyConstantBuffer( mPerObj, TAC_STACK_FRAME );
   }
+
   void UI2DCommonData::Init( Errors& errors )
   {
     uint8_t data[] = { 255, 255, 255, 255 };
@@ -152,76 +196,96 @@ namespace Tac
 
 
   }
+
   UI2DDrawData::~UI2DDrawData()
   {
-    if( mVertexBufferHandle.IsValid() )
-      Render::DestroyVertexBuffer( mVertexBufferHandle, TAC_STACK_FRAME );
-    if( mIndexBufferHandle.IsValid() )
-      Render::DestroyIndexBuffer( mIndexBufferHandle, TAC_STACK_FRAME );
+    //if( mVertexBufferHandle.IsValid() )
+    //  Render::DestroyVertexBuffer( mVertexBufferHandle, TAC_STACK_FRAME );
+    //if( mIndexBufferHandle.IsValid() )
+    //  Render::DestroyIndexBuffer( mIndexBufferHandle, TAC_STACK_FRAME );
   }
-  void UI2DDrawData::DrawToTexture( int viewWidth,
-                                    int viewHeight,
-                                    Render::ViewId viewId,
+
+
+  static UI2DDrawGpuInterface gDrawInterface;
+
+  static void UpdateDrawInterface( UI2DDrawData* drawData, Errors& errors )
+  {
+    Vector< UI2DVertex >& mDefaultVertex2Ds = drawData->mDefaultVertex2Ds;
+    Vector< UI2DIndex >& mDefaultIndex2Ds = drawData->mDefaultIndex2Ds;
+
+    int& mVertexCapacity = gDrawInterface.mVertexCapacity;
+    int& mIndexCapacity = gDrawInterface.mIndexCapacity;
+    Render::VertexBufferHandle& mVertexBufferHandle = gDrawInterface.mVertexBufferHandle;
+    Render::IndexBufferHandle& mIndexBufferHandle = gDrawInterface.mIndexBufferHandle;
+
+
+    const int vertexCount = mDefaultVertex2Ds.size();
+    const int indexCount = mDefaultIndex2Ds.size();
+    if( !mVertexBufferHandle.IsValid() || mVertexCapacity < vertexCount )
+    {
+      if( mVertexBufferHandle.IsValid() )
+        Render::DestroyVertexBuffer( mVertexBufferHandle, TAC_STACK_FRAME );
+      mVertexBufferHandle = Render::CreateVertexBuffer( "draw data verts",
+                                                        mDefaultVertex2Ds.size() * sizeof( UI2DVertex ),
+                                                        nullptr,
+                                                        sizeof( UI2DVertex ),
+                                                        Access::Dynamic,
+                                                        TAC_STACK_FRAME );
+      mVertexCapacity = vertexCount;
+    }
+
+    if( !mIndexBufferHandle.IsValid() || mIndexCapacity < indexCount )
+    {
+      if( mIndexBufferHandle.IsValid() )
+        Render::DestroyIndexBuffer( mIndexBufferHandle, TAC_STACK_FRAME );
+      Format format;
+      format.mElementCount = 1;
+      format.mPerElementByteCount = sizeof( UI2DIndex );
+      format.mPerElementDataType = GraphicsType::uint;
+      mIndexBufferHandle = Render::CreateIndexBuffer( "draw data indexes",
+                                                      indexCount * sizeof( UI2DIndex ),
+                                                      nullptr,
+                                                      Access::Dynamic,
+                                                      format,
+                                                      TAC_STACK_FRAME );
+      TAC_HANDLE_ERROR( errors );
+      mIndexCapacity = indexCount;
+    }
+
+
+    Render::UpdateVertexBuffer( mVertexBufferHandle,
+                                mDefaultVertex2Ds.data(),
+                                mDefaultVertex2Ds.size() * sizeof( UI2DVertex ),
+                                TAC_STACK_FRAME );
+    TAC_HANDLE_ERROR( errors );
+
+    Render::UpdateIndexBuffer( mIndexBufferHandle,
+                               mDefaultIndex2Ds.data(),
+                               mDefaultIndex2Ds.size() * sizeof( UI2DIndex ),
+                               TAC_STACK_FRAME );
+    TAC_HANDLE_ERROR( errors );
+  }
+
+  void UI2DDrawData::DrawToTexture( const Render::ViewHandle viewHandle,
+                                    int w,
+                                    int h,
                                     Errors& errors )
   {
-    TAC_ASSERT( viewWidth );
-    TAC_ASSERT( viewHeight );
-
+    const float viewWidth = ( float )w;
+    const float viewHeight = ( float )h;
     /*TAC_PROFILE_BLOCK*/;
-    TAC_ASSERT( mStates.empty() );
+    //TAC_ASSERT( mStates.empty() );
 
-    int vertexCount = mDefaultVertex2Ds.size();
-    int indexCount = mDefaultIndex2Ds.size();
-    if( vertexCount && indexCount )
+    if( mDefaultVertex2Ds.size() && mDefaultIndex2Ds.size() )
     {
-      if( !mVertexBufferHandle.IsValid() || mVertexCapacity < vertexCount )
-      {
-        if( mVertexBufferHandle.IsValid() )
-          Render::DestroyVertexBuffer( mVertexBufferHandle, TAC_STACK_FRAME );
-        mVertexBufferHandle = Render::CreateVertexBuffer( "draw data verts",
-                                                          mDefaultVertex2Ds.size() * sizeof( UI2DVertex ),
-                                                          nullptr,
-                                                          sizeof( UI2DVertex ),
-                                                          Access::Dynamic,
-                                                          TAC_STACK_FRAME );
-        mVertexCapacity = vertexCount;
-      }
+      UpdateDrawInterface( this, errors );
+      Render::VertexBufferHandle& mVertexBufferHandle = gDrawInterface.mVertexBufferHandle;
+      Render::IndexBufferHandle& mIndexBufferHandle = gDrawInterface.mIndexBufferHandle;
 
-      if( !mIndexBufferHandle.IsValid() || mIndexCapacity < indexCount )
-      {
-        if( mIndexBufferHandle.IsValid() )
-          Render::DestroyIndexBuffer( mIndexBufferHandle, TAC_STACK_FRAME );
-        Format format;
-        format.mElementCount = 1;
-        format.mPerElementByteCount = sizeof( UI2DIndex );
-        format.mPerElementDataType = GraphicsType::uint;
-        mIndexBufferHandle = Render::CreateIndexBuffer( "draw data indexes",
-                                                        indexCount * sizeof( UI2DIndex ),
-                                                        nullptr,
-                                                        Access::Dynamic,
-                                                        format,
-                                                        TAC_STACK_FRAME );
-        TAC_HANDLE_ERROR( errors );
-        mIndexCapacity = indexCount;
-      }
-
-
-      Render::UpdateVertexBuffer( mVertexBufferHandle,
-                                  mDefaultVertex2Ds.data(),
-                                  mDefaultVertex2Ds.size() * sizeof( UI2DVertex ),
-                                  TAC_STACK_FRAME );
-      TAC_HANDLE_ERROR( errors );
-
-      Render::UpdateIndexBuffer( mIndexBufferHandle,
-                                 mDefaultIndex2Ds.data(),
-                                 mDefaultIndex2Ds.size() * sizeof( UI2DIndex ),
-                                 TAC_STACK_FRAME );
-      //mIndexes->Overwrite( mDefaultIndex2Ds.data(), indexCount * sizeof( UI2DIndex ), errors );
-      TAC_HANDLE_ERROR( errors );
-
+      OrthographicUIMatrixUnitTest();
       // mRenderView->mViewportRect.mViewportPixelWidthIncreasingRight?
-      float sx = 2.0f / viewWidth;
-      float sy = 2.0f / viewHeight;
+      const float sx = 2.0f / viewWidth;
+      const float sy = 2.0f / viewHeight;
       auto projectionPieces = MakeArray< m4 >(
         // orient to bottom left
         m4( 1, 0, 0, 0,
@@ -262,24 +326,11 @@ namespace Tac
       perFrameData.mProjection = projection;
 
 
-      //DrawCall2 perFrame = {};
-      //perFrame.mRenderView = mRenderView;
-      //perFrame.mBlendState = UI2DCommonData::Instance->mBlendState;
-      //perFrame.mRasterizerState = UI2DCommonData::Instance->mRasterizerState;
-      //perFrame.mSamplerState = UI2DCommonData::Instance->mSamplerState;
-      //perFrame.mDepthState = UI2DCommonData::Instance->mDepthState;
-      //perFrame.mVertexFormat = UI2DCommonData::Instance->mFormat;
-      //perFrame.mUniformDst = UI2DCommonData::Instance->mPerFrame;
-      //perFrame.mUniformSrcc = TemporaryMemoryFromT( perFrameData );
-      //perFrame.mFrame = TAC_STACK_FRAME;
-      //Render::AddDrawCall( perFrame );
-
       Render::SetBlendState( UI2DCommonData::Instance->mBlendState );
       Render::SetRasterizerState( UI2DCommonData::Instance->mRasterizerState );
       Render::SetSamplerState( UI2DCommonData::Instance->mSamplerState );
       Render::SetDepthState( UI2DCommonData::Instance->mDepthState );
       Render::SetVertexFormat( UI2DCommonData::Instance->mFormat );
-
       Render::UpdateConstantBuffer( UI2DCommonData::Instance->mPerFrame,
                                     &perFrameData,
                                     sizeof( DefaultCBufferPerFrame ),
@@ -297,257 +348,36 @@ namespace Tac
                                       sizeof( DefaultCBufferPerObject ),
                                       TAC_STACK_FRAME );
 
-        //DrawCall2 drawCall2 = {};
-        //drawCall2.mUniformDst = UI2DCommonData::Instance->mPerObj;
-        //drawCall2.mVertexBuffer = mVerts;
-        //drawCall2.mRenderView = mRenderView;
-        //drawCall2.mBlendState = UI2DCommonData::Instance->mBlendState;
-        //drawCall2.mRasterizerState = UI2DCommonData::Instance->mRasterizerState;
-        //drawCall2.mSamplerState = UI2DCommonData::Instance->mSamplerState;
-        //drawCall2.mDepthState = UI2DCommonData::Instance->mDepthState;
-        //drawCall2.mVertexFormat = UI2DCommonData::Instance->mFormat;
         Render::SetVertexBuffer( mVertexBufferHandle, uidrawCall.mIVertexStart, uidrawCall.mVertexCount );
         Render::SetIndexBuffer( mIndexBufferHandle, uidrawCall.mIIndexStart, uidrawCall.mIndexCount );
         Render::SetTexture( texture );
-        //drawCall2.mIndexBuffer = mIndexes;
-        //drawCall2.mStartIndex = uidrawCall.mIIndexStart;
-        //drawCall2.mIndexCount = uidrawCall.mIndexCount;
-
-
-        //drawCall2.mTextureHandles = { texture };
-        //drawCall2.mShader = uidrawCall.mShader;
-        //drawCall2.mUniformSrcc = TemporaryMemoryFromT( uidrawCall.mUniformSource );
-        //drawCall2.mFrame = TAC_STACK_FRAME;
         Render::SetShader( uidrawCall.mShader );
-        //Render::AddDrawCall( drawCall2 );
-        Render::Submit( viewId, TAC_STACK_FRAME );
+        Render::Submit( viewHandle, TAC_STACK_FRAME );
       }
     }
 
-    //mDrawCall2Ds.clear();
-    //mDefaultVertex2Ds.clear();
-    //mDefaultIndex2Ds.clear();
-    mDrawCall2Ds.resize(0);
-    mDefaultVertex2Ds.resize(0);
-    mDefaultIndex2Ds.resize(0);
-
-    //Renderer::Instance->DebugBegin( "2d" );
-    //Renderer::Instance->RenderFlush();
-    //Renderer::Instance->DebugEnd();
-  }
-  UI2DState* UI2DDrawData::PushState()
-  {
-    UI2DState state;
-    state.mUI2DDrawData = this;
-    if( !mStates.empty() )
-      state = mStates.back();
-    mStates.push_back( state );
-    return &mStates.back();
-  }
-  void UI2DDrawData::PopState()
-  {
-    TAC_ASSERT( mStates.size() );
-    mStates.pop_back();
-  }
-
-  void UI2DState::Draw2DBox(
-    float width,
-    float height,
-    v4 color,
-    Render::TextureHandle texture )
-  {
-    if( width <= 0 || height <= 0 )
-      return;
-    auto oldVertexCount = ( int )mUI2DDrawData->mDefaultVertex2Ds.size();
-    auto oldIndexCount = ( int )mUI2DDrawData->mDefaultIndex2Ds.size();
-    auto offsets = MakeArray<v2>(
-      v2( 0, 0 ),
-      v2( 0, height ),
-      v2( width, height ),
-      v2( width, 0 ) );
-    auto uvs = MakeArray<v2>(
-      v2{ 0, 1 },
-      v2{ 0, 0 },
-      v2{ 1, 0 },
-      v2{ 1, 1 } );
-    const int vertexCount = 4;
-    TAC_ASSERT( offsets.size() == vertexCount );
-    TAC_ASSERT( uvs.size() == vertexCount );
-
-    for( v2& offset : offsets )
-      offset = ( mTransform * v3( offset, 1.0f ) ).xy();
-
-    for( int iVert = 0; iVert < vertexCount; ++iVert )
-    {
-      UI2DVertex defaultVertex2D;
-      defaultVertex2D.mGLTexCoord = uvs[ iVert ];
-      defaultVertex2D.mPosition = offsets[ iVert ];
-      mUI2DDrawData->mDefaultVertex2Ds.push_back( defaultVertex2D );
-    }
-
-    UI2DIndex indexes[] = { 0, 1, 2, 0, 2, 3 };
-    for( int offset : indexes )
-      mUI2DDrawData->mDefaultIndex2Ds.push_back( oldVertexCount + offset );
-
-    DefaultCBufferPerObject perObjectData = {};
-    perObjectData.World = m4::Identity();
-    perObjectData.Color = color;
-
-    UI2DDrawCall drawCall;
-    drawCall.mIVertexStart = oldVertexCount;
-    drawCall.mVertexCount = vertexCount;
-    drawCall.mIIndexStart = oldIndexCount;
-    drawCall.mIndexCount = 6;
-    drawCall.mTexture = texture;
-    drawCall.mShader = UI2DCommonData::Instance->mShader;
-    drawCall.mUniformSource = perObjectData;
-
-    mUI2DDrawData->mDrawCall2Ds.push_back( drawCall );
-  }
-
-  void UI2DState::Draw2DText( Language defaultLanguage,
-                              int fontSize,
-                              StringView text,
-                              float* heightBetweenBaselines,
-                              v4 color,
-                              Errors& errors )
-  {
-    const m3& transform = mTransform;
-
-    CodepointView codepoints = UTF8ToCodepoints( text );
-    auto oldIndexCount = ( int )mUI2DDrawData->mDefaultIndex2Ds.size();
-    auto oldVertexCount = ( int )mUI2DDrawData->mDefaultVertex2Ds.size();
-    float scale = ( float )fontSize / FontCellWidth;
-    float lineHeight = scale * FontCellWidth;
-
-
-    int lineCount = 1;
-
-    // ???
-    v2 mPenPos2D = {};
-
-    // The pen pos starts at the top of the line above us,
-    // so reserve some space for the first line.
-    float runningY = mPenPos2D.y + lineHeight;
-    float runningX = mPenPos2D.x;
-
-    float minY = runningY;
-    float maxY = runningY;
-    float minX = runningX;
-    float maxX = runningX;
-
-    for( Codepoint codepoint : codepoints )
-    {
-      if( !codepoint )
-        continue;
-
-      if( IsAsciiCharacter( codepoint ) )
-      {
-        if( codepoint == '\n' )
-        {
-          runningX = mPenPos2D.x;
-          lineCount++;
-          runningY += lineHeight;
-        }
-        if( codepoint == '\r' )
-          continue;
-      }
-
-
-      FontAtlasCell* fontAtlasCell;
-      FontStuff::Instance->GetCharacter( defaultLanguage, codepoint, &fontAtlasCell );
-      TAC_HANDLE_ERROR( errors );
-      if( !fontAtlasCell )
-        continue;
-
-      const int quad_vertex_count = 4;
-      auto startingIndex = ( int )mUI2DDrawData->mDefaultVertex2Ds.size();
-      auto indexes = MakeArray< int >( 0, 1, 2, 0, 2, 3 );
-      for( int iVert : indexes )
-      {
-        mUI2DDrawData->mDefaultIndex2Ds.push_back( startingIndex + iVert );
-      }
-      const v2 glTexCoords[ quad_vertex_count ] = {
-        v2( 0, 0 ),
-        v2( 1, 0 ),
-        v2( 1, 1 ),
-        v2( 0, 1 ) };
-
-      float fontAtlasCellX = runningX + fontAtlasCell->mUISpaceLeftSideBearing * scale;
-      float fontAtlasCellY = runningY - fontAtlasCell->mUISpaceVerticalShift * scale;
-      float scaledBitmapWidth = fontAtlasCell->mBitmapWidth * scale;
-      float scaledBitmapHeight = fontAtlasCell->mBitmapHeight * scale;
-
-      minY = Min( minY, fontAtlasCellY );
-      maxY = Max( maxY, fontAtlasCellY + scaledBitmapHeight );
-      maxX = Max( maxX, fontAtlasCellX + scaledBitmapWidth );
-
-      for( const v2& glTexCoord : glTexCoords )
-      {
-        v3 position3 = transform * v3(
-          fontAtlasCellX + glTexCoord.x * scaledBitmapWidth,
-          fontAtlasCellY - glTexCoord.y * scaledBitmapHeight,
-          1 );
-        v2 position2 = position3.xy();
-
-        UI2DVertex vert2D;
-        vert2D.mPosition = position2;
-        vert2D.mGLTexCoord.x = Lerp(
-          fontAtlasCell->mMinGLTexCoord.x,
-          fontAtlasCell->mMaxGLTexCoord.x,
-          glTexCoord.x );
-        vert2D.mGLTexCoord.y = Lerp(
-          fontAtlasCell->mMinGLTexCoord.y,
-          fontAtlasCell->mMaxGLTexCoord.y,
-          glTexCoord.y );
-        mUI2DDrawData->mDefaultVertex2Ds.push_back( vert2D );
-      }
-
-      runningX += fontAtlasCell->mUISpaceAdvanceWidth * scale;
-    }
-
-    DefaultCBufferPerObject perObjectData = {};
-    perObjectData.World = m4::Identity();
-    perObjectData.Color = color;
-
-    UI2DDrawCall drawCall;
-    drawCall.mIndexCount = ( int )mUI2DDrawData->mDefaultIndex2Ds.size() - oldIndexCount;
-    drawCall.mIIndexStart = oldIndexCount;
-    drawCall.mVertexCount = ( int )mUI2DDrawData->mDefaultVertex2Ds.size() - oldVertexCount;
-    drawCall.mIVertexStart = oldVertexCount;
-    drawCall.mTexture = FontStuff::Instance->mTextureId;
-    drawCall.mShader = UI2DCommonData::Instance->m2DTextShader;
-    drawCall.mUniformSource = perObjectData;
-    //if( !drawCall.mScissorDebugging )
-    //{
-    //  drawCall.mScissorTest = true;
-    //  drawCall.mScissorRectMinUISpace.x = minX;
-    //  drawCall.mScissorRectMinUISpace.y = minY;
-    //  drawCall.mScissorRectMaxUISpace.x = maxX;
-    //  drawCall.mScissorRectMaxUISpace.y = maxY;
-    //}
-    mUI2DDrawData->mDrawCall2Ds.push_back( drawCall );
-
-    if( heightBetweenBaselines )
-      *heightBetweenBaselines = ( float )( lineCount * lineHeight );
+    mDrawCall2Ds.resize( 0 );
+    mDefaultVertex2Ds.resize( 0 );
+    mDefaultIndex2Ds.resize( 0 );
   }
 
   // cache the results?
-  v2 UI2DDrawData::CalculateTextSize( const StringView text,
+  v2 CalculateTextSize( const StringView text,
                                       const int fontSize )
   {
     const CodepointView codepoints = UTF8ToCodepoints( text );
     return CalculateTextSize( codepoints, fontSize );
   }
 
-  v2 UI2DDrawData::CalculateTextSize( const CodepointView codepoints,
+  v2 CalculateTextSize( const CodepointView codepoints,
                                       const int fontSize )
   {
     return CalculateTextSize( codepoints.data(),
                               codepoints.size(),
                               fontSize );
   }
-  v2 UI2DDrawData::CalculateTextSize( const Codepoint* codepoints,
+
+  v2 CalculateTextSize( const Codepoint* codepoints,
                                       const int codepointCount,
                                       const int fontSize )
   {
@@ -716,25 +546,6 @@ namespace Tac
     mDrawCall2Ds.push_back( drawCall );
   }
 
-  //void UI2DDrawData::AddPolyFill( const Vector< v2 >& points, v4 color )
-  //{
-  //}
-  //void UI2DDrawData::AddSquiggle( const Vector< v2 >& inputPoints, float width, v4 color )
-  //{
-  //  int iVert = mDefaultVertex2Ds.size();
-  //  int iIndex = mDefaultIndex2Ds.size();
-  //
-  //  Vector< v2 > outputPoints;
-  //  outputPoints.resize( 2 * inputPoints.size() - 2 );
-  //
-  //  mDefaultVertex2Ds.resize( iVert + outputPoints.size() );
-  //
-  //  DefaultVertex2D* defaultVertex2D = &mDefaultVertex2Ds[ iVert ];
-  //
-  //
-  //  Vector< v2 > normals;
-  //}
-
   void UI2DDrawData::AddText( const v2 textPos,
                               const int fontSize,
                               StringView utf8,
@@ -867,20 +678,4 @@ namespace Tac
     mDrawCall2Ds.push_back( drawCall );
   }
 
-  void UI2DState::Translate( v2 pos )
-  {
-    Translate( pos.x, pos.y );
-  }
-  void UI2DState::Translate( float x,
-                             float y )
-  {
-    mTransform = mTransform * M3Translate( x, y );
-  }
-
-
-  //void UI2DDrawCall::CopyUniform( const void* bytes, int byteCount )
-  //{
-  //  mUniformSource.resize( byteCount );
-  //  MemCpy( mUniformSource.data(), bytes, byteCount );
-  //}
 }

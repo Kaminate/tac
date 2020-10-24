@@ -14,6 +14,7 @@
 #include "src/space/tacWorld.h"
 #include "src/space/tacEntity.h"
 #include "src/shell/tacDesktopApp.h"
+#include "src/shell/tacDesktopWindowGraphics.h"
 
 namespace Tac
 {
@@ -89,17 +90,14 @@ namespace Tac
   {
     Creation* creation = Creation::Instance;
 
-    WindowFramebufferInfo* info = WindowFramebufferManager::Instance.FindWindowFramebufferInfo( mDesktopWindowHandle );
-    if( !info )
-      return;
+    //WindowGraphicsGetFramebuffer( mDesktopWindowHandle );
+    //WindowGraphicsGetView( mDesktopWindowHandle );
 
-    DesktopWindowState* desktopWindowState = &sDesktopWindowStates[ info->mDesktopWindowHandle.mIndex ];
+    DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
     if( !desktopWindowState )
       return;
 
-    SetCreationWindowImGuiGlobals( desktopWindowState, mUI2DDrawData );
-
-    ImGuiBegin( "Main Window", {} );
+    ImGuiBegin( "Main Window", {}, mDesktopWindowHandle );
 #if 1
     ImGuiBeginMenuBar();
     ImGuiText( "file | edit | window" );
@@ -159,24 +157,15 @@ namespace Tac
 
   void CreationMainWindow::Update( Errors& errors )
   {
-    WindowFramebufferInfo* info = WindowFramebufferManager::Instance.FindWindowFramebufferInfo( mDesktopWindowHandle );
-    if( !info )
-      return;
-
-    //mDesktopWindow->SetRenderViewDefaults();
+    const Render::FramebufferHandle framebufferHandle = WindowGraphicsGetFramebuffer( mDesktopWindowHandle );
+    const Render::ViewHandle viewHandle = WindowGraphicsGetView( mDesktopWindowHandle );
 
     LoadTextures( errors );
     TAC_HANDLE_ERROR( errors );
 
     ImGui();
 
-    //auto params = DesktopWindowManager::Instance->FindWindowParams( gMainWindowName );
-    //if( params )
-    //  params->mWidth;
-    //  params->mHeight;
-
-
-    DesktopWindowState* desktopWindowState = &sDesktopWindowStates[ mDesktopWindowHandle.mIndex ];
+    const DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
     if( !desktopWindowState )
       return;
 
@@ -190,13 +179,13 @@ namespace Tac
     scissorRect.mYMinRelUpperLeftCornerPixel = 0;
     scissorRect.mYMaxRelUpperLeftCornerPixel = ( float )desktopWindowState->mHeight;
 
-    Render::SetViewFramebuffer( ViewIdMainWindow, info->mFramebufferHandle );
-    Render::SetViewport( ViewIdMainWindow, viewport );
-    Render::SetViewScissorRect( ViewIdMainWindow, scissorRect );
+    Render::SetViewFramebuffer( viewHandle, framebufferHandle );
+    Render::SetViewport( viewHandle, viewport );
+    Render::SetViewScissorRect( viewHandle, scissorRect );
 
-    mUI2DDrawData->DrawToTexture( desktopWindowState->mWidth,
+    mUI2DDrawData->DrawToTexture( viewHandle,
+                                  desktopWindowState->mWidth,
                                   desktopWindowState->mHeight,
-                                  ViewIdMainWindow,
                                   errors );
     TAC_HANDLE_ERROR( errors );
 
@@ -208,15 +197,12 @@ namespace Tac
 
     if( CreationGameObjectMenuWindow::Instance )
     {
-      const int iDesktopWindowState = CreationGameObjectMenuWindow::Instance->mDesktopWindowHandle.mIndex;
-      DesktopWindowState* menu = &sDesktopWindowStates[ iDesktopWindowState ];
-
-
+      DesktopWindowState* menu = GetDesktopWindowState(CreationGameObjectMenuWindow::Instance->mDesktopWindowHandle);
       CreationGameObjectMenuWindow::Instance->Update( errors );
       TAC_HANDLE_ERROR( errors );
 
       if( KeyboardInput::Instance->IsKeyJustDown( Key::MouseLeft ) &&
-          !menu->mCursorUnobscured &&
+          //!menu->mCursorUnobscured &&
           Shell::Instance.mElapsedSeconds != CreationGameObjectMenuWindow::Instance->mCreationSeconds )
       {
         delete CreationGameObjectMenuWindow::Instance;

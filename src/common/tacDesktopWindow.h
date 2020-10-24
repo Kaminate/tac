@@ -1,30 +1,23 @@
 #pragma once
 
-#include "src/common/containers/tacArray.h"
+#include "src/common/tacPreprocessor.h"
 
 namespace Tac
 {
-  struct DesktopWindowHandle
-  {
-    int mIndex = -1;
-  };
+  TAC_DEFINE_HANDLE( DesktopWindowHandle );
 
   struct DesktopWindowState
   {
-    int                 mX = 0;
-    int                 mY = 0;
-    int                 mWidth = 0;
-    int                 mHeight = 0;
-    void*               mNativeWindowHandle = nullptr;
-    bool                mCursorUnobscured = false;
+    int                       mX = 0;
+    int                       mY = 0;
+    int                       mWidth = 0;
+    int                       mHeight = 0;
+    void*                     mNativeWindowHandle = nullptr;
   };
 
-  static const int kMaxDesktopWindowStateCount = 10;
-  typedef Array< DesktopWindowState, kMaxDesktopWindowStateCount > DesktopWindowStates;
-  extern DesktopWindowStates sDesktopWindowStates;
-
-  bool AreWindowHandlesEqual( const DesktopWindowHandle&, const DesktopWindowHandle& );
-  bool IsWindowHandleValid( const DesktopWindowHandle& );
-  void CenterWindow( int *x, int *y, int w, int h );
+  static const int            kDesktopWindowCapacity = 10;
+  DesktopWindowState*         GetDesktopWindowState( DesktopWindowHandle );
+  //DesktopWindowState*         GetDesktopWindowStates();
+  void                        CenterWindow( int *x, int *y, int w, int h );
 }
 

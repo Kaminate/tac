@@ -15,7 +15,7 @@ namespace Tac
     float mRMiliseconds = 47.0f;
   };
 
-  static const ImGuiResourceId profileWidgetId =
+  static const ImGuiindex profileWidgetId =
     ImGuiRegisterWindowResource(
       TAC_STRINGIFY( ImguiProfileWidgetData ),
       &( ImguiProfileWidgetData() ),
@@ -56,15 +56,14 @@ namespace Tac
     return boxColor;
   }
 
-  static void ImGuiProfileWidgetFunction(
-    ImguiProfileWidgetData* profileWidgetData,
-    ProfileFunction* profileFunction,
-    v2 timelineLeft,
-    v2 timelineRight,
-    Timepoint frameBeginTime,
-    int depth )
+  static void ImGuiProfileWidgetFunction( ImguiProfileWidgetData* profileWidgetData,
+                                          UI2DDrawData* drawData,
+                                          ProfileFunction* profileFunction,
+                                          v2 timelineLeft,
+                                          v2 timelineRight,
+                                          Timepoint frameBeginTime,
+                                          int depth )
   {
-    UI2DDrawData* drawData = ImGuiGlobals::Instance.mUI2DDrawData;
     ImGuiWindow* imguiWindow = ImGuiGlobals::Instance.mCurrentWindow;
     if( !profileFunction )
       return;
@@ -99,7 +98,7 @@ namespace Tac
     Render::TextureHandle texture;
     drawData->AddBox( boxPos, boxPos + boxSize, boxColor, texture, &boxClipRect );
 
-    v2 textSize = drawData->CalculateTextSize(
+    v2 textSize = CalculateTextSize(
       profileFunction->mFrame.mFunction,
       ImGuiGlobals::Instance.mUIStyle.fontSize );
     v2 textPos =
@@ -121,12 +120,14 @@ namespace Tac
                        &textClipRect );
 
     ImGuiProfileWidgetFunction( profileWidgetData,
+                                drawData,
                                 profileFunction->mNext,
                                 timelineLeft,
                                 timelineRight,
                                 frameBeginTime,
                                 depth );
     ImGuiProfileWidgetFunction( profileWidgetData,
+                                drawData,
                                 profileFunction->mChildren,
                                 timelineLeft,
                                 timelineRight,
@@ -140,8 +141,8 @@ namespace Tac
       return;
 
 
-    UI2DDrawData* drawData = ImGuiGlobals::Instance.mUI2DDrawData;
     ImGuiWindow* imguiWindow = ImGuiGlobals::Instance.mCurrentWindow;
+    UI2DDrawData* drawData = imguiWindow->mDrawData; // ImGuiGlobals::Instance.mUI2DDrawData;
     auto profileWidgetData = ( ImguiProfileWidgetData* )imguiWindow->GetWindowResource( profileWidgetId );
 
     static bool outputWindowFrameTimes;
@@ -182,7 +183,7 @@ namespace Tac
       StringView timestampSV = Va( "%dms", i );
       String timestamp( timestampSV.data(), timestampSV.size() );
 
-      v2 rSize = drawData->CalculateTextSize( timestamp, ImGuiGlobals::Instance.mUIStyle.fontSize );
+      v2 rSize = CalculateTextSize( timestamp, ImGuiGlobals::Instance.mUIStyle.fontSize );
       drawData->AddText( tickTop - v2( rSize.x / 2.0f, ( float )ImGuiGlobals::Instance.mUIStyle.fontSize ),
                          ImGuiGlobals::Instance.mUIStyle.fontSize,
                          timestamp,
@@ -191,6 +192,7 @@ namespace Tac
 
     Timepoint frameBeginTime = profileFunction->mBeginTime;
     ImGuiProfileWidgetFunction( profileWidgetData,
+                                drawData,
                                 profileFunction,
                                 timelineLeft,
                                 timelineRight,

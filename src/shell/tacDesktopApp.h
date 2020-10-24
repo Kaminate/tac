@@ -24,7 +24,7 @@ namespace Tac
   {
     static DesktopEventQueue Instance;
     void Init();
-    void PushEventCursorUnobscured( DesktopWindowHandle );
+    //void PushEventCursorUnobscured( DesktopWindowHandle );
     void PushEventAssignHandle( DesktopWindowHandle,
                                 void* nativeWindowHandle );
     void PushEventMoveWindow( DesktopWindowHandle,
@@ -38,7 +38,7 @@ namespace Tac
     void PushEventMouseWheel( int ticks );
     void PushEventMouseMove( DesktopWindowHandle, int x, int y );
 
-    void ApplyQueuedEvents( DesktopWindowStates* );
+    void ApplyQueuedEvents( DesktopWindowState* );
   };
 
   struct AppInterfaceProject
@@ -55,6 +55,7 @@ namespace Tac
                                    int y,
                                    int width,
                                    int height );
+    DesktopWindowHandle( *mPlatformGetMouseHoveredWindow )( );
   };
 
   void                    DesktopAppInit( AppInterfacePlatform, Errors& );

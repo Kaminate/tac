@@ -14,7 +14,7 @@ namespace Tac
     ~SkyboxPresentation();
     void RenderSkybox( int viewWidth,
                        int viewHeight,
-                       Render::ViewId viewId,
+                       Render::ViewHandle viewId,
                        StringView skyboxDir );
     void Init( Errors& errors );
 

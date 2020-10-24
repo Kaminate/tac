@@ -12,6 +12,7 @@
 #include "src/creation/tacCreation.h"
 #include "src/creation/tacCreationGameWindow.h"
 #include "src/shell/tacDesktopApp.h"
+#include "src/shell/tacDesktopWindowGraphics.h"
 #include "src/space/graphics/tacGraphics.h"
 #include "src/space/presentation/tacGamePresentation.h"
 #include "src/space/presentation/tacSkyboxPresentation.h"
@@ -234,11 +235,13 @@ namespace Tac
 
   void CreationGameWindow::MousePickingAll()
   {
-    DesktopWindowState* desktopWindowState = &sDesktopWindowStates[ mDesktopWindowHandle.mIndex ];
+    DesktopWindowState* desktopWindowState = GetDesktopWindowState(mDesktopWindowHandle);
     if( !desktopWindowState )
       return;
-    if( !desktopWindowState->mCursorUnobscured )
-      return;
+
+    //if( !desktopWindowState->mCursorUnobscured )
+    //  return;
+
     Creation* creation = Creation::Instance;
 
     enum class PickedObject
@@ -355,7 +358,7 @@ namespace Tac
   }
   void CreationGameWindow::MousePickingInit()
   {
-    DesktopWindowState* desktopWindowState = &sDesktopWindowStates[ mDesktopWindowHandle.mIndex ];
+    DesktopWindowState* desktopWindowState = GetDesktopWindowState(mDesktopWindowHandle);
     if( !desktopWindowState )
       return;
 
@@ -473,7 +476,7 @@ namespace Tac
   {
     MousePickingAll();
     Camera* camera = &Creation::Instance->mEditorCamera;
-    DesktopWindowState* desktopWindowState = &sDesktopWindowStates[ mDesktopWindowHandle.mIndex ];
+    DesktopWindowState* desktopWindowState = GetDesktopWindowState(mDesktopWindowHandle);
     if( !desktopWindowState )
       return;
 
@@ -548,7 +551,7 @@ namespace Tac
   }
   void CreationGameWindow::DrawPlaybackOverlay( Errors& errors )
   {
-    ImGuiBegin( "gameplay overlay", { 300, 75 } );
+    ImGuiBegin( "gameplay overlay", { 300, 75 }, mDesktopWindowHandle );
     if( mSoul )
     {
       if( ImGuiButton( "End simulation" ) )
@@ -575,11 +578,11 @@ namespace Tac
   }
   void CreationGameWindow::CameraControls()
   {
-    DesktopWindowState* desktopWindowState = &sDesktopWindowStates[ mDesktopWindowHandle.mIndex ];
+    DesktopWindowState* desktopWindowState = GetDesktopWindowState(mDesktopWindowHandle);
     if( !desktopWindowState )
       return;
-    if( !desktopWindowState->mCursorUnobscured )
-      return;
+    //if( !desktopWindowState->mCursorUnobscured )
+    //  return;
     Creation* creation = Creation::Instance;
     Camera oldCamera = creation->mEditorCamera;
 
@@ -660,13 +663,9 @@ namespace Tac
   {
     Creation* creation = Creation::Instance;
 
+    const Render::ViewHandle viewHandle = WindowGraphicsGetView( mDesktopWindowHandle );
 
-
-
-
-    WindowFramebufferInfo* info = WindowFramebufferManager::Instance.FindWindowFramebufferInfo( mDesktopWindowHandle );
-
-    DesktopWindowState* desktopWindowState = &sDesktopWindowStates[ mDesktopWindowHandle.mIndex ];
+    DesktopWindowState* desktopWindowState = GetDesktopWindowState(mDesktopWindowHandle);
     if( !desktopWindowState )
       return;
 
@@ -678,15 +677,13 @@ namespace Tac
       ( float )desktopWindowState->mWidth,
       ( float )desktopWindowState->mHeight );
 
-    Render::SetViewFramebuffer( ViewIdGameWindow, info->mFramebufferHandle );
-    Render::SetViewport( ViewIdGameWindow, viewport );
-    Render::SetViewScissorRect( ViewIdGameWindow, scissorRect );
+    //Render::SetViewFramebuffer( ViewIdGameWindow, info->mFramebufferHandle );
+    //Render::SetViewport( ViewIdGameWindow, viewport );
+    //Render::SetViewScissorRect( ViewIdGameWindow, scissorRect );
 
 
     //mDesktopWindow->SetRenderViewDefaults();
     //TAC_INVALID_CODE_PATH;
-    SetCreationWindowImGuiGlobals( desktopWindowState,
-                                   mUI2DDrawData );
     if( mSoul )
     {
       //static bool once;
@@ -725,7 +722,7 @@ namespace Tac
 
     mGamePresentation->RenderGameWorldToDesktopView( desktopWindowState->mWidth,
                                                      desktopWindowState->mHeight,
-                                                     ViewIdGameWindow );
+                                                     viewHandle );
 
     if( creation->mSelectedGizmo )
     {
@@ -757,9 +754,9 @@ namespace Tac
     DrawPlaybackOverlay( errors );
     TAC_HANDLE_ERROR( errors );
 
-    mUI2DDrawData->DrawToTexture( desktopWindowState->mWidth,
+    mUI2DDrawData->DrawToTexture( viewHandle,
+                                  desktopWindowState->mWidth,
                                   desktopWindowState->mHeight,
-                                  ViewIdGameWindow,
                                   errors );
     TAC_HANDLE_ERROR( errors );
   }

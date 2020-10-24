@@ -1,9 +1,17 @@
 #include "src/common/tacErrorHandling.h"
 #include "src/common/tacUtility.h"
+#include "src/common/tacOS.h"
 
 namespace Tac
 {
-
+  Errors::Errors( bool breakOnAppend )
+  {
+    mBreakOnAppend = breakOnAppend;
+  }
+  void Errors::operator=( const char* message )
+  {
+    mMessage = message;
+  }
   void Errors::operator=( StringView message )
   {
     mMessage = message;
@@ -48,6 +56,8 @@ namespace Tac
   void Errors::Append( const StackFrame& frame )
   {
     TAC_ASSERT( size() );
+    if( mBreakOnAppend && mFrames.empty() && IsDebugMode() )
+      OS::DebugBreak();
     mFrames.push_back( frame );
   }
   void Errors::Append( StringView message )

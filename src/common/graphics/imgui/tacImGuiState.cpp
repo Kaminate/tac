@@ -12,40 +12,42 @@ namespace Tac
   {
     String mName;
     Vector<char> mInitialData;
-    ImGuiResourceId mId;
+    ImGuiindex mId;
   };
 
   struct WindowResourceRegistry
   {
     static WindowResourceRegistry* GetInstance();
-    ImGuiResourceId                RegisterResource( StringView name,
+    ImGuiindex                RegisterResource( StringView name,
                                                      void* initialDataBytes,
                                                      int initialDataByteCount );
-    RegisteredWindowResource*      FindResource( ImGuiResourceId  resourceId );
+    RegisteredWindowResource*      FindResource( ImGuiindex  index );
   private:
     Vector< RegisteredWindowResource > mRegisteredWindowResources;
     int mResourceCounter = 0;
   };
-  RegisteredWindowResource* WindowResourceRegistry::FindResource( ImGuiResourceId  resourceId )
+
+  RegisteredWindowResource* WindowResourceRegistry::FindResource( ImGuiindex  index )
   {
     for( RegisteredWindowResource& resource : mRegisteredWindowResources )
-      if( resource.mId == resourceId )
+      if( resource.mId == index )
         return &resource;
     return nullptr;
   }
+
   WindowResourceRegistry* WindowResourceRegistry::GetInstance()
   {
     static WindowResourceRegistry instance;
     return &instance;
   }
 
-  ImGuiResourceId WindowResourceRegistry::RegisterResource( StringView name,
+  ImGuiindex WindowResourceRegistry::RegisterResource( StringView name,
                                                             void* initialDataBytes,
                                                             int initialDataByteCount )
   {
     const char* dataBegin = ( char* )initialDataBytes;
     const char* dataEnd = ( char* )initialDataBytes + initialDataByteCount;
-    const ImGuiResourceId id = mResourceCounter++;
+    const ImGuiindex id = mResourceCounter++;
     RegisteredWindowResource resource;
     resource.mInitialData = Vector< char >( dataBegin, dataEnd );
     resource.mName = name;
@@ -54,7 +56,7 @@ namespace Tac
     return id;
   }
 
-  ImGuiResourceId ImGuiRegisterWindowResource( StringView name,
+  ImGuiindex ImGuiRegisterWindowResource( StringView name,
                                                void* initialDataBytes,
                                                int initialDataByteCount )
   {
@@ -68,15 +70,19 @@ namespace Tac
 
   ImGuiWindow::ImGuiWindow()
   {
-    inputData = TAC_NEW TextInputData;
+    mTextInputData = TAC_NEW TextInputData;
+    mDrawData = TAC_NEW UI2DDrawData;
   }
+
   ImGuiWindow::~ImGuiWindow()
   {
-    delete inputData;
+    delete mTextInputData;
+    delete mDrawData;
   }
+
   void ImGuiWindow::BeginFrame()
   {
-    UI2DDrawData* ui2DDrawData = ImGuiGlobals::Instance.mUI2DDrawData;
+    UI2DDrawData* ui2DDrawData = mDrawData;// ImGuiGlobals::Instance.mUI2DDrawData;
     KeyboardInput* keyboardInput = KeyboardInput::Instance;
 
 
@@ -146,7 +152,7 @@ namespace Tac
           mScrolling = false;
       }
       else if( KeyboardInput::Instance->IsKeyJustDown( Key::MouseLeft ) &&
-               ImGuiGlobals::Instance.IsHovered( ImGuiRect::FromMinMax( mini, maxi ) ) )
+               IsHovered( ImGuiRect::FromMinMax( mini, maxi ) ) )
       {
         Errors mouseErrors;
         v2 mousePosScreenspace;
@@ -171,12 +177,9 @@ namespace Tac
 
     mXOffsets.resize( 0 );
     mXOffsets.push_back( ImGuiGlobals::Instance.mUIStyle.windowPadding );
-    v2 drawPos = {
-      //       +----- grody ------+
-      //       |                  |
-      //       v                  v
-      mPos.x + mXOffsets.back(),
-      mPos.y + ImGuiGlobals::Instance.mUIStyle.windowPadding - mScroll };
+    v2 drawPos;
+    drawPos.x = mPos.x + mXOffsets.back();
+    drawPos.y = mPos.y + ImGuiGlobals::Instance.mUIStyle.windowPadding - mScroll;
     mCurrCursorDrawPos = drawPos;
     mPrevCursorDrawPos = drawPos;
     mMaxiCursorDrawPos = drawPos;
@@ -188,7 +191,7 @@ namespace Tac
       if( !mIDAllocator )
         mIDAllocator = TAC_NEW ImGuiIDAllocator;
       mIDAllocator->mIDCounter = 0;
-      if( !ImGuiGlobals::Instance.mIsWindowDirectlyUnderCursor &&
+      if( // !ImGuiGlobals::Instance.mIsWindowDirectlyUnderCursor &&
           KeyboardInput::Instance->IsKeyJustDown( Key::MouseLeft ) )
       {
         mIDAllocator->mActiveID = ImGuiIdNull;
@@ -205,6 +208,7 @@ namespace Tac
     //}
     //mActiveIDPrev = mActiveID;
   }
+
   void ImGuiWindow::ComputeClipInfo( bool* clipped,
                                      ImGuiRect* clipRect )
   {
@@ -219,6 +223,7 @@ namespace Tac
     clipRect->mMaxi.x = Min( clipRect->mMaxi.x, windowRect.mMaxi.x );
     clipRect->mMaxi.y = Min( clipRect->mMaxi.y, windowRect.mMaxi.y );
   }
+
   void ImGuiWindow::ItemSize( v2 size )
   {
     mCurrLineHeight = Max( mCurrLineHeight, size.y );
@@ -231,40 +236,63 @@ namespace Tac
     mCurrCursorDrawPos.y += mCurrLineHeight + ImGuiGlobals::Instance.mUIStyle.itemSpacing.y;
     mCurrLineHeight = 0;
   }
+
   void ImGuiWindow::UpdateMaxCursorDrawPos( v2 pos )
   {
     mMaxiCursorDrawPos.x = Max( mMaxiCursorDrawPos.x, pos.x );
     mMaxiCursorDrawPos.y = Max( mMaxiCursorDrawPos.y, pos.y );
   }
+
   ImGuiId ImGuiWindow::GetActiveID()
   {
     return mIDAllocator->mActiveID;
   }
+
   void ImGuiWindow::SetActiveID( ImGuiId id )
   {
     mIDAllocator->mActiveID = id;
   }
+
   ImGuiId ImGuiWindow::GetID()
   {
     return mIDAllocator->mIDCounter++;
   }
 
+  bool ImGuiWindow::IsHovered( const ImGuiRect& rect )
+  {
+    if( ImGuiGlobals::Instance.mMouseHoveredWindow.mIndex != -1 &&
+        ImGuiGlobals::Instance.mMouseHoveredWindow.mIndex == mDesktopWindowHandle.mIndex )
+      return false;
+    const v2 mousePos = GetRelativeMousePosition();
+    return
+      mousePos.x > rect.mMini.x &&
+      mousePos.x < rect.mMaxi.x &&
+      mousePos.y > rect.mMini.y &&
+      mousePos.y < rect.mMaxi.y;
+  }
 
-  void* ImGuiWindow::GetWindowResource( ImGuiResourceId resourceId )
+  v2 ImGuiWindow::GetRelativeMousePosition()
+  {
+    const v2 result = KeyboardInput::Instance->mCurr.mScreenspaceCursorPos - mPos;
+    return result;
+  }
+
+
+  void* ImGuiWindow::GetWindowResource( ImGuiindex index )
   {
     ImGuiId imGuiId = GetID();
     for( ImGuiWindowResource& resource : mResources )
-      if( resource.mImGuiId == imGuiId && resource.mResourceId == resourceId )
+      if( resource.mImGuiId == imGuiId && resource.mIndex == index )
         return resource.mData.data();
 
-    RegisteredWindowResource* pRegistered = WindowResourceRegistry::GetInstance()->FindResource( resourceId );
+    RegisteredWindowResource* pRegistered = WindowResourceRegistry::GetInstance()->FindResource( index );
     TAC_ASSERT( pRegistered );
 
     mResources.resize( mResources.size() + 1 );
     ImGuiWindowResource& resource = mResources.back();
     resource.mData = pRegistered->mInitialData;
     resource.mImGuiId = imGuiId;
-    resource.mResourceId = resourceId;
+    resource.mIndex = index;
     return resource.mData.data();
   }
 
@@ -275,14 +303,5 @@ namespace Tac
         return window;
     return nullptr;
   }
-  bool ImGuiGlobals::IsHovered( const ImGuiRect& rect )
-  {
-    if( !mIsWindowDirectlyUnderCursor )
-      return false;
-    return
-      mMousePositionDesktopWindowspace.x > rect.mMini.x &&
-      mMousePositionDesktopWindowspace.x < rect.mMaxi.x &&
-      mMousePositionDesktopWindowspace.y > rect.mMini.y &&
-      mMousePositionDesktopWindowspace.y < rect.mMaxi.y;
-  }
+
 }

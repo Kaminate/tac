@@ -47,27 +47,7 @@ namespace Tac
     Camera mCamera;
   };
 
-  const Render::ViewId ViewIdMainWindow = 0;
-  const Render::ViewId ViewIdGameWindow = 1;
-  const Render::ViewId ViewIdPropertyWindow = 2;
-  const Render::ViewId ViewIdSystemWindow = 3;
-  const Render::ViewId ViewIdProfileWindow = 4;
 
-
-  struct WindowFramebufferInfo
-  {
-    DesktopWindowHandle mDesktopWindowHandle;
-    Render::FramebufferHandle mFramebufferHandle;
-  };
-
-  struct WindowFramebufferManager
-  {
-    static WindowFramebufferManager Instance;
-    Vector< WindowFramebufferInfo > mWindowFramebufferInfos;
-    WindowFramebufferInfo* FindWindowFramebufferInfo( DesktopWindowHandle );
-    void Update( DesktopWindowStates* oldStates,
-                 DesktopWindowStates* newStates  );
-  };
 
   struct Creation // : public UpdateThing
   {
@@ -134,8 +114,8 @@ namespace Tac
 
   };
 
-  void SetCreationWindowImGuiGlobals( const DesktopWindowState* desktopWindowState,
-                                      UI2DDrawData* ui2DDrawData );
+  //void SetCreationWindowImGuiGlobals( const DesktopWindowState* desktopWindowState,
+  //                                    UI2DDrawData* ui2DDrawData );
 
   const v4 textColor = v4( v3( 1, 1, 1 ) * 0.0f, 1 );
 

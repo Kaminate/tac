@@ -33,8 +33,6 @@ namespace Tac
     return result;
   }
 
-
-
   namespace Render
   {
 
@@ -42,24 +40,24 @@ namespace Tac
     //template< int N >
     //struct IdCollection
     //{
-    //  ResourceId      Alloc( StringView name, Tac::StackFrame frame );
-    //  void            Free( ResourceId id );
+    //  index      Alloc( StringView name, Tac::StackFrame frame );
+    //  void            Free( index id );
     //private:
-    //  ResourceId      AllocFreeId( StringView name, Tac::StackFrame frame );
-    //  ResourceId      AllocNewId( StringView name, Tac::StackFrame frame );
-    //  ResourceId      mFree[ N ];
+    //  index      AllocFreeId( StringView name, Tac::StackFrame frame );
+    //  index      AllocNewId( StringView name, Tac::StackFrame frame );
+    //  index      mFree[ N ];
     //  int             mFreeCount = 0;
     //  int             mAllocCounter = 0;
     //  String          mNames[ N ];
     //  Tac::StackFrame mFrames[ N ];
     //};
 
-    //template< int N > ResourceId IdCollection<N>::Alloc( StringView name, Tac::StackFrame frame )
+    //template< int N > index IdCollection<N>::Alloc( StringView name, Tac::StackFrame frame )
     //{
     //  return mFreeCount ? AllocFreeId( name, frame ) : AllocNewId( name, frame );
     //}
 
-    //template< int N > void IdCollection<N>::Free( ResourceId id )
+    //template< int N > void IdCollection<N>::Free( index id )
     //{
     //  TAC_ASSERT( ( unsigned )id < ( unsigned )mAllocCounter );
     //  TAC_ASSERT( !Contains( mFree, mFree + mFreeCount, id ) );
@@ -67,15 +65,15 @@ namespace Tac
     //  TAC_ASSERT( mFreeCount <= N );
     //}
 
-    //template< int N > ResourceId IdCollection<N>::AllocFreeId( StringView name, Tac::StackFrame frame )
+    //template< int N > index IdCollection<N>::AllocFreeId( StringView name, Tac::StackFrame frame )
     //{
-    //  const ResourceId result = mFree[ --mFreeCount ];
+    //  const index result = mFree[ --mFreeCount ];
     //  mNames[ result ] = name;
     //  mFrames[ result ] = frame;
     //  return result;
     //}
 
-    //template< int N > ResourceId IdCollection<N>::AllocNewId( StringView name, Tac::StackFrame frame )
+    //template< int N > index IdCollection<N>::AllocNewId( StringView name, Tac::StackFrame frame )
     //{
     //  TAC_ASSERT( mAllocCounter < N );
     //  mNames[ mAllocCounter ] = name;
@@ -140,6 +138,7 @@ namespace Tac
     static IdCollection mIdCollectionSamplerState;
     static IdCollection mIdCollectionTexture;
     static IdCollection mIdCollectionVertexFormat;
+    static IdCollection mIdCollectionViewId;
 
     void UpdateConstantBuffers::Push( ConstantBufferHandle constantBufferHandle,
                                       const void* bytes,
@@ -236,6 +235,11 @@ namespace Tac
     //void SubmitAllocBeginFrame()
     //{
     //}
+
+    ViewHandle CreateView()
+    {
+      return { mIdCollectionViewId.Alloc() };
+    }
 
     ShaderHandle CreateShader( StringView name,
                                ShaderSource shaderSource,
@@ -448,7 +452,7 @@ namespace Tac
 
     void DestroyVertexBuffer( VertexBufferHandle handle, StackFrame frame )
     {
-      mIdCollectionVertexBuffer.Free( handle.mResourceId );
+      mIdCollectionVertexBuffer.Free( handle.mIndex );
       gSubmitFrame->mCommandBuffer.PushCommand( CommandType::DestroyVertexBuffer,
                                                 frame,
                                                 &handle,
@@ -456,14 +460,14 @@ namespace Tac
     }
     void DestroyIndexBuffer( IndexBufferHandle handle, StackFrame frame )
     {
-      mIdCollectionIndexBuffer.Free( handle.mResourceId );
+      mIdCollectionIndexBuffer.Free( handle.mIndex );
       gSubmitFrame->mCommandBuffer.PushCommand( CommandType::DestroyIndexBuffer,
                                                 frame,
                                                 &handle, sizeof( handle ) );
     }
     void DestroyTexture( TextureHandle handle, StackFrame frame )
     {
-      mIdCollectionTexture.Free( handle.mResourceId );
+      mIdCollectionTexture.Free( handle.mIndex );
       gSubmitFrame->mCommandBuffer.PushCommand( CommandType::DestroyTexture,
                                                 frame,
                                                 &handle,
@@ -471,7 +475,7 @@ namespace Tac
     }
     void DestroyFramebuffer( FramebufferHandle handle, StackFrame frame )
     {
-      mIdCollectionFramebuffer.Free( handle.mResourceId );
+      mIdCollectionFramebuffer.Free( handle.mIndex );
       gSubmitFrame->mCommandBuffer.PushCommand( CommandType::DestroyFramebuffer,
                                                 frame,
                                                 &handle,
@@ -479,7 +483,7 @@ namespace Tac
     }
     void DestroyShader( ShaderHandle handle, StackFrame stackFrame )
     {
-      mIdCollectionFramebuffer.Free( handle.mResourceId );
+      mIdCollectionFramebuffer.Free( handle.mIndex );
       gSubmitFrame->mCommandBuffer.PushCommand( CommandType::DestroyShader,
                                                 stackFrame,
                                                 &handle,
@@ -487,7 +491,7 @@ namespace Tac
     }
     void DestroyVertexFormat( VertexFormatHandle handle, StackFrame stackFrame )
     {
-      mIdCollectionFramebuffer.Free( handle.mResourceId );
+      mIdCollectionFramebuffer.Free( handle.mIndex );
       gSubmitFrame->mCommandBuffer.PushCommand( CommandType::DestroyVertexFormat,
                                                 stackFrame,
                                                 &handle,
@@ -495,7 +499,7 @@ namespace Tac
     }
     void DestroyConstantBuffer( ConstantBufferHandle handle, StackFrame stackFrame )
     {
-      mIdCollectionFramebuffer.Free( handle.mResourceId );
+      mIdCollectionFramebuffer.Free( handle.mIndex );
       gSubmitFrame->mCommandBuffer.PushCommand( CommandType::DestroyConstantBuffer,
                                                 stackFrame,
                                                 &handle,
@@ -503,7 +507,7 @@ namespace Tac
     }
     void DestroyDepthState( DepthStateHandle handle, StackFrame stackFrame )
     {
-      mIdCollectionFramebuffer.Free( handle.mResourceId );
+      mIdCollectionFramebuffer.Free( handle.mIndex );
       gSubmitFrame->mCommandBuffer.PushCommand( CommandType::DestroyDepthState,
                                                 stackFrame,
                                                 &handle,
@@ -511,7 +515,7 @@ namespace Tac
     }
     void DestroyBlendState( BlendStateHandle handle, StackFrame stackFrame )
     {
-      mIdCollectionFramebuffer.Free( handle.mResourceId );
+      mIdCollectionFramebuffer.Free( handle.mIndex );
       gSubmitFrame->mCommandBuffer.PushCommand( CommandType::DestroyBlendState,
                                                 stackFrame,
                                                 &handle,
@@ -519,7 +523,7 @@ namespace Tac
     }
     void DestroyRasterizerState( RasterizerStateHandle handle, StackFrame stackFrame )
     {
-      mIdCollectionFramebuffer.Free( handle.mResourceId );
+      mIdCollectionFramebuffer.Free( handle.mIndex );
       gSubmitFrame->mCommandBuffer.PushCommand( CommandType::DestroyRasterizerState,
                                                 stackFrame,
                                                 &handle,
@@ -527,7 +531,7 @@ namespace Tac
     }
     void DestroySamplerState( SamplerStateHandle handle, StackFrame stackFrame )
     {
-      mIdCollectionFramebuffer.Free( handle.mResourceId );
+      mIdCollectionFramebuffer.Free( handle.mIndex );
       gSubmitFrame->mCommandBuffer.PushCommand( CommandType::DestroySamplerState,
                                                 stackFrame,
                                                 &handle,
@@ -592,22 +596,22 @@ namespace Tac
                                             byteCount );
     }
 
-    void SetViewFramebuffer( ViewId viewId, FramebufferHandle framebufferHandle )
+    void SetViewFramebuffer( ViewHandle viewId, FramebufferHandle framebufferHandle )
     {
-      View* view = &gSubmitFrame->mViews[ viewId ];
+      View* view = &gSubmitFrame->mViews[ viewId.mIndex ];
       view->mFrameBufferHandle = framebufferHandle;
     }
 
-    void SetViewScissorRect( ViewId viewId, ScissorRect scissorRect )
+    void SetViewScissorRect( ViewHandle viewId, ScissorRect scissorRect )
     {
-      View* view = &gSubmitFrame->mViews[ viewId ];
+      View* view = &gSubmitFrame->mViews[ viewId.mIndex ];
       view->mScissorRect = scissorRect;
       view->mScissorSet = true;
     }
 
-    void SetViewport( ViewId viewId, Viewport viewport )
+    void SetViewport( ViewHandle viewId, Viewport viewport )
     {
-      View* view = &gSubmitFrame->mViews[ viewId ];
+      View* view = &gSubmitFrame->mViews[ viewId.mIndex ];
       view->mViewport = viewport;
       view->mViewportSet = true;
     }
@@ -734,7 +738,7 @@ namespace Tac
       //std::cout << "Render::Init end" << std::endl;
     }
 
-    void Submit( ViewId viewId, StackFrame stackFrame )
+    void Submit( Render::ViewHandle viewHandle, StackFrame stackFrame )
     {
       if( gSubmitFrame->mDrawCallCount == kDrawCallCapacity )
       {
@@ -758,7 +762,7 @@ namespace Tac
       drawCall->mIndexCount = gEncoder.mIndexCount;
       drawCall->mVertexCount = gEncoder.mVertexCount;
       drawCall->mShaderHandle = gEncoder.mShaderHandle;
-      drawCall->mViewId = viewId;
+      drawCall->mViewHandle = viewHandle;
       drawCall->mTextureHandle = gEncoder.mTextureHandle;
       gEncoder.mIndexBufferHandle = IndexBufferHandle();
       gEncoder.mVertexBufferHandle = VertexBufferHandle();
@@ -788,17 +792,17 @@ namespace Tac
     {
       Renderer::Instance->Init( errors );
 
-     mIdCollectionBlendState.Init(kMaxBlendStates);
-     mIdCollectionConstantBuffer.Init(kMaxConstantBuffers);
-     mIdCollectionDepthState.Init(kMaxDepthStencilStates);
-     mIdCollectionFramebuffer.Init(kMaxFramebuffers);
-     mIdCollectionIndexBuffer.Init(kMaxIndexBuffers);
-     mIdCollectionRasterizerState.Init(kMaxRasterizerStates);
-     mIdCollectionShader.Init(kMaxPrograms);
-     mIdCollectionVertexBuffer.Init(kMaxVertexBuffers);
-     mIdCollectionSamplerState.Init(kMaxSamplerStates);
-     mIdCollectionTexture.Init(kMaxTextures);
-     mIdCollectionVertexFormat.Init(kMaxInputLayouts);
+      mIdCollectionBlendState.Init( kMaxBlendStates );
+      mIdCollectionConstantBuffer.Init( kMaxConstantBuffers );
+      mIdCollectionDepthState.Init( kMaxDepthStencilStates );
+      mIdCollectionFramebuffer.Init( kMaxFramebuffers );
+      mIdCollectionIndexBuffer.Init( kMaxIndexBuffers );
+      mIdCollectionRasterizerState.Init( kMaxRasterizerStates );
+      mIdCollectionShader.Init( kMaxPrograms );
+      mIdCollectionVertexBuffer.Init( kMaxVertexBuffers );
+      mIdCollectionSamplerState.Init( kMaxSamplerStates );
+      mIdCollectionTexture.Init( kMaxTextures );
+      mIdCollectionVertexFormat.Init( kMaxInputLayouts );
     }
 
     void Uninit()
@@ -806,7 +810,6 @@ namespace Tac
       delete Renderer::Instance;
     }
   }
-
 
   Renderer* Renderer::Instance = nullptr;
 
@@ -971,12 +974,12 @@ namespace Tac
 
         //case Render::CommandType::UpdateConstantBuffer:
         //{
-        //  auto resourceId = ( Render::ConstantBufferHandle* )bufferPos;
+        //  auto index = ( Render::ConstantBufferHandle* )bufferPos;
         //  bufferPos += sizeof( Render::ConstantBufferHandle );
         //  auto commandData = ( Render::CommandDataUpdateBuffer* )bufferPos;
         //  bufferPos += sizeof( Render::CommandDataUpdateBuffer );
         //  PopCheep( bufferPos );
-        //  UpdateConstantBuffer( *resourceId, commandData, errors );
+        //  UpdateConstantBuffer( *index, commandData, errors );
         //} break;
 
         case Render::CommandType::CreateBlendState:
@@ -1141,8 +1144,6 @@ namespace Tac
     }
   }
 
-
-
   String RendererTypeToString( const Renderer::Type rendererType )
   {
     switch( rendererType )
@@ -1155,12 +1156,6 @@ namespace Tac
     }
     TAC_INVALID_CODE_PATH;
     return "";
-  }
-
-  void RendererFactory::CreateRendererOuter()
-  {
-    CreateRenderer();
-    Renderer::Instance->mName = mRendererName;
   }
 
   RendererRegistry& RendererRegistry::Instance()

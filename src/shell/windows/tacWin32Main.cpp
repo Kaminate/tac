@@ -30,7 +30,7 @@ int CALLBACK WinMain( HINSTANCE hInstance,
   using namespace Tac;
   WinMainAux( hInstance, hPrevInstance, lpCmdLine, nCmdShow );
   auto ReportError = []( StringView desc, Errors& errors ) { if( errors ) {
-      OS::DebugPopupBox( desc + errors.ToString() ); } };
+      OS::DebugPopupBox( desc + " - " + errors.ToString() ); } };
   ReportError( "WinMain", sWinMainErrors );
   ReportError( "Platform thread", gPlatformThreadErrors );
   ReportError( "Logic thread", gLogicThreadErrors );
@@ -74,6 +74,7 @@ namespace Tac
     AppInterfacePlatform appInterfacePlatform = {};
     appInterfacePlatform.mPlatformPoll = WindowsManagerPoll;
     appInterfacePlatform.mPlatformSpawnWindow = WindowsManagerSpawnWindow;
+    appInterfacePlatform.mPlatformGetMouseHoveredWindow = GetCursorUnobscuredWindow2;
     DesktopAppInit( appInterfacePlatform, errors );
     TAC_HANDLE_ERROR( errors );
 

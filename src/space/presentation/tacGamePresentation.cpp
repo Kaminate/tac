@@ -126,7 +126,7 @@ namespace Tac
   }
   void GamePresentation::RenderGameWorldToDesktopView( const int viewWidth,
                                                        const int viewHeight,
-                                                       const Render::ViewId viewId )
+                                                       const Render::ViewHandle viewId )
   {
     //_PROFILE_BLOCK;
 
@@ -349,7 +349,7 @@ namespace Tac
   }
   void GamePresentation::RenderGameWorldAddDrawCall( const Mesh* mesh,
                                                      const DefaultCBufferPerObject& cbuf,
-                                                     const Render::ViewId viewId )
+                                                     const Render::ViewHandle viewId )
   {
     for( const SubMesh& subMesh : mesh->mSubMeshes )
     {

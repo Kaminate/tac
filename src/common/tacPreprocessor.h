@@ -80,5 +80,20 @@ namespace Tac
 #define TAC_ON_DESTRUCT( code ) TAC_ON_DESTRUCT_AUX( code, TAC_CONCAT( lambda, __LINE__ ), TAC_CONCAT( dtor, __LINE__ ) )
 
 
+#define TAC_DEFINE_HANDLE( name )                                    \
+  struct name                                                        \
+  {                                                                  \
+    name( int index = -1 ) : mIndex( index ){}                       \
+    int mIndex;                                                      \
+    bool IsValid() const { return mIndex != -1; }                    \
+  };                                                                 \
+  inline bool operator == ( const name& a, const name& b )           \
+  {                                                                  \
+    return a.mIndex == b.mIndex;                                     \
+  }                                                                  \
+  inline bool operator != ( const name& a, const name& b )           \
+  {                                                                  \
+    return a.mIndex != b.mIndex;                                     \
+  }
 }
 

@@ -32,10 +32,10 @@ namespace Tac
     void CreateGraphicsObjects( Errors& errors );
     void RenderGameWorldToDesktopView( int viewWidth,
                                        int viewHeight,
-                                       Render::ViewId viewId );
+                                       Render::ViewHandle viewId );
     void RenderGameWorldAddDrawCall( const Mesh* mesh,
                                      const DefaultCBufferPerObject& cbuf,
-                                     Render::ViewId viewId );
+                                     Render::ViewHandle viewId );
 
     void LoadTerrain( Terrain* );
     void LoadModel( Model* );

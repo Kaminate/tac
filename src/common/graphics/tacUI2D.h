@@ -60,27 +60,6 @@ namespace Tac
     Render::ConstantBufferHandle mPerObj;
   };
 
-  struct UI2DState
-  {
-    void Translate( v2 pos );
-    void Translate( float x, float y );
-    void Draw2DBox( float width,
-                    float height,
-                    v4 color = { 1, 1, 1, 1 },
-                    Render::TextureHandle texture = Render::TextureHandle() );
-
-    void Draw2DText( Language mDefaultLanguage,
-                     int fontSize,
-                     StringView text,
-                     float* heightBetweenBaselines,
-                     v4 color,
-                     Errors& errors );
-
-    m3 mTransform = m3::Identity();
-
-    UI2DDrawData* mUI2DDrawData = nullptr;
-  };
-
   struct UI2DDrawCall
   {
     int mIVertexStart = 0;
@@ -106,14 +85,11 @@ namespace Tac
   {
     UI2DDrawData();
     ~UI2DDrawData();
-    void DrawToTexture( int w, int h, Render::ViewId viewId, Errors& errors );
+    void DrawToTexture( Render::ViewHandle, int, int, Errors& );
 
-    UI2DState* PushState();
-    void PopState();
+    //UI2DState* PushState();
+    //void PopState();
 
-    v2 CalculateTextSize( StringView text, int fontSize );
-    v2 CalculateTextSize( CodepointView codepoints, int fontSize );
-    v2 CalculateTextSize( const Codepoint* codepoints, int codepointCount, int fontSize );
 
     void AddText( v2 textPos, int fontSize, StringView utf8, v4 color, const ImGuiRect* clipRect );
     void AddBox( v2 mini, v2 maxi, v4 color, const Render::TextureHandle texture, const ImGuiRect* clipRect );
@@ -123,23 +99,19 @@ namespace Tac
     Vector< UI2DVertex > mDefaultVertex2Ds;
     Vector< UI2DIndex > mDefaultIndex2Ds;
     Vector< UI2DDrawCall > mDrawCall2Ds;
-    Vector< UI2DState > mStates;
+    //Vector< UI2DState > mStates;
+  };
 
+    v2 CalculateTextSize( StringView text, int fontSize );
+    v2 CalculateTextSize( CodepointView codepoints, int fontSize );
+    v2 CalculateTextSize( const Codepoint* codepoints, int codepointCount, int fontSize );
 
-    // Hmm... this class shouldnt have both the mDefaultVertex2Ds and the mVertexBufferHandle
-    // it's too much responsibilty for 1 class.
-    // 
-    // instead, it should be broken up into 2 classes.
-    // the first class generates mDefaultVertex2Ds
-    // the second class interfaces with the renderer.
-
+  struct UI2DDrawGpuInterface
+  {
     int mVertexCapacity = 0;
     int mIndexCapacity = 0;
-
     Render::VertexBufferHandle mVertexBufferHandle;
     Render::IndexBufferHandle mIndexBufferHandle;
-
-    //RenderView* mRenderView = nullptr;
   };
 
 }

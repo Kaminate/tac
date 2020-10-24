@@ -15,7 +15,7 @@
 
 namespace Tac
 {
-
+  typedef uint32_t Codepoint;
 
   enum class Language
   {
@@ -29,47 +29,23 @@ namespace Tac
     Count
   };
 
-  const String Languages[ ( int )Language::Count ] =
-  {
-    "Arabic",
-    "Chinese",
-    "English",
-    "Japanese",
-    "Korean",
-    "Russian",
-    "Spanish",
-  };
-
-  inline StringView LanguageToStr( Language language )
-  {
-    return Languages[ ( int )language ];
-  }
-  inline Language GetLanguage( StringView str )
-  {
-    for( int i = 0; i < ( int )Language::Count; ++i )
-      if( Languages[ i ] == str )
-        return ( Language )i;
-    return Language::Count;
-  }
-  void LanguageDebugImgui( StringView name, Language* language );
-
-  typedef uint32_t Codepoint;
-
-  bool IsAsciiCharacter( Codepoint codepoint );
-
+  StringView LanguageToStr( Language language );
+  Language   GetLanguage( StringView str );
+  void       LanguageDebugImgui( StringView name, Language* language );
+  bool       IsAsciiCharacter( Codepoint codepoint );
 
   struct CodepointView
   {
     CodepointView() = default;
     CodepointView( const Codepoint*, int );
-    Codepoint operator[]( int i ) const;
+    Codepoint        operator[]( int i ) const;
     const Codepoint* data() const;
     const Codepoint* begin() const;
     const Codepoint* end() const;
-    int size() const;
-    bool empty() const;
+    int              size() const;
+    bool             empty() const;
     const Codepoint* mCodepoints = nullptr;
-    int mCodepointCount = 0;
+    int              mCodepointCount = 0;
   };
 
   bool operator == ( CodepointView a, CodepointView b );
@@ -81,10 +57,10 @@ namespace Tac
 
   struct LocalizedStringStuff
   {
-    void SetCodepoints( CodepointView codepoints );
+    void                SetCodepoints( CodepointView codepoints );
     // TODO: don't bother storing the codepoints, just compute them on the fly
     Vector< Codepoint > mCodepoints;
-    String mUTF8String;
+    String              mUTF8String;
   };
 
   struct LocalizedString
@@ -96,18 +72,17 @@ namespace Tac
   struct Localization
   {
     Localization();
-    static Localization* Instance;
+    static Localization*       Instance;
     const Vector< Codepoint >& GetString( Language language, StringView reference );
-    void Load( StringView path, Errors& errors );
-    bool EatWhitespace();
-    bool EatNewLine();
-    String EatWord();
-    void DebugImgui();
-
-    char* mBegin = nullptr;
-    char* mEnd = nullptr;
-    Vector< char > mBytes;
-    Vector< LocalizedString > mLocalizedStrings;
+    void                       Load( StringView path, Errors& errors );
+    bool                       EatWhitespace();
+    bool                       EatNewLine();
+    String                     EatWord();
+    void                       DebugImgui();
+    char*                      mBegin = nullptr;
+    char*                      mEnd = nullptr;
+    Vector< char >             mBytes;
+    Vector< LocalizedString >  mLocalizedStrings;
   };
 
 }

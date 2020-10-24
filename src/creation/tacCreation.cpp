@@ -51,59 +51,6 @@ namespace Tac
   };
   const static String axisNames[] = { "x", "y", "z" };
 
-  // ---
-
-  WindowFramebufferManager WindowFramebufferManager::Instance;
-
-  void WindowFramebufferManager::Update( DesktopWindowStates* oldStates,
-                                         DesktopWindowStates* newStates )
-  {
-    for( int iDesktopWindowState = 0;
-         iDesktopWindowState < kMaxDesktopWindowStateCount;
-         iDesktopWindowState++ )
-    {
-      const DesktopWindowState* oldState = &( *oldStates )[ iDesktopWindowState ];
-      const DesktopWindowState* newState = &( *newStates )[ iDesktopWindowState ];
-
-      if( oldState->mNativeWindowHandle &&
-          newState->mNativeWindowHandle &&
-          ( oldState->mWidth != newState->mWidth || oldState->mHeight != newState->mHeight ) )
-      {
-        WindowFramebufferInfo* info = FindWindowFramebufferInfo( { iDesktopWindowState } );
-        Render::ResizeFramebuffer( info->mFramebufferHandle,
-                                   newState->mWidth,
-                                   newState->mHeight,
-                                   TAC_STACK_FRAME );
-      }
-
-      if(
-        !oldState->mNativeWindowHandle &&
-        newState->mNativeWindowHandle )
-      {
-        WindowFramebufferInfo info;
-        info.mDesktopWindowHandle = { iDesktopWindowState }; // newState->mDesktopWindowHandle;
-        info.mFramebufferHandle = Render::CreateFramebuffer( "",
-                                                             newState->mNativeWindowHandle,
-                                                             newState->mWidth,
-                                                             newState->mHeight,
-                                                             TAC_STACK_FRAME );
-        mWindowFramebufferInfos.push_back( info );
-      }
-    }
-  }
-
-
-  WindowFramebufferInfo* WindowFramebufferManager::FindWindowFramebufferInfo( DesktopWindowHandle desktopWindowHandle )
-  {
-    for( WindowFramebufferInfo& info : mWindowFramebufferInfos )
-      if( info.mDesktopWindowHandle.mIndex == desktopWindowHandle.mIndex )
-        return &info;
-    return nullptr;
-  }
-
-  // ---
-
-
   void ExecutableStartupInfo::Init( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
@@ -314,6 +261,12 @@ namespace Tac
     mEditorCamera.mRight = { 1, 0, 0 };
     mEditorCamera.mUp = { 0, 1, 0 };
 
+    //ViewIdMainWindow = Render::CreateViewId();
+    //ViewIdGameWindow = Render::CreateViewId();
+    //ViewIdPropertyWindow = Render::CreateViewId();
+    //ViewIdSystemWindow = Render::CreateViewId();
+    //ViewIdProfileWindow = Render::CreateViewId();
+
     String dataPath;
     OS::GetApplicationDataPath( dataPath, errors );
     TAC_HANDLE_ERROR( errors );
@@ -435,10 +388,7 @@ namespace Tac
   {
     /*TAC_PROFILE_BLOCK*/;
 
-    DesktopWindowStates oldWindowStates = sDesktopWindowStates;
-    DesktopEventQueue::Instance.ApplyQueuedEvents( &sDesktopWindowStates );
-    WindowFramebufferManager::Instance.Update( &oldWindowStates,
-                                               &sDesktopWindowStates );
+    //UpdateWindowRenderInterfaces();
 
     if( !CreationMainWindow::Instance &&
         !CreationGameWindow::Instance &&
@@ -550,13 +500,15 @@ namespace Tac
   {
     CreationGameWindow* gameWindow = CreationGameWindow::Instance;
 
-    if( !gameWindow || !IsWindowHandleValid( gameWindow->mDesktopWindowHandle ) )
+    if( !gameWindow || gameWindow->mDesktopWindowHandle.mIndex != -1 )
       return;
 
-    DesktopWindowState* desktopWindowState = &sDesktopWindowStates[ gameWindow->mDesktopWindowHandle.mIndex ];
+    DesktopWindowState* desktopWindowState = GetDesktopWindowState(gameWindow->mDesktopWindowHandle);
 
-    if( !desktopWindowState || !desktopWindowState->mCursorUnobscured )
+    if( !desktopWindowState )
       return;
+    //if( !desktopWindowState->mCursorUnobscured )
+    //return;
 
     if( !KeyboardInput::Instance->IsKeyJustDown( Key::Delete ) )
       return;
@@ -774,22 +726,22 @@ namespace Tac
   }
 
 
-  void SetCreationWindowImGuiGlobals( const DesktopWindowState* desktopWindowState,
-                                      UI2DDrawData* ui2DDrawData )
-  {
-    const v2 desktopWindowPos( static_cast< float >( desktopWindowState->mX ),
-                               static_cast< float >( desktopWindowState->mY ) );
-    const v2 mousePositionDestopWindowspace
-      = KeyboardInput::Instance->mCurr.mScreenspaceCursorPosErrors.empty()
-      ? KeyboardInput::Instance->mCurr.mScreenspaceCursorPos - desktopWindowPos
-      : v2{}; // eww. Should imgui have a bool mousePosValid?
-    ImGuiSetGlobals( mousePositionDestopWindowspace,
-                     desktopWindowState->mCursorUnobscured,
-                     Shell::Instance.mElapsedSeconds,
-                     ui2DDrawData,
-                     desktopWindowState->mWidth,
-                     desktopWindowState->mHeight );
-  }
+  //void SetCreationWindowImGuiGlobals( const DesktopWindowState* desktopWindowState,
+  //                                    UI2DDrawData* ui2DDrawData )
+  //{
+  //  const v2 desktopWindowPos( static_cast< float >( desktopWindowState->mX ),
+  //                             static_cast< float >( desktopWindowState->mY ) );
+  //  const v2 mousePositionDestopWindowspace
+  //    = KeyboardInput::Instance->mCurr.mScreenspaceCursorPosErrors.empty()
+  //    ? KeyboardInput::Instance->mCurr.mScreenspaceCursorPos - desktopWindowPos
+  //    : v2{}; // eww. Should imgui have a bool mousePosValid?
+  //  ImGuiSetGlobals( mousePositionDestopWindowspace,
+  //                   //desktopWindowState->mCursorUnobscured,
+  //                   Shell::Instance.mElapsedSeconds,
+  //                   //ui2DDrawData,
+  //                   desktopWindowState->mWidth,
+  //                   desktopWindowState->mHeight );
+  //}
 
 
 

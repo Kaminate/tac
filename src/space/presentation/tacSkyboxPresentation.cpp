@@ -81,7 +81,7 @@ namespace Tac
   }
   void SkyboxPresentation::RenderSkybox( const int viewWidth,
                                          const int viewHeight,
-                                         const Render::ViewId viewId,
+                                         const Render::ViewHandle viewId,
                                          const StringView skyboxDir )
   {
     /*TAC_PROFILE_BLOCK*/;
@@ -91,7 +91,7 @@ namespace Tac
     Render::TextureHandle cubemap = TextureAssetManager::GetTextureCube( skyboxDirToUse,
                                                                          mGetSkyboxTextureErrors );
     TAC_ASSERT( mGetSkyboxTextureErrors.empty() );
-    if( cubemap.mResourceId == Render::NullResourceId )
+    if( !cubemap.IsValid() )
       return;
 
     Mesh* mesh;
