@@ -191,16 +191,14 @@ namespace Tac
   }
   void World::ComputeTransformsRecursively( const m4& parentTransform, Entity* entity )
   {
-    m4 localTransform = M4Transform(
-      entity->mRelativeSpace.mScale,
-      entity->mRelativeSpace.mEulerRads,
-      entity->mRelativeSpace.mPosition );
+    m4 localTransform = m4::Transform( entity->mRelativeSpace.mScale,
+                                       entity->mRelativeSpace.mEulerRads,
+                                       entity->mRelativeSpace.mPosition );
     m4 worldTransform = parentTransform * localTransform;
 
-    m4 localTransformNoScale = M4Transform(
-      v3( 1, 1, 1 ),
-      entity->mRelativeSpace.mEulerRads,
-      entity->mRelativeSpace.mPosition );
+    m4 localTransformNoScale = m4::Transform( v3( 1, 1, 1 ),
+                                              entity->mRelativeSpace.mEulerRads,
+                                              entity->mRelativeSpace.mPosition );
     m4 worldTransformNoScale = parentTransform * localTransformNoScale;
 
     //entity->mLocalTransform = localTransform;

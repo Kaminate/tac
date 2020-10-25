@@ -3,7 +3,8 @@
 
 namespace Tac
 {
-  void IdCollection::Init( int capacity )
+  //void IdCollection::Init( int capacity )
+  IdCollection::IdCollection( int capacity )
   {
     mData = TAC_NEW int[ capacity * 2 ];
     mCapacity = capacity;
@@ -55,6 +56,12 @@ namespace Tac
     dense[ iDense ] = iSparseNew;
     sparse[ iSparseNew ] = iDense;
   }
+
+  //void IdCollection::Free( const HandleBase& handleBase )
+  //{
+  //  Free( handleBase.GetIndex() );
+  //}
+
   //int             Size();
   //int             Lookup( int index );
 
@@ -70,8 +77,7 @@ namespace Tac
   
   void UnitTestIdCollection()
   {
-    IdCollection ids;
-    ids.Init( 5 );
+    IdCollection ids(5);
 
     const int id0 = ids.Alloc();
     TAC_ASSERT( id0 == 0 );

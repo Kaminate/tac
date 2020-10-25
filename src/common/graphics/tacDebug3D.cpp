@@ -310,7 +310,7 @@ namespace Tac
       v3( 1, 1, -1 ),
       v3( 1, 1, 1 ) };
     v3 transfor_points[ pointCount ];
-    auto transform = M4Transform( extents, eulerAnglesRad, pos );
+    auto transform = m4::Transform( extents, eulerAnglesRad, pos );
     for( int i = 0; i < pointCount; ++i )
       transfor_points[ i ] = ( transform * v4( original_points[ i ], 1.0f ) ).xyz();
     for( int i = 0; i < pointCount; ++i )

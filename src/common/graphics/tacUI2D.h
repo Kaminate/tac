@@ -15,8 +15,6 @@
 
 namespace Tac
 {
-
-
   struct BlendState;
   struct CBuffer;
   struct DepthState;
@@ -43,39 +41,31 @@ namespace Tac
 
   struct UI2DCommonData
   {
-    static UI2DCommonData* Instance;
     UI2DCommonData();
     ~UI2DCommonData();
-    void Init( Errors& errors );
-
-    Render::TextureHandle m1x1White;
-    Render::VertexFormatHandle mFormat;
-    Render::ShaderHandle mShader;
-    Render::ShaderHandle m2DTextShader;
-    Render::DepthStateHandle mDepthState;
-    Render::BlendStateHandle mBlendState;
+    static UI2DCommonData*        Instance;
+    void                          Init( Errors& errors );
+    Render::TextureHandle         m1x1White;
+    Render::VertexFormatHandle    mFormat;
+    Render::ShaderHandle          mShader;
+    Render::ShaderHandle          m2DTextShader;
+    Render::DepthStateHandle      mDepthState;
+    Render::BlendStateHandle      mBlendState;
     Render::RasterizerStateHandle mRasterizerState;
-    Render::SamplerStateHandle mSamplerState;
-    Render::ConstantBufferHandle mPerFrame;
-    Render::ConstantBufferHandle mPerObj;
+    Render::SamplerStateHandle    mSamplerState;
+    Render::ConstantBufferHandle  mPerFrame;
+    Render::ConstantBufferHandle  mPerObj;
   };
 
   struct UI2DDrawCall
   {
-    int mIVertexStart = 0;
-    int mVertexCount = 0;
-    int mIIndexStart = 0;
-    int mIndexCount = 0;
-
-    Render::ShaderHandle mShader;
-    //const Texture* mTexture = nullptr;
-    Render::TextureHandle mTexture;
+    int                     mIVertexStart = 0;
+    int                     mVertexCount = 0;
+    int                     mIIndexStart = 0;
+    int                     mIndexCount = 0;
+    Render::ShaderHandle    mShader;
+    Render::TextureHandle   mTexture;
     DefaultCBufferPerObject mUniformSource;
-
-    //void CopyUniform( const void* bytes, int byteCount );
-
-    //template< typename T>
-    //void CopyUniform( T& t ) { CopyUniform( &t, sizeof( T ) ); }
   };
 
   struct ImGuiRect;
@@ -85,33 +75,25 @@ namespace Tac
   {
     UI2DDrawData();
     ~UI2DDrawData();
-    void DrawToTexture( Render::ViewHandle, int, int, Errors& );
-
-    //UI2DState* PushState();
-    //void PopState();
-
-
-    void AddText( v2 textPos, int fontSize, StringView utf8, v4 color, const ImGuiRect* clipRect );
-    void AddBox( v2 mini, v2 maxi, v4 color, const Render::TextureHandle texture, const ImGuiRect* clipRect );
-    void AddLine( v2 p0, v2 p1, float radius, v4 color );
-    //void AddPolyFill( const Vector< v2 >& points, v4 color );
-
-    Vector< UI2DVertex > mDefaultVertex2Ds;
-    Vector< UI2DIndex > mDefaultIndex2Ds;
+    void                   DrawToTexture( Render::ViewHandle, int, int, Errors& );
+    void                   AddText( v2 textPos, int fontSize, StringView utf8, v4 color, const ImGuiRect* clipRect );
+    void                   AddBox( v2 mini, v2 maxi, v4 color, const Render::TextureHandle texture, const ImGuiRect* clipRect );
+    void                   AddLine( v2 p0, v2 p1, float radius, v4 color );
+    Vector< UI2DVertex >   mDefaultVertex2Ds;
+    Vector< UI2DIndex >    mDefaultIndex2Ds;
     Vector< UI2DDrawCall > mDrawCall2Ds;
-    //Vector< UI2DState > mStates;
   };
 
-    v2 CalculateTextSize( StringView text, int fontSize );
-    v2 CalculateTextSize( CodepointView codepoints, int fontSize );
-    v2 CalculateTextSize( const Codepoint* codepoints, int codepointCount, int fontSize );
+  v2 CalculateTextSize( StringView text, int fontSize );
+  v2 CalculateTextSize( CodepointView codepoints, int fontSize );
+  v2 CalculateTextSize( const Codepoint* codepoints, int codepointCount, int fontSize );
 
   struct UI2DDrawGpuInterface
   {
-    int mVertexCapacity = 0;
-    int mIndexCapacity = 0;
+    int                        mVertexCapacity = 0;
+    int                        mIndexCapacity = 0;
     Render::VertexBufferHandle mVertexBufferHandle;
-    Render::IndexBufferHandle mIndexBufferHandle;
+    Render::IndexBufferHandle  mIndexBufferHandle;
   };
 
 }

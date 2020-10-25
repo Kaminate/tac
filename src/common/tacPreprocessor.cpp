@@ -25,7 +25,9 @@ namespace Tac
 #endif
   }
 
-  StackFrame::StackFrame( int line, const char* file, const char* function )
+  StackFrame::StackFrame( const int line,
+                          const char* file,
+                          const char* function )
   {
     mLine = line;
     mFile = file;

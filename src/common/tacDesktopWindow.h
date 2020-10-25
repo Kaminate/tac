@@ -12,12 +12,11 @@ namespace Tac
     int                       mY = 0;
     int                       mWidth = 0;
     int                       mHeight = 0;
-    void*                     mNativeWindowHandle = nullptr;
+    const void*               mNativeWindowHandle = nullptr;
   };
 
   static const int            kDesktopWindowCapacity = 10;
   DesktopWindowState*         GetDesktopWindowState( DesktopWindowHandle );
-  //DesktopWindowState*         GetDesktopWindowStates();
   void                        CenterWindow( int *x, int *y, int w, int h );
 }
 

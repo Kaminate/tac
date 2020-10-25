@@ -31,33 +31,32 @@ namespace Tac
   struct Job
   {
     Job();
-    virtual ~Job() = default;
-    virtual void Execute() = 0;
-    void SetStatus( AsyncLoadStatus asyncLoadStatus );
-    AsyncLoadStatus GetStatus();
+    virtual               ~Job() = default;
+    virtual void          Execute() = 0;
+    void                  SetStatus( AsyncLoadStatus asyncLoadStatus );
+    AsyncLoadStatus       GetStatus();
 
     // Errors which occured while running the job in another thread.
-    Errors mErrors;
+    Errors                mErrors;
   private:
-    AsyncLoadStatus mAsyncLoadStatus;
-    std::mutex mStatusMutex;
+    AsyncLoadStatus       mAsyncLoadStatus;
+    std::mutex            mStatusMutex;
   };
 
   struct JobQueue
   {
-    static JobQueue* Instance;
     JobQueue();
-    void Init();
-    void Push( Job* job );
-    int GetThreadCount() const { return mThreads.size(); }
-
-    int mMinThreadCount = 4;
-    bool mRunning = false;
+    static JobQueue*      Instance;
+    void                  Init();
+    void                  Push( Job* job );
+    int                   GetThreadCount() const { return mThreads.size(); }
+    int                   mMinThreadCount = 4;
+    bool                  mRunning = false;
     Vector< std::thread > mThreads;
-    std::mutex mMutex;
+    std::mutex            mMutex;
 
     // The jobs are unowned
-    RingVector< Job* > mUnstarted;
+    RingVector< Job* >    mUnstarted;
   };
 
 

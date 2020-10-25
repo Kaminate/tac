@@ -367,7 +367,7 @@ namespace Tac
     float projB;
     Render::GetPerspectiveProjectionAB( farPlane, nearPlane, projA, projB );
 
-    auto world_to_view = M4View( camPos, camViewDir, camR, camU );
+    const m4 world_to_view = m4::View( camPos, camViewDir, camR, camU );
     //auto view_to_clip = M4ProjPerspective( projA, projB, fovYRad, aspect );
 
     //InvalidCodePath;

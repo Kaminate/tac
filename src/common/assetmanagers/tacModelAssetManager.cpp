@@ -320,8 +320,8 @@ namespace Tac
     if( node->has_translation )
     {
       v3 pos = { node->translation[ 0 ], node->translation[ 1 ], node->translation[ 2 ] };
-      transform = M4Translate( pos );
-      transformInv = M4Translate( -pos );
+      transform = m4::Translate( pos );
+      transformInv = m4::Translate( -pos );
     }
 
     auto newMesh = TAC_NEW Mesh;

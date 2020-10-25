@@ -87,13 +87,11 @@ namespace Tac
     /*TAC_PROFILE_BLOCK*/;
     const StringView defaultSkybox = "assets/skybox/daylight";
     const StringView skyboxDirToUse = skyboxDir.empty() ? defaultSkybox : skyboxDir;
-
     Render::TextureHandle cubemap = TextureAssetManager::GetTextureCube( skyboxDirToUse,
                                                                          mGetSkyboxTextureErrors );
     TAC_ASSERT( mGetSkyboxTextureErrors.empty() );
     if( !cubemap.IsValid() )
       return;
-
     Mesh* mesh;
     ModelAssetManager::Instance->GetMesh( &mesh,
                                           "assets/editor/Box.gltf",
@@ -104,25 +102,21 @@ namespace Tac
     TAC_ASSERT( mGetSkyboxMeshErrors.empty() );
     if( !mesh )
       return;
-
     float a;
     float b;
     Render::GetPerspectiveProjectionAB( mCamera->mFarPlane, mCamera->mNearPlane, a, b );
     const float aspect = ( float )viewWidth / ( float )viewHeight;
-    const m4 view = M4ViewInv( v3( 0, 0, 0 ),
+    const m4 view = m4::ViewInv( v3( 0, 0, 0 ),
                                mCamera->mForwards,
                                mCamera->mRight,
                                mCamera->mUp );
-
     DefaultCBufferPerFrame perFrame;
     perFrame.mFar = mCamera->mFarPlane;
     perFrame.mNear = mCamera->mNearPlane;
     perFrame.mGbufferSize = { ( float )viewWidth, ( float )viewHeight };
     perFrame.mView = view;
     perFrame.mProjection = mCamera->Proj( a, b, aspect );
-
     const SubMesh* subMesh = &mesh->mSubMeshes[ 0 ];
-
     Render::UpdateConstantBuffer( mPerFrame, &perFrame, sizeof( DefaultCBufferPerFrame ), TAC_STACK_FRAME );
     Render::SetVertexBuffer( subMesh->mVertexBuffer, 0, 0 );
     Render::SetIndexBuffer( subMesh->mIndexBuffer, 0, subMesh->mIndexCount );
@@ -133,8 +127,6 @@ namespace Tac
     Render::SetRasterizerState( mRasterizerState );
     Render::SetSamplerState( mSamplerState );
     Render::SetTexture( Render::DrawCallTextures( cubemap ) );
-
-
     Render::Submit( viewId, TAC_STACK_FRAME );
   }
 }

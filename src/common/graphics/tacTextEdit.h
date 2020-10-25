@@ -4,8 +4,6 @@
 
 namespace Tac
 {
-
-
   enum class TextInputKey
   {
     LeftArrow,
@@ -16,23 +14,23 @@ namespace Tac
 
   struct TextInputData
   {
-    int GetMinCaret();
-    int GetMaxCaret();
-    void OnClick( int numGlyphsBeforeCaret );
-    void OnDrag( int numGlyphsBeforeCaret );
-    void OnKeyPressed( TextInputKey key );
-    void OnCodepoint( Codepoint codepoint );
-    void SetCodepoints( CodepointView );
+    int                 GetMinCaret();
+    int                 GetMaxCaret();
+    void                OnClick( int numGlyphsBeforeCaret );
+    void                OnDrag( int numGlyphsBeforeCaret );
+    void                OnKeyPressed( TextInputKey key );
+    void                OnCodepoint( Codepoint codepoint );
+    void                SetCodepoints( CodepointView );
 
 
-    int mNumGlyphsBeforeCaret[ 2 ];
-    int mCaretCount = 0;
+    int                 mNumGlyphsBeforeCaret[ 2 ];
+    int                 mCaretCount = 0;
     Vector< Codepoint > mCodepoints;
 
   private:
-    void OnArrowKeyPressed( bool canMoveDirection,
-                            int direction,
-                            int numGlyphsBeforeCaretEdge );
-    void OnDestructivePressed( int deletedCodepointsStartIndex );
+    void                OnArrowKeyPressed( bool canMoveDirection,
+                                           int direction,
+                                           int numGlyphsBeforeCaretEdge );
+    void                OnDestructivePressed( int deletedCodepointsStartIndex );
   };
 }

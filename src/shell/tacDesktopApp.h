@@ -26,7 +26,11 @@ namespace Tac
     void Init();
     //void PushEventCursorUnobscured( DesktopWindowHandle );
     void PushEventAssignHandle( DesktopWindowHandle,
-                                void* nativeWindowHandle );
+                                const void* nativeWindowHandle,
+                                int x,
+                                int y,
+                                int w,
+                                int h);
     void PushEventMoveWindow( DesktopWindowHandle,
                               int x,
                               int y );

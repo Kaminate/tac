@@ -388,7 +388,7 @@ namespace Tac
   {
     /*TAC_PROFILE_BLOCK*/;
 
-    //UpdateWindowRenderInterfaces();
+    DesktopEventQueue::Instance.ApplyQueuedEvents(GetDesktopWindowState(0));
 
     if( !CreationMainWindow::Instance &&
         !CreationGameWindow::Instance &&
@@ -500,7 +500,7 @@ namespace Tac
   {
     CreationGameWindow* gameWindow = CreationGameWindow::Instance;
 
-    if( !gameWindow || gameWindow->mDesktopWindowHandle.mIndex != -1 )
+    if( !gameWindow || !gameWindow->mDesktopWindowHandle.IsValid() )
       return;
 
     DesktopWindowState* desktopWindowState = GetDesktopWindowState(gameWindow->mDesktopWindowHandle);

@@ -2,6 +2,7 @@
 #include "src/common/tacPreprocessor.h"
 #include "src/common/math/tacMatrix3.h"
 #include "src/common/math/tacMatrix4.h"
+#include "src/common/math/tacVector4.h"
 #include <cmath>
 
 namespace Tac
@@ -122,7 +123,7 @@ namespace Tac
       { 1, 1, -1 },
       { 1, 1, 1 },
     };
-    auto transform = M4Transform( obbHalfExtents, obbEulerRads, obbPos );
+    auto transform = m4::Transform( obbHalfExtents, obbEulerRads, obbPos );
     for( auto& point : mPoints )
       point = ( transform * v4( point, 1.0f ) ).xyz();
   }

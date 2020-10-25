@@ -37,33 +37,34 @@ namespace Tac
     MouseWheel,
     MouseMove,
   };
+
   struct WantSpawnInfo
   {
     DesktopWindowHandle mHandle;
-    int mX;
-    int mY;
-    int mWidth;
-    int mHeight;
+    int                 mX;
+    int                 mY;
+    int                 mWidth;
+    int                 mHeight;
   };
 
   struct DesktopEventQueueImpl
   {
-    void Init();
-    void QueuePush( DesktopEventType, void*, int );
-    bool QueuePop( void*, int );
-    bool Empty();
+    void       Init();
+    void       QueuePush( DesktopEventType, void*, int );
+    bool       QueuePop( void*, int );
+    bool       Empty();
     RingBuffer mQueue;
     std::mutex mMutex;
   };
 
   typedef FixedVector< WantSpawnInfo, kDesktopWindowCapacity > WindowRequests;
 
-  Errors                       gPlatformThreadErrors( true );
-  Errors                       gLogicThreadErrors( true );
+  Errors                       gPlatformThreadErrors( Errors::Flags::kDebugBreakOnAppend );
+  Errors                       gLogicThreadErrors( Errors::Flags::kDebugBreakOnAppend );
   static AppInterfacePlatform  sAppInterfacePlatform;
   static AppInterfaceProject   sAppInterfaceProject;
   static std::mutex            sWindowHandleLock;
-  static IdCollection          sDesktopWindowHandleIDs;
+  static IdCollection          sDesktopWindowHandleIDs( kDesktopWindowCapacity );
   static WindowRequests        sWindowRequests;
   static ThreadAllocator       sAllocatorStuff;
   static ThreadAllocator       sAllocatorMain;
@@ -116,6 +117,7 @@ namespace Tac
     return mQueue.Empty();
 
   }
+
   bool DesktopEventQueueImpl::QueuePop( void* dataBytes,
                                         int dataByteCount )
   {
@@ -123,23 +125,14 @@ namespace Tac
     return mQueue.Pop( dataBytes, dataByteCount );
   }
 
-
-  // ---
-
-  //struct DesktopEventDataCreateWindow
-  //{
-  //  DesktopWindowHandle mDesktopWindowHandle;
-  //  int                 mWidth;
-  //  int                 mHeight;
-  //  int                 mX;
-  //  int                 mY;
-  //  void*               mNativeWindowHandle;
-  //};
-
   struct DesktopEventDataAssignHandle
   {
     DesktopWindowHandle mDesktopWindowHandle;
-    void*               mNativeWindowHandle;
+    const void*         mNativeWindowHandle;
+    int                 mX;
+    int                 mY;
+    int                 mW;
+    int                 mH;
   };
 
   struct DesktopEventDataCursorUnobscured
@@ -184,16 +177,12 @@ namespace Tac
     int                 mY;
   };
 
-  // ---
-
-
   DesktopEventQueue DesktopEventQueue::Instance;
 
   void DesktopEventQueue::Init()
   {
     sEventQueue.Init();
   }
-
 
   void DesktopEventQueue::ApplyQueuedEvents( DesktopWindowState* desktopWindowStates )
   {
@@ -214,10 +203,16 @@ namespace Tac
           {
             WindowGraphicsNativeHandleChanged( data.mDesktopWindowHandle,
                                                data.mNativeWindowHandle,
-                                               desktopWindowState->mWidth,
-                                               desktopWindowState->mHeight );
+                                               data.mX,
+                                               data.mY,
+                                               data.mW,
+                                               data.mH );
           }
           desktopWindowState->mNativeWindowHandle = data.mNativeWindowHandle;
+          desktopWindowState->mWidth = data.mW;
+          desktopWindowState->mHeight = data.mH;
+          desktopWindowState->mX = data.mX;
+          desktopWindowState->mY = data.mY;
         } break;
 
         case DesktopEventType::WindowMove:
@@ -284,37 +279,21 @@ namespace Tac
     }
   }
 
-
-  //void DesktopEventQueue::PushEventCursorUnobscured( DesktopWindowHandle desktopWindowHandle )
-  //{
-  //  DesktopEventDataCursorUnobscured data;
-  //  data.mDesktopWindowHandle = desktopWindowHandle;
-  //  sEventQueue.QueuePush( DesktopEventType::CursorUnobscured, &data, sizeof( data ) );
-  //}
-
-  //void DesktopEventQueue::PushEventCreateWindow( DesktopWindowHandle desktopWindowHandle,
-  //                                               int width,
-  //                                               int height,
-  //                                               int x,
-  //                                               int y,
-  //                                               void* nativeWindowHandle )
-  //{
-  //  DesktopEventDataCreateWindow data;
-  //  data.mDesktopWindowHandle = desktopWindowHandle;
-  //  data.mWidth = width;
-  //  data.mHeight = height;
-  //  data.mNativeWindowHandle = nativeWindowHandle;
-  //  data.mX = x;
-  //  data.mY = y;
-  //  sEventQueue.QueuePush( DesktopEventType::WindowCreate, &data, sizeof( data ) );
-  //}
-  void DesktopEventQueue::PushEventAssignHandle( DesktopWindowHandle desktopWindowHandle,
-                                                 void* nativeWindowHandle )
+  void DesktopEventQueue::PushEventAssignHandle( const DesktopWindowHandle desktopWindowHandle,
+                                                 const void* nativeWindowHandle,
+                                                 const int x,
+                                                 const int y,
+                                                 const int w,
+                                                 const int h )
   {
 
     DesktopEventDataAssignHandle data;
     data.mDesktopWindowHandle = desktopWindowHandle;
     data.mNativeWindowHandle = nativeWindowHandle;
+    data.mW = w;
+    data.mH = h;
+    data.mX = x;
+    data.mY = y;
     sEventQueue.QueuePush( DesktopEventType::WindowAssignHandle, &data, sizeof( data ) );
   }
 
@@ -374,31 +353,14 @@ namespace Tac
 
   }
 
-
-  //DesktopApp* DesktopApp::Instance = nullptr;
-
-  //DesktopApp::DesktopApp()
-  //{
-  //  Instance = this;
-  //}
-
-  //DesktopApp::~DesktopApp()
-  //{
-  //}
-
-
   static void DontMaxOutCpuGpuPowerUsage()
   {
     std::this_thread::sleep_for( std::chrono::milliseconds( 1 ) );
   }
 
-  static void LogicThread()
+  static void LogicThreadInit(Errors& errors)
   {
-    Errors& errors = gLogicThreadErrors;
-    TAC_ON_DESTRUCT( if( errors.size() ) OS::mShouldStopRunning = true );
-
     gThreadType = ThreadType::Stuff;
-
     sAllocatorStuff.Init( 1024 * 1024 * 10 );
     FrameMemory::SetThreadAllocator( &sAllocatorStuff );
 
@@ -413,13 +375,19 @@ namespace Tac
     TAC_NEW ProfileSystem;
     ProfileSystem::Instance->Init();
 
-    Render::Init();
-
     TAC_NEW FontStuff;
     FontStuff::Instance->Load( errors );
     TAC_HANDLE_ERROR( errors );
 
     sAppInterfaceProject.mProjectInit( errors );
+    TAC_HANDLE_ERROR( errors );
+  }
+
+  static void LogicThread()
+  {
+    Errors& errors = gLogicThreadErrors;
+    TAC_ON_DESTRUCT( if( errors.size() ) OS::mShouldStopRunning = true );
+    LogicThreadInit( errors );
     TAC_HANDLE_ERROR( errors );
 
     while( !OS::mShouldStopRunning )
@@ -449,10 +417,20 @@ namespace Tac
     }
   }
 
+  static void PlatformThreadInit( Errors& errors )
+  {
+    gThreadType = ThreadType::Main;
+    sAllocatorMain.Init( 1024 * 1024 * 10 );
+    FrameMemory::SetThreadAllocator( &sAllocatorMain );
+  }
+
   static void PlatformThread()
   {
     Errors& errors = gPlatformThreadErrors;
     TAC_ON_DESTRUCT( if( errors.size() ) OS::mShouldStopRunning = true );
+    PlatformThreadInit( errors );
+    TAC_HANDLE_ERROR( errors );
+
     while( !OS::mShouldStopRunning )
     {
       sAppInterfacePlatform.mPlatformPoll( errors );
@@ -470,10 +448,6 @@ namespace Tac
 
   void DesktopAppInit( AppInterfacePlatform appInterfacePlatform, Errors& errors )
   {
-    gThreadType = ThreadType::Main;
-    sAllocatorMain.Init( 1024 * 1024 * 10 );
-    FrameMemory::SetThreadAllocator( &sAllocatorMain );
-    sDesktopWindowHandleIDs.Init( kDesktopWindowCapacity );
     sEventQueue.Init();
 
     ExecutableStartupInfo info;
@@ -484,6 +458,7 @@ namespace Tac
     bool appDataPathExists;
     OS::GetApplicationDataPath( appDataPath, errors );
     OS::DoesFolderExist( appDataPath, appDataPathExists, errors );
+    TAC_HANDLE_ERROR( errors );
     TAC_ASSERT( appDataPathExists );
 
     String appName = info.mAppName;
@@ -509,11 +484,8 @@ namespace Tac
     Shell::Instance.mPrefPath = prefPath;
     Shell::Instance.mInitialWorkingDir = workingDir;
 
-
-    TAC_HANDLE_ERROR( errors );
-
+    Render::Init();
   }
-
 
   void DesktopAppRun( Errors& errors )
   {
@@ -529,7 +501,6 @@ namespace Tac
     for( std::thread& thread : threads )
       thread.join();
   }
-  //static DesktopWindow* mDesktopWindows[ kMaxDesktopWindowStateCount ] = {};
 
   WindowHandleIterator::WindowHandleIterator()
   {
@@ -551,46 +522,6 @@ namespace Tac
   {
     return sDesktopWindowHandleIDs.end();
   }
-
-  //  WindowHandleIterator GetDesktopWindowHandleIDs()
-  //  {
-  //WindowHandleIterator
-  //  }
-
-  //DesktopWindowHandle* GetDesktopWindowHandles()
-  //{
-  //  sWindowHandleLock.lock();
-  //  DesktopWindowHandle* result = FrameMemory::Allocate(
-  //    sizeof( DesktopWindowHandle ) *
-  //    sDesktopWindowHandleIDs. );
-
-  //    void* Allocate( int );
-  //  sWindowHandleLock.unlock();
-  //}
-
-  //void DesktopWindowManager::SetWindowParams( WindowParams windowParams )
-  //{
-  //  WindowParams* pParams = FindWindowParams( windowParams.mName );
-  //  if( pParams )
-  //    *pParams = windowParams;
-  //  else
-  //    mWindowParams.push_back( windowParams );
-  //}
-
-  //WindowParams* DesktopWindowManager::FindWindowParams( StringView windowName )
-  //{
-  //  for( WindowParams& data : mWindowParams )
-  //    if( data.mName == windowName )
-  //      return &data;
-  //  return nullptr;
-  //}
-
-  //void DesktopWindowManager::DoWindow( StringView windowName )
-  //{
-  //  DesktopWindow* window = DesktopApp::Instance->FindWindow( windowName );
-  //  if( !window )
-  //    mWantSpawnWindows.push_back( windowName );
-  //}
 
   void DesktopWindowPollCreationRequests( Errors& errors )
   {

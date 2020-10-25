@@ -1,11 +1,26 @@
 #pragma once
 
 #include "src/common/graphics/tacRenderer.h"
+#include "src/common/containers/tacFixedVector.h"
 
 namespace Tac
 {
   namespace Render
   {
+    const int kDrawCallCapacity = 1000;
+    const int kMaxTextures = 1000;
+    const int kMaxVertexBuffers = 1000;
+    const int kMaxIndexBuffers = 1000;
+    const int kMaxFramebuffers = 100;
+    const int kMaxRasterizerStates = 100;
+    const int kMaxSamplerStates = 100;
+    const int kMaxDepthStencilStates = 100;
+    const int kMaxInputLayouts = 100;
+    const int kMaxBlendStates = 100;
+    const int kMaxConstantBuffers = 100;
+    const int kMaxPrograms = 100;
+    const int kMaxViews = 100;
+
     enum class CommandType
     {
       CreateBlendState,
@@ -37,18 +52,13 @@ namespace Tac
       //UpdateConstantBuffer,
     };
 
-    struct UpdateConstantBuffers
+    struct UpdateConstantBufferData
     {
-      static const int kCapacity = 2;
-      struct UpdateConstantBuffer
-      {
-        const void* mBytes;
-        int mByteCount;
-        ConstantBufferHandle mConstantBufferHandle;
-      } mUpdateConstantBufferDatas[ kCapacity ];
-      int mUpdateConstantBufferDataCount;
-      void Push( ConstantBufferHandle, const void* bytes, int byteCount );
+      const void*          mBytes;
+      int                  mByteCount;
+      ConstantBufferHandle mConstantBufferHandle;
     };
+    typedef FixedVector< UpdateConstantBufferData, 2 > UpdateConstantBuffers;
 
     struct DrawCall3
     {
@@ -69,6 +79,7 @@ namespace Tac
       int                   mIndexCount = 0;
       int                   mVertexCount = 0;
     };
+    typedef FixedVector< DrawCall3, kDrawCallCapacity > DrawCalls;
 
     struct CommandBuffer
     {
@@ -84,8 +95,6 @@ namespace Tac
       void           Push( const void* bytes, int byteCount );
       Vector< char > mBuffer;
     };
-
-    const int kDrawCallCapacity = 1000;
 
     struct UniformBuffer
     {
@@ -105,147 +114,119 @@ namespace Tac
 
     struct Frame
     {
-      // can add a mutex here so multiple threads can add draw calls at once
-
-      CommandBuffer mCommandBuffer;
-
-      DrawCall3 mDrawCalls[ kDrawCallCapacity ];
-      int mDrawCallCount = 0;
-
-      UniformBuffer mUniformBuffer;
-      View mViews[ 100 ];
+      CommandBuffer   mCommandBuffer;
+      DrawCalls       mDrawCalls;
+      UniformBuffer   mUniformBuffer;
+      View            mViews[ kMaxViews ];
     };
-
-    const int kMaxTextures = 1000;
-    const int kMaxVertexBuffers = 1000;
-    const int kMaxIndexBuffers = 1000;
-    const int kMaxFramebuffers = 100;
-    const int kMaxRasterizerStates = 100;
-    const int kMaxSamplerStates = 100;
-    const int kMaxDepthStencilStates = 100;
-    const int kMaxInputLayouts = 100;
-    const int kMaxBlendStates = 100;
-    const int kMaxConstantBuffers = 100;
-    const int kMaxPrograms = 100;
-
-    bool IsSubmitAllocated( const void* data );
-
-    void DebugPrintSubmitAllocInfo();
 
     struct CommandDataResizeFramebuffer
     {
-      int mWidth = 0;
-      int mHeight = 0;
+      int               mWidth = 0;
+      int               mHeight = 0;
       FramebufferHandle mFramebufferHandle;
     };
 
     struct CommandDataCreateShader
     {
-      ShaderSource mShaderSource;
+      ShaderSource    mShaderSource;
       ConstantBuffers mConstantBuffers;
-      ShaderHandle mShaderHandle;
+      ShaderHandle    mShaderHandle;
     };
 
     struct CommandDataCreateConstantBuffer
     {
       ConstantBufferHandle mConstantBufferHandle;
-      int mByteCount = 0;
-      int mShaderRegister = 0;
+      int                  mByteCount = 0;
+      int                  mShaderRegister = 0;
     };
 
     struct CommandDataCreateVertexBuffer
     {
       VertexBufferHandle mVertexBufferHandle;
-      int mByteCount = 0;
-      const void* mOptionalInitialBytes = nullptr;
-      int mStride = 0;
-      Access mAccess = Access::Default;
+      int                mByteCount = 0;
+      const void*        mOptionalInitialBytes = nullptr;
+      int                mStride = 0;
+      Access             mAccess = Access::Default;
     };
 
     struct CommandDataCreateIndexBuffer
     {
       IndexBufferHandle mIndexBufferHandle;
-      int mByteCount;
-      const void* mOptionalInitialBytes;
-      Access mAccess;
-      Format mFormat;
+      int               mByteCount;
+      const void*       mOptionalInitialBytes;
+      Access            mAccess;
+      Format            mFormat;
     };
 
     struct CommandDataCreateBlendState
     {
       BlendStateHandle mBlendStateHandle;
-      BlendState mBlendState;
+      BlendState       mBlendState;
     };
 
     struct CommandDataCreateVertexFormat
     {
       VertexFormatHandle mVertexFormatHandle;
       VertexDeclarations mVertexDeclarations;
-      ShaderHandle mShaderHandle;
+      ShaderHandle       mShaderHandle;
     };
 
     struct CommandDataUpdateVertexBuffer
     {
       VertexBufferHandle mVertexBufferHandle;
-      const void* mBytes = nullptr;
-      int mByteCount = 0;
+      const void*        mBytes = nullptr;
+      int                mByteCount = 0;
     };
 
     struct CommandDataUpdateIndexBuffer
     {
       IndexBufferHandle mIndexBufferHandle;
-      const void* mBytes = nullptr;
-      int mByteCount = 0;
+      const void*       mBytes = nullptr;
+      int               mByteCount = 0;
     };
-
-    //struct CommandDataUpdateConstantBuffer
-    //{
-    //  ConstantBufferHandle mConstantBufferHandle;
-    //  const void* mBytes = nullptr;
-    //  int mByteCount = 0;
-    //};
 
     struct CommandDataCreateFramebuffer
     {
       FramebufferHandle mFramebufferHandle;
-      void* mNativeWindowHandle = nullptr;
-      int mWidth = 0;
-      int mHeight = 0;
+      const void*       mNativeWindowHandle = nullptr;
+      int               mWidth = 0;
+      int               mHeight = 0;
     };
 
     struct CommandDataCreateDepthState
     {
       DepthStateHandle mDepthStateHandle;
-      DepthState mDepthState;
+      DepthState       mDepthState;
     };
-
 
     struct CommandDataCreateTexture
     {
       TextureHandle mTextureHandle;
-      TexSpec mTexSpec;
+      TexSpec       mTexSpec;
     };
 
     struct CommandDataUpdateTextureRegion
     {
       TextureHandle mTextureHandle;
-      TexUpdate mTexUpdate;
-
+      TexUpdate     mTexUpdate;
     };
 
     struct CommandDataCreateRasterizerState
     {
       RasterizerStateHandle mRasterizerStateHandle;
-      RasterizerState mRasterizerState;
+      RasterizerState       mRasterizerState;
     };
 
     struct CommandDataCreateSamplerState
     {
-      SamplerState mSamplerState;
+      SamplerState       mSamplerState;
       SamplerStateHandle mSamplerStateHandle;
     };
 
+    bool IsSubmitAllocated( const void* data );
 
+    void DebugPrintSubmitAllocInfo();
   }
 
   struct Renderer
@@ -262,6 +243,7 @@ namespace Tac
     static Renderer* Instance;
     Renderer();
     virtual ~Renderer();
+    void         ExecuteCommands( Render::CommandBuffer*, Errors& );
     virtual void Init( Errors& ) {};
     virtual void Render2( const Render::Frame*, Errors& ) { TAC_UNIMPLEMENTED; }
     virtual void SwapBuffers() { TAC_UNIMPLEMENTED; }
@@ -269,7 +251,6 @@ namespace Tac
                                              float n,
                                              float& a,
                                              float& b ) = 0;
-    void ExecuteCommands( Render::CommandBuffer*, Errors& );
     virtual void AddBlendState( Render::CommandDataCreateBlendState*, Errors& ) = 0;
     virtual void AddConstantBuffer( Render::CommandDataCreateConstantBuffer*, Errors& ) = 0;
     virtual void AddDepthState( Render::CommandDataCreateDepthState*, Errors& ) = 0;
@@ -296,7 +277,7 @@ namespace Tac
     virtual void RemoveIndexBuffer( Render::IndexBufferHandle, Errors& ) = 0;
     virtual void RemoveTexture( Render::TextureHandle, Errors& ) = 0;
     virtual void RemoveFramebuffer( Render::FramebufferHandle, Errors& ) = 0;
-    String mName;
+    String       mName;
   };
   String RendererTypeToString( Renderer::Type );
 

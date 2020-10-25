@@ -169,7 +169,7 @@ namespace Tac
     ImGuiWindow* window = ImGuiGlobals::Instance.FindWindow( name );
     if( !window )
     {
-      TAC_ASSERT( desktopWindowHandle.mIndex != -1 );
+      TAC_ASSERT( desktopWindowHandle.IsValid());
       window = TAC_NEW ImGuiWindow;
       window->mName = name;
       window->mDrawData = TAC_NEW UI2DDrawData;

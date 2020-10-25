@@ -18,53 +18,53 @@ namespace Tac
 
   struct ShaderDX11LoadData
   {
-    void Release();
+    //void Release();
     ID3D11VertexShader* mVertexShader = nullptr;
-    ID3D11PixelShader* mPixelShader = nullptr;
-    ID3DBlob* mInputSig = nullptr;
+    ID3D11PixelShader*  mPixelShader = nullptr;
+    ID3DBlob*           mInputSig = nullptr;
   };
 
   struct ConstantBuffer
   {
     ID3D11Buffer* mBuffer = nullptr;
-    int mShaderRegister = 0;
+    int           mShaderRegister = 0;
   };
 
   struct Program
   {
-    ID3D11VertexShader* mVertexShader = nullptr;
-    ID3D11PixelShader* mPixelShader = nullptr;
-    ID3DBlob* mInputSig = nullptr;
+    ID3D11VertexShader*       mVertexShader = nullptr;
+    ID3D11PixelShader*        mPixelShader = nullptr;
+    ID3DBlob*                 mInputSig = nullptr;
   };
 
   struct Texture
   {
-    ID3D11Texture2D* mTexture2D = {};
-    ID3D11RenderTargetView* mTextureRTV = {};
+    ID3D11Texture2D*          mTexture2D = {};
+    ID3D11RenderTargetView*   mTextureRTV = {};
     ID3D11ShaderResourceView* mTextureSRV = {};
   };
 
   struct Framebuffer
   {
-    int mBufferCount = 0;
-    IDXGISwapChain* mSwapChain = nullptr;
-    ID3D11DepthStencilView* mDepthStencilView = nullptr;
-    ID3D11RenderTargetView* mRenderTargetView = nullptr;
-    ID3D11Texture2D* mDepthTexture = nullptr;
-    HWND mHwnd = nullptr;
+    int                       mBufferCount = 0;
+    IDXGISwapChain*           mSwapChain = nullptr;
+    ID3D11DepthStencilView*   mDepthStencilView = nullptr;
+    ID3D11RenderTargetView*   mRenderTargetView = nullptr;
+    ID3D11Texture2D*          mDepthTexture = nullptr;
+    HWND                      mHwnd = nullptr;
   };
 
   struct VertexBuffer
   {
     ID3D11Buffer* mBuffer;
-    UINT mStride;
+    UINT          mStride;
     //Format mFormat; bad. format is in the vertexformat
   };
 
   struct IndexBuffer
   {
     ID3D11Buffer* mBuffer;
-    Format mFormat;
+    Format        mFormat;
   };
 
   struct RendererDirectX11 : public Renderer
@@ -73,6 +73,8 @@ namespace Tac
     RendererDirectX11();
     ~RendererDirectX11();
 
+    // Virtual functions
+
     void Init( Errors& errors ) override;
     void Render2( const Render::Frame*, Errors& errors ) override;
     void SwapBuffers() override;
@@ -80,12 +82,6 @@ namespace Tac
                                      float n,
                                      float& a,
                                      float& b ) override;
-    void LoadShaderInternal( ShaderDX11LoadData* loadData,
-                             String name,
-                             String str,
-                             Errors& errors );
-    void SetDebugName( ID3D11DeviceChild* directXObject,
-                       StringView name );
     void AddBlendState( Render::CommandDataCreateBlendState*, Errors& ) override;
     void AddConstantBuffer( Render::CommandDataCreateConstantBuffer*, Errors& ) override;
     void AddDepthState( Render::CommandDataCreateDepthState*, Errors& ) override;
@@ -113,8 +109,15 @@ namespace Tac
     void UpdateTextureRegion( Render::CommandDataUpdateTextureRegion*, Errors& ) override;
     void UpdateVertexBuffer( Render::CommandDataUpdateVertexBuffer*, Errors& ) override;
 
-    void UpdateBuffer( ID3D11Buffer* , const void* bytes, int byteCount, Errors& );
+    // Non-virtual functions
 
+    void LoadShaderInternal( ShaderDX11LoadData* loadData,
+                             String name,
+                             String str,
+                             Errors& errors );
+    void SetDebugName( ID3D11DeviceChild* directXObject,
+                       StringView name );
+    void UpdateBuffer( ID3D11Buffer* , const void* bytes, int byteCount, Errors& );
 
     ID3D11InfoQueue*           mInfoQueueDEBUG = nullptr;
     ID3DUserDefinedAnnotation* mUserAnnotationDEBUG = nullptr;

@@ -107,7 +107,7 @@ namespace Tac
     static bool verboseCapture = false;
 
     const DesktopWindowHandle desktopWindowHandle = FindDesktopWindowHandle( hwnd );
-    if( desktopWindowHandle.mIndex == -1 )
+    if( !desktopWindowHandle.IsValid() )
       return DefWindowProc( hwnd, uMsg, wParam, lParam );
 
     switch( uMsg )
@@ -533,7 +533,7 @@ namespace Tac
     ShowWindow( hwnd, gnCmdShow );
 
 
-    sHWNDs[ desktopWindowHandle.mIndex ] = hwnd;
+    sHWNDs[ ( int )desktopWindowHandle ] = hwnd;
 
     //auto createdWindow = TAC_NEW Win32DesktopWindow;
     //createdWindow->mHWND = hwnd;
@@ -544,13 +544,18 @@ namespace Tac
       mParentHWND = hwnd;
 
 
-    DesktopEventQueue::Instance.PushEventAssignHandle( desktopWindowHandle, hwnd );
-
-    // hack
-    DesktopEventQueue::Instance.PushEventMoveWindow( desktopWindowHandle, x, y );
-    DesktopEventQueue::Instance.PushEventResizeWindow( desktopWindowHandle,
+    DesktopEventQueue::Instance.PushEventAssignHandle( desktopWindowHandle,
+                                                       hwnd,
+                                                       x,
+                                                       y,
                                                        windowAdjustedWidth,
                                                        windowAdjustedHeight );
+
+    // hack
+    //DesktopEventQueue::Instance.PushEventMoveWindow( desktopWindowHandle, x, y );
+    //DesktopEventQueue::Instance.PushEventResizeWindow( desktopWindowHandle,
+    //                                                   windowAdjustedWidth,
+    //                                                   windowAdjustedHeight );
     //mWindows.push_back( createdWindow );
     //DesktopApp::SpawnWindow( createdWindow );
   }

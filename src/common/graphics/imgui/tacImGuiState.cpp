@@ -260,8 +260,9 @@ namespace Tac
 
   bool ImGuiWindow::IsHovered( const ImGuiRect& rect )
   {
-    if( ImGuiGlobals::Instance.mMouseHoveredWindow.mIndex != -1 &&
-        ImGuiGlobals::Instance.mMouseHoveredWindow.mIndex == mDesktopWindowHandle.mIndex )
+    if( !ImGuiGlobals::Instance.mMouseHoveredWindow.IsValid() )
+      return false;
+    if(ImGuiGlobals::Instance.mMouseHoveredWindow != mDesktopWindowHandle)
       return false;
     const v2 mousePos = GetRelativeMousePosition();
     return

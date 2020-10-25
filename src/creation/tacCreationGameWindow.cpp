@@ -235,7 +235,7 @@ namespace Tac
 
   void CreationGameWindow::MousePickingAll()
   {
-    DesktopWindowState* desktopWindowState = GetDesktopWindowState(mDesktopWindowHandle);
+    DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
     if( !desktopWindowState )
       return;
 
@@ -286,9 +286,9 @@ namespace Tac
       v3 selectionGizmoOrigin = creation->GetSelectionGizmoOrigin();
 
       m4 invArrowRots[] = {
-        M4RotRadZ( 3.14f / 2.0f ),
+        m4::RotRadZ( 3.14f / 2.0f ),
         m4::Identity(),
-        M4RotRadX( -3.14f / 2.0f ), };
+        m4::RotRadX( -3.14f / 2.0f ), };
 
       for( int i = 0; i < 3; ++i )
       {
@@ -358,7 +358,7 @@ namespace Tac
   }
   void CreationGameWindow::MousePickingInit()
   {
-    DesktopWindowState* desktopWindowState = GetDesktopWindowState(mDesktopWindowHandle);
+    DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
     if( !desktopWindowState )
       return;
 
@@ -381,11 +381,10 @@ namespace Tac
     const float sX = cotTheta / aspect;
     const float sY = cotTheta;
 
-    const m4 viewInv = M4ViewInv(
-      creation->mEditorCamera.mPos,
-      creation->mEditorCamera.mForwards,
-      creation->mEditorCamera.mRight,
-      creation->mEditorCamera.mUp );
+    const m4 viewInv = m4::ViewInv( creation->mEditorCamera.mPos,
+                                    creation->mEditorCamera.mForwards,
+                                    creation->mEditorCamera.mRight,
+                                    creation->mEditorCamera.mUp );
     const v3 viewSpaceMousePosNearPlane =
     {
       xNDC / sX,
@@ -409,9 +408,8 @@ namespace Tac
       return;
     }
 
-    m4 transformInv;
     bool transformInvExists;
-    M4Inverse( entity->mWorldTransform, &transformInv, &transformInvExists );
+    m4 transformInv = m4::Inverse( entity->mWorldTransform, &transformInvExists );
     if( !transformInvExists )
     {
       *hit = false;
@@ -461,11 +459,10 @@ namespace Tac
     {
       return;
     }
-    m4 view = M4View(
-      creation->mEditorCamera.mPos,
-      creation->mEditorCamera.mForwards,
-      creation->mEditorCamera.mRight,
-      creation->mEditorCamera.mUp );
+    m4 view = m4::View( creation->mEditorCamera.mPos,
+                        creation->mEditorCamera.mForwards,
+                        creation->mEditorCamera.mRight,
+                        creation->mEditorCamera.mUp );
     v3 pos = creation->GetSelectionGizmoOrigin();
     v4 posVS4 = view * v4( pos, 1 );
     float clip_height = std::abs( std::tan( creation->mEditorCamera.mFovyrad / 2.0f ) * posVS4.z * 2.0f );
@@ -476,7 +473,7 @@ namespace Tac
   {
     MousePickingAll();
     Camera* camera = &Creation::Instance->mEditorCamera;
-    DesktopWindowState* desktopWindowState = GetDesktopWindowState(mDesktopWindowHandle);
+    DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
     if( !desktopWindowState )
       return;
 
@@ -490,7 +487,7 @@ namespace Tac
                                         a,
                                         b );
     const float aspect = w / h;
-    const m4 proj = M4ProjPerspective( a, b, camera->mFovyrad, aspect );
+    const m4 proj = m4::ProjPerspective( a, b, camera->mFovyrad, aspect );
     DefaultCBufferPerFrame perFrameData;
     perFrameData.mFar = camera->mFarPlane;
     perFrameData.mNear = camera->mNearPlane;
@@ -506,14 +503,14 @@ namespace Tac
     if( Creation::Instance->IsAnythingSelected() )
     {
       v3 selectionGizmoOrigin = Creation::Instance->GetSelectionGizmoOrigin();
-      v3 colors[] = {
-        { 1, 0, 0 },
-      { 0, 1, 0 },
-      { 0, 0, 1 }, };
+      v3 red = { 1, 0, 0 };
+      v3 grn = { 0, 1, 0 };
+      v3 blu = { 0, 0, 1 };
+      v3 colors[] = { red, grn, blu };
       m4 rots[] = {
-        M4RotRadZ( -3.14f / 2.0f ),
+        m4::RotRadZ( -3.14f / 2.0f ),
         m4::Identity(),
-        M4RotRadX( 3.14f / 2.0f ), };
+        m4::RotRadX( 3.14f / 2.0f ), };
 
       for( int i = 0; i < 3; ++i )
       {
@@ -521,9 +518,9 @@ namespace Tac
         DefaultCBufferPerObject perObjectData;
         perObjectData.Color = { colors[ i ], 1 };
         perObjectData.World =
-          M4Translate( selectionGizmoOrigin ) *
+          m4::Translate( selectionGizmoOrigin ) *
           rots[ i ] *
-          M4Scale( v3( 1, 1, 1 ) * mArrowLen ) *
+          m4::Scale( v3( 1, 1, 1 ) * mArrowLen ) *
           mArrow->mTransform;
         AddDrawCall( mArrow, perObjectData );
 
@@ -531,10 +528,10 @@ namespace Tac
         v3 axis = {};
         axis[ i ] = 1;
         perObjectData.World =
-          M4Translate( selectionGizmoOrigin ) *
-          M4Translate( axis * ( mArrowLen * 1.1f ) ) *
+          m4::Translate( selectionGizmoOrigin ) *
+          m4::Translate( axis * ( mArrowLen * 1.1f ) ) *
           rots[ i ] *
-          M4Scale( v3( 1, 1, 1 ) * mArrowLen * 0.1f );
+          m4::Scale( v3( 1, 1, 1 ) * mArrowLen * 0.1f );
         AddDrawCall( mCenteredUnitCube, perObjectData );
       }
     }
@@ -578,7 +575,7 @@ namespace Tac
   }
   void CreationGameWindow::CameraControls()
   {
-    DesktopWindowState* desktopWindowState = GetDesktopWindowState(mDesktopWindowHandle);
+    DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
     if( !desktopWindowState )
       return;
     //if( !desktopWindowState->mCursorUnobscured )
@@ -595,7 +592,7 @@ namespace Tac
 
       if( angleRadians.x != 0 )
       {
-        m3 matrix = M3AngleAxis( -angleRadians.x, creation->mEditorCamera.mUp );
+        m3 matrix = m3::RotRadAngleAxis( -angleRadians.x, creation->mEditorCamera.mUp );
         creation->mEditorCamera.mForwards =
           matrix *
           creation->mEditorCamera.mForwards;
@@ -606,7 +603,7 @@ namespace Tac
 
       if( angleRadians.y != 0 )
       {
-        m3 matrix = M3AngleAxis( -angleRadians.y, creation->mEditorCamera.mRight );
+        m3 matrix = m3::RotRadAngleAxis( -angleRadians.y, creation->mEditorCamera.mRight );
         creation->mEditorCamera.mForwards =
           matrix *
           creation->mEditorCamera.mForwards;
@@ -664,8 +661,9 @@ namespace Tac
     Creation* creation = Creation::Instance;
 
     const Render::ViewHandle viewHandle = WindowGraphicsGetView( mDesktopWindowHandle );
+    const Render::FramebufferHandle framebufferHandle = WindowGraphicsGetFramebuffer( mDesktopWindowHandle );
 
-    DesktopWindowState* desktopWindowState = GetDesktopWindowState(mDesktopWindowHandle);
+    DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
     if( !desktopWindowState )
       return;
 
@@ -677,9 +675,9 @@ namespace Tac
       ( float )desktopWindowState->mWidth,
       ( float )desktopWindowState->mHeight );
 
-    //Render::SetViewFramebuffer( ViewIdGameWindow, info->mFramebufferHandle );
-    //Render::SetViewport( ViewIdGameWindow, viewport );
-    //Render::SetViewScissorRect( ViewIdGameWindow, scissorRect );
+    Render::SetViewFramebuffer( viewHandle, framebufferHandle );
+    Render::SetViewport( viewHandle, viewport );
+    Render::SetViewScissorRect( viewHandle, scissorRect );
 
 
     //mDesktopWindow->SetRenderViewDefaults();

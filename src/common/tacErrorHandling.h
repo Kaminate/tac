@@ -7,7 +7,12 @@ namespace Tac
 {
   struct Errors
   {
-    Errors( bool breakOnAppend = false );
+    enum Flags
+    {
+      kNone = 0b0000,
+      kDebugBreakOnAppend = 0b0001,
+    };
+    Errors( Flags flags = kNone ) : mFlags( flags ) {};
     bool                 size() const;
     bool                 empty() const;
     void                 clear();
@@ -20,7 +25,7 @@ namespace Tac
     operator             bool() const;
     String               mMessage;
     Vector< StackFrame > mFrames;
-    bool                 mBreakOnAppend;
+    Flags                mFlags;
   };
 
 #define TAC_HANDLE_ERROR( errors )\

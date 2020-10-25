@@ -71,7 +71,7 @@ namespace Tac
   struct ImGuiWindowResource
   {
     ImGuiId                       mImGuiId;
-    ImGuiindex               mIndex;
+    ImGuiindex                    mIndex;
     Vector< char >                mData;
   };
 

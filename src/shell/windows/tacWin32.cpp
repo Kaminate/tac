@@ -5,6 +5,8 @@
 #include "src/common/graphics/tacRenderer.h"
 #include "src/common/tacAlgorithm.h"
 #include "src/common/tacShell.h"
+#include "src/common/containers/tacFixedVector.h"
+#include "src/common/tacIDCollection.h"
 
 #include <iostream>
 #include <ctime> // mktime
@@ -157,8 +159,8 @@ namespace Tac
   {
     void GetPrimaryMonitor( int* w, int* h )
     {
-      * w = GetSystemMetrics( SM_CXSCREEN );
-      * h = GetSystemMetrics( SM_CYSCREEN );
+      *w = GetSystemMetrics( SM_CXSCREEN );
+      *h = GetSystemMetrics( SM_CYSCREEN );
     }
 
     void GetWorkingDir( String& dir, Errors& errors )
@@ -396,9 +398,9 @@ namespace Tac
       *time = result;
     }
     void GetDirFilesRecrusiveAux( const WIN32_FIND_DATA& data,
-      Vector<String>&files,
-      StringView dir,
-      Errors& errors )
+                                  Vector<String>&files,
+                                  StringView dir,
+                                  Errors& errors )
     {
       String dataFilename = data.cFileName;
       if( dataFilename == "." || dataFilename == ".." )
@@ -448,33 +450,26 @@ namespace Tac
 
   };
 
-  namespace Semaphore
-  {
-    struct Semaphore
-    {
-      HANDLE mHandle;
-    };
-    
-    static Semaphore gSemaphores[ 10 ];
-    static int gSemaphoreCount = 0;
+  static const int kSemaphoreCapacity = 10;
+  static IdCollection gSemaphoreIds( kSemaphoreCapacity );
+  static HANDLE gSemaphores[ kSemaphoreCapacity ];
 
-    Handle Create()
-    {
-      const int index = gSemaphoreCount++;
-      Handle handle = { index };
-      Semaphore* semaphore = &gSemaphores[ index ];
-      semaphore->mHandle = CreateSemaphoreA( NULL, 0, 100, NULL );
-      return handle;
-    }
-    void WaitAndDecrement( Handle handle)
-    {
-      HANDLE nativeHandle = gSemaphores[ handle.mIndex ].mHandle;
-      WaitForSingleObject( nativeHandle, INFINITE );
-    }
-    void Increment( Handle handle)
-    {
-      HANDLE nativeHandle = gSemaphores[ handle.mIndex ].mHandle;
-      ReleaseSemaphore( nativeHandle, 1, NULL );
-    }
+  SemaphoreHandle SemaphoreCreate()
+  {
+    const int i = gSemaphoreIds.Alloc();
+    gSemaphores[ i ] = CreateSemaphoreA( NULL, 0, 100, NULL );
+    return { i };
+  }
+  void SemaphoreDecrementWait( const SemaphoreHandle handle )
+  {
+    TAC_ASSERT( handle.IsValid() );
+    const HANDLE nativeHandle = gSemaphores[ ( int )handle ];
+    WaitForSingleObject( nativeHandle, INFINITE );
+  }
+  void SemaphoreIncrementPost( const SemaphoreHandle handle )
+  {
+    TAC_ASSERT( handle.IsValid() );
+    const HANDLE nativeHandle = gSemaphores[ ( int )handle ];
+    ReleaseSemaphore( nativeHandle, 1, NULL );
   }
 }

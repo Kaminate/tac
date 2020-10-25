@@ -1,13 +1,19 @@
 #pragma once
 
+//#include "src/common/tacPreprocessor.h"
+
 namespace Tac
 {
   struct IdCollection
   {
-    void            Init( int capacity );
+    //IdCollection() = default;
+    //IdCollection( int capacity ) { Init( capacity ); }
+    IdCollection( int capacity );
+    //void            Init( int capacity );
     void            Uninit();
     int             Alloc();
     void            Free( int id );
+    //void            Free( const HandleBase& handleBase );
     int*            begin();
     int*            end();
   private:

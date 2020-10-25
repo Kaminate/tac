@@ -10,8 +10,6 @@
 
 namespace Tac
 {
-
-
   struct LoadingMesh;
   struct JobQueue;
   struct Renderer;
@@ -24,34 +22,39 @@ namespace Tac
   struct SubMesh
   {
     Render::VertexBufferHandle mVertexBuffer;
-    Render::IndexBufferHandle mIndexBuffer;
-    SubMeshTriangles mTris;
-    void Raycast( v3 inRayPos, v3 inRayDir, bool* outHit, float* outDist );
-    int mIndexCount = 0;
+    Render::IndexBufferHandle  mIndexBuffer;
+    SubMeshTriangles           mTris;
+    void                       Raycast( v3 inRayPos,
+                                        v3 inRayDir,
+                                        bool* outHit,
+                                        float* outDist );
+    int                        mIndexCount = 0;
   };
 
   struct Mesh
   {
-    Vector< SubMesh > mSubMeshes;
+    Vector< SubMesh >          mSubMeshes;
     Render::VertexFormatHandle mVertexFormat;
-    void Raycast( v3 inRayPos, v3 inRayDir, bool* outHit, float* outDist );
-    m4 mTransform = m4::Identity();
-    m4 mTransformInv = m4::Identity();
+    void                       Raycast( v3 inRayPos,
+                                        v3 inRayDir,
+                                        bool* outHit,
+                                        float* outDist );
+    m4                         mTransform = m4::Identity();
+    m4                         mTransformInv = m4::Identity();
   };
+  typedef std::map< StringID, Mesh* > MeshMap;
 
   struct ModelAssetManager
   {
-    static ModelAssetManager* Instance;
     ModelAssetManager();
     ~ModelAssetManager();
-    void GetMesh( Mesh** mesh,
-                  StringView path,
-                  Render::VertexFormatHandle vertexFormat,
-                  VertexDeclaration* vertexDeclarations,
-                  int vertexDeclarationCount,
-                  Errors& errors );
-    std::map< StringID, Mesh* > mMeshes;
+    static ModelAssetManager*  Instance;
+    void                       GetMesh( Mesh** mesh,
+                                        StringView path,
+                                        Render::VertexFormatHandle vertexFormat,
+                                        VertexDeclaration* vertexDeclarations,
+                                        int vertexDeclarationCount,
+                                        Errors& errors );
+    MeshMap                    mMeshes;
   };
-
-
 }

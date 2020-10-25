@@ -30,15 +30,15 @@ namespace Tac
 
   struct FontAtlasCell
   {
-    Codepoint mCodepoint = 0;
-    char mCodepointAscii = 0; // For debugging purposes
-    FontFile* mOwner = nullptr;
-    int mRow = 0;
-    int mColumn = 0;
-    double mWriteTime = 0;
-    double mReadTime = 0;
-    v2 mMinGLTexCoord = {};
-    v2 mMaxGLTexCoord = {};
+    Codepoint      mCodepoint = 0;
+    char           mCodepointAscii = 0; // For debugging purposes
+    FontFile*      mOwner = nullptr;
+    int            mRow = 0;
+    int            mColumn = 0;
+    double         mWriteTime = 0;
+    double         mReadTime = 0;
+    v2             mMinGLTexCoord = {};
+    v2             mMaxGLTexCoord = {};
 
 
     // todo:
@@ -46,24 +46,26 @@ namespace Tac
     //  or if its in bitmap space, rename it to bitmapFoo
     //  delete the clones
 
-    float mUISpaceAdvanceWidth = 0;
-    float mAdvanceWidth = 0; // unscaled
+    float          mUISpaceAdvanceWidth = 0;
+    float          mAdvanceWidth = 0; // unscaled
 
-    float mUISpaceLeftSideBearing = 0;
-    float mLeftSideBearing = 0; // unscaled
+    float          mUISpaceLeftSideBearing = 0;
+    float          mLeftSideBearing = 0; // unscaled
 
-    float mUISpaceVerticalShift = 0;
+    float          mUISpaceVerticalShift = 0;
 
     // measured in pixels in bitmap space ( uispace )
-    int mBitmapWidth = 0;
-    int mBitmapHeight = 0;
+    int            mBitmapWidth = 0;
+    int            mBitmapHeight = 0;
   };
+
+  typedef std::map< Codepoint, FontAtlasCell* > CellMap;
 
   struct FontFile
   {
     FontFile( StringView filepath, Errors& );
-    String mFilepath;
-    std::map< Codepoint, FontAtlasCell* > mCells;
+    String         mFilepath;
+    CellMap        mCells;
     Vector< char > mFontMemory;
     stbtt_fontinfo mFontInfo = {};
 
@@ -87,21 +89,21 @@ namespace Tac
     //           \_/
 
     // ascent is the coordinate above the baseline the font extends
-    float mAscent = 0;
-    float mUISpaceAscent = 0;
+    float         mAscent = 0;
+    float         mUISpaceAscent = 0;
 
     // descent is the coordinate below the baseline the font extends
     // (i.e. it is typically negative)
-    float mDescent = 0;
-    float mUISpaceDescent = 0;
+    float         mDescent = 0;
+    float         mUISpaceDescent = 0;
 
     // lineGap is the spacing between one row's descent and the next row's ascent
-    float mLinegap = 0;
-    float mUISpaceLinegap = 0;
+    float         mLinegap = 0;
+    float         mUISpaceLinegap = 0;
 
     // scaleFontToUI
     // scale = pixels / (ascent - descent)
-    float mScale = 0;
+    float         mScale = 0;
   };
 
 
@@ -110,23 +112,21 @@ namespace Tac
   // TODO: rename from FontStuff to FontAtlas
   struct FontStuff
   {
-    static FontStuff* Instance;
     FontStuff();
     ~FontStuff();
-    void Load( Errors& errors );
-    void DebugImgui();
-
-    void GetCharacter( Language defaultLanguage,
-                       Codepoint codepoint,
-                       FontAtlasCell** fontAtlasCell );
-    FontAtlasCell* GetCell();
-
-    Render::TextureHandle mTextureId;
-    int mRowCount = 0;
-    Vector< FontAtlasCell* > mCells;
-    Vector< FontFile* > mFontFiles;
+    static FontStuff*               Instance;
+    void                            Load( Errors& errors );
+    void                            DebugImgui();
+    void                            GetCharacter( Language defaultLanguage,
+                                                  Codepoint codepoint,
+                                                  FontAtlasCell** fontAtlasCell );
+    FontAtlasCell*                  GetCell();
+    Render::TextureHandle           mTextureId;
+    int                             mRowCount = 0;
+    Vector< FontAtlasCell* >        mCells;
+    Vector< FontFile* >             mFontFiles;
     std::map< Language, FontFile* > mDefaultFonts;
-    bool mOutlineGlyphs;
-    int mOutlineWidth;
+    bool                            mOutlineGlyphs;
+    int                             mOutlineWidth;
   };
 }

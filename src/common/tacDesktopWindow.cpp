@@ -23,7 +23,7 @@ namespace Tac
 
   DesktopWindowState* GetDesktopWindowState( DesktopWindowHandle desktopWindowHandle)
   {
-    return &sDesktopWindowStates[ desktopWindowHandle.mIndex ];
+    return &sDesktopWindowStates[ (int)desktopWindowHandle ];
   }
 
   //bool AreWindowHandlesEqual( const DesktopWindowHandle& l, const DesktopWindowHandle& r )

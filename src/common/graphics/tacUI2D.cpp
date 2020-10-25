@@ -44,14 +44,23 @@ namespace Tac
     // 0 < ( x - L ) / ( R - L ) < 1
     // 0 < 2 ( x - L ) / ( R - L ) < 2
     // -1 < ( 2 ( x - L ) / ( R - L ) ) - 1 < -1
-    // -1 < 2x/(R-L) - (R+L)/(R-L) < -1
+    // -1 < 2x/(R-L) + (R+L)/(L-R) < -1
     return
     {
-      2 / ( R - L ), 0, 0, ( R + L ) / ( R - L ),
-      0, 2 / ( T - B ), 0, ( T + B ) / ( T - B ),
+      2 / ( R - L ), 0, 0, ( R + L ) / ( L - R ),
+      0, 2 / ( T - B ), 0, ( T + B ) / ( B - T ),
       0, 0, 1, 0,
       0, 0, 0, 1
     };
+  }
+
+  static void OrthographicUIMatrixUnitTest( const m4 m, const v2 in, const v2 out )
+  {
+    const v4 in4( in, 0, 1 );
+    const v4 out4( out, 0, 1 );
+    const v4 actual = m * in4;
+    const float dist = Distance( actual, out4 );
+    TAC_ASSERT( dist < 0.01f );
   }
 
   static void OrthographicUIMatrixUnitTest( m4( *mtxFn )( float, float ) )
@@ -59,17 +68,32 @@ namespace Tac
     const float w = 400;
     const float h = 300;
     const m4 m = mtxFn( w, h );
-    TAC_ASSERT( Distance( m * v4( 0, 0, 0, 1 ), v4( -1, 1, 0, 1 ) ) < 0.01f );
-    TAC_ASSERT( Distance( m * v4( w, 0, 0, 1 ), v4( 1, 1, 0, 1 ) ) < 0.01f );
-    TAC_ASSERT( Distance( m * v4( 0, h, 0, 1 ), v4( -1, -1, 0, 1 ) ) < 0.01f );
-    TAC_ASSERT( Distance( m * v4( w, h, 0, 1 ), v4( 1, -1, 0, 1 ) ) < 0.01f );
-    TAC_ASSERT( Distance( m * v4( w / 2, h / 2, 0, 1 ), v4( 0, 0, 0, 1 ) ) < 0.01f );
+    OrthographicUIMatrixUnitTest( m, { 0, 0 }, { -1, 1 } );
+    OrthographicUIMatrixUnitTest( m, { w, 0 }, { 1, 1 } );
+    OrthographicUIMatrixUnitTest( m, { 0, h }, { -1, -1 } );
+    OrthographicUIMatrixUnitTest( m, { w, h }, { 1, -1 } );
+    OrthographicUIMatrixUnitTest( m, { w / 2, h / 2 }, { 0, 0 } );
   }
 
   static void OrthographicUIMatrixUnitTest()
   {
+    static int i;
+    ++i;
     OrthographicUIMatrixUnitTest( OrthographicUIMatrix );
+    ++i;
+    ++i;
     OrthographicUIMatrixUnitTest( OrthographicUIMatrix2 );
+    ++i;
+    ++i;
+    const float w = 400;
+    const float h = 300;
+    const m4 m0 = OrthographicUIMatrix( w, h );
+    const m4 m1 = OrthographicUIMatrix2( w, h );
+    for( int i = 0; i < 16; ++i )
+    {
+      const float diff = Abs( m0[ i ] - m1[ i ] );
+      TAC_ASSERT( diff - 0.01f );
+    }
   }
 
 
@@ -271,8 +295,6 @@ namespace Tac
                                     int h,
                                     Errors& errors )
   {
-    const float viewWidth = ( float )w;
-    const float viewHeight = ( float )h;
     /*TAC_PROFILE_BLOCK*/;
     //TAC_ASSERT( mStates.empty() );
 
@@ -283,47 +305,10 @@ namespace Tac
       Render::IndexBufferHandle& mIndexBufferHandle = gDrawInterface.mIndexBufferHandle;
 
       OrthographicUIMatrixUnitTest();
-      // mRenderView->mViewportRect.mViewportPixelWidthIncreasingRight?
-      const float sx = 2.0f / viewWidth;
-      const float sy = 2.0f / viewHeight;
-      auto projectionPieces = MakeArray< m4 >(
-        // orient to bottom left
-        m4( 1, 0, 0, 0,
-            0, -1, 0, ( float )viewHeight,
-            0, 0, 1, 0,
-            0, 0, 0, 1 ),
-        // convert to ndc
-        m4( sx, 0, 0, -1,
-            0, sy, 0, -1,
-            0, 0, 1, 0,
-            0, 0, 0, 1 ) );
-      static v4 testVectorOrig( 130, 160, 0, 1 );
-      v4 testVector = testVectorOrig;
-      static bool testVectorMultiply = true;
-      static bool testVectorPrint = false;
-      auto PrintTestVector = [ & ]()
-      {
-        if( testVectorPrint )
-          std::cout
-          << va(
-            "Test vector: %.2f, %.2f, %.2f\n",
-            testVector.x,
-            testVector.y,
-            testVector.z )
-          << std::endl;
-      };
-      PrintTestVector();
-      m4 projection = m4::Identity();
-      for( m4 projectionPiece : projectionPieces )
-      {
-        projection = projectionPiece * projection;
-        testVector = projectionPiece * testVector;
-        PrintTestVector();
-      }
 
       DefaultCBufferPerFrame perFrameData = {};
       perFrameData.mView = m4::Identity();
-      perFrameData.mProjection = projection;
+      perFrameData.mProjection = OrthographicUIMatrix( ( float )w, ( float )h );
 
 
       Render::SetBlendState( UI2DCommonData::Instance->mBlendState );

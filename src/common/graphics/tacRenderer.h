@@ -146,9 +146,9 @@ namespace Tac
   // Used so the gpu can translate from cpu types to gpu types
   struct Format
   {
-    int CalculateTotalByteCount() const;
-    int mElementCount = 0;
-    int mPerElementByteCount = 0;
+    int          CalculateTotalByteCount() const;
+    int          mElementCount = 0;
+    int          mPerElementByteCount = 0;
     GraphicsType mPerElementDataType = GraphicsType::unknown;
   };
 
@@ -158,27 +158,29 @@ namespace Tac
 
   struct Image
   {
-    int mWidth = 0;
-    int mHeight = 0;
+    int    mWidth = 0;
+    int    mHeight = 0;
 
     Format mFormat;
 
     // byte data should be passed as a separate argument, not as a member of this class
   };
+
   struct Constant
   {
     String mName;
-    int mOffset = 0;
-    int mSize = 0;
+    int    mOffset = 0;
+    int    mSize = 0;
   };
+
   struct VertexDeclaration
   {
     Attribute mAttribute = Attribute::Count;
-    Format mTextureFormat;
+    Format    mTextureFormat;
 
     // Offset of the variable from the vertex buffer
     // ie: OffsetOf( MyVertexType, mPosition)
-    int mAlignedByteOffset = 0;
+    int       mAlignedByteOffset = 0;
   };
 
   //struct DepthBufferData : public RendererResource
@@ -195,24 +197,24 @@ namespace Tac
 
   struct DefaultCBufferPerFrame
   {
-    m4 mView;
-    m4 mProjection;
-    float mFar;
-    float mNear;
-    v2 mGbufferSize;
-    static String name_view() { return "View"; };
-    static String name_proj() { return "Projection"; };
-    static String name_far() { return "far"; };
-    static String name_near() { return "near"; };
-    static String name_gbuffersize() { return "gbufferSize"; };
+    m4               mView;
+    m4               mProjection;
+    float            mFar;
+    float            mNear;
+    v2               mGbufferSize;
+    static String    name_view() { return "View"; };
+    static String    name_proj() { return "Projection"; };
+    static String    name_far() { return "far"; };
+    static String    name_near() { return "near"; };
+    static String    name_gbuffersize() { return "gbufferSize"; };
     static const int shaderRegister = 0;
   };
   struct DefaultCBufferPerObject
   {
-    m4 World;
-    v4 Color;
-    static String name_world() { return "World"; };
-    static String name_color() { return "Color"; };
+    m4               World;
+    v4               Color;
+    static String    name_world() { return "World"; };
+    static String    name_color() { return "Color"; };
     static const int shaderRegister = 1;
   };
 
@@ -221,11 +223,7 @@ namespace Tac
   struct ScissorRect
   {
     ScissorRect() = default;
-    ScissorRect( float w, float h ) 
-    {
-      mXMaxRelUpperLeftCornerPixel = w;
-      mYMaxRelUpperLeftCornerPixel = h;
-    }
+    ScissorRect( float w, float h );
     float mXMinRelUpperLeftCornerPixel = 0;
     float mYMinRelUpperLeftCornerPixel = 0;
     float mXMaxRelUpperLeftCornerPixel = 0;
@@ -236,11 +234,7 @@ namespace Tac
   struct Viewport
   {
     Viewport() = default;
-    Viewport( float w, float h )
-    {
-      mWidth = w;
-      mHeight = h;
-    }
+    Viewport( float w, float h );
     float mBottomLeftX = 0;
     float mBottomLeftY = 0;
     float mWidth = 0;
@@ -249,25 +243,12 @@ namespace Tac
     float mMaxDepth = 1;
   };
 
-  //struct RenderView
-  //{
-  //  Texture* mFramebuffer = nullptr;
-  //  DepthBuffer* mFramebufferDepth = nullptr;
-  //  Viewport mViewportRect;
-  //  ScissorRect mScissorRect;
-  //  m4 mView = m4::Identity();
-  //  m4 mProj = m4::Identity();
-  //  v4 mClearColorRGBA = v4( 0, 0, 0, 1 );
-  //};
-
   enum PrimitiveTopology
   {
     TriangleList,
     LineList,
     Count,
   };
-
-
 
   namespace Render
   {
@@ -302,10 +283,10 @@ namespace Tac
       // prefix w/ m please
       BlendConstants srcRGB = BlendConstants::One;
       BlendConstants dstRGB = BlendConstants::Zero;
-      BlendMode blendRGB = BlendMode::Add;
+      BlendMode      blendRGB = BlendMode::Add;
       BlendConstants srcA = BlendConstants::One;
       BlendConstants dstA = BlendConstants::Zero;
-      BlendMode blendA = BlendMode::Add;
+      BlendMode      blendA = BlendMode::Add;
     };
 
     struct VertexDeclarations
@@ -323,19 +304,19 @@ namespace Tac
       DrawCallTextures() = default;
       DrawCallTextures( TextureHandle a );
       DrawCallTextures( TextureHandle a, TextureHandle b );
-      void              AddTexture( TextureHandle v );
+      void                    AddTexture( TextureHandle v );
       const TextureHandle*    begin() const;
       const TextureHandle*    end() const;
-      TextureHandle     operator[]( int i ) const;
-      TextureHandle     mTextures[ 2 ];
-      int               mTextureCount = 0;
+      TextureHandle           operator[]( int i ) const;
+      TextureHandle           mTextures[ 2 ];
+      int                     mTextureCount = 0;
     };
 
     struct ShaderSource
     {
       // can load from either
-      StringView mShaderPath;
-      StringView mShaderStr;
+      StringView          mShaderPath;
+      StringView          mShaderStr;
       static ShaderSource FromPath( StringView );
       static ShaderSource FromStr( StringView );
     };
@@ -353,30 +334,29 @@ namespace Tac
 
     struct DepthState
     {
-      bool mDepthTest = false;
-      bool mDepthWrite = false;
+      bool      mDepthTest = false;
+      bool      mDepthWrite = false;
       DepthFunc mDepthFunc = ( DepthFunc )0;
     };
 
     struct TexSpec
     {
-      Image mImage;
-      int mPitch = 0; // byte count between texel rows
+      Image       mImage;
+      int         mPitch = 0; // byte count between texel rows
       const void* mImageBytes = nullptr;
       const void* mImageBytesCubemap[ 6 ] = {};
-      Binding mBinding = Binding::None;
-      Access mAccess = Access::Default;
-      CPUAccess mCpuAccess = CPUAccess::None;
+      Binding     mBinding = Binding::None;
+      Access      mAccess = Access::Default;
+      CPUAccess   mCpuAccess = CPUAccess::None;
     };
 
     struct TexUpdate
     {
-
-      Image mSrc;
-      int mDstX = 0;
-      int mDstY = 0;
+      Image       mSrc;
+      int         mDstX = 0;
+      int         mDstY = 0;
       const void* mSrcBytes = nullptr;
-      int mPitch = 0; // byte count between pixel rows
+      int         mPitch = 0; // byte count between pixel rows
     };
 
     struct RasterizerState
@@ -384,9 +364,9 @@ namespace Tac
 
       FillMode mFillMode = ( FillMode )0;
       CullMode mCullMode = ( CullMode )0;
-      bool mFrontCounterClockwise = false;
-      bool mScissor = false;
-      bool mMultisample = false;
+      bool     mFrontCounterClockwise = false;
+      bool     mScissor = false;
+      bool     mMultisample = false;
     };
 
     struct SamplerState
@@ -395,8 +375,8 @@ namespace Tac
       AddressMode mU = ( AddressMode )0;
       AddressMode mV = ( AddressMode )0;
       AddressMode mW = ( AddressMode )0;
-      Comparison mCompare = ( Comparison )0;
-      Filter mFilter = ( Filter )0;
+      Comparison  mCompare = ( Comparison )0;
+      Filter      mFilter = ( Filter )0;
     };
 
 
@@ -420,7 +400,7 @@ namespace Tac
                                                         StackFrame );
     TextureHandle                    CreateTexture( StringView, TexSpec, StackFrame );
     FramebufferHandle                CreateFramebuffer( StringView,
-                                                        void* nativeWindowHandle,
+                                                        const void* nativeWindowHandle,
                                                         int width,
                                                         int weight,
                                                         StackFrame );
@@ -486,31 +466,6 @@ namespace Tac
     void                             Uninit();
   }
 
-  // todo: delete in favor of drawcall3
-  //struct DrawCall2
-  //{
-  //  Render::ShaderHandle mShader;
-  //  Render::VertexBufferHandle mVertexBuffer;
-  //  Render::IndexBufferHandle mIndexBuffer;
-  //  int mStartIndex = 0;
-  //  int mIndexCount = 0;
-  //  int mVertexCount = 0;
-  //  Render::BlendStateHandle mBlendState;
-  //  Render::RasterizerStateHandle mRasterizerState;
-  //  Render::SamplerStateHandle mSamplerState;
-  //  Render::DepthStateHandle mDepthState;
-  //  Render::VertexFormatHandle mVertexFormat;
-  //  Vector< Render::TextureHandle > mTextureHandles;
-  //  Render::ConstantBufferHandle mUniformDst;
-  //  Vector< char > mUniformSrcc;
-  //  StackFrame mFrame;
-  //  PrimitiveTopology mPrimitiveTopology = PrimitiveTopology::TriangleList;
-  //  template< typename T>
-  //  void CopyUniformSource( const T& t ) { CopyUniformSource( &t, sizeof( T ) ); }
-  //  void CopyUniformSource( const void* bytes, int byteCount );
-  //};
-
-
   struct RendererFactory
   {
     String mRendererName;
@@ -519,9 +474,8 @@ namespace Tac
 
   struct RendererRegistry
   {
-    static RendererRegistry& Instance();
-    RendererFactory* FindFactory( StringView name );
-
+    static RendererRegistry&   Instance();
+    RendererFactory*           FindFactory( StringView name );
     Vector< RendererFactory* > mFactories;
   };
 
@@ -530,3 +484,4 @@ namespace Tac
   const static String RendererNameDirectX11 = "DirectX11";
   const static String RendererNameDirectX12 = "DirectX12";
 }
+

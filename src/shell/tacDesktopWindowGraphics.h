@@ -12,7 +12,9 @@ namespace Tac
   Render::FramebufferHandle WindowGraphicsGetFramebuffer( const DesktopWindowHandle& );
   Render::ViewHandle        WindowGraphicsGetView( const DesktopWindowHandle& );
   void                      WindowGraphicsNativeHandleChanged( const DesktopWindowHandle&,
-                                                               void* nativeWindowHandle,
+                                                               const void* nativeWindowHandle,
+                                                               int x,
+                                                               int y,
                                                                int w,
                                                                int h );
   void                      WindowGraphicsResize( const DesktopWindowHandle&,
