@@ -45,7 +45,7 @@ namespace Tac
   void GameCallbackUpdate( Errors& errors )
   {
     DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
-    if( !desktopWindowState )
+if(!desktopWindowState->mNativeWindowHandle)
       return;
     Viewport viewport;
     viewport.mWidth = ( float )desktopWindowState->mWidth;

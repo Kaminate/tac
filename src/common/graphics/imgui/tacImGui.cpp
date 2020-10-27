@@ -69,10 +69,8 @@ namespace Tac
         KeyboardInput::Instance->mCurr.mScreenspaceCursorPosErrors.empty() )
     {
       const float mousePositionTextSpace = KeyboardInput::Instance->mCurr.mScreenspaceCursorPos.x - textPos.x;
-      const int numGlyphsBeforeCaret = GetCaret( // drawData,
-                                                 inputData->mCodepoints,
+      const int numGlyphsBeforeCaret = GetCaret( inputData->mCodepoints,
                                                  mousePositionTextSpace );
-
       if( KeyboardInput::Instance->mPrev.IsKeyDown( Key::MouseLeft ) )
         inputData->OnDrag( numGlyphsBeforeCaret );
       else
@@ -158,36 +156,67 @@ namespace Tac
   }
 
 
-  void ImGuiSetNextWindowPos( v2 pos )
+  //void ImGuiSetNextWindowPos( const v2 screenspacePos )
+  //{
+  //  gNextWindow.mScreenspacePos = screenspacePos;
+  //  gNextWindow.mScreenspacePosExists = true;
+  //}
+
+  void ImGuiSetNextWindowSize( v2 size )
   {
-    ImGuiGlobals::Instance.mNextWindowPos = pos;
+    gNextWindow.mSize = size;
   }
 
   // TODO: remove size parameter, use setnextwindowsize instead
-  void ImGuiBegin( const StringView& name, const v2 size, const DesktopWindowHandle& desktopWindowHandle )
+  void ImGuiBegin( const StringView& name, const DesktopWindowHandle& desktopWindowHandle )
   {
     ImGuiWindow* window = ImGuiGlobals::Instance.FindWindow( name );
-    if( !window )
+    if( window )
     {
-      TAC_ASSERT( desktopWindowHandle.IsValid());
+      //if( window->mDesktopWindowOffsetExists )
+      //{
+      //  const DesktopWindowState* desktopWindowState = GetDesktopWindowState( window->mDesktopWindowHandle );
+      //  if( desktopWindowState )
+      //  {
+      //    const v2 desktopWindowPos(
+      //      ( float )desktopWindowState->mX,
+      //      ( float )desktopWindowState->mY );
+      //    window->mPosViewportSpace = {};
+      //  }
+      //}
+    }
+    else
+    {
+      const DesktopWindowState* desktopWindowState = GetDesktopWindowState( desktopWindowHandle );
+      TAC_ASSERT( desktopWindowState );
+      TAC_ASSERT( desktopWindowState->mNativeWindowHandle );
+
+      const v2 desktopWindowPos( ( float )desktopWindowState->mX, ( float )desktopWindowState->mY );
+
+      v2 size = gNextWindow.mSize;
+      size.x += size.x > 0 ? 0 : desktopWindowState->mWidth;
+      size.y += size.y > 0 ? 0 : desktopWindowState->mHeight;
+
+      TAC_ASSERT( desktopWindowHandle.IsValid() );
       window = TAC_NEW ImGuiWindow;
       window->mName = name;
       window->mDrawData = TAC_NEW UI2DDrawData;
       window->mDesktopWindowHandle = desktopWindowHandle;
       window->mDesktopWindowHandleOwned = false;
+      window->mPosViewportSpace = {};
+      window->mSize = size;
+      window->mDesktopWindowOffset = {};
+      window->mDesktopWindowOffsetExists = true;
       ImGuiGlobals::Instance.mAllWindows.push_back( window );
+
     }
 
-    if( ImGuiGlobals::Instance.mNextWindowPos != v2( 0, 0 ) )
-    {
-      window->mPos = ImGuiGlobals::Instance.mNextWindowPos;
-      ImGuiGlobals::Instance.mNextWindowPos = {};
-    }
+    // asdf
+      //window->mScreenspacePos = {};
 
-    const DesktopWindowState* desktopWindowState = GetDesktopWindowState( desktopWindowHandle );
-    window->mSize = v2( size.x > 0 ? size.x : size.x + desktopWindowState->mWidth,
-                        size.y > 0 ? size.y : size.y + desktopWindowState->mHeight );
+    TAC_ASSERT( window->mSize.x > 0 && window->mSize.y > 0 );
 
+    // todo: move this to a ImGuiGlobals::Instance.mFrameData
     TAC_ASSERT( ImGuiGlobals::Instance.mWindowStack.empty() );
     ImGuiGlobals::Instance.mWindowStack.push_back( window );
     ImGuiGlobals::Instance.mCurrentWindow = window;
@@ -250,7 +279,7 @@ namespace Tac
     groupData.mSavedCursorDrawPos = window->mCurrCursorDrawPos;
     groupData.mSavedLineHeight = window->mCurrLineHeight;
 
-    window->mXOffsets.push_back( window->mCurrCursorDrawPos.x - window->mPos.x );
+    window->mXOffsets.push_back( window->mCurrCursorDrawPos.x - window->mPosViewportSpace.x );
     window->mCurrLineHeight = 0;
 
     //window->mMaxiCursorDrawPos = window->mCurrCursorDrawPos;
@@ -281,14 +310,14 @@ namespace Tac
   {
     ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
     window->mCurrCursorDrawPos.x += 15.0f;
-    window->mXOffsets.push_back( window->mCurrCursorDrawPos.x - window->mPos.x );
+    window->mXOffsets.push_back( window->mCurrCursorDrawPos.x - window->mPosViewportSpace.x );
   }
 
   void ImGuiUnindent()
   {
     ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
     window->mXOffsets.pop_back();
-    window->mCurrCursorDrawPos.x = window->mPos.x + window->mXOffsets.back();
+    window->mCurrCursorDrawPos.x = window->mPosViewportSpace.x + window->mXOffsets.back();
   }
 
   void ImGuiSameLine()
@@ -479,9 +508,8 @@ namespace Tac
     ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
     UI2DDrawData* drawData = window->mDrawData;
     const v2 textSize = CalculateTextSize( str, ImGuiGlobals::Instance.mUIStyle.fontSize );
-    const v2 buttonSize = {
-      textSize.x + 2 * ImGuiGlobals::Instance.mUIStyle.buttonPadding,
-      textSize.y };
+    const v2 buttonSize ( textSize.x + 2 * ImGuiGlobals::Instance.mUIStyle.buttonPadding,
+      textSize.y );
     v2 pos = window->mCurrCursorDrawPos;
     window->ItemSize( textSize );
 
@@ -493,7 +521,21 @@ namespace Tac
       return false;
 
 
+
     const bool hovered = window->IsHovered( clipRect );
+
+    //if( "asdf" && str == "Profile" )
+    //{
+    //  const v2 relMosuePos = window->GetRelativeMousePosition();
+    //  std::cout
+    //    << "mouse hovered window: " << ( int )ImGuiGlobals::Instance.mMouseHoveredWindow
+    //    << ", mouse position: (" << relMosuePos.x << ", " << relMosuePos.y << ")"
+    //    << ", window hovered:" << (hovered ? "true" : "false" )
+    //    << ", ss cursor x: " << KeyboardInput::Instance->mCurr.mScreenspaceCursorPos.x
+    //    << ", ss cursor y: " << KeyboardInput::Instance->mCurr.mScreenspaceCursorPos.y
+    //    << std::endl;
+    //}
+
     bool justClicked = false;
     v3 outerBoxColor = v3( .23f, .28f, .38f );
     if( hovered )

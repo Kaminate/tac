@@ -108,6 +108,9 @@ namespace Tac
     void UpdateIndexBuffer( Render::CommandDataUpdateIndexBuffer*, Errors& ) override;
     void UpdateTextureRegion( Render::CommandDataUpdateTextureRegion*, Errors& ) override;
     void UpdateVertexBuffer( Render::CommandDataUpdateVertexBuffer*, Errors& ) override;
+    void DebugGroupBegin( StringView ) override;
+    void DebugMarker( StringView ) override;
+    void DebugGroupEnd() override;
 
     // Non-virtual functions
 

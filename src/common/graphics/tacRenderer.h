@@ -417,7 +417,6 @@ namespace Tac
     void                             DestroyShader( ShaderHandle, StackFrame );
     void                             DestroyVertexFormat( VertexFormatHandle, StackFrame );
     void                             DestroyConstantBuffer( ConstantBufferHandle, StackFrame );
-    void                             DestroyConstantBuffer( ConstantBufferHandle, StackFrame );
     void                             DestroyDepthState( DepthStateHandle, StackFrame );
     void                             DestroyBlendState( BlendStateHandle, StackFrame );
     void                             DestroyRasterizerState( RasterizerStateHandle, StackFrame );
@@ -463,6 +462,12 @@ namespace Tac
     //void                             AddDrawCall( const DrawCall2& );
     void                             GetPerspectiveProjectionAB( float f, float n, float& a, float& b );
     void                             Init( Errors& );
+    void                             BeginGroup( StringView );
+    void                             EndGroup();
+    void                             UpdateConstantBuffer2( ConstantBufferHandle,
+                                                           const void*,
+                                                           int,
+                                                           StackFrame );
     void                             Uninit();
   }
 

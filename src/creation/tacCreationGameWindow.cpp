@@ -236,7 +236,7 @@ namespace Tac
   void CreationGameWindow::MousePickingAll()
   {
     DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
-    if( !desktopWindowState )
+if(!desktopWindowState->mNativeWindowHandle)
       return;
 
     //if( !desktopWindowState->mCursorUnobscured )
@@ -359,7 +359,7 @@ namespace Tac
   void CreationGameWindow::MousePickingInit()
   {
     DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
-    if( !desktopWindowState )
+if(!desktopWindowState->mNativeWindowHandle)
       return;
 
     Creation* creation = Creation::Instance;
@@ -474,7 +474,7 @@ namespace Tac
     MousePickingAll();
     Camera* camera = &Creation::Instance->mEditorCamera;
     DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
-    if( !desktopWindowState )
+if(!desktopWindowState->mNativeWindowHandle)
       return;
 
     const m4 view = camera->View();
@@ -548,7 +548,8 @@ namespace Tac
   }
   void CreationGameWindow::DrawPlaybackOverlay( Errors& errors )
   {
-    ImGuiBegin( "gameplay overlay", { 300, 75 }, mDesktopWindowHandle );
+    ImGuiSetNextWindowSize( { 300, 75 } );
+    ImGuiBegin( "gameplay overlay", mDesktopWindowHandle );
     if( mSoul )
     {
       if( ImGuiButton( "End simulation" ) )
@@ -576,7 +577,7 @@ namespace Tac
   void CreationGameWindow::CameraControls()
   {
     DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
-    if( !desktopWindowState )
+if(!desktopWindowState->mNativeWindowHandle)
       return;
     //if( !desktopWindowState->mCursorUnobscured )
     //  return;
@@ -664,7 +665,7 @@ namespace Tac
     const Render::FramebufferHandle framebufferHandle = WindowGraphicsGetFramebuffer( mDesktopWindowHandle );
 
     DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
-    if( !desktopWindowState )
+if(!desktopWindowState->mNativeWindowHandle)
       return;
 
     Viewport viewport(

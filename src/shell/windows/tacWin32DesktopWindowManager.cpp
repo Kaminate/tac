@@ -270,8 +270,17 @@ namespace Tac
         //    std::cout << mName << " mouse enter " << std::endl;
         //  mIsMouseInWindow = true;
         //}
+
+
+
+        // Position of the cursor relative to the top left corner of the  window
         const int xPos = ( ( int )( short )LOWORD( lParam ) );
         const int yPos = ( ( int )( short )HIWORD( lParam ) );
+
+        //std::cout << "WM_MOUSEMOVE(" << xPos << ", " << yPos << std::endl;
+
+        //if( xPos < 100 )DebugBreak();
+
         DesktopEventQueue::Instance.PushEventMouseMove( desktopWindowHandle,
                                                         xPos,
                                                         yPos );

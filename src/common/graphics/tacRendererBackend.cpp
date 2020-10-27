@@ -8,7 +8,6 @@
 static uint32_t gRaven = 0xcaacaaaa;
 namespace Tac
 {
-
   static bool gVerbose;
 
   template< typename T >
@@ -36,6 +35,74 @@ namespace Tac
   namespace Render
   {
 
+
+    void UniformBuffer::PushData( const void* bytes,
+                                  const int byteCount )
+    {
+      memcpy( mBytes + mByteCount, bytes, byteCount );
+      mByteCount += byteCount;
+    }
+
+    void UniformBuffer::PushType( const UniformBufferEntryType type )
+    {
+      PushData( &type, sizeof( type ) );
+    }
+
+    void UniformBuffer::PushString( StringView s )
+    {
+      PushNumber( s.size() );
+      PushData( s.c_str(), s.size() );
+      PushData( "", 1 );
+    }
+
+    void UniformBuffer::PushNumber( int i )
+    {
+      PushData( &i, sizeof( i ) );
+    }
+
+    int UniformBuffer::size()const
+    {
+      return mByteCount;
+    }
+
+    void* UniformBuffer::data()const
+    {
+      return ( void* )mBytes;
+    }
+
+
+    UniformBuffer::Iterator::Iterator( const UniformBuffer* uniformBuffer,
+                                       const int iBegin,
+                                       const int iEnd )
+    {
+      mCur = ( char* )uniformBuffer->data() + iBegin;
+      mEnd = mCur + iEnd;
+    }
+
+    UniformBufferEntryType UniformBuffer::Iterator::PopType()
+    {
+      return *( UniformBufferEntryType* )PopData( sizeof( UniformBufferEntryType ) );
+    }
+
+    void* UniformBuffer::Iterator::PopData( int byteCount )
+    {
+      void* result = mCur;
+      mCur += byteCount;
+      return result;
+    }
+
+    int UniformBuffer::Iterator::PopNumber()
+    {
+      return *( int* )PopData( sizeof( int ) );
+    }
+
+    StringView UniformBuffer::Iterator::PopString()
+    {
+      const int len = PopNumber();
+      const char* str = ( const char* )PopData( len );
+      PopData( 1 );
+      return StringView( str, len );
+    }
 
     //template< int N >
     //struct IdCollection
@@ -127,18 +194,18 @@ namespace Tac
     static uint32_t gCrow = 0xcaacaaaa;
     int i = gCrow + 1;
 
-    static IdCollection mIdCollectionBlendState(kMaxBlendStates );
-    static IdCollection mIdCollectionConstantBuffer(kMaxConstantBuffers );
-    static IdCollection mIdCollectionDepthState(kMaxDepthStencilStates );
-    static IdCollection mIdCollectionFramebuffer(kMaxFramebuffers );
-    static IdCollection mIdCollectionIndexBuffer(kMaxIndexBuffers );
-    static IdCollection mIdCollectionRasterizerState(kMaxRasterizerStates );
-    static IdCollection mIdCollectionSamplerState(kMaxSamplerStates );
-    static IdCollection mIdCollectionShader(kMaxPrograms );
-    static IdCollection mIdCollectionTexture(kMaxTextures );
-    static IdCollection mIdCollectionVertexBuffer(kMaxVertexBuffers );
-    static IdCollection mIdCollectionVertexFormat(kMaxInputLayouts );
-    static IdCollection mIdCollectionViewId(kMaxViews );
+    static IdCollection mIdCollectionBlendState( kMaxBlendStates );
+    static IdCollection mIdCollectionConstantBuffer( kMaxConstantBuffers );
+    static IdCollection mIdCollectionDepthState( kMaxDepthStencilStates );
+    static IdCollection mIdCollectionFramebuffer( kMaxFramebuffers );
+    static IdCollection mIdCollectionIndexBuffer( kMaxIndexBuffers );
+    static IdCollection mIdCollectionRasterizerState( kMaxRasterizerStates );
+    static IdCollection mIdCollectionSamplerState( kMaxSamplerStates );
+    static IdCollection mIdCollectionShader( kMaxPrograms );
+    static IdCollection mIdCollectionTexture( kMaxTextures );
+    static IdCollection mIdCollectionVertexBuffer( kMaxVertexBuffers );
+    static IdCollection mIdCollectionVertexFormat( kMaxInputLayouts );
+    static IdCollection mIdCollectionViewId( kMaxViews );
 
     //void UpdateConstantBuffers::Push( ConstantBufferHandle constantBufferHandle,
     //                                  const void* bytes,
@@ -153,6 +220,9 @@ namespace Tac
 
     struct Encoder
     {
+      void                  Clear();
+      void                  Submit( Render::ViewHandle viewHandle,
+                                    StackFrame stackFrame );
       VertexBufferHandle    mVertexBufferHandle;
       IndexBufferHandle     mIndexBufferHandle;
       int                   mStartIndex;
@@ -167,6 +237,7 @@ namespace Tac
       UpdateConstantBuffers mUpdateConstantBuffers;
       ShaderHandle          mShaderHandle;
       DrawCallTextures      mTextureHandle;
+      int                   mUniformBufferIndex = 0;
     };
 
     static thread_local Encoder gEncoder;
@@ -451,7 +522,7 @@ namespace Tac
 
     void DestroyVertexBuffer( const VertexBufferHandle vertexBufferHandle, const StackFrame frame )
     {
-      mIdCollectionVertexBuffer.Free( (int)vertexBufferHandle);
+      mIdCollectionVertexBuffer.Free( ( int )vertexBufferHandle );
       gSubmitFrame->mCommandBuffer.PushCommand( CommandType::DestroyVertexBuffer,
                                                 frame,
                                                 &vertexBufferHandle,
@@ -459,14 +530,14 @@ namespace Tac
     }
     void DestroyIndexBuffer( const IndexBufferHandle indexBufferHandle, const StackFrame frame )
     {
-      mIdCollectionIndexBuffer.Free( (int)indexBufferHandle );
+      mIdCollectionIndexBuffer.Free( ( int )indexBufferHandle );
       gSubmitFrame->mCommandBuffer.PushCommand( CommandType::DestroyIndexBuffer,
                                                 frame,
                                                 &indexBufferHandle, sizeof( indexBufferHandle ) );
     }
     void DestroyTexture( TextureHandle handle, StackFrame frame )
     {
-      mIdCollectionTexture.Free( (int)handle );
+      mIdCollectionTexture.Free( ( int )handle );
       gSubmitFrame->mCommandBuffer.PushCommand( CommandType::DestroyTexture,
                                                 frame,
                                                 &handle,
@@ -474,7 +545,7 @@ namespace Tac
     }
     void DestroyFramebuffer( FramebufferHandle handle, StackFrame frame )
     {
-      mIdCollectionFramebuffer.Free( (int)handle );
+      mIdCollectionFramebuffer.Free( ( int )handle );
       gSubmitFrame->mCommandBuffer.PushCommand( CommandType::DestroyFramebuffer,
                                                 frame,
                                                 &handle,
@@ -482,7 +553,7 @@ namespace Tac
     }
     void DestroyShader( ShaderHandle handle, StackFrame stackFrame )
     {
-      mIdCollectionFramebuffer.Free( (int)handle );
+      mIdCollectionShader.Free( ( int )handle );
       gSubmitFrame->mCommandBuffer.PushCommand( CommandType::DestroyShader,
                                                 stackFrame,
                                                 &handle,
@@ -490,7 +561,7 @@ namespace Tac
     }
     void DestroyVertexFormat( VertexFormatHandle handle, StackFrame stackFrame )
     {
-      mIdCollectionFramebuffer.Free( (int)handle );
+      mIdCollectionVertexFormat.Free( ( int )handle );
       gSubmitFrame->mCommandBuffer.PushCommand( CommandType::DestroyVertexFormat,
                                                 stackFrame,
                                                 &handle,
@@ -498,7 +569,7 @@ namespace Tac
     }
     void DestroyConstantBuffer( ConstantBufferHandle handle, StackFrame stackFrame )
     {
-      mIdCollectionFramebuffer.Free( (int)handle );
+      mIdCollectionConstantBuffer.Free( ( int )handle );
       gSubmitFrame->mCommandBuffer.PushCommand( CommandType::DestroyConstantBuffer,
                                                 stackFrame,
                                                 &handle,
@@ -506,7 +577,7 @@ namespace Tac
     }
     void DestroyDepthState( DepthStateHandle handle, StackFrame stackFrame )
     {
-      mIdCollectionFramebuffer.Free( (int)handle );
+      mIdCollectionDepthState.Free( ( int )handle );
       gSubmitFrame->mCommandBuffer.PushCommand( CommandType::DestroyDepthState,
                                                 stackFrame,
                                                 &handle,
@@ -514,7 +585,7 @@ namespace Tac
     }
     void DestroyBlendState( BlendStateHandle handle, StackFrame stackFrame )
     {
-      mIdCollectionFramebuffer.Free( (int)handle );
+      mIdCollectionBlendState.Free( ( int )handle );
       gSubmitFrame->mCommandBuffer.PushCommand( CommandType::DestroyBlendState,
                                                 stackFrame,
                                                 &handle,
@@ -522,7 +593,7 @@ namespace Tac
     }
     void DestroyRasterizerState( RasterizerStateHandle handle, StackFrame stackFrame )
     {
-      mIdCollectionFramebuffer.Free( (int)handle );
+      mIdCollectionRasterizerState.Free( ( int )handle );
       gSubmitFrame->mCommandBuffer.PushCommand( CommandType::DestroyRasterizerState,
                                                 stackFrame,
                                                 &handle,
@@ -530,7 +601,7 @@ namespace Tac
     }
     void DestroySamplerState( SamplerStateHandle handle, StackFrame stackFrame )
     {
-      mIdCollectionFramebuffer.Free( (int)handle );
+      mIdCollectionSamplerState.Free( ( int )handle );
       gSubmitFrame->mCommandBuffer.PushCommand( CommandType::DestroySamplerState,
                                                 stackFrame,
                                                 &handle,
@@ -666,21 +737,27 @@ namespace Tac
       gEncoder.mTextureHandle = textureHandle;
     }
 
-    static const void* AllocateUniform( const void* bytes, int byteCount )
+    void BeginGroup( StringView name )
     {
-      void* submitBytes = gSubmitFrame->mUniformBuffer.mBytes;
-      gSubmitFrame->mUniformBuffer.mByteCount += byteCount;
-      MemCpy( submitBytes, bytes, byteCount );
-      return submitBytes;
+      gSubmitFrame->mUniformBuffer.PushType( UniformBufferEntryType::DebugGroupBegin );
+      gSubmitFrame->mUniformBuffer.PushString( name );
     }
 
-    //void SetUniform( ConstantBufferHandle constantBufferHandle, const void* bytes, int byteCount )
-    //{
-    //  const void* uniformBytes = AllocateUniform( bytes, byteCount );
-    //  gEncoder.
+    void EndGroup()
+    {
+      gSubmitFrame->mUniformBuffer.PushType( UniformBufferEntryType::DebugGroupEnd );
+    }
 
-    //}
-
+    void UpdateConstantBuffer2( ConstantBufferHandle constantBufferHandle,
+                                const void* bytes,
+                                int byteCount,
+                                StackFrame )
+    {
+      gSubmitFrame->mUniformBuffer.PushType( UniformBufferEntryType::UpdateConstantBuffer );
+      gSubmitFrame->mUniformBuffer.PushNumber( ( int )constantBufferHandle );
+      gSubmitFrame->mUniformBuffer.PushNumber( byteCount );
+      gSubmitFrame->mUniformBuffer.PushData( bytes, byteCount );
+    }
 
     // need lots of comments pls
 
@@ -740,13 +817,41 @@ namespace Tac
       //std::cout << "Render::Init end" << std::endl;
     }
 
-    void Submit( Render::ViewHandle viewHandle, StackFrame stackFrame )
+    void Encoder::Clear()
+    {
+      mIndexBufferHandle = IndexBufferHandle();
+      mVertexBufferHandle = VertexBufferHandle();
+      mBlendStateHandle = BlendStateHandle();
+      mRasterizerStateHandle = RasterizerStateHandle();
+      mSamplerStateHandle = SamplerStateHandle();
+      mDepthStateHandle = DepthStateHandle();
+      mVertexFormatHandle = VertexFormatHandle();
+      mUpdateConstantBuffers.clear();
+      mShaderHandle = ShaderHandle();
+      mTextureHandle = TextureHandle();
+      mVertexCount = 0;
+      mIndexCount = 0;
+      mUniformBufferIndex = 0;
+    }
+
+    void Encoder::Submit( const Render::ViewHandle viewHandle,
+                          const StackFrame stackFrame )
     {
       if( gSubmitFrame->mDrawCalls.size() == kDrawCallCapacity )
       {
         OS::DebugBreak();
         return;
       }
+
+      int iUniformBegin = 0;
+      int iUniformEnd = 0;
+      if( mUniformBufferIndex != gSubmitFrame->mUniformBuffer.size() )
+      {
+        iUniformBegin = mUniformBufferIndex;
+        iUniformEnd = gSubmitFrame->mUniformBuffer.size();;
+        mUniformBufferIndex = gSubmitFrame->mUniformBuffer.size();
+      }
+
 
       DrawCall3 drawCall;
       drawCall.mStackFrame = stackFrame;
@@ -765,20 +870,17 @@ namespace Tac
       drawCall.mShaderHandle = gEncoder.mShaderHandle;
       drawCall.mViewHandle = viewHandle;
       drawCall.mTextureHandle = gEncoder.mTextureHandle;
-      gSubmitFrame->mDrawCalls.push_back( drawCall );
+      drawCall.iUniformBegin = iUniformBegin;
+      drawCall.iUniformEnd = iUniformEnd;
 
-      gEncoder.mIndexBufferHandle = IndexBufferHandle();
-      gEncoder.mVertexBufferHandle = VertexBufferHandle();
-      gEncoder.mBlendStateHandle = BlendStateHandle();
-      gEncoder.mRasterizerStateHandle = RasterizerStateHandle();
-      gEncoder.mSamplerStateHandle = SamplerStateHandle();
-      gEncoder.mDepthStateHandle = DepthStateHandle();
-      gEncoder.mVertexFormatHandle = VertexFormatHandle();
-      gEncoder.mUpdateConstantBuffers.clear();
-      gEncoder.mShaderHandle = ShaderHandle();
-      gEncoder.mTextureHandle = TextureHandle();
-      gEncoder.mVertexCount = 0;
-      gEncoder.mIndexCount = 0;
+
+
+      gSubmitFrame->mDrawCalls.push_back( drawCall );
+    }
+    void Submit( Render::ViewHandle viewHandle, StackFrame stackFrame )
+    {
+      gEncoder.Submit( viewHandle, stackFrame );
+      gEncoder.Clear();
     }
 
     void GetPerspectiveProjectionAB( float f, float n, float& a, float& b )
@@ -813,6 +915,48 @@ namespace Tac
     {
       delete Renderer::Instance;
     }
+
+    void ExecuteUniformCommands( const UniformBuffer* uniformBuffer,
+                                 const int iUniformBegin,
+                                 const int iUniformEnd,
+                                 Errors& errors)
+    {
+      UniformBuffer::Iterator iter( uniformBuffer, iUniformBegin, iUniformEnd );
+      while( iter.mCur < iter.mEnd )
+      {
+        const UniformBufferEntryType type = iter.PopType();
+        switch( type )
+        {
+          case UniformBufferEntryType::DebugGroupBegin:
+          {
+            const StringView desc = iter.PopString();
+            Renderer::Instance->DebugGroupBegin( desc );
+          } break;
+          case UniformBufferEntryType::DebugMarker:
+          {
+            const StringView desc = iter.PopString();
+            Renderer::Instance->DebugMarker( desc );
+          } break;
+          case UniformBufferEntryType::DebugGroupEnd:
+          {
+            Renderer::Instance->DebugGroupEnd();
+          } break;
+          case UniformBufferEntryType::UpdateConstantBuffer:
+          {
+            const ConstantBufferHandle constantBufferHandle = { iter.PopNumber() };
+            const int byteCount = iter.PopNumber();
+            const char* bytes = ( const char*) iter.PopData( byteCount );
+            CommandDataUpdateConstantBuffer commandData;
+            commandData.mBytes = bytes;
+            commandData.mByteCount = byteCount;
+            commandData.mConstantBufferHandle = constantBufferHandle;
+            Renderer::Instance->UpdateConstantBuffer( commandData, errors );
+          } break;
+          TAC_INVALID_DEFAULT_CASE( type )
+        }
+      }
+    }
+
   }
 
   Renderer* Renderer::Instance = nullptr;

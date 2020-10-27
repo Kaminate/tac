@@ -21,9 +21,11 @@ namespace Tac
     *y = ( monitorH - h ) / 2;
   }
 
-  DesktopWindowState* GetDesktopWindowState( DesktopWindowHandle desktopWindowHandle)
+  DesktopWindowState* GetDesktopWindowState( const DesktopWindowHandle desktopWindowHandle )
   {
-    return &sDesktopWindowStates[ (int)desktopWindowHandle ];
+    return desktopWindowHandle.IsValid()
+      ? &sDesktopWindowStates[ ( int )desktopWindowHandle ]
+      : nullptr;
   }
 
   //bool AreWindowHandlesEqual( const DesktopWindowHandle& l, const DesktopWindowHandle& r )

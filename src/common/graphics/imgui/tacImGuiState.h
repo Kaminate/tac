@@ -100,7 +100,7 @@ namespace Tac
     v2                            mCurrCursorDrawPos;
     v2                            mPrevCursorDrawPos;
 
-    v2                            mPos = {}; // screenspace
+    v2                            mPosViewportSpace = {};
     v2                            mSize = {};
     ImGuiRect                     mContentRect;
     float                         mCurrLineHeight = 0;
@@ -126,13 +126,14 @@ namespace Tac
     struct UI2DDrawData*          mDrawData = nullptr;
     DesktopWindowHandle           mDesktopWindowHandle;
     bool                          mDesktopWindowHandleOwned = false;
+    v2                            mDesktopWindowOffset = {};
+    bool                          mDesktopWindowOffsetExists = false;
   };
 
   struct ImGuiGlobals
   {
     static ImGuiGlobals           Instance;
     ImGuiWindow*                  FindWindow( StringView name );
-    v2                            mNextWindowPos = {};
     // TODO: different space
     //v2 mMousePositionDesktopWindowspace = {};
     //bool mIsWindowDirectlyUnderCursor = false;
@@ -148,4 +149,11 @@ namespace Tac
     //int                           mDesktopWindowHeight = 0;
     DesktopWindowHandle           mMouseHoveredWindow;
   };
+
+  struct ImGuiNextWindow
+  {
+    v2                            mSize = {};
+  };
+  extern ImGuiNextWindow gNextWindow;
+
 }

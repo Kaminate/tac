@@ -36,10 +36,10 @@ namespace Tac
   void CreationSystemWindow::ImGui()
   {
     DesktopWindowState* desktopWindowState = GetDesktopWindowState(mDesktopWindowHandle);
-    if( !desktopWindowState )
+if(!desktopWindowState->mNativeWindowHandle)
       return;
 
-    ImGuiBegin( "System Window", {}, mDesktopWindowHandle );
+    ImGuiBegin( "System Window", mDesktopWindowHandle );
 
     ImGuiText( "hello" );
     if( ImGuiCollapsingHeader( "Select System" ) )
@@ -82,7 +82,7 @@ namespace Tac
   void CreationSystemWindow::Update( Errors& errors )
   {
     DesktopWindowState* desktopWindowState = GetDesktopWindowState(mDesktopWindowHandle);
-    if( !desktopWindowState )
+    if( !desktopWindowState->mNativeWindowHandle )
       return;
     ImGui();
     const float w = ( float )desktopWindowState->mWidth;

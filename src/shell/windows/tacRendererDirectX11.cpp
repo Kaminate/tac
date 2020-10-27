@@ -9,6 +9,7 @@
 #include "src/common/tacShell.h"
 #include "src/common/tacOS.h"
 #include "src/common/tacTemporaryMemory.h"
+#include "src/common/tacFrameMemory.h"
 #include "src/shell/tacDesktopApp.h"
 #include "src/shell/windows/tacDXGI.h"
 #include "src/shell/windows/tacRendererDirectX11.h"
@@ -286,11 +287,23 @@ namespace Tac
     return ( D3D11_CULL_MODE )0;
   }
 
+  static WCHAR* ToTransientWchar( StringView str )
+  {
+    WCHAR* result = ( WCHAR* )FrameMemory::Allocate( ( sizeof( WCHAR ) + 1 ) * str.size() );
+    WCHAR* resultIter = result;
+    for( char c : str )
+      *resultIter++ = ( WCHAR )c;
+    *resultIter++ = 0;
+    return result;
+  }
+
   RendererDirectX11* RendererDirectX11::Instance = nullptr;
+
   RendererDirectX11::RendererDirectX11()
   {
     RendererDirectX11::Instance = this;
   }
+
   RendererDirectX11::~RendererDirectX11()
   {
     mDxgi.Uninit();
@@ -316,6 +329,7 @@ namespace Tac
     }
     ReportLiveObjects();
   }
+
   void RendererDirectX11::Init( Errors& errors )
   {
     mName = RendererNameDirectX11;
@@ -357,6 +371,7 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
 
   }
+
   void RendererDirectX11::Render2( const Render::Frame* frame, Errors& errors )
   {
     if( gVerbose )
@@ -372,6 +387,10 @@ namespace Tac
     for( const Render::DrawCall3& rDrawCall : frame->mDrawCalls )
     {
       const Render::DrawCall3* drawCall = &rDrawCall;
+
+      Render::ExecuteUniformCommands( &frame->mUniformBuffer,
+                                      drawCall->iUniformBegin,
+                                      drawCall->iUniformEnd );
 
       if( drawCall->mShaderHandle.IsValid() )
       {
@@ -554,6 +573,7 @@ namespace Tac
     if( gVerbose )
       std::cout << "Render2::End\n";
   }
+
   void RendererDirectX11::SwapBuffers()
   {
     if( gVerbose )
@@ -1176,74 +1196,74 @@ namespace Tac
 
   void RendererDirectX11::RemoveVertexBuffer( Render::VertexBufferHandle vertexBufferHandle, Errors& errors )
   {
-    TAC_RELEASE_IUNKNOWN( mVertexBuffers[ ( int )vertexBufferHandle ].mBuffer );
-    mVertexBuffers[ ( int )vertexBufferHandle ] = {};
-    TAC_UNUSED_PARAMETER( errors );
+    VertexBuffer *vertexBuffer = &mVertexBuffers[ ( int )vertexBufferHandle ];
+    TAC_RELEASE_IUNKNOWN( vertexBuffer->mBuffer );
+    *vertexBuffer = VertexBuffer();
   }
 
-  void RendererDirectX11::RemoveVertexFormat( Render::VertexFormatHandle, Errors& )
+  void RendererDirectX11::RemoveVertexFormat( Render::VertexFormatHandle vertexFormatHandle, Errors& )
   {
-
-    TAC_UNIMPLEMENTED;
+    TAC_RELEASE_IUNKNOWN( mInputLayouts[ ( int )vertexFormatHandle ] );
   }
 
-  void RendererDirectX11::RemoveIndexBuffer( Render::IndexBufferHandle index, Errors& errors )
+  void RendererDirectX11::RemoveIndexBuffer( Render::IndexBufferHandle indexBufferHandle, Errors& )
   {
-    TAC_RELEASE_IUNKNOWN( mIndexBuffers[ ( int )index ].mBuffer );
-    mIndexBuffers[ ( int )index ] = {};
-    TAC_UNUSED_PARAMETER( errors );
+    IndexBuffer *indexBuffer = &mIndexBuffers[ ( int )indexBufferHandle ];
+    TAC_RELEASE_IUNKNOWN( indexBuffer->mBuffer );
+    *indexBuffer = IndexBuffer();
   }
 
-  void RendererDirectX11::RemoveRasterizerState( Render::RasterizerStateHandle, Errors& )
+  void RendererDirectX11::RemoveRasterizerState( Render::RasterizerStateHandle rasterizerStateHandle, Errors& )
   {
-
-    TAC_UNIMPLEMENTED;
+    TAC_RELEASE_IUNKNOWN( mRasterizerStates[ ( int )rasterizerStateHandle ] );
   }
 
-  void RendererDirectX11::RemoveSamplerState( Render::SamplerStateHandle, Errors& )
+  void RendererDirectX11::RemoveSamplerState( Render::SamplerStateHandle samplerStateHandle, Errors& )
   {
-
-    TAC_UNIMPLEMENTED;
+    TAC_RELEASE_IUNKNOWN( mSamplerStates[ ( int )samplerStateHandle ] );
   }
 
-  void RendererDirectX11::RemoveShader( Render::ShaderHandle, Errors& )
+  void RendererDirectX11::RemoveShader( const Render::ShaderHandle shaderHandle, Errors& )
   {
-
-    TAC_UNIMPLEMENTED;
+    Program* program = &mPrograms[ ( int )shaderHandle ];
+    TAC_RELEASE_IUNKNOWN( program->mInputSig );
+    TAC_RELEASE_IUNKNOWN( program->mVertexShader );
+    TAC_RELEASE_IUNKNOWN( program->mPixelShader );
   }
 
-  void RendererDirectX11::RemoveTexture( Render::TextureHandle index, Errors& errors )
+  void RendererDirectX11::RemoveTexture( Render::TextureHandle textureHandle, Errors& )
   {
-    TAC_RELEASE_IUNKNOWN( mTextures[ ( int )index ].mTexture2D );
-    TAC_RELEASE_IUNKNOWN( mTextures[ ( int )index ].mTextureRTV );
-    TAC_RELEASE_IUNKNOWN( mTextures[ ( int )index ].mTextureSRV );
-    mTextures[ ( int )index ] = {};
-    TAC_UNUSED_PARAMETER( errors );
+    Texture* texture = &mTextures[ ( int )textureHandle ];
+    TAC_RELEASE_IUNKNOWN( texture->mTexture2D );
+    TAC_RELEASE_IUNKNOWN( texture->mTextureRTV );
+    TAC_RELEASE_IUNKNOWN( texture->mTextureSRV );
   }
 
-  void RendererDirectX11::RemoveFramebuffer( Render::FramebufferHandle index, Errors& errors )
+  void RendererDirectX11::RemoveFramebuffer( Render::FramebufferHandle framebufferHandle, Errors& )
   {
-    TAC_UNUSED_PARAMETER( index );
-    TAC_UNUSED_PARAMETER( errors );
-    TAC_UNIMPLEMENTED;
+    Framebuffer* framebuffer = &mFramebuffers[ ( int )framebufferHandle ];
+    TAC_RELEASE_IUNKNOWN( framebuffer->mDepthStencilView );
+    TAC_RELEASE_IUNKNOWN( framebuffer->mDepthTexture );
+    TAC_RELEASE_IUNKNOWN( framebuffer->mRenderTargetView );
+    TAC_RELEASE_IUNKNOWN( framebuffer->mSwapChain );
+    *framebuffer = Framebuffer();
   }
 
-  void RendererDirectX11::RemoveBlendState( Render::BlendStateHandle, Errors& )
+  void RendererDirectX11::RemoveBlendState( Render::BlendStateHandle blendStateHandle, Errors& )
   {
-
-    TAC_UNIMPLEMENTED;
+    TAC_RELEASE_IUNKNOWN( mBlendStates[ ( int )blendStateHandle ] );
   }
 
-  void RendererDirectX11::RemoveConstantBuffer( Render::ConstantBufferHandle, Errors& )
+  void RendererDirectX11::RemoveConstantBuffer( Render::ConstantBufferHandle constantBufferHandle, Errors& )
   {
-
-    TAC_UNIMPLEMENTED;
+    ConstantBuffer* constantBuffer = &mConstantBuffers[ ( int )constantBufferHandle ];
+    TAC_RELEASE_IUNKNOWN( constantBuffer->mBuffer );
+    *constantBuffer = ConstantBuffer();
   }
 
-  void RendererDirectX11::RemoveDepthState( Render::DepthStateHandle, Errors& )
+  void RendererDirectX11::RemoveDepthState( Render::DepthStateHandle depthStateHandle, Errors& )
   {
-
-    TAC_UNIMPLEMENTED;
+    TAC_RELEASE_IUNKNOWN( mDepthStencilStates[ ( int )depthStateHandle ] );
   }
 
   void RendererDirectX11::UpdateTextureRegion( Render::CommandDataUpdateTextureRegion* commandData,
@@ -1379,5 +1399,31 @@ namespace Tac
     MemCpy( mappedResource.pData, bytes, byteCount );
     RendererDirectX11::Instance->mDeviceContext->Unmap( buffer, 0 );
   }
+
+
+  void RendererDirectX11::DebugGroupBegin( StringView desc )
+  {
+    if( !mUserAnnotationDEBUG )
+      return;
+    LPCWSTR descWchar = ToTransientWchar( desc );
+    mUserAnnotationDEBUG->BeginEvent( descWchar );
+
+  }
+  void RendererDirectX11::DebugMarker( StringView desc )
+  {
+    if( !mUserAnnotationDEBUG )
+      return;
+    LPCWSTR descWchar = ToTransientWchar( desc );
+    mUserAnnotationDEBUG->SetMarker( descWchar );
+
+  }
+  void RendererDirectX11::DebugGroupEnd()
+  {
+
+    if( mUserAnnotationDEBUG )
+      mUserAnnotationDEBUG->EndEvent();
+
+  }
+
 
 }

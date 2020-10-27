@@ -505,7 +505,7 @@ namespace Tac
 
     DesktopWindowState* desktopWindowState = GetDesktopWindowState(gameWindow->mDesktopWindowHandle);
 
-    if( !desktopWindowState )
+if(!desktopWindowState->mNativeWindowHandle)
       return;
     //if( !desktopWindowState->mCursorUnobscured )
     //return;

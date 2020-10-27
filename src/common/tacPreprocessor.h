@@ -76,21 +76,17 @@ namespace Tac
 #define TAC_ON_DESTRUCT_AUX( code, lambdaName, dtorName ) auto lambdaName = [&](){ code; }; OnDestructAux< decltype( lambdaName ) > dtorName( lambdaName );
 #define TAC_ON_DESTRUCT( code ) TAC_ON_DESTRUCT_AUX( code, TAC_CONCAT( lambda, __LINE__ ), TAC_CONCAT( dtor, __LINE__ ) )
 
-
-  struct HandleBase
-  {
-    HandleBase( int index = -1 ) : mIndex( index ){}
-    bool              IsValid() const { return mIndex != -1; }
-    explicit operator int() const { return mIndex; }
-    int               mIndex;
-  };
-
 #define TAC_DEFINE_HANDLE( Handle )                                             \
-  struct Handle : public HandleBase                                             \
+  struct Handle                                                                 \
   {                                                                             \
-    Handle( int index = -1 ) : HandleBase( index ){}                            \
+    Handle( int index = -1 ) : mIndex( index ){}                                \
     bool operator ==( Handle handle ) const { return mIndex == handle.mIndex; } \
     bool operator !=( Handle handle ) const { return mIndex != handle.mIndex; } \
+    bool              IsValid() const { return mIndex != -1; }                  \
+    explicit operator int() const { return mIndex; }                            \
+    int               mIndex;                                                   \
   };
+
+
 }
 

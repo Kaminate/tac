@@ -66,11 +66,11 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
 
     DesktopWindowState* desktopWindowState = GetDesktopWindowState(mDesktopWindowHandle);
-    if( !desktopWindowState )
+if(!desktopWindowState->mNativeWindowHandle)
       return;
 
 
-    ImGuiBegin( "Properties", {}, mDesktopWindowHandle );
+    ImGuiBegin( "Properties", mDesktopWindowHandle );
 
 
 

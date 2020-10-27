@@ -40,9 +40,9 @@ namespace Tac
   void CreationProfileWindow::ImGui()
   {
     DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
-    if( !desktopWindowState )
+if(!desktopWindowState->mNativeWindowHandle)
       return;
-    ImGuiBegin( "Profile Window", {}, mDesktopWindowHandle );
+    ImGuiBegin( "Profile Window", mDesktopWindowHandle );
 
     ImGuiText( "i am the profile window" );
     ImGuiText( "i am... inevitable" );
@@ -62,7 +62,7 @@ namespace Tac
   void CreationProfileWindow::Update( Errors& errors )
   {
     DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
-    if( !desktopWindowState )
+if(!desktopWindowState->mNativeWindowHandle)
       return;
     const float w = ( float )desktopWindowState->mWidth;
     const float h = ( float )desktopWindowState->mHeight;

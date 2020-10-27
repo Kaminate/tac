@@ -49,7 +49,6 @@ namespace Tac
       UpdateTextureRegion,
       UpdateVertexBuffer,
       ResizeFramebuffer,
-      //UpdateConstantBuffer,
     };
 
     struct UpdateConstantBufferData
@@ -78,13 +77,15 @@ namespace Tac
       int                   mStartVertex = 0;
       int                   mIndexCount = 0;
       int                   mVertexCount = 0;
+      int                   iUniformBegin = 0;
+      int                   iUniformEnd = 0;
     };
     typedef FixedVector< DrawCall3, kDrawCallCapacity > DrawCalls;
 
     struct CommandBuffer
     {
-      void           PushCommand( CommandType type,
-                                  StackFrame stackFrame,
+      void           PushCommand( CommandType,
+                                  StackFrame,
                                   const void* bytes,
                                   int byteCount );
       void           Resize( int newSize );
@@ -96,8 +97,35 @@ namespace Tac
       Vector< char > mBuffer;
     };
 
+    enum class UniformBufferEntryType
+    {
+      DebugGroupBegin,
+      DebugMarker,
+      DebugGroupEnd,
+      UpdateConstantBuffer,
+    };
+
     struct UniformBuffer
     {
+      void             PushType( UniformBufferEntryType );
+      void             PushData( const void*, int );
+      void             PushString( StringView );
+      void             PushNumber( int );
+      int              size() const;
+      void*            data() const;
+
+      struct Iterator
+      {
+        Iterator( const UniformBuffer*, int iBegin, int iEnd );
+        UniformBufferEntryType PopType();
+        void*                  PopData( int );
+        int                    PopNumber();
+        StringView             PopString();
+        const char*            mCur;
+        const char*            mEnd;
+      };
+
+    private:
       static const int kByteCapacity = 256 * 1024;
       char             mBytes[ kByteCapacity ] = {};
       int              mByteCount = 0;
@@ -111,6 +139,7 @@ namespace Tac
       bool              mViewportSet = false;
       bool              mScissorSet = false;
     };
+
 
     struct Frame
     {
@@ -186,6 +215,13 @@ namespace Tac
       int               mByteCount = 0;
     };
 
+    struct CommandDataUpdateConstantBuffer
+    {
+      ConstantBufferHandle mConstantBufferHandle;
+      const void*          mBytes = nullptr;
+      int                  mByteCount = 0;
+    };
+
     struct CommandDataCreateFramebuffer
     {
       FramebufferHandle mFramebufferHandle;
@@ -227,7 +263,13 @@ namespace Tac
     bool IsSubmitAllocated( const void* data );
 
     void DebugPrintSubmitAllocInfo();
+
+      void ExecuteUniformCommands( UniformBuffer*   uniformBuffer,
+        
+        int iUniformBegin,
+        int iUniformEnd);
   }
+
 
   struct Renderer
   {
@@ -265,6 +307,7 @@ namespace Tac
     virtual void UpdateTextureRegion( Render::CommandDataUpdateTextureRegion*, Errors& ) = 0;
     virtual void UpdateVertexBuffer( Render::CommandDataUpdateVertexBuffer*, Errors& ) = 0;
     virtual void UpdateIndexBuffer( Render::CommandDataUpdateIndexBuffer*, Errors& ) = 0;
+    virtual void UpdateConstantBuffer( Render::CommandDataUpdateConstantBuffer, Errors& ) = 0;
     virtual void ResizeFramebuffer( Render::CommandDataResizeFramebuffer*, Errors& ) = 0;
     virtual void RemoveBlendState( Render::BlendStateHandle, Errors& ) = 0;
     virtual void RemoveConstantBuffer( Render::ConstantBufferHandle, Errors& ) = 0;
@@ -277,8 +320,11 @@ namespace Tac
     virtual void RemoveIndexBuffer( Render::IndexBufferHandle, Errors& ) = 0;
     virtual void RemoveTexture( Render::TextureHandle, Errors& ) = 0;
     virtual void RemoveFramebuffer( Render::FramebufferHandle, Errors& ) = 0;
+    virtual void DebugGroupBegin( StringView ) = 0;
+    virtual void DebugMarker( StringView ) = 0;
+    virtual void DebugGroupEnd() = 0;
     String       mName;
   };
-  String RendererTypeToString( Renderer::Type );
 
+  String RendererTypeToString( Renderer::Type );
 }

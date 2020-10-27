@@ -7,6 +7,7 @@
 
 namespace Tac
 {
+  ImGuiNextWindow gNextWindow;
 
   struct RegisteredWindowResource
   {
@@ -19,8 +20,8 @@ namespace Tac
   {
     static WindowResourceRegistry* GetInstance();
     ImGuiindex                RegisterResource( StringView name,
-                                                     void* initialDataBytes,
-                                                     int initialDataByteCount );
+                                                void* initialDataBytes,
+                                                int initialDataByteCount );
     RegisteredWindowResource*      FindResource( ImGuiindex  index );
   private:
     Vector< RegisteredWindowResource > mRegisteredWindowResources;
@@ -42,8 +43,8 @@ namespace Tac
   }
 
   ImGuiindex WindowResourceRegistry::RegisterResource( StringView name,
-                                                            void* initialDataBytes,
-                                                            int initialDataByteCount )
+                                                       void* initialDataBytes,
+                                                       int initialDataByteCount )
   {
     const char* dataBegin = ( char* )initialDataBytes;
     const char* dataEnd = ( char* )initialDataBytes + initialDataByteCount;
@@ -57,8 +58,8 @@ namespace Tac
   }
 
   ImGuiindex ImGuiRegisterWindowResource( StringView name,
-                                               void* initialDataBytes,
-                                               int initialDataByteCount )
+                                          void* initialDataBytes,
+                                          int initialDataByteCount )
   {
     return WindowResourceRegistry::GetInstance()->RegisterResource( name,
                                                                     initialDataBytes,
@@ -88,44 +89,43 @@ namespace Tac
 
     if( mParent )
     {
-      mPos = mParent->mCurrCursorDrawPos;
+      mPosViewportSpace = mParent->mCurrCursorDrawPos;
       // Render borders
       {
         bool clipped;
-        auto clipRect = ImGuiRect::FromPosSize( mPos, mSize );
+        auto clipRect = ImGuiRect::FromPosSize( mPosViewportSpace, mSize );
         ComputeClipInfo( &clipped, &clipRect );
         if( !clipped )
         {
           v4 childWindowColor = v4( 0.1f, 0.15f, 0.2f, 1.0f );
           Render::TextureHandle texture;
-          ui2DDrawData->AddBox( mPos, mPos + mSize, childWindowColor, texture, nullptr );
+          ui2DDrawData->AddBox( mPosViewportSpace, mPosViewportSpace + mSize, childWindowColor, texture, nullptr );
         }
       }
 
     }
 
     // Scrollbar
-    if( mMaxiCursorDrawPos.y > mPos.y + mSize.y || mScroll )
+    if( mMaxiCursorDrawPos.y > mPosViewportSpace.y + mSize.y || mScroll )
     {
       float scrollbarWidth = 30;
-      v2 mini = {
-        mPos.x + mSize.x - scrollbarWidth,
-        mPos.y };
-      v2 maxi = mPos + mSize;
+      v2 mini( mPosViewportSpace.x + mSize.x - scrollbarWidth,
+                     mPosViewportSpace.y );
+      v2 maxi = mPosViewportSpace + mSize;
       v4 scrollbarBackgroundColor = v4( 0.4f, 0.2f, 0.8f, 1.0f );
       Render::TextureHandle invalidTexture;
 
       ui2DDrawData->AddBox( mini, maxi, scrollbarBackgroundColor, invalidTexture, nullptr );
 
-      float contentAllMinY = mPos.y - mScroll;
+      float contentAllMinY = mPosViewportSpace.y - mScroll;
       float contentAllMaxY = mMaxiCursorDrawPos.y;
       float contentAllHeight = contentAllMaxY - contentAllMinY;
-      float contentVisibleMinY = mPos.y;
-      float contentVisibleMaxY = mPos.y + mSize.y;
+      float contentVisibleMinY = mPosViewportSpace.y;
+      float contentVisibleMaxY = mPosViewportSpace.y + mSize.y;
       float contentVisibleHeight = contentVisibleMaxY - contentVisibleMinY;
 
-      mini.y = mPos.y + ( ( contentVisibleMinY - contentAllMinY ) / contentAllHeight ) * mSize.y;
-      maxi.y = mPos.y + ( ( contentVisibleMaxY - contentAllMinY ) / contentAllHeight ) * mSize.y;
+      mini.y = mPosViewportSpace.y + ( ( contentVisibleMinY - contentAllMinY ) / contentAllHeight ) * mSize.y;
+      maxi.y = mPosViewportSpace.y + ( ( contentVisibleMaxY - contentAllMinY ) / contentAllHeight ) * mSize.y;
 
       v2 padding = v2( 1, 1 ) * 3;
       mini += padding;
@@ -164,11 +164,11 @@ namespace Tac
         }
       }
 
-      mContentRect = ImGuiRect::FromPosSize( mPos, v2( mSize.x - scrollbarWidth, mSize.y ) );
+      mContentRect = ImGuiRect::FromPosSize( mPosViewportSpace, v2( mSize.x - scrollbarWidth, mSize.y ) );
     }
     else
     {
-      mContentRect = ImGuiRect::FromPosSize( mPos, mSize );
+      mContentRect = ImGuiRect::FromPosSize( mPosViewportSpace, mSize );
     }
 
     v2 padVec = v2( 1, 1 ) * ImGuiGlobals::Instance.mUIStyle.windowPadding;
@@ -178,8 +178,8 @@ namespace Tac
     mXOffsets.resize( 0 );
     mXOffsets.push_back( ImGuiGlobals::Instance.mUIStyle.windowPadding );
     v2 drawPos;
-    drawPos.x = mPos.x + mXOffsets.back();
-    drawPos.y = mPos.y + ImGuiGlobals::Instance.mUIStyle.windowPadding - mScroll;
+    drawPos.x = mPosViewportSpace.x + mXOffsets.back();
+    drawPos.y = mPosViewportSpace.y + ImGuiGlobals::Instance.mUIStyle.windowPadding - mScroll;
     mCurrCursorDrawPos = drawPos;
     mPrevCursorDrawPos = drawPos;
     mMaxiCursorDrawPos = drawPos;
@@ -212,7 +212,7 @@ namespace Tac
   void ImGuiWindow::ComputeClipInfo( bool* clipped,
                                      ImGuiRect* clipRect )
   {
-    auto windowRect = ImGuiRect::FromPosSize( mPos, mSize );
+    auto windowRect = ImGuiRect::FromPosSize( mPosViewportSpace, mSize );
     *clipped =
       clipRect->mMini.x > windowRect.mMaxi.x ||
       clipRect->mMaxi.x < windowRect.mMini.x ||
@@ -232,7 +232,7 @@ namespace Tac
     mPrevCursorDrawPos = mCurrCursorDrawPos + v2( size.x, 0 );
     mPrevLineHeight = mCurrLineHeight;
 
-    mCurrCursorDrawPos.x = mPos.x + mXOffsets.back();
+    mCurrCursorDrawPos.x = mPosViewportSpace.x + mXOffsets.back();
     mCurrCursorDrawPos.y += mCurrLineHeight + ImGuiGlobals::Instance.mUIStyle.itemSpacing.y;
     mCurrLineHeight = 0;
   }
@@ -262,7 +262,7 @@ namespace Tac
   {
     if( !ImGuiGlobals::Instance.mMouseHoveredWindow.IsValid() )
       return false;
-    if(ImGuiGlobals::Instance.mMouseHoveredWindow != mDesktopWindowHandle)
+    if( ImGuiGlobals::Instance.mMouseHoveredWindow != mDesktopWindowHandle )
       return false;
     const v2 mousePos = GetRelativeMousePosition();
     return
@@ -274,7 +274,11 @@ namespace Tac
 
   v2 ImGuiWindow::GetRelativeMousePosition()
   {
-    const v2 result = KeyboardInput::Instance->mCurr.mScreenspaceCursorPos - mPos;
+    const DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
+    const v2 result
+      = KeyboardInput::Instance->mCurr.mScreenspaceCursorPos
+      - v2( ( float )desktopWindowState->mX, ( float )desktopWindowState->mY )
+      + mPosViewportSpace;
     return result;
   }
 

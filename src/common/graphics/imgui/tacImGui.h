@@ -1,3 +1,5 @@
+// This file is responsible for containing the client facing imgui api
+
 #pragma once
 
 #include "src/common/math/tacVector2.h"
@@ -20,7 +22,7 @@ namespace Tac
     v2               mMaxi = {};
   };
 
-  void ImGuiBegin( const StringView& name, v2 size, const DesktopWindowHandle& );
+  void ImGuiBegin( const StringView& name, const DesktopWindowHandle& );
   void ImGuiEnd();
 
   //void ImGuiSetGlobals( // v2 mousePositionDesktopWindowspace,
@@ -45,7 +47,8 @@ namespace Tac
   void ImGuiIndent();
   void ImGuiUnindent();
 
-  void ImGuiSetNextWindowPos( v2 pos );
+  //void ImGuiSetNextWindowPos( v2 screenspacePos );
+  void ImGuiSetNextWindowSize( v2 );
   bool ImGuiCollapsingHeader( const StringView& name );
   void ImGuiSameLine();
   void ImGuiText( const StringView& text );

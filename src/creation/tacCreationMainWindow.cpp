@@ -94,10 +94,10 @@ namespace Tac
     //WindowGraphicsGetView( mDesktopWindowHandle );
 
     DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
-    if( !desktopWindowState )
+if(!desktopWindowState->mNativeWindowHandle)
       return;
 
-    ImGuiBegin( "Main Window", {}, mDesktopWindowHandle );
+    ImGuiBegin( "Main Window", mDesktopWindowHandle );
 #if 1
     ImGuiBeginMenuBar();
     ImGuiText( "file | edit | window" );
@@ -163,11 +163,12 @@ namespace Tac
     LoadTextures( errors );
     TAC_HANDLE_ERROR( errors );
 
-    ImGui();
 
     const DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
-    if( !desktopWindowState )
+    if( !desktopWindowState->mNativeWindowHandle )
       return;
+
+    ImGui();
 
     Viewport viewport;
     viewport.mWidth = ( float )desktopWindowState->mWidth;

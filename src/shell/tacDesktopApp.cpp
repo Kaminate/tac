@@ -82,31 +82,6 @@ namespace Tac
                                          int dataByteCount )
   {
     std::lock_guard< std::mutex > lockGuard( mMutex );
-
-    //char buf[ 11 ] = {};
-    //char clear[ 11 ] = {};
-    //mQueue.QueuePush( "ass", 3 );
-    //mQueue.QueuePush( "titty", 5 );
-
-    //mQueue.QueuePop( buf, 3 );
-    //MemCpy( buf, clear, 11 );
-
-    //mQueue.QueuePush( "fuck", 4 );
-
-    //mQueue.QueuePop( buf, 5 );
-    //MemCpy( buf, clear, 11 );
-
-    //mQueue.QueuePush( "balls", 4 );
-
-    //mQueue.QueuePop( buf, 4 );
-    //MemCpy( buf, clear, 11 );
-
-    //mQueue.QueuePop( buf, 4 );
-    //MemCpy( buf, clear, 11 );
-
-    //static int asdf;
-    //++asdf;
-
     mQueue.Push( &desktopEventType, sizeof( DesktopEventType ) );
     mQueue.Push( dataBytes, dataByteCount );
   }
@@ -166,8 +141,9 @@ namespace Tac
   struct DesktopEventDataMouseMove
   {
     DesktopWindowHandle mDesktopWindowHandle;
-    int mX;
-    int mY;
+    // Position of the mouse relative to the top left corner of the window
+    int                 mX;
+    int                 mY;
   };
 
   struct DesktopEventDataWindowMove
@@ -261,11 +237,14 @@ namespace Tac
         {
           DesktopEventDataMouseMove data;
           sEventQueue.QueuePop( &data, sizeof( data ) );
-          KeyboardInput::Instance->mCurr.mScreenspaceCursorPos =
-          {
-            ( float )data.mX,
-            ( float )data.mY
-          };
+
+          // no. (x,y) are windowspace, not screenspace
+
+          //KeyboardInput::Instance->mCurr.mScreenspaceCursorPos =
+          //{
+          //  ( float )data.mX,
+          //  ( float )data.mY
+          //};
         } break;
 
         default:
