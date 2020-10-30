@@ -25,18 +25,16 @@ namespace Tac
   CreationSystemWindow::~CreationSystemWindow()
   {
     Instance = nullptr;
-    delete mUI2DDrawData;
   }
   void CreationSystemWindow::Init( Errors& errors )
   {
-    mUI2DDrawData = new UI2DDrawData;
     mSystemName = Settings::Instance->GetString( nullptr, nSysPath, "", errors );
     mDesktopWindowHandle = Creation::Instance->CreateWindow( gSystemWindowName );
   };
   void CreationSystemWindow::ImGui()
   {
-    DesktopWindowState* desktopWindowState = GetDesktopWindowState(mDesktopWindowHandle);
-if(!desktopWindowState->mNativeWindowHandle)
+    DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
+    if( !desktopWindowState->mNativeWindowHandle )
       return;
 
     ImGuiBegin( "System Window", mDesktopWindowHandle );
@@ -50,8 +48,7 @@ if(!desktopWindowState->mNativeWindowHandle)
         if( ImGuiButton( systemRegistryEntry.mName ) )
         {
           mSystemName = systemRegistryEntry.mName;
-          Errors e;
-          Settings::Instance->SetString( nullptr, nSysPath, mSystemName, e );
+          Settings::Instance->SetString( nullptr, nSysPath, mSystemName, Errors()  );
         }
         if( mSystemName == systemRegistryEntry.mName )
         {
@@ -81,7 +78,7 @@ if(!desktopWindowState->mNativeWindowHandle)
   }
   void CreationSystemWindow::Update( Errors& errors )
   {
-    DesktopWindowState* desktopWindowState = GetDesktopWindowState(mDesktopWindowHandle);
+    DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
     if( !desktopWindowState->mNativeWindowHandle )
       return;
     ImGui();
@@ -92,10 +89,6 @@ if(!desktopWindowState->mNativeWindowHandle)
     Render::SetViewFramebuffer( viewHandle, framebufferHandle );
     Render::SetViewport( viewHandle, Viewport( w, h ) );
     Render::SetViewScissorRect( viewHandle, ScissorRect( w, h ) );
-    mUI2DDrawData->DrawToTexture( viewHandle,
-      desktopWindowState->mWidth,
-                                  desktopWindowState->mHeight,
-                                  errors );
     TAC_HANDLE_ERROR( errors );
   }
 

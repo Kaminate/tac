@@ -113,6 +113,7 @@ namespace Tac
       void             PushNumber( int );
       int              size() const;
       void*            data() const;
+      void             clear();
 
       struct Iterator
       {
@@ -264,10 +265,10 @@ namespace Tac
 
     void DebugPrintSubmitAllocInfo();
 
-      void ExecuteUniformCommands( UniformBuffer*   uniformBuffer,
-        
-        int iUniformBegin,
-        int iUniformEnd);
+    void ExecuteUniformCommands( const UniformBuffer* uniformBuffer,
+                                 int iUniformBegin,
+                                 int iUniformEnd,
+                                 Errors& );
   }
 
 
@@ -307,7 +308,7 @@ namespace Tac
     virtual void UpdateTextureRegion( Render::CommandDataUpdateTextureRegion*, Errors& ) = 0;
     virtual void UpdateVertexBuffer( Render::CommandDataUpdateVertexBuffer*, Errors& ) = 0;
     virtual void UpdateIndexBuffer( Render::CommandDataUpdateIndexBuffer*, Errors& ) = 0;
-    virtual void UpdateConstantBuffer( Render::CommandDataUpdateConstantBuffer, Errors& ) = 0;
+    virtual void UpdateConstantBuffer( Render::CommandDataUpdateConstantBuffer*, Errors& ) = 0;
     virtual void ResizeFramebuffer( Render::CommandDataResizeFramebuffer*, Errors& ) = 0;
     virtual void RemoveBlendState( Render::BlendStateHandle, Errors& ) = 0;
     virtual void RemoveConstantBuffer( Render::ConstantBufferHandle, Errors& ) = 0;

@@ -98,6 +98,7 @@ if(!desktopWindowState->mNativeWindowHandle)
       return;
 
     ImGuiBegin( "Main Window", mDesktopWindowHandle );
+
 #if 1
     ImGuiBeginMenuBar();
     ImGuiText( "file | edit | window" );

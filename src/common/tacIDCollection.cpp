@@ -3,8 +3,34 @@
 
 namespace Tac
 {
-  //void IdCollection::Init( int capacity )
-  IdCollection::IdCollection( int capacity )
+  // sparse is an array keyed by a handle.
+  // the value of the sparse array is an index into dense.
+  //
+  // the value of the dense array is the handle
+  //
+  // Example configurations of some handles
+  //  - b(1)
+  //  - a(0)
+  //  - g(6)
+  //
+  //         0 1 2 3 4 5 6       0 1 2 3 4 5 6 
+  //        +-+-+-+-+-+-+-+-+-  +-+-+-+-+-+-+-+-+-
+  // dense  |b|a|g| | | | | |   |1|0|6| | | | | |
+  //        +-+-+-+-+-+-+-+-+-  +-+-+-+-+-+-+-+-+-
+  // sparse |1|0| | | | |2| |   |1|0| | | | |2| |
+  //        +-+-+-+-+-+-+-+-+-  +-+-+-+-+-+-+-+-+-
+  //         a b c d e f g h     a b c d e f g h
+  //
+  //         0 1 2 3 4 5 6       0 1 2 3 4 5 6 
+  //        +-+-+-+-+-+-+-+-+-  +-+-+-+-+-+-+-+-+-
+  // dense  |6|1|0| | | | | |   |0|6|1| | | | | |
+  //        +-+-+-+-+-+-+-+-+-  +-+-+-+-+-+-+-+-+-
+  // sparse |2|1| | | | |6| |   |0|1| | | | |1| |
+  //        +-+-+-+-+-+-+-+-+-  +-+-+-+-+-+-+-+-+-
+  //         a b c d e f g h     a b c d e f g h
+  //
+
+  IdCollection::IdCollection( const int capacity )
   {
     mData = TAC_NEW int[ capacity * 2 ];
     mCapacity = capacity;
@@ -47,23 +73,26 @@ namespace Tac
     return iSparse;
   }
 
-  void IdCollection::Free( int id )
+  void IdCollection::Free( const int id )
   {
     int* dense = GetDense();
     int* sparse = GetSparse();
-    const int iDense = sparse[ id ];
-    const int iSparseNew = dense[ --mSize ];
-    dense[ iDense ] = iSparseNew;
-    sparse[ iSparseNew ] = iDense;
+
+    const int iRemoveSparse = id;
+    const int iRemoveDense = sparse[ iRemoveSparse ];
+
+    const int iLastDense = mSize - 1;
+    const int iLastSparse = dense[ iLastDense ];
+
+    TAC_ASSERT( ( unsigned )iRemoveDense < ( unsigned )mSize );
+
+    dense[ iRemoveDense ] = iLastSparse;
+    dense[ iLastDense ] = iRemoveSparse;
+    sparse[ iLastSparse ] = iRemoveDense;
+    sparse[ iRemoveSparse ] = iLastDense;
+
+    --mSize;
   }
-
-  //void IdCollection::Free( const HandleBase& handleBase )
-  //{
-  //  Free( handleBase.GetIndex() );
-  //}
-
-  //int             Size();
-  //int             Lookup( int index );
 
   int* IdCollection::begin()
   {

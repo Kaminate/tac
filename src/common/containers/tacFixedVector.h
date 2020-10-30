@@ -6,6 +6,7 @@ namespace Tac
   struct FixedVector
   {
     FixedVector() = default;
+
     template< typename Iterator >
     FixedVector( Iterator iBegin, Iterator iEnd )
     {
@@ -15,13 +16,6 @@ namespace Tac
         push_back( t );
       }
     }
-    //FixedVector( const Vector& v )
-    //{
-    //  int size = v.size();
-    //  resize( size );
-    //  for( int i = 0; i < size; ++i )
-    //    mTs[ i ] = v[ i ];
-    //}
     FixedVector( int size )
     {
       resize( size );
@@ -39,53 +33,23 @@ namespace Tac
       for( int i = 0; i < size; ++i )
         mTs[ i ] = tbegin[ i ];
     }
-    //FixedVector( std::initializer_list< T > ts )
-    //{
-    //  resize( ( int )ts.size() );
-    //  int i = 0;
-    //  for( T t : ts )
-    //    mTs[ i++ ] = t;
-    //}
-    //void operator =( const FixedVector<T>& v )
-    //{
-    //  int newSize = v.size();
-    //  resize( newSize );
-    //  for( int i = 0; i < newSize; ++i )
-    //    mTs[ i ] = v[ i ];
-    //}
-    void clear()
-    {
-      mTCount = 0;
-    }
-    int size() const
-    {
-      return mTCount;
-    }
-    void push_back( T t )
-    {
-      mTs[ mTCount++ ] = t;
-    }
-    void pop_back()
-    {
-      TAC_ASSERT( mTCount );
-      mTCount--;
-    }
-    bool empty() const { return !mTCount; }
-    void resize( int newSize )
-    {
-      mTCount = newSize;
-    }
-    T* begin() { return mTs; };
-    T* end() { return mTs + mTCount; };
+    void     clear() { mTCount = 0; }
+    int      size() const { return mTCount; }
+    void     push_back( T t ) { mTs[ mTCount++ ] = t; }
+    void     pop_back() { TAC_ASSERT( mTCount ); mTCount--; }
+    bool     empty() const { return !mTCount; }
+    void     resize( int newSize ) { mTCount = newSize; }
+    T*       begin() { return mTs; };
+    T*       end() { return mTs + mTCount; };
     const T* begin() const { return mTs; };
     const T* end() const { return mTs + mTCount; };
-    T& front() { return *begin(); }
-    T& back() { return mTs[ mTCount - 1 ]; }
-    T* data() { return mTs; }
+    T&       front() { return *begin(); }
+    T&       back() { return mTs[ mTCount - 1 ]; }
+    T*       data() { return mTs; }
     const T* data() const { return mTs; }
-    T& operator[]( int i ) { return mTs[ i ]; }
+    T&       operator[]( int i ) { return mTs[ i ]; }
     const T& operator[]( int i ) const { return mTs[ i ]; }
-    T mTs[ N ];
-    int mTCount = 0;
+    T        mTs[ N ];
+    int      mTCount = 0;
   };
 }

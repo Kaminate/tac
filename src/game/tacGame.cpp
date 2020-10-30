@@ -11,7 +11,6 @@
 
 namespace Tac
 {
-  static UI2DDrawData*         mUi2DDrawData;
   static DesktopWindowHandle   mDesktopWindowHandle;
 
   void GameCallbackInit( Errors& errors )
@@ -34,7 +33,6 @@ namespace Tac
                                                 windowHeight );
     TAC_HANDLE_ERROR( errors );
 
-    mUi2DDrawData = TAC_NEW UI2DDrawData;
 
     auto ghost = TAC_NEW Ghost;
     //ghost->mRenderView = mDesktopWindow->mRenderView;
@@ -55,7 +53,6 @@ if(!desktopWindowState->mNativeWindowHandle)
     scissorRect.mXMaxRelUpperLeftCornerPixel = ( float )desktopWindowState->mWidth;
     scissorRect.mYMaxRelUpperLeftCornerPixel = ( float )desktopWindowState->mHeight;
 
-    //mUi2DDrawData->DrawToTexture( mDesktopWindowHandle, errors );
     TAC_HANDLE_ERROR( errors );
   }
 

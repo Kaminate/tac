@@ -211,9 +211,6 @@ namespace Tac
 
     }
 
-    // asdf
-      //window->mScreenspacePos = {};
-
     TAC_ASSERT( window->mSize.x > 0 && window->mSize.y > 0 );
 
     // todo: move this to a ImGuiGlobals::Instance.mFrameData
@@ -520,21 +517,7 @@ namespace Tac
     if( clipped )
       return false;
 
-
-
     const bool hovered = window->IsHovered( clipRect );
-
-    //if( "asdf" && str == "Profile" )
-    //{
-    //  const v2 relMosuePos = window->GetRelativeMousePosition();
-    //  std::cout
-    //    << "mouse hovered window: " << ( int )ImGuiGlobals::Instance.mMouseHoveredWindow
-    //    << ", mouse position: (" << relMosuePos.x << ", " << relMosuePos.y << ")"
-    //    << ", window hovered:" << (hovered ? "true" : "false" )
-    //    << ", ss cursor x: " << KeyboardInput::Instance->mCurr.mScreenspaceCursorPos.x
-    //    << ", ss cursor y: " << KeyboardInput::Instance->mCurr.mScreenspaceCursorPos.y
-    //    << std::endl;
-    //}
 
     bool justClicked = false;
     v3 outerBoxColor = v3( .23f, .28f, .38f );
@@ -971,6 +954,9 @@ namespace Tac
   {
     for( ImGuiWindow* window : ImGuiGlobals::Instance.mAllWindows )
     {
+      // remember, these are imguiwindows, not win32windows
+      const char* groupName = va("imgui for window %s", window->mName.c_str() );
+      TAC_RENDER_GROUP_BLOCK( groupName );
       const Render::ViewHandle viewHandle = WindowGraphicsGetView( window->mDesktopWindowHandle );
       DesktopWindowState* desktopWindowState = GetDesktopWindowState( window->mDesktopWindowHandle );
       window->mDrawData->DrawToTexture( viewHandle,

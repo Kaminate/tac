@@ -108,6 +108,7 @@ namespace Tac
     void UpdateIndexBuffer( Render::CommandDataUpdateIndexBuffer*, Errors& ) override;
     void UpdateTextureRegion( Render::CommandDataUpdateTextureRegion*, Errors& ) override;
     void UpdateVertexBuffer( Render::CommandDataUpdateVertexBuffer*, Errors& ) override;
+    void UpdateConstantBuffer( Render::CommandDataUpdateConstantBuffer*, Errors& ) override;
     void DebugGroupBegin( StringView ) override;
     void DebugMarker( StringView ) override;
     void DebugGroupEnd() override;
@@ -140,6 +141,8 @@ namespace Tac
     ID3D11BlendState*          mBlendStates[ Render::kMaxBlendStates ] = {};
     ConstantBuffer             mConstantBuffers[ Render::kMaxConstantBuffers ] = {};
     Program                    mPrograms[ Render::kMaxPrograms ] = {};
+    ID3D11Buffer* constantBuffers[ D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT ] = {};
+    int constantBufferCount = 0;
   };
 }
 

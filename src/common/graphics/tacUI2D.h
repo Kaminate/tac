@@ -26,8 +26,6 @@ namespace Tac
   struct Shader;
   struct UI2DCommonData;
   struct UI2DDrawCall;
-  struct UI2DDrawData;
-  struct UI2DState;
   struct VertexBuffer;
   struct VertexFormat;
 
@@ -70,6 +68,14 @@ namespace Tac
 
   struct ImGuiRect;
 
+  struct UI2DDrawGpuInterface
+  {
+    int                        mVertexCapacity = 0;
+    int                        mIndexCapacity = 0;
+    Render::VertexBufferHandle mVertexBufferHandle;
+    Render::IndexBufferHandle  mIndexBufferHandle;
+  };
+
   // why does this class exist
   struct UI2DDrawData
   {
@@ -82,18 +88,12 @@ namespace Tac
     Vector< UI2DVertex >   mDefaultVertex2Ds;
     Vector< UI2DIndex >    mDefaultIndex2Ds;
     Vector< UI2DDrawCall > mDrawCall2Ds;
+    UI2DDrawGpuInterface   gDrawInterface;
   };
 
   v2 CalculateTextSize( StringView text, int fontSize );
   v2 CalculateTextSize( CodepointView codepoints, int fontSize );
   v2 CalculateTextSize( const Codepoint* codepoints, int codepointCount, int fontSize );
 
-  struct UI2DDrawGpuInterface
-  {
-    int                        mVertexCapacity = 0;
-    int                        mIndexCapacity = 0;
-    Render::VertexBufferHandle mVertexBufferHandle;
-    Render::IndexBufferHandle  mIndexBufferHandle;
-  };
 
 }

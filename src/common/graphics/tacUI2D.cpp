@@ -230,17 +230,18 @@ namespace Tac
   }
 
 
-  static UI2DDrawGpuInterface gDrawInterface;
 
-  static void UpdateDrawInterface( UI2DDrawData* drawData, Errors& errors )
+  static void UpdateDrawInterface( UI2DDrawData* drawData,
+                                   UI2DDrawGpuInterface* gDrawInterface,
+                                   Errors& errors )
   {
     Vector< UI2DVertex >& mDefaultVertex2Ds = drawData->mDefaultVertex2Ds;
     Vector< UI2DIndex >& mDefaultIndex2Ds = drawData->mDefaultIndex2Ds;
 
-    int& mVertexCapacity = gDrawInterface.mVertexCapacity;
-    int& mIndexCapacity = gDrawInterface.mIndexCapacity;
-    Render::VertexBufferHandle& mVertexBufferHandle = gDrawInterface.mVertexBufferHandle;
-    Render::IndexBufferHandle& mIndexBufferHandle = gDrawInterface.mIndexBufferHandle;
+    int& mVertexCapacity = gDrawInterface->mVertexCapacity;
+    int& mIndexCapacity = gDrawInterface->mIndexCapacity;
+    Render::VertexBufferHandle& mVertexBufferHandle = gDrawInterface->mVertexBufferHandle;
+    Render::IndexBufferHandle& mIndexBufferHandle = gDrawInterface->mIndexBufferHandle;
 
 
     const int vertexCount = mDefaultVertex2Ds.size();
@@ -300,7 +301,7 @@ namespace Tac
 
     if( mDefaultVertex2Ds.size() && mDefaultIndex2Ds.size() )
     {
-      UpdateDrawInterface( this, errors );
+      UpdateDrawInterface( this, &gDrawInterface, errors );
       Render::VertexBufferHandle& mVertexBufferHandle = gDrawInterface.mVertexBufferHandle;
       Render::IndexBufferHandle& mIndexBufferHandle = gDrawInterface.mIndexBufferHandle;
 
@@ -348,14 +349,14 @@ namespace Tac
 
   // cache the results?
   v2 CalculateTextSize( const StringView text,
-                                      const int fontSize )
+                        const int fontSize )
   {
     const CodepointView codepoints = UTF8ToCodepoints( text );
     return CalculateTextSize( codepoints, fontSize );
   }
 
   v2 CalculateTextSize( const CodepointView codepoints,
-                                      const int fontSize )
+                        const int fontSize )
   {
     return CalculateTextSize( codepoints.data(),
                               codepoints.size(),
@@ -363,8 +364,8 @@ namespace Tac
   }
 
   v2 CalculateTextSize( const Codepoint* codepoints,
-                                      const int codepointCount,
-                                      const int fontSize )
+                        const int codepointCount,
+                        const int fontSize )
   {
     float lineWidthUISpaceMax = 0;
     float lineWidthUISpace = 0;

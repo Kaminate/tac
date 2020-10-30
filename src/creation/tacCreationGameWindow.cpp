@@ -106,7 +106,6 @@ namespace Tac
     Render::DestroyBlendState( mBlendState, TAC_STACK_FRAME );
     Render::DestroyRasterizerState( mRasterizerState, TAC_STACK_FRAME );
     Render::DestroySamplerState( mSamplerState, TAC_STACK_FRAME );
-    delete mUI2DDrawData;
     delete mDebug3DDrawData;
   }
   void CreationGameWindow::CreateGraphicsObjects( Errors& errors )
@@ -184,31 +183,23 @@ namespace Tac
 
     Creation* creation = Creation::Instance;
     auto uI2DDrawData = TAC_NEW UI2DDrawData;
-    mUI2DDrawData = uI2DDrawData;
-    mUIRoot = TAC_NEW UIRoot;
-    mUIRoot->mElapsedSeconds = &Shell::Instance.mElapsedSeconds;
-    mUIRoot->mUI2DDrawData = mUI2DDrawData;
-    //mUIRoot->mDesktopWindow = mDesktopWindow;
     CreateGraphicsObjects( errors );
     TAC_HANDLE_ERROR( errors );
 
     mSkyboxPresentation = TAC_NEW SkyboxPresentation;
     mSkyboxPresentation->mCamera = &creation->mEditorCamera;
-    //mSkyboxPresentation->mDesktopWindow = mDesktopWindow;
     mSkyboxPresentation->Init( errors );
     TAC_HANDLE_ERROR( errors );
 
     mGamePresentation = TAC_NEW GamePresentation;
     mGamePresentation->mWorld = creation->mWorld;
     mGamePresentation->mCamera = &creation->mEditorCamera;
-    //mGamePresentation->mDesktopWindow = mDesktopWindow;
     mGamePresentation->mSkyboxPresentation = mSkyboxPresentation;
     mGamePresentation->CreateGraphicsObjects( errors );
     TAC_HANDLE_ERROR( errors );
 
 
-    ModelAssetManager::Instance->GetMesh(
-      &mCenteredUnitCube,
+    ModelAssetManager::Instance->GetMesh( &mCenteredUnitCube,
       "assets/editor/box.gltf",
       m3DVertexFormat,
       m3DvertexFormatDecls,
@@ -216,8 +207,7 @@ namespace Tac
       errors );
     TAC_HANDLE_ERROR( errors );
 
-    ModelAssetManager::Instance->GetMesh(
-      &mArrow,
+    ModelAssetManager::Instance->GetMesh( &mArrow,
       "assets/editor/arrow.gltf",
       m3DVertexFormat,
       m3DvertexFormatDecls,
@@ -236,7 +226,7 @@ namespace Tac
   void CreationGameWindow::MousePickingAll()
   {
     DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
-if(!desktopWindowState->mNativeWindowHandle)
+    if( !desktopWindowState->mNativeWindowHandle )
       return;
 
     //if( !desktopWindowState->mCursorUnobscured )
@@ -359,7 +349,7 @@ if(!desktopWindowState->mNativeWindowHandle)
   void CreationGameWindow::MousePickingInit()
   {
     DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
-if(!desktopWindowState->mNativeWindowHandle)
+    if( !desktopWindowState->mNativeWindowHandle )
       return;
 
     Creation* creation = Creation::Instance;
@@ -474,7 +464,7 @@ if(!desktopWindowState->mNativeWindowHandle)
     MousePickingAll();
     Camera* camera = &Creation::Instance->mEditorCamera;
     DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
-if(!desktopWindowState->mNativeWindowHandle)
+    if( !desktopWindowState->mNativeWindowHandle )
       return;
 
     const m4 view = camera->View();
@@ -577,7 +567,7 @@ if(!desktopWindowState->mNativeWindowHandle)
   void CreationGameWindow::CameraControls()
   {
     DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
-if(!desktopWindowState->mNativeWindowHandle)
+    if( !desktopWindowState->mNativeWindowHandle )
       return;
     //if( !desktopWindowState->mCursorUnobscured )
     //  return;
@@ -665,7 +655,7 @@ if(!desktopWindowState->mNativeWindowHandle)
     const Render::FramebufferHandle framebufferHandle = WindowGraphicsGetFramebuffer( mDesktopWindowHandle );
 
     DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
-if(!desktopWindowState->mNativeWindowHandle)
+    if( !desktopWindowState->mNativeWindowHandle )
       return;
 
     Viewport viewport(
@@ -719,9 +709,9 @@ if(!desktopWindowState->mNativeWindowHandle)
     //                                 &perFrameData,
     //                                 mDesktopWindow->mRenderView );
 
-    mGamePresentation->RenderGameWorldToDesktopView( desktopWindowState->mWidth,
-                                                     desktopWindowState->mHeight,
-                                                     viewHandle );
+    //mGamePresentation->RenderGameWorldToDesktopView( desktopWindowState->mWidth,
+    //                                                 desktopWindowState->mHeight,
+    //                                                 viewHandle );
 
     if( creation->mSelectedGizmo )
     {
@@ -751,12 +741,6 @@ if(!desktopWindowState->mNativeWindowHandle)
     }
 
     DrawPlaybackOverlay( errors );
-    TAC_HANDLE_ERROR( errors );
-
-    mUI2DDrawData->DrawToTexture( viewHandle,
-                                  desktopWindowState->mWidth,
-                                  desktopWindowState->mHeight,
-                                  errors );
     TAC_HANDLE_ERROR( errors );
   }
 }

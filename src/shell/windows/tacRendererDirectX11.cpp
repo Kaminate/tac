@@ -377,20 +377,44 @@ namespace Tac
     if( gVerbose )
       std::cout << "Render2::Begin\n";
 
+    for( auto& b : constantBuffers )
+      b = {};
+    constantBufferCount = 0;
+
+    for( int iWindow = 0; iWindow < mWindowCount; ++iWindow )
+    {
+      const Render::FramebufferHandle framebufferHandle = mWindows[ iWindow ];
+      TAC_ASSERT( framebufferHandle.IsValid() );
+
+      Framebuffer* framebuffer = &mFramebuffers[ ( int )framebufferHandle ];
+      ID3D11RenderTargetView* renderTargetView = framebuffer->mRenderTargetView;
+      ID3D11DepthStencilView* depthStencilView = framebuffer->mDepthStencilView;
+
+      const UINT ClearFlags = D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL;
+      const FLOAT ClearDepth = 1.0f;
+      const UINT8 ClearStencil = 0;
+      mDeviceContext->ClearDepthStencilView( depthStencilView, ClearFlags, ClearDepth, ClearStencil );
+
+      const FLOAT ClearGrey = 0.1f;
+      const FLOAT ClearColorRGBA[] = { ClearGrey, ClearGrey,ClearGrey,  1.0f };
+      mDeviceContext->ClearRenderTargetView( renderTargetView, ClearColorRGBA );
+    }
+
 
     ID3D11BlendState* blendState = nullptr;
     ID3D11DepthStencilState* depthStencilState = nullptr;
-    ID3D11Buffer* constantBuffers[ D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT ] = {};
-    int constantBufferCount = 0;
     Render::ViewHandle viewHandle;
     IndexBuffer* indexBuffer = nullptr;
-    for( const Render::DrawCall3& rDrawCall : frame->mDrawCalls )
+
+    const int drawCallCount = frame->mDrawCalls.size();
+    for( int iDrawCall = 0; iDrawCall < drawCallCount; ++iDrawCall )
     {
-      const Render::DrawCall3* drawCall = &rDrawCall;
+      const Render::DrawCall3* drawCall = &frame->mDrawCalls[ iDrawCall ];
 
       Render::ExecuteUniformCommands( &frame->mUniformBuffer,
                                       drawCall->iUniformBegin,
-                                      drawCall->iUniformEnd );
+                                      drawCall->iUniformEnd,
+                                      errors );
 
       if( drawCall->mShaderHandle.IsValid() )
       {
@@ -483,15 +507,6 @@ namespace Tac
         UINT NumViews = 1;
         ID3D11RenderTargetView* RenderTargetViews[] = { renderTargetView };
         mDeviceContext->OMSetRenderTargets( NumViews, RenderTargetViews, depthStencilView );
-
-        const UINT ClearFlags = D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL;
-        const FLOAT ClearDepth = 1.0f;
-        const UINT8 ClearStencil = 0;
-        mDeviceContext->ClearDepthStencilView( depthStencilView, ClearFlags, ClearDepth, ClearStencil );
-
-        const FLOAT ClearGrey = 0.1f;
-        const FLOAT ClearColorRGBA[] = { ClearGrey, ClearGrey,ClearGrey,  1.0f };
-        mDeviceContext->ClearRenderTargetView( renderTargetView, ClearColorRGBA );
 
         TAC_ASSERT( view->mViewportSet );
         D3D11_VIEWPORT viewport;
@@ -1326,6 +1341,23 @@ namespace Tac
     UpdateBuffer( buffer, commandData->mBytes, commandData->mByteCount, errors );
   }
 
+  void RendererDirectX11::UpdateConstantBuffer( Render::CommandDataUpdateConstantBuffer* commandData,
+                                                Errors& errors )
+  {
+    const ConstantBuffer* constantBuffer = &mConstantBuffers[ ( int )commandData->mConstantBufferHandle ];
+    UpdateBuffer( constantBuffer->mBuffer,
+                  commandData->mBytes,
+                  commandData->mByteCount,
+                  errors );
+
+    constantBuffers[ constantBuffer->mShaderRegister ] = constantBuffer->mBuffer;
+    constantBufferCount = Max( constantBufferCount, constantBuffer->mShaderRegister + 1 );
+
+    const UINT StartSlot = 0;
+    mDeviceContext->PSSetConstantBuffers( StartSlot, constantBufferCount, constantBuffers );
+    mDeviceContext->VSSetConstantBuffers( StartSlot, constantBufferCount, constantBuffers );
+  }
+
   void RendererDirectX11::UpdateIndexBuffer( Render::CommandDataUpdateIndexBuffer* commandData,
                                              Errors& errors )
   {
@@ -1405,6 +1437,7 @@ namespace Tac
   {
     if( !mUserAnnotationDEBUG )
       return;
+    TAC_ASSERT( !desc.empty() );
     LPCWSTR descWchar = ToTransientWchar( desc );
     mUserAnnotationDEBUG->BeginEvent( descWchar );
 

@@ -31,13 +31,11 @@ namespace Tac
   CreationPropertyWindow::~CreationPropertyWindow()
   {
     Instance = nullptr;
-    delete mUI2DDrawData;
   }
 
   void CreationPropertyWindow::Init( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
-    mUI2DDrawData = TAC_NEW UI2DDrawData;
     mDesktopWindowHandle = Creation::Instance->CreateWindow( gPropertyWindowName );
   }
 
@@ -224,10 +222,6 @@ if(!desktopWindowState->mNativeWindowHandle)
     Render::SetViewFramebuffer( viewHandle, framebufferHandle );
     Render::SetViewport( viewHandle, Viewport( w, h ) );
     Render::SetViewScissorRect( viewHandle, ScissorRect( w, h ) );
-    mUI2DDrawData->DrawToTexture( viewHandle,
-                                  desktopWindowState->mWidth,
-                                  desktopWindowState->mHeight,
-                                  errors );
     TAC_HANDLE_ERROR( errors );
   }
 }

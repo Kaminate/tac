@@ -469,6 +469,8 @@ namespace Tac
                                                            int,
                                                            StackFrame );
     void                             Uninit();
+#define TAC_RENDER_GROUP_BLOCK(text) Render::BeginGroup(text); TAC_ON_DESTRUCT( Render::EndGroup());
+
   }
 
   struct RendererFactory
