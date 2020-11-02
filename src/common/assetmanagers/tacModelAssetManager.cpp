@@ -149,12 +149,9 @@ namespace Tac
   }
 
 
-  ModelAssetManager* ModelAssetManager::Instance = nullptr;
-  ModelAssetManager::ModelAssetManager()
-  {
-    Instance = this;
-  }
-  ModelAssetManager::~ModelAssetManager()
+  ModelAssetManager gModelAssetManager;
+
+  void ModelAssetManager::Uninit()
   {
     for( auto pair : mMeshes )
     {
@@ -191,16 +188,16 @@ namespace Tac
     cgltf_result parseResult = cgltf_parse( &options, bytes.data(), bytes.size(), &parsedData );
     if( parseResult != cgltf_result_success )
     {
-      errors = String( "cgltf_parse: " ) + GetcgltfErrorAsString( parseResult );
-      return;
+      const String errorMsg = String( "cgltf_parse: " ) + GetcgltfErrorAsString( parseResult );
+      TAC_RAISE_ERROR( errorMsg, errors );
     }
     TAC_ON_DESTRUCT( cgltf_free( parsedData ) );
 
     parseResult = cgltf_validate( parsedData );
     if( parseResult != cgltf_result_success )
     {
-      errors = String( "cgltf_validate: " ) + GetcgltfErrorAsString( parseResult );
-      return;
+      const String errorMsg = String( "cgltf_validate: " ) + GetcgltfErrorAsString( parseResult );
+      TAC_RAISE_ERROR( errorMsg, errors );
     }
 
 
@@ -210,8 +207,8 @@ namespace Tac
     parseResult = cgltf_load_buffers( &options, parsedData, path.c_str() );//splitFilepath.mDirectory.c_str() );
     if( parseResult != cgltf_result_success )
     {
-      errors = String( "cgltf_validate: " ) + GetcgltfErrorAsString( parseResult );
-      return;
+      const String errorMsg = String( "cgltf_validate: " ) + GetcgltfErrorAsString( parseResult );
+      TAC_RAISE_ERROR( errorMsg, errors );
     }
 
     Vector< SubMesh > submeshes;

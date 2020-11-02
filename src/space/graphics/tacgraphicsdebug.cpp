@@ -3,40 +3,40 @@
 #include "src/space/graphics/tacGraphics.h"
 namespace Tac
 {
-void GraphicsDebugImgui( System* system )
-{
-  auto graphics = ( Graphics* )system;
-  ImGuiText( "graphics stuff" );
+  void GraphicsDebugImgui( System* system )
+  {
+    auto graphics = ( Graphics* )system;
+    ImGuiText( "graphics stuff" );
 
 
-  static String shaderReloadStatus;
+    static String shaderReloadStatus;
 
-  //if( ImGuiCollapsingHeader( "reload shaders" ) )
-  //{
-  //  ImGuiIndent();
-  //  TAC_ON_DESTRUCT(ImGuiUnindent());
-  //  Vector<Shader*> shaders;
-  //  Renderer::Instance->GetShaders( shaders );
+    //if( ImGuiCollapsingHeader( "reload shaders" ) )
+    //{
+    //  ImGuiIndent();
+    //  TAC_ON_DESTRUCT(ImGuiUnindent());
+    //  Vector<Shader*> shaders;
+    //  Renderer::Instance->GetShaders( shaders );
 
-  //  bool reloadAllShaders = ImGuiButton("reload all shaders");
-  //  for( Shader* shader : shaders )
-  //  {
-  //    if( ImGuiButton( "reload shader " + shader->mName ) || reloadAllShaders )
-  //    {
-  //      Errors shaderReloadErrors;
-  //      Renderer::Instance->ReloadShader( shader, shaderReloadErrors );
-  //      if(shaderReloadErrors)
-  //        shaderReloadStatus = shaderReloadErrors.ToString();
-  //      else
-  //        shaderReloadStatus = "reloaded shader " + shader->mName;
-  //    }
-  //  }
+    //  bool reloadAllShaders = ImGuiButton("reload all shaders");
+    //  for( Shader* shader : shaders )
+    //  {
+    //    if( ImGuiButton( "reload shader " + shader->mName ) || reloadAllShaders )
+    //    {
+    //      Errors shaderReloadErrors;
+    //      Renderer::Instance->ReloadShader( shader, shaderReloadErrors );
+    //      if(shaderReloadErrors)
+    //        shaderReloadStatus = shaderReloadErrors.ToString();
+    //      else
+    //        shaderReloadStatus = "reloaded shader " + shader->mName;
+    //    }
+    //  }
 
-  //  if(ImGuiButton("clear status"))
-  //    shaderReloadStatus.clear();
-  //  ImGuiText( shaderReloadStatus );
-  //}
-}
+    //  if(ImGuiButton("clear status"))
+    //    shaderReloadStatus.clear();
+    //  ImGuiText( shaderReloadStatus );
+    //}
+  }
 
 }
 

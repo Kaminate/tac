@@ -10,12 +10,9 @@ namespace Tac
   static const int hemisphereSegmentCount = 4;
   static const int numdivisions = 20;
 
-  Debug3DCommonData* Debug3DCommonData::Instance = nullptr;
-  Debug3DCommonData::Debug3DCommonData()
-  {
-    Instance = this;
-  }
-  Debug3DCommonData::~Debug3DCommonData()
+  Debug3DCommonData gDebug3DCommonData;
+
+  void Debug3DCommonData::Uninit()
   {
     Render::DestroyBlendState( mAlphaBlendState, TAC_STACK_FRAME );
     Render::DestroyConstantBuffer( mCBufferPerFrame, TAC_STACK_FRAME );
@@ -24,6 +21,7 @@ namespace Tac
     Render::DestroyShader( m3DVertexColorShader, TAC_STACK_FRAME );
     Render::DestroyVertexFormat( mVertexColorFormat, TAC_STACK_FRAME );
   }
+
   void Debug3DCommonData::Init( Errors& errors )
   {
     Render::RasterizerState rasterizerStateNoCullData;
@@ -365,8 +363,8 @@ namespace Tac
     DebugDrawTriangle( p0, p1, p2, color, color, color );
   }
   void Debug3DDrawData::DrawToTexture( Errors& errors,
-    const DefaultCBufferPerFrame* cbufferperframe,
-    RenderView* renderView )
+                                       const DefaultCBufferPerFrame* cbufferperframe,
+                                       RenderView* renderView )
   {
     //_PROFILE_BLOCK;
     if( mDebugDrawVerts.size() )

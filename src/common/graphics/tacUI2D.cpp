@@ -8,6 +8,7 @@
 
 namespace Tac
 {
+  UI2DCommonData gUI2DCommonData;
 
   static m4 OrthographicUIMatrix2( const float w, const float h )
   {
@@ -96,28 +97,6 @@ namespace Tac
     }
   }
 
-
-
-  UI2DCommonData* UI2DCommonData::Instance = nullptr;
-
-  UI2DCommonData::UI2DCommonData()
-  {
-    Instance = this;
-  }
-
-  UI2DCommonData::~UI2DCommonData()
-  {
-    Render::DestroyTexture( m1x1White, TAC_STACK_FRAME );
-    Render::DestroyVertexFormat( mFormat, TAC_STACK_FRAME );
-    Render::DestroyShader( mShader, TAC_STACK_FRAME );
-    Render::DestroyShader( m2DTextShader, TAC_STACK_FRAME );
-    Render::DestroyDepthState( mDepthState, TAC_STACK_FRAME );
-    Render::DestroyBlendState( mBlendState, TAC_STACK_FRAME );
-    Render::DestroyRasterizerState( mRasterizerState, TAC_STACK_FRAME );
-    Render::DestroySamplerState( mSamplerState, TAC_STACK_FRAME );
-    Render::DestroyConstantBuffer( mPerFrame, TAC_STACK_FRAME );
-    Render::DestroyConstantBuffer( mPerObj, TAC_STACK_FRAME );
-  }
 
   void UI2DCommonData::Init( Errors& errors )
   {
@@ -215,6 +194,21 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
   }
 
+  void UI2DCommonData::Uninit()
+  {
+    {
+      Render::DestroyTexture( m1x1White, TAC_STACK_FRAME );
+      Render::DestroyVertexFormat( mFormat, TAC_STACK_FRAME );
+      Render::DestroyShader( mShader, TAC_STACK_FRAME );
+      Render::DestroyShader( m2DTextShader, TAC_STACK_FRAME );
+      Render::DestroyDepthState( mDepthState, TAC_STACK_FRAME );
+      Render::DestroyBlendState( mBlendState, TAC_STACK_FRAME );
+      Render::DestroyRasterizerState( mRasterizerState, TAC_STACK_FRAME );
+      Render::DestroySamplerState( mSamplerState, TAC_STACK_FRAME );
+      Render::DestroyConstantBuffer( mPerFrame, TAC_STACK_FRAME );
+      Render::DestroyConstantBuffer( mPerObj, TAC_STACK_FRAME );
+    }
+  }
   UI2DDrawData::UI2DDrawData()
   {
 
@@ -312,12 +306,12 @@ namespace Tac
       perFrameData.mProjection = OrthographicUIMatrix( ( float )w, ( float )h );
 
 
-      Render::SetBlendState( UI2DCommonData::Instance->mBlendState );
-      Render::SetRasterizerState( UI2DCommonData::Instance->mRasterizerState );
-      Render::SetSamplerState( UI2DCommonData::Instance->mSamplerState );
-      Render::SetDepthState( UI2DCommonData::Instance->mDepthState );
-      Render::SetVertexFormat( UI2DCommonData::Instance->mFormat );
-      Render::UpdateConstantBuffer( UI2DCommonData::Instance->mPerFrame,
+      Render::SetBlendState( gUI2DCommonData.mBlendState );
+      Render::SetRasterizerState( gUI2DCommonData.mRasterizerState );
+      Render::SetSamplerState( gUI2DCommonData.mSamplerState );
+      Render::SetDepthState( gUI2DCommonData.mDepthState );
+      Render::SetVertexFormat( gUI2DCommonData.mFormat );
+      Render::UpdateConstantBuffer( gUI2DCommonData.mPerFrame,
                                     &perFrameData,
                                     sizeof( DefaultCBufferPerFrame ),
                                     TAC_STACK_FRAME );
@@ -327,13 +321,11 @@ namespace Tac
 
         Render::TextureHandle texture = uidrawCall.mTexture.IsValid() ?
           uidrawCall.mTexture :
-          UI2DCommonData::Instance->m1x1White;
-
-        Render::UpdateConstantBuffer( UI2DCommonData::Instance->mPerObj,
+          gUI2DCommonData.m1x1White;
+        Render::UpdateConstantBuffer( gUI2DCommonData.mPerObj,
                                       &uidrawCall.mUniformSource,
                                       sizeof( DefaultCBufferPerObject ),
                                       TAC_STACK_FRAME );
-
         Render::SetVertexBuffer( mVertexBufferHandle, uidrawCall.mIVertexStart, uidrawCall.mVertexCount );
         Render::SetIndexBuffer( mIndexBufferHandle, uidrawCall.mIIndexStart, uidrawCall.mIndexCount );
         Render::SetTexture( texture );
@@ -373,7 +365,7 @@ namespace Tac
 
 
     Language defaultLanguage = Language::English;
-    FontFile* fontFile = FontStuff::Instance->mDefaultFonts[ defaultLanguage ];
+    FontFile* fontFile = gFontStuff.mDefaultFonts[ defaultLanguage ];
 
     int lineCount = 1;
 
@@ -405,7 +397,7 @@ namespace Tac
       }
 
       FontAtlasCell* fontAtlasCell = nullptr;
-      FontStuff::Instance->GetCharacter( defaultLanguage, codepoint, &fontAtlasCell );
+      gFontStuff.GetCharacter( defaultLanguage, codepoint, &fontAtlasCell );
       if( !fontAtlasCell )
         continue;
 
@@ -443,12 +435,12 @@ namespace Tac
 
     int iVert = mDefaultVertex2Ds.size();
     int iIndex = mDefaultIndex2Ds.size();
-    mDefaultIndex2Ds.push_back( iVert + 0 );
-    mDefaultIndex2Ds.push_back( iVert + 1 );
-    mDefaultIndex2Ds.push_back( iVert + 2 );
-    mDefaultIndex2Ds.push_back( iVert + 0 );
-    mDefaultIndex2Ds.push_back( iVert + 2 );
-    mDefaultIndex2Ds.push_back( iVert + 3 );
+    mDefaultIndex2Ds.push_back( ( UI2DIndex )iVert + 0 );
+    mDefaultIndex2Ds.push_back( ( UI2DIndex )iVert + 1 );
+    mDefaultIndex2Ds.push_back( ( UI2DIndex )iVert + 2 );
+    mDefaultIndex2Ds.push_back( ( UI2DIndex )iVert + 0 );
+    mDefaultIndex2Ds.push_back( ( UI2DIndex )iVert + 2 );
+    mDefaultIndex2Ds.push_back( ( UI2DIndex )iVert + 3 );
 
     mDefaultVertex2Ds.resize( iVert + 4 );
     UI2DVertex* defaultVertex2D = &mDefaultVertex2Ds[ iVert ];
@@ -475,7 +467,7 @@ namespace Tac
     drawCall.mIIndexStart = iIndex;
     drawCall.mIndexCount = 6;
     drawCall.mTexture = texture;
-    drawCall.mShader = UI2DCommonData::Instance->mShader;
+    drawCall.mShader = gUI2DCommonData.mShader;
     drawCall.mUniformSource = perObjectData;
 
     mDrawCall2Ds.push_back( drawCall );
@@ -509,12 +501,12 @@ namespace Tac
     mDefaultVertex2Ds[ iVert + 3 ].mPosition = p1 - dphatccw * radius;
     mDefaultVertex2Ds[ iVert + 3 ].mGLTexCoord = {};
     mDefaultIndex2Ds.resize( iIndex + 6 );
-    mDefaultIndex2Ds[ iIndex + 0 ] = iVert + 0;
-    mDefaultIndex2Ds[ iIndex + 1 ] = iVert + 1;
-    mDefaultIndex2Ds[ iIndex + 2 ] = iVert + 2;
-    mDefaultIndex2Ds[ iIndex + 3 ] = iVert + 1;
-    mDefaultIndex2Ds[ iIndex + 4 ] = iVert + 3;
-    mDefaultIndex2Ds[ iIndex + 5 ] = iVert + 2;
+    mDefaultIndex2Ds[ iIndex + 0 ] = ( UI2DIndex )iVert + 0;
+    mDefaultIndex2Ds[ iIndex + 1 ] = ( UI2DIndex )iVert + 1;
+    mDefaultIndex2Ds[ iIndex + 2 ] = ( UI2DIndex )iVert + 2;
+    mDefaultIndex2Ds[ iIndex + 3 ] = ( UI2DIndex )iVert + 1;
+    mDefaultIndex2Ds[ iIndex + 4 ] = ( UI2DIndex )iVert + 3;
+    mDefaultIndex2Ds[ iIndex + 5 ] = ( UI2DIndex )iVert + 2;
 
     DefaultCBufferPerObject perObjectData = {};
     perObjectData.World = m4::Identity();
@@ -526,7 +518,7 @@ namespace Tac
     drawCall.mIIndexStart = iIndex;
     drawCall.mIndexCount = 6;
     drawCall.mTexture;
-    drawCall.mShader = UI2DCommonData::Instance->mShader;
+    drawCall.mShader = gUI2DCommonData.mShader;
     drawCall.mUniformSource = perObjectData;
 
     mDrawCall2Ds.push_back( drawCall );
@@ -544,7 +536,7 @@ namespace Tac
     CodepointView codepoints = UTF8ToCodepoints( utf8 );
 
     Language defaultLanguage = Language::English;
-    FontFile* fontFile = FontStuff::Instance->mDefaultFonts[ defaultLanguage ];
+    FontFile* fontFile = gFontStuff.mDefaultFonts[ defaultLanguage ];
 
     float scaleUIToPx = ( float )fontSize / ( float )FontCellWidth;
     float scaleFontToPx = fontFile->mScale * scaleUIToPx;
@@ -577,7 +569,7 @@ namespace Tac
       }
 
       FontAtlasCell* fontAtlasCell = nullptr;
-      FontStuff::Instance->GetCharacter( defaultLanguage, codepoint, &fontAtlasCell );
+      gFontStuff.GetCharacter( defaultLanguage, codepoint, &fontAtlasCell );
       // ^ ignore errors...
 
       if( !fontAtlasCell )
@@ -658,8 +650,8 @@ namespace Tac
     drawCall.mIIndexStart = indexStart;
     drawCall.mVertexCount = vertexCount;
     drawCall.mIVertexStart = vertexStart;
-    drawCall.mTexture = FontStuff::Instance->mTextureId;
-    drawCall.mShader = UI2DCommonData::Instance->m2DTextShader;
+    drawCall.mTexture = gFontStuff.mTextureId;
+    drawCall.mShader = gUI2DCommonData.m2DTextShader;
     drawCall.mUniformSource = perObjectData;
     mDrawCall2Ds.push_back( drawCall );
   }

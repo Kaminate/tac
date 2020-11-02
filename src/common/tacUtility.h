@@ -9,8 +9,6 @@
 
 namespace Tac
 {
-
-
   //
   // Filesystem utils
   //
@@ -22,12 +20,12 @@ namespace Tac
     String mFilename;
     String mDirectory;
   };
-  void SaveToFile( StringView path, void* bytes, int byteCount, Errors& errors );
-  bool IsOfExt( StringView str, StringView ext );
-  bool FileExist( StringView str );
+
+  void   SaveToFile( StringView path, void* bytes, int byteCount, Errors& );
+  bool   IsOfExt( StringView str, StringView ext );
+  bool   FileExist( StringView str );
   String StripExt( StringView path );
   String StripLeadingSlashes( StringView path );
-
 
   //
   // String-manipulation
@@ -35,8 +33,8 @@ namespace Tac
   String Join( const Vector< String >& lines, StringView separator );
   String SeparateNewline( const Vector< String >& lines );
   String SeparateSpace( const Vector< String >& lines );
-  bool StartsWith( StringView str, StringView prefix );
-  bool EndsWith( StringView str, StringView suffix );
+  bool   StartsWith( StringView str, StringView prefix );
+  bool   EndsWith( StringView str, StringView suffix );
   String ToLower( StringView str );
   String FormatPercentage( float number_between_0_and_1 );
   String FormatPercentage( float curr, float maxi );

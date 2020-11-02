@@ -106,24 +106,27 @@ namespace Tac
                                            IID_IDirectInput8,
                                            ( LPVOID* )&directInput,
                                            NULL );
+    const char* inputCreateErrorMessage = nullptr;
     switch( hr )
     {
       case DI_OK:
         break;
       case DIERR_BETADIRECTINPUTVERSION:
-        errors = "DIERR_BETADIRECTINPUTVERSION";
-        return;
+        inputCreateErrorMessage= "DIERR_BETADIRECTINPUTVERSION";
+        break;
       case DIERR_INVALIDPARAM:
-        errors = "DIERR_INVALIDPARAM";
-        return;
+        inputCreateErrorMessage= "DIERR_INVALIDPARAM";
+        break;
       case DIERR_OLDDIRECTINPUTVERSION:
-        errors = "DIERR_OLDDIRECTINPUTVERSION";
-        return;
+        inputCreateErrorMessage= "DIERR_OLDDIRECTINPUTVERSION";
+        break;
       case DIERR_OUTOFMEMORY:
-        errors = "DIERR_OUTOFMEMORY";
-        return;
+        inputCreateErrorMessage= "DIERR_OUTOFMEMORY";
+        break;
         TAC_INVALID_DEFAULT_CASE( hr );
     }
+    if( inputCreateErrorMessage )
+      TAC_RAISE_ERROR( inputCreateErrorMessage, errors );
   }
 
   DirectInputPerController* XInput::FindDInputController( const DIDEVICEINSTANCE* mDeviceInstance )

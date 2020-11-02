@@ -337,7 +337,7 @@ namespace Tac
     std::this_thread::sleep_for( std::chrono::milliseconds( 1 ) );
   }
 
-  static void LogicThreadInit(Errors& errors)
+  static void LogicThreadInit( Errors& errors )
   {
     gThreadType = ThreadType::Stuff;
     sAllocatorStuff.Init( 1024 * 1024 * 10 );
@@ -355,7 +355,7 @@ namespace Tac
     ProfileSystem::Instance->Init();
 
     TAC_NEW FontStuff;
-    FontStuff::Instance->Load( errors );
+    gFontStuff.Load( errors );
     TAC_HANDLE_ERROR( errors );
 
     sAppInterfaceProject.mProjectInit( errors );

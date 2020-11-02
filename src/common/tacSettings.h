@@ -4,74 +4,72 @@
 #pragma once
 
 #include "src/common/tacJson.h"
-#include "src/common/tacErrorHandling.h"
 
 namespace Tac
 {
   typedef Vector< String > SettingPath;
+  struct Errors;
 
   struct Settings
   {
-    static Settings* Instance;
-    void Init(Errors&);
     Settings();
     ~Settings();
-    Json mJson;
-    String mPath;
-    void Load( Errors& errors );
-    void Save( Errors& errors );
+    static Settings* Instance;
+    void             Init( Errors& );
+    Json             mJson;
+    String           mPath;
+    void             Load( Errors& );
+    void             Save( Errors& );
 
     // These all have the property where it calls Settings::Save
-    bool GetBool( Json* root,
-                  const SettingPath& paths,
-                  bool defaultValue,
-                  Errors& errors );
+    bool             GetBool( Json* root,
+                              const SettingPath& paths,
+                              bool defaultValue,
+                              Errors& );
 
-    JsonNumber GetNumber( Json* root,
-                          const SettingPath& paths,
-                          JsonNumber defaultValue,
-                          Errors& errors );
+    JsonNumber       GetNumber( Json* root,
+                                      const SettingPath& paths,
+                                      JsonNumber defaultValue,
+                                      Errors& );
 
     void SetNumber( Json* root,
                     const SettingPath& paths,
                     JsonNumber value,
-                    Errors& errors );
+                    Errors& );
 
     StringView GetString( Json* root,
                           const SettingPath& paths,
                           String defaultValue,
-                          Errors& errors );
+                          Errors& );
 
     void SetString( Json* root,
                     const SettingPath& paths,
                     StringView value,
-                    Errors& errors );
+                    Errors& );
 
     Json* GetArray( Json* root,
                     const SettingPath& paths,
                     Json* defaultValue,
-                    Errors& errors );
+                    Errors& );
 
     Json* GetObject( Json* root,
                      const SettingPath& paths,
                      Json* defaultValue,
-                     Errors& errors );
+                     Errors& );
 
   private:
 
-    void GetSetting(
-      Json* settingTree,
-      const SettingPath& paths,
-      int iPath,
-      Json** outputSetting,
-      const Json& defaultValue,
-      Errors& errors );
-    void SetSetting(
-      Json* settingTree,
-      const SettingPath& paths,
-      int iPath,
-      const Json& value,
-      Errors& errors );
+    void GetSetting( Json* settingTree,
+                     const SettingPath& paths,
+                     int iPath,
+                     Json** outputSetting,
+                     const Json& defaultValue,
+                     Errors& );
+    void SetSetting( Json* settingTree,
+                     const SettingPath& paths,
+                     int iPath,
+                     const Json& value,
+                     Errors& );
   };
 
 

@@ -22,23 +22,18 @@ namespace Tac
   struct CreationSystemWindow;
   struct CreationProfileWindow;
   struct DesktopApp;
-  /*struct DesktopWindow*/;
   struct Entity;
   struct Renderer;
   struct Shell;
   struct Soul;
   struct Texture;
-  struct UI2DDrawData;
-  //struct WindowParams;
   struct World;
-
 
   // this would be saved as a .map file in cod engine
   struct Prefab
   {
     Vector< Entity* > mEntities;
-    String mDocumentPath;
-    //String GetDisplayName();
+    String            mDocumentPath;
   };
 
   struct PrefabCameraPosition
@@ -47,75 +42,52 @@ namespace Tac
     Camera mCamera;
   };
 
-
-
-  struct Creation // : public UpdateThing
+  struct Creation
   {
-    static Creation* Instance;
     Creation();
     ~Creation();
-    void Init( Errors& errors );// override;
-    void SetSavedWindowData( Json* windowJson, Errors& errors );
-    void SetSavedWindowsData( Errors& errors );
-    void Update( Errors& errors );// override;
-    Entity* CreateEntity();
-    bool IsAnythingSelected();
-    v3 GetSelectionGizmoOrigin();
-    void ClearSelection();
-    void CheckDeleteSelected();
-
-    // Prefabs
-    void UpdateSavedPrefabs();
-    void GetSavedPrefabs( Vector< String > & paths, Errors& errors );
-    void SavePrefabs();
-    void LoadPrefabs( Errors& errors );
-    void LoadPrefabAtPath( String path, Errors& errors );
-    void LoadPrefabCameraPosition( Prefab* prefab );
-    void SavePrefabCameraPosition( Prefab* prefab );
-    void RemoveEntityFromPrefabRecursively( Entity* entity );
-    Prefab* FindPrefab( Entity* entity );
-
-    void ModifyPathRelative( String& path );
-    void DeleteSelectedEntities();
-
-    void CreatePropertyWindow( Errors& errors );
-    void CreateGameWindow( Errors& errors );
-    void CreateMainWindow( Errors& errors );
-    void CreateSystemWindow( Errors& errors );
-    void CreateProfileWindow( Errors& errors );
+    static Creation*    Instance;
+    void                Init( Errors& );
+    void                SetSavedWindowData( Json* windowJson, Errors& );
+    void                SetSavedWindowsData( Errors& );
+    void                Update( Errors& );
+    Entity*             CreateEntity();
+    bool                IsAnythingSelected();
+    v3                  GetSelectionGizmoOrigin();
+    void                ClearSelection();
+    void                CheckDeleteSelected();
+    void                UpdateSavedPrefabs();
+    void                GetSavedPrefabs( Vector< String > & paths, Errors& );
+    void                SavePrefabs();
+    void                LoadPrefabs( Errors& );
+    void                LoadPrefabAtPath( String , Errors& );
+    void                LoadPrefabCameraPosition( Prefab* );
+    void                SavePrefabCameraPosition( Prefab* );
+    void                RemoveEntityFromPrefabRecursively( Entity* );
+    Prefab*             FindPrefab( Entity* );
+    void                ModifyPathRelative( String& path );
+    void                DeleteSelectedEntities();
+    void                CreatePropertyWindow( Errors& );
+    void                CreateGameWindow( Errors& );
+    void                CreateMainWindow( Errors& );
+    void                CreateSystemWindow( Errors& );
+    void                CreateProfileWindow( Errors& );
     DesktopWindowHandle CreateWindow( StringView );
-
-    //void CreateDesktopWindow( String windowName, DesktopWindow** outDesktopWindow, Errors& errors );
-    bool ShouldCreateWindowNamed( StringView name );
-    void GetWindowsJson( Json** outJson, Errors& errors );
-    void GetWindowsJsonData( String windowName, int* x, int* y, int* w, int* h );
-    Json* FindWindowJson( StringView windowName );
-
-    String mOnlyCreateWindowNamed;
-
-    World* mWorld = nullptr;
-
-    // todo: HashSet
-    Vector< Entity* > mSelectedEntities;
-    bool mSelectedHitOffsetExists = false;
-    v3 mSelectedHitOffset = {};
-
-    bool mSelectedGizmo = false;
-    v3 mTranslationGizmoDir = {};
-    float mTranslationGizmoOffset = 0;
-
-    Camera mEditorCamera;
-
-    // todo: HashSet
-    Vector< Prefab* > mPrefabs;
-
-
-    //DesktopWindowStates mDesktopWindowStates;
-
+    bool                ShouldCreateWindowNamed( StringView );
+    void                GetWindowsJson( Json** outJson, Errors& );
+    void                GetWindowsJsonData( String windowName, int* x, int* y, int* w, int* h );
+    Json*               FindWindowJson( StringView windowName );
+    String              mOnlyCreateWindowNamed;
+    World*              mWorld = nullptr;
+    Vector< Entity* >   mSelectedEntities;
+    bool                mSelectedHitOffsetExists = false;
+    v3                  mSelectedHitOffset = {};
+    bool                mSelectedGizmo = false;
+    v3                  mTranslationGizmoDir = {};
+    float               mTranslationGizmoOffset = 0;
+    Camera              mEditorCamera;
+    Vector< Prefab* >   mPrefabs;
   };
-
-  //void SetCreationWindowImGuiGlobals( const DesktopWindowState* desktopWindowState,
-  //                                    UI2DDrawData* ui2DDrawData );
 
   const v4 textColor = v4( v3( 1, 1, 1 ) * 0.0f, 1 );
 

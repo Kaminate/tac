@@ -50,6 +50,7 @@ namespace Tac
     }
     return *lhs - *rhs;
   }
+
   int StrLen( const char* str )
   {
     int result = 0;
@@ -57,6 +58,7 @@ namespace Tac
       ++result;
     return result;
   }
+
   void MemCpy( void* dst, const void* src, int len )
   {
     auto* dstChar = ( char* )dst;
@@ -64,6 +66,7 @@ namespace Tac
     while( len-- )
       *dstChar++ = *srcChar++;
   }
+
   void StrCpy( char* dst, const char* src )
   {
     for( ;; )
@@ -117,12 +120,17 @@ namespace Tac
   StringView::StringView( const char* str )
   {
     mStr = str;
-    mLen = StrLen( str );
+    mLen = str ? StrLen( str ) : 0;
   }
   StringView::StringView( const char* str, int len )
   {
     mStr = str;
     mLen = len;
+  }
+  StringView::StringView( const char* strBegin, const char* strEnd )
+  {
+    mStr = strBegin;
+    mLen = strEnd - strBegin;
   }
   StringView::StringView( const String& str )
   {
@@ -455,7 +463,7 @@ namespace Tac
 
   bool operator == ( const StringView& a, const StringView& b )
   {
-    return a.size() == b.size() && !StrCmp( a.data(), b.data() );
+    return a.size() == b.size() && !MemCmp( a.data(), b.data(), a.size() );
   }
   bool operator == ( const StringView& a, const String& b )
   {
@@ -484,7 +492,7 @@ namespace Tac
 
   int StringID::Hash( StringView stringView )
   {
-    int hash = 0;
+    uint32_t hash = 0;
     for( char c : stringView )
       hash = 37 * hash + c;
     hash %= kMaxStringDictionaryEntries;
@@ -494,6 +502,7 @@ namespace Tac
   StringID::StringID( StringView stringView )
   {
     mHash = Hash( stringView );
+    TAC_ASSERT( mHash >= 0 && mHash < kMaxStringDictionaryEntries );
     if( IsDebugMode() && mHash && gStringLookup[ mHash ].empty() )
       gStringLookup[ mHash ] = stringView;
   }

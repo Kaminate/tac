@@ -9,16 +9,15 @@ namespace Tac
 
   struct CreationPropertyWindow
   {
-    static CreationPropertyWindow* Instance;
     CreationPropertyWindow();
     ~CreationPropertyWindow();
-    void Init( Errors& errors );
-    void Update( Errors& errors );
-    void RecursiveEntityHierarchyElement( Entity* );
-
-    DesktopWindowHandle mDesktopWindowHandle;
+    static CreationPropertyWindow* Instance;
+    void                           Init( Errors& );
+    void                           Update( Errors& );
+    void                           RecursiveEntityHierarchyElement( Entity* );
+    DesktopWindowHandle            mDesktopWindowHandle;
   };
 
-  const String gPropertyWindowName = "PropertyWindow";
+  const char* const gPropertyWindowName = "PropertyWindow";
 
 }

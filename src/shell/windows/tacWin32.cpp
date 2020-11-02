@@ -127,12 +127,10 @@ namespace Tac
 
   static String GetFileDialogErrors()
   {
-    String errors;
-
-    errors = "failed to save file";
+    String errors = "failed to save file because: ";
     // the user cancels or closes the Save dialog box
     // or an error such as the file name buffer being too small occurs
-    DWORD extError = CommDlgExtendedError();
+    const DWORD extError = CommDlgExtendedError();
     switch( extError )
     {
       // the enums should be in commdlg.h, but its not finding, so fk it
@@ -167,13 +165,12 @@ namespace Tac
     {
       const int bufLen = 1024;
       char buf[ bufLen ] = {};
-      DWORD getCurrentDirectoryResult = GetCurrentDirectory(
-        bufLen,
-        buf );
+      const DWORD getCurrentDirectoryResult = GetCurrentDirectory( bufLen,
+                                                                   buf );
       if( 0 == getCurrentDirectoryResult )
       {
-        errors = Win32GetLastErrorString();
-        return;
+        const String errorMsg = Win32GetLastErrorString();
+        TAC_RAISE_ERROR( errorMsg, errors );
       }
       dir = String( buf, getCurrentDirectoryResult );
     };
@@ -189,11 +186,11 @@ namespace Tac
       dialogParams.lpstrFile = outBuf;
       dialogParams.nMaxFile = outBufSize;
       dialogParams.Flags = flags;
-      BOOL getOpenFileNameResult = GetOpenFileNameA( &dialogParams );
+      const BOOL getOpenFileNameResult = GetOpenFileNameA( &dialogParams );
       if( 0 == getOpenFileNameResult )
       {
-        errors = GetFileDialogErrors();
-        return;
+        const String errMsg = GetFileDialogErrors();
+        TAC_RAISE_ERROR( errMsg, errors );
       }
 
       path = outBuf;
@@ -224,8 +221,8 @@ namespace Tac
 
       if( !GetSaveFileNameA( &dialogParams ) )
       {
-        errors = GetFileDialogErrors();
-        return;
+        const String errMsg = GetFileDialogErrors();
+        TAC_RAISE_ERROR( errMsg, errors );
       }
 
       path = outBuf;
@@ -237,7 +234,7 @@ namespace Tac
       TAC_HANDLE_ERROR_IF( !GetCursorPos( &point ), Win32GetLastErrorString(), errors );
       pos = { ( float )point.x, ( float )point.y };
     }
-    void SetScreenspaceCursorPos( v2& pos, Errors& errors )
+    void SetScreenspaceCursorPos( const v2& pos, Errors& errors )
     {
       TAC_HANDLE_ERROR_IF( !SetCursorPos( ( int )pos.x, ( int )pos.y ), Win32GetLastErrorString(), errors );
     }
@@ -257,7 +254,7 @@ namespace Tac
         pathBytes = expandedPath.c_str();
       }
 
-      DWORD dwAttrib = GetFileAttributes( pathBytes );
+      const DWORD dwAttrib = GetFileAttributes( pathBytes );
       if( dwAttrib == INVALID_FILE_ATTRIBUTES )
       {
         exists = false;
@@ -265,18 +262,18 @@ namespace Tac
       }
       if( !( dwAttrib & FILE_ATTRIBUTE_DIRECTORY ) )
       {
-        errors = path + "is not a directory";
-        return;
+        const String errMsg = path + "is not a directory";
+        TAC_RAISE_ERROR( errMsg, errors );
       }
       exists = true;
     }
-    void CreateFolder( StringView path, Errors& errors )
+    void CreateFolder( const StringView path, Errors& errors )
     {
-      BOOL createDirectoryResult = CreateDirectoryA( path.c_str(), NULL );
+      const BOOL createDirectoryResult = CreateDirectoryA( path.c_str(), NULL );
       if( createDirectoryResult == 0 )
       {
-        errors = "Failed to create folder at " + path + " because " + Win32GetLastErrorString();
-        TAC_HANDLE_ERROR( errors );
+        const String errMsg =  "Failed to create folder at " + path + " because " + Win32GetLastErrorString();
+        TAC_RAISE_ERROR( errMsg, errors );
       }
     }
     void SaveToFile( StringView path, void* bytes, int byteCount, Errors& errors )
@@ -300,8 +297,7 @@ namespace Tac
 
       DWORD dwFlagsAndAttributes = FILE_ATTRIBUTE_NORMAL;
       HANDLE hTemplateFile = NULL;
-      HANDLE handle = CreateFileA(
-        lpFileName,
+      const HANDLE handle = CreateFileA( lpFileName,
         dwDesiredAccess,
         dwShareMode,
         lpSecurityAttributes,
@@ -310,15 +306,15 @@ namespace Tac
         hTemplateFile );
       if( handle == INVALID_HANDLE_VALUE )
       {
-        errors = "Cannot save to file " + path + " because " + Win32GetLastErrorString();
-        TAC_HANDLE_ERROR( errors );
+        const String errMsg =  "Cannot save to file " + path + " because " + Win32GetLastErrorString();
+        TAC_RAISE_ERROR( errMsg, errors );
       }
       TAC_ON_DESTRUCT( CloseHandle( handle ) );
       DWORD bytesWrittenCount;
       if( !WriteFile( handle, bytes, byteCount, &bytesWrittenCount, NULL ) )
       {
-        errors = "failed to save file " + path + " because " + Win32GetLastErrorString();
-        TAC_HANDLE_ERROR( errors );
+        const String errMsg =  "failed to save file " + path + " because " + Win32GetLastErrorString();
+        TAC_RAISE_ERROR( errMsg, errors );
       }
       // Should we check that bytesWrittenCount == byteCount?
     }
@@ -333,11 +329,10 @@ namespace Tac
     void GetApplicationDataPath( String& path, Errors& errors )
     {
       WCHAR* outPath;
-      HRESULT hr = SHGetKnownFolderPath( FOLDERID_RoamingAppData, KF_FLAG_CREATE, nullptr, &outPath );
+      const HRESULT hr = SHGetKnownFolderPath( FOLDERID_RoamingAppData, KF_FLAG_CREATE, nullptr, &outPath );
       if( hr != S_OK )
       {
-        errors += "Failed to get roaming folder";
-        TAC_HANDLE_ERROR( errors );
+        TAC_RAISE_ERROR( "Failed to get roaming folder", errors );
       }
       path = WideStringToUTF8( outPath );
       CoTaskMemFree( outPath );
@@ -350,8 +345,7 @@ namespace Tac
                                   StringView path,
                                   Errors& errors )
     {
-      HANDLE handle = CreateFile(
-        path.c_str(),
+      const HANDLE handle = CreateFile( path.c_str(),
         OPEN_EXISTING,
         FILE_SHARE_READ,
         0,
@@ -360,21 +354,21 @@ namespace Tac
         0 );
       if( handle == INVALID_HANDLE_VALUE )
       {
-        errors = "Failed to open file to get last modified time " + path;
-        TAC_HANDLE_ERROR( errors );
+        const String errMsg =  "Failed to open file to get last modified time " + path;
+        TAC_RAISE_ERROR( errMsg, errors );
       }
       BY_HANDLE_FILE_INFORMATION fileInfo;
       if( !GetFileInformationByHandle( handle, &fileInfo ) )
       {
-        errors += Win32GetLastErrorString();
-        TAC_HANDLE_ERROR( errors );
+        const String errMsg = Win32GetLastErrorString();
+        TAC_RAISE_ERROR( errMsg, errors );
       }
 
       SYSTEMTIME lastWrite;
       if( !FileTimeToSystemTime( &fileInfo.ftLastWriteTime, &lastWrite ) )
       {
-        errors += Win32GetLastErrorString();
-        TAC_HANDLE_ERROR( errors );
+        const String errMsg =  Win32GetLastErrorString();
+        TAC_RAISE_ERROR( errMsg, errors );
       }
 
       tm tempTm;
@@ -391,8 +385,8 @@ namespace Tac
       time_t result = std::mktime( &tempTm );
       if( result == -1 )
       {
-        errors = "Calandar time cannot be represented";
-        TAC_HANDLE_ERROR( errors );
+        const String errMsg =  "Calandar time cannot be represented";
+        TAC_RAISE_ERROR( errMsg, errors );
       }
 
       *time = result;
@@ -425,11 +419,11 @@ namespace Tac
       HANDLE fileHandle = FindFirstFile( path.c_str(), &data );
       if( fileHandle == INVALID_HANDLE_VALUE )
       {
-        DWORD error = GetLastError();
+        const DWORD error = GetLastError();
         if( error != ERROR_FILE_NOT_FOUND )
         {
-          errors += Win32ErrorToString( error );
-          TAC_HANDLE_ERROR( errors );
+          const String errMsg = Win32ErrorToString( error );
+          TAC_RAISE_ERROR( errMsg, errors );
         }
       }
       TAC_ON_DESTRUCT( FindClose( fileHandle ) );
@@ -440,11 +434,11 @@ namespace Tac
         GetDirFilesRecrusiveAux( data, files, dir, errors );
         TAC_HANDLE_ERROR( errors );
       }
-      DWORD error = GetLastError();
+      const DWORD error = GetLastError();
       if( error != ERROR_NO_MORE_FILES )
       {
-        errors += Win32ErrorToString( error );
-        TAC_HANDLE_ERROR( errors );
+        const String errMsg =  Win32ErrorToString( error );
+        TAC_RAISE_ERROR( errMsg, errors );
       }
     }
 

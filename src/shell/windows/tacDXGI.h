@@ -11,32 +11,29 @@
 namespace Tac
 {
 
-struct DXGI
-{
-  ~DXGI();
-  void Init( Errors& errors );
-  void Uninit();
-  void CreateSwapChain(
-    HWND hwnd,
-    IUnknown* pDevice,
-    int bufferCount,
-    UINT width,
-    UINT height,
-    IDXGISwapChain** ppSwapChain,
-    Errors& errors );
-  //void CheckHDRSupport();
-
-  IDXGIFactory4* mFactory = nullptr;
-  IDXGIAdapter4* mDxgiAdapter4 = nullptr;
- };
+  struct DXGI
+  {
+    ~DXGI();
+    void           Init( Errors& );
+    void           Uninit();
+    void           CreateSwapChain( HWND hwnd,
+                                    IUnknown* pDevice,
+                                    int bufferCount,
+                                    UINT width,
+                                    UINT height,
+                                    IDXGISwapChain** ppSwapChain,
+                                    Errors& errors );
+    IDXGIFactory4* mFactory = nullptr;
+    IDXGIAdapter4* mDxgiAdapter4 = nullptr;
+  };
 
 
-Format GetFormat( DXGI_FORMAT format );
-DXGI_FORMAT GetDXGIFormat( Format textureFormat );
+  Format GetFormat( DXGI_FORMAT format );
+  DXGI_FORMAT GetDXGIFormat( Format textureFormat );
 
-void NameDXGIObject( IDXGIObject* object, StringView name );
+  void NameDXGIObject( IDXGIObject* object, StringView name );
 
-void DXGICallAux( const char* fnCallWithArgs, HRESULT res, Errors& errors );
+  void DXGICallAux( const char* fnCallWithArgs, HRESULT res, Errors& errors );
 
 #define TAC_DXGI_CALL( errors, call, ... )\
 {\

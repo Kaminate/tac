@@ -39,13 +39,13 @@ namespace Tac
   //
   struct User
   {
-    User( Ghost* ghost, StringView name, Errors& errors );
-    void Update( Errors& errors );
-    void DebugImgui();
-    Player* mPlayer = nullptr;
-    Ghost* mGhost = nullptr;
-    String mName;
-    bool mHasControllerIndex = false;
+    User( Ghost* ghost, StringView name, Errors& );
+    void            Update( Errors& );
+    void            DebugImgui();
+    Player*         mPlayer = nullptr;
+    Ghost*          mGhost = nullptr;
+    String          mName;
+    bool            mHasControllerIndex = false;
     ControllerIndex mControllerIndex = TAC_CONTROLLER_COUNT_MAX;
   };
 
@@ -63,35 +63,33 @@ namespace Tac
   {
     Ghost();
     virtual ~Ghost();
-    void Init( Errors& errors ) override;
-    void Update( Errors& errors ) override;
-    void ImguiCreatePlayerPopup( Errors& errors );
-    User* AddPlayer( StringView name, Errors& errors );
-    void DebugImgui( Errors& errors ) override;
-    void PopulateWorldInitial();
-    void Draw( Errors& errors );
-    void AddMorePlayers( Errors& errors );
-    bool CanDrawImgui();
-    bool IsPartyFull();
-
+    void            Init( Errors& ) override;
+    void            Update( Errors& ) override;
+    void            ImguiCreatePlayerPopup( Errors& );
+    User*           AddPlayer( StringView name, Errors& );
+    void            DebugImgui( Errors& ) override;
+    void            PopulateWorldInitial();
+    void            Draw( Errors& );
+    void            AddMorePlayers( Errors& );
+    bool            CanDrawImgui();
+    bool            IsPartyFull();
     Vector< User* > mUsers;
-    ServerData* mServerData = nullptr;
-    ClientData* mClientData = nullptr;
-    ScriptRoot* mScriptRoot = nullptr;
-    Errors mLevelLoadErrors;
-    v4 mClearColor = v4( v3( 27, 33, 40 ) / 255.0f, 1 );
-    bool mDrawText = true;
-    float mSplashAlpha = 0;
-    //UIRoot* mUIRoot = nullptr;
-    bool mIsGrabbingInput = true;
-    bool mDrawDirectlyToScreen = true;
-    v2 mMouserCursorNDC = {};
-    bool mMouseHoveredOverWindow = false;
-    float mImguiImageW = 0;
-    float mImguiImageH = 0;
-    float mImguiImagePosRelTopLeftX = 0;
-    float mImguiImagePosRelTopLeftY = 0;
-    bool mShouldPopulateWorldInitial = false;
+    ServerData*     mServerData = nullptr;
+    ClientData*     mClientData = nullptr;
+    ScriptRoot*     mScriptRoot = nullptr;
+    Errors          mLevelLoadErrors;
+    v4              mClearColor = v4( v3( 27, 33, 40 ) / 255.0f, 1 );
+    bool            mDrawText = true;
+    float           mSplashAlpha = 0;
+    bool            mIsGrabbingInput = true;
+    bool            mDrawDirectlyToScreen = true;
+    v2              mMouserCursorNDC = {};
+    bool            mMouseHoveredOverWindow = false;
+    float           mImguiImageW = 0;
+    float           mImguiImageH = 0;
+    float           mImguiImagePosRelTopLeftX = 0;
+    float           mImguiImagePosRelTopLeftY = 0;
+    bool            mShouldPopulateWorldInitial = false;
   };
 
   const String scriptMsgNameUserConnect = "user connect";

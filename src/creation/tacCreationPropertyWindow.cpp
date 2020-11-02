@@ -55,16 +55,15 @@ namespace Tac
       RecursiveEntityHierarchyElement( child );
     }
   }
+
   void CreationPropertyWindow::Update( Errors& errors )
   {
     Creation* creation = Creation::Instance;
-    //mDesktopWindow->SetRenderViewDefaults();
-    //mUIRoot->Update();
-    //mUIRoot->Render( errors );
+
     TAC_HANDLE_ERROR( errors );
 
-    DesktopWindowState* desktopWindowState = GetDesktopWindowState(mDesktopWindowHandle);
-if(!desktopWindowState->mNativeWindowHandle)
+    DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
+    if( !desktopWindowState->mNativeWindowHandle )
       return;
 
 
@@ -98,7 +97,7 @@ if(!desktopWindowState->mNativeWindowHandle)
 
     for( Entity* entity : creation->mSelectedEntities )
     {
-      static String occupation = "Bartender";
+      const char* occupation = "Bartender";
       ImGuiInputText( "Name", entity->mName );
       ImGuiText( "UUID: " + ToString( ( UUID )entity->mEntityUUID ) );
       ImGuiDragFloat( "X Position: ", &entity->mRelativeSpace.mPosition.x );

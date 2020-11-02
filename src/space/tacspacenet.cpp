@@ -12,29 +12,18 @@ namespace Tac
     writer->Write( networkMessageType );
   }
 
-  NetMsgType ReadNetMsgHeader( Reader* reader, Errors& errors )
+  void ReadNetMsgHeader( Reader* reader, NetMsgType* netMsgType, Errors& errors )
   {
     for( char c : tac )
     {
       char l;
       if( !reader->Read( &l ) )
-      {
-        errors = "fuck";
-        return NetMsgType::Count;
-      }
+        TAC_RAISE_ERROR( "failed reading net msg header tac", errors );
       if( l != c )
-      {
-        errors = "fuck";
-        return NetMsgType::Count;
-      }
+        TAC_RAISE_ERROR( "mismatchg reading net msg header tac", errors );
     }
-    NetMsgType result;
-    if( !reader->Read( &result ) )
-    {
-      errors = "fuck";
-      return NetMsgType::Count;
-    }
-    return result;
+    if( !reader->Read(netMsgType) )
+      TAC_RAISE_ERROR( "failure reading NetMsgType", errors );
   }
 
   uint8_t GetNetworkBitfield( const void* oldData,

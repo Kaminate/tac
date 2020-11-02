@@ -12,30 +12,30 @@ namespace Tac
 
   namespace OS
   {
-    void        SaveToFile( StringView path, void* bytes, int byteCount, Errors& errors );
+    void        SaveToFile( StringView path, void* bytes, int byteCount, Errors& );
 
     // SDL doesn't have this functionality
     // Maybe we shouldn't and just rely on the folder already existing?
-    void        DoesFolderExist( StringView path, bool& exists, Errors& errors );
-    void        CreateFolder( StringView path, Errors& errors );
-    void        CreateFolderIfNotExist( StringView path, Errors& errors );
+    void        DoesFolderExist( StringView path, bool& exists, Errors& );
+    void        CreateFolder( StringView path, Errors& );
+    void        CreateFolderIfNotExist( StringView path, Errors& );
 
     void        DebugBreak();
-    void        DebugAssert( StringView msg, const StackFrame& frame );
+    void        DebugAssert( StringView msg, const StackFrame& );
     void        DebugPopupBox( StringView );
 
     // Gets the path where you can save files to, such as user configs
-    void        GetApplicationDataPath( String& path, Errors& errors );
+    void        GetApplicationDataPath( String& path, Errors& );
 
-    void        GetFileLastModifiedTime( time_t* time, StringView path, Errors& errors );
+    void        GetFileLastModifiedTime( time_t* time, StringView path, Errors& );
 
-    void        GetDirFilesRecursive( Vector< String >& files, StringView dir, Errors& errors );
+    void        GetDirFilesRecursive( Vector< String >& files, StringView dir, Errors& );
 
-    void        SaveDialog( String& path, StringView suggestedPath, Errors& errors );
+    void        SaveDialog( String& path, StringView suggestedPath, Errors& );
     void        OpenDialog( String& path, Errors& errors );
 
     // same as current dir
-    void        GetWorkingDir( String& dir, Errors& errors );
+    void        GetWorkingDir( String& dir, Errors& );
 
     void        GetPrimaryMonitor( int* w, int* h );
   
@@ -45,8 +45,8 @@ namespace Tac
     // you're mouse is likely to have moved.
     // What should happen is that this gets cached during the message pump,
     // and accessed through MouseInput
-    void        GetScreenspaceCursorPos( v2& pos, Errors& errors );
-    void        SetScreenspaceCursorPos( v2& pos, Errors& errors );
+    void        GetScreenspaceCursorPos( v2& pos, Errors& );
+    void        SetScreenspaceCursorPos( const v2& pos, Errors& );
     extern bool mShouldStopRunning;
     String      GetDefaultRendererName();
   };

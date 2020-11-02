@@ -47,14 +47,14 @@ namespace Tac
     return 0;
   }( );
 
-#define TAC_DX11_CALL( errors, call, ... )                                         \
-{                                                                                  \
-  const HRESULT result = call( __VA_ARGS__ );                                      \
-  if( FAILED( result ) )                                                           \
-  {                                                                                \
-    errors += DX11CallAux( TAC_STRINGIFY( call ) "( " #__VA_ARGS__ " )", result ); \
-    TAC_HANDLE_ERROR( errors );                                                    \
-  }                                                                                \
+#define TAC_DX11_CALL( errors, call, ... )                                                       \
+{                                                                                                \
+  const HRESULT result = call( __VA_ARGS__ );                                                    \
+  if( FAILED( result ) )                                                                         \
+  {                                                                                              \
+    const String errorMsg = DX11CallAux( TAC_STRINGIFY( call ) "( " #__VA_ARGS__ " )", result ); \
+    TAC_RAISE_ERROR( errorMsg, errors );                                                         \
+  }                                                                                              \
 }
 
   static String GetDirectX11ShaderPath( StringView shaderName )
@@ -623,21 +623,21 @@ namespace Tac
     }
 
     ID3DBlob* pErrorBlob;
-    HRESULT hr = D3DCompile(
-      shaderStr.data(),
-      shaderStr.size(),
-      nullptr,
-      nullptr, // D3D_SHADER_MACRO* pDefines,
-      nullptr, // ID3DInclude* pInclude,
-      entryPoint,
-      shaderModel,
-      dwShaderFlags,
-      0,
-      ppBlobOut,
-      &pErrorBlob );
+    const HRESULT hr = D3DCompile( shaderStr.data(),
+                                   shaderStr.size(),
+                                   nullptr,
+                                   nullptr, // D3D_SHADER_MACRO* pDefines,
+                                   nullptr, // ID3DInclude* pInclude,
+                                   entryPoint,
+                                   shaderModel,
+                                   dwShaderFlags,
+                                   0,
+                                   ppBlobOut,
+                                   &pErrorBlob );
     if( FAILED( hr ) )
     {
-      errors += ( const char* )pErrorBlob->GetBufferPointer();
+      const char* errMsg = ( const char* )pErrorBlob->GetBufferPointer();
+      TAC_RAISE_ERROR( errMsg, errors );
     }
   }
 

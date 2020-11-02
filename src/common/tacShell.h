@@ -13,41 +13,22 @@
 
 namespace Tac
 {
-
-
-  struct ControllerInput;
-  struct DepthBuffer;
-  /*struct DesktopWindow*/;
-  struct FontStuff;
-  struct Ghost;
-  struct JobQueue;
-  struct KeyboardInput;
-  struct Localization;
   struct Log;
-  struct Net;
   struct RenderView;
-  struct Renderer;
-  struct Settings;
-  struct Shell;
-  struct Soul;
-  struct Texture;
-  struct ModelAssetManager;
   struct Timer;
-  struct UI2DCommonData;
-  struct Debug3DCommonData;
 
   struct Soul
   {
     Soul();
     virtual ~Soul() = default;
-    virtual void Init( Errors& errors ) = 0;
-    virtual void Update( Errors& errors ) = 0;
-    virtual void DebugImgui( Errors& errors ) = 0;
+    virtual void Init( Errors& ) = 0;
+    virtual void Update( Errors& ) = 0;
+    virtual void DebugImgui( Errors& ) = 0;
 
     // unowned
-    RenderView* mRenderView = nullptr;
-    bool mIsImGuiVisible;
-    Language mLanguage = Language::English;
+    RenderView*  mRenderView = nullptr;
+    bool         mIsImGuiVisible;
+    Language     mLanguage = Language::English;
   };
 
   //struct UpdateThing
@@ -60,7 +41,7 @@ namespace Tac
 
   struct ExecutableStartupInfo
   {
-    void Init( Errors& errors );
+    void   Init( Errors& );
     String mAppName;
     String mStudioName = "Sleeping Studio";
     void( *mProjectInit )( Errors& ) = 0;
@@ -73,41 +54,26 @@ namespace Tac
   //
   struct Shell
   {
-    static Shell Instance;
-    void Init( Errors& errors );
-    void Uninit();
-    void Update( Errors& errors );
+    static Shell    Instance;
+    void            Init( Errors& );
+    void            Uninit();
+    void            Update( Errors& );
+    void            FrameBegin( Errors& );
+    void            Frame( Errors& );
+    void            FrameEnd( Errors& );
+    Log*            mLog = nullptr;
+    String          mAppName;
 
-    void FrameBegin( Errors& errors );
-    void Frame( Errors& errors );
-    void FrameEnd( Errors& errors );
-
-
-    Event< const String& >::Emitter mLogData;
-    //Event< Errors& >::Emitter mOnUpdate;
-    Log* mLog = nullptr;
-    String mAppName;
     // This is the directory where files can be written.
     // Unique per user, per application.
     // ( doesn't include a trailing slash )
-    String mPrefPath;
-    String mInitialWorkingDir;
-    Timer* mTimer = nullptr;
+    String          mPrefPath;
+
+    String          mInitialWorkingDir;
+    Timer*          mTimer = nullptr;
     Vector< Soul* > mSouls;
-    double mElapsedSeconds = 0;
-    Timepoint mLastTick;
-    float mAccumulatorSeconds = 0;
+    double          mElapsedSeconds = 0;
+    Timepoint       mLastTick;
+    float           mAccumulatorSeconds = 0;
   };
-
-  //struct RendererWindowData
-  //{
-  //  virtual ~RendererWindowData();
-  //  virtual void Submit( Errors& ) {};
-  //  virtual void GetCurrentBackbufferTexture( Texture** ) { TAC_UNIMPLEMENTED; };
-  //  virtual void OnResize( Errors& ) {};
-  //  DesktopWindow* mDesktopWindow = nullptr;
-  //  //DepthBuffer* mDepthBuffer = nullptr;
-  //};
-
-
 }

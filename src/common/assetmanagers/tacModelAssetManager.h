@@ -33,12 +33,12 @@ namespace Tac
 
   struct Mesh
   {
-    Vector< SubMesh >          mSubMeshes;
-    Render::VertexFormatHandle mVertexFormat;
     void                       Raycast( v3 inRayPos,
                                         v3 inRayDir,
                                         bool* outHit,
                                         float* outDist );
+    Vector< SubMesh >          mSubMeshes;
+    Render::VertexFormatHandle mVertexFormat;
     m4                         mTransform = m4::Identity();
     m4                         mTransformInv = m4::Identity();
   };
@@ -46,15 +46,14 @@ namespace Tac
 
   struct ModelAssetManager
   {
-    ModelAssetManager();
-    ~ModelAssetManager();
-    static ModelAssetManager*  Instance;
+    void                       Uninit();
     void                       GetMesh( Mesh** mesh,
                                         StringView path,
                                         Render::VertexFormatHandle vertexFormat,
                                         VertexDeclaration* vertexDeclarations,
                                         int vertexDeclarationCount,
-                                        Errors& errors );
+                                        Errors& );
     MeshMap                    mMeshes;
   };
+  extern ModelAssetManager gModelAssetManager;
 }

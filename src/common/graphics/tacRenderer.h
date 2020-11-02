@@ -197,25 +197,26 @@ namespace Tac
 
   struct DefaultCBufferPerFrame
   {
-    m4               mView;
-    m4               mProjection;
-    float            mFar;
-    float            mNear;
-    v2               mGbufferSize;
-    static String    name_view() { return "View"; };
-    static String    name_proj() { return "Projection"; };
-    static String    name_far() { return "far"; };
-    static String    name_near() { return "near"; };
-    static String    name_gbuffersize() { return "gbufferSize"; };
-    static const int shaderRegister = 0;
+    static const char* name_view() { return "View"; };
+    static const char* name_proj() { return "Projection"; };
+    static const char* name_far() { return "far"; };
+    static const char* name_near() { return "near"; };
+    static const char* name_gbuffersize() { return "gbufferSize"; };
+    static const int   shaderRegister = 0;
+    m4                 mView;
+    m4                 mProjection;
+    float              mFar;
+    float              mNear;
+    v2                 mGbufferSize;
   };
+
   struct DefaultCBufferPerObject
   {
-    m4               World;
-    v4               Color;
     static String    name_world() { return "World"; };
     static String    name_color() { return "Color"; };
     static const int shaderRegister = 1;
+    m4               World;
+    v4               Color;
   };
 
   v4 ToColorAlphaPremultiplied( v4 colorAlphaUnassociated );
@@ -266,16 +267,6 @@ namespace Tac
     TAC_DEFINE_HANDLE( ViewHandle );
 
     struct Frame;
-
-
-    void RenderFrame( Errors& );
-    void SubmitFrame();
-
-    void Init();
-
-    void* SubmitAlloc( int byteCount );
-    const void* SubmitAlloc( const void* bytes, int byteCount );
-    //void SubmitAllocBeginFrame();
 
 
     struct BlendState
@@ -380,6 +371,11 @@ namespace Tac
     };
 
 
+    void                             RenderFrame( Errors& );
+    void                             SubmitFrame();
+    void                             Init();
+    void*                            SubmitAlloc( int byteCount );
+    const void*                      SubmitAlloc( const void* bytes, int byteCount );
     ViewHandle                       CreateView();
     ShaderHandle                     CreateShader( StringView, ShaderSource, ConstantBuffers, StackFrame );
     ConstantBufferHandle             CreateConstantBuffer( StringView,
@@ -455,11 +451,7 @@ namespace Tac
     void                             SetVertexFormat( VertexFormatHandle );
     void                             SetShader( ShaderHandle );
     void                             SetTexture( DrawCallTextures );
-
-    //void                             SetUniform( ConstantBufferHandle, const void* bytes, int byteCount );
-
     void                             Submit( ViewHandle, StackFrame );
-    //void                             AddDrawCall( const DrawCall2& );
     void                             GetPerspectiveProjectionAB( float f, float n, float& a, float& b );
     void                             Init( Errors& );
     void                             BeginGroup( StringView );
@@ -469,6 +461,7 @@ namespace Tac
                                                            int,
                                                            StackFrame );
     void                             Uninit();
+
 #define TAC_RENDER_GROUP_BLOCK(text) Render::BeginGroup(text); TAC_ON_DESTRUCT( Render::EndGroup());
 
   }
@@ -486,9 +479,9 @@ namespace Tac
     Vector< RendererFactory* > mFactories;
   };
 
-  const static String RendererNameVulkan = "Vulkan";
-  const static String RendererNameOpenGL4 = "OpenGL4";
-  const static String RendererNameDirectX11 = "DirectX11";
-  const static String RendererNameDirectX12 = "DirectX12";
+  const char* const RendererNameVulkan = "Vulkan";
+  const char* const RendererNameOpenGL4 = "OpenGL4";
+  const char* const RendererNameDirectX11 = "DirectX11";
+  const char* const RendererNameDirectX12 = "DirectX12";
 }
 

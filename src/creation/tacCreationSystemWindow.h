@@ -10,17 +10,17 @@ namespace Tac
   // and then u can see each system ( graphics, physics, etc ) of creation->world->systems
   struct CreationSystemWindow
   {
-    static CreationSystemWindow* Instance;
     CreationSystemWindow();
     ~CreationSystemWindow();
-    void                Init( Errors& errors );
-    void                Update( Errors& errors );
-    void                ImGui();
-    DesktopWindowHandle mDesktopWindowHandle;
-    String              mSystemName;
+    static CreationSystemWindow* Instance;
+    void                         Init( Errors& );
+    void                         Update( Errors& );
+    void                         ImGui();
+    DesktopWindowHandle          mDesktopWindowHandle;
+    String                       mSystemName;
   };
 
-  const String gSystemWindowName = "SystemWindow";
+  const char* const gSystemWindowName = "SystemWindow";
 
 }
 

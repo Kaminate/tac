@@ -39,10 +39,8 @@ namespace Tac
 
   struct UI2DCommonData
   {
-    UI2DCommonData();
-    ~UI2DCommonData();
-    static UI2DCommonData*        Instance;
-    void                          Init( Errors& errors );
+    void                          Init( Errors& );
+    void                          Uninit();
     Render::TextureHandle         m1x1White;
     Render::VertexFormatHandle    mFormat;
     Render::ShaderHandle          mShader;
@@ -54,6 +52,8 @@ namespace Tac
     Render::ConstantBufferHandle  mPerFrame;
     Render::ConstantBufferHandle  mPerObj;
   };
+
+  extern UI2DCommonData           gUI2DCommonData;
 
   struct UI2DDrawCall
   {
@@ -82,8 +82,8 @@ namespace Tac
     UI2DDrawData();
     ~UI2DDrawData();
     void                   DrawToTexture( Render::ViewHandle, int, int, Errors& );
-    void                   AddText( v2 textPos, int fontSize, StringView utf8, v4 color, const ImGuiRect* clipRect );
-    void                   AddBox( v2 mini, v2 maxi, v4 color, const Render::TextureHandle texture, const ImGuiRect* clipRect );
+    void                   AddText( v2 textPos, int fontSize, StringView utf8, v4 color, const ImGuiRect* );
+    void                   AddBox( v2 mini, v2 maxi, v4 color, const Render::TextureHandle , const ImGuiRect* );
     void                   AddLine( v2 p0, v2 p1, float radius, v4 color );
     Vector< UI2DVertex >   mDefaultVertex2Ds;
     Vector< UI2DIndex >    mDefaultIndex2Ds;

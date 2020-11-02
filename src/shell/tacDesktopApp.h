@@ -65,7 +65,7 @@ namespace Tac
   void                    DesktopAppInit( AppInterfacePlatform, Errors& );
   void                    DesktopAppRun( Errors& );
   DesktopWindowHandle     DesktopWindowCreate( int x, int y, int width, int height );
-  void                    DesktopWindowPollCreationRequests( Errors& errors );
+  void                    DesktopWindowPollCreationRequests( Errors& );
 
   extern Errors           gPlatformThreadErrors;
   extern Errors           gLogicThreadErrors;

@@ -1,167 +1,51 @@
 #include "src/common/tacJson.h"
 #include "src/common/tacAlgorithm.h"
 #include "src/common/tacMemory.h"
+#include "src/common/tacErrorHandling.h"
+#include "src/common/tacTextParser.h"
 
 namespace Tac
 {
-
-
-
   static String DoubleQuote( StringView s )
   {
     String quote = String( 1, '\"' );
     return quote + s + quote;
   }
+
   static void ExpectCharacter( char c, char expected, Errors& errors )
   {
     if( c == expected )
       return;
-    errors += "Unexpected character " + String( 1, c ) + ", expected " + String( 1, expected );
+    const String errorMsg = "Unexpected character " + String( 1, c ) + ", expected " + String( 1, expected );
+    TAC_RAISE_ERROR( errorMsg, errors );
   }
 
-  struct ParseData
-  {
-    const char* mBytes;
-    int mByteCount;
-    int mIByte;
-
-    void ByteEat( char& c, Errors& errors );
-    void BytePeek( char& c, Errors& errors );
-    void BytePeekUnchecked( char& c );
-    void ByteIncrement( int byteCount = 1 );
-
-    void EatRestOfLine( Errors& errors );
-    void SkipLeadingWhitespace();
-
-    void ParseNumber( JsonNumber& jsonNumber, Errors& errors );
-    void ParseString( String& stringToParse, Errors& errors );
-    void ParseStringExpected( StringView expected, Errors& errors );
-  };
-
-  void ParseData::ByteEat( char& c, Errors& errors )
-  {
-    BytePeek( c, errors );
-    ByteIncrement();
-  }
-
-  void ParseData::BytePeek( char& c, Errors& errors )
-  {
-    if( mIByte >= mByteCount )
-    {
-      errors = "Expected more bytes";
-      return;
-    }
-    BytePeekUnchecked( c );
-  }
-
-  void ParseData::BytePeekUnchecked( char& c )
-  {
-    c = mBytes[ mIByte ];
-  }
-
-  void ParseData::ByteIncrement( int byteCount )
-  {
-    mIByte += byteCount;
-  }
-
-  void ParseData::EatRestOfLine( Errors& errors )
-  {
-    for( ;; )
-    {
-      char c;
-      ByteEat( c, errors );
-      TAC_HANDLE_ERROR( errors );
-      if( c == '\n' )
-        return;
-    }
-  }
-
-  void ParseData::ParseNumber( JsonNumber& jsonNumber, Errors& errors )
-  {
-    SkipLeadingWhitespace();
-    String s;
-    char c;
-    while( mIByte < mByteCount )
-    {
-      BytePeekUnchecked( c );
-      bool validCharater = isdigit( c )
-        || c == '.'
-        || c == 'e'
-        || c == 'E'
-        || c == '+'
-        || c == '-';
-      if( !validCharater )
-        break;
-      s += c;
-      ByteIncrement();
-    }
-    if( s.empty() )
-    {
-      errors = "No digits";
-      return;
-    }
-    jsonNumber = atof( s.c_str() );
-  }
-
-  void ParseData::ParseString( String& stringToParse, Errors& errors )
-  {
-    char c;
-    SkipLeadingWhitespace();
-    ByteEat( c, errors );
-    TAC_HANDLE_ERROR( errors );
-    ExpectCharacter( c, '\"', errors );
-    TAC_HANDLE_ERROR( errors );
-    stringToParse.clear();
-    for( ;; )
-    {
-      ByteEat( c, errors );
-      TAC_HANDLE_ERROR( errors );
-      if( c == '\"' )
-        return;
-      stringToParse += c;
-    }
-  }
-
-  void ParseData::ParseStringExpected( StringView expected, Errors& errors )
-  {
-    int expectedByteCount = expected.size();
-    int remainingByteCount = mByteCount - mIByte;
-    if( remainingByteCount < expectedByteCount )
-    {
-      errors = "Not enough bytes";
-      TAC_HANDLE_ERROR( errors );
-    }
-    String actual( mBytes + mIByte, expectedByteCount );
-    ByteIncrement( expectedByteCount );
-    if( actual != expected )
-    {
-      errors = "Expected " + expected + ", actual " + actual;
-      TAC_HANDLE_ERROR( errors );
-    }
-  }
-
-  void ParseData::SkipLeadingWhitespace()
-  {
-    char c;
-    while( mIByte < mByteCount )
-    {
-      BytePeekUnchecked( c );
-      if( !isspace( c ) )
-        break;
-      ByteIncrement();
-    }
-  }
 
   void ParseObject( Json* json, ParseData* parseData, Errors& errors );
+
   void ParseArray( Json* json, ParseData* parseData, Errors& errors );
+
+  static void ParseQuotedString( StringView* stringView, ParseData* parseData, Errors& errors )
+  {
+    if( parseData->GetRemainingByteCount() < 2 )
+      TAC_RAISE_ERROR( "not enough space for quoted string", errors );
+    const char* quotedStrBegin = parseData->GetPos();
+    if( *quotedStrBegin != '\"' )
+      TAC_RAISE_ERROR( "string does not begin with quote", errors );
+    parseData->EatByte();
+    if( !parseData->EatUntilCharIsPrev( '\"' ) )
+      TAC_RAISE_ERROR( "string does not end with quote", errors );
+    const char* quotedStrEnd = parseData->GetPos();
+    *stringView = StringView( quotedStrBegin + 1, quotedStrEnd - 1 );
+  }
 
   static void ParseUnknownType( Json* json, ParseData* parseData, Errors& errors )
   {
-    char c;
     json->Clear();
-    parseData->SkipLeadingWhitespace();
-    parseData->BytePeek( c, errors );
-    TAC_HANDLE_ERROR( errors );
+    parseData->EatWhitespace();
+    const char* b = parseData->PeekByte();
+    TAC_HANDLE_ERROR_IF( !b, "Failed to parse unknown type", errors );
+    const char c = *b;
     if( c == '{' )
     {
       ParseObject( json, parseData, errors );
@@ -172,101 +56,74 @@ namespace Tac
     }
     else if( c == '\"' )
     {
-      String s;
-      parseData->ParseString( s, errors );
+      StringView s;
+      ParseQuotedString( &s, parseData, errors );
       TAC_HANDLE_ERROR( errors );
       *json = Json( s );
     }
     else if( isdigit( c ) || c == '-' || c == '.' )
     {
-      JsonNumber number;
-      parseData->ParseNumber( number, errors );
-      TAC_HANDLE_ERROR( errors );
-      *json = Json( number );
+      auto f = parseData->EatFloat();
+      TAC_HANDLE_ERROR_IF( !f.HasValue(), "Failed to parse number", errors );
+      *json = Json( ( JsonNumber )f.GetValue() );
     }
     else if( c == 'n' )
     {
-      parseData->ParseStringExpected( "null", errors );
-      TAC_HANDLE_ERROR( errors );
+      if( !parseData->EatStringExpected( "null" ) )
+        TAC_RAISE_ERROR( "Failed parsing null", errors );
       json->mType = JsonType::Null;
     }
     else if( c == 't' )
     {
-      parseData->ParseStringExpected( "true", errors );
-      TAC_HANDLE_ERROR( errors );
+      const StringView str = "true";
+      if( !parseData->EatStringExpected( str ) )
+        TAC_RAISE_ERROR( "encountered t but no true", errors );
       *json = Json( true );
     }
     else if( c == 'f' )
     {
-      parseData->ParseStringExpected( "false", errors );
-      TAC_HANDLE_ERROR( errors );
+      const StringView str = "false";
+      if( !parseData->EatStringExpected( str ) )
+        TAC_RAISE_ERROR( "encountered f but no false", errors );
       *json = Json( false );
     }
     else if( c == '/' )
     {
-      parseData->EatRestOfLine( errors );
-      TAC_HANDLE_ERROR( errors );
+      parseData->EatRestOfLine();
       ParseUnknownType( json, parseData, errors );
     }
     else
     {
-      errors = "Unexpected character: " + c;
+      const String errorMsg = String( "Unexpected character: " ) + c;
+      TAC_RAISE_ERROR( errorMsg, errors );
     }
   }
 
   static void ParseObject( Json* json, ParseData* parseData, Errors& errors )
   {
-    char c;
-    parseData->SkipLeadingWhitespace();
-    parseData->ByteEat( c, errors );
-    TAC_HANDLE_ERROR( errors );
-    ExpectCharacter( c, '{', errors );
-    TAC_HANDLE_ERROR( errors );
-    String key;
-    enum class ParseObjectStep
-    {
-      Key,
-      Colon,
-      ValuePre,
-      ValuePost
-    };
+    if( parseData->EatWord() != "{" )
+      TAC_RAISE_ERROR( "Expected {", errors );
 
     std::map< String, Json* > children;
     for( ;; )
     {
-      parseData->SkipLeadingWhitespace();
-      parseData->BytePeek( c, errors );
-      TAC_HANDLE_ERROR( errors );
-      if( c == '}' )
-      {
-        parseData->ByteIncrement();
+      parseData->EatWhitespace();
+      if( parseData->EatStringExpected( "}" ) )
         break;
-      }
-      if( c == ',' )
+      if( parseData->EatStringExpected( "," ) )
+        continue;
+      if( parseData->EatStringExpected( "//" ) )
       {
-        parseData->ByteIncrement();
+        parseData->EatRestOfLine();
         continue;
       }
-      if( c == '/' )
-      {
-        parseData->EatRestOfLine( errors );
-        TAC_HANDLE_ERROR( errors );
-        continue;
-      }
-      ExpectCharacter( c, '\"', errors );
+
+      StringView key;
+      ParseQuotedString( &key, parseData, errors );
       TAC_HANDLE_ERROR( errors );
-      parseData->ParseString( key, errors );
-      TAC_HANDLE_ERROR( errors );
-      if( key.empty() )
-      {
-        errors = "Empty key";
-        TAC_HANDLE_ERROR( errors );
-      }
-      parseData->SkipLeadingWhitespace();
-      parseData->ByteEat( c, errors );
-      TAC_HANDLE_ERROR( errors );
-      ExpectCharacter( c, ':', errors );
-      TAC_HANDLE_ERROR( errors );
+      TAC_HANDLE_ERROR_IF( key.empty(), "object key cannot be empty", errors );
+      if( !parseData->EatUntilCharIsPrev( ':' ) )
+        TAC_RAISE_ERROR( "Missing : after json key", errors );
       auto child = TAC_NEW Json;
       ParseUnknownType( child, parseData, errors );
       TAC_HANDLE_ERROR( errors );
@@ -279,34 +136,26 @@ namespace Tac
 
   static void ParseArray( Json* json, ParseData* parseData, Errors& errors )
   {
-    char c;
     Vector< Json* > elements;
-    parseData->SkipLeadingWhitespace();
-    parseData->ByteEat( c, errors );
-    TAC_HANDLE_ERROR( errors );
-    ExpectCharacter( c, '[', errors );
-    TAC_HANDLE_ERROR( errors );
+    parseData->EatWhitespace();
+    if( parseData->EatWord() != "[" )
+      TAC_RAISE_ERROR( "Expected [", errors );
     for( ;; )
     {
-      parseData->SkipLeadingWhitespace();
-      parseData->BytePeek( c, errors );
-      TAC_HANDLE_ERROR( errors );
-      if( c == ']' )
-      {
-        parseData->ByteIncrement();
+      parseData->EatWhitespace();
+      if( parseData->EatStringExpected( "]" ) )
         break;
-      }
-      if( c == ',' )
+
+      if( parseData->EatStringExpected( "," ) )
+        continue;
+
+      // Handle comments
+      if( parseData->EatStringExpected( "//" ) )
       {
-        parseData->ByteIncrement();
+        parseData->EatRestOfLine();
         continue;
       }
-      if( '/' == c )
-      {
-        parseData->EatRestOfLine( errors );
-        TAC_HANDLE_ERROR( errors );
-        continue;
-      }
+
       auto child = TAC_NEW Json;
       ParseUnknownType( child, parseData, errors );
       TAC_HANDLE_ERROR( errors );
@@ -419,7 +268,7 @@ namespace Tac
 
   void Json::Parse( const char* bytes, int byteCount, Errors& errors )
   {
-    ParseData parseData = { bytes, byteCount, 0 };
+    ParseData parseData( bytes, byteCount );
     ParseUnknownType( this, &parseData, errors );
   }
   void Json::Parse( StringView s, Errors& errors )

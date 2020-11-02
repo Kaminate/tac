@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include "src/common/tacString.h"
@@ -6,7 +5,6 @@
 namespace Tac
 {
   struct Creation;
-  /*struct DesktopWindow*/;
   struct Entity;
   struct Errors;
   struct Shell;
@@ -16,20 +14,19 @@ namespace Tac
 
   struct CreationProfileWindow
   {
-    static CreationProfileWindow* Instance;
     CreationProfileWindow();
     ~CreationProfileWindow();
-    void Init( Errors& errors );
-    void Update( Errors& errors );
-    void ImGui();
-    void ImGuiProfile();
-
-    DesktopWindowHandle mDesktopWindowHandle;
-    UI2DDrawData* mUI2DDrawData = nullptr;
+    static CreationProfileWindow* Instance;
+    void                          Init( Errors& );
+    void                          Update( Errors& );
+    void                          ImGui();
+    void                          ImGuiProfile();
+    DesktopWindowHandle           mDesktopWindowHandle;
+    UI2DDrawData*                 mUI2DDrawData = nullptr;
 
   };
 
-  const String gProfileWindowName = "ProfileWindow";
+  const char* const gProfileWindowName = "ProfileWindow";
 
 }
 

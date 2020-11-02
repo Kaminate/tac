@@ -113,9 +113,8 @@ namespace Tac
   struct FontStuff
   {
     FontStuff();
-    ~FontStuff();
-    static FontStuff*               Instance;
-    void                            Load( Errors& errors );
+    void                            Load( Errors& );
+    void                            Uninit();
     void                            DebugImgui();
     void                            GetCharacter( Language defaultLanguage,
                                                   Codepoint codepoint,
@@ -129,4 +128,6 @@ namespace Tac
     bool                            mOutlineGlyphs;
     int                             mOutlineWidth;
   };
+
+  extern FontStuff gFontStuff;
 }

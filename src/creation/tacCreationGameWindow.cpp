@@ -64,22 +64,20 @@ namespace Tac
   // +--> e - scalar such that b*e=E
   // +--> d - scalar such that a*d=D
   // +--> z - vector perpendicular to both a and b ( z = D - E )
-  static void ClosestPointTwoRays(
-    v3 A,
-    v3 a,
-    v3 B,
-    v3 b,
-    float* d,
-    float* e )
+  static void ClosestPointTwoRays( const v3 A,
+                                   const v3 a,
+                                   const v3 B,
+                                   const v3 b,
+                                   float* d,
+                                   float* e )
   {
-    v3 c = B - A;
-    float ab = Dot( a, b );
-    float bc = Dot( b, c );
-    float ac = Dot( a, c );
-    float aa = Dot( a, a );
-    float bb = Dot( b, b );
-    float denom = aa * bb - ab * ab;
-
+    const v3 c = B - A;
+    const float ab = Dot( a, b );
+    const float bc = Dot( b, c );
+    const float ac = Dot( a, c );
+    const float aa = Dot( a, a );
+    const float bb = Dot( b, b );
+    const float denom = aa * bb - ab * ab;
     if( d )
     {
       *d = ( -ab * bc + ac * bb ) / denom;
@@ -91,10 +89,12 @@ namespace Tac
   }
 
   CreationGameWindow* CreationGameWindow::Instance = nullptr;
+
   CreationGameWindow::CreationGameWindow()
   {
     Instance = this;
   }
+
   CreationGameWindow::~CreationGameWindow()
   {
     Instance = nullptr;
@@ -108,6 +108,7 @@ namespace Tac
     Render::DestroySamplerState( mSamplerState, TAC_STACK_FRAME );
     delete mDebug3DDrawData;
   }
+
   void CreationGameWindow::CreateGraphicsObjects( Errors& errors )
   {
     mPerFrame = Render::CreateConstantBuffer( "tac 3d per frame",
@@ -177,6 +178,7 @@ namespace Tac
     mSamplerState = Render::CreateSamplerState( "tac 3d tex sampler", samplerStateData, TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
   }
+
   void CreationGameWindow::Init( Errors& errors )
   {
     mDesktopWindowHandle = Creation::Instance->CreateWindow( gGameWindowName );
@@ -199,25 +201,23 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
 
 
-    ModelAssetManager::Instance->GetMesh( &mCenteredUnitCube,
-      "assets/editor/box.gltf",
-      m3DVertexFormat,
-      m3DvertexFormatDecls,
-      k3DvertexFormatDeclCount,
-      errors );
+    gModelAssetManager.GetMesh( &mCenteredUnitCube,
+                                          "assets/editor/box.gltf",
+                                          m3DVertexFormat,
+                                          m3DvertexFormatDecls,
+                                          k3DvertexFormatDeclCount,
+                                          errors );
     TAC_HANDLE_ERROR( errors );
 
-    ModelAssetManager::Instance->GetMesh( &mArrow,
-      "assets/editor/arrow.gltf",
-      m3DVertexFormat,
-      m3DvertexFormatDecls,
-      k3DvertexFormatDeclCount,
-      errors );
+    gModelAssetManager.GetMesh( &mArrow,
+                                          "assets/editor/arrow.gltf",
+                                          m3DVertexFormat,
+                                          m3DvertexFormatDecls,
+                                          k3DvertexFormatDeclCount,
+                                          errors );
     TAC_HANDLE_ERROR( errors );
 
     mDebug3DDrawData = TAC_NEW Debug3DDrawData;
-    //mDebug3DDrawData->mCommonData = shell->Debug3DCommonData::Instance;
-    //mDebug3DDrawData->mRenderView = mDesktopWindow->mRenderView;
 
     PlayGame( errors );
     TAC_HANDLE_ERROR( errors );
@@ -285,8 +285,8 @@ namespace Tac
         // 1/3: inverse transform
         v3 modelSpaceRayPos3 = creation->mEditorCamera.mPos - selectionGizmoOrigin;
         v4 modelSpaceRayPos4 = v4( modelSpaceRayPos3, 1 );
-        v3 modelSpaceRayDir3 = worldSpaceMouseDir;
-        v4 modelSpaceRayDir4 = v4( worldSpaceMouseDir, 0 );
+        v3 modelSpaceRayDir3 = mWorldSpaceMouseDir;
+        v4 modelSpaceRayDir4 = v4( mWorldSpaceMouseDir, 0 );
 
         // 2/3: inverse rotate
         const m4& invArrowRot = invArrowRots[ i ];
@@ -311,7 +311,7 @@ namespace Tac
     v3 worldSpaceHitPoint = {};
     if( pickData.pickedObject != PickedObject::None )
     {
-      worldSpaceHitPoint = creation->mEditorCamera.mPos + pickData.closestDist * worldSpaceMouseDir;
+      worldSpaceHitPoint = creation->mEditorCamera.mPos + pickData.closestDist * mWorldSpaceMouseDir;
       mDebug3DDrawData->DebugDrawSphere( worldSpaceHitPoint, 0.2f, v3( 1, 1, 0 ) );
     }
 
@@ -322,7 +322,7 @@ namespace Tac
         case PickedObject::WidgetTranslationArrow:
         {
           v3 gizmoOrigin = creation->GetSelectionGizmoOrigin();
-          v3 pickPoint = creation->mEditorCamera.mPos + worldSpaceMouseDir * pickData.closestDist;
+          v3 pickPoint = creation->mEditorCamera.mPos + mWorldSpaceMouseDir * pickData.closestDist;
           v3 arrowDir = {};
           arrowDir[ pickData.arrowAxis ] = 1;
           creation->mSelectedGizmo = true;
@@ -346,6 +346,7 @@ namespace Tac
       }
     }
   }
+
   void CreationGameWindow::MousePickingInit()
   {
     DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
@@ -385,8 +386,9 @@ namespace Tac
     const v3 viewSpaceMouseDir = Normalize( viewSpaceMousePosNearPlane );
     const v4 viewSpaceMouseDir4 = v4( viewSpaceMouseDir, 0 );
     const v4 worldSpaceMouseDir4 = viewInv * viewSpaceMouseDir4;
-    worldSpaceMouseDir = worldSpaceMouseDir4.xyz();
+    mWorldSpaceMouseDir = worldSpaceMouseDir4.xyz();
   }
+
   void CreationGameWindow::MousePickingEntity( const Entity* entity,
                                                bool* hit,
                                                float* dist )
@@ -409,7 +411,7 @@ namespace Tac
     Camera* camera = &Creation::Instance->mEditorCamera;
 
     v3 modelSpaceMouseRayPos3 = ( transformInv * v4( camera->mPos, 1 ) ).xyz();
-    v3 modelSpaceMouseRayDir3 = Normalize( ( transformInv * v4( worldSpaceMouseDir, 0 ) ).xyz() );
+    v3 modelSpaceMouseRayDir3 = Normalize( ( transformInv * v4( mWorldSpaceMouseDir, 0 ) ).xyz() );
     float modelSpaceDist;
     model->mesh->Raycast( modelSpaceMouseRayPos3, modelSpaceMouseRayDir3, hit, &modelSpaceDist );
 
@@ -422,6 +424,7 @@ namespace Tac
       *dist = Distance( camera->mPos, worldSpaceHitPoint );
     }
   }
+
   void CreationGameWindow::AddDrawCall( const Mesh* mesh, const DefaultCBufferPerObject& cbuf )
   {
     for( const SubMesh& subMesh : mesh->mSubMeshes )
@@ -442,6 +445,7 @@ namespace Tac
       //Render::AddDrawCall( drawCall );
     }
   }
+
   void CreationGameWindow::ComputeArrowLen()
   {
     Creation* creation = Creation::Instance;
@@ -459,6 +463,7 @@ namespace Tac
     float arrowLen = clip_height * 0.2f;
     mArrowLen = arrowLen;
   }
+
   void CreationGameWindow::RenderGameWorldToGameWindow()
   {
     MousePickingAll();
@@ -526,6 +531,7 @@ namespace Tac
       }
     }
   }
+
   void CreationGameWindow::PlayGame( Errors& errors )
   {
     if( mSoul )
@@ -536,6 +542,7 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
     mSoul = ghost;
   }
+
   void CreationGameWindow::DrawPlaybackOverlay( Errors& errors )
   {
     ImGuiSetNextWindowSize( { 300, 75 } );
@@ -564,6 +571,7 @@ namespace Tac
 
     ImGuiEnd();
   }
+
   void CreationGameWindow::CameraControls()
   {
     DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
@@ -647,6 +655,7 @@ namespace Tac
       }
     }
   }
+
   void CreationGameWindow::Update( Errors& errors )
   {
     Creation* creation = Creation::Instance;
@@ -671,8 +680,6 @@ namespace Tac
     Render::SetViewScissorRect( viewHandle, scissorRect );
 
 
-    //mDesktopWindow->SetRenderViewDefaults();
-    //TAC_INVALID_CODE_PATH;
     if( mSoul )
     {
       //static bool once;
@@ -694,10 +701,9 @@ namespace Tac
     if( creation->IsAnythingSelected() )
     {
       v3 origin = creation->GetSelectionGizmoOrigin();
-      mDebug3DDrawData->DebugDrawCircle(
-        origin,
-        creation->mEditorCamera.mForwards,
-        mArrowLen );
+      mDebug3DDrawData->DebugDrawCircle( origin,
+                                         creation->mEditorCamera.mForwards,
+                                         mArrowLen );
     }
 
     MousePickingInit();
@@ -709,9 +715,9 @@ namespace Tac
     //                                 &perFrameData,
     //                                 mDesktopWindow->mRenderView );
 
-    //mGamePresentation->RenderGameWorldToDesktopView( desktopWindowState->mWidth,
-    //                                                 desktopWindowState->mHeight,
-    //                                                 viewHandle );
+    mGamePresentation->RenderGameWorldToDesktopView( desktopWindowState->mWidth,
+                                                     desktopWindowState->mHeight,
+                                                     viewHandle );
 
     if( creation->mSelectedGizmo )
     {
@@ -719,7 +725,7 @@ namespace Tac
       float gizmoMouseDist;
       float secondDist;
       ClosestPointTwoRays( creation->mEditorCamera.mPos,
-                           worldSpaceMouseDir,
+                           mWorldSpaceMouseDir,
                            origin,
                            creation->mTranslationGizmoDir,
                            &gizmoMouseDist,

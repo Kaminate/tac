@@ -35,8 +35,8 @@ namespace Tac
     CreationGameWindow();
     ~CreationGameWindow();
     static CreationGameWindow*    Instance;
-    void                          Init( Errors& errors );
-    void                          Update( Errors& errors );
+    void                          Init( Errors& );
+    void                          Update( Errors& );
     void                          RenderGameWorldToGameWindow();
     void                          MousePickingInit();
     void                          MousePickingEntity( const Entity* entity, bool* hit, float* dist );
@@ -44,9 +44,9 @@ namespace Tac
     void                          AddDrawCall( const Mesh* mesh, const DefaultCBufferPerObject& cbuf );
     void                          ComputeArrowLen();
     void                          CameraControls();
-    void                          CreateGraphicsObjects( Errors& errors );
-    void                          DrawPlaybackOverlay( Errors& errors );
-    void                          PlayGame( Errors& errors );
+    void                          CreateGraphicsObjects( Errors& );
+    void                          DrawPlaybackOverlay( Errors& );
+    void                          PlayGame( Errors& );
     DesktopWindowHandle           mDesktopWindowHandle;
     Soul*                         mSoul = nullptr;
     Render::ShaderHandle          m3DShader;
@@ -64,12 +64,12 @@ namespace Tac
     SkyboxPresentation*           mSkyboxPresentation = nullptr;
     Mesh*                         mArrow = nullptr;
     Mesh*                         mCenteredUnitCube = nullptr;
-    v3                            worldSpaceMouseDir = {};
+    v3                            mWorldSpaceMouseDir = {};
     float                         mArrowLen = 0;
     String                        mStatusMessage;
     double                        mStatusMessageEndTime = 0;
   };
 
 
-  const String gGameWindowName = "VirtualGamePlayer";
+  const char* const gGameWindowName = "VirtualGamePlayer";
 }

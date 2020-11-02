@@ -432,7 +432,9 @@ namespace Tac
     std::ifstream ifs( levelpath.c_str() );
     if( !ifs.is_open() )
     {
-      mLevelLoadErrors = "failed to open " + levelpath;
+      const String errorMsg = "failed to open " + levelpath;
+      mLevelLoadErrors.Append( errorMsg );
+      mLevelLoadErrors.Append( TAC_STACK_FRAME );
       return;
     }
 

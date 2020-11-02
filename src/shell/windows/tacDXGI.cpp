@@ -59,13 +59,9 @@ namespace Tac
   //}
   void DXGI::Init( Errors& errors )
   {
-    UINT flags = IsDebugMode() ? DXGI_CREATE_FACTORY_DEBUG : 0;
-    HRESULT hr = CreateDXGIFactory2( flags, IID_PPV_ARGS( &mFactory ) );
-    if( FAILED( hr ) )
-    {
-      errors = "failed to create dxgi factory";
-      return;
-    }
+    const UINT flags = IsDebugMode() ? DXGI_CREATE_FACTORY_DEBUG : 0;
+    const HRESULT hr = CreateDXGIFactory2( flags, IID_PPV_ARGS( &mFactory ) );
+    TAC_HANDLE_ERROR_IF( FAILED( hr ), "failed to create dxgi factory", errors );
     NameDXGIObject( mFactory, "tac dxgi factory" );
 
     IDXGIAdapter1* dxgiAdapter1;
@@ -132,8 +128,7 @@ namespace Tac
     HRESULT hr = mFactory->CreateSwapChainForHwnd( pDevice, hwnd, &scd1, &scfsd, NULL, &swapChain );
     if( FAILED( hr ) )
     {
-      errors = "Failed to create swap chain";
-      return;
+      TAC_RAISE_ERROR( "Failed to create swap chain", errors );
     }
 
     *ppSwapChain = swapChain;
@@ -186,7 +181,7 @@ namespace Tac
   }
 
 
-  static String TryInferDXGIErrorStr( HRESULT res )
+  static const char* TryInferDXGIErrorStr( HRESULT res )
   {
     // https://docs.microsoft.com/en-us/windows/desktop/direct3ddxgi/dxgi-error
     switch( res )
@@ -242,15 +237,15 @@ namespace Tac
       case S_OK:
         return "S_OK";
       default:
-        return "";
+        return nullptr;
     }
   }
   void DXGICallAux( const char* fnCallWithArgs, HRESULT res, Errors& errors )
   {
     std::stringstream ss;
     ss << fnCallWithArgs << " returned 0x" << std::hex << res;
-    String inferredErrorMessage = TryInferDXGIErrorStr( res );
-    if( !inferredErrorMessage.empty() )
+    const char* inferredErrorMessage = TryInferDXGIErrorStr( res );
+    if( inferredErrorMessage )
     {
       ss << "(";
       ss << inferredErrorMessage;

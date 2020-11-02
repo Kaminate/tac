@@ -321,6 +321,7 @@ namespace Tac
                                ConstantBuffers constantBuffers,
                                StackFrame stackFrame )
     {
+      TAC_UNUSED_PARAMETER( name );
       TAC_ASSERT( constantBuffers.mConstantBufferCount );
       const ShaderHandle shaderHandle = { mIdCollectionShader.Alloc() };
       CommandDataCreateShader commandData;
@@ -334,6 +335,7 @@ namespace Tac
                                                 sizeof( CommandDataCreateShader ) );
       return shaderHandle;
     }
+    
     VertexBufferHandle CreateVertexBuffer( const StringView name,
                                            const int byteCount,
                                            const void* optionalInitialBytes,
@@ -341,7 +343,7 @@ namespace Tac
                                            const Access access,
                                            const StackFrame stackFrame )
     {
-
+      TAC_UNUSED_PARAMETER( name );
       const VertexBufferHandle vertexBufferHandle = { mIdCollectionVertexBuffer.Alloc() };
       CommandDataCreateVertexBuffer commandData;
       commandData.mAccess = access;
@@ -360,6 +362,7 @@ namespace Tac
                                                int shaderRegister,
                                                StackFrame frame )
     {
+      TAC_UNUSED_PARAMETER( name );
       const ConstantBufferHandle constantBufferHandle = { mIdCollectionConstantBuffer.Alloc() };
       CommandDataCreateConstantBuffer commandData;
       commandData.mByteCount = byteCount;
@@ -371,6 +374,7 @@ namespace Tac
                                                 sizeof( CommandDataCreateConstantBuffer ) );
       return constantBufferHandle;
     }
+
     IndexBufferHandle CreateIndexBuffer( const StringView name,
                                          const int byteCount,
                                          const void* optionalInitialBytes,
@@ -378,6 +382,7 @@ namespace Tac
                                          const Format format,
                                          const StackFrame frame )
     {
+      TAC_UNUSED_PARAMETER( name );
       const IndexBufferHandle indexBufferHandle = { mIdCollectionIndexBuffer.Alloc() };
       CommandDataCreateIndexBuffer commandData;
       commandData.mByteCount = byteCount;
@@ -393,6 +398,7 @@ namespace Tac
                                  TexSpec texSpec,
                                  StackFrame frame )
     {
+      TAC_UNUSED_PARAMETER( name );
       const int imageByteCount =
         texSpec.mImage.mFormat.CalculateTotalByteCount() *
         texSpec.mImage.mWidth *
@@ -437,6 +443,7 @@ namespace Tac
                                          int height,
                                          StackFrame frame )
     {
+      TAC_UNUSED_PARAMETER( name );
       const FramebufferHandle framebufferHandle = mIdCollectionFramebuffer.Alloc();
       CommandDataCreateFramebuffer commandData;
       //commandData.mDesktopWindowHandle = desktopWindowHandle;
@@ -456,6 +463,7 @@ namespace Tac
                                        BlendState blendState,
                                        StackFrame frame )
     {
+      TAC_UNUSED_PARAMETER( name );
       const BlendStateHandle blendStateHandle = mIdCollectionBlendState.Alloc();
       CommandDataCreateBlendState commandData;
       commandData.mBlendState = blendState;
@@ -466,10 +474,12 @@ namespace Tac
                                                 sizeof( CommandDataCreateBlendState ) );
       return blendStateHandle;
     }
+
     RasterizerStateHandle CreateRasterizerState( StringView name,
                                                  RasterizerState rasterizerState,
                                                  StackFrame frame )
     {
+      TAC_UNUSED_PARAMETER( name );
       const RasterizerStateHandle rasterizerStateHandle = mIdCollectionRasterizerState.Alloc();
       CommandDataCreateRasterizerState commandData;
       commandData.mRasterizerState = rasterizerState;
@@ -480,10 +490,12 @@ namespace Tac
                                                 sizeof( commandData ) );
       return rasterizerStateHandle;
     }
+
     SamplerStateHandle CreateSamplerState( StringView name,
                                            SamplerState samplerState,
                                            StackFrame frame )
     {
+      TAC_UNUSED_PARAMETER( name );
       const SamplerStateHandle samplerStateHandle = mIdCollectionSamplerState.Alloc();
       CommandDataCreateSamplerState commandData;
       commandData.mSamplerState = samplerState;
@@ -494,10 +506,12 @@ namespace Tac
                                                 sizeof( CommandDataCreateSamplerState ) );
       return samplerStateHandle;
     }
+
     DepthStateHandle CreateDepthState( StringView name,
                                        DepthState depthState,
                                        StackFrame frame )
     {
+      TAC_UNUSED_PARAMETER( name );
       const DepthStateHandle depthStateHandle = mIdCollectionDepthState.Alloc();
       CommandDataCreateDepthState commandData;
       commandData.mDepthState = depthState;
@@ -507,11 +521,13 @@ namespace Tac
                                                 &commandData, sizeof( commandData ) );
       return depthStateHandle;
     }
+
     VertexFormatHandle CreateVertexFormat( StringView name,
                                            VertexDeclarations vertexDeclarations,
                                            ShaderHandle shaderHandle,
                                            StackFrame frame )
     {
+      TAC_UNUSED_PARAMETER( name );
       const VertexFormatHandle vertexFormatHandle = mIdCollectionVertexFormat.Alloc();
       CommandDataCreateVertexFormat commandData;
       commandData.mShaderHandle = shaderHandle;
@@ -533,6 +549,7 @@ namespace Tac
                                                 &vertexBufferHandle,
                                                 sizeof( vertexBufferHandle ) );
     }
+
     void DestroyIndexBuffer( const IndexBufferHandle indexBufferHandle, const StackFrame frame )
     {
       mIdCollectionIndexBuffer.Free( ( int )indexBufferHandle );
@@ -540,6 +557,7 @@ namespace Tac
                                                 frame,
                                                 &indexBufferHandle, sizeof( indexBufferHandle ) );
     }
+
     void DestroyTexture( TextureHandle handle, StackFrame frame )
     {
       mIdCollectionTexture.Free( ( int )handle );
@@ -548,6 +566,7 @@ namespace Tac
                                                 &handle,
                                                 sizeof( handle ) );
     }
+
     void DestroyFramebuffer( FramebufferHandle handle, StackFrame frame )
     {
       mIdCollectionFramebuffer.Free( ( int )handle );
@@ -556,6 +575,7 @@ namespace Tac
                                                 &handle,
                                                 sizeof( handle ) );
     }
+
     void DestroyShader( ShaderHandle handle, StackFrame stackFrame )
     {
       mIdCollectionShader.Free( ( int )handle );
@@ -564,6 +584,7 @@ namespace Tac
                                                 &handle,
                                                 sizeof( handle ) );
     }
+
     void DestroyVertexFormat( VertexFormatHandle handle, StackFrame stackFrame )
     {
       mIdCollectionVertexFormat.Free( ( int )handle );
@@ -572,6 +593,7 @@ namespace Tac
                                                 &handle,
                                                 sizeof( handle ) );
     }
+
     void DestroyConstantBuffer( ConstantBufferHandle handle, StackFrame stackFrame )
     {
       mIdCollectionConstantBuffer.Free( ( int )handle );
@@ -580,6 +602,7 @@ namespace Tac
                                                 &handle,
                                                 sizeof( handle ) );
     }
+
     void DestroyDepthState( DepthStateHandle handle, StackFrame stackFrame )
     {
       mIdCollectionDepthState.Free( ( int )handle );
@@ -588,6 +611,7 @@ namespace Tac
                                                 &handle,
                                                 sizeof( handle ) );
     }
+
     void DestroyBlendState( BlendStateHandle handle, StackFrame stackFrame )
     {
       mIdCollectionBlendState.Free( ( int )handle );
@@ -596,6 +620,7 @@ namespace Tac
                                                 &handle,
                                                 sizeof( handle ) );
     }
+
     void DestroyRasterizerState( RasterizerStateHandle handle, StackFrame stackFrame )
     {
       mIdCollectionRasterizerState.Free( ( int )handle );
@@ -604,6 +629,7 @@ namespace Tac
                                                 &handle,
                                                 sizeof( handle ) );
     }
+
     void DestroySamplerState( SamplerStateHandle handle, StackFrame stackFrame )
     {
       mIdCollectionSamplerState.Free( ( int )handle );

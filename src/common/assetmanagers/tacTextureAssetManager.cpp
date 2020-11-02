@@ -146,8 +146,8 @@ namespace Tac
 
         if( files.size() != 6 )
         {
-          errors = "found " + ToString( files.size() ) + " textures in " + mData->mDir;
-          TAC_HANDLE_ERROR( errors );
+          const String errorMsg =  "found " + ToString( files.size() ) + " textures in " + mData->mDir;
+          TAC_RAISE_ERROR( errorMsg, errors );
         }
 
         auto TrySortPart = [ & ]( StringView face, int desiredIndex )
@@ -206,12 +206,12 @@ namespace Tac
 
           if( iFile && !( x == prevWidth && y == prevHeight ) )
           {
-            StringView filepathPrev = files[ iFile - 1 ];
-            errors = filepath + " has dimensions " +
+            const StringView filepathPrev = files[ iFile - 1 ];
+            const String errorMsg =  filepath + " has dimensions " +
               ToString( x ) + "x" + ToString( y ) +
               " which is different from " + filepathPrev + " dimensions " +
               ToString( prevWidth ) + "x" + ToString( prevHeight );
-            TAC_HANDLE_ERROR( errors );
+            TAC_RAISE_ERROR( errorMsg, errors );
           }
 
           const int pitch = x * format.mElementCount * format.mPerElementByteCount;

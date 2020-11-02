@@ -21,8 +21,10 @@ namespace Tac
     Count,
   };
 
-  void WriteNetMsgHeader( Writer* writer, NetMsgType networkMessageType );
-  NetMsgType ReadNetMsgHeader( Reader* reader, Errors& errors );
+  void WriteNetMsgHeader( Writer*, NetMsgType );
+  void ReadNetMsgHeader( Reader*, 
+                               NetMsgType*,
+                               Errors& );
 
   uint8_t GetNetworkBitfield( const void* oldData,
                               const void* newData,
@@ -30,25 +32,25 @@ namespace Tac
 
   struct DelayedNetMsg
   {
-    double mDelayedTillSecs = 0;
+    double         mDelayedTillSecs = 0;
     Vector< char > mData;
   };
 
   struct LagTest
   {
-    void SaveMessage( const Vector< char >& data, double elapsedSecs );
-    bool TryPopSavedMessage( Vector< char >& data, double elapsedSecs );
-    int mLagSimulationMS = 0;
+    void                       SaveMessage( const Vector< char >& data, double elapsedSecs );
+    bool                       TryPopSavedMessage( Vector< char >& data, double elapsedSecs );
+    int                        mLagSimulationMS = 0;
     std::list< DelayedNetMsg > mSavedNetworkMessages;
   };
 
   struct SnapshotBuffer
   {
     ~SnapshotBuffer();
-    void AddSnapshot( const World* world );
-    World* FindSnapshot( double elapsedGameSecs );
+    void                AddSnapshot( const World* );
+    World*              FindSnapshot( double elapsedGameSecs );
     std::list< World* > mSnapshots;
-    const int maxSnapshots = 32;
+    const int           maxSnapshots = 32;
   };
 
 }

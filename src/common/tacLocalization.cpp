@@ -3,11 +3,40 @@
 #include "src/common/tacMemory.h"
 #include "src/common/tacFrameMemory.h"
 #include "src/common/tacAlgorithm.h"
+#include "src/common/tacTextParser.h"
 #include "src/common/tacTemporaryMemory.h"
 
 namespace Tac
 {
+  static void             LoadLanguageMapEntry( LanguageMap* languageMap, ParseData& parseData )
+  {
+    const StringView word = parseData.EatWord();
+    const Language language = GetLanguage( word );
+    TAC_ASSERT( language != Language::Count );
+    parseData.EatWhitespace();
+    const StringView utf8String = parseData.EatRestOfLine();
+    const CodepointView codepointView = UTF8ToCodepoints( utf8String );
+    TAC_ASSERT( !codepointView.empty() );
+    LocalizedStringStuff localizedStringStuff;
+    localizedStringStuff.SetCodepoints( codepointView );
+    localizedStringStuff.mUTF8String = utf8String;
+    ( *languageMap )[ language ] = localizedStringStuff;
+  }
 
+  static bool             LoadLocalizedString( LocalizedString* localizedString, ParseData& parseData )
+  {
+    const StringView reference = parseData.EatRestOfLine();
+    if( reference.empty() )
+      return false;
+    LanguageMap codepointMap;
+    while( !parseData.EatWhitespace() && parseData.GetRemainingByteCount())
+      LoadLanguageMapEntry( &codepointMap, parseData );
+    localizedString->mReference = reference;
+    localizedString->mCodepoints = codepointMap;
+    return true;
+  }
+
+  Localization gLocalization;
   const String Languages[ ( int )Language::Count ] =
   {
     "Arabic",
@@ -44,88 +73,12 @@ namespace Tac
       mCodepoints[ i ] = codepoints[ i ];
   }
 
-  //struct UTF8Converter
-  //{
-  //  static void Convert( StringView text,
-  //                       Vector< Codepoint >& codepoints,
-  //                       Errors& errors );
-  //  static void Convert( const Vector< Codepoint >& codepoints,
-  //                       String& text );
-  //  void Run( Vector< Codepoint >& codepoints, Errors& errors );
-  //  void IterateUTF8( Codepoint* codepoint, Errors& errors );
-  //  char GetNextByte( Errors& errors );
-  //  const char* mBegin = nullptr;
-  //  const char* mEnd = nullptr;
-  //};
-
-
-  //char UTF8Converter::GetNextByte( Errors& errors )
-  //{
-  //  if( mBegin >= mEnd )
-  //  {
-  //    errors = "utf8 get next byte failed";
-  //    return 0;
-  //  }
-  //  return *mBegin++;
-  //}
-  //void UTF8Converter::IterateUTF8( Codepoint* codepoint, Errors& errors )
-  //{
-  //}
-  //void UTF8Converter::Run( Vector< Codepoint >& codepoints, Errors& errors )
-  //{
-  //  while( mBegin < mEnd )
-  //  {
-  //    Codepoint codepoint;
-  //    IterateUTF8( &codepoint, errors );
-  //    TAC_HANDLE_ERROR( errors );
-  //    codepoints.push_back( codepoint );
-  //  }
-  //}
-  //void UTF8Converter::Convert( StringView text, Vector< Codepoint >& codepoints )
-  //{
-  //  UTF8Converter converter;
-  //  converter.mBegin = text.data();
-  //  converter.mEnd = text.data() + text.size();
-  //  converter.Run( codepoints, errors );
-  //}
-  //void UTF8Converter::Convert( const Vector< Codepoint >& codepoints,
-  //                             String& text )
-  //{
-  //  for( Codepoint codepoint : codepoints )
-  //  {
-  //    if( codepoint >= 0x10000 )
-  //    {
-  //      text.push_back( 0b11110000 | ( 0b00000111 & ( codepoint >> 18 ) ) );
-  //      text.push_back( 0b10000000 | ( 0b00111111 & ( codepoint >> 12 ) ) );
-  //      text.push_back( 0b10000000 | ( 0b00111111 & ( codepoint >> 6 ) ) );
-  //      text.push_back( 0b10000000 | ( 0b00111111 & ( codepoint >> 0 ) ) );
-  //    }
-  //    else if( codepoint >= 0x800 )
-  //    {
-  //      text.push_back( 0b11100000 | ( 0b00001111 & ( codepoint >> 12 ) ) );
-  //      text.push_back( 0b10000000 | ( 0b00111111 & ( codepoint >> 6 ) ) );
-  //      text.push_back( 0b10000000 | ( 0b00111111 & ( codepoint >> 0 ) ) );
-  //    }
-  //    else if( codepoint > 0x80 )
-  //    {
-  //      text.push_back( 0b11000000 | ( 0b00011111 & ( codepoint >> 6 ) ) );
-  //      text.push_back( 0b10000000 | ( 0b00111111 & ( codepoint >> 0 ) ) );
-  //    }
-  //    else
-  //    {
-  //      text.push_back( 0b01111111 & codepoint );
-  //    }
-  //  }
-  //}
-
-
-
   struct Converter
   {
     Converter( StringView stringView );
-    Codepoint Extract();
+    Codepoint   Extract();
   private:
-    char GetNextByte();
+    char        GetNextByte();
     const char* mBegin = nullptr;
     const char* mEnd = nullptr;
   };
@@ -215,7 +168,7 @@ namespace Tac
   {
     return mCodepointCount == 0;
   }
-  
+
   Codepoint CodepointView::operator[]( int i ) const
   {
     return mCodepoints[ i ];
@@ -281,19 +234,6 @@ namespace Tac
     return StringView( str, len );
   }
 
-
-  String Localization::EatWord()
-  {
-    String result;
-    while( mBegin < mEnd )
-    {
-      if( ( EatWhitespace() || EatNewLine() ) && !result.empty() )
-        break;
-      result += *mBegin++;
-    }
-    return result;
-  }
-
   const Vector< Codepoint >& Localization::GetString( Language language, StringView reference )
   {
     for( const auto& localizedString : mLocalizedStrings )
@@ -307,93 +247,17 @@ namespace Tac
     return result;
   }
 
-  Localization* Localization::Instance = nullptr;
-  
-  Localization::Localization()
-  {
-    Instance = this;
-  }
 
   void Localization::Load( StringView path, Errors& errors )
   {
-    mBytes = TemporaryMemoryFromFile( path, errors );
+    const TemporaryMemory temporaryMemory = TemporaryMemoryFromFile( path, errors );
     TAC_HANDLE_ERROR( errors );
-    mBegin = mBytes.data();
-    mEnd = mBytes.data() + mBytes.size();
+    ParseData parseData( temporaryMemory.data(), temporaryMemory.size() );
 
-    String reference;
-    while( mBegin < mEnd )
-    {
-      if( reference.empty() )
-        reference = EatWord();
-      LocalizedString localizedString;
-      localizedString.mReference = reference;
-      while( mBegin < mEnd )
-      {
-        auto word = EatWord();
-        auto language = GetLanguage( word );
-        if( language == Language::Count )
-        {
-          reference = word;
-          break;
-        }
-        EatWhitespace();
-
-        const char* stringBegin = mBegin;
-        while( mBegin < mEnd )
-        {
-          if( EatNewLine() )
-            break;
-          mBegin++;
-        }
-
-        StringView utf8String( stringBegin, ( int )( mBegin - stringBegin ) );
-        CodepointView codepoints = UTF8ToCodepoints( utf8String );
-
-        if( codepoints.empty() )
-        {
-          errors += "Failed reading " + reference + " of " + word;
-          return;
-        }
-        LocalizedStringStuff localizedStringStuff;
-        localizedStringStuff.SetCodepoints( codepoints );
-        localizedStringStuff.mUTF8String = utf8String;
-        localizedString.mCodepoints[ language ] = localizedStringStuff;
-      }
+    LocalizedString localizedString;
+    while( LoadLocalizedString( &localizedString, parseData ) )
       mLocalizedStrings.push_back( localizedString );
-    }
-    mBytes.clear();
-    mBegin = nullptr;
-    mEnd = nullptr;
-  }
 
-  bool Localization::EatNewLine()
-  {
-    auto oldBegin = mBegin;
-    if( mBegin < mEnd &&
-        mBegin[ 0 ] == '\n' )
-    {
-      mBegin++;
-    }
-    if( mBegin + 1 < mEnd &&
-        mBegin[ 0 ] == '\r' &&
-        mBegin[ 1 ] == '\n' )
-    {
-      mBegin += 2;
-    }
-    return oldBegin < mBegin;
-  }
-
-  bool Localization::EatWhitespace()
-  {
-    auto oldBegin = mBegin;
-    while( mBegin < mEnd )
-    {
-      if( !Contains( { ' ', '\t' }, *mBegin ) )
-        break;
-      mBegin++;
-    }
-    return oldBegin < mBegin;
   }
 
   void Localization::DebugImgui()

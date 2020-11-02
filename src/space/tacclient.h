@@ -13,61 +13,51 @@
 
 namespace Tac
 {
-struct SavedInput
-{
-  double mTimestamp;
-  v2 mInputDirection;
-};
+  struct SavedInput
+  {
+    double mTimestamp;
+    v2     mInputDirection;
+  };
 
-typedef void( *ClientSendNetworkMessageCallback )(
-  void* bytes,
-  int byteCount,
-  void* userData );
+  typedef void( *ClientSendNetworkMessageCallback )( void* bytes,
+                                                     int byteCount,
+                                                     void* userData );
 
-struct Reader;
-struct Writer;
+  struct Reader;
+  struct Writer;
 
 
-struct ClientData
-{
-  LagTest mSavedNetworkMessages;
+  struct ClientData
+  {
+    LagTest                 mSavedNetworkMessages;
+    World*                  mWorld = nullptr;
+    World*                  mEmptyWorld = nullptr;
+    PlayerUUID              mPlayerUUID = NullPlayerUUID;
 
-  //Chat mChat;
-  World* mWorld = nullptr;
-  World* mEmptyWorld = nullptr;
-  PlayerUUID mPlayerUUID = NullPlayerUUID;
+    // < Prediction >
+    static const int        sMaxSavedInputCount = 60;
+    std::list< SavedInput > mSavedInputs;
+    bool                    mIsPredicting = true;
+    // </>
 
-  // < Prediction >
-  static const int sMaxSavedInputCount = 60;
-  std::list< SavedInput > mSavedInputs;
-  bool mIsPredicting = true;
-  // </>
-
-  // --------------------------------------------
-
-  double mMostRecentSnapshotTime = 0;
-  SnapshotBuffer mSnapshots;
-
-  void ReadSnapshotBody(
-    Reader* reader,
-    Errors& errors );
-  void OnClientDisconnect();
-  void WriteInputBody( Writer* writer );
-  void ExecuteNetMsg( void* bytes, int byteCount, Errors& errors );
-  void ApplyPrediction( double lastTime );
-  void ReadEntityDifferences( Reader* reader, Errors& errors );
-  void ReadPlayerDifferences( Reader* reader, Errors& errors );
-  void Update(
-    float seconds,
-    v2 inputDir,
-    ClientSendNetworkMessageCallback sendNetworkMessageCallback,
-    void* userData,
-    Errors& errors );
-  void ReceiveMessage(
-    void* bytes,
-    int byteCount,
-    Errors& errors );
-};
+    double                  mMostRecentSnapshotTime = 0;
+    SnapshotBuffer          mSnapshots;
+    void                    ReadSnapshotBody( Reader*, Errors& );
+    void                    OnClientDisconnect();
+    void                    WriteInputBody( Writer* );
+    void                    ExecuteNetMsg( void* bytes, int byteCount, Errors& );
+    void                    ApplyPrediction( double lastTime );
+    void                    ReadEntityDifferences( Reader*, Errors& );
+    void                    ReadPlayerDifferences( Reader*, Errors& );
+    void                    Update( float seconds,
+                                    v2 inputDir,
+                                    ClientSendNetworkMessageCallback sendNetworkMessageCallback,
+                                    void* userData,
+                                    Errors& );
+    void                    ReceiveMessage( void* bytes,
+                                            int byteCount,
+                                            Errors& );
+  };
 
 }
 

@@ -30,6 +30,7 @@ namespace Tac
     StringView() = default;
     StringView( const char* str );
     StringView( const char* str, int len );
+    StringView( const char* strBegin, const char* strEnd );
     StringView( const String& str );
     char operator[]( int i ) const;
     const char* data() const;

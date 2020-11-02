@@ -7,25 +7,29 @@
 
 namespace Tac
 {
+  void ImGuiNextWindow::Clear()
+  {
+    mSize = {};
+  }
   ImGuiNextWindow gNextWindow;
 
   struct RegisteredWindowResource
   {
-    String mName;
-    Vector<char> mInitialData;
-    ImGuiindex mId;
+    String         mName;
+    Vector< char > mInitialData;
+    ImGuiindex     mId;
   };
 
   struct WindowResourceRegistry
   {
-    static WindowResourceRegistry* GetInstance();
-    ImGuiindex                RegisterResource( StringView name,
-                                                void* initialDataBytes,
-                                                int initialDataByteCount );
-    RegisteredWindowResource*      FindResource( ImGuiindex  index );
+    static WindowResourceRegistry*     GetInstance();
+    ImGuiindex                         RegisterResource( StringView name,
+                                                         void* initialDataBytes,
+                                                         int initialDataByteCount );
+    RegisteredWindowResource*          FindResource( ImGuiindex index );
   private:
     Vector< RegisteredWindowResource > mRegisteredWindowResources;
-    int mResourceCounter = 0;
+    int                                mResourceCounter = 0;
   };
 
   RegisteredWindowResource* WindowResourceRegistry::FindResource( ImGuiindex  index )
@@ -110,7 +114,7 @@ namespace Tac
     {
       float scrollbarWidth = 30;
       v2 mini( mPosViewportSpace.x + mSize.x - scrollbarWidth,
-                     mPosViewportSpace.y );
+               mPosViewportSpace.y );
       v2 maxi = mPosViewportSpace + mSize;
       v4 scrollbarBackgroundColor = v4( 0.4f, 0.2f, 0.8f, 1.0f );
       Render::TextureHandle invalidTexture;
@@ -281,7 +285,6 @@ namespace Tac
       + mPosViewportSpace;
     return result;
   }
-
 
   void* ImGuiWindow::GetWindowResource( ImGuiindex index )
   {

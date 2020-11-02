@@ -94,7 +94,7 @@ namespace Tac
     //WindowGraphicsGetView( mDesktopWindowHandle );
 
     DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
-if(!desktopWindowState->mNativeWindowHandle)
+    if( !desktopWindowState->mNativeWindowHandle )
       return;
 
     ImGuiBegin( "Main Window", mDesktopWindowHandle );
@@ -191,15 +191,9 @@ if(!desktopWindowState->mNativeWindowHandle)
                                   errors );
     TAC_HANDLE_ERROR( errors );
 
-    if( mButtonCallbackErrors )
-    {
-      errors = mButtonCallbackErrors;
-      TAC_HANDLE_ERROR( errors );
-    }
-
     if( CreationGameObjectMenuWindow::Instance )
     {
-      DesktopWindowState* menu = GetDesktopWindowState(CreationGameObjectMenuWindow::Instance->mDesktopWindowHandle);
+      DesktopWindowState* menu = GetDesktopWindowState( CreationGameObjectMenuWindow::Instance->mDesktopWindowHandle );
       CreationGameObjectMenuWindow::Instance->Update( errors );
       TAC_HANDLE_ERROR( errors );
 

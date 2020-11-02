@@ -36,30 +36,19 @@ namespace Tac
 
   struct Debug3DCommonData
   {
-    static Debug3DCommonData* Instance;
-    Debug3DCommonData();
-    ~Debug3DCommonData();
-    void Init( Errors& errors );
-
-    Render::BlendStateHandle mAlphaBlendState;
-    Render::ConstantBufferHandle mCBufferPerFrame;
-    Render::DepthStateHandle mDepthLess;
+    void                          Uninit();
+    void                          Init( Errors& );
+    static Debug3DCommonData*     Instance;
+    Render::BlendStateHandle      mAlphaBlendState;
+    Render::ConstantBufferHandle  mCBufferPerFrame;
+    Render::DepthStateHandle      mDepthLess;
     Render::RasterizerStateHandle mRasterizerStateNoCull;
-    Render::ShaderHandle m3DVertexColorShader;
-    Render::VertexFormatHandle mVertexColorFormat;
+    Render::ShaderHandle          m3DVertexColorShader;
+    Render::VertexFormatHandle    mVertexColorFormat;
   };
-
-  //struct DebugDrawAABB
-  //{
-  //  static DebugDrawAABB FromMinMax( v3 mini, v3 maxi );
-  //  static DebugDrawAABB FromPosExtents( v3 pos, v3 extents );
-  //  v3 mMini = {};
-  //  v3 mMaxi = {};
-  //};
 
   struct Debug3DDrawData
   {
-    Debug3DDrawData() = default;
     ~Debug3DDrawData();
     void DebugDrawLine( v3 p0, v3 p1, v3 color0, v3 color1 );
     void DebugDrawLine( v3 p0, v3 p1, v3 color = { 1, 1, 1 } );
@@ -74,15 +63,15 @@ namespace Tac
     void DebugDrawAABB( v3 mini, v3 maxi, v3 color = { 1, 1, 1 } );
     void DebugDrawTriangle( v3 p0, v3 p1, v3 p2, v3 color0, v3 color1, v3 color2 );
     void DebugDrawTriangle( v3 p0, v3 p1, v3 p2, v3 color = v3( 1, 1, 1 ) );
-    void DrawToTexture(
-      Errors& errors,
-      const DefaultCBufferPerFrame* cbufferperframe,
-      RenderView* mRenderView );
-
+    void DrawToTexture( Errors&,
+                        const DefaultCBufferPerFrame*,
+                        RenderView* );
     Vector< DefaultVertexColor > mDebugDrawVerts;
-    Render::VertexBufferHandle mVerts;
-    int mCapacity = 0;
+    Render::VertexBufferHandle   mVerts;
+    int                          mCapacity = 0;
   };
+
+  extern Debug3DCommonData gDebug3DCommonData;
 
 
 }

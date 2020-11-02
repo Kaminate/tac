@@ -26,9 +26,9 @@ namespace Tac
   struct NetworkBit
   {
     const char* mDebugName;
-    int mByteOffset;
-    int mComponentByteCount; // rename sizeOfComponent
-    int mComponentCount;
+    int         mByteOffset;
+    int         mComponentByteCount; // rename sizeOfComponent
+    int         mComponentCount;
   };
 
   struct Reader

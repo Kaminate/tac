@@ -97,14 +97,12 @@ namespace Tac
 
     if( !reader->Read( &player->mInputDirection ) )
     {
-      errors += "fuck";
-      return;
+      TAC_RAISE_ERROR( "failed to read player input direction", errors );
     }
 
     if( !reader->Read( &otherPlayer->mTimeStamp ) )
     {
-      errors += "fuck";
-      return;
+      TAC_RAISE_ERROR( "failed to read player time stamp", errors );
     }
   }
 
@@ -273,8 +271,7 @@ namespace Tac
   }
 
 
-  void ServerData::ExecuteNetMsg(
-    ConnectionUUID connectionID,
+  void ServerData::ExecuteNetMsg( ConnectionUUID connectionID,
     void* bytes,
     int byteCount,
     Errors& errors )
@@ -285,7 +282,8 @@ namespace Tac
     reader.mFrom = GameEndianness;
     reader.mTo = GetEndianness();
 
-    auto networkMessage = ReadNetMsgHeader( &reader, errors );
+    NetMsgType networkMessage = NetMsgType::Count;
+     ReadNetMsgHeader( &reader, &networkMessage, errors );
     TAC_HANDLE_ERROR( errors );
     switch( networkMessage )
     {

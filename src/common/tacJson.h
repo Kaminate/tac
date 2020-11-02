@@ -4,17 +4,13 @@
 #pragma once
 
 #include "src/common/tacString.h"
-#include "src/common/tacErrorHandling.h"
 #include "src/common/containers/tacVector.h"
-
-
 
 #include <map>
 
 namespace Tac
 {
-
-
+  struct Errors;
   typedef double JsonNumber;
 
   const bool JsonParseDebug = false;
@@ -31,16 +27,15 @@ namespace Tac
 
   struct Indentation
   {
-    int spacesPerTab = 2;
-    int tabCount = 0;
-    bool convertTabsToSpaces = true;
+    int    spacesPerTab = 2;
+    int    tabCount = 0;
+    bool   convertTabsToSpaces = true;
     String ToString();
   };
 
   // The function names Stringify and Parse mimic the built-in javascript api
   struct Json
   {
-
     Json();
     Json( StringView );
     Json( JsonNumber );
@@ -48,31 +43,29 @@ namespace Tac
     Json( bool );
     Json( const Json& );
     ~Json();
-    void Clear();
-    String Stringify( Indentation* ) const;
-    String Stringify() const;
-    void Parse( const char* bytes, int byteCount, Errors& errors );
-    void Parse( StringView, Errors& );
-
-    Json& GetChild( StringView key );
-    Json& operator[]( StringView key );
-    Json& operator[]( const char* key );
-    void operator = ( const Json& json );
-    void operator = ( const Json* json );
-    void operator = ( StringView str );
-    void operator = ( JsonNumber number );
-    void operator = ( int number );
-    void operator = ( bool b );
-    operator String ();
-    operator JsonNumber ();
-    operator bool();
-
+    void                      Clear();
+    String                    Stringify( Indentation* ) const;
+    String                    Stringify() const;
+    void                      Parse( const char* bytes, int byteCount, Errors& );
+    void                      Parse( StringView, Errors& );
+    Json&                     GetChild( StringView );
+    Json&                     operator[]( StringView );
+    Json&                     operator[]( const char* );
+    void                      operator = ( const Json& );
+    void                      operator = ( const Json* );
+    void                      operator = ( StringView );
+    void                      operator = ( JsonNumber );
+    void                      operator = ( int );
+    void                      operator = ( bool );
+    operator                  String ();
+    operator                  JsonNumber ();
+    operator                  bool();
     std::map< String, Json* > mChildren;
-    String mString;
-    JsonNumber mNumber = 0;
-    Vector< Json* > mElements;
-    bool mBoolean = false;
-    JsonType mType = JsonType::Object;
+    String                    mString;
+    JsonNumber                mNumber = 0;
+    Vector< Json* >           mElements;
+    bool                      mBoolean = false;
+    JsonType                  mType = JsonType::Object;
   };
 
 }

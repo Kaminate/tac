@@ -93,7 +93,7 @@ namespace Tac
     if( !cubemap.IsValid() )
       return;
     Mesh* mesh;
-    ModelAssetManager::Instance->GetMesh( &mesh,
+    gModelAssetManager.GetMesh( &mesh,
                                           "assets/editor/Box.gltf",
                                           mVertexFormat,
                                           mVertexDecls,

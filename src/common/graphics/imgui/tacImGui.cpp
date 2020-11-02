@@ -211,6 +211,7 @@ namespace Tac
 
     }
 
+    gNextWindow.Clear();
     TAC_ASSERT( window->mSize.x > 0 && window->mSize.y > 0 );
 
     // todo: move this to a ImGuiGlobals::Instance.mFrameData
@@ -463,10 +464,10 @@ namespace Tac
       ( float )ImGuiGlobals::Instance.mUIStyle.fontSize };
 
     window->ItemSize( buttonSize );
-    auto id = window->GetID();
+    const ImGuiId id = window->GetID();
 
     bool clipped;
-    auto clipRect = ImGuiRect::FromPosSize( pos, buttonSize );
+    ImGuiRect clipRect = ImGuiRect::FromPosSize( pos, buttonSize );
     window->ComputeClipInfo( &clipped, &clipRect );
     if( clipped )
       return clicked;
@@ -476,7 +477,7 @@ namespace Tac
       color3 = ( color3 + v3( 1, 1, 1 ) ) * 0.3f;
 
 
-    bool hovered = window->IsHovered( clipRect );
+    const bool hovered = window->IsHovered( clipRect );
     if( hovered )
     {
       color3 /= 2.0f;
@@ -505,8 +506,8 @@ namespace Tac
     ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
     UI2DDrawData* drawData = window->mDrawData;
     const v2 textSize = CalculateTextSize( str, ImGuiGlobals::Instance.mUIStyle.fontSize );
-    const v2 buttonSize ( textSize.x + 2 * ImGuiGlobals::Instance.mUIStyle.buttonPadding,
-      textSize.y );
+    const v2 buttonSize( textSize.x + 2 * ImGuiGlobals::Instance.mUIStyle.buttonPadding,
+                         textSize.y );
     v2 pos = window->mCurrCursorDrawPos;
     window->ItemSize( textSize );
 
@@ -612,12 +613,12 @@ namespace Tac
         }
         int iVert = drawData->mDefaultVertex2Ds.size();
         int iIndex = drawData->mDefaultIndex2Ds.size();
-        drawData->mDefaultIndex2Ds.push_back( iVert + 0 );
-        drawData->mDefaultIndex2Ds.push_back( iVert + 1 );
-        drawData->mDefaultIndex2Ds.push_back( iVert + 2 );
-        drawData->mDefaultIndex2Ds.push_back( iVert + 1 );
-        drawData->mDefaultIndex2Ds.push_back( iVert + 3 );
-        drawData->mDefaultIndex2Ds.push_back( iVert + 2 );
+        drawData->mDefaultIndex2Ds.push_back( ( UI2DIndex )( iVert + 0 ) );
+        drawData->mDefaultIndex2Ds.push_back( ( UI2DIndex )( iVert + 1 ) );
+        drawData->mDefaultIndex2Ds.push_back( ( UI2DIndex )( iVert + 2 ) );
+        drawData->mDefaultIndex2Ds.push_back( ( UI2DIndex )( iVert + 1 ) );
+        drawData->mDefaultIndex2Ds.push_back( ( UI2DIndex )( iVert + 3 ) );
+        drawData->mDefaultIndex2Ds.push_back( ( UI2DIndex )( iVert + 2 ) );
         drawData->mDefaultVertex2Ds.resize( iVert + 4 );
         UI2DVertex* defaultVertex2D = &drawData->mDefaultVertex2Ds[ iVert ];
         defaultVertex2D->mPosition = p0;
@@ -637,7 +638,7 @@ namespace Tac
         drawCall.mIIndexStart = iIndex;
         drawCall.mVertexCount = 4;
         drawCall.mIVertexStart = iVert;
-        drawCall.mShader = UI2DCommonData::Instance->mShader;
+        drawCall.mShader = gUI2DCommonData.mShader;
         drawCall.mUniformSource = perObjectData;
         drawData->mDrawCall2Ds.push_back( drawCall );
       }
@@ -952,13 +953,25 @@ namespace Tac
 
   static void ImGuiRender( Errors& errors )
   {
+    // this should iteratre through imgui views?
+    // and the draw data shouldnt exist, it should just be inlined here
+    // in 1 big ass vbo/ibo
     for( ImGuiWindow* window : ImGuiGlobals::Instance.mAllWindows )
     {
       // remember, these are imguiwindows, not win32windows
-      const char* groupName = va("imgui for window %s", window->mName.c_str() );
+      const char* groupName = va( "imgui for window %s", window->mName.c_str() );
       TAC_RENDER_GROUP_BLOCK( groupName );
+
+      // The child draw calls are stored in mParent->mDrawdata
+      if( window->mParent )
+        continue;
+
+
+      // someone drew imgui without waiting for the window to be valid
+      // this is bullshit
+      TAC_ASSERT( window->mDesktopWindowHandle.IsValid() );
       const Render::ViewHandle viewHandle = WindowGraphicsGetView( window->mDesktopWindowHandle );
-      DesktopWindowState* desktopWindowState = GetDesktopWindowState( window->mDesktopWindowHandle );
+      const DesktopWindowState* desktopWindowState = GetDesktopWindowState( window->mDesktopWindowHandle );
       window->mDrawData->DrawToTexture( viewHandle,
                                         desktopWindowState->mWidth,
                                         desktopWindowState->mHeight,

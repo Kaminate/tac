@@ -29,10 +29,10 @@ namespace Tac
     Count
   };
 
-  StringView LanguageToStr( Language language );
-  Language   GetLanguage( StringView str );
+  StringView LanguageToStr( Language );
+  Language   GetLanguage( StringView );
   void       LanguageDebugImgui( StringView name, Language* language );
-  bool       IsAsciiCharacter( Codepoint codepoint );
+  bool       IsAsciiCharacter( Codepoint );
 
   struct CodepointView
   {
@@ -48,8 +48,8 @@ namespace Tac
     int              mCodepointCount = 0;
   };
 
-  bool operator == ( CodepointView a, CodepointView b );
-  bool operator != ( CodepointView a, CodepointView b );
+  bool operator == ( CodepointView, CodepointView );
+  bool operator != ( CodepointView, CodepointView );
 
   CodepointView UTF8ToCodepoints( StringView );
   StringView CodepointsToUTF8( CodepointView );
@@ -57,32 +57,28 @@ namespace Tac
 
   struct LocalizedStringStuff
   {
-    void                SetCodepoints( CodepointView codepoints );
+    void                SetCodepoints( CodepointView );
     // TODO: don't bother storing the codepoints, just compute them on the fly
     Vector< Codepoint > mCodepoints;
     String              mUTF8String;
   };
 
+  typedef std::map< Language, LocalizedStringStuff > LanguageMap;
+
   struct LocalizedString
   {
-    String mReference;
-    std::map< Language, LocalizedStringStuff > mCodepoints;
+    String               mReference;
+    LanguageMap          mCodepoints;
   };
 
   struct Localization
   {
-    Localization();
-    static Localization*       Instance;
     const Vector< Codepoint >& GetString( Language language, StringView reference );
-    void                       Load( StringView path, Errors& errors );
-    bool                       EatWhitespace();
-    bool                       EatNewLine();
-    String                     EatWord();
+    void                       Load( StringView path, Errors& );
     void                       DebugImgui();
-    char*                      mBegin = nullptr;
-    char*                      mEnd = nullptr;
-    Vector< char >             mBytes;
     Vector< LocalizedString >  mLocalizedStrings;
   };
+
+  extern Localization gLocalization;
 
 }

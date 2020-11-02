@@ -53,6 +53,8 @@ ${CMAKE_CURRENT_SOURCE_DIR}/tacFrameMemory.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/tacFrameMemory.h
 ${CMAKE_CURRENT_SOURCE_DIR}/tacTemporaryMemory.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/tacTemporaryMemory.h
+${CMAKE_CURRENT_SOURCE_DIR}/tacTextParser.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/tacTextParser.h
 ${CMAKE_CURRENT_SOURCE_DIR}/tacMemory.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/tacMemory.h
 ${CMAKE_CURRENT_SOURCE_DIR}/profile/tacProfile.cpp

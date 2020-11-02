@@ -37,12 +37,11 @@ namespace Tac
   Shell Shell::Instance;
   void Shell::Uninit()
   {
-    delete UI2DCommonData::Instance;
-    delete Debug3DCommonData::Instance;
-    delete Localization::Instance;
-    delete FontStuff::Instance;
+    gUI2DCommonData.Uninit();
+    gDebug3DCommonData.Uninit();
+    gFontStuff.Uninit();
     delete mLog;
-    delete ModelAssetManager::Instance;
+    gModelAssetManager.Uninit();
 
     // last, so resources can be freed
     Render::Uninit();
@@ -55,8 +54,7 @@ namespace Tac
       RendererRegistry& registry = RendererRegistry::Instance();
       if( registry.mFactories.empty() )
       {
-        errors = "No renderers available";
-        TAC_HANDLE_ERROR( errors );
+        TAC_RAISE_ERROR( "No renderers available", errors);
       }
 
       String defaultRendererName = OS::GetDefaultRendererName();
@@ -82,16 +80,13 @@ namespace Tac
 
     TAC_NEW ModelAssetManager;
 
-    TAC_NEW Localization;
-    Localization::Instance->Load( "assets/localization.txt", errors );
+    gLocalization.Load( "assets/localization.txt", errors );
     TAC_HANDLE_ERROR( errors );
 
-    TAC_NEW Debug3DCommonData;
-    Debug3DCommonData::Instance->Init( errors );
+    gDebug3DCommonData.Init( errors );
     TAC_HANDLE_ERROR( errors );
 
-    TAC_NEW UI2DCommonData;
-    UI2DCommonData::Instance->Init( errors );
+    gUI2DCommonData.Init( errors );
     TAC_HANDLE_ERROR( errors );
 
     TAC_NEW ProfileSystem;

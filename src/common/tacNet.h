@@ -55,25 +55,24 @@ namespace Tac
   {
     virtual ~Socket() = default;
     void DebugImgui();
-    void Send( const HTTPRequest& httpRequest, Errors& errors );
-    void Send( StringView s, Errors& errors );
-    virtual void Send( void* bytes, int byteCount, Errors& errors ) = 0;
-    virtual void TCPTryConnect( StringView hostname,
-                                uint16_t port,
-                                Errors& errors ) = 0;
-    void OnMessage( void* bytes, int byteCount );
-
-    String mName;
-    SocketType mSocketType = SocketType::Count;
-    AddressFamily mAddressFamily = AddressFamily::Count;
-    double mElapsedSecondsOnLastRecv = 0;
-    Net* mNet = nullptr;
-    bool mTCPIsConnected = false;
-    bool mRequestDeletion = false;
+    void                                Send( const HTTPRequest& httpRequest, Errors& );
+    void                                Send( StringView s, Errors& );
+    virtual void                        Send( void* bytes, int byteCount, Errors& ) = 0;
+    virtual void                        TCPTryConnect( StringView hostname,
+                                                       uint16_t port,
+                                                       Errors& ) = 0;
+    void                                OnMessage( void* bytes, int byteCount );
+    String                              mName;
+    SocketType                          mSocketType = SocketType::Count;
+    AddressFamily                       mAddressFamily = AddressFamily::Count;
+    double                              mElapsedSecondsOnLastRecv = 0;
+    Net*                                mNet = nullptr;
+    bool                                mTCPIsConnected = false;
+    bool                                mRequestDeletion = false;
     Vector< SocketCallbackDataMessage > mTCPOnMessage;
-    Vector< SocketCallbackData > mTCPOnConnectionClosed;
-    bool mRequiresWebsocketFrame = false;
-    SocketCallbackData mKeepaliveOverride;
+    Vector< SocketCallbackData >        mTCPOnConnectionClosed;
+    bool                                mRequiresWebsocketFrame = false;
+    SocketCallbackData                  mKeepaliveOverride;
   };
 
   struct HTTPRequest
@@ -99,10 +98,10 @@ namespace Tac
     virtual Socket* CreateSocket( StringView name,
                                   AddressFamily addressFamily,
                                   SocketType socketType,
-                                  Errors& errors ) = 0;
+                                  Errors& ) = 0;
     virtual Vector< Socket* > GetSockets() = 0;
     virtual void DebugImgui() = 0;
-    virtual void Update( Errors& errors ) = 0;
+    virtual void Update( Errors& ) = 0;
 
   };
 

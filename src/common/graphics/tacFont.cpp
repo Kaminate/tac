@@ -43,14 +43,14 @@ namespace Tac
     mUISpaceLinegap = ( float )linegap * mScale;
   }
 
-  FontStuff* FontStuff::Instance = nullptr;
+
+  FontStuff gFontStuff;
   FontStuff::FontStuff()
   {
-    Instance = this;
     mOutlineGlyphs = false;
     mOutlineWidth = 3;
   }
-  FontStuff::~FontStuff()
+  void FontStuff::Uninit()
   {
     for( auto fontAtlasCell : mCells )
     {
@@ -87,10 +87,7 @@ namespace Tac
     }
 
     if( mDefaultFonts.empty() || mFontFiles.empty() )
-    {
-      errors = "Hey bud you didnt load any languages check your settings";
-      return;
-    }
+      TAC_RAISE_ERROR( "Hey bud you didnt load any languages check your settings", errors );
 
     // fill the atlas with a color other than black so we can see the borders of cells as they get come in
     void* initialAtlasMemory = Render::SubmitAlloc( atlasVramByteCount );

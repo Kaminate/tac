@@ -34,22 +34,14 @@ namespace Tac
   static Creation gCreation;
   static void CreationInitCallback( Errors& errors ) { gCreation.Init( errors ); }
   static void CreationUpdateCallback( Errors& errors ) { gCreation.Update( errors ); }
-
-  const static String prefabSettingsPath = "prefabs";
-  //static v4 GetClearColor( Shell* shell )
-  //{
-  //  return v4( 1, 0, 0, 1 );
-  //  float visualStudioBackground = 45 / 255.0f;
-  //  visualStudioBackground += 0.3f;
-  //  return GetColorSchemeA( ( float )shell->mElapsedSeconds );
-  //}
-  const static String refFrameVecNames[] = {
+  const char* prefabSettingsPath = "prefabs";
+  const char* refFrameVecNames[] = {
     "mPos",
     "mForwards",
     "mRight",
     "mUp",
   };
-  const static String axisNames[] = { "x", "y", "z" };
+  const char* axisNames[] = { "x", "y", "z" };
 
   void ExecutableStartupInfo::Init( Errors& errors )
   {
@@ -62,10 +54,12 @@ namespace Tac
   }
 
   Creation* Creation::Instance = nullptr;
+
   Creation::Creation()
   {
     Instance = this;
   }
+
   Creation::~Creation()
   {
     delete CreationMainWindow::Instance;
@@ -86,6 +80,7 @@ namespace Tac
     CreationPropertyWindow::Instance->Init( errors );
     TAC_HANDLE_ERROR( errors );
   }
+
   void Creation::CreateGameWindow( Errors& errors )
   {
     if( CreationGameWindow::Instance )
@@ -98,6 +93,7 @@ namespace Tac
     CreationGameWindow::Instance->Init( errors );
     TAC_HANDLE_ERROR( errors );
   }
+
   void Creation::CreateMainWindow( Errors& errors )
   {
     if( CreationMainWindow::Instance )
@@ -110,6 +106,7 @@ namespace Tac
     CreationMainWindow::Instance->Init( errors );
     TAC_HANDLE_ERROR( errors );
   }
+
   void Creation::CreateSystemWindow( Errors& errors )
   {
     if( CreationSystemWindow::Instance )
@@ -137,6 +134,7 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
 
   }
+
   DesktopWindowHandle Creation::CreateWindow( StringView name )
   {
     int x, y, w, h;
@@ -171,6 +169,7 @@ namespace Tac
       CenterWindow( x, y, *w, *h );
     }
   }
+
   void Creation::GetWindowsJson( Json** outJson, Errors& errors )
   {
     Settings* settings = Settings::Instance;
@@ -238,6 +237,7 @@ namespace Tac
     //params.mY = y;
     //DesktopWindowManager::Instance->SetWindowParams( params );
   }
+
   void Creation::SetSavedWindowsData( Errors& errors )
   {
 
@@ -252,6 +252,7 @@ namespace Tac
       TAC_HANDLE_ERROR( errors );
     }
   }
+
   void Creation::Init( Errors& errors )
   {
     SpaceInit();
@@ -314,6 +315,7 @@ namespace Tac
     LoadPrefabs( errors );
     TAC_HANDLE_ERROR( errors );
   }
+
   Json* Creation::FindWindowJson( StringView windowName )
   {
     Json* windows;
@@ -326,6 +328,7 @@ namespace Tac
         return windowJson;
     return nullptr;
   }
+
   void Creation::RemoveEntityFromPrefabRecursively( Entity* entity )
   {
     int prefabCount = mPrefabs.size();
@@ -357,6 +360,7 @@ namespace Tac
     for( Entity* child : entity->mChildren )
       RemoveEntityFromPrefabRecursively( child );
   }
+
   void Creation::DeleteSelectedEntities()
   {
     Vector< Entity* > topLevelEntitiesToDelete;
@@ -382,7 +386,6 @@ namespace Tac
     }
     mSelectedEntities.clear();
   }
-
 
   void Creation::Update( Errors& errors )
   {
@@ -450,6 +453,7 @@ namespace Tac
 
 
   }
+
   Entity* Creation::CreateEntity()
   {
     World* world = mWorld;
@@ -469,10 +473,12 @@ namespace Tac
     mSelectedEntities = { entity };
     return entity;
   }
+
   bool Creation::IsAnythingSelected()
   {
     return mSelectedEntities.size();
   }
+
   v3 Creation::GetSelectionGizmoOrigin()
   {
     TAC_ASSERT( IsAnythingSelected() );
@@ -492,11 +498,13 @@ namespace Tac
       result += mSelectedHitOffset;
     return result;
   }
+
   void Creation::ClearSelection()
   {
     mSelectedEntities.clear();
     mSelectedHitOffsetExists = false;
   }
+
   void Creation::CheckDeleteSelected()
   {
     CreationGameWindow* gameWindow = CreationGameWindow::Instance;
@@ -515,6 +523,7 @@ if(!desktopWindowState->mNativeWindowHandle)
       return;
     DeleteSelectedEntities();
   }
+
   void Creation::GetSavedPrefabs( Vector< String > & paths, Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
@@ -526,6 +535,7 @@ if(!desktopWindowState->mNativeWindowHandle)
       alreadySavedPrefabs.push_back( child->mString );
     paths = alreadySavedPrefabs;
   }
+
   void Creation::UpdateSavedPrefabs()
   {
     Json& prefabs = Settings::Instance->mJson[ prefabSettingsPath ];
@@ -547,6 +557,7 @@ if(!desktopWindowState->mNativeWindowHandle)
 
     Settings::Instance->Save( errors );
   }
+
   Prefab* Creation::FindPrefab( Entity* entity )
   {
     for( Prefab* prefab : mPrefabs )
@@ -558,6 +569,7 @@ if(!desktopWindowState->mNativeWindowHandle)
     }
     return nullptr;
   }
+
   void Creation::SavePrefabs()
   {
     for( Entity* entity : mWorld->mEntities )
@@ -615,6 +627,7 @@ if(!desktopWindowState->mNativeWindowHandle)
       }
     }
   }
+
   void Creation::ModifyPathRelative( String& savePath )
   {
     if( StartsWith( savePath, Shell::Instance.mInitialWorkingDir ) )
@@ -623,6 +636,7 @@ if(!desktopWindowState->mNativeWindowHandle)
       savePath = StripLeadingSlashes( savePath );
     }
   }
+
   void Creation::LoadPrefabAtPath( String prefabPath, Errors& errors )
   {
     ModifyPathRelative( prefabPath );
@@ -643,6 +657,7 @@ if(!desktopWindowState->mNativeWindowHandle)
     LoadPrefabCameraPosition( prefab );
     UpdateSavedPrefabs();
   }
+
   void Creation::LoadPrefabs( Errors& errors )
   {
     Vector< String > prefabPaths;
@@ -653,6 +668,7 @@ if(!desktopWindowState->mNativeWindowHandle)
       TAC_HANDLE_ERROR( errors );
     }
   }
+
   void Creation::LoadPrefabCameraPosition( Prefab* prefab )
   {
     if( prefab->mDocumentPath.empty() )
@@ -691,6 +707,7 @@ if(!desktopWindowState->mNativeWindowHandle)
       }
     }
   }
+
   void Creation::SavePrefabCameraPosition( Prefab* prefab )
   {
     if( prefab->mDocumentPath.empty() )
@@ -725,33 +742,5 @@ if(!desktopWindowState->mNativeWindowHandle)
       }
     }
   }
-
-
-  //void SetCreationWindowImGuiGlobals( const DesktopWindowState* desktopWindowState,
-  //                                    UI2DDrawData* ui2DDrawData )
-  //{
-  //  const v2 desktopWindowPos( static_cast< float >( desktopWindowState->mX ),
-  //                             static_cast< float >( desktopWindowState->mY ) );
-  //  const v2 mousePositionDestopWindowspace
-  //    = KeyboardInput::Instance->mCurr.mScreenspaceCursorPosErrors.empty()
-  //    ? KeyboardInput::Instance->mCurr.mScreenspaceCursorPos - desktopWindowPos
-  //    : v2{}; // eww. Should imgui have a bool mousePosValid?
-  //  ImGuiSetGlobals( mousePositionDestopWindowspace,
-  //                   //desktopWindowState->mCursorUnobscured,
-  //                   Shell::Instance.mElapsedSeconds,
-  //                   //ui2DDrawData,
-  //                   desktopWindowState->mWidth,
-  //                   desktopWindowState->mHeight );
-  //}
-
-
-
-
-
-
-  // ----------------------- creation 2 ------------------------
-
-
-
 }
 

@@ -13,9 +13,9 @@ namespace Tac
   namespace TextureAssetManager
   {
     Render::TextureHandle GetTexture( StringView textureFilepath,
-                                      Errors& errors );
+                                      Errors& );
     Render::TextureHandle GetTextureCube( StringView textureDir,
-                                          Errors& errors );
+                                          Errors& );
   };
 }
 

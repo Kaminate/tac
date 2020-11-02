@@ -19,12 +19,12 @@ namespace Tac
   struct SocketWinsock : public Socket
   {
     ~SocketWinsock();
-    void        SetIsBlocking( bool isBlocking, Errors& errors );
-    void        SetKeepalive( bool keepAlive, Errors& errors );
-    void        Send( void* bytes, int byteCount, Errors& errors ) override;
+    void        SetIsBlocking( bool isBlocking, Errors& );
+    void        SetKeepalive( bool keepAlive, Errors& );
+    void        Send( void* bytes, int byteCount, Errors& ) override;
     void        TCPTryConnect( StringView hostname,
                                uint16_t port,
-                               Errors& errors ) override;
+                               Errors& ) override;
     SOCKET      mSocket = INVALID_SOCKET;
     int         mWinsockAddressFamily = 0;
     int         mWinsockSocketType = 0;
@@ -37,11 +37,11 @@ namespace Tac
     static NetWinsock          Instance;
     void                       Init( Errors& );
     void                       DebugImgui() override;
-    void                       Update( Errors& errors ) override;
+    void                       Update( Errors& ) override;
     Socket*                    CreateSocket( StringView name,
-                                             AddressFamily addressFamily,
-                                             SocketType socketType,
-                                             Errors& errors ) override;
+                                             AddressFamily,
+                                             SocketType,
+                                             Errors& ) override;
     Vector< Socket* >          GetSockets() override;
     std::set< SocketWinsock* > mSocketWinsocks;
     bool                       mPrintReceivedMessages;
