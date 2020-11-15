@@ -15,6 +15,7 @@ namespace Tac
       bool changedHeightmap = false;
       if( ImGuiCollapsingHeader( "Heightmap" ) )
       {
+        TAC_IMGUI_INDENT_BLOCK;
         if( ImGuiInputText( "Heightmap path", mTerrain->mHeightmapTexturePath ) )
         {
           changedHeightmap = true;

@@ -94,7 +94,6 @@ ${CMAKE_CURRENT_SOURCE_DIR}/tacTime.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/tacTime.h
 ${CMAKE_CURRENT_SOURCE_DIR}/tacUtility.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/tacUtility.h
-${CMAKE_CURRENT_SOURCE_DIR}/containers/tacVector.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/containers/tacVector.h
 ${CMAKE_CURRENT_SOURCE_DIR}/math/tacVector2.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/math/tacVector2.h
@@ -110,6 +109,11 @@ ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/stb_image.h
 ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/stb_truetype.h
 CACHE INTERNAL ""
 )
+
+IF (WIN32)
+  # Program Database for Edit & Continue
+  add_definitions(/ZI)
+ENDIF()
 
 # Create a library named CommonLibrary
 add_library( "CommonLibrary" ${Common} )

@@ -154,10 +154,10 @@ namespace Tac
 
     // ImGuiBeginGroup();
 
-    float itemWidth = imguiWindow->mContentRect.mMaxi.x - imguiWindow->mCurrCursorDrawPos.x;
+    float itemWidth = imguiWindow->mContentRect.mMaxi.x - imguiWindow->mCurrCursorViewport.x;
     float itemHeight = ( float )ImGuiGlobals::Instance.mUIStyle.fontSize;
 
-    v2 timeScalePos = imguiWindow->mCurrCursorDrawPos;
+    v2 timeScalePos = imguiWindow->mCurrCursorViewport;
     v2 timeScaleSize = { itemWidth, itemHeight * 3 };
     imguiWindow->ItemSize( timeScaleSize );
 

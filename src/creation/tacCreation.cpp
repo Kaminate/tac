@@ -31,8 +31,9 @@
 
 namespace Tac
 {
-  static Creation gCreation;
+  Creation gCreation;
   static void CreationInitCallback( Errors& errors ) { gCreation.Init( errors ); }
+  static void CreationUninitCallback( Errors& errors ) { gCreation.Uninit( errors ); }
   static void CreationUpdateCallback( Errors& errors ) { gCreation.Update( errors ); }
   const char* prefabSettingsPath = "prefabs";
   const char* refFrameVecNames[] = {
@@ -50,17 +51,10 @@ namespace Tac
     mStudioName = "Sleeping Studio";
     mProjectInit = CreationInitCallback;
     mProjectUpdate = CreationUpdateCallback;
-    //TAC_NEW Creation;
+    mProjectUninit = CreationUninitCallback;
   }
 
-  Creation* Creation::Instance = nullptr;
-
-  Creation::Creation()
-  {
-    Instance = this;
-  }
-
-  Creation::~Creation()
+  void Creation::Uninit( Errors& errors )
   {
     delete CreationMainWindow::Instance;
     delete CreationGameWindow::Instance;
@@ -391,7 +385,7 @@ namespace Tac
   {
     /*TAC_PROFILE_BLOCK*/;
 
-    DesktopEventQueue::Instance.ApplyQueuedEvents(GetDesktopWindowState(0));
+    DesktopEventApplyQueue( GetDesktopWindowState( 0 ) );
 
     if( !CreationMainWindow::Instance &&
         !CreationGameWindow::Instance &&
@@ -399,8 +393,9 @@ namespace Tac
         !CreationSystemWindow::Instance &&
         !CreationProfileWindow::Instance )
     {
-      CreateMainWindow( errors );
-      CreateGameWindow( errors );
+      //CreateMainWindow( errors );
+      //CreateGameWindow( errors );
+      CreatePropertyWindow( errors );
       //CreateSystemWindow( errors );
       TAC_HANDLE_ERROR( errors );
     }
@@ -440,8 +435,8 @@ namespace Tac
 
     CheckDeleteSelected();
 
-    if( KeyboardInput::Instance->IsKeyJustDown( Key::S ) &&
-        KeyboardInput::Instance->IsKeyDown( Key::Modifier ) )
+    if( gKeyboardInput.IsKeyJustDown( Key::S ) &&
+        gKeyboardInput.IsKeyDown( Key::Modifier ) )
     {
       SavePrefabs();
       if( CreationGameWindow::Instance )
@@ -512,14 +507,15 @@ namespace Tac
     if( !gameWindow || !gameWindow->mDesktopWindowHandle.IsValid() )
       return;
 
-    DesktopWindowState* desktopWindowState = GetDesktopWindowState(gameWindow->mDesktopWindowHandle);
+    DesktopWindowState* desktopWindowState = GetDesktopWindowState( gameWindow->mDesktopWindowHandle );
 
-if(!desktopWindowState->mNativeWindowHandle)
+    if( !desktopWindowState->mNativeWindowHandle )
       return;
-    //if( !desktopWindowState->mCursorUnobscured )
-    //return;
 
-    if( !KeyboardInput::Instance->IsKeyJustDown( Key::Delete ) )
+    if( !IsWindowHovered( gameWindow->mDesktopWindowHandle ) )
+      return;
+
+    if( !gKeyboardInput.IsKeyJustDown( Key::Delete ) )
       return;
     DeleteSelectedEntities();
   }

@@ -34,7 +34,17 @@ void operator delete( void* ptr ) noexcept
   Tac::Deallocate( ptr );
 }
 
+void operator delete( void* ptr, Tac::Happy ) noexcept
+{
+  Tac::Deallocate( ptr );
+}
+
 void* operator new( std::size_t sz )
+{
+  return Tac::Allocate( Tac::sNewStackFrame, sz );
+}
+
+void* operator new( std::size_t sz, Tac::Happy )
 {
   return Tac::Allocate( Tac::sNewStackFrame, sz );
 }

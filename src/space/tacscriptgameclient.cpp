@@ -190,7 +190,7 @@ namespace Tac
     json[ "name" ] = "Ping";
     Json& args = json[ "args" ];
     args.mType = JsonType::Array;
-    args.mElements.push_back( TAC_NEW Json( s ) );
+    args.mElements.push_back( TAC_NEW( kHappyGril ) Json( s ) );
 
     String toSend = json.Stringify();
     mSocket->Send( ( void* )toSend.data(), ( int )toSend.size(), errors );
@@ -200,7 +200,6 @@ namespace Tac
     TAC_ASSERT( mSocket );
     if( !mSocket->mTCPIsConnected )
       return;
-    ;
     Json json;
     json[ "name" ] = "clear console";
     String toSend = json.Stringify();

@@ -126,21 +126,21 @@ namespace Tac
       {
         const int width = ( int )LOWORD( lParam );
         const int height = ( int )HIWORD( lParam );
-        DesktopEventQueue::Instance.PushEventResizeWindow( desktopWindowHandle,
-                                                           width,
-                                                           height );
+        DesktopEventResizeWindow( desktopWindowHandle,
+                                  width,
+                                  height );
       } break;
       case WM_MOVE:
       {
         const int x = ( int )LOWORD( lParam );
         const int y = ( int )HIWORD( lParam );
-        DesktopEventQueue::Instance.PushEventMoveWindow( desktopWindowHandle,
-                                                         x,
-                                                         y );
+        DesktopEventMoveWindow( desktopWindowHandle,
+                                x,
+                                y );
       } break;
       case WM_CHAR:
       {
-        DesktopEventQueue::Instance.PushEventKeyInput( ( Codepoint )wParam );
+        DesktopEventKeyInput( ( Codepoint )wParam );
       } break;
       case WM_SYSKEYDOWN: // fallthrough
       case WM_SYSKEYUP: // fallthrough
@@ -154,7 +154,7 @@ namespace Tac
         const Key key = GetKey( ( uint8_t )wParam );
         if( key == Key::Count )
           break;
-        DesktopEventQueue::Instance.PushEventKeyState( key, isDown );
+        DesktopEventKeyState( key, isDown );
       } break;
 
       case WM_SETFOCUS:
@@ -211,7 +211,7 @@ namespace Tac
       case WM_LBUTTONDOWN:
       {
         //std::cout << "WM_LBUTTONDOWN" << std::endl;
-        DesktopEventQueue::Instance.PushEventKeyState( Key::MouseLeft, true );
+        DesktopEventKeyState( Key::MouseLeft, true );
 
         // make it so clicking the window brings the window to the top of the z order
         SetActiveWindow( hwnd );
@@ -224,23 +224,23 @@ namespace Tac
       {
         //if( uMsg == WM_LBUTTONUP ) { std::cout << "WM_LBUTTONUP" << std::endl; }
         //else { std::cout << "WM_NCLBUTTONUP" << std::endl; }
-        DesktopEventQueue::Instance.PushEventKeyState( Key::MouseLeft, false );
+        DesktopEventKeyState( Key::MouseLeft, false );
       } break;
 
       case WM_RBUTTONDOWN:
       {
-        DesktopEventQueue::Instance.PushEventKeyState( Key::MouseRight, true );
+        DesktopEventKeyState( Key::MouseRight, true );
         //BringWindowToTop( mHWND );
         SetActiveWindow( hwnd ); // make it so clicking the window brings the window to the top of the z order
       } break;
       case WM_RBUTTONUP:
       {
-        DesktopEventQueue::Instance.PushEventKeyState( Key::MouseRight, false );
+        DesktopEventKeyState( Key::MouseRight, false );
       } break;
 
       case WM_MBUTTONDOWN:
       {
-        DesktopEventQueue::Instance.PushEventKeyState( Key::MouseMiddle, true );
+        DesktopEventKeyState( Key::MouseMiddle, true );
         //BringWindowToTop( mHWND );
 
         // make it so clicking the window brings the window to the top of the z order
@@ -248,7 +248,7 @@ namespace Tac
       } break;
       case WM_MBUTTONUP:
       {
-        DesktopEventQueue::Instance.PushEventKeyState( Key::MouseMiddle, false );
+        DesktopEventKeyState( Key::MouseMiddle, false );
       } break;
 
       case WM_MOUSEMOVE:
@@ -281,16 +281,16 @@ namespace Tac
 
         //if( xPos < 100 )DebugBreak();
 
-        DesktopEventQueue::Instance.PushEventMouseMove( desktopWindowHandle,
-                                                        xPos,
-                                                        yPos );
+        DesktopEventMouseMove( desktopWindowHandle,
+                               xPos,
+                               yPos );
       } break;
 
       case WM_MOUSEWHEEL:
       {
         const short wheelDeltaParam = GET_WHEEL_DELTA_WPARAM( wParam );
         const short ticks = wheelDeltaParam / WHEEL_DELTA;
-        DesktopEventQueue::Instance.PushEventMouseWheel( ( int )ticks );
+        DesktopEventMouseWheel( ( int )ticks );
       } break;
 
       case WM_MOUSELEAVE:
@@ -444,38 +444,6 @@ namespace Tac
       TranslateMessage( &msg );
       DispatchMessage( &msg );
     }
-
-    //if( mWindowProcErrors )
-    //{
-    //  errors = mWindowProcErrors;
-    //  TAC_HANDLE_ERROR( errors );
-    //}
-
-    //for( Win32DesktopWindow* window : mWindows )
-    //{
-    //  window->Poll( errors );
-    //  TAC_HANDLE_ERROR( errors );
-    //}
-
-    //Win32DesktopWindow* cursorUnobscuredWindow = GetCursorUnobscuredWindow();
-    //for( Win32DesktopWindow* window : mWindows )
-    //  window->mCursorUnobscured = cursorUnobscuredWindow == window;
-
-    //DesktopWindowHandle unobscuredDesktopWindowHandle
-    //  = cursorUnobscuredWindow
-    //  ? cursorUnobscuredWindow->mHandle
-    //  : DesktopWindowHandle();
-    //if( !AreWindowHandlesEqual( mUnobscuredDesktopWindowHandle, unobscuredDesktopWindowHandle ) )
-    //{
-    //  DesktopEventQueue::Instance.PushEventCursorUnobscured( unobscuredDesktopWindowHandle );
-    //  mUnobscuredDesktopWindowHandle = unobscuredDesktopWindowHandle;
-    //}
-
-    //const HWND unobscuredHWND
-    //  = cursorUnobscuredWindow
-    //  ? cursorUnobscuredWindow->mHWND
-    //  : nullptr;
-    //Win32MouseEdgeHandler::Instance.Update( unobscuredHWND );
   }
 
   void WindowsManagerSpawnWindow( const DesktopWindowHandle& desktopWindowHandle,
@@ -544,41 +512,18 @@ namespace Tac
 
     sHWNDs[ ( int )desktopWindowHandle ] = hwnd;
 
-    //auto createdWindow = TAC_NEW Win32DesktopWindow;
-    //createdWindow->mHWND = hwnd;
-    //createdWindow->mHandle = desktopWindowHandle;
-
     // Used to combine all the windows into one tab group.
     if( mParentHWND == NULL )
       mParentHWND = hwnd;
 
 
-    DesktopEventQueue::Instance.PushEventAssignHandle( desktopWindowHandle,
-                                                       hwnd,
-                                                       x,
-                                                       y,
-                                                       windowAdjustedWidth,
-                                                       windowAdjustedHeight );
+    DesktopEventAssignHandle( desktopWindowHandle,
+                              hwnd,
+                              x,
+                              y,
+                              windowAdjustedWidth,
+                              windowAdjustedHeight );
 
-    // hack
-    //DesktopEventQueue::Instance.PushEventMoveWindow( desktopWindowHandle, x, y );
-    //DesktopEventQueue::Instance.PushEventResizeWindow( desktopWindowHandle,
-    //                                                   windowAdjustedWidth,
-    //                                                   windowAdjustedHeight );
-    //mWindows.push_back( createdWindow );
-    //DesktopApp::SpawnWindow( createdWindow );
   }
 
-  //void WindowsApplication2::RemoveWindow( Win32DesktopWindow*  createdWindow )
-  //{
-  //  for( int i = 0; i < mWindows.size(); ++i )
-  //  {
-  //    if( mWindows[ i ] == createdWindow )
-  //    {
-  //      mWindows[ i ] = mWindows.back();
-  //      mWindows.pop_back();
-  //      return;
-  //    }
-  //  }
-  //}
 }

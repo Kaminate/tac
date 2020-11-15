@@ -181,21 +181,20 @@ namespace Tac
 
   void CreationGameWindow::Init( Errors& errors )
   {
-    mDesktopWindowHandle = Creation::Instance->CreateWindow( gGameWindowName );
+    mDesktopWindowHandle = gCreation.CreateWindow( gGameWindowName );
 
-    Creation* creation = Creation::Instance;
     auto uI2DDrawData = TAC_NEW UI2DDrawData;
     CreateGraphicsObjects( errors );
     TAC_HANDLE_ERROR( errors );
 
     mSkyboxPresentation = TAC_NEW SkyboxPresentation;
-    mSkyboxPresentation->mCamera = &creation->mEditorCamera;
+    mSkyboxPresentation->mCamera = &gCreation.mEditorCamera;
     mSkyboxPresentation->Init( errors );
     TAC_HANDLE_ERROR( errors );
 
     mGamePresentation = TAC_NEW GamePresentation;
-    mGamePresentation->mWorld = creation->mWorld;
-    mGamePresentation->mCamera = &creation->mEditorCamera;
+    mGamePresentation->mWorld = gCreation.mWorld;
+    mGamePresentation->mCamera = &gCreation.mEditorCamera;
     mGamePresentation->mSkyboxPresentation = mSkyboxPresentation;
     mGamePresentation->CreateGraphicsObjects( errors );
     TAC_HANDLE_ERROR( errors );
@@ -229,10 +228,8 @@ namespace Tac
     if( !desktopWindowState->mNativeWindowHandle )
       return;
 
-    //if( !desktopWindowState->mCursorUnobscured )
-    //  return;
-
-    Creation* creation = Creation::Instance;
+    if( !IsWindowHovered(mDesktopWindowHandle) )
+      return;
 
     enum class PickedObject
     {
@@ -261,7 +258,7 @@ namespace Tac
     bool hit;
     float dist;
 
-    for( Entity* entity : creation->mWorld->mEntities )
+    for( Entity* entity : gCreation.mWorld->mEntities )
     {
       MousePickingEntity( entity, &hit, &dist );
       if( !hit || !pickData.IsNewClosest( dist ) )
@@ -271,9 +268,9 @@ namespace Tac
       pickData.pickedObject = PickedObject::Entity;
     }
 
-    if( creation->mSelectedEntities.size() ) // || creation->mSelectedPrefabs.size() )
+    if( gCreation.mSelectedEntities.size() ) // || gCreation.mSelectedPrefabs.size() )
     {
-      v3 selectionGizmoOrigin = creation->GetSelectionGizmoOrigin();
+      v3 selectionGizmoOrigin = gCreation.GetSelectionGizmoOrigin();
 
       m4 invArrowRots[] = {
         m4::RotRadZ( 3.14f / 2.0f ),
@@ -283,7 +280,7 @@ namespace Tac
       for( int i = 0; i < 3; ++i )
       {
         // 1/3: inverse transform
-        v3 modelSpaceRayPos3 = creation->mEditorCamera.mPos - selectionGizmoOrigin;
+        v3 modelSpaceRayPos3 = gCreation.mEditorCamera.mPos - selectionGizmoOrigin;
         v4 modelSpaceRayPos4 = v4( modelSpaceRayPos3, 1 );
         v3 modelSpaceRayDir3 = mWorldSpaceMouseDir;
         v4 modelSpaceRayDir4 = v4( mWorldSpaceMouseDir, 0 );
@@ -311,37 +308,37 @@ namespace Tac
     v3 worldSpaceHitPoint = {};
     if( pickData.pickedObject != PickedObject::None )
     {
-      worldSpaceHitPoint = creation->mEditorCamera.mPos + pickData.closestDist * mWorldSpaceMouseDir;
+      worldSpaceHitPoint = gCreation.mEditorCamera.mPos + pickData.closestDist * mWorldSpaceMouseDir;
       mDebug3DDrawData->DebugDrawSphere( worldSpaceHitPoint, 0.2f, v3( 1, 1, 0 ) );
     }
 
-    if( KeyboardInput::Instance->IsKeyJustDown( Key::MouseLeft ) )
+    if( gKeyboardInput.IsKeyJustDown( Key::MouseLeft ) )
     {
       switch( pickData.pickedObject )
       {
         case PickedObject::WidgetTranslationArrow:
         {
-          v3 gizmoOrigin = creation->GetSelectionGizmoOrigin();
-          v3 pickPoint = creation->mEditorCamera.mPos + mWorldSpaceMouseDir * pickData.closestDist;
+          v3 gizmoOrigin = gCreation.GetSelectionGizmoOrigin();
+          v3 pickPoint = gCreation.mEditorCamera.mPos + mWorldSpaceMouseDir * pickData.closestDist;
           v3 arrowDir = {};
           arrowDir[ pickData.arrowAxis ] = 1;
-          creation->mSelectedGizmo = true;
-          creation->mTranslationGizmoDir = arrowDir;
-          creation->mTranslationGizmoOffset = Dot(
+          gCreation.mSelectedGizmo = true;
+          gCreation.mTranslationGizmoDir = arrowDir;
+          gCreation.mTranslationGizmoOffset = Dot(
             arrowDir,
             worldSpaceHitPoint - gizmoOrigin );
         } break;
         case PickedObject::Entity:
         {
           v3 entityWorldOrigin = ( pickData.closest->mWorldTransform * v4( 0, 0, 0, 1 ) ).xyz();
-          creation->ClearSelection();
-          creation->mSelectedEntities = { pickData.closest };
-          creation->mSelectedHitOffsetExists = true;
-          creation->mSelectedHitOffset = worldSpaceHitPoint - entityWorldOrigin;
+          gCreation.ClearSelection();
+          gCreation.mSelectedEntities = { pickData.closest };
+          gCreation.mSelectedHitOffsetExists = true;
+          gCreation.mSelectedHitOffset = worldSpaceHitPoint - entityWorldOrigin;
         } break;
         case PickedObject::None:
         {
-          creation->ClearSelection();
+          gCreation.ClearSelection();
         } break;
       }
     }
@@ -353,29 +350,28 @@ namespace Tac
     if( !desktopWindowState->mNativeWindowHandle )
       return;
 
-    Creation* creation = Creation::Instance;
     const float w = ( float )desktopWindowState->mWidth;
     const float h = ( float )desktopWindowState->mHeight;
     const float x = ( float )desktopWindowState->mX;
     const float y = ( float )desktopWindowState->mY;
-    if( KeyboardInput::Instance->mCurr.mScreenspaceCursorPosErrors )
+    if( gKeyboardInput.mCurr.mScreenspaceCursorPosErrors )
       return;
-    const v2 screenspaceCursorPos = KeyboardInput::Instance->mCurr.mScreenspaceCursorPos;
+    const v2 screenspaceCursorPos = gKeyboardInput.mCurr.mScreenspaceCursorPos;
     float xNDC = ( ( screenspaceCursorPos.x - x ) / w );
     float yNDC = ( ( screenspaceCursorPos.y - y ) / h );
     yNDC = 1 - yNDC;
     xNDC = xNDC * 2 - 1;
     yNDC = yNDC * 2 - 1;
     const float aspect = w / h;
-    const float theta = creation->mEditorCamera.mFovyrad / 2.0f;
+    const float theta = gCreation.mEditorCamera.mFovyrad / 2.0f;
     const float cotTheta = 1.0f / std::tan( theta );
     const float sX = cotTheta / aspect;
     const float sY = cotTheta;
 
-    const m4 viewInv = m4::ViewInv( creation->mEditorCamera.mPos,
-                                    creation->mEditorCamera.mForwards,
-                                    creation->mEditorCamera.mRight,
-                                    creation->mEditorCamera.mUp );
+    const m4 viewInv = m4::ViewInv( gCreation.mEditorCamera.mPos,
+                                    gCreation.mEditorCamera.mForwards,
+                                    gCreation.mEditorCamera.mRight,
+                                    gCreation.mEditorCamera.mUp );
     const v3 viewSpaceMousePosNearPlane =
     {
       xNDC / sX,
@@ -408,7 +404,7 @@ namespace Tac
       return;
     }
 
-    Camera* camera = &Creation::Instance->mEditorCamera;
+    Camera* camera = &gCreation.mEditorCamera;
 
     v3 modelSpaceMouseRayPos3 = ( transformInv * v4( camera->mPos, 1 ) ).xyz();
     v3 modelSpaceMouseRayDir3 = Normalize( ( transformInv * v4( mWorldSpaceMouseDir, 0 ) ).xyz() );
@@ -448,18 +444,17 @@ namespace Tac
 
   void CreationGameWindow::ComputeArrowLen()
   {
-    Creation* creation = Creation::Instance;
-    if( !creation->IsAnythingSelected() )
+    if( !gCreation.IsAnythingSelected() )
     {
       return;
     }
-    m4 view = m4::View( creation->mEditorCamera.mPos,
-                        creation->mEditorCamera.mForwards,
-                        creation->mEditorCamera.mRight,
-                        creation->mEditorCamera.mUp );
-    v3 pos = creation->GetSelectionGizmoOrigin();
+    m4 view = m4::View( gCreation.mEditorCamera.mPos,
+                        gCreation.mEditorCamera.mForwards,
+                        gCreation.mEditorCamera.mRight,
+                        gCreation.mEditorCamera.mUp );
+    v3 pos = gCreation.GetSelectionGizmoOrigin();
     v4 posVS4 = view * v4( pos, 1 );
-    float clip_height = std::abs( std::tan( creation->mEditorCamera.mFovyrad / 2.0f ) * posVS4.z * 2.0f );
+    float clip_height = std::abs( std::tan( gCreation.mEditorCamera.mFovyrad / 2.0f ) * posVS4.z * 2.0f );
     float arrowLen = clip_height * 0.2f;
     mArrowLen = arrowLen;
   }
@@ -467,7 +462,7 @@ namespace Tac
   void CreationGameWindow::RenderGameWorldToGameWindow()
   {
     MousePickingAll();
-    Camera* camera = &Creation::Instance->mEditorCamera;
+    Camera* camera = &gCreation.mEditorCamera;
     DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
     if( !desktopWindowState->mNativeWindowHandle )
       return;
@@ -495,9 +490,9 @@ namespace Tac
     //setPerFrame.CopyUniformSource( perFrameData );
     //Render::AddDrawCall( setPerFrame );
 
-    if( Creation::Instance->IsAnythingSelected() )
+    if( gCreation.IsAnythingSelected() )
     {
-      v3 selectionGizmoOrigin = Creation::Instance->GetSelectionGizmoOrigin();
+      v3 selectionGizmoOrigin = gCreation.GetSelectionGizmoOrigin();
       v3 red = { 1, 0, 0 };
       v3 grn = { 0, 1, 0 };
       v3 blu = { 0, 0, 1 };
@@ -577,103 +572,86 @@ namespace Tac
     DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
     if( !desktopWindowState->mNativeWindowHandle )
       return;
-    //if( !desktopWindowState->mCursorUnobscured )
-    //  return;
-    Creation* creation = Creation::Instance;
-    Camera oldCamera = creation->mEditorCamera;
+    if( !IsWindowHovered(mDesktopWindowHandle) )
+      return;
+    Camera oldCamera = gCreation.mEditorCamera;
 
-    if( KeyboardInput::Instance->IsKeyDown( Key::MouseRight ) &&
-        KeyboardInput::Instance->mMouseDeltaPosScreenspace != v2( 0, 0 ) )
+    if( gKeyboardInput.IsKeyDown( Key::MouseRight ) &&
+        gKeyboardInput.mMouseDeltaPosScreenspace != v2( 0, 0 ) )
     {
-      float pixelsPerDeg = 400.0f / 90.0f;
-      float radiansPerPixel = ( 1.0f / pixelsPerDeg ) * ( 3.14f / 180.0f );
-      v2 angleRadians = KeyboardInput::Instance->mMouseDeltaPosScreenspace * radiansPerPixel;
+      const float pixelsPerDeg = 400.0f / 90.0f;
+      const float radiansPerPixel = ( 1.0f / pixelsPerDeg ) * ( 3.14f / 180.0f );
+      const v2 angleRadians = gKeyboardInput.mMouseDeltaPosScreenspace * radiansPerPixel;
 
       if( angleRadians.x != 0 )
       {
-        m3 matrix = m3::RotRadAngleAxis( -angleRadians.x, creation->mEditorCamera.mUp );
-        creation->mEditorCamera.mForwards =
-          matrix *
-          creation->mEditorCamera.mForwards;
-        creation->mEditorCamera.mRight = Cross(
-          creation->mEditorCamera.mForwards,
-          creation->mEditorCamera.mUp );
+        m3 matrix = m3::RotRadAngleAxis( -angleRadians.x, gCreation.mEditorCamera.mUp );
+        gCreation.mEditorCamera.mForwards = matrix * gCreation.mEditorCamera.mForwards;
+        gCreation.mEditorCamera.mRight = Cross( gCreation.mEditorCamera.mForwards,
+          gCreation.mEditorCamera.mUp );
       }
 
       if( angleRadians.y != 0 )
       {
-        m3 matrix = m3::RotRadAngleAxis( -angleRadians.y, creation->mEditorCamera.mRight );
-        creation->mEditorCamera.mForwards =
-          matrix *
-          creation->mEditorCamera.mForwards;
-        creation->mEditorCamera.mUp = Cross(
-          creation->mEditorCamera.mRight,
-          creation->mEditorCamera.mForwards );
+        m3 matrix = m3::RotRadAngleAxis( -angleRadians.y, gCreation.mEditorCamera.mRight );
+        gCreation.mEditorCamera.mForwards = matrix * gCreation.mEditorCamera.mForwards;
+        gCreation.mEditorCamera.mUp = Cross( gCreation.mEditorCamera.mRight,
+          gCreation.mEditorCamera.mForwards );
       }
 
       // Snapping right.y to the x-z plane prevents the camera from tilting side-to-side.
-      creation->mEditorCamera.mForwards.Normalize();
-      creation->mEditorCamera.mRight.y = 0;
-      creation->mEditorCamera.mRight.Normalize();
-      creation->mEditorCamera.mUp = Cross(
-        creation->mEditorCamera.mRight,
-        creation->mEditorCamera.mForwards );
-      creation->mEditorCamera.mUp.Normalize();
+      gCreation.mEditorCamera.mForwards.Normalize();
+      gCreation.mEditorCamera.mRight.y = 0;
+      gCreation.mEditorCamera.mRight.Normalize();
+      gCreation.mEditorCamera.mUp = Cross( gCreation.mEditorCamera.mRight,
+        gCreation.mEditorCamera.mForwards );
+      gCreation.mEditorCamera.mUp.Normalize();
     }
 
-    if( KeyboardInput::Instance->IsKeyDown( Key::MouseMiddle ) &&
-        KeyboardInput::Instance->mMouseDeltaPosScreenspace != v2( 0, 0 ) )
+    if( gKeyboardInput.IsKeyDown( Key::MouseMiddle ) &&
+        gKeyboardInput.mMouseDeltaPosScreenspace != v2( 0, 0 ) )
     {
-      float unitsPerPixel = 5.0f / 100.0f;
-      creation->mEditorCamera.mPos +=
-        creation->mEditorCamera.mRight *
-        -KeyboardInput::Instance->mMouseDeltaPosScreenspace.x *
+      const float unitsPerPixel = 5.0f / 100.0f;
+      gCreation.mEditorCamera.mPos +=
+        gCreation.mEditorCamera.mRight *
+        -gKeyboardInput.mMouseDeltaPosScreenspace.x *
         unitsPerPixel;
-      creation->mEditorCamera.mPos +=
-        creation->mEditorCamera.mUp *
-        KeyboardInput::Instance->mMouseDeltaPosScreenspace.y *
+      gCreation.mEditorCamera.mPos +=
+        gCreation.mEditorCamera.mUp *
+        gKeyboardInput.mMouseDeltaPosScreenspace.y *
         unitsPerPixel;
     }
 
-    if( KeyboardInput::Instance->mMouseDeltaScroll )
+    if( gKeyboardInput.mMouseDeltaScroll )
     {
       //float unitsPerTick = 0.35f;
-      creation->mEditorCamera.mPos +=
-        creation->mEditorCamera.mForwards *
-        ( float )KeyboardInput::Instance->mMouseDeltaScroll;
+      gCreation.mEditorCamera.mPos +=
+        gCreation.mEditorCamera.mForwards *
+        ( float )gKeyboardInput.mMouseDeltaScroll;
     }
 
-    if(
-      oldCamera.mPos != creation->mEditorCamera.mPos ||
-      oldCamera.mForwards != creation->mEditorCamera.mForwards ||
-      oldCamera.mRight != creation->mEditorCamera.mRight ||
-      oldCamera.mUp != creation->mEditorCamera.mUp )
-    {
-      for( Prefab* prefab : creation->mPrefabs )
-      {
-        creation->SavePrefabCameraPosition( prefab );
-      }
-    }
+    if( oldCamera.mPos != gCreation.mEditorCamera.mPos ||
+        oldCamera.mForwards != gCreation.mEditorCamera.mForwards ||
+        oldCamera.mRight != gCreation.mEditorCamera.mRight ||
+        oldCamera.mUp != gCreation.mEditorCamera.mUp )
+      for( Prefab* prefab : gCreation.mPrefabs )
+        gCreation.SavePrefabCameraPosition( prefab );
   }
 
   void CreationGameWindow::Update( Errors& errors )
   {
-    Creation* creation = Creation::Instance;
 
     const Render::ViewHandle viewHandle = WindowGraphicsGetView( mDesktopWindowHandle );
     const Render::FramebufferHandle framebufferHandle = WindowGraphicsGetFramebuffer( mDesktopWindowHandle );
 
-    DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
+    const DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
     if( !desktopWindowState->mNativeWindowHandle )
       return;
 
-    Viewport viewport(
-      ( float )desktopWindowState->mWidth,
-      ( float )desktopWindowState->mHeight );
-
-    ScissorRect scissorRect(
-      ( float )desktopWindowState->mWidth,
-      ( float )desktopWindowState->mHeight );
+    const float w = ( float )desktopWindowState->mWidth;
+    const float h = ( float )desktopWindowState->mHeight;
+    const Viewport viewport( w, h );
+    const ScissorRect scissorRect( w, h );
 
     Render::SetViewFramebuffer( viewHandle, framebufferHandle );
     Render::SetViewport( viewHandle, viewport );
@@ -686,7 +664,7 @@ namespace Tac
       //if( !once )
       //{
       //  once = true;
-      //  Entity* entity = creation->CreateEntity();
+      //  Entity* entity = gCreation.CreateEntity();
       //  entity->mName = "Starry-eyed girl";
       //  entity->mPosition = {}; // { 4.5f, -4.0f, -0.5f };
       //  auto model = ( Model* )entity->AddNewComponent( ComponentRegistryEntryIndex::Model );
@@ -698,11 +676,11 @@ namespace Tac
 
     //mDebug3DDrawData->DebugDrawGrid();
 
-    if( creation->IsAnythingSelected() )
+    if( gCreation.IsAnythingSelected() )
     {
-      v3 origin = creation->GetSelectionGizmoOrigin();
+      v3 origin = gCreation.GetSelectionGizmoOrigin();
       mDebug3DDrawData->DebugDrawCircle( origin,
-                                         creation->mEditorCamera.mForwards,
+                                         gCreation.mEditorCamera.mForwards,
                                          mArrowLen );
     }
 
@@ -719,30 +697,30 @@ namespace Tac
                                                      desktopWindowState->mHeight,
                                                      viewHandle );
 
-    if( creation->mSelectedGizmo )
+    if( gCreation.mSelectedGizmo )
     {
-      v3 origin = creation->GetSelectionGizmoOrigin();
+      const v3 origin = gCreation.GetSelectionGizmoOrigin();
       float gizmoMouseDist;
       float secondDist;
-      ClosestPointTwoRays( creation->mEditorCamera.mPos,
+      ClosestPointTwoRays( gCreation.mEditorCamera.mPos,
                            mWorldSpaceMouseDir,
                            origin,
-                           creation->mTranslationGizmoDir,
+                           gCreation.mTranslationGizmoDir,
                            &gizmoMouseDist,
                            &secondDist );
-      v3 translate = creation->mTranslationGizmoDir *
-        ( secondDist - creation->mTranslationGizmoOffset );
-      for( Entity* entity : creation->mSelectedEntities )
+      const v3 translate = gCreation.mTranslationGizmoDir *
+        ( secondDist - gCreation.mTranslationGizmoOffset );
+      for( Entity* entity : gCreation.mSelectedEntities )
       {
         entity->mRelativeSpace.mPosition += translate;
       }
-      //for( Prefab* prefab : creation->mSelectedPrefabs )
+      //for( Prefab* prefab : gCreation.mSelectedPrefabs )
       //{
       //  prefab->mPosition += translate;
       //}
-      if( !KeyboardInput::Instance->IsKeyDown( Key::MouseLeft ) )
+      if( !gKeyboardInput.IsKeyDown( Key::MouseLeft ) )
       {
-        creation->mSelectedGizmo = false;
+        gCreation.mSelectedGizmo = false;
       }
     }
 

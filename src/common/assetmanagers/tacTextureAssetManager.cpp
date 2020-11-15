@@ -310,7 +310,7 @@ namespace Tac
       asyncTexture->mJob = job;
 
       mLoadingTextures[ textureFilepath ] = asyncTexture;
-      JobQueue::Instance->Push( job );
+      JobQueuePush( job );
       return texture;
     }
 
@@ -338,7 +338,7 @@ namespace Tac
       asyncTexture->mJob = job;
       asyncTexture->mData = data;
       mLoadingTextures[ textureDir ] = asyncTexture;
-      JobQueue::Instance->Push( job );
+      JobQueuePush( job );
       return texture;
     }
   }

@@ -457,9 +457,9 @@ namespace Tac
     void                             BeginGroup( StringView );
     void                             EndGroup();
     void                             UpdateConstantBuffer2( ConstantBufferHandle,
-                                                           const void*,
-                                                           int,
-                                                           StackFrame );
+                                                            const void*,
+                                                            int,
+                                                            StackFrame );
     void                             Uninit();
 
 #define TAC_RENDER_GROUP_BLOCK(text) Render::BeginGroup(text); TAC_ON_DESTRUCT( Render::EndGroup());
@@ -472,12 +472,15 @@ namespace Tac
     void( *mCreateRenderer )( );
   };
 
+  RendererFactory*           RendererFactoriesFind( StringView );
+  void                       RendererFactoriesRegister( RendererFactory* );
+
   struct RendererRegistry
   {
-    static RendererRegistry&   Instance();
-    RendererFactory*           FindFactory( StringView name );
-    Vector< RendererFactory* > mFactories;
+    RendererFactory**        begin();
+    RendererFactory**        end();
   };
+
 
   const char* const RendererNameVulkan = "Vulkan";
   const char* const RendererNameOpenGL4 = "OpenGL4";

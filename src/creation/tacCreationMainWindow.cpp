@@ -34,7 +34,7 @@ namespace Tac
   void CreationMainWindow::Init( Errors& )
   {
     mUI2DDrawData = TAC_NEW UI2DDrawData;
-    mDesktopWindowHandle = Creation::Instance->CreateWindow( gMainWindowName );
+    mDesktopWindowHandle = gCreation.CreateWindow( gMainWindowName );
   }
 
   void CreationMainWindow::LoadTextures( Errors& errors )
@@ -70,17 +70,16 @@ namespace Tac
   {
     ImGuiText( "Windows" );
     ImGuiIndent();
-    Creation* creation = Creation::Instance;
 
     static Errors createWindowErrors;
     if( ImGuiButton( "System" ) )
-      creation->CreateSystemWindow( createWindowErrors );
+      gCreation.CreateSystemWindow( createWindowErrors );
     if( ImGuiButton( "Game" ) )
-      creation->CreateGameWindow( createWindowErrors );
+      gCreation.CreateGameWindow( createWindowErrors );
     if( ImGuiButton( "Properties" ) )
-      creation->CreatePropertyWindow( createWindowErrors );
+      gCreation.CreatePropertyWindow( createWindowErrors );
     if( ImGuiButton( "Profile" ) )
-      creation->CreateProfileWindow( createWindowErrors );
+      gCreation.CreateProfileWindow( createWindowErrors );
     if( createWindowErrors )
       ImGuiText( createWindowErrors.ToString() );
     ImGuiUnindent();
@@ -88,7 +87,6 @@ namespace Tac
 
   void CreationMainWindow::ImGui()
   {
-    Creation* creation = Creation::Instance;
 
     //WindowGraphicsGetFramebuffer( mDesktopWindowHandle );
     //WindowGraphicsGetView( mDesktopWindowHandle );
@@ -105,7 +103,7 @@ namespace Tac
     ImGuiEndMenuBar();
     if( ImGuiButton( "save as" ) )
     {
-      World* world = creation->mWorld;
+      World* world = gCreation.mWorld;
       for( Entity* entity : world->mEntities )
       {
         if( entity->mParent )
@@ -122,7 +120,7 @@ namespace Tac
           continue;
         }
 
-        creation->ModifyPathRelative( savePath );
+        gCreation.ModifyPathRelative( savePath );
 
         Json entityJson;
         entity->Save( entityJson );
@@ -193,13 +191,14 @@ namespace Tac
 
     if( CreationGameObjectMenuWindow::Instance )
     {
-      DesktopWindowState* menu = GetDesktopWindowState( CreationGameObjectMenuWindow::Instance->mDesktopWindowHandle );
+      DesktopWindowHandle desktopWindowHandle = CreationGameObjectMenuWindow::Instance->mDesktopWindowHandle;
+      DesktopWindowState* menu = GetDesktopWindowState(desktopWindowHandle);
       CreationGameObjectMenuWindow::Instance->Update( errors );
       TAC_HANDLE_ERROR( errors );
 
-      if( KeyboardInput::Instance->IsKeyJustDown( Key::MouseLeft ) &&
-          //!menu->mCursorUnobscured &&
-          Shell::Instance.mElapsedSeconds != CreationGameObjectMenuWindow::Instance->mCreationSeconds )
+      if( gKeyboardInput.IsKeyJustDown( Key::MouseLeft )
+          && !IsWindowHovered( desktopWindowHandle )
+          && Shell::Instance.mElapsedSeconds != CreationGameObjectMenuWindow::Instance->mCreationSeconds )
       {
         delete CreationGameObjectMenuWindow::Instance;
       }

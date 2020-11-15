@@ -44,10 +44,8 @@ namespace Tac
 
   struct Creation
   {
-    Creation();
-    ~Creation();
-    static Creation*    Instance;
     void                Init( Errors& );
+    void                Uninit( Errors& );
     void                SetSavedWindowData( Json* windowJson, Errors& );
     void                SetSavedWindowsData( Errors& );
     void                Update( Errors& );
@@ -88,6 +86,8 @@ namespace Tac
     Camera              mEditorCamera;
     Vector< Prefab* >   mPrefabs;
   };
+
+  extern Creation gCreation;
 
   const v4 textColor = v4( v3( 1, 1, 1 ) * 0.0f, 1 );
 

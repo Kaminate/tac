@@ -29,7 +29,7 @@ namespace Tac
   void CreationSystemWindow::Init( Errors& errors )
   {
     mSystemName = Settings::Instance->GetString( nullptr, nSysPath, "", errors );
-    mDesktopWindowHandle = Creation::Instance->CreateWindow( gSystemWindowName );
+    mDesktopWindowHandle = gCreation.CreateWindow( gSystemWindowName );
   };
   void CreationSystemWindow::ImGui()
   {
@@ -64,7 +64,7 @@ namespace Tac
       ImGuiText( systemRegistryEntry->mName );
       if( systemRegistryEntry->mDebugImGui )
       {
-        System* system = Creation::Instance->mWorld->GetSystem( systemRegistryEntry );
+        System* system = gCreation.mWorld->GetSystem( systemRegistryEntry );
         systemRegistryEntry->mDebugImGui( system );
       }
     }

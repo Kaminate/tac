@@ -70,14 +70,14 @@ namespace Tac
       return;
     auto serverData = mGhost->mServerData;
     v2 inputDirection = { 0, 0 };
-    if( KeyboardInput::Instance->IsKeyDown( Key::RightArrow ) ) inputDirection += { 1, 0 };
-    if( KeyboardInput::Instance->IsKeyDown( Key::UpArrow ) ) inputDirection += { 0, 1 };
-    if( KeyboardInput::Instance->IsKeyDown( Key::DownArrow ) ) inputDirection += { 0, -1 };
-    if( KeyboardInput::Instance->IsKeyDown( Key::LeftArrow ) ) inputDirection += { -1, 0 };
+    if( gKeyboardInput.IsKeyDown( Key::RightArrow ) ) inputDirection += { 1, 0 };
+    if( gKeyboardInput.IsKeyDown( Key::UpArrow ) ) inputDirection += { 0, 1 };
+    if( gKeyboardInput.IsKeyDown( Key::DownArrow ) ) inputDirection += { 0, -1 };
+    if( gKeyboardInput.IsKeyDown( Key::LeftArrow ) ) inputDirection += { -1, 0 };
     if( inputDirection.Length() )
       inputDirection.Normalize();
     mPlayer->mInputDirection = inputDirection;
-    mPlayer->mIsSpaceJustDown = KeyboardInput::Instance->IsKeyDown( Key::Spacebar );
+    mPlayer->mIsSpaceJustDown = gKeyboardInput.IsKeyDown( Key::Spacebar );
   }
 
   Ghost::Ghost()

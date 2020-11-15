@@ -20,30 +20,26 @@ namespace Tac
 
   extern thread_local ThreadType gThreadType;
 
-  struct DesktopEventQueue
-  {
-    static DesktopEventQueue Instance;
-    void Init();
-    //void PushEventCursorUnobscured( DesktopWindowHandle );
-    void PushEventAssignHandle( DesktopWindowHandle,
-                                const void* nativeWindowHandle,
-                                int x,
-                                int y,
-                                int w,
-                                int h);
-    void PushEventMoveWindow( DesktopWindowHandle,
-                              int x,
-                              int y );
-    void PushEventResizeWindow( DesktopWindowHandle,
-                                int w,
-                                int h );
-    void PushEventKeyState( Key, bool );
-    void PushEventKeyInput( Codepoint );
-    void PushEventMouseWheel( int ticks );
-    void PushEventMouseMove( DesktopWindowHandle, int x, int y );
+  void DesktopEventInit();
+  void DesktopEventAssignHandle( DesktopWindowHandle,
+                                        const void* nativeWindowHandle,
+                                        int x,
+                                        int y,
+                                        int w,
+                                        int h );
+  void DesktopEventMoveWindow( DesktopWindowHandle,
+                                      int x,
+                                      int y );
+  void DesktopEventResizeWindow( DesktopWindowHandle,
+                                        int w,
+                                        int h );
+  void DesktopEventKeyState( Key, bool );
+  void DesktopEventKeyInput( Codepoint );
+  void DesktopEventMouseWheel( int ticks );
+  void DesktopEventMouseMove( DesktopWindowHandle, int x, int y );
+  void DesktopEventMouseHoveredWindow( DesktopWindowHandle );
 
-    void ApplyQueuedEvents( DesktopWindowState* );
-  };
+  void DesktopEventApplyQueue( DesktopWindowState* );
 
   struct AppInterfaceProject
   {

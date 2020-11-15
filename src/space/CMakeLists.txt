@@ -63,6 +63,11 @@ add_library(${Target} # MODULE
 #${Common})
 include_directories("${CMAKE_SOURCE_DIR}/src")
 set_target_properties(${Target} PROPERTIES LINKER_LANGUAGE CXX)
+
+if( WIN32 )
+  add_definitions(/ZI)
+endif()
+
 target_link_libraries( ${Target} ${TAC_LIBRARIES} )
 
 

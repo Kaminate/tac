@@ -11,6 +11,18 @@ namespace Tac
   // typedef Array< DesktopWindowState, kDesktopWindowCapacity > DesktopWindowStates;
   // extern DesktopWindowStates         sDesktopWindowStates;
   static DesktopWindowState sDesktopWindowStates[ kDesktopWindowCapacity ];
+  static DesktopWindowHandle sMouseHoveredWindowHandle;
+
+  bool                        IsWindowHovered( const DesktopWindowHandle desktopWindowHandle )
+  {
+    const bool result = sMouseHoveredWindowHandle == desktopWindowHandle;
+    return result;
+  }
+
+  void                        SetHoveredWindow( const DesktopWindowHandle desktopWindowHandle )
+  {
+    sMouseHoveredWindowHandle = desktopWindowHandle;
+  }
 
   void CenterWindow( int *x, int *y, int w, int h )
   {

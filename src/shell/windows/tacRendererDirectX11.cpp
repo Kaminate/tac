@@ -43,7 +43,7 @@ namespace Tac
     static RendererFactory factory;
     factory.mCreateRenderer = []() { TAC_NEW RendererDirectX11; };
     factory.mRendererName = RendererNameDirectX11;
-    RendererRegistry::Instance().mFactories.push_back( &factory );
+    RendererFactoriesRegister( &factory );
     return 0;
   }( );
 
@@ -419,15 +419,16 @@ namespace Tac
       if( drawCall->mShaderHandle.IsValid() )
       {
         Program* program = &mPrograms[ ( int )drawCall->mShaderHandle ];
-        ID3D11VertexShader* vertexShader = program->mVertexShader;
-        ID3D11PixelShader* pixelShader = program->mPixelShader;
-        mDeviceContext->VSSetShader( vertexShader, NULL, 0 );
-        mDeviceContext->PSSetShader( pixelShader, NULL, 0 );
+        TAC_ASSERT( program->mVertexShader );
+        TAC_ASSERT( program->mPixelShader );
+        mDeviceContext->VSSetShader( program->mVertexShader, NULL, 0 );
+        mDeviceContext->PSSetShader( program->mPixelShader, NULL, 0 );
       }
 
       if( drawCall->mBlendStateHandle.IsValid() && blendState != mBlendStates[ ( int )drawCall->mBlendStateHandle ] )
       {
         blendState = mBlendStates[ ( int )drawCall->mBlendStateHandle ];
+        TAC_ASSERT( blendState );
         const FLOAT blendFactorRGBA[] = { 1.0f, 1.0f, 1.0f, 1.0f };
         const UINT sampleMask = 0xffffffff;
         mDeviceContext->OMSetBlendState( blendState, blendFactorRGBA, sampleMask );
@@ -436,14 +437,15 @@ namespace Tac
       if( drawCall->mDepthStateHandle.IsValid() && depthStencilState != mDepthStencilStates[ ( int )drawCall->mDepthStateHandle ] )
       {
         depthStencilState = mDepthStencilStates[ ( int )drawCall->mDepthStateHandle ];
+        TAC_ASSERT( depthStencilState );
         const UINT stencilRef = 0;
         mDeviceContext->OMSetDepthStencilState( depthStencilState, stencilRef );
       }
 
       if( drawCall->mIndexBufferHandle.IsValid() )
       {
-        //const IndexBuffer* 
         indexBuffer = &mIndexBuffers[ ( int )drawCall->mIndexBufferHandle ];
+        TAC_ASSERT( indexBuffer->mBuffer );
         const DXGI_FORMAT dxgiFormat = GetDXGIFormat( indexBuffer->mFormat );
         const UINT byteOffset = 0; //  drawCall->mStartIndex * indexBuffer->mFormat.mPerElementByteCount;
         mDeviceContext->IASetIndexBuffer( indexBuffer->mBuffer,
@@ -454,6 +456,7 @@ namespace Tac
       if( drawCall->mVertexBufferHandle.IsValid() )
       {
         const VertexBuffer* vertexBuffer = &mVertexBuffers[ ( int )drawCall->mVertexBufferHandle ];
+        TAC_ASSERT( vertexBuffer->mBuffer );
         const UINT startSlot = 0;
         const UINT NumBuffers = 1;
         const UINT Strides[ NumBuffers ] = { ( UINT )vertexBuffer->mStride };
@@ -473,6 +476,7 @@ namespace Tac
       if( drawCall->mRasterizerStateHandle.IsValid() )
       {
         ID3D11RasterizerState* rasterizerState = mRasterizerStates[ ( int )drawCall->mRasterizerStateHandle ];
+        TAC_ASSERT( rasterizerState );
         mDeviceContext->RSSetState( rasterizerState );
       }
 
@@ -480,7 +484,9 @@ namespace Tac
       {
         const UINT StartSlot = 0;
         const UINT NumSamplers = 1;
-        ID3D11SamplerState* Samplers[] = { mSamplerStates[ ( int )drawCall->mSamplerStateHandle ] };
+        ID3D11SamplerState* samplerState = mSamplerStates[ ( int )drawCall->mSamplerStateHandle ];
+        TAC_ASSERT( samplerState );
+        ID3D11SamplerState* Samplers[] = { samplerState };
         mDeviceContext->VSSetSamplers( StartSlot, NumSamplers, Samplers );
         mDeviceContext->PSSetSamplers( StartSlot, NumSamplers, Samplers );
       }
@@ -488,6 +494,7 @@ namespace Tac
       if( drawCall->mVertexFormatHandle.IsValid() )
       {
         ID3D11InputLayout* inputLayout = mInputLayouts[ ( int )drawCall->mVertexFormatHandle ];
+        TAC_ASSERT( inputLayout );
         mDeviceContext->IASetInputLayout( inputLayout );
       }
 
@@ -504,6 +511,8 @@ namespace Tac
         Framebuffer* framebuffer = &mFramebuffers[ ( int )framebufferHandle ];
         ID3D11RenderTargetView* renderTargetView = framebuffer->mRenderTargetView;
         ID3D11DepthStencilView* depthStencilView = framebuffer->mDepthStencilView;
+        TAC_ASSERT( renderTargetView );
+        TAC_ASSERT( depthStencilView );
         UINT NumViews = 1;
         ID3D11RenderTargetView* RenderTargetViews[] = { renderTargetView };
         mDeviceContext->OMSetRenderTargets( NumViews, RenderTargetViews, depthStencilView );
@@ -549,6 +558,7 @@ namespace Tac
       for( const Render::UpdateConstantBufferData& stuff : drawCall->mUpdateConstantBuffers )
       {
         const ConstantBuffer* constantBuffer = &mConstantBuffers[ ( int )stuff.mConstantBufferHandle ];
+        TAC_ASSERT( constantBuffer->mBuffer );
         UpdateBuffer( constantBuffer->mBuffer,
                       stuff.mBytes,
                       stuff.mByteCount,

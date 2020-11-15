@@ -17,13 +17,13 @@ namespace Tac
   struct UIStyle
   {
     float windowPadding = 8;
-    v2 itemSpacing = { 8, 4 };
+    v2    itemSpacing = { 8, 4 };
 
     // Should this be a float?
-    int fontSize = 16;
+    int   fontSize = 16;
 
     float buttonPadding = 3.0f;
-    v4 textColor = { 1, 1, 0, 1 };
+    v4    textColor = { 1, 1, 0, 1 };
   };
 
 
@@ -39,8 +39,8 @@ namespace Tac
 
   struct DragData
   {
-    DragMode mMode = ( DragMode )0;
-    float mDragDistPx = 0;
+    DragMode       mMode = ( DragMode )0;
+    float          mDragDistPx = 0;
 
     // This is the value of the variable we are gizmoing for at the start of the mouse drag.
     // That way, we can accumulate all the mouse drag pixels and apply them to ints in
@@ -57,7 +57,7 @@ namespace Tac
   struct GroupData
   {
     // Position of the cursor when starting the group
-    v2 mSavedCursorDrawPos;
+    v2    mSavedCursorDrawPos;
     float mSavedLineHeight;
   };
 
@@ -65,8 +65,8 @@ namespace Tac
   typedef int ImGuiindex;
 
   ImGuiindex ImGuiRegisterWindowResource( StringView name,
-                                               void* initialDataBytes,
-                                               int initialDataByteCount );
+                                          void* initialDataBytes,
+                                          int initialDataByteCount );
 
   struct ImGuiWindowResource
   {
@@ -88,7 +88,7 @@ namespace Tac
     ImGuiId                       GetActiveID();
     void*                         GetWindowResource( ImGuiindex id );
     bool                          IsHovered( const ImGuiRect& );
-    v2                            GetRelativeMousePosition();
+    v2                            GetMousePosViewport();
 
 
     String                        mName;
@@ -96,11 +96,11 @@ namespace Tac
 
     // The most bottom right the cursor has ever been,
     // updated during ItemSize()
-    v2                            mMaxiCursorDrawPos;
-    v2                            mCurrCursorDrawPos;
-    v2                            mPrevCursorDrawPos;
+    v2                            mMaxiCursorViewport;
+    v2                            mCurrCursorViewport;
+    v2                            mPrevCursorViewport;
 
-    v2                            mPosViewportSpace = {};
+    v2                            mPosViewport = {};
     v2                            mSize = {};
     ImGuiRect                     mContentRect;
     float                         mCurrLineHeight = 0;

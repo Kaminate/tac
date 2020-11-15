@@ -192,6 +192,9 @@ if( WIN32 )
     "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWin32Main.cpp" )
   include_directories( ${TAC_INCLUDE_DIRECTORIES} )
 
+  # Program Database for Edit & Continue
+  add_definitions(/ZI)
+
   # the win32 here changes the
   # configuration properties --> linker --> system --> subsystem
   # from console to windows, which makes the console window go away

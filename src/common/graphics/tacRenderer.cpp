@@ -50,6 +50,28 @@ namespace Tac
 
   const float sizeInMagicUISpaceUnits = 1024.0f;
 
+  static Vector< RendererFactory* >& GetRendererFactories()
+  {
+    static Vector< RendererFactory* > result;
+    return result;
+  }
+
+  RendererFactory* RendererFactoriesFind( StringView name )
+  {
+    for( RendererFactory* factory : RendererRegistry() )
+      if( factory->mRendererName == name )
+        return factory;
+    return nullptr;
+  }
+
+  void RendererFactoriesRegister( RendererFactory* rendererFactory )
+  {
+    GetRendererFactories().push_back( rendererFactory );
+  }
+
+  RendererFactory** RendererRegistry::begin() { return GetRendererFactories().begin(); }
+  RendererFactory** RendererRegistry::end() { return GetRendererFactories().end(); }
+
   namespace Render
   {
     ConstantBuffers::ConstantBuffers( ConstantBufferHandle constantBufferHandle )

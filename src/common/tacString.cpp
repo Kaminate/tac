@@ -130,7 +130,7 @@ namespace Tac
   StringView::StringView( const char* strBegin, const char* strEnd )
   {
     mStr = strBegin;
-    mLen = strEnd - strBegin;
+    mLen = ( int )( strEnd - strBegin );
   }
   StringView::StringView( const String& str )
   {

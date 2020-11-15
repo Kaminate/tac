@@ -95,11 +95,11 @@ namespace Tac
     mCurr.mCurrDown[ ( int )key ] = isDown;
   }
 
+  KeyboardInput gKeyboardInput;
+
   // should only be used in the stuffthread
-  thread_local KeyboardInput* KeyboardInput::Instance;
   KeyboardInput::KeyboardInput()
   {
-    Instance = this;
     OS::GetScreenspaceCursorPos( mCurr.mScreenspaceCursorPos, mCurr.mScreenspaceCursorPosErrors );
     OS::GetScreenspaceCursorPos( mPrev.mScreenspaceCursorPos, mPrev.mScreenspaceCursorPosErrors );
   }

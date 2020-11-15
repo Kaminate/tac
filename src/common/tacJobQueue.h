@@ -28,12 +28,13 @@ namespace Tac
     ThreadCompleted
   };
 
+
   struct Job
   {
     Job();
     virtual               ~Job() = default;
     virtual void          Execute() = 0;
-    void                  SetStatus( AsyncLoadStatus asyncLoadStatus );
+    void                  SetStatus( AsyncLoadStatus );
     AsyncLoadStatus       GetStatus();
 
     // Errors which occured while running the job in another thread.
@@ -43,21 +44,8 @@ namespace Tac
     std::mutex            mStatusMutex;
   };
 
-  struct JobQueue
-  {
-    JobQueue();
-    static JobQueue*      Instance;
-    void                  Init();
-    void                  Push( Job* job );
-    int                   GetThreadCount() const { return mThreads.size(); }
-    int                   mMinThreadCount = 4;
-    bool                  mRunning = false;
-    Vector< std::thread > mThreads;
-    std::mutex            mMutex;
-
-    // The jobs are unowned
-    RingVector< Job* >    mUnstarted;
-  };
+  void JobQueueInit();
+  void JobQueuePush( Job* );
 
 
 }

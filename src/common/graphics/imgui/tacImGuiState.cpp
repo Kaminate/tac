@@ -54,7 +54,7 @@ namespace Tac
     const char* dataEnd = ( char* )initialDataBytes + initialDataByteCount;
     const ImGuiindex id = mResourceCounter++;
     RegisteredWindowResource resource;
-    resource.mInitialData = Vector< char >( dataBegin, dataEnd );
+    resource.mInitialData.assign( dataBegin, dataEnd );
     resource.mName = name;
     resource.mId = id;
     mRegisteredWindowResources.push_back( resource );
@@ -88,48 +88,46 @@ namespace Tac
   void ImGuiWindow::BeginFrame()
   {
     UI2DDrawData* ui2DDrawData = mDrawData;// ImGuiGlobals::Instance.mUI2DDrawData;
-    KeyboardInput* keyboardInput = KeyboardInput::Instance;
-
 
     if( mParent )
     {
-      mPosViewportSpace = mParent->mCurrCursorDrawPos;
+      mPosViewport = mParent->mCurrCursorViewport;
       // Render borders
       {
         bool clipped;
-        auto clipRect = ImGuiRect::FromPosSize( mPosViewportSpace, mSize );
+        auto clipRect = ImGuiRect::FromPosSize( mPosViewport, mSize );
         ComputeClipInfo( &clipped, &clipRect );
+        const v4 childWindowColor( 0.1f, 0.15f, 0.2f, 1.0f );
         if( !clipped )
-        {
-          v4 childWindowColor = v4( 0.1f, 0.15f, 0.2f, 1.0f );
-          Render::TextureHandle texture;
-          ui2DDrawData->AddBox( mPosViewportSpace, mPosViewportSpace + mSize, childWindowColor, texture, nullptr );
-        }
+          ui2DDrawData->AddBox( mPosViewport,
+                                mPosViewport + mSize,
+                                childWindowColor,
+                                Render::TextureHandle(),
+                                nullptr );
       }
-
     }
 
     // Scrollbar
-    if( mMaxiCursorDrawPos.y > mPosViewportSpace.y + mSize.y || mScroll )
+    if( mMaxiCursorViewport.y > mPosViewport.y + mSize.y || mScroll )
     {
-      float scrollbarWidth = 30;
-      v2 mini( mPosViewportSpace.x + mSize.x - scrollbarWidth,
-               mPosViewportSpace.y );
-      v2 maxi = mPosViewportSpace + mSize;
+      const float scrollbarWidth = 30;
+      v2 mini( mPosViewport.x + mSize.x - scrollbarWidth,
+               mPosViewport.y );
+      v2 maxi = mPosViewport + mSize;
       v4 scrollbarBackgroundColor = v4( 0.4f, 0.2f, 0.8f, 1.0f );
       Render::TextureHandle invalidTexture;
 
       ui2DDrawData->AddBox( mini, maxi, scrollbarBackgroundColor, invalidTexture, nullptr );
 
-      float contentAllMinY = mPosViewportSpace.y - mScroll;
-      float contentAllMaxY = mMaxiCursorDrawPos.y;
+      float contentAllMinY = mPosViewport.y - mScroll;
+      float contentAllMaxY = mMaxiCursorViewport.y;
       float contentAllHeight = contentAllMaxY - contentAllMinY;
-      float contentVisibleMinY = mPosViewportSpace.y;
-      float contentVisibleMaxY = mPosViewportSpace.y + mSize.y;
+      float contentVisibleMinY = mPosViewport.y;
+      float contentVisibleMaxY = mPosViewport.y + mSize.y;
       float contentVisibleHeight = contentVisibleMaxY - contentVisibleMinY;
 
-      mini.y = mPosViewportSpace.y + ( ( contentVisibleMinY - contentAllMinY ) / contentAllHeight ) * mSize.y;
-      maxi.y = mPosViewportSpace.y + ( ( contentVisibleMaxY - contentAllMinY ) / contentAllHeight ) * mSize.y;
+      mini.y = mPosViewport.y + ( ( contentVisibleMinY - contentAllMinY ) / contentAllHeight ) * mSize.y;
+      maxi.y = mPosViewport.y + ( ( contentVisibleMaxY - contentAllMinY ) / contentAllHeight ) * mSize.y;
 
       v2 padding = v2( 1, 1 ) * 3;
       mini += padding;
@@ -152,10 +150,10 @@ namespace Tac
           mScroll = Clamp( mouseDY, scrollMin, scrollMax );
         }
 
-        if( !KeyboardInput::Instance->IsKeyDown( Key::MouseLeft ) )
+        if( !gKeyboardInput.IsKeyDown( Key::MouseLeft ) )
           mScrolling = false;
       }
-      else if( KeyboardInput::Instance->IsKeyJustDown( Key::MouseLeft ) &&
+      else if( gKeyboardInput.IsKeyJustDown( Key::MouseLeft ) &&
                IsHovered( ImGuiRect::FromMinMax( mini, maxi ) ) )
       {
         Errors mouseErrors;
@@ -168,11 +166,11 @@ namespace Tac
         }
       }
 
-      mContentRect = ImGuiRect::FromPosSize( mPosViewportSpace, v2( mSize.x - scrollbarWidth, mSize.y ) );
+      mContentRect = ImGuiRect::FromPosSize( mPosViewport, v2( mSize.x - scrollbarWidth, mSize.y ) );
     }
     else
     {
-      mContentRect = ImGuiRect::FromPosSize( mPosViewportSpace, mSize );
+      mContentRect = ImGuiRect::FromPosSize( mPosViewport, mSize );
     }
 
     v2 padVec = v2( 1, 1 ) * ImGuiGlobals::Instance.mUIStyle.windowPadding;
@@ -182,30 +180,31 @@ namespace Tac
     mXOffsets.resize( 0 );
     mXOffsets.push_back( ImGuiGlobals::Instance.mUIStyle.windowPadding );
     v2 drawPos;
-    drawPos.x = mPosViewportSpace.x + mXOffsets.back();
-    drawPos.y = mPosViewportSpace.y + ImGuiGlobals::Instance.mUIStyle.windowPadding - mScroll;
-    mCurrCursorDrawPos = drawPos;
-    mPrevCursorDrawPos = drawPos;
-    mMaxiCursorDrawPos = drawPos;
+    drawPos.x = mPosViewport.x + mXOffsets.back();
+    drawPos.y = mPosViewport.y + ImGuiGlobals::Instance.mUIStyle.windowPadding - mScroll;
+    mCurrCursorViewport = drawPos;
+    mPrevCursorViewport = drawPos;
+    mMaxiCursorViewport = drawPos;
     mCurrLineHeight = 0;
     mPrevLineHeight = 0;
 
-    if( !mParent )
+    if( mParent )
+    {
+      mIDAllocator = mParent->mIDAllocator;
+      mDesktopWindowHandle = mParent->mDesktopWindowHandle;
+      mDesktopWindowHandleOwned = false;
+    }
+    else
     {
       if( !mIDAllocator )
         mIDAllocator = TAC_NEW ImGuiIDAllocator;
       mIDAllocator->mIDCounter = 0;
       if( // !ImGuiGlobals::Instance.mIsWindowDirectlyUnderCursor &&
-          KeyboardInput::Instance->IsKeyJustDown( Key::MouseLeft ) )
+          gKeyboardInput.IsKeyJustDown( Key::MouseLeft ) )
       {
         mIDAllocator->mActiveID = ImGuiIdNull;
       }
     }
-    else
-    {
-      mIDAllocator = mParent->mIDAllocator;
-    }
-
 
     //if( mActiveIDPrev && !mActiveID )
     //{
@@ -216,7 +215,7 @@ namespace Tac
   void ImGuiWindow::ComputeClipInfo( bool* clipped,
                                      ImGuiRect* clipRect )
   {
-    auto windowRect = ImGuiRect::FromPosSize( mPosViewportSpace, mSize );
+    const ImGuiRect windowRect = ImGuiRect::FromPosSize( mPosViewport, mSize );
     *clipped =
       clipRect->mMini.x > windowRect.mMaxi.x ||
       clipRect->mMaxi.x < windowRect.mMini.x ||
@@ -231,20 +230,20 @@ namespace Tac
   void ImGuiWindow::ItemSize( v2 size )
   {
     mCurrLineHeight = Max( mCurrLineHeight, size.y );
-    UpdateMaxCursorDrawPos( mCurrCursorDrawPos + v2{ size.x, mCurrLineHeight } );
+    UpdateMaxCursorDrawPos( mCurrCursorViewport + v2{ size.x, mCurrLineHeight } );
 
-    mPrevCursorDrawPos = mCurrCursorDrawPos + v2( size.x, 0 );
+    mPrevCursorViewport = mCurrCursorViewport + v2( size.x, 0 );
     mPrevLineHeight = mCurrLineHeight;
 
-    mCurrCursorDrawPos.x = mPosViewportSpace.x + mXOffsets.back();
-    mCurrCursorDrawPos.y += mCurrLineHeight + ImGuiGlobals::Instance.mUIStyle.itemSpacing.y;
+    mCurrCursorViewport.x = mPosViewport.x + mXOffsets.back();
+    mCurrCursorViewport.y += mCurrLineHeight + ImGuiGlobals::Instance.mUIStyle.itemSpacing.y;
     mCurrLineHeight = 0;
   }
 
   void ImGuiWindow::UpdateMaxCursorDrawPos( v2 pos )
   {
-    mMaxiCursorDrawPos.x = Max( mMaxiCursorDrawPos.x, pos.x );
-    mMaxiCursorDrawPos.y = Max( mMaxiCursorDrawPos.y, pos.y );
+    mMaxiCursorViewport.x = Max( mMaxiCursorViewport.x, pos.x );
+    mMaxiCursorViewport.y = Max( mMaxiCursorViewport.y, pos.y );
   }
 
   ImGuiId ImGuiWindow::GetActiveID()
@@ -262,27 +261,23 @@ namespace Tac
     return mIDAllocator->mIDCounter++;
   }
 
-  bool ImGuiWindow::IsHovered( const ImGuiRect& rect )
+  bool ImGuiWindow::IsHovered( const ImGuiRect& rectViewport )
   {
     if( !ImGuiGlobals::Instance.mMouseHoveredWindow.IsValid() )
       return false;
     if( ImGuiGlobals::Instance.mMouseHoveredWindow != mDesktopWindowHandle )
       return false;
-    const v2 mousePos = GetRelativeMousePosition();
-    return
-      mousePos.x > rect.mMini.x &&
-      mousePos.x < rect.mMaxi.x &&
-      mousePos.y > rect.mMini.y &&
-      mousePos.y < rect.mMaxi.y;
+    const v2 mousePosViewport = GetMousePosViewport();
+    const bool result = rectViewport.ContainsPoint( mousePosViewport );
+    return result;
   }
 
-  v2 ImGuiWindow::GetRelativeMousePosition()
+  v2 ImGuiWindow::GetMousePosViewport()
   {
     const DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
     const v2 result
-      = KeyboardInput::Instance->mCurr.mScreenspaceCursorPos
-      - v2( ( float )desktopWindowState->mX, ( float )desktopWindowState->mY )
-      + mPosViewportSpace;
+      = gKeyboardInput.mCurr.mScreenspaceCursorPos
+      - v2( ( float )desktopWindowState->mX, ( float )desktopWindowState->mY );
     return result;
   }
 

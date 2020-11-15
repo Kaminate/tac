@@ -27,6 +27,22 @@ namespace Tac
   //}
   //UpdateThing* UpdateThing::Instance = nullptr;
 
+  static void CreateRenderer( Errors& )
+  {
+      const String defaultRendererName = OS::GetDefaultRendererName();
+      if( const RendererFactory* factory = RendererFactoriesFind( defaultRendererName ) )
+      {
+        factory->mCreateRenderer();
+        return;
+      }
+
+      for( RendererFactory* factory : RendererRegistry() )
+      {
+        factory->mCreateRenderer();
+        return;
+      }
+  }
+
   const Key ToggleMainMenuKey = Key::Backtick;
 
   Soul::Soul()
@@ -48,35 +64,11 @@ namespace Tac
   }
   void Shell::Init( Errors& errors )
   {
+    CreateRenderer(errors);
+    Render::Init( errors );
+    TAC_HANDLE_ERROR( errors );
 
-    // create renderer
-    {
-      RendererRegistry& registry = RendererRegistry::Instance();
-      if( registry.mFactories.empty() )
-      {
-        TAC_RAISE_ERROR( "No renderers available", errors);
-      }
-
-      String defaultRendererName = OS::GetDefaultRendererName();
-      RendererFactory* defaultOSRendererFactory = registry.FindFactory( defaultRendererName );
-      RendererFactory* firstRendererFactory = registry.mFactories[ 0 ];
-      for( RendererFactory* factory :
-           {
-             defaultOSRendererFactory,
-             firstRendererFactory
-           } )
-      {
-        if( !factory )
-          continue;
-        factory->mCreateRenderer();
-        break;
-      }
-
-      Render::Init( errors );
-    }
-
-    TAC_NEW JobQueue;
-    JobQueue::Instance->Init();
+    JobQueueInit();
 
     TAC_NEW ModelAssetManager;
 
@@ -94,7 +86,7 @@ namespace Tac
   }
   void Shell::FrameBegin( Errors& errors )
   {
-    //KeyboardInput::Instance->BeginFrame();
+    //gKeyboardInput.BeginFrame();
     ProfileSystem::Instance->OnFrameBegin();
   }
   void Shell::Frame( Errors& errors )
@@ -115,7 +107,7 @@ namespace Tac
   }
   void Shell::FrameEnd( Errors& errors )
   {
-    //KeyboardInput::Instance->EndFrame();
+    //gKeyboardInput.EndFrame();
     ProfileSystem::Instance->OnFrameEnd();
   }
   void Shell::Update( Errors& errors )

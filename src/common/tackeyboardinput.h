@@ -43,7 +43,6 @@ namespace Tac
 
   struct KeyboardInput
   {
-    static thread_local KeyboardInput* Instance;
     KeyboardInput();
     bool                HasKeyJustBeenReleased( Key key );
     bool                IsKeyJustDown( Key key );
@@ -66,5 +65,7 @@ namespace Tac
 
     int                 mMouseDeltaScroll = 0;
   };
+
+  extern KeyboardInput gKeyboardInput;
 
 }

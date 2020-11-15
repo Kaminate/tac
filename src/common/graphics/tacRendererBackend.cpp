@@ -110,51 +110,6 @@ namespace Tac
       return StringView( str, len );
     }
 
-    //template< int N >
-    //struct IdCollection
-    //{
-    //  index      Alloc( StringView name, Tac::StackFrame frame );
-    //  void            Free( index id );
-    //private:
-    //  index      AllocFreeId( StringView name, Tac::StackFrame frame );
-    //  index      AllocNewId( StringView name, Tac::StackFrame frame );
-    //  index      mFree[ N ];
-    //  int             mFreeCount = 0;
-    //  int             mAllocCounter = 0;
-    //  String          mNames[ N ];
-    //  Tac::StackFrame mFrames[ N ];
-    //};
-
-    //template< int N > index IdCollection<N>::Alloc( StringView name, Tac::StackFrame frame )
-    //{
-    //  return mFreeCount ? AllocFreeId( name, frame ) : AllocNewId( name, frame );
-    //}
-
-    //template< int N > void IdCollection<N>::Free( index id )
-    //{
-    //  TAC_ASSERT( ( unsigned )id < ( unsigned )mAllocCounter );
-    //  TAC_ASSERT( !Contains( mFree, mFree + mFreeCount, id ) );
-    //  mFree[ mFreeCount++ ] = id;
-    //  TAC_ASSERT( mFreeCount <= N );
-    //}
-
-    //template< int N > index IdCollection<N>::AllocFreeId( StringView name, Tac::StackFrame frame )
-    //{
-    //  const index result = mFree[ --mFreeCount ];
-    //  mNames[ result ] = name;
-    //  mFrames[ result ] = frame;
-    //  return result;
-    //}
-
-    //template< int N > index IdCollection<N>::AllocNewId( StringView name, Tac::StackFrame frame )
-    //{
-    //  TAC_ASSERT( mAllocCounter < N );
-    //  mNames[ mAllocCounter ] = name;
-    //  mFrames[ mAllocCounter ] = frame;
-    //  return mAllocCounter++;
-    //}
-
-
     void CommandBuffer::Push( const void* bytes,
                               int byteCount )
     {
@@ -925,27 +880,11 @@ namespace Tac
       Renderer::Instance->GetPerspectiveProjectionAB( f, n, a, b );
     }
 
-    //void AddDrawCall( const DrawCall2& drawCall )
-    //{
-    //  Renderer::Instance->mDrawCall2s.push_back( drawCall );
-    //}
-
     void Init( Errors& errors )
     {
+      if( !Renderer::Instance )
+        TAC_RAISE_ERROR( "renderer never created", errors );
       Renderer::Instance->Init( errors );
-
-      //mIdCollectionBlendState.Init( kMaxBlendStates );
-      //mIdCollectionConstantBuffer.Init( kMaxConstantBuffers );
-      //mIdCollectionDepthState.Init( kMaxDepthStencilStates );
-      //mIdCollectionFramebuffer.Init( kMaxFramebuffers );
-      //mIdCollectionIndexBuffer.Init( kMaxIndexBuffers );
-      //mIdCollectionRasterizerState.Init( kMaxRasterizerStates );
-      //mIdCollectionShader.Init( kMaxPrograms );
-      //mIdCollectionVertexBuffer.Init( kMaxVertexBuffers );
-      //mIdCollectionSamplerState.Init( kMaxSamplerStates );
-      //mIdCollectionTexture.Init( kMaxTextures );
-      //mIdCollectionVertexFormat.Init( kMaxInputLayouts );
-      //mIdCollectionViewId.Init( kMaxViews );
     }
 
     void Uninit()
@@ -1369,21 +1308,5 @@ namespace Tac
     return "";
   }
 
-  RendererRegistry& RendererRegistry::Instance()
-  {
-    // This variable must be inside this function or else the
-    // renderers will add themselves too early or something
-    // and then be stomped with an empty registry
-    static RendererRegistry RendererRegistryInstance;
-    return RendererRegistryInstance;
-  }
-
-  RendererFactory* RendererRegistry::FindFactory( StringView name )
-  {
-    for( RendererFactory* factory : mFactories )
-      if( factory->mRendererName == name )
-        return factory;
-    return nullptr;
-  }
 
 }

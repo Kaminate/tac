@@ -19,6 +19,10 @@
 
 namespace Tac
 {
+  static void DebugCoutVec( const char* name, v2 v )
+  {
+      std::cout << name << "(" << v.x << ", " << v.y << ")" << std::endl; 
+  }
 
   static int GetCaret( // UI2DDrawData* drawData,
                        const Vector< Codepoint >& codepoints,
@@ -61,17 +65,17 @@ namespace Tac
       { Key::Delete, TextInputKey::Delete },
     };
     for( auto keyMap : keyMaps )
-      if( KeyboardInput::Instance->IsKeyJustDown( keyMap.mKey ) )
+      if( gKeyboardInput.IsKeyJustDown( keyMap.mKey ) )
         inputData->OnKeyPressed( keyMap.mTextInputKey );
-    if( KeyboardInput::Instance->mWMCharPressedHax )
-      inputData->OnCodepoint( KeyboardInput::Instance->mWMCharPressedHax );
-    if( KeyboardInput::Instance->mCurr.IsKeyDown( Key::MouseLeft ) &&
-        KeyboardInput::Instance->mCurr.mScreenspaceCursorPosErrors.empty() )
+    if( gKeyboardInput.mWMCharPressedHax )
+      inputData->OnCodepoint( gKeyboardInput.mWMCharPressedHax );
+    if( gKeyboardInput.mCurr.IsKeyDown( Key::MouseLeft ) &&
+        gKeyboardInput.mCurr.mScreenspaceCursorPosErrors.empty() )
     {
-      const float mousePositionTextSpace = KeyboardInput::Instance->mCurr.mScreenspaceCursorPos.x - textPos.x;
+      const float mousePositionTextSpace = gKeyboardInput.mCurr.mScreenspaceCursorPos.x - textPos.x;
       const int numGlyphsBeforeCaret = GetCaret( inputData->mCodepoints,
                                                  mousePositionTextSpace );
-      if( KeyboardInput::Instance->mPrev.IsKeyDown( Key::MouseLeft ) )
+      if( gKeyboardInput.mPrev.IsKeyDown( Key::MouseLeft ) )
         inputData->OnDrag( numGlyphsBeforeCaret );
       else
         inputData->OnClick( numGlyphsBeforeCaret );
@@ -140,17 +144,26 @@ namespace Tac
     return result;
   }
 
-  float ImGuiRect::GetWidth()
+  float     ImGuiRect::GetWidth() const
   {
     return mMaxi.x - mMini.x;
   }
 
-  float ImGuiRect::GetHeight()
+  float     ImGuiRect::GetHeight() const
   {
     return mMaxi.y - mMini.y;
   }
 
-  v2 ImGuiRect::GetDimensions()
+  bool      ImGuiRect::ContainsPoint( v2 p ) const
+  {
+    return
+      p.x > mMini.x &&
+      p.x < mMaxi.x &&
+      p.y > mMini.y &&
+      p.y < mMaxi.y;
+  }
+
+  v2        ImGuiRect::GetDimensions() const
   {
     return mMaxi - mMini;
   }
@@ -203,7 +216,7 @@ namespace Tac
       window->mDrawData = TAC_NEW UI2DDrawData;
       window->mDesktopWindowHandle = desktopWindowHandle;
       window->mDesktopWindowHandleOwned = false;
-      window->mPosViewportSpace = {};
+      window->mPosViewport = {};
       window->mSize = size;
       window->mDesktopWindowOffset = {};
       window->mDesktopWindowOffsetExists = true;
@@ -274,10 +287,10 @@ namespace Tac
   {
     ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
     GroupData groupData = {};
-    groupData.mSavedCursorDrawPos = window->mCurrCursorDrawPos;
+    groupData.mSavedCursorDrawPos = window->mCurrCursorViewport;
     groupData.mSavedLineHeight = window->mCurrLineHeight;
 
-    window->mXOffsets.push_back( window->mCurrCursorDrawPos.x - window->mPosViewportSpace.x );
+    window->mXOffsets.push_back( window->mCurrCursorViewport.x - window->mPosViewport.x );
     window->mCurrLineHeight = 0;
 
     //window->mMaxiCursorDrawPos = window->mCurrCursorDrawPos;
@@ -294,12 +307,12 @@ namespace Tac
     //  window->mMaxiCursorDrawPos.x,
     //  window->mMaxiCursorDrawPos.y + window->mPrevLineHeight };
     //v2 groupSize = groupEndPos - groupData.mSavedCursorDrawPos;
-    v2 groupSize = window->mMaxiCursorDrawPos - groupData.mSavedCursorDrawPos;
+    v2 groupSize = window->mMaxiCursorViewport - groupData.mSavedCursorDrawPos;
     //groupSize.y = Max( groupSize.y, window->mCurrLineHeight );
 
     window->mCurrLineHeight = groupData.mSavedLineHeight;
 
-    window->mCurrCursorDrawPos = groupData.mSavedCursorDrawPos;
+    window->mCurrCursorViewport = groupData.mSavedCursorDrawPos;
     window->ItemSize( groupSize );
     window->mGroupSK.pop_back();
   }
@@ -307,23 +320,23 @@ namespace Tac
   void ImGuiIndent()
   {
     ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
-    window->mCurrCursorDrawPos.x += 15.0f;
-    window->mXOffsets.push_back( window->mCurrCursorDrawPos.x - window->mPosViewportSpace.x );
+    window->mCurrCursorViewport.x += 15.0f;
+    window->mXOffsets.push_back( window->mCurrCursorViewport.x - window->mPosViewport.x );
   }
 
   void ImGuiUnindent()
   {
     ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
     window->mXOffsets.pop_back();
-    window->mCurrCursorDrawPos.x = window->mPosViewportSpace.x + window->mXOffsets.back();
+    window->mCurrCursorViewport.x = window->mPosViewport.x + window->mXOffsets.back();
   }
 
   void ImGuiSameLine()
   {
     ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
-    window->mCurrCursorDrawPos = {
-      window->mPrevCursorDrawPos.x + ImGuiGlobals::Instance.mUIStyle.itemSpacing.x,
-      window->mPrevCursorDrawPos.y };
+    window->mCurrCursorViewport = {
+      window->mPrevCursorViewport.x + ImGuiGlobals::Instance.mUIStyle.itemSpacing.x,
+      window->mPrevCursorViewport.y };
     window->mCurrLineHeight = window->mPrevLineHeight;
     //window->mCurrLineHeight = window->mPrevLineHeight;
   }
@@ -332,7 +345,7 @@ namespace Tac
   {
     ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
     UI2DDrawData* drawData = window->mDrawData;
-    v2 textPos = window->mCurrCursorDrawPos;
+    v2 textPos = window->mCurrCursorViewport;
     v2 textSize = CalculateTextSize( utf8, ImGuiGlobals::Instance.mUIStyle.fontSize );
     window->ItemSize( textSize );
     bool clipped;
@@ -352,7 +365,7 @@ namespace Tac
 
     bool textChanged = false;
 
-    v2 pos = window->mCurrCursorDrawPos;
+    v2 pos = window->mCurrCursorViewport;
 
     // Word wrap?
     int lineCount = 1;
@@ -372,7 +385,7 @@ namespace Tac
     if( clipped )
       return textChanged;
 
-    if( window->IsHovered( clipRect ) && KeyboardInput::Instance->IsKeyJustDown( Key::MouseLeft ) )
+    if( window->IsHovered( clipRect ) && gKeyboardInput.IsKeyJustDown( Key::MouseLeft ) )
       window->SetActiveID( id );
 
     v3 textBackgroundColor3 = { 1, 1, 0 };
@@ -407,12 +420,12 @@ namespace Tac
       // handle double click
       static double lastMouseReleaseSeconds;
       static v2 lastMousePositionDesktopWindowspace;
-      if( KeyboardInput::Instance->HasKeyJustBeenReleased( Key::MouseLeft ) &&
+      if( gKeyboardInput.HasKeyJustBeenReleased( Key::MouseLeft ) &&
           window->IsHovered( clipRect ) &&
           !inputData->mCodepoints.empty() &&
-          KeyboardInput::Instance->mCurr.mScreenspaceCursorPosErrors.empty() )
+          gKeyboardInput.mCurr.mScreenspaceCursorPosErrors.empty() )
       {
-        const v2 screenspaceMousePos = KeyboardInput::Instance->mCurr.mScreenspaceCursorPos;
+        const v2 screenspaceMousePos = gKeyboardInput.mCurr.mScreenspaceCursorPos;
         auto mouseReleaseSeconds = ImGuiGlobals::Instance.mElapsedSeconds;
         if( mouseReleaseSeconds - lastMouseReleaseSeconds < 0.5f &&
             lastMousePositionDesktopWindowspace == screenspaceMousePos )
@@ -458,17 +471,17 @@ namespace Tac
     ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
     UI2DDrawData* drawData = window->mDrawData;
     bool clicked = false;
-    v2 pos = window->mCurrCursorDrawPos;
+    const v2 buttonPosViewport = window->mCurrCursorViewport;
     const v2 buttonSize = {
-      window->mContentRect.mMaxi.x - pos.x,
+      window->mContentRect.mMaxi.x - buttonPosViewport.x,
       ( float )ImGuiGlobals::Instance.mUIStyle.fontSize };
 
     window->ItemSize( buttonSize );
     const ImGuiId id = window->GetID();
 
     bool clipped;
-    ImGuiRect clipRect = ImGuiRect::FromPosSize( pos, buttonSize );
-    window->ComputeClipInfo( &clipped, &clipRect );
+    ImGuiRect clipRectViewport = ImGuiRect::FromPosSize( buttonPosViewport, buttonSize );
+    window->ComputeClipInfo( &clipped, &clipRectViewport );
     if( clipped )
       return clicked;
 
@@ -476,12 +489,11 @@ namespace Tac
     if( selected )
       color3 = ( color3 + v3( 1, 1, 1 ) ) * 0.3f;
 
-
-    const bool hovered = window->IsHovered( clipRect );
+    const bool hovered = window->IsHovered( clipRectViewport );
     if( hovered )
     {
       color3 /= 2.0f;
-      if( KeyboardInput::Instance->IsKeyJustDown( Key::MouseLeft ) )
+      if( gKeyboardInput.IsKeyJustDown( Key::MouseLeft ) )
       {
         color3 /= 2.0f;
         clicked = true;
@@ -492,12 +504,12 @@ namespace Tac
     v4 color( color3, 1 );
 
     Render::TextureHandle texture;
-    drawData->AddBox( pos, pos + buttonSize, color, texture, &clipRect );
-    drawData->AddText( pos,
+    drawData->AddBox( buttonPosViewport, buttonPosViewport + buttonSize, color, texture, &clipRectViewport );
+    drawData->AddText( buttonPosViewport,
                        ImGuiGlobals::Instance.mUIStyle.fontSize,
                        str,
                        ImGuiGlobals::Instance.mUIStyle.textColor,
-                       &clipRect );
+                       &clipRectViewport );
     return clicked;
   }
 
@@ -508,7 +520,7 @@ namespace Tac
     const v2 textSize = CalculateTextSize( str, ImGuiGlobals::Instance.mUIStyle.fontSize );
     const v2 buttonSize( textSize.x + 2 * ImGuiGlobals::Instance.mUIStyle.buttonPadding,
                          textSize.y );
-    v2 pos = window->mCurrCursorDrawPos;
+    v2 pos = window->mCurrCursorViewport;
     window->ItemSize( textSize );
 
 
@@ -525,11 +537,11 @@ namespace Tac
     if( hovered )
     {
       outerBoxColor /= 2.0f;
-      if( KeyboardInput::Instance->IsKeyDown( Key::MouseLeft ) )
+      if( gKeyboardInput.IsKeyDown( Key::MouseLeft ) )
       {
         outerBoxColor /= 2.0f;
       }
-      if( KeyboardInput::Instance->IsKeyJustDown( Key::MouseLeft ) )
+      if( gKeyboardInput.IsKeyJustDown( Key::MouseLeft ) )
       {
         justClicked = true;
       }
@@ -554,7 +566,7 @@ namespace Tac
   {
     ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
     UI2DDrawData* drawData = window->mDrawData;
-    v2 pos = window->mCurrCursorDrawPos;
+    v2 pos = window->mCurrCursorViewport;
 
     v2 textSize = CalculateTextSize( str, ImGuiGlobals::Instance.mUIStyle.fontSize );
 
@@ -576,11 +588,11 @@ namespace Tac
     if( hovered )
     {
       outerBoxColor = v4( 0.5f, 0.5f, 0, 1 );
-      if( KeyboardInput::Instance->IsKeyDown( Key::MouseLeft ) )
+      if( gKeyboardInput.IsKeyDown( Key::MouseLeft ) )
       {
         outerBoxColor = v4( 0.3f, 0.3f, 0, 1 );
       }
-      if( KeyboardInput::Instance->IsKeyJustDown( Key::MouseLeft ) )
+      if( gKeyboardInput.IsKeyJustDown( Key::MouseLeft ) )
       {
         *value = !*value;
       }
@@ -673,14 +685,14 @@ namespace Tac
     ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
     UI2DDrawData* drawData = window->mDrawData;// ImGuiGlobals::Instance.mUI2DDrawData;
     TextInputData* inputData = window->mTextInputData;
-    v2 pos = window->mCurrCursorDrawPos;
+    v2 pos = window->mCurrCursorViewport;
     v2 totalSize = {
       window->mContentRect.mMaxi.x - pos.x,
       ( float )ImGuiGlobals::Instance.mUIStyle.fontSize };
     window->ItemSize( totalSize );
     ImGuiId id = window->GetID();
     bool clipped;
-    auto clipRect = ImGuiRect::FromPosSize( pos, totalSize );
+    ImGuiRect clipRect = ImGuiRect::FromPosSize( pos, totalSize );
     window->ComputeClipInfo( &clipped, &clipRect );
     if( clipped )
       return false;
@@ -696,22 +708,22 @@ namespace Tac
       pos.x + ImGuiGlobals::Instance.mUIStyle.buttonPadding,
       pos.y };
 
-    if( window->IsHovered( clipRect ) && KeyboardInput::Instance->IsKeyJustDown( Key::MouseLeft ) )
+    if( window->IsHovered( clipRect ) && gKeyboardInput.IsKeyJustDown( Key::MouseLeft ) )
     {
       window->SetActiveID( id );
     }
     if( window->GetActiveID() == id )
     {
-      if( dragFloatData.mMode == DragMode::Drag && KeyboardInput::Instance->mCurr.mScreenspaceCursorPosErrors.empty() )
+      if( dragFloatData.mMode == DragMode::Drag && gKeyboardInput.mCurr.mScreenspaceCursorPosErrors.empty() )
       {
-        const v2 screenspaceMousePos = KeyboardInput::Instance->mCurr.mScreenspaceCursorPos;
+        const v2 screenspaceMousePos = gKeyboardInput.mCurr.mScreenspaceCursorPos;
         static float lastMouseXDesktopWindowspace;
         if( window->IsHovered( clipRect ) )
           backgroundBoxColor.xyz() /= 2.0f;
-        if( KeyboardInput::Instance->IsKeyDown( Key::MouseLeft ) )
+        if( gKeyboardInput.IsKeyDown( Key::MouseLeft ) )
         {
           backgroundBoxColor.xyz() /= 2.0f;
-          if( KeyboardInput::Instance->IsKeyJustDown( Key::MouseLeft ) )
+          if( gKeyboardInput.IsKeyJustDown( Key::MouseLeft ) )
           {
             lastMouseXDesktopWindowspace = screenspaceMousePos.x;
             dragFloatData.mDragDistPx = 0;
@@ -719,7 +731,7 @@ namespace Tac
             MemCpy( dragFloatData.mValueCopy.data(), valueBytes, valueByteCount );
           }
 
-          if( KeyboardInput::Instance->mPrev.IsKeyDown( Key::MouseLeft ) )
+          if( gKeyboardInput.mPrev.IsKeyDown( Key::MouseLeft ) )
           {
             float moveCursorDir = 0;
             if( screenspaceMousePos.x > clipRect.mMaxi.x )
@@ -744,7 +756,7 @@ namespace Tac
         // handle double click
         static double lastMouseReleaseSeconds;
         static v2 lastMousePositionDesktopWindowspace;
-        if( KeyboardInput::Instance->HasKeyJustBeenReleased( Key::MouseLeft ) &&
+        if( gKeyboardInput.HasKeyJustBeenReleased( Key::MouseLeft ) &&
             window->IsHovered( clipRect ) )
         {
           auto mouseReleaseSeconds = ImGuiGlobals::Instance.mElapsedSeconds;
@@ -761,7 +773,7 @@ namespace Tac
           lastMouseReleaseSeconds = mouseReleaseSeconds;
           lastMousePositionDesktopWindowspace = screenspaceMousePos;
         }
-        //if( !KeyboardInput::Instance->IsKeyDown( Key::MouseLeft ) )
+        //if( !gKeyboardInput.IsKeyDown( Key::MouseLeft ) )
         //  window->mActiveID = ImGuiIdNull;
       }
 
@@ -774,7 +786,7 @@ namespace Tac
         valueFromStringSetter( newText, valueBytes );
         valueStr = newText;
 
-        if( KeyboardInput::Instance->IsKeyJustDown( Key::Tab ) )
+        if( gKeyboardInput.IsKeyJustDown( Key::Tab ) )
           window->mIDAllocator->mActiveID++;
       }
     }
@@ -853,7 +865,7 @@ namespace Tac
   {
     ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
     UI2DDrawData* drawData = window->mDrawData; // ImGuiGlobals::Instance.mUI2DDrawData;
-    v2 pos = window->mCurrCursorDrawPos;
+    v2 pos = window->mCurrCursorViewport;
     v2 totalSize = {
       window->mContentRect.mMaxi.x - pos.x,
       ( float )ImGuiGlobals::Instance.mUIStyle.fontSize };
@@ -870,10 +882,10 @@ namespace Tac
     if( window->IsHovered( clipRect ) )
     {
       backgroundBoxColor.xyz() /= 2.0f;
-      if( KeyboardInput::Instance->IsKeyJustDown( Key::MouseLeft ) )
+      if( gKeyboardInput.IsKeyJustDown( Key::MouseLeft ) )
         isOpen = !isOpen;
 
-      //const bool down = KeyboardInput::Instance->IsKeyDown( Key::MouseLeft );
+      //const bool down = gKeyboardInput.IsKeyDown( Key::MouseLeft );
       //std::cout << "down: " << ( down? "true" : "false" ) << std::endl;
     }
 
@@ -981,7 +993,7 @@ namespace Tac
 
   void ImGuiFrameBegin( double elapsedSeconds, const DesktopWindowHandle& mouseHoveredWindow )
   {
-    KeyboardInput::Instance->mCurr.mScreenspaceCursorPos;
+    gKeyboardInput.mCurr.mScreenspaceCursorPos;
     ImGuiGlobals::Instance.mElapsedSeconds = elapsedSeconds;
     ImGuiGlobals::Instance.mMouseHoveredWindow = mouseHoveredWindow;
   }

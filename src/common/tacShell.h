@@ -46,6 +46,7 @@ namespace Tac
     String mStudioName = "Sleeping Studio";
     void( *mProjectInit )( Errors& ) = 0;
     void( *mProjectUpdate )( Errors& ) = 0;
+    void( *mProjectUninit )( Errors& ) = 0;
   };
 
   //
