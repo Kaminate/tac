@@ -55,12 +55,12 @@ namespace Tac
 
   void AssertInternal( const char* message, const StackFrame& frame );
 
-#define TAC_ASSERT_MESSAGE( formatString, ... ) AssertInternal( va( formatString, ## __VA_ARGS__ ), TAC_STACK_FRAME )
-#define TAC_ASSERT( expression )                if( !( expression ) ){ TAC_ASSERT_MESSAGE( TAC_STRINGIFY( expression ) ); }
-#define TAC_INVALID_CODE_PATH                   TAC_ASSERT_MESSAGE( "Invalid code path!" );
-#define TAC_UNIMPLEMENTED                       TAC_ASSERT_MESSAGE( "Unimplemented!" );
-#define TAC_INVALID_DEFAULT_CASE( var )         default: TAC_ASSERT_MESSAGE( "Invalid default case, %s = %i", TAC_STRINGIFY( var ), var ); break;
-#define TAC_OFFSET_OF( type, member )           ((size_t)&reinterpret_cast<char const volatile&>((((type*)0)->member)))
+#define TAC_ASSERT_MESSAGE( formatString, ... )     AssertInternal( va( formatString, ## __VA_ARGS__ ), TAC_STACK_FRAME )
+#define TAC_ASSERT( expression )                    if( !( expression ) ){ TAC_ASSERT_MESSAGE( TAC_STRINGIFY( expression ) ); }
+#define TAC_INVALID_CODE_PATH                       TAC_ASSERT_MESSAGE( "Invalid code path!" );
+#define TAC_UNIMPLEMENTED                           TAC_ASSERT_MESSAGE( "Unimplemented!" );
+#define TAC_INVALID_DEFAULT_CASE( var )             default: TAC_ASSERT_MESSAGE( "Invalid default case, %s = %i", TAC_STRINGIFY( var ), var ); break;
+#define TAC_OFFSET_OF( type, member )               ((size_t)&reinterpret_cast<char const volatile&>((((type*)0)->member)))
 
   template< typename T>
   struct OnDestructAux

@@ -95,7 +95,8 @@ namespace Tac
     if( !desktopWindowState->mNativeWindowHandle )
       return;
 
-    ImGuiBegin( "Main Window", mDesktopWindowHandle );
+		ImGuiSetNextWindowHandle(mDesktopWindowHandle );
+    ImGuiBegin( "Main Window" );
 
 #if 1
     ImGuiBeginMenuBar();

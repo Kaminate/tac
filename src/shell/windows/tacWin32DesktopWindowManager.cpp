@@ -336,7 +336,7 @@ namespace Tac
     }
   }
 
-  void WindowsManagerInit( Errors& errors )
+  void Win32WindowManagerInit( Errors& errors )
   {
     RegisterWindowClass( errors );
   }
@@ -384,7 +384,7 @@ namespace Tac
   //}
 
 
-  DesktopWindowHandle GetCursorUnobscuredWindow2()
+  DesktopWindowHandle Win32WindowManagerGetCursorUnobscuredWindow()
   {
     POINT cursorPos;
     const bool cursorPosValid = 0 != ::GetCursorPos( &cursorPos );
@@ -436,7 +436,7 @@ namespace Tac
   //  return nullptr;
   //}
 
-  void WindowsManagerPoll( Errors& errors )
+  void Win32WindowManagerPoll( Errors& errors )
   {
     MSG msg = {};
     while( PeekMessage( &msg, NULL, 0, 0, PM_REMOVE ) )
@@ -446,7 +446,7 @@ namespace Tac
     }
   }
 
-  void WindowsManagerSpawnWindow( const DesktopWindowHandle& desktopWindowHandle,
+  void Win32WindowManagerSpawnWindow( const DesktopWindowHandle& desktopWindowHandle,
                                   const int x,
                                   const int y,
                                   const int requestedWidth,

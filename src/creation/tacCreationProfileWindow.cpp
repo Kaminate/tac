@@ -42,7 +42,8 @@ namespace Tac
     DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
 if(!desktopWindowState->mNativeWindowHandle)
       return;
-    ImGuiBegin( "Profile Window", mDesktopWindowHandle );
+ImGuiSetNextWindowHandle(mDesktopWindowHandle );
+    ImGuiBegin( "Profile Window" );
 
     ImGuiText( "i am the profile window" );
     ImGuiText( "i am... inevitable" );

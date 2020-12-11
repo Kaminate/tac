@@ -18,7 +18,30 @@ namespace Tac
     Stuff
   };
 
-  extern thread_local ThreadType gThreadType;
+  struct AppInterfaceProject
+  {
+    void( *mProjectInit )( Errors& ) = 0;
+    void( *mProjectUpdate )( Errors& ) = 0;
+  };
+
+  struct AppInterfacePlatform
+  {
+    void( *mPlatformPoll )( Errors& );
+    void( *mPlatformSpawnWindow )( const DesktopWindowHandle& handle,
+                                   int x,
+                                   int y,
+                                   int width,
+                                   int height );
+    DesktopWindowHandle( *mPlatformGetMouseHoveredWindow )( );
+  };
+
+  struct WindowHandleIterator
+  {
+    WindowHandleIterator();
+    ~WindowHandleIterator();
+    int* begin();
+    int* end();
+  };
 
   void DesktopEventInit();
   void DesktopEventAssignHandle( DesktopWindowHandle,
@@ -38,40 +61,16 @@ namespace Tac
   void DesktopEventMouseWheel( int ticks );
   void DesktopEventMouseMove( DesktopWindowHandle, int x, int y );
   void DesktopEventMouseHoveredWindow( DesktopWindowHandle );
-
   void DesktopEventApplyQueue( DesktopWindowState* );
 
-  struct AppInterfaceProject
-  {
-    void( *mProjectInit )( Errors& ) = 0;
-    void( *mProjectUpdate )( Errors& ) = 0;
-  };
+  void                           DesktopAppInit( AppInterfacePlatform, Errors& );
+  void                           DesktopAppRun( Errors& );
+  DesktopWindowHandle            DesktopAppCreateWindow( int x, int y, int width, int height );
+  void                           DesktopAppUpdate( Errors& );
 
-  struct AppInterfacePlatform
-  {
-    void( *mPlatformPoll )( Errors& );
-    void( *mPlatformSpawnWindow )( const DesktopWindowHandle& handle,
-                                   int x,
-                                   int y,
-                                   int width,
-                                   int height );
-    DesktopWindowHandle( *mPlatformGetMouseHoveredWindow )( );
-  };
+  extern Errors                  gPlatformThreadErrors;
+  extern Errors                  gLogicThreadErrors;
+  extern thread_local ThreadType gThreadType;
 
-  void                    DesktopAppInit( AppInterfacePlatform, Errors& );
-  void                    DesktopAppRun( Errors& );
-  DesktopWindowHandle     DesktopWindowCreate( int x, int y, int width, int height );
-  void                    DesktopWindowPollCreationRequests( Errors& );
-
-  extern Errors           gPlatformThreadErrors;
-  extern Errors           gLogicThreadErrors;
-
-  struct WindowHandleIterator
-  {
-    WindowHandleIterator();
-    ~WindowHandleIterator();
-    int* begin();
-    int* end();
-  };
 
 }

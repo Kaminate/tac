@@ -46,8 +46,8 @@ namespace Tac
   {
     void                Init( Errors& );
     void                Uninit( Errors& );
-    void                SetSavedWindowData( Json* windowJson, Errors& );
-    void                SetSavedWindowsData( Errors& );
+    //void                SetSavedWindowData( Json* windowJson, Errors& );
+    //void                SetSavedWindowsData( Errors& );
     void                Update( Errors& );
     Entity*             CreateEntity();
     bool                IsAnythingSelected();

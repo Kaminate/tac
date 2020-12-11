@@ -43,6 +43,7 @@ namespace Tac
     // searches this stringview for the last character which matches any of the characters in s,
     // return npos if no matches
     int find_last_of( StringView s ) const;
+    int find_first_of( StringView s ) const;
     StringView substr( int pos = 0, int len = npos ) const;
 
     static const int npos = -1; // mimicking the standard library

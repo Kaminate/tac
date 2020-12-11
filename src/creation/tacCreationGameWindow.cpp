@@ -541,7 +541,8 @@ namespace Tac
   void CreationGameWindow::DrawPlaybackOverlay( Errors& errors )
   {
     ImGuiSetNextWindowSize( { 300, 75 } );
-    ImGuiBegin( "gameplay overlay", mDesktopWindowHandle );
+		ImGuiSetNextWindowHandle(mDesktopWindowHandle );
+    ImGuiBegin( "gameplay overlay" );
     if( mSoul )
     {
       if( ImGuiButton( "End simulation" ) )

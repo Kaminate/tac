@@ -72,13 +72,13 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
 
     AppInterfacePlatform appInterfacePlatform = {};
-    appInterfacePlatform.mPlatformPoll = WindowsManagerPoll;
-    appInterfacePlatform.mPlatformSpawnWindow = WindowsManagerSpawnWindow;
-    appInterfacePlatform.mPlatformGetMouseHoveredWindow = GetCursorUnobscuredWindow2;
+    appInterfacePlatform.mPlatformPoll = Win32WindowManagerPoll;
+    appInterfacePlatform.mPlatformSpawnWindow = Win32WindowManagerSpawnWindow;
+    appInterfacePlatform.mPlatformGetMouseHoveredWindow = Win32WindowManagerGetCursorUnobscuredWindow;
     DesktopAppInit( appInterfacePlatform, errors );
     TAC_HANDLE_ERROR( errors );
 
-    WindowsManagerInit( errors );
+    Win32WindowManagerInit( errors );
     TAC_HANDLE_ERROR( errors );
 
     NetWinsock::Instance.Init( errors );

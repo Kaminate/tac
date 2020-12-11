@@ -23,7 +23,7 @@ namespace Tac
     v2               mMaxi = {};
   };
 
-  void ImGuiBegin( const StringView& name, const DesktopWindowHandle& );
+  void ImGuiBegin( const StringView& );
   void ImGuiEnd();
 
   //void ImGuiSetGlobals( // v2 mousePositionDesktopWindowspace,
@@ -48,7 +48,7 @@ namespace Tac
   void ImGuiIndent();
   void ImGuiUnindent();
 
-  //void ImGuiSetNextWindowPos( v2 screenspacePos );
+	void ImGuiSetNextWindowHandle( const DesktopWindowHandle& );
   void ImGuiSetNextWindowSize( v2 );
   bool ImGuiCollapsingHeader( const StringView& name );
   void ImGuiSameLine();

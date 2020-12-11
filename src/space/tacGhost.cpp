@@ -118,10 +118,7 @@ namespace Tac
     //_HANDLE_ERROR( errors );
 
     const String serverTypeGameClient = TAC_STRINGIFY( ScriptGameClient );
-    String serverType = Settings::Instance->GetString( nullptr,
-                                                            { "server type" },
-                                                            serverTypeGameClient,
-                                                            errors );
+    String serverType = SettingsGetString( SettingsGetJson("server type"),  serverTypeGameClient );
     TAC_HANDLE_ERROR( errors );
     ScriptThread* child = nullptr;
     if( serverType == serverTypeGameClient )

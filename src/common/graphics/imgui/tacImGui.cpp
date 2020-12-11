@@ -14,6 +14,7 @@
 #include "src/common/tacString.h"
 #include "src/common/tacErrorHandling.h"
 #include "src/shell/tacDesktopWindowGraphics.h"
+#include "src/shell/tacDesktopApp.h"
 
 #include <cstdlib> // atof
 
@@ -175,13 +176,17 @@ namespace Tac
   //  gNextWindow.mScreenspacePosExists = true;
   //}
 
+	void ImGuiSetNextWindowHandle( const DesktopWindowHandle& desktopWindowHandle)
+	{
+		gNextWindow.mDesktopWindowHandle = desktopWindowHandle;
+	}
   void ImGuiSetNextWindowSize( v2 size )
   {
     gNextWindow.mSize = size;
   }
 
   // TODO: remove size parameter, use setnextwindowsize instead
-  void ImGuiBegin( const StringView& name, const DesktopWindowHandle& desktopWindowHandle )
+  void ImGuiBegin( const StringView& name )
   {
     ImGuiWindow* window = ImGuiGlobals::Instance.FindWindow( name );
     if( window )
@@ -200,6 +205,19 @@ namespace Tac
     }
     else
     {
+			DesktopWindowHandle desktopWindowHandle = gNextWindow.mDesktopWindowHandle;
+			const bool owned = desktopWindowHandle.IsValid();
+			if( !owned )
+			{
+				// load from windowsettings.h
+				int x = 50;
+				int y = 50;
+				int w = 800;
+				int h = 600;
+				desktopWindowHandle = DesktopAppCreateWindow( x, y, w, h );
+			}
+
+
       const DesktopWindowState* desktopWindowState = GetDesktopWindowState( desktopWindowHandle );
       TAC_ASSERT( desktopWindowState );
       TAC_ASSERT( desktopWindowState->mNativeWindowHandle );
@@ -215,7 +233,7 @@ namespace Tac
       window->mName = name;
       window->mDrawData = TAC_NEW UI2DDrawData;
       window->mDesktopWindowHandle = desktopWindowHandle;
-      window->mDesktopWindowHandleOwned = false;
+      window->mDesktopWindowHandleOwned = owned;
       window->mPosViewport = {};
       window->mSize = size;
       window->mDesktopWindowOffset = {};
@@ -224,7 +242,8 @@ namespace Tac
 
     }
 
-    gNextWindow.Clear();
+		gNextWindow = ImGuiNextWindow();
+    //gNextWindow.Clear();
     TAC_ASSERT( window->mSize.x > 0 && window->mSize.y > 0 );
 
     // todo: move this to a ImGuiGlobals::Instance.mFrameData

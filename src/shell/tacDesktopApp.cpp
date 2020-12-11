@@ -354,9 +354,8 @@ namespace Tac
     Shell::Instance.Init( errors );
     TAC_HANDLE_ERROR( errors );
 
-    TAC_NEW Settings;
-    Settings::Instance->Init( errors );
-    Settings::Instance->Load( errors );
+		SettingsInit( errors );
+    TAC_HANDLE_ERROR( errors );
 
     TAC_NEW ProfileSystem;
     ProfileSystem::Instance->Init();
@@ -389,6 +388,8 @@ namespace Tac
       Shell::Instance.Update( errors );
       TAC_HANDLE_ERROR( errors );
 
+
+			DesktopEventApplyQueue( GetDesktopWindowState( 0 ) );
       sAppInterfaceProject.mProjectUpdate( errors );
       TAC_HANDLE_ERROR( errors );
 
@@ -422,7 +423,7 @@ namespace Tac
       sAppInterfacePlatform.mPlatformPoll( errors );
       TAC_HANDLE_ERROR( errors );
 
-      DesktopWindowPollCreationRequests( errors );
+      DesktopAppUpdate( errors );
       TAC_HANDLE_ERROR( errors );
 
       Render::RenderFrame( errors );
@@ -509,7 +510,7 @@ namespace Tac
     return sDesktopWindowHandleIDs.end();
   }
 
-  void DesktopWindowPollCreationRequests( Errors& errors )
+  void DesktopAppUpdate( Errors& errors )
   {
     WindowRequests requests;
     sWindowHandleLock.lock();
@@ -524,7 +525,7 @@ namespace Tac
     sWindowRequests.clear();
   }
 
-  DesktopWindowHandle DesktopWindowCreate( int x, int y, int width, int height )
+  DesktopWindowHandle DesktopAppCreateWindow( int x, int y, int width, int height )
   {
     std::lock_guard< std::mutex > lock( sWindowHandleLock );
     const DesktopWindowHandle handle = { sDesktopWindowHandleIDs.Alloc() };

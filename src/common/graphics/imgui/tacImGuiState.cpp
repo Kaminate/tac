@@ -7,10 +7,10 @@
 
 namespace Tac
 {
-  void ImGuiNextWindow::Clear()
-  {
-    mSize = {};
-  }
+  //void ImGuiNextWindow::Clear()
+  //{
+  //  mSize = {};
+  //}
   ImGuiNextWindow gNextWindow;
 
   struct RegisteredWindowResource

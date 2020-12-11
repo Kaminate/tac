@@ -17,12 +17,12 @@ namespace Tac
   static void TerrainSavePrefab( Json& json, Component* component )
   {
     auto terrain = ( Terrain* )component;
-    json[ "mSideVertexCount" ] = terrain->mSideVertexCount;
-    json[ "mSideLength" ] = terrain->mSideLength;
-    json[ "mHeight" ] = terrain->mUpwardsHeight;
-    json[ "mHeightmapTexturePath" ] = terrain->mHeightmapTexturePath;
-    json[ "mGroundTexturePath" ] = terrain->mGroundTexturePath;
-    json[ "mNoiseTexturePath" ] = terrain->mNoiseTexturePath;
+    json[ "mSideVertexCount" ].SetNumber( terrain->mSideVertexCount );
+    json[ "mSideLength" ].SetNumber( terrain->mSideLength );
+    json[ "mHeight" ].SetNumber( terrain->mUpwardsHeight );
+    json[ "mHeightmapTexturePath" ].SetString( terrain->mHeightmapTexturePath );
+    json[ "mGroundTexturePath" ].SetString(  terrain->mGroundTexturePath );
+    json[ "mNoiseTexturePath" ].SetString( terrain->mNoiseTexturePath );
   }
 
   static void TerrainLoadPrefab( Json& json, Component* component )

@@ -152,8 +152,9 @@ namespace Tac
 
   struct ImGuiNextWindow
   {
-    void                          Clear();
+    //void                          Clear();
     v2                            mSize = {};
+		DesktopWindowHandle           mDesktopWindowHandle;
   };
   extern ImGuiNextWindow gNextWindow;
 

@@ -27,7 +27,7 @@ namespace Tac
     int windowX;
     int windowY;
     CenterWindow( &windowX, &windowY, windowWidth, windowHeight );
-    mDesktopWindowHandle = DesktopWindowCreate( windowX,
+    mDesktopWindowHandle = DesktopAppCreateWindow( windowX,
                                                 windowY,
                                                 windowWidth,
                                                 windowHeight );
