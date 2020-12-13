@@ -62,7 +62,7 @@ namespace Tac
 
 	void Entity::RemoveComponent( const ComponentRegistryEntry* entry )
 	{
-		TAC_UNIMPLEMENTED;
+		TAC_ASSERT_UNIMPLEMENTED;
 		auto it = std::find_if(
 			mComponents.begin(),
 			mComponents.end(),
@@ -87,7 +87,7 @@ namespace Tac
 		//    break;
 		//  case ComponentRegistryEntryIndex::Terrain:
 		//    break;
-		//    TAC_INVALID_DEFAULT_CASE( componentType );
+		//    TAC_ASSERT_INVALID_DEFAULT_CASE( componentType );
 		//}
 
 	}

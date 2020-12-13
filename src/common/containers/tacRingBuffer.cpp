@@ -12,7 +12,7 @@ namespace Tac
     {
       if( IsDebugMode() )
       {
-        TAC_INVALID_CODE_PATH;
+        TAC_ASSERT_INVALID_CODE_PATH;
       }
       return false;
     }
@@ -44,7 +44,7 @@ namespace Tac
     {
       if( IsDebugMode() )
       {
-        TAC_INVALID_CODE_PATH;
+        TAC_ASSERT_INVALID_CODE_PATH;
       }
       return false;
     }

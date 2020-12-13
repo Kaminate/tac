@@ -75,7 +75,7 @@ namespace Tac
         ( ( uint8_t* )&hexColor )[ 2 ] / 255.0f,
         ( ( uint8_t* )&hexColor )[ 1 ] / 255.0f,
         ( ( uint8_t* )&hexColor )[ 0 ] / 255.0f };
-                               TAC_INVALID_DEFAULT_CASE( endianness );
+                               TAC_ASSERT_INVALID_DEFAULT_CASE( endianness );
     }
     return {};
   }

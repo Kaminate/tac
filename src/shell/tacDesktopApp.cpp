@@ -247,7 +247,7 @@ namespace Tac
           OS::DebugBreak();
           TAC_ASSERT_MESSAGE( "..." );
           TAC_ASSERT( false );
-          //TAC_INVALID_DEFAULT_CASE( desktopEventType );
+          //TAC_ASSERT_INVALID_DEFAULT_CASE( desktopEventType );
         }
       }
     }

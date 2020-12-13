@@ -1,5 +1,6 @@
 #include "src/common/math/tacVector4.h"
 #include "src/common/math/tacMath.h"
+#include "src/common/tacSettings.h"
 #include "src/common/graphics/tacUI.h"
 #include "src/common/graphics/imgui/tacImGui.h"
 #include "src/common/graphics/imgui/tacImGuiState.h"
@@ -22,7 +23,7 @@ namespace Tac
 {
   static void DebugCoutVec( const char* name, v2 v )
   {
-      std::cout << name << "(" << v.x << ", " << v.y << ")" << std::endl; 
+    std::cout << name << "(" << v.x << ", " << v.y << ")" << std::endl;
   }
 
   static int GetCaret( // UI2DDrawData* drawData,
@@ -176,17 +177,19 @@ namespace Tac
   //  gNextWindow.mScreenspacePosExists = true;
   //}
 
-	void ImGuiSetNextWindowHandle( const DesktopWindowHandle& desktopWindowHandle)
-	{
-		gNextWindow.mDesktopWindowHandle = desktopWindowHandle;
-	}
+  void ImGuiSetNextWindowHandle( const DesktopWindowHandle& desktopWindowHandle )
+  {
+    gNextWindow.mDesktopWindowHandle = desktopWindowHandle;
+  }
   void ImGuiSetNextWindowSize( v2 size )
   {
     gNextWindow.mSize = size;
   }
 
-  // TODO: remove size parameter, use setnextwindowsize instead
-  void ImGuiBegin( const StringView& name )
+  // [ ] Q: imgui.begin should always be followed by a imgui.end,
+  //        regardless of the imgui.begin return value.
+  //        why is that?
+  bool ImGuiBegin( const StringView& name )
   {
     ImGuiWindow* window = ImGuiGlobals::Instance.FindWindow( name );
     if( window )
@@ -205,17 +208,47 @@ namespace Tac
     }
     else
     {
-			DesktopWindowHandle desktopWindowHandle = gNextWindow.mDesktopWindowHandle;
-			const bool owned = desktopWindowHandle.IsValid();
-			if( !owned )
-			{
-				// load from windowsettings.h
-				int x = 50;
-				int y = 50;
-				int w = 800;
-				int h = 600;
-				desktopWindowHandle = DesktopAppCreateWindow( x, y, w, h );
-			}
+      DesktopWindowHandle desktopWindowHandle = gNextWindow.mDesktopWindowHandle;
+      const bool owned = desktopWindowHandle.IsValid();
+      if( !owned )
+      {
+        // vvv --- begin --- move to fn
+        Json* windowsJson = SettingsGetJson( "imgui.windows" );
+        Json* windowJson = nullptr;
+        for( Json* curWindowJson : windowsJson->mElements )
+        {
+          if( SettingsGetString( "name", "", curWindowJson ) == name )
+          {
+            windowJson = curWindowJson;
+            break;
+          }
+        }
+
+        int x = 50;
+        int y = 50;
+        int w = gNextWindow.mSize.x ? gNextWindow.mSize.x : 800;
+        int h = gNextWindow.mSize.y ? gNextWindow.mSize.y : 600;
+
+        if( windowJson )
+        {
+          x = SettingsGetNumber( "x", x, windowJson );
+          y = SettingsGetNumber( "y", y, windowJson );
+          w = SettingsGetNumber( "w", w, windowJson );
+          h = SettingsGetNumber( "h", h, windowJson );
+        }
+        else
+        {
+           windowJson = windowsJson->AddChild();
+           SettingsSetString( "name", name, windowJson );
+           SettingsSetNumber( "x", x, windowJson );
+           SettingsSetNumber( "y", y, windowJson );
+           SettingsSetNumber( "w", w, windowJson );
+           SettingsSetNumber( "h", h, windowJson );
+        }
+
+        // ^^^ --- begin --- move to fn
+        desktopWindowHandle = DesktopAppCreateWindow( x, y, w, h );
+      }
 
 
       const DesktopWindowState* desktopWindowState = GetDesktopWindowState( desktopWindowHandle );
@@ -242,7 +275,7 @@ namespace Tac
 
     }
 
-		gNextWindow = ImGuiNextWindow();
+    gNextWindow = ImGuiNextWindow();
     //gNextWindow.Clear();
     TAC_ASSERT( window->mSize.x > 0 && window->mSize.y > 0 );
 
@@ -251,6 +284,7 @@ namespace Tac
     ImGuiGlobals::Instance.mWindowStack.push_back( window );
     ImGuiGlobals::Instance.mCurrentWindow = window;
     window->BeginFrame();
+    return true;
   }
 
   void ImGuiEnd()

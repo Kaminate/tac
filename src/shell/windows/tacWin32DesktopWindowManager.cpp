@@ -458,7 +458,7 @@ namespace Tac
     windowRect.bottom = requestedHeight;
     if( !AdjustWindowRect( &windowRect, windowStyle, FALSE ) )
     {
-      TAC_INVALID_CODE_PATH;
+      TAC_ASSERT_INVALID_CODE_PATH;
       //errors = "Failed to adjust window rect";
       //TAC_HANDLE_ERROR( errors );
     }
@@ -480,7 +480,7 @@ namespace Tac
                                     NULL );
     if( !hwnd )
     {
-      TAC_INVALID_CODE_PATH;
+      TAC_ASSERT_INVALID_CODE_PATH;
       //errors += Join( "\n",
       //  {
       //    // https://docs.microsoft.com/en-us/windows/desktop/api/winuser/nf-winuser-createwindowexa

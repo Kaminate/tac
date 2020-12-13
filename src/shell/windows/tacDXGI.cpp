@@ -157,7 +157,7 @@ namespace Tac
     for( auto formatPair : gFormatPairs )
       if( formatPair.mFormatDXGI = format )
         return formatPair.mFormat;
-    TAC_INVALID_CODE_PATH;
+    TAC_ASSERT_INVALID_CODE_PATH;
     return {};
   }
 
@@ -168,7 +168,7 @@ namespace Tac
           formatPair.mFormat.mPerElementByteCount == textureFormat.mPerElementByteCount &&
           formatPair.mFormat.mPerElementDataType == textureFormat.mPerElementDataType )
         return formatPair.mFormatDXGI;
-    TAC_INVALID_CODE_PATH;
+    TAC_ASSERT_INVALID_CODE_PATH;
     return DXGI_FORMAT_UNKNOWN;
   }
 

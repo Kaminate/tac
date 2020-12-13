@@ -288,8 +288,8 @@ namespace Tac
     virtual ~Renderer();
     void         ExecuteCommands( Render::CommandBuffer*, Errors& );
     virtual void Init( Errors& ) {};
-    virtual void Render2( const Render::Frame*, Errors& ) { TAC_UNIMPLEMENTED; }
-    virtual void SwapBuffers() { TAC_UNIMPLEMENTED; }
+    virtual void Render2( const Render::Frame*, Errors& ) { TAC_ASSERT_UNIMPLEMENTED; }
+    virtual void SwapBuffers() { TAC_ASSERT_UNIMPLEMENTED; }
     virtual void GetPerspectiveProjectionAB( float f,
                                              float n,
                                              float& a,

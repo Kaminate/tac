@@ -175,7 +175,7 @@ void Meta::AddType( MetaType* metaType )
 //  {
 //    case Pod::Float: *( ( float* )data ) = ( float )atof( podStr.c_str() ); break;
 //    case Pod::Int32: *( ( int32_t* )data ) = ( int32_t )atoi( podStr.c_str() ); break;
-//    TAC_INVALID_DEFAULT_CASE(metaType->mMetaPod);
+//    TAC_ASSERT_INVALID_DEFAULT_CASE(metaType->mMetaPod);
 //  }
 //}
 

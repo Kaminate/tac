@@ -2,6 +2,7 @@
 #include "src/common/tacUtility.h"
 #include "src/common/tacMemory.h"
 #include "src/common/tacOS.h"
+#include "src/common/math/tacMath.h"
 #include "src/common/tacTemporaryMemory.h"
 #include "src/shell/tacDesktopApp.h"
 
@@ -15,6 +16,40 @@ namespace Tac
     StringView prefPath = Shell::Instance.mPrefPath;
     String path = prefPath + "/" + appName + "Settings.txt";
     return path;
+  }
+
+  static void SettingCheckFallback( Json* leaf, Json* fallback )
+  {
+    if( leaf->mType != fallback->mType )
+    {
+      *leaf = *fallback;
+      SettingsSave( Errors() );
+    }
+  }
+
+  static Json* SettingsStepJsonObject( StringView* path, Json* root )
+  {
+    StringView key;
+    const int iKeyEnd = path->find_first_of( ".[]" );
+    if( iKeyEnd == StringView::npos )
+    {
+      key = *path;
+      *path = StringView();
+    }
+    else
+    {
+      key = StringView( path->data(), iKeyEnd );
+      *path = path->data() + iKeyEnd + 1;
+    }
+    root = &root->GetChild( key );
+    return root;
+  }
+
+  static Json* SettingsGetValue( StringView path, Json* fallback, Json* root )
+  {
+    Json* leaf = SettingsGetJson( path, root );
+    SettingCheckFallback( leaf, fallback );
+    return leaf;
   }
 
   void SettingsInit( Errors& errors )
@@ -61,62 +96,73 @@ namespace Tac
   Json*                   SettingsGetJson( StringView path, Json* root )
   {
     root = root ? root : &mJson;
-
-    const int iDot = path.find_first_of( "." );
-    if( iDot != StringView::npos )
+    while( !path.empty() )
     {
-      const StringView key( path.data(), iDot );
-      path = path.data() + iDot + 1;
-      root = &root->GetChild( key );
+      Json* oldRoot = root;
+      if( root->mType == JsonType::Object )
+        root = SettingsStepJsonObject( &path, root );
+      TAC_ASSERT( oldRoot != root );
     }
-
-
-    TAC_UNIMPLEMENTED;
-    return nullptr;
+    TAC_ASSERT( root != &mJson );
+    return root;
   }
 
-  StringView              SettingsGetString( StringView path, StringView, Json* )
+  StringView              SettingsGetString( StringView path, StringView fallback, Json* root )
   {
-
-    TAC_UNIMPLEMENTED;
-    return "";
+    return SettingsGetValue( path, &Json( fallback ), root )->mString;
   }
-  StringView              SettingsGetString( Json* json, StringView value )
+
+  void                    SettingsSetString( StringView path, StringView setValue, Json* root )
   {
-    TAC_UNIMPLEMENTED;
-    return "";
+    *SettingsGetJson( path, root ) = setValue;
   }
 
-  StringView              SettingsSetString( Json* json, StringView value )
+  JsonNumber              SettingsGetNumber( StringView path, JsonNumber fallback, Json* root )
   {
-    TAC_UNIMPLEMENTED;
-    return "";
+    return SettingsGetValue( path, &Json( fallback ), root )->mNumber;
   }
 
-  JsonNumber              SettingsGetNumber( Json* json, JsonNumber value )
+  void                    SettingsSetNumber( StringView path, JsonNumber setValue, Json* root )
   {
-    TAC_UNIMPLEMENTED;
-    return 0;
+    *SettingsGetJson( path, root ) = setValue;
   }
 
-  JsonNumber              SettingsSetNumber( Json* json, JsonNumber value )
-  {
-    TAC_UNIMPLEMENTED;
-    return 0;
-  }
+  //StringView              SettingsGetString( Json* json, StringView value )
+  //{
+  //  TAC_ASSERT_UNIMPLEMENTED;
+  //  return "";
+  //}
 
-  bool                    SettingsGetBool( Json* json, bool value )
-  {
-    TAC_UNIMPLEMENTED;
-    return false;
-  }
+  //StringView              SettingsSetString( Json* json, StringView value )
+  //{
+  //  TAC_ASSERT_UNIMPLEMENTED;
+  //  return "";
+  //}
 
-  bool                    SettingsSetBool( Json* json, bool value )
-  {
-    TAC_UNIMPLEMENTED;
+  //JsonNumber              SettingsGetNumber( Json* json, JsonNumber value )
+  //{
+  //  TAC_ASSERT_UNIMPLEMENTED;
+  //  return 0;
+  //}
 
-    return false;
-  }
+  //JsonNumber              SettingsSetNumber( Json* json, JsonNumber value )
+  //{
+  //  TAC_ASSERT_UNIMPLEMENTED;
+  //  return 0;
+  //}
+
+  //bool                    SettingsGetBool( Json* json, bool value )
+  //{
+  //  TAC_ASSERT_UNIMPLEMENTED;
+  //  return false;
+  //}
+
+  //bool                    SettingsSetBool( Json* json, bool value )
+  //{
+  //  TAC_ASSERT_UNIMPLEMENTED;
+
+  //  return false;
+  //}
 
 
   //void Settings::GetSetting( Json* settingTree,

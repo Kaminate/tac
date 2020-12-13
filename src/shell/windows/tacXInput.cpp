@@ -123,7 +123,7 @@ namespace Tac
       case DIERR_OUTOFMEMORY:
         inputCreateErrorMessage= "DIERR_OUTOFMEMORY";
         break;
-        TAC_INVALID_DEFAULT_CASE( hr );
+        TAC_ASSERT_INVALID_DEFAULT_CASE( hr );
     }
     if( inputCreateErrorMessage )
       TAC_RAISE_ERROR( inputCreateErrorMessage, errors );
@@ -197,7 +197,7 @@ namespace Tac
         TAC_ASSERT( hr != DIERR_INVALIDPARAM );
         TAC_ASSERT( hr != DIERR_NOTACQUIRED );
         TAC_ASSERT( hr != DIERR_NOTINITIALIZED );
-        TAC_INVALID_CODE_PATH;
+        TAC_ASSERT_INVALID_CODE_PATH;
       }
 
       ControllerState controllerState = ToControllerState( js );

@@ -52,7 +52,7 @@ static D3D12_COMPARISON_FUNC GetDepthFuncDX12( DepthFunc depthFunc )
   {
   case DepthFunc::Less: return D3D12_COMPARISON_FUNC_LESS;
   case DepthFunc::LessOrEqual: return D3D12_COMPARISON_FUNC_LESS_EQUAL;
-    TAC_INVALID_DEFAULT_CASE( depthFunc );
+    TAC_ASSERT_INVALID_DEFAULT_CASE( depthFunc );
   }
   return D3D12_COMPARISON_FUNC_LESS;
 }
@@ -63,7 +63,7 @@ static D3D12_FILL_MODE GetFillModeDX12( FillMode fillMode )
   {
   case FillMode::Solid: return D3D12_FILL_MODE_SOLID;
   case FillMode::Wireframe:return D3D12_FILL_MODE_WIREFRAME;
-    TAC_INVALID_DEFAULT_CASE( fillMode );
+    TAC_ASSERT_INVALID_DEFAULT_CASE( fillMode );
   }
   return D3D12_FILL_MODE_SOLID;
 }
@@ -75,7 +75,7 @@ static D3D12_CULL_MODE GetCullModeDX12( CullMode cullMode )
   case CullMode::None: return D3D12_CULL_MODE_NONE;
   case CullMode::Back: return D3D12_CULL_MODE_BACK;
   case CullMode::Front: return D3D12_CULL_MODE_FRONT;
-    TAC_INVALID_DEFAULT_CASE( cullMode );
+    TAC_ASSERT_INVALID_DEFAULT_CASE( cullMode );
   }
   return D3D12_CULL_MODE_NONE;
 }
@@ -89,7 +89,7 @@ static D3D12_BLEND GetBlendDX12( BlendConstants blendConstants )
   case BlendConstants::SrcRGB: return D3D12_BLEND_SRC_COLOR;
   case BlendConstants::SrcA: return D3D12_BLEND_SRC_ALPHA;
   case BlendConstants::OneMinusSrcA: return D3D12_BLEND_INV_SRC_ALPHA;
-    TAC_INVALID_DEFAULT_CASE( blendConstants );
+    TAC_ASSERT_INVALID_DEFAULT_CASE( blendConstants );
   }
   return D3D12_BLEND_ONE;
 }
@@ -99,7 +99,7 @@ static D3D12_BLEND_OP GetBlendOpDX12( BlendMode blendMode )
   switch( blendMode )
   {
   case BlendMode::Add: return D3D12_BLEND_OP_ADD;
-    TAC_INVALID_DEFAULT_CASE( blendMode );
+    TAC_ASSERT_INVALID_DEFAULT_CASE( blendMode );
   }
   return D3D12_BLEND_OP_ADD;
 }
@@ -138,7 +138,7 @@ void DX12Window::Submit( Errors& errors )
       case DXGI_ERROR_DEVICE_RESET: errors = "DXGI_ERROR_DEVICE_RESET"; break;
       case DXGI_ERROR_DEVICE_REMOVED: errors = "DXGI_ERROR_DEVICE_REMOVED"; break;
       case DXGI_STATUS_OCCLUDED: errors = "DXGI_STATUS_OCCLUDED"; break;
-          TAC_INVALID_DEFAULT_CASE( hr );
+          TAC_ASSERT_INVALID_DEFAULT_CASE( hr );
       }
       TAC_HANDLE_ERROR( errors );
     }
@@ -1478,7 +1478,7 @@ String RendererDX12::GetDeviceRemovedReason( HRESULT hr )
   case DXGI_ERROR_DRIVER_INTERNAL_ERROR: return "DXGI_ERROR_DRIVER_INTERNAL_ERROR The graphics driver encountered an error and reset the device.";
   case DXGI_ERROR_INVALID_CALL: return "DXGI_ERROR_INVALID_CALL The application provided invalid parameter data.If you get this error even once, it means that your code caused the device removed condition and must be debugged.";
   case S_OK: return "S_OK Returned when a graphics device was enabled, disabled, or reset without invalidating the current graphics device.For example, this error code can be returned if an app is using Windows Advanced Rasterization Platform( WARP ) and a hardware adapter becomes available.";
-      TAC_INVALID_DEFAULT_CASE( hr );
+      TAC_ASSERT_INVALID_DEFAULT_CASE( hr );
   }
   //InvalidCodePath;
   return "";

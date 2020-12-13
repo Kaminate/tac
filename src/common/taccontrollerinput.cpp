@@ -27,7 +27,7 @@ const char* ToString( ControllerButton controllerButton )
   case ControllerButton::B: return "B";
   case ControllerButton::X: return "X";
   case ControllerButton::Y: return "Y";
-    TAC_INVALID_DEFAULT_CASE( controllerButton );
+    TAC_ASSERT_INVALID_DEFAULT_CASE( controllerButton );
   }
   return nullptr;
 }
@@ -64,7 +64,7 @@ ControllerIndex Controller::FindControllerIndex()
   for( ControllerIndex iController = 0; iController < TAC_CONTROLLER_COUNT_MAX; ++iController )
     if( mInput->mControllers[ iController ] == this )
       return iController;
-  TAC_INVALID_CODE_PATH;
+  TAC_ASSERT_INVALID_CODE_PATH;
   return TAC_CONTROLLER_COUNT_MAX;
 }
 bool Controller::IsButtonDown( ControllerButton controllerButton )
@@ -200,7 +200,7 @@ ControllerIndex ControllerInput::AddController( Controller* controller )
     mControllers[ iController ] = controller;
     return iController;
   }
-  TAC_INVALID_CODE_PATH;
+  TAC_ASSERT_INVALID_CODE_PATH;
   return TAC_CONTROLLER_COUNT_MAX;
 }
 

@@ -242,7 +242,7 @@ namespace Tac
         continue;
       return localizedString.mCodepoints.at( language ).mCodepoints;
     }
-    TAC_INVALID_CODE_PATH;
+    TAC_ASSERT_INVALID_CODE_PATH;
     static Vector< Codepoint > result;
     return result;
   }

@@ -153,7 +153,7 @@ namespace Tac
       case AddressMode::Wrap: return D3D11_TEXTURE_ADDRESS_WRAP;
       case AddressMode::Clamp: return D3D11_TEXTURE_ADDRESS_CLAMP;
       case AddressMode::Border: return D3D11_TEXTURE_ADDRESS_BORDER;
-        TAC_INVALID_DEFAULT_CASE( addressMode );
+        TAC_ASSERT_INVALID_DEFAULT_CASE( addressMode );
     }
     return D3D11_TEXTURE_ADDRESS_WRAP;
   }
@@ -164,7 +164,7 @@ namespace Tac
     {
       case Comparison::Always: return D3D11_COMPARISON_ALWAYS;
       case Comparison::Never: return D3D11_COMPARISON_NEVER;
-        TAC_INVALID_DEFAULT_CASE( compare );
+        TAC_ASSERT_INVALID_DEFAULT_CASE( compare );
     }
     return D3D11_COMPARISON_ALWAYS;
   };
@@ -176,7 +176,7 @@ namespace Tac
       case Filter::Linear: return D3D11_FILTER_MIN_MAG_MIP_LINEAR;
       case Filter::Point: return D3D11_FILTER_MIN_MAG_MIP_POINT;
       case Filter::Aniso: return D3D11_FILTER_ANISOTROPIC;
-        TAC_INVALID_DEFAULT_CASE( filter );
+        TAC_ASSERT_INVALID_DEFAULT_CASE( filter );
     }
     return D3D11_FILTER_MIN_MAG_MIP_LINEAR;
   };
@@ -187,7 +187,7 @@ namespace Tac
     {
       case DepthFunc::Less: return D3D11_COMPARISON_LESS;
       case DepthFunc::LessOrEqual: return D3D11_COMPARISON_LESS_EQUAL;
-        TAC_INVALID_DEFAULT_CASE( depthFunc );
+        TAC_ASSERT_INVALID_DEFAULT_CASE( depthFunc );
     }
     return D3D11_COMPARISON_LESS;
   }
@@ -199,7 +199,7 @@ namespace Tac
       case Access::Default: return D3D11_USAGE_DEFAULT;
       case Access::Dynamic: return D3D11_USAGE_DYNAMIC;
       case Access::Static: return D3D11_USAGE_IMMUTABLE;
-        TAC_INVALID_DEFAULT_CASE( access );
+        TAC_ASSERT_INVALID_DEFAULT_CASE( access );
     }
     return D3D11_USAGE_DEFAULT;
   }
@@ -270,7 +270,7 @@ namespace Tac
     {
       case FillMode::Solid: return D3D11_FILL_SOLID;
       case FillMode::Wireframe: return D3D11_FILL_WIREFRAME;
-        TAC_INVALID_DEFAULT_CASE( fillMode );
+        TAC_ASSERT_INVALID_DEFAULT_CASE( fillMode );
     }
     return ( D3D11_FILL_MODE )0;
   }
@@ -282,7 +282,7 @@ namespace Tac
       case CullMode::None: return D3D11_CULL_NONE;
       case CullMode::Back: return D3D11_CULL_BACK;
       case CullMode::Front: return D3D11_CULL_FRONT;
-        TAC_INVALID_DEFAULT_CASE( cullMode );
+        TAC_ASSERT_INVALID_DEFAULT_CASE( cullMode );
     }
     return ( D3D11_CULL_MODE )0;
   }

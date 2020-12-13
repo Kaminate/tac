@@ -23,7 +23,7 @@ namespace Tac
     {
       case AddressFamily::IPv4: return AF_INET;
       case AddressFamily::IPv6: return AF_INET6;
-        TAC_INVALID_DEFAULT_CASE( addressFamily );
+        TAC_ASSERT_INVALID_DEFAULT_CASE( addressFamily );
     }
     return 0;
   }
@@ -34,7 +34,7 @@ namespace Tac
     {
       case SocketType::TCP: return SOCK_STREAM;
       case SocketType::UDP: return SOCK_DGRAM;
-        TAC_INVALID_DEFAULT_CASE( socketType );
+        TAC_ASSERT_INVALID_DEFAULT_CASE( socketType );
     }
     return 0;
   }

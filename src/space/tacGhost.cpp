@@ -124,7 +124,7 @@ namespace Tac
     if( serverType == serverTypeGameClient )
       child = TAC_NEW ScriptGameClient;
     else
-      TAC_INVALID_CODE_PATH;
+      TAC_ASSERT_INVALID_CODE_PATH;
     mScriptRoot->AddChild( child );
     TAC_HANDLE_ERROR( errors );
     if( mShouldPopulateWorldInitial )
@@ -392,7 +392,7 @@ namespace Tac
 
     if( mSplashAlpha )
     {
-      TAC_INVALID_CODE_PATH;
+      TAC_ASSERT_INVALID_CODE_PATH;
       //v4 color( 0, 0, 0, mSplashAlpha );
       //m4 world = m4::Identity();
       //m4 view = m4::Identity();

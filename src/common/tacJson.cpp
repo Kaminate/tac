@@ -43,7 +43,9 @@ namespace Tac
 		json->Clear();
 		parseData->EatWhitespace();
 		const char* b = parseData->PeekByte();
-		TAC_HANDLE_ERROR_IF( !b, "Failed to parse unknown type", errors );
+    if( !b )
+      return;
+		//TAC_HANDLE_ERROR_IF( !b, "Failed to parse unknown type", errors );
 		const char c = *b;
 		if( c == '{' )
 		{
@@ -225,7 +227,7 @@ namespace Tac
 
 				result += Tab( indentation, tabCount ) + DoubleQuote( childKey ) + ":";
 				result += Contains( { JsonType::Array, JsonType::Object }, childValue->mType ) ? "\n" : " ";
-				result += childValue->Stringify( indentation );
+				result += childValue->Stringify( indentation, tabCount );
 				result += GetSeparator( ( int )mChildren.size() );
 				result += "\n";
 			}
@@ -241,7 +243,7 @@ namespace Tac
 				if( !Contains( { JsonType::Array, JsonType::Object }, element->mType ) )
 					result += Tab( indentation, tabCount );
 				result +=
-					element->Stringify( indentation ) +
+					element->Stringify( indentation, tabCount ) +
 					GetSeparator( ( int )mElements.size() ) +
 					"\n";
 			}

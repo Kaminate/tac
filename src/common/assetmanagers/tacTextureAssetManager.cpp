@@ -281,7 +281,7 @@ namespace Tac
           mLoadedTextures[ key ] = texture;
           break;
         }
-        TAC_INVALID_DEFAULT_CASE( status );
+        TAC_ASSERT_INVALID_DEFAULT_CASE( status );
       }
     }
 

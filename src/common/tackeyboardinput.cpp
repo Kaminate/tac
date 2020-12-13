@@ -52,7 +52,7 @@ namespace Tac
       case Key::Y: return "Y";
       case Key::Z: return "Z";
       case Key::F5: return "f5";
-        TAC_INVALID_DEFAULT_CASE( key );
+        TAC_ASSERT_INVALID_DEFAULT_CASE( key );
     }
     return "";
   }

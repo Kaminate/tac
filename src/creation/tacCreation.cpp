@@ -384,9 +384,11 @@ namespace Tac
 	{
 		/*TAC_PROFILE_BLOCK*/;
 
+    // dont need this
 		//ImGuiSetNextWindowHandle( DesktopWindowHandle() );
-		//ImGuiBegin( "hello" );
-		//ImGuiEnd();
+
+		ImGuiBegin( "hello" );
+		ImGuiEnd();
 
 
 		if( !CreationMainWindow::Instance &&

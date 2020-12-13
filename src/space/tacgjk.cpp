@@ -475,10 +475,10 @@ namespace Tac
           return;
         }
       } break;
-      TAC_INVALID_DEFAULT_CASE( supportCount );
+      TAC_ASSERT_INVALID_DEFAULT_CASE( supportCount );
     }
 
-    auto searchDirLen = Length( mClosestPoint );
+    const float searchDirLen = Length( mClosestPoint );
     if( searchDirLen < 0.001f )
     {
       mIsRunning = false;

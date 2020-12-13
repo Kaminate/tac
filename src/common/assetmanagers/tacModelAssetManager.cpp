@@ -27,7 +27,7 @@ namespace Tac
       case Attribute::Color: return cgltf_attribute_type_color;
       case Attribute::BoneIndex: return cgltf_attribute_type_joints;
       case Attribute::BoneWeight: return cgltf_attribute_type_weights;
-        TAC_INVALID_DEFAULT_CASE( attributeType );
+        TAC_ASSERT_INVALID_DEFAULT_CASE( attributeType );
     }
     return cgltf_attribute_type_invalid;
   }
@@ -43,7 +43,7 @@ namespace Tac
       case cgltf_attribute_type_color: return Attribute::Color;
       case cgltf_attribute_type_joints: return Attribute::BoneIndex;
       case cgltf_attribute_type_weights: return Attribute::BoneWeight;
-        TAC_INVALID_DEFAULT_CASE( attributeType );
+        TAC_ASSERT_INVALID_DEFAULT_CASE( attributeType );
     }
     return Attribute::Count;
   }
@@ -77,7 +77,7 @@ namespace Tac
         dataType->mPerElementByteCount = 4;
         dataType->mPerElementDataType = GraphicsType::real;
         break;
-        TAC_INVALID_DEFAULT_CASE( accessor->component_type );
+        TAC_ASSERT_INVALID_DEFAULT_CASE( accessor->component_type );
     }
     switch( accessor->type )
     {
@@ -85,7 +85,7 @@ namespace Tac
       case cgltf_type_vec2: dataType->mElementCount = 2; break;
       case cgltf_type_vec3: dataType->mElementCount = 3; break;
       case cgltf_type_vec4: dataType->mElementCount = 4; break;
-        TAC_INVALID_DEFAULT_CASE( accessor->type );
+        TAC_ASSERT_INVALID_DEFAULT_CASE( accessor->type );
     }
   }
 
@@ -280,7 +280,7 @@ namespace Tac
               else
               {
                 // todo
-                TAC_INVALID_CODE_PATH;
+                TAC_ASSERT_INVALID_CODE_PATH;
               }
               // copy
               dstElement += dstFormat.mPerElementByteCount;

@@ -68,10 +68,11 @@ namespace Tac
 
 		for( int iLanguage = 0; iLanguage < ( int )Language::Count; ++iLanguage )
 		{
-			auto language = Language( iLanguage );
-			StringView languageString = LanguageToStr( language );
-			String fontFilePathDefault = language == Language::English ? "assets/fonts/english_srcpro.ttf" : "";
-			String fontFilePath = SettingsGetString( SettingsGetJson( "defaultfonts." + languageString ), fontFilePathDefault );
+			const Language language = Language( iLanguage );
+			const StringView languageString = LanguageToStr( language );
+			const String fontFilePathDefault = language == Language::English ? "assets/fonts/english_srcpro.ttf" : "";
+      const String settingPath = "defaultfonts." + languageString;
+      const String fontFilePath = SettingsGetString( settingPath, fontFilePathDefault);
 			if( fontFilePath.empty() )
 				continue;
 

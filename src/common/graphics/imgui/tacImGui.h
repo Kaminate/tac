@@ -23,7 +23,7 @@ namespace Tac
     v2               mMaxi = {};
   };
 
-  void ImGuiBegin( const StringView& );
+  bool ImGuiBegin( const StringView& );
   void ImGuiEnd();
 
   //void ImGuiSetGlobals( // v2 mousePositionDesktopWindowspace,

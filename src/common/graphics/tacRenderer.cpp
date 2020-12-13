@@ -17,7 +17,7 @@ namespace Tac
       case Attribute::BoneIndex: return "BONEINDEX";
       case Attribute::BoneWeight: return "BONEWEIGHT";
       case Attribute::Coeffs: return "COEFFS";
-        TAC_INVALID_DEFAULT_CASE( attribType );
+        TAC_ASSERT_INVALID_DEFAULT_CASE( attribType );
     }
     return nullptr;
   }
