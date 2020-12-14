@@ -208,9 +208,21 @@ namespace Tac
     }
     else
     {
-      DesktopWindowHandle desktopWindowHandle = gNextWindow.mDesktopWindowHandle;
-      const bool owned = desktopWindowHandle.IsValid();
-      if( !owned )
+      DesktopWindowHandle desktopWindowHandle;
+      bool owned;
+      int desktopWindowWidth;
+      int desktopWindowHeight;
+      if( gNextWindow.mDesktopWindowHandle.IsValid() )
+      {
+        const DesktopWindowState* desktopWindowState = GetDesktopWindowState( desktopWindowHandle );
+        TAC_ASSERT( desktopWindowState );
+        TAC_ASSERT( desktopWindowState->mNativeWindowHandle );
+        desktopWindowHandle = gNextWindow.mDesktopWindowHandle;
+        desktopWindowWidth = desktopWindowState->mWidth;
+        desktopWindowHeight = desktopWindowState->mHeight;
+        owned = false;
+      }
+      else
       {
         // vvv --- begin --- move to fn
         Json* windowsJson = SettingsGetJson( "imgui.windows" );
@@ -226,40 +238,36 @@ namespace Tac
 
         int x = 50;
         int y = 50;
-        int w = gNextWindow.mSize.x ? gNextWindow.mSize.x : 800;
-        int h = gNextWindow.mSize.y ? gNextWindow.mSize.y : 600;
+        int w = gNextWindow.mSize.x ? ( int )gNextWindow.mSize.x : 800;
+        int h = gNextWindow.mSize.y ? ( int )gNextWindow.mSize.y : 600;
 
         if( windowJson )
         {
-          x = SettingsGetNumber( "x", x, windowJson );
-          y = SettingsGetNumber( "y", y, windowJson );
-          w = SettingsGetNumber( "w", w, windowJson );
-          h = SettingsGetNumber( "h", h, windowJson );
+          x = ( int )SettingsGetNumber( "x", x, windowJson );
+          y = ( int )SettingsGetNumber( "y", y, windowJson );
+          w = ( int )SettingsGetNumber( "w", w, windowJson );
+          h = ( int )SettingsGetNumber( "h", h, windowJson );
         }
         else
         {
-           windowJson = windowsJson->AddChild();
-           SettingsSetString( "name", name, windowJson );
-           SettingsSetNumber( "x", x, windowJson );
-           SettingsSetNumber( "y", y, windowJson );
-           SettingsSetNumber( "w", w, windowJson );
-           SettingsSetNumber( "h", h, windowJson );
+          windowJson = windowsJson->AddChild();
+          SettingsSetString( "name", name, windowJson );
+          SettingsSetNumber( "x", x, windowJson );
+          SettingsSetNumber( "y", y, windowJson );
+          SettingsSetNumber( "w", w, windowJson );
+          SettingsSetNumber( "h", h, windowJson );
         }
 
         // ^^^ --- begin --- move to fn
         desktopWindowHandle = DesktopAppCreateWindow( x, y, w, h );
+        owned = true;
+        desktopWindowWidth = w;
+        desktopWindowHeight = h;
       }
 
-
-      const DesktopWindowState* desktopWindowState = GetDesktopWindowState( desktopWindowHandle );
-      TAC_ASSERT( desktopWindowState );
-      TAC_ASSERT( desktopWindowState->mNativeWindowHandle );
-
-      const v2 desktopWindowPos( ( float )desktopWindowState->mX, ( float )desktopWindowState->mY );
-
       v2 size = gNextWindow.mSize;
-      size.x += size.x > 0 ? 0 : desktopWindowState->mWidth;
-      size.y += size.y > 0 ? 0 : desktopWindowState->mHeight;
+      size.x += size.x > 0 ? 0 : desktopWindowWidth;
+      size.y += size.y > 0 ? 0 : desktopWindowHeight;
 
       TAC_ASSERT( desktopWindowHandle.IsValid() );
       window = TAC_NEW ImGuiWindow;
@@ -284,7 +292,9 @@ namespace Tac
     ImGuiGlobals::Instance.mWindowStack.push_back( window );
     ImGuiGlobals::Instance.mCurrentWindow = window;
     window->BeginFrame();
-    return true;
+
+    const DesktopWindowState* desktopWindowState = GetDesktopWindowState( window->mDesktopWindowHandle );
+    return desktopWindowState->mNativeWindowHandle;
   }
 
   void ImGuiEnd()

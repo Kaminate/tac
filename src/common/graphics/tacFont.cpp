@@ -66,12 +66,12 @@ namespace Tac
 		mRowCount = ( int )std::sqrt( maxCells );
 		const int atlasVramByteCount = mRowCount * mRowCount * bytesPerCell;
 
-		for( int iLanguage = 0; iLanguage < ( int )Language::Count; ++iLanguage )
-		{
-			const Language language = Language( iLanguage );
-			const StringView languageString = LanguageToStr( language );
-			const String fontFilePathDefault = language == Language::English ? "assets/fonts/english_srcpro.ttf" : "";
-      const String settingPath = "defaultfonts." + languageString;
+    for( int iLanguage = 0; iLanguage < ( int )Language::Count; ++iLanguage )
+    {
+      const Language language = Language( iLanguage );
+      const StringView languageString = LanguageToStr( language );
+      const String fontFilePathDefault = language == Language::English ? "assets/fonts/english_srcpro.ttf" : "";
+      const String settingPath = Join( { "defaultfonts", languageString }, "." );
       const String fontFilePath = SettingsGetString( settingPath, fontFilePathDefault);
 			if( fontFilePath.empty() )
 				continue;

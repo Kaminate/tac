@@ -15,86 +15,86 @@
 
 namespace Tac
 {
-	static Json* GetNSysPath()
-	{
-		return SettingsGetJson( "SystemWindow.nSys" );
-	}
+  static const char* GetNSysPath()
+  {
+    return "SystemWindow.nSys";
+  }
 
-	CreationSystemWindow* CreationSystemWindow::Instance = nullptr;
-	CreationSystemWindow::CreationSystemWindow()
-	{
-		Instance = this;
-	}
-	CreationSystemWindow::~CreationSystemWindow()
-	{
-		Instance = nullptr;
-	}
-	void CreationSystemWindow::Init( Errors& errors )
-	{
-		mSystemName = SettingsGetString( GetNSysPath(), "" );
-		mDesktopWindowHandle = gCreation.CreateWindow( gSystemWindowName );
-	};
-	void CreationSystemWindow::ImGui()
-	{
-		DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
-		if( !desktopWindowState->mNativeWindowHandle )
-			return;
+  CreationSystemWindow* CreationSystemWindow::Instance = nullptr;
+  CreationSystemWindow::CreationSystemWindow()
+  {
+    Instance = this;
+  }
+  CreationSystemWindow::~CreationSystemWindow()
+  {
+    Instance = nullptr;
+  }
+  void CreationSystemWindow::Init( Errors& errors )
+  {
+    mSystemName = SettingsGetString( GetNSysPath(), "" );
+    mDesktopWindowHandle = gCreation.CreateWindow( gSystemWindowName );
+  };
+  void CreationSystemWindow::ImGui()
+  {
+    DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
+    if( !desktopWindowState->mNativeWindowHandle )
+      return;
 
-		ImGuiSetNextWindowHandle( mDesktopWindowHandle );
-		ImGuiBegin( "System Window" );
+    ImGuiSetNextWindowHandle( mDesktopWindowHandle );
+    ImGuiBegin( "System Window" );
 
-		ImGuiText( "hello" );
-		if( ImGuiCollapsingHeader( "Select System" ) )
-		{
-			TAC_IMGUI_INDENT_BLOCK;
-			for( const SystemRegistryEntry& systemRegistryEntry : *SystemRegistry::Instance() )
-			{
-				if( ImGuiButton( systemRegistryEntry.mName ) )
-				{
-					mSystemName = systemRegistryEntry.mName;
-					SettingsSetString( GetNSysPath(), mSystemName );
-				}
-				if( mSystemName == systemRegistryEntry.mName )
-				{
-					ImGuiSameLine();
-					ImGuiText( "<-- currently selected" );
-				}
-			}
-		}
+    ImGuiText( "hello" );
+    if( ImGuiCollapsingHeader( "Select System" ) )
+    {
+      TAC_IMGUI_INDENT_BLOCK;
+      for( const SystemRegistryEntry& systemRegistryEntry : *SystemRegistry::Instance() )
+      {
+        if( ImGuiButton( systemRegistryEntry.mName ) )
+        {
+          mSystemName = systemRegistryEntry.mName;
+          SettingsSetString( GetNSysPath(), mSystemName );
+        }
+        if( mSystemName == systemRegistryEntry.mName )
+        {
+          ImGuiSameLine();
+          ImGuiText( "<-- currently selected" );
+        }
+      }
+    }
 
-		if( !mSystemName.empty() )
-		{
-			const SystemRegistryEntry* systemRegistryEntry = SystemRegistry::Instance()->Find( mSystemName );
-			ImGuiText( systemRegistryEntry->mName );
-			if( systemRegistryEntry->mDebugImGui )
-			{
-				System* system = gCreation.mWorld->GetSystem( systemRegistryEntry );
-				systemRegistryEntry->mDebugImGui( system );
-			}
-		}
+    if( !mSystemName.empty() )
+    {
+      const SystemRegistryEntry* systemRegistryEntry = SystemRegistry::Instance()->Find( mSystemName );
+      ImGuiText( systemRegistryEntry->mName );
+      if( systemRegistryEntry->mDebugImGui )
+      {
+        System* system = gCreation.mWorld->GetSystem( systemRegistryEntry );
+        systemRegistryEntry->mDebugImGui( system );
+      }
+    }
 
-		// to force directx graphics specific window debugging
-		//if( ImGuiButton( "close window" ) )
-		//{
-		//  mDesktopWindow->mRequestDeletion = true;
-		//}
-		ImGuiEnd();
-	}
-	void CreationSystemWindow::Update( Errors& errors )
-	{
-		DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
-		if( !desktopWindowState->mNativeWindowHandle )
-			return;
-		ImGui();
-		const float w = ( float )desktopWindowState->mWidth;
-		const float h = ( float )desktopWindowState->mHeight;
-		const Render::ViewHandle viewHandle = WindowGraphicsGetView( mDesktopWindowHandle );
-		const Render::FramebufferHandle framebufferHandle = WindowGraphicsGetFramebuffer( mDesktopWindowHandle );
-		Render::SetViewFramebuffer( viewHandle, framebufferHandle );
-		Render::SetViewport( viewHandle, Viewport( w, h ) );
-		Render::SetViewScissorRect( viewHandle, ScissorRect( w, h ) );
-		TAC_HANDLE_ERROR( errors );
-	}
+    // to force directx graphics specific window debugging
+    //if( ImGuiButton( "close window" ) )
+    //{
+    //  mDesktopWindow->mRequestDeletion = true;
+    //}
+    ImGuiEnd();
+  }
+  void CreationSystemWindow::Update( Errors& errors )
+  {
+    DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
+    if( !desktopWindowState->mNativeWindowHandle )
+      return;
+    ImGui();
+    const float w = ( float )desktopWindowState->mWidth;
+    const float h = ( float )desktopWindowState->mHeight;
+    const Render::ViewHandle viewHandle = WindowGraphicsGetView( mDesktopWindowHandle );
+    const Render::FramebufferHandle framebufferHandle = WindowGraphicsGetFramebuffer( mDesktopWindowHandle );
+    Render::SetViewFramebuffer( viewHandle, framebufferHandle );
+    Render::SetViewport( viewHandle, Viewport( w, h ) );
+    Render::SetViewScissorRect( viewHandle, ScissorRect( w, h ) );
+    TAC_HANDLE_ERROR( errors );
+  }
 
 
 }

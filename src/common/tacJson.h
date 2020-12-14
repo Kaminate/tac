@@ -39,7 +39,8 @@ namespace Tac
 		Json( JsonNumber );
 		Json( bool );
 		Json();
-		Json( const Json& ) = delete;
+    //Json( const Json& );
+    Json( const Json& ) = delete;
 		~Json();
 
 		// Setters

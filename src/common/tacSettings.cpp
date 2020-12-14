@@ -27,22 +27,32 @@ namespace Tac
     }
   }
 
-  static Json* SettingsStepJsonObject( StringView* path, Json* root )
+  //static Json* SettingsStepJsonObject( StringView* path, Json* root )
+  //{
+  //  //path->remove_prefix( path->starts_with( "." ) || path->starts_with( "[" ) ? 1 : 0 );
+
+  //  StringView key;
+  //  const int iKeyEnd = path->find_first_of( ".]" );
+  //  if( iKeyEnd == StringView::npos )
+  //  {
+  //    key = *path;
+  //    *path = StringView();
+  //  }
+  //  else
+  //  {
+  //    key = StringView( path->data(), iKeyEnd );
+  //    path->remove_prefix( key.size() );
+  //    //path->remove_prefix( path->starts_with( "]" ) ? 1 : 0 );
+  //    path->remove_prefix( 1 );
+  //  }
+  //  root = &root->GetChild( key );
+  //  return root;
+  //}
+
+  static void SettingsSetValue( StringView path, Json* root, Json setValue )
   {
-    StringView key;
-    const int iKeyEnd = path->find_first_of( ".[]" );
-    if( iKeyEnd == StringView::npos )
-    {
-      key = *path;
-      *path = StringView();
-    }
-    else
-    {
-      key = StringView( path->data(), iKeyEnd );
-      *path = path->data() + iKeyEnd + 1;
-    }
-    root = &root->GetChild( key );
-    return root;
+    *SettingsGetJson( path, root ) = setValue;
+    SettingsSave( Errors() );
   }
 
   static Json* SettingsGetValue( StringView path, Json* fallback, Json* root )
@@ -62,6 +72,7 @@ namespace Tac
     }
     auto temporaryMemory = TemporaryMemoryFromFile( SettingsGetSavePath(), errors );
     mJson.Parse( temporaryMemory.data(), ( int )temporaryMemory.size(), errors );
+    //mJson.mType = JsonType::Object;
   }
 
   void SettingsSave( Errors& errors )
@@ -98,10 +109,61 @@ namespace Tac
     root = root ? root : &mJson;
     while( !path.empty() )
     {
+      // Non-leaf nodes are either JsonType::Objects/Arrays
+      StringView oldPath = path;
       Json* oldRoot = root;
-      if( root->mType == JsonType::Object )
-        root = SettingsStepJsonObject( &path, root );
+      if( path.starts_with( "." ) )
+        path.remove_prefix( 1 );
+      if( IsAlpha( *path.data() ) )
+      {
+        root->mType = root->mType == JsonType::Null ? JsonType::Object : root->mType;
+        TAC_ASSERT( root->mType == JsonType::Object );
+        //root = SettingsStepJsonObject( &path, root );
+        const char* keyEnd = path.data();
+        while( keyEnd < path.end() && ( IsSpace( *keyEnd ) || IsAlpha( *keyEnd ) ) )
+          keyEnd++;
+        const StringView key( path.data(), keyEnd );
+        path.remove_prefix( key.size() );
+        root = &root->GetChild( key );
+      }
+      else if( *path.data() == '[' )
+      {
+        root->mType = root->mType == JsonType::Null ? JsonType::Array : root->mType;
+        TAC_ASSERT( root->mType == JsonType::Array );
+        const int iCloseSquareBracket = path.find_first_of( "]" );
+        TAC_ASSERT( iCloseSquareBracket != StringView::npos );
+        const int iElement = Atoi( StringView( path.data() + 1,
+                                               path.data() + iCloseSquareBracket ) );
+        TAC_ASSERT( ( unsigned )iElement < ( unsigned )root->mElements.size() );
+        root = root->mElements[ iElement ];
+        path.remove_prefix( iCloseSquareBracket );
+      }
+
+      //if( root->mType == JsonType::Null )
+      //{
+        //if( IsAlpha( *path.data() ) ) 
+        //  root->mType = JsonType::Object;
+        //if( *path.data() >= '0' && *path.data() <= '9' ) 
+        //  root->mType = JsonType::Array;
+        //if( path.starts_with( "[" ) )
+        //{
+        //}
+        //else if( path.starts_with( "[" ) )
+        //{
+        //  const int iCloseBracket = path.find_first_of( "]" );
+        //  TAC_ASSERT( iCloseBracket != StringView::npos );
+        //  bool numerKey = true;
+        //  for( char c : StringView( path.data() + 1, path.data() + iCloseBracket ) )
+        //    if( !( c >= '0' && c <= '9' ) )
+        //      numerKey = false;
+        //  root->mType = numerKey ? JsonType::Array : JsonType::Object;
+        //}
+    //}
+
+    //if( root->mType == JsonType::Object )
+    //  root = SettingsStepJsonObject( &path, root );
       TAC_ASSERT( oldRoot != root );
+      TAC_ASSERT( oldPath != path );
     }
     TAC_ASSERT( root != &mJson );
     return root;
@@ -114,7 +176,7 @@ namespace Tac
 
   void                    SettingsSetString( StringView path, StringView setValue, Json* root )
   {
-    *SettingsGetJson( path, root ) = setValue;
+    SettingsSetValue( path, root, setValue );
   }
 
   JsonNumber              SettingsGetNumber( StringView path, JsonNumber fallback, Json* root )
@@ -124,7 +186,18 @@ namespace Tac
 
   void                    SettingsSetNumber( StringView path, JsonNumber setValue, Json* root )
   {
-    *SettingsGetJson( path, root ) = setValue;
+    SettingsSetValue( path, root, setValue );
+  }
+
+  bool       SettingsGetBool( StringView path, bool fallback, Json* root )
+  {
+
+    return SettingsGetValue( path, &Json( fallback ), root )->mBoolean;
+  }
+
+  void       SettingsSetBool( StringView path, bool setValue, Json* root )
+  {
+    SettingsSetValue( path, root, setValue );
   }
 
   //StringView              SettingsGetString( Json* json, StringView value )

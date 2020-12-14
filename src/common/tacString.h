@@ -46,6 +46,11 @@ namespace Tac
     int find_first_of( StringView s ) const;
     StringView substr( int pos = 0, int len = npos ) const;
 
+    bool starts_with( StringView s );
+    bool ends_with( StringView s );
+    void remove_prefix( int n );
+    void remove_suffix( int n );
+
     static const int npos = -1; // mimicking the standard library
     const char* mStr = nullptr;
     int mLen = 0;
@@ -93,13 +98,14 @@ namespace Tac
     int mLen = 0; // number of bytes before the null-terminator
     int mAllocatedByteCount = 0; // includes the null-terminator
   };
-
-  String ToString( int i );
-  String ToString( void* val );
-  String ToString( double val );
-  String ToString( float val );
-  String ToString( uint32_t val );
+    
+  String     ToString( int i );
+  String     ToString( void* val );
+  String     ToString( double val );
+  String     ToString( float val );
+  String     ToString( uint32_t val );
   StringView Va( const char* format, ... );
+  int        Atoi( StringView s );
 
   // this is SeparateStrings in tacUtility.h
   //String Join( const String&, std::initializer_list< String > );

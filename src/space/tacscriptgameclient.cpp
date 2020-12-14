@@ -247,8 +247,8 @@ namespace Tac
 		socketCallbackData.mUserData = this;
 		mSocket->mTCPOnConnectionClosed.push_back( socketCallbackData );
 
-		String hostname = SettingsGetString( SettingsGetJson( "hostname" ), defaultHostname );
-		mPort = ( uint16_t )SettingsGetNumber( SettingsGetJson( "port" ), ( JsonNumber )defaultPort );
+		String hostname = SettingsGetString( "hostname" , defaultHostname );
+		mPort = ( uint16_t )SettingsGetNumber( "port" , ( JsonNumber )defaultPort );
 
 		mConnectionAttemptStartSeconds = Shell::Instance.mElapsedSeconds;
 		String text = "Attempting to connect to " + mHostname + ":" + ToString( mPort );
