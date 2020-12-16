@@ -55,17 +55,29 @@ namespace Tac
 
   typedef FixedVector< WantSpawnInfo, kDesktopWindowCapacity > WindowRequests;
 
-  Errors                       gPlatformThreadErrors( Errors::Flags::kDebugBreakOnAppend );
-  Errors                       gLogicThreadErrors( Errors::Flags::kDebugBreakOnAppend );
-  static AppInterfacePlatform  sAppInterfacePlatform;
-  static AppInterfaceProject   sAppInterfaceProject;
-  static std::mutex            sWindowHandleLock;
-  static IdCollection          sDesktopWindowHandleIDs( kDesktopWindowCapacity );
-  static WindowRequests        sWindowRequests;
-  static ThreadAllocator       sAllocatorStuff;
-  static ThreadAllocator       sAllocatorMain;
-  static DesktopEventQueueImpl sEventQueue;
-  thread_local ThreadType      gThreadType = ThreadType::Unknown;
+  Errors                               gPlatformThreadErrors( Errors::Flags::kDebugBreakOnAppend );
+  Errors                               gLogicThreadErrors( Errors::Flags::kDebugBreakOnAppend );
+  static PlatformSpawnWindow           sPlatformSpawnWindow;
+  static PlatformGetMouseHoveredWindow sPlatformGetMouseHoveredWindow;
+  static PlatformFrameEnd              sPlatformFrameEnd;
+  static PlatformFrameBegin            sPlatformFrameBegin;
+  static PlatformWindowMoveControls    sPlatformWindowMoveControls;
+  static PlatformWindowResizeControls  sPlatformWindowResizeControls;
+  static ProjectInit                   sProjectInit;
+  static ProjectUpdate                 sProjectUpdate;
+  static ProjectUninit                 sProjectUninit;
+  static std::mutex                    sWindowHandleLock;
+  static IdCollection                  sDesktopWindowHandleIDs( kDesktopWindowCapacity );
+  static WindowRequests                sWindowRequests;
+  static ThreadAllocator               sAllocatorStuff;
+  static ThreadAllocator               sAllocatorMain;
+  static DesktopEventQueueImpl         sEventQueue;
+  thread_local ThreadType              gThreadType = ThreadType::Unknown;
+
+  WindowHandleIterator::WindowHandleIterator() { sWindowHandleLock.lock(); }
+  WindowHandleIterator::~WindowHandleIterator() { sWindowHandleLock.unlock(); }
+  int* WindowHandleIterator::begin() { return sDesktopWindowHandleIDs.begin(); }
+  int* WindowHandleIterator::end() { return sDesktopWindowHandleIDs.end(); }
 
   void DesktopEventQueueImpl::Init()
   {
@@ -154,7 +166,7 @@ namespace Tac
     sEventQueue.Init();
   }
 
-  void DesktopEventApplyQueue( DesktopWindowState* desktopWindowStates )
+  void DesktopEventApplyQueue()// DesktopWindowState* desktopWindowStates )
   {
     TAC_ASSERT( gThreadType == ThreadType::Stuff );
     while( !sEventQueue.Empty() )
@@ -170,7 +182,8 @@ namespace Tac
           DesktopEventDataAssignHandle data;
           sEventQueue.QueuePop( &data, sizeof( data ) );
           DesktopWindowState* desktopWindowState = GetDesktopWindowState( data.mDesktopWindowHandle );
-          if( !desktopWindowState->mNativeWindowHandle )
+          if( desktopWindowState->mNativeWindowHandle != data.mNativeWindowHandle )
+          //if( !desktopWindowState->mNativeWindowHandle )
           {
             WindowGraphicsNativeHandleChanged( data.mDesktopWindowHandle,
                                                data.mNativeWindowHandle,
@@ -354,7 +367,7 @@ namespace Tac
     Shell::Instance.Init( errors );
     TAC_HANDLE_ERROR( errors );
 
-		SettingsInit( errors );
+    SettingsInit( errors );
     TAC_HANDLE_ERROR( errors );
 
     TAC_NEW ProfileSystem;
@@ -364,23 +377,30 @@ namespace Tac
     gFontStuff.Load( errors );
     TAC_HANDLE_ERROR( errors );
 
-    sAppInterfaceProject.mProjectInit( errors );
+    ImGuiInit();
+
+    sProjectInit( errors );
     TAC_HANDLE_ERROR( errors );
+  }
+
+  static void LogicThreadUninit()
+  {
+    ImGuiUninit();
   }
 
   static void LogicThread()
   {
     Errors& errors = gLogicThreadErrors;
-    TAC_ON_DESTRUCT( if( errors.size() ) OS::mShouldStopRunning = true );
+    TAC_ON_DESTRUCT( LogicThreadUninit(); if( errors.size() ) OS::StopRunning(); );
     LogicThreadInit( errors );
     TAC_HANDLE_ERROR( errors );
 
-    while( !OS::mShouldStopRunning )
+    while( OS::IsRunning() )
     {
       gKeyboardInput.BeginFrame();
 
       ImGuiFrameBegin( Shell::Instance.mElapsedSeconds,
-                       sAppInterfacePlatform.mPlatformGetMouseHoveredWindow() );
+                       sPlatformGetMouseHoveredWindow() );
 
       if( ControllerInput::Instance )
         ControllerInput::Instance->Update();
@@ -389,8 +409,8 @@ namespace Tac
       TAC_HANDLE_ERROR( errors );
 
 
-			DesktopEventApplyQueue( GetDesktopWindowState( 0 ) );
-      sAppInterfaceProject.mProjectUpdate( errors );
+      DesktopEventApplyQueue();// GetDesktopWindowState( 0 ) );
+      sProjectUpdate( errors );
       TAC_HANDLE_ERROR( errors );
 
       ImGuiFrameEnd( errors );
@@ -404,6 +424,11 @@ namespace Tac
     }
   }
 
+  static void PlatformThreadUninit()
+  {
+
+  }
+
   static void PlatformThreadInit( Errors& errors )
   {
     gThreadType = ThreadType::Main;
@@ -414,16 +439,19 @@ namespace Tac
   static void PlatformThread()
   {
     Errors& errors = gPlatformThreadErrors;
-    TAC_ON_DESTRUCT( if( errors.size() ) OS::mShouldStopRunning = true );
+    TAC_ON_DESTRUCT( PlatformThreadUninit();  if( errors.size() ) OS::StopRunning(); );
     PlatformThreadInit( errors );
     TAC_HANDLE_ERROR( errors );
 
-    while( !OS::mShouldStopRunning )
+    while( OS::IsRunning() )
     {
-      sAppInterfacePlatform.mPlatformPoll( errors );
+      sPlatformFrameBegin( errors );
       TAC_HANDLE_ERROR( errors );
 
       DesktopAppUpdate( errors );
+      TAC_HANDLE_ERROR( errors );
+
+      sPlatformFrameEnd( errors );
       TAC_HANDLE_ERROR( errors );
 
       Render::RenderFrame( errors );
@@ -433,7 +461,15 @@ namespace Tac
     }
   }
 
-  void DesktopAppInit( AppInterfacePlatform appInterfacePlatform, Errors& errors )
+  void DesktopAppInit( // PlatformPoll      platformPoll,
+                       PlatformSpawnWindow platformSpawnWindow,
+                       PlatformGetMouseHoveredWindow platformGetMouseHoveredWindow,
+                       PlatformFrameBegin platformFrameBegin,
+                       PlatformFrameEnd platformFrameEnd,
+                       PlatformWindowMoveControls platformWindowMoveControls,
+                       PlatformWindowResizeControls platformWindowResizeControls,
+                       //PlatformWindowResizeControls platformWindowResizeControls,
+                       Errors& errors )
   {
     sEventQueue.Init();
 
@@ -462,9 +498,18 @@ namespace Tac
     OS::GetWorkingDir( workingDir, errors );
     TAC_HANDLE_ERROR( errors );
 
-    sAppInterfacePlatform = appInterfacePlatform;
-    sAppInterfaceProject.mProjectInit = info.mProjectInit;
-    sAppInterfaceProject.mProjectUpdate = info.mProjectUpdate;
+    // Platform functions
+    sPlatformSpawnWindow = platformSpawnWindow;
+    sPlatformGetMouseHoveredWindow = platformGetMouseHoveredWindow;
+    sPlatformFrameEnd = platformFrameEnd;
+    sPlatformFrameBegin = platformFrameBegin;
+    sPlatformWindowMoveControls = platformWindowMoveControls;
+    sPlatformWindowResizeControls = platformWindowResizeControls;
+
+    // Project functions
+    sProjectInit = info.mProjectInit;
+    sProjectUpdate = info.mProjectUpdate;
+    sProjectUninit = info.mProjectUninit;
 
     // right place?
     Shell::Instance.mAppName = appName;
@@ -489,26 +534,6 @@ namespace Tac
       thread.join();
   }
 
-  WindowHandleIterator::WindowHandleIterator()
-  {
-    sWindowHandleLock.lock();
-  }
-
-  WindowHandleIterator::~WindowHandleIterator()
-  {
-    sWindowHandleLock.unlock();
-
-  }
-
-  int* WindowHandleIterator::begin()
-  {
-    return sDesktopWindowHandleIDs.begin();
-  }
-
-  int* WindowHandleIterator::end()
-  {
-    return sDesktopWindowHandleIDs.end();
-  }
 
   void DesktopAppUpdate( Errors& errors )
   {
@@ -516,14 +541,29 @@ namespace Tac
     sWindowHandleLock.lock();
     requests = sWindowRequests;
     sWindowHandleLock.unlock();
-    for( WantSpawnInfo info : requests )
-      sAppInterfacePlatform.mPlatformSpawnWindow( info.mHandle,
-                                                  info.mX,
-                                                  info.mY,
-                                                  info.mWidth,
-                                                  info.mHeight );
     sWindowRequests.clear();
+    for( WantSpawnInfo info : requests )
+      sPlatformSpawnWindow( info.mHandle,
+                            info.mX,
+                            info.mY,
+                            info.mWidth,
+                            info.mHeight );
   }
+
+  void                           DesktopAppResizeControls( const DesktopWindowHandle& desktopWindowHandle, int edgePx )
+  {
+    sPlatformWindowResizeControls( desktopWindowHandle, edgePx );
+  }
+
+  void                           DesktopAppMoveControls( const DesktopWindowHandle& desktopWindowHandle, DesktopWindowRect rect )
+  {
+    sPlatformWindowMoveControls( desktopWindowHandle, rect );
+  }
+
+  //void                           DesktopAppResizeControls( const DesktopWindowHandle& desktopWindowHandle )
+  //{
+  //  sPlatformWindowResizeControls( desktopWindowHandle );
+  //}
 
   DesktopWindowHandle DesktopAppCreateWindow( int x, int y, int width, int height )
   {

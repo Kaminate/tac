@@ -10,5 +10,6 @@ namespace Tac
                                   int width,
                                   int height );
   DesktopWindowHandle Win32WindowManagerGetCursorUnobscuredWindow();
+  DesktopWindowHandle Win32WindowManagerFindWindow( HWND hwnd );
 }
 

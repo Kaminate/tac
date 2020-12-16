@@ -18,21 +18,29 @@ namespace Tac
     Stuff
   };
 
-  struct AppInterfaceProject
-  {
-    void( *mProjectInit )( Errors& ) = 0;
-    void( *mProjectUpdate )( Errors& ) = 0;
-  };
+  typedef void( *ProjectInit )( Errors& );
+  typedef void( *ProjectUpdate )( Errors& );
+  typedef void( *ProjectUninit )( Errors& );
+  //typedef void( *PlatformPoll )( Errors& );
+  typedef void( *PlatformFrameBegin )(Errors&);
+  typedef void( *PlatformFrameEnd )(Errors&);
+  typedef void( *PlatformSpawnWindow )( const DesktopWindowHandle& handle,
+                                        int x,
+                                        int y,
+                                        int width,
+                                        int height );
+  typedef DesktopWindowHandle( *PlatformGetMouseHoveredWindow )( );
+  typedef void( *PlatformWindowMoveControls )( const DesktopWindowHandle&, const DesktopWindowRect&);
+  typedef void( *PlatformWindowResizeControls )( const DesktopWindowHandle&, int );
 
-  struct AppInterfacePlatform
+  struct ExecutableStartupInfo
   {
-    void( *mPlatformPoll )( Errors& );
-    void( *mPlatformSpawnWindow )( const DesktopWindowHandle& handle,
-                                   int x,
-                                   int y,
-                                   int width,
-                                   int height );
-    DesktopWindowHandle( *mPlatformGetMouseHoveredWindow )( );
+    void          Init( Errors& );
+    String        mAppName;
+    String        mStudioName = "Sleeping Studio";
+    ProjectInit   mProjectInit;
+    ProjectUpdate mProjectUpdate;
+    ProjectUninit mProjectUninit;
   };
 
   struct WindowHandleIterator
@@ -43,34 +51,38 @@ namespace Tac
     int* end();
   };
 
-  void DesktopEventInit();
-  void DesktopEventAssignHandle( DesktopWindowHandle,
-                                        const void* nativeWindowHandle,
-                                        int x,
-                                        int y,
-                                        int w,
-                                        int h );
-  void DesktopEventMoveWindow( DesktopWindowHandle,
-                                      int x,
-                                      int y );
-  void DesktopEventResizeWindow( DesktopWindowHandle,
-                                        int w,
-                                        int h );
-  void DesktopEventKeyState( Key, bool );
-  void DesktopEventKeyInput( Codepoint );
-  void DesktopEventMouseWheel( int ticks );
-  void DesktopEventMouseMove( DesktopWindowHandle, int x, int y );
-  void DesktopEventMouseHoveredWindow( DesktopWindowHandle );
-  void DesktopEventApplyQueue( DesktopWindowState* );
-
-  void                           DesktopAppInit( AppInterfacePlatform, Errors& );
+  void                           DesktopEventInit();
+  void                           DesktopEventAssignHandle( DesktopWindowHandle,
+                                                           const void* nativeWindowHandle,
+                                                           int x,
+                                                           int y,
+                                                           int w,
+                                                           int h );
+  void                           DesktopEventMoveWindow( DesktopWindowHandle,
+                                                         int x,
+                                                         int y );
+  void                           DesktopEventResizeWindow( DesktopWindowHandle,
+                                                           int w,
+                                                           int h );
+  void                           DesktopEventKeyState( Key, bool );
+  void                           DesktopEventKeyInput( Codepoint );
+  void                           DesktopEventMouseWheel( int ticks );
+  void                           DesktopEventMouseMove( DesktopWindowHandle, int x, int y );
+  void                           DesktopEventMouseHoveredWindow( DesktopWindowHandle );
+  void                           DesktopEventApplyQueue();// DesktopWindowState* );
+  void                           DesktopAppInit( PlatformSpawnWindow,
+                                                 PlatformGetMouseHoveredWindow,
+                                                 PlatformFrameBegin,
+                                                 PlatformFrameEnd,
+                                                 PlatformWindowMoveControls,
+                                                 PlatformWindowResizeControls,
+                                                 Errors& );
   void                           DesktopAppRun( Errors& );
   DesktopWindowHandle            DesktopAppCreateWindow( int x, int y, int width, int height );
   void                           DesktopAppUpdate( Errors& );
-
+  void                           DesktopAppResizeControls( const DesktopWindowHandle&, int );
+  void                           DesktopAppMoveControls( const DesktopWindowHandle&, DesktopWindowRect windowSpaceRect );
   extern Errors                  gPlatformThreadErrors;
   extern Errors                  gLogicThreadErrors;
   extern thread_local ThreadType gThreadType;
-
-
 }

@@ -99,26 +99,41 @@ namespace Tac
 
     enum class UniformBufferEntryType
     {
+      Unknown = 0,
       DebugGroupBegin,
       DebugMarker,
       DebugGroupEnd,
       UpdateConstantBuffer,
     };
 
+    struct UniformBufferHeader
+    {
+      UniformBufferHeader() = default;
+      UniformBufferHeader( UniformBufferEntryType, StackFrame );
+      UniformBufferEntryType mType = UniformBufferEntryType::Unknown;
+      StackFrame             mStackFrame;
+      int                    mCorruption = 0xd34db33f;
+    };
+
     struct UniformBuffer
     {
-      void             PushType( UniformBufferEntryType );
-      void             PushData( const void*, int );
-      void             PushString( StringView );
-      void             PushNumber( int );
-      int              size() const;
-      void*            data() const;
-      void             clear();
+      struct Pusher
+      {
+        virtual Pusher*        PushData( const void*, int ) = 0;
+        virtual Pusher*        PushString( StringView ) = 0;
+        virtual Pusher*        PushNumber( int ) = 0;
+      };
+
+      Pusher*                  PushHeader( UniformBufferHeader );
+      int                      size() const;
+      void*                    data() const;
+      void                     clear();
+
 
       struct Iterator
       {
         Iterator( const UniformBuffer*, int iBegin, int iEnd );
-        UniformBufferEntryType PopType();
+        UniformBufferHeader    PopHeader();
         void*                  PopData( int );
         int                    PopNumber();
         StringView             PopString();
@@ -127,9 +142,9 @@ namespace Tac
       };
 
     private:
-      static const int kByteCapacity = 256 * 1024;
-      char             mBytes[ kByteCapacity ] = {};
-      int              mByteCount = 0;
+      static const int         kByteCapacity = 256 * 1024;
+      char                     mBytes[ kByteCapacity ] = {};
+      int                      mByteCount = 0;
     };
 
     struct View

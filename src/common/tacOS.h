@@ -47,7 +47,8 @@ namespace Tac
     // and accessed through MouseInput
     void        GetScreenspaceCursorPos( v2& pos, Errors& );
     void        SetScreenspaceCursorPos( const v2& pos, Errors& );
-    extern bool mShouldStopRunning;
+    bool        IsRunning();
+    void        StopRunning();
     String      GetDefaultRendererName();
   };
 

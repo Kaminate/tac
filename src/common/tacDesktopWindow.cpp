@@ -54,5 +54,29 @@ namespace Tac
   //{
   //  return lhs.mIndex == rhs.mIndex;
   //}
-}
 
+  DesktopWindowRect           GetDesktopWindowRectScreenspace( DesktopWindowHandle desktopWindowHandle)
+  {
+    DesktopWindowState* desktopWindowState = GetDesktopWindowState( desktopWindowHandle );
+    DesktopWindowRect desktopWindowRect;
+    desktopWindowRect.mTop = desktopWindowState->mY;
+    desktopWindowRect.mBottom = desktopWindowState->mY + desktopWindowState->mHeight;
+    desktopWindowRect.mLeft = desktopWindowState->mX;
+    desktopWindowRect.mRight = desktopWindowState->mX + desktopWindowState->mWidth;
+    return desktopWindowRect;
+  }
+
+  DesktopWindowRect           GetDesktopWindowRectWindowspace( DesktopWindowHandle desktopWindowHandle)
+  {
+    DesktopWindowState* desktopWindowState = GetDesktopWindowState( desktopWindowHandle );
+    DesktopWindowRect desktopWindowRect;
+    desktopWindowRect.mTop = 0;
+    desktopWindowRect.mBottom = desktopWindowState->mHeight;
+    desktopWindowRect.mLeft = 0;
+    desktopWindowRect.mRight = desktopWindowState->mWidth;
+    return desktopWindowRect;
+
+  }
+
+
+}

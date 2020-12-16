@@ -5,10 +5,12 @@ namespace Tac
 {
   namespace OS
   {
+    static bool mStopRunRequested = false;
 
-    bool mShouldStopRunning = false;
+    bool        IsRunning() { return !mStopRunRequested; }
+    void        StopRunning() { mStopRunRequested = true; }
 
-    void CreateFolderIfNotExist( StringView path, Errors& errors )
+    void        CreateFolderIfNotExist( StringView path, Errors& errors )
     {
       bool exist;
       DoesFolderExist( path, exist, errors );
@@ -19,7 +21,7 @@ namespace Tac
       TAC_HANDLE_ERROR( errors );
     }
 
-    void OS::DebugAssert( StringView msg, const StackFrame& frame )
+    void        DebugAssert( StringView msg, const StackFrame& frame )
     {
       String s = msg + "\n" + frame.ToString();
       if( !IsDebugMode() )

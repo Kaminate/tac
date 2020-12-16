@@ -1266,6 +1266,9 @@ namespace Tac
 
   void RendererDirectX11::RemoveFramebuffer( Render::FramebufferHandle framebufferHandle, Errors& )
   {
+    for( int i = 0; i < mWindowCount; ++i )
+      if( mWindows[ i ] == framebufferHandle )
+        mWindows[ i ] = mWindows[ --mWindowCount ];
     Framebuffer* framebuffer = &mFramebuffers[ ( int )framebufferHandle ];
     TAC_RELEASE_IUNKNOWN( framebuffer->mDepthStencilView );
     TAC_RELEASE_IUNKNOWN( framebuffer->mDepthTexture );

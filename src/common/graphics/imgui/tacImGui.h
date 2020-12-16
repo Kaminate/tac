@@ -23,6 +23,9 @@ namespace Tac
     v2               mMaxi = {};
   };
 
+  void ImGuiInit();
+  void ImGuiUninit();
+  void ImGuiSaveWindowSettings();
   bool ImGuiBegin( const StringView& );
   void ImGuiEnd();
 

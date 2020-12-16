@@ -11,6 +11,7 @@
 #include "src/shell/windows/tacWin32.h"
 #include "src/shell/windows/tacWin32DesktopWindowManager.h"
 #include "src/shell/windows/tacXInput.h"
+#include "src/shell/windows/tacWin32MouseEdge.h"
 
 namespace Tac
 {
@@ -30,7 +31,8 @@ int CALLBACK WinMain( HINSTANCE hInstance,
   using namespace Tac;
   WinMainAux( hInstance, hPrevInstance, lpCmdLine, nCmdShow );
   auto ReportError = []( StringView desc, Errors& errors ) { if( errors ) {
-      OS::DebugPopupBox( desc + " - " + errors.ToString() ); } };
+    OS::DebugPopupBox( desc + " - " + errors.ToString() );
+  } };
   ReportError( "WinMain", sWinMainErrors );
   ReportError( "Platform thread", gPlatformThreadErrors );
   ReportError( "Logic thread", gLogicThreadErrors );
@@ -39,6 +41,15 @@ int CALLBACK WinMain( HINSTANCE hInstance,
 
 namespace Tac
 {
+  static void Win32FrameBegin( Errors& errors )
+  {
+    Win32WindowManagerPoll( errors );
+  }
+
+  static void Win32FrameEnd( Errors& )
+  {
+    Win32MouseEdgeUpdate();
+  }
 
   // This function exists because TAC_HANDLE_ERROR cannot be used in WinMain
   static void WinMainAux( const HINSTANCE hInstance,
@@ -71,11 +82,17 @@ namespace Tac
     xInput->Init( errors );
     TAC_HANDLE_ERROR( errors );
 
-    AppInterfacePlatform appInterfacePlatform = {};
-    appInterfacePlatform.mPlatformPoll = Win32WindowManagerPoll;
-    appInterfacePlatform.mPlatformSpawnWindow = Win32WindowManagerSpawnWindow;
-    appInterfacePlatform.mPlatformGetMouseHoveredWindow = Win32WindowManagerGetCursorUnobscuredWindow;
-    DesktopAppInit( appInterfacePlatform, errors );
+    Win32MouseEdgeInit();
+
+    DesktopAppInit( // Win32WindowManagerPoll,
+                    Win32WindowManagerSpawnWindow,
+                    Win32WindowManagerGetCursorUnobscuredWindow,
+                    Win32FrameBegin,
+                    Win32FrameEnd,
+                    Win32MouseEdgeSetMovable,
+                    Win32MouseEdgeSetResizable,
+                    //Win32MouseEdgeUpdate,
+                    errors );
     TAC_HANDLE_ERROR( errors );
 
     Win32WindowManagerInit( errors );

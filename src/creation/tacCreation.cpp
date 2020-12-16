@@ -48,7 +48,6 @@ namespace Tac
   {
     TAC_UNUSED_PARAMETER( errors );
     mAppName = "Creation";
-    mStudioName = "Sleeping Studio";
     mProjectInit = CreationInitCallback;
     mProjectUpdate = CreationUpdateCallback;
     mProjectUninit = CreationUninitCallback;
@@ -387,9 +386,24 @@ namespace Tac
     // dont need this
     //ImGuiSetNextWindowHandle( DesktopWindowHandle() );
 
-    ImGuiBegin( "hello" );
+    static bool everOpened;
+    const bool open = ImGuiBegin( "hello" );
+    everOpened |= open;
     ImGuiText( "boobies");
     ImGuiEnd();
+
+    const bool closed = !open && everOpened;
+    if(closed)
+    {
+      static int asdf;
+      ++asdf;
+      OS::StopRunning();
+
+    }
+
+    DesktopWindowState* desktopWindowState = GetDesktopWindowState( { 0 } );
+    kDesktopWindowCapacity;
+
 
 
     if( !CreationMainWindow::Instance &&

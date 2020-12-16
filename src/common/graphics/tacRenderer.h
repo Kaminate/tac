@@ -377,6 +377,7 @@ namespace Tac
     void*                            SubmitAlloc( int byteCount );
     const void*                      SubmitAlloc( const void* bytes, int byteCount );
     ViewHandle                       CreateView();
+    void                             DestroyView(ViewHandle);
     ShaderHandle                     CreateShader( StringView, ShaderSource, ConstantBuffers, StackFrame );
     ConstantBufferHandle             CreateConstantBuffer( StringView,
                                                            int mByteCount,
@@ -454,15 +455,15 @@ namespace Tac
     void                             Submit( ViewHandle, StackFrame );
     void                             GetPerspectiveProjectionAB( float f, float n, float& a, float& b );
     void                             Init( Errors& );
-    void                             BeginGroup( StringView );
-    void                             EndGroup();
+    void                             BeginGroup( StringView, StackFrame );
+    void                             EndGroup( StackFrame );
     void                             UpdateConstantBuffer2( ConstantBufferHandle,
                                                             const void*,
                                                             int,
                                                             StackFrame );
     void                             Uninit();
 
-#define TAC_RENDER_GROUP_BLOCK(text) Render::BeginGroup(text); TAC_ON_DESTRUCT( Render::EndGroup());
+#define TAC_RENDER_GROUP_BLOCK(text) Render::BeginGroup(text, TAC_STACK_FRAME); TAC_ON_DESTRUCT( Render::EndGroup(TAC_STACK_FRAME));
 
   }
 

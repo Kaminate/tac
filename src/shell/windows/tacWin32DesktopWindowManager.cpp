@@ -4,6 +4,7 @@
 #include "src/common/tacErrorHandling.h"
 #include "src/common/tacKeyboardinput.h"
 #include "src/common/tacOS.h"
+#include "src/common/graphics/imgui/tacImGui.h"
 #include "src/common/tacPreprocessor.h"
 #include "src/common/tacSettings.h"
 #include "src/common/tacString.h"
@@ -80,7 +81,7 @@ namespace Tac
     }
   }
 
-  static DesktopWindowHandle FindDesktopWindowHandle( HWND hwnd )
+  DesktopWindowHandle Win32WindowManagerFindWindow( HWND hwnd )
   {
     // this ok?
     for( int i : WindowHandleIterator() )
@@ -100,23 +101,38 @@ namespace Tac
     // Win32DesktopWindow* window = WindowsApplication2::Instance->FindWin32DesktopWindow( hwnd );
     //if( true )// window )
     //{
-    const LRESULT result = 0; // window->HandleWindowProc( uMsg, wParam, lParam );
+    LRESULT result = 0; // window->HandleWindowProc( uMsg, wParam, lParam );
     static bool verboseMouseInWindow = false;
     static bool verboseFocus = false;
     static bool verboseActivate = false;
     static bool verboseCapture = false;
 
-    const DesktopWindowHandle desktopWindowHandle = FindDesktopWindowHandle( hwnd );
+    const DesktopWindowHandle desktopWindowHandle = Win32WindowManagerFindWindow( hwnd );
     if( !desktopWindowHandle.IsValid() )
       return DefWindowProc( hwnd, uMsg, wParam, lParam );
 
     switch( uMsg )
     {
+      // Sent as a signal that a window or an application should terminate.
       case WM_CLOSE: // fallthrough
+      {
+        // Save window settings prior to deleting the window
+        ImGuiSaveWindowSettings();
+        DesktopEventAssignHandle( desktopWindowHandle, nullptr, 0, 0, 0, 0 );
+      } break;
+
+      // Sent when a window is being destroyed
       case WM_DESTROY: // fallthrough
+      {
+        std::cout << "WM_DESTROY" << std::endl;
+
+      } break;
+
+      // Indicates a request to terminate an application
       case WM_QUIT:
       {
-        //mRequestDeletion = true;
+        std::cout << "WM_QUIT" << std::endl;
+        // mRequestDeletion = true;
       } break;
 
       // - the window has already been resized ( if you want to resize the window, 
@@ -156,6 +172,11 @@ namespace Tac
           break;
         DesktopEventKeyState( key, isDown );
       } break;
+
+      //case WM_SETCURSOR:
+      //{
+      //  result = TRUE;
+      //} break;
 
       case WM_SETFOCUS:
       {
@@ -321,7 +342,7 @@ namespace Tac
     const HICON icon = ( HICON )LoadImage( nullptr, "grave.ico", IMAGE_ICON, 0, 0, fuLoad );;
     WNDCLASSEX wc = {};
     wc.cbSize = sizeof( WNDCLASSEX );
-    wc.hCursor = LoadCursor( NULL, IDC_ARROW );
+    wc.hCursor = NULL; // LoadCursor( NULL, IDC_ARROW );
     wc.hIcon = icon;
     wc.hIconSm = NULL; // If null, the system searches for a small icon from the hIcon member
     wc.hInstance = ghInstance;
@@ -392,7 +413,7 @@ namespace Tac
       return DesktopWindowHandle();
 
     const HWND hoveredHwnd = ::WindowFromPoint( cursorPos );
-    const DesktopWindowHandle desktopWindowHandle = FindDesktopWindowHandle( hoveredHwnd );
+    const DesktopWindowHandle desktopWindowHandle = Win32WindowManagerFindWindow( hoveredHwnd );
     return desktopWindowHandle;
   }
 
@@ -447,10 +468,10 @@ namespace Tac
   }
 
   void Win32WindowManagerSpawnWindow( const DesktopWindowHandle& desktopWindowHandle,
-                                  const int x,
-                                  const int y,
-                                  const int requestedWidth,
-                                  const int requestedHeight )
+                                      const int x,
+                                      const int y,
+                                      const int requestedWidth,
+                                      const int requestedHeight )
   {
     DWORD windowStyle = WS_POPUP;
     RECT windowRect = {};

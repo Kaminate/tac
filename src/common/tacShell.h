@@ -31,24 +31,6 @@ namespace Tac
     Language     mLanguage = Language::English;
   };
 
-  //struct UpdateThing
-  //{
-  //  UpdateThing();
-  //  static UpdateThing* Instance;
-  //  virtual void Init( Errors& errors ) = 0;
-  //  virtual void Update( Errors& errors ) = 0;
-  //};
-
-  struct ExecutableStartupInfo
-  {
-    void   Init( Errors& );
-    String mAppName;
-    String mStudioName = "Sleeping Studio";
-    void( *mProjectInit )( Errors& ) = 0;
-    void( *mProjectUpdate )( Errors& ) = 0;
-    void( *mProjectUninit )( Errors& ) = 0;
-  };
-
   //
   // The shell acts as the interface between platform-specific applications
   // and the ghost

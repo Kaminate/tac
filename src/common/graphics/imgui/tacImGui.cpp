@@ -194,17 +194,6 @@ namespace Tac
     ImGuiWindow* window = ImGuiGlobals::Instance.FindWindow( name );
     if( window )
     {
-      //if( window->mDesktopWindowOffsetExists )
-      //{
-      //  const DesktopWindowState* desktopWindowState = GetDesktopWindowState( window->mDesktopWindowHandle );
-      //  if( desktopWindowState )
-      //  {
-      //    const v2 desktopWindowPos(
-      //      ( float )desktopWindowState->mX,
-      //      ( float )desktopWindowState->mY );
-      //    window->mPosViewportSpace = {};
-      //  }
-      //}
     }
     else
     {
@@ -228,13 +217,8 @@ namespace Tac
         Json* windowsJson = SettingsGetJson( "imgui.windows" );
         Json* windowJson = nullptr;
         for( Json* curWindowJson : windowsJson->mElements )
-        {
           if( SettingsGetString( "name", "", curWindowJson ) == name )
-          {
             windowJson = curWindowJson;
-            break;
-          }
-        }
 
         int x = 50;
         int y = 50;
@@ -1026,32 +1010,47 @@ namespace Tac
     ImGuiText( text );
   }
 
+  static void ImGuiRenderWindow( ImGuiWindow* window, Errors& errors )
+  {
+    // The child draw calls are stored in mParent->mDrawdata
+    if( window->mParent )
+      return;
+
+    // remember, these are imguiwindows, not win32windows
+    const char* groupName = va( "imgui for window %s", window->mName.c_str() );
+    TAC_RENDER_GROUP_BLOCK( groupName );
+
+    TAC_ASSERT( window->mDesktopWindowHandle.IsValid() );
+    const DesktopWindowState* desktopWindowState = GetDesktopWindowState( window->mDesktopWindowHandle );
+    if( !desktopWindowState->mNativeWindowHandle )
+      return;
+
+    const Render::ViewHandle viewHandle = WindowGraphicsGetView( window->mDesktopWindowHandle );
+    if( !viewHandle.IsValid() )
+      return;
+
+    if( window->mDesktopWindowHandleOwned )
+    {
+      const float w = ( float )desktopWindowState->mWidth;
+      const float h = ( float )desktopWindowState->mHeight;
+      const Render::FramebufferHandle framebufferHandle = WindowGraphicsGetFramebuffer( window->mDesktopWindowHandle );
+      Render::SetViewFramebuffer( viewHandle, framebufferHandle );
+      Render::SetViewport( viewHandle, Viewport( w, h ) );
+      Render::SetViewScissorRect( viewHandle, ScissorRect( w, h ) );
+    }
+    window->mDrawData->DrawToTexture( viewHandle,
+                                      desktopWindowState->mWidth,
+                                      desktopWindowState->mHeight,
+                                      errors );
+  }
+
   static void ImGuiRender( Errors& errors )
   {
     // this should iteratre through imgui views?
     // and the draw data shouldnt exist, it should just be inlined here
     // in 1 big ass vbo/ibo
     for( ImGuiWindow* window : ImGuiGlobals::Instance.mAllWindows )
-    {
-      // remember, these are imguiwindows, not win32windows
-      const char* groupName = va( "imgui for window %s", window->mName.c_str() );
-      TAC_RENDER_GROUP_BLOCK( groupName );
-
-      // The child draw calls are stored in mParent->mDrawdata
-      if( window->mParent )
-        continue;
-
-
-      // someone drew imgui without waiting for the window to be valid
-      // this is bullshit
-      TAC_ASSERT( window->mDesktopWindowHandle.IsValid() );
-      const Render::ViewHandle viewHandle = WindowGraphicsGetView( window->mDesktopWindowHandle );
-      const DesktopWindowState* desktopWindowState = GetDesktopWindowState( window->mDesktopWindowHandle );
-      window->mDrawData->DrawToTexture( viewHandle,
-                                        desktopWindowState->mWidth,
-                                        desktopWindowState->mHeight,
-                                        errors );
-    }
+      ImGuiRenderWindow( window, errors );
   }
 
   void ImGuiFrameBegin( double elapsedSeconds, const DesktopWindowHandle& mouseHoveredWindow )
@@ -1061,8 +1060,70 @@ namespace Tac
     ImGuiGlobals::Instance.mMouseHoveredWindow = mouseHoveredWindow;
   }
 
+  static bool ImGuiDesktopWindowOwned( DesktopWindowHandle desktopWindowHandle )
+  {
+    for( ImGuiWindow* window : ImGuiGlobals::Instance.mAllWindows )
+      if( window->mDesktopWindowHandleOwned && window->mDesktopWindowHandle == desktopWindowHandle )
+        return true;
+    return false;
+  }
+
   void ImGuiFrameEnd( Errors& errors )
   {
     ImGuiRender( errors );
+
+    //DesktopWindowHandle resizeHandle
+    //  = ImGuiDesktopWindowOwned( ImGuiGlobals::Instance.mMouseHoveredWindow )
+    //  ? ImGuiGlobals::Instance.mMouseHoveredWindow
+    //  : DesktopWindowHandle();
+    //DesktopAppResizeControls( resizeHandle );
+
+    for( ImGuiWindow* window : ImGuiGlobals::Instance.mAllWindows )
+      if( window->mDesktopWindowHandleOwned )
+      {
+        const DesktopWindowRect rect = GetDesktopWindowRectWindowspace( window->mDesktopWindowHandle );
+        DesktopAppResizeControls( window->mDesktopWindowHandle, 7 );
+        DesktopAppMoveControls( window->mDesktopWindowHandle, rect );
+
+      }
+
+    //if( !resizeHandle.IsValid() )
+    //  return;
+  }
+
+  void ImGuiInit()
+  {
+
+  }
+
+  static void ImGuiSaveWindowSettings( ImGuiWindow* window )
+  {
+    Json* windowsJson = SettingsGetJson( "imgui.windows" );
+    Json* windowJson = nullptr;
+    for( Json* curWindowJson : windowsJson->mElements )
+      if( SettingsGetString( "name", "", curWindowJson ) == window->mName )
+        windowJson = curWindowJson;
+
+    windowJson = windowJson ? windowJson : windowsJson->AddChild();
+    DesktopWindowState* desktopWindowState =  GetDesktopWindowState( window->mDesktopWindowHandle );
+    if( !desktopWindowState->mNativeWindowHandle )
+      return;
+    SettingsSetString( "name", window->mName, windowJson );
+    SettingsSetNumber( "x", desktopWindowState->mX, windowJson );
+    SettingsSetNumber( "y", desktopWindowState->mY, windowJson );
+    SettingsSetNumber( "w", desktopWindowState->mWidth, windowJson );
+    SettingsSetNumber( "h", desktopWindowState->mHeight, windowJson );
+  }
+
+  void ImGuiSaveWindowSettings()
+  {
+    for( ImGuiWindow* window : ImGuiGlobals::Instance.mAllWindows )
+      if( window->mDesktopWindowHandleOwned )
+        ImGuiSaveWindowSettings( window );
+  }
+
+  void ImGuiUninit()
+  {
+    ImGuiSaveWindowSettings();
   }
 }

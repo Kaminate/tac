@@ -9,11 +9,13 @@ namespace Tac
 
   Render::FramebufferHandle WindowGraphicsGetFramebuffer( const DesktopWindowHandle& desktopWindowHandle )
   {
+    TAC_ASSERT((unsigned)desktopWindowHandle < kDesktopWindowCapacity);
     return sWindowFramebuffers[ (int)desktopWindowHandle ];
   }
 
   Render::ViewHandle WindowGraphicsGetView( const DesktopWindowHandle& desktopWindowHandle )
   {
+    TAC_ASSERT((unsigned)desktopWindowHandle < kDesktopWindowCapacity);
     return sWindowViews[ (int)desktopWindowHandle ];
   }
 
@@ -24,13 +26,23 @@ namespace Tac
                                           const int w,
                                           const int h )
   {
-    const Render::FramebufferHandle framebufferHandle = Render::CreateFramebuffer( "", nativeWindowHandle, w, h, TAC_STACK_FRAME );
-    const Render::ViewHandle viewHandle = Render::CreateView();
-    sWindowFramebuffers[ (int)desktopWindowHandle ] = framebufferHandle;
-    sWindowViews[ (int)desktopWindowHandle ] = viewHandle;
-    Render::SetViewFramebuffer( viewHandle, framebufferHandle );
-    Render::SetViewScissorRect( viewHandle, ScissorRect( ( float )w, ( float )h ) );
-    Render::SetViewport( viewHandle, Viewport( ( float )w, ( float )h ) );
+    if( nativeWindowHandle )
+    {
+      const Render::FramebufferHandle framebufferHandle = Render::CreateFramebuffer( "", nativeWindowHandle, w, h, TAC_STACK_FRAME );
+      const Render::ViewHandle viewHandle = Render::CreateView();
+      sWindowFramebuffers[ ( int )desktopWindowHandle ] = framebufferHandle;
+      sWindowViews[ ( int )desktopWindowHandle ] = viewHandle;
+      Render::SetViewFramebuffer( viewHandle, framebufferHandle );
+      Render::SetViewScissorRect( viewHandle, ScissorRect( ( float )w, ( float )h ) );
+      Render::SetViewport( viewHandle, Viewport( ( float )w, ( float )h ) );
+    }
+    else
+    {
+      const Render::FramebufferHandle framebufferHandle = WindowGraphicsGetFramebuffer( desktopWindowHandle );
+      const Render::ViewHandle viewHandle = WindowGraphicsGetView( desktopWindowHandle );
+      Render::DestroyFramebuffer( framebufferHandle, TAC_STACK_FRAME );
+      Render::DestroyView( viewHandle );
+    }
   }
 
   void WindowGraphicsResize( const DesktopWindowHandle& desktopWindowHandle,

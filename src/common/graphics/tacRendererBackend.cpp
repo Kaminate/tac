@@ -36,41 +36,52 @@ namespace Tac
   {
 
 
-    void UniformBuffer::PushData( const void* bytes,
-                                  const int byteCount )
+
+
+    UniformBufferHeader::UniformBufferHeader( UniformBufferEntryType type, StackFrame stackFrame )
     {
-      memcpy( mBytes + mByteCount, bytes, byteCount );
-      mByteCount += byteCount;
+      mType = type;
+      mStackFrame = stackFrame;
     }
 
-    void UniformBuffer::PushType( const UniformBufferEntryType type )
+    UniformBuffer::Pusher* UniformBuffer::PushHeader( UniformBufferHeader header )
     {
-      PushData( &type, sizeof( type ) );
+      static thread_local struct UniformBufferPusher : public UniformBuffer::Pusher
+      {
+        Pusher*        PushData( const void* bytes, int byteCount )
+        {
+          MemCpy( mUniformBuffer->mBytes + mUniformBuffer->mByteCount, bytes, byteCount );
+          mUniformBuffer->mByteCount += byteCount;
+          return this;
+        }
+        Pusher*        PushString( StringView s )
+        {
+          PushNumber( s.size() );
+          PushData( s.c_str(), s.size() );
+          PushData( "", 1 );
+          return this;
+        }
+        Pusher*        PushNumber( int i )
+        {
+          return PushData( &i, sizeof( i ) );
+        }
+        UniformBuffer* mUniformBuffer;
+      } sPusher;
+      sPusher.mUniformBuffer = this;
+      return sPusher.PushData( &header, sizeof( header ) );
     }
 
-    void UniformBuffer::PushString( StringView s )
-    {
-      PushNumber( s.size() );
-      PushData( s.c_str(), s.size() );
-      PushData( "", 1 );
-    }
-
-    void UniformBuffer::PushNumber( int i )
-    {
-      PushData( &i, sizeof( i ) );
-    }
-
-    int UniformBuffer::size()const
+    int              UniformBuffer::size()const
     {
       return mByteCount;
     }
 
-    void* UniformBuffer::data()const
+    void*            UniformBuffer::data()const
     {
       return ( void* )mBytes;
     }
 
-    void UniformBuffer::clear()
+    void             UniformBuffer::clear()
     {
       mByteCount = 0;
     }
@@ -85,24 +96,24 @@ namespace Tac
       mEnd = uniformBufferData + iEnd;
     }
 
-    UniformBufferEntryType UniformBuffer::Iterator::PopType()
+    UniformBufferHeader UniformBuffer::Iterator::PopHeader()
     {
-      return *( UniformBufferEntryType* )PopData( sizeof( UniformBufferEntryType ) );
+      return *( UniformBufferHeader* )PopData( sizeof( UniformBufferHeader ) );
     }
 
-    void* UniformBuffer::Iterator::PopData( int byteCount )
+    void*               UniformBuffer::Iterator::PopData( int byteCount )
     {
       auto result = ( void* )mCur;
       mCur += byteCount;
       return result;
     }
 
-    int UniformBuffer::Iterator::PopNumber()
+    int                 UniformBuffer::Iterator::PopNumber()
     {
       return *( int* )PopData( sizeof( int ) );
     }
 
-    StringView UniformBuffer::Iterator::PopString()
+    StringView          UniformBuffer::Iterator::PopString()
     {
       const int len = PopNumber();
       const char* str = ( const char* )PopData( len );
@@ -110,18 +121,18 @@ namespace Tac
       return StringView( str, len );
     }
 
-    void CommandBuffer::Push( const void* bytes,
-                              int byteCount )
+    void        CommandBuffer::Push( const void* bytes,
+                                     int byteCount )
     {
       const int bufferSize = mBuffer.size();
       mBuffer.resize( mBuffer.size() + byteCount );
       MemCpy( mBuffer.data() + bufferSize, bytes, byteCount );
     }
 
-    void CommandBuffer::PushCommand( CommandType type,
-                                     StackFrame stackFrame,
-                                     const void* bytes,
-                                     int byteCount )
+    void        CommandBuffer::PushCommand( CommandType type,
+                                            StackFrame stackFrame,
+                                            const void* bytes,
+                                            int byteCount )
     {
       StringView cheep( "end" );
       Push( &type, sizeof( CommandType ) );
@@ -130,11 +141,11 @@ namespace Tac
       Push( cheep.data(), cheep.size() );
     }
 
-    void CommandBuffer::Resize( int newSize )
+    void        CommandBuffer::Resize( int newSize )
     {
       mBuffer.resize( newSize );
     }
-    void CommandBuffer::Clear()
+    void        CommandBuffer::Clear()
     {
       mBuffer.clear();
     }
@@ -143,7 +154,7 @@ namespace Tac
       return mBuffer.data();
 
     }
-    int CommandBuffer::Size() const
+    int         CommandBuffer::Size() const
     {
 
       return mBuffer.size();
@@ -271,6 +282,11 @@ namespace Tac
       return { mIdCollectionViewId.Alloc() };
     }
 
+    void DestroyView( ViewHandle viewHandle )
+    {
+      mIdCollectionViewId.Free( ( int )viewHandle );
+    }
+
     ShaderHandle CreateShader( StringView name,
                                ShaderSource shaderSource,
                                ConstantBuffers constantBuffers,
@@ -290,7 +306,7 @@ namespace Tac
                                                 sizeof( CommandDataCreateShader ) );
       return shaderHandle;
     }
-    
+
     VertexBufferHandle CreateVertexBuffer( const StringView name,
                                            const int byteCount,
                                            const void* optionalInitialBytes,
@@ -656,20 +672,23 @@ namespace Tac
 
     void SetViewFramebuffer( ViewHandle viewId, FramebufferHandle framebufferHandle )
     {
-      View* view = &gSubmitFrame->mViews[ ( int )viewId ];
+      TAC_ASSERT( ( unsigned )viewId < ( unsigned )kMaxViews )
+        View* view = &gSubmitFrame->mViews[ ( int )viewId ];
       view->mFrameBufferHandle = framebufferHandle;
     }
 
     void SetViewScissorRect( ViewHandle viewId, ScissorRect scissorRect )
     {
-      View* view = &gSubmitFrame->mViews[ ( int )viewId ];
+      TAC_ASSERT( ( unsigned )viewId < ( unsigned )kMaxViews )
+        View* view = &gSubmitFrame->mViews[ ( int )viewId ];
       view->mScissorRect = scissorRect;
       view->mScissorSet = true;
     }
 
     void SetViewport( ViewHandle viewId, Viewport viewport )
     {
-      View* view = &gSubmitFrame->mViews[ ( int )viewId ];
+      TAC_ASSERT( ( unsigned )viewId < ( unsigned )kMaxViews )
+        View* view = &gSubmitFrame->mViews[ ( int )viewId ];
       view->mViewport = viewport;
       view->mViewportSet = true;
     }
@@ -723,26 +742,32 @@ namespace Tac
       gEncoder.mTextureHandle = textureHandle;
     }
 
-    void BeginGroup( StringView name )
+    void BeginGroup( StringView name, StackFrame stackFrame )
     {
-      gSubmitFrame->mUniformBuffer.PushType( UniformBufferEntryType::DebugGroupBegin );
-      gSubmitFrame->mUniformBuffer.PushString( name );
+      TAC_ASSERT( !name.empty() );
+      UniformBufferHeader header( UniformBufferEntryType::DebugGroupBegin, stackFrame );
+      gSubmitFrame->mUniformBuffer.
+        PushHeader( header )->
+        PushString( name );
     }
 
-    void EndGroup()
+    void EndGroup( StackFrame stackFrame )
     {
-      gSubmitFrame->mUniformBuffer.PushType( UniformBufferEntryType::DebugGroupEnd );
+      UniformBufferHeader header( UniformBufferEntryType::DebugGroupEnd, stackFrame );
+      gSubmitFrame->mUniformBuffer.PushHeader( header );
     }
 
     void UpdateConstantBuffer2( ConstantBufferHandle constantBufferHandle,
                                 const void* bytes,
                                 int byteCount,
-                                StackFrame )
+                                StackFrame stackFrame )
     {
-      gSubmitFrame->mUniformBuffer.PushType( UniformBufferEntryType::UpdateConstantBuffer );
-      gSubmitFrame->mUniformBuffer.PushNumber( ( int )constantBufferHandle );
-      gSubmitFrame->mUniformBuffer.PushNumber( byteCount );
-      gSubmitFrame->mUniformBuffer.PushData( bytes, byteCount );
+      UniformBufferHeader header( UniformBufferEntryType::UpdateConstantBuffer, stackFrame );
+      gSubmitFrame->mUniformBuffer.
+        PushHeader( header )->
+        PushNumber( ( int )constantBufferHandle )->
+        PushNumber( byteCount )->
+        PushData( bytes, byteCount );
     }
 
     // need lots of comments pls
@@ -900,8 +925,9 @@ namespace Tac
       UniformBuffer::Iterator iter( uniformBuffer, iUniformBegin, iUniformEnd );
       while( iter.mCur < iter.mEnd )
       {
-        const UniformBufferEntryType type = iter.PopType();
-        switch( type )
+        const UniformBufferHeader header = iter.PopHeader();
+        TAC_ASSERT( header.mCorruption == UniformBufferHeader().mCorruption );
+        switch( header.mType )
         {
           case UniformBufferEntryType::DebugGroupBegin:
           {
@@ -928,7 +954,7 @@ namespace Tac
             commandData.mConstantBufferHandle = constantBufferHandle;
             Renderer::Instance->UpdateConstantBuffer( &commandData, errors );
           } break;
-          TAC_ASSERT_INVALID_DEFAULT_CASE( type )
+          TAC_ASSERT_INVALID_DEFAULT_CASE( header.mType )
         }
       }
     }

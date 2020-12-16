@@ -10,5 +10,7 @@
 namespace Tac
 {
   void Win32MouseEdgeInit();
-  void Win32MouseEdgeUpdate( HWND );
+  void Win32MouseEdgeUpdate();
+  void Win32MouseEdgeSetMovable( const struct DesktopWindowHandle&, const struct DesktopWindowRect& );
+  void Win32MouseEdgeSetResizable( const struct DesktopWindowHandle&, int );
 }

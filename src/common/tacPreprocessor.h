@@ -66,6 +66,7 @@ namespace Tac
     bool operator !=( Handle handle ) const { return mIndex != handle.mIndex; } \
     bool              IsValid() const { return mIndex != -1; }                  \
     explicit operator int() const { return mIndex; }                            \
+    explicit operator unsigned() const { return mIndex; }                       \
     int               mIndex;                                                   \
   };
 
