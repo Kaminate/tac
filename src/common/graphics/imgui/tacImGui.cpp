@@ -197,16 +197,15 @@ namespace Tac
     }
     else
     {
-      DesktopWindowHandle desktopWindowHandle;
+      DesktopWindowHandle desktopWindowHandle = gNextWindow.mDesktopWindowHandle;
       bool owned;
       int desktopWindowWidth;
       int desktopWindowHeight;
-      if( gNextWindow.mDesktopWindowHandle.IsValid() )
+      if( desktopWindowHandle.IsValid() )
       {
         const DesktopWindowState* desktopWindowState = GetDesktopWindowState( desktopWindowHandle );
         TAC_ASSERT( desktopWindowState );
         TAC_ASSERT( desktopWindowState->mNativeWindowHandle );
-        desktopWindowHandle = gNextWindow.mDesktopWindowHandle;
         desktopWindowWidth = desktopWindowState->mWidth;
         desktopWindowHeight = desktopWindowState->mHeight;
         owned = false;
@@ -244,7 +243,6 @@ namespace Tac
 
         // ^^^ --- begin --- move to fn
         desktopWindowHandle = DesktopAppCreateWindow( x, y, w, h );
-        owned = true;
         desktopWindowWidth = w;
         desktopWindowHeight = h;
       }
@@ -258,7 +256,7 @@ namespace Tac
       window->mName = name;
       window->mDrawData = TAC_NEW UI2DDrawData;
       window->mDesktopWindowHandle = desktopWindowHandle;
-      window->mDesktopWindowHandleOwned = owned;
+      window->mDesktopWindowHandleOwned = !gNextWindow.mDesktopWindowHandle.IsValid();
       window->mPosViewport = {};
       window->mSize = size;
       window->mDesktopWindowOffset = {};
@@ -972,9 +970,7 @@ namespace Tac
     window->mIsAppendingToMenu = true;
     v2 size = { window->mSize.x, ImGuiGlobals::Instance.mUIStyle.fontSize + ImGuiGlobals::Instance.mUIStyle.buttonPadding * 2 };
     v4 color = { v3( 69, 45, 83 ) / 255.0f, 1.0f };
-    Render::TextureHandle texture;
-    ImGuiRect* cliprect = nullptr;
-    drawData->AddBox( {}, size, color, texture, cliprect );
+    drawData->AddBox( {}, size, color, Render::TextureHandle(), ( ImGuiRect* )nullptr );
   }
 
   //void ImGuiBeginMenu( const String& label )
@@ -1072,23 +1068,13 @@ namespace Tac
   {
     ImGuiRender( errors );
 
-    //DesktopWindowHandle resizeHandle
-    //  = ImGuiDesktopWindowOwned( ImGuiGlobals::Instance.mMouseHoveredWindow )
-    //  ? ImGuiGlobals::Instance.mMouseHoveredWindow
-    //  : DesktopWindowHandle();
-    //DesktopAppResizeControls( resizeHandle );
-
     for( ImGuiWindow* window : ImGuiGlobals::Instance.mAllWindows )
       if( window->mDesktopWindowHandleOwned )
       {
         const DesktopWindowRect rect = GetDesktopWindowRectWindowspace( window->mDesktopWindowHandle );
         DesktopAppResizeControls( window->mDesktopWindowHandle, 7 );
         DesktopAppMoveControls( window->mDesktopWindowHandle, rect );
-
       }
-
-    //if( !resizeHandle.IsValid() )
-    //  return;
   }
 
   void ImGuiInit()
@@ -1105,7 +1091,7 @@ namespace Tac
         windowJson = curWindowJson;
 
     windowJson = windowJson ? windowJson : windowsJson->AddChild();
-    DesktopWindowState* desktopWindowState =  GetDesktopWindowState( window->mDesktopWindowHandle );
+    DesktopWindowState* desktopWindowState = GetDesktopWindowState( window->mDesktopWindowHandle );
     if( !desktopWindowState->mNativeWindowHandle )
       return;
     SettingsSetString( "name", window->mName, windowJson );

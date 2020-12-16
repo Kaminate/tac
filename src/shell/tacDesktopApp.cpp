@@ -183,7 +183,7 @@ namespace Tac
           sEventQueue.QueuePop( &data, sizeof( data ) );
           DesktopWindowState* desktopWindowState = GetDesktopWindowState( data.mDesktopWindowHandle );
           if( desktopWindowState->mNativeWindowHandle != data.mNativeWindowHandle )
-          //if( !desktopWindowState->mNativeWindowHandle )
+            //if( !desktopWindowState->mNativeWindowHandle )
           {
             WindowGraphicsNativeHandleChanged( data.mDesktopWindowHandle,
                                                data.mNativeWindowHandle,
@@ -558,6 +558,12 @@ namespace Tac
   void                           DesktopAppMoveControls( const DesktopWindowHandle& desktopWindowHandle, DesktopWindowRect rect )
   {
     sPlatformWindowMoveControls( desktopWindowHandle, rect );
+  }
+  void                           DesktopAppMoveControls( const DesktopWindowHandle&desktopWindowHandle )
+  {
+    const DesktopWindowRect desktopWindowRect = GetDesktopWindowRectWindowspace( desktopWindowHandle );
+
+    sPlatformWindowMoveControls( desktopWindowHandle, desktopWindowRect );
   }
 
   //void                           DesktopAppResizeControls( const DesktopWindowHandle& desktopWindowHandle )

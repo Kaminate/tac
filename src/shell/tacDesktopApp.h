@@ -80,8 +80,9 @@ namespace Tac
   void                           DesktopAppRun( Errors& );
   DesktopWindowHandle            DesktopAppCreateWindow( int x, int y, int width, int height );
   void                           DesktopAppUpdate( Errors& );
-  void                           DesktopAppResizeControls( const DesktopWindowHandle&, int );
+  void                           DesktopAppResizeControls( const DesktopWindowHandle&, int edgePx = 7 );
   void                           DesktopAppMoveControls( const DesktopWindowHandle&, DesktopWindowRect windowSpaceRect );
+  void                           DesktopAppMoveControls( const DesktopWindowHandle&);
   extern Errors                  gPlatformThreadErrors;
   extern Errors                  gLogicThreadErrors;
   extern thread_local ThreadType gThreadType;

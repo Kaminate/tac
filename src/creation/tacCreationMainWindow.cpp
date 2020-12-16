@@ -95,7 +95,7 @@ namespace Tac
     if( !desktopWindowState->mNativeWindowHandle )
       return;
 
-		ImGuiSetNextWindowHandle(mDesktopWindowHandle );
+    ImGuiSetNextWindowHandle( mDesktopWindowHandle );
     ImGuiBegin( "Main Window" );
 
 #if 1
@@ -157,6 +157,10 @@ namespace Tac
 
   void CreationMainWindow::Update( Errors& errors )
   {
+
+    DesktopAppResizeControls( mDesktopWindowHandle, 7 );
+    DesktopAppMoveControls( mDesktopWindowHandle );
+
     const Render::FramebufferHandle framebufferHandle = WindowGraphicsGetFramebuffer( mDesktopWindowHandle );
     const Render::ViewHandle viewHandle = WindowGraphicsGetView( mDesktopWindowHandle );
 
@@ -193,7 +197,7 @@ namespace Tac
     if( CreationGameObjectMenuWindow::Instance )
     {
       DesktopWindowHandle desktopWindowHandle = CreationGameObjectMenuWindow::Instance->mDesktopWindowHandle;
-      DesktopWindowState* menu = GetDesktopWindowState(desktopWindowHandle);
+      DesktopWindowState* menu = GetDesktopWindowState( desktopWindowHandle );
       CreationGameObjectMenuWindow::Instance->Update( errors );
       TAC_HANDLE_ERROR( errors );
 

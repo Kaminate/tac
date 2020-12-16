@@ -44,6 +44,17 @@ namespace Tac
   };
   const char* axisNames[] = { "x", "y", "z" };
 
+  static bool AllWindowsClosed()
+  {
+    static int maxWindowCount;
+    int curWindowCount = 0;
+    DesktopWindowState* desktopWindowState = GetDesktopWindowState( { 0 } );
+    for( int i = 0; i < kDesktopWindowCapacity; ++i )
+      curWindowCount += desktopWindowState->mNativeWindowHandle ? 1 : 0;
+    maxWindowCount = Max( maxWindowCount, curWindowCount );
+    return  maxWindowCount && !curWindowCount;
+  }
+
   void ExecutableStartupInfo::Init( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
@@ -386,23 +397,12 @@ namespace Tac
     // dont need this
     //ImGuiSetNextWindowHandle( DesktopWindowHandle() );
 
-    static bool everOpened;
-    const bool open = ImGuiBegin( "hello" );
-    everOpened |= open;
-    ImGuiText( "boobies");
-    ImGuiEnd();
+    // ImGuiBegin( "hello" );
+    //ImGuiText( "boobies" );
+    //ImGuiEnd();
 
-    const bool closed = !open && everOpened;
-    if(closed)
-    {
-      static int asdf;
-      ++asdf;
+    if( AllWindowsClosed() )
       OS::StopRunning();
-
-    }
-
-    DesktopWindowState* desktopWindowState = GetDesktopWindowState( { 0 } );
-    kDesktopWindowCapacity;
 
 
 
@@ -412,7 +412,7 @@ namespace Tac
         !CreationSystemWindow::Instance &&
         !CreationProfileWindow::Instance )
     {
-      //CreateMainWindow( errors );
+      CreateMainWindow( errors );
       //CreateGameWindow( errors );
       //CreatePropertyWindow( errors );
       //CreateSystemWindow( errors );
