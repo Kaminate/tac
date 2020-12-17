@@ -43,6 +43,46 @@ namespace Tac
     "mUp",
   };
   const char* axisNames[] = { "x", "y", "z" };
+  static struct CreatedWindowData
+  {
+    String              mName;
+    int                 mX, mY, mW, mH;
+  } sCreatedWindowData[ kDesktopWindowCapacity ];
+  static void AddCreatedWindowData( DesktopWindowHandle desktopWindowHandle,
+                                    StringView name,
+                                    int x, int y, int w, int h )
+  {
+    CreatedWindowData* createdWindowData = &sCreatedWindowData[ ( int )desktopWindowHandle ];
+    createdWindowData->mName = name;
+    createdWindowData->mX = x;
+    createdWindowData->mY = y;
+    createdWindowData->mW = w;
+    createdWindowData->mH = h;
+  }
+
+  static void UpdateCreatedWindowData()
+  {
+    for( int i = 0; i < kDesktopWindowCapacity; ++i )
+    {
+      DesktopWindowHandle desktopWindowHandle = { i };
+      DesktopWindowState* desktopWindowState = GetDesktopWindowState( desktopWindowHandle );
+      if( !desktopWindowState->mNativeWindowHandle )
+        continue;
+      CreatedWindowData* createdWindowData = &sCreatedWindowData[ i ];
+      const bool same =
+        desktopWindowState->mX == createdWindowData->mX &&
+        desktopWindowState->mY == createdWindowData->mY &&
+        desktopWindowState->mWidth == createdWindowData->mW &&
+        desktopWindowState->mHeight == createdWindowData->mH;
+      if( same )
+        continue;
+      Json* json = gCreation.FindWindowJson( createdWindowData->mName );
+      SettingsSetNumber( "x", createdWindowData->mX = desktopWindowState->mX, json );
+      SettingsSetNumber( "y", createdWindowData->mY = desktopWindowState->mY, json );
+      SettingsSetNumber( "w", createdWindowData->mW = desktopWindowState->mWidth, json );
+      SettingsSetNumber( "h", createdWindowData->mH = desktopWindowState->mHeight, json );
+    }
+  }
 
   static bool AllWindowsClosed()
   {
@@ -139,42 +179,35 @@ namespace Tac
 
   }
 
+
+
+
   DesktopWindowHandle Creation::CreateWindow( StringView name )
   {
     int x, y, w, h;
     GetWindowsJsonData( name, &x, &y, &w, &h );
-    return DesktopAppCreateWindow( x, y, w, h );
+    DesktopWindowHandle desktopWindowHandle = DesktopAppCreateWindow( x, y, w, h );
+    AddCreatedWindowData( desktopWindowHandle, name, x, y, w, h );
+    return desktopWindowHandle;
   }
 
-  void Creation::GetWindowsJsonData( String windowName, int* x, int* y, int* w, int* h )
+  void Creation::GetWindowsJsonData( StringView windowName, int* x, int* y, int* w, int* h )
   {
     Json* windowJson = FindWindowJson( windowName );
     if( !windowJson )
     {
-      *x = 200;
-      *y = 200;
-      *w = 400;
-      *h = 300;
-      return;
+      Json* windows;
+      GetWindowsJson( &windows, Errors() );
+      windowJson = windows->AddChild();
+      SettingsSetString( "Name", windowName, windowJson );
     }
-
-    Errors errors;
-
-    Vector< String > settingsPaths = { "Windows" };
-    auto windowDefault = TAC_NEW Json;
-    ( *windowDefault )[ "Name" ] = gMainWindowName;
-
     *w = ( int )SettingsGetNumber( "w", 400, windowJson );
     *h = ( int )SettingsGetNumber( "h", 300, windowJson );
     *x = ( int )SettingsGetNumber( "x", 200, windowJson );
     *y = ( int )SettingsGetNumber( "y", 200, windowJson );
     const bool centered = ( int )SettingsGetBool( "centered", false, windowJson );
-    TAC_HANDLE_ERROR( errors );
-
     if( centered )
-    {
       CenterWindow( x, y, *w, *h );
-    }
   }
 
 
@@ -400,6 +433,8 @@ namespace Tac
     // ImGuiBegin( "hello" );
     //ImGuiText( "boobies" );
     //ImGuiEnd();
+
+    UpdateCreatedWindowData();
 
     if( AllWindowsClosed() )
       OS::StopRunning();

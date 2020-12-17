@@ -73,7 +73,7 @@ namespace Tac
     DesktopWindowHandle CreateWindow( StringView );
     bool                ShouldCreateWindowNamed( StringView );
     void                GetWindowsJson( Json** outJson, Errors& );
-    void                GetWindowsJsonData( String windowName, int* x, int* y, int* w, int* h );
+    void                GetWindowsJsonData( StringView windowName, int* x, int* y, int* w, int* h );
     Json*               FindWindowJson( StringView windowName );
     String              mOnlyCreateWindowNamed;
     World*              mWorld = nullptr;

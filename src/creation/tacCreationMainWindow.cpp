@@ -157,8 +157,7 @@ namespace Tac
 
   void CreationMainWindow::Update( Errors& errors )
   {
-
-    DesktopAppResizeControls( mDesktopWindowHandle, 7 );
+    DesktopAppResizeControls( mDesktopWindowHandle );
     DesktopAppMoveControls( mDesktopWindowHandle );
 
     const Render::FramebufferHandle framebufferHandle = WindowGraphicsGetFramebuffer( mDesktopWindowHandle );
