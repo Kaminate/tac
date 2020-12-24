@@ -247,53 +247,6 @@ namespace Tac
     return create;
   }
 
-  //void Creation::SetSavedWindowData( Json* windowJson, Errors& errors )
-  //{
-
-    //const StringView name = SettingsLookup({ "Name" }). GetString(  gMainWindowName, errors );
-    //TAC_HANDLE_ERROR( errors );
-
-    //const int width = ( int )SettingsLookup({ "w" }). GetNumber(  , 400, errors );
-    //TAC_HANDLE_ERROR( errors );
-
-    //const int height = ( int )SettingsLookup({ "h" }).GetNumber( windowJson, , 300, errors );
-    //TAC_HANDLE_ERROR( errors );
-
-    //int x = ( int )SettingsLookup({ "x" }).GetNumber( windowJson, , 200, errors );
-    //TAC_HANDLE_ERROR( errors );
-
-    //int y = ( int )SettingsLookup({ "y" }).GetNumber( windowJson, , 200, errors );
-    //TAC_HANDLE_ERROR( errors );
-
-    //const bool centered = ( int )SettingsLookup({ "centered" }).GetBool(  false);
-    //TAC_HANDLE_ERROR( errors );
-
-    //if( centered )
-    //{
-    //  CenterWindow( &x, &y, width, height );
-    //}
-
-    //WindowParams params;
-    //params.mName = name;
-    //params.mWidth = width;
-    //params.mHeight = height;
-    //params.mX = x;
-    //params.mY = y;
-    //DesktopWindowManager::Instance->SetWindowParams( params );
-  //}
-
-  //void Creation::SetSavedWindowsData( Errors& errors )
-  //{
-  //  Json* windows;
-  //  GetWindowsJson( &windows, errors );
-  //  TAC_HANDLE_ERROR( errors );
-  //  for( Json* windowJson : windows->mElements )
-  //  {
-  //    SetSavedWindowData( windowJson, errors );
-  //    TAC_HANDLE_ERROR( errors );
-  //  }
-  //}
-
   void Creation::Init( Errors& errors )
   {
     SpaceInit();

@@ -2,9 +2,9 @@
 
 namespace Tac
 {
-  struct m3;
   struct v3;
   struct v4;
+  struct m3;
   struct m4
   {
     float

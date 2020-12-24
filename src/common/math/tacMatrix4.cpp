@@ -350,7 +350,6 @@ namespace Tac
 
   m4 m4::ProjPerspective( float A, float B, float mFieldOfViewYRad, float mAspectRatio )
   {
-
     //                                                        [ x y z ] 
     //                              [x'y'z']             +-----+
     //                                            +-----/      |
@@ -363,8 +362,8 @@ namespace Tac
     // /---------------------------------+---------------------+
     //
     // <-------------------------- z -------------------------->
-
-
+    //
+    //
     // Note( N8 ):           
     // P' (PROJ)  PROJ                         P( CAM )
     //           [sX * x / -z] = / w = [sX * x] = [sx 0  0 0][x]
@@ -374,20 +373,14 @@ namespace Tac
     //
     // sX = d / (pW / 2) = cot(theta) / aspectRatio
     // sY = d / (pH / 2)
-
     float theta = mFieldOfViewYRad / 2.0f;
     float cotTheta = 1.0f / std::tan( theta );
-
-    // sX, sY map to -1, 1
-    float sX = cotTheta / mAspectRatio;
+    float sX = cotTheta / mAspectRatio; // sX, sY map to -1, 1
     float sY = cotTheta;
-
-
-    return {
-      sX, 0, 0, 0,
-      0, sY, 0, 0,
-      0, 0, A, B,
-      0, 0, -1, 0 };
+    return { sX, 0, 0, 0,
+             0, sY, 0, 0,
+             0, 0, A, B,
+             0, 0, -1, 0 };
   }
 
   m4 m4::ProjPerspectiveInv( float A, float B, float mFieldOfViewYRad, float mAspectRatio )
