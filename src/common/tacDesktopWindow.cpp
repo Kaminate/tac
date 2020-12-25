@@ -7,11 +7,14 @@
 
 namespace Tac
 {
-  // DesktopWindowStates sDesktopWindowStates;
-  // typedef Array< DesktopWindowState, kDesktopWindowCapacity > DesktopWindowStates;
-  // extern DesktopWindowStates         sDesktopWindowStates;
   static DesktopWindowState sDesktopWindowStates[ kDesktopWindowCapacity ];
   static DesktopWindowHandle sMouseHoveredWindowHandle;
+
+  int  DesktopWindowRect::GetArea() const { return GetWidth() * GetHeight(); }
+  bool DesktopWindowRect::IsEmpty() const { return GetArea() == 0; }
+  int  DesktopWindowRect::GetWidth() const { return mRight - mLeft; }
+  int  DesktopWindowRect::GetHeight() const { return mBottom - mTop; }
+
 
   bool                        IsWindowHovered( const DesktopWindowHandle desktopWindowHandle )
   {
@@ -24,7 +27,7 @@ namespace Tac
     sMouseHoveredWindowHandle = desktopWindowHandle;
   }
 
-  void CenterWindow( int *x, int *y, int w, int h )
+  void                        CenterWindow( int *x, int *y, int w, int h )
   {
     int monitorW;
     int monitorH;
@@ -33,29 +36,14 @@ namespace Tac
     *y = ( monitorH - h ) / 2;
   }
 
-  DesktopWindowState* GetDesktopWindowState( const DesktopWindowHandle desktopWindowHandle )
+  DesktopWindowState*         GetDesktopWindowState( const DesktopWindowHandle desktopWindowHandle )
   {
     return desktopWindowHandle.IsValid()
       ? &sDesktopWindowStates[ ( int )desktopWindowHandle ]
       : nullptr;
   }
 
-  //bool AreWindowHandlesEqual( const DesktopWindowHandle& l, const DesktopWindowHandle& r )
-  //{
-  //  return l.mIndex == r.mIndex;
-  //}
-
-  //bool IsWindowHandleValid( const DesktopWindowHandle& desktopWindowHandle )
-  //{
-  //  return desktopWindowHandle.mIndex != -1;
-  //}
-
-  //bool operator == ( const DesktopWindowHandle& rhs, const DesktopWindowHandle& lhs )
-  //{
-  //  return lhs.mIndex == rhs.mIndex;
-  //}
-
-  DesktopWindowRect           GetDesktopWindowRectScreenspace( DesktopWindowHandle desktopWindowHandle)
+  DesktopWindowRect           GetDesktopWindowRectScreenspace( DesktopWindowHandle desktopWindowHandle )
   {
     DesktopWindowState* desktopWindowState = GetDesktopWindowState( desktopWindowHandle );
     DesktopWindowRect desktopWindowRect;
@@ -66,7 +54,7 @@ namespace Tac
     return desktopWindowRect;
   }
 
-  DesktopWindowRect           GetDesktopWindowRectWindowspace( DesktopWindowHandle desktopWindowHandle)
+  DesktopWindowRect           GetDesktopWindowRectWindowspace( DesktopWindowHandle desktopWindowHandle )
   {
     DesktopWindowState* desktopWindowState = GetDesktopWindowState( desktopWindowHandle );
     DesktopWindowRect desktopWindowRect;

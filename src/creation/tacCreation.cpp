@@ -188,6 +188,9 @@ namespace Tac
     GetWindowsJsonData( name, &x, &y, &w, &h );
     DesktopWindowHandle desktopWindowHandle = DesktopAppCreateWindow( x, y, w, h );
     AddCreatedWindowData( desktopWindowHandle, name, x, y, w, h );
+
+    DesktopAppMoveControls( desktopWindowHandle );
+    DesktopAppResizeControls( desktopWindowHandle );
     return desktopWindowHandle;
   }
 

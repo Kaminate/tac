@@ -8,10 +8,14 @@ namespace Tac
 
   struct DesktopWindowRect
   {
-    int mLeft;
-    int mRight;
-    int mBottom;
-    int mTop;
+    int  GetArea() const;
+    bool IsEmpty() const;
+    int  GetWidth() const;
+    int  GetHeight() const;
+    int  mLeft = 0;
+    int  mRight = 0;
+    int  mBottom = 0;
+    int  mTop = 0;
   };
 
   struct DesktopWindowState
