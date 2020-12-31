@@ -29,7 +29,6 @@ namespace Tac
 
   static const int            kDesktopWindowCapacity = 10;
   DesktopWindowState*         GetDesktopWindowState( DesktopWindowHandle );
-  void                        CenterWindow( int *x, int *y, int w, int h );
   bool                        IsWindowHovered( DesktopWindowHandle );
   void                        SetHoveredWindow( DesktopWindowHandle );
   DesktopWindowRect           GetDesktopWindowRectScreenspace( DesktopWindowHandle );

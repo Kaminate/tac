@@ -17,6 +17,9 @@ namespace Tac
 #include "src/common/thirdparty/cgltf.h"
 #pragma warning( pop )
 
+
+  std::map< StringID, Mesh* >                    mMeshes;
+
   static cgltf_attribute_type GetGltfFromAttribute( Attribute attributeType )
   {
     switch( attributeType )
@@ -149,9 +152,7 @@ namespace Tac
   }
 
 
-  ModelAssetManager gModelAssetManager;
-
-  void ModelAssetManager::Uninit()
+  void ModelAssetManagerUninit()
   {
     for( auto pair : mMeshes )
     {
@@ -163,12 +164,12 @@ namespace Tac
       }
     }
   }
-  void ModelAssetManager::GetMesh( Mesh** mesh,
-                                   StringView path,
-                                   Render::VertexFormatHandle vertexFormat,
-                                   VertexDeclaration* vertexDeclarations,
-                                   int vertexDeclarationCount,
-                                   Errors& errors )
+  void ModelAssetManagerGetMesh( Mesh** mesh,
+                                 StringView path,
+                                 Render::VertexFormatHandle vertexFormat,
+                                 VertexDeclaration* vertexDeclarations,
+                                 int vertexDeclarationCount,
+                                 Errors& errors )
   {
     auto it = mMeshes.find( path );
     if( it != mMeshes.end() )

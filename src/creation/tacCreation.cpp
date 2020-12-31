@@ -208,30 +208,12 @@ namespace Tac
     *h = ( int )SettingsGetNumber( "h", 300, windowJson );
     *x = ( int )SettingsGetNumber( "x", 200, windowJson );
     *y = ( int )SettingsGetNumber( "y", 200, windowJson );
-    const bool centered = ( int )SettingsGetBool( "centered", false, windowJson );
-    if( centered )
-      CenterWindow( x, y, *w, *h );
   }
 
 
   void Creation::GetWindowsJson( Json** outJson, Errors& errors )
   {
     Json* windows = SettingsGetJson( "Windows" );
-    //if( windows->mElements.empty() )
-    //{
-    //}
-
-    //*outJson = windows;
-    //Vector< String > settingsPaths = { "Windows" };
-    //auto windowDefault = TAC_NEW Json;
-    //( *windowDefault )[ "Name" ] = gMainWindowName;
-
-    //auto windowsDefault = TAC_NEW Json;
-    //windowsDefault->mType = JsonType::Array;
-    //windowsDefault->mElements.push_back( windowDefault );
-    //Json* windows = settings->GetArray( nullptr, { "Windows" }, windowsDefault, errors );
-    //TAC_HANDLE_ERROR( errors );
-
     *outJson = windows;
   }
 
@@ -259,20 +241,11 @@ namespace Tac
     mEditorCamera.mRight = { 1, 0, 0 };
     mEditorCamera.mUp = { 0, 1, 0 };
 
-    //ViewIdMainWindow = Render::CreateViewId();
-    //ViewIdGameWindow = Render::CreateViewId();
-    //ViewIdPropertyWindow = Render::CreateViewId();
-    //ViewIdSystemWindow = Render::CreateViewId();
-    //ViewIdProfileWindow = Render::CreateViewId();
-
     String dataPath;
     OS::GetApplicationDataPath( dataPath, errors );
     TAC_HANDLE_ERROR( errors );
 
     OS::CreateFolderIfNotExist( dataPath, errors );
-    TAC_HANDLE_ERROR( errors );
-
-    //SetSavedWindowsData( errors );
     TAC_HANDLE_ERROR( errors );
 
     Json* windows;

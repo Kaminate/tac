@@ -57,7 +57,7 @@ namespace Tac
     gDebug3DCommonData.Uninit();
     gFontStuff.Uninit();
     delete mLog;
-    gModelAssetManager.Uninit();
+    ModelAssetManagerUninit();
 
     // last, so resources can be freed
     Render::Uninit();
@@ -69,8 +69,6 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
 
     JobQueueInit();
-
-    TAC_NEW ModelAssetManager;
 
     gLocalization.Load( "assets/localization.txt", errors );
     TAC_HANDLE_ERROR( errors );

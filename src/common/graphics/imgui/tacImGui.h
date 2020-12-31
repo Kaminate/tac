@@ -63,6 +63,8 @@ namespace Tac
   bool ImGuiDragFloat( const StringView& str, float* value );
   bool ImGuiDragInt( const StringView& str, int* value );
   void ImGuiDebugDraw();
+  void ImGuiSetCursorPos(v2 local);
+  void ImGuiImage(int hTex, v2 size);
 
   // called by the main thread
   void ImGuiFrameBegin( double elapsedSeconds,

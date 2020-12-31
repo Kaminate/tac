@@ -154,6 +154,7 @@ namespace Tac
 
   const Format formatv2 = { 2, sizeof( float ), GraphicsType::real };
   const Format formatv3 = { 3, sizeof( float ), GraphicsType::real };
+  const Format formatu16 = { 1, sizeof( uint16_t ), GraphicsType::uint };
 
 
   struct Image
@@ -225,6 +226,7 @@ namespace Tac
   {
     ScissorRect() = default;
     ScissorRect( float w, float h );
+    ScissorRect( int w, int h );
     float mXMinRelUpperLeftCornerPixel = 0;
     float mYMinRelUpperLeftCornerPixel = 0;
     float mXMaxRelUpperLeftCornerPixel = 0;
@@ -236,6 +238,7 @@ namespace Tac
   {
     Viewport() = default;
     Viewport( float w, float h );
+    Viewport( int w, int h );
     float mBottomLeftX = 0;
     float mBottomLeftY = 0;
     float mWidth = 0;

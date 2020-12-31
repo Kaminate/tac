@@ -21,6 +21,7 @@ namespace Tac
       case Key::Backspace: return "backspace";
       case Key::Delete: return "delete";
       case Key::Backtick: return "backtick";
+      case Key::Escape: return "escape";
       case Key::MouseLeft: return "lclick";
       case Key::MouseRight: return "rclick";
       case Key::MouseMiddle: return "mclick";

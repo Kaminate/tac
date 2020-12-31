@@ -40,6 +40,8 @@ PS_OUTPUT PS( VS_OUTPUT input )
   PS_OUTPUT output = ( PS_OUTPUT )0;
   float4 sampled = atlas.Sample( linearSampler, input.DXTexCoord );
 
+  sampled.xyz = pow( sampled.xyz, 2.2 );
+
   // For reference, search https://en.wikipedia.org/wiki/Alpha_compositing
   // for "premultiplied" or "pre-multiplied"
   //     ^
@@ -48,7 +50,6 @@ PS_OUTPUT PS( VS_OUTPUT input )
   // | READ! |
   // +-------+
   output.mColor = Color * sampled;
-
 
 #if TEST_RED
   output.mColor = float4( 1, 0, 0, 1 );

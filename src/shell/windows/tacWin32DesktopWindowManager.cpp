@@ -22,6 +22,7 @@ namespace Tac
 {
   static const char* classname = "tac";
   static HWND sHWNDs[ kDesktopWindowCapacity ];
+  static DesktopWindowHandle sWindowUnderConstruction;
   static Key GetKey( uint8_t keyCode )
   {
 
@@ -65,6 +66,7 @@ namespace Tac
       case 'Y': return Key::Y;
       case 'Z': return Key::Z;
       case VK_OEM_3: return Key::Backtick;
+      case VK_ESCAPE: return Key::Escape;
       case VK_F1: return Key::F1;
       case VK_F2: return Key::F2;
       case VK_F3: return Key::F3;
@@ -90,31 +92,32 @@ namespace Tac
     return { -1 };
   }
 
-  static LRESULT CALLBACK WindowProc( HWND hwnd,
-                                      UINT uMsg,
-                                      WPARAM wParam,
-                                      LPARAM lParam )
+  static LRESULT CALLBACK WindowProc( const HWND hwnd,
+                                      const UINT uMsg,
+                                      const WPARAM wParam,
+                                      const LPARAM lParam )
   {
-
-
-
-    // Win32DesktopWindow* window = WindowsApplication2::Instance->FindWin32DesktopWindow( hwnd );
-    //if( true )// window )
-    //{
-    LRESULT result = 0; // window->HandleWindowProc( uMsg, wParam, lParam );
     static bool verboseMouseInWindow = false;
     static bool verboseFocus = false;
     static bool verboseActivate = false;
     static bool verboseCapture = false;
 
-    const DesktopWindowHandle desktopWindowHandle = Win32WindowManagerFindWindow( hwnd );
+    const DesktopWindowHandle desktopWindowHandleFound = Win32WindowManagerFindWindow( hwnd );
+    const DesktopWindowHandle desktopWindowHandle
+      = desktopWindowHandleFound.IsValid()
+      ? desktopWindowHandleFound
+      : sWindowUnderConstruction;
     if( !desktopWindowHandle.IsValid() )
+    {
+      TAC_ASSERT_INVALID_CODE_PATH;
+
       return DefWindowProc( hwnd, uMsg, wParam, lParam );
+    }
 
     switch( uMsg )
     {
       // Sent as a signal that a window or an application should terminate.
-      case WM_CLOSE: // fallthrough
+      case WM_CLOSE:
       {
         // Save window settings prior to deleting the window
         ImGuiSaveWindowSettings();
@@ -122,10 +125,25 @@ namespace Tac
       } break;
 
       // Sent when a window is being destroyed
-      case WM_DESTROY: // fallthrough
+      case WM_DESTROY:
       {
         std::cout << "WM_DESTROY" << std::endl;
 
+      } break;
+
+      case WM_CREATE:
+      {
+        std::cout << "WM_CREATE" << std::endl;
+        sHWNDs[ ( int )desktopWindowHandle ] = hwnd;
+        sWindowUnderConstruction = DesktopWindowHandle();
+        auto windowInfo = ( const CREATESTRUCT* )lParam;
+        TAC_ASSERT( windowInfo->cx && windowInfo->cy );
+        DesktopEventAssignHandle( desktopWindowHandle,
+                                  hwnd,
+                                  windowInfo->x,
+                                  windowInfo->y,
+                                  windowInfo->cx,
+                                  windowInfo->cy );
       } break;
 
       // Indicates a request to terminate an application
@@ -323,10 +341,7 @@ namespace Tac
         //mCurrDown.clear();
       } break;
     }
-    //return 0;
-    if( result )
-      return result;
-    //}
+
     return DefWindowProc( hwnd, uMsg, wParam, lParam );
   }
 
@@ -362,49 +377,6 @@ namespace Tac
     RegisterWindowClass( errors );
   }
 
-  //Win32DesktopWindow* WindowsApplication2::FindWin32DesktopWindow( HWND hwnd )
-  //{
-  //  for( Win32DesktopWindow* desktopWindow : mWindows )
-  //    if( desktopWindow->mHWND == hwnd )
-  //      return desktopWindow;
-  //  return nullptr;
-  //}
-
-
-  //Win32DesktopWindow::~Win32DesktopWindow()
-  //{
-  //  DestroyWindow( mHWND );
-  //}
-
-
-  //void* Win32DesktopWindow::GetOperatingSystemHandle()
-  //{
-
-  //  return mHWND;
-  //}
-
-  //LRESULT Win32DesktopWindow::HandleWindowProc( UINT uMsg,
-  //                                              WPARAM wParam,
-  //                                              LPARAM lParam )
-  //{
-  //}
-  //void Win32DesktopWindow::Poll( Errors& errors )
-  //{
-  //  MSG msg = {};
-  //  while( PeekMessage( &msg, mHWND, 0, 0, PM_REMOVE ) )
-  //  {
-  //    TranslateMessage( &msg );
-  //    DispatchMessage( &msg );
-  //  }
-
-  //  if( mWindowProcErrors )
-  //  {
-  //    errors = mWindowProcErrors;
-  //    TAC_HANDLE_ERROR( errors );
-  //  }
-  //}
-
-
   DesktopWindowHandle Win32WindowManagerGetCursorUnobscuredWindow()
   {
     POINT cursorPos;
@@ -417,46 +389,6 @@ namespace Tac
     return desktopWindowHandle;
   }
 
-  // | each window should have its own copy of mouse xyz to fix this problem?
-  // |
-  // v
-  //Win32DesktopWindow* WindowsApplication2::GetCursorUnobscuredWindow()
-  //{
-  //  POINT cursorPos;
-  //  GetCursorPos( &cursorPos );
-  //  // Brute-forcing the lookup through all the windows, because...
-  //  // - GetTopWindow( parentHwnd ) is returning NULL.
-  //  // - EnumChildWindows( parentHwnd, ... ) also shows that the parent has no children.
-  //  // - Calling GetParent( childHwnd ) returns NULL
-  //  // - Calling GetAncestor( childHwnd, GA_PARENT ) returns
-  //  //   the actual desktop hwnd ( window class #32769 )
-  //  HWND topZSortedHwnd = GetTopWindow( NULL );
-  //  int totalWindowCount = 0;
-  //  for( HWND curZSortedHwnd = topZSortedHwnd;
-  //       curZSortedHwnd != NULL;
-  //       curZSortedHwnd = GetWindow( curZSortedHwnd, GW_HWNDNEXT ) )
-  //  {
-  //    totalWindowCount++;
-  //    // I tried removing this for loop and just returning an HWND which
-  //    // may or may not be a tac HWND. Didn't work.
-  //    for( Win32DesktopWindow* window : mWindows )
-  //    {
-  //      if( window->mHWND != curZSortedHwnd )
-  //        continue;
-  //      RECT windowRect;
-  //      GetWindowRect( curZSortedHwnd, &windowRect );
-  //      bool isCursorInside =
-  //        cursorPos.x >= windowRect.left &&
-  //        cursorPos.x <= windowRect.right &&
-  //        cursorPos.y >= windowRect.top &&
-  //        cursorPos.y <= windowRect.bottom;
-  //      if( isCursorInside )
-  //        return window;
-  //    }
-  //  }
-  //  return nullptr;
-  //}
-
   void Win32WindowManagerPoll( Errors& errors )
   {
     MSG msg = {};
@@ -468,33 +400,52 @@ namespace Tac
   }
 
   void Win32WindowManagerSpawnWindow( const DesktopWindowHandle& desktopWindowHandle,
-                                      const int x,
-                                      const int y,
-                                      const int requestedWidth,
-                                      const int requestedHeight )
+                                      int x,
+                                      int y,
+                                      int w,
+                                      int h )
   {
-    DWORD windowStyle = WS_POPUP;
-    RECT windowRect = {};
-    windowRect.right = requestedWidth;
-    windowRect.bottom = requestedHeight;
-    if( !AdjustWindowRect( &windowRect, windowStyle, FALSE ) )
+    const DWORD windowStyle = WS_POPUP;
+    if( w && h )
     {
-      TAC_ASSERT_INVALID_CODE_PATH;
-      //errors = "Failed to adjust window rect";
-      //TAC_HANDLE_ERROR( errors );
+      RECT requestedRect = { 0, 0, w, h };
+      if( !AdjustWindowRect( &requestedRect, windowStyle, FALSE ) )
+        TAC_ASSERT_INVALID_CODE_PATH;
+      w = requestedRect.right - requestedRect.left;
+      h = requestedRect.bottom - requestedRect.top;
+    }
+    else
+    {
+      const bool isOverlappedWindow =
+        ( windowStyle == WS_OVERLAPPED ) ||
+        ( ( windowStyle & WS_OVERLAPPEDWINDOW ) == WS_OVERLAPPEDWINDOW );
+      if( isOverlappedWindow )
+      {
+        x = y = w = h = CW_USEDEFAULT;
+      }
+      else
+      {
+        int monitorW, monitorH;
+        OS::GetPrimaryMonitor( &monitorW, &monitorH );
+        x = monitorW / 4;
+        y = monitorH / 4;
+        w = monitorW / 2;
+        h = monitorH / 2;
+      }
     }
 
-    const int windowAdjustedWidth = windowRect.right - windowRect.left;
-    const int windowAdjustedHeight = windowRect.bottom - windowRect.top;
+
+    TAC_ASSERT( w && h );
 
     static HWND mParentHWND = NULL;
+    sWindowUnderConstruction = desktopWindowHandle;
     const HWND hwnd = CreateWindow( classname,
-                                    "butt", // windowParams.mName.c_str(),
+                                    "butt",
                                     windowStyle,
-                                    x, // CW_USEDEFAULT
-                                    y, // CW_USEDEFAULT
-                                    windowAdjustedWidth,
-                                    windowAdjustedHeight,
+                                    x,
+                                    y,
+                                    w,
+                                    h,
                                     mParentHWND,
                                     NULL,
                                     ghInstance,
@@ -515,8 +466,10 @@ namespace Tac
       //);
       //TAC_HANDLE_ERROR( errors );
     }
+
     // Sets the keyboard focus to the specified window
     SetFocus( hwnd );
+
     //if( !mShouldWindowHaveBorder )
     // {
     SetWindowLong( hwnd, GWL_STYLE, 0 );
@@ -529,22 +482,7 @@ namespace Tac
     SetForegroundWindow( hwnd );
 
     ShowWindow( hwnd, gnCmdShow );
-
-
-    sHWNDs[ ( int )desktopWindowHandle ] = hwnd;
-
-    // Used to combine all the windows into one tab group.
-    if( mParentHWND == NULL )
-      mParentHWND = hwnd;
-
-
-    DesktopEventAssignHandle( desktopWindowHandle,
-                              hwnd,
-                              x,
-                              y,
-                              windowAdjustedWidth,
-                              windowAdjustedHeight );
-
+    mParentHWND = mParentHWND ? mParentHWND : hwnd; // combine windows into one tab group
   }
 
 }

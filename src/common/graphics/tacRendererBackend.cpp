@@ -742,6 +742,11 @@ namespace Tac
       gEncoder.mTextureHandle = textureHandle;
     }
 
+    //void SetTexture( TextureHandle textureHandle )
+    //{
+    //  gEncoder.mTextureHandle = textureHandle;
+    //}
+
     void BeginGroup( StringView name, StackFrame stackFrame )
     {
       TAC_ASSERT( !name.empty() );

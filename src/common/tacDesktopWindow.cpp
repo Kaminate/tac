@@ -18,22 +18,12 @@ namespace Tac
 
   bool                        IsWindowHovered( const DesktopWindowHandle desktopWindowHandle )
   {
-    const bool result = sMouseHoveredWindowHandle == desktopWindowHandle;
-    return result;
+    return sMouseHoveredWindowHandle == desktopWindowHandle;
   }
 
   void                        SetHoveredWindow( const DesktopWindowHandle desktopWindowHandle )
   {
     sMouseHoveredWindowHandle = desktopWindowHandle;
-  }
-
-  void                        CenterWindow( int *x, int *y, int w, int h )
-  {
-    int monitorW;
-    int monitorH;
-    OS::GetPrimaryMonitor( &monitorW, &monitorH );
-    *x = ( monitorW - w ) / 2;
-    *y = ( monitorH - h ) / 2;
   }
 
   DesktopWindowState*         GetDesktopWindowState( const DesktopWindowHandle desktopWindowHandle )
@@ -63,8 +53,5 @@ namespace Tac
     desktopWindowRect.mLeft = 0;
     desktopWindowRect.mRight = desktopWindowState->mWidth;
     return desktopWindowRect;
-
   }
-
-
 }

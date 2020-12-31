@@ -22,15 +22,15 @@ namespace Tac
   typedef void( *ProjectUpdate )( Errors& );
   typedef void( *ProjectUninit )( Errors& );
   //typedef void( *PlatformPoll )( Errors& );
-  typedef void( *PlatformFrameBegin )(Errors&);
-  typedef void( *PlatformFrameEnd )(Errors&);
+  typedef void( *PlatformFrameBegin )( Errors& );
+  typedef void( *PlatformFrameEnd )( Errors& );
   typedef void( *PlatformSpawnWindow )( const DesktopWindowHandle& handle,
                                         int x,
                                         int y,
                                         int width,
                                         int height );
   typedef DesktopWindowHandle( *PlatformGetMouseHoveredWindow )( );
-  typedef void( *PlatformWindowMoveControls )( const DesktopWindowHandle&, const DesktopWindowRect&);
+  typedef void( *PlatformWindowMoveControls )( const DesktopWindowHandle&, const DesktopWindowRect& );
   typedef void( *PlatformWindowResizeControls )( const DesktopWindowHandle&, int );
 
   struct ExecutableStartupInfo
@@ -78,11 +78,11 @@ namespace Tac
                                                  PlatformWindowResizeControls,
                                                  Errors& );
   void                           DesktopAppRun( Errors& );
-  DesktopWindowHandle            DesktopAppCreateWindow( int x, int y, int width, int height );
+  DesktopWindowHandle            DesktopAppCreateWindow( int x = 0, int y = 0, int width = 0, int height = 0 );
   void                           DesktopAppUpdate( Errors& );
   void                           DesktopAppResizeControls( const DesktopWindowHandle&, int edgePx = 7 );
   void                           DesktopAppMoveControls( const DesktopWindowHandle&, DesktopWindowRect windowSpaceRect );
-  void                           DesktopAppMoveControls( const DesktopWindowHandle&);
+  void                           DesktopAppMoveControls( const DesktopWindowHandle& );
   extern Errors                  gPlatformThreadErrors;
   extern Errors                  gLogicThreadErrors;
   extern thread_local ThreadType gThreadType;

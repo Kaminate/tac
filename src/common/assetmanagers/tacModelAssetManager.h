@@ -10,24 +10,20 @@
 
 namespace Tac
 {
-  struct LoadingMesh;
-  struct JobQueue;
-  struct Renderer;
-
-  typedef Array< v3, 3 > SubMeshTriangle;
+  typedef Array< v3, 3 >            SubMeshTriangle;
   typedef Vector< SubMeshTriangle > SubMeshTriangles;
 
-  v3 GetNormal( const SubMeshTriangle& tri );
+  v3 GetNormal( const SubMeshTriangle& );
 
   struct SubMesh
   {
-    Render::VertexBufferHandle mVertexBuffer;
-    Render::IndexBufferHandle  mIndexBuffer;
-    SubMeshTriangles           mTris;
     void                       Raycast( v3 inRayPos,
                                         v3 inRayDir,
                                         bool* outHit,
                                         float* outDist );
+    Render::VertexBufferHandle mVertexBuffer;
+    Render::IndexBufferHandle  mIndexBuffer;
+    SubMeshTriangles           mTris;
     int                        mIndexCount = 0;
   };
 
@@ -42,18 +38,12 @@ namespace Tac
     m4                         mTransform = m4::Identity();
     m4                         mTransformInv = m4::Identity();
   };
-  typedef std::map< StringID, Mesh* > MeshMap;
 
-  struct ModelAssetManager
-  {
-    void                       Uninit();
-    void                       GetMesh( Mesh** mesh,
-                                        StringView path,
-                                        Render::VertexFormatHandle vertexFormat,
-                                        VertexDeclaration* vertexDeclarations,
-                                        int vertexDeclarationCount,
-                                        Errors& );
-    MeshMap                    mMeshes;
-  };
-  extern ModelAssetManager gModelAssetManager;
+  void                       ModelAssetManagerUninit();
+  void                       ModelAssetManagerGetMesh( Mesh** mesh,
+                                                       StringView path,
+                                                       Render::VertexFormatHandle vertexFormat,
+                                                       VertexDeclaration* vertexDeclarations,
+                                                       int vertexDeclarationCount,
+                                                       Errors& );
 }

@@ -200,7 +200,7 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
 
 
-    gModelAssetManager.GetMesh( &mCenteredUnitCube,
+    ModelAssetManagerGetMesh( &mCenteredUnitCube,
                                           "assets/editor/box.gltf",
                                           m3DVertexFormat,
                                           m3DvertexFormatDecls,
@@ -208,7 +208,7 @@ namespace Tac
                                           errors );
     TAC_HANDLE_ERROR( errors );
 
-    gModelAssetManager.GetMesh( &mArrow,
+    ModelAssetManagerGetMesh( &mArrow,
                                           "assets/editor/arrow.gltf",
                                           m3DVertexFormat,
                                           m3DvertexFormatDecls,

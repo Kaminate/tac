@@ -115,14 +115,13 @@ namespace Tac
 
     mPerFrame = Render::CreateConstantBuffer( "tac ui 2d per frame",
                                               sizeof( DefaultCBufferPerFrame ),
-                                              0,
-
+                                              DefaultCBufferPerFrame::shaderRegister,
                                               TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
     mPerObj = Render::CreateConstantBuffer( "tac ui 2d per obj",
                                             sizeof( DefaultCBufferPerObject ),
-                                            1,
+                                            DefaultCBufferPerObject::shaderRegister,
                                             TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
@@ -369,7 +368,7 @@ namespace Tac
 
     int lineCount = 1;
 
-    auto AccountForLine = [ & ]()
+    auto AccountForLine = [&]()
     {
       lineWidthUISpaceMax = Max( lineWidthUISpaceMax, lineWidthUISpace );
 
@@ -446,16 +445,16 @@ namespace Tac
     UI2DVertex* defaultVertex2D = &mDefaultVertex2Ds[ iVert ];
 
     defaultVertex2D->mPosition = { mini.x, mini.y };
-    defaultVertex2D->mGLTexCoord = {};
+    defaultVertex2D->mGLTexCoord = { 0, 1 };
     defaultVertex2D++;
     defaultVertex2D->mPosition = { mini.x, maxi.y };
-    defaultVertex2D->mGLTexCoord = {};
+    defaultVertex2D->mGLTexCoord = { 0, 0 };
     defaultVertex2D++;
     defaultVertex2D->mPosition = { maxi.x, maxi.y };
-    defaultVertex2D->mGLTexCoord = {};
+    defaultVertex2D->mGLTexCoord = { 1, 0 };
     defaultVertex2D++;
     defaultVertex2D->mPosition = { maxi.x, mini.y };
-    defaultVertex2D->mGLTexCoord = {};
+    defaultVertex2D->mGLTexCoord = { 1, 1 };
 
     DefaultCBufferPerObject perObjectData = {};
     perObjectData.World = m4::Identity();

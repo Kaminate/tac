@@ -395,8 +395,8 @@ namespace Tac
       const UINT8 ClearStencil = 0;
       mDeviceContext->ClearDepthStencilView( depthStencilView, ClearFlags, ClearDepth, ClearStencil );
 
-      const FLOAT ClearGrey = 0.1f;
-      const FLOAT ClearColorRGBA[] = { ClearGrey, ClearGrey,ClearGrey,  1.0f };
+      const FLOAT ClearGrey = 0.5f;
+      const FLOAT ClearColorRGBA[] = { ClearGrey, ClearGrey, ClearGrey,  1.0f };
       mDeviceContext->ClearRenderTargetView( renderTargetView, ClearColorRGBA );
     }
 
@@ -548,6 +548,7 @@ namespace Tac
           if( !textureHandle.IsValid() )
             continue;
           const Texture* texture = &mTextures[ ( int )textureHandle ];
+          TAC_ASSERT( texture->mTextureSRV ); // Did you set the Tac::Render::TexSpec::mBinding?
           ShaderResourceViews[ iSlot ] = texture->mTextureSRV;
         }
 
@@ -1014,6 +1015,13 @@ namespace Tac
                                       Errors& errors )
   {
     AssertRenderThread();
+    if( data->mTexSpec.mImageBytes && !data->mTexSpec.mPitch )
+    {
+      data->mTexSpec.mPitch =
+        data->mTexSpec.mImage.mWidth *
+        data->mTexSpec.mImage.mFormat.CalculateTotalByteCount();
+    }
+
     // D3D11_SUBRESOURCE_DATA structure
     // https://msdn.microsoft.com/en-us/library/windows/desktop/ff476220(v=vs.85).aspx
     // You set SysMemPitch to the distance between any two adjacent pixels on different lines.
@@ -1058,7 +1066,6 @@ namespace Tac
     texDesc.CPUAccessFlags = GetCPUAccessFlags( data->mTexSpec.mCpuAccess );
     texDesc.MiscFlags = MiscFlags;
 
-    TAC_ASSERT( !data->mTexSpec.mImageBytes || data->mTexSpec.mPitch );
 
     ID3D11Texture2D* texture2D;
     TAC_DX11_CALL( errors,

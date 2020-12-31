@@ -36,12 +36,14 @@ namespace Tac
     mXMaxRelUpperLeftCornerPixel = w;
     mYMaxRelUpperLeftCornerPixel = h;
   }
-
-  Viewport::Viewport( float w, float h )
+  ScissorRect::ScissorRect( int w, int h )
   {
-    mWidth = w;
-    mHeight = h;
+    mXMaxRelUpperLeftCornerPixel = ( float )w;
+    mYMaxRelUpperLeftCornerPixel = ( float )h;
   }
+
+  Viewport::Viewport( int w, int h ) { mWidth = ( float )w; mHeight = ( float )h; }
+  Viewport::Viewport( float w, float h ) { mWidth = w; mHeight = h; }
 
   int Format::CalculateTotalByteCount() const
   {

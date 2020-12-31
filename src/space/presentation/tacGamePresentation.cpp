@@ -117,12 +117,12 @@ namespace Tac
     if( model->mGLTFPath.empty() )
       return;
     Errors getmeshErrors;
-    gModelAssetManager.GetMesh( &model->mesh,
-                                          model->mGLTFPath,
-                                          m3DVertexFormat,
-                                          m3DVertexFormatDecls,
-                                          k3DVertexFormatDeclCount,
-                                          getmeshErrors );
+    ModelAssetManagerGetMesh( &model->mesh,
+                              model->mGLTFPath,
+                              m3DVertexFormat,
+                              m3DVertexFormatDecls,
+                              k3DVertexFormatDeclCount,
+                              getmeshErrors );
   }
 
   void GamePresentation::RenderGameWorldToDesktopView( const int viewWidth,

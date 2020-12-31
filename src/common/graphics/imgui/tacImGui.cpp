@@ -130,6 +130,151 @@ namespace Tac
     }
   }
 
+  static bool ImguiDragVal( StringView str,
+                            void* valueBytes,
+                            int valueByteCount,
+                            void( *valueToStringGetter )( String& to, const void* from ),
+                            void( *valueFromStringSetter )( StringView from, void* to ),
+                            void( *whatToDoWithMousePixel )( float mouseChangeSinceBeginningOfDrag, const void* valAtDragStart, void* curVal ) )
+  {
+    v4 backgroundBoxColor = { 1, 1, 0, 1 };
+    String valueStr;
+    valueToStringGetter( valueStr, valueBytes );
+
+    ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
+    UI2DDrawData* drawData = window->mDrawData;// ImGuiGlobals::Instance.mUI2DDrawData;
+    TextInputData* inputData = window->mTextInputData;
+    v2 pos = window->mCurrCursorViewport;
+    v2 totalSize = {
+      window->mContentRect.mMaxi.x - pos.x,
+      ( float )ImGuiGlobals::Instance.mUIStyle.fontSize };
+    window->ItemSize( totalSize );
+    ImGuiId id = window->GetID();
+    bool clipped;
+    ImGuiRect clipRect = ImGuiRect::FromPosSize( pos, totalSize );
+    window->ComputeClipInfo( &clipped, &clipRect );
+    if( clipped )
+      return false;
+
+    DragData& dragFloatData = window->mDragDatas[ id ];
+
+    // Only used to check if this function should return true/false because the value
+    // changed or didnt change
+    static Vector< char > valueFrameCopy;
+    valueFrameCopy.resize( valueByteCount );
+    MemCpy( valueFrameCopy.data(), valueBytes, valueByteCount );
+    v2 valuePos = {
+      pos.x + ImGuiGlobals::Instance.mUIStyle.buttonPadding,
+      pos.y };
+
+    if( window->IsHovered( clipRect ) && gKeyboardInput.IsKeyJustDown( Key::MouseLeft ) )
+    {
+      window->SetActiveID( id );
+    }
+    if( window->GetActiveID() == id )
+    {
+      if( dragFloatData.mMode == DragMode::Drag && gKeyboardInput.mCurr.mScreenspaceCursorPosErrors.empty() )
+      {
+        const v2 screenspaceMousePos = gKeyboardInput.mCurr.mScreenspaceCursorPos;
+        static float lastMouseXDesktopWindowspace;
+        if( window->IsHovered( clipRect ) )
+          backgroundBoxColor.xyz() /= 2.0f;
+        if( gKeyboardInput.IsKeyDown( Key::MouseLeft ) )
+        {
+          backgroundBoxColor.xyz() /= 2.0f;
+          if( gKeyboardInput.IsKeyJustDown( Key::MouseLeft ) )
+          {
+            lastMouseXDesktopWindowspace = screenspaceMousePos.x;
+            dragFloatData.mDragDistPx = 0;
+            dragFloatData.mValueCopy.resize( valueByteCount );
+            MemCpy( dragFloatData.mValueCopy.data(), valueBytes, valueByteCount );
+          }
+
+          if( gKeyboardInput.mPrev.IsKeyDown( Key::MouseLeft ) )
+          {
+            float moveCursorDir = 0;
+            if( screenspaceMousePos.x > clipRect.mMaxi.x )
+              moveCursorDir = -1.0f;
+            if( screenspaceMousePos.x < clipRect.mMini.x )
+              moveCursorDir = 1.0f;
+            if( moveCursorDir )
+            {
+              float xOffset = moveCursorDir * clipRect.GetWidth();
+              OS::SetScreenspaceCursorPos( screenspaceMousePos + v2( xOffset, 0 ), Errors() );
+            }
+            else
+            {
+              dragFloatData.mDragDistPx += screenspaceMousePos.x - lastMouseXDesktopWindowspace;
+              whatToDoWithMousePixel( dragFloatData.mDragDistPx, dragFloatData.mValueCopy.data(), valueBytes );
+            }
+          }
+        }
+
+        lastMouseXDesktopWindowspace = screenspaceMousePos.x;
+
+        // handle double click
+        static double lastMouseReleaseSeconds;
+        static v2 lastMousePositionDesktopWindowspace;
+        if( gKeyboardInput.HasKeyJustBeenReleased( Key::MouseLeft ) &&
+            window->IsHovered( clipRect ) )
+        {
+          auto mouseReleaseSeconds = ImGuiGlobals::Instance.mElapsedSeconds;
+          if( mouseReleaseSeconds - lastMouseReleaseSeconds < 0.5f &&
+              lastMousePositionDesktopWindowspace == screenspaceMousePos )
+          {
+            CodepointView codepoints = UTF8ToCodepoints( valueStr );
+            inputData->SetCodepoints( codepoints );
+            inputData->mCaretCount = 2;
+            inputData->mNumGlyphsBeforeCaret[ 0 ] = 0;
+            inputData->mNumGlyphsBeforeCaret[ 1 ] = codepoints.size();
+            dragFloatData.mMode = DragMode::TextInput;
+          }
+          lastMouseReleaseSeconds = mouseReleaseSeconds;
+          lastMousePositionDesktopWindowspace = screenspaceMousePos;
+        }
+        //if( !gKeyboardInput.IsKeyDown( Key::MouseLeft ) )
+        //  window->mActiveID = ImGuiIdNull;
+      }
+
+      if( dragFloatData.mMode == DragMode::TextInput )
+      {
+        TextInputDataUpdateKeys( inputData, valuePos );
+
+        const StringView newText = CodepointsToUTF8( CodepointView( inputData->mCodepoints.data(),
+                                                                    inputData->mCodepoints.size() ) );
+        valueFromStringSetter( newText, valueBytes );
+        valueStr = newText;
+
+        if( gKeyboardInput.IsKeyJustDown( Key::Tab ) )
+          window->mIDAllocator->mActiveID++;
+      }
+    }
+
+    if( dragFloatData.mMode == DragMode::TextInput && id != window->GetActiveID() )
+    {
+      dragFloatData.mMode = DragMode::Drag;
+      dragFloatData.mDragDistPx = 0;
+    }
+
+    v2 backgroundBoxMaxi = {
+      pos.x + totalSize.x * ( 2.0f / 3.0f ),
+      pos.y + totalSize.y };
+    Render::TextureHandle texture;
+    drawData->AddBox( pos, backgroundBoxMaxi, backgroundBoxColor, texture, &clipRect );
+
+    if( dragFloatData.mMode == DragMode::TextInput )
+      TextInputDataDrawSelection( inputData, drawData, valuePos, &clipRect );
+    drawData->AddText( valuePos, ImGuiGlobals::Instance.mUIStyle.fontSize, valueStr, v4( 0, 0, 0, 1 ), &clipRect );
+
+    v2 labelPos = {
+      backgroundBoxMaxi.x + ImGuiGlobals::Instance.mUIStyle.itemSpacing.x,
+      pos.y };
+    drawData->AddText( labelPos, ImGuiGlobals::Instance.mUIStyle.fontSize, str, ImGuiGlobals::Instance.mUIStyle.textColor, &clipRect );
+
+    return MemCmp( valueFrameCopy.data(), valueBytes, valueByteCount );
+  }
+
+
   ImGuiRect ImGuiRect::FromPosSize( v2 pos, v2 size )
   {
     ImGuiRect result;
@@ -716,148 +861,20 @@ namespace Tac
     drawData->AddText( textPos, ImGuiGlobals::Instance.mUIStyle.fontSize, str, ImGuiGlobals::Instance.mUIStyle.textColor, &clipRect );
   }
 
-  static bool ImguiDragVal( StringView str,
-                            void* valueBytes,
-                            int valueByteCount,
-                            void( *valueToStringGetter )( String& to, const void* from ),
-                            void( *valueFromStringSetter )( StringView from, void* to ),
-                            void( *whatToDoWithMousePixel )( float mouseChangeSinceBeginningOfDrag, const void* valAtDragStart, void* curVal ) )
+ void ImGuiSetCursorPos( v2 local )
   {
-    v4 backgroundBoxColor = { 1, 1, 0, 1 };
-    String valueStr;
-    valueToStringGetter( valueStr, valueBytes );
-
     ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
-    UI2DDrawData* drawData = window->mDrawData;// ImGuiGlobals::Instance.mUI2DDrawData;
-    TextInputData* inputData = window->mTextInputData;
-    v2 pos = window->mCurrCursorViewport;
-    v2 totalSize = {
-      window->mContentRect.mMaxi.x - pos.x,
-      ( float )ImGuiGlobals::Instance.mUIStyle.fontSize };
-    window->ItemSize( totalSize );
-    ImGuiId id = window->GetID();
-    bool clipped;
-    ImGuiRect clipRect = ImGuiRect::FromPosSize( pos, totalSize );
-    window->ComputeClipInfo( &clipped, &clipRect );
-    if( clipped )
-      return false;
+    window->mCurrCursorViewport = local;
+  }
 
-    DragData& dragFloatData = window->mDragDatas[ id ];
-
-    // Only used to check if this function should return true/false because the value
-    // changed or didnt change
-    static Vector< char > valueFrameCopy;
-    valueFrameCopy.resize( valueByteCount );
-    MemCpy( valueFrameCopy.data(), valueBytes, valueByteCount );
-    v2 valuePos = {
-      pos.x + ImGuiGlobals::Instance.mUIStyle.buttonPadding,
-      pos.y };
-
-    if( window->IsHovered( clipRect ) && gKeyboardInput.IsKeyJustDown( Key::MouseLeft ) )
-    {
-      window->SetActiveID( id );
-    }
-    if( window->GetActiveID() == id )
-    {
-      if( dragFloatData.mMode == DragMode::Drag && gKeyboardInput.mCurr.mScreenspaceCursorPosErrors.empty() )
-      {
-        const v2 screenspaceMousePos = gKeyboardInput.mCurr.mScreenspaceCursorPos;
-        static float lastMouseXDesktopWindowspace;
-        if( window->IsHovered( clipRect ) )
-          backgroundBoxColor.xyz() /= 2.0f;
-        if( gKeyboardInput.IsKeyDown( Key::MouseLeft ) )
-        {
-          backgroundBoxColor.xyz() /= 2.0f;
-          if( gKeyboardInput.IsKeyJustDown( Key::MouseLeft ) )
-          {
-            lastMouseXDesktopWindowspace = screenspaceMousePos.x;
-            dragFloatData.mDragDistPx = 0;
-            dragFloatData.mValueCopy.resize( valueByteCount );
-            MemCpy( dragFloatData.mValueCopy.data(), valueBytes, valueByteCount );
-          }
-
-          if( gKeyboardInput.mPrev.IsKeyDown( Key::MouseLeft ) )
-          {
-            float moveCursorDir = 0;
-            if( screenspaceMousePos.x > clipRect.mMaxi.x )
-              moveCursorDir = -1.0f;
-            if( screenspaceMousePos.x < clipRect.mMini.x )
-              moveCursorDir = 1.0f;
-            if( moveCursorDir )
-            {
-              float xOffset = moveCursorDir * clipRect.GetWidth();
-              OS::SetScreenspaceCursorPos( screenspaceMousePos + v2( xOffset, 0 ), Errors() );
-            }
-            else
-            {
-              dragFloatData.mDragDistPx += screenspaceMousePos.x - lastMouseXDesktopWindowspace;
-              whatToDoWithMousePixel( dragFloatData.mDragDistPx, dragFloatData.mValueCopy.data(), valueBytes );
-            }
-          }
-        }
-
-        lastMouseXDesktopWindowspace = screenspaceMousePos.x;
-
-        // handle double click
-        static double lastMouseReleaseSeconds;
-        static v2 lastMousePositionDesktopWindowspace;
-        if( gKeyboardInput.HasKeyJustBeenReleased( Key::MouseLeft ) &&
-            window->IsHovered( clipRect ) )
-        {
-          auto mouseReleaseSeconds = ImGuiGlobals::Instance.mElapsedSeconds;
-          if( mouseReleaseSeconds - lastMouseReleaseSeconds < 0.5f &&
-              lastMousePositionDesktopWindowspace == screenspaceMousePos )
-          {
-            CodepointView codepoints = UTF8ToCodepoints( valueStr );
-            inputData->SetCodepoints( codepoints );
-            inputData->mCaretCount = 2;
-            inputData->mNumGlyphsBeforeCaret[ 0 ] = 0;
-            inputData->mNumGlyphsBeforeCaret[ 1 ] = codepoints.size();
-            dragFloatData.mMode = DragMode::TextInput;
-          }
-          lastMouseReleaseSeconds = mouseReleaseSeconds;
-          lastMousePositionDesktopWindowspace = screenspaceMousePos;
-        }
-        //if( !gKeyboardInput.IsKeyDown( Key::MouseLeft ) )
-        //  window->mActiveID = ImGuiIdNull;
-      }
-
-      if( dragFloatData.mMode == DragMode::TextInput )
-      {
-        TextInputDataUpdateKeys( inputData, valuePos );
-
-        const StringView newText = CodepointsToUTF8( CodepointView( inputData->mCodepoints.data(),
-                                                                    inputData->mCodepoints.size() ) );
-        valueFromStringSetter( newText, valueBytes );
-        valueStr = newText;
-
-        if( gKeyboardInput.IsKeyJustDown( Key::Tab ) )
-          window->mIDAllocator->mActiveID++;
-      }
-    }
-
-    if( dragFloatData.mMode == DragMode::TextInput && id != window->GetActiveID() )
-    {
-      dragFloatData.mMode = DragMode::Drag;
-      dragFloatData.mDragDistPx = 0;
-    }
-
-    v2 backgroundBoxMaxi = {
-      pos.x + totalSize.x * ( 2.0f / 3.0f ),
-      pos.y + totalSize.y };
-    Render::TextureHandle texture;
-    drawData->AddBox( pos, backgroundBoxMaxi, backgroundBoxColor, texture, &clipRect );
-
-    if( dragFloatData.mMode == DragMode::TextInput )
-      TextInputDataDrawSelection( inputData, drawData, valuePos, &clipRect );
-    drawData->AddText( valuePos, ImGuiGlobals::Instance.mUIStyle.fontSize, valueStr, v4( 0, 0, 0, 1 ), &clipRect );
-
-    v2 labelPos = {
-      backgroundBoxMaxi.x + ImGuiGlobals::Instance.mUIStyle.itemSpacing.x,
-      pos.y };
-    drawData->AddText( labelPos, ImGuiGlobals::Instance.mUIStyle.fontSize, str, ImGuiGlobals::Instance.mUIStyle.textColor, &clipRect );
-
-    return MemCmp( valueFrameCopy.data(), valueBytes, valueByteCount );
+  void ImGuiImage( const int hTex, const v2 size )
+  {
+    ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
+    const v2 pos = window->mCurrCursorViewport;
+    const v2 boxMini = pos;
+    const v2 boxMaxi = pos + size;
+    window->ItemSize( size );
+    window->mDrawData->AddBox( boxMini, boxMaxi, v4( 1, 1, 1, 1 ), Render::TextureHandle( hTex ), nullptr );
   }
 
   bool ImGuiDragFloat( const StringView& str, float* value )
@@ -1005,6 +1022,7 @@ namespace Tac
       ToString( ImGuiGlobals::Instance.mCurrentWindow->GetActiveID() );
     ImGuiText( text );
   }
+
 
   static void ImGuiRenderWindow( ImGuiWindow* window, Errors& errors )
   {
