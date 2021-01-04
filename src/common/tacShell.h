@@ -15,7 +15,6 @@ namespace Tac
 {
   struct Log;
   struct RenderView;
-  struct Timer;
 
   struct Soul
   {
@@ -53,7 +52,6 @@ namespace Tac
     String          mPrefPath;
 
     String          mInitialWorkingDir;
-    Timer*          mTimer = nullptr;
     Vector< Soul* > mSouls;
     double          mElapsedSeconds = 0;
     Timepoint       mLastTick;

@@ -1,6 +1,9 @@
 #include "src/common/tacOS.h"
 #include "src/common/tacPreprocessor.h"
 #include "src/common/tacErrorHandling.h"
+
+#include <thread>
+
 namespace Tac
 {
   namespace OS
@@ -21,15 +24,24 @@ namespace Tac
       TAC_HANDLE_ERROR( errors );
     }
 
-    void        DebugAssert( StringView msg, const StackFrame& frame )
+    void        DebugAssert( const Errors& errors )
     {
-      String s = msg + "\n" + frame.ToString();
       if( !IsDebugMode() )
         return;
-      std::cout << s << std::endl;
+      std::cout << errors.ToString() << std::endl;
       DebugBreak();
-      DebugPopupBox( s );
+      DebugPopupBox( errors.ToString() );
       exit( -1 );
+    }
+
+    void        ThreadSleepSec( float t )
+    {
+      ThreadSleepMsec( ( int )( t * 1000 ) );
+    }
+
+    void        ThreadSleepMsec( int t )
+    {
+      std::this_thread::sleep_for( std::chrono::milliseconds( t ) );
     }
   }
 }

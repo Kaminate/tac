@@ -20,13 +20,17 @@ namespace Tac
   struct Array
   {
     // Make this static?
-    int size() { return N; }
-    T* data() { return mTs; }
-    T* begin() { return mTs; }
-    T* end() { return mTs + N; }
-    T& operator[]( int index ) { TAC_ASSERT( index >= 0 && index < N ); return mTs[ index ]; }
+    int      size() const { return N; }
+    T        front() const { return mTs[ 0 ]; }
+    T        back() const { return mTs[ N - 1 ]; }
+    T*       data() { return mTs; }
+    T*       begin() { return mTs; }
+    const T* begin() const { return mTs; }
+    T*       end() { return mTs + N; }
+    const T* end() const { return mTs + N; }
+    T&       operator[]( int index ) { TAC_ASSERT( index >= 0 && index < N ); return mTs[ index ]; }
     const T& operator[] ( int index ) const { TAC_ASSERT( index >= 0 && index < N ); return mTs[ index ]; }
-    T mTs[ N ];
+    T        mTs[ N ];
   };
 
   //template< typename T, typename ... N >

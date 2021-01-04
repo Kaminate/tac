@@ -11,9 +11,8 @@ namespace Tac
     {
       case AddressFamily::IPv4: return "IPv4";
       case AddressFamily::IPv6:return "IPv6";
-        TAC_ASSERT_INVALID_DEFAULT_CASE( addressFamily );
+      default: TAC_ASSERT_INVALID_CASE( addressFamily ); return "";
     }
-    return "";
   }
   String ToString( SocketType socketType )
   {
@@ -21,9 +20,8 @@ namespace Tac
     {
       case SocketType::TCP: return "TCP";
       case SocketType::UDP: return "UDP";
-        TAC_ASSERT_INVALID_DEFAULT_CASE( socketType );
+      default: TAC_ASSERT_INVALID_CASE( socketType ); return "";
     }
-    return "";
   }
 
   void Socket::DebugImgui()
@@ -139,7 +137,7 @@ namespace Tac
         result += lookupTable[ ( input[ iInput + 1 ] << 2 ) & 0b111100 ];
         result += '=';
         break;
-        TAC_ASSERT_INVALID_DEFAULT_CASE( remaining );
+      default: TAC_ASSERT_INVALID_CASE( remaining ); return 0;
     }
     return result;
   }

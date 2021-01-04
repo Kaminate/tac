@@ -23,9 +23,8 @@ namespace Tac
     {
       case AddressFamily::IPv4: return AF_INET;
       case AddressFamily::IPv6: return AF_INET6;
-        TAC_ASSERT_INVALID_DEFAULT_CASE( addressFamily );
+      default: TAC_ASSERT_INVALID_CASE( addressFamily ); return 0;
     }
-    return 0;
   }
 
   static int GetWinsockSocketType( SocketType socketType )
@@ -34,16 +33,13 @@ namespace Tac
     {
       case SocketType::TCP: return SOCK_STREAM;
       case SocketType::UDP: return SOCK_DGRAM;
-        TAC_ASSERT_INVALID_DEFAULT_CASE( socketType );
+      default: TAC_ASSERT_INVALID_CASE( socketType ); return 0;
     }
-    return 0;
   }
 
   static String GetLastWSAErrorString()
   {
-    int wsaErrorCode = WSAGetLastError();
-    String result = Win32ErrorToString( wsaErrorCode );
-    return result;
+    return Win32ErrorToString( WSAGetLastError() );
   }
 
   SocketWinsock::~SocketWinsock()

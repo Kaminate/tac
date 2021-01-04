@@ -810,11 +810,7 @@ namespace Tac
 		void Execute() override
 		{
 			mMatchmaker->TryConnect();
-			if( mMatchmaker->mConnectionErrors )
-			{
-				SetStatus( AsyncLoadStatus::ThreadFailed );
-				mErrors = mMatchmaker->mConnectionErrors;
-			}
+            mErrors = mMatchmaker->mConnectionErrors;
 		}
 		ScriptMatchmaker* mMatchmaker;
 	};
@@ -867,9 +863,9 @@ namespace Tac
 		//  String portString = ToString( scriptMatchmaker->mPort );
 		//  if( ImGuiInputText( "Port", portString ) )
 		//    scriptMatchmaker->mPort = ( uint16_t )std::atoi( portString.c_str() );
-		//  AsyncLoadStatus status = mConnectToServerJob->GetStatus();
-		//  if( status == AsyncLoadStatus::ThreadQueued ||
-		//    status == AsyncLoadStatus::ThreadRunning )
+		//  JobState status = mConnectToServerJob->GetStatus();
+		//  if( status == JobState::ThreadQueued ||
+		//    status == JobState::ThreadRunning )
 		//  {
 		//    String text = "Connecting to server";
 		//    for( int i = 0; i < ( int )Shell::Instance.mElapsedSeconds % 4; ++i )
@@ -878,7 +874,7 @@ namespace Tac
 		//  }
 		//  else
 		//  {
-		//    if( status == AsyncLoadStatus::ThreadFailed )
+		//    if( status == JobState::ThreadFailed )
 		//      ImGuiText( mConnectToServerJob->mErrors.mMessage );
 		//    if( ImGuiButton( "Connect to server" ) )
 		//    {

@@ -30,9 +30,8 @@ namespace Tac
       case Attribute::Color: return cgltf_attribute_type_color;
       case Attribute::BoneIndex: return cgltf_attribute_type_joints;
       case Attribute::BoneWeight: return cgltf_attribute_type_weights;
-        TAC_ASSERT_INVALID_DEFAULT_CASE( attributeType );
+      default: TAC_ASSERT_INVALID_CASE( attributeType ); return cgltf_attribute_type_invalid;
     }
-    return cgltf_attribute_type_invalid;
   }
 
   // replace with above?
@@ -46,9 +45,8 @@ namespace Tac
       case cgltf_attribute_type_color: return Attribute::Color;
       case cgltf_attribute_type_joints: return Attribute::BoneIndex;
       case cgltf_attribute_type_weights: return Attribute::BoneWeight;
-        TAC_ASSERT_INVALID_DEFAULT_CASE( attributeType );
+      default: TAC_ASSERT_INVALID_CASE( attributeType ); return Attribute::Count;
     }
-    return Attribute::Count;
   }
 
   static const char* GetcgltfErrorAsString( cgltf_result parseResult )
@@ -68,28 +66,46 @@ namespace Tac
     return results[ parseResult ];
   }
 
-  void FillDataType( cgltf_accessor* accessor, Format* dataType )
+  static int FillDataTypePerElementByteCount( cgltf_accessor* accessor )
   {
     switch( accessor->component_type )
     {
-      case cgltf_component_type_r_16u:
-        dataType->mPerElementByteCount = 2;
-        dataType->mPerElementDataType = GraphicsType::uint;
-        break;
-      case cgltf_component_type_r_32f:
-        dataType->mPerElementByteCount = 4;
-        dataType->mPerElementDataType = GraphicsType::real;
-        break;
-        TAC_ASSERT_INVALID_DEFAULT_CASE( accessor->component_type );
+      case cgltf_component_type_r_16u: return 2;
+      case cgltf_component_type_r_32f: return 4;
+      default: TAC_ASSERT_INVALID_CASE( accessor->component_type ); return 0;
     }
+  }
+
+  static Tac::GraphicsType FillDataTypePerElementDataType( cgltf_accessor* accessor )
+  {
+    switch( accessor->component_type )
+    {
+      case cgltf_component_type_r_16u: return GraphicsType::uint;
+      case cgltf_component_type_r_32f: return GraphicsType::real;
+      default: TAC_ASSERT_INVALID_CASE( accessor->component_type ) return ( GraphicsType )0;
+    }
+
+  }
+
+  static int FillDataTypeElementCount( cgltf_accessor* accessor )
+  {
     switch( accessor->type )
     {
-      case cgltf_type_scalar: dataType->mElementCount = 1; break;
-      case cgltf_type_vec2: dataType->mElementCount = 2; break;
-      case cgltf_type_vec3: dataType->mElementCount = 3; break;
-      case cgltf_type_vec4: dataType->mElementCount = 4; break;
-        TAC_ASSERT_INVALID_DEFAULT_CASE( accessor->type );
+      case cgltf_type_scalar: return 1;
+      case cgltf_type_vec2: return 2;
+      case cgltf_type_vec3: return 3;
+      case cgltf_type_vec4: return 4;
+      default: TAC_ASSERT_INVALID_CASE( accessor->type ); return 0;
     }
+  }
+
+  static Format FillDataType( cgltf_accessor* accessor )
+  {
+    Format result = {};
+    result.mElementCount = FillDataTypeElementCount( accessor );
+    result.mPerElementByteCount = FillDataTypePerElementByteCount( accessor );
+    result.mPerElementDataType = FillDataTypePerElementDataType( accessor );
+    return result;
   }
 
   static cgltf_attribute*  FindAttributeOfType( cgltf_primitive* parsedPrim, cgltf_attribute_type  type )
@@ -181,10 +197,8 @@ namespace Tac
     auto bytes = TemporaryMemoryFromFile( path, errors );
     TAC_HANDLE_ERROR( errors );
 
-    // zero initialize for default options, can hold allocators
     cgltf_options options = {};
 
-    // mirrors glTF 2.0 format
     cgltf_data* parsedData;
     cgltf_result parseResult = cgltf_parse( &options, bytes.data(), bytes.size(), &parsedData );
     if( parseResult != cgltf_result_success )
@@ -227,8 +241,7 @@ namespace Tac
         cgltf_accessor* indices = parsedPrim->indices;
         void* indiciesData = ( char* )indices->buffer_view->buffer->data + indices->buffer_view->offset;
         TAC_ASSERT( indices->type == cgltf_type_scalar );
-        Format indexFormat;
-        FillDataType( indices, &indexFormat );
+        const Format indexFormat = FillDataType( indices );
         const int indexByteCount = ( int )indices->count * ( int )sizeof( indexFormat.CalculateTotalByteCount() );
         Render::IndexBufferHandle indexBuffer = Render::CreateIndexBuffer( debugName,
                                                                            indexByteCount,
@@ -259,8 +272,7 @@ namespace Tac
           if( !gltfVertAttribute )
             continue;
           cgltf_accessor* gltfVertAttributeData = gltfVertAttribute->data;
-          Format srcFormat;
-          FillDataType( gltfVertAttributeData, &srcFormat );
+          Format srcFormat = FillDataType( gltfVertAttributeData );
           TAC_ASSERT( vertexCount == ( int )gltfVertAttributeData->count );
           char* dstVtx = dstVtxBytes.data();
           char* srcVtx = ( char* )gltfVertAttributeData->buffer_view->buffer->data +
@@ -280,8 +292,7 @@ namespace Tac
               }
               else
               {
-                // todo
-                TAC_ASSERT_INVALID_CODE_PATH;
+                TAC_ASSERT_UNIMPLEMENTED;
               }
               // copy
               dstElement += dstFormat.mPerElementByteCount;
@@ -329,29 +340,7 @@ namespace Tac
     newMesh->mTransformInv = transformInv;
     *mesh = newMesh;
 
-    //* `cgltf_result cgltf_load_buffers( const cgltf_options*, cgltf_data*,
-    //*const char* )` can be optionally called to open and read buffer
-    //* files using the `FILE*` APIs.
-    //*
-    //* `cgltf_result cgltf_parse_file( const cgltf_options* options, const
-    //* char* path, cgltf_data** out_data )` can be used to open the given
-    //* file using `FILE*` APIs and parse the data using `cgltf_parse( )`.
-    //*
-    //* `cgltf_node_transform_local` converts the translation / rotation / scale properties of a node
-    //* into a mat4.
-    //*
-    //* `cgltf_node_transform_world` calls `cgltf_node_transform_local` on every ancestor in order
-    //* to compute the root - to - node transformation.
-    //*
-    //* `cgltf_accessor_read_float` reads a certain element from an accessor and converts it to
-    //* floating point, assuming that `cgltf_load_buffers` has already been called.The passed - in element
-    //* size is the number of floats in the output buffer, which should be in the range[ 1, 16 ].Returns
-    //* false if the passed - in element_size is too small, or if the accessor is sparse.
-    //*
-    //* `cgltf_accessor_read_index` is similar to its floating - point counterpart, but it returns size_t
-    //* and only works with single - component data types.
     mMeshes[ path ] = newMesh;
-
   }
 
   static bool RaycastTriangle(

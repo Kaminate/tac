@@ -24,9 +24,8 @@ namespace Tac
 
     int windowWidth = ( int )( 0.8f * monitorWidth );
     int windowHeight = ( int )( 0.8f * monitorHeight );
-    int windowX;
-    int windowY;
-    CenterWindow( &windowX, &windowY, windowWidth, windowHeight );
+    int windowX = 0;
+    int windowY = 0;
     mDesktopWindowHandle = DesktopAppCreateWindow( windowX,
                                                 windowY,
                                                 windowWidth,

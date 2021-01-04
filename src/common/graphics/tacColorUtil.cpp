@@ -62,21 +62,22 @@ namespace Tac
     *outputRGB = rgb1 + v3( 1, 1, 1 ) * m;
   }
 
+  static v3 HexToRGBAux( uint32_t hexColor, int i0, int i1, int i2 )
+  {
+    return v3(
+      ( ( uint8_t* )&hexColor )[ i0 ],
+      ( ( uint8_t* )&hexColor )[ i1 ],
+      ( ( uint8_t* )&hexColor )[ i2 ] ) / 255.0f;
+  }
+
   v3 HexToRGB( uint32_t hexColor ) // 0xRRGGBB
   {
-    Endianness endianness = GetEndianness();
+    const Endianness endianness = GetEndianness();
     switch( endianness )
     {
-      case Endianness::Big:  return  {
-        ( ( uint8_t* )&hexColor )[ 1 ] / 255.0f,
-        ( ( uint8_t* )&hexColor )[ 2 ] / 255.0f,
-        ( ( uint8_t* )&hexColor )[ 3 ] / 255.0f };
-      case Endianness::Little: return {
-        ( ( uint8_t* )&hexColor )[ 2 ] / 255.0f,
-        ( ( uint8_t* )&hexColor )[ 1 ] / 255.0f,
-        ( ( uint8_t* )&hexColor )[ 0 ] / 255.0f };
-                               TAC_ASSERT_INVALID_DEFAULT_CASE( endianness );
+      case Endianness::Big: return HexToRGBAux( hexColor, 1, 2, 3 );
+      case Endianness::Little: return HexToRGBAux( hexColor, 2, 1, 0 );
+      default: TAC_ASSERT_INVALID_CASE( endianness ); return {};
     }
-    return {};
   }
 }

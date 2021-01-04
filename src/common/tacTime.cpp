@@ -69,4 +69,8 @@ namespace Tac
     float seconds = nano.count() / 1000000.0f;
     return seconds;
   }
+  float SecondsSince( Timepoint a )
+  {
+    return TimepointSubtractSeconds( GetCurrentTime(), a );
+  }
 }

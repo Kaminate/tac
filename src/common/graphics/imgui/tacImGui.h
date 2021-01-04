@@ -59,8 +59,11 @@ namespace Tac
   bool ImGuiInputText( const StringView& label, String& text );
   bool ImGuiSelectable( const StringView& str, bool selected );
   bool ImGuiButton( const StringView& str );
-  void ImGuiCheckbox( const StringView& str, bool* value );
+  bool ImGuiCheckbox( const StringView& str, bool* value );
   bool ImGuiDragFloat( const StringView& str, float* value );
+  bool ImGuiDragFloat2( const StringView& str, float* value );
+  bool ImGuiDragFloat3( const StringView& str, float* value );
+  bool ImGuiDragFloat4( const StringView& str, float* value );
   bool ImGuiDragInt( const StringView& str, int* value );
   void ImGuiDebugDraw();
   void ImGuiSetCursorPos(v2 local);

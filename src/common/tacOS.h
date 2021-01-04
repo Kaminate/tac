@@ -21,7 +21,7 @@ namespace Tac
     void        CreateFolderIfNotExist( StringView path, Errors& );
 
     void        DebugBreak();
-    void        DebugAssert( StringView msg, const StackFrame& );
+    void        DebugAssert( const Errors& );
     void        DebugPopupBox( StringView );
 
     // Gets the path where you can save files to, such as user configs
@@ -47,8 +47,13 @@ namespace Tac
     // and accessed through MouseInput
     void        GetScreenspaceCursorPos( v2& pos, Errors& );
     void        SetScreenspaceCursorPos( const v2& pos, Errors& );
+
+    void        ThreadSleepSec(float t = 1);
+    void        ThreadSleepMsec(int t = 1);
+
     bool        IsRunning();
     void        StopRunning();
+
     String      GetDefaultRendererName();
   };
 

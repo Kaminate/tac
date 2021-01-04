@@ -10,4 +10,3 @@ pause
 
 
 goto :mylabel
-

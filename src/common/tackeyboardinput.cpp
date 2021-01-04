@@ -53,9 +53,8 @@ namespace Tac
       case Key::Y: return "Y";
       case Key::Z: return "Z";
       case Key::F5: return "f5";
-        TAC_ASSERT_INVALID_DEFAULT_CASE( key );
+      default: TAC_ASSERT_INVALID_CASE( key ); return "";
     }
-    return "";
   }
 
   bool KeyboardInputFrame::IsKeyDown( Key key )

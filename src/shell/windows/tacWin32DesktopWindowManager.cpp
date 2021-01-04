@@ -133,7 +133,6 @@ namespace Tac
 
       case WM_CREATE:
       {
-        std::cout << "WM_CREATE" << std::endl;
         sHWNDs[ ( int )desktopWindowHandle ] = hwnd;
         sWindowUnderConstruction = DesktopWindowHandle();
         auto windowInfo = ( const CREATESTRUCT* )lParam;

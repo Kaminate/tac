@@ -959,7 +959,7 @@ namespace Tac
             commandData.mConstantBufferHandle = constantBufferHandle;
             Renderer::Instance->UpdateConstantBuffer( &commandData, errors );
           } break;
-          TAC_ASSERT_INVALID_DEFAULT_CASE( header.mType )
+          default: TAC_ASSERT_INVALID_CASE( header.mType ); return;
         }
       }
     }
@@ -1320,7 +1320,7 @@ namespace Tac
             std::cout << "ResizeFramebuffer::End\n";
         } break;
 
-        TAC_ASSERT_INVALID_DEFAULT_CASE( *renderCommandType );
+        default: TAC_ASSERT_INVALID_CASE( *renderCommandType ); return;
       }
     }
   }
@@ -1333,10 +1333,8 @@ namespace Tac
       case Renderer::Type::OpenGL4: return RendererNameOpenGL4;
       case Renderer::Type::DirectX11: return RendererNameDirectX11;
       case Renderer::Type::DirectX12: return RendererNameDirectX12;
-        TAC_ASSERT_INVALID_DEFAULT_CASE( rendererType );
+      default: TAC_ASSERT_INVALID_CASE( rendererType ); return "";
     }
-    TAC_ASSERT_INVALID_CODE_PATH;
-    return "";
   }
 
 

@@ -22,5 +22,9 @@ namespace Tac
                                    float springyness,
                                    float deltaTimeSeconds );
   inline float             Abs( float value ) { return value > 0 ? value : value * -1; }
+  inline float             Square( float value ) { return value * value; }
+  inline float             Cube( float value ) { return value * value * value; }
+  inline float             DegreesToRadians( float d ) { return d * ( 3.14f / 180.0f ); }
+  inline float             RadiansToDegrees( float r ) { return r / ( 3.14f / 180.0f ); }
 }
 

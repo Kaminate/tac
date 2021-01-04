@@ -153,9 +153,8 @@ namespace Tac
       case AddressMode::Wrap: return D3D11_TEXTURE_ADDRESS_WRAP;
       case AddressMode::Clamp: return D3D11_TEXTURE_ADDRESS_CLAMP;
       case AddressMode::Border: return D3D11_TEXTURE_ADDRESS_BORDER;
-        TAC_ASSERT_INVALID_DEFAULT_CASE( addressMode );
+      default: TAC_ASSERT_INVALID_CASE( addressMode ); return D3D11_TEXTURE_ADDRESS_WRAP;
     }
-    return D3D11_TEXTURE_ADDRESS_WRAP;
   }
 
   static D3D11_COMPARISON_FUNC GetCompare( Comparison compare )
@@ -164,9 +163,8 @@ namespace Tac
     {
       case Comparison::Always: return D3D11_COMPARISON_ALWAYS;
       case Comparison::Never: return D3D11_COMPARISON_NEVER;
-        TAC_ASSERT_INVALID_DEFAULT_CASE( compare );
+      default: TAC_ASSERT_INVALID_CASE( compare ); return D3D11_COMPARISON_ALWAYS;
     }
-    return D3D11_COMPARISON_ALWAYS;
   };
 
   static D3D11_FILTER GetFilter( Filter filter )
@@ -176,9 +174,8 @@ namespace Tac
       case Filter::Linear: return D3D11_FILTER_MIN_MAG_MIP_LINEAR;
       case Filter::Point: return D3D11_FILTER_MIN_MAG_MIP_POINT;
       case Filter::Aniso: return D3D11_FILTER_ANISOTROPIC;
-        TAC_ASSERT_INVALID_DEFAULT_CASE( filter );
+      default: TAC_ASSERT_INVALID_CASE( filter ); return D3D11_FILTER_MIN_MAG_MIP_LINEAR;
     }
-    return D3D11_FILTER_MIN_MAG_MIP_LINEAR;
   };
 
   static D3D11_COMPARISON_FUNC GetDepthFunc( DepthFunc depthFunc )
@@ -187,9 +184,8 @@ namespace Tac
     {
       case DepthFunc::Less: return D3D11_COMPARISON_LESS;
       case DepthFunc::LessOrEqual: return D3D11_COMPARISON_LESS_EQUAL;
-        TAC_ASSERT_INVALID_DEFAULT_CASE( depthFunc );
+      default: TAC_ASSERT_INVALID_CASE( depthFunc ); return D3D11_COMPARISON_LESS;
     }
-    return D3D11_COMPARISON_LESS;
   }
 
   static D3D11_USAGE GetUsage( Access access )
@@ -199,9 +195,8 @@ namespace Tac
       case Access::Default: return D3D11_USAGE_DEFAULT;
       case Access::Dynamic: return D3D11_USAGE_DYNAMIC;
       case Access::Static: return D3D11_USAGE_IMMUTABLE;
-        TAC_ASSERT_INVALID_DEFAULT_CASE( access );
+      default: TAC_ASSERT_INVALID_CASE( access ); return D3D11_USAGE_DEFAULT;
     }
-    return D3D11_USAGE_DEFAULT;
   }
 
   static UINT GetCPUAccessFlags( CPUAccess access )
@@ -270,9 +265,8 @@ namespace Tac
     {
       case FillMode::Solid: return D3D11_FILL_SOLID;
       case FillMode::Wireframe: return D3D11_FILL_WIREFRAME;
-        TAC_ASSERT_INVALID_DEFAULT_CASE( fillMode );
+      default: TAC_ASSERT_INVALID_CASE( fillMode ); return ( D3D11_FILL_MODE )0;
     }
-    return ( D3D11_FILL_MODE )0;
   }
 
   static D3D11_CULL_MODE GetCullMode( CullMode cullMode )
@@ -282,9 +276,8 @@ namespace Tac
       case CullMode::None: return D3D11_CULL_NONE;
       case CullMode::Back: return D3D11_CULL_BACK;
       case CullMode::Front: return D3D11_CULL_FRONT;
-        TAC_ASSERT_INVALID_DEFAULT_CASE( cullMode );
+      default: TAC_ASSERT_INVALID_CASE( cullMode ); return ( D3D11_CULL_MODE )0;
     }
-    return ( D3D11_CULL_MODE )0;
   }
 
   static WCHAR* ToTransientWchar( StringView str )
@@ -1165,7 +1158,6 @@ namespace Tac
                                           Errors& errors )
   {
     AssertRenderThread();
-    //DesktopWindow* window = DesktopApp::Instance->FindDesktopWindow( data->mDesktopWindowHandle );
 
     auto hwnd = ( HWND )data->mNativeWindowHandle; // window->GetOperatingSystemHandle();
     IDXGISwapChain* swapChain;
@@ -1182,8 +1174,8 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
 
     ID3D11Device* device = RendererDirectX11::Instance->mDevice;
-    //DXGI_SWAP_CHAIN_DESC swapChainDesc;
-    //swapChain->GetDesc( &swapChainDesc );
+    DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
+    swapChain->GetDesc( &swapChainDesc );
 
     ID3D11Texture2D* pBackBuffer;
     TAC_DXGI_CALL( errors, swapChain->GetBuffer, 0, IID_PPV_ARGS( &pBackBuffer ) );
@@ -1194,6 +1186,10 @@ namespace Tac
                    rtvDesc,
                    &rtv );
     pBackBuffer->Release();
+
+    D3D11_RENDER_TARGET_VIEW_DESC createdDesc = {};
+    rtv->GetDesc( &createdDesc );
+
 
     AssertRenderThread();
     D3D11_TEXTURE2D_DESC texture2dDesc = {};

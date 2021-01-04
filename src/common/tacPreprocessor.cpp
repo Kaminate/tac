@@ -42,6 +42,9 @@ namespace Tac
 
   void AssertInternal( const char* message, const StackFrame& frame )
   {
-    OS::DebugAssert( message, frame );
+    Errors errors;
+    errors.Append( message );
+    errors.Append( frame );
+    OS::DebugAssert( errors );
   }
 }

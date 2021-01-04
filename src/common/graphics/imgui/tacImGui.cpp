@@ -192,10 +192,11 @@ namespace Tac
 
           if( gKeyboardInput.mPrev.IsKeyDown( Key::MouseLeft ) )
           {
+            const DesktopWindowState* desktopWindowState = GetDesktopWindowState( window->mDesktopWindowHandle );
             float moveCursorDir = 0;
-            if( screenspaceMousePos.x > clipRect.mMaxi.x )
+            if( screenspaceMousePos.x > clipRect.mMaxi.x + desktopWindowState->mX )
               moveCursorDir = -1.0f;
-            if( screenspaceMousePos.x < clipRect.mMini.x )
+            if( screenspaceMousePos.x < clipRect.mMini.x + desktopWindowState->mX )
               moveCursorDir = 1.0f;
             if( moveCursorDir )
             {
@@ -752,8 +753,9 @@ namespace Tac
     return justClicked;
   }
 
-  void ImGuiCheckbox( const StringView& str, bool* value )
+  bool ImGuiCheckbox( const StringView& str, bool* value )
   {
+    const bool oldValue = *value;
     ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
     UI2DDrawData* drawData = window->mDrawData;
     v2 pos = window->mCurrCursorViewport;
@@ -770,7 +772,7 @@ namespace Tac
     auto clipRect = ImGuiRect::FromPosSize( pos, totalSize );
     window->ComputeClipInfo( &clipped, &clipRect );
     if( clipped )
-      return;
+      return false;
 
     bool hovered = window->IsHovered( clipRect );
 
@@ -785,6 +787,8 @@ namespace Tac
       if( gKeyboardInput.IsKeyJustDown( Key::MouseLeft ) )
       {
         *value = !*value;
+
+        gKeyboardInput.SetIsKeyDown( Key::MouseLeft, false );
       }
     }
 
@@ -859,9 +863,10 @@ namespace Tac
       pos.x + boxWidth + ImGuiGlobals::Instance.mUIStyle.itemSpacing.x,
       pos.y };
     drawData->AddText( textPos, ImGuiGlobals::Instance.mUIStyle.fontSize, str, ImGuiGlobals::Instance.mUIStyle.textColor, &clipRect );
+    return oldValue != *value;
   }
 
- void ImGuiSetCursorPos( v2 local )
+  void ImGuiSetCursorPos( v2 local )
   {
     ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
     window->mCurrCursorViewport = local;
@@ -898,6 +903,28 @@ namespace Tac
     };
     const bool result = ImguiDragVal( str, value, sizeof( float ), getter, setter, whatToDoWithMousePixel );
     return result;
+  }
+
+  bool ImGuiDragFloat2( const StringView& str, float* value )
+  {
+    const bool x = ImGuiDragFloat( str + " x", value + 0 );
+    const bool y = ImGuiDragFloat( str + " y", value + 1 );
+    return x || y;
+  }
+  bool ImGuiDragFloat3( const StringView& str, float* value )
+  {
+    const bool x = ImGuiDragFloat( str + " x", value + 0 );
+    const bool y = ImGuiDragFloat( str + " y", value + 1 );
+    const bool z = ImGuiDragFloat( str + " z", value + 2 );
+    return x || y || z;
+  }
+  bool ImGuiDragFloat4( const StringView& str, float* value )
+  {
+    const bool x = ImGuiDragFloat( str + " x", value + 0 );
+    const bool y = ImGuiDragFloat( str + " y", value + 1 );
+    const bool z = ImGuiDragFloat( str + " z", value + 2 );
+    const bool w = ImGuiDragFloat( str + " w", value + 3 );
+    return x || y || z || w;
   }
 
   bool ImGuiDragInt( const StringView& str, int* value )

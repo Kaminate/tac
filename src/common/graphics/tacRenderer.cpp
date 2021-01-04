@@ -17,9 +17,8 @@ namespace Tac
       case Attribute::BoneIndex: return "BONEINDEX";
       case Attribute::BoneWeight: return "BONEWEIGHT";
       case Attribute::Coeffs: return "COEFFS";
-        TAC_ASSERT_INVALID_DEFAULT_CASE( attribType );
+      default: TAC_ASSERT_INVALID_CASE( attribType ); return nullptr;
     }
-    return nullptr;
   }
 
   v4 ToColorAlphaPremultiplied( v4 colorAlphaUnassociated )

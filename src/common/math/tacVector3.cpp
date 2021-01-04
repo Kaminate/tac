@@ -44,10 +44,10 @@ float v3::Quadrance() const { return Dot( *this, *this ); }
 v3 operator *( float f, const v3& v ) { return v * f; }
 float Dot( const v3& lhs, const v3& rhs )
 {
-  float result = 0;
-  for( int i = 0; i < 3; ++i )
-    result += lhs[ i ] * rhs[ i ];
-  return result;
+  return
+    lhs.x * rhs.x +
+    lhs.y * rhs.y +
+    lhs.z * rhs.z;
 }
 v3 Cross( const v3& l, const v3& r )
 {

@@ -123,7 +123,10 @@ namespace Tac
       case DIERR_OUTOFMEMORY:
         inputCreateErrorMessage= "DIERR_OUTOFMEMORY";
         break;
-        TAC_ASSERT_INVALID_DEFAULT_CASE( hr );
+      default:
+        TAC_ASSERT_INVALID_CASE( hr );
+        inputCreateErrorMessage= "???";
+        break;
     }
     if( inputCreateErrorMessage )
       TAC_RAISE_ERROR( inputCreateErrorMessage, errors );

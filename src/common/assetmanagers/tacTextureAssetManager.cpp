@@ -146,11 +146,11 @@ namespace Tac
 
         if( files.size() != 6 )
         {
-          const String errorMsg =  "found " + ToString( files.size() ) + " textures in " + mData->mDir;
+          const String errorMsg = "found " + ToString( files.size() ) + " textures in " + mData->mDir;
           TAC_RAISE_ERROR( errorMsg, errors );
         }
 
-        auto TrySortPart = [ & ]( StringView face, int desiredIndex )
+        auto TrySortPart = [&]( StringView face, int desiredIndex )
         {
           for( int i = 0; i < 6; ++i )
           {
@@ -207,7 +207,7 @@ namespace Tac
           if( iFile && !( x == prevWidth && y == prevHeight ) )
           {
             const StringView filepathPrev = files[ iFile - 1 ];
-            const String errorMsg =  filepath + " has dimensions " +
+            const String errorMsg = filepath + " has dimensions " +
               ToString( x ) + "x" + ToString( y ) +
               " which is different from " + filepathPrev + " dimensions " +
               ToString( prevWidth ) + "x" + ToString( prevHeight );
@@ -252,24 +252,16 @@ namespace Tac
                                     AsyncTexture* asyncTexture,
                                     Tac::Errors& errors )
     {
-      Job* job = asyncTexture->mJob;
-      AsyncLoadStatus status = job->GetStatus();
-      switch( status )
+      const Job* job = asyncTexture->mJob;
+      const JobState status = job->GetStatus();
+      if( status == JobState::ThreadFinished )
       {
-        case AsyncLoadStatus::ThreadQueued:
-        {
-          // do nothing
-        } break;
-        case AsyncLoadStatus::ThreadRunning:
-        {
-          // do nothing
-        } break;
-        case AsyncLoadStatus::ThreadFailed:
+        if( job->mErrors )
         {
           errors = job->mErrors;
           TAC_HANDLE_ERROR( errors );
-        } break;
-        case AsyncLoadStatus::ThreadCompleted:
+        }
+        else
         {
           Render::TextureHandle texture;
           asyncTexture->mData->CreateTexture( &texture, errors );
@@ -279,9 +271,7 @@ namespace Tac
           delete asyncTexture->mJob;
           delete asyncTexture;
           mLoadedTextures[ key ] = texture;
-          break;
         }
-        TAC_ASSERT_INVALID_DEFAULT_CASE( status );
       }
     }
 

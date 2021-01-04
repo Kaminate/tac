@@ -1,6 +1,9 @@
-
+#include "src/common/containers/tacRingVector.h"
+#include "src/common/containers/tacVector.h"
 #include "src/common/tacJobQueue.h"
 #include "src/common/math/tacMath.h"
+
+#include <thread>
 
 namespace Tac
 {
@@ -21,51 +24,54 @@ namespace Tac
 
   static void WorkerThread()
   {
+    const std::thread::id id = std::this_thread::get_id();
     while( sJobQueueRunning )
     {
+      std::this_thread::sleep_for( std::chrono::milliseconds( 1 ) );
       Job* job = nullptr;
       sJobQueueMutex.lock();
       if( !sJobQueueUnstarted.empty() )
         job = sJobQueueUnstarted.Pop();
       sJobQueueMutex.unlock();
-      // why?
       if( !job )
-      {
-        std::this_thread::sleep_for( std::chrono::milliseconds( 1 ) );
         continue;
-      }
       std::this_thread::sleep_for( std::chrono::milliseconds( ( int )( sJobQueueMinJobSeconds * 1000 ) ) );
-      job->SetStatus( AsyncLoadStatus::ThreadRunning );
+      job->SetState( JobState::ThreadRunning );
       job->Execute();
-      job->SetStatus( job->mErrors.empty() ?
-                      AsyncLoadStatus::ThreadCompleted :
-                      AsyncLoadStatus::ThreadFailed );
+      job->SetState( JobState::ThreadFinished );
     }
   }
 
-  Job::Job()
-  {
-    mAsyncLoadStatus = AsyncLoadStatus::JustBeenCreated;
-  }
-
-  void Job::SetStatus( AsyncLoadStatus asyncLoadStatus )
+  void Job::Abort()
   {
     mStatusMutex.lock();
-    mAsyncLoadStatus = asyncLoadStatus;
+    mErrors.Append( "Job aborted by user" );
     mStatusMutex.unlock();
   }
 
-  AsyncLoadStatus Job::GetStatus()
+  bool Job::AbortRequested() const
+  {
+    return mErrors;
+  }
+
+  void Job::SetState( JobState JobState )
   {
     mStatusMutex.lock();
-    AsyncLoadStatus asyncLoadStatus = mAsyncLoadStatus;
+    mAsyncLoadStatus = JobState;
     mStatusMutex.unlock();
-    return asyncLoadStatus;
+  }
+
+  JobState Job::GetStatus() const
+  {
+    mStatusMutex.lock();
+    const JobState JobState = mAsyncLoadStatus;
+    mStatusMutex.unlock();
+    return JobState;
   }
 
   void JobQueuePush( Job* job )
   {
-    job->SetStatus( AsyncLoadStatus::ThreadQueued );
+    job->SetState( JobState::ThreadQueued );
     job->mErrors.clear();
     sJobQueueMutex.lock();
     sJobQueueUnstarted.Push( job );
