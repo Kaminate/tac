@@ -35,6 +35,8 @@ namespace Tac
 
   void DXGICallAux( const char* fnCallWithArgs, HRESULT res, Errors& errors );
 
+  const char* TryInferDXGIErrorStr( HRESULT );
+
 #define TAC_DXGI_CALL( errors, call, ... )\
 {\
   HRESULT result = call( __VA_ARGS__ );\

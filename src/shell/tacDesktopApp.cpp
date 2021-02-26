@@ -1,4 +1,5 @@
 #include "src/common/containers/tacFixedVector.h"
+#include "src/common/tacShell.h"
 #include "src/common/containers/tacFrameVector.h"
 #include "src/common/containers/tacRingBuffer.h"
 #include "src/common/graphics/imgui/tacImGui.h"
@@ -21,6 +22,12 @@
 
 namespace Tac
 {
+  enum class ThreadType
+  {
+    Unknown,
+    Main,
+    Stuff
+  };
   enum class DesktopEventType
   {
     Unknown = 0,
@@ -65,11 +72,13 @@ namespace Tac
     int               mEdgePx = 0;
   };
 
-  typedef FixedVector< WantSpawnInfo, kDesktopWindowCapacity > WindowRequests;
+  typedef FixedVector< WantSpawnInfo, kDesktopWindowCapacity > WindowRequestsCreate;
+  typedef FixedVector< DesktopWindowHandle, kDesktopWindowCapacity > WindowRequestsDestroy;
 
-  Errors                               gPlatformThreadErrors( Errors::Flags::kDebugBreakOnAppend );
-  Errors                               gLogicThreadErrors( Errors::Flags::kDebugBreakOnAppend );
+  static Errors                        gPlatformThreadErrors( Errors::Flags::kDebugBreakOnAppend );
+  static Errors                        gLogicThreadErrors( Errors::Flags::kDebugBreakOnAppend );
   static PlatformSpawnWindow           sPlatformSpawnWindow;
+  static PlatformDespawnWindow         sPlatformDespawnWindow;
   static PlatformGetMouseHoveredWindow sPlatformGetMouseHoveredWindow;
   static PlatformFrameEnd              sPlatformFrameEnd;
   static PlatformFrameBegin            sPlatformFrameBegin;
@@ -80,7 +89,8 @@ namespace Tac
   static ProjectUninit                 sProjectUninit;
   static std::mutex                    sWindowHandleLock;
   static IdCollection                  sDesktopWindowHandleIDs( kDesktopWindowCapacity );
-  static WindowRequests                sWindowRequests;
+  static WindowRequestsCreate          sWindowRequestsCreate;
+  static WindowRequestsDestroy         sWindowRequestsDestroy;
   static ThreadAllocator               sAllocatorStuff;
   static ThreadAllocator               sAllocatorMain;
   static DesktopEventQueueImpl         sEventQueue;
@@ -91,18 +101,31 @@ namespace Tac
 
   static void DesktopAppUpdateWindowRequests()
   {
-    WindowRequests requests;
-    sWindowHandleLock.lock();
-    requests = sWindowRequests;
-    sWindowHandleLock.unlock();
-    sWindowRequests.clear();
-    for( WantSpawnInfo info : requests )
+    WindowRequestsCreate requestsCreate;
+    WindowRequestsDestroy requestsDestroy;
+    {
+      sWindowHandleLock.lock();
+      if( sWindowRequestsCreate.size() )
+      {
+        requestsCreate = sWindowRequestsCreate;
+        sWindowRequestsCreate.clear();
+      }
+      if( sWindowRequestsDestroy.size() )
+      {
+        requestsDestroy = sWindowRequestsDestroy;
+        sWindowRequestsDestroy.clear();
+      }
+      sWindowHandleLock.unlock();
+    }
+
+    for( WantSpawnInfo info : requestsCreate )
       sPlatformSpawnWindow( info.mHandle,
                             info.mX,
                             info.mY,
                             info.mWidth,
                             info.mHeight );
-
+    for( DesktopWindowHandle desktopWindowHandle : requestsDestroy )
+      sPlatformDespawnWindow( desktopWindowHandle );
   }
 
   static void DesktopAppUpdateMoveResize()
@@ -243,11 +266,22 @@ namespace Tac
     }
   }
 
+  //WindowHandleIterator::WindowHandleIterator() {  }
+  //WindowHandleIterator::~WindowHandleIterator() {  }
 
-  WindowHandleIterator::WindowHandleIterator() { sWindowHandleLock.lock(); }
-  WindowHandleIterator::~WindowHandleIterator() { sWindowHandleLock.unlock(); }
-  int* WindowHandleIterator::begin() { return sDesktopWindowHandleIDs.begin(); }
-  int* WindowHandleIterator::end() { return sDesktopWindowHandleIDs.end(); }
+  int* WindowHandleIterator::begin()
+  {
+    TAC_ASSERT( IsLogicThread() );
+    sWindowHandleLock.lock();
+    return sDesktopWindowHandleIDs.begin();
+  }
+
+  int* WindowHandleIterator::end()
+  {
+    int* result = sDesktopWindowHandleIDs.end();
+    sWindowHandleLock.unlock();
+    return result;
+  }
 
   void DesktopEventQueueImpl::Init()
   {
@@ -525,6 +559,7 @@ namespace Tac
 
 
   void                DesktopAppInit( PlatformSpawnWindow platformSpawnWindow,
+                                      PlatformDespawnWindow platformDespawnWindow,
                                       PlatformGetMouseHoveredWindow platformGetMouseHoveredWindow,
                                       PlatformFrameBegin platformFrameBegin,
                                       PlatformFrameEnd platformFrameEnd,
@@ -560,6 +595,7 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
 
     sPlatformSpawnWindow = platformSpawnWindow;
+    sPlatformDespawnWindow = platformDespawnWindow;
     sPlatformGetMouseHoveredWindow = platformGetMouseHoveredWindow;
     sPlatformFrameEnd = platformFrameEnd;
     sPlatformFrameBegin = platformFrameBegin;
@@ -621,7 +657,7 @@ namespace Tac
 
   DesktopWindowHandle DesktopAppCreateWindow( int x, int y, int width, int height )
   {
-    std::lock_guard< std::mutex > lock( sWindowHandleLock );
+    sWindowHandleLock.lock();
     const DesktopWindowHandle handle = { sDesktopWindowHandleIDs.Alloc() };
     WantSpawnInfo info;
     info.mX = x;
@@ -629,8 +665,41 @@ namespace Tac
     info.mWidth = width;
     info.mHeight = height;
     info.mHandle = handle;
-    sWindowRequests.push_back( info );
+    sWindowRequestsCreate.push_back( info );
+    sWindowHandleLock.unlock();
     return handle;
+  }
+
+  void                DesktopAppDestroyWindow( DesktopWindowHandle desktopWindowHandle )
+  {
+    if( !desktopWindowHandle.IsValid() )
+      return;
+    sWindowHandleLock.lock();
+    sDesktopWindowHandleIDs.Free( ( int )desktopWindowHandle );
+    sWindowRequestsDestroy.push_back( desktopWindowHandle );
+    sWindowHandleLock.unlock();
+  }
+
+  Errors*                        GetPlatformThreadErrors()
+  {
+    return &gPlatformThreadErrors;
+  }
+
+  Errors*                        GetLogicThreadErrors()
+  {
+    return &gLogicThreadErrors;
+
+  }
+
+  bool                           IsMainThread()
+  {
+    return gThreadType == ThreadType::Main;
+
+  }
+  bool                           IsLogicThread()
+  {
+
+    return gThreadType == ThreadType::Stuff;
   }
 
 }

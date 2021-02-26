@@ -784,7 +784,7 @@ namespace Tac
 
     void RenderFrame( Errors& errors )
     {
-      TAC_ASSERT( gThreadType == ThreadType::Main );
+      TAC_ASSERT( IsMainThread() );
       if( !Renderer::Instance )
         return;
 
@@ -804,7 +804,7 @@ namespace Tac
     static int gFrameCount;
     void SubmitFrame()
     {
-      TAC_ASSERT( gThreadType == ThreadType::Stuff );
+      TAC_ASSERT( IsLogicThread() );
       SemaphoreDecrementWait( gRenderSemaphore );
 
       // submit finish
@@ -1336,6 +1336,4 @@ namespace Tac
       default: TAC_ASSERT_INVALID_CASE( rendererType ); return "";
     }
   }
-
-
 }

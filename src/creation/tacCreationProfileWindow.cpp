@@ -25,6 +25,7 @@ namespace Tac
   {
     Instance = nullptr;
     delete mUI2DDrawData;
+    DesktopAppDestroyWindow( mDesktopWindowHandle );
   }
   void CreationProfileWindow::Init( Errors& errors )
   {

@@ -14,22 +14,20 @@ set( TAC_SOURCES "" )
 set( TAC_EXE_NAME "Creation" )
 set( TAC_SOURCES 
   ${TAC_SOURCES}
-  "${CMAKE_SOURCE_DIR}/src/creation/tacCreation.cpp"
-  "${CMAKE_SOURCE_DIR}/src/creation/tacCreation.h"
-  "${CMAKE_SOURCE_DIR}/src/creation/tacCreationGameObjectMenuWindow.cpp"
-  "${CMAKE_SOURCE_DIR}/src/creation/tacCreationGameObjectMenuWindow.h"
-  "${CMAKE_SOURCE_DIR}/src/creation/tacCreationGameWindow.cpp"
-  "${CMAKE_SOURCE_DIR}/src/creation/tacCreationGameWindow.h"
-  "${CMAKE_SOURCE_DIR}/src/creation/tacCreationMainWindow.cpp"
-  "${CMAKE_SOURCE_DIR}/src/creation/tacCreationMainWindow.h"
-  "${CMAKE_SOURCE_DIR}/src/creation/tacCreationProfileWindow.cpp"
-  "${CMAKE_SOURCE_DIR}/src/creation/tacCreationProfileWindow.h"
-  "${CMAKE_SOURCE_DIR}/src/creation/tacCreationPropertyWindow.cpp"
-  "${CMAKE_SOURCE_DIR}/src/creation/tacCreationPropertyWindow.h"
-  "${CMAKE_SOURCE_DIR}/src/creation/tacCreationSystemWindow.cpp"
-  "${CMAKE_SOURCE_DIR}/src/creation/tacCreationSystemWindow.h"
-  "${CMAKE_SOURCE_DIR}/src/creation/tacEditorWindow.cpp"
-  "${CMAKE_SOURCE_DIR}/src/creation/tacEditorWindow.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/tacCreation.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/tacCreation.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/tacCreationGameObjectMenuWindow.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/tacCreationGameObjectMenuWindow.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/tacCreationGameWindow.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/tacCreationGameWindow.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/tacCreationMainWindow.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/tacCreationMainWindow.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/tacCreationProfileWindow.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/tacCreationProfileWindow.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/tacCreationPropertyWindow.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/tacCreationPropertyWindow.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/tacCreationSystemWindow.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/tacCreationSystemWindow.h"
   "${CMAKE_SOURCE_DIR}/src/shell/tacDesktopApp.cpp"
   "${CMAKE_SOURCE_DIR}/src/shell/tacDesktopApp.h"
   "${CMAKE_SOURCE_DIR}/src/shell/tacDesktopWindowGraphics.cpp"
@@ -205,8 +203,25 @@ if( WIN32 )
     VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
     VS_STARTUP_PROJECT ${TAC_TARGET_NAME}
     OUTPUT_NAME "${TAC_EXE_NAME}"
-    RUNTIME_OUTPUT_DIRECTORY "${RUNTIME_OUTPUT_DIRECTORY}/${TAC_TARGET_NAME}"
+    # RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} # "${RUNTIME_OUTPUT_DIRECTORY}/${TAC_TARGET_NAME}"
+    # RUNTIME_OUTPUT_DIRECTORY  "${RUNTIME_OUTPUT_DIRECTORY}/${TAC_TARGET_NAME}"
     LINKER_LANGUAGE CXX )
+  # set_target_properties( ...
+  # nothing: ------------------------------------------------------------------> E:\Users\Nate\Documents\GitHub\tac\build\src\creation\Debug\
+  # RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} ------------------------------> E:\Users\Nate\Documents\GitHub\tac\build\Debug\
+  # RUNTIME_OUTPUT_DIRECTORY "${RUNTIME_OUTPUT_DIRECTORY}/${TAC_TARGET_NAME}" -> \CreationWin32\Debug\ <-- E:\CreationWin32\Debug\
+  # ... )
+
+# get_target_property(<VAR> target property)
+#[[
+  set_target_properties( targets...
+      PROPERTIES
+      ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+      LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+      RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+      ]]#
+
+
 endif()
 
 

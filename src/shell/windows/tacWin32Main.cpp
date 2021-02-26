@@ -16,6 +16,7 @@
 namespace Tac
 {
   static Errors sWinMainErrors;
+  static void ReportError( StringView, Errors& );
   static void WinMainAux( HINSTANCE hInstance,
                           HINSTANCE hPrevInstance,
                           LPSTR lpCmdLine,
@@ -30,17 +31,20 @@ int CALLBACK WinMain( HINSTANCE hInstance,
 {
   using namespace Tac;
   WinMainAux( hInstance, hPrevInstance, lpCmdLine, nCmdShow );
-  auto ReportError = []( StringView desc, Errors& errors ) { if( errors ) {
-    OS::DebugPopupBox( desc + " - " + errors.ToString() );
-  } };
   ReportError( "WinMain", sWinMainErrors );
-  ReportError( "Platform thread", gPlatformThreadErrors );
-  ReportError( "Logic thread", gLogicThreadErrors );
+  ReportError( "Platform thread", *GetPlatformThreadErrors() );
+  ReportError( "Logic thread", *GetLogicThreadErrors() );
   return 0;
 }
 
 namespace Tac
 {
+  static void ReportError( StringView desc, Errors& errors )
+  {
+    if( errors )
+      OS::DebugPopupBox( desc + " - " + errors.ToString() );
+  }
+
   static void Win32FrameBegin( Errors& errors )
   {
     Win32WindowManagerPoll( errors );
@@ -84,14 +88,13 @@ namespace Tac
 
     Win32MouseEdgeInit();
 
-    DesktopAppInit( // Win32WindowManagerPoll,
-                    Win32WindowManagerSpawnWindow,
+    DesktopAppInit( Win32WindowManagerSpawnWindow,
+                    Win32WindowManagerDespawnWindow,
                     Win32WindowManagerGetCursorUnobscuredWindow,
                     Win32FrameBegin,
                     Win32FrameEnd,
                     Win32MouseEdgeSetMovable,
                     Win32MouseEdgeSetResizable,
-                    //Win32MouseEdgeUpdate,
                     errors );
     TAC_HANDLE_ERROR( errors );
 

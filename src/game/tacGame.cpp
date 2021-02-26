@@ -1,5 +1,6 @@
 #include "src/common/graphics/imgui/tacImGui.h"
 #include "src/common/graphics/tacUI.h"
+#include "src/common/tacDesktopWindow.h"
 #include "src/common/graphics/tacUI2D.h"
 #include "src/common/tacOS.h"
 #include "src/game/tacGame.h"
@@ -42,8 +43,8 @@ namespace Tac
   void GameCallbackUpdate( Errors& errors )
   {
     DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
-if(!desktopWindowState->mNativeWindowHandle)
-      return;
+    if(!desktopWindowState->mNativeWindowHandle)
+          return;
     Viewport viewport;
     viewport.mWidth = ( float )desktopWindowState->mWidth;
     viewport.mHeight = ( float )desktopWindowState->mHeight;

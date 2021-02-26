@@ -1,5 +1,6 @@
 #include "src/common/tacMemory.h"
 #include "src/shell/tacDesktopApp.h" // temp
+#include "src/common/tacShell.h"
 
 #include <fstream>
 

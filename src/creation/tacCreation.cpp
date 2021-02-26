@@ -2,6 +2,7 @@
 #include "src/common/graphics/tacColorUtil.h"
 #include "src/common/graphics/tacFont.h"
 #include "src/common/graphics/tacRenderer.h"
+#include "src/common/tacUtility.h"
 #include "src/common/graphics/tacUI2D.h"
 #include "src/common/graphics/imgui/tacImGui.h"
 #include "src/common/math/tacMath.h"

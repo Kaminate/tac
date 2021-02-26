@@ -4,6 +4,7 @@
 #include "src/common/tacOS.h"
 #include "src/common/math/tacMath.h"
 #include "src/common/tacTemporaryMemory.h"
+#include "src/common/tacShell.h"
 #include "src/shell/tacDesktopApp.h"
 
 namespace Tac

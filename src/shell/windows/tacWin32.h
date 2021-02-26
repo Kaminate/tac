@@ -18,6 +18,13 @@
 #define NOMINMAX
 #endif
 
+// https://stackoverflow.com/questions/61485127/including-windows-h-causes-unknown-attributeno-init-all-error-solved
+// ( remove once we migrate out of vs2017 )
+#ifndef no_init_all
+#define no_init_all
+#endif
+
+
 #include <Windows.h>
 
 namespace Tac

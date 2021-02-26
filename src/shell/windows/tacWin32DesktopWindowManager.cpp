@@ -21,7 +21,10 @@
 namespace Tac
 {
   static const char* classname = "tac";
+
+  // Elements in this array are added/removed by wndproc
   static HWND sHWNDs[ kDesktopWindowCapacity ];
+
   static DesktopWindowHandle sWindowUnderConstruction;
   static Key GetKey( uint8_t keyCode )
   {
@@ -85,8 +88,8 @@ namespace Tac
 
   DesktopWindowHandle Win32WindowManagerFindWindow( HWND hwnd )
   {
-    // this ok?
-    for( int i : WindowHandleIterator() )
+    //for( int i : WindowHandleIterator() )
+    for( int i = 0; i < kDesktopWindowCapacity; ++i )
       if( sHWNDs[ i ] == hwnd )
         return { i };
     return { -1 };
@@ -109,9 +112,13 @@ namespace Tac
       : sWindowUnderConstruction;
     if( !desktopWindowHandle.IsValid() )
     {
-      TAC_ASSERT_INVALID_CODE_PATH;
-
-      return DefWindowProc( hwnd, uMsg, wParam, lParam );
+      switch( uMsg )
+      {
+        case WM_NCDESTROY:
+          return DefWindowProc( hwnd, uMsg, wParam, lParam );
+        default:
+          TAC_ASSERT_INVALID_CASE( uMsg );
+      }
     }
 
     switch( uMsg )
@@ -119,16 +126,16 @@ namespace Tac
       // Sent as a signal that a window or an application should terminate.
       case WM_CLOSE:
       {
-        // Save window settings prior to deleting the window
-        ImGuiSaveWindowSettings();
-        DesktopEventAssignHandle( desktopWindowHandle, nullptr, 0, 0, 0, 0 );
+        //DesktopEventAssignHandle( desktopWindowHandle, nullptr, 0, 0, 0, 0 );
       } break;
 
       // Sent when a window is being destroyed
       case WM_DESTROY:
       {
         std::cout << "WM_DESTROY" << std::endl;
-
+        ImGuiSaveWindowSettings();
+        sHWNDs[ ( int )desktopWindowHandle ] = nullptr;
+        DesktopEventAssignHandle( desktopWindowHandle, nullptr, 0, 0, 0, 0 );
       } break;
 
       case WM_CREATE:
@@ -396,6 +403,13 @@ namespace Tac
       TranslateMessage( &msg );
       DispatchMessage( &msg );
     }
+  }
+
+  void Win32WindowManagerDespawnWindow( const DesktopWindowHandle& desktopWindowHandle )
+  {
+    const int iWindow = ( int )desktopWindowHandle;
+    const HWND hwnd = sHWNDs[ iWindow ];
+    DestroyWindow( hwnd );
   }
 
   void Win32WindowManagerSpawnWindow( const DesktopWindowHandle& desktopWindowHandle,

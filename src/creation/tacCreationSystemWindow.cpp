@@ -27,6 +27,7 @@ namespace Tac
   }
   CreationSystemWindow::~CreationSystemWindow()
   {
+    DesktopAppDestroyWindow( mDesktopWindowHandle );
     Instance = nullptr;
   }
   void CreationSystemWindow::Init( Errors& errors )

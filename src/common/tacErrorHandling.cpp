@@ -68,14 +68,14 @@ namespace Tac
 
   void Errors::Append( const StackFrame& frame )
   {
-    //TAC_ASSERT( size() ); why is this assert here
     mFrames.push_back( frame );
     OnAppend();
   }
 
   void Errors::Append( const StringView& message )
   {
-    //TAC_ASSERT( size() );
+    if( !message.size() )
+      return;
     mMessage += message;
     OnAppend();
   }

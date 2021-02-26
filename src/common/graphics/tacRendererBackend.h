@@ -343,4 +343,5 @@ namespace Tac
   };
 
   String RendererTypeToString( Renderer::Type );
+  bool IsRenderThread();
 }

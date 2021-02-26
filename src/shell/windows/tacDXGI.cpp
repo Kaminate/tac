@@ -1,4 +1,5 @@
 #include "src/shell/windows/tacDXGI.h"
+#include "src/shell/windows/tacWin32.h"
 #include "src/common/tacString.h"
 #include "src/common/tacErrorHandling.h"
 #include "src/common/tacPreprocessor.h"
@@ -125,9 +126,11 @@ namespace Tac
     }
 
     // This call deprecates IDXGIFactory::CreateSwapChain
-    HRESULT hr = mFactory->CreateSwapChainForHwnd( pDevice, hwnd, &scd1, &scfsd, NULL, &swapChain );
+    const HRESULT hr = mFactory->CreateSwapChainForHwnd( pDevice, hwnd, &scd1, &scfsd, NULL, &swapChain );
     if( FAILED( hr ) )
     {
+      errors.Append( TryInferDXGIErrorStr( hr ) );
+      errors.Append( Win32ErrorToString( HRESULT_CODE ( hr ) ) );
       TAC_RAISE_ERROR( "Failed to create swap chain", errors );
     }
 
@@ -181,7 +184,7 @@ namespace Tac
   }
 
 
-  static const char* TryInferDXGIErrorStr( HRESULT res )
+  const char* TryInferDXGIErrorStr( HRESULT res )
   {
     // https://docs.microsoft.com/en-us/windows/desktop/direct3ddxgi/dxgi-error
     switch( res )

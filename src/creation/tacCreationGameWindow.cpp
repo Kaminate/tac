@@ -106,6 +106,7 @@ namespace Tac
     Render::DestroyBlendState( mBlendState, TAC_STACK_FRAME );
     Render::DestroyRasterizerState( mRasterizerState, TAC_STACK_FRAME );
     Render::DestroySamplerState( mSamplerState, TAC_STACK_FRAME );
+    DesktopAppDestroyWindow( mDesktopWindowHandle );
     delete mDebug3DDrawData;
   }
 
