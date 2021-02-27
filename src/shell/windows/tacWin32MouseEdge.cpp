@@ -15,11 +15,10 @@ namespace Tac
 
   static struct // MouseEdge
   {
-    MouseEdgeFlags mFlags;
+    MouseEdgeFlags    mFlags;
     DesktopWindowRect mWindowSpaceMoveRect;
-    //RECT           mMoveRect;
-    int            mResizeBorder;
-  }sMouseEdges[ kDesktopWindowCapacity ];;
+    int               mResizeBorder;
+  } sMouseEdges[ kDesktopWindowCapacity ];
 
   //static MouseEdge sMouseEdges[ kDesktopWindowCapacity ];
 
@@ -257,16 +256,10 @@ namespace Tac
   void Win32MouseEdgeSetMovable( const DesktopWindowHandle& desktopWindowHandle,
                                  const DesktopWindowRect& windowSpaceRect )
   {
-    //RECT rect;
-    //rect.bottom = desktopWindowRect.mBottom;
-    //rect.left = desktopWindowRect.mLeft;
-    //rect.top = desktopWindowRect.mTop;
-    //rect.right = desktopWindowRect.mRight;
     TAC_ASSERT( ( unsigned )desktopWindowHandle < kDesktopWindowCapacity );
     auto& mouseEdge = sMouseEdges[ ( int )desktopWindowHandle ];
     mouseEdge.mFlags = MouseEdgeFlags( ( int )mouseEdge.mFlags | ( int )MouseEdgeFlags::kMovable );
     mouseEdge.mWindowSpaceMoveRect = windowSpaceRect;
-    //mouseEdge.mMoveRect = rect;
   }
 
   void Win32MouseEdgeSetResizable( const DesktopWindowHandle& desktopWindowHandle, int borderPx )

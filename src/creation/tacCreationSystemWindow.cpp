@@ -42,6 +42,7 @@ namespace Tac
       return;
 
     ImGuiSetNextWindowHandle( mDesktopWindowHandle );
+    ImGuiSetNextWindowStretch();
     ImGuiBegin( "System Window" );
 
     ImGuiText( "hello" );
@@ -83,6 +84,8 @@ namespace Tac
   }
   void CreationSystemWindow::Update( Errors& errors )
   {
+    DesktopAppResizeControls( mDesktopWindowHandle );
+    DesktopAppMoveControls( mDesktopWindowHandle );
     DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
     if( !desktopWindowState->mNativeWindowHandle )
       return;

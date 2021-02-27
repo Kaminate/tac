@@ -89,11 +89,13 @@ namespace Tac
   {
     static int maxWindowCount;
     int curWindowCount = 0;
-    DesktopWindowState* desktopWindowState = GetDesktopWindowState( { 0 } );
     for( int i = 0; i < kDesktopWindowCapacity; ++i )
+    {
+      DesktopWindowState* desktopWindowState = GetDesktopWindowState( { i } );
       curWindowCount += desktopWindowState->mNativeWindowHandle ? 1 : 0;
+    }
     maxWindowCount = Max( maxWindowCount, curWindowCount );
-    return  maxWindowCount && !curWindowCount;
+    return maxWindowCount && !curWindowCount;
   }
 
   void ExecutableStartupInfo::Init( Errors& errors )
@@ -387,6 +389,8 @@ namespace Tac
     if( CreationMainWindow::Instance )
     {
       CreationMainWindow::Instance->Update( errors );
+      if( CreationMainWindow::Instance->mCloseRequested )
+        TAC_DELETE CreationMainWindow::Instance;
       TAC_HANDLE_ERROR( errors );
     }
 

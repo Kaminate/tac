@@ -323,6 +323,10 @@ namespace Tac
   //  gNextWindow.mScreenspacePosExists = true;
   //}
 
+  void ImGuiSetNextWindowStretch()
+  {
+    gNextWindow.mStretch = true;
+  }
   void ImGuiSetNextWindowHandle( const DesktopWindowHandle& desktopWindowHandle )
   {
     gNextWindow.mDesktopWindowHandle = desktopWindowHandle;
@@ -407,6 +411,8 @@ namespace Tac
       window->mSize = size;
       window->mDesktopWindowOffset = {};
       window->mDesktopWindowOffsetExists = true;
+      window->mStretchWindow = gNextWindow.mStretch; // !gNextWindow.mDesktopWindowHandle.IsValid() && gNextWindow.mSize == v2( 0, 0 );
+      // window->mStretchWindow = !gNextWindow.mDesktopWindowHandle.IsValid() && gNextWindow.mSize == v2( 0, 0 );
       ImGuiGlobals::Instance.mAllWindows.push_back( window );
 
     }
@@ -422,6 +428,8 @@ namespace Tac
     window->BeginFrame();
 
     const DesktopWindowState* desktopWindowState = GetDesktopWindowState( window->mDesktopWindowHandle );
+    if( desktopWindowState && window->mStretchWindow )
+      window->mSize = v2( ( float )desktopWindowState->mWidth, ( float )desktopWindowState->mHeight );
     return desktopWindowState->mNativeWindowHandle;
   }
 

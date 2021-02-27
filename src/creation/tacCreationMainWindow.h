@@ -36,6 +36,7 @@ namespace Tac
     UIHierarchyNode*           mGameObjectButton = nullptr;
     bool                       mAreTexturesLoaded = false;
     bool                       mAreLayoutsCreated = false;
+    bool                       mCloseRequested = false;
   };
 
   const char* const gMainWindowName = "MainWindow";

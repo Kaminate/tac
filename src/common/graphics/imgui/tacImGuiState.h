@@ -128,6 +128,7 @@ namespace Tac
     bool                          mDesktopWindowHandleOwned = false;
     v2                            mDesktopWindowOffset = {};
     bool                          mDesktopWindowOffsetExists = false;
+    bool                          mStretchWindow = false;
   };
 
   struct ImGuiGlobals
@@ -155,6 +156,7 @@ namespace Tac
     //void                          Clear();
     v2                            mSize = {};
 		DesktopWindowHandle           mDesktopWindowHandle;
+    bool                          mStretch = false;
   };
   extern ImGuiNextWindow gNextWindow;
 

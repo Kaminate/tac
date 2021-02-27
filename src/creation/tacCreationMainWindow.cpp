@@ -26,9 +26,9 @@ namespace Tac
 
   CreationMainWindow::~CreationMainWindow()
   {
+    DesktopAppDestroyWindow( mDesktopWindowHandle );
     Instance = nullptr;
     delete mUI2DDrawData;
-    //delete mUIRoot;
   }
 
   void CreationMainWindow::Init( Errors& )
@@ -96,6 +96,7 @@ namespace Tac
       return;
 
     ImGuiSetNextWindowHandle( mDesktopWindowHandle );
+    ImGuiSetNextWindowStretch();
     ImGuiBegin( "Main Window" );
 
 #if 1
@@ -151,6 +152,7 @@ namespace Tac
 
 #endif
 
+    mCloseRequested |= ImGuiButton( "Close window" );
 
     ImGuiEnd();
   }

@@ -9,7 +9,7 @@ namespace Tac
 
   Render::FramebufferHandle WindowGraphicsGetFramebuffer( const DesktopWindowHandle& desktopWindowHandle )
   {
-    TAC_ASSERT((unsigned)desktopWindowHandle < kDesktopWindowCapacity);
+    TAC_ASSERT( ( unsigned )desktopWindowHandle < kDesktopWindowCapacity );
     return sWindowFramebuffers[ (int)desktopWindowHandle ];
   }
 

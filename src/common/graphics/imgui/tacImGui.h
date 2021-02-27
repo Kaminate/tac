@@ -51,6 +51,7 @@ namespace Tac
   void ImGuiIndent();
   void ImGuiUnindent();
 
+	void ImGuiSetNextWindowStretch();
 	void ImGuiSetNextWindowHandle( const DesktopWindowHandle& );
   void ImGuiSetNextWindowSize( v2 );
   bool ImGuiCollapsingHeader( const StringView& name );

@@ -24,6 +24,7 @@ namespace Tac
 
   // Elements in this array are added/removed by wndproc
   static HWND sHWNDs[ kDesktopWindowCapacity ];
+  static HWND mParentHWND = NULL;
 
   static DesktopWindowHandle sWindowUnderConstruction;
   static Key GetKey( uint8_t keyCode )
@@ -409,6 +410,22 @@ namespace Tac
   {
     const int iWindow = ( int )desktopWindowHandle;
     const HWND hwnd = sHWNDs[ iWindow ];
+
+    // unparent the children to prevent them from being
+    // sent WM_DESTROY when the parent is destroyed
+    // ( doesnt work )
+    //if( mParentHWND == hwnd )
+    //{
+    //  mParentHWND = NULL;
+    //  for( HWND child : sHWNDs )
+    //  {
+    //    if( child && child != hwnd )
+    //    {
+    //      SetParent( child, NULL );
+    //    }
+    //  }
+    //}
+
     DestroyWindow( hwnd );
   }
 
@@ -450,7 +467,6 @@ namespace Tac
 
     TAC_ASSERT( w && h );
 
-    static HWND mParentHWND = NULL;
     sWindowUnderConstruction = desktopWindowHandle;
     const HWND hwnd = CreateWindow( classname,
                                     "butt",
@@ -459,7 +475,7 @@ namespace Tac
                                     y,
                                     w,
                                     h,
-                                    mParentHWND,
+                                    NULL,// mParentHWND,
                                     NULL,
                                     ghInstance,
                                     NULL );
