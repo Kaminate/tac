@@ -37,12 +37,10 @@ namespace Tac
   static void CreationUninitCallback( Errors& errors ) { gCreation.Uninit( errors ); }
   static void CreationUpdateCallback( Errors& errors ) { gCreation.Update( errors ); }
   const char* prefabSettingsPath = "prefabs";
-  const char* refFrameVecNames[] = {
-    "mPos",
-    "mForwards",
-    "mRight",
-    "mUp",
-  };
+  const char* refFrameVecNamePosition = "mPos";
+  const char* refFrameVecNameForward = "mForwards";
+  const char* refFrameVecNameRight = "mRight";
+  const char* refFrameVecNameUp = "mUp";
   const char* axisNames[] = { "x", "y", "z" };
   static struct CreatedWindowData
   {
@@ -291,10 +289,13 @@ namespace Tac
     GetWindowsJson( &windows, errors );
     if( errors )
       return nullptr;
-    for( Json* windowJson : windows->mElements )
-      if( windowJson->GetChild( "Name" ) == windowName )
-        return windowJson;
-    return nullptr;
+
+    return SettingsGetChildByKeyValuePair( "Name", Json( windowName ), windows );
+
+    //for( Json* windowJson : windows->mArrayElements )
+    //  if( windowJson->GetChild( "Name" ) == windowName )
+    //    return windowJson;
+    //return nullptr;
   }
 
   void Creation::RemoveEntityFromPrefabRecursively( Entity* entity )
@@ -514,7 +515,7 @@ namespace Tac
     Json* prefabs = SettingsGetJson( prefabSettingsPath );
 
     Vector< String > alreadySavedPrefabs;
-    for( Json* child : prefabs->mElements )
+    for( Json* child : prefabs->mArrayElements )
       alreadySavedPrefabs.push_back( child->mString );
     paths = alreadySavedPrefabs;
   }
@@ -651,72 +652,56 @@ namespace Tac
     }
   }
 
-  void Creation::LoadPrefabCameraPosition( Prefab* prefab )
+  void                Creation::LoadPrefabCameraPositionVec( Prefab* prefab, StringView refFrameVecName, v3& refFrameVec )
   {
     if( prefab->mDocumentPath.empty() )
       return;
-    v3* refFrameVecs[] = { &mEditorCamera.mPos,
-                           &mEditorCamera.mForwards,
-                           &mEditorCamera.mRight,
-                           &mEditorCamera.mUp, };
-    for( int iRefFrameVec = 0; iRefFrameVec < 4; ++iRefFrameVec )
+    for( int iAxis = 0; iAxis < 3; ++iAxis )
     {
-      v3* refFrameVec = refFrameVecs[ iRefFrameVec ];
-      const StringView refFrameVecName = refFrameVecNames[ iRefFrameVec ];
-      for( int iAxis = 0; iAxis < 3; ++iAxis )
-      {
-        const StringView axisName = axisNames[ iAxis ];
-        Errors ignored;
-        const JsonNumber defaultValue = refFrameVecs[ iRefFrameVec ]->operator[]( iAxis );
+      const StringView axisName = axisNames[ iAxis ];
+      Errors ignored;
+      const JsonNumber defaultValue = refFrameVec[ iAxis ];
 
-        //Json* json = &SettingsGetJson( "prefabCameraRefFrames" )->
-        //  GetChild( prefab->mDocumentPath ).
-        //  GetChild( refFrameVecName ).
-        //  GetChild( axisName );
-        //JsonNumber axisValue = SettingsGetNumber( json, defaultValue );
-        //String settingsPath;
-        //settingsPath += prefab->mDocumentPath;
-        //settingsPath += ".";
-        //settingsPath += refFrameVecName;
-        //settingsPath += ".";
-        //settingsPath += axisName;
-
-        const Vector< String>& lines = { "prefabCameraRefFrames",
-                                         prefab->mDocumentPath,
-                                         refFrameVecName,
-                                         axisName };
-        const String settingsPath = Join( lines, "." );
-        const JsonNumber axisValue = SettingsGetNumber( settingsPath, defaultValue );
-        refFrameVec->operator[]( iAxis ) = ( float )axisValue;
-      }
+      Json* refFramesJson = SettingsGetJson( { "prefabCameraRefFrames" } );
+      Json* refFrameJson = SettingsGetChildByKeyValuePair( "path", Json( prefab->mDocumentPath ), refFramesJson );
+      const JsonNumber axisValue = SettingsGetNumber( Join( { refFrameVecName, String( 1, "xyz"[ iAxis ] ) }, "." ),
+                                                      defaultValue,
+                                                      refFrameJson );
+      refFrameVec[ iAxis ] = ( float )axisValue;
     }
   }
 
-  void Creation::SavePrefabCameraPosition( Prefab* prefab )
+  void                Creation::SavePrefabCameraPositionVec( Prefab* prefab, StringView refFrameVecName, v3 refFrameVec )
   {
     if( prefab->mDocumentPath.empty() )
       return;
     Json* root = nullptr;
 
-    const v3 refFrameVecs[] = {
-      mEditorCamera.mPos,
-      mEditorCamera.mForwards,
-      mEditorCamera.mRight,
-      mEditorCamera.mUp,
-    };
-    for( int iRefFrameVec = 0; iRefFrameVec < 4; ++iRefFrameVec )
+    for( int iAxis = 0; iAxis < 3; ++iAxis )
     {
-      const v3 refFrameVec = refFrameVecs[ iRefFrameVec ];
-      const char* refFrameVecName = refFrameVecNames[ iRefFrameVec ];
-      for( int iAxis = 0; iAxis < 3; ++iAxis )
-      {
-        const StringView settingsPath = Join( { "prefabCameraRefFrames",
-                                                prefab->mDocumentPath,
-                                                refFrameVecName,
-                                                axisNames[ iAxis ] }, "." );
-        SettingsSetNumber( settingsPath, refFrameVec[ iAxis ] );
-      }
+      const StringView settingsPath = Join( { "prefabCameraRefFrames",
+                                              prefab->mDocumentPath,
+                                              refFrameVecName,
+                                              String( 1, "xyz"[ iAxis ] ) }, "." );
+      SettingsSetNumber( settingsPath, refFrameVec[ iAxis ] );
     }
+
+  }
+
+  void Creation::LoadPrefabCameraPosition( Prefab* prefab )
+  {
+    LoadPrefabCameraPositionVec( prefab, refFrameVecNamePosition, mEditorCamera.mPos );
+    LoadPrefabCameraPositionVec( prefab, refFrameVecNameForward, mEditorCamera.mForwards );
+    LoadPrefabCameraPositionVec( prefab, refFrameVecNameRight, mEditorCamera.mRight );
+    LoadPrefabCameraPositionVec( prefab, refFrameVecNameUp, mEditorCamera.mUp );
+  }
+
+  void Creation::SavePrefabCameraPosition( Prefab* prefab )
+  {
+    SavePrefabCameraPositionVec( prefab, refFrameVecNamePosition, mEditorCamera.mPos );
+    SavePrefabCameraPositionVec( prefab, refFrameVecNameForward, mEditorCamera.mForwards );
+    SavePrefabCameraPositionVec( prefab, refFrameVecNameRight, mEditorCamera.mRight );
+    SavePrefabCameraPositionVec( prefab, refFrameVecNameUp, mEditorCamera.mUp );
   }
 }
 

@@ -125,7 +125,7 @@ namespace Tac
       TAC_HANDLE_ERROR_IF( key.empty(), "object key cannot be empty", errors );
       if( !parseData->EatUntilCharIsPrev( ':' ) )
         TAC_RAISE_ERROR( "Missing : after json key", errors );
-      ParseUnknownType( json->AddChild( key ), parseData, errors );
+      ParseUnknownType( &json->GetChild( key ), parseData, errors );
       TAC_HANDLE_ERROR( errors );
     }
   }
@@ -183,13 +183,13 @@ namespace Tac
   void                      Json::SetBool( bool b ) { mType = JsonType::Bool; mBoolean = b; }
   void                      Json::Clear()
   {
-    for( auto pair : mChildren )
+    for( auto pair : mObjectChildrenMap )
       delete pair.second;
-    mChildren.clear();
+    mObjectChildrenMap.clear();
 
-    for( auto element : mElements )
+    for( auto element : mArrayElements )
       delete element;
-    mElements.clear();
+    mArrayElements.clear();
   }
   String                    Json::Stringify( const Indentation* indentation, int tabCount ) const
   {
@@ -221,7 +221,7 @@ namespace Tac
       {
         result += Tab( indentation, tabCount ) + "{\n";
         tabCount++;
-        for( auto pair : mChildren )
+        for( auto pair : mObjectChildrenMap )
         {
           String childKey = pair.first;
           Json* childValue = pair.second;
@@ -229,7 +229,7 @@ namespace Tac
           result += Tab( indentation, tabCount ) + DoubleQuote( childKey ) + ":";
           result += Contains( { JsonType::Array, JsonType::Object }, childValue->mType ) ? "\n" : " ";
           result += childValue->Stringify( indentation, tabCount );
-          result += GetSeparator( ( int )mChildren.size() );
+          result += GetSeparator( ( int )mObjectChildrenMap.size() );
           result += "\n";
         }
         tabCount--;
@@ -239,13 +239,13 @@ namespace Tac
       {
         result += Tab( indentation, tabCount ) + "[\n";
         tabCount++;
-        for( Json* element : mElements )
+        for( Json* element : mArrayElements )
         {
           if( !Contains( { JsonType::Array, JsonType::Object }, element->mType ) )
             result += Tab( indentation, tabCount );
           result +=
             element->Stringify( indentation, tabCount ) +
-            GetSeparator( ( int )mElements.size() ) +
+            GetSeparator( ( int )mArrayElements.size() ) +
             "\n";
         }
         tabCount--;
@@ -267,12 +267,12 @@ namespace Tac
 
   Json&                     Json::GetChild( StringView key )
   {
-    Json* child = mChildren[ key ];
+    Json* child = mObjectChildrenMap[ key ];
     if( child )
       return *child;
     child = TAC_NEW Json;
     child->mType = JsonType::Null;
-    mChildren[ key ] = child;
+    mObjectChildrenMap[ key ] = child;
     mType = JsonType::Object;
     return *child;
   }
@@ -288,15 +288,20 @@ namespace Tac
   {
     mType = JsonType::Array;
     auto child = TAC_NEW Json;
-    mElements.push_back( child );
+    mArrayElements.push_back( child );
     return child;
+  }
+
+  bool                      Json::HasChild( StringView key )
+  {
+    return mObjectChildrenMap.find( key ) != mObjectChildrenMap.end();
   }
 
   Json*                     Json::AddChild( StringView key )
   {
     mType = JsonType::Object;
     auto child = TAC_NEW Json;
-    mChildren[ key ] = child;
+    mObjectChildrenMap[ key ] = child;
     return child;
   }
 
@@ -306,9 +311,9 @@ namespace Tac
     mString = json->mString;
     mNumber = json->mNumber;
     mBoolean = json->mBoolean;
-    for( auto pair : json->mChildren )
-      AddChild( pair.first )->DeepCopy( pair.second );
-    for( const Json* child : json->mElements )
+    for( auto pair : json->mObjectChildrenMap )
+      GetChild( pair.first ).DeepCopy( pair.second );
+    for( const Json* child : json->mArrayElements )
       AddChild()->DeepCopy( child );
   }
 

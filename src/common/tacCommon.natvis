@@ -1,7 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+
   <Type Name="Tac::StringView">
       <DisplayString>{mStr,[mLen]}</DisplayString>
   </Type>
+
+  <Type Name="Tac::Vector&lt;*&gt;">
+	  <Expand>
+		  <ArrayItems>
+			  <Size>mTCount</Size>
+			  <ValuePointer>mTs</ValuePointer>
+		  </ArrayItems>
+	  </Expand>
+  </Type>
+
 </AutoVisualizer>
 

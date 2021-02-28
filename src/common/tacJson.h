@@ -60,8 +60,12 @@ namespace Tac
 
 		// Getters
 		Json*                     AddChild();
+
+    // could just use getchild(key) everywhere, but that makes the api stupid/inconsistant when
+    // you can use addchild for arrays but not objects
 		Json*                     AddChild( StringView );
 		Json&                     GetChild( StringView );
+		bool                      HasChild( StringView );
 		String                    Stringify( const Indentation* = nullptr, int tabCount = 0 ) const;
 		Json&                     operator[]( StringView );
 		Json&                     operator[]( const char* );
@@ -69,12 +73,16 @@ namespace Tac
 		operator JsonNumber();
 		operator bool();
 
-		std::map< String, Json* > mChildren;
+		std::map< String, Json* > mObjectChildrenMap;
 		String                    mString;
 		JsonNumber                mNumber = 0;
-		Vector< Json* >           mElements;
+		Vector< Json* >           mArrayElements;
 		bool                      mBoolean = false;
-		JsonType                  mType = JsonType::Null; // JsonType::Object;
+
+    //                        Some functions want to convert the type of a json node.
+    //                        If the type is null, then no data will be lost due during the conversion.
+    //                        This assumption could not be made if mType defauts to JsonType::Object
+		JsonType                  mType = JsonType::Null;
 	};
 
 }

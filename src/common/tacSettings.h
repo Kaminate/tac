@@ -6,10 +6,13 @@
 
 namespace Tac
 {
+  const int flag_create_if_not_exist = 1; // thoughts?
+
 	struct     Errors;
 	void       SettingsInit( Errors& );
 	void       SettingsSave( Errors& );
 	Json*      SettingsGetJson( StringView path, Json* root = nullptr );
+	Json*      SettingsGetChildByKeyValuePair( StringView key, const Json& value, Json* root );
 	StringView SettingsGetString( StringView path, StringView fallback, Json* = nullptr );
 	void       SettingsSetString( StringView path, StringView setValue, Json* = nullptr );
   JsonNumber SettingsGetNumber( StringView path, JsonNumber fallback, Json* = nullptr );

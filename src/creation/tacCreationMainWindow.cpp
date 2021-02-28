@@ -87,10 +87,6 @@ namespace Tac
 
   void CreationMainWindow::ImGui()
   {
-
-    //WindowGraphicsGetFramebuffer( mDesktopWindowHandle );
-    //WindowGraphicsGetView( mDesktopWindowHandle );
-
     DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
     if( !desktopWindowState->mNativeWindowHandle )
       return;

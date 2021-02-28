@@ -192,7 +192,7 @@ namespace Tac
 		// todo: relative positioning
 	}
 
-	static Json* Vector3ToJson(  v3 v )
+	static Json* Vector3ToJson( v3 v )
 	{
 		static Json json;
 		json.GetChild( "x" ).SetNumber( v.x );
@@ -249,7 +249,7 @@ namespace Tac
 
 		ComponentRegistry* componentRegistry = ComponentRegistry::Instance();
 		// I think these should have its own mComponents json node
-		for( auto& prefabJson : prefabJson.mChildren )
+		for( auto& prefabJson : prefabJson.mObjectChildrenMap )
 		{
 			StringView key = prefabJson.first;
 			Json* componentJson = prefabJson.second;
@@ -263,9 +263,9 @@ namespace Tac
 				componentRegistryEntry->mLoadFn( *componentJson, component );
 		}
 
-		if( Json* childrenJson = prefabJson.mChildren[ "mChildren" ] )
+		if( Json* childrenJson = prefabJson.mObjectChildrenMap[ "mChildren" ] )
 		{
-			for( Json* childJson : childrenJson->mElements )
+			for( Json* childJson : childrenJson->mArrayElements )
 			{
 				Entity* childEntity = mWorld->SpawnEntity( NullEntityUUID );
 				childEntity->Load( *childJson );

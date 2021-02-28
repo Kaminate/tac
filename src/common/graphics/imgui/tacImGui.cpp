@@ -365,7 +365,7 @@ namespace Tac
         // vvv --- begin --- move to fn
         Json* windowsJson = SettingsGetJson( "imgui.windows" );
         Json* windowJson = nullptr;
-        for( Json* curWindowJson : windowsJson->mElements )
+        for( Json* curWindowJson : windowsJson->mArrayElements )
           if( SettingsGetString( "name", "", curWindowJson ) == name )
             windowJson = curWindowJson;
 
@@ -1139,7 +1139,7 @@ namespace Tac
   {
     Json* windowsJson = SettingsGetJson( "imgui.windows" );
     Json* windowJson = nullptr;
-    for( Json* curWindowJson : windowsJson->mElements )
+    for( Json* curWindowJson : windowsJson->mArrayElements )
       if( SettingsGetString( "name", "", curWindowJson ) == window->mName )
         windowJson = curWindowJson;
 

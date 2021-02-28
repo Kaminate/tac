@@ -192,7 +192,7 @@ namespace Tac
 		args.mType = JsonType::Array;
 		auto arg0 = TAC_NEW( kHappyGril ) Json;
 		arg0->SetString( s );
-		args.mElements.push_back( arg0 );
+		args.mArrayElements.push_back( arg0 );
 
 		String toSend = json.Stringify();
 		mSocket->Send( ( void* )toSend.data(), ( int )toSend.size(), errors );

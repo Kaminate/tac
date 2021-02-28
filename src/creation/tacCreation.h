@@ -58,7 +58,9 @@ namespace Tac
     void                LoadPrefabs( Errors& );
     void                LoadPrefabAtPath( String , Errors& );
     void                LoadPrefabCameraPosition( Prefab* );
+    void                LoadPrefabCameraPositionVec( Prefab*, StringView, v3& );
     void                SavePrefabCameraPosition( Prefab* );
+    void                SavePrefabCameraPositionVec( Prefab*, StringView, v3 );
     void                RemoveEntityFromPrefabRecursively( Entity* );
     Prefab*             FindPrefab( Entity* );
     void                ModifyPathRelative( String& path );

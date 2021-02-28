@@ -650,6 +650,9 @@ namespace Tac
     if( !desktopWindowState->mNativeWindowHandle )
       return;
 
+
+    DesktopAppMoveControls( mDesktopWindowHandle );
+
     const float w = ( float )desktopWindowState->mWidth;
     const float h = ( float )desktopWindowState->mHeight;
     const Viewport viewport( w, h );
