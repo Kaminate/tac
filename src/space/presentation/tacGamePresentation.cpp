@@ -7,6 +7,7 @@
 #include "src/common/graphics/tacRenderer.h"
 #include "src/common/graphics/tacDebug3D.h"
 #include "src/common/tacDesktopWindow.h"
+#include "src/common/tacOS.h"
 #include "src/space/presentation/tacSkyboxPresentation.h"
 #include "src/space/presentation/tacGamePresentation.h"
 #include "src/space/graphics/tacGraphics.h"
@@ -43,6 +44,8 @@ namespace Tac
 
     if( terrain->mRowMajorGrid.empty() )
       return;
+
+    //OS::DebugBreak();
 
     typedef uint32_t TerrainIndex;
 
@@ -177,7 +180,7 @@ namespace Tac
     Physics* physics = Physics::GetSystem( world );
     for( Terrain* terrain : physics->mTerrains )
     {
-      LoadTerrain( terrain );
+       LoadTerrain( terrain );
 
       if( !terrain->mVertexBuffer.IsValid() || !terrain->mIndexBuffer.IsValid() )
         continue;

@@ -126,8 +126,8 @@ namespace Tac
 
     auto myDXGIGetDebugInterface =
       ( HRESULT( WINAPI * )( REFIID, void** ) )GetProcAddress(
-        Dxgidebughandle,
-        "DXGIGetDebugInterface" );
+      Dxgidebughandle,
+      "DXGIGetDebugInterface" );
 
     if( !myDXGIGetDebugInterface )
       return;
@@ -360,7 +360,7 @@ namespace Tac
 
   }
 
-  void RendererDirectX11::Render2( const Render::Frame* frame, Errors& errors )
+  void RendererDirectX11::RenderBegin( const Render::Frame*, Errors& )
   {
     if( gVerbose )
       std::cout << "Render2::Begin\n";
@@ -387,205 +387,208 @@ namespace Tac
       const FLOAT ClearColorRGBA[] = { ClearGrey, ClearGrey, ClearGrey,  1.0f };
       mDeviceContext->ClearRenderTargetView( renderTargetView, ClearColorRGBA );
     }
+    blendState = nullptr;
+    depthStencilState = nullptr;
+    viewHandle = Render::ViewHandle();
+    indexBuffer = nullptr;
 
-
-    ID3D11BlendState* blendState = nullptr;
-    ID3D11DepthStencilState* depthStencilState = nullptr;
-    Render::ViewHandle viewHandle;
-    IndexBuffer* indexBuffer = nullptr;
-
-    const int drawCallCount = frame->mDrawCalls.size();
-    for( int iDrawCall = 0; iDrawCall < drawCallCount; ++iDrawCall )
-    {
-      const Render::DrawCall3* drawCall = &frame->mDrawCalls[ iDrawCall ];
-
-      Render::ExecuteUniformCommands( &frame->mUniformBuffer,
-                                      drawCall->iUniformBegin,
-                                      drawCall->iUniformEnd,
-                                      errors );
-
-      if( drawCall->mShaderHandle.IsValid() )
-      {
-        Program* program = &mPrograms[ ( int )drawCall->mShaderHandle ];
-        TAC_ASSERT( program->mVertexShader );
-        TAC_ASSERT( program->mPixelShader );
-        mDeviceContext->VSSetShader( program->mVertexShader, NULL, 0 );
-        mDeviceContext->PSSetShader( program->mPixelShader, NULL, 0 );
-      }
-
-      if( drawCall->mBlendStateHandle.IsValid() && blendState != mBlendStates[ ( int )drawCall->mBlendStateHandle ] )
-      {
-        blendState = mBlendStates[ ( int )drawCall->mBlendStateHandle ];
-        TAC_ASSERT( blendState );
-        const FLOAT blendFactorRGBA[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-        const UINT sampleMask = 0xffffffff;
-        mDeviceContext->OMSetBlendState( blendState, blendFactorRGBA, sampleMask );
-      }
-
-      if( drawCall->mDepthStateHandle.IsValid() && depthStencilState != mDepthStencilStates[ ( int )drawCall->mDepthStateHandle ] )
-      {
-        depthStencilState = mDepthStencilStates[ ( int )drawCall->mDepthStateHandle ];
-        TAC_ASSERT( depthStencilState );
-        const UINT stencilRef = 0;
-        mDeviceContext->OMSetDepthStencilState( depthStencilState, stencilRef );
-      }
-
-      if( drawCall->mIndexBufferHandle.IsValid() )
-      {
-        indexBuffer = &mIndexBuffers[ ( int )drawCall->mIndexBufferHandle ];
-        TAC_ASSERT( indexBuffer->mBuffer );
-        const DXGI_FORMAT dxgiFormat = GetDXGIFormat( indexBuffer->mFormat );
-        const UINT byteOffset = 0; //  drawCall->mStartIndex * indexBuffer->mFormat.mPerElementByteCount;
-        mDeviceContext->IASetIndexBuffer( indexBuffer->mBuffer,
-                                          dxgiFormat,
-                                          byteOffset );
-      }
-
-      if( drawCall->mVertexBufferHandle.IsValid() )
-      {
-        const VertexBuffer* vertexBuffer = &mVertexBuffers[ ( int )drawCall->mVertexBufferHandle ];
-        TAC_ASSERT( vertexBuffer->mBuffer );
-        const UINT startSlot = 0;
-        const UINT NumBuffers = 1;
-        const UINT Strides[ NumBuffers ] = { ( UINT )vertexBuffer->mStride };
-        const UINT ByteOffsets[ NumBuffers ] =
-        {
-          0
-          // ( UINT )( drawCall->mStartVertex * vertexBuffer->mStride )
-        };
-        ID3D11Buffer* buffers[ NumBuffers ] = { vertexBuffer->mBuffer };
-        mDeviceContext->IASetVertexBuffers( startSlot,
-                                            NumBuffers,
-                                            buffers,
-                                            Strides,
-                                            ByteOffsets );
-      }
-
-      if( drawCall->mRasterizerStateHandle.IsValid() )
-      {
-        ID3D11RasterizerState* rasterizerState = mRasterizerStates[ ( int )drawCall->mRasterizerStateHandle ];
-        TAC_ASSERT( rasterizerState );
-        mDeviceContext->RSSetState( rasterizerState );
-      }
-
-      if( drawCall->mSamplerStateHandle.IsValid() )
-      {
-        const UINT StartSlot = 0;
-        const UINT NumSamplers = 1;
-        ID3D11SamplerState* samplerState = mSamplerStates[ ( int )drawCall->mSamplerStateHandle ];
-        TAC_ASSERT( samplerState );
-        ID3D11SamplerState* Samplers[] = { samplerState };
-        mDeviceContext->VSSetSamplers( StartSlot, NumSamplers, Samplers );
-        mDeviceContext->PSSetSamplers( StartSlot, NumSamplers, Samplers );
-      }
-
-      if( drawCall->mVertexFormatHandle.IsValid() )
-      {
-        ID3D11InputLayout* inputLayout = mInputLayouts[ ( int )drawCall->mVertexFormatHandle ];
-        TAC_ASSERT( inputLayout );
-        mDeviceContext->IASetInputLayout( inputLayout );
-      }
-
-      if( drawCall->mViewHandle.IsValid() &&
-          drawCall->mViewHandle != viewHandle )
-      {
-        viewHandle = drawCall->mViewHandle;
-        const Render::View* view = &frame->mViews[ ( int )viewHandle ];
-        const Render::FramebufferHandle framebufferHandle = view->mFrameBufferHandle;
-
-        // Did you forget to call Render::SetViewFramebuffer?
-        TAC_ASSERT( framebufferHandle.IsValid() );
-
-        Framebuffer* framebuffer = &mFramebuffers[ ( int )framebufferHandle ];
-        ID3D11RenderTargetView* renderTargetView = framebuffer->mRenderTargetView;
-        ID3D11DepthStencilView* depthStencilView = framebuffer->mDepthStencilView;
-        TAC_ASSERT( renderTargetView );
-        TAC_ASSERT( depthStencilView );
-        UINT NumViews = 1;
-        ID3D11RenderTargetView* RenderTargetViews[] = { renderTargetView };
-        mDeviceContext->OMSetRenderTargets( NumViews, RenderTargetViews, depthStencilView );
-
-        TAC_ASSERT( view->mViewportSet );
-        D3D11_VIEWPORT viewport;
-        viewport.Height = view->mViewport.mHeight;
-        viewport.Width = view->mViewport.mWidth;
-        viewport.TopLeftX = view->mViewport.mBottomLeftX;
-        viewport.TopLeftY = -view->mViewport.mBottomLeftY; // convert opengl to directx
-        viewport.MinDepth = view->mViewport.mMinDepth;
-        viewport.MaxDepth = view->mViewport.mMaxDepth;
-        mDeviceContext->RSSetViewports( 1, &viewport );
-
-        // used if the rasterizer state ScissorEnable is TRUE
-        TAC_ASSERT( view->mScissorSet );
-        D3D11_RECT scissor;
-        scissor.bottom = ( LONG )view->mScissorRect.mYMaxRelUpperLeftCornerPixel;
-        scissor.left = ( LONG )view->mScissorRect.mXMinRelUpperLeftCornerPixel;
-        scissor.right = ( LONG )view->mScissorRect.mXMaxRelUpperLeftCornerPixel;
-        scissor.top = ( LONG )view->mScissorRect.mYMinRelUpperLeftCornerPixel;
-        mDeviceContext->RSSetScissorRects( 1, &scissor );
-      }
-
-      if( drawCall->mTextureHandle.mTextureCount )
-      {
-        const UINT StartSlot = 0;
-        const UINT NumViews = drawCall->mTextureHandle.mTextureCount;
-        ID3D11ShaderResourceView* ShaderResourceViews[ D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT ] = {};
-        for( int iSlot = 0; iSlot < drawCall->mTextureHandle.mTextureCount; ++iSlot )
-        {
-          const Render::TextureHandle textureHandle = drawCall->mTextureHandle[ iSlot ];
-          if( !textureHandle.IsValid() )
-            continue;
-          const Texture* texture = &mTextures[ ( int )textureHandle ];
-          TAC_ASSERT( texture->mTextureSRV ); // Did you set the Tac::Render::TexSpec::mBinding?
-          ShaderResourceViews[ iSlot ] = texture->mTextureSRV;
-        }
-
-        mDeviceContext->VSSetShaderResources( StartSlot, NumViews, ShaderResourceViews );
-        mDeviceContext->PSSetShaderResources( StartSlot, NumViews, ShaderResourceViews );
-      }
-
-      for( const Render::UpdateConstantBufferData& stuff : drawCall->mUpdateConstantBuffers )
-      {
-        const ConstantBuffer* constantBuffer = &mConstantBuffers[ ( int )stuff.mConstantBufferHandle ];
-        TAC_ASSERT( constantBuffer->mBuffer );
-        UpdateBuffer( constantBuffer->mBuffer,
-                      stuff.mBytes,
-                      stuff.mByteCount,
-                      errors );
-
-        constantBuffers[ constantBuffer->mShaderRegister ] = constantBuffer->mBuffer;
-        constantBufferCount = Max( constantBufferCount, constantBuffer->mShaderRegister + 1 );
-
-        const UINT StartSlot = 0;
-        mDeviceContext->PSSetConstantBuffers( StartSlot, constantBufferCount, constantBuffers );
-        mDeviceContext->VSSetConstantBuffers( StartSlot, constantBufferCount, constantBuffers );
-      }
-
-      mDeviceContext->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
-
-      // not quite convinced this assert should be here.
-      // on one hand, it prevents u from forgetting to set index count. ( good )
-      // on the other, it prevents u from setting start index/index count
-      //   seperately from setting the index buffer ( bad? )
-      TAC_ASSERT( !drawCall->mIndexBufferHandle.IsValid() || drawCall->mIndexCount );
-
-      if( drawCall->mIndexCount )
-      {
-        const UINT IndexCount = drawCall->mIndexCount;
-        const UINT StartIndexLocation = drawCall->mStartIndex; //  *indexBuffer->mFormat.CalculateTotalByteCount();
-        // should this be multiplied by the sizeof vertex?
-        const INT BaseVertexLocation = 0; // drawCall->mStartVertex;
-        mDeviceContext->DrawIndexed( IndexCount, StartIndexLocation, BaseVertexLocation );
-      }
-      else if( drawCall->mVertexCount )
-      {
-        const UINT VertexCount = drawCall->mVertexCount;
-        const UINT StartVertexLocation = drawCall->mStartVertex;
-        mDeviceContext->Draw( VertexCount, StartVertexLocation );
-      }
-    }
+  }
+  void RendererDirectX11::RenderEnd( const Render::Frame*, Errors& )
+  {
     if( gVerbose )
       std::cout << "Render2::End\n";
+  }
+  void RendererDirectX11::RenderDrawCall( const Render::Frame* frame,
+                                          const Render::DrawCall3* drawCall,
+                                          Errors& errors )
+  {
+
+
+
+
+
+
+    if( drawCall->mShaderHandle.IsValid() )
+    {
+      Program* program = &mPrograms[ ( int )drawCall->mShaderHandle ];
+      TAC_ASSERT( program->mVertexShader );
+      TAC_ASSERT( program->mPixelShader );
+      mDeviceContext->VSSetShader( program->mVertexShader, NULL, 0 );
+      mDeviceContext->PSSetShader( program->mPixelShader, NULL, 0 );
+    }
+
+    if( drawCall->mBlendStateHandle.IsValid() && blendState != mBlendStates[ ( int )drawCall->mBlendStateHandle ] )
+    {
+      blendState = mBlendStates[ ( int )drawCall->mBlendStateHandle ];
+      TAC_ASSERT( blendState );
+      const FLOAT blendFactorRGBA[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+      const UINT sampleMask = 0xffffffff;
+      mDeviceContext->OMSetBlendState( blendState, blendFactorRGBA, sampleMask );
+    }
+
+    if( drawCall->mDepthStateHandle.IsValid() && depthStencilState != mDepthStencilStates[ ( int )drawCall->mDepthStateHandle ] )
+    {
+      depthStencilState = mDepthStencilStates[ ( int )drawCall->mDepthStateHandle ];
+      TAC_ASSERT( depthStencilState );
+      const UINT stencilRef = 0;
+      mDeviceContext->OMSetDepthStencilState( depthStencilState, stencilRef );
+    }
+
+    if( drawCall->mIndexBufferHandle.IsValid() )
+    {
+      indexBuffer = &mIndexBuffers[ ( int )drawCall->mIndexBufferHandle ];
+      if( !indexBuffer->mBuffer )
+        OS::DebugBreak();
+      TAC_ASSERT( indexBuffer->mBuffer );
+      const DXGI_FORMAT dxgiFormat = GetDXGIFormat( indexBuffer->mFormat );
+      const UINT byteOffset = 0; //  drawCall->mStartIndex * indexBuffer->mFormat.mPerElementByteCount;
+      mDeviceContext->IASetIndexBuffer( indexBuffer->mBuffer,
+                                        dxgiFormat,
+                                        byteOffset );
+    }
+
+    if( drawCall->mVertexBufferHandle.IsValid() )
+    {
+      const VertexBuffer* vertexBuffer = &mVertexBuffers[ ( int )drawCall->mVertexBufferHandle ];
+      TAC_ASSERT( vertexBuffer->mBuffer );
+      const UINT startSlot = 0;
+      const UINT NumBuffers = 1;
+      const UINT Strides[ NumBuffers ] = { ( UINT )vertexBuffer->mStride };
+      const UINT ByteOffsets[ NumBuffers ] =
+      {
+        0
+        // ( UINT )( drawCall->mStartVertex * vertexBuffer->mStride )
+      };
+      ID3D11Buffer* buffers[ NumBuffers ] = { vertexBuffer->mBuffer };
+      mDeviceContext->IASetVertexBuffers( startSlot,
+                                          NumBuffers,
+                                          buffers,
+                                          Strides,
+                                          ByteOffsets );
+    }
+
+    if( drawCall->mRasterizerStateHandle.IsValid() )
+    {
+      ID3D11RasterizerState* rasterizerState = mRasterizerStates[ ( int )drawCall->mRasterizerStateHandle ];
+      TAC_ASSERT( rasterizerState );
+      mDeviceContext->RSSetState( rasterizerState );
+    }
+
+    if( drawCall->mSamplerStateHandle.IsValid() )
+    {
+      const UINT StartSlot = 0;
+      const UINT NumSamplers = 1;
+      ID3D11SamplerState* samplerState = mSamplerStates[ ( int )drawCall->mSamplerStateHandle ];
+      TAC_ASSERT( samplerState );
+      ID3D11SamplerState* Samplers[] = { samplerState };
+      mDeviceContext->VSSetSamplers( StartSlot, NumSamplers, Samplers );
+      mDeviceContext->PSSetSamplers( StartSlot, NumSamplers, Samplers );
+    }
+
+    if( drawCall->mVertexFormatHandle.IsValid() )
+    {
+      ID3D11InputLayout* inputLayout = mInputLayouts[ ( int )drawCall->mVertexFormatHandle ];
+      TAC_ASSERT( inputLayout );
+      mDeviceContext->IASetInputLayout( inputLayout );
+    }
+
+    if( drawCall->mViewHandle.IsValid() &&
+        drawCall->mViewHandle != viewHandle )
+    {
+      viewHandle = drawCall->mViewHandle;
+      const Render::View* view = &frame->mViews[ ( int )viewHandle ];
+      const Render::FramebufferHandle framebufferHandle = view->mFrameBufferHandle;
+
+      // Did you forget to call Render::SetViewFramebuffer?
+      TAC_ASSERT( framebufferHandle.IsValid() );
+
+      Framebuffer* framebuffer = &mFramebuffers[ ( int )framebufferHandle ];
+      ID3D11RenderTargetView* renderTargetView = framebuffer->mRenderTargetView;
+      ID3D11DepthStencilView* depthStencilView = framebuffer->mDepthStencilView;
+      TAC_ASSERT( renderTargetView );
+      TAC_ASSERT( depthStencilView );
+      UINT NumViews = 1;
+      ID3D11RenderTargetView* RenderTargetViews[] = { renderTargetView };
+      mDeviceContext->OMSetRenderTargets( NumViews, RenderTargetViews, depthStencilView );
+
+      TAC_ASSERT( view->mViewportSet );
+      D3D11_VIEWPORT viewport;
+      viewport.Height = view->mViewport.mHeight;
+      viewport.Width = view->mViewport.mWidth;
+      viewport.TopLeftX = view->mViewport.mBottomLeftX;
+      viewport.TopLeftY = -view->mViewport.mBottomLeftY; // convert opengl to directx
+      viewport.MinDepth = view->mViewport.mMinDepth;
+      viewport.MaxDepth = view->mViewport.mMaxDepth;
+      mDeviceContext->RSSetViewports( 1, &viewport );
+
+      // used if the rasterizer state ScissorEnable is TRUE
+      TAC_ASSERT( view->mScissorSet );
+      D3D11_RECT scissor;
+      scissor.bottom = ( LONG )view->mScissorRect.mYMaxRelUpperLeftCornerPixel;
+      scissor.left = ( LONG )view->mScissorRect.mXMinRelUpperLeftCornerPixel;
+      scissor.right = ( LONG )view->mScissorRect.mXMaxRelUpperLeftCornerPixel;
+      scissor.top = ( LONG )view->mScissorRect.mYMinRelUpperLeftCornerPixel;
+      mDeviceContext->RSSetScissorRects( 1, &scissor );
+    }
+
+    if( drawCall->mTextureHandle.mTextureCount )
+    {
+      const UINT StartSlot = 0;
+      const UINT NumViews = drawCall->mTextureHandle.mTextureCount;
+      ID3D11ShaderResourceView* ShaderResourceViews[ D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT ] = {};
+      for( int iSlot = 0; iSlot < drawCall->mTextureHandle.mTextureCount; ++iSlot )
+      {
+        const Render::TextureHandle textureHandle = drawCall->mTextureHandle[ iSlot ];
+        if( !textureHandle.IsValid() )
+          continue;
+        const Texture* texture = &mTextures[ ( int )textureHandle ];
+        TAC_ASSERT( texture->mTextureSRV ); // Did you set the Tac::Render::TexSpec::mBinding?
+        ShaderResourceViews[ iSlot ] = texture->mTextureSRV;
+      }
+
+      mDeviceContext->VSSetShaderResources( StartSlot, NumViews, ShaderResourceViews );
+      mDeviceContext->PSSetShaderResources( StartSlot, NumViews, ShaderResourceViews );
+    }
+
+    for( const Render::UpdateConstantBufferData& stuff : drawCall->mUpdateConstantBuffers )
+    {
+      const ConstantBuffer* constantBuffer = &mConstantBuffers[ ( int )stuff.mConstantBufferHandle ];
+      TAC_ASSERT( constantBuffer->mBuffer );
+      UpdateBuffer( constantBuffer->mBuffer,
+                    stuff.mBytes,
+                    stuff.mByteCount,
+                    errors );
+
+      constantBuffers[ constantBuffer->mShaderRegister ] = constantBuffer->mBuffer;
+      constantBufferCount = Max( constantBufferCount, constantBuffer->mShaderRegister + 1 );
+
+      const UINT StartSlot = 0;
+      mDeviceContext->PSSetConstantBuffers( StartSlot, constantBufferCount, constantBuffers );
+      mDeviceContext->VSSetConstantBuffers( StartSlot, constantBufferCount, constantBuffers );
+    }
+
+    mDeviceContext->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
+
+    // not quite convinced this assert should be here.
+    // on one hand, it prevents u from forgetting to set index count. ( good )
+    // on the other, it prevents u from setting start index/index count
+    //   seperately from setting the index buffer ( bad? )
+    TAC_ASSERT( !drawCall->mIndexBufferHandle.IsValid() || drawCall->mIndexCount );
+
+    if( drawCall->mIndexCount )
+    {
+      const UINT IndexCount = drawCall->mIndexCount;
+      const UINT StartIndexLocation = drawCall->mStartIndex; //  *indexBuffer->mFormat.CalculateTotalByteCount();
+      // should this be multiplied by the sizeof vertex?
+      const INT BaseVertexLocation = 0; // drawCall->mStartVertex;
+      mDeviceContext->DrawIndexed( IndexCount, StartIndexLocation, BaseVertexLocation );
+    }
+    else if( drawCall->mVertexCount )
+    {
+      const UINT VertexCount = drawCall->mVertexCount;
+      const UINT StartVertexLocation = drawCall->mStartVertex;
+      mDeviceContext->Draw( VertexCount, StartVertexLocation );
+    }
   }
 
   void RendererDirectX11::SwapBuffers()
@@ -613,7 +616,7 @@ namespace Tac
                                        const char* shaderModel,
                                        Errors& errors )
   {
-    TAC_ASSERT(IsMainThread());
+    TAC_ASSERT( IsMainThread() );
     DWORD dwShaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
     if( IsDebugMode() )
     {

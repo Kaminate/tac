@@ -10,6 +10,7 @@ namespace Tac
     void            Free( int id );
     int*            begin();
     int*            end();
+    int             size() const;
   private:
     int*            GetDense();
     int*            GetSparse();

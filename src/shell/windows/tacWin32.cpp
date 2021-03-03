@@ -99,9 +99,8 @@ namespace Tac
 
   void Win32DebugBreak()
   {
-    if( !IsDebugMode() )
-      return;
-    DebugBreak();
+    if( IsDebugMode() )
+      DebugBreak();
   }
 
   void Win32PopupBox( const StringView& s )

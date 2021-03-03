@@ -455,6 +455,8 @@ namespace Tac
     void                             SetVertexFormat( VertexFormatHandle );
     void                             SetShader( ShaderHandle );
     void                             SetTexture( DrawCallTextures );
+    void                             SetBreakpointWhenThisFrameIsRendered();
+    void                             SetBreakpointWhenNextDrawCallIsExecuted();
     void                             Submit( ViewHandle, StackFrame );
     void                             GetPerspectiveProjectionAB( float f, float n, float& a, float& b );
     void                             Init( Errors& );

@@ -156,13 +156,43 @@ namespace Tac
       bool              mScissorSet = false;
     };
 
+    // This struct holds handles deleted this frame
+    struct FreeDeferredHandles
+    {
+      // Let's say you do the following:
+      //   Render::DestroyVertexBuffer( foo.vertexbuffer );
+      //   bar.vertexBuffer = Render::CreateVertexBuffer();
+      // We don't want to reuse the same vertex buffer handle, because it will be destroyed
+      // at the end of the frame n during ExecuteCommands( mCommandBufferFrameEnd ),
+      // causing problems for frame n+1 which is still trying to use the resource.
+      // so instead defer deletion of the handle ( not the resource ) until we are done issuing commands.
+      void FinishFreeingHandles();
+      FixedVector< BlendStateHandle, kMaxBlendStates >           mFreedBlendStates;
+      FixedVector< ConstantBufferHandle, kMaxConstantBuffers >   mFreedConstantBuffers;
+      FixedVector< DepthStateHandle, kMaxDepthStencilStates >    mFreedDepthStencilStates;
+      FixedVector< FramebufferHandle, kMaxFramebuffers >         mFreedFramebuffers;
+      FixedVector< IndexBufferHandle, kMaxIndexBuffers >         mFreedIndexBuffers;
+      FixedVector< RasterizerStateHandle, kMaxRasterizerStates > mFreedRasterizerStates;
+      FixedVector< SamplerStateHandle, kMaxSamplerStates >       mFreedSamplerStates;
+      FixedVector< ShaderHandle, kMaxPrograms >                  mFreedShaders;
+      FixedVector< TextureHandle, kMaxTextures >                 mFreedTextures;
+      FixedVector< VertexBufferHandle, kMaxVertexBuffers >       mFreedVertexBuffers;
+      FixedVector< VertexFormatHandle, kMaxInputLayouts >        mFreedVertexFormatInputLayouts;
+      FixedVector< ViewHandle, kMaxViews >                       mFreedViews;
+    };
 
     struct Frame
     {
-      CommandBuffer   mCommandBuffer;
-      DrawCalls       mDrawCalls;
-      UniformBuffer   mUniformBuffer;
-      View            mViews[ kMaxViews ];
+      Frame();
+      void                Clear();
+      CommandBuffer       mCommandBufferFrameBegin;
+      CommandBuffer       mCommandBufferFrameEnd;
+      DrawCalls           mDrawCalls;
+      UniformBuffer       mUniformBuffer;
+      View                mViews[ kMaxViews ];
+      bool                mBreakOnFrameRender;
+      int                 mBreakOnDrawCall;
+      FreeDeferredHandles mFreeDeferredHandles;
     };
 
     struct CommandDataResizeFramebuffer
@@ -280,10 +310,6 @@ namespace Tac
 
     void DebugPrintSubmitAllocInfo();
 
-    void ExecuteUniformCommands( const UniformBuffer* uniformBuffer,
-                                 int iUniformBegin,
-                                 int iUniformEnd,
-                                 Errors& );
   }
 
 
@@ -303,8 +329,11 @@ namespace Tac
     virtual ~Renderer();
     void         ExecuteCommands( Render::CommandBuffer*, Errors& );
     virtual void Init( Errors& ) {};
-    virtual void Render2( const Render::Frame*, Errors& ) { TAC_ASSERT_UNIMPLEMENTED; }
-    virtual void SwapBuffers() { TAC_ASSERT_UNIMPLEMENTED; }
+    virtual void RenderBegin( const Render::Frame*, Errors& ) = 0;
+    virtual void RenderDrawCall( const Render::Frame*, const Render::DrawCall3*, Errors& ) = 0;
+    virtual void RenderEnd( const Render::Frame*, Errors& ) = 0;
+
+    virtual void SwapBuffers() = 0;
     virtual void GetPerspectiveProjectionAB( float f,
                                              float n,
                                              float& a,
@@ -343,5 +372,4 @@ namespace Tac
   };
 
   String RendererTypeToString( Renderer::Type );
-  bool IsRenderThread();
 }

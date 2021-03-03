@@ -4,6 +4,7 @@
 #include "src/space/terrain/tacTerrain.h"
 #include "src/common/graphics/tacDebug3D.h"
 #include "src/common/tacTemporaryMemory.h"
+#include "src/common/tacOS.h"
 #include "src/common/graphics/tacRenderer.h"
 #include "src/common/tacJson.h"
 #include "src/common/tacMemory.h"
@@ -166,6 +167,12 @@ namespace Tac
   {
     mRowMajorGrid.clear();
 
+    //if( mVertexBuffer.IsValid() || mIndexBuffer.IsValid() )
+    //{
+    //  OS::DebugBreak();
+    //  Render::SetBreakpointWhenThisFrameIsRendered();
+    //}
+
     if( mVertexBuffer.IsValid() )
     {
       Render::DestroyVertexBuffer( mVertexBuffer, TAC_STACK_FRAME );
@@ -177,6 +184,8 @@ namespace Tac
       Render::DestroyIndexBuffer( mIndexBuffer, TAC_STACK_FRAME );
       mIndexBuffer = Render::IndexBufferHandle();
     }
+
+
   }
 
 }

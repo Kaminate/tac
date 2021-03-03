@@ -103,6 +103,11 @@ namespace Tac
   {
     return GetDense() + mSize;
   }
+
+  int IdCollection::size() const
+  {
+    return  mSize;
+  }
   
   void UnitTestIdCollection()
   {

@@ -250,6 +250,8 @@ namespace Tac
                                                         Access::Dynamic,
                                                         TAC_STACK_FRAME );
       mVertexCapacity = vertexCount;
+
+      //Render::SetBreakpointWhenThisFrameIsRendered();
     }
 
     if( !mIndexBufferHandle.IsValid() || mIndexCapacity < indexCount )

@@ -76,7 +76,9 @@ namespace Tac
     // Virtual functions
 
     void Init( Errors& errors ) override;
-    void Render2( const Render::Frame*, Errors& errors ) override;
+    void RenderBegin( const Render::Frame*, Errors& ) override;
+    void RenderDrawCall( const Render::Frame*, const Render::DrawCall3*, Errors& ) override;
+    void RenderEnd( const Render::Frame*, Errors& ) override;
     void SwapBuffers() override;
     void GetPerspectiveProjectionAB( float f,
                                      float n,
@@ -141,8 +143,15 @@ namespace Tac
     ID3D11BlendState*          mBlendStates[ Render::kMaxBlendStates ] = {};
     ConstantBuffer             mConstantBuffers[ Render::kMaxConstantBuffers ] = {};
     Program                    mPrograms[ Render::kMaxPrograms ] = {};
-    ID3D11Buffer* constantBuffers[ D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT ] = {};
-    int constantBufferCount = 0;
+    ID3D11Buffer*              constantBuffers[ D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT ] = {};
+    int                        constantBufferCount = 0;
+
+    //                         Currently bound render variables
+    ID3D11BlendState*          blendState = nullptr;
+    ID3D11DepthStencilState*   depthStencilState = nullptr;
+    Render::ViewHandle         viewHandle;
+    IndexBuffer*               indexBuffer = nullptr;
+
   };
 }
 
