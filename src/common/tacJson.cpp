@@ -62,7 +62,7 @@ namespace Tac
       TAC_HANDLE_ERROR( errors );
       json->SetString( s );
     }
-    else if( isdigit( c ) || c == '-' || c == '.' )
+    else if( ( c >= '0' && c <= '9' ) || c == '-' || c == '.' )
     {
       auto f = parseData->EatFloat();
       TAC_HANDLE_ERROR_IF( !f.HasValue(), "Failed to parse number", errors );
@@ -227,7 +227,8 @@ namespace Tac
           Json* childValue = pair.second;
 
           result += Tab( indentation, tabCount ) + DoubleQuote( childKey ) + ":";
-          result += Contains( { JsonType::Array, JsonType::Object }, childValue->mType ) ? "\n" : " ";
+          result += ( childValue->mType == JsonType::Array ||
+                      childValue->mType == JsonType::Object ) ? "\n" : " ";
           result += childValue->Stringify( indentation, tabCount );
           result += GetSeparator( ( int )mObjectChildrenMap.size() );
           result += "\n";
@@ -241,7 +242,7 @@ namespace Tac
         tabCount++;
         for( Json* element : mArrayElements )
         {
-          if( !Contains( { JsonType::Array, JsonType::Object }, element->mType ) )
+          if( !( element->mType == JsonType::Array || element->mType == JsonType::Object ) )
             result += Tab( indentation, tabCount );
           result +=
             element->Stringify( indentation, tabCount ) +

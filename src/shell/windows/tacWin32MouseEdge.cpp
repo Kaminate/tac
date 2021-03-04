@@ -1,16 +1,19 @@
-#include "src/shell/windows/tacWin32MouseEdge.h"
 #include "src/common/tacDesktopWindow.h"
-#include "src/common/tacString.h"
 #include "src/common/tacPreprocessor.h"
+#include "src/common/tacString.h"
 #include "src/shell/windows/tacWin32DesktopWindowManager.h"
+#include "src/shell/windows/tacWin32MouseEdge.h"
+#include "src/shell/windows/tacWin32.h"
+
+#include <iostream>
 
 namespace Tac
 {
   enum class MouseEdgeFlags
   {
-    kNone = 1 << 0,
-    kMovable = 1 << 1,
-    kResizable = 1 << 2
+    kNone = 0b0001,
+    kMovable = 0b0010,
+    kResizable = 0b0100,
   };
 
   static struct // MouseEdge

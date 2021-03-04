@@ -112,20 +112,17 @@ namespace Tac
 
   void CreationGameWindow::CreateGraphicsObjects( Errors& errors )
   {
-    mPerFrame = Render::CreateConstantBuffer( "tac 3d per frame",
-                                              sizeof( DefaultCBufferPerFrame ),
+    mPerFrame = Render::CreateConstantBuffer( sizeof( DefaultCBufferPerFrame ),
                                               0,
                                               TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
-    mPerObj = Render::CreateConstantBuffer( "tac 3d per obj",
-                                            sizeof( DefaultCBufferPerObject ),
+    mPerObj = Render::CreateConstantBuffer( sizeof( DefaultCBufferPerObject ),
                                             1,
                                             TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
-    m3DShader = Render::CreateShader( "game window 3d shader",
-                                      Render::ShaderSource::FromPath( "3DTest" ),
+    m3DShader = Render::CreateShader( Render::ShaderSource::FromPath( "3DTest" ),
                                       Render::ConstantBuffers( mPerFrame, mPerObj ),
                                       TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
@@ -137,29 +134,27 @@ namespace Tac
     posDecl.mTextureFormat.mPerElementByteCount = sizeof( float );
     posDecl.mTextureFormat.mPerElementDataType = GraphicsType::real;
 
-    m3DVertexFormat = Render::CreateVertexFormat( "game window renderer",
-                                                  Render::VertexDeclarations( posDecl ),
+    m3DVertexFormat = Render::CreateVertexFormat( Render::VertexDeclarations( posDecl ),
                                                   m3DShader,
                                                   TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
     m3DvertexFormatDecls[ 0 ] = posDecl;
 
     Render::BlendState blendStateData;
-    blendStateData.srcRGB = BlendConstants::One;
-    blendStateData.dstRGB = BlendConstants::Zero;
-    blendStateData.blendRGB = BlendMode::Add;
-    blendStateData.srcA = BlendConstants::Zero;
-    blendStateData.dstA = BlendConstants::One;
-    blendStateData.blendA = BlendMode::Add;
-    mBlendState = Render::CreateBlendState( "tac 3d opaque blend", blendStateData, TAC_STACK_FRAME );
+    blendStateData.mSrcRGB = BlendConstants::One;
+    blendStateData.mDstRGB = BlendConstants::Zero;
+    blendStateData.mBlendRGB = BlendMode::Add;
+    blendStateData.mSrcA = BlendConstants::Zero;
+    blendStateData.mDstA = BlendConstants::One;
+    blendStateData.mBlendA = BlendMode::Add;
+    mBlendState = Render::CreateBlendState( blendStateData, TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
     Render::DepthState depthStateData;
     depthStateData.mDepthTest = true;
     depthStateData.mDepthWrite = true;
     depthStateData.mDepthFunc = DepthFunc::Less;
-    mDepthState = Render::CreateDepthState( "tac 3d depth state",
-                                            depthStateData,
+    mDepthState = Render::CreateDepthState( depthStateData,
                                             TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
@@ -169,14 +164,13 @@ namespace Tac
     rasterizerStateData.mFrontCounterClockwise = true;
     rasterizerStateData.mMultisample = false;
     rasterizerStateData.mScissor = true;
-    mRasterizerState = Render::CreateRasterizerState( "tac 3d rast state",
-                                                      rasterizerStateData,
+    mRasterizerState = Render::CreateRasterizerState( rasterizerStateData,
                                                       TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
     Render::SamplerState samplerStateData;
     samplerStateData.mFilter = Filter::Linear;
-    mSamplerState = Render::CreateSamplerState( "tac 3d tex sampler", samplerStateData, TAC_STACK_FRAME );
+    mSamplerState = Render::CreateSamplerState( samplerStateData, TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
   }
 
@@ -202,19 +196,19 @@ namespace Tac
 
 
     ModelAssetManagerGetMesh( &mCenteredUnitCube,
-                                          "assets/editor/box.gltf",
-                                          m3DVertexFormat,
-                                          m3DvertexFormatDecls,
-                                          k3DvertexFormatDeclCount,
-                                          errors );
+                              "assets/editor/box.gltf",
+                              m3DVertexFormat,
+                              m3DvertexFormatDecls,
+                              k3DvertexFormatDeclCount,
+                              errors );
     TAC_HANDLE_ERROR( errors );
 
     ModelAssetManagerGetMesh( &mArrow,
-                                          "assets/editor/arrow.gltf",
-                                          m3DVertexFormat,
-                                          m3DvertexFormatDecls,
-                                          k3DvertexFormatDeclCount,
-                                          errors );
+                              "assets/editor/arrow.gltf",
+                              m3DVertexFormat,
+                              m3DvertexFormatDecls,
+                              k3DvertexFormatDeclCount,
+                              errors );
     TAC_HANDLE_ERROR( errors );
 
     mDebug3DDrawData = TAC_NEW Debug3DDrawData;
@@ -229,7 +223,7 @@ namespace Tac
     if( !desktopWindowState->mNativeWindowHandle )
       return;
 
-    if( !IsWindowHovered(mDesktopWindowHandle) )
+    if( !IsWindowHovered( mDesktopWindowHandle ) )
       return;
 
     enum class PickedObject
@@ -542,7 +536,7 @@ namespace Tac
   void CreationGameWindow::DrawPlaybackOverlay( Errors& errors )
   {
     ImGuiSetNextWindowSize( { 300, 75 } );
-		ImGuiSetNextWindowHandle(mDesktopWindowHandle );
+    ImGuiSetNextWindowHandle( mDesktopWindowHandle );
     ImGuiBegin( "gameplay overlay" );
     if( mSoul )
     {
@@ -574,7 +568,7 @@ namespace Tac
     DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
     if( !desktopWindowState->mNativeWindowHandle )
       return;
-    if( !IsWindowHovered(mDesktopWindowHandle) )
+    if( !IsWindowHovered( mDesktopWindowHandle ) )
       return;
     Camera oldCamera = gCreation.mEditorCamera;
 
@@ -590,7 +584,7 @@ namespace Tac
         m3 matrix = m3::RotRadAngleAxis( -angleRadians.x, gCreation.mEditorCamera.mUp );
         gCreation.mEditorCamera.mForwards = matrix * gCreation.mEditorCamera.mForwards;
         gCreation.mEditorCamera.mRight = Cross( gCreation.mEditorCamera.mForwards,
-          gCreation.mEditorCamera.mUp );
+                                                gCreation.mEditorCamera.mUp );
       }
 
       if( angleRadians.y != 0 )
@@ -598,7 +592,7 @@ namespace Tac
         m3 matrix = m3::RotRadAngleAxis( -angleRadians.y, gCreation.mEditorCamera.mRight );
         gCreation.mEditorCamera.mForwards = matrix * gCreation.mEditorCamera.mForwards;
         gCreation.mEditorCamera.mUp = Cross( gCreation.mEditorCamera.mRight,
-          gCreation.mEditorCamera.mForwards );
+                                             gCreation.mEditorCamera.mForwards );
       }
 
       // Snapping right.y to the x-z plane prevents the camera from tilting side-to-side.
@@ -606,7 +600,7 @@ namespace Tac
       gCreation.mEditorCamera.mRight.y = 0;
       gCreation.mEditorCamera.mRight.Normalize();
       gCreation.mEditorCamera.mUp = Cross( gCreation.mEditorCamera.mRight,
-        gCreation.mEditorCamera.mForwards );
+                                           gCreation.mEditorCamera.mForwards );
       gCreation.mEditorCamera.mUp.Normalize();
     }
 

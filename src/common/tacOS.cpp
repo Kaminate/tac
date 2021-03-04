@@ -3,6 +3,7 @@
 #include "src/common/tacErrorHandling.h"
 
 #include <thread>
+#include <iostream>
 
 namespace Tac
 {
@@ -28,7 +29,7 @@ namespace Tac
     {
       if( !IsDebugMode() )
         return;
-      std::cout << errors.ToString() << std::endl;
+      std::cout << errors.ToString().c_str() << std::endl;
       DebugBreak();
       DebugPopupBox( errors.ToString() );
       exit( -1 );

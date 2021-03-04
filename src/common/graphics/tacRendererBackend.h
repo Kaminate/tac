@@ -2,6 +2,8 @@
 
 #include "src/common/graphics/tacRenderer.h"
 #include "src/common/containers/tacFixedVector.h"
+#include "src/common/containers/tacVector.h"
+#include "src/common/tacString.h"
 
 namespace Tac
 {
@@ -315,16 +317,17 @@ namespace Tac
 
   struct Renderer
   {
-    enum class Type
-    {
-      Vulkan,
-      OpenGL4,
-      DirectX11,
-      DirectX12,
-      Count,
-    };
+    //enum class Type
+    //{
+    //  Vulkan,
+    //  OpenGL4,
+    //  DirectX11,
+    //  DirectX12,
+    //  Count,
+    //};
 
     static Renderer* Instance;
+    const char*      mName;
     Renderer();
     virtual ~Renderer();
     void         ExecuteCommands( Render::CommandBuffer*, Errors& );
@@ -368,8 +371,7 @@ namespace Tac
     virtual void DebugGroupBegin( StringView ) = 0;
     virtual void DebugMarker( StringView ) = 0;
     virtual void DebugGroupEnd() = 0;
-    String       mName;
   };
 
-  String RendererTypeToString( Renderer::Type );
+  //String RendererTypeToString( Renderer::Type );
 }

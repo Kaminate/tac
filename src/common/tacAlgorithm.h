@@ -3,9 +3,9 @@
 #pragma once
 #include "src/common/containers/tacVector.h"
 #include "src/common/containers/tacArray.h"
-#include <set>
-#include <map>
-#include <initializer_list>
+//#include <set>
+//#include <map>
+//#include <initializer_list>
 
 namespace Tac
 {
@@ -21,16 +21,16 @@ namespace Tac
   {
     return std::find( beginElement, endElement, element ) != endElement;
   }
-  template< typename U >
-  bool Contains( const std::set< U>& elements, const U& element )
-  {
-    return elements.find( element ) != elements.end();
-  }
-  template< typename T, typename U >
-  bool Contains( const std::map< T, U >& elements, const T& key )
-  {
-    return elements.find( key ) != elements.end();
-  }
+  //template< typename U >
+  //bool Contains( const std::set< U>& elements, const U& element )
+  //{
+  //  return elements.find( element ) != elements.end();
+  //}
+  //template< typename T, typename U >
+  //bool Contains( const std::map< T, U >& elements, const T& key )
+  //{
+  //  return elements.find( key ) != elements.end();
+  //}
 
   // ie: int i = Random( { 1, 2, 3, 4, 5, 6 } )
   template< typename T >
@@ -68,6 +68,16 @@ namespace Tac
     b = temp;
   }
 
+  inline void Reverse( char* begin, char* end )
+  {
+    --end;
+    while( begin < end )
+    {
+      Swap( *begin, *end );
+      ++begin;
+      --end;
+    }
+  }
 
 }
 

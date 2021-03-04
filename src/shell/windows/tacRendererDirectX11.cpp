@@ -10,6 +10,7 @@
 #include "src/common/tacOS.h"
 #include "src/common/tacTemporaryMemory.h"
 #include "src/common/tacFrameMemory.h"
+#include "src/common/tacString.h"
 #include "src/shell/tacDesktopApp.h"
 #include "src/shell/windows/tacDXGI.h"
 #include "src/shell/windows/tacRendererDirectX11.h"
@@ -19,6 +20,7 @@
 #include <D3DCompiler.h> // D3DCOMPILE_...
 #include <d3dcommon.h> // WKPDID_D3DDebugObjectName
 
+#include <iostream> // std::cout
 #include <utility> // std::pair
 #include <sstream> // std::stringstream
 
@@ -35,10 +37,8 @@ namespace Tac
 
   static int registerDX11 = []()
   {
-    static RendererFactory factory;
-    factory.mCreateRenderer = []() { TAC_NEW RendererDirectX11; };
-    factory.mRendererName = RendererNameDirectX11;
-    RendererFactoriesRegister( &factory );
+    RendererFactoriesRegister( { RendererNameDirectX11,
+                               []() { TAC_NEW RendererDirectX11;  } } );
     return 0;
   }( );
 
@@ -110,7 +110,7 @@ namespace Tac
     if( !inferredErrorMessage.empty() )
     {
       ss << "(";
-      ss << inferredErrorMessage;
+      ss << inferredErrorMessage.c_str();
       ss << ")";
     }
     return  ss.str().c_str();
@@ -283,6 +283,15 @@ namespace Tac
       *resultIter++ = ( WCHAR )c;
     *resultIter++ = 0;
     return result;
+  }
+
+  static String ShaderPathToContentString( const char* path, Errors& errors )
+  {
+    if( !path )
+      return "";
+    String shaderFilePath = GetDirectX11ShaderPath( path );
+    String shaderFileContents = FileToString( shaderFilePath, errors );
+    return shaderFileContents + "\n";
   }
 
   RendererDirectX11* RendererDirectX11::Instance = nullptr;
@@ -900,6 +909,7 @@ namespace Tac
     mSamplerStates[ ( int )commandData->mSamplerStateHandle ] = samplerStateDX11;
   }
 
+
   void RendererDirectX11::AddShader( Render::CommandDataCreateShader* commandData,
                                      Errors& errors )
   {
@@ -930,19 +940,21 @@ namespace Tac
         }
       }
 
-      String shaderStringFull;
-      StringView shaderFileNoPaths[] = { "common", commandData->mShaderSource.mShaderPath };
-      for( StringView shaderFileNoPath : shaderFileNoPaths )
-      {
-        if( shaderFileNoPath.empty() )
-          continue;
-        String shaderFilePath = GetDirectX11ShaderPath( shaderFileNoPath );
-        String shaderFileContents = FileToString( shaderFilePath, errors );
-        shaderStringFull += shaderFileContents;
-        shaderStringFull += "\n";
-      }
+      String shaderStringFull = ShaderPathToContentString( "common", errors );
+      if( errors )
+        continue;
 
-      shaderStringFull += commandData->mShaderSource.mShaderStr;
+      switch( commandData->mShaderSource.mType )
+      {
+        case Render::ShaderSource::Type::kPath:
+          shaderStringFull += ShaderPathToContentString( commandData->mShaderSource.mStr, errors );
+          break;
+        case Render::ShaderSource::Type::kStr:
+          shaderStringFull += commandData->mShaderSource.mStr;
+          break;
+      }
+      if( errors )
+        continue;
 
       // vertex shader
       ID3DBlob* pVSBlob;
@@ -1106,12 +1118,12 @@ namespace Tac
     D3D11_BLEND_DESC desc = {};
     D3D11_RENDER_TARGET_BLEND_DESC* d3d11rtbd = &desc.RenderTarget[ 0 ];
     d3d11rtbd->BlendEnable = true;
-    d3d11rtbd->SrcBlend = GetBlend( blendState->srcRGB );
-    d3d11rtbd->DestBlend = GetBlend( blendState->dstRGB );
-    d3d11rtbd->BlendOp = GetBlendOp( blendState->blendRGB );
-    d3d11rtbd->SrcBlendAlpha = GetBlend( blendState->srcA );
-    d3d11rtbd->DestBlendAlpha = GetBlend( blendState->dstA );
-    d3d11rtbd->BlendOpAlpha = GetBlendOp( blendState->blendA );
+    d3d11rtbd->SrcBlend = GetBlend( blendState->mSrcRGB );
+    d3d11rtbd->DestBlend = GetBlend( blendState->mDstRGB );
+    d3d11rtbd->BlendOp = GetBlendOp( blendState->mBlendRGB );
+    d3d11rtbd->SrcBlendAlpha = GetBlend( blendState->mSrcA );
+    d3d11rtbd->DestBlendAlpha = GetBlend( blendState->mDstA );
+    d3d11rtbd->BlendOpAlpha = GetBlendOp( blendState->mBlendA );
     d3d11rtbd->RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
     ID3D11BlendState* blendStateDX11;
     TAC_DX11_CALL( errors, mDevice->CreateBlendState, &desc, &blendStateDX11 );

@@ -123,7 +123,8 @@ namespace Tac
     if( wsaErrorCode == SOCKET_ERROR )
     {
       wsaErrorCode = WSAGetLastError();
-      if( Contains( { WSAECONNRESET, WSAECONNABORTED }, wsaErrorCode ) )
+      if( wsaErrorCode == WSAECONNRESET ||
+          wsaErrorCode == WSAECONNABORTED )
       {
         mRequestDeletion = true;
         return;
@@ -180,10 +181,8 @@ namespace Tac
         mTCPIsConnected = true;
         return;
       }
-      if( Contains( {
-        WSAEWOULDBLOCK, // 10035 non-blocking socket
-        WSAEALREADY }, // 10037 already connected
-        wsaErrorCode ) )
+      if( wsaErrorCode == WSAEWOULDBLOCK || // 10035 non-blocking socket
+          wsaErrorCode == WSAEALREADY ) // 10037 already connected
         return;
       const String errorMsg = GetLastWSAErrorString();
       TAC_RAISE_ERROR( errorMsg, errors );
@@ -219,7 +218,7 @@ namespace Tac
     const auto winsockSocketType = GetWinsockSocketType( socketType );
     const auto winsockAddressFamily = GetWinsockAddressFamily( addressFamily );
     const int winsockProtocol = 0; // don't really know what this is
-    SOCKET winsockSocket = socket( winsockAddressFamily, winsockSocketType, winsockProtocol );
+    const SOCKET winsockSocket = socket( winsockAddressFamily, winsockSocketType, winsockProtocol );
     if( winsockSocket == INVALID_SOCKET )
     {
       const String errorMsg = GetLastWSAErrorString();
@@ -304,13 +303,11 @@ namespace Tac
       int recvResult = recv( socketWinsock->mSocket, recvBuf, recvBufByteCount, 0 );
       if( recvResult == SOCKET_ERROR )
       {
-        int wsaErrorCode = WSAGetLastError();
+        const int wsaErrorCode = WSAGetLastError();
         if( wsaErrorCode == WSAEWOULDBLOCK )
           continue;
-        if( Contains( {
-          WSAECONNRESET, // An existing connection was forcibly closed by the remote host
-          WSAECONNABORTED // An established connection was aborted by the software in your host machine.
-                      }, wsaErrorCode ) )
+        if( wsaErrorCode == WSAECONNRESET || // An existing connection was forcibly closed by the remote host
+            wsaErrorCode == WSAECONNABORTED ) // An established connection was aborted by the software in your host machine.
         {
           socketWinsock->mRequestDeletion = true;
           continue;
@@ -327,8 +324,7 @@ namespace Tac
       socketWinsock->mElapsedSecondsOnLastRecv = Shell::Instance.mElapsedSeconds;
       if( mPrintReceivedMessages )
       {
-        auto recvString = String( recvBuf, recvResult );
-        std::cout << "Received message: " << recvString << std::endl;
+        std::cout << "Received message: " << StringView( recvBuf, recvResult ).c_str() << std::endl;
       }
 
       socketWinsock->OnMessage( recvBuf, recvResult );

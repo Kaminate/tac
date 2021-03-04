@@ -1,6 +1,6 @@
 #pragma once
 
-#include <iostream> // temp?
+//#include <iostream> // temp?
 //#include <initializer_list>
 
 namespace Tac
@@ -99,11 +99,15 @@ namespace Tac
     int mAllocatedByteCount = 0; // includes the null-terminator
   };
     
-  String     ToString( int i );
-  String     ToString( void* val );
-  String     ToString( double val );
-  String     ToString( float val );
-  String     ToString( uint32_t val );
+  //template <typename T> String ToString( T ){ return""; }
+  //String     ToString<>( int ){}
+  String     ToString( int );
+  String     ToString( unsigned int );
+  String     ToString( unsigned long long );
+  String     ToString( void* );
+  String     ToString( double );
+  String     ToString( float );
+  //String     ToString( uint32_t val );
   StringView Va( const char* format, ... );
   int        Atoi( StringView s );
 
@@ -135,8 +139,8 @@ namespace Tac
   bool operator < ( const String& a, const String& b );
 
   // For printing Tac::String to std::cout
-  std::ostream& operator << ( std::ostream& os, StringView s );
-  std::istream& operator >> ( std::istream& is, String& s );
+  //std::ostream& operator << ( std::ostream& os, StringView s );
+  //std::istream& operator >> ( std::istream& is, String& s );
 
   bool operator == ( const StringView& a, const StringView& b );
   bool operator == ( const StringView& a, const String& b );

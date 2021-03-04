@@ -1,7 +1,10 @@
 #pragma once
 
+#include "tacWin32.h"
+
 namespace Tac
 {
+  struct Errors;
   void Win32WindowManagerInit( Errors& );
   void Win32WindowManagerPoll( Errors& );
   void Win32WindowManagerSpawnWindow( const DesktopWindowHandle&, int x, int y, int w, int h );

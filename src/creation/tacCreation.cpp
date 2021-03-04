@@ -360,6 +360,7 @@ namespace Tac
   {
     /*TAC_PROFILE_BLOCK*/;
 
+
     // dont need this
     //ImGuiSetNextWindowHandle( DesktopWindowHandle() );
 
@@ -371,6 +372,7 @@ namespace Tac
 
     if( AllWindowsClosed() )
       OS::StopRunning();
+
 
 
 
@@ -582,7 +584,7 @@ namespace Tac
         if( saveDialogErrors )
         {
           // todo: log it, user feedback
-          std::cout << saveDialogErrors.ToString() << std::endl;
+          std::cout << saveDialogErrors.ToString().c_str() << std::endl;
           continue;
         }
 
@@ -605,7 +607,7 @@ namespace Tac
       if( saveToFileErrors )
       {
         // todo: log it, user feedback
-        std::cout << saveToFileErrors.ToString() << std::endl;
+        std::cout << saveToFileErrors.ToString().c_str() << std::endl;
         continue;
       }
     }

@@ -4,6 +4,7 @@
 #include "src/common/containers/tacVector.h"
 #include "src/common/containers/tacArray.h"
 #include "src/common/math/tacVector3.h"
+#include "src/common/math/tacVector4.h"
 #include "src/common/math/tacMatrix4.h"
 #include "src/common/graphics/tacRenderer.h"
 #include <map>

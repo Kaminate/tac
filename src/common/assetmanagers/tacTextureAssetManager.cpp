@@ -7,6 +7,7 @@
 #include "src/common/tacOS.h"
 #include "src/common/tacUtility.h"
 #include "src/common/thirdparty/stb_image.h"
+#include <map>
 namespace Tac
 {
   namespace TextureAssetManager
@@ -35,7 +36,7 @@ namespace Tac
         commandData.mImage = mImage;
         commandData.mImageBytes = mImageData.data();
         commandData.mPitch = mPitch; // mImage.mFormat.CalculateTotalByteCount() * mImage.mWidth;
-        *texture = Render::CreateTexture( mFilepath, commandData, TAC_STACK_FRAME );
+        *texture = Render::CreateTexture(  commandData, TAC_STACK_FRAME );
         TAC_HANDLE_ERROR( errors );
       }
       int mPitch = 0;
@@ -59,7 +60,7 @@ namespace Tac
         commandData.mImageBytesCubemap[ 4 ] = mImageData[ 4 ].data();
         commandData.mImageBytesCubemap[ 5 ] = mImageData[ 5 ].data();
         commandData.mPitch = mPitch;
-        *texture = Render::CreateTexture( mDir, commandData, TAC_STACK_FRAME );
+        *texture = Render::CreateTexture( commandData, TAC_STACK_FRAME );
         TAC_HANDLE_ERROR( errors );
       }
       int mPitch = 0;

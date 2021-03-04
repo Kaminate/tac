@@ -13,6 +13,8 @@
 #include "src/shell/windows/tacXInput.h"
 #include "src/shell/windows/tacWin32MouseEdge.h"
 
+#include <iostream>
+
 namespace Tac
 {
   static Errors sWinMainErrors;

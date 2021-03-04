@@ -89,7 +89,7 @@ namespace Tac
 
   extern Creation gCreation;
 
-  const v4 textColor = v4( v3( 1, 1, 1 ) * 0.0f, 1 );
+  //const v4 textColor = v4( v3( 1, 1, 1 ) * 0.0f, 1 );
 
 }
 

@@ -4,6 +4,8 @@
 #include "src/common/graphics/tacUI2D.h"
 #include "src/common/math/tacMath.h"
 
+#include <iostream>
+
 namespace Tac
 {
 

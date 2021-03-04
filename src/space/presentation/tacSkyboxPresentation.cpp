@@ -7,6 +7,7 @@
 #include "src/common/assetmanagers/tacTextureAssetManager.h"
 #include "src/common/assetmanagers/tacModelAssetManager.h"
 #include "src/common/graphics/tacRenderer.h"
+#include "src/common/graphics/tacRendererUtil.h"
 #include "src/common/profile/tacProfile.h"
 
 namespace Tac
@@ -22,14 +23,12 @@ namespace Tac
   void SkyboxPresentation::Init( Errors& errors )
   {
 
-    mPerFrame = Render::CreateConstantBuffer( "skybox per frame",
-                                              sizeof( DefaultCBufferPerFrame ),
+    mPerFrame = Render::CreateConstantBuffer( sizeof( DefaultCBufferPerFrame ),
                                               0,
                                               TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
-    mShader = Render::CreateShader( "skybox",
-                                    Render::ShaderSource::FromPath( "Skybox" ),
+    mShader = Render::CreateShader( Render::ShaderSource::FromPath( "Skybox" ),
                                     Render::ConstantBuffers( mPerFrame ),
                                     TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
@@ -41,8 +40,7 @@ namespace Tac
     pos.mTextureFormat.mPerElementByteCount = sizeof( float );
     pos.mTextureFormat.mPerElementDataType = GraphicsType::real;
 
-    mVertexFormat = Render::CreateVertexFormat( "skybox",
-                                                Render::VertexDeclarations( pos ),
+    mVertexFormat = Render::CreateVertexFormat( Render::VertexDeclarations( pos ),
                                                 mShader,
                                                 TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
@@ -50,19 +48,19 @@ namespace Tac
     mVertexDecls[ 0 ] = pos;
 
     Render::BlendState blendStateData;
-    blendStateData.srcRGB = BlendConstants::One;
-    blendStateData.dstRGB = BlendConstants::Zero;
-    blendStateData.blendRGB = BlendMode::Add;
-    blendStateData.srcA = BlendConstants::Zero;
-    blendStateData.dstA = BlendConstants::One;
-    blendStateData.blendA = BlendMode::Add;
-    mBlendState = Render::CreateBlendState( "skybox", blendStateData, TAC_STACK_FRAME );
+    blendStateData.mSrcRGB = BlendConstants::One;
+    blendStateData.mDstRGB = BlendConstants::Zero;
+    blendStateData.mBlendRGB = BlendMode::Add;
+    blendStateData.mSrcA = BlendConstants::Zero;
+    blendStateData.mDstA = BlendConstants::One;
+    blendStateData.mBlendA = BlendMode::Add;
+    mBlendState = Render::CreateBlendState(  blendStateData, TAC_STACK_FRAME );
 
     Render::DepthState depthStateData;
     depthStateData.mDepthTest = true;
     depthStateData.mDepthWrite = true;
     depthStateData.mDepthFunc = DepthFunc::LessOrEqual;
-    mDepthState = Render::CreateDepthState( "skybox", depthStateData, TAC_STACK_FRAME );
+    mDepthState = Render::CreateDepthState(  depthStateData, TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
     Render::RasterizerState rasterizerStateData;
@@ -71,12 +69,12 @@ namespace Tac
     rasterizerStateData.mFrontCounterClockwise = true;
     rasterizerStateData.mMultisample = false;
     rasterizerStateData.mScissor = true;
-    mRasterizerState = Render::CreateRasterizerState( "skybox", rasterizerStateData, TAC_STACK_FRAME );
+    mRasterizerState = Render::CreateRasterizerState(  rasterizerStateData, TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
     Render::SamplerState samplerStateData;
     samplerStateData.mFilter = Filter::Linear;
-    mSamplerState = Render::CreateSamplerState( "skybox", samplerStateData, TAC_STACK_FRAME );
+    mSamplerState = Render::CreateSamplerState(  samplerStateData, TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
   }
   void SkyboxPresentation::RenderSkybox( const int viewWidth,
@@ -87,18 +85,18 @@ namespace Tac
     /*TAC_PROFILE_BLOCK*/;
     const StringView defaultSkybox = "assets/skybox/daylight";
     const StringView skyboxDirToUse = skyboxDir.empty() ? defaultSkybox : skyboxDir;
-    Render::TextureHandle cubemap = TextureAssetManager::GetTextureCube( skyboxDirToUse,
-                                                                         mGetSkyboxTextureErrors );
+    const Render::TextureHandle cubemap = TextureAssetManager::GetTextureCube( skyboxDirToUse,
+                                                                               mGetSkyboxTextureErrors );
     TAC_ASSERT( mGetSkyboxTextureErrors.empty() );
     if( !cubemap.IsValid() )
       return;
     Mesh* mesh;
     ModelAssetManagerGetMesh( &mesh,
-                                          "assets/editor/Box.gltf",
-                                          mVertexFormat,
-                                          mVertexDecls,
-                                          kVertexFormatDeclCount,
-                                          mGetSkyboxMeshErrors );
+                              "assets/editor/Box.gltf",
+                              mVertexFormat,
+                              mVertexDecls,
+                              kVertexFormatDeclCount,
+                              mGetSkyboxMeshErrors );
     TAC_ASSERT( mGetSkyboxMeshErrors.empty() );
     if( !mesh )
       return;
@@ -107,9 +105,9 @@ namespace Tac
     Render::GetPerspectiveProjectionAB( mCamera->mFarPlane, mCamera->mNearPlane, a, b );
     const float aspect = ( float )viewWidth / ( float )viewHeight;
     const m4 view = m4::ViewInv( v3( 0, 0, 0 ),
-                               mCamera->mForwards,
-                               mCamera->mRight,
-                               mCamera->mUp );
+                                 mCamera->mForwards,
+                                 mCamera->mRight,
+                                 mCamera->mUp );
     DefaultCBufferPerFrame perFrame;
     perFrame.mFar = mCamera->mFarPlane;
     perFrame.mNear = mCamera->mNearPlane;

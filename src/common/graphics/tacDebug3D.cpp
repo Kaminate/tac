@@ -1,5 +1,6 @@
 #include "src/common/graphics/tacDebug3D.h"
 #include "src/common/graphics/tacRenderer.h"
+#include "src/common/graphics/tacRendererUtil.h"
 #include "src/common/tacMemory.h"
 #include "src/common/tacErrorHandling.h"
 #include "src/common/profile/tacProfile.h"
@@ -30,20 +31,17 @@ namespace Tac
     rasterizerStateNoCullData.mFrontCounterClockwise = true;
     rasterizerStateNoCullData.mMultisample = false;
     rasterizerStateNoCullData.mScissor = true;
-    mRasterizerStateNoCull = Render::CreateRasterizerState( "no cull",
-                                                            rasterizerStateNoCullData,
+    mRasterizerStateNoCull = Render::CreateRasterizerState( rasterizerStateNoCullData,
                                                             TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
 
-    mCBufferPerFrame = Render::CreateConstantBuffer( "cbuffer per frame",
-                                                     sizeof( DefaultCBufferPerFrame ),
+    mCBufferPerFrame = Render::CreateConstantBuffer( sizeof( DefaultCBufferPerFrame ),
                                                      DefaultCBufferPerFrame::shaderRegister,
                                                      TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
-    m3DVertexColorShader = Render::CreateShader( "3d color",
-                                                 Render::ShaderSource::FromPath( "3DDebug" ),
+    m3DVertexColorShader = Render::CreateShader( Render::ShaderSource::FromPath( "3DDebug" ),
                                                  Render::ConstantBuffers( mCBufferPerFrame ),
                                                  TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
@@ -52,7 +50,7 @@ namespace Tac
     depthStateData.mDepthFunc = DepthFunc::Less;
     depthStateData.mDepthTest = true;
     depthStateData.mDepthWrite = true;
-    mDepthLess = Render::CreateDepthState( "depth less", depthStateData, TAC_STACK_FRAME );
+    mDepthLess = Render::CreateDepthState(  depthStateData, TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
     VertexDeclaration positionData;
@@ -67,20 +65,19 @@ namespace Tac
     Render::VertexDeclarations vertexDeclarations;
     vertexDeclarations.AddVertexDeclaration( positionData );
     vertexDeclarations.AddVertexDeclaration( colorData );
-    mVertexColorFormat = Render::CreateVertexFormat( "vertex color format",
-                                                     vertexDeclarations,
+    mVertexColorFormat = Render::CreateVertexFormat( vertexDeclarations,
                                                      m3DVertexColorShader,
                                                      TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
     Render::BlendState alphaBlendStateData;
-    alphaBlendStateData.srcRGB = BlendConstants::One;
-    alphaBlendStateData.dstRGB = BlendConstants::OneMinusSrcA;
-    alphaBlendStateData.blendRGB = BlendMode::Add;
-    alphaBlendStateData.srcA = BlendConstants::One;
-    alphaBlendStateData.dstA = BlendConstants::OneMinusSrcA;
-    alphaBlendStateData.blendA = BlendMode::Add;
-    mAlphaBlendState = Render::CreateBlendState( "alpha blend", alphaBlendStateData, TAC_STACK_FRAME );
+    alphaBlendStateData.mSrcRGB = BlendConstants::One;
+    alphaBlendStateData.mDstRGB = BlendConstants::OneMinusSrcA;
+    alphaBlendStateData.mBlendRGB = BlendMode::Add;
+    alphaBlendStateData.mSrcA = BlendConstants::One;
+    alphaBlendStateData.mDstA = BlendConstants::OneMinusSrcA;
+    alphaBlendStateData.mBlendA = BlendMode::Add;
+    mAlphaBlendState = Render::CreateBlendState(  alphaBlendStateData, TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
   }
 
@@ -373,8 +370,7 @@ namespace Tac
       {
         if( mVerts.IsValid() )
           Render::DestroyVertexBuffer( mVerts, TAC_STACK_FRAME );
-        mVerts = Render::CreateVertexBuffer( "debug 3d verts",
-                                             mDebugDrawVerts.size() * sizeof( DefaultVertexColor ),
+        mVerts = Render::CreateVertexBuffer( mDebugDrawVerts.size() * sizeof( DefaultVertexColor ),
                                              mDebugDrawVerts.data(),
                                              0,
                                              Access::Dynamic,

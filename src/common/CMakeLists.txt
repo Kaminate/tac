@@ -29,6 +29,8 @@ ${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacRendererBackend.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacRendererBackend.h
 ${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacRenderer.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacRenderer.h
+${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacRendererUtil.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacRendererUtil.h
 ${CMAKE_CURRENT_SOURCE_DIR}/tacAlgorithm.h
 ${CMAKE_CURRENT_SOURCE_DIR}/tacCamera.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/tacCamera.h

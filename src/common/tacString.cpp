@@ -79,11 +79,9 @@ namespace Tac
     }
   }
 
-  String ToString( int i )
+
+  template <typename T> String ToStringUnsignedInt( T i )
   {
-    bool isNegative = i < 0;
-    if( isNegative )
-      i *= -1;
     String s;
     for( ;; )
     {
@@ -93,14 +91,29 @@ namespace Tac
       if( !i )
         break;
     }
-    if( isNegative )
-      s = "-" + s;
     return s;
   }
-  String ToString( uint32_t val )
+
+  template <typename T> String ToStringSignedInt( T i )
   {
-    return ToString( ( int )val );
+    return ( i < 0 ? "-" : "" ) + ToStringUnsignedInt( ( i < 0 ? -1 : 1 ) * i );
   }
+
+  String     ToString( unsigned int i )
+  {
+    return ToStringUnsignedInt( i );
+  }
+
+  String     ToString( unsigned long long i )
+  {
+    return ToStringUnsignedInt( i );
+  }
+
+  String ToString( int i )
+  {
+    return ToStringSignedInt( i );
+  }
+
   String ToString( void* val )
   {
     std::stringstream ss;

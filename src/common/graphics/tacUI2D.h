@@ -5,6 +5,7 @@
 
 #include "src/common/graphics/tacFont.h"
 #include "src/common/graphics/tacRenderer.h"
+#include "src/common/graphics/tacRendererUtil.h"
 #include "src/common/math/tacMatrix3.h"
 #include "src/common/math/tacVector2.h"
 #include "src/common/math/tacVector4.h"

@@ -19,6 +19,7 @@
 #include "src/space/tacServer.h"
 #include "src/space/tacWorld.h"
 #include <cstdlib> // itoa
+#include <iostream> // cout
 
 namespace Tac
 {
@@ -269,7 +270,7 @@ namespace Tac
 		auto websocketKey = GenerateSecWebsocketKey();
 		httpRequest.FormatRequestWebsocket( "/game", mHostname, websocketKey );
 		if( mPrintHTTPRequest )
-			std::cout << httpRequest.ToString() << std::endl;
+			std::cout << httpRequest.ToString().c_str() << std::endl;
 		mSocket->Send( httpRequest, errors );
 		TAC_HANDLE_ERROR( errors );
 		mPretendWebsocketHandshakeDone = true;

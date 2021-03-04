@@ -4,40 +4,12 @@
 
 #pragma once
 
-#include "src/common/containers/tacVector.h"
-#include "src/common/math/tacVector2.h"
-#include "src/common/math/tacVector3.h"
-#include "src/common/math/tacVector4.h"
-#include "src/common/math/tacMatrix4.h"
-#include "src/common/tacString.h"
-#include "src/common/tacErrorHandling.h"
 #include "src/common/tacPreprocessor.h"
-#include <mutex>
-#include <set>
-
-
-// ok so like
-// there will be a render thread
-// there will be a submit thread
-// and then like theres worker threads
-//
-// the render thread uses render resources
-// the submit thread uses submit resources
-// the worker threads use encoders.
-// the worker thread encoders use a encoder semaphore
-
-
 
 namespace Tac
 {
-  //struct DrawCall2;
-
-  const v4 colorGrey = v4( v3( 1, 1, 1 ) * 95.0f, 255 ) / 255.0f;
-  const v4 colorOrange = v4( 255, 200, 84, 255 ) / 255.0f;
-  const v4 colorGreen = v4( 0, 255, 112, 255 ) / 255.0f;
-  const v4 colorBlue = v4( 84, 255, 255, 255 ) / 255.0f;
-  const v4 colorRed = v4( 255, 84, 84, 255 ) / 255.0f;
-  const v4 colorMagenta = v4( 255, 84, 255, 255 ) / 255.0f;
+  struct StringView;
+  struct Errors;
 
   enum class Attribute // Used to hardcode shader semantics/indexes
   {
@@ -152,9 +124,6 @@ namespace Tac
     GraphicsType mPerElementDataType = GraphicsType::unknown;
   };
 
-  const Format formatv2 = { 2, sizeof( float ), GraphicsType::real };
-  const Format formatv3 = { 3, sizeof( float ), GraphicsType::real };
-  const Format formatu16 = { 1, sizeof( uint16_t ), GraphicsType::uint };
 
 
   struct Image
@@ -167,12 +136,12 @@ namespace Tac
     // byte data should be passed as a separate argument, not as a member of this class
   };
 
-  struct Constant
-  {
-    String mName;
-    int    mOffset = 0;
-    int    mSize = 0;
-  };
+  //struct Constant
+  //{
+  //  String mName;
+  //  int    mOffset = 0;
+  //  int    mSize = 0;
+  //};
 
   struct VertexDeclaration
   {
@@ -195,32 +164,6 @@ namespace Tac
   //  int mStencilBitCount = 0;
   //  GraphicsType mStencilType = GraphicsType::unknown;
   //};
-
-  struct DefaultCBufferPerFrame
-  {
-    static const char* name_view() { return "View"; };
-    static const char* name_proj() { return "Projection"; };
-    static const char* name_far() { return "far"; };
-    static const char* name_near() { return "near"; };
-    static const char* name_gbuffersize() { return "gbufferSize"; };
-    static const int   shaderRegister = 0;
-    m4                 mView;
-    m4                 mProjection;
-    float              mFar;
-    float              mNear;
-    v2                 mGbufferSize;
-  };
-
-  struct DefaultCBufferPerObject
-  {
-    static String    name_world() { return "World"; };
-    static String    name_color() { return "Color"; };
-    static const int shaderRegister = 1;
-    m4               World;
-    v4               Color;
-  };
-
-  v4 ToColorAlphaPremultiplied( v4 colorAlphaUnassociated );
 
   struct ScissorRect
   {
@@ -274,13 +217,12 @@ namespace Tac
 
     struct BlendState
     {
-      // prefix w/ m please
-      BlendConstants srcRGB = BlendConstants::One;
-      BlendConstants dstRGB = BlendConstants::Zero;
-      BlendMode      blendRGB = BlendMode::Add;
-      BlendConstants srcA = BlendConstants::One;
-      BlendConstants dstA = BlendConstants::Zero;
-      BlendMode      blendA = BlendMode::Add;
+      BlendConstants mSrcRGB = BlendConstants::One;
+      BlendConstants mDstRGB = BlendConstants::Zero;
+      BlendMode      mBlendRGB = BlendMode::Add;
+      BlendConstants mSrcA = BlendConstants::One;
+      BlendConstants mDstA = BlendConstants::Zero;
+      BlendMode      mBlendA = BlendMode::Add;
     };
 
     struct VertexDeclarations
@@ -308,11 +250,18 @@ namespace Tac
 
     struct ShaderSource
     {
+      enum Type
+      {
+        kPath,
+        kStr
+      };
+      Type                mType;
+      const char*         mStr;
       // can load from either
-      StringView          mShaderPath;
-      StringView          mShaderStr;
-      static ShaderSource FromPath( StringView );
-      static ShaderSource FromStr( StringView );
+      //StringView          mShaderPath;
+      //StringView          mShaderStr;
+      static ShaderSource FromPath( const char* );
+      static ShaderSource FromStr( const char* );
     };
 
     struct ConstantBuffers
@@ -376,39 +325,39 @@ namespace Tac
 
     void                             RenderFrame( Errors& );
     void                             SubmitFrame();
+
+    //                               why are there 2 init functions???
     void                             Init();
+    void                             Init( Errors& );
+
     void*                            SubmitAlloc( int byteCount );
     const void*                      SubmitAlloc( const void* bytes, int byteCount );
     ViewHandle                       CreateView();
-    void                             DestroyView(ViewHandle);
-    ShaderHandle                     CreateShader( StringView, ShaderSource, ConstantBuffers, StackFrame );
-    ConstantBufferHandle             CreateConstantBuffer( StringView,
-                                                           int mByteCount,
+    void                             DestroyView( ViewHandle );
+    ShaderHandle                     CreateShader(  ShaderSource, ConstantBuffers, StackFrame );
+    ConstantBufferHandle             CreateConstantBuffer( int mByteCount,
                                                            int mShaderRegister,
                                                            StackFrame );
-    VertexBufferHandle               CreateVertexBuffer( StringView,
-                                                         int mByteCount,
+    VertexBufferHandle               CreateVertexBuffer( int mByteCount,
                                                          const void* mOptionalInitialBytes,
                                                          int mStride,
                                                          Access mAccess,
                                                          StackFrame );
-    IndexBufferHandle                CreateIndexBuffer( StringView,
-                                                        int byteCount,
+    IndexBufferHandle                CreateIndexBuffer( int byteCount,
                                                         const void* optionalInitialBytes,
                                                         Access access,
                                                         Format format,
                                                         StackFrame );
-    TextureHandle                    CreateTexture( StringView, TexSpec, StackFrame );
-    FramebufferHandle                CreateFramebuffer( StringView,
-                                                        const void* nativeWindowHandle,
+    TextureHandle                    CreateTexture(  TexSpec, StackFrame );
+    FramebufferHandle                CreateFramebuffer( const void* nativeWindowHandle,
                                                         int width,
                                                         int weight,
                                                         StackFrame );
-    BlendStateHandle                 CreateBlendState( StringView, BlendState, StackFrame );
-    RasterizerStateHandle            CreateRasterizerState( StringView, RasterizerState, StackFrame );
-    SamplerStateHandle               CreateSamplerState( StringView, SamplerState, StackFrame );
-    DepthStateHandle                 CreateDepthState( StringView, DepthState, StackFrame );
-    VertexFormatHandle               CreateVertexFormat( StringView, VertexDeclarations, ShaderHandle, StackFrame );
+    BlendStateHandle                 CreateBlendState(  BlendState, StackFrame );
+    RasterizerStateHandle            CreateRasterizerState(  RasterizerState, StackFrame );
+    SamplerStateHandle               CreateSamplerState(  SamplerState, StackFrame );
+    DepthStateHandle                 CreateDepthState(  DepthState, StackFrame );
+    VertexFormatHandle               CreateVertexFormat(  VertexDeclarations, ShaderHandle, StackFrame );
 
     void                             DestroyVertexBuffer( VertexBufferHandle, StackFrame );
     void                             DestroyIndexBuffer( IndexBufferHandle, StackFrame );
@@ -459,7 +408,6 @@ namespace Tac
     void                             SetBreakpointWhenNextDrawCallIsExecuted();
     void                             Submit( ViewHandle, StackFrame );
     void                             GetPerspectiveProjectionAB( float f, float n, float& a, float& b );
-    void                             Init( Errors& );
     void                             BeginGroup( StringView, StackFrame );
     void                             EndGroup( StackFrame );
     void                             UpdateConstantBuffer2( ConstantBufferHandle,
@@ -474,23 +422,26 @@ namespace Tac
 
   struct RendererFactory
   {
-    String mRendererName;
+    const char* mRendererName;
     void( *mCreateRenderer )( );
   };
 
-  RendererFactory*           RendererFactoriesFind( StringView );
-  void                       RendererFactoriesRegister( RendererFactory* );
-
+  // could move it to the c++ file, but plan to be able to
+  // pick a renderer from a dropdown in the future
   struct RendererRegistry
   {
-    RendererFactory**        begin();
-    RendererFactory**        end();
+    RendererFactory* begin();
+    RendererFactory* end();
   };
+  RendererFactory*           RendererFactoriesFind( StringView );
+  void                       RendererFactoriesRegister(RendererFactory);
+
 
 
   const char* const RendererNameVulkan = "Vulkan";
   const char* const RendererNameOpenGL4 = "OpenGL4";
   const char* const RendererNameDirectX11 = "DirectX11";
   const char* const RendererNameDirectX12 = "DirectX12";
+  //const char* RendererTypeToString( Renderer::Type );
 }
 

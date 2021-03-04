@@ -28,7 +28,7 @@ namespace Tac
   {
     if( nativeWindowHandle )
     {
-      const Render::FramebufferHandle framebufferHandle = Render::CreateFramebuffer( "", nativeWindowHandle, w, h, TAC_STACK_FRAME );
+      const Render::FramebufferHandle framebufferHandle = Render::CreateFramebuffer( nativeWindowHandle, w, h, TAC_STACK_FRAME );
       const Render::ViewHandle viewHandle = Render::CreateView();
       sWindowFramebuffers[ ( int )desktopWindowHandle ] = framebufferHandle;
       sWindowViews[ ( int )desktopWindowHandle ] = viewHandle;

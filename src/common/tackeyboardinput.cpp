@@ -4,6 +4,8 @@
 #include "src/common/tacUtility.h"
 #include "src/common/tacOS.h"
 
+#include <iostream>
+
 namespace Tac
 {
 
@@ -123,7 +125,7 @@ namespace Tac
     String lastkeysDown = mPrev.GetPressedKeyDescriptions();
     if( currkeysDown == lastkeysDown )
       return;
-    std::cout << currkeysDown << std::endl;
+    std::cout << currkeysDown.c_str() << std::endl;
   }
 
 }

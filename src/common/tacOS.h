@@ -27,14 +27,14 @@ namespace Tac
     // Gets the path where you can save files to, such as user configs
     void        GetApplicationDataPath( String& path, Errors& );
 
-    void        GetFileLastModifiedTime( time_t* time, StringView path, Errors& );
+    void        GetFileLastModifiedTime( time_t*, StringView path, Errors& );
 
     void        GetDirFilesRecursive( Vector< String >& files, StringView dir, Errors& );
 
     void        SaveDialog( String& path, StringView suggestedPath, Errors& );
-    void        OpenDialog( String& path, Errors& errors );
+    void        OpenDialog( String& path, Errors& );
 
-    // same as current dir
+    //          same as current dir
     void        GetWorkingDir( String& dir, Errors& );
 
     void        GetPrimaryMonitor( int* w, int* h );
@@ -45,16 +45,15 @@ namespace Tac
     // you're mouse is likely to have moved.
     // What should happen is that this gets cached during the message pump,
     // and accessed through MouseInput
-    void        GetScreenspaceCursorPos( v2& pos, Errors& );
-    void        SetScreenspaceCursorPos( const v2& pos, Errors& );
+    void        GetScreenspaceCursorPos( v2& , Errors& );
+    void        SetScreenspaceCursorPos( const v2& , Errors& );
 
-    void        ThreadSleepSec(float t = 1);
-    void        ThreadSleepMsec(int t = 1);
+    void        ThreadSleepSec( float );
+    void        ThreadSleepMsec( int );
 
     bool        IsRunning();
     void        StopRunning();
 
-    String      GetDefaultRendererName();
   };
 
   // semaphore values cannot go less than 0,

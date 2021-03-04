@@ -86,14 +86,13 @@ namespace Tac
     TAC_RELEASE_IUNKNOWN( mDxgiAdapter4 );
   }
 
-  void DXGI::CreateSwapChain(
-    HWND hwnd,
-    IUnknown* pDevice,
-    int bufferCount,
-    UINT width,
-    UINT height,
-    IDXGISwapChain** ppSwapChain,
-    Errors& errors )
+  void DXGI::CreateSwapChain( HWND hwnd,
+                              IUnknown* pDevice,
+                              int bufferCount,
+                              UINT width,
+                              UINT height,
+                              IDXGISwapChain** ppSwapChain,
+                              Errors& errors )
   {
     IDXGISwapChain1* swapChain;
     DXGI_SWAP_CHAIN_DESC1 scd1 = {};
@@ -130,7 +129,7 @@ namespace Tac
     if( FAILED( hr ) )
     {
       errors.Append( TryInferDXGIErrorStr( hr ) );
-      errors.Append( Win32ErrorToString( HRESULT_CODE ( hr ) ) );
+      errors.Append( Win32ErrorToString( HRESULT_CODE( hr ) ) );
       TAC_RAISE_ERROR( "Failed to create swap chain", errors );
     }
 

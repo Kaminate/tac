@@ -87,7 +87,7 @@ namespace Tac
   void Win32Assert( Errors& errors )
   {
     String s = errors.ToString();
-    std::cout << s << std::endl;
+    std::cout << s.c_str() << std::endl;
     //s += "\n";
     //OutputDebugString( s.c_str() );
     Win32DebugBreak();
@@ -335,10 +335,6 @@ namespace Tac
       }
       path = WideStringToUTF8( outPath );
       CoTaskMemFree( outPath );
-    }
-    String GetDefaultRendererName()
-    {
-      return RendererNameDirectX11;
     }
     void GetFileLastModifiedTime( time_t* time,
                                   StringView path,

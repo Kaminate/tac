@@ -1,6 +1,7 @@
 #include "src/common/graphics/tacUI2D.h"
 #include "src/common/graphics/tacUI.h"
 #include "src/common/graphics/tacRenderer.h"
+#include "src/common/graphics/tacRendererUtil.h"
 #include "src/common/graphics/imgui/tacImGui.h"
 #include "src/common/containers/tacArray.h"
 #include "src/common/profile/tacProfile.h"
@@ -110,29 +111,25 @@ namespace Tac
     textureData.mImage.mFormat.mPerElementDataType = GraphicsType::unorm;
     textureData.mImageBytes = data;
     textureData.mBinding = Binding::ShaderResource;
-    m1x1White = Render::CreateTexture( "1x1 white", textureData, TAC_STACK_FRAME );
+    m1x1White = Render::CreateTexture( textureData, TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
-    mPerFrame = Render::CreateConstantBuffer( "tac ui 2d per frame",
-                                              sizeof( DefaultCBufferPerFrame ),
+    mPerFrame = Render::CreateConstantBuffer( sizeof( DefaultCBufferPerFrame ),
                                               DefaultCBufferPerFrame::shaderRegister,
                                               TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
-    mPerObj = Render::CreateConstantBuffer( "tac ui 2d per obj",
-                                            sizeof( DefaultCBufferPerObject ),
+    mPerObj = Render::CreateConstantBuffer( sizeof( DefaultCBufferPerObject ),
                                             DefaultCBufferPerObject::shaderRegister,
                                             TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
-    mShader = Render::CreateShader( "tac 2d ui shader",
-                                    Render::ShaderSource::FromPath( "2D" ),
+    mShader = Render::CreateShader( Render::ShaderSource::FromPath( "2D" ),
                                     Render::ConstantBuffers( mPerFrame, mPerObj ),
                                     TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
-    m2DTextShader = Render::CreateShader( "tac 2d ui text shader",
-                                          Render::ShaderSource::FromPath( "2Dtext" ),
+    m2DTextShader = Render::CreateShader( Render::ShaderSource::FromPath( "2Dtext" ),
                                           Render::ConstantBuffers( mPerFrame, mPerObj ),
                                           TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
@@ -148,21 +145,19 @@ namespace Tac
     Render::VertexDeclarations vertexDeclarations;
     vertexDeclarations.AddVertexDeclaration( posData );
     vertexDeclarations.AddVertexDeclaration( uvData );
-    mFormat = Render::CreateVertexFormat( "tac 2d ui vertex format",
-                                          vertexDeclarations,
+    mFormat = Render::CreateVertexFormat( vertexDeclarations,
                                           mShader,
                                           TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
     Render::BlendState blendStateData;
-    blendStateData.srcRGB = BlendConstants::One;
-    blendStateData.dstRGB = BlendConstants::OneMinusSrcA;
-    blendStateData.blendRGB = BlendMode::Add;
-    blendStateData.srcA = BlendConstants::One;
-    blendStateData.dstA = BlendConstants::OneMinusSrcA;
-    blendStateData.blendA = BlendMode::Add;
-    mBlendState = Render::CreateBlendState( "tac 2d ui alpha blend state",
-                                            blendStateData,
+    blendStateData.mSrcRGB = BlendConstants::One;
+    blendStateData.mDstRGB = BlendConstants::OneMinusSrcA;
+    blendStateData.mBlendRGB = BlendMode::Add;
+    blendStateData.mSrcA = BlendConstants::One;
+    blendStateData.mDstA = BlendConstants::OneMinusSrcA;
+    blendStateData.mBlendA = BlendMode::Add;
+    mBlendState = Render::CreateBlendState( blendStateData,
                                             TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
@@ -170,8 +165,7 @@ namespace Tac
     depthStateData.mDepthTest = false;
     depthStateData.mDepthWrite = false;
     depthStateData.mDepthFunc = DepthFunc::Less;
-    mDepthState = Render::CreateDepthState( "tac 2d ui no depth read/write",
-                                            depthStateData,
+    mDepthState = Render::CreateDepthState( depthStateData,
                                             TAC_STACK_FRAME );
 
     Render::RasterizerState rasterizerStateData;
@@ -180,15 +174,13 @@ namespace Tac
     rasterizerStateData.mFrontCounterClockwise = true;
     rasterizerStateData.mMultisample = false;
     rasterizerStateData.mScissor = true;
-    mRasterizerState = Render::CreateRasterizerState( "tac 2d ui no cull",
-                                                      rasterizerStateData,
+    mRasterizerState = Render::CreateRasterizerState( rasterizerStateData,
                                                       TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
     Render::SamplerState samplerStateData;
     samplerStateData.mFilter = Filter::Linear;
-    mSamplerState = Render::CreateSamplerState( "tac 2d ui tex sampler",
-                                                samplerStateData,
+    mSamplerState = Render::CreateSamplerState( samplerStateData,
                                                 TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
   }
@@ -243,8 +235,7 @@ namespace Tac
     {
       if( mVertexBufferHandle.IsValid() )
         Render::DestroyVertexBuffer( mVertexBufferHandle, TAC_STACK_FRAME );
-      mVertexBufferHandle = Render::CreateVertexBuffer( "draw data verts",
-                                                        mDefaultVertex2Ds.size() * sizeof( UI2DVertex ),
+      mVertexBufferHandle = Render::CreateVertexBuffer( mDefaultVertex2Ds.size() * sizeof( UI2DVertex ),
                                                         nullptr,
                                                         sizeof( UI2DVertex ),
                                                         Access::Dynamic,
@@ -262,8 +253,7 @@ namespace Tac
       format.mElementCount = 1;
       format.mPerElementByteCount = sizeof( UI2DIndex );
       format.mPerElementDataType = GraphicsType::uint;
-      mIndexBufferHandle = Render::CreateIndexBuffer( "draw data indexes",
-                                                      indexCount * sizeof( UI2DIndex ),
+      mIndexBufferHandle = Render::CreateIndexBuffer( indexCount * sizeof( UI2DIndex ),
                                                       nullptr,
                                                       Access::Dynamic,
                                                       format,

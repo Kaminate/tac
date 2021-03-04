@@ -16,6 +16,8 @@
 #include "src/shell/tacDesktopApp.h"
 #include "src/shell/tacDesktopWindowGraphics.h"
 
+#include <iostream>
+
 namespace Tac
 {
   CreationMainWindow* CreationMainWindow::Instance = nullptr;
@@ -114,7 +116,7 @@ namespace Tac
         if( saveDialogErrors )
         {
           // todo: log it, user feedback
-          std::cout << saveDialogErrors.ToString() << std::endl;
+          std::cout << saveDialogErrors.ToString().c_str() << std::endl;
           continue;
         }
 
@@ -131,7 +133,7 @@ namespace Tac
         if( saveToFileErrors )
         {
           // todo: log it, user feedback
-          std::cout << saveToFileErrors.ToString() << std::endl;
+          std::cout << saveToFileErrors.ToString().c_str() << std::endl;
           continue;
         }
       }

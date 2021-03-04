@@ -5,6 +5,8 @@
 #include "src/common/tacIDCollection.h"
 #include "src/shell/tacDesktopApp.h"
 
+#include <iostream>
+
 static uint32_t gRaven = 0xcaacaaaa;
 namespace Tac
 {
@@ -79,13 +81,13 @@ namespace Tac
 
 
 
-    UniformBufferHeader::UniformBufferHeader( UniformBufferEntryType type, StackFrame stackFrame )
+    UniformBufferHeader::UniformBufferHeader( const UniformBufferEntryType type, const StackFrame stackFrame )
     {
       mType = type;
       mStackFrame = stackFrame;
     }
 
-    UniformBuffer::Pusher* UniformBuffer::PushHeader( UniformBufferHeader header )
+    UniformBuffer::Pusher* UniformBuffer::PushHeader( const UniformBufferHeader header )
     {
       static thread_local struct UniformBufferPusher : public UniformBuffer::Pusher
       {
@@ -142,7 +144,7 @@ namespace Tac
       return *( UniformBufferHeader* )PopData( sizeof( UniformBufferHeader ) );
     }
 
-    void*               UniformBuffer::Iterator::PopData( int byteCount )
+    void*               UniformBuffer::Iterator::PopData( const int byteCount )
     {
       auto result = ( void* )mCur;
       mCur += byteCount;
@@ -163,17 +165,17 @@ namespace Tac
     }
 
     void        CommandBuffer::Push( const void* bytes,
-                                     int byteCount )
+                                     const int byteCount )
     {
       const int bufferSize = mBuffer.size();
       mBuffer.resize( mBuffer.size() + byteCount );
       MemCpy( mBuffer.data() + bufferSize, bytes, byteCount );
     }
 
-    void        CommandBuffer::PushCommand( CommandType type,
-                                            StackFrame stackFrame,
+    void        CommandBuffer::PushCommand( const CommandType type,
+                                            const StackFrame stackFrame,
                                             const void* bytes,
-                                            int byteCount )
+                                            const int byteCount )
     {
       StringView cheep( "end" );
       Push( &type, sizeof( CommandType ) );
@@ -291,7 +293,7 @@ namespace Tac
       return gSubmitRingBufferBytes + beginPos;
     }
 
-    const void* SubmitAlloc( const void* bytes, int byteCount )
+    const void* SubmitAlloc( const void* bytes, const int byteCount )
     {
       if( !bytes )
         return nullptr;
@@ -302,7 +304,7 @@ namespace Tac
       return dst;
     }
 
-    StringView SubmitAlloc( StringView stringView )
+    StringView SubmitAlloc( const StringView stringView )
     {
       if( !stringView.mLen )
         return {};
@@ -326,17 +328,15 @@ namespace Tac
 
 
 
-    ShaderHandle CreateShader( StringView name,
-                               ShaderSource shaderSource,
-                               ConstantBuffers constantBuffers,
-                               StackFrame stackFrame )
+    ShaderHandle CreateShader( const ShaderSource shaderSource,
+                               const ConstantBuffers constantBuffers,
+                               const StackFrame stackFrame )
     {
-      TAC_UNUSED_PARAMETER( name );
       TAC_ASSERT( constantBuffers.mConstantBufferCount );
       const ShaderHandle shaderHandle = { mIdCollectionShader.Alloc() };
       CommandDataCreateShader commandData;
-      commandData.mShaderSource.mShaderPath = SubmitAlloc( shaderSource.mShaderPath );
-      commandData.mShaderSource.mShaderStr = SubmitAlloc( shaderSource.mShaderStr );
+      commandData.mShaderSource.mStr = SubmitAlloc( shaderSource.mStr ).c_str();
+      commandData.mShaderSource.mType = shaderSource.mType;
       commandData.mShaderHandle = shaderHandle;
       commandData.mConstantBuffers = constantBuffers;
       gSubmitFrame->mCommandBufferFrameBegin.PushCommand( CommandType::CreateShader,
@@ -346,14 +346,12 @@ namespace Tac
       return shaderHandle;
     }
 
-    VertexBufferHandle CreateVertexBuffer( const StringView name,
-                                           const int byteCount,
+    VertexBufferHandle CreateVertexBuffer( const int byteCount,
                                            const void* optionalInitialBytes,
                                            const int stride,
                                            const Access access,
                                            const StackFrame stackFrame )
     {
-      TAC_UNUSED_PARAMETER( name );
       const VertexBufferHandle vertexBufferHandle = { mIdCollectionVertexBuffer.Alloc() };
       CommandDataCreateVertexBuffer commandData;
       commandData.mAccess = access;
@@ -367,12 +365,10 @@ namespace Tac
       return vertexBufferHandle;
     }
 
-    ConstantBufferHandle CreateConstantBuffer( StringView name,
-                                               int byteCount,
-                                               int shaderRegister,
-                                               StackFrame frame )
+    ConstantBufferHandle CreateConstantBuffer( const int byteCount,
+                                               const int shaderRegister,
+                                               const StackFrame frame )
     {
-      TAC_UNUSED_PARAMETER( name );
       const ConstantBufferHandle constantBufferHandle = { mIdCollectionConstantBuffer.Alloc() };
       CommandDataCreateConstantBuffer commandData;
       commandData.mByteCount = byteCount;
@@ -385,14 +381,12 @@ namespace Tac
       return constantBufferHandle;
     }
 
-    IndexBufferHandle CreateIndexBuffer( const StringView name,
-                                         const int byteCount,
+    IndexBufferHandle CreateIndexBuffer( const int byteCount,
                                          const void* optionalInitialBytes,
                                          const Access access,
                                          const Format format,
                                          const StackFrame frame )
     {
-      TAC_UNUSED_PARAMETER( name );
       const IndexBufferHandle indexBufferHandle = { mIdCollectionIndexBuffer.Alloc() };
       CommandDataCreateIndexBuffer commandData;
       commandData.mByteCount = byteCount;
@@ -404,11 +398,9 @@ namespace Tac
       return indexBufferHandle;
     }
 
-    TextureHandle CreateTexture( StringView name,
-                                 TexSpec texSpec,
-                                 StackFrame frame )
+    TextureHandle CreateTexture( TexSpec texSpec,
+                                 const StackFrame frame )
     {
-      TAC_UNUSED_PARAMETER( name );
       const int imageByteCount =
         texSpec.mImage.mFormat.CalculateTotalByteCount() *
         texSpec.mImage.mWidth *
@@ -432,10 +424,10 @@ namespace Tac
       return textureHandle;
     }
 
-    void ResizeFramebuffer( FramebufferHandle framebufferHandle,
-                            int w,
-                            int h,
-                            StackFrame frame )
+    void ResizeFramebuffer( const FramebufferHandle framebufferHandle,
+                            const int w,
+                            const int h,
+                            const StackFrame frame )
     {
       CommandDataResizeFramebuffer commandData;
       commandData.mWidth = w;
@@ -447,13 +439,11 @@ namespace Tac
                                                           sizeof( CommandDataResizeFramebuffer ) );
     }
 
-    FramebufferHandle CreateFramebuffer( StringView name,
-                                         const void* nativeWindowHandle,
-                                         int width,
-                                         int height,
-                                         StackFrame frame )
+    FramebufferHandle CreateFramebuffer( const void* nativeWindowHandle,
+                                         const int width,
+                                         const int height,
+                                         const StackFrame frame )
     {
-      TAC_UNUSED_PARAMETER( name );
       const FramebufferHandle framebufferHandle = mIdCollectionFramebuffer.Alloc();
       CommandDataCreateFramebuffer commandData;
       //commandData.mDesktopWindowHandle = desktopWindowHandle;
@@ -469,11 +459,9 @@ namespace Tac
     }
 
 
-    BlendStateHandle CreateBlendState( StringView name,
-                                       BlendState blendState,
-                                       StackFrame frame )
+    BlendStateHandle CreateBlendState( const BlendState blendState,
+                                       const StackFrame frame )
     {
-      TAC_UNUSED_PARAMETER( name );
       const BlendStateHandle blendStateHandle = mIdCollectionBlendState.Alloc();
       CommandDataCreateBlendState commandData;
       commandData.mBlendState = blendState;
@@ -485,11 +473,9 @@ namespace Tac
       return blendStateHandle;
     }
 
-    RasterizerStateHandle CreateRasterizerState( StringView name,
-                                                 RasterizerState rasterizerState,
-                                                 StackFrame frame )
+    RasterizerStateHandle CreateRasterizerState( const RasterizerState rasterizerState,
+                                                 const StackFrame frame )
     {
-      TAC_UNUSED_PARAMETER( name );
       const RasterizerStateHandle rasterizerStateHandle = mIdCollectionRasterizerState.Alloc();
       CommandDataCreateRasterizerState commandData;
       commandData.mRasterizerState = rasterizerState;
@@ -501,11 +487,9 @@ namespace Tac
       return rasterizerStateHandle;
     }
 
-    SamplerStateHandle CreateSamplerState( StringView name,
-                                           SamplerState samplerState,
-                                           StackFrame frame )
+    SamplerStateHandle CreateSamplerState( const SamplerState samplerState,
+                                           const StackFrame frame )
     {
-      TAC_UNUSED_PARAMETER( name );
       const SamplerStateHandle samplerStateHandle = mIdCollectionSamplerState.Alloc();
       CommandDataCreateSamplerState commandData;
       commandData.mSamplerState = samplerState;
@@ -517,11 +501,9 @@ namespace Tac
       return samplerStateHandle;
     }
 
-    DepthStateHandle CreateDepthState( StringView name,
-                                       DepthState depthState,
-                                       StackFrame frame )
+    DepthStateHandle CreateDepthState( const DepthState depthState,
+                                       const StackFrame frame )
     {
-      TAC_UNUSED_PARAMETER( name );
       const DepthStateHandle depthStateHandle = mIdCollectionDepthState.Alloc();
       CommandDataCreateDepthState commandData;
       commandData.mDepthState = depthState;
@@ -532,12 +514,10 @@ namespace Tac
       return depthStateHandle;
     }
 
-    VertexFormatHandle CreateVertexFormat( StringView name,
-                                           VertexDeclarations vertexDeclarations,
-                                           ShaderHandle shaderHandle,
-                                           StackFrame frame )
+    VertexFormatHandle CreateVertexFormat( const VertexDeclarations vertexDeclarations,
+                                           const ShaderHandle shaderHandle,
+                                           const StackFrame frame )
     {
-      TAC_UNUSED_PARAMETER( name );
       const VertexFormatHandle vertexFormatHandle = mIdCollectionVertexFormat.Alloc();
       CommandDataCreateVertexFormat commandData;
       commandData.mShaderHandle = shaderHandle;
@@ -637,7 +617,7 @@ namespace Tac
       }
     }
 
-    void DestroyView( ViewHandle viewHandle )
+    void DestroyView( const ViewHandle viewHandle )
     {
       gSubmitFrame->mFreeDeferredHandles.mFreedViews.push_back( viewHandle );
     }
@@ -659,7 +639,7 @@ namespace Tac
                                                         &indexBufferHandle, sizeof( indexBufferHandle ) );
     }
 
-    void DestroyTexture( TextureHandle handle, StackFrame frame )
+    void DestroyTexture( const TextureHandle handle, const StackFrame frame )
     {
       gSubmitFrame->mFreeDeferredHandles.mFreedTextures.push_back( handle );
       gSubmitFrame->mCommandBufferFrameEnd.PushCommand( CommandType::DestroyTexture,
@@ -668,7 +648,7 @@ namespace Tac
                                                         sizeof( handle ) );
     }
 
-    void DestroyFramebuffer( FramebufferHandle handle, StackFrame frame )
+    void DestroyFramebuffer( const FramebufferHandle handle, const StackFrame frame )
     {
       gSubmitFrame->mFreeDeferredHandles.mFreedFramebuffers.push_back( handle );
       gSubmitFrame->mCommandBufferFrameEnd.PushCommand( CommandType::DestroyFramebuffer,
@@ -677,7 +657,7 @@ namespace Tac
                                                         sizeof( handle ) );
     }
 
-    void DestroyShader( ShaderHandle handle, StackFrame stackFrame )
+    void DestroyShader( const ShaderHandle handle, const StackFrame stackFrame )
     {
       gSubmitFrame->mFreeDeferredHandles.mFreedShaders.push_back( handle );
       gSubmitFrame->mCommandBufferFrameEnd.PushCommand( CommandType::DestroyShader,
@@ -686,7 +666,7 @@ namespace Tac
                                                         sizeof( handle ) );
     }
 
-    void DestroyVertexFormat( VertexFormatHandle handle, StackFrame stackFrame )
+    void DestroyVertexFormat( const VertexFormatHandle handle, const StackFrame stackFrame )
     {
       gSubmitFrame->mFreeDeferredHandles.mFreedVertexFormatInputLayouts.push_back( handle );
       gSubmitFrame->mCommandBufferFrameEnd.PushCommand( CommandType::DestroyVertexFormat,
@@ -695,7 +675,7 @@ namespace Tac
                                                         sizeof( handle ) );
     }
 
-    void DestroyConstantBuffer( ConstantBufferHandle handle, StackFrame stackFrame )
+    void DestroyConstantBuffer( const ConstantBufferHandle handle, const StackFrame stackFrame )
     {
       gSubmitFrame->mFreeDeferredHandles.mFreedConstantBuffers.push_back( handle );
       gSubmitFrame->mCommandBufferFrameEnd.PushCommand( CommandType::DestroyConstantBuffer,
@@ -704,7 +684,7 @@ namespace Tac
                                                         sizeof( handle ) );
     }
 
-    void DestroyDepthState( DepthStateHandle handle, StackFrame stackFrame )
+    void DestroyDepthState( const DepthStateHandle handle, const StackFrame stackFrame )
     {
       gSubmitFrame->mFreeDeferredHandles.mFreedDepthStencilStates.push_back( handle );
       gSubmitFrame->mCommandBufferFrameEnd.PushCommand( CommandType::DestroyDepthState,
@@ -713,7 +693,7 @@ namespace Tac
                                                         sizeof( handle ) );
     }
 
-    void DestroyBlendState( BlendStateHandle handle, StackFrame stackFrame )
+    void DestroyBlendState( const BlendStateHandle handle, const StackFrame stackFrame )
     {
       gSubmitFrame->mFreeDeferredHandles.mFreedBlendStates.push_back( handle );
       gSubmitFrame->mCommandBufferFrameEnd.PushCommand( CommandType::DestroyBlendState,
@@ -722,7 +702,7 @@ namespace Tac
                                                         sizeof( handle ) );
     }
 
-    void DestroyRasterizerState( RasterizerStateHandle handle, StackFrame stackFrame )
+    void DestroyRasterizerState( const RasterizerStateHandle handle, const StackFrame stackFrame )
     {
       gSubmitFrame->mFreeDeferredHandles.mFreedRasterizerStates.push_back( handle );
       gSubmitFrame->mCommandBufferFrameEnd.PushCommand( CommandType::DestroyRasterizerState,
@@ -731,7 +711,7 @@ namespace Tac
                                                         sizeof( handle ) );
     }
 
-    void DestroySamplerState( SamplerStateHandle handle, StackFrame stackFrame )
+    void DestroySamplerState( const SamplerStateHandle handle, const StackFrame stackFrame )
     {
       gSubmitFrame->mFreeDeferredHandles.mFreedSamplerStates.push_back( handle );
       gSubmitFrame->mCommandBufferFrameEnd.PushCommand( CommandType::DestroySamplerState,
@@ -757,10 +737,10 @@ namespace Tac
                                                           sizeof( CommandDataUpdateTextureRegion ) );
     }
 
-    void UpdateVertexBuffer( VertexBufferHandle handle,
+    void UpdateVertexBuffer( const VertexBufferHandle handle,
                              const void* bytes,
                              const int byteCount,
-                             StackFrame frame )
+                             const StackFrame frame )
     {
       CommandDataUpdateVertexBuffer commandData;
       commandData.mBytes = Render::SubmitAlloc( bytes, byteCount );
@@ -800,14 +780,14 @@ namespace Tac
       gEncoder.mDrawCall.mUpdateConstantBuffers.push_back( updateConstantBufferData );
     }
 
-    void SetViewFramebuffer( ViewHandle viewId, FramebufferHandle framebufferHandle )
+    void SetViewFramebuffer( const ViewHandle viewId, const FramebufferHandle framebufferHandle )
     {
       TAC_ASSERT( ( unsigned )viewId < ( unsigned )kMaxViews )
         View* view = &gSubmitFrame->mViews[ ( int )viewId ];
       view->mFrameBufferHandle = framebufferHandle;
     }
 
-    void SetViewScissorRect( ViewHandle viewId, ScissorRect scissorRect )
+    void SetViewScissorRect( const ViewHandle viewId, const ScissorRect scissorRect )
     {
       TAC_ASSERT( ( unsigned )viewId < ( unsigned )kMaxViews )
         View* view = &gSubmitFrame->mViews[ ( int )viewId ];
@@ -815,7 +795,7 @@ namespace Tac
       view->mScissorSet = true;
     }
 
-    void SetViewport( ViewHandle viewId, Viewport viewport )
+    void SetViewport( const ViewHandle viewId, const Viewport viewport )
     {
       TAC_ASSERT( ( unsigned )viewId < ( unsigned )kMaxViews )
         View* view = &gSubmitFrame->mViews[ ( int )viewId ];
@@ -823,51 +803,51 @@ namespace Tac
       view->mViewportSet = true;
     }
 
-    void SetShader( ShaderHandle shaderHandle )
+    void SetShader( const ShaderHandle shaderHandle )
     {
       gEncoder.mDrawCall.mShaderHandle = shaderHandle;
     }
 
-    void SetVertexBuffer( VertexBufferHandle vertexBufferHandle, int startVertex, int vertexCount )
+    void SetVertexBuffer( const VertexBufferHandle vertexBufferHandle, const int startVertex, const int vertexCount )
     {
       gEncoder.mDrawCall.mVertexBufferHandle = vertexBufferHandle;
       gEncoder.mDrawCall.mStartVertex = startVertex;
       gEncoder.mDrawCall.mVertexCount = vertexCount;
     }
 
-    void SetIndexBuffer( IndexBufferHandle indexBufferHandle, int startIndex, int indexCount )
+    void SetIndexBuffer( const IndexBufferHandle indexBufferHandle, const int startIndex, const int indexCount )
     {
       gEncoder.mDrawCall.mIndexBufferHandle = indexBufferHandle;
       gEncoder.mDrawCall.mStartIndex = startIndex;
       gEncoder.mDrawCall.mIndexCount = indexCount;
     }
 
-    void SetBlendState( BlendStateHandle blendStateHandle )
+    void SetBlendState( const BlendStateHandle blendStateHandle )
     {
       gEncoder.mDrawCall.mBlendStateHandle = blendStateHandle;
     }
 
-    void SetRasterizerState( RasterizerStateHandle rasterizerStateHandle )
+    void SetRasterizerState( const RasterizerStateHandle rasterizerStateHandle )
     {
       gEncoder.mDrawCall.mRasterizerStateHandle = rasterizerStateHandle;
     }
 
-    void SetSamplerState( SamplerStateHandle samplerStateHandle )
+    void SetSamplerState( const SamplerStateHandle samplerStateHandle )
     {
       gEncoder.mDrawCall.mSamplerStateHandle = samplerStateHandle;
     }
 
-    void SetDepthState( DepthStateHandle depthStateHandle )
+    void SetDepthState( const DepthStateHandle depthStateHandle )
     {
       gEncoder.mDrawCall.mDepthStateHandle = depthStateHandle;
     }
 
-    void SetVertexFormat( VertexFormatHandle vertexFormatHandle )
+    void SetVertexFormat( const VertexFormatHandle vertexFormatHandle )
     {
       gEncoder.mDrawCall.mVertexFormatHandle = vertexFormatHandle;
     }
 
-    void SetTexture( DrawCallTextures textureHandle )
+    void SetTexture( const DrawCallTextures textureHandle )
     {
       gEncoder.mDrawCall.mTextureHandle = textureHandle;
     }
@@ -877,7 +857,7 @@ namespace Tac
     //  gEncoder.mTextureHandle = textureHandle;
     //}
 
-    void BeginGroup( StringView name, StackFrame stackFrame )
+    void BeginGroup( const StringView name, const StackFrame stackFrame )
     {
       TAC_ASSERT( !name.empty() );
       UniformBufferHeader header( UniformBufferEntryType::DebugGroupBegin, stackFrame );
@@ -886,16 +866,16 @@ namespace Tac
         PushString( name );
     }
 
-    void EndGroup( StackFrame stackFrame )
+    void EndGroup( const StackFrame stackFrame )
     {
       UniformBufferHeader header( UniformBufferEntryType::DebugGroupEnd, stackFrame );
       gSubmitFrame->mUniformBuffer.PushHeader( header );
     }
 
-    void UpdateConstantBuffer2( ConstantBufferHandle constantBufferHandle,
+    void UpdateConstantBuffer2( const ConstantBufferHandle constantBufferHandle,
                                 const void* bytes,
-                                int byteCount,
-                                StackFrame stackFrame )
+                                const int byteCount,
+                                const StackFrame stackFrame )
     {
       UniformBufferHeader header( UniformBufferEntryType::UpdateConstantBuffer, stackFrame );
       gSubmitFrame->mUniformBuffer.
@@ -1013,6 +993,13 @@ namespace Tac
       //std::cout << "Render::Init end" << std::endl;
     }
 
+    void Init( Errors& errors )
+    {
+      if( !Renderer::Instance )
+        TAC_RAISE_ERROR( "renderer never created", errors );
+      Renderer::Instance->Init( errors );
+    }
+
     void Encoder::Submit( const Render::ViewHandle viewHandle,
                           const StackFrame stackFrame )
     {
@@ -1077,17 +1064,11 @@ namespace Tac
       gEncoder.Submit( viewHandle, stackFrame );
     }
 
-    void GetPerspectiveProjectionAB( float f, float n, float& a, float& b )
+    void GetPerspectiveProjectionAB( const float f, const float n, float& a, float& b )
     {
       Renderer::Instance->GetPerspectiveProjectionAB( f, n, a, b );
     }
 
-    void Init( Errors& errors )
-    {
-      if( !Renderer::Instance )
-        TAC_RAISE_ERROR( "renderer never created", errors );
-      Renderer::Instance->Init( errors );
-    }
 
     void Uninit()
     {
@@ -1466,15 +1447,15 @@ namespace Tac
     }
   }
 
-  String RendererTypeToString( const Renderer::Type rendererType )
-  {
-    switch( rendererType )
-    {
-      case Renderer::Type::Vulkan: return RendererNameVulkan;
-      case Renderer::Type::OpenGL4: return RendererNameOpenGL4;
-      case Renderer::Type::DirectX11: return RendererNameDirectX11;
-      case Renderer::Type::DirectX12: return RendererNameDirectX12;
-      default: TAC_ASSERT_INVALID_CASE( rendererType ); return "";
-    }
-  }
+  //String RendererTypeToString( const Renderer::Type rendererType )
+  //{
+  //  switch( rendererType )
+  //  {
+  //    case Renderer::Type::Vulkan: return RendererNameVulkan;
+  //    case Renderer::Type::OpenGL4: return RendererNameOpenGL4;
+  //    case Renderer::Type::DirectX11: return RendererNameDirectX11;
+  //    case Renderer::Type::DirectX12: return RendererNameDirectX12;
+  //    default: TAC_ASSERT_INVALID_CASE( rendererType ); return "";
+  //  }
+  //}
 }

@@ -243,8 +243,7 @@ namespace Tac
         TAC_ASSERT( indices->type == cgltf_type_scalar );
         const Format indexFormat = FillDataType( indices );
         const int indexByteCount = ( int )indices->count * ( int )sizeof( indexFormat.CalculateTotalByteCount() );
-        Render::IndexBufferHandle indexBuffer = Render::CreateIndexBuffer( debugName,
-                                                                           indexByteCount,
+        Render::IndexBufferHandle indexBuffer = Render::CreateIndexBuffer( indexByteCount,
                                                                            indiciesData,
                                                                            Access::Default,
                                                                            indexFormat,
@@ -304,8 +303,7 @@ namespace Tac
         }
 
 
-        Render::VertexBufferHandle vertexBuffer = Render::CreateVertexBuffer( debugName,
-                                                                              dstVtxBytes.size(),
+        const Render::VertexBufferHandle vertexBuffer = Render::CreateVertexBuffer( dstVtxBytes.size(),
                                                                               dstVtxBytes.data(),
                                                                               dstVtxStride,
                                                                               Access::Default,

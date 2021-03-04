@@ -1,6 +1,7 @@
 #include "src/common/math/tacVector4.h"
 #include "src/common/math/tacMath.h"
 #include "src/common/tacSettings.h"
+#include "src/common/graphics/tacRendererUtil.h"
 #include "src/common/graphics/tacUI.h"
 #include "src/common/graphics/imgui/tacImGui.h"
 #include "src/common/graphics/imgui/tacImGuiState.h"
@@ -18,6 +19,7 @@
 #include "src/shell/tacDesktopApp.h"
 
 #include <cstdlib> // atof
+#include <iostream> // cout
 
 namespace Tac
 {

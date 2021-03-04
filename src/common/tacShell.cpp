@@ -16,6 +16,7 @@
 #include "src/common/tacControllerinput.h"
 #include "src/common/tacKeyboardinput.h"
 #include "src/common/profile/tacProfile.h"
+#include "src/common/graphics/tacRendererUtil.h"
 #include <iostream>
 
 namespace Tac
@@ -29,16 +30,21 @@ namespace Tac
 
   static void CreateRenderer( Errors& )
   {
-      const String defaultRendererName = OS::GetDefaultRendererName();
-      if( const RendererFactory* factory = RendererFactoriesFind( defaultRendererName ) )
+
+#if defined _WIN32 || defined _WIN64 
+    const String defaultRendererName = RendererNameDirectX11;
+#else
+    const String defaultRendererName = RendererNameVulkan;
+#endif
+    if( const RendererFactory* factory = RendererFactoriesFind( defaultRendererName ) )
       {
         factory->mCreateRenderer();
         return;
       }
 
-      for( RendererFactory* factory : RendererRegistry() )
+      for( RendererFactory& factory : RendererRegistry() )
       {
-        factory->mCreateRenderer();
+        factory.mCreateRenderer();
         return;
       }
   }

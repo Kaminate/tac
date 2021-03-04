@@ -12,14 +12,14 @@ namespace Tac
 
 	const Format atlasFormat = { 1, sizeof( uint8_t ), GraphicsType::unorm };
 
-	static v4 ToColorAlphaPremultiplied( v4 colorAlphaUnassociated )
-	{
-		return {
-			colorAlphaUnassociated.x * colorAlphaUnassociated.w,
-			colorAlphaUnassociated.y * colorAlphaUnassociated.w,
-			colorAlphaUnassociated.z * colorAlphaUnassociated.w,
-			colorAlphaUnassociated.w };
-	}
+	//static v4 ToColorAlphaPremultiplied( v4 colorAlphaUnassociated )
+	//{
+	//	return {
+	//		colorAlphaUnassociated.x * colorAlphaUnassociated.w,
+	//		colorAlphaUnassociated.y * colorAlphaUnassociated.w,
+	//		colorAlphaUnassociated.z * colorAlphaUnassociated.w,
+	//		colorAlphaUnassociated.w };
+	//}
 
 	FontFile::FontFile( StringView filepath, Errors& errors )
 	{
@@ -105,7 +105,7 @@ namespace Tac
 		cmdData.mImage = image;
 		cmdData.mImageBytes = initialAtlasMemory;
 		cmdData.mPitch = mRowCount * FontCellWidth;
-		mTextureId = Render::CreateTexture( "texture atlas", cmdData, TAC_STACK_FRAME );
+		mTextureId = Render::CreateTexture(  cmdData, TAC_STACK_FRAME );
 
 
 		TAC_HANDLE_ERROR( errors );

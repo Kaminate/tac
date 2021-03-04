@@ -26,6 +26,7 @@
 
 
 #include <Windows.h>
+//#include <windef.h>
 
 namespace Tac
 {
@@ -33,9 +34,9 @@ namespace Tac
   extern HINSTANCE ghPrevInstance;
   extern LPSTR     glpCmdLine;
   extern int       gnCmdShow;
-  struct String    Win32ErrorToString( DWORD winErrorValue );
+  struct String    Win32ErrorToString( DWORD );
   struct String    Win32GetLastErrorString();
-  struct String    Win32GetWindowName( HWND hwnd );
+  struct String    Win32GetWindowName( HWND );
   void             Win32Assert( const struct Errors& );
   void             Win32DebugBreak();
   void             Win32PopupBox( const struct StringView& );

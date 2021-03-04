@@ -37,7 +37,7 @@ namespace Tac
     T mT;
     OnDestructAux( T t ) : mT( t ) {}
     ~OnDestructAux() { mT(); }
-    OnDestructAux( const OnDestructAux<T>&rhs ) = delete;
+    OnDestructAux( const OnDestructAux< T >& rhs ) = delete;
   };
 
   bool IsDebugMode();
