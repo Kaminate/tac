@@ -174,11 +174,18 @@ namespace Tac
       const RECT screenMoveRect = { moveL, moveT, moveR, moveB };
       if( mouseEdgeResizable && cursorLock )
         mHandlerType = HandlerType::Resize;
-      //  mouseEdge.mMoveRect cursorPos.y < windowRect.top + edgeDistMovePx )
-      else if( mouseEdgeMovable &&
-               PtInRect( &screenMoveRect, cursorPos ) &&
-               ( keyboardMoveT = gKeyboardInput.TryConsumeMouseMovement( keyboardMoveT ) ) )
-        mHandlerType = HandlerType::Move;
+      else if( mouseEdgeMovable )
+      {
+        const bool hovered = PtInRect( &screenMoveRect, cursorPos );
+        if( hovered)
+        {
+          gKeyboardInput.TryConsumeMouseMovement( &keyboardMoveT );
+          if( keyboardMoveT )
+          {
+            mHandlerType = HandlerType::Move;
+          }
+        }
+      }
     }
 
     mCursorPositionOnClick = cursorPos;
@@ -186,9 +193,16 @@ namespace Tac
     mHwnd = windowHandle;
   }
 
-
   static void UpdateResize()
   {
+    if( !mMouseDownCurr )
+    {
+        mHandlerType = HandlerType::None;
+        return;
+    }
+
+    gKeyboardInput.TryConsumeMouseMovement( &keyboardMoveT );
+
     POINT cursorPos;
     GetCursorPos( &cursorPos );
     LONG dx = cursorPos.x - mCursorPositionOnClick.x;
@@ -208,6 +222,14 @@ namespace Tac
 
   static void UpdateMove()
   {
+    if( !mMouseDownCurr )
+    {
+        mHandlerType = HandlerType::None;
+        return;
+    }
+
+    gKeyboardInput.TryConsumeMouseMovement( &keyboardMoveT );
+
     POINT cursorPos;
     GetCursorPos( &cursorPos );
     int x = mWindowRectOnClick.left + cursorPos.x - mCursorPositionOnClick.x;
@@ -245,26 +267,12 @@ namespace Tac
   {
     mMouseDownPrev = mMouseDownCurr;
     mMouseDownCurr = GetKeyState( VK_LBUTTON ) & 0x100;
-
-    if( mHandlerType == HandlerType::None )
+    switch( mHandlerType )
     {
-      UpdateIdle();
+      case Tac::None: UpdateIdle(); break;
+      case Tac::Move: UpdateMove(); break;
+      case Tac::Resize: UpdateResize(); break;
     }
-    else
-    {
-      if( !mMouseDownCurr )
-        mHandlerType = HandlerType::None;
-      else
-      {
-        keyboardMoveT = gKeyboardInput.TryConsumeMouseMovement( keyboardMoveT );
-
-        if( mHandlerType == HandlerType::Move )
-          UpdateMove();
-        if( mHandlerType == HandlerType::Resize )
-          UpdateResize();
-      }
-    }
-
   }
 
   void Win32MouseEdgeSetMovable( const DesktopWindowHandle& desktopWindowHandle,

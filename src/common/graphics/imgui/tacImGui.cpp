@@ -139,6 +139,7 @@ namespace Tac
                             void( *valueFromStringSetter )( StringView from, void* to ),
                             void( *whatToDoWithMousePixel )( float mouseChangeSinceBeginningOfDrag, const void* valAtDragStart, void* curVal ) )
   {
+
     v4 backgroundBoxColor = { 1, 1, 0, 1 };
     String valueStr;
     valueToStringGetter( valueStr, valueBytes );
@@ -169,7 +170,14 @@ namespace Tac
       pos.x + ImGuiGlobals::Instance.mUIStyle.buttonPadding,
       pos.y };
 
-    if( window->IsHovered( clipRect ) && gKeyboardInput.IsKeyJustDown( Key::MouseLeft ) )
+
+    const bool hovered = window->IsHovered( clipRect );
+
+    static double consumeMouse;
+    if( hovered )
+      gKeyboardInput.TryConsumeMouseMovement( &consumeMouse );
+
+    if( hovered && gKeyboardInput.IsKeyJustDown( Key::MouseLeft ) )
     {
       window->SetActiveID( id );
     }
@@ -179,7 +187,7 @@ namespace Tac
       {
         const v2 screenspaceMousePos = gKeyboardInput.mCurr.mScreenspaceCursorPos;
         static float lastMouseXDesktopWindowspace;
-        if( window->IsHovered( clipRect ) )
+        if( hovered )
           backgroundBoxColor.xyz() /= 2.0f;
         if( gKeyboardInput.IsKeyDown( Key::MouseLeft ) )
         {
@@ -219,7 +227,7 @@ namespace Tac
         static double lastMouseReleaseSeconds;
         static v2 lastMousePositionDesktopWindowspace;
         if( gKeyboardInput.HasKeyJustBeenReleased( Key::MouseLeft ) &&
-            window->IsHovered( clipRect ) )
+            hovered )
         {
           auto mouseReleaseSeconds = ImGuiGlobals::Instance.mElapsedSeconds;
           if( mouseReleaseSeconds - lastMouseReleaseSeconds < 0.5f &&
@@ -274,8 +282,6 @@ namespace Tac
       pos.y };
     drawData->AddText( labelPos, ImGuiGlobals::Instance.mUIStyle.fontSize, str, ImGuiGlobals::Instance.mUIStyle.textColor, &clipRect );
 
-    static double consumeMouse;
-    consumeMouse = gKeyboardInput.TryConsumeMouseMovement( consumeMouse );
 
     return MemCmp( valueFrameCopy.data(), valueBytes, valueByteCount );
   }

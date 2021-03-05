@@ -130,36 +130,24 @@ namespace Tac
   }
 
 
-  const double consumeDelta = 0.1f;
-  double              KeyboardInput::TryConsumeMouseMovement( const double savedT )
+  // non-threadlocal
+  static double       mMouseMovementConsummation = 0;
+  const double        kConsumeDelta = 0.1f;
+  void                KeyboardInput::TryConsumeMouseMovement( double* savedT )
   {
-    if( IsMouseMovementConsumed( savedT ) )
+    const double curTime = Shell::Instance.mElapsedSeconds;
+    const bool consumedBySomebody = curTime - mMouseMovementConsummation < kConsumeDelta;
+    const bool isThatSomebodyUs =
+      *savedT > mMouseMovementConsummation &&
+      *savedT - mMouseMovementConsummation < kConsumeDelta;
+    if( consumedBySomebody && !isThatSomebodyUs )
     {
-      const double newT = Shell::Instance.mElapsedSeconds;
-      mMouseMovementConsummation = newT;
-      return newT;
+      *savedT = 0;
+      return;
     }
 
-    return 0;
-  }
-  double              KeyboardInput::TryConsumeMouseMovement()
-  {
-    const double t = Shell::Instance.mElapsedSeconds;
-    if( IsMouseMovementConsumed( t ) )
-      return 0;
-    mMouseMovementConsummation = t;
-    return t;
-  }
-
-  bool                KeyboardInput::IsMouseMovementConsumed()
-  {
-    return IsMouseMovementConsumed( Shell::Instance.mElapsedSeconds );
-  }
-
-  bool                KeyboardInput::IsMouseMovementConsumed( double t )
-  {
-    return mMouseMovementConsummation != 0 &&
-      t - mMouseMovementConsummation < consumeDelta;
+    mMouseMovementConsummation = curTime;
+    *savedT = curTime;
   }
       
 
