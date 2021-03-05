@@ -557,6 +557,26 @@ namespace Tac
     sEventQueue.QueuePush( DesktopEventType::CursorUnobscured, &data, sizeof( data ) );
   }
 
+  static void CreateRenderer( Errors& )
+  {
+
+#if defined _WIN32 || defined _WIN64 
+    const String defaultRendererName = RendererNameDirectX11;
+#else
+    const String defaultRendererName = RendererNameVulkan;
+#endif
+    if( const RendererFactory* factory = RendererFactoriesFind( defaultRendererName ) )
+      {
+        factory->mCreateRenderer();
+        return;
+      }
+
+      for( RendererFactory& factory : RendererRegistry() )
+      {
+        factory.mCreateRenderer();
+        return;
+      }
+  }
 
   void                DesktopAppInit( PlatformSpawnWindow platformSpawnWindow,
                                       PlatformDespawnWindow platformDespawnWindow,
@@ -611,7 +631,10 @@ namespace Tac
     Shell::Instance.mPrefPath = prefPath;
     Shell::Instance.mInitialWorkingDir = workingDir;
 
-    Render::Init();
+    CreateRenderer(errors);
+    Render::Init( errors );
+    TAC_HANDLE_ERROR( errors );
+
   }
 
   void                DesktopAppRun( Errors& errors )

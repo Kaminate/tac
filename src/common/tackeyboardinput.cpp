@@ -2,6 +2,7 @@
 #include "src/common/tacPreprocessor.h"
 #include "src/common/containers/tacVector.h"
 #include "src/common/tacUtility.h"
+#include "src/common/tacShell.h"
 #include "src/common/tacOS.h"
 
 #include <iostream>
@@ -127,5 +128,39 @@ namespace Tac
       return;
     std::cout << currkeysDown.c_str() << std::endl;
   }
+
+
+  const double consumeDelta = 0.1f;
+  double              KeyboardInput::TryConsumeMouseMovement( const double savedT )
+  {
+    if( IsMouseMovementConsumed( savedT ) )
+    {
+      const double newT = Shell::Instance.mElapsedSeconds;
+      mMouseMovementConsummation = newT;
+      return newT;
+    }
+
+    return 0;
+  }
+  double              KeyboardInput::TryConsumeMouseMovement()
+  {
+    const double t = Shell::Instance.mElapsedSeconds;
+    if( IsMouseMovementConsumed( t ) )
+      return 0;
+    mMouseMovementConsummation = t;
+    return t;
+  }
+
+  bool                KeyboardInput::IsMouseMovementConsumed()
+  {
+    return IsMouseMovementConsumed( Shell::Instance.mElapsedSeconds );
+  }
+
+  bool                KeyboardInput::IsMouseMovementConsumed( double t )
+  {
+    return mMouseMovementConsummation != 0 &&
+      t - mMouseMovementConsummation < consumeDelta;
+  }
+      
 
 }

@@ -228,9 +228,9 @@ namespace Tac
     struct VertexDeclarations
     {
       VertexDeclarations() = default;
-      VertexDeclarations( VertexDeclaration a );
-      VertexDeclarations( VertexDeclaration a, VertexDeclaration b );
-      void              AddVertexDeclaration( VertexDeclaration v );
+      VertexDeclarations( VertexDeclaration );
+      VertexDeclarations( VertexDeclaration, VertexDeclaration );
+      void              AddVertexDeclaration( VertexDeclaration );
       VertexDeclaration mVertexFormatDatas[ 10 ];
       int               mVertexFormatDataCount = 0;
     };
@@ -238,9 +238,9 @@ namespace Tac
     struct DrawCallTextures
     {
       DrawCallTextures() = default;
-      DrawCallTextures( TextureHandle a );
-      DrawCallTextures( TextureHandle a, TextureHandle b );
-      void                    AddTexture( TextureHandle v );
+      DrawCallTextures( TextureHandle );
+      DrawCallTextures( TextureHandle, TextureHandle );
+      void                    AddTexture( TextureHandle );
       const TextureHandle*    begin() const;
       const TextureHandle*    end() const;
       TextureHandle           operator[]( int i ) const;
@@ -254,12 +254,8 @@ namespace Tac
       {
         kPath,
         kStr
-      };
-      Type                mType;
+      }                   mType;
       const char*         mStr;
-      // can load from either
-      //StringView          mShaderPath;
-      //StringView          mShaderStr;
       static ShaderSource FromPath( const char* );
       static ShaderSource FromStr( const char* );
     };
@@ -314,7 +310,6 @@ namespace Tac
 
     struct SamplerState
     {
-
       AddressMode mU = ( AddressMode )0;
       AddressMode mV = ( AddressMode )0;
       AddressMode mW = ( AddressMode )0;
@@ -323,12 +318,9 @@ namespace Tac
     };
 
 
+    void                             Init( Errors& );
     void                             RenderFrame( Errors& );
     void                             SubmitFrame();
-
-    //                               why are there 2 init functions???
-    void                             Init();
-    void                             Init( Errors& );
 
     void*                            SubmitAlloc( int byteCount );
     const void*                      SubmitAlloc( const void* bytes, int byteCount );
@@ -353,11 +345,11 @@ namespace Tac
                                                         int width,
                                                         int weight,
                                                         StackFrame );
-    BlendStateHandle                 CreateBlendState(  BlendState, StackFrame );
-    RasterizerStateHandle            CreateRasterizerState(  RasterizerState, StackFrame );
-    SamplerStateHandle               CreateSamplerState(  SamplerState, StackFrame );
-    DepthStateHandle                 CreateDepthState(  DepthState, StackFrame );
-    VertexFormatHandle               CreateVertexFormat(  VertexDeclarations, ShaderHandle, StackFrame );
+    BlendStateHandle                 CreateBlendState( BlendState, StackFrame );
+    RasterizerStateHandle            CreateRasterizerState( RasterizerState, StackFrame );
+    SamplerStateHandle               CreateSamplerState( SamplerState, StackFrame );
+    DepthStateHandle                 CreateDepthState( DepthState, StackFrame );
+    VertexFormatHandle               CreateVertexFormat( VertexDeclarations, ShaderHandle, StackFrame );
 
     void                             DestroyVertexBuffer( VertexBufferHandle, StackFrame );
     void                             DestroyIndexBuffer( IndexBufferHandle, StackFrame );
@@ -382,10 +374,17 @@ namespace Tac
                                                         const void*,
                                                         int,
                                                         StackFrame );
+
+    // Umm about this...
     void                             UpdateConstantBuffer( ConstantBufferHandle,
                                                            const void*,
                                                            int,
                                                            StackFrame );
+    void                             UpdateConstantBuffer2( ConstantBufferHandle,
+                                                            const void*,
+                                                            int,
+                                                            StackFrame );
+    // Umm about this...
 
     void                             ResizeFramebuffer( FramebufferHandle,
                                                         int w,
@@ -410,13 +409,11 @@ namespace Tac
     void                             GetPerspectiveProjectionAB( float f, float n, float& a, float& b );
     void                             BeginGroup( StringView, StackFrame );
     void                             EndGroup( StackFrame );
-    void                             UpdateConstantBuffer2( ConstantBufferHandle,
-                                                            const void*,
-                                                            int,
-                                                            StackFrame );
     void                             Uninit();
 
-#define TAC_RENDER_GROUP_BLOCK(text) Render::BeginGroup(text, TAC_STACK_FRAME); TAC_ON_DESTRUCT( Render::EndGroup(TAC_STACK_FRAME));
+#define TAC_RENDER_GROUP_BLOCK( text )                          \
+        Render::BeginGroup( text, TAC_STACK_FRAME );            \
+        TAC_ON_DESTRUCT( Render::EndGroup( TAC_STACK_FRAME ) );
 
   }
 
@@ -433,8 +430,9 @@ namespace Tac
     RendererFactory* begin();
     RendererFactory* end();
   };
+
   RendererFactory*           RendererFactoriesFind( StringView );
-  void                       RendererFactoriesRegister(RendererFactory);
+  void                       RendererFactoriesRegister( RendererFactory );
 
 
 

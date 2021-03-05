@@ -1,8 +1,12 @@
 #pragma once
+
 #include "src/common/tacString.h"
 #include "src/common/tacLocalization.h"
 #include "src/common/math/tacVector2.h"
+//#include "src/common/tacTime.h"
+
 #include <set>
+
 namespace Tac
 {
 
@@ -56,6 +60,11 @@ namespace Tac
     void                BeginFrame();
     void                EndFrame();
 
+    double              TryConsumeMouseMovement( double );
+    double              TryConsumeMouseMovement();
+    bool                IsMouseMovementConsumed();
+    bool                IsMouseMovementConsumed( double );
+
     KeyboardInputFrame  mCurr;
     KeyboardInputFrame  mPrev;
 
@@ -65,6 +74,7 @@ namespace Tac
     v2                  mMouseDeltaPosScreenspace = {};
 
     int                 mMouseDeltaScroll = 0;
+    double              mMouseMovementConsummation = 0;
   };
 
   extern KeyboardInput gKeyboardInput;

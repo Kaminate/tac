@@ -1,6 +1,7 @@
 #include "src/common/tacDesktopWindow.h"
 #include "src/common/tacPreprocessor.h"
 #include "src/common/tacString.h"
+#include "src/common/tackeyboardinput.h"
 #include "src/shell/windows/tacWin32DesktopWindowManager.h"
 #include "src/shell/windows/tacWin32MouseEdge.h"
 #include "src/shell/windows/tacWin32.h"
@@ -62,6 +63,8 @@ namespace Tac
   static bool mMouseDownCurr = false;
   static bool mMouseDownPrev = false;
 
+  static double keyboardMoveT;
+
   static HCURSOR GetCursor( CursorDir cursorDir )
   {
     // switch by the integral type cuz of the bit-twiddling
@@ -119,6 +122,7 @@ namespace Tac
     return hoveredHwnd;
   }
 
+
   static void UpdateIdle()
   {
     HWND windowHandle = GetMouseHoveredHWND();
@@ -171,7 +175,9 @@ namespace Tac
       if( mouseEdgeResizable && cursorLock )
         mHandlerType = HandlerType::Resize;
       //  mouseEdge.mMoveRect cursorPos.y < windowRect.top + edgeDistMovePx )
-      else if( mouseEdgeMovable && PtInRect( &screenMoveRect, cursorPos ) )
+      else if( mouseEdgeMovable &&
+               PtInRect( &screenMoveRect, cursorPos ) &&
+               ( keyboardMoveT = gKeyboardInput.TryConsumeMouseMovement( keyboardMoveT ) ) )
         mHandlerType = HandlerType::Move;
     }
 
@@ -248,10 +254,15 @@ namespace Tac
     {
       if( !mMouseDownCurr )
         mHandlerType = HandlerType::None;
-      if( mHandlerType == HandlerType::Move )
-        UpdateMove();
-      if( mHandlerType == HandlerType::Resize )
-        UpdateResize();
+      else
+      {
+        keyboardMoveT = gKeyboardInput.TryConsumeMouseMovement( keyboardMoveT );
+
+        if( mHandlerType == HandlerType::Move )
+          UpdateMove();
+        if( mHandlerType == HandlerType::Resize )
+          UpdateResize();
+      }
     }
 
   }

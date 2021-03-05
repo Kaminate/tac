@@ -274,6 +274,9 @@ namespace Tac
       pos.y };
     drawData->AddText( labelPos, ImGuiGlobals::Instance.mUIStyle.fontSize, str, ImGuiGlobals::Instance.mUIStyle.textColor, &clipRect );
 
+    static double consumeMouse;
+    consumeMouse = gKeyboardInput.TryConsumeMouseMovement( consumeMouse );
+
     return MemCmp( valueFrameCopy.data(), valueBytes, valueByteCount );
   }
 

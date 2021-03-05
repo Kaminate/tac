@@ -28,26 +28,6 @@ namespace Tac
   //}
   //UpdateThing* UpdateThing::Instance = nullptr;
 
-  static void CreateRenderer( Errors& )
-  {
-
-#if defined _WIN32 || defined _WIN64 
-    const String defaultRendererName = RendererNameDirectX11;
-#else
-    const String defaultRendererName = RendererNameVulkan;
-#endif
-    if( const RendererFactory* factory = RendererFactoriesFind( defaultRendererName ) )
-      {
-        factory->mCreateRenderer();
-        return;
-      }
-
-      for( RendererFactory& factory : RendererRegistry() )
-      {
-        factory.mCreateRenderer();
-        return;
-      }
-  }
 
   const Key ToggleMainMenuKey = Key::Backtick;
 
@@ -70,10 +50,6 @@ namespace Tac
   }
   void Shell::Init( Errors& errors )
   {
-    CreateRenderer(errors);
-    Render::Init( errors );
-    TAC_HANDLE_ERROR( errors );
-
     JobQueueInit();
 
     gLocalization.Load( "assets/localization.txt", errors );

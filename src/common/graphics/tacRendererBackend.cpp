@@ -312,9 +312,10 @@ namespace Tac
       if( IsSubmitAllocated( stringView.data() ) )
         return stringView;
 
-      const void* resultData = SubmitAlloc( stringView.data(), stringView.size() );
-      StringView result( ( const char* )resultData, stringView.size() );
-      return result;
+      void* resultData = SubmitAlloc( stringView.size() + 1 );
+      MemCpy( resultData, stringView.c_str(), stringView.mLen );
+      ( ( char* )resultData )[ stringView.mLen ] = '\0';
+      return StringView( ( const char* )resultData, stringView.size() );
     }
 
     //void SubmitAllocBeginFrame()
@@ -980,23 +981,14 @@ namespace Tac
       SemaphoreIncrementPost( gSubmitSemaphore );
     }
 
-    void Init()
+    void Init( Errors& errors )
     {
-      //std::cout << "Render::Init begin" << std::endl;
       gSubmitSemaphore = SemaphoreCreate();
       gRenderSemaphore = SemaphoreCreate();
 
       // i guess well make render frame go first
       SemaphoreIncrementPost( gSubmitSemaphore );
 
-      //DebugPrintSubmitAllocInfo();
-      //std::cout << "Render::Init end" << std::endl;
-    }
-
-    void Init( Errors& errors )
-    {
-      if( !Renderer::Instance )
-        TAC_RAISE_ERROR( "renderer never created", errors );
       Renderer::Instance->Init( errors );
     }
 
