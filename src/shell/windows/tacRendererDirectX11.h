@@ -16,13 +16,13 @@
 namespace Tac
 {
 
-  struct ShaderDX11LoadData
-  {
-    //void Release();
-    ID3D11VertexShader* mVertexShader = nullptr;
-    ID3D11PixelShader*  mPixelShader = nullptr;
-    ID3DBlob*           mInputSig = nullptr;
-  };
+  //struct ShaderDX11LoadData
+  //{
+  //  //void Release();
+  //  ID3D11VertexShader* mVertexShader = nullptr;
+  //  ID3D11PixelShader*  mPixelShader = nullptr;
+  //  ID3DBlob*           mInputSig = nullptr;
+  //};
 
   struct ConstantBuffer
   {
@@ -117,10 +117,10 @@ namespace Tac
 
     // Non-virtual functions
 
-    void LoadShaderInternal( ShaderDX11LoadData* loadData,
-                             String name,
-                             String str,
-                             Errors& errors );
+    //void LoadShaderInternal( ShaderDX11LoadData* loadData,
+    //                         String name,
+    //                         String str,
+    //                         Errors& errors );
     void SetDebugName( ID3D11DeviceChild* directXObject,
                        StringView name );
     void UpdateBuffer( ID3D11Buffer* , const void* bytes, int byteCount, Errors& );

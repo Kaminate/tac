@@ -39,11 +39,11 @@ namespace Tac
   // ProfileBlock //
   /////////////////////
 
-  ProfileBlock::ProfileBlock( StackFrame frame )
+  ProfileBlock::ProfileBlock( const StackFrame stackFrame )
   {
     ProfileSystem* system = ProfileSystem::Instance;
     mFunction = system->Alloc();
-    mFunction->mFrame = frame;
+    mFunction->mStackFrame = stackFrame;
     mFunction->mBeginTime = Clock::now();
     system->PushFunction( mFunction );
   }

@@ -404,6 +404,7 @@ namespace Tac
   }
   void RendererDirectX11::RenderEnd( const Render::Frame*, Errors& )
   {
+
     if( gVerbose )
       std::cout << "Render2::End\n";
   }
@@ -652,70 +653,6 @@ namespace Tac
     }
   }
 
-  void RendererDirectX11::LoadShaderInternal( ShaderDX11LoadData* loadData,
-                                              String name,
-                                              String str,
-                                              Errors& errors )
-  {
-    TAC_ASSERT( IsMainThread() );
-    auto temporaryMemory = TemporaryMemoryFromFile( GetDirectX11ShaderPath( "common" ), errors );
-    TAC_HANDLE_ERROR( errors );
-
-    String common( temporaryMemory.data(), ( int )temporaryMemory.size() );
-    str = common + str;
-
-    // vertex shader
-    {
-      ID3DBlob* pVSBlob;
-
-      CompileShaderFromString(
-        &pVSBlob,
-        str,
-        "VS",
-        "vs_4_0",
-        errors );
-      TAC_HANDLE_ERROR( errors );
-      TAC_ON_DESTRUCT( pVSBlob->Release() );
-
-      TAC_DX11_CALL( errors,
-                     mDevice->CreateVertexShader,
-                     pVSBlob->GetBufferPointer(),
-                     pVSBlob->GetBufferSize(),
-                     nullptr,
-                     &loadData->mVertexShader );
-      SetDebugName( loadData->mVertexShader, name + " vtx shader" );
-
-      TAC_DX11_CALL( errors,
-                     D3DGetBlobPart,
-                     pVSBlob->GetBufferPointer(),
-                     pVSBlob->GetBufferSize(),
-                     D3D_BLOB_INPUT_SIGNATURE_BLOB,
-                     0,
-                     &loadData->mInputSig );
-    }
-
-    // pixel shader
-    {
-      ID3DBlob* pPSBlob;
-      CompileShaderFromString(
-        &pPSBlob,
-        str,
-        "PS",
-        "ps_4_0",
-        errors );
-      TAC_HANDLE_ERROR( errors );
-      TAC_ON_DESTRUCT( pPSBlob->Release() );
-
-      TAC_DX11_CALL( errors,
-                     mDevice->CreatePixelShader,
-                     pPSBlob->GetBufferPointer(),
-                     pPSBlob->GetBufferSize(),
-                     nullptr,
-                     &loadData->mPixelShader );
-      SetDebugName( loadData->mPixelShader, name + " px shader" );
-    }
-  }
-
   // Q: Should this function just return the clip space dimensions instead of A, B?
   void RendererDirectX11::GetPerspectiveProjectionAB( float f,
                                                       float n,
@@ -733,7 +670,6 @@ namespace Tac
     a = f * invDenom;
     b = f * invDenom * n;
   }
-
 
 
   void RendererDirectX11::SetDebugName( ID3D11DeviceChild* directXObject,
@@ -802,6 +738,8 @@ namespace Tac
     VertexBuffer* vertexBuffer = &mVertexBuffers[ ( int )data->mVertexBufferHandle ];
     vertexBuffer->mBuffer = buffer;
     vertexBuffer->mStride = data->mStride;
+
+    SetDebugName( buffer, data->mStackFrame.ToString() );
   }
 
   void RendererDirectX11::AddVertexFormat( Render::CommandDataCreateVertexFormat* commandData,
@@ -1009,9 +947,10 @@ namespace Tac
       break;
     }
 
-    mPrograms[ ( int )index ].mInputSig = inputSignature;
-    mPrograms[ ( int )index ].mVertexShader = vertexShader;
-    mPrograms[ ( int )index ].mPixelShader = pixelShader;
+    Program* program = &mPrograms[ ( int )index ];
+    program->mInputSig = inputSignature;
+    program->mVertexShader = vertexShader;
+    program->mPixelShader = pixelShader;
   }
 
   void RendererDirectX11::AddTexture( Render::CommandDataCreateTexture* data,

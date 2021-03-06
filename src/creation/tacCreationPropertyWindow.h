@@ -14,6 +14,7 @@ namespace Tac
     void                           Update( Errors& );
     void                           RecursiveEntityHierarchyElement( Entity* );
     DesktopWindowHandle            mDesktopWindowHandle;
+    bool                           mCloseRequested = false;
   };
 
   const char* const gPropertyWindowName = "PropertyWindow";

@@ -58,6 +58,7 @@ namespace Tac
       const void*          mBytes;
       int                  mByteCount;
       ConstantBufferHandle mConstantBufferHandle;
+      StackFrame           mStackFrame;
     };
     typedef FixedVector< UpdateConstantBufferData, 2 > UpdateConstantBuffers;
 
@@ -87,7 +88,6 @@ namespace Tac
     struct CommandBuffer
     {
       void           PushCommand( CommandType,
-                                  StackFrame,
                                   const void* bytes,
                                   int byteCount );
       void           Resize( int newSize );
@@ -113,8 +113,8 @@ namespace Tac
       UniformBufferHeader() = default;
       UniformBufferHeader( UniformBufferEntryType, StackFrame );
       UniformBufferEntryType mType = UniformBufferEntryType::Unknown;
-      StackFrame             mStackFrame;
       int                    mCorruption = 0xd34db33f;
+      StackFrame             mStackFrame;
     };
 
     struct UniformBuffer
@@ -199,113 +199,135 @@ namespace Tac
 
     struct CommandDataResizeFramebuffer
     {
-      int               mWidth = 0;
-      int               mHeight = 0;
-      FramebufferHandle mFramebufferHandle;
+      StackFrame            mStackFrame;
+      int                   mWidth = 0;
+      int                   mHeight = 0;
+      FramebufferHandle     mFramebufferHandle;
     };
 
     struct CommandDataCreateShader
     {
-      ShaderSource    mShaderSource;
-      ConstantBuffers mConstantBuffers;
-      ShaderHandle    mShaderHandle;
+      StackFrame            mStackFrame;
+      ShaderSource          mShaderSource;
+      ConstantBuffers       mConstantBuffers;
+      ShaderHandle          mShaderHandle;
     };
 
     struct CommandDataCreateConstantBuffer
     {
-      ConstantBufferHandle mConstantBufferHandle;
-      int                  mByteCount = 0;
-      int                  mShaderRegister = 0;
+      StackFrame            mStackFrame;
+      ConstantBufferHandle  mConstantBufferHandle;
+      int                   mByteCount = 0;
+      int                   mShaderRegister = 0;
     };
 
     struct CommandDataCreateVertexBuffer
     {
-      VertexBufferHandle mVertexBufferHandle;
-      int                mByteCount = 0;
-      const void*        mOptionalInitialBytes = nullptr;
-      int                mStride = 0;
-      Access             mAccess = Access::Default;
+      StackFrame            mStackFrame;
+      VertexBufferHandle    mVertexBufferHandle;
+      int                   mByteCount = 0;
+      const void*           mOptionalInitialBytes = nullptr;
+      int                   mStride = 0;
+      Access                mAccess = Access::Default;
     };
 
     struct CommandDataCreateIndexBuffer
     {
-      IndexBufferHandle mIndexBufferHandle;
-      int               mByteCount;
-      const void*       mOptionalInitialBytes;
-      Access            mAccess;
-      Format            mFormat;
+      StackFrame            mStackFrame;
+      IndexBufferHandle     mIndexBufferHandle;
+      int                   mByteCount;
+      const void*           mOptionalInitialBytes;
+      Access                mAccess;
+      Format                mFormat;
     };
 
     struct CommandDataCreateBlendState
     {
-      BlendStateHandle mBlendStateHandle;
-      BlendState       mBlendState;
+      StackFrame            mStackFrame;
+      BlendStateHandle      mBlendStateHandle;
+      BlendState            mBlendState;
     };
 
     struct CommandDataCreateVertexFormat
     {
-      VertexFormatHandle mVertexFormatHandle;
-      VertexDeclarations mVertexDeclarations;
-      ShaderHandle       mShaderHandle;
+      StackFrame            mStackFrame;
+      VertexFormatHandle    mVertexFormatHandle;
+      VertexDeclarations    mVertexDeclarations;
+      ShaderHandle          mShaderHandle;
     };
 
     struct CommandDataUpdateVertexBuffer
     {
-      VertexBufferHandle mVertexBufferHandle;
-      const void*        mBytes = nullptr;
-      int                mByteCount = 0;
+      StackFrame            mStackFrame;
+      VertexBufferHandle    mVertexBufferHandle;
+      const void*           mBytes = nullptr;
+      int                   mByteCount = 0;
     };
 
     struct CommandDataUpdateIndexBuffer
     {
-      IndexBufferHandle mIndexBufferHandle;
-      const void*       mBytes = nullptr;
-      int               mByteCount = 0;
+      StackFrame            mStackFrame;
+      IndexBufferHandle     mIndexBufferHandle;
+      const void*           mBytes = nullptr;
+      int                   mByteCount = 0;
     };
 
     struct CommandDataUpdateConstantBuffer
     {
-      ConstantBufferHandle mConstantBufferHandle;
-      const void*          mBytes = nullptr;
-      int                  mByteCount = 0;
+      StackFrame            mStackFrame;
+      ConstantBufferHandle  mConstantBufferHandle;
+      const void*           mBytes = nullptr;
+      int                   mByteCount = 0;
     };
 
     struct CommandDataCreateFramebuffer
     {
-      FramebufferHandle mFramebufferHandle;
-      const void*       mNativeWindowHandle = nullptr;
-      int               mWidth = 0;
-      int               mHeight = 0;
+      StackFrame            mStackFrame;
+      FramebufferHandle     mFramebufferHandle;
+      const void*           mNativeWindowHandle = nullptr;
+      int                   mWidth = 0;
+      int                   mHeight = 0;
     };
 
     struct CommandDataCreateDepthState
     {
-      DepthStateHandle mDepthStateHandle;
-      DepthState       mDepthState;
+      StackFrame            mStackFrame;
+      DepthStateHandle      mDepthStateHandle;
+      DepthState            mDepthState;
     };
 
     struct CommandDataCreateTexture
     {
-      TextureHandle mTextureHandle;
-      TexSpec       mTexSpec;
+      StackFrame            mStackFrame;
+      TextureHandle         mTextureHandle;
+      TexSpec               mTexSpec;
     };
 
     struct CommandDataUpdateTextureRegion
     {
-      TextureHandle mTextureHandle;
-      TexUpdate     mTexUpdate;
+      StackFrame            mStackFrame;
+      TextureHandle         mTextureHandle;
+      TexUpdate             mTexUpdate;
     };
 
     struct CommandDataCreateRasterizerState
     {
+      StackFrame            mStackFrame;
       RasterizerStateHandle mRasterizerStateHandle;
       RasterizerState       mRasterizerState;
     };
 
     struct CommandDataCreateSamplerState
     {
-      SamplerState       mSamplerState;
-      SamplerStateHandle mSamplerStateHandle;
+      StackFrame            mStackFrame;
+      SamplerState          mSamplerState;
+      SamplerStateHandle    mSamplerStateHandle;
+    };
+
+    struct CommandDataDestroy
+    {
+      StackFrame            mStackFrame;
+      int                   mIndex;
     };
 
     bool IsSubmitAllocated( const void* data );

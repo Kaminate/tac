@@ -2,29 +2,37 @@
 #include "src/space/tacComponent.h"
 namespace Tac
 {
-  ComponentRegistry* ComponentRegistry::Instance()
-  {
-    static ComponentRegistry registry;
-    return &registry;
-  }
+  // I wonder if these can be out of sync between different builds of the exe
+  // or between server/clients
+  // maybe it should be sorted by entry name or something?
 
-  ComponentRegistryEntry* ComponentRegistry::RegisterNewEntry()
+  static FixedVector< ComponentRegistryEntry, 10 > mEntries;
+
+  ComponentRegistryEntry* ComponentRegistryIterator::begin() { return mEntries.begin(); }
+  ComponentRegistryEntry* ComponentRegistryIterator::end() { return mEntries.end(); }
+
+  ComponentRegistryEntry* ComponentRegistry_RegisterComponent()
   {
     mEntries.push_back( ComponentRegistryEntry() );
     return &mEntries.back();
   }
 
-  ComponentRegistryEntry* ComponentRegistry::FindEntryNamed( StringView name )
+  ComponentRegistryEntry* ComponentRegistry_FindComponentByName( StringView name )
   {
     for( ComponentRegistryEntry& entry : mEntries )
-    {
       if( entry.mName == name )
-      {
         return &entry;
-      }
-    }
-
     return nullptr;
   }
+
+  int                     ComponentRegistry_GetComponentCount()
+  {
+    return mEntries.size();
+  }
+  ComponentRegistryEntry* ComponentRegistry_GetComponentAtIndex( int i )
+  {
+    return &mEntries[ i ];
+  }
+
 }
 

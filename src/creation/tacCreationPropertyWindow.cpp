@@ -68,6 +68,7 @@ namespace Tac
 
 
 		ImGuiSetNextWindowHandle( mDesktopWindowHandle );
+    ImGuiSetNextWindowStretch();
 		ImGuiBegin( "Properties" );
 
 
@@ -165,7 +166,7 @@ namespace Tac
 			ImGuiUnindent();
 
 			//for( int i = 0; i < ( int )ComponentRegistryEntryIndex::Count; ++i )
-			for( const ComponentRegistryEntry& componentRegistryEntry : ComponentRegistry::Instance()->mEntries )
+			for( const ComponentRegistryEntry& componentRegistryEntry : ComponentRegistryIterator() )
 			{
 				//ComponentRegistryEntryIndex componentType = ( ComponentRegistryEntryIndex )i;
 				if( !entity->HasComponent( &componentRegistryEntry ) )
@@ -205,9 +206,7 @@ namespace Tac
 		ImGuiEndGroup();
 
 
-		ImGuiText( "close window button goes here" );
-		//if( ImGuiButton( "Close window" ) )
-		//  mDesktopWindow->mRequestDeletion = true;
+    mCloseRequested |= ImGuiButton( "Close window" );
 
 		// temp begin
 		ImGuiDebugDraw();

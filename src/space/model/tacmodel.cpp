@@ -64,7 +64,7 @@ namespace Tac
 	void ModelDebugImgui( Component* );
 	void Model::SpaceInitGraphicsModel()
 	{
-		Model::ModelComponentRegistryEntry = ComponentRegistry::Instance()->RegisterNewEntry();
+    Model::ModelComponentRegistryEntry = ComponentRegistry_RegisterComponent();
 		Model::ModelComponentRegistryEntry->mName = "Model";
 		Model::ModelComponentRegistryEntry->mNetworkBits = ComponentModelBits;
 		Model::ModelComponentRegistryEntry->mCreateFn = CreateModelComponent;

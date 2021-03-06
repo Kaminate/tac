@@ -103,21 +103,23 @@ namespace Tac
   // should only be used in the stuffthread
   KeyboardInput::KeyboardInput()
   {
-    OS::GetScreenspaceCursorPos( mCurr.mScreenspaceCursorPos, mCurr.mScreenspaceCursorPosErrors );
-    OS::GetScreenspaceCursorPos( mPrev.mScreenspaceCursorPos, mPrev.mScreenspaceCursorPosErrors );
+    //OS::GetScreenspaceCursorPos( mCurr.mScreenspaceCursorPos, mCurr.mScreenspaceCursorPosErrors );
+    //OS::GetScreenspaceCursorPos( mPrev.mScreenspaceCursorPos, mPrev.mScreenspaceCursorPosErrors );
   }
   void KeyboardInput::BeginFrame()
   {
-    OS::GetScreenspaceCursorPos( mCurr.mScreenspaceCursorPos, mCurr.mScreenspaceCursorPosErrors );
-    if( mCurr.mScreenspaceCursorPosErrors.empty() && mPrev.mScreenspaceCursorPosErrors.empty() )
-      mMouseDeltaPosScreenspace = mCurr.mScreenspaceCursorPos - mPrev.mScreenspaceCursorPos;
-    else
-      mMouseDeltaPosScreenspace = {};
-    mMouseDeltaScroll = mCurr.mMouseScroll - mPrev.mMouseScroll;
+    //OS::GetScreenspaceCursorPos( mCurr.mScreenspaceCursorPos, mCurr.mScreenspaceCursorPosErrors );
+    //if( mCurr.mScreenspaceCursorPosErrors.empty() && mPrev.mScreenspaceCursorPosErrors.empty() )
+    //  mMouseDeltaPosScreenspace = mCurr.mScreenspaceCursorPos - mPrev.mScreenspaceCursorPos;
+    //else
+    //  mMouseDeltaPosScreenspace = {};
+    //mMouseDeltaScroll = mCurr.mMouseScroll - mPrev.mMouseScroll;
   }
   void KeyboardInput::EndFrame()
   {
     mPrev = mCurr;
+    mMouseDeltaScroll = {};
+    mMouseDeltaPosScreenspace = {};
     mWMCharPressedHax = 0;
   }
   void KeyboardInput::DebugPrintWhenKeysChange()

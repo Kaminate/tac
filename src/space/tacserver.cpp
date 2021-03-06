@@ -71,10 +71,10 @@ namespace Tac
 
   void ServerData::OnLoseClient( ConnectionUUID connectionID )
   {
-    auto it = std::find_if(
-      mOtherPlayers.begin(),
-      mOtherPlayers.end(),
-      [ & ]( OtherPlayer* otherPlayer ) { return otherPlayer->mConnectionUUID == connectionID; } );
+    auto it = std::find_if( mOtherPlayers.begin(),
+                            mOtherPlayers.end(),
+                            [ & ]( OtherPlayer* otherPlayer )
+                            { return otherPlayer->mConnectionUUID == connectionID; } );
     if( it == mOtherPlayers.end() )
       return;
     auto otherPlayer = *it;
@@ -83,8 +83,7 @@ namespace Tac
     mOtherPlayers.erase( it );
   }
 
-  void ServerData::ReadInput(
-    Reader* reader,
+  void ServerData::ReadInput( Reader* reader,
     ConnectionUUID connectionID,
     Errors& errors )
   {
@@ -138,8 +137,8 @@ namespace Tac
     {
       struct PlayerDifference
       {
-        uint8_t mBitfield;
-        Player* mNewPlayer;
+        uint8_t    mBitfield;
+        Player*    mNewPlayer;
         PlayerUUID playerUUID;
       };
       Vector< PlayerDifference > oldAndNewPlayers;
@@ -184,16 +183,16 @@ namespace Tac
 
     // Write entity differenes
     {
-      ComponentRegistry* componentRegistry = ComponentRegistry::Instance();
-      int registeredComponentCount = componentRegistry->mEntries.size();
+      //const ComponentRegistry* componentRegistry = ComponentRegistry::Instance();
+      const int registeredComponentCount = ComponentRegistry_GetComponentCount();
 
 
       struct EntityDifference
       {
-        std::set< ComponentRegistryEntryIndex > mDeletedComponents;
+        std::set< ComponentRegistryEntryIndex >       mDeletedComponents;
         std::map< ComponentRegistryEntryIndex, char > mChangedComponentBitfields;
-        Entity* mNewEntity = nullptr;
-        EntityUUID mEntityUUID = NullEntityUUID;
+        Entity*                                       mNewEntity = nullptr;
+        EntityUUID                                    mEntityUUID = NullEntityUUID;
       };
 
       Vector< EntityDifference > entityDifferences;
@@ -201,13 +200,13 @@ namespace Tac
       {
         auto oldEntity = oldWorld->FindEntity( newEntity->mEntityUUID );
 
-        std::set< ComponentRegistryEntryIndex > deletedComponents;
+        std::set< ComponentRegistryEntryIndex >       deletedComponents;
         std::map< ComponentRegistryEntryIndex, char > changedComponentBitfields;
 
         for( int iComponentType = 0; iComponentType < registeredComponentCount; ++iComponentType )
         {
           auto componentType = ( ComponentRegistryEntryIndex )iComponentType;
-          const ComponentRegistryEntry* componentData = &componentRegistry->mEntries[ iComponentType ];
+          const ComponentRegistryEntry* componentData = ComponentRegistry_GetComponentAtIndex( iComponentType );
           Component* oldComponent = nullptr;
           if( oldEntity )
             oldComponent = oldEntity->GetComponent( componentData );
@@ -218,10 +217,9 @@ namespace Tac
             deletedComponents.insert( componentType );
           else
           {
-            auto networkBitfield = GetNetworkBitfield(
-              oldComponent,
-              newComponent,
-              componentData->mNetworkBits );
+            auto networkBitfield = GetNetworkBitfield( oldComponent,
+                                                       newComponent,
+                                                       componentData->mNetworkBits );
             if( networkBitfield )
               changedComponentBitfields[ componentType ] = networkBitfield;
           }
@@ -259,7 +257,7 @@ namespace Tac
           if( !( changedComponentsBitfield & iComponentType ) )
             continue;
           auto componentType = ( ComponentRegistryEntryIndex )iComponentType;
-          const ComponentRegistryEntry* componentRegistryEntry = &componentRegistry->mEntries[ iComponentType ];
+          const ComponentRegistryEntry* componentRegistryEntry = ComponentRegistry_GetComponentAtIndex( iComponentType );
           Component* component = entityDifference.mNewEntity->GetComponent( componentRegistryEntry );
           auto componentBitfield = entityDifference.mChangedComponentBitfields.at( componentType );
           writer->Write( component,
@@ -272,9 +270,9 @@ namespace Tac
 
 
   void ServerData::ExecuteNetMsg( ConnectionUUID connectionID,
-    void* bytes,
-    int byteCount,
-    Errors& errors )
+                                  void* bytes,
+                                  int byteCount,
+                                  Errors& errors )
   {
     Reader reader;
     reader.mBegin = bytes;
@@ -283,7 +281,7 @@ namespace Tac
     reader.mTo = GetEndianness();
 
     NetMsgType networkMessage = NetMsgType::Count;
-     ReadNetMsgHeader( &reader, &networkMessage, errors );
+    ReadNetMsgHeader( &reader, &networkMessage, errors );
     TAC_HANDLE_ERROR( errors );
     switch( networkMessage )
     {
@@ -368,8 +366,7 @@ namespace Tac
     mSnapshotUntilNextSecondsCur -= seconds;
     if( mSnapshotUntilNextSecondsCur > 0 )
       return;
-    mSnapshotUntilNextSecondsCur =
-      sSnapshotUntilNextSecondsMax;
+    mSnapshotUntilNextSecondsCur = sSnapshotUntilNextSecondsMax;
 
     mSnapshots.AddSnapshot( mWorld );
 

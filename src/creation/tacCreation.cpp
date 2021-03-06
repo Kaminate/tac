@@ -105,14 +105,14 @@ namespace Tac
     mProjectUninit = CreationUninitCallback;
   }
 
-  void Creation::Uninit( Errors& errors )
+  void                Creation::Uninit( Errors& errors )
   {
     delete CreationMainWindow::Instance;
     delete CreationGameWindow::Instance;
     delete CreationPropertyWindow::Instance;
   }
 
-  void Creation::CreatePropertyWindow( Errors& errors )
+  void                Creation::CreatePropertyWindow( Errors& errors )
   {
     if( CreationPropertyWindow::Instance )
     {
@@ -126,7 +126,7 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
   }
 
-  void Creation::CreateGameWindow( Errors& errors )
+  void                Creation::CreateGameWindow( Errors& errors )
   {
     if( CreationGameWindow::Instance )
     {
@@ -139,7 +139,7 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
   }
 
-  void Creation::CreateMainWindow( Errors& errors )
+  void                Creation::CreateMainWindow( Errors& errors )
   {
     if( CreationMainWindow::Instance )
     {
@@ -152,7 +152,7 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
   }
 
-  void Creation::CreateSystemWindow( Errors& errors )
+  void                Creation::CreateSystemWindow( Errors& errors )
   {
     if( CreationSystemWindow::Instance )
     {
@@ -166,7 +166,7 @@ namespace Tac
 
   }
 
-  void Creation::CreateProfileWindow( Errors& errors )
+  void                Creation::CreateProfileWindow( Errors& errors )
   {
     if( CreationProfileWindow::Instance )
     {
@@ -180,9 +180,6 @@ namespace Tac
 
   }
 
-
-
-
   DesktopWindowHandle Creation::CreateWindow( StringView name )
   {
     int x, y, w, h;
@@ -195,7 +192,7 @@ namespace Tac
     return desktopWindowHandle;
   }
 
-  void Creation::GetWindowsJsonData( StringView windowName, int* x, int* y, int* w, int* h )
+  void                Creation::GetWindowsJsonData( StringView windowName, int* x, int* y, int* w, int* h )
   {
     Json* windowJson = FindWindowJson( windowName );
     if( !windowJson )
@@ -211,14 +208,13 @@ namespace Tac
     *y = ( int )SettingsGetNumber( "y", 200, windowJson );
   }
 
-
-  void Creation::GetWindowsJson( Json** outJson, Errors& errors )
+  void                Creation::GetWindowsJson( Json** outJson, Errors& errors )
   {
     Json* windows = SettingsGetJson( "Windows" );
     *outJson = windows;
   }
 
-  bool Creation::ShouldCreateWindowNamed( StringView name )
+  bool                Creation::ShouldCreateWindowNamed( StringView name )
   {
     if( mOnlyCreateWindowNamed.size() && name != mOnlyCreateWindowNamed )
       return false;
@@ -233,7 +229,7 @@ namespace Tac
     return create;
   }
 
-  void Creation::Init( Errors& errors )
+  void                Creation::Init( Errors& errors )
   {
     SpaceInit();
     mWorld = TAC_NEW World;
@@ -282,7 +278,7 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
   }
 
-  Json* Creation::FindWindowJson( StringView windowName )
+  Json*               Creation::FindWindowJson( StringView windowName )
   {
     Json* windows;
     Errors errors;
@@ -298,7 +294,7 @@ namespace Tac
     //return nullptr;
   }
 
-  void Creation::RemoveEntityFromPrefabRecursively( Entity* entity )
+  void                Creation::RemoveEntityFromPrefabRecursively( Entity* entity )
   {
     int prefabCount = mPrefabs.size();
     for( int iPrefab = 0; iPrefab < prefabCount; ++iPrefab )
@@ -330,7 +326,7 @@ namespace Tac
       RemoveEntityFromPrefabRecursively( child );
   }
 
-  void Creation::DeleteSelectedEntities()
+  void                Creation::DeleteSelectedEntities()
   {
     Vector< Entity* > topLevelEntitiesToDelete;
 
@@ -356,7 +352,7 @@ namespace Tac
     mSelectedEntities.clear();
   }
 
-  void Creation::Update( Errors& errors )
+  void                Creation::Update( Errors& errors )
   {
     /*TAC_PROFILE_BLOCK*/;
 
@@ -372,9 +368,6 @@ namespace Tac
 
     if( AllWindowsClosed() )
       OS::StopRunning();
-
-
-
 
     if( !CreationMainWindow::Instance &&
         !CreationGameWindow::Instance &&
@@ -406,6 +399,8 @@ namespace Tac
     if( CreationPropertyWindow::Instance )
     {
       CreationPropertyWindow::Instance->Update( errors );
+      if( CreationPropertyWindow::Instance->mCloseRequested )
+        TAC_DELETE CreationPropertyWindow::Instance;
       TAC_HANDLE_ERROR( errors );
     }
 
@@ -440,7 +435,7 @@ namespace Tac
 
   }
 
-  Entity* Creation::CreateEntity()
+  Entity*             Creation::CreateEntity()
   {
     World* world = mWorld;
     String desiredEntityName = "Entity";
@@ -460,12 +455,12 @@ namespace Tac
     return entity;
   }
 
-  bool Creation::IsAnythingSelected()
+  bool                Creation::IsAnythingSelected()
   {
     return mSelectedEntities.size();
   }
 
-  v3 Creation::GetSelectionGizmoOrigin()
+  v3                  Creation::GetSelectionGizmoOrigin()
   {
     TAC_ASSERT( IsAnythingSelected() );
     // do i really want average? or like center of bounding circle?
@@ -485,13 +480,13 @@ namespace Tac
     return result;
   }
 
-  void Creation::ClearSelection()
+  void                Creation::ClearSelection()
   {
     mSelectedEntities.clear();
     mSelectedHitOffsetExists = false;
   }
 
-  void Creation::CheckDeleteSelected()
+  void                Creation::CheckDeleteSelected()
   {
     CreationGameWindow* gameWindow = CreationGameWindow::Instance;
 
@@ -511,7 +506,7 @@ namespace Tac
     DeleteSelectedEntities();
   }
 
-  void Creation::GetSavedPrefabs( Vector< String >& paths, Errors& errors )
+  void                Creation::GetSavedPrefabs( Vector< String >& paths, Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
     Json* prefabs = SettingsGetJson( prefabSettingsPath );
@@ -522,7 +517,7 @@ namespace Tac
     paths = alreadySavedPrefabs;
   }
 
-  void Creation::UpdateSavedPrefabs()
+  void                Creation::UpdateSavedPrefabs()
   {
     Json* prefabs = SettingsGetJson( prefabSettingsPath );
 
@@ -543,7 +538,7 @@ namespace Tac
     SettingsSave( errors );
   }
 
-  Prefab* Creation::FindPrefab( Entity* entity )
+  Prefab*             Creation::FindPrefab( Entity* entity )
   {
     for( Prefab* prefab : mPrefabs )
     {
@@ -555,7 +550,7 @@ namespace Tac
     return nullptr;
   }
 
-  void Creation::SavePrefabs()
+  void                Creation::SavePrefabs()
   {
     for( Entity* entity : mWorld->mEntities )
     {
@@ -613,7 +608,7 @@ namespace Tac
     }
   }
 
-  void Creation::ModifyPathRelative( String& savePath )
+  void                Creation::ModifyPathRelative( String& savePath )
   {
     if( StartsWith( savePath, Shell::Instance.mInitialWorkingDir ) )
     {
@@ -622,7 +617,7 @@ namespace Tac
     }
   }
 
-  void Creation::LoadPrefabAtPath( String prefabPath, Errors& errors )
+  void                Creation::LoadPrefabAtPath( String prefabPath, Errors& errors )
   {
     ModifyPathRelative( prefabPath );
     auto memory = TemporaryMemoryFromFile( prefabPath, errors );
@@ -639,11 +634,11 @@ namespace Tac
     prefab->mEntities = { entity };
     mPrefabs.push_back( prefab );
 
-    LoadPrefabCameraPosition( prefab );
+    LoadPrefabCamera( prefab );
     UpdateSavedPrefabs();
   }
 
-  void Creation::LoadPrefabs( Errors& errors )
+  void                Creation::LoadPrefabs( Errors& errors )
   {
     Vector< String > prefabPaths;
     GetSavedPrefabs( prefabPaths, errors );
@@ -654,7 +649,7 @@ namespace Tac
     }
   }
 
-  void                Creation::LoadPrefabCameraPositionVec( Prefab* prefab, StringView refFrameVecName, v3& refFrameVec )
+  void                Creation::LoadPrefabCameraVec( Prefab* prefab, StringView refFrameVecName, v3& refFrameVec )
   {
     if( prefab->mDocumentPath.empty() )
       return;
@@ -673,37 +668,35 @@ namespace Tac
     }
   }
 
-  void                Creation::SavePrefabCameraPositionVec( Prefab* prefab, StringView refFrameVecName, v3 refFrameVec )
+  void                Creation::SavePrefabCameraVec( Prefab* prefab, StringView refFrameVecName, v3 refFrameVec )
   {
     if( prefab->mDocumentPath.empty() )
       return;
-    Json* root = nullptr;
-
     for( int iAxis = 0; iAxis < 3; ++iAxis )
     {
-      const StringView settingsPath = Join( { "prefabCameraRefFrames",
-                                              prefab->mDocumentPath,
-                                              refFrameVecName,
-                                              String( 1, "xyz"[ iAxis ] ) }, "." );
-      SettingsSetNumber( settingsPath, refFrameVec[ iAxis ] );
+      Json* refFramesJson = SettingsGetJson( { "prefabCameraRefFrames" } );
+      Json* refFrameJson = SettingsGetChildByKeyValuePair( "path", Json( prefab->mDocumentPath ), refFramesJson );
+      SettingsSetNumber( Join( { refFrameVecName, String( 1, "xyz"[ iAxis ] ) }, "." ),
+                         refFrameVec[ iAxis ],
+                         refFrameJson );
     }
 
   }
 
-  void Creation::LoadPrefabCameraPosition( Prefab* prefab )
+  void                Creation::LoadPrefabCamera( Prefab* prefab )
   {
-    LoadPrefabCameraPositionVec( prefab, refFrameVecNamePosition, mEditorCamera.mPos );
-    LoadPrefabCameraPositionVec( prefab, refFrameVecNameForward, mEditorCamera.mForwards );
-    LoadPrefabCameraPositionVec( prefab, refFrameVecNameRight, mEditorCamera.mRight );
-    LoadPrefabCameraPositionVec( prefab, refFrameVecNameUp, mEditorCamera.mUp );
+    LoadPrefabCameraVec( prefab, refFrameVecNamePosition, mEditorCamera.mPos );
+    LoadPrefabCameraVec( prefab, refFrameVecNameForward, mEditorCamera.mForwards );
+    LoadPrefabCameraVec( prefab, refFrameVecNameRight, mEditorCamera.mRight );
+    LoadPrefabCameraVec( prefab, refFrameVecNameUp, mEditorCamera.mUp );
   }
 
-  void Creation::SavePrefabCameraPosition( Prefab* prefab )
+  void                Creation::SavePrefabCamera( Prefab* prefab )
   {
-    SavePrefabCameraPositionVec( prefab, refFrameVecNamePosition, mEditorCamera.mPos );
-    SavePrefabCameraPositionVec( prefab, refFrameVecNameForward, mEditorCamera.mForwards );
-    SavePrefabCameraPositionVec( prefab, refFrameVecNameRight, mEditorCamera.mRight );
-    SavePrefabCameraPositionVec( prefab, refFrameVecNameUp, mEditorCamera.mUp );
+    SavePrefabCameraVec( prefab, refFrameVecNamePosition, mEditorCamera.mPos );
+    SavePrefabCameraVec( prefab, refFrameVecNameForward, mEditorCamera.mForwards );
+    SavePrefabCameraVec( prefab, refFrameVecNameRight, mEditorCamera.mRight );
+    SavePrefabCameraVec( prefab, refFrameVecNameUp, mEditorCamera.mUp );
   }
 }
 

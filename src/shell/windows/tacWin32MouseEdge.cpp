@@ -3,6 +3,7 @@
 #include "src/common/tacString.h"
 #include "src/common/tackeyboardinput.h"
 #include "src/shell/windows/tacWin32DesktopWindowManager.h"
+#include "src/shell/tacDesktopApp.h"
 #include "src/shell/windows/tacWin32MouseEdge.h"
 #include "src/shell/windows/tacWin32.h"
 
@@ -116,6 +117,9 @@ namespace Tac
 
     const HWND hoveredHwnd = ::WindowFromPoint( cursorPos );
     const DesktopWindowHandle desktopWindowHandle = Win32WindowManagerFindWindow( hoveredHwnd );
+
+    DesktopEventMouseHoveredWindow( desktopWindowHandle );
+
     if( !desktopWindowHandle.IsValid() )
       return NULL;
 
@@ -125,9 +129,11 @@ namespace Tac
 
   static void UpdateIdle()
   {
-    HWND windowHandle = GetMouseHoveredHWND();
+    const HWND windowHandle = GetMouseHoveredHWND();
     if( !windowHandle )
       return;
+
+
 
     POINT cursorPos;
     GetCursorPos( &cursorPos );

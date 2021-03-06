@@ -48,7 +48,7 @@ namespace Tac
     v3 d( 0, 0.25, 0.25 );
 
     uint32_t hash = 0;
-    for( char c : StringView( profileFunction->mFrame.mFunction ) )
+    for( char c : StringView( profileFunction->mStackFrame.mFunction ) )
       hash = hash * 31 + c;
     float t = ( std::sin( ( float )hash ) + 1.0f ) / 2.0f;
 
@@ -94,14 +94,14 @@ namespace Tac
     auto boxClipRect = ImGuiRect::FromPosSize( boxPos, boxSize );
     imguiWindow->ComputeClipInfo( &boxClipped, &boxClipRect );
 
-    profileFunction->mFrame.mFunction;
+    profileFunction->mStackFrame.mFunction;
     v4 boxColor = GetProfileFunctionColor( profileFunction );
 
     Render::TextureHandle texture;
     drawData->AddBox( boxPos, boxPos + boxSize, boxColor, texture, &boxClipRect );
 
     v2 textSize = CalculateTextSize(
-      profileFunction->mFrame.mFunction,
+      profileFunction->mStackFrame.mFunction,
       ImGuiGlobals::Instance.mUIStyle.fontSize );
     v2 textPos =
     {
@@ -117,7 +117,7 @@ namespace Tac
     v4 textColor = v4( v3( 1, 1, 1 ) * ( ( boxColor.x + boxColor.y + boxColor.z / 3.0f ) > 0.5f ? 0.0f : 1.0f ), 1 );
     drawData->AddText( textPos,
                        ImGuiGlobals::Instance.mUIStyle.fontSize,
-                       profileFunction->mFrame.mFunction,
+                       profileFunction->mStackFrame.mFunction,
                        textColor,
                        &textClipRect );
 

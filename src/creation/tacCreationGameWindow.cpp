@@ -631,7 +631,7 @@ namespace Tac
         oldCamera.mRight != gCreation.mEditorCamera.mRight ||
         oldCamera.mUp != gCreation.mEditorCamera.mUp )
       for( Prefab* prefab : gCreation.mPrefabs )
-        gCreation.SavePrefabCameraPosition( prefab );
+        gCreation.SavePrefabCamera( prefab );
   }
 
   void CreationGameWindow::Update( Errors& errors )

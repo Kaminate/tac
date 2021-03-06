@@ -443,13 +443,22 @@ namespace Tac
           DesktopEventDataMouseWheel data;
           sEventQueue.QueuePop( &data, sizeof( data ) );
           gKeyboardInput.mCurr.mMouseScroll += data.mDelta;
+          gKeyboardInput.mMouseDeltaScroll =
+            gKeyboardInput.mCurr.mMouseScroll -
+            gKeyboardInput.mPrev.mMouseScroll;
         } break;
 
         case DesktopEventType::MouseMove:
         {
           DesktopEventDataMouseMove data;
           sEventQueue.QueuePop( &data, sizeof( data ) );
-          // ...
+          const DesktopWindowState* desktopWindowState = GetDesktopWindowState( data.mDesktopWindowHandle );
+          gKeyboardInput.mCurr.mScreenspaceCursorPos = {
+            ( float )desktopWindowState->mX + ( float )data.mX,
+            ( float )desktopWindowState->mY + ( float )data.mY };
+          gKeyboardInput.mMouseDeltaPosScreenspace =
+            gKeyboardInput.mCurr.mScreenspaceCursorPos -
+            gKeyboardInput.mPrev.mScreenspaceCursorPos;
         } break;
 
         case DesktopEventType::CursorUnobscured:

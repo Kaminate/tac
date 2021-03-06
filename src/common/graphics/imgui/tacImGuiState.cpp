@@ -90,22 +90,31 @@ namespace Tac
   {
     UI2DDrawData* ui2DDrawData = mDrawData;// ImGuiGlobals::Instance.mUI2DDrawData;
 
+    v4 childWindowColor( 0.1f, 0.15f, 0.2f, 1.0f );
     if( mParent )
     {
       mPosViewport = mParent->mCurrCursorViewport;
+
+      childWindowColor.xyz() /= 2.0f;
       // Render borders
-      {
         bool clipped;
         auto clipRect = ImGuiRect::FromPosSize( mPosViewport, mSize );
         ComputeClipInfo( &clipped, &clipRect );
-        const v4 childWindowColor( 0.1f, 0.15f, 0.2f, 1.0f );
         if( !clipped )
           ui2DDrawData->AddBox( mPosViewport,
                                 mPosViewport + mSize,
                                 childWindowColor,
                                 Render::TextureHandle(),
                                 nullptr );
-      }
+    }
+    else if( this->mStretchWindow )
+    {
+      ui2DDrawData->AddBox( mPosViewport,
+                            mPosViewport + mSize,
+                            childWindowColor,
+                            Render::TextureHandle(),
+                            nullptr );
+
     }
 
     // Scrollbar

@@ -50,7 +50,7 @@ namespace Tac
   void TerrainDebugImgui( Component* );
   void Terrain::SpaceInitPhysicsTerrain()
   {
-    Terrain::TerrainComponentRegistryEntry = ComponentRegistry::Instance()->RegisterNewEntry();
+    Terrain::TerrainComponentRegistryEntry = ComponentRegistry_RegisterComponent();
     Terrain::TerrainComponentRegistryEntry->mName = "Terrain";
     Terrain::TerrainComponentRegistryEntry->mNetworkBits = {};
     Terrain::TerrainComponentRegistryEntry->mCreateFn = CreateTerrainComponent;

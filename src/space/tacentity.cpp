@@ -247,13 +247,12 @@ namespace Tac
 		entity->mName = prefabJson[ "mName" ].mString;
 		entity->mEntityUUID = ( EntityUUID )( UUID )prefabJson[ "mEntityUUID" ].mNumber;
 
-		ComponentRegistry* componentRegistry = ComponentRegistry::Instance();
 		// I think these should have its own mComponents json node
 		for( auto& prefabJson : prefabJson.mObjectChildrenMap )
 		{
 			StringView key = prefabJson.first;
 			Json* componentJson = prefabJson.second;
-			ComponentRegistryEntry* componentRegistryEntry = componentRegistry->FindEntryNamed( key );
+      ComponentRegistryEntry* componentRegistryEntry = ComponentRegistry_FindComponentByName( key );
 			if( !componentRegistryEntry )
 				continue; // This key-value pair is not a component
 

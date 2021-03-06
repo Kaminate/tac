@@ -16,7 +16,7 @@ namespace Tac
       TAC_ASSERT( entry.mName.size() );
     }
 
-    for( ComponentRegistryEntry& entry : ComponentRegistry::Instance()->mEntries )
+    for( ComponentRegistryEntry& entry : ComponentRegistryIterator() )
     {
       TAC_ASSERT( entry.mName.size() );
     }

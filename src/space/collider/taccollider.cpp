@@ -29,7 +29,7 @@ ComponentRegistryEntry* Collider::ColliderComponentRegistryEntry;
 void ColliderDebugImgui( Component* );
 void Collider::SpaceInitPhysicsCollider()
 {
-  Collider::ColliderComponentRegistryEntry = ComponentRegistry::Instance()->RegisterNewEntry();
+  Collider::ColliderComponentRegistryEntry = ComponentRegistry_RegisterComponent();
   Collider::ColliderComponentRegistryEntry->mName = "Collider";
   Collider::ColliderComponentRegistryEntry->mNetworkBits = ColliderBits;
   Collider::ColliderComponentRegistryEntry->mCreateFn = CreateColliderComponent;
