@@ -200,6 +200,14 @@ namespace Tac
     return StringView( mStr + pos,
                        len == npos ? mLen - pos : len );
   }
+    char StringView::front()
+    {
+      return mStr[ 0 ];
+    }
+    char StringView::back()
+    {
+      return mStr[ mLen - 1 ];
+    }
 
 
   void StringView::remove_prefix( const int n )
@@ -216,6 +224,11 @@ namespace Tac
   bool StringView::starts_with( StringView s )
   {
     return mLen >= s.mLen && MemCmp( mStr, s.mStr, s.mLen ) == 0;
+  }
+
+  bool StringView::starts_with( char c )
+  {
+    return mLen && mStr[ 0 ] == c;
   }
 
   bool StringView::ends_with( StringView s )

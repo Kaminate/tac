@@ -46,6 +46,7 @@ namespace Tac
   {
     String              mName;
     int                 mX, mY, mW, mH;
+    const void*         mNativeWindowHandle;
   } sCreatedWindowData[ kDesktopWindowCapacity ];
   static void AddCreatedWindowData( DesktopWindowHandle desktopWindowHandle,
                                     StringView name,
@@ -65,9 +66,26 @@ namespace Tac
     {
       DesktopWindowHandle desktopWindowHandle = { i };
       DesktopWindowState* desktopWindowState = GetDesktopWindowState( desktopWindowHandle );
+      CreatedWindowData* createdWindowData = &sCreatedWindowData[ i ];
+
+
+      if( createdWindowData->mNativeWindowHandle != desktopWindowState->mNativeWindowHandle )
+      {
+        Json* json = gCreation.FindWindowJson( createdWindowData->mName );
+        SettingsSetBool( "is_open",
+                         createdWindowData->mNativeWindowHandle = desktopWindowState->mNativeWindowHandle  ,
+                         json );
+      }
+
+
+
+
       if( !desktopWindowState->mNativeWindowHandle )
         continue;
-      CreatedWindowData* createdWindowData = &sCreatedWindowData[ i ];
+
+
+
+
       const bool same =
         desktopWindowState->mX == createdWindowData->mX &&
         desktopWindowState->mY == createdWindowData->mY &&
@@ -80,6 +98,8 @@ namespace Tac
       SettingsSetNumber( "y", createdWindowData->mY = desktopWindowState->mY, json );
       SettingsSetNumber( "w", createdWindowData->mW = desktopWindowState->mWidth, json );
       SettingsSetNumber( "h", createdWindowData->mH = desktopWindowState->mHeight, json );
+
+
     }
   }
 
@@ -216,6 +236,7 @@ namespace Tac
 
   bool                Creation::ShouldCreateWindowNamed( StringView name )
   {
+    mOnlyCreateWindowNamed = SettingsGetString( "onlyCreateWindowNamed", "" );
     if( mOnlyCreateWindowNamed.size() && name != mOnlyCreateWindowNamed )
       return false;
     Json* windowJson = FindWindowJson( name );
@@ -223,10 +244,32 @@ namespace Tac
       return false;
 
     Errors errors;
-    const bool create = SettingsGetBool( "Create", false, windowJson );
+    const bool create = SettingsGetBool( "is_open", false, windowJson );
     if( errors )
       return false;
     return create;
+  }
+
+  void                Creation::CreateInitialWindow( const char* name,
+                                                     void ( Creation:: * fn )( Errors& ),
+                                                     Errors& errors )
+  {
+    if( ShouldCreateWindowNamed( name ) )
+      ( this->*fn )( errors );
+  }
+
+  //void Creation::CreateInitialWindow( const char * name, void( Creation::* )( Errors & ), Errors & errors )
+  //{
+  //}
+
+  void                Creation::CreateInitialWindows( Errors& errors )
+  {
+    CreateInitialWindow( gMainWindowName, &Creation::CreateMainWindow, errors );
+    CreateInitialWindow( gPropertyWindowName, &Creation::CreatePropertyWindow, errors );
+    CreateInitialWindow( gGameWindowName, &Creation::CreateGameWindow, errors );
+    CreateInitialWindow( gSystemWindowName, &Creation::CreateSystemWindow, errors );
+    CreateInitialWindow( gProfileWindowName, &Creation::CreateProfileWindow, errors );
+    TAC_HANDLE_ERROR( errors );
   }
 
   void                Creation::Init( Errors& errors )
@@ -249,30 +292,9 @@ namespace Tac
     GetWindowsJson( &windows, errors );
     TAC_HANDLE_ERROR( errors );
 
-    mOnlyCreateWindowNamed = SettingsGetString( "onlyCreateWindowNamed", "" );
-    TAC_HANDLE_ERROR( errors );
 
-    // The first window spawned becomes the parent window
-    if( ShouldCreateWindowNamed( gMainWindowName ) )
-      CreateMainWindow( errors );
+    CreateInitialWindows( errors );
     TAC_HANDLE_ERROR( errors );
-
-    if( ShouldCreateWindowNamed( gPropertyWindowName ) )
-      CreatePropertyWindow( errors );
-    TAC_HANDLE_ERROR( errors );
-
-    if( ShouldCreateWindowNamed( gGameWindowName ) )
-      CreateGameWindow( errors );
-    TAC_HANDLE_ERROR( errors );
-
-    if( ShouldCreateWindowNamed( gSystemWindowName ) )
-      CreateSystemWindow( errors );
-    TAC_HANDLE_ERROR( errors );
-
-    if( ShouldCreateWindowNamed( gProfileWindowName ) )
-      CreateProfileWindow( errors );
-    TAC_HANDLE_ERROR( errors );
-
 
     LoadPrefabs( errors );
     TAC_HANDLE_ERROR( errors );
@@ -368,6 +390,8 @@ namespace Tac
 
     if( AllWindowsClosed() )
       OS::StopRunning();
+
+
 
     if( !CreationMainWindow::Instance &&
         !CreationGameWindow::Instance &&

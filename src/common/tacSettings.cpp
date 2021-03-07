@@ -96,20 +96,20 @@ namespace Tac
       // Non-leaf nodes are either JsonType::Objects/Arrays
       StringView oldPath = path;
       Json* oldRoot = root;
-      if( path.starts_with( "." ) )
+      if( path.front() == '.' )
         path.remove_prefix( 1 );
-      if( IsAlpha( *path.data() ) )
+      if( IsAlpha( path.front() ) )
       {
         root->mType = root->mType == JsonType::Null ? JsonType::Object : root->mType;
         TAC_ASSERT( root->mType == JsonType::Object );
         const char* keyEnd = path.data();
-        while( keyEnd < path.end() && ( IsSpace( *keyEnd ) || IsAlpha( *keyEnd ) ) )
+        while( keyEnd < path.end() && ( IsSpace( *keyEnd ) || IsAlpha( *keyEnd ) || *keyEnd == '_') )
           keyEnd++;
         const StringView key( path.data(), keyEnd );
         path.remove_prefix( key.size() );
         root = &root->GetChild( key );
       }
-      else if( *path.data() == '[' )
+      else if( path.front() == '[' )
       {
         root->mType = root->mType == JsonType::Null ? JsonType::Array : root->mType;
         TAC_ASSERT( root->mType == JsonType::Array );

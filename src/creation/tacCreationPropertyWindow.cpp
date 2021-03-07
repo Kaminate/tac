@@ -75,6 +75,9 @@ namespace Tac
 
 		ImGuiBeginGroup();
 		ImGuiBeginChild( "Hierarchy", v2( 250, -100 ) );
+
+
+
 		World* world = gCreation.mWorld;
 		for( Entity* entity : world->mEntities )
 		{

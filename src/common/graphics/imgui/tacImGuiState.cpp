@@ -107,7 +107,7 @@ namespace Tac
                                 Render::TextureHandle(),
                                 nullptr );
     }
-    else if( this->mStretchWindow )
+    else if( this->mStretchWindow || this->mDesktopWindowHandleOwned )
     {
       ui2DDrawData->AddBox( mPosViewport,
                             mPosViewport + mSize,

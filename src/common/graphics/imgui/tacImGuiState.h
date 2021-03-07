@@ -126,8 +126,8 @@ namespace Tac
     struct UI2DDrawData*          mDrawData = nullptr;
     DesktopWindowHandle           mDesktopWindowHandle;
     bool                          mDesktopWindowHandleOwned = false;
-    v2                            mDesktopWindowOffset = {};
-    bool                          mDesktopWindowOffsetExists = false;
+    //v2                            mDesktopWindowOffset = {};
+    //bool                          mDesktopWindowOffsetExists = false;
     bool                          mStretchWindow = false;
   };
 

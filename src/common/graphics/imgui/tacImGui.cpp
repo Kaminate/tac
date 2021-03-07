@@ -420,8 +420,8 @@ namespace Tac
       window->mDesktopWindowHandleOwned = !gNextWindow.mDesktopWindowHandle.IsValid();
       window->mPosViewport = {};
       window->mSize = size;
-      window->mDesktopWindowOffset = {};
-      window->mDesktopWindowOffsetExists = true;
+      //window->mDesktopWindowOffset = {};
+      //window->mDesktopWindowOffsetExists = true;
       window->mStretchWindow = gNextWindow.mStretch; // !gNextWindow.mDesktopWindowHandle.IsValid() && gNextWindow.mSize == v2( 0, 0 );
       // window->mStretchWindow = !gNextWindow.mDesktopWindowHandle.IsValid() && gNextWindow.mSize == v2( 0, 0 );
       ImGuiGlobals::Instance.mAllWindows.push_back( window );
@@ -452,18 +452,12 @@ namespace Tac
       ImGuiGlobals::Instance.mWindowStack.back();
   }
 
-  //void ImGuiSetGlobals( // v2 mousePositionDesktopWindowspace,
-                        //bool isWindowDirectlyUnderCursor,
-                        // double elapsedSeconds,
-                        //UI2DDrawData* ui2DDrawData,
-  //                      int desktopWindowWidth,
-  //                      int desktopWindowHeight )
-  //{
-    //ImGuiGlobals::Instance.mIsWindowDirectlyUnderCursor = isWindowDirectlyUnderCursor;
-    //ImGuiGlobals::Instance.mUI2DDrawData = ui2DDrawData;
-    //ImGuiGlobals::Instance.mDesktopWindowWidth = desktopWindowWidth;
-    //ImGuiGlobals::Instance.mDesktopWindowHeight = desktopWindowHeight;
-  //}
+
+  bool ImGuiIsMouseHoveringRectScreenspace( ImGuiRect rectScreenspace )
+  {
+    const v2 screenspaceMousePos = gKeyboardInput.mCurr.mScreenspaceCursorPos;
+    return rectScreenspace.ContainsPoint( screenspaceMousePos );
+  }
 
   void ImGuiBeginChild( const StringView& name, v2 size )
   {

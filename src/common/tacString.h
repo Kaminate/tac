@@ -28,10 +28,10 @@ namespace Tac
   struct StringView
   {
     StringView() = default;
-    StringView( const char* str );
-    StringView( const char* str, int len );
+    StringView( const char* );
+    StringView( const char* , int );
     StringView( const char* strBegin, const char* strEnd );
-    StringView( const String& str );
+    StringView( const String& );
     char operator[]( int i ) const;
     const char* data() const;
     int size() const;
@@ -42,14 +42,17 @@ namespace Tac
 
     // searches this stringview for the last character which matches any of the characters in s,
     // return npos if no matches
-    int find_last_of( StringView s ) const;
-    int find_first_of( StringView s ) const;
+    int find_last_of( StringView ) const;
+    int find_first_of( StringView ) const;
     StringView substr( int pos = 0, int len = npos ) const;
+    char front();
+    char back();
 
-    bool starts_with( StringView s );
-    bool ends_with( StringView s );
-    void remove_prefix( int n );
-    void remove_suffix( int n );
+    bool starts_with( StringView );
+    bool starts_with( char );
+    bool ends_with( StringView );
+    void remove_prefix( int );
+    void remove_suffix( int );
 
     static const int npos = -1; // mimicking the standard library
     const char* mStr = nullptr;

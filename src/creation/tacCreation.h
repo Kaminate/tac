@@ -47,16 +47,24 @@ namespace Tac
     void                Init( Errors& );
     void                Uninit( Errors& );
     void                Update( Errors& );
+
+
+    //===-------------- Entities =------------===//
     Entity*             CreateEntity();
+
+
+    //===-------------- Selection ------------===//
     bool                IsAnythingSelected();
     v3                  GetSelectionGizmoOrigin();
     void                ClearSelection();
     void                CheckDeleteSelected();
+
+    //===-------------- Prefabs --------------===//
     void                UpdateSavedPrefabs();
     void                GetSavedPrefabs( Vector< String > & paths, Errors& );
     void                SavePrefabs();
     void                LoadPrefabs( Errors& );
-    void                LoadPrefabAtPath( String , Errors& );
+    void                LoadPrefabAtPath( String, Errors& );
     void                LoadPrefabCamera( Prefab* );
     void                LoadPrefabCameraVec( Prefab*, StringView, v3& );
     void                SavePrefabCamera( Prefab* );
@@ -65,6 +73,12 @@ namespace Tac
     Prefab*             FindPrefab( Entity* );
     void                ModifyPathRelative( String& path );
     void                DeleteSelectedEntities();
+
+    //===-------------- Windows --------------===//
+    void                CreateInitialWindow( const char* name,
+                                             void ( Creation:: * )( Errors& ),
+                                             Errors& errors );
+    void                CreateInitialWindows( Errors& );
     void                CreatePropertyWindow( Errors& );
     void                CreateGameWindow( Errors& );
     void                CreateMainWindow( Errors& );
@@ -75,6 +89,7 @@ namespace Tac
     void                GetWindowsJson( Json** outJson, Errors& );
     void                GetWindowsJsonData( StringView windowName, int* x, int* y, int* w, int* h );
     Json*               FindWindowJson( StringView windowName );
+
     String              mOnlyCreateWindowNamed;
     World*              mWorld = nullptr;
     Vector< Entity* >   mSelectedEntities;
