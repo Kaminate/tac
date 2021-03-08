@@ -57,19 +57,15 @@ namespace Tac
     return Clock::now();
   }
 
-  float TimepointSubtractSeconds( Timepoint a, Timepoint b )
+  float TimepointSubtractSeconds( const Timepoint a, const Timepoint b )
   {
-    Nano nano = a - b;
-    float seconds = nano.count() / 1000000000.0f;
-    return seconds;
+    return ( float )( a - b ).count() / ( float )1e9;
   }
-  float TimepointSubtractMiliseconds( Timepoint a, Timepoint b )
+  float TimepointSubtractMiliseconds( const Timepoint a, const Timepoint b )
   {
-    Nano nano = a - b;
-    float seconds = nano.count() / 1000000.0f;
-    return seconds;
+    return ( a - b ).count() / 1000000.0f;
   }
-  float SecondsSince( Timepoint a )
+  float SecondsSince( const Timepoint a )
   {
     return TimepointSubtractSeconds( GetCurrentTime(), a );
   }

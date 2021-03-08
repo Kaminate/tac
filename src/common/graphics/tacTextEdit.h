@@ -18,12 +18,16 @@ namespace Tac
     int                 GetMaxCaret();
     void                OnClick( int numGlyphsBeforeCaret );
     void                OnDrag( int numGlyphsBeforeCaret );
-    void                OnKeyPressed( TextInputKey key );
-    void                OnCodepoint( Codepoint codepoint );
+    void                OnKeyPressed( TextInputKey );
+    void                OnCodepoint( Codepoint );
     void                SetCodepoints( CodepointView );
 
+    String              GetText();
+    void                SetText( StringView );
 
     int                 mNumGlyphsBeforeCaret[ 2 ];
+
+    //                  https://en.wikipedia.org/wiki/Cursor_(user_interface)
     int                 mCaretCount = 0;
     Vector< Codepoint > mCodepoints;
 

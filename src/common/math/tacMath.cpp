@@ -20,8 +20,7 @@ namespace Tac
   }
 
 
-  void Spring(
-    float* posCurrent,
+  void Spring( float* posCurrent,
     float* velCurrent,
     float posTarget,
     float springyness,

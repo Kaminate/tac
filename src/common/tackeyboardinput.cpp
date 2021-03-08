@@ -135,7 +135,8 @@ namespace Tac
   // non-threadlocal
   static double       mMouseMovementConsummation = 0;
   const double        kConsumeDelta = 0.1f;
-  void                KeyboardInput::TryConsumeMouseMovement( double* savedT )
+  void                // KeyboardInput::
+    TryConsumeMouseMovement( double* savedT )
   {
     const double curTime = Shell::Instance.mElapsedSeconds;
     const bool consumedBySomebody = curTime - mMouseMovementConsummation < kConsumeDelta;

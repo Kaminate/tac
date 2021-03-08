@@ -92,16 +92,18 @@ namespace Tac
   }
   void Shell::Update( Errors& errors )
   {
-    Timepoint curTime = GetCurrentTime();
+    const Timepoint curTime = GetCurrentTime();
+    mLastTick = mLastTick == Timepoint() ? curTime : mLastTick;
     mAccumulatorSeconds += TimepointSubtractSeconds( curTime, mLastTick );
     mLastTick = curTime;
-    if( mAccumulatorSeconds < TAC_DELTA_FRAME_SECONDS )
-      return;
-    mAccumulatorSeconds -= TAC_DELTA_FRAME_SECONDS;
-    mElapsedSeconds += TAC_DELTA_FRAME_SECONDS;
+    while( mAccumulatorSeconds > TAC_DELTA_FRAME_SECONDS )
+    {
+      mAccumulatorSeconds -= TAC_DELTA_FRAME_SECONDS;
+      mElapsedSeconds += TAC_DELTA_FRAME_SECONDS;
+      Frame( errors );
+    }
 
     //OS::mShouldStopRunning =  mElapsedSeconds > 5 ;
-    Frame( errors );
   }
 
 

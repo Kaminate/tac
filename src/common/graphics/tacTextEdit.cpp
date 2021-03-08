@@ -5,27 +5,26 @@ namespace Tac
 {
 
 
-  int TextInputData::GetMinCaret()
+  int                TextInputData::GetMinCaret()
   {
     return Min(
       mNumGlyphsBeforeCaret[ 0 ],
       mNumGlyphsBeforeCaret[ 1 ] );
   }
 
-  int TextInputData::GetMaxCaret()
+  int                TextInputData::GetMaxCaret()
   {
-    return Max(
-      mNumGlyphsBeforeCaret[ 0 ],
-      mNumGlyphsBeforeCaret[ 1 ] );
+    return Max( mNumGlyphsBeforeCaret[ 0 ],
+                mNumGlyphsBeforeCaret[ 1 ] );
   }
 
-  void TextInputData::OnClick( int numGlyphsBeforeCaret )
+  void                TextInputData::OnClick( int numGlyphsBeforeCaret )
   {
     mNumGlyphsBeforeCaret[ 0 ] = numGlyphsBeforeCaret;
     mCaretCount = 1;
   }
 
-  void TextInputData::OnDrag( int numGlyphsBeforeCaret )
+  void                TextInputData::OnDrag( int numGlyphsBeforeCaret )
   {
     if( !mCaretCount || mNumGlyphsBeforeCaret[ 0 ] == numGlyphsBeforeCaret )
       return;
@@ -33,10 +32,9 @@ namespace Tac
     mCaretCount = 2;
   }
 
-  void TextInputData::OnArrowKeyPressed(
-    bool canMoveDirection,
-    int direction,
-    int numGlyphsBeforeCaretEdge )
+  void                TextInputData::OnArrowKeyPressed( bool canMoveDirection,
+                                                        int direction,
+                                                        int numGlyphsBeforeCaretEdge )
   {
     if( mCaretCount == 1 )
     {
@@ -50,7 +48,7 @@ namespace Tac
     }
   }
 
-  void TextInputData::OnDestructivePressed( int deletedCodepointsStartIndex )
+  void                TextInputData::OnDestructivePressed( int deletedCodepointsStartIndex )
   {
     if( !mCaretCount )
       return;
@@ -78,7 +76,7 @@ namespace Tac
     mCaretCount = 1;
   }
 
-  void TextInputData::OnKeyPressed( TextInputKey key )
+  void                TextInputData::OnKeyPressed( TextInputKey key )
   {
     switch( key )
     {
@@ -97,7 +95,7 @@ namespace Tac
     }
   }
 
-  void TextInputData::OnCodepoint( Codepoint codepoint )
+  void                TextInputData::OnCodepoint( Codepoint codepoint )
   {
     if( !mCaretCount ||
         codepoint == '\b' ) // handled by OnKeyPressed( TextInputKey::Backspace )
@@ -115,10 +113,25 @@ namespace Tac
     mNumGlyphsBeforeCaret[ 0 ] ++;
   }
 
-  void TextInputData::SetCodepoints( CodepointView codepointView )
+  void                TextInputData::SetCodepoints( CodepointView codepointView )
   {
     mCodepoints.resize( codepointView.size() );
     for( int i = 0; i < codepointView.size(); ++i )
       mCodepoints[ i ] = codepointView[ i ];
+    mCaretCount = 0;
   }
+
+  String              TextInputData::GetText()
+  {
+    const CodepointView codepointView( mCodepoints.data(), mCodepoints.size());
+    const String text = CodepointsToUTF8( codepointView );
+    return text;
+  }
+
+  void                TextInputData::SetText( StringView text )
+  {
+    const CodepointView codepointView = UTF8ToCodepoints( text );
+    SetCodepoints( codepointView );
+  }
+
 }

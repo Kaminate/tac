@@ -60,7 +60,6 @@ namespace Tac
     void                BeginFrame();
     void                EndFrame();
 
-    void                TryConsumeMouseMovement( double* );
 
     KeyboardInputFrame  mCurr;
     KeyboardInputFrame  mPrev;
@@ -72,6 +71,8 @@ namespace Tac
 
     int                 mMouseDeltaScroll = 0;
   };
+
+  void                TryConsumeMouseMovement( double* );
 
   extern KeyboardInput gKeyboardInput;
 

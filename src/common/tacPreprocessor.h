@@ -52,6 +52,8 @@ namespace Tac
 #define TAC_UNUSED_PARAMETER( param )                      ( void ) param
 #define TAC_STACK_FRAME                                    StackFrame( __LINE__, __FILE__, __FUNCTION__ )
 #define TAC_ASSERT_MESSAGE( formatString, ... )            AssertInternal( va( formatString, ## __VA_ARGS__ ), TAC_STACK_FRAME )
+  // rename this
+#define TAC_ASSERT_IF_MSG( expression, formatString, ... ) if( !( expression ) ){ TAC_ASSERT_MESSAGE( formatString, __VA_ARGS__ ); }
 #define TAC_ASSERT( expression )                           if( !( expression ) ){ TAC_ASSERT_MESSAGE( TAC_STRINGIFY( expression ) ); }
 #define TAC_ASSERT_INVALID_CODE_PATH                       TAC_ASSERT_MESSAGE( "Invalid code path!" );
 #define TAC_ASSERT_UNIMPLEMENTED                           TAC_ASSERT_MESSAGE( "Unimplemented!" );

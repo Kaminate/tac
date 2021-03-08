@@ -376,15 +376,9 @@ namespace Tac
 
   void                Creation::Update( Errors& errors )
   {
+
     /*TAC_PROFILE_BLOCK*/;
 
-
-    // dont need this
-    //ImGuiSetNextWindowHandle( DesktopWindowHandle() );
-
-    // ImGuiBegin( "hello" );
-    //ImGuiText( "boobies" );
-    //ImGuiEnd();
 
     UpdateCreatedWindowData();
 

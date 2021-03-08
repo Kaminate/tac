@@ -97,7 +97,16 @@ namespace Tac
     ImGuiSetNextWindowStretch();
     ImGuiBegin( "Main Window" );
 
+
+
 #if 1
+
+    Shell::Instance.mAccumulatorSeconds;
+
+
+    static String s = "hello";
+    ImGuiInputText( "poop", s );
+#else
     ImGuiBeginMenuBar();
     ImGuiText( "file | edit | window" );
     ImGuiEndMenuBar();

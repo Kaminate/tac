@@ -658,8 +658,8 @@ namespace Tac
       commandData.mStackFrame = stackFrame;
       gSubmitFrame->mFreeDeferredHandles.mFreedVertexFormatInputLayouts.push_back( vertexFormatHandle );
       gSubmitFrame->mCommandBufferFrameEnd.PushCommand( CommandType::DestroyVertexFormat,
-                                                        &vertexFormatHandle,
-                                                        sizeof( vertexFormatHandle ) );
+                                                        &commandData,
+                                                        sizeof( commandData ) );
     }
 
     void DestroyConstantBuffer( const ConstantBufferHandle constantBufferHandle, const StackFrame stackFrame )
@@ -1119,7 +1119,6 @@ namespace Tac
           if( gVerbose )
             std::cout << "CreateFramebuffer::End\n";
         } break;
-
 
         case Render::CommandType::CreateBlendState:
         {

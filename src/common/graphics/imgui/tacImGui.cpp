@@ -54,7 +54,8 @@ namespace Tac
   }
 
 
-  static void TextInputDataUpdateKeys( TextInputData* inputData, v2 textPos )
+  // mousePos and textPos must be in the same space
+  static void TextInputDataUpdateKeys( TextInputData* inputData, v2 mousePos, v2 textPos )
   {
     // UI2DDrawData* drawData = window->mDrawData;
     struct
@@ -76,9 +77,8 @@ namespace Tac
     if( gKeyboardInput.mCurr.IsKeyDown( Key::MouseLeft ) &&
         gKeyboardInput.mCurr.mScreenspaceCursorPosErrors.empty() )
     {
-      const float mousePositionTextSpace = gKeyboardInput.mCurr.mScreenspaceCursorPos.x - textPos.x;
       const int numGlyphsBeforeCaret = GetCaret( inputData->mCodepoints,
-                                                 mousePositionTextSpace );
+                                                 mousePos.x - textPos.x );
       if( gKeyboardInput.mPrev.IsKeyDown( Key::MouseLeft ) )
         inputData->OnDrag( numGlyphsBeforeCaret );
       else
@@ -125,7 +125,10 @@ namespace Tac
                                textPos.y + caretYPadding );
       const v2 caretMaxi = v2( textPos.x + caretPos + caretHalfWidth,
                                textPos.y + ImGuiGlobals::Instance.mUIStyle.fontSize - caretYPadding );
-      const float caretColorAlpha = ( ( std::sin( 6.0f * ( float )ImGuiGlobals::Instance.mElapsedSeconds ) + 1.0f ) / 2.0f );
+      const double blinkySpeed = 2.25;
+      const float caretColorAlpha = 1 - ( float )std::pow(
+        std::cos( blinkySpeed * ImGuiGlobals::Instance.mElapsedSeconds ),
+        4 );
       const v4 caretColor = { 0, 0, 0, caretColorAlpha };
       Render::TextureHandle texture;
       drawData->AddBox( caretMini, caretMaxi, caretColor, texture, clipRect );
@@ -175,12 +178,17 @@ namespace Tac
 
     static double consumeMouse;
     if( hovered )
-      gKeyboardInput.TryConsumeMouseMovement( &consumeMouse );
-
-    if( hovered && gKeyboardInput.IsKeyJustDown( Key::MouseLeft ) )
     {
-      window->SetActiveID( id );
+      if( gKeyboardInput.IsKeyJustDown( Key::MouseLeft ) )
+      {
+        window->SetActiveID( id );
+      }
+
+      TryConsumeMouseMovement( &consumeMouse );
     }
+
+
+
     if( window->GetActiveID() == id )
     {
       if( dragFloatData.mMode == DragMode::Drag && gKeyboardInput.mCurr.mScreenspaceCursorPosErrors.empty() )
@@ -249,10 +257,10 @@ namespace Tac
 
       if( dragFloatData.mMode == DragMode::TextInput )
       {
-        TextInputDataUpdateKeys( inputData, valuePos );
+        TextInputDataUpdateKeys( inputData, window->GetMousePosViewport(), valuePos );
 
         const StringView newText = CodepointsToUTF8( CodepointView( inputData->mCodepoints.data(),
-                                                                    inputData->mCodepoints.size() ) );
+                                                     inputData->mCodepoints.size() ) );
         valueFromStringSetter( newText, valueBytes );
         valueStr = newText;
 
@@ -563,13 +571,15 @@ namespace Tac
   bool ImGuiInputText( const StringView& label, String& text )
   {
     ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
-    TextInputData* inputData = window->mTextInputData;
-    UI2DDrawData* drawData = window->mDrawData;// ImGuiGlobals::Instance.mUI2DDrawData;
-    ImGuiId id = window->GetID();
+    //TextInputData* inputData = window->mTextInputData;
+    //UI2DDrawData* drawData = window->mDrawData;// ImGuiGlobals::Instance.mUI2DDrawData;
+    const ImGuiId id = window->GetID();
 
     bool textChanged = false;
+    const String oldText = text;
 
     v2 pos = window->mCurrCursorViewport;
+
 
     // Word wrap?
     int lineCount = 1;
@@ -587,10 +597,18 @@ namespace Tac
     auto clipRect = ImGuiRect::FromPosSize( pos, totalSize );
     window->ComputeClipInfo( &clipped, &clipRect );
     if( clipped )
-      return textChanged;
+      return false;
 
-    if( window->IsHovered( clipRect ) && gKeyboardInput.IsKeyJustDown( Key::MouseLeft ) )
-      window->SetActiveID( id );
+    const ImGuiId oldWindowActiveId = window->GetActiveID();
+    static double mouseMovementConsummation;
+    if( window->IsHovered( clipRect ) )
+    {
+      TryConsumeMouseMovement( &mouseMovementConsummation );
+
+      if( gKeyboardInput.IsKeyJustDown( Key::MouseLeft ) )
+        window->SetActiveID( id );
+    }
+
 
     v3 textBackgroundColor3 = { 1, 1, 0 };
 
@@ -602,72 +620,69 @@ namespace Tac
       pos.x + ImGuiGlobals::Instance.mUIStyle.buttonPadding,
       pos.y };
     Render::TextureHandle texture;
-    drawData->AddBox( pos,
-                      textBackgroundMaxi,
-                      v4( textBackgroundColor3, 1 ),
-                      texture,
-                      &clipRect );
+    window->mDrawData->AddBox( pos,
+                               textBackgroundMaxi,
+                               v4( textBackgroundColor3, 1 ),
+                               texture,
+                               &clipRect );
 
     if( window->GetActiveID() == id )
     {
-      CodepointView oldCodepoints = UTF8ToCodepoints( text );
-      CodepointView newCodepoints = CodepointView( inputData->mCodepoints.data(),
-                                                   inputData->mCodepoints.size() );
-
-      if( oldCodepoints != newCodepoints )
+      if( oldWindowActiveId != id ) // just became active
       {
-        inputData->SetCodepoints( newCodepoints );
-        inputData->mCaretCount = 0;
+        window->mTextInputData->SetText( text );
       }
-      TextInputDataUpdateKeys( inputData, textPos );
+
+
+
+
+      TextInputDataUpdateKeys( window->mTextInputData, window->GetMousePosViewport(), textPos );
 
       // handle double click
       static double lastMouseReleaseSeconds;
       static v2 lastMousePositionDesktopWindowspace;
       if( gKeyboardInput.HasKeyJustBeenReleased( Key::MouseLeft ) &&
           window->IsHovered( clipRect ) &&
-          !inputData->mCodepoints.empty() &&
+          !window->mTextInputData->mCodepoints.empty() &&
           gKeyboardInput.mCurr.mScreenspaceCursorPosErrors.empty() )
       {
         const v2 screenspaceMousePos = gKeyboardInput.mCurr.mScreenspaceCursorPos;
         auto mouseReleaseSeconds = ImGuiGlobals::Instance.mElapsedSeconds;
-        if( mouseReleaseSeconds - lastMouseReleaseSeconds < 0.5f &&
-            lastMousePositionDesktopWindowspace == screenspaceMousePos )
+        const bool releasedRecently = mouseReleaseSeconds - lastMouseReleaseSeconds < 0.5f;
+        const bool releasedSamePos = lastMousePositionDesktopWindowspace == screenspaceMousePos;
+        if( releasedRecently )
         {
-          inputData->mNumGlyphsBeforeCaret[ 0 ] = 0;
-          inputData->mNumGlyphsBeforeCaret[ 1 ] = inputData->mCodepoints.size();
-          inputData->mCaretCount = 2;
+          if( releasedSamePos )
+          {
+            window->mTextInputData->mNumGlyphsBeforeCaret[ 0 ] = 0;
+            window->mTextInputData->mNumGlyphsBeforeCaret[ 1 ] = window->mTextInputData->mCodepoints.size();
+            window->mTextInputData->mCaretCount = 2;
+          }
         }
         lastMouseReleaseSeconds = mouseReleaseSeconds;
         lastMousePositionDesktopWindowspace = screenspaceMousePos;
       }
 
-      TextInputDataDrawSelection( inputData, drawData, textPos, &clipRect );
+      TextInputDataDrawSelection( window->mTextInputData, window->mDrawData, textPos, &clipRect );
 
-
-      StringView newText = CodepointsToUTF8( newCodepoints );
-      if( text != newText )
-      {
-        text = newText;
-        textChanged = true;
-      }
+      text = window->mTextInputData->GetText();
     }
 
-    drawData->AddText( textPos,
-                       ImGuiGlobals::Instance.mUIStyle.fontSize,
-                       text,
-                       editTextColor,
-                       &clipRect );
+    window->mDrawData->AddText( textPos,
+                                ImGuiGlobals::Instance.mUIStyle.fontSize,
+                                text,
+                                editTextColor,
+                                &clipRect );
 
     const v2 labelPos = v2( textBackgroundMaxi.x + ImGuiGlobals::Instance.mUIStyle.itemSpacing.x,
                             pos.y );
-    drawData->AddText( labelPos,
-                       ImGuiGlobals::Instance.mUIStyle.fontSize,
-                       label,
-                       ImGuiGlobals::Instance.mUIStyle.textColor,
-                       &clipRect );
+    window->mDrawData->AddText( labelPos,
+                                ImGuiGlobals::Instance.mUIStyle.fontSize,
+                                label,
+                                ImGuiGlobals::Instance.mUIStyle.textColor,
+                                &clipRect );
 
-    return textChanged;
+    return oldText != text;
   }
 
   bool ImGuiSelectable( const StringView& str, bool selected )

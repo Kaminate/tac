@@ -185,7 +185,7 @@ namespace Tac
         const bool hovered = PtInRect( &screenMoveRect, cursorPos );
         if( hovered)
         {
-          gKeyboardInput.TryConsumeMouseMovement( &keyboardMoveT );
+          TryConsumeMouseMovement( &keyboardMoveT );
           if( keyboardMoveT )
           {
             mHandlerType = HandlerType::Move;
@@ -207,7 +207,7 @@ namespace Tac
         return;
     }
 
-    gKeyboardInput.TryConsumeMouseMovement( &keyboardMoveT );
+    TryConsumeMouseMovement( &keyboardMoveT );
 
     POINT cursorPos;
     GetCursorPos( &cursorPos );
@@ -234,7 +234,7 @@ namespace Tac
         return;
     }
 
-    gKeyboardInput.TryConsumeMouseMovement( &keyboardMoveT );
+    TryConsumeMouseMovement( &keyboardMoveT );
 
     POINT cursorPos;
     GetCursorPos( &cursorPos );

@@ -75,9 +75,10 @@ namespace Tac
     void                DeleteSelectedEntities();
 
     //===-------------- Windows --------------===//
-    void                CreateInitialWindow( const char* name,
-                                             void ( Creation:: * )( Errors& ),
-                                             Errors& errors );
+    void                CreateInitialWindow( const char*,
+                                             // intellisense freaks out if i dont name fn
+                                             void ( Creation:: * fn)( Errors& ),
+                                             Errors& );
     void                CreateInitialWindows( Errors& );
     void                CreatePropertyWindow( Errors& );
     void                CreateGameWindow( Errors& );

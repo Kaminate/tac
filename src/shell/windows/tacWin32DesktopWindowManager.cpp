@@ -361,7 +361,9 @@ namespace Tac
       = LR_LOADFROMFILE // load a file ( not a resource )
       | LR_DEFAULTSIZE // default metrics based on the type (IMAGE_ICON, 32x32)
       | LR_SHARED;
-    const HICON icon = ( HICON )LoadImage( nullptr, "grave.ico", IMAGE_ICON, 0, 0, fuLoad );;
+    const char* iconPath = "assets/grave.ico";
+    const HICON icon = ( HICON )LoadImage( nullptr, iconPath, IMAGE_ICON, 0, 0, fuLoad );;
+    TAC_ASSERT_IF_MSG( icon, "filed to load icon %s", iconPath );
     WNDCLASSEX wc = {};
     wc.cbSize = sizeof( WNDCLASSEX );
     wc.hCursor = NULL; // LoadCursor( NULL, IDC_ARROW );
