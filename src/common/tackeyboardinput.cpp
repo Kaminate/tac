@@ -3,6 +3,7 @@
 #include "src/common/containers/tacVector.h"
 #include "src/common/tacUtility.h"
 #include "src/common/tacShell.h"
+#include "src/common/tacShellTimer.h"
 #include "src/common/tacOS.h"
 
 #include <iostream>
@@ -135,10 +136,9 @@ namespace Tac
   // non-threadlocal
   static double       mMouseMovementConsummation = 0;
   const double        kConsumeDelta = 0.1f;
-  void                // KeyboardInput::
-    TryConsumeMouseMovement( double* savedT )
+  void                TryConsumeMouseMovement( double* savedT )
   {
-    const double curTime = Shell::Instance.mElapsedSeconds;
+    const double curTime = ShellGetElapsedSeconds();
     const bool consumedBySomebody = curTime - mMouseMovementConsummation < kConsumeDelta;
     const bool isThatSomebodyUs =
       *savedT > mMouseMovementConsummation &&

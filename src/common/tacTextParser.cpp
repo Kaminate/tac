@@ -151,7 +151,8 @@ namespace Tac
   bool              ParseData::PeekStringExpected( const StringView& expected ) const
   {
     const char* actual = PeekBytes( expected.size() );
-    return actual && StringView( actual, expected.size() ) == expected;
+    const bool result = actual && StringView( actual, expected.size() ) == expected;
+    return result;
   }
 
   const char*       ParseData::GetPos() const

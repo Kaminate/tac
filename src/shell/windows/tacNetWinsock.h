@@ -44,7 +44,7 @@ namespace Tac
                                              Errors& ) override;
     Vector< Socket* >          GetSockets() override;
     std::set< SocketWinsock* > mSocketWinsocks;
-    bool                       mPrintReceivedMessages;
+    bool                       mPrintReceivedMessages = false;
     // TODO: Only send a keepalive if we haven't received a message within mKeepaliveIntervalSeconds
     double                     mKeepaliveNextSeconds = 0;
     float                      mKeepaliveIntervalSeconds = 30;

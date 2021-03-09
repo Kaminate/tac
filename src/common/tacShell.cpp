@@ -17,42 +17,38 @@
 #include "src/common/tacKeyboardinput.h"
 #include "src/common/profile/tacProfile.h"
 #include "src/common/graphics/tacRendererUtil.h"
+#include "src/common/tacString.h"
+#include "src/common/tacShellTimer.h"
 #include <iostream>
 
 namespace Tac
 {
-
-  //UpdateThing::UpdateThing()
-  //{
-  //  Instance = this;
-  //}
-  //UpdateThing* UpdateThing::Instance = nullptr;
-
-
   const Key ToggleMainMenuKey = Key::Backtick;
+  static String sAppName;
+  static String sPrefPath;
+  static String sInitialWorkingDir;
 
   Soul::Soul()
   {
     mIsImGuiVisible = true;
   }
 
-  Shell Shell::Instance;
-  void Shell::Uninit()
+  void            ShellUninit()
   {
     gUI2DCommonData.Uninit();
     gDebug3DCommonData.Uninit();
     gFontStuff.Uninit();
-    delete mLog;
+    //delete mLog;
     ModelAssetManagerUninit();
 
     // last, so resources can be freed
     Render::Uninit();
   }
-  void Shell::Init( Errors& errors )
+  void            ShellInit( Errors& errors )
   {
     JobQueueInit();
 
-    gLocalization.Load( "assets/localization.txt", errors );
+    LocalizationLoad( "assets/localization.txt", errors );
     TAC_HANDLE_ERROR( errors );
 
     gDebug3DCommonData.Init( errors );
@@ -64,15 +60,20 @@ namespace Tac
     TAC_NEW ProfileSystem;
     ProfileSystem::Instance->Init();
   }
-  void Shell::FrameBegin( Errors& errors )
+  void            ShellFrameBegin( Errors& errors )
   {
     //gKeyboardInput.BeginFrame();
     ProfileSystem::Instance->OnFrameBegin();
   }
-  void Shell::Frame( Errors& errors )
+  void            ShellFrameEnd( Errors& errors )
+  {
+    //gKeyboardInput.EndFrame();
+    ProfileSystem::Instance->OnFrameEnd();
+  }
+  void            ShellFrame( Errors& errors )
   {
     TAC_PROFILE_BLOCK;
-    FrameBegin( errors );
+    ShellFrameBegin( errors );
 
     if( Net::Instance )
     {
@@ -83,31 +84,21 @@ namespace Tac
     //mOnUpdate.EmitEvent( errors );
     ControllerInput::Instance->Update();
 
-    FrameEnd( errors );
+    ShellFrameEnd( errors );
   }
-  void Shell::FrameEnd( Errors& errors )
+  void            ShellUpdate( Errors& errors )
   {
-    //gKeyboardInput.EndFrame();
-    ProfileSystem::Instance->OnFrameEnd();
-  }
-  void Shell::Update( Errors& errors )
-  {
-    const Timepoint curTime = GetCurrentTime();
-    mLastTick = mLastTick == Timepoint() ? curTime : mLastTick;
-    mAccumulatorSeconds += TimepointSubtractSeconds( curTime, mLastTick );
-    mLastTick = curTime;
-    while( mAccumulatorSeconds > TAC_DELTA_FRAME_SECONDS )
-    {
-      mAccumulatorSeconds -= TAC_DELTA_FRAME_SECONDS;
-      mElapsedSeconds += TAC_DELTA_FRAME_SECONDS;
-      Frame( errors );
-    }
-
-    //OS::mShouldStopRunning =  mElapsedSeconds > 5 ;
+    ShellTimerUpdate();
+    while( ShellTimerFrame() )
+      ShellFrame( errors );
   }
 
 
-  //RendererWindowData::~RendererWindowData()
-  //{
-  //}
+  void            ShellSetAppName( const char* s ) { sAppName = s; }
+  const char*     ShellGetAppName() { return sAppName.c_str(); } 
+  void            ShellSetPrefPath( const char* s ) { sPrefPath = s; } 
+  const char*     ShellGetPrefPath() { return sPrefPath.c_str(); }
+  void            ShellSetInitialWorkingDir( const char* s ) { sInitialWorkingDir = s; }
+  const char*     ShellGetInitialWorkingDir() { return sInitialWorkingDir.c_str(); }
+
 }

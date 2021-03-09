@@ -194,7 +194,7 @@ namespace Tac
 
       path = outBuf;
 
-      StringView workingDir = Shell::Instance.mInitialWorkingDir;
+      const StringView workingDir = ShellGetInitialWorkingDir();
       if( StartsWith( path, workingDir ) )
       {
         path = path.substr( workingDir.size() );
@@ -249,7 +249,7 @@ namespace Tac
       {
         String workingDir;
         GetWorkingDir( workingDir, errors );
-        expandedPath = workingDir + '\\' + path;
+        expandedPath = workingDir + '\\' + String( path );
         pathBytes = expandedPath.c_str();
       }
 
@@ -305,14 +305,14 @@ namespace Tac
         hTemplateFile );
       if( handle == INVALID_HANDLE_VALUE )
       {
-        const String errMsg =  "Cannot save to file " + path + " because " + Win32GetLastErrorString();
+        const String errMsg =  "Cannot save to file " + String( path ) + " because " + Win32GetLastErrorString();
         TAC_RAISE_ERROR( errMsg, errors );
       }
       TAC_ON_DESTRUCT( CloseHandle( handle ) );
       DWORD bytesWrittenCount;
       if( !WriteFile( handle, bytes, byteCount, &bytesWrittenCount, NULL ) )
       {
-        const String errMsg =  "failed to save file " + path + " because " + Win32GetLastErrorString();
+        const String errMsg =  "failed to save file " + String( path ) + " because " + Win32GetLastErrorString();
         TAC_RAISE_ERROR( errMsg, errors );
       }
       // Should we check that bytesWrittenCount == byteCount?

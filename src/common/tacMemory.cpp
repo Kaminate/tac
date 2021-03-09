@@ -1,6 +1,7 @@
 #include "src/common/tacMemory.h"
 #include "src/shell/tacDesktopApp.h" // temp
 #include "src/common/tacShell.h"
+#include "src/common/tacShellTimer.h"
 
 #include <fstream>
 
@@ -17,7 +18,7 @@ namespace Tac
     void* result = std::malloc( sz );
 
     // track dynamic memory allocations
-    if( Shell::Instance.mElapsedSeconds > 2)
+    if( ShellGetElapsedSeconds() > 2)
     {
       static int memAllocCounter;
       ++memAllocCounter;

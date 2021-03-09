@@ -64,7 +64,7 @@ namespace Tac
     int                     mIndexCount = 0;
     Render::ShaderHandle    mShader;
     Render::TextureHandle   mTexture;
-    DefaultCBufferPerObject mUniformSource;
+    DefaultCBufferPerObject mUniformSource = {};
   };
 
   struct ImGuiRect;

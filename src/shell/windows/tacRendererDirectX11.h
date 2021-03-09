@@ -56,14 +56,14 @@ namespace Tac
 
   struct VertexBuffer
   {
-    ID3D11Buffer* mBuffer;
-    UINT          mStride;
+    ID3D11Buffer* mBuffer = nullptr;
+    UINT          mStride = 0;
     //Format mFormat; bad. format is in the vertexformat
   };
 
   struct IndexBuffer
   {
-    ID3D11Buffer* mBuffer;
+    ID3D11Buffer* mBuffer = nullptr;
     Format        mFormat;
   };
 
@@ -129,7 +129,7 @@ namespace Tac
     ID3DUserDefinedAnnotation* mUserAnnotationDEBUG = nullptr;
     ID3D11Device*              mDevice = nullptr;
     ID3D11DeviceContext*       mDeviceContext = nullptr;
-    DXGI                       mDxgi;
+    //DXGI                       mDxgi;
     Texture                    mTextures[ Render::kMaxTextures ] = {};
     VertexBuffer               mVertexBuffers[ Render::kMaxVertexBuffers ] = {};
     IndexBuffer                mIndexBuffers[ Render::kMaxIndexBuffers ] = {};

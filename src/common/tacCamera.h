@@ -6,10 +6,10 @@ namespace Tac
 {
   struct Camera
   {
-    v3    mPos;
-    v3    mForwards;
-    v3    mRight;
-    v3    mUp;
+    v3    mPos = { 0,0,5 };
+    v3    mForwards = { 0,-1,0 };
+    v3    mRight = { 1,0,0 };
+    v3    mUp = { 0,1,0 };
     float mFarPlane = 10000.0f;
     float mNearPlane = 0.1f;
     float mFovyrad = 60.0f * ( 3.14f / 180.0f );

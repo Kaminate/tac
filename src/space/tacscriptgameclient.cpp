@@ -1,5 +1,6 @@
 #include "src/common/graphics/imgui/tacImGui.h"
 #include "src/common/graphics/tacUI.h"
+#include "src/common/tacShellTimer.h"
 #include "src/common/math/tacMath.h"
 #include "src/common/tacJobQueue.h"
 #include "src/common/tacJobQueue.h"
@@ -84,7 +85,6 @@ namespace Tac
 	}
 	void ScriptGameClient::Update( float seconds, Errors& errors )
 	{
-		auto shell = Shell::Instance;
 		TAC_TIMELINE_BEGIN;
 
 		auto scriptMatchmaker = TAC_NEW ScriptMatchmaker;
@@ -186,7 +186,7 @@ namespace Tac
 			return;
 		String s =
 			"ScriptGameClient messsage: elapsed time is " +
-			FormatFrameTime( Shell::Instance.mElapsedSeconds );
+			FormatFrameTime( ShellGetElapsedSeconds() );
 		Json json;
 		json[ "name" ].SetString( "Ping" );
 		Json& args = json[ "args" ];
@@ -212,10 +212,10 @@ namespace Tac
 	{
 		if( !mShouldLog )
 			return;
-		auto log = Shell::Instance.mLog;
-		if( !log )
-			return;
-		log->Push( "ScriptGameClient: " + text );
+		//auto log = Shell::Instance.mLog;
+		//if( !log )
+		//	return;
+		//log->Push( "ScriptGameClient: " + text );
 	}
 	void ScriptMatchmaker::TryConnect()
 	{
@@ -251,7 +251,7 @@ namespace Tac
 		String hostname = SettingsGetString( "hostname" , defaultHostname );
 		mPort = ( uint16_t )SettingsGetNumber( "port" , ( JsonNumber )defaultPort );
 
-		mConnectionAttemptStartSeconds = Shell::Instance.mElapsedSeconds;
+		mConnectionAttemptStartSeconds = ShellGetElapsedSeconds();
 		String text = "Attempting to connect to " + mHostname + ":" + ToString( mPort );
 		Log( text );
 		TAC_TIMELINE_KEYFRAME;
@@ -470,7 +470,7 @@ namespace Tac
 		//{
 		//  String utf8 = "Trying to connect";
 		//  int maxDotCount = 3;
-		//  double elapsedSeconds = Shell::Instance.mElapsedSeconds - scriptMatchmaker->mConnectionAttemptStartSeconds;
+		//  double elapsedSeconds = ShellGetElapsedSeconds() - scriptMatchmaker->mConnectionAttemptStartSeconds;
 		//  double partialDotSeconds = std::fmod( elapsedSeconds, ( double )( ( maxDotCount + 1 ) * dotPeriodSeconds ) );
 		//  for( int i = 0; i < int( partialDotSeconds / dotPeriodSeconds ); ++i )
 		//    utf8 += '.';
@@ -483,7 +483,7 @@ namespace Tac
 		//if( mUITextPressStart )
 		//{
 		//  double pressStartPeriod = 2.0f;
-		//  double s = std::fmod( Shell::Instance.mElapsedSeconds, pressStartPeriod );
+		//  double s = std::fmod( ShellGetElapsedSeconds(), pressStartPeriod );
 		//  bool b = s > pressStartPeriod * 0.5f;
 		//  if( mPressStart != b )
 		//  {
@@ -505,7 +505,7 @@ namespace Tac
 		////UIAnchorHorizontal menuAnchorHorizontal = UIAnchorHorizontal::Left;
 		////UIAnchorVertical menuAnchorVertical = UIAnchorVertical::Center;
 
-		//double timelineSeconds = Shell::Instance.mElapsedSeconds;
+		//double timelineSeconds = ShellGetElapsedSeconds();
 
 		////auto createGameTitle = [ = ]()
 		////{
@@ -741,7 +741,7 @@ namespace Tac
 		//TAC_TIMELINE_KEYFRAME;
 
 
-		//mTimeline.Update( Shell::Instance.mElapsedSeconds, errors );
+		//mTimeline.Update( ShellGetElapsedSeconds(), errors );
 		//TAC_HANDLE_ERROR( errors );
 
 		//return;
@@ -869,7 +869,7 @@ namespace Tac
 		//    status == JobState::ThreadRunning )
 		//  {
 		//    String text = "Connecting to server";
-		//    for( int i = 0; i < ( int )Shell::Instance.mElapsedSeconds % 4; ++i )
+		//    for( int i = 0; i < ( int )ShellGetElapsedSeconds() % 4; ++i )
 		//      text += ".";
 		//    ImGuiText( text );
 		//  }

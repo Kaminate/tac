@@ -11,6 +11,7 @@
 #include "src/creation/tacCreationGameObjectMenuWindow.h"
 #include "src/creation/tacCreationMainWindow.h"
 #include "src/shell/tacDesktopApp.h"
+#include "src/common/tacShellTimer.h"
 #include "src/space/tacEntity.h"
 #include "src/space/tacWorld.h"
 
@@ -20,6 +21,7 @@ namespace Tac
   CreationGameObjectMenuWindow::CreationGameObjectMenuWindow()
   {
     Instance = this;
+    mCreationSeconds = 0;
   }
 
   CreationGameObjectMenuWindow::~CreationGameObjectMenuWindow()
@@ -30,7 +32,7 @@ namespace Tac
   void CreationGameObjectMenuWindow::Init( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
-    mCreationSeconds = Shell::Instance.mElapsedSeconds;
+    mCreationSeconds = ShellGetElapsedSeconds();
   }
 
   void CreationGameObjectMenuWindow::Update( Errors& errors )

@@ -29,9 +29,9 @@ namespace Tac
     void          Init( Errors& );
     String        mAppName;
     String        mStudioName = "Sleeping Studio";
-    ProjectInit   mProjectInit;
-    ProjectUpdate mProjectUpdate;
-    ProjectUninit mProjectUninit;
+    ProjectInit   mProjectInit = nullptr;
+    ProjectUpdate mProjectUpdate = nullptr;
+    ProjectUninit mProjectUninit = nullptr;
   };
 
   struct WindowHandleIterator

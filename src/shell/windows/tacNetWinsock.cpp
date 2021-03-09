@@ -3,6 +3,7 @@
 #include "src/common/tacUtility.h"
 #include "src/common/tacJson.h"
 #include "src/common/tacSerialization.h"
+#include "src/common/tacShellTimer.h"
 #include "src/common/tacSettings.h"
 #include "src/common/tacAlgorithm.h"
 #include "src/common/tacMemory.h"
@@ -236,7 +237,7 @@ namespace Tac
     netWinsocket->mSocketType = socketType;
     netWinsocket->mWinsockAddressFamily = winsockAddressFamily;
     netWinsocket->mWinsockSocketType = winsockSocketType;
-    netWinsocket->mElapsedSecondsOnLastRecv = Shell::Instance.mElapsedSeconds;
+    netWinsocket->mElapsedSecondsOnLastRecv = ShellGetElapsedSeconds();
     netWinsocket->SetKeepalive( true, errors );
     if( errors )
       return nullptr;
@@ -273,7 +274,7 @@ namespace Tac
 
   void NetWinsock::Update( Errors& errors )
   {
-    bool shouldSendKeepalive = Shell::Instance.mElapsedSeconds > mKeepaliveNextSeconds;
+    bool shouldSendKeepalive = ShellGetElapsedSeconds() > mKeepaliveNextSeconds;
     if( shouldSendKeepalive )
       mKeepaliveNextSeconds += mKeepaliveIntervalSeconds;
 
@@ -321,7 +322,7 @@ namespace Tac
         socketWinsock->mRequestDeletion = true;
         continue;
       }
-      socketWinsock->mElapsedSecondsOnLastRecv = Shell::Instance.mElapsedSeconds;
+      socketWinsock->mElapsedSecondsOnLastRecv = ShellGetElapsedSeconds();
       if( mPrintReceivedMessages )
       {
         std::cout << "Received message: " << StringView( recvBuf, recvResult ).c_str() << std::endl;

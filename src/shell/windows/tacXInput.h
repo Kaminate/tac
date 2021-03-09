@@ -2,11 +2,12 @@
 
 #pragma once
 
-#include "src/shell/windows/tacWin32.h" // include windows.h before xinput.h or else you get 'no target architecture' errors
-#include "src/common/tacString.h"
+// include windows.h before xinput.h or else you get 'no target architecture' errors
+#include "src/shell/windows/tacWin32.h"
+//#include "src/common/tacString.h"
 #include "src/common/tacControllerInput.h"
-#include "src/common/tacErrorHandling.h"
-#include "src/common/containers/tacVector.h"
+//#include "src/common/tacErrorHandling.h"
+//#include "src/common/containers/tacVector.h"
 
 #define DIRECTINPUT_VERSION 0x0800 // must be before dinput.h
 #include <dinput.h> // for other controller types

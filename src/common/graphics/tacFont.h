@@ -13,6 +13,9 @@
 #include "src/common/thirdparty/stb_truetype.h"
 #include "src/common/graphics/tacRenderer.h"
 
+
+#include <map>
+
 namespace Tac
 {
   struct FontFile;

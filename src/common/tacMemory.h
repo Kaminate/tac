@@ -2,6 +2,8 @@
 // Allocate through TAC_NEW/TAC_DELETE instead of new/delete to route through the memory manager
 #pragma once
 
+#pragma warning( disable: 28251 ) // inconsistant annotation for new
+
 #include "src/common/tacPreprocessor.h"
 #include <cstddef> // std::size_t
 

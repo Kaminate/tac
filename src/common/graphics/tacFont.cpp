@@ -6,6 +6,8 @@
 #include "src/common/tacMemory.h"
 #include "src/common/tacTemporaryMemory.h"
 
+#include <cmath> // std::sqrt
+
 namespace Tac
 {
 

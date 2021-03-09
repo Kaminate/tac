@@ -74,8 +74,7 @@ namespace Tac
         inputData->OnKeyPressed( keyMap.mTextInputKey );
     if( gKeyboardInput.mWMCharPressedHax )
       inputData->OnCodepoint( gKeyboardInput.mWMCharPressedHax );
-    if( gKeyboardInput.mCurr.IsKeyDown( Key::MouseLeft ) &&
-        gKeyboardInput.mCurr.mScreenspaceCursorPosErrors.empty() )
+    if( gKeyboardInput.mCurr.IsKeyDown( Key::MouseLeft ) )
     {
       const int numGlyphsBeforeCaret = GetCaret( inputData->mCodepoints,
                                                  mousePos.x - textPos.x );
@@ -191,7 +190,7 @@ namespace Tac
 
     if( window->GetActiveID() == id )
     {
-      if( dragFloatData.mMode == DragMode::Drag && gKeyboardInput.mCurr.mScreenspaceCursorPosErrors.empty() )
+      if( dragFloatData.mMode == DragMode::Drag )
       {
         const v2 screenspaceMousePos = gKeyboardInput.mCurr.mScreenspaceCursorPos;
         static float lastMouseXDesktopWindowspace;
@@ -643,8 +642,7 @@ namespace Tac
       static v2 lastMousePositionDesktopWindowspace;
       if( gKeyboardInput.HasKeyJustBeenReleased( Key::MouseLeft ) &&
           window->IsHovered( clipRect ) &&
-          !window->mTextInputData->mCodepoints.empty() &&
-          gKeyboardInput.mCurr.mScreenspaceCursorPosErrors.empty() )
+          !window->mTextInputData->mCodepoints.empty() )
       {
         const v2 screenspaceMousePos = gKeyboardInput.mCurr.mScreenspaceCursorPos;
         auto mouseReleaseSeconds = ImGuiGlobals::Instance.mElapsedSeconds;

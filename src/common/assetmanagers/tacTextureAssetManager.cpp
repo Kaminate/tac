@@ -210,7 +210,7 @@ namespace Tac
             const StringView filepathPrev = files[ iFile - 1 ];
             const String errorMsg = filepath + " has dimensions " +
               ToString( x ) + "x" + ToString( y ) +
-              " which is different from " + filepathPrev + " dimensions " +
+              " which is different from " + String( filepathPrev ) + " dimensions " +
               ToString( prevWidth ) + "x" + ToString( prevHeight );
             TAC_RAISE_ERROR( errorMsg, errors );
           }

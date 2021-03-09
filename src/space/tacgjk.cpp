@@ -128,7 +128,7 @@ namespace Tac
       point = ( transform * v4( point, 1.0f ) ).xyz();
   }
 
-  v3 SphereSupport::GetFurthestPoint( const v3& dir )
+  v3 SphereSupport::GetFurthestPoint( const v3& dir ) const
   {
     TAC_ASSERT( std::abs( dir.Length() - 1 ) < 0.001f );
     auto result = mOrigin + mRadius * dir;
@@ -145,7 +145,7 @@ namespace Tac
     mRadius = radius;
   }
 
-  v3 CapsuleSupport::GetFurthestPoint( const v3& dir )
+  v3 CapsuleSupport::GetFurthestPoint( const v3& dir ) const
   {
     TAC_ASSERT( std::abs( dir.Length() - 1 ) < 0.001f );
     auto botDot = Dot( dir, mBotSpherePos );
@@ -163,7 +163,7 @@ namespace Tac
     return result;
   }
 
-  v3 ConvexPolygonSupport::GetFurthestPoint( const v3& dir )
+  v3 ConvexPolygonSupport::GetFurthestPoint( const v3& dir ) const
   {
     int iLargestDot = 0;
     float largestDot = -1;
@@ -181,7 +181,8 @@ namespace Tac
     return result;
   }
 
-  GJK::GJK( Support* left, Support* right )
+  GJK::GJK( const Support* left,
+            const Support* right )
   {
     mLeft = left;
     mRight = right;
@@ -256,9 +257,9 @@ namespace Tac
       } break;
       case 3:
       {
-        auto c = mSupports[ 0 ];
-        auto b = mSupports[ 1 ];
-        auto a = mSupports[ 2 ];
+        const auto& c = mSupports[ 0 ];
+        const auto& b = mSupports[ 1 ];
+        const auto& a = mSupports[ 2 ];
 
         auto ao = o - a.mDiffPt;
         auto ab = b.mDiffPt - a.mDiffPt;
@@ -328,10 +329,10 @@ namespace Tac
       {
         EnsureCorrectTetrahedronOrientation();
 
-        auto d = mSupports[ 0 ];
-        auto c = mSupports[ 1 ];
-        auto b = mSupports[ 2 ];
-        auto a = mSupports[ 3 ];
+        const auto& d = mSupports[ 0 ];
+        const auto& c = mSupports[ 1 ];
+        const auto& b = mSupports[ 2 ];
+        const auto& a = mSupports[ 3 ];
 
 
         auto ao = o - a.mDiffPt;
@@ -495,7 +496,7 @@ namespace Tac
       {
         CompoundSupport compoundSupport = GetCompountSupport( supportDir );
         bool valid = true;
-        for( auto point : mSupports )
+        for( const CompoundSupport& point : mSupports )
         {
           if( Quadrance( point.mDiffPt, compoundSupport.mDiffPt ) < 0.001f )
           {
@@ -511,10 +512,10 @@ namespace Tac
       if( mSupports.size() == 4 )
       {
         EnsureCorrectTetrahedronOrientation();
-        auto d = mSupports[ 0 ];
-        auto c = mSupports[ 1 ];
-        auto b = mSupports[ 2 ];
-        auto a = mSupports[ 3 ];
+        const CompoundSupport& d = mSupports[ 0 ];
+        const CompoundSupport& c = mSupports[ 1 ];
+        const CompoundSupport& b = mSupports[ 2 ];
+        const CompoundSupport& a = mSupports[ 3 ];
         EPATriangle epaABC( a, b, c );
         EPATriangle epaBDC( b, d, c );
         EPATriangle epaADB( a, d, b );
@@ -539,7 +540,7 @@ namespace Tac
 
     // We are trying to find the face on hull that is closest to the origin
     bool isFirstLoop = true;
-    for( auto tri : mEPATriangles )
+    for( const EPATriangle& tri : mEPATriangles )
     {
       if( isFirstLoop || tri.mPlaneDist < mEPAClosest.mPlaneDist )
         mEPAClosest = tri;
@@ -593,7 +594,7 @@ namespace Tac
         ++iTri;
         continue;
       }
-      for( auto edge : {
+      for( const EPAHalfEdge& edge : {
         EPAHalfEdge( iTri->mV0, iTri->mV1 ),
         EPAHalfEdge( iTri->mV1, iTri->mV2 ),
         EPAHalfEdge( iTri->mV2, iTri->mV0 ) } )
@@ -612,10 +613,9 @@ namespace Tac
       iTri = mEPATriangles.erase( iTri );
       --mEPATriangleCount;
     }
-    for( auto edge : epaHalfEdges )
+    for( const EPAHalfEdge& edge : epaHalfEdges )
     {
-      EPATriangle tri(
-        edge.mFrom,
+      EPATriangle tri( edge.mFrom,
         edge.mTo,
         mEPAClosestSupportPoint );
       mEPATriangles.push_back( tri );
@@ -679,7 +679,7 @@ namespace Tac
     mTo = to;
   }
 
-  EPAHalfEdge EPAHalfEdge::Reverse()
+  EPAHalfEdge EPAHalfEdge::Reverse() const
   {
     EPAHalfEdge result;
     result.mFrom = mTo;

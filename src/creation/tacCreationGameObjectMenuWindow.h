@@ -13,7 +13,7 @@ namespace Tac
     void                                 Update( Errors& );
     static CreationGameObjectMenuWindow* Instance;
     DesktopWindowHandle                  mDesktopWindowHandle;
-    double                               mCreationSeconds;
+    double                               mCreationSeconds = 0;
   };
 }
 

@@ -4,17 +4,17 @@
 #pragma once
 
 #include "src/common/tacLocalization.h"
-#include "src/common/tacString.h"
-#include "src/common/tacErrorHandling.h"
+//#include "src/common/tacErrorHandling.h"
 #include "src/common/tacPreprocessor.h"
 #include "src/common/containers/tacVector.h"
 #include "src/common/tacTime.h"
-#include "src/common/tacEvent.h"
+//#include "src/common/tacEvent.h"
 
 namespace Tac
 {
   struct Log;
   struct RenderView;
+  struct Errors;
 
   struct Soul
   {
@@ -34,27 +34,29 @@ namespace Tac
   // The shell acts as the interface between platform-specific applications
   // and the ghost
   //
-  struct Shell
-  {
-    static Shell    Instance;
-    void            Init( Errors& );
-    void            Uninit();
-    void            Update( Errors& );
-    void            FrameBegin( Errors& );
-    void            Frame( Errors& );
-    void            FrameEnd( Errors& );
-    Log*            mLog = nullptr;
-    String          mAppName;
+  //struct Shell
+  //{
+  //  static Shell    Instance;
+    void            ShellInit( Errors& );
+    void            ShellUninit();
+    void            ShellUpdate( Errors& );
+    //void            ShellFrameBegin( Errors& );
+    void            ShellFrame( Errors& );
+    //void            ShellFrameEnd( Errors& );
+    void            ShellSetAppName(const char*);
+    const char*     ShellGetAppName();
+    void            ShellSetPrefPath(const char*);
+    const char*     ShellGetPrefPath();
+    void            ShellSetInitialWorkingDir(const char*);
+    const char*     ShellGetInitialWorkingDir();
+    //Log*            mLog = nullptr;
+    //String          mAppName;
 
     // This is the directory where files can be written.
     // Unique per user, per application.
     // ( doesn't include a trailing slash )
-    String          mPrefPath;
+    //String          mPrefPath;
 
-    String          mInitialWorkingDir;
-    Vector< Soul* > mSouls;
-    double          mElapsedSeconds = 0;
-    Timepoint       mLastTick;
-    float           mAccumulatorSeconds = 0;
-  };
+    //String          mInitialWorkingDir;
+    //Vector< Soul* > mSouls;
 }

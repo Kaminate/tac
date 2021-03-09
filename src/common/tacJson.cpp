@@ -9,7 +9,7 @@ namespace Tac
   static String DoubleQuote( StringView s )
   {
     String quote = String( 1, '\"' );
-    return quote + s + quote;
+    return quote + String( s ) + quote;
   }
 
   static void ExpectCharacter( char c, char expected, Errors& errors )
@@ -103,7 +103,8 @@ namespace Tac
   static void ParseObject( Json* json, ParseData* parseData, Errors& errors )
   {
     json->mType = JsonType::Object;
-    if( parseData->EatWord() != "{" )
+    parseData->EatWhitespace();
+    if( !parseData->EatStringExpected( "{" ) )
       TAC_RAISE_ERROR( "Expected {", errors );
 
     for( ;; )
@@ -134,7 +135,7 @@ namespace Tac
   {
     json->mType = JsonType::Array;
     parseData->EatWhitespace();
-    if( parseData->EatWord() != "[" )
+    if( !parseData->EatStringExpected( "[" ) )
       TAC_RAISE_ERROR( "Expected [", errors );
     for( ;; )
     {
@@ -168,6 +169,8 @@ namespace Tac
     return result;
   }
 
+  Json::Json( String v ){ SetString( v ); }
+  Json::Json( const char* v ){ SetString( v ); }
   Json::Json( StringView v ){ SetString( v ); }
   Json::Json( JsonNumber v ){ SetNumber( v ); }
   Json::Json( bool v ){ SetBool( v ); }

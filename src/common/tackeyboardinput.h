@@ -41,7 +41,7 @@ namespace Tac
     String  GetPressedKeyDescriptions();
     bool    mCurrDown[ ( int )Key::Count ] = {};
     v2      mScreenspaceCursorPos = {};
-    Errors  mScreenspaceCursorPosErrors;
+    //Errors  mScreenspaceCursorPosErrors;
     int     mMouseScroll = 0;
   };
 
@@ -49,31 +49,30 @@ namespace Tac
   struct KeyboardInput
   {
     KeyboardInput();
-    bool                HasKeyJustBeenReleased( Key key );
-    bool                IsKeyJustDown( Key key );
-    bool                IsKeyDown( Key key );
-    void                DebugImgui();
-    void                DebugPrintWhenKeysChange();
-    void                SetIsKeyDown( Key key, bool isDown );
+    bool               HasKeyJustBeenReleased( Key key );
+    bool               IsKeyJustDown( Key key );
+    bool               IsKeyDown( Key key );
+    void               DebugImgui();
+    void               DebugPrintWhenKeysChange();
+    void               SetIsKeyDown( Key key, bool isDown );
 
     // Called after input has been gathered, but before the game updates
-    void                BeginFrame();
-    void                EndFrame();
+    void               BeginFrame();
+    void               EndFrame();
 
 
-    KeyboardInputFrame  mCurr;
-    KeyboardInputFrame  mPrev;
+    KeyboardInputFrame mCurr;
+    KeyboardInputFrame mPrev;
 
-    Codepoint           mWMCharPressedHax = 0;
+    Codepoint          mWMCharPressedHax = 0;
 
     // valid only if curr & prev cursor pos errors are empty
-    v2                  mMouseDeltaPosScreenspace = {};
+    v2                 mMouseDeltaPosScreenspace = {};
 
-    int                 mMouseDeltaScroll = 0;
+    int                mMouseDeltaScroll = 0;
   };
 
-  void                TryConsumeMouseMovement( double* );
-
+  void                 TryConsumeMouseMovement( double* );
   extern KeyboardInput gKeyboardInput;
 
 }

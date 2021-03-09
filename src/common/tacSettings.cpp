@@ -16,9 +16,9 @@ namespace Tac
 
   static String SettingsGetSavePath()
   {
-    StringView appName = Shell::Instance.mAppName;
-    StringView prefPath = Shell::Instance.mPrefPath;
-    String path = prefPath + "/" + appName + "Settings.txt";
+    const StringView appName = ShellGetAppName();
+    const StringView prefPath = ShellGetPrefPath();
+    const String path = prefPath + "/" + String( appName ) + "Settings.txt";
     return path;
   }
 
@@ -123,7 +123,7 @@ namespace Tac
       }
 
       TAC_ASSERT( oldRoot != root );
-      TAC_ASSERT( oldPath != path );
+      TAC_ASSERT( StrCmp( oldPath, path ) );
     }
     TAC_ASSERT( root != &mJson );
     return root;

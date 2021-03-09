@@ -3,6 +3,9 @@
 #include "src/common/math/tacMath.h"
 #include "src/common/tacAlgorithm.h"
 
+// ( bogus warning ) readable size is x bytes, but mHash bytes may be read
+#pragma warning( disable: 6385 )
+
 
 #include <string>
 #include <algorithm>
@@ -452,6 +455,8 @@ namespace Tac
     result += rhs;
     return result;
   }
+  String operator + ( const char* a, const String& b ) { return String( a ) + b; }
+  String operator + ( const char* a, const StringView& b ) { return String( a ) + String( b ); }
 
   bool operator == ( const String& a, const String& b )
   {

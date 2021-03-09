@@ -9,15 +9,17 @@
 
 #include <sstream> // std::stringstream
 
+
+#include <dxgi1_6.h> // IDXGIFactory4, IDXGIAdapter4
+
 #pragma comment( lib, "DXGI.lib" )
 
 namespace Tac
 {
 
+    IDXGIFactory4* mFactory = nullptr;
+    IDXGIAdapter4* mDxgiAdapter4 = nullptr;
 
-  DXGI::~DXGI()
-  {
-  }
 
   //void DXGI::CheckHDRSupport()
   //{
@@ -58,7 +60,7 @@ namespace Tac
   //    outputDesc.ColorSpace;
   //  }
   //}
-  void DXGI::Init( Errors& errors )
+  void DXGIInit( Errors& errors )
   {
     const UINT flags = IsDebugMode() ? DXGI_CREATE_FACTORY_DEBUG : 0;
     const HRESULT hr = CreateDXGIFactory2( flags, IID_PPV_ARGS( &mFactory ) );
@@ -80,13 +82,13 @@ namespace Tac
     NameDXGIObject( mDxgiAdapter4, "tac dxgi adaptor" );
   }
 
-  void DXGI::Uninit()
+  void DXGIUninit()
   {
     TAC_RELEASE_IUNKNOWN( mFactory );
     TAC_RELEASE_IUNKNOWN( mDxgiAdapter4 );
   }
 
-  void DXGI::CreateSwapChain( HWND hwnd,
+  void DXGICreateSwapChain( HWND hwnd,
                               IUnknown* pDevice,
                               int bufferCount,
                               UINT width,

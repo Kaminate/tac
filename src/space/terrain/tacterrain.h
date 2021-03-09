@@ -42,8 +42,8 @@ struct Terrain : public Component
   String mHeightmapTexturePath = "assets/heightmap.png";
   String mGroundTexturePath = "";
   String mNoiseTexturePath = "";
-  int mTestHeightmapWidth;
-  int mTestHeightmapHeight;
+  int mTestHeightmapWidth = 0;
+  int mTestHeightmapHeight = 0;
   float mPower = 1;
   Vector< uint8_t > mTestHeightmapImageMemory;
   m4 mWorldCreationTransform = {};

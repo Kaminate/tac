@@ -191,12 +191,11 @@ void Physics::DebugDrawTerrains()
   Graphics* graphics = Graphics::GetSystem( mWorld );
 
   // Load heightmap mesh from heighap image
-  for( auto terrain : mTerrains )
+  for( Terrain* terrain : mTerrains )
   {
-    for( auto obb : terrain->mTerrainOBBs )
+    for( const TerrainOBB& obb : terrain->mTerrainOBBs )
     {
-      mWorld->mDebug3DDrawData->DebugDrawOBB(
-        obb.mPos,
+      mWorld->mDebug3DDrawData->DebugDrawOBB( obb.mPos,
         obb.mHalfExtents,
         obb.mEulerRads,
         mDebugDrawTerrainColor );
@@ -236,13 +235,12 @@ void Physics::Narrowphase()
 {
   /*TAC_PROFILE_BLOCK*/;
   Graphics* graphics = Graphics::GetSystem( mWorld );
-  for( auto terrain : mTerrains )
+  for( Terrain* terrain : mTerrains )
   {
-    for( auto obb : terrain->mTerrainOBBs )
+    for( const TerrainOBB& obb : terrain->mTerrainOBBs )
     {
-      auto terrainSupport = ConvexPolygonSupport( obb.mPos, obb.mHalfExtents, obb.mEulerRads );
-
-      for( auto collider : mColliders )
+      const ConvexPolygonSupport terrainSupport( obb.mPos, obb.mHalfExtents, obb.mEulerRads );
+      for( Collider* collider : mColliders )
       {
         CapsuleSupport capsuleSupport;
         v3 up = { 0, 1, 0 };

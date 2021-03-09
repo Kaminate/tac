@@ -8,7 +8,7 @@
 #include "src/common/math/tacVector3.h"
 #include "src/common/math/tacVector4.h"
 
-#include <cstdint>
+//#include <cstdint>
 
 namespace Tac
 {
@@ -49,7 +49,7 @@ namespace Tac
   struct Writer
   {
     void Write( const void* values, int valueCount, int sizeOfValue );
-    void Write( const void* bytes, uint8_t bitfield, const Vector< NetworkBit >& networkBits );
+    void Write( const void* bytes, char bitfield, const Vector< NetworkBit >& networkBits );
     template< typename T > void Write( T t )                    { return Write( &t, 1, sizeof( T ) ); }
     template< typename T > void Write( const T* t, int tCount ) { return Write( t, tCount, sizeof( T ) ); }
     Endianness     mFrom = Endianness::Unknown;

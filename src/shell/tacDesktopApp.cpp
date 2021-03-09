@@ -1,5 +1,6 @@
 #include "src/common/containers/tacFixedVector.h"
 #include "src/common/tacShell.h"
+#include "src/common/tacShellTimer.h"
 #include "src/common/containers/tacFrameVector.h"
 #include "src/common/containers/tacRingBuffer.h"
 #include "src/common/graphics/imgui/tacImGui.h"
@@ -44,10 +45,10 @@ namespace Tac
   struct WantSpawnInfo
   {
     DesktopWindowHandle mHandle;
-    int                 mX;
-    int                 mY;
-    int                 mWidth;
-    int                 mHeight;
+    int                 mX = 0;
+    int                 mY = 0;
+    int                 mWidth = 0;
+    int                 mHeight = 0;
   };
 
   struct DesktopEventQueueImpl
@@ -118,7 +119,7 @@ namespace Tac
       sWindowHandleLock.unlock();
     }
 
-    for( WantSpawnInfo info : requestsCreate )
+    for( const WantSpawnInfo& info : requestsCreate )
       sPlatformSpawnWindow( info.mHandle,
                             info.mX,
                             info.mY,
@@ -169,7 +170,7 @@ namespace Tac
     sAllocatorStuff.Init( 1024 * 1024 * 10 );
     FrameMemory::SetThreadAllocator( &sAllocatorStuff );
 
-    Shell::Instance.Init( errors );
+    ShellInit( errors );
     TAC_HANDLE_ERROR( errors );
 
     SettingsInit( errors );
@@ -204,13 +205,13 @@ namespace Tac
     {
       gKeyboardInput.BeginFrame();
 
-      ImGuiFrameBegin( Shell::Instance.mElapsedSeconds,
+      ImGuiFrameBegin( ShellGetElapsedSeconds(),
                        sPlatformGetMouseHoveredWindow() );
 
       if( ControllerInput::Instance )
         ControllerInput::Instance->Update();
 
-      Shell::Instance.Update( errors );
+      ShellUpdate( errors );
       TAC_HANDLE_ERROR( errors );
 
 
@@ -315,11 +316,11 @@ namespace Tac
   struct DesktopEventDataAssignHandle
   {
     DesktopWindowHandle mDesktopWindowHandle;
-    const void*         mNativeWindowHandle;
-    int                 mX;
-    int                 mY;
-    int                 mW;
-    int                 mH;
+    const void*         mNativeWindowHandle = nullptr;
+    int                 mX = 0;
+    int                 mY = 0;
+    int                 mW = 0;
+    int                 mH = 0;
   };
 
   struct DesktopEventDataCursorUnobscured
@@ -330,39 +331,39 @@ namespace Tac
   struct DesktopEventDataWindowResize
   {
     DesktopWindowHandle mDesktopWindowHandle;
-    int                 mWidth;
-    int                 mHeight;
+    int                 mWidth = 0;
+    int                 mHeight = 0;
   };
 
   struct DesktopEventDataKeyState
   {
-    Key                 mKey;
-    bool                mDown;
+    Key                 mKey = Key::Count;
+    bool                mDown = false;
   };
 
   struct DesktopEventDataKeyInput
   {
-    Codepoint mCodepoint;
+    Codepoint mCodepoint = 0;
   };
 
   struct DesktopEventDataMouseWheel
   {
-    int mDelta;
+    int mDelta = 0;
   };
 
   struct DesktopEventDataMouseMove
   {
     DesktopWindowHandle mDesktopWindowHandle;
     // Position of the mouse relative to the top left corner of the window
-    int                 mX;
-    int                 mY;
+    int                 mX = 0;
+    int                 mY = 0;
   };
 
   struct DesktopEventDataWindowMove
   {
     DesktopWindowHandle mDesktopWindowHandle;
-    int                 mX;
-    int                 mY;
+    int                 mX = 0;
+    int                 mY = 0;
   };
 
   void                DesktopEventInit()
@@ -636,9 +637,9 @@ namespace Tac
     sProjectUninit = info.mProjectUninit;
 
     // right place?
-    Shell::Instance.mAppName = appName;
-    Shell::Instance.mPrefPath = prefPath;
-    Shell::Instance.mInitialWorkingDir = workingDir;
+    ShellSetAppName( appName.c_str() );
+    ShellSetPrefPath( prefPath.c_str() );
+    ShellSetInitialWorkingDir( workingDir );
 
     CreateRenderer(errors);
     Render::Init( errors );

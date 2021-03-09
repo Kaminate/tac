@@ -3,6 +3,9 @@
 #include "src/common/tacString.h"
 #include "src/common/tacAlgorithm.h"
 
+#include <cinttypes>
+
+
 namespace Tac
 {
 
@@ -33,18 +36,20 @@ namespace Tac
   {
     TAC_ASSERT( mFrom != Endianness::Unknown );
     TAC_ASSERT( mTo != Endianness::Unknown );
-    if( ( char* )mEnd - ( char* )mBegin < valueCount * sizeOfValue )
+    auto dstDiff = ( char* )mEnd - ( char* )mBegin;
+    auto srcDiff = ( intptr_t )valueCount * ( intptr_t )sizeOfValue;
+    if( dstDiff < srcDiff )
       return false;
     for( int i = 0; i < valueCount; ++i )
-      CopyValueAccountForEndianness( ( char* )values + sizeOfValue * i,
-                                     ( char* )mBegin + sizeOfValue * i,
+      CopyValueAccountForEndianness( ( char* )values + (intptr_t)sizeOfValue * i,
+                                     ( char* )mBegin + (intptr_t)sizeOfValue * i,
                                      sizeOfValue, mFrom, mTo );
-    mBegin = ( char* )mBegin + sizeOfValue * valueCount;
+    mBegin = ( char* )mBegin + (intptr_t)sizeOfValue * valueCount;
     return true;
   }
   bool Reader::Read( void* bytes, const Vector< NetworkBit >& networkBits )
   {
-    uint8_t bitfield;
+    char bitfield;
     if( !Read( &bitfield ) )
       return false;
     TAC_ASSERT( bitfield ); // y u sending me nothin
@@ -75,7 +80,7 @@ namespace Tac
                                      sizeOfValue, mFrom, mTo );
   }
   void Writer::Write( const void* bytes,
-                      uint8_t bitfield,
+                      char bitfield,
                       const Vector< NetworkBit >& networkBits )
   {
     Write( bitfield );

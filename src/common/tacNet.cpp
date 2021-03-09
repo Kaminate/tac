@@ -30,7 +30,7 @@ namespace Tac
     //  return;
     //ImGui::Indent();
     //OnDestruct( ImGui::Unindent() );
-    //String time = FormatFrameTime( mNet->Shell::Instance.mElapsedSeconds - mElapsedSecondsOnLastRecv );
+    //String time = FormatFrameTime( mNet->ShellGetElapsedSeconds() - mElapsedSecondsOnLastRecv );
     //ImGui::Text( "Address Family: %s", ToString( mAddressFamily ).c_str() );
     //ImGui::Text( "Socket Type: %s", ToString( mSocketType ).c_str() );
     //ImGui::Text( "Last recvd msg: %s", time.c_str() );
@@ -83,7 +83,7 @@ namespace Tac
     String request = SeparateSpace( { requestMethod, uri, httpVersion } );
     String connectionType = "keep-alive";
     String fieldConnection = "Connection: " + connectionType;
-    String fieldHost = "Host: " + host;
+    String fieldHost = "Host: " + String(host);
     AddLine( request );
     AddLine( fieldConnection );
     AddLine( fieldHost );
@@ -185,7 +185,7 @@ namespace Tac
     // The Websocket Protocol - Opening Handshake
     // https://tools.ietf.org/html/rfc6455#section-1.3
     AddLine( SeparateSpace( { requestMethodGET, uri, httpVersion } ) );
-    AddLine( "Host: " + host );
+    AddLine( "Host: " + String( host ) );
     AddLine( "Upgrade: websocket" );
     AddLine( "Connection: upgrade" );
     AddLine( "Sec-WebSocket-Key: " + encoded );

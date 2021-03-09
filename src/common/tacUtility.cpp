@@ -33,7 +33,7 @@ void SaveToFile( StringView path, void* bytes, int byteCount, Errors& errors )
   std::ofstream ofs( path.c_str(), std::ofstream::binary );
   if( !ofs.is_open() )
   {
-    const String errorMsg =  "Error: Failed to open file " + path + " for saving";
+    const String errorMsg =  "Error: Failed to open file " + String( path ) + " for saving";
     TAC_RAISE_ERROR( errorMsg, errors );
   }
   ofs.write( ( const char* )bytes, byteCount );
@@ -56,7 +56,7 @@ String Join( const Vector< String >& lines, StringView separator )
 {
   String curSeparator;
   String result;
-  for( StringView line : lines )
+  for( auto& line : lines )
   {
     result += curSeparator;
     curSeparator = separator;

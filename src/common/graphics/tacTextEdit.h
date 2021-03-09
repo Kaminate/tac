@@ -4,6 +4,7 @@
 
 namespace Tac
 {
+  struct String;
   enum class TextInputKey
   {
     LeftArrow,

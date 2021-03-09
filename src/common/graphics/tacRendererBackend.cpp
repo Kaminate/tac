@@ -4,6 +4,7 @@
 #include "src/common/tacOS.h"
 #include "src/common/tacIDCollection.h"
 #include "src/shell/tacDesktopApp.h"
+#include "src/common/tacErrorHandling.h"
 
 #include <iostream>
 

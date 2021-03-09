@@ -1,5 +1,7 @@
 #pragma once
 
+#pragma warning(disable: 26812)
+
 #include "src/common/tacString.h"
 #include "src/common/containers/tacVector.h"
 #include "src/common/tacPreprocessor.h"

@@ -54,7 +54,7 @@ namespace Tac
 
   static String GetDirectX11ShaderPath( StringView shaderName )
   {
-    return "assets/hlsl/" + shaderName + ".fx";
+    return "assets/hlsl/" + String( shaderName ) + ".fx";
   }
 
   static String TryInferDX11ErrorStr( HRESULT res )
@@ -125,7 +125,7 @@ namespace Tac
       return;
 
     auto myDXGIGetDebugInterface =
-      ( HRESULT( WINAPI * )( REFIID, void** ) )GetProcAddress(
+      ( HRESULT( WINAPI* )( REFIID, void** ) )GetProcAddress(
       Dxgidebughandle,
       "DXGIGetDebugInterface" );
 
@@ -217,7 +217,7 @@ namespace Tac
   static UINT GetMiscFlags( Binding binding )
   {
     if( ( int )binding & ( int )Binding::RenderTarget &&
-      ( int )binding & ( int )Binding::ShaderResource )
+        ( int )binding & ( int )Binding::ShaderResource )
       return D3D11_RESOURCE_MISC_GENERATE_MIPS;
     return 0;
   }
@@ -303,7 +303,8 @@ namespace Tac
 
   RendererDirectX11::~RendererDirectX11()
   {
-    mDxgi.Uninit();
+    DXGIUninit();
+    //mDxgi.Uninit();
     if( mDeviceContext )
     {
       mDeviceContext->Release();
@@ -335,7 +336,9 @@ namespace Tac
       createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 
     D3D_FEATURE_LEVEL featureLevel;
-    auto featureLevelArray = MakeArray< D3D_FEATURE_LEVEL >( D3D_FEATURE_LEVEL_11_0 );
+    D3D_FEATURE_LEVEL featureLevels[ 10 ];
+    int featureLevelCount = 0;
+    featureLevels[ featureLevelCount++ ] = D3D_FEATURE_LEVEL_11_0;
 
     IDXGIAdapter* pAdapter = NULL;
     D3D_DRIVER_TYPE DriverType = D3D_DRIVER_TYPE_HARDWARE;
@@ -347,8 +350,8 @@ namespace Tac
                    DriverType,
                    Software,
                    createDeviceFlags,
-                   featureLevelArray.data(),
-                   featureLevelArray.size(),
+                   featureLevels,
+                   featureLevelCount,
                    D3D11_SDK_VERSION,
                    &mDevice,
                    &featureLevel,
@@ -364,7 +367,8 @@ namespace Tac
       TAC_HANDLE_ERROR( errors );
     }
 
-    mDxgi.Init( errors );
+    DXGIInit( errors );
+    //mDxgi.Init( errors );
     TAC_HANDLE_ERROR( errors );
 
   }
@@ -684,8 +688,7 @@ namespace Tac
     char data[ buffersize ] = {};
 
     UINT pDataSize = buffersize;
-    directXObject->GetPrivateData(
-      WKPDID_D3DDebugObjectName,
+    directXObject->GetPrivateData( WKPDID_D3DDebugObjectName,
       &pDataSize,
       &data );
 
@@ -695,13 +698,15 @@ namespace Tac
       newname += String( data, pDataSize );
       newname += " --and-- ";
 
-      auto hide = MakeArray< D3D11_MESSAGE_ID >( D3D11_MESSAGE_ID_SETPRIVATEDATA_CHANGINGPARAMS );
+      D3D11_MESSAGE_ID hide[ 10 ];
+      int hideCount = 0;
+      hide[ hideCount++ ] = D3D11_MESSAGE_ID_SETPRIVATEDATA_CHANGINGPARAMS;
       D3D11_INFO_QUEUE_FILTER filter = {};
-      filter.DenyList.NumIDs = hide.size();
-      filter.DenyList.pIDList = hide.data();
+      filter.DenyList.NumIDs = hideCount;
+      filter.DenyList.pIDList = hide;
       mInfoQueueDEBUG->PushStorageFilter( &filter );
     }
-    newname += name;
+    newname += String( name );
 
     directXObject->SetPrivateData(
       WKPDID_D3DDebugObjectName,
@@ -728,7 +733,7 @@ namespace Tac
     TAC_ASSERT( !data->mOptionalInitialBytes || Render::IsSubmitAllocated( data->mOptionalInitialBytes ) );
     D3D11_SUBRESOURCE_DATA initData = {};
     initData.pSysMem = data->mOptionalInitialBytes;
-    D3D11_SUBRESOURCE_DATA *pInitData = data->mOptionalInitialBytes ? &initData : nullptr;
+    D3D11_SUBRESOURCE_DATA* pInitData = data->mOptionalInitialBytes ? &initData : nullptr;
     ID3D11Buffer* buffer;
     TAC_DX11_CALL( errors,
                    mDevice->CreateBuffer,
@@ -830,7 +835,7 @@ namespace Tac
   void RendererDirectX11::AddSamplerState( Render::CommandDataCreateSamplerState* commandData,
                                            Errors& errors )
   {
-    Render::CommandDataCreateSamplerState &samplerStateData = *commandData;
+    Render::CommandDataCreateSamplerState& samplerStateData = *commandData;
     TAC_ASSERT( IsMainThread() );
     D3D11_SAMPLER_DESC desc = {};
     desc.Filter = GetFilter( commandData->mSamplerState.mFilter );
@@ -987,7 +992,7 @@ namespace Tac
       subResource->SysMemSlicePitch = data->mTexSpec.mPitch * data->mTexSpec.mImage.mHeight;
     }
     const bool isCubemap = iSubresource == 6;
-    D3D11_SUBRESOURCE_DATA *pInitialData = iSubresource ? subResources : nullptr;
+    D3D11_SUBRESOURCE_DATA* pInitialData = iSubresource ? subResources : nullptr;
 
     const UINT MiscFlags = GetMiscFlags( data->mTexSpec.mBinding ) |
       ( isCubemap ? D3D11_RESOURCE_MISC_TEXTURECUBE : 0 );
@@ -1113,27 +1118,25 @@ namespace Tac
     const int bufferCount = 4;
     const UINT width = data->mWidth;
     const UINT height = data->mHeight;
-    mDxgi.CreateSwapChain( hwnd,
-                           mDevice,
-                           bufferCount,
-                           width,
-                           height,
-                           &swapChain,
-                           errors );
+    DXGICreateSwapChain( hwnd,
+                         mDevice,
+                         bufferCount,
+                         width,
+                         height,
+                         &swapChain,
+                         errors );
     TAC_HANDLE_ERROR( errors );
 
     ID3D11Device* device = RendererDirectX11::Instance->mDevice;
     DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
     swapChain->GetDesc( &swapChainDesc );
 
-    ID3D11Texture2D* pBackBuffer;
+    ID3D11Texture2D* pBackBuffer = nullptr;
     TAC_DXGI_CALL( errors, swapChain->GetBuffer, 0, IID_PPV_ARGS( &pBackBuffer ) );
+    TAC_HANDLE_ERROR_IF( !pBackBuffer, "no buffer to resize", errors );
     ID3D11RenderTargetView* rtv = nullptr;
     D3D11_RENDER_TARGET_VIEW_DESC* rtvDesc = nullptr;
-    TAC_DX11_CALL( errors, device->CreateRenderTargetView,
-                   pBackBuffer,
-                   rtvDesc,
-                   &rtv );
+    TAC_DX11_CALL( errors, device->CreateRenderTargetView, pBackBuffer, rtvDesc, &rtv );
     pBackBuffer->Release();
 
     D3D11_RENDER_TARGET_VIEW_DESC createdDesc = {};
@@ -1173,7 +1176,7 @@ namespace Tac
 
   void RendererDirectX11::RemoveVertexBuffer( Render::VertexBufferHandle vertexBufferHandle, Errors& errors )
   {
-    VertexBuffer *vertexBuffer = &mVertexBuffers[ ( int )vertexBufferHandle ];
+    VertexBuffer* vertexBuffer = &mVertexBuffers[ ( int )vertexBufferHandle ];
     TAC_RELEASE_IUNKNOWN( vertexBuffer->mBuffer );
     *vertexBuffer = VertexBuffer();
   }
@@ -1185,7 +1188,7 @@ namespace Tac
 
   void RendererDirectX11::RemoveIndexBuffer( Render::IndexBufferHandle indexBufferHandle, Errors& )
   {
-    IndexBuffer *indexBuffer = &mIndexBuffers[ ( int )indexBufferHandle ];
+    IndexBuffer* indexBuffer = &mIndexBuffers[ ( int )indexBufferHandle ];
     TAC_RELEASE_IUNKNOWN( indexBuffer->mBuffer );
     *indexBuffer = IndexBuffer();
   }
@@ -1360,8 +1363,9 @@ namespace Tac
                                             data->mHeight,
                                             DXGI_FORMAT_UNKNOWN,
                                             desc.Flags );
-    ID3D11Texture2D* pBackBuffer;
+    ID3D11Texture2D* pBackBuffer = nullptr;
     TAC_DXGI_CALL( errors, swapChain->GetBuffer, 0, IID_PPV_ARGS( &pBackBuffer ) );
+    TAC_HANDLE_ERROR_IF( !pBackBuffer, "no buffer to resize", errors );
     ID3D11RenderTargetView* rtv = nullptr;
     D3D11_RENDER_TARGET_VIEW_DESC* rtvDesc = nullptr;
     TAC_DX11_CALL( errors, mDevice->CreateRenderTargetView,

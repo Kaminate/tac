@@ -7,6 +7,8 @@
 #include "src/common/tacPreprocessor.h"
 #include <algorithm>
 
+#pragma warning( disable: 6011)
+
 namespace Tac
 {
 
@@ -216,7 +218,7 @@ namespace Tac
 			Json componentJson;
 			if( entry->mSaveFn )
 				entry->mSaveFn( componentJson, component );
-			entityJson[ entry->mName ].DeepCopy( &componentJson );
+			entityJson[ StringView( entry->mName ) ].DeepCopy( &componentJson );
 		}
 
 		if( !entity->mChildren.empty() )

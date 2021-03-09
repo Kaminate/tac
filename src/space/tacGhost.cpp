@@ -1,32 +1,33 @@
-
+#include "src/common/graphics/imgui/tacImGui.h"
+#include "src/common/graphics/imgui/tacImGui.h"
 #include "src/common/graphics/tacFont.h"
-#include "src/common/graphics/imgui/tacImGui.h"
-#include "src/common/graphics/imgui/tacImGui.h"
 #include "src/common/graphics/tacRenderer.h"
 #include "src/common/graphics/tacUI.h"
 #include "src/common/math/tacMath.h"
 #include "src/common/tacAlgorithm.h"
+#include "src/common/tacControllerinput.h"
+#include "src/common/tacKeyboardinput.h"
 #include "src/common/tacLocalization.h"
+#include "src/common/tacMemory.h"
+#include "src/common/tacMeta.h"
 #include "src/common/tacPreprocessor.h"
 #include "src/common/tacSettings.h"
 #include "src/common/tacShell.h"
+#include "src/common/tacShellTimer.h"
 #include "src/common/tacTime.h"
 #include "src/common/tacUtility.h"
-#include "src/common/tacControllerinput.h"
-#include "src/common/tacKeyboardinput.h"
-#include "src/common/tacMeta.h"
-#include "src/common/tacMemory.h"
-#include "src/space/tacGhost.h"
-#include "src/space/tacClient.h"
 #include "src/space/collider/tacCollider.h"
-#include "src/space/tacEntity.h"
 #include "src/space/graphics/tacGraphics.h"
 #include "src/space/physics/tacPhysics.h"
+#include "src/space/tacClient.h"
+#include "src/space/tacEntity.h"
+#include "src/space/tacGhost.h"
 #include "src/space/tacPlayer.h"
 #include "src/space/tacScript.h"
 #include "src/space/tacScriptgameclient.h"
 #include "src/space/tacServer.h"
 #include "src/space/tacWorld.h"
+
 #include <fstream>
 #include <iostream>
 #include <utility>
@@ -139,7 +140,7 @@ namespace Tac
       TAC_HANDLE_ERROR( errors );
     }
 
-    //mUIRoot->mElapsedSeconds = &Shell::Instance.mElapsedSeconds; // eww
+    //mUIRoot->mElapsedSeconds = &ShellGetElapsedSeconds(); // eww
     //mUIRoot->mGhost = this;
   }
   Ghost::~Ghost()

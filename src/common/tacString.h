@@ -1,11 +1,7 @@
 #pragma once
 
-//#include <iostream> // temp?
-//#include <initializer_list>
-
 namespace Tac
 {
-
   struct String;
   struct StringView;
 
@@ -39,6 +35,7 @@ namespace Tac
     const char* end() const;
     const char* c_str() const;
     bool empty() const;
+    operator const char* ( ){ return mStr; }
 
     // searches this stringview for the last character which matches any of the characters in s,
     // return npos if no matches
@@ -82,6 +79,7 @@ namespace Tac
     void operator += ( const char* str );
     void operator += ( const String& s );
     void operator += ( char c );
+    operator const char* ( ){ return mStr; }
     void push_back( char c );
     void assign( const char* str, int strLen );
     void append( const char* str, int strLen );
@@ -133,23 +131,26 @@ namespace Tac
   //  return result;
   //}
 
-  String operator + ( char c, const String& s );
-  String operator + ( const String& s, char c );
-  String operator + ( const String& s, const char* c );
-  String operator + ( const String& lhs, const String& rhs );
-  bool operator == ( const String& a, const String& b );
-  bool operator != ( const String& a, const String& b );
-  bool operator < ( const String& a, const String& b );
+  String operator + ( char, const String& );
+  String operator + ( const String&, char );
+  String operator + ( const String&, const char* );
+  String operator + ( const String&, const String& );
+  String operator + ( const char*, const String& );
+  String operator + ( const char*, const StringView& );
+
+  bool operator == ( const String& , const String&  );
+  bool operator != ( const String& , const String&  );
+  bool operator < ( const String& , const String&  );
 
   // For printing Tac::String to std::cout
   //std::ostream& operator << ( std::ostream& os, StringView s );
   //std::istream& operator >> ( std::istream& is, String& s );
 
-  bool operator == ( const StringView& a, const StringView& b );
-  bool operator == ( const StringView& a, const String& b );
-  bool operator == ( const StringView& a, const char* b );
-  bool operator == ( const String& a, const StringView& b );
-  bool operator == ( const String& a, const char* b );
+  bool operator == ( const StringView&, const StringView& );
+  bool operator == ( const StringView&, const String& );
+  bool operator == ( const StringView&, const char* );
+  bool operator == ( const String&, const StringView& );
+  bool operator == ( const String&, const char* );
 
   struct StringID
   {

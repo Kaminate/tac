@@ -6,8 +6,26 @@
 #include "src/common/tacTextParser.h"
 #include "src/common/tacTemporaryMemory.h"
 
+#include <map>
+
 namespace Tac
 {
+  struct LocalizedStringStuff
+  {
+    void                SetCodepoints( CodepointView );
+    // TODO: don't bother storing the codepoints, just compute them on the fly
+    Vector< Codepoint > mCodepoints;
+    String              mUTF8String;
+  };
+
+  typedef std::map< Language, LocalizedStringStuff > LanguageMap;
+  struct LocalizedString
+  {
+    String               mReference;
+    LanguageMap          mCodepoints;
+  };
+
+
   static void             LoadLanguageMapEntry( LanguageMap* languageMap, ParseData& parseData )
   {
     const StringView word = parseData.EatWord();
@@ -36,7 +54,7 @@ namespace Tac
     return true;
   }
 
-  Localization gLocalization;
+  static Vector< LocalizedString > mLocalizedStrings;
   const String Languages[ ( int )Language::Count ] =
   {
     "Arabic",
@@ -72,6 +90,8 @@ namespace Tac
     for( int i = 0; i < codepoints.size(); ++i )
       mCodepoints[ i ] = codepoints[ i ];
   }
+
+  //===--- Converter ---===//
 
   struct Converter
   {
@@ -130,12 +150,13 @@ namespace Tac
       ( ( 0b00000111 & b0 ) << 18 );
   }
 
-  char Converter::GetNextByte()
+  char      Converter::GetNextByte()
   {
     return mBegin < mEnd ? *mBegin++ : 0;
   }
 
 
+  //===--- Codepoint View ---===//
 
   CodepointView::CodepointView( const Codepoint* codepoints, int codepointCount )
   {
@@ -159,17 +180,17 @@ namespace Tac
     return mCodepoints + mCodepointCount;
   }
 
-  int CodepointView::size() const
+  int              CodepointView::size() const
   {
     return mCodepointCount;
   }
 
-  bool CodepointView::empty() const
+  bool             CodepointView::empty() const
   {
     return mCodepointCount == 0;
   }
 
-  Codepoint CodepointView::operator[]( int i ) const
+  Codepoint        CodepointView::operator[]( int i ) const
   {
     return mCodepoints[ i ];
   }
@@ -234,21 +255,23 @@ namespace Tac
     return StringView( str, len );
   }
 
-  const Vector< Codepoint >& Localization::GetString( Language language, StringView reference )
+  //===--- Localization ---===//
+
+  CodepointView LocalizationGetString( Language language, StringView reference )
   {
-    for( const auto& localizedString : mLocalizedStrings )
+    CodepointView codepointView;
+    for( const LocalizedString& localizedString : mLocalizedStrings )
     {
       if( localizedString.mReference != reference )
         continue;
-      return localizedString.mCodepoints.at( language ).mCodepoints;
+      const LocalizedStringStuff& localizedStringStuff = localizedString.mCodepoints.at( language );
+      codepointView = CodepointView( localizedStringStuff.mCodepoints.data(),
+                                     localizedStringStuff.mCodepoints.size() );
     }
-    TAC_ASSERT_INVALID_CODE_PATH;
-    static Vector< Codepoint > result;
-    return result;
+    return codepointView;
   }
 
-
-  void Localization::Load( StringView path, Errors& errors )
+  void          LocalizationLoad( StringView path, Errors& errors )
   {
     const TemporaryMemory temporaryMemory = TemporaryMemoryFromFile( path, errors );
     TAC_HANDLE_ERROR( errors );
@@ -260,7 +283,7 @@ namespace Tac
 
   }
 
-  void Localization::DebugImgui()
+  void          LocalizationDebugImgui()
   {
     //if( !ImGui::CollapsingHeader( "Localization" ) )
     //  return;

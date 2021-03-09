@@ -4,6 +4,9 @@
 #include "src/common/tacMemory.h"
 #include "src/common/tacErrorHandling.h"
 #include "src/common/profile/tacProfile.h"
+
+#include <cmath>
+
 namespace Tac
 {
 

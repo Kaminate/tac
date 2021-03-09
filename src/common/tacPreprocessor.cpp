@@ -2,6 +2,7 @@
 #include "src/common/tacUtility.h"
 #include "src/common/tacOS.h"
 #include <cstdarg>
+#include <cstdio> // vsnprintf
 
 namespace Tac
 {

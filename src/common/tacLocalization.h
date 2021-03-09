@@ -8,14 +8,18 @@
 #pragma once
 
 //#include "src/common/Preprocessor.h"
-#include "src/common/tacString.h"
-#include "src/common/tacErrorHandling.h"
-#include "src/common/containers/tacVector.h"
-#include <map>
+//#include "src/common/tacString.h"
+//#include "src/common/tacErrorHandling.h"
+//#include "src/common/containers/tacVector.h"
+
+#include <cinttypes> // uint32_t
 
 namespace Tac
 {
   typedef uint32_t Codepoint;
+
+  struct StringView;
+  struct Errors;
 
   enum class Language
   {
@@ -52,33 +56,12 @@ namespace Tac
   bool operator != ( CodepointView, CodepointView );
 
   CodepointView UTF8ToCodepoints( StringView );
-  StringView CodepointsToUTF8( CodepointView );
+  StringView    CodepointsToUTF8( CodepointView );
 
 
-  struct LocalizedStringStuff
-  {
-    void                SetCodepoints( CodepointView );
-    // TODO: don't bother storing the codepoints, just compute them on the fly
-    Vector< Codepoint > mCodepoints;
-    String              mUTF8String;
-  };
 
-  typedef std::map< Language, LocalizedStringStuff > LanguageMap;
 
-  struct LocalizedString
-  {
-    String               mReference;
-    LanguageMap          mCodepoints;
-  };
-
-  struct Localization
-  {
-    const Vector< Codepoint >& GetString( Language language, StringView reference );
-    void                       Load( StringView path, Errors& );
-    void                       DebugImgui();
-    Vector< LocalizedString >  mLocalizedStrings;
-  };
-
-  extern Localization gLocalization;
-
+  CodepointView              LocalizationGetString( Language language, StringView reference );
+  void                       LocalizationLoad( StringView path, Errors& );
+  void                       LocalizationDebugImgui();
 }

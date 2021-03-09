@@ -7,6 +7,8 @@
 #include "src/common/profile/tacProfile.h"
 #include "src/common/math/tacMath.h"
 
+#include <cmath>
+
 namespace Tac
 {
   UI2DCommonData gUI2DCommonData;
@@ -16,7 +18,8 @@ namespace Tac
     // mRenderView->mViewportRect.mViewportPixelWidthIncreasingRight?
     float sx = 2.0f / w;
     float sy = 2.0f / h;
-    auto projectionPieces = MakeArray< m4 >(
+    m4 projectionPieces [] =
+    {
       // orient to bottom left
       m4( 1, 0, 0, 0,
           0, -1, 0, ( float )h,
@@ -26,9 +29,10 @@ namespace Tac
       m4( sx, 0, 0, -1,
           0, sy, 0, -1,
           0, 0, 1, 0,
-          0, 0, 0, 1 ) );
+          0, 0, 0, 1 )
+    };
     m4 projection = m4::Identity();
-    for( m4 projectionPiece : projectionPieces )
+    for( const m4& projectionPiece : projectionPieces )
       projection = projectionPiece * projection;
     return projection;
   }

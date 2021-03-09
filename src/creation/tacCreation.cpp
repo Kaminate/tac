@@ -9,6 +9,7 @@
 #include "src/common/tacAlgorithm.h"
 #include "src/common/tacTime.h"
 #include "src/common/tacOS.h"
+#include "src/common/tacShellTimer.h"
 #include "src/common/tacPreprocessor.h"
 #include "src/common/tacKeyboardinput.h"
 #include "src/common/profile/tacProfile.h"
@@ -446,7 +447,7 @@ namespace Tac
       if( CreationGameWindow::Instance )
       {
         CreationGameWindow::Instance->mStatusMessage = "Saved prefabs!";
-        CreationGameWindow::Instance->mStatusMessageEndTime = Shell::Instance.mElapsedSeconds + 5.0f;
+        CreationGameWindow::Instance->mStatusMessageEndTime = ShellGetElapsedSeconds() + 5.0f;
       }
     }
 
@@ -628,9 +629,9 @@ namespace Tac
 
   void                Creation::ModifyPathRelative( String& savePath )
   {
-    if( StartsWith( savePath, Shell::Instance.mInitialWorkingDir ) )
+    if( StartsWith( savePath, ShellGetInitialWorkingDir() ) )
     {
-      savePath = savePath.substr( Shell::Instance.mInitialWorkingDir.size() );
+      savePath = savePath.substr( String( ShellGetInitialWorkingDir() ).size() );
       savePath = StripLeadingSlashes( savePath );
     }
   }

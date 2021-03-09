@@ -11,7 +11,7 @@ namespace Tac
 {
   struct Support
   {
-    virtual v3 GetFurthestPoint( const v3& dir ) = 0;
+    virtual v3 GetFurthestPoint( const v3& dir ) const = 0;
   };
 
   struct SphereSupport : public Support
@@ -19,8 +19,8 @@ namespace Tac
     SphereSupport() = default;
     SphereSupport( v3 origin,
                    float radius );
-    v3 GetFurthestPoint( const v3& dir ) override;
-    v3 mOrigin;
+    v3 GetFurthestPoint( const v3& dir ) const override;
+    v3 mOrigin = {};
     float mRadius = 0;
   };
 
@@ -30,10 +30,10 @@ namespace Tac
     CapsuleSupport( v3 base,
                     float height,
                     float radius );
-    v3 GetFurthestPoint( const v3& dir ) override;
-    v3 mBotSpherePos;
-    v3 mTopSpherePos;
-    float mRadius;
+    v3 GetFurthestPoint( const v3& dir ) const override;
+    v3 mBotSpherePos = {};
+    v3 mTopSpherePos = {};
+    float mRadius = 0;
   };
 
   struct ConvexPolygonSupport : public Support
@@ -42,16 +42,17 @@ namespace Tac
     ConvexPolygonSupport( v3 obbPos,
                           v3 obbHalfExtents,
                           v3 obbEulerRads );
-    v3 GetFurthestPoint( const v3& dir ) override;
+    v3 GetFurthestPoint( const v3& dir ) const override;
     Vector< v3 > mPoints;
   };
 
   struct CompoundSupport
   {
     // what is a diffpt
-    v3 mDiffPt;
+    v3 mDiffPt = {};
+
     // what is a leftpt
-    v3 mLeftPoint;
+    v3 mLeftPoint = {};
   };
 
   struct EPATriangle
@@ -70,8 +71,8 @@ namespace Tac
     CompoundSupport mV0;
     CompoundSupport mV1;
     CompoundSupport mV2;
-    v3 mNormal;
-    float mPlaneDist;
+    v3 mNormal = {};
+    float mPlaneDist = 0;
   };
 
   struct EPAHalfEdge
@@ -79,7 +80,7 @@ namespace Tac
     EPAHalfEdge() = default;
     EPAHalfEdge( CompoundSupport from,
                  CompoundSupport to );
-    EPAHalfEdge Reverse();
+    EPAHalfEdge Reverse() const;
     bool operator == ( const EPAHalfEdge& other ) const;
     CompoundSupport mFrom;
     CompoundSupport mTo;
@@ -88,8 +89,8 @@ namespace Tac
   struct GJK
   {
     GJK() = default;
-    GJK( Support* left,
-         Support* right );
+    GJK( const Support* left,
+         const Support* right );
     void EnsureCorrectTetrahedronOrientation();
     void Step();
     void EPAStep();
@@ -101,8 +102,8 @@ namespace Tac
     v3 mNormalizedSearchDir = { 1, 0, 0 };
     v3 mClosestPoint = {};
     Vector< CompoundSupport > mSupports;
-    Support* mLeft = nullptr;
-    Support* mRight = nullptr;
+    const Support* mLeft = nullptr;
+    const Support* mRight = nullptr;
 
     bool mEPAIsComplete = false;
     std::list< EPATriangle > mEPATriangles;

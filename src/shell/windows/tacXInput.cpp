@@ -3,6 +3,8 @@
 #include "src/common/math/tacMath.h"
 #include "src/common/tacShell.h"
 #include "src/common/tacTime.h"
+#include "src/common/tacShellTimer.h"
+#include "src/common/tacErrorHandling.h"
 
 #include <algorithm>
 #include <cmath>

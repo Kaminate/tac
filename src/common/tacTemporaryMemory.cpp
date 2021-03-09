@@ -8,7 +8,7 @@ namespace Tac
     std::ifstream ifs( path.c_str(), std::ifstream::binary );
     if( !ifs.is_open() )
     {
-      const String errorMsg = "Error: Failed to open file " + path + " while allocating temporary memory";
+      const String errorMsg = "Error: Failed to open file " + String( path ) + " while allocating temporary memory";
       errors.Append( errorMsg );
       errors.Append( TAC_STACK_FRAME );
       return {};
@@ -32,7 +32,7 @@ namespace Tac
     std::ofstream ofs( path.c_str(), std::ofstream::binary );
     if( !ofs.is_open() )
     {
-      const String errMsg =  "Failed to open file " + path + " for saving";
+      const String errMsg =  "Failed to open file " + String( path ) + " for saving";
       TAC_RAISE_ERROR( errMsg, errors );
     }
     ofs.write( ( const char* )bytes, ( std::streamsize ) byteCount );

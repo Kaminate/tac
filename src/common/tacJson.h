@@ -35,6 +35,8 @@ namespace Tac
 	struct Json
 	{
 		// Assign common types at time of creation
+		Json( String );
+		Json( const char* );
 		Json( StringView );
 		Json( JsonNumber );
 		Json( bool );

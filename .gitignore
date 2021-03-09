@@ -1,4 +1,6 @@
 build/
+build_vs2017/
+build_vs2019/
 x64/
 
 assets/imgui.ini

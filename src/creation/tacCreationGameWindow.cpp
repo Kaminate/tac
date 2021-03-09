@@ -5,6 +5,7 @@
 #include "src/common/graphics/tacRenderer.h"
 #include "src/common/graphics/tacUI.h"
 #include "src/common/graphics/tacUI2D.h"
+#include "src/common/tacShellTimer.h"
 #include "src/common/tacDesktopWindow.h"
 #include "src/common/tacKeyboardinput.h"
 #include "src/common/tacOS.h"
@@ -228,7 +229,7 @@ namespace Tac
 
     enum class PickedObject
     {
-      None,
+      None = 0,
       Entity,
       WidgetTranslationArrow,
       WidgetScaleCube,
@@ -236,8 +237,8 @@ namespace Tac
 
     struct
     {
-      PickedObject pickedObject = PickedObject::None;
-      float closestDist = 0;
+      PickedObject pickedObject;
+      float closestDist;
       union
       {
         Entity* closest;
@@ -248,7 +249,7 @@ namespace Tac
         bool result = pickedObject == PickedObject::None || dist < closestDist;
         return result;
       }
-    } pickData;
+    } pickData = {};
 
     bool hit;
     float dist;
@@ -349,8 +350,6 @@ namespace Tac
     const float h = ( float )desktopWindowState->mHeight;
     const float x = ( float )desktopWindowState->mX;
     const float y = ( float )desktopWindowState->mY;
-    if( gKeyboardInput.mCurr.mScreenspaceCursorPosErrors )
-      return;
     const v2 screenspaceCursorPos = gKeyboardInput.mCurr.mScreenspaceCursorPos;
     float xNDC = ( ( screenspaceCursorPos.x - x ) / w );
     float yNDC = ( ( screenspaceCursorPos.y - y ) / h );
@@ -555,7 +554,7 @@ namespace Tac
       }
     }
 
-    if( Shell::Instance.mElapsedSeconds < mStatusMessageEndTime )
+    if( ShellGetElapsedSeconds() < mStatusMessageEndTime )
     {
       ImGuiText( mStatusMessage );
     }

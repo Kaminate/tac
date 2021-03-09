@@ -4,28 +4,23 @@
 #include "src/common/tacErrorHandling.h"
 #include "src/common/graphics/tacRenderer.h"
 
-#include <dxgi1_6.h> // IDXGIFactory4, IDXGIAdapter4
+#include <dxgiformat.h> // DXGI_FORMAT
+#include <dxgi.h> // IDXGIObject
 
 #define TAC_RELEASE_IUNKNOWN( p ) { if( p ){ p->Release(); p = nullptr; } }
 
 namespace Tac
 {
 
-  struct DXGI
-  {
-    ~DXGI();
-    void           Init( Errors& );
-    void           Uninit();
-    void           CreateSwapChain( HWND hwnd,
+    void           DXGIInit( Errors& );
+    void           DXGIUninit();
+    void           DXGICreateSwapChain( HWND hwnd,
                                     IUnknown* pDevice,
                                     int bufferCount,
                                     UINT width,
                                     UINT height,
                                     IDXGISwapChain** ppSwapChain,
                                     Errors& errors );
-    IDXGIFactory4* mFactory = nullptr;
-    IDXGIAdapter4* mDxgiAdapter4 = nullptr;
-  };
 
 
   Format GetFormat( DXGI_FORMAT format );

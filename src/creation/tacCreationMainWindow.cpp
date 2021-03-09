@@ -1,20 +1,22 @@
-#include "src/creation/tacCreationMainWindow.h"
-#include "src/creation/tacCreationGameObjectMenuWindow.h"
-#include "src/creation/tacCreation.h"
-#include "src/common/tacEvent.h"
-#include "src/common/tacOS.h"
-#include "src/common/tacDesktopWindow.h"
+#include "src/common/assetmanagers/tacTextureAssetManager.h"
+#include "src/common/graphics/imgui/tacImGui.h"
 #include "src/common/graphics/tacUI.h"
 #include "src/common/graphics/tacUI2D.h"
 #include "src/common/tacDesktopWindow.h"
-#include "src/common/tacShell.h"
-#include "src/common/assetmanagers/tacTextureAssetManager.h"
+#include "src/common/tacDesktopWindow.h"
+#include "src/common/tacEvent.h"
 #include "src/common/tacKeyboardinput.h"
-#include "src/common/graphics/imgui/tacImGui.h"
-#include "src/space/tacWorld.h"
-#include "src/space/tacEntity.h"
+#include "src/common/tacOS.h"
+#include "src/common/tacShell.h"
+#include "src/common/tacShellTimer.h"
+#include "src/common/tacShellTimer.h"
+#include "src/creation/tacCreation.h"
+#include "src/creation/tacCreationGameObjectMenuWindow.h"
+#include "src/creation/tacCreationMainWindow.h"
 #include "src/shell/tacDesktopApp.h"
 #include "src/shell/tacDesktopWindowGraphics.h"
+#include "src/space/tacEntity.h"
+#include "src/space/tacWorld.h"
 
 #include <iostream>
 
@@ -99,13 +101,9 @@ namespace Tac
 
 
 
-#if 1
-
-    Shell::Instance.mAccumulatorSeconds;
+#if 0
 
 
-    static String s = "hello";
-    ImGuiInputText( "poop", s );
 #else
     ImGuiBeginMenuBar();
     ImGuiText( "file | edit | window" );
@@ -211,7 +209,7 @@ namespace Tac
 
       if( gKeyboardInput.IsKeyJustDown( Key::MouseLeft )
           && !IsWindowHovered( desktopWindowHandle )
-          && Shell::Instance.mElapsedSeconds != CreationGameObjectMenuWindow::Instance->mCreationSeconds )
+          && ShellGetElapsedSeconds() != CreationGameObjectMenuWindow::Instance->mCreationSeconds )
       {
         delete CreationGameObjectMenuWindow::Instance;
       }

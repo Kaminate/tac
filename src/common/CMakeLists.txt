@@ -85,6 +85,8 @@ ${CMAKE_CURRENT_SOURCE_DIR}/containers/tacRingBuffer.h
 ${CMAKE_CURRENT_SOURCE_DIR}/containers/tacRingVector.h
 ${CMAKE_CURRENT_SOURCE_DIR}/tacSerialization.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/tacSerialization.h
+${CMAKE_CURRENT_SOURCE_DIR}/tacShellTimer.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/tacShellTimer.h
 ${CMAKE_CURRENT_SOURCE_DIR}/tacShell.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/tacShell.h
 ${CMAKE_CURRENT_SOURCE_DIR}/tacSettings.cpp
@@ -120,4 +122,10 @@ ENDIF()
 
 # Create a library named CommonLibrary
 add_library( "CommonLibrary" ${Common} )
+target_precompile_headers( "CommonLibrary" 
+
+# PUBLIC 
+PRIVATE
+  ${CMAKE_CURRENT_SOURCE_DIR}/tacPrecompiledHeader.h
+)
 
