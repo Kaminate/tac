@@ -2,6 +2,7 @@
 #include "src/space/tacEntity.h"
 #include "src/space/tacSystem.h"
 #include "src/space/tacWorld.h"
+#include "src/common/tacFrameMemory.h"
 #include "src/common/tacAlgorithm.h"
 #include "src/common/tacJson.h"
 #include "src/common/tacPreprocessor.h"
@@ -11,7 +12,61 @@
 
 namespace Tac
 {
+  struct ComponentFindFunctor
+  {
+    bool operator()( Component* component ) { return component->GetEntry() == componentRegistryEntry; }
+    const ComponentRegistryEntry* componentRegistryEntry;
+  };
 
+	static v3 Vector3FromJson( Json& json )
+	{
+		v3 v =
+		{
+			( float )json[ "x" ].mNumber,
+			( float )json[ "y" ].mNumber,
+			( float )json[ "z" ].mNumber,
+		};
+		return v;
+	}
+	static Json* Vector3ToJson( v3 v )
+	{
+		static Json json;
+		json.GetChild( "x" ).SetNumber( v.x );
+		json.GetChild( "y" ).SetNumber( v.y );
+		json.GetChild( "z" ).SetNumber( v.z );
+		return &json;
+	}
+
+  void                      Components::Add( Component* component )
+  {
+    mComponents.push_back( component );
+  }
+
+  void                      Components::Clear()
+  {
+    mComponents.clear();
+  }
+
+  Component*                Components::Remove( const ComponentRegistryEntry* componentRegistryEntry)
+  {
+    auto it = std::find_if( mComponents.begin(),
+                            mComponents.end(),
+                            ComponentFindFunctor{ componentRegistryEntry } );
+		TAC_ASSERT( it != mComponents.end() );
+		Component* component = *it;
+		mComponents.erase( it );
+    return component;
+  }
+
+  Components::ConstIterator Components::begin() const
+  {
+    return mComponents.begin();
+  }
+
+  Components::ConstIterator Components::end() const
+  {
+    return mComponents.end();
+  }
 
 	Entity::~Entity()
 	{
@@ -19,29 +74,29 @@ namespace Tac
 		// Assert that the world no longer contains this entity?
 	}
 
-	void Entity::RemoveAllComponents()
+	void             Entity::RemoveAllComponents()
 	{
 		for( Component* component : mComponents )
 		{
 			ComponentRegistryEntry* entry = component->GetEntry();
 			entry->mDestroyFn( mWorld, component );
 		}
-		mComponents.clear();
+		mComponents.Clear();
 	}
 
-	Component* Entity::AddNewComponent( const ComponentRegistryEntry* entry )
+	Component*       Entity::AddNewComponent( const ComponentRegistryEntry* entry )
 	{
 		TAC_ASSERT( entry );
 		TAC_ASSERT( !HasComponent( entry ) );
 		TAC_ASSERT( entry->mCreateFn );
 		Component* component = entry->mCreateFn( mWorld );
 		TAC_ASSERT( component );
-		mComponents.push_back( component );
+    mComponents.Add( component );
 		component->mEntity = this;
 		return component;
 	}
 
-	Component* Entity::GetComponent( const ComponentRegistryEntry* entry )
+	Component*       Entity::GetComponent( const ComponentRegistryEntry* entry )
 	{
 		for( Component* component : mComponents )
 			if( component->GetEntry() == entry )
@@ -51,51 +106,36 @@ namespace Tac
 
 	const Component* Entity::GetComponent( const ComponentRegistryEntry* entry ) const
 	{
-		for( auto component : mComponents )
+		for( const Component* component : mComponents )
 			if( component->GetEntry() == entry )
 				return component;
 		return nullptr;
 	}
 
-	bool Entity::HasComponent( const ComponentRegistryEntry* entry )
+	bool             Entity::HasComponent( const ComponentRegistryEntry* entry )
 	{
 		return GetComponent( entry ) != nullptr;
 	}
 
-	void Entity::RemoveComponent( const ComponentRegistryEntry* entry )
+	void             Entity::RemoveComponent( const ComponentRegistryEntry* entry )
 	{
-		TAC_ASSERT_UNIMPLEMENTED;
-		auto it = std::find_if(
-			mComponents.begin(),
-			mComponents.end(),
-			[ & ]( Component* component ) { return component->GetEntry() == entry; } );
-		TAC_ASSERT( it != mComponents.end() );
-		Component* component = *it;
-		mComponents.erase( it );
-		//auto componentData = GetComponentData( componentType );
-		//auto system = mWorld->GetSystem( componentData->mSystemType );
-		//// todo:
-		////   break this up  into a thing
-		////   that auto does it when you register each system
-		//auto graphics = ( Graphics* )mWorld->GetSystem( SystemType::Graphics );
-		//switch( componentType )
-		//{
-		//  case ComponentRegistryEntryIndex::Say:
-		//    break;
-		//  case ComponentRegistryEntryIndex::Model:
-		//    graphics->DestroyModelComponent( ( Model* )component );
-		//    break;
-		//  case ComponentRegistryEntryIndex::Collider:
-		//    break;
-		//  case ComponentRegistryEntryIndex::Terrain:
-		//    break;
-		//    TAC_ASSERT_INVALID_DEFAULT_CASE( componentType );
-		//}
+		//TAC_ASSERT_UNIMPLEMENTED;
+		//auto it = std::find_if(
+		//	mComponents.begin(),
+		//	mComponents.end(),
+		//	[ & ]( Component* component ) { return component->GetEntry() == entry; } );
+		//TAC_ASSERT( it != mComponents.end() );
+		//Component* component = *it;
+		//mComponents.erase( it );
 
+		Component* component = mComponents.Remove( entry );
+
+    //ComponentRegistryEntry* entry = component->GetEntry();
+    entry->mDestroyFn( mWorld, component );
 	}
 
 
-	void Entity::DeepCopy( const Entity& entity )
+	void             Entity::DeepCopy( const Entity& entity )
 	{
 		//TAC_ASSERT( mWorld && entity.mWorld && mWorld != entity.mWorld );
 		mEntityUUID = entity.mEntityUUID;
@@ -115,7 +155,7 @@ namespace Tac
 		//}
 	}
 
-	void Entity::AddChild( Entity* child )
+	void             Entity::AddChild( Entity* child )
 	{
 		TAC_ASSERT( !Contains( mChildren, child ) );
 		TAC_ASSERT( child->mParent != this );
@@ -124,7 +164,7 @@ namespace Tac
 		mChildren.push_back( child );
 	}
 
-	void Entity::DebugImgui()
+	void             Entity::DebugImgui()
 	{
 #if 0
 		ImGui::PushID( this );
@@ -177,7 +217,7 @@ namespace Tac
 #endif
 	}
 
-	void Entity::Unparent()
+	void             Entity::Unparent()
 	{
 		if( !mParent )
 			return;
@@ -194,16 +234,8 @@ namespace Tac
 		// todo: relative positioning
 	}
 
-	static Json* Vector3ToJson( v3 v )
-	{
-		static Json json;
-		json.GetChild( "x" ).SetNumber( v.x );
-		json.GetChild( "y" ).SetNumber( v.y );
-		json.GetChild( "z" ).SetNumber( v.z );
-		return &json;
-	}
 
-	void Entity::Save( Json& entityJson )
+	void             Entity::Save( Json& entityJson )
 	{
 		Entity* entity = this;
 		entityJson[ "mPosition" ].DeepCopy( Vector3ToJson( entity->mRelativeSpace.mPosition ) );
@@ -229,18 +261,8 @@ namespace Tac
 		}
 	}
 
-	static v3 Vector3FromJson( Json& json )
-	{
-		v3 v =
-		{
-			( float )json[ "x" ].mNumber,
-			( float )json[ "y" ].mNumber,
-			( float )json[ "z" ].mNumber,
-		};
-		return v;
-	}
 
-	void Entity::Load( Json& prefabJson )
+	void             Entity::Load( Json& prefabJson )
 	{
 		Entity* entity = this;
 		entity->mRelativeSpace.mPosition = Vector3FromJson( prefabJson[ "mPosition" ] );

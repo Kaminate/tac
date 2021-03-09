@@ -24,7 +24,7 @@ namespace Tac
 		return ( Model* )entity->GetComponent( Model::ModelComponentRegistryEntry );
 	}
 
-	ComponentRegistryEntry* Model::GetEntry()
+	ComponentRegistryEntry* Model::GetEntry() const
 	{
 		return Model::ModelComponentRegistryEntry;
 	}

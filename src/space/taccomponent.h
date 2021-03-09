@@ -21,7 +21,7 @@ namespace Tac
     virtual ~Component() = default;
     virtual void                    PreReadDifferences() {};
     virtual void                    PostReadDifferences() {};
-    virtual ComponentRegistryEntry* GetEntry() = 0;
+    virtual ComponentRegistryEntry* GetEntry() const = 0;
     Entity*                         mEntity = nullptr;
   };
 

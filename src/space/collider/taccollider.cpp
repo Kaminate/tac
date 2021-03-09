@@ -10,7 +10,7 @@ Collider* Collider::GetCollider( Entity* entity )
   return ( Collider* )entity->GetComponent( Collider::ColliderComponentRegistryEntry );
 }
 
-ComponentRegistryEntry* Collider::GetEntry()
+ComponentRegistryEntry* Collider::GetEntry() const
 {
   return Collider::ColliderComponentRegistryEntry;
 }

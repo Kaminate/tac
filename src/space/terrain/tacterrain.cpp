@@ -60,7 +60,7 @@ namespace Tac
     Terrain::TerrainComponentRegistryEntry->mSaveFn = TerrainSavePrefab;
   }
 
-  ComponentRegistryEntry* Terrain::GetEntry() { return Terrain::TerrainComponentRegistryEntry; }
+  ComponentRegistryEntry* Terrain::GetEntry() const { return Terrain::TerrainComponentRegistryEntry; }
 
   Terrain* Terrain::GetComponent( Entity* entity )
   {

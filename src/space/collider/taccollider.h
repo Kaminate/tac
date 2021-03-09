@@ -11,7 +11,7 @@ struct Collider : public Component
 {
   static void SpaceInitPhysicsCollider();
   static Collider* GetCollider( Entity* );
-  ComponentRegistryEntry* GetEntry() override;
+  ComponentRegistryEntry* GetEntry() const override;
   static ComponentRegistryEntry* ColliderComponentRegistryEntry;
 
   //ComponentRegistryEntryIndex GetComponentType() override { return ComponentRegistryEntryIndex::Collider; }

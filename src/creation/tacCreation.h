@@ -36,12 +36,6 @@ namespace Tac
     String            mDocumentPath;
   };
 
-  struct PrefabCameraPosition
-  {
-    String mPrefab;
-    Camera mCamera;
-  };
-
   struct Creation
   {
     void                Init( Errors& );
