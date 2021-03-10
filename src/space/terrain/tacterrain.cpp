@@ -13,9 +13,9 @@
 
 namespace Tac
 {
-  ComponentRegistryEntry* Terrain::TerrainComponentRegistryEntry;
+  static ComponentRegistryEntry* sRegistry;
 
-  static void TerrainSavePrefab( Json& json, Component* component )
+  static void        TerrainSavePrefab( Json& json, Component* component )
   {
     auto terrain = ( Terrain* )component;
     json[ "mSideVertexCount" ].SetNumber( terrain->mSideVertexCount );
@@ -26,7 +26,7 @@ namespace Tac
     json[ "mNoiseTexturePath" ].SetString( terrain->mNoiseTexturePath );
   }
 
-  static void TerrainLoadPrefab( Json& json, Component* component )
+  static void        TerrainLoadPrefab( Json& json, Component* component )
   {
     auto terrain = ( Terrain* )component;
     terrain->mSideVertexCount = ( int )json[ "mSideVertexCount" ].mNumber;
@@ -37,37 +37,44 @@ namespace Tac
     terrain->mNoiseTexturePath = json[ "mNoiseTexturePath" ].mString;
   }
 
-  static Component* CreateTerrainComponent( World* world )
+  static Component*  CreateTerrainComponent( World* world )
   {
     return Physics::GetSystem( world )->CreateTerrain();
   }
 
-  static void DestroyTerrainComponent( World* world, Component* component )
+  static void        DestroyTerrainComponent( World* world, Component* component )
   {
     Physics::GetSystem( world )->DestroyTerrain( ( Terrain* )component );
   };
 
   void TerrainDebugImgui( Component* );
-  void Terrain::SpaceInitPhysicsTerrain()
+
+  Terrain::Terrain()
   {
-    Terrain::TerrainComponentRegistryEntry = ComponentRegistry_RegisterComponent();
-    Terrain::TerrainComponentRegistryEntry->mName = "Terrain";
-    Terrain::TerrainComponentRegistryEntry->mNetworkBits = {};
-    Terrain::TerrainComponentRegistryEntry->mCreateFn = CreateTerrainComponent;
-    Terrain::TerrainComponentRegistryEntry->mDestroyFn = DestroyTerrainComponent;
-    Terrain::TerrainComponentRegistryEntry->mDebugImguiFn = TerrainDebugImgui;
-    Terrain::TerrainComponentRegistryEntry->mLoadFn = TerrainLoadPrefab;
-    Terrain::TerrainComponentRegistryEntry->mSaveFn = TerrainSavePrefab;
+    mHeightmapTexturePath = "assets/heightmap.png";
+
+    }
+
+  void                    Terrain::SpaceInitPhysicsTerrain()
+  {
+    sRegistry = ComponentRegistry_RegisterComponent();
+    sRegistry->mName = "Terrain";
+    sRegistry->mNetworkBits = {};
+    sRegistry->mCreateFn = CreateTerrainComponent;
+    sRegistry->mDestroyFn = DestroyTerrainComponent;
+    sRegistry->mDebugImguiFn = TerrainDebugImgui;
+    sRegistry->mLoadFn = TerrainLoadPrefab;
+    sRegistry->mSaveFn = TerrainSavePrefab;
   }
 
-  ComponentRegistryEntry* Terrain::GetEntry() const { return Terrain::TerrainComponentRegistryEntry; }
+  ComponentRegistryEntry* Terrain::GetEntry() const { return sRegistry; }
 
-  Terrain* Terrain::GetComponent( Entity* entity )
+  Terrain*                Terrain::GetComponent( Entity* entity )
   {
-    return ( Terrain* )entity->GetComponent( Terrain::TerrainComponentRegistryEntry );
+    return ( Terrain* )entity->GetComponent( sRegistry );
   }
 
-  void Terrain::LoadTestHeightmap()
+  void                    Terrain::LoadTestHeightmap()
   {
     if( mTestHeightmapImageMemory.size() )
       return; // already loaded
@@ -100,12 +107,12 @@ namespace Tac
     stbi_image_free( loaded );
   }
 
-  v3 Terrain::GetGridVal( int iRow, int iCol )
+  v3                      Terrain::GetGridVal( int iRow, int iCol )
   {
     return mRowMajorGrid[ iCol + iRow * mSideVertexCount ];
   };
 
-  void Terrain::PopulateGrid()
+  void                    Terrain::PopulateGrid()
   {
     Terrain* terrain = this;
 
@@ -162,8 +169,7 @@ namespace Tac
     }
   }
 
-
-  void Terrain::Recompute()
+  void                    Terrain::Recompute()
   {
     mRowMajorGrid.clear();
 

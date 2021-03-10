@@ -25,7 +25,7 @@ namespace Tac
 
   struct Terrain : public Component
   {
-    static ComponentRegistryEntry* TerrainComponentRegistryEntry;
+    Terrain();
     static void                    SpaceInitPhysicsTerrain();
     ComponentRegistryEntry*        GetEntry() const override;
     static Terrain*                GetComponent( Entity* );
@@ -37,7 +37,7 @@ namespace Tac
     float                          mSideLength = 50.0f;
     float                          mUpwardsHeight = 20.0f;
     Vector< v3 >                   mRowMajorGrid;
-    String                         mHeightmapTexturePath = "assets/heightmap.png";
+    String                         mHeightmapTexturePath;
     String                         mGroundTexturePath = "";
     String                         mNoiseTexturePath = "";
     int                            mTestHeightmapWidth = 0;
@@ -55,7 +55,6 @@ namespace Tac
     Errors                         mTestHeightmapLoadErrors;
   };
 
-  extern int asdfDEBUG;
 
   struct CollideResult
   {

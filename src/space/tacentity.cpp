@@ -134,7 +134,6 @@ namespace Tac
     entry->mDestroyFn( mWorld, component );
 	}
 
-
 	void             Entity::DeepCopy( const Entity& entity )
 	{
 		//TAC_ASSERT( mWorld && entity.mWorld && mWorld != entity.mWorld );
@@ -234,7 +233,6 @@ namespace Tac
 		// todo: relative positioning
 	}
 
-
 	void             Entity::Save( Json& entityJson )
 	{
 		Entity* entity = this;
@@ -260,7 +258,6 @@ namespace Tac
 				childEntity->Save( *childrenJson.AddChild() );
 		}
 	}
-
 
 	void             Entity::Load( Json& prefabJson )
 	{
