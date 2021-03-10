@@ -15,6 +15,7 @@
 
 namespace Tac
 {
+  static const SystemRegistryEntry* sSystemRegistryEntry;
   static const char* GetNSysPath()
   {
     return "SystemWindow.nSys";
@@ -32,9 +33,14 @@ namespace Tac
   }
   void CreationSystemWindow::Init( Errors& errors )
   {
-    mSystemName = SettingsGetString( GetNSysPath(), "" );
+    const String systemName = SettingsGetString( GetNSysPath(), "" );
+    for( const SystemRegistryEntry& entry : SystemRegistryIterator() )
+      if( !StrCmp( entry.mName, systemName.c_str() ) )
+        sSystemRegistryEntry = &entry;
+
     mDesktopWindowHandle = gCreation.CreateWindow( gSystemWindowName );
   };
+
   void CreationSystemWindow::ImGui()
   {
     DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
@@ -49,14 +55,14 @@ namespace Tac
     if( ImGuiCollapsingHeader( "Select System" ) )
     {
       TAC_IMGUI_INDENT_BLOCK;
-      for( const SystemRegistryEntry& systemRegistryEntry : *SystemRegistry::Instance() )
+      for( const SystemRegistryEntry& systemRegistryEntry : SystemRegistryIterator() )
       {
         if( ImGuiButton( systemRegistryEntry.mName ) )
         {
-          mSystemName = systemRegistryEntry.mName;
-          SettingsSetString( GetNSysPath(), mSystemName );
+          sSystemRegistryEntry = &systemRegistryEntry;
+          SettingsSetString( GetNSysPath(), systemRegistryEntry.mName );
         }
-        if( mSystemName == systemRegistryEntry.mName )
+        if( sSystemRegistryEntry == &systemRegistryEntry )
         {
           ImGuiSameLine();
           ImGuiText( "<-- currently selected" );
@@ -64,9 +70,9 @@ namespace Tac
       }
     }
 
-    if( !mSystemName.empty() )
+    if( sSystemRegistryEntry )
     {
-      const SystemRegistryEntry* systemRegistryEntry = SystemRegistry::Instance()->Find( mSystemName );
+      const SystemRegistryEntry* systemRegistryEntry = sSystemRegistryEntry;
       ImGuiText( systemRegistryEntry->mName );
       if( systemRegistryEntry->mDebugImGui )
       {

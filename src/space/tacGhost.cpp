@@ -325,7 +325,7 @@ namespace Tac
   void Ghost::Draw( Errors& errors )
   {
     World* world = mServerData->mWorld;
-    Graphics* graphics = Graphics::GetSystem( world );
+    Graphics* graphics = GetGraphics( world );
 
     //Renderer::Instance->DebugBegin( "Draw world" );
     //TAC_ON_DESTRUCT( Renderer::Instance->DebugEnd() );

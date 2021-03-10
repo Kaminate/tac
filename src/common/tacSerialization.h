@@ -7,6 +7,7 @@
 #include "src/common/math/tacVector2.h"
 #include "src/common/math/tacVector3.h"
 #include "src/common/math/tacVector4.h"
+#include "src/common/containers/tacFixedVector.h"
 
 //#include <cstdint>
 
@@ -31,10 +32,18 @@ namespace Tac
     int         mComponentCount;
   };
 
+  struct NetworkBits
+  {
+    const NetworkBit&               operator[]( int ) const;
+    int                             size() const;
+    void                            Add( NetworkBit );
+    FixedVector< NetworkBit, 10 >   mNetworkBits;
+  };
+
   struct Reader
   {
     bool Read( void* values, int valueCount, int sizeOfValue );
-    bool Read( void* bytes, const Vector< NetworkBit >& networkBits );
+    bool Read( void* bytes, const NetworkBits& networkBits );
     template< typename T > bool Read( T* values, int valueCount = 1 ) { return Read( values, valueCount, sizeof( T ) ); }
     Endianness  mFrom = Endianness::Unknown;
     Endianness  mTo = Endianness::Unknown;
@@ -49,7 +58,7 @@ namespace Tac
   struct Writer
   {
     void Write( const void* values, int valueCount, int sizeOfValue );
-    void Write( const void* bytes, char bitfield, const Vector< NetworkBit >& networkBits );
+    void Write( const void* bytes, char bitfield, const NetworkBits& networkBits );
     template< typename T > void Write( T t )                    { return Write( &t, 1, sizeof( T ) ); }
     template< typename T > void Write( const T* t, int tCount ) { return Write( t, tCount, sizeof( T ) ); }
     Endianness     mFrom = Endianness::Unknown;

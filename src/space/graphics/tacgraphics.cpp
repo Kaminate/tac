@@ -1,117 +1,103 @@
-#include "src/common/tacPreprocessor.h"
-#include "src/common/graphics/tacFont.h"
 #include "src/common/graphics/imgui/tacImGui.h"
+#include "src/common/graphics/tacFont.h"
 #include "src/common/math/tacMath.h"
 #include "src/common/tacMemory.h"
-#include "src/space/tacWorld.h"
+#include "src/common/tacPreprocessor.h"
 #include "src/space/graphics/tacGraphics.h"
+#include "src/space/model/tacModel.h"
+#include "src/space/skybox/tacSkyboxComponent.h"
 #include "src/space/tacComponent.h"
+#include "src/space/tacWorld.h"
+
+#include <set>
 #include <cmath>
+
 namespace Tac
 {
 
-//static const Vector< ComponentRegistryEntryIndex > managedComponentTypes = {
-//  ComponentRegistryEntryIndex::Model,
-//};
+  struct GraphicsImpl : public Graphics
+  {
+    Model*              CreateModelComponent() override
+    {
+      auto model = TAC_NEW Model;
+      mModels.insert( model );
+      return model;
+    }
 
-Model* Graphics::CreateModelComponent()
-{
-  auto model = TAC_NEW Model;
-  mModels.insert( model );
-  return model;
-}
+    void                DestroyModelComponent( Model* model ) override
+    {
+      auto it = mModels.find( model );
+      TAC_ASSERT( it != mModels.end() );
+      mModels.erase( it );
+      delete model;
+    }
+    Skybox*             CreateSkyboxComponent() override
+    {
+      auto skybox = TAC_NEW Skybox;
+      mSkyboxes.insert( skybox );
+      return skybox;
+    }
 
+    void                DestroySkyboxComponent( Skybox* skybox ) override
+    {
+      auto it = mSkyboxes.find( skybox );
+      TAC_ASSERT( it != mSkyboxes.end() );
+      mSkyboxes.erase( it );
+      delete skybox;
+    }
 
-Graphics* Graphics::GetSystem( World* world )
-{
-  return ( Graphics* )world->GetSystem( Graphics::GraphicsSystemRegistryEntry );
-}
+    void                VisitModels( ModelVisitor* modelVisitor ) override
+    {
+      for( Model* model : mModels )
+        ( *modelVisitor )( model );
+    }
 
-//Component* Graphics::CreateComponent( ComponentRegistryEntryIndex componentType )
-//{
-//  switch( componentType )
-//  {
-//    //case ComponentRegistryEntryIndex::Say:
-//    //{
-//    //  auto say = TAC_NEW Say;
-//    //  mSays.insert( say );
-//    //  return say;
-//    //}
-//
-//  case ComponentRegistryEntryIndex::Model:
-//  {
-//    auto model = TAC_NEW Model;
-//    mModels.insert( model );
-//    return model;
-//  }
-//  }
-//  InvalidCodePath;
-//  return nullptr;
-//}
+    void                VisitSkyboxes( SkyboxVisitor* skyboxVisitor ) override
+    {
+      for( Skybox* skybox : mSkyboxes )
+        ( *skyboxVisitor )( skybox );
+    }
 
-void Graphics::DestroyModelComponent( Model*model )
-{
-  auto it = mModels.find( model );
-  TAC_ASSERT( it != mModels.end() );
-  mModels.erase( it );
-  delete model;
-}
-//void Graphics::DestroyComponent( Component* component )
-//{
-//  auto componentType = component->GetComponentType();
-//  switch( componentType )
-//  {
-//    //  case ComponentRegistryEntryIndex::Say:
-//    //  {
-//    //    auto say = ( Say* )component;
-//    //    auto it = mSays.find( say );
-//    //    Assert( it != mSays.end() );
-//    //    mSays.erase( it );
-//    //    delete say;
-//    //  } return;
-//
-//  case ComponentRegistryEntryIndex::Model:
-//  {
-//    auto model = ( Model* )component;
-//    auto it = mModels.find( model );
-//    Assert( it != mModels.end() );
-//    mModels.erase( it );
-//    delete model;
-//  }return;
-//  }
-//  InvalidCodePath;
-//}
+    std::set< Model* >  mModels;
+    std::set< Skybox* > mSkyboxes;
+  };
 
-//const Vector< ComponentRegistryEntryIndex >& Graphics::GetManagedComponentTypes()
-//{
-//  return managedComponentTypes;
-//}
-void Graphics::DebugImgui()
-{
-  //if( !ImGui::CollapsingHeader( "Graphics" ) )
-  //  return;
-  //ImGui::Indent();
-  //OnDestruct( ImGui::Unindent() );
-  //ImGui::Text( "Debug draw vert count: %i", mDebugDrawVerts.size() );
+  static SystemRegistryEntry* gGraphicsSystemRegistryEntry;
 
-  ImGuiText("graphics::debugimgiuo()");
-}
+  static System* CreateGraphicsSystem()
+  {
+    return TAC_NEW GraphicsImpl;
+  }
 
-SystemRegistryEntry* Graphics::GraphicsSystemRegistryEntry;
-static System* CreateGraphicsSystem()
-{
-  return TAC_NEW Graphics;
-}
+  // Why does Graphics::DebugImgui() and GraphicsDebugImgui() exist
+  void      Graphics::DebugImgui()
+  {
+    //if( !ImGui::CollapsingHeader( "Graphics" ) )
+    //  return;
+    //ImGui::Indent();
+    //OnDestruct( ImGui::Unindent() );
+    //ImGui::Text( "Debug draw vert count: %i", mDebugDrawVerts.size() );
 
-void GraphicsDebugImgui(System*);
-void Graphics::SpaceInitGraphics()
-{
-  Graphics::GraphicsSystemRegistryEntry = SystemRegistry::Instance()->RegisterNewEntry();
-  Graphics::GraphicsSystemRegistryEntry->mCreateFn = CreateGraphicsSystem;
-  Graphics::GraphicsSystemRegistryEntry->mName = "Graphics";
-  Graphics::GraphicsSystemRegistryEntry->mDebugImGui = GraphicsDebugImgui;
-  Model::SpaceInitGraphicsModel();
-}
+    ImGuiText( __FUNCTION__ );
+    ImGuiText( "Graphics::DebugImgui()" );
+  }
+
+  void      GraphicsDebugImgui( System* ); // Defined in tacgraphicsdebug.cpp
+
+  void      RegisterGraphicsSystem()
+  {
+    gGraphicsSystemRegistryEntry = SystemRegisterNewEntry();
+    gGraphicsSystemRegistryEntry->mCreateFn = CreateGraphicsSystem;
+    gGraphicsSystemRegistryEntry->mName = "Graphics";
+    gGraphicsSystemRegistryEntry->mDebugImGui = GraphicsDebugImgui;
+    RegisterModelComponent();
+    RegisterSkyboxComponent();
+  }
+
+  Graphics* GetGraphics( World* world )
+  {
+    return ( Graphics* )world->GetSystem( gGraphicsSystemRegistryEntry );
+  }
 
 
 }

@@ -53,13 +53,13 @@ namespace Tac
     Player*   FindPlayer( PlayerUUID playerUUID );
     Player*   FindPlayer( EntityUUID entityUUID );
 
-    double mElapsedSecs = 0;
-    bool mDebugDrawEntityOrigins = true;
+    double               mElapsedSecs = 0;
+    bool                 mDebugDrawEntityOrigins = true;
     std::list< Player* > mPlayers;
     std::list< Entity* > mEntities;
-    Vector< System* > mSystems;
-    String mSkyboxDir;
-    Debug3DDrawData* mDebug3DDrawData = nullptr;
+    Vector< System* >    mSystems;
+    String               mSkyboxDir;
+    Debug3DDrawData*     mDebug3DDrawData = nullptr;
   };
 
 

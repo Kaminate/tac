@@ -5,6 +5,7 @@
 #include "src/common/tacPreprocessor.h"
 #include "src/common/math/tacVector3.h"
 #include "src/common/math/tacMatrix4.h"
+#include "src/common/tacString.h"
 #include <list>
 
 namespace Tac
@@ -61,13 +62,15 @@ namespace Tac
     bool              mInheritParentScale = false;
     v3                mWorldPosition = {};
     m4                mWorldTransform = m4::Identity();
+
+    //                can this be a tag or smthn
     String            mName;
   };
 
-  const Vector< NetworkBit > EntityBits =
-  {
-    //{ "mPosition", OffsetOf( Entity, mLocalPosition ), sizeof( float ), 3 },
-  };
+  //const Vector< NetworkBit > EntityBits =
+  //{
+  //  //{ "mPosition", OffsetOf( Entity, mLocalPosition ), sizeof( float ), 3 },
+  //};
 
 
 }

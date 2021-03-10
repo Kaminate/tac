@@ -10,33 +10,31 @@
 
 namespace Tac
 {
-
-
-	ComponentRegistryEntry* Model::ModelComponentRegistryEntry;
+  static ComponentRegistryEntry* sComponentRegistryEntry;
 
 	const Model* Model::GetModel( const Entity* entity )
 	{
-		return ( Model* )entity->GetComponent( Model::ModelComponentRegistryEntry );
+		return ( Model* )entity->GetComponent( sComponentRegistryEntry );
 	}
 
 	Model* Model::GetModel( Entity* entity )
 	{
-		return ( Model* )entity->GetComponent( Model::ModelComponentRegistryEntry );
+		return ( Model* )entity->GetComponent( sComponentRegistryEntry );
 	}
 
 	ComponentRegistryEntry* Model::GetEntry() const
 	{
-		return Model::ModelComponentRegistryEntry;
+    return sComponentRegistryEntry;
 	}
 
 	static Component* CreateModelComponent( World* world )
 	{
-		return Graphics::GetSystem( world )->CreateModelComponent();
+		return GetGraphics( world )->CreateModelComponent();
 	}
 
 	static void DestroyModelComponent( World* world, Component* component )
 	{
-		Graphics::GetSystem( world )->DestroyModelComponent( ( Model* )component );
+		GetGraphics( world )->DestroyModelComponent( ( Model* )component );
 	}
 
 	static void SaveModelComponent( Json& modelJson, Component* component )
@@ -62,16 +60,16 @@ namespace Tac
 
 
 	void ModelDebugImgui( Component* );
-	void Model::SpaceInitGraphicsModel()
+	void RegisterModelComponent()
 	{
-    Model::ModelComponentRegistryEntry = ComponentRegistry_RegisterComponent();
-		Model::ModelComponentRegistryEntry->mName = "Model";
-		Model::ModelComponentRegistryEntry->mNetworkBits = ComponentModelBits;
-		Model::ModelComponentRegistryEntry->mCreateFn = CreateModelComponent;
-		Model::ModelComponentRegistryEntry->mDestroyFn = DestroyModelComponent;
-		Model::ModelComponentRegistryEntry->mDebugImguiFn = ModelDebugImgui;
-		Model::ModelComponentRegistryEntry->mSaveFn = SaveModelComponent;
-		Model::ModelComponentRegistryEntry->mLoadFn = LoadModelComponent;
+    sComponentRegistryEntry = ComponentRegistry_RegisterComponent();
+		sComponentRegistryEntry->mName = "Model";
+		//sComponentRegistryEntry->mNetworkBits = ComponentModelBits;
+		sComponentRegistryEntry->mCreateFn = CreateModelComponent;
+		sComponentRegistryEntry->mDestroyFn = DestroyModelComponent;
+		sComponentRegistryEntry->mDebugImguiFn = ModelDebugImgui;
+		sComponentRegistryEntry->mSaveFn = SaveModelComponent;
+		sComponentRegistryEntry->mLoadFn = LoadModelComponent;
 	}
 
 }

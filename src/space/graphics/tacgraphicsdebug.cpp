@@ -1,5 +1,6 @@
 
 #include "src/common/graphics/imgui/tacImGui.h"
+#include "src/common/tacString.h"
 #include "src/space/graphics/tacGraphics.h"
 namespace Tac
 {
@@ -7,8 +8,6 @@ namespace Tac
   {
     auto graphics = ( Graphics* )system;
     ImGuiText( "graphics stuff" );
-
-
     static String shaderReloadStatus;
 
     //if( ImGuiCollapsingHeader( "reload shaders" ) )

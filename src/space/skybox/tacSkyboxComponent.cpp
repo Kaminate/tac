@@ -1,77 +1,46 @@
-
-#include "src/space/model/tacModel.h"
-#include "src/space/tacEntity.h"
-#include "src/space/graphics/tacGraphics.h"
-#include "src/common/graphics/imgui/tacImGui.h"
-#include "src/common/tacOS.h"
-#include "src/common/tacUtility.h"
-#include "src/common/tacErrorHandling.h"
-#include "src/common/tacJson.h"
+#include "src/space/skybox/tacSkyboxComponent.h"
+#include "src/space/tacentity.h"
+#include "src/space/graphics/tacgraphics.h"
 
 namespace Tac
 {
+	static ComponentRegistryEntry* sRegistryEntry;
 
-
-	ComponentRegistryEntry* Model::ModelComponentRegistryEntry;
-
-	const Model* Model::GetModel( const Entity* entity )
+	const Skybox* Skybox::GetSkybox( const Entity* entity )
 	{
-		return ( Model* )entity->GetComponent( Model::ModelComponentRegistryEntry );
+		return ( Skybox* )entity->GetComponent( sRegistryEntry );
 	}
 
-	Model* Model::GetModel( Entity* entity )
+	Skybox* Skybox::GetSkybox( Entity* entity )
 	{
-		return ( Model* )entity->GetComponent( Model::ModelComponentRegistryEntry );
+		return ( Skybox* )entity->GetComponent( sRegistryEntry );
 	}
 
-	ComponentRegistryEntry* Model::GetEntry() const
+	ComponentRegistryEntry* Skybox::GetEntry() const
 	{
-		return Model::ModelComponentRegistryEntry;
-	}
+		return sRegistryEntry;
+  }
 
-	static Component* CreateModelComponent( World* world )
+  static Component* CreateSkyboxComponent( World* world )
+  {
+    return  GetGraphics( world )->CreateSkyboxComponent();
+  }
+
+  static void DestroySkyboxComponent( World* world, Component* component )
+  {
+    GetGraphics( world )->DestroySkyboxComponent( ( Skybox* )component );
+  }
+
+	void RegisterSkyboxComponent()
 	{
-		return Graphics::GetSystem( world )->CreateModelComponent();
-	}
-
-	static void DestroyModelComponent( World* world, Component* component )
-	{
-		Graphics::GetSystem( world )->DestroyModelComponent( ( Model* )component );
-	}
-
-	static void SaveModelComponent( Json& modelJson, Component* component )
-	{
-		auto model = ( Model* )component;
-		Json colorRGBJson;
-		colorRGBJson[ "r" ].SetNumber( model->mColorRGB[ 0 ] );
-		colorRGBJson[ "g" ].SetNumber( model->mColorRGB[ 1 ] );
-		colorRGBJson[ "b" ].SetNumber( model->mColorRGB[ 2 ] );
-		modelJson[ "mGLTFPath" ].SetString( model->mGLTFPath );
-		modelJson[ "mColorRGB" ].DeepCopy( &colorRGBJson );
-	}
-
-	static void LoadModelComponent( Json& modelJson, Component* component )
-	{
-		auto model = ( Model* )component;
-		model->mGLTFPath = modelJson[ "mGLTFPath" ].mString;
-		model->mColorRGB = {
-			( float )modelJson[ "mColorRGB" ][ "r" ].mNumber,
-			( float )modelJson[ "mColorRGB" ][ "g" ].mNumber,
-			( float )modelJson[ "mColorRGB" ][ "b" ].mNumber };
-	}
-
-
-	void ModelDebugImgui( Component* );
-	void Model::SpaceInitGraphicsModel()
-	{
-    Model::ModelComponentRegistryEntry = ComponentRegistry_RegisterComponent();
-		Model::ModelComponentRegistryEntry->mName = "Model";
-		Model::ModelComponentRegistryEntry->mNetworkBits = ComponentModelBits;
-		Model::ModelComponentRegistryEntry->mCreateFn = CreateModelComponent;
-		Model::ModelComponentRegistryEntry->mDestroyFn = DestroyModelComponent;
-		Model::ModelComponentRegistryEntry->mDebugImguiFn = ModelDebugImgui;
-		Model::ModelComponentRegistryEntry->mSaveFn = SaveModelComponent;
-		Model::ModelComponentRegistryEntry->mLoadFn = LoadModelComponent;
+    sRegistryEntry = ComponentRegistry_RegisterComponent();
+		sRegistryEntry->mName = "Skybox";
+		//sRegistryEntry->mNetworkBits = ComponentSkyboxBits;
+		sRegistryEntry->mCreateFn = CreateSkyboxComponent;
+		sRegistryEntry->mDestroyFn = DestroySkyboxComponent;
+		//sRegistryEntry->mDebugImguiFn = SkyboxDebugImgui;
+		//sRegistryEntry->mSaveFn = SaveSkyboxComponent;
+		//sRegistryEntry->mLoadFn = LoadSkyboxComponent;
 	}
 
 }

@@ -1,5 +1,6 @@
-
 #include "src/space/tacComponent.h"
+#include "src/common/tacString.h"
+
 namespace Tac
 {
   // I wonder if these can be out of sync between different builds of the exe
@@ -17,10 +18,10 @@ namespace Tac
     return &mEntries.back();
   }
 
-  ComponentRegistryEntry* ComponentRegistry_FindComponentByName( StringView name )
+  ComponentRegistryEntry* ComponentRegistry_FindComponentByName( const char* name )
   {
     for( ComponentRegistryEntry& entry : mEntries )
-      if( entry.mName == name )
+      if( !StrCmp( entry.mName, name ) )
         return &entry;
     return nullptr;
   }

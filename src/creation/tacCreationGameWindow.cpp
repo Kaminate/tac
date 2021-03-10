@@ -21,6 +21,7 @@
 #include "src/space/tacEntity.h"
 #include "src/space/tacGhost.h"
 #include "src/space/tacWorld.h"
+#include "src/space/model/tacmodel.h"
 
 namespace Tac
 {

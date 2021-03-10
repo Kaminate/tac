@@ -28,14 +28,14 @@ namespace Tac
 
   uint8_t GetNetworkBitfield( const void* oldData,
                               const void* newData,
-                              const Vector< NetworkBit >& networkBits )
+                              const NetworkBits& networkBits )
   {
     if( !oldData )
       return 0xff;
     uint8_t bitfield = 0;
     for( int i = 0; i < networkBits.size(); ++i )
     {
-      auto bits = networkBits[ i ];
+      const NetworkBit& bits = networkBits[ i ];
       auto oldBits = ( char* )oldData + bits.mByteOffset;
       auto newBits = ( char* )newData + bits.mByteOffset;
       auto componentTotalSize = bits.mComponentCount * bits.mComponentByteCount;

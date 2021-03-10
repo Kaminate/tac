@@ -12,10 +12,8 @@ namespace Tac
 
   struct Model : public Component
   {
-    static void                    SpaceInitGraphicsModel();
     static Model*                  GetModel( Entity* );
     static const Model*            GetModel( const Entity* );
-    static ComponentRegistryEntry* ModelComponentRegistryEntry;
     ComponentRegistryEntry*        GetEntry() const override;
     //TextureUUID                  mTextureUUID = NullTextureUUID;
     //GeometryUUID                 mGeometryUUID = NullGeometryUUID;
@@ -24,12 +22,14 @@ namespace Tac
     Mesh*                          mesh = nullptr;
   };
 
-  const Vector< NetworkBit > ComponentModelBits = []() {
-    Vector< NetworkBit > networkBits;
-    //NetworkBit( "Model::mTextureUUID", OffsetOf( Model, mTextureUUID ), UUIDFormat, NoMaxEnumValue ),
-    //NetworkBit( "Model::mGeometryUUID", OffsetOf( Model, mGeometryUUID ), UUIDFormat, NoMaxEnumValue ),
-    return networkBits;
-  }( );
+  void                             RegisterModelComponent();
+
+  //const Vector< NetworkBit > ComponentModelBits = []() {
+  //  Vector< NetworkBit > networkBits;
+  //  //NetworkBit( "Model::mTextureUUID", OffsetOf( Model, mTextureUUID ), UUIDFormat, NoMaxEnumValue ),
+  //  //NetworkBit( "Model::mGeometryUUID", OffsetOf( Model, mGeometryUUID ), UUIDFormat, NoMaxEnumValue ),
+  //  return networkBits;
+  //}( );
 
 
 }

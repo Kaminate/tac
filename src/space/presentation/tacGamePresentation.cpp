@@ -10,6 +10,7 @@
 #include "src/common/tacMemory.h"
 #include "src/common/tacOS.h"
 #include "src/space/graphics/tacGraphics.h"
+#include "src/space/skybox/tacSkyboxComponent.h"
 #include "src/space/model/tacModel.h"
 #include "src/space/physics/tacPhysics.h"
 #include "src/space/presentation/tacGamePresentation.h"
@@ -133,7 +134,9 @@ namespace Tac
   {
     //_PROFILE_BLOCK;
 
-    World* world = mWorld;
+    //World* world = mWorld;
+    Graphics* graphics = GetGraphics( mWorld );
+    Physics* physics = Physics::GetSystem( mWorld );
 
     float a;
     float b;
@@ -162,24 +165,53 @@ namespace Tac
 
     Render::Submit( viewId, TAC_STACK_FRAME );
 
-
-    Graphics* graphics = Graphics::GetSystem( world );
-    for( Model* model : graphics->mModels )
+    struct : public ModelVisitor
     {
-      LoadModel( model );
-      if( !model->mesh )
-        continue;
+      void operator()( Model* model ) override
+      {
+        mGamePresentation->LoadModel( model );
+        if( !model->mesh )
+          return;
 
-      DefaultCBufferPerObject perObjectData;
-      perObjectData.Color = { model->mColorRGB, 1 }; // { 0.23f, 0.7f, 0.5f, 1 };
-      perObjectData.World = model->mEntity->mWorldTransform;
-      RenderGameWorldAddDrawCall( model->mesh, perObjectData, viewId );
-    }
+        DefaultCBufferPerObject perObjectData;
+        perObjectData.Color = { model->mColorRGB, 1 };
+        perObjectData.World = model->mEntity->mWorldTransform;
+        mGamePresentation->RenderGameWorldAddDrawCall( model->mesh, perObjectData, mViewId );
+      }
 
-    Physics* physics = Physics::GetSystem( world );
+      GamePresentation*  mGamePresentation;
+      Render::ViewHandle mViewId;
+    } myModelVisitor;
+    myModelVisitor.mGamePresentation = this;
+    myModelVisitor.mViewId = viewId;
+    graphics->VisitModels( &myModelVisitor );
+
+    ////Graphics* graphics = GetGraphics( world );
+    ////graphics->VisitModels( &myModelVisitor );
+    ////  [&]( Model* model )
+    ////  {
+    ////    LoadModel( model );
+    ////    if( !model->mesh )
+    ////      return;
+    ////    DefaultCBufferPerObject perObjectData;
+    ////    perObjectData.Color = { model->mColorRGB, 1 }; // { 0.23f, 0.7f, 0.5f, 1 };
+    ////    perObjectData.World = model->mEntity->mWorldTransform;
+    ////    RenderGameWorldAddDrawCall( model->mesh, perObjectData, viewId );
+    ////  } );
+    //for( Model* model : graphics->mModels )
+    //{
+    //  LoadModel( model );
+    //  if( !model->mesh )
+    //    continue;
+    //  DefaultCBufferPerObject perObjectData;
+    //  perObjectData.Color = { model->mColorRGB, 1 }; // { 0.23f, 0.7f, 0.5f, 1 };
+    //  perObjectData.World = model->mEntity->mWorldTransform;
+    //  RenderGameWorldAddDrawCall( model->mesh, perObjectData, viewId );
+    //}
+
     for( Terrain* terrain : physics->mTerrains )
     {
-       LoadTerrain( terrain );
+      LoadTerrain( terrain );
 
       if( !terrain->mVertexBuffer.IsValid() || !terrain->mIndexBuffer.IsValid() )
         continue;
@@ -206,7 +238,27 @@ namespace Tac
       Render::Submit( viewId, TAC_STACK_FRAME );
     }
 
-    mSkyboxPresentation->RenderSkybox( viewWidth, viewHeight, viewId, world->mSkyboxDir );
+    //mSkyboxPresentation->RenderSkybox( viewWidth, viewHeight, viewId, mWorld->mSkyboxDir );
+
+    struct : public SkyboxVisitor
+    {
+      void operator()( Skybox* skybox ) override
+      {
+        mGamePresentation->mSkyboxPresentation->RenderSkybox( mViewWidth,
+                                                              mViewHeight,
+                                                              mViewId,
+                                                              skybox->mSkyboxDir );
+      }
+      int                mViewWidth;
+      int                mViewHeight;
+      Render::ViewHandle mViewId;
+      GamePresentation*  mGamePresentation;
+    } mySkyboxVisitor;
+    mySkyboxVisitor.mViewId = viewId;
+    mySkyboxVisitor.mViewWidth = viewWidth;
+    mySkyboxVisitor.mViewHeight = viewHeight;
+    mySkyboxVisitor.mGamePresentation = this;
+    graphics->VisitSkyboxes( &mySkyboxVisitor );
 
     //world->mDebug3DDrawData->DrawToTexture(
     //  ignored,
@@ -261,7 +313,7 @@ namespace Tac
     terrainTexCoordDecl.mAlignedByteOffset = TAC_OFFSET_OF( TerrainVertex, mUV );
 
     mTerrainVertexFormat = Render::CreateVertexFormat( Render::VertexDeclarations( terrainPosDecl,
-                                                                                   terrainTexCoordDecl ),
+                                                       terrainTexCoordDecl ),
                                                        mTerrainShader,
                                                        TAC_STACK_FRAME );
   }
@@ -286,7 +338,7 @@ namespace Tac
     depthStateData.mDepthTest = true;
     depthStateData.mDepthWrite = true;
     depthStateData.mDepthFunc = DepthFunc::Less;
-    mDepthState = Render::CreateDepthState(  depthStateData, TAC_STACK_FRAME );
+    mDepthState = Render::CreateDepthState( depthStateData, TAC_STACK_FRAME );
   }
 
   void GamePresentation::CreateBlendState( Errors& errors )
@@ -298,7 +350,7 @@ namespace Tac
     blendStateData.mSrcA = BlendConstants::Zero;
     blendStateData.mDstA = BlendConstants::One;
     blendStateData.mBlendA = BlendMode::Add;
-    mBlendState = Render::CreateBlendState(  blendStateData, TAC_STACK_FRAME );
+    mBlendState = Render::CreateBlendState( blendStateData, TAC_STACK_FRAME );
   }
 
   void GamePresentation::CreateRasterizerState( Errors& errors )

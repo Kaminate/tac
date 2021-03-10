@@ -3,6 +3,7 @@
 #include "src/common/tacSerialization.h"
 #include "src/common/tacString.h"
 #include "src/common/tacErrorHandling.h"
+#include "src/space/taccomponent.h"
 #include <list>
 #include <cstdint>
 namespace Tac
@@ -28,7 +29,7 @@ namespace Tac
 
   uint8_t GetNetworkBitfield( const void* oldData,
                               const void* newData,
-                              const Vector< NetworkBit >& networkBits );
+                              const NetworkBits& networkBits );
 
   struct DelayedNetMsg
   {

@@ -8,6 +8,18 @@
 
 namespace Tac
 {
+  const NetworkBit&               NetworkBits::operator[]( int i ) const
+  {
+    return mNetworkBits[ i ];
+  }
+  int                             NetworkBits::size() const
+  {
+    return mNetworkBits.size();
+  }
+  void                            NetworkBits::Add( NetworkBit b )
+  {
+    this->mNetworkBits.push_back( b );
+  }
 
 
   Endianness GetEndianness()
@@ -41,13 +53,13 @@ namespace Tac
     if( dstDiff < srcDiff )
       return false;
     for( int i = 0; i < valueCount; ++i )
-      CopyValueAccountForEndianness( ( char* )values + (intptr_t)sizeOfValue * i,
-                                     ( char* )mBegin + (intptr_t)sizeOfValue * i,
+      CopyValueAccountForEndianness( ( char* )values + ( intptr_t )sizeOfValue * i,
+      ( char* )mBegin + ( intptr_t )sizeOfValue * i,
                                      sizeOfValue, mFrom, mTo );
-    mBegin = ( char* )mBegin + (intptr_t)sizeOfValue * valueCount;
+    mBegin = ( char* )mBegin + ( intptr_t )sizeOfValue * valueCount;
     return true;
   }
-  bool Reader::Read( void* bytes, const Vector< NetworkBit >& networkBits )
+  bool Reader::Read( void* bytes, const NetworkBits& networkBits )
   {
     char bitfield;
     if( !Read( &bitfield ) )
@@ -59,8 +71,8 @@ namespace Tac
         continue;
       auto networkBit = networkBits[ networkBitIndex ];
       if( !Read( ( char* )bytes + networkBit.mByteOffset,
-                 networkBit.mComponentCount,
-                 networkBit.mComponentByteCount ) )
+          networkBit.mComponentCount,
+          networkBit.mComponentByteCount ) )
         return false;
     }
     return true;
@@ -76,12 +88,12 @@ namespace Tac
     mBytes.resize( oldSize + sizeOfValue * valueCount );
     for( int i = 0; i < valueCount; ++i )
       CopyValueAccountForEndianness( ( char* )mBytes.data() + oldSize + i * sizeOfValue,
-                                     ( const char* )values + sizeOfValue * i,
+      ( const char* )values + sizeOfValue * i,
                                      sizeOfValue, mFrom, mTo );
   }
   void Writer::Write( const void* bytes,
                       char bitfield,
-                      const Vector< NetworkBit >& networkBits )
+                      const NetworkBits& networkBits )
   {
     Write( bitfield );
     TAC_ASSERT( bitfield );

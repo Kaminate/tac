@@ -36,6 +36,8 @@ namespace Tac
                                                               Render::ViewHandle );
     void                          LoadTerrain( Terrain* );
     void                          LoadModel( Model* );
+    //void                          VisitModel( Model* );
+    //void                          VisitSkybox( Model* );
     Camera*                       mCamera = nullptr;
     World*                        mWorld = nullptr;
     SkyboxPresentation*           mSkyboxPresentation = nullptr;

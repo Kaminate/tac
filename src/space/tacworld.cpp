@@ -16,9 +16,7 @@ namespace Tac
 {
   World::World()
   {
-    SystemRegistry* registry = SystemRegistry::Instance();
-    TAC_ASSERT( !registry->mEntries.empty() );
-    for( const SystemRegistryEntry& entry : registry->mEntries )
+    for( const SystemRegistryEntry& entry : SystemRegistryIterator() )
     {
       System* system = entry.mCreateFn();
       TAC_ASSERT( system );
@@ -64,7 +62,7 @@ namespace Tac
         return entity;
     return nullptr;
   }
-  void World::KillEntity( EntityIterator it )
+  void    World::KillEntity( EntityIterator it )
   {
     TAC_ASSERT( it != mEntities.end() );
     Entity* entity = *it;
@@ -116,7 +114,7 @@ namespace Tac
       delete treeEntity;
     }
   }
-  void World::KillEntity( Entity* entity )
+  void    World::KillEntity( Entity* entity )
   {
     auto it = std::find(
       mEntities.begin(),
@@ -124,7 +122,7 @@ namespace Tac
       entity );
     KillEntity( it );
   }
-  void World::KillEntity( EntityUUID entityUUID )
+  void    World::KillEntity( EntityUUID entityUUID )
   {
     auto it = std::find_if(
       mEntities.begin(),
@@ -154,7 +152,7 @@ namespace Tac
         return player;
     return nullptr;
   }
-  void World::KillPlayer( PlayerUUID playerUUID )
+  void    World::KillPlayer( PlayerUUID playerUUID )
   {
     auto it = std::find_if(
       mPlayers.begin(),
@@ -166,7 +164,7 @@ namespace Tac
     delete player;
     mPlayers.erase( it );
   }
-  void World::ApplyInput( Player* player, float seconds )
+  void    World::ApplyInput( Player* player, float seconds )
   {
     auto entity = FindEntity( player->mEntityUUID );
     if( !entity )
@@ -189,7 +187,7 @@ namespace Tac
     //stuff->mWaddleParams.Update( player->mInputDirection, seconds );
     //stuff->zCCWEulerRotDeg = stuff->mWaddleParams.mAngle;
   }
-  void World::ComputeTransformsRecursively( const m4& parentTransform, Entity* entity )
+  void    World::ComputeTransformsRecursively( const m4& parentTransform, Entity* entity )
   {
     m4 localTransform = m4::Transform( entity->mRelativeSpace.mScale,
                                        entity->mRelativeSpace.mEulerRads,
@@ -214,7 +212,7 @@ namespace Tac
       ComputeTransformsRecursively( *parentTransformForChild, child );
     }
   }
-  void World::Step( float seconds )
+  void    World::Step( float seconds )
   {
     /*TAC_PROFILE_BLOCK*/;
     const m4 identity = m4::Identity();
@@ -239,7 +237,7 @@ namespace Tac
     {
       auto boxSize = v3( 1, 1, 1 ) * 0.1f;
       v3 boxRot = {};
-      Graphics* graphics = Graphics::GetSystem( this );
+      Graphics* graphics = GetGraphics( this );
       if( graphics )
       {
         for( auto entity : mEntities )
@@ -249,7 +247,7 @@ namespace Tac
       }
     }
   }
-  void World::DeepCopy( const World& world )
+  void    World::DeepCopy( const World& world )
   {
     for( auto player : mPlayers )
       delete player;
@@ -279,7 +277,7 @@ namespace Tac
   {
     return mSystems[ systemRegistryEntry->mIndex ];
   }
-  void World::DebugImgui()
+  void    World::DebugImgui()
   {
     //if( !ImGui::CollapsingHeader( "World" ) )
     //  return;

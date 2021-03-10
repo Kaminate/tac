@@ -1,16 +1,14 @@
 #pragma once
 
-
 #include "src/common/containers/tacFixedVector.h"
 #include "src/common/tacSerialization.h"
-#include "src/common/tacString.h"
-#include "src/space/tacSpaceTypes.h"
+//#include "src/common/tacString.h"
+//#include "src/space/tacSpaceTypes.h"
 
 namespace Tac
 {
   struct Entity;
   struct World;
-  //struct ComponentRegistry;
   struct ComponentRegistryEntry;
   struct SystemRegistry;
   struct SystemRegistryEntry;
@@ -25,6 +23,7 @@ namespace Tac
     Entity*                         mEntity = nullptr;
   };
 
+
   struct ComponentRegistryEntry
   {
     typedef Component*     ComponentCreateFn( World* );
@@ -36,7 +35,7 @@ namespace Tac
     //                     Used for
     //                     - debugging network bits
     //                     - prefab serialization
-    String                 mName;
+    const char*            mName;
 
     //                     Used to create components at runtime
     //                     ( from prefabs, or hardcode, or in editor, or whenever )
@@ -49,7 +48,7 @@ namespace Tac
 
 
     //                     Used for serializing components over the network
-    Vector< NetworkBit >   mNetworkBits;
+    NetworkBits            mNetworkBits;
   };
 
   struct ComponentRegistryIterator
@@ -61,7 +60,7 @@ namespace Tac
   int                     ComponentRegistry_GetComponentCount();
   ComponentRegistryEntry* ComponentRegistry_GetComponentAtIndex( int );
   ComponentRegistryEntry* ComponentRegistry_RegisterComponent();
-  ComponentRegistryEntry* ComponentRegistry_FindComponentByName( StringView );
+  ComponentRegistryEntry* ComponentRegistry_FindComponentByName( const char* );
 
 }
 

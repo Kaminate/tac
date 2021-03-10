@@ -203,7 +203,7 @@ namespace Tac
 				TAC_IMGUI_INDENT_BLOCK;
 				for( const ComponentRegistryEntry* componentType : addableComponentTypes )
 				{
-					if( ImGuiButton( va( "Add %s component", componentType->mName.c_str() ) ) )
+					if( ImGuiButton( va( "Add %s component", componentType->mName ) ) )
 					{
 						entity->AddNewComponent( componentType );
 					}

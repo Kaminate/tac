@@ -76,7 +76,7 @@ namespace Tac
     auto player = mWorld->FindPlayer( differentPlayerUUID );
     if( !player )
       player = mWorld->SpawnPlayer( differentPlayerUUID );
-    if( !reader->Read( player, PlayerBits ) )
+    if( !reader->Read( player, PlayerNetworkBitsGet()  ) )
       TAC_RAISE_ERROR( "failed to read player bits", errors );
   }
 

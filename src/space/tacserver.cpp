@@ -147,7 +147,7 @@ namespace Tac
       {
         auto playerUUID = newPlayer->mPlayerUUID;
         auto oldPlayer = oldWorld->FindPlayer( playerUUID );
-        auto bitfield = GetNetworkBitfield( oldPlayer, newPlayer, PlayerBits );
+        auto bitfield = GetNetworkBitfield( oldPlayer, newPlayer, PlayerNetworkBitsGet()  );
         if( !bitfield )
           continue;
 
@@ -162,7 +162,7 @@ namespace Tac
       for( PlayerDifference& diff : oldAndNewPlayers )
       {
         writer->Write( diff.playerUUID );
-        writer->Write( diff.mNewPlayer, diff.mBitfield, PlayerBits );
+        writer->Write( diff.mNewPlayer, diff.mBitfield, PlayerNetworkBitsGet() );
       }
     }
 
@@ -259,7 +259,7 @@ namespace Tac
           auto componentType = ( ComponentRegistryEntryIndex )iComponentType;
           const ComponentRegistryEntry* componentRegistryEntry = ComponentRegistry_GetComponentAtIndex( iComponentType );
           Component* component = entityDifference.mNewEntity->GetComponent( componentRegistryEntry );
-          auto componentBitfield = entityDifference.mChangedComponentBitfields.at( componentType );
+          char componentBitfield = entityDifference.mChangedComponentBitfields.at( componentType );
           writer->Write( component,
                          componentBitfield,
                          componentRegistryEntry->mNetworkBits );

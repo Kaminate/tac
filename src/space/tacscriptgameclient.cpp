@@ -402,7 +402,7 @@ namespace Tac
 		//auto* scriptMatchmaker = ( ScriptMatchmaker* )mScriptRoot->GetThread( scriptMatchmakerName );
 		//ServerData* serverData = ghost->mServerData;
 		//World* world = serverData->mWorld;
-		//Graphics* graphics = Graphics::GetSystem( world );
+		//Graphics* graphics = GetGraphics( world );
 		//float boxWidth = 5;
 		//if( false )
 		//{

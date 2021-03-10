@@ -17,7 +17,7 @@ namespace Tac
     void                         Update( Errors& );
     void                         ImGui();
     DesktopWindowHandle          mDesktopWindowHandle;
-    String                       mSystemName;
+    //String                       mSystemName;
   };
 
   const char* const gSystemWindowName = "SystemWindow";
