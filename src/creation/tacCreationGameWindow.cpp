@@ -5,23 +5,24 @@
 #include "src/common/graphics/tacRenderer.h"
 #include "src/common/graphics/tacUI.h"
 #include "src/common/graphics/tacUI2D.h"
-#include "src/common/tacShellTimer.h"
+#include "src/common/tacCamera.h"
 #include "src/common/tacDesktopWindow.h"
 #include "src/common/tacKeyboardinput.h"
 #include "src/common/tacOS.h"
 #include "src/common/tacShell.h"
+#include "src/common/tacShellTimer.h"
 #include "src/creation/tacCreation.h"
-#include "src/creation/tacCreationPrefab.h"
 #include "src/creation/tacCreationGameWindow.h"
+#include "src/creation/tacCreationPrefab.h"
 #include "src/shell/tacDesktopApp.h"
 #include "src/shell/tacDesktopWindowGraphics.h"
 #include "src/space/graphics/tacGraphics.h"
+#include "src/space/model/tacmodel.h"
 #include "src/space/presentation/tacGamePresentation.h"
 #include "src/space/presentation/tacSkyboxPresentation.h"
 #include "src/space/tacEntity.h"
 #include "src/space/tacGhost.h"
 #include "src/space/tacWorld.h"
-#include "src/space/model/tacmodel.h"
 
 namespace Tac
 {
@@ -186,13 +187,13 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
 
     mSkyboxPresentation = TAC_NEW SkyboxPresentation;
-    mSkyboxPresentation->mCamera = &gCreation.mEditorCamera;
+    mSkyboxPresentation->mCamera = gCreation.mEditorCamera;
     mSkyboxPresentation->Init( errors );
     TAC_HANDLE_ERROR( errors );
 
     mGamePresentation = TAC_NEW GamePresentation;
     mGamePresentation->mWorld = gCreation.mWorld;
-    mGamePresentation->mCamera = &gCreation.mEditorCamera;
+    mGamePresentation->mCamera = gCreation.mEditorCamera;
     mGamePresentation->mSkyboxPresentation = mSkyboxPresentation;
     mGamePresentation->CreateGraphicsObjects( errors );
     TAC_HANDLE_ERROR( errors );
@@ -278,7 +279,7 @@ namespace Tac
       for( int i = 0; i < 3; ++i )
       {
         // 1/3: inverse transform
-        v3 modelSpaceRayPos3 = gCreation.mEditorCamera.mPos - selectionGizmoOrigin;
+        v3 modelSpaceRayPos3 = gCreation.mEditorCamera->mPos - selectionGizmoOrigin;
         v4 modelSpaceRayPos4 = v4( modelSpaceRayPos3, 1 );
         v3 modelSpaceRayDir3 = mWorldSpaceMouseDir;
         v4 modelSpaceRayDir4 = v4( mWorldSpaceMouseDir, 0 );
@@ -306,7 +307,7 @@ namespace Tac
     v3 worldSpaceHitPoint = {};
     if( pickData.pickedObject != PickedObject::None )
     {
-      worldSpaceHitPoint = gCreation.mEditorCamera.mPos + pickData.closestDist * mWorldSpaceMouseDir;
+      worldSpaceHitPoint = gCreation.mEditorCamera->mPos + pickData.closestDist * mWorldSpaceMouseDir;
       mDebug3DDrawData->DebugDrawSphere( worldSpaceHitPoint, 0.2f, v3( 1, 1, 0 ) );
     }
 
@@ -317,7 +318,7 @@ namespace Tac
         case PickedObject::WidgetTranslationArrow:
         {
           v3 gizmoOrigin = gCreation.GetSelectionGizmoOrigin();
-          v3 pickPoint = gCreation.mEditorCamera.mPos + mWorldSpaceMouseDir * pickData.closestDist;
+          v3 pickPoint = gCreation.mEditorCamera->mPos + mWorldSpaceMouseDir * pickData.closestDist;
           v3 arrowDir = {};
           arrowDir[ pickData.arrowAxis ] = 1;
           gCreation.mSelectedGizmo = true;
@@ -359,15 +360,15 @@ namespace Tac
     xNDC = xNDC * 2 - 1;
     yNDC = yNDC * 2 - 1;
     const float aspect = w / h;
-    const float theta = gCreation.mEditorCamera.mFovyrad / 2.0f;
+    const float theta = gCreation.mEditorCamera->mFovyrad / 2.0f;
     const float cotTheta = 1.0f / std::tan( theta );
     const float sX = cotTheta / aspect;
     const float sY = cotTheta;
 
-    const m4 viewInv = m4::ViewInv( gCreation.mEditorCamera.mPos,
-                                    gCreation.mEditorCamera.mForwards,
-                                    gCreation.mEditorCamera.mRight,
-                                    gCreation.mEditorCamera.mUp );
+    const m4 viewInv = m4::ViewInv( gCreation.mEditorCamera->mPos,
+                                    gCreation.mEditorCamera->mForwards,
+                                    gCreation.mEditorCamera->mRight,
+                                    gCreation.mEditorCamera->mUp );
     const v3 viewSpaceMousePosNearPlane =
     {
       xNDC / sX,
@@ -400,7 +401,7 @@ namespace Tac
       return;
     }
 
-    Camera* camera = &gCreation.mEditorCamera;
+    const Camera* camera = gCreation.mEditorCamera;
 
     v3 modelSpaceMouseRayPos3 = ( transformInv * v4( camera->mPos, 1 ) ).xyz();
     v3 modelSpaceMouseRayDir3 = Normalize( ( transformInv * v4( mWorldSpaceMouseDir, 0 ) ).xyz() );
@@ -444,13 +445,13 @@ namespace Tac
     {
       return;
     }
-    m4 view = m4::View( gCreation.mEditorCamera.mPos,
-                        gCreation.mEditorCamera.mForwards,
-                        gCreation.mEditorCamera.mRight,
-                        gCreation.mEditorCamera.mUp );
+    m4 view = m4::View( gCreation.mEditorCamera->mPos,
+                        gCreation.mEditorCamera->mForwards,
+                        gCreation.mEditorCamera->mRight,
+                        gCreation.mEditorCamera->mUp );
     v3 pos = gCreation.GetSelectionGizmoOrigin();
     v4 posVS4 = view * v4( pos, 1 );
-    float clip_height = std::abs( std::tan( gCreation.mEditorCamera.mFovyrad / 2.0f ) * posVS4.z * 2.0f );
+    float clip_height = std::abs( std::tan( gCreation.mEditorCamera->mFovyrad / 2.0f ) * posVS4.z * 2.0f );
     float arrowLen = clip_height * 0.2f;
     mArrowLen = arrowLen;
   }
@@ -458,7 +459,7 @@ namespace Tac
   void CreationGameWindow::RenderGameWorldToGameWindow()
   {
     MousePickingAll();
-    Camera* camera = &gCreation.mEditorCamera;
+    const Camera* camera = gCreation.mEditorCamera;
     DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
     if( !desktopWindowState->mNativeWindowHandle )
       return;
@@ -571,7 +572,7 @@ namespace Tac
       return;
     if( !IsWindowHovered( mDesktopWindowHandle ) )
       return;
-    const Camera oldCamera = gCreation.mEditorCamera;
+    const Camera oldCamera = *gCreation.mEditorCamera;
 
     if( gKeyboardInput.IsKeyDown( Key::MouseRight ) &&
         gKeyboardInput.mMouseDeltaPosScreenspace != v2( 0, 0 ) )
@@ -582,39 +583,39 @@ namespace Tac
 
       if( angleRadians.x != 0 )
       {
-        m3 matrix = m3::RotRadAngleAxis( -angleRadians.x, gCreation.mEditorCamera.mUp );
-        gCreation.mEditorCamera.mForwards = matrix * gCreation.mEditorCamera.mForwards;
-        gCreation.mEditorCamera.mRight = Cross( gCreation.mEditorCamera.mForwards,
-                                                gCreation.mEditorCamera.mUp );
+        m3 matrix = m3::RotRadAngleAxis( -angleRadians.x, gCreation.mEditorCamera->mUp );
+        gCreation.mEditorCamera->mForwards = matrix * gCreation.mEditorCamera->mForwards;
+        gCreation.mEditorCamera->mRight = Cross( gCreation.mEditorCamera->mForwards,
+                                                gCreation.mEditorCamera->mUp );
       }
 
       if( angleRadians.y != 0 )
       {
-        m3 matrix = m3::RotRadAngleAxis( -angleRadians.y, gCreation.mEditorCamera.mRight );
-        gCreation.mEditorCamera.mForwards = matrix * gCreation.mEditorCamera.mForwards;
-        gCreation.mEditorCamera.mUp = Cross( gCreation.mEditorCamera.mRight,
-                                             gCreation.mEditorCamera.mForwards );
+        m3 matrix = m3::RotRadAngleAxis( -angleRadians.y, gCreation.mEditorCamera->mRight );
+        gCreation.mEditorCamera->mForwards = matrix * gCreation.mEditorCamera->mForwards;
+        gCreation.mEditorCamera->mUp = Cross( gCreation.mEditorCamera->mRight,
+                                             gCreation.mEditorCamera->mForwards );
       }
 
       // Snapping right.y to the x-z plane prevents the camera from tilting side-to-side.
-      gCreation.mEditorCamera.mForwards.Normalize();
-      gCreation.mEditorCamera.mRight.y = 0;
-      gCreation.mEditorCamera.mRight.Normalize();
-      gCreation.mEditorCamera.mUp = Cross( gCreation.mEditorCamera.mRight,
-                                           gCreation.mEditorCamera.mForwards );
-      gCreation.mEditorCamera.mUp.Normalize();
+      gCreation.mEditorCamera->mForwards.Normalize();
+      gCreation.mEditorCamera->mRight.y = 0;
+      gCreation.mEditorCamera->mRight.Normalize();
+      gCreation.mEditorCamera->mUp = Cross( gCreation.mEditorCamera->mRight,
+                                           gCreation.mEditorCamera->mForwards );
+      gCreation.mEditorCamera->mUp.Normalize();
     }
 
     if( gKeyboardInput.IsKeyDown( Key::MouseMiddle ) &&
         gKeyboardInput.mMouseDeltaPosScreenspace != v2( 0, 0 ) )
     {
       const float unitsPerPixel = 5.0f / 100.0f;
-      gCreation.mEditorCamera.mPos +=
-        gCreation.mEditorCamera.mRight *
+      gCreation.mEditorCamera->mPos +=
+        gCreation.mEditorCamera->mRight *
         -gKeyboardInput.mMouseDeltaPosScreenspace.x *
         unitsPerPixel;
-      gCreation.mEditorCamera.mPos +=
-        gCreation.mEditorCamera.mUp *
+      gCreation.mEditorCamera->mPos +=
+        gCreation.mEditorCamera->mUp *
         gKeyboardInput.mMouseDeltaPosScreenspace.y *
         unitsPerPixel;
     }
@@ -622,16 +623,16 @@ namespace Tac
     if( gKeyboardInput.mMouseDeltaScroll )
     {
       //float unitsPerTick = 0.35f;
-      gCreation.mEditorCamera.mPos +=
-        gCreation.mEditorCamera.mForwards *
+      gCreation.mEditorCamera->mPos +=
+        gCreation.mEditorCamera->mForwards *
         ( float )gKeyboardInput.mMouseDeltaScroll;
     }
 
-    if( oldCamera.mPos != gCreation.mEditorCamera.mPos ||
-        oldCamera.mForwards != gCreation.mEditorCamera.mForwards ||
-        oldCamera.mRight != gCreation.mEditorCamera.mRight ||
-        oldCamera.mUp != gCreation.mEditorCamera.mUp )
-        PrefabSaveCamera( &gCreation.mEditorCamera );
+    if( oldCamera.mPos != gCreation.mEditorCamera->mPos ||
+        oldCamera.mForwards != gCreation.mEditorCamera->mForwards ||
+        oldCamera.mRight != gCreation.mEditorCamera->mRight ||
+        oldCamera.mUp != gCreation.mEditorCamera->mUp )
+        PrefabSaveCamera( gCreation.mEditorCamera );
   }
 
   void CreationGameWindow::Update( Errors& errors )
@@ -679,7 +680,7 @@ namespace Tac
     {
       v3 origin = gCreation.GetSelectionGizmoOrigin();
       mDebug3DDrawData->DebugDrawCircle( origin,
-                                         gCreation.mEditorCamera.mForwards,
+                                         gCreation.mEditorCamera->mForwards,
                                          mArrowLen );
     }
 
@@ -701,7 +702,7 @@ namespace Tac
       const v3 origin = gCreation.GetSelectionGizmoOrigin();
       float gizmoMouseDist;
       float secondDist;
-      ClosestPointTwoRays( gCreation.mEditorCamera.mPos,
+      ClosestPointTwoRays( gCreation.mEditorCamera->mPos,
                            mWorldSpaceMouseDir,
                            origin,
                            gCreation.mTranslationGizmoDir,

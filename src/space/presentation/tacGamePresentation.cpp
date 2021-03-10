@@ -216,9 +216,9 @@ namespace Tac
       if( !terrain->mVertexBuffer.IsValid() || !terrain->mIndexBuffer.IsValid() )
         continue;
 
-      Render::TextureHandle terrainTexture =
+      const Render::TextureHandle terrainTexture =
         TextureAssetManager::GetTexture( terrain->mGroundTexturePath, mGetTextureErrorsGround );
-      Render::TextureHandle noiseTexture =
+      const Render::TextureHandle noiseTexture =
         TextureAssetManager::GetTexture( terrain->mNoiseTexturePath, mGetTextureErrorsNoise );
 
       DefaultCBufferPerObject cbuf = {};

@@ -1,4 +1,5 @@
 #include "src/common/containers/tacVector.h"
+#include "src/common/tacCamera.h"
 #include "src/common/tacErrorHandling.h"
 #include "src/common/tacAlgorithm.h"
 #include "src/common/tacFrameMemory.h"

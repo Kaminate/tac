@@ -95,7 +95,7 @@ namespace Tac
 			TAC_HANDLE_ERROR( errors );
       if( prefabPath.size() )
       {
-        Camera* cam = world->mEntities.size() ? nullptr : &gCreation.mEditorCamera;
+        Camera* cam = world->mEntities.size() ? nullptr : gCreation.mEditorCamera;
         PrefabLoadAtPath( world, cam, prefabPath, errors );
         TAC_HANDLE_ERROR( errors );
       }

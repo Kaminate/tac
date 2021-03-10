@@ -1,33 +1,37 @@
 #include "src/common/assetmanagers/tacTextureAssetManager.h"
+#include "src/common/graphics/imgui/tacImGui.h"
 #include "src/common/graphics/tacColorUtil.h"
 #include "src/common/graphics/tacFont.h"
 #include "src/common/graphics/tacRenderer.h"
-#include "src/common/tacUtility.h"
 #include "src/common/graphics/tacUI2D.h"
-#include "src/common/graphics/imgui/tacImGui.h"
 #include "src/common/math/tacMath.h"
-#include "src/common/tacAlgorithm.h"
-#include "src/common/tacTime.h"
-#include "src/common/tacOS.h"
-#include "src/common/tacShellTimer.h"
-#include "src/common/tacPreprocessor.h"
-#include "src/common/tacKeyboardinput.h"
 #include "src/common/profile/tacProfile.h"
+#include "src/common/tacAlgorithm.h"
+#include "src/common/tacCamera.h"
+#include "src/common/tacJson.h"
+#include "src/common/tacKeyboardinput.h"
+#include "src/common/tacOS.h"
+#include "src/common/tacPreprocessor.h"
+#include "src/common/tacSettings.h"
+#include "src/common/tacShellTimer.h"
 #include "src/common/tacTemporaryMemory.h"
+#include "src/common/tacTime.h"
+#include "src/common/tacUtility.h"
 #include "src/creation/tacCreation.h"
-#include "src/creation/tacCreationPrefab.h"
 #include "src/creation/tacCreationGameWindow.h"
-#include "src/creation/tacCreationPropertyWindow.h"
 #include "src/creation/tacCreationMainWindow.h"
-#include "src/creation/tacCreationSystemWindow.h"
+#include "src/creation/tacCreationPrefab.h"
 #include "src/creation/tacCreationProfileWindow.h"
+#include "src/creation/tacCreationPropertyWindow.h"
+#include "src/creation/tacCreationSystemWindow.h"
 #include "src/shell/tacDesktopApp.h"
-#include "src/space/tacGhost.h"
-#include "src/space/tacEntity.h"
-#include "src/space/tacWorld.h"
 #include "src/space/model/tacModel.h"
-#include "src/space/terrain/tacTerrain.h"
+#include "src/space/tacEntity.h"
+#include "src/space/tacGhost.h"
 #include "src/space/tacSpace.h"
+#include "src/space/tacWorld.h"
+#include "src/space/terrain/tacTerrain.h"
+
 #include <iostream>
 #include <functional>
 #include <algorithm>
@@ -60,27 +64,18 @@ namespace Tac
   {
     for( int i = 0; i < kDesktopWindowCapacity; ++i )
     {
-      DesktopWindowHandle desktopWindowHandle = { i };
-      DesktopWindowState* desktopWindowState = GetDesktopWindowState( desktopWindowHandle );
+      const DesktopWindowState* desktopWindowState = GetDesktopWindowState( { i } );
       CreatedWindowData* createdWindowData = &sCreatedWindowData[ i ];
-
-
       if( createdWindowData->mNativeWindowHandle != desktopWindowState->mNativeWindowHandle )
       {
         Json* json = gCreation.FindWindowJson( createdWindowData->mName );
         SettingsSetBool( "is_open",
-                         createdWindowData->mNativeWindowHandle = desktopWindowState->mNativeWindowHandle  ,
+                         createdWindowData->mNativeWindowHandle = desktopWindowState->mNativeWindowHandle,
                          json );
       }
 
-
-
-
       if( !desktopWindowState->mNativeWindowHandle )
         continue;
-
-
-
 
       const bool same =
         desktopWindowState->mX == createdWindowData->mX &&
@@ -94,8 +89,6 @@ namespace Tac
       SettingsSetNumber( "y", createdWindowData->mY = desktopWindowState->mY, json );
       SettingsSetNumber( "w", createdWindowData->mW = desktopWindowState->mWidth, json );
       SettingsSetNumber( "h", createdWindowData->mH = desktopWindowState->mHeight, json );
-
-
     }
   }
 
@@ -119,6 +112,35 @@ namespace Tac
     mProjectInit = CreationInitCallback;
     mProjectUpdate = CreationUpdateCallback;
     mProjectUninit = CreationUninitCallback;
+  }
+
+  void                Creation::Init( Errors& errors )
+  {
+    SpaceInit();
+    mWorld = TAC_NEW World;
+    mEditorCamera = TAC_NEW Camera;
+    mEditorCamera->mPos = { 0, 1, 5 };
+    mEditorCamera->mForwards = { 0, 0, -1 };
+    mEditorCamera->mRight = { 1, 0, 0 };
+    mEditorCamera->mUp = { 0, 1, 0 };
+
+    String dataPath;
+    OS::GetApplicationDataPath( dataPath, errors );
+    TAC_HANDLE_ERROR( errors );
+
+    OS::CreateFolderIfNotExist( dataPath, errors );
+    TAC_HANDLE_ERROR( errors );
+
+    Json* windows;
+    GetWindowsJson( &windows, errors );
+    TAC_HANDLE_ERROR( errors );
+
+
+    CreateInitialWindows( errors );
+    TAC_HANDLE_ERROR( errors );
+
+    PrefabLoad( mWorld, mEditorCamera, errors );
+    TAC_HANDLE_ERROR( errors );
   }
 
   void                Creation::Uninit( Errors& errors )
@@ -254,10 +276,6 @@ namespace Tac
       ( this->*fn )( errors );
   }
 
-  //void Creation::CreateInitialWindow( const char * name, void( Creation::* )( Errors & ), Errors & errors )
-  //{
-  //}
-
   void                Creation::CreateInitialWindows( Errors& errors )
   {
     CreateInitialWindow( gMainWindowName, &Creation::CreateMainWindow, errors );
@@ -268,33 +286,6 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
   }
 
-  void                Creation::Init( Errors& errors )
-  {
-    SpaceInit();
-    mWorld = TAC_NEW World;
-    mEditorCamera.mPos = { 0, 1, 5 };
-    mEditorCamera.mForwards = { 0, 0, -1 };
-    mEditorCamera.mRight = { 1, 0, 0 };
-    mEditorCamera.mUp = { 0, 1, 0 };
-
-    String dataPath;
-    OS::GetApplicationDataPath( dataPath, errors );
-    TAC_HANDLE_ERROR( errors );
-
-    OS::CreateFolderIfNotExist( dataPath, errors );
-    TAC_HANDLE_ERROR( errors );
-
-    Json* windows;
-    GetWindowsJson( &windows, errors );
-    TAC_HANDLE_ERROR( errors );
-
-
-    CreateInitialWindows( errors );
-    TAC_HANDLE_ERROR( errors );
-
-    PrefabLoad( mWorld, &mEditorCamera, errors );
-    TAC_HANDLE_ERROR( errors );
-  }
 
   Json*               Creation::FindWindowJson( StringView windowName )
   {
@@ -303,15 +294,8 @@ namespace Tac
     GetWindowsJson( &windows, errors );
     if( errors )
       return nullptr;
-
     return SettingsGetChildByKeyValuePair( "Name", Json( windowName ), windows );
-
-    //for( Json* windowJson : windows->mArrayElements )
-    //  if( windowJson->GetChild( "Name" ) == windowName )
-    //    return windowJson;
-    //return nullptr;
   }
-
 
   void                Creation::DeleteSelectedEntities()
   {
