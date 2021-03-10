@@ -1,4 +1,5 @@
 {
+  "Skybox": null,
   "Terrain":
   {
     "mGroundTexturePath": "assets\grass.png",

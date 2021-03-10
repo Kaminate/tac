@@ -43,7 +43,7 @@ namespace Tac
 
 	void CreationPropertyWindow::RecursiveEntityHierarchyElement( Entity* entity )
 	{
-		bool previouslySelected = Contains( gCreation.mSelectedEntities, entity );
+		const bool previouslySelected = Contains( gCreation.mSelectedEntities, entity );
 		if( ImGuiSelectable( entity->mName, previouslySelected ) )
 		{
 			gCreation.ClearSelection();
@@ -106,8 +106,11 @@ namespace Tac
 
 		for( Entity* entity : gCreation.mSelectedEntities )
 		{
-			const char* occupation = "Bartender";
 			ImGuiInputText( "Name", entity->mName );
+
+      const char* prefabPath = PrefabGetOrNull( entity );
+      ImGuiText( "Prefab path: " + String( prefabPath ? prefabPath : "null") );
+
 			ImGuiText( "UUID: " + ToString( ( UUID )entity->mEntityUUID ) );
 			ImGuiDragFloat( "X Position: ", &entity->mRelativeSpace.mPosition.x );
 			ImGuiDragFloat( "Y Position: ", &entity->mRelativeSpace.mPosition.y );

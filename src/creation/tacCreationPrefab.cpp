@@ -21,6 +21,7 @@ namespace Tac
   const char* refFrameVecNameForward = "mForwards";
   const char* refFrameVecNameRight = "mRight";
   const char* refFrameVecNameUp = "mUp";
+
   // this would be saved as a .map file in cod engine
   struct Prefab
   {
@@ -31,11 +32,11 @@ namespace Tac
     Tac::String       mDocumentPath;
   };
 
-  static Vector< Tac::Prefab* >  mPrefabs;
-  static const char* prefabSettingsPath = "prefabs";
+  static Vector< Prefab* >  mPrefabs;
+  static const char*             prefabSettingsPath = "prefabs";
 
 
-  static void          PrefabLoadCameraVec( Prefab* prefab, StringView refFrameVecName, v3& refFrameVec )
+  static void         PrefabLoadCameraVec( Prefab* prefab, StringView refFrameVecName, v3& refFrameVec )
   {
     if( prefab->mDocumentPath.empty() )
       return;
@@ -54,7 +55,7 @@ namespace Tac
     }
   }
 
-  static void          PrefabLoadCamera( Prefab* prefab, Camera* camera )
+  static void         PrefabLoadCamera( Prefab* prefab, Camera* camera )
   {
     if( !camera )
       return;
@@ -64,7 +65,22 @@ namespace Tac
     PrefabLoadCameraVec( prefab, refFrameVecNameUp, camera->mUp );
   }
 
-  void                 PrefabLoadAtPath( World* world, Camera* camera, String prefabPath, Errors& errors )
+  static void         PrefabSaveCameraVec( Prefab* prefab, StringView refFrameVecName, v3 refFrameVec )
+  {
+    if( prefab->mDocumentPath.empty() )
+      return;
+    for( int iAxis = 0; iAxis < 3; ++iAxis )
+    {
+      Json* refFramesJson = SettingsGetJson( { "prefabCameraRefFrames" } );
+      Json* refFrameJson = SettingsGetChildByKeyValuePair( "path", Json( prefab->mDocumentPath ), refFramesJson );
+      SettingsSetNumber( Join( { refFrameVecName, String( 1, "xyz"[ iAxis ] ) }, "." ),
+                         refFrameVec[ iAxis ],
+                         refFrameJson );
+    }
+
+  }
+
+  void                PrefabLoadAtPath( World* world, Camera* camera, String prefabPath, Errors& errors )
   {
     ModifyPathRelative( prefabPath );
     TemporaryMemory memory = TemporaryMemoryFromFile( prefabPath, errors );
@@ -95,8 +111,7 @@ namespace Tac
     }
   }
 
-
-  static Prefab*       PrefabFind( Entity* entity )
+  static Prefab*      PrefabFind( Entity* entity )
   {
     for( Prefab* prefab : mPrefabs )
     {
@@ -163,25 +178,6 @@ namespace Tac
 
   }
 
-
-
-
-  static void         PrefabSaveCameraVec( Prefab* prefab, StringView refFrameVecName, v3 refFrameVec )
-  {
-    if( prefab->mDocumentPath.empty() )
-      return;
-    for( int iAxis = 0; iAxis < 3; ++iAxis )
-    {
-      Json* refFramesJson = SettingsGetJson( { "prefabCameraRefFrames" } );
-      Json* refFrameJson = SettingsGetChildByKeyValuePair( "path", Json( prefab->mDocumentPath ), refFramesJson );
-      SettingsSetNumber( Join( { refFrameVecName, String( 1, "xyz"[ iAxis ] ) }, "." ),
-                         refFrameVec[ iAxis ],
-                         refFrameJson );
-    }
-
-  }
-
-
   void                PrefabSaveCamera( Camera* camera )
   {
     for( Prefab* prefab : mPrefabs )
@@ -223,6 +219,15 @@ namespace Tac
     }
     for( Entity* child : entity->mChildren )
       PrefabRemoveEntityRecursively( child );
+  }
+
+  // What if one of its ancestors is a prefab?
+  const char*         PrefabGetOrNull( Entity* entity )
+  {
+    for( Prefab* prefab : mPrefabs )
+      if( Contains( prefab->mEntities, entity ) )
+        return prefab->mDocumentPath;
+    return nullptr;
   }
 }
 

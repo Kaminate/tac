@@ -1,4 +1,3 @@
-
 #pragma once
 
 namespace Tac
@@ -17,6 +16,6 @@ namespace Tac
   //void                PrefabLoadCameraVec( Prefab*, StringView, v3& );
   void                PrefabSaveCamera( Camera* );
   void                PrefabRemoveEntityRecursively( Entity* );
-
+  const char*         PrefabGetOrNull( Entity* );
 }
 
