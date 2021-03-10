@@ -15,6 +15,7 @@
 #include "src/common/profile/tacProfile.h"
 #include "src/common/tacTemporaryMemory.h"
 #include "src/creation/tacCreation.h"
+#include "src/creation/tacCreationPrefab.h"
 #include "src/creation/tacCreationGameWindow.h"
 #include "src/creation/tacCreationPropertyWindow.h"
 #include "src/creation/tacCreationMainWindow.h"
@@ -37,12 +38,6 @@ namespace Tac
   static void CreationInitCallback( Errors& errors ) { gCreation.Init( errors ); }
   static void CreationUninitCallback( Errors& errors ) { gCreation.Uninit( errors ); }
   static void CreationUpdateCallback( Errors& errors ) { gCreation.Update( errors ); }
-  const char* prefabSettingsPath = "prefabs";
-  const char* refFrameVecNamePosition = "mPos";
-  const char* refFrameVecNameForward = "mForwards";
-  const char* refFrameVecNameRight = "mRight";
-  const char* refFrameVecNameUp = "mUp";
-  const char* axisNames[] = { "x", "y", "z" };
   static struct CreatedWindowData
   {
     String              mName;
@@ -297,7 +292,7 @@ namespace Tac
     CreateInitialWindows( errors );
     TAC_HANDLE_ERROR( errors );
 
-    LoadPrefabs( errors );
+    PrefabLoad( mWorld, &mEditorCamera, errors );
     TAC_HANDLE_ERROR( errors );
   }
 
@@ -317,37 +312,6 @@ namespace Tac
     //return nullptr;
   }
 
-  void                Creation::RemoveEntityFromPrefabRecursively( Entity* entity )
-  {
-    int prefabCount = mPrefabs.size();
-    for( int iPrefab = 0; iPrefab < prefabCount; ++iPrefab )
-    {
-      Prefab* prefab = mPrefabs[ iPrefab ];
-      bool removedEntityFromPrefab = false;
-      int prefabEntityCount = prefab->mEntities.size();
-      for( int iPrefabEntity = 0; iPrefabEntity < prefabEntityCount; ++iPrefabEntity )
-      {
-        if( prefab->mEntities[ iPrefabEntity ] == entity )
-        {
-          prefab->mEntities[ iPrefabEntity ] = prefab->mEntities[ prefabEntityCount - 1 ];
-          prefab->mEntities.pop_back();
-          if( prefab->mEntities.empty() )
-          {
-            mPrefabs[ iPrefab ] = mPrefabs[ prefabCount - 1 ];
-            mPrefabs.pop_back();
-          }
-
-          removedEntityFromPrefab = true;
-          break;
-        }
-      }
-
-      if( removedEntityFromPrefab )
-        break;
-    }
-    for( Entity* child : entity->mChildren )
-      RemoveEntityFromPrefabRecursively( child );
-  }
 
   void                Creation::DeleteSelectedEntities()
   {
@@ -369,7 +333,7 @@ namespace Tac
     }
     for( Entity* entity : topLevelEntitiesToDelete )
     {
-      RemoveEntityFromPrefabRecursively( entity );
+      PrefabRemoveEntityRecursively( entity );
       mWorld->KillEntity( entity );
     }
     mSelectedEntities.clear();
@@ -443,7 +407,7 @@ namespace Tac
     if( gKeyboardInput.IsKeyJustDown( Key::S ) &&
         gKeyboardInput.IsKeyDown( Key::Modifier ) )
     {
-      SavePrefabs();
+      PrefabSave( mWorld );
       if( CreationGameWindow::Instance )
       {
         CreationGameWindow::Instance->mStatusMessage = "Saved prefabs!";
@@ -525,109 +489,8 @@ namespace Tac
     DeleteSelectedEntities();
   }
 
-  void                Creation::GetSavedPrefabs( Vector< String >& paths, Errors& errors )
-  {
-    TAC_UNUSED_PARAMETER( errors );
-    Json* prefabs = SettingsGetJson( prefabSettingsPath );
 
-    Vector< String > alreadySavedPrefabs;
-    for( Json* child : prefabs->mArrayElements )
-      alreadySavedPrefabs.push_back( child->mString );
-    paths = alreadySavedPrefabs;
-  }
-
-  void                Creation::UpdateSavedPrefabs()
-  {
-    Json* prefabs = SettingsGetJson( prefabSettingsPath );
-
-    Errors errors;
-    Vector< String > alreadySavedPrefabs;
-    GetSavedPrefabs( alreadySavedPrefabs, errors );
-    TAC_HANDLE_ERROR( errors );
-
-    for( Prefab* prefab : mPrefabs )
-    {
-      if( prefab->mDocumentPath.empty() )
-        continue;
-      if( Contains( alreadySavedPrefabs, prefab->mDocumentPath ) )
-        continue;
-      prefabs->AddChild()->SetString( prefab->mDocumentPath );
-    }
-
-    SettingsSave( errors );
-  }
-
-  Prefab*             Creation::FindPrefab( Entity* entity )
-  {
-    for( Prefab* prefab : mPrefabs )
-    {
-      if( Contains( prefab->mEntities, entity ) )
-      {
-        return prefab;
-      }
-    }
-    return nullptr;
-  }
-
-  void                Creation::SavePrefabs()
-  {
-    for( Entity* entity : mWorld->mEntities )
-    {
-      if( entity->mParent )
-        continue;
-
-      Prefab* prefab = FindPrefab( entity );
-      if( !prefab )
-      {
-        prefab = TAC_NEW Prefab;
-        prefab->mEntities = { entity };
-        mPrefabs.push_back( prefab );
-      }
-
-
-      // Get document paths for prefabs missing them
-      if( prefab->mDocumentPath.empty() )
-      {
-        String savePath;
-        String suggestedName =
-          //prefab->mEntity->mName
-          entity->mName +
-          ".prefab";
-        Errors saveDialogErrors;
-        OS::SaveDialog( savePath, suggestedName, saveDialogErrors );
-        if( saveDialogErrors )
-        {
-          // todo: log it, user feedback
-          std::cout << saveDialogErrors.ToString().c_str() << std::endl;
-          continue;
-        }
-
-        ModifyPathRelative( savePath );
-
-        prefab->mDocumentPath = savePath;
-        UpdateSavedPrefabs();
-      }
-
-      //Entity* entity = prefab->mEntity;
-
-      Json entityJson;
-      entity->Save( entityJson );
-
-      String prefabJsonString = entityJson.Stringify();
-      Errors saveToFileErrors;
-      void* bytes = prefabJsonString.data();
-      int byteCount = prefabJsonString.size();
-      OS::SaveToFile( prefab->mDocumentPath, bytes, byteCount, saveToFileErrors );
-      if( saveToFileErrors )
-      {
-        // todo: log it, user feedback
-        std::cout << saveToFileErrors.ToString().c_str() << std::endl;
-        continue;
-      }
-    }
-  }
-
-  void                Creation::ModifyPathRelative( String& savePath )
+  void                ModifyPathRelative( String& savePath )
   {
     if( StartsWith( savePath, ShellGetInitialWorkingDir() ) )
     {
@@ -636,86 +499,5 @@ namespace Tac
     }
   }
 
-  void                Creation::LoadPrefabAtPath( String prefabPath, Errors& errors )
-  {
-    ModifyPathRelative( prefabPath );
-    auto memory = TemporaryMemoryFromFile( prefabPath, errors );
-    TAC_HANDLE_ERROR( errors );
-
-    Json prefabJson;
-    prefabJson.Parse( memory.data(), memory.size(), errors );
-
-    Entity* entity = mWorld->SpawnEntity( NullEntityUUID );
-    entity->Load( prefabJson );
-
-    auto prefab = TAC_NEW Prefab;
-    prefab->mDocumentPath = prefabPath;
-    prefab->mEntities = { entity };
-    mPrefabs.push_back( prefab );
-
-    LoadPrefabCamera( prefab );
-    UpdateSavedPrefabs();
-  }
-
-  void                Creation::LoadPrefabs( Errors& errors )
-  {
-    Vector< String > prefabPaths;
-    GetSavedPrefabs( prefabPaths, errors );
-    for( auto& prefabPath : prefabPaths )
-    {
-      LoadPrefabAtPath( prefabPath, errors );
-      TAC_HANDLE_ERROR( errors );
-    }
-  }
-
-  void                Creation::LoadPrefabCameraVec( Prefab* prefab, StringView refFrameVecName, v3& refFrameVec )
-  {
-    if( prefab->mDocumentPath.empty() )
-      return;
-    for( int iAxis = 0; iAxis < 3; ++iAxis )
-    {
-      const StringView axisName = axisNames[ iAxis ];
-      Errors ignored;
-      const JsonNumber defaultValue = refFrameVec[ iAxis ];
-
-      Json* refFramesJson = SettingsGetJson( { "prefabCameraRefFrames" } );
-      Json* refFrameJson = SettingsGetChildByKeyValuePair( "path", Json( prefab->mDocumentPath ), refFramesJson );
-      const JsonNumber axisValue = SettingsGetNumber( Join( { refFrameVecName, String( 1, "xyz"[ iAxis ] ) }, "." ),
-                                                      defaultValue,
-                                                      refFrameJson );
-      refFrameVec[ iAxis ] = ( float )axisValue;
-    }
-  }
-
-  void                Creation::SavePrefabCameraVec( Prefab* prefab, StringView refFrameVecName, v3 refFrameVec )
-  {
-    if( prefab->mDocumentPath.empty() )
-      return;
-    for( int iAxis = 0; iAxis < 3; ++iAxis )
-    {
-      Json* refFramesJson = SettingsGetJson( { "prefabCameraRefFrames" } );
-      Json* refFrameJson = SettingsGetChildByKeyValuePair( "path", Json( prefab->mDocumentPath ), refFramesJson );
-      SettingsSetNumber( Join( { refFrameVecName, String( 1, "xyz"[ iAxis ] ) }, "." ),
-                         refFrameVec[ iAxis ],
-                         refFrameJson );
-    }
-
-  }
-
-  void                Creation::LoadPrefabCamera( Prefab* prefab )
-  {
-    LoadPrefabCameraVec( prefab, refFrameVecNamePosition, mEditorCamera.mPos );
-    LoadPrefabCameraVec( prefab, refFrameVecNameForward, mEditorCamera.mForwards );
-    LoadPrefabCameraVec( prefab, refFrameVecNameRight, mEditorCamera.mRight );
-    LoadPrefabCameraVec( prefab, refFrameVecNameUp, mEditorCamera.mUp );
-  }
-
-  void                Creation::SavePrefabCamera( Prefab* prefab )
-  {
-    SavePrefabCameraVec( prefab, refFrameVecNamePosition, mEditorCamera.mPos );
-    SavePrefabCameraVec( prefab, refFrameVecNameForward, mEditorCamera.mForwards );
-    SavePrefabCameraVec( prefab, refFrameVecNameRight, mEditorCamera.mRight );
-    SavePrefabCameraVec( prefab, refFrameVecNameUp, mEditorCamera.mUp );
-  }
 }
 

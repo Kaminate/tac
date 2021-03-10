@@ -29,12 +29,8 @@ namespace Tac
   struct Texture;
   struct World;
 
-  // this would be saved as a .map file in cod engine
-  struct Prefab
-  {
-    Vector< Entity* > mEntities;
-    String            mDocumentPath;
-  };
+
+
 
   struct Creation
   {
@@ -43,7 +39,7 @@ namespace Tac
     void                Update( Errors& );
 
 
-    //===-------------- Entities =------------===//
+    //===-------------- Entities -------------===//
     Entity*             CreateEntity();
 
 
@@ -52,21 +48,9 @@ namespace Tac
     v3                  GetSelectionGizmoOrigin();
     void                ClearSelection();
     void                CheckDeleteSelected();
-
-    //===-------------- Prefabs --------------===//
-    void                UpdateSavedPrefabs();
-    void                GetSavedPrefabs( Vector< String > & paths, Errors& );
-    void                SavePrefabs();
-    void                LoadPrefabs( Errors& );
-    void                LoadPrefabAtPath( String, Errors& );
-    void                LoadPrefabCamera( Prefab* );
-    void                LoadPrefabCameraVec( Prefab*, StringView, v3& );
-    void                SavePrefabCamera( Prefab* );
-    void                SavePrefabCameraVec( Prefab*, StringView, v3 );
-    void                RemoveEntityFromPrefabRecursively( Entity* );
-    Prefab*             FindPrefab( Entity* );
-    void                ModifyPathRelative( String& path );
     void                DeleteSelectedEntities();
+
+
 
     //===-------------- Windows --------------===//
     void                CreateInitialWindow( const char*,
@@ -94,8 +78,10 @@ namespace Tac
     v3                  mTranslationGizmoDir = {};
     float               mTranslationGizmoOffset = 0;
     Camera              mEditorCamera;
-    Vector< Prefab* >   mPrefabs;
   };
+
+  //===-------------- Misc -----------------===//
+  void                ModifyPathRelative( String& path );
 
   extern Creation gCreation;
 

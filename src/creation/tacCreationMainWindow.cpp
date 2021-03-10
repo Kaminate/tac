@@ -127,7 +127,7 @@ namespace Tac
           continue;
         }
 
-        gCreation.ModifyPathRelative( savePath );
+        ModifyPathRelative( savePath );
 
         Json entityJson;
         entity->Save( entityJson );

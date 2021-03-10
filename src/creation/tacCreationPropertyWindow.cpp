@@ -9,6 +9,7 @@
 #include "src/common/tacUtility.h"
 #include "src/creation/tacCreation.h"
 #include "src/creation/tacCreationPropertyWindow.h"
+#include "src/creation/tacCreationPrefab.h"
 #include "src/shell/tacDesktopApp.h"
 #include "src/shell/tacDesktopWindowGraphics.h"
 #include "src/space/model/tacModel.h"
@@ -92,9 +93,12 @@ namespace Tac
 			String prefabPath;
 			OS::OpenDialog( prefabPath, errors );
 			TAC_HANDLE_ERROR( errors );
-
-			gCreation.LoadPrefabAtPath( prefabPath, errors );
-			TAC_HANDLE_ERROR( errors );
+      if( prefabPath.size() )
+      {
+        Camera* cam = world->mEntities.size() ? nullptr : &gCreation.mEditorCamera;
+        PrefabLoadAtPath( world, cam, prefabPath, errors );
+        TAC_HANDLE_ERROR( errors );
+      }
 		}
 		ImGuiEndGroup();
 		ImGuiSameLine();

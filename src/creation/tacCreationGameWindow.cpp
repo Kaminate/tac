@@ -11,6 +11,7 @@
 #include "src/common/tacOS.h"
 #include "src/common/tacShell.h"
 #include "src/creation/tacCreation.h"
+#include "src/creation/tacCreationPrefab.h"
 #include "src/creation/tacCreationGameWindow.h"
 #include "src/shell/tacDesktopApp.h"
 #include "src/shell/tacDesktopWindowGraphics.h"
@@ -569,7 +570,7 @@ namespace Tac
       return;
     if( !IsWindowHovered( mDesktopWindowHandle ) )
       return;
-    Camera oldCamera = gCreation.mEditorCamera;
+    const Camera oldCamera = gCreation.mEditorCamera;
 
     if( gKeyboardInput.IsKeyDown( Key::MouseRight ) &&
         gKeyboardInput.mMouseDeltaPosScreenspace != v2( 0, 0 ) )
@@ -629,8 +630,7 @@ namespace Tac
         oldCamera.mForwards != gCreation.mEditorCamera.mForwards ||
         oldCamera.mRight != gCreation.mEditorCamera.mRight ||
         oldCamera.mUp != gCreation.mEditorCamera.mUp )
-      for( Prefab* prefab : gCreation.mPrefabs )
-        gCreation.SavePrefabCamera( prefab );
+        PrefabSaveCamera( &gCreation.mEditorCamera );
   }
 
   void CreationGameWindow::Update( Errors& errors )

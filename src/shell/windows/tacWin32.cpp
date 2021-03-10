@@ -124,12 +124,11 @@ namespace Tac
     return result;
   }
 
-  static String GetFileDialogErrors()
+  static String GetFileDialogErrors(DWORD extError = CommDlgExtendedError())
   {
     String errors = "failed to save file because: ";
     // the user cancels or closes the Save dialog box
     // or an error such as the file name buffer being too small occurs
-    const DWORD extError = CommDlgExtendedError();
     switch( extError )
     {
       // the enums should be in commdlg.h, but its not finding, so fk it
@@ -188,7 +187,12 @@ namespace Tac
       const BOOL getOpenFileNameResult = GetOpenFileNameA( &dialogParams );
       if( 0 == getOpenFileNameResult )
       {
-        const String errMsg = GetFileDialogErrors();
+        const DWORD extError = CommDlgExtendedError();
+        if( 0 == extError )
+          // The user closed/canceled the dialog box
+          return;
+
+        const String errMsg = GetFileDialogErrors(extError);
         TAC_RAISE_ERROR( errMsg, errors );
       }
 

@@ -16,6 +16,8 @@ set( TAC_SOURCES
   ${TAC_SOURCES}
   "${CMAKE_CURRENT_SOURCE_DIR}/tacCreation.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/tacCreation.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/tacCreationPrefab.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/tacCreationPrefab.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/tacCreationGameObjectMenuWindow.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/tacCreationGameObjectMenuWindow.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/tacCreationGameWindow.cpp"
