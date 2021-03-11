@@ -140,6 +140,8 @@ namespace Tac
       return;
 
     mSideVertexCount = Max( mSideVertexCount, 2 );
+    mSideVertexCount = Min( mSideVertexCount, mTestHeightmapWidth );
+    mSideVertexCount = Min( mSideVertexCount, mTestHeightmapHeight );
     mPower = Max( mPower, 1.0f );
 
     mWorldCreationTransform = mEntity->mWorldTransform;

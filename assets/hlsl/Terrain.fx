@@ -153,9 +153,10 @@ PS_OUTPUT PS( VS_OUTPUT input )
   }
   */
 
+  // uhh this is actually NDC space
   const float2 screenSpacePosition = input.mScreenSpacePosition.xy / input.mScreenSpacePosition.w; // [-1,1]^2
 
-  // if( screenSpacePosition.x > sin( secModTau * 3.) * 0.3 + 0.2 )
+  // if( screenSpacePosition.x > sin( secModTau * 3.) )
   finalColor *= dot( -input.mWorldSpaceNormal, float3( 0, 1, 0) ); // Simple lighting
 
 

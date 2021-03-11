@@ -5,11 +5,11 @@
       "Terrain":
       {
         "mGroundTexturePath": "assets\grass.png",
-        "mHeight": 120,
+        "mHeight": 100,
         "mHeightmapTexturePath": "assets/heightmaps/heightmap2.png",
         "mNoiseTexturePath": "assets\shadertoy_gray_noise_med_256x256.png",
-        "mSideLength": 1049.900024,
-        "mSideVertexCount": 512
+        "mSideLength": 1000,
+        "mSideVertexCount": 500
       },
       "mEntityUUID": 0,
       "mEulerRads":
@@ -18,7 +18,7 @@
         "y": 0,
         "z": 0
       },
-      "mName": "terrain",
+      "mName": "terrain",
       "mPosition":
       {
         "x": 0,
@@ -54,6 +54,28 @@
         "y": 1,
         "z": 1
       }
+    },
+    {
+      "mEntityUUID": 0,
+      "mEulerRads":
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "mName": "back wall",
+      "mPosition":
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "mScale":
+      {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      }
     }
   ],
   "mEntityUUID": 0,
@@ -63,7 +85,7 @@
     "y": 0,
     "z": 0
   },
-  "mName": "root scene node",
+  "mName": "cornell scene",
   "mPosition":
   {
     "x": 0,

@@ -556,13 +556,17 @@ namespace Tac
       }
     }
 
-    ImGuiDragFloat3( "cam pos", gCreation.mEditorCamera->mPos.data() );
-    ImGuiDragFloat3( "cam forward", gCreation.mEditorCamera->mForwards.data() );
-    ImGuiDragFloat3( "cam right", gCreation.mEditorCamera->mRight.data() );
-    ImGuiDragFloat3( "cam up", gCreation.mEditorCamera->mUp.data() );
-    ImGuiDragFloat3( "cam far", &gCreation.mEditorCamera->mFarPlane );
-    ImGuiDragFloat( "cam near", &gCreation.mEditorCamera->mNearPlane );
-    ImGuiDragFloat( "cam fovyrad", &gCreation.mEditorCamera->mFovyrad );
+    if( ImGuiCollapsingHeader( "Camera" ) )
+    {
+
+      ImGuiDragFloat3( "cam pos", gCreation.mEditorCamera->mPos.data() );
+      ImGuiDragFloat3( "cam forward", gCreation.mEditorCamera->mForwards.data() );
+      ImGuiDragFloat3( "cam right", gCreation.mEditorCamera->mRight.data() );
+      ImGuiDragFloat3( "cam up", gCreation.mEditorCamera->mUp.data() );
+      ImGuiDragFloat3( "cam far", &gCreation.mEditorCamera->mFarPlane );
+      ImGuiDragFloat( "cam near", &gCreation.mEditorCamera->mNearPlane );
+      ImGuiDragFloat( "cam fovyrad", &gCreation.mEditorCamera->mFovyrad );
+    }
 
     if( ShellGetElapsedSeconds() < mStatusMessageEndTime )
     {
@@ -593,7 +597,7 @@ namespace Tac
         m3 matrix = m3::RotRadAngleAxis( -angleRadians.x, gCreation.mEditorCamera->mUp );
         gCreation.mEditorCamera->mForwards = matrix * gCreation.mEditorCamera->mForwards;
         gCreation.mEditorCamera->mRight = Cross( gCreation.mEditorCamera->mForwards,
-                                                gCreation.mEditorCamera->mUp );
+                                                 gCreation.mEditorCamera->mUp );
       }
 
       if( angleRadians.y != 0 )
@@ -601,7 +605,7 @@ namespace Tac
         m3 matrix = m3::RotRadAngleAxis( -angleRadians.y, gCreation.mEditorCamera->mRight );
         gCreation.mEditorCamera->mForwards = matrix * gCreation.mEditorCamera->mForwards;
         gCreation.mEditorCamera->mUp = Cross( gCreation.mEditorCamera->mRight,
-                                             gCreation.mEditorCamera->mForwards );
+                                              gCreation.mEditorCamera->mForwards );
       }
 
       // Snapping right.y to the x-z plane prevents the camera from tilting side-to-side.
@@ -609,7 +613,7 @@ namespace Tac
       gCreation.mEditorCamera->mRight.y = 0;
       gCreation.mEditorCamera->mRight.Normalize();
       gCreation.mEditorCamera->mUp = Cross( gCreation.mEditorCamera->mRight,
-                                           gCreation.mEditorCamera->mForwards );
+                                            gCreation.mEditorCamera->mForwards );
       gCreation.mEditorCamera->mUp.Normalize();
     }
 
@@ -639,7 +643,7 @@ namespace Tac
         oldCamera.mForwards != gCreation.mEditorCamera->mForwards ||
         oldCamera.mRight != gCreation.mEditorCamera->mRight ||
         oldCamera.mUp != gCreation.mEditorCamera->mUp )
-        PrefabSaveCamera( gCreation.mEditorCamera );
+      PrefabSaveCamera( gCreation.mEditorCamera );
   }
 
   void CreationGameWindow::Update( Errors& errors )

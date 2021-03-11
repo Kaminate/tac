@@ -9,6 +9,8 @@ namespace Tac
   struct Json;
   struct Entity;
   struct World;
+  struct StringView;
+  struct DesktopWindowHandle;
 
   struct Creation
   {
