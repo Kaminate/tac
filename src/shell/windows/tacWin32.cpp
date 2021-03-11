@@ -172,6 +172,7 @@ namespace Tac
       }
       dir = String( buf, getCurrentDirectoryResult );
     };
+
     void OpenDialog( String& path, Errors& errors )
     {
       const int outBufSize = 256;
@@ -205,6 +206,7 @@ namespace Tac
         path = StripLeadingSlashes( path );
       }
     }
+
     void SaveDialog( String& path, StringView suggestedPath, Errors& errors )
     {
       const int outBufSize = 256;
@@ -230,6 +232,7 @@ namespace Tac
 
       path = outBuf;
     };
+
     void GetScreenspaceCursorPos( v2& pos, Errors& errors )
     {
       // Note: this could return error access denied, for example if your computer goes to sleep
@@ -237,10 +240,12 @@ namespace Tac
       TAC_HANDLE_ERROR_IF( !GetCursorPos( &point ), Win32GetLastErrorString(), errors );
       pos = { ( float )point.x, ( float )point.y };
     }
+
     void SetScreenspaceCursorPos( const v2& pos, Errors& errors )
     {
       TAC_HANDLE_ERROR_IF( !SetCursorPos( ( int )pos.x, ( int )pos.y ), Win32GetLastErrorString(), errors );
     }
+
     void DoesFolderExist( StringView path, bool& exists, Errors& errors )
     {
       String expandedPath;
@@ -270,6 +275,7 @@ namespace Tac
       }
       exists = true;
     }
+
     void CreateFolder( const StringView path, Errors& errors )
     {
       const BOOL createDirectoryResult = CreateDirectoryA( path.c_str(), NULL );
@@ -279,6 +285,7 @@ namespace Tac
         TAC_RAISE_ERROR( errMsg, errors );
       }
     }
+
     void SaveToFile( StringView path, void* bytes, int byteCount, Errors& errors )
     {
       SplitFilepath splitFilepath( path );
@@ -321,14 +328,17 @@ namespace Tac
       }
       // Should we check that bytesWrittenCount == byteCount?
     }
+
     void DebugBreak()
     {
       Win32DebugBreak();
     }
+
     void DebugPopupBox( StringView s )
     {
       MessageBox( nullptr, s.data(), nullptr, MB_OK );
     }
+
     void GetApplicationDataPath( String& path, Errors& errors )
     {
       WCHAR* outPath;
@@ -340,6 +350,7 @@ namespace Tac
       path = WideStringToUTF8( outPath );
       CoTaskMemFree( outPath );
     }
+
     void GetFileLastModifiedTime( time_t* time,
                                   StringView path,
                                   Errors& errors )
@@ -397,6 +408,7 @@ namespace Tac
 
       *time = result;
     }
+
     void GetDirFilesRecrusiveAux( const WIN32_FIND_DATA& data,
                                   Vector<String>&files,
                                   StringView dir,
@@ -416,6 +428,7 @@ namespace Tac
         files.push_back( dataFilepath );
       }
     }
+
     void GetDirFilesRecursive( Vector<String>&files,
                                StringView dir,
                                Errors& errors )
