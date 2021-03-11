@@ -2,6 +2,8 @@
 #include "src/common/tacUtility.h"
 #include "src/common/tacOS.h"
 
+#include <iostream>
+
 namespace Tac
 {
   //void Errors::operator=( const char* message )
@@ -61,6 +63,7 @@ namespace Tac
         && !mBroken
         && IsDebugMode() )
     {
+      std::cout << ToString() << std::endl;
       OS::DebugBreak();
       mBroken = true;
     }

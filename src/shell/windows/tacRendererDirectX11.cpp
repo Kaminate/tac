@@ -652,6 +652,28 @@ namespace Tac
                                    &pErrorBlob );
     if( FAILED( hr ) )
     {
+      if( IsDebugMode() )
+      {
+
+        const char* shaderBlock = "----------------";
+        std::cout << shaderBlock << std::endl;
+        int lineNumber = 0;
+        bool isNewLine = true;
+        for( char c : shaderStr )
+        {
+          if( isNewLine )
+          {
+            std::cout << va( "line %3i|", ++lineNumber );
+            isNewLine = false;
+          }
+          std::cout << c;
+          isNewLine = c == '\n';
+        }
+        std::cout << std::endl;
+        std::cout << shaderBlock << std::endl;
+
+      }
+
       const char* errMsg = ( const char* )pErrorBlob->GetBufferPointer();
       TAC_RAISE_ERROR( errMsg, errors );
     }

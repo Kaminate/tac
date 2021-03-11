@@ -34,6 +34,10 @@ namespace Tac
     float              mFar;
     float              mNear;
     v2                 mGbufferSize;
+
+    //float              mTruncTime; // Integer part chopped off
+    //double             mElapsedAppSeconds;
+    float              mSecModTau;
   };
 
   struct DefaultCBufferPerObject

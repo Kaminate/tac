@@ -8,14 +8,17 @@ sampler linearSampler : register( s0 );
 struct VS_INPUT
 {
   float3 Position : POSITION;
+  float3 Normal   : NORMAL;
   float2 TexCoord : TEXCOORD;
 };
 
 struct VS_OUTPUT
 {
-  float2 mWorldSpaceXZ : HI;// : POSITION;
-  float2 mTexCoord : TEXCOORD;
-  float4 mClipSpacePosition : SV_POSITION;
+  float3 mWorldSpacePosition  : HI;
+  float3 mWorldSpaceNormal    : NORMAL;
+  float2 mTexCoord            : TEXCOORD0;
+  float4 mClipSpacePosition   : SV_POSITION;
+  float4 mScreenSpacePosition : TEXCOORD1;
 };
 
 VS_OUTPUT VS( VS_INPUT input )
@@ -26,8 +29,10 @@ VS_OUTPUT VS( VS_INPUT input )
 
   VS_OUTPUT output = ( VS_OUTPUT )0;
   output.mClipSpacePosition = clipSpacePosition;
-  output.mWorldSpaceXZ = worldSpacePosition.xz;
+  output.mWorldSpacePosition = worldSpacePosition.xyz;
+  output.mWorldSpaceNormal = input.Normal;
   output.mTexCoord = input.TexCoord;
+  output.mScreenSpacePosition = clipSpacePosition;
   return output;
 }
 
@@ -71,10 +76,9 @@ PS_OUTPUT PS( VS_OUTPUT input )
 {
   PS_OUTPUT output = ( PS_OUTPUT )0;
   const float magicNoiseScalar = 1000.0;
-  const float2 noiseuv = input.mWorldSpaceXZ / magicNoiseScalar;
-  const float noiseSample = noiseTexture.Sample(
-    linearSampler,
-    noiseuv );
+  const float2 noiseuv = input.mWorldSpacePosition.xz / magicNoiseScalar;
+  const float noiseSample = noiseTexture.Sample( linearSampler,
+                                                 noiseuv ).x;
   const float noiseIndex = noiseSample * 8.0;
   const float noiseIndexWhole = floor( noiseIndex );
   const float noiseIndexFract = frac( noiseIndex );
@@ -148,6 +152,12 @@ PS_OUTPUT PS( VS_OUTPUT input )
     finalColor.xyz += pixelColor;
   }
   */
+
+  const float2 screenSpacePosition = input.mScreenSpacePosition.xy / input.mScreenSpacePosition.w; // [-1,1]^2
+
+  // if( screenSpacePosition.x > sin( secModTau * 3.) * 0.3 + 0.2 )
+  finalColor *= dot( -input.mWorldSpaceNormal, float3( 0, 1, 0) ); // Simple lighting
+
 
   output.mColor = float4( finalColor, 1.0 );
 

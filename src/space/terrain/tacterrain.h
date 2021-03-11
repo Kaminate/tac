@@ -8,6 +8,9 @@
 
 namespace Tac
 {
+  struct VertexBuffer;
+  struct IndexBuffer;
+
   struct TerrainOBB
   {
     v3 mPos;
@@ -20,8 +23,6 @@ namespace Tac
     float mMaxHeight = 100.0f;
   };
 
-  struct VertexBuffer;
-  struct IndexBuffer;
 
   struct Terrain : public Component
   {
@@ -31,12 +32,15 @@ namespace Tac
     static Terrain*                GetComponent( Entity* );
     void                           LoadTestHeightmap();
     void                           PopulateGrid();
-    v3                             GetGridVal( int iRow, int iCol );
+    int                            GetGridIndex( int iRow, int iCol ) const;
+    v3                             GetGridVal( int iRow, int iCol ) const;
+    v3                             GetGridValNormal( int iRow, int iCol ) const;
     void                           Recompute();
     int                            mSideVertexCount = 50;
     float                          mSideLength = 50.0f;
     float                          mUpwardsHeight = 20.0f;
     Vector< v3 >                   mRowMajorGrid;
+    Vector< v3 >                   mRowMajorGridNormals;
     String                         mHeightmapTexturePath;
     String                         mGroundTexturePath = "";
     String                         mNoiseTexturePath = "";

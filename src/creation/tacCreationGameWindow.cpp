@@ -537,7 +537,7 @@ namespace Tac
 
   void CreationGameWindow::DrawPlaybackOverlay( Errors& errors )
   {
-    ImGuiSetNextWindowSize( { 300, 75 } );
+    ImGuiSetNextWindowSize( { 300, 405 } );
     ImGuiSetNextWindowHandle( mDesktopWindowHandle );
     ImGuiBegin( "gameplay overlay" );
     if( mSoul )
@@ -556,6 +556,14 @@ namespace Tac
         TAC_HANDLE_ERROR( errors );
       }
     }
+
+    ImGuiDragFloat3( "cam pos", gCreation.mEditorCamera->mPos.data() );
+    ImGuiDragFloat3( "cam forward", gCreation.mEditorCamera->mForwards.data() );
+    ImGuiDragFloat3( "cam right", gCreation.mEditorCamera->mRight.data() );
+    ImGuiDragFloat3( "cam up", gCreation.mEditorCamera->mUp.data() );
+    ImGuiDragFloat3( "cam far", &gCreation.mEditorCamera->mFarPlane );
+    ImGuiDragFloat( "cam near", &gCreation.mEditorCamera->mNearPlane );
+    ImGuiDragFloat( "cam fovyrad", &gCreation.mEditorCamera->mFovyrad );
 
     if( ShellGetElapsedSeconds() < mStatusMessageEndTime )
     {

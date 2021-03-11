@@ -5,6 +5,10 @@ cbuffer CBufferPerFrame : register( b0 )
   float            far;
   float            near;
   float2           gbufferSize;
+
+  // float            truncSecs;
+  // double           elapsedAppSeconds;
+  float            secModTau;
 }
 
 cbuffer CBufferPerObject : register( b1 )

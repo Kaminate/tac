@@ -63,7 +63,7 @@ namespace Tac
       if( mNoiseTextureDialogErrors )
         ImGuiText( "Dialog noise texture errors: " + mNoiseTextureDialogErrors.ToString() );
 
-      changed |= ImGuiDragInt( "Subdivisionness", &mTerrain->mSideVertexCount );
+      changed |= ImGuiDragInt( "Subdivisions", &mTerrain->mSideVertexCount );
       changed |= ImGuiDragFloat( "Size", &mTerrain->mSideLength );
       changed |= ImGuiDragFloat( "Height", &mTerrain->mUpwardsHeight );
       changed |= ImGuiDragFloat( "Power", &mTerrain->mPower );

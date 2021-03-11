@@ -1,7 +1,7 @@
-
 #include "src/common/graphics/imgui/tacImGui.h"
 #include "src/common/tacString.h"
 #include "src/space/graphics/tacGraphics.h"
+
 namespace Tac
 {
   void GraphicsDebugImgui( System* system )

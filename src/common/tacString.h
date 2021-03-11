@@ -5,19 +5,19 @@ namespace Tac
   struct String;
   struct StringView;
 
-  bool IsSpace( char c );
-  bool IsAlpha( char c );
+  bool IsSpace( char );
+  bool IsAlpha( char );
 
-  int StrLen( const char* str );
+  int  StrLen( const char* );
   // Negative value if lhs appears before rhs in lexicographical order.
   // Zero if lhs and rhs compare equal.
   // Positive value if lhs appears after rhs in lexicographical order.
-  int StrCmp( const char* lhs, const char* rhs );
-  int MemCmp( const void* lhs, const void* rhs, int len );
+  int  StrCmp( const char*, const char* );
+  int  MemCmp( const void*, const void*, int );
 
-  // std uses void*
-  void MemCpy( void* dst, const void* src, int len );
-  void StrCpy( char* dst, const char* src );
+  //   std uses void*
+  void MemCpy( void*, const void*, int );
+  void StrCpy( char*, const char* );
 
   // so like if youre passing around data, i think stringview is nice because
   // your string doesnt have to be null terminated.
@@ -30,30 +30,29 @@ namespace Tac
     StringView( const String& );
     char operator[]( int i ) const;
     const char* data() const;
-    int size() const;
+    int         size() const;
     const char* begin() const;
     const char* end() const;
     const char* c_str() const;
-    bool empty() const;
+    bool        empty() const;
     operator const char* ( ){ return mStr; }
 
-    // searches this stringview for the last character which matches any of the characters in s,
-    // return npos if no matches
-    int find_last_of( StringView ) const;
-    int find_first_of( StringView ) const;
-    StringView substr( int pos = 0, int len = npos ) const;
-    char front();
-    char back();
-
-    bool starts_with( StringView );
-    bool starts_with( char );
-    bool ends_with( StringView );
-    void remove_prefix( int );
-    void remove_suffix( int );
+    //          searches this stringview for the last character which matches
+    //          any of the characters in s, return npos if no matches
+    int         find_last_of( StringView ) const;
+    int         find_first_of( StringView ) const;
+    StringView  substr( int pos = 0, int len = npos ) const;
+    char        front();
+    char        back();
+    bool        starts_with( StringView );
+    bool        starts_with( char );
+    bool        ends_with( StringView );
+    void        remove_prefix( int );
+    void        remove_suffix( int );
 
     static const int npos = -1; // mimicking the standard library
-    const char* mStr = nullptr;
-    int mLen = 0;
+    const char*      mStr = nullptr;
+    int              mLen = 0;
   };
 
   struct String
@@ -64,40 +63,40 @@ namespace Tac
     String( const char* begin, const char* end );
     String( const char* str, int len );
     String( int len, char c );
-    String( const char* str );
+    String( const char* );
     ~String();
-    void clear();
-    bool empty() const;
-    char* c_str() const;
-    int size() const;
-    char* data() const;
-    char operator[]( int i ) const;
-    char& operator[]( int i );
-    void operator = ( StringView str );
-    void operator = ( const String& str );
-    void operator = ( const char* str );
-    void operator += ( const char* str );
-    void operator += ( const String& s );
-    void operator += ( char c );
+    char operator[]( int ) const;
+    char& operator[]( int );
+    void operator = ( StringView );
+    void operator = ( const String& );
+    void operator = ( const char* );
+    void operator += ( const char* );
+    void operator += ( const String& );
+    void operator += ( char );
     operator const char* ( ){ return mStr; }
-    void push_back( char c );
-    void assign( const char* str, int strLen );
-    void append( const char* str, int strLen );
-    void append( const String& s );
-    void prepend( const String& s );
-    void reserve( int lenNotIncNull );
-    void resize( int lenNotIncNull );
-    char* begin() const;
-    char* end() const;
-    // returns npos if not found
-    int find_last_of( const char* c ) const;
-    int find( const String& substr ) const;
+    void   clear();
+    bool   empty() const;
+    char*  c_str() const;
+    int    size() const;
+    char*  data() const;
+    void   push_back( char );
+    void   assign( const char* str, int strLen );
+    void   append( const char* str, int strLen );
+    void   append( const String& );
+    void   prepend( const String& );
+    void   reserve( int lenNotIncNull );
+    void   resize( int lenNotIncNull );
+    char*  begin() const;
+    char*  end() const;
+    //     returns npos if not found
+    int    find_last_of( const char* c ) const;
+    int    find( const String& substr ) const;
     String substr( int pos = 0, int len = npos ) const;
 
     static const int npos = -1; // mimicking the standard library
-    char* mStr = nullptr;
-    int mLen = 0; // number of bytes before the null-terminator
-    int mAllocatedByteCount = 0; // includes the null-terminator
+    char*  mStr = nullptr;
+    int    mLen = 0; // number of bytes before the null-terminator
+    int    mAllocatedByteCount = 0; // includes the null-terminator
   };
     
   //template <typename T> String ToString( T ){ return""; }
@@ -110,7 +109,7 @@ namespace Tac
   String     ToString( float );
   //String     ToString( uint32_t val );
   StringView Va( const char* format, ... );
-  int        Atoi( StringView s );
+  int        Atoi( StringView );
 
   // this is SeparateStrings in tacUtility.h
   //String Join( const String&, std::initializer_list< String > );
@@ -159,8 +158,8 @@ namespace Tac
     int mHash = 0;
   };
 
-  bool operator < ( StringID a, StringID b );
-  bool operator == ( StringID a, StringID b );
+  bool operator < ( StringID, StringID );
+  bool operator == ( StringID, StringID );
 
 
   StringView DebugLookupString( StringID );

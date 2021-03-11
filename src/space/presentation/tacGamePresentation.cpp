@@ -6,6 +6,7 @@
 #include "src/common/math/tacMatrix4.h"
 #include "src/common/profile/tacProfile.h"
 #include "src/common/tacCamera.h"
+#include "src/common/tacShellTimer.h"
 #include "src/common/tacDesktopWindow.h"
 #include "src/common/tacMemory.h"
 #include "src/common/tacOS.h"
@@ -19,13 +20,28 @@
 #include "src/space/tacWorld.h"
 #include "src/space/terrain/tacTerrain.h"
 
+#include <cmath> // std::fmod
+
 namespace Tac
 {
   struct TerrainVertex
   {
     v3 mPos;
+    v3 mNor;
     v2 mUV;
   };
+
+  static TerrainVertex GetTerrainVertex( const Terrain* terrain,
+                                         const int r,
+                                         const int c,
+                                         const v2 uv )
+  {
+    TerrainVertex terrainVertex = {};
+    terrainVertex.mPos = terrain->GetGridVal( r, c );
+    terrainVertex.mNor = terrain->GetGridValNormal( r, c );
+    terrainVertex.mUV = uv;
+    return terrainVertex;
+  }
 
   GamePresentation::~GamePresentation()
   {
@@ -60,34 +76,24 @@ namespace Tac
     {
       for( int iCol = 1; iCol < terrain->mSideVertexCount; ++iCol )
       {
-        TerrainVertex vertexTL = {};
-        vertexTL.mPos = terrain->GetGridVal( iRow - 1, iCol - 1 );
-        vertexTL.mUV = { 0, 1 };
-        int iVertexTL = vertexes.size();
-        vertexes.push_back( vertexTL );
+        const int iVertexTL = vertexes.size();
+        vertexes.push_back( GetTerrainVertex( terrain, iRow - 1, iCol - 1, { 0, 1 } ) );
 
-        TerrainVertex vertexTR = {};
-        vertexTR.mPos = terrain->GetGridVal( iRow - 1, iCol );
-        vertexTR.mUV = { 1, 1 };
-        int iVertexTR = vertexes.size();
-        vertexes.push_back( vertexTR );
+        const int iVertexTR = vertexes.size();
+        vertexes.push_back( GetTerrainVertex( terrain, iRow - 1, iCol, { 1, 1 } ) );
 
-        TerrainVertex vertexBL = {};
-        vertexBL.mPos = terrain->GetGridVal( iRow, iCol - 1 );
-        vertexBL.mUV = { 0, 0 };
-        int iVertexBL = vertexes.size();
-        vertexes.push_back( vertexBL );
+        const int iVertexBL = vertexes.size();
+        vertexes.push_back( GetTerrainVertex( terrain, iRow, iCol - 1, { 0, 0 } ) );
 
-        TerrainVertex vertexBR = {};
-        vertexBR.mPos = terrain->GetGridVal( iRow, iCol );
-        vertexBR.mUV = { 1, 0 };
-        int iVertexBR = vertexes.size();
-        vertexes.push_back( vertexBR );
+        const int iVertexBR = vertexes.size();
+        vertexes.push_back( GetTerrainVertex( terrain, iRow, iCol, { 1, 0 } ) );
 
+        // lower left triangle
         indexes.push_back( iVertexBR );
         indexes.push_back( iVertexTL );
         indexes.push_back( iVertexBL );
 
+        // upper right triangle
         indexes.push_back( iVertexBR );
         indexes.push_back( iVertexTR );
         indexes.push_back( iVertexTL );
@@ -151,12 +157,15 @@ namespace Tac
     const m4 view = mCamera->View();
     const m4 proj = mCamera->Proj( a, b, aspect );
 
+    const double elapsedSeconds = ShellGetElapsedSeconds();
+
     DefaultCBufferPerFrame perFrameData;
     perFrameData.mFar = mCamera->mFarPlane;
     perFrameData.mNear = mCamera->mNearPlane;
     perFrameData.mView = view;
     perFrameData.mProjection = proj;
     perFrameData.mGbufferSize = { w, h };
+    perFrameData.mSecModTau = ( float )std::fmod( elapsedSeconds, 6.2831853 );
 
     Render::UpdateConstantBuffer( mPerFrame,
                                   &perFrameData,
@@ -305,6 +314,13 @@ namespace Tac
     terrainPosDecl.mTextureFormat.mPerElementDataType = GraphicsType::real;
     terrainPosDecl.mAlignedByteOffset = TAC_OFFSET_OF( TerrainVertex, mPos );
 
+    VertexDeclaration terrainNorDecl = {};
+    terrainNorDecl.mAttribute = Attribute::Normal;
+    terrainNorDecl.mTextureFormat.mElementCount = 3;
+    terrainNorDecl.mTextureFormat.mPerElementByteCount = sizeof( float );
+    terrainNorDecl.mTextureFormat.mPerElementDataType = GraphicsType::real;
+    terrainNorDecl.mAlignedByteOffset = TAC_OFFSET_OF( TerrainVertex, mNor );
+
     VertexDeclaration terrainTexCoordDecl = {};
     terrainTexCoordDecl.mAttribute = Attribute::Texcoord;
     terrainTexCoordDecl.mTextureFormat.mElementCount = 2;
@@ -312,8 +328,12 @@ namespace Tac
     terrainTexCoordDecl.mTextureFormat.mPerElementDataType = GraphicsType::real;
     terrainTexCoordDecl.mAlignedByteOffset = TAC_OFFSET_OF( TerrainVertex, mUV );
 
-    mTerrainVertexFormat = Render::CreateVertexFormat( Render::VertexDeclarations( terrainPosDecl,
-                                                       terrainTexCoordDecl ),
+    Render::VertexDeclarations vertexDeclarations;
+    vertexDeclarations.AddVertexDeclaration( terrainPosDecl );
+    vertexDeclarations.AddVertexDeclaration( terrainNorDecl );
+    vertexDeclarations.AddVertexDeclaration( terrainTexCoordDecl );
+
+    mTerrainVertexFormat = Render::CreateVertexFormat( vertexDeclarations,
                                                        mTerrainShader,
                                                        TAC_STACK_FRAME );
   }

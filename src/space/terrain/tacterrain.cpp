@@ -22,7 +22,7 @@ namespace Tac
     json[ "mSideLength" ].SetNumber( terrain->mSideLength );
     json[ "mHeight" ].SetNumber( terrain->mUpwardsHeight );
     json[ "mHeightmapTexturePath" ].SetString( terrain->mHeightmapTexturePath );
-    json[ "mGroundTexturePath" ].SetString(  terrain->mGroundTexturePath );
+    json[ "mGroundTexturePath" ].SetString( terrain->mGroundTexturePath );
     json[ "mNoiseTexturePath" ].SetString( terrain->mNoiseTexturePath );
   }
 
@@ -51,9 +51,8 @@ namespace Tac
 
   Terrain::Terrain()
   {
-    mHeightmapTexturePath = "assets/heightmap.png";
-
-    }
+    mHeightmapTexturePath = "assets/heightmaps/heightmap2.png";
+  }
 
   void                    Terrain::SpaceInitPhysicsTerrain()
   {
@@ -107,10 +106,20 @@ namespace Tac
     stbi_image_free( loaded );
   }
 
-  v3                      Terrain::GetGridVal( int iRow, int iCol )
+  int                     Terrain::GetGridIndex( int iRow, int iCol ) const
   {
-    return mRowMajorGrid[ iCol + iRow * mSideVertexCount ];
+    return iCol + iRow * mSideVertexCount;
+  }
+
+  v3                      Terrain::GetGridVal( int iRow, int iCol ) const
+  {
+    return mRowMajorGrid[ GetGridIndex( iRow, iCol ) ];
   };
+
+  v3                      Terrain::GetGridValNormal( int iRow, int iCol ) const
+  {
+    return mRowMajorGridNormals[ GetGridIndex( iRow, iCol ) ];
+  }
 
   void                    Terrain::PopulateGrid()
   {
@@ -135,6 +144,9 @@ namespace Tac
     mPower = Max( mPower, 1.0f );
 
     mWorldCreationTransform = mEntity->mWorldTransform;
+
+    const int totalVertexCount = mSideVertexCount * mSideVertexCount;
+    terrain->mRowMajorGrid.reserve( totalVertexCount );
 
     float width = mSideLength;
     float height = mSideLength;
@@ -167,17 +179,45 @@ namespace Tac
         terrain->mRowMajorGrid.push_back( pos );
       }
     }
+
+    for( int iRow = 0; iRow < mSideVertexCount; ++iRow )
+    {
+      for( int iCol = 0; iCol < mSideVertexCount; ++iCol )
+      {
+        const v3 pos = GetGridVal( iRow, iCol );
+        const v3 posR = iCol + 1 < mSideVertexCount ? GetGridVal( iRow, iCol + 1 ) : pos;
+        const v3 posL = iCol - 1 >= 0               ? GetGridVal( iRow, iCol - 1 ) : pos;
+        const v3 posD = iRow - 1 >= 0               ? GetGridVal( iRow - 1, iCol ) : pos;
+        const v3 posU = iRow + 1 < mSideVertexCount ? GetGridVal( iRow + 1, iCol ) : pos;
+        const v3 edgeX = posR - posL;
+        const v3 edgeY = posD - posU;
+        const v3 normal = Normalize( Cross( edgeX, edgeY ) );
+
+
+        //const v3 normal
+        //  = ( iRow >  0  && iCol > 0  )
+        //  ? Normalize( v3( 1, 0, 0 ) )
+        //  : Normalize( v3( 0, 0, 1 ) );
+
+        //const v3 posL = GetGridVal( iRow, iCol );
+        //const v3 posU = GetGridVal( iRow, iCol );
+        //const v3 posD = GetGridVal( iRow, iCol );
+        //const int rowOffset = iRow + 1 < mSideVertexCount ? 1 : -1;
+        //const int colOffset = iCol + 1 < mSideVertexCount ? 1 : -1;
+        //const v3 edgeRowPos = GetGridVal( iRow + rowOffset, iCol);
+        //const v3 edgeColPos = GetGridVal( iRow, iCol + colOffset );
+        //const v3 edgeRow = ( edgeRowPos - pos ) * float( rowOffset );
+        //const v3 edgeCol = ( edgeColPos - pos ) * float( colOffset );
+        //const v3 normal = Normalize( Cross( edgeCol, edgeRow ) );
+        terrain->mRowMajorGridNormals.push_back( normal );
+      }
+    }
   }
 
   void                    Terrain::Recompute()
   {
     mRowMajorGrid.clear();
-
-    //if( mVertexBuffer.IsValid() || mIndexBuffer.IsValid() )
-    //{
-    //  OS::DebugBreak();
-    //  Render::SetBreakpointWhenThisFrameIsRendered();
-    //}
+    mRowMajorGridNormals.clear();
 
     if( mVertexBuffer.IsValid() )
     {
@@ -190,8 +230,6 @@ namespace Tac
       Render::DestroyIndexBuffer( mIndexBuffer, TAC_STACK_FRAME );
       mIndexBuffer = Render::IndexBufferHandle();
     }
-
-
   }
 
 }
