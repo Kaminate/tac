@@ -1,32 +1,13 @@
 #pragma once
 
 #include "src/common/containers/tacVector.h"
-//#include "src/common/graphics/tacRenderer.h"
-//
-//#include "src/common/tacCamera.h"
-#include "src/common/tacDesktopWindow.h"
-//#include "src/common/tacErrorHandling.h"
-//#include "src/common/tacEvent.h"
-#include "src/common/tacMemory.h"
-//#include "src/common/tacSettings.h"
-//#include "src/common/tacShell.h"
 
 namespace Tac
 {
   struct Errors;
   struct Camera;
   struct Json;
-  //struct CreationMainWindow;
-  //struct CreationGameWindow;
-  //struct CreationPropertyWindow;
-  //struct CreationSystemWindow;
-  //struct CreationProfileWindow;
-  //struct DesktopApp;
   struct Entity;
-  //struct Renderer;
-  //struct Shell;
-  //struct Soul;
-  //struct Texture;
   struct World;
 
   struct Creation
