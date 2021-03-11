@@ -17,13 +17,12 @@ namespace Tac
     float mRMiliseconds = 47.0f;
   };
 
-  static const ImGuiindex profileWidgetId =
-    ImGuiRegisterWindowResource(
-      TAC_STRINGIFY( ImguiProfileWidgetData ),
-      &( ImguiProfileWidgetData() ),
-      sizeof( ImguiProfileWidgetData ) );
+  static ImguiProfileWidgetData defaultImguiProfileWidgetData;
+  static const ImGuiindex profileWidgetId = ImGuiRegisterWindowResource( TAC_STRINGIFY( ImguiProfileWidgetData ),
+                                                                         &defaultImguiProfileWidgetData,
+                                                                         sizeof( ImguiProfileWidgetData ) );
 
-  Vector<ImguiProfileWidgetData> gImguiProfileWidgetDatas;
+  Vector< ImguiProfileWidgetData > gImguiProfileWidgetDatas;
 
   static v3 v3mult( v3 a, v3 b )
   {
@@ -42,10 +41,10 @@ namespace Tac
 
   static v4 GetProfileFunctionColor( ProfileFunction* profileFunction )
   {
-    v3 a( 0.8f, 0.5f, 0.4f );
-    v3 b( 0.2f, 0.4f, 0.2f );
-    v3 c( 2, 1, 1 );
-    v3 d( 0, 0.25, 0.25 );
+    v3 colora( 0.8f, 0.5f, 0.4f );
+    v3 colorb( 0.2f, 0.4f, 0.2f );
+    v3 colorc( 2, 1, 1 );
+    v3 colord( 0, 0.25, 0.25 );
 
     uint32_t hash = 0;
     for( char c : StringView( profileFunction->mStackFrame.mFunction ) )
@@ -53,7 +52,7 @@ namespace Tac
     float t = ( std::sin( ( float )hash ) + 1.0f ) / 2.0f;
 
     v4 boxColor;
-    boxColor.xyz() = a + v3mult( b, v3cos( 6.28318f * ( c * t + d ) ) );
+    boxColor.xyz() = colora + v3mult( colorb, v3cos( 6.28318f * ( colorc * t + colord ) ) );
     boxColor[ 3 ] = 1;
     return boxColor;
   }

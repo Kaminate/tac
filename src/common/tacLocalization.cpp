@@ -311,7 +311,7 @@ namespace Tac
 
 
   // Should I make an ImGui::Enum?
-  void LanguageDebugImgui( StringView name, Language* language )
+  void LanguageDebugImgui( StringView , Language* )
   {
     //auto currentItem = ( int )( *language );
     //auto itemGetter = []( void* data, int idx, const char** outText )

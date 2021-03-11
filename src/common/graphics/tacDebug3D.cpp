@@ -363,8 +363,8 @@ namespace Tac
     DebugDrawTriangle( p0, p1, p2, color, color, color );
   }
   void Debug3DDrawData::DrawToTexture( Errors& errors,
-                                       const DefaultCBufferPerFrame* cbufferperframe,
-                                       RenderView* renderView )
+                                       const DefaultCBufferPerFrame* 
+                                       )
   {
     //_PROFILE_BLOCK;
     if( mDebugDrawVerts.size() )

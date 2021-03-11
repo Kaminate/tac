@@ -12,13 +12,13 @@ namespace Tac
     return quote + String( s ) + quote;
   }
 
-  static void ExpectCharacter( char c, char expected, Errors& errors )
-  {
-    if( c == expected )
-      return;
-    const String errorMsg = "Unexpected character " + String( 1, c ) + ", expected " + String( 1, expected );
-    TAC_RAISE_ERROR( errorMsg, errors );
-  }
+  //static void ExpectCharacter( char c, char expected, Errors& errors )
+  //{
+  //  if( c == expected )
+  //    return;
+  //  const String errorMsg = "Unexpected character " + String( 1, c ) + ", expected " + String( 1, expected );
+  //  TAC_RAISE_ERROR( errorMsg, errors );
+  //}
 
   static void ParseObject( Json* json, ParseData* parseData, Errors& errors );
 

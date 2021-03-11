@@ -16,7 +16,6 @@ namespace Tac
   struct UI2DDrawData;
   struct Soul;
   struct Shell;
-  struct RenderView;
   struct Shader;
   struct VertexFormat;
   struct CBuffer;

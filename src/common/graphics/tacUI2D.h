@@ -12,7 +12,6 @@
 #include "src/common/tacErrorHandling.h"
 #include "src/common/tacLocalization.h"
 #include "src/common/tacMemory.h"
-#include "src/common/tacSpan.h"
 
 namespace Tac
 {
@@ -22,7 +21,6 @@ namespace Tac
   struct FontStuff;
   struct IndexBuffer;
   struct RasterizerState;
-  struct RenderView;
   struct SamplerState;
   struct Shader;
   struct UI2DCommonData;

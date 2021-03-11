@@ -23,14 +23,14 @@ namespace Tac
                                     Errors& errors );
 
 
-  Format GetFormat( DXGI_FORMAT format );
-  DXGI_FORMAT GetDXGIFormat( Format textureFormat );
+  Format           GetFormat( DXGI_FORMAT );
+  DXGI_FORMAT      GetDXGIFormat( Format );
 
-  void NameDXGIObject( IDXGIObject* object, StringView name );
+  void             NameDXGIObject( IDXGIObject* , StringView );
 
-  void DXGICallAux( const char* fnCallWithArgs, HRESULT res, Errors& errors );
+  void             DXGICallAux( const char* fnCallWithArgs, HRESULT , Errors& );
 
-  const char* TryInferDXGIErrorStr( HRESULT );
+  const char*      TryInferDXGIErrorStr( HRESULT );
 
 #define TAC_DXGI_CALL( errors, call, ... )\
 {\

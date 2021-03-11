@@ -19,8 +19,6 @@ ${CMAKE_CURRENT_SOURCE_DIR}/graphics/imgui/tacImGuiState.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/graphics/imgui/tacImGuiState.h
 ${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacTextEdit.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacTextEdit.h
-${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacUI.cpp
-${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacUI.h
 ${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacUI2D.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacUI2D.h
 ${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacDebug3D.cpp
@@ -93,8 +91,6 @@ ${CMAKE_CURRENT_SOURCE_DIR}/tacSettings.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/tacSettings.h
 ${CMAKE_CURRENT_SOURCE_DIR}/tacString.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/tacString.h
-${CMAKE_CURRENT_SOURCE_DIR}/tacSpan.cpp
-${CMAKE_CURRENT_SOURCE_DIR}/tacSpan.h
 ${CMAKE_CURRENT_SOURCE_DIR}/tacTime.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/tacTime.h
 ${CMAKE_CURRENT_SOURCE_DIR}/tacUtility.cpp

@@ -95,20 +95,20 @@ namespace Tac
     {
       static thread_local struct UniformBufferPusher : public UniformBuffer::Pusher
       {
-        Pusher*        PushData( const void* bytes, const int byteCount )
+        Pusher*        PushData( const void* bytes, const int byteCount ) override
         {
           MemCpy( mUniformBuffer->mBytes + mUniformBuffer->mByteCount, bytes, byteCount );
           mUniformBuffer->mByteCount += byteCount;
           return this;
         }
-        Pusher*        PushString( const StringView s )
+        Pusher*        PushString( const StringView s ) override
         {
           PushNumber( s.size() );
           PushData( s.c_str(), s.size() );
           PushData( "", 1 );
           return this;
         }
-        Pusher*        PushNumber( const int i )
+        Pusher*        PushNumber( const int i ) override
         {
           return PushData( &i, sizeof( i ) );
         }
@@ -1098,7 +1098,7 @@ namespace Tac
       if( fileModifyTime == shaderReloadInfo->mFileModifyTime )
         return;
       shaderReloadInfo->mFileModifyTime = fileModifyTime;
-      fn( Render::ShaderHandle( shaderReloadInfo - sShaderReloadInfos ), shaderReloadInfo->mFullPath.c_str() );
+      fn( Render::ShaderHandle( (int)( shaderReloadInfo - sShaderReloadInfos ) ), shaderReloadInfo->mFullPath.c_str() );
     }
 
     void               ShaderReloadHelperUpdate( void( *fn )( const Render::ShaderHandle, const char* ) )

@@ -156,10 +156,10 @@ namespace Tac
     FormatPair{ { 1, sizeof( uint32_t ), GraphicsType::uint }, DXGI_FORMAT_R32_UINT }
   };
 
-  Format GetFormat( DXGI_FORMAT format )
+  Format GetFormat( const DXGI_FORMAT format )
   {
     for( auto formatPair : gFormatPairs )
-      if( formatPair.mFormatDXGI = format )
+      if( formatPair.mFormatDXGI == format )
         return formatPair.mFormat;
     TAC_ASSERT_INVALID_CODE_PATH;
     return {};

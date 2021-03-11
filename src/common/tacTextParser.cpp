@@ -10,13 +10,6 @@
 
 namespace Tac
 {
-  static bool IsSpace( const char c )
-  {
-      for( const char s : " \t\n\v\f\r" )
-        if( c == s )
-          return true;
-      return false;
-  }
 
   ParseData::ParseData( const char* bytes, int byteCount )
   {
@@ -79,11 +72,8 @@ namespace Tac
 
   bool              ParseData::EatUntilCharIsNext( const char c )
   {
-    for( ;; )
+    while( const char* next = PeekByte() )
     {
-      const char* next = PeekByte();
-      if( !next )
-        return false;
       if( *next == c )
         return true;
       EatByte();
@@ -93,7 +83,7 @@ namespace Tac
 
   bool              ParseData::EatUntilCharIsPrev( const char c )
   {
-    for( ;; )
+    while( GetRemainingByteCount() )
     {
       const char* eaten = EatByte();
       if( !eaten )

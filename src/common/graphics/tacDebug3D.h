@@ -26,7 +26,6 @@ namespace Tac
   struct UI2DState;
   struct UI2DVertex;
   struct VertexBuffer;
-  struct RenderView;
 
   struct DefaultVertexColor
   {
@@ -64,8 +63,7 @@ namespace Tac
     void DebugDrawTriangle( v3 p0, v3 p1, v3 p2, v3 color0, v3 color1, v3 color2 );
     void DebugDrawTriangle( v3 p0, v3 p1, v3 p2, v3 color = v3( 1, 1, 1 ) );
     void DrawToTexture( Errors&,
-                        const DefaultCBufferPerFrame*,
-                        RenderView* );
+                        const DefaultCBufferPerFrame* );
     Vector< DefaultVertexColor > mDebugDrawVerts;
     Render::VertexBufferHandle   mVerts;
     int                          mCapacity = 0;

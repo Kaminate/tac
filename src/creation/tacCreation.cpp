@@ -143,7 +143,7 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
   }
 
-  void                Creation::Uninit( Errors& errors )
+  void                Creation::Uninit( Errors& )
   {
     delete CreationMainWindow::Instance;
     delete CreationGameWindow::Instance;
@@ -236,7 +236,8 @@ namespace Tac
     if( !windowJson )
     {
       Json* windows;
-      GetWindowsJson( &windows, Errors() );
+      Errors errors;
+      GetWindowsJson( &windows, errors );
       windowJson = windows->AddChild();
       SettingsSetString( "Name", windowName, windowJson );
     }

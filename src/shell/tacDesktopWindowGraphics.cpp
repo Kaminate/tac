@@ -26,6 +26,8 @@ namespace Tac
                                           const int w,
                                           const int h )
   {
+    TAC_UNUSED_PARAMETER( x );
+    TAC_UNUSED_PARAMETER( y );
     if( nativeWindowHandle )
     {
       const Render::FramebufferHandle framebufferHandle = Render::CreateFramebuffer( nativeWindowHandle, w, h, TAC_STACK_FRAME );

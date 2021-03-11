@@ -1,6 +1,6 @@
 #include "src/common/assetmanagers/tacTextureAssetManager.h"
 #include "src/common/graphics/imgui/tacImGui.h"
-#include "src/common/graphics/tacUI.h"
+
 #include "src/common/graphics/tacUI2D.h"
 #include "src/common/tacJson.h"
 #include "src/common/tacDesktopWindow.h"
@@ -204,7 +204,6 @@ namespace Tac
     if( CreationGameObjectMenuWindow::Instance )
     {
       DesktopWindowHandle desktopWindowHandle = CreationGameObjectMenuWindow::Instance->mDesktopWindowHandle;
-      DesktopWindowState* menu = GetDesktopWindowState( desktopWindowHandle );
       CreationGameObjectMenuWindow::Instance->Update( errors );
       TAC_HANDLE_ERROR( errors );
 

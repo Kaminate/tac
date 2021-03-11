@@ -541,9 +541,9 @@ namespace Tac
     if( gVerbose )
       std::cout << "Render2::Begin\n";
 
-    for( auto& b : constantBuffers )
+    for( auto& b : mBoundConstantBuffers )
       b = {};
-    constantBufferCount = 0;
+    mBoundConstantBufferCount = 0;
 
     for( int iWindow = 0; iWindow < mWindowCount; ++iWindow )
     {
@@ -563,10 +563,10 @@ namespace Tac
       const FLOAT ClearColorRGBA[] = { ClearGrey, ClearGrey, ClearGrey,  1.0f };
       mDeviceContext->ClearRenderTargetView( renderTargetView, ClearColorRGBA );
     }
-    blendState = nullptr;
-    depthStencilState = nullptr;
-    viewHandle = Render::ViewHandle();
-    indexBuffer = nullptr;
+    mBlendState = nullptr;
+    mDepthStencilState = nullptr;
+    mViewHandle = Render::ViewHandle();
+    mIndexBuffer = nullptr;
 
   }
 
@@ -576,14 +576,8 @@ namespace Tac
       []( Render::ShaderHandle shaderHandle, const char* path )
       {
         RendererDirectX11* renderer = ( RendererDirectX11* )Renderer::Instance;
-        Program* program = &renderer->mPrograms[ ( int )shaderHandle ];
-        program->mInputSig;
-        program->mPixelShader;
-        program->mVertexShader;
-        path;
-
-        *program = LoadProgram( Render::ShaderSource::FromPath( path ), Errors() );
-
+        Errors errors;
+        renderer->mPrograms[ ( int )shaderHandle ] = LoadProgram( Render::ShaderSource::FromPath( path ), errors );
       } );
 
     if( gVerbose )
@@ -609,32 +603,32 @@ namespace Tac
       mDeviceContext->PSSetShader( program->mPixelShader, NULL, 0 );
     }
 
-    if( drawCall->mBlendStateHandle.IsValid() && blendState != mBlendStates[ ( int )drawCall->mBlendStateHandle ] )
+    if( drawCall->mBlendStateHandle.IsValid() && mBlendState != mBlendStates[ ( int )drawCall->mBlendStateHandle ] )
     {
-      blendState = mBlendStates[ ( int )drawCall->mBlendStateHandle ];
-      TAC_ASSERT( blendState );
+      mBlendState = mBlendStates[ ( int )drawCall->mBlendStateHandle ];
+      TAC_ASSERT( mBlendState );
       const FLOAT blendFactorRGBA[] = { 1.0f, 1.0f, 1.0f, 1.0f };
       const UINT sampleMask = 0xffffffff;
-      mDeviceContext->OMSetBlendState( blendState, blendFactorRGBA, sampleMask );
+      mDeviceContext->OMSetBlendState( mBlendState, blendFactorRGBA, sampleMask );
     }
 
-    if( drawCall->mDepthStateHandle.IsValid() && depthStencilState != mDepthStencilStates[ ( int )drawCall->mDepthStateHandle ] )
+    if( drawCall->mDepthStateHandle.IsValid() && mDepthStencilState != mDepthStencilStates[ ( int )drawCall->mDepthStateHandle ] )
     {
-      depthStencilState = mDepthStencilStates[ ( int )drawCall->mDepthStateHandle ];
-      TAC_ASSERT( depthStencilState );
+      mDepthStencilState = mDepthStencilStates[ ( int )drawCall->mDepthStateHandle ];
+      TAC_ASSERT( mDepthStencilState );
       const UINT stencilRef = 0;
-      mDeviceContext->OMSetDepthStencilState( depthStencilState, stencilRef );
+      mDeviceContext->OMSetDepthStencilState( mDepthStencilState, stencilRef );
     }
 
     if( drawCall->mIndexBufferHandle.IsValid() )
     {
-      indexBuffer = &mIndexBuffers[ ( int )drawCall->mIndexBufferHandle ];
-      if( !indexBuffer->mBuffer )
+      mIndexBuffer = &mIndexBuffers[ ( int )drawCall->mIndexBufferHandle ];
+      if( !mIndexBuffer->mBuffer )
         OS::DebugBreak();
-      TAC_ASSERT( indexBuffer->mBuffer );
-      const DXGI_FORMAT dxgiFormat = GetDXGIFormat( indexBuffer->mFormat );
+      TAC_ASSERT( mIndexBuffer->mBuffer );
+      const DXGI_FORMAT dxgiFormat = GetDXGIFormat( mIndexBuffer->mFormat );
       const UINT byteOffset = 0; //  drawCall->mStartIndex * indexBuffer->mFormat.mPerElementByteCount;
-      mDeviceContext->IASetIndexBuffer( indexBuffer->mBuffer,
+      mDeviceContext->IASetIndexBuffer( mIndexBuffer->mBuffer,
                                         dxgiFormat,
                                         byteOffset );
     }
@@ -685,10 +679,10 @@ namespace Tac
     }
 
     if( drawCall->mViewHandle.IsValid() &&
-        drawCall->mViewHandle != viewHandle )
+        drawCall->mViewHandle != mViewHandle )
     {
-      viewHandle = drawCall->mViewHandle;
-      const Render::View* view = &frame->mViews[ ( int )viewHandle ];
+      mViewHandle = drawCall->mViewHandle;
+      const Render::View* view = &frame->mViews[ ( int )mViewHandle ];
       const Render::FramebufferHandle framebufferHandle = view->mFrameBufferHandle;
 
       // Did you forget to call Render::SetViewFramebuffer?
@@ -751,12 +745,12 @@ namespace Tac
                     stuff.mByteCount,
                     errors );
 
-      constantBuffers[ constantBuffer->mShaderRegister ] = constantBuffer->mBuffer;
-      constantBufferCount = Max( constantBufferCount, constantBuffer->mShaderRegister + 1 );
+      mBoundConstantBuffers[ constantBuffer->mShaderRegister ] = constantBuffer->mBuffer;
+      mBoundConstantBufferCount = Max( mBoundConstantBufferCount, constantBuffer->mShaderRegister + 1 );
 
       const UINT StartSlot = 0;
-      mDeviceContext->PSSetConstantBuffers( StartSlot, constantBufferCount, constantBuffers );
-      mDeviceContext->VSSetConstantBuffers( StartSlot, constantBufferCount, constantBuffers );
+      mDeviceContext->PSSetConstantBuffers( StartSlot, mBoundConstantBufferCount, mBoundConstantBuffers );
+      mDeviceContext->VSSetConstantBuffers( StartSlot, mBoundConstantBufferCount, mBoundConstantBuffers );
     }
 
     mDeviceContext->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
@@ -981,7 +975,6 @@ namespace Tac
   void RendererDirectX11::AddSamplerState( Render::CommandDataCreateSamplerState* commandData,
                                            Errors& errors )
   {
-    Render::CommandDataCreateSamplerState& samplerStateData = *commandData;
     TAC_ASSERT( IsMainThread() );
     D3D11_SAMPLER_DESC desc = {};
     desc.Filter = GetFilter( commandData->mSamplerState.mFilter );
@@ -1230,7 +1223,6 @@ namespace Tac
                                              Errors& errors )
   {
     TAC_ASSERT( IsMainThread() );
-    Render::ConstantBufferHandle constantBufferhandle = commandData->mConstantBufferHandle;
     ID3D11Buffer* cbufferhandle;
     D3D11_BUFFER_DESC bd = {};
     bd.ByteWidth = RoundUpToNearestMultiple( commandData->mByteCount, 16 );
@@ -1238,8 +1230,10 @@ namespace Tac
     bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE; // i guess?
     bd.Usage = D3D11_USAGE_DYNAMIC; // i guess?
     TAC_DX11_CALL( errors, mDevice->CreateBuffer, &bd, nullptr, &cbufferhandle );
-    mConstantBuffers[ ( int )constantBufferhandle ].mBuffer = cbufferhandle;
-    mConstantBuffers[ ( int )constantBufferhandle ].mShaderRegister = commandData->mShaderRegister;
+
+    ConstantBuffer* constantBuffer = &mConstantBuffers[ ( int )commandData->mConstantBufferHandle ];
+    constantBuffer->mBuffer = cbufferhandle;
+    constantBuffer->mShaderRegister = commandData->mShaderRegister;
   }
 
   void RendererDirectX11::AddDepthState( Render::CommandDataCreateDepthState* commandData,
@@ -1470,12 +1464,12 @@ namespace Tac
                   commandData->mByteCount,
                   errors );
 
-    constantBuffers[ constantBuffer->mShaderRegister ] = constantBuffer->mBuffer;
-    constantBufferCount = Max( constantBufferCount, constantBuffer->mShaderRegister + 1 );
+    mBoundConstantBuffers[ constantBuffer->mShaderRegister ] = constantBuffer->mBuffer;
+    mBoundConstantBufferCount = Max( mBoundConstantBufferCount, constantBuffer->mShaderRegister + 1 );
 
     const UINT StartSlot = 0;
-    mDeviceContext->PSSetConstantBuffers( StartSlot, constantBufferCount, constantBuffers );
-    mDeviceContext->VSSetConstantBuffers( StartSlot, constantBufferCount, constantBuffers );
+    mDeviceContext->PSSetConstantBuffers( StartSlot, mBoundConstantBufferCount, mBoundConstantBuffers );
+    mDeviceContext->VSSetConstantBuffers( StartSlot, mBoundConstantBufferCount, mBoundConstantBuffers );
   }
 
   void RendererDirectX11::UpdateIndexBuffer( Render::CommandDataUpdateIndexBuffer* commandData,

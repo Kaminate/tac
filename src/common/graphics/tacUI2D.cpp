@@ -1,5 +1,5 @@
 #include "src/common/graphics/tacUI2D.h"
-#include "src/common/graphics/tacUI.h"
+
 #include "src/common/graphics/tacRenderer.h"
 #include "src/common/graphics/tacRendererUtil.h"
 #include "src/common/graphics/imgui/tacImGui.h"
@@ -83,14 +83,8 @@ namespace Tac
 
   static void OrthographicUIMatrixUnitTest()
   {
-    static int i;
-    ++i;
     OrthographicUIMatrixUnitTest( OrthographicUIMatrix );
-    ++i;
-    ++i;
     OrthographicUIMatrixUnitTest( OrthographicUIMatrix2 );
-    ++i;
-    ++i;
     const float w = 400;
     const float h = 300;
     const m4 m0 = OrthographicUIMatrix( w, h );

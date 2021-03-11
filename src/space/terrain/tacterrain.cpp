@@ -88,13 +88,12 @@ namespace Tac
 
     int imageWidth;
     int imageHeight;
-    stbi_uc* loaded = stbi_load_from_memory(
-      ( stbi_uc const * )imageMemory.data(),
-      imageMemory.size(),
-      &imageWidth,
-      &imageHeight,
-      nullptr,
-      STBI_grey );
+    stbi_uc* loaded = stbi_load_from_memory( ( stbi_uc const * )imageMemory.data(),
+                                             imageMemory.size(),
+                                             &imageWidth,
+                                             &imageHeight,
+                                             nullptr,
+                                             STBI_grey );
 
     int byteCount = imageWidth * imageHeight;
     mTestHeightmapImageMemory.resize( byteCount );

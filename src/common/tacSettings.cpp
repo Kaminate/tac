@@ -27,14 +27,16 @@ namespace Tac
     if( leaf->mType != fallback->mType )
     {
       *leaf = *fallback;
-      SettingsSave( Errors() );
+      Errors errors;
+      SettingsSave( errors );
     }
   }
 
   static void SettingsSetValue( StringView path, Json* root, const Json& setValue )
   {
     *SettingsGetJson( path, root ) = setValue;
-    SettingsSave( Errors() );
+      Errors errors;
+    SettingsSave( errors );
   }
 
   static Json* SettingsGetValue( StringView path, Json* fallback, Json* root )
@@ -131,7 +133,8 @@ namespace Tac
 
   StringView SettingsGetString( StringView path, StringView fallback, Json* root )
   {
-    return SettingsGetValue( path, &Json( fallback ), root )->mString;
+    Json fallbackJson( fallback );
+    return SettingsGetValue( path, &fallbackJson, root )->mString;
   }
 
   void       SettingsSetString( StringView path, StringView setValue, Json* root )
@@ -141,7 +144,8 @@ namespace Tac
 
   JsonNumber SettingsGetNumber( StringView path, JsonNumber fallback, Json* root )
   {
-    return SettingsGetValue( path, &Json( fallback ), root )->mNumber;
+    Json fallbackJson( fallback );
+    return SettingsGetValue( path, &fallbackJson, root )->mNumber;
   }
 
   void       SettingsSetNumber( StringView path, JsonNumber setValue, Json* root )
@@ -151,8 +155,8 @@ namespace Tac
 
   bool       SettingsGetBool( StringView path, bool fallback, Json* root )
   {
-
-    return SettingsGetValue( path, &Json( fallback ), root )->mBoolean;
+    Json fallbackJson( fallback );
+    return SettingsGetValue( path, &fallbackJson, root )->mBoolean;
   }
 
   void       SettingsSetBool( StringView path, bool setValue, Json* root )

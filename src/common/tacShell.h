@@ -13,7 +13,6 @@
 namespace Tac
 {
   struct Log;
-  struct RenderView;
   struct Errors;
 
   struct Soul
@@ -25,7 +24,6 @@ namespace Tac
     virtual void DebugImgui( Errors& ) = 0;
 
     // unowned
-    RenderView*  mRenderView = nullptr;
     bool         mIsImGuiVisible;
     Language     mLanguage = Language::English;
   };

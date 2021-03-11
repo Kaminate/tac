@@ -13,6 +13,8 @@ namespace Tac
 #pragma warning( push )
 #pragma warning( disable : 4996 )
 #pragma warning( disable : 4244 )
+#pragma warning( disable : 4456 )
+#pragma warning( disable : 4100 )
 #define CGLTF_IMPLEMENTATION
 #include "src/common/thirdparty/cgltf.h"
 #pragma warning( pop )
@@ -35,19 +37,19 @@ namespace Tac
   }
 
   // replace with above?
-  static Attribute GetAttributeFromGltf( cgltf_attribute_type attributeType )
-  {
-    switch( attributeType )
-    {
-      case cgltf_attribute_type_position: return Attribute::Position;
-      case cgltf_attribute_type_normal: return Attribute::Normal;
-      case cgltf_attribute_type_texcoord: return Attribute::Texcoord;
-      case cgltf_attribute_type_color: return Attribute::Color;
-      case cgltf_attribute_type_joints: return Attribute::BoneIndex;
-      case cgltf_attribute_type_weights: return Attribute::BoneWeight;
-      default: TAC_ASSERT_INVALID_CASE( attributeType ); return Attribute::Count;
-    }
-  }
+  //static Attribute GetAttributeFromGltf( cgltf_attribute_type attributeType )
+  //{
+  //  switch( attributeType )
+  //  {
+  //    case cgltf_attribute_type_position: return Attribute::Position;
+  //    case cgltf_attribute_type_normal: return Attribute::Normal;
+  //    case cgltf_attribute_type_texcoord: return Attribute::Texcoord;
+  //    case cgltf_attribute_type_color: return Attribute::Color;
+  //    case cgltf_attribute_type_joints: return Attribute::BoneIndex;
+  //    case cgltf_attribute_type_weights: return Attribute::BoneWeight;
+  //    default: TAC_ASSERT_INVALID_CASE( attributeType ); return Attribute::Count;
+  //  }
+  //}
 
   static const char* GetcgltfErrorAsString( cgltf_result parseResult )
   {

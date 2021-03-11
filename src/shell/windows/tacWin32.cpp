@@ -404,7 +404,7 @@ namespace Tac
       //  const String errMsg = "Calandar time cannot be represented";
       //  TAC_RAISE_ERROR( errMsg, errors );
       //}
-      TAC_HANDLE_ERROR_IF( result == -1, "Calandar time cannot be represented", errors, returnValue );
+      TAC_HANDLE_ERROR_IF( result == -1, "Calandar time cannot be represented", errors );
 
       *time = result;
     }

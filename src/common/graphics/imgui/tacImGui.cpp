@@ -2,7 +2,7 @@
 #include "src/common/math/tacMath.h"
 #include "src/common/tacSettings.h"
 #include "src/common/graphics/tacRendererUtil.h"
-#include "src/common/graphics/tacUI.h"
+
 #include "src/common/graphics/imgui/tacImGui.h"
 #include "src/common/graphics/imgui/tacImGuiState.h"
 #include "src/common/graphics/tacUI2D.h"
@@ -23,10 +23,10 @@
 
 namespace Tac
 {
-  static void DebugCoutVec( const char* name, v2 v )
-  {
-    std::cout << name << "(" << v.x << ", " << v.y << ")" << std::endl;
-  }
+  //static void DebugCoutVec( const char* name, v2 v )
+  //{
+  //  std::cout << name << "(" << v.x << ", " << v.y << ")" << std::endl;
+  //}
 
   static int GetCaret( // UI2DDrawData* drawData,
                        const Vector< Codepoint >& codepoints,
@@ -218,7 +218,8 @@ namespace Tac
             if( moveCursorDir )
             {
               float xOffset = moveCursorDir * clipRect.GetWidth();
-              OS::SetScreenspaceCursorPos( screenspaceMousePos + v2( xOffset, 0 ), Errors() );
+              Errors errors;
+              OS::SetScreenspaceCursorPos( screenspaceMousePos + v2( xOffset, 0 ), errors );
             }
             else
             {
@@ -574,10 +575,10 @@ namespace Tac
     //UI2DDrawData* drawData = window->mDrawData;// ImGuiGlobals::Instance.mUI2DDrawData;
     const ImGuiId id = window->GetID();
 
-    bool textChanged = false;
+    //bool textChanged = false;
     const String oldText = text;
 
-    v2 pos = window->mCurrCursorViewport;
+    const v2 pos = window->mCurrCursorViewport;
 
 
     // Word wrap?
@@ -1127,13 +1128,13 @@ namespace Tac
     ImGuiGlobals::Instance.mMouseHoveredWindow = mouseHoveredWindow;
   }
 
-  static bool ImGuiDesktopWindowOwned( DesktopWindowHandle desktopWindowHandle )
-  {
-    for( ImGuiWindow* window : ImGuiGlobals::Instance.mAllWindows )
-      if( window->mDesktopWindowHandleOwned && window->mDesktopWindowHandle == desktopWindowHandle )
-        return true;
-    return false;
-  }
+  //static bool ImGuiDesktopWindowOwned( DesktopWindowHandle desktopWindowHandle )
+  //{
+  //  for( ImGuiWindow* window : ImGuiGlobals::Instance.mAllWindows )
+  //    if( window->mDesktopWindowHandleOwned && window->mDesktopWindowHandle == desktopWindowHandle )
+  //      return true;
+  //  return false;
+  //}
 
   void ImGuiFrameEnd( Errors& errors )
   {

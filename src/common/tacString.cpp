@@ -14,18 +14,14 @@
 
 namespace Tac
 {
-
-  bool IsSpace( char c )
+  bool IsSpace( const char c )
   {
-    bool result =
-      c == ' ' || // space
-      c == '\t' || // horizontal tab
-      c == '\n' || // newline
-      c == '\v' || // vertical tab
-      c == '\f' || // feed
-      c == '\r'; // carriage return
-    return result;
+      for( const char s : " \t\n\v\f\r" )
+        if( c == s )
+          return true;
+      return false;
   }
+
   bool IsAlpha( char c )
   {
     return

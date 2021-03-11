@@ -22,13 +22,13 @@ namespace Tac
     return DIENUM_CONTINUE;
   }
 
-  static float ConvertDirectInputUnsigned( LONG inputVal )
-  {
-    float result = ( float )inputVal;
-    result /= 65535.0f;
-    result = Saturate( result );
-    return result;
-  }
+  //static float ConvertDirectInputUnsigned( LONG inputVal )
+  //{
+  //  float result = ( float )inputVal;
+  //  result /= 65535.0f;
+  //  result = Saturate( result );
+  //  return result;
+  //}
 
   static float ConvertDirectInputSigned( LONG inputVal, float deadzonePercent )
   {

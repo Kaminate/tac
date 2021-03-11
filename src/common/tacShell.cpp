@@ -60,12 +60,12 @@ namespace Tac
     TAC_NEW ProfileSystem;
     ProfileSystem::Instance->Init();
   }
-  void            ShellFrameBegin( Errors& errors )
+  void            ShellFrameBegin( Errors& )
   {
     //gKeyboardInput.BeginFrame();
     ProfileSystem::Instance->OnFrameBegin();
   }
-  void            ShellFrameEnd( Errors& errors )
+  void            ShellFrameEnd( Errors& )
   {
     //gKeyboardInput.EndFrame();
     ProfileSystem::Instance->OnFrameEnd();

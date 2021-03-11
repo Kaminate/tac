@@ -398,7 +398,7 @@ namespace Tac
     return desktopWindowHandle;
   }
 
-  void Win32WindowManagerPoll( Errors& errors )
+  void Win32WindowManagerPoll( Errors& )
   {
     MSG msg = {};
     while( PeekMessage( &msg, NULL, 0, 0, PM_REMOVE ) )

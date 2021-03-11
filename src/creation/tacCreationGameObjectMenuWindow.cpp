@@ -1,5 +1,4 @@
 #include "src/common/assetmanagers/tacTextureAssetManager.h"
-#include "src/common/graphics/tacUI.h"
 #include "src/common/graphics/tacUI2D.h"
 #include "src/common/tacDesktopWindow.h"
 #include "src/common/tacDesktopWindow.h"
@@ -35,7 +34,7 @@ namespace Tac
     mCreationSeconds = ShellGetElapsedSeconds();
   }
 
-  void CreationGameObjectMenuWindow::Update( Errors& errors )
+  void CreationGameObjectMenuWindow::Update( Errors& )
   {
   }
 }

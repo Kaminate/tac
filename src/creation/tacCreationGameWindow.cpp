@@ -3,7 +3,7 @@
 #include "src/common/graphics/imgui/tacImGui.h"
 #include "src/common/graphics/tacDebug3D.h"
 #include "src/common/graphics/tacRenderer.h"
-#include "src/common/graphics/tacUI.h"
+
 #include "src/common/graphics/tacUI2D.h"
 #include "src/common/tacCamera.h"
 #include "src/common/tacDesktopWindow.h"
@@ -182,7 +182,6 @@ namespace Tac
   {
     mDesktopWindowHandle = gCreation.CreateWindow( gGameWindowName );
 
-    auto uI2DDrawData = TAC_NEW UI2DDrawData;
     CreateGraphicsObjects( errors );
     TAC_HANDLE_ERROR( errors );
 
@@ -418,9 +417,9 @@ namespace Tac
     }
   }
 
-  void CreationGameWindow::AddDrawCall( const Mesh* mesh, const DefaultCBufferPerObject& cbuf )
+  void CreationGameWindow::AddDrawCall( const Mesh* mesh, const DefaultCBufferPerObject& )
   {
-    for( const SubMesh& subMesh : mesh->mSubMeshes )
+    //for( const SubMesh& subMesh : mesh->mSubMeshes )
     {
       //DrawCall2 drawCall = {};
       //drawCall.mVertexBuffer = subMesh.mVertexBuffer;
