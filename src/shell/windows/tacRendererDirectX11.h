@@ -69,8 +69,6 @@ namespace Tac
 
   struct RendererDirectX11 : public Renderer
   {
-    static RendererDirectX11* Instance;
-    RendererDirectX11();
     ~RendererDirectX11();
 
     // Virtual functions

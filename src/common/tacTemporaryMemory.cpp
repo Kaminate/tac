@@ -6,13 +6,15 @@ namespace Tac
   TemporaryMemory TemporaryMemoryFromFile( StringView path, Errors& errors )
   {
     std::ifstream ifs( path.c_str(), std::ifstream::binary );
-    if( !ifs.is_open() )
-    {
-      const String errorMsg = "Error: Failed to open file " + String( path ) + " while allocating temporary memory";
-      errors.Append( errorMsg );
-      errors.Append( TAC_STACK_FRAME );
-      return {};
-    }
+    TAC_HANDLE_ERROR_IF_REUTRN( !ifs.is_open(), "Error: Failed to open file " + String( path ) +
+                                " while allocating temporary memory", errors, {} );
+    //if( !ifs.is_open() )
+    //{
+    //  const String errorMsg = "Error: Failed to open file " + String( path ) + " while allocating temporary memory";
+    //  errors.Append( errorMsg );
+    //  errors.Append( TAC_STACK_FRAME );
+    //  return {};
+    //}
     ifs.seekg( 0, std::ifstream::end );
     auto byteCount = ifs.tellg();
     ifs.seekg( 0, std::ifstream::beg );

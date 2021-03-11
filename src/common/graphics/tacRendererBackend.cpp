@@ -1,12 +1,14 @@
-#include "src/common/graphics/tacRendererBackend.h"
 #include "src/common/graphics/tacRenderer.h"
+#include "src/common/graphics/tacRendererBackend.h"
 #include "src/common/tacAlgorithm.h"
-#include "src/common/tacOS.h"
-#include "src/common/tacIDCollection.h"
-#include "src/shell/tacDesktopApp.h"
 #include "src/common/tacErrorHandling.h"
+#include "src/common/tacIDCollection.h"
+#include "src/common/tacOS.h"
+#include "src/common/tacShellTimer.h"
+#include "src/shell/tacDesktopApp.h"
 
 #include <iostream>
+#include <ctime>
 
 static uint32_t gRaven = 0xcaacaaaa;
 namespace Tac
@@ -193,7 +195,7 @@ namespace Tac
     static Frame* gRenderFrame = &gFrames[ 0 ];
     static Frame* gSubmitFrame = &gFrames[ 1 ];
     static uint32_t gCrow = 0xcaacaaaa;
-    int i = gCrow + 1;
+    //int i = gCrow + 1;
 
     static IdCollection mIdCollectionBlendState( kMaxBlendStates );
     static IdCollection mIdCollectionConstantBuffer( kMaxConstantBuffers );
@@ -230,8 +232,8 @@ namespace Tac
     static thread_local Encoder gEncoder;
 
     static const int gSubmitRingBufferCapacity = 100 * 1024 * 1024;
-    static char gSubmitRingBufferBytes[ gSubmitRingBufferCapacity ];
-    static int gSubmitRingBufferPos;
+    static char      gSubmitRingBufferBytes[ gSubmitRingBufferCapacity ];
+    static int       gSubmitRingBufferPos;
 
     void DebugPrintSubmitAllocInfo()
     {
@@ -1047,6 +1049,70 @@ namespace Tac
       gSubmitFrame->mBreakOnDrawCall = gSubmitFrame->mDrawCalls.size();
     }
 
+
+    static struct ShaderReloadInfo
+    {
+      String      mFullPath;
+      std::time_t mFileModifyTime = 0;
+    } sShaderReloadInfos[ kMaxPrograms ];
+
+    static std::time_t ShaderReloadGetFileModifyTime( const char* path )
+    {
+      std::time_t fileModifyTime = 0;
+      for( ;; )
+      {
+        Errors fileModifyErrors;
+        OS::GetFileLastModifiedTime( &fileModifyTime, path, fileModifyErrors );
+
+        if( fileModifyErrors )
+          OS::DebugPopupBox( fileModifyErrors.ToString() );
+        else
+          break;
+      }
+
+      TAC_ASSERT( fileModifyTime );
+      return fileModifyTime;
+    }
+
+    void               ShaderReloadHelperAdd( ShaderHandle shaderHandle, const char* fullPath )
+    {
+      if( !IsDebugMode() )
+        return;
+      ShaderReloadInfo* info = &sShaderReloadInfos[ ( int )shaderHandle ];
+      info->mFullPath = fullPath;
+      info->mFileModifyTime = ShaderReloadGetFileModifyTime( fullPath );
+    }
+    void               ShaderReloadHelperRemove( const Render::ShaderHandle shaderHandle )
+    {
+      if( !IsDebugMode() )
+        return;
+      sShaderReloadInfos[ ( int )shaderHandle ] = ShaderReloadInfo();
+    }
+
+    static void        ShaderReloadHelperUpdateAux( ShaderReloadInfo* shaderReloadInfo,
+                                                    void( *fn )( const Render::ShaderHandle, const char* ) )
+    {
+      if( !shaderReloadInfo->mFileModifyTime )
+        return;
+      const std::time_t fileModifyTime = ShaderReloadGetFileModifyTime( shaderReloadInfo->mFullPath );
+      if( fileModifyTime == shaderReloadInfo->mFileModifyTime )
+        return;
+      shaderReloadInfo->mFileModifyTime = fileModifyTime;
+      fn( Render::ShaderHandle( shaderReloadInfo - sShaderReloadInfos ), shaderReloadInfo->mFullPath.c_str() );
+    }
+
+    void               ShaderReloadHelperUpdate( void( *fn )( const Render::ShaderHandle, const char* ) )
+    {
+      if( !IsDebugMode() )
+        return;
+      static double lastUpdateSeconds;
+      const double curSec = ShellGetElapsedSeconds();
+      if( curSec - lastUpdateSeconds < 0.5f )
+        return;
+      lastUpdateSeconds = curSec;
+      for( ShaderReloadInfo& shaderReloadInfo : sShaderReloadInfos )
+        ShaderReloadHelperUpdateAux( &shaderReloadInfo, fn );
+    }
   }
 
   Renderer* Renderer::Instance = nullptr;
@@ -1179,7 +1245,7 @@ namespace Tac
 
         case Render::CommandType::CreateShader:
         {
-          if( gVerbose )     
+          if( gVerbose )
             std::cout << "CreateShader::Begin\n";
 
           auto commandData = PopCommandData< Render::CommandDataCreateShader >( bufferPos );
@@ -1321,8 +1387,8 @@ namespace Tac
           auto commandData = PopCommandData< Render::CommandDataDestroy >( bufferPos );
           RemoveBlendState( commandData->mIndex, errors );
           TAC_HANDLE_ERROR( errors )
-          if( gVerbose )
-            std::cout << "DestroyBlendState::End\n";
+            if( gVerbose )
+              std::cout << "DestroyBlendState::End\n";
         } break;
 
         case Render::CommandType::UpdateTextureRegion:

@@ -124,7 +124,7 @@ namespace Tac
     return result;
   }
 
-  static String GetFileDialogErrors(DWORD extError = CommDlgExtendedError())
+  static String GetFileDialogErrors( DWORD extError = CommDlgExtendedError() )
   {
     String errors = "failed to save file because: ";
     // the user cancels or closes the Save dialog box
@@ -192,7 +192,7 @@ namespace Tac
           // The user closed/canceled the dialog box
           return;
 
-        const String errMsg = GetFileDialogErrors(extError);
+        const String errMsg = GetFileDialogErrors( extError );
         TAC_RAISE_ERROR( errMsg, errors );
       }
 
@@ -275,7 +275,7 @@ namespace Tac
       const BOOL createDirectoryResult = CreateDirectoryA( path.c_str(), NULL );
       if( createDirectoryResult == 0 )
       {
-        const String errMsg =  "Failed to create folder at " + path + " because " + Win32GetLastErrorString();
+        const String errMsg = "Failed to create folder at " + path + " because " + Win32GetLastErrorString();
         TAC_RAISE_ERROR( errMsg, errors );
       }
     }
@@ -301,22 +301,22 @@ namespace Tac
       DWORD dwFlagsAndAttributes = FILE_ATTRIBUTE_NORMAL;
       HANDLE hTemplateFile = NULL;
       const HANDLE handle = CreateFileA( lpFileName,
-        dwDesiredAccess,
-        dwShareMode,
-        lpSecurityAttributes,
-        dwCreationDisposition,
-        dwFlagsAndAttributes,
-        hTemplateFile );
+                                         dwDesiredAccess,
+                                         dwShareMode,
+                                         lpSecurityAttributes,
+                                         dwCreationDisposition,
+                                         dwFlagsAndAttributes,
+                                         hTemplateFile );
       if( handle == INVALID_HANDLE_VALUE )
       {
-        const String errMsg =  "Cannot save to file " + String( path ) + " because " + Win32GetLastErrorString();
+        const String errMsg = "Cannot save to file " + String( path ) + " because " + Win32GetLastErrorString();
         TAC_RAISE_ERROR( errMsg, errors );
       }
       TAC_ON_DESTRUCT( CloseHandle( handle ) );
       DWORD bytesWrittenCount;
       if( !WriteFile( handle, bytes, byteCount, &bytesWrittenCount, NULL ) )
       {
-        const String errMsg =  "failed to save file " + String( path ) + " because " + Win32GetLastErrorString();
+        const String errMsg = "failed to save file " + String( path ) + " because " + Win32GetLastErrorString();
         TAC_RAISE_ERROR( errMsg, errors );
       }
       // Should we check that bytesWrittenCount == byteCount?
@@ -344,18 +344,24 @@ namespace Tac
                                   StringView path,
                                   Errors& errors )
     {
+      // Path is allowed to be relative or full
       const HANDLE handle = CreateFile( path.c_str(),
-        OPEN_EXISTING,
-        FILE_SHARE_READ,
-        0,
-        GENERIC_READ,
-        0,
-        0 );
+                                        GENERIC_READ,
+                                        FILE_SHARE_READ,
+                                        0,
+                                        OPEN_EXISTING,
+                                        0,
+                                        0 );
       if( handle == INVALID_HANDLE_VALUE )
       {
-        const String errMsg =  "Failed to open file to get last modified time " + path;
+        const String errMsg = "Failed to open file " + path + " because " + Win32GetLastErrorString();
         TAC_RAISE_ERROR( errMsg, errors );
+
+        //const String errMsg = "Failed to open file to get last modified time " + path;
+        //TAC_RAISE_ERROR( errMsg, errors );
       }
+      // think i need this?
+      TAC_ON_DESTRUCT( CloseHandle( handle ) );
       BY_HANDLE_FILE_INFORMATION fileInfo;
       if( !GetFileInformationByHandle( handle, &fileInfo ) )
       {
@@ -366,11 +372,11 @@ namespace Tac
       SYSTEMTIME lastWrite;
       if( !FileTimeToSystemTime( &fileInfo.ftLastWriteTime, &lastWrite ) )
       {
-        const String errMsg =  Win32GetLastErrorString();
+        const String errMsg = Win32GetLastErrorString();
         TAC_RAISE_ERROR( errMsg, errors );
       }
 
-      tm tempTm;
+      tm tempTm = {};
       tempTm.tm_sec = lastWrite.wSecond;
       tempTm.tm_min = lastWrite.wMinute;
       tempTm.tm_hour = lastWrite.wHour;
@@ -381,12 +387,13 @@ namespace Tac
       tempTm.tm_yday; // not needed for mktime
       tempTm.tm_isdst = -1; // forget what this is for
 
-      time_t result = std::mktime( &tempTm );
-      if( result == -1 )
-      {
-        const String errMsg =  "Calandar time cannot be represented";
-        TAC_RAISE_ERROR( errMsg, errors );
-      }
+      const time_t result = std::mktime( &tempTm );
+      //if( result == -1 )
+      //{
+      //  const String errMsg = "Calandar time cannot be represented";
+      //  TAC_RAISE_ERROR( errMsg, errors );
+      //}
+      TAC_HANDLE_ERROR_IF( result == -1, "Calandar time cannot be represented", errors, returnValue );
 
       *time = result;
     }
@@ -436,7 +443,7 @@ namespace Tac
       const DWORD error = GetLastError();
       if( error != ERROR_NO_MORE_FILES )
       {
-        const String errMsg =  Win32ErrorToString( error );
+        const String errMsg = Win32ErrorToString( error );
         TAC_RAISE_ERROR( errMsg, errors );
       }
     }

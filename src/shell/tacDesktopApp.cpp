@@ -295,6 +295,9 @@ namespace Tac
                                          int dataByteCount )
   {
     std::lock_guard< std::mutex > lockGuard( mMutex );
+    // Tac::WindowProc still spews out events while a popupbox is open
+    if( mQueue.capacity() - mQueue.size() < sizeof( DesktopEventType ) + dataByteCount )
+      return;
     mQueue.Push( &desktopEventType, sizeof( DesktopEventType ) );
     mQueue.Push( dataBytes, dataByteCount );
   }

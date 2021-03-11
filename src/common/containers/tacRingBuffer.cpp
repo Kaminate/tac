@@ -4,6 +4,16 @@
 
 namespace Tac
 {
+  int  RingBuffer::size() const
+  {
+    return mSize;
+  }
+
+  int  RingBuffer::capacity() const
+  {
+    return mCapacity;
+  }
+
   bool RingBuffer::Push( const void* bytes, int byteCount )
   {
     TAC_ASSERT( mBytes );
