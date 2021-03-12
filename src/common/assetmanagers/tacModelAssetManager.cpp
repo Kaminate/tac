@@ -370,7 +370,7 @@ namespace Tac
   }
 
 
-  void SubMesh::Raycast( v3 inRayPos, v3 inRayDir, bool* outHit, float* outDist )
+  void SubMesh::SubMeshModelSpaceRaycast( v3 inRayPos, v3 inRayDir, bool* outHit, float* outDist )
   {
     bool submeshHit = false;
     float submeshDist = 0;
@@ -396,7 +396,7 @@ namespace Tac
     *outDist = submeshDist;
   }
 
-  void Mesh::Raycast( v3 inRayPos, v3 inRayDir, bool* outHit, float* outDist )
+  void Mesh::MeshModelSpaceRaycast( v3 inRayPos, v3 inRayDir, bool* outHit, float* outDist )
   {
     v4 inRayPos4 = { inRayPos, 1 };
     inRayPos4 = mTransformInv * inRayPos4;
@@ -408,7 +408,7 @@ namespace Tac
     {
       bool subMeshHit = false;
       float submeshDist = 0;
-      subMesh.Raycast( inRayPos, inRayDir, &subMeshHit, &submeshDist );
+      subMesh.SubMeshModelSpaceRaycast( inRayPos, inRayDir, &subMeshHit, &submeshDist );
       if( !subMeshHit )
         continue;
       if( meshHit && submeshDist > meshDist )

@@ -18,10 +18,10 @@ namespace Tac
 
   struct SubMesh
   {
-    void                       Raycast( v3 inRayPos,
-                                        v3 inRayDir,
-                                        bool* outHit,
-                                        float* outDist );
+    void                       SubMeshModelSpaceRaycast( v3 inRayPos,
+                                                         v3 inRayDir,
+                                                         bool* outHit,
+                                                         float* outDist );
     Render::VertexBufferHandle mVertexBuffer;
     Render::IndexBufferHandle  mIndexBuffer;
     SubMeshTriangles           mTris;
@@ -30,12 +30,11 @@ namespace Tac
 
   struct Mesh
   {
-    void                       Raycast( v3 inRayPos,
-                                        v3 inRayDir,
-                                        bool* outHit,
-                                        float* outDist );
+    void                       MeshModelSpaceRaycast( v3 inRayPos,
+                                                      v3 inRayDir,
+                                                      bool* outHit,
+                                                      float* outDist );
     Vector< SubMesh >          mSubMeshes;
-    Render::VertexFormatHandle mVertexFormat;
     m4                         mTransform = m4::Identity();
     m4                         mTransformInv = m4::Identity();
   };
@@ -45,9 +44,6 @@ namespace Tac
   //                         the mesh will be loaded into the vertex format specified by vertex declarations.
   void                       ModelAssetManagerGetMesh( Mesh** mesh,
                                                        StringView path,
-                                                       //Render::VertexFormatHandle vertexFormat,
                                                        const VertexDeclarations&,
-                                                       //VertexDeclaration* vertexDeclarations,
-                                                       //int vertexDeclarationCount,
                                                        Errors& );
 }

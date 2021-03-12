@@ -289,7 +289,7 @@ namespace Tac
         // 3/3: inverse scale
         modelSpaceRayPos3 /= mArrowLen;
 
-        mArrow->Raycast( modelSpaceRayPos3, modelSpaceRayDir3, &hit, &dist );
+        mArrow->MeshModelSpaceRaycast( modelSpaceRayPos3, modelSpaceRayDir3, &hit, &dist );
         dist *= mArrowLen;
         if( !hit || !pickData.IsNewClosest( dist ) )
           continue;
@@ -401,7 +401,7 @@ namespace Tac
     v3 modelSpaceMouseRayPos3 = ( transformInv * v4( camera->mPos, 1 ) ).xyz();
     v3 modelSpaceMouseRayDir3 = Normalize( ( transformInv * v4( mWorldSpaceMouseDir, 0 ) ).xyz() );
     float modelSpaceDist;
-    model->mesh->Raycast( modelSpaceMouseRayPos3, modelSpaceMouseRayDir3, hit, &modelSpaceDist );
+    model->mesh->MeshModelSpaceRaycast( modelSpaceMouseRayPos3, modelSpaceMouseRayDir3, hit, &modelSpaceDist );
 
     // Recompute the distance by transforming the model space hit point into world space in order to
     // account for non-uniform scaling
