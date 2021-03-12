@@ -18,7 +18,7 @@ namespace Tac
     //TextureUUID                  mTextureUUID = NullTextureUUID;
     //GeometryUUID                 mGeometryUUID = NullGeometryUUID;
     v3                             mColorRGB = { 1, 1, 1 };
-    String                         mGLTFPath;
+    String                         mModelPath;
     Mesh*                          mesh = nullptr;
   };
 

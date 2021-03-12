@@ -41,10 +41,13 @@ namespace Tac
   };
 
   void                       ModelAssetManagerUninit();
+
+  //                         the mesh will be loaded into the vertex format specified by vertex declarations.
   void                       ModelAssetManagerGetMesh( Mesh** mesh,
                                                        StringView path,
-                                                       Render::VertexFormatHandle vertexFormat,
-                                                       VertexDeclaration* vertexDeclarations,
-                                                       int vertexDeclarationCount,
+                                                       //Render::VertexFormatHandle vertexFormat,
+                                                       const VertexDeclarations&,
+                                                       //VertexDeclaration* vertexDeclarations,
+                                                       //int vertexDeclarationCount,
                                                        Errors& );
 }

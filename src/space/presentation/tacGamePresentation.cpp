@@ -123,14 +123,12 @@ namespace Tac
   {
     if( model->mesh )
       return;
-    if( model->mGLTFPath.empty() )
+    if( model->mModelPath.empty() )
       return;
     Errors getmeshErrors;
     ModelAssetManagerGetMesh( &model->mesh,
-                              model->mGLTFPath,
-                              m3DVertexFormat,
+                              model->mModelPath,
                               m3DVertexFormatDecls,
-                              k3DVertexFormatDeclCount,
                               getmeshErrors );
   }
 
@@ -195,28 +193,6 @@ namespace Tac
     myModelVisitor.mViewId = viewId;
     graphics->VisitModels( &myModelVisitor );
 
-    ////Graphics* graphics = GetGraphics( world );
-    ////graphics->VisitModels( &myModelVisitor );
-    ////  [&]( Model* model )
-    ////  {
-    ////    LoadModel( model );
-    ////    if( !model->mesh )
-    ////      return;
-    ////    DefaultCBufferPerObject perObjectData;
-    ////    perObjectData.Color = { model->mColorRGB, 1 }; // { 0.23f, 0.7f, 0.5f, 1 };
-    ////    perObjectData.World = model->mEntity->mWorldTransform;
-    ////    RenderGameWorldAddDrawCall( model->mesh, perObjectData, viewId );
-    ////  } );
-    //for( Model* model : graphics->mModels )
-    //{
-    //  LoadModel( model );
-    //  if( !model->mesh )
-    //    continue;
-    //  DefaultCBufferPerObject perObjectData;
-    //  perObjectData.Color = { model->mColorRGB, 1 }; // { 0.23f, 0.7f, 0.5f, 1 };
-    //  perObjectData.World = model->mEntity->mWorldTransform;
-    //  RenderGameWorldAddDrawCall( model->mesh, perObjectData, viewId );
-    //}
 
     for( Terrain* terrain : physics->mTerrains )
     {
@@ -247,7 +223,6 @@ namespace Tac
       Render::Submit( viewId, TAC_STACK_FRAME );
     }
 
-    //mSkyboxPresentation->RenderSkybox( viewWidth, viewHeight, viewId, mWorld->mSkyboxDir );
 
     struct : public SkyboxVisitor
     {
@@ -297,12 +272,10 @@ namespace Tac
     posDecl.mTextureFormat.mElementCount = 3;
     posDecl.mTextureFormat.mPerElementByteCount = sizeof( float );
     posDecl.mTextureFormat.mPerElementDataType = GraphicsType::real;
-    Render::VertexDeclarations vertexDeclarations;
-    vertexDeclarations.AddVertexDeclaration( posDecl );
-    m3DVertexFormat = Render::CreateVertexFormat( vertexDeclarations,
+    m3DVertexFormatDecls.AddVertexDeclaration( posDecl );
+    m3DVertexFormat = Render::CreateVertexFormat( m3DVertexFormatDecls,
                                                   m3DShader,
                                                   TAC_STACK_FRAME );
-    m3DVertexFormatDecls[ 0 ] = posDecl;
   }
 
   void GamePresentation::CreateTerrainVertexFormat( Errors& errors )
@@ -328,7 +301,7 @@ namespace Tac
     terrainTexCoordDecl.mTextureFormat.mPerElementDataType = GraphicsType::real;
     terrainTexCoordDecl.mAlignedByteOffset = TAC_OFFSET_OF( TerrainVertex, mUV );
 
-    Render::VertexDeclarations vertexDeclarations;
+    VertexDeclarations vertexDeclarations;
     vertexDeclarations.AddVertexDeclaration( terrainPosDecl );
     vertexDeclarations.AddVertexDeclaration( terrainNorDecl );
     vertexDeclarations.AddVertexDeclaration( terrainTexCoordDecl );
@@ -432,13 +405,15 @@ namespace Tac
   {
     for( const SubMesh& subMesh : mesh->mSubMeshes )
     {
+      Render::SetShader( m3DShader );
       Render::SetVertexBuffer( subMesh.mVertexBuffer, 0, 0 );
       Render::SetIndexBuffer( subMesh.mIndexBuffer, 0, subMesh.mIndexCount );
       Render::SetBlendState( mBlendState );
       Render::SetRasterizerState( mRasterizerState );
       Render::SetSamplerState( mSamplerState );
       Render::SetDepthState( mDepthState );
-      Render::SetVertexFormat( mesh->mVertexFormat );
+      //Render::SetVertexFormat( mesh->mVertexFormat );
+      Render::SetVertexFormat( m3DVertexFormat );
       Render::UpdateConstantBuffer( mPerObj,
                                     &cbuf,
                                     sizeof( DefaultCBufferPerObject ),

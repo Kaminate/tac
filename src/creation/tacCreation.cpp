@@ -403,9 +403,9 @@ namespace Tac
 
   }
 
-  Entity*             Creation::CreateEntity()
+  static String       CreationGetNewEntityName()
   {
-    World* world = mWorld;
+    World* world = gCreation.mWorld;
     String desiredEntityName = "Entity";
     int parenNumber = 1;
     for( ;; )
@@ -416,9 +416,18 @@ namespace Tac
       desiredEntityName = "Entity (" + ToString( parenNumber ) + ")";
       parenNumber++;
     }
+    return desiredEntityName;
+  }
 
+  Entity*             Creation::CreateEntity()
+  {
+    // put it where we can see it
+    const v3 pos = mEditorCamera->mPos + mEditorCamera->mForwards * 5.0f;
+
+    World* world = mWorld;
     Entity* entity = world->SpawnEntity( NullEntityUUID );
-    entity->mName = desiredEntityName;
+    entity->mName = CreationGetNewEntityName();
+    entity->mRelativeSpace.mPosition = pos;
     mSelectedEntities = { entity };
     return entity;
   }

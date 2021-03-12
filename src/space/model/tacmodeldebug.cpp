@@ -32,12 +32,12 @@ void ModelDebugImguiChangeModel( Model* model )
     {
       if( ImGuiButton( filepath ) )
       {
-        model->mGLTFPath = filepath;
+        model->mModelPath = filepath;
         model->mesh = nullptr;
       }
     }
   }
-  ImGuiInputText( "Model", model->mGLTFPath );
+  ImGuiInputText( "Model", model->mModelPath );
 
 
   //auto assetManager = mEntity->mWorld->mGameInterface->mAssetManager;

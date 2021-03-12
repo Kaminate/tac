@@ -51,8 +51,7 @@ namespace Tac
     Render::BlendStateHandle      mBlendState;
     Render::RasterizerStateHandle mRasterizerState;
     Render::SamplerStateHandle    mSamplerState;
-    static const int              k3DVertexFormatDeclCount = 1;
-    VertexDeclaration             m3DVertexFormatDecls[ k3DVertexFormatDeclCount ];
+    VertexDeclarations            m3DVertexFormatDecls;
   private:
     void                          Create3DShader( Errors& );
     void                          CreateTerrainShader( Errors& );

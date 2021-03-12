@@ -58,19 +58,25 @@ namespace Tac
     World*            mWorld = nullptr;
     EntityUUID        mEntityUUID = NullEntityUUID;
     Components        mComponents;
+
+
+    //                Position / Rotation / Scale of the entity relative to its parent.
+    //                Used to construct mWorldPosition and mWorldTransform
     RelativeSpace     mRelativeSpace;
+
     bool              mInheritParentScale = false;
+
+    //                Position of this entity in worldspace.
+    //                Computed automatically during the hierarchical world traversl.
     v3                mWorldPosition = {};
+
+    //                World transformation matrix ( aka world matrix ) of this entity.
+    //                Computed automatically during the hierarchical world traversl.
     m4                mWorldTransform = m4::Identity();
 
     //                can this be a tag or smthn
     String            mName;
   };
-
-  //const Vector< NetworkBit > EntityBits =
-  //{
-  //  //{ "mPosition", OffsetOf( Entity, mLocalPosition ), sizeof( float ), 3 },
-  //};
 
 
 }

@@ -6,6 +6,8 @@
 
 #include "src/common/tacPreprocessor.h"
 
+// todo: move everythning to render namespace?
+
 namespace Tac
 {
   struct StringView;
@@ -153,6 +155,18 @@ namespace Tac
     int       mAlignedByteOffset = 0;
   };
 
+  struct VertexDeclarations
+  {
+    VertexDeclarations() = default;
+    VertexDeclarations( VertexDeclaration );
+    VertexDeclarations( VertexDeclaration, VertexDeclaration );
+    int size() const { return mVertexFormatDataCount; }
+    const VertexDeclaration& operator []( int i ) const { return mVertexFormatDatas[ i ]; }
+    void              AddVertexDeclaration( VertexDeclaration );
+    VertexDeclaration mVertexFormatDatas[ 10 ];
+    int               mVertexFormatDataCount = 0;
+  };
+
   //struct DepthBufferData : public RendererResource
   //{
   //  int width = 0;
@@ -225,15 +239,6 @@ namespace Tac
       BlendMode      mBlendA = BlendMode::Add;
     };
 
-    struct VertexDeclarations
-    {
-      VertexDeclarations() = default;
-      VertexDeclarations( VertexDeclaration );
-      VertexDeclarations( VertexDeclaration, VertexDeclaration );
-      void              AddVertexDeclaration( VertexDeclaration );
-      VertexDeclaration mVertexFormatDatas[ 10 ];
-      int               mVertexFormatDataCount = 0;
-    };
 
     struct DrawCallTextures
     {

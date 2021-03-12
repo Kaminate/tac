@@ -23,8 +23,7 @@ namespace Tac
     Render::DepthStateHandle      mDepthState;
     Render::RasterizerStateHandle mRasterizerState;
     Render::SamplerStateHandle    mSamplerState;
-    static const int              kVertexFormatDeclCount = 1;
-    VertexDeclaration             mVertexDecls[ kVertexFormatDeclCount ];
+    VertexDeclarations            mVertexDecls;
     Errors                        mGetSkyboxTextureErrors;
     Errors                        mGetSkyboxMeshErrors;
   };

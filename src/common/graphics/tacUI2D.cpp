@@ -140,7 +140,7 @@ namespace Tac
     uvData.mAlignedByteOffset = TAC_OFFSET_OF( UI2DVertex, mGLTexCoord );
     uvData.mAttribute = Attribute::Texcoord;
     uvData.mTextureFormat = formatv2;
-    Render::VertexDeclarations vertexDeclarations;
+    VertexDeclarations vertexDeclarations;
     vertexDeclarations.AddVertexDeclaration( posData );
     vertexDeclarations.AddVertexDeclaration( uvData );
     mFormat = Render::CreateVertexFormat( vertexDeclarations,

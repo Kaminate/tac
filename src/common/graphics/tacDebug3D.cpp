@@ -65,7 +65,7 @@ namespace Tac
     colorData.mTextureFormat = formatv3;
     colorData.mAlignedByteOffset = TAC_OFFSET_OF( DefaultVertexColor, mColor );
 
-    Render::VertexDeclarations vertexDeclarations;
+    VertexDeclarations vertexDeclarations;
     vertexDeclarations.AddVertexDeclaration( positionData );
     vertexDeclarations.AddVertexDeclaration( colorData );
     mVertexColorFormat = Render::CreateVertexFormat( vertexDeclarations,

@@ -44,14 +44,14 @@ namespace Tac
 		colorRGBJson[ "r" ].SetNumber( model->mColorRGB[ 0 ] );
 		colorRGBJson[ "g" ].SetNumber( model->mColorRGB[ 1 ] );
 		colorRGBJson[ "b" ].SetNumber( model->mColorRGB[ 2 ] );
-		modelJson[ "mGLTFPath" ].SetString( model->mGLTFPath );
+		modelJson[ "mModelPath" ].SetString( model->mModelPath );
 		modelJson[ "mColorRGB" ].DeepCopy( &colorRGBJson );
 	}
 
 	static void LoadModelComponent( Json& modelJson, Component* component )
 	{
 		auto model = ( Model* )component;
-		model->mGLTFPath = modelJson[ "mGLTFPath" ].mString;
+		model->mModelPath = modelJson[ "mModelPath" ].mString;
 		model->mColorRGB = {
 			( float )modelJson[ "mColorRGB" ][ "r" ].mNumber,
 			( float )modelJson[ "mColorRGB" ][ "g" ].mNumber,

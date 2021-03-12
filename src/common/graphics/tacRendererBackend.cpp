@@ -1106,6 +1106,7 @@ namespace Tac
       if( !IsDebugMode() )
         return;
       static double lastUpdateSeconds;
+
       const double curSec = ShellGetElapsedSeconds();
       if( curSec - lastUpdateSeconds < 0.5f )
         return;

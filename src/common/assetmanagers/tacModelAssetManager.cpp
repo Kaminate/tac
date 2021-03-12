@@ -20,7 +20,7 @@ namespace Tac
 #pragma warning( pop )
 
 
-  std::map< StringID, Mesh* >                    mMeshes;
+  static std::map< StringID, Mesh* > mMeshes;
 
   static cgltf_attribute_type GetGltfFromAttribute( Attribute attributeType )
   {
@@ -51,7 +51,7 @@ namespace Tac
   //  }
   //}
 
-  static const char* GetcgltfErrorAsString( cgltf_result parseResult )
+  static const char*          GetcgltfErrorAsString( cgltf_result parseResult )
   {
     const char* results[] =
     {
@@ -68,7 +68,7 @@ namespace Tac
     return results[ parseResult ];
   }
 
-  static int FillDataTypePerElementByteCount( cgltf_accessor* accessor )
+  static int                  FillDataTypePerElementByteCount( cgltf_accessor* accessor )
   {
     switch( accessor->component_type )
     {
@@ -78,7 +78,7 @@ namespace Tac
     }
   }
 
-  static Tac::GraphicsType FillDataTypePerElementDataType( cgltf_accessor* accessor )
+  static Tac::GraphicsType    FillDataTypePerElementDataType( cgltf_accessor* accessor )
   {
     switch( accessor->component_type )
     {
@@ -89,7 +89,7 @@ namespace Tac
 
   }
 
-  static int FillDataTypeElementCount( cgltf_accessor* accessor )
+  static int                  FillDataTypeElementCount( cgltf_accessor* accessor )
   {
     switch( accessor->type )
     {
@@ -101,7 +101,7 @@ namespace Tac
     }
   }
 
-  static Format FillDataType( cgltf_accessor* accessor )
+  static Format               FillDataType( cgltf_accessor* accessor )
   {
     Format result = {};
     result.mElementCount = FillDataTypeElementCount( accessor );
@@ -110,7 +110,7 @@ namespace Tac
     return result;
   }
 
-  static cgltf_attribute*  FindAttributeOfType( cgltf_primitive* parsedPrim, cgltf_attribute_type  type )
+  static cgltf_attribute*     FindAttributeOfType( cgltf_primitive* parsedPrim, cgltf_attribute_type type )
   {
     for( int iAttrib = 0; iAttrib < ( int )parsedPrim->attributes_count; ++iAttrib )
     {
@@ -122,7 +122,7 @@ namespace Tac
   }
 
   template< typename T >
-  static Vector< int > ConvertIndexes( cgltf_accessor* indices )
+  static Vector< int >        ConvertIndexes( cgltf_accessor* indices )
   {
     auto indiciesData = ( T* )( ( char* )indices->buffer_view->buffer->data + indices->buffer_view->offset );
     Vector< int > result( ( int )indices->count );
@@ -131,7 +131,7 @@ namespace Tac
     return result;
   }
 
-  static void GetTris( cgltf_primitive* parsedPrim, SubMeshTriangles& tris )
+  static void                 GetTris( cgltf_primitive* parsedPrim, SubMeshTriangles& tris )
   {
     cgltf_attribute* posAttribute = FindAttributeOfType( parsedPrim, cgltf_attribute_type_position );
     if( !posAttribute )
@@ -169,6 +169,29 @@ namespace Tac
     }
   }
 
+  static bool RaycastTriangle( const v3& p0,
+                               const v3& p1,
+                               const v3& p2,
+                               const v3& rayPos,
+                               const v3& normalizedRayDir,
+                               float & dist )
+  {
+    v3 edge2 = p2 - p0;
+    v3 edge1 = p1 - p0;
+    v3 b = rayPos - p0;
+    v3 p = Cross( normalizedRayDir, edge2 );
+    v3 q = Cross( b, edge1 );
+    float pdotv1 = Dot( p, edge1 );
+    float t = Dot( q, edge2 ) / pdotv1;
+    float u = Dot( p, b ) / pdotv1;
+    float v = Dot( q, normalizedRayDir ) / pdotv1;
+    if( t > 0 && u >= 0 && v >= 0 && u + v <= 1 )
+    {
+      dist = t;
+      return true;
+    }
+    return false;
+  }
 
   void ModelAssetManagerUninit()
   {
@@ -182,11 +205,14 @@ namespace Tac
       }
     }
   }
+
+  // todo: multithreading
   void ModelAssetManagerGetMesh( Mesh** mesh,
                                  StringView path,
-                                 Render::VertexFormatHandle vertexFormat,
-                                 VertexDeclaration* vertexDeclarations,
-                                 int vertexDeclarationCount,
+                                 //Render::VertexFormatHandle vertexFormat,
+                                 const VertexDeclarations& vertexDeclarations,
+                                 //VertexDeclaration* vertexDeclarations,
+                                 //int vertexDeclarationCount,
                                  Errors& errors )
   {
     auto it = mMeshes.find( path );
@@ -254,7 +280,7 @@ namespace Tac
         int vertexCount = ( int )parsedPrim->attributes[ 0 ].data->count;
         int dstVtxStride = 0;
 
-        for( int iVertexDeclaration = 0; iVertexDeclaration < vertexDeclarationCount; ++iVertexDeclaration )
+        for( int iVertexDeclaration = 0; iVertexDeclaration < vertexDeclarations.size(); ++iVertexDeclaration )
         {
           const VertexDeclaration& vertexDeclaration = vertexDeclarations[ iVertexDeclaration ];
           int vertexEnd =
@@ -264,7 +290,7 @@ namespace Tac
         }
         Vector< char > dstVtxBytes( vertexCount * dstVtxStride, ( char )0 );
 
-        for( int iVertexDeclaration = 0; iVertexDeclaration < vertexDeclarationCount; ++iVertexDeclaration )
+        for( int iVertexDeclaration = 0; iVertexDeclaration < vertexDeclarations.size(); ++iVertexDeclaration )
         {
           const VertexDeclaration& vertexDeclaration = vertexDeclarations[ iVertexDeclaration ];
           const Format& dstFormat = vertexDeclaration.mTextureFormat;
@@ -306,10 +332,10 @@ namespace Tac
 
 
         const Render::VertexBufferHandle vertexBuffer = Render::CreateVertexBuffer( dstVtxBytes.size(),
-                                                                              dstVtxBytes.data(),
-                                                                              dstVtxStride,
-                                                                              Access::Default,
-                                                                              TAC_STACK_FRAME );
+                                                                                    dstVtxBytes.data(),
+                                                                                    dstVtxStride,
+                                                                                    Access::Default,
+                                                                                    TAC_STACK_FRAME );
 
         SubMeshTriangles tris;
         GetTris( parsedPrim, tris );
@@ -335,7 +361,7 @@ namespace Tac
 
     auto newMesh = TAC_NEW Mesh;
     newMesh->mSubMeshes = submeshes;
-    newMesh->mVertexFormat = vertexFormat;
+    //newMesh->mVertexFormat = vertexFormat;
     newMesh->mTransform = transform;
     newMesh->mTransformInv = transformInv;
     *mesh = newMesh;
@@ -343,30 +369,6 @@ namespace Tac
     mMeshes[ path ] = newMesh;
   }
 
-  static bool RaycastTriangle(
-    const v3& p0,
-    const v3& p1,
-    const v3& p2,
-    const v3& rayPos,
-    const v3& normalizedRayDir,
-    float & dist )
-  {
-    v3 edge2 = p2 - p0;
-    v3 edge1 = p1 - p0;
-    v3 b = rayPos - p0;
-    v3 p = Cross( normalizedRayDir, edge2 );
-    v3 q = Cross( b, edge1 );
-    float pdotv1 = Dot( p, edge1 );
-    float t = Dot( q, edge2 ) / pdotv1;
-    float u = Dot( p, b ) / pdotv1;
-    float v = Dot( q, normalizedRayDir ) / pdotv1;
-    if( t > 0 && u >= 0 && v >= 0 && u + v <= 1 )
-    {
-      dist = t;
-      return true;
-    }
-    return false;
-  }
 
   void SubMesh::Raycast( v3 inRayPos, v3 inRayDir, bool* outHit, float* outDist )
   {
@@ -417,11 +419,12 @@ namespace Tac
     *outHit = meshHit;
     *outDist = meshDist;
   }
-  v3 GetNormal( const SubMeshTriangle& tri )
-  {
-    v3 edge0 = tri[ 1 ] - tri[ 0 ];
-    v3 edge1 = tri[ 2 ] - tri[ 0 ];
-    // check for div 0?
-    return Normalize( Cross( edge0, edge1 ) );
-  }
+
+  //v3 GetNormal( const SubMeshTriangle& tri )
+  //{
+  //  v3 edge0 = tri[ 1 ] - tri[ 0 ];
+  //  v3 edge1 = tri[ 2 ] - tri[ 0 ];
+  //  // check for div 0?
+  //  return Normalize( Cross( edge0, edge1 ) );
+  //}
 }

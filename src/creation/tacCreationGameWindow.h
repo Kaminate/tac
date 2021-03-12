@@ -56,8 +56,7 @@ namespace Tac
     Render::BlendStateHandle      mBlendState;
     Render::RasterizerStateHandle mRasterizerState;
     Render::SamplerStateHandle    mSamplerState;
-    static const int              k3DvertexFormatDeclCount = 1;
-    VertexDeclaration             m3DvertexFormatDecls[k3DvertexFormatDeclCount ];
+    VertexDeclarations            m3DvertexFormatDecls;
     Debug3DDrawData*              mDebug3DDrawData = nullptr;
     GamePresentation*             mGamePresentation = nullptr;
     SkyboxPresentation*           mSkyboxPresentation = nullptr;

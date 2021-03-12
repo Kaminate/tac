@@ -66,6 +66,21 @@ namespace Tac
     GetRendererFactories().push_back( rendererFactory );
   }
 
+    void VertexDeclarations::AddVertexDeclaration( VertexDeclaration v )
+    {
+      mVertexFormatDatas[ mVertexFormatDataCount++ ] = v;
+    }
+
+    VertexDeclarations::VertexDeclarations( VertexDeclaration a )
+    {
+      AddVertexDeclaration( a );
+    }
+
+    VertexDeclarations::VertexDeclarations( VertexDeclaration a, VertexDeclaration b )
+    {
+      AddVertexDeclaration( a );
+      AddVertexDeclaration( b );
+    }
 
   namespace Render
   {
@@ -92,21 +107,6 @@ namespace Tac
       mConstantBuffers[ mConstantBufferCount++ ] = handle;
     }
 
-    void VertexDeclarations::AddVertexDeclaration( VertexDeclaration v )
-    {
-      mVertexFormatDatas[ mVertexFormatDataCount++ ] = v;
-    }
-
-    VertexDeclarations::VertexDeclarations( VertexDeclaration a )
-    {
-      AddVertexDeclaration( a );
-    }
-
-    VertexDeclarations::VertexDeclarations( VertexDeclaration a, VertexDeclaration b )
-    {
-      AddVertexDeclaration( a );
-      AddVertexDeclaration( b );
-    }
 
     DrawCallTextures::DrawCallTextures( TextureHandle a )
     {

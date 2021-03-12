@@ -137,12 +137,12 @@ namespace Tac
     posDecl.mTextureFormat.mElementCount = 3;
     posDecl.mTextureFormat.mPerElementByteCount = sizeof( float );
     posDecl.mTextureFormat.mPerElementDataType = GraphicsType::real;
+    m3DvertexFormatDecls.AddVertexDeclaration( posDecl );
 
-    m3DVertexFormat = Render::CreateVertexFormat( Render::VertexDeclarations( posDecl ),
+    m3DVertexFormat = Render::CreateVertexFormat( m3DvertexFormatDecls,
                                                   m3DShader,
                                                   TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
-    m3DvertexFormatDecls[ 0 ] = posDecl;
 
     Render::BlendState blendStateData;
     blendStateData.mSrcRGB = BlendConstants::One;
@@ -200,17 +200,13 @@ namespace Tac
 
     ModelAssetManagerGetMesh( &mCenteredUnitCube,
                               "assets/editor/box.gltf",
-                              m3DVertexFormat,
                               m3DvertexFormatDecls,
-                              k3DvertexFormatDeclCount,
                               errors );
     TAC_HANDLE_ERROR( errors );
 
     ModelAssetManagerGetMesh( &mArrow,
                               "assets/editor/arrow.gltf",
-                              m3DVertexFormat,
                               m3DvertexFormatDecls,
-                              k3DvertexFormatDeclCount,
                               errors );
     TAC_HANDLE_ERROR( errors );
 
@@ -538,41 +534,51 @@ namespace Tac
   {
     ImGuiSetNextWindowSize( { 300, 405 } );
     ImGuiSetNextWindowHandle( mDesktopWindowHandle );
+
+
     ImGuiBegin( "gameplay overlay" );
-    if( mSoul )
+
+    static bool mHideUI;
+
+    if( !mHideUI )
     {
-      if( ImGuiButton( "End simulation" ) )
+    ImGuiCheckbox( "hide ui", &mHideUI );
+
+      if( mSoul )
       {
-        delete mSoul;
-        mSoul = nullptr;
+        if( ImGuiButton( "End simulation" ) )
+        {
+          delete mSoul;
+          mSoul = nullptr;
+        }
       }
-    }
-    else
-    {
-      if( ImGuiButton( "Begin simulation" ) )
+      else
       {
-        PlayGame( errors );
-        TAC_HANDLE_ERROR( errors );
+        if( ImGuiButton( "Begin simulation" ) )
+        {
+          PlayGame( errors );
+          TAC_HANDLE_ERROR( errors );
+        }
       }
+
+      if( ImGuiCollapsingHeader( "Camera" ) )
+      {
+
+        ImGuiDragFloat3( "cam pos", gCreation.mEditorCamera->mPos.data() );
+        ImGuiDragFloat3( "cam forward", gCreation.mEditorCamera->mForwards.data() );
+        ImGuiDragFloat3( "cam right", gCreation.mEditorCamera->mRight.data() );
+        ImGuiDragFloat3( "cam up", gCreation.mEditorCamera->mUp.data() );
+        ImGuiDragFloat3( "cam far", &gCreation.mEditorCamera->mFarPlane );
+        ImGuiDragFloat( "cam near", &gCreation.mEditorCamera->mNearPlane );
+        ImGuiDragFloat( "cam fovyrad", &gCreation.mEditorCamera->mFovyrad );
+      }
+
+      if( ShellGetElapsedSeconds() < mStatusMessageEndTime )
+      {
+        ImGuiText( mStatusMessage );
+      }
+
     }
-
-    if( ImGuiCollapsingHeader( "Camera" ) )
-    {
-
-      ImGuiDragFloat3( "cam pos", gCreation.mEditorCamera->mPos.data() );
-      ImGuiDragFloat3( "cam forward", gCreation.mEditorCamera->mForwards.data() );
-      ImGuiDragFloat3( "cam right", gCreation.mEditorCamera->mRight.data() );
-      ImGuiDragFloat3( "cam up", gCreation.mEditorCamera->mUp.data() );
-      ImGuiDragFloat3( "cam far", &gCreation.mEditorCamera->mFarPlane );
-      ImGuiDragFloat( "cam near", &gCreation.mEditorCamera->mNearPlane );
-      ImGuiDragFloat( "cam fovyrad", &gCreation.mEditorCamera->mFovyrad );
-    }
-
-    if( ShellGetElapsedSeconds() < mStatusMessageEndTime )
-    {
-      ImGuiText( mStatusMessage );
-    }
-
     ImGuiEnd();
   }
 
@@ -679,7 +685,7 @@ namespace Tac
       //  entity->mName = "Starry-eyed girl";
       //  entity->mPosition = {}; // { 4.5f, -4.0f, -0.5f };
       //  auto model = ( Model* )entity->AddNewComponent( ComponentRegistryEntryIndex::Model );
-      //  model->mGLTFPath = "assets/editor/Box.gltf";
+      //  model->mModelPath = "assets/editor/Box.gltf";
       //}
       mSoul->Update( errors );
       TAC_HANDLE_ERROR( errors );

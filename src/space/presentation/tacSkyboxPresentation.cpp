@@ -39,13 +39,13 @@ namespace Tac
     pos.mTextureFormat.mElementCount = 3;
     pos.mTextureFormat.mPerElementByteCount = sizeof( float );
     pos.mTextureFormat.mPerElementDataType = GraphicsType::real;
+    mVertexDecls.AddVertexDeclaration( pos );
 
-    mVertexFormat = Render::CreateVertexFormat( Render::VertexDeclarations( pos ),
+    mVertexFormat = Render::CreateVertexFormat( mVertexDecls,
                                                 mShader,
                                                 TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
-    mVertexDecls[ 0 ] = pos;
 
     Render::BlendState blendStateData;
     blendStateData.mSrcRGB = BlendConstants::One;
@@ -93,9 +93,7 @@ namespace Tac
     Mesh* mesh;
     ModelAssetManagerGetMesh( &mesh,
                               "assets/editor/Box.gltf",
-                              mVertexFormat,
                               mVertexDecls,
-                              kVertexFormatDeclCount,
                               mGetSkyboxMeshErrors );
     TAC_ASSERT( mGetSkyboxMeshErrors.empty() );
     if( !mesh )
