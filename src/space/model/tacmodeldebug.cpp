@@ -40,6 +40,7 @@ namespace Tac
       const double curSecTimestamp = ShellGetElapsedSeconds();
       if( needsRefresh || ImGuiButton( "Refresh Model List" ) )
       {
+        getfilesErrors.clear();
         needsRefresh = false;
         modelPaths.clear();
         Vector< String > allfiles;

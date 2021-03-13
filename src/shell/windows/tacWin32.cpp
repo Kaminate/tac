@@ -497,7 +497,7 @@ namespace Tac
           {
             if( mIsRecursive )
             {
-              Win32DirectoryIterate( data.cFileName, this, errors );
+              Win32DirectoryIterate( dir + "/" + data.cFileName, this, errors );
             }
           }
           else
