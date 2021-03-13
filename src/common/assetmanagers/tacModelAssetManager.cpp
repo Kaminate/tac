@@ -340,11 +340,15 @@ namespace Tac
         SubMeshTriangles tris;
         GetTris( parsedPrim, tris );
 
+        String name = parsedMesh->name +
+          ( parsedMesh->primitives_count > 1 ? "prim" + ToString( iPrim ) : "" );
+
         SubMesh subMesh;
         subMesh.mIndexBuffer = indexBuffer;
         subMesh.mVertexBuffer = vertexBuffer;
         subMesh.mTris = tris;
         subMesh.mIndexCount = ( int )indices->count;
+        subMesh.mName = name;
         submeshes.push_back( subMesh );
       }
     }

@@ -26,6 +26,7 @@ namespace Tac
     Render::IndexBufferHandle  mIndexBuffer;
     SubMeshTriangles           mTris;
     int                        mIndexCount = 0;
+    String                     mName;
   };
 
   struct Mesh

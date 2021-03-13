@@ -31,8 +31,9 @@ namespace Tac
   // String-manipulation
   //
   String Join( const Vector< String >& lines, StringView separator );
-  String SeparateNewline( const Vector< String >& lines );
-  String SeparateSpace( const Vector< String >& lines );
+  String Join( const String* lines, int lineCount, StringView separator );
+  //String SeparateNewline( const Vector< String >& lines );
+  //String SeparateSpace( const Vector< String >& lines );
   bool   StartsWith( StringView str, StringView prefix );
   bool   EndsWith( StringView str, StringView suffix );
   String ToLower( StringView str );

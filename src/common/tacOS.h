@@ -29,7 +29,9 @@ namespace Tac
 
     void        GetFileLastModifiedTime( time_t*, StringView path, Errors& );
 
-    void        GetDirFilesRecursive( Vector< String >& files, StringView dir, Errors& );
+    enum class  GetFilesInDirectoryFlags { Default = 0, Recursive = 1 };
+    void        GetFilesInDirectory( Vector< String >& files, StringView dir, GetFilesInDirectoryFlags, Errors& );
+    void        GetDirectoriesInDirectory( Vector< String >& dirs, StringView dir, Errors& );
 
     void        SaveDialog( String& path, StringView suggestedPath, Errors& );
     void        OpenDialog( String& path, Errors& );

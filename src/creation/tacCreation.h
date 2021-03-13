@@ -58,17 +58,17 @@ namespace Tac
     v3                  mTranslationGizmoDir = {};
     float               mTranslationGizmoOffset = 0;
     Camera*             mEditorCamera;
+
+    bool                mUpdateAssetView = false;
   };
 
   //===-------------- Misc -----------------===//
 
-  //                  If input path is absolute, it will be converted to be 
-  //                  relative to the working directory
-  void                ModifyPathRelative( String& path );
+  //                    If input path is absolute, it will be converted to be 
+  //                    relative to the working directory
+  void                  ModifyPathRelative( String& path );
 
-  extern Creation gCreation;
-
-  //const v4 textColor = v4( v3( 1, 1, 1 ) * 0.0f, 1 );
+  extern Creation       gCreation;
 
 }
 

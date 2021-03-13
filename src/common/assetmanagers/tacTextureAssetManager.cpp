@@ -20,10 +20,11 @@ namespace Tac
 
     struct AsyncTexture
     {
-      Job* mJob = nullptr;
+      Job*              mJob = nullptr;
       AsyncTextureData* mData = nullptr;
     };
-    static std::map< StringID, AsyncTexture* > mLoadingTextures;
+
+    static std::map< StringID, AsyncTexture* >         mLoadingTextures;
     static std::map< StringID, Render::TextureHandle > mLoadedTextures;
 
 
@@ -39,10 +40,10 @@ namespace Tac
         *texture = Render::CreateTexture(  commandData, TAC_STACK_FRAME );
         TAC_HANDLE_ERROR( errors );
       }
-      int mPitch = 0;
-      Image mImage;
+      int            mPitch = 0;
+      Image          mImage;
       Vector< char > mImageData;
-      String mFilepath;
+      String         mFilepath;
     };
 
 
@@ -63,10 +64,10 @@ namespace Tac
         *texture = Render::CreateTexture( commandData, TAC_STACK_FRAME );
         TAC_HANDLE_ERROR( errors );
       }
-      int mPitch = 0;
-      Image mImage;
+      int            mPitch = 0;
+      Image          mImage;
       Vector< char > mImageData[ 6 ];
-      String mDir;
+      String         mDir;
     };
 
 
@@ -142,7 +143,7 @@ namespace Tac
         Tac::Errors& errors = mErrors;
 
         Vector< String > files;
-        OS::GetDirFilesRecursive( files, mData->mDir, errors );
+        OS::GetFilesInDirectory( files, mData->mDir, OS::GetFilesInDirectoryFlags::Recursive, errors );
         TAC_HANDLE_ERROR( errors );
 
         if( files.size() != 6 )

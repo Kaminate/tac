@@ -18,6 +18,7 @@
 #include "src/common/tacTime.h"
 #include "src/common/tacUtility.h"
 #include "src/creation/tacCreation.h"
+#include "src/creation/tacCreationAssetView.h"
 #include "src/creation/tacCreationGameWindow.h"
 #include "src/creation/tacCreationMainWindow.h"
 #include "src/creation/tacCreationPrefab.h"
@@ -383,6 +384,9 @@ namespace Tac
       CreationProfileWindow::Instance->Update( errors );
       TAC_HANDLE_ERROR( errors );
     }
+
+    if( mUpdateAssetView )
+    CreationUpdateAssetView();
 
     mWorld->Step( TAC_DELTA_FRAME_SECONDS );
 

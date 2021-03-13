@@ -64,7 +64,7 @@
           "g": 0,
           "r": 1
         },
-        "mModelPath": "assets/editor/Box.gltf"
+        "mModelPath": "assets/editor/pandoras_cornell_box.glb"
       },
       "mEntityUUID": 0,
       "mEulerRads":

@@ -85,6 +85,11 @@ namespace Tac
       gCreation.CreatePropertyWindow( createWindowErrors );
     if( ImGuiButton( "Profile" ) )
       gCreation.CreateProfileWindow( createWindowErrors );
+
+    if( ImGuiButton( "Asset View" ) )
+      gCreation.mUpdateAssetView = !gCreation.mUpdateAssetView;
+
+
     if( createWindowErrors )
       ImGuiText( createWindowErrors.ToString() );
     ImGuiUnindent();

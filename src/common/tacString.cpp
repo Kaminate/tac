@@ -181,7 +181,7 @@ namespace Tac
   {
     for( int i = 0; i < mLen; ++i )
       if( Contains( s, mStr[ mLen - i - 1 ] ) )
-        return i;
+        return mLen - i - 1;
     return npos;
   }
 

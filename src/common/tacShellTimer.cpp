@@ -48,7 +48,7 @@ namespace Tac
     timeFormatter.AddUnit( "minute", minutes, minutes_per_hour );
     timeFormatter.AddUnit( "second", seconds, seconds_per_minute );
     timeFormatter.AddUnit( "milisecond", miliseconds, miliseconds_per_second );
-    String result = SeparateSpace( timeFormatter.lines );
+    String result = Join( timeFormatter.lines, " " );
     return result;
   }
 

@@ -80,7 +80,7 @@ namespace Tac
     String serverRoot = "/";
     // uniform resource identifier
     String& uri = serverRoot;
-    String request = SeparateSpace( { requestMethod, uri, httpVersion } );
+    String request = Join( { requestMethod, uri, httpVersion }, " " );
     String connectionType = "keep-alive";
     String fieldConnection = "Connection: " + connectionType;
     String fieldHost = "Host: " + String(host);
@@ -184,7 +184,7 @@ namespace Tac
 
     // The Websocket Protocol - Opening Handshake
     // https://tools.ietf.org/html/rfc6455#section-1.3
-    AddLine( SeparateSpace( { requestMethodGET, uri, httpVersion } ) );
+    AddLine( Join( { requestMethodGET, uri, httpVersion }, " " ) );
     AddLine( "Host: " + String( host ) );
     AddLine( "Upgrade: websocket" );
     AddLine( "Connection: upgrade" );

@@ -75,7 +75,7 @@ float sum( float3 v )
 PS_OUTPUT PS( VS_OUTPUT input )
 {
   PS_OUTPUT output = ( PS_OUTPUT )0;
-  const float magicNoiseScalar = 1000.0;
+  const float magicNoiseScalar = 200.0;
   const float2 noiseuv = input.mWorldSpacePosition.xz / magicNoiseScalar;
   const float noiseSample = noiseTexture.Sample( linearSampler,
                                                  noiseuv ).x;

@@ -409,48 +409,66 @@ namespace Tac
       *time = result;
     }
 
-    void GetDirFilesRecrusiveAux( const WIN32_FIND_DATA& data,
-                                  Vector<String>&files,
-                                  StringView dir,
-                                  Errors& errors )
+
+    struct Win32DirectoryCallbackFunctor
     {
-      String dataFilename = data.cFileName;
+      virtual void operator()(
+        StringView dir,
+        const WIN32_FIND_DATA&,
+        Errors& ) = 0;
+    };
+
+    // what if i inlined this into Win32DirectoryCallbackFunctor ?
+    static void Win32DirectoryIterateAux( const WIN32_FIND_DATA& data,
+                                          Win32DirectoryCallbackFunctor* fn,
+                                          StringView dir,
+                                          //OS::GetFilesInDirectoryFlags flags,
+                                          Errors& errors )
+    {
+      const String dataFilename = data.cFileName;
       if( dataFilename == "." || dataFilename == ".." )
         return;
-      String dataFilepath = dir + "/" + dataFilename;
-      if( data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY )
-      {
-        GetDirFilesRecursive( files, dataFilepath, errors );
-        TAC_HANDLE_ERROR( errors );
-      }
-      else
-      {
-        files.push_back( dataFilepath );
-      }
+
+      ( *fn )( dir, data, errors );
+      //const String dataFilepath = dir + "/" + dataFilename;
+
+      //const bool isDirectory = data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY;
+      //if( isDirectory )
+      //{
+      //  const bool recursive = ( int )flags & ( int )OS::GetFilesInDirectoryFlags::Recursive;
+      //  if( recursive )
+      //  {
+      //    GetFilesInDirectory( files, dataFilepath, flags, errors );
+      //    TAC_HANDLE_ERROR( errors );
+      //  }
+      //}
+      //else
+      //{
+      //  files.push_back( dataFilepath );
+      //}
     }
 
-    void GetDirFilesRecursive( Vector<String>&files,
-                               StringView dir,
-                               Errors& errors )
+    static void Win32DirectoryIterate( StringView dir,
+                                       Win32DirectoryCallbackFunctor* fn,
+                                       Errors& errors )
     {
-      String path = dir + "/*";
+      const String path = dir + "/*";
       WIN32_FIND_DATA data;
-      HANDLE fileHandle = FindFirstFile( path.c_str(), &data );
+      const HANDLE fileHandle = FindFirstFile( path.c_str(), &data );
       if( fileHandle == INVALID_HANDLE_VALUE )
       {
         const DWORD error = GetLastError();
-        if( error != ERROR_FILE_NOT_FOUND )
-        {
-          const String errMsg = Win32ErrorToString( error );
-          TAC_RAISE_ERROR( errMsg, errors );
-        }
+        if( error == ERROR_FILE_NOT_FOUND )
+          return;
+        const String errMsg = Win32ErrorToString( error );
+        TAC_RAISE_ERROR( errMsg, errors );
       }
       TAC_ON_DESTRUCT( FindClose( fileHandle ) );
-      GetDirFilesRecrusiveAux( data, files, dir, errors );
+      Win32DirectoryIterateAux( data, fn, dir, errors );
       TAC_HANDLE_ERROR( errors );
       while( FindNextFile( fileHandle, &data ) )
       {
-        GetDirFilesRecrusiveAux( data, files, dir, errors );
+        Win32DirectoryIterateAux( data, fn, dir, errors );
         TAC_HANDLE_ERROR( errors );
       }
       const DWORD error = GetLastError();
@@ -459,6 +477,62 @@ namespace Tac
         const String errMsg = Win32ErrorToString( error );
         TAC_RAISE_ERROR( errMsg, errors );
       }
+    }
+
+
+
+    void GetFilesInDirectory( Vector< String >& files,
+                              StringView dir,
+                              OS::GetFilesInDirectoryFlags flags,
+                              Errors& errors )
+    {
+      struct : public Win32DirectoryCallbackFunctor
+      {
+        void operator ()( StringView dir,
+                          const WIN32_FIND_DATA& data,
+                          Errors& errors ) override
+        {
+          const bool isDirectory = data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY;
+          if( isDirectory )
+          {
+            if( mIsRecursive )
+            {
+              Win32DirectoryIterate( data.cFileName, this, errors );
+            }
+          }
+          else
+          {
+            mFiles->push_back( dir + "/" + data.cFileName );
+          }
+        }
+
+        bool              mIsRecursive;
+        Vector< String >* mFiles;
+      } functor;
+
+      functor.mIsRecursive = ( int )flags & ( int )OS::GetFilesInDirectoryFlags::Recursive;
+      functor.mFiles = &files;
+
+      Win32DirectoryIterate( dir, &functor, errors );
+    }
+
+    void        GetDirectoriesInDirectory( Vector< String >& dirs,
+                                           StringView dir,
+                                           Errors& errors )
+    {
+      struct : public Win32DirectoryCallbackFunctor
+      {
+        void operator ()( StringView dir,
+                          const WIN32_FIND_DATA& data,
+                          Errors& errors ) override
+        {
+          if( data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY )
+            mDirs->push_back( data.cFileName );
+        }
+        Vector< String >* mDirs;
+      } functor;
+      functor.mDirs = &dirs;
+      Win32DirectoryIterate( dir, &functor, errors );
     }
 
   };

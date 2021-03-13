@@ -447,7 +447,7 @@ namespace Tac
     window->BeginFrame();
 
     const DesktopWindowState* desktopWindowState = GetDesktopWindowState( window->mDesktopWindowHandle );
-    if( desktopWindowState && window->mStretchWindow )
+    if( desktopWindowState && desktopWindowState->mNativeWindowHandle && window->mStretchWindow )
       window->mSize = v2( ( float )desktopWindowState->mWidth, ( float )desktopWindowState->mHeight );
     return desktopWindowState->mNativeWindowHandle;
   }
