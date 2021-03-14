@@ -340,7 +340,7 @@ namespace Tac
         SubMeshTriangles tris;
         GetTris( parsedPrim, tris );
 
-        String name = parsedMesh->name +
+        const String name = parsedMesh->name +
           ( parsedMesh->primitives_count > 1 ? "prim" + ToString( iPrim ) : "" );
 
         SubMesh subMesh;

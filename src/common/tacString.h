@@ -44,9 +44,9 @@ namespace Tac
     StringView  substr( int pos = 0, int len = npos ) const;
     char        front();
     char        back();
-    bool        starts_with( StringView );
-    bool        starts_with( char );
-    bool        ends_with( StringView );
+    bool        starts_with( StringView ) const;
+    bool        starts_with( char ) const;
+    bool        ends_with( StringView ) const;
     void        remove_prefix( int );
     void        remove_suffix( int );
 

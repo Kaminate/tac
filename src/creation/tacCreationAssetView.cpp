@@ -7,7 +7,9 @@
 #include "src/common/tacShell.h"
 #include "src/common/tacOS.h"
 #include "src/common/tacErrorHandling.h"
+#include "src/space/tacworld.h"
 
+#include <map>
 
 namespace Tac
 {
@@ -16,6 +18,25 @@ namespace Tac
   static Errors           sAssetViewErrors;
   static Vector< String > sAssetViewFiles;
   static Vector< String > sAssetViewFolders;
+
+  static World            sAssetViewWorld;
+
+  static std::map< String, AssetViewImportedModel* >  sLoadedModels;
+  static std::map< String, AssetViewImportingModel* >  sLoadingModels;
+
+  struct AssetViewImportingModel
+  {
+
+  };
+
+  struct AssetViewImportedModel
+  {
+    // somethings are embedded in the model file
+    // - mesh / material
+    // - possible textures
+    // other things are stored in external files
+    // - textures
+  };
 
   static void PopulateFolderContents()
   {
@@ -45,6 +66,7 @@ namespace Tac
       }
     }
   }
+
   static void UINextFolders()
   {
     for( const String& path : sAssetViewFolders )
@@ -58,22 +80,35 @@ namespace Tac
         ImGuiSameLine();
     }
   }
+
+  static bool HasExt( const StringView& path, Vector< const char* > extensions )
+  {
+    for( const char* ext : extensions )
+      if( path.ends_with( ext ) )
+        return true;
+    return false;
+  }
+
+  static bool IsImage( const StringView& path ) { return HasExt( path, { ".png", ".jpg", ".bmp" } ); }
+  static bool IsModel( const StringView& path ) { return HasExt( path, { ".gltf", ".glb" } ); }
+
   static void UIFiles()
   {
     if( sAssetViewFiles.empty() )
       ImGuiText( "no files :(" );
 
     Vector< String > imagePaths;
-    Vector< String > nonImagePaths;
+    Vector< String > modelPaths;
+    Vector< String > otherPaths;
 
     for( const String& path : sAssetViewFiles )
     {
-      const bool isImage = 
-        StringView( path ).ends_with( ".png" ) ||
-        StringView( path ).ends_with( ".jpg" ) ||
-        StringView( path ).ends_with( ".bmp" ) ||
-        false;
-      (isImage ? imagePaths : nonImagePaths).push_back( path );
+      Vector< String >* paths = &otherPaths;
+      if( IsImage( path ) )
+        paths = &imagePaths;
+      if( IsModel( path ) )
+        paths = &modelPaths;
+      ( *paths ).push_back( path );
     }
 
     for( const String& path : imagePaths )
@@ -102,7 +137,25 @@ namespace Tac
       if( iPath % 3 < 3 - 1 && iPath!= imagePaths.size() - 1 )
         ImGuiSameLine();
     }
-    for( const String& path : nonImagePaths )
+
+    for( const String& path : modelPaths )
+    {
+      const String filename = SplitFilepath( path ).mFilename;
+      const String filenamePrefab = StripExt( filename ) + ".prefab";
+      ImGuiText( filename );
+      
+      bool importFound = false;
+      for( const String& assetViewFile : sAssetViewFiles )
+        if( SplitFilepath( assetViewFile ).mFilename == filenamePrefab )
+          importFound = true;
+      if( !importFound )
+      {
+        ImGuiSameLine();
+        ImGuiButton( "Import" );
+      }
+    }
+
+    for( const String& path : otherPaths )
       ImGuiText( SplitFilepath( path ).mFilename );
   }
   void CreationUpdateAssetView()

@@ -220,17 +220,17 @@ namespace Tac
     mLen -= n;
   }
 
-  bool StringView::starts_with( StringView s )
+  bool StringView::starts_with( StringView s ) const
   {
     return mLen >= s.mLen && MemCmp( mStr, s.mStr, s.mLen ) == 0;
   }
 
-  bool StringView::starts_with( char c )
+  bool StringView::starts_with( char c ) const
   {
     return mLen && mStr[ 0 ] == c;
   }
 
-  bool StringView::ends_with( StringView s )
+  bool StringView::ends_with( StringView s ) const
   {
     return mLen >= s.mLen && MemCmp( mStr + mLen - s.mLen, s.mStr, s.mLen ) == 0;
   }

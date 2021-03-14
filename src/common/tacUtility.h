@@ -24,7 +24,9 @@ namespace Tac
   void   SaveToFile( StringView path, void* bytes, int byteCount, Errors& );
   bool   IsOfExt( StringView str, StringView ext );
   bool   FileExist( StringView str );
-  String StripExt( StringView path );
+
+  // "foo.txt" --> "foo"
+  String StripExt( StringView );
   String StripLeadingSlashes( StringView path );
 
   //
