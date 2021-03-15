@@ -3,42 +3,44 @@
 #include "src/space/physics/tacphysics.h"
 namespace Tac
 {
+  static ComponentRegistryEntry* sEntry;
 
-
-  Collider* Collider::GetCollider( Entity* entity )
+  Collider*                     Collider::GetCollider( Entity* entity )
   {
-    return ( Collider* )entity->GetComponent( Collider::ColliderComponentRegistryEntry );
+    return ( Collider* )entity->GetComponent( sEntry );
   }
 
-  ComponentRegistryEntry* Collider::GetEntry() const
+  const ComponentRegistryEntry* Collider::GetEntry() const
   {
-    return Collider::ColliderComponentRegistryEntry;
+    return sEntry;
   }
 
-  static Component* CreateColliderComponent( World* world )
+  Collider*                     Collider::CreateCollider( World* world )
   {
     return Physics::GetSystem( world )->CreateCollider();
+
   }
 
-  static void DestroyColliderComponent( World* world, Component* component )
+  static void       DestroyColliderComponent( World* world, Component* component )
   {
     Physics::GetSystem( world )->DestroyCollider( ( Collider* )component );
   }
-  ComponentRegistryEntry* Collider::ColliderComponentRegistryEntry;
 
-  void ColliderDebugImgui( Component* );
+
+  void ColliderDebugImgui( Collider* );
   void RegisterColliderComponent()
   {
     NetworkBits networkBits;
     networkBits.Add( { "mVelocity",    TAC_OFFSET_OF( Collider, mVelocity ),    sizeof( float ), 3 } );
     networkBits.Add( { "mRadius",      TAC_OFFSET_OF( Collider, mRadius ),      sizeof( float ), 1 } );
     networkBits.Add( { "mTotalHeight", TAC_OFFSET_OF( Collider, mTotalHeight ), sizeof( float ), 1 } );
-    Collider::ColliderComponentRegistryEntry = ComponentRegistry_RegisterComponent();
-    Collider::ColliderComponentRegistryEntry->mName = "Collider";
-    Collider::ColliderComponentRegistryEntry->mNetworkBits = networkBits;
-    Collider::ColliderComponentRegistryEntry->mCreateFn = CreateColliderComponent;
-    Collider::ColliderComponentRegistryEntry->mDestroyFn = DestroyColliderComponent;
-    Collider::ColliderComponentRegistryEntry->mDebugImguiFn = ColliderDebugImgui;
+    sEntry = ComponentRegistry_RegisterComponent();
+    sEntry->mName = "Collider";
+    sEntry->mNetworkBits = networkBits;
+    sEntry->mCreateFn = []( World* world ){ return ( Component* ) Collider::CreateCollider( world ); };
+    sEntry->mDestroyFn = DestroyColliderComponent;
+    sEntry->mDebugImguiFn =
+      []( Component* component ){ ColliderDebugImgui( ( Collider* )component ); };
   }
 
 }

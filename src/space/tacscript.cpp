@@ -8,8 +8,14 @@ namespace Tac
 {
 
 
+  void ScriptThread::Update( float, Errors& )
+  {
+
+  }
+
   void ScriptThread::DebugImguiOuter( Errors& errors )
   {
+    TAC_UNUSED_PARAMETER( errors );
     //ImGui::PushID( this );
     //OnDestruct( ImGui::PopID() );
     //Assert( mName.size() );
@@ -24,12 +30,14 @@ namespace Tac
     //  mIsComplete = true;
     //DebugImgui( errors );
   }
+
   void ScriptThread::SetNextKeyDelay( float seconds )
   {
     mIsSleeping = true;
     mSecondsToSleep = seconds;
     mSecondsSlept = 0;
   }
+
   void ScriptThread::AddScriptCallback( void* userData, ScriptCallbackFunction* scriptCallbackFunction )
   {
     auto* scriptCallbackData = TAC_NEW ScriptCallbackData;
@@ -37,6 +45,7 @@ namespace Tac
     scriptCallbackData->mScriptCallbackFunction = scriptCallbackFunction;
     mMsgCallbacks.insert( scriptCallbackData );
   }
+
   void ScriptThread::OnMsg( const ScriptMsg* scriptMsg )
   {
     Vector< ScriptCallbackData* > toDelete;
@@ -60,7 +69,8 @@ namespace Tac
       delete child;
     }
   }
-  void ScriptRoot::Update( float seconds, Errors& errors )
+
+  void          ScriptRoot::Update( float seconds, Errors& errors )
   {
 
     // threads can add children during the update, so make a copy
@@ -88,14 +98,17 @@ namespace Tac
       delete child;
     }
   }
-  void ScriptRoot::AddChild( ScriptThread* child )
+
+  void          ScriptRoot::AddChild( ScriptThread* child )
   {
     TAC_ASSERT( child->mName.size() );
     child->mScriptRoot = this;
     mChildren.insert( child );
   }
-  void ScriptRoot::DebugImgui( Errors& errors )
+
+  void          ScriptRoot::DebugImgui( Errors& errors )
   {
+    TAC_UNUSED_PARAMETER( errors );
     //if( !ImGui::CollapsingHeader( "Script Root" ) )
     //  return;
     //ImGui::Indent();
@@ -105,18 +118,21 @@ namespace Tac
     //  child->DebugImguiOuter( errors );
     //}
   }
-  void ScriptRoot::OnMsg( const ScriptMsg* scriptMsg )
+
+  void          ScriptRoot::OnMsg( const ScriptMsg* scriptMsg )
   {
     TAC_ASSERT( scriptMsg->mType.size() );
     for( auto child : mChildren )
       child->OnMsg( scriptMsg );
   }
-  void ScriptRoot::OnMsg( StringView scriptMsgType )
+
+  void          ScriptRoot::OnMsg( StringView scriptMsgType )
   {
     ScriptMsg scriptMsg;
     scriptMsg.mType = scriptMsgType;
     OnMsg( &scriptMsg );
   }
+
   ScriptThread* ScriptRoot::GetThread( StringView name )
   {
     for( auto scriptThread : mChildren )

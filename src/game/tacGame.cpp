@@ -58,6 +58,7 @@ namespace Tac
 
   void ExecutableStartupInfo::Init( Errors& errors )
   {
+    TAC_UNUSED_PARAMETER( errors );
     mAppName = "Game";
     mProjectInit = GameCallbackInit;
     mProjectUpdate = GameCallbackUpdate;

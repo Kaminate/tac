@@ -9,9 +9,9 @@ namespace Tac
   // This is an upright capsule
   struct Collider : public Component
   {
+    static Collider*               CreateCollider( World* );
     static Collider*               GetCollider( Entity* );
-    ComponentRegistryEntry*        GetEntry() const override;
-    static ComponentRegistryEntry* ColliderComponentRegistryEntry;
+    const ComponentRegistryEntry*  GetEntry() const override;
     v3                             mVelocity = {};
     float                          mRadius = 0.5f;
     float                          mTotalHeight = 2.0f;

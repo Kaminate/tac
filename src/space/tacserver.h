@@ -65,8 +65,10 @@ namespace Tac
     World*                    mEmptyWorld = nullptr;
     static const int          sOtherPlayerCountMax = 3;
     std::list< OtherPlayer* > mOtherPlayers;
-    PlayerUUID                mPlayerUUIDCounter = NullPlayerUUID;
-    EntityUUID                mEntityUUIDCounter = NullEntityUUID;
+    //PlayerUUID                mPlayerUUIDCounter = NullPlayerUUID;
+    //EntityUUID                mEntityUUIDCounter = NullEntityUUID;
+    PlayerUUIDCounter         mPlayerUUIDCounter;
+    EntityUUIDCounter         mEntityUUIDCounter;
   };
 
   extern const float sSnapshotUntilNextSecondsMax;

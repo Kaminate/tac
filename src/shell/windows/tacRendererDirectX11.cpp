@@ -893,7 +893,6 @@ namespace Tac
     TAC_ASSERT( IsMainThread() );
     Render::VertexFormatHandle vertexFormatHandle = commandData->mVertexFormatHandle;
     Vector< D3D11_INPUT_ELEMENT_DESC > inputElementDescs;
-    commandData->mShaderHandle;
     for( int iVertexFormatData = 0;
          iVertexFormatData < commandData->mVertexDeclarations.mVertexFormatDataCount;
          ++iVertexFormatData )
@@ -1321,6 +1320,7 @@ namespace Tac
 
   void RendererDirectX11::RemoveVertexBuffer( Render::VertexBufferHandle vertexBufferHandle, Errors& errors )
   {
+    TAC_UNUSED_PARAMETER( errors );
     VertexBuffer* vertexBuffer = &mVertexBuffers[ ( int )vertexBufferHandle ];
     TAC_RELEASE_IUNKNOWN( vertexBuffer->mBuffer );
     *vertexBuffer = VertexBuffer();

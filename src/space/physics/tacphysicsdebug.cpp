@@ -3,14 +3,16 @@
 
 namespace Tac
 {
-void PhysicsDebugImgui( Physics* physics )
-{
-  ImGuiText( "physics stuff" );
-}
-void PhysicsDebugImgui( System* system )
-{
-  PhysicsDebugImgui( ( Physics* )system );
-}
+  void PhysicsDebugImgui( Physics* physics )
+  {
+    TAC_UNUSED_PARAMETER( physics );
+    ImGuiText( "physics stuff" );
+  }
+
+  void PhysicsDebugImgui( System* system )
+  {
+    PhysicsDebugImgui( ( Physics* )system );
+  }
 
 }
 

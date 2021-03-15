@@ -166,6 +166,7 @@ namespace Tac
   }
   void    World::ApplyInput( Player* player, float seconds )
   {
+    TAC_UNUSED_PARAMETER( seconds );
     auto entity = FindEntity( player->mEntityUUID );
     if( !entity )
       return;
@@ -222,12 +223,13 @@ namespace Tac
         ComputeTransformsRecursively( identity, entity );
     }
 
-    for( auto player : mPlayers )
+    for( Player* player : mPlayers )
       ApplyInput( player, seconds );
-    for( auto system : mSystems )
+    for( System* system : mSystems )
       system->Update();
-    for( auto entity : mEntities )
+    for( Entity* entity : mEntities )
     {
+    TAC_UNUSED_PARAMETER( entity );
       //entity->Integrate( seconds );
     }
 
@@ -240,8 +242,9 @@ namespace Tac
       Graphics* graphics = GetGraphics( this );
       if( graphics )
       {
-        for( auto entity : mEntities )
+        for( Entity* entity : mEntities )
         {
+          TAC_UNUSED_PARAMETER( entity );
           //graphics->DebugDrawOBB( entity->mPosition, boxSize, boxRot );
         }
       }

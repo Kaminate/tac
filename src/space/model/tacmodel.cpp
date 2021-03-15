@@ -22,7 +22,7 @@ namespace Tac
 		return ( Model* )entity->GetComponent( sComponentRegistryEntry );
 	}
 
-	ComponentRegistryEntry* Model::GetEntry() const
+	const ComponentRegistryEntry* Model::GetEntry() const
 	{
     return sComponentRegistryEntry;
 	}
@@ -59,7 +59,7 @@ namespace Tac
 	}
 
 
-	void ModelDebugImgui( Component* );
+	void ModelDebugImgui( Model* );
 	void RegisterModelComponent()
 	{
     sComponentRegistryEntry = ComponentRegistry_RegisterComponent();
@@ -67,7 +67,7 @@ namespace Tac
 		//sComponentRegistryEntry->mNetworkBits = ComponentModelBits;
 		sComponentRegistryEntry->mCreateFn = CreateModelComponent;
 		sComponentRegistryEntry->mDestroyFn = DestroyModelComponent;
-		sComponentRegistryEntry->mDebugImguiFn = ModelDebugImgui;
+    sComponentRegistryEntry->mDebugImguiFn = []( Component* component ){ ModelDebugImgui( ( Model* )component ); };
 		sComponentRegistryEntry->mSaveFn = SaveModelComponent;
 		sComponentRegistryEntry->mLoadFn = LoadModelComponent;
 	}

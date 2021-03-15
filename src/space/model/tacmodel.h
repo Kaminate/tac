@@ -14,7 +14,8 @@ namespace Tac
   {
     static Model*                  GetModel( Entity* );
     static const Model*            GetModel( const Entity* );
-    ComponentRegistryEntry*        GetEntry() const override;
+    const ComponentRegistryEntry*        GetEntry() const override;
+    //static const ComponentRegistryEntry*        GetEntry();
     //TextureUUID                  mTextureUUID = NullTextureUUID;
     //GeometryUUID                 mGeometryUUID = NullGeometryUUID;
     v3                             mColorRGB = { 1, 1, 1 };

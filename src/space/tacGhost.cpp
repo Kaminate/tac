@@ -51,11 +51,10 @@ namespace Tac
     if( mGhost->mShouldPopulateWorldInitial )
     {
       Entity* entity = serverData->SpawnEntity();
-      entity->mRelativeSpace.mPosition = v3(
-        RandomFloatMinus1To1() * 3.0f,
-        5.2f,
-        RandomFloatMinus1To1() * 3.0f );
-      entity->AddNewComponent( Collider::ColliderComponentRegistryEntry );
+      entity->mRelativeSpace.mPosition = v3( RandomFloatMinus1To1() * 3.0f,
+                                             5.2f,
+                                             RandomFloatMinus1To1() * 3.0f );
+      entity->AddNewComponent( Collider().GetEntry() );
       player->mEntityUUID = entity->mEntityUUID;
     }
   }
@@ -67,9 +66,10 @@ namespace Tac
   }
   void User::Update( Errors& errors )
   {
+    TAC_UNUSED_PARAMETER( errors );
     if( !mGhost->mIsGrabbingInput )
       return;
-    auto serverData = mGhost->mServerData;
+    //auto serverData = mGhost->mServerData;
     v2 inputDirection = { 0, 0 };
     if( gKeyboardInput.IsKeyDown( Key::RightArrow ) ) inputDirection += { 1, 0 };
     if( gKeyboardInput.IsKeyDown( Key::UpArrow ) ) inputDirection += { 0, 1 };
@@ -166,6 +166,7 @@ namespace Tac
   }
   void Ghost::ImguiCreatePlayerPopup( Errors& errors )
   {
+    TAC_UNUSED_PARAMETER( errors );
     //const char* popupName = "Enter Player Name";
     //const int playerNameBufSize = 100;
     //static String playerName;
@@ -257,6 +258,7 @@ namespace Tac
   }
   void Ghost::DebugImgui( Errors& errors )
   {
+    TAC_UNUSED_PARAMETER( errors );
 #if COMPILE_PLS
     if( !mIsImGuiVisible )
       return;
@@ -324,8 +326,9 @@ namespace Tac
   }
   void Ghost::Draw( Errors& errors )
   {
-    World* world = mServerData->mWorld;
-    Graphics* graphics = GetGraphics( world );
+    TAC_UNUSED_PARAMETER( errors );
+    //World* world = mServerData->mWorld;
+    //Graphics* graphics = GetGraphics( world );
 
     //Renderer::Instance->DebugBegin( "Draw world" );
     //TAC_ON_DESTRUCT( Renderer::Instance->DebugEnd() );
@@ -360,7 +363,7 @@ namespace Tac
     v3 camU( 0, 1, 0 );
     float farPlane = 10000.0f;
     float nearPlane = 0.1f;
-    float fovYRad = 100.0f * ( 3.14f / 180.0f );
+    //float fovYRad = 100.0f * ( 3.14f / 180.0f );
     float projA;
     float projB;
     Render::GetPerspectiveProjectionAB( farPlane, nearPlane, projA, projB );
@@ -424,8 +427,8 @@ namespace Tac
   }
   void Ghost::PopulateWorldInitial()
   {
-    World* world = mServerData->mWorld;
-    Physics* physics = Physics::GetSystem( world );
+    //World* world = mServerData->mWorld;
+    //Physics* physics = Physics::GetSystem( world );
     String levelpath = "mylevel.txt";
     std::ifstream ifs( levelpath.c_str() );
     if( !ifs.is_open() )

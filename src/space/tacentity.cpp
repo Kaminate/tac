@@ -8,7 +8,7 @@
 #include "src/common/tacPreprocessor.h"
 #include <algorithm>
 
-#pragma warning( disable: 6011)
+//#pragma warning( disable: 6011 ) // you might dereference a null ptr
 
 namespace Tac
 {
@@ -58,15 +58,9 @@ namespace Tac
     return component;
   }
 
-  Components::ConstIterator Components::begin() const
-  {
-    return mComponents.begin();
-  }
+  //Components::ConstIterator Components::begin() const { return mComponents.begin(); }
 
-  Components::ConstIterator Components::end() const
-  {
-    return mComponents.end();
-  }
+  //Components::ConstIterator Components::end() const { return mComponents.end(); }
 
 	Entity::~Entity()
 	{
@@ -78,7 +72,7 @@ namespace Tac
 	{
 		for( Component* component : mComponents )
 		{
-			ComponentRegistryEntry* entry = component->GetEntry();
+			const ComponentRegistryEntry* entry = component->GetEntry();
 			entry->mDestroyFn( mWorld, component );
 		}
 		mComponents.Clear();
@@ -137,8 +131,12 @@ namespace Tac
 	void             Entity::DeepCopy( const Entity& entity )
 	{
 		//TAC_ASSERT( mWorld && entity.mWorld && mWorld != entity.mWorld );
-		mEntityUUID = entity.mEntityUUID;
+    mEntityUUID = entity.mEntityUUID;
+    mName = entity.mName;
+    mInheritParentScale = entity.mInheritParentScale;
+    mRelativeSpace = entity.mRelativeSpace;
 		RemoveAllComponents();
+    
 		//for( auto oldComponent : entity.mComponents )
 		//{
 		//  auto componentType = oldComponent->GetComponentType();
@@ -152,6 +150,9 @@ namespace Tac
 		//    std::memcpy( dst, src, size );
 		//  }
 		//}
+    for( Entity* child : mChildren )
+      mWorld->KillEntity( child );
+    mChildren.clear();
 	}
 
 	void             Entity::AddChild( Entity* child )
@@ -269,10 +270,10 @@ namespace Tac
 		entity->mEntityUUID = ( EntityUUID )( UUID )prefabJson[ "mEntityUUID" ].mNumber;
 
 		// I think these should have its own mComponents json node
-		for( auto& prefabJson : prefabJson.mObjectChildrenMap )
+		for( auto& pair : prefabJson.mObjectChildrenMap )
 		{
-			StringView key = prefabJson.first;
-			Json* componentJson = prefabJson.second;
+			StringView key = pair.first;
+			Json* componentJson = pair.second;
       ComponentRegistryEntry* componentRegistryEntry = ComponentRegistry_FindComponentByName( key );
 			if( !componentRegistryEntry )
 				continue; // This key-value pair is not a component

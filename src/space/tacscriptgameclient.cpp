@@ -85,6 +85,8 @@ namespace Tac
 	}
 	void ScriptGameClient::Update( float seconds, Errors& errors )
 	{
+    TAC_UNUSED_PARAMETER( seconds );
+    TAC_UNUSED_PARAMETER( errors );
 		TAC_TIMELINE_BEGIN;
 
 		auto scriptMatchmaker = TAC_NEW ScriptMatchmaker;
@@ -95,11 +97,12 @@ namespace Tac
 
 		TAC_TIMELINE_KEYFRAME;
 		TAC_TIMELINE_KEYFRAME;
-		return;
+    RunForever();
 		TAC_TIMELINE_END;
 	}
 	void ScriptGameClient::DebugImgui( Errors& errors )
 	{
+    TAC_UNUSED_PARAMETER( errors );
 	}
 
 	ScriptSplash::ScriptSplash()
@@ -116,8 +119,9 @@ namespace Tac
 	}
 	void ScriptSplash::Update( float seconds, Errors& errors )
 	{
-		Ghost* ghost = mScriptRoot->mGhost;
-		;
+    TAC_UNUSED_PARAMETER( seconds );
+    TAC_UNUSED_PARAMETER( errors );
+		//Ghost* ghost = mScriptRoot->mGhost;
 		//UIRoot* uiRoot = ghost->mUIRoot;
 
 
@@ -151,6 +155,7 @@ namespace Tac
 	}
 	void ScriptSplash::DebugImgui( Errors& errors )
 	{
+    TAC_UNUSED_PARAMETER( errors );
 		//ImGui::DragFloat( "Fully visible sec", &mFullyVisibleSec );
 		//ImGui::DragFloat( "Fade sec total", &mFadeSecTotal );
 		//ImGui::Checkbox( "Skip splash screen", &mSkipSplashScreen );
@@ -168,6 +173,7 @@ namespace Tac
 	}
 	void ScriptMatchmaker::OnScriptGameConnectionClosed( Socket* socket )
 	{
+    TAC_UNUSED_PARAMETER( socket );
 		Log( "on script game connection closed" );
 		mSocket = nullptr;
 		mPretendWebsocketHandshakeDone = false;
@@ -176,6 +182,7 @@ namespace Tac
 	}
 	void ScriptMatchmaker::OnScriptGameMessage( Socket* socket, void* bytes, int byteCount )
 	{
+    TAC_UNUSED_PARAMETER( socket );
 		if( mLogReceivedMessages )
 			Log( String( ( const char* )bytes, byteCount ) );
 	}
@@ -210,6 +217,7 @@ namespace Tac
 	}
 	void ScriptMatchmaker::Log( StringView text )
 	{
+    TAC_UNUSED_PARAMETER( text );
 		if( !mShouldLog )
 			return;
 		//auto log = Shell::Instance.mLog;
@@ -226,6 +234,7 @@ namespace Tac
 	}
 	void ScriptMatchmaker::Update( float seconds, Errors& errors )
 	{
+    TAC_UNUSED_PARAMETER( seconds );
 		TAC_TIMELINE_BEGIN;
 		mSocket = Net::Instance->CreateSocket( "Matchmaking socket", AddressFamily::IPv4, SocketType::TCP, errors );
 		TAC_HANDLE_ERROR( errors );
@@ -278,6 +287,7 @@ namespace Tac
 		mSocket->mKeepaliveOverride.mUserData = this;
 		mSocket->mKeepaliveOverride.mCallback = []( void* userData, Socket* socket )
 		{
+      TAC_UNUSED_PARAMETER( socket );
 			auto* scriptMatchmaker = ( ScriptMatchmaker* )userData;
 			Errors errors; // ???
 			scriptMatchmaker->PokeServer( errors );
@@ -289,11 +299,12 @@ namespace Tac
 		TAC_TIMELINE_KEYFRAME;
 		if( mShouldSpamServer )
 			PokeServer( errors );
-		return;
+    RunForever();
 		TAC_TIMELINE_END;
 	}
 	void ScriptMatchmaker::DebugImgui( Errors& errors )
 	{
+    TAC_UNUSED_PARAMETER( errors );
 		//ImGui::Checkbox( "auto-spam server", &mShouldSpamServer );
 		//ImGui::Checkbox( "Log received messages", &mLogReceivedMessages );
 		//ImGui::Checkbox( "Try auto connect", &mTryAutoConnect );
@@ -323,52 +334,56 @@ namespace Tac
 		Render::DestroyTexture( mPower, TAC_STACK_FRAME );
 	}
 	void ScriptMainMenu::AddCallbackConnect()
-	{
-		AddScriptCallback( this, []( ScriptCallbackData* scriptCallbackData, const ScriptMsg* scriptMsg )
-											 {
-												 //if( scriptMsg->mType != scriptMsgConnect )
-												 //  return;
-												 //auto* scriptMainMenu = ( ScriptMainMenu* )scriptCallbackData->mUserData;
-												 //scriptCallbackData->mRequestDeletion = true;
-												 //UITextData uiTextData;
-												 //uiTextData.mUtf8 = "Status: Connected";
-												 //scriptMainMenu->mUITextServerConnectionStatus->SetText( uiTextData );
-												 //scriptMainMenu->AddCallbackDisconnect();
+  {
+    AddScriptCallback(
+      this,
+      []( ScriptCallbackData* scriptCallbackData, const ScriptMsg* scriptMsg )
+      {
+        TAC_UNUSED_PARAMETER(scriptCallbackData);
+        TAC_UNUSED_PARAMETER(scriptMsg);
+        //if( scriptMsg->mType != scriptMsgConnect )
+        //  return;
+        //auto* scriptMainMenu = ( ScriptMainMenu* )scriptCallbackData->mUserData;
+        //scriptCallbackData->mRequestDeletion = true;
+        //UITextData uiTextData;
+        //uiTextData.mUtf8 = "Status: Connected";
+        //scriptMainMenu->mUITextServerConnectionStatus->SetText( uiTextData );
+        //scriptMainMenu->AddCallbackDisconnect();
 
-												 //UIButtonCallback buttonCallback;
-												 //buttonCallback.mUserData = scriptMainMenu;
-												 //buttonCallback.mUserCallback = []( void* userData, Errors& errors )
-												 //{
-												 //  auto* scriptMainMenu = ( ScriptMainMenu* )userData;
-												 //  auto* scriptMatchmaker = ( ScriptMatchmaker* )scriptMainMenu->mScriptRoot->GetThread( scriptMatchmakerName );
-												 //  scriptMatchmaker->mSocket->mRequestDeletion = true;
-												 //};
-												 //scriptMainMenu->mUITextDisconnectFromServer->mButtonCallbacks.push_back( buttonCallback );
+        //UIButtonCallback buttonCallback;
+        //buttonCallback.mUserData = scriptMainMenu;
+        //buttonCallback.mUserCallback = []( void* userData, Errors& errors )
+        //{
+        //  auto* scriptMainMenu = ( ScriptMainMenu* )userData;
+        //  auto* scriptMatchmaker = ( ScriptMatchmaker* )scriptMainMenu->mScriptRoot->GetThread( scriptMatchmakerName );
+        //  scriptMatchmaker->mSocket->mRequestDeletion = true;
+        //};
+        //scriptMainMenu->mUITextDisconnectFromServer->mButtonCallbacks.push_back( buttonCallback );
 
-												 //buttonCallback.mUserCallback = []( void* userData, Errors& errors )
-												 //{
-												 //  auto* scriptMainMenu = ( ScriptMainMenu* )userData;
-												 //  auto* scriptMatchmaker = ( ScriptMatchmaker* )scriptMainMenu->mScriptRoot->GetThread( scriptMatchmakerName );
+        //buttonCallback.mUserCallback = []( void* userData, Errors& errors )
+        //{
+        //  auto* scriptMainMenu = ( ScriptMainMenu* )userData;
+        //  auto* scriptMatchmaker = ( ScriptMatchmaker* )scriptMainMenu->mScriptRoot->GetThread( scriptMatchmakerName );
 
-												 //  Json json;
-												 //  json[ "name" ] = "create room";
-												 //  String toSend = json.Stringify();
-												 //  Socket* socket = scriptMatchmaker->mSocket;
-												 //  socket->Send( ( void* )toSend.data(), ( int )toSend.size(), errors );
-												 //};
-												 ////scriptMainMenu->mUITextCreateRoom->mButtonCallbacks.push_back( buttonCallback );
+        //  Json json;
+        //  json[ "name" ] = "create room";
+        //  String toSend = json.Stringify();
+        //  Socket* socket = scriptMatchmaker->mSocket;
+        //  socket->Send( ( void* )toSend.data(), ( int )toSend.size(), errors );
+        //};
+        ////scriptMainMenu->mUITextCreateRoom->mButtonCallbacks.push_back( buttonCallback );
 
-												 //for( UIText* uiText : {
-												 //  scriptMainMenu->mUITextDisconnectFromServer
-												 //  //scriptMainMenu->mUITextCreateRoom
-												 //  } )
-												 //{
-												 //  UITextData uiTextData = *uiText->GetUITextData();
-												 //  uiTextData.mColor = colorMagenta;
-												 //  uiText->SetText( uiTextData, false );
-												 //}
-											 } );
-	}
+        //for( UIText* uiText : {
+        //  scriptMainMenu->mUITextDisconnectFromServer
+        //  //scriptMainMenu->mUITextCreateRoom
+        //  } )
+        //{
+        //  UITextData uiTextData = *uiText->GetUITextData();
+        //  uiTextData.mColor = colorMagenta;
+        //  uiText->SetText( uiTextData, false );
+        //}
+      } );
+  }
 	void ScriptMainMenu::AddCallbackDisconnect()
 	{
 		//AddScriptCallback( this, []( ScriptCallbackData* scriptCallbackData, const ScriptMsg* scriptMsg )
@@ -396,6 +411,8 @@ namespace Tac
 	}
 	void ScriptMainMenu::Update( float seconds, Errors& errors )
 	{
+    TAC_UNUSED_PARAMETER( errors );
+    TAC_UNUSED_PARAMETER( seconds );
 		//Ghost* ghost = mScriptRoot->mGhost;
 		//;
 		////UIRoot* uiRoot = ghost->mUIRoot;
@@ -750,6 +767,7 @@ namespace Tac
 	}
 	void ScriptMainMenu::DebugImgui( Errors& errors )
 	{
+    TAC_UNUSED_PARAMETER( errors );
 
 	}
 
@@ -765,6 +783,7 @@ namespace Tac
 	}
 	void TimelineAction::Update( float percent )
 	{
+    TAC_UNUSED_PARAMETER( percent );
 
 	}
 
@@ -775,6 +794,7 @@ namespace Tac
 	}
 	void Timeline::Update( double time, Errors& errors )
 	{
+    TAC_UNUSED_PARAMETER( errors );
 		for( TimelineAction* timelineAction : mTimelineActions )
 		{
 			if( time < timelineAction->mTimeBegin )
@@ -891,6 +911,8 @@ namespace Tac
 	}
 	void ScriptMainMenu2::Update( float seconds, Errors& errors )
 	{
+    TAC_UNUSED_PARAMETER( seconds );
+    TAC_UNUSED_PARAMETER( errors );
 		TAC_TIMELINE_BEGIN;
 
 		auto job = TAC_NEW ConnectToServerJob;
@@ -905,7 +927,7 @@ namespace Tac
 		TAC_TIMELINE_KEYFRAME;
 		TAC_TIMELINE_KEYFRAME;
 		RenderMainMenu();
-		return;// prevent IsComplete
+    RunForever();
 		TAC_TIMELINE_END;
 	}
 }

@@ -237,6 +237,7 @@ namespace Tac
 
   static void PlatformThreadInit( Errors& errors )
   {
+    TAC_UNUSED_PARAMETER( errors );
     gThreadType = ThreadType::Main;
     sAllocatorMain.Init( 1024 * 1024 * 10 );
     FrameMemory::SetThreadAllocator( &sAllocatorMain );
@@ -579,16 +580,13 @@ namespace Tac
     const String defaultRendererName = RendererNameVulkan;
 #endif
     if( const RendererFactory* factory = RendererFactoriesFind( defaultRendererName ) )
-      {
-        factory->mCreateRenderer();
-        return;
-      }
+    {
+      factory->mCreateRenderer();
+      return;
+    }
 
-      for( RendererFactory& factory : RendererRegistry() )
-      {
-        factory.mCreateRenderer();
-        return;
-      }
+    RendererFactory& factory = *RendererRegistry().begin();
+    factory.mCreateRenderer();
   }
 
   void                DesktopAppInit( PlatformSpawnWindow platformSpawnWindow,
@@ -667,6 +665,7 @@ namespace Tac
 
   void                DesktopAppUpdate( Errors& errors )
   {
+    TAC_UNUSED_PARAMETER( errors );
     DesktopAppUpdateWindowRequests();
     DesktopAppUpdateMoveResize();
   }

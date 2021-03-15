@@ -59,7 +59,7 @@ namespace Tac
   //}
   void Errors::OnAppend()
   {
-    if( ( mFlags & Flags::kDebugBreakOnAppend )
+    if( ( (int)mFlags & (int)Flags::kDebugBreakOnAppend )
         && !mBroken
         && IsDebugMode() )
     {

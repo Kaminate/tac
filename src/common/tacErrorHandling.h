@@ -1,22 +1,21 @@
 #pragma once
 
-#pragma warning(disable: 26812)
-
 #include "src/common/tacString.h"
 #include "src/common/containers/tacVector.h"
 #include "src/common/tacPreprocessor.h"
+
 namespace Tac
 {
 	struct Errors
 	{
-		enum Flags
+		enum class Flags
 		{
 			kNone = 0b0000,
 			kDebugBreakOnAppend = 0b0001,
 			// Append stack frame?
 			// Append messages?
 		};
-		Errors( Flags flags = kNone );
+		Errors( Flags flags = Flags::kNone );
 		operator bool() const;
 		bool                 size() const;
 		bool                 empty() const;

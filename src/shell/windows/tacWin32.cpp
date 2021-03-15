@@ -526,6 +526,8 @@ namespace Tac
                           const WIN32_FIND_DATA& data,
                           Errors& errors ) override
         {
+          TAC_UNUSED_PARAMETER( dir );
+          TAC_UNUSED_PARAMETER( errors );
           if( data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY )
             mDirs->push_back( data.cFileName );
         }

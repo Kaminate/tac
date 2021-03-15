@@ -26,7 +26,7 @@ namespace Tac
     virtual               ~Job() = default;
     virtual void          Execute() = 0;
     void                  Abort();
-    void                  SetState(JobState);
+    void                  SetState( JobState );
     bool                  AbortRequested() const;
     JobState              GetStatus() const;
 

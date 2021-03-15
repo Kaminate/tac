@@ -121,9 +121,9 @@ namespace Tac
     Terrain* mTerrain = nullptr;
   } gTerrainDebugger;
 
-  void TerrainDebugImgui( Component* component )
+  void TerrainDebugImgui( Terrain* terrain )
   {
-    gTerrainDebugger.mTerrain = ( Terrain* )component;
+    gTerrainDebugger.mTerrain = terrain;
     gTerrainDebugger.DebugImgui();
   }
 

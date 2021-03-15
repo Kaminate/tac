@@ -47,7 +47,7 @@ namespace Tac
     Physics::GetSystem( world )->DestroyTerrain( ( Terrain* )component );
   };
 
-  void TerrainDebugImgui( Component* );
+  void TerrainDebugImgui( Terrain* );
 
   Terrain::Terrain()
   {
@@ -61,12 +61,12 @@ namespace Tac
     sRegistry->mNetworkBits = {};
     sRegistry->mCreateFn = CreateTerrainComponent;
     sRegistry->mDestroyFn = DestroyTerrainComponent;
-    sRegistry->mDebugImguiFn = TerrainDebugImgui;
+    sRegistry->mDebugImguiFn = []( Component* component ){ TerrainDebugImgui( ( Terrain* )component ); };
     sRegistry->mLoadFn = TerrainLoadPrefab;
     sRegistry->mSaveFn = TerrainSavePrefab;
   }
 
-  ComponentRegistryEntry* Terrain::GetEntry() const { return sRegistry; }
+  const ComponentRegistryEntry* Terrain::GetEntry() const { return sRegistry; }
 
   Terrain*                Terrain::GetComponent( Entity* entity )
   {

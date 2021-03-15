@@ -25,12 +25,14 @@ namespace Tac
 
   struct Components
   {
-    typedef std::list< Component* >::const_iterator ConstIterator;
+    //typedef std::list< Component* >::const_iterator ConstIterator;
     void          Add( Component* );
     void          Clear();
     Component*    Remove( const ComponentRegistryEntry* );
-    ConstIterator begin() const;
-    ConstIterator end()const;
+    auto          begin() const { return mComponents.begin(); };
+    auto          end() const { return mComponents.end(); }
+    //ConstIterator begin() const;
+    //ConstIterator end()const;
     std::list< Component* > mComponents;
   };
 

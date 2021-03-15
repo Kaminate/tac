@@ -250,6 +250,7 @@ namespace Tac
 
   void                Creation::GetWindowsJson( Json** outJson, Errors& errors )
   {
+    TAC_UNUSED_PARAMETER( errors );
     Json* windows = SettingsGetJson( "Windows" );
     *outJson = windows;
   }
@@ -386,7 +387,7 @@ namespace Tac
     }
 
     if( mUpdateAssetView )
-    CreationUpdateAssetView();
+      CreationUpdateAssetView();
 
     mWorld->Step( TAC_DELTA_FRAME_SECONDS );
 
@@ -423,15 +424,47 @@ namespace Tac
     return desiredEntityName;
   }
 
+  RelativeSpace       Creation::GetEditorCameraVisibleRelativeSpace()
+  {
+    const v3 pos = mEditorCamera->mPos + mEditorCamera->mForwards * 5.0f;
+    RelativeSpace relativeSpace;
+    relativeSpace.mPosition = pos;
+    return relativeSpace;
+  }
+
+  Entity*             Creation::InstantiateAsCopy( Entity* prefabEntity, const RelativeSpace& relativeSpace )
+  {
+    Entity* copyEntity = CreateEntity();
+    copyEntity->mRelativeSpace = relativeSpace;
+    copyEntity->mInheritParentScale = prefabEntity->mInheritParentScale;
+    copyEntity->mName = prefabEntity->mName;
+
+    for( Component* prefabComponent : prefabEntity->mComponents )
+    {
+      const ComponentRegistryEntry* entry = prefabComponent->GetEntry();
+      Component* copyComponent = copyEntity->AddNewComponent( prefabComponent->GetEntry() );
+      Json dOnT_mInD_iF_i_dO;
+      entry->mSaveFn( dOnT_mInD_iF_i_dO, prefabComponent );
+      entry->mLoadFn( dOnT_mInD_iF_i_dO, copyComponent );
+    }
+
+    for( Entity* prefabChildEntity : prefabEntity->mChildren )
+    {
+      Entity* copyChildEntity = InstantiateAsCopy( prefabChildEntity, prefabChildEntity->mRelativeSpace );
+      //Entity* copyChildEntity = CreateEntity();
+      copyEntity->AddChild( copyChildEntity );
+    }
+    return copyEntity;
+  }
+
   Entity*             Creation::CreateEntity()
   {
     // put it where we can see it
-    const v3 pos = mEditorCamera->mPos + mEditorCamera->mForwards * 5.0f;
 
     World* world = mWorld;
     Entity* entity = world->SpawnEntity( NullEntityUUID );
     entity->mName = CreationGetNewEntityName();
-    entity->mRelativeSpace.mPosition = pos;
+    entity->mRelativeSpace = GetEditorCameraVisibleRelativeSpace();
     mSelectedEntities = { entity };
     return entity;
   }

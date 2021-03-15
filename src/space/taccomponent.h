@@ -17,10 +17,10 @@ namespace Tac
   struct Component
   {
     virtual ~Component() = default;
-    virtual void                    PreReadDifferences() {};
-    virtual void                    PostReadDifferences() {};
-    virtual ComponentRegistryEntry* GetEntry() const = 0;
-    Entity*                         mEntity = nullptr;
+    virtual void                          PreReadDifferences() {};
+    virtual void                          PostReadDifferences() {};
+    virtual const ComponentRegistryEntry* GetEntry() const = 0;
+    Entity*                               mEntity = nullptr;
   };
 
 

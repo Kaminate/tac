@@ -300,17 +300,14 @@ namespace Tac
 
   Entity* ServerData::SpawnEntity()
   {
-    mEntityUUIDCounter = ( EntityUUID )( ( UUID )mEntityUUIDCounter + 1 );
-    auto entity = mWorld->SpawnEntity( mEntityUUIDCounter );
-    return entity;
+    return mWorld->SpawnEntity( mEntityUUIDCounter.AllocateNewUUID() );
   }
 
   Player* ServerData::SpawnPlayer()
   {
     if( mWorld->mPlayers.size() >= sPlayerCountMax )
       return nullptr;
-    mPlayerUUIDCounter = ( PlayerUUID )( ( UUID )mPlayerUUIDCounter + 1 );
-    return mWorld->SpawnPlayer( mPlayerUUIDCounter );
+    return mWorld->SpawnPlayer( mPlayerUUIDCounter.AllocateNewUUID() );
   }
 
 

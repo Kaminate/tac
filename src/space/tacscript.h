@@ -11,7 +11,7 @@ namespace Tac
 #define TAC_TIMELINE_KEYFRAME_END   mLine++; } break;
 #define TAC_TIMELINE_KEYFRAME       TAC_TIMELINE_KEYFRAME_END TAC_TIMELINE_KEYFRAME_BEGIN
 #define TAC_TIMELINE_BEGIN          switch( mLine ){ case 0: { mLine = __COUNTER__; TAC_TIMELINE_KEYFRAME
-#define TAC_TIMELINE_END            mIsComplete = true; TAC_TIMELINE_KEYFRAME_END }
+#define TAC_TIMELINE_END            if( !mRunForever ) mIsComplete = true; TAC_TIMELINE_KEYFRAME_END }
 
   struct Ghost;
   struct ScriptRoot;
@@ -36,18 +36,20 @@ namespace Tac
   struct ScriptThread
   {
     virtual ~ScriptThread() = default;
-    virtual void                    Update( float seconds, Errors& ) {}
+    virtual void                    Update( float seconds, Errors& );
     void                            DebugImguiOuter( Errors& );
     virtual void                    DebugImgui( Errors& ) {}
     void                            SetNextKeyDelay( float seconds );
     void                            OnMsg( const ScriptMsg* );
     void                            AddScriptCallback( void* userData, ScriptCallbackFunction* );
+    void                            RunForever() { mRunForever = true; };
     ScriptRoot*                     mScriptRoot = nullptr;
     int                             mLine = 0;
     bool                            mIsSleeping = false;
     float                           mSecondsSlept = 0;
     float                           mSecondsToSleep = 0;
     bool                            mIsComplete = false;
+    bool                            mRunForever = false;
     String                          mName;
     std::set< ScriptCallbackData* > mMsgCallbacks;
   };

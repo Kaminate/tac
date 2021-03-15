@@ -23,6 +23,16 @@ namespace Tac
   typedef uint8_t PlayerCount;
   typedef uint16_t EntityCount;
 
+  template < typename T >
+  struct UUIDCounter
+  {
+    T AllocateNewUUID() { return ( T )( ++mUUIDCounter ); }
+    UUID mUUIDCounter = NullUUID;
+  };
+
+  typedef UUIDCounter< EntityUUID > EntityUUIDCounter;
+  typedef UUIDCounter< PlayerUUID > PlayerUUIDCounter;
+
 
 }
 

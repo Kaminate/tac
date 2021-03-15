@@ -4,7 +4,7 @@
 #include "src/common/tacAlgorithm.h"
 
 // ( bogus warning ) readable size is x bytes, but mHash bytes may be read
-#pragma warning( disable: 6385 )
+//#pragma warning( disable: 6385 )
 
 
 #include <string>
@@ -568,7 +568,9 @@ namespace Tac
 
   StringID::StringID( StringView stringView )
   {
-    mHash = Hash( stringView );
+    // unnecessary extra mod operator to get rid of bogus 
+    // c6385 warning readable size is x bytes, but mHash bytes may be read
+    mHash = Hash( stringView ) % kMaxStringDictionaryEntries;
     TAC_ASSERT( mHash >= 0 && mHash < kMaxStringDictionaryEntries );
     if( IsDebugMode() && mHash && gStringLookup[ mHash ].empty() )
       gStringLookup[ mHash ] = stringView;

@@ -176,19 +176,19 @@ namespace Tac
   }
   void Physics::DebugDrawCapsules()
   {
-    Graphics* graphics = GetGraphics( mWorld );
+    //Graphics* graphics = GetGraphics( mWorld );
     for( auto collider : mColliders )
     {
-      auto entity = collider->mEntity;
-      v3 up( 0, 1, 0 );
-      auto p0 = collider->mEntity->mRelativeSpace.mPosition + up * collider->mRadius;
-      auto p1 = collider->mEntity->mRelativeSpace.mPosition + up * ( collider->mTotalHeight - collider->mRadius );
+      //auto entity = collider->mEntity;
+      const v3 up( 0, 1, 0 );
+      const v3 p0 = collider->mEntity->mRelativeSpace.mPosition + up * collider->mRadius;
+      const v3 p1 = collider->mEntity->mRelativeSpace.mPosition + up * ( collider->mTotalHeight - collider->mRadius );
       //graphics->DebugDrawCapsule( p0, p1, collider->mRadius, mDebugDrawCapsuleColor );
     }
   }
   void Physics::DebugDrawTerrains()
   {
-    Graphics* graphics = GetGraphics( mWorld );
+    //Graphics* graphics = GetGraphics( mWorld );
 
     // Load heightmap mesh from heighap image
     for( Terrain* terrain : mTerrains )
@@ -213,7 +213,6 @@ namespace Tac
       DebugDrawCapsules();
     if( mShouldDebugDrawTerrains )
       DebugDrawTerrains();
-    float dt = 1.0f / 60.0f; // TODO
     if( mShouldIntegrate )
       Integrate();
     if( mShouldNarrowphase )
@@ -234,7 +233,7 @@ namespace Tac
   void Physics::Narrowphase()
   {
     /*TAC_PROFILE_BLOCK*/;
-    Graphics* graphics = GetGraphics( mWorld );
+    //Graphics* graphics = GetGraphics( mWorld );
     for( Terrain* terrain : mTerrains )
     {
       for( const TerrainOBB& obb : terrain->mTerrainOBBs )
@@ -330,8 +329,11 @@ namespace Tac
   {
     return ( Physics* )world->GetSystem( Physics::PhysicsSystemRegistryEntry );
   }
+
   CollideResult Collide( const Heightmap* heightmap, const Collider* collider )
   {
+    TAC_UNUSED_PARAMETER( heightmap );
+    TAC_UNUSED_PARAMETER( collider );
     // get all overlapping triangles
     // get the one with the deepest penetration
 

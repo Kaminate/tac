@@ -6,6 +6,7 @@
 #include "src/common/tacErrorHandling.h"
 #include "src/common/assetmanagers/tacTextureAssetManager.h"
 #include "src/common/assetmanagers/tacModelAssetManager.h"
+#include "src/common/assetmanagers/tacMesh.h"
 #include "src/common/graphics/tacRenderer.h"
 #include "src/common/graphics/tacRendererUtil.h"
 #include "src/common/profile/tacProfile.h"

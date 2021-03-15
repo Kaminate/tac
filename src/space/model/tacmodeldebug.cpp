@@ -3,6 +3,7 @@
 #include "src/common/tacErrorHandling.h"
 #include "src/common/tacShellTimer.h"
 #include "src/common/assetmanagers/tacModelAssetManager.h"
+#include "src/common/assetmanagers/tacMesh.h"
 #include "src/common/tacOS.h"
 #include "src/common/tacUtility.h"
 #include "src/space/model/tacModel.h"
@@ -24,7 +25,7 @@ namespace Tac
 
   void ModelDebugImguiChangeModel( Model* model )
   {
-    if( ImGuiCollapsingHeader( "Change model" ) )
+    if( ImGuiCollapsingHeader( "Change model" ) || model->mModelPath.empty() )
     {
       ImGuiIndent();
       TAC_ON_DESTRUCT( ImGuiUnindent() );
@@ -54,9 +55,9 @@ namespace Tac
 
       const double populateDuration = 0.2;
       const int numberOfFilesToShow =
-        int( 
+        int(
         ( curSecTimestamp - refreshSecTimestamp ) / populateDuration
-        * modelPaths.size());
+        * modelPaths.size() );
 
       int filesShown = 0;
       for( const String& filepath : modelPaths )
@@ -131,6 +132,7 @@ namespace Tac
 
   void ModelDebugImguiChangeTexture( Model* model )
   {
+    TAC_UNUSED_PARAMETER( model );
     //auto assetManager = mEntity->mWorld->mGameInterface->mAssetManager;
     //if( mTextureUUID == NullTextureUUID )
     //{
@@ -175,7 +177,7 @@ namespace Tac
 
   void ModelDebugImgui( Model* model )
   {
-    if (ImGuiCollapsingHeader("Mesh"))
+    if( ImGuiCollapsingHeader( "Mesh" ) && model->mesh )
     {
       Mesh* mesh = model->mesh;
       ImGuiText( va( "%.1f %.1f %.1f %.1f",
@@ -201,15 +203,19 @@ namespace Tac
       static int iSelectedSubmesh = -1;
       for( SubMesh& subMesh : mesh->mSubMeshes )
       {
-        const int iSubMesh = ( int )( &subMesh -  mesh->mSubMeshes.data() );
-        if( ImGuiSelectable( subMesh.mName, iSubMesh == iSelectedSubmesh ) )
+        const int iSubMesh = ( int )( &subMesh - mesh->mSubMeshes.data() );
+        if( ImGuiSelectable(
+          va( "submesh %i: %s", iSubMesh, subMesh.mName.c_str() ),
+          iSubMesh == iSelectedSubmesh ) )
           iSelectedSubmesh = iSubMesh;
       }
       if( ( unsigned )iSelectedSubmesh < ( unsigned )mesh->mSubMeshes.size() )
       {
+        ImGuiIndent();
         SubMesh& subMesh = mesh->mSubMeshes[ iSelectedSubmesh ];
         ImGuiText( subMesh.mName );
         ImGuiText( va( "tri count: %i", subMesh.mTris.size() ) );
+        ImGuiUnindent();
       }
     }
     ModelDebugImguiChangeModel( model );
@@ -219,7 +225,7 @@ namespace Tac
     ImGuiDragFloat( "b", &model->mColorRGB[ 2 ] );
   }
 
-  void ModelDebugImgui( Component* component ) { ModelDebugImgui( ( Model* )component ); }
+  //void ModelDebugImgui( Component* component ) { ModelDebugImgui( ( Model* )component ); }
 
 }
 

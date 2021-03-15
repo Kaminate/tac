@@ -4,6 +4,10 @@
 #   we no longer need the Common global variable
 
 set(Common 
+${CMAKE_CURRENT_SOURCE_DIR}/assetmanagers/tacMesh.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/assetmanagers/tacMesh.h
+${CMAKE_CURRENT_SOURCE_DIR}/assetmanagers/tacModelLoadSynchronous.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/assetmanagers/tacModelLoadSynchronous.h
 ${CMAKE_CURRENT_SOURCE_DIR}/assetmanagers/tacModelAssetManager.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/assetmanagers/tacModelAssetManager.h
 ${CMAKE_CURRENT_SOURCE_DIR}/assetmanagers/tacTextureAssetManager.cpp
@@ -104,6 +108,7 @@ ${CMAKE_CURRENT_SOURCE_DIR}/math/tacVector4.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/math/tacVector4.h
 ${CMAKE_CURRENT_SOURCE_DIR}/tacJobQueue.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/tacJobQueue.h
+${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/impl.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/cgltf.h
 ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/stb_impl.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/stb_image.h

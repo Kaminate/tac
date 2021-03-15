@@ -26,6 +26,7 @@ namespace Tac
     float        operator[]( int ) const;
     bool         operator== ( const m4& ) const;
     void         operator/= ( float );
+    void         Transpose();
     static m4    Identity();
     static m4    Inverse( const m4& , bool* resultExists );
     static m4    Scale( v3 );

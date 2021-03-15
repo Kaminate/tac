@@ -1,4 +1,5 @@
 #include "src/common/assetmanagers/tacModelAssetManager.h"
+#include "src/common/assetmanagers/tacMesh.h"
 #include "src/common/assetmanagers/tacTextureAssetManager.h"
 #include "src/common/graphics/tacDebug3D.h"
 #include "src/common/graphics/tacRenderer.h"
@@ -252,6 +253,7 @@ namespace Tac
 
   void GamePresentation::CreateTerrainShader( Errors& errors )
   {
+    TAC_UNUSED_PARAMETER( errors );
     mTerrainShader = Render::CreateShader( Render::ShaderSource::FromPath( "Terrain" ),
                                            Render::ConstantBuffers( mPerFrame, mPerObj ),
                                            TAC_STACK_FRAME );
@@ -259,6 +261,7 @@ namespace Tac
 
   void GamePresentation::Create3DShader( Errors& errors )
   {
+    TAC_UNUSED_PARAMETER( errors );
     m3DShader = Render::CreateShader( Render::ShaderSource::FromPath( "3DTest" ),
                                       Render::ConstantBuffers( mPerFrame, mPerObj ),
                                       TAC_STACK_FRAME );
@@ -266,6 +269,7 @@ namespace Tac
 
   void GamePresentation::Create3DVertexFormat( Errors& errors )
   {
+    TAC_UNUSED_PARAMETER( errors );
     VertexDeclaration posDecl;
     posDecl.mAlignedByteOffset = 0;
     posDecl.mAttribute = Attribute::Position;
@@ -280,6 +284,7 @@ namespace Tac
 
   void GamePresentation::CreateTerrainVertexFormat( Errors& errors )
   {
+    TAC_UNUSED_PARAMETER( errors );
     VertexDeclaration terrainPosDecl = {};
     terrainPosDecl.mAttribute = Attribute::Position;
     terrainPosDecl.mTextureFormat.mElementCount = 3;
@@ -313,6 +318,7 @@ namespace Tac
 
   void GamePresentation::CreatePerFrame( Errors& errors )
   {
+    TAC_UNUSED_PARAMETER( errors );
     mPerFrame = Render::CreateConstantBuffer( sizeof( DefaultCBufferPerFrame ),
                                               0,
                                               TAC_STACK_FRAME );
@@ -320,6 +326,7 @@ namespace Tac
 
   void GamePresentation::CreatePerObj( Errors& errors )
   {
+    TAC_UNUSED_PARAMETER( errors );
     mPerObj = Render::CreateConstantBuffer( sizeof( DefaultCBufferPerObject ),
                                             1,
                                             TAC_STACK_FRAME );
@@ -327,6 +334,7 @@ namespace Tac
 
   void GamePresentation::CreateDepthState( Errors& errors )
   {
+    TAC_UNUSED_PARAMETER( errors );
     Render::DepthState depthStateData;
     depthStateData.mDepthTest = true;
     depthStateData.mDepthWrite = true;
@@ -336,6 +344,7 @@ namespace Tac
 
   void GamePresentation::CreateBlendState( Errors& errors )
   {
+    TAC_UNUSED_PARAMETER( errors );
     Render::BlendState blendStateData;
     blendStateData.mSrcRGB = BlendConstants::One;
     blendStateData.mDstRGB = BlendConstants::Zero;
@@ -348,6 +357,7 @@ namespace Tac
 
   void GamePresentation::CreateRasterizerState( Errors& errors )
   {
+    TAC_UNUSED_PARAMETER( errors );
     Render::RasterizerState rasterizerStateData;
     rasterizerStateData.mCullMode = CullMode::None; // todo
     rasterizerStateData.mFillMode = FillMode::Solid;
@@ -360,6 +370,7 @@ namespace Tac
 
   void GamePresentation::CreateSamplerState( Errors& errors )
   {
+    TAC_UNUSED_PARAMETER( errors );
     Render::SamplerState samplerStateData;
     samplerStateData.mFilter = Filter::Aniso;
     mSamplerState = Render::CreateSamplerState( samplerStateData,

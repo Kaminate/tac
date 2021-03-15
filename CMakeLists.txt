@@ -1,16 +1,20 @@
-# vulkan support was first introduced in
-# https://cmake.org/cmake/help/v3.7/module/FindVulkan.html
-#
-# if vulkan still isn't found, try updating your
-# ${CMAKE_ROOT}/Modules/FindVulkan.cmake
+# vulkan first supported in https://cmake.org/cmake/help/v3.7/module/FindVulkan.html
+# if vulkan still isn't found, update ${CMAKE_ROOT}/Modules/FindVulkan.cmake
 cmake_minimum_required(VERSION 3.7)
 project(Tac CXX)
 
+if( FALSE )
+  # group lib, dll, exe
+  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+endif()
 
-# group lib, dll, exe
-# set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-# set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-# set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+if (MSVC)
+    add_compile_options(/W4 /WX)
+else()
+    add_compile_options(-Wall -Wextra -pedantic -Werror)
+endif()
 
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 set(CMAKE_CXX_STANDARD 20)

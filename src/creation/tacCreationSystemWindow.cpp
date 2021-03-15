@@ -32,6 +32,7 @@ namespace Tac
   }
   void CreationSystemWindow::Init( Errors& errors )
   {
+    TAC_UNUSED_PARAMETER( errors );
     const String systemName = SettingsGetString( GetNSysPath(), "" );
     for( const SystemRegistryEntry& entry : SystemRegistryIterator() )
       if( !StrCmp( entry.mName, systemName.c_str() ) )

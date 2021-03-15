@@ -11,6 +11,7 @@ namespace Tac
   struct World;
   struct StringView;
   struct DesktopWindowHandle;
+  struct RelativeSpace;
 
   struct Creation
   {
@@ -20,7 +21,9 @@ namespace Tac
 
 
     //===-------------- Entities -------------===//
+    RelativeSpace       GetEditorCameraVisibleRelativeSpace();
     Entity*             CreateEntity();
+    Entity*             InstantiateAsCopy( Entity*, const RelativeSpace& );
 
 
     //===-------------- Selection ------------===//

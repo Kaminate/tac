@@ -9,7 +9,7 @@ namespace Tac
   {
     static Skybox*                 GetSkybox( Entity* );
     static const Skybox*           GetSkybox( const Entity* );
-    ComponentRegistryEntry*        GetEntry() const override;
+    const ComponentRegistryEntry*        GetEntry() const override;
 
     String                         mSkyboxDir;
   };
