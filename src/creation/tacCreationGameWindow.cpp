@@ -185,17 +185,6 @@ namespace Tac
     CreateGraphicsObjects( errors );
     TAC_HANDLE_ERROR( errors );
 
-    mSkyboxPresentation = TAC_NEW SkyboxPresentation;
-    mSkyboxPresentation->mCamera = gCreation.mEditorCamera;
-    mSkyboxPresentation->Init( errors );
-    TAC_HANDLE_ERROR( errors );
-
-    mGamePresentation = TAC_NEW GamePresentation;
-    mGamePresentation->mWorld = gCreation.mWorld;
-    mGamePresentation->mCamera = gCreation.mEditorCamera;
-    mGamePresentation->mSkyboxPresentation = mSkyboxPresentation;
-    mGamePresentation->CreateGraphicsObjects( errors );
-    TAC_HANDLE_ERROR( errors );
 
 
     ModelAssetManagerGetMesh( &mCenteredUnitCube,
@@ -543,7 +532,7 @@ namespace Tac
 
     if( !mHideUI )
     {
-    ImGuiCheckbox( "hide ui", &mHideUI );
+      ImGuiCheckbox( "hide ui", &mHideUI );
 
       if( mSoul )
       {
@@ -711,9 +700,12 @@ namespace Tac
     //                                 &perFrameData,
     //                                 mDesktopWindow->mRenderView );
 
-    mGamePresentation->RenderGameWorldToDesktopView( desktopWindowState->mWidth,
-                                                     desktopWindowState->mHeight,
-                                                     viewHandle );
+    GamePresentation* gamePresentation = gCreation.mGamePresentation;
+    gamePresentation->RenderGameWorldToDesktopView( gCreation.mWorld,
+                                                    gCreation.mEditorCamera,
+                                                    desktopWindowState->mWidth,
+                                                    desktopWindowState->mHeight,
+                                                    viewHandle );
 
     if( gCreation.mSelectedGizmo )
     {

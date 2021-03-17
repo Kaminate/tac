@@ -133,34 +133,36 @@ namespace Tac
                               getmeshErrors );
   }
 
-  void GamePresentation::RenderGameWorldToDesktopView( const int viewWidth,
+  void GamePresentation::RenderGameWorldToDesktopView( World* world,
+                                                       const Camera* camera,
+                                                       const int viewWidth,
                                                        const int viewHeight,
                                                        const Render::ViewHandle viewId )
   {
     //_PROFILE_BLOCK;
 
-    //World* world = mWorld;
-    Graphics* graphics = GetGraphics( mWorld );
-    Physics* physics = Physics::GetSystem( mWorld );
+    //World* world = world;
+    Graphics* graphics = GetGraphics( world );
+    Physics* physics = Physics::GetSystem( world );
 
     float a;
     float b;
-    Render::GetPerspectiveProjectionAB( mCamera->mFarPlane,
-                                        mCamera->mNearPlane,
+    Render::GetPerspectiveProjectionAB( camera->mFarPlane,
+                                        camera->mNearPlane,
                                         a,
                                         b );
 
     const float w = ( float )viewWidth;
     const float h = ( float )viewHeight;
     const float aspect = w / h;
-    const m4 view = mCamera->View();
-    const m4 proj = mCamera->Proj( a, b, aspect );
+    const m4 view = camera->View();
+    const m4 proj = camera->Proj( a, b, aspect );
 
     const double elapsedSeconds = ShellGetElapsedSeconds();
 
     DefaultCBufferPerFrame perFrameData;
-    perFrameData.mFar = mCamera->mFarPlane;
-    perFrameData.mNear = mCamera->mNearPlane;
+    perFrameData.mFar = camera->mFarPlane;
+    perFrameData.mNear = camera->mNearPlane;
     perFrameData.mView = view;
     perFrameData.mProjection = proj;
     perFrameData.mGbufferSize = { w, h };
@@ -229,7 +231,8 @@ namespace Tac
     {
       void operator()( Skybox* skybox ) override
       {
-        mGamePresentation->mSkyboxPresentation->RenderSkybox( mViewWidth,
+        mGamePresentation->mSkyboxPresentation->RenderSkybox( mCamera,
+                                                              mViewWidth,
                                                               mViewHeight,
                                                               mViewId,
                                                               skybox->mSkyboxDir );
@@ -238,11 +241,13 @@ namespace Tac
       int                mViewHeight;
       Render::ViewHandle mViewId;
       GamePresentation*  mGamePresentation;
+      const Camera*      mCamera;
     } mySkyboxVisitor;
-    mySkyboxVisitor.mViewId = viewId;
     mySkyboxVisitor.mViewWidth = viewWidth;
     mySkyboxVisitor.mViewHeight = viewHeight;
+    mySkyboxVisitor.mViewId = viewId;
     mySkyboxVisitor.mGamePresentation = this;
+    mySkyboxVisitor.mCamera = camera;
     graphics->VisitSkyboxes( &mySkyboxVisitor );
 
     //world->mDebug3DDrawData->DrawToTexture(

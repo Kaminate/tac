@@ -44,6 +44,7 @@ namespace Tac
   void AssertInternal( const char* message, const StackFrame& frame );
   char* va( const char* format, ... );
 
+#define TAC_ARRAY_SIZE( a )                                ( sizeof( a ) / sizeof( a[ 0 ] ) )
 #define TAC_CONCAT_AUX( a, b )                             a##b
 #define TAC_CONCAT( a, b )                                 TAC_CONCAT_AUX( a, b )
 #define TAC_STRINGIFY_AUX( stuff )                         #stuff

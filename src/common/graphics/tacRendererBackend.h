@@ -334,9 +334,10 @@ namespace Tac
 
     void DebugPrintSubmitAllocInfo();
 
+    typedef void ShaderReloadFunction( ShaderHandle, const char* );
     void ShaderReloadHelperAdd( ShaderHandle, const char* );
     void ShaderReloadHelperRemove( ShaderHandle );
-    void ShaderReloadHelperUpdate( void( *)( ShaderHandle, const char* ) );
+    void ShaderReloadHelperUpdate( ShaderReloadFunction* );
   }
 
 

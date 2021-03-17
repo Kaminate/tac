@@ -683,12 +683,10 @@ namespace Tac
     {
       mViewHandle = drawCall->mViewHandle;
       const Render::View* view = &frame->mViews[ ( int )mViewHandle ];
-      const Render::FramebufferHandle framebufferHandle = view->mFrameBufferHandle;
 
-      // Did you forget to call Render::SetViewFramebuffer?
-      TAC_ASSERT( framebufferHandle.IsValid() );
+      TAC_ASSERT_IF_MSG( !view->mFrameBufferHandle.IsValid(), "Did you forget to call Render::SetViewFramebuffer" );
 
-      Framebuffer* framebuffer = &mFramebuffers[ ( int )framebufferHandle ];
+      Framebuffer* framebuffer = &mFramebuffers[ ( int )view->mFrameBufferHandle ];
       ID3D11RenderTargetView* renderTargetView = framebuffer->mRenderTargetView;
       ID3D11DepthStencilView* depthStencilView = framebuffer->mDepthStencilView;
       TAC_ASSERT( renderTargetView );

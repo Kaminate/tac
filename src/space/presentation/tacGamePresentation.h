@@ -28,7 +28,9 @@ namespace Tac
   {
     ~GamePresentation();
     void                          CreateGraphicsObjects( Errors& );
-    void                          RenderGameWorldToDesktopView( int viewWidth,
+    void                          RenderGameWorldToDesktopView( World* world,
+                                                                const Camera* camera,
+                                                                int viewWidth,
                                                                 int viewHeight,
                                                                 Render::ViewHandle );
     void                          RenderGameWorldAddDrawCall( const Mesh*,
@@ -36,10 +38,6 @@ namespace Tac
                                                               Render::ViewHandle );
     void                          LoadTerrain( Terrain* );
     void                          LoadModel( Model* );
-    //void                          VisitModel( Model* );
-    //void                          VisitSkybox( Model* );
-    Camera*                       mCamera = nullptr;
-    World*                        mWorld = nullptr;
     SkyboxPresentation*           mSkyboxPresentation = nullptr;
     Render::ShaderHandle          m3DShader;
     Render::ShaderHandle          mTerrainShader;

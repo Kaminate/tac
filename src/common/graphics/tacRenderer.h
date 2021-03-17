@@ -345,7 +345,8 @@ namespace Tac
                                                         Format format,
                                                         StackFrame );
     TextureHandle                    CreateTexture(  TexSpec, StackFrame );
-    FramebufferHandle                CreateFramebuffer( const void* nativeWindowHandle,
+    FramebufferHandle                CreateFramebufferForRenderToTexture( TextureHandle*, int, StackFrame );
+    FramebufferHandle                CreateFramebufferForWindow( const void* nativeWindowHandle,
                                                         int width,
                                                         int weight,
                                                         StackFrame );

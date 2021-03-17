@@ -416,7 +416,7 @@ namespace Tac
                                                           sizeof( CommandDataResizeFramebuffer ) );
     }
 
-    FramebufferHandle CreateFramebuffer( const void* nativeWindowHandle,
+    FramebufferHandle CreateFramebufferForWindow( const void* nativeWindowHandle,
                                          const int width,
                                          const int height,
                                          const StackFrame stackFrame )
@@ -1090,7 +1090,7 @@ namespace Tac
     }
 
     static void        ShaderReloadHelperUpdateAux( ShaderReloadInfo* shaderReloadInfo,
-                                                    void( *fn )( const Render::ShaderHandle, const char* ) )
+                                                    ShaderReloadFunction* shaderReloadFunction )
     {
       if( !shaderReloadInfo->mFileModifyTime )
         return;
@@ -1098,10 +1098,10 @@ namespace Tac
       if( fileModifyTime == shaderReloadInfo->mFileModifyTime )
         return;
       shaderReloadInfo->mFileModifyTime = fileModifyTime;
-      fn( Render::ShaderHandle( (int)( shaderReloadInfo - sShaderReloadInfos ) ), shaderReloadInfo->mFullPath.c_str() );
+      shaderReloadFunction( Render::ShaderHandle( (int)( shaderReloadInfo - sShaderReloadInfos ) ), shaderReloadInfo->mFullPath.c_str() );
     }
 
-    void               ShaderReloadHelperUpdate( void( *fn )( const Render::ShaderHandle, const char* ) )
+    void               ShaderReloadHelperUpdate( ShaderReloadFunction* shaderReloadFunction )
     {
       if( !IsDebugMode() )
         return;
@@ -1112,7 +1112,7 @@ namespace Tac
         return;
       lastUpdateSeconds = curSec;
       for( ShaderReloadInfo& shaderReloadInfo : sShaderReloadInfos )
-        ShaderReloadHelperUpdateAux( &shaderReloadInfo, fn );
+        ShaderReloadHelperUpdateAux( &shaderReloadInfo, shaderReloadFunction );
     }
   }
 

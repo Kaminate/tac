@@ -1,4 +1,5 @@
 #include "src/common/graphics/imgui/tacImGui.h"
+#include "src/common/math/tacMath.h"
 #include "src/common/tacPreprocessor.h"
 #include "src/common/tacErrorHandling.h"
 #include "src/common/tacShellTimer.h"
@@ -53,17 +54,11 @@ namespace Tac
         refreshSecTimestamp = curSecTimestamp;
       }
 
-      const double populateDuration = 0.2;
-      const int numberOfFilesToShow =
-        int(
-        ( curSecTimestamp - refreshSecTimestamp ) / populateDuration
-        * modelPaths.size() );
-
-      int filesShown = 0;
-      for( const String& filepath : modelPaths )
+      const double populateDuration = 0.1;
+      const int numberOfFilesPopulate = int( ( curSecTimestamp - refreshSecTimestamp ) / populateDuration * modelPaths.size() );
+      for( int i = 0; i < Min( ( int )modelPaths.size(), numberOfFilesPopulate ); ++i )
       {
-        if( ++filesShown > numberOfFilesToShow )
-          break;
+        const String& filepath = modelPaths[ i ];
         if( ImGuiButton( filepath ) )
         {
           model->mModelPath = filepath;

@@ -58,8 +58,6 @@ namespace Tac
     Render::SamplerStateHandle    mSamplerState;
     VertexDeclarations            m3DvertexFormatDecls;
     Debug3DDrawData*              mDebug3DDrawData = nullptr;
-    GamePresentation*             mGamePresentation = nullptr;
-    SkyboxPresentation*           mSkyboxPresentation = nullptr;
     Mesh*                         mArrow = nullptr;
     Mesh*                         mCenteredUnitCube = nullptr;
     v3                            mWorldSpaceMouseDir = {};

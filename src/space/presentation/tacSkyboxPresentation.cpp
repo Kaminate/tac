@@ -21,6 +21,7 @@ namespace Tac
     Render::DestroyVertexFormat( mVertexFormat, TAC_STACK_FRAME );
     Render::DestroyConstantBuffer( mPerFrame, TAC_STACK_FRAME );
   }
+
   void SkyboxPresentation::Init( Errors& errors )
   {
 
@@ -78,7 +79,9 @@ namespace Tac
     mSamplerState = Render::CreateSamplerState(  samplerStateData, TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
   }
-  void SkyboxPresentation::RenderSkybox( const int viewWidth,
+
+  void SkyboxPresentation::RenderSkybox( const Camera* camera,
+                                         const int viewWidth,
                                          const int viewHeight,
                                          const Render::ViewHandle viewId,
                                          const StringView skyboxDir )
@@ -101,18 +104,18 @@ namespace Tac
       return;
     float a;
     float b;
-    Render::GetPerspectiveProjectionAB( mCamera->mFarPlane, mCamera->mNearPlane, a, b );
+    Render::GetPerspectiveProjectionAB( camera->mFarPlane, camera->mNearPlane, a, b );
     const float aspect = ( float )viewWidth / ( float )viewHeight;
     const m4 view = m4::ViewInv( v3( 0, 0, 0 ),
-                                 mCamera->mForwards,
-                                 mCamera->mRight,
-                                 mCamera->mUp );
+                                 camera->mForwards,
+                                 camera->mRight,
+                                 camera->mUp );
     DefaultCBufferPerFrame perFrame;
-    perFrame.mFar = mCamera->mFarPlane;
-    perFrame.mNear = mCamera->mNearPlane;
+    perFrame.mFar = camera->mFarPlane;
+    perFrame.mNear = camera->mNearPlane;
     perFrame.mGbufferSize = { ( float )viewWidth, ( float )viewHeight };
     perFrame.mView = view;
-    perFrame.mProjection = mCamera->Proj( a, b, aspect );
+    perFrame.mProjection = camera->Proj( a, b, aspect );
     const SubMesh* subMesh = &mesh->mSubMeshes[ 0 ];
     Render::UpdateConstantBuffer( mPerFrame, &perFrame, sizeof( DefaultCBufferPerFrame ), TAC_STACK_FRAME );
     Render::SetVertexBuffer( subMesh->mVertexBuffer, 0, 0 );
