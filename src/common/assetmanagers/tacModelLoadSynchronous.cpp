@@ -50,7 +50,7 @@ namespace Tac
     }
   }
 
-  static Tac::Render::GraphicsType    FillDataTypePerElementDataType( cgltf_accessor* accessor )
+  static Render::GraphicsType    FillDataTypePerElementDataType( cgltf_accessor* accessor )
   {
     switch( accessor->component_type )
     {
@@ -58,7 +58,6 @@ namespace Tac
       case cgltf_component_type_r_32f: return Render::GraphicsType::real;
       default: TAC_CRITICAL_ERROR_INVALID_CASE( accessor->component_type ) return ( Render::GraphicsType )0;
     }
-
   }
 
   static int                  FillDataTypeElementCount( cgltf_accessor* accessor )

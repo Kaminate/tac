@@ -722,7 +722,7 @@ namespace Render
         if( !textureHandle.IsValid() )
           continue;
         const Texture* texture = &mTextures[ ( int )textureHandle ];
-        TAC_ASSERT( texture->mTextureSRV ); // Did you set the Tac::Render::TexSpec::mBinding?
+        TAC_ASSERT( texture->mTextureSRV ); // Did you set the Render::TexSpec::mBinding?
         ShaderResourceViews[ iSlot ] = texture->mTextureSRV;
       }
 

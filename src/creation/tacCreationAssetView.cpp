@@ -427,7 +427,7 @@ namespace Tac
               texSpecColor.mImage.mFormat.mPerElementDataType = Render::GraphicsType::unorm;
               texSpecColor.mImage.mWidth = w;
               texSpecColor.mImage.mHeight = h;
-              texSpecColor.mBinding = ( Tac::Render::Binding )( ( int )Tac::Render::Binding::ShaderResource | ( int )Tac::Render::Binding::RenderTarget );
+              texSpecColor.mBinding = ( Render::Binding )( ( int )Render::Binding::ShaderResource | ( int )Render::Binding::RenderTarget );
               Render::TextureHandle textureHandleColor = Render::CreateTexture( texSpecColor, TAC_STACK_FRAME );
 
               Render::TexSpec texSpecDepth;
