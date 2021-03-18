@@ -4,7 +4,7 @@
 #include "src/common/math/tacVector2.h"
 #include "src/common/math/tacVector4.h"
 #include "src/common/containers/tacVector.h"
-#include "src/common/tacString.h"
+#include "src/common/string/tacString.h"
 #include "src/common/tacDesktopWindow.h"
 
 #include <map>

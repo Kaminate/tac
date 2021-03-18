@@ -5,7 +5,7 @@
 #include "src/common/tacPreprocessor.h"
 #include "src/common/math/tacVector3.h"
 #include "src/common/math/tacMatrix4.h"
-#include "src/common/tacString.h"
+#include "src/common/string/tacString.h"
 #include <list>
 
 namespace Tac

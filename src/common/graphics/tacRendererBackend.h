@@ -3,7 +3,7 @@
 #include "src/common/graphics/tacRenderer.h"
 #include "src/common/containers/tacFixedVector.h"
 #include "src/common/containers/tacVector.h"
-#include "src/common/tacString.h"
+#include "src/common/string/tacString.h"
 
 namespace Tac
 {

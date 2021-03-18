@@ -3,7 +3,7 @@
 #include "src/space/tacSpacetypes.h"
 #include "src/common/math/tacVector2.h"
 #include "src/common/math/tacMatrix4.h"
-#include "src/common/tacString.h"
+#include "src/common/string/tacString.h"
 #include "src/common/containers/tacVector.h"
 #include "src/common/containers/tacArray.h"
 #include <list>

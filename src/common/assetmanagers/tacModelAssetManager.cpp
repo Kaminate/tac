@@ -2,6 +2,7 @@
 #include "src/common/assetmanagers/tacModelAssetManager.h"
 #include "src/common/assetmanagers/tacModelLoadSynchronous.h"
 #include "src/common/graphics/tacRenderer.h"
+#include "src/common/string/tacStringIdentifier.h"
 #include "src/common/math/tacMath.h"
 #include "src/common/tacJobQueue.h"
 #include "src/common/tacMemory.h"
@@ -27,20 +28,33 @@ namespace Tac
   }
 
   // todo: multithreading
-  void ModelAssetManagerGetMesh( Mesh** mesh,
-                                 StringView path,
-                                 const Render::VertexDeclarations& vertexDeclarations,
-                                 Errors& errors )
+  Mesh* ModelAssetManagerGetMesh( StringView path,
+                                  const Render::VertexDeclarations& vertexDeclarations,
+                                  Errors& errors )
   {
     auto it = mMeshes.find( path );
     if( it != mMeshes.end() )
-    {
-      *mesh = ( *it ).second;
-      return;
-    }
+      return ( *it ).second;
 
-    *mesh = TAC_NEW Mesh;
-    **mesh = LoadMeshSynchronous( path, vertexDeclarations, errors );
-    mMeshes[ path ] = *mesh;
+    auto mesh = TAC_NEW Mesh;
+    *mesh = LoadMeshSynchronous( path, vertexDeclarations, errors );
+    mMeshes[ path ] = mesh;
+    return mesh;
+  }
+
+  Mesh* ModelAssetManagerGetMeshTryingNewThing( const char* path,
+                                                int iModel,
+                                                const Render::VertexDeclarations& vertexDeclarations,
+                                                Errors& errors )
+  {
+    TAC_UNUSED_PARAMETER(path);
+    TAC_UNUSED_PARAMETER(iModel);
+    TAC_UNUSED_PARAMETER(vertexDeclarations);
+    TAC_UNUSED_PARAMETER(errors);
+
+
+
+    TAC_CRITICAL_ERROR_UNIMPLEMENTED;
+    return nullptr;
   }
 }

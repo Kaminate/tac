@@ -17,7 +17,7 @@
 #include "src/common/tacKeyboardinput.h"
 #include "src/common/profile/tacProfile.h"
 #include "src/common/graphics/tacRendererUtil.h"
-#include "src/common/tacString.h"
+#include "src/common/string/tacString.h"
 #include "src/common/tacShellTimer.h"
 #include <iostream>
 

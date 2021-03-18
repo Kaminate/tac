@@ -1,6 +1,7 @@
 #include "src/common/assetmanagers/tacTextureAssetManager.h"
 #include "src/common/graphics/tacRenderer.h"
 #include "src/common/tacAlgorithm.h"
+#include "src/common/string/tacStringIdentifier.h"
 #include "src/common/tacJobQueue.h"
 #include "src/common/tacMemory.h"
 #include "src/common/tacTemporaryMemory.h"
@@ -27,7 +28,6 @@ namespace Tac
     static std::map< StringID, AsyncTexture* >         mLoadingTextures;
     static std::map< StringID, Render::TextureHandle > mLoadedTextures;
 
-
     struct AsyncTextureSingleData : AsyncTextureData
     {
       void CreateTexture( Render::TextureHandle* texture, Tac::Errors& errors ) override
@@ -37,7 +37,7 @@ namespace Tac
         commandData.mImage = mImage;
         commandData.mImageBytes = mImageData.data();
         commandData.mPitch = mPitch; // mImage.mFormat.CalculateTotalByteCount() * mImage.mWidth;
-        *texture = Render::CreateTexture(  commandData, TAC_STACK_FRAME );
+        *texture = Render::CreateTexture( commandData, TAC_STACK_FRAME );
         TAC_HANDLE_ERROR( errors );
       }
       int            mPitch = 0;
@@ -45,7 +45,6 @@ namespace Tac
       Vector< char > mImageData;
       String         mFilepath;
     };
-
 
     struct AsyncTextureCubeData : AsyncTextureData
     {
@@ -69,7 +68,6 @@ namespace Tac
       Vector< char > mImageData[ 6 ];
       String         mDir;
     };
-
 
     struct AsyncTextureSingleJob : Job
     {
@@ -135,7 +133,6 @@ namespace Tac
       AsyncTextureSingleData* mData = nullptr;
     };
 
-
     struct AsyncTextureCubeJob : Job
     {
       void Execute() override
@@ -152,7 +149,7 @@ namespace Tac
           TAC_RAISE_ERROR( errorMsg, errors );
         }
 
-        auto TrySortPart = [&]( StringView face, int desiredIndex )
+        auto TrySortPart = [ & ]( StringView face, int desiredIndex )
         {
           for( int i = 0; i < 6; ++i )
           {
@@ -232,7 +229,6 @@ namespace Tac
       AsyncTextureCubeData* mData = nullptr;
     };
 
-
     static Render::TextureHandle FindLoadedTexture( StringView key )
     {
       auto it = mLoadedTextures.find( key );
@@ -241,7 +237,7 @@ namespace Tac
       return ( *it ).second;
     }
 
-    static AsyncTexture* FindLoadingTexture( StringView key )
+    static AsyncTexture*         FindLoadingTexture( StringView key )
     {
       auto it = mLoadingTextures.find( key );
       if( it == mLoadingTextures.end() )
@@ -249,10 +245,9 @@ namespace Tac
       return ( *it ).second;
     }
 
-
-    static void UpdateAsyncTexture( StringView key,
-                                    AsyncTexture* asyncTexture,
-                                    Tac::Errors& errors )
+    static void                  UpdateAsyncTexture( StringView key,
+                                                     AsyncTexture* asyncTexture,
+                                                     Tac::Errors& errors )
     {
       const Job* job = asyncTexture->mJob;
       const JobState status = job->GetStatus();

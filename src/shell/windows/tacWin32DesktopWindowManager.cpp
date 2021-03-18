@@ -7,7 +7,7 @@
 #include "src/common/graphics/imgui/tacImGui.h"
 #include "src/common/tacPreprocessor.h"
 #include "src/common/tacSettings.h"
-#include "src/common/tacString.h"
+#include "src/common/string/tacString.h"
 #include "src/shell/tacDesktopApp.h"
 #include "src/shell/windows/tacNetWinsock.h"
 #include "src/shell/windows/tacWin32DesktopWindowManager.h"

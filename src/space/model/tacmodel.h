@@ -3,7 +3,7 @@
 
 #include "src/space/tacComponent.h"
 #include "src/common/containers/tacVector.h"
-#include "src/common/tacString.h"
+#include "src/common/string/tacString.h"
 
 namespace Tac
 {
@@ -22,6 +22,7 @@ namespace Tac
     String                               mModelPath;
     int                                  mModelIndex = 0;
     Mesh*                                mesh = nullptr;
+    bool                                 mTryingNewThing = false;
   };
 
   void                             RegisterModelComponent();

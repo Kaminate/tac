@@ -1,5 +1,5 @@
 #include "src/common/tacTextParser.h"
-#include "src/common/tacString.h"
+#include "src/common/string/tacString.h"
 #include <cstdlib> // strtod
 //#include "src/common/tacLocalization.h"
 //#include "src/common/tacUtility.h"

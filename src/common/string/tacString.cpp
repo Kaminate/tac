@@ -1,5 +1,5 @@
 
-#include "src/common/tacString.h"
+#include "src/common/string/tacString.h"
 #include "src/common/math/tacMath.h"
 #include "src/common/tacAlgorithm.h"
 
@@ -548,43 +548,6 @@ namespace Tac
     return a == StringView( b );
   }
 
-  const int kMaxStringDictionaryEntries = 1024;
-  String gStringLookup[ kMaxStringDictionaryEntries ];
-
-  StringView DebugLookupString( StringID stringID )
-  {
-    return gStringLookup[ stringID.mHash ];
-  }
-
-
-  int StringID::Hash( StringView stringView )
-  {
-    uint32_t hash = 0;
-    for( char c : stringView )
-      hash = 37 * hash + c;
-    hash %= kMaxStringDictionaryEntries;
-    return hash;
-  }
-
-  StringID::StringID( StringView stringView )
-  {
-    // unnecessary extra mod operator to get rid of bogus 
-    // c6385 warning readable size is x bytes, but mHash bytes may be read
-    mHash = Hash( stringView ) % kMaxStringDictionaryEntries;
-    TAC_ASSERT( mHash >= 0 && mHash < kMaxStringDictionaryEntries );
-    if( IsDebugMode() && mHash && gStringLookup[ mHash ].empty() )
-      gStringLookup[ mHash ] = stringView;
-  }
-
-  bool operator < ( StringID a, StringID b )
-  {
-    return a.mHash < b.mHash;
-  }
-
-  bool operator == ( StringID a, StringID b )
-  {
-    return a.mHash == b.mHash;
-  }
 
 
   //String Join( const String& separator, std::initializer_list< String > strings )

@@ -1,6 +1,6 @@
 #include "src/common/tacDesktopWindow.h"
 #include "src/common/tacPreprocessor.h"
-#include "src/common/tacString.h"
+#include "src/common/string/tacString.h"
 #include "src/common/tackeyboardinput.h"
 #include "src/shell/windows/tacWin32DesktopWindowManager.h"
 #include "src/shell/tacDesktopApp.h"

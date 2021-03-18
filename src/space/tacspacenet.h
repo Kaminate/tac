@@ -1,7 +1,7 @@
 
 #pragma once
 #include "src/common/tacSerialization.h"
-#include "src/common/tacString.h"
+#include "src/common/string/tacString.h"
 #include "src/common/tacErrorHandling.h"
 #include "src/space/taccomponent.h"
 #include <list>

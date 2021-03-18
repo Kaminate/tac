@@ -1,6 +1,6 @@
 #pragma once
 
-#include "src/common/tacString.h"
+#include "src/common/string/tacString.h"
 #include "src/common/tacLocalization.h"
 #include "src/common/math/tacVector2.h"
 //#include "src/common/tacTime.h"

@@ -1,6 +1,6 @@
 #include "src/common/graphics/tacTextEdit.h"
 #include "src/common/math/tacMath.h" // Min/Max
-#include "src/common/tacString.h"
+#include "src/common/string/tacString.h"
 
 namespace Tac
 {

@@ -8,7 +8,7 @@
 #include "src/common/tacOS.h"
 #include "src/common/tacShell.h"
 #include "src/common/tacShellTimer.h"
-#include "src/common/tacString.h"
+#include "src/common/string/tacString.h"
 #include "src/common/tacTemporaryMemory.h"
 #include "src/common/tacUtility.h"
 #include "src/common/thirdparty/cgltf.h"
@@ -401,7 +401,12 @@ namespace Tac
                 auto model = ( Model* )entityNode->AddNewComponent( Model().GetEntry() );
                 model->mModelPath = path;
                 //model->mModelName = node.mesh->name;
-                model->mModelIndex = (int)(node.mesh - loadInfo->parsedData->meshes);
+                model->mModelIndex = ( int )( node.mesh - loadInfo->parsedData->meshes );
+                model->mTryingNewThing = true;
+
+
+                // ** REMEMBER **, we don't care about the textures on this model component.
+                // that's a job for the material component
               }
 
               if( node.children_count )

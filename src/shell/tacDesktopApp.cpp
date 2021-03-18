@@ -15,7 +15,7 @@
 #include "src/common/tacKeyboardInput.h"
 #include "src/common/tacOS.h"
 #include "src/common/tacSettings.h"
-#include "src/common/tacString.h"
+#include "src/common/string/tacString.h"
 #include "src/shell/tacDesktopApp.h"
 #include "src/shell/tacDesktopWindowGraphics.h"
 

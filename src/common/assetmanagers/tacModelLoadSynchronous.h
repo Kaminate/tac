@@ -1,7 +1,7 @@
 #pragma once
 
 #include "src/common/containers/tacVector.h"
-#include "src/common/tacString.h"
+#include "src/common/string/tacString.h"
 #include "src/common/math/tacVector3.h"
 #include "src/common/math/tacMatrix4.h"
 #include "src/common/graphics/tacRenderer.h"

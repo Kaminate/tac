@@ -4,7 +4,7 @@
 
 // include windows.h before xinput.h or else you get 'no target architecture' errors
 #include "src/shell/windows/tacWin32.h"
-//#include "src/common/tacString.h"
+//#include "src/common/string/tacString.h"
 #include "src/common/tacControllerInput.h"
 //#include "src/common/tacErrorHandling.h"
 //#include "src/common/containers/tacVector.h"

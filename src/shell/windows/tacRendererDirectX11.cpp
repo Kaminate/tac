@@ -10,7 +10,7 @@
 #include "src/common/tacOS.h"
 #include "src/common/tacTemporaryMemory.h"
 #include "src/common/tacFrameMemory.h"
-#include "src/common/tacString.h"
+#include "src/common/string/tacString.h"
 #include "src/shell/tacDesktopApp.h"
 #include "src/shell/windows/tacDXGI.h"
 #include "src/shell/windows/tacRendererDirectX11.h"

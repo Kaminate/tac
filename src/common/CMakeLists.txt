@@ -93,8 +93,12 @@ ${CMAKE_CURRENT_SOURCE_DIR}/tacShell.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/tacShell.h
 ${CMAKE_CURRENT_SOURCE_DIR}/tacSettings.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/tacSettings.h
-${CMAKE_CURRENT_SOURCE_DIR}/tacString.cpp
-${CMAKE_CURRENT_SOURCE_DIR}/tacString.h
+${CMAKE_CURRENT_SOURCE_DIR}/tacHash.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/tacHash.h
+${CMAKE_CURRENT_SOURCE_DIR}/string/tacString.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/string/tacString.h
+${CMAKE_CURRENT_SOURCE_DIR}/string/tacStringIdentifier.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/string/tacStringIdentifier.h
 ${CMAKE_CURRENT_SOURCE_DIR}/tacTime.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/tacTime.h
 ${CMAKE_CURRENT_SOURCE_DIR}/tacUtility.cpp

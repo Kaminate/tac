@@ -126,11 +126,21 @@ namespace Tac
       return;
     if( model->mModelPath.empty() )
       return;
+
     Errors getmeshErrors;
-    ModelAssetManagerGetMesh( &model->mesh,
-                              model->mModelPath,
-                              m3DVertexFormatDecls,
-                              getmeshErrors );
+    if( model->mTryingNewThing )
+    {
+      model->mesh = ModelAssetManagerGetMeshTryingNewThing( model->mModelPath,
+                                                            model->mModelIndex,
+                                                            m3DVertexFormatDecls,
+                                                            getmeshErrors );
+    }
+    else
+    {
+      model->mesh = ModelAssetManagerGetMesh( model->mModelPath,
+                                              m3DVertexFormatDecls,
+                                              getmeshErrors );
+    }
   }
 
   void GamePresentation::RenderGameWorldToDesktopView( World* world,

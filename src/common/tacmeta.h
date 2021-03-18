@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "src/common/tacString.h"
+#include "src/common/string/tacString.h"
 #include "src/common/containers/tacVector.h"
 
 #include <functional>

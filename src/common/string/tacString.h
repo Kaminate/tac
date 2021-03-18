@@ -151,16 +151,4 @@ namespace Tac
   bool operator == ( const String&, const StringView& );
   bool operator == ( const String&, const char* );
 
-  struct StringID
-  {
-    StringID( StringView );
-    static int Hash( StringView );
-    int mHash = 0;
-  };
-
-  bool operator < ( StringID, StringID );
-  bool operator == ( StringID, StringID );
-
-
-  StringView DebugLookupString( StringID );
 }

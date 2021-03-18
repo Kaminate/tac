@@ -1,6 +1,6 @@
 #include "src/common/containers/tacRingBuffer.h"
 #include "src/common/tacMemory.h"
-#include "src/common/tacString.h"
+#include "src/common/string/tacString.h"
 
 namespace Tac
 {

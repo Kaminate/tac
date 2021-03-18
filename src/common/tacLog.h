@@ -6,7 +6,7 @@
 // I'm sure the ring buffer can be useful, just not as a log
 
 #pragma once
-#include "src/common/tacString.h"
+#include "src/common/string/tacString.h"
 //#include "src/common/ErrorHandling.h"
 #include <cstdint>
 

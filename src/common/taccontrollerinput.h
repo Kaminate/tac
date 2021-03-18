@@ -2,7 +2,7 @@
 #pragma once
 
 #include "src/common/math/tacVector2.h"
-#include "src/common/tacString.h"
+#include "src/common/string/tacString.h"
 
 #include <cstdint>
 namespace Tac

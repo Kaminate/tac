@@ -1,5 +1,5 @@
 #include "src/space/presentation/tacSkyboxPresentation.h"
-#include "src/common/tacString.h"
+#include "src/common/string/tacString.h"
 #include "src/common/tacMemory.h"
 #include "src/common/tacDesktopWindow.h"
 #include "src/common/tacCamera.h"
@@ -94,9 +94,7 @@ namespace Tac
     TAC_ASSERT( mGetSkyboxTextureErrors.empty() );
     if( !cubemap.IsValid() )
       return;
-    Mesh* mesh;
-    ModelAssetManagerGetMesh( &mesh,
-                              "assets/editor/Box.gltf",
+    Mesh* mesh = ModelAssetManagerGetMesh( "assets/editor/Box.gltf",
                               mVertexDecls,
                               mGetSkyboxMeshErrors );
     TAC_ASSERT( mGetSkyboxMeshErrors.empty() );

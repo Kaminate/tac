@@ -1,5 +1,5 @@
 #include "src/space/tacComponent.h"
-#include "src/common/tacString.h"
+#include "src/common/string/tacString.h"
 
 namespace Tac
 {

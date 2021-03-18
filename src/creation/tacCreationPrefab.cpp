@@ -6,7 +6,7 @@
 #include "src/common/tacOS.h"
 #include "src/common/tacSettings.h"
 #include "src/common/tacUtility.h"
-#include "src/common/tacString.h"
+#include "src/common/string/tacString.h"
 #include "src/common/tacTemporaryMemory.h"
 #include "src/creation/tacCreationPrefab.h"
 #include "src/creation/tacCreation.h"

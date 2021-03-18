@@ -1,6 +1,6 @@
 #include "src/common/tacSerialization.h"
 #include "src/common/tacPreprocessor.h" // assert
-#include "src/common/tacString.h"
+#include "src/common/string/tacString.h"
 #include "src/common/tacAlgorithm.h"
 
 #include <cinttypes>

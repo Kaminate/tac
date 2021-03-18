@@ -4,7 +4,7 @@
 #pragma once
 
 #include "src/shell/windows/tacWin32.h"
-#include "src/common/tacString.h"
+#include "src/common/string/tacString.h"
 #include "src/common/tacErrorHandling.h"
 #include "src/common/containers/tacVector.h"
 #include "src/common/tacNet.h"

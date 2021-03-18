@@ -1,6 +1,6 @@
 #pragma once
 
-//#include "src/common/tacString.h"
+//#include "src/common/string/tacString.h"
 //#include "src/common/tacErrorHandling.h"
 //#include "src/common/containers/tacVector.h"
 //#include "src/common/containers/tacArray.h"
@@ -31,11 +31,15 @@ namespace Tac
   struct StringView;
   //struct VertexDeclarations;
   struct Errors;
-  void                       ModelAssetManagerUninit();
+  void  ModelAssetManagerUninit();
 
   //                         the mesh will be loaded into the vertex format specified by vertex declarations.
-  void                       ModelAssetManagerGetMesh( Mesh** mesh,
-                                                       StringView path,
-                                                       const Render::VertexDeclarations&,
-                                                       Errors& );
+  Mesh* ModelAssetManagerGetMesh( StringView path,
+                                  const Render::VertexDeclarations&,
+                                  Errors& );
+  Mesh* ModelAssetManagerGetMeshTryingNewThing( const char* path,
+                                                int iModel,
+                                                const Render::VertexDeclarations&,
+                                                Errors& );
+
 }

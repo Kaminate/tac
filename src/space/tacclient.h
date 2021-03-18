@@ -6,7 +6,7 @@
 #include "src/space/tacWorld.h"
 #include "src/common/math/tacVector2.h"
 #include "src/common/containers/tacVector.h"
-#include "src/common/tacString.h"
+#include "src/common/string/tacString.h"
 #include "src/common/tacErrorHandling.h"
 
 #include <list>
