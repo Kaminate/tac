@@ -213,7 +213,7 @@ namespace Tac
 
   CodepointView UTF8ToCodepoints( StringView stringView )
   {
-    auto codepoints = ( Codepoint* )FrameMemory::Allocate( stringView.size() * sizeof( Codepoint ) );
+    auto codepoints = ( Codepoint* )FrameMemoryAllocate( stringView.size() * sizeof( Codepoint ) );
     int n = 0;
     Converter converter( stringView );
     while( Codepoint codepoint = converter.Extract() )
@@ -223,7 +223,7 @@ namespace Tac
 
   StringView CodepointsToUTF8( CodepointView codepointView )
   {
-    auto str = ( char* )FrameMemory::Allocate( codepointView.size() * sizeof( Codepoint ) );
+    auto str = ( char* )FrameMemoryAllocate( codepointView.size() * sizeof( Codepoint ) );
     int len = 0;
 
     for( Codepoint codepoint : codepointView )

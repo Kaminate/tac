@@ -127,7 +127,7 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
 
     m3DShader = Render::CreateShader( Render::ShaderSource::FromPath( "3DTest" ),
-                                      Render::ConstantBuffers( mPerFrame, mPerObj ),
+                                      Render::ConstantBuffers{ mPerFrame, mPerObj },
                                       TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
@@ -137,7 +137,8 @@ namespace Tac
     posDecl.mTextureFormat.mElementCount = 3;
     posDecl.mTextureFormat.mPerElementByteCount = sizeof( float );
     posDecl.mTextureFormat.mPerElementDataType = GraphicsType::real;
-    m3DvertexFormatDecls.AddVertexDeclaration( posDecl );
+    //m3DvertexFormatDecls.AddVertexDeclaration( posDecl );
+    m3DvertexFormatDecls = VertexDeclarations{ posDecl };
 
     m3DVertexFormat = Render::CreateVertexFormat( m3DvertexFormatDecls,
                                                   m3DShader,

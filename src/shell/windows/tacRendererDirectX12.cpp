@@ -832,7 +832,7 @@ void RendererDX12::AddShader( Shader** shader, const ShaderData& shaderData, Err
     popupMessages.push_back( errors.ToString() );
     popupMessages.push_back( "Fix errors, and press OK to try again" );
     String popupMessage = Join( "\n", popupMessages.data(), popupMessages.size() );
-    OS::DebugPopupBox( popupMessage );
+    OSDebugPopupBox( popupMessage );
     errors.clear();
   }
 

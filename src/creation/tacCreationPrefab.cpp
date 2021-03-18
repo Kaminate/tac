@@ -145,7 +145,7 @@ namespace Tac
         String savePath;
         const String suggestedName = entity->mName + ".prefab";
         Errors saveDialogErrors;
-        OS::SaveDialog( savePath, suggestedName, saveDialogErrors );
+        OSSaveDialog( savePath, suggestedName, saveDialogErrors );
         if( saveDialogErrors )
         {
           // todo: log it, user feedback
@@ -167,7 +167,7 @@ namespace Tac
       Errors saveToFileErrors;
       void* bytes = prefabJsonString.data();
       int byteCount = prefabJsonString.size();
-      OS::SaveToFile( prefab->mDocumentPath, bytes, byteCount, saveToFileErrors );
+      OSSaveToFile( prefab->mDocumentPath, bytes, byteCount, saveToFileErrors );
       if( saveToFileErrors )
       {
         // todo: log it, user feedback

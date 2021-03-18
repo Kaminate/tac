@@ -41,11 +41,11 @@ namespace Tac
     return va( "%s:%i %s", splitFilepath.mFilename.c_str(), mLine, mFunction );
   }
 
-  void AssertInternal( const char* message, const StackFrame& frame )
+  void HandleAssert( const char* message, const StackFrame& frame )
   {
     Errors errors;
     errors.Append( message );
     errors.Append( frame );
-    OS::DebugAssert( errors );
+    OSDebugAssert( errors );
   }
 }

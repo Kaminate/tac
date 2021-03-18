@@ -162,7 +162,7 @@ namespace Tac
       case AddressMode::Wrap: return D3D11_TEXTURE_ADDRESS_WRAP;
       case AddressMode::Clamp: return D3D11_TEXTURE_ADDRESS_CLAMP;
       case AddressMode::Border: return D3D11_TEXTURE_ADDRESS_BORDER;
-      default: TAC_ASSERT_INVALID_CASE( addressMode ); return D3D11_TEXTURE_ADDRESS_WRAP;
+      default: TAC_CRITICAL_ERROR_INVALID_CASE( addressMode ); return D3D11_TEXTURE_ADDRESS_WRAP;
     }
   }
 
@@ -172,7 +172,7 @@ namespace Tac
     {
       case Comparison::Always: return D3D11_COMPARISON_ALWAYS;
       case Comparison::Never: return D3D11_COMPARISON_NEVER;
-      default: TAC_ASSERT_INVALID_CASE( compare ); return D3D11_COMPARISON_ALWAYS;
+      default: TAC_CRITICAL_ERROR_INVALID_CASE( compare ); return D3D11_COMPARISON_ALWAYS;
     }
   };
 
@@ -183,7 +183,7 @@ namespace Tac
       case Filter::Linear: return D3D11_FILTER_MIN_MAG_MIP_LINEAR;
       case Filter::Point: return D3D11_FILTER_MIN_MAG_MIP_POINT;
       case Filter::Aniso: return D3D11_FILTER_ANISOTROPIC;
-      default: TAC_ASSERT_INVALID_CASE( filter ); return D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+      default: TAC_CRITICAL_ERROR_INVALID_CASE( filter ); return D3D11_FILTER_MIN_MAG_MIP_LINEAR;
     }
   };
 
@@ -193,7 +193,7 @@ namespace Tac
     {
       case DepthFunc::Less: return D3D11_COMPARISON_LESS;
       case DepthFunc::LessOrEqual: return D3D11_COMPARISON_LESS_EQUAL;
-      default: TAC_ASSERT_INVALID_CASE( depthFunc ); return D3D11_COMPARISON_LESS;
+      default: TAC_CRITICAL_ERROR_INVALID_CASE( depthFunc ); return D3D11_COMPARISON_LESS;
     }
   }
 
@@ -204,7 +204,7 @@ namespace Tac
       case Access::Default: return D3D11_USAGE_DEFAULT;
       case Access::Dynamic: return D3D11_USAGE_DYNAMIC;
       case Access::Static: return D3D11_USAGE_IMMUTABLE;
-      default: TAC_ASSERT_INVALID_CASE( access ); return D3D11_USAGE_DEFAULT;
+      default: TAC_CRITICAL_ERROR_INVALID_CASE( access ); return D3D11_USAGE_DEFAULT;
     }
   }
 
@@ -231,7 +231,7 @@ namespace Tac
   static UINT GetMiscFlags( Binding binding )
   {
     if( ( int )binding & ( int )Binding::RenderTarget &&
-        ( int )binding & ( int )Binding::ShaderResource )
+      ( int )binding & ( int )Binding::ShaderResource )
       return D3D11_RESOURCE_MISC_GENERATE_MIPS;
     return 0;
   }
@@ -274,7 +274,7 @@ namespace Tac
     {
       case FillMode::Solid: return D3D11_FILL_SOLID;
       case FillMode::Wireframe: return D3D11_FILL_WIREFRAME;
-      default: TAC_ASSERT_INVALID_CASE( fillMode ); return ( D3D11_FILL_MODE )0;
+      default: TAC_CRITICAL_ERROR_INVALID_CASE( fillMode ); return ( D3D11_FILL_MODE )0;
     }
   }
 
@@ -285,13 +285,13 @@ namespace Tac
       case CullMode::None: return D3D11_CULL_NONE;
       case CullMode::Back: return D3D11_CULL_BACK;
       case CullMode::Front: return D3D11_CULL_FRONT;
-      default: TAC_ASSERT_INVALID_CASE( cullMode ); return ( D3D11_CULL_MODE )0;
+      default: TAC_CRITICAL_ERROR_INVALID_CASE( cullMode ); return ( D3D11_CULL_MODE )0;
     }
   }
 
   static WCHAR* ToTransientWchar( StringView str )
   {
-    WCHAR* result = ( WCHAR* )FrameMemory::Allocate( ( sizeof( WCHAR ) + 1 ) * str.size() );
+    WCHAR* result = ( WCHAR* )FrameMemoryAllocate( ( sizeof( WCHAR ) + 1 ) * str.size() );
     WCHAR* resultIter = result;
     for( char c : str )
       *resultIter++ = ( WCHAR )c;
@@ -377,7 +377,7 @@ namespace Tac
         if( IsDebugMode() )
         {
           errors.Append( TAC_STACK_FRAME );
-          OS::DebugPopupBox( errors.ToString() );
+          OSDebugPopupBox( errors.ToString() );
           //DebugBreak();
           errors.clear();
         }
@@ -417,21 +417,21 @@ namespace Tac
       TAC_ON_DESTRUCT( pVSBlob->Release() );
 
       TAC_DX11_CALL_RETURN( errors, Program(),
-                     device->CreateVertexShader,
-                     pVSBlob->GetBufferPointer(),
-                     pVSBlob->GetBufferSize(),
-                     nullptr,
-                     &vertexShader );
+                            device->CreateVertexShader,
+                            pVSBlob->GetBufferPointer(),
+                            pVSBlob->GetBufferSize(),
+                            nullptr,
+                            &vertexShader );
       if( errors )
         continue;
 
       TAC_DX11_CALL_RETURN( errors, Program(),
-                     D3DGetBlobPart,
-                     pVSBlob->GetBufferPointer(),
-                     pVSBlob->GetBufferSize(),
-                     D3D_BLOB_INPUT_SIGNATURE_BLOB,
-                     0,
-                     &inputSignature );
+                            D3DGetBlobPart,
+                            pVSBlob->GetBufferPointer(),
+                            pVSBlob->GetBufferSize(),
+                            D3D_BLOB_INPUT_SIGNATURE_BLOB,
+                            0,
+                            &inputSignature );
       if( errors )
         continue;
 
@@ -446,11 +446,11 @@ namespace Tac
       TAC_ON_DESTRUCT( pPSBlob->Release() );
 
       TAC_DX11_CALL_RETURN( errors, Program(),
-                     device->CreatePixelShader,
-                     pPSBlob->GetBufferPointer(),
-                     pPSBlob->GetBufferSize(),
-                     nullptr,
-                     &pixelShader );
+                            device->CreatePixelShader,
+                            pPSBlob->GetBufferPointer(),
+                            pPSBlob->GetBufferSize(),
+                            nullptr,
+                            &pixelShader );
       if( errors )
         continue;
 
@@ -588,12 +588,6 @@ namespace Tac
                                           const Render::DrawCall3* drawCall,
                                           Errors& errors )
   {
-
-
-
-
-
-
     if( drawCall->mShaderHandle.IsValid() )
     {
       Program* program = &mPrograms[ ( int )drawCall->mShaderHandle ];
@@ -624,7 +618,7 @@ namespace Tac
     {
       mIndexBuffer = &mIndexBuffers[ ( int )drawCall->mIndexBufferHandle ];
       if( !mIndexBuffer->mBuffer )
-        OS::DebugBreak();
+        OSDebugBreak();
       TAC_ASSERT( mIndexBuffer->mBuffer );
       const DXGI_FORMAT dxgiFormat = GetDXGIFormat( mIndexBuffer->mFormat );
       const UINT byteOffset = 0; //  drawCall->mStartIndex * indexBuffer->mFormat.mPerElementByteCount;
@@ -684,7 +678,7 @@ namespace Tac
       mViewHandle = drawCall->mViewHandle;
       const Render::View* view = &frame->mViews[ ( int )mViewHandle ];
 
-      TAC_ASSERT_IF_MSG( !view->mFrameBufferHandle.IsValid(), "Did you forget to call Render::SetViewFramebuffer" );
+      TAC_ASSERT_MSG( view->mFrameBufferHandle.IsValid(), "Did you forget to call Render::SetViewFramebuffer" );
 
       Framebuffer* framebuffer = &mFramebuffers[ ( int )view->mFrameBufferHandle ];
       ID3D11RenderTargetView* renderTargetView = framebuffer->mRenderTargetView;
@@ -715,12 +709,12 @@ namespace Tac
       mDeviceContext->RSSetScissorRects( 1, &scissor );
     }
 
-    if( drawCall->mTextureHandle.mTextureCount )
+    if( drawCall->mTextureHandle.size() )
     {
       const UINT StartSlot = 0;
-      const UINT NumViews = drawCall->mTextureHandle.mTextureCount;
+      const UINT NumViews = drawCall->mTextureHandle.size();
       ID3D11ShaderResourceView* ShaderResourceViews[ D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT ] = {};
-      for( int iSlot = 0; iSlot < drawCall->mTextureHandle.mTextureCount; ++iSlot )
+      for( int iSlot = 0; iSlot < drawCall->mTextureHandle.size(); ++iSlot )
       {
         const Render::TextureHandle textureHandle = drawCall->mTextureHandle[ iSlot ];
         if( !textureHandle.IsValid() )
@@ -827,8 +821,8 @@ namespace Tac
 
     UINT pDataSize = buffersize;
     directXObject->GetPrivateData( WKPDID_D3DDebugObjectName,
-      &pDataSize,
-      &data );
+                                   &pDataSize,
+                                   &data );
 
     String newname;
     if( pDataSize )
@@ -892,10 +886,10 @@ namespace Tac
     Render::VertexFormatHandle vertexFormatHandle = commandData->mVertexFormatHandle;
     Vector< D3D11_INPUT_ELEMENT_DESC > inputElementDescs;
     for( int iVertexFormatData = 0;
-         iVertexFormatData < commandData->mVertexDeclarations.mVertexFormatDataCount;
+         iVertexFormatData < commandData->mVertexDeclarations.size();
          ++iVertexFormatData )
     {
-      VertexDeclaration curFormat = commandData->mVertexDeclarations.mVertexFormatDatas[ iVertexFormatData ];
+      const VertexDeclaration& curFormat = commandData->mVertexDeclarations[ iVertexFormatData ];
 
       D3D11_INPUT_ELEMENT_DESC curDX11Input = {};
       curDX11Input.Format = GetDXGIFormat( curFormat.mTextureFormat );
@@ -1255,65 +1249,96 @@ namespace Tac
   {
     TAC_ASSERT( IsMainThread() );
 
-    auto hwnd = ( HWND )data->mNativeWindowHandle; // window->GetOperatingSystemHandle();
-    IDXGISwapChain* swapChain;
-    const int bufferCount = 4;
-    const UINT width = data->mWidth;
-    const UINT height = data->mHeight;
-    DXGICreateSwapChain( hwnd,
-                         mDevice,
-                         bufferCount,
-                         width,
-                         height,
-                         &swapChain,
-                         errors );
-    TAC_HANDLE_ERROR( errors );
-
-    ID3D11Device* device = mDevice;
-    DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
-    swapChain->GetDesc( &swapChainDesc );
-
-    ID3D11Texture2D* pBackBuffer = nullptr;
-    TAC_DXGI_CALL( errors, swapChain->GetBuffer, 0, IID_PPV_ARGS( &pBackBuffer ) );
-    TAC_HANDLE_ERROR_IF( !pBackBuffer, "no buffer to resize", errors );
-    ID3D11RenderTargetView* rtv = nullptr;
-    D3D11_RENDER_TARGET_VIEW_DESC* rtvDesc = nullptr;
-    TAC_DX11_CALL( errors, device->CreateRenderTargetView, pBackBuffer, rtvDesc, &rtv );
-    pBackBuffer->Release();
-
-    D3D11_RENDER_TARGET_VIEW_DESC createdDesc = {};
-    rtv->GetDesc( &createdDesc );
-
-
-    TAC_ASSERT( IsMainThread() );
-    D3D11_TEXTURE2D_DESC texture2dDesc = {};
-    texture2dDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-    texture2dDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-    texture2dDesc.Height = height;
-    texture2dDesc.Width = width;
-    texture2dDesc.SampleDesc.Count = 1;
-    texture2dDesc.SampleDesc.Quality = 0;
-    texture2dDesc.ArraySize = 1;
-    texture2dDesc.MipLevels = 1;
-
-    ID3D11Texture2D* texture;
-    TAC_DX11_CALL( errors, mDevice->CreateTexture2D, &texture2dDesc, nullptr, &texture );
-
-    ID3D11DepthStencilView* dsv;
-    D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = {};
-    depthStencilViewDesc.Format = texture2dDesc.Format;
-    depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-    TAC_DX11_CALL( errors, mDevice->CreateDepthStencilView, texture, &depthStencilViewDesc, &dsv );
-
     Framebuffer* framebuffer = &mFramebuffers[ ( int )data->mFramebufferHandle ];
-    framebuffer->mSwapChain = swapChain;
-    framebuffer->mDepthStencilView = dsv;
-    framebuffer->mDepthTexture = texture;
-    framebuffer->mHwnd = hwnd;
-    framebuffer->mRenderTargetView = rtv;
-    framebuffer->mBufferCount = bufferCount;
+    const bool isWindowFramebuffer = data->mNativeWindowHandle && data->mWidth && data->mHeight;
+    const bool isRenderToTextureFramebuffer = !data->mFramebufferTextures.empty();
+    TAC_ASSERT( isWindowFramebuffer || isRenderToTextureFramebuffer );
 
-    mWindows[ mWindowCount++ ] = data->mFramebufferHandle;
+    if( isWindowFramebuffer )
+    {
+      TAC_ASSERT( data->mWidth );
+
+      auto hwnd = ( HWND )data->mNativeWindowHandle;
+      IDXGISwapChain* swapChain;
+      const int bufferCount = 4;
+      const UINT width = data->mWidth;
+      const UINT height = data->mHeight;
+      DXGICreateSwapChain( hwnd,
+                           mDevice,
+                           bufferCount,
+                           width,
+                           height,
+                           &swapChain,
+                           errors );
+      TAC_HANDLE_ERROR( errors );
+
+      ID3D11Device* device = mDevice;
+      DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
+      swapChain->GetDesc( &swapChainDesc );
+
+      ID3D11Texture2D* pBackBuffer = nullptr;
+      TAC_DXGI_CALL( errors, swapChain->GetBuffer, 0, IID_PPV_ARGS( &pBackBuffer ) );
+      TAC_HANDLE_ERROR_IF( !pBackBuffer, "no buffer to resize", errors );
+      ID3D11RenderTargetView* rtv = nullptr;
+      D3D11_RENDER_TARGET_VIEW_DESC* rtvDesc = nullptr;
+      TAC_DX11_CALL( errors, device->CreateRenderTargetView, pBackBuffer, rtvDesc, &rtv );
+      pBackBuffer->Release();
+
+      D3D11_RENDER_TARGET_VIEW_DESC createdDesc = {};
+      rtv->GetDesc( &createdDesc );
+
+      TAC_ASSERT( IsMainThread() );
+      D3D11_TEXTURE2D_DESC texture2dDesc = {};
+      texture2dDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+      texture2dDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+      texture2dDesc.Height = height;
+      texture2dDesc.Width = width;
+      texture2dDesc.SampleDesc.Count = 1;
+      texture2dDesc.SampleDesc.Quality = 0;
+      texture2dDesc.ArraySize = 1;
+      texture2dDesc.MipLevels = 1;
+
+      ID3D11Texture2D* texture;
+      TAC_DX11_CALL( errors, mDevice->CreateTexture2D, &texture2dDesc, nullptr, &texture );
+
+      ID3D11DepthStencilView* dsv;
+      D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = {};
+      depthStencilViewDesc.Format = texture2dDesc.Format;
+      depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+      TAC_DX11_CALL( errors, mDevice->CreateDepthStencilView, texture, &depthStencilViewDesc, &dsv );
+
+      framebuffer->mSwapChain = swapChain;
+      framebuffer->mDepthStencilView = dsv;
+      framebuffer->mDepthTexture = texture;
+      framebuffer->mHwnd = hwnd;
+      framebuffer->mRenderTargetView = rtv;
+      framebuffer->mBufferCount = bufferCount;
+
+      mWindows[ mWindowCount++ ] = data->mFramebufferHandle;
+    }
+
+    else if( isRenderToTextureFramebuffer )
+    {
+      TAC_CRITICAL_ERROR_UNIMPLEMENTED;
+
+      //for( TextureHandle textureHandle :  )
+
+      //data->mTextureCount;
+
+
+      //ID3D11Texture2D* depthTexture;
+      //TAC_DX11_CALL( errors, mDevice->CreateTexture2D, &depthTextureDesc, nullptr, &depthTexture );
+      //
+      //ID3D11DepthStencilView* dsv;
+      //D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = {};
+      //depthStencilViewDesc.Format = ;
+      //depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+      //TAC_DX11_CALL( errors, mDevice->CreateDepthStencilView, depthTexture, &depthStencilViewDesc, &dsv );
+    }
+    else
+    {
+      TAC_CRITICAL_ERROR_INVALID_CODE_PATH;
+    }
   }
 
   void RendererDirectX11::RemoveVertexBuffer( Render::VertexBufferHandle vertexBufferHandle, Errors& errors )

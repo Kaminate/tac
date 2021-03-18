@@ -728,7 +728,7 @@ namespace Tac
 		////    buttonCallback.mUserData = this;
 		////    buttonCallback.mUserCallback = []( void* userData, Errors& errors )
 		////    {
-		////      OS::mShouldStopRunning = true;
+		////      OSmShouldStopRunning = true;
 		////    };
 		////    uiText->mButtonCallbacks.push_back( buttonCallback );
 		////  }
@@ -905,7 +905,7 @@ namespace Tac
 		//}
 		//if( ImGuiButton( "Exit Game" ) )
 		//{
-		//  OS::mShouldStopRunning = true;
+		//  OSmShouldStopRunning = true;
 		//}
 		//ImGuiEnd();
 	}

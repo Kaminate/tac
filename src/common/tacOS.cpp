@@ -7,42 +7,42 @@
 
 namespace Tac
 {
-  namespace OS
+  static bool mStopRunRequested = false;
+
+
+
+  bool        OSAppIsRunning() { return !mStopRunRequested; }
+
+  void        OSAppStopRunning() { mStopRunRequested = true; }
+
+  void        OSCreateFolderIfNotExist( StringView path, Errors& errors )
   {
-    static bool mStopRunRequested = false;
+    bool exist;
+    OSDoesFolderExist( path, exist, errors );
+    TAC_HANDLE_ERROR( errors );
+    if( exist )
+      return;
+    OSCreateFolder( path, errors );
+    TAC_HANDLE_ERROR( errors );
+  }
 
-    bool        IsRunning() { return !mStopRunRequested; }
-    void        StopRunning() { mStopRunRequested = true; }
+  void        OSDebugAssert( const Errors& errors )
+  {
+    if( !IsDebugMode() )
+      return;
+    std::cout << errors.ToString().c_str() << std::endl;
+    OSDebugBreak();
+    OSDebugPopupBox( errors.ToString() );
+    exit( -1 );
+  }
 
-    void        CreateFolderIfNotExist( StringView path, Errors& errors )
-    {
-      bool exist;
-      DoesFolderExist( path, exist, errors );
-      TAC_HANDLE_ERROR( errors );
-      if( exist )
-        return;
-      CreateFolder( path, errors );
-      TAC_HANDLE_ERROR( errors );
-    }
+  void        OSThreadSleepSec( float t )
+  {
+    OSThreadSleepMsec( ( int )( t * 1000 ) );
+  }
 
-    void        DebugAssert( const Errors& errors )
-    {
-      if( !IsDebugMode() )
-        return;
-      std::cout << errors.ToString().c_str() << std::endl;
-      DebugBreak();
-      DebugPopupBox( errors.ToString() );
-      exit( -1 );
-    }
-
-    void        ThreadSleepSec( float t )
-    {
-      ThreadSleepMsec( ( int )( t * 1000 ) );
-    }
-
-    void        ThreadSleepMsec( int t )
-    {
-      std::this_thread::sleep_for( std::chrono::milliseconds( t ) );
-    }
+  void        OSThreadSleepMsec( int t )
+  {
+    std::this_thread::sleep_for( std::chrono::milliseconds( t ) );
   }
 }

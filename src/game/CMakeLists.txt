@@ -21,6 +21,7 @@ if( WIN32 )
     ${TAC_SOURCES}
     "${CMAKE_SOURCE_DIR}/src/shell/windows/tacDXGI.cpp"
     "${CMAKE_SOURCE_DIR}/src/shell/windows/tacDXGI.h"
+    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWin32OS.cpp"
     "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWin32.cpp"
     "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWin32.h"
     "${CMAKE_SOURCE_DIR}/src/shell/windows/tacXInput.cpp"

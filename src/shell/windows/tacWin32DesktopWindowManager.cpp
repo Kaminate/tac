@@ -118,7 +118,7 @@ namespace Tac
         case WM_NCDESTROY:
           return DefWindowProc( hwnd, uMsg, wParam, lParam );
         default:
-          TAC_ASSERT_INVALID_CASE( uMsg );
+          TAC_CRITICAL_ERROR_INVALID_CASE( uMsg );
       }
     }
 
@@ -363,7 +363,7 @@ namespace Tac
       | LR_SHARED;
     const char* iconPath = "assets/grave.ico";
     const HICON icon = ( HICON )LoadImage( nullptr, iconPath, IMAGE_ICON, 0, 0, fuLoad );;
-    TAC_ASSERT_IF_MSG( icon, "filed to load icon %s", iconPath );
+    TAC_ASSERT_MSG( icon, "filed to load icon %s", iconPath );
     WNDCLASSEX wc = {};
     wc.cbSize = sizeof( WNDCLASSEX );
     wc.hCursor = NULL; // LoadCursor( NULL, IDC_ARROW );
@@ -442,7 +442,7 @@ namespace Tac
     {
       RECT requestedRect = { 0, 0, w, h };
       if( !AdjustWindowRect( &requestedRect, windowStyle, FALSE ) )
-        TAC_ASSERT_INVALID_CODE_PATH;
+        TAC_CRITICAL_ERROR_INVALID_CODE_PATH;
       w = requestedRect.right - requestedRect.left;
       h = requestedRect.bottom - requestedRect.top;
     }
@@ -458,7 +458,7 @@ namespace Tac
       else
       {
         int monitorW, monitorH;
-        OS::GetPrimaryMonitor( &monitorW, &monitorH );
+        OSGetPrimaryMonitor( &monitorW, &monitorH );
         x = monitorW / 4;
         y = monitorH / 4;
         w = monitorW / 2;
@@ -483,7 +483,7 @@ namespace Tac
                                     NULL );
     if( !hwnd )
     {
-      TAC_ASSERT_INVALID_CODE_PATH;
+      TAC_CRITICAL_ERROR_INVALID_CODE_PATH;
       //errors += Join( "\n",
       //  {
       //    // https://docs.microsoft.com/en-us/windows/desktop/api/winuser/nf-winuser-createwindowexa

@@ -17,6 +17,7 @@
 #include "src/space/presentation/tacGamePresentation.h"
 #include "src/space/tacentity.h"
 #include "src/space/tacworld.h"
+#include "src/space/model/tacmodel.h"
 #include "src/common/tacCamera.h"
 
 #include <map>
@@ -166,10 +167,13 @@ namespace Tac
 
   struct AssetViewImportedModel
   {
-    EntityUUIDCounter mEntityUUIDCounter;
-    World             mWorld;
-
-    EditorLoadInfo    loadInfo;
+    EntityUUIDCounter         mEntityUUIDCounter;
+    World                     mWorld;
+    EditorLoadInfo            mLoadInfo;
+    Render::TextureHandle     mTextureHandleColor;
+    Render::TextureHandle     mTextureHandleDepth;
+    Render::FramebufferHandle mFramebufferHandle;
+    Render::ViewHandle        mViewHandle;
 
     // somethings are embedded in the model file
     // - mesh / material
@@ -207,8 +211,8 @@ namespace Tac
   {
     sAssetViewFiles.clear();
     sAssetViewFolders.clear();
-    OS::GetFilesInDirectory( sAssetViewFiles, sAssetViewFolderCur, OS::GetFilesInDirectoryFlags::Default, sAssetViewErrors );
-    OS::GetDirectoriesInDirectory( sAssetViewFolders, sAssetViewFolderCur, sAssetViewErrors );
+    OSGetFilesInDirectory( sAssetViewFiles, sAssetViewFolderCur, OSGetFilesInDirectoryFlags::Default, sAssetViewErrors );
+    OSGetDirectoriesInDirectory( sAssetViewFolders, sAssetViewFolderCur, sAssetViewErrors );
   }
 
   static void UIFoldersUpToCurr()
@@ -337,12 +341,15 @@ namespace Tac
           //entity->mRelativeSpace.mPosition = pos;
         }
 
-        ImGuiSameLine();
-        ImGuiText( va( "mesh count %i", loadedModel->loadInfo.parsedData->meshes_count ) );
-        ImGuiSameLine();
-        ImGuiText( va( "mat count %i", loadedModel->loadInfo.parsedData->materials_count ) );
-        ImGuiSameLine();
-        ImGuiText( va( "tex count %i", loadedModel->loadInfo.parsedData->textures_count ) );
+        //ImGuiSameLine();
+        //ImGuiText( va( "mesh count %i", loadedModel->mLoadInfo.parsedData->meshes_count ) );
+
+        //ImGuiSameLine();
+        //ImGuiText( va( "mat count %i", loadedModel->mLoadInfo.parsedData->materials_count ) );
+
+        //ImGuiSameLine();
+        //ImGuiText( va( "tex count %i", loadedModel->mLoadInfo.parsedData->textures_count ) );
+
         ImGuiSameLine();
         ImGuiText( va( "world entity count %i", loadedModel->mWorld.mEntities.size() ) );
       }
@@ -360,10 +367,10 @@ namespace Tac
 
             loadedModel = new AssetViewImportedModel;
             Errors errors;
-            loadedModel->loadInfo.Init( path.c_str(), errors );
+            loadedModel->mLoadInfo.Init( path.c_str(), errors );
             sLoadedModels[ path ] = loadedModel;
 
-            EditorLoadInfo* loadInfo = &loadedModel->loadInfo;
+            EditorLoadInfo* loadInfo = &loadedModel->mLoadInfo;
 
             Entity* entityRoot = loadedModel->mWorld.SpawnEntity( loadedModel->mEntityUUIDCounter.AllocateNewUUID() );
             entityRoot->mName = SplitFilepath( path ).mFilename;
@@ -379,13 +386,26 @@ namespace Tac
             for( int i = 0; i < loadInfo->parsedData->nodes_count; ++i )
             {
               const cgltf_node& node = loadInfo->parsedData->nodes[ i ];
+
+
               Entity* entityNode = loadedModel->mWorld.SpawnEntity( loadedModel->mEntityUUIDCounter.AllocateNewUUID() );
               entityNode->mName = node.name ? node.name : va( "node %i", i );
               entityNode->mRelativeSpace = DecomposeGLTFTransform( &node );
 
+              if( node.mesh )
+              {
+                node.mesh->name;
+                node.mesh->primitives;
+                node.mesh->primitives_count;
+
+                auto model = ( Model* )entityNode->AddNewComponent( Model().GetEntry() );
+                model->mModelPath = path;
+                //model->mModelName = node.mesh->name;
+                model->mModelIndex = (int)(node.mesh - loadInfo->parsedData->meshes);
+              }
+
               if( node.children_count )
               {
-
                 for( cgltf_node* child = *node.children; child < *node.children + node.children_count; ++child )
                 {
                   Entity* childEntity = entityNodes[ ( int )( child - *node.children ) ];
@@ -397,35 +417,37 @@ namespace Tac
                 entityRoot->AddChild( entityNode );
             }
 
+            if( false )
+            {
+              int w = 256;
+              int h = 256;
+              Render::TexSpec texSpecColor;
+              texSpecColor.mImage.mFormat.mElementCount = 4;
+              texSpecColor.mImage.mFormat.mPerElementByteCount = 1;
+              texSpecColor.mImage.mFormat.mPerElementDataType = GraphicsType::unorm;
+              texSpecColor.mImage.mWidth = w;
+              texSpecColor.mImage.mHeight = h;
+              texSpecColor.mBinding = ( Tac::Binding )( ( int )Tac::Binding::ShaderResource | ( int )Tac::Binding::RenderTarget );
+              Render::TextureHandle textureHandleColor = Render::CreateTexture( texSpecColor, TAC_STACK_FRAME );
 
-            int w = 256;
-            int h = 256;
-            Render::TexSpec texSpecColor;
-            texSpecColor.mImage.mFormat.mElementCount = 4;
-            texSpecColor.mImage.mFormat.mPerElementByteCount = 1;
-            texSpecColor.mImage.mFormat.mPerElementDataType = GraphicsType::unorm;
-            texSpecColor.mImage.mWidth = 256;
-            texSpecColor.mImage.mHeight = 256;
-            texSpecColor.mBinding = ( Tac::Binding )( ( int )Tac::Binding::ShaderResource | ( int )Tac::Binding::RenderTarget );
-            Render::TextureHandle textureHandleColor = Render::CreateTexture( texSpecColor, TAC_STACK_FRAME );
+              Render::TexSpec texSpecDepth;
+              texSpecColor.mImage.mFormat.mElementCount = 1;
+              texSpecColor.mImage.mFormat.mPerElementByteCount = 16;
+              texSpecColor.mImage.mFormat.mPerElementDataType = GraphicsType::unorm;
+              texSpecColor.mImage.mWidth = w;
+              texSpecColor.mImage.mHeight = h;
+              Render::TextureHandle textureHandleDepth = Render::CreateTexture( texSpecDepth, TAC_STACK_FRAME );
 
-            Render::TexSpec texSpecDepth;
-            texSpecColor.mImage.mFormat.mElementCount = 1;
-            texSpecColor.mImage.mFormat.mPerElementByteCount = 16;
-            texSpecColor.mImage.mFormat.mPerElementDataType = GraphicsType::unorm;
-            texSpecColor.mImage.mWidth = 256;
-            texSpecColor.mImage.mHeight = 256;
-            Render::TextureHandle textureHandleDepth = Render::CreateTexture( texSpecDepth, TAC_STACK_FRAME );
+              Render::FramebufferHandle framebufferHandle = Render::CreateFramebufferForRenderToTexture(
+                { textureHandleColor, textureHandleDepth }, TAC_STACK_FRAME );
+              Render::ViewHandle viewHandle = Render::CreateView();
+              Render::SetViewFramebuffer( viewHandle, framebufferHandle );
+              Render::SetViewport( viewHandle, Viewport( w, h ) );
+              Render::SetViewScissorRect( viewHandle, ScissorRect( w, h ) );
 
-            Render::TextureHandle framebufferTextures[] = { textureHandleColor, textureHandleDepth };
-            const int framebufferTextureCount = TAC_ARRAY_SIZE(framebufferTextures);
-            Render::FramebufferHandle framebufferHandle = Render::CreateFramebufferForRenderToTexture(
-              framebufferTextures, framebufferTextureCount, TAC_STACK_FRAME );
-            Render::ViewHandle viewHandle = Render::CreateView();
-            Render::SetViewFramebuffer( viewHandle, framebufferHandle );
-
-            Camera camera;
-            gCreation.mGamePresentation->RenderGameWorldToDesktopView( &loadedModel->mWorld, &camera, w, h, viewHandle );
+              Camera camera;
+              gCreation.mGamePresentation->RenderGameWorldToDesktopView( &loadedModel->mWorld, &camera, w, h, viewHandle );
+            }
           }
         }
       }

@@ -126,7 +126,7 @@ namespace Tac
         inputCreateErrorMessage= "DIERR_OUTOFMEMORY";
         break;
       default:
-        TAC_ASSERT_INVALID_CASE( hr );
+        TAC_CRITICAL_ERROR_INVALID_CASE( hr );
         inputCreateErrorMessage= "???";
         break;
     }
@@ -195,14 +195,14 @@ namespace Tac
       }
       else if( hr == DIERR_INPUTLOST )
       {
-        TAC_ASSERT_MESSAGE( "todo" );
+        TAC_CRITICAL_ERROR_UNIMPLEMENTED;
       }
       else
       {
         TAC_ASSERT( hr != DIERR_INVALIDPARAM );
         TAC_ASSERT( hr != DIERR_NOTACQUIRED );
         TAC_ASSERT( hr != DIERR_NOTINITIALIZED );
-        TAC_ASSERT_INVALID_CODE_PATH;
+        TAC_CRITICAL_ERROR_INVALID_CODE_PATH;
       }
 
       ControllerState controllerState = ToControllerState( js );

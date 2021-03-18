@@ -36,9 +36,9 @@ namespace Tac
   extern int       gnCmdShow;
   struct String    Win32ErrorToString( DWORD );
   struct String    Win32GetLastErrorString();
-  struct String    Win32GetWindowName( HWND );
-  void             Win32Assert( const struct Errors& );
+  //struct String    Win32GetWindowName( HWND );
+  //void             Win32Assert( const struct Errors& );
   void             Win32DebugBreak();
-  void             Win32PopupBox( const struct StringView& );
-  void             Win32Output( const struct StringView& );
+  //void             Win32PopupBox( const struct StringView& );
+  //void             Win32Output( const struct StringView& );
 }

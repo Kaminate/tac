@@ -2,7 +2,6 @@
 
 namespace Tac
 {
-
   struct ThreadAllocator
   {
     void  Init( int byteCount );
@@ -15,10 +14,8 @@ namespace Tac
   };
 
 
-  namespace FrameMemory
-  {
-    void SetThreadAllocator( ThreadAllocator* );
-    void* Allocate( int );
-  }
+  void  FrameMemorySetThreadAllocator( ThreadAllocator* );
+  void* FrameMemoryAllocate( int );
+  char* FrameMemoryPrintf( const char*, ... );
 }
 

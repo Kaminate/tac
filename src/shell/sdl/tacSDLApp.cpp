@@ -38,13 +38,13 @@ namespace Tac
 //    SDL_Event event;
 //    while( SDL_PollEvent( &event ) )
 //    {
-//      if( OS::mShouldStopRunning )
+//      if( OSmShouldStopRunning )
 //        break;
 //      switch( event.type )
 //      {
 //        case SDL_QUIT:
 //        {
-//          OS::mShouldStopRunning = true;
+//          OSmShouldStopRunning = true;
 //        } break;
 //        case SDL_WINDOWEVENT:
 //        {

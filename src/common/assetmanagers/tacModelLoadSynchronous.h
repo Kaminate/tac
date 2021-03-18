@@ -4,9 +4,14 @@
 #include "src/common/tacString.h"
 #include "src/common/math/tacVector3.h"
 #include "src/common/math/tacMatrix4.h"
+#include "src/common/graphics/tacRenderer.h"
 
 namespace Tac
 {
+//struct VertexDeclaration;
+//template<typename T, int N> struct FixedVector;
+//typedef FixedVector<VertexDeclaration, 10>VertexDeclarations;
+
 #if 0
 
   struct MeshFileInfo
@@ -75,7 +80,7 @@ namespace Tac
 
   struct Mesh;
   struct StringView;
-  struct VertexDeclarations;
+  //struct VertexDeclarations;
   struct Errors;
   Mesh LoadMeshSynchronous( const StringView& path,
                             const VertexDeclarations&,
@@ -86,33 +91,33 @@ namespace Tac
   //{
   //  struct MeshLoadInfo
   //  {
-
+  //
   //  };
-
+  //
   //  struct Node
   //  {
   //    MeshLoadInfo* n;
   //    m4 mLocalTransformation;
   //  };
-
+  //
   //  void foo()
   //  {
-
+  //
   //    if( "Instantiate Prefab" ) // button
   //    {
-
+  //
   //    }
   //  }
-
+  //
   //  struct World;
   //  struct Entity;
   //  World* editWorld;
   //  Entity* prefabEntity;
   //};
-
-
+  //
+  //
   //IEditorLoadInfo* LoadEditorModelFileInfo( const StringView&, Errors& );
-
+  //
   //struct GameRequestedLoadInfoComponentShit
   //{
   //  struct material
@@ -120,20 +125,20 @@ namespace Tac
   //    StringID texturepath_diffuse;
   //    StringID texturepath_specular;
   //  };
-
+  //
   //  struct submesh
   //  {
   //    material m;
-
+  //
   //    StringID meshgeoname;
   //  };
-
+  //
   //  struct mesh 
   //  {
   //    submesh* submeshes;
   //    int submeshcount;
   //  };
-
+  //
   //  StringID path;
   //  int iMesh;
   //};

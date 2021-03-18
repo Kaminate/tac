@@ -12,15 +12,16 @@ namespace Tac
 
   struct Model : public Component
   {
-    static Model*                  GetModel( Entity* );
-    static const Model*            GetModel( const Entity* );
+    static Model*                        GetModel( Entity* );
+    static const Model*                  GetModel( const Entity* );
     const ComponentRegistryEntry*        GetEntry() const override;
-    //static const ComponentRegistryEntry*        GetEntry();
-    //TextureUUID                  mTextureUUID = NullTextureUUID;
-    //GeometryUUID                 mGeometryUUID = NullGeometryUUID;
-    v3                             mColorRGB = { 1, 1, 1 };
-    String                         mModelPath;
-    Mesh*                          mesh = nullptr;
+    //static const ComponentRegistryEntry* GetEntryStatic();
+    //TextureUUID                        mTextureUUID = NullTextureUUID;
+    //GeometryUUID                       mGeometryUUID = NullGeometryUUID;
+    v3                                   mColorRGB = { 1, 1, 1 };
+    String                               mModelPath;
+    int                                  mModelIndex = 0;
+    Mesh*                                mesh = nullptr;
   };
 
   void                             RegisterModelComponent();

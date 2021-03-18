@@ -476,7 +476,7 @@ namespace Tac
           return;
         }
       } break;
-      default: TAC_ASSERT_INVALID_CASE( supportCount ); return;
+      default: TAC_CRITICAL_ERROR_INVALID_CASE( supportCount ); return;
     }
 
     const float searchDirLen = Length( mClosestPoint );

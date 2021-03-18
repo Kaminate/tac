@@ -123,12 +123,12 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
 
     mShader = Render::CreateShader( Render::ShaderSource::FromPath( "2D" ),
-                                    Render::ConstantBuffers( mPerFrame, mPerObj ),
+                                    Render::ConstantBuffers{ mPerFrame, mPerObj },
                                     TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
     m2DTextShader = Render::CreateShader( Render::ShaderSource::FromPath( "2Dtext" ),
-                                          Render::ConstantBuffers( mPerFrame, mPerObj ),
+                                          Render::ConstantBuffers{ mPerFrame, mPerObj },
                                           TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
@@ -140,10 +140,11 @@ namespace Tac
     uvData.mAlignedByteOffset = TAC_OFFSET_OF( UI2DVertex, mGLTexCoord );
     uvData.mAttribute = Attribute::Texcoord;
     uvData.mTextureFormat = formatv2;
-    VertexDeclarations vertexDeclarations;
-    vertexDeclarations.AddVertexDeclaration( posData );
-    vertexDeclarations.AddVertexDeclaration( uvData );
-    mFormat = Render::CreateVertexFormat( vertexDeclarations,
+    //VertexDeclarations vertexDeclarations;
+    //vertexDeclarations.AddVertexDeclaration( posData );
+    //vertexDeclarations.AddVertexDeclaration( uvData );
+    //mFormat = Render::CreateVertexFormat( vertexDeclarations,
+    mFormat = Render::CreateVertexFormat( VertexDeclarations{posData,uvData},
                                           mShader,
                                           TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
@@ -308,7 +309,7 @@ namespace Tac
       for( UI2DDrawCall& uidrawCall : mDrawCall2Ds )
       {
 
-        Render::TextureHandle texture = uidrawCall.mTexture.IsValid() ?
+        const Render::TextureHandle texture = uidrawCall.mTexture.IsValid() ?
           uidrawCall.mTexture :
           gUI2DCommonData.m1x1White;
         Render::UpdateConstantBuffer( gUI2DCommonData.mPerObj,
@@ -317,7 +318,7 @@ namespace Tac
                                       TAC_STACK_FRAME );
         Render::SetVertexBuffer( mVertexBufferHandle, uidrawCall.mIVertexStart, uidrawCall.mVertexCount );
         Render::SetIndexBuffer( mIndexBufferHandle, uidrawCall.mIIndexStart, uidrawCall.mIndexCount );
-        Render::SetTexture( texture );
+        Render::SetTexture( { texture } );
         Render::SetShader( uidrawCall.mShader );
         Render::Submit( viewHandle, TAC_STACK_FRAME );
       }

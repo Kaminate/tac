@@ -61,7 +61,7 @@ namespace Tac
   void       SettingsSave( Errors& errors )
   {
     String str = mJson.Stringify();
-    OS::SaveToFile( SettingsGetSavePath(), ( void* )str.data(), ( int )str.size(), errors );
+    OSSaveToFile( SettingsGetSavePath(), ( void* )str.data(), ( int )str.size(), errors );
     TAC_HANDLE_ERROR( errors );
   }
 

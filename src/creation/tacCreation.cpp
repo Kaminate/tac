@@ -137,10 +137,10 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
 
     String dataPath;
-    OS::GetApplicationDataPath( dataPath, errors );
+    OSGetApplicationDataPath( dataPath, errors );
     TAC_HANDLE_ERROR( errors );
 
-    OS::CreateFolderIfNotExist( dataPath, errors );
+    OSCreateFolderIfNotExist( dataPath, errors );
     TAC_HANDLE_ERROR( errors );
 
     Json* windows;
@@ -346,7 +346,7 @@ namespace Tac
     UpdateCreatedWindowData();
 
     if( AllWindowsClosed() )
-      OS::StopRunning();
+      OSAppStopRunning();
 
 
 

@@ -143,7 +143,7 @@ namespace Tac
         Tac::Errors& errors = mErrors;
 
         Vector< String > files;
-        OS::GetFilesInDirectory( files, mData->mDir, OS::GetFilesInDirectoryFlags::Recursive, errors );
+        OSGetFilesInDirectory( files, mData->mDir, OSGetFilesInDirectoryFlags::Recursive, errors );
         TAC_HANDLE_ERROR( errors );
 
         if( files.size() != 6 )

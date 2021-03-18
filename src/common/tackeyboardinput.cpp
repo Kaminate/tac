@@ -57,7 +57,7 @@ namespace Tac
       case Key::Y: return "Y";
       case Key::Z: return "Z";
       case Key::F5: return "f5";
-      default: TAC_ASSERT_INVALID_CASE( key ); return "";
+      default: TAC_CRITICAL_ERROR_INVALID_CASE( key ); return "";
     }
   }
 
@@ -104,12 +104,12 @@ namespace Tac
   // should only be used in the stuffthread
   KeyboardInput::KeyboardInput()
   {
-    //OS::GetScreenspaceCursorPos( mCurr.mScreenspaceCursorPos, mCurr.mScreenspaceCursorPosErrors );
-    //OS::GetScreenspaceCursorPos( mPrev.mScreenspaceCursorPos, mPrev.mScreenspaceCursorPosErrors );
+    //OSGetScreenspaceCursorPos( mCurr.mScreenspaceCursorPos, mCurr.mScreenspaceCursorPosErrors );
+    //OSGetScreenspaceCursorPos( mPrev.mScreenspaceCursorPos, mPrev.mScreenspaceCursorPosErrors );
   }
   void KeyboardInput::BeginFrame()
   {
-    //OS::GetScreenspaceCursorPos( mCurr.mScreenspaceCursorPos, mCurr.mScreenspaceCursorPosErrors );
+    //OSGetScreenspaceCursorPos( mCurr.mScreenspaceCursorPos, mCurr.mScreenspaceCursorPosErrors );
     //if( mCurr.mScreenspaceCursorPosErrors.empty() && mPrev.mScreenspaceCursorPosErrors.empty() )
     //  mMouseDeltaPosScreenspace = mCurr.mScreenspaceCursorPos - mPrev.mScreenspaceCursorPos;
     //else

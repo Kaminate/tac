@@ -11,7 +11,7 @@ namespace Tac
     {
       case AddressFamily::IPv4: return "IPv4";
       case AddressFamily::IPv6:return "IPv6";
-      default: TAC_ASSERT_INVALID_CASE( addressFamily ); return "";
+      default: TAC_CRITICAL_ERROR_INVALID_CASE( addressFamily ); return "";
     }
   }
   String ToString( SocketType socketType )
@@ -20,7 +20,7 @@ namespace Tac
     {
       case SocketType::TCP: return "TCP";
       case SocketType::UDP: return "UDP";
-      default: TAC_ASSERT_INVALID_CASE( socketType ); return "";
+      default: TAC_CRITICAL_ERROR_INVALID_CASE( socketType ); return "";
     }
   }
 
@@ -137,7 +137,7 @@ namespace Tac
         result += lookupTable[ ( input[ iInput + 1 ] << 2 ) & 0b111100 ];
         result += '=';
         break;
-      default: TAC_ASSERT_INVALID_CASE( remaining ); return 0;
+      default: TAC_CRITICAL_ERROR_INVALID_CASE( remaining ); return 0;
     }
     return result;
   }

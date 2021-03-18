@@ -219,7 +219,7 @@ namespace Tac
             {
               float xOffset = moveCursorDir * clipRect.GetWidth();
               Errors errors;
-              OS::SetScreenspaceCursorPos( screenspaceMousePos + v2( xOffset, 0 ), errors );
+              OSSetScreenspaceCursorPos( screenspaceMousePos + v2( xOffset, 0 ), errors );
             }
             else
             {

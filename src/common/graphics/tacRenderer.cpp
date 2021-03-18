@@ -18,7 +18,7 @@ namespace Tac
       case Attribute::BoneIndex: return "BONEINDEX";
       case Attribute::BoneWeight: return "BONEWEIGHT";
       case Attribute::Coeffs: return "COEFFS";
-      default: TAC_ASSERT_INVALID_CASE( attribType ); return nullptr;
+      default: TAC_CRITICAL_ERROR_INVALID_CASE( attribType ); return nullptr;
     }
   }
 
@@ -50,8 +50,8 @@ namespace Tac
     return result;
   }
 
-    RendererFactory* RendererRegistry::begin() { return GetRendererFactories().begin(); }
-    RendererFactory* RendererRegistry::end() { return GetRendererFactories().end(); }
+  RendererFactory* RendererRegistry::begin() { return GetRendererFactories().begin(); }
+  RendererFactory* RendererRegistry::end() { return GetRendererFactories().end(); }
 
   RendererFactory* RendererFactoriesFind( StringView name )
   {
@@ -66,82 +66,82 @@ namespace Tac
     GetRendererFactories().push_back( rendererFactory );
   }
 
-    void VertexDeclarations::AddVertexDeclaration( VertexDeclaration v )
-    {
-      mVertexFormatDatas[ mVertexFormatDataCount++ ] = v;
-    }
+  //void VertexDeclarations::AddVertexDeclaration( VertexDeclaration v )
+  //{
+  //  mVertexFormatDatas[ mVertexFormatDataCount++ ] = v;
+  //}
 
-    VertexDeclarations::VertexDeclarations( VertexDeclaration a )
-    {
-      AddVertexDeclaration( a );
-    }
+  //VertexDeclarations::VertexDeclarations( VertexDeclaration a )
+  //{
+  //  AddVertexDeclaration( a );
+  //}
 
-    VertexDeclarations::VertexDeclarations( VertexDeclaration a, VertexDeclaration b )
-    {
-      AddVertexDeclaration( a );
-      AddVertexDeclaration( b );
-    }
+  //VertexDeclarations::VertexDeclarations( VertexDeclaration a, VertexDeclaration b )
+  //{
+  //  AddVertexDeclaration( a );
+  //  AddVertexDeclaration( b );
+  //}
 
   namespace Render
   {
-    ConstantBuffers::ConstantBuffers( ConstantBufferHandle constantBufferHandle )
-    {
-      AddConstantBuffer( constantBufferHandle );
-    }
+    //ConstantBuffers::ConstantBuffers( ConstantBufferHandle constantBufferHandle )
+    //{
+    //  AddConstantBuffer( constantBufferHandle );
+    //}
 
-    ConstantBuffers::ConstantBuffers( ConstantBufferHandle a,
-                                      ConstantBufferHandle b )
-    {
-      AddConstantBuffer( a );
-      AddConstantBuffer( b );
-    }
+    //ConstantBuffers::ConstantBuffers( ConstantBufferHandle a,
+    //                                  ConstantBufferHandle b )
+    //{
+    //  AddConstantBuffer( a );
+    //  AddConstantBuffer( b );
+    //}
 
-    ConstantBuffers::ConstantBuffers( ConstantBufferHandle* constantBufferHandles, int n )
-    {
-      while( n-- )
-        AddConstantBuffer( *constantBufferHandles++ );
-    }
+    //ConstantBuffers::ConstantBuffers( ConstantBufferHandle* constantBufferHandles, int n )
+    //{
+    //  while( n-- )
+    //    AddConstantBuffer( *constantBufferHandles++ );
+    //}
 
-    void ConstantBuffers::AddConstantBuffer( ConstantBufferHandle handle )
-    {
-      mConstantBuffers[ mConstantBufferCount++ ] = handle;
-    }
+    //void ConstantBuffers::AddConstantBuffer( ConstantBufferHandle handle )
+    //{
+    //  mConstantBuffers[ mConstantBufferCount++ ] = handle;
+    //}
 
 
-    DrawCallTextures::DrawCallTextures( TextureHandle a )
-    {
+    //DrawCallTextures::DrawCallTextures( TextureHandle a )
+    //{
 
-      AddTexture( a );
-    }
+    //  AddTexture( a );
+    //}
 
-    DrawCallTextures::DrawCallTextures( TextureHandle a, TextureHandle b )
-    {
+    //DrawCallTextures::DrawCallTextures( TextureHandle a, TextureHandle b )
+    //{
 
-      AddTexture( a );
-      AddTexture( b );
-    }
+    //  AddTexture( a );
+    //  AddTexture( b );
+    //}
 
-    void DrawCallTextures::AddTexture( TextureHandle v )
-    {
+    //void DrawCallTextures::AddTexture( TextureHandle v )
+    //{
 
-      mTextures[ mTextureCount++ ] = v;
+    //  mTextures[ mTextureCount++ ] = v;
 
-    }
+    //}
 
-    const TextureHandle* DrawCallTextures::begin() const
-    {
-      return mTextures;
-    }
+    //const TextureHandle* DrawCallTextures::begin() const
+    //{
+    //  return mTextures;
+    //}
 
-    const TextureHandle* DrawCallTextures::end() const
-    {
-      return mTextures + mTextureCount;
-    }
+    //const TextureHandle* DrawCallTextures::end() const
+    //{
+    //  return mTextures + mTextureCount;
+    //}
 
-    TextureHandle DrawCallTextures::operator[]( int i ) const
-    {
-      return mTextures[ i ];
-    }
+    //TextureHandle DrawCallTextures::operator[]( int i ) const
+    //{
+    //  return mTextures[ i ];
+    //}
 
     ShaderSource ShaderSource::FromPath( const char* path )
     {

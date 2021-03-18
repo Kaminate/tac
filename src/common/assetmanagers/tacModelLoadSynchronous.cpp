@@ -19,7 +19,7 @@ namespace Tac
       case Attribute::Color: return cgltf_attribute_type_color;
       case Attribute::BoneIndex: return cgltf_attribute_type_joints;
       case Attribute::BoneWeight: return cgltf_attribute_type_weights;
-      default: TAC_ASSERT_INVALID_CASE( attributeType ); return cgltf_attribute_type_invalid;
+      default: TAC_CRITICAL_ERROR_INVALID_CASE( attributeType ); return cgltf_attribute_type_invalid;
     }
   }
 
@@ -46,7 +46,7 @@ namespace Tac
     {
       case cgltf_component_type_r_16u: return 2;
       case cgltf_component_type_r_32f: return 4;
-      default: TAC_ASSERT_INVALID_CASE( accessor->component_type ); return 0;
+      default: TAC_CRITICAL_ERROR_INVALID_CASE( accessor->component_type ); return 0;
     }
   }
 
@@ -56,7 +56,7 @@ namespace Tac
     {
       case cgltf_component_type_r_16u: return GraphicsType::uint;
       case cgltf_component_type_r_32f: return GraphicsType::real;
-      default: TAC_ASSERT_INVALID_CASE( accessor->component_type ) return ( GraphicsType )0;
+      default: TAC_CRITICAL_ERROR_INVALID_CASE( accessor->component_type ) return ( GraphicsType )0;
     }
 
   }
@@ -69,7 +69,7 @@ namespace Tac
       case cgltf_type_vec2: return 2;
       case cgltf_type_vec3: return 3;
       case cgltf_type_vec4: return 4;
-      default: TAC_ASSERT_INVALID_CASE( accessor->type ); return 0;
+      default: TAC_CRITICAL_ERROR_INVALID_CASE( accessor->type ); return 0;
     }
   }
 
@@ -253,7 +253,7 @@ namespace Tac
               }
               else
               {
-                TAC_ASSERT_UNIMPLEMENTED;
+                TAC_CRITICAL_ERROR_UNIMPLEMENTED;
               }
               // copy
               dstElement += dstFormat.mPerElementByteCount;

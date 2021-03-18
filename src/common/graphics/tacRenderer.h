@@ -5,8 +5,7 @@
 #pragma once
 
 #include "src/common/tacPreprocessor.h"
-
-// todo: move everythning to render namespace?
+#include "src/common/containers/tacFixedVector.h"
 
 namespace Tac
 {
@@ -154,17 +153,18 @@ namespace Tac
     int       mAlignedByteOffset = 0;
   };
 
-  struct VertexDeclarations
-  {
-    VertexDeclarations() = default;
-    VertexDeclarations( VertexDeclaration );
-    VertexDeclarations( VertexDeclaration, VertexDeclaration );
-    int size() const { return mVertexFormatDataCount; }
-    const VertexDeclaration& operator []( int i ) const { return mVertexFormatDatas[ i ]; }
-    void              AddVertexDeclaration( VertexDeclaration );
-    VertexDeclaration mVertexFormatDatas[ 10 ];
-    int               mVertexFormatDataCount = 0;
-  };
+  typedef FixedVector< VertexDeclaration, 10 > VertexDeclarations;
+  //struct VertexDeclarations
+  //{
+  //  VertexDeclarations() = default;
+  //  VertexDeclarations( VertexDeclaration );
+  //  VertexDeclarations( VertexDeclaration, VertexDeclaration );
+  //  int                      size() const { return mVertexFormatDataCount; }
+  //  const VertexDeclaration& operator []( int i ) const { return mVertexFormatDatas[ i ]; }
+  //  void                     AddVertexDeclaration( VertexDeclaration );
+  //  VertexDeclaration        mVertexFormatDatas[ 10 ];
+  //  int                      mVertexFormatDataCount = 0;
+  //};
 
   //struct DepthBufferData : public RendererResource
   //{
@@ -238,19 +238,33 @@ namespace Tac
       BlendMode      mBlendA = BlendMode::Add;
     };
 
+    typedef FixedVector< TextureHandle, 10 > FramebufferTextures;
+    //struct FramebufferTextures
+    //{
+    //  FramebufferTextures() = default;
+    //  FramebufferTextures( TextureHandle );
+    //  FramebufferTextures( TextureHandle, TextureHandle );
+    //  void                    AddTexture( TextureHandle );
+    //  const TextureHandle*    begin() const;
+    //  const TextureHandle*    end() const;
+    //  TextureHandle           operator[]( int i ) const;
+    //  TextureHandle           mTextures[ 10 ];
+    //  int                     mTextureCount;
+    //};
 
-    struct DrawCallTextures
-    {
-      DrawCallTextures() = default;
-      DrawCallTextures( TextureHandle );
-      DrawCallTextures( TextureHandle, TextureHandle );
-      void                    AddTexture( TextureHandle );
-      const TextureHandle*    begin() const;
-      const TextureHandle*    end() const;
-      TextureHandle           operator[]( int i ) const;
-      TextureHandle           mTextures[ 2 ];
-      int                     mTextureCount = 0;
-    };
+    typedef FixedVector< TextureHandle, 2 > DrawCallTextures;
+    //struct DrawCallTextures
+    //{
+    //  DrawCallTextures() = default;
+    //  DrawCallTextures( TextureHandle );
+    //  DrawCallTextures( TextureHandle, TextureHandle );
+    //  void                    AddTexture( TextureHandle );
+    //  const TextureHandle*    begin() const;
+    //  const TextureHandle*    end() const;
+    //  TextureHandle           operator[]( int i ) const;
+    //  TextureHandle           mTextures[ 2 ];
+    //  int                     mTextureCount = 0;
+    //};
 
     struct ShaderSource
     {
@@ -264,16 +278,17 @@ namespace Tac
       static ShaderSource FromStr( const char* );
     };
 
-    struct ConstantBuffers
-    {
-      ConstantBuffers() = default;
-      ConstantBuffers( ConstantBufferHandle );
-      ConstantBuffers( ConstantBufferHandle, ConstantBufferHandle );
-      ConstantBuffers( ConstantBufferHandle*, int );
-      void                 AddConstantBuffer( ConstantBufferHandle handle );
-      ConstantBufferHandle mConstantBuffers[ 10 ];
-      int                  mConstantBufferCount = 0;
-    };
+    typedef FixedVector< ConstantBufferHandle, 10 > ConstantBuffers;
+    //struct ConstantBuffers
+    //{
+    //  ConstantBuffers() = default;
+    //  ConstantBuffers( ConstantBufferHandle );
+    //  ConstantBuffers( ConstantBufferHandle, ConstantBufferHandle );
+    //  ConstantBuffers( ConstantBufferHandle*, int );
+    //  void                 AddConstantBuffer( ConstantBufferHandle handle );
+    //  ConstantBufferHandle mConstantBuffers[ 10 ];
+    //  int                  mConstantBufferCount = 0;
+    //};
 
     struct DepthState
     {
@@ -345,7 +360,7 @@ namespace Tac
                                                         Format format,
                                                         StackFrame );
     TextureHandle                    CreateTexture(  TexSpec, StackFrame );
-    FramebufferHandle                CreateFramebufferForRenderToTexture( TextureHandle*, int, StackFrame );
+    FramebufferHandle                CreateFramebufferForRenderToTexture( FramebufferTextures, StackFrame );
     FramebufferHandle                CreateFramebufferForWindow( const void* nativeWindowHandle,
                                                         int width,
                                                         int weight,

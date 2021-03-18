@@ -27,7 +27,7 @@ namespace Tac
       case ControllerButton::B: return "B";
       case ControllerButton::X: return "X";
       case ControllerButton::Y: return "Y";
-      default: TAC_ASSERT_INVALID_CASE( controllerButton ); return nullptr;
+      default: TAC_CRITICAL_ERROR_INVALID_CASE( controllerButton ); return nullptr;
     }
   }
 
@@ -63,7 +63,7 @@ namespace Tac
     for( ControllerIndex iController = 0; iController < TAC_CONTROLLER_COUNT_MAX; ++iController )
       if( mInput->mControllers[ iController ] == this )
         return iController;
-    TAC_ASSERT_INVALID_CODE_PATH;
+    TAC_CRITICAL_ERROR_INVALID_CODE_PATH;
     return TAC_CONTROLLER_COUNT_MAX;
   }
   bool Controller::IsButtonDown( ControllerButton controllerButton )
@@ -199,7 +199,7 @@ namespace Tac
       mControllers[ iController ] = controller;
       return iController;
     }
-    TAC_ASSERT_INVALID_CODE_PATH;
+    TAC_CRITICAL_ERROR_INVALID_CODE_PATH;
     return TAC_CONTROLLER_COUNT_MAX;
   }
 

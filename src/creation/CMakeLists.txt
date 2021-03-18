@@ -48,6 +48,7 @@ if( WIN32 )
     "${CMAKE_SOURCE_DIR}/src/shell/windows/tacRendererDirectX11.h"
     "${CMAKE_SOURCE_DIR}/src/shell/windows/tacRendererDirectX12.cpp"
     "${CMAKE_SOURCE_DIR}/src/shell/windows/tacRendererDirectX12.h"
+    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWin32OS.cpp"
     "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWin32.cpp"
     "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWin32.h"
     "${CMAKE_SOURCE_DIR}/src/shell/windows/tacXInput.cpp"

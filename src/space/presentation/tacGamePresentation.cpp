@@ -65,7 +65,7 @@ namespace Tac
     if( terrain->mRowMajorGrid.empty() )
       return;
 
-    //OS::DebugBreak();
+    //OSDebugBreak();
 
     typedef uint32_t TerrainIndex;
 
@@ -213,7 +213,7 @@ namespace Tac
       cbuf.Color = { 1, 1, 1, 1 };
       cbuf.World = m4::Identity();
 
-      Render::SetTexture( Render::DrawCallTextures( terrainTexture, noiseTexture ) );
+      Render::SetTexture( Render::DrawCallTextures{ terrainTexture, noiseTexture } );
       Render::UpdateConstantBuffer( mPerObj, &cbuf, sizeof( DefaultCBufferPerObject ), TAC_STACK_FRAME );
       Render::SetDepthState( mDepthState );
       Render::SetBlendState( mBlendState );
@@ -260,7 +260,7 @@ namespace Tac
   {
     TAC_UNUSED_PARAMETER( errors );
     mTerrainShader = Render::CreateShader( Render::ShaderSource::FromPath( "Terrain" ),
-                                           Render::ConstantBuffers( mPerFrame, mPerObj ),
+                                           Render::ConstantBuffers{ mPerFrame, mPerObj },
                                            TAC_STACK_FRAME );
   }
 
@@ -268,7 +268,7 @@ namespace Tac
   {
     TAC_UNUSED_PARAMETER( errors );
     m3DShader = Render::CreateShader( Render::ShaderSource::FromPath( "3DTest" ),
-                                      Render::ConstantBuffers( mPerFrame, mPerObj ),
+                                      Render::ConstantBuffers{ mPerFrame, mPerObj },
                                       TAC_STACK_FRAME );
   }
 
@@ -281,7 +281,7 @@ namespace Tac
     posDecl.mTextureFormat.mElementCount = 3;
     posDecl.mTextureFormat.mPerElementByteCount = sizeof( float );
     posDecl.mTextureFormat.mPerElementDataType = GraphicsType::real;
-    m3DVertexFormatDecls.AddVertexDeclaration( posDecl );
+    m3DVertexFormatDecls = VertexDeclarations{ posDecl };
     m3DVertexFormat = Render::CreateVertexFormat( m3DVertexFormatDecls,
                                                   m3DShader,
                                                   TAC_STACK_FRAME );
@@ -311,12 +311,7 @@ namespace Tac
     terrainTexCoordDecl.mTextureFormat.mPerElementDataType = GraphicsType::real;
     terrainTexCoordDecl.mAlignedByteOffset = TAC_OFFSET_OF( TerrainVertex, mUV );
 
-    VertexDeclarations vertexDeclarations;
-    vertexDeclarations.AddVertexDeclaration( terrainPosDecl );
-    vertexDeclarations.AddVertexDeclaration( terrainNorDecl );
-    vertexDeclarations.AddVertexDeclaration( terrainTexCoordDecl );
-
-    mTerrainVertexFormat = Render::CreateVertexFormat( vertexDeclarations,
+    mTerrainVertexFormat = Render::CreateVertexFormat( { terrainPosDecl, terrainNorDecl, terrainTexCoordDecl },
                                                        mTerrainShader,
                                                        TAC_STACK_FRAME );
   }

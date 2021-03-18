@@ -74,8 +74,8 @@ namespace Tac
   {
 
     // threads can add children during the update, so make a copy
-    FrameMemory::Vector< ScriptThread* > childrenToUpdate( mChildren.begin(), mChildren.end() );
-    FrameMemory::Vector< ScriptThread* > childrenToKill;
+    FrameMemoryVector< ScriptThread* > childrenToUpdate( mChildren.begin(), mChildren.end() );
+    FrameMemoryVector< ScriptThread* > childrenToKill;
     //Vector< ScriptThread* > childrenToUpdate( mChildren.begin(), mChildren.end() );
     //Vector< ScriptThread* > childrenToKill;
     for( auto child : childrenToUpdate )

@@ -31,7 +31,7 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
 
     mShader = Render::CreateShader( Render::ShaderSource::FromPath( "Skybox" ),
-                                    Render::ConstantBuffers( mPerFrame ),
+                                    Render::ConstantBuffers{ mPerFrame },
                                     TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
@@ -41,7 +41,7 @@ namespace Tac
     pos.mTextureFormat.mElementCount = 3;
     pos.mTextureFormat.mPerElementByteCount = sizeof( float );
     pos.mTextureFormat.mPerElementDataType = GraphicsType::real;
-    mVertexDecls.AddVertexDeclaration( pos );
+    mVertexDecls = VertexDeclarations{ pos };
 
     mVertexFormat = Render::CreateVertexFormat( mVertexDecls,
                                                 mShader,
@@ -126,7 +126,8 @@ namespace Tac
     Render::SetDepthState( mDepthState );
     Render::SetRasterizerState( mRasterizerState );
     Render::SetSamplerState( mSamplerState );
-    Render::SetTexture( Render::DrawCallTextures( cubemap ) );
+    //Render::SetTexture( Render::DrawCallTextures( cubemap ) );
+    Render::SetTexture( { cubemap } );
     Render::Submit( viewId, TAC_STACK_FRAME );
   }
 }

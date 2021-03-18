@@ -77,7 +77,7 @@ namespace Tac
     {
       case Endianness::Big: return HexToRGBAux( hexColor, 1, 2, 3 );
       case Endianness::Little: return HexToRGBAux( hexColor, 2, 1, 0 );
-      default: TAC_ASSERT_INVALID_CASE( endianness ); return {};
+      default: TAC_CRITICAL_ERROR_INVALID_CASE( endianness ); return {};
     }
   }
 }

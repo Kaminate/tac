@@ -45,7 +45,7 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
 
     m3DVertexColorShader = Render::CreateShader( Render::ShaderSource::FromPath( "3DDebug" ),
-                                                 Render::ConstantBuffers( mCBufferPerFrame ),
+                                                 Render::ConstantBuffers{ mCBufferPerFrame },
                                                  TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
@@ -65,10 +65,7 @@ namespace Tac
     colorData.mTextureFormat = formatv3;
     colorData.mAlignedByteOffset = TAC_OFFSET_OF( DefaultVertexColor, mColor );
 
-    VertexDeclarations vertexDeclarations;
-    vertexDeclarations.AddVertexDeclaration( positionData );
-    vertexDeclarations.AddVertexDeclaration( colorData );
-    mVertexColorFormat = Render::CreateVertexFormat( vertexDeclarations,
+    mVertexColorFormat = Render::CreateVertexFormat( { positionData, colorData },
                                                      m3DVertexColorShader,
                                                      TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );

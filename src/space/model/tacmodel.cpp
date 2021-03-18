@@ -27,6 +27,11 @@ namespace Tac
     return sComponentRegistryEntry;
 	}
 
+  //const ComponentRegistryEntry* Model::GetEntryStatic()
+  //{
+  //  return sComponentRegistryEntry;
+  //}
+
 	static Component* CreateModelComponent( World* world )
 	{
 		return GetGraphics( world )->CreateModelComponent();

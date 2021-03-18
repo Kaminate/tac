@@ -151,7 +151,7 @@ namespace Tac
       {
         Errors mouseErrors;
         v2 mousePosScreenspace;
-        OS::GetScreenspaceCursorPos( mousePosScreenspace, mouseErrors );
+        OSGetScreenspaceCursorPos( mousePosScreenspace, mouseErrors );
         if( mouseErrors.empty() )
         {
           float mouseDY = mousePosScreenspace.y - mScrollMousePosScreenspaceInitial.y;
@@ -168,7 +168,7 @@ namespace Tac
       {
         Errors mouseErrors;
         v2 mousePosScreenspace;
-        OS::GetScreenspaceCursorPos( mousePosScreenspace, mouseErrors );
+        OSGetScreenspaceCursorPos( mousePosScreenspace, mouseErrors );
         if( mouseErrors.empty() )
         {
           mScrolling = true;

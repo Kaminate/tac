@@ -284,9 +284,17 @@ namespace Tac
     {
       StackFrame            mStackFrame;
       FramebufferHandle     mFramebufferHandle;
+
+      //                    Used when creating a framebuffer for a window
       const void*           mNativeWindowHandle = nullptr;
       int                   mWidth = 0;
       int                   mHeight = 0;
+
+      //                    Used when creating a framebuffer for render-to-texture
+      //TextureHandle         mTextures[ 10 ] = {};
+      FramebufferTextures   mFramebufferTextures;
+      //TextureHandle*        mTextures;
+      //int                   mTextureCount = 0;
     };
 
     struct CommandDataCreateDepthState

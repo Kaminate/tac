@@ -168,7 +168,7 @@ namespace Tac
   {
     gThreadType = ThreadType::Stuff;
     sAllocatorStuff.Init( 1024 * 1024 * 10 );
-    FrameMemory::SetThreadAllocator( &sAllocatorStuff );
+    FrameMemorySetThreadAllocator( &sAllocatorStuff );
 
     ShellInit( errors );
     TAC_HANDLE_ERROR( errors );
@@ -197,11 +197,11 @@ namespace Tac
   static void LogicThread()
   {
     Errors& errors = gLogicThreadErrors;
-    TAC_ON_DESTRUCT( LogicThreadUninit(); if( errors.size() ) OS::StopRunning(); );
+    TAC_ON_DESTRUCT( LogicThreadUninit(); if( errors.size() ) OSAppStopRunning(); );
     LogicThreadInit( errors );
     TAC_HANDLE_ERROR( errors );
 
-    while( OS::IsRunning() )
+    while( OSAppIsRunning() )
     {
       gKeyboardInput.BeginFrame();
 
@@ -240,17 +240,17 @@ namespace Tac
     TAC_UNUSED_PARAMETER( errors );
     gThreadType = ThreadType::Main;
     sAllocatorMain.Init( 1024 * 1024 * 10 );
-    FrameMemory::SetThreadAllocator( &sAllocatorMain );
+    FrameMemorySetThreadAllocator( &sAllocatorMain );
   }
 
   static void PlatformThread()
   {
     Errors& errors = gPlatformThreadErrors;
-    TAC_ON_DESTRUCT( PlatformThreadUninit();  if( errors.size() ) OS::StopRunning(); );
+    TAC_ON_DESTRUCT( PlatformThreadUninit();  if( errors.size() ) OSAppStopRunning(); );
     PlatformThreadInit( errors );
     TAC_HANDLE_ERROR( errors );
 
-    while( OS::IsRunning() )
+    while( OSAppIsRunning() )
     {
       sPlatformFrameBegin( errors );
       TAC_HANDLE_ERROR( errors );
@@ -474,12 +474,8 @@ namespace Tac
         } break;
 
         default:
-        {
-          OS::DebugBreak();
-          TAC_ASSERT_MESSAGE( "..." );
-          TAC_ASSERT( false );
-          //TAC_ASSERT_INVALID_DEFAULT_CASE( desktopEventType );
-        }
+          TAC_CRITICAL_ERROR_INVALID_CASE( desktopEventType );
+          break;
       }
     }
   }
@@ -606,8 +602,8 @@ namespace Tac
 
     String appDataPath;
     bool appDataPathExists;
-    OS::GetApplicationDataPath( appDataPath, errors );
-    OS::DoesFolderExist( appDataPath, appDataPathExists, errors );
+    OSGetApplicationDataPath( appDataPath, errors );
+    OSDoesFolderExist( appDataPath, appDataPathExists, errors );
     TAC_HANDLE_ERROR( errors );
     TAC_ASSERT( appDataPathExists );
 
@@ -615,14 +611,14 @@ namespace Tac
     String studioPath = appDataPath + "\\" + info.mStudioName + "\\";
     String prefPath = studioPath + appName;
 
-    OS::CreateFolderIfNotExist( studioPath, errors );
+    OSCreateFolderIfNotExist( studioPath, errors );
     TAC_HANDLE_ERROR( errors );
 
-    OS::CreateFolderIfNotExist( prefPath, errors );
+    OSCreateFolderIfNotExist( prefPath, errors );
     TAC_HANDLE_ERROR( errors );
 
     String workingDir;
-    OS::GetWorkingDir( workingDir, errors );
+    OSGetWorkingDir( workingDir, errors );
     TAC_HANDLE_ERROR( errors );
 
     sPlatformSpawnWindow = platformSpawnWindow;

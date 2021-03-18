@@ -64,7 +64,7 @@ namespace Tac
         && IsDebugMode() )
     {
       std::cout << ToString() << std::endl;
-      OS::DebugBreak();
+      OSDebugBreak();
       mBroken = true;
     }
   }

@@ -44,7 +44,7 @@ namespace Tac
   static void ReportError( StringView desc, Errors& errors )
   {
     if( errors )
-      OS::DebugPopupBox( desc + " - " + errors.ToString() );
+      OSDebugPopupBox( desc + " - " + errors.ToString() );
   }
 
   static void Win32FrameBegin( Errors& errors )

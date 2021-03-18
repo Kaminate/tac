@@ -77,7 +77,7 @@ namespace Tac
             commandData.mConstantBufferHandle = constantBufferHandle;
             Renderer::Instance->UpdateConstantBuffer( &commandData, errors );
           } break;
-          default: TAC_ASSERT_INVALID_CASE( header.mType ); return;
+          default: TAC_CRITICAL_ERROR_INVALID_CASE( header.mType ); return;
         }
       }
     }
@@ -191,9 +191,9 @@ namespace Tac
     const char* CommandBuffer::Data() const { return mBuffer.data(); }
     int         CommandBuffer::Size() const { return mBuffer.size(); }
 
-    static Frame gFrames[ 2 ];
-    static Frame* gRenderFrame = &gFrames[ 0 ];
-    static Frame* gSubmitFrame = &gFrames[ 1 ];
+    static Frame    gFrames[ 2 ];
+    static Frame*   gRenderFrame = &gFrames[ 0 ];
+    static Frame*   gSubmitFrame = &gFrames[ 1 ];
     static uint32_t gCrow = 0xcaacaaaa;
     //int i = gCrow + 1;
 
@@ -235,14 +235,14 @@ namespace Tac
     static char      gSubmitRingBufferBytes[ gSubmitRingBufferCapacity ];
     static int       gSubmitRingBufferPos;
 
-    void DebugPrintSubmitAllocInfo()
+    void        DebugPrintSubmitAllocInfo()
     {
       std::cout << "gSubmitRingBufferCapacity: " << gSubmitRingBufferCapacity << std::endl;
       std::cout << "gSubmitRingBufferBytes: " << ( void* )gSubmitRingBufferBytes << std::endl;
       std::cout << "gSubmitRingBufferPos : " << gSubmitRingBufferPos << std::endl;
     }
 
-    bool IsSubmitAllocated( const void* data )
+    bool        IsSubmitAllocated( const void* data )
     {
       const bool result =
         data >= gSubmitRingBufferBytes &&
@@ -250,13 +250,7 @@ namespace Tac
       return result;
     }
 
-    //static void AssertSubmitAllocated( void* data )
-    //{
-    //  TAC_ASSERT( data >= gSubmitRingBufferBytes );
-    //  TAC_ASSERT( data < gSubmitRingBufferBytes + gSubmitRingBufferCapacity );
-    //}
-
-    void* SubmitAlloc( const int byteCount )
+    void*       SubmitAlloc( const int byteCount )
     {
       if( !byteCount )
         return nullptr;
@@ -278,7 +272,7 @@ namespace Tac
       return dst;
     }
 
-    StringView SubmitAlloc( const StringView stringView )
+    StringView  SubmitAlloc( const StringView stringView )
     {
       if( !stringView.mLen )
         return {};
@@ -296,18 +290,16 @@ namespace Tac
     //{
     //}
 
-    ViewHandle CreateView()
+    ViewHandle            CreateView()
     {
       return { mIdCollectionViewId.Alloc() };
     }
 
-
-
-    ShaderHandle CreateShader( const ShaderSource shaderSource,
-                               const ConstantBuffers constantBuffers,
-                               const StackFrame stackFrame )
+    ShaderHandle          CreateShader( const ShaderSource shaderSource,
+                                        const ConstantBuffers constantBuffers,
+                                        const StackFrame stackFrame )
     {
-      TAC_ASSERT( constantBuffers.mConstantBufferCount );
+      TAC_ASSERT( constantBuffers.size() );
       const ShaderHandle shaderHandle = { mIdCollectionShader.Alloc() };
       CommandDataCreateShader commandData;
       commandData.mShaderSource.mStr = SubmitAlloc( shaderSource.mStr ).c_str();
@@ -321,11 +313,11 @@ namespace Tac
       return shaderHandle;
     }
 
-    VertexBufferHandle CreateVertexBuffer( const int byteCount,
-                                           const void* optionalInitialBytes,
-                                           const int stride,
-                                           const Access access,
-                                           const StackFrame stackFrame )
+    VertexBufferHandle    CreateVertexBuffer( const int byteCount,
+                                              const void* optionalInitialBytes,
+                                              const int stride,
+                                              const Access access,
+                                              const StackFrame stackFrame )
     {
       const VertexBufferHandle vertexBufferHandle = { mIdCollectionVertexBuffer.Alloc() };
       CommandDataCreateVertexBuffer commandData;
@@ -341,9 +333,9 @@ namespace Tac
       return vertexBufferHandle;
     }
 
-    ConstantBufferHandle CreateConstantBuffer( const int byteCount,
-                                               const int shaderRegister,
-                                               const StackFrame stackFrame )
+    ConstantBufferHandle  CreateConstantBuffer( const int byteCount,
+                                                const int shaderRegister,
+                                                const StackFrame stackFrame )
     {
       const ConstantBufferHandle constantBufferHandle = { mIdCollectionConstantBuffer.Alloc() };
       CommandDataCreateConstantBuffer commandData;
@@ -357,11 +349,11 @@ namespace Tac
       return constantBufferHandle;
     }
 
-    IndexBufferHandle CreateIndexBuffer( const int byteCount,
-                                         const void* optionalInitialBytes,
-                                         const Access access,
-                                         const Format format,
-                                         const StackFrame stackFrame )
+    IndexBufferHandle     CreateIndexBuffer( const int byteCount,
+                                             const void* optionalInitialBytes,
+                                             const Access access,
+                                             const Format format,
+                                             const StackFrame stackFrame )
     {
       const IndexBufferHandle indexBufferHandle = { mIdCollectionIndexBuffer.Alloc() };
       CommandDataCreateIndexBuffer commandData;
@@ -377,8 +369,8 @@ namespace Tac
       return indexBufferHandle;
     }
 
-    TextureHandle CreateTexture( TexSpec texSpec,
-                                 const StackFrame stackFrame )
+    TextureHandle         CreateTexture( TexSpec texSpec,
+                                         const StackFrame stackFrame )
     {
       const int imageByteCount =
         texSpec.mImage.mFormat.CalculateTotalByteCount() *
@@ -401,25 +393,11 @@ namespace Tac
       return textureHandle;
     }
 
-    void ResizeFramebuffer( const FramebufferHandle framebufferHandle,
-                            const int w,
-                            const int h,
-                            const StackFrame stackFrame )
-    {
-      CommandDataResizeFramebuffer commandData;
-      commandData.mWidth = w;
-      commandData.mHeight = h;
-      commandData.mFramebufferHandle = framebufferHandle;
-      commandData.mStackFrame = stackFrame;
-      gSubmitFrame->mCommandBufferFrameBegin.PushCommand( CommandType::ResizeFramebuffer,
-                                                          &commandData,
-                                                          sizeof( CommandDataResizeFramebuffer ) );
-    }
 
-    FramebufferHandle CreateFramebufferForWindow( const void* nativeWindowHandle,
-                                         const int width,
-                                         const int height,
-                                         const StackFrame stackFrame )
+    FramebufferHandle     CreateFramebufferForWindow( const void* nativeWindowHandle,
+                                                      const int width,
+                                                      const int height,
+                                                      const StackFrame stackFrame )
     {
       const FramebufferHandle framebufferHandle = mIdCollectionFramebuffer.Alloc();
       CommandDataCreateFramebuffer commandData;
@@ -434,9 +412,23 @@ namespace Tac
       return framebufferHandle;
     }
 
+    FramebufferHandle     CreateFramebufferForRenderToTexture( FramebufferTextures framebufferTextures,
+                                                               const StackFrame stackFrame )
+    {
+      const FramebufferHandle framebufferHandle = mIdCollectionFramebuffer.Alloc();
+      CommandDataCreateFramebuffer commandData;
+      commandData.mFramebufferHandle = framebufferHandle;
+      commandData.mStackFrame = stackFrame;
+      commandData.mFramebufferTextures = framebufferTextures;
+      //commandData.mTextureCount = textureHandleCount;
+      gSubmitFrame->mCommandBufferFrameBegin.PushCommand( CommandType::CreateFramebuffer,
+                                                          &commandData,
+                                                          sizeof( CommandDataCreateFramebuffer ) );
+      return framebufferHandle;
+    }
 
-    BlendStateHandle CreateBlendState( const BlendState blendState,
-                                       const StackFrame stackFrame )
+    BlendStateHandle      CreateBlendState( const BlendState blendState,
+                                            const StackFrame stackFrame )
     {
       const BlendStateHandle blendStateHandle = mIdCollectionBlendState.Alloc();
       CommandDataCreateBlendState commandData;
@@ -463,8 +455,8 @@ namespace Tac
       return rasterizerStateHandle;
     }
 
-    SamplerStateHandle CreateSamplerState( const SamplerState samplerState,
-                                           const StackFrame stackFrame )
+    SamplerStateHandle    CreateSamplerState( const SamplerState samplerState,
+                                              const StackFrame stackFrame )
     {
       const SamplerStateHandle samplerStateHandle = mIdCollectionSamplerState.Alloc();
       CommandDataCreateSamplerState commandData;
@@ -477,8 +469,8 @@ namespace Tac
       return samplerStateHandle;
     }
 
-    DepthStateHandle CreateDepthState( const DepthState depthState,
-                                       const StackFrame stackFrame )
+    DepthStateHandle      CreateDepthState( const DepthState depthState,
+                                            const StackFrame stackFrame )
     {
       const DepthStateHandle depthStateHandle = mIdCollectionDepthState.Alloc();
       CommandDataCreateDepthState commandData;
@@ -491,9 +483,9 @@ namespace Tac
       return depthStateHandle;
     }
 
-    VertexFormatHandle CreateVertexFormat( const VertexDeclarations vertexDeclarations,
-                                           const ShaderHandle shaderHandle,
-                                           const StackFrame stackFrame )
+    VertexFormatHandle    CreateVertexFormat( const VertexDeclarations vertexDeclarations,
+                                              const ShaderHandle shaderHandle,
+                                              const StackFrame stackFrame )
     {
       const VertexFormatHandle vertexFormatHandle = mIdCollectionVertexFormat.Alloc();
       CommandDataCreateVertexFormat commandData;
@@ -721,6 +713,20 @@ namespace Tac
     }
 
 
+    void                  ResizeFramebuffer( const FramebufferHandle framebufferHandle,
+                                             const int w,
+                                             const int h,
+                                             const StackFrame stackFrame )
+    {
+      CommandDataResizeFramebuffer commandData;
+      commandData.mWidth = w;
+      commandData.mHeight = h;
+      commandData.mFramebufferHandle = framebufferHandle;
+      commandData.mStackFrame = stackFrame;
+      gSubmitFrame->mCommandBufferFrameBegin.PushCommand( CommandType::ResizeFramebuffer,
+                                                          &commandData,
+                                                          sizeof( CommandDataResizeFramebuffer ) );
+    }
 
     void UpdateTextureRegion( const TextureHandle handle,
                               const TexUpdate texUpdate,
@@ -899,11 +905,11 @@ namespace Tac
       if( !Renderer::Instance )
         return;
 
-      SemaphoreDecrementWait( gSubmitSemaphore );
+      OSSemaphoreDecrementWait( gSubmitSemaphore );
 
 
       if( gRenderFrame->mBreakOnFrameRender )
-        OS::DebugBreak();
+        OSDebugBreak();
 
 
       Renderer::Instance->ExecuteCommands( &gRenderFrame->mCommandBufferFrameBegin, errors );
@@ -915,7 +921,7 @@ namespace Tac
       for( int iDrawCall = 0; iDrawCall < drawCallCount; ++iDrawCall )
       {
         if( gRenderFrame->mBreakOnDrawCall == iDrawCall )
-          OS::DebugBreak();
+          OSDebugBreak();
 
         const DrawCall3* drawCall = drawCallBegin + iDrawCall;
 
@@ -933,7 +939,7 @@ namespace Tac
 
       TAC_ASSERT( errors.empty() );
 
-      SemaphoreIncrementPost( gRenderSemaphore );
+      OSSemaphoreIncrementPost( gRenderSemaphore );
 
       Renderer::Instance->SwapBuffers();
     }
@@ -959,7 +965,7 @@ namespace Tac
       TAC_ASSERT( IsLogicThread() );
 
       // Finish submitting this frame
-      SemaphoreDecrementWait( gRenderSemaphore );
+      OSSemaphoreDecrementWait( gRenderSemaphore );
 
       gSubmitFrame->mFreeDeferredHandles.FinishFreeingHandles();
 
@@ -978,16 +984,16 @@ namespace Tac
       gFrameCount++;
 
       // Start submitting the next frame
-      SemaphoreIncrementPost( gSubmitSemaphore );
+      OSSemaphoreIncrementPost( gSubmitSemaphore );
     }
 
     void Init( Errors& errors )
     {
-      gSubmitSemaphore = SemaphoreCreate();
-      gRenderSemaphore = SemaphoreCreate();
+      gSubmitSemaphore = OSSemaphoreCreate();
+      gRenderSemaphore = OSSemaphoreCreate();
 
       // i guess well make render frame go first
-      SemaphoreIncrementPost( gSubmitSemaphore );
+      OSSemaphoreIncrementPost( gSubmitSemaphore );
 
       Renderer::Instance->Init( errors );
     }
@@ -997,7 +1003,7 @@ namespace Tac
     {
       if( gSubmitFrame->mDrawCalls.size() == kDrawCallCapacity )
       {
-        OS::DebugBreak();
+        OSDebugBreak();
         return;
       }
 
@@ -1062,10 +1068,10 @@ namespace Tac
       for( ;; )
       {
         Errors fileModifyErrors;
-        OS::GetFileLastModifiedTime( &fileModifyTime, path, fileModifyErrors );
+        OSGetFileLastModifiedTime( &fileModifyTime, path, fileModifyErrors );
 
         if( fileModifyErrors )
-          OS::DebugPopupBox( fileModifyErrors.ToString() );
+          OSDebugPopupBox( fileModifyErrors.ToString() );
         else
           break;
       }
@@ -1098,7 +1104,7 @@ namespace Tac
       if( fileModifyTime == shaderReloadInfo->mFileModifyTime )
         return;
       shaderReloadInfo->mFileModifyTime = fileModifyTime;
-      shaderReloadFunction( Render::ShaderHandle( (int)( shaderReloadInfo - sShaderReloadInfos ) ), shaderReloadInfo->mFullPath.c_str() );
+      shaderReloadFunction( Render::ShaderHandle( ( int )( shaderReloadInfo - sShaderReloadInfos ) ), shaderReloadInfo->mFullPath.c_str() );
     }
 
     void               ShaderReloadHelperUpdate( ShaderReloadFunction* shaderReloadFunction )
@@ -1419,7 +1425,7 @@ namespace Tac
             const float bound = 10000.0f;
             const bool probablyOk = f0 > -bound && f0 < bound;
             if( !probablyOk )
-              OS::DebugBreak();
+              OSDebugBreak();
           }
 
           UpdateVertexBuffer( commandData, errors );
@@ -1463,7 +1469,7 @@ namespace Tac
             std::cout << "ResizeFramebuffer::End\n";
         } break;
 
-        default: TAC_ASSERT_INVALID_CASE( *renderCommandType ); return;
+        default: TAC_CRITICAL_ERROR_INVALID_CASE( *renderCommandType ); return;
       }
     }
   }

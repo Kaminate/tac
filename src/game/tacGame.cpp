@@ -21,7 +21,7 @@ namespace Tac
 
     int monitorWidth;
     int monitorHeight;
-    OS::GetPrimaryMonitor( &monitorWidth, &monitorHeight );
+    OSGetPrimaryMonitor( &monitorWidth, &monitorHeight );
 
     int windowWidth = ( int )( 0.8f * monitorWidth );
     int windowHeight = ( int )( 0.8f * monitorHeight );
