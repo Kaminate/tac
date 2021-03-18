@@ -30,10 +30,11 @@
 
 namespace Tac
 {
-  extern HINSTANCE ghInstance;
-  extern HINSTANCE ghPrevInstance;
-  extern LPSTR     glpCmdLine;
-  extern int       gnCmdShow;
+  void             Win32SetStartupParams( HINSTANCE, HINSTANCE, LPSTR, int );
+  HINSTANCE        Win32GetStartupInstance();
+  HINSTANCE        Win32GetStartupPrevInstance();
+  LPSTR            Win32GetStartupCmdLine();
+  int              Win32GetStartupCmdShow();
   struct String    Win32ErrorToString( DWORD );
   struct String    Win32GetLastErrorString();
   //struct String    Win32GetWindowName( HWND );

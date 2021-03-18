@@ -63,10 +63,7 @@ namespace Tac
                           const LPSTR lpCmdLine,
                           const int nCmdShow )
   {
-    ghInstance = hInstance;
-    ghPrevInstance = hPrevInstance;
-    glpCmdLine = lpCmdLine;
-    gnCmdShow = nCmdShow;
+    Win32SetStartupParams( hInstance, hPrevInstance, lpCmdLine, nCmdShow );
     Errors& errors = sWinMainErrors;
     static struct : public std::streambuf
     {

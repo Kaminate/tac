@@ -369,7 +369,7 @@ namespace Tac
     wc.hCursor = NULL; // LoadCursor( NULL, IDC_ARROW );
     wc.hIcon = icon;
     wc.hIconSm = NULL; // If null, the system searches for a small icon from the hIcon member
-    wc.hInstance = ghInstance;
+    wc.hInstance = Win32GetStartupInstance();
     wc.hbrBackground = ( HBRUSH )GetStockObject( BLACK_BRUSH );
     wc.lpfnWndProc = WindowProc;
     wc.lpszClassName = classname;
@@ -479,7 +479,7 @@ namespace Tac
                                     h,
                                     NULL,// mParentHWND,
                                     NULL,
-                                    ghInstance,
+                                    Win32GetStartupInstance(),
                                     NULL );
     if( !hwnd )
     {
@@ -512,7 +512,7 @@ namespace Tac
     // than it does to other threads.
     SetForegroundWindow( hwnd );
 
-    ShowWindow( hwnd, gnCmdShow );
+    ShowWindow( hwnd, Win32GetStartupCmdShow() );
     mParentHWND = mParentHWND ? mParentHWND : hwnd; // combine windows into one tab group
   }
 

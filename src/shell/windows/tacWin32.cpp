@@ -21,10 +21,26 @@
 
 namespace Tac
 {
-  HINSTANCE ghInstance;
-  HINSTANCE ghPrevInstance;
-  LPSTR     glpCmdLine;
-  int       gnCmdShow;
+  static HINSTANCE ghInstance;
+  static HINSTANCE ghPrevInstance;
+  static LPSTR     glpCmdLine;
+  static int       gnCmdShow;
+
+  void             Win32SetStartupParams( HINSTANCE hInstance,
+                                          HINSTANCE hPrevInstance,
+                                          LPSTR lpCmdLine,
+                                          int nCmdShow )
+  {
+    ghInstance = hInstance;
+    ghPrevInstance = hPrevInstance;
+    glpCmdLine = lpCmdLine;
+    gnCmdShow = nCmdShow;
+  }
+  HINSTANCE        Win32GetStartupInstance() { return ghInstance; }
+  HINSTANCE        Win32GetStartupPrevInstance() { return ghPrevInstance; }
+  LPSTR            Win32GetStartupCmdLine() { return glpCmdLine; }
+  int              Win32GetStartupCmdShow() { return gnCmdShow; }
+
 
   String Win32ErrorToString( const DWORD winErrorValue )
   {

@@ -103,7 +103,7 @@ namespace Tac
 
   void XInput::Init( Errors& errors )
   {
-    const HRESULT hr = DirectInput8Create( ghInstance,
+    const HRESULT hr = DirectInput8Create( Win32GetStartupInstance(),
                                            DIRECTINPUT_VERSION,
                                            IID_IDirectInput8,
                                            ( LPVOID* )&directInput,
