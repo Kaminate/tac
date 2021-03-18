@@ -229,8 +229,8 @@ namespace Tac
 		const float w = ( float )desktopWindowState->mWidth;
 		const float h = ( float )desktopWindowState->mHeight;
 		Render::SetViewFramebuffer( viewHandle, framebufferHandle );
-		Render::SetViewport( viewHandle, Viewport( w, h ) );
-		Render::SetViewScissorRect( viewHandle, ScissorRect( w, h ) );
+		Render::SetViewport( viewHandle, Render::Viewport( w, h ) );
+		Render::SetViewScissorRect( viewHandle, Render::ScissorRect( w, h ) );
 		TAC_HANDLE_ERROR( errors );
 	}
 }

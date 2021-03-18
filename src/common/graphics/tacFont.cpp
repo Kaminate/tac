@@ -12,7 +12,7 @@ namespace Tac
 {
 
 
-	const Format atlasFormat = { 1, sizeof( uint8_t ), GraphicsType::unorm };
+	const Render::Format atlasFormat = { 1, sizeof( uint8_t ), Render::GraphicsType::unorm };
 
 	//static v4 ToColorAlphaPremultiplied( v4 colorAlphaUnassociated )
 	//{
@@ -95,15 +95,15 @@ namespace Tac
 			( ( uint8_t* )initialAtlasMemory )[ i ] = ( uint8_t )( 0.3f * 255 );
 
 
-		Image image;
+		Render::Image image;
 		image.mWidth = mRowCount * FontCellWidth;
 		image.mHeight = mRowCount * FontCellWidth;
 		image.mFormat = atlasFormat;
 
 		Render::TexSpec cmdData;
-		cmdData.mAccess = Access::Dynamic;
-		cmdData.mBinding = Binding::ShaderResource;
-		cmdData.mCpuAccess = CPUAccess::Write;
+		cmdData.mAccess = Render::Access::Dynamic;
+		cmdData.mBinding = Render::Binding::ShaderResource;
+		cmdData.mCpuAccess = Render::CPUAccess::Write;
 		cmdData.mImage = image;
 		cmdData.mImageBytes = initialAtlasMemory;
 		cmdData.mPitch = mRowCount * FontCellWidth;
@@ -331,7 +331,7 @@ namespace Tac
 
 		if( bitmapWidthPx && bitmapHeightPx )
 		{
-			Image src;
+			Render::Image src;
 			//src.mData = bitmapMemory.data();
 			src.mFormat = atlasFormat;
 			src.mHeight = bitmapHeightPx;

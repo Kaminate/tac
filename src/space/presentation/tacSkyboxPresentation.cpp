@@ -35,13 +35,13 @@ namespace Tac
                                     TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
-    VertexDeclaration pos;
+    Render::VertexDeclaration pos;
     pos.mAlignedByteOffset = 0;
-    pos.mAttribute = Attribute::Position;
+    pos.mAttribute = Render::Attribute::Position;
     pos.mTextureFormat.mElementCount = 3;
     pos.mTextureFormat.mPerElementByteCount = sizeof( float );
-    pos.mTextureFormat.mPerElementDataType = GraphicsType::real;
-    mVertexDecls = VertexDeclarations{ pos };
+    pos.mTextureFormat.mPerElementDataType = Render::GraphicsType::real;
+    mVertexDecls = Render::VertexDeclarations{ pos };
 
     mVertexFormat = Render::CreateVertexFormat( mVertexDecls,
                                                 mShader,
@@ -50,24 +50,24 @@ namespace Tac
 
 
     Render::BlendState blendStateData;
-    blendStateData.mSrcRGB = BlendConstants::One;
-    blendStateData.mDstRGB = BlendConstants::Zero;
-    blendStateData.mBlendRGB = BlendMode::Add;
-    blendStateData.mSrcA = BlendConstants::Zero;
-    blendStateData.mDstA = BlendConstants::One;
-    blendStateData.mBlendA = BlendMode::Add;
+    blendStateData.mSrcRGB = Render::BlendConstants::One;
+    blendStateData.mDstRGB = Render::BlendConstants::Zero;
+    blendStateData.mBlendRGB = Render::BlendMode::Add;
+    blendStateData.mSrcA = Render::BlendConstants::Zero;
+    blendStateData.mDstA = Render::BlendConstants::One;
+    blendStateData.mBlendA = Render::BlendMode::Add;
     mBlendState = Render::CreateBlendState(  blendStateData, TAC_STACK_FRAME );
 
     Render::DepthState depthStateData;
     depthStateData.mDepthTest = true;
     depthStateData.mDepthWrite = true;
-    depthStateData.mDepthFunc = DepthFunc::LessOrEqual;
+    depthStateData.mDepthFunc = Render::DepthFunc::LessOrEqual;
     mDepthState = Render::CreateDepthState(  depthStateData, TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
     Render::RasterizerState rasterizerStateData;
-    rasterizerStateData.mCullMode = CullMode::None; // todo
-    rasterizerStateData.mFillMode = FillMode::Solid;
+    rasterizerStateData.mCullMode = Render::CullMode::None; // todo
+    rasterizerStateData.mFillMode = Render::FillMode::Solid;
     rasterizerStateData.mFrontCounterClockwise = true;
     rasterizerStateData.mMultisample = false;
     rasterizerStateData.mScissor = true;
@@ -75,7 +75,7 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
 
     Render::SamplerState samplerStateData;
-    samplerStateData.mFilter = Filter::Linear;
+    samplerStateData.mFilter = Render::Filter::Linear;
     mSamplerState = Render::CreateSamplerState(  samplerStateData, TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
   }

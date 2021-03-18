@@ -571,17 +571,17 @@ namespace Tac
   {
 
 #if defined _WIN32 || defined _WIN64 
-    const String defaultRendererName = RendererNameDirectX11;
+    const String defaultRendererName = Render::RendererNameDirectX11;
 #else
     const String defaultRendererName = RendererNameVulkan;
 #endif
-    if( const RendererFactory* factory = RendererFactoriesFind( defaultRendererName ) )
+    if( const Render::RendererFactory* factory = Render::RendererFactoriesFind( defaultRendererName ) )
     {
       factory->mCreateRenderer();
       return;
     }
 
-    RendererFactory& factory = *RendererRegistry().begin();
+    Render::RendererFactory& factory = *Render::RendererRegistry().begin();
     factory.mCreateRenderer();
   }
 

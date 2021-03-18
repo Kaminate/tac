@@ -36,6 +36,6 @@ namespace Tac
   //                         the mesh will be loaded into the vertex format specified by vertex declarations.
   void                       ModelAssetManagerGetMesh( Mesh** mesh,
                                                        StringView path,
-                                                       const VertexDeclarations&,
+                                                       const Render::VertexDeclarations&,
                                                        Errors& );
 }

@@ -45,11 +45,11 @@ namespace Tac
     DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
     if(!desktopWindowState->mNativeWindowHandle)
           return;
-    Viewport viewport;
+    Render::Viewport viewport;
     viewport.mWidth = ( float )desktopWindowState->mWidth;
     viewport.mHeight = ( float )desktopWindowState->mHeight;
 
-    ScissorRect scissorRect;
+    Render::ScissorRect scissorRect;
     scissorRect.mXMaxRelUpperLeftCornerPixel = ( float )desktopWindowState->mWidth;
     scissorRect.mYMaxRelUpperLeftCornerPixel = ( float )desktopWindowState->mHeight;
 

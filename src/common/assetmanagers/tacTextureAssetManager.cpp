@@ -33,7 +33,7 @@ namespace Tac
       void CreateTexture( Render::TextureHandle* texture, Tac::Errors& errors ) override
       {
         Render::TexSpec commandData = {};
-        commandData.mBinding = Binding::ShaderResource;
+        commandData.mBinding = Render::Binding::ShaderResource;
         commandData.mImage = mImage;
         commandData.mImageBytes = mImageData.data();
         commandData.mPitch = mPitch; // mImage.mFormat.CalculateTotalByteCount() * mImage.mWidth;
@@ -41,7 +41,7 @@ namespace Tac
         TAC_HANDLE_ERROR( errors );
       }
       int            mPitch = 0;
-      Image          mImage;
+      Render::Image          mImage;
       Vector< char > mImageData;
       String         mFilepath;
     };
@@ -52,7 +52,7 @@ namespace Tac
       void CreateTexture( Render::TextureHandle* texture, Tac::Errors& errors ) override
       {
         Render::TexSpec commandData = {};
-        commandData.mBinding = Binding::ShaderResource;
+        commandData.mBinding = Render::Binding::ShaderResource;
         commandData.mImage = mImage;
         commandData.mImageBytesCubemap[ 0 ] = mImageData[ 0 ].data();
         commandData.mImageBytesCubemap[ 1 ] = mImageData[ 1 ].data();
@@ -65,7 +65,7 @@ namespace Tac
         TAC_HANDLE_ERROR( errors );
       }
       int            mPitch = 0;
-      Image          mImage;
+      Render::Image          mImage;
       Vector< char > mImageData[ 6 ];
       String         mDir;
     };
@@ -116,17 +116,17 @@ namespace Tac
           }
         }
 
-        Format format;
+        Render::Format format;
         format.mElementCount = desiredChannelCount;
         format.mPerElementByteCount = 1;
-        format.mPerElementDataType = GraphicsType::unorm;
+        format.mPerElementDataType = Render::GraphicsType::unorm;
 
         const int pitch = x * format.mElementCount * format.mPerElementByteCount;
         const int imageDataByteCount = y * pitch;
         mData->mImageData.resize( imageDataByteCount );
         MemCpy( mData->mImageData.data(), loaded, imageDataByteCount );
 
-        Image& image = mData->mImage;
+        Render::Image& image = mData->mImage;
         image.mFormat = format;
         image.mWidth = x;
         image.mHeight = y;
@@ -173,10 +173,10 @@ namespace Tac
         TrySortPart( "Back", 5 );
 
 
-        Format format;
+        Render::Format format;
         format.mElementCount = 4;
         format.mPerElementByteCount = 1;
-        format.mPerElementDataType = GraphicsType::unorm;
+        format.mPerElementDataType = Render::GraphicsType::unorm;
 
 
         int prevWidth = 0;
@@ -224,7 +224,7 @@ namespace Tac
           mData->mPitch = pitch;
         }
 
-        Image& image = mData->mImage;
+        Render::Image& image = mData->mImage;
         image.mFormat = format;
         image.mWidth = prevWidth;
         image.mHeight = prevHeight;

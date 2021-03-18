@@ -106,9 +106,9 @@ namespace Tac
     textureData.mPitch = 1;
     textureData.mImage.mFormat.mElementCount = 4;
     textureData.mImage.mFormat.mPerElementByteCount = 1;
-    textureData.mImage.mFormat.mPerElementDataType = GraphicsType::unorm;
+    textureData.mImage.mFormat.mPerElementDataType = Render::GraphicsType::unorm;
     textureData.mImageBytes = data;
-    textureData.mBinding = Binding::ShaderResource;
+    textureData.mBinding = Render::Binding::ShaderResource;
     m1x1White = Render::CreateTexture( textureData, TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
@@ -132,30 +132,32 @@ namespace Tac
                                           TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
-    VertexDeclaration posData;
+    Render::VertexDeclaration posData;
     posData.mAlignedByteOffset = TAC_OFFSET_OF( UI2DVertex, mPosition );
-    posData.mAttribute = Attribute::Position;
+    posData.mAttribute = Render::Attribute::Position;
     posData.mTextureFormat = formatv2;
-    VertexDeclaration uvData;
+
+    Render::VertexDeclaration uvData;
     uvData.mAlignedByteOffset = TAC_OFFSET_OF( UI2DVertex, mGLTexCoord );
-    uvData.mAttribute = Attribute::Texcoord;
+    uvData.mAttribute = Render::Attribute::Texcoord;
     uvData.mTextureFormat = formatv2;
+
     //VertexDeclarations vertexDeclarations;
     //vertexDeclarations.AddVertexDeclaration( posData );
     //vertexDeclarations.AddVertexDeclaration( uvData );
     //mFormat = Render::CreateVertexFormat( vertexDeclarations,
-    mFormat = Render::CreateVertexFormat( VertexDeclarations{posData,uvData},
+    mFormat = Render::CreateVertexFormat( Render::VertexDeclarations{posData,uvData},
                                           mShader,
                                           TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
     Render::BlendState blendStateData;
-    blendStateData.mSrcRGB = BlendConstants::One;
-    blendStateData.mDstRGB = BlendConstants::OneMinusSrcA;
-    blendStateData.mBlendRGB = BlendMode::Add;
-    blendStateData.mSrcA = BlendConstants::One;
-    blendStateData.mDstA = BlendConstants::OneMinusSrcA;
-    blendStateData.mBlendA = BlendMode::Add;
+    blendStateData.mSrcRGB = Render::BlendConstants::One;
+    blendStateData.mDstRGB = Render::BlendConstants::OneMinusSrcA;
+    blendStateData.mBlendRGB = Render::BlendMode::Add;
+    blendStateData.mSrcA = Render::BlendConstants::One;
+    blendStateData.mDstA = Render::BlendConstants::OneMinusSrcA;
+    blendStateData.mBlendA = Render::BlendMode::Add;
     mBlendState = Render::CreateBlendState( blendStateData,
                                             TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
@@ -163,13 +165,13 @@ namespace Tac
     Render::DepthState depthStateData;
     depthStateData.mDepthTest = false;
     depthStateData.mDepthWrite = false;
-    depthStateData.mDepthFunc = DepthFunc::Less;
+    depthStateData.mDepthFunc = Render::DepthFunc::Less;
     mDepthState = Render::CreateDepthState( depthStateData,
                                             TAC_STACK_FRAME );
 
     Render::RasterizerState rasterizerStateData;
-    rasterizerStateData.mCullMode = CullMode::None;
-    rasterizerStateData.mFillMode = FillMode::Solid;
+    rasterizerStateData.mCullMode = Render::CullMode::None;
+    rasterizerStateData.mFillMode = Render::FillMode::Solid;
     rasterizerStateData.mFrontCounterClockwise = true;
     rasterizerStateData.mMultisample = false;
     rasterizerStateData.mScissor = true;
@@ -178,7 +180,7 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
 
     Render::SamplerState samplerStateData;
-    samplerStateData.mFilter = Filter::Linear;
+    samplerStateData.mFilter = Render::Filter::Linear;
     mSamplerState = Render::CreateSamplerState( samplerStateData,
                                                 TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
@@ -237,7 +239,7 @@ namespace Tac
       mVertexBufferHandle = Render::CreateVertexBuffer( mDefaultVertex2Ds.size() * sizeof( UI2DVertex ),
                                                         nullptr,
                                                         sizeof( UI2DVertex ),
-                                                        Access::Dynamic,
+                                                        Render::Access::Dynamic,
                                                         TAC_STACK_FRAME );
       mVertexCapacity = vertexCount;
 
@@ -248,13 +250,13 @@ namespace Tac
     {
       if( mIndexBufferHandle.IsValid() )
         Render::DestroyIndexBuffer( mIndexBufferHandle, TAC_STACK_FRAME );
-      Format format;
+      Render::Format format;
       format.mElementCount = 1;
       format.mPerElementByteCount = sizeof( UI2DIndex );
-      format.mPerElementDataType = GraphicsType::uint;
+      format.mPerElementDataType = Render::GraphicsType::uint;
       mIndexBufferHandle = Render::CreateIndexBuffer( indexCount * sizeof( UI2DIndex ),
                                                       nullptr,
-                                                      Access::Dynamic,
+                                                      Render::Access::Dynamic,
                                                       format,
                                                       TAC_STACK_FRAME );
       TAC_HANDLE_ERROR( errors );

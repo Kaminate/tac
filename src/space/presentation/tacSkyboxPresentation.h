@@ -23,7 +23,7 @@ namespace Tac
     Render::DepthStateHandle      mDepthState;
     Render::RasterizerStateHandle mRasterizerState;
     Render::SamplerStateHandle    mSamplerState;
-    VertexDeclarations            mVertexDecls;
+    Render::VertexDeclarations            mVertexDecls;
     Errors                        mGetSkyboxTextureErrors;
     Errors                        mGetSkyboxMeshErrors;
   };

@@ -12,206 +12,206 @@ namespace Tac
   struct StringView;
   struct Errors;
 
-  enum class Attribute // Used to hardcode shader semantics/indexes
-  {
-    Position,
-    Normal,
-    Texcoord,
-    Color,
-    BoneIndex,
-    BoneWeight,
-    Coeffs,
-    Count
-  };
-  enum class GraphicsType
-  {
-    unknown,
-    sint,
-    uint,
-    snorm,
-    unorm,
-    real
-  };
-  enum class DepthFunc
-  {
-    Less,
-    LessOrEqual,
-  };
-  enum class AddressMode
-  {
-    Wrap,
-    Clamp,
-    Border,
-  };
-  enum class Comparison
-  {
-    Always,
-    Never,
-  };
-  enum class Filter
-  {
-    Point,
-    Linear,
-    Aniso,
-  };
-  enum class ShaderType
-  {
-    Vertex,
-    Fragment,
-    Count,
-  };
-  enum class Access
-  {
-    Default = 0, // ?
-    Static, // Never gonna change
-    Dynamic, // Gonna change ( debug draw, animation )
-  };
-  enum class CPUAccess
-  {
-    None = 0b00,
-    Read = 0b01,
-    Write = 0b10
-  };
-  enum class Map
-  {
-    Read,
-    Write,
-    ReadWrite,
-    WriteDiscard, // the previous contents will be discarded
-  };
-  enum class Primitive
-  {
-    TriangleList,
-    LineList
-  };
-  enum class BlendMode
-  {
-    Add,
-  };
-  enum class BlendConstants
-  {
-    One,
-    Zero,
-    SrcRGB,
-    SrcA,
-    OneMinusSrcA,
-  };
-  enum class FillMode
-  {
-    Solid,
-    Wireframe
-  };
-  enum class CullMode
-  {
-    None,
-    Back,
-    Front
-  };
-  enum class Binding
-  {
-    None = 0b00,
-    ShaderResource = 0b01,
-    RenderTarget = 0b10,
-  };
-
-  const char* GetSemanticName( Attribute attribType );
-
-  // Used so the gpu can translate from cpu types to gpu types
-  struct Format
-  {
-    int          CalculateTotalByteCount() const;
-    int          mElementCount = 0;
-    int          mPerElementByteCount = 0;
-    GraphicsType mPerElementDataType = GraphicsType::unknown;
-  };
-
-
-
-  struct Image
-  {
-    int    mWidth = 0;
-    int    mHeight = 0;
-    Format mFormat;
-
-    // byte data should be passed as a separate argument, not as a member of this class
-  };
-
-  //struct Constant
-  //{
-  //  String mName;
-  //  int    mOffset = 0;
-  //  int    mSize = 0;
-  //};
-
-  struct VertexDeclaration
-  {
-    Attribute mAttribute = Attribute::Count;
-    Format    mTextureFormat;
-
-    // Offset of the variable from the vertex buffer
-    // ie: OffsetOf( MyVertexType, mPosition)
-    int       mAlignedByteOffset = 0;
-  };
-
-  typedef FixedVector< VertexDeclaration, 10 > VertexDeclarations;
-  //struct VertexDeclarations
-  //{
-  //  VertexDeclarations() = default;
-  //  VertexDeclarations( VertexDeclaration );
-  //  VertexDeclarations( VertexDeclaration, VertexDeclaration );
-  //  int                      size() const { return mVertexFormatDataCount; }
-  //  const VertexDeclaration& operator []( int i ) const { return mVertexFormatDatas[ i ]; }
-  //  void                     AddVertexDeclaration( VertexDeclaration );
-  //  VertexDeclaration        mVertexFormatDatas[ 10 ];
-  //  int                      mVertexFormatDataCount = 0;
-  //};
-
-  //struct DepthBufferData : public RendererResource
-  //{
-  //  int width = 0;
-  //  int height = 0;
-
-  //  int mDepthBitCount = 0;
-  //  GraphicsType mDepthGraphicsType = GraphicsType::unknown;
-
-  //  int mStencilBitCount = 0;
-  //  GraphicsType mStencilType = GraphicsType::unknown;
-  //};
-
-  struct ScissorRect
-  {
-    ScissorRect() = default;
-    ScissorRect( float w, float h );
-    ScissorRect( int w, int h );
-    float mXMinRelUpperLeftCornerPixel = 0;
-    float mYMinRelUpperLeftCornerPixel = 0;
-    float mXMaxRelUpperLeftCornerPixel = 0;
-    float mYMaxRelUpperLeftCornerPixel = 0;
-  };
-
-  // glViewport lets opengl know how to map the NDC coordinates to the framebuffer coordinates.
-  struct Viewport
-  {
-    Viewport() = default;
-    Viewport( float w, float h );
-    Viewport( int w, int h );
-    float mBottomLeftX = 0;
-    float mBottomLeftY = 0;
-    float mWidth = 0;
-    float mHeight = 0;
-    float mMinDepth = 0;
-    float mMaxDepth = 1;
-  };
-
-  enum PrimitiveTopology
-  {
-    TriangleList,
-    LineList,
-    Count,
-  };
-
   namespace Render
   {
+    enum class Attribute // Used to hardcode shader semantics/indexes
+    {
+      Position,
+      Normal,
+      Texcoord,
+      Color,
+      BoneIndex,
+      BoneWeight,
+      Coeffs,
+      Count
+    };
+    enum class GraphicsType
+    {
+      unknown,
+      sint,
+      uint,
+      snorm,
+      unorm,
+      real
+    };
+    enum class DepthFunc
+    {
+      Less,
+      LessOrEqual,
+    };
+    enum class AddressMode
+    {
+      Wrap,
+      Clamp,
+      Border,
+    };
+    enum class Comparison
+    {
+      Always,
+      Never,
+    };
+    enum class Filter
+    {
+      Point,
+      Linear,
+      Aniso,
+    };
+    enum class ShaderType
+    {
+      Vertex,
+      Fragment,
+      Count,
+    };
+    enum class Access
+    {
+      Default = 0, // ?
+      Static, // Never gonna change
+      Dynamic, // Gonna change ( debug draw, animation )
+    };
+    enum class CPUAccess
+    {
+      None = 0b00,
+      Read = 0b01,
+      Write = 0b10
+    };
+    enum class Map
+    {
+      Read,
+      Write,
+      ReadWrite,
+      WriteDiscard, // the previous contents will be discarded
+    };
+    enum class Primitive
+    {
+      TriangleList,
+      LineList
+    };
+    enum class BlendMode
+    {
+      Add,
+    };
+    enum class BlendConstants
+    {
+      One,
+      Zero,
+      SrcRGB,
+      SrcA,
+      OneMinusSrcA,
+    };
+    enum class FillMode
+    {
+      Solid,
+      Wireframe
+    };
+    enum class CullMode
+    {
+      None,
+      Back,
+      Front
+    };
+    enum class Binding
+    {
+      None = 0b00,
+      ShaderResource = 0b01,
+      RenderTarget = 0b10,
+    };
+
+    const char* GetSemanticName( Attribute );
+
+    // Used so the gpu can translate from cpu types to gpu types
+    struct Format
+    {
+      int          CalculateTotalByteCount() const;
+      int          mElementCount = 0;
+      int          mPerElementByteCount = 0;
+      GraphicsType mPerElementDataType = GraphicsType::unknown;
+    };
+
+
+
+    struct Image
+    {
+      int    mWidth = 0;
+      int    mHeight = 0;
+      Format mFormat;
+
+      // byte data should be passed as a separate argument, not as a member of this class
+    };
+
+    //struct Constant
+    //{
+    //  String mName;
+    //  int    mOffset = 0;
+    //  int    mSize = 0;
+    //};
+
+    struct VertexDeclaration
+    {
+      Attribute mAttribute = Attribute::Count;
+      Format    mTextureFormat;
+
+      // Offset of the variable from the vertex buffer
+      // ie: OffsetOf( MyVertexType, mPosition)
+      int       mAlignedByteOffset = 0;
+    };
+
+    typedef FixedVector< VertexDeclaration, 10 > VertexDeclarations;
+    //struct VertexDeclarations
+    //{
+    //  VertexDeclarations() = default;
+    //  VertexDeclarations( VertexDeclaration );
+    //  VertexDeclarations( VertexDeclaration, VertexDeclaration );
+    //  int                      size() const { return mVertexFormatDataCount; }
+    //  const VertexDeclaration& operator []( int i ) const { return mVertexFormatDatas[ i ]; }
+    //  void                     AddVertexDeclaration( VertexDeclaration );
+    //  VertexDeclaration        mVertexFormatDatas[ 10 ];
+    //  int                      mVertexFormatDataCount = 0;
+    //};
+
+    //struct DepthBufferData : public RendererResource
+    //{
+    //  int width = 0;
+    //  int height = 0;
+
+    //  int mDepthBitCount = 0;
+    //  GraphicsType mDepthGraphicsType = GraphicsType::unknown;
+
+    //  int mStencilBitCount = 0;
+    //  GraphicsType mStencilType = GraphicsType::unknown;
+    //};
+
+    struct ScissorRect
+    {
+      ScissorRect() = default;
+      ScissorRect( float w, float h );
+      ScissorRect( int w, int h );
+      float mXMinRelUpperLeftCornerPixel = 0;
+      float mYMinRelUpperLeftCornerPixel = 0;
+      float mXMaxRelUpperLeftCornerPixel = 0;
+      float mYMaxRelUpperLeftCornerPixel = 0;
+    };
+
+    // glViewport lets opengl know how to map the NDC coordinates to the framebuffer coordinates.
+    struct Viewport
+    {
+      Viewport() = default;
+      Viewport( float w, float h );
+      Viewport( int w, int h );
+      float mBottomLeftX = 0;
+      float mBottomLeftY = 0;
+      float mWidth = 0;
+      float mHeight = 0;
+      float mMinDepth = 0;
+      float mMaxDepth = 1;
+    };
+
+    //enum PrimitiveTopology
+    //{
+    //  TriangleList,
+    //  LineList,
+    //  Count,
+    //};
+
     TAC_DEFINE_HANDLE( ShaderHandle );
     TAC_DEFINE_HANDLE( VertexBufferHandle );
     TAC_DEFINE_HANDLE( IndexBufferHandle );
@@ -345,7 +345,7 @@ namespace Tac
     const void*                      SubmitAlloc( const void* bytes, int byteCount );
     ViewHandle                       CreateView();
     void                             DestroyView( ViewHandle );
-    ShaderHandle                     CreateShader(  ShaderSource, ConstantBuffers, StackFrame );
+    ShaderHandle                     CreateShader( ShaderSource, ConstantBuffers, StackFrame );
     ConstantBufferHandle             CreateConstantBuffer( int mByteCount,
                                                            int mShaderRegister,
                                                            StackFrame );
@@ -359,12 +359,12 @@ namespace Tac
                                                         Access access,
                                                         Format format,
                                                         StackFrame );
-    TextureHandle                    CreateTexture(  TexSpec, StackFrame );
+    TextureHandle                    CreateTexture( TexSpec, StackFrame );
     FramebufferHandle                CreateFramebufferForRenderToTexture( FramebufferTextures, StackFrame );
     FramebufferHandle                CreateFramebufferForWindow( const void* nativeWindowHandle,
-                                                        int width,
-                                                        int weight,
-                                                        StackFrame );
+                                                                 int width,
+                                                                 int weight,
+                                                                 StackFrame );
     BlendStateHandle                 CreateBlendState( BlendState, StackFrame );
     RasterizerStateHandle            CreateRasterizerState( RasterizerState, StackFrame );
     SamplerStateHandle               CreateSamplerState( SamplerState, StackFrame );
@@ -435,31 +435,32 @@ namespace Tac
         Render::BeginGroup( text, TAC_STACK_FRAME );            \
         TAC_ON_DESTRUCT( Render::EndGroup( TAC_STACK_FRAME ) );
 
-  }
 
-  struct RendererFactory
-  {
-    const char* mRendererName;
-    void( *mCreateRenderer )( );
-  };
+    struct RendererFactory
+    {
+      const char* mRendererName;
+      void( *mCreateRenderer )( );
+    };
 
-  // could move it to the c++ file, but plan to be able to
-  // pick a renderer from a dropdown in the future
-  struct RendererRegistry
-  {
-    RendererFactory* begin();
-    RendererFactory* end();
-  };
+    // could move it to the c++ file, but plan to be able to
+    // pick a renderer from a dropdown in the future
+    struct RendererRegistry
+    {
+      RendererFactory* begin();
+      RendererFactory* end();
+    };
 
-  RendererFactory*           RendererFactoriesFind( StringView );
-  void                       RendererFactoriesRegister( RendererFactory );
-
+    RendererFactory*           RendererFactoriesFind( StringView );
+    void                       RendererFactoriesRegister( RendererFactory );
 
 
-  const char* const RendererNameVulkan = "Vulkan";
-  const char* const RendererNameOpenGL4 = "OpenGL4";
-  const char* const RendererNameDirectX11 = "DirectX11";
-  const char* const RendererNameDirectX12 = "DirectX12";
-  //const char* RendererTypeToString( Renderer::Type );
-}
+
+    const char* const RendererNameVulkan = "Vulkan";
+    const char* const RendererNameOpenGL4 = "OpenGL4";
+    const char* const RendererNameDirectX11 = "DirectX11";
+    const char* const RendererNameDirectX12 = "DirectX12";
+    //const char* RendererTypeToString( Renderer::Type );
+
+  } // namespace Render
+} // namespace Tac
 

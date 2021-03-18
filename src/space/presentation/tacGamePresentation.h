@@ -49,7 +49,7 @@ namespace Tac
     Render::BlendStateHandle      mBlendState;
     Render::RasterizerStateHandle mRasterizerState;
     Render::SamplerStateHandle    mSamplerState;
-    VertexDeclarations            m3DVertexFormatDecls;
+    Render::VertexDeclarations            m3DVertexFormatDecls;
   private:
     void                          Create3DShader( Errors& );
     void                          CreateTerrainShader( Errors& );

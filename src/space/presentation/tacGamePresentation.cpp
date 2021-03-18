@@ -104,16 +104,16 @@ namespace Tac
     terrain->mVertexBuffer = Render::CreateVertexBuffer( vertexes.size() * sizeof( TerrainVertex ),
                                                          vertexes.data(),
                                                          sizeof( TerrainVertex ),
-                                                         Access::Default,
+                                                         Render::Access::Default,
                                                          TAC_STACK_FRAME );
 
-    Format format;
+    Render::Format format;
     format.mElementCount = 1;
     format.mPerElementByteCount = sizeof( TerrainIndex );
-    format.mPerElementDataType = GraphicsType::uint;
+    format.mPerElementDataType = Render::GraphicsType::uint;
     terrain->mIndexBuffer = Render::CreateIndexBuffer( indexes.size() * sizeof( TerrainIndex ),
                                                        indexes.data(),
-                                                       Access::Default,
+                                                       Render::Access::Default,
                                                        format,
                                                        TAC_STACK_FRAME );
     terrain->mIndexCount = indexes.size();
@@ -275,13 +275,13 @@ namespace Tac
   void GamePresentation::Create3DVertexFormat( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
-    VertexDeclaration posDecl;
+    Render::VertexDeclaration posDecl;
     posDecl.mAlignedByteOffset = 0;
-    posDecl.mAttribute = Attribute::Position;
+    posDecl.mAttribute = Render::Attribute::Position;
     posDecl.mTextureFormat.mElementCount = 3;
     posDecl.mTextureFormat.mPerElementByteCount = sizeof( float );
-    posDecl.mTextureFormat.mPerElementDataType = GraphicsType::real;
-    m3DVertexFormatDecls = VertexDeclarations{ posDecl };
+    posDecl.mTextureFormat.mPerElementDataType = Render::GraphicsType::real;
+    m3DVertexFormatDecls = Render::VertexDeclarations{ posDecl };
     m3DVertexFormat = Render::CreateVertexFormat( m3DVertexFormatDecls,
                                                   m3DShader,
                                                   TAC_STACK_FRAME );
@@ -290,25 +290,25 @@ namespace Tac
   void GamePresentation::CreateTerrainVertexFormat( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
-    VertexDeclaration terrainPosDecl = {};
-    terrainPosDecl.mAttribute = Attribute::Position;
+    Render::VertexDeclaration terrainPosDecl = {};
+    terrainPosDecl.mAttribute = Render::Attribute::Position;
     terrainPosDecl.mTextureFormat.mElementCount = 3;
     terrainPosDecl.mTextureFormat.mPerElementByteCount = sizeof( float );
-    terrainPosDecl.mTextureFormat.mPerElementDataType = GraphicsType::real;
+    terrainPosDecl.mTextureFormat.mPerElementDataType = Render::GraphicsType::real;
     terrainPosDecl.mAlignedByteOffset = TAC_OFFSET_OF( TerrainVertex, mPos );
 
-    VertexDeclaration terrainNorDecl = {};
-    terrainNorDecl.mAttribute = Attribute::Normal;
+    Render::VertexDeclaration terrainNorDecl = {};
+    terrainNorDecl.mAttribute = Render::Attribute::Normal;
     terrainNorDecl.mTextureFormat.mElementCount = 3;
     terrainNorDecl.mTextureFormat.mPerElementByteCount = sizeof( float );
-    terrainNorDecl.mTextureFormat.mPerElementDataType = GraphicsType::real;
+    terrainNorDecl.mTextureFormat.mPerElementDataType = Render::GraphicsType::real;
     terrainNorDecl.mAlignedByteOffset = TAC_OFFSET_OF( TerrainVertex, mNor );
 
-    VertexDeclaration terrainTexCoordDecl = {};
-    terrainTexCoordDecl.mAttribute = Attribute::Texcoord;
+    Render::VertexDeclaration terrainTexCoordDecl = {};
+    terrainTexCoordDecl.mAttribute = Render::Attribute::Texcoord;
     terrainTexCoordDecl.mTextureFormat.mElementCount = 2;
     terrainTexCoordDecl.mTextureFormat.mPerElementByteCount = sizeof( float );
-    terrainTexCoordDecl.mTextureFormat.mPerElementDataType = GraphicsType::real;
+    terrainTexCoordDecl.mTextureFormat.mPerElementDataType = Render::GraphicsType::real;
     terrainTexCoordDecl.mAlignedByteOffset = TAC_OFFSET_OF( TerrainVertex, mUV );
 
     mTerrainVertexFormat = Render::CreateVertexFormat( { terrainPosDecl, terrainNorDecl, terrainTexCoordDecl },
@@ -338,7 +338,7 @@ namespace Tac
     Render::DepthState depthStateData;
     depthStateData.mDepthTest = true;
     depthStateData.mDepthWrite = true;
-    depthStateData.mDepthFunc = DepthFunc::Less;
+    depthStateData.mDepthFunc = Render::DepthFunc::Less;
     mDepthState = Render::CreateDepthState( depthStateData, TAC_STACK_FRAME );
   }
 
@@ -346,12 +346,12 @@ namespace Tac
   {
     TAC_UNUSED_PARAMETER( errors );
     Render::BlendState blendStateData;
-    blendStateData.mSrcRGB = BlendConstants::One;
-    blendStateData.mDstRGB = BlendConstants::Zero;
-    blendStateData.mBlendRGB = BlendMode::Add;
-    blendStateData.mSrcA = BlendConstants::Zero;
-    blendStateData.mDstA = BlendConstants::One;
-    blendStateData.mBlendA = BlendMode::Add;
+    blendStateData.mSrcRGB = Render::BlendConstants::One;
+    blendStateData.mDstRGB = Render::BlendConstants::Zero;
+    blendStateData.mBlendRGB = Render::BlendMode::Add;
+    blendStateData.mSrcA = Render::BlendConstants::Zero;
+    blendStateData.mDstA = Render::BlendConstants::One;
+    blendStateData.mBlendA = Render::BlendMode::Add;
     mBlendState = Render::CreateBlendState( blendStateData, TAC_STACK_FRAME );
   }
 
@@ -359,8 +359,8 @@ namespace Tac
   {
     TAC_UNUSED_PARAMETER( errors );
     Render::RasterizerState rasterizerStateData;
-    rasterizerStateData.mCullMode = CullMode::None; // todo
-    rasterizerStateData.mFillMode = FillMode::Solid;
+    rasterizerStateData.mCullMode = Render::CullMode::None; // todo
+    rasterizerStateData.mFillMode = Render::FillMode::Solid;
     rasterizerStateData.mFrontCounterClockwise = true;
     rasterizerStateData.mMultisample = false;
     rasterizerStateData.mScissor = true;
@@ -372,7 +372,7 @@ namespace Tac
   {
     TAC_UNUSED_PARAMETER( errors );
     Render::SamplerState samplerStateData;
-    samplerStateData.mFilter = Filter::Aniso;
+    samplerStateData.mFilter = Render::Filter::Aniso;
     mSamplerState = Render::CreateSamplerState( samplerStateData,
                                                 TAC_STACK_FRAME );
   }

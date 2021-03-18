@@ -131,14 +131,14 @@ namespace Tac
                                       TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
-    VertexDeclaration posDecl;
+    Render::VertexDeclaration posDecl;
     posDecl.mAlignedByteOffset = 0;
-    posDecl.mAttribute = Attribute::Position;
+    posDecl.mAttribute = Render::Attribute::Position;
     posDecl.mTextureFormat.mElementCount = 3;
     posDecl.mTextureFormat.mPerElementByteCount = sizeof( float );
-    posDecl.mTextureFormat.mPerElementDataType = GraphicsType::real;
+    posDecl.mTextureFormat.mPerElementDataType = Render::GraphicsType::real;
     //m3DvertexFormatDecls.AddVertexDeclaration( posDecl );
-    m3DvertexFormatDecls = VertexDeclarations{ posDecl };
+    m3DvertexFormatDecls = Render::VertexDeclarations{ posDecl };
 
     m3DVertexFormat = Render::CreateVertexFormat( m3DvertexFormatDecls,
                                                   m3DShader,
@@ -146,26 +146,26 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
 
     Render::BlendState blendStateData;
-    blendStateData.mSrcRGB = BlendConstants::One;
-    blendStateData.mDstRGB = BlendConstants::Zero;
-    blendStateData.mBlendRGB = BlendMode::Add;
-    blendStateData.mSrcA = BlendConstants::Zero;
-    blendStateData.mDstA = BlendConstants::One;
-    blendStateData.mBlendA = BlendMode::Add;
+    blendStateData.mSrcRGB = Render::BlendConstants::One;
+    blendStateData.mDstRGB = Render::BlendConstants::Zero;
+    blendStateData.mBlendRGB = Render::BlendMode::Add;
+    blendStateData.mSrcA = Render::BlendConstants::Zero;
+    blendStateData.mDstA = Render::BlendConstants::One;
+    blendStateData.mBlendA = Render::BlendMode::Add;
     mBlendState = Render::CreateBlendState( blendStateData, TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
     Render::DepthState depthStateData;
     depthStateData.mDepthTest = true;
     depthStateData.mDepthWrite = true;
-    depthStateData.mDepthFunc = DepthFunc::Less;
+    depthStateData.mDepthFunc = Render::DepthFunc::Less;
     mDepthState = Render::CreateDepthState( depthStateData,
                                             TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
     Render::RasterizerState rasterizerStateData;
-    rasterizerStateData.mCullMode = CullMode::None; // todo
-    rasterizerStateData.mFillMode = FillMode::Solid;
+    rasterizerStateData.mCullMode = Render::CullMode::None; // todo
+    rasterizerStateData.mFillMode = Render::FillMode::Solid;
     rasterizerStateData.mFrontCounterClockwise = true;
     rasterizerStateData.mMultisample = false;
     rasterizerStateData.mScissor = true;
@@ -174,7 +174,7 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
 
     Render::SamplerState samplerStateData;
-    samplerStateData.mFilter = Filter::Linear;
+    samplerStateData.mFilter = Render::Filter::Linear;
     mSamplerState = Render::CreateSamplerState( samplerStateData, TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
   }
@@ -658,8 +658,8 @@ namespace Tac
 
     const float w = ( float )desktopWindowState->mWidth;
     const float h = ( float )desktopWindowState->mHeight;
-    const Viewport viewport( w, h );
-    const ScissorRect scissorRect( w, h );
+    const Render::Viewport viewport( w, h );
+    const Render::ScissorRect scissorRect( w, h );
 
     Render::SetViewFramebuffer( viewHandle, framebufferHandle );
     Render::SetViewport( viewHandle, viewport );

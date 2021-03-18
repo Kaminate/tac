@@ -29,8 +29,8 @@ namespace Tac
   void Debug3DCommonData::Init( Errors& errors )
   {
     Render::RasterizerState rasterizerStateNoCullData;
-    rasterizerStateNoCullData.mCullMode = CullMode::None;
-    rasterizerStateNoCullData.mFillMode = FillMode::Solid;
+    rasterizerStateNoCullData.mCullMode = Render::CullMode::None;
+    rasterizerStateNoCullData.mFillMode = Render::FillMode::Solid;
     rasterizerStateNoCullData.mFrontCounterClockwise = true;
     rasterizerStateNoCullData.mMultisample = false;
     rasterizerStateNoCullData.mScissor = true;
@@ -50,18 +50,18 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
 
     Render::DepthState depthStateData;
-    depthStateData.mDepthFunc = DepthFunc::Less;
+    depthStateData.mDepthFunc = Render::DepthFunc::Less;
     depthStateData.mDepthTest = true;
     depthStateData.mDepthWrite = true;
     mDepthLess = Render::CreateDepthState(  depthStateData, TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
-    VertexDeclaration positionData;
-    positionData.mAttribute = Attribute::Position;
+    Render::VertexDeclaration positionData;
+    positionData.mAttribute = Render::Attribute::Position;
     positionData.mTextureFormat = formatv3;
     positionData.mAlignedByteOffset = TAC_OFFSET_OF( DefaultVertexColor, mPosition );
-    VertexDeclaration colorData;
-    colorData.mAttribute = Attribute::Color;
+    Render::VertexDeclaration colorData;
+    colorData.mAttribute = Render::Attribute::Color;
     colorData.mTextureFormat = formatv3;
     colorData.mAlignedByteOffset = TAC_OFFSET_OF( DefaultVertexColor, mColor );
 
@@ -71,12 +71,12 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
 
     Render::BlendState alphaBlendStateData;
-    alphaBlendStateData.mSrcRGB = BlendConstants::One;
-    alphaBlendStateData.mDstRGB = BlendConstants::OneMinusSrcA;
-    alphaBlendStateData.mBlendRGB = BlendMode::Add;
-    alphaBlendStateData.mSrcA = BlendConstants::One;
-    alphaBlendStateData.mDstA = BlendConstants::OneMinusSrcA;
-    alphaBlendStateData.mBlendA = BlendMode::Add;
+    alphaBlendStateData.mSrcRGB = Render::BlendConstants::One;
+    alphaBlendStateData.mDstRGB = Render::BlendConstants::OneMinusSrcA;
+    alphaBlendStateData.mBlendRGB = Render::BlendMode::Add;
+    alphaBlendStateData.mSrcA = Render::BlendConstants::One;
+    alphaBlendStateData.mDstA = Render::BlendConstants::OneMinusSrcA;
+    alphaBlendStateData.mBlendA = Render::BlendMode::Add;
     mAlphaBlendState = Render::CreateBlendState(  alphaBlendStateData, TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
   }
@@ -373,7 +373,7 @@ namespace Tac
         mVerts = Render::CreateVertexBuffer( mDebugDrawVerts.size() * sizeof( DefaultVertexColor ),
                                              mDebugDrawVerts.data(),
                                              0,
-                                             Access::Dynamic,
+                                             Render::Access::Dynamic,
                                              TAC_STACK_FRAME );
         TAC_HANDLE_ERROR( errors );
 

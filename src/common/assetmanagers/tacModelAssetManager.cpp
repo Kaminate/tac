@@ -29,7 +29,7 @@ namespace Tac
   // todo: multithreading
   void ModelAssetManagerGetMesh( Mesh** mesh,
                                  StringView path,
-                                 const VertexDeclarations& vertexDeclarations,
+                                 const Render::VertexDeclarations& vertexDeclarations,
                                  Errors& errors )
   {
     auto it = mMeshes.find( path );

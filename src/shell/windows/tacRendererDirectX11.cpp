@@ -33,6 +33,8 @@
 
 namespace Tac
 {
+namespace Render
+{
   static bool gVerbose;
 
   static int registerDX11 = []()
@@ -1597,4 +1599,5 @@ namespace Tac
   }
 
 
-}
+} // namespace Render
+} // namespace Tac

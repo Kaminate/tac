@@ -9,16 +9,16 @@
 namespace Tac
 {
 
-  static cgltf_attribute_type GetGltfFromAttribute( Attribute attributeType )
+  static cgltf_attribute_type GetGltfFromAttribute( Render::Attribute attributeType )
   {
     switch( attributeType )
     {
-      case Attribute::Position: return cgltf_attribute_type_position;
-      case Attribute::Normal: return cgltf_attribute_type_normal;
-      case Attribute::Texcoord: return cgltf_attribute_type_texcoord;
-      case Attribute::Color: return cgltf_attribute_type_color;
-      case Attribute::BoneIndex: return cgltf_attribute_type_joints;
-      case Attribute::BoneWeight: return cgltf_attribute_type_weights;
+      case Render::Attribute::Position: return cgltf_attribute_type_position;
+      case Render::Attribute::Normal: return cgltf_attribute_type_normal;
+      case Render::Attribute::Texcoord: return cgltf_attribute_type_texcoord;
+      case Render::Attribute::Color: return cgltf_attribute_type_color;
+      case Render::Attribute::BoneIndex: return cgltf_attribute_type_joints;
+      case Render::Attribute::BoneWeight: return cgltf_attribute_type_weights;
       default: TAC_CRITICAL_ERROR_INVALID_CASE( attributeType ); return cgltf_attribute_type_invalid;
     }
   }
@@ -50,13 +50,13 @@ namespace Tac
     }
   }
 
-  static Tac::GraphicsType    FillDataTypePerElementDataType( cgltf_accessor* accessor )
+  static Tac::Render::GraphicsType    FillDataTypePerElementDataType( cgltf_accessor* accessor )
   {
     switch( accessor->component_type )
     {
-      case cgltf_component_type_r_16u: return GraphicsType::uint;
-      case cgltf_component_type_r_32f: return GraphicsType::real;
-      default: TAC_CRITICAL_ERROR_INVALID_CASE( accessor->component_type ) return ( GraphicsType )0;
+      case cgltf_component_type_r_16u: return Render::GraphicsType::uint;
+      case cgltf_component_type_r_32f: return Render::GraphicsType::real;
+      default: TAC_CRITICAL_ERROR_INVALID_CASE( accessor->component_type ) return ( Render::GraphicsType )0;
     }
 
   }
@@ -73,9 +73,9 @@ namespace Tac
     }
   }
 
-  static Format               FillDataType( cgltf_accessor* accessor )
+  static Render::Format               FillDataType( cgltf_accessor* accessor )
   {
-    Format result = {};
+    Render::Format result = {};
     result.mElementCount = FillDataTypeElementCount( accessor );
     result.mPerElementByteCount = FillDataTypePerElementByteCount( accessor );
     result.mPerElementDataType = FillDataTypePerElementDataType( accessor );
@@ -153,7 +153,7 @@ namespace Tac
   // Proobably this can be made into a job, and instead of calling Render::CreateVertexBuffer,
   // it can instead allocate buffer from which such calls can be made.
   Mesh LoadMeshSynchronous( const StringView& path,
-                            const VertexDeclarations& vertexDeclarations,
+                            const Render::VertexDeclarations& vertexDeclarations,
                             Errors& errors )
   {
     const TemporaryMemory bytes = TemporaryMemoryFromFile( path, errors );
@@ -203,11 +203,11 @@ namespace Tac
         cgltf_accessor* indices = parsedPrim->indices;
         void* indiciesData = ( char* )indices->buffer_view->buffer->data + indices->buffer_view->offset;
         TAC_ASSERT( indices->type == cgltf_type_scalar );
-        const Format indexFormat = FillDataType( indices );
+        const Render::Format indexFormat = FillDataType( indices );
         const int indexByteCount = ( int )indices->count * ( int )sizeof( indexFormat.CalculateTotalByteCount() );
         const Render::IndexBufferHandle indexBuffer = Render::CreateIndexBuffer( indexByteCount,
                                                                                  indiciesData,
-                                                                                 Access::Default,
+                                                                                 Render::Access::Default,
                                                                                  indexFormat,
                                                                                  TAC_STACK_FRAME );
 
@@ -216,7 +216,7 @@ namespace Tac
 
         for( int iVertexDeclaration = 0; iVertexDeclaration < vertexDeclarations.size(); ++iVertexDeclaration )
         {
-          const VertexDeclaration& vertexDeclaration = vertexDeclarations[ iVertexDeclaration ];
+          const Render::VertexDeclaration& vertexDeclaration = vertexDeclarations[ iVertexDeclaration ];
           int vertexEnd =
             vertexDeclaration.mAlignedByteOffset +
             vertexDeclaration.mTextureFormat.CalculateTotalByteCount();
@@ -226,14 +226,14 @@ namespace Tac
 
         for( int iVertexDeclaration = 0; iVertexDeclaration < vertexDeclarations.size(); ++iVertexDeclaration )
         {
-          const VertexDeclaration& vertexDeclaration = vertexDeclarations[ iVertexDeclaration ];
-          const Format& dstFormat = vertexDeclaration.mTextureFormat;
+          const Render::VertexDeclaration& vertexDeclaration = vertexDeclarations[ iVertexDeclaration ];
+          const Render::Format& dstFormat = vertexDeclaration.mTextureFormat;
           cgltf_attribute_type gltfVertAttributeType = GetGltfFromAttribute( vertexDeclaration.mAttribute );
           cgltf_attribute* gltfVertAttribute = FindAttributeOfType( parsedPrim, gltfVertAttributeType );
           if( !gltfVertAttribute )
             continue;
           cgltf_accessor* gltfVertAttributeData = gltfVertAttribute->data;
-          Format srcFormat = FillDataType( gltfVertAttributeData );
+          Render::Format srcFormat = FillDataType( gltfVertAttributeData );
           TAC_ASSERT( vertexCount == ( int )gltfVertAttributeData->count );
           char* dstVtx = dstVtxBytes.data();
           char* srcVtx = ( char* )gltfVertAttributeData->buffer_view->buffer->data +
@@ -268,7 +268,7 @@ namespace Tac
         const Render::VertexBufferHandle vertexBuffer = Render::CreateVertexBuffer( dstVtxBytes.size(),
                                                                                     dstVtxBytes.data(),
                                                                                     dstVtxStride,
-                                                                                    Access::Default,
+                                                                                    Render::Access::Default,
                                                                                     TAC_STACK_FRAME );
 
         SubMeshTriangles tris;

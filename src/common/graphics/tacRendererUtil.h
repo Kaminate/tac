@@ -17,9 +17,9 @@ namespace Tac
   const v4 colorRed = v4( 255, 84, 84, 255 ) / 255.0f;
   const v4 colorMagenta = v4( 255, 84, 255, 255 ) / 255.0f;
 
-  const Format formatv2 = { 2, sizeof( float ), GraphicsType::real };
-  const Format formatv3 = { 3, sizeof( float ), GraphicsType::real };
-  const Format formatu16 = { 1, sizeof( uint16_t ), GraphicsType::uint };
+  const Render::Format formatv2 = { 2, sizeof( float ), Render::GraphicsType::real };
+  const Render::Format formatv3 = { 3, sizeof( float ), Render::GraphicsType::real };
+  const Render::Format formatu16 = { 1, sizeof( uint16_t ), Render::GraphicsType::uint };
 
   struct DefaultCBufferPerFrame
   {

@@ -424,16 +424,16 @@ namespace Tac
               Render::TexSpec texSpecColor;
               texSpecColor.mImage.mFormat.mElementCount = 4;
               texSpecColor.mImage.mFormat.mPerElementByteCount = 1;
-              texSpecColor.mImage.mFormat.mPerElementDataType = GraphicsType::unorm;
+              texSpecColor.mImage.mFormat.mPerElementDataType = Render::GraphicsType::unorm;
               texSpecColor.mImage.mWidth = w;
               texSpecColor.mImage.mHeight = h;
-              texSpecColor.mBinding = ( Tac::Binding )( ( int )Tac::Binding::ShaderResource | ( int )Tac::Binding::RenderTarget );
+              texSpecColor.mBinding = ( Tac::Render::Binding )( ( int )Tac::Render::Binding::ShaderResource | ( int )Tac::Render::Binding::RenderTarget );
               Render::TextureHandle textureHandleColor = Render::CreateTexture( texSpecColor, TAC_STACK_FRAME );
 
               Render::TexSpec texSpecDepth;
               texSpecColor.mImage.mFormat.mElementCount = 1;
               texSpecColor.mImage.mFormat.mPerElementByteCount = 16;
-              texSpecColor.mImage.mFormat.mPerElementDataType = GraphicsType::unorm;
+              texSpecColor.mImage.mFormat.mPerElementDataType = Render::GraphicsType::unorm;
               texSpecColor.mImage.mWidth = w;
               texSpecColor.mImage.mHeight = h;
               Render::TextureHandle textureHandleDepth = Render::CreateTexture( texSpecDepth, TAC_STACK_FRAME );
@@ -442,8 +442,8 @@ namespace Tac
                 { textureHandleColor, textureHandleDepth }, TAC_STACK_FRAME );
               Render::ViewHandle viewHandle = Render::CreateView();
               Render::SetViewFramebuffer( viewHandle, framebufferHandle );
-              Render::SetViewport( viewHandle, Viewport( w, h ) );
-              Render::SetViewScissorRect( viewHandle, ScissorRect( w, h ) );
+              Render::SetViewport( viewHandle, Render::Viewport( w, h ) );
+              Render::SetViewScissorRect( viewHandle, Render::ScissorRect( w, h ) );
 
               Camera camera;
               gCreation.mGamePresentation->RenderGameWorldToDesktopView( &loadedModel->mWorld, &camera, w, h, viewHandle );

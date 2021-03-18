@@ -186,11 +186,11 @@ namespace Tac
 
     ImGui();
 
-    Viewport viewport;
+    Render::Viewport viewport;
     viewport.mWidth = ( float )desktopWindowState->mWidth;
     viewport.mHeight = ( float )desktopWindowState->mHeight;
 
-    ScissorRect scissorRect;
+    Render::ScissorRect scissorRect;
     scissorRect.mXMinRelUpperLeftCornerPixel = 0;
     scissorRect.mXMaxRelUpperLeftCornerPixel = ( float )desktopWindowState->mWidth;
     scissorRect.mYMinRelUpperLeftCornerPixel = 0;

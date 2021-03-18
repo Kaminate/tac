@@ -35,8 +35,8 @@ namespace Tac
       sWindowFramebuffers[ ( int )desktopWindowHandle ] = framebufferHandle;
       sWindowViews[ ( int )desktopWindowHandle ] = viewHandle;
       Render::SetViewFramebuffer( viewHandle, framebufferHandle );
-      Render::SetViewScissorRect( viewHandle, ScissorRect( ( float )w, ( float )h ) );
-      Render::SetViewport( viewHandle, Viewport( ( float )w, ( float )h ) );
+      Render::SetViewScissorRect( viewHandle, Render::ScissorRect( ( float )w, ( float )h ) );
+      Render::SetViewport( viewHandle, Render::Viewport( ( float )w, ( float )h ) );
     }
     else
     {
@@ -54,8 +54,8 @@ namespace Tac
     const Render::FramebufferHandle framebufferHandle = sWindowFramebuffers[ (int)desktopWindowHandle ];
     const Render::ViewHandle viewHandle = sWindowViews[ (int)desktopWindowHandle ];
     Render::ResizeFramebuffer( framebufferHandle, w, h, TAC_STACK_FRAME );
-    Render::SetViewScissorRect( viewHandle, ScissorRect( ( float )w, ( float )h ) );
-    Render::SetViewport( viewHandle, Viewport( ( float )w, ( float )h ) );
+    Render::SetViewScissorRect( viewHandle, Render::ScissorRect( ( float )w, ( float )h ) );
+    Render::SetViewport( viewHandle, Render::Viewport( ( float )w, ( float )h ) );
   }
 
   //void UpdateWindowRenderInterfaces()

@@ -101,8 +101,8 @@ namespace Tac
     const Render::ViewHandle viewHandle = WindowGraphicsGetView( mDesktopWindowHandle );
     const Render::FramebufferHandle framebufferHandle = WindowGraphicsGetFramebuffer( mDesktopWindowHandle );
     Render::SetViewFramebuffer( viewHandle, framebufferHandle );
-    Render::SetViewport( viewHandle, Viewport( w, h ) );
-    Render::SetViewScissorRect( viewHandle, ScissorRect( w, h ) );
+    Render::SetViewport( viewHandle, Render::Viewport( w, h ) );
+    Render::SetViewScissorRect( viewHandle, Render::ScissorRect( w, h ) );
     TAC_HANDLE_ERROR( errors );
   }
 

@@ -83,7 +83,7 @@ namespace Tac
   //struct VertexDeclarations;
   struct Errors;
   Mesh LoadMeshSynchronous( const StringView& path,
-                            const VertexDeclarations&,
+                            const Render::VertexDeclarations&,
                             Errors& );
 
   

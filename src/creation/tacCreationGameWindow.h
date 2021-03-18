@@ -56,7 +56,7 @@ namespace Tac
     Render::BlendStateHandle      mBlendState;
     Render::RasterizerStateHandle mRasterizerState;
     Render::SamplerStateHandle    mSamplerState;
-    VertexDeclarations            m3DvertexFormatDecls;
+    Render::VertexDeclarations            m3DvertexFormatDecls;
     Debug3DDrawData*              mDebug3DDrawData = nullptr;
     Mesh*                         mArrow = nullptr;
     Mesh*                         mCenteredUnitCube = nullptr;

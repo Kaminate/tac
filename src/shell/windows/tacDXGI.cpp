@@ -140,23 +140,23 @@ namespace Tac
 
   struct FormatPair
   {
-    Format mFormat;
+    Render::Format mFormat;
     DXGI_FORMAT mFormatDXGI;
   };
 
   static FormatPair gFormatPairs[] =
   {
-    FormatPair{ { 2, sizeof( float ), GraphicsType::real }, DXGI_FORMAT_R32G32_FLOAT },
-    FormatPair{ { 3, sizeof( float ), GraphicsType::real }, DXGI_FORMAT_R32G32B32_FLOAT },
-    FormatPair{ { 4, sizeof( float ), GraphicsType::real }, DXGI_FORMAT_R32G32B32A32_FLOAT },
-    FormatPair{ { 1, sizeof( uint8_t ), GraphicsType::unorm }, DXGI_FORMAT_R8_UNORM },
-    FormatPair{ { 2, sizeof( uint8_t ), GraphicsType::unorm }, DXGI_FORMAT_R8G8_UNORM },
-    FormatPair{ { 4, sizeof( uint8_t ), GraphicsType::unorm }, DXGI_FORMAT_R8G8B8A8_UNORM },
-    FormatPair{ { 1, sizeof( uint16_t ), GraphicsType::uint }, DXGI_FORMAT_R16_UINT },
-    FormatPair{ { 1, sizeof( uint32_t ), GraphicsType::uint }, DXGI_FORMAT_R32_UINT }
+    FormatPair{ { 2, sizeof( float ), Render::GraphicsType::real }, DXGI_FORMAT_R32G32_FLOAT },
+    FormatPair{ { 3, sizeof( float ), Render::GraphicsType::real }, DXGI_FORMAT_R32G32B32_FLOAT },
+    FormatPair{ { 4, sizeof( float ), Render::GraphicsType::real }, DXGI_FORMAT_R32G32B32A32_FLOAT },
+    FormatPair{ { 1, sizeof( uint8_t ), Render::GraphicsType::unorm }, DXGI_FORMAT_R8_UNORM },
+    FormatPair{ { 2, sizeof( uint8_t ), Render::GraphicsType::unorm }, DXGI_FORMAT_R8G8_UNORM },
+    FormatPair{ { 4, sizeof( uint8_t ), Render::GraphicsType::unorm }, DXGI_FORMAT_R8G8B8A8_UNORM },
+    FormatPair{ { 1, sizeof( uint16_t ), Render::GraphicsType::uint }, DXGI_FORMAT_R16_UINT },
+    FormatPair{ { 1, sizeof( uint32_t ), Render::GraphicsType::uint }, DXGI_FORMAT_R32_UINT }
   };
 
-  Format GetFormat( const DXGI_FORMAT format )
+  Render::Format GetFormat( const DXGI_FORMAT format )
   {
     for( auto formatPair : gFormatPairs )
       if( formatPair.mFormatDXGI == format )
@@ -165,7 +165,7 @@ namespace Tac
     return {};
   }
 
-  DXGI_FORMAT GetDXGIFormat( Format textureFormat )
+  DXGI_FORMAT GetDXGIFormat( Render::Format textureFormat )
   {
     for( auto formatPair : gFormatPairs )
       if( formatPair.mFormat.mElementCount == textureFormat.mElementCount &&
