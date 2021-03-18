@@ -14,7 +14,7 @@
 #include "src/common/math/tacMath.h"
 #include "src/common/tacMemory.h"
 #include "src/common/tacPreprocessor.h"
-#include "src/common/tacShell.h"
+#include "src/common/shell/tacShell.h"
 #include "src/common/thirdparty/Stb_image.h"
 #include "src/common/profile/tacProfile.h"
 #include <array>

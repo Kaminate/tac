@@ -6,7 +6,7 @@
 #include "src/common/tacDesktopWindow.h"
 #include "src/common/tacMemory.h"
 #include "src/common/tacPreprocessor.h"
-#include "src/common/tacShell.h"
+#include "src/common/shell/tacShell.h"
 #include "src/common/tacOS.h"
 #include "src/common/tacTemporaryMemory.h"
 #include "src/common/tacFrameMemory.h"

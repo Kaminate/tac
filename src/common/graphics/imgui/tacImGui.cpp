@@ -12,7 +12,7 @@
 #include "src/common/tacKeyboardinput.h"
 #include "src/common/tacOS.h"
 #include "src/common/tacPreprocessor.h"
-#include "src/common/tacShell.h"
+#include "src/common/shell/tacShell.h"
 #include "src/common/string/tacString.h"
 #include "src/common/tacErrorHandling.h"
 #include "src/shell/tacDesktopWindowGraphics.h"

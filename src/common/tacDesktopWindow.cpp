@@ -2,7 +2,7 @@
 #include "src/common/containers/tacArray.h"
 
 #include "src/common/graphics/tacRenderer.h"
-#include "src/common/tacShell.h"
+#include "src/common/shell/tacShell.h"
 #include "src/common/tacOS.h"
 
 namespace Tac

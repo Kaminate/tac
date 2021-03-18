@@ -1,7 +1,7 @@
 #include "src/common/tacMemory.h"
 #include "src/shell/tacDesktopApp.h" // temp
-#include "src/common/tacShell.h"
-#include "src/common/tacShellTimer.h"
+#include "src/common/shell/tacShell.h"
+#include "src/common/shell/tacShellTimer.h"
 
 #include <fstream>
 

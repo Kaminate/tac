@@ -1,7 +1,7 @@
 #include "src/common/tacUtility.h"
 #include "src/common/graphics/tacFont.h"
 #include "src/common/graphics/tacRenderer.h"
-#include "src/common/tacShell.h"
+#include "src/common/shell/tacShell.h"
 #include "src/common/tacSettings.h"
 #include "src/common/tacMemory.h"
 #include "src/common/tacTemporaryMemory.h"

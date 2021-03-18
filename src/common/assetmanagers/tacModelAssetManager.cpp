@@ -1,9 +1,10 @@
 #include "src/common/assetmanagers/tacMesh.h"
 #include "src/common/assetmanagers/tacModelAssetManager.h"
 #include "src/common/assetmanagers/tacModelLoadSynchronous.h"
+#include "src/common/assetmanagers/tacResidentModelFile.h"
 #include "src/common/graphics/tacRenderer.h"
-#include "src/common/string/tacStringIdentifier.h"
 #include "src/common/math/tacMath.h"
+#include "src/common/string/tacStringIdentifier.h"
 #include "src/common/tacJobQueue.h"
 #include "src/common/tacMemory.h"
 #include "src/common/tacTemporaryMemory.h"
@@ -47,6 +48,16 @@ namespace Tac
                                                 const Render::VertexDeclarations& vertexDeclarations,
                                                 Errors& errors )
   {
+    const bool isCached = true;
+    if( isCached )
+      return ( Mesh* )nullptr;
+
+
+    const cgltf_data* parsedData = TryGetGLTFData( path );
+    if( !parsedData )
+      return;
+
+
     TAC_UNUSED_PARAMETER(path);
     TAC_UNUSED_PARAMETER(iModel);
     TAC_UNUSED_PARAMETER(vertexDeclarations);

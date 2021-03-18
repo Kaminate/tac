@@ -1,13 +1,14 @@
 #include "src/common/assetmanagers/tacModelLoadSynchronous.h"
 #include "src/common/assetmanagers/tacTextureAssetManager.h"
+#include "src/common/assetmanagers/tacResidentModelFile.h"
 #include "src/common/containers/tacFrameVector.h"
 #include "src/common/graphics/imgui/tacImGui.h"
 #include "src/common/graphics/tacRenderer.h"
 #include "src/common/tacErrorHandling.h"
 #include "src/common/tacJobQueue.h"
 #include "src/common/tacOS.h"
-#include "src/common/tacShell.h"
-#include "src/common/tacShellTimer.h"
+#include "src/common/shell/tacShell.h"
+#include "src/common/shell/tacShellTimer.h"
 #include "src/common/string/tacString.h"
 #include "src/common/tacTemporaryMemory.h"
 #include "src/common/tacUtility.h"
@@ -98,37 +99,38 @@ namespace Tac
     return relativeSpace;
   }
 
-  struct EditorLoadInfo
-  {
-    void      Init( const char* path, Errors&  errors )
-    {
-      bytes = TemporaryMemoryFromFile( path, errors );
-      TAC_HANDLE_ERROR( errors );
-
-      const cgltf_options options = {};
-
-      const cgltf_result parseResult = cgltf_parse( &options, bytes.data(), bytes.size(), &parsedData );
-      TAC_HANDLE_ERROR_IF( parseResult != cgltf_result_success,
-                           va( "%s cgltf_parse returned %i", path, ( int )( parseResult ) ),
-                           errors );
-
-      const cgltf_result validateResult = cgltf_validate( parsedData );
-      TAC_HANDLE_ERROR_IF( validateResult != cgltf_result_success,
-                           va( "%s cgltf_validate returned %i", path, ( int )( validateResult ) ),
-                           errors );
-
-    }
-
-    ~EditorLoadInfo()
-    {
-      cgltf_free( parsedData );
-    }
-
-    cgltf_data*     parsedData = nullptr;
-    TemporaryMemory bytes;
-  };
-
-
+  //struct EditorLoadInfo
+  //{
+  //  void      Init( const char* path, Errors&  errors )
+  //  {
+  //    bytes = TemporaryMemoryFromFile( path, errors );
+  //    TAC_HANDLE_ERROR( errors );
+  //
+  //    const cgltf_options options = {};
+  //
+  //    const cgltf_result parseResult = cgltf_parse( &options, bytes.data(), bytes.size(), &parsedData );
+  //    TAC_HANDLE_ERROR_IF( parseResult != cgltf_result_success,
+  //                         va( "%s cgltf_parse returned %i", path, ( int )( parseResult ) ),
+  //                         errors );
+  //
+  //    const cgltf_result validateResult = cgltf_validate( parsedData );
+  //    TAC_HANDLE_ERROR_IF( validateResult != cgltf_result_success,
+  //                         va( "%s cgltf_validate returned %i", path, ( int )( validateResult ) ),
+  //                         errors );
+  //
+  //
+  //  }
+  //
+  //  ~EditorLoadInfo()
+  //  {
+  //    cgltf_free( parsedData );
+  //  }
+  //
+  //  cgltf_data*     parsedData = nullptr;
+  //  TemporaryMemory bytes;
+  //};
+  //
+  //
   //IEditorLoadInfo* LoadEditorModelFileInfo( const StringView& path, Errors& errors )
   //{
 

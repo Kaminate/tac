@@ -7,7 +7,7 @@
 #include "src/common/math/tacMatrix4.h"
 #include "src/common/profile/tacProfile.h"
 #include "src/common/tacCamera.h"
-#include "src/common/tacShellTimer.h"
+#include "src/common/shell/tacShellTimer.h"
 #include "src/common/tacDesktopWindow.h"
 #include "src/common/tacMemory.h"
 #include "src/common/tacOS.h"

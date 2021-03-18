@@ -1,9 +1,9 @@
 #include "src/shell/windows/tacXInput.h"
 #include "src/common/tacPreprocessor.h"
 #include "src/common/math/tacMath.h"
-#include "src/common/tacShell.h"
+#include "src/common/shell/tacShell.h"
 #include "src/common/tacTime.h"
-#include "src/common/tacShellTimer.h"
+#include "src/common/shell/tacShellTimer.h"
 #include "src/common/tacErrorHandling.h"
 
 #include <algorithm>

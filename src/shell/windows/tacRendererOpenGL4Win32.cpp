@@ -1,7 +1,7 @@
 /*
 #include "src/shell/opengl/tacRendererOpenGL4.h"
 #include "src/shell/windows/tacWin32.h"
-#include "src/common/tacShell.h"
+#include "src/common/shell/tacShell.h"
 #include "src/common/tacDesktopWindow.h"
 #include "src/common/string/tacString.h"
 #include "src/common/tacErrorHandling.h"

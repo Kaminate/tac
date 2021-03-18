@@ -3,7 +3,7 @@
 #include "src/common/tacDesktopWindow.h"
 #include "src/common/tacOS.h"
 #include "src/common/tacSettings.h"
-#include "src/common/tacShell.h"
+#include "src/common/shell/tacShell.h"
 #include "src/creation/tacCreation.h"
 #include "src/creation/tacCreationSystemWindow.h"
 #include "src/shell/tacDesktopApp.h"

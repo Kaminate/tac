@@ -4,7 +4,7 @@
 #include "src/common/tacErrorHandling.h"
 #include "src/common/tacIDCollection.h"
 #include "src/common/tacOS.h"
-#include "src/common/tacShellTimer.h"
+#include "src/common/shell/tacShellTimer.h"
 #include "src/shell/tacDesktopApp.h"
 
 #include <iostream>

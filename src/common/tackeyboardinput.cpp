@@ -2,8 +2,8 @@
 #include "src/common/tacPreprocessor.h"
 #include "src/common/containers/tacVector.h"
 #include "src/common/tacUtility.h"
-#include "src/common/tacShell.h"
-#include "src/common/tacShellTimer.h"
+#include "src/common/shell/tacShell.h"
+#include "src/common/shell/tacShellTimer.h"
 #include "src/common/tacOS.h"
 
 #include <iostream>

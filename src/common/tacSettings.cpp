@@ -5,7 +5,7 @@
 #include "src/common/math/tacMath.h"
 #include "src/common/tacTemporaryMemory.h"
 #include "src/common/tacAlgorithm.h"
-#include "src/common/tacShell.h"
+#include "src/common/shell/tacShell.h"
 #include "src/shell/tacDesktopApp.h"
 
 namespace Tac

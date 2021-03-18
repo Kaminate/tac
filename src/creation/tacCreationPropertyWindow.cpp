@@ -5,7 +5,7 @@
 #include "src/common/tacDesktopWindow.h"
 #include "src/common/tacErrorHandling.h"
 #include "src/common/tacOS.h"
-#include "src/common/tacShell.h"
+#include "src/common/shell/tacShell.h"
 #include "src/common/tacUtility.h"
 #include "src/creation/tacCreation.h"
 #include "src/creation/tacCreationPropertyWindow.h"

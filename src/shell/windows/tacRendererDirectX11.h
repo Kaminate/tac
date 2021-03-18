@@ -3,7 +3,7 @@
 #pragma once
 #include "src/common/graphics/tacRenderer.h"
 #include "src/common/graphics/tacRendererBackend.h"
-#include "src/common/tacShell.h"
+#include "src/common/shell/tacShell.h"
 #include "src/shell/windows/tacWin32.h"
 #include "src/shell/windows/tacDXGI.h"
 

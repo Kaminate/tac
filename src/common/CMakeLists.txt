@@ -6,6 +6,8 @@
 set(Common 
 ${CMAKE_CURRENT_SOURCE_DIR}/assetmanagers/tacMesh.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/assetmanagers/tacMesh.h
+${CMAKE_CURRENT_SOURCE_DIR}/assetmanagers/tacResidentModelFile.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/assetmanagers/tacResidentModelFile.h
 ${CMAKE_CURRENT_SOURCE_DIR}/assetmanagers/tacModelLoadSynchronous.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/assetmanagers/tacModelLoadSynchronous.h
 ${CMAKE_CURRENT_SOURCE_DIR}/assetmanagers/tacModelAssetManager.cpp
@@ -87,10 +89,10 @@ ${CMAKE_CURRENT_SOURCE_DIR}/containers/tacRingBuffer.h
 ${CMAKE_CURRENT_SOURCE_DIR}/containers/tacRingVector.h
 ${CMAKE_CURRENT_SOURCE_DIR}/tacSerialization.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/tacSerialization.h
-${CMAKE_CURRENT_SOURCE_DIR}/tacShellTimer.cpp
-${CMAKE_CURRENT_SOURCE_DIR}/tacShellTimer.h
-${CMAKE_CURRENT_SOURCE_DIR}/tacShell.cpp
-${CMAKE_CURRENT_SOURCE_DIR}/tacShell.h
+${CMAKE_CURRENT_SOURCE_DIR}/shell/tacShellTimer.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/shell/tacShellTimer.h
+${CMAKE_CURRENT_SOURCE_DIR}/shell/tacShell.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/shell/tacShell.h
 ${CMAKE_CURRENT_SOURCE_DIR}/tacSettings.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/tacSettings.h
 ${CMAKE_CURRENT_SOURCE_DIR}/tacHash.cpp
