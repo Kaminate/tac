@@ -134,52 +134,62 @@ namespace Tac
   //IEditorLoadInfo* LoadEditorModelFileInfo( const StringView& path, Errors& errors )
   //{
 
-  struct AssetViewImportModelJob : Job
-  {
-    void Execute() override
-    {
-      Tac::Errors& errors = mErrors;
-      TAC_UNUSED_PARAMETER( errors );
+  //struct AssetViewImportModelJob : Job
+  //{
+  //  void Execute() override
+  //  {
+  //    Tac::Errors& errors = mErrors;
+  //    TAC_UNUSED_PARAMETER( errors );
+  //
+  //      //auto memory = TemporaryMemoryFromFile( mData->mFilepath, errors );
+  //      //TAC_HANDLE_ERROR( errors );
+  //
+  //      //mData->mPitch = pitch;
+  //  }
+  //
+  //  String mPath;
+  //};
 
-        //auto memory = TemporaryMemoryFromFile( mData->mFilepath, errors );
-        //TAC_HANDLE_ERROR( errors );
 
-        //mData->mPitch = pitch;
-    }
+  // comment this begin -------------------------------------------------
 
-    String mPath;
-  };
+//   struct AssetViewImportingModel
+//   {
+//     void Update()
+//     {
+// 
+//       mJob.GetStatus();
+//       JobState::JustBeenCreated;
+//       JobState::ThreadQueued;
+// 
+//       JobState::ThreadRunning;
+//       JobState::ThreadFinished;
+//     }
+// 
+//     AssetViewImportModelJob mJob;
+//     //AssetViewImportModelJob* mJob;
+// 
+//   };
 
-
-  struct AssetViewImportingModel
-  {
-    void Update()
-    {
-      mJob.GetStatus();
-
-      JobState::JustBeenCreated;
-      JobState::ThreadQueued;
-      JobState::ThreadRunning;
-      JobState::ThreadFinished;
-    }
-
-    AssetViewImportModelJob mJob;
-    //AssetViewImportModelJob* mJob;
-  };
+  // comment this end -------------------------------------------------
 
   struct AssetViewImportedModel
   {
+    bool                      mAttemptedToLoadEntity = false;
     EntityUUIDCounter         mEntityUUIDCounter;
     World                     mWorld;
-    EditorLoadInfo            mLoadInfo;
+    // EditorLoadInfo            mLoadInfo;
     Render::TextureHandle     mTextureHandleColor;
     Render::TextureHandle     mTextureHandleDepth;
     Render::FramebufferHandle mFramebufferHandle;
     Render::ViewHandle        mViewHandle;
+    Camera                    mCamera;
+
 
     // somethings are embedded in the model file
     // - mesh / material
     // - possible textures
+    //
     // other things are stored in external files
     // - textures
   };
@@ -193,7 +203,7 @@ namespace Tac
   //static World            sAssetViewWorld;
 
   static std::map< String, AssetViewImportedModel* >  sLoadedModels;
-  static std::map< String, AssetViewImportingModel* > sLoadingModels;
+  //static std::map< String, AssetViewImportingModel* > sLoadingModels;
 
   static String LoadElipses() { return String( "...", ( int )ShellGetElapsedSeconds() % 4 ); }
 
@@ -203,11 +213,11 @@ namespace Tac
     return loadedModelIt == sLoadedModels.end() ? nullptr : ( *loadedModelIt ).second;
   }
 
-  static AssetViewImportingModel* GetLoadingModel( const String& path )
-  {
-    auto loadingModelIt = sLoadingModels.find( path );
-    return loadingModelIt == sLoadingModels.end() ? nullptr : ( *loadingModelIt ).second;
-  }
+  //static AssetViewImportingModel* GetLoadingModel( const String& path )
+  //{
+  //  auto loadingModelIt = sLoadingModels.find( path );
+  //  return loadingModelIt == sLoadingModels.end() ? nullptr : ( *loadingModelIt ).second;
+  //}
 
   static void PopulateFolderContents()
   {
@@ -262,6 +272,192 @@ namespace Tac
 
   static bool IsModel( const StringView& path ) { return HasExt( path, { ".gltf", ".glb" } ); }
 
+  static void UIFilesOther( const Vector< String >& paths )
+  {
+    for( const String& path : paths )
+      ImGuiText( SplitFilepath( path ).mFilename );
+  }
+
+  static void AttemptLoadEntity( AssetViewImportedModel* loadedModel, const char* path )
+  {
+    if( loadedModel->mAttemptedToLoadEntity )
+      return;
+
+    const cgltf_data* gltfData = TryGetGLTFData( path );
+    if( !gltfData )
+      return;
+
+    TAC_ON_DESTRUCT( loadedModel->mAttemptedToLoadEntity = true );
+
+    Entity* entityRoot = loadedModel->mWorld.SpawnEntity( loadedModel->mEntityUUIDCounter.AllocateNewUUID() );
+    entityRoot->mName = SplitFilepath( path ).mFilename;
+
+    Vector< Entity* > entityNodes;
+    for( int i = 0; i < gltfData->nodes_count; ++i )
+    {
+      Entity* entityNode = loadedModel->mWorld.SpawnEntity( loadedModel->mEntityUUIDCounter.AllocateNewUUID() );
+      entityNodes.push_back( entityNode );
+    }
+
+
+    for( int i = 0; i < gltfData->nodes_count; ++i )
+    {
+      const cgltf_node& node = gltfData->nodes[ i ];
+
+
+      Entity* entityNode = loadedModel->mWorld.SpawnEntity( loadedModel->mEntityUUIDCounter.AllocateNewUUID() );
+      entityNode->mName = node.name ? node.name : va( "node %i", i );
+      entityNode->mRelativeSpace = DecomposeGLTFTransform( &node );
+
+      if( node.mesh )
+      {
+        node.mesh->name;
+        node.mesh->primitives;
+        node.mesh->primitives_count;
+
+        String modelPath = path;
+        if( modelPath.starts_with( ShellGetInitialWorkingDir() ) )
+          modelPath.substr( StrLen( ShellGetInitialWorkingDir() ) );
+
+        auto model = ( Model* )entityNode->AddNewComponent( Model().GetEntry() );
+        model->mModelPath = modelPath;
+        //model->mModelName = node.mesh->name;
+        model->mModelIndex = ( int )( node.mesh - gltfData->meshes );
+        model->mTryingNewThing = true;
+
+
+        // ** REMEMBER **, we don't care about the textures on this model component.
+        // that's a job for the material component
+      }
+
+      if( node.children_count )
+      {
+        for( cgltf_node* child = *node.children; child < *node.children + node.children_count; ++child )
+        {
+          Entity* childEntity = entityNodes[ ( int )( child - *node.children ) ];
+          entityNode->AddChild( childEntity );
+        }
+      }
+
+      if( !node.parent )
+        entityRoot->AddChild( entityNode );
+    }
+  }
+
+
+  static void UIFilesModel( const String& path )
+  {
+    const String filename = SplitFilepath( path ).mFilename;
+    ImGuiText( filename );
+
+      const int w = 256;
+      const int h = 256;
+
+    AssetViewImportedModel* loadedModel = GetLoadedModel( path );
+    if( !loadedModel )
+    {
+      Render::TexSpec texSpecColor;
+      texSpecColor.mImage.mFormat.mElementCount = 4;
+      texSpecColor.mImage.mFormat.mPerElementByteCount = 1;
+      texSpecColor.mImage.mFormat.mPerElementDataType = Render::GraphicsType::unorm;
+      texSpecColor.mImage.mWidth = w;
+      texSpecColor.mImage.mHeight = h;
+      texSpecColor.mBinding = ( Render::Binding )( ( int )Render::Binding::ShaderResource | ( int )Render::Binding::RenderTarget );
+      Render::TextureHandle textureHandleColor = Render::CreateTexture( texSpecColor, TAC_STACK_FRAME );
+      Render::SetRenderObjectDebugName( textureHandleColor,
+                                        FrameMemoryPrintf( "%s framebuffer color", SplitFilepath( path ).mFilename.c_str() ) );
+
+      Render::TexSpec texSpecDepth;
+      texSpecDepth.mImage.mFormat.mElementCount = 1;
+      texSpecDepth.mImage.mFormat.mPerElementByteCount = 16;
+      texSpecDepth.mImage.mFormat.mPerElementDataType = Render::GraphicsType::unorm;
+      texSpecDepth.mImage.mWidth = w;
+      texSpecDepth.mImage.mHeight = h;
+      texSpecDepth.mBinding = Render::Binding::DepthStencil; // = ( Render::Binding )( ( int )Render::Binding::ShaderResource | ( int )Render::Binding::RenderTarget );
+      Render::TextureHandle textureHandleDepth = Render::CreateTexture( texSpecDepth, TAC_STACK_FRAME );
+      Render::SetRenderObjectDebugName( textureHandleDepth,
+                                        FrameMemoryPrintf( "%s framebuffer depth", SplitFilepath( path ).mFilename.c_str() ) );
+
+      Render::FramebufferHandle framebufferHandle = Render::CreateFramebufferForRenderToTexture(
+        { textureHandleColor, textureHandleDepth }, TAC_STACK_FRAME );
+      Render::ViewHandle viewHandle = Render::CreateView();
+
+      loadedModel = new AssetViewImportedModel;
+      loadedModel->mFramebufferHandle = framebufferHandle;
+      loadedModel->mTextureHandleColor = textureHandleColor;
+      loadedModel->mTextureHandleDepth = textureHandleDepth;
+      loadedModel->mViewHandle = viewHandle;
+      sLoadedModels[ path ] = loadedModel;
+    }
+
+    if( loadedModel->mWorld.mEntities.size() )
+    {
+      ImGuiSameLine();
+      if( ImGuiButton( "Import object into scene" ) )
+      {
+        Entity* prefab = *loadedModel->mWorld.mEntities.begin();
+        gCreation.InstantiateAsCopy( prefab, gCreation.GetEditorCameraVisibleRelativeSpace() );
+      }
+
+      TAC_RENDER_GROUP_BLOCK( FrameMemoryPrintf( "asset preview %s", filename.c_str() ) );
+
+      Render::SetViewFramebuffer( loadedModel->mViewHandle, loadedModel->mFramebufferHandle );
+      Render::SetViewport( loadedModel->mViewHandle, Render::Viewport( w, h ) );
+      Render::SetViewScissorRect( loadedModel->mViewHandle, Render::ScissorRect( w, h ) );
+      gCreation.mGamePresentation->RenderGameWorldToDesktopView( &loadedModel->mWorld,
+                                                                 &loadedModel->mCamera,
+                                                                 w, h,
+                                                                 loadedModel->mViewHandle );
+
+      // ImGuiSameLine();
+      ImGuiImage( ( int )loadedModel->mTextureHandleColor, v2( w, h ) );
+    }
+    else if( loadedModel->mAttemptedToLoadEntity )
+    {
+      ImGuiSameLine();
+      ImGuiText( "No object to import" );
+    }
+    else
+    {
+      ImGuiSameLine();
+      ImGuiText( "Loading" + LoadElipses() );
+    }
+
+    AttemptLoadEntity( loadedModel, path.c_str() );
+  }
+
+  static void UIFilesModels( const Vector< String >& paths )
+  {
+    for( const String& path : paths )
+    {
+      String s = SplitFilepath( path ).mFilename;
+      if( !(0 == s.compare( "Box.gltf" ) || 0== s.compare( "arrow.gltf" ) ))
+        continue;
+
+      UIFilesModel( path );
+    }
+  }
+
+  static void UIFilesImages( const Vector< String >& paths )
+  {
+    int shownImageCount = 0;
+    bool goSameLine = false;
+    for( const String& path : paths )
+    {
+      if( goSameLine )
+        ImGuiSameLine();
+      goSameLine = false;
+      ImGuiBeginChild( path, { 200, 100 } );
+      ImGuiText( SplitFilepath( path ).mFilename );
+      const Render::TextureHandle textureHandle = TextureAssetManager::GetTexture( path, sAssetViewErrors );
+      if( textureHandle.IsValid() )
+        ImGuiImage( ( int )textureHandle, v2( 50, 50 ) );
+      ImGuiEndChild();
+      if( shownImageCount++ % 3 < 3 - 1 )
+        goSameLine = true;
+    }
+  }
+
   static void UIFiles()
   {
     if( sAssetViewFiles.empty() )
@@ -281,200 +477,9 @@ namespace Tac
       ( *paths ).push_back( path );
     }
 
-    for( const String& path : imagePaths )
-    {
-      const int iPath = ( int )( &path - imagePaths.data() );
-      const bool isImage =
-        StringView( path ).ends_with( ".png" ) ||
-        StringView( path ).ends_with( ".jpg" ) ||
-        StringView( path ).ends_with( ".bmp" ) ||
-        false;
-      if( isImage )
-        ImGuiBeginChild( path, { 200, 100 } );
-      ImGuiText( SplitFilepath( path ).mFilename );
-
-      if( isImage )
-      {
-        const Render::TextureHandle textureHandle = TextureAssetManager::GetTexture( path, sAssetViewErrors );
-        if( textureHandle.IsValid() )
-        {
-          ImGuiImage( ( int )textureHandle, v2( 50, 50 ) );
-        }
-      }
-
-      if( isImage )
-        ImGuiEndChild();
-      if( iPath % 3 < 3 - 1 && iPath != imagePaths.size() - 1 )
-        ImGuiSameLine();
-    }
-
-    for( const String& path : modelPaths )
-    {
-      const String filename = SplitFilepath( path ).mFilename;
-      //const String filenamePrefab = StripExt( filename ) + ".prefab";
-      ImGuiText( filename );
-      //
-      //bool importFound = false;
-      //for( const String& assetViewFile : sAssetViewFiles )
-      //  if( SplitFilepath( assetViewFile ).mFilename == filenamePrefab )
-      //    importFound = true;
-      //if( !importFound )
-      //{
-      //  ImGuiSameLine();
-      //  ImGuiButton( "Import" );
-      //}
-
-      if( AssetViewImportedModel* loadedModel = GetLoadedModel( path ) )
-      {
-        ImGuiSameLine();
-        ImGuiButton( "Loaded" );
-
-        ImGuiSameLine();
-        if( ImGuiButton( "Import object into scene" ) )
-        {
-          //Entity* entity = gCreation.CreateEntity();
-          //v3 pos = entity->mRelativeSpace.mPosition;
-          //TAC_UNUSED_PARAMETER( entity );
-
-          Entity* prefab = *loadedModel->mWorld.mEntities.begin();
-
-          gCreation.InstantiateAsCopy( prefab, gCreation.GetEditorCameraVisibleRelativeSpace() );
-          //entity->DeepCopy( **loadedModel->mWorld.mEntities.begin() );
-          //entity->mRelativeSpace.mPosition = pos;
-        }
-
-        //ImGuiSameLine();
-        //ImGuiText( va( "mesh count %i", loadedModel->mLoadInfo.parsedData->meshes_count ) );
-
-        //ImGuiSameLine();
-        //ImGuiText( va( "mat count %i", loadedModel->mLoadInfo.parsedData->materials_count ) );
-
-        //ImGuiSameLine();
-        //ImGuiText( va( "tex count %i", loadedModel->mLoadInfo.parsedData->textures_count ) );
-
-        ImGuiSameLine();
-        ImGuiText( va( "world entity count %i", loadedModel->mWorld.mEntities.size() ) );
-      }
-      else if( AssetViewImportingModel* loadingModel = GetLoadingModel( path ) )
-      {
-        ImGuiSameLine();
-        ImGuiButton( "Loading" + LoadElipses() );
-        if( loadingModel->mJob.GetStatus() == JobState::ThreadFinished )
-        {
-          if( !loadingModel->mJob.mErrors )
-          {
-            delete loadingModel;
-            sLoadingModels.erase( sLoadingModels.find( path ) );
-
-
-            loadedModel = new AssetViewImportedModel;
-            Errors errors;
-            loadedModel->mLoadInfo.Init( path.c_str(), errors );
-            sLoadedModels[ path ] = loadedModel;
-
-            EditorLoadInfo* loadInfo = &loadedModel->mLoadInfo;
-
-            Entity* entityRoot = loadedModel->mWorld.SpawnEntity( loadedModel->mEntityUUIDCounter.AllocateNewUUID() );
-            entityRoot->mName = SplitFilepath( path ).mFilename;
-
-            Vector< Entity* > entityNodes;
-            for( int i = 0; i < loadInfo->parsedData->nodes_count; ++i )
-            {
-              Entity* entityNode = loadedModel->mWorld.SpawnEntity( loadedModel->mEntityUUIDCounter.AllocateNewUUID() );
-              entityNodes.push_back( entityNode );
-            }
-
-
-            for( int i = 0; i < loadInfo->parsedData->nodes_count; ++i )
-            {
-              const cgltf_node& node = loadInfo->parsedData->nodes[ i ];
-
-
-              Entity* entityNode = loadedModel->mWorld.SpawnEntity( loadedModel->mEntityUUIDCounter.AllocateNewUUID() );
-              entityNode->mName = node.name ? node.name : va( "node %i", i );
-              entityNode->mRelativeSpace = DecomposeGLTFTransform( &node );
-
-              if( node.mesh )
-              {
-                node.mesh->name;
-                node.mesh->primitives;
-                node.mesh->primitives_count;
-
-                auto model = ( Model* )entityNode->AddNewComponent( Model().GetEntry() );
-                model->mModelPath = path;
-                //model->mModelName = node.mesh->name;
-                model->mModelIndex = ( int )( node.mesh - loadInfo->parsedData->meshes );
-                model->mTryingNewThing = true;
-
-
-                // ** REMEMBER **, we don't care about the textures on this model component.
-                // that's a job for the material component
-              }
-
-              if( node.children_count )
-              {
-                for( cgltf_node* child = *node.children; child < *node.children + node.children_count; ++child )
-                {
-                  Entity* childEntity = entityNodes[ ( int )( child - *node.children ) ];
-                  entityNode->AddChild( childEntity );
-                }
-              }
-
-              if( !node.parent )
-                entityRoot->AddChild( entityNode );
-            }
-
-            if( false )
-            {
-              int w = 256;
-              int h = 256;
-              Render::TexSpec texSpecColor;
-              texSpecColor.mImage.mFormat.mElementCount = 4;
-              texSpecColor.mImage.mFormat.mPerElementByteCount = 1;
-              texSpecColor.mImage.mFormat.mPerElementDataType = Render::GraphicsType::unorm;
-              texSpecColor.mImage.mWidth = w;
-              texSpecColor.mImage.mHeight = h;
-              texSpecColor.mBinding = ( Render::Binding )( ( int )Render::Binding::ShaderResource | ( int )Render::Binding::RenderTarget );
-              Render::TextureHandle textureHandleColor = Render::CreateTexture( texSpecColor, TAC_STACK_FRAME );
-
-              Render::TexSpec texSpecDepth;
-              texSpecColor.mImage.mFormat.mElementCount = 1;
-              texSpecColor.mImage.mFormat.mPerElementByteCount = 16;
-              texSpecColor.mImage.mFormat.mPerElementDataType = Render::GraphicsType::unorm;
-              texSpecColor.mImage.mWidth = w;
-              texSpecColor.mImage.mHeight = h;
-              Render::TextureHandle textureHandleDepth = Render::CreateTexture( texSpecDepth, TAC_STACK_FRAME );
-
-              Render::FramebufferHandle framebufferHandle = Render::CreateFramebufferForRenderToTexture(
-                { textureHandleColor, textureHandleDepth }, TAC_STACK_FRAME );
-              Render::ViewHandle viewHandle = Render::CreateView();
-              Render::SetViewFramebuffer( viewHandle, framebufferHandle );
-              Render::SetViewport( viewHandle, Render::Viewport( w, h ) );
-              Render::SetViewScissorRect( viewHandle, Render::ScissorRect( w, h ) );
-
-              Camera camera;
-              gCreation.mGamePresentation->RenderGameWorldToDesktopView( &loadedModel->mWorld, &camera, w, h, viewHandle );
-            }
-          }
-        }
-      }
-      else
-      {
-        auto loading = TAC_NEW AssetViewImportingModel;
-        loading->mJob.mPath = path;
-        JobQueuePush( &loading->mJob );
-        sLoadingModels[ path ] = loading;
-
-        //Errors errors;
-        //EditorLoadInfo editorLoadInfo = LoadEditorModelFileInfo( path, errors );
-
-        //IEditorLoadInfo* loadInfo = EditorLoadInfoAllocate();
-        //EditorLoadInfoFree( loadInfo );
-      }
-    }
-
-    for( const String& path : otherPaths )
-      ImGuiText( SplitFilepath( path ).mFilename );
+    UIFilesImages( imagePaths );
+    UIFilesModels( modelPaths );
+    UIFilesOther( otherPaths );
   }
 
   void CreationUpdateAssetView()
@@ -491,6 +496,7 @@ namespace Tac
 
       if( sAssetViewFolderStack.empty() )
       {
+        //const String root = "assets";
         const String root = ShellGetInitialWorkingDir() + String( "/assets" );
         sAssetViewFolderStack.push_back( root );
       }

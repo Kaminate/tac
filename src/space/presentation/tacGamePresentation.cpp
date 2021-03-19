@@ -1,6 +1,7 @@
 #include "src/common/assetmanagers/tacModelAssetManager.h"
 #include "src/common/assetmanagers/tacMesh.h"
 #include "src/common/assetmanagers/tacTextureAssetManager.h"
+#include "src/common/tacFrameMemory.h"
 #include "src/common/graphics/tacDebug3D.h"
 #include "src/common/graphics/tacRenderer.h"
 #include "src/common/graphics/tacRendererUtil.h"
@@ -149,6 +150,8 @@ namespace Tac
                                                        const int viewHeight,
                                                        const Render::ViewHandle viewId )
   {
+
+    TAC_RENDER_GROUP_BLOCK( "Render Game World" );
     //_PROFILE_BLOCK;
 
     //World* world = world;
@@ -185,6 +188,7 @@ namespace Tac
 
     Render::Submit( viewId, TAC_STACK_FRAME );
 
+
     struct : public ModelVisitor
     {
       void operator()( Model* model ) override
@@ -196,7 +200,9 @@ namespace Tac
         DefaultCBufferPerObject perObjectData;
         perObjectData.Color = { model->mColorRGB, 1 };
         perObjectData.World = model->mEntity->mWorldTransform;
+        Render::BeginGroup( FrameMemoryPrintf( "%s %i", model->mModelPath.c_str(), model->mModelIndex ), TAC_STACK_FRAME );
         mGamePresentation->RenderGameWorldAddDrawCall( model->mesh, perObjectData, mViewId );
+        Render::EndGroup( TAC_STACK_FRAME );
       }
 
       GamePresentation*  mGamePresentation;
@@ -204,9 +210,13 @@ namespace Tac
     } myModelVisitor;
     myModelVisitor.mGamePresentation = this;
     myModelVisitor.mViewId = viewId;
+
+    Render::BeginGroup( "Visit Models", TAC_STACK_FRAME );
     graphics->VisitModels( &myModelVisitor );
+    Render::EndGroup( TAC_STACK_FRAME );
 
 
+    Render::BeginGroup( "Visit Terrains", TAC_STACK_FRAME );
     for( Terrain* terrain : physics->mTerrains )
     {
       LoadTerrain( terrain );
@@ -235,6 +245,7 @@ namespace Tac
       Render::SetVertexFormat( mTerrainVertexFormat );
       Render::Submit( viewId, TAC_STACK_FRAME );
     }
+    Render::EndGroup( TAC_STACK_FRAME );
 
 
     struct : public SkyboxVisitor
@@ -258,7 +269,9 @@ namespace Tac
     mySkyboxVisitor.mViewId = viewId;
     mySkyboxVisitor.mGamePresentation = this;
     mySkyboxVisitor.mCamera = camera;
+    Render::BeginGroup( "Visit Skyboxes", TAC_STACK_FRAME );
     graphics->VisitSkyboxes( &mySkyboxVisitor );
+    Render::EndGroup( TAC_STACK_FRAME );
 
     //world->mDebug3DDrawData->DrawToTexture(
     //  ignored,

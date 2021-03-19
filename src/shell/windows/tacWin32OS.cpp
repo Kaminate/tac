@@ -189,13 +189,13 @@ namespace Tac
     path = outBuf;
   };
 
-  void OSGetScreenspaceCursorPos( v2& pos, Errors& errors )
-  {
-    // Note: this could return error access denied, for example if your computer goes to sleep
-    POINT point;
-    TAC_HANDLE_ERROR_IF( !GetCursorPos( &point ), Win32GetLastErrorString(), errors );
-    pos = { ( float )point.x, ( float )point.y };
-  }
+  //void OSGetScreenspaceCursorPos( v2& pos, Errors& errors )
+  //{
+  //  // Note: this could return error access denied, for example if your computer goes to sleep
+  //  POINT point;
+  //  TAC_HANDLE_ERROR_IF( !GetCursorPos( &point ), Win32GetLastErrorString(), errors );
+  //  pos = { ( float )point.x, ( float )point.y };
+  //}
 
   void OSSetScreenspaceCursorPos( const v2& pos, Errors& errors )
   {

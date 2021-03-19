@@ -99,6 +99,7 @@ namespace Tac
       void RemoveVertexBuffer( Render::VertexBufferHandle, Errors& ) override;
       void RemoveVertexFormat( Render::VertexFormatHandle, Errors& ) override;
       void ResizeFramebuffer( Render::CommandDataResizeFramebuffer*, Errors& ) override;
+      void SetRenderObjectDebugName( Render::CommandDataSetRenderObjectDebugName*, Errors& ) override;
       void UpdateIndexBuffer( Render::CommandDataUpdateIndexBuffer*, Errors& ) override;
       void UpdateTextureRegion( Render::CommandDataUpdateTextureRegion*, Errors& ) override;
       void UpdateVertexBuffer( Render::CommandDataUpdateVertexBuffer*, Errors& ) override;
@@ -143,7 +144,7 @@ namespace Tac
       ID3D11DepthStencilState*   mDepthStencilState = nullptr;
       Render::ViewHandle         mViewHandle;
       IndexBuffer*               mIndexBuffer = nullptr;
-
+      bool                       mFramebuffersBoundEverThisFrame[ kMaxFramebuffers ];
     };
   } // namespace Render
 } // namespace Tac

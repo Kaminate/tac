@@ -112,8 +112,9 @@ namespace Tac
     enum class Binding
     {
       None = 0b00,
-      ShaderResource = 0b01,
-      RenderTarget = 0b10,
+      ShaderResource = 0b001,
+      RenderTarget = 0b010,
+      DepthStencil = 0b100,
     };
 
     const char* GetSemanticName( Attribute );
@@ -338,6 +339,8 @@ namespace Tac
 
 
     void                             Init( Errors& );
+    void                             Uninit();
+
     void                             RenderFrame( Errors& );
     void                             SubmitFrame();
 
@@ -429,7 +432,9 @@ namespace Tac
     void                             GetPerspectiveProjectionAB( float f, float n, float& a, float& b );
     void                             BeginGroup( StringView, StackFrame );
     void                             EndGroup( StackFrame );
-    void                             Uninit();
+    void                             SetRenderObjectDebugName( TextureHandle, const char* );
+    void                             SetRenderObjectDebugName( VertexBufferHandle, const char* );
+    void                             SetRenderObjectDebugName( IndexBufferHandle, const char* );
 
 #define TAC_RENDER_GROUP_BLOCK( text )                          \
         Render::BeginGroup( text, TAC_STACK_FRAME );            \

@@ -129,10 +129,8 @@ ENDIF()
 
 # Create a library named CommonLibrary
 add_library( "CommonLibrary" ${Common} )
-target_precompile_headers( "CommonLibrary" 
 
-# PUBLIC 
-PRIVATE
-  ${CMAKE_CURRENT_SOURCE_DIR}/tacPrecompiledHeader.h
-)
+# This does weird things where sometimes after rebuilding ( without cleaning ) the program will immediately exit without hitting main
+#
+# target_precompile_headers( "CommonLibrary" PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tacPrecompiledHeader.h)
 

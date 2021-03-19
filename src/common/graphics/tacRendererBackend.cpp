@@ -14,6 +14,14 @@ static uint32_t gRaven = 0xcaacaaaa;
 namespace Tac
 {
   static bool gVerbose;
+  static void VerbosePrint( const char* name, const char* suf )
+  {
+    if( gVerbose )
+      std::cout << name << suf << std::endl;
+  }
+#define TAC_VERBOSE_COMMAND_BLOCK( name )            \
+                   VerbosePrint( #name, "::Begin" ); \
+  TAC_ON_DESTRUCT( VerbosePrint( #name, "::End" ) );
 
   template< typename T >
   static T* Pop( const char*& bufferPos )
@@ -497,6 +505,35 @@ namespace Tac
                                                           &commandData,
                                                           sizeof( CommandDataCreateVertexFormat ) );
       return vertexFormatHandle;
+    }
+
+    static void SetRenderObjectDebugName( CommandDataSetRenderObjectDebugName& commandData, const char* name )
+    {
+      commandData.mName = SubmitAlloc( name );
+      gSubmitFrame->mCommandBufferFrameBegin.PushCommand( CommandType::SetRenderObjectDebugName,
+                                                          &commandData,
+                                                          sizeof( commandData ) );
+    }
+
+    void SetRenderObjectDebugName( const IndexBufferHandle indexBufferHandle, const char* name )
+    {
+      CommandDataSetRenderObjectDebugName commandData;
+      commandData.mIndexBufferHandle = indexBufferHandle;
+      SetRenderObjectDebugName( commandData, name );
+    }
+
+    void SetRenderObjectDebugName( const VertexBufferHandle vertexBufferHandle, const char* name )
+    {
+      CommandDataSetRenderObjectDebugName commandData;
+      commandData.mVertexBufferHandle = vertexBufferHandle;
+      SetRenderObjectDebugName( commandData, name );
+    }
+
+    void SetRenderObjectDebugName( const TextureHandle textureHandle, const char* name )
+    {
+      CommandDataSetRenderObjectDebugName commandData;
+      commandData.mTextureHandle = textureHandle;
+      SetRenderObjectDebugName( commandData, name );
     }
 
     void FreeDeferredHandles::FinishFreeingHandles()
@@ -1137,6 +1174,7 @@ namespace Tac
   void Renderer::ExecuteCommands( Render::CommandBuffer* commandBuffer, Errors& errors )
   {
 
+
     // factor out this while loop out of rendererDX11 and rendererOGL
     const char* bufferBegin = commandBuffer->Data();
     const char* bufferEnd = bufferBegin + commandBuffer->Size();
@@ -1456,6 +1494,14 @@ namespace Tac
         //  PopCheep( bufferPos );
         //  UpdateConstantBuffer( *index, commandData, errors );
         //} break;
+
+        case Render::CommandType::SetRenderObjectDebugName:
+        {
+          TAC_VERBOSE_COMMAND_BLOCK( SetRendererObjectDebugName );
+          auto commandData = PopCommandData< Render::CommandDataSetRenderObjectDebugName >( bufferPos );
+          SetRenderObjectDebugName( commandData, errors );
+          TAC_HANDLE_ERROR( errors );
+        } break;
 
         case Render::CommandType::ResizeFramebuffer:
         {

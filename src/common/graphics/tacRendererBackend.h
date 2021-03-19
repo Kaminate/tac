@@ -51,6 +51,7 @@ namespace Tac
       UpdateTextureRegion,
       UpdateVertexBuffer,
       ResizeFramebuffer,
+      SetRenderObjectDebugName,
     };
 
     struct UpdateConstantBufferData
@@ -248,6 +249,14 @@ namespace Tac
       BlendState            mBlendState;
     };
 
+    struct CommandDataSetRenderObjectDebugName
+    {
+      TextureHandle         mTextureHandle;
+      VertexBufferHandle    mVertexBufferHandle;
+      IndexBufferHandle     mIndexBufferHandle;
+      const char*           mName;
+    };
+
     struct CommandDataCreateVertexFormat
     {
       StackFrame            mStackFrame;
@@ -402,6 +411,7 @@ namespace Tac
     virtual void RemoveIndexBuffer( Render::IndexBufferHandle, Errors& ) = 0;
     virtual void RemoveTexture( Render::TextureHandle, Errors& ) = 0;
     virtual void RemoveFramebuffer( Render::FramebufferHandle, Errors& ) = 0;
+    virtual void SetRenderObjectDebugName( Render::CommandDataSetRenderObjectDebugName*, Errors& ) = 0;
     virtual void DebugGroupBegin( StringView ) = 0;
     virtual void DebugMarker( StringView ) = 0;
     virtual void DebugGroupEnd() = 0;

@@ -1,3 +1,4 @@
+/*
 #pragma once
 //#pragma warning( disable: 26812 )
 //#pragma warning( disable: 6011 )
@@ -20,4 +21,5 @@ namespace Tac
 
 }
 
+*/
 

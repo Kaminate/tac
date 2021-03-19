@@ -10,9 +10,12 @@
 
 namespace Tac
 {
+  static double       mMouseMovementConsummation = 0;
+  const double        kConsumeDelta = 0.1f;
+  static StackFrame   sConsumeFrame;
+  KeyboardInput       gKeyboardInput;
 
-
-  String ToString( Key key )
+  String              ToString( const Key key )
   {
     switch( key )
     {
@@ -61,7 +64,26 @@ namespace Tac
     }
   }
 
-  bool KeyboardInputFrame::IsKeyDown( Key key )
+  void                TryConsumeMouseMovement( double* savedT, StackFrame stackFrame )
+  {
+    const double oldSavedT = *savedT;
+    const double curTime = ShellGetElapsedSeconds();
+    const bool consumedBySomebody = curTime - mMouseMovementConsummation < kConsumeDelta;
+    const bool isThatSomebodyUs =
+      *savedT >= mMouseMovementConsummation && // bugfix: >=, not >
+      *savedT - mMouseMovementConsummation < kConsumeDelta;
+    if( consumedBySomebody && !isThatSomebodyUs )
+    {
+      *savedT = 0;
+      return;
+    }
+
+    mMouseMovementConsummation = curTime;
+    *savedT = curTime;
+    sConsumeFrame = stackFrame;
+  }
+
+  bool   KeyboardInputFrame::IsKeyDown( const Key key )
   {
     return mCurrDown[ ( int )key ];
   }
@@ -78,15 +100,17 @@ namespace Tac
   }
 
 
-  bool KeyboardInput::IsKeyJustDown( Key key )
+  // should only be used in the stuffthread
+  KeyboardInput::KeyboardInput() { }
+  bool KeyboardInput::IsKeyJustDown( const Key key )
   {
     return !mPrev.IsKeyDown( key ) && IsKeyDown( key );
   }
-  bool KeyboardInput::HasKeyJustBeenReleased( Key key )
+  bool KeyboardInput::HasKeyJustBeenReleased( const Key key )
   {
     return mPrev.IsKeyDown( key ) && !IsKeyDown( key );
   }
-  bool KeyboardInput::IsKeyDown( Key key )
+  bool KeyboardInput::IsKeyDown( const Key key )
   {
     return mCurr.IsKeyDown( key );
   }
@@ -94,18 +118,9 @@ namespace Tac
   {
     //ImGui::Text( mCurr.GetPressedKeyDescriptions() );
   }
-  void KeyboardInput::SetIsKeyDown( Key key, bool isDown )
+  void KeyboardInput::SetIsKeyDown( const Key key, const bool isDown )
   {
     mCurr.mCurrDown[ ( int )key ] = isDown;
-  }
-
-  KeyboardInput gKeyboardInput;
-
-  // should only be used in the stuffthread
-  KeyboardInput::KeyboardInput()
-  {
-    //OSGetScreenspaceCursorPos( mCurr.mScreenspaceCursorPos, mCurr.mScreenspaceCursorPosErrors );
-    //OSGetScreenspaceCursorPos( mPrev.mScreenspaceCursorPos, mPrev.mScreenspaceCursorPosErrors );
   }
   void KeyboardInput::BeginFrame()
   {
@@ -132,26 +147,5 @@ namespace Tac
     std::cout << currkeysDown.c_str() << std::endl;
   }
 
-
-  // non-threadlocal
-  static double       mMouseMovementConsummation = 0;
-  const double        kConsumeDelta = 0.1f;
-  void                TryConsumeMouseMovement( double* savedT )
-  {
-    const double curTime = ShellGetElapsedSeconds();
-    const bool consumedBySomebody = curTime - mMouseMovementConsummation < kConsumeDelta;
-    const bool isThatSomebodyUs =
-      *savedT > mMouseMovementConsummation &&
-      *savedT - mMouseMovementConsummation < kConsumeDelta;
-    if( consumedBySomebody && !isThatSomebodyUs )
-    {
-      *savedT = 0;
-      return;
-    }
-
-    mMouseMovementConsummation = curTime;
-    *savedT = curTime;
-  }
-      
 
 }

@@ -146,14 +146,15 @@ namespace Tac
 
   static FormatPair gFormatPairs[] =
   {
-    FormatPair{ { 2, sizeof( float ), Render::GraphicsType::real }, DXGI_FORMAT_R32G32_FLOAT },
-    FormatPair{ { 3, sizeof( float ), Render::GraphicsType::real }, DXGI_FORMAT_R32G32B32_FLOAT },
-    FormatPair{ { 4, sizeof( float ), Render::GraphicsType::real }, DXGI_FORMAT_R32G32B32A32_FLOAT },
-    FormatPair{ { 1, sizeof( uint8_t ), Render::GraphicsType::unorm }, DXGI_FORMAT_R8_UNORM },
-    FormatPair{ { 2, sizeof( uint8_t ), Render::GraphicsType::unorm }, DXGI_FORMAT_R8G8_UNORM },
-    FormatPair{ { 4, sizeof( uint8_t ), Render::GraphicsType::unorm }, DXGI_FORMAT_R8G8B8A8_UNORM },
-    FormatPair{ { 1, sizeof( uint16_t ), Render::GraphicsType::uint }, DXGI_FORMAT_R16_UINT },
-    FormatPair{ { 1, sizeof( uint32_t ), Render::GraphicsType::uint }, DXGI_FORMAT_R32_UINT }
+    FormatPair{ { 2, sizeof( float ),    Render::GraphicsType::real  }, DXGI_FORMAT_R32G32_FLOAT       },
+    FormatPair{ { 3, sizeof( float ),    Render::GraphicsType::real  }, DXGI_FORMAT_R32G32B32_FLOAT    },
+    FormatPair{ { 4, sizeof( float ),    Render::GraphicsType::real  }, DXGI_FORMAT_R32G32B32A32_FLOAT },
+    FormatPair{ { 1, sizeof( uint8_t ),  Render::GraphicsType::unorm }, DXGI_FORMAT_R8_UNORM           },
+    FormatPair{ { 2, sizeof( uint8_t ),  Render::GraphicsType::unorm }, DXGI_FORMAT_R8G8_UNORM         },
+    FormatPair{ { 4, sizeof( uint8_t ),  Render::GraphicsType::unorm }, DXGI_FORMAT_R8G8B8A8_UNORM     },
+    FormatPair{ { 1, sizeof( uint16_t ), Render::GraphicsType::uint  }, DXGI_FORMAT_R16_UINT           },
+    FormatPair{ { 1, sizeof( uint32_t ), Render::GraphicsType::uint  }, DXGI_FORMAT_R32_UINT           },
+    FormatPair{ { 1, 16,                 Render::GraphicsType::unorm }, DXGI_FORMAT_D16_UNORM          },
   };
 
   Render::Format GetFormat( const DXGI_FORMAT format )

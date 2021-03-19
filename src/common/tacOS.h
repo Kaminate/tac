@@ -45,7 +45,9 @@ namespace Tac
   // you're mouse is likely to have moved.
   // What should happen is that this gets cached during the message pump,
   // and accessed through MouseInput
-  void        OSGetScreenspaceCursorPos( v2&, Errors& );
+  //void        OSGetScreenspaceCursorPos( v2&, Errors& );
+
+  // but like.. isnt it weird that Set exists and Get doesnt?
   void        OSSetScreenspaceCursorPos( const v2&, Errors& );
 
   void        OSThreadSleepSec( float );

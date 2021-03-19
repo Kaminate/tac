@@ -1,6 +1,7 @@
 #include "src/common/profile/tacProfile.h"
 #include "src/common/profile/tacProfileImGui.h"
 #include "src/common/graphics/imgui/tacImGuiState.h"
+#include "src/common/tacFrameMemory.h"
 #include "src/common/graphics/tacUI2D.h"
 #include "src/common/math/tacMath.h"
 
@@ -69,23 +70,23 @@ namespace Tac
     if( !profileFunction )
       return;
 
-    float functionLMiliseconds = TimepointSubtractMiliseconds( profileFunction->mBeginTime, frameBeginTime );
-    float functionRMiliseconds = TimepointSubtractMiliseconds( profileFunction->mEndTime, frameBeginTime );
-    float functionLPercent
+    const float functionLMiliseconds = TimepointSubtractMiliseconds( profileFunction->mBeginTime, frameBeginTime );
+    const float functionRMiliseconds = TimepointSubtractMiliseconds( profileFunction->mEndTime, frameBeginTime );
+    const float functionLPercent
       = ( functionLMiliseconds - profileWidgetData->mLMiliseconds )
       / ( profileWidgetData->mRMiliseconds - profileWidgetData->mLMiliseconds );
-    float functionRPercent
+    const float functionRPercent
       = ( functionRMiliseconds - profileWidgetData->mLMiliseconds )
       / ( profileWidgetData->mRMiliseconds - profileWidgetData->mLMiliseconds );
     profileWidgetData->mLMiliseconds;
     profileWidgetData->mRMiliseconds;
 
-    v2 boxSize =
+    const v2 boxSize =
     {
       ( functionRPercent - functionLPercent ) * ( timelineRight.x - timelineLeft.x ),
       ( float )ImGuiGlobals::Instance.mUIStyle.fontSize
     };
-    v2 boxPos = timelineLeft + v2(
+    const v2 boxPos = timelineLeft + v2(
       functionLPercent * ( timelineRight.x - timelineLeft.x ),
       ( float )depth * ( ImGuiGlobals::Instance.mUIStyle.fontSize + 5 ) );
 
@@ -99,10 +100,10 @@ namespace Tac
     Render::TextureHandle texture;
     drawData->AddBox( boxPos, boxPos + boxSize, boxColor, texture, &boxClipRect );
 
-    v2 textSize = CalculateTextSize(
+    const v2 textSize = CalculateTextSize(
       profileFunction->mStackFrame.mFunction,
       ImGuiGlobals::Instance.mUIStyle.fontSize );
-    v2 textPos =
+    const v2 textPos =
     {
       boxPos.x + ( boxSize.x - textSize.x ) / 2,
       boxPos.y,
@@ -155,58 +156,56 @@ namespace Tac
 
     // ImGuiBeginGroup();
 
-    float itemWidth = imguiWindow->mContentRect.mMaxi.x - imguiWindow->mCurrCursorViewport.x;
-    float itemHeight = ( float )ImGuiGlobals::Instance.mUIStyle.fontSize;
+    const float itemWidth = imguiWindow->mContentRect.mMaxi.x - imguiWindow->mCurrCursorViewport.x;
+    const float itemHeight = ( float )ImGuiGlobals::Instance.mUIStyle.fontSize;
 
-    v2 timeScalePos = imguiWindow->mCurrCursorViewport;
-    v2 timeScaleSize = { itemWidth, itemHeight * 3 };
+    const v2 timeScalePos = imguiWindow->mCurrCursorViewport;
+    const v2 timeScaleSize = { itemWidth, itemHeight * 3 };
     imguiWindow->ItemSize( timeScaleSize );
 
-    v2 timeScaleOffset = { 0, 8 };
+    const v2 timeScaleOffset = { 0, 8 };
 
-    float timelineVOffset = itemHeight * 1.5f;
-    float timelineHOffset = itemHeight * 1.5f;
-    v2 timelineLeft = timeScalePos + v2( timelineHOffset, timelineVOffset );
-    v2 timelineRight = timeScalePos + v2( itemWidth - timelineHOffset, timelineVOffset );
-    v4 timelineColor( 1, 1, 1, 1 );
+    const float timelineVOffset = itemHeight * 1.5f;
+    const float timelineHOffset = itemHeight * 1.5f;
+    const v2 timelineLeft = timeScalePos + v2( timelineHOffset, timelineVOffset );
+    const v2 timelineRight = timeScalePos + v2( itemWidth - timelineHOffset, timelineVOffset );
+    const v4 timelineColor( 1, 1, 1, 1 );
 
     drawData->AddLine( timelineLeft, timelineRight, 2, timelineColor );
 
     TAC_ASSERT( ( int )( profileWidgetData->mRMiliseconds - profileWidgetData->mLMiliseconds ) < 100 );
     for( int i = ( int )profileWidgetData->mLMiliseconds; i < 1 + ( int )profileWidgetData->mRMiliseconds; ++i )
     {
-      float t = ( ( float )i - profileWidgetData->mLMiliseconds )
+      const float t = ( ( float )i - profileWidgetData->mLMiliseconds )
         / ( profileWidgetData->mLMiliseconds + profileWidgetData->mRMiliseconds );
-      v2 tickBottom = Lerp( timelineLeft, timelineRight, t );
-      v2 tickTop = tickBottom - v2( 0, 10 );
+      const v2 tickBottom = Lerp( timelineLeft, timelineRight, t );
+      const v2 tickTop = tickBottom - v2( 0, 10 );
       drawData->AddLine( tickBottom, tickTop, 2.0f, timelineColor );
 
-      StringView timestampSV = Va( "%dms", i );
-      String timestamp( timestampSV.data(), timestampSV.size() );
+      const StringView timestampSV = FrameMemoryPrintf( "%dms", i );
+      //String timestamp( timestampSV.data(), timestampSV.size() );
 
-      v2 rSize = CalculateTextSize( timestamp, ImGuiGlobals::Instance.mUIStyle.fontSize );
+      const v2 rSize = CalculateTextSize( timestampSV, ImGuiGlobals::Instance.mUIStyle.fontSize );
       drawData->AddText( tickTop - v2( rSize.x / 2.0f, ( float )ImGuiGlobals::Instance.mUIStyle.fontSize ),
                          ImGuiGlobals::Instance.mUIStyle.fontSize,
-                         timestamp,
+                         timestampSV,
                          ImGuiGlobals::Instance.mUIStyle.textColor, nullptr );
     }
 
-    Timepoint frameBeginTime = profileFunction->mBeginTime;
     ImGuiProfileWidgetFunction( profileWidgetData,
                                 drawData,
                                 profileFunction,
                                 timelineLeft,
                                 timelineRight,
-                                frameBeginTime,
+                                profileFunction->mBeginTime,
                                 0 );
 
     if( outputWindowFrameTimes )
     {
       static int iFrame = 0;
       iFrame++;
-      int frameMs = ( int )TimepointSubtractMiliseconds( profileFunction->mEndTime, profileFunction->mBeginTime );
-      auto str = Va( "frame %-10i %ims\n", iFrame, frameMs );
-      std::cout << str.data();
+      const int frameMs = ( int )TimepointSubtractMiliseconds( profileFunction->mEndTime, profileFunction->mBeginTime );
+      std::cout << FrameMemoryPrintf( "frame %-10i %ims\n", iFrame, frameMs );
     }
   }
 

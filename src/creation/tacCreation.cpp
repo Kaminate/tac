@@ -95,17 +95,20 @@ namespace Tac
     }
   }
 
+  static bool DoesAnyWindowExist()
+  {
+    for( int i = 0; i < kDesktopWindowCapacity; ++i )
+      if( GetDesktopWindowState( { i } )->mNativeWindowHandle )
+        return true;
+    return false;
+  }
+
   static bool AllWindowsClosed()
   {
-    static int maxWindowCount;
-    int curWindowCount = 0;
-    for( int i = 0; i < kDesktopWindowCapacity; ++i )
-    {
-      DesktopWindowState* desktopWindowState = GetDesktopWindowState( { i } );
-      curWindowCount += desktopWindowState->mNativeWindowHandle ? 1 : 0;
-    }
-    maxWindowCount = Max( maxWindowCount, curWindowCount );
-    return maxWindowCount && !curWindowCount;
+    static bool existed;
+    const bool exists = DoesAnyWindowExist();
+    existed |= exists;
+    return !exists && existed;
   }
 
   void ExecutableStartupInfo::Init( Errors& errors )
@@ -157,9 +160,11 @@ namespace Tac
 
   void                Creation::Uninit( Errors& )
   {
-    delete CreationMainWindow::Instance;
-    delete CreationGameWindow::Instance;
-    delete CreationPropertyWindow::Instance;
+    TAC_DELETE CreationMainWindow::Instance;
+    TAC_DELETE CreationGameWindow::Instance;
+    TAC_DELETE CreationPropertyWindow::Instance;
+    TAC_DELETE CreationSystemWindow::Instance;
+    TAC_DELETE CreationProfileWindow::Instance;
   }
 
   void                Creation::CreatePropertyWindow( Errors& errors )
@@ -350,17 +355,26 @@ namespace Tac
 
 
 
-    if( !CreationMainWindow::Instance &&
-        !CreationGameWindow::Instance &&
-        !CreationPropertyWindow::Instance &&
-        !CreationSystemWindow::Instance &&
-        !CreationProfileWindow::Instance )
+    static bool checkedOnce;
+    if( !checkedOnce )
     {
-      CreateMainWindow( errors );
-      //CreateGameWindow( errors );
-      //CreatePropertyWindow( errors );
-      //CreateSystemWindow( errors );
-      TAC_HANDLE_ERROR( errors );
+      checkedOnce = true;
+      // cant use doesanywindowexist here because the
+      // CreationXXXWindow::Instance may exist but
+      // GetWindowState(CreationXXXWindow::Instance.mDesktopWindowHandle).nativewindowhandle may not
+      if( !CreationMainWindow::Instance &&
+          !CreationGameWindow::Instance &&
+          !CreationPropertyWindow::Instance &&
+          !CreationSystemWindow::Instance &&
+          !CreationProfileWindow::Instance )
+      {
+        checkedOnce = true;
+        CreateMainWindow( errors );
+        //CreateGameWindow( errors );
+        //CreatePropertyWindow( errors );
+        //CreateSystemWindow( errors );
+        TAC_HANDLE_ERROR( errors );
+      }
     }
 
     if( CreationMainWindow::Instance )

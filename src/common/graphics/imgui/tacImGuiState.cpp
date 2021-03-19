@@ -1,10 +1,12 @@
-
 #include "src/common/graphics/imgui/tacImGuiState.h"
 #include "src/common/graphics/tacTextEdit.h"
+#include "src/common/shell/tacShellTimer.h"
 #include "src/common/graphics/tacUI2D.h"
 #include "src/common/tacKeyboardinput.h"
 #include "src/common/tacOS.h"
 #include "src/common/math/tacMath.h"
+
+#include <iostream>
 
 namespace Tac
 {
@@ -97,15 +99,15 @@ namespace Tac
 
       childWindowColor.xyz() /= 2.0f;
       // Render borders
-        bool clipped;
-        auto clipRect = ImGuiRect::FromPosSize( mPosViewport, mSize );
-        ComputeClipInfo( &clipped, &clipRect );
-        if( !clipped )
-          ui2DDrawData->AddBox( mPosViewport,
-                                mPosViewport + mSize,
-                                childWindowColor,
-                                Render::TextureHandle(),
-                                nullptr );
+      bool clipped;
+      auto clipRect = ImGuiRect::FromPosSize( mPosViewport, mSize );
+      ComputeClipInfo( &clipped, &clipRect );
+      if( !clipped )
+        ui2DDrawData->AddBox( mPosViewport,
+                              mPosViewport + mSize,
+                              childWindowColor,
+                              Render::TextureHandle(),
+                              nullptr );
     }
     else if( this->mStretchWindow || this->mDesktopWindowHandleOwned )
     {
@@ -146,34 +148,55 @@ namespace Tac
       v4 scrollbarForegroundColor = v4( ( scrollbarBackgroundColor.xyz() + v3( 1, 1, 1 ) ) / 2.0f, 1.0f );
       ui2DDrawData->AddBox( mini, maxi, scrollbarForegroundColor, invalidTexture, nullptr );
 
+      static double consumeT;
+
+      const bool hovered = IsHovered( ImGuiRect::FromMinMax( mini, maxi ) );
+      if( hovered )
+      {
+        //bool wasConsumed = (bool)consumeT;
+
+        TryConsumeMouseMovement( &consumeT, TAC_STACK_FRAME );
+
+        //bool isConsumed = ( bool )consumeT;
+
+        //if( !isConsumed && wasConsumed )
+        //{
+        //  static int asdf;
+        //  ++asdf;
+
+        //}
+
+      }
+
+      //double elapsedSec = ShellGetElapsedSeconds();
+      //int elapsedSecInt = ( int )elapsedSec;
+      //double elapsedSecRemainder = elapsedSec - (double)elapsedSecInt;
+      //int elapsedSecRemainder100s = (int)(elapsedSecRemainder * 100);
+      ////std::cout << elapsedSecInt << "." << elapsedSecRemainder100s << std::endl;
+      //TAC_UNUSED_PARAMETER(elapsedSecRemainder100s);
+
+      //std::cout << "consumeT: ";
+      //std::cout << consumeT;
+      //std::cout << ", hovered: ";
+      //std::cout << (int)hovered ;
+      //std::cout << std::endl;
 
       if( mScrolling )
       {
-        Errors mouseErrors;
-        v2 mousePosScreenspace;
-        OSGetScreenspaceCursorPos( mousePosScreenspace, mouseErrors );
-        if( mouseErrors.empty() )
-        {
-          float mouseDY = mousePosScreenspace.y - mScrollMousePosScreenspaceInitial.y;
-          float scrollMin = 0;
-          float scrollMax = contentAllHeight - contentVisibleHeight;
-          mScroll = Clamp( mouseDY, scrollMin, scrollMax );
-        }
+        const float mouseDY
+          = gKeyboardInput.mCurr.mScreenspaceCursorPos.y
+          - mScrollMousePosScreenspaceInitial.y;
+        const float scrollMin = 0;
+        const float scrollMax = contentAllHeight - contentVisibleHeight;
+        mScroll = Clamp( mouseDY, scrollMin, scrollMax );
 
         if( !gKeyboardInput.IsKeyDown( Key::MouseLeft ) )
           mScrolling = false;
       }
-      else if( gKeyboardInput.IsKeyJustDown( Key::MouseLeft ) &&
-               IsHovered( ImGuiRect::FromMinMax( mini, maxi ) ) )
+      else if( gKeyboardInput.IsKeyJustDown( Key::MouseLeft ) && hovered && consumeT )
       {
-        Errors mouseErrors;
-        v2 mousePosScreenspace;
-        OSGetScreenspaceCursorPos( mousePosScreenspace, mouseErrors );
-        if( mouseErrors.empty() )
-        {
-          mScrolling = true;
-          mScrollMousePosScreenspaceInitial = mousePosScreenspace;
-        }
+        mScrolling = true;
+        mScrollMousePosScreenspaceInitial = gKeyboardInput.mCurr.mScreenspaceCursorPos;
       }
 
       mContentRect = ImGuiRect::FromPosSize( mPosViewport, v2( mSize.x - scrollbarWidth, mSize.y ) );

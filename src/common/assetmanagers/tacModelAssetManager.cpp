@@ -11,6 +11,8 @@
 #include "src/common/tacUtility.h"
 #include "src/common/thirdparty/cgltf.h"
 
+#include <map>
+
 namespace Tac
 {
   static std::map< StringID, Mesh* > mMeshes;
@@ -43,29 +45,50 @@ namespace Tac
     return mesh;
   }
 
+
+  static std::map< HashedValue, Mesh* > sTryNewTHingMeshes;
+
+  static HashedValue HashAddVertexDeclaration( HashedValue hashedValue, const Render::VertexDeclaration& vertexDeclaration )
+  {
+    hashedValue = HashAddHash( hashedValue, ( HashedValue )vertexDeclaration.mAlignedByteOffset );
+    hashedValue = HashAddHash( hashedValue, ( HashedValue )vertexDeclaration.mAttribute );
+    hashedValue = HashAddHash( hashedValue, ( HashedValue )vertexDeclaration.mTextureFormat.mElementCount );
+    hashedValue = HashAddHash( hashedValue, ( HashedValue )vertexDeclaration.mTextureFormat.mPerElementByteCount );
+    hashedValue = HashAddHash( hashedValue, ( HashedValue )vertexDeclaration.mTextureFormat.mPerElementDataType );
+    return hashedValue;
+  }
+
+  static HashedValue HashAddVertexDeclarations( HashedValue hashedValue, const Render::VertexDeclarations& vertexDeclarations )
+  {
+    for( const Render::VertexDeclaration vertexDeclaration : vertexDeclarations )
+      hashedValue = HashAddVertexDeclaration( hashedValue, vertexDeclaration );
+    return hashedValue;
+  }
+
   Mesh* ModelAssetManagerGetMeshTryingNewThing( const char* path,
                                                 int iModel,
                                                 const Render::VertexDeclarations& vertexDeclarations,
                                                 Errors& errors )
   {
-    const bool isCached = true;
-    if( isCached )
-      return ( Mesh* )nullptr;
+    HashedValue hashedValue = 0;
+    hashedValue = HashAddString( hashedValue, path );
+    hashedValue = HashAddVertexDeclarations( hashedValue, vertexDeclarations );
+    hashedValue = HashAddHash( hashedValue, ( HashedValue )iModel );
 
+    auto it = sTryNewTHingMeshes.find( hashedValue );
+    if( it != sTryNewTHingMeshes.end() )
+        return (*it).second;
 
     const cgltf_data* parsedData = TryGetGLTFData( path );
     if( !parsedData )
-      return;
+      return nullptr;
+
+    auto mesh = TAC_NEW Mesh;
+    *mesh = LoadMeshIndexSynchronous( path, iModel, vertexDeclarations, errors );
+
+    sTryNewTHingMeshes[ hashedValue ] = mesh;
 
 
-    TAC_UNUSED_PARAMETER(path);
-    TAC_UNUSED_PARAMETER(iModel);
-    TAC_UNUSED_PARAMETER(vertexDeclarations);
-    TAC_UNUSED_PARAMETER(errors);
-
-
-
-    TAC_CRITICAL_ERROR_UNIMPLEMENTED;
-    return nullptr;
+    return mesh;
   }
 }

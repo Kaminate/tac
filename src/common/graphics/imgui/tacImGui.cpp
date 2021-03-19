@@ -183,7 +183,7 @@ namespace Tac
         window->SetActiveID( id );
       }
 
-      TryConsumeMouseMovement( &consumeMouse );
+      TryConsumeMouseMovement( &consumeMouse, TAC_STACK_FRAME );
     }
 
 
@@ -603,7 +603,7 @@ namespace Tac
     static double mouseMovementConsummation;
     if( window->IsHovered( clipRect ) )
     {
-      TryConsumeMouseMovement( &mouseMovementConsummation );
+      TryConsumeMouseMovement( &mouseMovementConsummation, TAC_STACK_FRAME );
 
       if( gKeyboardInput.IsKeyJustDown( Key::MouseLeft ) )
         window->SetActiveID( id );

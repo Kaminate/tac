@@ -86,6 +86,10 @@ namespace Tac
                             const Render::VertexDeclarations&,
                             Errors& );
 
+  Mesh LoadMeshIndexSynchronous( const StringView& path,
+                                 int specifiedMeshIndex,
+                            const Render::VertexDeclarations&,
+                            Errors& );
   
   //struct IEditorLoadInfo
   //{

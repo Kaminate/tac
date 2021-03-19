@@ -35,8 +35,7 @@
 
 #if defined(_WIN32)
 #define WIN32_LEAN_AND_MEAN 1
-#define no_init_all
-#define no_init_all
+
 #include <windows.h>
 
 static HMODULE libgl;

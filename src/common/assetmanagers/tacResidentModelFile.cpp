@@ -74,6 +74,14 @@ namespace Tac
 
   static LoadedStuff sLoadedStuff[ 4 ];
 
+  static LoadingStuff* TryGetEmptyLoadingStuff()
+  {
+    for( LoadingStuff& loadingStuff : sLoadingStuff )
+      if( loadingStuff.mPath.empty() )
+        return &loadingStuff;
+    return nullptr;
+  }
+
   static LoadedStuff* TryGetEmptyLoadedStuff()
   {
     for( LoadedStuff& loadedStuff : sLoadedStuff )
@@ -120,12 +128,23 @@ namespace Tac
   const cgltf_data*   TryGetGLTFData( const char* path )
   {
     ResidentModelFileUpdate();
+
     for( LoadedStuff& loadedStuff : sLoadedStuff )
       if( !StrCmp( loadedStuff.mPath, path ) )
       {
         loadedStuff.mLastRequestSeconds = ShellGetElapsedSeconds();
         return loadedStuff.mParsedData;
       }
+
+    for( LoadingStuff& loadingStuff : sLoadingStuff )
+      if( loadingStuff.mPath == path )
+        return nullptr;
+
+    LoadingStuff* loadingStuff = TryGetEmptyLoadingStuff();
+    loadingStuff->mPath = path;
+    loadingStuff->mJob.mPath = path;
+    JobQueuePush( &loadingStuff->mJob );
+
     return nullptr;
   }
 

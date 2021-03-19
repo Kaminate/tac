@@ -3,12 +3,12 @@
 #include "src/common/string/tacString.h"
 #include "src/common/tacLocalization.h"
 #include "src/common/math/tacVector2.h"
-//#include "src/common/tacTime.h"
 
-#include <set>
+//#include <set>
 
 namespace Tac
 {
+  struct StackFrame;
 
 
   enum class Key
@@ -32,12 +32,12 @@ namespace Tac
   };
 
 
-  String ToString( Key key );
+  String ToString( Key );
 
 
   struct KeyboardInputFrame
   {
-    bool    IsKeyDown( Key key );
+    bool    IsKeyDown( Key );
     String  GetPressedKeyDescriptions();
     bool    mCurrDown[ ( int )Key::Count ] = {};
     v2      mScreenspaceCursorPos = {};
@@ -49,12 +49,12 @@ namespace Tac
   struct KeyboardInput
   {
     KeyboardInput();
-    bool               HasKeyJustBeenReleased( Key key );
-    bool               IsKeyJustDown( Key key );
-    bool               IsKeyDown( Key key );
+    bool               HasKeyJustBeenReleased( Key );
+    bool               IsKeyJustDown( Key );
+    bool               IsKeyDown( Key );
     void               DebugImgui();
     void               DebugPrintWhenKeysChange();
-    void               SetIsKeyDown( Key key, bool isDown );
+    void               SetIsKeyDown( Key, bool );
 
     // Called after input has been gathered, but before the game updates
     void               BeginFrame();
@@ -72,7 +72,8 @@ namespace Tac
     int                mMouseDeltaScroll = 0;
   };
 
-  void                 TryConsumeMouseMovement( double* );
+  //                   sets to 0 if not consumed
+  void                 TryConsumeMouseMovement( double*, StackFrame );
   extern KeyboardInput gKeyboardInput;
 
 }

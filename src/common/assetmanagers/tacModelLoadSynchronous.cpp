@@ -1,10 +1,13 @@
 #include "src/common/assetmanagers/tacModelLoadSynchronous.h"
 #include "src/common/assetmanagers/tacMesh.h"
 #include "src/common/tacUtility.h"
+#include "src/common/tacFrameMemory.h"
 #include "src/common/math/tacMath.h"
 #include "src/common/thirdparty/cgltf.h"
 #include "src/common/containers/tacVector.h"
 #include "src/common/tacTemporaryMemory.h"
+
+#include <cstdint>
 
 namespace Tac
 {
@@ -111,12 +114,12 @@ namespace Tac
     Vector< int > indexes;
     switch( parsedPrim->indices->component_type )
     {
-      case cgltf_component_type_r_8: indexes = ConvertIndexes<int8_t>( parsedPrim->indices ); break;
-      case cgltf_component_type_r_8u: indexes = ConvertIndexes<uint8_t>( parsedPrim->indices ); break;
-      case cgltf_component_type_r_16: indexes = ConvertIndexes<int16_t>( parsedPrim->indices ); break;
-      case cgltf_component_type_r_16u: indexes = ConvertIndexes<uint16_t>( parsedPrim->indices ); break;
-      case cgltf_component_type_r_32u: indexes = ConvertIndexes<uint32_t>( parsedPrim->indices ); break;
-      case cgltf_component_type_r_32f: indexes = ConvertIndexes<float>( parsedPrim->indices ); break;
+      case cgltf_component_type_r_8:   indexes = ConvertIndexes< int8_t >( parsedPrim->indices ); break;
+      case cgltf_component_type_r_8u:  indexes = ConvertIndexes< uint8_t >( parsedPrim->indices ); break;
+      case cgltf_component_type_r_16:  indexes = ConvertIndexes< int16_t >( parsedPrim->indices ); break;
+      case cgltf_component_type_r_16u: indexes = ConvertIndexes< uint16_t >( parsedPrim->indices ); break;
+      case cgltf_component_type_r_32u: indexes = ConvertIndexes< uint32_t >( parsedPrim->indices ); break;
+      case cgltf_component_type_r_32f: indexes = ConvertIndexes< float >( parsedPrim->indices ); break;
       default: break; // do nothing
     }
     if( indexes.empty() )
@@ -303,6 +306,170 @@ namespace Tac
     return result;
   }
 
+  Mesh LoadMeshIndexSynchronous( const StringView& path,
+                                 int specifiedMeshIndex,
+                                 const Render::VertexDeclarations& vertexDeclarations,
+                                 Errors& errors )
+  {
+    const TemporaryMemory bytes = TemporaryMemoryFromFile( path, errors );
+    TAC_HANDLE_ERROR_RETURN( errors, {} );
+
+    cgltf_options options = {};
+
+    cgltf_data* parsedData;
+    cgltf_result parseResult = cgltf_parse( &options, bytes.data(), bytes.size(), &parsedData );
+    if( parseResult != cgltf_result_success )
+    {
+      const String errorMsg = String( "cgltf_parse: " ) + GetcgltfErrorAsString( parseResult );
+      TAC_RAISE_ERROR_RETURN( errorMsg, errors, {} );
+    }
+    TAC_ON_DESTRUCT( cgltf_free( parsedData ) );
+
+    parseResult = cgltf_validate( parsedData );
+    if( parseResult != cgltf_result_success )
+    {
+      const String errorMsg = String( "cgltf_validate: " ) + GetcgltfErrorAsString( parseResult );
+      TAC_RAISE_ERROR_RETURN( errorMsg, errors, {} );
+    }
+
+
+    SplitFilepath splitFilepath( path );
+    //String debugName = StripExt( splitFilepath.mFilename );
+
+    parseResult = cgltf_load_buffers( &options, parsedData, path.c_str() );//splitFilepath.mDirectory.c_str() );
+    if( parseResult != cgltf_result_success )
+    {
+      const String errorMsg = String( "cgltf_validate: " ) + GetcgltfErrorAsString( parseResult );
+      TAC_RAISE_ERROR_RETURN( errorMsg, errors, {} );
+    }
+
+    Vector< SubMesh > submeshes;
+
+    for( int iMesh = 0; iMesh < ( int )parsedData->meshes_count; ++iMesh )
+    {
+      cgltf_mesh* parsedMesh = &parsedData->meshes[ iMesh ];
+
+      if( iMesh != specifiedMeshIndex )
+        continue;
+
+      for( int iPrim = 0; iPrim < ( int )parsedMesh->primitives_count; ++iPrim )
+      {
+        cgltf_primitive* parsedPrim = &parsedMesh->primitives[ iPrim ];
+        if( !parsedPrim->attributes_count )
+          continue;
+
+        cgltf_accessor* indices = parsedPrim->indices;
+        void* indiciesData = ( char* )indices->buffer_view->buffer->data + indices->buffer_view->offset;
+        TAC_ASSERT( indices->type == cgltf_type_scalar );
+        const Render::Format indexFormat = FillDataType( indices );
+        const int indexByteCount = ( int )indices->count * ( int )sizeof( indexFormat.CalculateTotalByteCount() );
+        const Render::IndexBufferHandle indexBuffer = Render::CreateIndexBuffer( indexByteCount,
+                                                                                 indiciesData,
+                                                                                 Render::Access::Default,
+                                                                                 indexFormat,
+                                                                                 TAC_STACK_FRAME );
+
+        Render::SetRenderObjectDebugName( indexBuffer,
+                                          FrameMemoryPrintf( "%s %i", path.c_str(), specifiedMeshIndex ) );
+
+        int vertexCount = ( int )parsedPrim->attributes[ 0 ].data->count;
+        int dstVtxStride = 0;
+
+        for( int iVertexDeclaration = 0; iVertexDeclaration < vertexDeclarations.size(); ++iVertexDeclaration )
+        {
+          const Render::VertexDeclaration& vertexDeclaration = vertexDeclarations[ iVertexDeclaration ];
+          int vertexEnd =
+            vertexDeclaration.mAlignedByteOffset +
+            vertexDeclaration.mTextureFormat.CalculateTotalByteCount();
+          dstVtxStride = Max( dstVtxStride, vertexEnd );
+        }
+        Vector< char > dstVtxBytes( vertexCount * dstVtxStride, ( char )0 );
+
+        for( int iVertexDeclaration = 0; iVertexDeclaration < vertexDeclarations.size(); ++iVertexDeclaration )
+        {
+          const Render::VertexDeclaration& vertexDeclaration = vertexDeclarations[ iVertexDeclaration ];
+          const Render::Format& dstFormat = vertexDeclaration.mTextureFormat;
+          cgltf_attribute_type gltfVertAttributeType = GetGltfFromAttribute( vertexDeclaration.mAttribute );
+          cgltf_attribute* gltfVertAttribute = FindAttributeOfType( parsedPrim, gltfVertAttributeType );
+          if( !gltfVertAttribute )
+            continue;
+          cgltf_accessor* gltfVertAttributeData = gltfVertAttribute->data;
+          Render::Format srcFormat = FillDataType( gltfVertAttributeData );
+          TAC_ASSERT( vertexCount == ( int )gltfVertAttributeData->count );
+          char* dstVtx = dstVtxBytes.data();
+          char* srcVtx = ( char* )gltfVertAttributeData->buffer_view->buffer->data +
+            gltfVertAttributeData->offset +
+            gltfVertAttributeData->buffer_view->offset;
+          int elementCount = Min( dstFormat.mElementCount, srcFormat.mElementCount );
+          for( int iVert = 0; iVert < vertexCount; ++iVert )
+          {
+            char* srcElement = srcVtx + vertexDeclaration.mAlignedByteOffset;
+            char* dstElement = dstVtx + 0;
+            for( int iElement = 0; iElement < elementCount; ++iElement )
+            {
+              if( srcFormat.mPerElementDataType == dstFormat.mPerElementDataType &&
+                  srcFormat.mPerElementByteCount == dstFormat.mPerElementByteCount )
+              {
+                MemCpy( dstElement, srcElement, srcFormat.mPerElementByteCount );
+              }
+              else
+              {
+                TAC_CRITICAL_ERROR_UNIMPLEMENTED;
+              }
+              // copy
+              dstElement += dstFormat.mPerElementByteCount;
+              srcElement += srcFormat.mPerElementByteCount;
+            }
+            srcVtx += gltfVertAttributeData->stride;
+            dstVtx += dstVtxStride;
+          }
+        }
+
+
+        const Render::VertexBufferHandle vertexBuffer = Render::CreateVertexBuffer( dstVtxBytes.size(),
+                                                                                    dstVtxBytes.data(),
+                                                                                    dstVtxStride,
+                                                                                    Render::Access::Default,
+                                                                                    TAC_STACK_FRAME );
+        Render::SetRenderObjectDebugName( vertexBuffer,
+                                          FrameMemoryPrintf( "%s %i", path.c_str(), specifiedMeshIndex ) );
+
+        SubMeshTriangles tris;
+        GetTris( parsedPrim, tris );
+
+        const String name = parsedMesh->name +
+          ( parsedMesh->primitives_count > 1 ? "prim" + ToString( iPrim ) : "" );
+
+        SubMesh subMesh;
+        subMesh.mIndexBuffer = indexBuffer;
+        subMesh.mVertexBuffer = vertexBuffer;
+        subMesh.mTris = tris;
+        subMesh.mIndexCount = ( int )indices->count;
+        subMesh.mName = name;
+        submeshes.push_back( subMesh );
+      }
+    }
+
+    m4 transform = m4::Identity();
+    m4 transformInv = m4::Identity();
+    cgltf_node* node = parsedData->scene->nodes[ 0 ];
+    if( node->has_translation )
+    {
+      v3 pos = {
+        node->translation[ 0 ],
+        node->translation[ 1 ],
+        node->translation[ 2 ] };
+      transform = m4::Translate( pos );
+      transformInv = m4::Translate( -pos );
+    }
+
+
+    Mesh result;
+    result.mSubMeshes = submeshes;
+    result.mTransform = transform;
+    result.mTransformInv = transformInv;
+    return result;
+  }
 
 
   //  //const cgltf_result loadBufRes = cgltf_load_buffers( &options, parsedData, path.c_str() );
