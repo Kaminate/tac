@@ -393,6 +393,15 @@ namespace Tac
     if( loadedModel->mWorld.mEntities.size() )
     {
       ImGuiSameLine();
+
+      // this will select the entity in the loadedModel->mWorld, not gCreation.mWorld!!!
+      // probably a super hack
+      if( ImGuiButton( "Select in property window" ) )
+      {
+        gCreation.ClearSelection();
+        gCreation.AddToSelection(*loadedModel->mWorld.mEntities.begin());
+      }
+
       if( ImGuiButton( "Import object into scene" ) )
       {
         Entity* prefab = *loadedModel->mWorld.mEntities.begin();
@@ -429,13 +438,7 @@ namespace Tac
   static void UIFilesModels( const Vector< String >& paths )
   {
     for( const String& path : paths )
-    {
-      String s = SplitFilepath( path ).mFilename;
-      if( !(0 == s.compare( "Box.gltf" ) || 0== s.compare( "arrow.gltf" ) ))
-        continue;
-
       UIFilesModel( path );
-    }
   }
 
   static void UIFilesImages( const Vector< String >& paths )

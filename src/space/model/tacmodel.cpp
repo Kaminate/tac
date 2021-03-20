@@ -50,17 +50,22 @@ namespace Tac
 		colorRGBJson[ "g" ].SetNumber( model->mColorRGB[ 1 ] );
 		colorRGBJson[ "b" ].SetNumber( model->mColorRGB[ 2 ] );
 		modelJson[ "mModelPath" ].SetString( model->mModelPath );
+    modelJson[ "mModelIndex" ].SetNumber( model->mModelIndex );
+    modelJson[ "mTryingNewThing" ].SetNumber( model->mTryingNewThing );
 		modelJson[ "mColorRGB" ].DeepCopy( &colorRGBJson );
 	}
 
 	static void LoadModelComponent( Json& modelJson, Component* component )
 	{
 		auto model = ( Model* )component;
+		Json& colorRGBJson = modelJson[ "mColorRGB" ];
+    model->mModelIndex = ( int )modelJson[ "mModelIndex" ].mNumber;
+    model->mTryingNewThing = ( int )modelJson[ "mTryingNewThing" ].mNumber;
 		model->mModelPath = modelJson[ "mModelPath" ].mString;
 		model->mColorRGB = {
-			( float )modelJson[ "mColorRGB" ][ "r" ].mNumber,
-			( float )modelJson[ "mColorRGB" ][ "g" ].mNumber,
-			( float )modelJson[ "mColorRGB" ][ "b" ].mNumber };
+			( float )colorRGBJson[ "r" ].mNumber,
+			( float )colorRGBJson[ "g" ].mNumber,
+			( float )colorRGBJson[ "b" ].mNumber };
 	}
 
 

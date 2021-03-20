@@ -22,6 +22,8 @@ namespace Tac
     v3 mScale = { 1, 1, 1 };
   };
 
+  RelativeSpace RelativeSpaceFromMatrix( const m4& );
+
 
   struct Components
   {

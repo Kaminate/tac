@@ -34,6 +34,7 @@ namespace Tac
     void                ClearSelection();
     void                CheckDeleteSelected();
     void                DeleteSelectedEntities();
+    void                AddToSelection( Entity* );
 
 
 

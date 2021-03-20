@@ -37,6 +37,70 @@ namespace Tac
 		return &json;
 	}
 
+  RelativeSpace RelativeSpaceFromMatrix( const m4& mLocal )
+  {
+    v3 c0 = { mLocal.m00, mLocal.m10, mLocal.m20 };
+    v3 c1 = { mLocal.m01, mLocal.m11, mLocal.m21 };
+    v3 c2 = { mLocal.m02, mLocal.m12, mLocal.m22 };
+    v3 c3 = { mLocal.m03, mLocal.m13, mLocal.m23 };
+    v3 scale = { Length( c0 ), Length( c1 ), Length( c2 ) };
+    c0 /= scale.x;
+    c1 /= scale.y;
+    c2 /= scale.z;
+
+    float
+      r11, r12, r13,
+      r21, r22, r23,
+      r31, r32, r33;
+    {
+      r11 = c0[ 0 ];
+      r21 = c0[ 1 ];
+      r31 = c0[ 2 ];
+
+      r12 = c1[ 0 ];
+      r22 = c1[ 1 ];
+      r32 = c1[ 2 ];
+
+      r13 = c2[ 0 ];
+      r23 = c2[ 1 ];
+      r33 = c2[ 2 ];
+    }
+
+    // On-rotation-deformation-zones-for-finite-strain-Cosserat-plasticity.pdf
+    // Rot( x, y, z ) = rotZ(phi) * rotY(theta) * rotX(psi)
+    float zPhi = 0;
+    float yTheta = 0;
+    float xPsi = 0;
+
+
+    if( r31 != 1.0f && r31 != -1.0f )
+    {
+      yTheta = -std::asin( r31 );
+      xPsi = std::atan2( r32 / std::cos( yTheta ), r33 / std::cos( yTheta ) );
+      zPhi = std::atan2( r21 / std::cos( yTheta ), r11 / std::cos( yTheta ) );
+    }
+    else
+    {
+      zPhi = 0;
+      if( r31 == -1.0f )
+      {
+        yTheta = 3.14f / 2.0f;
+        xPsi = std::atan2( r12, r13 );
+      }
+      else
+      {
+        yTheta = -3.14f / 2.0f;
+        xPsi = std::atan2( -r12, -r13 );
+      }
+    }
+
+    RelativeSpace relativeSpace;
+    relativeSpace.mEulerRads = { xPsi, yTheta, zPhi };
+    relativeSpace.mPosition = c3;
+    relativeSpace.mScale = scale;
+    return relativeSpace;
+  }
+
   void                      Components::Add( Component* component )
   {
     mComponents.push_back( component );

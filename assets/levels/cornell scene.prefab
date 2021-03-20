@@ -2,70 +2,303 @@
   "mChildren":
   [
     {
-      "Terrain":
-      {
-        "mGroundTexturePath": "assets\grass.png",
-        "mHeight": 100,
-        "mHeightmapTexturePath": "assets/heightmaps/heightmap2.png",
-        "mNoiseTexturePath": "assets\shadertoy_gray_noise_med_256x256.png",
-        "mSideLength": 1000,
-        "mSideVertexCount": 500
-      },
-      "mEntityUUID": 0,
-      "mEulerRads":
-      {
-        "x": 0,
-        "y": 0,
-        "z": 0
-      },
-      "mName": "terrain",
-      "mPosition":
-      {
-        "x": 0,
-        "y": 0,
-        "z": 0
-      },
-      "mScale":
-      {
-        "x": 1,
-        "y": 1,
-        "z": 1
-      }
-    },
-    {
-      "Skybox": null,
-      "mEntityUUID": 0,
-      "mEulerRads":
-      {
-        "x": 0,
-        "y": 0,
-        "z": 0
-      },
-      "mName": "skybox",
-      "mPosition":
-      {
-        "x": 0,
-        "y": 0,
-        "z": 0
-      },
-      "mScale":
-      {
-        "x": 1,
-        "y": 1,
-        "z": 1
-      }
-    },
-    {
-      "Model":
-      {
-        "mColorRGB":
+      "mChildren":
+      [
         {
-          "b": 0,
-          "g": 0,
-          "r": 1
+          "mEntityUUID": 0,
+          "mEulerRads":
+          {
+            "x": -3.029619,
+            "y": 0.598733,
+            "z": 3.104697
+          },
+          "mName": "Light",
+          "mPosition":
+          {
+            "x": 2.447335,
+            "y": 4.175813,
+            "z": -2.759485
+          },
+          "mScale":
+          {
+            "x": 1,
+            "y": 1,
+            "z": 1
+          }
         },
-        "mModelPath": "assets/editor/pandoras_cornell_box.glb"
-      },
+        {
+          "Model":
+          {
+            "mColorRGB":
+            {
+              "b": 0,
+              "g": 0,
+              "r": 1
+            },
+            "mModelIndex": 0,
+            "mModelPath": "E:\Users\Nate\Documents\GitHub\tac/assets/editor/pandoras_cornell_box.glb",
+            "mTryingNewThing": 1
+          },
+          "mEntityUUID": 0,
+          "mEulerRads":
+          {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "mName": "wall_left",
+          "mPosition":
+          {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "mScale":
+          {
+            "x": 1,
+            "y": 1,
+            "z": 1
+          }
+        },
+        {
+          "Model":
+          {
+            "mColorRGB":
+            {
+              "b": 1,
+              "g": 0,
+              "r": 0
+            },
+            "mModelIndex": 1,
+            "mModelPath": "E:\Users\Nate\Documents\GitHub\tac/assets/editor/pandoras_cornell_box.glb",
+            "mTryingNewThing": 1
+          },
+          "mEntityUUID": 0,
+          "mEulerRads":
+          {
+            "x": -0.085973,
+            "y": -0.055616,
+            "z": -0.473899
+          },
+          "mName": "wall_right",
+          "mPosition":
+          {
+            "x": 3.904755,
+            "y": 0.723570,
+            "z": 0.711364
+          },
+          "mScale":
+          {
+            "x": 1,
+            "y": 1,
+            "z": 1
+          }
+        },
+        {
+          "Model":
+          {
+            "mColorRGB":
+            {
+              "b": 1,
+              "g": 1,
+              "r": 1
+            },
+            "mModelIndex": 2,
+            "mModelPath": "E:\Users\Nate\Documents\GitHub\tac/assets/editor/pandoras_cornell_box.glb",
+            "mTryingNewThing": 1
+          },
+          "mEntityUUID": 0,
+          "mEulerRads":
+          {
+            "x": -0.871118,
+            "y": 0.837917,
+            "z": -1.027743
+          },
+          "mName": "wall_back",
+          "mPosition":
+          {
+            "x": 3.863875,
+            "y": 0.623540,
+            "z": -3.931799
+          },
+          "mScale":
+          {
+            "x": 1,
+            "y": 1,
+            "z": 1
+          }
+        },
+        {
+          "Model":
+          {
+            "mColorRGB":
+            {
+              "b": 1,
+              "g": 1,
+              "r": 1
+            },
+            "mModelIndex": 3,
+            "mModelPath": "E:\Users\Nate\Documents\GitHub\tac/assets/editor/pandoras_cornell_box.glb",
+            "mTryingNewThing": 1
+          },
+          "mEntityUUID": 0,
+          "mEulerRads":
+          {
+            "x": -0.600763,
+            "y": -0.274191,
+            "z": -1.828605
+          },
+          "mName": "wall_top",
+          "mPosition":
+          {
+            "x": 1.095903,
+            "y": 6.329300,
+            "z": 0.137517
+          },
+          "mScale":
+          {
+            "x": 1.370028,
+            "y": 1.370028,
+            "z": 1.370028
+          }
+        },
+        {
+          "Model":
+          {
+            "mColorRGB":
+            {
+              "b": 1,
+              "g": 1,
+              "r": 1
+            },
+            "mModelIndex": 4,
+            "mModelPath": "E:\Users\Nate\Documents\GitHub\tac/assets/editor/pandoras_cornell_box.glb",
+            "mTryingNewThing": 1
+          },
+          "mEntityUUID": 0,
+          "mEulerRads":
+          {
+            "x": -1.079038,
+            "y": -0.218393,
+            "z": -1.478951
+          },
+          "mName": "wall_bottom",
+          "mPosition":
+          {
+            "x": 4.025796,
+            "y": 1.514843,
+            "z": 1.509164
+          },
+          "mScale":
+          {
+            "x": 1.049948,
+            "y": 1.049948,
+            "z": 1.049948
+          }
+        },
+        {
+          "Model":
+          {
+            "mColorRGB":
+            {
+              "b": 0.500000,
+              "g": 0.500000,
+              "r": 1
+            },
+            "mModelIndex": 5,
+            "mModelPath": "E:\Users\Nate\Documents\GitHub\tac/assets/editor/pandoras_cornell_box.glb",
+            "mTryingNewThing": 1
+          },
+          "mEntityUUID": 0,
+          "mEulerRads":
+          {
+            "x": -0.643075,
+            "y": -0.236503,
+            "z": -1.578766
+          },
+          "mName": "cube_left",
+          "mPosition":
+          {
+            "x": 0.963081,
+            "y": 3.263230,
+            "z": -1.851083
+          },
+          "mScale":
+          {
+            "x": 0.336222,
+            "y": 0.336222,
+            "z": 0.336222
+          }
+        },
+        {
+          "Model":
+          {
+            "mColorRGB":
+            {
+              "b": 1,
+              "g": 0.500000,
+              "r": 0.500000
+            },
+            "mModelIndex": 6,
+            "mModelPath": "E:\Users\Nate\Documents\GitHub\tac/assets/editor/pandoras_cornell_box.glb",
+            "mTryingNewThing": 1
+          },
+          "mEntityUUID": 0,
+          "mEulerRads":
+          {
+            "x": -0.587036,
+            "y": -0.187332,
+            "z": -1.808185
+          },
+          "mName": "cube_right",
+          "mPosition":
+          {
+            "x": 3.122226,
+            "y": 1.942068,
+            "z": 0.175829
+          },
+          "mScale":
+          {
+            "x": 0.335254,
+            "y": 0.335254,
+            "z": 0.335254
+          }
+        },
+        {
+          "Model":
+          {
+            "mColorRGB":
+            {
+              "b": 1,
+              "g": 1,
+              "r": 1
+            },
+            "mModelIndex": 7,
+            "mModelPath": "E:\Users\Nate\Documents\GitHub\tac/assets/editor/pandoras_cornell_box.glb",
+            "mTryingNewThing": 1
+          },
+          "mEntityUUID": 0,
+          "mEulerRads":
+          {
+            "x": -0.587036,
+            "y": -0.187332,
+            "z": -1.808185
+          },
+          "mName": "light fixture",
+          "mPosition":
+          {
+            "x": 2.541363,
+            "y": 5.735091,
+            "z": 0.071612
+          },
+          "mScale":
+          {
+            "x": 0.335254,
+            "y": 0.335254,
+            "z": 0.335254
+          }
+        }
+      ],
       "mEntityUUID": 0,
       "mEulerRads":
       {
@@ -73,12 +306,12 @@
         "y": 0,
         "z": 0
       },
-      "mName": "back wall",
+      "mName": "pandoras_cornell_box.glb",
       "mPosition":
       {
-        "x": 64,
-        "y": 2,
-        "z": 114
+        "x": 50.210743,
+        "y": 30.491083,
+        "z": 89.249886
       },
       "mScale":
       {

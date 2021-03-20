@@ -316,6 +316,11 @@ namespace Tac
     return SettingsGetChildByKeyValuePair( "Name", Json( windowName ), windows );
   }
 
+  void                Creation::AddToSelection( Entity* e )
+  {
+    mSelectedEntities.push_back( e );
+
+    }
   void                Creation::DeleteSelectedEntities()
   {
     Vector< Entity* > topLevelEntitiesToDelete;

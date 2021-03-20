@@ -452,17 +452,43 @@ namespace Tac
 
     m4 transform = m4::Identity();
     m4 transformInv = m4::Identity();
-    cgltf_node* node = parsedData->scene->nodes[ 0 ];
-    if( node->has_translation )
-    {
-      v3 pos = {
-        node->translation[ 0 ],
-        node->translation[ 1 ],
-        node->translation[ 2 ] };
-      transform = m4::Translate( pos );
-      transformInv = m4::Translate( -pos );
-    }
 
+    //cgltf_node* node = parsedData->scene->nodes[ 0 ];
+    //if( node->has_translation )
+    //{
+    //  v3 pos = {
+    //    node->translation[ 0 ],
+    //    node->translation[ 1 ],
+    //    node->translation[ 2 ] };
+    //  transform = m4::Translate( pos );
+    //  transformInv = m4::Translate( -pos );
+    //}
+
+
+    //cgltf_node* node = nullptr;
+    for( int iNode = 0; iNode < parsedData->nodes_count; ++iNode )
+    {
+      cgltf_node* curNode = &parsedData->nodes[ iNode ];
+      if( !curNode->mesh )
+        continue;
+      const int curMeshIndex = ( int )( curNode->mesh - parsedData->meshes );
+      if( curMeshIndex == specifiedMeshIndex )
+      {
+        m4 mat;
+        cgltf_node_transform_world( curNode, (cgltf_float*) mat.data() );
+        mat.Transpose();
+
+        m4 matInverse;
+        bool matInverseExist;
+        matInverse = m4::Inverse( mat, &matInverseExist );
+        TAC_ASSERT(matInverseExist);
+
+        transform = mat;
+        transformInv = matInverse;
+        break;
+      }
+        //node = curNode;
+    }
 
     Mesh result;
     result.mSubMeshes = submeshes;

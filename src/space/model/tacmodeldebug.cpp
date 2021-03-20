@@ -195,6 +195,7 @@ namespace Tac
                  mesh->mTransform.m31,
                  mesh->mTransform.m32,
                  mesh->mTransform.m33 ) );
+      ImGuiText( va( "model index: %i", model->mModelIndex ) );
       static int iSelectedSubmesh = -1;
       for( SubMesh& subMesh : mesh->mSubMeshes )
       {

@@ -142,6 +142,13 @@ namespace Tac
 				{
 					ImGuiText( child->mName );
 					ImGuiSameLine();
+          if( ImGuiButton( "Select" ) )
+          {
+            gCreation.ClearSelection();
+            gCreation.AddToSelection( child );
+          }
+
+					ImGuiSameLine();
 					if( ImGuiButton( "Remove" ) )
 					{
 						child->Unparent();
