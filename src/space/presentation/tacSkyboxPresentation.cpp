@@ -135,7 +135,6 @@ namespace Tac
     Render::SetDepthState( mDepthState );
     Render::SetRasterizerState( mRasterizerState );
     Render::SetSamplerState( mSamplerState );
-    //Render::SetTexture( Render::DrawCallTextures( cubemap ) );
     Render::SetTexture( { cubemap } );
     Render::Submit( viewId, TAC_STACK_FRAME );
   }
