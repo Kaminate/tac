@@ -699,8 +699,8 @@ namespace Tac
     //                                 &perFrameData,
     //                                 mDesktopWindow->mRenderView );
 
-    GamePresentation* gamePresentation = gCreation.mGamePresentation;
-    gamePresentation->RenderGameWorldToDesktopView( gCreation.mWorld,
+    //GamePresentation* gamePresentation = gCreation.mGamePresentation;
+    GamePresentationRender( gCreation.mWorld,
                                                     gCreation.mEditorCamera,
                                                     desktopWindowState->mWidth,
                                                     desktopWindowState->mHeight,

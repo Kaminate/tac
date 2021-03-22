@@ -64,8 +64,8 @@ namespace Tac
     v3                  mTranslationGizmoDir = {};
     float               mTranslationGizmoOffset = 0;
     Camera*             mEditorCamera;
-    GamePresentation*   mGamePresentation = nullptr;
-    SkyboxPresentation* mSkyboxPresentation = nullptr;
+    //GamePresentation*   mGamePresentation = nullptr;
+    //SkyboxPresentation* mSkyboxPresentation = nullptr;
 
     bool                mUpdateAssetView = false;
   };

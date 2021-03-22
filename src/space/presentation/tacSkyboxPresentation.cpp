@@ -1,4 +1,5 @@
 #include "src/space/presentation/tacSkyboxPresentation.h"
+#include "src/common/tacErrorHandling.h"
 #include "src/common/string/tacString.h"
 #include "src/common/tacMemory.h"
 #include "src/common/tacDesktopWindow.h"
@@ -14,15 +15,25 @@
 namespace Tac
 {
 
+  static Render::VertexFormatHandle    mVertexFormat;
+  static Render::ShaderHandle          mShader;
+  static Render::ConstantBufferHandle  mPerFrame;
+  static Render::BlendStateHandle      mBlendState;
+  static Render::DepthStateHandle      mDepthState;
+  static Render::RasterizerStateHandle mRasterizerState;
+  static Render::SamplerStateHandle    mSamplerState;
+  static Render::VertexDeclarations    mVertexDecls;
+  static Errors                        mGetSkyboxTextureErrors;
+  static Errors                        mGetSkyboxMeshErrors;
 
-  SkyboxPresentation::~SkyboxPresentation()
+  void SkyboxPresentationUninit()
   {
     Render::DestroyShader( mShader, TAC_STACK_FRAME );
     Render::DestroyVertexFormat( mVertexFormat, TAC_STACK_FRAME );
     Render::DestroyConstantBuffer( mPerFrame, TAC_STACK_FRAME );
   }
 
-  void SkyboxPresentation::Init( Errors& errors )
+  void SkyboxPresentationInit( Errors& errors )
   {
 
     mPerFrame = Render::CreateConstantBuffer( sizeof( DefaultCBufferPerFrame ),
@@ -56,13 +67,13 @@ namespace Tac
     blendStateData.mSrcA = Render::BlendConstants::Zero;
     blendStateData.mDstA = Render::BlendConstants::One;
     blendStateData.mBlendA = Render::BlendMode::Add;
-    mBlendState = Render::CreateBlendState(  blendStateData, TAC_STACK_FRAME );
+    mBlendState = Render::CreateBlendState( blendStateData, TAC_STACK_FRAME );
 
     Render::DepthState depthStateData;
     depthStateData.mDepthTest = true;
     depthStateData.mDepthWrite = true;
     depthStateData.mDepthFunc = Render::DepthFunc::LessOrEqual;
-    mDepthState = Render::CreateDepthState(  depthStateData, TAC_STACK_FRAME );
+    mDepthState = Render::CreateDepthState( depthStateData, TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
     Render::RasterizerState rasterizerStateData;
@@ -71,20 +82,20 @@ namespace Tac
     rasterizerStateData.mFrontCounterClockwise = true;
     rasterizerStateData.mMultisample = false;
     rasterizerStateData.mScissor = true;
-    mRasterizerState = Render::CreateRasterizerState(  rasterizerStateData, TAC_STACK_FRAME );
+    mRasterizerState = Render::CreateRasterizerState( rasterizerStateData, TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
 
     Render::SamplerState samplerStateData;
     samplerStateData.mFilter = Render::Filter::Linear;
-    mSamplerState = Render::CreateSamplerState(  samplerStateData, TAC_STACK_FRAME );
+    mSamplerState = Render::CreateSamplerState( samplerStateData, TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
   }
 
-  void SkyboxPresentation::RenderSkybox( const Camera* camera,
-                                         const int viewWidth,
-                                         const int viewHeight,
-                                         const Render::ViewHandle viewId,
-                                         const StringView skyboxDir )
+  void SkyboxPresentationRender( const Camera* camera,
+                                 const int viewWidth,
+                                 const int viewHeight,
+                                 const Render::ViewHandle viewId,
+                                 const StringView skyboxDir )
   {
     /*TAC_PROFILE_BLOCK*/;
     const StringView defaultSkybox = "assets/skybox/daylight";
@@ -95,8 +106,8 @@ namespace Tac
     if( !cubemap.IsValid() )
       return;
     Mesh* mesh = ModelAssetManagerGetMesh( "assets/editor/Box.gltf",
-                              mVertexDecls,
-                              mGetSkyboxMeshErrors );
+                                           mVertexDecls,
+                                           mGetSkyboxMeshErrors );
     TAC_ASSERT( mGetSkyboxMeshErrors.empty() );
     if( !mesh )
       return;

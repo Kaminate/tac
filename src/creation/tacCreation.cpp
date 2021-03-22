@@ -130,13 +130,14 @@ namespace Tac
     mEditorCamera->mRight = { 1, 0, 0 };
     mEditorCamera->mUp = { 0, 1, 0 };
 
-    mSkyboxPresentation = TAC_NEW SkyboxPresentation;
-    mSkyboxPresentation->Init( errors );
+    SkyboxPresentationInit( errors );
+    //mSkyboxPresentation = TAC_NEW SkyboxPresentation;
+    //mSkyboxPresentation->Init( errors );
     TAC_HANDLE_ERROR( errors );
 
-    mGamePresentation = TAC_NEW GamePresentation;
-    mGamePresentation->mSkyboxPresentation = mSkyboxPresentation;
-    mGamePresentation->CreateGraphicsObjects( errors );
+    GamePresentationInit( errors );
+    //mGamePresentation->mSkyboxPresentation = mSkyboxPresentation;
+    //mGamePresentation->CreateGraphicsObjects( errors );
     TAC_HANDLE_ERROR( errors );
 
     String dataPath;
@@ -160,6 +161,8 @@ namespace Tac
 
   void                Creation::Uninit( Errors& )
   {
+    SkyboxPresentationUninit();
+    GamePresentationUninit();
     TAC_DELETE CreationMainWindow::Instance;
     TAC_DELETE CreationGameWindow::Instance;
     TAC_DELETE CreationPropertyWindow::Instance;

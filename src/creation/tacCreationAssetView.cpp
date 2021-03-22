@@ -413,7 +413,7 @@ namespace Tac
       Render::SetViewFramebuffer( loadedModel->mViewHandle, loadedModel->mFramebufferHandle );
       Render::SetViewport( loadedModel->mViewHandle, Render::Viewport( w, h ) );
       Render::SetViewScissorRect( loadedModel->mViewHandle, Render::ScissorRect( w, h ) );
-      gCreation.mGamePresentation->RenderGameWorldToDesktopView( &loadedModel->mWorld,
+      GamePresentationRender( &loadedModel->mWorld,
                                                                  &loadedModel->mCamera,
                                                                  w, h,
                                                                  loadedModel->mViewHandle );

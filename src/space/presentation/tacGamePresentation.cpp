@@ -26,6 +26,21 @@
 
 namespace Tac
 {
+
+  static Render::ShaderHandle          m3DShader;
+  static Render::ShaderHandle          mTerrainShader;
+  static Render::VertexFormatHandle    m3DVertexFormat;
+  static Render::VertexFormatHandle    mTerrainVertexFormat;
+  static Render::ConstantBufferHandle  mPerFrame;
+  static Render::ConstantBufferHandle  mPerObj;
+  static Render::DepthStateHandle      mDepthState;
+  static Render::BlendStateHandle      mBlendState;
+  static Render::RasterizerStateHandle mRasterizerState;
+  static Render::SamplerStateHandle    mSamplerState;
+  static Render::VertexDeclarations    m3DVertexFormatDecls;
+  static Errors                        mGetTextureErrorsGround;
+  static Errors                        mGetTextureErrorsNoise;
+
   struct TerrainVertex
   {
     v3 mPos;
@@ -45,20 +60,31 @@ namespace Tac
     return terrainVertex;
   }
 
-  GamePresentation::~GamePresentation()
+
+  static void RenderGameWorldAddDrawCall( const Mesh* mesh,
+                                          const DefaultCBufferPerObject& cbuf,
+                                          const Render::ViewHandle viewId )
   {
-    Render::DestroyShader( m3DShader, TAC_STACK_FRAME );
-    Render::DestroyVertexFormat( m3DVertexFormat, TAC_STACK_FRAME );
-    Render::DestroyConstantBuffer( mPerFrame, TAC_STACK_FRAME );
-    Render::DestroyConstantBuffer( mPerObj, TAC_STACK_FRAME );
-    Render::DestroyDepthState( mDepthState, TAC_STACK_FRAME );
-    Render::DestroyBlendState( mBlendState, TAC_STACK_FRAME );
-    Render::DestroyRasterizerState( mRasterizerState, TAC_STACK_FRAME );
-    Render::DestroySamplerState( mSamplerState, TAC_STACK_FRAME );
+    for( const SubMesh& subMesh : mesh->mSubMeshes )
+    {
+      Render::SetShader( m3DShader );
+      Render::SetVertexBuffer( subMesh.mVertexBuffer, 0, 0 );
+      Render::SetIndexBuffer( subMesh.mIndexBuffer, 0, subMesh.mIndexCount );
+      Render::SetBlendState( mBlendState );
+      Render::SetRasterizerState( mRasterizerState );
+      Render::SetSamplerState( mSamplerState );
+      Render::SetDepthState( mDepthState );
+      //Render::SetVertexFormat( mesh->mVertexFormat );
+      Render::SetVertexFormat( m3DVertexFormat );
+      Render::UpdateConstantBuffer( mPerObj,
+                                    &cbuf,
+                                    sizeof( DefaultCBufferPerObject ),
+                                    TAC_STACK_FRAME );
+      Render::Submit( viewId, TAC_STACK_FRAME );
+    }
   }
 
-
-  void GamePresentation::LoadTerrain( Terrain* terrain )
+  static void LoadTerrain( Terrain* terrain )
   {
     if( terrain->mVertexBuffer.IsValid() && terrain->mIndexBuffer.IsValid() )
       return;
@@ -121,7 +147,7 @@ namespace Tac
 
   }
 
-  void GamePresentation::LoadModel( Model* model )
+  static void LoadModel( Model* model )
   {
     if( model->mesh )
       return;
@@ -144,11 +170,11 @@ namespace Tac
     }
   }
 
-  void GamePresentation::RenderGameWorldToDesktopView( World* world,
-                                                       const Camera* camera,
-                                                       const int viewWidth,
-                                                       const int viewHeight,
-                                                       const Render::ViewHandle viewId )
+  void GamePresentationRender( World* world,
+                               const Camera* camera,
+                               const int viewWidth,
+                               const int viewHeight,
+                               const Render::ViewHandle viewId )
   {
 
     TAC_RENDER_GROUP_BLOCK( "Render Game World" );
@@ -193,7 +219,7 @@ namespace Tac
     {
       void operator()( Model* model ) override
       {
-        mGamePresentation->LoadModel( model );
+        LoadModel( model );
         if( !model->mesh )
           return;
 
@@ -201,14 +227,14 @@ namespace Tac
         perObjectData.Color = { model->mColorRGB, 1 };
         perObjectData.World = model->mEntity->mWorldTransform;
         Render::BeginGroup( FrameMemoryPrintf( "%s %i", model->mModelPath.c_str(), model->mModelIndex ), TAC_STACK_FRAME );
-        mGamePresentation->RenderGameWorldAddDrawCall( model->mesh, perObjectData, mViewId );
+        RenderGameWorldAddDrawCall( model->mesh, perObjectData, mViewId );
         Render::EndGroup( TAC_STACK_FRAME );
       }
 
-      GamePresentation*  mGamePresentation;
+      //GamePresentation*  mGamePresentation;
       Render::ViewHandle mViewId;
     } myModelVisitor;
-    myModelVisitor.mGamePresentation = this;
+    //myModelVisitor.mGamePresentation = this;
     myModelVisitor.mViewId = viewId;
 
     Render::BeginGroup( "Visit Models", TAC_STACK_FRAME );
@@ -252,22 +278,22 @@ namespace Tac
     {
       void operator()( Skybox* skybox ) override
       {
-        mGamePresentation->mSkyboxPresentation->RenderSkybox( mCamera,
-                                                              mViewWidth,
-                                                              mViewHeight,
-                                                              mViewId,
-                                                              skybox->mSkyboxDir );
+        SkyboxPresentationRender( mCamera,
+                                  mViewWidth,
+                                  mViewHeight,
+                                  mViewId,
+                                  skybox->mSkyboxDir );
       }
       int                mViewWidth;
       int                mViewHeight;
       Render::ViewHandle mViewId;
-      GamePresentation*  mGamePresentation;
+      //GamePresentation*  mGamePresentation;
       const Camera*      mCamera;
     } mySkyboxVisitor;
     mySkyboxVisitor.mViewWidth = viewWidth;
     mySkyboxVisitor.mViewHeight = viewHeight;
     mySkyboxVisitor.mViewId = viewId;
-    mySkyboxVisitor.mGamePresentation = this;
+    //mySkyboxVisitor.mGamePresentation = this;
     mySkyboxVisitor.mCamera = camera;
     Render::BeginGroup( "Visit Skyboxes", TAC_STACK_FRAME );
     graphics->VisitSkyboxes( &mySkyboxVisitor );
@@ -279,7 +305,7 @@ namespace Tac
     //  mDesktopWindow->mRenderView );
   }
 
-  void GamePresentation::CreateTerrainShader( Errors& errors )
+  static void CreateTerrainShader( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
     mTerrainShader = Render::CreateShader( Render::ShaderSource::FromPath( "Terrain" ),
@@ -287,7 +313,7 @@ namespace Tac
                                            TAC_STACK_FRAME );
   }
 
-  void GamePresentation::Create3DShader( Errors& errors )
+  static void Create3DShader( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
     m3DShader = Render::CreateShader( Render::ShaderSource::FromPath( "3DTest" ),
@@ -295,7 +321,7 @@ namespace Tac
                                       TAC_STACK_FRAME );
   }
 
-  void GamePresentation::Create3DVertexFormat( Errors& errors )
+  static void Create3DVertexFormat( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
     Render::VertexDeclaration posDecl;
@@ -310,7 +336,7 @@ namespace Tac
                                                   TAC_STACK_FRAME );
   }
 
-  void GamePresentation::CreateTerrainVertexFormat( Errors& errors )
+  static void CreateTerrainVertexFormat( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
     Render::VertexDeclaration terrainPosDecl = {};
@@ -339,7 +365,7 @@ namespace Tac
                                                        TAC_STACK_FRAME );
   }
 
-  void GamePresentation::CreatePerFrame( Errors& errors )
+  static void CreatePerFrame( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
     mPerFrame = Render::CreateConstantBuffer( sizeof( DefaultCBufferPerFrame ),
@@ -347,7 +373,7 @@ namespace Tac
                                               TAC_STACK_FRAME );
   }
 
-  void GamePresentation::CreatePerObj( Errors& errors )
+  static void CreatePerObj( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
     mPerObj = Render::CreateConstantBuffer( sizeof( DefaultCBufferPerObject ),
@@ -355,7 +381,7 @@ namespace Tac
                                             TAC_STACK_FRAME );
   }
 
-  void GamePresentation::CreateDepthState( Errors& errors )
+  static void CreateDepthState( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
     Render::DepthState depthStateData;
@@ -365,7 +391,7 @@ namespace Tac
     mDepthState = Render::CreateDepthState( depthStateData, TAC_STACK_FRAME );
   }
 
-  void GamePresentation::CreateBlendState( Errors& errors )
+  static void CreateBlendState( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
     Render::BlendState blendStateData;
@@ -378,7 +404,7 @@ namespace Tac
     mBlendState = Render::CreateBlendState( blendStateData, TAC_STACK_FRAME );
   }
 
-  void GamePresentation::CreateRasterizerState( Errors& errors )
+  static void CreateRasterizerState( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
     Render::RasterizerState rasterizerStateData;
@@ -391,7 +417,7 @@ namespace Tac
                                                       TAC_STACK_FRAME );
   }
 
-  void GamePresentation::CreateSamplerState( Errors& errors )
+  static void CreateSamplerState( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
     Render::SamplerState samplerStateData;
@@ -400,7 +426,7 @@ namespace Tac
                                                 TAC_STACK_FRAME );
   }
 
-  void GamePresentation::CreateGraphicsObjects( Errors& errors )
+  void GamePresentationInit( Errors& errors )
   {
     CreatePerFrame( errors );
     TAC_HANDLE_ERROR( errors );
@@ -433,26 +459,16 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
   }
 
-  void GamePresentation::RenderGameWorldAddDrawCall( const Mesh* mesh,
-                                                     const DefaultCBufferPerObject& cbuf,
-                                                     const Render::ViewHandle viewId )
+  void GamePresentationUninit()
   {
-    for( const SubMesh& subMesh : mesh->mSubMeshes )
-    {
-      Render::SetShader( m3DShader );
-      Render::SetVertexBuffer( subMesh.mVertexBuffer, 0, 0 );
-      Render::SetIndexBuffer( subMesh.mIndexBuffer, 0, subMesh.mIndexCount );
-      Render::SetBlendState( mBlendState );
-      Render::SetRasterizerState( mRasterizerState );
-      Render::SetSamplerState( mSamplerState );
-      Render::SetDepthState( mDepthState );
-      //Render::SetVertexFormat( mesh->mVertexFormat );
-      Render::SetVertexFormat( m3DVertexFormat );
-      Render::UpdateConstantBuffer( mPerObj,
-                                    &cbuf,
-                                    sizeof( DefaultCBufferPerObject ),
-                                    TAC_STACK_FRAME );
-      Render::Submit( viewId, TAC_STACK_FRAME );
-    }
+    Render::DestroyShader( m3DShader, TAC_STACK_FRAME );
+    Render::DestroyVertexFormat( m3DVertexFormat, TAC_STACK_FRAME );
+    Render::DestroyConstantBuffer( mPerFrame, TAC_STACK_FRAME );
+    Render::DestroyConstantBuffer( mPerObj, TAC_STACK_FRAME );
+    Render::DestroyDepthState( mDepthState, TAC_STACK_FRAME );
+    Render::DestroyBlendState( mBlendState, TAC_STACK_FRAME );
+    Render::DestroyRasterizerState( mRasterizerState, TAC_STACK_FRAME );
+    Render::DestroySamplerState( mSamplerState, TAC_STACK_FRAME );
   }
+
 }
