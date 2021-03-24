@@ -12,7 +12,6 @@
 #include "src/common/tacPreprocessor.h"
 #include "src/common/tacSettings.h"
 #include "src/common/shell/tacShell.h"
-#include "src/common/tacTime.h"
 #include "src/common/tacControllerinput.h"
 #include "src/common/tacKeyboardinput.h"
 #include "src/common/profile/tacProfile.h"
@@ -56,19 +55,14 @@ namespace Tac
 
     gUI2DCommonData.Init( errors );
     TAC_HANDLE_ERROR( errors );
-
-    TAC_NEW ProfileSystem;
-    ProfileSystem::Instance->Init();
   }
   void            ShellFrameBegin( Errors& )
   {
     //gKeyboardInput.BeginFrame();
-    ProfileSystem::Instance->OnFrameBegin();
   }
   void            ShellFrameEnd( Errors& )
   {
     //gKeyboardInput.EndFrame();
-    ProfileSystem::Instance->OnFrameEnd();
   }
   void            ShellFrame( Errors& errors )
   {

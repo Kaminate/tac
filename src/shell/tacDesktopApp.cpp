@@ -176,9 +176,6 @@ namespace Tac
     SettingsInit( errors );
     TAC_HANDLE_ERROR( errors );
 
-    TAC_NEW ProfileSystem;
-    ProfileSystem::Instance->Init();
-
     TAC_NEW FontStuff;
     gFontStuff.Load( errors );
     TAC_HANDLE_ERROR( errors );

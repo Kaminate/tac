@@ -64,10 +64,10 @@ ${CMAKE_CURRENT_SOURCE_DIR}/tacTextParser.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/tacTextParser.h
 ${CMAKE_CURRENT_SOURCE_DIR}/tacMemory.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/tacMemory.h
-${CMAKE_CURRENT_SOURCE_DIR}/profile/tacProfile.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/profile/tacProfile.h
+${CMAKE_CURRENT_SOURCE_DIR}/profile/tacProfileBackend.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/profile/tacProfileBackend.h
 ${CMAKE_CURRENT_SOURCE_DIR}/profile/tacProfileImGui.cpp
-${CMAKE_CURRENT_SOURCE_DIR}/profile/tacProfileImGui.h
 ${CMAKE_CURRENT_SOURCE_DIR}/math/tacMath.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/math/tacMath.h
 ${CMAKE_CURRENT_SOURCE_DIR}/math/tacMatrix3.cpp
@@ -101,8 +101,6 @@ ${CMAKE_CURRENT_SOURCE_DIR}/string/tacString.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/string/tacString.h
 ${CMAKE_CURRENT_SOURCE_DIR}/string/tacStringIdentifier.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/string/tacStringIdentifier.h
-${CMAKE_CURRENT_SOURCE_DIR}/tacTime.cpp
-${CMAKE_CURRENT_SOURCE_DIR}/tacTime.h
 ${CMAKE_CURRENT_SOURCE_DIR}/tacUtility.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/tacUtility.h
 ${CMAKE_CURRENT_SOURCE_DIR}/containers/tacVector.h

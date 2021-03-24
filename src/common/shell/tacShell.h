@@ -4,11 +4,8 @@
 #pragma once
 
 #include "src/common/tacLocalization.h"
-//#include "src/common/tacErrorHandling.h"
 #include "src/common/tacPreprocessor.h"
 #include "src/common/containers/tacVector.h"
-#include "src/common/tacTime.h"
-//#include "src/common/tacEvent.h"
 
 namespace Tac
 {
@@ -35,26 +32,26 @@ namespace Tac
   //struct Shell
   //{
   //  static Shell    Instance;
-    void            ShellInit( Errors& );
-    void            ShellUninit();
-    void            ShellUpdate( Errors& );
-    //void            ShellFrameBegin( Errors& );
-    void            ShellFrame( Errors& );
-    //void            ShellFrameEnd( Errors& );
-    void            ShellSetAppName(const char*);
-    const char*     ShellGetAppName();
-    void            ShellSetPrefPath(const char*);
-    const char*     ShellGetPrefPath();
-    void            ShellSetInitialWorkingDir(const char*);
-    const char*     ShellGetInitialWorkingDir();
-    //Log*            mLog = nullptr;
-    //String          mAppName;
+  void            ShellInit( Errors& );
+  void            ShellUninit();
+  void            ShellUpdate( Errors& );
+  //void            ShellFrameBegin( Errors& );
+  void            ShellFrame( Errors& );
+  //void            ShellFrameEnd( Errors& );
+  void            ShellSetAppName( const char* );
+  const char*     ShellGetAppName();
+  void            ShellSetPrefPath( const char* );
+  const char*     ShellGetPrefPath();
+  void            ShellSetInitialWorkingDir( const char* );
+  const char*     ShellGetInitialWorkingDir();
+  //Log*            mLog = nullptr;
+  //String          mAppName;
 
-    // This is the directory where files can be written.
-    // Unique per user, per application.
-    // ( doesn't include a trailing slash )
-    //String          mPrefPath;
+  // This is the directory where files can be written.
+  // Unique per user, per application.
+  // ( doesn't include a trailing slash )
+  //String          mPrefPath;
 
-    //String          mInitialWorkingDir;
-    //Vector< Soul* > mSouls;
+  //String          mInitialWorkingDir;
+  //Vector< Soul* > mSouls;
 }

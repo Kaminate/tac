@@ -1,53 +1,16 @@
-
-
 #pragma once
-#include "src/common/containers/tacVector.h"
-#include "src/common/tacTime.h"
+
 #include "src/common/tacPreprocessor.h"
 
 namespace Tac
 {
-  struct ProfileBlock;
-  struct ProfileFunction;
-  struct ProfileSystem;
 
-  struct ProfileBlock
-  {
-    ProfileBlock( StackFrame stackFrame );
-    ~ProfileBlock();
-    ProfileFunction* mFunction = nullptr;
-  };
-#define TAC_PROFILE_BLOCK ProfileBlock b##__LINE__ (TAC_STACK_FRAME);
+  void ProfileBlockBegin( StackFrame );
+  void ProfileBlockEnd();
+  void ImGuiProfileWidget();
 
-  struct ProfileFunction
-  {
-    void             Clear();
-    ProfileFunction* GetLastChild();
-    void             AppendChild( ProfileFunction* child );
+#define TAC_PROFILE_BLOCK ProfileBlockBegin( TAC_STACK_FRAME ); TAC_ON_DESTRUCT( ProfileBlockEnd() );
 
-    ProfileFunction* mNext = nullptr;
-    ProfileFunction* mChildren = nullptr;
-    Timepoint        mBeginTime;
-    Timepoint        mEndTime;
-    StackFrame       mStackFrame;
-  };
-
-  struct ProfileSystem
-  {
-    static thread_local ProfileSystem* Instance;
-    ProfileSystem();
-    void                       Init();
-    void                       OnFrameBegin();
-    void                       OnFrameEnd();
-    ProfileFunction*           Alloc();
-    void                       Dealloc( ProfileFunction* );
-    void                       PushFunction( ProfileFunction* );
-
-    Vector< ProfileFunction* > mFree;
-    ProfileFunction*           mLastFrame = nullptr;
-    ProfileFunction*           mCurrFrame = nullptr;
-    Vector< ProfileFunction* > mCurrStack;
-  };
 
 
 }

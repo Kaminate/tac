@@ -1,11 +1,9 @@
-
 #include "src/common/graphics/tacUI2D.h"
 #include "src/common/shell/tacShell.h"
 #include "src/common/tacDesktopWindow.h"
 #include "src/common/graphics/imgui/tacImGui.h"
 #include "src/common/tacOS.h"
 #include "src/common/profile/tacProfile.h"
-#include "src/common/profile/tacProfileImGui.h"
 #include "src/creation/tacCreation.h"
 #include "src/creation/tacCreationProfileWindow.h"
 #include "src/space/tacWorld.h"
@@ -35,14 +33,14 @@ namespace Tac
   };
   void CreationProfileWindow::ImGuiProfile()
   {
-    ProfileSystem* profileSystem = ProfileSystem::Instance;
-    ImGuiProfileWidget( profileSystem->mLastFrame );
+    ImGuiProfileWidget();
   }
   void CreationProfileWindow::ImGui()
   {
     DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
     if( !desktopWindowState->mNativeWindowHandle )
       return;
+    ImGuiSetNextWindowStretch();
     ImGuiSetNextWindowHandle( mDesktopWindowHandle );
     ImGuiBegin( "Profile Window" );
 

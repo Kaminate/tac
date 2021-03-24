@@ -1,5 +1,5 @@
 #include "src/common/profile/tacProfile.h"
-#include "src/common/profile/tacProfileImGui.h"
+#include "src/common/profile/tacProfileBackend.h"
 #include "src/common/graphics/imgui/tacImGuiState.h"
 #include "src/common/tacFrameMemory.h"
 #include "src/common/graphics/tacUI2D.h"
@@ -32,6 +32,7 @@ namespace Tac
       a[ 1 ] * b[ 1 ],
       a[ 2 ] * b[ 2 ] };
   }
+
   static v3 v3cos( v3 v )
   {
     return {
@@ -63,15 +64,17 @@ namespace Tac
                                           ProfileFunction* profileFunction,
                                           v2 timelineLeft,
                                           v2 timelineRight,
-                                          Timepoint frameBeginTime,
+                                          double frameBeginTime, // Timepoint frameBeginTime,
                                           int depth )
   {
     ImGuiWindow* imguiWindow = ImGuiGlobals::Instance.mCurrentWindow;
     if( !profileFunction )
       return;
 
-    const float functionLMiliseconds = TimepointSubtractMiliseconds( profileFunction->mBeginTime, frameBeginTime );
-    const float functionRMiliseconds = TimepointSubtractMiliseconds( profileFunction->mEndTime, frameBeginTime );
+    TAC_CRITICAL_ERROR_UNIMPLEMENTED;
+
+    const float functionLMiliseconds = 0;// TimepointSubtractMiliseconds( profileFunction->mBeginTime, frameBeginTime );
+    const float functionRMiliseconds = 0;// TimepointSubtractMiliseconds( profileFunction->mEndTime, frameBeginTime );
     const float functionLPercent
       = ( functionLMiliseconds - profileWidgetData->mLMiliseconds )
       / ( profileWidgetData->mRMiliseconds - profileWidgetData->mLMiliseconds );
@@ -137,10 +140,12 @@ namespace Tac
                                 depth + 1 );
   }
 
-  void ImGuiProfileWidget( ProfileFunction* profileFunction )
+  void ImGuiProfileWidget()
   {
-    if( !profileFunction )
-      return;
+    //ProfilePerThreadData* ProfilePerThreadData = ProfilePerThreadData::Instance;
+    //ProfileFunction* profileFunction = ProfilePerThreadData->mLastFrame
+    //  if( !profileFunction )
+    //    return;
 
 
     ImGuiWindow* imguiWindow = ImGuiGlobals::Instance.mCurrentWindow;
@@ -173,7 +178,7 @@ namespace Tac
 
     drawData->AddLine( timelineLeft, timelineRight, 2, timelineColor );
 
-    TAC_ASSERT( ( int )( profileWidgetData->mRMiliseconds - profileWidgetData->mLMiliseconds ) < 100 );
+    //TAC_ASSERT( ( int )( profileWidgetData->mRMiliseconds - profileWidgetData->mLMiliseconds ) < 100 );
     for( int i = ( int )profileWidgetData->mLMiliseconds; i < 1 + ( int )profileWidgetData->mRMiliseconds; ++i )
     {
       const float t = ( ( float )i - profileWidgetData->mLMiliseconds )
@@ -192,21 +197,22 @@ namespace Tac
                          ImGuiGlobals::Instance.mUIStyle.textColor, nullptr );
     }
 
-    ImGuiProfileWidgetFunction( profileWidgetData,
-                                drawData,
-                                profileFunction,
-                                timelineLeft,
-                                timelineRight,
-                                profileFunction->mBeginTime,
-                                0 );
+    TAC_CRITICAL_ERROR_UNIMPLEMENTED;
+    //ImGuiProfileWidgetFunction( profileWidgetData,
+    //                            drawData,
+    //                            profileFunction,
+    //                            timelineLeft,
+    //                            timelineRight,
+    //                            profileFunction->mBeginTime,
+    //                            0 );
 
-    if( outputWindowFrameTimes )
-    {
-      static int iFrame = 0;
-      iFrame++;
-      const int frameMs = ( int )TimepointSubtractMiliseconds( profileFunction->mEndTime, profileFunction->mBeginTime );
-      std::cout << FrameMemoryPrintf( "frame %-10i %ims\n", iFrame, frameMs );
-    }
+    //if( outputWindowFrameTimes )
+    //{
+    //  static int iFrame = 0;
+    //  iFrame++;
+    //  const int frameMs = ( int )TimepointSubtractMiliseconds( profileFunction->mEndTime, profileFunction->mBeginTime );
+    //  std::cout << FrameMemoryPrintf( "frame %-10i %ims\n", iFrame, frameMs );
+    //}
   }
 
 
