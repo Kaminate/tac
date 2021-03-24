@@ -62,16 +62,16 @@ namespace Tac
   };
 
 
-  typedef int ImGuiindex;
+  typedef int ImGuiIndex;
 
-  ImGuiindex ImGuiRegisterWindowResource( StringView name,
+  ImGuiIndex ImGuiRegisterWindowResource( StringView name,
                                           void* initialDataBytes,
                                           int initialDataByteCount );
 
   struct ImGuiWindowResource
   {
     ImGuiId                       mImGuiId;
-    ImGuiindex                    mIndex;
+    ImGuiIndex                    mIndex;
     Vector< char >                mData;
   };
 
@@ -86,7 +86,7 @@ namespace Tac
     ImGuiId                       GetID();
     void                          SetActiveID( ImGuiId );
     ImGuiId                       GetActiveID();
-    void*                         GetWindowResource( ImGuiindex id );
+    void*                         GetWindowResource( ImGuiIndex id );
     bool                          IsHovered( const ImGuiRect& );
     v2                            GetMousePosViewport();
 

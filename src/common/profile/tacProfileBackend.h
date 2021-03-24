@@ -24,13 +24,13 @@ namespace Tac
   struct ProfileFunctionPool
   {
     ProfileFunction*           Alloc();
-    void                       Dealloc(ProfileFunction*);
+    void                       Dealloc( ProfileFunction* );
     Vector< ProfileFunction* > sFunctionsUnused;
   };
 
   typedef std::list< ProfileFunction* >                     ProfiledFunctionList;
   typedef std::map< std::thread::id, ProfiledFunctionList > ProfiledFunctions;
 
-  ProfiledFunctions CopyProfiledFunctions(ProfileFunctionPool*);
+  ProfiledFunctions CopyProfiledFunctions( ProfileFunctionPool* );
 }
 

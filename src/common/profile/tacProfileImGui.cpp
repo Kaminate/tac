@@ -9,6 +9,18 @@
 
 namespace Tac
 {
+  static double sElapsedSecondsWhenPaused;
+  static bool   sIsPaused;
+  static float  sSecondOffset;
+  static float  sZoomLevel;
+  
+  // need to be able to zoom in at mouse cursor, and pan around
+  //
+  //
+  // mRMiliseconds = curtime + offset
+
+
+
 
   static const float miniMiliseconds = 0.0f;
   static const float maxiMiliseconds = 100.0f;
@@ -18,12 +30,10 @@ namespace Tac
     float mRMiliseconds = 47.0f;
   };
 
-  static ImguiProfileWidgetData defaultImguiProfileWidgetData;
-  static const ImGuiindex profileWidgetId = ImGuiRegisterWindowResource( TAC_STRINGIFY( ImguiProfileWidgetData ),
-                                                                         &defaultImguiProfileWidgetData,
+  static ImguiProfileWidgetData sDefaultWidgetData;
+  static const ImGuiIndex       sWidgetID = ImGuiRegisterWindowResource( TAC_STRINGIFY( ImguiProfileWidgetData ),
+                                                                         &sDefaultWidgetData,
                                                                          sizeof( ImguiProfileWidgetData ) );
-
-  Vector< ImguiProfileWidgetData > gImguiProfileWidgetDatas;
 
   static v3 v3mult( v3 a, v3 b )
   {
@@ -150,7 +160,7 @@ namespace Tac
 
     ImGuiWindow* imguiWindow = ImGuiGlobals::Instance.mCurrentWindow;
     UI2DDrawData* drawData = imguiWindow->mDrawData; // ImGuiGlobals::Instance.mUI2DDrawData;
-    auto profileWidgetData = ( ImguiProfileWidgetData* )imguiWindow->GetWindowResource( profileWidgetId );
+    auto profileWidgetData = ( ImguiProfileWidgetData* )imguiWindow->GetWindowResource( sWidgetID );
 
     static bool outputWindowFrameTimes;
     ImGuiCheckbox( "output window frame times", &outputWindowFrameTimes );

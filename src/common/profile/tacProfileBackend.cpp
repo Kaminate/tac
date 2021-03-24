@@ -3,12 +3,7 @@
 
 namespace Tac
 {
-  //===-----------===//
-  // ProfileFunction //
-  //===-----------===//
-
-
-  static void             ProfileFunctionAppendChild( ProfileFunction* parent, ProfileFunction* child )
+  static void ProfileFunctionAppendChild( ProfileFunction* parent, ProfileFunction* child )
   {
     if( parent->mChildren )
     {
@@ -25,18 +20,12 @@ namespace Tac
   }
 
 
-
-  //===----------------===//
-  // ProfilePerThreadData //
-  //===----------------===//
-
   //                               The function corresponding to the most recent unended ProfileBlockBegin() 
   //                               Following the parent chain forms the current call stack.
   thread_local ProfileFunction*    sFunctionUnfinished = nullptr;
   thread_local ProfileFunctionPool sFunctionPool;
 
-
-  ProfileFunction*           ProfileFunctionPool::Alloc()
+  ProfileFunction* ProfileFunctionPool::Alloc()
   {
     if( sFunctionsUnused.empty() )
       return TAC_NEW ProfileFunction;
@@ -45,7 +34,7 @@ namespace Tac
     return result;
   }
 
-  void                       ProfileFunctionPool::Dealloc( ProfileFunction* profileFunction )
+  void             ProfileFunctionPool::Dealloc( ProfileFunction* profileFunction )
   {
     if( !profileFunction )
       return;
@@ -58,22 +47,6 @@ namespace Tac
     *profileFunction = ProfileFunction();
     sFunctionsUnused.push_back( profileFunction );
   }
-
-  //===-------===//
-  // Profile API //
-  //===-------===//
-
-  void ProfileBlockBegin( const StackFrame stackFrame )
-  {
-    ProfileFunction* function = sFunctionPool.Alloc();
-    function->mStackFrame = stackFrame;
-    function->mBeginTime = ShellGetElapsedSeconds();
-    if( sFunctionUnfinished )
-      ProfileFunctionAppendChild( sFunctionUnfinished, function );
-    else
-      sFunctionUnfinished = function;
-  }
-
 
   static ProfiledFunctions sProfiledFunctions;
   static std::mutex        sProfiledFunctionsMutex;
@@ -121,6 +94,17 @@ namespace Tac
     }
     sProfiledFunctionsMutex.unlock();
     return profiledFunctionsCopy;
+  }
+
+  void ProfileBlockBegin( const StackFrame stackFrame )
+  {
+    ProfileFunction* function = sFunctionPool.Alloc();
+    function->mStackFrame = stackFrame;
+    function->mBeginTime = ShellGetElapsedSeconds();
+    if( sFunctionUnfinished )
+      ProfileFunctionAppendChild( sFunctionUnfinished, function );
+    else
+      sFunctionUnfinished = function;
   }
 
   void ProfileBlockEnd()

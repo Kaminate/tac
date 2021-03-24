@@ -11,5 +11,7 @@ assets/imgui.ini
 # vim temporary files
 *.swp
 
-run_cloc.bat
 *.rdc
+
+cloc_found.txt
+cloc_ignored.txt

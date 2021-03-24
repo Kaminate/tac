@@ -20,22 +20,22 @@ namespace Tac
   {
     String         mName;
     Vector< char > mInitialData;
-    ImGuiindex     mId;
+    ImGuiIndex     mId;
   };
 
   struct WindowResourceRegistry
   {
     static WindowResourceRegistry*     GetInstance();
-    ImGuiindex                         RegisterResource( StringView name,
+    ImGuiIndex                         RegisterResource( StringView name,
                                                          void* initialDataBytes,
                                                          int initialDataByteCount );
-    RegisteredWindowResource*          FindResource( ImGuiindex index );
+    RegisteredWindowResource*          FindResource( ImGuiIndex index );
   private:
     Vector< RegisteredWindowResource > mRegisteredWindowResources;
     int                                mResourceCounter = 0;
   };
 
-  RegisteredWindowResource* WindowResourceRegistry::FindResource( ImGuiindex  index )
+  RegisteredWindowResource* WindowResourceRegistry::FindResource( ImGuiIndex  index )
   {
     for( RegisteredWindowResource& resource : mRegisteredWindowResources )
       if( resource.mId == index )
@@ -49,13 +49,13 @@ namespace Tac
     return &instance;
   }
 
-  ImGuiindex WindowResourceRegistry::RegisterResource( StringView name,
+  ImGuiIndex WindowResourceRegistry::RegisterResource( StringView name,
                                                        void* initialDataBytes,
                                                        int initialDataByteCount )
   {
     const char* dataBegin = ( char* )initialDataBytes;
     const char* dataEnd = ( char* )initialDataBytes + initialDataByteCount;
-    const ImGuiindex id = mResourceCounter++;
+    const ImGuiIndex id = mResourceCounter++;
     RegisteredWindowResource resource;
     resource.mInitialData.assign( dataBegin, dataEnd );
     resource.mName = name;
@@ -64,7 +64,7 @@ namespace Tac
     return id;
   }
 
-  ImGuiindex ImGuiRegisterWindowResource( StringView name,
+  ImGuiIndex ImGuiRegisterWindowResource( StringView name,
                                           void* initialDataBytes,
                                           int initialDataByteCount )
   {
@@ -314,7 +314,7 @@ namespace Tac
     return result;
   }
 
-  void* ImGuiWindow::GetWindowResource( ImGuiindex index )
+  void* ImGuiWindow::GetWindowResource( ImGuiIndex index )
   {
     ImGuiId imGuiId = GetID();
     for( ImGuiWindowResource& resource : mResources )
