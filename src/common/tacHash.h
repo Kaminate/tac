@@ -7,8 +7,8 @@ namespace Tac
 
   //HashedValue HashString( const char* );
   //HashedValue HashAddBytes( const char*, int );
-  HashedValue HashAddString( HashedValue, const char* );
-  HashedValue HashAddBytes( HashedValue, const char*, int );
+  HashedValue HashAddString( const char*, HashedValue = 0);
+  HashedValue HashAddBytes( const char*, int, HashedValue = 0 );
   HashedValue HashAddHash( HashedValue, HashedValue );
   template< typename T >
   HashedValue HashAdd( HashedValue hashedValue, T t ) { return HashAddHash( hashedValue, ( HashedValue )t ); }

@@ -15,14 +15,14 @@ namespace Tac
   //  return HashAddBytes( 0, bytes, byteCount );
   //}
 
-  HashedValue HashAddString( HashedValue hashedValue, const char* bytes )
+  HashedValue HashAddString(  const char* bytes ,HashedValue hashedValue)
   {
     while( char c = *bytes++ )
       hashedValue = HashAddHash( hashedValue, ( HashedValue )c );
     return hashedValue;
   }
 
-  HashedValue HashAddBytes( HashedValue hashedValue,  const char* bytes, int byteCount  )
+  HashedValue HashAddBytes(   const char* bytes, int byteCount  ,HashedValue hashedValue)
   {
     for( int iByte = 0; iByte < byteCount; ++iByte )
       hashedValue = HashAdd( hashedValue, bytes[ iByte ] );

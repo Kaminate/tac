@@ -26,7 +26,7 @@ namespace Tac
 
   StringID::StringID( const char* s, int n )
   {
-    mHashedValue = Tac::HashAddBytes( mHashedValue, s, n );
+    mHashedValue = Tac::HashAddBytes( s, n );
     TAC_ASSERT( mHashedValue );
     DebugSetStringLookup( *this, StringView( s, n ) );
   }

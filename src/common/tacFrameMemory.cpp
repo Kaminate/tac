@@ -34,7 +34,7 @@ namespace Tac
     sFrameAllocator = threadAllocator;
   }
 
-  char* FrameMemoryPrintf( const char* format, ... )
+  const char* FrameMemoryPrintf( const char* format, ... )
   {
     va_list args;
     va_start( args, format );

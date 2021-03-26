@@ -1,0 +1,17 @@
+# See http://editorconfig.org to read about the EditorConfig format.
+# - Automatically supported by VS2017+ and most common IDE or text editors.
+
+# top-most EditorConfig file
+root = true
+
+# All files
+[*]
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+
+# https://marketplace.visualstudio.com/items?itemName=PaulHarrington.EditorGuidelines
+#                           aarrggbb
+guidelines = 120 2px dotted 80cbcbcb
+
+

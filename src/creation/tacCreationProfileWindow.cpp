@@ -44,8 +44,8 @@ namespace Tac
     ImGuiSetNextWindowHandle( mDesktopWindowHandle );
     ImGuiBegin( "Profile Window" );
 
-    ImGuiText( "i am the profile window" );
-    ImGuiText( "i am... inevitable" );
+    //ImGuiText( "i am the profile window" );
+    //ImGuiText( "i am... inevitable" );
 
     //// to force directx graphics specific window debugging
     //if( ImGuiButton( "close window" ) )

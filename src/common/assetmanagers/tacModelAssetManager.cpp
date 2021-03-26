@@ -70,8 +70,7 @@ namespace Tac
                                                 const Render::VertexDeclarations& vertexDeclarations,
                                                 Errors& errors )
   {
-    HashedValue hashedValue = 0;
-    hashedValue = HashAddString( hashedValue, path );
+    HashedValue hashedValue = HashAddString( path );
     hashedValue = HashAddVertexDeclarations( hashedValue, vertexDeclarations );
     hashedValue = HashAddHash( hashedValue, ( HashedValue )iModel );
 

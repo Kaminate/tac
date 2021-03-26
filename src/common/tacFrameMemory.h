@@ -16,6 +16,6 @@ namespace Tac
 
   void  FrameMemorySetThreadAllocator( ThreadAllocator* );
   void* FrameMemoryAllocate( int );
-  char* FrameMemoryPrintf( const char*, ... );
+  const char* FrameMemoryPrintf( const char*, ... );
 }
 

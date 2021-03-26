@@ -1,19 +1,30 @@
 #include "src/common/profile/tacProfile.h"
 #include "src/common/profile/tacProfileBackend.h"
+#include "src/common/shell/tacShellTimer.h"
+#include "src/common/tacOS.h"
 #include "src/common/graphics/imgui/tacImGuiState.h"
 #include "src/common/tacFrameMemory.h"
+#include "src/common/tacHash.h"
 #include "src/common/graphics/tacUI2D.h"
 #include "src/common/math/tacMath.h"
 
 #include <iostream>
+#include <math.h>
+
+// remove these when finished debugging
+#pragma warning( disable: 4505 )
+#pragma warning( disable: 4189 )
+#pragma warning( disable: 4100 )
 
 namespace Tac
 {
-  static double sElapsedSecondsWhenPaused;
-  static bool   sIsPaused;
-  static float  sSecondOffset;
-  static float  sZoomLevel;
-  
+  //static double sElapsedSecondsWhenPaused;
+  //static bool   sIsPaused;
+  //static float  sSecondOffset;
+  //static float  sZoomLevel;
+
+  static float sMilisecondsToDisplay = 20.0f;
+
   // need to be able to zoom in at mouse cursor, and pan around
   //
   //
@@ -21,13 +32,38 @@ namespace Tac
 
 
 
+  //               When not paused
+  //                                                  current elapsed seconds
+  //                                                      |
+  //    +-------------------+-----------------------------+---------> x axis ( time )
+  //    |                   |                             |
+  //    |                   |                             |
+  //    |                   |           camera            |
+  //    |                   |                             |
+  //    |                   |                             |
+  //    |                   +-----------------------------+
+  //    |                                                 |
+  //    |                                                 |
+  //    |                                                 |
+  //    |                                                 v
+  //    |
+  //    v
+  // y axis ( pixels )
+  // 
+  //
+  //
 
-  static const float miniMiliseconds = 0.0f;
-  static const float maxiMiliseconds = 100.0f;
+
+  //static float  sCameraSecondOffset;
+
+
+
+  //static const float miniMiliseconds = 0.0f;
+  //static const float maxiMiliseconds = 100.0f;
   struct ImguiProfileWidgetData
   {
-    float mLMiliseconds = miniMiliseconds;
-    float mRMiliseconds = 47.0f;
+    //float mLMiliseconds = miniMiliseconds;
+    //float mRMiliseconds = 47.0f;
   };
 
   static ImguiProfileWidgetData sDefaultWidgetData;
@@ -35,119 +71,176 @@ namespace Tac
                                                                          &sDefaultWidgetData,
                                                                          sizeof( ImguiProfileWidgetData ) );
 
-  static v3 v3mult( v3 a, v3 b )
+
+  static v4 GetProfileFunctionColor( const ProfileFunction* profileFunction )
   {
-    return {
-      a[ 0 ] * b[ 0 ],
-      a[ 1 ] * b[ 1 ],
-      a[ 2 ] * b[ 2 ] };
+    const HashedValue hash = HashAddString( profileFunction->mStackFrame.mFunction );
+    const float t = ( std::sin( ( float )hash ) + 1.0f ) / 2.0f;
+    const float r = 0.8f + 0.2f * std::cos( 6.28318f * ( 2.0f * t + 0.0f ) );
+    const float g = 0.5f + 0.4f * std::cos( 6.28318f * ( 1.0f * t + 0.25f ) );
+    const float b = 0.4f + 0.2f * std::cos( 6.28318f * ( 1.0f * t + 0.25f ) );
+    return { r, g, b, 1 };
   }
 
-  static v3 v3cos( v3 v )
-  {
-    return {
-      std::cos( v[ 0 ] ),
-      std::cos( v[ 1 ] ),
-      std::cos( v[ 2 ] ) };
-  }
-
-  static v4 GetProfileFunctionColor( ProfileFunction* profileFunction )
-  {
-    v3 colora( 0.8f, 0.5f, 0.4f );
-    v3 colorb( 0.2f, 0.4f, 0.2f );
-    v3 colorc( 2, 1, 1 );
-    v3 colord( 0, 0.25, 0.25 );
-
-    uint32_t hash = 0;
-    for( char c : StringView( profileFunction->mStackFrame.mFunction ) )
-      hash = hash * 31 + c;
-    float t = ( std::sin( ( float )hash ) + 1.0f ) / 2.0f;
-
-    v4 boxColor;
-    boxColor.xyz() = colora + v3mult( colorb, v3cos( 6.28318f * ( colorc * t + colord ) ) );
-    boxColor[ 3 ] = 1;
-    return boxColor;
-  }
-
-  static void ImGuiProfileWidgetFunction( ImguiProfileWidgetData* profileWidgetData,
+  static void ImGuiProfileWidgetFunction( const ImguiProfileWidgetData* profileWidgetData,
                                           UI2DDrawData* drawData,
-                                          ProfileFunction* profileFunction,
-                                          v2 timelineLeft,
-                                          v2 timelineRight,
-                                          double frameBeginTime, // Timepoint frameBeginTime,
-                                          int depth )
+                                          const ProfileFunction* profileFunction,
+                                          const v2 timelineLeft,
+                                          const v2 timelineRight,
+                                          const double frameBeginTime, // Timepoint frameBeginTime,
+                                          const int depth )
   {
+
     ImGuiWindow* imguiWindow = ImGuiGlobals::Instance.mCurrentWindow;
     if( !profileFunction )
       return;
 
-    TAC_CRITICAL_ERROR_UNIMPLEMENTED;
+    //const float functionLMiliseconds = 0;
+    //const float functionRMiliseconds = 0;
+    //const float functionLPercent
+    //  = ( functionLMiliseconds - profileWidgetData->mLMiliseconds )
+    //  / ( profileWidgetData->mRMiliseconds - profileWidgetData->mLMiliseconds );
+    //const float functionRPercent
+    //  = ( functionRMiliseconds - profileWidgetData->mLMiliseconds )
+    //  / ( profileWidgetData->mRMiliseconds - profileWidgetData->mLMiliseconds );
+    //profileWidgetData->mLMiliseconds;
+    //profileWidgetData->mRMiliseconds;
 
-    const float functionLMiliseconds = 0;// TimepointSubtractMiliseconds( profileFunction->mBeginTime, frameBeginTime );
-    const float functionRMiliseconds = 0;// TimepointSubtractMiliseconds( profileFunction->mEndTime, frameBeginTime );
-    const float functionLPercent
-      = ( functionLMiliseconds - profileWidgetData->mLMiliseconds )
-      / ( profileWidgetData->mRMiliseconds - profileWidgetData->mLMiliseconds );
-    const float functionRPercent
-      = ( functionRMiliseconds - profileWidgetData->mLMiliseconds )
-      / ( profileWidgetData->mRMiliseconds - profileWidgetData->mLMiliseconds );
-    profileWidgetData->mLMiliseconds;
-    profileWidgetData->mRMiliseconds;
+    //const v2 boxSize =
+    //{
+    //  ( functionRPercent - functionLPercent ) * ( timelineRight.x - timelineLeft.x ),
+    //  ( float )ImGuiGlobals::Instance.mUIStyle.fontSize
+    //};
+    //const v2 boxPos = timelineLeft + v2(
+    //  functionLPercent * ( timelineRight.x - timelineLeft.x ),
+    //  ( float )depth * ( ImGuiGlobals::Instance.mUIStyle.fontSize + 5 ) );
 
-    const v2 boxSize =
+    //bool boxClipped;
+    //auto boxClipRect = ImGuiRect::FromPosSize( boxPos, boxSize );
+    //imguiWindow->ComputeClipInfo( &boxClipped, &boxClipRect );
+
+    //const v4 boxColor = GetProfileFunctionColor( profileFunction );
+
+    //Render::TextureHandle texture;
+    //drawData->AddBox( boxPos, boxPos + boxSize, boxColor, texture, &boxClipRect );
+
+    //const v2 textSize = CalculateTextSize( profileFunction->mStackFrame.mFunction,
+    //                                       ImGuiGlobals::Instance.mUIStyle.fontSize );
+    //const v2 textPos ( boxPos.x + ( boxSize.x - textSize.x ) / 2,
+    //                   boxPos.y );
+
+    //bool textClipped;
+    //auto textClipRect = ImGuiRect::FromPosSize( textPos, textSize );
+    //imguiWindow->ComputeClipInfo( &textClipped, &textClipRect );
+
+
+    //v4 textColor = v4( v3( 1, 1, 1 ) * ( ( boxColor.x + boxColor.y + boxColor.z / 3.0f ) > 0.5f ? 0.0f : 1.0f ), 1 );
+    //drawData->AddText( textPos,
+    //                   ImGuiGlobals::Instance.mUIStyle.fontSize,
+    //                   profileFunction->mStackFrame.mFunction,
+    //                   textColor,
+    //                   &textClipRect );
+
+    //ImGuiProfileWidgetFunction( profileWidgetData,
+    //                            drawData,
+    //                            profileFunction->mNext,
+    //                            timelineLeft,
+    //                            timelineRight,
+    //                            frameBeginTime,
+    //                            depth );
+    //ImGuiProfileWidgetFunction( profileWidgetData,
+    //                            drawData,
+    //                            profileFunction->mChildren,
+    //                            timelineLeft,
+    //                            timelineRight,
+    //                            frameBeginTime,
+    //                            depth + 1 );
+  }
+
+  void ImGuiProfileWidgetCamera( const v2 cameraViewportPos,
+                                 const v2 cameraViewportSize )
+  {
+    ImGuiWindow* imguiWindow = ImGuiGlobals::Instance.mCurrentWindow;
+    UI2DDrawData* drawData = imguiWindow->mDrawData;
+    //ImGuiProfileWidgetFunction( profileWidgetData,
+    //                            drawData,
+    //                            profileFunction,
+    //                            timelineLeft,
+    //                            timelineRight,
+    //                            profileFunction->mBeginTime,
+    //                            0 );
+
+    drawData->AddBox( cameraViewportPos,
+                      cameraViewportPos + cameraViewportSize,
+                      v4( 1, 1, 0, 1 ), Render::TextureHandle(), nullptr );
+  }
+
+
+  void ImGuiProfileWidgetTimeScale( const v2 timelinePos,
+                                    const v2 timelineSize )
+  {
+    ImGuiWindow* imguiWindow = ImGuiGlobals::Instance.mCurrentWindow;
+    UI2DDrawData* drawData = imguiWindow->mDrawData;
+
+    drawData->AddBox( timelinePos,
+                      timelinePos + timelineSize,
+                      v4( 1, 0, 0, 1 ), Render::TextureHandle(), nullptr );
+
+    const float pxPerMs = timelineSize.x / sMilisecondsToDisplay;
+
+
+    const double elapsedMs = ShellGetElapsedSeconds() * 1000;
+    const double rightMs = std::floor( elapsedMs );
+
+    const float rightMsOffset = ( float )( elapsedMs - rightMs ) * pxPerMs;
+
+    for( int iMs = 0; iMs < ( int )sMilisecondsToDisplay; ++iMs )
     {
-      ( functionRPercent - functionLPercent ) * ( timelineRight.x - timelineLeft.x ),
-      ( float )ImGuiGlobals::Instance.mUIStyle.fontSize
-    };
-    const v2 boxPos = timelineLeft + v2(
-      functionLPercent * ( timelineRight.x - timelineLeft.x ),
-      ( float )depth * ( ImGuiGlobals::Instance.mUIStyle.fontSize + 5 ) );
+      const float msOffset = rightMsOffset + pxPerMs * iMs;
 
-    bool boxClipped;
-    auto boxClipRect = ImGuiRect::FromPosSize( boxPos, boxSize );
-    imguiWindow->ComputeClipInfo( &boxClipped, &boxClipRect );
+      const v2    tickBot( timelinePos.x + timelineSize.x - msOffset,
+                           timelinePos.y + timelineSize.y );
+      const v2    tickTop = tickBot - v2( 0, 10 );
+      const v4    tickColor( 1, 1, 1, 1 );
+      const float tickRadiusPx = 2.0f;
 
-    profileFunction->mStackFrame.mFunction;
-    v4 boxColor = GetProfileFunctionColor( profileFunction );
+      const char* text = FrameMemoryPrintf( "%i", iMs );
+      const v2    textSize = CalculateTextSize( text, ImGuiGlobals::Instance.mUIStyle.fontSize );
+      const v2    textPos( tickTop.x - textSize.x / 2,
+                           tickTop.y - textSize.y );
 
-    Render::TextureHandle texture;
-    drawData->AddBox( boxPos, boxPos + boxSize, boxColor, texture, &boxClipRect );
+      drawData->AddLine( tickBot, tickTop, tickRadiusPx, tickColor );
 
-    const v2 textSize = CalculateTextSize(
-      profileFunction->mStackFrame.mFunction,
-      ImGuiGlobals::Instance.mUIStyle.fontSize );
-    const v2 textPos =
-    {
-      boxPos.x + ( boxSize.x - textSize.x ) / 2,
-      boxPos.y,
-    };
+      drawData->AddText( textPos,
+                         ImGuiGlobals::Instance.mUIStyle.fontSize,
+                         text,
+                         ImGuiGlobals::Instance.mUIStyle.textColor, nullptr );
+    }
 
-    bool textClipped;
-    auto textClipRect = ImGuiRect::FromPosSize( textPos, textSize );
-    imguiWindow->ComputeClipInfo( &textClipped, &textClipRect );
+    //const float timelineVOffset = timelineSize.y * 1.5f;
+    //const float timelineHOffset = timelineSize.y * 1.5f;
+    //const v2    timelineLeft = timelinePos + v2( timelineHOffset, timelineVOffset );
+    //const v2    timelineRight = timelinePos + v2( timelineWidth - timelineHOffset, timelineVOffset );
+    //const v4    timelineColor( 1, 1, 1, 1 );
 
+    //drawData->AddLine( timelineLeft, timelineRight, 2, timelineColor );
 
-    v4 textColor = v4( v3( 1, 1, 1 ) * ( ( boxColor.x + boxColor.y + boxColor.z / 3.0f ) > 0.5f ? 0.0f : 1.0f ), 1 );
-    drawData->AddText( textPos,
-                       ImGuiGlobals::Instance.mUIStyle.fontSize,
-                       profileFunction->mStackFrame.mFunction,
-                       textColor,
-                       &textClipRect );
+    //for( int i = ( int )profileWidgetData->mLMiliseconds; i < 1 + ( int )profileWidgetData->mRMiliseconds; ++i )
+    //{
+    //  const float t = ( ( float )i - profileWidgetData->mLMiliseconds )
+    //    / ( profileWidgetData->mLMiliseconds + profileWidgetData->mRMiliseconds );
+    //  const v2 tickBottom = Lerp( timelineLeft, timelineRight, t );
+    //  const v2 tickTop = tickBottom - v2( 0, 10 );
+    //  drawData->AddLine( tickBottom, tickTop, 2.0f, timelineColor );
 
-    ImGuiProfileWidgetFunction( profileWidgetData,
-                                drawData,
-                                profileFunction->mNext,
-                                timelineLeft,
-                                timelineRight,
-                                frameBeginTime,
-                                depth );
-    ImGuiProfileWidgetFunction( profileWidgetData,
-                                drawData,
-                                profileFunction->mChildren,
-                                timelineLeft,
-                                timelineRight,
-                                frameBeginTime,
-                                depth + 1 );
+    //  const StringView timestampSV = FrameMemoryPrintf( "%dms", i );
+
+    //  const v2 rSize = CalculateTextSize( timestampSV, ImGuiGlobals::Instance.mUIStyle.fontSize );
+    //  drawData->AddText( tickTop - v2( rSize.x / 2.0f, ( float )ImGuiGlobals::Instance.mUIStyle.fontSize ),
+    //                     ImGuiGlobals::Instance.mUIStyle.fontSize,
+    //                     timestampSV,
+    //                     ImGuiGlobals::Instance.mUIStyle.textColor, nullptr );
+    //}
   }
 
   void ImGuiProfileWidget()
@@ -157,76 +250,55 @@ namespace Tac
     //  if( !profileFunction )
     //    return;
 
-
     ImGuiWindow* imguiWindow = ImGuiGlobals::Instance.mCurrentWindow;
-    UI2DDrawData* drawData = imguiWindow->mDrawData; // ImGuiGlobals::Instance.mUI2DDrawData;
     auto profileWidgetData = ( ImguiProfileWidgetData* )imguiWindow->GetWindowResource( sWidgetID );
 
-    static bool outputWindowFrameTimes;
-    ImGuiCheckbox( "output window frame times", &outputWindowFrameTimes );
-    ImGuiDragFloat( "l miliseconds", &profileWidgetData->mLMiliseconds );
-    ImGuiDragFloat( "r miliseconds", &profileWidgetData->mRMiliseconds );
-    profileWidgetData->mLMiliseconds = Max( profileWidgetData->mLMiliseconds, miniMiliseconds );
-    profileWidgetData->mRMiliseconds = Min( profileWidgetData->mRMiliseconds, maxiMiliseconds );
+    //static bool outputWindowFrameTimes;
+    //ImGuiCheckbox( "output window frame times", &outputWindowFrameTimes );
+    //ImGuiDragFloat( "l miliseconds", &profileWidgetData->mLMiliseconds );
+    //ImGuiDragFloat( "r miliseconds", &profileWidgetData->mRMiliseconds );
 
-    // ImGuiBeginGroup();
 
-    const float itemWidth = imguiWindow->mContentRect.mMaxi.x - imguiWindow->mCurrCursorViewport.x;
-    const float itemHeight = ( float )ImGuiGlobals::Instance.mUIStyle.fontSize;
+    //static double lastElapsed;
+    //const double currElapsed = ShellGetElapsedSeconds();
+    //const float frameDeltaSeconds = ( float )( currElapsed - lastElapsed );
+    //if( frameDeltaSeconds * 1000.0f < 1.0f )
+      //return;
 
-    const v2 timeScalePos = imguiWindow->mCurrCursorViewport;
-    const v2 timeScaleSize = { itemWidth, itemHeight * 3 };
-    imguiWindow->ItemSize( timeScaleSize );
 
-    const v2 timeScaleOffset = { 0, 8 };
+    static int    frameAccum;
+    static double frameAccumSeconds;
+    static int    fps;
 
-    const float timelineVOffset = itemHeight * 1.5f;
-    const float timelineHOffset = itemHeight * 1.5f;
-    const v2 timelineLeft = timeScalePos + v2( timelineHOffset, timelineVOffset );
-    const v2 timelineRight = timeScalePos + v2( itemWidth - timelineHOffset, timelineVOffset );
-    const v4 timelineColor( 1, 1, 1, 1 );
-
-    drawData->AddLine( timelineLeft, timelineRight, 2, timelineColor );
-
-    //TAC_ASSERT( ( int )( profileWidgetData->mRMiliseconds - profileWidgetData->mLMiliseconds ) < 100 );
-    for( int i = ( int )profileWidgetData->mLMiliseconds; i < 1 + ( int )profileWidgetData->mRMiliseconds; ++i )
+    ++frameAccum;
+    if( frameAccum == 100 )
     {
-      const float t = ( ( float )i - profileWidgetData->mLMiliseconds )
-        / ( profileWidgetData->mLMiliseconds + profileWidgetData->mRMiliseconds );
-      const v2 tickBottom = Lerp( timelineLeft, timelineRight, t );
-      const v2 tickTop = tickBottom - v2( 0, 10 );
-      drawData->AddLine( tickBottom, tickTop, 2.0f, timelineColor );
-
-      const StringView timestampSV = FrameMemoryPrintf( "%dms", i );
-      //String timestamp( timestampSV.data(), timestampSV.size() );
-
-      const v2 rSize = CalculateTextSize( timestampSV, ImGuiGlobals::Instance.mUIStyle.fontSize );
-      drawData->AddText( tickTop - v2( rSize.x / 2.0f, ( float )ImGuiGlobals::Instance.mUIStyle.fontSize ),
-                         ImGuiGlobals::Instance.mUIStyle.fontSize,
-                         timestampSV,
-                         ImGuiGlobals::Instance.mUIStyle.textColor, nullptr );
+      const double elapsedSeconds = ShellGetElapsedSeconds();
+      const float deltaSeconds = ( float)(elapsedSeconds - frameAccumSeconds);
+      fps = deltaSeconds > 0 ? ( int )( frameAccum / deltaSeconds ) : 0;
+      frameAccumSeconds = elapsedSeconds;
+      frameAccum = 0;
     }
 
-    TAC_CRITICAL_ERROR_UNIMPLEMENTED;
-    //ImGuiProfileWidgetFunction( profileWidgetData,
-    //                            drawData,
-    //                            profileFunction,
-    //                            timelineLeft,
-    //                            timelineRight,
-    //                            profileFunction->mBeginTime,
-    //                            0 );
 
-    //if( outputWindowFrameTimes )
-    //{
-    //  static int iFrame = 0;
-    //  iFrame++;
-    //  const int frameMs = ( int )TimepointSubtractMiliseconds( profileFunction->mEndTime, profileFunction->mBeginTime );
-    //  std::cout << FrameMemoryPrintf( "frame %-10i %ims\n", iFrame, frameMs );
-    //}
+    //lastElapsed = currElapsed;
+    //const int fps = frameDeltaSeconds > 0.0f ? (int)(1.0f / frameDeltaSeconds) : 0;
+    //ImGuiText( FrameMemoryPrintf( "FPS: %i", fps ) );
+    ImGuiText( FrameMemoryPrintf( "%i", fps ) );
+    //profileWidgetData->mLMiliseconds = Max( profileWidgetData->mLMiliseconds, miniMiliseconds );
+    //profileWidgetData->mRMiliseconds = Min( profileWidgetData->mRMiliseconds, maxiMiliseconds );
+
+
+    const v2    timelinePos = imguiWindow->mCurrCursorViewport;
+    const v2    timelineSize = v2( imguiWindow->mContentRect.mMaxi.x - imguiWindow->mCurrCursorViewport.x,
+                                   ImGuiGlobals::Instance.mUIStyle.fontSize * 3.0f );
+
+    const v2    cameraViewportPos = timelinePos + v2( 0, timelineSize.y );
+    const v2    cameraViewportSize = imguiWindow->mContentRect.mMaxi - cameraViewportPos;
+
+
+    //ImGuiProfileWidgetTimeScale( timelinePos, timelineSize );
+    //ImGuiProfileWidgetCamera( cameraViewportPos, cameraViewportSize );
   }
-
-
-
-
 }
 
