@@ -31,10 +31,6 @@ namespace Tac
     mUI2DDrawData = TAC_NEW UI2DDrawData;
     mDesktopWindowHandle = gCreation.CreateWindow( gProfileWindowName );
   };
-  void CreationProfileWindow::ImGuiProfile()
-  {
-    ImGuiProfileWidget();
-  }
   void CreationProfileWindow::ImGui()
   {
     TAC_PROFILE_BLOCK;
@@ -48,19 +44,13 @@ namespace Tac
     ImGuiSetNextWindowHandle( mDesktopWindowHandle );
     ImGuiBegin( "Profile Window" );
 
-    //ImGuiText( "i am the profile window" );
-    //ImGuiText( "i am... inevitable" );
-
     //// to force directx graphics specific window debugging
     //if( ImGuiButton( "close window" ) )
     //{
     //  mDesktopWindow->mRequestDeletion = true;
     //}
 
-    ImGuiProfile();
-
-
-
+    ImGuiProfileWidget();
     ImGuiEnd();
   }
   void CreationProfileWindow::Update( Errors& errors )

@@ -7,18 +7,8 @@
 #include <map>
 #include <list>
 
-
-
-  //static Timepoint GetCurrentTime() { return Clock::now(); }
-
-  //float TimepointSubtractSeconds( const Timepoint a, const Timepoint b )
-  //{
-  //  return ( float )( a - b ).count() / ( float )1e9;
-  //}
-
 namespace Tac
 {
-
   using ProfileClock = std::chrono::high_resolution_clock;
   using ProfileTimepoint = std::chrono::time_point< ProfileClock, std::chrono::nanoseconds >;
 
@@ -27,10 +17,10 @@ namespace Tac
     ProfileFunction* mParent = nullptr;
     ProfileFunction* mNext = nullptr;
     ProfileFunction* mChildren = nullptr;
+
+    //               must be a time point, ShellGetElapsedSeconds() is constant for the entire frame
     ProfileTimepoint mBeginTime;
     ProfileTimepoint mEndTime;
-    //double           mBeginTime;
-    //double           mEndTime;
     const char*      mName;
   };
 

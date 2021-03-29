@@ -20,7 +20,6 @@ namespace Tac
     void                          Init( Errors& );
     void                          Update( Errors& );
     void                          ImGui();
-    void                          ImGuiProfile();
     DesktopWindowHandle           mDesktopWindowHandle;
     UI2DDrawData*                 mUI2DDrawData = nullptr;
 

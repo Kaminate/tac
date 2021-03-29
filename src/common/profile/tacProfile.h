@@ -4,29 +4,30 @@
 
 namespace Tac
 {
-
-  //void ProfileBlockBegin( StackFrame );
-  //void ProfileBlockEnd();
+  //   Sets a point of reference to align the profile visulization
   void ProfileSetGameFrame();
+
+  //   Profile data will be collected when running is true
   void ProfileSetIsRuning( bool );
   bool ProfileGetIsRuning();
+
+  //   API to draw the profile visualization
   void ImGuiProfileWidget();
 
   struct ProfileBlock
   {
+    // Starts the profile timer
     ProfileBlock( const char* );
+
+    // Stops the profile timer
     ~ProfileBlock();
+
     const char* mName;
     bool        mIsActive;
   };
 
-//#define TAC_PROFILE_BLOCK_NAME_AUX(a,b)    a ## b
-//#define TAC_PROFILE_BLOCK_NAME(profile, __LINE__)    TAC_PROFILE_BLOCK_NAME_AUX(profile, __LINE__)
-#define TAC_PROFILE_BLOCK               ProfileBlock TAC_CONCAT(profile,__COUNTER__)( __FUNCTION__ );
-#define TAC_PROFILE_BLOCK_NAMED( name ) ProfileBlock TAC_CONCAT(profile,__COUNTER__)( name );
-//#define TAC_PROFILE_BLOCK ProfileBlockBegin( TAC_STACK_FRAME ); TAC_ON_DESTRUCT( ProfileBlockEnd() );
-
-
+#define TAC_PROFILE_BLOCK               ProfileBlock TAC_CONCAT( profile, __COUNTER__ )( __FUNCTION__ );
+#define TAC_PROFILE_BLOCK_NAMED( name ) ProfileBlock TAC_CONCAT( profile, __COUNTER__ )( name );
 
 }
 

@@ -27,7 +27,7 @@ namespace Tac
   {
     static WindowResourceRegistry*     GetInstance();
     ImGuiIndex                         RegisterResource( StringView name,
-                                                         void* initialDataBytes,
+                                                         const void* initialDataBytes,
                                                          int initialDataByteCount );
     RegisteredWindowResource*          FindResource( ImGuiIndex index );
   private:
@@ -50,7 +50,7 @@ namespace Tac
   }
 
   ImGuiIndex WindowResourceRegistry::RegisterResource( StringView name,
-                                                       void* initialDataBytes,
+                                                       const void* initialDataBytes,
                                                        int initialDataByteCount )
   {
     const char* dataBegin = ( char* )initialDataBytes;
@@ -65,7 +65,7 @@ namespace Tac
   }
 
   ImGuiIndex ImGuiRegisterWindowResource( StringView name,
-                                          void* initialDataBytes,
+                                          const void* initialDataBytes,
                                           int initialDataByteCount )
   {
     return WindowResourceRegistry::GetInstance()->RegisterResource( name,

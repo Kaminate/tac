@@ -65,7 +65,7 @@ namespace Tac
   typedef int ImGuiIndex;
 
   ImGuiIndex ImGuiRegisterWindowResource( StringView name,
-                                          void* initialDataBytes,
+                                          const void* initialDataBytes,
                                           int initialDataByteCount );
 
   struct ImGuiWindowResource

@@ -22,15 +22,14 @@ namespace Tac
   static ProfileTimepoint          sGameFrameTimepointCurr;
   static ProfileTimepoint          sGameFrameTimepointPrev;
 
-
   void              ProfileFunctionVisitor::Visit( ProfileFunction* profileFunction )
   {
     if( profileFunction )
-      this->operator()( profileFunction );
+      (*this)( profileFunction );
     if( profileFunction->mChildren )
-      this->operator()( profileFunction->mChildren );
+      (*this)( profileFunction->mChildren );
     if( profileFunction->mNext )
-      this->operator()( profileFunction->mNext );
+      (*this)( profileFunction->mNext );
   }
 
   ProfileFunction*  ProfileFunctionPool::Alloc()
@@ -75,15 +74,7 @@ namespace Tac
 
   static ProfileFunction* DeepCopy( const ProfileFunction* profileFunction )
   {
-    if( !StrCmp( profileFunction->mName , "wait render" ) )
-    {
-      static int asdf;
-      ++asdf;
-
-    }
-
     ProfileFunction* profileFunctionCopy = sFunctionPool.Alloc();
-
     ProfileFunction* firstChildCopy = nullptr;
     ProfileFunction* prevChildCopy = nullptr;
     for( const ProfileFunction* child = profileFunction->mChildren; child; child = child->mNext )
@@ -131,7 +122,6 @@ namespace Tac
     {
       ProfiledFunctionList& src = pair.second;
       ProfiledFunctionList& dst = profiledFunctionsCopy[ pair.first ];
-
       for( ProfileFunction* profileFunction : src )
       {
         ProfileFunction* profileFunctionCopy = DeepCopy( profileFunction );
@@ -141,14 +131,6 @@ namespace Tac
     sProfiledFunctionsMutex.unlock();
     return profiledFunctionsCopy;
   }
-
-  //void              ProfileBlockBegin( const StackFrame stackFrame )
-  //{
-  //}
-
-  //void              ProfileBlockEnd()
-  //{
-  //}
 
   void              ProfileSetIsRuning( const bool isRunning ) { sIsRunning = isRunning; }
 
@@ -164,7 +146,6 @@ namespace Tac
   ProfileTimepoint  ProfileTimepointAddSeconds( ProfileTimepoint profileTimepoint, float seconds )
   {
     return profileTimepoint += std::chrono::nanoseconds( ( int )( seconds * 1e9 ) );
-    // return profileTimepoint;
   }
 
   void              ProfileSetGameFrame()
@@ -184,13 +165,6 @@ namespace Tac
     mIsActive = sIsRunning;
     if( !mIsActive )
       return;
-
-    if( !StrCmp( name, "Tac::Render::RenderFrame" ) )
-    {
-      static int a;
-      ++a;
-
-    }
     
     ProfileFunction* function = sFunctionPool.Alloc();
     function->mName = name;
@@ -199,6 +173,7 @@ namespace Tac
       ProfileFunctionAppendChild( sFunctionUnfinished, function );
     sFunctionUnfinished = function;
   }
+
   ProfileBlock::~ProfileBlock()
   {
     if( !mIsActive )
@@ -207,7 +182,7 @@ namespace Tac
     TAC_ASSERT( sFunctionUnfinished );
     TAC_ASSERT( sFunctionUnfinished->mName == mName ); // assume same string literal, dont strcmp
 
-    sFunctionUnfinished->mEndTime = ProfileTimepointGet(); // ShellGetElapsedSeconds();
+    sFunctionUnfinished->mEndTime = ProfileTimepointGet();
     if( sFunctionUnfinished->mParent )
     {
       sFunctionUnfinished = sFunctionUnfinished->mParent;
