@@ -24,6 +24,8 @@
 #include "src/space/tacGhost.h"
 #include "src/space/tacWorld.h"
 
+#include <cmath>
+
 namespace Tac
 {
 
@@ -581,11 +583,11 @@ namespace Tac
     const Camera oldCamera = *gCreation.mEditorCamera;
 
     if( gKeyboardInput.IsKeyDown( Key::MouseRight ) &&
-        gKeyboardInput.mMouseDeltaPosScreenspace != v2( 0, 0 ) )
+        gKeyboardInput.mMouseDeltaPos != v2( 0, 0 ) )
     {
       const float pixelsPerDeg = 400.0f / 90.0f;
       const float radiansPerPixel = ( 1.0f / pixelsPerDeg ) * ( 3.14f / 180.0f );
-      const v2 angleRadians = gKeyboardInput.mMouseDeltaPosScreenspace * radiansPerPixel;
+      const v2 angleRadians = gKeyboardInput.mMouseDeltaPos * radiansPerPixel;
 
       if( angleRadians.x != 0 )
       {
@@ -613,16 +615,16 @@ namespace Tac
     }
 
     if( gKeyboardInput.IsKeyDown( Key::MouseMiddle ) &&
-        gKeyboardInput.mMouseDeltaPosScreenspace != v2( 0, 0 ) )
+        gKeyboardInput.mMouseDeltaPos != v2( 0, 0 ) )
     {
       const float unitsPerPixel = 5.0f / 100.0f;
       gCreation.mEditorCamera->mPos +=
         gCreation.mEditorCamera->mRight *
-        -gKeyboardInput.mMouseDeltaPosScreenspace.x *
+        -gKeyboardInput.mMouseDeltaPos.x *
         unitsPerPixel;
       gCreation.mEditorCamera->mPos +=
         gCreation.mEditorCamera->mUp *
-        gKeyboardInput.mMouseDeltaPosScreenspace.y *
+        gKeyboardInput.mMouseDeltaPos.y *
         unitsPerPixel;
     }
 

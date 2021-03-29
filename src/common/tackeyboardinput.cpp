@@ -135,7 +135,7 @@ namespace Tac
   {
     mPrev = mCurr;
     mMouseDeltaScroll = {};
-    mMouseDeltaPosScreenspace = {};
+    mMouseDeltaPos = {};
     mWMCharPressedHax = 0;
   }
   void KeyboardInput::DebugPrintWhenKeysChange()

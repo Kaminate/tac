@@ -37,9 +37,13 @@ namespace Tac
   }
   void CreationProfileWindow::ImGui()
   {
+    TAC_PROFILE_BLOCK;
     DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
     if( !desktopWindowState->mNativeWindowHandle )
       return;
+    
+    DesktopAppMoveControls( mDesktopWindowHandle );
+
     ImGuiSetNextWindowStretch();
     ImGuiSetNextWindowHandle( mDesktopWindowHandle );
     ImGuiBegin( "Profile Window" );
@@ -61,6 +65,7 @@ namespace Tac
   }
   void CreationProfileWindow::Update( Errors& errors )
   {
+    TAC_PROFILE_BLOCK;
     DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
     if( !desktopWindowState->mNativeWindowHandle )
       return;

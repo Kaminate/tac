@@ -1,31 +1,39 @@
 #include "src/common/profile/tacProfileBackend.h"
+#include "src/common/profile/tacProfile.h"
 #include "src/common/shell/tacShellTimer.h"
+#include "src/common/string/tacString.h"
 
 namespace Tac
 {
-  static void ProfileFunctionAppendChild( ProfileFunction* parent, ProfileFunction* child )
+  struct ProfileFunctionPool
   {
-    if( parent->mChildren )
-    {
-      ProfileFunction* lastChild = parent->mChildren;
-      while( lastChild->mNext )
-        lastChild = lastChild->mNext;
-      lastChild->mNext = child;
-    }
-    else
-    {
-      parent->mChildren = child;
-      child->mParent = parent;
-    }
-  }
-
+    ProfileFunction*           Alloc();
+    void                       Dealloc( ProfileFunction* );
+    Vector< ProfileFunction* > sFunctionsUnused;
+  };
 
   //                               The function corresponding to the most recent unended ProfileBlockBegin() 
   //                               Following the parent chain forms the current call stack.
   thread_local ProfileFunction*    sFunctionUnfinished = nullptr;
   thread_local ProfileFunctionPool sFunctionPool;
+  static bool                      sIsRunning;
+  static ProfiledFunctions         sProfiledFunctions;
+  static std::mutex                sProfiledFunctionsMutex;
+  static ProfileTimepoint          sGameFrameTimepointCurr;
+  static ProfileTimepoint          sGameFrameTimepointPrev;
 
-  ProfileFunction* ProfileFunctionPool::Alloc()
+
+  void              ProfileFunctionVisitor::Visit( ProfileFunction* profileFunction )
+  {
+    if( profileFunction )
+      this->operator()( profileFunction );
+    if( profileFunction->mChildren )
+      this->operator()( profileFunction->mChildren );
+    if( profileFunction->mNext )
+      this->operator()( profileFunction->mNext );
+  }
+
+  ProfileFunction*  ProfileFunctionPool::Alloc()
   {
     if( sFunctionsUnused.empty() )
       return TAC_NEW ProfileFunction;
@@ -34,7 +42,7 @@ namespace Tac
     return result;
   }
 
-  void             ProfileFunctionPool::Dealloc( ProfileFunction* profileFunction )
+  void              ProfileFunctionPool::Dealloc( ProfileFunction* profileFunction )
   {
     if( !profileFunction )
       return;
@@ -48,18 +56,39 @@ namespace Tac
     sFunctionsUnused.push_back( profileFunction );
   }
 
-  static ProfiledFunctions sProfiledFunctions;
-  static std::mutex        sProfiledFunctionsMutex;
-
-  static ProfileFunction* DeepCopy( ProfileFunction* profileFunction, ProfileFunctionPool* profileFunctionPool )
+  static void       ProfileFunctionAppendChild( ProfileFunction* parent,
+                                                ProfileFunction* child )
   {
-    ProfileFunction* profileFunctionCopy = profileFunctionPool->Alloc();
+    if( parent->mChildren )
+    {
+      ProfileFunction* lastChild = parent->mChildren;
+      while( lastChild->mNext )
+        lastChild = lastChild->mNext;
+      lastChild->mNext = child;
+    }
+    else
+    {
+      parent->mChildren = child;
+    }
+    child->mParent = parent;
+  }
+
+  static ProfileFunction* DeepCopy( const ProfileFunction* profileFunction )
+  {
+    if( !StrCmp( profileFunction->mName , "wait render" ) )
+    {
+      static int asdf;
+      ++asdf;
+
+    }
+
+    ProfileFunction* profileFunctionCopy = sFunctionPool.Alloc();
 
     ProfileFunction* firstChildCopy = nullptr;
     ProfileFunction* prevChildCopy = nullptr;
-    for( ProfileFunction* child = profileFunction->mChildren; child; child = child->mNext )
+    for( const ProfileFunction* child = profileFunction->mChildren; child; child = child->mNext )
     {
-      ProfileFunction* childCopy = DeepCopy( child, profileFunctionPool );
+      ProfileFunction* childCopy = DeepCopy( child );
       childCopy->mParent = profileFunctionCopy;
 
       if( prevChildCopy )
@@ -67,49 +96,118 @@ namespace Tac
 
       if( !firstChildCopy )
         firstChildCopy = childCopy;
-      prevChildCopy = child;
+
+      prevChildCopy = childCopy;
     }
 
     profileFunctionCopy->mChildren = firstChildCopy;
     profileFunctionCopy->mBeginTime = profileFunction->mBeginTime;
     profileFunctionCopy->mEndTime = profileFunction->mEndTime;
-    profileFunctionCopy->mStackFrame = profileFunction->mStackFrame;
+    profileFunctionCopy->mName = profileFunction->mName;
     return profileFunctionCopy;
   }
 
-  ProfiledFunctions CopyProfiledFunctions( ProfileFunctionPool* profileFunctionPool )
+  void              ProfiledFunctionFree( ProfiledFunctions& profiledFunctions )
   {
+    for( auto& pair : profiledFunctions )
+    {
+      const ProfiledFunctionList& profiledFunctionList = pair.second;
+      for( ProfileFunction* profileFunction : profiledFunctionList )
+      {
+        sFunctionPool.Dealloc( profileFunction );
+      }
+    }
+
+    profiledFunctions.clear();
+  }
+
+  ProfiledFunctions ProfiledFunctionCopy()
+  {
+    if( !sIsRunning )
+      return {};
     ProfiledFunctions profiledFunctionsCopy;
     sProfiledFunctionsMutex.lock();
     for( auto& pair : sProfiledFunctions )
     {
-      ProfiledFunctionList& profiledFunctionList = pair.second;
-      ProfiledFunctionList& profiledFunctionListCopy = profiledFunctionsCopy[ pair.first ];
+      ProfiledFunctionList& src = pair.second;
+      ProfiledFunctionList& dst = profiledFunctionsCopy[ pair.first ];
 
-      for( ProfileFunction* profileFunction : profiledFunctionList )
+      for( ProfileFunction* profileFunction : src )
       {
-        ProfileFunction* profileFunctionCopy = DeepCopy( profileFunction, profileFunctionPool );
-        profiledFunctionListCopy.push_back( profileFunctionCopy );
+        ProfileFunction* profileFunctionCopy = DeepCopy( profileFunction );
+        dst.push_back( profileFunctionCopy );
       }
     }
     sProfiledFunctionsMutex.unlock();
     return profiledFunctionsCopy;
   }
 
-  void ProfileBlockBegin( const StackFrame stackFrame )
+  //void              ProfileBlockBegin( const StackFrame stackFrame )
+  //{
+  //}
+
+  //void              ProfileBlockEnd()
+  //{
+  //}
+
+  void              ProfileSetIsRuning( const bool isRunning ) { sIsRunning = isRunning; }
+
+  bool              ProfileGetIsRuning() { return sIsRunning; }
+
+  ProfileTimepoint  ProfileTimepointGet() { return ProfileClock::now(); }
+
+  float             ProfileTimepointSubtract( ProfileTimepoint a, ProfileTimepoint b )
   {
-    ProfileFunction* function = sFunctionPool.Alloc();
-    function->mStackFrame = stackFrame;
-    function->mBeginTime = ShellGetElapsedSeconds();
-    if( sFunctionUnfinished )
-      ProfileFunctionAppendChild( sFunctionUnfinished, function );
-    else
-      sFunctionUnfinished = function;
+    return ( float )( a - b ).count() / ( float )1e9;
   }
 
-  void ProfileBlockEnd()
+  ProfileTimepoint  ProfileTimepointAddSeconds( ProfileTimepoint profileTimepoint, float seconds )
   {
-    sFunctionUnfinished->mEndTime = ShellGetElapsedSeconds();
+    return profileTimepoint += std::chrono::nanoseconds( ( int )( seconds * 1e9 ) );
+    // return profileTimepoint;
+  }
+
+  void              ProfileSetGameFrame()
+  {
+    sGameFrameTimepointPrev = sGameFrameTimepointCurr;
+    sGameFrameTimepointCurr = ProfileTimepointGet();
+  }
+
+  ProfileTimepoint  ProfileTimepointGetLastGameFrameBegin()
+  {
+    return sGameFrameTimepointPrev;
+  }
+
+  ProfileBlock::ProfileBlock( const char* name )
+  {
+    mName = name;
+    mIsActive = sIsRunning;
+    if( !mIsActive )
+      return;
+
+    if( !StrCmp( name, "Tac::Render::RenderFrame" ) )
+    {
+      static int a;
+      ++a;
+
+    }
+    
+    ProfileFunction* function = sFunctionPool.Alloc();
+    function->mName = name;
+    function->mBeginTime = ProfileTimepointGet(); // ShellGetElapsedSeconds();
+    if( sFunctionUnfinished )
+      ProfileFunctionAppendChild( sFunctionUnfinished, function );
+    sFunctionUnfinished = function;
+  }
+  ProfileBlock::~ProfileBlock()
+  {
+    if( !mIsActive )
+      return;
+
+    TAC_ASSERT( sFunctionUnfinished );
+    TAC_ASSERT( sFunctionUnfinished->mName == mName ); // assume same string literal, dont strcmp
+
+    sFunctionUnfinished->mEndTime = ProfileTimepointGet(); // ShellGetElapsedSeconds();
     if( sFunctionUnfinished->mParent )
     {
       sFunctionUnfinished = sFunctionUnfinished->mParent;
@@ -126,7 +224,8 @@ namespace Tac
       while( it != list.end() )
       {
         ProfileFunction* profileFunction = *it;
-        const double secondsAgo = sFunctionUnfinished->mEndTime - profileFunction->mBeginTime;
+        const double secondsAgo = ProfileTimepointSubtract( sFunctionUnfinished->mEndTime,
+                                                            profileFunction->mBeginTime );
         if( secondsAgo > kProfileStoreSeconds )
         {
           sFunctionPool.Dealloc( profileFunction );
@@ -143,6 +242,5 @@ namespace Tac
       sProfiledFunctionsMutex.unlock();
     }
   }
-
 }
 

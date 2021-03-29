@@ -352,7 +352,7 @@ namespace Tac
   void                Creation::Update( Errors& errors )
   {
 
-    /*TAC_PROFILE_BLOCK*/;
+    TAC_PROFILE_BLOCK;
 
 
     UpdateCreatedWindowData();

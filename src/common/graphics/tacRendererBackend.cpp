@@ -3,6 +3,7 @@
 #include "src/common/tacAlgorithm.h"
 #include "src/common/tacErrorHandling.h"
 #include "src/common/tacIDCollection.h"
+#include "src/common/profile/tacProfile.h"
 #include "src/common/tacOS.h"
 #include "src/common/shell/tacShellTimer.h"
 #include "src/shell/tacDesktopApp.h"
@@ -936,23 +937,9 @@ namespace Tac
     static SemaphoreHandle gSubmitSemaphore;
     static SemaphoreHandle gRenderSemaphore;
 
-    void RenderFrame( Errors& errors )
+    static void RenderDrawCalls( Errors& errors )
     {
-      TAC_ASSERT( IsMainThread() );
-      if( !Renderer::Instance )
-        return;
-
-      OSSemaphoreDecrementWait( gSubmitSemaphore );
-
-
-      if( gRenderFrame->mBreakOnFrameRender )
-        OSDebugBreak();
-
-
-      Renderer::Instance->ExecuteCommands( &gRenderFrame->mCommandBufferFrameBegin, errors );
-      TAC_ASSERT( errors.empty() );
-
-      Renderer::Instance->RenderBegin( gRenderFrame, errors );
+      TAC_PROFILE_BLOCK;
       const DrawCall3* drawCallBegin = gRenderFrame->mDrawCalls.data();
       const int drawCallCount = gRenderFrame->mDrawCalls.size();
       for( int iDrawCall = 0; iDrawCall < drawCallCount; ++iDrawCall )
@@ -969,16 +956,43 @@ namespace Tac
         Renderer::Instance->RenderDrawCall( gRenderFrame, drawCall, errors );
       }
 
+    }
+
+    void RenderFrame( Errors& errors )
+    {
+      TAC_PROFILE_BLOCK;
+      TAC_ASSERT( IsMainThread() );
+      if( !Renderer::Instance )
+        return;
+
+      {
+        TAC_PROFILE_BLOCK_NAMED( "wait submit" );
+        OSSemaphoreDecrementWait( gSubmitSemaphore );
+      }
+
+      if( gRenderFrame->mBreakOnFrameRender )
+        OSDebugBreak();
+
+      Renderer::Instance->ExecuteCommands( &gRenderFrame->mCommandBufferFrameBegin, errors );
+      TAC_HANDLE_ERROR( errors );
+
+      Renderer::Instance->RenderBegin( gRenderFrame, errors );
+
+      RenderDrawCalls( errors );
+      TAC_HANDLE_ERROR( errors );
+
       Renderer::Instance->ExecuteCommands( &gRenderFrame->mCommandBufferFrameEnd, errors );
-      TAC_ASSERT( errors.empty() );
+      TAC_HANDLE_ERROR( errors );
 
       Renderer::Instance->RenderEnd( gRenderFrame, errors );
-
-      TAC_ASSERT( errors.empty() );
+      TAC_HANDLE_ERROR( errors );
 
       OSSemaphoreIncrementPost( gRenderSemaphore );
 
-      Renderer::Instance->SwapBuffers();
+      {
+        TAC_PROFILE_BLOCK_NAMED( "swap buffers" );
+        Renderer::Instance->SwapBuffers();
+      }
     }
 
     static int gFrameCount;
@@ -1002,7 +1016,10 @@ namespace Tac
       TAC_ASSERT( IsLogicThread() );
 
       // Finish submitting this frame
-      OSSemaphoreDecrementWait( gRenderSemaphore );
+      {
+        TAC_PROFILE_BLOCK_NAMED( "wait render" );
+        OSSemaphoreDecrementWait( gRenderSemaphore );
+      }
 
       gSubmitFrame->mFreeDeferredHandles.FinishFreeingHandles();
 

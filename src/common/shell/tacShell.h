@@ -34,9 +34,9 @@ namespace Tac
   //  static Shell    Instance;
   void            ShellInit( Errors& );
   void            ShellUninit();
-  void            ShellUpdate( Errors& );
+  //void            ShellUpdate( Errors& );
   //void            ShellFrameBegin( Errors& );
-  void            ShellFrame( Errors& );
+  //void            ShellFrame( Errors& );
   //void            ShellFrameEnd( Errors& );
   void            ShellSetAppName( const char* );
   const char*     ShellGetAppName();

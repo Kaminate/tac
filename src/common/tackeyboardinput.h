@@ -67,7 +67,7 @@ namespace Tac
     Codepoint          mWMCharPressedHax = 0;
 
     // valid only if curr & prev cursor pos errors are empty
-    v2                 mMouseDeltaPosScreenspace = {};
+    v2                 mMouseDeltaPos = {};
 
     int                mMouseDeltaScroll = 0;
   };

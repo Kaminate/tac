@@ -1,21 +1,21 @@
 #include "src/common/containers/tacFixedVector.h"
-#include "src/common/shell/tacShell.h"
-#include "src/common/shell/tacShellTimer.h"
 #include "src/common/containers/tacFrameVector.h"
 #include "src/common/containers/tacRingBuffer.h"
 #include "src/common/graphics/imgui/tacImGui.h"
 #include "src/common/graphics/tacRenderer.h"
-
 #include "src/common/graphics/tacUI2D.h"
 #include "src/common/profile/tacProfile.h"
+#include "src/common/shell/tacShell.h"
+#include "src/common/shell/tacShellTimer.h"
+#include "src/common/string/tacString.h"
 #include "src/common/tacControllerInput.h"
 #include "src/common/tacDesktopWindow.h"
 #include "src/common/tacFrameMemory.h"
 #include "src/common/tacIDCollection.h"
 #include "src/common/tacKeyboardInput.h"
+#include "src/common/tacNet.h"
 #include "src/common/tacOS.h"
 #include "src/common/tacSettings.h"
-#include "src/common/string/tacString.h"
 #include "src/shell/tacDesktopApp.h"
 #include "src/shell/tacDesktopWindowGraphics.h"
 
@@ -156,7 +156,6 @@ namespace Tac
         sRequestResize[ i ] = RequestResize();
       }
     }
-
   }
 
   static void DontMaxOutCpuGpuPowerUsage()
@@ -200,26 +199,44 @@ namespace Tac
 
     while( OSAppIsRunning() )
     {
-      gKeyboardInput.BeginFrame();
+      TAC_PROFILE_BLOCK;
+      ProfileSetGameFrame();
 
-      ImGuiFrameBegin( ShellGetElapsedSeconds(),
-                       sPlatformGetMouseHoveredWindow() );
+      if( Net::Instance )
+      {
+        Net::Instance->Update( errors );
+        TAC_HANDLE_ERROR( errors );
+      }
 
-      if( ControllerInput::Instance )
-        ControllerInput::Instance->Update();
+      {
+        TAC_PROFILE_BLOCK_NAMED( "update timer" );
 
-      ShellUpdate( errors );
-      TAC_HANDLE_ERROR( errors );
+        ShellTimerUpdate();
+        while( ShellTimerFrame() )
+        {
+        }
+      }
 
+      {
+        DesktopEventApplyQueue();
 
-      DesktopEventApplyQueue();// GetDesktopWindowState( 0 ) );
-      sProjectUpdate( errors );
-      TAC_HANDLE_ERROR( errors );
+        // To reduce input latency, update the game soon after polling the controller.
 
-      ImGuiFrameEnd( errors );
-      TAC_HANDLE_ERROR( errors );
+        gKeyboardInput.BeginFrame();
+        ImGuiFrameBegin( ShellGetElapsedSeconds(),
+                         sPlatformGetMouseHoveredWindow() );
 
-      gKeyboardInput.EndFrame();
+        if( ControllerInput::Instance )
+          ControllerInput::Instance->Update();
+
+        sProjectUpdate( errors );
+        TAC_HANDLE_ERROR( errors );
+
+        ImGuiFrameEnd( errors );
+        TAC_HANDLE_ERROR( errors );
+
+        gKeyboardInput.EndFrame();
+      }
 
       Render::SubmitFrame();
 
@@ -243,12 +260,14 @@ namespace Tac
   static void PlatformThread()
   {
     Errors& errors = gPlatformThreadErrors;
-    TAC_ON_DESTRUCT( PlatformThreadUninit();  if( errors.size() ) OSAppStopRunning(); );
+    TAC_ON_DESTRUCT( PlatformThreadUninit(); if( errors.size() ) OSAppStopRunning(); );
     PlatformThreadInit( errors );
     TAC_HANDLE_ERROR( errors );
 
     while( OSAppIsRunning() )
     {
+      TAC_PROFILE_BLOCK;
+
       sPlatformFrameBegin( errors );
       TAC_HANDLE_ERROR( errors );
 
@@ -458,7 +477,7 @@ namespace Tac
           gKeyboardInput.mCurr.mScreenspaceCursorPos = {
             ( float )desktopWindowState->mX + ( float )data.mX,
             ( float )desktopWindowState->mY + ( float )data.mY };
-          gKeyboardInput.mMouseDeltaPosScreenspace =
+          gKeyboardInput.mMouseDeltaPos =
             gKeyboardInput.mCurr.mScreenspaceCursorPos -
             gKeyboardInput.mPrev.mScreenspaceCursorPos;
         } break;
@@ -635,7 +654,7 @@ namespace Tac
     ShellSetPrefPath( prefPath.c_str() );
     ShellSetInitialWorkingDir( workingDir );
 
-    CreateRenderer(errors);
+    CreateRenderer( errors );
     Render::Init( errors );
     TAC_HANDLE_ERROR( errors );
 

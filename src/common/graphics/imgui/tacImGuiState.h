@@ -100,6 +100,7 @@ namespace Tac
     v2                            mCurrCursorViewport;
     v2                            mPrevCursorViewport;
 
+    //                            Position of this ImGuiWindow relative to the window's viewport
     v2                            mPosViewport = {};
     v2                            mSize = {};
     ImGuiRect                     mContentRect;
@@ -129,6 +130,7 @@ namespace Tac
     //v2                            mDesktopWindowOffset = {};
     //bool                          mDesktopWindowOffsetExists = false;
     bool                          mStretchWindow = false;
+    double                        mRequestTime;
   };
 
   struct ImGuiGlobals
@@ -153,7 +155,7 @@ namespace Tac
 
   struct ImGuiNextWindow
   {
-    //void                          Clear();
+    v2                            mPosition = {};
     v2                            mSize = {};
 		DesktopWindowHandle           mDesktopWindowHandle;
     bool                          mStretch = false;

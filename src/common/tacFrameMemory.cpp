@@ -41,8 +41,9 @@ namespace Tac
     const int strlen = vsnprintf( nullptr, 0, format, args );
     if( strlen < 0 )
       return "";
-    auto result = ( char* )FrameMemoryAllocate( strlen + 1 );
-    vsnprintf( result, strlen, format, args );
+    const int buflen = strlen + 1;
+    auto result = ( char* )FrameMemoryAllocate( buflen );
+    vsnprintf( result, buflen, format, args );
     result[ strlen ] = '\0';
     va_end( args );
     return result;

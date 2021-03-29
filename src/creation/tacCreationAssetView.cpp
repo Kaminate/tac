@@ -22,6 +22,7 @@
 #include "src/common/tacCamera.h"
 
 #include <map>
+#include <cmath>
 
             //GamePresentation gp;
 

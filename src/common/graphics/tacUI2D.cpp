@@ -282,7 +282,6 @@ namespace Tac
                                     int h,
                                     Errors& errors )
   {
-    /*TAC_PROFILE_BLOCK*/;
     //TAC_ASSERT( mStates.empty() );
 
     if( mDefaultVertex2Ds.size() && mDefaultIndex2Ds.size() )

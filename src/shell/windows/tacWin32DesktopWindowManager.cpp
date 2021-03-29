@@ -1,5 +1,6 @@
 #include "src/common/math/tacMath.h"
 #include "src/common/tacAlgorithm.h"
+#include "src/common/profile/tacProfile.h"
 #include "src/common/tacDesktopWindow.h"
 #include "src/common/tacErrorHandling.h"
 #include "src/common/tacKeyboardinput.h"
@@ -115,6 +116,7 @@ namespace Tac
     {
       switch( uMsg )
       {
+        //case WM_NCACTIVATE: // ??????????????????????
         case WM_NCDESTROY:
           return DefWindowProc( hwnd, uMsg, wParam, lParam );
         default:
@@ -133,7 +135,7 @@ namespace Tac
       // Sent when a window is being destroyed
       case WM_DESTROY:
       {
-        std::cout << "WM_DESTROY" << std::endl;
+        //std::cout << "WM_DESTROY" << std::endl;
         ImGuiSaveWindowSettings();
         sHWNDs[ ( int )desktopWindowHandle ] = nullptr;
         DesktopEventAssignHandle( desktopWindowHandle, nullptr, 0, 0, 0, 0 );
@@ -156,7 +158,7 @@ namespace Tac
       // Indicates a request to terminate an application
       case WM_QUIT:
       {
-        std::cout << "WM_QUIT" << std::endl;
+        //std::cout << "WM_QUIT" << std::endl;
         // mRequestDeletion = true;
       } break;
 
@@ -400,6 +402,7 @@ namespace Tac
 
   void Win32WindowManagerPoll( Errors& )
   {
+    //TAC_PROFILE_BLOCK;
     MSG msg = {};
     while( PeekMessage( &msg, NULL, 0, 0, PM_REMOVE ) )
     {

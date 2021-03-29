@@ -9,7 +9,12 @@ namespace Tac
   using Clock = std::chrono::high_resolution_clock;
   using Nano = std::chrono::nanoseconds;
   using Timepoint = std::chrono::time_point< Clock, Nano >;
-  Timepoint GetCurrentTime() { return Clock::now(); }
+
+  static double          mElapsedSeconds = 0;
+  static Timepoint       mLastTick;
+  static float           mAccumulatorSeconds = 0;
+
+  static Timepoint GetCurrentTime() { return Clock::now(); }
 
   float TimepointSubtractSeconds( const Timepoint a, const Timepoint b )
   {
@@ -70,12 +75,7 @@ namespace Tac
     return result;
   }
 
-  //struct ShellTimer
-  //{
-  double          mElapsedSeconds = 0;
-  Timepoint       mLastTick;
-  float           mAccumulatorSeconds = 0;
-//};
+
   double    ShellGetElapsedSeconds()
   {
     return mElapsedSeconds;

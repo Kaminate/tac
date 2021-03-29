@@ -1,22 +1,23 @@
-#include "src/common/math/tacVector4.h"
-#include "src/common/math/tacMath.h"
-#include "src/common/tacSettings.h"
-#include "src/common/graphics/tacRendererUtil.h"
-
 #include "src/common/graphics/imgui/tacImGui.h"
 #include "src/common/graphics/imgui/tacImGuiState.h"
-#include "src/common/graphics/tacUI2D.h"
-#include "src/common/graphics/tacTextEdit.h"
+#include "src/common/containers/tacFrameVector.h"
 #include "src/common/graphics/tacRenderer.h"
+#include "src/common/graphics/tacRendererUtil.h"
+#include "src/common/graphics/tacTextEdit.h"
+#include "src/common/graphics/tacUI2D.h"
+#include "src/common/math/tacMath.h"
+#include "src/common/math/tacVector4.h"
+#include "src/common/shell/tacShell.h"
+#include "src/common/shell/tacShellTimer.h"
+#include "src/common/string/tacString.h"
 #include "src/common/tacDesktopWindow.h"
+#include "src/common/tacErrorHandling.h"
 #include "src/common/tacKeyboardinput.h"
 #include "src/common/tacOS.h"
 #include "src/common/tacPreprocessor.h"
-#include "src/common/shell/tacShell.h"
-#include "src/common/string/tacString.h"
-#include "src/common/tacErrorHandling.h"
-#include "src/shell/tacDesktopWindowGraphics.h"
+#include "src/common/tacSettings.h"
 #include "src/shell/tacDesktopApp.h"
+#include "src/shell/tacDesktopWindowGraphics.h"
 
 #include <cstdlib> // atof
 #include <iostream> // cout
@@ -350,10 +351,9 @@ namespace Tac
   {
     gNextWindow.mDesktopWindowHandle = desktopWindowHandle;
   }
-  void ImGuiSetNextWindowSize( v2 size )
-  {
-    gNextWindow.mSize = size;
-  }
+
+  void ImGuiSetNextWindowPosition( v2 position ) { gNextWindow.mPosition = position; }
+  void ImGuiSetNextWindowSize( v2 size ) { gNextWindow.mSize = size; }
 
   // [ ] Q: imgui.begin should always be followed by a imgui.end,
   //        regardless of the imgui.begin return value.
@@ -409,6 +409,12 @@ namespace Tac
           SettingsSetNumber( "w", w, windowJson );
           SettingsSetNumber( "h", h, windowJson );
         }
+          
+        x = gNextWindow.mPosition.x ? ( int )gNextWindow.mPosition.x : x;
+        y = gNextWindow.mPosition.y ? ( int )gNextWindow.mPosition.y : y;
+        w = gNextWindow.mSize.x     ? ( int )gNextWindow.mSize.x     : x;
+        h = gNextWindow.mSize.y     ? ( int )gNextWindow.mSize.y     : y;
+
 
         // ^^^ --- begin --- move to fn
         desktopWindowHandle = DesktopAppCreateWindow( x, y, w, h );
@@ -436,14 +442,18 @@ namespace Tac
 
     }
 
+
+
     gNextWindow = ImGuiNextWindow();
     //gNextWindow.Clear();
     TAC_ASSERT( window->mSize.x > 0 && window->mSize.y > 0 );
 
+    // why does this assert exist? what does it check for?
     // todo: move this to a ImGuiGlobals::Instance.mFrameData
-    TAC_ASSERT( ImGuiGlobals::Instance.mWindowStack.empty() );
+    //TAC_ASSERT( ImGuiGlobals::Instance.mWindowStack.empty() );
     ImGuiGlobals::Instance.mWindowStack.push_back( window );
     ImGuiGlobals::Instance.mCurrentWindow = window;
+    window->mRequestTime = ShellGetElapsedSeconds();
     window->BeginFrame();
 
     const DesktopWindowState* desktopWindowState = GetDesktopWindowState( window->mDesktopWindowHandle );
@@ -1138,15 +1148,44 @@ namespace Tac
 
   void ImGuiFrameEnd( Errors& errors )
   {
+    for( const ImGuiWindow* window : ImGuiGlobals::Instance.mWindowStack )
+      TAC_CRITICAL_ERROR( "Mismatched ImGuiBegin/ImGuiEnd for %s", window->mName.c_str() );
+
     ImGuiRender( errors );
 
+    const double                             curSeconds = ShellGetElapsedSeconds();
+    FrameMemoryVector< ImGuiWindow* >        windowsToDeleteImGui;
+
     for( ImGuiWindow* window : ImGuiGlobals::Instance.mAllWindows )
+    {
+      if( curSeconds - window->mRequestTime > 0.1f )
+      {
+        windowsToDeleteImGui.push_back( window );
+        continue;
+      }
+
+      // this should be requested with like ImGuiSetNextWindowMoveResize
       if( window->mDesktopWindowHandleOwned )
       {
-        const DesktopWindowRect rect = GetDesktopWindowRectWindowspace( window->mDesktopWindowHandle );
-        DesktopAppResizeControls( window->mDesktopWindowHandle, 7 );
-        DesktopAppMoveControls( window->mDesktopWindowHandle, rect );
+        //const DesktopWindowRect rect = GetDesktopWindowRectWindowspace( window->mDesktopWindowHandle );
+        //DesktopAppResizeControls( window->mDesktopWindowHandle, 7 );
+        //DesktopAppMoveControls( window->mDesktopWindowHandle, rect );
       }
+    }
+
+    for( ImGuiWindow* window : windowsToDeleteImGui )
+    {
+      if( window->mDesktopWindowHandleOwned )
+        DesktopAppDestroyWindow( window->mDesktopWindowHandle );
+      int iWindow;
+      for( iWindow = 0; iWindow < ImGuiGlobals::Instance.mAllWindows.size(); ++iWindow )
+        if( ImGuiGlobals::Instance.mAllWindows[ iWindow ] == window )
+          break;
+      TAC_ASSERT( iWindow < ImGuiGlobals::Instance.mAllWindows.size() );
+      ImGuiGlobals::Instance.mAllWindows[ iWindow ] = ImGuiGlobals::Instance.mAllWindows.back();
+      ImGuiGlobals::Instance.mAllWindows.pop_back();
+      TAC_DELETE window;
+    }
   }
 
   void ImGuiInit()

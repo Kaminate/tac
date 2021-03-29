@@ -18,7 +18,9 @@
 #include "src/common/graphics/tacRendererUtil.h"
 #include "src/common/string/tacString.h"
 #include "src/common/shell/tacShellTimer.h"
+
 #include <iostream>
+#include <thread>
 
 namespace Tac
 {
@@ -43,6 +45,7 @@ namespace Tac
     // last, so resources can be freed
     Render::Uninit();
   }
+
   void            ShellInit( Errors& errors )
   {
     JobQueueInit();
@@ -56,37 +59,6 @@ namespace Tac
     gUI2DCommonData.Init( errors );
     TAC_HANDLE_ERROR( errors );
   }
-  void            ShellFrameBegin( Errors& )
-  {
-    //gKeyboardInput.BeginFrame();
-  }
-  void            ShellFrameEnd( Errors& )
-  {
-    //gKeyboardInput.EndFrame();
-  }
-  void            ShellFrame( Errors& errors )
-  {
-    TAC_PROFILE_BLOCK;
-    ShellFrameBegin( errors );
-
-    if( Net::Instance )
-    {
-      Net::Instance->Update( errors );
-      TAC_HANDLE_ERROR( errors );
-    }
-
-    //mOnUpdate.EmitEvent( errors );
-    ControllerInput::Instance->Update();
-
-    ShellFrameEnd( errors );
-  }
-  void            ShellUpdate( Errors& errors )
-  {
-    ShellTimerUpdate();
-    while( ShellTimerFrame() )
-      ShellFrame( errors );
-  }
-
 
   void            ShellSetAppName( const char* s ) { sAppName = s; }
   const char*     ShellGetAppName() { return sAppName.c_str(); } 

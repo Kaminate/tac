@@ -6,7 +6,9 @@
 #include "src/common/tacAlgorithm.h"
 #include "src/common/tacJson.h"
 #include "src/common/tacPreprocessor.h"
+
 #include <algorithm>
+#include <cmath>
 
 //#pragma warning( disable: 6011 ) // you might dereference a null ptr
 
