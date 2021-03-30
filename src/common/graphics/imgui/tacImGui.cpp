@@ -1158,25 +1158,16 @@ namespace Tac
 
     for( ImGuiWindow* window : ImGuiGlobals::Instance.mAllWindows )
     {
-      if( curSeconds - window->mRequestTime > 0.1f )
+      if( curSeconds - window->mRequestTime > 0.1f &&  window->mDesktopWindowHandleOwned )
       {
         windowsToDeleteImGui.push_back( window );
         continue;
-      }
-
-      // this should be requested with like ImGuiSetNextWindowMoveResize
-      if( window->mDesktopWindowHandleOwned )
-      {
-        //const DesktopWindowRect rect = GetDesktopWindowRectWindowspace( window->mDesktopWindowHandle );
-        //DesktopAppResizeControls( window->mDesktopWindowHandle, 7 );
-        //DesktopAppMoveControls( window->mDesktopWindowHandle, rect );
       }
     }
 
     for( ImGuiWindow* window : windowsToDeleteImGui )
     {
-      if( window->mDesktopWindowHandleOwned )
-        DesktopAppDestroyWindow( window->mDesktopWindowHandle );
+      DesktopAppDestroyWindow( window->mDesktopWindowHandle );
       int iWindow;
       for( iWindow = 0; iWindow < ImGuiGlobals::Instance.mAllWindows.size(); ++iWindow )
         if( ImGuiGlobals::Instance.mAllWindows[ iWindow ] == window )
