@@ -11,15 +11,12 @@
 
 namespace Tac
 {
-  //struct UI2DDrawData;
-  //struct TextInputData;
-
   struct UIStyle
   {
     float windowPadding = 8;
     v2    itemSpacing = { 8, 4 };
 
-    // Should this be a float?
+    //    Should this be a float?
     int   fontSize = 16;
 
     float buttonPadding = 3.0f;
@@ -31,22 +28,6 @@ namespace Tac
   typedef int ImGuiId;
   const int ImGuiIdNull = -1;
 
-  enum class DragMode
-  {
-    Drag,
-    TextInput
-  };
-
-  struct DragData
-  {
-    DragMode       mMode = ( DragMode )0;
-    float          mDragDistPx = 0;
-
-    // This is the value of the variable we are gizmoing for at the start of the mouse drag.
-    // That way, we can accumulate all the mouse drag pixels and apply them to ints in
-    // addition to floats
-    Vector< char > mValueCopy;
-  };
 
   struct ImGuiIDAllocator
   {
@@ -56,7 +37,7 @@ namespace Tac
 
   struct GroupData
   {
-    // Position of the cursor when starting the group
+    //    Position of the cursor when starting the group
     v2    mSavedCursorDrawPos;
     float mSavedLineHeight;
   };
@@ -121,7 +102,6 @@ namespace Tac
     ImGuiIDAllocator*             mIDAllocator = nullptr;
     struct TextInputData*         mTextInputData = nullptr;
     std::map< ImGuiId, bool >     mCollapsingHeaderStates;
-    std::map< ImGuiId, DragData > mDragDatas;
     bool                          mIsAppendingToMenu = false;
     Vector< ImGuiWindowResource > mResources;
     struct UI2DDrawData*          mDrawData = nullptr;
@@ -135,21 +115,15 @@ namespace Tac
 
   struct ImGuiGlobals
   {
-    static ImGuiGlobals           Instance;
     ImGuiWindow*                  FindWindow( StringView name );
-    // TODO: different space
-    //v2 mMousePositionDesktopWindowspace = {};
-    //bool mIsWindowDirectlyUnderCursor = false;
+    static ImGuiGlobals           Instance;
     double                        mElapsedSeconds = 0;
     Vector< ImGuiWindow* >        mAllWindows;
     Vector< ImGuiWindow* >        mWindowStack;
     ImGuiWindow*                  mCurrentWindow = nullptr;
-    //UI2DDrawData* mUI2DDrawData = nullptr;
     String                        mDesktopWindowName;
     Vector< int >                 mFontSizeSK;
     UIStyle                       mUIStyle;
-    //int                           mDesktopWindowWidth = 0;
-    //int                           mDesktopWindowHeight = 0;
     DesktopWindowHandle           mMouseHoveredWindow;
   };
 

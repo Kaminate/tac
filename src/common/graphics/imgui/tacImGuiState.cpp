@@ -53,11 +53,20 @@ namespace Tac
                                                        const void* initialDataBytes,
                                                        int initialDataByteCount )
   {
-    const char* dataBegin = ( char* )initialDataBytes;
-    const char* dataEnd = ( char* )initialDataBytes + initialDataByteCount;
+    Vector< char > initialData;
+    if( initialDataBytes )
+    {
+      const char* dataBegin = ( char* )initialDataBytes;
+      const char* dataEnd = ( char* )initialDataBytes + initialDataByteCount;
+      initialData.assign( dataBegin, dataEnd );
+    }
+    else
+    {
+      initialData.assign( initialDataByteCount, 0 );
+    }
     const ImGuiIndex id = mResourceCounter++;
     RegisteredWindowResource resource;
-    resource.mInitialData.assign( dataBegin, dataEnd );
+    resource.mInitialData = initialData;
     resource.mName = name;
     resource.mId = id;
     mRegisteredWindowResources.push_back( resource );

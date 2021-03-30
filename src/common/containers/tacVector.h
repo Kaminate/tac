@@ -6,6 +6,8 @@
 namespace Tac
 {
 
+  // How come ~T() is never called?
+  // Seems like a mega bug
 
   template< typename T >
   struct Vector
@@ -66,6 +68,13 @@ namespace Tac
       for( int i = 0; i < newSize; ++i )
         mTs[ i ] = begin[ i ];
       mTCount = newSize;
+    }
+    void     assign( int n, const T& t )
+    {
+      reserve( n );
+      for( int i = 0; i < n; ++i )
+        mTs[ i ] = t;
+      mTCount = n;
     }
     void     clear()
     {

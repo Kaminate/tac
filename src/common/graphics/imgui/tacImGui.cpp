@@ -135,6 +135,27 @@ namespace Tac
     }
   }
 
+  enum class DragMode
+  {
+    Drag,
+    TextInput
+  };
+
+  struct DragData
+  {
+    DragMode       mMode = ( DragMode )0;
+    float          mDragDistPx = 0;
+
+    // This is the value of the variable we are gizmoing for at the start of the mouse drag.
+    // That way, we can accumulate all the mouse drag pixels and apply them to ints in
+    // addition to floats
+    char           mValueCopy[ 10 ] = {};
+    //Vector< char > mValueCopy;
+  };
+  static const ImGuiIndex sDragDataID = ImGuiRegisterWindowResource( TAC_STRINGIFY( DragData ),
+                                                                   nullptr,
+                                                                   sizeof( DragData ) );
+
   static bool ImguiDragVal( StringView str,
                             void* valueBytes,
                             int valueByteCount,
@@ -162,7 +183,9 @@ namespace Tac
     if( clipped )
       return false;
 
-    DragData& dragFloatData = window->mDragDatas[ id ];
+    auto pDragFloatData = ( DragData* )window->GetWindowResource( sDragDataID );
+  
+    DragData& dragFloatData = *pDragFloatData;
 
     // Only used to check if this function should return true/false because the value
     // changed or didnt change
@@ -204,8 +227,7 @@ namespace Tac
           {
             lastMouseXDesktopWindowspace = screenspaceMousePos.x;
             dragFloatData.mDragDistPx = 0;
-            dragFloatData.mValueCopy.resize( valueByteCount );
-            MemCpy( dragFloatData.mValueCopy.data(), valueBytes, valueByteCount );
+            MemCpy( dragFloatData.mValueCopy, valueBytes, valueByteCount );
           }
 
           if( gKeyboardInput.mPrev.IsKeyDown( Key::MouseLeft ) )
@@ -225,7 +247,7 @@ namespace Tac
             else
             {
               dragFloatData.mDragDistPx += screenspaceMousePos.x - lastMouseXDesktopWindowspace;
-              whatToDoWithMousePixel( dragFloatData.mDragDistPx, dragFloatData.mValueCopy.data(), valueBytes );
+              whatToDoWithMousePixel( dragFloatData.mDragDistPx, dragFloatData.mValueCopy, valueBytes );
             }
           }
         }
