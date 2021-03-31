@@ -211,7 +211,6 @@ namespace Tac
     }
 
 
-
     if( window->GetActiveID() == id )
     {
       if( dragFloatData.mMode == DragMode::Drag )
