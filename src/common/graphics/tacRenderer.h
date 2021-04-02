@@ -111,10 +111,11 @@ namespace Tac
     };
     enum class Binding
     {
-      None = 0b00,
-      ShaderResource = 0b001,
-      RenderTarget = 0b010,
-      DepthStencil = 0b100,
+      None = 0b0000,
+      ShaderResource = 0b0001,
+      RenderTarget = 0b0010,
+      DepthStencil = 0b0100,
+      UnorderedAccess = 0b1000,
     };
 
     const char* GetSemanticName( Attribute );

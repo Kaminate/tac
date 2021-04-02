@@ -275,6 +275,9 @@ namespace Tac
     Render::TextureHandle GetTexture( StringView textureFilepath,
                                       Errors& errors )
     {
+      if( textureFilepath.empty() )
+        return Render::TextureHandle();
+
       Render::TextureHandle texture = FindLoadedTexture( textureFilepath );
       if( texture.IsValid() )
         return texture;

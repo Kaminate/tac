@@ -231,6 +231,8 @@ namespace Tac
         BindFlags |= D3D11_BIND_SHADER_RESOURCE;
       if( ( int )binding & ( int )Binding::DepthStencil )
         BindFlags |= D3D11_BIND_DEPTH_STENCIL;
+      if( ( int )binding & ( int )Binding::UnorderedAccess )
+        BindFlags |= D3D11_BIND_UNORDERED_ACCESS;
       return BindFlags;
     }
 

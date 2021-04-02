@@ -110,6 +110,7 @@ namespace Tac
     //v2                            mDesktopWindowOffset = {};
     //bool                          mDesktopWindowOffsetExists = false;
     bool                          mStretchWindow = false;
+    bool                          mMoveResizeWindow = false;
     double                        mRequestTime;
   };
 
@@ -133,6 +134,7 @@ namespace Tac
     v2                            mSize = {};
 		DesktopWindowHandle           mDesktopWindowHandle;
     bool                          mStretch = false;
+    bool                          mMoveResize = false;
   };
   extern ImGuiNextWindow gNextWindow;
 

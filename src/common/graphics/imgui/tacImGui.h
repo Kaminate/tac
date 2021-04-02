@@ -51,6 +51,7 @@ namespace Tac
   void ImGuiIndent();
   void ImGuiUnindent();
 
+	void ImGuiSetNextWindowMoveResize();
 	void ImGuiSetNextWindowPosition( v2 );
 	void ImGuiSetNextWindowStretch();
 	void ImGuiSetNextWindowHandle( const DesktopWindowHandle& );

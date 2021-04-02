@@ -489,6 +489,7 @@ namespace Tac
   void CreationUpdateAssetView()
   {
     ImGuiSetNextWindowStretch();
+    ImGuiSetNextWindowMoveResize();
     const bool open = ImGuiBegin( "Asset View" );
     if( open )
     {

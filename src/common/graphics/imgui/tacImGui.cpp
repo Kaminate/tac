@@ -373,6 +373,7 @@ namespace Tac
     gNextWindow.mDesktopWindowHandle = desktopWindowHandle;
   }
 
+  void ImGuiSetNextWindowMoveResize() { gNextWindow.mMoveResize = true; }
   void ImGuiSetNextWindowPosition( v2 position ) { gNextWindow.mPosition = position; }
   void ImGuiSetNextWindowSize( v2 size ) { gNextWindow.mSize = size; }
 
@@ -458,6 +459,7 @@ namespace Tac
       //window->mDesktopWindowOffset = {};
       //window->mDesktopWindowOffsetExists = true;
       window->mStretchWindow = gNextWindow.mStretch; // !gNextWindow.mDesktopWindowHandle.IsValid() && gNextWindow.mSize == v2( 0, 0 );
+      window->mMoveResizeWindow = gNextWindow.mMoveResize;
       // window->mStretchWindow = !gNextWindow.mDesktopWindowHandle.IsValid() && gNextWindow.mSize == v2( 0, 0 );
       ImGuiGlobals::Instance.mAllWindows.push_back( window );
 
@@ -1184,6 +1186,13 @@ namespace Tac
         windowsToDeleteImGui.push_back( window );
         continue;
       }
+
+      if( window->mMoveResizeWindow && window->mDesktopWindowHandle.IsValid() )
+      {
+        DesktopAppMoveControls( window->mDesktopWindowHandle );
+        DesktopAppResizeControls( window->mDesktopWindowHandle );
+      }
+
     }
 
     for( ImGuiWindow* window : windowsToDeleteImGui )
