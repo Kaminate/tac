@@ -11,7 +11,9 @@ if( FALSE )
 endif()
 
 if (MSVC)
-    add_compile_options(/W4 /WX)
+    add_compile_options(/W4) # warning level 4
+    add_compile_options(/WX) # treat linker warnings as errors
+    add_compile_options(/MP) # multi processor compilation
 else()
     add_compile_options(-Wall -Wextra -pedantic -Werror)
 endif()
@@ -21,3 +23,6 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}")
 add_subdirectory(src)
+
+
+
