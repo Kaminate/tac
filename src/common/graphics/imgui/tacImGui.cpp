@@ -163,20 +163,19 @@ namespace Tac
                             void( *valueFromStringSetter )( StringView from, void* to ),
                             void( *whatToDoWithMousePixel )( float mouseChangeSinceBeginningOfDrag, const void* valAtDragStart, void* curVal ) )
   {
-
     v4 backgroundBoxColor = { 1, 1, 0, 1 };
     String valueStr;
     valueToStringGetter( valueStr, valueBytes );
+    bool changed = false;
 
     ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
     UI2DDrawData* drawData = window->mDrawData;// ImGuiGlobals::Instance.mUI2DDrawData;
     TextInputData* inputData = window->mTextInputData;
-    v2 pos = window->mCurrCursorViewport;
-    v2 totalSize = {
-      window->mContentRect.mMaxi.x - pos.x,
-      ( float )ImGuiGlobals::Instance.mUIStyle.fontSize };
+    const v2 pos = window->mCurrCursorViewport;
+    const v2 totalSize( window->mContentRect.mMaxi.x - pos.x,
+      ( float )ImGuiGlobals::Instance.mUIStyle.fontSize );
     window->ItemSize( totalSize );
-    ImGuiId id = window->GetID();
+    const ImGuiId id = window->GetID();
     bool clipped;
     ImGuiRect clipRect = ImGuiRect::FromPosSize( pos, totalSize );
     window->ComputeClipInfo( &clipped, &clipRect );
@@ -187,14 +186,10 @@ namespace Tac
   
     DragData& dragFloatData = *pDragFloatData;
 
-    // Only used to check if this function should return true/false because the value
-    // changed or didnt change
-    static Vector< char > valueFrameCopy;
-    valueFrameCopy.resize( valueByteCount );
-    MemCpy( valueFrameCopy.data(), valueBytes, valueByteCount );
-    v2 valuePos = {
-      pos.x + ImGuiGlobals::Instance.mUIStyle.buttonPadding,
-      pos.y };
+
+
+    const v2 valuePos( pos.x + ImGuiGlobals::Instance.mUIStyle.buttonPadding,
+                       pos.y );
 
 
     const bool hovered = window->IsHovered( clipRect );
@@ -247,6 +242,7 @@ namespace Tac
             {
               dragFloatData.mDragDistPx += screenspaceMousePos.x - lastMouseXDesktopWindowspace;
               whatToDoWithMousePixel( dragFloatData.mDragDistPx, dragFloatData.mValueCopy, valueBytes );
+			  changed = true;
             }
           }
         }
@@ -279,15 +275,27 @@ namespace Tac
 
       if( dragFloatData.mMode == DragMode::TextInput )
       {
+        const auto oldCodepoints = inputData->mCodepoints;
         TextInputDataUpdateKeys( inputData, window->GetMousePosViewport(), valuePos );
 
-        const StringView newText = CodepointsToUTF8( CodepointView( inputData->mCodepoints.data(),
-                                                     inputData->mCodepoints.size() ) );
-        valueFromStringSetter( newText, valueBytes );
-        valueStr = newText;
+        const bool codepointsChanged = oldCodepoints.size() != inputData->mCodepoints.size()
+          || 0 != MemCmp( oldCodepoints.data(),
+                          inputData->mCodepoints.data(),
+                          oldCodepoints.size() * sizeof( Codepoint ) );
+        if( codepointsChanged )
+        {
 
-        if( gKeyboardInput.IsKeyJustDown( Key::Tab ) )
-          window->mIDAllocator->mActiveID++;
+          changed = true;
+
+          const StringView newText = CodepointsToUTF8( CodepointView( inputData->mCodepoints.data(),
+                                                                      inputData->mCodepoints.size() ) );
+          valueFromStringSetter( newText, valueBytes );
+          valueStr = newText;
+
+          // tab between x,y,z for imguidragfloat3
+          if( gKeyboardInput.IsKeyJustDown( Key::Tab ) )
+            window->mIDAllocator->mActiveID++;
+        }
       }
     }
 
@@ -297,9 +305,8 @@ namespace Tac
       dragFloatData.mDragDistPx = 0;
     }
 
-    v2 backgroundBoxMaxi = {
-      pos.x + totalSize.x * ( 2.0f / 3.0f ),
-      pos.y + totalSize.y };
+    const v2 backgroundBoxMaxi ( pos.x + totalSize.x * ( 2.0f / 3.0f ),
+                                 pos.y + totalSize.y );
     Render::TextureHandle texture;
     drawData->AddBox( pos, backgroundBoxMaxi, backgroundBoxColor, texture, &clipRect );
 
@@ -307,13 +314,11 @@ namespace Tac
       TextInputDataDrawSelection( inputData, drawData, valuePos, &clipRect );
     drawData->AddText( valuePos, ImGuiGlobals::Instance.mUIStyle.fontSize, valueStr, v4( 0, 0, 0, 1 ), &clipRect );
 
-    v2 labelPos = {
-      backgroundBoxMaxi.x + ImGuiGlobals::Instance.mUIStyle.itemSpacing.x,
-      pos.y };
+    const v2 labelPos( backgroundBoxMaxi.x + ImGuiGlobals::Instance.mUIStyle.itemSpacing.x,
+                 pos.y );
     drawData->AddText( labelPos, ImGuiGlobals::Instance.mUIStyle.fontSize, str, ImGuiGlobals::Instance.mUIStyle.textColor, &clipRect );
 
-
-    return MemCmp( valueFrameCopy.data(), valueBytes, valueByteCount );
+    return changed;
   }
 
 
