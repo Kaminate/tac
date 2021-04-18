@@ -1,4 +1,14 @@
 {
+  "Skybox": null,
+  "Terrain":
+  {
+    "mGroundTexturePath": "assets\grass.png",
+    "mHeight": 162.800003,
+    "mHeightmapTexturePath": "assets/heightmaps/heightmap2.png",
+    "mNoiseTexturePath": "assets\shadertoy_gray_noise_med_256x256.png",
+    "mSideLength": 1000,
+    "mSideVertexCount": 50
+  },
   "mChildren":
   [
     {
@@ -310,8 +320,8 @@
       "mPosition":
       {
         "x": 50.210743,
-        "y": 30.491083,
-        "z": 89.249886
+        "y": 12.791082,
+        "z": 124.149887
       },
       "mScale":
       {
@@ -332,7 +342,7 @@
   "mPosition":
   {
     "x": 0,
-    "y": 0,
+    "y": -22.500000,
     "z": 0
   },
   "mScale":

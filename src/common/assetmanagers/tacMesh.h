@@ -17,7 +17,7 @@ namespace Tac
     void                       SubMeshModelSpaceRaycast( v3 inRayPos,
                                                          v3 inRayDir,
                                                          bool* outHit,
-                                                         float* outDist );
+                                                         float* outDist ) const;
     Render::VertexBufferHandle mVertexBuffer;
     Render::IndexBufferHandle  mIndexBuffer;
     SubMeshTriangles           mTris;
@@ -30,7 +30,7 @@ namespace Tac
     void                       MeshModelSpaceRaycast( v3 inRayPos,
                                                       v3 inRayDir,
                                                       bool* outHit,
-                                                      float* outDist );
+                                                      float* outDist ) const;
     Vector< SubMesh >          mSubMeshes;
     m4                         mTransform = m4::Identity();
     m4                         mTransformInv = m4::Identity();

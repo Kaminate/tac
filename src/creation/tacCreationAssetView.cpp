@@ -206,7 +206,7 @@ namespace Tac
   static std::map< String, AssetViewImportedModel* >  sLoadedModels;
   //static std::map< String, AssetViewImportingModel* > sLoadingModels;
 
-  static String LoadElipses() { return String( "...", ( int )ShellGetElapsedSeconds() % 4 ); }
+  static String LoadEllipses() { return String( "...", ( int )ShellGetElapsedSeconds() % 4 ); }
 
   static AssetViewImportedModel* GetLoadedModel( const String& path )
   {
@@ -430,7 +430,7 @@ namespace Tac
     else
     {
       ImGuiSameLine();
-      ImGuiText( "Loading" + LoadElipses() );
+      ImGuiText( "Loading" + LoadEllipses() );
     }
 
     AttemptLoadEntity( loadedModel, path.c_str() );

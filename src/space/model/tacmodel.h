@@ -21,7 +21,7 @@ namespace Tac
     v3                                   mColorRGB = { 1, 1, 1 };
     String                               mModelPath;
     int                                  mModelIndex = 0;
-    Mesh*                                mesh = nullptr;
+    //Mesh*                                mesh = nullptr;
     bool                                 mTryingNewThing = false;
   };
 

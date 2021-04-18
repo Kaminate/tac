@@ -8,6 +8,7 @@
 #include "src/common/tacOS.h"
 #include "src/common/tacUtility.h"
 #include "src/space/model/tacModel.h"
+#include "src/space/presentation/tacGamePresentation.h"
 
 namespace Tac
 {
@@ -62,7 +63,7 @@ namespace Tac
         if( ImGuiButton( filepath ) )
         {
           model->mModelPath = filepath;
-          model->mesh = nullptr;
+          //model->mesh = nullptr;
         }
       }
     }
@@ -172,46 +173,55 @@ namespace Tac
 
   void ModelDebugImgui( Model* model )
   {
-    if( ImGuiCollapsingHeader( "Mesh" ) && model->mesh )
+    if( ImGuiCollapsingHeader( "Mesh" ) )
     {
-      Mesh* mesh = model->mesh;
-      ImGuiText( va( "%.1f %.1f %.1f %.1f",
-                 mesh->mTransform.m00,
-                 mesh->mTransform.m01,
-                 mesh->mTransform.m02,
-                 mesh->mTransform.m03 ) );
-      ImGuiText( va( "%.1f %.1f %.1f %.1f",
-                 mesh->mTransform.m10,
-                 mesh->mTransform.m11,
-                 mesh->mTransform.m12,
-                 mesh->mTransform.m13 ) );
-      ImGuiText( va( "%.1f %.1f %.1f %.1f",
-                 mesh->mTransform.m20,
-                 mesh->mTransform.m21,
-                 mesh->mTransform.m22,
-                 mesh->mTransform.m23 ) );
-      ImGuiText( va( "%.1f %.1f %.1f %.1f",
-                 mesh->mTransform.m30,
-                 mesh->mTransform.m31,
-                 mesh->mTransform.m32,
-                 mesh->mTransform.m33 ) );
-      ImGuiText( va( "model index: %i", model->mModelIndex ) );
-      static int iSelectedSubmesh = -1;
-      for( SubMesh& subMesh : mesh->mSubMeshes )
+      const Mesh* mesh = GamePresentationGetModelMesh( model );
+      if( mesh )
       {
-        const int iSubMesh = ( int )( &subMesh - mesh->mSubMeshes.data() );
-        if( ImGuiSelectable(
-          va( "submesh %i: %s", iSubMesh, subMesh.mName.c_str() ),
-          iSubMesh == iSelectedSubmesh ) )
-          iSelectedSubmesh = iSubMesh;
+
+        ImGuiText( va( "%.1f %.1f %.1f %.1f",
+                       mesh->mTransform.m00,
+                       mesh->mTransform.m01,
+                       mesh->mTransform.m02,
+                       mesh->mTransform.m03 ) );
+        ImGuiText( va( "%.1f %.1f %.1f %.1f",
+                       mesh->mTransform.m10,
+                       mesh->mTransform.m11,
+                       mesh->mTransform.m12,
+                       mesh->mTransform.m13 ) );
+        ImGuiText( va( "%.1f %.1f %.1f %.1f",
+                       mesh->mTransform.m20,
+                       mesh->mTransform.m21,
+                       mesh->mTransform.m22,
+                       mesh->mTransform.m23 ) );
+        ImGuiText( va( "%.1f %.1f %.1f %.1f",
+                       mesh->mTransform.m30,
+                       mesh->mTransform.m31,
+                       mesh->mTransform.m32,
+                       mesh->mTransform.m33 ) );
+        ImGuiText( va( "model index: %i", model->mModelIndex ) );
+        static int iSelectedSubmesh = -1;
+        for( const SubMesh& subMesh : mesh->mSubMeshes )
+        {
+          const int iSubMesh = ( int )( &subMesh - mesh->mSubMeshes.data() );
+          if( ImGuiSelectable(
+            va( "submesh %i: %s", iSubMesh, subMesh.mName.c_str() ),
+            iSubMesh == iSelectedSubmesh ) )
+            iSelectedSubmesh = iSubMesh;
+        }
+        if( ( unsigned )iSelectedSubmesh < ( unsigned )mesh->mSubMeshes.size() )
+        {
+          ImGuiIndent();
+          const SubMesh& subMesh = mesh->mSubMeshes[ iSelectedSubmesh ];
+          ImGuiText( subMesh.mName );
+          ImGuiText( va( "tri count: %i", subMesh.mTris.size() ) );
+          ImGuiUnindent();
+        }
       }
-      if( ( unsigned )iSelectedSubmesh < ( unsigned )mesh->mSubMeshes.size() )
+      else
       {
-        ImGuiIndent();
-        SubMesh& subMesh = mesh->mSubMeshes[ iSelectedSubmesh ];
-        ImGuiText( subMesh.mName );
-        ImGuiText( va( "tri count: %i", subMesh.mTris.size() ) );
-        ImGuiUnindent();
+        const String ellipses( "...", ( int )ShellGetElapsedSeconds() % 4 );
+        ImGuiText( "Loading" + ellipses );
       }
     }
     ModelDebugImguiChangeModel( model );

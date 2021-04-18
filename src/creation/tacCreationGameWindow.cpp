@@ -372,7 +372,14 @@ namespace Tac
                                                float* dist )
   {
     const Model* model = Model::GetModel( entity );
-    if( !model || !model->mesh )
+    if( !model )
+    {
+      *hit = false;
+      return;
+    }
+
+    const Mesh* mesh = GamePresentationGetModelMesh( model );
+    if( !mesh )
     {
       *hit = false;
       return;
@@ -391,7 +398,7 @@ namespace Tac
     v3 modelSpaceMouseRayPos3 = ( transformInv * v4( camera->mPos, 1 ) ).xyz();
     v3 modelSpaceMouseRayDir3 = Normalize( ( transformInv * v4( mWorldSpaceMouseDir, 0 ) ).xyz() );
     float modelSpaceDist;
-    model->mesh->MeshModelSpaceRaycast( modelSpaceMouseRayPos3, modelSpaceMouseRayDir3, hit, &modelSpaceDist );
+    mesh->MeshModelSpaceRaycast( modelSpaceMouseRayPos3, modelSpaceMouseRayDir3, hit, &modelSpaceDist );
 
     // Recompute the distance by transforming the model space hit point into world space in order to
     // account for non-uniform scaling

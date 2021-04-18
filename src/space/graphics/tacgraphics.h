@@ -15,7 +15,7 @@ namespace Tac
   struct Skybox;
   struct World;
 
-  template< typename T > struct ComponentVisitor { virtual void operator()( T* ) = 0; };
+  template< typename T > struct ComponentVisitor { virtual void operator()( const T* ) = 0; };
   typedef ComponentVisitor< Model > ModelVisitor;
   typedef ComponentVisitor< Skybox > SkyboxVisitor;
 

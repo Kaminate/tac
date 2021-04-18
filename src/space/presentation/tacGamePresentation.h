@@ -4,6 +4,9 @@
 
 namespace Tac
 {
+  struct Camera;
+  struct Mesh;
+  struct Model;
 
   void                          GamePresentationInit( Errors& );
   void                          GamePresentationUninit();
@@ -12,5 +15,6 @@ namespace Tac
                                                         int viewWidth,
                                                         int viewHeight,
                                                         Render::ViewHandle );
+  const Mesh*                   GamePresentationGetModelMesh( const Model* );
 }
 

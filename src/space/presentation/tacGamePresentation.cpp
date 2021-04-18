@@ -146,27 +146,30 @@ namespace Tac
 
   }
 
-  static void LoadModel( Model* model )
+  static Mesh* LoadModel( const Model* model )
   {
-    if( model->mesh )
-      return;
+    //if( model->mesh )
+    //  return;
     if( model->mModelPath.empty() )
-      return;
+      return nullptr;
 
     Errors getmeshErrors;
     if( model->mTryingNewThing )
     {
-      model->mesh = ModelAssetManagerGetMeshTryingNewThing( model->mModelPath,
-                                                            model->mModelIndex,
-                                                            m3DVertexFormatDecls,
-                                                            getmeshErrors );
+      return ModelAssetManagerGetMeshTryingNewThing( model->mModelPath.c_str(),
+                                                     model->mModelIndex,
+                                                     m3DVertexFormatDecls,
+                                                     getmeshErrors );
     }
-    else
-    {
-      model->mesh = ModelAssetManagerGetMesh( model->mModelPath,
-                                              m3DVertexFormatDecls,
-                                              getmeshErrors );
-    }
+
+    return ModelAssetManagerGetMesh( model->mModelPath,
+                                     m3DVertexFormatDecls,
+                                     getmeshErrors );
+  }
+
+  const Mesh*                   GamePresentationGetModelMesh( const Model* model )
+  {
+    return LoadModel( model );
   }
 
   static void CreateTerrainShader( Errors& errors )
@@ -381,17 +384,19 @@ namespace Tac
 
     struct : public ModelVisitor
     {
-      void operator()( Model* model ) override
+      void operator()( const Model* model ) override
       {
-        LoadModel( model );
-        if( !model->mesh )
+        Mesh* mesh = LoadModel( model );
+        if( !mesh )
           return;
 
         DefaultCBufferPerObject perObjectData;
         perObjectData.Color = { model->mColorRGB, 1 };
         perObjectData.World = model->mEntity->mWorldTransform;
-        Render::BeginGroup( FrameMemoryPrintf( "%s %i", model->mModelPath.c_str(), model->mModelIndex ), TAC_STACK_FRAME );
-        RenderGameWorldAddDrawCall( model->mesh, perObjectData, mViewId );
+        Render::BeginGroup( FrameMemoryPrintf( "%s %i",
+                                               model->mModelPath.c_str(),
+                                               model->mModelIndex ), TAC_STACK_FRAME );
+        RenderGameWorldAddDrawCall( mesh, perObjectData, mViewId );
         Render::EndGroup( TAC_STACK_FRAME );
       }
 
@@ -438,7 +443,7 @@ namespace Tac
 
     struct : public SkyboxVisitor
     {
-      void operator()( Skybox* skybox ) override
+      void operator()( const Skybox* skybox ) override
       {
         SkyboxPresentationRender( mCamera,
                                   mViewWidth,

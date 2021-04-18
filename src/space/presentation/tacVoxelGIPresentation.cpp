@@ -27,19 +27,18 @@ namespace Tac
 //   }
 
 
-  void VoxelGIPresentationRender( World* world,
-                                  const Camera* camera,
-                                  const int viewWidth,
-                                  const int viewHeight,
-                                  const Render::ViewHandle viewHandle )
+  void               VoxelGIPresentationRender( World* world,
+                                                const Camera* camera,
+                                                const int viewWidth,
+                                                const int viewHeight,
+                                                const Render::ViewHandle viewHandle )
   {
     Graphics* graphics = GetGraphics( world );
     struct : public ModelVisitor
     {
-      void operator()( Model* model ) override
+      void operator()( const Model* model ) override
       {
-
-    TAC_UNUSED_PARAMETER( model );
+        TAC_UNUSED_PARAMETER( model );
       }
     } modelVisitor;
     graphics->VisitModels( &modelVisitor );
