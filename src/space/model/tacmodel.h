@@ -20,7 +20,7 @@ namespace Tac
     //GeometryUUID                       mGeometryUUID = NullGeometryUUID;
     v3                                   mColorRGB = { 1, 1, 1 };
     String                               mModelPath;
-    int                                  mModelIndex = 0;
+    int                                  mModelIndex = -1;
     //Mesh*                                mesh = nullptr;
     bool                                 mTryingNewThing = false;
   };

@@ -135,6 +135,52 @@ namespace Tac
     }
   }
 
+
+  static void ImGuiRenderWindow( ImGuiWindow* window, Errors& errors )
+  {
+    // The child draw calls are stored in mParent->mDrawdata
+    if( window->mParent )
+      return;
+
+    // remember, these are imguiwindows, not win32windows
+    const char* groupName = va( "imgui for window %s", window->mName.c_str() );
+    TAC_RENDER_GROUP_BLOCK( groupName );
+
+    TAC_ASSERT( window->mDesktopWindowHandle.IsValid() );
+    const DesktopWindowState* desktopWindowState = GetDesktopWindowState( window->mDesktopWindowHandle );
+    if( !desktopWindowState->mNativeWindowHandle )
+      return;
+
+    const Render::ViewHandle viewHandle = WindowGraphicsGetView( window->mDesktopWindowHandle );
+    if( !viewHandle.IsValid() )
+      return;
+
+    if( window->mDesktopWindowHandleOwned )
+    {
+      const float w = ( float )desktopWindowState->mWidth;
+      const float h = ( float )desktopWindowState->mHeight;
+      const Render::FramebufferHandle framebufferHandle = WindowGraphicsGetFramebuffer( window->mDesktopWindowHandle );
+      Render::SetViewFramebuffer( viewHandle, framebufferHandle );
+      Render::SetViewport( viewHandle, Render::Viewport( w, h ) );
+      Render::SetViewScissorRect( viewHandle, Render::ScissorRect( w, h ) );
+    }
+    window->mDrawData->DrawToTexture( viewHandle,
+                                      desktopWindowState->mWidth,
+                                      desktopWindowState->mHeight,
+                                      errors );
+  }
+
+  static void ImGuiRender( Errors& errors )
+  {
+    // this should iteratre through imgui views?
+    // and the draw data shouldnt exist, it should just be inlined here
+    // in 1 big ass vbo/ibo
+    for( ImGuiWindow* window : ImGuiGlobals::Instance.mAllWindows )
+      ImGuiRenderWindow( window, errors );
+  }
+
+
+
   enum class DragMode
   {
     Drag,
@@ -976,6 +1022,7 @@ namespace Tac
     const bool y = ImGuiDragFloat( str + " y", value + 1 );
     return x || y;
   }
+
   bool ImGuiDragFloat3( const StringView& str, float* value )
   {
     const bool x = ImGuiDragFloat( str + " x", value + 0 );
@@ -983,6 +1030,7 @@ namespace Tac
     const bool z = ImGuiDragFloat( str + " z", value + 2 );
     return x || y || z;
   }
+
   bool ImGuiDragFloat4( const StringView& str, float* value )
   {
     const bool x = ImGuiDragFloat( str + " x", value + 0 );
@@ -1116,48 +1164,6 @@ namespace Tac
   }
 
 
-  static void ImGuiRenderWindow( ImGuiWindow* window, Errors& errors )
-  {
-    // The child draw calls are stored in mParent->mDrawdata
-    if( window->mParent )
-      return;
-
-    // remember, these are imguiwindows, not win32windows
-    const char* groupName = va( "imgui for window %s", window->mName.c_str() );
-    TAC_RENDER_GROUP_BLOCK( groupName );
-
-    TAC_ASSERT( window->mDesktopWindowHandle.IsValid() );
-    const DesktopWindowState* desktopWindowState = GetDesktopWindowState( window->mDesktopWindowHandle );
-    if( !desktopWindowState->mNativeWindowHandle )
-      return;
-
-    const Render::ViewHandle viewHandle = WindowGraphicsGetView( window->mDesktopWindowHandle );
-    if( !viewHandle.IsValid() )
-      return;
-
-    if( window->mDesktopWindowHandleOwned )
-    {
-      const float w = ( float )desktopWindowState->mWidth;
-      const float h = ( float )desktopWindowState->mHeight;
-      const Render::FramebufferHandle framebufferHandle = WindowGraphicsGetFramebuffer( window->mDesktopWindowHandle );
-      Render::SetViewFramebuffer( viewHandle, framebufferHandle );
-      Render::SetViewport( viewHandle, Render::Viewport( w, h ) );
-      Render::SetViewScissorRect( viewHandle, Render::ScissorRect( w, h ) );
-    }
-    window->mDrawData->DrawToTexture( viewHandle,
-                                      desktopWindowState->mWidth,
-                                      desktopWindowState->mHeight,
-                                      errors );
-  }
-
-  static void ImGuiRender( Errors& errors )
-  {
-    // this should iteratre through imgui views?
-    // and the draw data shouldnt exist, it should just be inlined here
-    // in 1 big ass vbo/ibo
-    for( ImGuiWindow* window : ImGuiGlobals::Instance.mAllWindows )
-      ImGuiRenderWindow( window, errors );
-  }
 
   void ImGuiFrameBegin( double elapsedSeconds, const DesktopWindowHandle& mouseHoveredWindow )
   {

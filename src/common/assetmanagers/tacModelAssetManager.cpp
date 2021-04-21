@@ -35,6 +35,9 @@ namespace Tac
                                   const Render::VertexDeclarations& vertexDeclarations,
                                   Errors& errors )
   {
+    if( path.empty() )
+      return nullptr;
+
     auto it = mMeshes.find( path );
     if( it != mMeshes.end() )
       return ( *it ).second;
@@ -66,10 +69,13 @@ namespace Tac
   }
 
   Mesh* ModelAssetManagerGetMeshTryingNewThing( const char* path,
-                                                int iModel,
+                                                const int iModel,
                                                 const Render::VertexDeclarations& vertexDeclarations,
                                                 Errors& errors )
   {
+    if( !path || *path == '\0' )
+      return nullptr;
+
     HashedValue hashedValue = HashAddString( path );
     hashedValue = HashAddVertexDeclarations( hashedValue, vertexDeclarations );
     hashedValue = HashAddHash( hashedValue, ( HashedValue )iModel );
@@ -84,9 +90,7 @@ namespace Tac
 
     auto mesh = TAC_NEW Mesh;
     *mesh = LoadMeshIndexSynchronous( path, iModel, vertexDeclarations, errors );
-
     sTryNewTHingMeshes[ hashedValue ] = mesh;
-
 
     return mesh;
   }

@@ -1,10 +1,23 @@
 #include "src/common/tacCamera.h"
 #include "src/common/tacMemory.h"
+#include "src/common/tacErrorHandling.h"
+#include "src/common/assetmanagers/tacModelAssetManager.h"
 #include "src/space/graphics/tacgraphics.h"
 #include "src/space/presentation/tacVoxelGIPresentation.h"
+#include "src/space/model/tacmodel.h"
 
 namespace Tac
 {
+  static Render::TextureHandle voxTexScene;
+  static Render::TextureHandle voxTexRadianceBounce0;
+  static Render::TextureHandle voxTexRadianceBounce1;
+  static int                   voxGridPow = 0;
+  //static int                   GetVoxelGridWidth()
+  //{
+  //  return 1 << voxGridPow;
+  //}
+
+
 //   struct WorldVoxelGIState
 //   {
 // 
@@ -33,14 +46,26 @@ namespace Tac
                                                 const int viewHeight,
                                                 const Render::ViewHandle viewHandle )
   {
-    Graphics* graphics = GetGraphics( world );
     struct : public ModelVisitor
     {
       void operator()( const Model* model ) override
       {
         TAC_UNUSED_PARAMETER( model );
+
+
+        Errors errors;
+        //Mesh* mesh = ModelAssetManagerGetMeshTryingNewThing( model->mModelPath.c_str(),
+        //                                             model->mModelIndex,
+        //                                             m3DVertexFormatDecls,
+        //                                             errors );
+
+        //Model->
+
+
       }
     } modelVisitor;
+
+    Graphics* graphics = GetGraphics( world );
     graphics->VisitModels( &modelVisitor );
 
     TAC_UNUSED_PARAMETER( world );

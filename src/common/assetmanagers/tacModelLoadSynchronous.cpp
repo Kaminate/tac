@@ -307,7 +307,7 @@ namespace Tac
   }
 
   Mesh LoadMeshIndexSynchronous( const StringView& path,
-                                 int specifiedMeshIndex,
+                                 const int specifiedMeshIndex,
                                  const Render::VertexDeclarations& vertexDeclarations,
                                  Errors& errors )
   {

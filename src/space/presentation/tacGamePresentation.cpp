@@ -148,11 +148,6 @@ namespace Tac
 
   static Mesh* LoadModel( const Model* model )
   {
-    //if( model->mesh )
-    //  return;
-    if( model->mModelPath.empty() )
-      return nullptr;
-
     Errors getmeshErrors;
     if( model->mTryingNewThing )
     {
@@ -293,6 +288,109 @@ namespace Tac
                                                 TAC_STACK_FRAME );
   }
 
+  static void RenderModels( World* world,
+                            const Render::ViewHandle viewId )
+  {
+    Graphics* graphics = GetGraphics( world );
+    struct : public ModelVisitor
+    {
+      void operator()( const Model* model ) override
+      {
+        Mesh* mesh = LoadModel( model );
+        if( !mesh )
+          return;
+
+        DefaultCBufferPerObject perObjectData;
+        perObjectData.Color = { model->mColorRGB, 1 };
+        perObjectData.World = model->mEntity->mWorldTransform;
+        Render::BeginGroup( FrameMemoryPrintf( "%s %i",
+                                               model->mModelPath.c_str(),
+                                               model->mModelIndex ), TAC_STACK_FRAME );
+        RenderGameWorldAddDrawCall( mesh, perObjectData, mViewId );
+        Render::EndGroup( TAC_STACK_FRAME );
+      }
+
+      Render::ViewHandle mViewId;
+    } myModelVisitor;
+    myModelVisitor.mViewId = viewId;
+
+    TAC_RENDER_GROUP_BLOCK( "Visit Models");
+    //Render::BeginGroup( "Visit Models", TAC_STACK_FRAME );
+    graphics->VisitModels( &myModelVisitor );
+    //Render::EndGroup( TAC_STACK_FRAME );
+  }
+
+  static void RenderTerrain( World* world,
+                             const Render::ViewHandle viewId )
+  {
+    Physics* physics = Physics::GetSystem( world );
+
+    TAC_RENDER_GROUP_BLOCK(  "Visit Terrains");
+    //Render::BeginGroup( "Visit Terrains", TAC_STACK_FRAME );
+    for( Terrain* terrain : physics->mTerrains )
+    {
+      LoadTerrain( terrain );
+
+      if( !terrain->mVertexBuffer.IsValid() || !terrain->mIndexBuffer.IsValid() )
+        continue;
+
+      const Render::TextureHandle terrainTexture =
+        TextureAssetManager::GetTexture( terrain->mGroundTexturePath, mGetTextureErrorsGround );
+      const Render::TextureHandle noiseTexture =
+        TextureAssetManager::GetTexture( terrain->mNoiseTexturePath, mGetTextureErrorsNoise );
+
+      DefaultCBufferPerObject cbuf = {};
+      cbuf.Color = { 1, 1, 1, 1 };
+      cbuf.World = m4::Identity();
+
+      Render::SetTexture( Render::DrawCallTextures{ terrainTexture, noiseTexture } );
+      Render::UpdateConstantBuffer( mPerObj, &cbuf, sizeof( DefaultCBufferPerObject ), TAC_STACK_FRAME );
+      Render::SetDepthState( mDepthState );
+      Render::SetBlendState( mBlendState );
+      Render::SetRasterizerState( mRasterizerState );
+      Render::SetSamplerState( mSamplerState );
+      Render::SetShader( mTerrainShader );
+      Render::SetIndexBuffer( terrain->mIndexBuffer, 0, terrain->mIndexCount );
+      Render::SetVertexBuffer( terrain->mVertexBuffer, 0, 0 );
+      Render::SetVertexFormat( mTerrainVertexFormat );
+      Render::Submit( viewId, TAC_STACK_FRAME );
+    }
+    //Render::EndGroup( TAC_STACK_FRAME );
+  }
+
+
+  static void RenderSkybox( World* world,
+                               const Camera* camera,
+                               const int viewWidth,
+                               const int viewHeight,
+                            const Render::ViewHandle viewId )
+  {
+    Graphics* graphics = GetGraphics( world );
+    struct : public SkyboxVisitor
+    {
+      void operator()( const Skybox* skybox ) override
+      {
+        SkyboxPresentationRender( mCamera,
+                                  mViewWidth,
+                                  mViewHeight,
+                                  mViewId,
+                                  skybox->mSkyboxDir );
+      }
+      int                mViewWidth;
+      int                mViewHeight;
+      Render::ViewHandle mViewId;
+      const Camera*      mCamera;
+    } mySkyboxVisitor;
+    mySkyboxVisitor.mViewWidth = viewWidth;
+    mySkyboxVisitor.mViewHeight = viewHeight;
+    mySkyboxVisitor.mViewId = viewId;
+    mySkyboxVisitor.mCamera = camera;
+    TAC_RENDER_GROUP_BLOCK(  "Visit Skyboxes");
+    //Render::BeginGroup( "Visit Skyboxes", TAC_STACK_FRAME );
+    graphics->VisitSkyboxes( &mySkyboxVisitor );
+    //Render::EndGroup( TAC_STACK_FRAME );
+  }
+
   void GamePresentationInit( Errors& errors )
   {
     CreatePerFrame( errors );
@@ -348,8 +446,8 @@ namespace Tac
     TAC_RENDER_GROUP_BLOCK( "Render Game World" );
     //_PROFILE_BLOCK;
 
-    Graphics* graphics = GetGraphics( world );
-    Physics* physics = Physics::GetSystem( world );
+    //Graphics* graphics = GetGraphics( world );
+    //Physics* physics = Physics::GetSystem( world );
 
     float a;
     float b;
@@ -382,89 +480,16 @@ namespace Tac
     Render::Submit( viewId, TAC_STACK_FRAME );
 
 
-    struct : public ModelVisitor
-    {
-      void operator()( const Model* model ) override
-      {
-        Mesh* mesh = LoadModel( model );
-        if( !mesh )
-          return;
+    RenderModels( world, viewId );
 
-        DefaultCBufferPerObject perObjectData;
-        perObjectData.Color = { model->mColorRGB, 1 };
-        perObjectData.World = model->mEntity->mWorldTransform;
-        Render::BeginGroup( FrameMemoryPrintf( "%s %i",
-                                               model->mModelPath.c_str(),
-                                               model->mModelIndex ), TAC_STACK_FRAME );
-        RenderGameWorldAddDrawCall( mesh, perObjectData, mViewId );
-        Render::EndGroup( TAC_STACK_FRAME );
-      }
+    RenderTerrain( world, viewId );
 
-      Render::ViewHandle mViewId;
-    } myModelVisitor;
-    myModelVisitor.mViewId = viewId;
+    RenderSkybox( world,
+                  camera,
+                  viewWidth,
+                  viewHeight,
+                  viewId );
 
-    Render::BeginGroup( "Visit Models", TAC_STACK_FRAME );
-    graphics->VisitModels( &myModelVisitor );
-    Render::EndGroup( TAC_STACK_FRAME );
-
-
-    Render::BeginGroup( "Visit Terrains", TAC_STACK_FRAME );
-    for( Terrain* terrain : physics->mTerrains )
-    {
-      LoadTerrain( terrain );
-
-      if( !terrain->mVertexBuffer.IsValid() || !terrain->mIndexBuffer.IsValid() )
-        continue;
-
-      const Render::TextureHandle terrainTexture =
-        TextureAssetManager::GetTexture( terrain->mGroundTexturePath, mGetTextureErrorsGround );
-      const Render::TextureHandle noiseTexture =
-        TextureAssetManager::GetTexture( terrain->mNoiseTexturePath, mGetTextureErrorsNoise );
-
-      DefaultCBufferPerObject cbuf = {};
-      cbuf.Color = { 1, 1, 1, 1 };
-      cbuf.World = m4::Identity();
-
-      Render::SetTexture( Render::DrawCallTextures{ terrainTexture, noiseTexture } );
-      Render::UpdateConstantBuffer( mPerObj, &cbuf, sizeof( DefaultCBufferPerObject ), TAC_STACK_FRAME );
-      Render::SetDepthState( mDepthState );
-      Render::SetBlendState( mBlendState );
-      Render::SetRasterizerState( mRasterizerState );
-      Render::SetSamplerState( mSamplerState );
-      Render::SetShader( mTerrainShader );
-      Render::SetIndexBuffer( terrain->mIndexBuffer, 0, terrain->mIndexCount );
-      Render::SetVertexBuffer( terrain->mVertexBuffer, 0, 0 );
-      Render::SetVertexFormat( mTerrainVertexFormat );
-      Render::Submit( viewId, TAC_STACK_FRAME );
-    }
-    Render::EndGroup( TAC_STACK_FRAME );
-
-
-    struct : public SkyboxVisitor
-    {
-      void operator()( const Skybox* skybox ) override
-      {
-        SkyboxPresentationRender( mCamera,
-                                  mViewWidth,
-                                  mViewHeight,
-                                  mViewId,
-                                  skybox->mSkyboxDir );
-      }
-      int                mViewWidth;
-      int                mViewHeight;
-      Render::ViewHandle mViewId;
-      //GamePresentation*  mGamePresentation;
-      const Camera*      mCamera;
-    } mySkyboxVisitor;
-    mySkyboxVisitor.mViewWidth = viewWidth;
-    mySkyboxVisitor.mViewHeight = viewHeight;
-    mySkyboxVisitor.mViewId = viewId;
-    //mySkyboxVisitor.mGamePresentation = this;
-    mySkyboxVisitor.mCamera = camera;
-    Render::BeginGroup( "Visit Skyboxes", TAC_STACK_FRAME );
-    graphics->VisitSkyboxes( &mySkyboxVisitor );
-    Render::EndGroup( TAC_STACK_FRAME );
 
     //world->mDebug3DDrawData->DrawToTexture(
     //  ignored,
