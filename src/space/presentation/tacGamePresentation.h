@@ -16,5 +16,11 @@ namespace Tac
                                                         int viewHeight,
                                                         Render::ViewHandle );
   const Mesh*                   GamePresentationGetModelMesh( const Model* );
+  Render::ConstantBufferHandle  GamePresentationGetPerFrame();
+  Render::ConstantBufferHandle  GamePresentationGetPerObj();
+  Render::DepthStateHandle      GamePresentationGetDepthState();
+  Render::BlendStateHandle      GamePresentationGetBlendState();
+  Render::RasterizerStateHandle GamePresentationGetRasterizerState();
+  Render::SamplerStateHandle    GamePresentationGetSamplerState();
 }
 

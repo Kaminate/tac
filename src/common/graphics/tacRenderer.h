@@ -214,16 +214,17 @@ namespace Tac
     //  Count,
     //};
 
-    TAC_DEFINE_HANDLE( ShaderHandle );
-    TAC_DEFINE_HANDLE( VertexBufferHandle );
-    TAC_DEFINE_HANDLE( IndexBufferHandle );
-    TAC_DEFINE_HANDLE( ConstantBufferHandle );
-    TAC_DEFINE_HANDLE( TextureHandle );
-    TAC_DEFINE_HANDLE( FramebufferHandle );
     TAC_DEFINE_HANDLE( BlendStateHandle );
+    TAC_DEFINE_HANDLE( ConstantBufferHandle );
+    TAC_DEFINE_HANDLE( DepthStateHandle );
+    TAC_DEFINE_HANDLE( FramebufferHandle );
+    TAC_DEFINE_HANDLE( IndexBufferHandle );
+    TAC_DEFINE_HANDLE( MagicBufferHandle );
     TAC_DEFINE_HANDLE( RasterizerStateHandle );
     TAC_DEFINE_HANDLE( SamplerStateHandle );
-    TAC_DEFINE_HANDLE( DepthStateHandle );
+    TAC_DEFINE_HANDLE( ShaderHandle );
+    TAC_DEFINE_HANDLE( TextureHandle );
+    TAC_DEFINE_HANDLE( VertexBufferHandle );
     TAC_DEFINE_HANDLE( VertexFormatHandle );
     TAC_DEFINE_HANDLE( ViewHandle );
 
@@ -353,6 +354,11 @@ namespace Tac
     ConstantBufferHandle             CreateConstantBuffer( int mByteCount,
                                                            int mShaderRegister,
                                                            StackFrame );
+    MagicBufferHandle                CreateMagicBuffer( int mByteCount,
+                                                        //const void* mOptionalInitialBytes,
+                                                        int mStride,
+                                                        Access mAccess,
+                                                        StackFrame );
     VertexBufferHandle               CreateVertexBuffer( int mByteCount,
                                                          const void* mOptionalInitialBytes,
                                                          int mStride,

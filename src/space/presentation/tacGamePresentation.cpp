@@ -231,7 +231,7 @@ namespace Tac
   {
     TAC_UNUSED_PARAMETER( errors );
     mPerFrame = Render::CreateConstantBuffer( sizeof( DefaultCBufferPerFrame ),
-                                              0,
+                                              DefaultCBufferPerFrame::shaderRegister,
                                               TAC_STACK_FRAME );
   }
 
@@ -239,7 +239,7 @@ namespace Tac
   {
     TAC_UNUSED_PARAMETER( errors );
     mPerObj = Render::CreateConstantBuffer( sizeof( DefaultCBufferPerObject ),
-                                            1,
+                                            DefaultCBufferPerObject::shaderRegister,
                                             TAC_STACK_FRAME );
   }
 
@@ -496,5 +496,12 @@ namespace Tac
     //  &perFrameData,
     //  mDesktopWindow->mRenderView );
   }
+
+  Render::ConstantBufferHandle  GamePresentationGetPerFrame()        { return mPerFrame;         }
+  Render::ConstantBufferHandle  GamePresentationGetPerObj()          { return mPerObj;           }
+  Render::DepthStateHandle      GamePresentationGetDepthState()      { return mDepthState;       }
+  Render::BlendStateHandle      GamePresentationGetBlendState()      { return mBlendState;       }
+  Render::RasterizerStateHandle GamePresentationGetRasterizerState() { return mRasterizerState;  }
+  Render::SamplerStateHandle    GamePresentationGetSamplerState()    { return mSamplerState;     }
 
 }

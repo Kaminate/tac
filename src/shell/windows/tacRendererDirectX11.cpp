@@ -887,6 +887,14 @@ namespace Tac
 
 
 
+    void RendererDirectX11::AddMagicBuffer( Render::CommandDataCreateMagicBuffer* commandDataCreateMagicBuffer,
+                                             Errors& errors )
+    {
+      TAC_UNUSED_PARAMETER( commandDataCreateMagicBuffer );
+      TAC_UNUSED_PARAMETER( errors );
+      TAC_CRITICAL_ERROR_UNIMPLEMENTED;
+    }
+
     void RendererDirectX11::AddVertexBuffer( Render::CommandDataCreateVertexBuffer* data,
                                              Errors& errors )
     {

@@ -58,6 +58,7 @@ namespace Tac
 #define TAC_CRITICAL_ERROR_INVALID_CASE( var )             TAC_CRITICAL_ERROR( "Invalid default case, %s = %i", TAC_STRINGIFY( var ), var );
 #define TAC_ASSERT_MSG( expression, formatString, ... )    if( !( expression ) ){ TAC_CRITICAL_ERROR( formatString, __VA_ARGS__ ); }
 #define TAC_ASSERT( expression )                           if( !( expression ) ){ TAC_CRITICAL_ERROR( TAC_STRINGIFY( expression ) ); }
+#define TAC_ASSERT_INDEX( i, n )                           TAC_ASSERT( ( unsigned )i < ( unsigned )n )
 #define TAC_ON_DESTRUCT_AUX( code, lambdaName, dtorName )  auto lambdaName = [&](){ code; }; OnDestructAux< decltype( lambdaName ) > dtorName( lambdaName );
 #define TAC_ON_DESTRUCT( code )                            TAC_ON_DESTRUCT_AUX( code, TAC_CONCAT( lambda, __LINE__ ), TAC_CONCAT( dtor, __LINE__ ) )
 #define TAC_DEFINE_HANDLE( Handle )                                             \

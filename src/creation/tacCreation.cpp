@@ -28,6 +28,7 @@
 #include "src/space/model/tacModel.h"
 #include "src/space/presentation/tacGamePresentation.h"
 #include "src/space/presentation/tacSkyboxPresentation.h"
+#include "src/space/presentation/tacVoxelGIPresentation.h"
 #include "src/space/tacEntity.h"
 #include "src/space/tacGhost.h"
 #include "src/space/tacSpace.h"
@@ -134,9 +135,13 @@ namespace Tac
     //mSkyboxPresentation->Init( errors );
     TAC_HANDLE_ERROR( errors );
 
+
     GamePresentationInit( errors );
     //mGamePresentation->mSkyboxPresentation = mSkyboxPresentation;
     //mGamePresentation->CreateGraphicsObjects( errors );
+    TAC_HANDLE_ERROR( errors );
+
+    VoxelGIPresentationInit( errors );
     TAC_HANDLE_ERROR( errors );
 
     String dataPath;

@@ -20,6 +20,7 @@
 #include "src/space/model/tacmodel.h"
 #include "src/space/presentation/tacGamePresentation.h"
 #include "src/space/presentation/tacSkyboxPresentation.h"
+#include "src/space/presentation/tacVoxelGIPresentation.h"
 #include "src/space/tacEntity.h"
 #include "src/space/tacGhost.h"
 #include "src/space/tacWorld.h"
@@ -710,10 +711,16 @@ namespace Tac
 
     //GamePresentation* gamePresentation = gCreation.mGamePresentation;
     GamePresentationRender( gCreation.mWorld,
-                                                    gCreation.mEditorCamera,
-                                                    desktopWindowState->mWidth,
-                                                    desktopWindowState->mHeight,
-                                                    viewHandle );
+                            gCreation.mEditorCamera,
+                            desktopWindowState->mWidth,
+                            desktopWindowState->mHeight,
+                            viewHandle );
+
+    VoxelGIPresentationRender( gCreation.mWorld,
+                               gCreation.mEditorCamera,
+                               desktopWindowState->mWidth,
+                               desktopWindowState->mHeight,
+                               viewHandle );
 
     if( gCreation.mSelectedGizmo )
     {

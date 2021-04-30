@@ -12,6 +12,7 @@ namespace Tac
     const int kDrawCallCapacity = 1000;
     const int kMaxTextures = 1000;
     const int kMaxVertexBuffers = 1000;
+    const int kMaxMagicBuffers = 1000;
     const int kMaxIndexBuffers = 1000;
     const int kMaxFramebuffers = 100;
     const int kMaxRasterizerStates = 100;
@@ -34,6 +35,7 @@ namespace Tac
       CreateSamplerState,
       CreateShader,
       CreateTexture,
+      CreateMagicBuffer,
       CreateVertexBuffer,
       CreateVertexFormat,
       DestroyBlendState,
@@ -52,6 +54,7 @@ namespace Tac
       UpdateVertexBuffer,
       ResizeFramebuffer,
       SetRenderObjectDebugName,
+      Count, // must be last
     };
 
     struct UpdateConstantBufferData
@@ -178,6 +181,7 @@ namespace Tac
       FixedVector< RasterizerStateHandle, kMaxRasterizerStates > mFreedRasterizerStates;
       FixedVector< SamplerStateHandle, kMaxSamplerStates >       mFreedSamplerStates;
       FixedVector< ShaderHandle, kMaxPrograms >                  mFreedShaders;
+      FixedVector< MagicBufferHandle, kMaxMagicBuffers >         mFreedMagicBuffers;
       FixedVector< TextureHandle, kMaxTextures >                 mFreedTextures;
       FixedVector< VertexBufferHandle, kMaxVertexBuffers >       mFreedVertexBuffers;
       FixedVector< VertexFormatHandle, kMaxInputLayouts >        mFreedVertexFormatInputLayouts;
@@ -220,6 +224,16 @@ namespace Tac
       ConstantBufferHandle  mConstantBufferHandle;
       int                   mByteCount = 0;
       int                   mShaderRegister = 0;
+    };
+
+    struct CommandDataCreateMagicBuffer
+    {
+      StackFrame            mStackFrame;
+      MagicBufferHandle     mMagicBufferHandle;
+      int                   mByteCount = 0;
+      //const void*           mOptionalInitialBytes = nullptr;
+      int                   mStride = 0;
+      //Access                mAccess = Access::Default;
     };
 
     struct CommandDataCreateVertexBuffer
@@ -393,28 +407,29 @@ namespace Tac
     virtual void AddSamplerState( Render::CommandDataCreateSamplerState*, Errors& ) = 0;
     virtual void AddShader( Render::CommandDataCreateShader*, Errors& ) = 0;
     virtual void AddTexture( Render::CommandDataCreateTexture*, Errors& ) = 0;
+    virtual void AddMagicBuffer( Render::CommandDataCreateMagicBuffer*, Errors& ) = 0;
     virtual void AddVertexBuffer( Render::CommandDataCreateVertexBuffer*, Errors& ) = 0;
     virtual void AddVertexFormat( Render::CommandDataCreateVertexFormat*, Errors& ) = 0;
-    virtual void UpdateTextureRegion( Render::CommandDataUpdateTextureRegion*, Errors& ) = 0;
-    virtual void UpdateVertexBuffer( Render::CommandDataUpdateVertexBuffer*, Errors& ) = 0;
-    virtual void UpdateIndexBuffer( Render::CommandDataUpdateIndexBuffer*, Errors& ) = 0;
-    virtual void UpdateConstantBuffer( Render::CommandDataUpdateConstantBuffer*, Errors& ) = 0;
-    virtual void ResizeFramebuffer( Render::CommandDataResizeFramebuffer*, Errors& ) = 0;
+    virtual void DebugGroupBegin( StringView ) = 0;
+    virtual void DebugGroupEnd() = 0;
+    virtual void DebugMarker( StringView ) = 0;
     virtual void RemoveBlendState( Render::BlendStateHandle, Errors& ) = 0;
     virtual void RemoveConstantBuffer( Render::ConstantBufferHandle, Errors& ) = 0;
     virtual void RemoveDepthState( Render::DepthStateHandle, Errors& ) = 0;
+    virtual void RemoveFramebuffer( Render::FramebufferHandle, Errors& ) = 0;
+    virtual void RemoveIndexBuffer( Render::IndexBufferHandle, Errors& ) = 0;
     virtual void RemoveRasterizerState( Render::RasterizerStateHandle, Errors& ) = 0;
     virtual void RemoveSamplerState( Render::SamplerStateHandle, Errors& ) = 0;
     virtual void RemoveShader( Render::ShaderHandle, Errors& ) = 0;
-    virtual void RemoveVertexFormat( Render::VertexFormatHandle, Errors& ) = 0;
-    virtual void RemoveVertexBuffer( Render::VertexBufferHandle, Errors& ) = 0;
-    virtual void RemoveIndexBuffer( Render::IndexBufferHandle, Errors& ) = 0;
     virtual void RemoveTexture( Render::TextureHandle, Errors& ) = 0;
-    virtual void RemoveFramebuffer( Render::FramebufferHandle, Errors& ) = 0;
+    virtual void RemoveVertexBuffer( Render::VertexBufferHandle, Errors& ) = 0;
+    virtual void RemoveVertexFormat( Render::VertexFormatHandle, Errors& ) = 0;
+    virtual void ResizeFramebuffer( Render::CommandDataResizeFramebuffer*, Errors& ) = 0;
     virtual void SetRenderObjectDebugName( Render::CommandDataSetRenderObjectDebugName*, Errors& ) = 0;
-    virtual void DebugGroupBegin( StringView ) = 0;
-    virtual void DebugMarker( StringView ) = 0;
-    virtual void DebugGroupEnd() = 0;
+    virtual void UpdateConstantBuffer( Render::CommandDataUpdateConstantBuffer*, Errors& ) = 0;
+    virtual void UpdateIndexBuffer( Render::CommandDataUpdateIndexBuffer*, Errors& ) = 0;
+    virtual void UpdateTextureRegion( Render::CommandDataUpdateTextureRegion*, Errors& ) = 0;
+    virtual void UpdateVertexBuffer( Render::CommandDataUpdateVertexBuffer*, Errors& ) = 0;
   };
 
   //String RendererTypeToString( Renderer::Type );

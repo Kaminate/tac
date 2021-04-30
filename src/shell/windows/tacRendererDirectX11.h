@@ -85,6 +85,7 @@ namespace Tac
       void AddSamplerState( Render::CommandDataCreateSamplerState*, Errors& ) override;
       void AddShader( Render::CommandDataCreateShader*, Errors& ) override;
       void AddTexture( Render::CommandDataCreateTexture*, Errors& ) override;
+      void AddMagicBuffer( Render::CommandDataCreateMagicBuffer*, Errors& ) override;
       void AddVertexBuffer( Render::CommandDataCreateVertexBuffer*, Errors& ) override;
       void AddVertexFormat( Render::CommandDataCreateVertexFormat*, Errors& ) override;
       void RemoveBlendState( Render::BlendStateHandle, Errors& ) override;
