@@ -16,27 +16,41 @@ namespace Tac
 {
   static bool gVerbose;
 
-  template< typename T >
-  static T* Pop( const char*& bufferPos )
+  struct CommandBufferIterator
   {
-    auto result = ( T* )bufferPos;
-    bufferPos += sizeof( T );
-    return result;
-  }
+    bool IsValid()
+    {
+      return bufferPos < bufferEnd;
+    }
 
-  template< typename T >
-  static T* PopCommandData( const char*& bufferPos )
-  {
-    auto result = ( T* )bufferPos;
-    bufferPos += sizeof( T );
+    void* PopBytes( int n )
+    {
+      if( bufferPos + n > bufferEnd )
+        return nullptr;
+      void* result = ( void* )bufferPos;
+      bufferPos += n;
+      return result;
+    }
 
-    TAC_ASSERT( bufferPos[ 0 ] == 'e' );
-    TAC_ASSERT( bufferPos[ 1 ] == 'n' );
-    TAC_ASSERT( bufferPos[ 2 ] == 'd' );
-    bufferPos += 3;
+    template< typename T >
+    T* Pop()
+    {
+      return ( T* )PopBytes( sizeof( T ) );
+    }
 
-    return result;
-  }
+    template< typename T >
+    T* PopCommandData()
+    {
+      auto result = Pop< T >();
+      auto end = ( const char* )PopBytes( 3 );
+      TAC_ASSERT( MemCmp( end, "end", 3 ) == 0 );
+      return result;
+    }
+
+    const char* bufferBegin;
+    const char* bufferEnd;
+    const char* bufferPos;
+  };
 
   namespace Render
   {
@@ -1142,7 +1156,7 @@ namespace Tac
 
   struct CommandHandlerBase
   {
-    virtual void Invoke( Renderer* renderer,const char*& bufferPos, Errors& errors ) = 0;
+    virtual void Invoke( Renderer*, CommandBufferIterator*, Errors& ) = 0;
     const char* mName;
   };
 
@@ -1157,9 +1171,11 @@ namespace Tac
       return &sCommandHandler;
     }
 
-    void Invoke( Renderer* renderer, const char*& bufferPos, Errors& errors ) override
+    void Invoke( Renderer* renderer,
+                 CommandBufferIterator* commandBufferIterator,
+                 Errors& errors ) override
     {
-      auto commandData = PopCommandData< CommandData >( bufferPos );
+      auto commandData = commandBufferIterator->PopCommandData< CommandData >();
       ( renderer->*mCallback )( commandData, errors );
       TAC_HANDLE_ERROR( errors );
     }
@@ -1172,9 +1188,11 @@ namespace Tac
   {
 
     CommandHandlerDestroy( void ( Renderer::* callback )( Handle, Errors& ) ) : mCallback( callback ){}
-    void Invoke( Renderer* renderer, const char*& bufferPos, Errors& errors ) override
+    void Invoke( Renderer* renderer,
+                 CommandBufferIterator* commandBufferIterator,
+                 Errors& errors ) override
     {
-      auto commandData = PopCommandData< Render::CommandDataDestroy >( bufferPos );
+      auto commandData = commandBufferIterator->PopCommandData< Render::CommandDataDestroy >();
       ( renderer->*mCallback )( Handle( commandData->mIndex ), errors );
       TAC_HANDLE_ERROR( errors );
     }
@@ -1190,13 +1208,16 @@ namespace Tac
       mCommandHandlers[ ( int )commandType ] = commandHandler;
     }
 
-    void Invoke( Renderer* renderer,const Render::CommandType comandType, const char*& bufferPos, Errors& errors )
+    void Invoke( Renderer* renderer,
+                 const Render::CommandType comandType,
+                 CommandBufferIterator* commandBufferIterator,
+                 Errors& errors )
     {
       TAC_ASSERT_INDEX( comandType, Render::CommandType::Count );
       CommandHandlerBase* commandHandler = mCommandHandlers[ ( int )comandType ];
       if( gVerbose )
         std::cout << commandHandler->mName << "::End\n";
-      commandHandler->Invoke( renderer, bufferPos, errors );
+      commandHandler->Invoke( renderer, commandBufferIterator, errors );
       if( gVerbose )
         std::cout << commandHandler->mName << "::Begin\n";
     }
@@ -1266,15 +1287,22 @@ namespace Tac
     CommandHandlerBase* mCommandHandlers[ ( int )Render::CommandType::Count ];
   } sCommandHandlers;
 
+
+
   void Renderer::ExecuteCommands( Render::CommandBuffer* commandBuffer, Errors& errors )
   {
-    const char* bufferBegin = commandBuffer->Data();
-    const char* bufferEnd = bufferBegin + commandBuffer->Size();
-    const char* bufferPos = bufferBegin;
-    while( bufferPos < bufferEnd )
+    //const char* bufferBegin = commandBuffer->Data();
+    //const char* bufferEnd = bufferBegin + commandBuffer->Size();
+    //const char* bufferPos = bufferBegin;
+
+    CommandBufferIterator iter;
+    iter.bufferBegin = commandBuffer->Data();
+    iter.bufferEnd = commandBuffer->Data() + commandBuffer->Size();
+    iter.bufferPos = commandBuffer->Data();
+    while( iter.IsValid() )
     {
-      auto renderCommandType = Pop< Render::CommandType >( bufferPos );
-      sCommandHandlers.Invoke( this, *renderCommandType, bufferPos, errors );
+      auto renderCommandType = iter.Pop< Render::CommandType >();
+      sCommandHandlers.Invoke( this, *renderCommandType, &iter, errors );
     }
   }
 
