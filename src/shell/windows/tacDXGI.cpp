@@ -148,6 +148,7 @@ namespace Tac
   {
     FormatPair{ { 2, sizeof( float ),    Render::GraphicsType::real  }, DXGI_FORMAT_R32G32_FLOAT       },
     FormatPair{ { 3, sizeof( float ),    Render::GraphicsType::real  }, DXGI_FORMAT_R32G32B32_FLOAT    },
+    FormatPair{ { 4, 2,                  Render::GraphicsType::real  }, DXGI_FORMAT_R16G16B16A16_FLOAT },
     FormatPair{ { 4, sizeof( float ),    Render::GraphicsType::real  }, DXGI_FORMAT_R32G32B32A32_FLOAT },
     FormatPair{ { 1, sizeof( uint8_t ),  Render::GraphicsType::unorm }, DXGI_FORMAT_R8_UNORM           },
     FormatPair{ { 2, sizeof( uint8_t ),  Render::GraphicsType::unorm }, DXGI_FORMAT_R8G8_UNORM         },
@@ -170,6 +171,12 @@ namespace Tac
   {
     for( auto formatPair : gFormatPairs )
       if( formatPair.mFormat.mElementCount == textureFormat.mElementCount &&
+          formatPair.mFormat.mPerElementByteCount == textureFormat.mPerElementByteCount &&
+          formatPair.mFormat.mPerElementDataType == textureFormat.mPerElementDataType )
+        return formatPair.mFormatDXGI;
+    // try again, but bump the element count
+    for( auto formatPair : gFormatPairs )
+      if( formatPair.mFormat.mElementCount >= textureFormat.mElementCount &&
           formatPair.mFormat.mPerElementByteCount == textureFormat.mPerElementByteCount &&
           formatPair.mFormat.mPerElementDataType == textureFormat.mPerElementDataType )
         return formatPair.mFormatDXGI;

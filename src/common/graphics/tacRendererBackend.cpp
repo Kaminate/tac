@@ -1291,10 +1291,6 @@ namespace Tac
 
   void Renderer::ExecuteCommands( Render::CommandBuffer* commandBuffer, Errors& errors )
   {
-    //const char* bufferBegin = commandBuffer->Data();
-    //const char* bufferEnd = bufferBegin + commandBuffer->Size();
-    //const char* bufferPos = bufferBegin;
-
     CommandBufferIterator iter;
     iter.bufferBegin = commandBuffer->Data();
     iter.bufferEnd = commandBuffer->Data() + commandBuffer->Size();

@@ -17,28 +17,31 @@ namespace Tac
     return buffer;
   }
 
-  bool IsDebugMode()
-  {
-#ifdef NDEBUG
-    return false;
-#else
-    return true;
-#endif
-  }
+//  constexpr bool IsDebugMode()
+//  {
+//#ifdef NDEBUG
+//    return false;
+//#else
+//    return true;
+//#endif
+//  }
 
   StackFrame::StackFrame( const int line,
                           const char* file,
                           const char* function )
   {
+    const int i = StringView( file ).find_last_of( "/\\" );
     mLine = line;
-    mFile = file;
+    mFile = file + ( i == StringView::npos ? 0 : i + 1 );
     mFunction = function;
   }
 
   const char* StackFrame::ToString()  const
   {
-    SplitFilepath splitFilepath( mFile );
-    return va( "%s:%i %s", splitFilepath.mFilename.c_str(), mLine, mFunction );
+    //SplitFilepath splitFilepath( mFile );
+    //return va( "%s:%i %s", splitFilepath.mFilename.c_str(), mLine, mFunction );
+    //SplitFilepath splitFilepath( mFile );
+    return va( "%s:%i %s", mFile, mLine, mFunction );
   }
 
   void HandleAssert( const char* message, const StackFrame& frame )

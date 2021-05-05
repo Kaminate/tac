@@ -135,6 +135,7 @@ namespace Tac
     {
       int    mWidth = 0;
       int    mHeight = 0;
+      int    mDepth = 0;
       Format mFormat;
 
       // byte data should be passed as a separate argument, not as a member of this class

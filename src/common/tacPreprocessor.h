@@ -40,7 +40,15 @@ namespace Tac
     OnDestructAux( const OnDestructAux< T >& rhs ) = delete;
   };
 
-  bool IsDebugMode();
+  constexpr bool IsDebugMode()
+  {
+#ifdef NDEBUG
+    return false;
+#else
+    return true;
+#endif
+  }
+  
   void HandleAssert( const char* message, const StackFrame& frame );
   char* va( const char* format, ... );
 
@@ -72,6 +80,15 @@ namespace Tac
     explicit operator unsigned() const { return mIndex; }                       \
     int               mIndex;                                                   \
   };
+
+
+#ifndef NDEBUG
+#if defined(_MSC_VER)
+#pragma warning( disable: 4100 ) // unused function parameter
+#pragma warning( disable: 4189 ) // local variable is initialzed but not referenced
+#endif
+#endif
+
 
 
 }

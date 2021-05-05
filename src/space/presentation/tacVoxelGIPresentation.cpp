@@ -17,27 +17,45 @@ namespace Tac
   // https://docs.microsoft.com/en-us/windows/win32/direct3d11/direct3d-11-advanced-stages-cs-resources
   // RWStructuredBuffer
 
-  static Render::TextureHandle      voxTexScene;
-  //static Render::TextureHandle      voxTexRadianceBounce0;
-  //static Render::TextureHandle      voxTexRadianceBounce1;
-  static Render::VertexFormatHandle vertexFormat;
-  static Render::ShaderHandle       voxShader;
+  static Render::MagicBufferHandle  voxelRWStructuredBuf;
+  static Render::TextureHandle      voxelTextureRadianceBounce0;
+  static Render::TextureHandle      voxelTextureRadianceBounce1;
+  static Render::VertexFormatHandle voxelVertexFormat;
+  static Render::ShaderHandle       voxelizerShader;
+  static Render::ShaderHandle       voxelVisualizerShader;
   Render::VertexDeclarations        vertexDeclarations;
+  static int                        voxelDimension = 64; // 512; that makes the rwbuffer 1 gb
+  static bool                       voxelDebug;
 
-  static void CreateVoxShader()
+  static Render::ConstantBuffers GetConstantBuffers()
   {
-    const Render::ConstantBuffers constantBuffers =
+    return
     {
       GamePresentationGetPerFrame(),
       GamePresentationGetPerObj(),
     };
-
-    voxShader = Render::CreateShader( Render::ShaderSource::FromPath( "Voxelizer" ),
-                                      constantBuffers,
-                                      TAC_STACK_FRAME );
   }
 
-  static void CreateVertexFormat()
+  static void                    CreateVoxelVisualizerShader()
+  {
+    // This shader is used to debug visualize the voxel radiance
+
+    voxelVisualizerShader = Render::CreateShader( Render::ShaderSource::FromPath( "VoxelVisualizer" ),
+                                                  GetConstantBuffers(),
+                                                  TAC_STACK_FRAME );
+  }
+
+  static void                    CreateVoxelizerShader()
+  {
+    // The voxelizer shader turns geometry into a rwstructuredbuffer using atomics
+    // to prevent flickering
+
+    voxelizerShader = Render::CreateShader( Render::ShaderSource::FromPath( "Voxelizer" ),
+                                            GetConstantBuffers(),
+                                            TAC_STACK_FRAME );
+  }
+
+  static void                    CreateVertexFormat()
   {
     struct VoxelVtx
     {
@@ -69,52 +87,82 @@ namespace Tac
     uv.mTextureFormat.mPerElementByteCount = sizeof( float );
     uv.mTextureFormat.mPerElementDataType = Render::GraphicsType::real;
 
-    vertexDeclarations = Render::VertexDeclarations{ pos, nor, uv };
+    vertexDeclarations = { pos, nor, uv };
 
-    vertexFormat = Render::CreateVertexFormat( vertexDeclarations,
-                                               voxShader,
-                                               TAC_STACK_FRAME );
+    voxelVertexFormat = Render::CreateVertexFormat( vertexDeclarations,
+                                                    voxelizerShader,
+                                                    TAC_STACK_FRAME );
   }
 
-  static void CreateVoxTex()
+  static Render::TexSpec         GetVoxRadianceTexSpec()
   {
-    Render::TexSpec texSpec;
-    texSpec.mAccess = Render::Access::Dynamic;
-    texSpec.mBinding = ( Render::Binding ) (
+    const auto binding = ( Render::Binding ) (
       ( int )Render::Binding::ShaderResource |
       ( int )Render::Binding::UnorderedAccess );
+
+    // rgb16f, 2 bytes (16 bits) per float, hdr values
+    Render::TexSpec texSpec;
+    texSpec.mAccess = Render::Access::Default; // Render::Access::Dynamic;
+    texSpec.mBinding = binding;
     texSpec.mCpuAccess = Render::CPUAccess::None;
-    // The .mImage is unused in a structured buffer
-    //texSpec.mImage.mFormat = ;
-    //texSpec.mImage.mWidth = ;
-    //texSpec.mImage.mHeight = ;
-    //texSpec.mPitch = ;
-    voxTexScene = Render::CreateTexture( texSpec, TAC_STACK_FRAME );
+    texSpec.mImage.mFormat.mElementCount = 3;
+    texSpec.mImage.mFormat.mPerElementDataType = Render::GraphicsType::real;
+    texSpec.mImage.mFormat.mPerElementByteCount = 2;
+    texSpec.mImage.mWidth = voxelDimension;
+    texSpec.mImage.mHeight = voxelDimension;
+    texSpec.mImage.mDepth = voxelDimension;
+    texSpec.mPitch = 0;
+    return texSpec;
+  }
 
-    TAC_CRITICAL_ERROR_UNIMPLEMENTED;
+  static void                    CreateVoxelTextureRadianceBounce1()
+  {
+    voxelTextureRadianceBounce1 = Render::CreateTexture( GetVoxRadianceTexSpec(), TAC_STACK_FRAME );
+  }
 
-    //GPUBufferDesc desc;
-    //desc.StructureByteStride = sizeof( uint32_t ) * 2;
-    //desc.ByteWidth = desc.StructureByteStride * voxelSceneData.res * voxelSceneData.res * voxelSceneData.res;
-    //desc.BindFlags = BIND_UNORDERED_ACCESS | BIND_SHADER_RESOURCE;
-    //desc.CPUAccessFlags = 0;
-    //desc.MiscFlags = RESOURCE_MISC_BUFFER_STRUCTURED;
-    //desc.Usage = USAGE_DEFAULT;
+  static void                    CreateVoxelTextureRadianceBounce0()
+  {
+    voxelTextureRadianceBounce0 = Render::CreateTexture( GetVoxRadianceTexSpec(), TAC_STACK_FRAME );
+  }
 
-    //in wicked engine, the structured buffer is created with a CreateBuffer() function,
-    //  which is different from the CreateTexture() function!
+  static void                    CreateVoxelRWStructredBuf()
+  {
+    const int voxelStride = sizeof( uint32_t ) * 2;
+    const int voxelCount = voxelDimension * voxelDimension * voxelDimension;
+    voxelRWStructuredBuf = Render::CreateMagicBuffer( voxelStride * voxelCount,
+                                                      voxelStride,
+                                                      Render::Access::Dynamic,
+                                                      TAC_STACK_FRAME );
 
-    //  eventually fed into ID3D11Device::CreateBuffer 
 
-    //voxTexScene....;
-    // must be integral type for shader atomics
+
+             //TAC_CRITICAL_ERROR_UNIMPLEMENTED;
+
+             //GPUBufferDesc desc;
+             //desc.StructureByteStride = sizeof( uint32_t ) * 2;
+             //desc.ByteWidth = desc.StructureByteStride * voxelSceneData.res * voxelSceneData.res * voxelSceneData.res;
+             //desc.BindFlags = BIND_UNORDERED_ACCESS | BIND_SHADER_RESOURCE;
+             //desc.CPUAccessFlags = 0;
+             //desc.MiscFlags = RESOURCE_MISC_BUFFER_STRUCTURED;
+             //desc.Usage = USAGE_DEFAULT;
+
+             //in wicked engine, the structured buffer is created with a CreateBuffer() function,
+             //  which is different from the CreateTexture() function!
+
+             //  eventually fed into ID3D11Device::CreateBuffer 
+
+             //voxTexScene....;
+             // must be integral type for shader atomics
 
   }
 
   void               VoxelGIPresentationInit( Errors& )
   {
-    CreateVoxShader();
-    CreateVoxTex();
+    CreateVoxelizerShader();
+    CreateVoxelVisualizerShader();
+    CreateVoxelRWStructredBuf();
+    CreateVoxelTextureRadianceBounce1();
+    CreateVoxelTextureRadianceBounce0();
     CreateVertexFormat();
   }
 
@@ -132,12 +180,30 @@ namespace Tac
 //   }
 
 
+  void               VoxelGIPresentationRenderDebug( World* world,
+                                                     const Camera* camera,
+                                                     const int viewWidth,
+                                                     const int viewHeight,
+                                                     const Render::ViewHandle viewHandle )
+  {
+    Render::SetShader( voxelVisualizerShader );
+    Render::SetVertexBuffer( Render::VertexBufferHandle(), 0, voxelDimension * voxelDimension * voxelDimension );
+    Render::SetIndexBuffer( Render::IndexBufferHandle(), 0, 0 );
+    Render::Submit( viewHandle, TAC_STACK_FRAME );
+  }
+
   void               VoxelGIPresentationRender( World* world,
                                                 const Camera* camera,
                                                 const int viewWidth,
                                                 const int viewHeight,
                                                 const Render::ViewHandle viewHandle )
   {
+    if( voxelDebug )
+    {
+      VoxelGIPresentationRenderDebug( world, camera, viewWidth, viewHeight, viewHandle );
+      return;
+    }
+
     struct : public ModelVisitor
     {
       void operator()( const Model* model ) override
@@ -166,14 +232,14 @@ namespace Tac
 
         for( const SubMesh& subMesh : mesh->mSubMeshes )
         {
-          Render::SetShader( voxShader );
+          Render::SetShader( voxelizerShader );
           Render::SetVertexBuffer( subMesh.mVertexBuffer, 0, 0 );
           Render::SetIndexBuffer( subMesh.mIndexBuffer, 0, subMesh.mIndexCount );
           Render::SetBlendState( blendState );
           Render::SetRasterizerState( rasterizerState );
           Render::SetSamplerState( samplerState );
           Render::SetDepthState( depthState );
-          Render::SetVertexFormat( vertexFormat );
+          Render::SetVertexFormat( voxelVertexFormat );
           //Render::SetTexture( { gUI2DCommonData.m1x1White } );
           Render::UpdateConstantBuffer( objConstantBuffer,
                                         &objBuf,

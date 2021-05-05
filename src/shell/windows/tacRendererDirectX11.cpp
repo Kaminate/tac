@@ -1,5 +1,6 @@
 #include "src/common/containers/tacArray.h"
 #include "src/common/graphics/tacRendererBackend.h"
+#include "src/common/tacUtility.h"
 #include "src/common/tacFrameMemory.h"
 #include "src/common/containers/tacFrameVector.h"
 #include "src/common/math/tacMath.h"
@@ -144,8 +145,8 @@ namespace Tac
 
       auto myDXGIGetDebugInterface =
         ( HRESULT( WINAPI* )( REFIID, void** ) )GetProcAddress(
-        Dxgidebughandle,
-        "DXGIGetDebugInterface" );
+          Dxgidebughandle,
+          "DXGIGetDebugInterface" );
 
       if( !myDXGIGetDebugInterface )
         return;
@@ -527,15 +528,12 @@ namespace Tac
                      &mDevice,
                      &featureLevel,
                      &mDeviceContext );
-      TAC_HANDLE_ERROR( errors );
       // If you're directx is crashing / throwing exception, don't forget to check
       // your output window, it likes to put error messages there
       if( IsDebugMode() )
       {
         TAC_DX11_CALL( errors, mDevice->QueryInterface, IID_PPV_ARGS( &mInfoQueueDEBUG ) );
-        TAC_HANDLE_ERROR( errors );
         TAC_DX11_CALL( errors, mDeviceContext->QueryInterface, IID_PPV_ARGS( &mUserAnnotationDEBUG ) );
-        TAC_HANDLE_ERROR( errors );
       }
 
       DXGIInit( errors );
@@ -572,7 +570,7 @@ namespace Tac
 //         mDeviceContext->ClearRenderTargetView( renderTargetView, ClearColorRGBA );
 //       }
       for( int i = 0; i < kMaxFramebuffers; ++i )
-        mFramebuffersBoundEverThisFrame[i] = false;
+        mFramebuffersBoundEverThisFrame[ i ] = false;
 
       mBlendState = nullptr;
       mDepthStencilState = nullptr;
@@ -697,22 +695,22 @@ namespace Tac
           mFramebuffersBoundEverThisFrame[ ( int )view->mFrameBufferHandle ] = true;
 
 
-        ID3D11RenderTargetView* renderTargetView = framebuffer->mRenderTargetView;
-        ID3D11DepthStencilView* depthStencilView = framebuffer->mDepthStencilView;
+          ID3D11RenderTargetView* renderTargetView = framebuffer->mRenderTargetView;
+          ID3D11DepthStencilView* depthStencilView = framebuffer->mDepthStencilView;
 
-        const UINT ClearFlags = D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL;
-        const FLOAT ClearDepth = 1.0f;
-        const UINT8 ClearStencil = 0;
-        mDeviceContext->ClearDepthStencilView( depthStencilView, ClearFlags, ClearDepth, ClearStencil );
+          const UINT ClearFlags = D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL;
+          const FLOAT ClearDepth = 1.0f;
+          const UINT8 ClearStencil = 0;
+          mDeviceContext->ClearDepthStencilView( depthStencilView, ClearFlags, ClearDepth, ClearStencil );
 
-        const FLOAT ClearGrey = 0.5f;
-        const FLOAT ClearColorRGBA[] = { ClearGrey, ClearGrey, ClearGrey,  1.0f };
-        mDeviceContext->ClearRenderTargetView( renderTargetView, ClearColorRGBA );
+          const FLOAT ClearGrey = 0.5f;
+          const FLOAT ClearColorRGBA[] = { ClearGrey, ClearGrey, ClearGrey,  1.0f };
+          mDeviceContext->ClearRenderTargetView( renderTargetView, ClearColorRGBA );
 
 
-        ID3D11ShaderResourceView* nullViews[ 16 ] = {};
-        mDeviceContext->VSSetShaderResources( 0, 16, nullViews );
-        mDeviceContext->PSSetShaderResources( 0, 16, nullViews );
+          ID3D11ShaderResourceView* nullViews[ 16 ] = {};
+          mDeviceContext->VSSetShaderResources( 0, 16, nullViews );
+          mDeviceContext->PSSetShaderResources( 0, 16, nullViews );
         }
 
 
@@ -888,11 +886,46 @@ namespace Tac
 
 
     void RendererDirectX11::AddMagicBuffer( Render::CommandDataCreateMagicBuffer* commandDataCreateMagicBuffer,
-                                             Errors& errors )
+                                            Errors& errors )
     {
-      TAC_UNUSED_PARAMETER( commandDataCreateMagicBuffer );
-      TAC_UNUSED_PARAMETER( errors );
-      TAC_CRITICAL_ERROR_UNIMPLEMENTED;
+      TAC_ASSERT( IsMainThread() );
+      D3D11_BUFFER_DESC desc = {};
+      desc.BindFlags = D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_SHADER_RESOURCE;
+      desc.ByteWidth = commandDataCreateMagicBuffer->mByteCount;
+      desc.CPUAccessFlags = 0; // D3D11_CPU_ACCESS_WRITE
+      desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+      desc.StructureByteStride = commandDataCreateMagicBuffer->mStride;
+      desc.Usage = D3D11_USAGE_DEFAULT; //  D3D11_USAGE_DYNAMIC; // GetUsage()
+
+      MagicBuffer* magicBuffer = &mMagicBuffers[ ( int )commandDataCreateMagicBuffer->mMagicBufferHandle ];
+
+      TAC_DX11_CALL( errors, mDevice->CreateBuffer, &desc, nullptr, &magicBuffer->mBuffer );
+      SetDebugName( magicBuffer->mBuffer, commandDataCreateMagicBuffer->mStackFrame.ToString() );
+
+      // https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/sm5-object-structuredbuffer
+      // The UAV format bound to this resource needs to be created with the DXGI_FORMAT_UNKNOWN format.
+      const DXGI_FORMAT Format = DXGI_FORMAT_UNKNOWN;
+
+      const int NumElements = desc.ByteWidth / desc.StructureByteStride;
+
+
+      D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+      uavDesc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
+      uavDesc.Format = Format;
+      uavDesc.Buffer.FirstElement = 0; // index, not byte offset
+      uavDesc.Buffer.Flags = 0;
+      uavDesc.Buffer.NumElements = NumElements;
+      TAC_DX11_CALL( errors, mDevice->CreateUnorderedAccessView, magicBuffer->mBuffer, &uavDesc, &magicBuffer->mUAV );
+      SetDebugName( magicBuffer->mUAV, commandDataCreateMagicBuffer->mStackFrame.ToString() );
+
+      D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+      srvDesc.Format = Format;
+      srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER; // D3D11_SRV_DIMENSION_BUFFEREX;
+      srvDesc.Buffer.FirstElement = 0; // index, not byte offset
+      srvDesc.Buffer.NumElements = NumElements;
+      // srvDesc.BufferEx... = ;
+      TAC_DX11_CALL( errors, mDevice->CreateShaderResourceView, magicBuffer->mBuffer, &srvDesc, &magicBuffer->mSRV );
+      SetDebugName( magicBuffer->mSRV, commandDataCreateMagicBuffer->mStackFrame.ToString() );
     }
 
     void RendererDirectX11::AddVertexBuffer( Render::CommandDataCreateVertexBuffer* data,
@@ -957,7 +990,6 @@ namespace Tac
                      inputSig->GetBufferPointer(),
                      inputSig->GetBufferSize(),
                      &inputLayout );
-      TAC_HANDLE_ERROR( errors );
       mInputLayouts[ ( int )vertexFormatHandle ] = inputLayout;
     }
 
@@ -1180,53 +1212,99 @@ namespace Tac
                   subResourceCount == 1 || // single texture
                   subResourceCount == 6 ); // cubemap texture
 
-      D3D11_TEXTURE2D_DESC texDesc = {};
-      texDesc.Width = data->mTexSpec.mImage.mWidth;
-      texDesc.Height = data->mTexSpec.mImage.mHeight;
-      texDesc.MipLevels = 1;
-      texDesc.SampleDesc.Count = 1;
-      texDesc.ArraySize = Max( 1, subResourceCount );
-      texDesc.Format = GetDXGIFormat( data->mTexSpec.mImage.mFormat );
-      texDesc.Usage = GetUsage( data->mTexSpec.mAccess );
-      texDesc.BindFlags = GetBindFlags( data->mTexSpec.mBinding );
-      texDesc.CPUAccessFlags = GetCPUAccessFlags( data->mTexSpec.mCpuAccess );
-      texDesc.MiscFlags = MiscFlagsBinding | MiscFlagsCubemap;
+      const int dimension
+        = ( data->mTexSpec.mImage.mWidth ? 1 : 0 )
+        + ( data->mTexSpec.mImage.mHeight ? 1 : 0 )
+        + ( data->mTexSpec.mImage.mDepth ? 1 : 0 );
 
+      const DXGI_FORMAT Format = GetDXGIFormat( data->mTexSpec.mImage.mFormat );
 
-      ID3D11Texture2D* texture2D;
-      TAC_DX11_CALL( errors,
-                     mDevice->CreateTexture2D,
-                     &texDesc,
-                     pInitialData,
-                     &texture2D );
-      TAC_HANDLE_ERROR( errors );
+      ID3D11ShaderResourceView* srv = nullptr;
+      ID3D11Texture2D* texture2D = nullptr;
+      if( dimension == 2 )
+      {
+        D3D11_TEXTURE2D_DESC texDesc = {};
+        texDesc.Width = data->mTexSpec.mImage.mWidth;
+        texDesc.Height = data->mTexSpec.mImage.mHeight;
+        texDesc.MipLevels = 1;
+        texDesc.SampleDesc.Count = 1;
+        texDesc.ArraySize = Max( 1, subResourceCount );
+        texDesc.Format = Format;
+        texDesc.Usage = GetUsage( data->mTexSpec.mAccess );
+        texDesc.BindFlags = GetBindFlags( data->mTexSpec.mBinding );
+        texDesc.CPUAccessFlags = GetCPUAccessFlags( data->mTexSpec.mCpuAccess );
+        texDesc.MiscFlags = MiscFlagsBinding | MiscFlagsCubemap;
+        TAC_DX11_CALL( errors,
+                       mDevice->CreateTexture2D,
+                       &texDesc,
+                       pInitialData,
+                       &texture2D );
+        SetDebugName( texture2D, data->mStackFrame.ToString() );
+        if( ( int )data->mTexSpec.mBinding & ( int )Render::Binding::ShaderResource )
+        {
+          D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+          srvDesc.Format = Format;
+          srvDesc.ViewDimension = isCubemap ? D3D11_SRV_DIMENSION_TEXTURECUBE : D3D11_SRV_DIMENSION_TEXTURE2D;
+          srvDesc.Texture2D.MipLevels = 1;
+          TAC_DX11_CALL( errors, mDevice->CreateShaderResourceView, texture2D, &srvDesc, &srv );
+          SetDebugName( srv, data->mStackFrame.ToString() );
+        }
+      }
+
+      ID3D11Texture3D* texture3D = nullptr;
+      if( dimension == 3 )
+      {
+        D3D11_TEXTURE3D_DESC texDesc = {};
+        texDesc.Width = data->mTexSpec.mImage.mWidth;
+        texDesc.Height = data->mTexSpec.mImage.mHeight;
+        texDesc.Depth = data->mTexSpec.mImage.mDepth;
+        texDesc.MipLevels = 1;
+        texDesc.Format = Format;
+        texDesc.Usage = GetUsage( data->mTexSpec.mAccess );
+        texDesc.BindFlags = GetBindFlags( data->mTexSpec.mBinding );
+        texDesc.CPUAccessFlags = GetCPUAccessFlags( data->mTexSpec.mCpuAccess );
+        texDesc.MiscFlags = MiscFlagsBinding | MiscFlagsCubemap;
+        TAC_DX11_CALL( errors,
+                       mDevice->CreateTexture3D,
+                       &texDesc,
+                       pInitialData,
+                       &texture3D );
+        SetDebugName( texture3D, data->mStackFrame.ToString() );
+        if( ( int )data->mTexSpec.mBinding & ( int )Render::Binding::ShaderResource )
+        {
+          D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+          srvDesc.Format = Format;
+          srvDesc.ViewDimension = isCubemap ? D3D11_SRV_DIMENSION_TEXTURECUBE : D3D11_SRV_DIMENSION_TEXTURE3D;
+          srvDesc.Texture3D.MipLevels = 1;
+          TAC_DX11_CALL( errors, mDevice->CreateShaderResourceView, texture3D, &srvDesc, &srv );
+        }
+      }
 
       ID3D11RenderTargetView* rTV = nullptr;
-      if( texDesc.BindFlags & D3D11_BIND_RENDER_TARGET )
+      if( ( int )data->mTexSpec.mBinding & ( int )Render::Binding::RenderTarget )
       {
         TAC_DX11_CALL( errors, mDevice->CreateRenderTargetView,
                        texture2D,
                        nullptr,
                        &rTV );
+        SetDebugName( rTV, data->mStackFrame.ToString() );
       }
 
-      ID3D11ShaderResourceView* srv = nullptr;
-      if( texDesc.BindFlags & D3D11_BIND_SHADER_RESOURCE )
-      {
-        D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-        srvDesc.Format = texDesc.Format;
-        srvDesc.ViewDimension = isCubemap ? D3D11_SRV_DIMENSION_TEXTURECUBE : D3D11_SRV_DIMENSION_TEXTURE2D;
-        srvDesc.Texture2D.MipLevels = texDesc.MipLevels;
-        TAC_DX11_CALL( errors, mDevice->CreateShaderResourceView, texture2D, &srvDesc, &srv );
-        TAC_HANDLE_ERROR( errors );
-      }
 
-      if( texDesc.BindFlags & D3D11_BIND_RENDER_TARGET &&
-          texDesc.BindFlags & D3D11_BIND_SHADER_RESOURCE )
+
+      //ID3D11UnorderedAccessView* uav = nullptr;
+      //if( ( int )data->mTexSpec.mBinding & ( int )Render::Binding::UnorderedAccess )
+      //{
+      //}
+
+      if( true
+          && ( int )data->mTexSpec.mBinding & ( int )Render::Binding::ShaderResource
+          && ( int )data->mTexSpec.mBinding & ( int )Render::Binding::RenderTarget )
         mDeviceContext->GenerateMips( srv );
 
       Texture* texture = &mTextures[ ( int )data->mTextureHandle ];
       texture->mTexture2D = texture2D;
+      texture->mTexture3D = texture3D;
       texture->mTextureSRV = srv;
       texture->mTextureRTV = rTV;
     }
@@ -1249,7 +1327,6 @@ namespace Tac
       d3d11rtbd->RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
       ID3D11BlendState* blendStateDX11;
       TAC_DX11_CALL( errors, mDevice->CreateBlendState, &desc, &blendStateDX11 );
-      TAC_HANDLE_ERROR( errors );
       mBlendStates[ ( int )blendStateHandle ] = blendStateDX11;
     }
 
@@ -1283,7 +1360,6 @@ namespace Tac
         : D3D11_DEPTH_WRITE_MASK_ZERO;
       ID3D11DepthStencilState* depthStencilState;
       TAC_DX11_CALL( errors, mDevice->CreateDepthStencilState, &desc, &depthStencilState );
-      TAC_HANDLE_ERROR( errors );
       mDepthStencilStates[ ( int )commandData->mDepthStateHandle ] = depthStencilState;
     }
 
@@ -1400,7 +1476,6 @@ namespace Tac
 
     void RendererDirectX11::RemoveVertexBuffer( Render::VertexBufferHandle vertexBufferHandle, Errors& errors )
     {
-      TAC_UNUSED_PARAMETER( errors );
       VertexBuffer* vertexBuffer = &mVertexBuffers[ ( int )vertexBufferHandle ];
       TAC_RELEASE_IUNKNOWN( vertexBuffer->mBuffer );
       *vertexBuffer = VertexBuffer();
@@ -1479,7 +1554,6 @@ namespace Tac
                                                  Errors& errors )
     {
       TAC_ASSERT( IsMainThread() );
-      TAC_UNUSED_PARAMETER( errors );
       Render::TexUpdate* data = &commandData->mTexUpdate;
       TAC_ASSERT( Render::IsSubmitAllocated( data->mSrcBytes ) );
 
@@ -1617,7 +1691,6 @@ namespace Tac
     void RendererDirectX11::SetRenderObjectDebugName( Render::CommandDataSetRenderObjectDebugName* data,
                                                       Errors& errors )
     {
-      TAC_UNUSED_PARAMETER( errors );
       FrameMemoryVector< ID3D11DeviceChild* > objects;
       if( data->mVertexBufferHandle.IsValid() )
         objects.push_back( mVertexBuffers[ ( int )data->mVertexBufferHandle ].mBuffer );

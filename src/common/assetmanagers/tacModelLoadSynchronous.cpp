@@ -425,6 +425,8 @@ namespace Tac
           }
         }
 
+        TAC_ASSERT( dstVtxStride );
+        TAC_ASSERT( dstVtxBytes.size() );
 
         const Render::VertexBufferHandle vertexBuffer = Render::CreateVertexBuffer( dstVtxBytes.size(),
                                                                                     dstVtxBytes.data(),

@@ -34,6 +34,7 @@ namespace Tac
     struct Texture
     {
       ID3D11Texture2D*          mTexture2D = {};
+      ID3D11Texture3D*          mTexture3D = {};
       ID3D11RenderTargetView*   mTextureRTV = {};
       ID3D11ShaderResourceView* mTextureSRV = {};
     };
@@ -59,6 +60,13 @@ namespace Tac
     {
       ID3D11Buffer* mBuffer = nullptr;
       Format        mFormat;
+    };
+
+    struct MagicBuffer
+    {
+      ID3D11Buffer*              mBuffer = nullptr;
+      ID3D11UnorderedAccessView* mUAV = nullptr;
+      ID3D11ShaderResourceView*  mSRV = nullptr;
     };
 
     struct RendererDirectX11 : public Renderer
@@ -125,6 +133,7 @@ namespace Tac
       ID3D11DeviceContext*       mDeviceContext = nullptr;
       //DXGI                       mDxgi;
       Texture                    mTextures[ Render::kMaxTextures ] = {};
+      MagicBuffer                mMagicBuffers[ Render::kMaxMagicBuffers ] = {};
       VertexBuffer               mVertexBuffers[ Render::kMaxVertexBuffers ] = {};
       IndexBuffer                mIndexBuffers[ Render::kMaxIndexBuffers ] = {};
       Framebuffer                mFramebuffers[ Render::kMaxFramebuffers ] = {};
