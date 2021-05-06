@@ -1,4 +1,5 @@
 
+#include "common.fx"
 Texture2D terrainTexture : register( t0 );
 Texture2D noiseTexture : register( t1 );
 

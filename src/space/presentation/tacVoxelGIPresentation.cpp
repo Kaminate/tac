@@ -23,7 +23,7 @@ namespace Tac
   static Render::VertexFormatHandle voxelVertexFormat;
   static Render::ShaderHandle       voxelizerShader;
   static Render::ShaderHandle       voxelVisualizerShader;
-  Render::VertexDeclarations        vertexDeclarations;
+  Render::VertexDeclarations        voxelVertexDeclarations;
   static int                        voxelDimension = 64; // 512; that makes the rwbuffer 1 gb
   static bool                       voxelDebug;
 
@@ -87,9 +87,9 @@ namespace Tac
     uv.mTextureFormat.mPerElementByteCount = sizeof( float );
     uv.mTextureFormat.mPerElementDataType = Render::GraphicsType::real;
 
-    vertexDeclarations = { pos, nor, uv };
+    voxelVertexDeclarations = { pos, nor, uv };
 
-    voxelVertexFormat = Render::CreateVertexFormat( vertexDeclarations,
+    voxelVertexFormat = Render::CreateVertexFormat( voxelVertexDeclarations,
                                                     voxelizerShader,
                                                     TAC_STACK_FRAME );
   }
@@ -158,6 +158,8 @@ namespace Tac
 
   void               VoxelGIPresentationInit( Errors& )
   {
+    if( true )
+      return;
     CreateVoxelizerShader();
     CreateVoxelVisualizerShader();
     CreateVoxelRWStructredBuf();
@@ -198,6 +200,8 @@ namespace Tac
                                                 const int viewHeight,
                                                 const Render::ViewHandle viewHandle )
   {
+    if( true )
+      return;
     if( voxelDebug )
     {
       VoxelGIPresentationRenderDebug( world, camera, viewWidth, viewHeight, viewHandle );
@@ -214,7 +218,7 @@ namespace Tac
         Errors errors;
         Mesh* mesh = ModelAssetManagerGetMeshTryingNewThing( model->mModelPath.c_str(),
                                                              model->mModelIndex,
-                                                             vertexDeclarations,
+                                                             voxelVertexDeclarations,
                                                              errors );
         if( !mesh )
           return;

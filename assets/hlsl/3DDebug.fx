@@ -1,3 +1,4 @@
+#include "common.fx"
 
 struct VS_INPUT
 {

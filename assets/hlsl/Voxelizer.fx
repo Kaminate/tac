@@ -1,7 +1,21 @@
-Texture2D terrainTexture : register( t0 );
+// Texture2D terrainTexture : register( t0 );
 // Texture2D noiseTexture : register( t1 );
+// sampler linearSampler : register( s0 );
 
-sampler linearSampler : register( s0 );
+// inject direct lighting
+// list of lights, with depth buffers?
+
+#include "common.fx"
+
+//===----------------- vertex shader -----------------===//
+
+struct Voxel
+{
+  uint color;
+  uint normal;
+};
+
+StructuredBuffer< Voxel > mySB : register( t0 );
 
 
 struct VS_INPUT
@@ -11,49 +25,50 @@ struct VS_INPUT
   float2 TexCoord : TEXCOORD;
 };
 
-struct VS_OUTPUT
+struct VS_OUT_GS_IN
 {
-  float3 mWorldSpacePosition  : HI;
-  float3 mWorldSpaceNormal    : NORMAL;
-  float2 mTexCoord            : TEXCOORD0;
-  float4 mClipSpacePosition   : SV_POSITION;
-  float4 mScreenSpacePosition : TEXCOORD1;
+  float3 objectSpacePosition;
+  float3 objectSpaceNormal;
+  float2 TexCoord;
+
+  // float3 mWorldSpacePosition  : HI;
+  // float3 mWorldSpaceNormal    : NORMAL;
+  // float2 mTexCoord            : TEXCOORD0;
+  // float4 mClipSpacePosition   : SV_POSITION;
+  // float4 mScreenSpacePosition : TEXCOORD1;
 };
 
-VS_OUTPUT VS( VS_INPUT input )
+VS_OUT_GS_IN VS( VS_INPUT input )
 {
-  float4 worldSpacePosition = mul( World, float4( input.Position, 1 ) );
-  float4 viewSpacePosition = mul( View, worldSpacePosition );
-  float4 clipSpacePosition = mul( Projection, viewSpacePosition);
-
-  VS_OUTPUT output = ( VS_OUTPUT )0;
-  output.mClipSpacePosition = clipSpacePosition;
-  output.mWorldSpacePosition = worldSpacePosition.xyz;
-  output.mWorldSpaceNormal = input.Normal;
-  output.mTexCoord = input.TexCoord;
-  output.mScreenSpacePosition = clipSpacePosition;
-  return output;
+  VS_OUT_GS_IN result;
+  result.WorldSpacePosition = input.Position;
+  result.WorldSpaceNormal = input.Normal;
+  result.TexCoord = input.TexCoord;
+  return result;
 }
 
-struct PS_OUTPUT
+//===----------------- geometry shader -----------------===//
+
+struct GS_OUT_PS_IN
 {
-  float4 mColor : SV_Target0;
 };
 
-
-
-PS_OUTPUT PS( VS_OUTPUT input )
+[ maxvertexcount( 3 ) ]
+void GS( triangle VS_OUT_GS_IN input[ 3 ],
+         inout TriangleStream< GS_OUT_PS_IN > outputStream )
 {
-  PS_OUTPUT output = ( PS_OUTPUT )0;
+  float3 faceNormal = input[0].
 
-  // uhh this is actually NDC space
-  const float2 screenSpacePosition
-    = input.mScreenSpacePosition.xy
-    / input.mScreenSpacePosition.w; // [-1,1]^2 
-  float3 finalColor = float3( 0, 0, 0 );
+  for( int i = 0; i < 3; ++i )
+  {
+    GS_OUT_PS_IN output;
+    outputStream.Append( output );
+  }
+}
 
-  output.mColor = float4( finalColor, 1.0 );
+//===----------------- pixel shader -----------------===//
 
-  return output;
+void PS( GS_OUT_PS_IN input )
+{
 }
 

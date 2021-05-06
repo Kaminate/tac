@@ -5,7 +5,7 @@ namespace Tac
 {
   TemporaryMemory TemporaryMemoryFromFile( StringView path, Errors& errors )
   {
-    std::ifstream ifs( path.c_str(), std::ifstream::binary );
+    std::ifstream ifs( path, std::ifstream::binary );
     TAC_HANDLE_ERROR_IF_REUTRN( !ifs.is_open(), "Error: Failed to open file " + String( path ) +
                                 " while allocating temporary memory", errors, {} );
     //if( !ifs.is_open() )

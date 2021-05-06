@@ -401,6 +401,12 @@ namespace Tac
   {
     append( &c, 1 );
   }
+
+  void   String::operator += ( StringView stringView )
+  {
+    append( stringView.data(), stringView.size() );
+  }
+
   void   String::push_back( char c )
   {
     append( &c, 1 );

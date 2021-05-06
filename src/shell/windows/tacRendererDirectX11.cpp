@@ -1,5 +1,6 @@
 #include "src/common/containers/tacArray.h"
 #include "src/common/graphics/tacRendererBackend.h"
+#include "src/common/tacTextParser.h"
 #include "src/common/tacUtility.h"
 #include "src/common/tacFrameMemory.h"
 #include "src/common/containers/tacFrameVector.h"
@@ -71,9 +72,13 @@ namespace Tac
 
     static String GetDirectX11ShaderPath( StringView shaderName )
     {
-      if( shaderName.ends_with( ".fx" ) )
-        return shaderName;
-      return "assets/hlsl/" + String( shaderName ) + ".fx";
+      String result;
+      const char* prefix = "assets/hlsl/";
+      const char* suffix = ".fx";
+      result += shaderName.starts_with( prefix ) ? "" : prefix;
+      result += shaderName;
+      result += shaderName.ends_with( suffix ) ? "" : suffix;
+      return result;
     }
 
     static String TryInferDX11ErrorStr( HRESULT res )
@@ -308,7 +313,7 @@ namespace Tac
       return result;
     }
 
-    static String ShaderPathToContentString( const char* path, Errors& errors )
+    static String ShaderPathToContentString( StringView path/*const char* path*/, Errors& errors )
     {
       if( !path )
         return "";
@@ -372,8 +377,44 @@ namespace Tac
       }
     }
 
+    static String InlineShaderIncludes( String shaderSourceCode, Errors& errors )
+    {
+      String result;
+
+      ParseData shaderParseData( shaderSourceCode.data(), shaderSourceCode.size() );
+      for( ;; )
+      {
+        String includeSource;
+        StringView line = shaderParseData.EatRestOfLine();
+        if( line.empty() )
+          break;
+
+        ParseData lineParseData( line.data(), line.size() );
+        lineParseData.EatWhitespace();
+        if( lineParseData.EatStringExpected( "#include" ) )
+        {
+          lineParseData.EatUntilCharIsPrev( '\"' );
+          const char* includeBegin = lineParseData.GetPos();
+          lineParseData.EatUntilCharIsNext( '\"' );
+          const char* includeEnd = lineParseData.GetPos();
+          const StringView includeName( includeBegin, includeEnd );
+          includeSource = ShaderPathToContentString( includeName, errors );
+          includeSource = InlineShaderIncludes( includeSource, errors );
+          line = includeSource;
+        }
+
+        result += line;
+      }
+
+      return result;
+    }
+
     static Program LoadProgram( Render::ShaderSource shaderSource, Errors& errors )
     {
+      // Errors2 can debug break on append, errors will not
+      //Errors errors;
+      //TAC_ON_DESTRUCT( errors2 = errors );
+
       ID3D11Device* device = ( ( RendererDirectX11* )Renderer::Instance )->mDevice;
       ID3D11VertexShader* vertexShader = nullptr;
       ID3D11PixelShader* pixelShader = nullptr;
@@ -385,21 +426,21 @@ namespace Tac
         {
           if( IsDebugMode() )
           {
+            if( shaderSource.mType == Render::ShaderSource::Type::kPath )
+              errors.Append( "Error compiling shader: " + String( shaderSource.mStr ) );
             errors.Append( TAC_STACK_FRAME );
             OSDebugPopupBox( errors.ToString() );
-            //DebugBreak();
             errors.clear();
           }
           else
           {
             TAC_HANDLE_ERROR_RETURN( errors, Program() );
-            //TAC_HANDLE_ERROR( errors );
           }
         }
 
-        String shaderStringFull = ShaderPathToContentString( "common", errors );
-        if( errors )
-          continue;
+        String shaderStringFull;// = ShaderPathToContentString( "common", errors );
+        //if( errors )
+          //continue;
 
         switch( shaderSource.mType )
         {
@@ -412,6 +453,14 @@ namespace Tac
         }
         if( errors )
           continue;
+
+        shaderStringFull = InlineShaderIncludes( shaderStringFull, errors );
+        if( errors )
+          continue;
+
+
+        // handle custom preprocessor statements
+        
 
         // vertex shader
         ID3DBlob* pVSBlob;
@@ -1063,107 +1112,7 @@ namespace Tac
                                        Errors& errors )
     {
       TAC_ASSERT( IsMainThread() );
-
-      //   StringView mShaderPath;
-      //   StringView mShaderStr;
-      //   ConstantBufferHandle mConstantBuffers[10];
-      //   int mConstantBufferCount = 0;
-
-      //ID3D11VertexShader* vertexShader = nullptr;
-      //ID3D11PixelShader* pixelShader = nullptr;
-      //ID3DBlob* inputSignature = nullptr;
-
-      //for( ;; )
-      //{
-      //  if( errors )
-      //  {
-      //    if( IsDebugMode() )
-      //    {
-      //      DebugBreak();
-      //      errors.clear();
-      //    }
-      //    else
-      //    {
-      //      TAC_HANDLE_ERROR( errors );
-      //    }
-      //  }
-
-      //  String shaderStringFull = ShaderPathToContentString( "common", errors );
-      //  if( errors )
-      //    continue;
-
-      //  switch( commandData->mShaderSource.mType )
-      //  {
-      //    case Render::ShaderSource::Type::kPath:
-      //      shaderStringFull += ShaderPathToContentString( commandData->mShaderSource.mStr, errors );
-      //      break;
-      //    case Render::ShaderSource::Type::kStr:
-      //      shaderStringFull += commandData->mShaderSource.mStr;
-      //      break;
-      //  }
-      //  if( errors )
-      //    continue;
-
-      //  // vertex shader
-      //  ID3DBlob* pVSBlob;
-
-      //  CompileShaderFromString( &pVSBlob,
-      //                           shaderStringFull,
-      //                           "VS",
-      //                           "vs_4_0",
-      //                           errors );
-      //  if( errors )
-      //    continue;
-      //  TAC_ON_DESTRUCT( pVSBlob->Release() );
-
-      //  TAC_DX11_CALL( errors,
-      //                 mDevice->CreateVertexShader,
-      //                 pVSBlob->GetBufferPointer(),
-      //                 pVSBlob->GetBufferSize(),
-      //                 nullptr,
-      //                 &vertexShader );
-      //  if( errors )
-      //    continue;
-
-      //  TAC_DX11_CALL( errors,
-      //                 D3DGetBlobPart,
-      //                 pVSBlob->GetBufferPointer(),
-      //                 pVSBlob->GetBufferSize(),
-      //                 D3D_BLOB_INPUT_SIGNATURE_BLOB,
-      //                 0,
-      //                 &inputSignature );
-      //  if( errors )
-      //    continue;
-
-      //  ID3DBlob* pPSBlob;
-      //  CompileShaderFromString( &pPSBlob,
-      //                           shaderStringFull,
-      //                           "PS",
-      //                           "ps_4_0",
-      //                           errors );
-      //  if( errors )
-      //    continue;
-      //  TAC_ON_DESTRUCT( pPSBlob->Release() );
-
-      //  TAC_DX11_CALL( errors,
-      //                 mDevice->CreatePixelShader,
-      //                 pPSBlob->GetBufferPointer(),
-      //                 pPSBlob->GetBufferSize(),
-      //                 nullptr,
-      //                 &pixelShader );
-      //  if( errors )
-      //    continue;
-
-      //  break;
-      //}
-
-      //Program* program = &mPrograms[ ( int )commandData->mShaderHandle ];
-      //program->mInputSig = inputSignature;
-      //program->mVertexShader = vertexShader;
-      //program->mPixelShader = pixelShader;
-
       mPrograms[ ( int )commandData->mShaderHandle ] = LoadProgram( commandData->mShaderSource, errors );
-
       if( commandData->mShaderSource.mType == Render::ShaderSource::Type::kPath )
         ShaderReloadHelperAdd( commandData->mShaderHandle, GetDirectX11ShaderPath( commandData->mShaderSource.mStr ) );
     }

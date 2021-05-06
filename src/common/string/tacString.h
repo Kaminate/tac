@@ -79,6 +79,7 @@ namespace Tac
     void operator = ( const String& );
     void operator = ( const char* );
     void operator += ( const char* );
+    void operator += ( StringView );
     void operator += ( const String& );
     void operator += ( char );
     operator const char* ( ){ return mStr; }
