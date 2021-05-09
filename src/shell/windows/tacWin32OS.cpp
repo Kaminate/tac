@@ -1,4 +1,3 @@
-
 #include "src/shell/windows/tacWin32.h"
 #include "src/common/tacPreprocessor.h"
 #include "src/common/tacUtility.h"
@@ -11,14 +10,9 @@
 
 #include <iostream>
 #include <ctime> // mktime
-
-
 #include <Shlobj.h> // SHGetKnownFolderPath
-
-
 #include <commdlg.h> // GetSaveFileNameA
 #pragma comment( lib, "Comdlg32.lib" ) // GetSaveFileNameA
-
 
 namespace Tac
 {
@@ -68,7 +62,6 @@ namespace Tac
   static void Win32DirectoryIterateAux( const WIN32_FIND_DATA& data,
                                         Win32DirectoryCallbackFunctor* fn,
                                         StringView dir,
-                                        //OSGetFilesInDirectoryFlags flags,
                                         Errors& errors )
   {
     const String dataFilename = data.cFileName;
@@ -188,14 +181,6 @@ namespace Tac
 
     path = outBuf;
   };
-
-  //void OSGetScreenspaceCursorPos( v2& pos, Errors& errors )
-  //{
-  //  // Note: this could return error access denied, for example if your computer goes to sleep
-  //  POINT point;
-  //  TAC_HANDLE_ERROR_IF( !GetCursorPos( &point ), Win32GetLastErrorString(), errors );
-  //  pos = { ( float )point.x, ( float )point.y };
-  //}
 
   void OSSetScreenspaceCursorPos( const v2& pos, Errors& errors )
   {
@@ -323,11 +308,8 @@ namespace Tac
     {
       const String errMsg = "Failed to open file " + path + " because " + Win32GetLastErrorString();
       TAC_RAISE_ERROR( errMsg, errors );
-
-      //const String errMsg = "Failed to open file to get last modified time " + path;
-      //TAC_RAISE_ERROR( errMsg, errors );
     }
-    // think i need this?
+
     TAC_ON_DESTRUCT( CloseHandle( handle ) );
     BY_HANDLE_FILE_INFORMATION fileInfo;
     if( !GetFileInformationByHandle( handle, &fileInfo ) )
@@ -355,11 +337,6 @@ namespace Tac
     tempTm.tm_isdst = -1; // forget what this is for
 
     const time_t result = std::mktime( &tempTm );
-    //if( result == -1 )
-    //{
-    //  const String errMsg = "Calandar time cannot be represented";
-    //  TAC_RAISE_ERROR( errMsg, errors );
-    //}
     TAC_HANDLE_ERROR_IF( result == -1, "Calandar time cannot be represented", errors );
 
     *time = result;
@@ -421,14 +398,9 @@ namespace Tac
     Win32DirectoryIterate( dir, &functor, errors );
   }
 
-
-
-
-
-
-  static const int kSemaphoreCapacity = 10;
+  static const int    kSemaphoreCapacity = 10;
   static IdCollection gSemaphoreIds( kSemaphoreCapacity );
-  static HANDLE gSemaphores[ kSemaphoreCapacity ];
+  static HANDLE       gSemaphores[ kSemaphoreCapacity ];
 
   SemaphoreHandle OSSemaphoreCreate()
   {
@@ -436,12 +408,14 @@ namespace Tac
     gSemaphores[ i ] = CreateSemaphoreA( NULL, 0, 100, NULL );
     return { i };
   }
+
   void            OSSemaphoreDecrementWait( const SemaphoreHandle handle )
   {
     TAC_ASSERT( handle.IsValid() );
     const HANDLE nativeHandle = gSemaphores[ ( int )handle ];
     WaitForSingleObject( nativeHandle, INFINITE );
   }
+
   void            OSSemaphoreIncrementPost( const SemaphoreHandle handle )
   {
     TAC_ASSERT( handle.IsValid() );

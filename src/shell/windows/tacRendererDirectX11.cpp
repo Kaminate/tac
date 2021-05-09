@@ -313,7 +313,7 @@ namespace Tac
       return result;
     }
 
-    static String ShaderPathToContentString( StringView path/*const char* path*/, Errors& errors )
+    static String ShaderPathToContentString( StringView path, Errors& errors )
     {
       if( !path )
         return "";
@@ -322,7 +322,8 @@ namespace Tac
       return shaderFileContents + "\n";
     }
 
-    static void CompileShaderFromString( ID3DBlob** ppBlobOut,
+    static void CompileShaderFromString( const ShaderSource& shaderSource,
+                                         ID3DBlob** ppBlobOut,
                                          const StringView shaderStr,
                                          const char* entryPoint,
                                          const char* shaderModel,
@@ -352,6 +353,11 @@ namespace Tac
       {
         if( IsDebugMode() )
         {
+          std::cout << "Error loading shader from ";
+          if( shaderSource.mType == Render::ShaderSource::Type::kPath )
+            std::cout << "path: " << GetDirectX11ShaderPath( shaderSource.mStr ) << std::endl;
+          else if( shaderSource.mType == Render::ShaderSource::Type::kStr )
+            std::cout << "string";
 
           const char* shaderBlock = "----------------";
           std::cout << shaderBlock << std::endl;
@@ -380,12 +386,10 @@ namespace Tac
     static String InlineShaderIncludes( String shaderSourceCode, Errors& errors )
     {
       String result;
-
       ParseData shaderParseData( shaderSourceCode.data(), shaderSourceCode.size() );
       for( ;; )
       {
-        String includeSource;
-        StringView line = shaderParseData.EatRestOfLine();
+        String line = shaderParseData.EatRestOfLine();
         if( line.empty() )
           break;
 
@@ -394,13 +398,18 @@ namespace Tac
         if( lineParseData.EatStringExpected( "#include" ) )
         {
           lineParseData.EatUntilCharIsPrev( '\"' );
-          const char* includeBegin = lineParseData.GetPos();
+          const char*      includeBegin = lineParseData.GetPos();
           lineParseData.EatUntilCharIsNext( '\"' );
-          const char* includeEnd = lineParseData.GetPos();
+          const char*      includeEnd = lineParseData.GetPos();
           const StringView includeName( includeBegin, includeEnd );
-          includeSource = ShaderPathToContentString( includeName, errors );
-          includeSource = InlineShaderIncludes( includeSource, errors );
-          line = includeSource;
+          const String     includePath = GetDirectX11ShaderPath( includeName );
+          const String     includeSource = ShaderPathToContentString( includePath, errors );
+          const String     includeSourceInlined = InlineShaderIncludes( includeSource, errors );
+
+          line = "";
+          line += "//===----- (begin include " + includePath + ") -----===//\n";
+          line += includeSource;
+          line += "//===----- (end include " + includePath + ") -----===//\n";
         }
 
         result += line;
@@ -438,10 +447,7 @@ namespace Tac
           }
         }
 
-        String shaderStringFull;// = ShaderPathToContentString( "common", errors );
-        //if( errors )
-          //continue;
-
+        String shaderStringFull;
         switch( shaderSource.mType )
         {
           case Render::ShaderSource::Type::kPath:
@@ -465,7 +471,8 @@ namespace Tac
         // vertex shader
         ID3DBlob* pVSBlob;
 
-        CompileShaderFromString( &pVSBlob,
+        CompileShaderFromString( shaderSource,
+                                 &pVSBlob,
                                  shaderStringFull,
                                  "VS",
                                  "vs_4_0",
@@ -494,7 +501,8 @@ namespace Tac
           continue;
 
         ID3DBlob* pPSBlob;
-        CompileShaderFromString( &pPSBlob,
+        CompileShaderFromString( shaderSource,
+                                 &pPSBlob,
                                  shaderStringFull,
                                  "PS",
                                  "ps_4_0",

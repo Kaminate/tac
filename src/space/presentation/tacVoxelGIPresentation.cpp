@@ -158,8 +158,6 @@ namespace Tac
 
   void               VoxelGIPresentationInit( Errors& )
   {
-    if( true )
-      return;
     CreateVoxelizerShader();
     CreateVoxelVisualizerShader();
     CreateVoxelRWStructredBuf();
@@ -200,8 +198,6 @@ namespace Tac
                                                 const int viewHeight,
                                                 const Render::ViewHandle viewHandle )
   {
-    if( true )
-      return;
     if( voxelDebug )
     {
       VoxelGIPresentationRenderDebug( world, camera, viewWidth, viewHeight, viewHandle );
