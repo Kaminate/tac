@@ -27,6 +27,7 @@ namespace Tac
     struct Program
     {
       ID3D11VertexShader*       mVertexShader = nullptr;
+      ID3D11GeometryShader*     mGeometryShader = nullptr;
       ID3D11PixelShader*        mPixelShader = nullptr;
       ID3DBlob*                 mInputSig = nullptr;
     };

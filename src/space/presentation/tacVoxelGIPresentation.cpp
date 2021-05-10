@@ -26,6 +26,7 @@ namespace Tac
   Render::VertexDeclarations        voxelVertexDeclarations;
   static int                        voxelDimension = 64; // 512; that makes the rwbuffer 1 gb
   static bool                       voxelDebug;
+  static bool                       voxelEnabled = true;
 
   static Render::ConstantBuffers GetConstantBuffers()
   {
@@ -73,12 +74,10 @@ namespace Tac
 
     Render::VertexDeclaration nor;
     nor.mAlignedByteOffset = TAC_OFFSET_OF( VoxelVtx, nor );
-    nor.mAlignedByteOffset = 0;
     nor.mAttribute = Render::Attribute::Normal;
     nor.mTextureFormat.mElementCount = 3;
     nor.mTextureFormat.mPerElementByteCount = sizeof( float );
     nor.mTextureFormat.mPerElementDataType = Render::GraphicsType::real;
-
 
     Render::VertexDeclaration uv;
     uv.mAlignedByteOffset = TAC_OFFSET_OF( VoxelVtx, uv );
@@ -198,6 +197,11 @@ namespace Tac
                                                 const int viewHeight,
                                                 const Render::ViewHandle viewHandle )
   {
+    if( !voxelEnabled )
+      return;
+
+    TAC_RENDER_GROUP_BLOCK( "Voxel GI" );
+
     if( voxelDebug )
     {
       VoxelGIPresentationRenderDebug( world, camera, viewWidth, viewHeight, viewHandle );

@@ -24,7 +24,7 @@ namespace Tac
   String     ToString( void* );
   String     ToString( double );
   String     ToString( float );
-  StringView Va( const char* format, ... );
+  // StringView Va( const char* format, ... );
   int        Atoi( StringView );
 
   // so like if youre passing around data, i think stringview is nice because
@@ -36,6 +36,7 @@ namespace Tac
     StringView( const char*, int );
     StringView( const char* strBegin, const char* strEnd );
     StringView( const String& );
+    operator const char* ( ){ return mStr; }
     char operator[]( int i ) const;
     const char* data() const;
     int         size() const;
@@ -43,12 +44,12 @@ namespace Tac
     const char* end() const;
     const char* c_str() const;
     bool        empty() const;
-    operator const char* ( ){ return mStr; }
 
     //          searches this stringview for the last character which matches
     //          any of the characters in s, return npos if no matches
     int         find_last_of( StringView ) const;
     int         find_first_of( StringView ) const;
+    int         find( const StringView& ) const;
     StringView  substr( int pos = 0, int len = npos ) const;
     char        front();
     char        back();

@@ -378,7 +378,7 @@ namespace Tac
         for( int iVertexDeclaration = 0; iVertexDeclaration < vertexDeclarations.size(); ++iVertexDeclaration )
         {
           const Render::VertexDeclaration& vertexDeclaration = vertexDeclarations[ iVertexDeclaration ];
-          int vertexEnd =
+          const int vertexEnd =
             vertexDeclaration.mAlignedByteOffset +
             vertexDeclaration.mTextureFormat.CalculateTotalByteCount();
           dstVtxStride = Max( dstVtxStride, vertexEnd );
@@ -394,7 +394,7 @@ namespace Tac
           if( !gltfVertAttribute )
             continue;
           cgltf_accessor* gltfVertAttributeData = gltfVertAttribute->data;
-          Render::Format srcFormat = FillDataType( gltfVertAttributeData );
+          const Render::Format srcFormat = FillDataType( gltfVertAttributeData );
           TAC_ASSERT( vertexCount == ( int )gltfVertAttributeData->count );
           char* dstVtx = dstVtxBytes.data();
           char* srcVtx = ( char* )gltfVertAttributeData->buffer_view->buffer->data +

@@ -418,6 +418,12 @@ namespace Tac
       return result;
     }
 
+    static bool DoesShaderTextContainEntryPoint( StringView shaderText, const char* entryPoint )
+    {
+      const char* searchableEntryPoint = FrameMemoryPrintf( "%s(", entryPoint );
+      return shaderText.find( searchableEntryPoint ) != StringView::npos;
+    }
+
     static Program LoadProgram( Render::ShaderSource shaderSource, Errors& errors )
     {
       // Errors2 can debug break on append, errors will not
@@ -425,9 +431,15 @@ namespace Tac
       //TAC_ON_DESTRUCT( errors2 = errors );
 
       ID3D11Device* device = ( ( RendererDirectX11* )Renderer::Instance )->mDevice;
-      ID3D11VertexShader* vertexShader = nullptr;
-      ID3D11PixelShader* pixelShader = nullptr;
+      ID3D11VertexShader*   vertexShader = nullptr;
+      ID3D11PixelShader*    pixelShader = nullptr;
+      ID3D11GeometryShader* geometryShader = nullptr;
       ID3DBlob* inputSignature = nullptr;
+
+      const String shaderPath
+        = shaderSource.mType == Render::ShaderSource::Type::kPath
+        ? GetDirectX11ShaderPath( shaderSource.mStr )
+        : "<inlined  shader>";
 
       for( ;; )
       {
@@ -436,7 +448,7 @@ namespace Tac
           if( IsDebugMode() )
           {
             if( shaderSource.mType == Render::ShaderSource::Type::kPath )
-              errors.Append( "Error compiling shader: " + String( shaderSource.mStr ) );
+              errors.Append( "Error compiling shader: " + shaderPath );
             errors.Append( TAC_STACK_FRAME );
             OSDebugPopupBox( errors.ToString() );
             errors.clear();
@@ -464,61 +476,92 @@ namespace Tac
         if( errors )
           continue;
 
+        const char* vertexShaderEntryPoint = "VS";
+        const char* pixelShaderEntryPoint = "PS";
+        const char* geometryShaderEntryPoint = "GS";
+        const bool hasVertexShader = DoesShaderTextContainEntryPoint( shaderStringFull, vertexShaderEntryPoint );
+        const bool hasGeometryShader = DoesShaderTextContainEntryPoint( shaderStringFull, geometryShaderEntryPoint );
+        const bool hasPixelShader = DoesShaderTextContainEntryPoint( shaderStringFull, pixelShaderEntryPoint );
+        TAC_ASSERT_MSG( hasVertexShader, "shader %s missing %s", shaderPath.c_str(), vertexShaderEntryPoint );
+        TAC_ASSERT_MSG( hasPixelShader, "shader %s missing %s", shaderPath.c_str(), pixelShaderEntryPoint );
 
-        // handle custom preprocessor statements
-        
+        if( hasVertexShader )
+        {
+          ID3DBlob* pVSBlob;
+          CompileShaderFromString( shaderSource,
+                                   &pVSBlob,
+                                   shaderStringFull,
+                                   vertexShaderEntryPoint,
+                                   "vs_4_0",
+                                   errors );
+          if( errors )
+            continue;
+          TAC_ON_DESTRUCT( pVSBlob->Release() );
+          TAC_DX11_CALL_RETURN( errors, Program(),
+                                device->CreateVertexShader,
+                                pVSBlob->GetBufferPointer(),
+                                pVSBlob->GetBufferSize(),
+                                nullptr,
+                                &vertexShader );
+          TAC_DX11_CALL_RETURN( errors, Program(),
+                                D3DGetBlobPart,
+                                pVSBlob->GetBufferPointer(),
+                                pVSBlob->GetBufferSize(),
+                                D3D_BLOB_INPUT_SIGNATURE_BLOB,
+                                0,
+                                &inputSignature );
+        }
 
-        // vertex shader
-        ID3DBlob* pVSBlob;
 
-        CompileShaderFromString( shaderSource,
-                                 &pVSBlob,
-                                 shaderStringFull,
-                                 "VS",
-                                 "vs_4_0",
-                                 errors );
-        if( errors )
-          continue;
-        TAC_ON_DESTRUCT( pVSBlob->Release() );
+        if( hasPixelShader )
+        {
 
-        TAC_DX11_CALL_RETURN( errors, Program(),
-                              device->CreateVertexShader,
-                              pVSBlob->GetBufferPointer(),
-                              pVSBlob->GetBufferSize(),
-                              nullptr,
-                              &vertexShader );
-        if( errors )
-          continue;
 
-        TAC_DX11_CALL_RETURN( errors, Program(),
-                              D3DGetBlobPart,
-                              pVSBlob->GetBufferPointer(),
-                              pVSBlob->GetBufferSize(),
-                              D3D_BLOB_INPUT_SIGNATURE_BLOB,
-                              0,
-                              &inputSignature );
-        if( errors )
-          continue;
+          ID3DBlob* pPSBlob;
+          CompileShaderFromString( shaderSource,
+                                   &pPSBlob,
+                                   shaderStringFull,
+                                   pixelShaderEntryPoint,
+                                   "ps_4_0",
+                                   errors );
+          if( errors )
+            continue;
+          TAC_ON_DESTRUCT( pPSBlob->Release() );
 
-        ID3DBlob* pPSBlob;
-        CompileShaderFromString( shaderSource,
-                                 &pPSBlob,
-                                 shaderStringFull,
-                                 "PS",
-                                 "ps_4_0",
-                                 errors );
-        if( errors )
-          continue;
-        TAC_ON_DESTRUCT( pPSBlob->Release() );
+          TAC_DX11_CALL_RETURN( errors, Program(),
+                                device->CreatePixelShader,
+                                pPSBlob->GetBufferPointer(),
+                                pPSBlob->GetBufferSize(),
+                                nullptr,
+                                &pixelShader );
+          if( errors )
+            continue;
+        }
 
-        TAC_DX11_CALL_RETURN( errors, Program(),
-                              device->CreatePixelShader,
-                              pPSBlob->GetBufferPointer(),
-                              pPSBlob->GetBufferSize(),
-                              nullptr,
-                              &pixelShader );
-        if( errors )
-          continue;
+        if( hasGeometryShader )
+        {
+
+
+          ID3DBlob* blob;
+          CompileShaderFromString( shaderSource,
+                                   &blob,
+                                   shaderStringFull,
+                                   geometryShaderEntryPoint,
+                                   "gs_4_0",
+                                   errors );
+          if( errors )
+            continue;
+          TAC_ON_DESTRUCT( blob->Release() );
+
+          TAC_DX11_CALL_RETURN( errors, Program(),
+                                device->CreateGeometryShader,
+                                blob->GetBufferPointer(),
+                                blob->GetBufferSize(),
+                                nullptr,
+                                &geometryShader );
+          if( errors )
+            continue;
+        }
 
         break;
       }
@@ -527,6 +570,7 @@ namespace Tac
       program.mInputSig = inputSignature;
       program.mVertexShader = vertexShader;
       program.mPixelShader = pixelShader;
+      program.mGeometryShader = geometryShader;
       return program;
     }
 
@@ -661,6 +705,8 @@ namespace Tac
         TAC_ASSERT( program->mPixelShader );
         mDeviceContext->VSSetShader( program->mVertexShader, NULL, 0 );
         mDeviceContext->PSSetShader( program->mPixelShader, NULL, 0 );
+        if( program->mGeometryShader )
+          mDeviceContext->GSSetShader( program->mGeometryShader, NULL, 0 );
       }
 
       if( drawCall->mBlendStateHandle.IsValid() && mBlendState != mBlendStates[ ( int )drawCall->mBlendStateHandle ] )
@@ -768,6 +814,7 @@ namespace Tac
           ID3D11ShaderResourceView* nullViews[ 16 ] = {};
           mDeviceContext->VSSetShaderResources( 0, 16, nullViews );
           mDeviceContext->PSSetShaderResources( 0, 16, nullViews );
+          mDeviceContext->GSSetShaderResources( 0, 16, nullViews );
         }
 
 
@@ -816,6 +863,7 @@ namespace Tac
 
         mDeviceContext->VSSetShaderResources( StartSlot, NumViews, ShaderResourceViews );
         mDeviceContext->PSSetShaderResources( StartSlot, NumViews, ShaderResourceViews );
+        mDeviceContext->GSSetShaderResources( StartSlot, NumViews, ShaderResourceViews );
       }
 
       for( const Render::UpdateConstantBufferData& stuff : drawCall->mUpdateConstantBuffers )
@@ -833,6 +881,7 @@ namespace Tac
         const UINT StartSlot = 0;
         mDeviceContext->PSSetConstantBuffers( StartSlot, mBoundConstantBufferCount, mBoundConstantBuffers );
         mDeviceContext->VSSetConstantBuffers( StartSlot, mBoundConstantBufferCount, mBoundConstantBuffers );
+        mDeviceContext->GSSetConstantBuffers( StartSlot, mBoundConstantBufferCount, mBoundConstantBuffers );
       }
 
       mDeviceContext->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
@@ -1466,6 +1515,7 @@ namespace Tac
       TAC_RELEASE_IUNKNOWN( program->mInputSig );
       TAC_RELEASE_IUNKNOWN( program->mVertexShader );
       TAC_RELEASE_IUNKNOWN( program->mPixelShader );
+      TAC_RELEASE_IUNKNOWN( program->mGeometryShader );
       ShaderReloadHelperRemove( shaderHandle );
     }
 

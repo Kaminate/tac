@@ -213,6 +213,15 @@ namespace Tac
         return i;
     return npos;
   }
+    int    StringView::find( const StringView& substr ) const
+    {
+      if( substr.mLen > mLen )
+        return npos;
+      for( int i = 0; i < mLen - substr.mLen; ++i )
+        if( MemCmp( mStr + i, substr.mStr, substr.mLen ) == 0 )
+          return i;
+      return npos;
+    }
   StringView  StringView::substr( const int pos,
                                  const int len ) const
   {
@@ -362,10 +371,8 @@ namespace Tac
     if( substr.mLen > mLen )
       return npos;
     for( int i = 0; i < mLen - substr.mLen; ++i )
-    {
       if( MemCmp( mStr + i, substr.mStr, substr.mLen ) == 0 )
         return i;
-    }
     return npos;
   }
   String String::substr( int pos, int len ) const

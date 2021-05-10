@@ -40,6 +40,7 @@ namespace Tac
   static Render::VertexDeclarations    m3DVertexFormatDecls;
   static Errors                        mGetTextureErrorsGround;
   static Errors                        mGetTextureErrorsNoise;
+  static bool                          mEnabled;
 
   struct TerrainVertex
   {
@@ -442,6 +443,8 @@ namespace Tac
                                const int viewHeight,
                                const Render::ViewHandle viewId )
   {
+    if( !mEnabled )
+      return;
 
     TAC_RENDER_GROUP_BLOCK( "Render Game World" );
     //_PROFILE_BLOCK;
