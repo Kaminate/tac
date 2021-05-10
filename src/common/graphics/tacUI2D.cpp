@@ -96,127 +96,6 @@ namespace Tac
     }
   }
 
-
-  void UI2DCommonData::Init( Errors& errors )
-  {
-    uint8_t data[] = { 255, 255, 255, 255 };
-    Render::TexSpec textureData = {};
-    textureData.mImage.mWidth = 1;
-    textureData.mImage.mHeight = 1;
-    textureData.mPitch = 1;
-    textureData.mImage.mFormat.mElementCount = 4;
-    textureData.mImage.mFormat.mPerElementByteCount = 1;
-    textureData.mImage.mFormat.mPerElementDataType = Render::GraphicsType::unorm;
-    textureData.mImageBytes = data;
-    textureData.mBinding = Render::Binding::ShaderResource;
-    m1x1White = Render::CreateTexture( textureData, TAC_STACK_FRAME );
-    TAC_HANDLE_ERROR( errors );
-
-    mPerFrame = Render::CreateConstantBuffer( sizeof( DefaultCBufferPerFrame ),
-                                              DefaultCBufferPerFrame::shaderRegister,
-                                              TAC_STACK_FRAME );
-    TAC_HANDLE_ERROR( errors );
-
-    mPerObj = Render::CreateConstantBuffer( sizeof( DefaultCBufferPerObject ),
-                                            DefaultCBufferPerObject::shaderRegister,
-                                            TAC_STACK_FRAME );
-    TAC_HANDLE_ERROR( errors );
-
-    mShader = Render::CreateShader( Render::ShaderSource::FromPath( "2D" ),
-                                    Render::ConstantBuffers{ mPerFrame, mPerObj },
-                                    TAC_STACK_FRAME );
-    TAC_HANDLE_ERROR( errors );
-
-    m2DTextShader = Render::CreateShader( Render::ShaderSource::FromPath( "2Dtext" ),
-                                          Render::ConstantBuffers{ mPerFrame, mPerObj },
-                                          TAC_STACK_FRAME );
-    TAC_HANDLE_ERROR( errors );
-
-    Render::VertexDeclaration posData;
-    posData.mAlignedByteOffset = TAC_OFFSET_OF( UI2DVertex, mPosition );
-    posData.mAttribute = Render::Attribute::Position;
-    posData.mTextureFormat = formatv2;
-
-    Render::VertexDeclaration uvData;
-    uvData.mAlignedByteOffset = TAC_OFFSET_OF( UI2DVertex, mGLTexCoord );
-    uvData.mAttribute = Render::Attribute::Texcoord;
-    uvData.mTextureFormat = formatv2;
-
-    //VertexDeclarations vertexDeclarations;
-    //vertexDeclarations.AddVertexDeclaration( posData );
-    //vertexDeclarations.AddVertexDeclaration( uvData );
-    //mFormat = Render::CreateVertexFormat( vertexDeclarations,
-    mFormat = Render::CreateVertexFormat( Render::VertexDeclarations{posData,uvData},
-                                          mShader,
-                                          TAC_STACK_FRAME );
-    TAC_HANDLE_ERROR( errors );
-
-    Render::BlendState blendStateData;
-    blendStateData.mSrcRGB = Render::BlendConstants::One;
-    blendStateData.mDstRGB = Render::BlendConstants::OneMinusSrcA;
-    blendStateData.mBlendRGB = Render::BlendMode::Add;
-    blendStateData.mSrcA = Render::BlendConstants::One;
-    blendStateData.mDstA = Render::BlendConstants::OneMinusSrcA;
-    blendStateData.mBlendA = Render::BlendMode::Add;
-    mBlendState = Render::CreateBlendState( blendStateData,
-                                            TAC_STACK_FRAME );
-    TAC_HANDLE_ERROR( errors );
-
-    Render::DepthState depthStateData;
-    depthStateData.mDepthTest = false;
-    depthStateData.mDepthWrite = false;
-    depthStateData.mDepthFunc = Render::DepthFunc::Less;
-    mDepthState = Render::CreateDepthState( depthStateData,
-                                            TAC_STACK_FRAME );
-
-    Render::RasterizerState rasterizerStateData;
-    rasterizerStateData.mCullMode = Render::CullMode::None;
-    rasterizerStateData.mFillMode = Render::FillMode::Solid;
-    rasterizerStateData.mFrontCounterClockwise = true;
-    rasterizerStateData.mMultisample = false;
-    rasterizerStateData.mScissor = true;
-    mRasterizerState = Render::CreateRasterizerState( rasterizerStateData,
-                                                      TAC_STACK_FRAME );
-    TAC_HANDLE_ERROR( errors );
-
-    Render::SamplerState samplerStateData;
-    samplerStateData.mFilter = Render::Filter::Linear;
-    mSamplerState = Render::CreateSamplerState( samplerStateData,
-                                                TAC_STACK_FRAME );
-    TAC_HANDLE_ERROR( errors );
-  }
-
-  void UI2DCommonData::Uninit()
-  {
-    {
-      Render::DestroyTexture( m1x1White, TAC_STACK_FRAME );
-      Render::DestroyVertexFormat( mFormat, TAC_STACK_FRAME );
-      Render::DestroyShader( mShader, TAC_STACK_FRAME );
-      Render::DestroyShader( m2DTextShader, TAC_STACK_FRAME );
-      Render::DestroyDepthState( mDepthState, TAC_STACK_FRAME );
-      Render::DestroyBlendState( mBlendState, TAC_STACK_FRAME );
-      Render::DestroyRasterizerState( mRasterizerState, TAC_STACK_FRAME );
-      Render::DestroySamplerState( mSamplerState, TAC_STACK_FRAME );
-      Render::DestroyConstantBuffer( mPerFrame, TAC_STACK_FRAME );
-      Render::DestroyConstantBuffer( mPerObj, TAC_STACK_FRAME );
-    }
-  }
-  UI2DDrawData::UI2DDrawData()
-  {
-
-
-  }
-
-  UI2DDrawData::~UI2DDrawData()
-  {
-    //if( mVertexBufferHandle.IsValid() )
-    //  Render::DestroyVertexBuffer( mVertexBufferHandle, TAC_STACK_FRAME );
-    //if( mIndexBufferHandle.IsValid() )
-    //  Render::DestroyIndexBuffer( mIndexBufferHandle, TAC_STACK_FRAME );
-  }
-
-
-
   static void UpdateDrawInterface( UI2DDrawData* drawData,
                                    UI2DDrawGpuInterface* gDrawInterface,
                                    Errors& errors )
@@ -277,6 +156,112 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
   }
 
+
+  void UI2DCommonData::Init( Errors& errors )
+  {
+    uint8_t data[] = { 255, 255, 255, 255 };
+    Render::TexSpec textureData = {};
+    textureData.mImage.mWidth = 1;
+    textureData.mImage.mHeight = 1;
+    textureData.mPitch = 1;
+    textureData.mImage.mFormat.mElementCount = 4;
+    textureData.mImage.mFormat.mPerElementByteCount = 1;
+    textureData.mImage.mFormat.mPerElementDataType = Render::GraphicsType::unorm;
+    textureData.mImageBytes = data;
+    textureData.mBinding = Render::Binding::ShaderResource;
+    m1x1White = Render::CreateTexture( textureData, TAC_STACK_FRAME );
+    TAC_HANDLE_ERROR( errors );
+
+    mPerFrame = Render::CreateConstantBuffer( sizeof( DefaultCBufferPerFrame ),
+                                              DefaultCBufferPerFrame::shaderRegister,
+                                              TAC_STACK_FRAME );
+    TAC_HANDLE_ERROR( errors );
+
+    mPerObj = Render::CreateConstantBuffer( sizeof( DefaultCBufferPerObject ),
+                                            DefaultCBufferPerObject::shaderRegister,
+                                            TAC_STACK_FRAME );
+    TAC_HANDLE_ERROR( errors );
+
+    mShader = Render::CreateShader( Render::ShaderSource::FromPath( "2D" ),
+                                    Render::ConstantBuffers{ mPerFrame, mPerObj },
+                                    TAC_STACK_FRAME );
+    TAC_HANDLE_ERROR( errors );
+
+    m2DTextShader = Render::CreateShader( Render::ShaderSource::FromPath( "2Dtext" ),
+                                          Render::ConstantBuffers{ mPerFrame, mPerObj },
+                                          TAC_STACK_FRAME );
+    TAC_HANDLE_ERROR( errors );
+
+    Render::VertexDeclaration posData;
+    posData.mAlignedByteOffset = TAC_OFFSET_OF( UI2DVertex, mPosition );
+    posData.mAttribute = Render::Attribute::Position;
+    posData.mTextureFormat = formatv2;
+
+    Render::VertexDeclaration uvData;
+    uvData.mAlignedByteOffset = TAC_OFFSET_OF( UI2DVertex, mGLTexCoord );
+    uvData.mAttribute = Render::Attribute::Texcoord;
+    uvData.mTextureFormat = formatv2;
+
+    //VertexDeclarations vertexDeclarations;
+    //vertexDeclarations.AddVertexDeclaration( posData );
+    //vertexDeclarations.AddVertexDeclaration( uvData );
+    //mFormat = Render::CreateVertexFormat( vertexDeclarations,
+    mFormat = Render::CreateVertexFormat( Render::VertexDeclarations{ posData, uvData },
+                                          mShader,
+                                          TAC_STACK_FRAME );
+    TAC_HANDLE_ERROR( errors );
+
+    Render::BlendState blendStateData;
+    blendStateData.mSrcRGB = Render::BlendConstants::One;
+    blendStateData.mDstRGB = Render::BlendConstants::OneMinusSrcA;
+    blendStateData.mBlendRGB = Render::BlendMode::Add;
+    blendStateData.mSrcA = Render::BlendConstants::One;
+    blendStateData.mDstA = Render::BlendConstants::OneMinusSrcA;
+    blendStateData.mBlendA = Render::BlendMode::Add;
+    mBlendState = Render::CreateBlendState( blendStateData,
+                                            TAC_STACK_FRAME );
+    TAC_HANDLE_ERROR( errors );
+
+    Render::DepthState depthStateData;
+    depthStateData.mDepthTest = false;
+    depthStateData.mDepthWrite = false;
+    depthStateData.mDepthFunc = Render::DepthFunc::Less;
+    mDepthState = Render::CreateDepthState( depthStateData,
+                                            TAC_STACK_FRAME );
+
+    Render::RasterizerState rasterizerStateData;
+    rasterizerStateData.mCullMode = Render::CullMode::None;
+    rasterizerStateData.mFillMode = Render::FillMode::Solid;
+    rasterizerStateData.mFrontCounterClockwise = true;
+    rasterizerStateData.mMultisample = false;
+    rasterizerStateData.mScissor = true;
+    mRasterizerState = Render::CreateRasterizerState( rasterizerStateData,
+                                                      TAC_STACK_FRAME );
+    TAC_HANDLE_ERROR( errors );
+
+    Render::SamplerState samplerStateData;
+    samplerStateData.mFilter = Render::Filter::Linear;
+    mSamplerState = Render::CreateSamplerState( samplerStateData,
+                                                TAC_STACK_FRAME );
+    TAC_HANDLE_ERROR( errors );
+  }
+
+  void UI2DCommonData::Uninit()
+  {
+      Render::DestroyTexture( m1x1White, TAC_STACK_FRAME );
+      Render::DestroyVertexFormat( mFormat, TAC_STACK_FRAME );
+      Render::DestroyShader( mShader, TAC_STACK_FRAME );
+      Render::DestroyShader( m2DTextShader, TAC_STACK_FRAME );
+      Render::DestroyDepthState( mDepthState, TAC_STACK_FRAME );
+      Render::DestroyBlendState( mBlendState, TAC_STACK_FRAME );
+      Render::DestroyRasterizerState( mRasterizerState, TAC_STACK_FRAME );
+      Render::DestroySamplerState( mSamplerState, TAC_STACK_FRAME );
+      Render::DestroyConstantBuffer( mPerFrame, TAC_STACK_FRAME );
+      Render::DestroyConstantBuffer( mPerObj, TAC_STACK_FRAME );
+  }
+
+  UI2DDrawData::UI2DDrawData() {}
+
   void UI2DDrawData::DrawToTexture( const Render::ViewHandle viewHandle,
                                     int w,
                                     int h,
@@ -330,82 +315,6 @@ namespace Tac
     mDefaultIndex2Ds.resize( 0 );
   }
 
-  // cache the results?
-  v2 CalculateTextSize( const StringView text,
-                        const int fontSize )
-  {
-    const CodepointView codepoints = UTF8ToCodepoints( text );
-    return CalculateTextSize( codepoints, fontSize );
-  }
-
-  v2 CalculateTextSize( const CodepointView codepoints,
-                        const int fontSize )
-  {
-    return CalculateTextSize( codepoints.data(),
-                              codepoints.size(),
-                              fontSize );
-  }
-
-  v2 CalculateTextSize( const Codepoint* codepoints,
-                        const int codepointCount,
-                        const int fontSize )
-  {
-    float lineWidthUISpaceMax = 0;
-    float lineWidthUISpace = 0;
-    float xUISpace = 0;
-
-
-    Language defaultLanguage = Language::English;
-    FontFile* fontFile = gFontStuff.mDefaultFonts[ defaultLanguage ];
-
-    int lineCount = 1;
-
-    auto AccountForLine = [&]()
-    {
-      lineWidthUISpaceMax = Max( lineWidthUISpaceMax, lineWidthUISpace );
-
-      // if the string ends with a space ( ' ' )
-      // ( bitmap width is 0, advance width is nonzero )
-      lineWidthUISpaceMax = Max( lineWidthUISpaceMax, xUISpace );
-    };
-
-    for( int iCodepoint = 0; iCodepoint < codepointCount; ++iCodepoint )
-    {
-      Codepoint codepoint = codepoints[ iCodepoint ];
-      if( !codepoint )
-        continue;
-      if( IsAsciiCharacter( codepoint ) )
-      {
-        if( codepoint == '\n' )
-        {
-          AccountForLine();
-          lineWidthUISpace = 0;
-          xUISpace = 0;
-          lineCount++;
-        }
-        if( codepoint == '\r' )
-          continue;
-      }
-
-      FontAtlasCell* fontAtlasCell = nullptr;
-      gFontStuff.GetCharacter( defaultLanguage, codepoint, &fontAtlasCell );
-      if( !fontAtlasCell )
-        continue;
-
-      lineWidthUISpace = xUISpace + fontAtlasCell->mUISpaceLeftSideBearing + fontAtlasCell->mBitmapWidth;
-      xUISpace += fontAtlasCell->mUISpaceAdvanceWidth;
-    }
-
-    AccountForLine();
-
-    v2 textSize;
-    textSize.x = lineWidthUISpaceMax;
-    textSize.y = lineCount * ( fontFile->mUISpaceAscent - fontFile->mUISpaceDescent ) +
-      ( lineCount - 1 ) * fontFile->mUISpaceLinegap;
-    textSize *= ( float )fontSize / ( float )FontCellWidth;
-
-    return textSize;
-  }
 
   void UI2DDrawData::AddBox( v2 mini,
                              v2 maxi,
@@ -645,6 +554,91 @@ namespace Tac
     drawCall.mShader = gUI2DCommonData.m2DTextShader;
     drawCall.mUniformSource = perObjectData;
     mDrawCall2Ds.push_back( drawCall );
+  }
+
+
+  UI2DDrawData::~UI2DDrawData()
+  {
+    //if( mVertexBufferHandle.IsValid() )
+    //  Render::DestroyVertexBuffer( mVertexBufferHandle, TAC_STACK_FRAME );
+    //if( mIndexBufferHandle.IsValid() )
+    //  Render::DestroyIndexBuffer( mIndexBufferHandle, TAC_STACK_FRAME );
+  }
+
+  v2 CalculateTextSize( const StringView text,
+                        const int fontSize )
+  {
+    const CodepointView codepoints = UTF8ToCodepoints( text );
+    return CalculateTextSize( codepoints, fontSize );
+  }
+
+  v2 CalculateTextSize( const CodepointView codepoints,
+                        const int fontSize )
+  {
+    return CalculateTextSize( codepoints.data(),
+                              codepoints.size(),
+                              fontSize );
+  }
+
+  v2 CalculateTextSize( const Codepoint* codepoints,
+                        const int codepointCount,
+                        const int fontSize )
+  {
+    float lineWidthUISpaceMax = 0;
+    float lineWidthUISpace = 0;
+    float xUISpace = 0;
+
+
+    Language defaultLanguage = Language::English;
+    FontFile* fontFile = gFontStuff.mDefaultFonts[ defaultLanguage ];
+
+    int lineCount = 1;
+
+    auto AccountForLine = [&]()
+    {
+      lineWidthUISpaceMax = Max( lineWidthUISpaceMax, lineWidthUISpace );
+
+      // if the string ends with a space ( ' ' )
+      // ( bitmap width is 0, advance width is nonzero )
+      lineWidthUISpaceMax = Max( lineWidthUISpaceMax, xUISpace );
+    };
+
+    for( int iCodepoint = 0; iCodepoint < codepointCount; ++iCodepoint )
+    {
+      Codepoint codepoint = codepoints[ iCodepoint ];
+      if( !codepoint )
+        continue;
+      if( IsAsciiCharacter( codepoint ) )
+      {
+        if( codepoint == '\n' )
+        {
+          AccountForLine();
+          lineWidthUISpace = 0;
+          xUISpace = 0;
+          lineCount++;
+        }
+        if( codepoint == '\r' )
+          continue;
+      }
+
+      FontAtlasCell* fontAtlasCell = nullptr;
+      gFontStuff.GetCharacter( defaultLanguage, codepoint, &fontAtlasCell );
+      if( !fontAtlasCell )
+        continue;
+
+      lineWidthUISpace = xUISpace + fontAtlasCell->mUISpaceLeftSideBearing + fontAtlasCell->mBitmapWidth;
+      xUISpace += fontAtlasCell->mUISpaceAdvanceWidth;
+    }
+
+    AccountForLine();
+
+    v2 textSize;
+    textSize.x = lineWidthUISpaceMax;
+    textSize.y = lineCount * ( fontFile->mUISpaceAscent - fontFile->mUISpaceDescent ) +
+      ( lineCount - 1 ) * fontFile->mUISpaceLinegap;
+    textSize *= ( float )fontSize / ( float )FontCellWidth;
+
+    return textSize;
   }
 
 }

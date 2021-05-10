@@ -694,19 +694,51 @@ namespace Tac
         std::cout << "Render2::End\n";
     }
 
+    static void WaitUntilDrawCallFinishes( ID3D11Device* device, ID3D11DeviceContext* deviceContext )
+    {
+        D3D11_QUERY_DESC desc = {};
+        desc.Query = D3D11_QUERY_EVENT;
+        ID3D11Query* query;
+        auto createQueryResult = device->CreateQuery( &desc, &query );
+        TAC_ASSERT( SUCCEEDED( createQueryResult ) );
+        deviceContext->End( query );
+
+        for( ;; )
+        {
+          HRESULT getDataResult = deviceContext->GetData( query, nullptr, 0, 0 );
+          if( getDataResult == S_FALSE )
+          {
+            // not finished gpu commands executing
+          }
+          else if( getDataResult == S_OK )
+          {
+            break;
+          }
+          else
+          {
+            TAC_CRITICAL_ERROR_INVALID_CODE_PATH;
+          }
+        }
+
+
+        query->Release();
+    }
+
     void RendererDirectX11::RenderDrawCall( const Render::Frame* frame,
                                             const Render::DrawCall3* drawCall,
                                             Errors& errors )
     {
+
+
       if( drawCall->mShaderHandle.IsValid() )
       {
         Program* program = &mPrograms[ ( int )drawCall->mShaderHandle ];
         TAC_ASSERT( program->mVertexShader );
         TAC_ASSERT( program->mPixelShader );
+        // Bind new shaders / unbind unused shaders
         mDeviceContext->VSSetShader( program->mVertexShader, NULL, 0 );
         mDeviceContext->PSSetShader( program->mPixelShader, NULL, 0 );
-        if( program->mGeometryShader )
-          mDeviceContext->GSSetShader( program->mGeometryShader, NULL, 0 );
+        mDeviceContext->GSSetShader( program->mGeometryShader, NULL, 0 );
       }
 
       if( drawCall->mBlendStateHandle.IsValid() && mBlendState != mBlendStates[ ( int )drawCall->mBlendStateHandle ] )
@@ -898,6 +930,7 @@ namespace Tac
         const UINT StartIndexLocation = drawCall->mStartIndex; //  *indexBuffer->mFormat.CalculateTotalByteCount();
         // should this be multiplied by the sizeof vertex?
         const INT BaseVertexLocation = 0; // drawCall->mStartVertex;
+
         mDeviceContext->DrawIndexed( IndexCount, StartIndexLocation, BaseVertexLocation );
       }
       else if( drawCall->mVertexCount )

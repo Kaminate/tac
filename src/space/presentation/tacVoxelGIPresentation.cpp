@@ -11,7 +11,6 @@
 #include "src/common/graphics/tacRendererUtil.h"
 #include "src/common/graphics/tacUI2D.h"
 
-
 namespace Tac
 {
   // https://docs.microsoft.com/en-us/windows/win32/direct3d11/direct3d-11-advanced-stages-cs-resources
