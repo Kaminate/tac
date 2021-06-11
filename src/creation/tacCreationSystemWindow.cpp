@@ -51,7 +51,6 @@ namespace Tac
     ImGuiSetNextWindowStretch();
     ImGuiBegin( "System Window" );
 
-    ImGuiText( "hello" );
     if( ImGuiCollapsingHeader( "Select System" ) )
     {
       TAC_IMGUI_INDENT_BLOCK;
@@ -73,7 +72,7 @@ namespace Tac
     if( sSystemRegistryEntry )
     {
       const SystemRegistryEntry* systemRegistryEntry = sSystemRegistryEntry;
-      ImGuiText( systemRegistryEntry->mName );
+      //ImGuiText( systemRegistryEntry->mName );
       if( systemRegistryEntry->mDebugImGui )
       {
         System* system = gCreation.mWorld->GetSystem( systemRegistryEntry );

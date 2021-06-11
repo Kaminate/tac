@@ -16,16 +16,33 @@ namespace Tac
   // https://docs.microsoft.com/en-us/windows/win32/direct3d11/direct3d-11-advanced-stages-cs-resources
   // RWStructuredBuffer
 
-  static Render::MagicBufferHandle  voxelRWStructuredBuf;
-  static Render::TextureHandle      voxelTextureRadianceBounce0;
-  static Render::TextureHandle      voxelTextureRadianceBounce1;
-  static Render::VertexFormatHandle voxelVertexFormat;
-  static Render::ShaderHandle       voxelizerShader;
-  static Render::ShaderHandle       voxelVisualizerShader;
-  Render::VertexDeclarations        voxelVertexDeclarations;
-  static int                        voxelDimension = 64; // 512; that makes the rwbuffer 1 gb
-  static bool                       voxelDebug;
-  static bool                       voxelEnabled = true;
+  static Render::MagicBufferHandle    voxelRWStructuredBuf;
+  static Render::TextureHandle        voxelTextureRadianceBounce0;
+  static Render::TextureHandle        voxelTextureRadianceBounce1;
+  static Render::VertexFormatHandle   voxelVertexFormat;
+  static Render::ShaderHandle         voxelizerShader;
+  static Render::ShaderHandle         voxelVisualizerShader;
+  static Render::ConstantBufferHandle voxelConstantBuffer;
+  Render::VertexDeclarations          voxelVertexDeclarations;
+  static int                          voxelDimension = 64; // 512; that makes the rwbuffer 1 gb
+  static bool                         voxelDebug;
+  static bool                         voxelEnabled = true;
+
+
+  struct CBufferVoxelizer
+  {
+    //     Position of the voxel grid in worldspace.
+    //     It's not rotated, aligned to world axis.
+    v3     gVoxelGridCenter;
+
+    //     Half width of the entire voxel grid in worldspace
+    float  gVoxelGridHalfWidth;
+
+    //     Width of a single voxel
+    float  gVoxelWidth;
+
+    static const int shaderregister = 2;
+  };
 
   static Render::ConstantBuffers GetConstantBuffers()
   {
@@ -34,6 +51,15 @@ namespace Tac
       GamePresentationGetPerFrame(),
       GamePresentationGetPerObj(),
     };
+  }
+
+
+
+  static void                    CreateVoxelConstantBuffer()
+  {
+    voxelConstantBuffer = Render::CreateConstantBuffer( sizeof( CBufferVoxelizer ),
+                                                        CBufferVoxelizer::shaderregister,
+                                                        TAC_STACK_FRAME );
   }
 
   static void                    CreateVoxelVisualizerShader()
@@ -157,6 +183,7 @@ namespace Tac
   void               VoxelGIPresentationInit( Errors& )
   {
     CreateVoxelizerShader();
+    CreateVoxelConstantBuffer();
     CreateVoxelVisualizerShader();
     CreateVoxelRWStructredBuf();
     CreateVoxelTextureRadianceBounce1();
@@ -233,6 +260,15 @@ namespace Tac
         objBuf.Color = { model->mColorRGB, 1 };
         objBuf.World = model->mEntity->mWorldTransform;
 
+        CBufferVoxelizer cpuCBufferVoxelizer = {};
+        cpuCBufferVoxelizer.gVoxelGridCenter = mCamera->mPos;
+        cpuCBufferVoxelizer.gVoxelGridHalfWidth = ( float )( voxelDimension / 2 );
+        cpuCBufferVoxelizer.gVoxelWidth = 1;
+        Render::UpdateConstantBuffer( voxelConstantBuffer,
+                                      &cpuCBufferVoxelizer,
+                                      sizeof( CBufferVoxelizer ),
+                                      TAC_STACK_FRAME );
+
         for( const SubMesh& subMesh : mesh->mSubMeshes )
         {
           Render::SetShader( voxelizerShader );
@@ -243,17 +279,21 @@ namespace Tac
           Render::SetSamplerState( samplerState );
           Render::SetDepthState( depthState );
           Render::SetVertexFormat( voxelVertexFormat );
-          //Render::SetTexture( { gUI2DCommonData.m1x1White } );
+          Render::SetTexture( { gUI2DCommonData.m1x1White } );
           Render::UpdateConstantBuffer( objConstantBuffer,
                                         &objBuf,
                                         sizeof( DefaultCBufferPerObject ),
                                         TAC_STACK_FRAME );
+
+
           Render::Submit( mViewHandle, TAC_STACK_FRAME );
         }
       }
       Render::ViewHandle mViewHandle;
+      const Camera*      mCamera;
     } modelVisitor;
     modelVisitor.mViewHandle = viewHandle;
+    modelVisitor.mCamera = camera;
 
     Graphics* graphics = GetGraphics( world );
     graphics->VisitModels( &modelVisitor );
@@ -264,6 +304,8 @@ namespace Tac
     TAC_UNUSED_PARAMETER( viewHeight );
     TAC_UNUSED_PARAMETER( viewHandle );
   }
+
+  bool&              VoxelGIPresentationGetEnabled() { return voxelEnabled; }
 }
 
 

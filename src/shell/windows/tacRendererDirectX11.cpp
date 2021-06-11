@@ -322,22 +322,19 @@ namespace Tac
       return shaderFileContents + "\n";
     }
 
-    static void CompileShaderFromString( const ShaderSource& shaderSource,
-                                         ID3DBlob** ppBlobOut,
-                                         const StringView shaderStr,
-                                         const char* entryPoint,
-                                         const char* shaderModel,
-                                         Errors& errors )
+    static ID3DBlob* CompileShaderFromString( const ShaderSource& shaderSource,
+                                              const StringView shaderStr,
+                                              const char* entryPoint,
+                                              const char* shaderModel,
+                                              Errors& errors )
     {
       TAC_ASSERT( IsMainThread() );
       DWORD dwShaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
-      if( IsDebugMode() )
-      {
-        dwShaderFlags |= D3DCOMPILE_DEBUG;
-        dwShaderFlags |= D3DCOMPILE_SKIP_OPTIMIZATION;
-      }
+      dwShaderFlags |= IsDebugMode() ? D3DCOMPILE_DEBUG : 0;
+      dwShaderFlags |= IsDebugMode() ? D3DCOMPILE_SKIP_OPTIMIZATION : 0;
 
-      ID3DBlob* pErrorBlob;
+      ID3DBlob* pErrorBlob = nullptr;
+      ID3DBlob* pBlobOut = nullptr;
       const HRESULT hr = D3DCompile( shaderStr.data(),
                                      shaderStr.size(),
                                      nullptr,
@@ -347,7 +344,7 @@ namespace Tac
                                      shaderModel,
                                      dwShaderFlags,
                                      0,
-                                     ppBlobOut,
+                                     &pBlobOut,
                                      &pErrorBlob );
       if( FAILED( hr ) )
       {
@@ -379,8 +376,10 @@ namespace Tac
         }
 
         const char* errMsg = ( const char* )pErrorBlob->GetBufferPointer();
-        TAC_RAISE_ERROR( errMsg, errors );
+        TAC_RAISE_ERROR_RETURN( errMsg, errors, nullptr );
       }
+
+      return pBlobOut;
     }
 
     static String InlineShaderIncludes( String shaderSourceCode, Errors& errors )
@@ -485,15 +484,15 @@ namespace Tac
         TAC_ASSERT_MSG( hasVertexShader, "shader %s missing %s", shaderPath.c_str(), vertexShaderEntryPoint );
         TAC_ASSERT_MSG( hasPixelShader, "shader %s missing %s", shaderPath.c_str(), pixelShaderEntryPoint );
 
+        auto GetShaderModel = []( const char* prefix ) { return FrameMemoryPrintf( "%s_5_0", prefix ); };
+
         if( hasVertexShader )
         {
-          ID3DBlob* pVSBlob;
-          CompileShaderFromString( shaderSource,
-                                   &pVSBlob,
-                                   shaderStringFull,
-                                   vertexShaderEntryPoint,
-                                   "vs_4_0",
-                                   errors );
+          ID3DBlob* pVSBlob = CompileShaderFromString( shaderSource,
+                                                       shaderStringFull,
+                                                       vertexShaderEntryPoint,
+                                                       GetShaderModel( "vs" ),
+                                                       errors );
           if( errors )
             continue;
           TAC_ON_DESTRUCT( pVSBlob->Release() );
@@ -515,15 +514,11 @@ namespace Tac
 
         if( hasPixelShader )
         {
-
-
-          ID3DBlob* pPSBlob;
-          CompileShaderFromString( shaderSource,
-                                   &pPSBlob,
-                                   shaderStringFull,
-                                   pixelShaderEntryPoint,
-                                   "ps_4_0",
-                                   errors );
+          ID3DBlob* pPSBlob = CompileShaderFromString( shaderSource,
+                                                       shaderStringFull,
+                                                       pixelShaderEntryPoint,
+                                                       GetShaderModel( "ps" ),
+                                                       errors );
           if( errors )
             continue;
           TAC_ON_DESTRUCT( pPSBlob->Release() );
@@ -540,15 +535,11 @@ namespace Tac
 
         if( hasGeometryShader )
         {
-
-
-          ID3DBlob* blob;
-          CompileShaderFromString( shaderSource,
-                                   &blob,
-                                   shaderStringFull,
-                                   geometryShaderEntryPoint,
-                                   "gs_4_0",
-                                   errors );
+          ID3DBlob* blob = CompileShaderFromString( shaderSource,
+                                                    shaderStringFull,
+                                                    geometryShaderEntryPoint,
+                                                    GetShaderModel( "gs" ),
+                                                    errors );
           if( errors )
             continue;
           TAC_ON_DESTRUCT( blob->Release() );
@@ -694,35 +685,36 @@ namespace Tac
         std::cout << "Render2::End\n";
     }
 
+#if 0
     static void WaitUntilDrawCallFinishes( ID3D11Device* device, ID3D11DeviceContext* deviceContext )
     {
-        D3D11_QUERY_DESC desc = {};
-        desc.Query = D3D11_QUERY_EVENT;
-        ID3D11Query* query;
-        auto createQueryResult = device->CreateQuery( &desc, &query );
-        TAC_ASSERT( SUCCEEDED( createQueryResult ) );
-        deviceContext->End( query );
+      D3D11_QUERY_DESC desc = {};
+      desc.Query = D3D11_QUERY_EVENT;
+      ID3D11Query* query;
+      auto createQueryResult = device->CreateQuery( &desc, &query );
+      TAC_ASSERT( SUCCEEDED( createQueryResult ) );
+      deviceContext->End( query );
 
-        for( ;; )
+      for( ;; )
+      {
+        HRESULT getDataResult = deviceContext->GetData( query, nullptr, 0, 0 );
+        if( getDataResult == S_FALSE )
         {
-          HRESULT getDataResult = deviceContext->GetData( query, nullptr, 0, 0 );
-          if( getDataResult == S_FALSE )
-          {
-            // not finished gpu commands executing
-          }
-          else if( getDataResult == S_OK )
-          {
-            break;
-          }
-          else
-          {
-            TAC_CRITICAL_ERROR_INVALID_CODE_PATH;
-          }
+          // not finished gpu commands executing
         }
+        else if( getDataResult == S_OK )
+        {
+          break;
+        }
+        else
+        {
+          TAC_CRITICAL_ERROR_INVALID_CODE_PATH;
+        }
+      }
 
-
-        query->Release();
+      query->Release();
     }
+#endif
 
     void RendererDirectX11::RenderDrawCall( const Render::Frame* frame,
                                             const Render::DrawCall3* drawCall,

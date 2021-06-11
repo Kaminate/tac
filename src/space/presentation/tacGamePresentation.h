@@ -22,5 +22,6 @@ namespace Tac
   Render::BlendStateHandle      GamePresentationGetBlendState();
   Render::RasterizerStateHandle GamePresentationGetRasterizerState();
   Render::SamplerStateHandle    GamePresentationGetSamplerState();
+  bool&                         GamePresentationGetEnabled();
 }
 

@@ -40,7 +40,7 @@ namespace Tac
   static Render::VertexDeclarations    m3DVertexFormatDecls;
   static Errors                        mGetTextureErrorsGround;
   static Errors                        mGetTextureErrorsNoise;
-  static bool                          mEnabled;
+  static bool                          mEnabled = true;
 
   struct TerrainVertex
   {
@@ -506,5 +506,6 @@ namespace Tac
   Render::BlendStateHandle      GamePresentationGetBlendState()      { return mBlendState;       }
   Render::RasterizerStateHandle GamePresentationGetRasterizerState() { return mRasterizerState;  }
   Render::SamplerStateHandle    GamePresentationGetSamplerState()    { return mSamplerState;     }
+  bool&                         GamePresentationGetEnabled()         { return mEnabled;          }
 
 }

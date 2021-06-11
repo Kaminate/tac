@@ -6,25 +6,28 @@
 // list of lights, with depth buffers?
 
 #include "common.fx"
+#include "VoxelCommon.fx"
 
 //===----------------- vertex shader -----------------===//
 
-struct Voxel
-{
-  uint mColor;
-  uint mNormal;
-};
-
-StructuredBuffer< Voxel > mySB : register( t0 );
+//                          UAV requires a 'u' register
+RWStructuredBuffer< Voxel > mySB : register( u0 );
 
 Texture2D diffuseMaterialTexture : register( t0 );
+
 sampler   linearSampler          : register( s0 );
 
-cbuffer CBufferVoxelizer : register( b2 )
+cbuffer CBufferVoxelizer         : register( b2 )
 {
+  //     Position of the voxel grid in worldspace.
+  //     It's not rotated, aligned to world axis.
   float3 gVoxelGridCenter;
+
+  //     Half width of the entire voxel grid in worldspace
   float  gVoxelGridHalfWidth;
-  float  gVoxelWidth; // Width of a single voxel
+  
+  //     Width of a single voxel
+  float  gVoxelWidth; 
 }
 
 // Note 1: Variables are passed between shader stages through SEMANTICS, not variable names!
@@ -44,16 +47,19 @@ struct VS_INPUT
 
 struct VS_OUT_GS_IN
 {
-  float3 mWorldSpacePosition     : POSITION_ASS;
-  float3 mWorldSpaceNormal       : NORMAL_SEX;
-  float2 mTexCoord               : TEXCOORD_FUCK;
+  //                               Using underscores as filler identifiers
+  //                               as each variable must have a semantic name,
+  //                               but the name itself is unimportant
+  float3 mWorldSpacePosition     : _;
+  float3 mWorldSpaceNormal       : __;
+  float2 mTexCoord               : ___;
 };
 
 VS_OUT_GS_IN VS( VS_INPUT input )
 {
   VS_OUT_GS_IN result;
   result.mWorldSpacePosition = mul( World, float4( input.mPosition, 1.0 ) ).xyz;
-  result.mWorldSpaceNormal = mul( ( float3x3 )World, input.mNormal );
+  result.mWorldSpaceNormal = normalize( mul( ( float3x3 )World, input.mNormal ) );
   result.mTexCoord = input.mTexCoord;
   return result;
 }
@@ -62,9 +68,9 @@ VS_OUT_GS_IN VS( VS_INPUT input )
 
 struct GS_OUT_PS_IN
 {
-  float2 mTexCoord               : TEXCOORD_CUNT;
-  float3 mWorldSpaceNormal       : NORMAL_BITCH;
-  float3 mWorldSpacePosition     : POSITION_SLUT;
+  float2 mTexCoord               : _;
+  float3 mWorldSpaceNormal       : __;
+  float3 mWorldSpacePosition     : ___;
   float4 mClipSpacePosition      : SV_POSITION;
 };
 
@@ -112,11 +118,39 @@ void PS( GS_OUT_PS_IN input )
   float3 colorLightAmbient     = float3( 0, 0, 0 );
   float3 colorMaterialDiffuse  = float3( 0, 0, 0 );
   float3 colorMaterialEmissive = float3( 0, 0, 0 );
+  float3 l                     = float3( 0, 1, 0 );
+  float3 n                     = input.mWorldSpaceNormal;
+  float3 voxelNDC = ( input.mWorldSpacePosition - gVoxelGridCenter )
+                  * ( 1.0f / gVoxelGridHalfWidth )
+                  * ( 1.0f / gVoxelWidth );
+  if( voxelNDC.x < -1 || voxelNDC.x > 1 ||
+      voxelNDC.y < -1 || voxelNDC.y > 1 ||
+      voxelNDC.z < -1 || voxelNDC.z > 1 )
+    return;
+
+  float3 voxelUVW = voxelNDC * 0.5f + 0.5f;
+  bool   voxelUVWSaturated = voxelUVW.x > 0 && voxelUVW.x < 1 ||
+                             voxelUVW.y > 0 && voxelUVW.y < 1 ||
+                             voxelUVW.z > 0 && voxelUVW.z < 1;
+  if( !voxelUVWSaturated )
+    return;
 
   colorMaterialDiffuse  = diffuseMaterialTexture.Sample( linearSampler, input.mTexCoord ).xyz;
-  colorLightDiffuse     = dot( input.mWorldSpaceNormal, float3( 0, 1, 0) );
-  color = colorMaterialDiffuse * colorLightDiffuse
-        + colorLightAmbient + 
-        + colorMaterialEmissive;
+  colorLightDiffuse     = dot( n, l );
+  color                 = colorMaterialDiffuse * colorLightDiffuse
+                        + colorLightAmbient + 
+                        + colorMaterialEmissive;
+
+  uint  uint_voxelGridWidth = gVoxelGridHalfWidth * 2;
+  uint  uint_voxelGridArea = uint_voxelGridWidth * uint_voxelGridWidth;
+  uint3 iVoxel3 = floor( voxelUVW * ( gVoxelGridHalfWidth * 2 ) );
+  uint  iVoxel = iVoxel3.x
+               + iVoxel3.y * uint_voxelGridWidth
+               + iVoxel3.z * uint_voxelGridArea;
+
+  uint uint_color = VoxelEncodeHDRColor( color );
+  uint uint_n     = VoxelEncodeUnitNormal( n );
+  InterlockedMax( mySB[ iVoxel ].mColor, uint_color );
+  InterlockedMax( mySB[ iVoxel ].mNormal, uint_n );
 }
 
