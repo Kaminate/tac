@@ -8,10 +8,12 @@
 namespace Tac
 {
   static thread_local StackFrame sNewStackFrame;
-  void SetNewStackFrame( StackFrame stackFrame )
+
+  void         SetNewStackFrame( StackFrame stackFrame )
   {
     sNewStackFrame = stackFrame;
   }
+
   static void* Allocate( StackFrame stackFrame, std::size_t sz )
   {
     TAC_UNUSED_PARAMETER( stackFrame );
@@ -25,18 +27,19 @@ namespace Tac
     }
     return result;
   }
-  static void Deallocate( void* ptr )
+
+  static void  Deallocate( void* ptr )
   {
     std::free( ptr );
   }
 }
 
-void operator delete( void* ptr ) noexcept
+void  operator delete( void* ptr ) noexcept
 {
   Tac::Deallocate( ptr );
 }
 
-void operator delete( void* ptr, Tac::Happy ) noexcept
+void  operator delete( void* ptr, Tac::Happy ) noexcept
 {
   Tac::Deallocate( ptr );
 }

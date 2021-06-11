@@ -324,7 +324,7 @@ namespace Tac
         model->mModelPath = modelPath;
         //model->mModelName = node.mesh->name;
         model->mModelIndex = ( int )( node.mesh - gltfData->meshes );
-        model->mTryingNewThing = true;
+        //model->mTryingNewThing = true;
 
 
         // ** REMEMBER **, we don't care about the textures on this model component.

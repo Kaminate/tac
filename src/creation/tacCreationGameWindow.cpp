@@ -191,12 +191,14 @@ namespace Tac
 
 
 
-    mCenteredUnitCube = ModelAssetManagerGetMesh( "assets/editor/box.gltf",
+    mCenteredUnitCube = ModelAssetManagerGetMeshTryingNewThing( "assets/editor/box.gltf",
+                                                                0,
                                                   m3DvertexFormatDecls,
                                                   errors );
     TAC_HANDLE_ERROR( errors );
 
-    mArrow = ModelAssetManagerGetMesh( "assets/editor/arrow.gltf",
+    mArrow = ModelAssetManagerGetMeshTryingNewThing( "assets/editor/arrow.gltf",
+                                                     0,
                                        m3DvertexFormatDecls,
                                        errors );
     TAC_HANDLE_ERROR( errors );

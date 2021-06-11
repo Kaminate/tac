@@ -22,7 +22,7 @@ namespace Tac
     String                               mModelPath;
     int                                  mModelIndex = -1;
     //Mesh*                                mesh = nullptr;
-    bool                                 mTryingNewThing = false;
+    //bool                                 mTryingNewThing = false;
   };
 
   void                             RegisterModelComponent();

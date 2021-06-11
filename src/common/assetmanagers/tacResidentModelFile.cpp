@@ -37,7 +37,6 @@ namespace Tac
       mParsedData = nullptr;
     }
 
-
     TemporaryMemory bytes;
     String          mPath;
     cgltf_data*     mParsedData = nullptr;
@@ -71,8 +70,7 @@ namespace Tac
   };
 
   static LoadingStuff sLoadingStuff[ 4 ];
-
-  static LoadedStuff sLoadedStuff[ 4 ];
+  static LoadedStuff  sLoadedStuff[ 4 ];
 
   static LoadingStuff* TryGetEmptyLoadingStuff()
   {
@@ -82,7 +80,7 @@ namespace Tac
     return nullptr;
   }
 
-  static LoadedStuff* TryGetEmptyLoadedStuff()
+  static LoadedStuff*  TryGetEmptyLoadedStuff()
   {
     for( LoadedStuff& loadedStuff : sLoadedStuff )
       if( loadedStuff.mPath.empty() )
@@ -90,7 +88,7 @@ namespace Tac
     return nullptr;
   }
 
-  static void         ResidentModelFileUpdate()
+  static void          ResidentModelFileUpdate()
   {
     static double lastUpdateSeconds;
     const double currUpdateSeconds = ShellGetElapsedSeconds();
@@ -125,7 +123,7 @@ namespace Tac
     }
   }
 
-  const cgltf_data*   TryGetGLTFData( const char* path )
+  const cgltf_data*    TryGetGLTFData( const char* path )
   {
     ResidentModelFileUpdate();
 

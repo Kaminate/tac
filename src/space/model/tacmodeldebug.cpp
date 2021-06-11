@@ -18,6 +18,7 @@ namespace Tac
     {
       ".glb",
       ".gltf",
+      ".obj",
     };
     for( const char* modelExtension : modelExtensions )
       if( s.ends_with( modelExtension ) )

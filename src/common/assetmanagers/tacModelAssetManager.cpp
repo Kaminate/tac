@@ -2,6 +2,7 @@
 #include "src/common/assetmanagers/tacModelAssetManager.h"
 #include "src/common/assetmanagers/tacModelLoadSynchronous.h"
 #include "src/common/assetmanagers/tacResidentModelFile.h"
+#include "src/common/assetmanagers/tacModelAssetManagerBackend.h"
 #include "src/common/graphics/tacRenderer.h"
 #include "src/common/math/tacMath.h"
 #include "src/common/string/tacStringIdentifier.h"
@@ -31,22 +32,22 @@ namespace Tac
   }
 
   // todo: multithreading
-  Mesh* ModelAssetManagerGetMesh( StringView path,
-                                  const Render::VertexDeclarations& vertexDeclarations,
-                                  Errors& errors )
-  {
-    if( path.empty() )
-      return nullptr;
+  //Mesh* ModelAssetManagerGetMesh( StringView path,
+  //                                const Render::VertexDeclarations& vertexDeclarations,
+  //                                Errors& errors )
+  //{
+  //  if( path.empty() )
+  //    return nullptr;
 
-    auto it = mMeshes.find( path );
-    if( it != mMeshes.end() )
-      return ( *it ).second;
+  //  auto it = mMeshes.find( path );
+  //  if( it != mMeshes.end() )
+  //    return ( *it ).second;
 
-    auto mesh = TAC_NEW Mesh;
-    *mesh = LoadMeshSynchronous( path, vertexDeclarations, errors );
-    mMeshes[ path ] = mesh;
-    return mesh;
-  }
+  //  auto mesh = TAC_NEW Mesh;
+  //  *mesh = LoadMeshSynchronous( path, vertexDeclarations, errors );
+  //  mMeshes[ path ] = mesh;
+  //  return mesh;
+  //}
 
 
   static std::map< HashedValue, Mesh* > sTryNewTHingMeshes;
@@ -68,6 +69,7 @@ namespace Tac
     return hashedValue;
   }
 
+
   Mesh* ModelAssetManagerGetMeshTryingNewThing( const char* path,
                                                 const int iModel,
                                                 const Render::VertexDeclarations& vertexDeclarations,
@@ -82,16 +84,27 @@ namespace Tac
 
     auto it = sTryNewTHingMeshes.find( hashedValue );
     if( it != sTryNewTHingMeshes.end() )
-        return (*it).second;
+      return ( *it ).second;
 
-    const cgltf_data* parsedData = TryGetGLTFData( path );
-    if( !parsedData )
+    const char* pathExt = [ path ]()
+    { 
+      const int iDot = StringView( path ).find_last_of( "." );
+      return iDot == StringView::npos
+        ? ""
+        : StringView( path ).substr( iDot + 1 );
+    }( );
+    MeshLoadFunction* meshLoadFunction = ModelLoadFunctionFind( pathExt );
+    if( !meshLoadFunction )
       return nullptr;
 
-    auto mesh = TAC_NEW Mesh;
-    *mesh = LoadMeshIndexSynchronous( path, iModel, vertexDeclarations, errors );
-    sTryNewTHingMeshes[ hashedValue ] = mesh;
+    Mesh* mesh = TAC_NEW Mesh;
+    *mesh = meshLoadFunction( path, iModel, vertexDeclarations, errors );
+    TAC_ASSERT( errors.empty() );
 
+    if( mesh )
+      sTryNewTHingMeshes[ hashedValue ] = mesh;
     return mesh;
   }
-}
+
+
+} // namespace Tac

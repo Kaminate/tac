@@ -105,7 +105,8 @@ namespace Tac
     TAC_ASSERT( mGetSkyboxTextureErrors.empty() );
     if( !cubemap.IsValid() )
       return;
-    Mesh* mesh = ModelAssetManagerGetMesh( "assets/editor/Box.gltf",
+    Mesh* mesh = ModelAssetManagerGetMeshTryingNewThing( "assets/editor/Box.gltf",
+                                                         0,
                                            mVertexDecls,
                                            mGetSkyboxMeshErrors );
     TAC_ASSERT( mGetSkyboxMeshErrors.empty() );

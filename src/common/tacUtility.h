@@ -38,7 +38,8 @@ namespace Tac
   //String SeparateSpace( const Vector< String >& lines );
   bool   StartsWith( StringView str, StringView prefix );
   bool   EndsWith( StringView str, StringView suffix );
-  String ToLower( StringView str );
+  String ToLower( StringView );
+  char   ToLower( char );
   String FormatPercentage( float number_between_0_and_1 );
   String FormatPercentage( float curr, float maxi );
 

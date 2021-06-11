@@ -197,7 +197,7 @@ namespace Tac
 		json[ "name" ].SetString( "Ping" );
 		Json& args = json[ "args" ];
 		args.mType = JsonType::Array;
-		auto arg0 = TAC_NEW( kHappyGril ) Json;
+		auto arg0 = TAC_NEW( kHappyGrl ) Json;
 		arg0->SetString( s );
 		args.mArrayElements.push_back( arg0 );
 

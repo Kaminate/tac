@@ -21,7 +21,7 @@ namespace Tac
   };
 
   static const Happy kHappyBoi(1);
-  static const Happy kHappyGril(2);
+  static const Happy kHappyGrl(2);
 }
 
 

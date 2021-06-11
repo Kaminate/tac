@@ -1,0 +1,23 @@
+{
+  "Skybox": null,
+  "mEntityUUID": 0,
+  "mEulerRads":
+  {
+    "x": 0,
+    "y": 0,
+    "z": 0
+  },
+  "mName": "single triangle",
+  "mPosition":
+  {
+    "x": 0,
+    "y": -0.200000,
+    "z": 0
+  },
+  "mScale":
+  {
+    "x": 1,
+    "y": 1,
+    "z": 1
+  }
+}

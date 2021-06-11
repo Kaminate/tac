@@ -10,6 +10,10 @@ ${CMAKE_CURRENT_SOURCE_DIR}/assetmanagers/tacResidentModelFile.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/assetmanagers/tacResidentModelFile.h
 ${CMAKE_CURRENT_SOURCE_DIR}/assetmanagers/tacModelLoadSynchronous.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/assetmanagers/tacModelLoadSynchronous.h
+${CMAKE_CURRENT_SOURCE_DIR}/assetmanagers/tacModelAssetLoaderGltf.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/assetmanagers/tacModelAssetLoaderObj.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/assetmanagers/tacModelAssetManagerBackend.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/assetmanagers/tacModelAssetManagerBackend.h
 ${CMAKE_CURRENT_SOURCE_DIR}/assetmanagers/tacModelAssetManager.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/assetmanagers/tacModelAssetManager.h
 ${CMAKE_CURRENT_SOURCE_DIR}/assetmanagers/tacTextureAssetManager.cpp

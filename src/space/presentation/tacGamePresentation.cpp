@@ -150,23 +150,19 @@ namespace Tac
   static Mesh* LoadModel( const Model* model )
   {
     Errors getmeshErrors;
-    if( model->mTryingNewThing )
-    {
+    //if( model->mTryingNewThing )
+    //{
       return ModelAssetManagerGetMeshTryingNewThing( model->mModelPath.c_str(),
                                                      model->mModelIndex,
                                                      m3DVertexFormatDecls,
                                                      getmeshErrors );
-    }
+    //}
 
-    return ModelAssetManagerGetMesh( model->mModelPath,
-                                     m3DVertexFormatDecls,
-                                     getmeshErrors );
+    //return ModelAssetManagerGetMesh( model->mModelPath,
+    //                                 m3DVertexFormatDecls,
+    //                                 getmeshErrors );
   }
 
-  const Mesh*                   GamePresentationGetModelMesh( const Model* model )
-  {
-    return LoadModel( model );
-  }
 
   static void CreateTerrainShader( Errors& errors )
   {
@@ -315,7 +311,7 @@ namespace Tac
     } myModelVisitor;
     myModelVisitor.mViewId = viewId;
 
-    TAC_RENDER_GROUP_BLOCK( "Visit Models");
+    TAC_RENDER_GROUP_BLOCK( "Visit Models" );
     //Render::BeginGroup( "Visit Models", TAC_STACK_FRAME );
     graphics->VisitModels( &myModelVisitor );
     //Render::EndGroup( TAC_STACK_FRAME );
@@ -326,7 +322,7 @@ namespace Tac
   {
     Physics* physics = Physics::GetSystem( world );
 
-    TAC_RENDER_GROUP_BLOCK(  "Visit Terrains");
+    TAC_RENDER_GROUP_BLOCK( "Visit Terrains" );
     //Render::BeginGroup( "Visit Terrains", TAC_STACK_FRAME );
     for( Terrain* terrain : physics->mTerrains )
     {
@@ -361,9 +357,9 @@ namespace Tac
 
 
   static void RenderSkybox( World* world,
-                               const Camera* camera,
-                               const int viewWidth,
-                               const int viewHeight,
+                            const Camera* camera,
+                            const int viewWidth,
+                            const int viewHeight,
                             const Render::ViewHandle viewId )
   {
     Graphics* graphics = GetGraphics( world );
@@ -386,13 +382,18 @@ namespace Tac
     mySkyboxVisitor.mViewHeight = viewHeight;
     mySkyboxVisitor.mViewId = viewId;
     mySkyboxVisitor.mCamera = camera;
-    TAC_RENDER_GROUP_BLOCK(  "Visit Skyboxes");
+    TAC_RENDER_GROUP_BLOCK( "Visit Skyboxes" );
     //Render::BeginGroup( "Visit Skyboxes", TAC_STACK_FRAME );
     graphics->VisitSkyboxes( &mySkyboxVisitor );
     //Render::EndGroup( TAC_STACK_FRAME );
   }
 
-  void GamePresentationInit( Errors& errors )
+  const Mesh* GamePresentationGetModelMesh( const Model* model )
+  {
+    return LoadModel( model );
+  }
+
+  void        GamePresentationInit( Errors& errors )
   {
     CreatePerFrame( errors );
     TAC_HANDLE_ERROR( errors );
@@ -425,7 +426,7 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
   }
 
-  void GamePresentationUninit()
+  void        GamePresentationUninit()
   {
     Render::DestroyShader( m3DShader, TAC_STACK_FRAME );
     Render::DestroyVertexFormat( m3DVertexFormat, TAC_STACK_FRAME );
@@ -437,11 +438,11 @@ namespace Tac
     Render::DestroySamplerState( mSamplerState, TAC_STACK_FRAME );
   }
 
-  void GamePresentationRender( World* world,
-                               const Camera* camera,
-                               const int viewWidth,
-                               const int viewHeight,
-                               const Render::ViewHandle viewId )
+  void        GamePresentationRender( World* world,
+                                      const Camera* camera,
+                                      const int viewWidth,
+                                      const int viewHeight,
+                                      const Render::ViewHandle viewId )
   {
     if( !mEnabled )
       return;
@@ -500,12 +501,12 @@ namespace Tac
     //  mDesktopWindow->mRenderView );
   }
 
-  Render::ConstantBufferHandle  GamePresentationGetPerFrame()        { return mPerFrame;         }
-  Render::ConstantBufferHandle  GamePresentationGetPerObj()          { return mPerObj;           }
-  Render::DepthStateHandle      GamePresentationGetDepthState()      { return mDepthState;       }
-  Render::BlendStateHandle      GamePresentationGetBlendState()      { return mBlendState;       }
-  Render::RasterizerStateHandle GamePresentationGetRasterizerState() { return mRasterizerState;  }
-  Render::SamplerStateHandle    GamePresentationGetSamplerState()    { return mSamplerState;     }
-  bool&                         GamePresentationGetEnabled()         { return mEnabled;          }
+  Render::ConstantBufferHandle  GamePresentationGetPerFrame()        { return mPerFrame; }
+  Render::ConstantBufferHandle  GamePresentationGetPerObj()          { return mPerObj; }
+  Render::DepthStateHandle      GamePresentationGetDepthState()      { return mDepthState; }
+  Render::BlendStateHandle      GamePresentationGetBlendState()      { return mBlendState; }
+  Render::RasterizerStateHandle GamePresentationGetRasterizerState() { return mRasterizerState; }
+  Render::SamplerStateHandle    GamePresentationGetSamplerState()    { return mSamplerState; }
+  bool&                         GamePresentationGetEnabled()         { return mEnabled; }
 
 }
