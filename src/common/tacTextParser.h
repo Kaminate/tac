@@ -15,6 +15,7 @@ namespace Tac
     T    GetValueOr( T t ) { return mExist ? mT : t; }
     T    GetValueUnchecked() { return mT; }
     bool HasValue() { return mExist; }
+    operator T(){ return mT; };
   private:
     T    mT;
     bool mExist;
@@ -25,6 +26,7 @@ namespace Tac
   struct ParseData
   {
     ParseData( const char*, int );
+    ParseData( const char*, const char* );
 
     // Eat functions
     const char*       EatByte();

@@ -18,6 +18,13 @@ namespace Tac
     mBytes = bytes;
   }
 
+  ParseData::ParseData( const char* begin, const char* end )
+  {
+    mByteCount = ( int )( end - begin );
+    mIByte = 0;
+    mBytes = begin;
+  }
+
   const char*       ParseData::EatByte()
   {
     return EatBytes( 1 );

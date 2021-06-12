@@ -17,6 +17,7 @@ namespace Tac
 
   int        MemCmp( const void*, const void*, int );
   void       MemCpy( void*, const void*, int );
+  void       MemSet( void*, unsigned char, int );
 
   String     ToString( int );
   String     ToString( unsigned int );

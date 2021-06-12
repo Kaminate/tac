@@ -66,6 +66,12 @@ namespace Tac
       *dstChar++ = *srcChar++;
   }
 
+  void       MemSet( void* dst, unsigned char c, int n )
+  {
+    for( int i = 0; i < n; ++i )
+      ( ( char* )dst )[ i ] = c;
+  }
+
   int        StrCmp( const char* lhs, const char* rhs )
   {
     while( *lhs && ( *lhs == *rhs ) )
