@@ -6,7 +6,14 @@
 
 namespace Tac
 {
-  std::map< HashedValue, MeshLoadFunction* > sFunctionMap;
+  static std::map< HashedValue, MeshLoadFunction* > functionMap;
+  //typedef std::map< HashedValue, MeshLoadFunction* > FunctionMap;
+  //static FunctionMap sFunctionMap;
+  //static FunctionMap& GetFunctionMap()
+  //{
+  //  return sFunctionMap;
+  //}
+  //static std::map< HashedValue, MeshLoadFunction* > sFunctionMap;
   
   static HashedValue ModelExtensionHash( const char* ext )
   {
@@ -22,16 +29,16 @@ namespace Tac
   void               ModelLoadFunctionRegister( MeshLoadFunction* meshLoadFunction, const char* ext )
   {
     const HashedValue hashedValue = ModelExtensionHash( ext );
-    sFunctionMap[ hashedValue ] = meshLoadFunction;
+    //FunctionMap& functionMap = GetFunctionMap();
+    functionMap[ hashedValue ] = meshLoadFunction;
   }
 
   MeshLoadFunction*  ModelLoadFunctionFind( const char* ext )
   {
     const HashedValue hashedValue = ModelExtensionHash( ext );
-    const auto it = sFunctionMap.find( hashedValue );
-    if( it == sFunctionMap.end() )
-      return nullptr;
-    return ( *it ).second;
+    //FunctionMap& functionMap = GetFunctionMap();
+    const auto it = functionMap.find( hashedValue );
+    return it == functionMap.end() ? nullptr : ( *it ).second;
   }
 }
 

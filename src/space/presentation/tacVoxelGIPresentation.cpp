@@ -26,7 +26,7 @@ namespace Tac
   Render::VertexDeclarations          voxelVertexDeclarations;
   static int                          voxelDimension = 64; // 512; that makes the rwbuffer 1 gb
   static bool                         voxelDebug;
-  static bool                         voxelEnabled = true;
+  static bool                         voxelEnabled = false;
 
 
   struct CBufferVoxelizer

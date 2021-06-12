@@ -154,16 +154,12 @@ namespace Tac
 
     ImGuiWindows();
 
-    // to force directx graphics specific window debugging
-    //if( ImGuiButton( "close window" ) )
-    //{
-    //  if(mDesktopWindow)
-    //  mDesktopWindow->mRequestDeletion = true;
-    //}
 
 #endif
 
     mCloseRequested |= ImGuiButton( "Close window" );
+    if( ImGuiButton( "Close Application" ) )
+      OSAppStopRunning();
 
     ImGuiEnd();
   }

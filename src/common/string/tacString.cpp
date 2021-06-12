@@ -65,7 +65,6 @@ namespace Tac
     while( len-- )
       *dstChar++ = *srcChar++;
   }
-
   void       MemSet( void* dst, unsigned char c, int n )
   {
     for( int i = 0; i < n; ++i )
@@ -219,17 +218,17 @@ namespace Tac
         return i;
     return npos;
   }
-    int    StringView::find( const StringView& substr ) const
-    {
-      if( substr.mLen > mLen )
-        return npos;
-      for( int i = 0; i < mLen - substr.mLen; ++i )
-        if( MemCmp( mStr + i, substr.mStr, substr.mLen ) == 0 )
-          return i;
+  int         StringView::find( const StringView& substr ) const
+  {
+    if( substr.mLen > mLen )
       return npos;
-    }
+    for( int i = 0; i < mLen - substr.mLen; ++i )
+      if( MemCmp( mStr + i, substr.mStr, substr.mLen ) == 0 )
+        return i;
+    return npos;
+  }
   StringView  StringView::substr( const int pos,
-                                 const int len ) const
+                                  const int len ) const
   {
     return StringView( mStr + pos,
                        len == npos ? mLen - pos : len );

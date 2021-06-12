@@ -8,6 +8,7 @@ namespace Tac
   struct StringView;
   struct Errors;
 
+  void  ModelAssetManagerInit();
   void  ModelAssetManagerUninit();
 
   //    the mesh will be loaded into the vertex format specified by vertex declarations.

@@ -4,6 +4,8 @@
 #include "src/common/tacTextParser.h"
 #include "src/common/math/tacMath.h"
 
+//#pragma init_seg (lib)
+
 namespace Tac
 {
   struct WavefrontObjVertex
@@ -39,27 +41,26 @@ namespace Tac
     const int slashCount = Count( line, '/' );
     if( slashCount == 0 )
     {
-      vertex.miPosition = ( int )parseData.EatFloat().GetValueUnchecked();
+      vertex.miPosition = ( int )parseData.EatFloat().GetValueUnchecked() - 1;
     }
     else if( slashCount == 1 )
     {
-      vertex.miPosition = ( int )parseData.EatFloat().GetValueUnchecked();
-      vertex.miTexCoord = ( int )parseData.EatFloat().GetValueUnchecked();
+      vertex.miPosition = ( int )parseData.EatFloat().GetValueUnchecked() - 1;
+      vertex.miTexCoord = ( int )parseData.EatFloat().GetValueUnchecked() - 1;
     }
     else if( slashCount == 2 )
     {
       if( line.find_first_of( "//" ) )
       {
-        vertex.miPosition = ( int )parseData.EatFloat().GetValueUnchecked();
-        vertex.miNormal = ( int )parseData.EatFloat().GetValueUnchecked();
+        vertex.miPosition = ( int )parseData.EatFloat().GetValueUnchecked() - 1;
+        vertex.miNormal = ( int )parseData.EatFloat().GetValueUnchecked() - 1;
       }
       else
       {
-        vertex.miPosition = ( int )parseData.EatFloat().GetValueUnchecked();
-        vertex.miTexCoord = ( int )parseData.EatFloat().GetValueUnchecked();
-        vertex.miNormal = ( int )parseData.EatFloat().GetValueUnchecked();
+        vertex.miPosition = ( int )parseData.EatFloat().GetValueUnchecked() - 1;
+        vertex.miTexCoord = ( int )parseData.EatFloat().GetValueUnchecked() - 1;
+        vertex.miNormal = ( int )parseData.EatFloat().GetValueUnchecked() - 1;
       }
-
     }
 
     return vertex;
@@ -148,7 +149,7 @@ namespace Tac
 
     for( const WavefrontObjFace& face : wavefrontObj.faces )
     {
-      SubMeshTriangle subMeshTriangle;
+      SubMeshTriangle subMeshTriangle = {};
       for( int iTriVert = 0; iTriVert < 3; ++iTriVert )
       {
         const WavefrontObjVertex& tri = face.mVertexes[ iTriVert ];
@@ -205,6 +206,7 @@ namespace Tac
     subMesh.mName = name;
     subMesh.mTris = subMeshTriangles;
     subMesh.mVertexBuffer = vertexBuffer;
+    subMesh.mVertexCount = wavefrontObj.faces.size() * 3;
 
     Mesh mesh;
     mesh.mSubMeshes = { subMesh };
@@ -223,11 +225,12 @@ namespace Tac
     return mesh;
   }
 
-  static int sRegistration = []()
+  void                      WavefrontObjLoaderInit()
   {
     ModelLoadFunctionRegister( WavefrontObjLoadIntoMesh, "obj" );
-    return 0;
-  }( );
+  }
+
+  //static_assert( &sRegistration);
 
 
 } // namespace Tac

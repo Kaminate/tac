@@ -16,43 +16,13 @@
 
 namespace Tac
 {
-  static std::map< StringID, Mesh* > mMeshes;
-
-  void ModelAssetManagerUninit()
-  {
-    for( auto pair : mMeshes )
-    {
-      Mesh* mesh = pair.second;
-      for( SubMesh& submesh : mesh->mSubMeshes )
-      {
-        Render::DestroyIndexBuffer( submesh.mIndexBuffer, TAC_STACK_FRAME );
-        Render::DestroyVertexBuffer( submesh.mVertexBuffer, TAC_STACK_FRAME );
-      }
-    }
-  }
-
-  // todo: multithreading
-  //Mesh* ModelAssetManagerGetMesh( StringView path,
-  //                                const Render::VertexDeclarations& vertexDeclarations,
-  //                                Errors& errors )
-  //{
-  //  if( path.empty() )
-  //    return nullptr;
-
-  //  auto it = mMeshes.find( path );
-  //  if( it != mMeshes.end() )
-  //    return ( *it ).second;
-
-  //  auto mesh = TAC_NEW Mesh;
-  //  *mesh = LoadMeshSynchronous( path, vertexDeclarations, errors );
-  //  mMeshes[ path ] = mesh;
-  //  return mesh;
-  //}
-
-
+  static std::map< StringID, Mesh* >    mMeshes;
   static std::map< HashedValue, Mesh* > sTryNewTHingMeshes;
 
-  static HashedValue HashAddVertexDeclaration( HashedValue hashedValue, const Render::VertexDeclaration& vertexDeclaration )
+
+
+  static HashedValue HashAddVertexDeclaration( HashedValue hashedValue,
+                                               const Render::VertexDeclaration& vertexDeclaration )
   {
     hashedValue = HashAddHash( hashedValue, ( HashedValue )vertexDeclaration.mAlignedByteOffset );
     hashedValue = HashAddHash( hashedValue, ( HashedValue )vertexDeclaration.mAttribute );
@@ -62,7 +32,8 @@ namespace Tac
     return hashedValue;
   }
 
-  static HashedValue HashAddVertexDeclarations( HashedValue hashedValue, const Render::VertexDeclarations& vertexDeclarations )
+  static HashedValue HashAddVertexDeclarations( HashedValue hashedValue,
+                                                const Render::VertexDeclarations& vertexDeclarations )
   {
     for( const Render::VertexDeclaration vertexDeclaration : vertexDeclarations )
       hashedValue = HashAddVertexDeclaration( hashedValue, vertexDeclaration );
@@ -87,7 +58,7 @@ namespace Tac
       return ( *it ).second;
 
     const char* pathExt = [ path ]()
-    { 
+    {
       const int iDot = StringView( path ).find_last_of( "." );
       return iDot == StringView::npos
         ? ""
@@ -104,6 +75,28 @@ namespace Tac
     if( mesh )
       sTryNewTHingMeshes[ hashedValue ] = mesh;
     return mesh;
+  }
+
+  void WavefrontObjLoaderInit();
+  void GltfLoaderInit();
+
+  void  ModelAssetManagerInit()
+  {
+    WavefrontObjLoaderInit();
+    GltfLoaderInit();
+  }
+
+  void  ModelAssetManagerUninit()
+  {
+    for( auto pair : mMeshes )
+    {
+      Mesh* mesh = pair.second;
+      for( SubMesh& submesh : mesh->mSubMeshes )
+      {
+        Render::DestroyIndexBuffer( submesh.mIndexBuffer, TAC_STACK_FRAME );
+        Render::DestroyVertexBuffer( submesh.mVertexBuffer, TAC_STACK_FRAME );
+      }
+    }
   }
 
 

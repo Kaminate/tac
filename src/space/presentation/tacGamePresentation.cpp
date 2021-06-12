@@ -68,7 +68,7 @@ namespace Tac
     for( const SubMesh& subMesh : mesh->mSubMeshes )
     {
       Render::SetShader( m3DShader );
-      Render::SetVertexBuffer( subMesh.mVertexBuffer, 0, 0 );
+      Render::SetVertexBuffer( subMesh.mVertexBuffer, 0, subMesh.mVertexCount );
       Render::SetIndexBuffer( subMesh.mIndexBuffer, 0, subMesh.mIndexCount );
       Render::SetBlendState( mBlendState );
       Render::SetRasterizerState( mRasterizerState );
@@ -150,17 +150,10 @@ namespace Tac
   static Mesh* LoadModel( const Model* model )
   {
     Errors getmeshErrors;
-    //if( model->mTryingNewThing )
-    //{
-      return ModelAssetManagerGetMeshTryingNewThing( model->mModelPath.c_str(),
-                                                     model->mModelIndex,
-                                                     m3DVertexFormatDecls,
-                                                     getmeshErrors );
-    //}
-
-    //return ModelAssetManagerGetMesh( model->mModelPath,
-    //                                 m3DVertexFormatDecls,
-    //                                 getmeshErrors );
+    return ModelAssetManagerGetMeshTryingNewThing( model->mModelPath.c_str(),
+                                                   model->mModelIndex,
+                                                   m3DVertexFormatDecls,
+                                                   getmeshErrors );
   }
 
 

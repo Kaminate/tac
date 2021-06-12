@@ -356,12 +356,11 @@ namespace Tac
     return result;
   }
 
-  static int sRegistration = []()
+  void                      GltfLoaderInit()
   {
     ModelLoadFunctionRegister( LoadMeshFromGltf, "gltf" );
     ModelLoadFunctionRegister( LoadMeshFromGltf, "glb" );
-    return 0;
-  }( );
+  }
 
 
 } // namespace Tac

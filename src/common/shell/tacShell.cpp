@@ -50,6 +50,8 @@ namespace Tac
   {
     JobQueueInit();
 
+    ModelAssetManagerInit();
+
     LocalizationLoad( "assets/localization.txt", errors );
     TAC_HANDLE_ERROR( errors );
 
@@ -60,11 +62,11 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
   }
 
-  void            ShellSetAppName( const char* s ) { sAppName = s; }
-  const char*     ShellGetAppName() { return sAppName.c_str(); } 
-  void            ShellSetPrefPath( const char* s ) { sPrefPath = s; } 
-  const char*     ShellGetPrefPath() { return sPrefPath.c_str(); }
-  void            ShellSetInitialWorkingDir( const char* s ) { sInitialWorkingDir = s; }
-  const char*     ShellGetInitialWorkingDir() { return sInitialWorkingDir.c_str(); }
+  void            ShellSetAppName( const char* s )           { sAppName = s;                      }
+  const char*     ShellGetAppName()                          { return sAppName.c_str();           }
+  void            ShellSetPrefPath( const char* s )          { sPrefPath = s;                     }
+  const char*     ShellGetPrefPath()                         { return sPrefPath.c_str();          }
+  void            ShellSetInitialWorkingDir( const char* s ) { sInitialWorkingDir = s;            }
+  const char*     ShellGetInitialWorkingDir()                { return sInitialWorkingDir.c_str(); }
 
 }
