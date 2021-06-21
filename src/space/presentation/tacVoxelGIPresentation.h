@@ -13,5 +13,6 @@ namespace Tac
                                                 int viewHeight,
                                                 Render::ViewHandle );
   bool&              VoxelGIPresentationGetEnabled();
+  bool&              VoxelGIPresentationGetDebugEnabled();
 }
 

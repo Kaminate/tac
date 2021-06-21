@@ -81,6 +81,14 @@ namespace Tac
       return result;
     }
 
+    static String GetDirectX11ShaderPath( ShaderSource shaderSource )
+    {
+      if( shaderSource.mType == Render::ShaderSource::Type::kPath )
+        return GetDirectX11ShaderPath( shaderSource.mStr );
+      else
+        return "<inlined shader>";
+    }
+
     static String TryInferDX11ErrorStr( HRESULT res )
     {
       switch( res )
@@ -322,8 +330,82 @@ namespace Tac
       return shaderFileContents + "\n";
     }
 
+    static String TryImproveErrorMessageLine( const ShaderSource shaderSource,
+                                              const StringView shaderStrOrig,
+                                              const StringView shaderStrFull,
+                                              StringView errMsg )
+    {
+      const int lineNumber = [ & ]()
+      {
+        const int iOpenParen = StringView( errMsg ).find_first_of( '(' );
+        const int iCloseParen = StringView( errMsg ).find_first_of( ')' );
+        if( iOpenParen == StringView::npos || iCloseParen == StringView::npos )
+          return -1;
+        return ( int )ParseData( errMsg.data() + iOpenParen + 1,
+                                 errMsg.data() + iCloseParen ).EatFloat().GetValueOr( -1 );
+      }( );
+
+      const StringView errorLine = [ & ]()
+      {
+        StringView line;
+        ParseData parseDataFull( shaderStrFull.data(), shaderStrFull.size() );
+        for( int i = 0; i < ( int )lineNumber; ++i )
+          line = parseDataFull.EatRestOfLine();
+        return line;
+      }( );
+      if( errorLine.empty() )
+        return errMsg;
+
+      const int origLineNumber = [ & ]()
+      {
+        int curLineNumber = 1;
+        ParseData parseDataOrig( shaderStrOrig.data(), shaderStrOrig.size() );
+        while( parseDataOrig.GetRemainingByteCount() )
+        {
+          if( errorLine == parseDataOrig.EatRestOfLine() )
+            return curLineNumber;
+          curLineNumber++;
+        }
+        return -1;
+      }( );
+      if( origLineNumber == -1 )
+        return errMsg;
+
+      std::stringstream ss;
+      ss
+        << String( StringView( errMsg ).substr( StringView( errMsg ).find_first_of( ')' ) + 3 ) )
+        << std::endl
+        << SplitFilepath( GetDirectX11ShaderPath( shaderSource ) ).mFilename
+        << ":" << origLineNumber << " "
+        << String( errorLine ).c_str()
+        << std::endl;
+      const String result = ss.str().c_str();
+      return result;
+    }
+
+    static String TryImproveErrorMessage( const ShaderSource shaderSource,
+                                          const StringView shaderStrOrig,
+                                          const StringView shaderStrFull,
+                                          const char* errMsg )
+    {
+      String result;
+      ParseData errMsgParse( StringView( errMsg ).begin(),
+                             StringView( errMsg ).end()  );
+      while( errMsgParse.GetRemainingByteCount() )
+      {
+        StringView errMsgLine = errMsgParse.EatRestOfLine();
+        if( !errMsgLine.empty() )
+          result += TryImproveErrorMessageLine( shaderSource, shaderStrOrig, shaderStrFull, errMsgLine ) + "\n";
+      }
+
+      return result;
+
+    }
+
+
     static ID3DBlob* CompileShaderFromString( const ShaderSource& shaderSource,
-                                              const StringView shaderStr,
+                                              const StringView shaderStrOrig,
+                                              const StringView shaderStrFull,
                                               const char* entryPoint,
                                               const char* shaderModel,
                                               Errors& errors )
@@ -335,8 +417,8 @@ namespace Tac
 
       ID3DBlob* pErrorBlob = nullptr;
       ID3DBlob* pBlobOut = nullptr;
-      const HRESULT hr = D3DCompile( shaderStr.data(),
-                                     shaderStr.size(),
+      const HRESULT hr = D3DCompile( shaderStrFull.data(),
+                                     shaderStrFull.size(),
                                      nullptr,
                                      nullptr, // D3D_SHADER_MACRO* pDefines,
                                      nullptr, // ID3DInclude* pInclude,
@@ -350,17 +432,13 @@ namespace Tac
       {
         if( IsDebugMode() )
         {
-          std::cout << "Error loading shader from ";
-          if( shaderSource.mType == Render::ShaderSource::Type::kPath )
-            std::cout << "path: " << GetDirectX11ShaderPath( shaderSource.mStr ) << std::endl;
-          else if( shaderSource.mType == Render::ShaderSource::Type::kStr )
-            std::cout << "string";
+          std::cout << "Error loading shader from " << GetDirectX11ShaderPath( shaderSource ) << std::endl;
 
           const char* shaderBlock = "----------------";
           std::cout << shaderBlock << std::endl;
           int lineNumber = 0;
           bool isNewLine = true;
-          for( char c : shaderStr )
+          for( char c : shaderStrFull )
           {
             if( isNewLine )
             {
@@ -372,10 +450,12 @@ namespace Tac
           }
           std::cout << std::endl;
           std::cout << shaderBlock << std::endl;
-
         }
 
-        const char* errMsg = ( const char* )pErrorBlob->GetBufferPointer();
+        const String errMsg = TryImproveErrorMessage( shaderSource,
+                                                      shaderStrOrig,
+                                                      shaderStrFull,
+                                                      ( const char* )pErrorBlob->GetBufferPointer() );
         TAC_RAISE_ERROR_RETURN( errMsg, errors, nullptr );
       }
 
@@ -386,32 +466,32 @@ namespace Tac
     {
       String result;
       ParseData shaderParseData( shaderSourceCode.data(), shaderSourceCode.size() );
-      for( ;; )
+      while( shaderParseData.GetRemainingByteCount() )
       {
         String line = shaderParseData.EatRestOfLine();
-        if( line.empty() )
-          break;
-
-        ParseData lineParseData( line.data(), line.size() );
-        lineParseData.EatWhitespace();
-        if( lineParseData.EatStringExpected( "#include" ) )
+        if( !line.empty() )
         {
-          lineParseData.EatUntilCharIsPrev( '\"' );
-          const char*      includeBegin = lineParseData.GetPos();
-          lineParseData.EatUntilCharIsNext( '\"' );
-          const char*      includeEnd = lineParseData.GetPos();
-          const StringView includeName( includeBegin, includeEnd );
-          const String     includePath = GetDirectX11ShaderPath( includeName );
-          const String     includeSource = ShaderPathToContentString( includePath, errors );
-          const String     includeSourceInlined = InlineShaderIncludes( includeSource, errors );
+          ParseData lineParseData( line.data(), line.size() );
+          lineParseData.EatWhitespace();
+          if( lineParseData.EatStringExpected( "#include" ) )
+          {
+            lineParseData.EatUntilCharIsPrev( '\"' );
+            const char*      includeBegin = lineParseData.GetPos();
+            lineParseData.EatUntilCharIsNext( '\"' );
+            const char*      includeEnd = lineParseData.GetPos();
+            const StringView includeName( includeBegin, includeEnd );
+            const String     includePath = GetDirectX11ShaderPath( includeName );
+            const String     includeSource = ShaderPathToContentString( includePath, errors );
+            const String     includeSourceInlined = InlineShaderIncludes( includeSource, errors );
 
-          line = "";
-          line += "//===----- (begin include " + includePath + ") -----===//\n";
-          line += includeSource;
-          line += "//===----- (end include " + includePath + ") -----===//\n";
+            line = "";
+            line += "//===----- (begin include " + includePath + ") -----===//\n";
+            line += includeSource;
+            line += "//===----- (end include " + includePath + ") -----===//\n";
+          }
         }
 
-        result += line;
+        result += line + "\n";
       }
 
       return result;
@@ -458,20 +538,20 @@ namespace Tac
           }
         }
 
-        String shaderStringFull;
+        String shaderStringOrig;
         switch( shaderSource.mType )
         {
           case Render::ShaderSource::Type::kPath:
-            shaderStringFull += ShaderPathToContentString( shaderSource.mStr, errors );
+            shaderStringOrig += ShaderPathToContentString( shaderSource.mStr, errors );
             break;
           case Render::ShaderSource::Type::kStr:
-            shaderStringFull += shaderSource.mStr;
+            shaderStringOrig += shaderSource.mStr;
             break;
         }
         if( errors )
           continue;
 
-        shaderStringFull = InlineShaderIncludes( shaderStringFull, errors );
+        const String shaderStringFull = InlineShaderIncludes( shaderStringOrig, errors );
         if( errors )
           continue;
 
@@ -489,6 +569,7 @@ namespace Tac
         if( hasVertexShader )
         {
           ID3DBlob* pVSBlob = CompileShaderFromString( shaderSource,
+                                                       shaderStringOrig,
                                                        shaderStringFull,
                                                        vertexShaderEntryPoint,
                                                        GetShaderModel( "vs" ),
@@ -515,6 +596,7 @@ namespace Tac
         if( hasPixelShader )
         {
           ID3DBlob* pPSBlob = CompileShaderFromString( shaderSource,
+                                                       shaderStringOrig,
                                                        shaderStringFull,
                                                        pixelShaderEntryPoint,
                                                        GetShaderModel( "ps" ),
@@ -536,6 +618,7 @@ namespace Tac
         if( hasGeometryShader )
         {
           ID3DBlob* blob = CompileShaderFromString( shaderSource,
+                                                    shaderStringOrig,
                                                     shaderStringFull,
                                                     geometryShaderEntryPoint,
                                                     GetShaderModel( "gs" ),
@@ -720,7 +803,49 @@ namespace Tac
                                             const Render::DrawCall3* drawCall,
                                             Errors& errors )
     {
+      if( DrawCallHasValidUAV( drawCall ) )
+      {
+        const Render::View* view = &frame->mViews[ ( int )mViewHandle ];
+        TAC_ASSERT_MSG( view->mFrameBufferHandle.IsValid(), "Did you forget to call Render::SetViewFramebuffer" );
+        Framebuffer* framebuffer = &mFramebuffers[ ( int )view->mFrameBufferHandle ];
 
+        FixedVector< ID3D11UnorderedAccessView*, 10 > uavs;
+
+        for( int i = 0; i < 2; ++i )
+        {
+          ID3D11UnorderedAccessView* uav = nullptr;
+
+          auto magicBuffer = drawCall->mUAVMagicBuffers[ i ];
+          if( magicBuffer.IsValid() )
+            uav = mMagicBuffers[ ( int )magicBuffer ].mUAV;
+
+          auto texture = drawCall->mUAVTextures[ i ];
+          if( texture.IsValid() )
+            uav = mTextures[ ( int )texture ].mTextureUAV;
+
+          if( uav )
+          {
+            const int requredSize = i + 1;
+            if( uavs.size() < requredSize )
+              uavs.resize( requredSize );
+            uavs[ i ] = uav;
+          }
+        }
+
+        FixedVector< ID3D11RenderTargetView*, 10 > views = { framebuffer->mRenderTargetView };
+        FixedVector< UINT, 10 > uavInitialCounts( views.size(), ( UINT )-1 );
+
+        TAC_ASSERT( framebuffer->mRenderTargetView );
+        TAC_ASSERT( framebuffer->mDepthStencilView );
+        UINT UavStartSlot = 0;
+        mDeviceContext->OMSetRenderTargetsAndUnorderedAccessViews( views.size(),
+                                                                   views.data(),
+                                                                   framebuffer->mDepthStencilView,
+                                                                   UavStartSlot,
+                                                                   uavs.size(),
+                                                                   uavs.data(),
+                                                                   uavInitialCounts.data() );
+      }
 
       if( drawCall->mShaderHandle.IsValid() )
       {
@@ -733,7 +858,8 @@ namespace Tac
         mDeviceContext->GSSetShader( program->mGeometryShader, NULL, 0 );
       }
 
-      if( drawCall->mBlendStateHandle.IsValid() && mBlendState != mBlendStates[ ( int )drawCall->mBlendStateHandle ] )
+      if( drawCall->mBlendStateHandle.IsValid()
+          && mBlendState != mBlendStates[ ( int )drawCall->mBlendStateHandle ] )
       {
         mBlendState = mBlendStates[ ( int )drawCall->mBlendStateHandle ];
         TAC_ASSERT( mBlendState );
@@ -742,7 +868,8 @@ namespace Tac
         mDeviceContext->OMSetBlendState( mBlendState, blendFactorRGBA, sampleMask );
       }
 
-      if( drawCall->mDepthStateHandle.IsValid() && mDepthStencilState != mDepthStencilStates[ ( int )drawCall->mDepthStateHandle ] )
+      if( drawCall->mDepthStateHandle.IsValid()
+          && mDepthStencilState != mDepthStencilStates[ ( int )drawCall->mDepthStateHandle ] )
       {
         mDepthStencilState = mDepthStencilStates[ ( int )drawCall->mDepthStateHandle ];
         TAC_ASSERT( mDepthStencilState );
@@ -821,19 +948,17 @@ namespace Tac
         {
           mFramebuffersBoundEverThisFrame[ ( int )view->mFrameBufferHandle ] = true;
 
-
-          ID3D11RenderTargetView* renderTargetView = framebuffer->mRenderTargetView;
-          ID3D11DepthStencilView* depthStencilView = framebuffer->mDepthStencilView;
-
           const UINT ClearFlags = D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL;
           const FLOAT ClearDepth = 1.0f;
           const UINT8 ClearStencil = 0;
-          mDeviceContext->ClearDepthStencilView( depthStencilView, ClearFlags, ClearDepth, ClearStencil );
+          mDeviceContext->ClearDepthStencilView( framebuffer->mDepthStencilView,
+                                                 ClearFlags,
+                                                 ClearDepth,
+                                                 ClearStencil );
 
           const FLOAT ClearGrey = 0.5f;
           const FLOAT ClearColorRGBA[] = { ClearGrey, ClearGrey, ClearGrey,  1.0f };
-          mDeviceContext->ClearRenderTargetView( renderTargetView, ClearColorRGBA );
-
+          mDeviceContext->ClearRenderTargetView( framebuffer->mRenderTargetView, ClearColorRGBA );
 
           ID3D11ShaderResourceView* nullViews[ 16 ] = {};
           mDeviceContext->VSSetShaderResources( 0, 16, nullViews );
@@ -841,14 +966,11 @@ namespace Tac
           mDeviceContext->GSSetShaderResources( 0, 16, nullViews );
         }
 
-
-        ID3D11RenderTargetView* renderTargetView = framebuffer->mRenderTargetView;
-        ID3D11DepthStencilView* depthStencilView = framebuffer->mDepthStencilView;
-        TAC_ASSERT( renderTargetView );
-        TAC_ASSERT( depthStencilView );
+        TAC_ASSERT( framebuffer->mRenderTargetView );
+        TAC_ASSERT( framebuffer->mDepthStencilView );
         UINT NumViews = 1;
-        ID3D11RenderTargetView* RenderTargetViews[] = { renderTargetView };
-        mDeviceContext->OMSetRenderTargets( NumViews, RenderTargetViews, depthStencilView );
+        ID3D11RenderTargetView* RenderTargetViews[] = { framebuffer->mRenderTargetView };
+        mDeviceContext->OMSetRenderTargets( NumViews, RenderTargetViews, framebuffer->mDepthStencilView );
 
         TAC_ASSERT( view->mViewportSet );
         D3D11_VIEWPORT viewport;
@@ -1250,7 +1372,6 @@ namespace Tac
 
       const DXGI_FORMAT Format = GetDXGIFormat( data->mTexSpec.mImage.mFormat );
 
-      ID3D11ShaderResourceView* srv = nullptr;
       ID3D11Texture2D* texture2D = nullptr;
       if( dimension == 2 )
       {
@@ -1270,16 +1391,6 @@ namespace Tac
                        &texDesc,
                        pInitialData,
                        &texture2D );
-        SetDebugName( texture2D, data->mStackFrame.ToString() );
-        if( ( int )data->mTexSpec.mBinding & ( int )Render::Binding::ShaderResource )
-        {
-          D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-          srvDesc.Format = Format;
-          srvDesc.ViewDimension = isCubemap ? D3D11_SRV_DIMENSION_TEXTURECUBE : D3D11_SRV_DIMENSION_TEXTURE2D;
-          srvDesc.Texture2D.MipLevels = 1;
-          TAC_DX11_CALL( errors, mDevice->CreateShaderResourceView, texture2D, &srvDesc, &srv );
-          SetDebugName( srv, data->mStackFrame.ToString() );
-        }
       }
 
       ID3D11Texture3D* texture3D = nullptr;
@@ -1300,44 +1411,84 @@ namespace Tac
                        &texDesc,
                        pInitialData,
                        &texture3D );
-        SetDebugName( texture3D, data->mStackFrame.ToString() );
-        if( ( int )data->mTexSpec.mBinding & ( int )Render::Binding::ShaderResource )
-        {
-          D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-          srvDesc.Format = Format;
-          srvDesc.ViewDimension = isCubemap ? D3D11_SRV_DIMENSION_TEXTURECUBE : D3D11_SRV_DIMENSION_TEXTURE3D;
-          srvDesc.Texture3D.MipLevels = 1;
-          TAC_DX11_CALL( errors, mDevice->CreateShaderResourceView, texture3D, &srvDesc, &srv );
-        }
       }
+
+      ID3D11Resource* resource
+        = texture2D ? ( ID3D11Resource* )texture2D
+        : texture3D ? ( ID3D11Resource* )texture3D : nullptr;
+      SetDebugName( resource, data->mStackFrame.ToString() );
 
       ID3D11RenderTargetView* rTV = nullptr;
       if( ( int )data->mTexSpec.mBinding & ( int )Render::Binding::RenderTarget )
       {
         TAC_DX11_CALL( errors, mDevice->CreateRenderTargetView,
-                       texture2D,
+                       resource,
                        nullptr,
                        &rTV );
         SetDebugName( rTV, data->mStackFrame.ToString() );
       }
 
+      ID3D11UnorderedAccessView* uav = nullptr;
+      if( ( int )data->mTexSpec.mBinding & ( int )Render::Binding::UnorderedAccess )
+      {
+        D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+        uavDesc.Format = Format;
+        uavDesc.Texture2D.MipSlice;
+        uavDesc.Texture3D.MipSlice;
+        uavDesc.Texture3D.FirstWSlice;
+        uavDesc.Texture3D.WSize;
 
+        if( dimension == 2 )
+        {
+          D3D11_TEX2D_UAV Texture2D = {};
+          uavDesc.Texture2D = Texture2D;
+          uavDesc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
 
-      //ID3D11UnorderedAccessView* uav = nullptr;
-      //if( ( int )data->mTexSpec.mBinding & ( int )Render::Binding::UnorderedAccess )
-      //{
-      //}
+        }
+        else if( dimension == 3 )
+        {
+          D3D11_TEX3D_UAV Texture3D = {};
+          uavDesc.Texture3D = Texture3D;
+          uavDesc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE3D;
+        }
+        else
+        {
+          TAC_CRITICAL_ERROR_INVALID_CODE_PATH;
+        }
 
-      if( true
-          && ( int )data->mTexSpec.mBinding & ( int )Render::Binding::ShaderResource
-          && ( int )data->mTexSpec.mBinding & ( int )Render::Binding::RenderTarget )
-        mDeviceContext->GenerateMips( srv );
+        TAC_DX11_CALL( errors, mDevice->CreateUnorderedAccessView, resource, &uavDesc, &uav );
+        SetDebugName( uav, data->mStackFrame.ToString() );
+      }
+
+      ID3D11ShaderResourceView* srv = nullptr;
+      if( ( int )data->mTexSpec.mBinding & ( int )Render::Binding::ShaderResource )
+      {
+        const D3D_SRV_DIMENSION srvDimension
+          = isCubemap ? D3D11_SRV_DIMENSION_TEXTURECUBE
+          : dimension == 2 ? D3D11_SRV_DIMENSION_TEXTURE2D
+          : dimension == 3 ? D3D11_SRV_DIMENSION_TEXTURE3D
+          : D3D_SRV_DIMENSION_UNKNOWN;
+        if( srvDimension != D3D_SRV_DIMENSION_UNKNOWN )
+        {
+          D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+          srvDesc.Format = Format;
+          srvDesc.ViewDimension = srvDimension;
+          srvDesc.Texture2D.MipLevels = 1;
+          TAC_DX11_CALL( errors, mDevice->CreateShaderResourceView, texture2D, &srvDesc, &srv );
+          SetDebugName( srv, data->mStackFrame.ToString() );
+        }
+
+        // why check if its a render target?
+        if( ( int )data->mTexSpec.mBinding & ( int )Render::Binding::RenderTarget )
+          mDeviceContext->GenerateMips( srv );
+      }
 
       Texture* texture = &mTextures[ ( int )data->mTextureHandle ];
       texture->mTexture2D = texture2D;
       texture->mTexture3D = texture3D;
       texture->mTextureSRV = srv;
       texture->mTextureRTV = rTV;
+      texture->mTextureUAV = uav;
     }
 
     void RendererDirectX11::AddBlendState( Render::CommandDataCreateBlendState* commandData,

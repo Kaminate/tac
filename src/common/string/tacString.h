@@ -50,6 +50,7 @@ namespace Tac
     //          any of the characters in s, return npos if no matches
     int         find_last_of( StringView ) const;
     int         find_first_of( StringView ) const;
+    int         find_first_of( char ) const;
     int         find( const StringView& ) const;
     StringView  substr( int pos = 0, int len = npos ) const;
     char        front();

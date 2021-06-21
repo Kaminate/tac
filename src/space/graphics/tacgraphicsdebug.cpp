@@ -12,14 +12,19 @@ namespace Tac
     TAC_UNUSED_PARAMETER( system );
 
     //auto graphics = ( Graphics* )system;
+    if( ImGuiCollapsingHeader( "Game Presentation" ) )
     {
       bool& enabled = GamePresentationGetEnabled();
       ImGuiCheckbox( "Game Presentation Enabled", &enabled );
     }
 
+    if( ImGuiCollapsingHeader( "Voxel GI Presentation" ) )
     {
       bool& enabled = VoxelGIPresentationGetEnabled();
-      ImGuiCheckbox( "Voxel GI Presentation Enabled", &enabled );
+      ImGuiCheckbox( "Enabled", &enabled );
+
+      bool& debugEnabled = VoxelGIPresentationGetDebugEnabled();
+      ImGuiCheckbox( "Debug Enabled", &debugEnabled );
     }
   }
 }

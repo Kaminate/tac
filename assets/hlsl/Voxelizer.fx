@@ -17,18 +17,6 @@ Texture2D diffuseMaterialTexture : register( t0 );
 
 sampler   linearSampler          : register( s0 );
 
-cbuffer CBufferVoxelizer         : register( b2 )
-{
-  //     Position of the voxel grid in worldspace.
-  //     It's not rotated, aligned to world axis.
-  float3 gVoxelGridCenter;
-
-  //     Half width of the entire voxel grid in worldspace
-  float  gVoxelGridHalfWidth;
-  
-  //     Width of a single voxel
-  float  gVoxelWidth; 
-}
 
 // Note 1: Variables are passed between shader stages through SEMANTICS, not variable names!
 //         This allows you to have separate structs for VS_OUT and GS_IN

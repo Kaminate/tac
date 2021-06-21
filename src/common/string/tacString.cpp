@@ -211,6 +211,13 @@ namespace Tac
     return npos;
   }
 
+  int         StringView::find_first_of( char c ) const
+  {
+    for( int i = 0; i < mLen; ++i )
+      if( c == mStr[ i ] )
+        return i;
+    return npos;
+  }
   int         StringView::find_first_of( StringView s ) const
   {
     for( int i = 0; i < mLen; ++i )

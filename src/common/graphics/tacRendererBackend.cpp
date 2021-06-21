@@ -863,6 +863,16 @@ namespace Tac
       gEncoder.mDrawCall.mTextureHandle = textureHandle;
     }
 
+    void SetPixelShaderUnorderedAccessView( TextureHandle textureHandle, int i )
+    {
+      gEncoder.mDrawCall.mUAVTextures[ i ] = textureHandle;
+    }
+
+    void SetPixelShaderUnorderedAccessView( MagicBufferHandle magicBufferHandle, int i )
+    {
+      gEncoder.mDrawCall.mUAVMagicBuffers[ i ] = magicBufferHandle;
+    }
+
     //void SetTexture( TextureHandle textureHandle )
     //{
     //  gEncoder.mTextureHandle = textureHandle;
@@ -1032,6 +1042,7 @@ namespace Tac
       const int uniformBufferSize = gSubmitFrame->mUniformBuffer.size();
       if( mUniformBufferIndex != uniformBufferSize )
       {
+        mUniformBufferIndex = uniformBufferSize;
         iUniformBegin = mUniformBufferIndex;
         iUniformEnd = uniformBufferSize;
       }
@@ -1044,7 +1055,6 @@ namespace Tac
 
       // Prepare the next draw
       mDrawCall = DrawCall3();
-      mUniformBufferIndex = uniformBufferSize;
     }
 
     void Submit( const Render::ViewHandle viewHandle,
@@ -1140,7 +1150,20 @@ namespace Tac
       for( ShaderReloadInfo& shaderReloadInfo : sShaderReloadInfos )
         ShaderReloadHelperUpdateAux( &shaderReloadInfo, shaderReloadFunction );
     }
-  }
+
+    bool DrawCallHasValidUAV( const DrawCall3* drawCall )
+    {
+      for( auto uav : drawCall->mUAVMagicBuffers )
+        if( !uav.IsValid() )
+          return false;
+
+      for( auto uav : drawCall->mUAVTextures )
+        if( !uav.IsValid() )
+          return false;
+
+      return true;
+    }
+  } // namespace Render
 
   Renderer* Renderer::Instance = nullptr;
 
@@ -1302,7 +1325,9 @@ namespace Tac
     }
   }
 
-}
+
+
+} // namespace Tac
 
 
 

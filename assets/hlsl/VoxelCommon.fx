@@ -19,9 +19,9 @@ uint VoxelEncodeUnitNormal( float3 unitNormal )
 {
   unitNormal = ( unitNormal + 1 ) / 2; // map to [0,1]
   uint3 unormal = uint3( unitNormal * ( ( 1 << 10 ) - 1 ) );
-  uint result = ( unormal.x << 10 * 0 )
-              | ( unormal.y << 10 * 1 )
-              | ( unormal.z << 10 * 2 );
+  uint result = ( unormal.x << ( 10 * 0 ) )
+              | ( unormal.y << ( 10 * 1 ) )
+              | ( unormal.z << ( 10 * 2 ) );
   return result;
 }
 
@@ -48,3 +48,18 @@ float3 VoxelDecodeUnitNormal( uint unitNormal )
   return result;
 }
 
+cbuffer CBufferVoxelizer         : register( b2 )
+{
+  //     Position of the voxel grid in worldspace.
+  //     It's not rotated, aligned to world axis.
+  float3 gVoxelGridCenter;
+
+  //     Half width of the entire voxel grid in worldspace
+  float  gVoxelGridHalfWidth;
+  
+  //     Width of a single voxel
+  float  gVoxelWidth; 
+
+  //     Number of voxels x per side, where the total voxel count is x * x * x
+  uint   gVoxelGridSize;
+}

@@ -434,6 +434,11 @@ namespace Tac
     void                             SetVertexFormat( VertexFormatHandle );
     void                             SetShader( ShaderHandle );
     void                             SetTexture( DrawCallTextures );
+
+    //                               hmm.jpg
+    void                             SetPixelShaderUnorderedAccessView( TextureHandle, int );
+    void                             SetPixelShaderUnorderedAccessView( MagicBufferHandle, int );
+
     void                             SetBreakpointWhenThisFrameIsRendered();
     void                             SetBreakpointWhenNextDrawCallIsExecuted();
     void                             Submit( ViewHandle, StackFrame );

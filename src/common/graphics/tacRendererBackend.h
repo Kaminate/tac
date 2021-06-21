@@ -52,6 +52,7 @@ namespace Tac
       UpdateIndexBuffer,
       UpdateTextureRegion,
       UpdateVertexBuffer,
+      //BindUAV,
       ResizeFramebuffer,
       SetRenderObjectDebugName,
       Count, // must be last
@@ -66,6 +67,8 @@ namespace Tac
     };
     typedef FixedVector< UpdateConstantBufferData, 2 > UpdateConstantBuffers;
 
+
+    // Self-contained all the shit you would ever need to draw a thing
     struct DrawCall3
     {
       StackFrame            mStackFrame;
@@ -80,6 +83,10 @@ namespace Tac
       ShaderHandle          mShaderHandle;
       DrawCallTextures      mTextureHandle;
       ViewHandle            mViewHandle;
+
+      TextureHandle         mUAVTextures[ 2 ];
+      MagicBufferHandle     mUAVMagicBuffers[ 2 ];
+
       int                   mStartIndex = 0;
       int                   mStartVertex = 0;
       int                   mIndexCount = 0;
@@ -87,6 +94,9 @@ namespace Tac
       int                   iUniformBegin = 0;
       int                   iUniformEnd = 0;
     };
+
+    bool DrawCallHasValidUAV( const DrawCall3* );
+
     typedef FixedVector< DrawCall3, kDrawCallCapacity > DrawCalls;
 
     struct CommandBuffer

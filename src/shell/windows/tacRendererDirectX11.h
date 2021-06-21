@@ -26,28 +26,29 @@ namespace Tac
 
     struct Program
     {
-      ID3D11VertexShader*       mVertexShader = nullptr;
-      ID3D11GeometryShader*     mGeometryShader = nullptr;
-      ID3D11PixelShader*        mPixelShader = nullptr;
-      ID3DBlob*                 mInputSig = nullptr;
+      ID3D11VertexShader*        mVertexShader = nullptr;
+      ID3D11GeometryShader*      mGeometryShader = nullptr;
+      ID3D11PixelShader*         mPixelShader = nullptr;
+      ID3DBlob*                  mInputSig = nullptr;
     };
 
     struct Texture
     {
-      ID3D11Texture2D*          mTexture2D = {};
-      ID3D11Texture3D*          mTexture3D = {};
-      ID3D11RenderTargetView*   mTextureRTV = {};
-      ID3D11ShaderResourceView* mTextureSRV = {};
+      ID3D11Texture2D*           mTexture2D = {};
+      ID3D11Texture3D*           mTexture3D = {};
+      ID3D11RenderTargetView*    mTextureRTV = {};
+      ID3D11ShaderResourceView*  mTextureSRV = {};
+      ID3D11UnorderedAccessView* mTextureUAV = {};
     };
 
     struct Framebuffer
     {
-      int                       mBufferCount = 0;
-      IDXGISwapChain*           mSwapChain = nullptr;
-      ID3D11DepthStencilView*   mDepthStencilView = nullptr;
-      ID3D11RenderTargetView*   mRenderTargetView = nullptr;
-      ID3D11Texture2D*          mDepthTexture = nullptr;
-      HWND                      mHwnd = nullptr;
+      int                        mBufferCount = 0;
+      IDXGISwapChain*            mSwapChain = nullptr;
+      ID3D11DepthStencilView*    mDepthStencilView = nullptr;
+      ID3D11RenderTargetView*    mRenderTargetView = nullptr;
+      ID3D11Texture2D*           mDepthTexture = nullptr;
+      HWND                       mHwnd = nullptr;
     };
 
     struct VertexBuffer
@@ -156,6 +157,8 @@ namespace Tac
       Render::ViewHandle         mViewHandle;
       IndexBuffer*               mIndexBuffer = nullptr;
       bool                       mFramebuffersBoundEverThisFrame[ kMaxFramebuffers ];
+      TextureHandle              mUAVTextures[ 2 ];
+      MagicBufferHandle          mUAVMagicBuffers[ 2 ];
     };
   } // namespace Render
 } // namespace Tac

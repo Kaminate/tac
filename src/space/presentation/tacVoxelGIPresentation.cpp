@@ -22,6 +22,7 @@ namespace Tac
   static Render::VertexFormatHandle   voxelVertexFormat;
   static Render::ShaderHandle         voxelizerShader;
   static Render::ShaderHandle         voxelVisualizerShader;
+  static Render::ShaderHandle         voxelCopyShader;
   static Render::ConstantBufferHandle voxelConstantBuffer;
   Render::VertexDeclarations          voxelVertexDeclarations;
   static int                          voxelDimension = 64; // 512; that makes the rwbuffer 1 gb
@@ -69,6 +70,15 @@ namespace Tac
     voxelVisualizerShader = Render::CreateShader( Render::ShaderSource::FromPath( "VoxelVisualizer" ),
                                                   GetConstantBuffers(),
                                                   TAC_STACK_FRAME );
+  }
+
+  static void                    CreateVoxelCopyShader()
+  {
+    // This shader is used to copy from the 3d magic buffer to the 3d texture
+
+    voxelCopyShader = Render::CreateShader( Render::ShaderSource::FromPath( "VoxelCopy" ),
+                                            GetConstantBuffers(),
+                                            TAC_STACK_FRAME );
   }
 
   static void                    CreateVoxelizerShader()
@@ -185,6 +195,7 @@ namespace Tac
     CreateVoxelizerShader();
     CreateVoxelConstantBuffer();
     CreateVoxelVisualizerShader();
+    CreateVoxelCopyShader();
     CreateVoxelRWStructredBuf();
     CreateVoxelTextureRadianceBounce1();
     CreateVoxelTextureRadianceBounce0();
@@ -285,6 +296,8 @@ namespace Tac
                                         sizeof( DefaultCBufferPerObject ),
                                         TAC_STACK_FRAME );
 
+          //Render::SetMagicBuffer();
+
 
           Render::Submit( mViewHandle, TAC_STACK_FRAME );
         }
@@ -305,7 +318,8 @@ namespace Tac
     TAC_UNUSED_PARAMETER( viewHandle );
   }
 
-  bool&              VoxelGIPresentationGetEnabled() { return voxelEnabled; }
+  bool&              VoxelGIPresentationGetEnabled()      { return voxelEnabled; }
+  bool&              VoxelGIPresentationGetDebugEnabled() { return voxelDebug; }
 }
 
 

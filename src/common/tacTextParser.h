@@ -3,25 +3,24 @@
 
 #pragma once
 #include "src/common/tacPreprocessor.h"
+#include "src/common/string/tacString.h"
 
 namespace Tac
 {
   template < typename T >
   struct Optional
   {
-    Optional() : mT( ( T )0 ), mExist( false ) {}
+    Optional()      : mT( ( T )0 ), mExist( false ) {}
     Optional( T t ) : mT( t ), mExist( true ) {}
-    T    GetValue() { TAC_ASSERT( mExist ); return mT; }
-    T    GetValueOr( T t ) { return mExist ? mT : t; }
-    T    GetValueUnchecked() { return mT; }
-    bool HasValue() { return mExist; }
-    operator T(){ return mT; };
+    T    GetValue() const          { TAC_ASSERT( mExist ); return mT; }
+    T    GetValueOr( T t ) const   { return mExist ? mT : t; }
+    T    GetValueUnchecked() const { return mT; }
+    bool HasValue() const          { return mExist; }
+    operator T() const             { return mT; };
   private:
     T    mT;
     bool mExist;
   };
-
-  struct StringView;
 
   struct ParseData
   {
@@ -51,8 +50,10 @@ namespace Tac
     bool              PeekStringExpected( const StringView& ) const;
     const char*       GetPos() const;
     int               GetRemainingByteCount() const;
-    const char*       mBytes;
-    int               mByteCount;
+
+    //                Store in a StringView for better visualization of non-null-terminated strings
+    //                in the debugger
+    StringView        mStr;
     int               mIByte;
   };
 }

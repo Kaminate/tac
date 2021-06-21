@@ -38,6 +38,12 @@ set( TAC_SOURCES
   "${CMAKE_SOURCE_DIR}/src/shell/tacDesktopWindowGraphics.h"
   )
 if( WIN32 )
+
+  # Add the shader files to the Visual Studio Solution Explorer under the 'shaders' filter
+  set( TAC_SOURCES ${TAC_SOURCES} ${TAC_SHADERS} )
+  source_group("shaders" FILES ${TAC_SHADERS})
+
+
   set( TAC_SOURCES 
     ${TAC_SOURCES}
     "${CMAKE_SOURCE_DIR}/src/shell/windows/tacDXGI.cpp"
@@ -55,6 +61,7 @@ if( WIN32 )
     "${CMAKE_SOURCE_DIR}/src/shell/windows/tacXInput.h"
     )
 endif()
+
 
 # note: variables names are case-sensitive
 

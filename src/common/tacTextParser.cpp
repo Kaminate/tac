@@ -13,16 +13,18 @@ namespace Tac
 
   ParseData::ParseData( const char* bytes, int byteCount )
   {
-    mByteCount = byteCount;
+    mStr = StringView( bytes, byteCount );
+    //mByteCount = byteCount;
     mIByte = 0;
-    mBytes = bytes;
+    //mBytes = bytes;
   }
 
   ParseData::ParseData( const char* begin, const char* end )
   {
-    mByteCount = ( int )( end - begin );
+    //mByteCount = ( int )( end - begin );
     mIByte = 0;
-    mBytes = begin;
+    //mBytes = begin;
+    mStr = StringView( begin, end );
   }
 
   const char*       ParseData::EatByte()
@@ -40,8 +42,21 @@ namespace Tac
   StringView        ParseData::EatRestOfLine()
   {
     const char* strBegin = GetPos();
-    while( !EatNewLine() && EatByte() ) {}
-    return StringView( strBegin, GetPos() );
+    do
+    {
+      if( PeekNewline() )
+      {
+        const char* strEnd = GetPos();
+        EatNewLine();
+        // The \r\n will be eaten but not returned
+        StringView result = StringView( strBegin, strEnd );
+        return result;
+      }
+    } while( EatByte() );
+
+    // Have reached EOF
+      StringView result = StringView( strBegin, GetPos() );
+      return result;
   }
 
   bool              ParseData::EatNewLine()
@@ -60,8 +75,23 @@ namespace Tac
 
   Optional< float > ParseData::EatFloat()
   {
-    const StringView stringView = EatWord();
-    const String string = stringView; // std::strtod requires a szstring
+    EatWhitespace();
+    const char* strBegin = GetPos();
+    while( const char* next = PeekByte() )
+    {
+      const bool isNumberChar = StringView( "0123456789.e-" ).find_first_of( *next ) != String::npos;
+      if( isNumberChar )
+        EatByte();
+      else
+        break;
+    }
+    const char* strEnd = GetPos();
+    if( strBegin == strEnd )
+      return {};
+
+    const String string( strBegin, strEnd );  // std::strtod requires a szstring
+    //const StringView stringView = EatWord();
+    //const String string = stringView; // std::strtod requires a szstring
     char* endptr;
     const double number = std::strtod( string.c_str(), &endptr );
     if( number == 0 && endptr == string.c_str() )
@@ -129,7 +159,7 @@ namespace Tac
 
   char              ParseData::PeekByteUnchecked() const
   {
-    return mBytes[ mIByte ];
+    return mStr[ mIByte ];
   }
 
   int               ParseData::PeekWhitespace() const
@@ -154,12 +184,13 @@ namespace Tac
 
   const char*       ParseData::GetPos() const
   {
-    return mBytes + mIByte;
+    return mStr.data() + mIByte;
 
   }
 
   int               ParseData::GetRemainingByteCount() const
   {
-    return mByteCount - mIByte;
+    //return mByteCount - mIByte;
+    return mStr.size() - mIByte;
   }
 }
