@@ -24,6 +24,8 @@ namespace Tac
 
   struct ParseData
   {
+    ParseData( StringView );
+    ParseData( const char* );
     ParseData( const char*, int );
     ParseData( const char*, const char* );
 
@@ -54,7 +56,7 @@ namespace Tac
     //                Store in a StringView for better visualization of non-null-terminated strings
     //                in the debugger
     StringView        mStr;
-    int               mIByte;
+    int               mIByte = 0;
   };
 }
 

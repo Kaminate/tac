@@ -117,6 +117,12 @@ namespace Tac
       DepthStencil = 0b0100,
       UnorderedAccess = 0b1000,
     };
+    enum class PrimitiveTopology
+    {
+      Unknown = 0,
+      TriangleList,
+      PointList,
+    };
 
     const char* GetSemanticName( Attribute );
 
@@ -434,8 +440,10 @@ namespace Tac
     void                             SetVertexFormat( VertexFormatHandle );
     void                             SetShader( ShaderHandle );
     void                             SetTexture( DrawCallTextures );
+    void                             SetPrimitiveTopology( PrimitiveTopology );
 
     //                               hmm.jpg
+    //                               this shouldnt be PixelShader, it can be used in any shader?
     void                             SetPixelShaderUnorderedAccessView( TextureHandle, int );
     void                             SetPixelShaderUnorderedAccessView( MagicBufferHandle, int );
 

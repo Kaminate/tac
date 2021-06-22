@@ -863,6 +863,11 @@ namespace Tac
       gEncoder.mDrawCall.mTextureHandle = textureHandle;
     }
 
+    void SetPrimitiveTopology( const PrimitiveTopology primitiveTopology )
+    {
+      gEncoder.mDrawCall.mPrimitiveTopology = primitiveTopology;
+    }
+
     void SetPixelShaderUnorderedAccessView( TextureHandle textureHandle, int i )
     {
       gEncoder.mDrawCall.mUAVTextures[ i ] = textureHandle;

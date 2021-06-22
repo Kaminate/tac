@@ -26,21 +26,24 @@ namespace Tac
   static Render::ConstantBufferHandle voxelConstantBuffer;
   Render::VertexDeclarations          voxelVertexDeclarations;
   static int                          voxelDimension = 64; // 512; that makes the rwbuffer 1 gb
-  static bool                         voxelDebug;
-  static bool                         voxelEnabled = false;
+  static bool                         voxelDebug = true;
+  static bool                         voxelEnabled = true;
 
 
   struct CBufferVoxelizer
   {
-    //     Position of the voxel grid in worldspace.
-    //     It's not rotated, aligned to world axis.
-    v3     gVoxelGridCenter;
+    //       Position of the voxel grid in worldspace.
+    //       It's not rotated, aligned to world axis.
+    v3       gVoxelGridCenter;
 
-    //     Half width of the entire voxel grid in worldspace
-    float  gVoxelGridHalfWidth;
+    //       Half width of the entire voxel grid in worldspace
+    float    gVoxelGridHalfWidth;
 
-    //     Width of a single voxel
-    float  gVoxelWidth;
+    //       Width of a single voxel
+    float    gVoxelWidth;
+
+    //       Number of voxels on each side of the grid
+    uint32_t gVoxelGridSize;
 
     static const int shaderregister = 2;
   };
@@ -222,10 +225,45 @@ namespace Tac
                                                      const int viewHeight,
                                                      const Render::ViewHandle viewHandle )
   {
-    Render::SetShader( voxelVisualizerShader );
-    Render::SetVertexBuffer( Render::VertexBufferHandle(), 0, voxelDimension * voxelDimension * voxelDimension );
-    Render::SetIndexBuffer( Render::IndexBufferHandle(), 0, 0 );
-    Render::Submit( viewHandle, TAC_STACK_FRAME );
+    //Render::SubmitFrame(); // temp
+    //Render::SubmitFrame(); // temp
+
+    { // Temp scope for block
+
+      TAC_RENDER_GROUP_BLOCK( "Voxel GI Debug" );
+
+
+      CBufferVoxelizer cpuCBufferVoxelizer = {};
+      cpuCBufferVoxelizer.gVoxelGridCenter = camera->mPos;
+      cpuCBufferVoxelizer.gVoxelGridHalfWidth = ( float )( voxelDimension / 2 );
+      cpuCBufferVoxelizer.gVoxelWidth = 1;
+      cpuCBufferVoxelizer.gVoxelGridSize = voxelDimension;
+      //Render::UpdateConstantBuffer( voxelConstantBuffer,
+      //                              &cpuCBufferVoxelizer,
+      //                              sizeof( CBufferVoxelizer ),
+      //                              TAC_STACK_FRAME );
+
+      Render::UpdateConstantBuffer2( voxelConstantBuffer,
+                                     &cpuCBufferVoxelizer,
+                                     sizeof( CBufferVoxelizer ),
+                                     TAC_STACK_FRAME );
+      Render::SetShader( voxelVisualizerShader );
+      Render::SetTexture( { voxelTextureRadianceBounce0 } );
+
+#if 0
+    // not using UAVs in this shader
+      Render::SetPixelShaderUnorderedAccessView( voxelRWStructuredBuf, 0 );
+      Render::SetPixelShaderUnorderedAccessView( voxelTextureRadianceBounce0, 1 );
+#endif
+      Render::SetPrimitiveTopology( Render::PrimitiveTopology::PointList );
+      Render::SetVertexBuffer( Render::VertexBufferHandle(), 0, voxelDimension * voxelDimension * voxelDimension );
+      Render::SetIndexBuffer( Render::IndexBufferHandle(), 0, 0 );
+      Render::Submit( viewHandle, TAC_STACK_FRAME );
+
+    }
+
+    //Render::SubmitFrame(); // temp
+    //Render::SubmitFrame(); // temp
   }
 
   void               VoxelGIPresentationRender( World* world,
@@ -275,6 +313,7 @@ namespace Tac
         cpuCBufferVoxelizer.gVoxelGridCenter = mCamera->mPos;
         cpuCBufferVoxelizer.gVoxelGridHalfWidth = ( float )( voxelDimension / 2 );
         cpuCBufferVoxelizer.gVoxelWidth = 1;
+        cpuCBufferVoxelizer.gVoxelGridSize = voxelDimension;
         Render::UpdateConstantBuffer( voxelConstantBuffer,
                                       &cpuCBufferVoxelizer,
                                       sizeof( CBufferVoxelizer ),

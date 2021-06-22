@@ -311,6 +311,18 @@ namespace Tac
       }
     }
 
+    static D3D11_PRIMITIVE_TOPOLOGY GetPrimitiveTopology( PrimitiveTopology primitiveTopology )
+    {
+      switch( primitiveTopology )
+      {
+        case Render::PrimitiveTopology::PointList: return D3D11_PRIMITIVE_TOPOLOGY_POINTLIST;
+        case Render::PrimitiveTopology::TriangleList: return D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+      }
+      return D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+    }
+
+
+
     static WCHAR* ToTransientWchar( StringView str )
     {
       WCHAR* result = ( WCHAR* )FrameMemoryAllocate( ( sizeof( WCHAR ) + 1 ) * str.size() );
@@ -373,6 +385,7 @@ namespace Tac
 
       std::stringstream ss;
       ss
+        // o_o
         << String( StringView( errMsg ).substr( StringView( errMsg ).find_first_of( ')' ) + 3 ) )
         << std::endl
         << SplitFilepath( GetDirectX11ShaderPath( shaderSource ) ).mFilename
@@ -390,10 +403,10 @@ namespace Tac
     {
       String result;
       ParseData errMsgParse( StringView( errMsg ).begin(),
-                             StringView( errMsg ).end()  );
+                             StringView( errMsg ).end() );
       while( errMsgParse.GetRemainingByteCount() )
       {
-        StringView errMsgLine = errMsgParse.EatRestOfLine();
+        const StringView errMsgLine = errMsgParse.EatRestOfLine();
         if( !errMsgLine.empty() )
           result += TryImproveErrorMessageLine( shaderSource, shaderStrOrig, shaderStrFull, errMsgLine ) + "\n";
       }
@@ -558,11 +571,15 @@ namespace Tac
         const char* vertexShaderEntryPoint = "VS";
         const char* pixelShaderEntryPoint = "PS";
         const char* geometryShaderEntryPoint = "GS";
+
         const bool hasVertexShader = DoesShaderTextContainEntryPoint( shaderStringFull, vertexShaderEntryPoint );
         const bool hasGeometryShader = DoesShaderTextContainEntryPoint( shaderStringFull, geometryShaderEntryPoint );
         const bool hasPixelShader = DoesShaderTextContainEntryPoint( shaderStringFull, pixelShaderEntryPoint );
+
         TAC_ASSERT_MSG( hasVertexShader, "shader %s missing %s", shaderPath.c_str(), vertexShaderEntryPoint );
-        TAC_ASSERT_MSG( hasPixelShader, "shader %s missing %s", shaderPath.c_str(), pixelShaderEntryPoint );
+
+        // Optional?
+        // TAC_ASSERT_MSG( hasPixelShader, "shader %s missing %s", shaderPath.c_str(), pixelShaderEntryPoint );
 
         auto GetShaderModel = []( const char* prefix ) { return FrameMemoryPrintf( "%s_5_0", prefix ); };
 
@@ -591,7 +608,6 @@ namespace Tac
                                 0,
                                 &inputSignature );
         }
-
 
         if( hasPixelShader )
         {
@@ -685,7 +701,10 @@ namespace Tac
       D3D_FEATURE_LEVEL featureLevel;
       D3D_FEATURE_LEVEL featureLevels[ 10 ];
       int featureLevelCount = 0;
-      featureLevels[ featureLevelCount++ ] = D3D_FEATURE_LEVEL_11_0;
+      //featureLevels[ featureLevelCount++ ] = D3D_FEATURE_LEVEL_11_0;
+      featureLevels[ featureLevelCount++ ] = D3D_FEATURE_LEVEL_12_1;
+      // D3D_FEATURE_LEVEL_11_0 is too low for D3D11_FORMAT_SUPPORT2_UAV_TYPED_LOAD, try
+      // D3D_FEATURE_LEVEL_12_1 ?
 
       IDXGIAdapter* pAdapter = NULL;
       D3D_DRIVER_TYPE DriverType = D3D_DRIVER_TYPE_HARDWARE;
@@ -745,12 +764,12 @@ namespace Tac
 //         mDeviceContext->ClearRenderTargetView( renderTargetView, ClearColorRGBA );
 //       }
       for( int i = 0; i < kMaxFramebuffers; ++i )
-        mFramebuffersBoundEverThisFrame[ i ] = false;
+        mBoundFramebuffersThisFrame[ i ] = false;
 
-      mBlendState = nullptr;
-      mDepthStencilState = nullptr;
-      mViewHandle = Render::ViewHandle();
-      mIndexBuffer = nullptr;
+      mBoundBlendState = nullptr;
+      mBoundDepthStencilState = nullptr;
+      mBoundViewHandle = Render::ViewHandle();
+      //mIndexBuffer = nullptr;
 
     }
 
@@ -805,7 +824,7 @@ namespace Tac
     {
       if( DrawCallHasValidUAV( drawCall ) )
       {
-        const Render::View* view = &frame->mViews[ ( int )mViewHandle ];
+        const Render::View* view = &frame->mViews[ ( int )mBoundViewHandle ];
         TAC_ASSERT_MSG( view->mFrameBufferHandle.IsValid(), "Did you forget to call Render::SetViewFramebuffer" );
         Framebuffer* framebuffer = &mFramebuffers[ ( int )view->mFrameBufferHandle ];
 
@@ -859,55 +878,77 @@ namespace Tac
       }
 
       if( drawCall->mBlendStateHandle.IsValid()
-          && mBlendState != mBlendStates[ ( int )drawCall->mBlendStateHandle ] )
+          && mBoundBlendState != mBlendStates[ ( int )drawCall->mBlendStateHandle ] )
       {
-        mBlendState = mBlendStates[ ( int )drawCall->mBlendStateHandle ];
-        TAC_ASSERT( mBlendState );
+        mBoundBlendState = mBlendStates[ ( int )drawCall->mBlendStateHandle ];
+        TAC_ASSERT( mBoundBlendState );
         const FLOAT blendFactorRGBA[] = { 1.0f, 1.0f, 1.0f, 1.0f };
         const UINT sampleMask = 0xffffffff;
-        mDeviceContext->OMSetBlendState( mBlendState, blendFactorRGBA, sampleMask );
+        mDeviceContext->OMSetBlendState( mBoundBlendState, blendFactorRGBA, sampleMask );
       }
 
       if( drawCall->mDepthStateHandle.IsValid()
-          && mDepthStencilState != mDepthStencilStates[ ( int )drawCall->mDepthStateHandle ] )
+          && mBoundDepthStencilState != mDepthStencilStates[ ( int )drawCall->mDepthStateHandle ] )
       {
-        mDepthStencilState = mDepthStencilStates[ ( int )drawCall->mDepthStateHandle ];
-        TAC_ASSERT( mDepthStencilState );
+        mBoundDepthStencilState = mDepthStencilStates[ ( int )drawCall->mDepthStateHandle ];
+        TAC_ASSERT( mBoundDepthStencilState );
         const UINT stencilRef = 0;
-        mDeviceContext->OMSetDepthStencilState( mDepthStencilState, stencilRef );
+        mDeviceContext->OMSetDepthStencilState( mBoundDepthStencilState, stencilRef );
       }
 
-      if( drawCall->mIndexBufferHandle.IsValid() )
+      if( drawCall->mIndexBufferHandle != mBoundIndexBuffer )
       {
-        mIndexBuffer = &mIndexBuffers[ ( int )drawCall->mIndexBufferHandle ];
-        if( !mIndexBuffer->mBuffer )
-          OSDebugBreak();
-        TAC_ASSERT( mIndexBuffer->mBuffer );
-        const DXGI_FORMAT dxgiFormat = GetDXGIFormat( mIndexBuffer->mFormat );
-        const UINT byteOffset = 0; //  drawCall->mStartIndex * indexBuffer->mFormat.mPerElementByteCount;
-        mDeviceContext->IASetIndexBuffer( mIndexBuffer->mBuffer,
-                                          dxgiFormat,
-                                          byteOffset );
-      }
-
-      if( drawCall->mVertexBufferHandle.IsValid() )
-      {
-        const VertexBuffer* vertexBuffer = &mVertexBuffers[ ( int )drawCall->mVertexBufferHandle ];
-        TAC_ASSERT( vertexBuffer->mBuffer );
-        const UINT startSlot = 0;
-        const UINT NumBuffers = 1;
-        const UINT Strides[ NumBuffers ] = { ( UINT )vertexBuffer->mStride };
-        const UINT ByteOffsets[ NumBuffers ] =
+        mBoundIndexBuffer = drawCall->mIndexBufferHandle;
+        if( drawCall->mIndexBufferHandle.IsValid() )
         {
-          0
-          // ( UINT )( drawCall->mStartVertex * vertexBuffer->mStride )
-        };
-        ID3D11Buffer* buffers[ NumBuffers ] = { vertexBuffer->mBuffer };
-        mDeviceContext->IASetVertexBuffers( startSlot,
-                                            NumBuffers,
-                                            buffers,
-                                            Strides,
-                                            ByteOffsets );
+          const IndexBuffer* indexBuffer = &mIndexBuffers[ ( int )drawCall->mIndexBufferHandle ];
+          if( !indexBuffer->mBuffer )
+            OSDebugBreak();
+          TAC_ASSERT( indexBuffer->mBuffer );
+          const DXGI_FORMAT dxgiFormat = GetDXGIFormat( indexBuffer->mFormat );
+          const UINT byteOffset = 0; //  drawCall->mStartIndex * indexBuffer->mFormat.mPerElementByteCount;
+          mDeviceContext->IASetIndexBuffer( indexBuffer->mBuffer,
+                                            dxgiFormat,
+                                            byteOffset );
+        }
+        else
+        {
+          mDeviceContext->IASetIndexBuffer( nullptr, DXGI_FORMAT_UNKNOWN, 0 );
+        }
+      }
+
+      if( drawCall->mVertexBufferHandle != mBoundVertexBuffer )
+      {
+        mBoundVertexBuffer = drawCall->mVertexBufferHandle;
+        if( drawCall->mVertexBufferHandle.IsValid() )
+        {
+          const VertexBuffer* vertexBuffer = &mVertexBuffers[ ( int )drawCall->mVertexBufferHandle ];
+          TAC_ASSERT( vertexBuffer->mBuffer );
+          const UINT startSlot = 0;
+          const UINT NumBuffers = 1;
+          const UINT Strides[ NumBuffers ] = { ( UINT )vertexBuffer->mStride };
+          const UINT ByteOffsets[ NumBuffers ] =
+          {
+            0
+            // ( UINT )( drawCall->mStartVertex * vertexBuffer->mStride )
+          };
+          ID3D11Buffer* buffers[ NumBuffers ] = { vertexBuffer->mBuffer };
+          mDeviceContext->IASetVertexBuffers( startSlot,
+                                              NumBuffers,
+                                              buffers,
+                                              Strides,
+                                              ByteOffsets );
+
+        }
+        else
+        {
+          UINT         StartSlot = 0;
+          UINT         NumBuffers = 16;
+          ID3D11Buffer *VertexBuffers[ 16 ] = {};
+          UINT         Strides[ 16 ] = {};
+          UINT         Offsets[ 16 ] = {};
+          mDeviceContext->IASetVertexBuffers( StartSlot, NumBuffers, VertexBuffers, Strides, Offsets );
+        }
       }
 
       if( drawCall->mRasterizerStateHandle.IsValid() )
@@ -936,17 +977,17 @@ namespace Tac
       }
 
       if( drawCall->mViewHandle.IsValid() &&
-          drawCall->mViewHandle != mViewHandle )
+          drawCall->mViewHandle != mBoundViewHandle )
       {
-        mViewHandle = drawCall->mViewHandle;
-        const Render::View* view = &frame->mViews[ ( int )mViewHandle ];
+        mBoundViewHandle = drawCall->mViewHandle;
+        const Render::View* view = &frame->mViews[ ( int )mBoundViewHandle ];
 
         TAC_ASSERT_MSG( view->mFrameBufferHandle.IsValid(), "Did you forget to call Render::SetViewFramebuffer" );
 
         Framebuffer* framebuffer = &mFramebuffers[ ( int )view->mFrameBufferHandle ];
-        if( !mFramebuffersBoundEverThisFrame[ ( int )view->mFrameBufferHandle ] )
+        if( !mBoundFramebuffersThisFrame[ ( int )view->mFrameBufferHandle ] )
         {
-          mFramebuffersBoundEverThisFrame[ ( int )view->mFrameBufferHandle ] = true;
+          mBoundFramebuffersThisFrame[ ( int )view->mFrameBufferHandle ] = true;
 
           const UINT ClearFlags = D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL;
           const FLOAT ClearDepth = 1.0f;
@@ -1030,7 +1071,16 @@ namespace Tac
         mDeviceContext->GSSetConstantBuffers( StartSlot, mBoundConstantBufferCount, mBoundConstantBuffers );
       }
 
-      mDeviceContext->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
+      const Render::PrimitiveTopology newPrimitiveTopology
+        = drawCall->mPrimitiveTopology == Render::PrimitiveTopology::Unknown
+        ? Render::PrimitiveTopology::TriangleList
+        : drawCall->mPrimitiveTopology;
+      if( newPrimitiveTopology != mBoundPrimitiveTopology )
+      {
+        mBoundPrimitiveTopology = newPrimitiveTopology;
+        const D3D11_PRIMITIVE_TOPOLOGY primitiveTopology = GetPrimitiveTopology( drawCall->mPrimitiveTopology );
+        mDeviceContext->IASetPrimitiveTopology( primitiveTopology );
+      }
 
       // not quite convinced this assert should be here.
       // on one hand, it prevents u from forgetting to set index count. ( good )
@@ -1049,9 +1099,7 @@ namespace Tac
       }
       else if( drawCall->mVertexCount )
       {
-        const UINT VertexCount = drawCall->mVertexCount;
-        const UINT StartVertexLocation = drawCall->mStartVertex;
-        mDeviceContext->Draw( VertexCount, StartVertexLocation );
+        mDeviceContext->Draw( drawCall->mVertexCount, drawCall->mStartVertex );
       }
     }
 
@@ -1433,10 +1481,6 @@ namespace Tac
       {
         D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
         uavDesc.Format = Format;
-        uavDesc.Texture2D.MipSlice;
-        uavDesc.Texture3D.MipSlice;
-        uavDesc.Texture3D.FirstWSlice;
-        uavDesc.Texture3D.WSize;
 
         if( dimension == 2 )
         {
@@ -1448,6 +1492,9 @@ namespace Tac
         else if( dimension == 3 )
         {
           D3D11_TEX3D_UAV Texture3D = {};
+          Texture3D.WSize = data->mTexSpec.mImage.mDepth;
+          Texture3D.MipSlice = 0;
+          Texture3D.FirstWSlice = 0;
           uavDesc.Texture3D = Texture3D;
           uavDesc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE3D;
         }
@@ -1474,7 +1521,7 @@ namespace Tac
           srvDesc.Format = Format;
           srvDesc.ViewDimension = srvDimension;
           srvDesc.Texture2D.MipLevels = 1;
-          TAC_DX11_CALL( errors, mDevice->CreateShaderResourceView, texture2D, &srvDesc, &srv );
+          TAC_DX11_CALL( errors, mDevice->CreateShaderResourceView, resource, &srvDesc, &srv );
           SetDebugName( srv, data->mStackFrame.ToString() );
         }
 

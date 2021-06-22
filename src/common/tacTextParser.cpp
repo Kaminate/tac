@@ -11,21 +11,13 @@
 namespace Tac
 {
 
-  ParseData::ParseData( const char* bytes, int byteCount )
-  {
-    mStr = StringView( bytes, byteCount );
-    //mByteCount = byteCount;
-    mIByte = 0;
-    //mBytes = bytes;
-  }
+  ParseData::ParseData( StringView str ) : mStr( str ) { }
 
-  ParseData::ParseData( const char* begin, const char* end )
-  {
-    //mByteCount = ( int )( end - begin );
-    mIByte = 0;
-    //mBytes = begin;
-    mStr = StringView( begin, end );
-  }
+  ParseData::ParseData( const char* bytes ) : mStr ( bytes ) { }
+
+  ParseData::ParseData( const char* bytes, int byteCount ) : mStr ( bytes, byteCount ) { }
+
+  ParseData::ParseData( const char* begin, const char* end ) : mStr( begin, end ) { }
 
   const char*       ParseData::EatByte()
   {

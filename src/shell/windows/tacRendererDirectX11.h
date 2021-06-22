@@ -148,17 +148,19 @@ namespace Tac
       ID3D11BlendState*          mBlendStates[ Render::kMaxBlendStates ] = {};
       ConstantBuffer             mConstantBuffers[ Render::kMaxConstantBuffers ] = {};
       Program                    mPrograms[ Render::kMaxPrograms ] = {};
-      ID3D11Buffer*              mBoundConstantBuffers[ D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT ] = {};
-      int                        mBoundConstantBufferCount = 0;
 
       //                         Currently bound render variables
-      ID3D11BlendState*          mBlendState = nullptr;
-      ID3D11DepthStencilState*   mDepthStencilState = nullptr;
-      Render::ViewHandle         mViewHandle;
-      IndexBuffer*               mIndexBuffer = nullptr;
-      bool                       mFramebuffersBoundEverThisFrame[ kMaxFramebuffers ];
-      TextureHandle              mUAVTextures[ 2 ];
-      MagicBufferHandle          mUAVMagicBuffers[ 2 ];
+      PrimitiveTopology          mBoundPrimitiveTopology = PrimitiveTopology::Unknown;
+      ID3D11Buffer*              mBoundConstantBuffers[ D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT ] = {};
+      int                        mBoundConstantBufferCount = 0;
+      ID3D11BlendState*          mBoundBlendState = nullptr;
+      ID3D11DepthStencilState*   mBoundDepthStencilState = nullptr;
+      Render::ViewHandle         mBoundViewHandle;
+      VertexBufferHandle         mBoundVertexBuffer;
+      IndexBufferHandle          mBoundIndexBuffer;
+      bool                       mBoundFramebuffersThisFrame[ kMaxFramebuffers ];
+      TextureHandle              mBoundUAVTextures[ 2 ];
+      MagicBufferHandle          mBoundUAVMagicBuffers[ 2 ];
     };
   } // namespace Render
 } // namespace Tac

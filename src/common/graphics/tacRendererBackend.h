@@ -83,6 +83,7 @@ namespace Tac
       ShaderHandle          mShaderHandle;
       DrawCallTextures      mTextureHandle;
       ViewHandle            mViewHandle;
+      PrimitiveTopology     mPrimitiveTopology;
 
       TextureHandle         mUAVTextures[ 2 ];
       MagicBufferHandle     mUAVMagicBuffers[ 2 ];
