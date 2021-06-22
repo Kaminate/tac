@@ -413,11 +413,11 @@ namespace Tac
                                                         StackFrame );
 
     // Umm about this...
+    //void                             UpdateConstantBuffer( ConstantBufferHandle,
+    //                                                       const void*,
+    //                                                       int,
+    //                                                       StackFrame );
     void                             UpdateConstantBuffer( ConstantBufferHandle,
-                                                           const void*,
-                                                           int,
-                                                           StackFrame );
-    void                             UpdateConstantBuffer2( ConstantBufferHandle,
                                                             const void*,
                                                             int,
                                                             StackFrame );

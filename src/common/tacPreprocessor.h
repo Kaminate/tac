@@ -75,21 +75,23 @@ namespace Tac
     Handle( int index = -1 ) : mIndex( index ){}                                \
     bool operator ==( Handle handle ) const { return mIndex == handle.mIndex; } \
     bool operator !=( Handle handle ) const { return mIndex != handle.mIndex; } \
-    bool              IsValid() const { return mIndex != -1; }                  \
-    explicit operator int() const { return mIndex; }                            \
-    explicit operator unsigned() const { return mIndex; }                       \
+    bool              IsValid() const       { return mIndex != -1; }            \
+    explicit operator int() const           { return mIndex; }                  \
+    explicit operator unsigned() const      { return mIndex; }                  \
     int               mIndex;                                                   \
   };
 
 
 #ifndef NDEBUG
-#if defined(_MSC_VER)
+#if defined( _MSC_VER )
 #pragma warning( disable: 4100 ) // unused function parameter
 #pragma warning( disable: 4189 ) // local variable is initialzed but not referenced
-#endif
-#endif
+#endif // #if defined( _MSC_VER )
+#endif // #ifndef NDEBUG
+
+  // for edit-and-continue debug schnanigans
+  extern int asdf;
 
 
-
-}
+} // namespace Tac
 

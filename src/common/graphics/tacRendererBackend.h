@@ -79,7 +79,7 @@ namespace Tac
       SamplerStateHandle    mSamplerStateHandle;
       DepthStateHandle      mDepthStateHandle;
       VertexFormatHandle    mVertexFormatHandle;
-      UpdateConstantBuffers mUpdateConstantBuffers;
+      //UpdateConstantBuffers mUpdateConstantBuffers;
       ShaderHandle          mShaderHandle;
       DrawCallTextures      mTextureHandle;
       ViewHandle            mViewHandle;
@@ -96,7 +96,7 @@ namespace Tac
       int                   iUniformEnd = 0;
     };
 
-    bool DrawCallHasValidUAV( const DrawCall3* );
+    bool DrawCallHasAnyValidUAVs( const DrawCall3* );
 
     typedef FixedVector< DrawCall3, kDrawCallCapacity > DrawCalls;
 
@@ -134,14 +134,12 @@ namespace Tac
 
     struct UniformBuffer
     {
-      struct Pusher
-      {
-        virtual Pusher*        PushData( const void*, int ) = 0;
-        virtual Pusher*        PushString( StringView ) = 0;
-        virtual Pusher*        PushNumber( int ) = 0;
-      };
+      void                     PushHeader( UniformBufferHeader );
+      void                     PushData( const void*, int );
+      void                     PushString( StringView );
+      void                     PushNumber( int );
+      void                     PushPointer( const void* );
 
-      Pusher*                  PushHeader( UniformBufferHeader );
       int                      size() const;
       void*                    data() const;
       void                     clear();
@@ -153,6 +151,7 @@ namespace Tac
         UniformBufferHeader    PopHeader();
         void*                  PopData( int );
         int                    PopNumber();
+        const void*            PopPointer();
         StringView             PopString();
         const char*            mCur;
         const char*            mEnd;

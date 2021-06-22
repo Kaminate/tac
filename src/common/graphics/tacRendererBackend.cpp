@@ -54,6 +54,7 @@ namespace Tac
 
   namespace Render
   {
+    static Vector< String > pushed_groups;
 
     static void ExecuteUniformCommands( const UniformBuffer* uniformBuffer,
                                         const int iUniformBegin,
@@ -69,7 +70,10 @@ namespace Tac
         {
           case UniformBufferEntryType::DebugGroupBegin:
           {
+
+
             const StringView desc = iter.PopString();
+            pushed_groups.push_back( desc );
             Renderer::Instance->DebugGroupBegin( desc );
           } break;
           case UniformBufferEntryType::DebugMarker:
@@ -80,16 +84,18 @@ namespace Tac
           case UniformBufferEntryType::DebugGroupEnd:
           {
             Renderer::Instance->DebugGroupEnd();
+            pushed_groups.pop_back();
           } break;
           case UniformBufferEntryType::UpdateConstantBuffer:
           {
             const ConstantBufferHandle constantBufferHandle = { iter.PopNumber() };
             const int byteCount = iter.PopNumber();
-            const char* bytes = ( const char* )iter.PopData( byteCount );
+            const void* bytes = iter.PopPointer(); // const char* )iter.PopData( byteCount );
             CommandDataUpdateConstantBuffer commandData;
             commandData.mBytes = bytes;
             commandData.mByteCount = byteCount;
             commandData.mConstantBufferHandle = constantBufferHandle;
+            commandData.mStackFrame = header.mStackFrame;
             Renderer::Instance->UpdateConstantBuffer( &commandData, errors );
           } break;
           default: TAC_CRITICAL_ERROR_INVALID_CASE( header.mType ); return;
@@ -106,32 +112,37 @@ namespace Tac
       mStackFrame = stackFrame;
     }
 
-    UniformBuffer::Pusher* UniformBuffer::PushHeader( const UniformBufferHeader header )
+    void                   UniformBuffer::PushHeader( const UniformBufferHeader header )
     {
-      static thread_local struct UniformBufferPusher : public UniformBuffer::Pusher
-      {
-        Pusher*        PushData( const void* bytes, const int byteCount ) override
-        {
-          MemCpy( mUniformBuffer->mBytes + mUniformBuffer->mByteCount, bytes, byteCount );
-          mUniformBuffer->mByteCount += byteCount;
-          return this;
-        }
-        Pusher*        PushString( const StringView s ) override
-        {
-          PushNumber( s.size() );
-          PushData( s.c_str(), s.size() );
-          PushData( "", 1 );
-          return this;
-        }
-        Pusher*        PushNumber( const int i ) override
-        {
-          return PushData( &i, sizeof( i ) );
-        }
-        UniformBuffer* mUniformBuffer;
-      } sPusher;
-      sPusher.mUniformBuffer = this;
-      return sPusher.PushData( &header, sizeof( header ) );
+      PushData( &header, sizeof( header ) );
     }
+
+      void        UniformBuffer::PushData( const void* bytes, const int byteCount )
+      {
+        MemCpy( mBytes + mByteCount, bytes, byteCount );
+        mByteCount += byteCount;
+      }
+
+      void        UniformBuffer::PushString( const StringView s )
+      {
+        PushNumber( s.size() );
+        PushData( s.c_str(), s.size() );
+        PushData( "", 1 );
+      }
+
+      void        UniformBuffer::PushNumber( const int i )
+      {
+        PushData( &i, sizeof( i ) );
+      }
+
+      void        UniformBuffer::PushPointer( const void* p )
+      {
+        PushData( &p, sizeof( p ) );
+      }
+
+
+
+
 
     int                    UniformBuffer::size() const
     {
@@ -173,6 +184,11 @@ namespace Tac
     int                 UniformBuffer::Iterator::PopNumber()
     {
       return *( int* )PopData( sizeof( int ) );
+    }
+
+    const void*               UniformBuffer::Iterator::PopPointer()
+    {
+      return *( const void** )PopData( sizeof( void* ) );
     }
 
     StringView          UniformBuffer::Iterator::PopString()
@@ -777,19 +793,19 @@ namespace Tac
                                                           sizeof( CommandDataUpdateIndexBuffer ) );
     }
 
-    void UpdateConstantBuffer( const ConstantBufferHandle handle,
-                               const void* bytes,
-                               const int byteCount,
-                               const StackFrame stackFrame )
-    {
-      TAC_UNUSED_PARAMETER( stackFrame );
-      UpdateConstantBufferData updateConstantBufferData;
-      updateConstantBufferData.mByteCount = byteCount;
-      updateConstantBufferData.mBytes = Render::SubmitAlloc( bytes, byteCount );
-      updateConstantBufferData.mConstantBufferHandle = handle;
-      updateConstantBufferData.mStackFrame = stackFrame;
-      gEncoder.mDrawCall.mUpdateConstantBuffers.push_back( updateConstantBufferData );
-    }
+    //void UpdateConstantBuffer( const ConstantBufferHandle handle,
+    //                           const void* bytes,
+    //                           const int byteCount,
+    //                           const StackFrame stackFrame )
+    //{
+    //  TAC_UNUSED_PARAMETER( stackFrame );
+    //  UpdateConstantBufferData updateConstantBufferData;
+    //  updateConstantBufferData.mByteCount = byteCount;
+    //  updateConstantBufferData.mBytes = Render::SubmitAlloc( bytes, byteCount );
+    //  updateConstantBufferData.mConstantBufferHandle = handle;
+    //  updateConstantBufferData.mStackFrame = stackFrame;
+    //  gEncoder.mDrawCall.mUpdateConstantBuffers.push_back( updateConstantBufferData );
+    //}
 
     void SetViewFramebuffer( const ViewHandle viewId, const FramebufferHandle framebufferHandle )
     {
@@ -887,9 +903,8 @@ namespace Tac
     {
       TAC_ASSERT( !name.empty() );
       UniformBufferHeader header( UniformBufferEntryType::DebugGroupBegin, stackFrame );
-      gSubmitFrame->mUniformBuffer.
-        PushHeader( header )->
-        PushString( name );
+      gSubmitFrame->mUniformBuffer.PushHeader( header );
+      gSubmitFrame->mUniformBuffer.PushString( name );
     }
 
     void EndGroup( const StackFrame stackFrame )
@@ -898,17 +913,17 @@ namespace Tac
       gSubmitFrame->mUniformBuffer.PushHeader( header );
     }
 
-    void UpdateConstantBuffer2( const ConstantBufferHandle constantBufferHandle,
+    void UpdateConstantBuffer( const ConstantBufferHandle constantBufferHandle,
                                 const void* bytes,
                                 const int byteCount,
                                 const StackFrame stackFrame )
     {
+      const void* allocd = SubmitAlloc( bytes, byteCount );
       UniformBufferHeader header( UniformBufferEntryType::UpdateConstantBuffer, stackFrame );
-      gSubmitFrame->mUniformBuffer.
-        PushHeader( header )->
-        PushNumber( ( int )constantBufferHandle )->
-        PushNumber( byteCount )->
-        PushData( bytes, byteCount );
+      gSubmitFrame->mUniformBuffer.PushHeader( header );
+      gSubmitFrame->mUniformBuffer.PushNumber( ( int )constantBufferHandle );
+      gSubmitFrame->mUniformBuffer.PushNumber( byteCount );
+      gSubmitFrame->mUniformBuffer.PushPointer( allocd );
     }
 
     // need lots of comments pls
@@ -1047,9 +1062,11 @@ namespace Tac
       const int uniformBufferSize = gSubmitFrame->mUniformBuffer.size();
       if( mUniformBufferIndex != uniformBufferSize )
       {
-        mUniformBufferIndex = uniformBufferSize;
         iUniformBegin = mUniformBufferIndex;
         iUniformEnd = uniformBufferSize;
+
+        // Now update after its been used
+        mUniformBufferIndex = uniformBufferSize;
       }
 
       mDrawCall.mStackFrame = stackFrame;
@@ -1123,6 +1140,7 @@ namespace Tac
       info->mFullPath = fullPath;
       info->mFileModifyTime = ShaderReloadGetFileModifyTime( fullPath );
     }
+
     void               ShaderReloadHelperRemove( const Render::ShaderHandle shaderHandle )
     {
       if( !IsDebugMode() )
@@ -1156,17 +1174,17 @@ namespace Tac
         ShaderReloadHelperUpdateAux( &shaderReloadInfo, shaderReloadFunction );
     }
 
-    bool DrawCallHasValidUAV( const DrawCall3* drawCall )
+    bool DrawCallHasAnyValidUAVs( const DrawCall3* drawCall )
     {
       for( auto uav : drawCall->mUAVMagicBuffers )
-        if( !uav.IsValid() )
-          return false;
+        if( uav.IsValid() )
+          return true;
 
       for( auto uav : drawCall->mUAVTextures )
-        if( !uav.IsValid() )
-          return false;
+        if( uav.IsValid() )
+          return true;
 
-      return true;
+      return false;
     }
   } // namespace Render
 

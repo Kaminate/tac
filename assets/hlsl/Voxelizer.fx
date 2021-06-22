@@ -1,7 +1,3 @@
-// Texture2D terrainTexture : register( t0 );
-// Texture2D noiseTexture : register( t1 );
-// sampler linearSampler : register( s0 );
-
 // inject direct lighting
 // list of lights, with depth buffers?
 
@@ -15,7 +11,14 @@ RWStructuredBuffer< Voxel > mySB : register( u0 );
 
 Texture2D diffuseMaterialTexture : register( t0 );
 
-sampler   linearSampler          : register( s0 );
+// sampler   linearSampler          : register( s0 );
+
+SamplerState linearSampler
+{
+  Filter = MIN_MAG_MIP_LINEAR;
+  AddressU = Wrap;
+  AddressV = Wrap;
+};
 
 
 // Note 1: Variables are passed between shader stages through SEMANTICS, not variable names!

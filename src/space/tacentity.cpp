@@ -10,8 +10,6 @@
 #include <algorithm>
 #include <cmath>
 
-//#pragma warning( disable: 6011 ) // you might dereference a null ptr
-
 namespace Tac
 {
   struct ComponentFindFunctor

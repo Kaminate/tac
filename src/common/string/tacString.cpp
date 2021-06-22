@@ -3,10 +3,6 @@
 #include "src/common/math/tacMath.h"
 #include "src/common/tacAlgorithm.h"
 
-// ( bogus warning ) readable size is x bytes, but mHash bytes may be read
-//#pragma warning( disable: 6385 )
-
-
 #include <string>
 #include <algorithm>
 #include <sstream>
@@ -36,10 +32,7 @@ namespace Tac
 
   bool       IsSpace( const char c )
   {
-    for( const char s : " \t\n\v\f\r" )
-      if( c == s )
-        return true;
-    return false;
+    return StringView( " \t\n\v\f\r" ).find_first_of( c ) != StringView::npos;
   }
   bool       IsAlpha( char c )
   {
@@ -213,10 +206,7 @@ namespace Tac
 
   int         StringView::find_first_of( char c ) const
   {
-    for( int i = 0; i < mLen; ++i )
-      if( c == mStr[ i ] )
-        return i;
-    return npos;
+    return find( c );
   }
   int         StringView::find_first_of( StringView s ) const
   {
@@ -234,6 +224,15 @@ namespace Tac
         return i;
     return npos;
   }
+
+  int         StringView::find( const char c ) const
+  {
+    for( int i = 0; i < mLen; ++i )
+      if( c == mStr[ i ] )
+        return i;
+    return npos;
+  }
+
   StringView  StringView::substr( const int pos,
                                   const int len ) const
   {

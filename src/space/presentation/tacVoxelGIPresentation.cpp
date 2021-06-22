@@ -1,5 +1,6 @@
 #include "src/common/tacCamera.h"
 #include "src/common/tacMemory.h"
+#include "src/common/tacFrameMemory.h"
 #include "src/common/tacErrorHandling.h"
 #include "src/common/assetmanagers/tacModelAssetManager.h"
 #include "src/common/assetmanagers/tacMesh.h"
@@ -207,8 +208,6 @@ namespace Tac
 
   void               VoxelGIPresentationUninit()
   {
-    static int asdf;
-    ++asdf;
 
   }
 
@@ -238,12 +237,8 @@ namespace Tac
       cpuCBufferVoxelizer.gVoxelGridHalfWidth = ( float )( voxelDimension / 2 );
       cpuCBufferVoxelizer.gVoxelWidth = 1;
       cpuCBufferVoxelizer.gVoxelGridSize = voxelDimension;
-      //Render::UpdateConstantBuffer( voxelConstantBuffer,
-      //                              &cpuCBufferVoxelizer,
-      //                              sizeof( CBufferVoxelizer ),
-      //                              TAC_STACK_FRAME );
 
-      Render::UpdateConstantBuffer2( voxelConstantBuffer,
+      Render::UpdateConstantBuffer( voxelConstantBuffer,
                                      &cpuCBufferVoxelizer,
                                      sizeof( CBufferVoxelizer ),
                                      TAC_STACK_FRAME );
@@ -275,13 +270,7 @@ namespace Tac
     if( !voxelEnabled )
       return;
 
-    TAC_RENDER_GROUP_BLOCK( "Voxel GI" );
-
-    if( voxelDebug )
-    {
-      VoxelGIPresentationRenderDebug( world, camera, viewWidth, viewHeight, viewHandle );
-      return;
-    }
+    Render::BeginGroup( "Voxel GI", TAC_STACK_FRAME );
 
     struct : public ModelVisitor
     {
@@ -298,6 +287,9 @@ namespace Tac
         if( !mesh )
           return;
 
+        Render::BeginGroup( FrameMemoryPrintf( "%s %i",
+                                               model->mModelPath.c_str(),
+                                               model->mModelIndex ), TAC_STACK_FRAME );
 
         const Render::DepthStateHandle      depthState = GamePresentationGetDepthState();
         const Render::BlendStateHandle      blendState = GamePresentationGetBlendState();
@@ -335,11 +327,14 @@ namespace Tac
                                         sizeof( DefaultCBufferPerObject ),
                                         TAC_STACK_FRAME );
 
-          //Render::SetMagicBuffer();
+          Render::SetPixelShaderUnorderedAccessView( voxelRWStructuredBuf, 0 );
 
 
           Render::Submit( mViewHandle, TAC_STACK_FRAME );
+
+          //Render::SetMagicBuffer();
         }
+        Render::EndGroup( TAC_STACK_FRAME );
       }
       Render::ViewHandle mViewHandle;
       const Camera*      mCamera;
@@ -350,11 +345,16 @@ namespace Tac
     Graphics* graphics = GetGraphics( world );
     graphics->VisitModels( &modelVisitor );
 
-    TAC_UNUSED_PARAMETER( world );
-    TAC_UNUSED_PARAMETER( camera );
-    TAC_UNUSED_PARAMETER( viewWidth );
-    TAC_UNUSED_PARAMETER( viewHeight );
-    TAC_UNUSED_PARAMETER( viewHandle );
+    //TAC_UNUSED_PARAMETER( world );
+    //TAC_UNUSED_PARAMETER( camera );
+    //TAC_UNUSED_PARAMETER( viewWidth );
+    //TAC_UNUSED_PARAMETER( viewHeight );
+    //TAC_UNUSED_PARAMETER( viewHandle );
+
+    Render::EndGroup( TAC_STACK_FRAME );
+
+    if( voxelDebug )
+      VoxelGIPresentationRenderDebug( world, camera, viewWidth, viewHeight, viewHandle );
   }
 
   bool&              VoxelGIPresentationGetEnabled()      { return voxelEnabled; }

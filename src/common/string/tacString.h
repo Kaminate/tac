@@ -52,6 +52,7 @@ namespace Tac
     int         find_first_of( StringView ) const;
     int         find_first_of( char ) const;
     int         find( const StringView& ) const;
+    int         find( char ) const;
     StringView  substr( int pos = 0, int len = npos ) const;
     char        front();
     char        back();

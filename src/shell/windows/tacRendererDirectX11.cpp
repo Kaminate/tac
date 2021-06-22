@@ -59,13 +59,13 @@ namespace Tac
   }                                                                                              \
 }
 
-#define TAC_DX11_CALL_RETURN( errors, retval, call, ... )                                                       \
+#define TAC_DX11_CALL_RETURN( errors, retval, call, ... )                                        \
 {                                                                                                \
   const HRESULT result = call( __VA_ARGS__ );                                                    \
   if( FAILED( result ) )                                                                         \
   {                                                                                              \
     const String errorMsg = DX11CallAux( TAC_STRINGIFY( call ) "( " #__VA_ARGS__ " )", result ); \
-    TAC_RAISE_ERROR_RETURN( errorMsg, errors, retval );                                                         \
+    TAC_RAISE_ERROR_RETURN( errorMsg, errors, retval );                                          \
   }                                                                                              \
 }
 
@@ -184,7 +184,7 @@ namespace Tac
       }
     }
 
-    static D3D11_COMPARISON_FUNC GetCompare( Comparison compare )
+    static D3D11_COMPARISON_FUNC      GetCompare( Comparison compare )
     {
       switch( compare )
       {
@@ -194,7 +194,7 @@ namespace Tac
       }
     };
 
-    static D3D11_FILTER GetFilter( Filter filter )
+    static D3D11_FILTER               GetFilter( Filter filter )
     {
       switch( filter )
       {
@@ -205,7 +205,7 @@ namespace Tac
       }
     };
 
-    static D3D11_COMPARISON_FUNC GetDepthFunc( DepthFunc depthFunc )
+    static D3D11_COMPARISON_FUNC      GetDepthFunc( DepthFunc depthFunc )
     {
       switch( depthFunc )
       {
@@ -215,7 +215,7 @@ namespace Tac
       }
     }
 
-    static D3D11_USAGE GetUsage( Access access )
+    static D3D11_USAGE                GetUsage( Access access )
     {
       switch( access )
       {
@@ -226,7 +226,7 @@ namespace Tac
       }
     }
 
-    static UINT GetCPUAccessFlags( CPUAccess access )
+    static UINT                       GetCPUAccessFlags( CPUAccess access )
     {
       UINT result = 0;
       if( ( int )access & ( int )CPUAccess::Read )
@@ -236,7 +236,7 @@ namespace Tac
       return result;
     }
 
-    static UINT GetBindFlags( Binding binding )
+    static UINT                       GetBindFlags( Binding binding )
     {
       UINT BindFlags = 0;
       if( ( int )binding & ( int )Binding::RenderTarget )
@@ -250,7 +250,7 @@ namespace Tac
       return BindFlags;
     }
 
-    static UINT GetMiscFlags( Binding binding )
+    static UINT                       GetMiscFlags( Binding binding )
     {
       if( ( int )binding & ( int )Binding::RenderTarget &&
         ( int )binding & ( int )Binding::ShaderResource )
@@ -258,9 +258,9 @@ namespace Tac
       return 0;
     }
 
-    static D3D11_BLEND GetBlend( BlendConstants c )
+    static D3D11_BLEND                GetBlend( BlendConstants blendConstants )
     {
-      switch( c )
+      switch( blendConstants )
       {
         case BlendConstants::OneMinusSrcA:
           return D3D11_BLEND_INV_SRC_ALPHA;
@@ -278,7 +278,7 @@ namespace Tac
       }
     };
 
-    static D3D11_BLEND_OP GetBlendOp( BlendMode mode )
+    static D3D11_BLEND_OP             GetBlendOp( BlendMode mode )
     {
       switch( mode )
       {
@@ -290,7 +290,7 @@ namespace Tac
       }
     };
 
-    static D3D11_FILL_MODE GetFillMode( FillMode fillMode )
+    static D3D11_FILL_MODE            GetFillMode( FillMode fillMode )
     {
       switch( fillMode )
       {
@@ -300,7 +300,7 @@ namespace Tac
       }
     }
 
-    static D3D11_CULL_MODE GetCullMode( CullMode cullMode )
+    static D3D11_CULL_MODE            GetCullMode( CullMode cullMode )
     {
       switch( cullMode )
       {
@@ -311,7 +311,7 @@ namespace Tac
       }
     }
 
-    static D3D11_PRIMITIVE_TOPOLOGY GetPrimitiveTopology( PrimitiveTopology primitiveTopology )
+    static D3D11_PRIMITIVE_TOPOLOGY   GetPrimitiveTopology( PrimitiveTopology primitiveTopology )
     {
       switch( primitiveTopology )
       {
@@ -320,8 +320,6 @@ namespace Tac
       }
       return D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
     }
-
-
 
     static WCHAR* ToTransientWchar( StringView str )
     {
@@ -342,10 +340,10 @@ namespace Tac
       return shaderFileContents + "\n";
     }
 
-    static String TryImproveErrorMessageLine( const ShaderSource shaderSource,
-                                              const StringView shaderStrOrig,
-                                              const StringView shaderStrFull,
-                                              StringView errMsg )
+    static String TryImproveShaderErrorMessageLine( const ShaderSource shaderSource,
+                                                    const StringView shaderStrOrig,
+                                                    const StringView shaderStrFull,
+                                                    StringView errMsg )
     {
       const int lineNumber = [ & ]()
       {
@@ -396,10 +394,10 @@ namespace Tac
       return result;
     }
 
-    static String TryImproveErrorMessage( const ShaderSource shaderSource,
-                                          const StringView shaderStrOrig,
-                                          const StringView shaderStrFull,
-                                          const char* errMsg )
+    static String TryImproveShaderErrorMessage( const ShaderSource shaderSource,
+                                                const StringView shaderStrOrig,
+                                                const StringView shaderStrFull,
+                                                const char* errMsg )
     {
       String result;
       ParseData errMsgParse( StringView( errMsg ).begin(),
@@ -408,7 +406,7 @@ namespace Tac
       {
         const StringView errMsgLine = errMsgParse.EatRestOfLine();
         if( !errMsgLine.empty() )
-          result += TryImproveErrorMessageLine( shaderSource, shaderStrOrig, shaderStrFull, errMsgLine ) + "\n";
+          result += TryImproveShaderErrorMessageLine( shaderSource, shaderStrOrig, shaderStrFull, errMsgLine ) + "\n";
       }
 
       return result;
@@ -465,10 +463,10 @@ namespace Tac
           std::cout << shaderBlock << std::endl;
         }
 
-        const String errMsg = TryImproveErrorMessage( shaderSource,
-                                                      shaderStrOrig,
-                                                      shaderStrFull,
-                                                      ( const char* )pErrorBlob->GetBufferPointer() );
+        const String errMsg = TryImproveShaderErrorMessage( shaderSource,
+                                                            shaderStrOrig,
+                                                            shaderStrFull,
+                                                            ( const char* )pErrorBlob->GetBufferPointer() );
         TAC_RAISE_ERROR_RETURN( errMsg, errors, nullptr );
       }
 
@@ -607,6 +605,7 @@ namespace Tac
                                 D3D_BLOB_INPUT_SIGNATURE_BLOB,
                                 0,
                                 &inputSignature );
+          ( ( RendererDirectX11* )Renderer::Instance )->SetDebugName( vertexShader, shaderSource.mStr );
         }
 
         if( hasPixelShader )
@@ -629,6 +628,7 @@ namespace Tac
                                 &pixelShader );
           if( errors )
             continue;
+          ( ( RendererDirectX11* )Renderer::Instance )->SetDebugName( pixelShader, shaderSource.mStr );
         }
 
         if( hasGeometryShader )
@@ -651,6 +651,7 @@ namespace Tac
                                 &geometryShader );
           if( errors )
             continue;
+          ( ( RendererDirectX11* )Renderer::Instance )->SetDebugName( geometryShader, shaderSource.mStr );
         }
 
         break;
@@ -818,54 +819,57 @@ namespace Tac
     }
 #endif
 
-    void RendererDirectX11::RenderDrawCall( const Render::Frame* frame,
-                                            const Render::DrawCall3* drawCall,
-                                            Errors& errors )
+    void RendererDirectX11::RenderDrawCallUAVs( const Render::Frame* frame,
+                                                const DrawCall3* drawCall )
     {
-      if( DrawCallHasValidUAV( drawCall ) )
+
+      if( !DrawCallHasAnyValidUAVs( drawCall ) )
+        return;
+      const Render::View* view = &frame->mViews[ ( int )mBoundViewHandle ];
+      TAC_ASSERT_MSG( view->mFrameBufferHandle.IsValid(), "Did you forget to call Render::SetViewFramebuffer" );
+      Framebuffer* framebuffer = &mFramebuffers[ ( int )view->mFrameBufferHandle ];
+
+      FixedVector< ID3D11UnorderedAccessView*, 10 > uavs;
+
+      for( int i = 0; i < 2; ++i )
       {
-        const Render::View* view = &frame->mViews[ ( int )mBoundViewHandle ];
-        TAC_ASSERT_MSG( view->mFrameBufferHandle.IsValid(), "Did you forget to call Render::SetViewFramebuffer" );
-        Framebuffer* framebuffer = &mFramebuffers[ ( int )view->mFrameBufferHandle ];
+        ID3D11UnorderedAccessView* uav = nullptr;
 
-        FixedVector< ID3D11UnorderedAccessView*, 10 > uavs;
+        auto magicBuffer = drawCall->mUAVMagicBuffers[ i ];
+        if( magicBuffer.IsValid() )
+          uav = mMagicBuffers[ ( int )magicBuffer ].mUAV;
 
-        for( int i = 0; i < 2; ++i )
+        auto texture = drawCall->mUAVTextures[ i ];
+        if( texture.IsValid() )
+          uav = mTextures[ ( int )texture ].mTextureUAV;
+
+        if( uav )
         {
-          ID3D11UnorderedAccessView* uav = nullptr;
-
-          auto magicBuffer = drawCall->mUAVMagicBuffers[ i ];
-          if( magicBuffer.IsValid() )
-            uav = mMagicBuffers[ ( int )magicBuffer ].mUAV;
-
-          auto texture = drawCall->mUAVTextures[ i ];
-          if( texture.IsValid() )
-            uav = mTextures[ ( int )texture ].mTextureUAV;
-
-          if( uav )
-          {
-            const int requredSize = i + 1;
-            if( uavs.size() < requredSize )
-              uavs.resize( requredSize );
-            uavs[ i ] = uav;
-          }
+          const int requredSize = i + 1;
+          if( uavs.size() < requredSize )
+            uavs.resize( requredSize );
+          uavs[ i ] = uav;
         }
-
-        FixedVector< ID3D11RenderTargetView*, 10 > views = { framebuffer->mRenderTargetView };
-        FixedVector< UINT, 10 > uavInitialCounts( views.size(), ( UINT )-1 );
-
-        TAC_ASSERT( framebuffer->mRenderTargetView );
-        TAC_ASSERT( framebuffer->mDepthStencilView );
-        UINT UavStartSlot = 0;
-        mDeviceContext->OMSetRenderTargetsAndUnorderedAccessViews( views.size(),
-                                                                   views.data(),
-                                                                   framebuffer->mDepthStencilView,
-                                                                   UavStartSlot,
-                                                                   uavs.size(),
-                                                                   uavs.data(),
-                                                                   uavInitialCounts.data() );
       }
 
+      FixedVector< ID3D11RenderTargetView*, 10 > views = { framebuffer->mRenderTargetView };
+      FixedVector< UINT, 10 > uavInitialCounts( views.size(), ( UINT )-1 );
+
+      TAC_ASSERT( framebuffer->mRenderTargetView );
+      TAC_ASSERT( framebuffer->mDepthStencilView );
+      const UINT UavStartSlot = views.size(); // ???
+      mDeviceContext->OMSetRenderTargetsAndUnorderedAccessViews( views.size(),
+                                                                 views.data(),
+                                                                 framebuffer->mDepthStencilView,
+                                                                 UavStartSlot,
+                                                                 uavs.size(),
+                                                                 uavs.data(),
+                                                                 uavInitialCounts.data() );
+
+    }
+
+    void RendererDirectX11::RenderDrawCallShader( const DrawCall3* drawCall )
+    {
       if( drawCall->mShaderHandle.IsValid() )
       {
         Program* program = &mPrograms[ ( int )drawCall->mShaderHandle ];
@@ -877,6 +881,11 @@ namespace Tac
         mDeviceContext->GSSetShader( program->mGeometryShader, NULL, 0 );
       }
 
+    }
+
+    void RendererDirectX11::RenderDrawCallBlendState( const DrawCall3* drawCall )
+    {
+
       if( drawCall->mBlendStateHandle.IsValid()
           && mBoundBlendState != mBlendStates[ ( int )drawCall->mBlendStateHandle ] )
       {
@@ -886,7 +895,10 @@ namespace Tac
         const UINT sampleMask = 0xffffffff;
         mDeviceContext->OMSetBlendState( mBoundBlendState, blendFactorRGBA, sampleMask );
       }
+    }
 
+    void RendererDirectX11::RenderDrawCallDepthState( const DrawCall3* drawCall )
+    {
       if( drawCall->mDepthStateHandle.IsValid()
           && mBoundDepthStencilState != mDepthStencilStates[ ( int )drawCall->mDepthStateHandle ] )
       {
@@ -895,7 +907,10 @@ namespace Tac
         const UINT stencilRef = 0;
         mDeviceContext->OMSetDepthStencilState( mBoundDepthStencilState, stencilRef );
       }
+    }
 
+    void RendererDirectX11::RenderDrawCallIndexBuffer( const DrawCall3* drawCall )
+    {
       if( drawCall->mIndexBufferHandle != mBoundIndexBuffer )
       {
         mBoundIndexBuffer = drawCall->mIndexBufferHandle;
@@ -916,6 +931,11 @@ namespace Tac
           mDeviceContext->IASetIndexBuffer( nullptr, DXGI_FORMAT_UNKNOWN, 0 );
         }
       }
+
+    }
+
+    void RendererDirectX11::RenderDrawCallVertexBuffer( const DrawCall3*drawCall )
+    {
 
       if( drawCall->mVertexBufferHandle != mBoundVertexBuffer )
       {
@@ -950,13 +970,21 @@ namespace Tac
           mDeviceContext->IASetVertexBuffers( StartSlot, NumBuffers, VertexBuffers, Strides, Offsets );
         }
       }
+    }
 
+    void RendererDirectX11::RenderDrawCallRasterizerState( const DrawCall3*drawCall )
+    {
       if( drawCall->mRasterizerStateHandle.IsValid() )
       {
         ID3D11RasterizerState* rasterizerState = mRasterizerStates[ ( int )drawCall->mRasterizerStateHandle ];
         TAC_ASSERT( rasterizerState );
         mDeviceContext->RSSetState( rasterizerState );
       }
+
+    }
+
+    void RendererDirectX11::RenderDrawCallSamplerState( const DrawCall3*drawCall )
+    {
 
       if( drawCall->mSamplerStateHandle.IsValid() )
       {
@@ -968,13 +996,22 @@ namespace Tac
         mDeviceContext->VSSetSamplers( StartSlot, NumSamplers, Samplers );
         mDeviceContext->PSSetSamplers( StartSlot, NumSamplers, Samplers );
       }
+    }
 
+    void RendererDirectX11::RenderDrawCallVertexFormat( const DrawCall3*drawCall )
+    {
       if( drawCall->mVertexFormatHandle.IsValid() )
       {
         ID3D11InputLayout* inputLayout = mInputLayouts[ ( int )drawCall->mVertexFormatHandle ];
         TAC_ASSERT( inputLayout );
         mDeviceContext->IASetInputLayout( inputLayout );
       }
+
+    }
+
+    void RendererDirectX11::RenderDrawCallView( const Render::Frame* frame,
+                                                const DrawCall3*drawCall )
+    {
 
       if( drawCall->mViewHandle.IsValid() &&
           drawCall->mViewHandle != mBoundViewHandle )
@@ -1032,6 +1069,10 @@ namespace Tac
         scissor.top = ( LONG )view->mScissorRect.mYMinRelUpperLeftCornerPixel;
         mDeviceContext->RSSetScissorRects( 1, &scissor );
       }
+    }
+
+    void RendererDirectX11::RenderDrawCallTextures( const DrawCall3*drawCall )
+    {
 
       if( drawCall->mTextureHandle.size() )
       {
@@ -1052,25 +1093,10 @@ namespace Tac
         mDeviceContext->PSSetShaderResources( StartSlot, NumViews, ShaderResourceViews );
         mDeviceContext->GSSetShaderResources( StartSlot, NumViews, ShaderResourceViews );
       }
+    }
 
-      for( const Render::UpdateConstantBufferData& stuff : drawCall->mUpdateConstantBuffers )
-      {
-        const ConstantBuffer* constantBuffer = &mConstantBuffers[ ( int )stuff.mConstantBufferHandle ];
-        TAC_ASSERT( constantBuffer->mBuffer );
-        UpdateBuffer( constantBuffer->mBuffer,
-                      stuff.mBytes,
-                      stuff.mByteCount,
-                      errors );
-
-        mBoundConstantBuffers[ constantBuffer->mShaderRegister ] = constantBuffer->mBuffer;
-        mBoundConstantBufferCount = Max( mBoundConstantBufferCount, constantBuffer->mShaderRegister + 1 );
-
-        const UINT StartSlot = 0;
-        mDeviceContext->PSSetConstantBuffers( StartSlot, mBoundConstantBufferCount, mBoundConstantBuffers );
-        mDeviceContext->VSSetConstantBuffers( StartSlot, mBoundConstantBufferCount, mBoundConstantBuffers );
-        mDeviceContext->GSSetConstantBuffers( StartSlot, mBoundConstantBufferCount, mBoundConstantBuffers );
-      }
-
+    void RendererDirectX11::RenderDrawCallPrimitiveTopology( const DrawCall3*  drawCall )
+    {
       const Render::PrimitiveTopology newPrimitiveTopology
         = drawCall->mPrimitiveTopology == Render::PrimitiveTopology::Unknown
         ? Render::PrimitiveTopology::TriangleList
@@ -1081,6 +1107,10 @@ namespace Tac
         const D3D11_PRIMITIVE_TOPOLOGY primitiveTopology = GetPrimitiveTopology( drawCall->mPrimitiveTopology );
         mDeviceContext->IASetPrimitiveTopology( primitiveTopology );
       }
+    }
+
+    void RendererDirectX11::RenderDrawCallIssueDrawCommand( const DrawCall3* drawCall )
+    {
 
       // not quite convinced this assert should be here.
       // on one hand, it prevents u from forgetting to set index count. ( good )
@@ -1101,6 +1131,30 @@ namespace Tac
       {
         mDeviceContext->Draw( drawCall->mVertexCount, drawCall->mStartVertex );
       }
+    }
+
+    void RendererDirectX11::RenderDrawCall( const Render::Frame* frame,
+                                            const Render::DrawCall3* drawCall,
+                                            Errors& errors )
+    {
+      if( drawCall->mStackFrame.mLine == 333 )
+      {
+        ++asdf;
+      }
+
+      RenderDrawCallUAVs( frame, drawCall );
+      RenderDrawCallShader( drawCall );
+      RenderDrawCallBlendState( drawCall );
+      RenderDrawCallDepthState( drawCall );
+      RenderDrawCallIndexBuffer( drawCall );
+      RenderDrawCallVertexBuffer( drawCall );
+      RenderDrawCallRasterizerState( drawCall );
+      RenderDrawCallSamplerState( drawCall );
+      RenderDrawCallVertexFormat( drawCall );
+      RenderDrawCallView( frame, drawCall );
+      RenderDrawCallTextures( drawCall );
+      RenderDrawCallPrimitiveTopology( drawCall );
+      RenderDrawCallIssueDrawCommand( drawCall );
     }
 
     void RendererDirectX11::SwapBuffers()
@@ -1174,10 +1228,9 @@ namespace Tac
       }
       newname += String( name );
 
-      directXObject->SetPrivateData(
-        WKPDID_D3DDebugObjectName,
+      directXObject->SetPrivateData( WKPDID_D3DDebugObjectName,
         ( UINT )newname.size(),
-        newname.c_str() );
+                                     newname.c_str() );
       if( pDataSize )
       {
         mInfoQueueDEBUG->PopStorageFilter();
@@ -1291,10 +1344,10 @@ namespace Tac
                      inputSig->GetBufferPointer(),
                      inputSig->GetBufferSize(),
                      &inputLayout );
+
+      SetDebugName( inputLayout, commandData->mStackFrame.ToString() );
       mInputLayouts[ ( int )vertexFormatHandle ] = inputLayout;
     }
-
-
 
     void RendererDirectX11::AddIndexBuffer( Render::CommandDataCreateIndexBuffer* data,
                                             Errors& errors )
@@ -1319,8 +1372,12 @@ namespace Tac
                      &bd,
                      data->mOptionalInitialBytes ? &initData : nullptr,
                      &buffer );
-      mIndexBuffers[ ( int )index ].mFormat = data->mFormat;
-      mIndexBuffers[ ( int )index ].mBuffer = buffer;
+
+      SetDebugName( buffer, data->mStackFrame.ToString() );
+
+      IndexBuffer* indexBuffer = &mIndexBuffers[ ( int )index ];
+      indexBuffer->mFormat = data->mFormat;
+      indexBuffer->mBuffer = buffer;
     }
 
     void RendererDirectX11::AddRasterizerState( Render::CommandDataCreateRasterizerState* commandData,
@@ -1337,6 +1394,7 @@ namespace Tac
       ID3D11RasterizerState* rasterizerState;
       TAC_DX11_CALL( errors, mDevice->CreateRasterizerState, &desc, &rasterizerState );
       mRasterizerStates[ ( int )commandData->mRasterizerStateHandle ] = rasterizerState;
+      SetDebugName( rasterizerState, commandData->mStackFrame.ToString() );
     }
 
     void RendererDirectX11::AddSamplerState( Render::CommandDataCreateSamplerState* commandData,
@@ -1356,9 +1414,8 @@ namespace Tac
       ID3D11SamplerState* samplerStateDX11;
       TAC_DX11_CALL( errors, mDevice->CreateSamplerState, &desc, &samplerStateDX11 );
       mSamplerStates[ ( int )commandData->mSamplerStateHandle ] = samplerStateDX11;
+      SetDebugName( samplerStateDX11, commandData->mStackFrame.ToString() );
     }
-
-
 
     void RendererDirectX11::AddShader( Render::CommandDataCreateShader* commandData,
                                        Errors& errors )
@@ -1556,6 +1613,7 @@ namespace Tac
       d3d11rtbd->RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
       ID3D11BlendState* blendStateDX11;
       TAC_DX11_CALL( errors, mDevice->CreateBlendState, &desc, &blendStateDX11 );
+      SetDebugName( blendStateDX11, commandData->mStackFrame.ToString() );
       mBlendStates[ ( int )blendStateHandle ] = blendStateDX11;
     }
 
@@ -1570,6 +1628,7 @@ namespace Tac
       bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE; // i guess?
       bd.Usage = D3D11_USAGE_DYNAMIC; // i guess?
       TAC_DX11_CALL( errors, mDevice->CreateBuffer, &bd, nullptr, &cbufferhandle );
+      SetDebugName( cbufferhandle, commandData->mStackFrame.ToString() );
 
       ConstantBuffer* constantBuffer = &mConstantBuffers[ ( int )commandData->mConstantBufferHandle ];
       constantBuffer->mBuffer = cbufferhandle;
@@ -1590,6 +1649,7 @@ namespace Tac
       ID3D11DepthStencilState* depthStencilState;
       TAC_DX11_CALL( errors, mDevice->CreateDepthStencilState, &desc, &depthStencilState );
       mDepthStencilStates[ ( int )commandData->mDepthStateHandle ] = depthStencilState;
+      SetDebugName( depthStencilState, commandData->mStackFrame.ToString() );
     }
 
     void RendererDirectX11::AddFramebuffer( Render::CommandDataCreateFramebuffer* data,
@@ -1597,7 +1657,6 @@ namespace Tac
     {
       TAC_ASSERT( IsMainThread() );
 
-      Framebuffer* framebuffer = &mFramebuffers[ ( int )data->mFramebufferHandle ];
       const bool isWindowFramebuffer = data->mNativeWindowHandle && data->mWidth && data->mHeight;
       const bool isRenderToTextureFramebuffer = !data->mFramebufferTextures.empty();
       TAC_ASSERT( isWindowFramebuffer || isRenderToTextureFramebuffer );
@@ -1630,6 +1689,7 @@ namespace Tac
         ID3D11RenderTargetView* rtv = nullptr;
         D3D11_RENDER_TARGET_VIEW_DESC* rtvDesc = nullptr;
         TAC_DX11_CALL( errors, device->CreateRenderTargetView, pBackBuffer, rtvDesc, &rtv );
+        SetDebugName( rtv, data->mStackFrame.ToString() );
         pBackBuffer->Release();
 
         D3D11_RENDER_TARGET_VIEW_DESC createdDesc = {};
@@ -1648,19 +1708,23 @@ namespace Tac
 
         ID3D11Texture2D* texture;
         TAC_DX11_CALL( errors, mDevice->CreateTexture2D, &texture2dDesc, nullptr, &texture );
+        SetDebugName( texture, data->mStackFrame.ToString() );
 
         ID3D11DepthStencilView* dsv;
         D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = {};
         depthStencilViewDesc.Format = texture2dDesc.Format;
         depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
         TAC_DX11_CALL( errors, mDevice->CreateDepthStencilView, texture, &depthStencilViewDesc, &dsv );
+        SetDebugName( dsv, data->mStackFrame.ToString() );
 
+        Framebuffer* framebuffer = &mFramebuffers[ ( int )data->mFramebufferHandle ];
         framebuffer->mSwapChain = swapChain;
         framebuffer->mDepthStencilView = dsv;
         framebuffer->mDepthTexture = texture;
         framebuffer->mHwnd = hwnd;
         framebuffer->mRenderTargetView = rtv;
         framebuffer->mBufferCount = bufferCount;
+        framebuffer->mCreationStackFrame = data->mStackFrame;
 
         mWindows[ mWindowCount++ ] = data->mFramebufferHandle;
       }
@@ -1684,15 +1748,21 @@ namespace Tac
             D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = {};
             depthStencilViewDesc.Format = desc.Format;
             depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+            ID3D11DepthStencilView* dsv;
             TAC_DX11_CALL( errors,
                            mDevice->CreateDepthStencilView,
                            texture->mTexture2D,
                            &depthStencilViewDesc,
-                           &framebuffer->mDepthStencilView );
+                           &dsv );
+            SetDebugName( dsv, data->mStackFrame.ToString() );
+
+            Framebuffer* framebuffer = &mFramebuffers[ ( int )data->mFramebufferHandle ];
+            framebuffer->mDepthStencilView = dsv;
             framebuffer->mDepthTexture = texture->mTexture2D;
           }
           else
           {
+            Framebuffer* framebuffer = &mFramebuffers[ ( int )data->mFramebufferHandle ];
             framebuffer->mRenderTargetView = texture->mTextureRTV;
           }
         }
@@ -1854,6 +1924,7 @@ namespace Tac
       const UINT StartSlot = 0;
       mDeviceContext->PSSetConstantBuffers( StartSlot, mBoundConstantBufferCount, mBoundConstantBuffers );
       mDeviceContext->VSSetConstantBuffers( StartSlot, mBoundConstantBufferCount, mBoundConstantBuffers );
+      mDeviceContext->GSSetConstantBuffers( StartSlot, mBoundConstantBufferCount, mBoundConstantBuffers );
     }
 
     void RendererDirectX11::UpdateIndexBuffer( Render::CommandDataUpdateIndexBuffer* commandData,
@@ -1903,15 +1974,18 @@ namespace Tac
                      rtvDesc,
                      &rtv );
       pBackBuffer->Release();
+      SetDebugName( rtv, framebuffer->mCreationStackFrame.ToString() );
 
       ID3D11Texture2D* depthTexture;
       TAC_DX11_CALL( errors, mDevice->CreateTexture2D, &depthTextureDesc, nullptr, &depthTexture );
+      SetDebugName( depthTexture, framebuffer->mCreationStackFrame.ToString() );
 
       ID3D11DepthStencilView* dsv;
       D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = {};
       depthStencilViewDesc.Format = depthTextureDesc.Format;
       depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
       TAC_DX11_CALL( errors, mDevice->CreateDepthStencilView, depthTexture, &depthStencilViewDesc, &dsv );
+      SetDebugName( dsv, framebuffer->mCreationStackFrame.ToString() );
 
       framebuffer->mDepthStencilView = dsv;
       framebuffer->mDepthTexture = depthTexture;
@@ -1947,7 +2021,6 @@ namespace Tac
       mDeviceContext->Unmap( buffer, 0 );
     }
 
-
     void RendererDirectX11::DebugGroupBegin( StringView desc )
     {
       if( !mUserAnnotationDEBUG )
@@ -1957,6 +2030,7 @@ namespace Tac
       mUserAnnotationDEBUG->BeginEvent( descWchar );
 
     }
+
     void RendererDirectX11::DebugMarker( StringView desc )
     {
       if( !mUserAnnotationDEBUG )
@@ -1965,6 +2039,7 @@ namespace Tac
       mUserAnnotationDEBUG->SetMarker( descWchar );
 
     }
+
     void RendererDirectX11::DebugGroupEnd()
     {
 
@@ -1973,6 +2048,8 @@ namespace Tac
 
     }
 
-
   } // namespace Render
 } // namespace Tac
+
+
+

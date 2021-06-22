@@ -118,7 +118,6 @@ ${CMAKE_CURRENT_SOURCE_DIR}/tacJobQueue.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/tacJobQueue.h
 ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/impl.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/cgltf.h
-${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/stb_impl.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/stb_image.h
 ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/stb_truetype.h
 CACHE INTERNAL ""

@@ -49,6 +49,7 @@ namespace Tac
       ID3D11RenderTargetView*    mRenderTargetView = nullptr;
       ID3D11Texture2D*           mDepthTexture = nullptr;
       HWND                       mHwnd = nullptr;
+      StackFrame                 mCreationStackFrame;
     };
 
     struct VertexBuffer
@@ -118,6 +119,24 @@ namespace Tac
       void DebugGroupBegin( StringView ) override;
       void DebugMarker( StringView ) override;
       void DebugGroupEnd() override;
+
+
+      // Render draw call functions
+
+      void RenderDrawCallUAVs( const Render::Frame*, const DrawCall3* );
+      void RenderDrawCallShader( const DrawCall3* );
+      void RenderDrawCallBlendState( const DrawCall3* );
+      void RenderDrawCallDepthState( const DrawCall3* );
+      void RenderDrawCallIndexBuffer( const DrawCall3* );
+      void RenderDrawCallVertexBuffer( const DrawCall3* );
+      void RenderDrawCallRasterizerState( const DrawCall3* );
+      void RenderDrawCallSamplerState( const DrawCall3* );
+      void RenderDrawCallVertexFormat( const DrawCall3* );
+      void RenderDrawCallView( const Render::Frame*, const DrawCall3* );
+      void RenderDrawCallTextures( const DrawCall3* );
+      void RenderDrawCallPrimitiveTopology( const DrawCall3* );
+      void RenderDrawCallIssueDrawCommand( const DrawCall3* );
+
 
       // Non-virtual functions
 
