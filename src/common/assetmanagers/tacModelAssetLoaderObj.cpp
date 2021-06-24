@@ -201,6 +201,7 @@ namespace Tac
                                                                                 stride,
                                                                                 Render::Access::Default,
                                                                                 TAC_STACK_FRAME );
+    Render::SetRenderObjectDebugName( vertexBuffer, name );
 
     SubMesh subMesh;
     subMesh.mName = name;

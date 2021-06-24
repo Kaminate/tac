@@ -26,7 +26,10 @@ namespace Tac
   static Render::ShaderHandle         voxelCopyShader;
   static Render::ConstantBufferHandle voxelConstantBuffer;
   Render::VertexDeclarations          voxelVertexDeclarations;
-  static int                          voxelDimension = 64; // 512; that makes the rwbuffer 1 gb
+  static int                          voxelDimension =
+    1 << 0; // 1
+    // 1 << 6 //64;
+    // 512; that makes the rwbuffer 1 gb
   static bool                         voxelDebug = true;
   static bool                         voxelEnabled = true;
 
