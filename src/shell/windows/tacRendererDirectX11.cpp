@@ -819,52 +819,110 @@ namespace Tac
     }
 #endif
 
-    void RendererDirectX11::RenderDrawCallUAVs( const Render::Frame* frame,
-                                                const DrawCall3* drawCall )
+
+    void RendererDirectX11::RenderDrawCallViewAndUAV( const Render::Frame* frame,
+                                                      const DrawCall3* drawCall )
     {
-
-      if( !DrawCallHasAnyValidUAVs( drawCall ) )
-        return;
-      const Render::View* view = &frame->mViews[ ( int )mBoundViewHandle ];
-      TAC_ASSERT_MSG( view->mFrameBufferHandle.IsValid(), "Did you forget to call Render::SetViewFramebuffer" );
-      Framebuffer* framebuffer = &mFramebuffers[ ( int )view->mFrameBufferHandle ];
-
-      FixedVector< ID3D11UnorderedAccessView*, 10 > uavs;
-
+      ViewHandle nextView = drawCall->mViewHandle;
+      bool differentUAVs = false;
       for( int i = 0; i < 2; ++i )
+        if( drawCall->mDrawCallUAVs.mUAVTextures[ i ] != mBoundDrawCallUAVs.mUAVTextures[ i ] ||
+            drawCall->mDrawCallUAVs.mUAVMagicBuffers[ i ] != mBoundDrawCallUAVs.mUAVMagicBuffers[ i ] )
+          differentUAVs = true;
+      if( differentUAVs )
       {
-        ID3D11UnorderedAccessView* uav = nullptr;
+        mBoundDrawCallUAVs = drawCall->mDrawCallUAVs;
 
-        auto magicBuffer = drawCall->mUAVMagicBuffers[ i ];
-        if( magicBuffer.IsValid() )
-          uav = mMagicBuffers[ ( int )magicBuffer ].mUAV;
-
-        auto texture = drawCall->mUAVTextures[ i ];
-        if( texture.IsValid() )
-          uav = mTextures[ ( int )texture ].mTextureUAV;
-
-        if( uav )
+        if( drawCall->mDrawCallUAVs.HasValidHandle() )
         {
-          const int requredSize = i + 1;
-          if( uavs.size() < requredSize )
-            uavs.resize( requredSize );
-          uavs[ i ] = uav;
+          nextView = ViewHandle();
+
+          FixedVector< ID3D11UnorderedAccessView*, 10 > uavs;
+          for( int i = 0; i < 2; ++i )
+          {
+            MagicBufferHandle magicBuffer = drawCall->mDrawCallUAVs.mUAVMagicBuffers[ i ];
+            TextureHandle texture = drawCall->mDrawCallUAVs.mUAVTextures[ i ];
+            if( ID3D11UnorderedAccessView* uav =
+                magicBuffer.IsValid() ? mMagicBuffers[ ( int )magicBuffer ].mUAV :
+                texture.IsValid() ? mTextures[ ( int )texture ].mTextureUAV :
+                nullptr )
+            {
+              uavs.resize( Max( i + 1, uavs.size() ) );
+              uavs[ i ] = uav;
+            }
+          }
+
+          FixedVector< ID3D11RenderTargetView*, D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT > views = {};
+
+          // Bind no RTV, only UAV
+          mDeviceContext->OMSetRenderTargetsAndUnorderedAccessViews( 0,
+                                                                     views.data(),
+                                                                     nullptr,
+                                                                     0,
+                                                                     uavs.size(),
+                                                                     uavs.data(),
+                                                                     nullptr );
         }
       }
 
-      FixedVector< ID3D11RenderTargetView*, 10 > views = { framebuffer->mRenderTargetView };
-      FixedVector< UINT, 10 > uavInitialCounts( views.size(), ( UINT )-1 );
+      if( mBoundViewHandle != nextView )
+      {
+        mBoundViewHandle = nextView;
+        if( nextView.IsValid() )
+        {
+          const Render::View* view = &frame->mViews[ ( int )nextView ];
 
-      TAC_ASSERT( framebuffer->mRenderTargetView );
-      TAC_ASSERT( framebuffer->mDepthStencilView );
-      const UINT UavStartSlot = views.size(); // ???
-      mDeviceContext->OMSetRenderTargetsAndUnorderedAccessViews( views.size(),
-                                                                 views.data(),
-                                                                 framebuffer->mDepthStencilView,
-                                                                 UavStartSlot,
-                                                                 uavs.size(),
-                                                                 uavs.data(),
-                                                                 uavInitialCounts.data() );
+          TAC_ASSERT_MSG( view->mFrameBufferHandle.IsValid(), "Did you forget to call Render::SetViewFramebuffer" );
+
+          Framebuffer* framebuffer = &mFramebuffers[ ( int )view->mFrameBufferHandle ];
+          if( !mBoundFramebuffersThisFrame[ ( int )view->mFrameBufferHandle ] )
+          {
+            mBoundFramebuffersThisFrame[ ( int )view->mFrameBufferHandle ] = true;
+
+            const UINT ClearFlags = D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL;
+            const FLOAT ClearDepth = 1.0f;
+            const UINT8 ClearStencil = 0;
+            mDeviceContext->ClearDepthStencilView( framebuffer->mDepthStencilView,
+                                                   ClearFlags,
+                                                   ClearDepth,
+                                                   ClearStencil );
+
+            const FLOAT ClearGrey = 0.5f;
+            const FLOAT ClearColorRGBA[] = { ClearGrey, ClearGrey, ClearGrey,  1.0f };
+            mDeviceContext->ClearRenderTargetView( framebuffer->mRenderTargetView, ClearColorRGBA );
+
+            ID3D11ShaderResourceView* nullViews[ 16 ] = {};
+            mDeviceContext->VSSetShaderResources( 0, 16, nullViews );
+            mDeviceContext->PSSetShaderResources( 0, 16, nullViews );
+            mDeviceContext->GSSetShaderResources( 0, 16, nullViews );
+          }
+
+          TAC_ASSERT( framebuffer->mRenderTargetView );
+          TAC_ASSERT( framebuffer->mDepthStencilView );
+          UINT NumViews = 1;
+          ID3D11RenderTargetView* RenderTargetViews[] = { framebuffer->mRenderTargetView };
+          mDeviceContext->OMSetRenderTargets( NumViews, RenderTargetViews, framebuffer->mDepthStencilView );
+
+          TAC_ASSERT( view->mViewportSet );
+          D3D11_VIEWPORT viewport;
+          viewport.Height = view->mViewport.mHeight;
+          viewport.Width = view->mViewport.mWidth;
+          viewport.TopLeftX = view->mViewport.mBottomLeftX;
+          viewport.TopLeftY = -view->mViewport.mBottomLeftY; // convert opengl to directx
+          viewport.MinDepth = view->mViewport.mMinDepth;
+          viewport.MaxDepth = view->mViewport.mMaxDepth;
+          mDeviceContext->RSSetViewports( 1, &viewport );
+
+          // used if the rasterizer state ScissorEnable is TRUE
+          TAC_ASSERT( view->mScissorSet );
+          D3D11_RECT scissor;
+          scissor.bottom = ( LONG )view->mScissorRect.mYMaxRelUpperLeftCornerPixel;
+          scissor.left = ( LONG )view->mScissorRect.mXMinRelUpperLeftCornerPixel;
+          scissor.right = ( LONG )view->mScissorRect.mXMaxRelUpperLeftCornerPixel;
+          scissor.top = ( LONG )view->mScissorRect.mYMinRelUpperLeftCornerPixel;
+          mDeviceContext->RSSetScissorRects( 1, &scissor );
+        }
+      }
 
     }
 
@@ -1007,68 +1065,7 @@ namespace Tac
         mDeviceContext->IASetInputLayout( inputLayout );
       }
 
-    }
 
-    void RendererDirectX11::RenderDrawCallView( const Render::Frame* frame,
-                                                const DrawCall3*drawCall )
-    {
-
-      if( drawCall->mViewHandle.IsValid() &&
-          drawCall->mViewHandle != mBoundViewHandle )
-      {
-        mBoundViewHandle = drawCall->mViewHandle;
-        const Render::View* view = &frame->mViews[ ( int )mBoundViewHandle ];
-
-        TAC_ASSERT_MSG( view->mFrameBufferHandle.IsValid(), "Did you forget to call Render::SetViewFramebuffer" );
-
-        Framebuffer* framebuffer = &mFramebuffers[ ( int )view->mFrameBufferHandle ];
-        if( !mBoundFramebuffersThisFrame[ ( int )view->mFrameBufferHandle ] )
-        {
-          mBoundFramebuffersThisFrame[ ( int )view->mFrameBufferHandle ] = true;
-
-          const UINT ClearFlags = D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL;
-          const FLOAT ClearDepth = 1.0f;
-          const UINT8 ClearStencil = 0;
-          mDeviceContext->ClearDepthStencilView( framebuffer->mDepthStencilView,
-                                                 ClearFlags,
-                                                 ClearDepth,
-                                                 ClearStencil );
-
-          const FLOAT ClearGrey = 0.5f;
-          const FLOAT ClearColorRGBA[] = { ClearGrey, ClearGrey, ClearGrey,  1.0f };
-          mDeviceContext->ClearRenderTargetView( framebuffer->mRenderTargetView, ClearColorRGBA );
-
-          ID3D11ShaderResourceView* nullViews[ 16 ] = {};
-          mDeviceContext->VSSetShaderResources( 0, 16, nullViews );
-          mDeviceContext->PSSetShaderResources( 0, 16, nullViews );
-          mDeviceContext->GSSetShaderResources( 0, 16, nullViews );
-        }
-
-        TAC_ASSERT( framebuffer->mRenderTargetView );
-        TAC_ASSERT( framebuffer->mDepthStencilView );
-        UINT NumViews = 1;
-        ID3D11RenderTargetView* RenderTargetViews[] = { framebuffer->mRenderTargetView };
-        mDeviceContext->OMSetRenderTargets( NumViews, RenderTargetViews, framebuffer->mDepthStencilView );
-
-        TAC_ASSERT( view->mViewportSet );
-        D3D11_VIEWPORT viewport;
-        viewport.Height = view->mViewport.mHeight;
-        viewport.Width = view->mViewport.mWidth;
-        viewport.TopLeftX = view->mViewport.mBottomLeftX;
-        viewport.TopLeftY = -view->mViewport.mBottomLeftY; // convert opengl to directx
-        viewport.MinDepth = view->mViewport.mMinDepth;
-        viewport.MaxDepth = view->mViewport.mMaxDepth;
-        mDeviceContext->RSSetViewports( 1, &viewport );
-
-        // used if the rasterizer state ScissorEnable is TRUE
-        TAC_ASSERT( view->mScissorSet );
-        D3D11_RECT scissor;
-        scissor.bottom = ( LONG )view->mScissorRect.mYMaxRelUpperLeftCornerPixel;
-        scissor.left = ( LONG )view->mScissorRect.mXMinRelUpperLeftCornerPixel;
-        scissor.right = ( LONG )view->mScissorRect.mXMaxRelUpperLeftCornerPixel;
-        scissor.top = ( LONG )view->mScissorRect.mYMinRelUpperLeftCornerPixel;
-        mDeviceContext->RSSetScissorRects( 1, &scissor );
-      }
     }
 
     void RendererDirectX11::RenderDrawCallTextures( const DrawCall3*drawCall )
@@ -1142,7 +1139,8 @@ namespace Tac
         ++asdf;
       }
 
-      RenderDrawCallUAVs( frame, drawCall );
+
+      RenderDrawCallViewAndUAV( frame, drawCall );
       RenderDrawCallShader( drawCall );
       RenderDrawCallBlendState( drawCall );
       RenderDrawCallDepthState( drawCall );
@@ -1151,7 +1149,6 @@ namespace Tac
       RenderDrawCallRasterizerState( drawCall );
       RenderDrawCallSamplerState( drawCall );
       RenderDrawCallVertexFormat( drawCall );
-      RenderDrawCallView( frame, drawCall );
       RenderDrawCallTextures( drawCall );
       RenderDrawCallPrimitiveTopology( drawCall );
       RenderDrawCallIssueDrawCommand( drawCall );

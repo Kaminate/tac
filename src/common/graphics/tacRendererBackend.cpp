@@ -886,12 +886,12 @@ namespace Tac
 
     void SetPixelShaderUnorderedAccessView( TextureHandle textureHandle, int i )
     {
-      gEncoder.mDrawCall.mUAVTextures[ i ] = textureHandle;
+      gEncoder.mDrawCall.mDrawCallUAVs. mUAVTextures[ i ] = textureHandle;
     }
 
     void SetPixelShaderUnorderedAccessView( MagicBufferHandle magicBufferHandle, int i )
     {
-      gEncoder.mDrawCall.mUAVMagicBuffers[ i ] = magicBufferHandle;
+      gEncoder.mDrawCall.mDrawCallUAVs.mUAVMagicBuffers[ i ] = magicBufferHandle;
     }
 
     //void SetTexture( TextureHandle textureHandle )
@@ -1174,13 +1174,13 @@ namespace Tac
         ShaderReloadHelperUpdateAux( &shaderReloadInfo, shaderReloadFunction );
     }
 
-    bool DrawCallHasAnyValidUAVs( const DrawCall3* drawCall )
+    bool                  DrawCallUAVs::HasValidHandle() const
     {
-      for( auto uav : drawCall->mUAVMagicBuffers )
+      for( auto uav : mUAVMagicBuffers )
         if( uav.IsValid() )
           return true;
 
-      for( auto uav : drawCall->mUAVTextures )
+      for( auto uav : mUAVTextures )
         if( uav.IsValid() )
           return true;
 

@@ -67,6 +67,12 @@ namespace Tac
     };
     typedef FixedVector< UpdateConstantBufferData, 2 > UpdateConstantBuffers;
 
+    struct DrawCallUAVs
+    {
+      bool                  HasValidHandle() const;
+      TextureHandle         mUAVTextures[ 2 ];
+      MagicBufferHandle     mUAVMagicBuffers[ 2 ];
+    };
 
     // Self-contained all the shit you would ever need to draw a thing
     struct DrawCall3
@@ -85,8 +91,7 @@ namespace Tac
       ViewHandle            mViewHandle;
       PrimitiveTopology     mPrimitiveTopology;
 
-      TextureHandle         mUAVTextures[ 2 ];
-      MagicBufferHandle     mUAVMagicBuffers[ 2 ];
+      DrawCallUAVs          mDrawCallUAVs;
 
       int                   mStartIndex = 0;
       int                   mStartVertex = 0;
@@ -96,7 +101,6 @@ namespace Tac
       int                   iUniformEnd = 0;
     };
 
-    bool DrawCallHasAnyValidUAVs( const DrawCall3* );
 
     typedef FixedVector< DrawCall3, kDrawCallCapacity > DrawCalls;
 

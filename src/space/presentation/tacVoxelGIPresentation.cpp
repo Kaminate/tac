@@ -314,7 +314,7 @@ namespace Tac
         for( const SubMesh& subMesh : mesh->mSubMeshes )
         {
           Render::SetShader( voxelizerShader );
-          Render::SetVertexBuffer( subMesh.mVertexBuffer, 0, 0 );
+          Render::SetVertexBuffer( subMesh.mVertexBuffer, 0, subMesh.mVertexCount );
           Render::SetIndexBuffer( subMesh.mIndexBuffer, 0, subMesh.mIndexCount );
           Render::SetBlendState( blendState );
           Render::SetRasterizerState( rasterizerState );

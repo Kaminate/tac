@@ -132,7 +132,7 @@ namespace Tac
       void RenderDrawCallRasterizerState( const DrawCall3* );
       void RenderDrawCallSamplerState( const DrawCall3* );
       void RenderDrawCallVertexFormat( const DrawCall3* );
-      void RenderDrawCallView( const Render::Frame*, const DrawCall3* );
+      void RenderDrawCallViewAndUAV( const Render::Frame*, const DrawCall3* );
       void RenderDrawCallTextures( const DrawCall3* );
       void RenderDrawCallPrimitiveTopology( const DrawCall3* );
       void RenderDrawCallIssueDrawCommand( const DrawCall3* );
@@ -178,8 +178,7 @@ namespace Tac
       VertexBufferHandle         mBoundVertexBuffer;
       IndexBufferHandle          mBoundIndexBuffer;
       bool                       mBoundFramebuffersThisFrame[ kMaxFramebuffers ];
-      TextureHandle              mBoundUAVTextures[ 2 ];
-      MagicBufferHandle          mBoundUAVMagicBuffers[ 2 ];
+      DrawCallUAVs               mBoundDrawCallUAVs;
     };
   } // namespace Render
 } // namespace Tac
