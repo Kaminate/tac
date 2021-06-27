@@ -58,7 +58,9 @@ namespace Tac
     std::list< Player* > mPlayers;
     std::list< Entity* > mEntities;
     Vector< System* >    mSystems;
-    String               mSkyboxDir;
+
+    //                   The world owns a debug draw data so that
+    //                   each system can access it
     Debug3DDrawData*     mDebug3DDrawData = nullptr;
   };
 

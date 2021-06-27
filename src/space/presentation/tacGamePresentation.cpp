@@ -40,7 +40,10 @@ namespace Tac
   static Render::VertexDeclarations    m3DVertexFormatDecls;
   static Errors                        mGetTextureErrorsGround;
   static Errors                        mGetTextureErrorsNoise;
-  static bool                          mEnabled = true;
+  static bool                          mRenderEnabledModel = true;
+  static bool                          mRenderEnabledSkybox = true;
+  static bool                          mRenderEnabledTerrain = true;
+  static bool                          mRenderEnabledDebug3D = true;
 
   struct TerrainVertex
   {
@@ -74,8 +77,8 @@ namespace Tac
       Render::SetRasterizerState( mRasterizerState );
       Render::SetSamplerState( mSamplerState );
       Render::SetDepthState( mDepthState );
-      //Render::SetVertexFormat( mesh->mVertexFormat );
       Render::SetVertexFormat( m3DVertexFormat );
+      Render::SetPrimitiveTopology( subMesh.mPrimitiveTopology );
       Render::UpdateConstantBuffer( mPerObj,
                                     &cbuf,
                                     sizeof( DefaultCBufferPerObject ),
@@ -281,6 +284,8 @@ namespace Tac
   static void RenderModels( World* world,
                             const Render::ViewHandle viewId )
   {
+    if( !mRenderEnabledModel )
+      return;
     Graphics* graphics = GetGraphics( world );
     struct : public ModelVisitor
     {
@@ -313,6 +318,8 @@ namespace Tac
   static void RenderTerrain( World* world,
                              const Render::ViewHandle viewId )
   {
+    if( !mRenderEnabledTerrain )
+      return;
     Physics* physics = Physics::GetSystem( world );
 
     TAC_RENDER_GROUP_BLOCK( "Visit Terrains" );
@@ -355,6 +362,9 @@ namespace Tac
                             const int viewHeight,
                             const Render::ViewHandle viewId )
   {
+
+    if( !mRenderEnabledSkybox )
+      return;
     Graphics* graphics = GetGraphics( world );
     struct : public SkyboxVisitor
     {
@@ -437,9 +447,6 @@ namespace Tac
                                       const int viewHeight,
                                       const Render::ViewHandle viewId )
   {
-    if( !mEnabled )
-      return;
-
     TAC_RENDER_GROUP_BLOCK( "Render Game World" );
     //_PROFILE_BLOCK;
 
@@ -487,19 +494,22 @@ namespace Tac
                   viewHeight,
                   viewId );
 
-
-    //world->mDebug3DDrawData->DrawToTexture(
-    //  ignored,
-    //  &perFrameData,
-    //  mDesktopWindow->mRenderView );
+    if( mRenderEnabledDebug3D )
+    {
+      Errors e;
+      world->mDebug3DDrawData->DebugDraw3DToTexture( viewId, camera, viewWidth, viewHeight, e );
+    }
   }
 
-  Render::ConstantBufferHandle  GamePresentationGetPerFrame()        { return mPerFrame; }
-  Render::ConstantBufferHandle  GamePresentationGetPerObj()          { return mPerObj; }
-  Render::DepthStateHandle      GamePresentationGetDepthState()      { return mDepthState; }
-  Render::BlendStateHandle      GamePresentationGetBlendState()      { return mBlendState; }
-  Render::RasterizerStateHandle GamePresentationGetRasterizerState() { return mRasterizerState; }
-  Render::SamplerStateHandle    GamePresentationGetSamplerState()    { return mSamplerState; }
-  bool&                         GamePresentationGetEnabled()         { return mEnabled; }
-
+  Render::ConstantBufferHandle  GamePresentationGetPerFrame()             { return mPerFrame; }
+  Render::ConstantBufferHandle  GamePresentationGetPerObj()               { return mPerObj; }
+  Render::DepthStateHandle      GamePresentationGetDepthState()           { return mDepthState; }
+  Render::BlendStateHandle      GamePresentationGetBlendState()           { return mBlendState; }
+  Render::RasterizerStateHandle GamePresentationGetRasterizerState()      { return mRasterizerState; }
+  Render::SamplerStateHandle    GamePresentationGetSamplerState()         { return mSamplerState; }
+  Render::VertexDeclarations    GamePresentationGetVertexDeclarations()   { return m3DVertexFormatDecls; }
+  bool&                         GamePresentationGetRenderEnabledModel()   { return mRenderEnabledModel; }
+  bool&                         GamePresentationGetRenderEnabledSkybox()  { return mRenderEnabledSkybox; }
+  bool&                         GamePresentationGetRenderEnabledTerrain() { return mRenderEnabledTerrain; }
+  bool&                         GamePresentationGetRenderEnabledDebug3D() { return mRenderEnabledDebug3D; }
 }

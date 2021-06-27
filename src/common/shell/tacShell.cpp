@@ -36,10 +36,13 @@ namespace Tac
 
   void            ShellUninit()
   {
-    gUI2DCommonData.Uninit();
-    gDebug3DCommonData.Uninit();
+    UI2DCommonDataUninit();
+    Debug3DCommonDataUninit();
+
     gFontStuff.Uninit();
+
     //delete mLog;
+
     ModelAssetManagerUninit();
 
     // last, so resources can be freed
@@ -55,10 +58,10 @@ namespace Tac
     LocalizationLoad( "assets/localization.txt", errors );
     TAC_HANDLE_ERROR( errors );
 
-    gDebug3DCommonData.Init( errors );
+    UI2DCommonDataInit( errors );
     TAC_HANDLE_ERROR( errors );
 
-    gUI2DCommonData.Init( errors );
+    Debug3DCommonDataInit( errors );
     TAC_HANDLE_ERROR( errors );
   }
 

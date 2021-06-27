@@ -107,8 +107,8 @@ namespace Tac
       return;
     Mesh* mesh = ModelAssetManagerGetMeshTryingNewThing( "assets/editor/Box.gltf",
                                                          0,
-                                           mVertexDecls,
-                                           mGetSkyboxMeshErrors );
+                                                         mVertexDecls,
+                                                         mGetSkyboxMeshErrors );
     TAC_ASSERT( mGetSkyboxMeshErrors.empty() );
     if( !mesh )
       return;

@@ -7,9 +7,6 @@
 
 namespace Tac
 {
-
-  struct Mesh;
-
   struct Model : public Component
   {
     static Model*                        GetModel( Entity* );
@@ -21,8 +18,6 @@ namespace Tac
     v3                                   mColorRGB = { 1, 1, 1 };
     String                               mModelPath;
     int                                  mModelIndex = -1;
-    //Mesh*                                mesh = nullptr;
-    //bool                                 mTryingNewThing = false;
   };
 
   void                             RegisterModelComponent();

@@ -258,7 +258,7 @@ namespace Tac
       void                  Submit( Render::ViewHandle viewHandle,
                                     StackFrame stackFrame );
       int                   mUniformBufferIndex = 0;
-      DrawCall3             mDrawCall;
+      DrawCall              mDrawCall;
     };
 
     static thread_local Encoder gEncoder;
@@ -366,18 +366,21 @@ namespace Tac
     }
 
     MagicBufferHandle                CreateMagicBuffer( const int byteCount,
-                                                        //const void* mOptionalInitialBytes,
+                                                        const void* optionalInitialBytes,
                                                         const int stride,
+                                                        const Binding binding,
                                                         const Access access,
                                                         const StackFrame stackFrame )
     {
-      TAC_UNUSED_PARAMETER( access );
       const MagicBufferHandle magicBufferHandle = { mIdCollectionMagicBuffer.Alloc() };
       CommandDataCreateMagicBuffer commandData;
+      commandData.mMagicBufferHandle = magicBufferHandle;
       commandData.mByteCount = byteCount;
       commandData.mStackFrame = stackFrame;
-      commandData.mMagicBufferHandle = magicBufferHandle;
+      commandData.mOptionalInitialBytes = optionalInitialBytes;
       commandData.mStride = stride;
+      commandData.mBinding = binding;
+      commandData.mAccess = access;
       gSubmitFrame->mCommandBufferFrameBegin.PushCommand( CommandType::CreateMagicBuffer,
                                                           &commandData,
                                                           sizeof( CommandDataCreateMagicBuffer ) );
@@ -558,6 +561,12 @@ namespace Tac
                                                           sizeof( commandData ) );
     }
 
+    void SetRenderObjectDebugName( const RasterizerStateHandle rasterizerStateHandle, const char* name )
+    {
+      CommandDataSetRenderObjectDebugName commandData;
+      commandData.mRasterizerStateHandle = rasterizerStateHandle;
+      SetRenderObjectDebugName( commandData, name );
+    }
     void SetRenderObjectDebugName( const IndexBufferHandle indexBufferHandle, const char* name )
     {
       CommandDataSetRenderObjectDebugName commandData;
@@ -936,14 +945,14 @@ namespace Tac
     static void RenderDrawCalls( Errors& errors )
     {
       TAC_PROFILE_BLOCK;
-      const DrawCall3* drawCallBegin = gRenderFrame->mDrawCalls.data();
+      const DrawCall* drawCallBegin = gRenderFrame->mDrawCalls.data();
       const int drawCallCount = gRenderFrame->mDrawCalls.size();
       for( int iDrawCall = 0; iDrawCall < drawCallCount; ++iDrawCall )
       {
         if( gRenderFrame->mBreakOnDrawCall == iDrawCall )
           OSDebugBreak();
 
-        const DrawCall3* drawCall = drawCallBegin + iDrawCall;
+        const DrawCall* drawCall = drawCallBegin + iDrawCall;
 
         ExecuteUniformCommands( &gRenderFrame->mUniformBuffer,
                                 drawCall->iUniformBegin,
@@ -1021,7 +1030,7 @@ namespace Tac
 
       if( gEncoder.mUniformBufferIndex != gSubmitFrame->mUniformBuffer.size() )
       {
-        DrawCall3 drawCall;
+        DrawCall drawCall;
         drawCall.mStackFrame = TAC_STACK_FRAME;
         drawCall.iUniformBegin = gEncoder.mUniformBufferIndex;
         drawCall.iUniformEnd = gSubmitFrame->mUniformBuffer.size();
@@ -1076,7 +1085,7 @@ namespace Tac
       gSubmitFrame->mDrawCalls.push_back( mDrawCall );
 
       // Prepare the next draw
-      mDrawCall = DrawCall3();
+      mDrawCall = DrawCall();
     }
 
     void Submit( const Render::ViewHandle viewHandle,
@@ -1270,34 +1279,34 @@ namespace Tac
 
     CommandHandlers()
     {
-      static CommandHandler< Render::CommandDataCreateBlendState > createBlendState( &Renderer::AddBlendState );
-      static CommandHandler< Render::CommandDataCreateConstantBuffer > createConstantBuffer( &Renderer::AddConstantBuffer );
-      static CommandHandler< Render::CommandDataCreateDepthState > createDepthState( &Renderer::AddDepthState );
-      static CommandHandler< Render::CommandDataCreateFramebuffer > createFramebuffer( &Renderer::AddFramebuffer );
-      static CommandHandler< Render::CommandDataCreateIndexBuffer > createIndexBuffer( &Renderer::AddIndexBuffer );
-      static CommandHandler< Render::CommandDataCreateMagicBuffer > createMagicBuffer( &Renderer::AddMagicBuffer );
-      static CommandHandler< Render::CommandDataCreateRasterizerState > createRasterizerState( &Renderer::AddRasterizerState );
-      static CommandHandler< Render::CommandDataCreateSamplerState > createSamplerState( &Renderer::AddSamplerState );
-      static CommandHandler< Render::CommandDataCreateShader > createShader( &Renderer::AddShader );
-      static CommandHandler< Render::CommandDataCreateTexture > createTexture( &Renderer::AddTexture );
-      static CommandHandler< Render::CommandDataCreateVertexBuffer > createVertexBuffer( &Renderer::AddVertexBuffer );
-      static CommandHandler< Render::CommandDataCreateVertexFormat> createVertexFormat( &Renderer::AddVertexFormat );
-      static CommandHandler< Render::CommandDataResizeFramebuffer > resizeFramebuffer( &Renderer::ResizeFramebuffer );
+      static CommandHandler< Render::CommandDataCreateBlendState >         createBlendState( &Renderer::AddBlendState );
+      static CommandHandler< Render::CommandDataCreateConstantBuffer >     createConstantBuffer( &Renderer::AddConstantBuffer );
+      static CommandHandler< Render::CommandDataCreateDepthState >         createDepthState( &Renderer::AddDepthState );
+      static CommandHandler< Render::CommandDataCreateFramebuffer >        createFramebuffer( &Renderer::AddFramebuffer );
+      static CommandHandler< Render::CommandDataCreateIndexBuffer >        createIndexBuffer( &Renderer::AddIndexBuffer );
+      static CommandHandler< Render::CommandDataCreateMagicBuffer >        createMagicBuffer( &Renderer::AddMagicBuffer );
+      static CommandHandler< Render::CommandDataCreateRasterizerState >    createRasterizerState( &Renderer::AddRasterizerState );
+      static CommandHandler< Render::CommandDataCreateSamplerState >       createSamplerState( &Renderer::AddSamplerState );
+      static CommandHandler< Render::CommandDataCreateShader >             createShader( &Renderer::AddShader );
+      static CommandHandler< Render::CommandDataCreateTexture >            createTexture( &Renderer::AddTexture );
+      static CommandHandler< Render::CommandDataCreateVertexBuffer >       createVertexBuffer( &Renderer::AddVertexBuffer );
+      static CommandHandler< Render::CommandDataCreateVertexFormat>        createVertexFormat( &Renderer::AddVertexFormat );
+      static CommandHandler< Render::CommandDataResizeFramebuffer >        resizeFramebuffer( &Renderer::ResizeFramebuffer );
       static CommandHandler< Render::CommandDataSetRenderObjectDebugName > setRenderObjectDebugName( &Renderer::SetRenderObjectDebugName );
       static CommandHandler< Render::CommandDataUpdateIndexBuffer >        updateIndexBuffer( &Renderer::UpdateIndexBuffer );
-      static CommandHandler< Render::CommandDataUpdateTextureRegion > updateTextureRegion( &Renderer::UpdateTextureRegion );
-      static CommandHandler< Render::CommandDataUpdateVertexBuffer > updateVertexBuffer( &Renderer::UpdateVertexBuffer );
-      static CommandHandlerDestroy< Render::BlendStateHandle > destroyBlendState( &Renderer::RemoveBlendState );
-      static CommandHandlerDestroy< Render::ConstantBufferHandle > destroyConstantBuffer( &Renderer::RemoveConstantBuffer );
-      static CommandHandlerDestroy< Render::DepthStateHandle > destroyDepthState( &Renderer::RemoveDepthState );
-      static CommandHandlerDestroy< Render::FramebufferHandle > destroyFramebuffer( &Renderer::RemoveFramebuffer );
-      static CommandHandlerDestroy< Render::IndexBufferHandle > destroyIndexBuffer( &Renderer::RemoveIndexBuffer );
+      static CommandHandler< Render::CommandDataUpdateTextureRegion >      updateTextureRegion( &Renderer::UpdateTextureRegion );
+      static CommandHandler< Render::CommandDataUpdateVertexBuffer >       updateVertexBuffer( &Renderer::UpdateVertexBuffer );
+      static CommandHandlerDestroy< Render::BlendStateHandle >      destroyBlendState( &Renderer::RemoveBlendState );
+      static CommandHandlerDestroy< Render::ConstantBufferHandle >  destroyConstantBuffer( &Renderer::RemoveConstantBuffer );
+      static CommandHandlerDestroy< Render::DepthStateHandle >      destroyDepthState( &Renderer::RemoveDepthState );
+      static CommandHandlerDestroy< Render::FramebufferHandle >     destroyFramebuffer( &Renderer::RemoveFramebuffer );
+      static CommandHandlerDestroy< Render::IndexBufferHandle >     destroyIndexBuffer( &Renderer::RemoveIndexBuffer );
       static CommandHandlerDestroy< Render::RasterizerStateHandle > destroyRasterizerState( &Renderer::RemoveRasterizerState );
-      static CommandHandlerDestroy< Render::SamplerStateHandle > destroySamplerState( &Renderer::RemoveSamplerState );
-      static CommandHandlerDestroy< Render::ShaderHandle > destroyShader( &Renderer::RemoveShader );
-      static CommandHandlerDestroy< Render::TextureHandle > destroyTexture( &Renderer::RemoveTexture );
-      static CommandHandlerDestroy< Render::VertexBufferHandle > destroyVertexBuffer( &Renderer::RemoveVertexBuffer );
-      static CommandHandlerDestroy< Render::VertexFormatHandle > destroyVertexFormat( &Renderer::RemoveVertexFormat );
+      static CommandHandlerDestroy< Render::SamplerStateHandle >    destroySamplerState( &Renderer::RemoveSamplerState );
+      static CommandHandlerDestroy< Render::ShaderHandle >          destroyShader( &Renderer::RemoveShader );
+      static CommandHandlerDestroy< Render::TextureHandle >         destroyTexture( &Renderer::RemoveTexture );
+      static CommandHandlerDestroy< Render::VertexBufferHandle >    destroyVertexBuffer( &Renderer::RemoveVertexBuffer );
+      static CommandHandlerDestroy< Render::VertexFormatHandle >    destroyVertexFormat( &Renderer::RemoveVertexFormat );
 
       Add( Render::CommandType::CreateBlendState, &createBlendState, "createBlendState" );
       Add( Render::CommandType::CreateConstantBuffer, &createConstantBuffer, "createConstantBuffer" );

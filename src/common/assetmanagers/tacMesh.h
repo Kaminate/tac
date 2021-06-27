@@ -18,6 +18,7 @@ namespace Tac
                                                          v3 inRayDir,
                                                          bool* outHit,
                                                          float* outDist ) const;
+    Render::PrimitiveTopology  mPrimitiveTopology = Render::PrimitiveTopology::Unknown;
     Render::VertexBufferHandle mVertexBuffer;
     Render::IndexBufferHandle  mIndexBuffer;
     SubMeshTriangles           mTris;

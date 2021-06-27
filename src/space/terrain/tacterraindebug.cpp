@@ -99,17 +99,17 @@ namespace Tac
           if( iCol + 1 < mTerrain->mSideVertexCount )
           {
             v3 topRight = mTerrain->GetGridVal( iRow, iCol + 1 ) + offset;
-            debug3DDrawData->DebugDrawLine( topLeft, topRight, gridColor );
+            debug3DDrawData->DebugDraw3DLine( topLeft, topRight, gridColor );
           }
           if( iRow + 1 < mTerrain->mSideVertexCount )
           {
             v3 bottomLeft = mTerrain->GetGridVal( iRow + 1, iCol ) + offset;
-            debug3DDrawData->DebugDrawLine( topLeft, bottomLeft, gridColor );
+            debug3DDrawData->DebugDraw3DLine( topLeft, bottomLeft, gridColor );
           }
           if( iCol + 1 < mTerrain->mSideVertexCount && iRow + 1 < mTerrain->mSideVertexCount )
           {
             v3 bottomRight = mTerrain->GetGridVal( iRow + 1, iCol + 1 ) + offset;
-            debug3DDrawData->DebugDrawLine( topLeft, bottomRight, gridColor );
+            debug3DDrawData->DebugDraw3DLine( topLeft, bottomRight, gridColor );
           }
         }
       }

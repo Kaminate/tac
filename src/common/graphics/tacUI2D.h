@@ -32,27 +32,15 @@ namespace Tac
 
   struct UI2DVertex
   {
+    UI2DVertex() = default;
+    UI2DVertex( v2 p ) : mPosition( p ), mGLTexCoord( 0, 0 ){}
     v2 mPosition;
     v2 mGLTexCoord;
   };
 
-  struct UI2DCommonData
-  {
-    void                          Init( Errors& );
-    void                          Uninit();
-    Render::TextureHandle         m1x1White;
-    Render::VertexFormatHandle    mFormat;
-    Render::ShaderHandle          mShader;
-    Render::ShaderHandle          m2DTextShader;
-    Render::DepthStateHandle      mDepthState;
-    Render::BlendStateHandle      mBlendState;
-    Render::RasterizerStateHandle mRasterizerState;
-    Render::SamplerStateHandle    mSamplerState;
-    Render::ConstantBufferHandle  mPerFrame;
-    Render::ConstantBufferHandle  mPerObj;
-  };
+  void UI2DCommonDataInit( Errors& );
+  void UI2DCommonDataUninit();
 
-  extern UI2DCommonData           gUI2DCommonData;
 
   struct UI2DDrawCall
   {
@@ -84,12 +72,14 @@ namespace Tac
     void                   AddText( v2 textPos, int fontSize, StringView utf8, v4 color, const ImGuiRect* );
     void                   AddBox( v2 mini, v2 maxi, v4 color, const Render::TextureHandle , const ImGuiRect* );
     void                   AddLine( v2 p0, v2 p1, float radius, v4 color );
+    void                   AddTriangle( v2, v2, v2, v4 color );
     Vector< UI2DVertex >   mDefaultVertex2Ds;
     Vector< UI2DIndex >    mDefaultIndex2Ds;
     Vector< UI2DDrawCall > mDrawCall2Ds;
     UI2DDrawGpuInterface   gDrawInterface;
   };
 
+  Render::TextureHandle Get1x1White();
   v2 CalculateTextSize( StringView text, int fontSize );
   v2 CalculateTextSize( CodepointView codepoints, int fontSize );
   v2 CalculateTextSize( const Codepoint* codepoints, int codepointCount, int fontSize );

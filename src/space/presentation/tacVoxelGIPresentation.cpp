@@ -11,20 +11,25 @@
 #include "src/space/tacentity.h"
 #include "src/common/graphics/tacRendererUtil.h"
 #include "src/common/graphics/tacUI2D.h"
+#include "src/common/tacHash.h"
 
 namespace Tac
 {
   // https://docs.microsoft.com/en-us/windows/win32/direct3d11/direct3d-11-advanced-stages-cs-resources
   // RWStructuredBuffer
 
-  static Render::MagicBufferHandle    voxelRWStructuredBuf;
-  static Render::TextureHandle        voxelTextureRadianceBounce0;
-  static Render::TextureHandle        voxelTextureRadianceBounce1;
-  static Render::VertexFormatHandle   voxelVertexFormat;
-  static Render::ShaderHandle         voxelizerShader;
-  static Render::ShaderHandle         voxelVisualizerShader;
-  static Render::ShaderHandle         voxelCopyShader;
-  static Render::ConstantBufferHandle voxelConstantBuffer;
+  static Render::MagicBufferHandle     voxelRWStructuredBuf;
+  static Render::TextureHandle         voxelTextureRadianceBounce0;
+  static Render::TextureHandle         voxelTextureRadianceBounce1;
+  static Render::VertexFormatHandle    voxelVertexFormat;
+  static Render::ShaderHandle          voxelizerShader;
+  static Render::ShaderHandle          voxelVisualizerShader;
+  static Render::ShaderHandle          voxelCopyShader;
+  static Render::ConstantBufferHandle  voxelConstantBuffer;
+  static Render::RasterizerStateHandle voxelRasterizerState;
+
+
+
   Render::VertexDeclarations          voxelVertexDeclarations;
   static int                          voxelDimension =
     1 << 0; // 1
@@ -61,13 +66,23 @@ namespace Tac
     };
   }
 
-
-
   static void                    CreateVoxelConstantBuffer()
   {
     voxelConstantBuffer = Render::CreateConstantBuffer( sizeof( CBufferVoxelizer ),
                                                         CBufferVoxelizer::shaderregister,
                                                         TAC_STACK_FRAME );
+  }
+
+  static void                    CreateVoxelRasterizerState()
+  {
+    Render::RasterizerState rasterizerStateData;
+    rasterizerStateData.mCullMode = Render::CullMode::None;
+    rasterizerStateData.mFillMode = Render::FillMode::Solid;
+    rasterizerStateData.mFrontCounterClockwise = true;
+    rasterizerStateData.mMultisample = false;
+    rasterizerStateData.mScissor = true;
+    voxelRasterizerState = Render::CreateRasterizerState( rasterizerStateData,
+                                                          TAC_STACK_FRAME );
   }
 
   static void                    CreateVoxelVisualizerShader()
@@ -170,8 +185,13 @@ namespace Tac
   {
     const int voxelStride = sizeof( uint32_t ) * 2;
     const int voxelCount = voxelDimension * voxelDimension * voxelDimension;
+    const Render::Binding binding = ( Render::Binding )(
+      ( int )Render::Binding::ShaderResource |
+      ( int )Render::Binding::UnorderedAccess );
     voxelRWStructuredBuf = Render::CreateMagicBuffer( voxelStride * voxelCount,
+                                                      nullptr,
                                                       voxelStride,
+                                                      binding,
                                                       Render::Access::Dynamic,
                                                       TAC_STACK_FRAME );
 
@@ -201,6 +221,7 @@ namespace Tac
   {
     CreateVoxelizerShader();
     CreateVoxelConstantBuffer();
+    CreateVoxelRasterizerState();
     CreateVoxelVisualizerShader();
     CreateVoxelCopyShader();
     CreateVoxelRWStructredBuf();
@@ -242,9 +263,9 @@ namespace Tac
       cpuCBufferVoxelizer.gVoxelGridSize = voxelDimension;
 
       Render::UpdateConstantBuffer( voxelConstantBuffer,
-                                     &cpuCBufferVoxelizer,
-                                     sizeof( CBufferVoxelizer ),
-                                     TAC_STACK_FRAME );
+                                    &cpuCBufferVoxelizer,
+                                    sizeof( CBufferVoxelizer ),
+                                    TAC_STACK_FRAME );
       Render::SetShader( voxelVisualizerShader );
       Render::SetTexture( { voxelTextureRadianceBounce0 } );
 
@@ -290,29 +311,24 @@ namespace Tac
         if( !mesh )
           return;
 
+        // was going to calculate triangle normals here to store in some buffer to feed to the
+        // vertex shader, so we dont need the geometry shader so we can debug the vertex shader
+        // since you cant debug geometry shaders
+        std::map< HashedValue, int > foo;
+
+
         Render::BeginGroup( FrameMemoryPrintf( "%s %i",
                                                model->mModelPath.c_str(),
                                                model->mModelIndex ), TAC_STACK_FRAME );
 
-        const Render::DepthStateHandle      depthState = GamePresentationGetDepthState();
-        const Render::BlendStateHandle      blendState = GamePresentationGetBlendState();
-        const Render::RasterizerStateHandle rasterizerState = GamePresentationGetRasterizerState();
-        const Render::SamplerStateHandle    samplerState = GamePresentationGetSamplerState();
-        const Render::ConstantBufferHandle  objConstantBuffer = GamePresentationGetPerObj();
+        //const Render::DepthStateHandle      depthState = GamePresentationGetDepthState();
+        //const Render::BlendStateHandle      blendState = GamePresentationGetBlendState();
+        //const Render::SamplerStateHandle    samplerState = GamePresentationGetSamplerState();
+        //const Render::ConstantBufferHandle  objConstantBuffer = GamePresentationGetPerObj();
 
         DefaultCBufferPerObject objBuf;
         objBuf.Color = { model->mColorRGB, 1 };
         objBuf.World = model->mEntity->mWorldTransform;
-
-        CBufferVoxelizer cpuCBufferVoxelizer = {};
-        cpuCBufferVoxelizer.gVoxelGridCenter = mCamera->mPos;
-        cpuCBufferVoxelizer.gVoxelGridHalfWidth = ( float )( voxelDimension / 2 );
-        cpuCBufferVoxelizer.gVoxelWidth = 1;
-        cpuCBufferVoxelizer.gVoxelGridSize = voxelDimension;
-        Render::UpdateConstantBuffer( voxelConstantBuffer,
-                                      &cpuCBufferVoxelizer,
-                                      sizeof( CBufferVoxelizer ),
-                                      TAC_STACK_FRAME );
 
         for( const SubMesh& subMesh : mesh->mSubMeshes )
         {
@@ -320,17 +336,18 @@ namespace Tac
           Render::SetVertexBuffer( subMesh.mVertexBuffer, 0, subMesh.mVertexCount );
           Render::SetIndexBuffer( subMesh.mIndexBuffer, 0, subMesh.mIndexCount );
           Render::SetBlendState( blendState );
-          Render::SetRasterizerState( rasterizerState );
+          Render::SetRasterizerState( voxelRasterizerState );
           Render::SetSamplerState( samplerState );
           Render::SetDepthState( depthState );
           Render::SetVertexFormat( voxelVertexFormat );
-          Render::SetTexture( { gUI2DCommonData.m1x1White } );
+          Render::SetTexture( { texture } );
           Render::UpdateConstantBuffer( objConstantBuffer,
                                         &objBuf,
                                         sizeof( DefaultCBufferPerObject ),
                                         TAC_STACK_FRAME );
 
           Render::SetPixelShaderUnorderedAccessView( voxelRWStructuredBuf, 0 );
+          Render::SetPrimitiveTopology( subMesh.mPrimitiveTopology );
 
 
           Render::Submit( mViewHandle, TAC_STACK_FRAME );
@@ -340,12 +357,29 @@ namespace Tac
         Render::EndGroup( TAC_STACK_FRAME );
       }
       Render::ViewHandle mViewHandle;
-      const Camera*      mCamera;
+
+      const Render::DepthStateHandle      depthState = GamePresentationGetDepthState();
+      const Render::BlendStateHandle      blendState = GamePresentationGetBlendState();
+      const Render::SamplerStateHandle    samplerState = GamePresentationGetSamplerState();
+      const Render::ConstantBufferHandle  objConstantBuffer = GamePresentationGetPerObj();
+      const Render::TextureHandle         texture = Get1x1White();
+
     } modelVisitor;
     modelVisitor.mViewHandle = viewHandle;
-    modelVisitor.mCamera = camera;
+
+    CBufferVoxelizer cpuCBufferVoxelizer = {};
+    cpuCBufferVoxelizer.gVoxelGridCenter = camera->mPos;
+    cpuCBufferVoxelizer.gVoxelGridHalfWidth = voxelDimension / 2.0f;
+    cpuCBufferVoxelizer.gVoxelWidth = 1;
+    cpuCBufferVoxelizer.gVoxelGridSize = voxelDimension;
+    Render::UpdateConstantBuffer( voxelConstantBuffer,
+                                  &cpuCBufferVoxelizer,
+                                  sizeof( CBufferVoxelizer ),
+                                  TAC_STACK_FRAME );
+
 
     Graphics* graphics = GetGraphics( world );
+
     graphics->VisitModels( &modelVisitor );
 
     //TAC_UNUSED_PARAMETER( world );
@@ -361,6 +395,7 @@ namespace Tac
   }
 
   bool&              VoxelGIPresentationGetEnabled()      { return voxelEnabled; }
+
   bool&              VoxelGIPresentationGetDebugEnabled() { return voxelDebug; }
 }
 

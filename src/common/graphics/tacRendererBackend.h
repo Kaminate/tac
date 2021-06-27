@@ -75,7 +75,7 @@ namespace Tac
     };
 
     // Self-contained all the shit you would ever need to draw a thing
-    struct DrawCall3
+    struct DrawCall
     {
       StackFrame            mStackFrame;
       VertexBufferHandle    mVertexBufferHandle;
@@ -85,14 +85,11 @@ namespace Tac
       SamplerStateHandle    mSamplerStateHandle;
       DepthStateHandle      mDepthStateHandle;
       VertexFormatHandle    mVertexFormatHandle;
-      //UpdateConstantBuffers mUpdateConstantBuffers;
       ShaderHandle          mShaderHandle;
       DrawCallTextures      mTextureHandle;
       ViewHandle            mViewHandle;
       PrimitiveTopology     mPrimitiveTopology;
-
       DrawCallUAVs          mDrawCallUAVs;
-
       int                   mStartIndex = 0;
       int                   mStartVertex = 0;
       int                   mIndexCount = 0;
@@ -102,7 +99,7 @@ namespace Tac
     };
 
 
-    typedef FixedVector< DrawCall3, kDrawCallCapacity > DrawCalls;
+    typedef FixedVector< DrawCall, kDrawCallCapacity > DrawCalls;
 
     struct CommandBuffer
     {
@@ -245,9 +242,10 @@ namespace Tac
       StackFrame            mStackFrame;
       MagicBufferHandle     mMagicBufferHandle;
       int                   mByteCount = 0;
-      //const void*           mOptionalInitialBytes = nullptr;
+      const void*           mOptionalInitialBytes = nullptr;
       int                   mStride = 0;
-      //Access                mAccess = Access::Default;
+      Binding               mBinding = Binding::None;
+      Access                mAccess = Access::Default;
     };
 
     struct CommandDataCreateVertexBuffer
@@ -279,6 +277,7 @@ namespace Tac
 
     struct CommandDataSetRenderObjectDebugName
     {
+      RasterizerStateHandle mRasterizerStateHandle;
       TextureHandle         mTextureHandle;
       VertexBufferHandle    mVertexBufferHandle;
       IndexBufferHandle     mIndexBufferHandle;
@@ -404,7 +403,7 @@ namespace Tac
     void         ExecuteCommands( Render::CommandBuffer*, Errors& );
     virtual void Init( Errors& ) {};
     virtual void RenderBegin( const Render::Frame*, Errors& ) = 0;
-    virtual void RenderDrawCall( const Render::Frame*, const Render::DrawCall3*, Errors& ) = 0;
+    virtual void RenderDrawCall( const Render::Frame*, const Render::DrawCall*, Errors& ) = 0;
     virtual void RenderEnd( const Render::Frame*, Errors& ) = 0;
 
     virtual void SwapBuffers() = 0;

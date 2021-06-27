@@ -41,8 +41,11 @@ struct VS_OUT_GS_IN
   //                               Using underscores as filler identifiers
   //                               as each variable must have a semantic name,
   //                               but the name itself is unimportant
+  //
+  //                               ^ update: these semantics names will show up in renderdoc,
+  //                                         so it would be more useful to name them
   float3 mWorldSpacePosition     : _;
-  float3 mWorldSpaceNormal       : __;
+  float3 mWorldSpaceUnitNormal   : __;
   float2 mTexCoord               : ___;
 };
 
@@ -50,7 +53,7 @@ VS_OUT_GS_IN VS( VS_INPUT input )
 {
   VS_OUT_GS_IN result;
   result.mWorldSpacePosition = mul( World, float4( input.mPosition, 1.0 ) ).xyz;
-  result.mWorldSpaceNormal = normalize( mul( ( float3x3 )World, input.mNormal ) );
+  result.mWorldSpaceUnitNormal = normalize( mul( ( float3x3 )World, input.mNormal ) );
   result.mTexCoord = input.mTexCoord;
   return result;
 }
@@ -60,21 +63,29 @@ VS_OUT_GS_IN VS( VS_INPUT input )
 struct GS_OUT_PS_IN
 {
   float2 mTexCoord               : _;
-  float3 mWorldSpaceNormal       : __;
+  float3 mWorldSpaceUnitNormal   : __;
   float3 mWorldSpacePosition     : ___;
   float4 mClipSpacePosition      : SV_POSITION;
+
+  // float3 mDebug_wsNormal : WS_NORMAL;
+
+  float3 debug_worldSpaceAbsFaceNormal : WS_ABS_face_NORMAL;
+  float3 debug_gVoxelGridCenter        : voxel_grid_center;
+  float debug_gVoxelWidth              : voxel_width;
+  float debug_gVoxelGridHalfWidth      : voxel_grid_half_width;
 };
 
 [ maxvertexcount( 3 ) ]
 void GS( triangle VS_OUT_GS_IN input[ 3 ],
          inout TriangleStream< GS_OUT_PS_IN > outputStream )
 {
-  const float3 worldSpaceFaceNormal = input[ 0 ].mWorldSpaceNormal
-                                    + input[ 1 ].mWorldSpaceNormal
-                                    + input[ 2 ].mWorldSpaceNormal;
-  const float dominantAxisValue = max( max( worldSpaceFaceNormal.x,
-                                            worldSpaceFaceNormal.y ),
-                                            worldSpaceFaceNormal.z );
+  // non normalized
+  const float3 worldSpaceAbsFaceNormal = abs( input[ 0 ].mWorldSpaceUnitNormal +
+                                              input[ 1 ].mWorldSpaceUnitNormal +
+                                              input[ 2 ].mWorldSpaceUnitNormal );
+  const float dominantAxisValue = max( max( worldSpaceAbsFaceNormal.x,
+                                            worldSpaceAbsFaceNormal.y ),
+                                            worldSpaceAbsFaceNormal.z );
 
   for( int i = 0; i < 3; ++i )
   {
@@ -83,24 +94,41 @@ void GS( triangle VS_OUT_GS_IN input[ 3 ],
     float4 clipSpacePosition = float4( 0, 0, 0, 0 );
     {
       clipSpacePosition.xyz = curInput.mWorldSpacePosition - gVoxelGridCenter;
-      if( dominantAxisValue == worldSpaceFaceNormal.x )
+      if( dominantAxisValue == worldSpaceAbsFaceNormal.x )
         clipSpacePosition = float4( clipSpacePosition.z, clipSpacePosition.y, 1, 1 );
-      else if( dominantAxisValue == worldSpaceFaceNormal.y )
+      else if( dominantAxisValue == worldSpaceAbsFaceNormal.y )
         clipSpacePosition = float4( clipSpacePosition.x, clipSpacePosition.z, 1, 1 );
       clipSpacePosition.xy /= gVoxelWidth;
       clipSpacePosition.xy /= gVoxelGridHalfWidth;
     }
 
     GS_OUT_PS_IN output;
-    output.mTexCoord           = curInput.mTexCoord;
-    output.mWorldSpaceNormal   = curInput.mWorldSpaceNormal;
-    output.mWorldSpacePosition = curInput.mWorldSpacePosition;
-    output.mClipSpacePosition  = clipSpacePosition;
+    output.mTexCoord             = curInput.mTexCoord;
+    output.mWorldSpaceUnitNormal = curInput.mWorldSpaceUnitNormal;
+    output.mWorldSpacePosition   = curInput.mWorldSpacePosition;
+    output.mClipSpacePosition    = clipSpacePosition;
+
+    output.debug_worldSpaceAbsFaceNormal = worldSpaceAbsFaceNormal;
+
+    output.debug_gVoxelGridCenter = gVoxelGridCenter;
+    output.debug_gVoxelWidth = gVoxelWidth;
+    output.debug_gVoxelGridHalfWidth = gVoxelGridHalfWidth;
+
     outputStream.Append( output );
   }
 }
 
 //===----------------- pixel shader -----------------===//
+
+
+/*
+struct PS_OUTPUT
+{
+  float4 mColor : SV_Target0;
+};
+
+PS_OUTPUT PS( VS_OUTPUT input )
+*/
 
 void PS( GS_OUT_PS_IN input )
 {
@@ -110,7 +138,7 @@ void PS( GS_OUT_PS_IN input )
   float3 colorMaterialDiffuse  = float3( 0, 0, 0 );
   float3 colorMaterialEmissive = float3( 0, 0, 0 );
   float3 l                     = float3( 0, 1, 0 );
-  float3 n                     = input.mWorldSpaceNormal;
+  float3 n                     = input.mWorldSpaceUnitNormal;
   float3 voxelNDC = ( input.mWorldSpacePosition - gVoxelGridCenter )
                   * ( 1.0f / gVoxelGridHalfWidth )
                   * ( 1.0f / gVoxelWidth );
