@@ -1,4 +1,5 @@
 #include "src/common/graphics/imgui/tacImGui.h"
+#include "src/common/tacFrameMemory.h"
 #include "src/common/graphics/tacUI2D.h"
 #include "src/common/tacDesktopWindow.h"
 #include "src/common/tacOS.h"
@@ -69,15 +70,13 @@ namespace Tac
       }
     }
 
-    if( sSystemRegistryEntry )
+    if( sSystemRegistryEntry &&
+        sSystemRegistryEntry->mDebugImGui &&
+        ImGuiCollapsingHeader( FrameMemoryPrintf( "%s Debug", sSystemRegistryEntry->mName ) ) )
     {
-      const SystemRegistryEntry* systemRegistryEntry = sSystemRegistryEntry;
-      //ImGuiText( systemRegistryEntry->mName );
-      if( systemRegistryEntry->mDebugImGui )
-      {
-        System* system = gCreation.mWorld->GetSystem( systemRegistryEntry );
-        systemRegistryEntry->mDebugImGui( system );
-      }
+      TAC_IMGUI_INDENT_BLOCK;
+      System* system = gCreation.mWorld->GetSystem( sSystemRegistryEntry );
+      sSystemRegistryEntry->mDebugImGui( system );
     }
 
     // to force directx graphics specific window debugging

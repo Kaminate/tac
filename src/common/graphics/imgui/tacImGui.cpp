@@ -907,8 +907,8 @@ namespace Tac
     drawData->AddBox( pos, pos + boxSize, outerBoxColor, noTexture, &clipRect );
     if( *value )
     {
-      v4 checkmarkColor = v4( outerBoxColor.xyz() / 2.0f, 1.0f );
-      bool drawCheckmark = false;
+      const v4 checkmarkColor = v4( outerBoxColor.xyz() / 2.0f, 1.0f );
+      const bool drawCheckmark = false;
       if( drawCheckmark )
       {
 
@@ -919,45 +919,39 @@ namespace Tac
         // |   \  /    |
         // |     1     |
         // +-------(1,1)
-        v2 p0 = { 0.2f, 0.4f };
-        v2 p1 = { 0.45f, 0.9f };
-        v2 p2 = { 0.45f, 0.60f };
-        v2 p3 = { 0.9f, 0.1f };
-        for( v2* point : { &p0, &p1, &p2, &p3 } )
-        {
-          point->x = pos.x + point->x * boxWidth;
-          point->y = pos.y + point->y * boxWidth;
-        }
-        int iVert = drawData->mDefaultVertex2Ds.size();
-        int iIndex = drawData->mDefaultIndex2Ds.size();
-        drawData->mDefaultIndex2Ds.push_back( ( UI2DIndex )( iVert + 0 ) );
-        drawData->mDefaultIndex2Ds.push_back( ( UI2DIndex )( iVert + 1 ) );
-        drawData->mDefaultIndex2Ds.push_back( ( UI2DIndex )( iVert + 2 ) );
-        drawData->mDefaultIndex2Ds.push_back( ( UI2DIndex )( iVert + 1 ) );
-        drawData->mDefaultIndex2Ds.push_back( ( UI2DIndex )( iVert + 3 ) );
-        drawData->mDefaultIndex2Ds.push_back( ( UI2DIndex )( iVert + 2 ) );
-        drawData->mDefaultVertex2Ds.resize( iVert + 4 );
-        UI2DVertex* defaultVertex2D = &drawData->mDefaultVertex2Ds[ iVert ];
-        defaultVertex2D->mPosition = p0;
-        defaultVertex2D++;
-        defaultVertex2D->mPosition = p1;
-        defaultVertex2D++;
-        defaultVertex2D->mPosition = p2;
-        defaultVertex2D++;
-        defaultVertex2D->mPosition = p3;
+        const v2 p0 = { 0.2f, 0.4f };
+        const v2 p1 = { 0.45f, 0.9f };
+        const v2 p2 = { 0.45f, 0.60f };
+        const v2 p3 = { 0.9f, 0.1f };
+        //int iVert = drawData->mDefaultVertex2Ds.size();
+        //int iIndex = drawData->mDefaultIndex2Ds.size();
+        //drawData->mDefaultIndex2Ds.push_back( ( UI2DIndex )( iVert + 0 ) );
+        //drawData->mDefaultIndex2Ds.push_back( ( UI2DIndex )( iVert + 1 ) );
+        //drawData->mDefaultIndex2Ds.push_back( ( UI2DIndex )( iVert + 2 ) );
+        //drawData->mDefaultIndex2Ds.push_back( ( UI2DIndex )( iVert + 1 ) );
+        //drawData->mDefaultIndex2Ds.push_back( ( UI2DIndex )( iVert + 3 ) );
+        //drawData->mDefaultIndex2Ds.push_back( ( UI2DIndex )( iVert + 2 ) );
+        //for( v2* point : { &p0, &p1, &p2, &p3 } )
+        //{
+        //  UI2DVertex defaultVertex2D = {};
+        //  defaultVertex2D.mPosition = v2( pos.x + point->x * boxWidth,
+        //                                  pos.y + point->y * boxWidth );
+        //  drawData->mDefaultVertex2Ds.push_back( defaultVertex2D );
+        //}
+        //DefaultCBufferPerObject perObjectData = {};
+        //perObjectData.World = m4::Identity();
+        //perObjectData.Color = checkmarkColor;
+        //UI2DDrawCall drawCall;
+        //drawCall.mIndexCount = 6;
+        //drawCall.mIIndexStart = iIndex;
+        //drawCall.mVertexCount = 4;
+        //drawCall.mIVertexStart = iVert;
+        //drawCall.mShader = gUI2DCommonData.mShader;
+        //drawCall.mUniformSource = perObjectData;
+        //drawData->mDrawCall2Ds.push_back( drawCall );
 
-        DefaultCBufferPerObject perObjectData = {};
-        perObjectData.World = m4::Identity();
-        perObjectData.Color = checkmarkColor;
-
-        UI2DDrawCall drawCall;
-        drawCall.mIndexCount = 6;
-        drawCall.mIIndexStart = iIndex;
-        drawCall.mVertexCount = 4;
-        drawCall.mIVertexStart = iVert;
-        drawCall.mShader = gUI2DCommonData.mShader;
-        drawCall.mUniformSource = perObjectData;
-        drawData->mDrawCall2Ds.push_back( drawCall );
+        drawData->AddTriangle( p0, p1, p2, checkmarkColor );
+        drawData->AddTriangle( p1, p3, p2, checkmarkColor );
       }
       else
       {

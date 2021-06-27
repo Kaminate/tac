@@ -18,6 +18,7 @@
 #include "src/shell/tacDesktopApp.h"
 #include "src/shell/windows/tacDXGI.h"
 #include "src/shell/windows/tacRendererDirectX11.h"
+#include "src/shell/windows/tacRendererDirectX.h"
 
 #include <initguid.h>
 #include <dxgidebug.h>
@@ -28,11 +29,21 @@
 #include <utility> // std::pair
 #include <sstream> // std::stringstream
 
-
-
 #pragma comment( lib, "d3d11.lib" )
 #pragma comment( lib, "dxguid.lib" )
 #pragma comment( lib, "D3DCompiler.lib" )
+
+
+#if _MSC_VER
+#pragma warning( disable : 4505 ) // unreferenced local function has been removed
+#endif
+
+
+// Begin DXC includes
+//#include <dxcapi.h>
+//#include <atlbase.h> //ccomptr
+//#pragma comment( lib, "dxcompiler.lib")
+// End DXC includes
 
 
 namespace Tac
@@ -317,6 +328,8 @@ namespace Tac
       {
         case Render::PrimitiveTopology::PointList: return D3D11_PRIMITIVE_TOPOLOGY_POINTLIST;
         case Render::PrimitiveTopology::TriangleList: return D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+        case Render::PrimitiveTopology::LineList: return D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
+        default: TAC_CRITICAL_ERROR_INVALID_CASE( primitiveTopology );
       }
       return D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
     }
@@ -428,6 +441,7 @@ namespace Tac
 
       ID3DBlob* pErrorBlob = nullptr;
       ID3DBlob* pBlobOut = nullptr;
+
       const HRESULT hr = D3DCompile( shaderStrFull.data(),
                                      shaderStrFull.size(),
                                      nullptr,
@@ -439,28 +453,18 @@ namespace Tac
                                      0,
                                      &pBlobOut,
                                      &pErrorBlob );
+
       if( FAILED( hr ) )
       {
         if( IsDebugMode() )
         {
           std::cout << "Error loading shader from " << GetDirectX11ShaderPath( shaderSource ) << std::endl;
-
-          const char* shaderBlock = "----------------";
-          std::cout << shaderBlock << std::endl;
-          int lineNumber = 0;
-          bool isNewLine = true;
-          for( char c : shaderStrFull )
-          {
-            if( isNewLine )
-            {
-              std::cout << va( "line %3i|", ++lineNumber );
-              isNewLine = false;
-            }
-            std::cout << c;
-            isNewLine = c == '\n';
-          }
-          std::cout << std::endl;
-          std::cout << shaderBlock << std::endl;
+          ParseData parseData( shaderStrFull.data(), shaderStrFull.size() );
+          int lineNumber = 1;
+          std::cout << "----------------" << std::endl;
+          while( parseData.GetRemainingByteCount() )
+            std::cout << va( "line %3i|", lineNumber++ ) << String( parseData.EatRestOfLine() ).c_str() << std::endl;
+          std::cout << "----------------" << std::endl;
         }
 
         const String errMsg = TryImproveShaderErrorMessage( shaderSource,
@@ -692,6 +696,13 @@ namespace Tac
       ReportLiveObjects();
     }
 
+
+
+
+
+
+
+
     void RendererDirectX11::Init( Errors& errors )
     {
       mName = RendererNameDirectX11;
@@ -734,6 +745,12 @@ namespace Tac
       DXGIInit( errors );
       //mDxgi.Init( errors );
       TAC_HANDLE_ERROR( errors );
+
+
+
+      AllowPIXDebuggerAttachment();
+
+
 
     }
 
@@ -788,7 +805,7 @@ namespace Tac
         std::cout << "Render2::End\n";
     }
 
-#if 0
+#if 1
     static void WaitUntilDrawCallFinishes( ID3D11Device* device, ID3D11DeviceContext* deviceContext )
     {
       D3D11_QUERY_DESC desc = {};
@@ -821,7 +838,7 @@ namespace Tac
 
 
     void RendererDirectX11::RenderDrawCallViewAndUAV( const Render::Frame* frame,
-                                                      const DrawCall3* drawCall )
+                                                      const DrawCall* drawCall )
     {
       ViewHandle nextView = drawCall->mViewHandle;
       bool differentUAVs = false;
@@ -878,14 +895,10 @@ namespace Tac
           if( !mBoundFramebuffersThisFrame[ ( int )view->mFrameBufferHandle ] )
           {
             mBoundFramebuffersThisFrame[ ( int )view->mFrameBufferHandle ] = true;
-
-            const UINT ClearFlags = D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL;
-            const FLOAT ClearDepth = 1.0f;
-            const UINT8 ClearStencil = 0;
             mDeviceContext->ClearDepthStencilView( framebuffer->mDepthStencilView,
-                                                   ClearFlags,
-                                                   ClearDepth,
-                                                   ClearStencil );
+                                                   D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
+                                                   1.0f, // clear depth value
+                                                   0 ); // clear stencil value
 
             const FLOAT ClearGrey = 0.5f;
             const FLOAT ClearColorRGBA[] = { ClearGrey, ClearGrey, ClearGrey,  1.0f };
@@ -926,7 +939,7 @@ namespace Tac
 
     }
 
-    void RendererDirectX11::RenderDrawCallShader( const DrawCall3* drawCall )
+    void RendererDirectX11::RenderDrawCallShader( const DrawCall* drawCall )
     {
       if( drawCall->mShaderHandle.IsValid() )
       {
@@ -941,7 +954,7 @@ namespace Tac
 
     }
 
-    void RendererDirectX11::RenderDrawCallBlendState( const DrawCall3* drawCall )
+    void RendererDirectX11::RenderDrawCallBlendState( const DrawCall* drawCall )
     {
 
       if( drawCall->mBlendStateHandle.IsValid()
@@ -955,7 +968,7 @@ namespace Tac
       }
     }
 
-    void RendererDirectX11::RenderDrawCallDepthState( const DrawCall3* drawCall )
+    void RendererDirectX11::RenderDrawCallDepthState( const DrawCall* drawCall )
     {
       if( drawCall->mDepthStateHandle.IsValid()
           && mBoundDepthStencilState != mDepthStencilStates[ ( int )drawCall->mDepthStateHandle ] )
@@ -967,7 +980,7 @@ namespace Tac
       }
     }
 
-    void RendererDirectX11::RenderDrawCallIndexBuffer( const DrawCall3* drawCall )
+    void RendererDirectX11::RenderDrawCallIndexBuffer( const DrawCall* drawCall )
     {
       if( drawCall->mIndexBufferHandle != mBoundIndexBuffer )
       {
@@ -992,7 +1005,7 @@ namespace Tac
 
     }
 
-    void RendererDirectX11::RenderDrawCallVertexBuffer( const DrawCall3*drawCall )
+    void RendererDirectX11::RenderDrawCallVertexBuffer( const DrawCall*drawCall )
     {
 
       if( drawCall->mVertexBufferHandle != mBoundVertexBuffer )
@@ -1030,7 +1043,7 @@ namespace Tac
       }
     }
 
-    void RendererDirectX11::RenderDrawCallRasterizerState( const DrawCall3*drawCall )
+    void RendererDirectX11::RenderDrawCallRasterizerState( const DrawCall*drawCall )
     {
       if( drawCall->mRasterizerStateHandle.IsValid() )
       {
@@ -1041,7 +1054,7 @@ namespace Tac
 
     }
 
-    void RendererDirectX11::RenderDrawCallSamplerState( const DrawCall3*drawCall )
+    void RendererDirectX11::RenderDrawCallSamplerState( const DrawCall*drawCall )
     {
 
       if( drawCall->mSamplerStateHandle.IsValid() )
@@ -1056,7 +1069,7 @@ namespace Tac
       }
     }
 
-    void RendererDirectX11::RenderDrawCallVertexFormat( const DrawCall3*drawCall )
+    void RendererDirectX11::RenderDrawCallVertexFormat( const DrawCall*drawCall )
     {
       if( drawCall->mVertexFormatHandle.IsValid() )
       {
@@ -1068,7 +1081,7 @@ namespace Tac
 
     }
 
-    void RendererDirectX11::RenderDrawCallTextures( const DrawCall3*drawCall )
+    void RendererDirectX11::RenderDrawCallTextures( const DrawCall*drawCall )
     {
 
       if( drawCall->mTextureHandle.size() )
@@ -1092,8 +1105,12 @@ namespace Tac
       }
     }
 
-    void RendererDirectX11::RenderDrawCallPrimitiveTopology( const DrawCall3*  drawCall )
+    void RendererDirectX11::RenderDrawCallPrimitiveTopology( const DrawCall* drawCall )
     {
+      if( drawCall->mVertexCount == 0 &&
+          drawCall->mIndexCount == 0 )
+        return;
+
       const Render::PrimitiveTopology newPrimitiveTopology
         = drawCall->mPrimitiveTopology == Render::PrimitiveTopology::Unknown
         ? Render::PrimitiveTopology::TriangleList
@@ -1106,7 +1123,7 @@ namespace Tac
       }
     }
 
-    void RendererDirectX11::RenderDrawCallIssueDrawCommand( const DrawCall3* drawCall )
+    void RendererDirectX11::RenderDrawCallIssueDrawCommand( const DrawCall* drawCall )
     {
 
       // not quite convinced this assert should be here.
@@ -1131,7 +1148,7 @@ namespace Tac
     }
 
     void RendererDirectX11::RenderDrawCall( const Render::Frame* frame,
-                                            const Render::DrawCall3* drawCall,
+                                            const Render::DrawCall* drawCall,
                                             Errors& errors )
     {
       if( drawCall->mStackFrame.mLine == 333 )
@@ -1161,13 +1178,23 @@ namespace Tac
       for( int iWindow = 0; iWindow < mWindowCount; ++iWindow )
         //for( int iFramebuffer = 0; iFramebuffer < Render::kMaxFramebuffers; ++iFramebuffer )
       {
+
+
         Render::FramebufferHandle framebufferHandle = mWindows[ iWindow ];
         Framebuffer* framebuffer = &mFramebuffers[ ( int )framebufferHandle ];
         if( !framebuffer->mSwapChain )
           continue;
-        const UINT SyncInterval = 0;
-        const UINT Flags = 0;
-        framebuffer->mSwapChain->Present( SyncInterval, Flags );
+
+        // Uhh..
+        // https://docs.microsoft.com/en-us/windows/win32/api/dxgi/nf-dxgi-idxgiswapchain-present
+        // For flip presentation model swap chains that you create with the DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL value set,
+        // a successful presentation unbinds back buffer 0 from the graphics pipeline,
+        // except for when you pass the DXGI_PRESENT_DO_NOT_SEQUENCE flag in the Flags parameter.
+        //
+        // Unbinding it so dx doesnt give us a info message that it's unbinding it for us
+        mDeviceContext->OMSetRenderTargets( 0, nullptr, nullptr );
+        
+        framebuffer->mSwapChain->Present( 0, 0 );
       }
       if( gVerbose )
         std::cout << "SwapBuffers::End\n";
@@ -1201,37 +1228,31 @@ namespace Tac
       if( !IsDebugMode() )
         return;
       TAC_ASSERT( directXObject );
-      const int buffersize = 256;
-      char data[ buffersize ] = {};
-
-      UINT pDataSize = buffersize;
+      Array< char, 256 > data = {};
+      UINT privateDataSize = data.size();
       directXObject->GetPrivateData( WKPDID_D3DDebugObjectName,
-                                     &pDataSize,
+                                     &privateDataSize,
                                      &data );
 
       String newname;
-      if( pDataSize )
-      {
-        newname += String( data, pDataSize );
-        newname += " --and-- ";
 
-        D3D11_MESSAGE_ID hide[ 10 ];
-        int hideCount = 0;
-        hide[ hideCount++ ] = D3D11_MESSAGE_ID_SETPRIVATEDATA_CHANGINGPARAMS;
+      if( privateDataSize )
+      {
+#if 0
+        newname += String( data.data(), privateDataSize );
+        newname += ", and ";
+#endif
+        FrameMemoryVector< D3D11_MESSAGE_ID > hide = { D3D11_MESSAGE_ID_SETPRIVATEDATA_CHANGINGPARAMS };
         D3D11_INFO_QUEUE_FILTER filter = {};
-        filter.DenyList.NumIDs = hideCount;
-        filter.DenyList.pIDList = hide;
+        filter.DenyList.NumIDs = hide.size();
+        filter.DenyList.pIDList = hide.data();
         mInfoQueueDEBUG->PushStorageFilter( &filter );
       }
       newname += String( name );
 
-      directXObject->SetPrivateData( WKPDID_D3DDebugObjectName,
-        ( UINT )newname.size(),
-                                     newname.c_str() );
-      if( pDataSize )
-      {
+      directXObject->SetPrivateData( WKPDID_D3DDebugObjectName, ( UINT )newname.size(), newname.c_str() );
+      if( privateDataSize )
         mInfoQueueDEBUG->PopStorageFilter();
-      }
     }
 
 
@@ -1241,16 +1262,35 @@ namespace Tac
     {
       TAC_ASSERT( IsMainThread() );
       D3D11_BUFFER_DESC desc = {};
-      desc.BindFlags = D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_SHADER_RESOURCE;
+      desc.BindFlags = GetBindFlags( commandDataCreateMagicBuffer->mBinding );
       desc.ByteWidth = commandDataCreateMagicBuffer->mByteCount;
-      desc.CPUAccessFlags = 0; // D3D11_CPU_ACCESS_WRITE
+      desc.CPUAccessFlags = 0;
       desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
       desc.StructureByteStride = commandDataCreateMagicBuffer->mStride;
-      desc.Usage = D3D11_USAGE_DEFAULT; //  D3D11_USAGE_DYNAMIC; // GetUsage()
+      desc.Usage = D3D11_USAGE_DEFAULT;
+
+      // changed the api of this function, now callers need to set this.
+      // ^ okay but like why
+      //   i think its like what we were doing, was creating a resource that in one shader, was
+      //   written to as a UAV, and in another shader,
+      //   was read from as a SRV
+      //   >> so i dont think its necessary
+      TAC_ASSERT( desc.BindFlags & D3D11_BIND_SHADER_RESOURCE );
 
       MagicBuffer* magicBuffer = &mMagicBuffers[ ( int )commandDataCreateMagicBuffer->mMagicBufferHandle ];
 
-      TAC_DX11_CALL( errors, mDevice->CreateBuffer, &desc, nullptr, &magicBuffer->mBuffer );
+
+      D3D11_SUBRESOURCE_DATA InitialData;
+      InitialData.pSysMem = commandDataCreateMagicBuffer->mOptionalInitialBytes;
+      InitialData.SysMemPitch = commandDataCreateMagicBuffer->mStride;
+      InitialData.SysMemSlicePitch = commandDataCreateMagicBuffer->mByteCount;
+
+      const D3D11_SUBRESOURCE_DATA *pInitialData
+        = commandDataCreateMagicBuffer->mOptionalInitialBytes
+        ? &InitialData
+        : nullptr;
+
+      TAC_DX11_CALL( errors, mDevice->CreateBuffer, &desc, pInitialData, &magicBuffer->mBuffer );
       SetDebugName( magicBuffer->mBuffer, commandDataCreateMagicBuffer->mStackFrame.ToString() );
 
       // https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/sm5-object-structuredbuffer
@@ -1259,24 +1299,36 @@ namespace Tac
 
       const int NumElements = desc.ByteWidth / desc.StructureByteStride;
 
+      if( desc.BindFlags & D3D11_BIND_UNORDERED_ACCESS )
+      {
+        D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+        uavDesc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
+        uavDesc.Format = Format;
+        uavDesc.Buffer.FirstElement = 0; // index, not byte offset
+        uavDesc.Buffer.Flags = 0;
+        uavDesc.Buffer.NumElements = NumElements;
+        TAC_DX11_CALL( errors, mDevice->CreateUnorderedAccessView,
+                       magicBuffer->mBuffer,
+                       &uavDesc,
+                       &magicBuffer->mUAV );
+        SetDebugName( magicBuffer->mUAV, commandDataCreateMagicBuffer->mStackFrame.ToString() );
+      }
 
-      D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
-      uavDesc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
-      uavDesc.Format = Format;
-      uavDesc.Buffer.FirstElement = 0; // index, not byte offset
-      uavDesc.Buffer.Flags = 0;
-      uavDesc.Buffer.NumElements = NumElements;
-      TAC_DX11_CALL( errors, mDevice->CreateUnorderedAccessView, magicBuffer->mBuffer, &uavDesc, &magicBuffer->mUAV );
-      SetDebugName( magicBuffer->mUAV, commandDataCreateMagicBuffer->mStackFrame.ToString() );
-
-      D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-      srvDesc.Format = Format;
-      srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER; // D3D11_SRV_DIMENSION_BUFFEREX;
-      srvDesc.Buffer.FirstElement = 0; // index, not byte offset
-      srvDesc.Buffer.NumElements = NumElements;
-      // srvDesc.BufferEx... = ;
-      TAC_DX11_CALL( errors, mDevice->CreateShaderResourceView, magicBuffer->mBuffer, &srvDesc, &magicBuffer->mSRV );
-      SetDebugName( magicBuffer->mSRV, commandDataCreateMagicBuffer->mStackFrame.ToString() );
+      if( desc.BindFlags & D3D11_BIND_SHADER_RESOURCE )
+      {
+        D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+        srvDesc.Format = Format;
+        srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER; // D3D11_SRV_DIMENSION_BUFFEREX;
+        srvDesc.Buffer.FirstElement = 0; // index, not byte offset
+        srvDesc.Buffer.NumElements = NumElements;
+        // srvDesc.BufferEx... = ;
+        TAC_DX11_CALL( errors,
+                       mDevice->CreateShaderResourceView,
+                       magicBuffer->mBuffer,
+                       &srvDesc,
+                       &magicBuffer->mSRV );
+        SetDebugName( magicBuffer->mSRV, commandDataCreateMagicBuffer->mStackFrame.ToString() );
+      }
     }
 
     void RendererDirectX11::AddVertexBuffer( Render::CommandDataCreateVertexBuffer* data,
@@ -1992,17 +2044,17 @@ namespace Tac
     void RendererDirectX11::SetRenderObjectDebugName( Render::CommandDataSetRenderObjectDebugName* data,
                                                       Errors& errors )
     {
-      FrameMemoryVector< ID3D11DeviceChild* > objects;
       if( data->mVertexBufferHandle.IsValid() )
-        objects.push_back( mVertexBuffers[ ( int )data->mVertexBufferHandle ].mBuffer );
-      else if( data->mIndexBufferHandle.IsValid() )
-        objects.push_back( mIndexBuffers[ ( int )data->mIndexBufferHandle ].mBuffer );
-      else if( data->mTextureHandle.IsValid() )
-        objects.push_back( mTextures[ ( int )data->mTextureHandle ].mTexture2D );
-      else
-        TAC_CRITICAL_ERROR_INVALID_CODE_PATH;
-      for( ID3D11DeviceChild* object : objects )
-        SetDebugName( object, data->mName );
+        SetDebugName( mVertexBuffers[ ( int )data->mVertexBufferHandle ].mBuffer, data->mName );
+
+      if( data->mIndexBufferHandle.IsValid() )
+        SetDebugName( mIndexBuffers[ ( int )data->mIndexBufferHandle ].mBuffer, data->mName );
+
+      if( data->mTextureHandle.IsValid() )
+        SetDebugName( mTextures[ ( int )data->mTextureHandle ].mTexture2D, data->mName );
+
+      if( data->mRasterizerStateHandle.IsValid() )
+        SetDebugName( mRasterizerStates[ ( int )data->mRasterizerStateHandle ], data->mName );
     }
 
     void RendererDirectX11::UpdateBuffer( ID3D11Buffer* buffer,

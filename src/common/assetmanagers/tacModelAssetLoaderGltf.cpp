@@ -207,6 +207,7 @@ namespace Tac
     {
       cgltf_mesh* parsedMesh = &parsedData->meshes[ iMesh ];
 
+
       if( iMesh != specifiedMeshIndex )
         continue;
 
@@ -215,6 +216,7 @@ namespace Tac
         cgltf_primitive* parsedPrim = &parsedMesh->primitives[ iPrim ];
         if( !parsedPrim->attributes_count )
           continue;
+
 
         cgltf_accessor* indices = parsedPrim->indices;
         void* indiciesData = ( char* )indices->buffer_view->buffer->data + indices->buffer_view->offset;
@@ -300,12 +302,16 @@ namespace Tac
         const String name = parsedMesh->name +
           ( parsedMesh->primitives_count > 1 ? "prim" + ToString( iPrim ) : "" );
 
+        TAC_ASSERT( parsedPrim->type == cgltf_primitive_type::cgltf_primitive_type_triangles );
+        const Render::PrimitiveTopology primitiveTopology = Render::PrimitiveTopology::TriangleList;
+
         SubMesh subMesh;
         subMesh.mIndexBuffer = indexBuffer;
         subMesh.mVertexBuffer = vertexBuffer;
         subMesh.mTris = tris;
         subMesh.mIndexCount = ( int )indices->count;
         subMesh.mName = name;
+        subMesh.mPrimitiveTopology = primitiveTopology;
         submeshes.push_back( subMesh );
       }
     }

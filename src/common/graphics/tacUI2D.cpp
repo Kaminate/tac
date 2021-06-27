@@ -11,7 +11,22 @@
 
 namespace Tac
 {
-  UI2DCommonData gUI2DCommonData;
+
+  static struct UI2DCommonData
+  {
+    void Init( Errors& );
+    void Uninit();
+    Render::TextureHandle         m1x1White;
+    Render::VertexFormatHandle    mFormat;
+    Render::ShaderHandle          mShader;
+    Render::ShaderHandle          m2DTextShader;
+    Render::DepthStateHandle      mDepthState;
+    Render::BlendStateHandle      mBlendState;
+    Render::RasterizerStateHandle mRasterizerState;
+    Render::SamplerStateHandle    mSamplerState;
+    Render::ConstantBufferHandle  mPerFrame;
+    Render::ConstantBufferHandle  mPerObj;
+  } gUI2DCommonData;
 
   static m4 OrthographicUIMatrix2( const float w, const float h )
   {
@@ -157,6 +172,7 @@ namespace Tac
   }
 
 
+  void UI2DCommonDataInit( Errors& errors ){ gUI2DCommonData.Init( errors); }
   void UI2DCommonData::Init( Errors& errors )
   {
     uint8_t data[] = { 255, 255, 255, 255 };
@@ -238,6 +254,7 @@ namespace Tac
     mRasterizerState = Render::CreateRasterizerState( rasterizerStateData,
                                                       TAC_STACK_FRAME );
     TAC_HANDLE_ERROR( errors );
+    Render::SetRenderObjectDebugName( mRasterizerState, "common-ui" );
 
     Render::SamplerState samplerStateData;
     samplerStateData.mFilter = Render::Filter::Linear;
@@ -246,6 +263,7 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
   }
 
+  void UI2DCommonDataUninit() { gUI2DCommonData.Uninit(); }
   void UI2DCommonData::Uninit()
   {
       Render::DestroyTexture( m1x1White, TAC_STACK_FRAME );
@@ -292,7 +310,7 @@ namespace Tac
                                     sizeof( DefaultCBufferPerFrame ),
                                     TAC_STACK_FRAME );
 
-      for( UI2DDrawCall& uidrawCall : mDrawCall2Ds )
+      for( const UI2DDrawCall& uidrawCall : mDrawCall2Ds )
       {
 
         const Render::TextureHandle texture = uidrawCall.mTexture.IsValid() ?
@@ -305,6 +323,7 @@ namespace Tac
         Render::SetVertexBuffer( mVertexBufferHandle, uidrawCall.mIVertexStart, uidrawCall.mVertexCount );
         Render::SetIndexBuffer( mIndexBufferHandle, uidrawCall.mIIndexStart, uidrawCall.mIndexCount );
         Render::SetTexture( { texture } );
+        Render::SetPrimitiveTopology( Render::PrimitiveTopology::TriangleList );
         Render::SetShader( uidrawCall.mShader );
         Render::Submit( viewHandle, TAC_STACK_FRAME );
       }
@@ -373,21 +392,51 @@ namespace Tac
     mDrawCall2Ds.push_back( drawCall );
   }
 
+  void UI2DDrawData::AddTriangle( v2 p0, v2 p1, v2 p2, v4 color )
+  {
+    const int iVtx = mDefaultVertex2Ds.size();
+    mDefaultVertex2Ds.resize( iVtx + 3 );
+    mDefaultVertex2Ds[ iVtx + 0 ] = UI2DVertex( p0 );
+    mDefaultVertex2Ds[ iVtx + 1 ] = UI2DVertex( p1 );
+    mDefaultVertex2Ds[ iVtx + 2 ] = UI2DVertex( p2 );
+
+    const int iIdx = mDefaultIndex2Ds.size();
+    mDefaultIndex2Ds.resize( iIdx + 3 );
+    mDefaultIndex2Ds[ iIdx + 0 ] = ( UI2DIndex )iVtx + 0;
+    mDefaultIndex2Ds[ iIdx + 1 ] = ( UI2DIndex )iVtx + 1;
+    mDefaultIndex2Ds[ iIdx + 2 ] = ( UI2DIndex )iVtx + 2;
+
+    DefaultCBufferPerObject perObjectData = {};
+    perObjectData.World = m4::Identity();
+    perObjectData.Color = color;
+
+    UI2DDrawCall drawCall;
+    drawCall.mIVertexStart = iVtx;
+    drawCall.mVertexCount = 3;
+    drawCall.mIIndexStart = iIdx;
+    drawCall.mIndexCount = 3;
+    drawCall.mTexture;
+    drawCall.mShader = gUI2DCommonData.mShader;
+    drawCall.mUniformSource = perObjectData;
+
+    mDrawCall2Ds.push_back( drawCall );
+  }
+
   void UI2DDrawData::AddLine( v2 p0,
                               v2 p1,
                               float radius,
                               v4 color )
   {
+    // This function creates a long thin rectangle to act as a line
+
     v2 dp = p1 - p0;
     float quadrance = dp.Quadrance();
     if( dp.Quadrance() < 0.01f )
       return;
     float length = std::sqrt( quadrance );
     v2 dphat = dp / length;
-    v2 dphatccw = {
-      -dphat.y,
-      dphat.x,
-    };
+    v2 dphatccw( -dphat.y,
+                 dphat.x );
 
     int iVert = mDefaultVertex2Ds.size();
     int iIndex = mDefaultIndex2Ds.size();
@@ -641,4 +690,5 @@ namespace Tac
     return textSize;
   }
 
+  Render::TextureHandle Get1x1White() { return gUI2DCommonData.m1x1White; }
 }

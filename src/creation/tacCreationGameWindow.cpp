@@ -193,14 +193,14 @@ namespace Tac
 
     mCenteredUnitCube = ModelAssetManagerGetMeshTryingNewThing( "assets/editor/box.gltf",
                                                                 0,
-                                                  m3DvertexFormatDecls,
-                                                  errors );
+                                                                m3DvertexFormatDecls,
+                                                                errors );
     TAC_HANDLE_ERROR( errors );
 
     mArrow = ModelAssetManagerGetMeshTryingNewThing( "assets/editor/arrow.gltf",
                                                      0,
-                                       m3DvertexFormatDecls,
-                                       errors );
+                                                     m3DvertexFormatDecls,
+                                                     errors );
     TAC_HANDLE_ERROR( errors );
 
     mDebug3DDrawData = TAC_NEW Debug3DDrawData;
@@ -296,7 +296,7 @@ namespace Tac
     if( pickData.pickedObject != PickedObject::None )
     {
       worldSpaceHitPoint = gCreation.mEditorCamera->mPos + pickData.closestDist * mWorldSpaceMouseDir;
-      mDebug3DDrawData->DebugDrawSphere( worldSpaceHitPoint, 0.2f, v3( 1, 1, 0 ) );
+      mDebug3DDrawData->DebugDraw3DSphere( worldSpaceHitPoint, 0.2f, v3( 1, 1, 0 ) );
     }
 
     if( gKeyboardInput.IsKeyJustDown( Key::MouseLeft ) )
@@ -539,7 +539,7 @@ namespace Tac
 
     ImGuiBegin( "gameplay overlay" );
 
-    static bool mHideUI;
+    static bool mHideUI = false;
 
     if( !mHideUI )
     {
@@ -564,14 +564,32 @@ namespace Tac
 
       if( ImGuiCollapsingHeader( "Camera" ) )
       {
-
-        ImGuiDragFloat3( "cam pos", gCreation.mEditorCamera->mPos.data() );
-        ImGuiDragFloat3( "cam forward", gCreation.mEditorCamera->mForwards.data() );
-        ImGuiDragFloat3( "cam right", gCreation.mEditorCamera->mRight.data() );
-        ImGuiDragFloat3( "cam up", gCreation.mEditorCamera->mUp.data() );
-        ImGuiDragFloat3( "cam far", &gCreation.mEditorCamera->mFarPlane );
-        ImGuiDragFloat( "cam near", &gCreation.mEditorCamera->mNearPlane );
-        ImGuiDragFloat( "cam fovyrad", &gCreation.mEditorCamera->mFovyrad );
+        Camera* cam = gCreation.mEditorCamera;
+        ImGuiDragFloat3( "cam pos", cam->mPos.data() );
+        ImGuiDragFloat3( "cam forward", cam->mForwards.data() );
+        ImGuiDragFloat3( "cam right", cam->mRight.data() );
+        ImGuiDragFloat3( "cam up", cam->mUp.data() );
+        ImGuiDragFloat3( "cam far", &cam->mFarPlane );
+        ImGuiDragFloat( "cam near", &cam->mNearPlane );
+        ImGuiDragFloat( "cam fovyrad", &cam->mFovyrad );
+        if( ImGuiButton( "cam snap pos" ) )
+        {
+          cam->mPos.x = ( float )( int )cam->mPos.x;
+          cam->mPos.y = ( float )( int )cam->mPos.y;
+          cam->mPos.z = ( float )( int )cam->mPos.z;
+        }
+        //if( ImGuiButton( "cam snap dir" ) )
+        //{
+        //  v3 unitDirs[] =
+        //  {
+        //    {1,0,0},
+        //    {-1,0,0},
+        //    {0,1,0},
+        //    {0,-1,0},
+        //    {0,0,1},
+        //    {0,0,-1},
+        //  };
+        //}
       }
 
       if( ShellGetElapsedSeconds() < mStatusMessageEndTime )
@@ -697,7 +715,7 @@ namespace Tac
     if( gCreation.IsAnythingSelected() )
     {
       v3 origin = gCreation.GetSelectionGizmoOrigin();
-      mDebug3DDrawData->DebugDrawCircle( origin,
+      mDebug3DDrawData->DebugDraw3DCircle( origin,
                                          gCreation.mEditorCamera->mForwards,
                                          mArrowLen );
     }

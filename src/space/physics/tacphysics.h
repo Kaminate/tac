@@ -8,54 +8,50 @@
 
 namespace Tac
 {
-struct Collider;
-struct Terrain;
-struct Debug3DDrawData;
+  struct Collider;
+  struct Terrain;
+  struct Debug3DDrawData;
 
 
-struct Physics : public System
-{
-  Physics();
-  //const Vector< ComponentRegistryEntryIndex >& GetManagedComponentTypes() override;
-  //Component* CreateComponent( ComponentRegistryEntryIndex componentType ) override;
-  //void DestroyComponent( Component* component ) override;
-  //SystemType GetSystemType() override { return SystemType::Physics; }
+  struct Physics : public System
+  {
+    Physics();
 
-  Collider* CreateCollider();
-  void DestroyCollider( Collider* collider );
+    Collider* CreateCollider();
+    void      DestroyCollider( Collider* collider );
 
-  Terrain* CreateTerrain();
-  void DestroyTerrain( Terrain* terrain );
+    Terrain*  CreateTerrain();
+    void      DestroyTerrain( Terrain* terrain );
 
-  static void SpaceInitPhysics();
-  static SystemRegistryEntry* PhysicsSystemRegistryEntry;
-  static Physics* GetSystem( World* );
+    static void                 SpaceInitPhysics();
+    static SystemRegistryEntry* PhysicsSystemRegistryEntry;
+    static Physics*             GetSystem( World* );
 
-  void Update() override;
-  void Integrate();
-  void Narrowphase();
-  void DebugImgui() override;
-  void DebugDrawCapsules();
-  void DebugDrawTerrains();
+    void Update() override;
+    void Integrate();
+    void Narrowphase();
+    void DebugImgui() override;
+    void DebugDrawCapsules();
+    void DebugDrawTerrains();
 
-  std::set< Collider* > mColliders;
-  std::set< Terrain* > mTerrains;
+    std::set< Collider* > mColliders;
+    std::set< Terrain* >  mTerrains;
 
 
-  bool mDebugDrawCollision = true;
-  float mGravity;
-  bool mGravityOn;
-  v3 mDebugDrawCapsuleColor;
-  bool mShouldDebugDrawCapsules;
-  bool mRunning;
-  v3 mDebugDrawTerrainColor;
-  bool mShouldDebugDrawTerrains;
-  bool mShouldIntegrate;
-  bool mShouldNarrowphase;
-  bool mGJKDebugging = true;
-  int mGJKDebugMaxIter = 10;
-  int mGJKDebugMaxEPAIter = 0;
-};
+    bool  mDebugDrawCollision = true;
+    float mGravity;
+    bool  mGravityOn;
+    v3    mDebugDrawCapsuleColor;
+    bool  mShouldDebugDrawCapsules;
+    bool  mRunning;
+    v3    mDebugDrawTerrainColor;
+    bool  mShouldDebugDrawTerrains;
+    bool  mShouldIntegrate;
+    bool  mShouldNarrowphase;
+    bool  mGJKDebugging = true;
+    int   mGJKDebugMaxIter = 10;
+    int   mGJKDebugMaxEPAIter = 0;
+  };
 
 }
 

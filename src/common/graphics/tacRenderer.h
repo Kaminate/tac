@@ -112,6 +112,9 @@ namespace Tac
     enum class Binding
     {
       None = 0b0000,
+
+      // so what i really think this means is like,
+      // create a ID3D11ShaderResourceView* for this
       ShaderResource = 0b0001,
       RenderTarget = 0b0010,
       DepthStencil = 0b0100,
@@ -122,6 +125,7 @@ namespace Tac
       Unknown = 0,
       TriangleList,
       PointList,
+      LineList,
     };
 
     const char* GetSemanticName( Attribute );
@@ -144,48 +148,28 @@ namespace Tac
       int    mDepth = 0;
       Format mFormat;
 
-      // byte data should be passed as a separate argument, not as a member of this class
+      // Note that byte data should be passed as a separate argument,
+      // and not as a member of this class
     };
-
-    //struct Constant
-    //{
-    //  String mName;
-    //  int    mOffset = 0;
-    //  int    mSize = 0;
-    //};
 
     struct VertexDeclaration
     {
       Attribute mAttribute = Attribute::Count;
       Format    mTextureFormat;
 
-      // Offset of the variable from the vertex buffer
-      // ie: OffsetOf( MyVertexType, mPosition)
+      //        Offset of the variable from the vertex buffer
+      //        ie: OffsetOf( MyVertexType, mPosition)
       int       mAlignedByteOffset = 0;
     };
 
-    typedef FixedVector< VertexDeclaration, 10 > VertexDeclarations;
-    //struct VertexDeclarations
-    //{
-    //  VertexDeclarations() = default;
-    //  VertexDeclarations( VertexDeclaration );
-    //  VertexDeclarations( VertexDeclaration, VertexDeclaration );
-    //  int                      size() const { return mVertexFormatDataCount; }
-    //  const VertexDeclaration& operator []( int i ) const { return mVertexFormatDatas[ i ]; }
-    //  void                     AddVertexDeclaration( VertexDeclaration );
-    //  VertexDeclaration        mVertexFormatDatas[ 10 ];
-    //  int                      mVertexFormatDataCount = 0;
-    //};
 
     //struct DepthBufferData : public RendererResource
     //{
-    //  int width = 0;
-    //  int height = 0;
-
-    //  int mDepthBitCount = 0;
+    //  int          width = 0;
+    //  int          height = 0;
+    //  int          mDepthBitCount = 0;
     //  GraphicsType mDepthGraphicsType = GraphicsType::unknown;
-
-    //  int mStencilBitCount = 0;
+    //  int          mStencilBitCount = 0;
     //  GraphicsType mStencilType = GraphicsType::unknown;
     //};
 
@@ -214,13 +198,6 @@ namespace Tac
       float mMaxDepth = 1;
     };
 
-    //enum PrimitiveTopology
-    //{
-    //  TriangleList,
-    //  LineList,
-    //  Count,
-    //};
-
     TAC_DEFINE_HANDLE( BlendStateHandle );
     TAC_DEFINE_HANDLE( ConstantBufferHandle );
     TAC_DEFINE_HANDLE( DepthStateHandle );
@@ -248,33 +225,6 @@ namespace Tac
       BlendMode      mBlendA = BlendMode::Add;
     };
 
-    typedef FixedVector< TextureHandle, 10 > FramebufferTextures;
-    //struct FramebufferTextures
-    //{
-    //  FramebufferTextures() = default;
-    //  FramebufferTextures( TextureHandle );
-    //  FramebufferTextures( TextureHandle, TextureHandle );
-    //  void                    AddTexture( TextureHandle );
-    //  const TextureHandle*    begin() const;
-    //  const TextureHandle*    end() const;
-    //  TextureHandle           operator[]( int i ) const;
-    //  TextureHandle           mTextures[ 10 ];
-    //  int                     mTextureCount;
-    //};
-
-    typedef FixedVector< TextureHandle, 2 > DrawCallTextures;
-    //struct DrawCallTextures
-    //{
-    //  DrawCallTextures() = default;
-    //  DrawCallTextures( TextureHandle );
-    //  DrawCallTextures( TextureHandle, TextureHandle );
-    //  void                    AddTexture( TextureHandle );
-    //  const TextureHandle*    begin() const;
-    //  const TextureHandle*    end() const;
-    //  TextureHandle           operator[]( int i ) const;
-    //  TextureHandle           mTextures[ 2 ];
-    //  int                     mTextureCount = 0;
-    //};
 
     struct ShaderSource
     {
@@ -288,17 +238,10 @@ namespace Tac
       static ShaderSource FromStr( const char* );
     };
 
+    typedef FixedVector< VertexDeclaration, 10 >    VertexDeclarations;
+    typedef FixedVector< TextureHandle, 10 >        FramebufferTextures;
+    typedef FixedVector< TextureHandle, 2 >         DrawCallTextures;
     typedef FixedVector< ConstantBufferHandle, 10 > ConstantBuffers;
-    //struct ConstantBuffers
-    //{
-    //  ConstantBuffers() = default;
-    //  ConstantBuffers( ConstantBufferHandle );
-    //  ConstantBuffers( ConstantBufferHandle, ConstantBufferHandle );
-    //  ConstantBuffers( ConstantBufferHandle*, int );
-    //  void                 AddConstantBuffer( ConstantBufferHandle handle );
-    //  ConstantBufferHandle mConstantBuffers[ 10 ];
-    //  int                  mConstantBufferCount = 0;
-    //};
 
     struct DepthState
     {
@@ -361,20 +304,21 @@ namespace Tac
     ConstantBufferHandle             CreateConstantBuffer( int mByteCount,
                                                            int mShaderRegister,
                                                            StackFrame );
-    MagicBufferHandle                CreateMagicBuffer( int mByteCount,
-                                                        //const void* mOptionalInitialBytes,
-                                                        int mStride,
-                                                        Access mAccess,
+    MagicBufferHandle                CreateMagicBuffer( int byteCount,
+                                                        const void* mOptionalInitialBytes,
+                                                        int stride,
+                                                        Binding,
+                                                        Access,
                                                         StackFrame );
-    VertexBufferHandle               CreateVertexBuffer( int mByteCount,
-                                                         const void* mOptionalInitialBytes,
-                                                         int mStride,
-                                                         Access mAccess,
+    VertexBufferHandle               CreateVertexBuffer( int byteCount,
+                                                         const void* optionalInitialBytes,
+                                                         int stride,
+                                                         Access,
                                                          StackFrame );
     IndexBufferHandle                CreateIndexBuffer( int byteCount,
                                                         const void* optionalInitialBytes,
-                                                        Access access,
-                                                        Format format,
+                                                        Access,
+                                                        Format,
                                                         StackFrame );
     TextureHandle                    CreateTexture( TexSpec, StackFrame );
     FramebufferHandle                CreateFramebufferForRenderToTexture( FramebufferTextures, StackFrame );
@@ -418,10 +362,10 @@ namespace Tac
     //                                                       int,
     //                                                       StackFrame );
     void                             UpdateConstantBuffer( ConstantBufferHandle,
-                                                            const void*,
-                                                            int,
-                                                            StackFrame );
-    // Umm about this...
+                                                           const void*,
+                                                           int,
+                                                           StackFrame );
+   // Umm about this...
 
     void                             ResizeFramebuffer( FramebufferHandle,
                                                         int w,
@@ -456,6 +400,7 @@ namespace Tac
     void                             SetRenderObjectDebugName( TextureHandle, const char* );
     void                             SetRenderObjectDebugName( VertexBufferHandle, const char* );
     void                             SetRenderObjectDebugName( IndexBufferHandle, const char* );
+    void                             SetRenderObjectDebugName( RasterizerStateHandle, const char* );
 
 #define TAC_RENDER_GROUP_BLOCK( text )                          \
         Render::BeginGroup( text, TAC_STACK_FRAME );            \

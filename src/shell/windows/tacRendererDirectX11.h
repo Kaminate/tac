@@ -80,7 +80,7 @@ namespace Tac
 
       void Init( Errors& ) override;
       void RenderBegin( const Render::Frame*, Errors& ) override;
-      void RenderDrawCall( const Render::Frame*, const Render::DrawCall3*, Errors& ) override;
+      void RenderDrawCall( const Render::Frame*, const Render::DrawCall*, Errors& ) override;
       void RenderEnd( const Render::Frame*, Errors& ) override;
       void SwapBuffers() override;
       void GetPerspectiveProjectionAB( float f,
@@ -123,19 +123,19 @@ namespace Tac
 
       // Render draw call functions
 
-      void RenderDrawCallUAVs( const Render::Frame*, const DrawCall3* );
-      void RenderDrawCallShader( const DrawCall3* );
-      void RenderDrawCallBlendState( const DrawCall3* );
-      void RenderDrawCallDepthState( const DrawCall3* );
-      void RenderDrawCallIndexBuffer( const DrawCall3* );
-      void RenderDrawCallVertexBuffer( const DrawCall3* );
-      void RenderDrawCallRasterizerState( const DrawCall3* );
-      void RenderDrawCallSamplerState( const DrawCall3* );
-      void RenderDrawCallVertexFormat( const DrawCall3* );
-      void RenderDrawCallViewAndUAV( const Render::Frame*, const DrawCall3* );
-      void RenderDrawCallTextures( const DrawCall3* );
-      void RenderDrawCallPrimitiveTopology( const DrawCall3* );
-      void RenderDrawCallIssueDrawCommand( const DrawCall3* );
+      void RenderDrawCallUAVs( const Render::Frame*, const DrawCall* );
+      void RenderDrawCallShader( const DrawCall* );
+      void RenderDrawCallBlendState( const DrawCall* );
+      void RenderDrawCallDepthState( const DrawCall* );
+      void RenderDrawCallIndexBuffer( const DrawCall* );
+      void RenderDrawCallVertexBuffer( const DrawCall* );
+      void RenderDrawCallRasterizerState( const DrawCall* );
+      void RenderDrawCallSamplerState( const DrawCall* );
+      void RenderDrawCallVertexFormat( const DrawCall* );
+      void RenderDrawCallViewAndUAV( const Render::Frame*, const DrawCall* );
+      void RenderDrawCallTextures( const DrawCall* );
+      void RenderDrawCallPrimitiveTopology( const DrawCall* );
+      void RenderDrawCallIssueDrawCommand( const DrawCall* );
 
 
       // Non-virtual functions

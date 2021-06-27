@@ -1,22 +1,22 @@
-
+#include "src/common/assetmanagers/tacTextureAssetManager.h"
+#include "src/common/containers/tacVector.h"
+#include "src/common/graphics/tacDebug3D.h"
+#include "src/common/math/tacMath.h"
+#include "src/common/profile/tacProfile.h"
+#include "src/common/shell/tacShell.h"
+#include "src/common/tacMemory.h"
+#include "src/common/tacPreprocessor.h"
+#include "src/common/thirdparty/Stb_image.h"
 #include "src/space/collider/tacCollider.h"
 #include "src/space/graphics/tacGraphics.h"
 #include "src/space/graphics/tacGraphics.h"
 #include "src/space/physics/tacPhysics.h"
 #include "src/space/tacComponent.h"
 #include "src/space/tacEntity.h"
+#include "src/space/tacGjk.h"
 #include "src/space/tacWorld.h"
 #include "src/space/terrain/tacTerrain.h"
-#include "src/space/tacGjk.h"
-#include "src/common/assetmanagers/tacTextureAssetManager.h"
-#include "src/common/containers/tacVector.h"
-#include "src/common/graphics/tacDebug3D.h"
-#include "src/common/math/tacMath.h"
-#include "src/common/tacMemory.h"
-#include "src/common/tacPreprocessor.h"
-#include "src/common/shell/tacShell.h"
-#include "src/common/thirdparty/Stb_image.h"
-#include "src/common/profile/tacProfile.h"
+
 #include <array>
 #include <algorithm>
 #include <iostream>
@@ -195,10 +195,10 @@ namespace Tac
     {
       for( const TerrainOBB& obb : terrain->mTerrainOBBs )
       {
-        mWorld->mDebug3DDrawData->DebugDrawOBB( obb.mPos,
-                                                obb.mHalfExtents,
-                                                obb.mEulerRads,
-                                                mDebugDrawTerrainColor );
+        mWorld->mDebug3DDrawData->DebugDraw3DOBB( obb.mPos,
+                                                  obb.mHalfExtents,
+                                                  obb.mEulerRads,
+                                                  mDebugDrawTerrainColor );
       }
       // loads the heightmap from file into bitmap
       terrain->LoadTestHeightmap();

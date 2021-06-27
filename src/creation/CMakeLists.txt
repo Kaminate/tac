@@ -50,6 +50,8 @@ if( WIN32 )
     "${CMAKE_SOURCE_DIR}/src/shell/windows/tacDXGI.h"
     "${CMAKE_SOURCE_DIR}/src/shell/windows/tacNetWinsock.cpp"
     "${CMAKE_SOURCE_DIR}/src/shell/windows/tacNetWinsock.h"
+    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacRendererDirectX.h"
+    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacRendererDirectXPIX.cpp"
     "${CMAKE_SOURCE_DIR}/src/shell/windows/tacRendererDirectX11.cpp"
     "${CMAKE_SOURCE_DIR}/src/shell/windows/tacRendererDirectX11.h"
     "${CMAKE_SOURCE_DIR}/src/shell/windows/tacRendererDirectX12.cpp"

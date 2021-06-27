@@ -22,6 +22,10 @@ namespace Tac
   Render::BlendStateHandle      GamePresentationGetBlendState();
   Render::RasterizerStateHandle GamePresentationGetRasterizerState();
   Render::SamplerStateHandle    GamePresentationGetSamplerState();
-  bool&                         GamePresentationGetEnabled();
+  Render::VertexDeclarations    GamePresentationGetVertexDeclarations();
+  bool&                         GamePresentationGetRenderEnabledModel();
+  bool&                         GamePresentationGetRenderEnabledSkybox();
+  bool&                         GamePresentationGetRenderEnabledTerrain();
+  bool&                         GamePresentationGetRenderEnabledDebug3D();
 }
 

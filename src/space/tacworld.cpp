@@ -261,7 +261,6 @@ namespace Tac
     mEntities.clear();
 
     mElapsedSecs = world.mElapsedSecs;
-    mSkyboxDir = world.mSkyboxDir;
 
     for( Player* fromPlayer : world.mPlayers )
     {
