@@ -7,8 +7,8 @@ namespace Tac
   struct v3
   {
     v3() = default;
-    v3( v2 xy, float z);
-    v3( float xx, float yy, float zz );
+    v3( v2 xy, float z );
+    v3( float x, float y, float z );
     float*       begin();
     float*       end();
     float*       data();
@@ -35,14 +35,14 @@ namespace Tac
     float        z;
   };
 
-  v3             operator*( float , const v3& );
-  float          Dot( const v3& , const v3& );
-  v3             Cross( const v3& , const v3& );
+  v3             operator*( float, const v3& );
+  float          Dot( const v3&, const v3& );
+  v3             Cross( const v3&, const v3& );
   v3             Normalize( const v3& );
   float          Length( const v3& );
-  float          Distance( const v3& , const v3& );
+  float          Distance( const v3&, const v3& );
   float          Quadrance( const v3& );
-  float          Quadrance( const v3& , const v3& );
+  float          Quadrance( const v3&, const v3& );
   v3             Project( const v3& onto_b, const v3& of_a );
   void           GetFrameRH( const v3& normalizedDir, v3& unittan1, v3& unittan2 );
 }

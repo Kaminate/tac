@@ -7,28 +7,28 @@ namespace Tac
   struct v4
   {
     v4() = default;
-    v4( float xx, float yy, float zz, float ww );
-    v4( const v3& xyz, float ww );
-    v4( const v2& xy, float zz, float ww );
+    v4( float x, float y, float z, float w );
+    v4( const v3& xyz, float w );
+    v4( const v2& xy, float z, float w );
     float*       begin();
     float*       end();
     float*       data();
     const float* data() const;
     v3&          xyz();
     const v3&    xyz() const;
-    float&       operator[]( int i );
-    float        operator[]( int i ) const;
-    void         operator /= ( float v );
-    void         operator *= ( float v );
-    void         operator -= ( const v4& v );
-    void         operator += ( const v4& v );
-    bool         operator == ( const v4& v )const;
-    bool         operator != ( const v4& v )const;
+    float&       operator[]( int );
+    float        operator[]( int ) const;
+    void         operator /= ( float );
+    void         operator *= ( float );
+    void         operator -= ( const v4& );
+    void         operator += ( const v4& );
+    bool         operator == ( const v4& )const;
+    bool         operator != ( const v4& )const;
     v4           operator - () const;
-    v4           operator * ( float v ) const;
-    v4           operator / ( float v ) const;
-    v4           operator + ( const v4& v ) const;
-    v4           operator - ( const v4& v ) const;
+    v4           operator * ( float ) const;
+    v4           operator / ( float ) const;
+    v4           operator + ( const v4& ) const;
+    v4           operator - ( const v4& ) const;
     void         Normalize();
     float        Length() const;
     float        Quadrance() const;
@@ -38,8 +38,10 @@ namespace Tac
     float        w;
   };
 
-  v4             operator*( float f, const v4& v );
-  float          dot( const v4& lhs, const v4& rhs );
-  float          Distance( const v4& lhs, const v4& rhs );
+  v4             operator*( float, const v4& );
+  float          dot( const v4&, const v4& );
+  float          Distance( const v4&, const v4& );
 
 }
+
+
