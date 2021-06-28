@@ -4,14 +4,17 @@
 #include "src/common/tacErrorHandling.h"
 #include "src/common/assetmanagers/tacModelAssetManager.h"
 #include "src/common/assetmanagers/tacMesh.h"
+#include "src/common/math/tacMath.h"
 #include "src/space/graphics/tacgraphics.h"
 #include "src/space/presentation/tacVoxelGIPresentation.h"
 #include "src/space/presentation/tacGamePresentation.h"
 #include "src/space/model/tacmodel.h"
 #include "src/space/tacentity.h"
+#include "src/space/tacworld.h"
 #include "src/common/graphics/tacRendererUtil.h"
 #include "src/common/graphics/tacUI2D.h"
 #include "src/common/tacHash.h"
+#include "src/common/graphics/tacDebug3D.h"
 
 namespace Tac
 {
@@ -32,7 +35,11 @@ namespace Tac
 
   Render::VertexDeclarations          voxelVertexDeclarations;
   static int                          voxelDimension =
-    1 << 0; // 1
+    3;
+    //1 << 0; // 1
+    //1 << 1; // 2
+    //1 << 2; // 4
+    //1 << 3; // 8
     // 1 << 6 //64;
     // 512; that makes the rwbuffer 1 gb
   static bool                         voxelDebug = true;
@@ -242,6 +249,60 @@ namespace Tac
 //   }
 
 
+  static void               DrawRubixCubeSide( int iAxis,
+                                               CBufferVoxelizer cpuCBufferVoxelizer,
+                                               Debug3DDrawData* drawData )
+  {
+    const v3 x( 1, 0, 0 );
+    const v3 y( 0, 1, 0 );
+    const v3 z( 0, 0, 1 );
+    const v3 axes[] = { x,y,z };
+
+    const v3 mainAxis = axes[ iAxis ];
+    const v3 perpA = axes[ ( iAxis + 1 ) % 3 ];
+    const v3 perpB = axes[ ( iAxis + 2 ) % 3 ];
+
+    v3 planeCenter
+      = cpuCBufferVoxelizer.gVoxelGridCenter
+      - mainAxis * cpuCBufferVoxelizer.gVoxelGridHalfWidth;
+
+    for( int i = 0; i <= ( int )cpuCBufferVoxelizer.gVoxelGridSize; ++i )
+    {
+      v3 bl = planeCenter + ( -perpA -perpB ) * cpuCBufferVoxelizer.gVoxelGridHalfWidth;
+      v3 tl = planeCenter + ( -perpA +perpB ) * cpuCBufferVoxelizer.gVoxelGridHalfWidth;
+      v3 br = planeCenter + ( perpA -perpB ) * cpuCBufferVoxelizer.gVoxelGridHalfWidth;
+      v3 tr = planeCenter + ( perpA +perpB ) * cpuCBufferVoxelizer.gVoxelGridHalfWidth;
+
+      //drawData->DebugDraw3DLine( bl, tl );
+      //drawData->DebugDraw3DLine( bl, br );
+      //drawData->DebugDraw3DLine( br, tr );
+      //drawData->DebugDraw3DLine( tl, tr );
+
+      for( int j = 0; j <= ( int )cpuCBufferVoxelizer.gVoxelGridSize; ++j )
+      {
+        float lerpT = ( float )j / ( float )cpuCBufferVoxelizer.gVoxelGridSize;
+        v3 b = Lerp( bl, br, lerpT );
+        v3 t = Lerp( tl, tr, lerpT );
+        drawData->DebugDraw3DLine( b, t );
+        v3 l = Lerp( bl, tl, lerpT );
+        v3 r = Lerp( br, tr, lerpT );
+        drawData->DebugDraw3DLine( l, r );
+
+      }
+
+      planeCenter += mainAxis * cpuCBufferVoxelizer.gVoxelWidth;
+    }
+  }
+
+
+  static void               DrawRubixCube( CBufferVoxelizer cpuCBufferVoxelizer,
+                                           Debug3DDrawData* drawData )
+  {
+
+    for( int iAxis = 0; iAxis < 3; ++iAxis )
+      DrawRubixCubeSide( iAxis, cpuCBufferVoxelizer, drawData );
+  }
+
   void               VoxelGIPresentationRenderDebug( World* world,
                                                      const Camera* camera,
                                                      const int viewWidth,
@@ -251,35 +312,36 @@ namespace Tac
     //Render::SubmitFrame(); // temp
     //Render::SubmitFrame(); // temp
 
-    { // Temp scope for block
+    Render::BeginGroup( "Voxel GI Debug", TAC_STACK_FRAME );
 
-      TAC_RENDER_GROUP_BLOCK( "Voxel GI Debug" );
+    CBufferVoxelizer cpuCBufferVoxelizer = {};
+    cpuCBufferVoxelizer.gVoxelGridCenter = camera->mPos;
+    cpuCBufferVoxelizer.gVoxelGridHalfWidth = voxelDimension / 2.0f;
+    cpuCBufferVoxelizer.gVoxelWidth = 1;
+    cpuCBufferVoxelizer.gVoxelGridSize = voxelDimension;
 
-
-      CBufferVoxelizer cpuCBufferVoxelizer = {};
-      cpuCBufferVoxelizer.gVoxelGridCenter = camera->mPos;
-      cpuCBufferVoxelizer.gVoxelGridHalfWidth = ( float )( voxelDimension / 2 );
-      cpuCBufferVoxelizer.gVoxelWidth = 1;
-      cpuCBufferVoxelizer.gVoxelGridSize = voxelDimension;
-
-      Render::UpdateConstantBuffer( voxelConstantBuffer,
-                                    &cpuCBufferVoxelizer,
-                                    sizeof( CBufferVoxelizer ),
-                                    TAC_STACK_FRAME );
-      Render::SetShader( voxelVisualizerShader );
-      Render::SetTexture( { voxelTextureRadianceBounce0 } );
+    Render::UpdateConstantBuffer( voxelConstantBuffer,
+                                  &cpuCBufferVoxelizer,
+                                  sizeof( CBufferVoxelizer ),
+                                  TAC_STACK_FRAME );
+    Render::SetShader( voxelVisualizerShader );
+    Render::SetTexture( { voxelTextureRadianceBounce0 } );
 
 #if 0
     // not using UAVs in this shader
-      Render::SetPixelShaderUnorderedAccessView( voxelRWStructuredBuf, 0 );
-      Render::SetPixelShaderUnorderedAccessView( voxelTextureRadianceBounce0, 1 );
+    Render::SetPixelShaderUnorderedAccessView( voxelRWStructuredBuf, 0 );
+    Render::SetPixelShaderUnorderedAccessView( voxelTextureRadianceBounce0, 1 );
 #endif
-      Render::SetPrimitiveTopology( Render::PrimitiveTopology::PointList );
-      Render::SetVertexBuffer( Render::VertexBufferHandle(), 0, voxelDimension * voxelDimension * voxelDimension );
-      Render::SetIndexBuffer( Render::IndexBufferHandle(), 0, 0 );
-      Render::Submit( viewHandle, TAC_STACK_FRAME );
+    Render::SetPrimitiveTopology( Render::PrimitiveTopology::PointList );
+    Render::SetVertexBuffer( Render::VertexBufferHandle(), 0, voxelDimension * voxelDimension * voxelDimension );
+    Render::SetIndexBuffer( Render::IndexBufferHandle(), 0, 0 );
+    Render::Submit( viewHandle, TAC_STACK_FRAME );
 
-    }
+    Render::EndGroup( TAC_STACK_FRAME );
+
+
+    cpuCBufferVoxelizer.gVoxelGridCenter = v3( 0, 0, 0 );
+    DrawRubixCube( cpuCBufferVoxelizer, world->mDebug3DDrawData );
 
     //Render::SubmitFrame(); // temp
     //Render::SubmitFrame(); // temp
