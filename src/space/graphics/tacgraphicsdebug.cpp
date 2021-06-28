@@ -77,6 +77,11 @@ namespace Tac
 
       bool& debugEnabled = VoxelGIPresentationGetDebugEnabled();
       ImGuiCheckbox( "Debug Enabled", &debugEnabled );
+
+      if( debugEnabled )
+      {
+        VoxelDebugImgui();
+      }
     }
 
     Debug3DEachTri( graphics );

@@ -14,5 +14,6 @@ namespace Tac
                                                 Render::ViewHandle );
   bool&              VoxelGIPresentationGetEnabled();
   bool&              VoxelGIPresentationGetDebugEnabled();
+  void               VoxelDebugImgui();
 }
 
