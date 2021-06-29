@@ -33,7 +33,7 @@ namespace Tac
     // mRenderView->mViewportRect.mViewportPixelWidthIncreasingRight?
     float sx = 2.0f / w;
     float sy = 2.0f / h;
-    m4 projectionPieces [] =
+    m4 projectionPieces[] =
     {
       // orient to bottom left
       m4( 1, 0, 0, 0,
@@ -172,7 +172,7 @@ namespace Tac
   }
 
 
-  void UI2DCommonDataInit( Errors& errors ){ gUI2DCommonData.Init( errors); }
+  void UI2DCommonDataInit( Errors& errors ){ gUI2DCommonData.Init( errors ); }
   void UI2DCommonData::Init( Errors& errors )
   {
     uint8_t data[] = { 255, 255, 255, 255 };
@@ -266,16 +266,16 @@ namespace Tac
   void UI2DCommonDataUninit() { gUI2DCommonData.Uninit(); }
   void UI2DCommonData::Uninit()
   {
-      Render::DestroyTexture( m1x1White, TAC_STACK_FRAME );
-      Render::DestroyVertexFormat( mFormat, TAC_STACK_FRAME );
-      Render::DestroyShader( mShader, TAC_STACK_FRAME );
-      Render::DestroyShader( m2DTextShader, TAC_STACK_FRAME );
-      Render::DestroyDepthState( mDepthState, TAC_STACK_FRAME );
-      Render::DestroyBlendState( mBlendState, TAC_STACK_FRAME );
-      Render::DestroyRasterizerState( mRasterizerState, TAC_STACK_FRAME );
-      Render::DestroySamplerState( mSamplerState, TAC_STACK_FRAME );
-      Render::DestroyConstantBuffer( mPerFrame, TAC_STACK_FRAME );
-      Render::DestroyConstantBuffer( mPerObj, TAC_STACK_FRAME );
+    Render::DestroyTexture( m1x1White, TAC_STACK_FRAME );
+    Render::DestroyVertexFormat( mFormat, TAC_STACK_FRAME );
+    Render::DestroyShader( mShader, TAC_STACK_FRAME );
+    Render::DestroyShader( m2DTextShader, TAC_STACK_FRAME );
+    Render::DestroyDepthState( mDepthState, TAC_STACK_FRAME );
+    Render::DestroyBlendState( mBlendState, TAC_STACK_FRAME );
+    Render::DestroyRasterizerState( mRasterizerState, TAC_STACK_FRAME );
+    Render::DestroySamplerState( mSamplerState, TAC_STACK_FRAME );
+    Render::DestroyConstantBuffer( mPerFrame, TAC_STACK_FRAME );
+    Render::DestroyConstantBuffer( mPerObj, TAC_STACK_FRAME );
   }
 
   UI2DDrawData::UI2DDrawData() {}
@@ -300,11 +300,6 @@ namespace Tac
       perFrameData.mProjection = OrthographicUIMatrix( ( float )w, ( float )h );
 
 
-      Render::SetBlendState( gUI2DCommonData.mBlendState );
-      Render::SetRasterizerState( gUI2DCommonData.mRasterizerState );
-      Render::SetSamplerState( gUI2DCommonData.mSamplerState );
-      Render::SetDepthState( gUI2DCommonData.mDepthState );
-      Render::SetVertexFormat( gUI2DCommonData.mFormat );
       Render::UpdateConstantBuffer( gUI2DCommonData.mPerFrame,
                                     &perFrameData,
                                     sizeof( DefaultCBufferPerFrame ),
@@ -312,7 +307,6 @@ namespace Tac
 
       for( const UI2DDrawCall& uidrawCall : mDrawCall2Ds )
       {
-
         const Render::TextureHandle texture = uidrawCall.mTexture.IsValid() ?
           uidrawCall.mTexture :
           gUI2DCommonData.m1x1White;
@@ -320,6 +314,11 @@ namespace Tac
                                       &uidrawCall.mUniformSource,
                                       sizeof( DefaultCBufferPerObject ),
                                       TAC_STACK_FRAME );
+        Render::SetBlendState( gUI2DCommonData.mBlendState );
+        Render::SetRasterizerState( gUI2DCommonData.mRasterizerState );
+        Render::SetSamplerState( gUI2DCommonData.mSamplerState );
+        Render::SetDepthState( gUI2DCommonData.mDepthState );
+        Render::SetVertexFormat( gUI2DCommonData.mFormat );
         Render::SetVertexBuffer( mVertexBufferHandle, uidrawCall.mIVertexStart, uidrawCall.mVertexCount );
         Render::SetIndexBuffer( mIndexBufferHandle, uidrawCall.mIIndexStart, uidrawCall.mIndexCount );
         Render::SetTexture( { texture } );
@@ -643,7 +642,7 @@ namespace Tac
 
     int lineCount = 1;
 
-    auto AccountForLine = [&]()
+    auto AccountForLine = [ & ]()
     {
       lineWidthUISpaceMax = Max( lineWidthUISpaceMax, lineWidthUISpace );
 

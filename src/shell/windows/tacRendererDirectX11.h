@@ -179,6 +179,7 @@ namespace Tac
       IndexBufferHandle          mBoundIndexBuffer;
       bool                       mBoundFramebuffersThisFrame[ kMaxFramebuffers ];
       DrawCallUAVs               mBoundDrawCallUAVs;
+      VertexFormatHandle         mBoundDrawCallVertexFormat;
     };
   } // namespace Render
 } // namespace Tac

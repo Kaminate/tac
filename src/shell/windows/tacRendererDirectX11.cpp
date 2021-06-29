@@ -1005,45 +1005,43 @@ namespace Tac
 
     }
 
-    void RendererDirectX11::RenderDrawCallVertexBuffer( const DrawCall*drawCall )
+    void RendererDirectX11::RenderDrawCallVertexBuffer( const DrawCall* drawCall )
     {
-
-      if( drawCall->mVertexBufferHandle != mBoundVertexBuffer )
+      if( drawCall->mVertexBufferHandle == mBoundVertexBuffer )
+        return;
+      mBoundVertexBuffer = drawCall->mVertexBufferHandle;
+      if( drawCall->mVertexBufferHandle.IsValid() )
       {
-        mBoundVertexBuffer = drawCall->mVertexBufferHandle;
-        if( drawCall->mVertexBufferHandle.IsValid() )
+        const VertexBuffer* vertexBuffer = &mVertexBuffers[ ( int )drawCall->mVertexBufferHandle ];
+        TAC_ASSERT( vertexBuffer->mBuffer );
+        const UINT startSlot = 0;
+        const UINT NumBuffers = 1;
+        const UINT Strides[ NumBuffers ] = { ( UINT )vertexBuffer->mStride };
+        const UINT ByteOffsets[ NumBuffers ] =
         {
-          const VertexBuffer* vertexBuffer = &mVertexBuffers[ ( int )drawCall->mVertexBufferHandle ];
-          TAC_ASSERT( vertexBuffer->mBuffer );
-          const UINT startSlot = 0;
-          const UINT NumBuffers = 1;
-          const UINT Strides[ NumBuffers ] = { ( UINT )vertexBuffer->mStride };
-          const UINT ByteOffsets[ NumBuffers ] =
-          {
-            0
-            // ( UINT )( drawCall->mStartVertex * vertexBuffer->mStride )
-          };
-          ID3D11Buffer* buffers[ NumBuffers ] = { vertexBuffer->mBuffer };
-          mDeviceContext->IASetVertexBuffers( startSlot,
-                                              NumBuffers,
-                                              buffers,
-                                              Strides,
-                                              ByteOffsets );
+          0
+          // ( UINT )( drawCall->mStartVertex * vertexBuffer->mStride )
+        };
+        ID3D11Buffer* buffers[ NumBuffers ] = { vertexBuffer->mBuffer };
+        mDeviceContext->IASetVertexBuffers( startSlot,
+                                            NumBuffers,
+                                            buffers,
+                                            Strides,
+                                            ByteOffsets );
 
-        }
-        else
-        {
-          UINT         StartSlot = 0;
-          UINT         NumBuffers = 16;
-          ID3D11Buffer *VertexBuffers[ 16 ] = {};
-          UINT         Strides[ 16 ] = {};
-          UINT         Offsets[ 16 ] = {};
-          mDeviceContext->IASetVertexBuffers( StartSlot, NumBuffers, VertexBuffers, Strides, Offsets );
-        }
+      }
+      else
+      {
+        UINT         StartSlot = 0;
+        UINT         NumBuffers = 16;
+        ID3D11Buffer *VertexBuffers[ 16 ] = {};
+        UINT         Strides[ 16 ] = {};
+        UINT         Offsets[ 16 ] = {};
+        mDeviceContext->IASetVertexBuffers( StartSlot, NumBuffers, VertexBuffers, Strides, Offsets );
       }
     }
 
-    void RendererDirectX11::RenderDrawCallRasterizerState( const DrawCall*drawCall )
+    void RendererDirectX11::RenderDrawCallRasterizerState( const DrawCall* drawCall )
     {
       if( drawCall->mRasterizerStateHandle.IsValid() )
       {
@@ -1054,9 +1052,8 @@ namespace Tac
 
     }
 
-    void RendererDirectX11::RenderDrawCallSamplerState( const DrawCall*drawCall )
+    void RendererDirectX11::RenderDrawCallSamplerState( const DrawCall* drawCall )
     {
-
       if( drawCall->mSamplerStateHandle.IsValid() )
       {
         const UINT StartSlot = 0;
@@ -1069,19 +1066,19 @@ namespace Tac
       }
     }
 
-    void RendererDirectX11::RenderDrawCallVertexFormat( const DrawCall*drawCall )
+    void RendererDirectX11::RenderDrawCallVertexFormat( const DrawCall* drawCall )
     {
-      if( drawCall->mVertexFormatHandle.IsValid() )
-      {
-        ID3D11InputLayout* inputLayout = mInputLayouts[ ( int )drawCall->mVertexFormatHandle ];
-        TAC_ASSERT( inputLayout );
-        mDeviceContext->IASetInputLayout( inputLayout );
-      }
-
-
+      if( mBoundDrawCallVertexFormat == drawCall->mVertexFormatHandle )
+        return;
+      mBoundDrawCallVertexFormat = drawCall->mVertexFormatHandle;
+      ID3D11InputLayout* inputLayout
+        = drawCall->mVertexFormatHandle.IsValid()
+        ? mInputLayouts[ ( int )drawCall->mVertexFormatHandle ]
+        : nullptr;
+      mDeviceContext->IASetInputLayout( inputLayout );
     }
 
-    void RendererDirectX11::RenderDrawCallTextures( const DrawCall*drawCall )
+    void RendererDirectX11::RenderDrawCallTextures( const DrawCall* drawCall )
     {
 
       if( drawCall->mTextureHandle.size() )
@@ -1193,7 +1190,7 @@ namespace Tac
         //
         // Unbinding it so dx doesnt give us a info message that it's unbinding it for us
         mDeviceContext->OMSetRenderTargets( 0, nullptr, nullptr );
-        
+
         framebuffer->mSwapChain->Present( 0, 0 );
       }
       if( gVerbose )
@@ -1363,7 +1360,19 @@ namespace Tac
     {
       TAC_ASSERT( IsMainThread() );
       Render::VertexFormatHandle vertexFormatHandle = commandData->mVertexFormatHandle;
+
+      // Let's say your shader doesn't require buffers.
+      // So you go to create an input layout with no elements.
+      // ID3D11Device::CreateInputLayout gives a error when passed a null pDesc because you
+      // used a Vector.
+      //
+      // So you switch to using FixedVector, but then you get a warning that the input layout has
+      // 0 elements.
+      //
+      // Turns out IASetInputLayout( NULL ) is just fine, so the Vector can stay.
+
       Vector< D3D11_INPUT_ELEMENT_DESC > inputElementDescs;
+
       for( int iVertexFormatData = 0;
            iVertexFormatData < commandData->mVertexDeclarations.size();
            ++iVertexFormatData )

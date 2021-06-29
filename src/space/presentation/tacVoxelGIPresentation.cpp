@@ -28,16 +28,20 @@ namespace Tac
   static Render::VertexFormatHandle    voxelVertexFormat;
   static Render::ShaderHandle          voxelizerShader;
   static Render::ShaderHandle          voxelVisualizerShader;
+
+  // use null ID3D11InputLayout* instead
+  //static Render::VertexFormatHandle    voxelVisualizerEmptyInputLayout;
+
   static Render::ShaderHandle          voxelCopyShader;
   static Render::ConstantBufferHandle  voxelConstantBuffer;
   static Render::RasterizerStateHandle voxelRasterizerState;
 
   Render::VertexDeclarations           voxelVertexDeclarations;
-  static int                           voxelDimension = 1;
+  static int                           voxelDimension = 2;
   static bool                          voxelDebug = true;
   static bool                          voxelEnabled = true;
   static v3                            voxelGridCenter;
-  static float                         voxelGridHalfWidth = 5.0f;
+  static float                         voxelGridHalfWidth = 2.0f;
   static bool                          voxelGridSnapCamera;
 
 
@@ -67,6 +71,11 @@ namespace Tac
       GamePresentationGetPerObj(),
     };
   }
+
+  //static void                    CreateVoxelVisualizerInputLayout()
+  //{
+  //  voxelVisualizerEmptyInputLayout = Render::CreateVertexFormat( {}, voxelVisualizerShader, TAC_STACK_FRAME );
+  //}
 
   static void                    CreateVoxelConstantBuffer()
   {
@@ -251,10 +260,10 @@ namespace Tac
 
     for( int i = 0; i <= ( int )cpuCBufferVoxelizer.gVoxelGridSize; ++i )
     {
-      v3 bl = planeCenter + ( -perpA -perpB ) * cpuCBufferVoxelizer.gVoxelGridHalfWidth;
-      v3 tl = planeCenter + ( -perpA +perpB ) * cpuCBufferVoxelizer.gVoxelGridHalfWidth;
-      v3 br = planeCenter + ( perpA -perpB ) * cpuCBufferVoxelizer.gVoxelGridHalfWidth;
-      v3 tr = planeCenter + ( perpA +perpB ) * cpuCBufferVoxelizer.gVoxelGridHalfWidth;
+      v3 bl = planeCenter + ( -perpA - perpB ) * cpuCBufferVoxelizer.gVoxelGridHalfWidth;
+      v3 tl = planeCenter + ( -perpA + perpB ) * cpuCBufferVoxelizer.gVoxelGridHalfWidth;
+      v3 br = planeCenter + ( perpA - perpB ) * cpuCBufferVoxelizer.gVoxelGridHalfWidth;
+      v3 tr = planeCenter + ( perpA + perpB ) * cpuCBufferVoxelizer.gVoxelGridHalfWidth;
 
       for( int j = 0; j <= ( int )cpuCBufferVoxelizer.gVoxelGridSize; ++j )
       {
@@ -271,17 +280,16 @@ namespace Tac
         float lerpT = ( float )j / ( float )cpuCBufferVoxelizer.gVoxelGridSize;
         v3 b = Lerp( bl, br, lerpT );
         v3 t = Lerp( tl, tr, lerpT );
-        drawData->DebugDraw3DLine( b, t, GetColor(b), GetColor(t) );
+        drawData->DebugDraw3DLine( b, t, GetColor( b ), GetColor( t ) );
         v3 l = Lerp( bl, tl, lerpT );
         v3 r = Lerp( br, tr, lerpT );
-        drawData->DebugDraw3DLine( l, r, GetColor(l), GetColor(r) );
+        drawData->DebugDraw3DLine( l, r, GetColor( l ), GetColor( r ) );
 
       }
 
       planeCenter += mainAxis * cpuCBufferVoxelizer.gVoxelWidth;
     }
   }
-
 
   static void                    DrawRubixCube( Debug3DDrawData* drawData )
   {
@@ -295,6 +303,7 @@ namespace Tac
     CreateVoxelConstantBuffer();
     CreateVoxelRasterizerState();
     CreateVoxelVisualizerShader();
+    //CreateVoxelVisualizerInputLayout();
     CreateVoxelCopyShader();
     CreateVoxelRWStructredBuf();
     CreateVoxelTextureRadianceBounce1();
@@ -326,12 +335,7 @@ namespace Tac
                                   TAC_STACK_FRAME );
     Render::SetShader( voxelVisualizerShader );
     Render::SetTexture( { voxelTextureRadianceBounce0 } );
-
-#if 0
-    // not using UAVs in this shader
-    Render::SetPixelShaderUnorderedAccessView( voxelRWStructuredBuf, 0 );
-    Render::SetPixelShaderUnorderedAccessView( voxelTextureRadianceBounce0, 1 );
-#endif
+    Render::SetVertexFormat( Render::VertexFormatHandle() );
     Render::SetPrimitiveTopology( Render::PrimitiveTopology::PointList );
     Render::SetVertexBuffer( Render::VertexBufferHandle(), 0, voxelDimension * voxelDimension * voxelDimension );
     Render::SetIndexBuffer( Render::IndexBufferHandle(), 0, 0 );
@@ -339,11 +343,12 @@ namespace Tac
 
     Render::EndGroup( TAC_STACK_FRAME );
 
+    //Render::SubmitFrame(); // temp
+    //Render::SubmitFrame(); // temp
+
 
     DrawRubixCube( world->mDebug3DDrawData );
 
-    //Render::SubmitFrame(); // temp
-    //Render::SubmitFrame(); // temp
   }
 
   void               VoxelGIPresentationRender( World* world,

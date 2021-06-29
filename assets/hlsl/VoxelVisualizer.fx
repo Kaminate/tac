@@ -18,24 +18,29 @@ float3 GenerateCubeVertex( uint i )
 
 struct VS_OUT_GS_IN
 {
-  float3 mColor                 : _;
-  float3 mWorldSpaceVoxelCenter : __;
+  float3 mColor                 : mColor;
+  float3 mWorldSpaceVoxelCenter : mWorldSpaceVoxelCenter;
 };
 
-VS_OUT_GS_IN VS( uint iVertex : SV_VERTEXID )
+uint3 ExtractVoxelIndex( uint iVertex )
 {
   uint i = iVertex % gVoxelGridSize;
   iVertex /= gVoxelGridSize;
   uint j = iVertex % gVoxelGridSize;
   iVertex /= gVoxelGridSize;
   uint k = iVertex % gVoxelGridSize;
+  return uint3( i, j, k );
+}
 
-  float3 color = voxels.Load(int4(i,j,k,0)).xyz;
-  float3 worldSpaceVoxelCenter = float3( i, j, k );
-  worldSpaceVoxelCenter /= ( float )gVoxelGridSize;
-  worldSpaceVoxelCenter -= gVoxelGridHalfWidth; 
-  worldSpaceVoxelCenter += gVoxelWidth / 2;
+VS_OUT_GS_IN VS( uint iVertex : SV_VERTEXID )
+{
+  uint3 iVoxel = ExtractVoxelIndex( iVertex );
 
+  float3 color = voxels.Load( int4( iVoxel.x, iVoxel.y, iVoxel.z, 0 ) ).xyz;
+  float3 worldSpaceVoxelMinCorner = gVoxelGridCenter - gVoxelGridHalfWidth;
+  float3 worldSpaceVoxelCenter
+    = worldSpaceVoxelMinCorner
+    + gVoxelWidth * ( float3( iVoxel.x, iVoxel.y, iVoxel.z ) + 0.5 );
   VS_OUT_GS_IN result;
   result.mColor = color;
   result.mWorldSpaceVoxelCenter = worldSpaceVoxelCenter;
@@ -47,24 +52,26 @@ VS_OUT_GS_IN VS( uint iVertex : SV_VERTEXID )
 struct GS_OUT_PS_IN
 {
   float4 mClipSpacePosition      : SV_POSITION;
-  float3 mColor                  : _;
+  float3 mColor                  : mColor;
 };
 
-[ maxvertexcount( CUBE_STRIP_VTX_COUNT ) ]
+[maxvertexcount( CUBE_STRIP_VTX_COUNT )]
 void GS( point VS_OUT_GS_IN input[ 1 ],
          inout TriangleStream< GS_OUT_PS_IN > outputs )
 {
   for( int iVtx = 0; iVtx < CUBE_STRIP_VTX_COUNT; ++iVtx )
   {
-    float3 modelSpacePosition = GenerateCubeVertex( iVtx );
+    float3 modelSpacePosition = GenerateCubeVertex( iVtx ) * 2.0f - 1.0f;
     float3 worldSpacePosition = input[ 0 ].mWorldSpaceVoxelCenter + modelSpacePosition * ( gVoxelWidth / 2 );
+    float4 viewSpacePosition = mul( View, float4( worldSpacePosition, 1 ) );
+    float4 clipSpacePosition = mul( Projection, viewSpacePosition );
 
     GS_OUT_PS_IN output;
-    output.mClipSpacePosition = float4( worldSpacePosition, 1 );
-    output.mColor = input[0].mColor;;
+    output.mClipSpacePosition = clipSpacePosition;
+    output.mColor = input[ 0 ].mColor;
     outputs.Append( output );
-
   }
+  outputs.RestartStrip();
 }
 
 
