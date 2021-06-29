@@ -357,6 +357,40 @@ namespace Tac
       }
     }
   }
+  void Debug3DDrawData::DebugDraw3DAABB( v3 mini, v3 maxi, v3 miniColor, v3 maxiColor )
+  {
+
+    for( int a0 = 0; a0 < 3; ++a0 )
+    {
+      v3 v0;
+      v3 v0Color;
+      v0[ a0 ] = mini[ a0 ];
+      v0Color[ a0 ] = miniColor[ a0 ];
+
+      v3 v1;
+      v3 v1Color;
+      v1[ a0 ] = maxi[ a0 ];
+      v1Color[ a0 ] = maxiColor[ a0 ];
+      int a1 = ( a0 + 1 ) % 3;
+      int a2 = ( a0 + 2 ) % 3;
+      for( float a1Val : { mini[ a1 ], maxi[ a1 ] } )
+      {
+        v0[ a1 ] = a1Val;
+        v1[ a1 ] = a1Val;
+        v0Color[ a1 ] = a1Val == mini[ a1 ] ? miniColor[ a1 ] : maxiColor[ a1 ];
+        v1Color[ a1 ] = a1Val == mini[ a1 ] ? miniColor[ a1 ] : maxiColor[ a1 ];
+        for( float a2Val : { mini[ a2 ], maxi[ a2 ] } )
+        {
+          v0[ a2 ] = a2Val;
+          v1[ a2 ] = a2Val;
+          v0Color[ a2 ] = a2Val == mini[ a2 ] ? miniColor[ a2 ] : maxiColor[ a2 ];
+          v1Color[ a2 ] = a2Val == mini[ a2 ] ? miniColor[ a2 ] : maxiColor[ a2 ];
+          DebugDraw3DLine( v0, v1, v0Color, v1Color );
+        }
+      }
+    }
+  }
+
   void Debug3DDrawData::DebugDraw3DAABB( v3 mini, v3 maxi, v3 color )
   {
     for( int a0 = 0; a0 < 3; ++a0 )

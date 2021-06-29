@@ -44,6 +44,9 @@ VS_OUT_GS_IN VS( uint iVertex : SV_VERTEXID )
   VS_OUT_GS_IN result;
   result.mColor = color;
   result.mWorldSpaceVoxelCenter = worldSpaceVoxelCenter;
+  // if( iVertex != ( int ) secModTau % 6 )
+  //  result.mWorldSpaceVoxelCenter = float3( 10, 10, 10 );
+
   return result;
 }
 
@@ -61,8 +64,11 @@ void GS( point VS_OUT_GS_IN input[ 1 ],
 {
   for( int iVtx = 0; iVtx < CUBE_STRIP_VTX_COUNT; ++iVtx )
   {
+    float worldSpaceEpsilon = 0.01; // Shrink the voxels so the outlines draw on top
     float3 modelSpacePosition = GenerateCubeVertex( iVtx ) * 2.0f - 1.0f;
-    float3 worldSpacePosition = input[ 0 ].mWorldSpaceVoxelCenter + modelSpacePosition * ( gVoxelWidth / 2 );
+    float3 worldSpacePosition
+      = input[ 0 ].mWorldSpaceVoxelCenter
+      + modelSpacePosition * ( ( gVoxelWidth - worldSpaceEpsilon ) / 2 );
     float4 viewSpacePosition = mul( View, float4( worldSpacePosition, 1 ) );
     float4 clipSpacePosition = mul( Projection, viewSpacePosition );
 
@@ -71,7 +77,6 @@ void GS( point VS_OUT_GS_IN input[ 1 ],
     output.mColor = input[ 0 ].mColor;
     outputs.Append( output );
   }
-  outputs.RestartStrip();
 }
 
 

@@ -17,6 +17,10 @@
 #include "src/space/tacentity.h"
 #include "src/space/tacworld.h"
 
+#if _MSC_VER
+#pragma warning( disable: 4505)
+#endif
+
 namespace Tac
 {
   // https://docs.microsoft.com/en-us/windows/win32/direct3d11/direct3d-11-advanced-stages-cs-resources
@@ -39,6 +43,8 @@ namespace Tac
   Render::VertexDeclarations           voxelVertexDeclarations;
   static int                           voxelDimension = 2;
   static bool                          voxelDebug = true;
+  static bool                          voxelDebugDrawOutlines = true;
+  static bool                          voxelDebugDrawVoxels = true;
   static bool                          voxelEnabled = true;
   static v3                            voxelGridCenter;
   static float                         voxelGridHalfWidth = 2.0f;
@@ -238,63 +244,26 @@ namespace Tac
     return cpuCBufferVoxelizer;
   }
 
-  static void                    DrawRubixCubeSide( int iAxis, Debug3DDrawData* drawData )
+  static void                    RenderDebugVoxelOutline( Debug3DDrawData* drawData )
   {
-    const v3 x( 1, 0, 0 );
-    const v3 y( 0, 1, 0 );
-    const v3 z( 0, 0, 1 );
-    const v3 axes[] = { x,y,z };
-
-    const v3 mainAxis = axes[ iAxis ];
-    const v3 perpA = axes[ ( iAxis + 1 ) % 3 ];
-    const v3 perpB = axes[ ( iAxis + 2 ) % 3 ];
-
-
-    CBufferVoxelizer cpuCBufferVoxelizer = VoxelGetCBuffer();
-    v3 planeCenter
-      = cpuCBufferVoxelizer.gVoxelGridCenter
-      - mainAxis * cpuCBufferVoxelizer.gVoxelGridHalfWidth;
-
-    const v3 miniPos = cpuCBufferVoxelizer.gVoxelGridCenter - v3( 1, 1, 1 ) * cpuCBufferVoxelizer.gVoxelGridHalfWidth;
-    const v3 maxiPos = cpuCBufferVoxelizer.gVoxelGridCenter + v3( 1, 1, 1 ) * cpuCBufferVoxelizer.gVoxelGridHalfWidth;
-
-    for( int i = 0; i <= ( int )cpuCBufferVoxelizer.gVoxelGridSize; ++i )
+    if( !voxelDebugDrawOutlines )
+      return;
+    for( int i = 0; i < voxelDimension; ++i )
     {
-      v3 bl = planeCenter + ( -perpA - perpB ) * cpuCBufferVoxelizer.gVoxelGridHalfWidth;
-      v3 tl = planeCenter + ( -perpA + perpB ) * cpuCBufferVoxelizer.gVoxelGridHalfWidth;
-      v3 br = planeCenter + ( perpA - perpB ) * cpuCBufferVoxelizer.gVoxelGridHalfWidth;
-      v3 tr = planeCenter + ( perpA + perpB ) * cpuCBufferVoxelizer.gVoxelGridHalfWidth;
-
-      for( int j = 0; j <= ( int )cpuCBufferVoxelizer.gVoxelGridSize; ++j )
+      for( int j = 0; j < voxelDimension; ++j )
       {
-
-        auto GetColor = [ & ]( v3 p )
+        for( int k = 0; k < voxelDimension; ++k )
         {
-          v3 pColor;
-          pColor.x = ( p.x - miniPos.x ) / ( maxiPos.x - miniPos.x );
-          pColor.y = ( p.y - miniPos.y ) / ( maxiPos.y - miniPos.y );
-          pColor.z = ( p.z - miniPos.z ) / ( maxiPos.z - miniPos.z );
-          return pColor;
-        };
-
-        float lerpT = ( float )j / ( float )cpuCBufferVoxelizer.gVoxelGridSize;
-        v3 b = Lerp( bl, br, lerpT );
-        v3 t = Lerp( tl, tr, lerpT );
-        drawData->DebugDraw3DLine( b, t, GetColor( b ), GetColor( t ) );
-        v3 l = Lerp( bl, tl, lerpT );
-        v3 r = Lerp( br, tr, lerpT );
-        drawData->DebugDraw3DLine( l, r, GetColor( l ), GetColor( r ) );
-
+          const float voxelWidth = ( voxelGridHalfWidth * 2.0f ) / voxelDimension;
+          const v3 iVoxel( ( float )i, ( float )j, ( float )k );
+          const v3 minPos = voxelGridCenter - voxelGridHalfWidth * v3( 1, 1, 1 ) + voxelWidth * iVoxel;
+          const v3 maxPos = minPos + voxelWidth * v3( 1, 1, 1 );
+          const v3 minColor = iVoxel / ( float )voxelDimension;
+          const v3 maxColor = ( iVoxel + v3( 1, 1, 1 ) ) / ( float )voxelDimension;
+          drawData->DebugDraw3DAABB( minPos, maxPos, minColor, maxColor );
+        }
       }
-
-      planeCenter += mainAxis * cpuCBufferVoxelizer.gVoxelWidth;
     }
-  }
-
-  static void                    DrawRubixCube( Debug3DDrawData* drawData )
-  {
-    for( int iAxis = 0; iAxis < 3; ++iAxis )
-      DrawRubixCubeSide( iAxis, drawData );
   }
 
   void               VoxelGIPresentationInit( Errors& )
@@ -316,19 +285,13 @@ namespace Tac
 
   }
 
-  void               VoxelGIPresentationRenderDebug( World* world,
-                                                     const Camera* camera,
-                                                     const int viewWidth,
-                                                     const int viewHeight,
-                                                     const Render::ViewHandle viewHandle )
+  static void        RenderDebugVoxels( const Render::ViewHandle viewHandle )
   {
-    //Render::SubmitFrame(); // temp
-    //Render::SubmitFrame(); // temp
+    if( !voxelDebugDrawVoxels )
+      return;
+    const CBufferVoxelizer cpuCBufferVoxelizer = VoxelGetCBuffer();
 
     Render::BeginGroup( "Voxel GI Debug", TAC_STACK_FRAME );
-
-    CBufferVoxelizer cpuCBufferVoxelizer = VoxelGetCBuffer();
-
     Render::UpdateConstantBuffer( voxelConstantBuffer,
                                   &cpuCBufferVoxelizer,
                                   sizeof( CBufferVoxelizer ),
@@ -342,13 +305,16 @@ namespace Tac
     Render::Submit( viewHandle, TAC_STACK_FRAME );
 
     Render::EndGroup( TAC_STACK_FRAME );
+  }
 
-    //Render::SubmitFrame(); // temp
-    //Render::SubmitFrame(); // temp
-
-
-    DrawRubixCube( world->mDebug3DDrawData );
-
+  void               VoxelGIPresentationRenderDebug( World* world,
+                                                     const Camera* camera,
+                                                     const int viewWidth,
+                                                     const int viewHeight,
+                                                     const Render::ViewHandle viewHandle )
+  {
+    RenderDebugVoxels( viewHandle );
+    RenderDebugVoxelOutline( world->mDebug3DDrawData );
   }
 
   void               VoxelGIPresentationRender( World* world,
@@ -472,6 +438,12 @@ namespace Tac
 
     ImGuiDragInt( "voxel dimension", &voxelDimension );
     voxelDimension = Max( voxelDimension, 1 );
+
+    if( voxelDebug )
+    {
+      ImGuiCheckbox( "Debug draw outlines", &voxelDebugDrawOutlines );
+      ImGuiCheckbox( "Debug draw voxels", &voxelDebugDrawVoxels );
+    }
   }
 }
 

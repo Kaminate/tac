@@ -45,6 +45,7 @@ namespace Tac
     void DebugDraw3DArrow( v3 from, v3 to, v3 color = { 1, 1, 1 } );
     void DebugDraw3DOBB( v3 pos, v3 extents, v3 eulerAnglesRad, v3 color = { 1, 1, 1 } );
     void DebugDraw3DAABB( v3 mini, v3 maxi, v3 color = { 1, 1, 1 } );
+    void DebugDraw3DAABB( v3 mini, v3 maxi, v3 miniColor, v3 maxiColor );
     void DebugDraw3DTriangle( v3 p0, v3 p1, v3 p2, v3 color0, v3 color1, v3 color2 );
     void DebugDraw3DTriangle( v3 p0, v3 p1, v3 p2, v3 color = v3( 1, 1, 1 ) );
     void DebugDraw3DToTexture( const Render::ViewHandle,
