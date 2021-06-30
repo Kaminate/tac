@@ -77,6 +77,6 @@ namespace Tac
 
   Errors* GetPlatformThreadErrors();
   Errors* GetLogicThreadErrors();
-  bool IsMainThread();
-  bool IsLogicThread();
+  bool    IsMainThread();
+  bool    IsLogicThread();
 }

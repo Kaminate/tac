@@ -57,7 +57,7 @@ namespace Tac
 
   DirectInputPerController::~DirectInputPerController()
   {
-    mDivice->Release();
+    mDevice->Release();
   }
 
   void DirectInputPerController::DebugImguiInner()
@@ -174,7 +174,7 @@ namespace Tac
       if( mForceIndexOverride && ( iController != mIndexOverride ) )
         continue;
 
-      IDirectInputDevice8* joystick = directInputPerController->mDivice;
+      IDirectInputDevice8* joystick = directInputPerController->mDevice;
       hr = joystick->Poll();
       if( FAILED( hr ) )
       {
@@ -220,7 +220,7 @@ namespace Tac
                                             NULL );
     TAC_ASSERT( SUCCEEDED( hr ) ); // ???
     controller = TAC_NEW DirectInputPerController;
-    controller->mDivice = joystick;
+    controller->mDevice = joystick;
     controller->mInstance = *pdidInstance;
     controller->mName = pdidInstance->tszInstanceName;
 

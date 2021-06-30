@@ -67,7 +67,7 @@ namespace Tac
     ImGuiId                       GetID();
     void                          SetActiveID( ImGuiId );
     ImGuiId                       GetActiveID();
-    void*                         GetWindowResource( ImGuiIndex id );
+    void*                         GetWindowResource( ImGuiIndex );
     bool                          IsHovered( const ImGuiRect& );
     v2                            GetMousePosViewport();
 

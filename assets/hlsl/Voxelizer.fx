@@ -7,7 +7,7 @@
 //===----------------- vertex shader -----------------===//
 
 //                          UAV requires a 'u' register
-RWStructuredBuffer< Voxel > mySB : register( u0 );
+RWStructuredBuffer< Voxel > mySB : register( u1 );
 
 Texture2D diffuseMaterialTexture : register( t0 );
 
@@ -44,9 +44,9 @@ struct VS_OUT_GS_IN
   //
   //                               ^ update: these semantics names will show up in renderdoc,
   //                                         so it would be more useful to name them
-  float3 mWorldSpacePosition     : _;
-  float3 mWorldSpaceUnitNormal   : __;
-  float2 mTexCoord               : ___;
+  float3 mWorldSpacePosition     : mWorldSpacePosition;
+  float3 mWorldSpaceUnitNormal   : mWorldSpaceUnitNormal;
+  float2 mTexCoord               : mTexCoord;
 };
 
 VS_OUT_GS_IN VS( VS_INPUT input )
@@ -62,12 +62,10 @@ VS_OUT_GS_IN VS( VS_INPUT input )
 
 struct GS_OUT_PS_IN
 {
-  float2 mTexCoord               : _;
-  float3 mWorldSpaceUnitNormal   : __;
-  float3 mWorldSpacePosition     : ___;
+  float2 mTexCoord               : mTexCoord;
+  float3 mWorldSpaceUnitNormal   : mWorldSpaceUnitNormal;
+  float3 mWorldSpacePosition     : mWorldSpacePosition;
   float4 mClipSpacePosition      : SV_POSITION;
-
-  // float3 mDebug_wsNormal : WS_NORMAL;
 
   float3 debug_worldSpaceAbsFaceNormal : WS_ABS_face_NORMAL;
   float3 debug_gVoxelGridCenter        : voxel_grid_center;
@@ -109,7 +107,6 @@ void GS( triangle VS_OUT_GS_IN input[ 3 ],
     output.mClipSpacePosition    = clipSpacePosition;
 
     output.debug_worldSpaceAbsFaceNormal = worldSpaceAbsFaceNormal;
-
     output.debug_gVoxelGridCenter = gVoxelGridCenter;
     output.debug_gVoxelWidth = gVoxelWidth;
     output.debug_gVoxelGridHalfWidth = gVoxelGridHalfWidth;
@@ -130,46 +127,60 @@ struct PS_OUTPUT
 PS_OUTPUT PS( VS_OUTPUT input )
 */
 
-void PS( GS_OUT_PS_IN input )
+struct PS_OUTPUT
 {
-  float3 color                 = float3( 0, 0, 0 );
-  float3 colorLightDiffuse     = float3( 0, 0, 0 );
+  float4 mColor : SV_Target0;
+};
+
+PS_OUTPUT PS( GS_OUT_PS_IN input )
+{
   float3 colorLightAmbient     = float3( 0, 0, 0 );
-  float3 colorMaterialDiffuse  = float3( 0, 0, 0 );
   float3 colorMaterialEmissive = float3( 0, 0, 0 );
   float3 l                     = float3( 0, 1, 0 );
   float3 n                     = input.mWorldSpaceUnitNormal;
-  float3 voxelNDC = ( input.mWorldSpacePosition - gVoxelGridCenter )
-                  * ( 1.0f / gVoxelGridHalfWidth )
-                  * ( 1.0f / gVoxelWidth );
+  float3 voxelNDC
+    = ( input.mWorldSpacePosition - gVoxelGridCenter )
+    / gVoxelGridHalfWidth;
+    // think we dont divide by gVoxelWidth here
+    // * ( 1.0f / gVoxelWidth );
   if( voxelNDC.x < -1 || voxelNDC.x > 1 ||
       voxelNDC.y < -1 || voxelNDC.y > 1 ||
       voxelNDC.z < -1 || voxelNDC.z > 1 )
-    return;
+    return ( PS_OUTPUT )0;
 
   float3 voxelUVW = voxelNDC * 0.5f + 0.5f;
-  bool   voxelUVWSaturated = voxelUVW.x > 0 && voxelUVW.x < 1 ||
-                             voxelUVW.y > 0 && voxelUVW.y < 1 ||
-                             voxelUVW.z > 0 && voxelUVW.z < 1;
-  if( !voxelUVWSaturated )
-    return;
 
-  colorMaterialDiffuse  = diffuseMaterialTexture.Sample( linearSampler, input.mTexCoord ).xyz;
-  colorLightDiffuse     = dot( n, l );
-  color                 = colorMaterialDiffuse * colorLightDiffuse
-                        + colorLightAmbient + 
-                        + colorMaterialEmissive;
+  // | Commenting out because
+  // v this is just a copy of the previous early out
+  //bool   voxelUVWSaturated = voxelUVW.x > 0 && voxelUVW.x < 1 ||
+  //                           voxelUVW.y > 0 && voxelUVW.y < 1 ||
+  //                           voxelUVW.z > 0 && voxelUVW.z < 1;
+  //if( !voxelUVWSaturated )
+  //  return ( PS_OUTPUT )0;
 
-  uint  uint_voxelGridWidth = gVoxelGridHalfWidth * 2;
-  uint  uint_voxelGridArea = uint_voxelGridWidth * uint_voxelGridWidth;
-  uint3 iVoxel3 = floor( voxelUVW * ( gVoxelGridHalfWidth * 2 ) );
-  uint  iVoxel = iVoxel3.x
-               + iVoxel3.y * uint_voxelGridWidth
-               + iVoxel3.z * uint_voxelGridArea;
+  float3 colorMaterialDiffuse = diffuseMaterialTexture.Sample( linearSampler, input.mTexCoord ).xyz;
+  float3 colorLightDiffuse = dot( n, l );
+  float3 color
+    //= colorMaterialDiffuse * colorLightDiffuse
+    //+ colorLightAmbient
+    //+ colorMaterialEmissive;
+    = colorMaterialDiffuse;
+
+  //float voxelGridWidth = gVoxelGridHalfWidth * 2;
+  //uint  uint_voxelGridWidth = voxelGridWidth;
+  //uint  uint_voxelGridArea = uint_voxelGridWidth * uint_voxelGridWidth;
+  uint3 iVoxel3 = floor( voxelUVW * gVoxelGridSize );
+  uint  iVoxel
+    = iVoxel3.x
+    + iVoxel3.y * gVoxelGridSize
+    + iVoxel3.z * gVoxelGridSize * gVoxelGridSize;
 
   uint uint_color = VoxelEncodeHDRColor( color );
   uint uint_n     = VoxelEncodeUnitNormal( n );
   InterlockedMax( mySB[ iVoxel ].mColor, uint_color );
   InterlockedMax( mySB[ iVoxel ].mNormal, uint_n );
+
+  PS_OUTPUT output = ( PS_OUTPUT )0;
+  return output;
 }
 

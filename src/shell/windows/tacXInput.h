@@ -23,7 +23,7 @@ namespace Tac
     void DebugImguiInner() override;
 
     DIDEVICEINSTANCE     mInstance = {};
-    IDirectInputDevice8* mDivice = nullptr;
+    IDirectInputDevice8* mDevice = nullptr;
     DIJOYSTATE2          mJoystate = {};
   };
 
@@ -32,8 +32,8 @@ namespace Tac
     void                      Init( Errors& );
     void                      UpdateInner() override;
     void                      DebugImguiInner() override;
-    void                      EnumerateController( const DIDEVICEINSTANCE* pdidInstance );
-    DirectInputPerController* FindDInputController( const DIDEVICEINSTANCE* mDeviceInstance );
+    void                      EnumerateController( const DIDEVICEINSTANCE* );
+    DirectInputPerController* FindDInputController( const DIDEVICEINSTANCE* );
 
     IDirectInput8*            directInput = nullptr;
     float                     mSecondsTillDisconver = 0;

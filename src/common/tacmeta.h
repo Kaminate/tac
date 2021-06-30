@@ -27,8 +27,8 @@ namespace Tac
 
   struct MetaVar
   {
-    String mName;
-    int mOffset = 0;
+    String    mName;
+    int       mOffset = 0;
     MetaType* mMetaType = nullptr;
   };
 
@@ -39,20 +39,22 @@ namespace Tac
 
   struct MetaVarDynArray : public MetaVar
   {
-    std::function<void( void*, int )>mResizeFunction;
-    std::function<void*( void* )>mDataFunction;
+    std::function< void( void*, int ) > mResizeFunction;
+    std::function< void*( void* ) >     mDataFunction;
   };
 
   struct MetaType
   {
     String mName;
-    int mSize = 0;
+    int    mSize = 0;
   };
+
   template< typename T >
   struct MetaPodType : public MetaType
   {
     //MetaPod mMetaPod = MetaPod::Unknown;
   };
+
   struct MetaCompositeType : public MetaType
   {
     Vector< MetaVar* > mMetaVars;
@@ -62,8 +64,8 @@ namespace Tac
   {
     Meta();
     static Meta* GetInstance();
-    MetaType* GetType( StringView name );
-    void AddType( MetaType* metaType );
+    MetaType*    GetType( StringView name );
+    void         AddType( MetaType* );
     //void Load( std::ifstream& ifs, MetaType* metaType, void* data, Errors& errors );
 
     std::map< String, MetaType* > metaTypes;

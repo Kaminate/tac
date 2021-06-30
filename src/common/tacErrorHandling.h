@@ -15,7 +15,7 @@ namespace Tac
 			// Append stack frame?
 			// Append messages?
 		};
-		Errors( Flags flags = Flags::kNone );
+		Errors( Flags = Flags::kNone );
 		operator bool() const;
 		bool                 size() const;
 		bool                 empty() const;

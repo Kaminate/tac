@@ -120,8 +120,8 @@ namespace Tac
     void                            Uninit();
     void                            DebugImgui();
     void                            GetCharacter( Language defaultLanguage,
-                                                  Codepoint codepoint,
-                                                  FontAtlasCell** fontAtlasCell );
+                                                  Codepoint ,
+                                                  FontAtlasCell** );
     FontAtlasCell*                  GetCell();
     Render::TextureHandle           mTextureId;
     int                             mRowCount = 0;

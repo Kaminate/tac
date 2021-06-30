@@ -1,11 +1,9 @@
-
 #pragma once
 
 #include "src/common/tacPreprocessor.h"
 
 namespace Tac
 {
-
   template< typename T >
   struct RingVector
   {
@@ -38,7 +36,7 @@ namespace Tac
       mTs[ ( mStartIndex + mCountUsed ) % mCountAllocated ] = t;
       mCountUsed++;
     }
-    T Pop()
+    T    Pop()
     {
       TAC_ASSERT( mCountUsed );
       T t = mTs[ mStartIndex ];
@@ -46,12 +44,12 @@ namespace Tac
       mCountUsed--;
       return t;
     }
-    int size() { return mCountUsed; }
+    int  size() { return mCountUsed; }
     bool empty() { return mCountUsed == 0; }
-    T* mTs;
-    int mCountAllocated;
-    int mStartIndex = 0;
-    int mCountUsed = 0;
+    T*   mTs;
+    int  mCountAllocated;
+    int  mStartIndex = 0;
+    int  mCountUsed = 0;
   };
 }
 

@@ -7,7 +7,7 @@ namespace Tac
   struct Errors;
   void               VoxelGIPresentationInit( Errors& );
   void               VoxelGIPresentationUninit();
-  void               VoxelGIPresentationRender( World*,
+  void               VoxelGIPresentationRender( const World*,
                                                 const Camera*,
                                                 int viewWidth,
                                                 int viewHeight,

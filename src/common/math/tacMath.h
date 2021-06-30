@@ -1,4 +1,3 @@
-
 // Useful math functions
 
 #pragma once

@@ -58,10 +58,10 @@ namespace Tac
   {
     Controller();
     virtual                 ~Controller();
-    bool                    IsButtonDown( ControllerButton controllerButton );
-    bool                    IsButtonChanged( ControllerButton controllerButton );
-    bool                    IsButtonJustPressed( ControllerButton controllerButton );
-    bool                    IsButtonJustReleased( ControllerButton controllerButton );
+    bool                    IsButtonDown( ControllerButton );
+    bool                    IsButtonChanged( ControllerButton );
+    bool                    IsButtonJustPressed( ControllerButton );
+    bool                    IsButtonJustReleased( ControllerButton );
     void                    DebugImgui();
     virtual void            DebugImguiInner();
     ControllerIndex         FindControllerIndex();
@@ -84,7 +84,7 @@ namespace Tac
     virtual void            UpdateInner();
     bool                    CanAddController();
     ControllerIndex         GetConnectedControllerCount();
-    ControllerIndex         AddController( Controller* controller );
+    ControllerIndex         AddController( Controller* );
     Controller*             mControllers[ TAC_CONTROLLER_COUNT_MAX ] = {};
     bool                    mDebugging;
     bool                    mForceIndexOverride = false;

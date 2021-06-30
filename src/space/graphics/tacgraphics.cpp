@@ -46,13 +46,13 @@ namespace Tac
       delete skybox;
     }
 
-    void                VisitModels( ModelVisitor* modelVisitor ) override
+    void                VisitModels( ModelVisitor* modelVisitor ) const override
     {
       for( Model* model : mModels )
         ( *modelVisitor )( model );
     }
 
-    void                VisitSkyboxes( SkyboxVisitor* skyboxVisitor ) override
+    void                VisitSkyboxes( SkyboxVisitor* skyboxVisitor ) const override
     {
       for( Skybox* skybox : mSkyboxes )
         ( *skyboxVisitor )( skybox );
@@ -99,6 +99,10 @@ namespace Tac
     return ( Graphics* )world->GetSystem( gGraphicsSystemRegistryEntry );
   }
 
+  const Graphics*   GetGraphics( const World* world )
+  {
+    return ( const Graphics* )world->GetSystem( gGraphicsSystemRegistryEntry );
+  }
 
 }
 

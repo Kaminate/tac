@@ -32,10 +32,6 @@ namespace Tac
   static Render::VertexFormatHandle    voxelVertexFormat;
   static Render::ShaderHandle          voxelizerShader;
   static Render::ShaderHandle          voxelVisualizerShader;
-
-  // use null ID3D11InputLayout* instead
-  //static Render::VertexFormatHandle    voxelVisualizerEmptyInputLayout;
-
   static Render::ShaderHandle          voxelCopyShader;
   static Render::ConstantBufferHandle  voxelConstantBuffer;
   static Render::RasterizerStateHandle voxelRasterizerState;
@@ -77,11 +73,6 @@ namespace Tac
       GamePresentationGetPerObj(),
     };
   }
-
-  //static void                    CreateVoxelVisualizerInputLayout()
-  //{
-  //  voxelVisualizerEmptyInputLayout = Render::CreateVertexFormat( {}, voxelVisualizerShader, TAC_STACK_FRAME );
-  //}
 
   static void                    CreateVoxelConstantBuffer()
   {
@@ -272,7 +263,6 @@ namespace Tac
     CreateVoxelConstantBuffer();
     CreateVoxelRasterizerState();
     CreateVoxelVisualizerShader();
-    //CreateVoxelVisualizerInputLayout();
     CreateVoxelCopyShader();
     CreateVoxelRWStructredBuf();
     CreateVoxelTextureRadianceBounce1();
@@ -307,7 +297,7 @@ namespace Tac
     Render::EndGroup( TAC_STACK_FRAME );
   }
 
-  void               VoxelGIPresentationRenderDebug( World* world,
+  void               VoxelGIPresentationRenderDebug( const World* world,
                                                      const Camera* camera,
                                                      const int viewWidth,
                                                      const int viewHeight,
@@ -317,14 +307,12 @@ namespace Tac
     RenderDebugVoxelOutline( world->mDebug3DDrawData );
   }
 
-  void               VoxelGIPresentationRender( World* world,
-                                                const Camera* camera,
-                                                const int viewWidth,
-                                                const int viewHeight,
-                                                const Render::ViewHandle viewHandle )
+  static void               VoxelGIPresentationRenderVoxelize( const World* world,
+                                                               const Camera* camera,
+                                                               const int viewWidth,
+                                                               const int viewHeight,
+                                                               const Render::ViewHandle viewHandle )
   {
-    if( !voxelEnabled )
-      return;
 
     voxelGridCenter = voxelGridSnapCamera ? camera->mPos : voxelGridCenter;
 
@@ -408,7 +396,7 @@ namespace Tac
                                   TAC_STACK_FRAME );
 
 
-    Graphics* graphics = GetGraphics( world );
+    const Graphics* graphics = GetGraphics( world );
 
     graphics->VisitModels( &modelVisitor );
 
@@ -419,6 +407,29 @@ namespace Tac
     //TAC_UNUSED_PARAMETER( viewHandle );
 
     Render::EndGroup( TAC_STACK_FRAME );
+  }
+  static void               VoxelGIPresentationRenderVoxelCopy( const World* world,
+                                                                const Camera* camera,
+                                                                const int viewWidth,
+                                                                const int viewHeight,
+                                                                const Render::ViewHandle viewHandle )
+  {
+
+    voxelCopyShader;
+
+  }
+  void               VoxelGIPresentationRender( const World* world,
+                                                const Camera* camera,
+                                                const int viewWidth,
+                                                const int viewHeight,
+                                                const Render::ViewHandle viewHandle )
+  {
+    if( !voxelEnabled )
+      return;
+
+    VoxelGIPresentationRenderVoxelize( world, camera, viewWidth, viewHeight, viewHandle );
+    VoxelGIPresentationRenderVoxelCopy( world, camera, viewWidth, viewHeight, viewHandle );
+
 
     if( voxelDebug )
       VoxelGIPresentationRenderDebug( world, camera, viewWidth, viewHeight, viewHandle );

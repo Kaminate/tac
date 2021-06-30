@@ -35,7 +35,7 @@ namespace Tac
 
   StringView LanguageToStr( Language );
   Language   GetLanguage( StringView );
-  void       LanguageDebugImgui( StringView name, Language* language );
+  void       LanguageDebugImgui( StringView name, Language* );
   bool       IsAsciiCharacter( Codepoint );
 
   struct CodepointView

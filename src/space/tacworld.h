@@ -1,13 +1,13 @@
-
 #pragma once
+
 #include "src/space/tacSpacetypes.h"
 #include "src/common/math/tacVector2.h"
 #include "src/common/math/tacMatrix4.h"
 #include "src/common/string/tacString.h"
 #include "src/common/containers/tacVector.h"
 #include "src/common/containers/tacArray.h"
-#include <list>
 
+#include <list>
 
 namespace Tac
 {
@@ -31,27 +31,28 @@ namespace Tac
     World();
     ~World();
 
-    System*   GetSystem( const SystemRegistryEntry* );
-    void      DeepCopy( const World& );
-    void      Step( float seconds );
-    void      DebugImgui();
-    void      ApplyInput( Player* player, float seconds );
-    void      ComputeTransformsRecursively( const m4& parentWorldTransformNoScale, Entity* entity );
+    System*       GetSystem( const SystemRegistryEntry* );
+    const System* GetSystem( const SystemRegistryEntry* ) const;
+    void          DeepCopy( const World& );
+    void          Step( float seconds );
+    void          DebugImgui();
+    void          ApplyInput( Player*, float seconds );
+    void          ComputeTransformsRecursively( const m4& parentWorldTransformNoScale, Entity* );
 
-    // Entity api
-    Entity*   SpawnEntity( EntityUUID entityUUID );
-    void      KillEntity( EntityUUID entityUUID );
-    void      KillEntity( Entity* entity );
-    void      KillEntity( EntityIterator it );
-    Entity*   FindEntity( PlayerUUID playerUUID );
-    Entity*   FindEntity( EntityUUID entityUUID );
-    Entity*   FindEntity( StringView name );
+    //            Entity api
+    Entity*       SpawnEntity( EntityUUID );
+    void          KillEntity( EntityUUID );
+    void          KillEntity( Entity* );
+    void          KillEntity( EntityIterator );
+    Entity*       FindEntity( PlayerUUID );
+    Entity*       FindEntity( EntityUUID );
+    Entity*       FindEntity( StringView );
 
-    // Player api
-    Player*   SpawnPlayer( PlayerUUID playerUUID );
-    void      KillPlayer( PlayerUUID playerUUID );
-    Player*   FindPlayer( PlayerUUID playerUUID );
-    Player*   FindPlayer( EntityUUID entityUUID );
+    //            Player api
+    Player*       SpawnPlayer( PlayerUUID );
+    void          KillPlayer( PlayerUUID );
+    Player*       FindPlayer( PlayerUUID );
+    Player*       FindPlayer( EntityUUID );
 
     double               mElapsedSecs = 0;
     bool                 mDebugDrawEntityOrigins = true;
@@ -63,7 +64,5 @@ namespace Tac
     //                   each system can access it
     Debug3DDrawData*     mDebug3DDrawData = nullptr;
   };
-
-
 }
 

@@ -44,6 +44,7 @@ VS_OUT_GS_IN VS( uint iVertex : SV_VERTEXID )
   VS_OUT_GS_IN result;
   result.mColor = color;
   result.mWorldSpaceVoxelCenter = worldSpaceVoxelCenter;
+
   // if( iVertex != ( int ) secModTau % 6 )
   //  result.mWorldSpaceVoxelCenter = float3( 10, 10, 10 );
 

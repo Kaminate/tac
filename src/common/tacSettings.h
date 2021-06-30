@@ -6,8 +6,6 @@
 
 namespace Tac
 {
-  const int flag_create_if_not_exist = 1; // thoughts?
-
 	struct     Errors;
 	void       SettingsInit( Errors& );
 	void       SettingsSave( Errors& );

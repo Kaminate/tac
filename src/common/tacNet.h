@@ -35,27 +35,28 @@ namespace Tac
   };
   String ToString( SocketType socketType );
 
-  typedef void( SocketCallback )( void* userData, Socket* socket );
-  typedef void( SocketCallbackMessage )( void* userData, Socket* socket, void* bytes, int byteCount );
+  typedef void( SocketCallback )( void* userData, Socket* );
+  typedef void( SocketCallbackMessage )( void* userData, Socket*, void* bytes, int byteCount );
 
   // Should these have a debug name?
   // Should these struct S be merged and the callback be a union?
   struct SocketCallbackData
   {
-    SocketCallback* mCallback = nullptr;
-    void* mUserData = nullptr;
+    SocketCallback*        mCallback = nullptr;
+    void*                  mUserData = nullptr;
   };
+
   struct SocketCallbackDataMessage
   {
     SocketCallbackMessage* mCallback = nullptr;
-    void* mUserData = nullptr;
+    void*                  mUserData = nullptr;
   };
 
   struct Socket
   {
     virtual ~Socket() = default;
     void DebugImgui();
-    void                                Send( const HTTPRequest& httpRequest, Errors& );
+    void                                Send( const HTTPRequest&, Errors& );
     void                                Send( StringView s, Errors& );
     virtual void                        Send( void* bytes, int byteCount, Errors& ) = 0;
     virtual void                        TCPTryConnect( StringView hostname,
@@ -77,16 +78,16 @@ namespace Tac
 
   struct HTTPRequest
   {
-    void AddString( StringView s );
-    void AddNewline();
-    void AddLine( StringView s );
-    void FormatRequestHTTP( StringView requestMethod,
-                            StringView host,
-                            StringView messageBody );
-    void FormatRequestWebsocket( StringView uri,
-                                 StringView host,
-                                 const Vector< uint8_t > & secWebsocketKey );
-    String ToString();
+    void           AddString( StringView );
+    void           AddNewline();
+    void           AddLine( StringView );
+    void           FormatRequestHTTP( StringView requestMethod,
+                                      StringView host,
+                                      StringView messageBody );
+    void           FormatRequestWebsocket( StringView uri,
+                                           StringView host,
+                                           const Vector< uint8_t > & secWebsocketKey );
+    String         ToString();
     Vector< char > mBytes;
   };
 
@@ -95,20 +96,20 @@ namespace Tac
     static Net* Instance;
     Net();
     virtual ~Net() = default;
-    virtual Socket* CreateSocket( StringView name,
-                                  AddressFamily addressFamily,
-                                  SocketType socketType,
-                                  Errors& ) = 0;
+    virtual Socket*           CreateSocket( StringView name,
+                                            AddressFamily,
+                                            SocketType,
+                                            Errors& ) = 0;
     virtual Vector< Socket* > GetSockets() = 0;
-    virtual void DebugImgui() = 0;
-    virtual void Update( Errors& ) = 0;
+    virtual void              DebugImgui() = 0;
+    virtual void              Update( Errors& ) = 0;
 
   };
 
   Vector< uint8_t > GenerateSecWebsocketKey();
 
-  String Base64Encode( const Vector< uint8_t >& input );
-  String Base64Encode( StringView input );
+  String Base64Encode( const Vector< uint8_t >& );
+  String Base64Encode( StringView );
   void Base64EncodeRunTests();
 
 }

@@ -29,17 +29,18 @@ namespace Tac
     //typedef void    ModelVisitor( Model* );
     virtual Model*  CreateModelComponent() = 0;
     virtual void    DestroyModelComponent( Model* ) = 0;
-    virtual void    VisitModels( ModelVisitor* ) = 0;
+    virtual void    VisitModels( ModelVisitor* ) const = 0;
 
     //typedef void    SkyboxVisitor( Skybox* );
     virtual Skybox* CreateSkyboxComponent() = 0;
     virtual void    DestroySkyboxComponent( Skybox* ) = 0;
-    virtual void    VisitSkyboxes( SkyboxVisitor* ) = 0;
+    virtual void    VisitSkyboxes( SkyboxVisitor* ) const = 0;
 
     void            DebugImgui() override;
   };
 
   void              RegisterGraphicsSystem();
   Graphics*         GetGraphics( World* );
+  const Graphics*   GetGraphics( const World* );
 }
 

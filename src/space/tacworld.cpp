@@ -279,6 +279,11 @@ namespace Tac
   {
     return mSystems[ systemRegistryEntry->mIndex ];
   }
+  const System* World::GetSystem( const SystemRegistryEntry* systemRegistryEntry) const
+  {
+    return mSystems[ systemRegistryEntry->mIndex ];
+  }
+  
   void    World::DebugImgui()
   {
     //if( !ImGui::CollapsingHeader( "World" ) )

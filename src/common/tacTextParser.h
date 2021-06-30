@@ -7,6 +7,7 @@
 
 namespace Tac
 {
+  // move to optional.h?
   template < typename T >
   struct Optional
   {
