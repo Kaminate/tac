@@ -35,6 +35,7 @@ namespace Tac
   static Render::ShaderHandle          voxelCopyShader;
   static Render::ConstantBufferHandle  voxelConstantBuffer;
   static Render::RasterizerStateHandle voxelRasterizerState;
+  static Render::DepthStateHandle      voxelCopyDepthState;
 
   Render::VertexDeclarations           voxelVertexDeclarations;
   static int                           voxelDimension = 2;
@@ -257,25 +258,8 @@ namespace Tac
     }
   }
 
-  void               VoxelGIPresentationInit( Errors& )
-  {
-    CreateVoxelizerShader();
-    CreateVoxelConstantBuffer();
-    CreateVoxelRasterizerState();
-    CreateVoxelVisualizerShader();
-    CreateVoxelCopyShader();
-    CreateVoxelRWStructredBuf();
-    CreateVoxelTextureRadianceBounce1();
-    CreateVoxelTextureRadianceBounce0();
-    CreateVertexFormat();
-  }
 
-  void               VoxelGIPresentationUninit()
-  {
-
-  }
-
-  static void        RenderDebugVoxels( const Render::ViewHandle viewHandle )
+  static void                    RenderDebugVoxels( const Render::ViewHandle viewHandle )
   {
     if( !voxelDebugDrawVoxels )
       return;
@@ -287,6 +271,7 @@ namespace Tac
                                   sizeof( CBufferVoxelizer ),
                                   TAC_STACK_FRAME );
     Render::SetShader( voxelVisualizerShader );
+    Render::SetDepthState( GamePresentationGetDepthState() );
     Render::SetTexture( { voxelTextureRadianceBounce0 } );
     Render::SetVertexFormat( Render::VertexFormatHandle() );
     Render::SetPrimitiveTopology( Render::PrimitiveTopology::PointList );
@@ -297,34 +282,30 @@ namespace Tac
     Render::EndGroup( TAC_STACK_FRAME );
   }
 
-  void               VoxelGIPresentationRenderDebug( const World* world,
-                                                     const Camera* camera,
-                                                     const int viewWidth,
-                                                     const int viewHeight,
-                                                     const Render::ViewHandle viewHandle )
+  static void                    VoxelGIPresentationRenderDebug( const World* world,
+                                                                 const Camera* camera,
+                                                                 const int viewWidth,
+                                                                 const int viewHeight,
+                                                                 const Render::ViewHandle viewHandle )
   {
+    if( !voxelDebug )
+      return;
     RenderDebugVoxels( viewHandle );
     RenderDebugVoxelOutline( world->mDebug3DDrawData );
   }
 
-  static void               VoxelGIPresentationRenderVoxelize( const World* world,
-                                                               const Camera* camera,
-                                                               const int viewWidth,
-                                                               const int viewHeight,
-                                                               const Render::ViewHandle viewHandle )
+  static void                    VoxelGIPresentationRenderVoxelize( const World* world,
+                                                                    const Camera* camera,
+                                                                    const int viewWidth,
+                                                                    const int viewHeight,
+                                                                    const Render::ViewHandle viewHandle )
   {
-
-    voxelGridCenter = voxelGridSnapCamera ? camera->mPos : voxelGridCenter;
-
-    Render::BeginGroup( "Voxel GI", TAC_STACK_FRAME );
+    TAC_RENDER_GROUP_BLOCK( "Voxelize" );
 
     struct : public ModelVisitor
     {
       void operator()( const Model* model ) override
       {
-        TAC_UNUSED_PARAMETER( model );
-
-
         Errors errors;
         Mesh* mesh = ModelAssetManagerGetMeshTryingNewThing( model->mModelPath.c_str(),
                                                              model->mModelIndex,
@@ -336,17 +317,12 @@ namespace Tac
         // was going to calculate triangle normals here to store in some buffer to feed to the
         // vertex shader, so we dont need the geometry shader so we can debug the vertex shader
         // since you cant debug geometry shaders
-        std::map< HashedValue, int > foo;
+        //std::map< HashedValue, int > foo;
 
 
         Render::BeginGroup( FrameMemoryPrintf( "%s %i",
                                                model->mModelPath.c_str(),
                                                model->mModelIndex ), TAC_STACK_FRAME );
-
-        //const Render::DepthStateHandle      depthState = GamePresentationGetDepthState();
-        //const Render::BlendStateHandle      blendState = GamePresentationGetBlendState();
-        //const Render::SamplerStateHandle    samplerState = GamePresentationGetSamplerState();
-        //const Render::ConstantBufferHandle  objConstantBuffer = GamePresentationGetPerObj();
 
         DefaultCBufferPerObject objBuf;
         objBuf.Color = { model->mColorRGB, 1 };
@@ -357,90 +333,114 @@ namespace Tac
           Render::SetShader( voxelizerShader );
           Render::SetVertexBuffer( subMesh.mVertexBuffer, 0, subMesh.mVertexCount );
           Render::SetIndexBuffer( subMesh.mIndexBuffer, 0, subMesh.mIndexCount );
-          Render::SetBlendState( blendState );
+          Render::SetBlendState( mBlendState );
           Render::SetRasterizerState( voxelRasterizerState );
-          Render::SetSamplerState( samplerState );
-          Render::SetDepthState( depthState );
+          Render::SetSamplerState( mSamplerState );
+          Render::SetDepthState( mDepthState );
           Render::SetVertexFormat( voxelVertexFormat );
-          Render::SetTexture( { texture } );
-          Render::UpdateConstantBuffer( objConstantBuffer,
+          Render::SetTexture( { mTexture } );
+          Render::UpdateConstantBuffer( mObjConstantBuffer,
                                         &objBuf,
                                         sizeof( DefaultCBufferPerObject ),
                                         TAC_STACK_FRAME );
-
           Render::SetPixelShaderUnorderedAccessView( voxelRWStructuredBuf, 0 );
           Render::SetPrimitiveTopology( subMesh.mPrimitiveTopology );
-
-
           Render::Submit( mViewHandle, TAC_STACK_FRAME );
-
-          //Render::SetMagicBuffer();
         }
         Render::EndGroup( TAC_STACK_FRAME );
       }
-      Render::ViewHandle mViewHandle;
 
-      const Render::DepthStateHandle      depthState = GamePresentationGetDepthState();
-      const Render::BlendStateHandle      blendState = GamePresentationGetBlendState();
-      const Render::SamplerStateHandle    samplerState = GamePresentationGetSamplerState();
-      const Render::ConstantBufferHandle  objConstantBuffer = GamePresentationGetPerObj();
-      const Render::TextureHandle         texture = Get1x1White();
-
+      Render::ViewHandle            mViewHandle;
+      Render::DepthStateHandle      mDepthState;
+      Render::BlendStateHandle      mBlendState;
+      Render::SamplerStateHandle    mSamplerState;
+      Render::ConstantBufferHandle  mObjConstantBuffer;
+      Render::TextureHandle         mTexture;
     } modelVisitor;
     modelVisitor.mViewHandle = viewHandle;
+    modelVisitor.mDepthState = GamePresentationGetDepthState();
+    modelVisitor.mBlendState = GamePresentationGetBlendState();
+    modelVisitor.mSamplerState = GamePresentationGetSamplerState();
+    modelVisitor.mObjConstantBuffer = GamePresentationGetPerObj();
+    modelVisitor.mTexture = Get1x1White();
 
-    CBufferVoxelizer cpuCBufferVoxelizer = VoxelGetCBuffer();
+    const CBufferVoxelizer cpuCBufferVoxelizer = VoxelGetCBuffer();
     Render::UpdateConstantBuffer( voxelConstantBuffer,
                                   &cpuCBufferVoxelizer,
                                   sizeof( CBufferVoxelizer ),
                                   TAC_STACK_FRAME );
 
-
     const Graphics* graphics = GetGraphics( world );
-
     graphics->VisitModels( &modelVisitor );
+  }
 
-    //TAC_UNUSED_PARAMETER( world );
-    //TAC_UNUSED_PARAMETER( camera );
-    //TAC_UNUSED_PARAMETER( viewWidth );
-    //TAC_UNUSED_PARAMETER( viewHeight );
-    //TAC_UNUSED_PARAMETER( viewHandle );
-
+  static void                    VoxelGIPresentationRenderVoxelCopy( const World* world,
+                                                                     const Camera* camera,
+                                                                     const int viewWidth,
+                                                                     const int viewHeight,
+                                                                     const Render::ViewHandle viewHandle )
+  {
+    Render::BeginGroup( "Voxel copy", TAC_STACK_FRAME );
+    Render::SetShader( voxelCopyShader );
+    Render::SetVertexBuffer( Render::VertexBufferHandle(), 0, voxelDimension * voxelDimension * voxelDimension );
+    Render::SetIndexBuffer( Render::IndexBufferHandle(), 0, 0 );
+    Render::SetVertexFormat( Render::VertexFormatHandle() );
+    Render::SetDepthState( voxelCopyDepthState );
+    Render::SetPixelShaderUnorderedAccessView( voxelRWStructuredBuf, 0 );
+    Render::SetPixelShaderUnorderedAccessView( voxelTextureRadianceBounce0, 1 );
+    Render::Submit( Render::ViewHandle(), TAC_STACK_FRAME );
     Render::EndGroup( TAC_STACK_FRAME );
   }
-  static void               VoxelGIPresentationRenderVoxelCopy( const World* world,
-                                                                const Camera* camera,
-                                                                const int viewWidth,
-                                                                const int viewHeight,
-                                                                const Render::ViewHandle viewHandle )
+
+
+  void VoxelGIPresentationInit( Errors& )
   {
-
-    voxelCopyShader;
-
+    CreateVoxelizerShader();
+    CreateVoxelConstantBuffer();
+    CreateVoxelRasterizerState();
+    CreateVoxelVisualizerShader();
+    CreateVoxelCopyShader();
+    CreateVoxelRWStructredBuf();
+    CreateVoxelTextureRadianceBounce1();
+    CreateVoxelTextureRadianceBounce0();
+    CreateVertexFormat();
+    voxelCopyDepthState = Render::CreateDepthState( {}, TAC_STACK_FRAME );
   }
-  void               VoxelGIPresentationRender( const World* world,
-                                                const Camera* camera,
-                                                const int viewWidth,
-                                                const int viewHeight,
-                                                const Render::ViewHandle viewHandle )
+
+  void VoxelGIPresentationUninit() {}
+
+  void VoxelGIPresentationRender( const World* world,
+                                  const Camera* camera,
+                                  const int viewWidth,
+                                  const int viewHeight,
+                                  const Render::ViewHandle viewHandle )
   {
     if( !voxelEnabled )
       return;
-
+    voxelGridCenter = voxelGridSnapCamera ? camera->mPos : voxelGridCenter;
     VoxelGIPresentationRenderVoxelize( world, camera, viewWidth, viewHeight, viewHandle );
     VoxelGIPresentationRenderVoxelCopy( world, camera, viewWidth, viewHeight, viewHandle );
-
-
-    if( voxelDebug )
-      VoxelGIPresentationRenderDebug( world, camera, viewWidth, viewHeight, viewHandle );
+    VoxelGIPresentationRenderDebug( world, camera, viewWidth, viewHeight, viewHandle );
   }
 
-  bool&              VoxelGIPresentationGetEnabled()      { return voxelEnabled; }
+  //bool&              VoxelGIPresentationGetEnabled()      { return voxelEnabled; }
 
-  bool&              VoxelGIPresentationGetDebugEnabled() { return voxelDebug; }
+  //bool&              VoxelGIPresentationGetDebugEnabled() { return voxelDebug; }
 
-  void               VoxelDebugImgui()
+  void VoxelGIDebugImgui()
   {
+    if( !ImGuiCollapsingHeader( "Voxel GI Presentation" ) )
+      return;
+    TAC_IMGUI_INDENT_BLOCK;
+
+      //bool& enabled = VoxelGIPresentationGetEnabled();
+      //ImGuiCheckbox( "Enabled", &enabled );
+    ImGuiCheckbox( "Enabled", &voxelEnabled );
+
+    //bool& debugEnabled = VoxelGIPresentationGetDebugEnabled();
+    //ImGuiCheckbox( "Debug Enabled", &debugEnabled );
+    ImGuiCheckbox( "Debug Enabled", &voxelDebug );
+
     ImGuiCheckbox( "snap voxel grid to camera", &voxelGridSnapCamera );
     ImGuiDragFloat3( "voxel grid center", voxelGridCenter.data() );
     float width = voxelGridHalfWidth * 2.0f;

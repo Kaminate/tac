@@ -7,6 +7,7 @@ namespace Tac
   struct Camera;
   struct Mesh;
   struct Model;
+  struct Graphics;
 
   void                          GamePresentationInit( Errors& );
   void                          GamePresentationUninit();
@@ -15,6 +16,7 @@ namespace Tac
                                                         int viewWidth,
                                                         int viewHeight,
                                                         Render::ViewHandle );
+  void                          GamePresentationDebugImGui( Graphics* );
   const Mesh*                   GamePresentationGetModelMesh( const Model* );
   Render::ConstantBufferHandle  GamePresentationGetPerFrame();
   Render::ConstantBufferHandle  GamePresentationGetPerObj();
@@ -23,9 +25,5 @@ namespace Tac
   Render::RasterizerStateHandle GamePresentationGetRasterizerState();
   Render::SamplerStateHandle    GamePresentationGetSamplerState();
   Render::VertexDeclarations    GamePresentationGetVertexDeclarations();
-  bool&                         GamePresentationGetRenderEnabledModel();
-  bool&                         GamePresentationGetRenderEnabledSkybox();
-  bool&                         GamePresentationGetRenderEnabledTerrain();
-  bool&                         GamePresentationGetRenderEnabledDebug3D();
 }
 

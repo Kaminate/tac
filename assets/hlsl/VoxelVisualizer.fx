@@ -22,17 +22,8 @@ struct VS_OUT_GS_IN
   float3 mWorldSpaceVoxelCenter : mWorldSpaceVoxelCenter;
 };
 
-uint3 ExtractVoxelIndex( uint iVertex )
-{
-  uint i = iVertex % gVoxelGridSize;
-  iVertex /= gVoxelGridSize;
-  uint j = iVertex % gVoxelGridSize;
-  iVertex /= gVoxelGridSize;
-  uint k = iVertex % gVoxelGridSize;
-  return uint3( i, j, k );
-}
 
-VS_OUT_GS_IN VS( uint iVertex : SV_VERTEXID )
+VS_OUT_GS_IN VS( const uint iVertex : SV_VERTEXID )
 {
   uint3 iVoxel = ExtractVoxelIndex( iVertex );
 
@@ -65,7 +56,7 @@ void GS( point VS_OUT_GS_IN input[ 1 ],
 {
   for( int iVtx = 0; iVtx < CUBE_STRIP_VTX_COUNT; ++iVtx )
   {
-    float worldSpaceEpsilon = 0.01; // Shrink the voxels so the outlines draw on top
+    float worldSpaceEpsilon = 0.02; // Shrink the voxels so the outlines draw on top
     float3 modelSpacePosition = GenerateCubeVertex( iVtx ) * 2.0f - 1.0f;
     float3 worldSpacePosition
       = input[ 0 ].mWorldSpaceVoxelCenter

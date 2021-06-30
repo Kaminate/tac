@@ -79,43 +79,43 @@ namespace Tac
       // Virtual functions
 
       void Init( Errors& ) override;
-      void RenderBegin( const Render::Frame*, Errors& ) override;
-      void RenderDrawCall( const Render::Frame*, const Render::DrawCall*, Errors& ) override;
-      void RenderEnd( const Render::Frame*, Errors& ) override;
+      void RenderBegin( const Frame*, Errors& ) override;
+      void RenderDrawCall( const Frame*, const DrawCall*, Errors& ) override;
+      void RenderEnd( const Frame*, Errors& ) override;
       void SwapBuffers() override;
       void GetPerspectiveProjectionAB( float f,
                                        float n,
                                        float& a,
                                        float& b ) override;
-      void AddBlendState( Render::CommandDataCreateBlendState*, Errors& ) override;
-      void AddConstantBuffer( Render::CommandDataCreateConstantBuffer*, Errors& ) override;
-      void AddDepthState( Render::CommandDataCreateDepthState*, Errors& ) override;
-      void AddFramebuffer( Render::CommandDataCreateFramebuffer*, Errors& ) override;
-      void AddIndexBuffer( Render::CommandDataCreateIndexBuffer*, Errors& ) override;
-      void AddRasterizerState( Render::CommandDataCreateRasterizerState*, Errors& ) override;
-      void AddSamplerState( Render::CommandDataCreateSamplerState*, Errors& ) override;
-      void AddShader( Render::CommandDataCreateShader*, Errors& ) override;
-      void AddTexture( Render::CommandDataCreateTexture*, Errors& ) override;
-      void AddMagicBuffer( Render::CommandDataCreateMagicBuffer*, Errors& ) override;
-      void AddVertexBuffer( Render::CommandDataCreateVertexBuffer*, Errors& ) override;
-      void AddVertexFormat( Render::CommandDataCreateVertexFormat*, Errors& ) override;
-      void RemoveBlendState( Render::BlendStateHandle, Errors& ) override;
-      void RemoveConstantBuffer( Render::ConstantBufferHandle, Errors& ) override;
-      void RemoveDepthState( Render::DepthStateHandle, Errors& ) override;
-      void RemoveFramebuffer( Render::FramebufferHandle, Errors& ) override;
-      void RemoveIndexBuffer( Render::IndexBufferHandle, Errors& ) override;
-      void RemoveRasterizerState( Render::RasterizerStateHandle, Errors& ) override;
-      void RemoveSamplerState( Render::SamplerStateHandle, Errors& ) override;
-      void RemoveShader( Render::ShaderHandle, Errors& ) override;
-      void RemoveTexture( Render::TextureHandle, Errors& ) override;
-      void RemoveVertexBuffer( Render::VertexBufferHandle, Errors& ) override;
-      void RemoveVertexFormat( Render::VertexFormatHandle, Errors& ) override;
-      void ResizeFramebuffer( Render::CommandDataResizeFramebuffer*, Errors& ) override;
-      void SetRenderObjectDebugName( Render::CommandDataSetRenderObjectDebugName*, Errors& ) override;
-      void UpdateIndexBuffer( Render::CommandDataUpdateIndexBuffer*, Errors& ) override;
-      void UpdateTextureRegion( Render::CommandDataUpdateTextureRegion*, Errors& ) override;
-      void UpdateVertexBuffer( Render::CommandDataUpdateVertexBuffer*, Errors& ) override;
-      void UpdateConstantBuffer( Render::CommandDataUpdateConstantBuffer*, Errors& ) override;
+      void AddBlendState( CommandDataCreateBlendState*, Errors& ) override;
+      void AddConstantBuffer( CommandDataCreateConstantBuffer*, Errors& ) override;
+      void AddDepthState( CommandDataCreateDepthState*, Errors& ) override;
+      void AddFramebuffer( CommandDataCreateFramebuffer*, Errors& ) override;
+      void AddIndexBuffer( CommandDataCreateIndexBuffer*, Errors& ) override;
+      void AddRasterizerState( CommandDataCreateRasterizerState*, Errors& ) override;
+      void AddSamplerState( CommandDataCreateSamplerState*, Errors& ) override;
+      void AddShader( CommandDataCreateShader*, Errors& ) override;
+      void AddTexture( CommandDataCreateTexture*, Errors& ) override;
+      void AddMagicBuffer( CommandDataCreateMagicBuffer*, Errors& ) override;
+      void AddVertexBuffer( CommandDataCreateVertexBuffer*, Errors& ) override;
+      void AddVertexFormat( CommandDataCreateVertexFormat*, Errors& ) override;
+      void RemoveBlendState( BlendStateHandle, Errors& ) override;
+      void RemoveConstantBuffer( ConstantBufferHandle, Errors& ) override;
+      void RemoveDepthState( DepthStateHandle, Errors& ) override;
+      void RemoveFramebuffer( FramebufferHandle, Errors& ) override;
+      void RemoveIndexBuffer( IndexBufferHandle, Errors& ) override;
+      void RemoveRasterizerState( RasterizerStateHandle, Errors& ) override;
+      void RemoveSamplerState( SamplerStateHandle, Errors& ) override;
+      void RemoveShader( ShaderHandle, Errors& ) override;
+      void RemoveTexture( TextureHandle, Errors& ) override;
+      void RemoveVertexBuffer( VertexBufferHandle, Errors& ) override;
+      void RemoveVertexFormat( VertexFormatHandle, Errors& ) override;
+      void ResizeFramebuffer( CommandDataResizeFramebuffer*, Errors& ) override;
+      void SetRenderObjectDebugName( CommandDataSetRenderObjectDebugName*, Errors& ) override;
+      void UpdateIndexBuffer( CommandDataUpdateIndexBuffer*, Errors& ) override;
+      void UpdateTextureRegion( CommandDataUpdateTextureRegion*, Errors& ) override;
+      void UpdateVertexBuffer( CommandDataUpdateVertexBuffer*, Errors& ) override;
+      void UpdateConstantBuffer( CommandDataUpdateConstantBuffer*, Errors& ) override;
       void DebugGroupBegin( StringView ) override;
       void DebugMarker( StringView ) override;
       void DebugGroupEnd() override;
@@ -123,7 +123,7 @@ namespace Tac
 
       // Render draw call functions
 
-      void RenderDrawCallUAVs( const Render::Frame*, const DrawCall* );
+      void RenderDrawCallUAVs( const Frame*, const DrawCall* );
       void RenderDrawCallShader( const DrawCall* );
       void RenderDrawCallBlendState( const DrawCall* );
       void RenderDrawCallDepthState( const DrawCall* );
@@ -132,7 +132,7 @@ namespace Tac
       void RenderDrawCallRasterizerState( const DrawCall* );
       void RenderDrawCallSamplerState( const DrawCall* );
       void RenderDrawCallVertexFormat( const DrawCall* );
-      void RenderDrawCallViewAndUAV( const Render::Frame*, const DrawCall* );
+      void RenderDrawCallViewAndUAV( const Frame*, const DrawCall* );
       void RenderDrawCallTextures( const DrawCall* );
       void RenderDrawCallPrimitiveTopology( const DrawCall* );
       void RenderDrawCallIssueDrawCommand( const DrawCall* );
@@ -153,20 +153,20 @@ namespace Tac
       ID3D11Device*              mDevice = nullptr;
       ID3D11DeviceContext*       mDeviceContext = nullptr;
       //DXGI                       mDxgi;
-      Texture                    mTextures[ Render::kMaxTextures ] = {};
-      MagicBuffer                mMagicBuffers[ Render::kMaxMagicBuffers ] = {};
-      VertexBuffer               mVertexBuffers[ Render::kMaxVertexBuffers ] = {};
-      IndexBuffer                mIndexBuffers[ Render::kMaxIndexBuffers ] = {};
-      Framebuffer                mFramebuffers[ Render::kMaxFramebuffers ] = {};
-      Render::FramebufferHandle  mWindows[ Render::kMaxFramebuffers ];
+      Texture                    mTextures[ kMaxTextures ] = {};
+      MagicBuffer                mMagicBuffers[ kMaxMagicBuffers ] = {};
+      VertexBuffer               mVertexBuffers[ kMaxVertexBuffers ] = {};
+      IndexBuffer                mIndexBuffers[ kMaxIndexBuffers ] = {};
+      Framebuffer                mFramebuffers[ kMaxFramebuffers ] = {};
+      FramebufferHandle          mWindows[ kMaxFramebuffers ];
       int                        mWindowCount = 0;
-      ID3D11RasterizerState*     mRasterizerStates[ Render::kMaxRasterizerStates ] = {};
-      ID3D11SamplerState*        mSamplerStates[ Render::kMaxSamplerStates ] = {};
-      ID3D11DepthStencilState*   mDepthStencilStates[ Render::kMaxDepthStencilStates ] = {};
-      ID3D11InputLayout*         mInputLayouts[ Render::kMaxInputLayouts ] = {};
-      ID3D11BlendState*          mBlendStates[ Render::kMaxBlendStates ] = {};
-      ConstantBuffer             mConstantBuffers[ Render::kMaxConstantBuffers ] = {};
-      Program                    mPrograms[ Render::kMaxPrograms ] = {};
+      ID3D11RasterizerState*     mRasterizerStates[ kMaxRasterizerStates ] = {};
+      ID3D11SamplerState*        mSamplerStates[ kMaxSamplerStates ] = {};
+      ID3D11DepthStencilState*   mDepthStencilStates[ kMaxDepthStencilStates ] = {};
+      ID3D11InputLayout*         mInputLayouts[ kMaxInputLayouts ] = {};
+      ID3D11BlendState*          mBlendStates[ kMaxBlendStates ] = {};
+      ConstantBuffer             mConstantBuffers[ kMaxConstantBuffers ] = {};
+      Program                    mPrograms[ kMaxPrograms ] = {};
 
       //                         Currently bound render variables
       PrimitiveTopology          mBoundPrimitiveTopology = PrimitiveTopology::Unknown;
@@ -174,7 +174,7 @@ namespace Tac
       int                        mBoundConstantBufferCount = 0;
       ID3D11BlendState*          mBoundBlendState = nullptr;
       ID3D11DepthStencilState*   mBoundDepthStencilState = nullptr;
-      Render::ViewHandle         mBoundViewHandle;
+      ViewHandle                 mBoundViewHandle;
       VertexBufferHandle         mBoundVertexBuffer;
       IndexBufferHandle          mBoundIndexBuffer;
       bool                       mBoundFramebuffersThisFrame[ kMaxFramebuffers ];

@@ -63,3 +63,13 @@ cbuffer CBufferVoxelizer         : register( b2 )
   //     Number of voxels x per side, where the total voxel count is x * x * x
   uint   gVoxelGridSize;
 }
+
+uint3 ExtractVoxelIndex( uint iVertex )
+{
+  uint i = iVertex % gVoxelGridSize;
+  iVertex /= gVoxelGridSize;
+  uint j = iVertex % gVoxelGridSize;
+  iVertex /= gVoxelGridSize;
+  uint k = iVertex % gVoxelGridSize;
+  return uint3( i, j, k );
+}

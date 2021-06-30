@@ -17,74 +17,15 @@
 namespace Tac
 {
 
-  static bool debugEachTri;
-  static void Debug3DEachTri( Graphics* graphics )
-  {
-    if( !GamePresentationGetRenderEnabledDebug3D() )
-      return;
-    if( !debugEachTri )
-      return;
-
-    struct : public ModelVisitor
-    {
-      void operator()( const Model* model ) override
-      {
-        Errors errors;
-        Mesh* mesh = ModelAssetManagerGetMeshTryingNewThing( model->mModelPath.c_str(),
-                                                             model->mModelIndex,
-                                                             GamePresentationGetVertexDeclarations(),
-                                                             errors );
-        if( !mesh )
-          return;
-
-        for( const SubMesh& subMesh : mesh->mSubMeshes )
-        {
-          for( const SubMeshTriangle& tri : subMesh.mTris )
-          {
-            const v3 p0 = ( model->mEntity->mWorldTransform * mesh->mTransform * v4( tri[ 0 ], 1 ) ).xyz();
-            const v3 p1 = ( model->mEntity->mWorldTransform * mesh->mTransform * v4( tri[ 1 ], 1 ) ).xyz();
-            const v3 p2 = ( model->mEntity->mWorldTransform * mesh->mTransform * v4( tri[ 2 ], 1 ) ).xyz();
-            mDrawData->DebugDraw3DTriangle( p0, p1, p2 );
-          }
-        }
-      }
-      Debug3DDrawData* mDrawData;
-    } visitor = {};
-    visitor.mDrawData = graphics->mWorld->mDebug3DDrawData;
-
-    graphics->VisitModels( &visitor );
-  }
 
   void GraphicsDebugImgui( System* system )
   {
     auto graphics = ( Graphics* )system;
 
-    //auto graphics = ( Graphics* )system;
-    if( ImGuiCollapsingHeader( "Game Presentation" ) )
-    {
-      ImGuiCheckbox( "Game Presentation Enabled Model", &GamePresentationGetRenderEnabledModel() );
-      ImGuiCheckbox( "Game Presentation Enabled Skybox", &GamePresentationGetRenderEnabledSkybox() );
-      ImGuiCheckbox( "Game Presentation Enabled Terrain", &GamePresentationGetRenderEnabledTerrain() );
-      ImGuiCheckbox( "Game Presentation Enabled Debug3D", &GamePresentationGetRenderEnabledDebug3D() );
-      if( GamePresentationGetRenderEnabledDebug3D() )
-        ImGuiCheckbox( "debug each tri", &debugEachTri );
-    }
+    GamePresentationDebugImGui(graphics);
 
-    if( ImGuiCollapsingHeader( "Voxel GI Presentation" ) )
-    {
-      bool& enabled = VoxelGIPresentationGetEnabled();
-      ImGuiCheckbox( "Enabled", &enabled );
+    VoxelGIDebugImgui();
 
-      bool& debugEnabled = VoxelGIPresentationGetDebugEnabled();
-      ImGuiCheckbox( "Debug Enabled", &debugEnabled );
-
-      if( debugEnabled )
-      {
-        VoxelDebugImgui();
-      }
-    }
-
-    Debug3DEachTri( graphics );
   }
 }
 
