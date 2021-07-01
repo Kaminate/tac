@@ -36,9 +36,8 @@ namespace Tac
   static Render::ConstantBufferHandle  voxelConstantBuffer;
   static Render::RasterizerStateHandle voxelRasterizerState;
   static Render::DepthStateHandle      voxelCopyDepthState;
-
-  Render::VertexDeclarations           voxelVertexDeclarations;
-  static int                           voxelDimension = 2;
+  static Render::VertexDeclarations    voxelVertexDeclarations;
+  static int                           voxelDimension = 2; // eventually 128
   static bool                          voxelDebug = true;
   static bool                          voxelDebugDrawOutlines = true;
   static bool                          voxelDebugDrawVoxels = true;
@@ -46,7 +45,6 @@ namespace Tac
   static v3                            voxelGridCenter;
   static float                         voxelGridHalfWidth = 2.0f;
   static bool                          voxelGridSnapCamera;
-
 
   struct CBufferVoxelizer
   {
@@ -165,12 +163,12 @@ namespace Tac
       ( int )Render::Binding::ShaderResource |
       ( int )Render::Binding::UnorderedAccess );
 
-    // rgb16f, 2 bytes (16 bits) per float, hdr values
+    // rgba16f, 2 bytes (16 bits) per float, hdr values
     Render::TexSpec texSpec;
     texSpec.mAccess = Render::Access::Default; // Render::Access::Dynamic;
     texSpec.mBinding = binding;
     texSpec.mCpuAccess = Render::CPUAccess::None;
-    texSpec.mImage.mFormat.mElementCount = 3;
+    texSpec.mImage.mFormat.mElementCount = 4;
     texSpec.mImage.mFormat.mPerElementDataType = Render::GraphicsType::real;
     texSpec.mImage.mFormat.mPerElementByteCount = 2;
     texSpec.mImage.mWidth = voxelDimension;
@@ -183,11 +181,13 @@ namespace Tac
   static void                    CreateVoxelTextureRadianceBounce1()
   {
     voxelTextureRadianceBounce1 = Render::CreateTexture( GetVoxRadianceTexSpec(), TAC_STACK_FRAME );
+    Render::SetRenderObjectDebugName( voxelTextureRadianceBounce1, "radiance bounce 1" );
   }
 
   static void                    CreateVoxelTextureRadianceBounce0()
   {
     voxelTextureRadianceBounce0 = Render::CreateTexture( GetVoxRadianceTexSpec(), TAC_STACK_FRAME );
+    Render::SetRenderObjectDebugName( voxelTextureRadianceBounce0, "radiance bounce 0" );
   }
 
   static void                    CreateVoxelRWStructredBuf()
@@ -203,27 +203,7 @@ namespace Tac
                                                       binding,
                                                       Render::Access::Dynamic,
                                                       TAC_STACK_FRAME );
-
-
-
-             //TAC_CRITICAL_ERROR_UNIMPLEMENTED;
-
-             //GPUBufferDesc desc;
-             //desc.StructureByteStride = sizeof( uint32_t ) * 2;
-             //desc.ByteWidth = desc.StructureByteStride * voxelSceneData.res * voxelSceneData.res * voxelSceneData.res;
-             //desc.BindFlags = BIND_UNORDERED_ACCESS | BIND_SHADER_RESOURCE;
-             //desc.CPUAccessFlags = 0;
-             //desc.MiscFlags = RESOURCE_MISC_BUFFER_STRUCTURED;
-             //desc.Usage = USAGE_DEFAULT;
-
-             //in wicked engine, the structured buffer is created with a CreateBuffer() function,
-             //  which is different from the CreateTexture() function!
-
-             //  eventually fed into ID3D11Device::CreateBuffer 
-
-             //voxTexScene....;
-             // must be integral type for shader atomics
-
+    Render::SetRenderObjectDebugName( voxelRWStructuredBuf, "vox rw structured" );
   }
 
   static CBufferVoxelizer        VoxelGetCBuffer()
@@ -386,6 +366,7 @@ namespace Tac
     Render::SetIndexBuffer( Render::IndexBufferHandle(), 0, 0 );
     Render::SetVertexFormat( Render::VertexFormatHandle() );
     Render::SetDepthState( voxelCopyDepthState );
+    Render::SetPrimitiveTopology( Render::PrimitiveTopology::PointList );
     Render::SetPixelShaderUnorderedAccessView( voxelRWStructuredBuf, 0 );
     Render::SetPixelShaderUnorderedAccessView( voxelTextureRadianceBounce0, 1 );
     Render::Submit( Render::ViewHandle(), TAC_STACK_FRAME );
@@ -401,8 +382,8 @@ namespace Tac
     CreateVoxelVisualizerShader();
     CreateVoxelCopyShader();
     CreateVoxelRWStructredBuf();
-    CreateVoxelTextureRadianceBounce1();
     CreateVoxelTextureRadianceBounce0();
+    CreateVoxelTextureRadianceBounce1();
     CreateVertexFormat();
     voxelCopyDepthState = Render::CreateDepthState( {}, TAC_STACK_FRAME );
   }

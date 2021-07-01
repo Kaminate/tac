@@ -567,6 +567,7 @@ namespace Tac
       commandData.mRasterizerStateHandle = rasterizerStateHandle;
       SetRenderObjectDebugName( commandData, name );
     }
+
     void SetRenderObjectDebugName( const IndexBufferHandle indexBufferHandle, const char* name )
     {
       CommandDataSetRenderObjectDebugName commandData;
@@ -585,6 +586,20 @@ namespace Tac
     {
       CommandDataSetRenderObjectDebugName commandData;
       commandData.mTextureHandle = textureHandle;
+      SetRenderObjectDebugName( commandData, name );
+    }
+
+    void SetRenderObjectDebugName( const FramebufferHandle framebufferHandle, const char* name )
+    {
+      CommandDataSetRenderObjectDebugName commandData;
+      commandData.mFramebufferHandle = framebufferHandle;
+      SetRenderObjectDebugName( commandData, name );
+    }
+
+    void SetRenderObjectDebugName( const MagicBufferHandle magicBufferHandle, const char* name )
+    {
+      CommandDataSetRenderObjectDebugName commandData;
+      commandData.mMagicBufferHandle = magicBufferHandle;
       SetRenderObjectDebugName( commandData, name );
     }
 

@@ -397,7 +397,10 @@ namespace Tac
     void                             GetPerspectiveProjectionAB( float f, float n, float& a, float& b );
     void                             BeginGroup( StringView, StackFrame );
     void                             EndGroup( StackFrame );
+
+    void                             SetRenderObjectDebugName( FramebufferHandle, const char* );
     void                             SetRenderObjectDebugName( TextureHandle, const char* );
+    void                             SetRenderObjectDebugName( MagicBufferHandle, const char* );
     void                             SetRenderObjectDebugName( VertexBufferHandle, const char* );
     void                             SetRenderObjectDebugName( IndexBufferHandle, const char* );
     void                             SetRenderObjectDebugName( RasterizerStateHandle, const char* );

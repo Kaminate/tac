@@ -669,6 +669,13 @@ namespace Tac
       return program;
     }
 
+    //ID3D11Resource*            Texture::GetResource()
+    //{
+    //  return mTexture2D
+    //    ? ( ID3D11Resource* )mTexture2D
+    //    : ( ID3D11Resource* )mTexture3D;
+    //}
+
     RendererDirectX11::~RendererDirectX11()
     {
       DXGIUninit();
@@ -1242,7 +1249,8 @@ namespace Tac
       TAC_ASSERT( name.size() );
       if( !IsDebugMode() )
         return;
-      TAC_ASSERT( directXObject );
+      if( !directXObject )
+        return;
       Array< char, 256 > data = {};
       UINT privateDataSize = data.size();
       directXObject->GetPrivateData( WKPDID_D3DDebugObjectName,
@@ -1892,6 +1900,7 @@ namespace Tac
     {
       Texture* texture = &mTextures[ ( int )textureHandle ];
       TAC_RELEASE_IUNKNOWN( texture->mTexture2D );
+      TAC_RELEASE_IUNKNOWN( texture->mTexture3D );
       TAC_RELEASE_IUNKNOWN( texture->mTextureRTV );
       TAC_RELEASE_IUNKNOWN( texture->mTextureSRV );
     }
@@ -1960,6 +1969,7 @@ namespace Tac
       subResource.SysMemSlicePitch = data->mPitch * data->mSrc.mHeight;
 
       ID3D11Resource* dstTex = mTextures[ ( int )commandData->mTextureHandle ].mTexture2D;
+      TAC_ASSERT( dstTex );
       ID3D11Texture2D* srcTex;
       TAC_DX11_CALL( errors,
                      mDevice->CreateTexture2D,
@@ -2071,6 +2081,14 @@ namespace Tac
     void RendererDirectX11::SetRenderObjectDebugName( CommandDataSetRenderObjectDebugName* data,
                                                       Errors& errors )
     {
+      if( data->mFramebufferHandle.IsValid() )
+      {
+        Framebuffer* framebuffer = &mFramebuffers[ ( int )data->mFramebufferHandle ];
+        SetDebugName( framebuffer->mDepthStencilView, data->mName );
+        SetDebugName( framebuffer->mRenderTargetView, data->mName );
+        SetDebugName( framebuffer->mDepthTexture, data->mName );
+      }
+
       if( data->mVertexBufferHandle.IsValid() )
         SetDebugName( mVertexBuffers[ ( int )data->mVertexBufferHandle ].mBuffer, data->mName );
 
@@ -2078,10 +2096,25 @@ namespace Tac
         SetDebugName( mIndexBuffers[ ( int )data->mIndexBufferHandle ].mBuffer, data->mName );
 
       if( data->mTextureHandle.IsValid() )
-        SetDebugName( mTextures[ ( int )data->mTextureHandle ].mTexture2D, data->mName );
+      {
+        Texture* texture = &mTextures[ ( int )data->mTextureHandle ];
+        SetDebugName( texture->mTexture2D, data->mName );
+        SetDebugName( texture->mTexture3D, data->mName );
+        SetDebugName( texture->mTextureSRV, data->mName );
+        SetDebugName( texture->mTextureRTV, data->mName );
+        SetDebugName( texture->mTextureUAV, data->mName );
+      }
 
       if( data->mRasterizerStateHandle.IsValid() )
         SetDebugName( mRasterizerStates[ ( int )data->mRasterizerStateHandle ], data->mName );
+
+      if( data->mMagicBufferHandle.IsValid() )
+      {
+        MagicBuffer* magicBuffer = &mMagicBuffers[ ( int )data->mMagicBufferHandle ];
+        SetDebugName( magicBuffer->mBuffer, data->mName );
+        SetDebugName( magicBuffer->mSRV, data->mName );
+        SetDebugName( magicBuffer->mUAV, data->mName );
+      }
     }
 
     void RendererDirectX11::UpdateBuffer( ID3D11Buffer* buffer,

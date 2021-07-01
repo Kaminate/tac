@@ -277,6 +277,8 @@ namespace Tac
 
     struct CommandDataSetRenderObjectDebugName
     {
+      FramebufferHandle     mFramebufferHandle;
+      MagicBufferHandle     mMagicBufferHandle;
       RasterizerStateHandle mRasterizerStateHandle;
       TextureHandle         mTextureHandle;
       VertexBufferHandle    mVertexBufferHandle;

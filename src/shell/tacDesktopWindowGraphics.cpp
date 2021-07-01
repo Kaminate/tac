@@ -1,6 +1,7 @@
 #include "src/shell/tacDesktopWindowGraphics.h"
 #include "src/common/graphics/tacRenderer.h"
 #include "src/common/tacDesktopWindow.h"
+#include "src/common/tacFrameMemory.h"
 
 namespace Tac
 {
@@ -30,7 +31,10 @@ namespace Tac
     TAC_UNUSED_PARAMETER( y );
     if( nativeWindowHandle )
     {
-      const Render::FramebufferHandle framebufferHandle = Render::CreateFramebufferForWindow( nativeWindowHandle, w, h, TAC_STACK_FRAME );
+      const Render::FramebufferHandle framebufferHandle =
+        Render::CreateFramebufferForWindow( nativeWindowHandle, w, h, TAC_STACK_FRAME );
+      const char* name = FrameMemoryPrintf( "framebuffer %i", (int)desktopWindowHandle );
+      Render::SetRenderObjectDebugName( framebufferHandle, name );
       const Render::ViewHandle viewHandle = Render::CreateView();
       sWindowFramebuffers[ ( int )desktopWindowHandle ] = framebufferHandle;
       sWindowViews[ ( int )desktopWindowHandle ] = viewHandle;

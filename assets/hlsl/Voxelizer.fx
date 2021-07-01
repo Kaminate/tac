@@ -160,11 +160,11 @@ PS_OUTPUT PS( GS_OUT_PS_IN input )
 
   float3 colorMaterialDiffuse = diffuseMaterialTexture.Sample( linearSampler, input.mTexCoord ).xyz;
   float3 colorLightDiffuse = dot( n, l );
-  float3 color
+  float4 color
     //= colorMaterialDiffuse * colorLightDiffuse
     //+ colorLightAmbient
     //+ colorMaterialEmissive;
-    = colorMaterialDiffuse;
+    = float4( colorMaterialDiffuse, 1 );
 
   //float voxelGridWidth = gVoxelGridHalfWidth * 2;
   //uint  uint_voxelGridWidth = voxelGridWidth;

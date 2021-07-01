@@ -34,6 +34,7 @@ namespace Tac
 
     struct Texture
     {
+      //ID3D11Resource*            GetResource();
       ID3D11Texture2D*           mTexture2D = {};
       ID3D11Texture3D*           mTexture3D = {};
       ID3D11RenderTargetView*    mTextureRTV = {};
