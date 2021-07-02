@@ -175,6 +175,11 @@ PS_OUTPUT PS( GS_OUT_PS_IN input )
     + iVoxel3.y * gVoxelGridSize
     + iVoxel3.z * gVoxelGridSize * gVoxelGridSize;
 
+  // temp debugging begin
+  //iVoxel = 7;
+  //color = float4( 1, 1, 0, 1 );
+  // temp debugging end
+
   uint uint_color = VoxelEncodeHDRColor( color );
   uint uint_n     = VoxelEncodeUnitNormal( n );
   InterlockedMax( mySB[ iVoxel ].mColor, uint_color );
