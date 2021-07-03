@@ -1,4 +1,5 @@
 #include "src/common/graphics/imgui/tacImGui.h"
+#include "src/common/profile/tacProfile.h"
 #include "src/common/tacFrameMemory.h"
 #include "src/common/graphics/tacUI2D.h"
 #include "src/common/tacDesktopWindow.h"
@@ -88,6 +89,7 @@ namespace Tac
   }
   void CreationSystemWindow::Update( Errors& errors )
   {
+    TAC_PROFILE_BLOCK;
     DesktopAppResizeControls( mDesktopWindowHandle );
     DesktopAppMoveControls( mDesktopWindowHandle );
     DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );

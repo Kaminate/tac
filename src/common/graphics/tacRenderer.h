@@ -272,12 +272,12 @@ namespace Tac
 
     struct RasterizerState
     {
-
       FillMode mFillMode = ( FillMode )0;
       CullMode mCullMode = ( CullMode )0;
       bool     mFrontCounterClockwise = false;
       bool     mScissor = false;
       bool     mMultisample = false;
+      bool     mConservativeRasterization = false;
     };
 
     struct SamplerState

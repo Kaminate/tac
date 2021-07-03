@@ -56,7 +56,7 @@ void GS( point VS_OUT_GS_IN input[ 1 ],
 {
   for( int iVtx = 0; iVtx < CUBE_STRIP_VTX_COUNT; ++iVtx )
   {
-    float worldSpaceEpsilon = 0.02; // Shrink the voxels so the outlines draw on top
+    float worldSpaceEpsilon = 0.0; // Shrink the voxels so the outlines draw on top
     float3 modelSpacePosition = GenerateCubeVertex( iVtx ) * 2.0f - 1.0f;
     float3 worldSpacePosition
       = input[ 0 ].mWorldSpaceVoxelCenter

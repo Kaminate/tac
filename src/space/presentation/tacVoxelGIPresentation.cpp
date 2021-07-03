@@ -1,4 +1,5 @@
 #include "src/common/assetmanagers/tacMesh.h"
+#include "src/common/profile/tacProfile.h"
 #include "src/common/assetmanagers/tacModelAssetManager.h"
 #include "src/common/graphics/imgui/tacImGui.h"
 #include "src/common/graphics/tacDebug3D.h"
@@ -40,13 +41,14 @@ namespace Tac
   static Render::DepthStateHandle      voxelCopyDepthState;
   static Render::VertexDeclarations    voxelVertexDeclarations;
   static Render::ViewHandle            voxelView;
-  static int                           voxelDimension = 6; // eventually 128
+  static int                           voxelDimension = 1; // eventually 128
   static bool                          voxelDebug = true;
-  static bool                          voxelDebugDrawOutlines = true;
+  static bool                          voxelDebugDrawVoxelOutlines = false;
+  static bool                          voxelDebugDrawGridOutline = true;
   static bool                          voxelDebugDrawVoxels = true;
   static bool                          voxelEnabled = true;
   static v3                            voxelGridCenter;
-  static float                         voxelGridHalfWidth = 2.0f;
+  static float                         voxelGridHalfWidth = 100.0f;
   static bool                          voxelGridSnapCamera;
 
   struct CBufferVoxelizer
@@ -74,6 +76,12 @@ namespace Tac
       GamePresentationGetPerFrame(),
       GamePresentationGetPerObj(),
     };
+  }
+
+  static void                    CreateVoxelDepthState()
+  {
+    voxelCopyDepthState = Render::CreateDepthState( {}, TAC_STACK_FRAME );
+    Render::SetRenderObjectDebugName( voxelCopyDepthState, "vox-copy-depth" );
   }
 
   static void                    CreateVoxelView()
@@ -125,7 +133,8 @@ namespace Tac
     rasterizerStateData.mFillMode = Render::FillMode::Solid;
     rasterizerStateData.mFrontCounterClockwise = true;
     rasterizerStateData.mMultisample = false;
-    rasterizerStateData.mScissor = true;
+    rasterizerStateData.mScissor = false;
+    rasterizerStateData.mConservativeRasterization = true;
     voxelRasterizerState = Render::CreateRasterizerState( rasterizerStateData,
                                                           TAC_STACK_FRAME );
   }
@@ -255,10 +264,22 @@ namespace Tac
     return cpuCBufferVoxelizer;
   }
 
-  static void                    RenderDebugVoxelOutline( Debug3DDrawData* drawData )
+  static void                    RenderDebugVoxelOutlineGrid( Debug3DDrawData* drawData )
   {
-    if( !voxelDebugDrawOutlines )
+    if( !voxelDebugDrawGridOutline )
       return;
+    const v3 mini = voxelGridCenter - voxelGridHalfWidth * v3( 1, 1, 1 );
+    const v3 maxi = voxelGridCenter + voxelGridHalfWidth * v3( 1, 1, 1 );
+    drawData->DebugDraw3DAABB( mini, maxi );
+
+  }
+
+  static void                    RenderDebugVoxelOutlineVoxels( Debug3DDrawData* drawData )
+  {
+    if( !voxelDebugDrawVoxelOutlines )
+      return;
+    TAC_PROFILE_BLOCK;
+
     for( int i = 0; i < voxelDimension; ++i )
     {
       for( int j = 0; j < voxelDimension; ++j )
@@ -275,10 +296,17 @@ namespace Tac
         }
       }
     }
+
+  }
+  static void                    RenderDebugVoxelOutline( Debug3DDrawData* drawData )
+  {
+    RenderDebugVoxelOutlineGrid( drawData );
+    RenderDebugVoxelOutlineVoxels( drawData );
   }
 
   static void                    RenderDebugVoxels( const Render::ViewHandle viewHandle )
   {
+    TAC_PROFILE_BLOCK;
     if( !voxelDebugDrawVoxels )
       return;
     const CBufferVoxelizer cpuCBufferVoxelizer = VoxelGetCBuffer();
@@ -306,6 +334,7 @@ namespace Tac
                                                                  const int viewHeight,
                                                                  const Render::ViewHandle viewHandle )
   {
+    TAC_PROFILE_BLOCK;
     if( !voxelDebug )
       return;
     RenderDebugVoxels( viewHandle );
@@ -318,6 +347,7 @@ namespace Tac
                                                                     const int viewHeight,
                                                                     const Render::ViewHandle viewHandle )
   {
+    TAC_PROFILE_BLOCK;
     TAC_RENDER_GROUP_BLOCK( "Voxelize" );
 
     struct : public ModelVisitor
@@ -399,6 +429,7 @@ namespace Tac
                                                                      const int viewHeight,
                                                                      const Render::ViewHandle viewHandle )
   {
+    TAC_PROFILE_BLOCK;
     Render::BeginGroup( "Voxel copy", TAC_STACK_FRAME );
     Render::SetShader( voxelCopyShader );
     Render::SetVertexBuffer( Render::VertexBufferHandle(), 0, voxelDimension * voxelDimension * voxelDimension );
@@ -412,11 +443,6 @@ namespace Tac
     Render::EndGroup( TAC_STACK_FRAME );
   }
 
-  static void                    CreateVoxelDepthState()
-  {
-    voxelCopyDepthState = Render::CreateDepthState( {}, TAC_STACK_FRAME );
-    Render::SetRenderObjectDebugName( voxelCopyDepthState, "vox-copy-depth" );
-  }
 
   void VoxelGIPresentationInit( Errors& )
   {
@@ -503,7 +529,8 @@ namespace Tac
 
     if( voxelDebug )
     {
-      ImGuiCheckbox( "Debug draw outlines", &voxelDebugDrawOutlines );
+      ImGuiCheckbox( "Debug draw voxel outlines", &voxelDebugDrawVoxelOutlines );
+      ImGuiCheckbox( "Debug draw grid outline", &voxelDebugDrawGridOutline );
       ImGuiCheckbox( "Debug draw voxels", &voxelDebugDrawVoxels );
     }
   }

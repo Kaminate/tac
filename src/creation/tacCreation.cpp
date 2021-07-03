@@ -365,8 +365,6 @@ namespace Tac
     if( AllWindowsClosed() )
       OSAppStopRunning();
 
-
-
     static bool checkedOnce;
     if( !checkedOnce )
     {

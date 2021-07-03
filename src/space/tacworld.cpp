@@ -215,7 +215,7 @@ namespace Tac
   }
   void    World::Step( float seconds )
   {
-    /*TAC_PROFILE_BLOCK*/;
+    TAC_PROFILE_BLOCK;
     const m4 identity = m4::Identity();
     for( Entity* entity : mEntities )
     {

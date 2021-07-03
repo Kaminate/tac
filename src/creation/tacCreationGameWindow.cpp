@@ -1,4 +1,5 @@
 #include "src/common/assetmanagers/tacMesh.h"
+#include "src/common/profile/tacProfile.h"
 #include "src/common/assetmanagers/tacModelAssetManager.h"
 #include "src/common/assetmanagers/tacTextureAssetManager.h"
 #include "src/common/graphics/imgui/tacImGui.h"
@@ -675,6 +676,7 @@ namespace Tac
 
   void CreationGameWindow::Update( Errors& errors )
   {
+    TAC_PROFILE_BLOCK;
 
     const Render::ViewHandle viewHandle = WindowGraphicsGetView( mDesktopWindowHandle );
     const Render::FramebufferHandle framebufferHandle = WindowGraphicsGetFramebuffer( mDesktopWindowHandle );

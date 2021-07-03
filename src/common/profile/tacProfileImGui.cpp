@@ -303,6 +303,9 @@ namespace Tac
     else if( ImGuiButton( "Resume Profiling" ) )
       ProfileSetIsRuning( true );
 
+    static bool profileDrawGrid = true;
+    ImGuiCheckbox( "Profile draw grid", &profileDrawGrid );
+
     const v2    timelinePos = imguiWindow->mCurrCursorViewport;
     const v2    timelineSize = v2( imguiWindow->mContentRect.mMaxi.x - imguiWindow->mCurrCursorViewport.x,
                                    ImGuiGlobals::Instance.mUIStyle.fontSize * 3.0f );
@@ -312,8 +315,11 @@ namespace Tac
     const v2    cameraViewportSize = imguiWindow->mContentRect.mMaxi - cameraViewportPos;
     imguiWindow->mCurrCursorViewport.y += timelineSize.y;
 
+    if( profileDrawGrid )
+    {
     ImGuiProfileWidgetTimeScale( timelinePos, timelineSize );
     ImGuiProfileWidgetCamera( cameraViewportPos, cameraViewportSize );
+    }
   }
 }
 

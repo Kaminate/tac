@@ -1,5 +1,5 @@
 #include "src/common/graphics/imgui/tacImGui.h"
-
+#include "src/common/profile/tacProfile.h"
 #include "src/common/graphics/tacUI2D.h"
 #include "src/common/tacAlgorithm.h"
 #include "src/common/tacDesktopWindow.h"
@@ -60,6 +60,7 @@ namespace Tac
 
 	void CreationPropertyWindow::Update( Errors& errors )
 	{
+    TAC_PROFILE_BLOCK;
 
 		TAC_HANDLE_ERROR( errors );
 

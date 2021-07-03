@@ -94,7 +94,13 @@ void GS( triangle VS_OUT_GS_IN input[ 3 ],
         clipSpacePosition = float4( clipSpacePosition.z, clipSpacePosition.y, 1, 1 );
       else if( dominantAxisValue == worldSpaceAbsFaceNormal.y )
         clipSpacePosition = float4( clipSpacePosition.x, clipSpacePosition.z, 1, 1 );
-      clipSpacePosition.xy /= gVoxelWidth;
+
+      // | ok but like isnt this wrong
+      // | when do i even ever use gVoxelWidth?
+      // | dont i just use gVoxelGridSize instead?
+      // v
+      // clipSpacePosition.xy /= gVoxelWidth;
+
       clipSpacePosition.xy /= gVoxelGridHalfWidth;
     }
 
@@ -163,12 +169,16 @@ PS_OUTPUT PS( GS_OUT_PS_IN input )
     + iVoxel3.y * gVoxelGridSize
     + iVoxel3.z * gVoxelGridSize * gVoxelGridSize;
 
-#if 1 // debugging
+#if 0 // debugging
   for( int i = 0; i < 6 * 6 * 6; ++i )
     InterlockedMax( mySB[ i ].mColor, VoxelEncodeHDRColor( float4( 1, 1, 0, 1 ) ) );
   //iVoxel = 4;
   //color = float4( 1, 1, 0, 1 );
 #endif
+
+  color.x = ( sin( voxelNDC.x * 14.456 + 5.) * 0.5 + 0.5 );
+  color.y = ( sin( voxelNDC.y * 14.456 + 6.) * 0.5 + 0.5 );
+  color.z = ( sin( voxelNDC.z * 14.456 + 7.) * 0.5 + 0.5 );
 
   uint uint_color = VoxelEncodeHDRColor( color );
   uint uint_n     = VoxelEncodeUnitNormal( n );

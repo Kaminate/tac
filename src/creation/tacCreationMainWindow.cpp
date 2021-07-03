@@ -1,6 +1,6 @@
 #include "src/common/assetmanagers/tacTextureAssetManager.h"
 #include "src/common/graphics/imgui/tacImGui.h"
-
+#include "src/common/profile/tacProfile.h"
 #include "src/common/graphics/tacUI2D.h"
 #include "src/common/tacJson.h"
 #include "src/common/tacDesktopWindow.h"
@@ -166,6 +166,7 @@ namespace Tac
 
   void CreationMainWindow::Update( Errors& errors )
   {
+    TAC_PROFILE_BLOCK;
     DesktopAppResizeControls( mDesktopWindowHandle );
     DesktopAppMoveControls( mDesktopWindowHandle );
 

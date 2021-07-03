@@ -18,8 +18,8 @@ namespace Tac
 
   static struct Debug3DCommonData
   {
-    void Init( Errors& );
-    void Uninit();
+    void                          Init( Errors& );
+    void                          Uninit();
     Render::BlendStateHandle      mAlphaBlendState;
     Render::ConstantBufferHandle  mCBufferPerFrame;
     Render::DepthStateHandle      mDepthLess;
@@ -430,7 +430,7 @@ namespace Tac
                                               const int viewHeight,
                                               Errors& errors )
   {
-    //_PROFILE_BLOCK;
+    TAC_PROFILE_BLOCK;
     const int vertexCount = mDebugDrawVerts.size();
     if( mDebugDrawVerts.size() )
     {

@@ -1,4 +1,5 @@
 #include "src/common/graphics/imgui/tacImGui.h"
+#include "src/common/profile/tacProfile.h"
 #include "src/common/graphics/imgui/tacImGuiState.h"
 #include "src/common/containers/tacFrameVector.h"
 #include "src/common/graphics/tacRenderer.h"
@@ -1176,6 +1177,8 @@ namespace Tac
 
   void ImGuiFrameEnd( Errors& errors )
   {
+    TAC_PROFILE_BLOCK;
+
     for( const ImGuiWindow* window : ImGuiGlobals::Instance.mWindowStack )
       TAC_CRITICAL_ERROR( "Mismatched ImGuiBegin/ImGuiEnd for %s", window->mName.c_str() );
 

@@ -864,8 +864,9 @@ namespace Tac
 
       AllowPIXDebuggerAttachment();
 
-
-
+      ID3D11Device3* device3 = nullptr;
+      HRESULT queried = mDevice->QueryInterface( &mDevice3 );
+      TAC_HANDLE_ERROR_IF( FAILED( queried ), "failed to query id3d11device3", errors );
     }
 
     void RendererDirectX11::RenderBegin( const Frame*, Errors& )
@@ -1277,7 +1278,7 @@ namespace Tac
                                             const DrawCall* drawCall,
                                             Errors& errors )
     {
-      if( drawCall->mStackFrame.mLine == 333 )
+      if( drawCall->mStackFrame.mLine == 367 )
       {
         ++asdf;
       }
@@ -1588,6 +1589,7 @@ namespace Tac
     void RendererDirectX11::AddRasterizerState( CommandDataCreateRasterizerState* commandData,
                                                 Errors& errors )
     {
+#if 0
       TAC_ASSERT( IsMainThread() );
       D3D11_RASTERIZER_DESC desc = {};
       desc.FillMode = GetFillMode( commandData->mRasterizerState.mFillMode );
@@ -1600,6 +1602,27 @@ namespace Tac
       TAC_DX11_CALL( errors, mDevice->CreateRasterizerState, &desc, &rasterizerState );
       mRasterizerStates[ ( int )commandData->mRasterizerStateHandle ] = rasterizerState;
       SetDebugName( rasterizerState, commandData->mStackFrame.ToString() );
+#else
+
+      const D3D11_CONSERVATIVE_RASTERIZATION_MODE conservativeRasterizationMode
+        = commandData->mRasterizerState.mConservativeRasterization
+        ? D3D11_CONSERVATIVE_RASTERIZATION_MODE_ON
+        : D3D11_CONSERVATIVE_RASTERIZATION_MODE_OFF;
+
+      D3D11_RASTERIZER_DESC2 desc2 = {};
+      desc2.FillMode = GetFillMode( commandData->mRasterizerState.mFillMode );
+      desc2.CullMode = GetCullMode( commandData->mRasterizerState.mCullMode );
+      desc2.ScissorEnable = commandData->mRasterizerState.mScissor;
+      desc2.MultisampleEnable = commandData->mRasterizerState.mMultisample;
+      desc2.DepthClipEnable = true;
+      desc2.FrontCounterClockwise = commandData->mRasterizerState.mFrontCounterClockwise;
+      desc2.ConservativeRaster = conservativeRasterizationMode;
+
+      ID3D11RasterizerState2* rasterizerState2;
+      TAC_DX11_CALL( errors, mDevice3->CreateRasterizerState2, &desc2, &rasterizerState2 );
+      SetDebugName( rasterizerState2, commandData->mStackFrame.ToString() );
+      mRasterizerStates[ ( int )commandData->mRasterizerStateHandle ] = rasterizerState2;
+#endif
     }
 
     void RendererDirectX11::AddSamplerState( CommandDataCreateSamplerState* commandData,
@@ -1728,14 +1751,14 @@ namespace Tac
         : texture3D ? ( ID3D11Resource* )texture3D : nullptr;
       SetDebugName( resource, data->mStackFrame.ToString() );
 
-      ID3D11RenderTargetView* rTV = nullptr;
+      ID3D11RenderTargetView* rtv = nullptr;
       if( ( int )data->mTexSpec.mBinding & ( int )Binding::RenderTarget )
       {
         TAC_DX11_CALL( errors, mDevice->CreateRenderTargetView,
                        resource,
                        nullptr,
-                       &rTV );
-        SetDebugName( rTV, data->mStackFrame.ToString() );
+                       &rtv );
+        SetDebugName( rtv, data->mStackFrame.ToString() );
       }
 
       ID3D11UnorderedAccessView* uav = nullptr;
@@ -1792,12 +1815,27 @@ namespace Tac
           mDeviceContext->GenerateMips( srv );
       }
 
+      ID3D11DepthStencilView* dsv = nullptr;
+      if( ( int )data->mTexSpec.mBinding & ( int )Binding::DepthStencil )
+      {
+            D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = {};
+            depthStencilViewDesc.Format = Format;
+            depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+            TAC_DX11_CALL( errors,
+                           mDevice->CreateDepthStencilView,
+                           resource,
+                           &depthStencilViewDesc,
+                           &dsv );
+            SetDebugName( dsv, data->mStackFrame.ToString() );
+      }
+
       Texture* texture = &mTextures[ ( int )data->mTextureHandle ];
       texture->mTexture2D = texture2D;
       texture->mTexture3D = texture3D;
       texture->mTextureSRV = srv;
-      texture->mTextureRTV = rTV;
+      texture->mTextureRTV = rtv;
       texture->mTextureUAV = uav;
+      texture->mTextureDSV = dsv;
     }
 
     void RendererDirectX11::AddBlendState( CommandDataCreateBlendState* commandData,
@@ -1894,7 +1932,7 @@ namespace Tac
         ID3D11RenderTargetView* rtv = nullptr;
         D3D11_RENDER_TARGET_VIEW_DESC* rtvDesc = nullptr;
         TAC_DX11_CALL( errors, device->CreateRenderTargetView, pBackBuffer, rtvDesc, &rtv );
-        SetDebugName( rtv, FrameMemoryPrintf( "%s-rtv", data->mStackFrame.ToString() ) );
+        SetDebugName( rtv, data->mStackFrame.ToString() );
         pBackBuffer->Release();
 
         D3D11_RENDER_TARGET_VIEW_DESC createdDesc = {};
@@ -1913,14 +1951,14 @@ namespace Tac
 
         ID3D11Texture2D* texture;
         TAC_DX11_CALL( errors, mDevice->CreateTexture2D, &texture2dDesc, nullptr, &texture );
-        SetDebugName( texture, FrameMemoryPrintf( "%s-depth-tex", data->mStackFrame.ToString() ) );
+        SetDebugName( texture, data->mStackFrame.ToString() );
 
         ID3D11DepthStencilView* dsv;
         D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = {};
         depthStencilViewDesc.Format = texture2dDesc.Format;
         depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
         TAC_DX11_CALL( errors, mDevice->CreateDepthStencilView, texture, &depthStencilViewDesc, &dsv );
-        SetDebugName( dsv, FrameMemoryPrintf( "%s-dsv", data->mStackFrame.ToString() ) );
+        SetDebugName( dsv, data->mStackFrame.ToString() );
 
         Framebuffer* framebuffer = &mFramebuffers[ ( int )data->mFramebufferHandle ];
         framebuffer->mSwapChain = swapChain;
@@ -1929,12 +1967,17 @@ namespace Tac
         framebuffer->mHwnd = hwnd;
         framebuffer->mRenderTargetView = rtv;
         framebuffer->mBufferCount = bufferCount;
-        framebuffer->mCreationStackFrame = data->mStackFrame;
+        //framebuffer->mCreationStackFrame = data->mStackFrame;
+        framebuffer->mDebugName = data->mStackFrame.ToString();
 
         mWindows[ mWindowCount++ ] = data->mFramebufferHandle;
       }
       else if( isRenderToTextureFramebuffer )
       {
+        ID3D11DepthStencilView* dsv = nullptr;
+        ID3D11RenderTargetView* rtv = nullptr;
+        ID3D11Texture2D*        depthTexture = nullptr;
+
         for( TextureHandle textureHandle : data->mFramebufferTextures )
         {
           TAC_ASSERT( textureHandle.IsValid() );
@@ -1943,6 +1986,7 @@ namespace Tac
           D3D11_TEXTURE2D_DESC desc;
           texture->mTexture2D->GetDesc( &desc );
 
+#if 0
           const bool isDepthTexture =
             desc.Format == DXGI_FORMAT_D16_UNORM ||
             desc.Format == DXGI_FORMAT_D24_UNORM_S8_UINT ||
@@ -1953,24 +1997,32 @@ namespace Tac
             D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = {};
             depthStencilViewDesc.Format = desc.Format;
             depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-            ID3D11DepthStencilView* dsv;
             TAC_DX11_CALL( errors,
                            mDevice->CreateDepthStencilView,
                            texture->mTexture2D,
                            &depthStencilViewDesc,
                            &dsv );
-            SetDebugName( dsv, FrameMemoryPrintf( "%s-render-to-dsv", data->mStackFrame.ToString() ) );
+            SetDebugName( dsv, data->mStackFrame.ToString() );
 
-            Framebuffer* framebuffer = &mFramebuffers[ ( int )data->mFramebufferHandle ];
-            framebuffer->mDepthStencilView = dsv;
-            framebuffer->mDepthTexture = texture->mTexture2D;
+            depthTexture = texture->mTexture2D;
           }
+#else
+          if( texture->mTextureDSV )
+          {
+            dsv = texture->mTextureDSV;
+          }
+#endif
           else
           {
-            Framebuffer* framebuffer = &mFramebuffers[ ( int )data->mFramebufferHandle ];
-            framebuffer->mRenderTargetView = texture->mTextureRTV;
+            rtv = texture->mTextureRTV;
           }
         }
+
+        Framebuffer* framebuffer = &mFramebuffers[ ( int )data->mFramebufferHandle ];
+        framebuffer->mDebugName = data->mStackFrame.ToString();
+        framebuffer->mRenderTargetView = rtv;
+        framebuffer->mDepthStencilView = dsv;
+        framebuffer->mDepthTexture = depthTexture;
       }
       else
       {
@@ -2043,13 +2095,17 @@ namespace Tac
           mWindows[ i ] = mWindows[ --mWindowCount ];
       Framebuffer* framebuffer = &mFramebuffers[ ( int )framebufferHandle ];
 
-      ReportLiveObjects();
+      //ReportLiveObjects();
 
+      // Window framebuffers own their things
+      if( framebuffer->mSwapChain )
+      {
+        TAC_RELEASE_IUNKNOWN( framebuffer->mDepthStencilView );
+        TAC_RELEASE_IUNKNOWN( framebuffer->mDepthTexture );
+        TAC_RELEASE_IUNKNOWN( framebuffer->mRenderTargetView );
+        TAC_RELEASE_IUNKNOWN( framebuffer->mSwapChain );
+      }
 
-      TAC_RELEASE_IUNKNOWN( framebuffer->mDepthStencilView );
-      TAC_RELEASE_IUNKNOWN( framebuffer->mDepthTexture );
-      TAC_RELEASE_IUNKNOWN( framebuffer->mRenderTargetView );
-      TAC_RELEASE_IUNKNOWN( framebuffer->mSwapChain );
       *framebuffer = Framebuffer();
     }
 
@@ -2158,10 +2214,8 @@ namespace Tac
     void RendererDirectX11::ResizeFramebuffer( CommandDataResizeFramebuffer* data,
                                                Errors& errors )
     {
-      FramebufferHandle framebufferHandle = data->mFramebufferHandle;
-
       Framebuffer* framebuffer = &mFramebuffers[ ( int )data->mFramebufferHandle ];
-      IDXGISwapChain* swapChain = framebuffer->mSwapChain;
+      TAC_ASSERT( framebuffer->mSwapChain );
 
       D3D11_TEXTURE2D_DESC depthTextureDesc;
       framebuffer->mDepthTexture->GetDesc( &depthTextureDesc );
@@ -2176,9 +2230,13 @@ namespace Tac
         return name;
       };
 
-      StringView nameRenderTargetView = getname( framebuffer->mRenderTargetView, framebuffer->mCreationStackFrame );
-      StringView nameDepthTexture = getname( framebuffer->mDepthTexture, framebuffer->mCreationStackFrame );
-      StringView nameDepthStencilView = getname( framebuffer->mDepthStencilView, framebuffer->mCreationStackFrame );
+      //StringView nameRenderTargetView = getname( framebuffer->mRenderTargetView, framebuffer->mCreationStackFrame );
+      //StringView nameDepthTexture = getname( framebuffer->mDepthTexture, framebuffer->mCreationStackFrame );
+      //StringView nameDepthStencilView = getname( framebuffer->mDepthStencilView, framebuffer->mCreationStackFrame );
+
+      StringView nameRenderTargetView = framebuffer->mDebugName;
+      StringView nameDepthTexture = framebuffer->mDebugName;
+      StringView nameDepthStencilView = framebuffer->mDebugName;
 
       // Release outstanding back buffer references prior to calling IDXGISwapChain::ResizeBuffers
       TAC_RELEASE_IUNKNOWN( framebuffer->mRenderTargetView );
@@ -2195,7 +2253,7 @@ namespace Tac
                                               DXGI_FORMAT_UNKNOWN,
                                               desc.Flags );
       ID3D11Texture2D* pBackBuffer = nullptr;
-      TAC_DXGI_CALL( errors, swapChain->GetBuffer, 0, IID_PPV_ARGS( &pBackBuffer ) );
+      TAC_DXGI_CALL( errors, framebuffer->mSwapChain->GetBuffer, 0, IID_PPV_ARGS( &pBackBuffer ) );
       TAC_HANDLE_ERROR_IF( !pBackBuffer, "no buffer to resize", errors );
       ID3D11RenderTargetView* rtv = nullptr;
       D3D11_RENDER_TARGET_VIEW_DESC* rtvDesc = nullptr;
@@ -2233,6 +2291,7 @@ namespace Tac
         SetDebugName( framebuffer->mRenderTargetView, data->mName );
         SetDebugName( framebuffer->mDepthTexture, data->mName );
         SetDebugName( framebuffer->mSwapChain, data->mName );
+        framebuffer->mDebugName = data->mName;
       }
 
       if( data->mVertexBufferHandle.IsValid() )

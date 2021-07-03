@@ -8,6 +8,7 @@
 #include "src/shell/windows/tacDXGI.h"
 
 #include <d3d11_1.h>
+#include <d3d11_3.h> // ID3D11Device3, ID3D11RasterizerState2
 
 #include <map>
 #include <set>
@@ -35,6 +36,7 @@ namespace Tac
     struct Texture
     {
       //ID3D11Resource*            GetResource();
+      ID3D11DepthStencilView*    mTextureDSV = {};
       ID3D11Texture2D*           mTexture2D = {};
       ID3D11Texture3D*           mTexture3D = {};
       ID3D11RenderTargetView*    mTextureRTV = {};
@@ -44,13 +46,17 @@ namespace Tac
 
     struct Framebuffer
     {
+      // Window framebuffers own their depth textures, rtv, dsv.
+      //
+      // Render-to-texture framebuffers do no.
       int                        mBufferCount = 0;
       IDXGISwapChain*            mSwapChain = nullptr;
       ID3D11DepthStencilView*    mDepthStencilView = nullptr;
       ID3D11RenderTargetView*    mRenderTargetView = nullptr;
       ID3D11Texture2D*           mDepthTexture = nullptr;
       HWND                       mHwnd = nullptr;
-      StackFrame                 mCreationStackFrame;
+      //StackFrame                 mCreationStackFrame;
+      String                     mDebugName;
     };
 
     struct VertexBuffer
@@ -153,6 +159,7 @@ namespace Tac
       ID3D11InfoQueue*           mInfoQueueDEBUG = nullptr;
       ID3DUserDefinedAnnotation* mUserAnnotationDEBUG = nullptr;
       ID3D11Device*              mDevice = nullptr;
+      ID3D11Device3*             mDevice3 = nullptr;
       ID3D11DeviceContext*       mDeviceContext = nullptr;
       //DXGI                       mDxgi;
       Texture                    mTextures[ kMaxTextures ] = {};

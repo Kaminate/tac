@@ -1,4 +1,5 @@
 #include "src/common/assetmanagers/tacModelLoadSynchronous.h"
+#include "src/common/profile/tacProfile.h"
 #include "src/common/assetmanagers/tacTextureAssetManager.h"
 #include "src/common/assetmanagers/tacResidentModelFile.h"
 #include "src/common/containers/tacFrameVector.h"
@@ -488,6 +489,7 @@ namespace Tac
 
   void CreationUpdateAssetView()
   {
+    TAC_PROFILE_BLOCK;
     ImGuiSetNextWindowStretch();
     ImGuiSetNextWindowMoveResize();
     const bool open = ImGuiBegin( "Asset View" );
