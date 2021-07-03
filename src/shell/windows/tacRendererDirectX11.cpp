@@ -81,6 +81,54 @@ namespace Tac
 }
 
 
+    struct ScopedDXFilter
+    {
+      ScopedDXFilter()
+      {
+        Init();
+      }
+
+      ScopedDXFilter( std::initializer_list< D3D11_MESSAGE_ID > ts )
+      {
+        Init();
+        Push( ts );
+      }
+
+      ~ScopedDXFilter()
+      {
+        if( hide.size() )
+          mInfoQueueDEBUG->PopStorageFilter();
+      }
+
+      void Push( std::initializer_list< D3D11_MESSAGE_ID > ts )
+      {
+        TAC_ASSERT( hide.empty() );
+        for( D3D11_MESSAGE_ID t : ts )
+          hide.push_back( t );
+
+        if( hide.size() )
+        {
+          D3D11_INFO_QUEUE_FILTER filter = {};
+          filter.DenyList.NumIDs = hide.size();
+          filter.DenyList.pIDList = hide.data();
+          mInfoQueueDEBUG->PushStorageFilter( &filter );
+        }
+      }
+
+
+    private:
+      void Init()
+      {
+        auto renderer = ( RendererDirectX11* )Renderer::Instance;
+        mInfoQueueDEBUG = renderer->mInfoQueueDEBUG;
+      }
+
+      ID3D11InfoQueue*                      mInfoQueueDEBUG = nullptr;
+      FrameMemoryVector< D3D11_MESSAGE_ID > hide;
+    };
+
+#define TAC_SCOPED_DX_FILTER( stuff ) ScopedDXFilter TAC_CONCAT( filter , __COUNTER__)( stuff );
+
     static String GetDirectX11ShaderPath( StringView shaderName )
     {
       String result;
@@ -163,28 +211,74 @@ namespace Tac
     {
       if( !IsDebugMode() )
         return;
+
       auto Dxgidebughandle = GetModuleHandle( "Dxgidebug.dll" );
       if( !Dxgidebughandle )
         return;
 
-      auto myDXGIGetDebugInterface =
-        ( HRESULT( WINAPI* )( REFIID, void** ) )GetProcAddress(
-          Dxgidebughandle,
-          "DXGIGetDebugInterface" );
-
+      auto myDXGIGetDebugInterface = ( HRESULT( WINAPI* )( REFIID, void** ) )GetProcAddress( Dxgidebughandle,
+                                                                                             "DXGIGetDebugInterface" );
       if( !myDXGIGetDebugInterface )
         return;
       IDXGIDebug* myIDXGIDebug;
-      HRESULT hr = myDXGIGetDebugInterface( IID_PPV_ARGS( &myIDXGIDebug ) );
+      const HRESULT hr = myDXGIGetDebugInterface( IID_PPV_ARGS( &myIDXGIDebug ) );
       if( FAILED( hr ) )
         return;
-      myIDXGIDebug->ReportLiveObjects(
-        DXGI_DEBUG_ALL,
-        DXGI_DEBUG_RLO_ALL );
-      myIDXGIDebug->Release();
+
+      struct BreakStuffs
+      {
+      public:
+
+        BreakStuffs()
+        {
+          auto renderer = ( RendererDirectX11* )Renderer::Instance;
+          mInfoQueueDEBUG = renderer->mInfoQueueDEBUG;
+          Add( D3D11_MESSAGE_SEVERITY_CORRUPTION );
+          Add( D3D11_MESSAGE_SEVERITY_ERROR );
+          Add( D3D11_MESSAGE_SEVERITY_WARNING );
+          Add( D3D11_MESSAGE_SEVERITY_INFO );
+          Add( D3D11_MESSAGE_SEVERITY_MESSAGE );
+        }
+
+        void Resume()
+        {
+          for( BreakStuff& breakStuff : mBreakStuffs )
+            mInfoQueueDEBUG->SetBreakOnSeverity( breakStuff.severity, breakStuff.severityBreak );
+        }
+
+        void Disable()
+        {
+          for( BreakStuff& breakStuff : mBreakStuffs )
+            mInfoQueueDEBUG->SetBreakOnSeverity( breakStuff.severity, FALSE );
+        }
+
+      private:
+
+        struct BreakStuff
+        {
+          D3D11_MESSAGE_SEVERITY severity;
+          BOOL                   severityBreak;
+        };
+
+        void Add( D3D11_MESSAGE_SEVERITY s )
+        {
+          BreakStuff breakStuff;
+          breakStuff.severity = s;
+          breakStuff.severityBreak = mInfoQueueDEBUG->GetBreakOnSeverity( s );
+          mBreakStuffs.push_back( breakStuff );
+        }
+
+        FrameMemoryVector< BreakStuff > mBreakStuffs;
+        ID3D11InfoQueue*                mInfoQueueDEBUG = nullptr;
+      } breakStuffs;
+      breakStuffs.Disable();
+
+      myIDXGIDebug->ReportLiveObjects( DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_ALL );
+      breakStuffs.Resume();
+      TAC_RELEASE_IUNKNOWN( myIDXGIDebug );
     }
 
-    static D3D11_TEXTURE_ADDRESS_MODE GetAddressMode( AddressMode addressMode )
+    static D3D11_TEXTURE_ADDRESS_MODE GetAddressMode( const AddressMode addressMode )
     {
       switch( addressMode )
       {
@@ -195,7 +289,7 @@ namespace Tac
       }
     }
 
-    static D3D11_COMPARISON_FUNC      GetCompare( Comparison compare )
+    static D3D11_COMPARISON_FUNC      GetCompare( const Comparison compare )
     {
       switch( compare )
       {
@@ -205,7 +299,7 @@ namespace Tac
       }
     };
 
-    static D3D11_FILTER               GetFilter( Filter filter )
+    static D3D11_FILTER               GetFilter( const Filter filter )
     {
       switch( filter )
       {
@@ -216,7 +310,7 @@ namespace Tac
       }
     };
 
-    static D3D11_COMPARISON_FUNC      GetDepthFunc( DepthFunc depthFunc )
+    static D3D11_COMPARISON_FUNC      GetDepthFunc( const DepthFunc depthFunc )
     {
       switch( depthFunc )
       {
@@ -226,7 +320,7 @@ namespace Tac
       }
     }
 
-    static D3D11_USAGE                GetUsage( Access access )
+    static D3D11_USAGE                GetUsage( const Access access )
     {
       switch( access )
       {
@@ -237,7 +331,7 @@ namespace Tac
       }
     }
 
-    static UINT                       GetCPUAccessFlags( CPUAccess access )
+    static UINT                       GetCPUAccessFlags( const CPUAccess access )
     {
       UINT result = 0;
       if( ( int )access & ( int )CPUAccess::Read )
@@ -247,7 +341,7 @@ namespace Tac
       return result;
     }
 
-    static UINT                       GetBindFlags( Binding binding )
+    static UINT                       GetBindFlags( const Binding binding )
     {
       UINT BindFlags = 0;
       if( ( int )binding & ( int )Binding::RenderTarget )
@@ -261,7 +355,7 @@ namespace Tac
       return BindFlags;
     }
 
-    static UINT                       GetMiscFlags( Binding binding )
+    static UINT                       GetMiscFlags( const Binding binding )
     {
       if( ( int )binding & ( int )Binding::RenderTarget &&
         ( int )binding & ( int )Binding::ShaderResource )
@@ -269,7 +363,7 @@ namespace Tac
       return 0;
     }
 
-    static D3D11_BLEND                GetBlend( BlendConstants blendConstants )
+    static D3D11_BLEND                GetBlend( const BlendConstants blendConstants )
     {
       switch( blendConstants )
       {
@@ -289,7 +383,7 @@ namespace Tac
       }
     };
 
-    static D3D11_BLEND_OP             GetBlendOp( BlendMode mode )
+    static D3D11_BLEND_OP             GetBlendOp( const BlendMode mode )
     {
       switch( mode )
       {
@@ -301,7 +395,7 @@ namespace Tac
       }
     };
 
-    static D3D11_FILL_MODE            GetFillMode( FillMode fillMode )
+    static D3D11_FILL_MODE            GetFillMode( const FillMode fillMode )
     {
       switch( fillMode )
       {
@@ -311,7 +405,7 @@ namespace Tac
       }
     }
 
-    static D3D11_CULL_MODE            GetCullMode( CullMode cullMode )
+    static D3D11_CULL_MODE            GetCullMode( const CullMode cullMode )
     {
       switch( cullMode )
       {
@@ -322,7 +416,7 @@ namespace Tac
       }
     }
 
-    static D3D11_PRIMITIVE_TOPOLOGY   GetPrimitiveTopology( PrimitiveTopology primitiveTopology )
+    static D3D11_PRIMITIVE_TOPOLOGY   GetPrimitiveTopology( const PrimitiveTopology primitiveTopology )
     {
       switch( primitiveTopology )
       {
@@ -334,7 +428,7 @@ namespace Tac
       return D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
     }
 
-    static WCHAR* ToTransientWchar( StringView str )
+    static WCHAR* ToTransientWchar( const StringView str )
     {
       WCHAR* result = ( WCHAR* )FrameMemoryAllocate( ( sizeof( WCHAR ) + 1 ) * str.size() );
       WCHAR* resultIter = result;
@@ -344,9 +438,9 @@ namespace Tac
       return result;
     }
 
-    static String ShaderPathToContentString( StringView path, Errors& errors )
+    static String ShaderPathToContentString( const StringView path, Errors& errors )
     {
-      if( !path )
+      if( path.empty() )
         return "";
       String shaderFilePath = GetDirectX11ShaderPath( path );
       String shaderFileContents = FileToString( shaderFilePath, errors );
@@ -356,7 +450,7 @@ namespace Tac
     static String TryImproveShaderErrorMessageLine( const ShaderSource shaderSource,
                                                     const StringView shaderStrOrig,
                                                     const StringView shaderStrFull,
-                                                    StringView errMsg )
+                                                    const StringView errMsg )
     {
       const int lineNumber = [ & ]()
       {
@@ -882,22 +976,32 @@ namespace Tac
         const View* view = &frame->mViews[ ( int )drawCall->mViewHandle ];
         const Framebuffer* framebuffer = &mFramebuffers[ ( int )view->mFrameBufferHandle ];
 
+
+        // Should dsv be optional?
+        // Should rtv be optional?
+
         dsv = framebuffer->mDepthStencilView;
-        views.push_back( framebuffer->mRenderTargetView );
+        if( framebuffer->mRenderTargetView )
+          views.push_back( framebuffer->mRenderTargetView );
 
         // if 1st use this frame clear it?
 
         if( !mBoundFramebuffersThisFrame[ ( int )view->mFrameBufferHandle ] )
         {
           mBoundFramebuffersThisFrame[ ( int )view->mFrameBufferHandle ] = true;
-          mDeviceContext->ClearDepthStencilView( framebuffer->mDepthStencilView,
-                                                 D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
-                                                 1.0f, // clear depth value
-                                                 0 ); // clear stencil value
 
-          const FLOAT ClearGrey = 0.5f;
-          const FLOAT ClearColorRGBA[] = { ClearGrey, ClearGrey, ClearGrey,  1.0f };
-          mDeviceContext->ClearRenderTargetView( framebuffer->mRenderTargetView, ClearColorRGBA );
+          if( dsv )
+            mDeviceContext->ClearDepthStencilView( dsv,
+                                                   D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
+                                                   1.0f, // clear depth value
+                                                   0 ); // clear stencil value
+
+          if( framebuffer->mRenderTargetView )
+          {
+            const FLOAT ClearGrey = 0.5f;
+            const FLOAT ClearColorRGBA[] = { ClearGrey, ClearGrey, ClearGrey,  1.0f };
+            mDeviceContext->ClearRenderTargetView( framebuffer->mRenderTargetView, ClearColorRGBA );
+          }
 
           ID3D11ShaderResourceView* nullViews[ 16 ] = {};
           mDeviceContext->VSSetShaderResources( 0, 16, nullViews );
@@ -1242,6 +1346,25 @@ namespace Tac
     }
 
 
+    void RendererDirectX11::SetDebugName( IDXGIObject* obj, StringView name )
+    {
+      if( !obj )
+        return;
+      const HRESULT hr = obj->SetPrivateData( WKPDID_D3DDebugObjectName, name.size(), name.data() );
+      TAC_ASSERT( hr == S_OK );
+    }
+
+    StringView  RendererDirectX11::GetDebugName( ID3D11DeviceChild* obj )
+    {
+      UINT len = 256;
+      void* buf = FrameMemoryAllocate( len );
+      const HRESULT getHr = obj->GetPrivateData( WKPDID_D3DDebugObjectName,
+                                                 &len,
+                                                 buf );
+      TAC_ASSERT( SUCCEEDED( getHr ) || getHr == DXGI_ERROR_NOT_FOUND );
+      return StringView( ( const char* )buf, len );
+    }
+
     void RendererDirectX11::SetDebugName( ID3D11DeviceChild* directXObject,
                                           StringView name )
     {
@@ -1253,11 +1376,14 @@ namespace Tac
         return;
       Array< char, 256 > data = {};
       UINT privateDataSize = data.size();
-      directXObject->GetPrivateData( WKPDID_D3DDebugObjectName,
-                                     &privateDataSize,
-                                     &data );
+      const HRESULT getHr = directXObject->GetPrivateData( WKPDID_D3DDebugObjectName,
+                                                           &privateDataSize,
+                                                           &data );
+      TAC_ASSERT( SUCCEEDED( getHr ) || getHr == DXGI_ERROR_NOT_FOUND );
 
       String newname;
+
+      ScopedDXFilter filter;
 
       if( privateDataSize )
       {
@@ -1265,17 +1391,12 @@ namespace Tac
         newname += String( data.data(), privateDataSize );
         newname += ", and ";
 #endif
-        FrameMemoryVector< D3D11_MESSAGE_ID > hide = { D3D11_MESSAGE_ID_SETPRIVATEDATA_CHANGINGPARAMS };
-        D3D11_INFO_QUEUE_FILTER filter = {};
-        filter.DenyList.NumIDs = hide.size();
-        filter.DenyList.pIDList = hide.data();
-        mInfoQueueDEBUG->PushStorageFilter( &filter );
+        filter.Push( { D3D11_MESSAGE_ID_SETPRIVATEDATA_CHANGINGPARAMS } );
       }
       newname += String( name );
 
-      directXObject->SetPrivateData( WKPDID_D3DDebugObjectName, ( UINT )newname.size(), newname.c_str() );
-      if( privateDataSize )
-        mInfoQueueDEBUG->PopStorageFilter();
+      const HRESULT setHr = directXObject->SetPrivateData( WKPDID_D3DDebugObjectName, ( UINT )newname.size(), newname.c_str() );
+      TAC_ASSERT( SUCCEEDED( setHr ) );
     }
 
 
@@ -1773,7 +1894,7 @@ namespace Tac
         ID3D11RenderTargetView* rtv = nullptr;
         D3D11_RENDER_TARGET_VIEW_DESC* rtvDesc = nullptr;
         TAC_DX11_CALL( errors, device->CreateRenderTargetView, pBackBuffer, rtvDesc, &rtv );
-        SetDebugName( rtv, data->mStackFrame.ToString() );
+        SetDebugName( rtv, FrameMemoryPrintf( "%s-rtv", data->mStackFrame.ToString() ) );
         pBackBuffer->Release();
 
         D3D11_RENDER_TARGET_VIEW_DESC createdDesc = {};
@@ -1792,14 +1913,14 @@ namespace Tac
 
         ID3D11Texture2D* texture;
         TAC_DX11_CALL( errors, mDevice->CreateTexture2D, &texture2dDesc, nullptr, &texture );
-        SetDebugName( texture, data->mStackFrame.ToString() );
+        SetDebugName( texture, FrameMemoryPrintf( "%s-depth-tex", data->mStackFrame.ToString() ) );
 
         ID3D11DepthStencilView* dsv;
         D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = {};
         depthStencilViewDesc.Format = texture2dDesc.Format;
         depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
         TAC_DX11_CALL( errors, mDevice->CreateDepthStencilView, texture, &depthStencilViewDesc, &dsv );
-        SetDebugName( dsv, data->mStackFrame.ToString() );
+        SetDebugName( dsv, FrameMemoryPrintf( "%s-dsv", data->mStackFrame.ToString() ) );
 
         Framebuffer* framebuffer = &mFramebuffers[ ( int )data->mFramebufferHandle ];
         framebuffer->mSwapChain = swapChain;
@@ -1838,7 +1959,7 @@ namespace Tac
                            texture->mTexture2D,
                            &depthStencilViewDesc,
                            &dsv );
-            SetDebugName( dsv, data->mStackFrame.ToString() );
+            SetDebugName( dsv, FrameMemoryPrintf( "%s-render-to-dsv", data->mStackFrame.ToString() ) );
 
             Framebuffer* framebuffer = &mFramebuffers[ ( int )data->mFramebufferHandle ];
             framebuffer->mDepthStencilView = dsv;
@@ -1903,6 +2024,16 @@ namespace Tac
       TAC_RELEASE_IUNKNOWN( texture->mTexture3D );
       TAC_RELEASE_IUNKNOWN( texture->mTextureRTV );
       TAC_RELEASE_IUNKNOWN( texture->mTextureSRV );
+      *texture = {};
+    }
+
+    void RendererDirectX11::RemoveMagicBuffer( MagicBufferHandle magicBufferHandle, Errors& errors )
+    {
+      MagicBuffer* magicBuffer = &mMagicBuffers[ ( int )magicBufferHandle ];
+      TAC_RELEASE_IUNKNOWN( magicBuffer->mBuffer );
+      TAC_RELEASE_IUNKNOWN( magicBuffer->mUAV );
+      TAC_RELEASE_IUNKNOWN( magicBuffer->mSRV );
+      *magicBuffer = {};
     }
 
     void RendererDirectX11::RemoveFramebuffer( FramebufferHandle framebufferHandle, Errors& )
@@ -1911,6 +2042,10 @@ namespace Tac
         if( mWindows[ i ] == framebufferHandle )
           mWindows[ i ] = mWindows[ --mWindowCount ];
       Framebuffer* framebuffer = &mFramebuffers[ ( int )framebufferHandle ];
+
+      ReportLiveObjects();
+
+
       TAC_RELEASE_IUNKNOWN( framebuffer->mDepthStencilView );
       TAC_RELEASE_IUNKNOWN( framebuffer->mDepthTexture );
       TAC_RELEASE_IUNKNOWN( framebuffer->mRenderTargetView );
@@ -2033,13 +2168,22 @@ namespace Tac
       depthTextureDesc.Width = data->mWidth;
       depthTextureDesc.Height = data->mHeight;
 
+      auto getname = [ this ]( ID3D11DeviceChild* obj, const StackFrame& created ) -> StringView
+      {
+        StringView name = GetDebugName( obj );
+        if( name.empty() )
+          name = created.ToString();
+        return name;
+      };
+
+      StringView nameRenderTargetView = getname( framebuffer->mRenderTargetView, framebuffer->mCreationStackFrame );
+      StringView nameDepthTexture = getname( framebuffer->mDepthTexture, framebuffer->mCreationStackFrame );
+      StringView nameDepthStencilView = getname( framebuffer->mDepthStencilView, framebuffer->mCreationStackFrame );
+
       // Release outstanding back buffer references prior to calling IDXGISwapChain::ResizeBuffers
-      framebuffer->mDepthStencilView->Release();
-      framebuffer->mDepthStencilView = nullptr;
-      framebuffer->mDepthTexture->Release();
-      framebuffer->mDepthTexture = nullptr;
-      framebuffer->mRenderTargetView->Release();
-      framebuffer->mRenderTargetView = nullptr;
+      TAC_RELEASE_IUNKNOWN( framebuffer->mRenderTargetView );
+      TAC_RELEASE_IUNKNOWN( framebuffer->mDepthTexture );
+      TAC_RELEASE_IUNKNOWN( framebuffer->mDepthStencilView );
 
       DXGI_SWAP_CHAIN_DESC desc;
       TAC_HANDLE_ERROR_IF( FAILED( framebuffer->mSwapChain->GetDesc( &desc ) ),
@@ -2059,19 +2203,20 @@ namespace Tac
                      pBackBuffer,
                      rtvDesc,
                      &rtv );
-      pBackBuffer->Release();
-      SetDebugName( rtv, framebuffer->mCreationStackFrame.ToString() );
+
+      TAC_RELEASE_IUNKNOWN( pBackBuffer );
+      SetDebugName( rtv, nameRenderTargetView );
 
       ID3D11Texture2D* depthTexture;
       TAC_DX11_CALL( errors, mDevice->CreateTexture2D, &depthTextureDesc, nullptr, &depthTexture );
-      SetDebugName( depthTexture, framebuffer->mCreationStackFrame.ToString() );
+      SetDebugName( depthTexture, nameDepthTexture );
 
       ID3D11DepthStencilView* dsv;
       D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = {};
       depthStencilViewDesc.Format = depthTextureDesc.Format;
       depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
       TAC_DX11_CALL( errors, mDevice->CreateDepthStencilView, depthTexture, &depthStencilViewDesc, &dsv );
-      SetDebugName( dsv, framebuffer->mCreationStackFrame.ToString() );
+      SetDebugName( dsv, nameDepthStencilView );
 
       framebuffer->mDepthStencilView = dsv;
       framebuffer->mDepthTexture = depthTexture;
@@ -2087,6 +2232,7 @@ namespace Tac
         SetDebugName( framebuffer->mDepthStencilView, data->mName );
         SetDebugName( framebuffer->mRenderTargetView, data->mName );
         SetDebugName( framebuffer->mDepthTexture, data->mName );
+        SetDebugName( framebuffer->mSwapChain, data->mName );
       }
 
       if( data->mVertexBufferHandle.IsValid() )
@@ -2107,6 +2253,21 @@ namespace Tac
 
       if( data->mRasterizerStateHandle.IsValid() )
         SetDebugName( mRasterizerStates[ ( int )data->mRasterizerStateHandle ], data->mName );
+
+      if( data->mBlendStateHandle.IsValid() )
+        SetDebugName( mBlendStates[ ( int )data->mBlendStateHandle ], data->mName );
+
+      if( data->mDepthStateHandle.IsValid() )
+        SetDebugName( mDepthStencilStates[ ( int )data->mDepthStateHandle ], data->mName );
+
+      if( data->mSamplerStateHandle.IsValid() )
+        SetDebugName( mSamplerStates[ ( int )data->mSamplerStateHandle ], data->mName );
+
+      if( data->mVertexFormatHandle.IsValid() )
+        SetDebugName( mInputLayouts[ ( int )data->mVertexFormatHandle ], data->mName );
+
+      if( data->mConstantBufferHandle.IsValid() )
+        SetDebugName( mConstantBuffers[ ( int )data->mConstantBufferHandle ].mBuffer, data->mName );
 
       if( data->mMagicBufferHandle.IsValid() )
       {

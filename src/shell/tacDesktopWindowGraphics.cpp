@@ -11,13 +11,13 @@ namespace Tac
   Render::FramebufferHandle WindowGraphicsGetFramebuffer( const DesktopWindowHandle& desktopWindowHandle )
   {
     TAC_ASSERT( ( unsigned )desktopWindowHandle < kDesktopWindowCapacity );
-    return sWindowFramebuffers[ (int)desktopWindowHandle ];
+    return sWindowFramebuffers[ ( int )desktopWindowHandle ];
   }
 
   Render::ViewHandle WindowGraphicsGetView( const DesktopWindowHandle& desktopWindowHandle )
   {
-    TAC_ASSERT((unsigned)desktopWindowHandle < kDesktopWindowCapacity);
-    return sWindowViews[ (int)desktopWindowHandle ];
+    TAC_ASSERT( ( unsigned )desktopWindowHandle < kDesktopWindowCapacity );
+    return sWindowViews[ ( int )desktopWindowHandle ];
   }
 
   void WindowGraphicsNativeHandleChanged( const DesktopWindowHandle& desktopWindowHandle,
@@ -33,7 +33,7 @@ namespace Tac
     {
       const Render::FramebufferHandle framebufferHandle =
         Render::CreateFramebufferForWindow( nativeWindowHandle, w, h, TAC_STACK_FRAME );
-      const char* name = FrameMemoryPrintf( "framebuffer %i", (int)desktopWindowHandle );
+      const char* name = FrameMemoryPrintf( "window-framebuf-%i", ( int )desktopWindowHandle );
       Render::SetRenderObjectDebugName( framebufferHandle, name );
       const Render::ViewHandle viewHandle = Render::CreateView();
       sWindowFramebuffers[ ( int )desktopWindowHandle ] = framebufferHandle;
@@ -55,8 +55,8 @@ namespace Tac
                              const int w,
                              const int h )
   {
-    const Render::FramebufferHandle framebufferHandle = sWindowFramebuffers[ (int)desktopWindowHandle ];
-    const Render::ViewHandle viewHandle = sWindowViews[ (int)desktopWindowHandle ];
+    const Render::FramebufferHandle framebufferHandle = sWindowFramebuffers[ ( int )desktopWindowHandle ];
+    const Render::ViewHandle viewHandle = sWindowViews[ ( int )desktopWindowHandle ];
     Render::ResizeFramebuffer( framebufferHandle, w, h, TAC_STACK_FRAME );
     Render::SetViewScissorRect( viewHandle, Render::ScissorRect( ( float )w, ( float )h ) );
     Render::SetViewport( viewHandle, Render::Viewport( ( float )w, ( float )h ) );

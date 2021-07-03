@@ -1,4 +1,5 @@
 #include "src/common/tacPreprocessor.h"
+#include "src/common/tacFrameMemory.h"
 #include "src/common/tacUtility.h"
 #include "src/common/tacOS.h"
 #include <cstdarg>
@@ -41,7 +42,8 @@ namespace Tac
     //SplitFilepath splitFilepath( mFile );
     //return va( "%s:%i %s", splitFilepath.mFilename.c_str(), mLine, mFunction );
     //SplitFilepath splitFilepath( mFile );
-    return va( "%s:%i %s", mFile, mLine, mFunction );
+    //return va( "%s:%i %s", mFile, mLine, mFunction );
+    return FrameMemoryPrintf( "%s:%i %s", mFile, mLine, mFunction );
   }
 
   void HandleAssert( const char* message, const StackFrame& frame )

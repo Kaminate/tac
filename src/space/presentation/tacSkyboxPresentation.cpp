@@ -39,12 +39,11 @@ namespace Tac
     mPerFrame = Render::CreateConstantBuffer( sizeof( DefaultCBufferPerFrame ),
                                               0,
                                               TAC_STACK_FRAME );
-    TAC_HANDLE_ERROR( errors );
+    Render::SetRenderObjectDebugName( mPerFrame, "skybox-per-frame" );
 
     mShader = Render::CreateShader( Render::ShaderSource::FromPath( "Skybox" ),
                                     Render::ConstantBuffers{ mPerFrame },
                                     TAC_STACK_FRAME );
-    TAC_HANDLE_ERROR( errors );
 
     Render::VertexDeclaration pos;
     pos.mAlignedByteOffset = 0;
@@ -57,6 +56,7 @@ namespace Tac
     mVertexFormat = Render::CreateVertexFormat( mVertexDecls,
                                                 mShader,
                                                 TAC_STACK_FRAME );
+    Render::SetRenderObjectDebugName( mVertexFormat, "skybox-fmt" );
     TAC_HANDLE_ERROR( errors );
 
 
@@ -68,13 +68,14 @@ namespace Tac
     blendStateData.mDstA = Render::BlendConstants::One;
     blendStateData.mBlendA = Render::BlendMode::Add;
     mBlendState = Render::CreateBlendState( blendStateData, TAC_STACK_FRAME );
+    Render::SetRenderObjectDebugName( mBlendState, "skybox-blend" );
 
     Render::DepthState depthStateData;
     depthStateData.mDepthTest = true;
     depthStateData.mDepthWrite = true;
     depthStateData.mDepthFunc = Render::DepthFunc::LessOrEqual;
     mDepthState = Render::CreateDepthState( depthStateData, TAC_STACK_FRAME );
-    TAC_HANDLE_ERROR( errors );
+    Render::SetRenderObjectDebugName( mDepthState, "skybox-depth" );
 
     Render::RasterizerState rasterizerStateData;
     rasterizerStateData.mCullMode = Render::CullMode::None; // todo
@@ -83,11 +84,13 @@ namespace Tac
     rasterizerStateData.mMultisample = false;
     rasterizerStateData.mScissor = true;
     mRasterizerState = Render::CreateRasterizerState( rasterizerStateData, TAC_STACK_FRAME );
+    Render::SetRenderObjectDebugName( mRasterizerState, "skybox-rast" );
     TAC_HANDLE_ERROR( errors );
 
     Render::SamplerState samplerStateData;
     samplerStateData.mFilter = Render::Filter::Linear;
     mSamplerState = Render::CreateSamplerState( samplerStateData, TAC_STACK_FRAME );
+    Render::SetRenderObjectDebugName( mSamplerState, "skybox-samp" );
     TAC_HANDLE_ERROR( errors );
   }
 

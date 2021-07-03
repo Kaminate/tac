@@ -7,6 +7,7 @@ namespace Tac
 
   bool       IsSpace( char );
   bool       IsAlpha( char );
+  bool       IsDigit( char );
 
   // Negative value if lhs appears before rhs in lexicographical order.
   // Zero if lhs and rhs compare equal.

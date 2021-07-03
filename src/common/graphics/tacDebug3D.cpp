@@ -73,33 +73,35 @@ namespace Tac
   }
   void Debug3DCommonData::Init( Errors& errors )
   {
-    Render::RasterizerState rasterizerStateNoCullData;
-    rasterizerStateNoCullData.mCullMode = Render::CullMode::None;
-    rasterizerStateNoCullData.mFillMode = Render::FillMode::Solid;
-    rasterizerStateNoCullData.mFrontCounterClockwise = true;
-    rasterizerStateNoCullData.mMultisample = false;
-    rasterizerStateNoCullData.mScissor = true;
-    mRasterizerStateNoCull = Render::CreateRasterizerState( rasterizerStateNoCullData,
-                                                            TAC_STACK_FRAME );
-    TAC_HANDLE_ERROR( errors );
+    mRasterizerStateNoCull = [](){
+      Render::RasterizerState rasterizerStateNoCullData;
+      rasterizerStateNoCullData.mCullMode = Render::CullMode::None;
+      rasterizerStateNoCullData.mFillMode = Render::FillMode::Solid;
+      rasterizerStateNoCullData.mFrontCounterClockwise = true;
+      rasterizerStateNoCullData.mMultisample = false;
+      rasterizerStateNoCullData.mScissor = true;
+      auto rast = Render::CreateRasterizerState( rasterizerStateNoCullData,
+                                                 TAC_STACK_FRAME );
+      Render::SetRenderObjectDebugName( rast, "debug-3d-rast" );
+      return rast;
+    }( );
 
 
     mCBufferPerFrame = Render::CreateConstantBuffer( sizeof( DefaultCBufferPerFrame ),
                                                      DefaultCBufferPerFrame::shaderRegister,
                                                      TAC_STACK_FRAME );
-    TAC_HANDLE_ERROR( errors );
+    Render::SetRenderObjectDebugName( mCBufferPerFrame, "debug-3d-cbuf-frame" );
 
     m3DVertexColorShader = Render::CreateShader( Render::ShaderSource::FromPath( "3DDebug" ),
                                                  Render::ConstantBuffers{ mCBufferPerFrame },
                                                  TAC_STACK_FRAME );
-    TAC_HANDLE_ERROR( errors );
 
     Render::DepthState depthStateData;
     depthStateData.mDepthFunc = Render::DepthFunc::Less;
     depthStateData.mDepthTest = true;
     depthStateData.mDepthWrite = true;
     mDepthLess = Render::CreateDepthState( depthStateData, TAC_STACK_FRAME );
-    TAC_HANDLE_ERROR( errors );
+    Render::SetRenderObjectDebugName( mCBufferPerFrame, "debug-3d-depth-state" );
 
     Render::VertexDeclaration positionData;
     positionData.mAttribute = Render::Attribute::Position;
@@ -109,11 +111,10 @@ namespace Tac
     colorData.mAttribute = Render::Attribute::Color;
     colorData.mTextureFormat = formatv3;
     colorData.mAlignedByteOffset = TAC_OFFSET_OF( DefaultVertexColor, mColor );
-
     mVertexColorFormat = Render::CreateVertexFormat( { positionData, colorData },
                                                      m3DVertexColorShader,
                                                      TAC_STACK_FRAME );
-    TAC_HANDLE_ERROR( errors );
+    Render::SetRenderObjectDebugName( mVertexColorFormat, "debug-3d-vtx-fmt" );
 
     Render::BlendState alphaBlendStateData;
     alphaBlendStateData.mSrcRGB = Render::BlendConstants::One;
@@ -123,7 +124,7 @@ namespace Tac
     alphaBlendStateData.mDstA = Render::BlendConstants::OneMinusSrcA;
     alphaBlendStateData.mBlendA = Render::BlendMode::Add;
     mAlphaBlendState = Render::CreateBlendState( alphaBlendStateData, TAC_STACK_FRAME );
-    TAC_HANDLE_ERROR( errors );
+    Render::SetRenderObjectDebugName( mAlphaBlendState, "debug-3d-alpha-blend" );
   }
 
   Debug3DDrawData::~Debug3DDrawData()
@@ -442,7 +443,7 @@ namespace Tac
                                              sizeof( DefaultVertexColor ),
                                              Render::Access::Dynamic,
                                              TAC_STACK_FRAME );
-        TAC_HANDLE_ERROR( errors );
+        Render::SetRenderObjectDebugName( mVerts, "debug-3d-vtxes" );
 
         mCapacity = mDebugDrawVerts.size();
       }

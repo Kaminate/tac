@@ -1,4 +1,6 @@
 #include "src/common/assetmanagers/tacModelAssetManagerBackend.h"
+#include "src/common/tacFrameMemory.h"
+#include "src/common/tacUtility.h"
 #include "src/common/tacTemporaryMemory.h"
 #include "src/common/tacAlgorithm.h"
 #include "src/common/tacTextParser.h"
@@ -216,10 +218,10 @@ namespace Tac
                                                       const Render::VertexDeclarations& vertexDeclarations,
                                                       Errors& errors )
   {
-    TAC_UNUSED_PARAMETER( iModel );
+    const char* name = FrameMemoryPrintf( "%s:%i", SplitFilepath( path ).mFilename.c_str(), iModel );
     const TemporaryMemory bytes = TemporaryMemoryFromFile( path, errors );
     const WavefrontObj wavefrontObj = WavefrontObjLoad( bytes.data(), bytes.size() );
-    const Mesh mesh = WavefrontObjConvertToMesh( path, wavefrontObj, vertexDeclarations );
+    const Mesh mesh = WavefrontObjConvertToMesh( name, wavefrontObj, vertexDeclarations );
     return mesh;
   }
 

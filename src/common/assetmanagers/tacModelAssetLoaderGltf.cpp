@@ -228,9 +228,12 @@ namespace Tac
                                                                                  Render::Access::Default,
                                                                                  indexFormat,
                                                                                  TAC_STACK_FRAME );
-
-        Render::SetRenderObjectDebugName( indexBuffer,
-                                          FrameMemoryPrintf( "%s %i", path, specifiedMeshIndex ) );
+        const char* bufferName = [&]()
+        {
+          SplitFilepath splitFilepath( path );
+          return FrameMemoryPrintf( "%s:%i", splitFilepath.mFilename.c_str(), specifiedMeshIndex );
+        }( );
+        Render::SetRenderObjectDebugName( indexBuffer, bufferName );
 
         int vertexCount = ( int )parsedPrim->attributes[ 0 ].data->count;
         int dstVtxStride = 0;
@@ -293,8 +296,7 @@ namespace Tac
                                                                                     dstVtxStride,
                                                                                     Render::Access::Default,
                                                                                     TAC_STACK_FRAME );
-        Render::SetRenderObjectDebugName( vertexBuffer,
-                                          FrameMemoryPrintf( "%s %i", path, specifiedMeshIndex ) );
+        Render::SetRenderObjectDebugName( vertexBuffer, bufferName );
 
         SubMeshTriangles tris;
         GetTris( parsedPrim, tris );

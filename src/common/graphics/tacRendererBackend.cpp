@@ -117,28 +117,28 @@ namespace Tac
       PushData( &header, sizeof( header ) );
     }
 
-      void        UniformBuffer::PushData( const void* bytes, const int byteCount )
-      {
-        MemCpy( mBytes + mByteCount, bytes, byteCount );
-        mByteCount += byteCount;
-      }
+    void        UniformBuffer::PushData( const void* bytes, const int byteCount )
+    {
+      MemCpy( mBytes + mByteCount, bytes, byteCount );
+      mByteCount += byteCount;
+    }
 
-      void        UniformBuffer::PushString( const StringView s )
-      {
-        PushNumber( s.size() );
-        PushData( s.c_str(), s.size() );
-        PushData( "", 1 );
-      }
+    void        UniformBuffer::PushString( const StringView s )
+    {
+      PushNumber( s.size() );
+      PushData( s.c_str(), s.size() );
+      PushData( "", 1 );
+    }
 
-      void        UniformBuffer::PushNumber( const int i )
-      {
-        PushData( &i, sizeof( i ) );
-      }
+    void        UniformBuffer::PushNumber( const int i )
+    {
+      PushData( &i, sizeof( i ) );
+    }
 
-      void        UniformBuffer::PushPointer( const void* p )
-      {
-        PushData( &p, sizeof( p ) );
-      }
+    void        UniformBuffer::PushPointer( const void* p )
+    {
+      PushData( &p, sizeof( p ) );
+    }
 
 
 
@@ -555,12 +555,53 @@ namespace Tac
 
     static void SetRenderObjectDebugName( CommandDataSetRenderObjectDebugName& commandData, const char* name )
     {
+      // Make the name one word, so its easy to see in the debugger and easy to search for in the codebase
+      for( const char c : StringView( name ) )
+      {
+        const char* allowed = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-_:";
+        const bool isValid = StringView( allowed ).find_first_of( c ) != String::npos;
+        TAC_ASSERT_MSG( isValid, "invalid char %c in %s", c, name );
+      }
       commandData.mName = SubmitAlloc( name );
       gSubmitFrame->mCommandBufferFrameBegin.PushCommand( CommandType::SetRenderObjectDebugName,
                                                           &commandData,
                                                           sizeof( commandData ) );
     }
 
+
+    void SetRenderObjectDebugName( const BlendStateHandle       blendStateHandle, const char* name )
+    {
+
+      CommandDataSetRenderObjectDebugName commandData;
+      commandData.mBlendStateHandle = blendStateHandle;
+      SetRenderObjectDebugName( commandData, name );
+    }
+
+    void SetRenderObjectDebugName( const SamplerStateHandle  samplerStateHandle, const char* name )
+    {
+      CommandDataSetRenderObjectDebugName commandData;
+      commandData.mSamplerStateHandle = samplerStateHandle;
+      SetRenderObjectDebugName( commandData, name );
+    }
+    void SetRenderObjectDebugName( const ConstantBufferHandle  constantBufferHandle, const char* name )
+    {
+      CommandDataSetRenderObjectDebugName commandData;
+      commandData.mConstantBufferHandle = constantBufferHandle;
+      SetRenderObjectDebugName( commandData, name );
+    }
+    void SetRenderObjectDebugName( const VertexFormatHandle    vertexFormatHandle, const char* name )
+    {
+      CommandDataSetRenderObjectDebugName commandData;
+      commandData.mVertexFormatHandle = vertexFormatHandle;
+      SetRenderObjectDebugName( commandData, name );
+    }
+    void SetRenderObjectDebugName( const DepthStateHandle       depthStateHandle, const char* name )
+    {
+
+      CommandDataSetRenderObjectDebugName commandData;
+      commandData.mDepthStateHandle = depthStateHandle;
+      SetRenderObjectDebugName( commandData, name );
+    }
     void SetRenderObjectDebugName( const RasterizerStateHandle rasterizerStateHandle, const char* name )
     {
       CommandDataSetRenderObjectDebugName commandData;
@@ -657,6 +698,17 @@ namespace Tac
                                                         sizeof( commandData ) );
     }
 
+    void DestroyMagicBuffer( const MagicBufferHandle magicBufferHandle, const StackFrame stackFrame )
+    {
+      CommandDataDestroy commandData;
+      commandData.mIndex = ( int )magicBufferHandle;
+      commandData.mStackFrame = stackFrame;
+      gSubmitFrame->mFreeDeferredHandles.mFreedMagicBuffers.push_back( magicBufferHandle );
+      gSubmitFrame->mCommandBufferFrameEnd.PushCommand( CommandType::DestroyMagicBuffer,
+                                                        &commandData,
+                                                        sizeof( commandData ) );
+
+    }
     void DestroyTexture( const TextureHandle textureHandle, const StackFrame stackFrame )
     {
       CommandDataDestroy commandData;
@@ -910,7 +962,7 @@ namespace Tac
 
     void SetPixelShaderUnorderedAccessView( TextureHandle textureHandle, int i )
     {
-      gEncoder.mDrawCall.mDrawCallUAVs. mUAVTextures[ i ] = textureHandle;
+      gEncoder.mDrawCall.mDrawCallUAVs.mUAVTextures[ i ] = textureHandle;
     }
 
     void SetPixelShaderUnorderedAccessView( MagicBufferHandle magicBufferHandle, int i )
@@ -938,9 +990,9 @@ namespace Tac
     }
 
     void UpdateConstantBuffer( const ConstantBufferHandle constantBufferHandle,
-                                const void* bytes,
-                                const int byteCount,
-                                const StackFrame stackFrame )
+                               const void* bytes,
+                               const int byteCount,
+                               const StackFrame stackFrame )
     {
       const void* allocd = SubmitAlloc( bytes, byteCount );
       UniformBufferHeader header( UniformBufferEntryType::UpdateConstantBuffer, stackFrame );
@@ -1227,7 +1279,7 @@ namespace Tac
   struct CommandHandlerBase
   {
     virtual void Invoke( Renderer*, CommandBufferIterator*, Errors& ) = 0;
-    const char* mName;
+    const char* mName; // <-- mName is only used for debug log
   };
 
   template< typename CommandData >
@@ -1320,6 +1372,7 @@ namespace Tac
       static CommandHandlerDestroy< Render::SamplerStateHandle >    destroySamplerState( &Renderer::RemoveSamplerState );
       static CommandHandlerDestroy< Render::ShaderHandle >          destroyShader( &Renderer::RemoveShader );
       static CommandHandlerDestroy< Render::TextureHandle >         destroyTexture( &Renderer::RemoveTexture );
+      static CommandHandlerDestroy< Render::MagicBufferHandle >     destroyMagicBuffer( &Renderer::RemoveMagicBuffer );
       static CommandHandlerDestroy< Render::VertexBufferHandle >    destroyVertexBuffer( &Renderer::RemoveVertexBuffer );
       static CommandHandlerDestroy< Render::VertexFormatHandle >    destroyVertexFormat( &Renderer::RemoveVertexFormat );
 
@@ -1344,6 +1397,7 @@ namespace Tac
       Add( Render::CommandType::DestroySamplerState, &destroySamplerState, "destroySamplerState" );
       Add( Render::CommandType::DestroyShader, &destroyShader, "destroyShader" );
       Add( Render::CommandType::DestroyTexture, &destroyTexture, "destroyTexture" );
+      Add( Render::CommandType::DestroyMagicBuffer, &destroyMagicBuffer, "destroyMagicBuffer" );
       Add( Render::CommandType::DestroyVertexBuffer, &destroyVertexBuffer, "destroyVertexBuffer" );
       Add( Render::CommandType::DestroyVertexFormat, &destroyVertexFormat, "destroyVertexFormat" );
       Add( Render::CommandType::ResizeFramebuffer, &resizeFramebuffer, "resizeFramebuffer" );

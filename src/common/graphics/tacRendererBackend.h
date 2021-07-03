@@ -47,6 +47,7 @@ namespace Tac
       DestroySamplerState,
       DestroyShader,
       DestroyTexture,
+      DestroyMagicBuffer,
       DestroyVertexBuffer,
       DestroyVertexFormat,
       UpdateIndexBuffer,
@@ -189,10 +190,10 @@ namespace Tac
       FixedVector< DepthStateHandle, kMaxDepthStencilStates >    mFreedDepthStencilStates;
       FixedVector< FramebufferHandle, kMaxFramebuffers >         mFreedFramebuffers;
       FixedVector< IndexBufferHandle, kMaxIndexBuffers >         mFreedIndexBuffers;
+      FixedVector< MagicBufferHandle, kMaxMagicBuffers >         mFreedMagicBuffers;
       FixedVector< RasterizerStateHandle, kMaxRasterizerStates > mFreedRasterizerStates;
       FixedVector< SamplerStateHandle, kMaxSamplerStates >       mFreedSamplerStates;
       FixedVector< ShaderHandle, kMaxPrograms >                  mFreedShaders;
-      FixedVector< MagicBufferHandle, kMaxMagicBuffers >         mFreedMagicBuffers;
       FixedVector< TextureHandle, kMaxTextures >                 mFreedTextures;
       FixedVector< VertexBufferHandle, kMaxVertexBuffers >       mFreedVertexBuffers;
       FixedVector< VertexFormatHandle, kMaxInputLayouts >        mFreedVertexFormatInputLayouts;
@@ -277,6 +278,11 @@ namespace Tac
 
     struct CommandDataSetRenderObjectDebugName
     {
+      SamplerStateHandle    mSamplerStateHandle;
+      ConstantBufferHandle  mConstantBufferHandle;
+      VertexFormatHandle    mVertexFormatHandle;
+      BlendStateHandle      mBlendStateHandle;
+      DepthStateHandle      mDepthStateHandle;
       FramebufferHandle     mFramebufferHandle;
       MagicBufferHandle     mMagicBufferHandle;
       RasterizerStateHandle mRasterizerStateHandle;
@@ -437,6 +443,7 @@ namespace Tac
     virtual void RemoveSamplerState( Render::SamplerStateHandle, Errors& ) = 0;
     virtual void RemoveShader( Render::ShaderHandle, Errors& ) = 0;
     virtual void RemoveTexture( Render::TextureHandle, Errors& ) = 0;
+    virtual void RemoveMagicBuffer( Render::MagicBufferHandle, Errors& ) = 0;
     virtual void RemoveVertexBuffer( Render::VertexBufferHandle, Errors& ) = 0;
     virtual void RemoveVertexFormat( Render::VertexFormatHandle, Errors& ) = 0;
     virtual void ResizeFramebuffer( Render::CommandDataResizeFramebuffer*, Errors& ) = 0;

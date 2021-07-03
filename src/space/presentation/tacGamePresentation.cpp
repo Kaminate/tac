@@ -137,6 +137,7 @@ namespace Tac
                                                          sizeof( TerrainVertex ),
                                                          Render::Access::Default,
                                                          TAC_STACK_FRAME );
+    Render::SetRenderObjectDebugName( terrain->mVertexBuffer, "terrain-vtx-buf" );
 
     Render::Format format;
     format.mElementCount = 1;
@@ -147,6 +148,7 @@ namespace Tac
                                                        Render::Access::Default,
                                                        format,
                                                        TAC_STACK_FRAME );
+    Render::SetRenderObjectDebugName( terrain->mIndexBuffer, "terrain-idx-buf" );
     terrain->mIndexCount = indexes.size();
 
   }
@@ -190,6 +192,7 @@ namespace Tac
     m3DVertexFormat = Render::CreateVertexFormat( m3DVertexFormatDecls,
                                                   m3DShader,
                                                   TAC_STACK_FRAME );
+    Render::SetRenderObjectDebugName( m3DVertexFormat, "game-3d-vtx-fmt" );
   }
 
   static void CreateTerrainVertexFormat( Errors& errors )
@@ -219,6 +222,7 @@ namespace Tac
     mTerrainVertexFormat = Render::CreateVertexFormat( { terrainPosDecl, terrainNorDecl, terrainTexCoordDecl },
                                                        mTerrainShader,
                                                        TAC_STACK_FRAME );
+    Render::SetRenderObjectDebugName( mTerrainVertexFormat, "terrain-vtx-fmt" );
   }
 
   static void CreatePerFrame( Errors& errors )
@@ -227,6 +231,7 @@ namespace Tac
     mPerFrame = Render::CreateConstantBuffer( sizeof( DefaultCBufferPerFrame ),
                                               DefaultCBufferPerFrame::shaderRegister,
                                               TAC_STACK_FRAME );
+    Render::SetRenderObjectDebugName( mPerFrame, "game-per-frame" );
   }
 
   static void CreatePerObj( Errors& errors )
@@ -235,6 +240,7 @@ namespace Tac
     mPerObj = Render::CreateConstantBuffer( sizeof( DefaultCBufferPerObject ),
                                             DefaultCBufferPerObject::shaderRegister,
                                             TAC_STACK_FRAME );
+    Render::SetRenderObjectDebugName( mPerObj, "game-per-obj" );
   }
 
   static void CreateDepthState( Errors& errors )
@@ -278,8 +284,8 @@ namespace Tac
     TAC_UNUSED_PARAMETER( errors );
     Render::SamplerState samplerStateData;
     samplerStateData.mFilter = Render::Filter::Aniso;
-    mSamplerState = Render::CreateSamplerState( samplerStateData,
-                                                TAC_STACK_FRAME );
+    mSamplerState = Render::CreateSamplerState( samplerStateData, TAC_STACK_FRAME );
+    Render::SetRenderObjectDebugName( mSamplerState, "game-samp" );
   }
 
   static void RenderModels( World* world,

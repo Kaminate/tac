@@ -65,7 +65,7 @@ namespace Tac
     const UINT flags = IsDebugMode() ? DXGI_CREATE_FACTORY_DEBUG : 0;
     const HRESULT hr = CreateDXGIFactory2( flags, IID_PPV_ARGS( &mFactory ) );
     TAC_HANDLE_ERROR_IF( FAILED( hr ), "failed to create dxgi factory", errors );
-    NameDXGIObject( mFactory, "tac dxgi factory" );
+    NameDXGIObject( mFactory, "my-dxgi-factory" );
 
     IDXGIAdapter1* dxgiAdapter1;
     SIZE_T maxDedicatedVideoMemory = 0;
@@ -79,7 +79,7 @@ namespace Tac
       maxDedicatedVideoMemory = dxgiAdapterDesc1.DedicatedVideoMemory;
       TAC_DXGI_CALL( errors, dxgiAdapter1->QueryInterface, IID_PPV_ARGS( &mDxgiAdapter4 ) );
     }
-    NameDXGIObject( mDxgiAdapter4, "tac dxgi adaptor" );
+    NameDXGIObject( mDxgiAdapter4, "my-dxgi-adaptor" );
   }
 
   void DXGIUninit()

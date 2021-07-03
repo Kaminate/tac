@@ -11,8 +11,6 @@ RWStructuredBuffer< Voxel > mySB : register( u1 );
 
 Texture2D diffuseMaterialTexture : register( t0 );
 
-// sampler   linearSampler          : register( s0 );
-
 SamplerState linearSampler
 {
   Filter = MIN_MAG_MIP_LINEAR;
@@ -62,15 +60,15 @@ VS_OUT_GS_IN VS( VS_INPUT input )
 
 struct GS_OUT_PS_IN
 {
-  float2 mTexCoord               : mTexCoord;
-  float3 mWorldSpaceUnitNormal   : mWorldSpaceUnitNormal;
-  float3 mWorldSpacePosition     : mWorldSpacePosition;
-  float4 mClipSpacePosition      : SV_POSITION;
+  float2 mTexCoord                     : mTexCoord;
+  float3 mWorldSpaceUnitNormal         : mWorldSpaceUnitNormal;
+  float3 mWorldSpacePosition           : mWorldSpacePosition;
+  float4 mClipSpacePosition            : SV_POSITION;
 
   float3 debug_worldSpaceAbsFaceNormal : WS_ABS_face_NORMAL;
   float3 debug_gVoxelGridCenter        : voxel_grid_center;
-  float debug_gVoxelWidth              : voxel_width;
-  float debug_gVoxelGridHalfWidth      : voxel_grid_half_width;
+  float  debug_gVoxelWidth             : voxel_width;
+  float  debug_gVoxelGridHalfWidth     : voxel_grid_half_width;
 };
 
 [ maxvertexcount( 3 ) ]
@@ -143,21 +141,14 @@ PS_OUTPUT PS( GS_OUT_PS_IN input )
     / gVoxelGridHalfWidth;
     // think we dont divide by gVoxelWidth here
     // * ( 1.0f / gVoxelWidth );
-  if( voxelNDC.x < -1 || voxelNDC.x > 1 ||
-      voxelNDC.y < -1 || voxelNDC.y > 1 ||
-      voxelNDC.z < -1 || voxelNDC.z > 1 )
+
+  // Using <= >= instead of < > to prevent iVoxel3 from having invalid values
+  if( voxelNDC.x <= -1 || voxelNDC.x >= 1 ||
+      voxelNDC.y <= -1 || voxelNDC.y >= 1 ||
+      voxelNDC.z <= -1 || voxelNDC.z >= 1 )
     return ( PS_OUTPUT )0;
 
   float3 voxelUVW = voxelNDC * 0.5f + 0.5f;
-
-  // | Commenting out because
-  // v this is just a copy of the previous early out
-  //bool   voxelUVWSaturated = voxelUVW.x > 0 && voxelUVW.x < 1 ||
-  //                           voxelUVW.y > 0 && voxelUVW.y < 1 ||
-  //                           voxelUVW.z > 0 && voxelUVW.z < 1;
-  //if( !voxelUVWSaturated )
-  //  return ( PS_OUTPUT )0;
-
   float3 colorMaterialDiffuse = diffuseMaterialTexture.Sample( linearSampler, input.mTexCoord ).xyz;
   float3 colorLightDiffuse = dot( n, l );
   float4 color
@@ -166,19 +157,18 @@ PS_OUTPUT PS( GS_OUT_PS_IN input )
     //+ colorMaterialEmissive;
     = float4( colorMaterialDiffuse, 1 );
 
-  //float voxelGridWidth = gVoxelGridHalfWidth * 2;
-  //uint  uint_voxelGridWidth = voxelGridWidth;
-  //uint  uint_voxelGridArea = uint_voxelGridWidth * uint_voxelGridWidth;
   uint3 iVoxel3 = floor( voxelUVW * gVoxelGridSize );
   uint  iVoxel
     = iVoxel3.x
     + iVoxel3.y * gVoxelGridSize
     + iVoxel3.z * gVoxelGridSize * gVoxelGridSize;
 
-  // temp debugging begin
-  //iVoxel = 7;
+#if 1 // debugging
+  for( int i = 0; i < 6 * 6 * 6; ++i )
+    InterlockedMax( mySB[ i ].mColor, VoxelEncodeHDRColor( float4( 1, 1, 0, 1 ) ) );
+  //iVoxel = 4;
   //color = float4( 1, 1, 0, 1 );
-  // temp debugging end
+#endif
 
   uint uint_color = VoxelEncodeHDRColor( color );
   uint uint_n     = VoxelEncodeUnitNormal( n );

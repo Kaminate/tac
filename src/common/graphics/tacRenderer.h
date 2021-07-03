@@ -335,6 +335,7 @@ namespace Tac
     void                             DestroyVertexBuffer( VertexBufferHandle, StackFrame );
     void                             DestroyIndexBuffer( IndexBufferHandle, StackFrame );
     void                             DestroyTexture( TextureHandle, StackFrame );
+    void                             DestroyMagicBuffer( MagicBufferHandle, StackFrame );
     void                             DestroyFramebuffer( FramebufferHandle, StackFrame );
     void                             DestroyShader( ShaderHandle, StackFrame );
     void                             DestroyVertexFormat( VertexFormatHandle, StackFrame );
@@ -404,6 +405,12 @@ namespace Tac
     void                             SetRenderObjectDebugName( VertexBufferHandle, const char* );
     void                             SetRenderObjectDebugName( IndexBufferHandle, const char* );
     void                             SetRenderObjectDebugName( RasterizerStateHandle, const char* );
+    void                             SetRenderObjectDebugName( BlendStateHandle, const char* );
+    void                             SetRenderObjectDebugName( DepthStateHandle, const char* );
+    void                             SetRenderObjectDebugName( VertexFormatHandle, const char* );
+    void                             SetRenderObjectDebugName( ConstantBufferHandle, const char* );
+    void                             SetRenderObjectDebugName( SamplerStateHandle, const char* );
+
 
 #define TAC_RENDER_GROUP_BLOCK( text )                          \
         Render::BeginGroup( text, TAC_STACK_FRAME );            \

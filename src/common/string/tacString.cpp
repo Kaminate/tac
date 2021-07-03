@@ -34,6 +34,12 @@ namespace Tac
   {
     return StringView( " \t\n\v\f\r" ).find_first_of( c ) != StringView::npos;
   }
+
+  bool       IsDigit( char c )
+  {
+    return c >= 0 && c <= 9;
+  }
+
   bool       IsAlpha( char c )
   {
     return

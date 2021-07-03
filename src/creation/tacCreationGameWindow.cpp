@@ -122,17 +122,16 @@ namespace Tac
     mPerFrame = Render::CreateConstantBuffer( sizeof( DefaultCBufferPerFrame ),
                                               0,
                                               TAC_STACK_FRAME );
-    TAC_HANDLE_ERROR( errors );
+    Render::SetRenderObjectDebugName( mPerFrame, "game-per-frame" );
 
     mPerObj = Render::CreateConstantBuffer( sizeof( DefaultCBufferPerObject ),
                                             1,
                                             TAC_STACK_FRAME );
-    TAC_HANDLE_ERROR( errors );
+    Render::SetRenderObjectDebugName( mPerObj, "game-per-obj" );
 
     m3DShader = Render::CreateShader( Render::ShaderSource::FromPath( "3DTest" ),
                                       Render::ConstantBuffers{ mPerFrame, mPerObj },
                                       TAC_STACK_FRAME );
-    TAC_HANDLE_ERROR( errors );
 
     Render::VertexDeclaration posDecl;
     posDecl.mAlignedByteOffset = 0;
@@ -140,12 +139,11 @@ namespace Tac
     posDecl.mTextureFormat.mElementCount = 3;
     posDecl.mTextureFormat.mPerElementByteCount = sizeof( float );
     posDecl.mTextureFormat.mPerElementDataType = Render::GraphicsType::real;
-    //m3DvertexFormatDecls.AddVertexDeclaration( posDecl );
     m3DvertexFormatDecls = Render::VertexDeclarations{ posDecl };
-
     m3DVertexFormat = Render::CreateVertexFormat( m3DvertexFormatDecls,
                                                   m3DShader,
                                                   TAC_STACK_FRAME );
+    Render::SetRenderObjectDebugName( m3DVertexFormat, "game-window-vtx-fmt" );
     TAC_HANDLE_ERROR( errors );
 
     Render::BlendState blendStateData;
@@ -156,6 +154,7 @@ namespace Tac
     blendStateData.mDstA = Render::BlendConstants::One;
     blendStateData.mBlendA = Render::BlendMode::Add;
     mBlendState = Render::CreateBlendState( blendStateData, TAC_STACK_FRAME );
+    Render::SetRenderObjectDebugName( mBlendState, "game-window-blend" );
     TAC_HANDLE_ERROR( errors );
 
     Render::DepthState depthStateData;
@@ -164,6 +163,7 @@ namespace Tac
     depthStateData.mDepthFunc = Render::DepthFunc::Less;
     mDepthState = Render::CreateDepthState( depthStateData,
                                             TAC_STACK_FRAME );
+    Render::SetRenderObjectDebugName( mDepthState, "game-window-depth" );
     TAC_HANDLE_ERROR( errors );
 
     Render::RasterizerState rasterizerStateData;
@@ -174,11 +174,13 @@ namespace Tac
     rasterizerStateData.mScissor = true;
     mRasterizerState = Render::CreateRasterizerState( rasterizerStateData,
                                                       TAC_STACK_FRAME );
+    Render::SetRenderObjectDebugName( mRasterizerState, "game-window-rast" );
     TAC_HANDLE_ERROR( errors );
 
     Render::SamplerState samplerStateData;
     samplerStateData.mFilter = Render::Filter::Linear;
     mSamplerState = Render::CreateSamplerState( samplerStateData, TAC_STACK_FRAME );
+    Render::SetRenderObjectDebugName( mSamplerState, "game-window-samp" );
     TAC_HANDLE_ERROR( errors );
   }
 

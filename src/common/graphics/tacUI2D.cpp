@@ -135,6 +135,7 @@ namespace Tac
                                                         sizeof( UI2DVertex ),
                                                         Render::Access::Dynamic,
                                                         TAC_STACK_FRAME );
+      Render::SetRenderObjectDebugName( mVertexBufferHandle, "ui2d-vtx-buf" );
       mVertexCapacity = vertexCount;
 
       //Render::SetBreakpointWhenThisFrameIsRendered();
@@ -153,6 +154,7 @@ namespace Tac
                                                       Render::Access::Dynamic,
                                                       format,
                                                       TAC_STACK_FRAME );
+      Render::SetRenderObjectDebugName( mIndexBufferHandle, "ui2d-idx-buf" );
       TAC_HANDLE_ERROR( errors );
       mIndexCapacity = indexCount;
     }
@@ -186,27 +188,25 @@ namespace Tac
     textureData.mImageBytes = data;
     textureData.mBinding = Render::Binding::ShaderResource;
     m1x1White = Render::CreateTexture( textureData, TAC_STACK_FRAME );
-    TAC_HANDLE_ERROR( errors );
+    Render::SetRenderObjectDebugName( m1x1White, "1x1white" );
 
     mPerFrame = Render::CreateConstantBuffer( sizeof( DefaultCBufferPerFrame ),
                                               DefaultCBufferPerFrame::shaderRegister,
                                               TAC_STACK_FRAME );
-    TAC_HANDLE_ERROR( errors );
+    Render::SetRenderObjectDebugName( mPerFrame, "2dperframe" );
 
     mPerObj = Render::CreateConstantBuffer( sizeof( DefaultCBufferPerObject ),
                                             DefaultCBufferPerObject::shaderRegister,
                                             TAC_STACK_FRAME );
-    TAC_HANDLE_ERROR( errors );
+    Render::SetRenderObjectDebugName( mPerObj, "2dperobj" );
 
     mShader = Render::CreateShader( Render::ShaderSource::FromPath( "2D" ),
                                     Render::ConstantBuffers{ mPerFrame, mPerObj },
                                     TAC_STACK_FRAME );
-    TAC_HANDLE_ERROR( errors );
 
     m2DTextShader = Render::CreateShader( Render::ShaderSource::FromPath( "2Dtext" ),
                                           Render::ConstantBuffers{ mPerFrame, mPerObj },
                                           TAC_STACK_FRAME );
-    TAC_HANDLE_ERROR( errors );
 
     Render::VertexDeclaration posData;
     posData.mAlignedByteOffset = TAC_OFFSET_OF( UI2DVertex, mPosition );
@@ -225,6 +225,7 @@ namespace Tac
     mFormat = Render::CreateVertexFormat( Render::VertexDeclarations{ posData, uvData },
                                           mShader,
                                           TAC_STACK_FRAME );
+    Render::SetRenderObjectDebugName( mFormat, "2dVtxFmt" );
     TAC_HANDLE_ERROR( errors );
 
     Render::BlendState blendStateData;
@@ -236,6 +237,7 @@ namespace Tac
     blendStateData.mBlendA = Render::BlendMode::Add;
     mBlendState = Render::CreateBlendState( blendStateData,
                                             TAC_STACK_FRAME );
+    Render::SetRenderObjectDebugName( mBlendState, "2dalphablend" );
     TAC_HANDLE_ERROR( errors );
 
     Render::DepthState depthStateData;
@@ -244,6 +246,7 @@ namespace Tac
     depthStateData.mDepthFunc = Render::DepthFunc::Less;
     mDepthState = Render::CreateDepthState( depthStateData,
                                             TAC_STACK_FRAME );
+    Render::SetRenderObjectDebugName( mDepthState, "2d-no-depth" );
 
     Render::RasterizerState rasterizerStateData;
     rasterizerStateData.mCullMode = Render::CullMode::None;
@@ -253,13 +256,14 @@ namespace Tac
     rasterizerStateData.mScissor = true;
     mRasterizerState = Render::CreateRasterizerState( rasterizerStateData,
                                                       TAC_STACK_FRAME );
-    TAC_HANDLE_ERROR( errors );
-    Render::SetRenderObjectDebugName( mRasterizerState, "common-ui" );
+    Render::SetRenderObjectDebugName( mRasterizerState , "2d-rast" );
+
 
     Render::SamplerState samplerStateData;
     samplerStateData.mFilter = Render::Filter::Linear;
     mSamplerState = Render::CreateSamplerState( samplerStateData,
                                                 TAC_STACK_FRAME );
+    Render::SetRenderObjectDebugName( mSamplerState  , "2d-samp" );
     TAC_HANDLE_ERROR( errors );
   }
 

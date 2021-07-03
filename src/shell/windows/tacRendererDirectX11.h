@@ -109,6 +109,7 @@ namespace Tac
       void RemoveSamplerState( SamplerStateHandle, Errors& ) override;
       void RemoveShader( ShaderHandle, Errors& ) override;
       void RemoveTexture( TextureHandle, Errors& ) override;
+      void RemoveMagicBuffer( MagicBufferHandle, Errors& ) override;
       void RemoveVertexBuffer( VertexBufferHandle, Errors& ) override;
       void RemoveVertexFormat( VertexFormatHandle, Errors& ) override;
       void ResizeFramebuffer( CommandDataResizeFramebuffer*, Errors& ) override;
@@ -124,7 +125,6 @@ namespace Tac
 
       // Render draw call functions
 
-      void RenderDrawCallUAVs( const Frame*, const DrawCall* );
       void RenderDrawCallShader( const DrawCall* );
       void RenderDrawCallBlendState( const DrawCall* );
       void RenderDrawCallDepthState( const DrawCall* );
@@ -145,9 +145,10 @@ namespace Tac
       //                         String name,
       //                         String str,
       //                         Errors& errors );
-      void SetDebugName( ID3D11DeviceChild* directXObject,
-                         StringView name );
-      void UpdateBuffer( ID3D11Buffer*, const void* bytes, int byteCount, Errors& );
+      void        SetDebugName( ID3D11DeviceChild*, StringView );
+      StringView  GetDebugName( ID3D11DeviceChild* );
+      void        SetDebugName( IDXGIObject* , StringView );
+      void        UpdateBuffer( ID3D11Buffer*, const void* bytes, int byteCount, Errors& );
 
       ID3D11InfoQueue*           mInfoQueueDEBUG = nullptr;
       ID3DUserDefinedAnnotation* mUserAnnotationDEBUG = nullptr;

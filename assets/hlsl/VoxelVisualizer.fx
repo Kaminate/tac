@@ -18,7 +18,7 @@ float3 GenerateCubeVertex( uint i )
 
 struct VS_OUT_GS_IN
 {
-  float3 mColor                 : mColor;
+  float4 mColor                 : mColor;
   float3 mWorldSpaceVoxelCenter : mWorldSpaceVoxelCenter;
 };
 
@@ -27,7 +27,7 @@ VS_OUT_GS_IN VS( const uint iVertex : SV_VERTEXID )
 {
   uint3 iVoxel = ExtractVoxelIndex( iVertex );
 
-  float3 color = voxels.Load( int4( iVoxel.x, iVoxel.y, iVoxel.z, 0 ) ).xyz;
+  float4 color = voxels.Load( int4( iVoxel.x, iVoxel.y, iVoxel.z, 0 ) );// .xyz;
   float3 worldSpaceVoxelMinCorner = gVoxelGridCenter - gVoxelGridHalfWidth;
   float3 worldSpaceVoxelCenter
     = worldSpaceVoxelMinCorner
@@ -36,8 +36,8 @@ VS_OUT_GS_IN VS( const uint iVertex : SV_VERTEXID )
   result.mColor = color;
   result.mWorldSpaceVoxelCenter = worldSpaceVoxelCenter;
 
-  // if( iVertex != ( int ) secModTau % 6 )
-  //  result.mWorldSpaceVoxelCenter = float3( 10, 10, 10 );
+   //if( iVertex != ( int ) secModTau % 6 )
+   // result.mWorldSpaceVoxelCenter = float3( 10, 10, 10 );
 
   return result;
 }
@@ -47,7 +47,7 @@ VS_OUT_GS_IN VS( const uint iVertex : SV_VERTEXID )
 struct GS_OUT_PS_IN
 {
   float4 mClipSpacePosition      : SV_POSITION;
-  float3 mColor                  : mColor;
+  float4 mColor                  : mColor;
 };
 
 [maxvertexcount( CUBE_STRIP_VTX_COUNT )]
@@ -83,7 +83,9 @@ struct PS_OUTPUT
 PS_OUTPUT PS( GS_OUT_PS_IN input )
 {
   PS_OUTPUT output = ( PS_OUTPUT )0;
-  output.mColor = float4( input.mColor, 1.0 );
+  output.mColor = input.mColor; // float4( input.mColor, 1.0 );
+  if( input.mColor.w == 0 )
+    discard;
   return output;
 }
 
