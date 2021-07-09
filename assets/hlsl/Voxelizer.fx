@@ -87,21 +87,15 @@ void GS( triangle VS_OUT_GS_IN input[ 3 ],
   {
     VS_OUT_GS_IN curInput = input[ i ];
 
-    float4 clipSpacePosition = float4( 0, 0, 0, 0 );
+    float4 clipSpacePosition;
     {
-      clipSpacePosition.xyz = curInput.mWorldSpacePosition - gVoxelGridCenter;
+      float3 ndc = ( curInput.mWorldSpacePosition - gVoxelGridCenter ) / gVoxelGridHalfWidth;
       if( dominantAxisValue == worldSpaceAbsFaceNormal.x )
-        clipSpacePosition = float4( clipSpacePosition.z, clipSpacePosition.y, 1, 1 );
+        clipSpacePosition = float4( ndc.zy, 0, 1 );
       else if( dominantAxisValue == worldSpaceAbsFaceNormal.y )
-        clipSpacePosition = float4( clipSpacePosition.x, clipSpacePosition.z, 1, 1 );
-
-      // | ok but like isnt this wrong
-      // | when do i even ever use gVoxelWidth?
-      // | dont i just use gVoxelGridSize instead?
-      // v
-      // clipSpacePosition.xy /= gVoxelWidth;
-
-      clipSpacePosition.xy /= gVoxelGridHalfWidth;
+        clipSpacePosition = float4( ndc.xz, 0, 1 );
+      else
+        clipSpacePosition = float4( ndc.xy, 0, 1 );
     }
 
     GS_OUT_PS_IN output;

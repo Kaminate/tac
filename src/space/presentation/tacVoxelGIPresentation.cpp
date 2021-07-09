@@ -1,16 +1,19 @@
 #include "src/common/assetmanagers/tacMesh.h"
-#include "src/common/profile/tacProfile.h"
 #include "src/common/assetmanagers/tacModelAssetManager.h"
+#include "src/common/containers/tacFrameVector.h"
 #include "src/common/graphics/imgui/tacImGui.h"
 #include "src/common/graphics/tacDebug3D.h"
 #include "src/common/graphics/tacRendererUtil.h"
 #include "src/common/graphics/tacUI2D.h"
 #include "src/common/math/tacMath.h"
+#include "src/common/profile/tacProfile.h"
+#include "src/common/shell/tacShellTimer.h"
 #include "src/common/tacCamera.h"
 #include "src/common/tacErrorHandling.h"
 #include "src/common/tacFrameMemory.h"
 #include "src/common/tacHash.h"
 #include "src/common/tacMemory.h"
+#include "src/common/tacSettings.h"
 #include "src/space/graphics/tacgraphics.h"
 #include "src/space/model/tacmodel.h"
 #include "src/space/presentation/tacGamePresentation.h"
@@ -41,15 +44,23 @@ namespace Tac
   static Render::DepthStateHandle      voxelCopyDepthState;
   static Render::VertexDeclarations    voxelVertexDeclarations;
   static Render::ViewHandle            voxelView;
-  static int                           voxelDimension = 1; // eventually 128
-  static bool                          voxelDebug = true;
-  static bool                          voxelDebugDrawVoxelOutlines = false;
-  static bool                          voxelDebugDrawGridOutline = true;
-  static bool                          voxelDebugDrawVoxels = true;
-  static bool                          voxelEnabled = true;
-  static v3                            voxelGridCenter;
-  static float                         voxelGridHalfWidth = 100.0f;
-  static bool                          voxelGridSnapCamera;
+
+  struct VoxelSettings
+  {
+    int                                voxelDimension = 1; // eventually 128
+    bool                               voxelDebug = true;
+    bool                               voxelDebugDrawVoxelOutlines = false;
+    bool                               voxelDebugDrawGridOutline = true;
+    bool                               voxelDebugDrawVoxels = true;
+    bool                               voxelEnabled = true;
+    v3                                 voxelGridCenter;
+    float                              voxelGridHalfWidth = 10.0f;
+    bool                               voxelGridSnapCamera;
+  };
+
+  static VoxelSettings                 voxelSettingsCurrent;
+  static VoxelSettings                 voxelSettingsSaved;
+  static double                        voxelSettingLastCheckTime;
 
   struct CBufferVoxelizer
   {
@@ -68,6 +79,114 @@ namespace Tac
 
     static const int shaderregister = 2;
   };
+
+  static struct VoxelSettingsSerializer
+  {
+    struct Number
+    {
+      const char* GetPath()
+      {
+        return FrameMemoryPrintf( "voxelgi.%s", mname );
+      }
+
+      void        LoadFromSettings( VoxelSettings* voxelSettings )
+      {
+        void* data = GetData( voxelSettings );
+        if( isInt )
+          *( int* )data = ( int )SettingsGetNumber( GetPath(), *( int* )data );
+        if( isBool )
+          *( bool* )data = ( bool )SettingsGetNumber( GetPath(), *( bool* )data );
+        if( isFloat )
+          *( float* )data = ( float )SettingsGetNumber( GetPath(), *( float* )data );
+      }
+
+      void        SaveToSettings( VoxelSettings* voxelSettings )
+      {
+        void* data = GetData( voxelSettings );
+        if( isInt )
+          SettingsSetNumber( GetPath(), ( JsonNumber )*( int* )data );
+        if( isBool )
+          SettingsSetNumber( GetPath(), ( JsonNumber )*( bool* )data );
+        if( isFloat )
+          SettingsSetNumber( GetPath(), ( JsonNumber )*( float* )data );
+      }
+
+      void*       GetData( VoxelSettings* voxelSettings )
+      {
+        return  ( char* )voxelSettings + offset;
+      }
+
+      int         offset = 0;
+      bool        isBool = 0;
+      bool        isInt = 0;
+      bool        isFloat = 0;
+      const char* mname = nullptr;
+    };
+
+    Number*                     AddNumber( int offset, const char* name )
+    {
+      Number number = {};
+      number.offset = offset;
+      number.mname = name;
+      numbers.push_back( number );
+      return &numbers.back();
+    }
+    template< typename T > void AddType( int offset, const char* name ) = delete;
+    template<> void             AddType< bool >( int offset, const char* name )  { AddBool( offset, name ); }
+    template<> void             AddType< int >( int offset, const char* name )   { AddInt( offset, name ); }
+    template<> void             AddType< float >( int offset, const char* name ) { AddFloat( offset, name ); }
+    void                        AddBool( int offset, const char* name )  { AddNumber( offset, name )->isBool = true; }
+    void                        AddFloat( int offset, const char* name ) { AddNumber( offset, name )->isFloat = true; }
+    void                        AddInt( int offset, const char* name )   { AddNumber( offset, name )->isInt = true; }
+
+    VoxelSettingsSerializer()
+    {
+#define REGISTER_VAR( var ) AddType< decltype( VoxelSettings::var ) >( TAC_OFFSET_OF( VoxelSettings, var ), TAC_STRINGIFY( var ) );
+
+      REGISTER_VAR( voxelDimension );
+      REGISTER_VAR( voxelDebug );
+      REGISTER_VAR( voxelDebugDrawVoxelOutlines );
+      REGISTER_VAR( voxelDebugDrawGridOutline );
+      REGISTER_VAR( voxelDebugDrawVoxels );
+      REGISTER_VAR( voxelEnabled );
+      REGISTER_VAR( voxelGridCenter.x );
+      REGISTER_VAR( voxelGridCenter.y );
+      REGISTER_VAR( voxelGridCenter.z );
+      REGISTER_VAR( voxelGridHalfWidth );
+      REGISTER_VAR( voxelGridSnapCamera );
+    }
+
+
+    Vector< Number > numbers;
+  } voxelSettingsSerializer;
+
+  static bool                    VoxelSettingsChanged( VoxelSettings* a, VoxelSettings* b )
+  {
+    for( auto& number : voxelSettingsSerializer.numbers )
+    {
+      if( number.isBool )
+        return *( bool* )number.GetData( a ) != *( bool* )number.GetData( b );
+      if( number.isInt )
+        return *( int* )number.GetData( a ) != *( int* )number.GetData( b );
+      if( number.isFloat )
+        return *( float* )number.GetData( a ) != *( float* )number.GetData( b );
+    }
+    TAC_CRITICAL_ERROR_INVALID_CODE_PATH;
+    return false;
+  }
+
+  static void                    VoxelSettingsSave( VoxelSettings* voxelSettings )
+  {
+    for( auto& number : voxelSettingsSerializer.numbers )
+      number.SaveToSettings( voxelSettings );
+  }
+
+  static void                    VoxelSettingsLoad( VoxelSettings* voxelSettings )
+  {
+    for( auto& number : voxelSettingsSerializer.numbers )
+      number.LoadFromSettings( voxelSettings );
+  }
+
 
   static Render::ConstantBuffers GetConstantBuffers()
   {
@@ -88,10 +207,10 @@ namespace Tac
   {
     voxelFramebufferTexture = []()
     {
-    // The framebuffer texture is only to allow for renderdoc debugging pixel shaders
+      // The framebuffer texture is only to allow for renderdoc debugging pixel shaders
       Render::TexSpec texSpec;
-      texSpec.mImage.mWidth = voxelDimension;
-      texSpec.mImage.mHeight = voxelDimension;
+      texSpec.mImage.mWidth = voxelSettingsCurrent.voxelDimension;
+      texSpec.mImage.mHeight = voxelSettingsCurrent.voxelDimension;
       texSpec.mImage.mFormat.mElementCount = 4;
       texSpec.mImage.mFormat.mPerElementByteCount = 1;
       texSpec.mImage.mFormat.mPerElementDataType = Render::GraphicsType::unorm;
@@ -142,7 +261,6 @@ namespace Tac
   static void                    CreateVoxelVisualizerShader()
   {
     // This shader is used to debug visualize the voxel radiance
-
     voxelVisualizerShader = Render::CreateShader( Render::ShaderSource::FromPath( "VoxelVisualizer" ),
                                                   GetConstantBuffers(),
                                                   TAC_STACK_FRAME );
@@ -151,7 +269,6 @@ namespace Tac
   static void                    CreateVoxelCopyShader()
   {
     // This shader is used to copy from the 3d magic buffer to the 3d texture
-
     voxelCopyShader = Render::CreateShader( Render::ShaderSource::FromPath( "VoxelCopy" ),
                                             GetConstantBuffers(),
                                             TAC_STACK_FRAME );
@@ -161,7 +278,6 @@ namespace Tac
   {
     // The voxelizer shader turns geometry into a rwstructuredbuffer using atomics
     // to prevent flickering
-
     voxelizerShader = Render::CreateShader( Render::ShaderSource::FromPath( "Voxelizer" ),
                                             GetConstantBuffers(),
                                             TAC_STACK_FRAME );
@@ -213,15 +329,15 @@ namespace Tac
 
     // rgba16f, 2 bytes (16 bits) per float, hdr values
     Render::TexSpec texSpec;
-    texSpec.mAccess = Render::Access::Default; // Render::Access::Dynamic;
+    texSpec.mAccess = Render::Access::Default;
     texSpec.mBinding = binding;
     texSpec.mCpuAccess = Render::CPUAccess::None;
     texSpec.mImage.mFormat.mElementCount = 4;
     texSpec.mImage.mFormat.mPerElementDataType = Render::GraphicsType::real;
     texSpec.mImage.mFormat.mPerElementByteCount = 2;
-    texSpec.mImage.mWidth = voxelDimension;
-    texSpec.mImage.mHeight = voxelDimension;
-    texSpec.mImage.mDepth = voxelDimension;
+    texSpec.mImage.mWidth = voxelSettingsCurrent.voxelDimension;
+    texSpec.mImage.mHeight = voxelSettingsCurrent.voxelDimension;
+    texSpec.mImage.mDepth = voxelSettingsCurrent.voxelDimension;
     texSpec.mPitch = 0;
     return texSpec;
   }
@@ -241,7 +357,10 @@ namespace Tac
   static void                    CreateVoxelRWStructredBuf()
   {
     const int voxelStride = sizeof( uint32_t ) * 2;
-    const int voxelCount = voxelDimension * voxelDimension * voxelDimension;
+    const int voxelCount
+      = voxelSettingsCurrent.voxelDimension
+      * voxelSettingsCurrent.voxelDimension
+      * voxelSettingsCurrent.voxelDimension;
     const Render::Binding binding = ( Render::Binding )(
       ( int )Render::Binding::ShaderResource |
       ( int )Render::Binding::UnorderedAccess );
@@ -257,47 +376,45 @@ namespace Tac
   static CBufferVoxelizer        VoxelGetCBuffer()
   {
     CBufferVoxelizer cpuCBufferVoxelizer = {};
-    cpuCBufferVoxelizer.gVoxelGridCenter = voxelGridCenter;
-    cpuCBufferVoxelizer.gVoxelGridHalfWidth = voxelGridHalfWidth;
-    cpuCBufferVoxelizer.gVoxelWidth = ( voxelGridHalfWidth * 2.0f ) / voxelDimension;
-    cpuCBufferVoxelizer.gVoxelGridSize = voxelDimension;
+    cpuCBufferVoxelizer.gVoxelGridCenter = voxelSettingsCurrent.voxelGridCenter;
+    cpuCBufferVoxelizer.gVoxelGridHalfWidth = voxelSettingsCurrent.voxelGridHalfWidth;
+    cpuCBufferVoxelizer.gVoxelWidth = ( voxelSettingsCurrent.voxelGridHalfWidth * 2.0f ) / voxelSettingsCurrent.voxelDimension;
+    cpuCBufferVoxelizer.gVoxelGridSize = voxelSettingsCurrent.voxelDimension;
     return cpuCBufferVoxelizer;
   }
 
   static void                    RenderDebugVoxelOutlineGrid( Debug3DDrawData* drawData )
   {
-    if( !voxelDebugDrawGridOutline )
+    if( !voxelSettingsCurrent.voxelDebugDrawGridOutline )
       return;
-    const v3 mini = voxelGridCenter - voxelGridHalfWidth * v3( 1, 1, 1 );
-    const v3 maxi = voxelGridCenter + voxelGridHalfWidth * v3( 1, 1, 1 );
+    const v3 mini = voxelSettingsCurrent.voxelGridCenter - voxelSettingsCurrent.voxelGridHalfWidth * v3( 1, 1, 1 );
+    const v3 maxi = voxelSettingsCurrent.voxelGridCenter + voxelSettingsCurrent.voxelGridHalfWidth * v3( 1, 1, 1 );
     drawData->DebugDraw3DAABB( mini, maxi );
-
   }
 
   static void                    RenderDebugVoxelOutlineVoxels( Debug3DDrawData* drawData )
   {
-    if( !voxelDebugDrawVoxelOutlines )
+    if( !voxelSettingsCurrent.voxelDebugDrawVoxelOutlines )
       return;
     TAC_PROFILE_BLOCK;
-
-    for( int i = 0; i < voxelDimension; ++i )
+    for( int i = 0; i < voxelSettingsCurrent.voxelDimension; ++i )
     {
-      for( int j = 0; j < voxelDimension; ++j )
+      for( int j = 0; j < voxelSettingsCurrent.voxelDimension; ++j )
       {
-        for( int k = 0; k < voxelDimension; ++k )
+        for( int k = 0; k < voxelSettingsCurrent.voxelDimension; ++k )
         {
-          const float voxelWidth = ( voxelGridHalfWidth * 2.0f ) / voxelDimension;
+          const float voxelWidth = ( voxelSettingsCurrent.voxelGridHalfWidth * 2.0f ) / voxelSettingsCurrent.voxelDimension;
           const v3 iVoxel( ( float )i, ( float )j, ( float )k );
-          const v3 minPos = voxelGridCenter - voxelGridHalfWidth * v3( 1, 1, 1 ) + voxelWidth * iVoxel;
+          const v3 minPos = voxelSettingsCurrent.voxelGridCenter - voxelSettingsCurrent.voxelGridHalfWidth * v3( 1, 1, 1 ) + voxelWidth * iVoxel;
           const v3 maxPos = minPos + voxelWidth * v3( 1, 1, 1 );
-          const v3 minColor = iVoxel / ( float )voxelDimension;
-          const v3 maxColor = ( iVoxel + v3( 1, 1, 1 ) ) / ( float )voxelDimension;
+          const v3 minColor = iVoxel / ( float )voxelSettingsCurrent.voxelDimension;
+          const v3 maxColor = ( iVoxel + v3( 1, 1, 1 ) ) / ( float )voxelSettingsCurrent.voxelDimension;
           drawData->DebugDraw3DAABB( minPos, maxPos, minColor, maxColor );
         }
       }
     }
-
   }
+
   static void                    RenderDebugVoxelOutline( Debug3DDrawData* drawData )
   {
     RenderDebugVoxelOutlineGrid( drawData );
@@ -307,7 +424,7 @@ namespace Tac
   static void                    RenderDebugVoxels( const Render::ViewHandle viewHandle )
   {
     TAC_PROFILE_BLOCK;
-    if( !voxelDebugDrawVoxels )
+    if( !voxelSettingsCurrent.voxelDebugDrawVoxels )
       return;
     const CBufferVoxelizer cpuCBufferVoxelizer = VoxelGetCBuffer();
 
@@ -321,10 +438,13 @@ namespace Tac
     Render::SetTexture( { voxelTextureRadianceBounce0 } );
     Render::SetVertexFormat( Render::VertexFormatHandle() );
     Render::SetPrimitiveTopology( Render::PrimitiveTopology::PointList );
-    Render::SetVertexBuffer( Render::VertexBufferHandle(), 0, voxelDimension * voxelDimension * voxelDimension );
+    Render::SetVertexBuffer( Render::VertexBufferHandle(),
+                             0,
+                             voxelSettingsCurrent.voxelDimension *
+                             voxelSettingsCurrent.voxelDimension *
+                             voxelSettingsCurrent.voxelDimension );
     Render::SetIndexBuffer( Render::IndexBufferHandle(), 0, 0 );
     Render::Submit( viewHandle, TAC_STACK_FRAME );
-
     Render::EndGroup( TAC_STACK_FRAME );
   }
 
@@ -335,7 +455,7 @@ namespace Tac
                                                                  const Render::ViewHandle viewHandle )
   {
     TAC_PROFILE_BLOCK;
-    if( !voxelDebug )
+    if( !voxelSettingsCurrent.voxelDebug )
       return;
     RenderDebugVoxels( viewHandle );
     RenderDebugVoxelOutline( world->mDebug3DDrawData );
@@ -362,22 +482,22 @@ namespace Tac
         if( !mesh )
           return;
 
-        // was going to calculate triangle normals here to store in some buffer to feed to the
-        // vertex shader, so we dont need the geometry shader so we can debug the vertex shader
-        // since you cant debug geometry shaders
-        //std::map< HashedValue, int > foo;
-
-
-        Render::BeginGroup( FrameMemoryPrintf( "%s %i",
-                                               model->mModelPath.c_str(),
-                                               model->mModelIndex ), TAC_STACK_FRAME );
-
         DefaultCBufferPerObject objBuf;
         objBuf.Color = { model->mColorRGB, 1 };
         objBuf.World = model->mEntity->mWorldTransform;
 
+#if 1   // debug, make the triangle rotate to test the voxelization
+        {
+          static float scale = 100.0f;
+          model->mEntity->mRelativeSpace.mEulerRads.x += 0.00001f * scale;
+          model->mEntity->mRelativeSpace.mEulerRads.y += 0.00002f * scale;
+          model->mEntity->mRelativeSpace.mEulerRads.z += 0.00003f * scale;
+        }
+#endif
+
         for( const SubMesh& subMesh : mesh->mSubMeshes )
         {
+          Render::BeginGroup( subMesh.mName, TAC_STACK_FRAME );
           Render::SetShader( voxelizerShader );
           Render::SetVertexBuffer( subMesh.mVertexBuffer, 0, subMesh.mVertexCount );
           Render::SetIndexBuffer( subMesh.mIndexBuffer, 0, subMesh.mIndexCount );
@@ -393,10 +513,9 @@ namespace Tac
                                         TAC_STACK_FRAME );
           Render::SetPixelShaderUnorderedAccessView( voxelRWStructuredBuf, 0 );
           Render::SetPrimitiveTopology( subMesh.mPrimitiveTopology );
-          //Render::Submit( mViewHandle, TAC_STACK_FRAME );
           Render::Submit( voxelView, TAC_STACK_FRAME );
+          Render::EndGroup( TAC_STACK_FRAME );
         }
-        Render::EndGroup( TAC_STACK_FRAME );
       }
 
       Render::ViewHandle            mViewHandle;
@@ -432,7 +551,10 @@ namespace Tac
     TAC_PROFILE_BLOCK;
     Render::BeginGroup( "Voxel copy", TAC_STACK_FRAME );
     Render::SetShader( voxelCopyShader );
-    Render::SetVertexBuffer( Render::VertexBufferHandle(), 0, voxelDimension * voxelDimension * voxelDimension );
+    Render::SetVertexBuffer( Render::VertexBufferHandle(), 0,
+                             voxelSettingsCurrent.voxelDimension *
+                             voxelSettingsCurrent.voxelDimension *
+                             voxelSettingsCurrent.voxelDimension );
     Render::SetIndexBuffer( Render::IndexBufferHandle(), 0, 0 );
     Render::SetVertexFormat( Render::VertexFormatHandle() );
     Render::SetDepthState( voxelCopyDepthState );
@@ -443,9 +565,25 @@ namespace Tac
     Render::EndGroup( TAC_STACK_FRAME );
   }
 
+  static void                    VoxelSettingsUpdateSerialize()
+  {
+    if( voxelSettingLastCheckTime + 0.1f > ShellGetElapsedSeconds() )
+      return;
+
+    voxelSettingLastCheckTime = ShellGetElapsedSeconds();
+    if( !VoxelSettingsChanged( &voxelSettingsCurrent, &voxelSettingsSaved ) )
+      return;
+
+    VoxelSettingsSave( &voxelSettingsCurrent );
+    voxelSettingsSaved = voxelSettingsCurrent;
+  }
 
   void VoxelGIPresentationInit( Errors& )
   {
+    VoxelSettingsLoad( &voxelSettingsSaved );
+    voxelSettingsCurrent = voxelSettingsSaved;
+    voxelSettingLastCheckTime = ShellGetElapsedSeconds();
+
     CreateVoxelizerShader();
     CreateVoxelConstantBuffer();
     CreateVoxelView();
@@ -470,49 +608,50 @@ namespace Tac
                                   const int viewHeight,
                                   const Render::ViewHandle viewHandle )
   {
-    if( !voxelEnabled )
+    if( !voxelSettingsCurrent.voxelEnabled )
       return;
-    voxelGridCenter = voxelGridSnapCamera ? camera->mPos : voxelGridCenter;
+    voxelSettingsCurrent.voxelGridCenter = voxelSettingsCurrent.voxelGridSnapCamera ? camera->mPos : voxelSettingsCurrent.voxelGridCenter;
     Render::SetViewFramebuffer( voxelView, voxelFramebuffer );
-    Render::SetViewport( voxelView, Render::Viewport( voxelDimension, voxelDimension ) );
-    Render::SetViewScissorRect( voxelView, Render::ScissorRect( voxelDimension, voxelDimension ) );
+    Render::SetViewport( voxelView, Render::Viewport( voxelSettingsCurrent.voxelDimension, voxelSettingsCurrent.voxelDimension ) );
+    Render::SetViewScissorRect( voxelView, Render::ScissorRect( voxelSettingsCurrent.voxelDimension, voxelSettingsCurrent.voxelDimension ) );
     VoxelGIPresentationRenderVoxelize( world, camera, viewWidth, viewHeight, viewHandle );
     VoxelGIPresentationRenderVoxelCopy( world, camera, viewWidth, viewHeight, viewHandle );
     VoxelGIPresentationRenderDebug( world, camera, viewWidth, viewHeight, viewHandle );
   }
 
-  //bool&              VoxelGIPresentationGetEnabled()      { return voxelEnabled; }
-
-  //bool&              VoxelGIPresentationGetDebugEnabled() { return voxelDebug; }
 
   void VoxelGIDebugImgui()
   {
+    VoxelSettingsUpdateSerialize();
+
     if( !ImGuiCollapsingHeader( "Voxel GI Presentation" ) )
       return;
     TAC_IMGUI_INDENT_BLOCK;
 
-      //bool& enabled = VoxelGIPresentationGetEnabled();
-      //ImGuiCheckbox( "Enabled", &enabled );
-    ImGuiCheckbox( "Enabled", &voxelEnabled );
+    ImGuiCheckbox( "Enabled", &voxelSettingsCurrent.voxelEnabled );
 
-    //bool& debugEnabled = VoxelGIPresentationGetDebugEnabled();
-    //ImGuiCheckbox( "Debug Enabled", &debugEnabled );
-    ImGuiCheckbox( "Debug Enabled", &voxelDebug );
+    ImGuiCheckbox( "Debug Enabled", &voxelSettingsCurrent.voxelDebug );
 
-    ImGuiCheckbox( "snap voxel grid to camera", &voxelGridSnapCamera );
-    ImGuiDragFloat3( "voxel grid center", voxelGridCenter.data() );
-    float width = voxelGridHalfWidth * 2.0f;
+    ImGuiCheckbox( "snap voxel grid to camera", &voxelSettingsCurrent.voxelGridSnapCamera );
+    ImGuiDragFloat3( "voxel grid center", voxelSettingsCurrent.voxelGridCenter.data() );
+    const float oldVoxelGridHalfWidth = voxelSettingsCurrent.voxelGridHalfWidth;
+    float width = voxelSettingsCurrent.voxelGridHalfWidth * 2.0f;
     ImGuiDragFloat( "voxel grid width", &width );
-    voxelGridHalfWidth = Max( width, 1.0f ) / 2.0f;
+    voxelSettingsCurrent.voxelGridHalfWidth = Max( width, 1.0f ) / 2.0f;
+    if( voxelSettingsCurrent.voxelGridHalfWidth != oldVoxelGridHalfWidth )
+    {
+      SettingsSetNumber( "voxelgi.voxelGridHalfWidth", voxelSettingsCurrent.voxelGridHalfWidth );
+    }
 
-    const int oldVoxelDimension = voxelDimension;
-    voxelDimension -= ImGuiButton( "-" ) ? 1 : 0;
+
+    const int oldVoxelDimension = voxelSettingsCurrent.voxelDimension;
+    voxelSettingsCurrent.voxelDimension -= ImGuiButton( "-" ) ? 1 : 0;
     ImGuiSameLine();
-    voxelDimension += ImGuiButton( "+" ) ? 1 : 0;
+    voxelSettingsCurrent.voxelDimension += ImGuiButton( "+" ) ? 1 : 0;
     ImGuiSameLine();
-    ImGuiDragInt( "voxel dimension", &voxelDimension );
-    voxelDimension = Max( voxelDimension, 1 );
-    if( oldVoxelDimension != voxelDimension )
+    ImGuiDragInt( "voxel dimension", &voxelSettingsCurrent.voxelDimension );
+    voxelSettingsCurrent.voxelDimension = Max( voxelSettingsCurrent.voxelDimension, 1 );
+    if( oldVoxelDimension != voxelSettingsCurrent.voxelDimension )
     {
       // Destroy old things that need to be resized
       Render::DestroyTexture( voxelTextureRadianceBounce0, TAC_STACK_FRAME );
@@ -527,11 +666,11 @@ namespace Tac
       CreateVoxelView();
     }
 
-    if( voxelDebug )
+    if( voxelSettingsCurrent.voxelDebug )
     {
-      ImGuiCheckbox( "Debug draw voxel outlines", &voxelDebugDrawVoxelOutlines );
-      ImGuiCheckbox( "Debug draw grid outline", &voxelDebugDrawGridOutline );
-      ImGuiCheckbox( "Debug draw voxels", &voxelDebugDrawVoxels );
+      ImGuiCheckbox( "Debug draw voxel outlines", &voxelSettingsCurrent.voxelDebugDrawVoxelOutlines );
+      ImGuiCheckbox( "Debug draw grid outline", &voxelSettingsCurrent.voxelDebugDrawGridOutline );
+      ImGuiCheckbox( "Debug draw voxels", &voxelSettingsCurrent.voxelDebugDrawVoxels );
     }
   }
 }

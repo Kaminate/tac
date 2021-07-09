@@ -22,7 +22,7 @@ namespace Tac
     return path;
   }
 
-  static void SettingCheckFallback( Json* leaf, Json* fallback )
+  static void   SettingCheckFallback( Json* leaf, Json* fallback )
   {
     if( leaf->mType != fallback->mType )
     {
@@ -32,21 +32,21 @@ namespace Tac
     }
   }
 
-  static void SettingsSetValue( StringView path, Json* root, const Json& setValue )
+  static void   SettingsSetValue( StringView path, Json* root, const Json& setValue )
   {
     *SettingsGetJson( path, root ) = setValue;
       Errors errors;
     SettingsSave( errors );
   }
 
-  static Json* SettingsGetValue( StringView path, Json* fallback, Json* root )
+  static Json*  SettingsGetValue( StringView path, Json* fallback, Json* root )
   {
     Json* leaf = SettingsGetJson( path, root );
     SettingCheckFallback( leaf, fallback );
     return leaf;
   }
 
-  void       SettingsInit( Errors& errors )
+  void          SettingsInit( Errors& errors )
   {
     if( !FileExist( SettingsGetSavePath() ) )
     {
@@ -58,14 +58,14 @@ namespace Tac
     mJson.Parse( temporaryMemory.data(), ( int )temporaryMemory.size(), errors );
   }
 
-  void       SettingsSave( Errors& errors )
+  void          SettingsSave( Errors& errors )
   {
     String str = mJson.Stringify();
     OSSaveToFile( SettingsGetSavePath(), ( void* )str.data(), ( int )str.size(), errors );
     TAC_HANDLE_ERROR( errors );
   }
 
-  Json*      SettingsGetChildByKeyValuePair( StringView key, const Json& value, Json* root )
+  Json*         SettingsGetChildByKeyValuePair( StringView key, const Json& value, Json* root )
   {
     root->mType = root->mType == JsonType::Null ? JsonType::Array : root->mType;
     TAC_ASSERT( root->mType == JsonType::Array );
@@ -90,7 +90,7 @@ namespace Tac
     return child;
   }
 
-  Json*      SettingsGetJson( StringView path, Json* root )
+  Json*         SettingsGetJson( StringView path, Json* root )
   {
     root = root ? root : &mJson;
     while( !path.empty() )
@@ -131,35 +131,35 @@ namespace Tac
     return root;
   }
 
-  StringView SettingsGetString( StringView path, StringView fallback, Json* root )
+  StringView    SettingsGetString( StringView path, StringView fallback, Json* root )
   {
     Json fallbackJson( fallback );
     return SettingsGetValue( path, &fallbackJson, root )->mString;
   }
 
-  void       SettingsSetString( StringView path, StringView setValue, Json* root )
+  void          SettingsSetString( StringView path, StringView setValue, Json* root )
   {
     SettingsSetValue( path, root, setValue );
   }
 
-  JsonNumber SettingsGetNumber( StringView path, JsonNumber fallback, Json* root )
+  JsonNumber    SettingsGetNumber( StringView path, JsonNumber fallback, Json* root )
   {
     Json fallbackJson( fallback );
     return SettingsGetValue( path, &fallbackJson, root )->mNumber;
   }
 
-  void       SettingsSetNumber( StringView path, JsonNumber setValue, Json* root )
+  void          SettingsSetNumber( StringView path, JsonNumber setValue, Json* root )
   {
     SettingsSetValue( path, root, setValue );
   }
 
-  bool       SettingsGetBool( StringView path, bool fallback, Json* root )
+  bool          SettingsGetBool( StringView path, bool fallback, Json* root )
   {
     Json fallbackJson( fallback );
     return SettingsGetValue( path, &fallbackJson, root )->mBoolean;
   }
 
-  void       SettingsSetBool( StringView path, bool setValue, Json* root )
+  void          SettingsSetBool( StringView path, bool setValue, Json* root )
   {
     SettingsSetValue( path, root, setValue );
   }

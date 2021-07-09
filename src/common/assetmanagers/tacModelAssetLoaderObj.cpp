@@ -1,12 +1,10 @@
 #include "src/common/assetmanagers/tacModelAssetManagerBackend.h"
-#include "src/common/tacFrameMemory.h"
-#include "src/common/tacUtility.h"
-#include "src/common/tacTemporaryMemory.h"
-#include "src/common/tacAlgorithm.h"
-#include "src/common/tacTextParser.h"
 #include "src/common/math/tacMath.h"
-
-//#pragma init_seg (lib)
+#include "src/common/tacAlgorithm.h"
+#include "src/common/tacFrameMemory.h"
+#include "src/common/tacTemporaryMemory.h"
+#include "src/common/tacTextParser.h"
+#include "src/common/tacUtility.h"
 
 namespace Tac
 {
@@ -24,21 +22,15 @@ namespace Tac
 
   struct WavefrontObj
   {
-    Vector< v3 > normals;
-    Vector< v2 > texcoords;
-    Vector< v3 > positions;
+    Vector< v3 >               normals;
+    Vector< v2 >               texcoords;
+    Vector< v3 >               positions;
     Vector< WavefrontObjFace > faces;
   };
 
   static WavefrontObjVertex WavefrontObjParseVertex( StringView line )
   {
-    static String lineCopy;
-    lineCopy = line;
-    for( char& c : lineCopy )
-      c = c == '/' ? ' ' : c;
-
-    ParseData parseData( lineCopy.begin(), lineCopy.end() );
-
+    ParseData parseData( line.begin(), line.end() );
     WavefrontObjVertex vertex;
     const int slashCount = Count( line, '/' );
     if( slashCount == 0 )
@@ -48,16 +40,18 @@ namespace Tac
     else if( slashCount == 1 )
     {
       vertex.miPosition = ( int )parseData.EatFloat().GetValueUnchecked() - 1;
+      parseData.EatStringExpected( "/" );
       vertex.miTexCoord = ( int )parseData.EatFloat().GetValueUnchecked() - 1;
     }
     else if( slashCount == 2 )
     {
       vertex.miPosition = ( int )parseData.EatFloat().GetValueUnchecked() - 1;
+      parseData.EatStringExpected( "/" );
       if( line.find( "//" ) == line.npos )
         vertex.miTexCoord = ( int )parseData.EatFloat().GetValueUnchecked() - 1;
+      parseData.EatStringExpected( "/" );
       vertex.miNormal = ( int )parseData.EatFloat().GetValueUnchecked() - 1;
     }
-
     return vertex;
   }
 
@@ -65,25 +59,22 @@ namespace Tac
   {
     ParseData parseData( line.begin(), line.end() );
     WavefrontObjFace face = {};
-    int iVertex = 0;
-    while( iVertex < 3 )
+    for( WavefrontObjVertex* vertex = face.mVertexes; vertex < face.mVertexes + 3; ++vertex )
     {
       StringView vertexString = parseData.EatWord();
       if( vertexString.empty() )
         break;
-      face.mVertexes[ iVertex++ ] = WavefrontObjParseVertex( vertexString );
+      *vertex = WavefrontObjParseVertex( vertexString );
     }
-
     return face;
   }
 
   static WavefrontObj       WavefrontObjLoad( const void* bytes, int byteCount )
   {
-    ParseData parseData( ( const char* )bytes, byteCount );
-
-    Vector< v3 > normals;
-    Vector< v2 > texcoords;
-    Vector< v3 > positions;
+    ParseData                  parseData( ( const char* )bytes, byteCount );
+    Vector< v3 >               normals;
+    Vector< v2 >               texcoords;
+    Vector< v3 >               positions;
     Vector< WavefrontObjFace > faces;
 
     for( ;; )
@@ -214,7 +205,7 @@ namespace Tac
   }
 
   static Mesh               WavefrontObjLoadIntoMesh( const char* path,
-                                                      int iModel,
+                                                      const int iModel,
                                                       const Render::VertexDeclarations& vertexDeclarations,
                                                       Errors& errors )
   {
@@ -230,7 +221,5 @@ namespace Tac
     ModelLoadFunctionRegister( WavefrontObjLoadIntoMesh, "obj" );
   }
 
-  //static_assert( &sRegistration);
-
-
 } // namespace Tac
+
