@@ -1030,6 +1030,14 @@ namespace Tac
 
     }
 
+    void RenderFinish()
+    {
+      TAC_ASSERT( IsMainThread() );
+      //Errors e;
+      //Render::RenderFrame( e );
+      OSSemaphoreIncrementPost( gRenderSemaphore );
+    }
+
     void RenderFrame( Errors& errors )
     {
       TAC_PROFILE_BLOCK;
@@ -1082,6 +1090,12 @@ namespace Tac
       mUniformBuffer.clear();
       mBreakOnFrameRender = false;
       mBreakOnDrawCall = -1;
+    }
+    void SubmitFinish()
+    {
+      TAC_ASSERT( IsLogicThread() );
+      //SubmitFrame();
+      OSSemaphoreIncrementPost( gSubmitSemaphore );
     }
     void SubmitFrame()
     {

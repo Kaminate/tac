@@ -236,8 +236,8 @@ namespace Tac
           Add( D3D11_MESSAGE_SEVERITY_CORRUPTION );
           Add( D3D11_MESSAGE_SEVERITY_ERROR );
           Add( D3D11_MESSAGE_SEVERITY_WARNING );
-          Add( D3D11_MESSAGE_SEVERITY_INFO );
-          Add( D3D11_MESSAGE_SEVERITY_MESSAGE );
+          //Add( D3D11_MESSAGE_SEVERITY_INFO );
+          //Add( D3D11_MESSAGE_SEVERITY_MESSAGE );
         }
 
         void Resume()
@@ -271,10 +271,10 @@ namespace Tac
         FrameMemoryVector< BreakStuff > mBreakStuffs;
         ID3D11InfoQueue*                mInfoQueueDEBUG = nullptr;
       } breakStuffs;
-      breakStuffs.Disable();
+      //breakStuffs.Disable();
 
-      myIDXGIDebug->ReportLiveObjects( DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_ALL );
-      breakStuffs.Resume();
+      //myIDXGIDebug->ReportLiveObjects( DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_ALL );
+      //breakStuffs.Resume();
       TAC_RELEASE_IUNKNOWN( myIDXGIDebug );
     }
 
@@ -842,22 +842,21 @@ namespace Tac
         TAC_DX11_CALL( errors, mDevice->QueryInterface, IID_PPV_ARGS( &mInfoQueueDEBUG ) );
         TAC_DX11_CALL( errors, mDeviceContext->QueryInterface, IID_PPV_ARGS( &mUserAnnotationDEBUG ) );
 
-        const D3D11_MESSAGE_SEVERITY breakSeverities[] =
-        {
-          D3D11_MESSAGE_SEVERITY_CORRUPTION,
-          D3D11_MESSAGE_SEVERITY_ERROR,
-          D3D11_MESSAGE_SEVERITY_WARNING,
-          D3D11_MESSAGE_SEVERITY_INFO,
-          D3D11_MESSAGE_SEVERITY_MESSAGE
-        };
-        for( const D3D11_MESSAGE_SEVERITY severity : breakSeverities )
-          mInfoQueueDEBUG->SetBreakOnSeverity( severity, TRUE );
+        //const D3D11_MESSAGE_SEVERITY breakSeverities[] =
+        //{
+        //  D3D11_MESSAGE_SEVERITY_CORRUPTION,
+        //  D3D11_MESSAGE_SEVERITY_ERROR,
+        //  D3D11_MESSAGE_SEVERITY_WARNING,
+        //  D3D11_MESSAGE_SEVERITY_INFO,
+        //  D3D11_MESSAGE_SEVERITY_MESSAGE
+        //};
+        //for( const D3D11_MESSAGE_SEVERITY severity : breakSeverities )
+        //  mInfoQueueDEBUG->SetBreakOnSeverity( severity, TRUE );
 
 
       }
 
       DXGIInit( errors );
-      //mDxgi.Init( errors );
       TAC_HANDLE_ERROR( errors );
 
 

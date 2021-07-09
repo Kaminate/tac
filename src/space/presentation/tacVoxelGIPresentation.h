@@ -12,8 +12,6 @@ namespace Tac
                                                 int viewWidth,
                                                 int viewHeight,
                                                 Render::ViewHandle );
-  //bool&              VoxelGIPresentationGetEnabled();
-  //bool&              VoxelGIPresentationGetDebugEnabled();
   void               VoxelGIDebugImgui();
 }
 

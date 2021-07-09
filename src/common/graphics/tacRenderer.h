@@ -294,7 +294,9 @@ namespace Tac
     void                             Uninit();
 
     void                             RenderFrame( Errors& );
+    void                             RenderFinish();
     void                             SubmitFrame();
+    void                             SubmitFinish();
 
     void*                            SubmitAlloc( int byteCount );
     const void*                      SubmitAlloc( const void* bytes, int byteCount );

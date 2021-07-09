@@ -193,7 +193,13 @@ namespace Tac
   static void LogicThread()
   {
     Errors& errors = gLogicThreadErrors;
-    TAC_ON_DESTRUCT( LogicThreadUninit(); if( errors.size() ) OSAppStopRunning(); );
+    TAC_ON_DESTRUCT(
+      {
+        LogicThreadUninit();
+        if( errors.size() )
+          OSAppStopRunning();
+        Render::SubmitFinish();
+      } );
     LogicThreadInit( errors );
     TAC_HANDLE_ERROR( errors );
 
@@ -242,6 +248,7 @@ namespace Tac
 
       DontMaxOutCpuGpuPowerUsage();
     }
+
   }
 
   static void PlatformThreadUninit()
@@ -260,7 +267,13 @@ namespace Tac
   static void PlatformThread()
   {
     Errors& errors = gPlatformThreadErrors;
-    TAC_ON_DESTRUCT( PlatformThreadUninit(); if( errors.size() ) OSAppStopRunning(); );
+    TAC_ON_DESTRUCT(
+      {
+        PlatformThreadUninit();
+        if( errors.size() )
+          OSAppStopRunning();
+        Render::RenderFinish();
+      } );
     PlatformThreadInit( errors );
     TAC_HANDLE_ERROR( errors );
 
@@ -282,6 +295,7 @@ namespace Tac
 
       DontMaxOutCpuGpuPowerUsage();
     }
+
   }
 
   //WindowHandleIterator::WindowHandleIterator() {  }
