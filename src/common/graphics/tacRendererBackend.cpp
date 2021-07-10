@@ -52,9 +52,167 @@ namespace Tac
     const char* bufferPos;
   };
 
+  struct CommandHandlers
+  {
+    struct CommandHandlerBase
+    {
+      virtual void Invoke( Renderer*, CommandBufferIterator*, Errors& ) = 0;
+      const char* mName; // <-- mName is only used for debug log
+    };
+
+    template< typename CommandData >
+    struct CommandHandler : public CommandHandlerBase
+    {
+      typedef  void ( Renderer:: *Callback )( CommandData*, Errors& );
+      CommandHandler( Callback callback ) : mCallback( callback ) {}
+      void Invoke( Renderer* renderer,
+                   CommandBufferIterator* commandBufferIterator,
+                   Errors& errors ) override
+      {
+        auto commandData = commandBufferIterator->PopCommandData< CommandData >();
+        ( renderer->*mCallback )( commandData, errors );
+        TAC_HANDLE_ERROR( errors );
+      }
+
+      void ( Renderer::* mCallback )( CommandData*, Errors& );
+    };
+
+    template< typename Handle >
+    struct CommandHandlerDestroy : public CommandHandlerBase
+    {
+
+      CommandHandlerDestroy( void ( Renderer::* callback )( Handle, Errors& ) ) : mCallback( callback ){}
+      void Invoke( Renderer* renderer,
+                   CommandBufferIterator* commandBufferIterator,
+                   Errors& errors ) override
+      {
+        auto commandData = commandBufferIterator->PopCommandData< Render::CommandDataDestroy >();
+        ( renderer->*mCallback )( Handle( commandData->mIndex ), errors );
+        TAC_HANDLE_ERROR( errors );
+      }
+
+      void ( Renderer::* mCallback )( Handle, Errors& );
+    };
+
+
+    template< typename CommandData >
+    static CommandHandler< CommandData >* MakeCommandHandler( void ( Renderer:: *fn )( CommandData*, Errors& ) )
+    {
+      static CommandHandler< CommandData > handler( fn );
+      return &handler;
+    }
+
+    template< typename Handle >
+    static CommandHandlerDestroy< Handle >* MakeCommandHandlerDestroy( void ( Renderer:: *fn )( Handle, Errors& ) )
+    {
+      static CommandHandlerDestroy< Handle > handler( fn );
+      return &handler;
+    }
+
+
+    void Add( const Render::CommandType commandType,
+              CommandHandlerBase* commandHandler,
+              const char* name )
+    {
+      commandHandler->mName = name;
+      mCommandHandlers[ ( int )commandType ] = commandHandler;
+    }
+
+    void Invoke( Renderer* renderer,
+                 const Render::CommandType comandType,
+                 CommandBufferIterator* commandBufferIterator,
+                 Errors& errors )
+    {
+      TAC_ASSERT_INDEX( comandType, Render::CommandType::Count );
+      CommandHandlerBase* commandHandler = mCommandHandlers[ ( int )comandType ];
+      if( gVerbose )
+        std::cout << commandHandler->mName << "::End\n";
+      commandHandler->Invoke( renderer, commandBufferIterator, errors );
+      if( gVerbose )
+        std::cout << commandHandler->mName << "::Begin\n";
+    }
+
+    CommandHandlers()
+    {
+#define REG( Handler, CmdType, RenderFn )             \
+      Add( CmdType,                                   \
+           TAC_CONCAT( Make, Handler ) ( &RenderFn ), \
+           TAC_STRINGIFY( CmdType ) );
+      REG( CommandHandler, Render::CommandType::CreateBlendState, Renderer::AddBlendState );
+      REG( CommandHandler, Render::CommandType::CreateConstantBuffer, Renderer::AddConstantBuffer );
+      REG( CommandHandler, Render::CommandType::CreateDepthState, Renderer::AddDepthState );
+      REG( CommandHandler, Render::CommandType::CreateFramebuffer, Renderer::AddFramebuffer );
+      REG( CommandHandler, Render::CommandType::CreateIndexBuffer, Renderer::AddIndexBuffer );
+      REG( CommandHandler, Render::CommandType::CreateMagicBuffer, Renderer::AddMagicBuffer );
+      REG( CommandHandler, Render::CommandType::CreateRasterizerState, Renderer::AddRasterizerState );
+      REG( CommandHandler, Render::CommandType::CreateSamplerState, Renderer::AddSamplerState );
+      REG( CommandHandler, Render::CommandType::CreateShader, Renderer::AddShader );
+      REG( CommandHandler, Render::CommandType::CreateTexture, Renderer::AddTexture );
+      REG( CommandHandler, Render::CommandType::CreateVertexBuffer, Renderer::AddVertexBuffer );
+      REG( CommandHandler, Render::CommandType::CreateVertexFormat, Renderer::AddVertexFormat );
+      REG( CommandHandler, Render::CommandType::ResizeFramebuffer, Renderer::ResizeFramebuffer );
+      REG( CommandHandler, Render::CommandType::SetRenderObjectDebugName, Renderer::SetRenderObjectDebugName );
+      REG( CommandHandler, Render::CommandType::UpdateIndexBuffer, Renderer::UpdateIndexBuffer );
+      REG( CommandHandler, Render::CommandType::UpdateTextureRegion, Renderer::UpdateTextureRegion );
+      REG( CommandHandler, Render::CommandType::UpdateVertexBuffer, Renderer::UpdateVertexBuffer );
+      REG( CommandHandlerDestroy, Render::CommandType::DestroyBlendState, Renderer::RemoveBlendState );
+      REG( CommandHandlerDestroy, Render::CommandType::DestroyConstantBuffer, Renderer::RemoveConstantBuffer );
+      REG( CommandHandlerDestroy, Render::CommandType::DestroyDepthState, Renderer::RemoveDepthState );
+      REG( CommandHandlerDestroy, Render::CommandType::DestroyFramebuffer, Renderer::RemoveFramebuffer );
+      REG( CommandHandlerDestroy, Render::CommandType::DestroyIndexBuffer, Renderer::RemoveIndexBuffer );
+      REG( CommandHandlerDestroy, Render::CommandType::DestroyRasterizerState, Renderer::RemoveRasterizerState );
+      REG( CommandHandlerDestroy, Render::CommandType::DestroySamplerState, Renderer::RemoveSamplerState );
+      REG( CommandHandlerDestroy, Render::CommandType::DestroyShader, Renderer::RemoveShader );
+      REG( CommandHandlerDestroy, Render::CommandType::DestroyTexture, Renderer::RemoveTexture );
+      REG( CommandHandlerDestroy, Render::CommandType::DestroyMagicBuffer, Renderer::RemoveMagicBuffer );
+      REG( CommandHandlerDestroy, Render::CommandType::DestroyVertexBuffer, Renderer::RemoveVertexBuffer );
+      REG( CommandHandlerDestroy, Render::CommandType::DestroyVertexFormat, Renderer::RemoveVertexFormat );
+      for( auto handler : mCommandHandlers ) { TAC_ASSERT( handler ); }
+    }
+
+    CommandHandlerBase* mCommandHandlers[ ( int )Render::CommandType::Count ];
+  };
+
   namespace Render
   {
-    static Vector< String > pushed_groups;
+    struct Encoder
+    {
+      void                  Submit( ViewHandle , StackFrame );
+      int                   mUniformBufferIndex = 0;
+      DrawCall              mDrawCall;
+    };
+
+    static struct ShaderReloadInfo
+    {
+      String      mFullPath;
+      std::time_t mFileModifyTime = 0;
+    } sShaderReloadInfos[ kMaxPrograms ];
+
+    static thread_local Encoder gEncoder;
+    static const int            gSubmitRingBufferCapacity = 100 * 1024 * 1024;
+    static char                 gSubmitRingBufferBytes[ gSubmitRingBufferCapacity ];
+    static int                  gSubmitRingBufferPos;
+    static SemaphoreHandle      gSubmitSemaphore;
+    static SemaphoreHandle      gRenderSemaphore;
+    static int                  gFrameCount;
+    static Vector< String >     pushed_groups;
+    static Frame                gFrames[ 2 ];
+    static Frame*               gRenderFrame = &gFrames[ 0 ];
+    static Frame*               gSubmitFrame = &gFrames[ 1 ];
+    static uint32_t             gCrow = 0xcaacaaaa;
+    static IdCollection         mIdCollectionBlendState( kMaxBlendStates );
+    static IdCollection         mIdCollectionConstantBuffer( kMaxConstantBuffers );
+    static IdCollection         mIdCollectionDepthState( kMaxDepthStencilStates );
+    static IdCollection         mIdCollectionFramebuffer( kMaxFramebuffers );
+    static IdCollection         mIdCollectionIndexBuffer( kMaxIndexBuffers );
+    static IdCollection         mIdCollectionRasterizerState( kMaxRasterizerStates );
+    static IdCollection         mIdCollectionSamplerState( kMaxSamplerStates );
+    static IdCollection         mIdCollectionShader( kMaxPrograms );
+    static IdCollection         mIdCollectionTexture( kMaxTextures );
+    static IdCollection         mIdCollectionVertexBuffer( kMaxVertexBuffers );
+    static IdCollection         mIdCollectionMagicBuffer( kMaxMagicBuffers );
+    static IdCollection         mIdCollectionVertexFormat( kMaxInputLayouts );
+    static IdCollection         mIdCollectionViewId( kMaxViews );
 
     static void ExecuteUniformCommands( const UniformBuffer* uniformBuffer,
                                         const int iUniformBegin,
@@ -104,6 +262,50 @@ namespace Tac
     }
 
 
+    template< typename T, int N >
+    static void FinishFreeingHandle( FixedVector< T, N >& freed, IdCollection& collection )
+    {
+      if( freed.empty() )
+        return;
+      for( auto handle : freed )
+        collection.Free( ( int )handle );
+      freed.clear();
+    }
+
+    static void SetRenderObjectDebugName( CommandDataSetRenderObjectDebugName& commandData, const char* name )
+    {
+      // Ensure the name is one word, so its easy to see in the debugger and easy to search for in the codebase
+      for( const char c : StringView( name ) )
+      {
+        const char* allowed = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-_:";
+        const bool isValid = StringView( allowed ).find_first_of( c ) != String::npos;
+        TAC_ASSERT_MSG( isValid, "invalid char %c in %s", c, name );
+      }
+      commandData.mName = SubmitAlloc( name );
+      gSubmitFrame->mCommandBufferFrameBegin.PushCommand( CommandType::SetRenderObjectDebugName,
+                                                          &commandData,
+                                                          sizeof( commandData ) );
+    }
+
+    static void RenderDrawCalls( Errors& errors )
+    {
+      TAC_PROFILE_BLOCK;
+      const DrawCall* drawCallBegin = gRenderFrame->mDrawCalls.data();
+      const int drawCallCount = gRenderFrame->mDrawCalls.size();
+      for( int iDrawCall = 0; iDrawCall < drawCallCount; ++iDrawCall )
+      {
+        if( gRenderFrame->mBreakOnDrawCall == iDrawCall )
+          OSDebugBreak();
+
+        const DrawCall* drawCall = drawCallBegin + iDrawCall;
+
+        ExecuteUniformCommands( &gRenderFrame->mUniformBuffer,
+                                drawCall->iUniformBegin,
+                                drawCall->iUniformEnd,
+                                errors );
+        Renderer::Instance->RenderDrawCall( gRenderFrame, drawCall, errors );
+      }
+    }
 
     UniformBufferHeader::UniformBufferHeader( const UniformBufferEntryType type,
                                               const StackFrame stackFrame )
@@ -117,32 +319,28 @@ namespace Tac
       PushData( &header, sizeof( header ) );
     }
 
-    void        UniformBuffer::PushData( const void* bytes, const int byteCount )
+    void                   UniformBuffer::PushData( const void* bytes, const int byteCount )
     {
       MemCpy( mBytes + mByteCount, bytes, byteCount );
       mByteCount += byteCount;
     }
 
-    void        UniformBuffer::PushString( const StringView s )
+    void                   UniformBuffer::PushString( const StringView s )
     {
       PushNumber( s.size() );
       PushData( s.c_str(), s.size() );
       PushData( "", 1 );
     }
 
-    void        UniformBuffer::PushNumber( const int i )
+    void                   UniformBuffer::PushNumber( const int i )
     {
       PushData( &i, sizeof( i ) );
     }
 
-    void        UniformBuffer::PushPointer( const void* p )
+    void                   UniformBuffer::PushPointer( const void* p )
     {
       PushData( &p, sizeof( p ) );
     }
-
-
-
-
 
     int                    UniformBuffer::size() const
     {
@@ -169,29 +367,29 @@ namespace Tac
       mEnd = uniformBufferData + iEnd;
     }
 
-    UniformBufferHeader UniformBuffer::Iterator::PopHeader()
+    UniformBufferHeader    UniformBuffer::Iterator::PopHeader()
     {
       return *( UniformBufferHeader* )PopData( sizeof( UniformBufferHeader ) );
     }
 
-    void*               UniformBuffer::Iterator::PopData( const int byteCount )
+    void*                  UniformBuffer::Iterator::PopData( const int byteCount )
     {
       auto result = ( void* )mCur;
       mCur += byteCount;
       return result;
     }
 
-    int                 UniformBuffer::Iterator::PopNumber()
+    int                    UniformBuffer::Iterator::PopNumber()
     {
       return *( int* )PopData( sizeof( int ) );
     }
 
-    const void*               UniformBuffer::Iterator::PopPointer()
+    const void*            UniformBuffer::Iterator::PopPointer()
     {
       return *( const void** )PopData( sizeof( void* ) );
     }
 
-    StringView          UniformBuffer::Iterator::PopString()
+    StringView             UniformBuffer::Iterator::PopString()
     {
       const int len = PopNumber();
       const char* str = ( const char* )PopData( len );
@@ -218,63 +416,24 @@ namespace Tac
     }
 
     void        CommandBuffer::Resize( int newSize ) { mBuffer.resize( newSize ); }
+
     void        CommandBuffer::Clear() { mBuffer.clear(); }
+
     const char* CommandBuffer::Data() const { return mBuffer.data(); }
+
     int         CommandBuffer::Size() const { return mBuffer.size(); }
 
-    static Frame    gFrames[ 2 ];
-    static Frame*   gRenderFrame = &gFrames[ 0 ];
-    static Frame*   gSubmitFrame = &gFrames[ 1 ];
-    static uint32_t gCrow = 0xcaacaaaa;
-    //int i = gCrow + 1;
 
-    static IdCollection mIdCollectionBlendState( kMaxBlendStates );
-    static IdCollection mIdCollectionConstantBuffer( kMaxConstantBuffers );
-    static IdCollection mIdCollectionDepthState( kMaxDepthStencilStates );
-    static IdCollection mIdCollectionFramebuffer( kMaxFramebuffers );
-    static IdCollection mIdCollectionIndexBuffer( kMaxIndexBuffers );
-    static IdCollection mIdCollectionRasterizerState( kMaxRasterizerStates );
-    static IdCollection mIdCollectionSamplerState( kMaxSamplerStates );
-    static IdCollection mIdCollectionShader( kMaxPrograms );
-    static IdCollection mIdCollectionTexture( kMaxTextures );
-    static IdCollection mIdCollectionVertexBuffer( kMaxVertexBuffers );
-    static IdCollection mIdCollectionMagicBuffer( kMaxMagicBuffers );
-    static IdCollection mIdCollectionVertexFormat( kMaxInputLayouts );
-    static IdCollection mIdCollectionViewId( kMaxViews );
 
-    //void UpdateConstantBuffers::Push( ConstantBufferHandle constantBufferHandle,
-    //                                  const void* bytes,
-    //                                  int byteCount )
-    //{
-    //  TAC_ASSERT( mUpdateConstantBufferDataCount < kCapacity );
-    //  UpdateConstantBuffer* updateConstantBuffer = &mUpdateConstantBufferDatas[ mUpdateConstantBufferDataCount++ ];
-    //  updateConstantBuffer->mConstantBufferHandle = constantBufferHandle;
-    //  updateConstantBuffer->mBytes = bytes;
-    //  updateConstantBuffer->mByteCount = byteCount;
-    //}
 
-    struct Encoder
-    {
-      void                  Submit( Render::ViewHandle viewHandle,
-                                    StackFrame stackFrame );
-      int                   mUniformBufferIndex = 0;
-      DrawCall              mDrawCall;
-    };
-
-    static thread_local Encoder gEncoder;
-
-    static const int gSubmitRingBufferCapacity = 100 * 1024 * 1024;
-    static char      gSubmitRingBufferBytes[ gSubmitRingBufferCapacity ];
-    static int       gSubmitRingBufferPos;
-
-    void        DebugPrintSubmitAllocInfo()
+    void                  DebugPrintSubmitAllocInfo()
     {
       std::cout << "gSubmitRingBufferCapacity: " << gSubmitRingBufferCapacity << std::endl;
       std::cout << "gSubmitRingBufferBytes: " << ( void* )gSubmitRingBufferBytes << std::endl;
       std::cout << "gSubmitRingBufferPos : " << gSubmitRingBufferPos << std::endl;
     }
 
-    bool        IsSubmitAllocated( const void* data )
+    bool                  IsSubmitAllocated( const void* data )
     {
       const bool result =
         data >= gSubmitRingBufferBytes &&
@@ -282,7 +441,7 @@ namespace Tac
       return result;
     }
 
-    void*       SubmitAlloc( const int byteCount )
+    void*                 SubmitAlloc( const int byteCount )
     {
       if( !byteCount )
         return nullptr;
@@ -293,7 +452,7 @@ namespace Tac
       return gSubmitRingBufferBytes + beginPos;
     }
 
-    const void* SubmitAlloc( const void* bytes, const int byteCount )
+    const void*           SubmitAlloc( const void* bytes, const int byteCount )
     {
       if( !bytes )
         return nullptr;
@@ -304,7 +463,7 @@ namespace Tac
       return dst;
     }
 
-    StringView  SubmitAlloc( const StringView stringView )
+    StringView            SubmitAlloc( const StringView stringView )
     {
       if( !stringView.mLen )
         return {};
@@ -318,9 +477,6 @@ namespace Tac
       return StringView( ( const char* )resultData, stringView.size() );
     }
 
-    //void SubmitAllocBeginFrame()
-    //{
-    //}
 
     ViewHandle            CreateView()
     {
@@ -365,7 +521,7 @@ namespace Tac
       return vertexBufferHandle;
     }
 
-    MagicBufferHandle                CreateMagicBuffer( const int byteCount,
+    MagicBufferHandle     CreateMagicBuffer( const int byteCount,
                                                         const void* optionalInitialBytes,
                                                         const int stride,
                                                         const Binding binding,
@@ -553,23 +709,9 @@ namespace Tac
       return vertexFormatHandle;
     }
 
-    static void SetRenderObjectDebugName( CommandDataSetRenderObjectDebugName& commandData, const char* name )
-    {
-      // Make the name one word, so its easy to see in the debugger and easy to search for in the codebase
-      for( const char c : StringView( name ) )
-      {
-        const char* allowed = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-_:";
-        const bool isValid = StringView( allowed ).find_first_of( c ) != String::npos;
-        TAC_ASSERT_MSG( isValid, "invalid char %c in %s", c, name );
-      }
-      commandData.mName = SubmitAlloc( name );
-      gSubmitFrame->mCommandBufferFrameBegin.PushCommand( CommandType::SetRenderObjectDebugName,
-                                                          &commandData,
-                                                          sizeof( commandData ) );
-    }
 
 
-    void SetRenderObjectDebugName( const BlendStateHandle       blendStateHandle, const char* name )
+    void SetRenderObjectDebugName( const BlendStateHandle blendStateHandle, const char* name )
     {
 
       CommandDataSetRenderObjectDebugName commandData;
@@ -577,31 +719,35 @@ namespace Tac
       SetRenderObjectDebugName( commandData, name );
     }
 
-    void SetRenderObjectDebugName( const SamplerStateHandle  samplerStateHandle, const char* name )
+    void SetRenderObjectDebugName( const SamplerStateHandle samplerStateHandle, const char* name )
     {
       CommandDataSetRenderObjectDebugName commandData;
       commandData.mSamplerStateHandle = samplerStateHandle;
       SetRenderObjectDebugName( commandData, name );
     }
-    void SetRenderObjectDebugName( const ConstantBufferHandle  constantBufferHandle, const char* name )
+
+    void SetRenderObjectDebugName( const ConstantBufferHandle constantBufferHandle, const char* name )
     {
       CommandDataSetRenderObjectDebugName commandData;
       commandData.mConstantBufferHandle = constantBufferHandle;
       SetRenderObjectDebugName( commandData, name );
     }
-    void SetRenderObjectDebugName( const VertexFormatHandle    vertexFormatHandle, const char* name )
+
+    void SetRenderObjectDebugName( const VertexFormatHandle vertexFormatHandle, const char* name )
     {
       CommandDataSetRenderObjectDebugName commandData;
       commandData.mVertexFormatHandle = vertexFormatHandle;
       SetRenderObjectDebugName( commandData, name );
     }
-    void SetRenderObjectDebugName( const DepthStateHandle       depthStateHandle, const char* name )
+
+    void SetRenderObjectDebugName( const DepthStateHandle depthStateHandle, const char* name )
     {
 
       CommandDataSetRenderObjectDebugName commandData;
       commandData.mDepthStateHandle = depthStateHandle;
       SetRenderObjectDebugName( commandData, name );
     }
+
     void SetRenderObjectDebugName( const RasterizerStateHandle rasterizerStateHandle, const char* name )
     {
       CommandDataSetRenderObjectDebugName commandData;
@@ -642,16 +788,6 @@ namespace Tac
       CommandDataSetRenderObjectDebugName commandData;
       commandData.mMagicBufferHandle = magicBufferHandle;
       SetRenderObjectDebugName( commandData, name );
-    }
-
-    template< typename T, int N >
-    static void FinishFreeingHandle( FixedVector< T, N >& freed, IdCollection& collection )
-    {
-      if( freed.empty() )
-        return;
-      for( auto handle : freed )
-        collection.Free( ( int )handle );
-      freed.clear();
     }
 
     void FreeDeferredHandles::FinishFreeingHandles()
@@ -709,6 +845,7 @@ namespace Tac
                                                         sizeof( commandData ) );
 
     }
+
     void DestroyTexture( const TextureHandle textureHandle, const StackFrame stackFrame )
     {
       CommandDataDestroy commandData;
@@ -809,7 +946,7 @@ namespace Tac
     }
 
 
-    void                  ResizeFramebuffer( const FramebufferHandle framebufferHandle,
+    void ResizeFramebuffer( const FramebufferHandle framebufferHandle,
                                              const int w,
                                              const int h,
                                              const StackFrame stackFrame )
@@ -868,20 +1005,6 @@ namespace Tac
                                                           &commandData,
                                                           sizeof( CommandDataUpdateIndexBuffer ) );
     }
-
-    //void UpdateConstantBuffer( const ConstantBufferHandle handle,
-    //                           const void* bytes,
-    //                           const int byteCount,
-    //                           const StackFrame stackFrame )
-    //{
-    //  TAC_UNUSED_PARAMETER( stackFrame );
-    //  UpdateConstantBufferData updateConstantBufferData;
-    //  updateConstantBufferData.mByteCount = byteCount;
-    //  updateConstantBufferData.mBytes = Render::SubmitAlloc( bytes, byteCount );
-    //  updateConstantBufferData.mConstantBufferHandle = handle;
-    //  updateConstantBufferData.mStackFrame = stackFrame;
-    //  gEncoder.mDrawCall.mUpdateConstantBuffers.push_back( updateConstantBufferData );
-    //}
 
     void SetViewFramebuffer( const ViewHandle viewId, const FramebufferHandle framebufferHandle )
     {
@@ -970,11 +1093,6 @@ namespace Tac
       gEncoder.mDrawCall.mDrawCallUAVs.mUAVMagicBuffers[ i ] = magicBufferHandle;
     }
 
-    //void SetTexture( TextureHandle textureHandle )
-    //{
-    //  gEncoder.mTextureHandle = textureHandle;
-    //}
-
     void BeginGroup( const StringView name, const StackFrame stackFrame )
     {
       TAC_ASSERT( !name.empty() );
@@ -1002,33 +1120,7 @@ namespace Tac
       gSubmitFrame->mUniformBuffer.PushPointer( allocd );
     }
 
-    // need lots of comments pls
 
-    // i think these 2 semaphores just ensure that RenderFrame() and SubmitFrame()
-    // alternate calls
-    static SemaphoreHandle gSubmitSemaphore;
-    static SemaphoreHandle gRenderSemaphore;
-
-    static void RenderDrawCalls( Errors& errors )
-    {
-      TAC_PROFILE_BLOCK;
-      const DrawCall* drawCallBegin = gRenderFrame->mDrawCalls.data();
-      const int drawCallCount = gRenderFrame->mDrawCalls.size();
-      for( int iDrawCall = 0; iDrawCall < drawCallCount; ++iDrawCall )
-      {
-        if( gRenderFrame->mBreakOnDrawCall == iDrawCall )
-          OSDebugBreak();
-
-        const DrawCall* drawCall = drawCallBegin + iDrawCall;
-
-        ExecuteUniformCommands( &gRenderFrame->mUniformBuffer,
-                                drawCall->iUniformBegin,
-                                drawCall->iUniformEnd,
-                                errors );
-        Renderer::Instance->RenderDrawCall( gRenderFrame, drawCall, errors );
-      }
-
-    }
 
     void RenderFinish()
     {
@@ -1075,12 +1167,11 @@ namespace Tac
       }
     }
 
-    static int gFrameCount;
-
     Frame::Frame()
     {
       Clear();
     }
+
     void Frame::Clear()
     {
       // calling Resize prevents us of using curFrame = Frame();
@@ -1091,12 +1182,14 @@ namespace Tac
       mBreakOnFrameRender = false;
       mBreakOnDrawCall = -1;
     }
+
     void SubmitFinish()
     {
       TAC_ASSERT( IsLogicThread() );
       //SubmitFrame();
       OSSemaphoreIncrementPost( gSubmitSemaphore );
     }
+
     void SubmitFrame()
     {
       TAC_ASSERT( IsLogicThread() );
@@ -1187,22 +1280,16 @@ namespace Tac
     }
 
 
-    void                             SetBreakpointWhenThisFrameIsRendered()
+    void SetBreakpointWhenThisFrameIsRendered()
     {
       gSubmitFrame->mBreakOnFrameRender = true;
 
     }
-    void                             SetBreakpointWhenNextDrawCallIsExecuted()
+
+    void SetBreakpointWhenNextDrawCallIsExecuted()
     {
       gSubmitFrame->mBreakOnDrawCall = gSubmitFrame->mDrawCalls.size();
     }
-
-
-    static struct ShaderReloadInfo
-    {
-      String      mFullPath;
-      std::time_t mFileModifyTime = 0;
-    } sShaderReloadInfos[ kMaxPrograms ];
 
     static std::time_t ShaderReloadGetFileModifyTime( const char* path )
     {
@@ -1264,7 +1351,7 @@ namespace Tac
         ShaderReloadHelperUpdateAux( &shaderReloadInfo, shaderReloadFunction );
     }
 
-    bool                  DrawCallUAVs::HasValidHandle() const
+    bool               DrawCallUAVs::HasValidHandle() const
     {
       for( auto uav : mUAVMagicBuffers )
         if( uav.IsValid() )
@@ -1290,145 +1377,9 @@ namespace Tac
 
   }
 
-  struct CommandHandlerBase
-  {
-    virtual void Invoke( Renderer*, CommandBufferIterator*, Errors& ) = 0;
-    const char* mName; // <-- mName is only used for debug log
-  };
-
-  template< typename CommandData >
-  struct CommandHandler : public CommandHandlerBase
-  {
-    CommandHandler( void ( Renderer::* callback )( CommandData*, Errors& ) ) : mCallback( callback ) {}
-
-    static CommandHandler* Instance()
-    {
-      static CommandHandler sCommandHandler;
-      return &sCommandHandler;
-    }
-
-    void Invoke( Renderer* renderer,
-                 CommandBufferIterator* commandBufferIterator,
-                 Errors& errors ) override
-    {
-      auto commandData = commandBufferIterator->PopCommandData< CommandData >();
-      ( renderer->*mCallback )( commandData, errors );
-      TAC_HANDLE_ERROR( errors );
-    }
-
-    void ( Renderer::* mCallback )( CommandData*, Errors& );
-  };
-
-  template< typename Handle >
-  struct CommandHandlerDestroy : public CommandHandlerBase
-  {
-
-    CommandHandlerDestroy( void ( Renderer::* callback )( Handle, Errors& ) ) : mCallback( callback ){}
-    void Invoke( Renderer* renderer,
-                 CommandBufferIterator* commandBufferIterator,
-                 Errors& errors ) override
-    {
-      auto commandData = commandBufferIterator->PopCommandData< Render::CommandDataDestroy >();
-      ( renderer->*mCallback )( Handle( commandData->mIndex ), errors );
-      TAC_HANDLE_ERROR( errors );
-    }
-
-    void ( Renderer::* mCallback )( Handle, Errors& );
-  };
-
-  static struct CommandHandlers
-  {
-    void Add( const Render::CommandType commandType, CommandHandlerBase* commandHandler, const char* name )
-    {
-      commandHandler->mName = name;
-      mCommandHandlers[ ( int )commandType ] = commandHandler;
-    }
-
-    void Invoke( Renderer* renderer,
-                 const Render::CommandType comandType,
-                 CommandBufferIterator* commandBufferIterator,
-                 Errors& errors )
-    {
-      TAC_ASSERT_INDEX( comandType, Render::CommandType::Count );
-      CommandHandlerBase* commandHandler = mCommandHandlers[ ( int )comandType ];
-      if( gVerbose )
-        std::cout << commandHandler->mName << "::End\n";
-      commandHandler->Invoke( renderer, commandBufferIterator, errors );
-      if( gVerbose )
-        std::cout << commandHandler->mName << "::Begin\n";
-    }
-
-    CommandHandlers()
-    {
-      static CommandHandler< Render::CommandDataCreateBlendState >         createBlendState( &Renderer::AddBlendState );
-      static CommandHandler< Render::CommandDataCreateConstantBuffer >     createConstantBuffer( &Renderer::AddConstantBuffer );
-      static CommandHandler< Render::CommandDataCreateDepthState >         createDepthState( &Renderer::AddDepthState );
-      static CommandHandler< Render::CommandDataCreateFramebuffer >        createFramebuffer( &Renderer::AddFramebuffer );
-      static CommandHandler< Render::CommandDataCreateIndexBuffer >        createIndexBuffer( &Renderer::AddIndexBuffer );
-      static CommandHandler< Render::CommandDataCreateMagicBuffer >        createMagicBuffer( &Renderer::AddMagicBuffer );
-      static CommandHandler< Render::CommandDataCreateRasterizerState >    createRasterizerState( &Renderer::AddRasterizerState );
-      static CommandHandler< Render::CommandDataCreateSamplerState >       createSamplerState( &Renderer::AddSamplerState );
-      static CommandHandler< Render::CommandDataCreateShader >             createShader( &Renderer::AddShader );
-      static CommandHandler< Render::CommandDataCreateTexture >            createTexture( &Renderer::AddTexture );
-      static CommandHandler< Render::CommandDataCreateVertexBuffer >       createVertexBuffer( &Renderer::AddVertexBuffer );
-      static CommandHandler< Render::CommandDataCreateVertexFormat>        createVertexFormat( &Renderer::AddVertexFormat );
-      static CommandHandler< Render::CommandDataResizeFramebuffer >        resizeFramebuffer( &Renderer::ResizeFramebuffer );
-      static CommandHandler< Render::CommandDataSetRenderObjectDebugName > setRenderObjectDebugName( &Renderer::SetRenderObjectDebugName );
-      static CommandHandler< Render::CommandDataUpdateIndexBuffer >        updateIndexBuffer( &Renderer::UpdateIndexBuffer );
-      static CommandHandler< Render::CommandDataUpdateTextureRegion >      updateTextureRegion( &Renderer::UpdateTextureRegion );
-      static CommandHandler< Render::CommandDataUpdateVertexBuffer >       updateVertexBuffer( &Renderer::UpdateVertexBuffer );
-      static CommandHandlerDestroy< Render::BlendStateHandle >      destroyBlendState( &Renderer::RemoveBlendState );
-      static CommandHandlerDestroy< Render::ConstantBufferHandle >  destroyConstantBuffer( &Renderer::RemoveConstantBuffer );
-      static CommandHandlerDestroy< Render::DepthStateHandle >      destroyDepthState( &Renderer::RemoveDepthState );
-      static CommandHandlerDestroy< Render::FramebufferHandle >     destroyFramebuffer( &Renderer::RemoveFramebuffer );
-      static CommandHandlerDestroy< Render::IndexBufferHandle >     destroyIndexBuffer( &Renderer::RemoveIndexBuffer );
-      static CommandHandlerDestroy< Render::RasterizerStateHandle > destroyRasterizerState( &Renderer::RemoveRasterizerState );
-      static CommandHandlerDestroy< Render::SamplerStateHandle >    destroySamplerState( &Renderer::RemoveSamplerState );
-      static CommandHandlerDestroy< Render::ShaderHandle >          destroyShader( &Renderer::RemoveShader );
-      static CommandHandlerDestroy< Render::TextureHandle >         destroyTexture( &Renderer::RemoveTexture );
-      static CommandHandlerDestroy< Render::MagicBufferHandle >     destroyMagicBuffer( &Renderer::RemoveMagicBuffer );
-      static CommandHandlerDestroy< Render::VertexBufferHandle >    destroyVertexBuffer( &Renderer::RemoveVertexBuffer );
-      static CommandHandlerDestroy< Render::VertexFormatHandle >    destroyVertexFormat( &Renderer::RemoveVertexFormat );
-
-      Add( Render::CommandType::CreateBlendState, &createBlendState, "createBlendState" );
-      Add( Render::CommandType::CreateConstantBuffer, &createConstantBuffer, "createConstantBuffer" );
-      Add( Render::CommandType::CreateDepthState, &createDepthState, "createDepthState" );
-      Add( Render::CommandType::CreateFramebuffer, &createFramebuffer, "createFramebuffer" );
-      Add( Render::CommandType::CreateIndexBuffer, &createIndexBuffer, "createIndexBuffer" );
-      Add( Render::CommandType::CreateMagicBuffer, &createMagicBuffer, "create magic buffer" );
-      Add( Render::CommandType::CreateRasterizerState, &createRasterizerState, "createRasterizerState" );
-      Add( Render::CommandType::CreateSamplerState, &createSamplerState, "createSamplerState" );
-      Add( Render::CommandType::CreateShader, &createShader, "createShader" );
-      Add( Render::CommandType::CreateTexture, &createTexture, "createTexture" );
-      Add( Render::CommandType::CreateVertexBuffer, &createVertexBuffer, "createVertexBuffer" );
-      Add( Render::CommandType::CreateVertexFormat, &createVertexFormat, "createVertexFormat" );
-      Add( Render::CommandType::DestroyBlendState, &destroyBlendState, "destroyBlendState" );
-      Add( Render::CommandType::DestroyConstantBuffer, &destroyConstantBuffer, "destroyConstantBuffer" );
-      Add( Render::CommandType::DestroyDepthState, &destroyDepthState, "destroyDepthState" );
-      Add( Render::CommandType::DestroyFramebuffer, &destroyFramebuffer, "destroyFramebuffer" );
-      Add( Render::CommandType::DestroyIndexBuffer, &destroyIndexBuffer, "destroyIndexBuffer" );
-      Add( Render::CommandType::DestroyRasterizerState, &destroyRasterizerState, "destroyRasterizerState" );
-      Add( Render::CommandType::DestroySamplerState, &destroySamplerState, "destroySamplerState" );
-      Add( Render::CommandType::DestroyShader, &destroyShader, "destroyShader" );
-      Add( Render::CommandType::DestroyTexture, &destroyTexture, "destroyTexture" );
-      Add( Render::CommandType::DestroyMagicBuffer, &destroyMagicBuffer, "destroyMagicBuffer" );
-      Add( Render::CommandType::DestroyVertexBuffer, &destroyVertexBuffer, "destroyVertexBuffer" );
-      Add( Render::CommandType::DestroyVertexFormat, &destroyVertexFormat, "destroyVertexFormat" );
-      Add( Render::CommandType::ResizeFramebuffer, &resizeFramebuffer, "resizeFramebuffer" );
-      Add( Render::CommandType::SetRenderObjectDebugName, &setRenderObjectDebugName, "setRenderObjectDebugName" );
-      Add( Render::CommandType::UpdateIndexBuffer, &updateIndexBuffer, "updateIndexBuffer" );
-      Add( Render::CommandType::UpdateTextureRegion, &updateTextureRegion, "updateTextureRegion" );
-      Add( Render::CommandType::UpdateVertexBuffer, &updateVertexBuffer, "updateVertexBuffer" );
-
-    }
-
-    CommandHandlerBase* mCommandHandlers[ ( int )Render::CommandType::Count ];
-  } sCommandHandlers;
-
-
-
   void Renderer::ExecuteCommands( Render::CommandBuffer* commandBuffer, Errors& errors )
   {
+    static CommandHandlers sCommandHandlers;
     CommandBufferIterator iter;
     iter.bufferBegin = commandBuffer->Data();
     iter.bufferEnd = commandBuffer->Data() + commandBuffer->Size();
@@ -1439,8 +1390,6 @@ namespace Tac
       sCommandHandlers.Invoke( this, *renderCommandType, &iter, errors );
     }
   }
-
-
 
 } // namespace Tac
 

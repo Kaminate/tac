@@ -300,6 +300,7 @@ namespace Tac
 
     void*                            SubmitAlloc( int byteCount );
     const void*                      SubmitAlloc( const void* bytes, int byteCount );
+    StringView                       SubmitAlloc( const StringView );
     ViewHandle                       CreateView();
     void                             DestroyView( ViewHandle );
     ShaderHandle                     CreateShader( ShaderSource, ConstantBuffers, StackFrame );
