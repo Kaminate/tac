@@ -30,6 +30,7 @@
 
 namespace Tac
 {
+  static bool drawGrid = true;
 
 
   // http://palitri.com/vault/stuff/maths/Rays%20closest%20point.pdf
@@ -192,7 +193,7 @@ namespace Tac
     CreateGraphicsObjects( errors );
     TAC_HANDLE_ERROR( errors );
 
-
+ 
 
     mCenteredUnitCube = ModelAssetManagerGetMeshTryingNewThing( "assets/editor/box.gltf",
                                                                 0,
@@ -538,14 +539,13 @@ namespace Tac
   {
     ImGuiSetNextWindowSize( { 300, 405 } );
     ImGuiSetNextWindowHandle( mDesktopWindowHandle );
-
-
     ImGuiBegin( "gameplay overlay" );
 
     static bool mHideUI = false;
 
     if( !mHideUI )
     {
+      ImGuiCheckbox( "Draw grid", &drawGrid );
       ImGuiCheckbox( "hide ui", &mHideUI );
 
       if( mSoul )
@@ -714,7 +714,8 @@ namespace Tac
       TAC_HANDLE_ERROR( errors );
     }
 
-    //mDebug3DDrawData->DebugDrawGrid();
+    if( drawGrid )
+      mDebug3DDrawData->DebugDraw3DGrid();
 
     if( gCreation.IsAnythingSelected() )
     {
@@ -729,11 +730,12 @@ namespace Tac
     ComputeArrowLen();
     RenderGameWorldToGameWindow();
 
-    //mDebug3DDrawData->DrawToTexture( errors,
-    //                                 &perFrameData,
-    //                                 mDesktopWindow->mRenderView );
+    mDebug3DDrawData->DebugDraw3DToTexture( viewHandle,
+                                            gCreation.mEditorCamera,
+                                            desktopWindowState->mWidth,
+                                            desktopWindowState->mHeight,
+                                            errors );
 
-    //GamePresentation* gamePresentation = gCreation.mGamePresentation;
     GamePresentationRender( gCreation.mWorld,
                             gCreation.mEditorCamera,
                             desktopWindowState->mWidth,

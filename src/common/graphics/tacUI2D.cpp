@@ -211,17 +211,17 @@ namespace Tac
     Render::VertexDeclaration posData;
     posData.mAlignedByteOffset = TAC_OFFSET_OF( UI2DVertex, mPosition );
     posData.mAttribute = Render::Attribute::Position;
-    posData.mTextureFormat = formatv2;
+    posData.mTextureFormat.mElementCount = 2;
+    posData.mTextureFormat.mPerElementByteCount = sizeof( float );
+    posData.mTextureFormat.mPerElementDataType = Render::GraphicsType::real;
 
     Render::VertexDeclaration uvData;
     uvData.mAlignedByteOffset = TAC_OFFSET_OF( UI2DVertex, mGLTexCoord );
     uvData.mAttribute = Render::Attribute::Texcoord;
-    uvData.mTextureFormat = formatv2;
+    uvData.mTextureFormat.mElementCount = 2;
+    uvData.mTextureFormat.mPerElementByteCount = sizeof( float );
+    uvData.mTextureFormat.mPerElementDataType = Render::GraphicsType::real;
 
-    //VertexDeclarations vertexDeclarations;
-    //vertexDeclarations.AddVertexDeclaration( posData );
-    //vertexDeclarations.AddVertexDeclaration( uvData );
-    //mFormat = Render::CreateVertexFormat( vertexDeclarations,
     mFormat = Render::CreateVertexFormat( Render::VertexDeclarations{ posData, uvData },
                                           mShader,
                                           TAC_STACK_FRAME );

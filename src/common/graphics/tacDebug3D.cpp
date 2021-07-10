@@ -1,5 +1,6 @@
 #include "src/common/graphics/tacDebug3D.h"
 #include "src/common/graphics/tacRenderer.h"
+#include "src/common/math/tacMath.h"
 #include "src/common/graphics/tacRendererUtil.h"
 #include "src/common/profile/tacProfile.h"
 #include "src/common/tacCamera.h"
@@ -103,25 +104,32 @@ namespace Tac
     mDepthLess = Render::CreateDepthState( depthStateData, TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( mCBufferPerFrame, "debug-3d-depth-state" );
 
+
     Render::VertexDeclaration positionData;
     positionData.mAttribute = Render::Attribute::Position;
-    positionData.mTextureFormat = formatv3;
+    positionData.mTextureFormat.mElementCount = 3;
+    positionData.mTextureFormat.mPerElementByteCount = sizeof( float );
+    positionData.mTextureFormat.mPerElementDataType = Render::GraphicsType::real;
     positionData.mAlignedByteOffset = TAC_OFFSET_OF( DefaultVertexColor, mPosition );
+
     Render::VertexDeclaration colorData;
     colorData.mAttribute = Render::Attribute::Color;
-    colorData.mTextureFormat = formatv3;
+    colorData.mTextureFormat.mElementCount = 4;
+    colorData.mTextureFormat.mPerElementByteCount = sizeof( float );
+    colorData.mTextureFormat.mPerElementDataType = Render::GraphicsType::real;
     colorData.mAlignedByteOffset = TAC_OFFSET_OF( DefaultVertexColor, mColor );
+
     mVertexColorFormat = Render::CreateVertexFormat( { positionData, colorData },
                                                      m3DVertexColorShader,
                                                      TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( mVertexColorFormat, "debug-3d-vtx-fmt" );
 
     Render::BlendState alphaBlendStateData;
-    alphaBlendStateData.mSrcRGB = Render::BlendConstants::One;
+    alphaBlendStateData.mSrcRGB = Render::BlendConstants::SrcA;
     alphaBlendStateData.mDstRGB = Render::BlendConstants::OneMinusSrcA;
     alphaBlendStateData.mBlendRGB = Render::BlendMode::Add;
-    alphaBlendStateData.mSrcA = Render::BlendConstants::One;
-    alphaBlendStateData.mDstA = Render::BlendConstants::OneMinusSrcA;
+    alphaBlendStateData.mSrcA = Render::BlendConstants::Zero;
+    alphaBlendStateData.mDstA = Render::BlendConstants::One;
     alphaBlendStateData.mBlendA = Render::BlendMode::Add;
     mAlphaBlendState = Render::CreateBlendState( alphaBlendStateData, TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( mAlphaBlendState, "debug-3d-alpha-blend" );
@@ -136,17 +144,39 @@ namespace Tac
   {
     if( !IsDebugMode() )
       return;
+
+    DefaultVertexColor defVert0;
+    defVert0.mColor = v4( color0, 1.0f );
+    defVert0.mPosition = p0;
+    mDebugDrawVerts.push_back( defVert0 );
+
+    DefaultVertexColor defVert1;
+    defVert1.mColor = v4( color1, 1.0f );
+    defVert1.mPosition = p1;
+    mDebugDrawVerts.push_back( defVert1 );
+  }
+
+  void Debug3DDrawData::DebugDraw3DLine( v3 p0, v3 p1, v4 color )
+  {
+    DebugDraw3DLine( p0, p1, color, color );
+  }
+
+  void Debug3DDrawData::DebugDraw3DLine( v3 p0, v3 p1, v4 color0, v4 color1 )
+  {
+    if( !IsDebugMode() )
+      return;
+
     DefaultVertexColor defVert0;
     defVert0.mColor = color0;
     defVert0.mPosition = p0;
+    mDebugDrawVerts.push_back( defVert0 );
 
     DefaultVertexColor defVert1;
     defVert1.mColor = color1;
     defVert1.mPosition = p1;
-
-    mDebugDrawVerts.push_back( defVert0 );
     mDebugDrawVerts.push_back( defVert1 );
   }
+
   void Debug3DDrawData::DebugDraw3DLine( v3 p0, v3 p1, v3 color )
   {
     DebugDraw3DLine( p0, p1, color, color );
@@ -272,33 +302,30 @@ namespace Tac
   }
   void Debug3DDrawData::DebugDraw3DGrid( v3 lineColor )
   {
-    const int extent = 10;
-    for( int i = -extent; i <= extent; ++i )
+    float d = 10.0f; // Fade distance
+    const v4 f( lineColor, 0.0f ); // Far Color
+    for( float i = -d; i <= d; i += 1.0f )
     {
-      //if( i == 0 )
-      //{
-      //  for( int axis = 0; axis < 3; ++axis )
-      //  {
-      //    v3 to = {};
-      //    to[ axis ] = ( float )extent;
-      //    if( axis != 1 )
-      //      DebugDrawLine( v3(), -to, lineColor );
-      //    v3 arrowColor = {};
-      //    arrowColor[ axis ] = 1;
-      //    DebugDrawArrow( v3(), to, arrowColor );
-      //  }
-      //  continue;
-      //}
-      // since we have y up, draw on the xz plane
-      DebugDraw3DLine(
-        v3( ( float )-extent, 0, ( float )i ),
-        v3( ( float )extent, 0, ( float )i ),
-        lineColor );
-      DebugDraw3DLine(
-        v3( ( float )i, 0, ( float )-extent ),
-        v3( ( float )i, 0, ( float )extent ),
-        lineColor );
+      float a = 1 - ( Abs( i ) / d );
+      v4 n( lineColor, a ); // Near Color
+#if 1 // rainbow
+      n.x += a * 1.0f * ( ( std::sin( ( float )ShellGetElapsedSeconds() * 3.0f + i ) ) * 0.5f + 0.5f );
+      n.y += a * 1.0f * ( ( std::sin( ( float )ShellGetElapsedSeconds() * 5.0f + i ) ) * 0.5f + 0.5f );
+      n.z += a * 1.0f * ( ( std::sin( ( float )ShellGetElapsedSeconds() * 7.0f + i ) ) * 0.5f + 0.5f );
+#endif
+      if( i )
+      {
+        DebugDraw3DLine( { -d, 0, i }, { 0, 0, i }, f, n );
+        DebugDraw3DLine( { 0, 0, i }, { d, 0, i }, n, f );
+        DebugDraw3DLine( { i, 0, -d }, { i, 0, 0 }, f, n );
+        DebugDraw3DLine( { i, 0, 0 }, { i, 0, d }, n, f );
+      }
     }
+    DebugDraw3DLine( { -d, 0, 0 }, { 0, 0, 0 }, f, { lineColor, 1 } );
+    DebugDraw3DLine( { 0, 0, -d }, { 0, 0, 0 }, f, { lineColor, 1 } );
+    DebugDraw3DLine( {}, { d, 0, 0 }, { 1, 0, 0, 1 }, { 1, 0, 0, 0 } );
+    DebugDraw3DLine( {}, { 0, d, 0 }, { 0, 1, 0, 1 }, { 0, 1, 0, 0 } );
+    DebugDraw3DLine( {}, { 0, 0, d }, { 0, 0, 1, 1 }, { 0, 0, 1, 0 } );
   }
   void Debug3DDrawData::DebugDraw3DArrow( v3 from, v3 to, v3 color )
   {

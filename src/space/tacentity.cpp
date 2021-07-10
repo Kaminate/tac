@@ -18,24 +18,24 @@ namespace Tac
     const ComponentRegistryEntry* componentRegistryEntry;
   };
 
-	static v3 Vector3FromJson( Json& json )
-	{
-		v3 v =
-		{
-			( float )json[ "x" ].mNumber,
-			( float )json[ "y" ].mNumber,
-			( float )json[ "z" ].mNumber,
-		};
-		return v;
-	}
-	static Json* Vector3ToJson( v3 v )
-	{
-		static Json json;
-		json.GetChild( "x" ).SetNumber( v.x );
-		json.GetChild( "y" ).SetNumber( v.y );
-		json.GetChild( "z" ).SetNumber( v.z );
-		return &json;
-	}
+  static v3 Vector3FromJson( Json& json )
+  {
+    v3 v =
+    {
+      ( float )json[ "x" ].mNumber,
+      ( float )json[ "y" ].mNumber,
+      ( float )json[ "z" ].mNumber,
+    };
+    return v;
+  }
+  static Json* Vector3ToJson( v3 v )
+  {
+    static Json json;
+    json.GetChild( "x" ).SetNumber( v.x );
+    json.GetChild( "y" ).SetNumber( v.y );
+    json.GetChild( "z" ).SetNumber( v.z );
+    return &json;
+  }
 
   RelativeSpace RelativeSpaceFromMatrix( const m4& mLocal )
   {
@@ -111,14 +111,14 @@ namespace Tac
     mComponents.clear();
   }
 
-  Component*                Components::Remove( const ComponentRegistryEntry* componentRegistryEntry)
+  Component*                Components::Remove( const ComponentRegistryEntry* componentRegistryEntry )
   {
     auto it = std::find_if( mComponents.begin(),
                             mComponents.end(),
                             ComponentFindFunctor{ componentRegistryEntry } );
-		TAC_ASSERT( it != mComponents.end() );
-		Component* component = *it;
-		mComponents.erase( it );
+    TAC_ASSERT( it != mComponents.end() );
+    Component* component = *it;
+    mComponents.erase( it );
     return component;
   }
 
@@ -126,239 +126,247 @@ namespace Tac
 
   //Components::ConstIterator Components::end() const { return mComponents.end(); }
 
-	Entity::~Entity()
-	{
-		RemoveAllComponents();
-		// Assert that the world no longer contains this entity?
-	}
+  Entity::~Entity()
+  {
+    RemoveAllComponents();
+    // Assert that the world no longer contains this entity?
+  }
 
-	void             Entity::RemoveAllComponents()
-	{
-		for( Component* component : mComponents )
-		{
-			const ComponentRegistryEntry* entry = component->GetEntry();
-			entry->mDestroyFn( mWorld, component );
-		}
-		mComponents.Clear();
-	}
+  void             Entity::RemoveAllComponents()
+  {
+    for( Component* component : mComponents )
+    {
+      const ComponentRegistryEntry* entry = component->GetEntry();
+      entry->mDestroyFn( mWorld, component );
+    }
+    mComponents.Clear();
+  }
 
-	Component*       Entity::AddNewComponent( const ComponentRegistryEntry* entry )
-	{
-		TAC_ASSERT( entry );
-		TAC_ASSERT( !HasComponent( entry ) );
-		TAC_ASSERT( entry->mCreateFn );
-		Component* component = entry->mCreateFn( mWorld );
-		TAC_ASSERT( component );
+  Component*       Entity::AddNewComponent( const ComponentRegistryEntry* entry )
+  {
+    TAC_ASSERT( entry );
+    TAC_ASSERT( !HasComponent( entry ) );
+    TAC_ASSERT( entry->mCreateFn );
+    Component* component = entry->mCreateFn( mWorld );
+    TAC_ASSERT( component );
     mComponents.Add( component );
-		component->mEntity = this;
-		return component;
-	}
+    component->mEntity = this;
+    return component;
+  }
 
-	Component*       Entity::GetComponent( const ComponentRegistryEntry* entry )
-	{
-		for( Component* component : mComponents )
-			if( component->GetEntry() == entry )
-				return component;
-		return nullptr;
-	}
+  Component*       Entity::GetComponent( const ComponentRegistryEntry* entry )
+  {
+    for( Component* component : mComponents )
+      if( component->GetEntry() == entry )
+        return component;
+    return nullptr;
+  }
 
-	const Component* Entity::GetComponent( const ComponentRegistryEntry* entry ) const
-	{
-		for( const Component* component : mComponents )
-			if( component->GetEntry() == entry )
-				return component;
-		return nullptr;
-	}
+  const Component* Entity::GetComponent( const ComponentRegistryEntry* entry ) const
+  {
+    for( const Component* component : mComponents )
+      if( component->GetEntry() == entry )
+        return component;
+    return nullptr;
+  }
 
-	bool             Entity::HasComponent( const ComponentRegistryEntry* entry )
-	{
-		return GetComponent( entry ) != nullptr;
-	}
+  bool             Entity::HasComponent( const ComponentRegistryEntry* entry )
+  {
+    return GetComponent( entry ) != nullptr;
+  }
 
-	void             Entity::RemoveComponent( const ComponentRegistryEntry* entry )
-	{
-		//TAC_ASSERT_UNIMPLEMENTED;
-		//auto it = std::find_if(
-		//	mComponents.begin(),
-		//	mComponents.end(),
-		//	[ & ]( Component* component ) { return component->GetEntry() == entry; } );
-		//TAC_ASSERT( it != mComponents.end() );
-		//Component* component = *it;
-		//mComponents.erase( it );
+  void             Entity::RemoveComponent( const ComponentRegistryEntry* entry )
+  {
+    //TAC_ASSERT_UNIMPLEMENTED;
+    //auto it = std::find_if(
+    //	mComponents.begin(),
+    //	mComponents.end(),
+    //	[ & ]( Component* component ) { return component->GetEntry() == entry; } );
+    //TAC_ASSERT( it != mComponents.end() );
+    //Component* component = *it;
+    //mComponents.erase( it );
 
-		Component* component = mComponents.Remove( entry );
+    Component* component = mComponents.Remove( entry );
 
     //ComponentRegistryEntry* entry = component->GetEntry();
     entry->mDestroyFn( mWorld, component );
-	}
+  }
 
-	void             Entity::DeepCopy( const Entity& entity )
-	{
-		//TAC_ASSERT( mWorld && entity.mWorld && mWorld != entity.mWorld );
+  void             Entity::DeepCopy( const Entity& entity )
+  {
+    //TAC_ASSERT( mWorld && entity.mWorld && mWorld != entity.mWorld );
     mEntityUUID = entity.mEntityUUID;
     mName = entity.mName;
     mInheritParentScale = entity.mInheritParentScale;
     mRelativeSpace = entity.mRelativeSpace;
-		RemoveAllComponents();
-    
-		//for( auto oldComponent : entity.mComponents )
-		//{
-		//  auto componentType = oldComponent->GetComponentType();
-		//  auto newComponent = AddNewComponent( componentType );
-		//  auto componentData = GetComponentData( componentType );
-		//  for( auto& networkBit : componentData->mNetworkBits )
-		//  {
-		//    auto dst = ( char* )newComponent + networkBit.mByteOffset;
-		//    auto src = ( char* )oldComponent + networkBit.mByteOffset;
-		//    auto size = networkBit.mComponentByteCount * networkBit.mComponentCount;
-		//    std::memcpy( dst, src, size );
-		//  }
-		//}
+    RemoveAllComponents();
+
+    //for( auto oldComponent : entity.mComponents )
+    //{
+    //  auto componentType = oldComponent->GetComponentType();
+    //  auto newComponent = AddNewComponent( componentType );
+    //  auto componentData = GetComponentData( componentType );
+    //  for( auto& networkBit : componentData->mNetworkBits )
+    //  {
+    //    auto dst = ( char* )newComponent + networkBit.mByteOffset;
+    //    auto src = ( char* )oldComponent + networkBit.mByteOffset;
+    //    auto size = networkBit.mComponentByteCount * networkBit.mComponentCount;
+    //    std::memcpy( dst, src, size );
+    //  }
+    //}
     for( Entity* child : mChildren )
       mWorld->KillEntity( child );
     mChildren.clear();
-	}
+  }
 
-	void             Entity::AddChild( Entity* child )
-	{
-		TAC_ASSERT( !Contains( mChildren, child ) );
-		TAC_ASSERT( child->mParent != this );
-		child->Unparent();
-		child->mParent = this;
-		mChildren.push_back( child );
-	}
+  void             Entity::AddChild( Entity* child )
+  {
+    TAC_ASSERT( !Contains( mChildren, child ) );
+    TAC_ASSERT( child->mParent != this );
+    child->Unparent();
+    child->mParent = this;
+    mChildren.push_back( child );
+  }
 
-	void             Entity::DebugImgui()
-	{
+  void             Entity::DebugImgui()
+  {
 #if 0
-		ImGui::PushID( this );
-		OnDestruct( ImGui::PopID() );
-		if( !ImGui::CollapsingHeader( va( "Entity id %i", mEntityUUID ), ImGuiTreeNodeFlags_DefaultOpen ) )
-			return;
-		ImGui::Indent();
-		OnDestruct( ImGui::Unindent() );
-		ImGui::DragFloat3( "Position", mPosition.data(), 0.1f );
+    ImGui::PushID( this );
+    OnDestruct( ImGui::PopID() );
+    if( !ImGui::CollapsingHeader( va( "Entity id %i", mEntityUUID ), ImGuiTreeNodeFlags_DefaultOpen ) )
+      return;
+    ImGui::Indent();
+    OnDestruct( ImGui::Unindent() );
+    ImGui::DragFloat3( "Position", mPosition.data(), 0.1f );
 
-		Vector< ComponentRegistryEntryIndex > couldBeAdded;
-		for( int i = 0; i < ( int )ComponentRegistryEntryIndex::Count; i++ )
-		{
-			auto componentType = ( ComponentRegistryEntryIndex )i;
-			if( HasComponent( componentType ) )
-				continue;
-			auto componentData = GetComponentData( componentType );
-			if( !componentData )
-				continue;
-			couldBeAdded.push_back( componentType );
-		}
-		if( !couldBeAdded.empty() && ImGui::BeginMenu( "Add Component" ) )
-		{
-			for( auto componentType : couldBeAdded )
-			{
-				auto componentData = GetComponentData( componentType );
-				if( !ImGui::MenuItem( componentData->mName ) )
-					continue;
-				AddNewComponent( componentType );
-				break;
-			}
-			ImGui::EndMenu();
-		}
+    Vector< ComponentRegistryEntryIndex > couldBeAdded;
+    for( int i = 0; i < ( int )ComponentRegistryEntryIndex::Count; i++ )
+    {
+      auto componentType = ( ComponentRegistryEntryIndex )i;
+      if( HasComponent( componentType ) )
+        continue;
+      auto componentData = GetComponentData( componentType );
+      if( !componentData )
+        continue;
+      couldBeAdded.push_back( componentType );
+    }
+    if( !couldBeAdded.empty() && ImGui::BeginMenu( "Add Component" ) )
+    {
+      for( auto componentType : couldBeAdded )
+      {
+        auto componentData = GetComponentData( componentType );
+        if( !ImGui::MenuItem( componentData->mName ) )
+          continue;
+        AddNewComponent( componentType );
+        break;
+      }
+      ImGui::EndMenu();
+    }
 
-		if( !mComponents.empty() && ImGui::BeginMenu( "Remove Component" ) )
-		{
-			for( auto component : mComponents )
-			{
-				auto componentType = component->GetComponentType();
-				auto componentData = GetComponentData( componentType );
-				if( !ImGui::MenuItem( componentData->mName ) )
-					continue;
-				RemoveComponent( componentType );
-				break;
-			}
-			ImGui::EndMenu();
-		}
-		for( auto component : mComponents )
-			component->DebugImgui();
+    if( !mComponents.empty() && ImGui::BeginMenu( "Remove Component" ) )
+    {
+      for( auto component : mComponents )
+      {
+        auto componentType = component->GetComponentType();
+        auto componentData = GetComponentData( componentType );
+        if( !ImGui::MenuItem( componentData->mName ) )
+          continue;
+        RemoveComponent( componentType );
+        break;
+      }
+      ImGui::EndMenu();
+    }
+    for( auto component : mComponents )
+      component->DebugImgui();
 #endif
-	}
+  }
 
-	void             Entity::Unparent()
-	{
-		if( !mParent )
-			return;
-		for( int iChild = 0; iChild < mParent->mChildren.size(); ++iChild )
-		{
-			if( mParent->mChildren[ iChild ] == this )
-			{
-				mParent->mChildren[ iChild ] = mParent->mChildren[ mParent->mChildren.size() - 1 ];
-				mParent->mChildren.pop_back();
-				break;
-			}
-		}
-		mParent = nullptr;
-		// todo: relative positioning
-	}
+  void             Entity::Unparent()
+  {
+    if( !mParent )
+      return;
+    for( int iChild = 0; iChild < mParent->mChildren.size(); ++iChild )
+    {
+      if( mParent->mChildren[ iChild ] == this )
+      {
+        mParent->mChildren[ iChild ] = mParent->mChildren[ mParent->mChildren.size() - 1 ];
+        mParent->mChildren.pop_back();
+        break;
+      }
+    }
+    mParent = nullptr;
+    // todo: relative positioning
+  }
 
-	void             Entity::Save( Json& entityJson )
-	{
-		Entity* entity = this;
-		entityJson[ "mPosition" ].DeepCopy( Vector3ToJson( entity->mRelativeSpace.mPosition ) );
-		entityJson[ "mScale" ].DeepCopy( Vector3ToJson( entity->mRelativeSpace.mScale ) );
-		entityJson[ "mName" ].SetString( entity->mName );
-		entityJson[ "mEulerRads" ].DeepCopy( Vector3ToJson( entity->mRelativeSpace.mEulerRads ) );
-		entityJson[ "mEntityUUID" ].SetNumber( ( JsonNumber )entity->mEntityUUID );
+  void             Entity::Save( Json& entityJson )
+  {
+    Entity* entity = this;
+    entityJson[ "mPosition" ].DeepCopy( Vector3ToJson( entity->mRelativeSpace.mPosition ) );
+    entityJson[ "mScale" ].DeepCopy( Vector3ToJson( entity->mRelativeSpace.mScale ) );
+    entityJson[ "mName" ].SetString( entity->mName );
+    entityJson[ "mEulerRads" ].DeepCopy( Vector3ToJson( entity->mRelativeSpace.mEulerRads ) );
+    entityJson[ "mEntityUUID" ].SetNumber( ( JsonNumber )entity->mEntityUUID );
+    entityJson[ "mActive" ].SetBool( entity->mActive );
 
-		for( Component* component : entity->mComponents )
-		{
-			auto entry = component->GetEntry();
-			Json componentJson;
-			if( entry->mSaveFn )
-				entry->mSaveFn( componentJson, component );
-			entityJson[ StringView( entry->mName ) ].DeepCopy( &componentJson );
-		}
+    for( Component* component : entity->mComponents )
+    {
+      auto entry = component->GetEntry();
+      Json componentJson;
+      if( entry->mSaveFn )
+        entry->mSaveFn( componentJson, component );
+      entityJson[ StringView( entry->mName ) ].DeepCopy( &componentJson );
+    }
 
-		if( !entity->mChildren.empty() )
-		{
-			Json& childrenJson = entityJson[ "mChildren" ];
-			for( Entity* childEntity : entity->mChildren )
-				childEntity->Save( *childrenJson.AddChild() );
-		}
-	}
+    if( !entity->mChildren.empty() )
+    {
+      Json& childrenJson = entityJson[ "mChildren" ];
+      for( Entity* childEntity : entity->mChildren )
+        childEntity->Save( *childrenJson.AddChild() );
+    }
+  }
 
-	void             Entity::Load( Json& prefabJson )
-	{
-		Entity* entity = this;
-		entity->mRelativeSpace.mPosition = Vector3FromJson( prefabJson[ "mPosition" ] );
-		entity->mRelativeSpace.mScale = Vector3FromJson( prefabJson[ "mScale" ] );
-		entity->mRelativeSpace.mEulerRads = Vector3FromJson( prefabJson[ "mEulerRads" ] );
-		entity->mName = prefabJson[ "mName" ].mString;
-		entity->mEntityUUID = ( EntityUUID )( UUID )prefabJson[ "mEntityUUID" ].mNumber;
+  void             Entity::Load( Json& prefabJson )
+  {
+    Json* jsonPos = prefabJson.FindChild( "mPosition" );
+    Json* jsonScale = prefabJson.FindChild( "mScale" );
+    Json* jsonEuler = prefabJson.FindChild( "mEulerRads" );
+    Json* jsonName = prefabJson.FindChild( "mName" );
+    Json* jsonUUID = prefabJson.FindChild( "mEntityUUID" );
+    Json* jsonActive = prefabJson.FindChild( "mActive" );
+    Entity* entity = this;
+    entity->mRelativeSpace.mPosition = Vector3FromJson( *jsonPos );
+    entity->mRelativeSpace.mScale = Vector3FromJson( *jsonScale );
+    entity->mRelativeSpace.mEulerRads = Vector3FromJson( *jsonEuler );
+    entity->mName = jsonName->mString;
+    entity->mEntityUUID = ( EntityUUID )( UUID )jsonUUID->mNumber;
+    entity->mActive = jsonActive ? jsonActive->mBoolean : entity->mActive;
 
-		// I think these should have its own mComponents json node
-		for( auto& pair : prefabJson.mObjectChildrenMap )
-		{
-			StringView key = pair.first;
-			Json* componentJson = pair.second;
+    // I think these should have its own mComponents json node
+    for( auto& pair : prefabJson.mObjectChildrenMap )
+    {
+      StringView key = pair.first;
+      Json* componentJson = pair.second;
       ComponentRegistryEntry* componentRegistryEntry = ComponentRegistry_FindComponentByName( key );
-			if( !componentRegistryEntry )
-				continue; // This key-value pair is not a component
+      if( !componentRegistryEntry )
+        continue; // This key-value pair is not a component
 
-			TAC_ASSERT( componentRegistryEntry );
-			Component* component = entity->AddNewComponent( componentRegistryEntry );
-			if( componentRegistryEntry->mLoadFn )
-				componentRegistryEntry->mLoadFn( *componentJson, component );
-		}
+      TAC_ASSERT( componentRegistryEntry );
+      Component* component = entity->AddNewComponent( componentRegistryEntry );
+      if( componentRegistryEntry->mLoadFn )
+        componentRegistryEntry->mLoadFn( *componentJson, component );
+    }
 
-		if( Json* childrenJson = prefabJson.mObjectChildrenMap[ "mChildren" ] )
-		{
-			for( Json* childJson : childrenJson->mArrayElements )
-			{
-				Entity* childEntity = mWorld->SpawnEntity( NullEntityUUID );
-				childEntity->Load( *childJson );
+    if( Json* childrenJson = prefabJson.mObjectChildrenMap[ "mChildren" ] )
+    {
+      for( Json* childJson : childrenJson->mArrayElements )
+      {
+        Entity* childEntity = mWorld->SpawnEntity( NullEntityUUID );
+        childEntity->Load( *childJson );
 
-				entity->AddChild( childEntity );
-			}
-		}
-	}
+        entity->AddChild( childEntity );
+      }
+    }
+  }
 
 }
 

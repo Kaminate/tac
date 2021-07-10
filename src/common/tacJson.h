@@ -67,6 +67,7 @@ namespace Tac
     // you can use addchild for arrays but not objects
 		Json*                     AddChild( StringView );
 		Json&                     GetChild( StringView );
+		Json*                     FindChild( StringView );
 		bool                      HasChild( StringView );
 		String                    Stringify( const Indentation* = nullptr, int tabCount = 0 ) const;
 		Json&                     operator[]( StringView );

@@ -164,14 +164,15 @@ namespace Tac
   {
     for( auto& number : voxelSettingsSerializer.numbers )
     {
-      if( number.isBool )
-        return *( bool* )number.GetData( a ) != *( bool* )number.GetData( b );
-      if( number.isInt )
-        return *( int* )number.GetData( a ) != *( int* )number.GetData( b );
-      if( number.isFloat )
-        return *( float* )number.GetData( a ) != *( float* )number.GetData( b );
+      if( number.isBool && *( bool* )number.GetData( a ) != *( bool* )number.GetData( b ) )
+          return true;
+
+      if( number.isInt && *( int* )number.GetData( a ) != *( int* )number.GetData( b ) )
+          return true;
+
+      if( number.isFloat && *( float* )number.GetData( a ) != *( float* )number.GetData( b ) )
+          return true;
     }
-    TAC_CRITICAL_ERROR_INVALID_CODE_PATH;
     return false;
   }
 
@@ -484,14 +485,14 @@ namespace Tac
 
         DefaultCBufferPerObject objBuf;
         objBuf.Color = { model->mColorRGB, 1 };
-        objBuf.World = model->mEntity->mWorldTransform;
+        objBuf.World = model->mEntity->mWorldTransform * mesh->mTransform;
 
 #if 1   // debug, make the triangle rotate to test the voxelization
         {
           static float scale = 100.0f;
-          model->mEntity->mRelativeSpace.mEulerRads.x += 0.00001f * scale;
-          model->mEntity->mRelativeSpace.mEulerRads.y += 0.00002f * scale;
-          model->mEntity->mRelativeSpace.mEulerRads.z += 0.00003f * scale;
+          model->mEntity->mRelativeSpace.mEulerRads.x += 0.00000f * scale;
+          model->mEntity->mRelativeSpace.mEulerRads.y += 0.00000f * scale;
+          model->mEntity->mRelativeSpace.mEulerRads.z += 0.00000f * scale;
         }
 #endif
 
@@ -564,6 +565,10 @@ namespace Tac
     Render::Submit( Render::ViewHandle(), TAC_STACK_FRAME );
     Render::EndGroup( TAC_STACK_FRAME );
   }
+
+  // Imagine if all this shit can be replaced with
+  // TAC_TWEAK_VAR( &voxelSettings.foo )
+  // which automatically does the load, the check time and saving
 
   static void                    VoxelSettingsUpdateSerialize()
   {

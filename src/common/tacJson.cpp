@@ -269,6 +269,12 @@ namespace Tac
     Parse( s.data(), s.size(), errors );
   }
 
+  Json*                     Json::FindChild( StringView key )
+  {
+    auto it = mObjectChildrenMap.find( key );
+    return it == mObjectChildrenMap.end() ? nullptr : ( *it ).second;
+  }
+
   Json&                     Json::GetChild( StringView key )
   {
     Json* child = mObjectChildrenMap[ key ];

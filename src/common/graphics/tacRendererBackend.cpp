@@ -11,11 +11,8 @@
 #include <iostream>
 #include <ctime>
 
-static uint32_t gRaven = 0xcaacaaaa;
 namespace Tac
 {
-  static bool gVerbose;
-
   struct CommandBufferIterator
   {
     bool IsValid()
@@ -125,6 +122,7 @@ namespace Tac
     {
       TAC_ASSERT_INDEX( comandType, Render::CommandType::Count );
       CommandHandlerBase* commandHandler = mCommandHandlers[ ( int )comandType ];
+      static bool gVerbose;
       if( gVerbose )
         std::cout << commandHandler->mName << "::End\n";
       commandHandler->Invoke( renderer, commandBufferIterator, errors );
@@ -279,7 +277,7 @@ namespace Tac
       {
         const char* allowed = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-_:";
         const bool isValid = StringView( allowed ).find_first_of( c ) != String::npos;
-        TAC_ASSERT_MSG( isValid, "invalid char %c in %s", c, name );
+        TAC_ASSERT_MSG( isValid, "invalid char '%c' in %s", c, name );
       }
       commandData.mName = SubmitAlloc( name );
       gSubmitFrame->mCommandBufferFrameBegin.PushCommand( CommandType::SetRenderObjectDebugName,

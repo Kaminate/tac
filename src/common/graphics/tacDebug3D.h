@@ -1,6 +1,7 @@
 #pragma once
 
 #include "src/common/math/tacVector3.h"
+#include "src/common/math/tacVector4.h"
 #include "src/common/containers/tacVector.h"
 #include "src/common/graphics/tacRenderer.h"
 
@@ -25,7 +26,7 @@ namespace Tac
   struct DefaultVertexColor
   {
     v3 mPosition;
-    v3 mColor;
+    v4 mColor;
   };
 
   void Debug3DCommonDataInit( Errors& );
@@ -36,6 +37,8 @@ namespace Tac
     ~Debug3DDrawData();
     void DebugDraw3DLine( v3 p0, v3 p1, v3 color0, v3 color1 );
     void DebugDraw3DLine( v3 p0, v3 p1, v3 color = { 1, 1, 1 } );
+    void DebugDraw3DLine( v3 p0, v3 p1, v4 color = { 1, 1, 1, 1 } );
+    void DebugDraw3DLine( v3 p0, v3 p1, v4 color0, v4 color1 );
     void DebugDraw3DCircle( v3 p0, v3 dir, float rad, v3 color = { 1, 1, 1 } );
     void DebugDraw3DSphere( v3 origin, float radius, v3 color = { 1, 1, 1 } );
     void DebugDraw3DCapsule( v3 p0, v3 p1, float radius, v3 color = { 1, 1, 1 } );

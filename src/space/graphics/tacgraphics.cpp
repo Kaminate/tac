@@ -5,6 +5,7 @@
 #include "src/common/tacPreprocessor.h"
 #include "src/space/graphics/tacGraphics.h"
 #include "src/space/model/tacModel.h"
+#include "src/space/tacentity.h"
 #include "src/space/skybox/tacSkyboxComponent.h"
 #include "src/space/tacComponent.h"
 #include "src/space/tacWorld.h"
@@ -49,13 +50,15 @@ namespace Tac
     void                VisitModels( ModelVisitor* modelVisitor ) const override
     {
       for( Model* model : mModels )
-        ( *modelVisitor )( model );
+        if( model->mEntity->mActive )
+          ( *modelVisitor )( model );
     }
 
     void                VisitSkyboxes( SkyboxVisitor* skyboxVisitor ) const override
     {
       for( Skybox* skybox : mSkyboxes )
-        ( *skyboxVisitor )( skybox );
+        if( skybox->mEntity->mActive )
+          ( *skyboxVisitor )( skybox );
     }
 
     std::set< Model* >  mModels;

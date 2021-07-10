@@ -69,6 +69,7 @@ namespace Tac
     RelativeSpace     mRelativeSpace;
 
     bool              mInheritParentScale = false;
+    bool              mActive = true;
 
     //                Position of this entity in worldspace.
     //                Computed automatically during the hierarchical world traversl.

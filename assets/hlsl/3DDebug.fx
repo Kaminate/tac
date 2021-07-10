@@ -3,13 +3,13 @@
 struct VS_INPUT
 {
   float3 Position : POSITION;
-  float3 Color : COLOR;
+  float4 Color : COLOR;
 };
 
 struct VS_OUTPUT
 {
   float4 mClipSpacePosition : SV_POSITION;
-  float3 mColor : COLOR;
+  float4 mColor : COLOR;
 };
 
 VS_OUTPUT VS( VS_INPUT input )
@@ -31,9 +31,7 @@ struct PS_OUTPUT
 PS_OUTPUT PS( VS_OUTPUT input )
 {
   PS_OUTPUT output = ( PS_OUTPUT )0;
-  output.mColor.xyz = input.mColor;
-  output.mColor.w = 1;
-
+  output.mColor = input.mColor;
   return output;
 }
 

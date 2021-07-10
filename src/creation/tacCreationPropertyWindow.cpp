@@ -113,12 +113,19 @@ namespace Tac
       ImGuiText( "Prefab path: " + String( prefabPath ? prefabPath : "null") );
 
 			ImGuiText( "UUID: " + ToString( ( UUID )entity->mEntityUUID ) );
+      if( ImGuiButton( "Reset Transform" ) )
+      {
+        entity->mRelativeSpace.mPosition = {};
+        entity->mRelativeSpace.mEulerRads = {};
+        entity->mRelativeSpace.mScale = { 1, 1, 1 };
+      }
 			ImGuiDragFloat( "X Position: ", &entity->mRelativeSpace.mPosition.x );
 			ImGuiDragFloat( "Y Position: ", &entity->mRelativeSpace.mPosition.y );
 			ImGuiDragFloat( "Z Position: ", &entity->mRelativeSpace.mPosition.z );
 			ImGuiDragFloat( "X Scale: ", &entity->mRelativeSpace.mScale.x );
 			ImGuiDragFloat( "Y Scale: ", &entity->mRelativeSpace.mScale.y );
 			ImGuiDragFloat( "Z Scale: ", &entity->mRelativeSpace.mScale.z );
+      ImGuiCheckbox( "active", &entity->mActive );
 			v3 rotDeg = entity->mRelativeSpace.mEulerRads * ( 180.0f / 3.14f );
 			bool changed = false;
 			changed |= ImGuiDragFloat( "X Eul Deg: ", &rotDeg.x );

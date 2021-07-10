@@ -367,19 +367,12 @@ namespace Tac
     {
       switch( blendConstants )
       {
-        case BlendConstants::OneMinusSrcA:
-          return D3D11_BLEND_INV_SRC_ALPHA;
-        case BlendConstants::SrcA:
-          return D3D11_BLEND_SRC_ALPHA;
-        case BlendConstants::SrcRGB:
-          return D3D11_BLEND_SRC_COLOR;
-        case BlendConstants::Zero:
-          return D3D11_BLEND_ZERO;
-        case BlendConstants::One:
-          return D3D11_BLEND_ONE;
-        default:
-          TAC_ASSERT( false );
-          return D3D11_BLEND_ZERO;
+        case BlendConstants::OneMinusSrcA: return D3D11_BLEND_INV_SRC_ALPHA;
+        case BlendConstants::SrcA:         return D3D11_BLEND_SRC_ALPHA;
+        case BlendConstants::SrcRGB:       return D3D11_BLEND_SRC_COLOR;
+        case BlendConstants::Zero:         return D3D11_BLEND_ZERO;
+        case BlendConstants::One:          return D3D11_BLEND_ONE;
+        default: TAC_ASSERT( false );      return D3D11_BLEND_ZERO;
       }
     };
 
@@ -387,11 +380,8 @@ namespace Tac
     {
       switch( mode )
       {
-        case BlendMode::Add:
-          return D3D11_BLEND_OP_ADD;
-        default:
-          TAC_ASSERT( false );
-          return D3D11_BLEND_OP_ADD;
+        case BlendMode::Add:          return D3D11_BLEND_OP_ADD;
+        default: TAC_ASSERT( false ); return D3D11_BLEND_OP_ADD;
       }
     };
 
@@ -399,7 +389,7 @@ namespace Tac
     {
       switch( fillMode )
       {
-        case FillMode::Solid: return D3D11_FILL_SOLID;
+        case FillMode::Solid:     return D3D11_FILL_SOLID;
         case FillMode::Wireframe: return D3D11_FILL_WIREFRAME;
         default: TAC_CRITICAL_ERROR_INVALID_CASE( fillMode ); return ( D3D11_FILL_MODE )0;
       }
@@ -409,8 +399,8 @@ namespace Tac
     {
       switch( cullMode )
       {
-        case CullMode::None: return D3D11_CULL_NONE;
-        case CullMode::Back: return D3D11_CULL_BACK;
+        case CullMode::None:  return D3D11_CULL_NONE;
+        case CullMode::Back:  return D3D11_CULL_BACK;
         case CullMode::Front: return D3D11_CULL_FRONT;
         default: TAC_CRITICAL_ERROR_INVALID_CASE( cullMode ); return ( D3D11_CULL_MODE )0;
       }
@@ -420,9 +410,9 @@ namespace Tac
     {
       switch( primitiveTopology )
       {
-        case PrimitiveTopology::PointList: return D3D11_PRIMITIVE_TOPOLOGY_POINTLIST;
+        case PrimitiveTopology::PointList:    return D3D11_PRIMITIVE_TOPOLOGY_POINTLIST;
         case PrimitiveTopology::TriangleList: return D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-        case PrimitiveTopology::LineList: return D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
+        case PrimitiveTopology::LineList:     return D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
         default: TAC_CRITICAL_ERROR_INVALID_CASE( primitiveTopology );
       }
       return D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
@@ -998,7 +988,8 @@ namespace Tac
 
           if( framebuffer->mRenderTargetView )
           {
-            const FLOAT ClearGrey = 0.5f;
+            // uhh pick a color unlikely to be used by anyone else
+            const FLOAT ClearGrey = 0.283f;
             const FLOAT ClearColorRGBA[] = { ClearGrey, ClearGrey, ClearGrey,  1.0f };
             mDeviceContext->ClearRenderTargetView( framebuffer->mRenderTargetView, ClearColorRGBA );
           }

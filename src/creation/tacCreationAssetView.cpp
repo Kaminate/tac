@@ -358,6 +358,9 @@ namespace Tac
     AssetViewImportedModel* loadedModel = GetLoadedModel( path );
     if( !loadedModel )
     {
+      const char* debugName = FrameMemoryPrintf( "%s-framebuffer-",
+                                                 StripExt( SplitFilepath( path ).mFilename ).c_str() );
+
       Render::TexSpec texSpecColor;
       texSpecColor.mImage.mFormat.mElementCount = 4;
       texSpecColor.mImage.mFormat.mPerElementByteCount = 1;
@@ -366,8 +369,7 @@ namespace Tac
       texSpecColor.mImage.mHeight = h;
       texSpecColor.mBinding = ( Render::Binding )( ( int )Render::Binding::ShaderResource | ( int )Render::Binding::RenderTarget );
       Render::TextureHandle textureHandleColor = Render::CreateTexture( texSpecColor, TAC_STACK_FRAME );
-      Render::SetRenderObjectDebugName( textureHandleColor,
-                                        FrameMemoryPrintf( "%s framebuffer color", SplitFilepath( path ).mFilename.c_str() ) );
+      Render::SetRenderObjectDebugName( textureHandleColor, debugName );
 
       Render::TexSpec texSpecDepth;
       texSpecDepth.mImage.mFormat.mElementCount = 1;
@@ -377,8 +379,7 @@ namespace Tac
       texSpecDepth.mImage.mHeight = h;
       texSpecDepth.mBinding = Render::Binding::DepthStencil; // = ( Render::Binding )( ( int )Render::Binding::ShaderResource | ( int )Render::Binding::RenderTarget );
       Render::TextureHandle textureHandleDepth = Render::CreateTexture( texSpecDepth, TAC_STACK_FRAME );
-      Render::SetRenderObjectDebugName( textureHandleDepth,
-                                        FrameMemoryPrintf( "%s framebuffer depth", SplitFilepath( path ).mFilename.c_str() ) );
+      Render::SetRenderObjectDebugName( textureHandleDepth, debugName );
 
       Render::FramebufferHandle framebufferHandle = Render::CreateFramebufferForRenderToTexture(
         { textureHandleColor, textureHandleDepth }, TAC_STACK_FRAME );
@@ -416,9 +417,9 @@ namespace Tac
       Render::SetViewport( loadedModel->mViewHandle, Render::Viewport( w, h ) );
       Render::SetViewScissorRect( loadedModel->mViewHandle, Render::ScissorRect( w, h ) );
       GamePresentationRender( &loadedModel->mWorld,
-                                                                 &loadedModel->mCamera,
-                                                                 w, h,
-                                                                 loadedModel->mViewHandle );
+                              &loadedModel->mCamera,
+                              w, h,
+                              loadedModel->mViewHandle );
 
       // ImGuiSameLine();
       ImGuiImage( ( int )loadedModel->mTextureHandleColor, v2( w, h ) );

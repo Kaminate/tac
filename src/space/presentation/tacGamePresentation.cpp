@@ -65,12 +65,34 @@ namespace Tac
     return terrainVertex;
   }
 
-  static void RenderGameWorldAddDrawCall( const Mesh* mesh,
-                                          const DefaultCBufferPerObject& cbuf,
+  static Mesh* LoadModel( const Model* model )
+  {
+    Errors getmeshErrors;
+    return ModelAssetManagerGetMeshTryingNewThing( model->mModelPath.c_str(),
+                                                   model->mModelIndex,
+                                                   m3DVertexFormatDecls,
+                                                   getmeshErrors );
+  }
+
+  static void RenderGameWorldAddDrawCall(  const Model* model,
                                           const Render::ViewHandle viewId )
   {
+    const Mesh* mesh = LoadModel( model );
+    if( !mesh )
+      return;
+
+    DefaultCBufferPerObject perObjectData;
+    perObjectData.Color = { model->mColorRGB, 1 };
+    //perObjectData.World = model->mEntity->mWorldTransform * mesh->mTransform;
+    //perObjectData.World = mesh->mTransform * model->mEntity->mWorldTransform;
+    perObjectData.World = model->mEntity->mWorldTransform;
+
     for( const SubMesh& subMesh : mesh->mSubMeshes )
     {
+      Render::BeginGroup( subMesh.mName.c_str(),TAC_STACK_FRAME ); 
+      //FrameMemoryPrintf( "%s %i", subMesh.mName.c_str(),
+      //                                         model->mModelPath.c_str(),
+      //                                         model->mModelIndex ), TAC_STACK_FRAME );
       Render::SetShader( m3DShader );
       Render::SetVertexBuffer( subMesh.mVertexBuffer, 0, subMesh.mVertexCount );
       Render::SetIndexBuffer( subMesh.mIndexBuffer, 0, subMesh.mIndexCount );
@@ -81,10 +103,11 @@ namespace Tac
       Render::SetVertexFormat( m3DVertexFormat );
       Render::SetPrimitiveTopology( subMesh.mPrimitiveTopology );
       Render::UpdateConstantBuffer( mPerObj,
-                                    &cbuf,
+                                    &perObjectData,
                                     sizeof( DefaultCBufferPerObject ),
                                     TAC_STACK_FRAME );
       Render::Submit( viewId, TAC_STACK_FRAME );
+        Render::EndGroup( TAC_STACK_FRAME );
     }
   }
 
@@ -153,14 +176,6 @@ namespace Tac
 
   }
 
-  static Mesh* LoadModel( const Model* model )
-  {
-    Errors getmeshErrors;
-    return ModelAssetManagerGetMeshTryingNewThing( model->mModelPath.c_str(),
-                                                   model->mModelIndex,
-                                                   m3DVertexFormatDecls,
-                                                   getmeshErrors );
-  }
 
 
   static void CreateTerrainShader( Errors& errors )
@@ -298,18 +313,7 @@ namespace Tac
     {
       void operator()( const Model* model ) override
       {
-        Mesh* mesh = LoadModel( model );
-        if( !mesh )
-          return;
-
-        DefaultCBufferPerObject perObjectData;
-        perObjectData.Color = { model->mColorRGB, 1 };
-        perObjectData.World = model->mEntity->mWorldTransform;
-        Render::BeginGroup( FrameMemoryPrintf( "%s %i",
-                                               model->mModelPath.c_str(),
-                                               model->mModelIndex ), TAC_STACK_FRAME );
-        RenderGameWorldAddDrawCall( mesh, perObjectData, mViewId );
-        Render::EndGroup( TAC_STACK_FRAME );
+        RenderGameWorldAddDrawCall( model, mViewId );
       }
 
       Render::ViewHandle mViewId;

@@ -97,6 +97,20 @@ namespace Tac
     return nullptr;
   }
 
+  static cgltf_node*          FindNodeWithMeshIndex( cgltf_data* parsedData, int index )
+  {
+    for( int iNode = 0; iNode < parsedData->nodes_count; ++iNode )
+    {
+      cgltf_node* curNode = &parsedData->nodes[ iNode ];
+      if( !curNode->mesh )
+        continue;
+      const int curMeshIndex = ( int )( curNode->mesh - parsedData->meshes );
+      if( curMeshIndex == index )
+        return curNode;
+    }
+    return nullptr;
+  }
+
   template< typename T >
   static Vector< int >        ConvertIndexes( cgltf_accessor* indices )
   {
@@ -159,15 +173,15 @@ namespace Tac
 
 
   static Mesh LoadMeshFromGltf( const char* path,
-                                 const int specifiedMeshIndex,
-                                 const Render::VertexDeclarations& vertexDeclarations,
-                                 Errors& errors )
+                                const int specifiedMeshIndex,
+                                const Render::VertexDeclarations& vertexDeclarations,
+                                Errors& errors )
   {
 
 #if 0
-      const cgltf_data* parsedData = TryGetGLTFData( path );
-      if( !parsedData )
-        return nullptr;
+    const cgltf_data* parsedData = TryGetGLTFData( path );
+    if( !parsedData )
+      return nullptr;
 #endif
 
     const TemporaryMemory bytes = TemporaryMemoryFromFile( path, errors );
@@ -191,10 +205,7 @@ namespace Tac
       TAC_RAISE_ERROR_RETURN( errorMsg, errors, {} );
     }
 
-
-    //SplitFilepath splitFilepath( path );
-
-    parseResult = cgltf_load_buffers( &options, parsedData, path );//splitFilepath.mDirectory.c_str() );
+    parseResult = cgltf_load_buffers( &options, parsedData, path );
     if( parseResult != cgltf_result_success )
     {
       const String errorMsg = String( "cgltf_validate: " ) + GetcgltfErrorAsString( parseResult );
@@ -206,8 +217,6 @@ namespace Tac
     for( int iMesh = 0; iMesh < ( int )parsedData->meshes_count; ++iMesh )
     {
       cgltf_mesh* parsedMesh = &parsedData->meshes[ iMesh ];
-
-
       if( iMesh != specifiedMeshIndex )
         continue;
 
@@ -228,7 +237,7 @@ namespace Tac
                                                                                  Render::Access::Default,
                                                                                  indexFormat,
                                                                                  TAC_STACK_FRAME );
-        const char* bufferName = [&]()
+        const char* bufferName = [ & ]()
         {
           SplitFilepath splitFilepath( path );
           return FrameMemoryPrintf( "%s:%i", splitFilepath.mFilename.c_str(), specifiedMeshIndex );
@@ -301,8 +310,7 @@ namespace Tac
         SubMeshTriangles tris;
         GetTris( parsedPrim, tris );
 
-        const String name = parsedMesh->name +
-          ( parsedMesh->primitives_count > 1 ? "prim" + ToString( iPrim ) : "" );
+        const String name = parsedMesh->name + ( parsedMesh->primitives_count > 1 ? "prim" + ToString( iPrim ) : "" );
 
         TAC_ASSERT( parsedPrim->type == cgltf_primitive_type::cgltf_primitive_type_triangles );
         const Render::PrimitiveTopology primitiveTopology = Render::PrimitiveTopology::TriangleList;
@@ -318,44 +326,23 @@ namespace Tac
       }
     }
 
-    m4 transform = m4::Identity();
-    m4 transformInv = m4::Identity();
-
-    //cgltf_node* node = parsedData->scene->nodes[ 0 ];
-    //if( node->has_translation )
-    //{
-    //  v3 pos = {
-    //    node->translation[ 0 ],
-    //    node->translation[ 1 ],
-    //    node->translation[ 2 ] };
-    //  transform = m4::Translate( pos );
-    //  transformInv = m4::Translate( -pos );
-    //}
-
-
-    //cgltf_node* node = nullptr;
-    for( int iNode = 0; iNode < parsedData->nodes_count; ++iNode )
+    const m4 transform = [ & ]()
     {
-      cgltf_node* curNode = &parsedData->nodes[ iNode ];
-      if( !curNode->mesh )
-        continue;
-      const int curMeshIndex = ( int )( curNode->mesh - parsedData->meshes );
-      if( curMeshIndex == specifiedMeshIndex )
-      {
-        m4 mat;
-        cgltf_node_transform_world( curNode, (cgltf_float*) mat.data() );
-        mat.Transpose();
+      cgltf_node* node = FindNodeWithMeshIndex( parsedData, specifiedMeshIndex );
+      if( !node )
+        return m4::Identity();
+      m4 transform;
+      cgltf_node_transform_world( node, ( cgltf_float* )transform.data() );
+      transform.Transpose();
+      return transform;
+    } ();
 
-        m4 matInverse;
-        bool matInverseExist;
-        matInverse = m4::Inverse( mat, &matInverseExist );
-        TAC_ASSERT(matInverseExist);
-
-        transform = mat;
-        transformInv = matInverse;
-        break;
-      }
-    }
+    const m4 transformInv = [ & ](){
+      bool matInverseExist;
+      m4 result = m4::Inverse( transform, &matInverseExist );
+      TAC_ASSERT( matInverseExist );
+      return result;
+    }( );
 
     Mesh result;
     result.mSubMeshes = submeshes;
