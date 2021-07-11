@@ -97,20 +97,6 @@ namespace Tac
     return nullptr;
   }
 
-  //static cgltf_node*          FindNodeWithMeshIndex( cgltf_data* parsedData, int index )
-  //{
-  //  for( int iNode = 0; iNode < parsedData->nodes_count; ++iNode )
-  //  {
-  //    cgltf_node* curNode = &parsedData->nodes[ iNode ];
-  //    if( !curNode->mesh )
-  //      continue;
-  //    const int curMeshIndex = ( int )( curNode->mesh - parsedData->meshes );
-  //    if( curMeshIndex == index )
-  //      return curNode;
-  //  }
-  //  return nullptr;
-  //}
-
   template< typename T >
   static Vector< int >        ConvertIndexes( cgltf_accessor* indices )
   {
@@ -121,23 +107,27 @@ namespace Tac
     return result;
   }
 
+  static Vector< int >        ConvertIndexes( cgltf_accessor* indices )
+  {
+    switch( indices->component_type )
+    {
+      case cgltf_component_type_r_8:   return ConvertIndexes< int8_t >( indices ); break;
+      case cgltf_component_type_r_8u:  return ConvertIndexes< uint8_t >( indices ); break;
+      case cgltf_component_type_r_16:  return ConvertIndexes< int16_t >( indices ); break;
+      case cgltf_component_type_r_16u: return ConvertIndexes< uint16_t >( indices ); break;
+      case cgltf_component_type_r_32u: return ConvertIndexes< uint32_t >( indices ); break;
+      case cgltf_component_type_r_32f: return ConvertIndexes< float >( indices ); break;
+      default: return {};
+    }
+  }
+
   static void                 GetTris( cgltf_primitive* parsedPrim, SubMeshTriangles& tris )
   {
     cgltf_attribute* posAttribute = FindAttributeOfType( parsedPrim, cgltf_attribute_type_position );
     if( !posAttribute )
       return;
 
-    Vector< int > indexes;
-    switch( parsedPrim->indices->component_type )
-    {
-      case cgltf_component_type_r_8:   indexes = ConvertIndexes< int8_t >( parsedPrim->indices ); break;
-      case cgltf_component_type_r_8u:  indexes = ConvertIndexes< uint8_t >( parsedPrim->indices ); break;
-      case cgltf_component_type_r_16:  indexes = ConvertIndexes< int16_t >( parsedPrim->indices ); break;
-      case cgltf_component_type_r_16u: indexes = ConvertIndexes< uint16_t >( parsedPrim->indices ); break;
-      case cgltf_component_type_r_32u: indexes = ConvertIndexes< uint32_t >( parsedPrim->indices ); break;
-      case cgltf_component_type_r_32f: indexes = ConvertIndexes< float >( parsedPrim->indices ); break;
-      default: break; // do nothing
-    }
+    const Vector< int > indexes = ConvertIndexes( parsedPrim->indices );
     if( indexes.empty() )
       return;
 
@@ -147,7 +137,7 @@ namespace Tac
       posAttribute->data->offset;
     SubMeshTriangle tri = {};
     int iVert = 0;
-    for( int i : indexes )
+    for( auto i : indexes )
     {
       auto vert = ( v3* )( srcVtx + posAttribute->data->stride * i );
       tri[ iVert++ ] = *vert;
@@ -159,23 +149,10 @@ namespace Tac
     }
   }
 
-
-  //v3 GetNormal( const SubMeshTriangle& tri )
-  //{
-  //  v3 edge0 = tri[ 1 ] - tri[ 0 ];
-  //  v3 edge1 = tri[ 2 ] - tri[ 0 ];
-  //  // check for div 0?
-  //  return Normalize( Cross( edge0, edge1 ) );
-  //}
-
-  // Proobably this can be made into a job, and instead of calling Render::CreateVertexBuffer,
-  // it can instead allocate buffer from which such calls can be made.
-
-
-  static Mesh LoadMeshFromGltf( const char* path,
-                                const int specifiedMeshIndex,
-                                const Render::VertexDeclarations& vertexDeclarations,
-                                Errors& errors )
+  static Mesh                 LoadMeshFromGltf( const char* path,
+                                                const int specifiedMeshIndex,
+                                                const Render::VertexDeclarations& vertexDeclarations,
+                                                Errors& errors )
   {
 
 #if 0
@@ -300,16 +277,6 @@ namespace Tac
         TAC_ASSERT( dstVtxStride );
         TAC_ASSERT( dstVtxBytes.size() );
 
-        struct F
-        {
-          v3 pos;
-          v3 nor;
-          v2 uv;
-        };
-
-        F* fs = ( F* )dstVtxBytes.data();
-        F* fs_old = ( F* )dstVtxBytes.data();
-
         const Render::VertexBufferHandle vertexBuffer = Render::CreateVertexBuffer( dstVtxBytes.size(),
                                                                                     dstVtxBytes.data(),
                                                                                     dstVtxStride,
@@ -336,40 +303,12 @@ namespace Tac
       }
     }
 
-
-    //
-    // Reason for commenting out:
-    // 
-    // My asset view AttemptLoadEntity() code decomposes the cgltf_node's transformation directly 
-    // into the Tac::Entity::mRelativeSpace
-    //
-
-    //const m4 transform = [ & ]()
-    //{
-    //  cgltf_node* node = FindNodeWithMeshIndex( parsedData, specifiedMeshIndex );
-    //  if( !node )
-    //    return m4::Identity();
-    //  m4 transform;
-    //  cgltf_node_transform_world( node, ( cgltf_float* )transform.data() );
-    //  transform.Transpose();
-    //  return transform;
-    //} ();
-
-    //const m4 transformInv = [ & ](){
-    //  bool matInverseExist;
-    //  m4 result = m4::Inverse( transform, &matInverseExist );
-    //  TAC_ASSERT( matInverseExist );
-    //  return result;
-    //}( );
-
     Mesh result;
     result.mSubMeshes = submeshes;
-    //result.mTransform = transform;
-    //result.mTransformInv = transformInv;
     return result;
   }
 
-  void                      GltfLoaderInit()
+  void                        GltfLoaderInit()
   {
     ModelLoadFunctionRegister( LoadMeshFromGltf, "gltf" );
     ModelLoadFunctionRegister( LoadMeshFromGltf, "glb" );

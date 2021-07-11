@@ -135,10 +135,9 @@ namespace Tac
       v2 mini( mPosViewport.x + mSize.x - scrollbarWidth,
                mPosViewport.y );
       v2 maxi = mPosViewport + mSize;
-      v4 scrollbarBackgroundColor = v4( 0.4f, 0.2f, 0.8f, 1.0f );
-      Render::TextureHandle invalidTexture;
+      const v4 scrollbarBackgroundColor = v4( 0.4f, 0.2f, 0.8f, 1.0f );
 
-      ui2DDrawData->AddBox( mini, maxi, scrollbarBackgroundColor, invalidTexture, nullptr );
+      ui2DDrawData->AddBox( mini, maxi, scrollbarBackgroundColor, Render::TextureHandle(), nullptr );
 
       float contentAllMinY = mPosViewport.y - mScroll;
       float contentAllMaxY = mMaxiCursorViewport.y;
@@ -146,6 +145,16 @@ namespace Tac
       float contentVisibleMinY = mPosViewport.y;
       float contentVisibleMaxY = mPosViewport.y + mSize.y;
       float contentVisibleHeight = contentVisibleMaxY - contentVisibleMinY;
+
+      // scrollbar min/max position
+      const float scrollMin = 0;
+      const float scrollMax = contentAllHeight - contentVisibleHeight;
+
+      // scroll with middle mouse
+      if( GetActiveID() == ImGuiIdNull
+          && IsHovered( ImGuiRect::FromPosSize( mPosViewport, mSize ) )
+          && gKeyboardInput.mMouseDeltaScroll )
+        mScroll = Clamp( mScroll - gKeyboardInput.mMouseDeltaScroll * 40.0f, scrollMin, scrollMax );
 
       mini.y = mPosViewport.y + ( ( contentVisibleMinY - contentAllMinY ) / contentAllHeight ) * mSize.y;
       maxi.y = mPosViewport.y + ( ( contentVisibleMaxY - contentAllMinY ) / contentAllHeight ) * mSize.y;
@@ -155,48 +164,20 @@ namespace Tac
       maxi -= padding;
 
       v4 scrollbarForegroundColor = v4( ( scrollbarBackgroundColor.xyz() + v3( 1, 1, 1 ) ) / 2.0f, 1.0f );
-      ui2DDrawData->AddBox( mini, maxi, scrollbarForegroundColor, invalidTexture, nullptr );
+      ui2DDrawData->AddBox( mini, maxi, scrollbarForegroundColor, Render::TextureHandle(), nullptr );
 
       static double consumeT;
 
+
       const bool hovered = IsHovered( ImGuiRect::FromMinMax( mini, maxi ) );
       if( hovered )
-      {
-        //bool wasConsumed = (bool)consumeT;
-
         TryConsumeMouseMovement( &consumeT, TAC_STACK_FRAME );
-
-        //bool isConsumed = ( bool )consumeT;
-
-        //if( !isConsumed && wasConsumed )
-        //{
-        //  static int asdf;
-        //  ++asdf;
-
-        //}
-
-      }
-
-      //double elapsedSec = ShellGetElapsedSeconds();
-      //int elapsedSecInt = ( int )elapsedSec;
-      //double elapsedSecRemainder = elapsedSec - (double)elapsedSecInt;
-      //int elapsedSecRemainder100s = (int)(elapsedSecRemainder * 100);
-      ////std::cout << elapsedSecInt << "." << elapsedSecRemainder100s << std::endl;
-      //TAC_UNUSED_PARAMETER(elapsedSecRemainder100s);
-
-      //std::cout << "consumeT: ";
-      //std::cout << consumeT;
-      //std::cout << ", hovered: ";
-      //std::cout << (int)hovered ;
-      //std::cout << std::endl;
 
       if( mScrolling )
       {
         const float mouseDY
           = gKeyboardInput.mCurr.mScreenspaceCursorPos.y
           - mScrollMousePosScreenspaceInitial.y;
-        const float scrollMin = 0;
-        const float scrollMax = contentAllHeight - contentVisibleHeight;
         mScroll = Clamp( mouseDY, scrollMin, scrollMax );
 
         if( !gKeyboardInput.IsKeyDown( Key::MouseLeft ) )
@@ -247,11 +228,6 @@ namespace Tac
         mIDAllocator->mActiveID = ImGuiIdNull;
       }
     }
-
-    //if( mActiveIDPrev && !mActiveID )
-    //{
-    //}
-    //mActiveIDPrev = mActiveID;
   }
 
   void ImGuiWindow::ComputeClipInfo( bool* clipped,

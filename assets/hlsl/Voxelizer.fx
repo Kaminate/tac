@@ -4,6 +4,8 @@
 #include "common.fx"
 #include "VoxelCommon.fx"
 
+#define DEBUG_MAKE_EVERY_VOXEL_YELLOW 0
+
 //===----------------- vertex shader -----------------===//
 
 //                          UAV requires a 'u' register
@@ -42,9 +44,9 @@ struct VS_OUT_GS_IN
   //
   //                               ^ update: these semantics names will show up in renderdoc,
   //                                         so it would be more useful to name them
-  float3 mWorldSpacePosition     : mWorldSpacePosition;
-  float3 mWorldSpaceUnitNormal   : mWorldSpaceUnitNormal;
-  float2 mTexCoord               : mTexCoord;
+  float3 mWorldSpacePosition     : AUTO_SEMANTIC;
+  float3 mWorldSpaceUnitNormal   : AUTO_SEMANTIC;
+  float2 mTexCoord               : AUTO_SEMANTIC;
 };
 
 VS_OUT_GS_IN VS( VS_INPUT input )
@@ -60,15 +62,15 @@ VS_OUT_GS_IN VS( VS_INPUT input )
 
 struct GS_OUT_PS_IN
 {
-  float2 mTexCoord                     : mTexCoord;
-  float3 mWorldSpaceUnitNormal         : mWorldSpaceUnitNormal;
-  float3 mWorldSpacePosition           : mWorldSpacePosition;
+  float2 mTexCoord                     : AUTO_SEMANTIC;
+  float3 mWorldSpaceUnitNormal         : AUTO_SEMANTIC;
+  float3 mWorldSpacePosition           : AUTO_SEMANTIC;
   float4 mClipSpacePosition            : SV_POSITION;
 
-  float3 debug_worldSpaceAbsFaceNormal : WS_ABS_face_NORMAL;
-  float3 debug_gVoxelGridCenter        : voxel_grid_center;
-  float  debug_gVoxelWidth             : voxel_width;
-  float  debug_gVoxelGridHalfWidth     : voxel_grid_half_width;
+  //float3 debug_worldSpaceAbsFaceNormal : WS_ABS_face_NORMAL;
+  //float3 debug_gVoxelGridCenter        : voxel_grid_center;
+  //float  debug_gVoxelWidth             : voxel_width;
+  //float  debug_gVoxelGridHalfWidth     : voxel_grid_half_width;
 };
 
 [ maxvertexcount( 3 ) ]
@@ -104,26 +106,16 @@ void GS( triangle VS_OUT_GS_IN input[ 3 ],
     output.mWorldSpacePosition   = curInput.mWorldSpacePosition;
     output.mClipSpacePosition    = clipSpacePosition;
 
-    output.debug_worldSpaceAbsFaceNormal = worldSpaceAbsFaceNormal;
-    output.debug_gVoxelGridCenter = gVoxelGridCenter;
-    output.debug_gVoxelWidth = gVoxelWidth;
-    output.debug_gVoxelGridHalfWidth = gVoxelGridHalfWidth;
+    //output.debug_worldSpaceAbsFaceNormal = worldSpaceAbsFaceNormal;
+    //output.debug_gVoxelGridCenter = gVoxelGridCenter;
+    //output.debug_gVoxelWidth = gVoxelWidth;
+    //output.debug_gVoxelGridHalfWidth = gVoxelGridHalfWidth;
 
     outputStream.Append( output );
   }
 }
 
 //===----------------- pixel shader -----------------===//
-
-
-/*
-struct PS_OUTPUT
-{
-  float4 mColor : SV_Target0;
-};
-
-PS_OUTPUT PS( VS_OUTPUT input )
-*/
 
 struct PS_OUTPUT
 {
@@ -132,15 +124,13 @@ struct PS_OUTPUT
 
 PS_OUTPUT PS( GS_OUT_PS_IN input )
 {
+  PS_OUTPUT output = ( PS_OUTPUT )0;
   float3 colorLightAmbient     = float3( 0, 0, 0 );
   float3 colorMaterialEmissive = float3( 0, 0, 0 );
   float3 l                     = float3( 0, 1, 0 );
   float3 n                     = input.mWorldSpaceUnitNormal;
-  float3 voxelNDC
-    = ( input.mWorldSpacePosition - gVoxelGridCenter )
-    / gVoxelGridHalfWidth;
-    // think we dont divide by gVoxelWidth here
-    // * ( 1.0f / gVoxelWidth );
+  float3 voxelNDC              = ( input.mWorldSpacePosition - gVoxelGridCenter )
+                               / gVoxelGridHalfWidth;
 
   // Using <= >= instead of < > to prevent iVoxel3 from having invalid values
   if( voxelNDC.x <= -1 || voxelNDC.x >= 1 ||
@@ -149,7 +139,9 @@ PS_OUTPUT PS( GS_OUT_PS_IN input )
     return ( PS_OUTPUT )0;
 
   float3 voxelUVW = voxelNDC * 0.5f + 0.5f;
-  float3 colorMaterialDiffuse = diffuseMaterialTexture.Sample( linearSampler, input.mTexCoord ).xyz;
+  float3 colorMaterialDiffuse
+    = diffuseMaterialTexture.Sample( linearSampler, input.mTexCoord ).xyz
+    * Color;
   float3 colorLightDiffuse = dot( n, l );
   float4 color
     //= colorMaterialDiffuse * colorLightDiffuse
@@ -163,23 +155,18 @@ PS_OUTPUT PS( GS_OUT_PS_IN input )
     + iVoxel3.y * gVoxelGridSize
     + iVoxel3.z * gVoxelGridSize * gVoxelGridSize;
 
-#if 0 // debugging
-  for( int i = 0; i < 6 * 6 * 6; ++i )
+#if DEBUG_MAKE_EVERY_VOXEL_YELLOW // debugging
+  for( int i = 0; i < gVoxelGridSize * gVoxelGridSize * gVoxelGridSize; ++i )
     InterlockedMax( mySB[ i ].mColor, VoxelEncodeHDRColor( float4( 1, 1, 0, 1 ) ) );
-  //iVoxel = 4;
-  //color = float4( 1, 1, 0, 1 );
+  return output;
 #endif
 
-  color.x = ( sin( voxelNDC.x * 14.456 + 5.) * 0.5 + 0.5 );
-  color.y = ( sin( voxelNDC.y * 14.456 + 6.) * 0.5 + 0.5 );
-  color.z = ( sin( voxelNDC.z * 14.456 + 7.) * 0.5 + 0.5 );
-
   uint uint_color = VoxelEncodeHDRColor( color );
-  uint uint_n     = VoxelEncodeUnitNormal( n );
   InterlockedMax( mySB[ iVoxel ].mColor, uint_color );
+
+  uint uint_n     = VoxelEncodeUnitNormal( n );
   InterlockedMax( mySB[ iVoxel ].mNormal, uint_n );
 
-  PS_OUTPUT output = ( PS_OUTPUT )0;
   return output;
 }
 

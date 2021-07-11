@@ -487,15 +487,6 @@ namespace Tac
         objBuf.Color = { model->mColorRGB, 1 };
         objBuf.World = model->mEntity->mWorldTransform /** mesh->mTransform*/;
 
-#if 1   // debug, make the triangle rotate to test the voxelization
-        {
-          static float scale = 100.0f;
-          model->mEntity->mRelativeSpace.mEulerRads.x += 0.00000f * scale;
-          model->mEntity->mRelativeSpace.mEulerRads.y += 0.00000f * scale;
-          model->mEntity->mRelativeSpace.mEulerRads.z += 0.00000f * scale;
-        }
-#endif
-
         for( const SubMesh& subMesh : mesh->mSubMeshes )
         {
           Render::BeginGroup( subMesh.mName, TAC_STACK_FRAME );

@@ -561,34 +561,64 @@ namespace Tac
       return pBlobOut;
     }
 
-    static String InlineShaderIncludes( String shaderSourceCode, Errors& errors )
+    static String PreprocessShaderSemanticName( const String line )
+    {
+      const int iAutoSemantic = line.find( "AUTO_SEMANTIC" );
+      if( iAutoSemantic == line.npos )
+        return line;
+
+      const int iColon = line.find( ":" );
+      if( iColon == line.npos )
+        return line;
+
+      int iSemanticCharLast = iColon - 1;
+      while( iSemanticCharLast > 0 && IsSpace( line[ iSemanticCharLast ] ) )
+        iSemanticCharLast--;
+
+      int iSemanticCharFirst = iSemanticCharLast;
+      while( iSemanticCharFirst > 0 && !IsSpace( line[ iSemanticCharFirst - 1 ] ) )
+        iSemanticCharFirst--;
+
+      const String newLine
+        = line.substr( 0, iAutoSemantic )
+        + String( line.data() + iSemanticCharFirst, line.data() + iSemanticCharLast + 1 )
+        + ";";
+
+      return newLine;
+    }
+
+    static String PreprocessShaderIncludes( const String line, Errors& errors )
+    {
+      ParseData lineParseData( line.data(), line.size() );
+      lineParseData.EatWhitespace();
+      if( !lineParseData.EatStringExpected( "#include" ) )
+        return line;
+      lineParseData.EatUntilCharIsPrev( '\"' );
+      const char*      includeBegin = lineParseData.GetPos();
+      lineParseData.EatUntilCharIsNext( '\"' );
+      const char*      includeEnd = lineParseData.GetPos();
+      const StringView includeName( includeBegin, includeEnd );
+      const String     includePath = GetDirectX11ShaderPath( includeName );
+      const String     includeSource = ShaderPathToContentString( includePath, errors );
+      const String     includeSourceInlined = PreprocessShaderSource( includeSource, errors );
+
+      String newLine = "";
+      newLine += "//===----- (begin include " + includePath + ") -----===//\n";
+      newLine += includeSource;
+      newLine += "//===----- (end include " + includePath + ") -----===//\n";
+      return newLine;
+    }
+
+    static String PreprocessShaderSource( String shaderSourceCode, Errors& errors )
     {
       String result;
       ParseData shaderParseData( shaderSourceCode.data(), shaderSourceCode.size() );
       while( shaderParseData.GetRemainingByteCount() )
       {
         String line = shaderParseData.EatRestOfLine();
-        if( !line.empty() )
-        {
-          ParseData lineParseData( line.data(), line.size() );
-          lineParseData.EatWhitespace();
-          if( lineParseData.EatStringExpected( "#include" ) )
-          {
-            lineParseData.EatUntilCharIsPrev( '\"' );
-            const char*      includeBegin = lineParseData.GetPos();
-            lineParseData.EatUntilCharIsNext( '\"' );
-            const char*      includeEnd = lineParseData.GetPos();
-            const StringView includeName( includeBegin, includeEnd );
-            const String     includePath = GetDirectX11ShaderPath( includeName );
-            const String     includeSource = ShaderPathToContentString( includePath, errors );
-            const String     includeSourceInlined = InlineShaderIncludes( includeSource, errors );
 
-            line = "";
-            line += "//===----- (begin include " + includePath + ") -----===//\n";
-            line += includeSource;
-            line += "//===----- (end include " + includePath + ") -----===//\n";
-          }
-        }
+        line = PreprocessShaderIncludes( line, errors );
+        line = PreprocessShaderSemanticName( line );
 
         result += line + "\n";
       }
@@ -608,11 +638,11 @@ namespace Tac
       //Errors errors;
       //TAC_ON_DESTRUCT( errors2 = errors );
 
-      ID3D11Device* device = ( ( RendererDirectX11* )Renderer::Instance )->mDevice;
+      ID3D11Device*         device = ( ( RendererDirectX11* )Renderer::Instance )->mDevice;
       ID3D11VertexShader*   vertexShader = nullptr;
       ID3D11PixelShader*    pixelShader = nullptr;
       ID3D11GeometryShader* geometryShader = nullptr;
-      ID3DBlob* inputSignature = nullptr;
+      ID3DBlob*             inputSignature = nullptr;
 
       const String shaderPath
         = shaderSource.mType == ShaderSource::Type::kPath
@@ -650,7 +680,7 @@ namespace Tac
         if( errors )
           continue;
 
-        const String shaderStringFull = InlineShaderIncludes( shaderStringOrig, errors );
+        const String shaderStringFull = PreprocessShaderSource( shaderStringOrig, errors );
         if( errors )
           continue;
 

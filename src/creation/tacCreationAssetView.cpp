@@ -323,7 +323,7 @@ namespace Tac
             modelPath.erase( 0, 1 );
           return modelPath;
         }( );
-        
+
 
         auto model = ( Model* )entityNode->AddNewComponent( Model().GetEntry() );
         model->mModelPath = modelPath;
@@ -350,17 +350,71 @@ namespace Tac
     }
   }
 
+  const int w = 256;
+  const int h = 256;
+
+  static void UIFilesModelImGui( const String& path )
+  {
+    const String filename = SplitFilepath( path ).mFilename;
+    AssetViewImportedModel* loadedModel = GetLoadedModel( path );
+
+    if( loadedModel )
+    {
+      if( loadedModel->mWorld.mEntities.size() )
+      {
+        ImGuiImage( ( int )loadedModel->mTextureHandleColor, v2( w, h ) );
+        ImGuiSameLine();
+        ImGuiBeginGroup();
+        ImGuiText( filename );
+        // this will select the entity in the loadedModel->mWorld, not gCreation.mWorld!!!
+        // probably a super hack
+        //if( ImGuiButton( "Select in property window" ) )
+        //{
+        //  gCreation.ClearSelection();
+        //  gCreation.AddToSelection( *loadedModel->mWorld.mEntities.begin() );
+        //}
+
+        if( ImGuiButton( "Import object into scene" ) )
+        {
+          Entity* prefab = *loadedModel->mWorld.mEntities.begin();
+          gCreation.InstantiateAsCopy( prefab, gCreation.GetEditorCameraVisibleRelativeSpace() );
+        }
+        ImGuiEndGroup();
+      }
+      else if( loadedModel->mAttemptedToLoadEntity )
+      {
+        ImGuiText( filename + " has nothing to import" );
+      }
+      else
+      {
+        ImGuiText( "Loading " + filename + LoadEllipses() );
+      }
+    }
+    else
+    {
+      ImGuiText( "Loading " + filename + LoadEllipses() );
+    }
+  }
 
   static void UIFilesModel( const String& path )
   {
-    const String filename = SplitFilepath( path ).mFilename;
-    ImGuiText( filename );
-
-      const int w = 256;
-      const int h = 256;
-
-    AssetViewImportedModel* loadedModel = GetLoadedModel( path );
-    if( !loadedModel )
+    if( AssetViewImportedModel* loadedModel = GetLoadedModel( path ) )
+    {
+      AttemptLoadEntity( loadedModel, path.c_str() );
+      if( loadedModel->mWorld.mEntities.size() )
+      {
+        const String filename = SplitFilepath( path ).mFilename;
+        TAC_RENDER_GROUP_BLOCK( FrameMemoryPrintf( "asset preview %s", filename.c_str() ) );
+        Render::SetViewFramebuffer( loadedModel->mViewHandle, loadedModel->mFramebufferHandle );
+        Render::SetViewport( loadedModel->mViewHandle, Render::Viewport( w, h ) );
+        Render::SetViewScissorRect( loadedModel->mViewHandle, Render::ScissorRect( w, h ) );
+        GamePresentationRender( &loadedModel->mWorld,
+                                &loadedModel->mCamera,
+                                w, h,
+                                loadedModel->mViewHandle );
+      }
+    }
+    else
     {
       const char* debugName = FrameMemoryPrintf( "%s-framebuffer-",
                                                  StripExt( SplitFilepath( path ).mFilename ).c_str() );
@@ -396,56 +450,15 @@ namespace Tac
       loadedModel->mViewHandle = viewHandle;
       sLoadedModels[ path ] = loadedModel;
     }
-
-    if( loadedModel->mWorld.mEntities.size() )
-    {
-      ImGuiSameLine();
-
-      // this will select the entity in the loadedModel->mWorld, not gCreation.mWorld!!!
-      // probably a super hack
-      if( ImGuiButton( "Select in property window" ) )
-      {
-        gCreation.ClearSelection();
-        gCreation.AddToSelection(*loadedModel->mWorld.mEntities.begin());
-      }
-
-      if( ImGuiButton( "Import object into scene" ) )
-      {
-        Entity* prefab = *loadedModel->mWorld.mEntities.begin();
-        gCreation.InstantiateAsCopy( prefab, gCreation.GetEditorCameraVisibleRelativeSpace() );
-      }
-
-      TAC_RENDER_GROUP_BLOCK( FrameMemoryPrintf( "asset preview %s", filename.c_str() ) );
-
-      Render::SetViewFramebuffer( loadedModel->mViewHandle, loadedModel->mFramebufferHandle );
-      Render::SetViewport( loadedModel->mViewHandle, Render::Viewport( w, h ) );
-      Render::SetViewScissorRect( loadedModel->mViewHandle, Render::ScissorRect( w, h ) );
-      GamePresentationRender( &loadedModel->mWorld,
-                              &loadedModel->mCamera,
-                              w, h,
-                              loadedModel->mViewHandle );
-
-      // ImGuiSameLine();
-      ImGuiImage( ( int )loadedModel->mTextureHandleColor, v2( w, h ) );
-    }
-    else if( loadedModel->mAttemptedToLoadEntity )
-    {
-      ImGuiSameLine();
-      ImGuiText( "No object to import" );
-    }
-    else
-    {
-      ImGuiSameLine();
-      ImGuiText( "Loading" + LoadEllipses() );
-    }
-
-    AttemptLoadEntity( loadedModel, path.c_str() );
   }
 
   static void UIFilesModels( const Vector< String >& paths )
   {
     for( const String& path : paths )
+    {
       UIFilesModel( path );
+      UIFilesModelImGui( path );
+    }
   }
 
   static void UIFilesImages( const Vector< String >& paths )

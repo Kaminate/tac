@@ -110,6 +110,7 @@ namespace Tac
     //     returns npos if not found
     int    find_last_of( const char* c ) const;
     int    find( const String& substr ) const;
+    int    find( char ) const;
     String substr( int pos = 0, int len = npos ) const;
 
     static const int npos = -1;     // mimicking the standard library

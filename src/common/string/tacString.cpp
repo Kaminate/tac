@@ -174,34 +174,13 @@ namespace Tac
     mStr = str.mStr;
     mLen = str.mLen;
   }
-  char        StringView::operator[]( int i ) const
-  {
-    return mStr[ i ];
-  }
-  const char* StringView::data() const
-  {
-    return mStr;
-  }
-  int         StringView::size() const
-  {
-    return mLen;
-  }
-  const char* StringView::begin() const
-  {
-    return mStr;
-  }
-  const char* StringView::end() const
-  {
-    return mStr + mLen;
-  }
-  const char* StringView::c_str() const
-  {
-    return data();
-  }
-  bool        StringView::empty() const
-  {
-    return mLen == 0;
-  }
+  char        StringView::operator[]( int i ) const { return mStr[ i ]; }
+  const char* StringView::data() const              { return mStr; }
+  int         StringView::size() const              { return mLen; }
+  const char* StringView::begin() const             { return mStr; }
+  const char* StringView::end() const               { return mStr + mLen; }
+  const char* StringView::c_str() const             { return mStr; }
+  bool        StringView::empty() const             { return mLen == 0; }
   int         StringView::find_last_of( StringView s ) const
   {
     for( int i = 0; i < mLen; ++i )
@@ -242,17 +221,10 @@ namespace Tac
   StringView  StringView::substr( const int pos,
                                   const int len ) const
   {
-    return StringView( mStr + pos,
-                       len == npos ? mLen - pos : len );
+    return StringView( mStr + pos, len == npos ? mLen - pos : len );
   }
-  char        StringView::front()
-  {
-    return mStr[ 0 ];
-  }
-  char        StringView::back()
-  {
-    return mStr[ mLen - 1 ];
-  }
+  char        StringView::front() { return mStr[ 0 ]; }
+  char        StringView::back()  { return mStr[ mLen - 1 ]; }
   void        StringView::remove_prefix( const int n )
   {
     mStr += n;
@@ -275,18 +247,8 @@ namespace Tac
     return mLen >= s.mLen && MemCmp( mStr + mLen - s.mLen, s.mStr, s.mLen ) == 0;
   }
 
-
-
-
-  String::String()
-  {
-    clear();
-  }
-
-  String::String( StringView rhs )
-  {
-    append( rhs.mStr, rhs.mLen );
-  }
+  String::String()                 { clear(); }
+  String::String( StringView rhs ) { append( rhs.mStr, rhs.mLen ); }
   String::String( const String& rhs )
   {
     mLen = rhs.mLen;
@@ -301,53 +263,22 @@ namespace Tac
       mStr[ i ] = c;
     mLen = len;
   }
-  String::String( const char* begin, const char* end )
-  {
-    auto len = ( int )( end - begin );
-    append( begin, len );
-  }
-  String::String( const char* str, int len )
-  {
-    append( str, len );
-  }
-  String::String( const char* str )
-  {
-    *this = str;
-  }
+  String::String( const char* begin, const char* end ) { append( begin, ( int )( end - begin ) ); }
+  String::String( const char* str, int len )           { append( str, len ); }
+  String::String( const char* str )                    { *this = str; }
   String::~String()
   {
     delete[] mStr;
     mStr = nullptr;
     mLen = 0;
   }
-  void   String::clear()
-  {
-    *this = "";
-  }
-  bool   String::empty() const
-  {
-    return !mLen;
-  }
-  char*  String::c_str() const
-  {
-    return mStr;
-  }
-  int    String::size() const
-  {
-    return mLen;
-  }
-  char*  String::data() const
-  {
-    return mStr;
-  }
-  char   String::operator[]( int i ) const
-  {
-    return mStr[ i ];
-  }
-  char&  String::operator[]( int i )
-  {
-    return mStr[ i ];
-  }
+  void   String::clear()                   { *this = ""; }
+  bool   String::empty() const             { return !mLen; }
+  char*  String::c_str() const             { return mStr; }
+  int    String::size() const              { return mLen; }
+  char*  String::data() const              { return mStr; }
+  char   String::operator[]( int i ) const { return mStr[ i ]; }
+  char&  String::operator[]( int i )       { return mStr[ i ]; }
   void   String::reserve( int newLen )
   {
     if( mStr && newLen <= mLen )
@@ -392,6 +323,7 @@ namespace Tac
         return i;
     return npos;
   }
+  int    String::find( char c ) const { return StringView( this->data(), this->size() ).find_first_of( c ); }
   String String::substr( int pos, int len ) const
   {
     int remainingLen = mLen - pos;
@@ -399,37 +331,13 @@ namespace Tac
     String result( mStr + pos, resultLen );
     return result;
   }
-  void   String::operator = ( const char* str )
-  {
-    int newStrLen = StrLen( str );
-    assign( str, newStrLen );
-  }
-  void   String::operator = ( const String& str )
-  {
-    assign( str.c_str(), str.size() );
-  }
-  void   String::operator = ( StringView str )
-  {
-    assign( str.data(), str.size() );
-  }
-  void   String::operator += ( const char* str )
-  {
-    int len = StrLen( str );
-    append( str, len );
-  }
-  void   String::operator += ( const String& s )
-  {
-    append( s.mStr, s.mLen );
-  }
-  void   String::operator += ( char c )
-  {
-    append( &c, 1 );
-  }
-
-  void   String::operator += ( StringView stringView )
-  {
-    append( stringView.data(), stringView.size() );
-  }
+  void   String::operator = ( const char* str )        { assign( str, StrLen( str ) ); }
+  void   String::operator = ( const String& str )      { assign( str.c_str(), str.size() ); }
+  void   String::operator = ( StringView str )         { assign( str.data(), str.size() ); }
+  void   String::operator += ( const char* str )       { append( str, StrLen( str ) ); }
+  void   String::operator += ( const String& s )       { append( s.mStr, s.mLen ); }
+  void   String::operator += ( char c )                { append( &c, 1 ); }
+  void   String::operator += ( StringView stringView ) { append( stringView.data(), stringView.size() ); }
 
   void   String::erase( int pos, int len )
   {
@@ -441,19 +349,9 @@ namespace Tac
     *this = copy;
   }
 
-  void   String::push_back( char c )
-  {
-    append( &c, 1 );
-  }
-  bool   String::starts_with( StringView s ) const
-  {
-    return mLen >= s.mLen && MemCmp( mStr, s.mStr, s.mLen ) == 0;
-  }
-  bool   String::starts_with( char c ) const
-  {
-
-    return mLen && mStr[ 0 ] == c;
-  }
+  void   String::push_back( char c )               { append( &c, 1 ); }
+  bool   String::starts_with( StringView s ) const { return mLen >= s.mLen && MemCmp( mStr, s.mStr, s.mLen ) == 0; }
+  bool   String::starts_with( char c ) const       { return mLen && mStr[ 0 ] == c; }
   bool   String::ends_with( StringView s ) const
   {
     return mLen >= s.mLen && MemCmp( mStr + mLen - s.mLen, s.mStr, s.mLen ) == 0;
@@ -471,47 +369,20 @@ namespace Tac
     MemCpy( mStr + mLen, str, len );
     mStr[ mLen = newLen ] = '\0';
   }
-  void   String::append( const String& s )
-  {
-    *this += s;
-  }
-  void   String::prepend( const String& s )
-  {
-    *this = s + *this;
-  }
-  char*  String::begin() const
-  {
-    return mStr;
-  }
-  char*  String::end() const
-  {
-    return mStr + mLen;
-  }
-  int    String::compare( const char* s ) const
-  {
-    return StrCmp( mStr, s );
-  }
+  void   String::append( const String& s )      { *this += s; }
+  void   String::prepend( const String& s )     { *this = s + *this; }
+  char*  String::begin() const                  { return mStr; }
+  char*  String::end() const                    { return mStr + mLen; }
+  int    String::compare( const char* s ) const { return StrCmp( mStr, s ); }
 
   bool          operator == ( const StringView& a, const StringView& b )
   {
     return a.size() == b.size() && !MemCmp( a.data(), b.data(), a.size() );
   }
-  bool          operator == ( const StringView& a, const String& b )
-  {
-    return a == StringView( b );
-  }
-  bool          operator == ( const String& a, const StringView& b )
-  {
-    return StringView( a ) == b;
-  }
-  bool          operator == ( const String& a, const char* b )
-  {
-    return StringView( a ) == StringView( b );
-  }
-  bool          operator == ( const StringView& a, const char* b )
-  {
-    return a == StringView( b );
-  }
+  bool          operator == ( const StringView& a, const String& b ) { return a == StringView( b ); }
+  bool          operator == ( const String& a, const StringView& b ) { return StringView( a ) == b; }
+  bool          operator == ( const String& a, const char* b )       { return StringView( a ) == StringView( b ); }
+  bool          operator == ( const StringView& a, const char* b )   { return a == StringView( b ); }
   String        operator + ( char c, const String& s )
   {
     String result;
@@ -547,13 +418,7 @@ namespace Tac
     bool result = !StrCmp( a.mStr, b.mStr );
     return result;
   }
-  bool          operator != ( const String& a, const String& b )
-  {
-    return !( a == b );
-  }
-  bool          operator < ( const String& a, const String& b )
-  {
-    return StrCmp( a.c_str(), b.c_str() ) < 0;
-  }
+  bool          operator != ( const String& a, const String& b ) { return !( a == b ); }
+  bool          operator < ( const String& a, const String& b )  { return StrCmp( a.c_str(), b.c_str() ) < 0; }
 
 }

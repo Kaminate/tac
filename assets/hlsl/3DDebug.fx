@@ -3,13 +3,13 @@
 struct VS_INPUT
 {
   float3 Position : POSITION;
-  float4 Color : COLOR;
+  float4 Color    : COLOR;
 };
 
 struct VS_OUTPUT
 {
   float4 mClipSpacePosition : SV_POSITION;
-  float4 mColor : COLOR;
+  float4 mColor             : AUTO_SEMANTIC;
 };
 
 VS_OUTPUT VS( VS_INPUT input )
