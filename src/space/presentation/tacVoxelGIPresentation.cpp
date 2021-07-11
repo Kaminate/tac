@@ -485,7 +485,7 @@ namespace Tac
 
         DefaultCBufferPerObject objBuf;
         objBuf.Color = { model->mColorRGB, 1 };
-        objBuf.World = model->mEntity->mWorldTransform /** mesh->mTransform*/;
+        objBuf.World = model->mEntity->mWorldTransform;
 
         for( const SubMesh& subMesh : mesh->mSubMeshes )
         {

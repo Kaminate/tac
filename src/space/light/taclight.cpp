@@ -1,4 +1,4 @@
-#include "src/space/tacLight.h"
+#include "src/space/light/tacLight.h"
 #include "src/space/tacentity.h"
 #include "src/space/graphics/tacgraphics.h"
 
@@ -25,6 +25,7 @@ namespace Tac
 	{
 		auto light = ( Light* )component;
 	}
+
 
   Light*                        Light::GetLight( Entity* entity )
   {

@@ -217,14 +217,8 @@ namespace Tac
         }
       }
 
-      ImGuiIndent();
-      // all the children, recursively
-      ImGuiUnindent();
-
-      //for( int i = 0; i < ( int )ComponentRegistryEntryIndex::Count; ++i )
       for( const ComponentRegistryEntry& componentRegistryEntry : ComponentRegistryIterator() )
       {
-        //ComponentRegistryEntryIndex componentType = ( ComponentRegistryEntryIndex )i;
         if( !entity->HasComponent( &componentRegistryEntry ) )
         {
           addableComponentTypes.push_back( &componentRegistryEntry );

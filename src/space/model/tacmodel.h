@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include "src/space/tacComponent.h"
@@ -20,7 +19,7 @@ namespace Tac
     int                                  mModelIndex = -1;
   };
 
-  void                             RegisterModelComponent();
+  void                                   RegisterModelComponent();
 
   //const Vector< NetworkBit > ComponentModelBits = []() {
   //  Vector< NetworkBit > networkBits;

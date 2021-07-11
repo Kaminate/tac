@@ -4,6 +4,7 @@
 #include "src/common/tacMemory.h"
 #include "src/common/tacPreprocessor.h"
 #include "src/space/graphics/tacGraphics.h"
+#include "src/space/light/taclight.h"
 #include "src/space/model/tacModel.h"
 #include "src/space/tacentity.h"
 #include "src/space/skybox/tacSkyboxComponent.h"
@@ -18,6 +19,11 @@ namespace Tac
 
   struct GraphicsImpl : public Graphics
   {
+
+    // TODO: this shit is rediculous, i need a better ECS
+
+    //                  Model
+
     Model*              CreateModelComponent() override
     {
       auto model = TAC_NEW Model;
@@ -32,6 +38,17 @@ namespace Tac
       mModels.erase( it );
       delete model;
     }
+
+    void                VisitModels( ModelVisitor* modelVisitor ) const override
+    {
+      for( Model* model : mModels )
+        if( model->mEntity->mActive )
+          ( *modelVisitor )( model );
+    }
+
+
+    //                  Skybox
+
     Skybox*             CreateSkyboxComponent() override
     {
       auto skybox = TAC_NEW Skybox;
@@ -47,13 +64,6 @@ namespace Tac
       delete skybox;
     }
 
-    void                VisitModels( ModelVisitor* modelVisitor ) const override
-    {
-      for( Model* model : mModels )
-        if( model->mEntity->mActive )
-          ( *modelVisitor )( model );
-    }
-
     void                VisitSkyboxes( SkyboxVisitor* skyboxVisitor ) const override
     {
       for( Skybox* skybox : mSkyboxes )
@@ -61,8 +71,34 @@ namespace Tac
           ( *skyboxVisitor )( skybox );
     }
 
+    // Light
+
+    Light*              CreateLightComponent() override
+    {
+      auto light = TAC_NEW Light;
+      mLights.insert( light );
+      return light;
+    }
+
+    void                DestroyLightComponent( Light* light ) override
+    {
+      auto it = mLights.find( light );
+      TAC_ASSERT( it != mLights.end() );
+      mLights.erase( it );
+      delete light;
+    }
+
+    void                VisitLights( LightVisitor* lightVisitor ) const override
+    {
+      for( Light* light : mLights )
+        if( light->mEntity->mActive )
+          ( *lightVisitor )( light );
+    }
+
+
     std::set< Model* >  mModels;
     std::set< Skybox* > mSkyboxes;
+    std::set< Light* >  mLights;
   };
 
   static SystemRegistryEntry* gGraphicsSystemRegistryEntry;
@@ -95,6 +131,7 @@ namespace Tac
     gGraphicsSystemRegistryEntry->mDebugImGui = GraphicsDebugImgui;
     RegisterModelComponent();
     RegisterSkyboxComponent();
+    RegisterLightComponent();
   }
 
   Graphics* GetGraphics( World* world )

@@ -1,40 +1,33 @@
 #pragma once
 
-//#include "src/common/graphics/tacRenderer.h"
-//#include "src/common/tacLocalization.h"
-//#include "src/common/containers/tacVector.h"
-//#include "src/space/model/tacModel.h"
 #include "src/space/tacSystem.h"
 
 
 namespace Tac
 {
-  //struct FontStuff;
-
+  struct World;
   struct Model;
   struct Skybox;
-  struct World;
+  struct Light;
 
   template< typename T > struct ComponentVisitor { virtual void operator()( const T* ) = 0; };
   typedef ComponentVisitor< Model > ModelVisitor;
   typedef ComponentVisitor< Skybox > SkyboxVisitor;
-
-  //struct ModelVisitor { virtual void operator()( Model* ) = 0; };
-  //struct ModelVisitor { virtual void operator()( Model* ) = 0; };
-  //struct Component;
-  //struct ComponentVisitor { virtual void operator()( Component* ) = 0; };
+  typedef ComponentVisitor< Light > LightVisitor;
 
   struct Graphics : public System
   {
-    //typedef void    ModelVisitor( Model* );
     virtual Model*  CreateModelComponent() = 0;
     virtual void    DestroyModelComponent( Model* ) = 0;
     virtual void    VisitModels( ModelVisitor* ) const = 0;
 
-    //typedef void    SkyboxVisitor( Skybox* );
     virtual Skybox* CreateSkyboxComponent() = 0;
     virtual void    DestroySkyboxComponent( Skybox* ) = 0;
     virtual void    VisitSkyboxes( SkyboxVisitor* ) const = 0;
+
+    virtual Light*  CreateLightComponent() = 0;
+    virtual void    DestroyLightComponent( Light* ) = 0;
+    virtual void    VisitLights( LightVisitor* ) const = 0;
 
     void            DebugImgui() override;
   };
