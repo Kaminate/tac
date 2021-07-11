@@ -84,8 +84,8 @@ namespace Tac
   }
 
   void ServerData::ReadInput( Reader* reader,
-    ConnectionUUID connectionID,
-    Errors& errors )
+                              ConnectionUUID connectionID,
+                              Errors& errors )
   {
     auto otherPlayer = FindOtherPlayer( connectionID );
     TAC_ASSERT( otherPlayer );
@@ -147,7 +147,7 @@ namespace Tac
       {
         auto playerUUID = newPlayer->mPlayerUUID;
         auto oldPlayer = oldWorld->FindPlayer( playerUUID );
-        auto bitfield = GetNetworkBitfield( oldPlayer, newPlayer, PlayerNetworkBitsGet()  );
+        auto bitfield = GetNetworkBitfield( oldPlayer, newPlayer, PlayerNetworkBitsGet() );
         if( !bitfield )
           continue;
 
@@ -311,11 +311,10 @@ namespace Tac
   }
 
 
-  void ServerData::ReceiveMessage(
-    ConnectionUUID connectionID,
-    void* bytes,
-    int byteCount,
-    Errors& errors )
+  void ServerData::ReceiveMessage( ConnectionUUID connectionID,
+                                   void* bytes,
+                                   int byteCount,
+                                   Errors& errors )
   {
     auto otherPlayer = FindOtherPlayer( connectionID );
     if( !otherPlayer )
@@ -338,11 +337,10 @@ namespace Tac
       errors );
   }
 
-  void ServerData::Update(
-    float seconds,
-    ServerSendNetworkMessageCallback sendNetworkMessageCallback,
-    void* userData,
-    Errors& errors )
+  void ServerData::Update( float seconds,
+                           ServerSendNetworkMessageCallback sendNetworkMessageCallback,
+                           void* userData,
+                           Errors& errors )
   {
     for( auto otherPlayer : mOtherPlayers )
     {

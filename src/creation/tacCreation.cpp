@@ -159,7 +159,7 @@ namespace Tac
     CreateInitialWindows( errors );
     TAC_HANDLE_ERROR( errors );
 
-    PrefabLoad( mWorld, mEditorCamera, errors );
+    PrefabLoad( &mEntityUUIDCounter, mWorld, mEditorCamera, errors );
     TAC_HANDLE_ERROR( errors );
   }
 
@@ -494,10 +494,8 @@ namespace Tac
 
   Entity*             Creation::CreateEntity()
   {
-    // put it where we can see it
-
     World* world = mWorld;
-    Entity* entity = world->SpawnEntity( NullEntityUUID );
+    Entity* entity = world->SpawnEntity( mEntityUUIDCounter.AllocateNewUUID() );
     entity->mName = CreationGetNewEntityName();
     entity->mRelativeSpace = GetEditorCameraVisibleRelativeSpace();
     mSelectedEntities = { entity };

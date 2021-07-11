@@ -1,5 +1,7 @@
 #pragma once
 
+#include "src/space/tacspacetypes.h"
+
 namespace Tac
 {
   struct World;
@@ -8,10 +10,17 @@ namespace Tac
   struct Entity;
   struct StringView;
   struct v3;
+  //struct EntityUUIDCounter;
 
   void                PrefabSave( World* );
-  void                PrefabLoadAtPath( World*, Camera*, String, Errors& );
-  void                PrefabLoad( World*, Camera*, Errors& );
+  void                PrefabLoadAtPath( EntityUUIDCounter*, World*, Camera*, String, Errors& );
+
+  //                  TODO: when prefabs spawn, they need to have a entity uuid.
+  //                        this can only be done by a serverdata.
+  //
+  //                        So this function should also have a serverdata parameter
+  void                PrefabLoad( EntityUUIDCounter*, World*, Camera*, Errors& );
+
   //void                PrefabLoadCamera( Prefab* );
   //void                PrefabLoadCameraVec( Prefab*, StringView, v3& );
   void                PrefabSaveCamera( Camera* );

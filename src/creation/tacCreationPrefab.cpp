@@ -80,7 +80,19 @@ namespace Tac
 
   }
 
-  void                PrefabLoadAtPath( World* world, Camera* camera, String prefabPath, Errors& errors )
+  static void AllocateEntityUUIDsRecursively( EntityUUIDCounter* entityUUIDCounter,
+                                              Entity* entityParent )
+  {
+    entityParent->mEntityUUID = entityUUIDCounter->AllocateNewUUID();
+    for( Entity* entityChild : entityParent->mChildren )
+      AllocateEntityUUIDsRecursively( entityUUIDCounter, entityChild );
+  }
+
+  void                PrefabLoadAtPath( EntityUUIDCounter* entityUUIDCounter,
+                                        World* world,
+                                        Camera* camera,
+                                        String prefabPath,
+                                        Errors& errors )
   {
     ModifyPathRelative( prefabPath );
     TemporaryMemory memory = TemporaryMemoryFromFile( prefabPath, errors );
@@ -89,8 +101,12 @@ namespace Tac
     Json prefabJson;
     prefabJson.Parse( memory.data(), memory.size(), errors );
 
+
     Entity* entity = world->SpawnEntity( NullEntityUUID );
     entity->Load( prefabJson );
+
+    AllocateEntityUUIDsRecursively( entityUUIDCounter, entity );
+
 
     auto prefab = TAC_NEW Prefab;
     prefab->mDocumentPath = prefabPath;
@@ -100,13 +116,16 @@ namespace Tac
     PrefabLoadCamera( prefab, camera );
   }
 
-  void                PrefabLoad( World* world, Camera* camera, Errors& errors )
+  void                PrefabLoad( EntityUUIDCounter* entityUUIDCounter,
+                                  World* world,
+                                  Camera* camera,
+                                  Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
     Json* prefabs = SettingsGetJson( prefabSettingsPath );
     for( Json* child : prefabs->mArrayElements )
     {
-      PrefabLoadAtPath( world, camera, child->mString, errors );
+      PrefabLoadAtPath( entityUUIDCounter, world, camera, child->mString, errors );
       TAC_HANDLE_ERROR( errors );
     }
   }

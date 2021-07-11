@@ -1,6 +1,7 @@
 #pragma once
 
 #include "src/common/containers/tacVector.h"
+#include "src/space/tacspacetypes.h"
 
 namespace Tac
 {
@@ -68,6 +69,7 @@ namespace Tac
     //SkyboxPresentation* mSkyboxPresentation = nullptr;
 
     bool                mUpdateAssetView = false;
+    EntityUUIDCounter   mEntityUUIDCounter;
   };
 
   //===-------------- Misc -----------------===//

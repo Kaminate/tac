@@ -20,7 +20,7 @@ namespace Tac
     ConnectionUUID mConnectionUUID = NullConnectionUUID;
   };
 
-  typedef void( *ServerSendNetworkMessageCallback )( ConnectionUUID ,
+  typedef void( *ServerSendNetworkMessageCallback )( ConnectionUUID,
                                                      void* bytes,
                                                      int byteCount,
                                                      void* userData );
@@ -42,20 +42,20 @@ namespace Tac
     void                      OnClientJoin( ConnectionUUID );
     void                      DebugImgui();
     OtherPlayer*              FindOtherPlayer( ConnectionUUID );
-    void                      ReceiveMessage( ConnectionUUID ,
+    void                      ReceiveMessage( ConnectionUUID,
                                               void* bytes,
                                               int byteCount,
                                               Errors& );
     void                      Update( float seconds,
-                                      ServerSendNetworkMessageCallback ,
+                                      ServerSendNetworkMessageCallback,
                                       void* userData,
                                       Errors& );
     void                      OnLoseClient( ConnectionUUID );
-    void                      ReadInput( Reader* reader,
-                                         ConnectionUUID ,
+    void                      ReadInput( Reader*,
+                                         ConnectionUUID,
                                          Errors& );
-    void                      WriteSnapshotBody( OtherPlayer* , Writer* );
-    void                      ExecuteNetMsg( ConnectionUUID ,
+    void                      WriteSnapshotBody( OtherPlayer*, Writer* );
+    void                      ExecuteNetMsg( ConnectionUUID,
                                              void* bytes,
                                              int byteCount,
                                              Errors& );

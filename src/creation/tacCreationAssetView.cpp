@@ -25,8 +25,6 @@
 #include <map>
 #include <cmath>
 
-            //GamePresentation gp;
-
 namespace Tac
 {
   static RelativeSpace DecomposeGLTFTransform( const cgltf_node* node )
@@ -101,80 +99,6 @@ namespace Tac
     return relativeSpace;
   }
 
-  //struct EditorLoadInfo
-  //{
-  //  void      Init( const char* path, Errors&  errors )
-  //  {
-  //    bytes = TemporaryMemoryFromFile( path, errors );
-  //    TAC_HANDLE_ERROR( errors );
-  //
-  //    const cgltf_options options = {};
-  //
-  //    const cgltf_result parseResult = cgltf_parse( &options, bytes.data(), bytes.size(), &parsedData );
-  //    TAC_HANDLE_ERROR_IF( parseResult != cgltf_result_success,
-  //                         va( "%s cgltf_parse returned %i", path, ( int )( parseResult ) ),
-  //                         errors );
-  //
-  //    const cgltf_result validateResult = cgltf_validate( parsedData );
-  //    TAC_HANDLE_ERROR_IF( validateResult != cgltf_result_success,
-  //                         va( "%s cgltf_validate returned %i", path, ( int )( validateResult ) ),
-  //                         errors );
-  //
-  //
-  //  }
-  //
-  //  ~EditorLoadInfo()
-  //  {
-  //    cgltf_free( parsedData );
-  //  }
-  //
-  //  cgltf_data*     parsedData = nullptr;
-  //  TemporaryMemory bytes;
-  //};
-  //
-  //
-  //IEditorLoadInfo* LoadEditorModelFileInfo( const StringView& path, Errors& errors )
-  //{
-
-  //struct AssetViewImportModelJob : Job
-  //{
-  //  void Execute() override
-  //  {
-  //    Tac::Errors& errors = mErrors;
-  //    TAC_UNUSED_PARAMETER( errors );
-  //
-  //      //auto memory = TemporaryMemoryFromFile( mData->mFilepath, errors );
-  //      //TAC_HANDLE_ERROR( errors );
-  //
-  //      //mData->mPitch = pitch;
-  //  }
-  //
-  //  String mPath;
-  //};
-
-
-  // comment this begin -------------------------------------------------
-
-//   struct AssetViewImportingModel
-//   {
-//     void Update()
-//     {
-// 
-//       mJob.GetStatus();
-//       JobState::JustBeenCreated;
-//       JobState::ThreadQueued;
-// 
-//       JobState::ThreadRunning;
-//       JobState::ThreadFinished;
-//     }
-// 
-//     AssetViewImportModelJob mJob;
-//     //AssetViewImportModelJob* mJob;
-// 
-//   };
-
-  // comment this end -------------------------------------------------
-
   struct AssetViewImportedModel
   {
     bool                      mAttemptedToLoadEntity = false;
@@ -196,16 +120,12 @@ namespace Tac
     // - textures
   };
 
-  static String           sAssetViewFolderCur;
-  static Vector< String > sAssetViewFolderStack;
-  static Errors           sAssetViewErrors;
-  static Vector< String > sAssetViewFiles;
-  static Vector< String > sAssetViewFolders;
-
-  //static World            sAssetViewWorld;
-
+  static String                                       sAssetViewFolderCur;
+  static Vector< String >                             sAssetViewFolderStack;
+  static Errors                                       sAssetViewErrors;
+  static Vector< String >                             sAssetViewFiles;
+  static Vector< String >                             sAssetViewFolders;
   static std::map< String, AssetViewImportedModel* >  sLoadedModels;
-  //static std::map< String, AssetViewImportingModel* > sLoadingModels;
 
   static String LoadEllipses() { return String( "...", ( int )ShellGetElapsedSeconds() % 4 ); }
 
@@ -301,11 +221,9 @@ namespace Tac
       entityNodes.push_back( entityNode );
     }
 
-
     for( int i = 0; i < gltfData->nodes_count; ++i )
     {
       const cgltf_node& node = gltfData->nodes[ i ];
-
 
       Entity* entityNode = loadedModel->mWorld.SpawnEntity( loadedModel->mEntityUUIDCounter.AllocateNewUUID() );
       entityNode->mName = node.name ? node.name : va( "node %i", i );
@@ -313,7 +231,7 @@ namespace Tac
 
       if( node.mesh )
       {
-        String modelPath = [ path ]()
+        const String modelPath = [ path ]()
         {
           const StringView initialWorkingDir = ShellGetInitialWorkingDir();
           String modelPath = path;
