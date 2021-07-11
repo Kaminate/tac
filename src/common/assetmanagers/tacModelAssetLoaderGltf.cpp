@@ -97,19 +97,19 @@ namespace Tac
     return nullptr;
   }
 
-  static cgltf_node*          FindNodeWithMeshIndex( cgltf_data* parsedData, int index )
-  {
-    for( int iNode = 0; iNode < parsedData->nodes_count; ++iNode )
-    {
-      cgltf_node* curNode = &parsedData->nodes[ iNode ];
-      if( !curNode->mesh )
-        continue;
-      const int curMeshIndex = ( int )( curNode->mesh - parsedData->meshes );
-      if( curMeshIndex == index )
-        return curNode;
-    }
-    return nullptr;
-  }
+  //static cgltf_node*          FindNodeWithMeshIndex( cgltf_data* parsedData, int index )
+  //{
+  //  for( int iNode = 0; iNode < parsedData->nodes_count; ++iNode )
+  //  {
+  //    cgltf_node* curNode = &parsedData->nodes[ iNode ];
+  //    if( !curNode->mesh )
+  //      continue;
+  //    const int curMeshIndex = ( int )( curNode->mesh - parsedData->meshes );
+  //    if( curMeshIndex == index )
+  //      return curNode;
+  //  }
+  //  return nullptr;
+  //}
 
   template< typename T >
   static Vector< int >        ConvertIndexes( cgltf_accessor* indices )
@@ -275,8 +275,8 @@ namespace Tac
           int elementCount = Min( dstFormat.mElementCount, srcFormat.mElementCount );
           for( int iVert = 0; iVert < vertexCount; ++iVert )
           {
-            char* srcElement = srcVtx + vertexDeclaration.mAlignedByteOffset;
-            char* dstElement = dstVtx + 0;
+            char* srcElement = srcVtx;
+            char* dstElement = dstVtx + vertexDeclaration.mAlignedByteOffset;
             for( int iElement = 0; iElement < elementCount; ++iElement )
             {
               if( srcFormat.mPerElementDataType == dstFormat.mPerElementDataType &&
@@ -300,6 +300,16 @@ namespace Tac
         TAC_ASSERT( dstVtxStride );
         TAC_ASSERT( dstVtxBytes.size() );
 
+        struct F
+        {
+          v3 pos;
+          v3 nor;
+          v2 uv;
+        };
+
+        F* fs = ( F* )dstVtxBytes.data();
+        F* fs_old = ( F* )dstVtxBytes.data();
+
         const Render::VertexBufferHandle vertexBuffer = Render::CreateVertexBuffer( dstVtxBytes.size(),
                                                                                     dstVtxBytes.data(),
                                                                                     dstVtxStride,
@@ -310,7 +320,7 @@ namespace Tac
         SubMeshTriangles tris;
         GetTris( parsedPrim, tris );
 
-        const String name = parsedMesh->name + ( parsedMesh->primitives_count > 1 ? "prim" + ToString( iPrim ) : "" );
+        //const String name = parsedMesh->name + ( parsedMesh->primitives_count > 1 ? "prim" + ToString( iPrim ) : "" );
 
         TAC_ASSERT( parsedPrim->type == cgltf_primitive_type::cgltf_primitive_type_triangles );
         const Render::PrimitiveTopology primitiveTopology = Render::PrimitiveTopology::TriangleList;
@@ -320,34 +330,42 @@ namespace Tac
         subMesh.mVertexBuffer = vertexBuffer;
         subMesh.mTris = tris;
         subMesh.mIndexCount = ( int )indices->count;
-        subMesh.mName = name;
+        subMesh.mName = bufferName;
         subMesh.mPrimitiveTopology = primitiveTopology;
         submeshes.push_back( subMesh );
       }
     }
 
-    const m4 transform = [ & ]()
-    {
-      cgltf_node* node = FindNodeWithMeshIndex( parsedData, specifiedMeshIndex );
-      if( !node )
-        return m4::Identity();
-      m4 transform;
-      cgltf_node_transform_world( node, ( cgltf_float* )transform.data() );
-      transform.Transpose();
-      return transform;
-    } ();
 
-    const m4 transformInv = [ & ](){
-      bool matInverseExist;
-      m4 result = m4::Inverse( transform, &matInverseExist );
-      TAC_ASSERT( matInverseExist );
-      return result;
-    }( );
+    //
+    // Reason for commenting out:
+    // 
+    // My asset view AttemptLoadEntity() code decomposes the cgltf_node's transformation directly 
+    // into the Tac::Entity::mRelativeSpace
+    //
+
+    //const m4 transform = [ & ]()
+    //{
+    //  cgltf_node* node = FindNodeWithMeshIndex( parsedData, specifiedMeshIndex );
+    //  if( !node )
+    //    return m4::Identity();
+    //  m4 transform;
+    //  cgltf_node_transform_world( node, ( cgltf_float* )transform.data() );
+    //  transform.Transpose();
+    //  return transform;
+    //} ();
+
+    //const m4 transformInv = [ & ](){
+    //  bool matInverseExist;
+    //  m4 result = m4::Inverse( transform, &matInverseExist );
+    //  TAC_ASSERT( matInverseExist );
+    //  return result;
+    //}( );
 
     Mesh result;
     result.mSubMeshes = submeshes;
-    result.mTransform = transform;
-    result.mTransformInv = transformInv;
+    //result.mTransform = transform;
+    //result.mTransformInv = transformInv;
     return result;
   }
 

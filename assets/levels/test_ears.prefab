@@ -12,7 +12,7 @@
           "r": 1
         },
         "mModelIndex": 0,
-        "mModelPath": "E:\Users\Nate\Documents\GitHub\tac/assets/editor/test_ears.glb"
+        "mModelPath": "assets/editor/test_ears.glb"
       },
       "mActive": true,
       "mEntityUUID": 0,
@@ -20,7 +20,7 @@
       {
         "x": 0,
         "y": 0,
-        "z": 0
+        "z": 0.305278
       },
       "mName": "tilted guy",
       "mPosition":
@@ -28,40 +28,6 @@
         "x": 0,
         "y": 0,
         "z": 0
-      },
-      "mScale":
-      {
-        "x": 1,
-        "y": 1,
-        "z": 1
-      }
-    },
-    {
-      "Model":
-      {
-        "mColorRGB":
-        {
-          "b": 1,
-          "g": 1,
-          "r": 1
-        },
-        "mModelIndex": 1,
-        "mModelPath": "E:\Users\Nate\Documents\GitHub\tac/assets/editor/test_ears.glb"
-      },
-      "mActive": true,
-      "mEntityUUID": 0,
-      "mEulerRads":
-      {
-        "x": 0,
-        "y": 0,
-        "z": 0
-      },
-      "mName": "tall boy",
-      "mPosition":
-      {
-        "x": 0.006768,
-        "y": -0.007742,
-        "z": 2.009089
       },
       "mScale":
       {
@@ -78,7 +44,7 @@
     "y": 0,
     "z": 0
   },
-  "mName": "test_ears.glb",
+  "mName": "ears",
   "mPosition":
   {
     "x": 0,

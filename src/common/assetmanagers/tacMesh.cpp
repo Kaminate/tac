@@ -56,7 +56,7 @@ namespace Tac
   void Mesh::MeshModelSpaceRaycast( v3 inRayPos, v3 inRayDir, bool* outHit, float* outDist ) const
   {
     v4 inRayPos4 = { inRayPos, 1 };
-    inRayPos4 = mTransformInv * inRayPos4;
+    inRayPos4 = /*mTransformInv **/ inRayPos4;
     inRayPos = inRayPos4.xyz();
 
     bool meshHit = false;

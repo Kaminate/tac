@@ -313,13 +313,17 @@ namespace Tac
 
       if( node.mesh )
       {
-        node.mesh->name;
-        node.mesh->primitives;
-        node.mesh->primitives_count;
-
-        String modelPath = path;
-        if( modelPath.starts_with( ShellGetInitialWorkingDir() ) )
-          modelPath.substr( StrLen( ShellGetInitialWorkingDir() ) );
+        String modelPath = [ path ]()
+        {
+          const StringView initialWorkingDir = ShellGetInitialWorkingDir();
+          String modelPath = path;
+          if( modelPath.starts_with( initialWorkingDir ) )
+            modelPath = modelPath.substr( initialWorkingDir.size() );
+          while( modelPath.starts_with( '/' ) || modelPath.starts_with( '\\' ) )
+            modelPath.erase( 0, 1 );
+          return modelPath;
+        }( );
+        
 
         auto model = ( Model* )entityNode->AddNewComponent( Model().GetEntry() );
         model->mModelPath = modelPath;

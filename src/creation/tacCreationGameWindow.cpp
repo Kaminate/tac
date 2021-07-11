@@ -30,7 +30,7 @@
 
 namespace Tac
 {
-  static bool drawGrid = true;
+  static bool drawGrid = false;
 
 
   // http://palitri.com/vault/stuff/maths/Rays%20closest%20point.pdf
@@ -301,6 +301,9 @@ namespace Tac
     {
       worldSpaceHitPoint = gCreation.mEditorCamera->mPos + pickData.closestDist * mWorldSpaceMouseDir;
       mDebug3DDrawData->DebugDraw3DSphere( worldSpaceHitPoint, 0.2f, v3( 1, 1, 0 ) );
+
+      static double mouseMovement;
+      TryConsumeMouseMovement( &mouseMovement, TAC_STACK_FRAME );
     }
 
     if( gKeyboardInput.IsKeyJustDown( Key::MouseLeft ) )
@@ -417,25 +420,19 @@ namespace Tac
     }
   }
 
-  void CreationGameWindow::AddDrawCall( const Mesh* mesh, const DefaultCBufferPerObject& )
+  static void AddDrawCall( const Mesh* mesh, Render::ViewHandle viewHandle )
   {
-    TAC_UNUSED_PARAMETER( mesh );
-    //for( const SubMesh& subMesh : mesh->mSubMeshes )
+    for( const SubMesh& subMesh : mesh->mSubMeshes )
     {
-      //DrawCall2 drawCall = {};
-      //drawCall.mVertexBuffer = subMesh.mVertexBuffer;
-      //drawCall.mIndexBuffer = subMesh.mIndexBuffer;
-      //drawCall.mStartIndex = 0;
-      //drawCall.mIndexCount = subMesh.mIndexCount;
-      //drawCall.mBlendState = mBlendState;
-      //drawCall.mRasterizerState = mRasterizerState;
-      //drawCall.mSamplerState = mSamplerState;
-      //drawCall.mDepthState = mDepthState;
-      //drawCall.mVertexFormat = mesh->mVertexFormat;
-      //drawCall.mUniformDst = mPerObj;
-      //drawCall.mUniformSrcc = TemporaryMemoryFromT( cbuf );
-      //drawCall.mFrame = TAC_STACK_FRAME;
-      //Render::AddDrawCall( drawCall );
+      Render::SetShader( CreationGameWindow::Instance->m3DShader );
+      Render::SetVertexBuffer( subMesh.mVertexBuffer , 0, subMesh.mVertexCount);
+      Render::SetIndexBuffer( subMesh.mIndexBuffer, 0, subMesh.mIndexCount );
+      Render::SetBlendState( CreationGameWindow::Instance->mBlendState );
+      Render::SetDepthState( CreationGameWindow::Instance->mDepthState );
+      Render::SetRasterizerState( CreationGameWindow::Instance->mRasterizerState );
+      Render::SetVertexFormat(  CreationGameWindow::Instance->m3DVertexFormat );
+      Render::SetSamplerState( CreationGameWindow::Instance->mSamplerState );
+      Render::Submit( viewHandle, TAC_STACK_FRAME );
     }
   }
 
@@ -456,7 +453,7 @@ namespace Tac
     mArrowLen = arrowLen;
   }
 
-  void CreationGameWindow::RenderGameWorldToGameWindow()
+  void CreationGameWindow::RenderGameWorldToGameWindow( Render::ViewHandle viewHandle )
   {
     MousePickingAll();
     const Camera* camera = gCreation.mEditorCamera;
@@ -482,10 +479,7 @@ namespace Tac
     perFrameData.mProjection = proj;
     perFrameData.mGbufferSize = { w, h };
 
-    //DrawCall2 setPerFrame = {};
-    //setPerFrame.mUniformDst = mPerFrame;
-    //setPerFrame.CopyUniformSource( perFrameData );
-    //Render::AddDrawCall( setPerFrame );
+    Render::UpdateConstantBuffer( mPerFrame, &perFrameData, sizeof( DefaultCBufferPerFrame ), TAC_STACK_FRAME );
 
     if( gCreation.IsAnythingSelected() )
     {
@@ -504,14 +498,16 @@ namespace Tac
         // Widget Translation Arrow
         DefaultCBufferPerObject perObjectData;
         perObjectData.Color = { colors[ i ], 1 };
-        perObjectData.World =
-          m4::Translate( selectionGizmoOrigin ) *
-          rots[ i ] *
-          m4::Scale( v3( 1, 1, 1 ) * mArrowLen ) *
-          mArrow->mTransform;
-        AddDrawCall( mArrow, perObjectData );
+        perObjectData.World
+          = m4::Translate( selectionGizmoOrigin )
+          * rots[ i ]
+          * m4::Scale( v3( 1, 1, 1 ) * mArrowLen )
+          ;// *mArrow->mTransform;
+        Render::UpdateConstantBuffer( mPerObj, &perObjectData, sizeof( DefaultCBufferPerObject ), TAC_STACK_FRAME );
+        AddDrawCall( mArrow, viewHandle);
 
         // Widget Scale Cube
+        //const v3 axis = { 0 == i, 1 == i, 2 == i };
         v3 axis = {};
         axis[ i ] = 1;
         perObjectData.World =
@@ -519,7 +515,8 @@ namespace Tac
           m4::Translate( axis * ( mArrowLen * 1.1f ) ) *
           rots[ i ] *
           m4::Scale( v3( 1, 1, 1 ) * mArrowLen * 0.1f );
-        AddDrawCall( mCenteredUnitCube, perObjectData );
+        Render::UpdateConstantBuffer( mPerObj, &perObjectData, sizeof( DefaultCBufferPerObject ), TAC_STACK_FRAME );
+        AddDrawCall( mCenteredUnitCube, viewHandle );
       }
     }
   }
@@ -728,13 +725,7 @@ namespace Tac
     MousePickingInit();
     CameraControls();
     ComputeArrowLen();
-    RenderGameWorldToGameWindow();
-
-    mDebug3DDrawData->DebugDraw3DToTexture( viewHandle,
-                                            gCreation.mEditorCamera,
-                                            desktopWindowState->mWidth,
-                                            desktopWindowState->mHeight,
-                                            errors );
+    RenderGameWorldToGameWindow( viewHandle );
 
     GamePresentationRender( gCreation.mWorld,
                             gCreation.mEditorCamera,
@@ -747,6 +738,12 @@ namespace Tac
                                desktopWindowState->mWidth,
                                desktopWindowState->mHeight,
                                viewHandle );
+
+    mDebug3DDrawData->DebugDraw3DToTexture( viewHandle,
+                                            gCreation.mEditorCamera,
+                                            desktopWindowState->mWidth,
+                                            desktopWindowState->mHeight,
+                                            errors );
 
     if( gCreation.mSelectedGizmo )
     {

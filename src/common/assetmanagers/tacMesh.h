@@ -34,8 +34,8 @@ namespace Tac
                                                       bool* outHit,
                                                       float* outDist ) const;
     Vector< SubMesh >          mSubMeshes;
-    m4                         mTransform = m4::Identity();
-    m4                         mTransformInv = m4::Identity();
+    //m4                         mTransform = m4::Identity();
+    //m4                         mTransformInv = m4::Identity();
   };
 
 }

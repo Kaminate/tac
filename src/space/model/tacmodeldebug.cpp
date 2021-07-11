@@ -180,26 +180,27 @@ namespace Tac
       if( mesh )
       {
 
-        ImGuiText( va( "%.1f %.1f %.1f %.1f",
-                       mesh->mTransform.m00,
-                       mesh->mTransform.m01,
-                       mesh->mTransform.m02,
-                       mesh->mTransform.m03 ) );
-        ImGuiText( va( "%.1f %.1f %.1f %.1f",
-                       mesh->mTransform.m10,
-                       mesh->mTransform.m11,
-                       mesh->mTransform.m12,
-                       mesh->mTransform.m13 ) );
-        ImGuiText( va( "%.1f %.1f %.1f %.1f",
-                       mesh->mTransform.m20,
-                       mesh->mTransform.m21,
-                       mesh->mTransform.m22,
-                       mesh->mTransform.m23 ) );
-        ImGuiText( va( "%.1f %.1f %.1f %.1f",
-                       mesh->mTransform.m30,
-                       mesh->mTransform.m31,
-                       mesh->mTransform.m32,
-                       mesh->mTransform.m33 ) );
+        //ImGuiText( va( "%.1f %.1f %.1f %.1f",
+        //               mesh->mTransform.m00,
+        //               mesh->mTransform.m01,
+        //               mesh->mTransform.m02,
+        //               mesh->mTransform.m03 ) );
+        //ImGuiText( va( "%.1f %.1f %.1f %.1f",
+        //               mesh->mTransform.m10,
+        //               mesh->mTransform.m11,
+        //               mesh->mTransform.m12,
+        //               mesh->mTransform.m13 ) );
+        //ImGuiText( va( "%.1f %.1f %.1f %.1f",
+        //               mesh->mTransform.m20,
+        //               mesh->mTransform.m21,
+        //               mesh->mTransform.m22,
+        //               mesh->mTransform.m23 ) );
+        //ImGuiText( va( "%.1f %.1f %.1f %.1f",
+        //               mesh->mTransform.m30,
+        //               mesh->mTransform.m31,
+        //               mesh->mTransform.m32,
+        //               mesh->mTransform.m33 ) );
+
         ImGuiText( va( "model index: %i", model->mModelIndex ) );
         static int iSelectedSubmesh = -1;
         for( const SubMesh& subMesh : mesh->mSubMeshes )

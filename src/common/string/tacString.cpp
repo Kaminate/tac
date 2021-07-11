@@ -431,6 +431,16 @@ namespace Tac
     append( stringView.data(), stringView.size() );
   }
 
+  void   String::erase( int pos, int len )
+  {
+    const int end_pos = len == npos ? mLen : pos + len;
+    String copy;
+    for( int i = 0; i < mLen; ++i )
+      if( i < pos || i >= end_pos )
+        copy.push_back( mStr[ i ] );
+    *this = copy;
+  }
+
   void   String::push_back( char c )
   {
     append( &c, 1 );

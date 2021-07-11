@@ -36,11 +36,11 @@ namespace Tac
     static CreationGameWindow*    Instance;
     void                          Init( Errors& );
     void                          Update( Errors& );
-    void                          RenderGameWorldToGameWindow();
+    void                          RenderGameWorldToGameWindow( Render::ViewHandle );
     void                          MousePickingInit();
     void                          MousePickingEntity( const Entity* entity, bool* hit, float* dist );
     void                          MousePickingAll();
-    void                          AddDrawCall( const Mesh* mesh, const DefaultCBufferPerObject& cbuf );
+    //void                          AddDrawCall( const Mesh* mesh, const DefaultCBufferPerObject& cbuf );
     void                          ComputeArrowLen();
     void                          CameraControls();
     void                          CreateGraphicsObjects( Errors& );
@@ -56,7 +56,7 @@ namespace Tac
     Render::BlendStateHandle      mBlendState;
     Render::RasterizerStateHandle mRasterizerState;
     Render::SamplerStateHandle    mSamplerState;
-    Render::VertexDeclarations            m3DvertexFormatDecls;
+    Render::VertexDeclarations    m3DvertexFormatDecls;
     Debug3DDrawData*              mDebug3DDrawData = nullptr;
     Mesh*                         mArrow = nullptr;
     Mesh*                         mCenteredUnitCube = nullptr;

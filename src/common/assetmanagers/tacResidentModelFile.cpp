@@ -139,6 +139,8 @@ namespace Tac
         return nullptr;
 
     LoadingStuff* loadingStuff = TryGetEmptyLoadingStuff();
+    if( !loadingStuff )
+      return nullptr;
     loadingStuff->mPath = path;
     loadingStuff->mJob.mPath = path;
     JobQueuePush( &loadingStuff->mJob );

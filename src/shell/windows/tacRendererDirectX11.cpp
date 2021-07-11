@@ -989,7 +989,7 @@ namespace Tac
           if( framebuffer->mRenderTargetView )
           {
             // uhh pick a color unlikely to be used by anyone else
-            const FLOAT ClearGrey = 0.283f;
+            const FLOAT ClearGrey = 0.0883f;
             const FLOAT ClearColorRGBA[] = { ClearGrey, ClearGrey, ClearGrey,  1.0f };
             mDeviceContext->ClearRenderTargetView( framebuffer->mRenderTargetView, ClearColorRGBA );
           }

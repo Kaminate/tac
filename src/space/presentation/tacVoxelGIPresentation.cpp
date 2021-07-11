@@ -485,7 +485,7 @@ namespace Tac
 
         DefaultCBufferPerObject objBuf;
         objBuf.Color = { model->mColorRGB, 1 };
-        objBuf.World = model->mEntity->mWorldTransform * mesh->mTransform;
+        objBuf.World = model->mEntity->mWorldTransform /** mesh->mTransform*/;
 
 #if 1   // debug, make the triangle rotate to test the voxelization
         {

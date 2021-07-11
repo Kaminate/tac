@@ -83,8 +83,6 @@ namespace Tac
 
     DefaultCBufferPerObject perObjectData;
     perObjectData.Color = { model->mColorRGB, 1 };
-    //perObjectData.World = model->mEntity->mWorldTransform * mesh->mTransform;
-    //perObjectData.World = mesh->mTransform * model->mEntity->mWorldTransform;
     perObjectData.World = model->mEntity->mWorldTransform;
 
     for( const SubMesh& subMesh : mesh->mSubMeshes )
@@ -538,9 +536,9 @@ namespace Tac
         {
           for( const SubMeshTriangle& tri : subMesh.mTris )
           {
-            const v3 p0 = ( model->mEntity->mWorldTransform * mesh->mTransform * v4( tri[ 0 ], 1 ) ).xyz();
-            const v3 p1 = ( model->mEntity->mWorldTransform * mesh->mTransform * v4( tri[ 1 ], 1 ) ).xyz();
-            const v3 p2 = ( model->mEntity->mWorldTransform * mesh->mTransform * v4( tri[ 2 ], 1 ) ).xyz();
+            const v3 p0 = ( model->mEntity->mWorldTransform * /*mesh->mTransform **/ v4( tri[ 0 ], 1 ) ).xyz();
+            const v3 p1 = ( model->mEntity->mWorldTransform * /*mesh->mTransform **/ v4( tri[ 1 ], 1 ) ).xyz();
+            const v3 p2 = ( model->mEntity->mWorldTransform * /*mesh->mTransform **/ v4( tri[ 2 ], 1 ) ).xyz();
             mDrawData->DebugDraw3DTriangle( p0, p1, p2 );
           }
         }

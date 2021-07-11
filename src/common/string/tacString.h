@@ -93,6 +93,7 @@ namespace Tac
     char*  c_str() const;
     int    size() const;
     char*  data() const;
+    void   erase( int pos, int len = npos );
     void   push_back( char );
     bool   starts_with( StringView ) const;
     bool   starts_with( char ) const;

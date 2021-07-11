@@ -122,9 +122,22 @@ namespace Tac
 			ImGuiDragFloat( "X Position: ", &entity->mRelativeSpace.mPosition.x );
 			ImGuiDragFloat( "Y Position: ", &entity->mRelativeSpace.mPosition.y );
 			ImGuiDragFloat( "Z Position: ", &entity->mRelativeSpace.mPosition.z );
-			ImGuiDragFloat( "X Scale: ", &entity->mRelativeSpace.mScale.x );
-			ImGuiDragFloat( "Y Scale: ", &entity->mRelativeSpace.mScale.y );
-			ImGuiDragFloat( "Z Scale: ", &entity->mRelativeSpace.mScale.z );
+
+      static bool splitScale;
+      ImGuiCheckbox( "split scale", &splitScale );
+      if( splitScale )
+      {
+        ImGuiDragFloat( "X Scale: ", &entity->mRelativeSpace.mScale.x );
+        ImGuiDragFloat( "Y Scale: ", &entity->mRelativeSpace.mScale.y );
+        ImGuiDragFloat( "Z Scale: ", &entity->mRelativeSpace.mScale.z );
+      }
+      else
+      {
+        float scale = entity->mRelativeSpace.mScale.x;
+        if( ImGuiDragFloat( "scale: ", &scale ) )
+          entity->mRelativeSpace.mScale = v3( 1, 1, 1 ) * scale;
+      }
+
       ImGuiCheckbox( "active", &entity->mActive );
 			v3 rotDeg = entity->mRelativeSpace.mEulerRads * ( 180.0f / 3.14f );
 			bool changed = false;
