@@ -3,19 +3,19 @@
 #define TEST_RED 0
 #define TEST_UVS 0
 
-Texture2D atlas : register( t0 );
+Texture2D atlas       : register( t0 );
 sampler linearSampler : register( s0 );
 
 struct VS_INPUT
 {
-  float3 Position : POSITION;
+  float3 Position   : POSITION;
   float2 GLTexCoord : TEXCOORD;
 };
 
 struct VS_OUTPUT
 {
   float4 mClipSpacePosition : SV_POSITION;
-  float2 DXTexCoord : TEXCOORD0;
+  float2 DXTexCoord         : SV_AUTO_SEMANTIC;
 };
 
 VS_OUTPUT VS( VS_INPUT input )

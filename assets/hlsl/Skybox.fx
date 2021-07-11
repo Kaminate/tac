@@ -1,6 +1,6 @@
 
 #include "common.fx"
-TextureCube cubemap : register( t0 );
+TextureCube cubemap   : register( t0 );
 sampler linearSampler : register( s0 );
 
 struct VS_INPUT
@@ -11,7 +11,7 @@ struct VS_INPUT
 struct VS_OUTPUT
 {
   float4 mClipSpacePosition : SV_POSITION;
-  float3 mViewSpacePosition : TEXCOORD;
+  float3 mViewSpacePosition : SV_AUTO_SEMANTIC;
 };
 
 VS_OUTPUT VS( VS_INPUT input )

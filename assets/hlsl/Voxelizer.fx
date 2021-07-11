@@ -44,9 +44,12 @@ struct VS_OUT_GS_IN
   //
   //                               ^ update: these semantics names will show up in renderdoc,
   //                                         so it would be more useful to name them
-  float3 mWorldSpacePosition     : AUTO_SEMANTIC;
-  float3 mWorldSpaceUnitNormal   : AUTO_SEMANTIC;
-  float2 mTexCoord               : AUTO_SEMANTIC;
+  //
+  //                               ^ update: i have preprocessor'd my problems away
+  //
+  float3 mWorldSpacePosition     : SV_AUTO_SEMANTIC;
+  float3 mWorldSpaceUnitNormal   : SV_AUTO_SEMANTIC;
+  float2 mTexCoord               : SV_AUTO_SEMANTIC;
 };
 
 VS_OUT_GS_IN VS( VS_INPUT input )
@@ -62,9 +65,9 @@ VS_OUT_GS_IN VS( VS_INPUT input )
 
 struct GS_OUT_PS_IN
 {
-  float2 mTexCoord                     : AUTO_SEMANTIC;
-  float3 mWorldSpaceUnitNormal         : AUTO_SEMANTIC;
-  float3 mWorldSpacePosition           : AUTO_SEMANTIC;
+  float2 mTexCoord                     : SV_AUTO_SEMANTIC;
+  float3 mWorldSpaceUnitNormal         : SV_AUTO_SEMANTIC;
+  float3 mWorldSpacePosition           : SV_AUTO_SEMANTIC;
   float4 mClipSpacePosition            : SV_POSITION;
 
   //float3 debug_worldSpaceAbsFaceNormal : WS_ABS_face_NORMAL;

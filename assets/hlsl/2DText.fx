@@ -15,7 +15,7 @@ struct VS_INPUT
 struct VS_OUTPUT
 {
   float4 mClipSpacePosition : SV_POSITION;
-  float2 DXTexCoord         : AUTO_SEMANTIC;
+  float2 DXTexCoord         : SV_AUTO_SEMANTIC;
 };
 
 VS_OUTPUT VS( VS_INPUT input )

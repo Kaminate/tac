@@ -9,7 +9,7 @@ struct VS_INPUT
 struct VS_OUTPUT
 {
   float4 mClipSpacePosition : SV_POSITION;
-  float4 mColor             : AUTO_SEMANTIC;
+  float4 mColor             : SV_AUTO_SEMANTIC;
 };
 
 VS_OUTPUT VS( VS_INPUT input )

@@ -19,8 +19,8 @@ float3 GenerateCubeVertex( uint i )
 
 struct VS_OUT_GS_IN
 {
-  float4 mColor                 : AUTO_SEMANTIC;
-  float3 mWorldSpaceVoxelCenter : AUTO_SEMANTIC;
+  float4 mColor                 : SV_AUTO_SEMANTIC;
+  float3 mWorldSpaceVoxelCenter : SV_AUTO_SEMANTIC;
 };
 
 
@@ -54,7 +54,7 @@ VS_OUT_GS_IN VS( const uint iVertex : SV_VERTEXID )
 struct GS_OUT_PS_IN
 {
   float4 mClipSpacePosition      : SV_POSITION;
-  float4 mColor                  : AUTO_SEMANTIC;
+  float4 mColor                  : SV_AUTO_SEMANTIC;
 };
 
 [maxvertexcount( CUBE_STRIP_VTX_COUNT )]

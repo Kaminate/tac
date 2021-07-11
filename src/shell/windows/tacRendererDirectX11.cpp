@@ -563,7 +563,7 @@ namespace Tac
 
     static String PreprocessShaderSemanticName( const String line )
     {
-      const int iAutoSemantic = line.find( "AUTO_SEMANTIC" );
+      const int iAutoSemantic = line.find( "SV_AUTO_SEMANTIC" );
       if( iAutoSemantic == line.npos )
         return line;
 
@@ -587,6 +587,25 @@ namespace Tac
       return newLine;
     }
 
+    static String PreprocessShaderIncludes( const String, Errors& );
+
+    static String PreprocessShaderSource( String shaderSourceCode, Errors& errors )
+    {
+      String result;
+      ParseData shaderParseData( shaderSourceCode.data(), shaderSourceCode.size() );
+      while( shaderParseData.GetRemainingByteCount() )
+      {
+        String line = shaderParseData.EatRestOfLine();
+
+        line = PreprocessShaderIncludes( line, errors );
+        line = PreprocessShaderSemanticName( line );
+
+        result += line + "\n";
+      }
+
+      return result;
+    }
+
     static String PreprocessShaderIncludes( const String line, Errors& errors )
     {
       ParseData lineParseData( line.data(), line.size() );
@@ -607,23 +626,6 @@ namespace Tac
       newLine += includeSource;
       newLine += "//===----- (end include " + includePath + ") -----===//\n";
       return newLine;
-    }
-
-    static String PreprocessShaderSource( String shaderSourceCode, Errors& errors )
-    {
-      String result;
-      ParseData shaderParseData( shaderSourceCode.data(), shaderSourceCode.size() );
-      while( shaderParseData.GetRemainingByteCount() )
-      {
-        String line = shaderParseData.EatRestOfLine();
-
-        line = PreprocessShaderIncludes( line, errors );
-        line = PreprocessShaderSemanticName( line );
-
-        result += line + "\n";
-      }
-
-      return result;
     }
 
     static bool DoesShaderTextContainEntryPoint( StringView shaderText, const char* entryPoint )
