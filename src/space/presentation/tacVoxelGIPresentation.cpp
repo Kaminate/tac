@@ -223,9 +223,10 @@ namespace Tac
 
     voxelFramebuffer = [](){
       Render::FramebufferTextures framebufferTextures = { voxelFramebufferTexture };
-      auto fbo = Render::CreateFramebufferForRenderToTexture( framebufferTextures, TAC_STACK_FRAME );
-      Render::SetRenderObjectDebugName( fbo, "voxel-fbo" );
-      return fbo;
+      Render::FramebufferHandle framebufferHandle
+        = Render::CreateFramebufferForRenderToTexture( framebufferTextures, TAC_STACK_FRAME );
+      Render::SetRenderObjectDebugName( framebufferHandle, "voxel-fbo" );
+      return framebufferHandle;
     }( );
 
     voxelView = Render::CreateView();
@@ -324,14 +325,12 @@ namespace Tac
 
   static Render::TexSpec         GetVoxRadianceTexSpec()
   {
-    const auto binding = ( Render::Binding ) (
-      ( int )Render::Binding::ShaderResource |
-      ( int )Render::Binding::UnorderedAccess );
+      
 
     // rgba16f, 2 bytes (16 bits) per float, hdr values
     Render::TexSpec texSpec;
     texSpec.mAccess = Render::Access::Default;
-    texSpec.mBinding = binding;
+    texSpec.mBinding = Render::Binding::ShaderResource | Render::Binding::UnorderedAccess;
     texSpec.mCpuAccess = Render::CPUAccess::None;
     texSpec.mImage.mFormat.mElementCount = 4;
     texSpec.mImage.mFormat.mPerElementDataType = Render::GraphicsType::real;

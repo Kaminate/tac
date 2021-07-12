@@ -9,6 +9,9 @@ namespace Tac
 {
   namespace Render
   {
+    Binding operator | ( Binding lhs, Binding rhs ) { return ( Binding )( ( int )lhs | ( int )rhs ); }
+    Binding operator & ( Binding lhs, Binding rhs ) { return ( Binding )( ( int )lhs & ( int )rhs ); }
+
     const char* GetSemanticName( Attribute attribType )
     {
       switch( attribType )

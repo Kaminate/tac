@@ -25,5 +25,6 @@ namespace Tac
   Render::RasterizerStateHandle GamePresentationGetRasterizerState();
   Render::SamplerStateHandle    GamePresentationGetSamplerState();
   Render::VertexDeclarations    GamePresentationGetVertexDeclarations();
+  Render::VertexFormatHandle    GamePresentationGetVertexFormat();
 }
 

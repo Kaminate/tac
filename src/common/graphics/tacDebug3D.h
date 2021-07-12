@@ -7,21 +7,8 @@
 
 namespace Tac
 {
-  struct BlendState;
-  struct CBuffer;
   struct Camera;
-  struct DefaultCBufferPerFrame;
-  struct DepthBuffer;
-  struct DepthState;
   struct Errors;
-  struct FontStuff;
-  struct IndexBuffer;
-  struct RasterizerState;
-  struct Renderer;
-  struct SamplerState;
-  struct Shader;
-  struct Texture;
-  struct VertexBuffer;
 
   struct DefaultVertexColor
   {

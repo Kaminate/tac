@@ -14,6 +14,8 @@ add_library(${Target} # MODULE
 "${CMAKE_CURRENT_SOURCE_DIR}/presentation/tacVoxelGIPresentation.h"
 "${CMAKE_CURRENT_SOURCE_DIR}/presentation/tacGamePresentation.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/presentation/tacGamePresentation.h"
+"${CMAKE_CURRENT_SOURCE_DIR}/presentation/tacShadowPresentation.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/presentation/tacShadowPresentation.h"
 "${CMAKE_CURRENT_SOURCE_DIR}/presentation/tacSkyboxPresentation.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/presentation/tacSkyboxPresentation.h"
 "${CMAKE_CURRENT_SOURCE_DIR}/tacClient.cpp"

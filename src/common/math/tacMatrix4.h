@@ -1,5 +1,7 @@
 #pragma once
 
+#include "src/common/math/tacVector4.h"
+
 namespace Tac
 {
   struct v3;
@@ -14,10 +16,10 @@ namespace Tac
       m30, m31, m32, m33;
     m4() = default;
     m4( const m3& );
-    m4( float mm00, float mm01, float mm02, float mm03,
-        float mm10, float mm11, float mm12, float mm13,
-        float mm20, float mm21, float mm22, float mm23,
-        float mm30, float mm31, float mm32, float mm33 );
+    m4( float, float, float, float,
+        float, float, float, float,
+        float, float, float, float,
+        float, float, float, float );
     float*       data();
     const float* data() const;
     float&       operator()( int iRow, int iCol );
@@ -27,8 +29,12 @@ namespace Tac
     bool         operator== ( const m4& ) const;
     void         operator/= ( float );
     void         Transpose();
+    void         SetRow( int, v4 );
+    void         SetColumn( int, v4 );
+    static m4    FromRows( v4, v4, v4, v4 );
+    static m4    FromColumns( v4, v4, v4, v4 );
     static m4    Identity();
-    static m4    Inverse( const m4& , bool* resultExists );
+    static m4    Inverse( const m4&, bool* resultExists );
     static m4    Scale( v3 );
     static m4    RotRadX( float );
     static m4    RotRadY( float );

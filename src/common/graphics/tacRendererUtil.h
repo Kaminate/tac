@@ -1,33 +1,19 @@
 // This file is for things that you may want to use after including tacRenderer.h
 #pragma once
 
-#include "src/common/graphics/tacRenderer.h"
-#include "src/common/math/tacVector4.h"
+//#include "src/common/graphics/tacRenderer.h"
+//#include "src/common/math/tacVector4.h"
 #include "src/common/math/tacMatrix4.h"
-#include "src/common/tacPreprocessor.h"
-#include <cstdint>
-
+//#include "src/common/tacPreprocessor.h"
 
 namespace Tac
 {
-  const v4 colorGrey = v4( v3( 1, 1, 1 ) * 95.0f, 255 ) / 255.0f;
-  const v4 colorOrange = v4( 255, 200, 84, 255 ) / 255.0f;
-  const v4 colorGreen = v4( 0, 255, 112, 255 ) / 255.0f;
-  const v4 colorBlue = v4( 84, 255, 255, 255 ) / 255.0f;
-  const v4 colorRed = v4( 255, 84, 84, 255 ) / 255.0f;
-  const v4 colorMagenta = v4( 255, 84, 255, 255 ) / 255.0f;
-
-  //const Render::Format formatv2 = { 2, sizeof( float ), Render::GraphicsType::real };
-  //const Render::Format formatv3 = { 3, sizeof( float ), Render::GraphicsType::real };
-  //const Render::Format formatv4 = { 4, sizeof( float ), Render::GraphicsType::real };
-  //const Render::Format formatu16 = { 1, sizeof( uint16_t ), Render::GraphicsType::uint };
-
   struct DefaultCBufferPerFrame
   {
-    static const char* name_view() { return "View"; };
-    static const char* name_proj() { return "Projection"; };
-    static const char* name_far() { return "far"; };
-    static const char* name_near() { return "near"; };
+    static const char* name_view()        { return "View";        };
+    static const char* name_proj()        { return "Projection";  };
+    static const char* name_far()         { return "far";         };
+    static const char* name_near()        { return "near";        };
     static const char* name_gbuffersize() { return "gbufferSize"; };
     static const int   shaderRegister = 0;
     m4                 mView;
@@ -35,9 +21,6 @@ namespace Tac
     float              mFar;
     float              mNear;
     v2                 mGbufferSize;
-
-    //float              mTruncTime; // Integer part chopped off
-    //double             mElapsedAppSeconds;
     float              mSecModTau;
   };
 

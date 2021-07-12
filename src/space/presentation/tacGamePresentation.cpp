@@ -19,6 +19,7 @@
 #include "src/space/physics/tacPhysics.h"
 #include "src/space/presentation/tacGamePresentation.h"
 #include "src/space/presentation/tacSkyboxPresentation.h"
+#include "src/space/presentation/tacShadowPresentation.h"
 #include "src/space/tacEntity.h"
 #include "src/space/tacWorld.h"
 #include "src/space/terrain/tacTerrain.h"
@@ -65,6 +66,38 @@ namespace Tac
     return terrainVertex;
   }
 
+  static void Debug3DEachTri( Graphics* graphics )
+  {
+    struct : public ModelVisitor
+    {
+      void operator()( const Model* model ) override
+      {
+        Errors errors;
+        Mesh* mesh = ModelAssetManagerGetMeshTryingNewThing( model->mModelPath.c_str(),
+                                                             model->mModelIndex,
+                                                             GamePresentationGetVertexDeclarations(),
+                                                             errors );
+        if( !mesh )
+          return;
+
+        for( const SubMesh& subMesh : mesh->mSubMeshes )
+        {
+          for( const SubMeshTriangle& tri : subMesh.mTris )
+          {
+            const v3 p0 = ( model->mEntity->mWorldTransform *  v4( tri[ 0 ], 1 ) ).xyz();
+            const v3 p1 = ( model->mEntity->mWorldTransform *  v4( tri[ 1 ], 1 ) ).xyz();
+            const v3 p2 = ( model->mEntity->mWorldTransform *  v4( tri[ 2 ], 1 ) ).xyz();
+            mDrawData->DebugDraw3DTriangle( p0, p1, p2 );
+          }
+        }
+      }
+      Debug3DDrawData* mDrawData;
+    } visitor = {};
+    visitor.mDrawData = graphics->mWorld->mDebug3DDrawData;
+
+    graphics->VisitModels( &visitor );
+  }
+
   static Mesh* LoadModel( const Model* model )
   {
     Errors getmeshErrors;
@@ -74,7 +107,7 @@ namespace Tac
                                                    getmeshErrors );
   }
 
-  static void RenderGameWorldAddDrawCall(  const Model* model,
+  static void RenderGameWorldAddDrawCall( const Model* model,
                                           const Render::ViewHandle viewId )
   {
     const Mesh* mesh = LoadModel( model );
@@ -87,7 +120,7 @@ namespace Tac
 
     for( const SubMesh& subMesh : mesh->mSubMeshes )
     {
-      Render::BeginGroup( subMesh.mName.c_str(),TAC_STACK_FRAME ); 
+      Render::BeginGroup( subMesh.mName.c_str(), TAC_STACK_FRAME );
       //FrameMemoryPrintf( "%s %i", subMesh.mName.c_str(),
       //                                         model->mModelPath.c_str(),
       //                                         model->mModelIndex ), TAC_STACK_FRAME );
@@ -105,7 +138,7 @@ namespace Tac
                                     sizeof( DefaultCBufferPerObject ),
                                     TAC_STACK_FRAME );
       Render::Submit( viewId, TAC_STACK_FRAME );
-        Render::EndGroup( TAC_STACK_FRAME );
+      Render::EndGroup( TAC_STACK_FRAME );
     }
   }
 
@@ -173,8 +206,6 @@ namespace Tac
     terrain->mIndexCount = indexes.size();
 
   }
-
-
 
   static void CreateTerrainShader( Errors& errors )
   {
@@ -395,9 +426,7 @@ namespace Tac
     mySkyboxVisitor.mViewId = viewId;
     mySkyboxVisitor.mCamera = camera;
     TAC_RENDER_GROUP_BLOCK( "Visit Skyboxes" );
-    //Render::BeginGroup( "Visit Skyboxes", TAC_STACK_FRAME );
     graphics->VisitSkyboxes( &mySkyboxVisitor );
-    //Render::EndGroup( TAC_STACK_FRAME );
   }
 
   const Mesh* GamePresentationGetModelMesh( const Model* model )
@@ -497,6 +526,8 @@ namespace Tac
 
     RenderTerrain( world, viewId );
 
+    ShadowPresentationRender( world );
+
     RenderSkybox( world,
                   camera,
                   viewWidth,
@@ -510,62 +541,31 @@ namespace Tac
     }
   }
 
-  Render::ConstantBufferHandle  GamePresentationGetPerFrame()             { return mPerFrame; }
-  Render::ConstantBufferHandle  GamePresentationGetPerObj()               { return mPerObj; }
-  Render::DepthStateHandle      GamePresentationGetDepthState()           { return mDepthState; }
-  Render::BlendStateHandle      GamePresentationGetBlendState()           { return mBlendState; }
-  Render::RasterizerStateHandle GamePresentationGetRasterizerState()      { return mRasterizerState; }
-  Render::SamplerStateHandle    GamePresentationGetSamplerState()         { return mSamplerState; }
+  Render::ConstantBufferHandle  GamePresentationGetPerFrame()             { return mPerFrame;            }
+  Render::ConstantBufferHandle  GamePresentationGetPerObj()               { return mPerObj;              }
+  Render::DepthStateHandle      GamePresentationGetDepthState()           { return mDepthState;          }
+  Render::BlendStateHandle      GamePresentationGetBlendState()           { return mBlendState;          }
+  Render::RasterizerStateHandle GamePresentationGetRasterizerState()      { return mRasterizerState;     }
+  Render::SamplerStateHandle    GamePresentationGetSamplerState()         { return mSamplerState;        }
   Render::VertexDeclarations    GamePresentationGetVertexDeclarations()   { return m3DVertexFormatDecls; }
+  Render::VertexFormatHandle    GamePresentationGetVertexFormat()         { return m3DVertexFormat;      }
 
-  static void Debug3DEachTri( Graphics* graphics )
-  {
-    struct : public ModelVisitor
-    {
-      void operator()( const Model* model ) override
-      {
-        Errors errors;
-        Mesh* mesh = ModelAssetManagerGetMeshTryingNewThing( model->mModelPath.c_str(),
-                                                             model->mModelIndex,
-                                                             GamePresentationGetVertexDeclarations(),
-                                                             errors );
-        if( !mesh )
-          return;
-
-        for( const SubMesh& subMesh : mesh->mSubMeshes )
-        {
-          for( const SubMeshTriangle& tri : subMesh.mTris )
-          {
-            const v3 p0 = ( model->mEntity->mWorldTransform * /*mesh->mTransform **/ v4( tri[ 0 ], 1 ) ).xyz();
-            const v3 p1 = ( model->mEntity->mWorldTransform * /*mesh->mTransform **/ v4( tri[ 1 ], 1 ) ).xyz();
-            const v3 p2 = ( model->mEntity->mWorldTransform * /*mesh->mTransform **/ v4( tri[ 2 ], 1 ) ).xyz();
-            mDrawData->DebugDraw3DTriangle( p0, p1, p2 );
-          }
-        }
-      }
-      Debug3DDrawData* mDrawData;
-    } visitor = {};
-    visitor.mDrawData = graphics->mWorld->mDebug3DDrawData;
-
-    graphics->VisitModels( &visitor );
-  }
 
   void                          GamePresentationDebugImGui( Graphics* graphics )
   {
-    if( ImGuiCollapsingHeader( "Game Presentation" ) )
+    if( !ImGuiCollapsingHeader( "Game Presentation" ) )
+      return;
+    ImGuiCheckbox( "Game Presentation Enabled Model", &mRenderEnabledModel );
+    ImGuiCheckbox( "Game Presentation Enabled Skybox", &mRenderEnabledSkybox );
+    ImGuiCheckbox( "Game Presentation Enabled Terrain", &mRenderEnabledTerrain );
+    ImGuiCheckbox( "Game Presentation Enabled Debug3D", &mRenderEnabledDebug3D );
+    if( mRenderEnabledDebug3D )
     {
-      ImGuiCheckbox( "Game Presentation Enabled Model", &mRenderEnabledModel );
-      ImGuiCheckbox( "Game Presentation Enabled Skybox", &mRenderEnabledSkybox );
-      ImGuiCheckbox( "Game Presentation Enabled Terrain", &mRenderEnabledTerrain );
-      ImGuiCheckbox( "Game Presentation Enabled Debug3D", &mRenderEnabledDebug3D );
-      if( mRenderEnabledDebug3D )
+      static bool debugEachTri;
+      ImGuiCheckbox( "debug each tri", &debugEachTri );
+      if( debugEachTri )
       {
-        static bool debugEachTri;
-        ImGuiCheckbox( "debug each tri", &debugEachTri );
-        if( debugEachTri )
-        {
-          Debug3DEachTri( graphics );
-        }
+        Debug3DEachTri( graphics );
       }
     }
   }

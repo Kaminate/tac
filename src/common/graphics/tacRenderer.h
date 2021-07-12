@@ -6,6 +6,7 @@
 
 #include "src/common/tacPreprocessor.h"
 #include "src/common/containers/tacFixedVector.h"
+#include "src/common/string/tacString.h"
 
 namespace Tac
 {
@@ -109,7 +110,7 @@ namespace Tac
       Back,
       Front
     };
-    enum class Binding
+    enum class Binding : int
     {
       None = 0b0000,
 
@@ -120,6 +121,10 @@ namespace Tac
       DepthStencil = 0b0100,
       UnorderedAccess = 0b1000,
     };
+
+    Binding operator | ( Binding, Binding );
+    Binding operator & ( Binding, Binding );
+
     enum class PrimitiveTopology
     {
       Unknown = 0,

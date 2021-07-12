@@ -21,14 +21,17 @@ namespace Tac
     {
       kDirectional,
       kSpot,
+      kCount,
     };
 
     float                     mSpotHalfFOVRadians = 0.5f;
     Type                      mType = kSpot;
     bool                      mCastsShadows = true;
     int                       mShadowResolution = 512;
-    Render::TextureHandle     mShadowMap;
-    Render::FramebufferHandle mShadowFrame;
+    Render::TextureHandle     mShadowMapColor;
+    Render::TextureHandle     mShadowMapDepth;
+    Render::FramebufferHandle mShadowFramebuffer;
+    Render::ViewHandle        mShadowView;
   };
 
   void                                   RegisterLightComponent();

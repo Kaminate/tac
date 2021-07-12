@@ -27,6 +27,7 @@
 #include "src/shell/tacDesktopApp.h"
 #include "src/space/model/tacModel.h"
 #include "src/space/presentation/tacGamePresentation.h"
+#include "src/space/presentation/tacShadowPresentation.h"
 #include "src/space/presentation/tacSkyboxPresentation.h"
 #include "src/space/presentation/tacVoxelGIPresentation.h"
 #include "src/space/tacEntity.h"
@@ -131,15 +132,12 @@ namespace Tac
     mEditorCamera->mUp = { 0, 1, 0 };
 
     SkyboxPresentationInit( errors );
-    //mSkyboxPresentation = TAC_NEW SkyboxPresentation;
-    //mSkyboxPresentation->Init( errors );
     TAC_HANDLE_ERROR( errors );
-
 
     GamePresentationInit( errors );
-    //mGamePresentation->mSkyboxPresentation = mSkyboxPresentation;
-    //mGamePresentation->CreateGraphicsObjects( errors );
     TAC_HANDLE_ERROR( errors );
+
+    ShadowPresentationInit( errors );
 
     VoxelGIPresentationInit( errors );
     TAC_HANDLE_ERROR( errors );
@@ -167,6 +165,8 @@ namespace Tac
   {
     SkyboxPresentationUninit();
     GamePresentationUninit();
+    VoxelGIPresentationUninit();
+    ShadowPresentationUninit();
     TAC_DELETE CreationMainWindow::Instance;
     TAC_DELETE CreationGameWindow::Instance;
     TAC_DELETE CreationPropertyWindow::Instance;

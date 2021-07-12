@@ -333,26 +333,18 @@ namespace Tac
 
     static UINT                       GetCPUAccessFlags( const CPUAccess access )
     {
-      UINT result = 0;
-      if( ( int )access & ( int )CPUAccess::Read )
-        result |= D3D11_CPU_ACCESS_READ;
-      if( ( int )access & ( int )CPUAccess::Write )
-        result |= D3D11_CPU_ACCESS_WRITE;
-      return result;
+      return 0
+        | ( ( int )access & ( int )CPUAccess::Read ? D3D11_CPU_ACCESS_READ : 0 )
+        | ( ( int )access & ( int )CPUAccess::Write ? D3D11_CPU_ACCESS_WRITE : 0 );
     }
 
     static UINT                       GetBindFlags( const Binding binding )
     {
-      UINT BindFlags = 0;
-      if( ( int )binding & ( int )Binding::RenderTarget )
-        BindFlags |= D3D11_BIND_RENDER_TARGET;
-      if( ( int )binding & ( int )Binding::ShaderResource )
-        BindFlags |= D3D11_BIND_SHADER_RESOURCE;
-      if( ( int )binding & ( int )Binding::DepthStencil )
-        BindFlags |= D3D11_BIND_DEPTH_STENCIL;
-      if( ( int )binding & ( int )Binding::UnorderedAccess )
-        BindFlags |= D3D11_BIND_UNORDERED_ACCESS;
-      return BindFlags;
+      return 0
+        | ( ( int )( binding & Binding::RenderTarget ) ? D3D11_BIND_RENDER_TARGET : 0 )
+        | ( ( int )( binding & Binding::ShaderResource ) ? D3D11_BIND_SHADER_RESOURCE : 0 )
+        | ( ( int )( binding & Binding::DepthStencil ) ? D3D11_BIND_DEPTH_STENCIL : 0 )
+        | ( ( int )( binding & Binding::UnorderedAccess ) ? D3D11_BIND_UNORDERED_ACCESS : 0 );
     }
 
     static UINT                       GetMiscFlags( const Binding binding )

@@ -95,6 +95,33 @@ namespace Tac
                 m03, m13, m23, m33 );
   }
 
+  void         m4::SetRow( int r, v4 v )
+  {
+    ( ( v4* )data() )[ r ] = v;
+  }
+
+  void         m4::SetColumn( int c, v4  v )
+  {
+    for( int i = 0; i < 4; ++i )
+      this->operator()( i, c ) = v[ i ];
+  }
+
+  m4    m4::FromRows( v4 r0, v4 r1, v4 r2, v4 r3 )
+  {
+    return { r0.x, r0.y, r0.z, r0.w,
+             r1.x, r1.y, r1.z, r1.w,
+             r2.x, r2.y, r2.z, r2.w,
+             r3.x, r3.y, r3.z, r3.w };
+  }
+
+  m4    m4::FromColumns( v4 c0, v4 c1, v4 c2, v4 c3 )
+  {
+    return { c0.x, c1.x, c2.x, c3.x,
+             c0.y, c1.y, c2.y, c3.y,
+             c0.z, c1.z, c2.z, c3.z,
+             c0.w, c1.w, c2.w, c3.w };
+  }
+
   m4 m4::Identity()
   {
     return {
