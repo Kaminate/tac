@@ -6,25 +6,25 @@ namespace Tac
 {
   static ComponentRegistryEntry* sComponentRegistryEntry;
 
-	static Component* CreateLightComponent( World* world )
-	{
-		return GetGraphics( world )->CreateLightComponent();
-	}
+  static Component* CreateLightComponent( World* world )
+  {
+    return GetGraphics( world )->CreateLightComponent();
+  }
 
-	static void       DestroyLightComponent( World* world, Component* component )
-	{
-		GetGraphics( world )->DestroyLightComponent( ( Light* )component );
-	}
+  static void       DestroyLightComponent( World* world, Component* component )
+  {
+    GetGraphics( world )->DestroyLightComponent( ( Light* )component );
+  }
 
-	static void       SaveLightComponent( Json& lightJson, Component* component )
-	{
-		auto light = ( Light* )component;
-	}
+  static void       SaveLightComponent( Json& lightJson, Component* component )
+  {
+    auto light = ( Light* )component;
+  }
 
-	static void       LoadLightComponent( Json& lightJson, Component* component )
-	{
-		auto light = ( Light* )component;
-	}
+  static void       LoadLightComponent( Json& lightJson, Component* component )
+  {
+    auto light = ( Light* )component;
+  }
 
 
   Light*                        Light::GetLight( Entity* entity )
@@ -42,6 +42,24 @@ namespace Tac
     return sComponentRegistryEntry;
   }
 
+  void                          Light::FreeRenderResources()
+  {
+    mCreatedRenderResources = false;
+
+    Render::DestroyTexture( mShadowMapDepth, TAC_STACK_FRAME );
+    mShadowMapDepth = Render::TextureHandle();
+
+    //Render::DestroyTexture( mShadowMapColor, TAC_STACK_FRAME );
+    //mShadowMapColor = Render::TextureHandle();
+
+    Render::DestroyFramebuffer( mShadowFramebuffer, TAC_STACK_FRAME );
+    mShadowFramebuffer = Render::FramebufferHandle();
+
+    Render::DestroyView( mShadowView );
+    mShadowView = Render::ViewHandle();
+  }
+
+
   void LightDebugImgui( Light* );
 
   void                                   RegisterLightComponent()
@@ -55,7 +73,6 @@ namespace Tac
     sComponentRegistryEntry->mSaveFn = SaveLightComponent;
     sComponentRegistryEntry->mLoadFn = LoadLightComponent;
   }
-
 
 }
 

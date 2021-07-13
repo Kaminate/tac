@@ -9,7 +9,7 @@ struct VS_INPUT
 
 struct VS_OUTPUT
 {
-  // float4 mClipSpacePosition : SV_POSITION;
+  float4 mClipSpacePosition : SV_POSITION;
   // float3 mViewSpacePosition : SV_AUTO_SEMANTIC;
 };
 

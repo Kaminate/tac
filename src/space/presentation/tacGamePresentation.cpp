@@ -70,7 +70,7 @@ namespace Tac
   {
     struct : public ModelVisitor
     {
-      void operator()( const Model* model ) override
+      void operator()( Model* model ) override
       {
         Errors errors;
         Mesh* mesh = ModelAssetManagerGetMeshTryingNewThing( model->mModelPath.c_str(),
@@ -340,7 +340,7 @@ namespace Tac
     Graphics* graphics = GetGraphics( world );
     struct : public ModelVisitor
     {
-      void operator()( const Model* model ) override
+      void operator()( Model* model ) override
       {
         RenderGameWorldAddDrawCall( model, mViewId );
       }
@@ -408,7 +408,7 @@ namespace Tac
     Graphics* graphics = GetGraphics( world );
     struct : public SkyboxVisitor
     {
-      void operator()( const Skybox* skybox ) override
+      void operator()( Skybox* skybox ) override
       {
         SkyboxPresentationRender( mCamera,
                                   mViewWidth,

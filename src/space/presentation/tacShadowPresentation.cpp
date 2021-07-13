@@ -28,7 +28,7 @@ namespace Tac
 
   struct ShadowModelVisitor : public ModelVisitor
   {
-    void operator()( const Model* model ) override
+    void operator()( Model* model ) override
     {
       Errors errors;
       Mesh* mesh = ModelAssetManagerGetMeshTryingNewThing( model->mModelPath.c_str(),
@@ -41,6 +41,10 @@ namespace Tac
       DefaultCBufferPerObject objBuf;
       objBuf.Color = { model->mColorRGB, 1 };
       objBuf.World = model->mEntity->mWorldTransform;
+      Render::UpdateConstantBuffer( mObjConstantBuffer,
+                                    &objBuf,
+                                    sizeof( DefaultCBufferPerObject ),
+                                    TAC_STACK_FRAME );
 
       for( const SubMesh& subMesh : mesh->mSubMeshes )
       {
@@ -53,11 +57,8 @@ namespace Tac
         Render::SetSamplerState( mSamplerState );
         Render::SetDepthState( mDepthState );
         Render::SetVertexFormat( mVertexFormatHandle );
-        Render::SetTexture( { mShadowColor } );
-        Render::UpdateConstantBuffer( mObjConstantBuffer,
-                                      &objBuf,
-                                      sizeof( DefaultCBufferPerObject ),
-                                      TAC_STACK_FRAME );
+        //Render::SetTexture( { mShadowColor } );
+        Render::SetTexture( { mShadowDepth } );
         Render::SetPrimitiveTopology( subMesh.mPrimitiveTopology );
         Render::Submit( mViewHandle, TAC_STACK_FRAME );
         Render::EndGroup( TAC_STACK_FRAME );
@@ -70,7 +71,8 @@ namespace Tac
     Render::BlendStateHandle      mBlendState;
     Render::SamplerStateHandle    mSamplerState;
     Render::ConstantBufferHandle  mObjConstantBuffer;
-    Render::TextureHandle         mShadowColor;
+    //Render::TextureHandle         mShadowColor;
+    Render::TextureHandle         mShadowDepth;
     Render::VertexFormatHandle    mVertexFormatHandle;
     Render::VertexDeclarations    mVertexDeclarations;
     Render::RasterizerStateHandle mRasterizerStateHandle;
@@ -78,46 +80,53 @@ namespace Tac
 
   static Render::TextureHandle CreateShadowMapDepth( const Light* light )
   {
-      Render::TexSpec texSpecDepth;
-      texSpecDepth.mImage.mFormat.mElementCount = 1;
-      texSpecDepth.mImage.mFormat.mPerElementByteCount = 16;
-      texSpecDepth.mImage.mFormat.mPerElementDataType = Render::GraphicsType::unorm;
-      texSpecDepth.mImage.mWidth = light->mShadowResolution;
-      texSpecDepth.mImage.mHeight = light->mShadowResolution;
-      texSpecDepth.mBinding = Render::Binding::DepthStencil;
-      Render::TextureHandle textureHandleDepth = Render::CreateTexture( texSpecDepth, TAC_STACK_FRAME );
-      Render::SetRenderObjectDebugName( textureHandleDepth, "shadowmap-depth" );
-      return textureHandleDepth;
+    Render::TexSpec texSpecDepth;
+    texSpecDepth.mImage.mFormat.mElementCount = 1;
+    texSpecDepth.mImage.mFormat.mPerElementByteCount = 16;
+    texSpecDepth.mImage.mFormat.mPerElementDataType = Render::GraphicsType::unorm;
+    texSpecDepth.mImage.mWidth = light->mShadowResolution;
+    texSpecDepth.mImage.mHeight = light->mShadowResolution;
+    texSpecDepth.mBinding = Render::Binding::DepthStencil | Render::Binding::ShaderResource;
+    Render::TextureHandle textureHandleDepth = Render::CreateTexture( texSpecDepth, TAC_STACK_FRAME );
+    Render::SetRenderObjectDebugName( textureHandleDepth, "shadowmap-depth" );
+    return textureHandleDepth;
 
   }
 
-  static Render::TextureHandle CreateShadowMapColor( const Light* light )
+  //static Render::TextureHandle CreateShadowMapColor( const Light* light )
+  //{
+  //    Render::TexSpec texSpecColor;
+  //    texSpecColor.mImage.mFormat.mElementCount = 4;
+  //    texSpecColor.mImage.mFormat.mPerElementByteCount = 1;
+  //    texSpecColor.mImage.mFormat.mPerElementDataType = Render::GraphicsType::unorm;
+  //    texSpecColor.mImage.mWidth = light->mShadowResolution;
+  //    texSpecColor.mImage.mHeight = light->mShadowResolution;
+  //    texSpecColor.mBinding = Render::Binding::ShaderResource | Render::Binding::RenderTarget;
+  //    Render::TextureHandle textureHandleColor = Render::CreateTexture( texSpecColor, TAC_STACK_FRAME );
+  //    Render::SetRenderObjectDebugName( textureHandleColor, "shadowmap-color" );
+  //    return textureHandleColor;
+  //}
+
+  static void CreateShadowMapFramebuffer( Light* light )
   {
-      Render::TexSpec texSpecColor;
-      texSpecColor.mImage.mFormat.mElementCount = 4;
-      texSpecColor.mImage.mFormat.mPerElementByteCount = 1;
-      texSpecColor.mImage.mFormat.mPerElementDataType = Render::GraphicsType::unorm;
-      texSpecColor.mImage.mWidth = light->mShadowResolution;
-      texSpecColor.mImage.mHeight = light->mShadowResolution;
-      texSpecColor.mBinding = Render::Binding::ShaderResource | Render::Binding::RenderTarget;
-      Render::TextureHandle textureHandleColor = Render::CreateTexture( texSpecColor, TAC_STACK_FRAME );
-      Render::SetRenderObjectDebugName( textureHandleColor, "shadowmap-color" );
-      return textureHandleColor;
-
-  }
-
-  static void CreateShadowMapFramebuffer( const Light* light )
-  {
-
-    Render::TextureHandle textureHandleColor = CreateShadowMapColor( light );
+    //Render::TextureHandle textureHandleColor = CreateShadowMapColor( light );
     Render::TextureHandle textureHandleDepth = CreateShadowMapDepth( light );
-    Render::FramebufferTextures framebufferTextures = { textureHandleColor, textureHandleDepth };
+    Render::FramebufferTextures framebufferTextures = { /*textureHandleColor,*/ textureHandleDepth };
     Render::FramebufferHandle framebufferHandle
       = Render::CreateFramebufferForRenderToTexture( framebufferTextures, TAC_STACK_FRAME );
 
     light->mShadowFramebuffer = framebufferHandle;
     light->mShadowMapDepth = textureHandleDepth;
-    light->mShadowMapColor = textureHandleColor;
+    //light->mShadowMapColor = textureHandleColor;
+  }
+
+  static void CreateShadowMapResources( Light* light )
+  {
+    if( light->mCreatedRenderResources )
+      return;
+    light->mCreatedRenderResources = true;
+    light->mShadowView = Render::CreateView();
+    CreateShadowMapFramebuffer( light );
   }
 
   struct ShadowLightVisitor : public LightVisitor
@@ -151,9 +160,11 @@ namespace Tac
       return perFrameData;
     }
 
-    void operator()( const Light* light ) override
+    void operator()( Light* light ) override
     {
-      CreateShadowMapFramebuffer( light );
+      if( !light->mCastsShadows )
+        return;
+      CreateShadowMapResources( light );
 
       const DefaultCBufferPerFrame perFrameData = GetPerFrameData( light );
       Render::SetViewFramebuffer( light->mShadowView, light->mShadowFramebuffer );
@@ -176,9 +187,8 @@ namespace Tac
       modelVisitor.mVertexDeclarations = GamePresentationGetVertexDeclarations();
       modelVisitor.mVertexFormatHandle = GamePresentationGetVertexFormat();
       modelVisitor.mRasterizerStateHandle = GamePresentationGetRasterizerState();
-
-
-      modelVisitor.mShadowColor = light->mShadowMapColor;
+      modelVisitor.mShadowDepth = light->mShadowMapDepth;
+      //modelVisitor.mShadowColor = light->mShadowMapColor;
       graphics->VisitModels( &modelVisitor );
     }
 

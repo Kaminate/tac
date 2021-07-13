@@ -17,6 +17,8 @@ namespace Tac
     static Light*                        GetLight( Entity* );
     static const Light*                  GetLight( const Entity* );
     const ComponentRegistryEntry*        GetEntry() const override;
+    void                                 FreeRenderResources();
+
     enum Type
     {
       kDirectional,
@@ -28,7 +30,9 @@ namespace Tac
     Type                      mType = kSpot;
     bool                      mCastsShadows = true;
     int                       mShadowResolution = 512;
-    Render::TextureHandle     mShadowMapColor;
+
+    bool                      mCreatedRenderResources = false;
+    //Render::TextureHandle     mShadowMapColor;
     Render::TextureHandle     mShadowMapDepth;
     Render::FramebufferHandle mShadowFramebuffer;
     Render::ViewHandle        mShadowView;

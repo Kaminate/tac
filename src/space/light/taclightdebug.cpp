@@ -54,7 +54,7 @@ namespace Tac
     }
 
     if( light->mType == Light::kSpot
-        && ImGuiCollapsingHeader( FrameMemoryPrintf( "%s light parameters", LightTypeToName( light->mType ) ) ))
+        && ImGuiCollapsingHeader( FrameMemoryPrintf( "%s light parameters", LightTypeToName( light->mType ) ) ) )
     {
       float fovDeg = light->mSpotHalfFOVRadians * ( 180.0f / 3.14f );
       if( ImGuiDragFloat( "half fov deg", &fovDeg ) )
@@ -68,11 +68,33 @@ namespace Tac
 
   }
 
+  void LightDebugImguiShadowResolution( Light* light )
+  {
+    int newDim = light->mShadowResolution;
+    if( ImGuiButton( "-" ) )
+      newDim /= 2;
+    ImGuiSameLine();
+    if( ImGuiButton( "+" ) )
+      newDim *= 2;
+    ImGuiSameLine();
+    newDim = Max( newDim, 64 );
+    newDim = Min( newDim, 1024 );
+    ImGuiText( FrameMemoryPrintf( "Shadow Resolution %ix%i", light->mShadowResolution ) );
+  }
+
   void LightDebugImgui( Light* light )
   {
+    const int oldShadowMapResolution = light->mShadowResolution;
     LightDebugImguiType( light );
     ImGuiCheckbox( "Casts shadows", &light->mCastsShadows );
-    ImGuiImage( ( int )light->mShadowMapColor, { 100, 100 } );
+    //ImGuiImage( ( int )light->mShadowMapColor, { 100, 100 } );
+    LightDebugImguiShadowResolution( light );
+    ImGuiImage( ( int )light->mShadowMapDepth, { 100, 100 } );
+
+    if( light->mShadowResolution != oldShadowMapResolution )
+    {
+     light->FreeRenderResources();
+    }
   }
 }
 

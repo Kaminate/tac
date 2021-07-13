@@ -472,7 +472,7 @@ namespace Tac
 
     struct : public ModelVisitor
     {
-      void operator()( const Model* model ) override
+      void operator()( Model* model ) override
       {
         Errors errors;
         Mesh* mesh = ModelAssetManagerGetMeshTryingNewThing( model->mModelPath.c_str(),
