@@ -328,6 +328,7 @@ namespace Tac
     mSelectedEntities.push_back( e );
 
     }
+
   void                Creation::DeleteSelectedEntities()
   {
     Vector< Entity* > topLevelEntitiesToDelete;
@@ -356,6 +357,7 @@ namespace Tac
 
   void                Creation::Update( Errors& errors )
   {
+    debugCamera = mEditorCamera;
 
     TAC_PROFILE_BLOCK;
 

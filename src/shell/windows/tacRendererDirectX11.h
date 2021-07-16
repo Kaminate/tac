@@ -79,6 +79,16 @@ namespace Tac
       ID3D11ShaderResourceView*  mSRV = nullptr;
     };
 
+    struct BoundSRVs
+    {
+      BoundSRVs() = default;
+      BoundSRVs( const DrawCall* );
+      void Clear();
+      bool operator ==( const BoundSRVs& );
+      ID3D11ShaderResourceView*  mBoundShaderResourceViews[ D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT ] = {};
+      int                        mBoundShaderResourceViewCount = 0;
+    };
+
     struct RendererDirectX11 : public Renderer
     {
       ~RendererDirectX11();
@@ -183,6 +193,7 @@ namespace Tac
       int                        mBoundConstantBufferCount = 0;
       ID3D11BlendState*          mBoundBlendState = nullptr;
       ID3D11DepthStencilState*   mBoundDepthStencilState = nullptr;
+      BoundSRVs                  mBoundSRVs;
       ViewHandle                 mBoundViewHandle;
       VertexBufferHandle         mBoundVertexBuffer;
       IndexBufferHandle          mBoundIndexBuffer;

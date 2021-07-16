@@ -1,8 +1,12 @@
 #include "src/common/graphics/imgui/tacImGui.h"
 #include "src/common/string/tacString.h"
 #include "src/common/tacFrameMemory.h"
+#include "src/common/tacCamera.h"
 #include "src/common/math/tacMath.h"
 #include "src/space/light/tacLight.h"
+#include "src/space/tacworld.h"
+#include "src/space/tacentity.h"
+#include "src/common/graphics/tacDebug3D.h"
 
 namespace Tac
 {
@@ -56,6 +60,7 @@ namespace Tac
     if( light->mType == Light::kSpot
         && ImGuiCollapsingHeader( FrameMemoryPrintf( "%s light parameters", LightTypeToName( light->mType ) ) ) )
     {
+      TAC_IMGUI_INDENT_BLOCK;
       float fovDeg = light->mSpotHalfFOVRadians * ( 180.0f / 3.14f );
       if( ImGuiDragFloat( "half fov deg", &fovDeg ) )
       {
@@ -68,7 +73,7 @@ namespace Tac
 
   }
 
-  void LightDebugImguiShadowResolution( Light* light )
+  static void LightDebugImguiShadowResolution( Light* light )
   {
     int newDim = light->mShadowResolution;
     if( ImGuiButton( "-" ) )
@@ -79,11 +84,28 @@ namespace Tac
     ImGuiSameLine();
     newDim = Max( newDim, 64 );
     newDim = Min( newDim, 1024 );
-    ImGuiText( FrameMemoryPrintf( "Shadow Resolution %ix%i", light->mShadowResolution ) );
+    ImGuiText( FrameMemoryPrintf( "Shadow Resolution %ix%i",
+                                  light->mShadowResolution,
+                                  light->mShadowResolution ) );
+  }
+
+  static void LightDebug3DDraw( Light* light )
+  {
+    Entity* entity = light->mEntity;
+    World* world = entity->mWorld;
+    Debug3DDrawData* drawData = world->mDebug3DDrawData;
+    Camera camera = light->GetCamera();
+
+    v3 from = light->mEntity->mWorldPosition;
+    v3 to = from + camera.mForwards * 10.0f;
+
+    drawData->DebugDraw3DArrow( from, to );
   }
 
   void LightDebugImgui( Light* light )
   {
+    LightDebug3DDraw( light );
+
     const int oldShadowMapResolution = light->mShadowResolution;
     LightDebugImguiType( light );
     ImGuiCheckbox( "Casts shadows", &light->mCastsShadows );
@@ -93,8 +115,15 @@ namespace Tac
 
     if( light->mShadowResolution != oldShadowMapResolution )
     {
-     light->FreeRenderResources();
+      light->FreeRenderResources();
     }
+
+    m4 world_xform = light->mEntity->mWorldTransform;
+
+    ImGuiText( "world xform" );
+    FrameMemoryPrintf( "%.2f %.2f %.2f", world_xform.m00, world_xform.m01, world_xform.m02 );
+    FrameMemoryPrintf( "%.2f %.2f %.2f", world_xform.m10, world_xform.m11, world_xform.m12 );
+    FrameMemoryPrintf( "%.2f %.2f %.2f", world_xform.m20, world_xform.m21, world_xform.m22 );
   }
 }
 

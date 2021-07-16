@@ -3,26 +3,64 @@
   "mChildren":
   [
     {
+      "Model":
+      {
+        "mColorRGB":
+        {
+          "b": 0.400000,
+          "g": 0.800000,
+          "r": 1
+        },
+        "mModelIndex": 7,
+        "mModelPath": "assets/editor/pandoras_cornell_box.glb"
+      },
       "mActive": true,
-      "mEntityUUID": 0,
+      "mChildren":
+      [
+        {
+          "Light": null,
+          "mActive": true,
+          "mEntityUUID": 3,
+          "mEulerRads":
+          {
+            "x": 1.570000,
+            "y": 0,
+            "z": 4.710000
+          },
+          "mName": "Light",
+          "mPosition":
+          {
+            "x": 2,
+            "y": 0,
+            "z": 0
+          },
+          "mScale":
+          {
+            "x": 1,
+            "y": 1,
+            "z": 1
+          }
+        }
+      ],
+      "mEntityUUID": 2,
       "mEulerRads":
       {
-        "x": -3.029619,
-        "y": 0.598733,
-        "z": 3.104697
+        "x": -0.587036,
+        "y": -0.187332,
+        "z": -1.808185
       },
-      "mName": "Light",
+      "mName": "light fixture",
       "mPosition":
       {
-        "x": 2.447335,
-        "y": 4.175813,
-        "z": -2.759485
+        "x": 2.541363,
+        "y": 5.507759,
+        "z": -1.483841
       },
       "mScale":
       {
-        "x": 1,
-        "y": 1,
-        "z": 1
+        "x": 0.335254,
+        "y": 0.335254,
+        "z": 0.335254
       }
     },
     {
@@ -38,7 +76,7 @@
         "mModelPath": "assets/editor/pandoras_cornell_box.glb"
       },
       "mActive": true,
-      "mEntityUUID": 0,
+      "mEntityUUID": 4,
       "mEulerRads":
       {
         "x": 0,
@@ -72,7 +110,7 @@
         "mModelPath": "assets/editor/pandoras_cornell_box.glb"
       },
       "mActive": true,
-      "mEntityUUID": 0,
+      "mEntityUUID": 5,
       "mEulerRads":
       {
         "x": -0.085973,
@@ -106,7 +144,7 @@
         "mModelPath": "assets/editor/pandoras_cornell_box.glb"
       },
       "mActive": true,
-      "mEntityUUID": 0,
+      "mEntityUUID": 6,
       "mEulerRads":
       {
         "x": -0.871118,
@@ -140,7 +178,7 @@
         "mModelPath": "assets/editor/pandoras_cornell_box.glb"
       },
       "mActive": true,
-      "mEntityUUID": 0,
+      "mEntityUUID": 7,
       "mEulerRads":
       {
         "x": -0.600763,
@@ -174,7 +212,7 @@
         "mModelPath": "assets/editor/pandoras_cornell_box.glb"
       },
       "mActive": true,
-      "mEntityUUID": 0,
+      "mEntityUUID": 8,
       "mEulerRads":
       {
         "x": -1.079038,
@@ -208,7 +246,7 @@
         "mModelPath": "assets/editor/pandoras_cornell_box.glb"
       },
       "mActive": true,
-      "mEntityUUID": 0,
+      "mEntityUUID": 9,
       "mEulerRads":
       {
         "x": -0.643075,
@@ -242,7 +280,7 @@
         "mModelPath": "assets/editor/pandoras_cornell_box.glb"
       },
       "mActive": true,
-      "mEntityUUID": 0,
+      "mEntityUUID": 10,
       "mEulerRads":
       {
         "x": -0.587036,
@@ -262,43 +300,9 @@
         "y": 0.335254,
         "z": 0.335254
       }
-    },
-    {
-      "Model":
-      {
-        "mColorRGB":
-        {
-          "b": 0.400000,
-          "g": 0.800000,
-          "r": 1
-        },
-        "mModelIndex": 7,
-        "mModelPath": "assets/editor/pandoras_cornell_box.glb"
-      },
-      "mActive": true,
-      "mEntityUUID": 0,
-      "mEulerRads":
-      {
-        "x": -0.587036,
-        "y": -0.187332,
-        "z": -1.808185
-      },
-      "mName": "light fixture",
-      "mPosition":
-      {
-        "x": 2.541363,
-        "y": 5.735091,
-        "z": 0.071612
-      },
-      "mScale":
-      {
-        "x": 0.335254,
-        "y": 0.335254,
-        "z": 0.335254
-      }
     }
   ],
-  "mEntityUUID": 0,
+  "mEntityUUID": 1,
   "mEulerRads":
   {
     "x": 0,

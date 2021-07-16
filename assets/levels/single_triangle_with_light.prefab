@@ -1,0 +1,84 @@
+{
+  "mActive": true,
+  "mChildren":
+  [
+    {
+      "Model":
+      {
+        "mColorRGB":
+        {
+          "b": 1,
+          "g": 1,
+          "r": 1
+        },
+        "mModelIndex": -1,
+        "mModelPath": "assets/editor/single_triangle.obj"
+      },
+      "mActive": true,
+      "mEntityUUID": 2,
+      "mEulerRads":
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "mName": "single triangle",
+      "mPosition":
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "mScale":
+      {
+        "x": 10,
+        "y": 10,
+        "z": 10
+      }
+    },
+    {
+      "Light": null,
+      "mActive": true,
+      "mEntityUUID": 3,
+      "mEulerRads":
+      {
+        "x": 0,
+        "y": 1.570000,
+        "z": 0
+      },
+      "mName": "light",
+      "mPosition":
+      {
+        "x": 3,
+        "y": 7,
+        "z": 5
+      },
+      "mScale":
+      {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      }
+    }
+  ],
+  "mEntityUUID": 1,
+  "mEulerRads":
+  {
+    "x": 0,
+    "y": 0,
+    "z": 0
+  },
+  "mName": "root",
+  "mPosition":
+  {
+    "x": 0,
+    "y": 0,
+    "z": 0
+  },
+  "mScale":
+  {
+    "x": 1,
+    "y": 1,
+    "z": 1
+  }
+}

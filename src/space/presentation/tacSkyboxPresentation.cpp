@@ -130,6 +130,9 @@ namespace Tac
     perFrame.mView = view;
     perFrame.mProjection = camera->Proj( a, b, aspect );
     const SubMesh* subMesh = &mesh->mSubMeshes[ 0 ];
+    Render::SetViewport( viewId, Render::Viewport( viewWidth, viewHeight ) );
+    Render::SetViewScissorRect( viewId, Render::ScissorRect( viewWidth, viewHeight ) );
+    //Render::SetViewFramebuffer(viewId, )
     Render::UpdateConstantBuffer( mPerFrame, &perFrame, sizeof( DefaultCBufferPerFrame ), TAC_STACK_FRAME );
     Render::SetVertexBuffer( subMesh->mVertexBuffer, 0, 0 );
     Render::SetIndexBuffer( subMesh->mIndexBuffer, 0, subMesh->mIndexCount );

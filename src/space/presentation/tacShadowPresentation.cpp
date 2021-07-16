@@ -57,8 +57,15 @@ namespace Tac
         Render::SetSamplerState( mSamplerState );
         Render::SetDepthState( mDepthState );
         Render::SetVertexFormat( mVertexFormatHandle );
+
+        // going to use the depth buffer solely, dont need a color buffer
         //Render::SetTexture( { mShadowColor } );
-        Render::SetTexture( { mShadowDepth } );
+        //
+        // the fbo depth texture is alreay bound for pixel output, cannot bind it as an
+        // input as a shader resource view
+        //Render::SetTexture( { mShadowDepth } );
+        //
+
         Render::SetPrimitiveTopology( subMesh.mPrimitiveTopology );
         Render::Submit( mViewHandle, TAC_STACK_FRAME );
         Render::EndGroup( TAC_STACK_FRAME );
@@ -82,7 +89,7 @@ namespace Tac
   {
     Render::TexSpec texSpecDepth;
     texSpecDepth.mImage.mFormat.mElementCount = 1;
-    texSpecDepth.mImage.mFormat.mPerElementByteCount = 16;
+    texSpecDepth.mImage.mFormat.mPerElementByteCount = sizeof( uint16_t );
     texSpecDepth.mImage.mFormat.mPerElementDataType = Render::GraphicsType::unorm;
     texSpecDepth.mImage.mWidth = light->mShadowResolution;
     texSpecDepth.mImage.mHeight = light->mShadowResolution;
@@ -133,8 +140,12 @@ namespace Tac
   {
     DefaultCBufferPerFrame GetPerFrameData( const Light* light )
     {
-      Camera my_camera;
-      TAC_ASSERT( false );
+
+
+      Camera my_camera = light->GetCamera();
+
+
+
       Camera* camera = &my_camera;
 
       float a;
@@ -150,6 +161,20 @@ namespace Tac
       const m4 proj = camera->Proj( a, b, aspect );
       const double elapsedSeconds = ShellGetElapsedSeconds();
 
+      //{
+      //  v4 posNear = { 0,0,-camera->mNearPlane,1 };
+      //  v4 posClip = proj * posNear;
+      //  v3 posNdc = posClip.xyz() / posClip.w;
+      //  ++asdf;
+      //}
+
+      //{
+      //  v4 posView = { 0,0,-camera->mFarPlane,1 };
+      //  v4 posClip = proj * posView;
+      //  v3 posNDC = posClip.xyz() / posClip.w;
+      //  ++asdf;
+      //}
+
       DefaultCBufferPerFrame perFrameData;
       perFrameData.mFar = camera->mFarPlane;
       perFrameData.mNear = camera->mNearPlane;
@@ -164,9 +189,36 @@ namespace Tac
     {
       if( !light->mCastsShadows )
         return;
+      TAC_RENDER_GROUP_BLOCK( FrameMemoryPrintf( "Light Shadow %p", light ) );
       CreateShadowMapResources( light );
 
       const DefaultCBufferPerFrame perFrameData = GetPerFrameData( light );
+
+
+      auto cam = light->GetCamera();
+      auto draw = light->mEntity->mWorld->mDebug3DDrawData;
+      m4 world_xform = light->mEntity->mWorldTransform;
+      draw->DebugDraw3DArrow( cam.mPos, cam.mPos + cam.mRight, { 1,0,0 } );
+      draw->DebugDraw3DArrow( cam.mPos, cam.mPos + cam.mUp, { 0,1,0 } );
+      draw->DebugDraw3DArrow( cam.mPos, cam.mPos + -cam.mForwards, { 0,0,1 } );
+
+      if( 0 )
+      {
+
+        const char* r0 = FrameMemoryPrintf( "%.2f %.2f %.2f", world_xform.m00, world_xform.m01, world_xform.m02 );
+        const char* r1 = FrameMemoryPrintf( "%.2f %.2f %.2f", world_xform.m10, world_xform.m11, world_xform.m12 );
+        const char* r2 = FrameMemoryPrintf( "%.2f %.2f %.2f", world_xform.m20, world_xform.m21, world_xform.m22 );
+
+        ImGuiSetNextWindowSize( v2( 1, 1 ) * 300 );
+        ImGuiBegin( "test" );
+        ImGuiText( "world xform" );
+        ImGuiText( r0 );
+        ImGuiText( r1 );
+        ImGuiText( r2 );
+        ImGuiEnd();
+      }
+
+
       Render::SetViewFramebuffer( light->mShadowView, light->mShadowFramebuffer );
       Render::SetViewport( light->mShadowView, Render::Viewport( light->mShadowResolution,
                                                                  light->mShadowResolution ) );
@@ -219,6 +271,11 @@ namespace Tac
     ShadowLightVisitor lightVisitor;
     lightVisitor.graphics = graphics;
     graphics->VisitLights( &lightVisitor );
+
+    //Render::SubmitFrame();
+    //Render::SubmitFrame();
+    //Render::SubmitFrame();
+
   }
 
   void        ShadowPresentationDebugImGui( Graphics* graphics )

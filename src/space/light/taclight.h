@@ -12,12 +12,14 @@
 //
 namespace Tac
 {
+  struct Camera;
   struct Light : public Component
   {
     static Light*                        GetLight( Entity* );
     static const Light*                  GetLight( const Entity* );
     const ComponentRegistryEntry*        GetEntry() const override;
     void                                 FreeRenderResources();
+    Camera                               GetCamera() const;
 
     enum Type
     {

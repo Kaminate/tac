@@ -1,4 +1,5 @@
 #include "src/common/graphics/imgui/tacImGui.h"
+#include "src/common/tacFrameMemory.h"
 #include "src/common/profile/tacProfile.h"
 #include "src/common/graphics/tacUI2D.h"
 #include "src/common/tacAlgorithm.h"
@@ -21,6 +22,28 @@
 
 namespace Tac
 {
+  static void EntityImGuiRotation( Entity* entity )
+  {
+    v3 rotDeg = entity->mRelativeSpace.mEulerRads * ( 180.0f / 3.14f );
+    const v3 rotDegOld = rotDeg;
+    for( int i = 0; i < 3; ++i )
+    {
+      float& rF = rotDeg[ i ];
+      float* pF = &rotDeg[ i ];
+      const char* axisNames[] = { "X","Y","Z" };
+      const char* axisName = axisNames[ i ];
+      rF += ImGuiButton( "-90" ) ? -90 : 0;
+      ImGuiSameLine();
+      rF += ImGuiButton( "+90" ) ? 90 : 0;
+      ImGuiSameLine();
+      ImGuiDragFloat( FrameMemoryPrintf( "%s eul deg", axisName ), pF );
+      rF += rF > 360 ? -360 : 0;
+      rF += rF < -360 ? 360 : 0;
+    }
+    if( rotDeg != rotDegOld )
+      entity->mRelativeSpace.mEulerRads = rotDeg * ( 3.14f / 180.0f );
+  }
+
   static void EntityImGuiScale( Entity* entity )
   {
     static std::map< Entity*, bool > sRequestSeparateScaleMap;
@@ -157,13 +180,8 @@ namespace Tac
       EntityImGuiScale( entity );
 
       ImGuiCheckbox( "active", &entity->mActive );
-      v3 rotDeg = entity->mRelativeSpace.mEulerRads * ( 180.0f / 3.14f );
-      bool changed = false;
-      changed |= ImGuiDragFloat( "X Eul Deg: ", &rotDeg.x );
-      changed |= ImGuiDragFloat( "Y Eul Deg: ", &rotDeg.y );
-      changed |= ImGuiDragFloat( "Z Eul Deg: ", &rotDeg.z );
-      if( changed )
-        entity->mRelativeSpace.mEulerRads = rotDeg * ( 3.14f / 180.0f );
+      EntityImGuiRotation( entity );
+
       Vector< const ComponentRegistryEntry* > addableComponentTypes;
 
       if( entity->mParent )

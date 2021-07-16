@@ -175,7 +175,7 @@ namespace Tac
   {
     struct Encoder
     {
-      void                  Submit( ViewHandle , StackFrame );
+      void                  Submit( ViewHandle, StackFrame );
       int                   mUniformBufferIndex = 0;
       DrawCall              mDrawCall;
     };
@@ -520,11 +520,11 @@ namespace Tac
     }
 
     MagicBufferHandle     CreateMagicBuffer( const int byteCount,
-                                                        const void* optionalInitialBytes,
-                                                        const int stride,
-                                                        const Binding binding,
-                                                        const Access access,
-                                                        const StackFrame stackFrame )
+                                             const void* optionalInitialBytes,
+                                             const int stride,
+                                             const Binding binding,
+                                             const Access access,
+                                             const StackFrame stackFrame )
     {
       const MagicBufferHandle magicBufferHandle = { mIdCollectionMagicBuffer.Alloc() };
       CommandDataCreateMagicBuffer commandData;
@@ -945,9 +945,9 @@ namespace Tac
 
 
     void ResizeFramebuffer( const FramebufferHandle framebufferHandle,
-                                             const int w,
-                                             const int h,
-                                             const StackFrame stackFrame )
+                            const int w,
+                            const int h,
+                            const StackFrame stackFrame )
     {
       CommandDataResizeFramebuffer commandData;
       commandData.mWidth = w;
@@ -1006,23 +1006,23 @@ namespace Tac
 
     void SetViewFramebuffer( const ViewHandle viewId, const FramebufferHandle framebufferHandle )
     {
-      TAC_ASSERT( ( unsigned )viewId < ( unsigned )kMaxViews )
-        View* view = &gSubmitFrame->mViews[ ( int )viewId ];
+      TAC_ASSERT( ( unsigned )viewId < ( unsigned )kMaxViews );
+      View* view = gSubmitFrame->mViews.FindView( viewId );
       view->mFrameBufferHandle = framebufferHandle;
     }
 
     void SetViewScissorRect( const ViewHandle viewId, const ScissorRect scissorRect )
     {
-      TAC_ASSERT( ( unsigned )viewId < ( unsigned )kMaxViews )
-        View* view = &gSubmitFrame->mViews[ ( int )viewId ];
+      TAC_ASSERT( ( unsigned )viewId < ( unsigned )kMaxViews );
+      View* view = gSubmitFrame->mViews.FindView( viewId );
       view->mScissorRect = scissorRect;
       view->mScissorSet = true;
     }
 
     void SetViewport( const ViewHandle viewId, const Viewport viewport )
     {
-      TAC_ASSERT( ( unsigned )viewId < ( unsigned )kMaxViews )
-        View* view = &gSubmitFrame->mViews[ ( int )viewId ];
+      TAC_ASSERT( ( unsigned )viewId < ( unsigned )kMaxViews );
+      View* view = gSubmitFrame->mViews.FindView( viewId );
       view->mViewport = viewport;
       view->mViewportSet = true;
     }
@@ -1073,7 +1073,7 @@ namespace Tac
 
     void SetTexture( const DrawCallTextures textureHandle )
     {
-      gEncoder.mDrawCall.mTextureHandle = textureHandle;
+      gEncoder.mDrawCall.mDrawCallTextures = textureHandle;
     }
 
     void SetPrimitiveTopology( const PrimitiveTopology primitiveTopology )
@@ -1165,6 +1165,18 @@ namespace Tac
       }
     }
 
+    View*               Views::FindView( const ViewHandle viewHandle )
+    {
+      TAC_ASSERT( ( int )viewHandle < kMaxViews );
+      return  viewHandle.IsValid() ? &mViews[ ( int )viewHandle ] : nullptr;
+    }
+
+    const View*         Views::FindView( const ViewHandle viewHandle ) const
+    {
+      TAC_ASSERT( ( int )viewHandle < kMaxViews );
+      return  viewHandle.IsValid() ? &mViews[ ( int )viewHandle ] : nullptr;
+    }
+
     Frame::Frame()
     {
       Clear();
@@ -1209,8 +1221,13 @@ namespace Tac
         gSubmitFrame->mDrawCalls.push_back( drawCall );
       }
 
+      // dont clear the views? because like we can technically call submitframe() several times
+      // and like we dont want them to be cleared if that happens
+      const Views views = gSubmitFrame->mViews;
+
       Swap( gRenderFrame, gSubmitFrame );
       gSubmitFrame->Clear();
+      gSubmitFrame->mViews = views;
       gEncoder = Encoder();
       gFrameCount++;
 

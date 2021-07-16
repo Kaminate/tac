@@ -20,4 +20,6 @@ namespace Tac
   {
     return m4::ProjPerspectiveInv( a, b, mFovyrad, aspect );
   }
+
+  Camera* debugCamera = nullptr;
 }

@@ -87,7 +87,7 @@ namespace Tac
       DepthStateHandle      mDepthStateHandle;
       VertexFormatHandle    mVertexFormatHandle;
       ShaderHandle          mShaderHandle;
-      DrawCallTextures      mTextureHandle;
+      DrawCallTextures      mDrawCallTextures;
       ViewHandle            mViewHandle;
       PrimitiveTopology     mPrimitiveTopology;
       DrawCallUAVs          mDrawCallUAVs;
@@ -200,6 +200,13 @@ namespace Tac
       FixedVector< ViewHandle, kMaxViews >                       mFreedViews;
     };
 
+    struct Views
+    {
+      View*               FindView( ViewHandle );
+      const View*         FindView( ViewHandle ) const;
+      View                mViews[ kMaxViews ];
+    };
+
     struct Frame
     {
       Frame();
@@ -208,7 +215,7 @@ namespace Tac
       CommandBuffer       mCommandBufferFrameEnd;
       DrawCalls           mDrawCalls;
       UniformBuffer       mUniformBuffer;
-      View                mViews[ kMaxViews ];
+      Views               mViews;
       bool                mBreakOnFrameRender;
       int                 mBreakOnDrawCall;
       FreeDeferredHandles mFreeDeferredHandles;

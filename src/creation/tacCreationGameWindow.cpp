@@ -569,7 +569,7 @@ namespace Tac
         ImGuiDragFloat3( "cam forward", cam->mForwards.data() );
         ImGuiDragFloat3( "cam right", cam->mRight.data() );
         ImGuiDragFloat3( "cam up", cam->mUp.data() );
-        ImGuiDragFloat3( "cam far", &cam->mFarPlane );
+        ImGuiDragFloat( "cam far", &cam->mFarPlane );
         ImGuiDragFloat( "cam near", &cam->mNearPlane );
         ImGuiDragFloat( "cam fovyrad", &cam->mFovyrad );
         if( ImGuiButton( "cam snap pos" ) )
@@ -578,18 +578,33 @@ namespace Tac
           cam->mPos.y = ( float )( int )cam->mPos.y;
           cam->mPos.z = ( float )( int )cam->mPos.z;
         }
-        //if( ImGuiButton( "cam snap dir" ) )
-        //{
-        //  v3 unitDirs[] =
-        //  {
-        //    {1,0,0},
-        //    {-1,0,0},
-        //    {0,1,0},
-        //    {0,-1,0},
-        //    {0,0,1},
-        //    {0,0,-1},
-        //  };
-        //}
+        if( ImGuiButton( "cam snap dir" ) )
+        {
+          v3 unitDirs[] =
+          {
+            {1,0,0},
+            {-1,0,0},
+            {0,1,0},
+            {0,-1,0},
+            {0,0,1},
+            {0,0,-1},
+          };
+          for( v3* camDir : { &cam->mUp,  &cam->mRight, &cam->mForwards } )
+          {
+            float biggestDot = 0;
+            v3 biggestUnitDir = {};
+            for( v3 unitDir : unitDirs )
+            {
+              float d = Dot( *camDir, unitDir );
+              if( d > biggestDot )
+              {
+                biggestDot = d ;
+                biggestUnitDir = unitDir;
+              }
+            }
+            *camDir = biggestUnitDir;
+          }
+        }
       }
 
       if( ShellGetElapsedSeconds() < mStatusMessageEndTime )

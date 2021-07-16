@@ -18,4 +18,6 @@ namespace Tac
     m4    Proj( float a, float b, float aspect ) const;
     m4    ProjInv( float a, float b, float aspect ) const;
   };
+
+  extern Camera* debugCamera;
 }

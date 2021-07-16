@@ -23,8 +23,9 @@ namespace Tac
                                     Errors& errors );
 
 
-  Render::Format           GetFormat( DXGI_FORMAT );
-  DXGI_FORMAT      GetDXGIFormat( Render::Format );
+  DXGI_FORMAT      GetDXGIFormatTexture( Render::Format );
+  DXGI_FORMAT      GetDXGIFormatTextureTypeless( int );
+  DXGI_FORMAT      GetDXGIFormatDepth( int );
 
   void             NameDXGIObject( IDXGIObject* , StringView );
 

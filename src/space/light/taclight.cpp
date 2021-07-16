@@ -1,5 +1,6 @@
 #include "src/space/light/tacLight.h"
 #include "src/space/tacentity.h"
+#include "src/common/tacCamera.h"
 #include "src/space/graphics/tacgraphics.h"
 
 namespace Tac
@@ -40,6 +41,32 @@ namespace Tac
   const ComponentRegistryEntry* Light::GetEntry() const
   {
     return sComponentRegistryEntry;
+  }
+
+  Camera                        Light::GetCamera() const
+  {
+    if( debugCamera )
+    {
+      Camera c  = *debugCamera;
+      //c.mNearPlane = 1.0f;
+      //c.mFarPlane = c.mPos.Length() * 1.1f;
+      //if( c.mFarPlane < c.mNearPlane )
+      //  c.mFarPlane = c.mNearPlane + 1.0f;
+
+      return c;
+    }
+    // normalize?
+    // ortho-normalize?
+    v3 x = mEntity->mWorldTransform.GetColumn( 0 ).xyz();
+    v3 y = mEntity->mWorldTransform.GetColumn( 1 ).xyz();
+    v3 z = mEntity->mWorldTransform.GetColumn( 2 ).xyz();
+    Camera camera = {};
+    camera.mForwards = -z;
+    camera.mRight = x;
+    camera.mUp = y;
+    camera.mFovyrad = mSpotHalfFOVRadians * 2;
+    camera.mPos = mEntity->mWorldPosition;
+    return camera;
   }
 
   void                          Light::FreeRenderResources()

@@ -15,7 +15,7 @@ struct VS_OUTPUT
 VS_OUTPUT VS( VS_INPUT input )
 {
   float4 viewSpacePosition = mul( View, float4( input.Position, 1 ) );
-  float4 clipSpacePosition = mul( Projection, viewSpacePosition);
+  float4 clipSpacePosition = mul( Projection, viewSpacePosition );
 
   VS_OUTPUT output = ( VS_OUTPUT )0;
   output.mClipSpacePosition = clipSpacePosition;

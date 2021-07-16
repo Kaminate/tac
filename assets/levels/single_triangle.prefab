@@ -10,24 +10,25 @@
     "mModelIndex": -1,
     "mModelPath": "assets/editor/single_triangle.obj"
   },
-  "mEntityUUID": 0,
+  "mActive": true,
+  "mEntityUUID": 13,
   "mEulerRads":
   {
-    "x": 158.265701,
-    "y": 318.102783,
-    "z": 475.011047
+    "x": 0,
+    "y": 0,
+    "z": 0
   },
-  "mName": "single triangle",
+  "mName": "single triangle",
   "mPosition":
   {
-    "x": 0.800000,
-    "y": 2.100000,
-    "z": -3.200000
+    "x": 0,
+    "y": 0,
+    "z": 0
   },
   "mScale":
   {
-    "x": 10,
-    "y": 10,
-    "z": 10
+    "x": 6.700000,
+    "y": 6.700000,
+    "z": 6.700000
   }
 }

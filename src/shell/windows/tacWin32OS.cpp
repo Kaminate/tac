@@ -1,12 +1,13 @@
-#include "src/shell/windows/tacWin32.h"
+#include "src/common/containers/tacArray.h"
+#include "src/common/containers/tacFixedVector.h"
+#include "src/common/graphics/tacRenderer.h"
+#include "src/common/shell/tacShell.h"
+#include "src/common/tacAlgorithm.h"
+#include "src/common/tacIDCollection.h"
+#include "src/common/tacOS.h"
 #include "src/common/tacPreprocessor.h"
 #include "src/common/tacUtility.h"
-#include "src/common/tacOS.h"
-#include "src/common/graphics/tacRenderer.h"
-#include "src/common/tacAlgorithm.h"
-#include "src/common/shell/tacShell.h"
-#include "src/common/containers/tacFixedVector.h"
-#include "src/common/tacIDCollection.h"
+#include "src/shell/windows/tacWin32.h"
 
 #include <iostream>
 #include <ctime> // mktime
@@ -156,11 +157,10 @@ namespace Tac
     }
   }
 
-  void OSSaveDialog( String& path, StringView suggestedPath, Errors& errors )
+  void OSSaveDialog( String& outPath, StringView suggestedPath, Errors& errors )
   {
-    const int outBufSize = 256;
-    char outBuf[ outBufSize ] = {};
-    MemCpy( outBuf, suggestedPath.c_str(), suggestedPath.size() );
+    Array< char, 256 > outBuf = {};
+    MemCpy( outBuf.data(), suggestedPath.c_str(), suggestedPath.size() );
 
     // Prevent common file dialog from calling SetCurrentDirectory
     const DWORD flags = OFN_NOCHANGEDIR;
@@ -168,8 +168,8 @@ namespace Tac
     OPENFILENAME dialogParams = {};
     dialogParams.lStructSize = sizeof( OPENFILENAME );
     dialogParams.lpstrFilter = "All files\0*.*\0\0";
-    dialogParams.lpstrFile = outBuf;
-    dialogParams.nMaxFile = outBufSize;
+    dialogParams.lpstrFile = outBuf.data();
+    dialogParams.nMaxFile = outBuf.size();
     dialogParams.Flags = flags;
     // dialogParams.lpstrInitialDir = (LPCSTR)Shell::Instance.mPrefPath.c_str();
 
@@ -179,7 +179,7 @@ namespace Tac
       TAC_RAISE_ERROR( errMsg, errors );
     }
 
-    path = outBuf;
+    outPath = outBuf.data();
   };
 
   void OSSetScreenspaceCursorPos( const v2& pos, Errors& errors )

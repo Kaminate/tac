@@ -29,10 +29,14 @@ namespace Tac
     bool         operator== ( const m4& ) const;
     void         operator/= ( float );
     void         Transpose();
+
+    v4           GetRow( int );
+    v4           GetColumn( int );
     void         SetRow( int, v4 );
     void         SetColumn( int, v4 );
     static m4    FromRows( v4, v4, v4, v4 );
     static m4    FromColumns( v4, v4, v4, v4 );
+
     static m4    Identity();
     static m4    Inverse( const m4&, bool* resultExists );
     static m4    Scale( v3 );
