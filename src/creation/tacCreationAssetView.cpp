@@ -349,7 +349,7 @@ namespace Tac
 
       Render::TexSpec texSpecDepth;
       texSpecDepth.mImage.mFormat.mElementCount = 1;
-      texSpecDepth.mImage.mFormat.mPerElementByteCount = 16;
+      texSpecDepth.mImage.mFormat.mPerElementByteCount = sizeof( uint16_t );
       texSpecDepth.mImage.mFormat.mPerElementDataType = Render::GraphicsType::unorm;
       texSpecDepth.mImage.mWidth = w;
       texSpecDepth.mImage.mHeight = h;

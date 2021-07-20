@@ -30,22 +30,12 @@ namespace Tac
     return ( i < 0 ? "-" : "" ) + ToStringUnsignedInt( ( i < 0 ? -1 : 1 ) * i );
   }
 
-  bool       IsSpace( const char c )
-  {
-    return StringView( " \t\n\v\f\r" ).find_first_of( c ) != StringView::npos;
-  }
+  bool       IsSpace( const char c ) { return StringView( " \t\n\v\f\r" ).find_first_of( c ) != StringView::npos; }
 
-  bool       IsDigit( char c )
-  {
-    return c >= 0 && c <= 9;
-  }
+  bool       IsDigit( const char c ) {
+    return c >= '0' && c <= '9'; }
 
-  bool       IsAlpha( char c )
-  {
-    return
-      ( c >= 'A' && c <= 'Z' ) ||
-      ( c >= 'a' && c <= 'z' );
-  }
+  bool       IsAlpha( const char c ) { return ( c >= 'A' && c <= 'Z' ) || ( c >= 'a' && c <= 'z' ); }
 
   int        MemCmp( const void* lhs, const void* rhs, int len )
   {
@@ -126,32 +116,12 @@ namespace Tac
     return res;
   }
 
-  String     ToString( unsigned int i )
-  {
-    return ToStringUnsignedInt( i );
-  }
-  String     ToString( unsigned long long i )
-  {
-    return ToStringUnsignedInt( i );
-  }
-  String     ToString( int i )
-  {
-    return ToStringSignedInt( i );
-  }
-  String     ToString( void* val )
-  {
-    std::stringstream ss;
-    ss << val;
-    return ss.str().c_str();
-  }
-  String     ToString( double val )
-  {
-    return std::to_string( val ).data();
-  }
-  String     ToString( float val )
-  {
-    return std::to_string( val ).data();
-  }
+  String     ToString( unsigned int i )       { return ToStringUnsignedInt( i );                          }
+  String     ToString( unsigned long long i ) { return ToStringUnsignedInt( i );                          }
+  String     ToString( int i )                { return ToStringSignedInt( i );                            }
+  String     ToString( void* val )            { std::stringstream ss; ss << val; return ss.str().c_str(); }
+  String     ToString( double val )           { return std::to_string( val ).data();                      }
+  String     ToString( float val )            { return std::to_string( val ).data();                      }
 
 
   StringView::StringView( const char* str )
@@ -369,10 +339,12 @@ namespace Tac
     MemCpy( mStr + mLen, str, len );
     mStr[ mLen = newLen ] = '\0';
   }
-  void   String::append( const String& s )      { *this += s; }
-  void   String::prepend( const String& s )     { *this = s + *this; }
-  char*  String::begin() const                  { return mStr; }
-  char*  String::end() const                    { return mStr + mLen; }
+  void   String::append( const String& s )      { *this += s;               }
+  void   String::prepend( const String& s )     { *this = s + *this;        }
+  char*  String::begin() const                  {
+    return mStr;              }
+  char*  String::end() const                    {
+    return mStr + mLen;       }
   int    String::compare( const char* s ) const { return StrCmp( mStr, s ); }
 
   bool          operator == ( const StringView& a, const StringView& b )

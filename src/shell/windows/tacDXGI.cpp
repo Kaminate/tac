@@ -190,6 +190,10 @@ namespace Tac
 
   DXGI_FORMAT GetDXGIFormatTexture( const Render::Format textureFormat )
   {
+    TAC_ASSERT_MSG( textureFormat.mPerElementByteCount != 16,
+                    "You're making a depth buffer, right?"
+                    "Byte count should be 2, aka sizeof( uint16_t ), not 16" );
+
     for( auto formatPair : gFormatPairs )
       if( formatPair.mFormat.mElementCount == textureFormat.mElementCount &&
           formatPair.mFormat.mPerElementByteCount == textureFormat.mPerElementByteCount &&

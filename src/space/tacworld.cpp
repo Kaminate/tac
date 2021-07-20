@@ -124,10 +124,9 @@ namespace Tac
   }
   void    World::KillEntity( EntityUUID entityUUID )
   {
-    auto it = std::find_if(
-      mEntities.begin(),
-      mEntities.end(),
-      [ & ]( Entity* entity ) { return entity->mEntityUUID == entityUUID; } );
+    auto it = std::find_if( mEntities.begin(),
+                            mEntities.end(),
+                            [ & ]( Entity* entity ) { return entity->mEntityUUID == entityUUID; } );
     KillEntity( it );
   }
   Player* World::SpawnPlayer( PlayerUUID playerUUID )
@@ -154,10 +153,9 @@ namespace Tac
   }
   void    World::KillPlayer( PlayerUUID playerUUID )
   {
-    auto it = std::find_if(
-      mPlayers.begin(),
-      mPlayers.end(),
-      [ & ]( Player* player ) { return player->mPlayerUUID == playerUUID; } );
+    auto it = std::find_if( mPlayers.begin(),
+                            mPlayers.end(),
+                            [ & ]( Player* player ) { return player->mPlayerUUID == playerUUID; } );
     TAC_ASSERT( it != mPlayers.end() );
     auto player = *it;
     KillEntity( player->mEntityUUID );
@@ -229,8 +227,8 @@ namespace Tac
       system->Update();
     for( Entity* entity : mEntities )
     {
-    TAC_UNUSED_PARAMETER( entity );
-      //entity->Integrate( seconds );
+      TAC_UNUSED_PARAMETER( entity );
+        //entity->Integrate( seconds );
     }
 
 
@@ -264,7 +262,7 @@ namespace Tac
 
     for( Player* fromPlayer : world.mPlayers )
     {
-      Player* player = TAC_NEW Player;
+      auto player = TAC_NEW Player;
       *player = *fromPlayer;
       mPlayers.push_back( player );
     }
@@ -279,11 +277,11 @@ namespace Tac
   {
     return mSystems[ systemRegistryEntry->mIndex ];
   }
-  const System* World::GetSystem( const SystemRegistryEntry* systemRegistryEntry) const
+  const System* World::GetSystem( const SystemRegistryEntry* systemRegistryEntry ) const
   {
     return mSystems[ systemRegistryEntry->mIndex ];
   }
-  
+
   void    World::DebugImgui()
   {
     //if( !ImGui::CollapsingHeader( "World" ) )

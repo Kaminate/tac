@@ -95,11 +95,15 @@ namespace Tac
     World* world = entity->mWorld;
     Debug3DDrawData* drawData = world->mDebug3DDrawData;
     Camera camera = light->GetCamera();
+    const v3 p = entity->mWorldPosition;
+    drawData->DebugDraw3DArrow( p, p + camera.mForwards * 10.0f );
 
-    v3 from = light->mEntity->mWorldPosition;
-    v3 to = from + camera.mForwards * 10.0f;
-
-    drawData->DebugDraw3DArrow( from, to );
+    const v3 axes[] = { camera.mRight,camera.mUp,-camera.mForwards };
+    for( int i = 0; i < 3; ++i )
+      drawData->DebugDraw3DLine( p, p + axes[ i ] * 5.0f, v4( float( 0 == i ),
+                                                              float( 1 == i ),
+                                                              float( 2 == i ),
+                                                              1 ) );
   }
 
   void LightDebugImgui( Light* light )
@@ -111,6 +115,8 @@ namespace Tac
     ImGuiCheckbox( "Casts shadows", &light->mCastsShadows );
     //ImGuiImage( ( int )light->mShadowMapColor, { 100, 100 } );
     LightDebugImguiShadowResolution( light );
+
+    ImGuiText( "note you cant really see shit because nonlinear depth" );
     ImGuiImage( ( int )light->mShadowMapDepth, { 100, 100 } );
 
     if( light->mShadowResolution != oldShadowMapResolution )
@@ -121,9 +127,13 @@ namespace Tac
     m4 world_xform = light->mEntity->mWorldTransform;
 
     ImGuiText( "world xform" );
-    FrameMemoryPrintf( "%.2f %.2f %.2f", world_xform.m00, world_xform.m01, world_xform.m02 );
-    FrameMemoryPrintf( "%.2f %.2f %.2f", world_xform.m10, world_xform.m11, world_xform.m12 );
-    FrameMemoryPrintf( "%.2f %.2f %.2f", world_xform.m20, world_xform.m21, world_xform.m22 );
+    //const char* r0 = FrameMemoryPrintf( "%.2f %.2f %.2f", world_xform.m00, world_xform.m01, world_xform.m02 );
+    //const char* r1 = FrameMemoryPrintf( "%.2f %.2f %.2f", world_xform.m10, world_xform.m11, world_xform.m12 );
+    //const char* r2 = FrameMemoryPrintf( "%.2f %.2f %.2f", world_xform.m20, world_xform.m21, world_xform.m22 );
+    //ImGuiText( r0  );
+    //ImGuiText( r1  );
+    //ImGuiText( r2  );
+
   }
 }
 

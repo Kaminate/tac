@@ -8,6 +8,7 @@
 
 namespace Tac
 {
+  // this should really be called like per camera data
   struct DefaultCBufferPerFrame
   {
     static const char* name_view()        { return "View";        };
@@ -26,8 +27,8 @@ namespace Tac
 
   struct DefaultCBufferPerObject
   {
-    static const char* name_world() { return "World"; };
-    static const char* name_color() { return "Color"; };
+    static const char* name_world()       { return "World";       };
+    static const char* name_color()       { return "Color";       };
     static const int   shaderRegister = 1;
     m4                 World;
     v4                 Color;

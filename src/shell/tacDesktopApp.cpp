@@ -100,6 +100,24 @@ namespace Tac
   thread_local ThreadType              gThreadType = ThreadType::Unknown;
 
 
+  static void CreateRenderer( Errors& )
+  {
+
+#if defined _WIN32 || defined _WIN64 
+    const String defaultRendererName = Render::RendererNameDirectX11;
+#else
+    const String defaultRendererName = RendererNameVulkan;
+#endif
+    if( const Render::RendererFactory* factory = Render::RendererFactoriesFind( defaultRendererName ) )
+    {
+      factory->mCreateRenderer();
+      return;
+    }
+
+    Render::RendererFactory& factory = *Render::RendererRegistry().begin();
+    factory.mCreateRenderer();
+  }
+
   static void DesktopAppUpdateWindowRequests()
   {
     WindowRequestsCreate requestsCreate;
@@ -274,8 +292,6 @@ namespace Tac
           OSAppStopRunning();
         Render::RenderFinish();
       } );
-    PlatformThreadInit( errors );
-    TAC_HANDLE_ERROR( errors );
 
     while( OSAppIsRunning() )
     {
@@ -597,23 +613,6 @@ namespace Tac
     sEventQueue.QueuePush( DesktopEventType::CursorUnobscured, &data, sizeof( data ) );
   }
 
-  static void CreateRenderer( Errors& )
-  {
-
-#if defined _WIN32 || defined _WIN64 
-    const String defaultRendererName = Render::RendererNameDirectX11;
-#else
-    const String defaultRendererName = RendererNameVulkan;
-#endif
-    if( const Render::RendererFactory* factory = Render::RendererFactoriesFind( defaultRendererName ) )
-    {
-      factory->mCreateRenderer();
-      return;
-    }
-
-    Render::RendererFactory& factory = *Render::RendererRegistry().begin();
-    factory.mCreateRenderer();
-  }
 
   void                DesktopAppInit( PlatformSpawnWindow platformSpawnWindow,
                                       PlatformDespawnWindow platformDespawnWindow,
@@ -624,6 +623,9 @@ namespace Tac
                                       PlatformWindowResizeControls platformWindowResizeControls,
                                       Errors& errors )
   {
+    PlatformThreadInit( errors );
+    TAC_HANDLE_ERROR( errors );
+
     sEventQueue.Init();
 
     ExecutableStartupInfo info;
@@ -667,6 +669,7 @@ namespace Tac
     ShellSetAppName( appName.c_str() );
     ShellSetPrefPath( prefPath.c_str() );
     ShellSetInitialWorkingDir( workingDir );
+
 
     CreateRenderer( errors );
     Render::Init( errors );

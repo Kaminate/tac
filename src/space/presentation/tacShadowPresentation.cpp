@@ -24,6 +24,8 @@
 
 namespace Tac
 {
+
+
   static Render::ShaderHandle sShader;
 
   struct ShadowModelVisitor : public ModelVisitor
@@ -174,6 +176,23 @@ namespace Tac
       //  v3 posNDC = posClip.xyz() / posClip.w;
       //  ++asdf;
       //}
+      
+      //{
+      //  v4 posView = { 0,0,-5.7384f,1 };
+      //  v4 posClip = proj * posView;
+      //  v3 posNDC = posClip.xyz() / posClip.w;
+      //  ++asdf;
+      //}
+
+      // In summary, the depth buffer is working normally,
+      // its not showing linear depth.
+      // even if it was, the near plane (0.1) is very close,
+      // and the far plane (10000 ) is very far away, so you would still have a shitty viz
+      //
+      // with the current setup, most of the bits are used for things very close to the camera
+      // so theres not a good visualization.
+      // for better viz, i should get the scene extents and use that for the far plane
+      // and render linear depth
 
       DefaultCBufferPerFrame perFrameData;
       perFrameData.mFar = camera->mFarPlane;
@@ -195,28 +214,25 @@ namespace Tac
       const DefaultCBufferPerFrame perFrameData = GetPerFrameData( light );
 
 
-      auto cam = light->GetCamera();
-      auto draw = light->mEntity->mWorld->mDebug3DDrawData;
-      m4 world_xform = light->mEntity->mWorldTransform;
-      draw->DebugDraw3DArrow( cam.mPos, cam.mPos + cam.mRight, { 1,0,0 } );
-      draw->DebugDraw3DArrow( cam.mPos, cam.mPos + cam.mUp, { 0,1,0 } );
-      draw->DebugDraw3DArrow( cam.mPos, cam.mPos + -cam.mForwards, { 0,0,1 } );
-
-      if( 0 )
-      {
-
-        const char* r0 = FrameMemoryPrintf( "%.2f %.2f %.2f", world_xform.m00, world_xform.m01, world_xform.m02 );
-        const char* r1 = FrameMemoryPrintf( "%.2f %.2f %.2f", world_xform.m10, world_xform.m11, world_xform.m12 );
-        const char* r2 = FrameMemoryPrintf( "%.2f %.2f %.2f", world_xform.m20, world_xform.m21, world_xform.m22 );
-
-        ImGuiSetNextWindowSize( v2( 1, 1 ) * 300 );
-        ImGuiBegin( "test" );
-        ImGuiText( "world xform" );
-        ImGuiText( r0 );
-        ImGuiText( r1 );
-        ImGuiText( r2 );
-        ImGuiEnd();
-      }
+      //auto cam = light->GetCamera();
+      //auto draw = light->mEntity->mWorld->mDebug3DDrawData;
+      //m4 world_xform = light->mEntity->mWorldTransform;
+      //draw->DebugDraw3DArrow( cam.mPos, cam.mPos + cam.mRight, { 1,0,0 } );
+      //draw->DebugDraw3DArrow( cam.mPos, cam.mPos + cam.mUp, { 0,1,0 } );
+      //draw->DebugDraw3DArrow( cam.mPos, cam.mPos + -cam.mForwards, { 0,0,1 } );
+      //if( 0 )
+      //{
+      //  const char* r0 = FrameMemoryPrintf( "%.2f %.2f %.2f", world_xform.m00, world_xform.m01, world_xform.m02 );
+      //  const char* r1 = FrameMemoryPrintf( "%.2f %.2f %.2f", world_xform.m10, world_xform.m11, world_xform.m12 );
+      //  const char* r2 = FrameMemoryPrintf( "%.2f %.2f %.2f", world_xform.m20, world_xform.m21, world_xform.m22 );
+      //  ImGuiSetNextWindowSize( v2( 1, 1 ) * 300 );
+      //  ImGuiBegin( "test" );
+      //  ImGuiText( "world xform" );
+      //  ImGuiText( r0 );
+      //  ImGuiText( r1 );
+      //  ImGuiText( r2 );
+      //  ImGuiEnd();
+      //}
 
 
       Render::SetViewFramebuffer( light->mShadowView, light->mShadowFramebuffer );

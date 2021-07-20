@@ -553,6 +553,38 @@ namespace Tac
       return pBlobOut;
     }
 
+
+    static String PreprocessShaderPadding( const String line )
+    {
+      const int iPad = line.find( "TAC_PAD_BYTES" );
+      if( iPad == line.npos )
+        return line;
+
+      String numberStr;
+
+      // Compiler literally decides to skip the string if we leave out these curly brackets
+      for( char c : line ) { if( IsDigit( c ) ) { numberStr += c; } }
+
+      const int padByteCount = Atoi( numberStr );
+      TAC_ASSERT( !numberStr.empty() );
+      TAC_ASSERT( padByteCount );
+      TAC_ASSERT( padByteCount % 4 == 0 );
+
+      static int padCounter;
+      String result;
+      String separator;
+      for( int i = 0; i < padByteCount / 4; ++i )
+      {
+        result += separator;
+        result += String( iPad , ' ' ) + "uint pad";
+        result += ToString( padCounter++ );
+        result += ";";
+        separator = "\n";
+      }
+
+      return result;
+    }
+
     static String PreprocessShaderSemanticName( const String line )
     {
       const int iAutoSemantic = line.find( "SV_AUTO_SEMANTIC" );
@@ -581,6 +613,13 @@ namespace Tac
 
     static String PreprocessShaderIncludes( const String, Errors& );
 
+    static bool IsSingleLineCommented( const StringView line )
+    {
+      ParseData shaderParseData( line.data(), line.size() );
+      shaderParseData.EatWhitespace();
+      return shaderParseData.EatStringExpected( "//" );
+    }
+
     static String PreprocessShaderSource( String shaderSourceCode, Errors& errors )
     {
       String result;
@@ -588,9 +627,12 @@ namespace Tac
       while( shaderParseData.GetRemainingByteCount() )
       {
         String line = shaderParseData.EatRestOfLine();
-
-        line = PreprocessShaderIncludes( line, errors );
-        line = PreprocessShaderSemanticName( line );
+        if( !IsSingleLineCommented( line ) )
+        {
+          line = PreprocessShaderIncludes( line, errors );
+          line = PreprocessShaderSemanticName( line );
+          line = PreprocessShaderPadding( line );
+        }
 
         result += line + "\n";
       }
@@ -819,12 +861,7 @@ namespace Tac
         createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 
       D3D_FEATURE_LEVEL featureLevel;
-      D3D_FEATURE_LEVEL featureLevels[ 10 ];
-      int featureLevelCount = 0;
-      //featureLevels[ featureLevelCount++ ] = D3D_FEATURE_LEVEL_11_0;
-      featureLevels[ featureLevelCount++ ] = D3D_FEATURE_LEVEL_12_1;
-      // D3D_FEATURE_LEVEL_11_0 is too low for D3D11_FORMAT_SUPPORT2_UAV_TYPED_LOAD, try
-      // D3D_FEATURE_LEVEL_12_1 ?
+      FrameMemoryVector< D3D_FEATURE_LEVEL > featureLevels = { D3D_FEATURE_LEVEL_12_1 };
 
       IDXGIAdapter* pAdapter = NULL;
       D3D_DRIVER_TYPE DriverType = D3D_DRIVER_TYPE_HARDWARE;
@@ -836,8 +873,8 @@ namespace Tac
                      DriverType,
                      Software,
                      createDeviceFlags,
-                     featureLevels,
-                     featureLevelCount,
+                     featureLevels.data(),
+                     featureLevels.size(),
                      D3D11_SDK_VERSION,
                      &mDevice,
                      &featureLevel,
@@ -1234,7 +1271,6 @@ namespace Tac
       auto renderer = ( RendererDirectX11* )Renderer::Instance;
       Texture* mTextures = renderer->mTextures;
 
-
       int boundCount = 0;
       for( int iSlot = 0; iSlot < drawCall->mDrawCallTextures.size(); ++iSlot )
       {
@@ -1242,16 +1278,14 @@ namespace Tac
         if( !textureHandle.IsValid() )
           continue;
         const Texture* texture = &mTextures[ ( int )textureHandle ];
-        TAC_ASSERT( texture->mTextureSRV ); // Did you set the TexSpec::mBinding?
+        TAC_ASSERT_MSG( texture->mTextureSRV, "Did you set the TexSpec::mBinding?" );
         mBoundShaderResourceViews[ iSlot ] = texture->mTextureSRV;
         boundCount++;
       }
 
-      // todo: clean up?
       for( int i = 0; i < boundCount; ++i )
       {
-        ID3D11ShaderResourceView*  srv = mBoundShaderResourceViews[ i ];
-        TAC_ASSERT( srv );
+        TAC_ASSERT( mBoundShaderResourceViews[ i ] );
       }
 
       mBoundShaderResourceViewCount = boundCount;
@@ -1397,14 +1431,10 @@ namespace Tac
     {
       TAC_ASSERT( f > n );
 
-#if 0 //  old:
-      a = f / ( n - f );
-      b = ( n * f ) / ( n - f );
       // ( A, B ) maps ( -n, -f ) to ( 0, 1 )
       // because clip space in directx is [ -1, 1 ][ -1, 1 ][ 0, 1 ]
       // note that clip space in opengl is [ -1, 1 ][ -1, 1 ][ -1, 1 ]
-      // todo: double check this function
-#endif
+      //
       // [ . . 0  0 ] [ 0  ] = [     0     ]
       // [ . . 0  0 ] [ 0  ] = [     0     ]
       // [ . . A  B ] [ -n ] = [ (-nA+B)/n ]

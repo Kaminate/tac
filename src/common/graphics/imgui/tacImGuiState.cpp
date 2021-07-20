@@ -131,6 +131,7 @@ namespace Tac
     // Scrollbar
     if( mMaxiCursorViewport.y > mPosViewport.y + mSize.y || mScroll )
     {
+      // todo: fix weird scrollbar scroll shittery
       const float scrollbarWidth = 30;
       v2 mini( mPosViewport.x + mSize.x - scrollbarWidth,
                mPosViewport.y );

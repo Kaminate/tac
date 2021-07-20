@@ -245,7 +245,7 @@ namespace Tac
 
     typedef FixedVector< VertexDeclaration, 10 >    VertexDeclarations;
     typedef FixedVector< TextureHandle, 10 >        FramebufferTextures;
-    typedef FixedVector< TextureHandle, 2 >         DrawCallTextures;
+    typedef FixedVector< TextureHandle, 4 >         DrawCallTextures;
     typedef FixedVector< ConstantBufferHandle, 10 > ConstantBuffers;
 
     struct DepthState

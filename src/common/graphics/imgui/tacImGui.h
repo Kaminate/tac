@@ -2,7 +2,8 @@
 
 #pragma once
 
-#include "src/common/math/tacVector2.h"
+//#include "src/common/math/tacVector2.h"
+#include "src/common/math/tacVector4.h"
 
 namespace Tac
 {
@@ -69,8 +70,8 @@ namespace Tac
   bool ImGuiDragFloat4( const StringView& , float* );
   bool ImGuiDragInt( const StringView& , int* );
   void ImGuiDebugDraw();
-  void ImGuiSetCursorPos(v2 local);
-  void ImGuiImage(int hTex, v2 size);
+  void ImGuiSetCursorPos( v2 local );
+  void ImGuiImage( int hTex, v2 size, v4 color = { 1,1,1,1 } );
 
   // called by the main thread
   void ImGuiFrameBegin( double elapsedSeconds,

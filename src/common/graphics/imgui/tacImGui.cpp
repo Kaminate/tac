@@ -978,14 +978,14 @@ namespace Tac
     window->mCurrCursorViewport = local;
   }
 
-  void ImGuiImage( const int hTex, const v2 size )
+  void ImGuiImage( const int hTex, const v2 size, const v4 color )
   {
     ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
     const v2 pos = window->mCurrCursorViewport;
     const v2 boxMini = pos;
     const v2 boxMaxi = pos + size;
     window->ItemSize( size );
-    window->mDrawData->AddBox( boxMini, boxMaxi, v4( 1, 1, 1, 1 ), Render::TextureHandle( hTex ), nullptr );
+    window->mDrawData->AddBox( boxMini, boxMaxi, color, Render::TextureHandle( hTex ), nullptr );
   }
 
   bool ImGuiDragFloat( const StringView& str, float* value )

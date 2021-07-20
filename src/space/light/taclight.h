@@ -20,6 +20,7 @@ namespace Tac
     const ComponentRegistryEntry*        GetEntry() const override;
     void                                 FreeRenderResources();
     Camera                               GetCamera() const;
+    v3                                   GetUnitDirection() const;
 
     enum Type
     {
@@ -41,5 +42,7 @@ namespace Tac
   };
 
   void                                   RegisterLightComponent();
+  const char*                            LightTypeToString( Light::Type );
+  Light::Type                            LightTypeFromString( const char* );
 }
 

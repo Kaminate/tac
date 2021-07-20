@@ -32,6 +32,12 @@ namespace Tac
 {
   static bool drawGrid = false;
 
+  struct GameWindowVertex
+  {
+    v3 pos;
+    v3 nor;
+  };
+
 
   // http://palitri.com/vault/stuff/maths/Rays%20closest%20point.pdf
   //
@@ -135,13 +141,27 @@ namespace Tac
                                       Render::ConstantBuffers{ mPerFrame, mPerObj },
                                       TAC_STACK_FRAME );
 
-    Render::VertexDeclaration posDecl;
-    posDecl.mAlignedByteOffset = 0;
-    posDecl.mAttribute = Render::Attribute::Position;
-    posDecl.mTextureFormat.mElementCount = 3;
-    posDecl.mTextureFormat.mPerElementByteCount = sizeof( float );
-    posDecl.mTextureFormat.mPerElementDataType = Render::GraphicsType::real;
-    m3DvertexFormatDecls = Render::VertexDeclarations{ posDecl };
+    const Render::VertexDeclaration posDecl = []()
+    {
+      Render::VertexDeclaration decl = {};
+      decl.mAlignedByteOffset = TAC_OFFSET_OF( GameWindowVertex, pos );
+      decl.mAttribute = Render::Attribute::Position;
+      decl.mTextureFormat.mElementCount = 3;
+      decl.mTextureFormat.mPerElementByteCount = sizeof( float );
+      decl.mTextureFormat.mPerElementDataType = Render::GraphicsType::real;
+      return decl;
+    }();
+    const Render::VertexDeclaration norDecl = []()
+    {
+      Render::VertexDeclaration decl = {};
+      decl.mAlignedByteOffset = TAC_OFFSET_OF( GameWindowVertex, nor );
+      decl.mAttribute = Render::Attribute::Normal;
+      decl.mTextureFormat.mElementCount = 3;
+      decl.mTextureFormat.mPerElementByteCount = sizeof( float );
+      decl.mTextureFormat.mPerElementDataType = Render::GraphicsType::real;
+      return decl;
+    }();
+    m3DvertexFormatDecls = Render::VertexDeclarations{ posDecl, norDecl };
     m3DVertexFormat = Render::CreateVertexFormat( m3DvertexFormatDecls,
                                                   m3DShader,
                                                   TAC_STACK_FRAME );

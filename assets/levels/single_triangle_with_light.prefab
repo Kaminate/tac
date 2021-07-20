@@ -7,9 +7,9 @@
       {
         "mColorRGB":
         {
-          "b": 1,
-          "g": 1,
-          "r": 1
+          "b": 0.700000,
+          "g": 0.400000,
+          "r": 0.200000
         },
         "mModelIndex": -1,
         "mModelPath": "assets/editor/single_triangle.obj"
@@ -58,6 +58,40 @@
         "x": 1,
         "y": 1,
         "z": 1
+      }
+    },
+    {
+      "Model":
+      {
+        "mColorRGB":
+        {
+          "b": 0.100000,
+          "g": 0.300000,
+          "r": 0.400000
+        },
+        "mModelIndex": 1,
+        "mModelPath": "assets/editor/test_ears.glb"
+      },
+      "mActive": true,
+      "mEntityUUID": 4,
+      "mEulerRads":
+      {
+        "x": 0,
+        "y": 1.570000,
+        "z": 0
+      },
+      "mName": "other triangle",
+      "mPosition":
+      {
+        "x": 35.900002,
+        "y": -21.586281,
+        "z": 0
+      },
+      "mScale":
+      {
+        "x": 22.100002,
+        "y": 22.100002,
+        "z": 22.100002
       }
     }
   ],

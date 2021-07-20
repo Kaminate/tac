@@ -3,6 +3,9 @@
 #include "src/common/graphics/imgui/tacImGui.h"
 #include "src/common/assetmanagers/tacTextureAssetManager.h"
 #include "src/common/tacFrameMemory.h"
+#include "src/common/math/tacMath.h"
+#include "src/common/math/tacVector3.h"
+#include "src/common/math/tacVector4.h"
 #include "src/common/graphics/tacDebug3D.h"
 #include "src/common/graphics/tacRenderer.h"
 #include "src/common/graphics/tacRendererUtil.h"
@@ -16,6 +19,7 @@
 #include "src/space/graphics/tacGraphics.h"
 #include "src/space/skybox/tacSkyboxComponent.h"
 #include "src/space/model/tacModel.h"
+#include "src/space/light/taclight.h"
 #include "src/space/physics/tacPhysics.h"
 #include "src/space/presentation/tacGamePresentation.h"
 #include "src/space/presentation/tacSkyboxPresentation.h"
@@ -28,13 +32,39 @@
 
 namespace Tac
 {
+#define TAC_PAD_BYTES( byteCount ) char TAC_CONCAT( mPadding, __COUNTER__ )[ byteCount ]
+
+  // https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-packing-rules
+  struct ShaderLight
+  {
+    m4       mWorldToClip;
+    v4       mWorldSpacePosition;
+    v4       mWorldSpaceUnitDirection;
+    v4       mColor;
+    uint32_t mType; // flags?
+    TAC_PAD_BYTES( 12 );
+  };
+
+
+  struct CBufferLights
+  {
+    static const int TAC_MAX_SHADER_LIGHTS = 4;
+    static const int shaderRegister = 2;
+
+    ShaderLight      lights[ TAC_MAX_SHADER_LIGHTS ];
+    uint32_t         lightCount;
+    uint32_t         useLights;
+    uint32_t         testNumber;
+  };
+
 
   static Render::ShaderHandle          m3DShader;
   static Render::ShaderHandle          mTerrainShader;
   static Render::VertexFormatHandle    m3DVertexFormat;
   static Render::VertexFormatHandle    mTerrainVertexFormat;
-  static Render::ConstantBufferHandle  mPerFrame;
-  static Render::ConstantBufferHandle  mPerObj;
+  static Render::ConstantBufferHandle  mCBufPerFrame;
+  static Render::ConstantBufferHandle  mCBufPerObj;
+  static Render::ConstantBufferHandle  mCBufLight;
   static Render::DepthStateHandle      mDepthState;
   static Render::BlendStateHandle      mBlendState;
   static Render::RasterizerStateHandle mRasterizerState;
@@ -46,6 +76,8 @@ namespace Tac
   static bool                          mRenderEnabledSkybox = true;
   static bool                          mRenderEnabledTerrain = true;
   static bool                          mRenderEnabledDebug3D = true;
+  static bool                          mUseLights = true;
+  static CBufferLights                 mDebugCBufferLights = {};
 
   struct TerrainVertex
   {
@@ -53,6 +85,59 @@ namespace Tac
     v3 mNor;
     v2 mUV;
   };
+
+  struct GameModelVtx
+  {
+    v3 mPos;
+    v3 mNor;
+  };
+
+  static void CheckShaderPadding()
+  {
+    int sizeofshaderlight_estimated = 4 * ( 16 + 4 + 4 + 4 + 1 + 3 );
+    int sizeofshaderlight = sizeof( ShaderLight );
+    TAC_ASSERT( sizeofshaderlight % 16 == 0 );
+    TAC_ASSERT( sizeofshaderlight == sizeofshaderlight_estimated );
+
+    int light1Offset = ( int )TAC_OFFSET_OF( CBufferLights, lights[ 1 ] );
+    int light1OffsetReg = light1Offset / 16;
+    int light1OffsetAxis = light1Offset % 16;
+    TAC_ASSERT( light1OffsetReg == 8 );
+    TAC_ASSERT( light1OffsetAxis == 0 );
+
+    int lightCountOffset = ( int )TAC_OFFSET_OF( CBufferLights, lightCount );
+    int lightCountOffsetReg = lightCountOffset / 16;
+    int lightCountOffsetAxis = lightCountOffset % 16;
+    TAC_ASSERT( lightCountOffsetReg == 32 );
+    TAC_ASSERT( lightCountOffsetAxis == 0 );
+  }
+
+  static DefaultCBufferPerFrame GetPerFrameBuf( const Camera* camera,
+                                                const int viewWidth,
+                                                const int viewHeight )
+  {
+    const double elapsedSeconds = ShellGetElapsedSeconds();
+    float a;
+    float b;
+    Render::GetPerspectiveProjectionAB( camera->mFarPlane,
+                                        camera->mNearPlane,
+                                        a,
+                                        b );
+
+    const float w = ( float )viewWidth;
+    const float h = ( float )viewHeight;
+    const float aspect = w / h;
+    const m4 view = camera->View();
+    const m4 proj = camera->Proj( a, b, aspect );
+    DefaultCBufferPerFrame perFrameData;
+    perFrameData.mFar = camera->mFarPlane;
+    perFrameData.mNear = camera->mNearPlane;
+    perFrameData.mView = view;
+    perFrameData.mProjection = proj;
+    perFrameData.mGbufferSize = { w, h };
+    perFrameData.mSecModTau = ( float )std::fmod( elapsedSeconds, 6.2831853 );
+    return perFrameData;
+  }
 
   static TerrainVertex GetTerrainVertex( const Terrain* terrain,
                                          const int r,
@@ -107,7 +192,9 @@ namespace Tac
                                                    getmeshErrors );
   }
 
-  static void RenderGameWorldAddDrawCall( const Model* model,
+  static void RenderGameWorldAddDrawCall( const Light** lights,
+                                          int lightCount,
+                                          const Model* model,
                                           const Render::ViewHandle viewId )
   {
     const Mesh* mesh = LoadModel( model );
@@ -117,6 +204,44 @@ namespace Tac
     DefaultCBufferPerObject perObjectData;
     perObjectData.Color = { model->mColorRGB, 1 };
     perObjectData.World = model->mEntity->mWorldTransform;
+
+    Render::DrawCallTextures drawCallTextures;
+    if( mUseLights )
+    {
+      CBufferLights cBufferLights = {};
+      cBufferLights.lightCount = lightCount;
+      cBufferLights.useLights = true;
+      cBufferLights.testNumber = 1234567890;
+      for( int i = 0; i < lightCount; ++i )
+      {
+        drawCallTextures.push_back( lights[ i ]->mShadowMapDepth );
+        const Light* light = lights[ i ];
+        Camera camera = light->GetCamera();
+        float a;
+        float b;
+        Render::GetPerspectiveProjectionAB( camera.mFarPlane,
+                                            camera.mNearPlane,
+                                            a,
+                                            b );
+        const float w = ( float )light->mShadowResolution;
+        const float h = ( float )light->mShadowResolution;
+        const float aspect = w / h;
+        const m4 view = camera.View();
+        const m4 proj = camera.Proj( a, b, aspect );
+
+        ShaderLight* shaderLight = &cBufferLights.lights[ i ];
+        shaderLight->mColor = { 1, 1, 1, 1 };
+        shaderLight->mType = ( int )light->mType;
+        shaderLight->mWorldSpaceUnitDirection.xyz() = light->GetUnitDirection();
+        shaderLight->mWorldSpacePosition.xyz() = light->mEntity->mWorldPosition;
+        shaderLight->mWorldToClip = proj * view;
+      }
+      Render::UpdateConstantBuffer( mCBufLight, &cBufferLights, sizeof( CBufferLights ), TAC_STACK_FRAME );
+
+      mDebugCBufferLights = cBufferLights;
+    }
+
+    Render::SetTexture( drawCallTextures );
 
     for( const SubMesh& subMesh : mesh->mSubMeshes )
     {
@@ -133,7 +258,7 @@ namespace Tac
       Render::SetDepthState( mDepthState );
       Render::SetVertexFormat( m3DVertexFormat );
       Render::SetPrimitiveTopology( subMesh.mPrimitiveTopology );
-      Render::UpdateConstantBuffer( mPerObj,
+      Render::UpdateConstantBuffer( mCBufPerObj,
                                     &perObjectData,
                                     sizeof( DefaultCBufferPerObject ),
                                     TAC_STACK_FRAME );
@@ -211,28 +336,45 @@ namespace Tac
   {
     TAC_UNUSED_PARAMETER( errors );
     mTerrainShader = Render::CreateShader( Render::ShaderSource::FromPath( "Terrain" ),
-                                           Render::ConstantBuffers{ mPerFrame, mPerObj },
+                                           Render::ConstantBuffers{ mCBufPerFrame, mCBufPerObj },
                                            TAC_STACK_FRAME );
   }
 
   static void Create3DShader( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
-    m3DShader = Render::CreateShader( Render::ShaderSource::FromPath( "3DTest" ),
-                                      Render::ConstantBuffers{ mPerFrame, mPerObj },
+    m3DShader = Render::CreateShader( Render::ShaderSource::FromPath( "GamePresentation" ),
+                                      Render::ConstantBuffers{ mCBufPerFrame, mCBufPerObj },
                                       TAC_STACK_FRAME );
   }
 
   static void Create3DVertexFormat( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
-    Render::VertexDeclaration posDecl;
-    posDecl.mAlignedByteOffset = 0;
-    posDecl.mAttribute = Render::Attribute::Position;
-    posDecl.mTextureFormat.mElementCount = 3;
-    posDecl.mTextureFormat.mPerElementByteCount = sizeof( float );
-    posDecl.mTextureFormat.mPerElementDataType = Render::GraphicsType::real;
-    m3DVertexFormatDecls = Render::VertexDeclarations{ posDecl };
+
+    const Render::VertexDeclaration posDecl = []()
+    {
+      Render::VertexDeclaration vertexDeclaration = {};
+      vertexDeclaration.mAttribute = Render::Attribute::Position;
+      vertexDeclaration.mTextureFormat.mElementCount = 3;
+      vertexDeclaration.mTextureFormat.mPerElementByteCount = sizeof( float );
+      vertexDeclaration.mTextureFormat.mPerElementDataType = Render::GraphicsType::real;
+      vertexDeclaration.mAlignedByteOffset = TAC_OFFSET_OF( GameModelVtx, mPos );
+      return vertexDeclaration;
+    }( );
+
+    const Render::VertexDeclaration norDecl = []()
+    {
+      Render::VertexDeclaration vertexDeclaration = {};
+      vertexDeclaration.mAttribute = Render::Attribute::Normal;
+      vertexDeclaration.mTextureFormat.mElementCount = 3;
+      vertexDeclaration.mTextureFormat.mPerElementByteCount = sizeof( float );
+      vertexDeclaration.mTextureFormat.mPerElementDataType = Render::GraphicsType::real;
+      vertexDeclaration.mAlignedByteOffset = TAC_OFFSET_OF( GameModelVtx, mNor );
+      return vertexDeclaration;
+    }( );
+
+    m3DVertexFormatDecls = Render::VertexDeclarations{ posDecl, norDecl };
     m3DVertexFormat = Render::CreateVertexFormat( m3DVertexFormatDecls,
                                                   m3DShader,
                                                   TAC_STACK_FRAME );
@@ -272,19 +414,28 @@ namespace Tac
   static void CreatePerFrame( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
-    mPerFrame = Render::CreateConstantBuffer( sizeof( DefaultCBufferPerFrame ),
-                                              DefaultCBufferPerFrame::shaderRegister,
-                                              TAC_STACK_FRAME );
-    Render::SetRenderObjectDebugName( mPerFrame, "game-per-frame" );
+    mCBufPerFrame = Render::CreateConstantBuffer( sizeof( DefaultCBufferPerFrame ),
+                                                  DefaultCBufferPerFrame::shaderRegister,
+                                                  TAC_STACK_FRAME );
+    Render::SetRenderObjectDebugName( mCBufPerFrame, "game-per-frame" );
+  }
+
+
+  static void CreateCBufLights()
+  {
+    mCBufLight = Render::CreateConstantBuffer( sizeof( CBufferLights ),
+                                               CBufferLights::shaderRegister,
+                                               TAC_STACK_FRAME );
+    Render::SetRenderObjectDebugName( mCBufLight, "game-lights" );
   }
 
   static void CreatePerObj( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
-    mPerObj = Render::CreateConstantBuffer( sizeof( DefaultCBufferPerObject ),
-                                            DefaultCBufferPerObject::shaderRegister,
-                                            TAC_STACK_FRAME );
-    Render::SetRenderObjectDebugName( mPerObj, "game-per-obj" );
+    mCBufPerObj = Render::CreateConstantBuffer( sizeof( DefaultCBufferPerObject ),
+                                                DefaultCBufferPerObject::shaderRegister,
+                                                TAC_STACK_FRAME );
+    Render::SetRenderObjectDebugName( mCBufPerObj, "game-per-obj" );
   }
 
   static void CreateDepthState( Errors& errors )
@@ -314,7 +465,7 @@ namespace Tac
   {
     TAC_UNUSED_PARAMETER( errors );
     Render::RasterizerState rasterizerStateData;
-    rasterizerStateData.mCullMode = Render::CullMode::None; // todo
+    rasterizerStateData.mCullMode = Render::CullMode::None;
     rasterizerStateData.mFillMode = Render::FillMode::Solid;
     rasterizerStateData.mFrontCounterClockwise = true;
     rasterizerStateData.mMultisample = false;
@@ -333,21 +484,60 @@ namespace Tac
   }
 
   static void RenderModels( World* world,
+                            const Camera* camera,
+                            const int viewWidth,
+                            const int viewHeight,
                             const Render::ViewHandle viewId )
   {
     if( !mRenderEnabledModel )
       return;
+    const DefaultCBufferPerFrame perFrameData = GetPerFrameBuf( camera,
+                                                                viewWidth,
+                                                                viewHeight );
+    Render::UpdateConstantBuffer( mCBufPerFrame,
+                                  &perFrameData,
+                                  sizeof( DefaultCBufferPerFrame ),
+                                  TAC_STACK_FRAME );
+
     Graphics* graphics = GetGraphics( world );
     struct : public ModelVisitor
     {
       void operator()( Model* model ) override
       {
-        RenderGameWorldAddDrawCall( model, mViewId );
+        static struct : public LightVisitor
+        {
+          void operator()( Light* light ) override { mLights.push_back( light ); }
+          Vector< const Light* > mLights;
+        } sLightVisitor;
+
+        sLightVisitor.mLights.resize( 0 );
+
+        if( mUseLights )
+          mGraphics->VisitLights( &sLightVisitor );
+
+        sLightVisitor.mLights.resize( Min( sLightVisitor.mLights.size(), CBufferLights::TAC_MAX_SHADER_LIGHTS ) );
+
+
+        RenderGameWorldAddDrawCall( sLightVisitor.mLights.data(),
+                                    sLightVisitor.mLights.size(),
+                                    model,
+                                    mViewId );
       }
 
       Render::ViewHandle mViewId;
+      //World*             mWorld;
+      Graphics*          mGraphics;
     } myModelVisitor;
     myModelVisitor.mViewId = viewId;
+    myModelVisitor.mGraphics = graphics;
+    //myModelVisitor.mWorld = world;
+
+    if( !mUseLights )
+    {
+      CBufferLights cBufferLights = {};
+      Render::UpdateConstantBuffer( mCBufLight, &cBufferLights, sizeof( CBufferLights ), TAC_STACK_FRAME );
+    }
+
 
     TAC_RENDER_GROUP_BLOCK( "Visit Models" );
     //Render::BeginGroup( "Visit Models", TAC_STACK_FRAME );
@@ -356,10 +546,20 @@ namespace Tac
   }
 
   static void RenderTerrain( World* world,
+                             const Camera* camera,
+                             const int viewWidth,
+                             const int viewHeight,
                              const Render::ViewHandle viewId )
   {
     if( !mRenderEnabledTerrain )
       return;
+    const DefaultCBufferPerFrame perFrameData = GetPerFrameBuf( camera,
+                                                                viewWidth,
+                                                                viewHeight );
+    Render::UpdateConstantBuffer( mCBufPerFrame,
+                                  &perFrameData,
+                                  sizeof( DefaultCBufferPerFrame ),
+                                  TAC_STACK_FRAME );
     Physics* physics = Physics::GetSystem( world );
 
     TAC_RENDER_GROUP_BLOCK( "Visit Terrains" );
@@ -381,7 +581,7 @@ namespace Tac
       cbuf.World = m4::Identity();
 
       Render::SetTexture( Render::DrawCallTextures{ terrainTexture, noiseTexture } );
-      Render::UpdateConstantBuffer( mPerObj, &cbuf, sizeof( DefaultCBufferPerObject ), TAC_STACK_FRAME );
+      Render::UpdateConstantBuffer( mCBufPerObj, &cbuf, sizeof( DefaultCBufferPerObject ), TAC_STACK_FRAME );
       Render::SetDepthState( mDepthState );
       Render::SetBlendState( mBlendState );
       Render::SetRasterizerState( mRasterizerState );
@@ -436,8 +636,12 @@ namespace Tac
 
   void        GamePresentationInit( Errors& errors )
   {
+    CheckShaderPadding();
+
     CreatePerFrame( errors );
     TAC_HANDLE_ERROR( errors );
+
+    CreateCBufLights();
 
     CreatePerObj( errors );
     TAC_HANDLE_ERROR( errors );
@@ -471,13 +675,15 @@ namespace Tac
   {
     Render::DestroyShader( m3DShader, TAC_STACK_FRAME );
     Render::DestroyVertexFormat( m3DVertexFormat, TAC_STACK_FRAME );
-    Render::DestroyConstantBuffer( mPerFrame, TAC_STACK_FRAME );
-    Render::DestroyConstantBuffer( mPerObj, TAC_STACK_FRAME );
+    Render::DestroyConstantBuffer( mCBufPerFrame, TAC_STACK_FRAME );
+    Render::DestroyConstantBuffer( mCBufLight, TAC_STACK_FRAME );
+    Render::DestroyConstantBuffer( mCBufPerObj, TAC_STACK_FRAME );
     Render::DestroyDepthState( mDepthState, TAC_STACK_FRAME );
     Render::DestroyBlendState( mBlendState, TAC_STACK_FRAME );
     Render::DestroyRasterizerState( mRasterizerState, TAC_STACK_FRAME );
     Render::DestroySamplerState( mSamplerState, TAC_STACK_FRAME );
   }
+
 
   void        GamePresentationRender( World* world,
                                       const Camera* camera,
@@ -485,49 +691,15 @@ namespace Tac
                                       const int viewHeight,
                                       const Render::ViewHandle viewId )
   {
-    TAC_RENDER_GROUP_BLOCK( "Render Game World" );
-    //_PROFILE_BLOCK;
-
-    //Graphics* graphics = GetGraphics( world );
-    //Physics* physics = Physics::GetSystem( world );
-
-    float a;
-    float b;
-    Render::GetPerspectiveProjectionAB( camera->mFarPlane,
-                                        camera->mNearPlane,
-                                        a,
-                                        b );
-
-    const float w = ( float )viewWidth;
-    const float h = ( float )viewHeight;
-    const float aspect = w / h;
-    const m4 view = camera->View();
-    const m4 proj = camera->Proj( a, b, aspect );
-
-    const double elapsedSeconds = ShellGetElapsedSeconds();
-
-    DefaultCBufferPerFrame perFrameData;
-    perFrameData.mFar = camera->mFarPlane;
-    perFrameData.mNear = camera->mNearPlane;
-    perFrameData.mView = view;
-    perFrameData.mProjection = proj;
-    perFrameData.mGbufferSize = { w, h };
-    perFrameData.mSecModTau = ( float )std::fmod( elapsedSeconds, 6.2831853 );
-
-    Render::UpdateConstantBuffer( mPerFrame,
-                                  &perFrameData,
-                                  sizeof( DefaultCBufferPerFrame ),
-                                  TAC_STACK_FRAME );
-
-    Render::Submit( viewId, TAC_STACK_FRAME );
-
-
-    RenderModels( world, viewId );
-
-    RenderTerrain( world, viewId );
+    TAC_RENDER_GROUP_BLOCK( "GamePresentationRender" );
 
     ShadowPresentationRender( world );
 
+    RenderModels( world, camera, viewWidth, viewHeight, viewId );
+
+    RenderTerrain( world, camera, viewWidth, viewHeight, viewId );
+
+    // Skybox should be last to reduce pixel shader invocations
     RenderSkybox( world,
                   camera,
                   viewWidth,
@@ -541,14 +713,14 @@ namespace Tac
     }
   }
 
-  Render::ConstantBufferHandle  GamePresentationGetPerFrame()             { return mPerFrame;            }
-  Render::ConstantBufferHandle  GamePresentationGetPerObj()               { return mPerObj;              }
-  Render::DepthStateHandle      GamePresentationGetDepthState()           { return mDepthState;          }
-  Render::BlendStateHandle      GamePresentationGetBlendState()           { return mBlendState;          }
-  Render::RasterizerStateHandle GamePresentationGetRasterizerState()      { return mRasterizerState;     }
-  Render::SamplerStateHandle    GamePresentationGetSamplerState()         { return mSamplerState;        }
+  Render::ConstantBufferHandle  GamePresentationGetPerFrame()             { return mCBufPerFrame; }
+  Render::ConstantBufferHandle  GamePresentationGetPerObj()               { return mCBufPerObj; }
+  Render::DepthStateHandle      GamePresentationGetDepthState()           { return mDepthState; }
+  Render::BlendStateHandle      GamePresentationGetBlendState()           { return mBlendState; }
+  Render::RasterizerStateHandle GamePresentationGetRasterizerState()      { return mRasterizerState; }
+  Render::SamplerStateHandle    GamePresentationGetSamplerState()         { return mSamplerState; }
   Render::VertexDeclarations    GamePresentationGetVertexDeclarations()   { return m3DVertexFormatDecls; }
-  Render::VertexFormatHandle    GamePresentationGetVertexFormat()         { return m3DVertexFormat;      }
+  Render::VertexFormatHandle    GamePresentationGetVertexFormat()         { return m3DVertexFormat; }
 
 
   void                          GamePresentationDebugImGui( Graphics* graphics )
@@ -559,6 +731,41 @@ namespace Tac
     ImGuiCheckbox( "Game Presentation Enabled Skybox", &mRenderEnabledSkybox );
     ImGuiCheckbox( "Game Presentation Enabled Terrain", &mRenderEnabledTerrain );
     ImGuiCheckbox( "Game Presentation Enabled Debug3D", &mRenderEnabledDebug3D );
+
+    ImGuiCheckbox( "Game Presentation use lights", &mUseLights );
+    if( mUseLights && ImGuiCollapsingHeader( "CBufferLights" ) )
+    {
+      TAC_IMGUI_INDENT_BLOCK;
+      ImGuiText( FrameMemoryPrintf( "light count %i", mDebugCBufferLights.lightCount ) );
+      ImGuiText( FrameMemoryPrintf( "text number %i", mDebugCBufferLights.testNumber ) );
+      for( int iLight = 0; iLight < ( int )mDebugCBufferLights.lightCount; ++iLight )
+      {
+        if( !ImGuiCollapsingHeader( FrameMemoryPrintf( "Light %i", iLight ) ) )
+          continue;
+
+        ShaderLight* shaderLight = &mDebugCBufferLights.lights[ iLight ];
+        String rowsStrs[ 4 ];
+        for( int r = 0; r < 4; ++r )
+          for( int c = 0; c < 4; ++c )
+            rowsStrs[ r ] += FrameMemoryPrintf( "%.2f ", shaderLight->mWorldToClip( r, c ) );
+
+        TAC_IMGUI_INDENT_BLOCK;
+        ImGuiText( "World to clip matrix" );
+        ImGuiText( rowsStrs[ 0 ] );
+        ImGuiText( rowsStrs[ 1 ] );
+        ImGuiText( rowsStrs[ 2 ] );
+        ImGuiText( rowsStrs[ 3 ] );
+        ImGuiDragFloat4( "worldspace pos", shaderLight->mWorldSpacePosition.data() );
+        ImGuiDragFloat3( "worldspace pos", shaderLight->mWorldSpacePosition.data() );
+        ImGuiDragFloat3( "worldspace unit dir", shaderLight->mWorldSpaceUnitDirection.data() );
+        ImGuiDragFloat3( "light color", shaderLight->mColor.data() );
+        ImGuiImage( -1, v2( 1, 1 ) * 50, shaderLight->mColor );
+        ImGuiText( FrameMemoryPrintf( "Light type: %s (%i)",
+                                      LightTypeToString( ( Light::Type ) shaderLight->mType ),
+                                      shaderLight->mType ) );
+      }
+    }
+
     if( mRenderEnabledDebug3D )
     {
       static bool debugEachTri;

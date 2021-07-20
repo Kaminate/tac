@@ -43,25 +43,29 @@ namespace Tac
     return sComponentRegistryEntry;
   }
 
+  v3                            Light::GetUnitDirection() const
+  {
+    v3 z = mEntity->mWorldTransform.GetColumn( 2 ).xyz();
+    z = Normalize( z );
+    return -z;
+  }
   Camera                        Light::GetCamera() const
   {
-    if( debugCamera )
-    {
-      Camera c  = *debugCamera;
-      //c.mNearPlane = 1.0f;
-      //c.mFarPlane = c.mPos.Length() * 1.1f;
-      //if( c.mFarPlane < c.mNearPlane )
-      //  c.mFarPlane = c.mNearPlane + 1.0f;
+    const v3 unitDir = GetUnitDirection();
+    v3 x, y;
+    GetFrameRH( -unitDir, x, y );
 
-      return c;
-    }
-    // normalize?
-    // ortho-normalize?
-    v3 x = mEntity->mWorldTransform.GetColumn( 0 ).xyz();
-    v3 y = mEntity->mWorldTransform.GetColumn( 1 ).xyz();
-    v3 z = mEntity->mWorldTransform.GetColumn( 2 ).xyz();
+    // Ideally, we want:
+    // 
+    // - near value as big as possible
+    // - far value as small as possible
+    // - fov as small as possible ( if not spot light )
+    //
+    // to cover the scene
+
+
     Camera camera = {};
-    camera.mForwards = -z;
+    camera.mForwards = unitDir;
     camera.mRight = x;
     camera.mUp = y;
     camera.mFovyrad = mSpotHalfFOVRadians * 2;
@@ -99,6 +103,28 @@ namespace Tac
     sComponentRegistryEntry->mDebugImguiFn = []( Component* component ){ LightDebugImgui( ( Light* )component ); };
     sComponentRegistryEntry->mSaveFn = SaveLightComponent;
     sComponentRegistryEntry->mLoadFn = LoadLightComponent;
+  }
+
+  const char*                            LightTypeToString( Light::Type type )
+  {
+    switch( type )
+    {
+      case Light::kDirectional: return "Directional";
+      case Light::kSpot: return "Spot";
+      default: TAC_CRITICAL_ERROR_INVALID_CASE( type ); return nullptr;
+    }
+  }
+
+  Light::Type                            LightTypeFromString( const char* str )
+  {
+    for( int i = 0; i < Light::Type::kCount; ++i )
+    {
+      auto curType = ( Light::Type )i;
+      const char* curTypeStr = LightTypeToString( curType );
+      if( 0 == StrCmp( curTypeStr, str ) )
+        return curType;
+    }
+    return Light::Type::kCount;
   }
 
 }
