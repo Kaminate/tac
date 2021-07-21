@@ -1431,37 +1431,33 @@ namespace Tac
     {
       TAC_ASSERT( f > n );
 
-      // ( A, B ) maps ( -n, -f ) to ( 0, 1 )
-      // because clip space in directx is [ -1, 1 ][ -1, 1 ][ 0, 1 ]
-      // note that clip space in opengl is [ -1, 1 ][ -1, 1 ][ -1, 1 ]
+      // ( A, B ) maps ( -n, -f )vs to ( 0, 1 )ndc in directx
+      // directx ndc : [ -1, 1 ][ -1, 1 ][  0, 1 ]
+      // opengl  ndc : [ -1, 1 ][ -1, 1 ][ -1, 1 ]
       //
-      // [ . . 0  0 ] [ 0  ] = [     0     ]
-      // [ . . 0  0 ] [ 0  ] = [     0     ]
-      // [ . . A  B ] [ -n ] = [ (-nA+B)/n ]
-      // [ . . -1 0 ] [ 1  ] = [     n     ]
-      //                vs          cs
+      // [ . 0 0  0 ] [ .    ] = [      .         ]         [          .            ]
+      // [ 0 . 0  0 ] [ .    ] = [      .         ] /w_cs = [          .            ]
+      // [ 0 0 A  B ] [ z_vs ] = [ z_vs * A + B   ]         [( z_vs * A + B )/-z_vs ]
+      // [ 0 0 -1 0 ] [ 1    ] = [    -z_vs       ]         [          1            ]
+      // ProjMtx      vs         cs                         ndc
       //
-      // in directx, map [-n,-f]viewspace to [0,-1]ndcspace
-      // ( in opengl, ndc is [-1,1] )
-      // 0 = -nA + B
-      // B = nA
       //
-      // [ . . 0  0 ] [ 0  ] = [     0     ]
-      // [ . . 0  0 ] [ 0  ] = [     0     ]
-      // [ . . A  B ] [ -f ] = [ (-fA+B)/f ]
-      // [ . . -1 0 ] [ 1  ] = [     f     ]
+      // z_ndc =    z_cs     /    w_cs       <-- ndc in terms of cs
+      // z_ndc = ((z_vs)A+B) / ( -z_vs )     <-- ndc in terms of vs
+      //                                         |
+      // (0)ndc = (-n)vs                         |
+      // (0)    = (( -n )A+B) / ( -(-n) ) <------+
+      // B      = nA                             |
+      //                                         |
+      // (1)ndc = (-f)vs                         |
+      // (1)    = (( -f )A+ B  ) / ( -(-f) ) <---+
+      // 1      = (  -f  A+ B  ) /    f
+      // 1      = (  -f  A+(nA)) /    f
+      // f      =    -f  A+ nA
+      // f      =  A(-f   + n )
+      // A = f/(n-f)  <-- Solved for A
+      // B = nf/(n-f) <-- Solved for B
       //
-      // 1 = (-fA + B)/f
-      // 1 = (-fA + (nA)/f
-      // f = -fA + nA
-      // f = A(-f+n)
-      // f/(-f+n) = A
-      // f/(n-f) = A
-      //
-      // B =nA
-      // B =n(f/(n-f))
-      // B =nf/(n-f)
-      // 
 
       a = f / ( n - f );
       b = ( n * f ) / ( n - f );
@@ -1827,6 +1823,7 @@ namespace Tac
         + ( data->mTexSpec.mImage.mHeight ? 1 : 0 )
         + ( data->mTexSpec.mImage.mDepth ? 1 : 0 );
 
+      TAC_ASSERT( dimension );
 
       const DXGI_FORMAT Format = GetDXGIFormatTexture( data->mTexSpec.mImage.mFormat );
       const DXGI_FORMAT FormatTexture2D = [ & ]()

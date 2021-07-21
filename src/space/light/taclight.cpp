@@ -1,6 +1,7 @@
 #include "src/space/light/tacLight.h"
 #include "src/space/tacentity.h"
 #include "src/common/tacCamera.h"
+#include "src/common/tacJson.h"
 #include "src/space/graphics/tacgraphics.h"
 
 namespace Tac
@@ -20,11 +21,20 @@ namespace Tac
   static void       SaveLightComponent( Json& lightJson, Component* component )
   {
     auto light = ( Light* )component;
+    lightJson[ "mSpotHalfFOVRadians" ].SetNumber( light->mSpotHalfFOVRadians );
+    lightJson[ "mType" ].SetString( LightTypeToString( light->mType ) );
+    lightJson[ "mShadowResolution" ].SetNumber( light->mShadowResolution );
   }
 
   static void       LoadLightComponent( Json& lightJson, Component* component )
   {
     auto light = ( Light* )component;
+    if( lightJson.HasChild( "mSpotHalfFOVRadians" ) )
+      light->mSpotHalfFOVRadians = ( float )lightJson[ "mSpotHalfFOVRadians" ].mNumber;
+    if( lightJson.HasChild( "mType" ) )
+      light->mType = LightTypeFromString( lightJson[ "mType" ].mString );
+    if( lightJson.HasChild( "mShadowResolution" ) )
+      light->mShadowResolution = ( int )lightJson[ "mShadowResolution" ].mNumber;
   }
 
 
@@ -49,6 +59,7 @@ namespace Tac
     z = Normalize( z );
     return -z;
   }
+
   Camera                        Light::GetCamera() const
   {
     const v3 unitDir = GetUnitDirection();
@@ -89,7 +100,6 @@ namespace Tac
     Render::DestroyView( mShadowView );
     mShadowView = Render::ViewHandle();
   }
-
 
   void LightDebugImgui( Light* );
 

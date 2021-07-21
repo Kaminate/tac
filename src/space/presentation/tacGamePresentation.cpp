@@ -42,7 +42,11 @@ namespace Tac
     v4       mWorldSpaceUnitDirection;
     v4       mColor;
     uint32_t mType; // flags?
-    TAC_PAD_BYTES( 12 );
+    //float    mNear;
+    //float    mFar;
+        float mProjA;
+        float mProjB;
+    TAC_PAD_BYTES( 4 );
   };
 
 
@@ -235,6 +239,35 @@ namespace Tac
         shaderLight->mWorldSpaceUnitDirection.xyz() = light->GetUnitDirection();
         shaderLight->mWorldSpacePosition.xyz() = light->mEntity->mWorldPosition;
         shaderLight->mWorldToClip = proj * view;
+        //shaderLight->mNear = camera.mNearPlane;
+        //shaderLight->mFar = camera.mFarPlane;
+        shaderLight->mProjA = a;
+        shaderLight->mProjB = b;
+
+        v4 r0 = shaderLight->mWorldToClip.GetRow( 0 );
+        v4 r1 = shaderLight->mWorldToClip.GetRow( 1 );
+        v4 r2 = shaderLight->mWorldToClip.GetRow( 2 );
+        v4 r3 = shaderLight->mWorldToClip.GetRow( 3 );
+        const char* debugMtx = FrameMemoryPrintf(
+          "%.2f %.2f %.2f %.2f\n"
+          "%.2f %.2f %.2f %.2f\n"
+          "%.2f %.2f %.2f %.2f\n"
+          "%.2f %.2f %.2f %.2f\n",
+          r0.x, r0.y, r0.z, r0.w,
+          r1.x, r1.y, r1.z, r1.w,
+          r2.x, r2.y, r2.z, r2.w,
+          r3.x, r3.y, r3.z, r3.w);
+
+        v4 worldspacePos = {0,0,0,1};
+        v4 clipspacePos = shaderLight->mWorldToClip * worldspacePos;
+        v4 ndcspacePos = clipspacePos / clipspacePos.w;
+
+        float clipToViewPos = ( clipspacePos.z - b ) / a;
+        float ndcToViewPos = -b / ( a + ndcspacePos.z );
+
+
+        ++asdf;
+
       }
       Render::UpdateConstantBuffer( mCBufLight, &cBufferLights, sizeof( CBufferLights ), TAC_STACK_FRAME );
 
@@ -759,6 +792,10 @@ namespace Tac
         ImGuiDragFloat3( "worldspace pos", shaderLight->mWorldSpacePosition.data() );
         ImGuiDragFloat3( "worldspace unit dir", shaderLight->mWorldSpaceUnitDirection.data() );
         ImGuiDragFloat3( "light color", shaderLight->mColor.data() );
+        //ImGuiDragFloat( "light near plane", &shaderLight->mNear );
+        //ImGuiDragFloat( "light far plane", &shaderLight->mFar );
+        ImGuiDragFloat( "light proj a", &shaderLight->mProjA );
+        ImGuiDragFloat( "light proj b", &shaderLight->mProjB );
         ImGuiImage( -1, v2( 1, 1 ) * 50, shaderLight->mColor );
         ImGuiText( FrameMemoryPrintf( "Light type: %s (%i)",
                                       LightTypeToString( ( Light::Type ) shaderLight->mType ),

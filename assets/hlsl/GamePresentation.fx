@@ -26,7 +26,11 @@ struct Light
   float3           mWorldSpaceUnitDirection;
   float4           mColor;
   uint             mType;
-  TAC_PAD_BYTES( 12 );
+  //float            mNear;
+  //float            mFar;
+  float            mProjA;
+  float            mProjB;
+  TAC_PAD_BYTES( 4 );
 };
 
 cbuffer CBufferLights  : register( b2 )
@@ -65,11 +69,44 @@ struct PS_OUTPUT
   float4 mColor : SV_Target0;
 };
 
+//float UnprojectClipToViewSpace( float zClip, float n, float f )
+//{
+//  // Camera forward vector is in -z direction, this function returns a positive value
+//  float result = ( n * f ) / ( f + ( n - f ) * zNdc );
+//  return result;
+//}
+
+//float UnprojectClipToView( float zClip, float a, float b )
+//{
+//  // Camera forward vector is in -z direction, this function returns a positive value
+//  return ( zClip - b ) / a;
+//}
+
+float UnprojectNDCToView( float zNDC, float a, float b )
+{
+  return -b / ( a + zNDC );
+}
+
+
 float3 ApplyLight( Texture2D shadowMap, Light light, VS_OUTPUT input )
 {
 
+
+
   float3 colorDiffuse = float3( 0, 0, 0 );
+
+  // temp, use matrix values so its not optimized
+  //for( int i = 0; i < 4; ++i )
+  //{
+  //  for( int j = 0; j < 4; ++j )
+  //  {
+  //    colorDiffuse.x += light.mWorldToClip[ i ][ j ] / 10000.0;
+  //  }
+  //}
+
   const float4 pixelLightClipSpacePosition = mul( light.mWorldToClip, input.mWorldSpacePosition );
+  // TESTING
+  //const float4 pixelLightClipSpacePosition = mul( light.mWorldToClip, float4( 0, 0, 0, 1 ) );
   const float3 pixelLightNDCSpacePosition = pixelLightClipSpacePosition.xyz / pixelLightClipSpacePosition.w;
   if( pixelLightNDCSpacePosition.x < -1 ||
       pixelLightNDCSpacePosition.x > 1 ||
@@ -78,13 +115,23 @@ float3 ApplyLight( Texture2D shadowMap, Light light, VS_OUTPUT input )
     //continue;
     return float3( 0, 0, 0 );
 
-  const float2 pixelLightTexel = pixelLightNDCSpacePosition.xy * 0.5 - 0.5;
+  const float2 pixelLightTexel = pixelLightNDCSpacePosition.xy * 0.5 + 0.5;
 
   //Texture2D shadowMap = shadowMaps[ i ];
 
   // loop with offsets for fuzziness
   const float shadowMapSample = shadowMap.Sample( linearSampler, pixelLightTexel ).x;
-  const bool occluded = pixelLightNDCSpacePosition.z > shadowMapSample + 0.1;
+
+  //const float shadowMapCameraDist = GetViewSpaceDistFromNDC( shadowMapSample, light.mNear, light.mFar );
+  //const float pixelLightCameraDist = GetViewSpaceDistFromNDC( pixelLightNDCSpacePosition.z, light.mNear, light.mFar );
+  //const float shadowMapCameraDist = -UnprojectClipToView( shadowMapSample, light.mProjA, light.mProjB );
+  //const float pixelLightCameraDist = -UnprojectClipToView( pixelLightClipSpacePosition.z, light.mProjA, light.mProjB );
+  const float shadowMapCameraDist = -UnprojectNDCToView( shadowMapSample, light.mProjA, light.mProjB );
+  const float pixelLightCameraDist = -UnprojectNDCToView( pixelLightNDCSpacePosition.z, light.mProjA, light.mProjB );
+
+  // this 0.1 is in linear space, but the sample is nonlinear
+  //const bool occluded = pixelLightNDCSpacePosition.z > shadowMapSample + 0.1;
+  const bool occluded = pixelLightCameraDist > shadowMapCameraDist + 0.1;
 
   if( !occluded )
   {
@@ -108,10 +155,14 @@ PS_OUTPUT PS( VS_OUTPUT input )
   float3 colorDiffuse = float3( 0, 0, 0 );
   if( useLights )
   {
-    colorDiffuse += 0 < lightCount ? ApplyLight( shadowMaps[ 0 ], lights[ 0 ], input  ) : float3( 0, 0, 0 );
-    colorDiffuse += 1 < lightCount ? ApplyLight( shadowMaps[ 1 ], lights[ 1 ], input  ) : float3( 0, 0, 0 );
-    colorDiffuse += 2 < lightCount ? ApplyLight( shadowMaps[ 2 ], lights[ 2 ], input  ) : float3( 0, 0, 0 );
-    colorDiffuse += 3 < lightCount ? ApplyLight( shadowMaps[ 3 ], lights[ 3 ], input  ) : float3( 0, 0, 0 );
+    if( 0 < lightCount )
+      colorDiffuse += ApplyLight( shadowMaps[ 0 ], lights[ 0 ], input );
+    if( 1 < lightCount )
+      colorDiffuse += ApplyLight( shadowMaps[ 1 ], lights[ 1 ], input );
+    if( 2 < lightCount )
+      colorDiffuse += ApplyLight( shadowMaps[ 2 ], lights[ 2 ], input );
+    if( 3 < lightCount )
+      colorDiffuse += ApplyLight( shadowMaps[ 3 ], lights[ 3 ], input );
   }
   else
   {
