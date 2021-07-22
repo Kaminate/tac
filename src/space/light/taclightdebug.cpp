@@ -1,12 +1,13 @@
 #include "src/common/graphics/imgui/tacImGui.h"
-#include "src/common/string/tacString.h"
-#include "src/common/tacFrameMemory.h"
-#include "src/common/tacCamera.h"
-#include "src/common/math/tacMath.h"
-#include "src/space/light/tacLight.h"
-#include "src/space/tacworld.h"
-#include "src/space/tacentity.h"
 #include "src/common/graphics/tacDebug3D.h"
+#include "src/common/graphics/tacDepthBufferVisualizer.h"
+#include "src/common/math/tacMath.h"
+#include "src/common/string/tacString.h"
+#include "src/common/tacCamera.h"
+#include "src/common/tacFrameMemory.h"
+#include "src/space/light/tacLight.h"
+#include "src/space/tacentity.h"
+#include "src/space/tacworld.h"
 
 namespace Tac
 {
@@ -116,8 +117,16 @@ namespace Tac
     //ImGuiImage( ( int )light->mShadowMapColor, { 100, 100 } );
     LightDebugImguiShadowResolution( light );
 
-    ImGuiText( "note you cant really see shit because nonlinear depth" );
-    ImGuiImage( ( int )light->mShadowMapDepth, { 100, 100 } );
+    Camera camera = light->GetCamera();
+    Render::TextureHandle viz = DepthBufferLinearVisualizationRender( light->mShadowMapDepth,
+                                                                      light->mShadowResolution,
+                                                                      light->mShadowResolution,
+                                                                      camera.mFarPlane,
+                                                                      camera.mNearPlane );
+    ImGuiImage( ( int )viz, { 100, 100 } );
+
+    Render::DestroyTexture( viz, TAC_STACK_FRAME );
+
 
     if( light->mShadowResolution != oldShadowMapResolution )
     {
@@ -126,13 +135,29 @@ namespace Tac
 
     m4 world_xform = light->mEntity->mWorldTransform;
 
-    ImGuiText( "world xform" );
+    v3 x = camera.mRight;
+    v3 y = camera.mUp;
+    v3 z = -camera.mForwards;
+    ImGuiText( FrameMemoryPrintf( "local x: (%.1f, %.1f, %.1f)", x[ 0 ], x[ 1 ], x[ 2 ] ) );
+    ImGuiText( FrameMemoryPrintf( "local y: (%.1f, %.1f, %.1f)", y[ 0 ], y[ 1 ], y[ 2 ] ) );
+    ImGuiText( FrameMemoryPrintf( "local z: (%.1f, %.1f, %.1f)", z[ 0 ], z[ 1 ], z[ 2 ] ) );
+
+    //ImGuiText( "world xform" );
     //const char* r0 = FrameMemoryPrintf( "%.2f %.2f %.2f", world_xform.m00, world_xform.m01, world_xform.m02 );
     //const char* r1 = FrameMemoryPrintf( "%.2f %.2f %.2f", world_xform.m10, world_xform.m11, world_xform.m12 );
     //const char* r2 = FrameMemoryPrintf( "%.2f %.2f %.2f", world_xform.m20, world_xform.m21, world_xform.m22 );
     //ImGuiText( r0  );
     //ImGuiText( r1  );
     //ImGuiText( r2  );
+
+    ImGuiCheckbox( "override clip planes", &light->mOverrideClipPlanes );
+    if( light->mOverrideClipPlanes )
+    {
+      ImGuiDragFloat( "near", &light->mNearPlaneOverride );
+      ImGuiDragFloat( "far", &light->mFarPlaneOverride );
+      light->mNearPlaneOverride = Max( light->mNearPlaneOverride, 0.01f );
+      light->mFarPlaneOverride = Max( light->mFarPlaneOverride, light->mNearPlaneOverride + 1.0f );
+    }
 
   }
 }

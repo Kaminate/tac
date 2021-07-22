@@ -1,12 +1,16 @@
 #include "src/space/light/tacLight.h"
 #include "src/space/tacentity.h"
 #include "src/common/tacCamera.h"
+#include "src/common/math/tacMatrix3.h"
 #include "src/common/tacJson.h"
 #include "src/space/graphics/tacgraphics.h"
 
 namespace Tac
 {
   static ComponentRegistryEntry* sComponentRegistryEntry;
+
+
+
 
   static Component* CreateLightComponent( World* world )
   {
@@ -21,20 +25,30 @@ namespace Tac
   static void       SaveLightComponent( Json& lightJson, Component* component )
   {
     auto light = ( Light* )component;
-    lightJson[ "mSpotHalfFOVRadians" ].SetNumber( light->mSpotHalfFOVRadians );
-    lightJson[ "mType" ].SetString( LightTypeToString( light->mType ) );
-    lightJson[ "mShadowResolution" ].SetNumber( light->mShadowResolution );
+    lightJson[ TAC_MEMBER_NAME( Light, mSpotHalfFOVRadians ) ].SetNumber( light->mSpotHalfFOVRadians );
+    lightJson[ TAC_MEMBER_NAME( Light, mSpotHalfFOVRadians ) ].SetNumber( light->mSpotHalfFOVRadians );
+    lightJson[ TAC_MEMBER_NAME( Light, mType ) ].SetString( LightTypeToString( light->mType ) );
+    lightJson[ TAC_MEMBER_NAME( Light, mShadowResolution ) ].SetNumber( light->mShadowResolution );
+    lightJson[ TAC_MEMBER_NAME( Light, mOverrideClipPlanes ) ].SetBool( light->mOverrideClipPlanes );
+    lightJson[ TAC_MEMBER_NAME( Light, mFarPlaneOverride ) ].SetNumber( light->mFarPlaneOverride );
+    lightJson[ TAC_MEMBER_NAME( Light, mNearPlaneOverride ) ].SetNumber( light->mNearPlaneOverride );
   }
 
   static void       LoadLightComponent( Json& lightJson, Component* component )
   {
     auto light = ( Light* )component;
-    if( lightJson.HasChild( "mSpotHalfFOVRadians" ) )
-      light->mSpotHalfFOVRadians = ( float )lightJson[ "mSpotHalfFOVRadians" ].mNumber;
-    if( lightJson.HasChild( "mType" ) )
-      light->mType = LightTypeFromString( lightJson[ "mType" ].mString );
-    if( lightJson.HasChild( "mShadowResolution" ) )
-      light->mShadowResolution = ( int )lightJson[ "mShadowResolution" ].mNumber;
+    if( lightJson.HasChild( TAC_MEMBER_NAME( Light, mSpotHalfFOVRadians ) ) )
+      light->mSpotHalfFOVRadians = ( float )lightJson[ TAC_MEMBER_NAME( Light, mSpotHalfFOVRadians ) ].mNumber;
+    if( lightJson.HasChild( TAC_MEMBER_NAME( Light, mType ) ) )
+      light->mType = LightTypeFromString( lightJson[ TAC_MEMBER_NAME( Light, mType ) ].mString );
+    if( lightJson.HasChild( TAC_MEMBER_NAME( Light, mShadowResolution ) ) )
+      light->mShadowResolution = ( int )lightJson[ TAC_MEMBER_NAME( Light, mShadowResolution ) ].mNumber;
+    if( lightJson.HasChild( TAC_MEMBER_NAME( Light, mOverrideClipPlanes ) ) )
+      light->mOverrideClipPlanes = ( bool )lightJson[ TAC_MEMBER_NAME( Light, mOverrideClipPlanes ) ].mBoolean;
+    if( lightJson.HasChild( TAC_MEMBER_NAME( Light, mFarPlaneOverride ) ) )
+      light->mFarPlaneOverride = ( float )lightJson[ TAC_MEMBER_NAME( Light, mFarPlaneOverride ) ].mNumber;
+    if( lightJson.HasChild( TAC_MEMBER_NAME( Light, mNearPlaneOverride ) ) )
+      light->mNearPlaneOverride = ( float )lightJson[ TAC_MEMBER_NAME( Light, mNearPlaneOverride ) ].mNumber;
   }
 
 
@@ -62,9 +76,16 @@ namespace Tac
 
   Camera                        Light::GetCamera() const
   {
-    const v3 unitDir = GetUnitDirection();
+    v3 z = -GetUnitDirection();
     v3 x, y;
-    GetFrameRH( -unitDir, x, y );
+    GetFrameRH( z, x, y );
+
+    v3 up( 0, 1, 0 );
+    float rads = std::acos( Dot( up, y ) );
+
+    m3 m = m3::RotRadAngleAxis( rads, z );
+    x = m * x;
+    y = m * y;
 
     // Ideally, we want:
     // 
@@ -74,13 +95,38 @@ namespace Tac
     //
     // to cover the scene
 
+    // Try round up to nearest integer
+    {
+      auto round3 = []( v3 v ){ return v3( std::round( v.x ),
+                                           std::round( v.y ),
+                                           std::round( v.z ) ); };
+      const v3 roundedZ = round3( z );
+      const v3 roundedX = round3( x );
+      const v3 roundedY = round3( y );
+      const float roundEps = 0.01f;
+      const bool canRound =
+        Distance( roundedZ, z ) < roundEps &&
+        Distance( roundedX, x ) < roundEps &&
+        Distance( roundedY, y ) < roundEps;
+      x = canRound ? roundedX : x;
+      y = canRound ? roundedY : y;
+      z = canRound ? roundedZ : z;
+    }
+
 
     Camera camera = {};
-    camera.mForwards = unitDir;
+    camera.mForwards = -z;
     camera.mRight = x;
     camera.mUp = y;
     camera.mFovyrad = mSpotHalfFOVRadians * 2;
     camera.mPos = mEntity->mWorldPosition;
+
+    if( mOverrideClipPlanes )
+    {
+      camera.mNearPlane = mNearPlaneOverride;
+      camera.mFarPlane = mFarPlaneOverride;
+    }
+
     return camera;
   }
 

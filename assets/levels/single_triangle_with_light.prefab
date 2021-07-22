@@ -25,22 +25,25 @@
       "mName": "single triangle",
       "mPosition":
       {
-        "x": 5,
-        "y": -5,
-        "z": -5
+        "x": 0,
+        "y": 0,
+        "z": 0
       },
       "mScale":
       {
-        "x": 10,
-        "y": 10,
-        "z": 10
+        "x": 5.300000,
+        "y": 5.300000,
+        "z": 5.300000
       }
     },
     {
       "Light":
       {
+        "mFarPlaneOverride": 100,
+        "mNearPlaneOverride": 1,
+        "mOverrideClipPlanes": true,
         "mShadowResolution": 512,
-        "mSpotHalfFOVRadians": 1.395556,
+        "mSpotHalfFOVRadians": 0.697778,
         "mType": "Spot"
       },
       "mActive": true,
@@ -54,7 +57,7 @@
       "mName": "light",
       "mPosition":
       {
-        "x": 10,
+        "x": 15,
         "y": 0,
         "z": 0
       },

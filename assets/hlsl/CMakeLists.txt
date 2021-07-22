@@ -6,6 +6,7 @@ IF (WIN32)
   ${CMAKE_CURRENT_SOURCE_DIR}/3DTest.fx
   ${CMAKE_CURRENT_SOURCE_DIR}/3DVertexColor.fx
   ${CMAKE_CURRENT_SOURCE_DIR}/GamePresentation.fx
+  ${CMAKE_CURRENT_SOURCE_DIR}/DepthBufferVisualizer.fx
   ${CMAKE_CURRENT_SOURCE_DIR}/Shadow.fx
   ${CMAKE_CURRENT_SOURCE_DIR}/Skybox.fx
   ${CMAKE_CURRENT_SOURCE_DIR}/Terrain.fx

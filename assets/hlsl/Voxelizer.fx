@@ -13,12 +13,8 @@ RWStructuredBuffer< Voxel > mySB : register( u1 );
 
 Texture2D diffuseMaterialTexture : register( t0 );
 
-SamplerState linearSampler
-{
-  Filter = MIN_MAG_MIP_LINEAR;
-  AddressU = Wrap;
-  AddressV = Wrap;
-};
+sampler linearSampler            : register( s0 );
+
 
 
 // Note 1: Variables are passed between shader stages through SEMANTICS, not variable names!

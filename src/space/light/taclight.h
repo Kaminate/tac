@@ -29,6 +29,9 @@ namespace Tac
       kCount,
     };
 
+    bool                      mOverrideClipPlanes = false;
+    float                     mFarPlaneOverride = 10000.0f;
+    float                     mNearPlaneOverride = 0.1f;
     float                     mSpotHalfFOVRadians = 0.5f;
     Type                      mType = kSpot;
     bool                      mCastsShadows = true;

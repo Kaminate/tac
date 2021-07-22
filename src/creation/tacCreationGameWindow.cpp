@@ -31,6 +31,7 @@
 namespace Tac
 {
   static bool drawGrid = false;
+  static bool drawGizmos = true;
 
   struct GameWindowVertex
   {
@@ -103,6 +104,22 @@ namespace Tac
     }
   }
 
+  static void AddDrawCall( const Mesh* mesh, Render::ViewHandle viewHandle )
+  {
+    for( const SubMesh& subMesh : mesh->mSubMeshes )
+    {
+      Render::SetShader( CreationGameWindow::Instance->m3DShader );
+      Render::SetVertexBuffer( subMesh.mVertexBuffer, 0, subMesh.mVertexCount );
+      Render::SetIndexBuffer( subMesh.mIndexBuffer, 0, subMesh.mIndexCount );
+      Render::SetBlendState( CreationGameWindow::Instance->mBlendState );
+      Render::SetDepthState( CreationGameWindow::Instance->mDepthState );
+      Render::SetRasterizerState( CreationGameWindow::Instance->mRasterizerState );
+      Render::SetVertexFormat( CreationGameWindow::Instance->m3DVertexFormat );
+      Render::SetSamplerState( CreationGameWindow::Instance->mSamplerState );
+      Render::Submit( viewHandle, TAC_STACK_FRAME );
+    }
+  }
+
   CreationGameWindow* CreationGameWindow::Instance = nullptr;
 
   CreationGameWindow::CreationGameWindow()
@@ -150,7 +167,7 @@ namespace Tac
       decl.mTextureFormat.mPerElementByteCount = sizeof( float );
       decl.mTextureFormat.mPerElementDataType = Render::GraphicsType::real;
       return decl;
-    }();
+    }( );
     const Render::VertexDeclaration norDecl = []()
     {
       Render::VertexDeclaration decl = {};
@@ -160,7 +177,7 @@ namespace Tac
       decl.mTextureFormat.mPerElementByteCount = sizeof( float );
       decl.mTextureFormat.mPerElementDataType = Render::GraphicsType::real;
       return decl;
-    }();
+    }( );
     m3DvertexFormatDecls = Render::VertexDeclarations{ posDecl, norDecl };
     m3DVertexFormat = Render::CreateVertexFormat( m3DvertexFormatDecls,
                                                   m3DShader,
@@ -213,7 +230,7 @@ namespace Tac
     CreateGraphicsObjects( errors );
     TAC_HANDLE_ERROR( errors );
 
- 
+
 
     mCenteredUnitCube = ModelAssetManagerGetMeshTryingNewThing( "assets/editor/box.gltf",
                                                                 0,
@@ -279,7 +296,7 @@ namespace Tac
       pickData.pickedObject = PickedObject::Entity;
     }
 
-    if( gCreation.mSelectedEntities.size() ) // || gCreation.mSelectedPrefabs.size() )
+    if( gCreation.mSelectedEntities.size() && drawGizmos ) // || gCreation.mSelectedPrefabs.size() )
     {
       v3 selectionGizmoOrigin = gCreation.GetSelectionGizmoOrigin();
 
@@ -338,9 +355,8 @@ namespace Tac
           arrowDir[ pickData.arrowAxis ] = 1;
           gCreation.mSelectedGizmo = true;
           gCreation.mTranslationGizmoDir = arrowDir;
-          gCreation.mTranslationGizmoOffset = Dot(
-            arrowDir,
-            worldSpaceHitPoint - gizmoOrigin );
+          gCreation.mTranslationGizmoOffset = Dot( arrowDir,
+                                                   worldSpaceHitPoint - gizmoOrigin );
         } break;
         case PickedObject::Entity:
         {
@@ -440,22 +456,6 @@ namespace Tac
     }
   }
 
-  static void AddDrawCall( const Mesh* mesh, Render::ViewHandle viewHandle )
-  {
-    for( const SubMesh& subMesh : mesh->mSubMeshes )
-    {
-      Render::SetShader( CreationGameWindow::Instance->m3DShader );
-      Render::SetVertexBuffer( subMesh.mVertexBuffer , 0, subMesh.mVertexCount);
-      Render::SetIndexBuffer( subMesh.mIndexBuffer, 0, subMesh.mIndexCount );
-      Render::SetBlendState( CreationGameWindow::Instance->mBlendState );
-      Render::SetDepthState( CreationGameWindow::Instance->mDepthState );
-      Render::SetRasterizerState( CreationGameWindow::Instance->mRasterizerState );
-      Render::SetVertexFormat(  CreationGameWindow::Instance->m3DVertexFormat );
-      Render::SetSamplerState( CreationGameWindow::Instance->mSamplerState );
-      Render::Submit( viewHandle, TAC_STACK_FRAME );
-    }
-  }
-
   void CreationGameWindow::ComputeArrowLen()
   {
     if( !gCreation.IsAnythingSelected() )
@@ -501,7 +501,7 @@ namespace Tac
 
     Render::UpdateConstantBuffer( mPerFrame, &perFrameData, sizeof( DefaultCBufferPerFrame ), TAC_STACK_FRAME );
 
-    if( gCreation.IsAnythingSelected() )
+    if( gCreation.IsAnythingSelected() && drawGizmos )
     {
       v3 selectionGizmoOrigin = gCreation.GetSelectionGizmoOrigin();
       v3 red = { 1, 0, 0 };
@@ -524,7 +524,7 @@ namespace Tac
           * m4::Scale( v3( 1, 1, 1 ) * mArrowLen )
           ;// *mArrow->mTransform;
         Render::UpdateConstantBuffer( mPerObj, &perObjectData, sizeof( DefaultCBufferPerObject ), TAC_STACK_FRAME );
-        AddDrawCall( mArrow, viewHandle);
+        AddDrawCall( mArrow, viewHandle );
 
         // Widget Scale Cube
         //const v3 axis = { 0 == i, 1 == i, 2 == i };
@@ -559,11 +559,11 @@ namespace Tac
     ImGuiBegin( "gameplay overlay" );
 
     static bool mHideUI = false;
-
     if( !mHideUI )
     {
       ImGuiCheckbox( "Draw grid", &drawGrid );
       ImGuiCheckbox( "hide ui", &mHideUI );
+      ImGuiCheckbox( "draw gizmos", &drawGizmos );
 
       if( mSoul )
       {
@@ -618,7 +618,7 @@ namespace Tac
               float d = Dot( *camDir, unitDir );
               if( d > biggestDot )
               {
-                biggestDot = d ;
+                biggestDot = d;
                 biggestUnitDir = unitDir;
               }
             }
@@ -753,8 +753,8 @@ namespace Tac
     {
       v3 origin = gCreation.GetSelectionGizmoOrigin();
       mDebug3DDrawData->DebugDraw3DCircle( origin,
-                                         gCreation.mEditorCamera->mForwards,
-                                         mArrowLen );
+                                           gCreation.mEditorCamera->mForwards,
+                                           mArrowLen );
     }
 
     MousePickingInit();

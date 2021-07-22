@@ -48,7 +48,7 @@ namespace Tac
     return true;
 #endif
   }
-  
+
   void HandleAssert( const char* message, const StackFrame& frame );
   char* va( const char* format, ... );
 
@@ -80,6 +80,9 @@ namespace Tac
     explicit operator unsigned() const      { return mIndex; }                  \
     int               mIndex;                                                   \
   };
+
+// Will throw E0135 compile error "structure" has no member "var" if misspelled/renamed
+#define TAC_MEMBER_NAME( structure, var ) ( ( const char* )TAC_OFFSET_OF( structure, var ), TAC_STRINGIFY( var ) )
 
 
 #ifndef NDEBUG

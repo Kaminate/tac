@@ -29,6 +29,8 @@ ${CMAKE_CURRENT_SOURCE_DIR}/graphics/imgui/tacImGui.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/graphics/imgui/tacImGui.h
 ${CMAKE_CURRENT_SOURCE_DIR}/graphics/imgui/tacImGuiState.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/graphics/imgui/tacImGuiState.h
+${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacDepthBufferVisualizer.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacDepthBufferVisualizer.h
 ${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacColorUtil.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacColorUtil.h
 ${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacDebug3D.cpp

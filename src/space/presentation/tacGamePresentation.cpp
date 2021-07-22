@@ -746,20 +746,21 @@ namespace Tac
     }
   }
 
-  Render::ConstantBufferHandle  GamePresentationGetPerFrame()             { return mCBufPerFrame; }
-  Render::ConstantBufferHandle  GamePresentationGetPerObj()               { return mCBufPerObj; }
-  Render::DepthStateHandle      GamePresentationGetDepthState()           { return mDepthState; }
-  Render::BlendStateHandle      GamePresentationGetBlendState()           { return mBlendState; }
-  Render::RasterizerStateHandle GamePresentationGetRasterizerState()      { return mRasterizerState; }
-  Render::SamplerStateHandle    GamePresentationGetSamplerState()         { return mSamplerState; }
+  Render::ConstantBufferHandle  GamePresentationGetPerFrame()             { return mCBufPerFrame;        }
+  Render::ConstantBufferHandle  GamePresentationGetPerObj()               { return mCBufPerObj;          }
+  Render::DepthStateHandle      GamePresentationGetDepthState()           { return mDepthState;          }
+  Render::BlendStateHandle      GamePresentationGetBlendState()           { return mBlendState;          }
+  Render::RasterizerStateHandle GamePresentationGetRasterizerState()      { return mRasterizerState;     }
+  Render::SamplerStateHandle    GamePresentationGetSamplerState()         { return mSamplerState;        }
   Render::VertexDeclarations    GamePresentationGetVertexDeclarations()   { return m3DVertexFormatDecls; }
-  Render::VertexFormatHandle    GamePresentationGetVertexFormat()         { return m3DVertexFormat; }
+  Render::VertexFormatHandle    GamePresentationGetVertexFormat()         { return m3DVertexFormat;      }
 
 
   void                          GamePresentationDebugImGui( Graphics* graphics )
   {
     if( !ImGuiCollapsingHeader( "Game Presentation" ) )
       return;
+    TAC_IMGUI_INDENT_BLOCK;
     ImGuiCheckbox( "Game Presentation Enabled Model", &mRenderEnabledModel );
     ImGuiCheckbox( "Game Presentation Enabled Skybox", &mRenderEnabledSkybox );
     ImGuiCheckbox( "Game Presentation Enabled Terrain", &mRenderEnabledTerrain );

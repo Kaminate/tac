@@ -576,7 +576,7 @@ namespace Tac
       for( int i = 0; i < padByteCount / 4; ++i )
       {
         result += separator;
-        result += String( iPad , ' ' ) + "uint pad";
+        result += String( iPad, ' ' ) + "uint pad";
         result += ToString( padCounter++ );
         result += ";";
         separator = "\n";
@@ -611,6 +611,31 @@ namespace Tac
       return newLine;
     }
 
+    static void PreprocessShaderFXFramework( const String line )
+    {
+      // At a base level, D3D11 only supports creating sampler states on the application side using D3D API calls.
+      // Any HLSL code you've seen for defining sampler states was using the effects framework,
+      // which is a higher-level library that sits on top of core D3D.
+      // The effects framework actually reflects the sampler data from the compiled code,
+      // and uses that reflected data to create and bind sampler states behind the scenes.
+      // I really wouldn't recommend using the effects framework (it's old and no longer updated),
+      // so you should just create and bind sampler states manually.
+      // If necessary, you can always write your own layer for reflecting data from your shader and
+      // using that to control binding of samplers and textures.
+      //
+      // ( quote from MJP 2014-07-19 on gamedev.net )
+
+      const char* fxFrameworkStrs[] = { "SamplerState" }; // Are there more?
+      for( const char* s : fxFrameworkStrs )
+      {
+        TAC_ASSERT_MSG( line.find( s ) == line.npos,
+                        "%s is a deprecated directx fx framework feature and wont be supported in the newer "
+                        "DXIL compiler. Create and bind your resources manually.",
+                        s );
+      }
+    }
+
+
     static String PreprocessShaderIncludes( const String, Errors& );
 
     static bool IsSingleLineCommented( const StringView line )
@@ -629,6 +654,7 @@ namespace Tac
         String line = shaderParseData.EatRestOfLine();
         if( !IsSingleLineCommented( line ) )
         {
+          PreprocessShaderFXFramework( line );
           line = PreprocessShaderIncludes( line, errors );
           line = PreprocessShaderSemanticName( line );
           line = PreprocessShaderPadding( line );
@@ -1518,7 +1544,7 @@ namespace Tac
 
       const HRESULT setHr = directXObject->SetPrivateData( WKPDID_D3DDebugObjectName, ( UINT )newname.size(), newname.c_str() );
       TAC_ASSERT( SUCCEEDED( setHr ) );
-      }
+    }
 
 
 
@@ -2140,20 +2166,20 @@ namespace Tac
           if( texture->mTextureDSV )
           {
             dsv = texture->mTextureDSV;
-        }
+          }
 #endif
           else
           {
             rtv = texture->mTextureRTV;
           }
-      }
+        }
 
         Framebuffer* framebuffer = &mFramebuffers[ ( int )data->mFramebufferHandle ];
         framebuffer->mDebugName = data->mStackFrame.ToString();
         framebuffer->mRenderTargetView = rtv;
         framebuffer->mDepthStencilView = dsv;
         framebuffer->mDepthTexture = depthTexture;
-    }
+      }
       else
       {
         TAC_CRITICAL_ERROR_INVALID_CODE_PATH;

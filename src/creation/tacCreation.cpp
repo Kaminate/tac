@@ -326,8 +326,7 @@ namespace Tac
   void                Creation::AddToSelection( Entity* e )
   {
     mSelectedEntities.push_back( e );
-
-    }
+  }
 
   void                Creation::DeleteSelectedEntities()
   {

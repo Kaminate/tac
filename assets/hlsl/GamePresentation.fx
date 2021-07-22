@@ -8,12 +8,8 @@ struct VS_INPUT
 
 Texture2D shadowMaps[ 4 ] : register( t0 );
 
-SamplerState linearSampler
-{
-  Filter = MIN_MAG_MIP_LINEAR;
-  AddressU = Wrap;
-  AddressV = Wrap;
-};
+sampler linearSampler : register( s0 );
+
 
 #define LIGHT_TYPE_DIRECTIONAL 0
 #define LIGHT_TYPE_SPOT        1
