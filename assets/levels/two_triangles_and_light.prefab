@@ -22,12 +22,12 @@
         "y": 0,
         "z": 0
       },
-      "mName": "single triangle",
+      "mName": "front tri( single_triangle.obj )",
       "mPosition":
       {
         "x": 0,
         "y": 0,
-        "z": 0
+        "z": -16.767683
       },
       "mScale":
       {
@@ -37,7 +37,15 @@
       }
     },
     {
-      "Light": null,
+      "Light":
+      {
+        "mFarPlaneOverride": 200,
+        "mNearPlaneOverride": 1,
+        "mOverrideClipPlanes": true,
+        "mShadowResolution": 512,
+        "mSpotHalfFOVRadians": 0.500000,
+        "mType": "Spot"
+      },
       "mActive": true,
       "mEntityUUID": 3,
       "mEulerRads":
@@ -49,7 +57,7 @@
       "mName": "light",
       "mPosition":
       {
-        "x": 7.100000,
+        "x": 100,
         "y": 7,
         "z": 5
       },
@@ -80,18 +88,18 @@
         "y": 1.570000,
         "z": 0
       },
-      "mName": "other triangle",
+      "mName": "back tri ( test_ears.glb )",
       "mPosition":
       {
-        "x": 35.900002,
-        "y": -21.586281,
-        "z": 0
+        "x": -53.815483,
+        "y": 0,
+        "z": -15.930829
       },
       "mScale":
       {
-        "x": 22.100002,
-        "y": 22.100002,
-        "z": 22.100002
+        "x": 21.300001,
+        "y": 21.300001,
+        "z": 21.300001
       }
     }
   ],

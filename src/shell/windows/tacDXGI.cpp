@@ -146,6 +146,7 @@ namespace Tac
 
   static FormatPair gFormatPairs[] =
   {
+    FormatPair{ { 1, sizeof( uint32_t ), Render::GraphicsType::real  }, DXGI_FORMAT_R32_FLOAT          },
     FormatPair{ { 2, sizeof( uint32_t ), Render::GraphicsType::real  }, DXGI_FORMAT_R32G32_FLOAT       },
     FormatPair{ { 3, sizeof( uint32_t ), Render::GraphicsType::real  }, DXGI_FORMAT_R32G32B32_FLOAT    },
     FormatPair{ { 4, sizeof( uint16_t ), Render::GraphicsType::real  }, DXGI_FORMAT_R16G16B16A16_FLOAT },
@@ -162,7 +163,9 @@ namespace Tac
   {
     switch( i )
     {
+      // unorm here, float there...  hmm is that ok?
       case 2: return DXGI_FORMAT_D16_UNORM;
+      case 4: return DXGI_FORMAT_D32_FLOAT;
       default: TAC_CRITICAL_ERROR_INVALID_CODE_PATH; return DXGI_FORMAT_UNKNOWN;
     }
   }
@@ -200,6 +203,7 @@ namespace Tac
           formatPair.mFormat.mPerElementDataType == textureFormat.mPerElementDataType )
         return formatPair.mFormatDXGI;
     // try again, but bump the element count
+    // ^ 2021-06-25 i dont know if this is good,
     for( auto formatPair : gFormatPairs )
       if( formatPair.mFormat.mElementCount >= textureFormat.mElementCount &&
           formatPair.mFormat.mPerElementByteCount == textureFormat.mPerElementByteCount &&

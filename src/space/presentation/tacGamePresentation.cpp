@@ -72,7 +72,8 @@ namespace Tac
   static Render::DepthStateHandle      mDepthState;
   static Render::BlendStateHandle      mBlendState;
   static Render::RasterizerStateHandle mRasterizerState;
-  static Render::SamplerStateHandle    mSamplerState;
+  static Render::SamplerStateHandle    mSamplerStateAniso;
+  static Render::SamplerStateHandle    mSamplerStatePointShadow;
   static Render::VertexDeclarations    m3DVertexFormatDecls;
   static Errors                        mGetTextureErrorsGround;
   static Errors                        mGetTextureErrorsNoise;
@@ -244,29 +245,28 @@ namespace Tac
         shaderLight->mProjA = a;
         shaderLight->mProjB = b;
 
-        v4 r0 = shaderLight->mWorldToClip.GetRow( 0 );
-        v4 r1 = shaderLight->mWorldToClip.GetRow( 1 );
-        v4 r2 = shaderLight->mWorldToClip.GetRow( 2 );
-        v4 r3 = shaderLight->mWorldToClip.GetRow( 3 );
-        const char* debugMtx = FrameMemoryPrintf(
-          "%.2f %.2f %.2f %.2f\n"
-          "%.2f %.2f %.2f %.2f\n"
-          "%.2f %.2f %.2f %.2f\n"
-          "%.2f %.2f %.2f %.2f\n",
-          r0.x, r0.y, r0.z, r0.w,
-          r1.x, r1.y, r1.z, r1.w,
-          r2.x, r2.y, r2.z, r2.w,
-          r3.x, r3.y, r3.z, r3.w);
+        //v4 r0 = shaderLight->mWorldToClip.GetRow( 0 );
+        //v4 r1 = shaderLight->mWorldToClip.GetRow( 1 );
+        //v4 r2 = shaderLight->mWorldToClip.GetRow( 2 );
+        //v4 r3 = shaderLight->mWorldToClip.GetRow( 3 );
+        //const char* debugMtx = FrameMemoryPrintf(
+        //  "%.2f %.2f %.2f %.2f\n"
+        //  "%.2f %.2f %.2f %.2f\n"
+        //  "%.2f %.2f %.2f %.2f\n"
+        //  "%.2f %.2f %.2f %.2f\n",
+        //  r0.x, r0.y, r0.z, r0.w,
+        //  r1.x, r1.y, r1.z, r1.w,
+        //  r2.x, r2.y, r2.z, r2.w,
+        //  r3.x, r3.y, r3.z, r3.w);
 
-        v4 worldspacePos = {0,0,0,1};
-        v4 clipspacePos = shaderLight->mWorldToClip * worldspacePos;
-        v4 ndcspacePos = clipspacePos / clipspacePos.w;
+        //v4 worldspacePos = {0,0,0,1};
+        //v4 clipspacePos = shaderLight->mWorldToClip * worldspacePos;
+        //v4 ndcspacePos = clipspacePos / clipspacePos.w;
 
-        float clipToViewPos = ( clipspacePos.z - b ) / a;
-        float ndcToViewPos = -b / ( a + ndcspacePos.z );
+        //float clipToViewPos = ( clipspacePos.z - b ) / a;
+        //float ndcToViewPos = -b / ( a + ndcspacePos.z );
 
 
-        ++asdf;
 
       }
       Render::UpdateConstantBuffer( mCBufLight, &cBufferLights, sizeof( CBufferLights ), TAC_STACK_FRAME );
@@ -278,7 +278,8 @@ namespace Tac
 
     for( const SubMesh& subMesh : mesh->mSubMeshes )
     {
-      Render::BeginGroup( subMesh.mName.c_str(), TAC_STACK_FRAME );
+      const  char* groupName = FrameMemoryPrintf( "%s %s", model->mEntity->mName.c_str(), subMesh.mName.c_str() );
+      Render::BeginGroup( groupName, TAC_STACK_FRAME );
       //FrameMemoryPrintf( "%s %i", subMesh.mName.c_str(),
       //                                         model->mModelPath.c_str(),
       //                                         model->mModelIndex ), TAC_STACK_FRAME );
@@ -287,7 +288,7 @@ namespace Tac
       Render::SetIndexBuffer( subMesh.mIndexBuffer, 0, subMesh.mIndexCount );
       Render::SetBlendState( mBlendState );
       Render::SetRasterizerState( mRasterizerState );
-      Render::SetSamplerState( mSamplerState );
+      Render::SetSamplerState( { mSamplerStateAniso, mSamplerStatePointShadow } );
       Render::SetDepthState( mDepthState );
       Render::SetVertexFormat( m3DVertexFormat );
       Render::SetPrimitiveTopology( subMesh.mPrimitiveTopology );
@@ -507,13 +508,23 @@ namespace Tac
                                                       TAC_STACK_FRAME );
   }
 
+  static void CreateSamplerStateShadow( Errors& errors )
+  {
+
+    TAC_UNUSED_PARAMETER( errors );
+    Render::SamplerState data;
+    data.mFilter = Render::Filter::Point;
+    mSamplerStatePointShadow = Render::CreateSamplerState( data, TAC_STACK_FRAME );
+    Render::SetRenderObjectDebugName( mSamplerStateAniso, "game-shadow-samp" );
+  }
+
   static void CreateSamplerState( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
     Render::SamplerState samplerStateData;
     samplerStateData.mFilter = Render::Filter::Aniso;
-    mSamplerState = Render::CreateSamplerState( samplerStateData, TAC_STACK_FRAME );
-    Render::SetRenderObjectDebugName( mSamplerState, "game-samp" );
+    mSamplerStateAniso = Render::CreateSamplerState( samplerStateData, TAC_STACK_FRAME );
+    Render::SetRenderObjectDebugName( mSamplerStateAniso, "game-samp" );
   }
 
   static void RenderModels( World* world,
@@ -618,7 +629,7 @@ namespace Tac
       Render::SetDepthState( mDepthState );
       Render::SetBlendState( mBlendState );
       Render::SetRasterizerState( mRasterizerState );
-      Render::SetSamplerState( mSamplerState );
+      Render::SetSamplerState( mSamplerStateAniso );
       Render::SetShader( mTerrainShader );
       Render::SetIndexBuffer( terrain->mIndexBuffer, 0, terrain->mIndexCount );
       Render::SetVertexBuffer( terrain->mVertexBuffer, 0, 0 );
@@ -702,6 +713,8 @@ namespace Tac
 
     CreateSamplerState( errors );
     TAC_HANDLE_ERROR( errors );
+
+    CreateSamplerStateShadow(errors);
   }
 
   void        GamePresentationUninit()
@@ -714,7 +727,8 @@ namespace Tac
     Render::DestroyDepthState( mDepthState, TAC_STACK_FRAME );
     Render::DestroyBlendState( mBlendState, TAC_STACK_FRAME );
     Render::DestroyRasterizerState( mRasterizerState, TAC_STACK_FRAME );
-    Render::DestroySamplerState( mSamplerState, TAC_STACK_FRAME );
+    Render::DestroySamplerState( mSamplerStateAniso, TAC_STACK_FRAME );
+    Render::DestroySamplerState( mSamplerStatePointShadow, TAC_STACK_FRAME );
   }
 
 
@@ -751,7 +765,7 @@ namespace Tac
   Render::DepthStateHandle      GamePresentationGetDepthState()           { return mDepthState;          }
   Render::BlendStateHandle      GamePresentationGetBlendState()           { return mBlendState;          }
   Render::RasterizerStateHandle GamePresentationGetRasterizerState()      { return mRasterizerState;     }
-  Render::SamplerStateHandle    GamePresentationGetSamplerState()         { return mSamplerState;        }
+  Render::SamplerStateHandle    GamePresentationGetSamplerState()         { return mSamplerStateAniso;        }
   Render::VertexDeclarations    GamePresentationGetVertexDeclarations()   { return m3DVertexFormatDecls; }
   Render::VertexFormatHandle    GamePresentationGetVertexFormat()         { return m3DVertexFormat;      }
 

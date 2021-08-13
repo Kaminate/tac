@@ -25,6 +25,8 @@ namespace Tac
     enum Type
     {
       kDirectional,
+
+      // A spotlight gives out a lot of power in one direction, and less power in other directions
       kSpot,
       kCount,
     };
@@ -42,6 +44,9 @@ namespace Tac
     Render::TextureHandle     mShadowMapDepth;
     Render::FramebufferHandle mShadowFramebuffer;
     Render::ViewHandle        mShadowView;
+
+    v3                        mColor;
+    float                     mRadiance; // i guess?
   };
 
   void                                   RegisterLightComponent();

@@ -1056,7 +1056,8 @@ namespace Tac
       gEncoder.mDrawCall.mRasterizerStateHandle = rasterizerStateHandle;
     }
 
-    void SetSamplerState( const SamplerStateHandle samplerStateHandle )
+    void SetSamplerState( const DrawCallSamplers samplerStateHandle )
+    //void SetSamplerState( const SamplerStateHandle samplerStateHandle )
     {
       gEncoder.mDrawCall.mSamplerStateHandle = samplerStateHandle;
     }

@@ -8,7 +8,8 @@ struct VS_INPUT
 
 Texture2D shadowMaps[ 4 ] : register( t0 );
 
-sampler linearSampler : register( s0 );
+sampler linearSampler    : register( s0 );
+sampler shadowMapSampler : register( s1 );
 
 
 #define LIGHT_TYPE_DIRECTIONAL 0
@@ -111,12 +112,13 @@ float3 ApplyLight( Texture2D shadowMap, Light light, VS_OUTPUT input )
     //continue;
     return float3( 0, 0, 0 );
 
-  const float2 pixelLightTexel = pixelLightNDCSpacePosition.xy * 0.5 + 0.5;
+  const float2 pixelLightTexel = float2( pixelLightNDCSpacePosition.x * 0.5 + 0.5,
+                                         pixelLightNDCSpacePosition.y * -0.5 + 0.5 );
 
   //Texture2D shadowMap = shadowMaps[ i ];
 
   // loop with offsets for fuzziness
-  const float shadowMapSample = shadowMap.Sample( linearSampler, pixelLightTexel ).x;
+  const float shadowMapSample = shadowMap.Sample( shadowMapSampler, pixelLightTexel ).x;
 
   //const float shadowMapCameraDist = GetViewSpaceDistFromNDC( shadowMapSample, light.mNear, light.mFar );
   //const float pixelLightCameraDist = GetViewSpaceDistFromNDC( pixelLightNDCSpacePosition.z, light.mNear, light.mFar );
@@ -125,9 +127,15 @@ float3 ApplyLight( Texture2D shadowMap, Light light, VS_OUTPUT input )
   const float shadowMapCameraDist = -UnprojectNDCToView( shadowMapSample, light.mProjA, light.mProjB );
   const float pixelLightCameraDist = -UnprojectNDCToView( pixelLightNDCSpacePosition.z, light.mProjA, light.mProjB );
 
+
+
+
   // this 0.1 is in linear space, but the sample is nonlinear
   //const bool occluded = pixelLightNDCSpacePosition.z > shadowMapSample + 0.1;
-  const bool occluded = pixelLightCameraDist > shadowMapCameraDist + 0.1;
+  const bool occluded_view = pixelLightCameraDist > shadowMapCameraDist + 0.7;
+  const bool occluded_ndc = ( pixelLightNDCSpacePosition.z > shadowMapSample + 0.00001 );
+  //const bool occluded = occluded_ndc;
+  const bool occluded = occluded_view;
 
   if( !occluded )
   {
@@ -142,6 +150,9 @@ float3 ApplyLight( Texture2D shadowMap, Light light, VS_OUTPUT input )
       colorDiffuse += ndotl * light.mColor.xyz * Color.xyz;
     }
   }
+
+  //colorDiffuse = vec3( 1, 1, 1 ) * abs( pixelLightCameraDist - shadowMapCameraDist );
+
 
   return colorDiffuse;
 }

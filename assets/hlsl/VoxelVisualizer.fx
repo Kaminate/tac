@@ -3,8 +3,8 @@
 
 Texture3D voxels : register( t0 );
 
-#define CUBE_STRIP_VTX_COUNT 14
-#define DEBUG_ENABLE_RANDOM_VOXEL_COLORS 0
+#define CUBE_STRIP_VTX_COUNT             14
+#define DEBUG_ENABLE_RANDOM_VOXEL_COLORS 1
 
 float3 GenerateCubeVertex( uint i )
 {

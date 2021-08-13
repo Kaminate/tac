@@ -90,6 +90,41 @@ namespace Tac
                                   light->mShadowResolution ) );
   }
 
+  static void Camera3DDraw( const Camera& camera, Debug3DDrawData* drawData)
+  {
+    const float nearPlaneHalfSize = camera.mNearPlane * std::tan( camera.mFovyrad / 2 ) ;
+    const float farPlaneHalfSize = camera.mFarPlane * std::tan( camera.mFovyrad / 2 ) ;
+
+    v3 nearPoints[ 4 ];
+    v3 farPoints[ 4 ];
+    for( int i = 0; i < 4; ++i )
+    {
+      const v2 offsets[] = { v2( -1,-1 ), v2( 1, -1 ), v2( 1, 1 ), v2( -1,1 ) };
+      const v2 offset = offsets[ i ];
+
+      auto GetPlanePoint = [&](float planeDist, float halfSize  )
+      {
+        return
+          camera.mPos
+          + camera.mForwards * planeDist
+          + camera.mRight * offset.x * halfSize
+          + camera.mUp * offset.y * halfSize;
+      };
+
+      nearPoints[ i ] = GetPlanePoint( camera.mNearPlane, nearPlaneHalfSize );
+      farPoints[i] = GetPlanePoint( camera.mFarPlane, farPlaneHalfSize );
+    }
+
+    const v4 color( 1, 1, 1, 1 );
+    for( int i = 0; i < 4; ++i )
+    {
+      const int j = ( i + 1 ) % 4;
+      drawData->DebugDraw3DLine( nearPoints[ i ], farPoints[ i ], color );
+      drawData->DebugDraw3DLine( nearPoints[ i ], nearPoints[ j ], color );
+      drawData->DebugDraw3DLine( farPoints[ i ], farPoints[ j ], color );
+    }
+  }
+
   static void LightDebug3DDraw( Light* light )
   {
     Entity* entity = light->mEntity;
@@ -105,6 +140,8 @@ namespace Tac
                                                               float( 1 == i ),
                                                               float( 2 == i ),
                                                               1 ) );
+
+    Camera3DDraw( camera, drawData );
   }
 
   void LightDebugImgui( Light* light )
@@ -123,7 +160,8 @@ namespace Tac
                                                                       light->mShadowResolution,
                                                                       camera.mFarPlane,
                                                                       camera.mNearPlane );
-    ImGuiImage( ( int )viz, { 100, 100 } );
+    v2 shadowMapSize = v2( 1, 1 ) * 256;
+    ImGuiImage( ( int )viz, shadowMapSize );
 
     Render::DestroyTexture( viz, TAC_STACK_FRAME );
 

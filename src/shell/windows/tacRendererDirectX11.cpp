@@ -1260,15 +1260,26 @@ namespace Tac
 
     void RendererDirectX11::RenderDrawCallSamplerState( const DrawCall* drawCall )
     {
-      if( drawCall->mSamplerStateHandle.IsValid() )
+      const HashedValue drawCallSamplerHash = [&]()
       {
-        const UINT StartSlot = 0;
-        const UINT NumSamplers = 1;
-        ID3D11SamplerState* samplerState = mSamplerStates[ ( int )drawCall->mSamplerStateHandle ];
-        TAC_ASSERT( samplerState );
-        ID3D11SamplerState* Samplers[] = { samplerState };
-        mDeviceContext->VSSetSamplers( StartSlot, NumSamplers, Samplers );
-        mDeviceContext->PSSetSamplers( StartSlot, NumSamplers, Samplers );
+        HashedValue hash = 0;
+        for( auto sampler : drawCall->mSamplerStateHandle )
+          hash = HashAdd( hash, sampler );
+        return hash;
+      }();
+      
+      if( mBoundSamplerHash != drawCallSamplerHash )
+      {
+        mBoundSamplerHash = drawCallSamplerHash;
+        FixedVector< ID3D11SamplerState*, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT > Samplers;
+        for( auto sampler : drawCall->mSamplerStateHandle )
+        {
+          ID3D11SamplerState* samplerState = mSamplerStates[ ( int )sampler ];
+          TAC_ASSERT( samplerState );
+          Samplers.push_back( samplerState );
+        }
+        mDeviceContext->VSSetSamplers( 0, Samplers.size(), Samplers.data() );
+        mDeviceContext->PSSetSamplers( 0, Samplers.size(), Samplers.data() );
       }
     }
 
@@ -1395,10 +1406,6 @@ namespace Tac
                                             const DrawCall* drawCall,
                                             Errors& errors )
     {
-      if( drawCall->mStackFrame.mLine == 367 )
-      {
-        ++asdf;
-      }
 
 
       RenderDrawCallViewAndUAV( frame, drawCall );

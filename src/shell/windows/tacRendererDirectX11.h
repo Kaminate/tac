@@ -4,6 +4,7 @@
 #include "src/common/graphics/tacRenderer.h"
 #include "src/common/graphics/tacRendererBackend.h"
 #include "src/common/shell/tacShell.h"
+#include "src/common/tacHash.h"
 #include "src/shell/windows/tacWin32.h"
 #include "src/shell/windows/tacDXGI.h"
 
@@ -194,6 +195,10 @@ namespace Tac
       ID3D11BlendState*          mBoundBlendState = nullptr;
       ID3D11DepthStencilState*   mBoundDepthStencilState = nullptr;
       BoundSRVs                  mBoundSRVs;
+
+      //DrawCallSamplers           mBoundSamplers;
+      HashedValue                mBoundSamplerHash;
+
       ViewHandle                 mBoundViewHandle;
       VertexBufferHandle         mBoundVertexBuffer;
       IndexBufferHandle          mBoundIndexBuffer;

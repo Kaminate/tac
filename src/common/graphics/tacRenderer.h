@@ -245,6 +245,7 @@ namespace Tac
 
     typedef FixedVector< VertexDeclaration, 10 >    VertexDeclarations;
     typedef FixedVector< TextureHandle, 10 >        FramebufferTextures;
+    typedef FixedVector< SamplerStateHandle, 4 >    DrawCallSamplers;
     typedef FixedVector< TextureHandle, 4 >         DrawCallTextures;
     typedef FixedVector< ConstantBufferHandle, 10 > ConstantBuffers;
 
@@ -388,7 +389,8 @@ namespace Tac
     void                             SetVertexBuffer( VertexBufferHandle, int iStart, int count );
     void                             SetBlendState( BlendStateHandle );
     void                             SetRasterizerState( RasterizerStateHandle );
-    void                             SetSamplerState( SamplerStateHandle );
+    void                             SetSamplerState( DrawCallSamplers );
+    //void                             SetSamplerState( SamplerStateHandle );
     void                             SetDepthState( DepthStateHandle );
     void                             SetVertexFormat( VertexFormatHandle );
     void                             SetShader( ShaderHandle );

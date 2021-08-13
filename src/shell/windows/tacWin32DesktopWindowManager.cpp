@@ -469,6 +469,17 @@ namespace Tac
       }
     }
 
+    // if the window is completely outside the desktop area
+    // ( this can happen if its saved data refers to a monitor that is no longer on )
+    // then move it back inside
+    //if( x + w < 0 || x > )
+    //{
+    //  x = CW_USEDEFAULT;
+    //  y = CW_USEDEFAULT;
+    //  w = CW_USEDEFAULT;
+    //  h = CW_USEDEFAULT;
+    //}
+
 
     TAC_ASSERT( w && h );
 

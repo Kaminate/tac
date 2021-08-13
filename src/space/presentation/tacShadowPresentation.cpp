@@ -91,8 +91,10 @@ namespace Tac
   {
     Render::TexSpec texSpecDepth;
     texSpecDepth.mImage.mFormat.mElementCount = 1;
-    texSpecDepth.mImage.mFormat.mPerElementByteCount = sizeof( uint16_t );
-    texSpecDepth.mImage.mFormat.mPerElementDataType = Render::GraphicsType::unorm;
+    //texSpecDepth.mImage.mFormat.mPerElementByteCount = sizeof( uint16_t );
+    //texSpecDepth.mImage.mFormat.mPerElementDataType = Render::GraphicsType::unorm;
+    texSpecDepth.mImage.mFormat.mPerElementByteCount = 4;
+    texSpecDepth.mImage.mFormat.mPerElementDataType = Render::GraphicsType::real;
     texSpecDepth.mImage.mWidth = light->mShadowResolution;
     texSpecDepth.mImage.mHeight = light->mShadowResolution;
     texSpecDepth.mBinding = Render::Binding::DepthStencil | Render::Binding::ShaderResource;

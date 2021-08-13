@@ -8,6 +8,7 @@ namespace Tac
   struct FixedVector
   {
     FixedVector() = default;
+    FixedVector( T t )      { push_back( t ); }
     FixedVector( int size ) { resize( size ); }
     FixedVector( int size, T initialValue )
     {

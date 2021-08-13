@@ -10,7 +10,6 @@ namespace Tac
   HashedValue HashAddString( const char*, HashedValue = 0);
   HashedValue HashAddBytes( const char*, int, HashedValue = 0 );
   HashedValue HashAddHash( HashedValue, HashedValue );
-  template< typename T >
-  HashedValue HashAdd( HashedValue hashedValue, T t ) { return HashAddHash( hashedValue, ( HashedValue )t ); }
+  template< typename T > HashedValue HashAdd( HashedValue h, T t ) { return HashAddHash( h, ( HashedValue )t ); }
 
 }

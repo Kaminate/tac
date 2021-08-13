@@ -12,6 +12,8 @@ namespace Tac
     v3    mUp = { 0,1,0 };
     float mFarPlane = 10000.0f;
     float mNearPlane = 0.1f;
+
+    //    Entire fov, not half of it
     float mFovyrad = 60.0f * ( 3.14f / 180.0f );
     m4    View() const;
     m4    ViewInv() const;

@@ -1,3 +1,7 @@
+// worth?
+#define vec3 float3
+#define v3   float3
+
 cbuffer CBufferPerFrame : register( b0 )
 {
   row_major matrix View;

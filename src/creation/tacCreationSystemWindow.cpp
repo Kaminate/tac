@@ -13,6 +13,7 @@
 #include "src/space/tacEntity.h"
 #include "src/space/tacSystem.h"
 #include "src/space/tacWorld.h"
+#include "src/common/shell/tacShellTimer.h"
 
 namespace Tac
 {
@@ -51,7 +52,11 @@ namespace Tac
 
     ImGuiSetNextWindowHandle( mDesktopWindowHandle );
     ImGuiSetNextWindowStretch();
+
+
+
     ImGuiBegin( "System Window" );
+
 
     if( ImGuiCollapsingHeader( "Select System" ) )
     {

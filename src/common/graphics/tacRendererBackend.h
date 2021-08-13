@@ -83,7 +83,8 @@ namespace Tac
       IndexBufferHandle     mIndexBufferHandle;
       BlendStateHandle      mBlendStateHandle;
       RasterizerStateHandle mRasterizerStateHandle;
-      SamplerStateHandle    mSamplerStateHandle;
+      //SamplerStateHandle    mSamplerStateHandle;
+      DrawCallSamplers      mSamplerStateHandle;
       DepthStateHandle      mDepthStateHandle;
       VertexFormatHandle    mVertexFormatHandle;
       ShaderHandle          mShaderHandle;
