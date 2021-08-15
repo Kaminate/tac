@@ -11,7 +11,6 @@ Texture2D shadowMaps[ 4 ] : register( t0 );
 sampler linearSampler    : register( s0 );
 sampler shadowMapSampler : register( s1 );
 
-
 #define LIGHT_TYPE_DIRECTIONAL 0
 #define LIGHT_TYPE_SPOT        1
 
@@ -22,13 +21,16 @@ struct Light
   float3           mWorldSpacePosition;
   float3           mWorldSpaceUnitDirection;
   float4           mColor;
-  uint             mType;
-  //float            mNear;
-  //float            mFar;
+  uint             mFlags;
   float            mProjA;
   float            mProjB;
   TAC_PAD_BYTES( 4 );
 };
+
+TAC_DEFINE_BITFIELD_BEGIN;
+TAC_DEFINE_BITFIELD_ELEMENT( LightGetType, 4 );
+TAC_DEFINE_BITFIELD_ELEMENT( LightGetCastsShadows, 1 );
+TAC_DEFINE_BITFIELD_END;
 
 cbuffer CBufferLights  : register( b2 )
 {
@@ -101,45 +103,54 @@ float3 ApplyLight( Texture2D shadowMap, Light light, VS_OUTPUT input )
   //  }
   //}
 
-  const float4 pixelLightClipSpacePosition = mul( light.mWorldToClip, input.mWorldSpacePosition );
-  // TESTING
-  //const float4 pixelLightClipSpacePosition = mul( light.mWorldToClip, float4( 0, 0, 0, 1 ) );
-  const float3 pixelLightNDCSpacePosition = pixelLightClipSpacePosition.xyz / pixelLightClipSpacePosition.w;
-  if( pixelLightNDCSpacePosition.x < -1 ||
-      pixelLightNDCSpacePosition.x > 1 ||
-      pixelLightNDCSpacePosition.y < -1 ||
-      pixelLightNDCSpacePosition.y > 1 )
-    //continue;
-    return float3( 0, 0, 0 );
+  bool occluded = false;
+  const bool lightCastsShadows = LightGetCastsShadows( light.mFlags );
+  if( lightCastsShadows )
+  {
 
-  const float2 pixelLightTexel = float2( pixelLightNDCSpacePosition.x * 0.5 + 0.5,
-                                         pixelLightNDCSpacePosition.y * -0.5 + 0.5 );
+    const float4 pixelLightClipSpacePosition = mul( light.mWorldToClip, input.mWorldSpacePosition );
+    // TESTING
+    //const float4 pixelLightClipSpacePosition = mul( light.mWorldToClip, float4( 0, 0, 0, 1 ) );
+    const float3 pixelLightNDCSpacePosition = pixelLightClipSpacePosition.xyz / pixelLightClipSpacePosition.w;
+    if( pixelLightNDCSpacePosition.x < -1 ||
+        pixelLightNDCSpacePosition.x > 1 ||
+        pixelLightNDCSpacePosition.y < -1 ||
+        pixelLightNDCSpacePosition.y > 1 )
+      //continue;
+      return float3( 0, 0, 0 );
 
-  //Texture2D shadowMap = shadowMaps[ i ];
+    // negative because dx vs ogl texel coords
+    const float2 pixelLightTexel = float2( pixelLightNDCSpacePosition.x * 0.5 + 0.5,
+                                           pixelLightNDCSpacePosition.y * -0.5 + 0.5 );
 
-  // loop with offsets for fuzziness
-  const float shadowMapSample = shadowMap.Sample( shadowMapSampler, pixelLightTexel ).x;
+    //Texture2D shadowMap = shadowMaps[ i ];
 
-  //const float shadowMapCameraDist = GetViewSpaceDistFromNDC( shadowMapSample, light.mNear, light.mFar );
-  //const float pixelLightCameraDist = GetViewSpaceDistFromNDC( pixelLightNDCSpacePosition.z, light.mNear, light.mFar );
-  //const float shadowMapCameraDist = -UnprojectClipToView( shadowMapSample, light.mProjA, light.mProjB );
-  //const float pixelLightCameraDist = -UnprojectClipToView( pixelLightClipSpacePosition.z, light.mProjA, light.mProjB );
-  const float shadowMapCameraDist = -UnprojectNDCToView( shadowMapSample, light.mProjA, light.mProjB );
-  const float pixelLightCameraDist = -UnprojectNDCToView( pixelLightNDCSpacePosition.z, light.mProjA, light.mProjB );
+    // loop with offsets for fuzziness
+    const float shadowMapSample = shadowMap.Sample( shadowMapSampler, pixelLightTexel ).x;
+
+    //const float shadowMapCameraDist = GetViewSpaceDistFromNDC( shadowMapSample, light.mNear, light.mFar );
+    //const float pixelLightCameraDist = GetViewSpaceDistFromNDC( pixelLightNDCSpacePosition.z, light.mNear, light.mFar );
+    //const float shadowMapCameraDist = -UnprojectClipToView( shadowMapSample, light.mProjA, light.mProjB );
+    //const float pixelLightCameraDist = -UnprojectClipToView( pixelLightClipSpacePosition.z, light.mProjA, light.mProjB );
+    const float shadowMapCameraDist = -UnprojectNDCToView( shadowMapSample, light.mProjA, light.mProjB );
+    const float pixelLightCameraDist = -UnprojectNDCToView( pixelLightNDCSpacePosition.z, light.mProjA, light.mProjB );
 
 
 
 
-  // this 0.1 is in linear space, but the sample is nonlinear
-  //const bool occluded = pixelLightNDCSpacePosition.z > shadowMapSample + 0.1;
-  const bool occluded_view = pixelLightCameraDist > shadowMapCameraDist + 0.7;
-  const bool occluded_ndc = ( pixelLightNDCSpacePosition.z > shadowMapSample + 0.00001 );
-  //const bool occluded = occluded_ndc;
-  const bool occluded = occluded_view;
+    // this 0.1 is in linear space, but the sample is nonlinear
+    //const bool occluded = pixelLightNDCSpacePosition.z > shadowMapSample + 0.1;
+    const bool occluded_view = pixelLightCameraDist > shadowMapCameraDist + 0.7;
+    const bool occluded_ndc = ( pixelLightNDCSpacePosition.z > shadowMapSample + 0.00001 );
+    //const bool occluded = occluded_ndc;
+    occluded = occluded_view;
+
+  }
 
   if( !occluded )
   {
-    if( light.mType == LIGHT_TYPE_SPOT )
+    uint lightType = LightGetType( light.mFlags );
+    if( lightType == LIGHT_TYPE_SPOT )
     {
       float3 n = normalize( input.mWorldSpaceNormal );
       float3 l = -light.mWorldSpaceUnitDirection.xyz;

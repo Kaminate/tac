@@ -45,8 +45,8 @@ namespace Tac
     Render::FramebufferHandle mShadowFramebuffer;
     Render::ViewHandle        mShadowView;
 
-    v3                        mColor;
-    float                     mRadiance; // i guess?
+    v3                        mColor = v3( 1, 1, 1 );
+    float                     mRadiance = 5.0f; // i guess?
   };
 
   void                                   RegisterLightComponent();

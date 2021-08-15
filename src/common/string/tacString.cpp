@@ -188,6 +188,9 @@ namespace Tac
     return npos;
   }
 
+  bool        StringView::contains( const StringView& substr ) const { return npos != find( substr ); }
+  bool        StringView::contains( char c ) const                   { return npos != find( c ); }
+
   StringView  StringView::substr( const int pos,
                                   const int len ) const
   {
@@ -231,7 +234,8 @@ namespace Tac
     reserve( len );
     for( int i = 0; i < len; ++i )
       mStr[ i ] = c;
-    mLen = len;
+    mStr[ mLen = len ] = '\0';
+    //mLen = len;
   }
   String::String( const char* begin, const char* end ) { append( begin, ( int )( end - begin ) ); }
   String::String( const char* str, int len )           { append( str, len ); }
@@ -294,6 +298,8 @@ namespace Tac
     return npos;
   }
   int    String::find( char c ) const { return StringView( this->data(), this->size() ).find_first_of( c ); }
+  bool   String::contains( const StringView& substr ) const { return npos != find( substr ); }
+  bool   String::contains( char c ) const                   { return npos != find( c ); }
   String String::substr( int pos, int len ) const
   {
     int remainingLen = mLen - pos;

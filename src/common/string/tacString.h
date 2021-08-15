@@ -52,8 +52,12 @@ namespace Tac
     int         find_last_of( StringView ) const;
     int         find_first_of( StringView ) const;
     int         find_first_of( char ) const;
+
+    //          returns the index of the substr, or npos
     int         find( const StringView& ) const;
     int         find( char ) const;
+    bool        contains( const StringView& ) const;
+    bool        contains( char ) const;
     StringView  substr( int pos = 0, int len = npos ) const;
     char        front();
     char        back();
@@ -111,6 +115,8 @@ namespace Tac
     int    find_last_of( const char* c ) const;
     int    find( const String& substr ) const;
     int    find( char ) const;
+    bool   contains( const StringView& ) const;
+    bool   contains( char c ) const;
     String substr( int pos = 0, int len = npos ) const;
 
     static const int npos = -1;     // mimicking the standard library

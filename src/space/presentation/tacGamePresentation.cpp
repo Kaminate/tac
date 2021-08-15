@@ -34,6 +34,12 @@ namespace Tac
 {
 #define TAC_PAD_BYTES( byteCount ) char TAC_CONCAT( mPadding, __COUNTER__ )[ byteCount ]
 
+
+
+  ShaderFlags shaderLightFlags;
+  const auto shaderLightFlagType = shaderLightFlags.Add( 4 );
+  const auto shaderLightFlagCastsShadows = shaderLightFlags.Add( 1 );
+
   // https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-packing-rules
   struct ShaderLight
   {
@@ -41,11 +47,9 @@ namespace Tac
     v4       mWorldSpacePosition;
     v4       mWorldSpaceUnitDirection;
     v4       mColor;
-    uint32_t mType; // flags?
-    //float    mNear;
-    //float    mFar;
-        float mProjA;
-        float mProjB;
+    uint32_t mFlags;
+    float    mProjA;
+    float    mProjB;
     TAC_PAD_BYTES( 4 );
   };
 
@@ -234,9 +238,14 @@ namespace Tac
         const m4 view = camera.View();
         const m4 proj = camera.Proj( a, b, aspect );
 
+
+        const uint32_t flags = 0
+          | shaderLightFlagType.ShiftResult( light->mType )
+          | shaderLightFlagCastsShadows.ShiftResult( light->mCastsShadows );
+
         ShaderLight* shaderLight = &cBufferLights.lights[ i ];
         shaderLight->mColor = { 1, 1, 1, 1 };
-        shaderLight->mType = ( int )light->mType;
+        shaderLight->mFlags = flags;
         shaderLight->mWorldSpaceUnitDirection.xyz() = light->GetUnitDirection();
         shaderLight->mWorldSpacePosition.xyz() = light->mEntity->mWorldPosition;
         shaderLight->mWorldToClip = proj * view;
@@ -714,7 +723,7 @@ namespace Tac
     CreateSamplerState( errors );
     TAC_HANDLE_ERROR( errors );
 
-    CreateSamplerStateShadow(errors);
+    CreateSamplerStateShadow( errors );
   }
 
   void        GamePresentationUninit()
@@ -760,14 +769,14 @@ namespace Tac
     }
   }
 
-  Render::ConstantBufferHandle  GamePresentationGetPerFrame()             { return mCBufPerFrame;        }
-  Render::ConstantBufferHandle  GamePresentationGetPerObj()               { return mCBufPerObj;          }
-  Render::DepthStateHandle      GamePresentationGetDepthState()           { return mDepthState;          }
-  Render::BlendStateHandle      GamePresentationGetBlendState()           { return mBlendState;          }
-  Render::RasterizerStateHandle GamePresentationGetRasterizerState()      { return mRasterizerState;     }
-  Render::SamplerStateHandle    GamePresentationGetSamplerState()         { return mSamplerStateAniso;        }
+  Render::ConstantBufferHandle  GamePresentationGetPerFrame()             { return mCBufPerFrame; }
+  Render::ConstantBufferHandle  GamePresentationGetPerObj()               { return mCBufPerObj; }
+  Render::DepthStateHandle      GamePresentationGetDepthState()           { return mDepthState; }
+  Render::BlendStateHandle      GamePresentationGetBlendState()           { return mBlendState; }
+  Render::RasterizerStateHandle GamePresentationGetRasterizerState()      { return mRasterizerState; }
+  Render::SamplerStateHandle    GamePresentationGetSamplerState()         { return mSamplerStateAniso; }
   Render::VertexDeclarations    GamePresentationGetVertexDeclarations()   { return m3DVertexFormatDecls; }
-  Render::VertexFormatHandle    GamePresentationGetVertexFormat()         { return m3DVertexFormat;      }
+  Render::VertexFormatHandle    GamePresentationGetVertexFormat()         { return m3DVertexFormat; }
 
 
   void                          GamePresentationDebugImGui( Graphics* graphics )
@@ -797,6 +806,9 @@ namespace Tac
           for( int c = 0; c < 4; ++c )
             rowsStrs[ r ] += FrameMemoryPrintf( "%.2f ", shaderLight->mWorldToClip( r, c ) );
 
+        const Light::Type lightType = ( Light::Type )shaderLightFlagType.Extract( shaderLight->mFlags );
+        const bool castsShadows = ( bool )shaderLightFlagCastsShadows.Extract( shaderLight->mFlags );
+
         TAC_IMGUI_INDENT_BLOCK;
         ImGuiText( "World to clip matrix" );
         ImGuiText( rowsStrs[ 0 ] );
@@ -813,8 +825,9 @@ namespace Tac
         ImGuiDragFloat( "light proj b", &shaderLight->mProjB );
         ImGuiImage( -1, v2( 1, 1 ) * 50, shaderLight->mColor );
         ImGuiText( FrameMemoryPrintf( "Light type: %s (%i)",
-                                      LightTypeToString( ( Light::Type ) shaderLight->mType ),
-                                      shaderLight->mType ) );
+                                      LightTypeToString( lightType ),
+                                      ( int )lightType ) );
+        ImGuiText( FrameMemoryPrintf( "casts shadows: %s", ( castsShadows ? "true" : "false" ) ) );
       }
     }
 

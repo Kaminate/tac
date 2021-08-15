@@ -4,6 +4,7 @@
 //#include "src/common/graphics/tacRenderer.h"
 //#include "src/common/math/tacVector4.h"
 #include "src/common/math/tacMatrix4.h"
+#include <cinttypes>
 //#include "src/common/tacPreprocessor.h"
 
 namespace Tac
@@ -36,5 +37,19 @@ namespace Tac
 
   // maybe this should be in renderer idk
   v4 ToColorAlphaPremultiplied( v4 colorAlphaUnassociated );
+
+
+  struct ShaderFlags
+  {
+    struct Info
+    {
+      uint32_t ShiftResult( uint32_t unshifted ) const;
+      uint32_t Extract( uint32_t flags ) const;
+      int      mOffset;
+      int      mBitCount;
+    };
+    Info       Add( int bitCount );
+    int        mRunningBitCount = 0;
+  };
 }
 

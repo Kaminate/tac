@@ -11,5 +11,25 @@ namespace Tac
       colorAlphaUnassociated.z * colorAlphaUnassociated.w,
       colorAlphaUnassociated.w };
   }
+
+  uint32_t ShaderFlags::Info::ShiftResult( uint32_t unshifted ) const
+  {
+    return unshifted << mOffset;
+  }
+
+  uint32_t ShaderFlags::Info::Extract( uint32_t flags ) const
+  {
+    return ( flags >> mOffset ) & ( ( 1 << mBitCount ) - 1 );
+  }
+
+  ShaderFlags::Info ShaderFlags::Add( int bitCount )
+  {
+    Info shaderFlag;
+    shaderFlag.mOffset = mRunningBitCount;
+    shaderFlag.mBitCount = bitCount;
+    mRunningBitCount += bitCount;
+    return shaderFlag;
+  }
+
 }
 
