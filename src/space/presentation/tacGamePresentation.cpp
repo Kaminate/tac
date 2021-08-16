@@ -46,7 +46,7 @@ namespace Tac
     m4       mWorldToClip;
     v4       mWorldSpacePosition;
     v4       mWorldSpaceUnitDirection;
-    v4       mColor;
+    v4       mColorRadiance;
     uint32_t mFlags;
     float    mProjA;
     float    mProjB;
@@ -244,7 +244,8 @@ namespace Tac
           | shaderLightFlagCastsShadows.ShiftResult( light->mCastsShadows );
 
         ShaderLight* shaderLight = &cBufferLights.lights[ i ];
-        shaderLight->mColor = { 1, 1, 1, 1 };
+        shaderLight->mColorRadiance.xyz() = light->mColor;
+        shaderLight->mColorRadiance.w = light->mRadiance;
         shaderLight->mFlags = flags;
         shaderLight->mWorldSpaceUnitDirection.xyz() = light->GetUnitDirection();
         shaderLight->mWorldSpacePosition.xyz() = light->mEntity->mWorldPosition;
@@ -818,12 +819,13 @@ namespace Tac
         ImGuiDragFloat4( "worldspace pos", shaderLight->mWorldSpacePosition.data() );
         ImGuiDragFloat3( "worldspace pos", shaderLight->mWorldSpacePosition.data() );
         ImGuiDragFloat3( "worldspace unit dir", shaderLight->mWorldSpaceUnitDirection.data() );
-        ImGuiDragFloat3( "light color", shaderLight->mColor.data() );
+        ImGuiDragFloat3( "light color", shaderLight->mColorRadiance.data() );
+        ImGuiDragFloat( "light radiance", &shaderLight->mColorRadiance.w );
         //ImGuiDragFloat( "light near plane", &shaderLight->mNear );
         //ImGuiDragFloat( "light far plane", &shaderLight->mFar );
         ImGuiDragFloat( "light proj a", &shaderLight->mProjA );
         ImGuiDragFloat( "light proj b", &shaderLight->mProjB );
-        ImGuiImage( -1, v2( 1, 1 ) * 50, shaderLight->mColor );
+        ImGuiImage( -1, v2( 1, 1 ) * 50, v4( shaderLight->mColorRadiance.xyz(), 1.0f ) );
         ImGuiText( FrameMemoryPrintf( "Light type: %s (%i)",
                                       LightTypeToString( lightType ),
                                       ( int )lightType ) );

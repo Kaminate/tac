@@ -6,12 +6,20 @@
 
 #define DEBUG_MAKE_EVERY_VOXEL_YELLOW 0
 
+
 //===----------------- vertex shader -----------------===//
 
 //                          UAV requires a 'u' register
+// umm... so i think like
+// these share the same buffer as rtvs and start after the render target views,
+// so atm we have 1 rtv occupying slot 0, so the uav starts at index 1
+//
+//  so we definitely dont want to use an auto register macro here
 RWStructuredBuffer< Voxel > mySB : register( u1 );
 
-Texture2D diffuseMaterialTexture : register( t0 );
+Texture2D diffuseMaterialTexture : TAC_AUTO_REGISTER;
+
+Texture2D shadowMaps[ 4 ]        : TAC_AUTO_REGISTER;
 
 sampler linearSampler            : register( s0 );
 
@@ -116,6 +124,11 @@ void GS( triangle VS_OUT_GS_IN input[ 3 ],
 
 //===----------------- pixel shader -----------------===//
 
+void ApplyLight( int iLight )
+{
+
+}
+
 struct PS_OUTPUT
 {
   float4 mColor : SV_Target0;
@@ -140,13 +153,16 @@ PS_OUTPUT PS( GS_OUT_PS_IN input )
   float3 voxelUVW = voxelNDC * 0.5f + 0.5f;
   float3 colorMaterialDiffuse
     = diffuseMaterialTexture.Sample( linearSampler, input.mTexCoord ).xyz
-    * Color;
+    * Color.xyz;
   float3 colorLightDiffuse = dot( n, l );
   float4 color
     //= colorMaterialDiffuse * colorLightDiffuse
     //+ colorLightAmbient
     //+ colorMaterialEmissive;
     = float4( colorMaterialDiffuse, 1 );
+
+  ApplyLight( 0 );
+  // ApplyLight( 1 );
 
   uint3 iVoxel3 = floor( voxelUVW * gVoxelGridSize );
   uint  iVoxel

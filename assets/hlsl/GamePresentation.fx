@@ -7,39 +7,8 @@ struct VS_INPUT
 };
 
 Texture2D shadowMaps[ 4 ] : register( t0 );
-
-sampler linearSampler    : register( s0 );
-sampler shadowMapSampler : register( s1 );
-
-#define LIGHT_TYPE_DIRECTIONAL 0
-#define LIGHT_TYPE_SPOT        1
-
-struct Light
-{
-  //               Transforms a point from worldspace to the shadowmap's clipspace
-  row_major matrix mWorldToClip;
-  float3           mWorldSpacePosition;
-  float3           mWorldSpaceUnitDirection;
-  float4           mColor;
-  uint             mFlags;
-  float            mProjA;
-  float            mProjB;
-  TAC_PAD_BYTES( 4 );
-};
-
-TAC_DEFINE_BITFIELD_BEGIN;
-TAC_DEFINE_BITFIELD_ELEMENT( LightGetType, 4 );
-TAC_DEFINE_BITFIELD_ELEMENT( LightGetCastsShadows, 1 );
-TAC_DEFINE_BITFIELD_END;
-
-cbuffer CBufferLights  : register( b2 )
-{
-  Light            lights[ 4 ];
-  uint             lightCount;
-  bool             useLights;
-  uint             MagicNumber;
-}
-
+sampler linearSampler     : register( s0 );
+sampler shadowMapSampler  : register( s1 );
 
 struct VS_OUTPUT
 {
@@ -87,10 +56,11 @@ float UnprojectNDCToView( float zNDC, float a, float b )
 }
 
 
-float3 ApplyLight( Texture2D shadowMap, Light light, VS_OUTPUT input )
+float3 ApplyLight( int iLight, Texture2D shadowMap, Light light, VS_OUTPUT input )
 {
-
-
+  bool isValid = iLight < lightCount;
+  if( !isValid )
+    return float3( 0, 0, 0 );
 
   float3 colorDiffuse = float3( 0, 0, 0 );
 
@@ -158,7 +128,7 @@ float3 ApplyLight( Texture2D shadowMap, Light light, VS_OUTPUT input )
 
       // dont need to check if ndotl < 0 because of the ndc check?
 
-      colorDiffuse += ndotl * light.mColor.xyz * Color.xyz;
+      colorDiffuse += ndotl * light.mColorRadiance.xyz * Color.xyz;
     }
   }
 
@@ -173,14 +143,10 @@ PS_OUTPUT PS( VS_OUTPUT input )
   float3 colorDiffuse = float3( 0, 0, 0 );
   if( useLights )
   {
-    if( 0 < lightCount )
-      colorDiffuse += ApplyLight( shadowMaps[ 0 ], lights[ 0 ], input );
-    if( 1 < lightCount )
-      colorDiffuse += ApplyLight( shadowMaps[ 1 ], lights[ 1 ], input );
-    if( 2 < lightCount )
-      colorDiffuse += ApplyLight( shadowMaps[ 2 ], lights[ 2 ], input );
-    if( 3 < lightCount )
-      colorDiffuse += ApplyLight( shadowMaps[ 3 ], lights[ 3 ], input );
+    colorDiffuse += ApplyLight( 0, shadowMaps[ 0 ], lights[ 0 ], input );
+    colorDiffuse += ApplyLight( 1, shadowMaps[ 1 ], lights[ 1 ], input );
+    colorDiffuse += ApplyLight( 2, shadowMaps[ 2 ], lights[ 2 ], input );
+    colorDiffuse += ApplyLight( 3, shadowMaps[ 3 ], lights[ 3 ], input );
   }
   else
   {

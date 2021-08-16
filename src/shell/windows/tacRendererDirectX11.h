@@ -205,7 +205,14 @@ namespace Tac
       bool                       mBoundFramebuffersThisFrame[ kMaxFramebuffers ];
       DrawCallUAVs               mBoundDrawCallUAVs;
       VertexFormatHandle         mBoundDrawCallVertexFormat;
+
     };
+
+
+    String ShaderPathToContentString( StringView, Errors& );
+    String GetDirectX11ShaderPath( StringView );
+    String GetDirectX11ShaderPath( ShaderSource );
+    String PreprocessShaderSource( String, Errors& );
   } // namespace Render
 } // namespace Tac
 
