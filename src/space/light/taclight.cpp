@@ -1,9 +1,10 @@
+#include "src/common/math/tacMatrix3.h"
+#include "src/common/tacCamera.h"
+#include "src/common/tacJson.h"
+#include "src/common/graphics/tacRendererUtil.h"
+#include "src/space/graphics/tacgraphics.h"
 #include "src/space/light/tacLight.h"
 #include "src/space/tacentity.h"
-#include "src/common/tacCamera.h"
-#include "src/common/math/tacMatrix3.h"
-#include "src/common/tacJson.h"
-#include "src/space/graphics/tacgraphics.h"
 
 namespace Tac
 {
@@ -181,6 +182,39 @@ namespace Tac
         return curType;
     }
     return Light::Type::kCount;
+  }
+
+  ShaderLight                            LightToShaderLight( const Light* light )
+  {
+        Camera camera = light->GetCamera();
+        float a;
+        float b;
+        Render::GetPerspectiveProjectionAB( camera.mFarPlane,
+                                            camera.mNearPlane,
+                                            a,
+                                            b );
+        const float w = ( float )light->mShadowResolution;
+        const float h = ( float )light->mShadowResolution;
+        const float aspect = w / h;
+        const m4 view = camera.View();
+        const m4 proj = camera.Proj( a, b, aspect );
+
+
+        const uint32_t flags = 0
+          | GetShaderLightFlagType()->ShiftResult( light->mType )
+          | GetShaderLightFlagCastsShadows()->ShiftResult( light->mCastsShadows );
+
+        ShaderLight shaderLight = {};
+        shaderLight.mColorRadiance.xyz() = light->mColor;
+        shaderLight.mColorRadiance.w = light->mRadiance;
+        shaderLight.mFlags = flags;
+        shaderLight.mWorldSpaceUnitDirection.xyz() = light->GetUnitDirection();
+        shaderLight.mWorldSpacePosition.xyz() = light->mEntity->mWorldPosition;
+        shaderLight.mWorldToClip = proj * view;
+        shaderLight.mProjA = a;
+        shaderLight.mProjB = b;
+        return shaderLight;
+
   }
 
 }

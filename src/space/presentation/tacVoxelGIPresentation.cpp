@@ -19,6 +19,7 @@
 #include "src/space/presentation/tacGamePresentation.h"
 #include "src/space/presentation/tacVoxelGIPresentation.h"
 #include "src/space/tacentity.h"
+#include "src/space/light/taclight.h"
 #include "src/space/tacworld.h"
 
 #if _MSC_VER
@@ -40,6 +41,7 @@ namespace Tac
   static Render::ShaderHandle          voxelCopyShader;
   static Render::FramebufferHandle     voxelFramebuffer;
   static Render::ConstantBufferHandle  voxelConstantBuffer;
+  static Render::ConstantBufferHandle  mCBufLight;
   static Render::RasterizerStateHandle voxelRasterizerState;
   static Render::DepthStateHandle      voxelCopyDepthState;
   static Render::VertexDeclarations    voxelVertexDeclarations;
@@ -165,13 +167,13 @@ namespace Tac
     for( auto& number : voxelSettingsSerializer.numbers )
     {
       if( number.isBool && *( bool* )number.GetData( a ) != *( bool* )number.GetData( b ) )
-          return true;
+        return true;
 
       if( number.isInt && *( int* )number.GetData( a ) != *( int* )number.GetData( b ) )
-          return true;
+        return true;
 
       if( number.isFloat && *( float* )number.GetData( a ) != *( float* )number.GetData( b ) )
-          return true;
+        return true;
     }
     return false;
   }
@@ -237,6 +239,15 @@ namespace Tac
     Render::DestroyTexture( voxelFramebufferTexture, TAC_STACK_FRAME );
     Render::DestroyFramebuffer( voxelFramebuffer, TAC_STACK_FRAME );
     Render::DestroyView( voxelView );
+  }
+
+  static void                    CreateLightsConstantBuffer()
+  {
+    mCBufLight = Render::CreateConstantBuffer( sizeof( CBufferLights ),
+                                               CBufferLights::shaderRegister,
+                                               TAC_STACK_FRAME );
+    Render::SetRenderObjectDebugName( mCBufLight, "voxelizer-lights" );
+
   }
 
   static void                    CreateVoxelConstantBuffer()
@@ -325,7 +336,7 @@ namespace Tac
 
   static Render::TexSpec         GetVoxRadianceTexSpec()
   {
-      
+
 
     // rgba16f, 2 bytes (16 bits) per float, hdr values
     Render::TexSpec texSpec;
@@ -470,6 +481,22 @@ namespace Tac
     TAC_PROFILE_BLOCK;
     TAC_RENDER_GROUP_BLOCK( "Voxelize" );
 
+    Render::DrawCallTextures textures = { Get1x1White() };
+
+    CBufferLights cBufferLights;
+    struct : public LightVisitor
+    {
+      void operator()( Light* light ) override
+      {
+        if( cBufferLights->TryAddLight( LightToShaderLight( light ) ) )
+          textures->push_back( light->mShadowMapDepth );
+      }
+      CBufferLights* cBufferLights;
+      Render::DrawCallTextures* textures;
+    } lightVisitor;
+    lightVisitor.cBufferLights = &cBufferLights;
+    lightVisitor.textures = &textures;
+
     struct : public ModelVisitor
     {
       void operator()( Model* model ) override
@@ -486,8 +513,11 @@ namespace Tac
         objBuf.Color = { model->mColorRGB, 1 };
         objBuf.World = model->mEntity->mWorldTransform;
 
+
+
         for( const SubMesh& subMesh : mesh->mSubMeshes )
         {
+
           Render::BeginGroup( subMesh.mName, TAC_STACK_FRAME );
           Render::SetShader( voxelizerShader );
           Render::SetVertexBuffer( subMesh.mVertexBuffer, 0, subMesh.mVertexCount );
@@ -497,10 +527,14 @@ namespace Tac
           Render::SetSamplerState( mSamplerState );
           Render::SetDepthState( mDepthState );
           Render::SetVertexFormat( voxelVertexFormat );
-          Render::SetTexture( { mTexture } );
+          Render::SetTexture( *textures );
           Render::UpdateConstantBuffer( mObjConstantBuffer,
                                         &objBuf,
                                         sizeof( DefaultCBufferPerObject ),
+                                        TAC_STACK_FRAME );
+          Render::UpdateConstantBuffer( mCBufLight,
+                                        cBufferLights,
+                                        sizeof( CBufferLights ),
                                         TAC_STACK_FRAME );
           Render::SetPixelShaderUnorderedAccessView( voxelRWStructuredBuf, 0 );
           Render::SetPrimitiveTopology( subMesh.mPrimitiveTopology );
@@ -514,14 +548,16 @@ namespace Tac
       Render::BlendStateHandle      mBlendState;
       Render::SamplerStateHandle    mSamplerState;
       Render::ConstantBufferHandle  mObjConstantBuffer;
-      Render::TextureHandle         mTexture;
+      Render::DrawCallTextures* textures;
+      CBufferLights* cBufferLights;
     } modelVisitor;
     modelVisitor.mViewHandle = viewHandle;
     modelVisitor.mDepthState = GamePresentationGetDepthState();
     modelVisitor.mBlendState = GamePresentationGetBlendState();
     modelVisitor.mSamplerState = GamePresentationGetSamplerState();
     modelVisitor.mObjConstantBuffer = GamePresentationGetPerObj();
-    modelVisitor.mTexture = Get1x1White();
+    modelVisitor.textures = &textures;
+    modelVisitor.cBufferLights = &cBufferLights;
 
     const CBufferVoxelizer cpuCBufferVoxelizer = VoxelGetCBuffer();
     Render::UpdateConstantBuffer( voxelConstantBuffer,
@@ -530,6 +566,7 @@ namespace Tac
                                   TAC_STACK_FRAME );
 
     const Graphics* graphics = GetGraphics( world );
+    graphics->VisitLights( &lightVisitor );
     graphics->VisitModels( &modelVisitor );
   }
 
@@ -581,6 +618,7 @@ namespace Tac
 
     CreateVoxelizerShader();
     CreateVoxelConstantBuffer();
+    CreateLightsConstantBuffer();
     CreateVoxelView();
     CreateVoxelRasterizerState();
     CreateVoxelVisualizerShader();

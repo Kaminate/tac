@@ -112,6 +112,108 @@ namespace Tac
     return !exists && existed;
   }
 
+
+
+  //===-------------- SelectedEntities -------------===//
+
+  void                SelectedEntities::AddToSelection( Entity* e ) { mSelectedEntities.push_back( e ); }
+
+  void                SelectedEntities::DeleteEntities()
+  {
+    Vector< Entity* > topLevelEntitiesToDelete;
+
+    for( Entity* entity : mSelectedEntities )
+    {
+      bool isTopLevel = true;
+      for( Entity* parent = entity->mParent; parent; parent = parent->mParent )
+      {
+        if( Contains( mSelectedEntities, parent ) )
+        {
+          isTopLevel = false;
+          break;
+        }
+      }
+      if( isTopLevel )
+        topLevelEntitiesToDelete.push_back( entity );
+    }
+    for( Entity* entity : topLevelEntitiesToDelete )
+    {
+      PrefabRemoveEntityRecursively( entity );
+      gCreation.mWorld->KillEntity( entity );
+
+    }
+    mSelectedEntities.clear();
+  }
+
+  bool                SelectedEntities::IsSelected( Entity* e )
+  {
+    for( Entity* s : mSelectedEntities )
+      if( s == e )
+        return true;
+    return false;
+  }
+
+  int                 SelectedEntities::size() { return mSelectedEntities.size(); }
+
+  Entity**            SelectedEntities::begin() { return mSelectedEntities.begin(); }
+
+  Entity**            SelectedEntities::end() { return mSelectedEntities.end(); }
+
+  void                SelectedEntities::Select( Entity* e ) { mSelectedEntities = { e }; }
+
+  bool                SelectedEntities::empty()
+  {
+    return mSelectedEntities.empty();
+  }
+
+  v3                  SelectedEntities::GetGizmoOrigin()
+  {
+    TAC_ASSERT( !empty() );
+    // do i really want average? or like center of bounding circle?
+    v3 runningPosSum = {};
+    int selectionCount = 0;
+    for( auto entity : mSelectedEntities )
+    {
+      runningPosSum +=
+        ( entity->mWorldTransform * v4( 0, 0, 0, 1 ) ).xyz();
+      entity->mRelativeSpace.mPosition;
+      selectionCount++;
+    }
+    v3 averagePos = runningPosSum / ( float )selectionCount;
+    v3 result = averagePos;
+    //if( mSelectedHitOffsetExists )
+    //  result += mSelectedHitOffset;
+    return result;
+  }
+
+  void                SelectedEntities::clear()
+  {
+    mSelectedEntities.clear();
+    //mSelectedHitOffsetExists = false;
+  }
+
+  void                SelectedEntities::DeleteEntitiesCheck()
+  {
+    CreationGameWindow* gameWindow = CreationGameWindow::Instance;
+
+    if( !gameWindow || !gameWindow->mDesktopWindowHandle.IsValid() )
+      return;
+
+    DesktopWindowState* desktopWindowState = GetDesktopWindowState( gameWindow->mDesktopWindowHandle );
+
+    if( !desktopWindowState->mNativeWindowHandle )
+      return;
+
+    if( !IsWindowHovered( gameWindow->mDesktopWindowHandle ) )
+      return;
+
+    if( !gKeyboardInput.IsKeyJustDown( Key::Delete ) )
+      return;
+    DeleteEntities();
+  }
+
+  //===-------------- ExecutableStartupInfo -------------===//
+
   void ExecutableStartupInfo::Init( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
@@ -120,6 +222,8 @@ namespace Tac
     mProjectUpdate = CreationUpdateCallback;
     mProjectUninit = CreationUninitCallback;
   }
+
+  //===-------------- Creation -------------===//
 
   void                Creation::Init( Errors& errors )
   {
@@ -323,36 +427,6 @@ namespace Tac
     return SettingsGetChildByKeyValuePair( "Name", Json( windowName ), windows );
   }
 
-  void                Creation::AddToSelection( Entity* e )
-  {
-    mSelectedEntities.push_back( e );
-  }
-
-  void                Creation::DeleteSelectedEntities()
-  {
-    Vector< Entity* > topLevelEntitiesToDelete;
-
-    for( Entity* entity : mSelectedEntities )
-    {
-      bool isTopLevel = true;
-      for( Entity* parent = entity->mParent; parent; parent = parent->mParent )
-      {
-        if( Contains( mSelectedEntities, parent ) )
-        {
-          isTopLevel = false;
-          break;
-        }
-      }
-      if( isTopLevel )
-        topLevelEntitiesToDelete.push_back( entity );
-    }
-    for( Entity* entity : topLevelEntitiesToDelete )
-    {
-      PrefabRemoveEntityRecursively( entity );
-      mWorld->KillEntity( entity );
-    }
-    mSelectedEntities.clear();
-  }
 
   void                Creation::Update( Errors& errors )
   {
@@ -428,7 +502,7 @@ namespace Tac
     mWorld->Step( TAC_DELTA_FRAME_SECONDS );
 
 
-    CheckDeleteSelected();
+    mSelectedEntities.DeleteEntitiesCheck();
 
     if( gKeyboardInput.IsKeyJustDown( Key::S ) &&
         gKeyboardInput.IsKeyDown( Key::Modifier ) )
@@ -499,60 +573,10 @@ namespace Tac
     Entity* entity = world->SpawnEntity( mEntityUUIDCounter.AllocateNewUUID() );
     entity->mName = CreationGetNewEntityName();
     entity->mRelativeSpace = GetEditorCameraVisibleRelativeSpace();
-    mSelectedEntities = { entity };
+    mSelectedEntities.Select( entity );
     return entity;
   }
 
-  bool                Creation::IsAnythingSelected()
-  {
-    return mSelectedEntities.size();
-  }
-
-  v3                  Creation::GetSelectionGizmoOrigin()
-  {
-    TAC_ASSERT( IsAnythingSelected() );
-    // do i really want average? or like center of bounding circle?
-    v3 runningPosSum = {};
-    int selectionCount = 0;
-    for( auto entity : mSelectedEntities )
-    {
-      runningPosSum +=
-        ( entity->mWorldTransform * v4( 0, 0, 0, 1 ) ).xyz();
-      entity->mRelativeSpace.mPosition;
-      selectionCount++;
-    }
-    v3 averagePos = runningPosSum / ( float )selectionCount;
-    v3 result = averagePos;
-    if( mSelectedHitOffsetExists )
-      result += mSelectedHitOffset;
-    return result;
-  }
-
-  void                Creation::ClearSelection()
-  {
-    mSelectedEntities.clear();
-    mSelectedHitOffsetExists = false;
-  }
-
-  void                Creation::CheckDeleteSelected()
-  {
-    CreationGameWindow* gameWindow = CreationGameWindow::Instance;
-
-    if( !gameWindow || !gameWindow->mDesktopWindowHandle.IsValid() )
-      return;
-
-    DesktopWindowState* desktopWindowState = GetDesktopWindowState( gameWindow->mDesktopWindowHandle );
-
-    if( !desktopWindowState->mNativeWindowHandle )
-      return;
-
-    if( !IsWindowHovered( gameWindow->mDesktopWindowHandle ) )
-      return;
-
-    if( !gKeyboardInput.IsKeyJustDown( Key::Delete ) )
-      return;
-    DeleteSelectedEntities();
-  }
 
 
   void                ModifyPathRelative( String& savePath )

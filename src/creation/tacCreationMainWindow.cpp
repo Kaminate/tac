@@ -14,6 +14,7 @@
 #include "src/creation/tacCreation.h"
 #include "src/creation/tacCreationGameObjectMenuWindow.h"
 #include "src/creation/tacCreationMainWindow.h"
+#include "src/creation/tacCreationPrefab.h"
 #include "src/shell/tacDesktopApp.h"
 #include "src/shell/tacDesktopWindowGraphics.h"
 #include "src/space/tacEntity.h"
@@ -71,6 +72,14 @@ namespace Tac
 
   }
 
+  void CreationMainWindow::ImGuiPrefabs()
+  {
+    if( !ImGuiCollapsingHeader( "Prefabs" ) )
+      return;
+    TAC_IMGUI_INDENT_BLOCK;
+    PrefabImGui();
+  }
+
   void CreationMainWindow::ImGuiWindows()
   {
     ImGuiText( "Windows" );
@@ -92,28 +101,12 @@ namespace Tac
 
     if( createWindowErrors )
       ImGuiText( createWindowErrors.ToString() );
+
     ImGuiUnindent();
   }
 
-  void CreationMainWindow::ImGui()
+  void CreationMainWindow::ImGuiSaveAs()
   {
-    DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
-    if( !desktopWindowState->mNativeWindowHandle )
-      return;
-
-    ImGuiSetNextWindowHandle( mDesktopWindowHandle );
-    ImGuiSetNextWindowStretch();
-    ImGuiBegin( "Main Window" );
-
-
-
-#if 0
-
-
-#else
-    ImGuiBeginMenuBar();
-    ImGuiText( "file | edit | window" );
-    ImGuiEndMenuBar();
     if( ImGuiButton( "save as" ) )
     {
       World* world = gCreation.mWorld;
@@ -151,11 +144,25 @@ namespace Tac
         }
       }
     }
+  }
+  void CreationMainWindow::ImGui()
+  {
+    DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
+    if( !desktopWindowState->mNativeWindowHandle )
+      return;
 
+    ImGuiSetNextWindowHandle( mDesktopWindowHandle );
+    ImGuiSetNextWindowStretch();
+    ImGuiBegin( "Main Window" );
+
+
+    ImGuiBeginMenuBar();
+    ImGuiText( "file | edit | window" );
+    ImGuiEndMenuBar();
+    ImGuiSaveAs();
     ImGuiWindows();
+    ImGuiPrefabs();
 
-
-#endif
 
     mCloseRequested |= ImGuiButton( "Close window" );
     if( ImGuiButton( "Close Application" ) )

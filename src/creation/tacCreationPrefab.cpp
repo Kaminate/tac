@@ -2,6 +2,7 @@
 #include "src/common/tacCamera.h"
 #include "src/common/tacErrorHandling.h"
 #include "src/common/tacAlgorithm.h"
+#include "src/common/graphics/imgui/tacImGui.h"
 #include "src/common/tacFrameMemory.h"
 #include "src/common/tacOS.h"
 #include "src/common/tacSettings.h"
@@ -33,7 +34,23 @@ namespace Tac
   };
 
   static Vector< Prefab* >  mPrefabs;
-  static const char*             prefabSettingsPath = "prefabs";
+  static const char*        prefabSettingsPath = "prefabs";
+
+  static void         PrefabUpdateOpenedInEditor()
+  {
+    Vector< String > documentPaths;
+    for( Prefab* prefab : mPrefabs )
+      for( Entity* entity : prefab->mEntities )
+        if( !entity->mParent )
+          documentPaths.push_back( prefab->mDocumentPath );
+
+    Json* prefabJson = SettingsGetJson( prefabSettingsPath );
+    prefabJson->Clear();
+    for( auto documentPath : documentPaths )
+      *prefabJson->AddChild() = StringView( documentPath );
+    Errors e;
+    SettingsSave( e );
+  }
 
 
   static void         PrefabLoadCameraVec( Prefab* prefab, StringView refFrameVecName, v3& refFrameVec )
@@ -80,8 +97,8 @@ namespace Tac
 
   }
 
-  static void AllocateEntityUUIDsRecursively( EntityUUIDCounter* entityUUIDCounter,
-                                              Entity* entityParent )
+  static void         AllocateEntityUUIDsRecursively( EntityUUIDCounter* entityUUIDCounter,
+                                                      Entity* entityParent )
   {
     entityParent->mEntityUUID = entityUUIDCounter->AllocateNewUUID();
     for( Entity* entityChild : entityParent->mChildren )
@@ -114,6 +131,8 @@ namespace Tac
     mPrefabs.push_back( prefab );
 
     PrefabLoadCamera( prefab, camera );
+
+    PrefabUpdateOpenedInEditor();
   }
 
   void                PrefabLoad( EntityUUIDCounter* entityUUIDCounter,
@@ -123,9 +142,12 @@ namespace Tac
   {
     TAC_UNUSED_PARAMETER( errors );
     Json* prefabs = SettingsGetJson( prefabSettingsPath );
+    Vector< String > paths;
     for( Json* child : prefabs->mArrayElements )
+      paths.push_back( child->mString );
+    for( String path : paths )
     {
-      PrefabLoadAtPath( entityUUIDCounter, world, camera, child->mString, errors );
+      PrefabLoadAtPath( entityUUIDCounter, world, camera, path, errors );
       TAC_HANDLE_ERROR( errors );
     }
   }
@@ -208,7 +230,7 @@ namespace Tac
     }
   }
 
-  void                PrefabRemoveEntityRecursively( Entity* entity )
+  static void         PrefabRemoveEntityRecursivelyAux( Entity* entity )
   {
     int prefabCount = mPrefabs.size();
     for( int iPrefab = 0; iPrefab < prefabCount; ++iPrefab )
@@ -237,7 +259,14 @@ namespace Tac
         break;
     }
     for( Entity* child : entity->mChildren )
-      PrefabRemoveEntityRecursively( child );
+      PrefabRemoveEntityRecursivelyAux( child );
+
+  }
+
+  void                PrefabRemoveEntityRecursively( Entity* entity )
+  {
+    PrefabRemoveEntityRecursivelyAux( entity );
+    PrefabUpdateOpenedInEditor();
   }
 
   // What if one of its ancestors is a prefab?
@@ -247,6 +276,26 @@ namespace Tac
       if( Contains( prefab->mEntities, entity ) )
         return prefab->mDocumentPath;
     return nullptr;
+  }
+
+  static void         PrefabImGui( Prefab* prefab )
+  {
+    if( !ImGuiCollapsingHeader( prefab->mDocumentPath ) )
+      return;
+    TAC_IMGUI_INDENT_BLOCK;
+    for( Entity* entity : prefab->mEntities )
+    {
+      const char* buttonText = FrameMemoryPrintf( "select entity of uuid %i", ( int )entity->mEntityUUID );
+      if( ImGuiButton( buttonText ) )
+        gCreation.mSelectedEntities.Select( entity );
+    }
+  }
+  void                PrefabImGui()
+  {
+    for( Prefab* prefab : mPrefabs )
+    {
+      PrefabImGui( prefab );
+    }
   }
 }
 

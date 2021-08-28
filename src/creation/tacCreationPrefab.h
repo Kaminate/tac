@@ -20,6 +20,7 @@ namespace Tac
   //
   //                        So this function should also have a serverdata parameter
   void                PrefabLoad( EntityUUIDCounter*, World*, Camera*, Errors& );
+  void                PrefabImGui();
 
   //void                PrefabLoadCamera( Prefab* );
   //void                PrefabLoadCameraVec( Prefab*, StringView, v3& );

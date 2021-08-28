@@ -98,11 +98,10 @@ namespace Tac
 
   void CreationPropertyWindow::RecursiveEntityHierarchyElement( Entity* entity )
   {
-    const bool previouslySelected = Contains( gCreation.mSelectedEntities, entity );
+    const bool previouslySelected = gCreation.mSelectedEntities.IsSelected( entity );
     if( ImGuiSelectable( entity->mName, previouslySelected ) )
     {
-      gCreation.ClearSelection();
-      gCreation.mSelectedEntities = { entity };
+      gCreation.mSelectedEntities.Select( entity );
     }
     if( entity->mChildren.empty() )
       return;
@@ -201,8 +200,7 @@ namespace Tac
           ImGuiSameLine();
           if( ImGuiButton( "Select" ) )
           {
-            gCreation.ClearSelection();
-            gCreation.AddToSelection( child );
+            gCreation.mSelectedEntities.Select( child );
           }
 
           ImGuiSameLine();
@@ -276,9 +274,7 @@ namespace Tac
 
     mCloseRequested |= ImGuiButton( "Close window" );
 
-    // temp begin
     ImGuiDebugDraw();
-    // temp end
 
     ImGuiEnd();
 

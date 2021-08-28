@@ -16,6 +16,23 @@ namespace Tac
   struct GamePresentation;
   struct SkyboxPresentation;
 
+  struct SelectedEntities
+  {
+    bool                empty();
+    int                 size();
+    Entity**            begin();
+    Entity**            end();
+    v3                  GetGizmoOrigin();
+    void                clear();
+    void                DeleteEntitiesCheck();
+    void                DeleteEntities();
+    void                AddToSelection( Entity* );
+    void                Select( Entity* );
+    bool                IsSelected( Entity* );
+
+    Vector< Entity* >   mSelectedEntities;
+  };
+
   struct Creation
   {
     void                Init( Errors& );
@@ -27,17 +44,6 @@ namespace Tac
     RelativeSpace       GetEditorCameraVisibleRelativeSpace();
     Entity*             CreateEntity();
     Entity*             InstantiateAsCopy( Entity*, const RelativeSpace& );
-
-
-    //===-------------- Selection ------------===//
-    bool                IsAnythingSelected();
-    v3                  GetSelectionGizmoOrigin();
-    void                ClearSelection();
-    void                CheckDeleteSelected();
-    void                DeleteSelectedEntities();
-    void                AddToSelection( Entity* );
-
-
 
     //===-------------- Windows --------------===//
     void                CreateInitialWindow( const char*,
@@ -56,9 +62,9 @@ namespace Tac
     void                GetWindowsJsonData( StringView windowName, int* x, int* y, int* w, int* h );
     Json*               FindWindowJson( StringView windowName );
 
+    SelectedEntities    mSelectedEntities;
     String              mOnlyCreateWindowNamed;
     World*              mWorld = nullptr;
-    Vector< Entity* >   mSelectedEntities;
     bool                mSelectedHitOffsetExists = false;
     v3                  mSelectedHitOffset = {};
     bool                mSelectedGizmo = false;

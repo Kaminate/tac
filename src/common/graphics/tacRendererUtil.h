@@ -4,11 +4,25 @@
 //#include "src/common/graphics/tacRenderer.h"
 //#include "src/common/math/tacVector4.h"
 #include "src/common/math/tacMatrix4.h"
+#include "src/common/tacPreprocessor.h"
+
 #include <cinttypes>
-//#include "src/common/tacPreprocessor.h"
 
 namespace Tac
 {
+  struct ShaderFlags
+  {
+    struct Info
+    {
+      uint32_t ShiftResult( uint32_t unshifted ) const;
+      uint32_t Extract( uint32_t flags ) const;
+      int      mOffset;
+      int      mBitCount;
+    };
+    Info       Add( int bitCount );
+    int        mRunningBitCount = 0;
+  };
+
   // this should really be called like per camera data
   struct DefaultCBufferPerFrame
   {
@@ -35,21 +49,40 @@ namespace Tac
     v4                 Color;
   };
 
+#define TAC_PAD_BYTES( byteCount ) char TAC_CONCAT( mPadding, __COUNTER__ )[ byteCount ]
+
+
+  const ShaderFlags::Info* GetShaderLightFlagType();
+  const ShaderFlags::Info* GetShaderLightFlagCastsShadows();
+
+  // https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-packing-rules
+  struct ShaderLight
+  {
+    m4       mWorldToClip;
+    v4       mWorldSpacePosition;
+    v4       mWorldSpaceUnitDirection;
+    v4       mColorRadiance;
+    uint32_t mFlags;
+    float    mProjA;
+    float    mProjB;
+    TAC_PAD_BYTES( 4 );
+  };
+
+  struct CBufferLights
+  {
+    static const int TAC_MAX_SHADER_LIGHTS = 4;
+    static const int shaderRegister = 2;
+
+    ShaderLight      lights[ TAC_MAX_SHADER_LIGHTS ] = {};
+    uint32_t         lightCount = 0;
+    uint32_t         useLights = true;
+    uint32_t         testNumber = 1234567890;
+    bool             TryAddLight( const ShaderLight& );
+  };
+
   // maybe this should be in renderer idk
   v4 ToColorAlphaPremultiplied( v4 colorAlphaUnassociated );
 
 
-  struct ShaderFlags
-  {
-    struct Info
-    {
-      uint32_t ShiftResult( uint32_t unshifted ) const;
-      uint32_t Extract( uint32_t flags ) const;
-      int      mOffset;
-      int      mBitCount;
-    };
-    Info       Add( int bitCount );
-    int        mRunningBitCount = 0;
-  };
 }
 

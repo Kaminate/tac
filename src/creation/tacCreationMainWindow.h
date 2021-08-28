@@ -26,6 +26,8 @@ namespace Tac
     void                       LoadTextures( Errors& );
     void                       ImGui();
     void                       ImGuiWindows();
+    void                       ImGuiPrefabs();
+    void                       ImGuiSaveAs();
     DesktopWindowHandle        mDesktopWindowHandle;
     UIRoot*                    mUIRoot = nullptr;
     UI2DDrawData*              mUI2DDrawData = nullptr;

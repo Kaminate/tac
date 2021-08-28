@@ -32,38 +32,8 @@
 
 namespace Tac
 {
-#define TAC_PAD_BYTES( byteCount ) char TAC_CONCAT( mPadding, __COUNTER__ )[ byteCount ]
 
 
-
-  ShaderFlags shaderLightFlags;
-  const auto shaderLightFlagType = shaderLightFlags.Add( 4 );
-  const auto shaderLightFlagCastsShadows = shaderLightFlags.Add( 1 );
-
-  // https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-packing-rules
-  struct ShaderLight
-  {
-    m4       mWorldToClip;
-    v4       mWorldSpacePosition;
-    v4       mWorldSpaceUnitDirection;
-    v4       mColorRadiance;
-    uint32_t mFlags;
-    float    mProjA;
-    float    mProjB;
-    TAC_PAD_BYTES( 4 );
-  };
-
-
-  struct CBufferLights
-  {
-    static const int TAC_MAX_SHADER_LIGHTS = 4;
-    static const int shaderRegister = 2;
-
-    ShaderLight      lights[ TAC_MAX_SHADER_LIGHTS ];
-    uint32_t         lightCount;
-    uint32_t         useLights;
-    uint32_t         testNumber;
-  };
 
 
   static Render::ShaderHandle          m3DShader;
@@ -217,67 +187,12 @@ namespace Tac
     Render::DrawCallTextures drawCallTextures;
     if( mUseLights )
     {
-      CBufferLights cBufferLights = {};
-      cBufferLights.lightCount = lightCount;
-      cBufferLights.useLights = true;
-      cBufferLights.testNumber = 1234567890;
+      CBufferLights cBufferLights;
       for( int i = 0; i < lightCount; ++i )
       {
-        drawCallTextures.push_back( lights[ i ]->mShadowMapDepth );
         const Light* light = lights[ i ];
-        Camera camera = light->GetCamera();
-        float a;
-        float b;
-        Render::GetPerspectiveProjectionAB( camera.mFarPlane,
-                                            camera.mNearPlane,
-                                            a,
-                                            b );
-        const float w = ( float )light->mShadowResolution;
-        const float h = ( float )light->mShadowResolution;
-        const float aspect = w / h;
-        const m4 view = camera.View();
-        const m4 proj = camera.Proj( a, b, aspect );
-
-
-        const uint32_t flags = 0
-          | shaderLightFlagType.ShiftResult( light->mType )
-          | shaderLightFlagCastsShadows.ShiftResult( light->mCastsShadows );
-
-        ShaderLight* shaderLight = &cBufferLights.lights[ i ];
-        shaderLight->mColorRadiance.xyz() = light->mColor;
-        shaderLight->mColorRadiance.w = light->mRadiance;
-        shaderLight->mFlags = flags;
-        shaderLight->mWorldSpaceUnitDirection.xyz() = light->GetUnitDirection();
-        shaderLight->mWorldSpacePosition.xyz() = light->mEntity->mWorldPosition;
-        shaderLight->mWorldToClip = proj * view;
-        //shaderLight->mNear = camera.mNearPlane;
-        //shaderLight->mFar = camera.mFarPlane;
-        shaderLight->mProjA = a;
-        shaderLight->mProjB = b;
-
-        //v4 r0 = shaderLight->mWorldToClip.GetRow( 0 );
-        //v4 r1 = shaderLight->mWorldToClip.GetRow( 1 );
-        //v4 r2 = shaderLight->mWorldToClip.GetRow( 2 );
-        //v4 r3 = shaderLight->mWorldToClip.GetRow( 3 );
-        //const char* debugMtx = FrameMemoryPrintf(
-        //  "%.2f %.2f %.2f %.2f\n"
-        //  "%.2f %.2f %.2f %.2f\n"
-        //  "%.2f %.2f %.2f %.2f\n"
-        //  "%.2f %.2f %.2f %.2f\n",
-        //  r0.x, r0.y, r0.z, r0.w,
-        //  r1.x, r1.y, r1.z, r1.w,
-        //  r2.x, r2.y, r2.z, r2.w,
-        //  r3.x, r3.y, r3.z, r3.w);
-
-        //v4 worldspacePos = {0,0,0,1};
-        //v4 clipspacePos = shaderLight->mWorldToClip * worldspacePos;
-        //v4 ndcspacePos = clipspacePos / clipspacePos.w;
-
-        //float clipToViewPos = ( clipspacePos.z - b ) / a;
-        //float ndcToViewPos = -b / ( a + ndcspacePos.z );
-
-
-
+        if( cBufferLights.TryAddLight( LightToShaderLight( light ) ) )
+          drawCallTextures.push_back( light->mShadowMapDepth );
       }
       Render::UpdateConstantBuffer( mCBufLight, &cBufferLights, sizeof( CBufferLights ), TAC_STACK_FRAME );
 
@@ -807,8 +722,8 @@ namespace Tac
           for( int c = 0; c < 4; ++c )
             rowsStrs[ r ] += FrameMemoryPrintf( "%.2f ", shaderLight->mWorldToClip( r, c ) );
 
-        const Light::Type lightType = ( Light::Type )shaderLightFlagType.Extract( shaderLight->mFlags );
-        const bool castsShadows = ( bool )shaderLightFlagCastsShadows.Extract( shaderLight->mFlags );
+        const Light::Type lightType = ( Light::Type ) GetShaderLightFlagType()->Extract( shaderLight->mFlags );
+        const bool castsShadows = ( bool )GetShaderLightFlagCastsShadows()->Extract( shaderLight->mFlags );
 
         TAC_IMGUI_INDENT_BLOCK;
         ImGuiText( "World to clip matrix" );

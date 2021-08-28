@@ -31,5 +31,20 @@ namespace Tac
     return shaderFlag;
   }
 
+
+  static ShaderFlags       shaderLightFlags;
+  static ShaderFlags::Info shaderLightFlagType = shaderLightFlags.Add( 4 );
+  static ShaderFlags::Info shaderLightFlagCastsShadows = shaderLightFlags.Add( 1 );
+  const ShaderFlags::Info* GetShaderLightFlagType() { return &shaderLightFlagType; }
+  const ShaderFlags::Info* GetShaderLightFlagCastsShadows() { return &shaderLightFlagCastsShadows; }
+
+  bool             CBufferLights::TryAddLight( const ShaderLight& shaderLight )
+  {
+    const bool result = lightCount < TAC_MAX_SHADER_LIGHTS;
+    if( result )
+      lights[ lightCount++ ] = shaderLight;
+    return result;
+  }
+
 }
 

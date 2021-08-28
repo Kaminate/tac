@@ -49,6 +49,9 @@ namespace Tac
     float                     mRadiance = 5.0f; // i guess?
   };
 
+
+  struct ShaderLight                            LightToShaderLight( const Light* );
+
   void                                   RegisterLightComponent();
   const char*                            LightTypeToString( Light::Type );
   Light::Type                            LightTypeFromString( const char* );

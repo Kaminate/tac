@@ -298,9 +298,9 @@ namespace Tac
 
     if( gCreation.mSelectedEntities.size() && drawGizmos ) // || gCreation.mSelectedPrefabs.size() )
     {
-      v3 selectionGizmoOrigin = gCreation.GetSelectionGizmoOrigin();
+      const v3 selectionGizmoOrigin = gCreation.mSelectedEntities.GetGizmoOrigin();
 
-      m4 invArrowRots[] = {
+      const m4 invArrowRots[] = {
         m4::RotRadZ( 3.14f / 2.0f ),
         m4::Identity(),
         m4::RotRadX( -3.14f / 2.0f ), };
@@ -349,7 +349,7 @@ namespace Tac
       {
         case PickedObject::WidgetTranslationArrow:
         {
-          v3 gizmoOrigin = gCreation.GetSelectionGizmoOrigin();
+          v3 gizmoOrigin = gCreation.mSelectedEntities.GetGizmoOrigin();
           v3 pickPoint = gCreation.mEditorCamera->mPos + mWorldSpaceMouseDir * pickData.closestDist;
           v3 arrowDir = {};
           arrowDir[ pickData.arrowAxis ] = 1;
@@ -361,14 +361,13 @@ namespace Tac
         case PickedObject::Entity:
         {
           v3 entityWorldOrigin = ( pickData.closest->mWorldTransform * v4( 0, 0, 0, 1 ) ).xyz();
-          gCreation.ClearSelection();
-          gCreation.mSelectedEntities = { pickData.closest };
+          gCreation.mSelectedEntities.Select( pickData.closest );
           gCreation.mSelectedHitOffsetExists = true;
           gCreation.mSelectedHitOffset = worldSpaceHitPoint - entityWorldOrigin;
         } break;
         case PickedObject::None:
         {
-          gCreation.ClearSelection();
+          gCreation.mSelectedEntities.clear();
         } break;
       }
     }
@@ -458,15 +457,13 @@ namespace Tac
 
   void CreationGameWindow::ComputeArrowLen()
   {
-    if( !gCreation.IsAnythingSelected() )
-    {
+    if( gCreation.mSelectedEntities.empty() )
       return;
-    }
     m4 view = m4::View( gCreation.mEditorCamera->mPos,
                         gCreation.mEditorCamera->mForwards,
                         gCreation.mEditorCamera->mRight,
                         gCreation.mEditorCamera->mUp );
-    v3 pos = gCreation.GetSelectionGizmoOrigin();
+    v3 pos = gCreation.mSelectedEntities.GetGizmoOrigin();
     v4 posVS4 = view * v4( pos, 1 );
     float clip_height = std::abs( std::tan( gCreation.mEditorCamera->mFovyrad / 2.0f ) * posVS4.z * 2.0f );
     float arrowLen = clip_height * 0.2f;
@@ -501,14 +498,14 @@ namespace Tac
 
     Render::UpdateConstantBuffer( mPerFrame, &perFrameData, sizeof( DefaultCBufferPerFrame ), TAC_STACK_FRAME );
 
-    if( gCreation.IsAnythingSelected() && drawGizmos )
+    if( !gCreation.mSelectedEntities.empty() && drawGizmos )
     {
-      v3 selectionGizmoOrigin = gCreation.GetSelectionGizmoOrigin();
-      v3 red = { 1, 0, 0 };
-      v3 grn = { 0, 1, 0 };
-      v3 blu = { 0, 0, 1 };
-      v3 colors[] = { red, grn, blu };
-      m4 rots[] = {
+      const v3 selectionGizmoOrigin = gCreation. mSelectedEntities.GetGizmoOrigin();
+      const v3 red = { 1, 0, 0 };
+      const v3 grn = { 0, 1, 0 };
+      const v3 blu = { 0, 0, 1 };
+      const v3 colors[] = { red, grn, blu };
+      const m4 rots[] = {
         m4::RotRadZ( -3.14f / 2.0f ),
         m4::Identity(),
         m4::RotRadX( 3.14f / 2.0f ), };
@@ -749,9 +746,9 @@ namespace Tac
     if( drawGrid )
       mDebug3DDrawData->DebugDraw3DGrid();
 
-    if( gCreation.IsAnythingSelected() )
+    if( !gCreation.mSelectedEntities.empty())
     {
-      v3 origin = gCreation.GetSelectionGizmoOrigin();
+      const v3 origin = gCreation.mSelectedEntities.GetGizmoOrigin();
       mDebug3DDrawData->DebugDraw3DCircle( origin,
                                            gCreation.mEditorCamera->mForwards,
                                            mArrowLen );
@@ -782,7 +779,7 @@ namespace Tac
 
     if( gCreation.mSelectedGizmo )
     {
-      const v3 origin = gCreation.GetSelectionGizmoOrigin();
+      const v3 origin = gCreation.mSelectedEntities.GetGizmoOrigin();
       float gizmoMouseDist;
       float secondDist;
       ClosestPointTwoRays( gCreation.mEditorCamera->mPos,
