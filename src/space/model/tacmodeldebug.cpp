@@ -202,6 +202,7 @@ namespace Tac
         //               mesh->mTransform.m33 ) );
 
         ImGuiText( va( "model index: %i", model->mModelIndex ) );
+        ImGuiDragInt( "model index", &model->mModelIndex );
         static int iSelectedSubmesh = -1;
         for( const SubMesh& subMesh : mesh->mSubMeshes )
         {

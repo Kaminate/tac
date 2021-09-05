@@ -105,6 +105,15 @@ namespace Tac
       AllocateEntityUUIDsRecursively( entityUUIDCounter, entityChild );
   }
 
+  StringView          PrefabGetLoaded()
+  {
+    for( Prefab* prefab : mPrefabs )
+      for( Entity* entity : prefab->mEntities )
+        if( !entity->mParent )
+          return prefab->mDocumentPath;
+    return "";
+  }
+
   void                PrefabLoadAtPath( EntityUUIDCounter* entityUUIDCounter,
                                         World* world,
                                         Camera* camera,

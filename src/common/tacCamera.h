@@ -13,6 +13,8 @@ namespace Tac
     float mFarPlane = 10000.0f;
     float mNearPlane = 0.1f;
 
+    void  SetForwards( v3 ); // does not need to be normalized
+
     //    Entire fov, not half of it
     float mFovyrad = 60.0f * ( 3.14f / 180.0f );
     m4    View() const;
@@ -21,5 +23,5 @@ namespace Tac
     m4    ProjInv( float a, float b, float aspect ) const;
   };
 
-  extern Camera* debugCamera;
+  //extern Camera* debugCamera;
 }

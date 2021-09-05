@@ -430,7 +430,7 @@ namespace Tac
 
   void                Creation::Update( Errors& errors )
   {
-    debugCamera = mEditorCamera;
+    //debugCamera = mEditorCamera;
 
     TAC_PROFILE_BLOCK;
 

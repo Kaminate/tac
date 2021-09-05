@@ -12,6 +12,7 @@
 #include "src/common/tacOS.h"
 #include "src/common/shell/tacShell.h"
 #include "src/common/shell/tacShellTimer.h"
+#include "src/common/math/tacMath.h"
 #include "src/creation/tacCreation.h"
 #include "src/creation/tacCreationGameWindow.h"
 #include "src/creation/tacCreationPrefab.h"
@@ -32,6 +33,8 @@ namespace Tac
 {
   static bool drawGrid = false;
   static bool drawGizmos = true;
+  static float sWASDCameraPanSpeed = 10;
+  static float sWASDCameraOrbitSpeed = 0.1f;
 
   struct GameWindowVertex
   {
@@ -581,6 +584,7 @@ namespace Tac
 
       if( ImGuiCollapsingHeader( "Camera" ) )
       {
+        TAC_IMGUI_INDENT_BLOCK;
         Camera* cam = gCreation.mEditorCamera;
         ImGuiDragFloat3( "cam pos", cam->mPos.data() );
         ImGuiDragFloat3( "cam forward", cam->mForwards.data() );
@@ -631,6 +635,137 @@ namespace Tac
 
     }
     ImGuiEnd();
+  }
+
+  static v3 SphericalToCartesian( const float r, const float t, const float p ) // radius, theta, phi
+  {
+    const float x = r * std::cos( p ) * std::sin( t );
+    const float y = r * std::cos( t );
+    const float z = r * std::sin( p ) * std::sin( t );
+    return v3( x, y, z );
+  }
+
+  static v3 SphericalToCartesian( const v3 v ) { return SphericalToCartesian( v.x, v.y, v.z ); }
+
+  static v3 CartesianToSpherical( const float x, const float y, const float z )
+  {
+    const float q = x * x + y * y + z * z;
+    if( q < 0.01f )
+      return {};
+    const float r = std::sqrt( q );
+    const float t = std::acos( y / r );
+    const float p = std::atan2( z, x );
+    return v3( r, t, p );
+  }
+
+  static v3 CartesianToSpherical( const v3 v ) { return CartesianToSpherical( v.x, v.y, v.z ); }
+
+  static void CameraWASDControlsPan( Camera* camera )
+  {
+
+    struct
+    {
+      Key key;
+      v3 dir;
+    } keyDirs[] =
+    {
+      { Key::W, camera->mForwards},
+      { Key::A, -camera->mRight},
+      { Key::S, -camera->mForwards},
+      { Key::D, camera->mRight},
+      { Key::Q, -camera->mUp },
+      { Key::E, camera->mUp},
+    };
+    for( const auto keyDir : keyDirs )
+      if( gKeyboardInput.IsKeyDown( keyDir.key ) )
+        camera->mPos += keyDir.dir * sWASDCameraPanSpeed;
+
+  }
+
+
+  static void CameraWASDControlsOrbit( Camera* camera, const v3 orbitCenter )
+  {
+    const float vertLimit = 0.1f;
+
+    struct  
+    {
+      Key key;
+      v3 spherical;
+    } keyDirs[] = { { Key::W, v3( 0, -1, 0 ) },
+                    { Key::A, v3( 0,  0, 1 ) },
+                    { Key::S, v3( 0, 1, 0 ) },
+                    { Key::D, v3( 0, 0, -1 ) } };
+
+
+    v3 camOrbitSphericalOffset = {};
+    for( auto keyDir : keyDirs )
+      if( gKeyboardInput.IsKeyDown( keyDir.key ) )
+        camOrbitSphericalOffset += keyDir.spherical;
+    if( camOrbitSphericalOffset == v3( 0, 0, 0 ) )
+      return;
+
+    v3 camOrbitSpherical = CartesianToSpherical( camera->mPos - orbitCenter );
+    camOrbitSpherical += camOrbitSphericalOffset * sWASDCameraOrbitSpeed;
+    camOrbitSpherical.y = Clamp( camOrbitSpherical.y, vertLimit, 3.14f - vertLimit );
+
+    camera->mPos = orbitCenter + SphericalToCartesian( camOrbitSpherical );
+
+#if 0
+    v3 desiredDir = orbitCenter - camera->mPos;
+    camera->SetForwards( camera->mForwards + ( desiredDir - camera->mForwards ) * 0.01f );
+#endif
+
+    v3 dirCart = camera->mForwards;
+    v3 dirSphe = CartesianToSpherical( dirCart );
+    dirSphe.y += -camOrbitSphericalOffset.y * sWASDCameraOrbitSpeed;
+    dirSphe.z += camOrbitSphericalOffset.z * sWASDCameraOrbitSpeed;
+    dirSphe.y = Clamp( dirSphe.y, vertLimit, 3.14f - vertLimit );
+    v3 newForwards = SphericalToCartesian( dirSphe );
+    camera->SetForwards(newForwards);
+      
+
+  }
+
+  static void CameraWASDControls( Camera* camera )
+  {
+    if( gCreation.mSelectedEntities.empty() )
+    {
+      CameraWASDControlsPan( camera );
+    }
+    else
+    {
+      CameraWASDControlsOrbit( camera, gCreation.mSelectedEntities.GetGizmoOrigin() );
+    }
+  }
+
+  static void CameraUpdateSaved()
+  {
+    static String savedPrefabPath;
+    static Camera savedCamera;
+
+    const StringView loadedPrefab = PrefabGetLoaded();
+    if( loadedPrefab != savedPrefabPath )
+    {
+      savedPrefabPath = loadedPrefab;
+      savedCamera = *gCreation.mEditorCamera;
+    }
+
+    static double elapsedCheck;
+    const double elapsed = ShellGetElapsedSeconds();
+    if( elapsed < elapsedCheck + 0.5f )
+      return;
+    elapsedCheck = elapsed;
+
+    const bool cameraSame =
+      savedCamera.mPos == gCreation.mEditorCamera->mPos  &&
+      savedCamera.mForwards == gCreation.mEditorCamera->mForwards &&
+      savedCamera.mRight == gCreation.mEditorCamera->mRight &&
+      savedCamera.mUp == gCreation.mEditorCamera->mUp;
+    if( cameraSame )
+      return;
+
+    savedCamera = *gCreation.mEditorCamera;
+    PrefabSaveCamera( gCreation.mEditorCamera );
   }
 
   void CreationGameWindow::CameraControls()
@@ -696,11 +831,7 @@ namespace Tac
         ( float )gKeyboardInput.mMouseDeltaScroll;
     }
 
-    if( oldCamera.mPos != gCreation.mEditorCamera->mPos ||
-        oldCamera.mForwards != gCreation.mEditorCamera->mForwards ||
-        oldCamera.mRight != gCreation.mEditorCamera->mRight ||
-        oldCamera.mUp != gCreation.mEditorCamera->mUp )
-      PrefabSaveCamera( gCreation.mEditorCamera );
+    CameraWASDControls( gCreation.mEditorCamera );
   }
 
   void CreationGameWindow::Update( Errors& errors )
@@ -755,6 +886,7 @@ namespace Tac
     }
 
     MousePickingInit();
+    CameraUpdateSaved();
     CameraControls();
     ComputeArrowLen();
     RenderGameWorldToGameWindow( viewHandle );

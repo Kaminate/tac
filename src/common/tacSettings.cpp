@@ -58,6 +58,11 @@ namespace Tac
     mJson.Parse( temporaryMemory.data(), ( int )temporaryMemory.size(), errors );
   }
 
+
+  // TODO: this shouldn't save, but instead set a flag which is checked every 0.1s
+  //       where the OSSaveToFile would actually happen.
+  //      
+  //       so it should modify the local copy, and a flag, but not the disk copy
   void          SettingsSave( Errors& errors )
   {
     String str = mJson.Stringify();

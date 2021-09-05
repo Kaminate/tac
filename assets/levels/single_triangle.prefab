@@ -7,11 +7,11 @@
       "g": 1,
       "r": 1
     },
-    "mModelIndex": -1,
+    "mModelIndex": 0,
     "mModelPath": "assets/editor/single_triangle.obj"
   },
   "mActive": true,
-  "mEntityUUID": 13,
+  "mEntityUUID": 1,
   "mEulerRads":
   {
     "x": 0,
@@ -21,7 +21,7 @@
   "mName": "single triangle",
   "mPosition":
   {
-    "x": 0,
+    "x": 45.264973,
     "y": 0,
     "z": 0
   },
