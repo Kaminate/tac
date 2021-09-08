@@ -32,6 +32,7 @@ namespace Tac
   }
   StringID::StringID( const char* s ) : StringID( StringView( s ) ) {}
   StringID::StringID( const StringView& stringView ) : StringID( stringView.data(), stringView.size() ) {}
+  StringID:: operator HashedValue() const { return mHashedValue; }
 
   bool operator <  ( StringID a, StringID b ) { return a.mHashedValue < b.mHashedValue; }
   bool operator == ( StringID a, StringID b ) { return a.mHashedValue == b.mHashedValue; }

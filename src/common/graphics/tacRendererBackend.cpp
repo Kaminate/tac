@@ -246,7 +246,7 @@ namespace Tac
           {
             const ConstantBufferHandle constantBufferHandle = { iter.PopNumber() };
             const int byteCount = iter.PopNumber();
-            const void* bytes = iter.PopPointer(); // const char* )iter.PopData( byteCount );
+            const void* bytes = iter.PopPointer();
             CommandDataUpdateConstantBuffer commandData;
             commandData.mBytes = bytes;
             commandData.mByteCount = byteCount;
@@ -481,17 +481,13 @@ namespace Tac
       return { mIdCollectionViewId.Alloc() };
     }
 
-    ShaderHandle          CreateShader( const ShaderSource shaderSource,
-                                        const ConstantBuffers constantBuffers,
-                                        const StackFrame stackFrame )
+    ShaderHandle          CreateShader( const ShaderSource shaderSource, const StackFrame stackFrame )
     {
-      TAC_ASSERT( constantBuffers.size() );
       const ShaderHandle shaderHandle = { mIdCollectionShader.Alloc() };
       CommandDataCreateShader commandData;
       commandData.mShaderSource.mStr = SubmitAlloc( shaderSource.mStr ).c_str();
       commandData.mShaderSource.mType = shaderSource.mType;
       commandData.mShaderHandle = shaderHandle;
-      commandData.mConstantBuffers = constantBuffers;
       commandData.mStackFrame = stackFrame;
       gSubmitFrame->mCommandBufferFrameBegin.PushCommand( CommandType::CreateShader,
                                                           &commandData,
@@ -541,16 +537,16 @@ namespace Tac
       return magicBufferHandle;
     }
 
-    ConstantBufferHandle  CreateConstantBuffer( const int byteCount,
-                                                const int shaderRegister,
+    ConstantBufferHandle  CreateConstantBuffer( const char* name, 
+                                                const int byteCount,
                                                 const StackFrame stackFrame )
     {
       const ConstantBufferHandle constantBufferHandle = { mIdCollectionConstantBuffer.Alloc() };
       CommandDataCreateConstantBuffer commandData;
       commandData.mByteCount = byteCount;
-      commandData.mShaderRegister = shaderRegister;
       commandData.mConstantBufferHandle = constantBufferHandle;
       commandData.mStackFrame = stackFrame;
+      commandData.mName = SubmitAlloc( name );
       gSubmitFrame->mCommandBufferFrameBegin.PushCommand( CommandType::CreateConstantBuffer,
                                                           &commandData,
                                                           sizeof( CommandDataCreateConstantBuffer ) );
@@ -628,7 +624,6 @@ namespace Tac
       commandData.mFramebufferHandle = framebufferHandle;
       commandData.mStackFrame = stackFrame;
       commandData.mFramebufferTextures = framebufferTextures;
-      //commandData.mTextureCount = textureHandleCount;
       gSubmitFrame->mCommandBufferFrameBegin.PushCommand( CommandType::CreateFramebuffer,
                                                           &commandData,
                                                           sizeof( CommandDataCreateFramebuffer ) );
@@ -1057,7 +1052,6 @@ namespace Tac
     }
 
     void SetSamplerState( const DrawCallSamplers samplerStateHandle )
-    //void SetSamplerState( const SamplerStateHandle samplerStateHandle )
     {
       gEncoder.mDrawCall.mSamplerStateHandle = samplerStateHandle;
     }
@@ -1124,8 +1118,6 @@ namespace Tac
     void RenderFinish()
     {
       TAC_ASSERT( IsMainThread() );
-      //Errors e;
-      //Render::RenderFrame( e );
       OSSemaphoreIncrementPost( gRenderSemaphore );
     }
 
@@ -1197,7 +1189,6 @@ namespace Tac
     void SubmitFinish()
     {
       TAC_ASSERT( IsLogicThread() );
-      //SubmitFrame();
       OSSemaphoreIncrementPost( gSubmitSemaphore );
     }
 
@@ -1350,7 +1341,8 @@ namespace Tac
       if( fileModifyTime == shaderReloadInfo->mFileModifyTime )
         return;
       shaderReloadInfo->mFileModifyTime = fileModifyTime;
-      shaderReloadFunction( Render::ShaderHandle( ( int )( shaderReloadInfo - sShaderReloadInfos ) ), shaderReloadInfo->mFullPath.c_str() );
+      shaderReloadFunction( Render::ShaderHandle( ( int )( shaderReloadInfo - sShaderReloadInfos ) ),
+                            shaderReloadInfo->mFullPath.c_str() );
     }
 
     void               ShaderReloadHelperUpdate( ShaderReloadFunction* shaderReloadFunction )
@@ -1408,7 +1400,4 @@ namespace Tac
   }
 
 } // namespace Tac
-
-
-
 

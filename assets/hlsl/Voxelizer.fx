@@ -1,7 +1,8 @@
 // inject direct lighting
 // list of lights, with depth buffers?
 
-#include "common.fx"
+#include "Common.fx"
+#include "LightsCommon.fx"
 #include "VoxelCommon.fx"
 
 #define DEBUG_MAKE_EVERY_VOXEL_YELLOW 0
@@ -74,10 +75,10 @@ struct GS_OUT_PS_IN
   float3 mWorldSpacePosition           : SV_AUTO_SEMANTIC;
   float4 mClipSpacePosition            : SV_POSITION;
 
-  //float3 debug_worldSpaceAbsFaceNormal : WS_ABS_face_NORMAL;
-  //float3 debug_gVoxelGridCenter        : voxel_grid_center;
-  //float  debug_gVoxelWidth             : voxel_width;
-  //float  debug_gVoxelGridHalfWidth     : voxel_grid_half_width;
+  float3 debug_worldspaceabsfacenormal : SV_AUTO_SEMANTIC;
+  float3 debug_gvoxelgridcenter        : SV_AUTO_SEMANTIC;
+  float  debug_gvoxelwidth             : SV_AUTO_SEMANTIC;
+  float  debug_gvoxelgridhalfwidth     : SV_AUTO_SEMANTIC;
 };
 
 [ maxvertexcount( 3 ) ]
@@ -113,10 +114,12 @@ void GS( triangle VS_OUT_GS_IN input[ 3 ],
     output.mWorldSpacePosition   = curInput.mWorldSpacePosition;
     output.mClipSpacePosition    = clipSpacePosition;
 
-    //output.debug_worldSpaceAbsFaceNormal = worldSpaceAbsFaceNormal;
-    //output.debug_gVoxelGridCenter = gVoxelGridCenter;
-    //output.debug_gVoxelWidth = gVoxelWidth;
-    //output.debug_gVoxelGridHalfWidth = gVoxelGridHalfWidth;
+#if 1
+    output.debug_worldspaceabsfacenormal = worldSpaceAbsFaceNormal;
+    output.debug_gvoxelgridcenter = gVoxelGridCenter;
+    output.debug_gvoxelwidth = gVoxelWidth;
+    output.debug_gvoxelgridhalfwidth = gVoxelGridHalfWidth;
+#endif
 
     outputStream.Append( output );
   }

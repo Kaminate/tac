@@ -1,4 +1,5 @@
-#include "common.fx"
+#include "Common.fx"
+#include "LightsCommon.fx"
 
 struct VS_INPUT
 {
@@ -15,7 +16,6 @@ struct VS_OUTPUT
   float4 mClipSpacePosition  : SV_POSITION;
   float4 mWorldSpacePosition : SV_AUTO_SEMANTIC;
   float3 mWorldSpaceNormal   : SV_AUTO_SEMANTIC;
-  // float3 m_debug_ndc         : SV_AUTO_SEMANTIC;
 };
 
 VS_OUTPUT VS( VS_INPUT input )
@@ -28,7 +28,6 @@ VS_OUTPUT VS( VS_INPUT input )
   output.mClipSpacePosition = clipSpacePosition;
   output.mWorldSpacePosition = worldSpacePosition;
   output.mWorldSpaceNormal = mul( World, float4( input.Normal, 0 ) ).xyz;
-  // output.m_debug_ndc = clipSpacePosition.xyz / clipSpacePosition.w;
   return output;
 }
 
@@ -58,20 +57,11 @@ float UnprojectNDCToView( float zNDC, float a, float b )
 
 float3 ApplyLight( int iLight, Texture2D shadowMap, Light light, VS_OUTPUT input )
 {
-  bool isValid = iLight < lightCount;
-  if( !isValid )
-    return float3( 0, 0, 0 );
-
   float3 colorDiffuse = float3( 0, 0, 0 );
 
-  // temp, use matrix values so its not optimized
-  //for( int i = 0; i < 4; ++i )
-  //{
-  //  for( int j = 0; j < 4; ++j )
-  //  {
-  //    colorDiffuse.x += light.mWorldToClip[ i ][ j ] / 10000.0;
-  //  }
-  //}
+  bool isValid = iLight < lightCount;
+  if( !isValid )
+    return colorDiffuse;
 
   bool occluded = false;
   const bool lightCastsShadows = LightGetCastsShadows( light.mFlags );
@@ -79,23 +69,17 @@ float3 ApplyLight( int iLight, Texture2D shadowMap, Light light, VS_OUTPUT input
   {
 
     const float4 pixelLightClipSpacePosition = mul( light.mWorldToClip, input.mWorldSpacePosition );
-    // TESTING
-    //const float4 pixelLightClipSpacePosition = mul( light.mWorldToClip, float4( 0, 0, 0, 1 ) );
     const float3 pixelLightNDCSpacePosition = pixelLightClipSpacePosition.xyz / pixelLightClipSpacePosition.w;
     if( pixelLightNDCSpacePosition.x < -1 ||
         pixelLightNDCSpacePosition.x > 1 ||
         pixelLightNDCSpacePosition.y < -1 ||
         pixelLightNDCSpacePosition.y > 1 )
-      //continue;
-      return float3( 0, 0, 0 );
+      return colorDiffuse;
 
     // negative because dx vs ogl texel coords
     const float2 pixelLightTexel = float2( pixelLightNDCSpacePosition.x * 0.5 + 0.5,
                                            pixelLightNDCSpacePosition.y * -0.5 + 0.5 );
 
-    //Texture2D shadowMap = shadowMaps[ i ];
-
-    // loop with offsets for fuzziness
     const float shadowMapSample = shadowMap.Sample( shadowMapSampler, pixelLightTexel ).x;
 
     //const float shadowMapCameraDist = GetViewSpaceDistFromNDC( shadowMapSample, light.mNear, light.mFar );
@@ -127,13 +111,9 @@ float3 ApplyLight( int iLight, Texture2D shadowMap, Light light, VS_OUTPUT input
       const float ndotl = dot( n, l );
 
       // dont need to check if ndotl < 0 because of the ndc check?
-
       colorDiffuse += ndotl * light.mColorRadiance.xyz * Color.xyz;
     }
   }
-
-  //colorDiffuse = vec3( 1, 1, 1 ) * abs( pixelLightCameraDist - shadowMapCameraDist );
-
 
   return colorDiffuse;
 }
@@ -156,11 +136,6 @@ PS_OUTPUT PS( VS_OUTPUT input )
   PS_OUTPUT output = ( PS_OUTPUT )0;
   output.mColor.xyz = pow( colorDiffuse, 1.0 / 2.2 );
   output.mColor.w = Color.w;
-
-  //if( MagicNumber == 1234567890 )
-  //{
-  //  output.mColor = float4( 1, 1, 0, 1 );
-  //}
 
   return output;
 }

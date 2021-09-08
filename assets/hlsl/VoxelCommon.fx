@@ -4,7 +4,7 @@ struct Voxel
   uint mNormal;
 };
 
-cbuffer CBufferVoxelizer         : register( b2 )
+cbuffer CBufferVoxelizer         : TAC_AUTO_REGISTER
 {
   //     Position of the voxel grid in worldspace.
   //     It's not rotated, aligned to world axis.

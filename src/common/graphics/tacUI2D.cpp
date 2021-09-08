@@ -24,16 +24,14 @@ namespace Tac
     Render::BlendStateHandle      mBlendState;
     Render::RasterizerStateHandle mRasterizerState;
     Render::SamplerStateHandle    mSamplerState;
-    Render::ConstantBufferHandle  mPerFrame;
-    Render::ConstantBufferHandle  mPerObj;
   } gUI2DCommonData;
 
   static m4 OrthographicUIMatrix2( const float w, const float h )
   {
     // mRenderView->mViewportRect.mViewportPixelWidthIncreasingRight?
-    float sx = 2.0f / w;
-    float sy = 2.0f / h;
-    m4 projectionPieces[] =
+    const float sx = 2.0f / w;
+    const float sy = 2.0f / h;
+    const m4 projectionPieces[] =
     {
       // orient to bottom left
       m4( 1, 0, 0, 0,
@@ -137,8 +135,6 @@ namespace Tac
                                                         TAC_STACK_FRAME );
       Render::SetRenderObjectDebugName( mVertexBufferHandle, "ui2d-vtx-buf" );
       mVertexCapacity = vertexCount;
-
-      //Render::SetBreakpointWhenThisFrameIsRendered();
     }
 
     if( !mIndexBufferHandle.IsValid() || mIndexCapacity < indexCount )
@@ -190,22 +186,10 @@ namespace Tac
     m1x1White = Render::CreateTexture( textureData, TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( m1x1White, "1x1white" );
 
-    mPerFrame = Render::CreateConstantBuffer( sizeof( DefaultCBufferPerFrame ),
-                                              DefaultCBufferPerFrame::shaderRegister,
-                                              TAC_STACK_FRAME );
-    Render::SetRenderObjectDebugName( mPerFrame, "2dperframe" );
-
-    mPerObj = Render::CreateConstantBuffer( sizeof( DefaultCBufferPerObject ),
-                                            DefaultCBufferPerObject::shaderRegister,
-                                            TAC_STACK_FRAME );
-    Render::SetRenderObjectDebugName( mPerObj, "2dperobj" );
-
     mShader = Render::CreateShader( Render::ShaderSource::FromPath( "2D" ),
-                                    Render::ConstantBuffers{ mPerFrame, mPerObj },
                                     TAC_STACK_FRAME );
 
     m2DTextShader = Render::CreateShader( Render::ShaderSource::FromPath( "2Dtext" ),
-                                          Render::ConstantBuffers{ mPerFrame, mPerObj },
                                           TAC_STACK_FRAME );
 
     Render::VertexDeclaration posData;
@@ -278,8 +262,6 @@ namespace Tac
     Render::DestroyBlendState( mBlendState, TAC_STACK_FRAME );
     Render::DestroyRasterizerState( mRasterizerState, TAC_STACK_FRAME );
     Render::DestroySamplerState( mSamplerState, TAC_STACK_FRAME );
-    Render::DestroyConstantBuffer( mPerFrame, TAC_STACK_FRAME );
-    Render::DestroyConstantBuffer( mPerObj, TAC_STACK_FRAME );
   }
 
   UI2DDrawData::UI2DDrawData() {}
@@ -289,8 +271,6 @@ namespace Tac
                                     int h,
                                     Errors& errors )
   {
-    //TAC_ASSERT( mStates.empty() );
-
     if( mDefaultVertex2Ds.size() && mDefaultIndex2Ds.size() )
     {
       UpdateDrawInterface( this, &gDrawInterface, errors );
@@ -304,7 +284,7 @@ namespace Tac
       perFrameData.mProjection = OrthographicUIMatrix( ( float )w, ( float )h );
 
 
-      Render::UpdateConstantBuffer( gUI2DCommonData.mPerFrame,
+      Render::UpdateConstantBuffer( DefaultCBufferPerFrame::Handle,
                                     &perFrameData,
                                     sizeof( DefaultCBufferPerFrame ),
                                     TAC_STACK_FRAME );
@@ -314,7 +294,7 @@ namespace Tac
         const Render::TextureHandle texture = uidrawCall.mTexture.IsValid() ?
           uidrawCall.mTexture :
           gUI2DCommonData.m1x1White;
-        Render::UpdateConstantBuffer( gUI2DCommonData.mPerObj,
+        Render::UpdateConstantBuffer( DefaultCBufferPerObject::Handle,
                                       &uidrawCall.mUniformSource,
                                       sizeof( DefaultCBufferPerObject ),
                                       TAC_STACK_FRAME );
@@ -431,7 +411,6 @@ namespace Tac
                               v4 color )
   {
     // This function creates a long thin rectangle to act as a line
-
     v2 dp = p1 - p0;
     float quadrance = dp.Quadrance();
     if( dp.Quadrance() < 0.01f )
@@ -611,10 +590,6 @@ namespace Tac
 
   UI2DDrawData::~UI2DDrawData()
   {
-    //if( mVertexBufferHandle.IsValid() )
-    //  Render::DestroyVertexBuffer( mVertexBufferHandle, TAC_STACK_FRAME );
-    //if( mIndexBufferHandle.IsValid() )
-    //  Render::DestroyIndexBuffer( mIndexBufferHandle, TAC_STACK_FRAME );
   }
 
   v2 CalculateTextSize( const StringView text,

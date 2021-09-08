@@ -1,6 +1,7 @@
 #include "src/shell/windows/tacRendererDirectX.h"
 #include "src/common/tacPreprocessor.h"
 
+#include <iostream>
 #include <filesystem>
 #include <shlobj.h>
 #include <Knownfolders.h>
@@ -25,6 +26,10 @@ namespace Tac
 
     std::wstring newestVersionFound;
 
+    bool directoryExists = std::filesystem::exists( pixInstallationPath );
+    if( !directoryExists )
+      return {};
+
     for( auto const& directory_entry : std::filesystem::directory_iterator( pixInstallationPath ) )
     {
       if( directory_entry.is_directory() )
@@ -45,13 +50,15 @@ namespace Tac
   {
     // Check to see if a copy of WinPixGpuCapturer.dll has already been injected into the application.
     // This may happen if the application is launched through the PIX UI. 
-    if( GetModuleHandle( "WinPixGpuCapturer.dll" ) == 0 )
-    {
-      std::wstring wpath = GetLatestWinPixGpuCapturerPath_Cpp17();
-      std::string path = wstring_to_string( wpath );
-      HMODULE lib = LoadLibrary( path.c_str() );
-      TAC_ASSERT( lib );
-    }
+    HMODULE moduleHandle = GetModuleHandle( "WinPixGpuCapturer.dll" );
+    if( moduleHandle )
+      return;
+
+    std::wstring wpath = GetLatestWinPixGpuCapturerPath_Cpp17();
+    std::string path = wstring_to_string( wpath );
+    HMODULE lib = LoadLibrary( path.c_str() );
+    if( !lib )
+      std::cout << "warning: could not get PIX attach" << std::endl;
   }
 
 } // namespace Tac

@@ -17,7 +17,6 @@ namespace Tac
 
   static Render::VertexFormatHandle    mVertexFormat;
   static Render::ShaderHandle          mShader;
-  static Render::ConstantBufferHandle  mPerFrame;
   static Render::BlendStateHandle      mBlendState;
   static Render::DepthStateHandle      mDepthState;
   static Render::RasterizerStateHandle mRasterizerState;
@@ -30,20 +29,12 @@ namespace Tac
   {
     Render::DestroyShader( mShader, TAC_STACK_FRAME );
     Render::DestroyVertexFormat( mVertexFormat, TAC_STACK_FRAME );
-    Render::DestroyConstantBuffer( mPerFrame, TAC_STACK_FRAME );
   }
 
   void SkyboxPresentationInit( Errors& errors )
   {
 
-    mPerFrame = Render::CreateConstantBuffer( sizeof( DefaultCBufferPerFrame ),
-                                              0,
-                                              TAC_STACK_FRAME );
-    Render::SetRenderObjectDebugName( mPerFrame, "skybox-per-frame" );
-
-    mShader = Render::CreateShader( Render::ShaderSource::FromPath( "Skybox" ),
-                                    Render::ConstantBuffers{ mPerFrame },
-                                    TAC_STACK_FRAME );
+    mShader = Render::CreateShader( Render::ShaderSource::FromPath( "Skybox" ), TAC_STACK_FRAME );
 
     Render::VertexDeclaration pos;
     pos.mAlignedByteOffset = 0;
@@ -132,8 +123,10 @@ namespace Tac
     const SubMesh* subMesh = &mesh->mSubMeshes[ 0 ];
     Render::SetViewport( viewId, Render::Viewport( viewWidth, viewHeight ) );
     Render::SetViewScissorRect( viewId, Render::ScissorRect( viewWidth, viewHeight ) );
-    //Render::SetViewFramebuffer(viewId, )
-    Render::UpdateConstantBuffer( mPerFrame, &perFrame, sizeof( DefaultCBufferPerFrame ), TAC_STACK_FRAME );
+    Render::UpdateConstantBuffer( DefaultCBufferPerFrame::Handle,
+                                  &perFrame,
+                                  sizeof( DefaultCBufferPerFrame ),
+                                  TAC_STACK_FRAME );
     Render::SetVertexBuffer( subMesh->mVertexBuffer, 0, 0 );
     Render::SetIndexBuffer( subMesh->mIndexBuffer, 0, subMesh->mIndexCount );
     Render::SetVertexFormat( mVertexFormat );

@@ -561,12 +561,68 @@ namespace Tac
       return shaderText.find( searchableEntryPoint ) != StringView::npos;
     }
 
+    static int ParseBinding( const StringView& line )
+    {
+      String digits;
+      int iBegin = line.find_first_of( '(' );
+      int iEnd = line.find_first_of( ')' );
+      TAC_ASSERT( iBegin != line.npos );
+      TAC_ASSERT( iEnd != line.npos );
+      for( int i = iBegin; i < iEnd; ++i )
+      {
+        char c = line[ i ];
+        if( IsDigit( c ) )
+          digits.push_back( c );
+      }
+      TAC_ASSERT( !digits.empty() );
+      return Atoi( digits );
+    }
+
+    static ConstantBufferHandle FindCbufferOfName( StringView name )
+    {
+      auto renderer = ( RendererDirectX11* )Renderer::Instance;
+      for( int i = 0; i < kMaxConstantBuffers; ++i )
+        if( renderer->mConstantBuffers[ i ].mName == name )
+          return ConstantBufferHandle( i );
+      return ConstantBufferHandle();
+    }
+
+    static void PostprocessShaderLineCbuffer( const StringView& line, ConstantBuffers* constantBuffers )
+    {
+      ParseData parseData( line.begin(), line.end() );
+      parseData.EatWhitespace();
+      if( !parseData.EatStringExpected( "cbuffer" ) )
+        return;
+      auto renderer = ( RendererDirectX11* )Renderer::Instance;
+      const StringView cbufname = parseData.EatWord();
+      const ConstantBufferHandle constantBufferHandle = FindCbufferOfName( cbufname );
+      const int parsedBinding = ParseBinding( line );
+      const int predictedBinding = constantBuffers->size();
+      TAC_ASSERT( constantBufferHandle.IsValid() );
+      TAC_ASSERT( parsedBinding == predictedBinding );
+      constantBuffers->push_back( constantBufferHandle );
+    }
+
+    static void PostprocessShaderLine( const StringView& line, ConstantBuffers* constantBuffers )
+    {
+      ParseData parseData( line.begin(), line.end() );
+      parseData.EatWhitespace();
+      if( parseData.EatStringExpected( "//" ) )
+        return;
+
+      PostprocessShaderLineCbuffer( line, constantBuffers );
+    }
+
+    static void PostprocessShaderSource( const StringView& shaderStr, ConstantBuffers* constantBuffers )
+    {
+      ParseData parseData( shaderStr.data(), shaderStr.size() );
+      while( parseData.GetRemainingByteCount() )
+        PostprocessShaderLine( parseData.EatRestOfLine(), constantBuffers );
+    }
+
+
     static Program LoadProgram( ShaderSource shaderSource, Errors& errors )
     {
-      // Errors2 can debug break on append, errors will not
-      //Errors errors;
-      //TAC_ON_DESTRUCT( errors2 = errors );
-
       ID3D11Device*         device = ( ( RendererDirectX11* )Renderer::Instance )->mDevice;
       ID3D11VertexShader*   vertexShader = nullptr;
       ID3D11PixelShader*    pixelShader = nullptr;
@@ -577,6 +633,8 @@ namespace Tac
         = shaderSource.mType == ShaderSource::Type::kPath
         ? GetDirectX11ShaderPath( shaderSource.mStr )
         : "<inlined  shader>";
+
+      ConstantBuffers constantBuffers;
 
       for( ;; )
       {
@@ -612,6 +670,9 @@ namespace Tac
         const String shaderStringFull = PreprocessShaderSource( shaderStringOrig, errors );
         if( errors )
           continue;
+
+        PostprocessShaderSource( shaderStringFull, &constantBuffers );
+
 
         const char* vertexShaderEntryPoint = "VS";
         const char* pixelShaderEntryPoint = "PS";
@@ -704,11 +765,15 @@ namespace Tac
         break;
       }
 
+      // i guess?
+      TAC_ASSERT( constantBuffers.size() );
+
       Program program;
       program.mInputSig = inputSignature;
       program.mVertexShader = vertexShader;
       program.mPixelShader = pixelShader;
       program.mGeometryShader = geometryShader;
+      program.mConstantBuffers = constantBuffers;
       return program;
     }
 
@@ -939,12 +1004,9 @@ namespace Tac
                                                    1.0f, // clear depth value
                                                    0 ); // clear stencil value
 
-          if( framebuffer->mRenderTargetView )
+          if( framebuffer->mRenderTargetView && framebuffer->mClearEachFrame )
           {
-            // uhh pick a color unlikely to be used by anyone else
-            const FLOAT ClearGrey = 0.0883f;
-            const FLOAT ClearColorRGBA[] = { ClearGrey, ClearGrey, ClearGrey,  1.0f };
-            mDeviceContext->ClearRenderTargetView( framebuffer->mRenderTargetView, ClearColorRGBA );
+            mDeviceContext->ClearRenderTargetView( framebuffer->mRenderTargetView, framebuffer->mClearColorRGBA );
           }
 
           ID3D11ShaderResourceView* nullViews[ 16 ] = {};
@@ -1024,6 +1086,22 @@ namespace Tac
         mDeviceContext->VSSetShader( program->mVertexShader, NULL, 0 );
         mDeviceContext->PSSetShader( program->mPixelShader, NULL, 0 );
         mDeviceContext->GSSetShader( program->mGeometryShader, NULL, 0 );
+
+
+        for( int iConstantBufferBinding = 0;
+             iConstantBufferBinding < program->mConstantBuffers.size();
+             iConstantBufferBinding++ )
+        {
+          ConstantBufferHandle constantBufferHandle = program->mConstantBuffers[ iConstantBufferBinding ];
+          ConstantBuffer* constantBuffer = &mConstantBuffers[ ( int )constantBufferHandle ];
+          mBoundConstantBuffers[ iConstantBufferBinding ] = constantBuffer->mBuffer;
+        }
+        mBoundConstantBufferCount = program->mConstantBuffers.size();
+
+        const UINT StartSlot = 0;
+        mDeviceContext->PSSetConstantBuffers( StartSlot, mBoundConstantBufferCount, mBoundConstantBuffers );
+        mDeviceContext->VSSetConstantBuffers( StartSlot, mBoundConstantBufferCount, mBoundConstantBuffers );
+        mDeviceContext->GSSetConstantBuffers( StartSlot, mBoundConstantBufferCount, mBoundConstantBuffers );
       }
     }
 
@@ -1131,7 +1209,7 @@ namespace Tac
       {
         HashedValue hash = 0;
         for( auto sampler : drawCall->mSamplerStateHandle )
-          hash = HashAdd( hash, sampler );
+          hash = HashAdd( sampler, hash );
         return hash;
       }( );
 
@@ -1413,12 +1491,12 @@ namespace Tac
         newname += ", and ";
 #endif
         filter.Push( { D3D11_MESSAGE_ID_SETPRIVATEDATA_CHANGINGPARAMS } );
-      }
+    }
       newname += String( name );
 
       const HRESULT setHr = directXObject->SetPrivateData( WKPDID_D3DDebugObjectName, ( UINT )newname.size(), newname.c_str() );
       TAC_ASSERT( SUCCEEDED( setHr ) );
-    }
+  }
 
 
 
@@ -1643,7 +1721,7 @@ namespace Tac
       SetDebugName( rasterizerState2, commandData->mStackFrame.ToString() );
       mRasterizerStates[ ( int )commandData->mRasterizerStateHandle ] = rasterizerState2;
 #endif
-    }
+}
 
     void RendererDirectX11::AddSamplerState( CommandDataCreateSamplerState* commandData,
                                              Errors& errors )
@@ -1669,7 +1747,10 @@ namespace Tac
                                        Errors& errors )
     {
       TAC_ASSERT( IsMainThread() );
-      mPrograms[ ( int )commandData->mShaderHandle ] = LoadProgram( commandData->mShaderSource, errors );
+
+      Program* program = &mPrograms[ ( int )commandData->mShaderHandle ];
+      *program = LoadProgram( commandData->mShaderSource, errors );
+      //program->mConstantBuffers = commandData->mConstantBuffers;
       if( commandData->mShaderSource.mType == ShaderSource::Type::kPath )
         ShaderReloadHelperAdd( commandData->mShaderHandle, GetDirectX11ShaderPath( commandData->mShaderSource.mStr ) );
     }
@@ -1894,6 +1975,8 @@ namespace Tac
                                                Errors& errors )
     {
       TAC_ASSERT( IsMainThread() );
+      TAC_ASSERT( commandData->mName );
+      TAC_ASSERT( !FindCbufferOfName( commandData->mName ).IsValid() );
       ID3D11Buffer* cbufferhandle;
       D3D11_BUFFER_DESC bd = {};
       bd.ByteWidth = RoundUpToNearestMultiple( commandData->mByteCount, 16 );
@@ -1902,10 +1985,9 @@ namespace Tac
       bd.Usage = D3D11_USAGE_DYNAMIC; // i guess?
       TAC_DX11_CALL( errors, mDevice->CreateBuffer, &bd, nullptr, &cbufferhandle );
       SetDebugName( cbufferhandle, commandData->mStackFrame.ToString() );
-
       ConstantBuffer* constantBuffer = &mConstantBuffers[ ( int )commandData->mConstantBufferHandle ];
       constantBuffer->mBuffer = cbufferhandle;
-      constantBuffer->mShaderRegister = commandData->mShaderRegister;
+      constantBuffer->mName = commandData->mName;
     }
 
     void RendererDirectX11::AddDepthState( CommandDataCreateDepthState* commandData,
@@ -2035,7 +2117,7 @@ namespace Tac
             SetDebugName( dsv, data->mStackFrame.ToString() );
 
             depthTexture = texture->mTexture2D;
-          }
+        }
 #else
           if( texture->mTextureDSV )
           {
@@ -2219,19 +2301,13 @@ namespace Tac
     void RendererDirectX11::UpdateConstantBuffer( CommandDataUpdateConstantBuffer* commandData,
                                                   Errors& errors )
     {
+      TAC_ASSERT(commandData->mConstantBufferHandle.IsValid());
       const ConstantBuffer* constantBuffer = &mConstantBuffers[ ( int )commandData->mConstantBufferHandle ];
       UpdateBuffer( constantBuffer->mBuffer,
                     commandData->mBytes,
                     commandData->mByteCount,
                     errors );
 
-      mBoundConstantBuffers[ constantBuffer->mShaderRegister ] = constantBuffer->mBuffer;
-      mBoundConstantBufferCount = Max( mBoundConstantBufferCount, constantBuffer->mShaderRegister + 1 );
-
-      const UINT StartSlot = 0;
-      mDeviceContext->PSSetConstantBuffers( StartSlot, mBoundConstantBufferCount, mBoundConstantBuffers );
-      mDeviceContext->VSSetConstantBuffers( StartSlot, mBoundConstantBufferCount, mBoundConstantBuffers );
-      mDeviceContext->GSSetConstantBuffers( StartSlot, mBoundConstantBufferCount, mBoundConstantBuffers );
     }
 
     void RendererDirectX11::UpdateIndexBuffer( CommandDataUpdateIndexBuffer* commandData,
@@ -2328,6 +2404,7 @@ namespace Tac
         SetDebugName( mVertexBuffers[ ( int )data->mVertexBufferHandle ].mBuffer, data->mName );
 
       if( data->mIndexBufferHandle.IsValid() )
+
         SetDebugName( mIndexBuffers[ ( int )data->mIndexBufferHandle ].mBuffer, data->mName );
 
       if( data->mTextureHandle.IsValid() )

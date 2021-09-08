@@ -427,6 +427,22 @@ namespace Tac
     return SettingsGetChildByKeyValuePair( "Name", Json( windowName ), windows );
   }
 
+  static void CheckSavePrefab()
+  {
+    World* world = gCreation.mWorld;
+    const bool triggered =
+      gKeyboardInput.IsKeyDown( Key::S ) &&
+      gKeyboardInput.IsKeyDown( Key::Modifier );
+    if( !triggered )
+      return;
+    gKeyboardInput.SetIsKeyDown( Key::S, false );
+    PrefabSave( world );
+    if( CreationGameWindow::Instance )
+    {
+      CreationGameWindow::Instance->mStatusMessage = "Saved prefabs!";
+      CreationGameWindow::Instance->mStatusMessageEndTime = ShellGetElapsedSeconds() + 5.0f;
+    }
+  }
 
   void                Creation::Update( Errors& errors )
   {
@@ -435,10 +451,12 @@ namespace Tac
     TAC_PROFILE_BLOCK;
 
 
+    CheckSavePrefab();
     UpdateCreatedWindowData();
 
     if( AllWindowsClosed() )
       OSAppStopRunning();
+
 
     static bool checkedOnce;
     if( !checkedOnce )
@@ -504,16 +522,6 @@ namespace Tac
 
     mSelectedEntities.DeleteEntitiesCheck();
 
-    if( gKeyboardInput.IsKeyJustDown( Key::S ) &&
-        gKeyboardInput.IsKeyDown( Key::Modifier ) )
-    {
-      PrefabSave( mWorld );
-      if( CreationGameWindow::Instance )
-      {
-        CreationGameWindow::Instance->mStatusMessage = "Saved prefabs!";
-        CreationGameWindow::Instance->mStatusMessageEndTime = ShellGetElapsedSeconds() + 5.0f;
-      }
-    }
 
 
   }

@@ -69,6 +69,21 @@ namespace Tac
     return face;
   }
 
+  v2 EatV2Unchecked( ParseData* parseData )
+  {
+    float x = parseData->EatFloat().GetValueUnchecked();
+    float y = parseData->EatFloat().GetValueUnchecked();
+    return { x, y };
+  }
+
+  v3 EatV3Unchecked( ParseData* parseData )
+  {
+    float x = parseData->EatFloat().GetValueUnchecked();
+    float y = parseData->EatFloat().GetValueUnchecked();
+    float z = parseData->EatFloat().GetValueUnchecked();
+    return { x, y, z };
+  }
+
   static WavefrontObj       WavefrontObjLoad( const void* bytes, int byteCount )
   {
     ParseData                  parseData( ( const char* )bytes, byteCount );
@@ -87,19 +102,13 @@ namespace Tac
         faces.push_back( WavefrontObjParseFace( parseData.EatRestOfLine() ) );
 
       if( word == "vn" )
-        normals.push_back( v3( parseData.EatFloat().GetValueUnchecked(),
-                               parseData.EatFloat().GetValueUnchecked(),
-                               parseData.EatFloat().GetValueUnchecked() ) );
+        normals.push_back( EatV3Unchecked( &parseData ) );
 
       if( word == "vt" )
-        texcoords.push_back( v2( parseData.EatFloat().GetValueUnchecked(),
-                                 parseData.EatFloat().GetValueUnchecked() ) );
-
+        texcoords.push_back( EatV2Unchecked( &parseData ) );
 
       if( word == "v" )
-        positions.push_back( v3( parseData.EatFloat().GetValueUnchecked(),
-                                 parseData.EatFloat().GetValueUnchecked(),
-                                 parseData.EatFloat().GetValueUnchecked() ) );
+        positions.push_back( EatV3Unchecked( &parseData ) );
 
       parseData.EatRestOfLine();
     }

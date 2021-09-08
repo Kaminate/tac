@@ -1,10 +1,12 @@
 // This file implements the rendering backend using directx11
 
 #pragma once
+
 #include "src/common/graphics/tacRenderer.h"
 #include "src/common/graphics/tacRendererBackend.h"
 #include "src/common/shell/tacShell.h"
 #include "src/common/tacHash.h"
+#include "src/common/string/tacStringIdentifier.h"
 #include "src/shell/windows/tacWin32.h"
 #include "src/shell/windows/tacDXGI.h"
 
@@ -19,15 +21,18 @@ namespace Tac
 {
   namespace Render
   {
-
     struct ConstantBuffer
     {
       ID3D11Buffer* mBuffer = nullptr;
-      int           mShaderRegister = 0;
+      //int           mShaderRegister = 0;
+      String        mName;
+      //StringID      mNameID;
+
     };
 
     struct Program
     {
+      ConstantBuffers            mConstantBuffers;
       ID3D11VertexShader*        mVertexShader = nullptr;
       ID3D11GeometryShader*      mGeometryShader = nullptr;
       ID3D11PixelShader*         mPixelShader = nullptr;
@@ -50,6 +55,10 @@ namespace Tac
       // Window framebuffers own their depth textures, rtv, dsv.
       //
       // Render-to-texture framebuffers do no.
+
+      FLOAT                      mClearColorRGBA[ 4 ] = { 0, 0, 0, 1 };
+      bool                       mClearEachFrame = true;
+
       int                        mBufferCount = 0;
       IDXGISwapChain*            mSwapChain = nullptr;
       ID3D11DepthStencilView*    mDepthStencilView = nullptr;
@@ -212,7 +221,7 @@ namespace Tac
     String ShaderPathToContentString( StringView, Errors& );
     String GetDirectX11ShaderPath( StringView );
     String GetDirectX11ShaderPath( ShaderSource );
-    String PreprocessShaderSource( String, Errors& );
+    String PreprocessShaderSource( StringView, Errors& );
   } // namespace Render
 } // namespace Tac
 

@@ -10,6 +10,7 @@ namespace Tac
     StringID( const char* );
     StringID( const char*, int );
     StringID( const StringView& );
+    operator HashedValue() const;
     HashedValue mHashedValue = 0;
   };
 

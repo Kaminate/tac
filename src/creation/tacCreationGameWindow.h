@@ -40,7 +40,6 @@ namespace Tac
     void                          MousePickingInit();
     void                          MousePickingEntity( const Entity* entity, bool* hit, float* dist );
     void                          MousePickingAll();
-    //void                          AddDrawCall( const Mesh* mesh, const DefaultCBufferPerObject& cbuf );
     void                          ComputeArrowLen();
     void                          CameraControls();
     void                          CreateGraphicsObjects( Errors& );
@@ -50,8 +49,6 @@ namespace Tac
     Soul*                         mSoul = nullptr;
     Render::ShaderHandle          m3DShader;
     Render::VertexFormatHandle    m3DVertexFormat;
-    Render::ConstantBufferHandle  mPerFrame;
-    Render::ConstantBufferHandle  mPerObj;
     Render::DepthStateHandle      mDepthState;
     Render::BlendStateHandle      mBlendState;
     Render::RasterizerStateHandle mRasterizerState;

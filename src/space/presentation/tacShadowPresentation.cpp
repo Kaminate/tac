@@ -43,7 +43,7 @@ namespace Tac
       DefaultCBufferPerObject objBuf;
       objBuf.Color = { model->mColorRGB, 1 };
       objBuf.World = model->mEntity->mWorldTransform;
-      Render::UpdateConstantBuffer( mObjConstantBuffer,
+      Render::UpdateConstantBuffer( DefaultCBufferPerObject::Handle,
                                     &objBuf,
                                     sizeof( DefaultCBufferPerObject ),
                                     TAC_STACK_FRAME );
@@ -59,19 +59,9 @@ namespace Tac
         Render::SetSamplerState( mSamplerState );
         Render::SetDepthState( mDepthState );
         Render::SetVertexFormat( mVertexFormatHandle );
-
-        // going to use the depth buffer solely, dont need a color buffer
-        //Render::SetTexture( { mShadowColor } );
-        //
-        // the fbo depth texture is alreay bound for pixel output, cannot bind it as an
-        // input as a shader resource view
-        //Render::SetTexture( { mShadowDepth } );
-        //
-
         Render::SetPrimitiveTopology( subMesh.mPrimitiveTopology );
         Render::Submit( mViewHandle, TAC_STACK_FRAME );
         Render::EndGroup( TAC_STACK_FRAME );
-
       }
     }
 
@@ -79,8 +69,6 @@ namespace Tac
     Render::DepthStateHandle      mDepthState;
     Render::BlendStateHandle      mBlendState;
     Render::SamplerStateHandle    mSamplerState;
-    Render::ConstantBufferHandle  mObjConstantBuffer;
-    //Render::TextureHandle         mShadowColor;
     Render::TextureHandle         mShadowDepth;
     Render::VertexFormatHandle    mVertexFormatHandle;
     Render::VertexDeclarations    mVertexDeclarations;
@@ -91,8 +79,6 @@ namespace Tac
   {
     Render::TexSpec texSpecDepth;
     texSpecDepth.mImage.mFormat.mElementCount = 1;
-    //texSpecDepth.mImage.mFormat.mPerElementByteCount = sizeof( uint16_t );
-    //texSpecDepth.mImage.mFormat.mPerElementDataType = Render::GraphicsType::unorm;
     texSpecDepth.mImage.mFormat.mPerElementByteCount = 4;
     texSpecDepth.mImage.mFormat.mPerElementDataType = Render::GraphicsType::real;
     texSpecDepth.mImage.mWidth = light->mShadowResolution;
@@ -104,31 +90,16 @@ namespace Tac
 
   }
 
-  //static Render::TextureHandle CreateShadowMapColor( const Light* light )
-  //{
-  //    Render::TexSpec texSpecColor;
-  //    texSpecColor.mImage.mFormat.mElementCount = 4;
-  //    texSpecColor.mImage.mFormat.mPerElementByteCount = 1;
-  //    texSpecColor.mImage.mFormat.mPerElementDataType = Render::GraphicsType::unorm;
-  //    texSpecColor.mImage.mWidth = light->mShadowResolution;
-  //    texSpecColor.mImage.mHeight = light->mShadowResolution;
-  //    texSpecColor.mBinding = Render::Binding::ShaderResource | Render::Binding::RenderTarget;
-  //    Render::TextureHandle textureHandleColor = Render::CreateTexture( texSpecColor, TAC_STACK_FRAME );
-  //    Render::SetRenderObjectDebugName( textureHandleColor, "shadowmap-color" );
-  //    return textureHandleColor;
-  //}
 
   static void CreateShadowMapFramebuffer( Light* light )
   {
-    //Render::TextureHandle textureHandleColor = CreateShadowMapColor( light );
     Render::TextureHandle textureHandleDepth = CreateShadowMapDepth( light );
-    Render::FramebufferTextures framebufferTextures = { /*textureHandleColor,*/ textureHandleDepth };
+    Render::FramebufferTextures framebufferTextures = { textureHandleDepth };
     Render::FramebufferHandle framebufferHandle
       = Render::CreateFramebufferForRenderToTexture( framebufferTextures, TAC_STACK_FRAME );
 
     light->mShadowFramebuffer = framebufferHandle;
     light->mShadowMapDepth = textureHandleDepth;
-    //light->mShadowMapColor = textureHandleColor;
   }
 
   static void CreateShadowMapResources( Light* light )
@@ -165,37 +136,6 @@ namespace Tac
       const m4 proj = camera->Proj( a, b, aspect );
       const double elapsedSeconds = ShellGetElapsedSeconds();
 
-      //{
-      //  v4 posNear = { 0,0,-camera->mNearPlane,1 };
-      //  v4 posClip = proj * posNear;
-      //  v3 posNdc = posClip.xyz() / posClip.w;
-      //  ++asdf;
-      //}
-
-      //{
-      //  v4 posView = { 0,0,-camera->mFarPlane,1 };
-      //  v4 posClip = proj * posView;
-      //  v3 posNDC = posClip.xyz() / posClip.w;
-      //  ++asdf;
-      //}
-      
-      //{
-      //  v4 posView = { 0,0,-5.7384f,1 };
-      //  v4 posClip = proj * posView;
-      //  v3 posNDC = posClip.xyz() / posClip.w;
-      //  ++asdf;
-      //}
-
-      // In summary, the depth buffer is working normally,
-      // its not showing linear depth.
-      // even if it was, the near plane (0.1) is very close,
-      // and the far plane (10000 ) is very far away, so you would still have a shitty viz
-      //
-      // with the current setup, most of the bits are used for things very close to the camera
-      // so theres not a good visualization.
-      // for better viz, i should get the scene extents and use that for the far plane
-      // and render linear depth
-
       DefaultCBufferPerFrame perFrameData;
       perFrameData.mFar = camera->mFarPlane;
       perFrameData.mNear = camera->mNearPlane;
@@ -216,25 +156,6 @@ namespace Tac
       const DefaultCBufferPerFrame perFrameData = GetPerFrameData( light );
 
 
-      //auto cam = light->GetCamera();
-      //auto draw = light->mEntity->mWorld->mDebug3DDrawData;
-      //m4 world_xform = light->mEntity->mWorldTransform;
-      //draw->DebugDraw3DArrow( cam.mPos, cam.mPos + cam.mRight, { 1,0,0 } );
-      //draw->DebugDraw3DArrow( cam.mPos, cam.mPos + cam.mUp, { 0,1,0 } );
-      //draw->DebugDraw3DArrow( cam.mPos, cam.mPos + -cam.mForwards, { 0,0,1 } );
-      //if( 0 )
-      //{
-      //  const char* r0 = FrameMemoryPrintf( "%.2f %.2f %.2f", world_xform.m00, world_xform.m01, world_xform.m02 );
-      //  const char* r1 = FrameMemoryPrintf( "%.2f %.2f %.2f", world_xform.m10, world_xform.m11, world_xform.m12 );
-      //  const char* r2 = FrameMemoryPrintf( "%.2f %.2f %.2f", world_xform.m20, world_xform.m21, world_xform.m22 );
-      //  ImGuiSetNextWindowSize( v2( 1, 1 ) * 300 );
-      //  ImGuiBegin( "test" );
-      //  ImGuiText( "world xform" );
-      //  ImGuiText( r0 );
-      //  ImGuiText( r1 );
-      //  ImGuiText( r2 );
-      //  ImGuiEnd();
-      //}
 
 
       Render::SetViewFramebuffer( light->mShadowView, light->mShadowFramebuffer );
@@ -242,7 +163,7 @@ namespace Tac
                                                                  light->mShadowResolution ) );
       Render::SetViewScissorRect( light->mShadowView, Render::ScissorRect( light->mShadowResolution,
                                                                            light->mShadowResolution ) );
-      Render::UpdateConstantBuffer( GamePresentationGetPerFrame(),
+      Render::UpdateConstantBuffer( DefaultCBufferPerFrame::Handle,
                                     &perFrameData,
                                     sizeof( DefaultCBufferPerFrame ),
                                     TAC_STACK_FRAME );
@@ -253,12 +174,10 @@ namespace Tac
       modelVisitor.mDepthState = GamePresentationGetDepthState();
       modelVisitor.mBlendState = GamePresentationGetBlendState();
       modelVisitor.mSamplerState = GamePresentationGetSamplerState();
-      modelVisitor.mObjConstantBuffer = GamePresentationGetPerObj();
       modelVisitor.mVertexDeclarations = GamePresentationGetVertexDeclarations();
       modelVisitor.mVertexFormatHandle = GamePresentationGetVertexFormat();
       modelVisitor.mRasterizerStateHandle = GamePresentationGetRasterizerState();
       modelVisitor.mShadowDepth = light->mShadowMapDepth;
-      //modelVisitor.mShadowColor = light->mShadowMapColor;
       graphics->VisitModels( &modelVisitor );
     }
 
@@ -269,13 +188,7 @@ namespace Tac
 
   void        ShadowPresentationInit( Errors& errors )
   {
-    const Render::ConstantBuffers constantBuffers =
-    {
-      GamePresentationGetPerFrame(),
-      GamePresentationGetPerObj(),
-    };
-
-    sShader = Render::CreateShader( Render::ShaderSource::FromPath( "Shadow" ), constantBuffers, TAC_STACK_FRAME );
+    sShader = Render::CreateShader( Render::ShaderSource::FromPath( "Shadow" ), TAC_STACK_FRAME );
   }
 
   void        ShadowPresentationUninit()
@@ -289,11 +202,6 @@ namespace Tac
     ShadowLightVisitor lightVisitor;
     lightVisitor.graphics = graphics;
     graphics->VisitLights( &lightVisitor );
-
-    //Render::SubmitFrame();
-    //Render::SubmitFrame();
-    //Render::SubmitFrame();
-
   }
 
   void        ShadowPresentationDebugImGui( Graphics* graphics )

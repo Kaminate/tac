@@ -46,5 +46,33 @@ namespace Tac
     return result;
   }
 
+  Render::ConstantBufferHandle CBufferLights::Handle;
+  Render::ConstantBufferHandle DefaultCBufferPerFrame::Handle;
+  Render::ConstantBufferHandle DefaultCBufferPerObject::Handle;
+
+  void      DefaultCBufferPerFrame::Init()
+  {
+    Handle = Render::CreateConstantBuffer( "CBufferPerFrame",
+                                           sizeof( DefaultCBufferPerFrame ),
+                                           TAC_STACK_FRAME );
+    Render::SetRenderObjectDebugName( Handle, "per-frame" );
+  }
+
+  void      DefaultCBufferPerObject::Init()
+  {
+    Handle = Render::CreateConstantBuffer( "CBufferPerObject",
+                                           sizeof( DefaultCBufferPerObject ),
+                                           TAC_STACK_FRAME );
+    Render::SetRenderObjectDebugName( Handle, "per-obj" );
+  }
+
+  void      CBufferLights::Init()
+  {
+    Handle = Render::CreateConstantBuffer( "CBufferLights",
+                                           sizeof( CBufferLights ),
+                                           TAC_STACK_FRAME );
+    Render::SetRenderObjectDebugName( Handle, "lights" );
+  }
+
 }
 

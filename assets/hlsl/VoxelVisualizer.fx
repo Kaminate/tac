@@ -1,4 +1,4 @@
-#include "common.fx"
+#include "Common.fx"
 #include "VoxelCommon.fx"
 
 Texture3D voxels : register( t0 );

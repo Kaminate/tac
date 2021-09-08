@@ -35,6 +35,7 @@ namespace Tac
   static bool drawGizmos = true;
   static float sWASDCameraPanSpeed = 10;
   static float sWASDCameraOrbitSpeed = 0.1f;
+  static bool sWASDCameraOrbitSnap;
 
   struct GameWindowVertex
   {
@@ -135,8 +136,6 @@ namespace Tac
     Instance = nullptr;
     Render::DestroyShader( m3DShader, TAC_STACK_FRAME );
     Render::DestroyVertexFormat( m3DVertexFormat, TAC_STACK_FRAME );
-    Render::DestroyConstantBuffer( mPerFrame, TAC_STACK_FRAME );
-    Render::DestroyConstantBuffer( mPerObj, TAC_STACK_FRAME );
     Render::DestroyDepthState( mDepthState, TAC_STACK_FRAME );
     Render::DestroyBlendState( mBlendState, TAC_STACK_FRAME );
     Render::DestroyRasterizerState( mRasterizerState, TAC_STACK_FRAME );
@@ -147,19 +146,9 @@ namespace Tac
 
   void CreationGameWindow::CreateGraphicsObjects( Errors& errors )
   {
-    mPerFrame = Render::CreateConstantBuffer( sizeof( DefaultCBufferPerFrame ),
-                                              0,
-                                              TAC_STACK_FRAME );
-    Render::SetRenderObjectDebugName( mPerFrame, "game-per-frame" );
 
-    mPerObj = Render::CreateConstantBuffer( sizeof( DefaultCBufferPerObject ),
-                                            1,
-                                            TAC_STACK_FRAME );
-    Render::SetRenderObjectDebugName( mPerObj, "game-per-obj" );
 
-    m3DShader = Render::CreateShader( Render::ShaderSource::FromPath( "3DTest" ),
-                                      Render::ConstantBuffers{ mPerFrame, mPerObj },
-                                      TAC_STACK_FRAME );
+    m3DShader = Render::CreateShader( Render::ShaderSource::FromPath( "3DTest" ), TAC_STACK_FRAME );
 
     const Render::VertexDeclaration posDecl = []()
     {
@@ -299,7 +288,7 @@ namespace Tac
       pickData.pickedObject = PickedObject::Entity;
     }
 
-    if( gCreation.mSelectedEntities.size() && drawGizmos ) // || gCreation.mSelectedPrefabs.size() )
+    if( gCreation.mSelectedEntities.size() && drawGizmos )
     {
       const v3 selectionGizmoOrigin = gCreation.mSelectedEntities.GetGizmoOrigin();
 
@@ -499,11 +488,14 @@ namespace Tac
     perFrameData.mProjection = proj;
     perFrameData.mGbufferSize = { w, h };
 
-    Render::UpdateConstantBuffer( mPerFrame, &perFrameData, sizeof( DefaultCBufferPerFrame ), TAC_STACK_FRAME );
+    Render::UpdateConstantBuffer( DefaultCBufferPerFrame::Handle,
+                                  &perFrameData,
+                                  sizeof( DefaultCBufferPerFrame ),
+                                  TAC_STACK_FRAME );
 
     if( !gCreation.mSelectedEntities.empty() && drawGizmos )
     {
-      const v3 selectionGizmoOrigin = gCreation. mSelectedEntities.GetGizmoOrigin();
+      const v3 selectionGizmoOrigin = gCreation.mSelectedEntities.GetGizmoOrigin();
       const v3 red = { 1, 0, 0 };
       const v3 grn = { 0, 1, 0 };
       const v3 blu = { 0, 0, 1 };
@@ -523,7 +515,10 @@ namespace Tac
           * rots[ i ]
           * m4::Scale( v3( 1, 1, 1 ) * mArrowLen )
           ;// *mArrow->mTransform;
-        Render::UpdateConstantBuffer( mPerObj, &perObjectData, sizeof( DefaultCBufferPerObject ), TAC_STACK_FRAME );
+        Render::UpdateConstantBuffer( DefaultCBufferPerObject::Handle,
+                                      &perObjectData,
+                                      sizeof( DefaultCBufferPerObject ),
+                                      TAC_STACK_FRAME );
         AddDrawCall( mArrow, viewHandle );
 
         // Widget Scale Cube
@@ -535,7 +530,10 @@ namespace Tac
           m4::Translate( axis * ( mArrowLen * 1.1f ) ) *
           rots[ i ] *
           m4::Scale( v3( 1, 1, 1 ) * mArrowLen * 0.1f );
-        Render::UpdateConstantBuffer( mPerObj, &perObjectData, sizeof( DefaultCBufferPerObject ), TAC_STACK_FRAME );
+        Render::UpdateConstantBuffer( DefaultCBufferPerObject::Handle,
+                                      &perObjectData,
+                                      sizeof( DefaultCBufferPerObject ),
+                                      TAC_STACK_FRAME );
         AddDrawCall( mCenteredUnitCube, viewHandle );
       }
     }
@@ -586,12 +584,24 @@ namespace Tac
       {
         TAC_IMGUI_INDENT_BLOCK;
         Camera* cam = gCreation.mEditorCamera;
-        ImGuiDragFloat3( "cam pos", cam->mPos.data() );
-        ImGuiDragFloat3( "cam forward", cam->mForwards.data() );
-        ImGuiDragFloat3( "cam right", cam->mRight.data() );
-        ImGuiDragFloat3( "cam up", cam->mUp.data() );
-        ImGuiDragFloat( "cam far", &cam->mFarPlane );
-        ImGuiDragFloat( "cam near", &cam->mNearPlane );
+        if( ImGuiCollapsingHeader( "transform" ) )
+        {
+          TAC_IMGUI_INDENT_BLOCK;
+          if( ImGuiCollapsingHeader( "pos" ) )
+            ImGuiDragFloat3( "cam pos", cam->mPos.data() );
+          if( ImGuiCollapsingHeader( "forward" ) )
+            ImGuiDragFloat3( "cam forward", cam->mForwards.data() );
+          if( ImGuiCollapsingHeader( "right" ) )
+            ImGuiDragFloat3( "cam right", cam->mRight.data() );
+          if( ImGuiCollapsingHeader( "up" ) )
+            ImGuiDragFloat3( "cam up", cam->mUp.data() );
+        }
+        if( ImGuiCollapsingHeader( "clipping planes" ) )
+        {
+          TAC_IMGUI_INDENT_BLOCK;
+          ImGuiDragFloat( "cam far", &cam->mFarPlane );
+          ImGuiDragFloat( "cam near", &cam->mNearPlane );
+        }
         ImGuiDragFloat( "cam fovyrad", &cam->mFovyrad );
         if( ImGuiButton( "cam snap pos" ) )
         {
@@ -662,7 +672,7 @@ namespace Tac
 
   static void CameraWASDControlsPan( Camera* camera )
   {
-
+    v3 combinedDir = {};
     struct
     {
       Key key;
@@ -678,8 +688,10 @@ namespace Tac
     };
     for( const auto keyDir : keyDirs )
       if( gKeyboardInput.IsKeyDown( keyDir.key ) )
-        camera->mPos += keyDir.dir * sWASDCameraPanSpeed;
-
+        combinedDir += keyDir.dir;
+    if( combinedDir == v3( 0, 0, 0 ) )
+      return;
+    camera->mPos += combinedDir * sWASDCameraPanSpeed;
   }
 
 
@@ -687,7 +699,7 @@ namespace Tac
   {
     const float vertLimit = 0.1f;
 
-    struct  
+    struct
     {
       Key key;
       v3 spherical;
@@ -710,20 +722,20 @@ namespace Tac
 
     camera->mPos = orbitCenter + SphericalToCartesian( camOrbitSpherical );
 
-#if 0
-    v3 desiredDir = orbitCenter - camera->mPos;
-    camera->SetForwards( camera->mForwards + ( desiredDir - camera->mForwards ) * 0.01f );
-#endif
-
-    v3 dirCart = camera->mForwards;
-    v3 dirSphe = CartesianToSpherical( dirCart );
-    dirSphe.y += -camOrbitSphericalOffset.y * sWASDCameraOrbitSpeed;
-    dirSphe.z += camOrbitSphericalOffset.z * sWASDCameraOrbitSpeed;
-    dirSphe.y = Clamp( dirSphe.y, vertLimit, 3.14f - vertLimit );
-    v3 newForwards = SphericalToCartesian( dirSphe );
-    camera->SetForwards(newForwards);
-      
-
+    if( sWASDCameraOrbitSnap )
+    {
+      camera->SetForwards( orbitCenter - camera->mPos );
+    }
+    else
+    {
+      v3 dirCart = camera->mForwards;
+      v3 dirSphe = CartesianToSpherical( dirCart );
+      dirSphe.y += -camOrbitSphericalOffset.y * sWASDCameraOrbitSpeed;
+      dirSphe.z += camOrbitSphericalOffset.z * sWASDCameraOrbitSpeed;
+      dirSphe.y = Clamp( dirSphe.y, vertLimit, 3.14f - vertLimit );
+      v3 newForwards = SphericalToCartesian( dirSphe );
+      camera->SetForwards( newForwards );
+    }
   }
 
   static void CameraWASDControls( Camera* camera )
@@ -749,12 +761,6 @@ namespace Tac
       savedPrefabPath = loadedPrefab;
       savedCamera = *gCreation.mEditorCamera;
     }
-
-    static double elapsedCheck;
-    const double elapsed = ShellGetElapsedSeconds();
-    if( elapsed < elapsedCheck + 0.5f )
-      return;
-    elapsedCheck = elapsed;
 
     const bool cameraSame =
       savedCamera.mPos == gCreation.mEditorCamera->mPos  &&
@@ -825,10 +831,18 @@ namespace Tac
 
     if( gKeyboardInput.mMouseDeltaScroll )
     {
-      //float unitsPerTick = 0.35f;
+      float unitsPerTick = 1.0f;
+
+      if( gCreation.mSelectedEntities.size() )
+      {
+        const v3 origin = gCreation.mSelectedEntities.GetGizmoOrigin();
+        unitsPerTick = Distance( origin, gCreation.mEditorCamera->mPos ) * 0.1f;
+      }
+
       gCreation.mEditorCamera->mPos +=
         gCreation.mEditorCamera->mForwards *
-        ( float )gKeyboardInput.mMouseDeltaScroll;
+        ( float )gKeyboardInput.mMouseDeltaScroll *
+        unitsPerTick;
     }
 
     CameraWASDControls( gCreation.mEditorCamera );
@@ -877,7 +891,7 @@ namespace Tac
     if( drawGrid )
       mDebug3DDrawData->DebugDraw3DGrid();
 
-    if( !gCreation.mSelectedEntities.empty())
+    if( !gCreation.mSelectedEntities.empty() )
     {
       const v3 origin = gCreation.mSelectedEntities.GetGizmoOrigin();
       mDebug3DDrawData->DebugDraw3DCircle( origin,

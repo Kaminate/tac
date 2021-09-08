@@ -53,7 +53,6 @@ namespace Tac
       UpdateIndexBuffer,
       UpdateTextureRegion,
       UpdateVertexBuffer,
-      //BindUAV,
       ResizeFramebuffer,
       SetRenderObjectDebugName,
       Count, // must be last
@@ -83,7 +82,6 @@ namespace Tac
       IndexBufferHandle     mIndexBufferHandle;
       BlendStateHandle      mBlendStateHandle;
       RasterizerStateHandle mRasterizerStateHandle;
-      //SamplerStateHandle    mSamplerStateHandle;
       DrawCallSamplers      mSamplerStateHandle;
       DepthStateHandle      mDepthStateHandle;
       VertexFormatHandle    mVertexFormatHandle;
@@ -234,7 +232,6 @@ namespace Tac
     {
       StackFrame            mStackFrame;
       ShaderSource          mShaderSource;
-      ConstantBuffers       mConstantBuffers;
       ShaderHandle          mShaderHandle;
     };
 
@@ -243,7 +240,7 @@ namespace Tac
       StackFrame            mStackFrame;
       ConstantBufferHandle  mConstantBufferHandle;
       int                   mByteCount = 0;
-      int                   mShaderRegister = 0;
+      const char*           mName;
     };
 
     struct CommandDataCreateMagicBuffer
@@ -341,12 +338,7 @@ namespace Tac
       const void*           mNativeWindowHandle = nullptr;
       int                   mWidth = 0;
       int                   mHeight = 0;
-
-      //                    Used when creating a framebuffer for render-to-texture
-      //TextureHandle         mTextures[ 10 ] = {};
       FramebufferTextures   mFramebufferTextures;
-      //TextureHandle*        mTextures;
-      //int                   mTextureCount = 0;
     };
 
     struct CommandDataCreateDepthState
@@ -403,15 +395,6 @@ namespace Tac
 
   struct Renderer
   {
-    //enum class Type
-    //{
-    //  Vulkan,
-    //  OpenGL4,
-    //  DirectX11,
-    //  DirectX12,
-    //  Count,
-    //};
-
     static Renderer* Instance;
     const char*      mName;
     Renderer();
@@ -462,5 +445,4 @@ namespace Tac
     virtual void UpdateVertexBuffer( Render::CommandDataUpdateVertexBuffer*, Errors& ) = 0;
   };
 
-  //String RendererTypeToString( Renderer::Type );
 }

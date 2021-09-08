@@ -1,12 +1,13 @@
 // This file is for things that you may want to use after including tacRenderer.h
 #pragma once
 
-//#include "src/common/graphics/tacRenderer.h"
-//#include "src/common/math/tacVector4.h"
+#include "src/common/graphics/tacRenderer.h"
 #include "src/common/math/tacMatrix4.h"
 #include "src/common/tacPreprocessor.h"
 
 #include <cinttypes>
+
+#define TAC_PAD_BYTES( byteCount ) char TAC_CONCAT( mPadding, __COUNTER__ )[ byteCount ]
 
 namespace Tac
 {
@@ -31,25 +32,26 @@ namespace Tac
     static const char* name_far()         { return "far";         };
     static const char* name_near()        { return "near";        };
     static const char* name_gbuffersize() { return "gbufferSize"; };
-    static const int   shaderRegister = 0;
     m4                 mView;
     m4                 mProjection;
     float              mFar;
     float              mNear;
     v2                 mGbufferSize;
     float              mSecModTau;
+    static void        Init();
+    static Render::ConstantBufferHandle Handle;
   };
 
   struct DefaultCBufferPerObject
   {
     static const char* name_world()       { return "World";       };
     static const char* name_color()       { return "Color";       };
-    static const int   shaderRegister = 1;
     m4                 World;
     v4                 Color;
+    static void      Init();
+    static Render::ConstantBufferHandle Handle;
   };
 
-#define TAC_PAD_BYTES( byteCount ) char TAC_CONCAT( mPadding, __COUNTER__ )[ byteCount ]
 
 
   const ShaderFlags::Info* GetShaderLightFlagType();
@@ -78,11 +80,13 @@ namespace Tac
     uint32_t         useLights = true;
     uint32_t         testNumber = 1234567890;
     bool             TryAddLight( const ShaderLight& );
+
+    static void      Init();
+    static Render::ConstantBufferHandle Handle;
   };
 
   // maybe this should be in renderer idk
   v4 ToColorAlphaPremultiplied( v4 colorAlphaUnassociated );
-
 
 }
 

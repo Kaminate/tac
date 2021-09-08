@@ -309,9 +309,9 @@ namespace Tac
     StringView                       SubmitAlloc( const StringView );
     ViewHandle                       CreateView();
     void                             DestroyView( ViewHandle );
-    ShaderHandle                     CreateShader( ShaderSource, ConstantBuffers, StackFrame );
-    ConstantBufferHandle             CreateConstantBuffer( int mByteCount,
-                                                           int mShaderRegister,
+    ShaderHandle                     CreateShader( ShaderSource, StackFrame );
+    ConstantBufferHandle             CreateConstantBuffer( const char* name,
+                                                           int mByteCount,
                                                            StackFrame );
     MagicBufferHandle                CreateMagicBuffer( int byteCount,
                                                         const void* mOptionalInitialBytes,
@@ -366,16 +366,10 @@ namespace Tac
                                                         int,
                                                         StackFrame );
 
-    // Umm about this...
-    //void                             UpdateConstantBuffer( ConstantBufferHandle,
-    //                                                       const void*,
-    //                                                       int,
-    //                                                       StackFrame );
     void                             UpdateConstantBuffer( ConstantBufferHandle,
                                                            const void*,
                                                            int,
                                                            StackFrame );
-   // Umm about this...
 
     void                             ResizeFramebuffer( FramebufferHandle,
                                                         int w,
@@ -390,7 +384,6 @@ namespace Tac
     void                             SetBlendState( BlendStateHandle );
     void                             SetRasterizerState( RasterizerStateHandle );
     void                             SetSamplerState( DrawCallSamplers );
-    //void                             SetSamplerState( SamplerStateHandle );
     void                             SetDepthState( DepthStateHandle );
     void                             SetVertexFormat( VertexFormatHandle );
     void                             SetShader( ShaderHandle );
@@ -450,7 +443,6 @@ namespace Tac
     const char* const RendererNameOpenGL4 = "OpenGL4";
     const char* const RendererNameDirectX11 = "DirectX11";
     const char* const RendererNameDirectX12 = "DirectX12";
-    //const char* RendererTypeToString( Renderer::Type );
 
   } // namespace Render
 } // namespace Tac

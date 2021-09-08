@@ -24,12 +24,12 @@ namespace Tac
     samplerState.mFilter = Render::Filter::Point;
     samplerStateHandle = Render::CreateSamplerState( samplerState, TAC_STACK_FRAME );
 
-    constantBuffer = Render::CreateConstantBuffer( sizeof( CBufferDepthViz ), 0, TAC_STACK_FRAME );
+    constantBuffer = Render::CreateConstantBuffer( "CBufferVizf",
+                                                   sizeof( CBufferDepthViz ),
+                                                   TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( constantBuffer, "depth-buf-viz" );
 
-    shader = Render::CreateShader( Render::ShaderSource::FromPath( "DepthBufferVisualizer" ),
-                                   { constantBuffer },
-                                   TAC_STACK_FRAME );
+    shader = Render::CreateShader( Render::ShaderSource::FromPath( "DepthBufferVisualizer" ), TAC_STACK_FRAME );
   }
 
   Render::TextureHandle DepthBufferLinearVisualizationRender( Render::TextureHandle depthTexture,

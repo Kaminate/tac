@@ -1,18 +1,19 @@
-#include "src/common/tacSettings.h"
-#include "src/common/tacUtility.h"
+#include "src/common/math/tacMath.h"
+#include "src/common/shell/tacShell.h"
+#include "src/common/shell/tacShellTimer.h"
+#include "src/common/tacAlgorithm.h"
 #include "src/common/tacMemory.h"
 #include "src/common/tacOS.h"
-#include "src/common/math/tacMath.h"
+#include "src/common/tacSettings.h"
 #include "src/common/tacTemporaryMemory.h"
-#include "src/common/tacAlgorithm.h"
-#include "src/common/shell/tacShell.h"
+#include "src/common/tacUtility.h"
 #include "src/shell/tacDesktopApp.h"
 
 namespace Tac
 {
   static Json mJson;
-
-
+  static bool dirty;
+  static double lastSaveSeconds;
 
   static String SettingsGetSavePath()
   {
@@ -27,16 +28,14 @@ namespace Tac
     if( leaf->mType != fallback->mType )
     {
       *leaf = *fallback;
-      Errors errors;
-      SettingsSave( errors );
+      SettingsSave();
     }
   }
 
   static void   SettingsSetValue( StringView path, Json* root, const Json& setValue )
   {
     *SettingsGetJson( path, root ) = setValue;
-      Errors errors;
-    SettingsSave( errors );
+    SettingsSave();
   }
 
   static Json*  SettingsGetValue( StringView path, Json* fallback, Json* root )
@@ -48,26 +47,38 @@ namespace Tac
 
   void          SettingsInit( Errors& errors )
   {
-    if( !FileExist( SettingsGetSavePath() ) )
+    if( FileExist( SettingsGetSavePath() ) )
     {
-      SettingsSave( errors );
-      TAC_HANDLE_ERROR( errors );
-      return;
+      auto temporaryMemory = TemporaryMemoryFromFile( SettingsGetSavePath(), errors );
+      mJson.Parse( temporaryMemory.data(), ( int )temporaryMemory.size(), errors );
     }
-    auto temporaryMemory = TemporaryMemoryFromFile( SettingsGetSavePath(), errors );
-    mJson.Parse( temporaryMemory.data(), ( int )temporaryMemory.size(), errors );
+    else
+    {
+      SettingsSave();
+    }
   }
 
-
-  // TODO: this shouldn't save, but instead set a flag which is checked every 0.1s
-  //       where the OSSaveToFile would actually happen.
-  //      
-  //       so it should modify the local copy, and a flag, but not the disk copy
-  void          SettingsSave( Errors& errors )
+  void          SettingsUpdate( Errors& errors )
   {
-    String str = mJson.Stringify();
+    if( !dirty )
+      return;
+
+    const double elapsedSeconds = ShellGetElapsedSeconds();
+    const bool savedRecently = elapsedSeconds < lastSaveSeconds + 0.1f;
+    if( savedRecently )
+      return;
+
+    const String str = mJson.Stringify();
     OSSaveToFile( SettingsGetSavePath(), ( void* )str.data(), ( int )str.size(), errors );
     TAC_HANDLE_ERROR( errors );
+
+    lastSaveSeconds = elapsedSeconds;
+    dirty = false;
+  }
+
+  void          SettingsSave()
+  {
+    dirty = true;
   }
 
   Json*         SettingsGetChildByKeyValuePair( StringView key, const Json& value, Json* root )

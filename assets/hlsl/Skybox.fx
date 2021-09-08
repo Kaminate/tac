@@ -1,5 +1,4 @@
-
-#include "common.fx"
+#include "Common.fx"
 TextureCube cubemap   : register( t0 );
 sampler linearSampler : register( s0 );
 

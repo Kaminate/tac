@@ -1,5 +1,7 @@
 #include "src/common/graphics/imgui/tacImGuiState.h"
 #include "src/common/graphics/tacTextEdit.h"
+#include "src/common/graphics/tacColorUtil.h"
+#include "src/common/tacHash.h"
 #include "src/common/shell/tacShellTimer.h"
 #include "src/common/graphics/tacUI2D.h"
 #include "src/common/tacKeyboardinput.h"
@@ -101,7 +103,15 @@ namespace Tac
   {
     UI2DDrawData* ui2DDrawData = mDrawData;// ImGuiGlobals::Instance.mUI2DDrawData;
 
-    v4 childWindowColor( 0.1f, 0.15f, 0.2f, 1.0f );
+    float fhash = std::fmodf( ( ( float )HashAddString( mName ) ), 123.456f );
+    //v4 childWindowColor( 0.1f, 0.15f, 0.2f, 1.0f );
+    v3 childWindowColor3
+      = v3( 0.1f, 0.15f, 0.2f )
+      + 0.3f * GetColorSchemeA( fhash  ).xyz();
+    v4 childWindowColor = v4( 0.5f * childWindowColor3, 1.0f );
+
+      
+
     if( mParent )
     {
       mPosViewport = mParent->mCurrCursorViewport;

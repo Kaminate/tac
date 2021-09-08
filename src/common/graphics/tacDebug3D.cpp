@@ -22,7 +22,6 @@ namespace Tac
     void                          Init( Errors& );
     void                          Uninit();
     Render::BlendStateHandle      mAlphaBlendState;
-    Render::ConstantBufferHandle  mCBufferPerFrame;
     Render::DepthStateHandle      mDepthLess;
     Render::RasterizerStateHandle mRasterizerStateNoCull;
     Render::ShaderHandle          m3DVertexColorShader;
@@ -66,7 +65,6 @@ namespace Tac
   void Debug3DCommonData::Uninit()
   {
     Render::DestroyBlendState( mAlphaBlendState, TAC_STACK_FRAME );
-    Render::DestroyConstantBuffer( mCBufferPerFrame, TAC_STACK_FRAME );
     Render::DestroyDepthState( mDepthLess, TAC_STACK_FRAME );
     Render::DestroyRasterizerState( mRasterizerStateNoCull, TAC_STACK_FRAME );
     Render::DestroyShader( m3DVertexColorShader, TAC_STACK_FRAME );
@@ -88,13 +86,7 @@ namespace Tac
     }( );
 
 
-    mCBufferPerFrame = Render::CreateConstantBuffer( sizeof( DefaultCBufferPerFrame ),
-                                                     DefaultCBufferPerFrame::shaderRegister,
-                                                     TAC_STACK_FRAME );
-    Render::SetRenderObjectDebugName( mCBufferPerFrame, "debug-3d-cbuf-frame" );
-
     m3DVertexColorShader = Render::CreateShader( Render::ShaderSource::FromPath( "3DDebug" ),
-                                                 Render::ConstantBuffers{ mCBufferPerFrame },
                                                  TAC_STACK_FRAME );
 
     Render::DepthState depthStateData;
@@ -102,7 +94,7 @@ namespace Tac
     depthStateData.mDepthTest = true;
     depthStateData.mDepthWrite = true;
     mDepthLess = Render::CreateDepthState( depthStateData, TAC_STACK_FRAME );
-    Render::SetRenderObjectDebugName( mCBufferPerFrame, "debug-3d-depth-state" );
+    Render::SetRenderObjectDebugName( mDepthLess, "debug-3d-depth-state" );
 
 
     Render::VertexDeclaration positionData;
@@ -486,7 +478,7 @@ namespace Tac
     }
 
     DefaultCBufferPerFrame perFrameData = Debug3DGetPerFrameData( viewId, camera, viewWidth, viewHeight );
-    Render::UpdateConstantBuffer( gDebug3DCommonData.mCBufferPerFrame,
+    Render::UpdateConstantBuffer( DefaultCBufferPerFrame::Handle,
                                   &perFrameData,
                                   sizeof( DefaultCBufferPerFrame ),
                                   TAC_STACK_FRAME );

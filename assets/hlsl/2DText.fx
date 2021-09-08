@@ -1,5 +1,4 @@
-
-#include "common.fx"
+#include "Common.fx"
 #define TEST_RED 0
 #define TEST_UVS 0
 

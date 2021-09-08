@@ -174,7 +174,7 @@ namespace Tac
   {
     if( substr.mLen > mLen )
       return npos;
-    for( int i = 0; i < mLen - substr.mLen; ++i )
+    for( int i = 0; i <= mLen - substr.mLen; ++i )
       if( MemCmp( mStr + i, substr.mStr, substr.mLen ) == 0 )
         return i;
     return npos;
@@ -387,8 +387,11 @@ namespace Tac
     result += rhs;
     return result;
   }
-  String        operator + ( const char* a, const String& b ) { return String( a ) + b; }
-  String        operator + ( const char* a, const StringView& b ) { return String( a ) + String( b ); }
+
+  String        operator + ( const StringView& a, const char* b )   { return String( a ) + String( b ); }
+  String        operator + ( const StringView& a, const String& b ) { return String( a ) + b; }
+  String        operator + ( const char* a, const String& b )       { return String( a ) + b; }
+  String        operator + ( const char* a, const StringView& b )   { return String( a ) + String( b ); }
   bool          operator == ( const String& a, const String& b )
   {
     if( a.mLen != b.mLen )

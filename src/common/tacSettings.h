@@ -8,7 +8,7 @@ namespace Tac
 {
 	struct     Errors;
 	void       SettingsInit( Errors& );
-	void       SettingsSave( Errors& );
+	void       SettingsSave();
 	Json*      SettingsGetJson( StringView path, Json* root = nullptr );
 	Json*      SettingsGetChildByKeyValuePair( StringView key, const Json& value, Json* root );
 	StringView SettingsGetString( StringView path, StringView fallback, Json* = nullptr );
@@ -17,5 +17,6 @@ namespace Tac
   void       SettingsSetNumber( StringView path, JsonNumber setValue, Json* = nullptr );
   bool       SettingsGetBool( StringView path, bool fallback, Json* = nullptr );
   void       SettingsSetBool( StringView path, bool setValue, Json* = nullptr );
+  void       SettingsUpdate( Errors& );
 }
 

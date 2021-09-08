@@ -32,17 +32,10 @@
 
 namespace Tac
 {
-
-
-
-
   static Render::ShaderHandle          m3DShader;
   static Render::ShaderHandle          mTerrainShader;
   static Render::VertexFormatHandle    m3DVertexFormat;
   static Render::VertexFormatHandle    mTerrainVertexFormat;
-  static Render::ConstantBufferHandle  mCBufPerFrame;
-  static Render::ConstantBufferHandle  mCBufPerObj;
-  static Render::ConstantBufferHandle  mCBufLight;
   static Render::DepthStateHandle      mDepthState;
   static Render::BlendStateHandle      mBlendState;
   static Render::RasterizerStateHandle mRasterizerState;
@@ -194,7 +187,10 @@ namespace Tac
         if( cBufferLights.TryAddLight( LightToShaderLight( light ) ) )
           drawCallTextures.push_back( light->mShadowMapDepth );
       }
-      Render::UpdateConstantBuffer( mCBufLight, &cBufferLights, sizeof( CBufferLights ), TAC_STACK_FRAME );
+      Render::UpdateConstantBuffer( CBufferLights::Handle,
+                                    &cBufferLights,
+                                    sizeof( CBufferLights ),
+                                    TAC_STACK_FRAME );
 
       mDebugCBufferLights = cBufferLights;
     }
@@ -217,7 +213,7 @@ namespace Tac
       Render::SetDepthState( mDepthState );
       Render::SetVertexFormat( m3DVertexFormat );
       Render::SetPrimitiveTopology( subMesh.mPrimitiveTopology );
-      Render::UpdateConstantBuffer( mCBufPerObj,
+      Render::UpdateConstantBuffer( DefaultCBufferPerObject::Handle,
                                     &perObjectData,
                                     sizeof( DefaultCBufferPerObject ),
                                     TAC_STACK_FRAME );
@@ -234,7 +230,6 @@ namespace Tac
     if( terrain->mRowMajorGrid.empty() )
       return;
 
-    //OSDebugBreak();
 
     typedef uint32_t TerrainIndex;
 
@@ -294,17 +289,13 @@ namespace Tac
   static void CreateTerrainShader( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
-    mTerrainShader = Render::CreateShader( Render::ShaderSource::FromPath( "Terrain" ),
-                                           Render::ConstantBuffers{ mCBufPerFrame, mCBufPerObj },
-                                           TAC_STACK_FRAME );
+    mTerrainShader = Render::CreateShader( Render::ShaderSource::FromPath( "Terrain" ), TAC_STACK_FRAME );
   }
 
   static void Create3DShader( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
-    m3DShader = Render::CreateShader( Render::ShaderSource::FromPath( "GamePresentation" ),
-                                      Render::ConstantBuffers{ mCBufPerFrame, mCBufPerObj },
-                                      TAC_STACK_FRAME );
+    m3DShader = Render::CreateShader( Render::ShaderSource::FromPath( "GamePresentation" ), TAC_STACK_FRAME );
   }
 
   static void Create3DVertexFormat( Errors& errors )
@@ -370,33 +361,6 @@ namespace Tac
     Render::SetRenderObjectDebugName( mTerrainVertexFormat, "terrain-vtx-fmt" );
   }
 
-  static void CreatePerFrame( Errors& errors )
-  {
-    TAC_UNUSED_PARAMETER( errors );
-    mCBufPerFrame = Render::CreateConstantBuffer( sizeof( DefaultCBufferPerFrame ),
-                                                  DefaultCBufferPerFrame::shaderRegister,
-                                                  TAC_STACK_FRAME );
-    Render::SetRenderObjectDebugName( mCBufPerFrame, "game-per-frame" );
-  }
-
-
-  static void CreateCBufLights()
-  {
-    mCBufLight = Render::CreateConstantBuffer( sizeof( CBufferLights ),
-                                               CBufferLights::shaderRegister,
-                                               TAC_STACK_FRAME );
-    Render::SetRenderObjectDebugName( mCBufLight, "game-lights" );
-  }
-
-  static void CreatePerObj( Errors& errors )
-  {
-    TAC_UNUSED_PARAMETER( errors );
-    mCBufPerObj = Render::CreateConstantBuffer( sizeof( DefaultCBufferPerObject ),
-                                                DefaultCBufferPerObject::shaderRegister,
-                                                TAC_STACK_FRAME );
-    Render::SetRenderObjectDebugName( mCBufPerObj, "game-per-obj" );
-  }
-
   static void CreateDepthState( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
@@ -424,13 +388,15 @@ namespace Tac
   {
     TAC_UNUSED_PARAMETER( errors );
     Render::RasterizerState rasterizerStateData;
-    rasterizerStateData.mCullMode = Render::CullMode::None;
+    rasterizerStateData.mCullMode = Render::CullMode::Back;
     rasterizerStateData.mFillMode = Render::FillMode::Solid;
     rasterizerStateData.mFrontCounterClockwise = true;
     rasterizerStateData.mMultisample = false;
     rasterizerStateData.mScissor = true;
     mRasterizerState = Render::CreateRasterizerState( rasterizerStateData,
                                                       TAC_STACK_FRAME );
+    Render::SetRenderObjectDebugName( mRasterizerState, "game-pres-rast" );
+
   }
 
   static void CreateSamplerStateShadow( Errors& errors )
@@ -463,7 +429,7 @@ namespace Tac
     const DefaultCBufferPerFrame perFrameData = GetPerFrameBuf( camera,
                                                                 viewWidth,
                                                                 viewHeight );
-    Render::UpdateConstantBuffer( mCBufPerFrame,
+    Render::UpdateConstantBuffer( DefaultCBufferPerFrame::Handle,
                                   &perFrameData,
                                   sizeof( DefaultCBufferPerFrame ),
                                   TAC_STACK_FRAME );
@@ -504,7 +470,10 @@ namespace Tac
     if( !mUseLights )
     {
       CBufferLights cBufferLights = {};
-      Render::UpdateConstantBuffer( mCBufLight, &cBufferLights, sizeof( CBufferLights ), TAC_STACK_FRAME );
+      Render::UpdateConstantBuffer( CBufferLights::Handle,
+                                    &cBufferLights,
+                                    sizeof( CBufferLights ),
+                                    TAC_STACK_FRAME );
     }
 
 
@@ -525,7 +494,7 @@ namespace Tac
     const DefaultCBufferPerFrame perFrameData = GetPerFrameBuf( camera,
                                                                 viewWidth,
                                                                 viewHeight );
-    Render::UpdateConstantBuffer( mCBufPerFrame,
+    Render::UpdateConstantBuffer( DefaultCBufferPerFrame::Handle,
                                   &perFrameData,
                                   sizeof( DefaultCBufferPerFrame ),
                                   TAC_STACK_FRAME );
@@ -550,7 +519,10 @@ namespace Tac
       cbuf.World = m4::Identity();
 
       Render::SetTexture( Render::DrawCallTextures{ terrainTexture, noiseTexture } );
-      Render::UpdateConstantBuffer( mCBufPerObj, &cbuf, sizeof( DefaultCBufferPerObject ), TAC_STACK_FRAME );
+      Render::UpdateConstantBuffer( DefaultCBufferPerObject::Handle,
+                                    &cbuf,
+                                    sizeof( DefaultCBufferPerObject ),
+                                    TAC_STACK_FRAME );
       Render::SetDepthState( mDepthState );
       Render::SetBlendState( mBlendState );
       Render::SetRasterizerState( mRasterizerState );
@@ -605,15 +577,8 @@ namespace Tac
 
   void        GamePresentationInit( Errors& errors )
   {
+
     CheckShaderPadding();
-
-    CreatePerFrame( errors );
-    TAC_HANDLE_ERROR( errors );
-
-    CreateCBufLights();
-
-    CreatePerObj( errors );
-    TAC_HANDLE_ERROR( errors );
 
     Create3DShader( errors );
     TAC_HANDLE_ERROR( errors );
@@ -646,9 +611,6 @@ namespace Tac
   {
     Render::DestroyShader( m3DShader, TAC_STACK_FRAME );
     Render::DestroyVertexFormat( m3DVertexFormat, TAC_STACK_FRAME );
-    Render::DestroyConstantBuffer( mCBufPerFrame, TAC_STACK_FRAME );
-    Render::DestroyConstantBuffer( mCBufLight, TAC_STACK_FRAME );
-    Render::DestroyConstantBuffer( mCBufPerObj, TAC_STACK_FRAME );
     Render::DestroyDepthState( mDepthState, TAC_STACK_FRAME );
     Render::DestroyBlendState( mBlendState, TAC_STACK_FRAME );
     Render::DestroyRasterizerState( mRasterizerState, TAC_STACK_FRAME );
@@ -685,8 +647,6 @@ namespace Tac
     }
   }
 
-  Render::ConstantBufferHandle  GamePresentationGetPerFrame()             { return mCBufPerFrame; }
-  Render::ConstantBufferHandle  GamePresentationGetPerObj()               { return mCBufPerObj; }
   Render::DepthStateHandle      GamePresentationGetDepthState()           { return mDepthState; }
   Render::BlendStateHandle      GamePresentationGetBlendState()           { return mBlendState; }
   Render::RasterizerStateHandle GamePresentationGetRasterizerState()      { return mRasterizerState; }
@@ -722,7 +682,7 @@ namespace Tac
           for( int c = 0; c < 4; ++c )
             rowsStrs[ r ] += FrameMemoryPrintf( "%.2f ", shaderLight->mWorldToClip( r, c ) );
 
-        const Light::Type lightType = ( Light::Type ) GetShaderLightFlagType()->Extract( shaderLight->mFlags );
+        const Light::Type lightType = ( Light::Type )GetShaderLightFlagType()->Extract( shaderLight->mFlags );
         const bool castsShadows = ( bool )GetShaderLightFlagCastsShadows()->Extract( shaderLight->mFlags );
 
         TAC_IMGUI_INDENT_BLOCK;

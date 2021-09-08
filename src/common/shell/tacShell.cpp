@@ -58,6 +58,10 @@ namespace Tac
     LocalizationLoad( "assets/localization.txt", errors );
     TAC_HANDLE_ERROR( errors );
 
+    DefaultCBufferPerFrame::Init();
+    DefaultCBufferPerObject::Init();
+    CBufferLights::Init();
+
     UI2DCommonDataInit( errors );
     TAC_HANDLE_ERROR( errors );
 

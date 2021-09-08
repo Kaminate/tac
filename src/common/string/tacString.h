@@ -131,6 +131,8 @@ namespace Tac
   String operator + ( const String&, const String& );
   String operator + ( const char*, const String& );
   String operator + ( const char*, const StringView& );
+  String operator + ( const StringView&, const String& );
+  String operator + ( const StringView&, const char* );
   bool   operator == ( const String& , const String&  );
   bool   operator != ( const String& , const String&  );
   bool   operator < ( const String& , const String&  );

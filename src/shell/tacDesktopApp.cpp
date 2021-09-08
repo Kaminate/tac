@@ -206,18 +206,15 @@ namespace Tac
   static void LogicThreadUninit()
   {
     ImGuiUninit();
+    if( gLogicThreadErrors )
+      OSAppStopRunning();
+    Render::SubmitFinish();
   }
 
   static void LogicThread()
   {
     Errors& errors = gLogicThreadErrors;
-    TAC_ON_DESTRUCT(
-      {
-        LogicThreadUninit();
-        if( errors.size() )
-          OSAppStopRunning();
-        Render::SubmitFinish();
-      } );
+    TAC_ON_DESTRUCT( LogicThreadUninit() );
     LogicThreadInit( errors );
     TAC_HANDLE_ERROR( errors );
 
@@ -225,6 +222,9 @@ namespace Tac
     {
       TAC_PROFILE_BLOCK;
       ProfileSetGameFrame();
+
+      SettingsUpdate( errors );
+      TAC_HANDLE_ERROR( errors );
 
       if( Net::Instance )
       {
@@ -271,7 +271,9 @@ namespace Tac
 
   static void PlatformThreadUninit()
   {
-
+    if( gPlatformThreadErrors )
+      OSAppStopRunning();
+    Render::RenderFinish();
   }
 
   static void PlatformThreadInit( Errors& errors )
@@ -285,13 +287,7 @@ namespace Tac
   static void PlatformThread()
   {
     Errors& errors = gPlatformThreadErrors;
-    TAC_ON_DESTRUCT(
-      {
-        PlatformThreadUninit();
-        if( errors.size() )
-          OSAppStopRunning();
-        Render::RenderFinish();
-      } );
+    TAC_ON_DESTRUCT( PlatformThreadUninit() );
 
     while( OSAppIsRunning() )
     {

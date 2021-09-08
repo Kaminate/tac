@@ -48,8 +48,7 @@ namespace Tac
     prefabJson->Clear();
     for( auto documentPath : documentPaths )
       *prefabJson->AddChild() = StringView( documentPath );
-    Errors e;
-    SettingsSave( e );
+    SettingsSave();
   }
 
 

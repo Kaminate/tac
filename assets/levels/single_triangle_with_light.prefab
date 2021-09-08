@@ -19,7 +19,7 @@
       "mEulerRads":
       {
         "x": 0,
-        "y": 0,
+        "y": -0.015700,
         "z": 0
       },
       "mName": "single triangle",
@@ -31,15 +31,15 @@
       },
       "mScale":
       {
-        "x": 5.300000,
-        "y": 5.300000,
-        "z": 5.300000
+        "x": 15.900002,
+        "y": 15.900002,
+        "z": 15.900002
       }
     },
     {
       "Light":
       {
-        "mFarPlaneOverride": 100,
+        "mFarPlaneOverride": 200,
         "mNearPlaneOverride": 1,
         "mOverrideClipPlanes": true,
         "mShadowResolution": 512,
@@ -51,15 +51,15 @@
       "mEulerRads":
       {
         "x": 0,
-        "y": 1.570000,
+        "y": 0,
         "z": 0
       },
       "mName": "light",
       "mPosition":
       {
-        "x": 15,
-        "y": 0,
-        "z": 0
+        "x": -0.457447,
+        "y": 2.519164,
+        "z": 72.387306
       },
       "mScale":
       {
