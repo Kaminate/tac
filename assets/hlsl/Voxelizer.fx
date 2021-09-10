@@ -164,8 +164,12 @@ PS_OUTPUT PS( GS_OUT_PS_IN input )
     //+ colorMaterialEmissive;
     = float4( colorMaterialDiffuse, 1 );
 
+  //for( int i = 0; i < 4; ++i )
+  //  ApplyLight( i );
   ApplyLight( 0 );
-  // ApplyLight( 1 );
+  //ApplyLight( 1 );
+  //ApplyLight( 2 );
+  //ApplyLight( 3 );
 
   uint3 iVoxel3 = floor( voxelUVW * gVoxelGridSize );
   uint  iVoxel

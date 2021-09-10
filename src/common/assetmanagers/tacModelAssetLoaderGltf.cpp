@@ -208,8 +208,8 @@ namespace Tac
         void* indiciesData = ( char* )indices->buffer_view->buffer->data + indices->buffer_view->offset;
         TAC_ASSERT( indices->type == cgltf_type_scalar );
         const Render::Format indexFormat = FillDataType( indices );
-        const int indexByteCount = ( int )indices->count * ( int )sizeof( indexFormat.CalculateTotalByteCount() );
-        const Render::IndexBufferHandle indexBuffer = Render::CreateIndexBuffer( indexByteCount,
+        const int indexBufferByteCount = ( int )indices->count * indexFormat.CalculateTotalByteCount();
+        const Render::IndexBufferHandle indexBuffer = Render::CreateIndexBuffer( indexBufferByteCount,
                                                                                  indiciesData,
                                                                                  Render::Access::Default,
                                                                                  indexFormat,

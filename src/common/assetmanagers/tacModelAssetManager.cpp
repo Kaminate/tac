@@ -68,7 +68,7 @@ namespace Tac
     if( !meshLoadFunction )
       return nullptr;
 
-    Mesh* mesh = TAC_NEW Mesh;
+    auto mesh = TAC_NEW Mesh;
     *mesh = meshLoadFunction( path, iModel, vertexDeclarations, errors );
     TAC_ASSERT( errors.empty() );
 

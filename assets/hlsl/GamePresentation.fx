@@ -55,13 +55,17 @@ float UnprojectNDCToView( float zNDC, float a, float b )
 }
 
 
-float3 ApplyLight( int iLight, Texture2D shadowMap, Light light, VS_OUTPUT input )
+float3 ApplyLight( int iLight,
+                   VS_OUTPUT input )
 {
+  Texture2D shadowMap = shadowMaps[ iLight ];
+  Light light = lights[ iLight ];
+
   float3 colorDiffuse = float3( 0, 0, 0 );
 
-  bool isValid = iLight < lightCount;
-  if( !isValid )
-    return colorDiffuse;
+  //bool isValid = iLight < lightCount;
+  //if( !isValid )
+  //  return colorDiffuse;
 
   bool occluded = false;
   const bool lightCastsShadows = LightGetCastsShadows( light.mFlags );
@@ -123,10 +127,8 @@ PS_OUTPUT PS( VS_OUTPUT input )
   float3 colorDiffuse = float3( 0, 0, 0 );
   if( useLights )
   {
-    colorDiffuse += ApplyLight( 0, shadowMaps[ 0 ], lights[ 0 ], input );
-    colorDiffuse += ApplyLight( 1, shadowMaps[ 1 ], lights[ 1 ], input );
-    colorDiffuse += ApplyLight( 2, shadowMaps[ 2 ], lights[ 2 ], input );
-    colorDiffuse += ApplyLight( 3, shadowMaps[ 3 ], lights[ 3 ], input );
+    for( int iLight = 0; iLight < lightCount; ++iLight )
+      colorDiffuse += ApplyLight( iLight, input );
   }
   else
   {

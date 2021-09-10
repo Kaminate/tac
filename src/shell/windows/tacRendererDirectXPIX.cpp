@@ -58,7 +58,9 @@ namespace Tac
     std::string path = wstring_to_string( wpath );
     HMODULE lib = LoadLibrary( path.c_str() );
     if( !lib )
-      std::cout << "warning: could not get PIX attach" << std::endl;
+      std::cout
+      << "Warning: Could not find WinPixGpuCapturer.dll."
+      << " PIX (is it installed?) will not be attachable." << std::endl;
   }
 
 } // namespace Tac
