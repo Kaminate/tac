@@ -1,6 +1,9 @@
 // Useful math functions
 
 #pragma once
+
+#include "src/common/math/tacVector3.h"
+
 namespace Tac
 {
   template< typename T > T Lerp( T from, T to, float t ) { return from + t * ( to - from ); }
@@ -25,5 +28,11 @@ namespace Tac
   inline float             Cube( float value )         { return value * value * value; }
   inline float             DegreesToRadians( float d ) { return d * ( 3.14f / 180.0f ); }
   inline float             RadiansToDegrees( float r ) { return r / ( 3.14f / 180.0f ); }
+
+  //                       theta [0, pi]. if theta = 0, cartesian = { 0, 1, 0 }
+  v3                       SphericalToCartesian( float radius, float theta, float phi );
+  v3                       SphericalToCartesian( v3 );
+  v3                       CartesianToSpherical( float, float, float );
+  v3                       CartesianToSpherical( v3 );
 }
 

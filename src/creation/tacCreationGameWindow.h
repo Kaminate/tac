@@ -37,22 +37,28 @@ namespace Tac
     static CreationGameWindow*    Instance;
     void                          Init( Errors& );
     void                          Update( Errors& );
+    void                          UpdateGizmo();
 
     //                            Render
     void                          RenderEditorWidgets( Render::ViewHandle );
     void                          RenderEditorWidgetsSelection( Render::ViewHandle );
+    void                          RenderEditorWidgetsLights( Render::ViewHandle );
+    void                          RenderEditorWidgetsPicking( Render::ViewHandle );
 
     //                            MousePicking
     void                          MousePickingInit();
+    void                          MousePickingAll();
     void                          MousePickingEntityLight( const Light*, bool* hit, float* dist );
     void                          MousePickingEntityModel( const Model*, bool* hit, float* dist );
     void                          MousePickingEntity( const Entity*, bool* hit, float* dist );
-    void                          MousePickingAll();
+    void                          MousePickingEntities();
+    void                          MousePickingGizmos();
+    void                          MousePickingSelection();
 
     void                          ComputeArrowLen();
-    void                          CameraControls();
+    void                          CameraUpdateControls();
     void                          CreateGraphicsObjects( Errors& );
-    void                          DrawPlaybackOverlay( Errors& );
+    void                          ImGuiOverlay( Errors& );
     void                          PlayGame( Errors& );
     DesktopWindowHandle           mDesktopWindowHandle;
     Soul*                         mSoul = nullptr;

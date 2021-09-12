@@ -78,5 +78,27 @@ namespace Tac
     return x;
   }
 
+  v3 SphericalToCartesian( const float r, const float t, const float p ) // radius, theta, phi
+  {
+    const float x = r * std::cos( p ) * std::sin( t );
+    const float y = r * std::cos( t );
+    const float z = r * std::sin( p ) * std::sin( t );
+    return v3( x, y, z );
+  }
+
+  v3 SphericalToCartesian( const v3 v ) { return SphericalToCartesian( v.x, v.y, v.z ); }
+
+  v3 CartesianToSpherical( const float x, const float y, const float z )
+  {
+    const float q = x * x + y * y + z * z;
+    if( q < 0.01f )
+      return {};
+    const float r = std::sqrt( q );
+    const float t = std::acos( y / r );
+    const float p = std::atan2( z, x );
+    return v3( r, t, p );
+  }
+
+  v3 CartesianToSpherical( const v3 v ) { return CartesianToSpherical( v.x, v.y, v.z ); }
 }
 
