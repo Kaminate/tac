@@ -7,26 +7,27 @@
 
 namespace Tac
 {
-  struct Entity;
-  struct Model;
-  struct Errors;
-  struct Creation;
-  struct UIRoot;
-  struct Debug3DDrawData;
-  struct UI2DDrawData;
-  struct Soul;
-  struct Shell;
-  struct Shader;
-  struct VertexFormat;
-  struct CBuffer;
-  struct DepthState;
   struct BlendState;
+  struct CBuffer;
+  struct Creation;
+  struct Debug3DDrawData;
+  struct DefaultCBufferPerObject;
+  struct DepthState;
+  struct Entity;
+  struct Errors;
+  struct GamePresentation;
+  struct Light;
+  struct Mesh;
+  struct Model;
   struct RasterizerState;
   struct SamplerState;
-  struct Mesh;
-  struct DefaultCBufferPerObject;
-  struct GamePresentation;
+  struct Shader;
+  struct Shell;
   struct SkyboxPresentation;
+  struct Soul;
+  struct UI2DDrawData;
+  struct UIRoot;
+  struct VertexFormat;
 
   struct CreationGameWindow
   {
@@ -36,10 +37,18 @@ namespace Tac
     static CreationGameWindow*    Instance;
     void                          Init( Errors& );
     void                          Update( Errors& );
-    void                          RenderGameWorldToGameWindow( Render::ViewHandle );
+
+    //                            Render
+    void                          RenderEditorWidgets( Render::ViewHandle );
+    void                          RenderEditorWidgetsSelection( Render::ViewHandle );
+
+    //                            MousePicking
     void                          MousePickingInit();
-    void                          MousePickingEntity( const Entity* entity, bool* hit, float* dist );
+    void                          MousePickingEntityLight( const Light*, bool* hit, float* dist );
+    void                          MousePickingEntityModel( const Model*, bool* hit, float* dist );
+    void                          MousePickingEntity( const Entity*, bool* hit, float* dist );
     void                          MousePickingAll();
+
     void                          ComputeArrowLen();
     void                          CameraControls();
     void                          CreateGraphicsObjects( Errors& );
