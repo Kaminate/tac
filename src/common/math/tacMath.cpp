@@ -1,5 +1,5 @@
-
 #include "src/common/math/tacMath.h"
+
 #include <cstdlib>
 #include <algorithm>
 #include <cmath>
@@ -21,10 +21,10 @@ namespace Tac
 
 
   void Spring( float* posCurrent,
-    float* velCurrent,
-    float posTarget,
-    float springyness,
-    float deltaTimeSeconds )
+               float* velCurrent,
+               float posTarget,
+               float springyness,
+               float deltaTimeSeconds )
   {
     // http://allenchou.net/2015/04/game-math-precise-control-over-numeric-springing/
     float x = *posCurrent;
@@ -100,5 +100,24 @@ namespace Tac
   }
 
   v3 CartesianToSpherical( const v3 v ) { return CartesianToSpherical( v.x, v.y, v.z ); }
-}
 
+  float RaySphere( v3 rayPos, v3 rayDir, v3 spherePos, float sphereRadius )
+  {
+    const v3 dp = rayPos - spherePos;
+    const float c = Dot( dp, dp ) - Square( sphereRadius );
+    const float b = 2 * Dot( dp, rayDir );
+    const float a = Dot( rayDir, rayDir );
+    const float discriminant = Square( b ) - 4 * a * c;
+    if( discriminant < 0 )
+      return -1;
+    const float rt = std::sqrt( discriminant );
+    for( float sign : { -1.0f, 1.0f } )
+    {
+      const float t = ( -b + sign * rt ) / ( 2 * a );
+      if( t > 0 )
+        return t;
+    }
+    return -1;
+  }
+
+} // namespace Tac

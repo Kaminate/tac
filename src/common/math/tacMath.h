@@ -34,5 +34,8 @@ namespace Tac
   v3                       SphericalToCartesian( v3 );
   v3                       CartesianToSpherical( float, float, float );
   v3                       CartesianToSpherical( v3 );
+
+  //                       returns -1 on failure
+  float                    RaySphere( v3 rayPos, v3 rayDir, v3 spherePos, float sphereRadius );
 }
 

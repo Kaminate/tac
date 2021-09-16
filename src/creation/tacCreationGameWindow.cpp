@@ -1,5 +1,6 @@
 #include "src/common/assetmanagers/tacMesh.h"
 #include "src/common/profile/tacProfile.h"
+#include "src/common/tacFrameMemory.h"
 #include "src/common/assetmanagers/tacModelAssetManager.h"
 #include "src/common/assetmanagers/tacTextureAssetManager.h"
 #include "src/common/graphics/imgui/tacImGui.h"
@@ -37,6 +38,10 @@ namespace Tac
   static float sWASDCameraPanSpeed = 10;
   static float sWASDCameraOrbitSpeed = 0.1f;
   static bool sWASDCameraOrbitSnap;
+
+  float lightWidgetSize = 6.0f;
+
+  static Render::ShaderHandle spriteShader;
 
   enum class PickedObject
   {
@@ -303,6 +308,8 @@ namespace Tac
 
     PlayGame( errors );
     TAC_HANDLE_ERROR( errors );
+
+    spriteShader = Render::CreateShader( Render::ShaderSource::FromPath( "3DSprite" ), TAC_STACK_FRAME );
   }
 
   void CreationGameWindow::MousePickingGizmos()
@@ -450,12 +457,30 @@ namespace Tac
     const v4 viewSpaceMouseDir4 = v4( viewSpaceMouseDir, 0 );
     const v4 worldSpaceMouseDir4 = viewInv * viewSpaceMouseDir4;
     mWorldSpaceMouseDir = worldSpaceMouseDir4.xyz();
+    mViewSpaceUnitMouseDir = viewSpaceMouseDir;
   }
+
+
 
   void CreationGameWindow::MousePickingEntityLight( const Light* light, bool* hit, float* dist )
   {
-    const Entity* entity = light->mEntity;
-    const v3 worldPos = entity->mWorldPosition;
+    //const Entity* entity = light->mEntity;
+    //const v3 worldPos = entity->mWorldPosition;
+    //const v3 viewPos = ( gCreation.mEditorCamera->View() * v4( entity->mWorldPosition, 1 ) ).xyz();
+
+    //v3 worldSpaceMouseRayDir = mViewSpaceUnitMouseDir;
+
+    //lightWidgetSize;
+
+    const float t = RaySphere( gCreation.mEditorCamera->mPos,
+                         mWorldSpaceMouseDir,
+                         light->mEntity->mWorldPosition,
+                         lightWidgetSize );
+    if( t > 0 )
+    {
+      *hit = true;
+      *dist = t;
+    }
   }
 
   void CreationGameWindow::MousePickingEntityModel( const Model* model, bool* hit, float* dist )
@@ -500,11 +525,15 @@ namespace Tac
     if( const Model* model = Model::GetModel( entity ) )
     {
       MousePickingEntityModel( model, hit, dist );
+      if( hit )
+        return;
     }
 
     if( const Light* light = Light::GetLight( entity ) )
     {
       MousePickingEntityLight( light, hit, dist );
+      if( hit )
+        return;
     }
   }
 
@@ -544,6 +573,8 @@ namespace Tac
       return;
 
 
+    Render::BeginGroup( "Selection", TAC_STACK_FRAME );
+
     const v3 selectionGizmoOrigin = gCreation.mSelectedEntities.GetGizmoOrigin();
     const m4 rots[] = {
       m4::RotRadZ( -3.14f / 2.0f ),
@@ -564,7 +595,6 @@ namespace Tac
       // Widget Translation Arrow
       DefaultCBufferPerObject perObjectData;
       perObjectData.Color = color;
-
       perObjectData.World
         = m4::Translate( selectionGizmoOrigin )
         * rots[ i ]
@@ -589,11 +619,56 @@ namespace Tac
                                     TAC_STACK_FRAME );
       AddDrawCall( mCenteredUnitCube, viewHandle );
     }
+    Render::EndGroup( TAC_STACK_FRAME );
   }
 
   void CreationGameWindow::RenderEditorWidgetsLights( Render::ViewHandle viewHandle )
   {
+    Render::BeginGroup( "lights", TAC_STACK_FRAME );
+    struct : public LightVisitor
+    {
+      void operator()( Light* light ) override { mLights.push_back( light ); }
+      Vector< const Light* > mLights;
+    } lightVisitor;
 
+    Graphics* graphics = GetGraphics( gCreation.mWorld );
+    graphics->VisitLights( &lightVisitor );
+
+    for( int iLight = 0; iLight < lightVisitor.mLights.size(); ++iLight )
+    {
+      const Light* light = lightVisitor.mLights[ iLight ];
+      const char* groupName = FrameMemoryPrintf( "editor light %i", iLight );
+
+      DefaultCBufferPerObject perObjectData;
+      perObjectData.Color = v4( 1, 1, 1, 1 );
+      perObjectData.World = light->mEntity->mWorldTransform;
+      perObjectData.World.m00 = lightWidgetSize;
+
+      Errors errors;
+      Render::TextureHandle textureHandle = TextureAssetManager::GetTexture( "assets/editor/light.png", errors );
+
+      Render::BeginGroup( groupName, TAC_STACK_FRAME );
+      Render::SetShader( spriteShader );
+      Render::SetVertexBuffer( Render::VertexBufferHandle(), 0, 6 );
+      Render::SetIndexBuffer( Render::IndexBufferHandle(), 0, 0 );
+      Render::SetBlendState( mBlendState );
+      Render::SetRasterizerState( mRasterizerState );
+      Render::SetSamplerState( mSamplerState );
+      Render::SetDepthState( mDepthState );
+      Render::SetVertexFormat( Render::VertexFormatHandle() );
+      Render::SetPrimitiveTopology( Render::PrimitiveTopology::TriangleList );
+      Render::SetTexture( textureHandle );
+      Render::UpdateConstantBuffer( DefaultCBufferPerObject::Handle,
+                                    &perObjectData,
+                                    sizeof( DefaultCBufferPerObject ),
+                                    TAC_STACK_FRAME );
+      Render::Submit( viewHandle, TAC_STACK_FRAME );
+      Render::EndGroup( TAC_STACK_FRAME );
+      ++iLight;
+    }
+
+    Render::Submit( viewHandle, TAC_STACK_FRAME );
+    Render::EndGroup( TAC_STACK_FRAME );
   }
 
   void CreationGameWindow::RenderEditorWidgets( Render::ViewHandle viewHandle )
@@ -602,6 +677,7 @@ namespace Tac
     if( !desktopWindowState->mNativeWindowHandle )
       return;
 
+    Render::BeginGroup( "Editor Widgets", TAC_STACK_FRAME );
     const float w = ( float )desktopWindowState->mWidth;
     const float h = ( float )desktopWindowState->mHeight;
     const DefaultCBufferPerFrame perFrameData = GetPerFrame( w, h );
@@ -612,6 +688,8 @@ namespace Tac
 
     RenderEditorWidgetsPicking( viewHandle );
     RenderEditorWidgetsSelection( viewHandle );
+    RenderEditorWidgetsLights( viewHandle );
+    Render::EndGroup( TAC_STACK_FRAME );
   }
 
   void CreationGameWindow::PlayGame( Errors& errors )

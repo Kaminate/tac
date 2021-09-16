@@ -640,6 +640,8 @@ namespace Tac
       {
         if( errors )
         {
+          constantBuffers.clear();
+
           if( IsDebugMode() )
           {
             if( shaderSource.mType == ShaderSource::Type::kPath )
@@ -653,6 +655,7 @@ namespace Tac
             TAC_HANDLE_ERROR_RETURN( errors, Program() );
           }
         }
+
 
         String shaderStringOrig;
         switch( shaderSource.mType )

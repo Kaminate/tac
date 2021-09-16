@@ -72,6 +72,7 @@ namespace Tac
     Debug3DDrawData*              mDebug3DDrawData = nullptr;
     Mesh*                         mArrow = nullptr;
     Mesh*                         mCenteredUnitCube = nullptr;
+    v3                            mViewSpaceUnitMouseDir = {};
     v3                            mWorldSpaceMouseDir = {};
     float                         mArrowLen = 0;
     String                        mStatusMessage;

@@ -48,7 +48,7 @@ namespace Tac
     static const char* name_color()       { return "Color";       };
     m4                 World;
     v4                 Color;
-    static void      Init();
+    static void        Init();
     static Render::ConstantBufferHandle Handle;
   };
 
