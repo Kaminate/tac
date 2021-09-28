@@ -85,6 +85,8 @@ namespace Tac
       sSystemRegistryEntry->mDebugImGui( system );
     }
 
+    mCloseRequested |= ImGuiButton( "Close window" );
+
     // to force directx graphics specific window debugging
     //if( ImGuiButton( "close window" ) )
     //{

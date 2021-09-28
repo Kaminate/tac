@@ -43,6 +43,7 @@ namespace Tac
     ImGuiSetNextWindowStretch();
     ImGuiSetNextWindowHandle( mDesktopWindowHandle );
     ImGuiBegin( "Profile Window" );
+    mCloseRequested |= ImGuiButton( "Close Window" );
 
     //// to force directx graphics specific window debugging
     //if( ImGuiButton( "close window" ) )

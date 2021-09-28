@@ -16,9 +16,10 @@ namespace Tac
   {
     static ImGuiRect FromPosSize( v2 pos, v2 size );
     static ImGuiRect FromMinMax( v2 mini, v2 maxi );
-    float            GetWidth() const ;
-    float            GetHeight() const ;
-    bool             ContainsPoint( v2 ) const ;
+    float            GetWidth() const;
+    float            GetHeight() const;
+    v2               GetSize() const;
+    bool             ContainsPoint( v2 ) const;
     v2               GetDimensions() const ;
     v2               mMini = {};
     v2               mMaxi = {};
@@ -40,7 +41,7 @@ namespace Tac
   void ImGuiBeginMenuBar();
   void ImGuiEndMenuBar();
 
-  void ImGuiPushFontSize( int value );
+  void ImGuiPushFontSize( float );
   void ImGuiPopFontSize();
 
   void ImGuiBeginChild( const StringView& name, v2 size );

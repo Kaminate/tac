@@ -472,7 +472,7 @@ namespace Tac
           !CreationProfileWindow::Instance )
       {
         checkedOnce = true;
-        CreateMainWindow( errors );
+        //CreateMainWindow( errors );
         //CreateGameWindow( errors );
         //CreatePropertyWindow( errors );
         //CreateSystemWindow( errors );
@@ -491,6 +491,8 @@ namespace Tac
     if( CreationGameWindow::Instance )
     {
       CreationGameWindow::Instance->Update( errors );
+      if( CreationGameWindow::Instance->mCloseRequested )
+        TAC_DELETE CreationGameWindow::Instance;
       TAC_HANDLE_ERROR( errors );
     }
 
@@ -505,12 +507,16 @@ namespace Tac
     if( CreationSystemWindow::Instance )
     {
       CreationSystemWindow::Instance->Update( errors );
+      if( CreationSystemWindow::Instance->mCloseRequested )
+        TAC_DELETE CreationSystemWindow::Instance;
       TAC_HANDLE_ERROR( errors );
     }
 
     if( CreationProfileWindow::Instance )
     {
       CreationProfileWindow::Instance->Update( errors );
+      if( CreationProfileWindow::Instance->mCloseRequested )
+        TAC_DELETE CreationProfileWindow::Instance;
       TAC_HANDLE_ERROR( errors );
     }
 

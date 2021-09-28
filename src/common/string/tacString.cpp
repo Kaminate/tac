@@ -270,6 +270,7 @@ namespace Tac
     reserve( lenNotIncNull );
     mStr[ mLen = lenNotIncNull ] = '\0';
   }
+  void   String::pop_back() { mStr[ --mLen ] = '\0'; }
   int    String::find_last_of( const char* c ) const
   {
     int cLen = StrLen( c );
@@ -347,10 +348,10 @@ namespace Tac
   }
   void   String::append( const String& s )      { *this += s;               }
   void   String::prepend( const String& s )     { *this = s + *this;        }
-  char*  String::begin() const                  {
-    return mStr;              }
-  char*  String::end() const                    {
-    return mStr + mLen;       }
+  char*  String::begin() const                  { return mStr;              }
+  char*  String::end() const                    { return mStr + mLen;       }
+  char&  String::back()                         { return mStr[ mLen - 1 ];  }
+  char&  String::front()                        { return *mStr;             }
   int    String::compare( const char* s ) const { return StrCmp( mStr, s ); }
 
   bool          operator == ( const StringView& a, const StringView& b )

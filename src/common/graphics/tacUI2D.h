@@ -69,7 +69,7 @@ namespace Tac
     UI2DDrawData();
     ~UI2DDrawData();
     void                   DrawToTexture( Render::ViewHandle, int, int, Errors& );
-    void                   AddText( v2 textPos, int fontSize, StringView utf8, v4 color, const ImGuiRect* );
+    void                   AddText( v2 textPos, float fontSize, StringView utf8, v4 color, const ImGuiRect* );
     void                   AddBox( v2 mini, v2 maxi, v4 color, const Render::TextureHandle , const ImGuiRect* );
     void                   AddLine( v2 p0, v2 p1, float radius, v4 color );
     void                   AddTriangle( v2, v2, v2, v4 color );
@@ -80,9 +80,9 @@ namespace Tac
   };
 
   Render::TextureHandle Get1x1White();
-  v2 CalculateTextSize( StringView text, int fontSize );
-  v2 CalculateTextSize( CodepointView codepoints, int fontSize );
-  v2 CalculateTextSize( const Codepoint* codepoints, int codepointCount, int fontSize );
+  v2 CalculateTextSize( StringView text, float fontSize );
+  v2 CalculateTextSize( CodepointView codepoints, float fontSize );
+  v2 CalculateTextSize( const Codepoint* codepoints, int codepointCount, float fontSize );
 
 
 }

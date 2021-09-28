@@ -22,7 +22,7 @@ namespace Tac
     void                          ImGui();
     DesktopWindowHandle           mDesktopWindowHandle;
     UI2DDrawData*                 mUI2DDrawData = nullptr;
-
+    bool                          mCloseRequested = false;
   };
 
   const char* const gProfileWindowName = "ProfileWindow";

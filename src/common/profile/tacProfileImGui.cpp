@@ -131,7 +131,7 @@ namespace Tac
     }
 
     float threadY = cameraViewportPos.y;
-    const float boxHeight = ( float )ImGuiGlobals::Instance.mUIStyle.fontSize;
+    const float boxHeight = ImGuiGlobals::Instance.mUIStyle.fontSize;
 
     struct ProfileFunctionVisitor
     {
@@ -276,9 +276,9 @@ namespace Tac
     const int   fps = GetFPS();
     const char* fpsText = FrameMemoryPrintf( "FPS: %i", fps );
     const float fpsT = Saturate( ( float )fps / 400.0f ); // 1 = fast, 0 = slow
-    const v2    fpsBoxMin( imguiWindow->mCurrCursorViewport.x + 80.0f,
-                           imguiWindow->mCurrCursorViewport.y + 7.0f );
-    const v2    fpsBoxMax( fpsBoxMin.x + ( imguiWindow->mContentRect.mMaxi.x - fpsBoxMin.x ) * fpsT,
+    const v2    fpsBoxMin( imguiWindow->mViewportSpaceCurrCursor.x + 80.0f,
+                           imguiWindow->mViewportSpaceCurrCursor.y + 7.0f );
+    const v2    fpsBoxMax( fpsBoxMin.x + ( imguiWindow->mViewportSpaceVisibleRegion.mMaxi.x - fpsBoxMin.x ) * fpsT,
                            fpsBoxMin.y + 2.0f );
     const v4    fpsColor( Lerp( 1.0f, 0.0f, fpsT ),
                           Lerp( 0.0f, 1.0f, fpsT ),
@@ -306,14 +306,14 @@ namespace Tac
     static bool profileDrawGrid = true;
     ImGuiCheckbox( "Profile draw grid", &profileDrawGrid );
 
-    const v2    timelinePos = imguiWindow->mCurrCursorViewport;
-    const v2    timelineSize = v2( imguiWindow->mContentRect.mMaxi.x - imguiWindow->mCurrCursorViewport.x,
+    const v2    timelinePos = imguiWindow->mViewportSpaceCurrCursor;
+    const v2    timelineSize = v2( imguiWindow->mViewportSpaceVisibleRegion.mMaxi.x - imguiWindow->mViewportSpaceCurrCursor.x,
                                    ImGuiGlobals::Instance.mUIStyle.fontSize * 3.0f );
-    imguiWindow->mCurrCursorViewport.y += timelineSize.y;
+    imguiWindow->mViewportSpaceCurrCursor.y += timelineSize.y;
 
-    const v2    cameraViewportPos = imguiWindow->mCurrCursorViewport;
-    const v2    cameraViewportSize = imguiWindow->mContentRect.mMaxi - cameraViewportPos;
-    imguiWindow->mCurrCursorViewport.y += timelineSize.y;
+    const v2    cameraViewportPos = imguiWindow->mViewportSpaceCurrCursor;
+    const v2    cameraViewportSize = imguiWindow->mViewportSpaceVisibleRegion.mMaxi - cameraViewportPos;
+    imguiWindow->mViewportSpaceCurrCursor.y += timelineSize.y;
 
     if( profileDrawGrid )
     {

@@ -16,8 +16,7 @@ namespace Tac
     float windowPadding = 8;
     v2    itemSpacing = { 8, 4 };
 
-    //    Should this be a float?
-    int   fontSize = 16;
+    float fontSize = 16;
 
     float buttonPadding = 3.0f;
     v4    textColor = { 1, 1, 0, 1 };
@@ -61,7 +60,15 @@ namespace Tac
     ImGuiWindow();
     ~ImGuiWindow();
     void                          BeginFrame();
+
+    //                            tell the window that we are adding a new element of this size
+    //                            at the current cursor position.
+    //
+    //                            this lets the window internally update the cursor and other
+    //                            positioning-related housekeeping information for scrollbars,
+    //                            sameline, groups, etc.
     void                          ItemSize( v2 size );
+
     void                          ComputeClipInfo( bool* clipped, ImGuiRect* clipRect );
     void                          UpdateMaxCursorDrawPos( v2 pos );
     ImGuiId                       GetID();
@@ -70,35 +77,44 @@ namespace Tac
     void*                         GetWindowResource( ImGuiIndex );
     bool                          IsHovered( const ImGuiRect& );
     v2                            GetMousePosViewport();
+    void                          Scrollbar();
+    void                          PushXOffset();
 
 
     String                        mName;
     ImGuiWindow*                  mParent = nullptr;
 
-    // The most bottom right the cursor has ever been,
-    // updated during ItemSize()
-    v2                            mMaxiCursorViewport;
-    v2                            mCurrCursorViewport;
-    v2                            mPrevCursorViewport;
+    //                            The most bottom right the cursor has ever been,
+    //                            updated during ItemSize()
+    v2                            mViewportSpaceMaxiCursor;
+    v2                            mViewportSpaceCurrCursor;
+    v2                            mViewportSpacePrevCursor;
 
-    //                            Position of this ImGuiWindow relative to the window's viewport
-    v2                            mPosViewport = {};
+    //                            Position of this ImGuiWindow relative to the native desktop window
+    //                            A value of (0,0) is at the top left ( probably mParent == nullptr )
+    v2                            mViewportSpacePos = {};
     v2                            mSize = {};
-    ImGuiRect                     mContentRect;
+
+    //                            The viewport-space region in which visible ui is displayed on the screen
+    //                            "Visible" here meaning not offscreen due to scrolling
+    ImGuiRect                     mViewportSpaceVisibleRegion;
+
     float                         mCurrLineHeight = 0;
     float                         mPrevLineHeight = 0;
 
+    //                            The viewport-space pixel offset that the cursor should start at before
+    //                            rendering any ui elements.
     float                         mScroll = 0;
     v2                            mScrollMousePosScreenspaceInitial;
     bool                          mScrolling = false;
 
     Vector< GroupData >           mGroupSK;
 
-    // The mXOffsets.back() represents the horizontal tabbing distance
-    // from the window mPos and the stuff that's about to be drawn
+    //                            The mXOffsets.back() represents the horizontal tabbing distance
+    //                            from the window mPos and the stuff that's about to be drawn
     Vector< float >               mXOffsets;
 
-    // Shared between sub-windows
+    //                            Shared between sub-windows
     ImGuiIDAllocator*             mIDAllocator = nullptr;
     struct TextInputData*         mTextInputData = nullptr;
     std::map< ImGuiId, bool >     mCollapsingHeaderStates;
@@ -123,7 +139,7 @@ namespace Tac
     Vector< ImGuiWindow* >        mWindowStack;
     ImGuiWindow*                  mCurrentWindow = nullptr;
     String                        mDesktopWindowName;
-    Vector< int >                 mFontSizeSK;
+    Vector< float >               mFontSizeSK;
     UIStyle                       mUIStyle;
     DesktopWindowHandle           mMouseHoveredWindow;
   };

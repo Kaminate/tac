@@ -108,8 +108,11 @@ namespace Tac
     void   prepend( const String& );
     void   reserve( int lenNotIncNull );
     void   resize( int lenNotIncNull );
+    void   pop_back();
     char*  begin() const;
     char*  end() const;
+    char&  back();
+    char&  front();
     int    compare( const char* ) const;
     //     returns npos if not found
     int    find_last_of( const char* c ) const;

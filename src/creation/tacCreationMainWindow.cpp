@@ -156,9 +156,10 @@ namespace Tac
     ImGuiBegin( "Main Window" );
 
 
-    ImGuiBeginMenuBar();
-    ImGuiText( "file | edit | window" );
-    ImGuiEndMenuBar();
+    //ImGuiBeginMenuBar();
+    //ImGuiText( "file | edit | window" );
+    //ImGuiEndMenuBar();
+
     ImGuiSaveAs();
     ImGuiWindows();
     ImGuiPrefabs();
@@ -167,6 +168,16 @@ namespace Tac
     mCloseRequested |= ImGuiButton( "Close window" );
     if( ImGuiButton( "Close Application" ) )
       OSAppStopRunning();
+
+    //for( int i = 0; i < 2; ++i )
+    //{
+    //for( char c = 'a'; c <= 'z'; ++c )
+    //{
+    //  String s;
+    //  s.push_back( c );
+    //  ImGuiText( s );
+    //}
+    //}
 
     ImGuiEnd();
   }

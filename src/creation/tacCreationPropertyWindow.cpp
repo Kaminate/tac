@@ -32,10 +32,10 @@ namespace Tac
       float* pF = &rotDeg[ i ];
       const char* axisNames[] = { "X","Y","Z" };
       const char* axisName = axisNames[ i ];
-      rF += ImGuiButton( "-90" ) ? -90 : 0;
-      ImGuiSameLine();
-      rF += ImGuiButton( "+90" ) ? 90 : 0;
-      ImGuiSameLine();
+      //rF += ImGuiButton( "-90" ) ? -90 : 0;
+      //ImGuiSameLine();
+      //rF += ImGuiButton( "+90" ) ? 90 : 0;
+      //ImGuiSameLine();
       ImGuiDragFloat( FrameMemoryPrintf( "%s eul deg", axisName ), pF );
       rF += rF > 360 ? -360 : 0;
       rF += rF < -360 ? 360 : 0;

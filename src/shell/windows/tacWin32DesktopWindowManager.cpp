@@ -301,37 +301,18 @@ namespace Tac
 
       case WM_MOUSEMOVE:
       {
-        //if( !mIsMouseInWindow )
-        //{
-        //  TRACKMOUSEEVENT mouseevent = {};
-        //  mouseevent.cbSize = sizeof( TRACKMOUSEEVENT );
-        //  mouseevent.dwFlags = TME_LEAVE;
-        //  mouseevent.hwndTrack = hwnd;
-        //  mouseevent.dwHoverTime = HOVER_DEFAULT;
-        //  if( 0 == TrackMouseEvent( &mouseevent ) )
-        //    mWindowProcErrors = "Track mouse errors: " + GetLastWin32ErrorString();
-        //  // Allows this windows to receive mouse-move messages past the edge of the window
-        //  //SetCapture( mHWND );
-        //  if( verboseCapture )
-        //    std::cout << "Setting mouse capture to window" << std::endl;
-        //  if( verboseMouseInWindow )
-        //    std::cout << mName << " mouse enter " << std::endl;
-        //  mIsMouseInWindow = true;
-        //}
+        // Allow the window to receive WM_MOUSEMOVE even if the cursor is outside the client area
+        // Used for Tac.ImGuiDragFloat
+        static HWND mouseTracking;
+        if( mouseTracking != hwnd )
+        {
+          SetCapture( hwnd );
+          mouseTracking = hwnd;
+        }
 
-
-
-        // Position of the cursor relative to the top left corner of the  window
-        const int xPos = ( ( int )( short )LOWORD( lParam ) );
-        const int yPos = ( ( int )( short )HIWORD( lParam ) );
-
-        //std::cout << "WM_MOUSEMOVE(" << xPos << ", " << yPos << std::endl;
-
-        //if( xPos < 100 )DebugBreak();
-
-        DesktopEventMouseMove( desktopWindowHandle,
-                               xPos,
-                               yPos );
+        const int xPos = GET_X_LPARAM( lParam );
+        const int yPos = GET_Y_LPARAM( lParam );
+        DesktopEventMouseMove( desktopWindowHandle, xPos, yPos );
       } break;
 
       case WM_MOUSEWHEEL:

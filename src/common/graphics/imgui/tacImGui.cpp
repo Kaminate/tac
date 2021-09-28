@@ -200,8 +200,8 @@ namespace Tac
     //Vector< char > mValueCopy;
   };
   static const ImGuiIndex sDragDataID = ImGuiRegisterWindowResource( TAC_STRINGIFY( DragData ),
-                                                                   nullptr,
-                                                                   sizeof( DragData ) );
+                                                                     nullptr,
+                                                                     sizeof( DragData ) );
 
   static bool ImguiDragVal( StringView str,
                             void* valueBytes,
@@ -218,9 +218,9 @@ namespace Tac
     ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
     UI2DDrawData* drawData = window->mDrawData;// ImGuiGlobals::Instance.mUI2DDrawData;
     TextInputData* inputData = window->mTextInputData;
-    const v2 pos = window->mCurrCursorViewport;
-    const v2 totalSize( window->mContentRect.mMaxi.x - pos.x,
-      ( float )ImGuiGlobals::Instance.mUIStyle.fontSize );
+    const v2 pos = window->mViewportSpaceCurrCursor;
+    const v2 totalSize( window->mViewportSpaceVisibleRegion.mMaxi.x - pos.x,
+                        ImGuiGlobals::Instance.mUIStyle.fontSize );
     window->ItemSize( totalSize );
     const ImGuiId id = window->GetID();
     bool clipped;
@@ -229,11 +229,7 @@ namespace Tac
     if( clipped )
       return false;
 
-    auto pDragFloatData = ( DragData* )window->GetWindowResource( sDragDataID );
-  
-    DragData& dragFloatData = *pDragFloatData;
-
-
+    auto dragFloatData = ( DragData* )window->GetWindowResource( sDragDataID );
 
     const v2 valuePos( pos.x + ImGuiGlobals::Instance.mUIStyle.buttonPadding,
                        pos.y );
@@ -255,9 +251,9 @@ namespace Tac
 
     if( window->GetActiveID() == id )
     {
-      if( dragFloatData.mMode == DragMode::Drag )
+      if( dragFloatData->mMode == DragMode::Drag )
       {
-        const v2 screenspaceMousePos = gKeyboardInput.mCurr.mScreenspaceCursorPos;
+        v2 screenspaceMousePos = gKeyboardInput.mCurr.mScreenspaceCursorPos;
         static float lastMouseXDesktopWindowspace;
         if( hovered )
           backgroundBoxColor.xyz() /= 2.0f;
@@ -267,29 +263,34 @@ namespace Tac
           if( gKeyboardInput.IsKeyJustDown( Key::MouseLeft ) )
           {
             lastMouseXDesktopWindowspace = screenspaceMousePos.x;
-            dragFloatData.mDragDistPx = 0;
-            MemCpy( dragFloatData.mValueCopy, valueBytes, valueByteCount );
+            dragFloatData->mDragDistPx = 0;
+            MemCpy( dragFloatData->mValueCopy, valueBytes, valueByteCount );
           }
 
           if( gKeyboardInput.mPrev.IsKeyDown( Key::MouseLeft ) )
           {
             const DesktopWindowState* desktopWindowState = GetDesktopWindowState( window->mDesktopWindowHandle );
             float moveCursorDir = 0;
-            if( screenspaceMousePos.x > clipRect.mMaxi.x + desktopWindowState->mX )
+
+            const v2 desktopWindowPos( ( float )desktopWindowState->mX, ( float )desktopWindowState->mY );
+            const v2 viewportSpaceMousePos = screenspaceMousePos - desktopWindowPos;
+
+            if( viewportSpaceMousePos.x > clipRect.mMaxi.x )
               moveCursorDir = -1.0f;
-            if( screenspaceMousePos.x < clipRect.mMini.x + desktopWindowState->mX )
+            if( viewportSpaceMousePos.x < clipRect.mMini.x  )
               moveCursorDir = 1.0f;
             if( moveCursorDir )
             {
               float xOffset = moveCursorDir * clipRect.GetWidth();
               Errors errors;
-              OSSetScreenspaceCursorPos( screenspaceMousePos + v2( xOffset, 0 ), errors );
+              screenspaceMousePos.x += xOffset;
+              OSSetScreenspaceCursorPos( screenspaceMousePos,  errors );
             }
             else
             {
-              dragFloatData.mDragDistPx += screenspaceMousePos.x - lastMouseXDesktopWindowspace;
-              whatToDoWithMousePixel( dragFloatData.mDragDistPx, dragFloatData.mValueCopy, valueBytes );
-			  changed = true;
+              dragFloatData->mDragDistPx += screenspaceMousePos.x - lastMouseXDesktopWindowspace;
+              whatToDoWithMousePixel( dragFloatData->mDragDistPx, dragFloatData->mValueCopy, valueBytes );
+              changed = true;
             }
           }
         }
@@ -311,7 +312,7 @@ namespace Tac
             inputData->mCaretCount = 2;
             inputData->mNumGlyphsBeforeCaret[ 0 ] = 0;
             inputData->mNumGlyphsBeforeCaret[ 1 ] = codepoints.size();
-            dragFloatData.mMode = DragMode::TextInput;
+            dragFloatData->mMode = DragMode::TextInput;
           }
           lastMouseReleaseSeconds = mouseReleaseSeconds;
           lastMousePositionDesktopWindowspace = screenspaceMousePos;
@@ -320,7 +321,7 @@ namespace Tac
         //  window->mActiveID = ImGuiIdNull;
       }
 
-      if( dragFloatData.mMode == DragMode::TextInput )
+      if( dragFloatData->mMode == DragMode::TextInput )
       {
         const auto oldCodepoints = inputData->mCodepoints;
         TextInputDataUpdateKeys( inputData, window->GetMousePosViewport(), valuePos );
@@ -331,7 +332,6 @@ namespace Tac
                           oldCodepoints.size() * sizeof( Codepoint ) );
         if( codepointsChanged )
         {
-
           changed = true;
 
           const StringView newText = CodepointsToUTF8( CodepointView( inputData->mCodepoints.data(),
@@ -346,23 +346,39 @@ namespace Tac
       }
     }
 
-    if( dragFloatData.mMode == DragMode::TextInput && id != window->GetActiveID() )
+    if( id != window->GetActiveID() )
     {
-      dragFloatData.mMode = DragMode::Drag;
-      dragFloatData.mDragDistPx = 0;
+      if( dragFloatData->mMode == DragMode::TextInput )
+      {
+        dragFloatData->mMode = DragMode::Drag;
+        dragFloatData->mDragDistPx = 0;
+      }
+      else
+      {
+        auto remove_trailing_zeroes = []( String& s )
+        {
+          if( !s.contains( '.' ) )
+            return;
+          while( s.back() == '0' )
+            s.pop_back();
+          if( s.back() == '.' )
+            s.pop_back();
+        };
+        remove_trailing_zeroes( valueStr );
+      }
     }
 
-    const v2 backgroundBoxMaxi ( pos.x + totalSize.x * ( 2.0f / 3.0f ),
-                                 pos.y + totalSize.y );
+    const v2 backgroundBoxMaxi( pos.x + totalSize.x * ( 2.0f / 3.0f ),
+                                pos.y + totalSize.y );
     Render::TextureHandle texture;
     drawData->AddBox( pos, backgroundBoxMaxi, backgroundBoxColor, texture, &clipRect );
 
-    if( dragFloatData.mMode == DragMode::TextInput )
+    if( dragFloatData->mMode == DragMode::TextInput )
       TextInputDataDrawSelection( inputData, drawData, valuePos, &clipRect );
     drawData->AddText( valuePos, ImGuiGlobals::Instance.mUIStyle.fontSize, valueStr, v4( 0, 0, 0, 1 ), &clipRect );
 
     const v2 labelPos( backgroundBoxMaxi.x + ImGuiGlobals::Instance.mUIStyle.itemSpacing.x,
-                 pos.y );
+                       pos.y );
     drawData->AddText( labelPos, ImGuiGlobals::Instance.mUIStyle.fontSize, str, ImGuiGlobals::Instance.mUIStyle.textColor, &clipRect );
 
     return changed;
@@ -393,6 +409,11 @@ namespace Tac
   float     ImGuiRect::GetHeight() const
   {
     return mMaxi.y - mMini.y;
+  }
+
+  v2        ImGuiRect::GetSize() const
+  {
+    return mMaxi - mMini;
   }
 
   bool      ImGuiRect::ContainsPoint( v2 p ) const
@@ -483,11 +504,11 @@ namespace Tac
           SettingsSetNumber( "w", w, windowJson );
           SettingsSetNumber( "h", h, windowJson );
         }
-          
+
         x = gNextWindow.mPosition.x ? ( int )gNextWindow.mPosition.x : x;
         y = gNextWindow.mPosition.y ? ( int )gNextWindow.mPosition.y : y;
-        w = gNextWindow.mSize.x     ? ( int )gNextWindow.mSize.x     : x;
-        h = gNextWindow.mSize.y     ? ( int )gNextWindow.mSize.y     : y;
+        w = gNextWindow.mSize.x ? ( int )gNextWindow.mSize.x : x;
+        h = gNextWindow.mSize.y ? ( int )gNextWindow.mSize.y : y;
 
 
         // ^^^ --- begin --- move to fn
@@ -506,7 +527,7 @@ namespace Tac
       window->mDrawData = TAC_NEW UI2DDrawData;
       window->mDesktopWindowHandle = desktopWindowHandle;
       window->mDesktopWindowHandleOwned = !gNextWindow.mDesktopWindowHandle.IsValid();
-      window->mPosViewport = {};
+      window->mViewportSpacePos = {};
       window->mSize = size;
       //window->mDesktopWindowOffset = {};
       //window->mDesktopWindowOffsetExists = true;
@@ -584,10 +605,10 @@ namespace Tac
   {
     ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
     GroupData groupData = {};
-    groupData.mSavedCursorDrawPos = window->mCurrCursorViewport;
+    groupData.mSavedCursorDrawPos = window->mViewportSpaceCurrCursor;
     groupData.mSavedLineHeight = window->mCurrLineHeight;
 
-    window->mXOffsets.push_back( window->mCurrCursorViewport.x - window->mPosViewport.x );
+    window->PushXOffset();
     window->mCurrLineHeight = 0;
 
     //window->mMaxiCursorDrawPos = window->mCurrCursorDrawPos;
@@ -604,12 +625,12 @@ namespace Tac
     //  window->mMaxiCursorDrawPos.x,
     //  window->mMaxiCursorDrawPos.y + window->mPrevLineHeight };
     //v2 groupSize = groupEndPos - groupData.mSavedCursorDrawPos;
-    v2 groupSize = window->mMaxiCursorViewport - groupData.mSavedCursorDrawPos;
+    v2 groupSize = window->mViewportSpaceMaxiCursor - groupData.mSavedCursorDrawPos;
     //groupSize.y = Max( groupSize.y, window->mCurrLineHeight );
 
     window->mCurrLineHeight = groupData.mSavedLineHeight;
 
-    window->mCurrCursorViewport = groupData.mSavedCursorDrawPos;
+    window->mViewportSpaceCurrCursor = groupData.mSavedCursorDrawPos;
     window->ItemSize( groupSize );
     window->mGroupSK.pop_back();
   }
@@ -617,23 +638,23 @@ namespace Tac
   void ImGuiIndent()
   {
     ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
-    window->mCurrCursorViewport.x += 15.0f;
-    window->mXOffsets.push_back( window->mCurrCursorViewport.x - window->mPosViewport.x );
+    window->mViewportSpaceCurrCursor.x += 15.0f;
+    window->PushXOffset();
   }
 
   void ImGuiUnindent()
   {
     ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
     window->mXOffsets.pop_back();
-    window->mCurrCursorViewport.x = window->mPosViewport.x + window->mXOffsets.back();
+    window->mViewportSpaceCurrCursor.x = window->mViewportSpacePos.x + window->mXOffsets.back();
   }
 
   void ImGuiSameLine()
   {
     ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
-    window->mCurrCursorViewport = {
-      window->mPrevCursorViewport.x + ImGuiGlobals::Instance.mUIStyle.itemSpacing.x,
-      window->mPrevCursorViewport.y };
+    window->mViewportSpaceCurrCursor = {
+      window->mViewportSpacePrevCursor.x + ImGuiGlobals::Instance.mUIStyle.itemSpacing.x,
+      window->mViewportSpacePrevCursor.y };
     window->mCurrLineHeight = window->mPrevLineHeight;
     //window->mCurrLineHeight = window->mPrevLineHeight;
   }
@@ -642,7 +663,7 @@ namespace Tac
   {
     ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
     UI2DDrawData* drawData = window->mDrawData;
-    v2 textPos = window->mCurrCursorViewport;
+    v2 textPos = window->mViewportSpaceCurrCursor;
     v2 textSize = CalculateTextSize( utf8, ImGuiGlobals::Instance.mUIStyle.fontSize );
     window->ItemSize( textSize );
     bool clipped;
@@ -663,7 +684,7 @@ namespace Tac
     //bool textChanged = false;
     const String oldText = text;
 
-    const v2 pos = window->mCurrCursorViewport;
+    const v2 pos = window->mViewportSpaceCurrCursor;
 
 
     // Word wrap?
@@ -672,9 +693,8 @@ namespace Tac
       if( c == '\n' )
         lineCount++;
 
-    v2 totalSize = {
-      window->mContentRect.mMaxi.x - pos.x,
-      ( float )lineCount * ( float )ImGuiGlobals::Instance.mUIStyle.fontSize };
+    v2 totalSize( window->mViewportSpaceVisibleRegion.mMaxi.x - pos.x,
+                  lineCount * ImGuiGlobals::Instance.mUIStyle.fontSize );
 
     window->ItemSize( totalSize );
 
@@ -698,12 +718,10 @@ namespace Tac
     v3 textBackgroundColor3 = { 1, 1, 0 };
 
     v4 editTextColor = { 0, 0, 0, 1 };
-    v2 textBackgroundMaxi = {
-      pos.x + totalSize.x * ( 2.0f / 3.0f ),
-      pos.y + totalSize.y };
-    v2 textPos = {
-      pos.x + ImGuiGlobals::Instance.mUIStyle.buttonPadding,
-      pos.y };
+    v2 textBackgroundMaxi( pos.x + totalSize.x * ( 2.0f / 3.0f ),
+                           pos.y + totalSize.y );
+    v2 textPos( pos.x + ImGuiGlobals::Instance.mUIStyle.buttonPadding,
+                pos.y );
     Render::TextureHandle texture;
     window->mDrawData->AddBox( pos,
                                textBackgroundMaxi,
@@ -717,9 +735,6 @@ namespace Tac
       {
         window->mTextInputData->SetText( text );
       }
-
-
-
 
       TextInputDataUpdateKeys( window->mTextInputData, window->GetMousePosViewport(), textPos );
 
@@ -758,8 +773,8 @@ namespace Tac
                                 editTextColor,
                                 &clipRect );
 
-    const v2 labelPos = v2( textBackgroundMaxi.x + ImGuiGlobals::Instance.mUIStyle.itemSpacing.x,
-                            pos.y );
+    const v2 labelPos( textBackgroundMaxi.x + ImGuiGlobals::Instance.mUIStyle.itemSpacing.x,
+                       pos.y );
     window->mDrawData->AddText( labelPos,
                                 ImGuiGlobals::Instance.mUIStyle.fontSize,
                                 label,
@@ -774,10 +789,10 @@ namespace Tac
     ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
     UI2DDrawData* drawData = window->mDrawData;
     bool clicked = false;
-    const v2 buttonPosViewport = window->mCurrCursorViewport;
+    const v2 buttonPosViewport = window->mViewportSpaceCurrCursor;
     const v2 buttonSize = {
-      window->mContentRect.mMaxi.x - buttonPosViewport.x,
-      ( float )ImGuiGlobals::Instance.mUIStyle.fontSize };
+      window->mViewportSpaceVisibleRegion.mMaxi.x - buttonPosViewport.x,
+      ImGuiGlobals::Instance.mUIStyle.fontSize };
 
     window->ItemSize( buttonSize );
     const ImGuiId id = window->GetID();
@@ -823,7 +838,7 @@ namespace Tac
     const v2 textSize = CalculateTextSize( str, ImGuiGlobals::Instance.mUIStyle.fontSize );
     const v2 buttonSize( textSize.x + 2 * ImGuiGlobals::Instance.mUIStyle.buttonPadding,
                          textSize.y );
-    v2 pos = window->mCurrCursorViewport;
+    v2 pos = window->mViewportSpaceCurrCursor;
     window->ItemSize( textSize );
 
 
@@ -870,14 +885,15 @@ namespace Tac
     const bool oldValue = *value;
     ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
     UI2DDrawData* drawData = window->mDrawData;
-    v2 pos = window->mCurrCursorViewport;
+    v2 pos = window->mViewportSpaceCurrCursor;
 
     v2 textSize = CalculateTextSize( str, ImGuiGlobals::Instance.mUIStyle.fontSize );
 
     float boxWidth = textSize.y;
     v2 boxSize = v2( 1, 1 ) * boxWidth;
 
-    v2 totalSize = v2( boxWidth + ImGuiGlobals::Instance.mUIStyle.itemSpacing.x + textSize.x, textSize.y );
+    v2 totalSize = v2( textSize.x + boxWidth + ImGuiGlobals::Instance.mUIStyle.itemSpacing.x,
+                       textSize.y );
     window->ItemSize( totalSize );
 
     bool clipped;
@@ -975,13 +991,13 @@ namespace Tac
   void ImGuiSetCursorPos( v2 local )
   {
     ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
-    window->mCurrCursorViewport = local;
+    window->mViewportSpaceCurrCursor = local;
   }
 
   void ImGuiImage( const int hTex, const v2 size, const v4 color )
   {
     ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
-    const v2 pos = window->mCurrCursorViewport;
+    const v2 pos = window->mViewportSpaceCurrCursor;
     const v2 boxMini = pos;
     const v2 boxMaxi = pos + size;
     window->ItemSize( size );
@@ -1000,7 +1016,9 @@ namespace Tac
       float f = ( float )std::atof( from.c_str() );
       *( ( float* )to ) = f;
     };
-    auto whatToDoWithMousePixel = []( float mouseChangeSinceBeginningOfDrag, const void* valAtDragStart, void* curVal )
+    auto whatToDoWithMousePixel = []( float mouseChangeSinceBeginningOfDrag,
+                                      const void* valAtDragStart,
+                                      void* curVal )
     {
       const float& valAtDragStartRef = *( const float* )valAtDragStart;
       float& curValRef = *( float* )curVal;
@@ -1062,10 +1080,9 @@ namespace Tac
   {
     ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
     UI2DDrawData* drawData = window->mDrawData; // ImGuiGlobals::Instance.mUI2DDrawData;
-    v2 pos = window->mCurrCursorViewport;
-    v2 totalSize = {
-      window->mContentRect.mMaxi.x - pos.x,
-      ( float )ImGuiGlobals::Instance.mUIStyle.fontSize };
+    v2 pos = window->mViewportSpaceCurrCursor;
+    v2 totalSize( window->mViewportSpaceVisibleRegion.mMaxi.x - pos.x,
+                  ImGuiGlobals::Instance.mUIStyle.fontSize );
     window->ItemSize( totalSize );
     bool clipped;
     auto clipRect = ImGuiRect::FromPosSize( pos, totalSize );
@@ -1101,7 +1118,7 @@ namespace Tac
     return isOpen;
   }
 
-  void ImGuiPushFontSize( int value )
+  void ImGuiPushFontSize( float value )
   {
     ImGuiGlobals::Instance.mFontSizeSK.push_back( ImGuiGlobals::Instance.mUIStyle.fontSize );
     ImGuiGlobals::Instance.mUIStyle.fontSize = value;
@@ -1109,8 +1126,7 @@ namespace Tac
 
   void ImGuiPopFontSize()
   {
-    int fontsize = ImGuiGlobals::Instance.mFontSizeSK.back();
-    ImGuiGlobals::Instance.mUIStyle.fontSize = fontsize;
+    ImGuiGlobals::Instance.mUIStyle.fontSize = ImGuiGlobals::Instance.mFontSizeSK.back();
     ImGuiGlobals::Instance.mFontSizeSK.pop_back();
   }
 

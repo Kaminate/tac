@@ -23,6 +23,7 @@
 // know that it is fixed in vs2019 and will not be backported to vs2017
 
 #include <Windows.h>
+#include <Windowsx.h>
 //#include <windef.h>
 
 namespace Tac

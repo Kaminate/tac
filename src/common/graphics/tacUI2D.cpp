@@ -456,7 +456,7 @@ namespace Tac
   }
 
   void UI2DDrawData::AddText( const v2 textPos,
-                              const int fontSize,
+                              const float fontSize,
                               StringView utf8,
                               const v4 color,
                               const ImGuiRect* clipRect )
@@ -593,14 +593,14 @@ namespace Tac
   }
 
   v2 CalculateTextSize( const StringView text,
-                        const int fontSize )
+                        const float fontSize )
   {
     const CodepointView codepoints = UTF8ToCodepoints( text );
     return CalculateTextSize( codepoints, fontSize );
   }
 
   v2 CalculateTextSize( const CodepointView codepoints,
-                        const int fontSize )
+                        const float fontSize )
   {
     return CalculateTextSize( codepoints.data(),
                               codepoints.size(),
@@ -609,7 +609,7 @@ namespace Tac
 
   v2 CalculateTextSize( const Codepoint* codepoints,
                         const int codepointCount,
-                        const int fontSize )
+                        const float fontSize )
   {
     float lineWidthUISpaceMax = 0;
     float lineWidthUISpace = 0;

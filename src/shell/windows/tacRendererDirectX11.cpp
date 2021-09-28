@@ -1009,7 +1009,8 @@ namespace Tac
 
           if( framebuffer->mRenderTargetView && framebuffer->mClearEachFrame )
           {
-            mDeviceContext->ClearRenderTargetView( framebuffer->mRenderTargetView, framebuffer->mClearColorRGBA );
+            mDeviceContext->ClearRenderTargetView( framebuffer->mRenderTargetView,
+                                                   framebuffer->mClearColorRGBA );
           }
 
           ID3D11ShaderResourceView* nullViews[ 16 ] = {};

@@ -179,6 +179,7 @@ namespace Tac
   {
     for( const SubMesh& subMesh : mesh->mSubMeshes )
     {
+      Render::SetPrimitiveTopology( subMesh.mPrimitiveTopology );
       Render::SetShader( CreationGameWindow::Instance->m3DShader );
       Render::SetVertexBuffer( subMesh.mVertexBuffer, 0, subMesh.mVertexCount );
       Render::SetIndexBuffer( subMesh.mIndexBuffer, 0, subMesh.mIndexCount );
@@ -254,6 +255,17 @@ namespace Tac
     blendStateData.mBlendA = Render::BlendMode::Add;
     mBlendState = Render::CreateBlendState( blendStateData, TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( mBlendState, "game-window-blend" );
+    TAC_HANDLE_ERROR( errors );
+
+    Render::BlendState alphaBlendStateData;
+    alphaBlendStateData.mSrcRGB = Render::BlendConstants::SrcA;
+    alphaBlendStateData.mDstRGB = Render::BlendConstants::OneMinusSrcA;
+    alphaBlendStateData.mBlendRGB = Render::BlendMode::Add;
+    alphaBlendStateData.mSrcA = Render::BlendConstants::Zero;
+    alphaBlendStateData.mDstA = Render::BlendConstants::One;
+    alphaBlendStateData.mBlendA = Render::BlendMode::Add;
+    mAlphaBlendState = Render::CreateBlendState( alphaBlendStateData, TAC_STACK_FRAME );
+    Render::SetRenderObjectDebugName( mAlphaBlendState, "game-window-alpha-blend" );
     TAC_HANDLE_ERROR( errors );
 
     Render::DepthState depthStateData;
@@ -651,7 +663,8 @@ namespace Tac
       Render::SetShader( spriteShader );
       Render::SetVertexBuffer( Render::VertexBufferHandle(), 0, 6 );
       Render::SetIndexBuffer( Render::IndexBufferHandle(), 0, 0 );
-      Render::SetBlendState( mBlendState );
+      //Render::SetBlendState( mBlendState );
+      Render::SetBlendState( mAlphaBlendState );
       Render::SetRasterizerState( mRasterizerState );
       Render::SetSamplerState( mSamplerState );
       Render::SetDepthState( mDepthState );
@@ -708,6 +721,7 @@ namespace Tac
     ImGuiSetNextWindowSize( { 300, 405 } );
     ImGuiSetNextWindowHandle( mDesktopWindowHandle );
     ImGuiBegin( "gameplay overlay" );
+    mCloseRequested |= ImGuiButton( "Close Window" );
 
     static bool mHideUI = false;
     if( !mHideUI )
@@ -1000,13 +1014,14 @@ namespace Tac
     CameraUpdateControls();
     ComputeArrowLen();
     MousePickingAll();
-    RenderEditorWidgets( viewHandle );
 
     GamePresentationRender( gCreation.mWorld,
                             gCreation.mEditorCamera,
                             desktopWindowState->mWidth,
                             desktopWindowState->mHeight,
                             viewHandle );
+
+    RenderEditorWidgets( viewHandle );
 
     VoxelGIPresentationRender( gCreation.mWorld,
                                gCreation.mEditorCamera,

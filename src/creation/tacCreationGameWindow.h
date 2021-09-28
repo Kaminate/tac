@@ -66,6 +66,7 @@ namespace Tac
     Render::VertexFormatHandle    m3DVertexFormat;
     Render::DepthStateHandle      mDepthState;
     Render::BlendStateHandle      mBlendState;
+    Render::BlendStateHandle      mAlphaBlendState;
     Render::RasterizerStateHandle mRasterizerState;
     Render::SamplerStateHandle    mSamplerState;
     Render::VertexDeclarations    m3DvertexFormatDecls;
@@ -77,6 +78,7 @@ namespace Tac
     float                         mArrowLen = 0;
     String                        mStatusMessage;
     double                        mStatusMessageEndTime = 0;
+    bool                          mCloseRequested = false;
   };
 
 

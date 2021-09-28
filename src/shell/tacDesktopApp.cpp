@@ -27,7 +27,7 @@ namespace Tac
   {
     Unknown,
     Main,
-    Stuff
+    Logic
   };
   enum class DesktopEventType
   {
@@ -183,7 +183,7 @@ namespace Tac
 
   static void LogicThreadInit( Errors& errors )
   {
-    gThreadType = ThreadType::Stuff;
+    gThreadType = ThreadType::Logic;
     sAllocatorStuff.Init( 1024 * 1024 * 10 );
     FrameMemorySetThreadAllocator( &sAllocatorStuff );
 
@@ -419,7 +419,7 @@ namespace Tac
 
   void                DesktopEventApplyQueue()// DesktopWindowState* desktopWindowStates )
   {
-    TAC_ASSERT( gThreadType == ThreadType::Stuff );
+    TAC_ASSERT( IsLogicThread() );
     while( !sEventQueue.Empty() )
     {
       DesktopEventType desktopEventType = {};
@@ -529,7 +529,7 @@ namespace Tac
                                                 const int w,
                                                 const int h )
   {
-    TAC_ASSERT( gThreadType == ThreadType::Main );
+    TAC_ASSERT(IsMainThread());
     DesktopEventDataAssignHandle data;
     data.mDesktopWindowHandle = desktopWindowHandle;
     data.mNativeWindowHandle = nativeWindowHandle;
@@ -544,7 +544,7 @@ namespace Tac
                                               const int x,
                                               const int y )
   {
-    TAC_ASSERT( gThreadType == ThreadType::Main );
+    TAC_ASSERT(IsMainThread());
     DesktopEventDataWindowMove data;
     data.mDesktopWindowHandle = desktopWindowHandle;
     data.mX = x;
@@ -556,7 +556,7 @@ namespace Tac
                                                 const int w,
                                                 const int h )
   {
-    TAC_ASSERT( gThreadType == ThreadType::Main );
+    TAC_ASSERT(IsMainThread());
     DesktopEventDataWindowResize data;
     data.mDesktopWindowHandle = desktopWindowHandle;
     data.mWidth = w;
@@ -566,7 +566,7 @@ namespace Tac
 
   void                DesktopEventMouseWheel( const int ticks )
   {
-    TAC_ASSERT( gThreadType == ThreadType::Main );
+    TAC_ASSERT(IsMainThread());
     DesktopEventDataMouseWheel data;
     data.mDelta = ticks;
     sEventQueue.QueuePush( DesktopEventType::MouseWheel, &data, sizeof( data ) );
@@ -576,7 +576,7 @@ namespace Tac
                                              const int x,
                                              const int y )
   {
-    TAC_ASSERT( gThreadType == ThreadType::Main );
+    TAC_ASSERT(IsMainThread());
     DesktopEventDataMouseMove data;
     data.mDesktopWindowHandle = desktopWindowHandle;
     data.mX = x;
@@ -586,7 +586,7 @@ namespace Tac
 
   void                DesktopEventKeyState( const Key key, const bool down )
   {
-    TAC_ASSERT( gThreadType == ThreadType::Main );
+    TAC_ASSERT(IsMainThread());
     DesktopEventDataKeyState data;
     data.mDown = down;
     data.mKey = key;
@@ -595,7 +595,7 @@ namespace Tac
 
   void                DesktopEventKeyInput( const Codepoint codepoint )
   {
-    TAC_ASSERT( gThreadType == ThreadType::Main );
+    TAC_ASSERT(IsMainThread());
     DesktopEventDataKeyInput data;
     data.mCodepoint = codepoint;
     sEventQueue.QueuePush( DesktopEventType::KeyInput, &data, sizeof( data ) );
@@ -603,7 +603,7 @@ namespace Tac
 
   void                DesktopEventMouseHoveredWindow( const DesktopWindowHandle desktopWindowHandle )
   {
-    TAC_ASSERT( gThreadType == ThreadType::Main );
+    TAC_ASSERT(IsMainThread());
     DesktopEventDataCursorUnobscured data;
     data.mDesktopWindowHandle = desktopWindowHandle;
     sEventQueue.QueuePush( DesktopEventType::CursorUnobscured, &data, sizeof( data ) );
@@ -754,12 +754,11 @@ namespace Tac
   bool                           IsMainThread()
   {
     return gThreadType == ThreadType::Main;
-
   }
+
   bool                           IsLogicThread()
   {
-
-    return gThreadType == ThreadType::Stuff;
+    return gThreadType == ThreadType::Logic;
   }
 
 }
