@@ -21,14 +21,14 @@
 
 namespace Tac
 {
-  static const char* classname = "tac";
+  static const char*         classname = "tac";
 
-  // Elements in this array are added/removed by wndproc
-  static HWND sHWNDs[ kDesktopWindowCapacity ];
-  static HWND mParentHWND = NULL;
+  //                         Elements in this array are added/removed by wndproc
+  static HWND                sHWNDs[ kDesktopWindowCapacity ];
 
+  static HWND                mParentHWND = NULL;
   static DesktopWindowHandle sWindowUnderConstruction;
-  static Key GetKey( uint8_t keyCode )
+  static Key                 GetKey( uint8_t keyCode )
   {
 
     // List of virtual key codes
@@ -88,16 +88,8 @@ namespace Tac
     }
   }
 
-  DesktopWindowHandle Win32WindowManagerFindWindow( HWND hwnd )
-  {
-    //for( int i : WindowHandleIterator() )
-    for( int i = 0; i < kDesktopWindowCapacity; ++i )
-      if( sHWNDs[ i ] == hwnd )
-        return { i };
-    return { -1 };
-  }
 
-  static LRESULT CALLBACK WindowProc( const HWND hwnd,
+  static LRESULT CALLBACK    WindowProc( const HWND hwnd,
                                       const UINT uMsg,
                                       const WPARAM wParam,
                                       const LPARAM lParam )
@@ -335,7 +327,7 @@ namespace Tac
     return DefWindowProc( hwnd, uMsg, wParam, lParam );
   }
 
-  static void RegisterWindowClass( Errors& errors )
+  static void                RegisterWindowClass( Errors& errors )
   {
     // If you set the cursor here, calls to SetCursor cause it to flicker to the new cursor
     // before reverting back to the old cursor.
@@ -364,7 +356,17 @@ namespace Tac
     }
   }
 
-  void Win32WindowManagerInit( Errors& errors )
+  DesktopWindowHandle Win32WindowManagerFindWindow( HWND hwnd )
+  {
+    //for( int i : WindowHandleIterator() )
+    for( int i = 0; i < kDesktopWindowCapacity; ++i )
+      if( sHWNDs[ i ] == hwnd )
+        return { i };
+    return { -1 };
+  }
+
+
+  void                Win32WindowManagerInit( Errors& errors )
   {
     RegisterWindowClass( errors );
   }
@@ -381,7 +383,7 @@ namespace Tac
     return desktopWindowHandle;
   }
 
-  void Win32WindowManagerPoll( Errors& )
+  void                Win32WindowManagerPoll( Errors& )
   {
     //TAC_PROFILE_BLOCK;
     MSG msg = {};
@@ -392,7 +394,7 @@ namespace Tac
     }
   }
 
-  void Win32WindowManagerDespawnWindow( const DesktopWindowHandle& desktopWindowHandle )
+  void                Win32WindowManagerDespawnWindow( const DesktopWindowHandle& desktopWindowHandle )
   {
     const int iWindow = ( int )desktopWindowHandle;
     const HWND hwnd = sHWNDs[ iWindow ];
@@ -415,11 +417,11 @@ namespace Tac
     DestroyWindow( hwnd );
   }
 
-  void Win32WindowManagerSpawnWindow( const DesktopWindowHandle& desktopWindowHandle,
-                                      int x,
-                                      int y,
-                                      int w,
-                                      int h )
+  void                Win32WindowManagerSpawnWindow( const DesktopWindowHandle& desktopWindowHandle,
+                                                     int x,
+                                                     int y,
+                                                     int w,
+                                                     int h )
   {
     const DWORD windowStyle = WS_POPUP;
     if( w && h )

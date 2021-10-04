@@ -62,7 +62,6 @@ namespace Tac
 
   static VoxelSettings                 voxelSettingsCurrent;
   static VoxelSettings                 voxelSettingsSaved;
-  static double                        voxelSettingLastCheckTime;
 
   struct CBufferVoxelizer
   {
@@ -90,31 +89,37 @@ namespace Tac
   {
     struct Number
     {
-      const char* GetPath()
-      {
-        return FrameMemoryPrintf( "voxelgi.%s", mname );
-      }
-
       void        LoadFromSettings( VoxelSettings* voxelSettings )
       {
         void* data = GetData( voxelSettings );
-        if( isInt )
-          *( int* )data = ( int )SettingsGetNumber( GetPath(), *( int* )data );
-        if( isBool )
-          *( bool* )data = ( bool )SettingsGetNumber( GetPath(), *( bool* )data );
-        if( isFloat )
-          *( float* )data = ( float )SettingsGetNumber( GetPath(), *( float* )data );
+        if( mSettingsJson->mType == JsonType::Bool )
+          *( bool* )data = mSettingsJson->mBoolean;
+        if( mSettingsJson->mType == JsonType::Bool )
+          *( bool* )data = mSettingsJson->mBoolean;
+        if( mSettingsJson->mType == JsonType::Bool )
+          *( bool* )data = mSettingsJson->mBoolean;
+
+        TAC_CRITICAL_ERROR_INVALID_CODE_PATH;
+
+        //if( isInt )
+        //  *( int* )data = ( int )SettingsGetNumber( GetPath(), *( int* )data );
+        //if( isBool )
+        //  *( bool* )data = ( bool )SettingsGetNumber( GetPath(), *( bool* )data );
+        //if( isFloat )
+        //  *( float* )data = ( float )SettingsGetNumber( GetPath(), *( float* )data );
       }
 
       void        SaveToSettings( VoxelSettings* voxelSettings )
       {
-        void* data = GetData( voxelSettings );
-        if( isInt )
-          SettingsSetNumber( GetPath(), ( JsonNumber )*( int* )data );
-        if( isBool )
-          SettingsSetNumber( GetPath(), ( JsonNumber )*( bool* )data );
-        if( isFloat )
-          SettingsSetNumber( GetPath(), ( JsonNumber )*( float* )data );
+        TAC_CRITICAL_ERROR_INVALID_CODE_PATH;
+
+        //void* data = GetData( voxelSettings );
+        //if( isInt )
+        //  SettingsSetNumber( GetPath(), ( JsonNumber )*( int* )data );
+        //if( isBool )
+        //  SettingsSetNumber( GetPath(), ( JsonNumber )*( bool* )data );
+        //if( isFloat )
+        //  SettingsSetNumber( GetPath(), ( JsonNumber )*( float* )data );
       }
 
       void*       GetData( VoxelSettings* voxelSettings )
@@ -126,14 +131,16 @@ namespace Tac
       bool        isBool = 0;
       bool        isInt = 0;
       bool        isFloat = 0;
-      const char* mname = nullptr;
+      Json*       mSettingsJson = nullptr;
     };
 
     Number*                     AddNumber( int offset, const char* name )
     {
+        const char* path = FrameMemoryPrintf( "voxelgi.%s", name );
+
       Number number = {};
       number.offset = offset;
-      number.mname = name;
+      number.mSettingsJson = SettingsGetJson( path );
       numbers.push_back( number );
       return &numbers.back();
     }
@@ -147,6 +154,8 @@ namespace Tac
 
     VoxelSettingsSerializer()
     {
+
+
 #define REGISTER_VAR( var ) AddType< decltype( VoxelSettings::var ) >( TAC_OFFSET_OF( VoxelSettings, var ), TAC_STRINGIFY( var ) );
 
       REGISTER_VAR( voxelDimension );
@@ -418,9 +427,14 @@ namespace Tac
       {
         for( int k = 0; k < voxelSettingsCurrent.voxelDimension; ++k )
         {
-          const float voxelWidth = ( voxelSettingsCurrent.voxelGridHalfWidth * 2.0f ) / voxelSettingsCurrent.voxelDimension;
+          const float voxelWidth
+            = ( voxelSettingsCurrent.voxelGridHalfWidth * 2.0f )
+            / voxelSettingsCurrent.voxelDimension;
           const v3 iVoxel( ( float )i, ( float )j, ( float )k );
-          const v3 minPos = voxelSettingsCurrent.voxelGridCenter - voxelSettingsCurrent.voxelGridHalfWidth * v3( 1, 1, 1 ) + voxelWidth * iVoxel;
+          const v3 minPos
+            = voxelSettingsCurrent.voxelGridCenter
+            - voxelSettingsCurrent.voxelGridHalfWidth * v3( 1, 1, 1 )
+            + iVoxel * voxelWidth;
           const v3 maxPos = minPos + voxelWidth * v3( 1, 1, 1 );
           const v3 minColor = iVoxel / ( float )voxelSettingsCurrent.voxelDimension;
           const v3 maxColor = ( iVoxel + v3( 1, 1, 1 ) ) / ( float )voxelSettingsCurrent.voxelDimension;
@@ -596,10 +610,6 @@ namespace Tac
 
   static void                    VoxelSettingsUpdateSerialize()
   {
-    if( voxelSettingLastCheckTime + 0.1f > ShellGetElapsedSeconds() )
-      return;
-
-    voxelSettingLastCheckTime = ShellGetElapsedSeconds();
     if( !VoxelSettingsChanged( &voxelSettingsCurrent, &voxelSettingsSaved ) )
       return;
 
@@ -611,7 +621,6 @@ namespace Tac
   {
     VoxelSettingsLoad( &voxelSettingsSaved );
     voxelSettingsCurrent = voxelSettingsSaved;
-    voxelSettingLastCheckTime = ShellGetElapsedSeconds();
     CBufferVoxelizer::Init();
     CreateVoxelizerBlend();
     CreateVoxelizerShader();

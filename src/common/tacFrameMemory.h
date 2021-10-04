@@ -4,6 +4,8 @@ namespace Tac
 {
   struct ThreadAllocator
   {
+    ThreadAllocator() = default;
+    ThreadAllocator(char*, int);
     void  Init( int byteCount );
     void* Allocate( int byteCount );
 

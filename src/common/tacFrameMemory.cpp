@@ -1,11 +1,18 @@
 #include "src/common/tacFrameMemory.h"
 #include "src/common/tacMemory.h"
+#include "src/common/containers/tacArray.h"
 
 #include <cstdarg> // va_list, va_start, va_end
 #include <cstdio> // vsnprintf
 
 namespace Tac
 {
+
+  ThreadAllocator::ThreadAllocator( char* bytes, int byteCount )
+  {
+    mBytes = bytes;
+    mCapacity = byteCount;
+  }
 
   void ThreadAllocator::Init( int byteCount )
   {
@@ -22,7 +29,9 @@ namespace Tac
     return result;
   }
 
-  static thread_local ThreadAllocator* sFrameAllocator;
+  static Array< char, 100 > sTempBuf;
+  static ThreadAllocator sInitialAllocator( sTempBuf.data(), sTempBuf.size() );
+  static thread_local ThreadAllocator* sFrameAllocator = &sInitialAllocator;
 
   void* FrameMemoryAllocate( int byteCount )
   {

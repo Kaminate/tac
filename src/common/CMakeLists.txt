@@ -29,12 +29,12 @@ ${CMAKE_CURRENT_SOURCE_DIR}/graphics/imgui/tacImGui.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/graphics/imgui/tacImGui.h
 ${CMAKE_CURRENT_SOURCE_DIR}/graphics/imgui/tacImGuiState.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/graphics/imgui/tacImGuiState.h
-${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacDepthBufferVisualizer.cpp
-${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacDepthBufferVisualizer.h
 ${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacColorUtil.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacColorUtil.h
 ${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacDebug3D.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacDebug3D.h
+${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacDepthBufferVisualizer.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacDepthBufferVisualizer.h
 ${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacFont.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacFont.h
 ${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacRenderer.cpp
@@ -59,6 +59,12 @@ ${CMAKE_CURRENT_SOURCE_DIR}/math/tacVector3.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/math/tacVector3.h
 ${CMAKE_CURRENT_SOURCE_DIR}/math/tacVector4.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/math/tacVector4.h
+${CMAKE_CURRENT_SOURCE_DIR}/meta/tacmetafnsig.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/meta/tacmetafnsig.h
+${CMAKE_CURRENT_SOURCE_DIR}/meta/tacmeta.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/meta/tacmeta.h
+${CMAKE_CURRENT_SOURCE_DIR}/meta/tacmetavar.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/meta/tacmetavar.h
 ${CMAKE_CURRENT_SOURCE_DIR}/profile/tacProfile.h
 ${CMAKE_CURRENT_SOURCE_DIR}/profile/tacProfileBackend.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/profile/tacProfileBackend.h
@@ -116,8 +122,6 @@ ${CMAKE_CURRENT_SOURCE_DIR}/taccontrollerinput.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/taccontrollerinput.h
 ${CMAKE_CURRENT_SOURCE_DIR}/tackeyboardinput.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/tackeyboardinput.h
-${CMAKE_CURRENT_SOURCE_DIR}/tacmeta.cpp
-${CMAKE_CURRENT_SOURCE_DIR}/tacmeta.h
 ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/cgltf.h
 ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/impl.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/stb_image.h

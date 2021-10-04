@@ -16,6 +16,8 @@
 #include "src/common/shell/tacShellTimer.h"
 #include "src/common/tacTemporaryMemory.h"
 #include "src/common/tacUtility.h"
+#include "src/common/meta/tacmetavar.h"
+#include "src/common/meta/tacmetafnsig.h"
 #include "src/creation/tacCreation.h"
 #include "src/creation/tacCreationAssetView.h"
 #include "src/creation/tacCreationGameWindow.h"
@@ -39,6 +41,7 @@
 #include <iostream>
 #include <functional>
 #include <algorithm>
+#include <array>
 
 namespace Tac
 {
@@ -227,6 +230,10 @@ namespace Tac
 
   void                Creation::Init( Errors& errors )
   {
+    MetaVarUnitTest();
+    MetaFnSigUnitTest();
+
+
     SpaceInit();
     mWorld = TAC_NEW World;
     mEditorCamera = TAC_NEW Camera;

@@ -9,7 +9,7 @@
 #include "src/common/tacKeyboardinput.h"
 #include "src/common/tacLocalization.h"
 #include "src/common/tacMemory.h"
-#include "src/common/tacMeta.h"
+#include "src/common/meta/tacMeta.h"
 #include "src/common/tacPreprocessor.h"
 #include "src/common/tacSettings.h"
 #include "src/common/shell/tacShell.h"

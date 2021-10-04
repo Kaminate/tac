@@ -1,21 +1,19 @@
-
-#include "shell/vulkan/tacRendererVulkan.h"
-#include "shell/windows/tacWindows.h"
-#include "common/tacShell.h"
-#include "common/tacString.h"
-#include "common/tacDesktopWindow.h"
-#include "common/tacErrorHandling.h"
+#if 0
+#include "src/shell/vulkan/tacRendererVulkan.h"
+#include "src/shell/windows/tacWin32.h"
+#include "src/common/shell/tacShell.h"
+#include "src/common/string/tacString.h"
+#include "src/common/tacDesktopWindow.h"
+#include "src/common/tacErrorHandling.h"
 
 #include <vulkan/vulkan_win32.h>
 
 
-
-void TacVulkanWin32CreateSurface(
-  TacShell* shell,
-  VkInstance instance,
-  TacDesktopWindow* desktopWindow,
-  VkSurfaceKHR *psurface,
-  TacErrors& errors )
+void TacVulkanWin32CreateSurface( TacShell* shell,
+                                  VkInstance instance,
+                                  TacDesktopWindow* desktopWindow,
+                                  VkSurfaceKHR *psurface,
+                                  TacErrors& errors )
 {
   auto hInstance = ( HINSTANCE )desktopWindow->mOperatingSystemApplicationHandle;
   TacAssert( hInstance );
@@ -39,4 +37,6 @@ static int vulkanwin32stuff = []() {
   vg->mCreateSurface = TacVulkanWin32CreateSurface;
   return 0;
 }( );
+
+#endif
 
