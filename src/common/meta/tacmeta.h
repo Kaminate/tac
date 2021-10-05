@@ -10,11 +10,11 @@ namespace Tac
 {
   struct MetaType
   {
-    virtual const char* GetName() const;
-    virtual size_t      GetSizeOf() const;
-    virtual const char* ToString( void* ) const;
-    virtual float       ToNumber( void* ) const;
-    virtual void        Cast( void* dst, void* src, MetaType* srcType ) const;
+    virtual const char* GetName() const = 0;
+    virtual size_t      GetSizeOf() const = 0;
+    virtual const char* ToString( void* ) const = 0;
+    virtual float       ToNumber( void* ) const = 0;
+    virtual void        Cast( void* dst, void* src, const MetaType* srcType ) const = 0;
 
     // others...
     // New
@@ -45,12 +45,12 @@ namespace Tac
     return GetMetaType( t );
   }
 
-  template<> inline const MetaType& GetMetaType< void >()
+  template<> inline const MetaType&      GetMetaType< void >()
   {
     return GetNullMetaType();
   }
 
-  template <typename T> T MetaCast( void* v, const MetaType* m )
+  template < typename T > T              MetaCast( void* v, const MetaType* m )
   {
     T t;
     GetMetaType( t )->Cast( &t, v, m );
@@ -62,7 +62,7 @@ namespace Tac
   {
     struct Iterator
     {
-      Iterator( T* t ) : mT( t ) {}
+      Iterator( T* t ) : mT( t )            {}
       T* operator*()                        { return mT; }
       void operator++()                     { mT = ( ( AutoLister* )mT )->mNext; }
       bool operator!=( const Iterator& it ) { return mT != it.mT; }
@@ -80,16 +80,6 @@ namespace Tac
     T* mNext;
   };
 
-  struct MetaFn : public AutoLister< MetaFn >
-  {
-  public:
-    //const char*     Name() const;
-    //const MetaType* RetType() const;
-    //const MetaType* ArgType( int ) const;
-    //int             ArgCount() const;
-
-    //void Apply( ? ? ? );
-  };
 
 
 //  struct Meta;
@@ -104,12 +94,6 @@ namespace Tac
 //    int        mSize = 0;
 //  };
 //
-//  struct MetaVar
-//  {
-//    StringView    mName;
-//    int           mOffset = 0;
-//    MetaType*     mMetaType = nullptr;
-//  };
 //
 //  struct MetaVarCArray : public MetaVar
 //  {
@@ -129,10 +113,11 @@ namespace Tac
 //    //MetaPod mMetaPod = MetaPod::Unknown;
 //  };
 //
-//  struct MetaCompositeType : public MetaType
-//  {
-//    Vector< MetaVar* > mMetaVars;
-//  };
+
+
+
+
+
 //
 //  void         MetaInit();
 //  MetaType*    MetaGetTypeByName( StringView );
@@ -150,5 +135,8 @@ namespace Tac
 //#define TAC_META_REGISTER_TYPE( T )    \
 //   TAC_META_REGISTER_TYPE_NAME( T );   \
 //   MetaRegisterType( #T, sizeof( T ) );
-}
+
+    void MetaUnitTestTitle( const char* );
+#define TAC_META_UNIT_TEST_TITLE MetaUnitTestTitle( __FUNCTION__ )
+} // namespace Tac
 

@@ -6,14 +6,16 @@
 #include "src/common/tacFrameMemory.h"
 #include "src/common/tacPreprocessor.h"
 #include <fstream>
+#include <iostream>
+#include <iomanip>
 
 namespace Tac
 {
-  const char* MetaType::GetName() const          { return 0; }
-  size_t      MetaType::GetSizeOf() const        { return 0; }
-  const char* MetaType::ToString( void* ) const  { return 0; }
-  float       MetaType::ToNumber( void* ) const  { return 0; }
-  void        MetaType::Cast( void*, void*, MetaType* ) const {}
+  //const char* MetaType::GetName() const          { return 0; }
+  //size_t      MetaType::GetSizeOf() const        { return 0; }
+  //const char* MetaType::ToString( void* ) const  { return 0; }
+  //float       MetaType::ToNumber( void* ) const  { return 0; }
+  //void        MetaType::Cast( void*, void*, const MetaType* ) const {}
 
 
   static struct IntMetaType : public MetaType
@@ -22,7 +24,7 @@ namespace Tac
     size_t      GetSizeOf() const override           { return sizeof( int ); }
     const char* ToString( void* v ) const override   { return FrameMemoryPrintf( "%i", *( int* )v ); }
     float       ToNumber( void* v ) const override   { return ( float )*( int* )v; }
-    void        Cast( void* dst, void* src, MetaType* srcType ) const override
+    void        Cast( void* dst, void* src, const MetaType* srcType ) const override
     {
       *( int* )dst = ( int )srcType->ToNumber( src );
     }
@@ -34,7 +36,7 @@ namespace Tac
     size_t      GetSizeOf() const override           { return sizeof( char* ); }
     const char* ToString( void* v ) const override   { return *( const char** )v; }
     float       ToNumber( void* v ) const override   { return ( float )Atoi( *( const char** )v ); }
-    void        Cast( void* dst, void* src, MetaType* srcType ) const override
+    void        Cast( void* dst, void* src, const MetaType* srcType ) const override
     {
       *( const char** )dst = srcType->ToString( src );
     }
@@ -46,6 +48,10 @@ namespace Tac
     size_t      GetSizeOf() const override           { return sizeof( float ); }
     const char* ToString( void* v ) const override   { return FrameMemoryPrintf( "%f", *( float* )v ); }
     float       ToNumber( void* v ) const override   { return *( float* )v; }
+    void        Cast( void* dst, void* src, const MetaType* srcType ) const override
+    {
+      *( float* )dst = ( float )srcType->ToNumber( src );
+    }
   } sFloatMetaType;
 
   static struct NullMetaType : public MetaType
@@ -54,6 +60,10 @@ namespace Tac
     size_t      GetSizeOf() const override           { return 0; }
     const char* ToString( void* v ) const override   { return "null"; }
     float       ToNumber( void* v ) const override   { return 0; }
+    void        Cast( void* dst, void* src, const MetaType* srcType ) const override
+    {
+      TAC_CRITICAL_ERROR_INVALID_CODE_PATH;
+    }
   } sNullMetaType;
 
   const MetaType& GetMetaType( const int& )   { return sIntMetaType; }
@@ -243,5 +253,11 @@ namespace Tac
 ////}
 
 
-}
+  void MetaUnitTestTitle( const char* title )
+  {
+    const char* dashes = "-----------";
+    std::cout << dashes << " " << title << " " << dashes << std::endl;
+  }
+
+} // namespace Tac
 

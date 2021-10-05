@@ -5,6 +5,7 @@
 namespace Tac
 {
 
+
   struct MetaVar : public AutoLister< MetaVar >
   {
     template< typename T > MetaVar( const char* name, T* t ) :
@@ -19,6 +20,7 @@ namespace Tac
 
     // line number, file...
   };
+
 
 #define TAC_META_REGISTER_VAR( v ) \
   MetaVar gMetaVar##v(#v, &v);

@@ -17,6 +17,7 @@ namespace Tac
 
   void MetaVarUnitTest()
   {
+    TAC_META_UNIT_TEST_TITLE;
     int i = 42;
     float f = 3.14f;
     TAC_META_REGISTER_VAR( i );

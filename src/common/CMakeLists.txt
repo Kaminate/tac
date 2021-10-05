@@ -59,8 +59,12 @@ ${CMAKE_CURRENT_SOURCE_DIR}/math/tacVector3.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/math/tacVector3.h
 ${CMAKE_CURRENT_SOURCE_DIR}/math/tacVector4.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/math/tacVector4.h
+${CMAKE_CURRENT_SOURCE_DIR}/meta/tacmetacomposite.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/meta/tacmetacomposite.h
 ${CMAKE_CURRENT_SOURCE_DIR}/meta/tacmetafnsig.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/meta/tacmetafnsig.h
+${CMAKE_CURRENT_SOURCE_DIR}/meta/tacmetafn.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/meta/tacmetafn.h
 ${CMAKE_CURRENT_SOURCE_DIR}/meta/tacmeta.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/meta/tacmeta.h
 ${CMAKE_CURRENT_SOURCE_DIR}/meta/tacmetavar.cpp

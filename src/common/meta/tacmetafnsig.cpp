@@ -24,6 +24,7 @@ namespace Tac
 
   void MetaFnSigUnitTest()
   {
+    TAC_META_UNIT_TEST_TITLE;
     MetaFnSig my_fn_sig( Foo );
     std::cout << "Foo()" << std::endl;
     PrintMetaFnSig( my_fn_sig );

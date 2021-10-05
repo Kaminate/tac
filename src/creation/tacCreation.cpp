@@ -16,7 +16,9 @@
 #include "src/common/shell/tacShellTimer.h"
 #include "src/common/tacTemporaryMemory.h"
 #include "src/common/tacUtility.h"
+#include "src/common/meta/tacmetacomposite.h"
 #include "src/common/meta/tacmetavar.h"
+#include "src/common/meta/tacmetafn.h"
 #include "src/common/meta/tacmetafnsig.h"
 #include "src/creation/tacCreation.h"
 #include "src/creation/tacCreationAssetView.h"
@@ -232,6 +234,8 @@ namespace Tac
   {
     MetaVarUnitTest();
     MetaFnSigUnitTest();
+    MetaFnUnitTest();
+    MetaCompositeUnitTest();
 
 
     SpaceInit();
