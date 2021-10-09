@@ -1,0 +1,3 @@
+[submodule "src/tac-core"]
+	path = src/tac-core
+	url = https://github.com/Kaminate/tac-core
