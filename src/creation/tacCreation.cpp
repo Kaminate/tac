@@ -40,7 +40,7 @@
 #include "src/space/tacWorld.h"
 #include "src/space/terrain/tacTerrain.h"
 
-#include "tac-core/test.h"
+//#include "tac-core/test.h"
 
 #include <iostream>
 #include <functional>
@@ -275,10 +275,10 @@ namespace Tac
     MetaFnUnitTest();
     MetaCompositeUnitTest();
 
-    int a = 5;
-    int b = 2;
-    int c = test_add( a, b );
-    std::cout << a << " + " << b << " = " << c << std::endl;
+    //int a = 5;
+    //int b = 2;
+    //int c = test_add( a, b );
+    //std::cout << a << " + " << b << " = " << c << std::endl;
 
 
     SpaceInit();
