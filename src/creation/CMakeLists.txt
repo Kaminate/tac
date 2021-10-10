@@ -7,7 +7,6 @@ endif()
 set( TAC_DEBUGGING FALSE )
 set( TAC_LIBRARIES
   CommonLibrary 
-  CommonLibrary2
   Ghost
    )
 set( TAC_INCLUDE_DIRECTORIES "" )

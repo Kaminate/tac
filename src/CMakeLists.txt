@@ -3,7 +3,6 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}")
 
 # This needs to be first in order to define ${TacCommon}?
 add_subdirectory(common)
-add_subdirectory(tac-core)
 
 # make this second, as space uses common,
 # and creation/game uses space?
