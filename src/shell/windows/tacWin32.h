@@ -38,6 +38,7 @@ namespace Tac
   //struct String    Win32GetWindowName( HWND );
   //void             Win32Assert( const struct Errors& );
   void             Win32DebugBreak();
+  void             Win32OSInit();
   //void             Win32PopupBox( const struct StringView& );
   //void             Win32Output( const struct StringView& );
 }

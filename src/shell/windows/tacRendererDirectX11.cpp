@@ -647,7 +647,7 @@ namespace Tac
             if( shaderSource.mType == ShaderSource::Type::kPath )
               errors.Append( "Error compiling shader: " + shaderPath );
             errors.Append( TAC_STACK_FRAME );
-            OSDebugPopupBox( errors.ToString() );
+            GetOS()->OSDebugPopupBox( errors.ToString() );
             errors.clear();
           }
           else
@@ -1144,7 +1144,7 @@ namespace Tac
         {
           const IndexBuffer* indexBuffer = &mIndexBuffers[ ( int )drawCall->mIndexBufferHandle ];
           if( !indexBuffer->mBuffer )
-            OSDebugBreak();
+            GetOS()->OSDebugBreak();
           TAC_ASSERT( indexBuffer->mBuffer );
           const DXGI_FORMAT dxgiFormat = GetDXGIFormatTexture( indexBuffer->mFormat );
           const UINT byteOffset = 0; //  drawCall->mStartIndex * indexBuffer->mFormat.mPerElementByteCount;

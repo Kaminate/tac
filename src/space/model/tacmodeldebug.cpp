@@ -48,7 +48,7 @@ namespace Tac
         needsRefresh = false;
         modelPaths.clear();
         Vector< String > allfiles;
-        OSGetFilesInDirectory( allfiles, "assets", OSGetFilesInDirectoryFlags::Recursive, getfilesErrors );
+        GetOS()->OSGetFilesInDirectory( allfiles, "assets", OSGetFilesInDirectoryFlags::Recursive, getfilesErrors );
         for( String file : allfiles )
           if( IsModelPath( file ) )
             modelPaths.push_back( file );

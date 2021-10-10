@@ -37,7 +37,7 @@ namespace Tac
   int              Win32GetStartupCmdShow()      { return gnCmdShow; }
 
 
-  String Win32ErrorToString( const DWORD winErrorValue )
+  String           Win32ErrorToString( const DWORD winErrorValue )
   {
     if( !winErrorValue )
       return "no error";
@@ -60,13 +60,13 @@ namespace Tac
     return result;
   }
 
-  String Win32GetLastErrorString()
+  String           Win32GetLastErrorString()
   {
     const DWORD winErrorValue = GetLastError();
     return Win32ErrorToString( winErrorValue );
   }
 
-  void Win32DebugBreak()
+  void             Win32DebugBreak()
   {
     if( IsDebugMode() )
       ::DebugBreak();

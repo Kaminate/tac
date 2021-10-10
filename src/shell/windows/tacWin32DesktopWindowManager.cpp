@@ -444,7 +444,7 @@ namespace Tac
       else
       {
         int monitorW, monitorH;
-        OSGetPrimaryMonitor( &monitorW, &monitorH );
+        GetOS()->OSGetPrimaryMonitor( &monitorW, &monitorH );
         x = monitorW / 4;
         y = monitorH / 4;
         w = monitorW / 2;

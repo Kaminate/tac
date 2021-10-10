@@ -207,7 +207,7 @@ namespace Tac
   {
     ImGuiUninit();
     if( gLogicThreadErrors )
-      OSAppStopRunning();
+      GetOS()->OSAppStopRunning();
     Render::SubmitFinish();
   }
 
@@ -218,7 +218,7 @@ namespace Tac
     LogicThreadInit( errors );
     TAC_HANDLE_ERROR( errors );
 
-    while( OSAppIsRunning() )
+    while( GetOS()->OSAppIsRunning() )
     {
       TAC_PROFILE_BLOCK;
       ProfileSetGameFrame();
@@ -272,7 +272,7 @@ namespace Tac
   static void PlatformThreadUninit()
   {
     if( gPlatformThreadErrors )
-      OSAppStopRunning();
+      GetOS()->OSAppStopRunning();
     Render::RenderFinish();
   }
 
@@ -289,7 +289,7 @@ namespace Tac
     Errors& errors = gPlatformThreadErrors;
     TAC_ON_DESTRUCT( PlatformThreadUninit() );
 
-    while( OSAppIsRunning() )
+    while( GetOS()->OSAppIsRunning() )
     {
       TAC_PROFILE_BLOCK;
 
@@ -630,8 +630,8 @@ namespace Tac
 
     String appDataPath;
     bool appDataPathExists;
-    OSGetApplicationDataPath( appDataPath, errors );
-    OSDoesFolderExist( appDataPath, appDataPathExists, errors );
+    GetOS()->OSGetApplicationDataPath( appDataPath, errors );
+    GetOS()->OSDoesFolderExist( appDataPath, appDataPathExists, errors );
     TAC_HANDLE_ERROR( errors );
     TAC_ASSERT( appDataPathExists );
 
@@ -639,14 +639,14 @@ namespace Tac
     String studioPath = appDataPath + "\\" + info.mStudioName + "\\";
     String prefPath = studioPath + appName;
 
-    OSCreateFolderIfNotExist( studioPath, errors );
+    GetOS()->OSCreateFolderIfNotExist( studioPath, errors );
     TAC_HANDLE_ERROR( errors );
 
-    OSCreateFolderIfNotExist( prefPath, errors );
+    GetOS()->OSCreateFolderIfNotExist( prefPath, errors );
     TAC_HANDLE_ERROR( errors );
 
     String workingDir;
-    OSGetWorkingDir( workingDir, errors );
+    GetOS()->OSGetWorkingDir( workingDir, errors );
     TAC_HANDLE_ERROR( errors );
 
     sPlatformSpawnWindow = platformSpawnWindow;

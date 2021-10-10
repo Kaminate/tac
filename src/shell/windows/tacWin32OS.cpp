@@ -102,7 +102,6 @@ namespace Tac
     }
   }
 
-
   void OSGetPrimaryMonitor( int* w, int* h )
   {
     *w = GetSystemMetrics( SM_CXSCREEN );
@@ -230,7 +229,7 @@ namespace Tac
   void OSSaveToFile( StringView path, void* bytes, int byteCount, Errors& errors )
   {
     SplitFilepath splitFilepath( path );
-    OSCreateFolderIfNotExist( splitFilepath.mDirectory, errors );
+    GetOS()->OSCreateFolderIfNotExist( splitFilepath.mDirectory, errors );
     TAC_HANDLE_ERROR( errors );
 
     // Note ( from MSDN ):
@@ -421,6 +420,111 @@ namespace Tac
     TAC_ASSERT( handle.IsValid() );
     const HANDLE nativeHandle = gSemaphores[ ( int )handle ];
     ReleaseSemaphore( nativeHandle, 1, NULL );
+  }
+
+
+  static struct : public OS
+  {
+    void        OSSaveToFile( StringView path, void* bytes, int byteCount, Errors&  errors ) override
+    {
+      return Tac::OSSaveToFile( path, bytes, byteCount, errors );
+    }
+
+    void        OSDoesFolderExist( StringView path, bool& exists, Errors& errors ) override
+    {
+      return Tac::OSDoesFolderExist( path, exists, errors );
+    }
+
+    void        OSCreateFolder( StringView path, Errors& errors ) override
+    {
+      return Tac::OSCreateFolder( path, errors );
+    }
+
+    void        OSDebugBreak() override
+    {
+      Tac::OSDebugBreak();
+    }
+
+    void        OSDebugPopupBox( StringView s ) override
+    {
+      return Tac::OSDebugPopupBox( s );
+    }
+
+    void        OSGetApplicationDataPath( String& path, Errors& e ) override
+    {
+      return Tac::OSGetApplicationDataPath( path, e );
+    }
+
+    void        OSGetFileLastModifiedTime( time_t* t, StringView path, Errors& e ) override
+    {
+      return Tac::OSGetFileLastModifiedTime( t, path, e );
+    }
+
+    void        OSGetFilesInDirectory( Vector< String >& files,
+                                       StringView dir,
+                                       OSGetFilesInDirectoryFlags flags,
+                                       Errors& e )
+    {
+      return Tac::OSGetFilesInDirectory( files, dir, flags, e );
+    }
+
+    void        OSGetDirectoriesInDirectory( Vector< String >& dirs, StringView dir, Errors& e ) override
+    {
+      return Tac::OSGetDirectoriesInDirectory( dirs, dir, e );
+    }
+
+    void        OSSaveDialog( String& path, StringView suggestedPath, Errors& e ) override
+    {
+      return Tac::OSSaveDialog( path, suggestedPath, e );
+    }
+
+    void        OSOpenDialog( String& path, Errors& e ) override
+    {
+      return Tac::OSOpenDialog( path, e );
+    }
+
+
+    //                  same as current dir
+    void        OSGetWorkingDir( String& dir, Errors& e ) override
+    {
+      return Tac::OSGetWorkingDir( dir, e );
+    }
+
+
+    void        OSGetPrimaryMonitor( int* w, int* h ) override
+    {
+      return Tac::OSGetPrimaryMonitor( w, h );
+    }
+
+    void        OSSetScreenspaceCursorPos( const v2& v, Errors& e ) override
+    {
+      return Tac::OSSetScreenspaceCursorPos( v, e );
+    }
+
+
+
+
+    SemaphoreHandle OSSemaphoreCreate() override
+    {
+      return Tac::OSSemaphoreCreate();
+    }
+
+    void            OSSemaphoreDecrementWait( SemaphoreHandle handle ) override
+    {
+      return            Tac::OSSemaphoreDecrementWait( handle );
+    }
+
+    void            OSSemaphoreIncrementPost( SemaphoreHandle handle ) override
+    {
+      return Tac::OSSemaphoreIncrementPost( handle );
+    }
+
+
+  } sWin32OS;
+
+  void             Win32OSInit()
+  {
+    SetOS( &sWin32OS );
   }
 }
 

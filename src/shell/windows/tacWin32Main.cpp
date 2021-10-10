@@ -44,7 +44,7 @@ namespace Tac
   static void ReportError( StringView desc, Errors& errors )
   {
     if( errors )
-      OSDebugPopupBox( desc + " - " + errors.ToString() );
+      GetOS()->OSDebugPopupBox( desc + " - " + errors.ToString() );
   }
 
   static void Win32FrameBegin( Errors& errors )
@@ -63,6 +63,7 @@ namespace Tac
                           const LPSTR lpCmdLine,
                           const int nCmdShow )
   {
+    Win32OSInit();
     Win32SetStartupParams( hInstance, hPrevInstance, lpCmdLine, nCmdShow );
     Errors& errors = sWinMainErrors;
     static struct : public std::streambuf

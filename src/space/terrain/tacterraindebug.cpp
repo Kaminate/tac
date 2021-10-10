@@ -23,7 +23,7 @@ namespace Tac
 
         Vector< String > heightmapPaths;
         Errors errors;
-        OSGetFilesInDirectory( heightmapPaths, "assets/heightmaps", OSGetFilesInDirectoryFlags::Recursive, errors );
+        GetOS()->OSGetFilesInDirectory( heightmapPaths, "assets/heightmaps", OSGetFilesInDirectoryFlags::Recursive, errors );
         for( auto& heightmapPath : heightmapPaths )
         {
           if( ImGuiButton( heightmapPath ) )
@@ -49,11 +49,11 @@ namespace Tac
       if( ImGuiButton( "Open Ground Texture" ) )
       {
         mTerrain->mTestHeightmapLoadErrors.clear();
-        OSOpenDialog( mTerrain->mGroundTexturePath, mTerrainTextureDialogErrors );
+        GetOS()->OSOpenDialog( mTerrain->mGroundTexturePath, mTerrainTextureDialogErrors );
       }
       if( ImGuiButton( "Open Noise Texture" ) )
       {
-        OSOpenDialog( mTerrain->mNoiseTexturePath, mNoiseTextureDialogErrors );
+        GetOS()->OSOpenDialog( mTerrain->mNoiseTexturePath, mNoiseTextureDialogErrors );
       }
 
       if( mTerrain->mTestHeightmapLoadErrors )

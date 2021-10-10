@@ -301,10 +301,10 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
 
     String dataPath;
-    OSGetApplicationDataPath( dataPath, errors );
+    GetOS()->OSGetApplicationDataPath( dataPath, errors );
     TAC_HANDLE_ERROR( errors );
 
-    OSCreateFolderIfNotExist( dataPath, errors );
+    GetOS()->OSCreateFolderIfNotExist( dataPath, errors );
     TAC_HANDLE_ERROR( errors );
 
     Json* windows;
@@ -493,7 +493,7 @@ namespace Tac
     UpdateCreatedWindowData();
 
     if( AllWindowsClosed() )
-      OSAppStopRunning();
+      GetOS()->OSAppStopRunning();
 
 
     static bool checkedOnce;

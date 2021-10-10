@@ -118,7 +118,7 @@ namespace Tac
         String savePath;
         String suggestedName = entity->mName + ".prefab";
         Errors saveDialogErrors;
-        OSSaveDialog( savePath, suggestedName, saveDialogErrors );
+        GetOS()->OSSaveDialog( savePath, suggestedName, saveDialogErrors );
         if( saveDialogErrors )
         {
           // todo: log it, user feedback
@@ -135,7 +135,7 @@ namespace Tac
         Errors saveToFileErrors;
         void* bytes = prefabJsonString.data();
         int byteCount = prefabJsonString.size();
-        OSSaveToFile( savePath, bytes, byteCount, saveToFileErrors );
+        GetOS()->OSSaveToFile( savePath, bytes, byteCount, saveToFileErrors );
         if( saveToFileErrors )
         {
           // todo: log it, user feedback
@@ -167,7 +167,7 @@ namespace Tac
 
     mCloseRequested |= ImGuiButton( "Close window" );
     if( ImGuiButton( "Close Application" ) )
-      OSAppStopRunning();
+      GetOS()->OSAppStopRunning();
 
     //for( int i = 0; i < 2; ++i )
     //{
