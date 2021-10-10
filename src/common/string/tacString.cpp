@@ -144,6 +144,8 @@ namespace Tac
     mStr = str.mStr;
     mLen = str.mLen;
   }
+
+  StringView::operator const char* ( ) const { return mStr; }
   char        StringView::operator[]( int i ) const { return mStr[ i ]; }
   const char* StringView::data() const              { return mStr; }
   int         StringView::size() const              { return mLen; }

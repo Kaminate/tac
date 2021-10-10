@@ -8,13 +8,16 @@
 
 namespace Tac
 {
+  struct Json;
   struct MetaType
   {
     virtual const char* GetName() const = 0;
     virtual size_t      GetSizeOf() const = 0;
-    virtual const char* ToString( void* ) const = 0;
-    virtual float       ToNumber( void* ) const = 0;
-    virtual void        Cast( void* dst, void* src, const MetaType* srcType ) const = 0;
+    virtual const char* ToString( const void* ) const = 0;
+    virtual float       ToNumber( const void* ) const = 0;
+    virtual void        Cast( void* dst, const void* src, const MetaType* srcType ) const = 0;
+    virtual void        JsonSerialize( Json*, const void* ) const = 0;
+    virtual void        JsonDeserialize( const Json*, void* ) const = 0;
 
     // others...
     // New
@@ -37,11 +40,12 @@ namespace Tac
   const MetaType& GetMetaType( const int& );
   const MetaType& GetMetaType( const float& );
   const MetaType& GetMetaType( const char*& );
+  const MetaType& GetMetaType( const double& );
   const MetaType& GetNullMetaType();
 
   template< typename T > const MetaType& GetMetaType()
   {
-    T t;
+    T t{};
     return GetMetaType( t );
   }
 
@@ -50,10 +54,10 @@ namespace Tac
     return GetNullMetaType();
   }
 
-  template < typename T > T              MetaCast( void* v, const MetaType* m )
+  template < typename T > T              MetaCast( const void* v, const MetaType* m )
   {
     T t;
-    GetMetaType( t )->Cast( &t, v, m );
+    GetMetaType( t ).Cast( &t, v, m );
     return t;
   }
 

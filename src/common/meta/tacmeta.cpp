@@ -5,6 +5,7 @@
 #include "src/common/tacMemory.h"
 #include "src/common/tacFrameMemory.h"
 #include "src/common/tacPreprocessor.h"
+#include "src/common/tacJson.h"
 #include <fstream>
 #include <iostream>
 #include <iomanip>
@@ -18,15 +19,56 @@ namespace Tac
   //void        MetaType::Cast( void*, void*, const MetaType* ) const {}
 
 
+
+  static const void* TryGetJsonMetapointer( const Json* json )
+  {
+    switch( json->mType )
+    {
+      case JsonType::Number: return &json->mNumber;
+      case JsonType::Bool: return &json->mBoolean;
+      case JsonType::String: return &json->mString;
+    }
+    return nullptr;
+  }
+
+  //static void* TryGetJsonMetapointer( Json* json )
+  //{
+  //  switch( json->mType )
+  //  {
+  //    case JsonType::Number: return &json->mNumber;
+  //    case JsonType::Bool: return &json->mBoolean;
+  //    case JsonType::String: return &json->mString;
+  //  }
+  //  return nullptr;
+  //}
+
+  static const MetaType* TryGetJsonMetatype( const Json* json )
+  {
+    switch( json->mType )
+    {
+      case JsonType::Number: return &GetMetaType< decltype( json->mNumber ) >();
+      case JsonType::Bool: return &GetMetaType< decltype( json->mBoolean ) >();
+    }
+    return nullptr;
+  }
+
   static struct IntMetaType : public MetaType
   {
     const char* GetName() const override             { return "int"; }
     size_t      GetSizeOf() const override           { return sizeof( int ); }
-    const char* ToString( void* v ) const override   { return FrameMemoryPrintf( "%i", *( int* )v ); }
-    float       ToNumber( void* v ) const override   { return ( float )*( int* )v; }
-    void        Cast( void* dst, void* src, const MetaType* srcType ) const override
+    const char* ToString( const void* v ) const override   { return FrameMemoryPrintf( "%i", *( int* )v ); }
+    float       ToNumber( const void* v ) const override   { return ( float )*( int* )v; }
+    void        Cast( void* dst, const void* src, const MetaType* srcType ) const override
     {
       *( int* )dst = ( int )srcType->ToNumber( src );
+    }
+    void        JsonSerialize( Json* json, const void* v ) const override
+    {
+      json->SetNumber( MetaCast< JsonNumber >( v, this ) );
+    }
+    void        JsonDeserialize( const Json* json, void* v ) const override
+    {
+      Cast( v, TryGetJsonMetapointer( json ), TryGetJsonMetatype( json ) );
     }
   } sIntMetaType;
 
@@ -34,11 +76,21 @@ namespace Tac
   {
     const char* GetName() const override             { return "char*"; }
     size_t      GetSizeOf() const override           { return sizeof( char* ); }
-    const char* ToString( void* v ) const override   { return *( const char** )v; }
-    float       ToNumber( void* v ) const override   { return ( float )Atoi( *( const char** )v ); }
-    void        Cast( void* dst, void* src, const MetaType* srcType ) const override
+    const char* ToString( const void* v ) const override   { return *( const char** )v; }
+    float       ToNumber( const void* v ) const override   { return ( float )Atoi( *( const char** )v ); }
+    void        Cast( void* dst, const void* src, const MetaType* srcType ) const override
     {
       *( const char** )dst = srcType->ToString( src );
+    }
+    void        JsonSerialize( Json* json, const void* v ) const override
+    {
+      json->SetString( ToString( v ) );
+    }
+    void        JsonDeserialize( const Json* json, void* v ) const override
+    {
+      // like what are we supposed to do here?
+      // you can serialize a Tac::String, but a charstar?
+      TAC_CRITICAL_ERROR_INVALID_CODE_PATH;
     }
   } sCharStarMetaType;
 
@@ -46,21 +98,57 @@ namespace Tac
   {
     const char* GetName() const override             { return "float"; }
     size_t      GetSizeOf() const override           { return sizeof( float ); }
-    const char* ToString( void* v ) const override   { return FrameMemoryPrintf( "%f", *( float* )v ); }
-    float       ToNumber( void* v ) const override   { return *( float* )v; }
-    void        Cast( void* dst, void* src, const MetaType* srcType ) const override
+    const char* ToString( const void* v ) const override   { return FrameMemoryPrintf( "%f", *( float* )v ); }
+    float       ToNumber( const void* v ) const override   { return *( float* )v; }
+    void        Cast( void* dst, const void* src, const MetaType* srcType ) const override
     {
       *( float* )dst = ( float )srcType->ToNumber( src );
     }
+    void        JsonSerialize( Json* json, const void* v ) const override
+    {
+      json->SetNumber( MetaCast< JsonNumber >( v, this ) );
+    }
+    void        JsonDeserialize( const Json* json, void* v ) const override
+    {
+      Cast( v, TryGetJsonMetapointer( json ), TryGetJsonMetatype( json ) );
+    }
   } sFloatMetaType;
+
+  static struct : public MetaType
+  {
+    const char* GetName() const override             { return "double"; }
+    size_t      GetSizeOf() const override           { return sizeof( double ); }
+    const char* ToString( const void* v ) const override   { return FrameMemoryPrintf( "%f", *( float* )v ); }
+    float       ToNumber( const void* v ) const override   { return ( float )*( double* )v; }
+    void        Cast( void* dst, const void* src, const MetaType* srcType ) const override
+    {
+      *( double* )dst = ( double )srcType->ToNumber( src );
+    }
+    void        JsonSerialize( Json* json, const void* v ) const override
+    {
+      json->SetNumber( MetaCast< JsonNumber >( v, this ) );
+    }
+    void        JsonDeserialize( const Json* json, void* v ) const override
+    {
+      Cast( v, TryGetJsonMetapointer( json ), TryGetJsonMetatype( json ) );
+    }
+  } sDoubleMetaType;
 
   static struct NullMetaType : public MetaType
   {
     const char* GetName() const override             { return "null"; }
     size_t      GetSizeOf() const override           { return 0; }
-    const char* ToString( void* v ) const override   { return "null"; }
-    float       ToNumber( void* v ) const override   { return 0; }
-    void        Cast( void* dst, void* src, const MetaType* srcType ) const override
+    const char* ToString( const void* v ) const override   { return "null"; }
+    float       ToNumber( const void* v ) const override   { return 0; }
+    void        Cast( void* dst, const void* src, const MetaType* srcType ) const override
+    {
+      TAC_CRITICAL_ERROR_INVALID_CODE_PATH;
+    }
+    void        JsonSerialize( Json* json, const void* v ) const override
+    {
+      TAC_CRITICAL_ERROR_INVALID_CODE_PATH;
+    }
+    void        JsonDeserialize( const Json* json, void* v ) const override
     {
       TAC_CRITICAL_ERROR_INVALID_CODE_PATH;
     }
@@ -68,6 +156,7 @@ namespace Tac
 
   const MetaType& GetMetaType( const int& )   { return sIntMetaType; }
   const MetaType& GetMetaType( const float& ) { return sFloatMetaType; }
+  const MetaType& GetMetaType( const double& ) { return sDoubleMetaType; }
   const MetaType& GetMetaType( const char*& ) { return sCharStarMetaType; }
   const MetaType& GetNullMetaType()           { return sNullMetaType; }
 

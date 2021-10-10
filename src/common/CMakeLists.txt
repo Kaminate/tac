@@ -47,6 +47,8 @@ ${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacTextEdit.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacTextEdit.h
 ${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacUI2D.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/graphics/tacUI2D.h
+${CMAKE_CURRENT_SOURCE_DIR}/math/tacMathMeta.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/math/tacMathMeta.h
 ${CMAKE_CURRENT_SOURCE_DIR}/math/tacMath.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/math/tacMath.h
 ${CMAKE_CURRENT_SOURCE_DIR}/math/tacMatrix3.cpp

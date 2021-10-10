@@ -18,11 +18,13 @@ namespace Tac
     MetaCompositeType( const char* name, int size, Vector< MetaMember > metaVars );
     const char*           GetName() const override;
     size_t                GetSizeOf() const override;
-    const char*           ToString( void* ) const override;
-    float                 ToNumber( void* ) const override;
-    void                  Cast( void* dst, void* src, const MetaType* srcType ) const override;
+    const char*           ToString( const void* ) const override;
+    float                 ToNumber( const void* ) const override;
+    void                  Cast( void* dst, const void* src, const MetaType* srcType ) const override;
     const MetaMember&     GetMember( int ) const;
     int                   GetMemberCount() const;
+    void                  JsonSerialize( Json* json, const void* v ) const override;
+    void                  JsonDeserialize( const Json* json, void* v ) const override;
   private:
     Vector< MetaMember >  mMetaVars;
     const char*           mName;

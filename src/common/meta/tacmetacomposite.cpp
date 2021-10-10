@@ -1,4 +1,5 @@
 #include "src/common/meta/tacmetacomposite.h"
+#include "src/common/tacJson.h"
 
 #include <iostream>
 #include <iomanip>
@@ -28,19 +29,19 @@ namespace Tac
     return mSize;
   }
 
-  const char*       MetaCompositeType::ToString( void* ) const
+  const char*       MetaCompositeType::ToString( const void* ) const
   {
     TAC_CRITICAL_ERROR_INVALID_CODE_PATH;
     return 0;
   }
 
-  float             MetaCompositeType::ToNumber( void* ) const
+  float             MetaCompositeType::ToNumber( const void* ) const
   {
     TAC_CRITICAL_ERROR_INVALID_CODE_PATH;
     return 0;
   }
 
-  void              MetaCompositeType::Cast( void* dst, void* src, const MetaType* srcType ) const
+  void              MetaCompositeType::Cast( void* dst, const void* src, const MetaType* srcType ) const
   {
     TAC_CRITICAL_ERROR_INVALID_CODE_PATH;
   }
@@ -54,6 +55,28 @@ namespace Tac
     return mMetaVars.size();
   }
 
+  void              MetaCompositeType::JsonSerialize( Json* json, const void* v ) const
+  {
+    for( int iMember = 0; iMember < GetMemberCount(); ++iMember )
+    {
+      const MetaMember& member = GetMember( iMember );
+      void* settingBytes = member.mOffset + ( char* )v;
+      Json& child = json->GetChild( member.mName );
+      member.mMetaType->JsonDeserialize( &child, settingBytes );
+    }
+  }
+
+  void              MetaCompositeType::JsonDeserialize( const Json* json, void* v ) const
+  {
+    for( int iMember = 0; iMember < GetMemberCount(); ++iMember )
+    {
+      const MetaMember& member = GetMember( iMember );
+      if( Json* child = json->FindChild( member.mName ) )
+      {
+        member.mMetaType->JsonDeserialize( child, member.mOffset + ( char* )v );
+      }
+    }
+  }
 
   //===------------ Unit Test ------------===//
 

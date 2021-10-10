@@ -6,6 +6,7 @@
 #include "src/common/graphics/tacRendererUtil.h"
 #include "src/common/graphics/tacUI2D.h"
 #include "src/common/math/tacMath.h"
+#include "src/common/math/tacMathMeta.h"
 #include "src/common/profile/tacProfile.h"
 #include "src/common/shell/tacShellTimer.h"
 #include "src/common/tacCamera.h"
@@ -14,6 +15,8 @@
 #include "src/common/tacHash.h"
 #include "src/common/tacMemory.h"
 #include "src/common/tacSettings.h"
+#include "src/common/meta/tacmeta.h"
+#include "src/common/meta/tacmetacomposite.h"
 #include "src/space/graphics/tacgraphics.h"
 #include "src/space/model/tacmodel.h"
 #include "src/space/presentation/tacGamePresentation.h"
@@ -60,7 +63,19 @@ namespace Tac
     bool                               voxelGridSnapCamera;
   };
 
-  static VoxelSettings                 voxelSettingsCurrent;
+  TAC_META_REGISTER_COMPOSITE_BEGIN( VoxelSettings )
+    TAC_META_REGISTER_COMPOSITE_MEMBER( VoxelSettings, voxelDimension )
+    TAC_META_REGISTER_COMPOSITE_MEMBER( VoxelSettings, voxelDebug )
+    TAC_META_REGISTER_COMPOSITE_MEMBER( VoxelSettings, voxelDebugDrawVoxelOutlines )
+    TAC_META_REGISTER_COMPOSITE_MEMBER( VoxelSettings, voxelDebugDrawGridOutline )
+    TAC_META_REGISTER_COMPOSITE_MEMBER( VoxelSettings, voxelDebugDrawVoxels )
+    TAC_META_REGISTER_COMPOSITE_MEMBER( VoxelSettings, voxelEnabled )
+    TAC_META_REGISTER_COMPOSITE_MEMBER( VoxelSettings, voxelGridCenter )
+    TAC_META_REGISTER_COMPOSITE_MEMBER( VoxelSettings, voxelGridHalfWidth )
+    TAC_META_REGISTER_COMPOSITE_MEMBER( VoxelSettings, voxelGridSnapCamera )
+    TAC_META_REGISTER_COMPOSITE_END( VoxelSettings )
+
+    static VoxelSettings                 voxelSettingsCurrent;
   static VoxelSettings                 voxelSettingsSaved;
 
   struct CBufferVoxelizer
@@ -85,123 +100,11 @@ namespace Tac
 
   Render::ConstantBufferHandle  CBufferVoxelizer::Handle;
 
-  static struct VoxelSettingsSerializer
-  {
-    struct Number
-    {
-      void        LoadFromSettings( VoxelSettings* voxelSettings )
-      {
-        void* data = GetData( voxelSettings );
-        if( mSettingsJson->mType == JsonType::Bool )
-          *( bool* )data = mSettingsJson->mBoolean;
-        if( mSettingsJson->mType == JsonType::Bool )
-          *( bool* )data = mSettingsJson->mBoolean;
-        if( mSettingsJson->mType == JsonType::Bool )
-          *( bool* )data = mSettingsJson->mBoolean;
-
-        TAC_CRITICAL_ERROR_INVALID_CODE_PATH;
-
-        //if( isInt )
-        //  *( int* )data = ( int )SettingsGetNumber( GetPath(), *( int* )data );
-        //if( isBool )
-        //  *( bool* )data = ( bool )SettingsGetNumber( GetPath(), *( bool* )data );
-        //if( isFloat )
-        //  *( float* )data = ( float )SettingsGetNumber( GetPath(), *( float* )data );
-      }
-
-      void        SaveToSettings( VoxelSettings* voxelSettings )
-      {
-        TAC_CRITICAL_ERROR_INVALID_CODE_PATH;
-
-        //void* data = GetData( voxelSettings );
-        //if( isInt )
-        //  SettingsSetNumber( GetPath(), ( JsonNumber )*( int* )data );
-        //if( isBool )
-        //  SettingsSetNumber( GetPath(), ( JsonNumber )*( bool* )data );
-        //if( isFloat )
-        //  SettingsSetNumber( GetPath(), ( JsonNumber )*( float* )data );
-      }
-
-      void*       GetData( VoxelSettings* voxelSettings )
-      {
-        return  ( char* )voxelSettings + offset;
-      }
-
-      int         offset = 0;
-      bool        isBool = 0;
-      bool        isInt = 0;
-      bool        isFloat = 0;
-      Json*       mSettingsJson = nullptr;
-    };
-
-    Number*                     AddNumber( int offset, const char* name )
-    {
-        const char* path = FrameMemoryPrintf( "voxelgi.%s", name );
-
-      Number number = {};
-      number.offset = offset;
-      number.mSettingsJson = SettingsGetJson( path );
-      numbers.push_back( number );
-      return &numbers.back();
-    }
-    template< typename T > void AddType( int offset, const char* name ) = delete;
-    template<> void             AddType< bool >( int offset, const char* name )  { AddBool( offset, name ); }
-    template<> void             AddType< int >( int offset, const char* name )   { AddInt( offset, name ); }
-    template<> void             AddType< float >( int offset, const char* name ) { AddFloat( offset, name ); }
-    void                        AddBool( int offset, const char* name )  { AddNumber( offset, name )->isBool = true; }
-    void                        AddFloat( int offset, const char* name ) { AddNumber( offset, name )->isFloat = true; }
-    void                        AddInt( int offset, const char* name )   { AddNumber( offset, name )->isInt = true; }
-
-    VoxelSettingsSerializer()
-    {
 
 
-#define REGISTER_VAR( var ) AddType< decltype( VoxelSettings::var ) >( TAC_OFFSET_OF( VoxelSettings, var ), TAC_STRINGIFY( var ) );
-
-      REGISTER_VAR( voxelDimension );
-      REGISTER_VAR( voxelDebug );
-      REGISTER_VAR( voxelDebugDrawVoxelOutlines );
-      REGISTER_VAR( voxelDebugDrawGridOutline );
-      REGISTER_VAR( voxelDebugDrawVoxels );
-      REGISTER_VAR( voxelEnabled );
-      REGISTER_VAR( voxelGridCenter.x );
-      REGISTER_VAR( voxelGridCenter.y );
-      REGISTER_VAR( voxelGridCenter.z );
-      REGISTER_VAR( voxelGridHalfWidth );
-      REGISTER_VAR( voxelGridSnapCamera );
-    }
+  static Json*                   VoxelSettingsRoot() { return SettingsGetJson( "voxelgi" ); }
 
 
-    Vector< Number > numbers;
-  } voxelSettingsSerializer;
-
-  static bool                    VoxelSettingsChanged( VoxelSettings* a, VoxelSettings* b )
-  {
-    for( auto& number : voxelSettingsSerializer.numbers )
-    {
-      if( number.isBool && *( bool* )number.GetData( a ) != *( bool* )number.GetData( b ) )
-        return true;
-
-      if( number.isInt && *( int* )number.GetData( a ) != *( int* )number.GetData( b ) )
-        return true;
-
-      if( number.isFloat && *( float* )number.GetData( a ) != *( float* )number.GetData( b ) )
-        return true;
-    }
-    return false;
-  }
-
-  static void                    VoxelSettingsSave( VoxelSettings* voxelSettings )
-  {
-    for( auto& number : voxelSettingsSerializer.numbers )
-      number.SaveToSettings( voxelSettings );
-  }
-
-  static void                    VoxelSettingsLoad( VoxelSettings* voxelSettings )
-  {
-    for( auto& number : voxelSettingsSerializer.numbers )
-      number.LoadFromSettings( voxelSettings );
-  }
 
   static void                    CreateVoxelizeDepthState()
   {
@@ -604,22 +507,23 @@ namespace Tac
     Render::EndGroup( TAC_STACK_FRAME );
   }
 
-  // Imagine if all this shit can be replaced with
-  // TAC_TWEAK_VAR( &voxelSettings.foo )
-  // which automatically does the load, the check time and saving
-
   static void                    VoxelSettingsUpdateSerialize()
   {
-    if( !VoxelSettingsChanged( &voxelSettingsCurrent, &voxelSettingsSaved ) )
+    const bool voxelSettingsChanged = 0 != MemCmp( &voxelSettingsCurrent,
+                                                   &voxelSettingsSaved,
+                                                   sizeof( VoxelSettings ) );
+    if( !voxelSettingsChanged )
       return;
 
-    VoxelSettingsSave( &voxelSettingsCurrent );
+    GetMetaType< VoxelSettings >().JsonSerialize( VoxelSettingsRoot(), &voxelSettingsCurrent );
+    SettingsSave();
     voxelSettingsSaved = voxelSettingsCurrent;
   }
 
   void VoxelGIPresentationInit( Errors& )
   {
-    VoxelSettingsLoad( &voxelSettingsSaved );
+
+    GetMetaType< VoxelSettings >().JsonDeserialize( VoxelSettingsRoot(), &voxelSettingsSaved );
     voxelSettingsCurrent = voxelSettingsSaved;
     CBufferVoxelizer::Init();
     CreateVoxelizerBlend();
