@@ -40,6 +40,8 @@
 #include "src/space/tacWorld.h"
 #include "src/space/terrain/tacTerrain.h"
 
+#include "tac-core/test.h"
+
 #include <iostream>
 #include <functional>
 #include <algorithm>
@@ -48,16 +50,53 @@
 namespace Tac
 {
   Creation gCreation;
-  static void CreationInitCallback( Errors& errors ) { gCreation.Init( errors ); }
-  static void CreationUninitCallback( Errors& errors ) { gCreation.Uninit( errors ); }
-  static void CreationUpdateCallback( Errors& errors ) { gCreation.Update( errors ); }
+
   static struct CreatedWindowData
   {
     String              mName;
     int                 mX, mY, mW, mH;
     const void*         mNativeWindowHandle;
   } sCreatedWindowData[ kDesktopWindowCapacity ];
-  static void AddCreatedWindowData( DesktopWindowHandle desktopWindowHandle,
+
+  static void   CreationInitCallback( Errors& errors )   { gCreation.Init( errors ); }
+  static void   CreationUninitCallback( Errors& errors ) { gCreation.Uninit( errors ); }
+  static void   CreationUpdateCallback( Errors& errors ) { gCreation.Update( errors ); }
+
+  static String CreationGetNewEntityName()
+  {
+    World* world = gCreation.mWorld;
+    String desiredEntityName = "Entity";
+    int parenNumber = 1;
+    for( ;; )
+    {
+      Entity* entity = world->FindEntity( desiredEntityName );
+      if( !entity )
+        break;
+      desiredEntityName = "Entity (" + ToString( parenNumber ) + ")";
+      parenNumber++;
+    }
+    return desiredEntityName;
+  }
+
+  static void   CheckSavePrefab()
+  {
+    World* world = gCreation.mWorld;
+    const bool triggered =
+      gKeyboardInput.IsKeyDown( Key::S ) &&
+      gKeyboardInput.IsKeyDown( Key::Modifier );
+    if( !triggered )
+      return;
+    gKeyboardInput.SetIsKeyDown( Key::S, false );
+    PrefabSave( world );
+    if( CreationGameWindow::Instance )
+    {
+      CreationGameWindow::Instance->mStatusMessage = "Saved prefabs!";
+      CreationGameWindow::Instance->mStatusMessageEndTime = ShellGetElapsedSeconds() + 5.0f;
+    }
+  }
+
+
+  static void   AddCreatedWindowData( DesktopWindowHandle desktopWindowHandle,
                                     StringView name,
                                     int x, int y, int w, int h )
   {
@@ -69,7 +108,7 @@ namespace Tac
     createdWindowData->mH = h;
   }
 
-  static void UpdateCreatedWindowData()
+  static void   UpdateCreatedWindowData()
   {
     for( int i = 0; i < kDesktopWindowCapacity; ++i )
     {
@@ -101,7 +140,7 @@ namespace Tac
     }
   }
 
-  static bool DoesAnyWindowExist()
+  static bool   DoesAnyWindowExist()
   {
     for( int i = 0; i < kDesktopWindowCapacity; ++i )
       if( GetDesktopWindowState( { i } )->mNativeWindowHandle )
@@ -109,14 +148,13 @@ namespace Tac
     return false;
   }
 
-  static bool AllWindowsClosed()
+  static bool   AllWindowsClosed()
   {
     static bool existed;
     const bool exists = DoesAnyWindowExist();
     existed |= exists;
     return !exists && existed;
   }
-
 
 
   //===-------------- SelectedEntities -------------===//
@@ -219,7 +257,7 @@ namespace Tac
 
   //===-------------- ExecutableStartupInfo -------------===//
 
-  void ExecutableStartupInfo::Init( Errors& errors )
+  void                ExecutableStartupInfo::Init( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
     mAppName = "Creation";
@@ -236,6 +274,11 @@ namespace Tac
     MetaFnSigUnitTest();
     MetaFnUnitTest();
     MetaCompositeUnitTest();
+
+    int a = 5;
+    int b = 2;
+    int c = test_add( a, b );
+    std::cout << a << " + " << b << " = " << c << std::endl;
 
 
     SpaceInit();
@@ -438,22 +481,6 @@ namespace Tac
     return SettingsGetChildByKeyValuePair( "Name", Json( windowName ), windows );
   }
 
-  static void CheckSavePrefab()
-  {
-    World* world = gCreation.mWorld;
-    const bool triggered =
-      gKeyboardInput.IsKeyDown( Key::S ) &&
-      gKeyboardInput.IsKeyDown( Key::Modifier );
-    if( !triggered )
-      return;
-    gKeyboardInput.SetIsKeyDown( Key::S, false );
-    PrefabSave( world );
-    if( CreationGameWindow::Instance )
-    {
-      CreationGameWindow::Instance->mStatusMessage = "Saved prefabs!";
-      CreationGameWindow::Instance->mStatusMessageEndTime = ShellGetElapsedSeconds() + 5.0f;
-    }
-  }
 
   void                Creation::Update( Errors& errors )
   {
@@ -543,21 +570,6 @@ namespace Tac
 
   }
 
-  static String       CreationGetNewEntityName()
-  {
-    World* world = gCreation.mWorld;
-    String desiredEntityName = "Entity";
-    int parenNumber = 1;
-    for( ;; )
-    {
-      Entity* entity = world->FindEntity( desiredEntityName );
-      if( !entity )
-        break;
-      desiredEntityName = "Entity (" + ToString( parenNumber ) + ")";
-      parenNumber++;
-    }
-    return desiredEntityName;
-  }
 
   RelativeSpace       Creation::GetEditorCameraVisibleRelativeSpace()
   {
