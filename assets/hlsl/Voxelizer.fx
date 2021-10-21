@@ -6,6 +6,7 @@
 #include "VoxelCommon.fx"
 
 #define DEBUG_MAKE_EVERY_VOXEL_YELLOW 0
+#define DEBUG_INPUT_VARIABLES         0
 
 
 //===----------------- vertex shader -----------------===//
@@ -22,7 +23,8 @@ Texture2D diffuseMaterialTexture : TAC_AUTO_REGISTER;
 
 Texture2D shadowMaps[ 4 ]        : TAC_AUTO_REGISTER;
 
-sampler linearSampler            : register( s0 );
+sampler linearSampler            : TAC_AUTO_REGISTER;
+sampler shadowMapSampler         : TAC_AUTO_REGISTER;
 
 
 
@@ -75,10 +77,12 @@ struct GS_OUT_PS_IN
   float3 mWorldSpacePosition           : SV_AUTO_SEMANTIC;
   float4 mClipSpacePosition            : SV_POSITION;
 
+#if DEBUG_INPUT_VARIABLES
   float3 debug_worldspaceabsfacenormal : SV_AUTO_SEMANTIC;
   float3 debug_gvoxelgridcenter        : SV_AUTO_SEMANTIC;
   float  debug_gvoxelwidth             : SV_AUTO_SEMANTIC;
   float  debug_gvoxelgridhalfwidth     : SV_AUTO_SEMANTIC;
+#endif
 };
 
 [ maxvertexcount( 3 ) ]
@@ -99,7 +103,8 @@ void GS( triangle VS_OUT_GS_IN input[ 3 ],
 
     float4 clipSpacePosition;
     {
-      float3 ndc = ( curInput.mWorldSpacePosition - gVoxelGridCenter ) / gVoxelGridHalfWidth;
+      float3 ndc = ( curInput.mWorldSpacePosition - gVoxelGridCenter )
+                 / gVoxelGridHalfWidth;
       if( dominantAxisValue == worldSpaceAbsFaceNormal.x )
         clipSpacePosition = float4( ndc.zy, 0, 1 );
       else if( dominantAxisValue == worldSpaceAbsFaceNormal.y )
@@ -114,7 +119,7 @@ void GS( triangle VS_OUT_GS_IN input[ 3 ],
     output.mWorldSpacePosition   = curInput.mWorldSpacePosition;
     output.mClipSpacePosition    = clipSpacePosition;
 
-#if 1
+#if DEBUG_INPUT_VARIABLES
     output.debug_worldspaceabsfacenormal = worldSpaceAbsFaceNormal;
     output.debug_gvoxelgridcenter = gVoxelGridCenter;
     output.debug_gvoxelwidth = gVoxelWidth;
@@ -127,9 +132,68 @@ void GS( triangle VS_OUT_GS_IN input[ 3 ],
 
 //===----------------- pixel shader -----------------===//
 
-void ApplyLight( int iLight )
-{
+// We are computing the radiance for this voxel
+// ( each pixel shader corresponds to one voxel )
 
+// return value: diffuse radiance
+float3 ApplyLight( int iLight, GS_OUT_PS_IN input )
+{
+  Light light = lights[ iLight ];
+
+  const bool lightCastsShadows = LightGetCastsShadows( light.mFlags );
+  if( lightCastsShadows )
+  {
+    // TODO:
+    // this code is in both Voxelizer.fx( this file )
+    // and GamePresentation.fx.
+    //
+    // Move to LightsCommon.fx?
+
+
+    const float4 pixelLightClipSpacePosition = mul( light.mWorldToClip, float4( input.mWorldSpacePosition, 1 ) );
+    const float3 pixelLightNDCSpacePosition = pixelLightClipSpacePosition.xyz / pixelLightClipSpacePosition.w;
+    if( pixelLightNDCSpacePosition.x < -1 ||
+        pixelLightNDCSpacePosition.x > 1 ||
+        pixelLightNDCSpacePosition.y < -1 ||
+        pixelLightNDCSpacePosition.y > 1 )
+      return float3( 0, 0, 0 );
+
+    // negative because dx vs ogl texel coords
+    const float2 pixelLightTexel = float2( pixelLightNDCSpacePosition.x * 0.5 + 0.5,
+                                           pixelLightNDCSpacePosition.y * -0.5 + 0.5 );
+
+
+    Texture2D shadowMap = shadowMaps[ iLight ];
+    const float shadowMapSample = shadowMap.Sample( shadowMapSampler, pixelLightTexel ).x;
+    // const float shadowMapCameraDist = -UnprojectNDCToView( shadowMapSample, light.mProjA, light.mProjB );
+
+    const bool occluded = pixelLightNDCSpacePosition.z - 0.005 > shadowMapSample;
+
+    if( occluded )
+      // TODO:
+      // we shouldn't return 0,0,0 here,
+      // we should still add the light's ambient
+      return float3( 0, 0, 0 );
+  }
+
+
+  float3 l = -light.mWorldSpaceUnitDirection;
+  float3 n = input.mWorldSpaceUnitNormal;
+
+  // TODO:
+  // this shouldnt be computed each
+  // time this function is called ( for each light )
+
+  float3 colorMaterialDiffuse
+    = diffuseMaterialTexture.Sample( linearSampler, input.mTexCoord ).xyz
+    * Color.xyz;
+  float ndotl = dot( n, l );
+  float3 color
+    = ndotl * colorMaterialDiffuse * light.mColorRadiance;
+    //+ colorLightAmbient
+    //+ colorMaterialEmissive;
+
+  return color;
 }
 
 struct PS_OUTPUT
@@ -164,12 +228,23 @@ PS_OUTPUT PS( GS_OUT_PS_IN input )
     //+ colorMaterialEmissive;
     = float4( colorMaterialDiffuse, 1 );
 
-  //for( int i = 0; i < 4; ++i )
-  //  ApplyLight( i );
+if( useLights )
+{
+  color = float4( 0, 0, 0, 1 );
+#if 1
+  for( int i = 0; i < lightCount; ++i )
+    color.xyz += ApplyLight( i, input );
+#else
   ApplyLight( 0 );
-  //ApplyLight( 1 );
-  //ApplyLight( 2 );
-  //ApplyLight( 3 );
+  ApplyLight( 1 );
+  ApplyLight( 2 );
+  ApplyLight( 3 );
+#endif
+}
+else
+{
+  // ???
+}
 
   uint3 iVoxel3 = floor( voxelUVW * gVoxelGridSize );
   uint  iVoxel
@@ -177,9 +252,10 @@ PS_OUTPUT PS( GS_OUT_PS_IN input )
     + iVoxel3.y * gVoxelGridSize
     + iVoxel3.z * gVoxelGridSize * gVoxelGridSize;
 
-#if DEBUG_MAKE_EVERY_VOXEL_YELLOW // debugging
+#if DEBUG_MAKE_EVERY_VOXEL_YELLOW
   for( int i = 0; i < gVoxelGridSize * gVoxelGridSize * gVoxelGridSize; ++i )
-    InterlockedMax( mySB[ i ].mColor, VoxelEncodeHDRColor( float4( 1, 1, 0, 1 ) ) );
+    InterlockedMax( mySB[ i ].mColor,
+                    VoxelEncodeHDRColor( float4( 1, 1, 0, 1 ) ) );
   return output;
 #endif
 

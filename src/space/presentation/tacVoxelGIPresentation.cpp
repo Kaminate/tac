@@ -73,9 +73,9 @@ namespace Tac
     TAC_META_REGISTER_COMPOSITE_MEMBER( VoxelSettings, voxelGridCenter )
     TAC_META_REGISTER_COMPOSITE_MEMBER( VoxelSettings, voxelGridHalfWidth )
     TAC_META_REGISTER_COMPOSITE_MEMBER( VoxelSettings, voxelGridSnapCamera )
-    TAC_META_REGISTER_COMPOSITE_END( VoxelSettings )
+    TAC_META_REGISTER_COMPOSITE_END( VoxelSettings );
 
-    static VoxelSettings                 voxelSettingsCurrent;
+  static VoxelSettings                 voxelSettingsCurrent;
   static VoxelSettings                 voxelSettingsSaved;
 
   struct CBufferVoxelizer
@@ -255,7 +255,9 @@ namespace Tac
     // rgba16f, 2 bytes (16 bits) per float, hdr values
     Render::TexSpec texSpec;
     texSpec.mAccess = Render::Access::Default;
-    texSpec.mBinding = Render::Binding::ShaderResource | Render::Binding::UnorderedAccess;
+    texSpec.mBinding
+      = Render::Binding::ShaderResource
+      | Render::Binding::UnorderedAccess;
     texSpec.mCpuAccess = Render::CPUAccess::None;
     texSpec.mImage.mFormat.mElementCount = 4;
     texSpec.mImage.mFormat.mPerElementDataType = Render::GraphicsType::real;
@@ -522,7 +524,6 @@ namespace Tac
 
   void VoxelGIPresentationInit( Errors& )
   {
-
     GetMetaType< VoxelSettings >().JsonDeserialize( VoxelSettingsRoot(), &voxelSettingsSaved );
     voxelSettingsCurrent = voxelSettingsSaved;
     CBufferVoxelizer::Init();
@@ -586,10 +587,13 @@ namespace Tac
     float width = voxelSettingsCurrent.voxelGridHalfWidth * 2.0f;
     ImGuiDragFloat( "voxel grid width", &width );
     voxelSettingsCurrent.voxelGridHalfWidth = Max( width, 1.0f ) / 2.0f;
+
+/* this is no longer needed, right?
     if( voxelSettingsCurrent.voxelGridHalfWidth != oldVoxelGridHalfWidth )
     {
       SettingsSetNumber( "voxelgi.voxelGridHalfWidth", voxelSettingsCurrent.voxelGridHalfWidth );
     }
+    */
 
 
     const int oldVoxelDimension = voxelSettingsCurrent.voxelDimension;

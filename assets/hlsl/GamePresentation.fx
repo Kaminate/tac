@@ -7,9 +7,10 @@ struct VS_INPUT
   float3 Normal   : NORMAL;
 };
 
-Texture2D shadowMaps[ 4 ] : register( t0 );
-sampler linearSampler     : register( s0 );
-sampler shadowMapSampler  : register( s1 );
+// Texture2D shadowMaps[ 4 ] : register( t0 );
+Texture2D shadowMaps[ 4 ] : TAC_AUTO_REGISTER;
+sampler linearSampler     : TAC_AUTO_REGISTER;
+sampler shadowMapSampler  : TAC_AUTO_REGISTER;
 
 struct VS_OUTPUT
 {
@@ -61,13 +62,6 @@ float3 ApplyLight( int iLight,
   Texture2D shadowMap = shadowMaps[ iLight ];
   Light light = lights[ iLight ];
 
-  float3 colorDiffuse = float3( 0, 0, 0 );
-
-  //bool isValid = iLight < lightCount;
-  //if( !isValid )
-  //  return colorDiffuse;
-
-  bool occluded = false;
   const bool lightCastsShadows = LightGetCastsShadows( light.mFlags );
   if( lightCastsShadows )
   {
@@ -78,7 +72,7 @@ float3 ApplyLight( int iLight,
         pixelLightNDCSpacePosition.x > 1 ||
         pixelLightNDCSpacePosition.y < -1 ||
         pixelLightNDCSpacePosition.y > 1 )
-      return colorDiffuse;
+      return float3( 0, 0, 0 );
 
     // negative because dx vs ogl texel coords
     const float2 pixelLightTexel = float2( pixelLightNDCSpacePosition.x * 0.5 + 0.5,
@@ -101,25 +95,23 @@ float3 ApplyLight( int iLight,
     const bool occluded_view = pixelLightCameraDist > shadowMapCameraDist + 0.7;
     const bool occluded_ndc = ( pixelLightNDCSpacePosition.z > shadowMapSample + 0.00001 );
     //const bool occluded = occluded_ndc;
-    occluded = occluded_view;
+    bool occluded = occluded_view;
 
+    if( occluded )
+      return float3( 0, 0, 0 );
   }
 
-  if( !occluded )
+  uint lightType = LightGetType( light.mFlags );
+  if( lightType == LIGHT_TYPE_SPOT )
   {
-    uint lightType = LightGetType( light.mFlags );
-    if( lightType == LIGHT_TYPE_SPOT )
-    {
-      float3 n = normalize( input.mWorldSpaceNormal );
-      float3 l = -light.mWorldSpaceUnitDirection.xyz;
-      const float ndotl = dot( n, l );
+    float3 n = normalize( input.mWorldSpaceNormal );
+    float3 l = -light.mWorldSpaceUnitDirection.xyz;
+    const float ndotl = dot( n, l );
 
-      // dont need to check if ndotl < 0 because of the ndc check?
-      colorDiffuse += ndotl * light.mColorRadiance.xyz * Color.xyz;
-    }
+    // dont need to check if ndotl < 0 because of the ndc check?
+    return ndotl * light.mColorRadiance.xyz * Color.xyz;
   }
-
-  return colorDiffuse;
+  return float3( 0, 0, 0 );
 }
 
 PS_OUTPUT PS( VS_OUTPUT input )
