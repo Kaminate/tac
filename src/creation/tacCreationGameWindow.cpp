@@ -677,7 +677,6 @@ namespace Tac
                                     TAC_STACK_FRAME );
       Render::Submit( viewHandle, TAC_STACK_FRAME );
       Render::EndGroup( TAC_STACK_FRAME );
-      ++iLight;
     }
 
     Render::Submit( viewHandle, TAC_STACK_FRAME );

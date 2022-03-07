@@ -38,6 +38,7 @@ int CALLBACK WinMain( HINSTANCE hInstance,
   ReportError( "Logic thread", *GetLogicThreadErrors() );
   return 0;
 }
+#pragma warning( disable: 4996) // itoa deprecated
 
 namespace Tac
 {
