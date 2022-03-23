@@ -1,6 +1,6 @@
 #pragma once
 
-#include "tacWin32.h"
+#include "src/shell/windows/tacwinlib/tacWin32.h"
 
 namespace Tac
 {

@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "src/shell/windows/tacWin32.h"
+#include "src/shell/windows/tacwinlib/tacWin32.h"
 
 namespace Tac
 {

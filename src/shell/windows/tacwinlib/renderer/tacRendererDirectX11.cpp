@@ -16,9 +16,9 @@
 #include "src/common/tacFrameMemory.h"
 #include "src/common/string/tacString.h"
 #include "src/shell/tacDesktopApp.h"
-#include "src/shell/windows/tacDXGI.h"
-#include "src/shell/windows/tacRendererDirectX11.h"
-#include "src/shell/windows/tacRendererDirectX.h"
+#include "src/shell/windows/tacwinlib/renderer/tacDXGI.h"
+#include "src/shell/windows/tacwinlib/renderer/tacRendererDirectX11.h"
+#include "src/shell/windows/tacwinlib/renderer/tacRendererDirectX.h"
 
 #include <initguid.h>
 #include <dxgidebug.h>
@@ -53,12 +53,16 @@ namespace Tac
 
     static bool gVerbose;
 
-    static int registerDX11 = []()
+    //static int registerDX11 = []()
+    //{
+    //  RegisterRendererDirectX11();
+    //  return 0;
+    //}( );
+
+    void   RegisterRendererDirectX11()
     {
-      RendererFactoriesRegister( { RendererNameDirectX11,
-                                 []() { TAC_NEW RendererDirectX11;  } } );
-      return 0;
-    }( );
+      RendererFactoriesRegister( { RendererNameDirectX11, []() { TAC_NEW RendererDirectX11; } } );
+    }
 
 
 #define TAC_DX11_CALL( errors, call, ... )                                                       \

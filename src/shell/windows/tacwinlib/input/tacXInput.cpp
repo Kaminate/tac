@@ -1,4 +1,5 @@
-#include "src/shell/windows/tacXInput.h"
+#include "src/shell/windows/tacwinlib/tacWin32.h"
+#include "src/shell/windows/tacwinlib/input/tacXInput.h"
 #include "src/common/tacPreprocessor.h"
 #include "src/common/math/tacMath.h"
 #include "src/common/shell/tacShell.h"
@@ -9,6 +10,7 @@
 #include <cmath>
 #include <iostream>
 
+#pragma comment( lib, "dxguid.lib" ) // IID_IDirectInput8A
 #pragma comment( lib, "Dinput8.lib" )
 
 namespace Tac
@@ -105,7 +107,7 @@ namespace Tac
     const HRESULT hr = DirectInput8Create( Win32GetStartupInstance(),
                                            DIRECTINPUT_VERSION,
                                            IID_IDirectInput8,
-                                           ( LPVOID* )&directInput,
+                                           ( LPVOID* )&mDirectInput,
                                            NULL );
     const char* inputCreateErrorMessage = nullptr;
     switch( hr )
@@ -159,7 +161,7 @@ namespace Tac
     if( mSecondsTillDisconver < 0 )
     {
       mSecondsTillDisconver = mSecondsTillDiscoverMax;
-      directInput->EnumDevices( DI8DEVCLASS_GAMECTRL,
+      mDirectInput->EnumDevices( DI8DEVCLASS_GAMECTRL,
                                 enumDirectInputDevices,
                                 this,
                                 DIEDFL_ATTACHEDONLY );
@@ -215,7 +217,7 @@ namespace Tac
     if( controller )
       return;
     IDirectInputDevice8* joystick = nullptr;
-    HRESULT hr = directInput->CreateDevice( pdidInstance->guidInstance,
+    HRESULT hr = mDirectInput->CreateDevice( pdidInstance->guidInstance,
                                             &joystick,
                                             NULL );
     TAC_ASSERT( SUCCEEDED( hr ) ); // ???

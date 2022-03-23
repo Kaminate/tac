@@ -7,8 +7,8 @@
 #include "src/common/shell/tacShell.h"
 #include "src/common/tacHash.h"
 #include "src/common/string/tacStringIdentifier.h"
-#include "src/shell/windows/tacWin32.h"
-#include "src/shell/windows/tacDXGI.h"
+#include "src/shell/windows/tacwinlib/tacWin32.h"
+#include "src/shell/windows/tacwinlib/renderer/tacDXGI.h"
 
 #include <d3d11_1.h>
 #include <d3d11_3.h> // ID3D11Device3, ID3D11RasterizerState2
@@ -222,6 +222,7 @@ namespace Tac
     String GetDirectX11ShaderPath( StringView );
     String GetDirectX11ShaderPath( ShaderSource );
     String PreprocessShaderSource( StringView, Errors& );
+    void   RegisterRendererDirectX11();
   } // namespace Render
 } // namespace Tac
 

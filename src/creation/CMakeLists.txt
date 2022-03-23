@@ -44,6 +44,7 @@ if( WIN32 )
   source_group("shaders" FILES ${TAC_SHADERS})
 
 
+if(FALSE)
   set( TAC_SOURCES 
     ${TAC_SOURCES}
     "${CMAKE_SOURCE_DIR}/src/shell/windows/tacDXGI.cpp"
@@ -63,6 +64,9 @@ if( WIN32 )
     "${CMAKE_SOURCE_DIR}/src/shell/windows/tacXInput.cpp"
     "${CMAKE_SOURCE_DIR}/src/shell/windows/tacXInput.h"
     )
+else()
+  set( TAC_SOURCES ${TAC_SOURCES} ${TAC_WIN_LIB_FILES} )
+endif() # if false
 endif()
 
 
@@ -80,11 +84,11 @@ if( OPENGL_FOUND )
     "${CMAKE_SOURCE_DIR}/src/shell/opengl/tacRendererOpenGL4.cpp"
     "${CMAKE_SOURCE_DIR}/src/shell/opengl/tacRendererOpenGL4.h"
     )
-  if( WIN32 )
+  if( WIN32 AND FALSE )
     set( TAC_SOURCES
       ${TAC_SOURCES}
       "${CMAKE_SOURCE_DIR}/src/shell/windows/tacRendererOpenGL4Win32.cpp" )
-    endif()
+  endif()
   set( TAC_LIBRARIES ${TAC_LIBRARIES} OpenGL::GL  )
 endif()
 
@@ -95,7 +99,7 @@ if( Vulkan_FOUND )
     ${Vulkan_INCLUDE_DIRS}
     "${CMAKE_SOURCE_DIR}/src/shell/vulkan/tacRendererVulkan.cpp"
     "${CMAKE_SOURCE_DIR}/src/shell/vulkan/tacRendererVulkan.h" )
-  if( WIN32 )
+  if( WIN32 AND FALSE)
     set( TAC_SOURCES
       ${TAC_SOURCES}
       "${CMAKE_SOURCE_DIR}/src/shell/windows/tacRendererVulkanWin32.cpp" )
@@ -196,6 +200,7 @@ endif()
 
 if( WIN32 )
   tac_target( "Win32" )
+if(false)
   set( TAC_SOURCES 
     ${TAC_SOURCES}
     "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWin32MouseEdge.cpp"
@@ -203,10 +208,16 @@ if( WIN32 )
     "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWin32DesktopWindowManager.cpp"
     "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWin32DesktopWindowManager.h"
     "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWin32Main.cpp" )
+else()
+  set( TAC_SOURCES ${TAC_SOURCES} ${TAC_WIN_MAIN_FILES})
+endif() # if false
   include_directories( ${TAC_INCLUDE_DIRECTORIES} )
 
   # Program Database for Edit & Continue
   add_definitions(/ZI)
+
+    #message( "creation_cmakelists, tac sources: ${TAC_SOURCES}")
+    message( "creation_cmakelists, tac_win_main_files : ${TAC_WIN_MAIN_FILES}")
 
   # the win32 here changes the
   # configuration properties --> linker --> system --> subsystem

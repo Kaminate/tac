@@ -1,0 +1,93 @@
+
+include( CMakePrintHelpers )
+
+set( TAC_DEBUGGING FALSE )
+set( TAC_LIBRARIES 
+  CommonLibrary  
+  Ghost
+)
+set( TAC_INCLUDE_DIRECTORIES "" )
+set( TAC_SOURCES "" )
+set( TAC_EXE_NAME "TacExamples" )
+set( TAC_SOURCES 
+  ${TAC_SOURCES}
+  "${CMAKE_CURRENT_SOURCE_DIR}/tacExampleFluid.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/tacExampleFluid.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/tacExamples.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/tacExamples.h"
+  ${TAC_DESKTOP_APP_FILES})
+
+if( WIN32 )
+  # set( TAC_SOURCES ${TAC_SOURCES} ${TAC_WIN_LIB_FILES} )
+endif()
+
+# note: variables names are case-sensitive
+
+set( TAC_INCLUDE_DIRECTORIES "" )
+set( TAC_INCLUDE_DIRECTORIES
+    ${TAC_INCLUDE_DIRECTORIES}
+    "${CMAKE_SOURCE_DIR}/include"
+    "${CMAKE_SOURCE_DIR}/src" )
+
+set( TAC_SOURCES_BASE ${TAC_SOURCES} )
+set( TAC_LIBRARIES_BASE ${TAC_LIBRARIES} )
+set( TAC_INCLUDE_DIRECTORIES_BASE ${TAC_INCLUDE_DIRECTORIES} )
+
+# cached variables are bullshit ( can't get cleared in a parent scope from inside a function? )
+# properties suck
+# ...guess we just goota use PARENT_SCOPE
+function( tac_target TAC_TARGET_SUFFIX )
+  # okay so like functions open up a new scope
+  # this means we can't set variables normally
+  # thus, everything is global
+  set( TAC_TARGET_NAME         "${TAC_EXE_NAME}${TAC_TARGET_SUFFIX}" PARENT_SCOPE )
+  set( TAC_INCLUDE_DIRECTORIES ${TAC_INCLUDE_DIRECTORIES_BASE}       PARENT_SCOPE )
+  set( TAC_SOURCES             ${TAC_SOURCES_BASE}                   PARENT_SCOPE )
+  set( TAC_LIBRARIES           ${TAC_LIBRARIES_BASE}                 PARENT_SCOPE )
+endfunction()
+
+#function( assert_nonempty str msg )
+#  message( "str: ${str}" )
+#  message( "msg: ${msg}" )
+#  if("${str}" STREQUAL "")
+#    message(FATAL_ERROR ${msg})
+#  endif()
+#endfunction()
+
+if( WIN32 )
+  tac_target( "Win32" )
+  set( TAC_SOURCES    ${TAC_SOURCES}    ${TAC_WIN_MAIN_FILES})
+
+  # assert_nonempty( "poop" "pee")
+  # assert_nonempty( "${TacWinLib}" "tac win lib missing")
+  #if("${TacWinLib}" STREQUAL "")
+  #  message(FATAL_ERROR "tac win lib missing")
+  #endif()
+
+  if( NOT TARGET TacWinLib )
+      message( FATAL_ERROR "no tac win lib!" )
+  endif()
+
+  if( NOT TARGET CommonLibrary )
+      message(FATAL_ERROR "common lib!" )
+  endif()
+
+  set( TAC_LIBRARIES  ${TAC_LIBRARIES}  TacWinLib)
+  include_directories( ${TAC_INCLUDE_DIRECTORIES} )
+
+  # the win32 here changes the
+  # configuration properties --> linker --> system --> subsystem
+  # from console to windows, which makes the console window go away
+  add_executable( ${TAC_TARGET_NAME} WIN32 ${TAC_SOURCES} )
+  target_link_libraries( ${TAC_TARGET_NAME} ${TAC_LIBRARIES} )
+  # target_sources( ${TAC_TARGET_NAME} PRIVATE ${Common} )
+  set_target_properties( ${TAC_TARGET_NAME} PROPERTIES
+    VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    VS_STARTUP_PROJECT ${TAC_TARGET_NAME}
+    OUTPUT_NAME "${TAC_EXE_NAME}"
+    #RUNTIME_OUTPUT_DIRECTORY "${RUNTIME_OUTPUT_DIRECTORY}/${TAC_TARGET_NAME}"
+    LINKER_LANGUAGE CXX )
+endif()
+
+
+

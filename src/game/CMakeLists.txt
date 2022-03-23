@@ -17,6 +17,8 @@ set( TAC_SOURCES
   "${CMAKE_SOURCE_DIR}/src/shell/tacDesktopWindowGraphics.cpp"
   "${CMAKE_SOURCE_DIR}/src/shell/tacDesktopWindowGraphics.h" )
 if( WIN32 )
+
+if( FALSE )
   set( TAC_SOURCES 
     ${TAC_SOURCES}
     "${CMAKE_SOURCE_DIR}/src/shell/windows/tacDXGI.cpp"
@@ -35,6 +37,9 @@ if( WIN32 )
     "${CMAKE_SOURCE_DIR}/src/shell/windows/tacRendererDirectX11.cpp"
     "${CMAKE_SOURCE_DIR}/src/shell/windows/tacRendererDirectX11ShaderPreprocess.cpp"
     "${CMAKE_SOURCE_DIR}/src/shell/windows/tacRendererDirectX11.h" )
+else()
+  set( TAC_SOURCES ${TAC_SOURCES} ${TAC_WIN_LIB_FILES})
+endif() #if false
 endif()
 
 # note: variables names are case-sensitive
@@ -64,6 +69,7 @@ endfunction()
 
 if( WIN32 )
   tac_target( "Win32" )
+if(FALSE)
   set( TAC_SOURCES 
     ${TAC_SOURCES}
     "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWin32MouseEdge.cpp"
@@ -71,6 +77,9 @@ if( WIN32 )
     "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWin32DesktopWindowManager.cpp"
     "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWin32DesktopWindowManager.h"
     "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWin32Main.cpp" )
+else()
+  set( TAC_SOURCES ${TAC_SOURCES} ${TAC_WIN_MAIN_FILES})
+endif()
   include_directories( ${TAC_INCLUDE_DIRECTORIES} )
 
   # the win32 here changes the

@@ -10,10 +10,10 @@
 #include "src/common/tacSettings.h"
 #include "src/common/string/tacString.h"
 #include "src/shell/tacDesktopApp.h"
-#include "src/shell/windows/tacNetWinsock.h"
-#include "src/shell/windows/tacWin32DesktopWindowManager.h"
-#include "src/shell/windows/tacWin32MouseEdge.h"
-#include "src/shell/windows/tacXInput.h"
+#include "src/shell/windows/tacwinlib/net/tacNetWinsock.h"
+#include "src/shell/windows/tacwinlib/desktopwindow/tacWin32DesktopWindowManager.h"
+#include "src/shell/windows/tacwinlib/input/tacWin32MouseEdge.h"
+#include "src/shell/windows/tacwinlib/input/tacXInput.h"
 
 #include <thread>
 #include <iostream>

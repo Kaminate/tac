@@ -7,11 +7,12 @@
 #include "src/common/tacSettings.h"
 #include "src/common/string/tacString.h"
 #include "src/shell/tacDesktopApp.h"
-#include "src/shell/windows/tacNetWinsock.h"
-#include "src/shell/windows/tacWin32.h"
-#include "src/shell/windows/tacWin32DesktopWindowManager.h"
-#include "src/shell/windows/tacXInput.h"
-#include "src/shell/windows/tacWin32MouseEdge.h"
+#include "src/shell/windows/tacwinlib/net/tacNetWinsock.h"
+#include "src/shell/windows/tacwinlib/tacWin32.h"
+#include "src/shell/windows/tacwinlib/desktopwindow/tacWin32DesktopWindowManager.h"
+#include "src/shell/windows/tacwinlib/input/tacXInput.h"
+#include "src/shell/windows/tacwinlib/input/tacWin32MouseEdge.h"
+#include "src/shell/windows/tacwinlib/renderer/tacRendererDirectX11.h"
 
 #include <iostream>
 
@@ -58,15 +59,8 @@ namespace Tac
     Win32MouseEdgeUpdate();
   }
 
-  // This function exists because TAC_HANDLE_ERROR cannot be used in WinMain
-  static void WinMainAux( const HINSTANCE hInstance,
-                          const HINSTANCE hPrevInstance,
-                          const LPSTR lpCmdLine,
-                          const int nCmdShow )
+  static void RedirectStreamBuf()
   {
-    Win32OSInit();
-    Win32SetStartupParams( hInstance, hPrevInstance, lpCmdLine, nCmdShow );
-    Errors& errors = sWinMainErrors;
     static struct : public std::streambuf
     {
       int overflow( int c ) override
@@ -82,6 +76,19 @@ namespace Tac
     std::cout.rdbuf( &streamBuf );
     std::cerr.rdbuf( &streamBuf );
     std::clog.rdbuf( &streamBuf );
+  }
+
+  // This function exists because TAC_HANDLE_ERROR cannot be used in WinMain
+  static void WinMainAux( const HINSTANCE hInstance,
+                          const HINSTANCE hPrevInstance,
+                          const LPSTR lpCmdLine,
+                          const int nCmdShow )
+  {
+    Win32OSInit();
+    Win32SetStartupParams( hInstance, hPrevInstance, lpCmdLine, nCmdShow );
+    RedirectStreamBuf();
+    Render::RegisterRendererDirectX11();
+    Errors& errors = sWinMainErrors;
 
     auto xInput = TAC_NEW XInput();
     xInput->Init( errors );
