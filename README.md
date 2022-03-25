@@ -7,6 +7,22 @@ src/                    C++ source code
 assets/                 Runtime loaded by the game (sound, textures, models...)
 ```
 
+# Building
+
+
+Method 1
+
+git clone https://github.com/Kaminate/tac.git
+cd tac
+git submodule init
+git submodule update
+
+Method 2
+
+git clone --recurse-submodules
+
+
+
 # License
 (c) 2017 Nathan Park  
 This work is liscensed under a Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License.  
