@@ -18,6 +18,7 @@
 #include "src/common/tacSettings.h"
 #include "src/shell/tacDesktopApp.h"
 #include "src/shell/tacDesktopWindowGraphics.h"
+#include "src/shell/tacDesktopWindowSettingsTracker.h"
 
 #include <mutex>
 
@@ -120,22 +121,12 @@ namespace Tac
 
   static void DesktopAppUpdateWindowRequests()
   {
-    WindowRequestsCreate requestsCreate;
-    WindowRequestsDestroy requestsDestroy;
-    {
-      sWindowHandleLock.lock();
-      if( sWindowRequestsCreate.size() )
-      {
-        requestsCreate = sWindowRequestsCreate;
-        sWindowRequestsCreate.clear();
-      }
-      if( sWindowRequestsDestroy.size() )
-      {
-        requestsDestroy = sWindowRequestsDestroy;
-        sWindowRequestsDestroy.clear();
-      }
-      sWindowHandleLock.unlock();
-    }
+    sWindowHandleLock.lock();
+    WindowRequestsCreate requestsCreate = sWindowRequestsCreate;
+    WindowRequestsDestroy requestsDestroy = sWindowRequestsDestroy;
+    sWindowRequestsCreate.clear();
+    sWindowRequestsDestroy.clear();
+    sWindowHandleLock.unlock();
 
     for( const WantSpawnInfo& info : requestsCreate )
       sPlatformSpawnWindow( info.mHandle,
@@ -693,6 +684,7 @@ namespace Tac
     TAC_UNUSED_PARAMETER( errors );
     DesktopAppUpdateWindowRequests();
     DesktopAppUpdateMoveResize();
+    UpdateTrackedWindows();
   }
 
   void                DesktopAppResizeControls( const DesktopWindowHandle& desktopWindowHandle, int edgePx )

@@ -8,4 +8,7 @@ set("TAC_DESKTOP_APP_FILES"
 "${CMAKE_CURRENT_SOURCE_DIR}/tacDesktopApp.h"
 "${CMAKE_CURRENT_SOURCE_DIR}/tacDesktopWindowGraphics.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/tacDesktopWindowGraphics.h"
+"${CMAKE_CURRENT_SOURCE_DIR}/tacDesktopWindowSettingsTracker.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/tacDesktopWindowSettingsTracker.h"
+
 CACHE INTERNAL "")

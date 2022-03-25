@@ -1,14 +1,17 @@
 #pragma once
 
+#include "src/game-examples/tacExamples.h"
+
 namespace Tac
 {
 
   struct Errors;
-  struct ExampleFluid
+  struct ExampleFluid : public Example
   {
-    void Init( const Errors& );
-    void Update( const Errors& );
-    void Uninit( const Errors& );
+    void Init( Errors& ) override;
+    void Update( Errors& ) override;
+    void Uninit( Errors& ) override;
+    const char* GetName() const override { return "Fluid"; }
   };
 
 }

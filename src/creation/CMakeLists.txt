@@ -32,11 +32,8 @@ set( TAC_SOURCES
   "${CMAKE_CURRENT_SOURCE_DIR}/tacCreationPropertyWindow.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/tacCreationSystemWindow.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/tacCreationSystemWindow.h"
-  "${CMAKE_SOURCE_DIR}/src/shell/tacDesktopApp.cpp"
-  "${CMAKE_SOURCE_DIR}/src/shell/tacDesktopApp.h"
-  "${CMAKE_SOURCE_DIR}/src/shell/tacDesktopWindowGraphics.cpp"
-  "${CMAKE_SOURCE_DIR}/src/shell/tacDesktopWindowGraphics.h"
   )
+set( TAC_SOURCES ${TAC_SOURCES} ${TAC_DESKTOP_APP_FILES})
 if( WIN32 )
 
   # Add the shader files to the Visual Studio Solution Explorer under the 'shaders' filter
