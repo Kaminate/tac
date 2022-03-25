@@ -12,14 +12,18 @@ assets/                 Runtime loaded by the game (sound, textures, models...)
 
 Method 1
 
+```
 git clone https://github.com/Kaminate/tac.git
 cd tac
 git submodule init
 git submodule update
+```
 
-Method 2
+Method 2 ( untested )
 
-git clone --recurse-submodules
+```
+git clone --recurse-submodules https://github.com/Kaminate/tac.git
+```
 
 
 
