@@ -1,13 +1,13 @@
-#include "src/common/graphics/imgui/tacImGui.h"
-#include "src/common/graphics/tacDebug3D.h"
-#include "src/common/graphics/tacDepthBufferVisualizer.h"
-#include "src/common/math/tacMath.h"
-#include "src/common/string/tacString.h"
-#include "src/common/tacCamera.h"
-#include "src/common/tacFrameMemory.h"
-#include "src/space/light/tacLight.h"
-#include "src/space/tacentity.h"
-#include "src/space/tacworld.h"
+#include "src/common/graphics/imgui/tac_imgui.h"
+#include "src/common/graphics/tac_debug_3d.h"
+#include "src/common/graphics/tac_depth_buffer_visualizer.h"
+#include "src/common/math/tac_math.h"
+#include "src/common/string/tac_string.h"
+#include "src/common/tac_camera.h"
+#include "src/common/tac_frame_memory.h"
+#include "src/space/light/tac_light.h"
+#include "src/space/tac_entity.h"
+#include "src/space/tac_world.h"
 
 namespace Tac
 {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "src/common/graphics/tacRenderer.h"
+#include "src/common/graphics/tac_renderer.h"
 
 namespace Tac
 {

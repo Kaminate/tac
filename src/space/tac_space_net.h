@@ -1,9 +1,9 @@
 
 #pragma once
-#include "src/common/tacSerialization.h"
-#include "src/common/string/tacString.h"
-#include "src/common/tacErrorHandling.h"
-#include "src/space/taccomponent.h"
+#include "src/common/tac_serialization.h"
+#include "src/common/string/tac_string.h"
+#include "src/common/tac_error_handling.h"
+#include "src/space/tac_component.h"
 #include <list>
 #include <cstdint>
 namespace Tac

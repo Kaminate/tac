@@ -1,14 +1,14 @@
 
-#include "src/space/tacWorld.h"
-#include "src/space/tacPlayer.h"
-#include "src/space/tacEntity.h"
-#include "src/space/tacSystem.h"
-#include "src/space/graphics/tacGraphics.h"
-#include "src/space/physics/tacPhysics.h"
-#include "src/space/collider/tacCollider.h"
-#include "src/common/graphics/tacDebug3D.h"
-#include "src/common/profile/tacProfile.h"
-#include "src/common/tacMemory.h"
+#include "src/space/tac_world.h"
+#include "src/space/tac_player.h"
+#include "src/space/tac_entity.h"
+#include "src/space/tac_system.h"
+#include "src/space/graphics/tac_graphics.h"
+#include "src/space/physics/tac_physics.h"
+#include "src/space/collider/tac_collider.h"
+#include "src/common/graphics/tac_debug_3d.h"
+#include "src/common/profile/tac_profile.h"
+#include "src/common/tac_memory.h"
 
 #include <algorithm>
 

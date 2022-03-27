@@ -1,15 +1,15 @@
 
 #pragma once
 
-#include "src/common/string/tacString.h"
-#include "src/common/tacErrorHandling.h"
-#include "src/common/containers/tacVector.h"
-#include "src/common/shell/tacShell.h"
-#include "src/common/tacLocalization.h"
-#include "src/common/math/tacVector4.h"
-#include "src/common/math/tacVector2.h"
-#include "src/common/graphics/tacRenderer.h"
-#include "src/common/tacControllerInput.h"
+#include "src/common/string/tac_string.h"
+#include "src/common/tac_error_handling.h"
+#include "src/common/containers/tac_vector.h"
+#include "src/common/shell/tac_shell.h"
+#include "src/common/tac_localization.h"
+#include "src/common/math/tac_vector4.h"
+#include "src/common/math/tac_vector2.h"
+#include "src/common/graphics/tac_renderer.h"
+#include "src/common/tac_controller_input.h"
 
 namespace Tac
 {

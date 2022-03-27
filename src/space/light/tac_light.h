@@ -1,7 +1,7 @@
 #pragma once
 
-#include "src/common/graphics/tacRenderer.h"
-#include "src/space/tacComponent.h"
+#include "src/common/graphics/tac_renderer.h"
+#include "src/space/tac_component.h"
 
 // Okay but like
 // arent we already making too many generalizations?

@@ -1,5 +1,5 @@
-#include "src/space/tacSpacenet.h"
-#include "src/space/tacWorld.h"
+#include "src/space/tac_space_net.h"
+#include "src/space/tac_world.h"
 #include <cstring>
 namespace Tac
 {

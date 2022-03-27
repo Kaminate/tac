@@ -1,9 +1,9 @@
 
 #pragma once
-#include "src/space/tacSpacetypes.h"
-#include "src/common/tacSerialization.h"
-#include "src/common/tacPreprocessor.h"
-#include "src/common/math/tacVector2.h"
+#include "src/space/tac_space_types.h"
+#include "src/common/tac_serialization.h"
+#include "src/common/tac_preprocessor.h"
+#include "src/common/math/tac_vector2.h"
 
 namespace Tac
 {

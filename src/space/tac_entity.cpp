@@ -1,11 +1,11 @@
-#include "src/space/tacComponent.h"
-#include "src/space/tacEntity.h"
-#include "src/space/tacSystem.h"
-#include "src/space/tacWorld.h"
-#include "src/common/tacFrameMemory.h"
-#include "src/common/tacAlgorithm.h"
-#include "src/common/tacJson.h"
-#include "src/common/tacPreprocessor.h"
+#include "src/space/tac_component.h"
+#include "src/space/tac_entity.h"
+#include "src/space/tac_system.h"
+#include "src/space/tac_world.h"
+#include "src/common/tac_frame_memory.h"
+#include "src/common/tac_algorithm.h"
+#include "src/common/tac_json.h"
+#include "src/common/tac_preprocessor.h"
 
 #include <algorithm>
 #include <cmath>

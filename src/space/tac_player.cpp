@@ -1,7 +1,7 @@
+#include "src/space/tac_player.h"
+#include "src/space/tac_world.h"
+#include "src/space/tac_entity.h"
 
-#include "src/space/tacPlayer.h"
-#include "src/space/tacWorld.h"
-#include "src/space/tacEntity.h"
 namespace Tac
 {
   void Player::DebugImgui()

@@ -1,8 +1,8 @@
 
 #pragma once
-#include "src/space/tacSpacetypes.h"
-#include "src/space/tacSpacenet.h"
-#include "src/common/containers/tacVector.h"
+#include "src/space/tac_space_types.h"
+#include "src/space/tac_space_net.h"
+#include "src/common/containers/tac_vector.h"
 #include <list>
 #include <map>
 

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "src/common/math/tacVector3.h"
-#include "src/common/tacPreprocessor.h"
-#include "src/space/tacComponent.h"
+#include "src/common/math/tac_vector3.h"
+#include "src/common/tac_preprocessor.h"
+#include "src/space/tac_component.h"
 
 namespace Tac
 {

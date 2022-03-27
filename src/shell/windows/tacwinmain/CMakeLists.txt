@@ -1,8 +1,8 @@
 if( WIN32 )
 
 set("TAC_WIN_MAIN_FILES"
-"${CMAKE_CURRENT_SOURCE_DIR}/tacWin32Main.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/tacWin32Main.h"
+"${CMAKE_CURRENT_SOURCE_DIR}/tac_win32_main.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/tac_win32_main.h"
 CACHE INTERNAL ""
 )
 

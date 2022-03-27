@@ -1,0 +1,81 @@
+#include "src/common/graphics/tac_ui_2d.h"
+#include "src/common/shell/tac_shell.h"
+#include "src/common/tac_desktop_window.h"
+#include "src/common/graphics/imgui/tac_imgui.h"
+#include "src/common/tac_os.h"
+#include "src/common/profile/tac_profile.h"
+#include "src/creation/tac_creation.h"
+#include "src/creation/tac_creation_profile_window.h"
+#include "src/space/tac_world.h"
+#include "src/space/tac_entity.h"
+#include "src/space/tac_system.h"
+#include "src/shell/tac_desktop_app.h"
+#include "src/shell/tac_desktop_window_graphics.h"
+
+namespace Tac
+{
+  CreationProfileWindow* CreationProfileWindow::Instance = nullptr;
+  CreationProfileWindow::CreationProfileWindow()
+  {
+    Instance = this;
+  }
+  CreationProfileWindow::~CreationProfileWindow()
+  {
+    Instance = nullptr;
+    delete mUI2DDrawData;
+    DesktopAppDestroyWindow( mDesktopWindowHandle );
+  }
+  void CreationProfileWindow::Init( Errors& errors )
+  {
+    TAC_UNUSED_PARAMETER( errors );
+    mUI2DDrawData = TAC_NEW UI2DDrawData;
+    mDesktopWindowHandle = gCreation.CreateWindow( gProfileWindowName );
+  };
+  void CreationProfileWindow::ImGui()
+  {
+    TAC_PROFILE_BLOCK;
+    DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
+    if( !desktopWindowState->mNativeWindowHandle )
+      return;
+    
+    DesktopAppMoveControls( mDesktopWindowHandle );
+
+    ImGuiSetNextWindowStretch();
+    ImGuiSetNextWindowHandle( mDesktopWindowHandle );
+    ImGuiBegin( "Profile Window" );
+    mCloseRequested |= ImGuiButton( "Close Window" );
+
+    //// to force directx graphics specific window debugging
+    //if( ImGuiButton( "close window" ) )
+    //{
+    //  mDesktopWindow->mRequestDeletion = true;
+    //}
+
+    ImGuiProfileWidget();
+    ImGuiEnd();
+  }
+  void CreationProfileWindow::Update( Errors& errors )
+  {
+    TAC_PROFILE_BLOCK;
+    DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
+    if( !desktopWindowState->mNativeWindowHandle )
+      return;
+    const float w = ( float )desktopWindowState->mWidth;
+    const float h = ( float )desktopWindowState->mHeight;
+
+    const Render::ViewHandle viewHandle = WindowGraphicsGetView( mDesktopWindowHandle );
+    const Render::FramebufferHandle framebufferHandle = WindowGraphicsGetFramebuffer( mDesktopWindowHandle );
+    Render::SetViewFramebuffer( viewHandle, framebufferHandle );
+    Render::SetViewport( viewHandle, Render::Viewport( w, h ) );
+    Render::SetViewScissorRect( viewHandle, Render::ScissorRect( w, h ) );
+    ImGui();
+    mUI2DDrawData->DrawToTexture( viewHandle,
+                                  desktopWindowState->mWidth,
+                                  desktopWindowState->mHeight,
+                                  errors );
+    TAC_HANDLE_ERROR( errors );
+  }
+
+
+}
+

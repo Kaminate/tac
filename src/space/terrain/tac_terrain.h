@@ -1,10 +1,10 @@
 #pragma once
-#include "src/common/containers/tacVector.h"
-#include "src/common/math/tacVector3.h"
-#include "src/common/math/tacMatrix4.h"
-#include "src/common/tacErrorHandling.h"
-#include "src/common/graphics/tacRenderer.h"
-#include "src/space/tacComponent.h"
+#include "src/common/containers/tac_vector.h"
+#include "src/common/math/tac_vector3.h"
+#include "src/common/math/tac_matrix4.h"
+#include "src/common/tac_error_handling.h"
+#include "src/common/graphics/tac_renderer.h"
+#include "src/space/tac_component.h"
 
 namespace Tac
 {

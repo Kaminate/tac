@@ -1,11 +1,11 @@
 #pragma once
 
-#include "src/space/tacSpacetypes.h"
-#include "src/common/math/tacVector2.h"
-#include "src/common/math/tacMatrix4.h"
-#include "src/common/string/tacString.h"
-#include "src/common/containers/tacVector.h"
-#include "src/common/containers/tacArray.h"
+#include "src/space/tac_space_types.h"
+#include "src/common/math/tac_vector2.h"
+#include "src/common/math/tac_matrix4.h"
+#include "src/common/string/tac_string.h"
+#include "src/common/containers/tac_vector.h"
+#include "src/common/containers/tac_array.h"
 
 #include <list>
 

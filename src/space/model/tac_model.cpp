@@ -1,12 +1,12 @@
 
-#include "src/space/model/tacModel.h"
-#include "src/space/tacEntity.h"
-#include "src/space/graphics/tacGraphics.h"
-#include "src/common/graphics/imgui/tacImGui.h"
-#include "src/common/tacOS.h"
-#include "src/common/tacUtility.h"
-#include "src/common/tacErrorHandling.h"
-#include "src/common/tacJson.h"
+#include "src/space/model/tac_model.h"
+#include "src/space/tac_entity.h"
+#include "src/space/graphics/tac_graphics.h"
+#include "src/common/graphics/imgui/tac_imgui.h"
+#include "src/common/tac_os.h"
+#include "src/common/tac_utility.h"
+#include "src/common/tac_error_handling.h"
+#include "src/common/tac_json.h"
 
 namespace Tac
 {

@@ -1,10 +1,10 @@
-#include "src/common/math/tacMatrix3.h"
-#include "src/common/tacCamera.h"
-#include "src/common/tacJson.h"
-#include "src/common/graphics/tacRendererUtil.h"
-#include "src/space/graphics/tacgraphics.h"
-#include "src/space/light/tacLight.h"
-#include "src/space/tacentity.h"
+#include "src/common/math/tac_matrix3.h"
+#include "src/common/tac_camera.h"
+#include "src/common/tac_json.h"
+#include "src/common/graphics/tac_renderer_util.h"
+#include "src/space/graphics/tac_graphics.h"
+#include "src/space/light/tac_light.h"
+#include "src/space/tac_entity.h"
 
 namespace Tac
 {

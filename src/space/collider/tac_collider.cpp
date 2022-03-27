@@ -1,6 +1,6 @@
-#include "src/space/collider/taccollider.h"
-#include "src/space/tacentity.h"
-#include "src/space/physics/tacphysics.h"
+#include "src/space/collider/tac_collider.h"
+#include "src/space/tac_entity.h"
+#include "src/space/physics/tac_physics.h"
 namespace Tac
 {
   static ComponentRegistryEntry* sEntry;

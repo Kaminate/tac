@@ -10,33 +10,33 @@ set( TAC_SOURCES "" )
 set( TAC_EXE_NAME "Gravestory" )
 set( TAC_SOURCES 
   ${TAC_SOURCES}
-  "${CMAKE_SOURCE_DIR}/src/game/tacGame.cpp"
-  "${CMAKE_SOURCE_DIR}/src/game/tacGame.h"
-  "${CMAKE_SOURCE_DIR}/src/shell/tacDesktopApp.cpp"
-  "${CMAKE_SOURCE_DIR}/src/shell/tacDesktopApp.h"
-  "${CMAKE_SOURCE_DIR}/src/shell/tacDesktopWindowGraphics.cpp"
-  "${CMAKE_SOURCE_DIR}/src/shell/tacDesktopWindowGraphics.h" )
+  "${CMAKE_SOURCE_DIR}/src/game/tac_game.cpp"
+  "${CMAKE_SOURCE_DIR}/src/game/tac_game.h"
+  "${CMAKE_SOURCE_DIR}/src/shell/tac_desktop_app.cpp"
+  "${CMAKE_SOURCE_DIR}/src/shell/tac_desktop_app.h"
+  "${CMAKE_SOURCE_DIR}/src/shell/tac_desktop_window_graphics.cpp"
+  "${CMAKE_SOURCE_DIR}/src/shell/tac_desktop_window_graphics.h" )
 if( WIN32 )
 
 if( FALSE )
   set( TAC_SOURCES 
     ${TAC_SOURCES}
-    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacDXGI.cpp"
-    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacDXGI.h"
-    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWin32OS.cpp"
-    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWin32.cpp"
-    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWin32.h"
-    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacXInput.cpp"
-    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacXInput.h"
-    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacNetWinsock.cpp"
-    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacNetWinsock.h"
-    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacRendererDirectX.h"
-    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacRendererDirectXPIX.cpp"
-    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacRendererDirectX12.cpp"
-    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacRendererDirectX12.h"
-    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacRendererDirectX11.cpp"
-    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacRendererDirectX11ShaderPreprocess.cpp"
-    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacRendererDirectX11.h" )
+    "${CMAKE_SOURCE_DIR}/src/shell/windows/tac_dxgi.cpp"
+    "${CMAKE_SOURCE_DIR}/src/shell/windows/tac_dxgi.h"
+    "${CMAKE_SOURCE_DIR}/src/shell/windows/tac_win32_os.cpp"
+    "${CMAKE_SOURCE_DIR}/src/shell/windows/tac_win32.cpp"
+    "${CMAKE_SOURCE_DIR}/src/shell/windows/tac_win32.h"
+    "${CMAKE_SOURCE_DIR}/src/shell/windows/tac_x_input.cpp"
+    "${CMAKE_SOURCE_DIR}/src/shell/windows/tac_x_input.h"
+    "${CMAKE_SOURCE_DIR}/src/shell/windows/tac_net_winsock.cpp"
+    "${CMAKE_SOURCE_DIR}/src/shell/windows/tac_net_winsock.h"
+    "${CMAKE_SOURCE_DIR}/src/shell/windows/tac_renderer_directx.h"
+    "${CMAKE_SOURCE_DIR}/src/shell/windows/tac_renderer_directxpix.cpp"
+    "${CMAKE_SOURCE_DIR}/src/shell/windows/tac_renderer_directx12.cpp"
+    "${CMAKE_SOURCE_DIR}/src/shell/windows/tac_renderer_directx12.h"
+    "${CMAKE_SOURCE_DIR}/src/shell/windows/tac_renderer_directx11.cpp"
+    "${CMAKE_SOURCE_DIR}/src/shell/windows/tac_renderer_directx11_shader_preprocess.cpp"
+    "${CMAKE_SOURCE_DIR}/src/shell/windows/tac_renderer_directx11.h" )
 else()
   set( TAC_SOURCES ${TAC_SOURCES} ${TAC_WIN_LIB_FILES})
 endif() #if false

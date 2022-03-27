@@ -11,10 +11,10 @@ set( TAC_SOURCES "" )
 set( TAC_EXE_NAME "TacExamples" )
 set( TAC_SOURCES 
   ${TAC_SOURCES}
-  "${CMAKE_CURRENT_SOURCE_DIR}/tacExampleFluid.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/tacExampleFluid.h"
-  "${CMAKE_CURRENT_SOURCE_DIR}/tacExamples.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/tacExamples.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/tac_example_fluid.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/tac_example_fluid.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/tac_examples.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/tac_examples.h"
   ${TAC_DESKTOP_APP_FILES})
 
 if( WIN32 )

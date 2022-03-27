@@ -1,6 +1,6 @@
-#include "src/space/skybox/tacSkyboxComponent.h"
-#include "src/space/tacentity.h"
-#include "src/space/graphics/tacgraphics.h"
+#include "src/space/skybox/tac_skybox_component.h"
+#include "src/space/tac_entity.h"
+#include "src/space/graphics/tac_graphics.h"
 
 namespace Tac
 {

@@ -1,13 +1,13 @@
 
 #pragma once
 
-#include "src/space/tacSpacetypes.h"
-#include "src/space/tacSpacenet.h"
-#include "src/space/tacWorld.h"
-#include "src/common/math/tacVector2.h"
-#include "src/common/containers/tacVector.h"
-#include "src/common/string/tacString.h"
-#include "src/common/tacErrorHandling.h"
+#include "src/space/tac_space_types.h"
+#include "src/space/tac_space_net.h"
+#include "src/space/tac_world.h"
+#include "src/common/math/tac_vector2.h"
+#include "src/common/containers/tac_vector.h"
+#include "src/common/string/tac_string.h"
+#include "src/common/tac_error_handling.h"
 
 #include <list>
 

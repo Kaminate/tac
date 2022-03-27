@@ -1,8 +1,8 @@
 
-#include "src/space/tacScript.h"
-#include "src/common/tacPreprocessor.h"
-#include "src/common/tacTemporaryMemory.h"
-#include "src/common/containers/tacFrameVector.h"
+#include "src/space/tac_script.h"
+#include "src/common/tac_preprocessor.h"
+#include "src/common/tac_temporary_memory.h"
+#include "src/common/containers/tac_frame_vector.h"
 
 namespace Tac
 {

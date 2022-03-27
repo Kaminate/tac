@@ -1,8 +1,8 @@
-#include "src/space/tacGjk.h"
-#include "src/common/tacPreprocessor.h"
-#include "src/common/math/tacMatrix3.h"
-#include "src/common/math/tacMatrix4.h"
-#include "src/common/math/tacVector4.h"
+#include "src/space/tac_gjk.h"
+#include "src/common/tac_preprocessor.h"
+#include "src/common/math/tac_matrix3.h"
+#include "src/common/math/tac_matrix4.h"
+#include "src/common/math/tac_vector4.h"
 #include <cmath>
 
 namespace Tac

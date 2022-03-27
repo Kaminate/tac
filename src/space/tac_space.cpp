@@ -1,8 +1,8 @@
 
-#include "src/space/tacSpace.h"
-#include "src/space/graphics/tacGraphics.h"
-#include "src/space/physics/tacPhysics.h"
-#include "src/space/taccomponent.h"
+#include "src/space/tac_space.h"
+#include "src/space/graphics/tac_graphics.h"
+#include "src/space/physics/tac_physics.h"
+#include "src/space/tac_component.h"
 
 namespace Tac
 {

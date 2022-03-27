@@ -1,8 +1,8 @@
 
 #pragma once
-#include "src/common/math/tacVector3.h"
-#include "src/common/tacErrorHandling.h"
-#include "src/space/tacSystem.h"
+#include "src/common/math/tac_vector3.h"
+#include "src/common/tac_error_handling.h"
+#include "src/space/tac_system.h"
 #include <set>
 #include <list>
 

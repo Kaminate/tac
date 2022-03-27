@@ -3,8 +3,8 @@
 // of two convex polygons. We use it for physics integration and collision detection
 
 #pragma once
-#include "src/common/containers/tacVector.h"
-#include "src/common/math/tacVector3.h"
+#include "src/common/containers/tac_vector.h"
+#include "src/common/math/tac_vector3.h"
 #include <list>
 
 namespace Tac
