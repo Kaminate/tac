@@ -7,10 +7,8 @@ src/                    C++ source code
 assets/                 Runtime loaded by the game (sound, textures, models...)
 ```
 
-# Building
+# Getting the source
 
-
-Method 1
 
 ```
 git clone https://github.com/Kaminate/tac.git
@@ -19,13 +17,44 @@ git submodule init
 git submodule update
 ```
 
-Method 2 ( untested )
+or
 
 ```
 git clone --recurse-submodules https://github.com/Kaminate/tac.git
 ```
 
 
+# Building ( Windows Visual Studio 2019 )
+
+```
+pushd run
+run_vs2019
+popd
+pushd build_vs2019
+tac.sln
+```
+
+# Building ( Linux Fedora 32 Visual Studio Code )
+
+(untested)
+
+```
+su
+yum check-update
+yum install code // install the vs code ide
+yum install gdb // install a debugger
+yum install cmake-fedora // install build tools
+```
+(in vs code)
+```
+install C/C++ extension 
+install cmake tools extension
+open command palette (ctrl + shift + p)
+>CMake: Select a Kit (selected kit will appear on status bar)
+>CMake: Select Variant (Debug)
+>CMake: Configure (Generates build files using kit and variant)
+>CMake: Build
+```
 
 # License
 (c) 2017 Nathan Park  

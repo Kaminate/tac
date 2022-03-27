@@ -1,6 +1,7 @@
 # vulkan first supported in https://cmake.org/cmake/help/v3.7/module/FindVulkan.html
 # if vulkan still isn't found, update ${CMAKE_ROOT}/Modules/FindVulkan.cmake
 cmake_minimum_required(VERSION 3.7)
+cmake_policy(SET CMP0072 NEW) # prefer latest opengl
 project(Tac CXX)
 
 if( FALSE )
