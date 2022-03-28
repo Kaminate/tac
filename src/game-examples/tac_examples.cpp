@@ -7,6 +7,9 @@
 #include "src/game-examples/tac_examples.h"
 #include "src/shell/tac_desktop_app.h"
 #include "src/shell/tac_desktop_window_settings_tracker.h"
+#include "src/common/meta/tac_meta_fn.h"
+#include "src/common/meta/tac_meta_var.h"
+#include "src/common/meta/tac_meta_composite.h"
 
 namespace Tac
 {
@@ -19,6 +22,14 @@ namespace Tac
 
   static void   ExamplesInitCallback( Errors& errors )
   {
+
+    MetaVarUnitTest();
+    MetaFnSigUnitTest();
+    MetaFnUnitTest();
+    MetaCompositeUnitTest();
+
+
+
     sDesktopWindowHandle = CreateTrackedWindow( "Example.Window" );
     sExamples.push_back( new ExampleFluid );
     sExamples[ sExampleIndex ]->Init( errors );
