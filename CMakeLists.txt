@@ -22,6 +22,7 @@ else()
     add_compile_options(-Wno-unused-parameter)
     add_compile_options(-Wno-comment)
     add_compile_options(-Wno-unused-value)
+    add_compile_options(-Wno-unused-variable)
 endif()
 
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
