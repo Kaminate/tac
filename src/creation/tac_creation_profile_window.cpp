@@ -19,18 +19,21 @@ namespace Tac
   {
     Instance = this;
   }
+
   CreationProfileWindow::~CreationProfileWindow()
   {
     Instance = nullptr;
     delete mUI2DDrawData;
     DesktopAppDestroyWindow( mDesktopWindowHandle );
   }
+
   void CreationProfileWindow::Init( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
     mUI2DDrawData = TAC_NEW UI2DDrawData;
     mDesktopWindowHandle = gCreation.CreateWindow( gProfileWindowName );
-  };
+  }
+
   void CreationProfileWindow::ImGui()
   {
     TAC_PROFILE_BLOCK;
@@ -54,6 +57,7 @@ namespace Tac
     ImGuiProfileWidget();
     ImGuiEnd();
   }
+
   void CreationProfileWindow::Update( Errors& errors )
   {
     TAC_PROFILE_BLOCK;

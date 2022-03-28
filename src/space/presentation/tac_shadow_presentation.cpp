@@ -21,6 +21,7 @@
 #include "src/space/tac_entity.h"
 #include "src/space/tac_world.h"
 
+#include <cmath> // std::fmod
 
 namespace Tac
 {

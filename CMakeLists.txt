@@ -16,14 +16,27 @@ if (MSVC)
     add_compile_options(/WX) # treat linker warnings as errors
     add_compile_options(/MP) # multi processor compilation
 else()
-    add_compile_options(-Wall -Wextra -pedantic -Werror)
+    add_compile_options(
+      -Wall
+      -Wextra
+      -Werror
+      -Wpedantic
+      )
 
     # suppress annoying warnings
-    add_compile_options(-Wno-unused-parameter)
-    add_compile_options(-Wno-comment)
-    add_compile_options(-Wno-unused-value)
-    add_compile_options(-Wno-unused-variable)
+    add_compile_options(
+      -Wno-comment
+      -Wno-missing-field-initializers
+      -Wno-reorder
+      -Wno-switch
+      -Wno-unused-but-set-variable
+      -Wno-unused-parameter
+      -Wno-unused-value
+      -Wno-unused-variable
+    )
+
 endif()
+
 
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 set(CMAKE_CXX_STANDARD 20)

@@ -6,7 +6,7 @@
 #include "src/common/shell/tac_shell.h"
 #include "src/common/tac_memory.h"
 #include "src/common/tac_preprocessor.h"
-#include "src/common/thirdparty/Stb_image.h"
+#include "src/common/thirdparty/stb_image.h"
 #include "src/space/collider/tac_collider.h"
 #include "src/space/graphics/tac_graphics.h"
 #include "src/space/physics/tac_physics.h"

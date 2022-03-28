@@ -45,7 +45,7 @@ namespace Tac
   static void        DestroyTerrainComponent( World* world, Component* component )
   {
     Physics::GetSystem( world )->DestroyTerrain( ( Terrain* )component );
-  };
+  }
 
   void TerrainDebugImgui( Terrain* );
 
@@ -113,7 +113,7 @@ namespace Tac
   v3                      Terrain::GetGridVal( int iRow, int iCol ) const
   {
     return mRowMajorGrid[ GetGridIndex( iRow, iCol ) ];
-  };
+  }
 
   v3                      Terrain::GetGridValNormal( int iRow, int iCol ) const
   {

@@ -27,11 +27,11 @@ namespace Tac
   }
   World::~World()
   {
-    for( auto system : mSystems )
+    for( System* system : mSystems )
       delete system;
-    for( auto player : mPlayers )
+    for( Player* player : mPlayers )
       delete player;
-    for( auto entity : mEntities )
+    for( Entity* entity : mEntities )
       delete entity;
   }
   Entity* World::SpawnEntity( EntityUUID entityUUID )

@@ -111,14 +111,15 @@ if( SDL2_FOUND )
   set( TAC_INCLUDE_DIRECTORIES ${TAC_INCLUDE_DIRECTORIES} ${SDL2_INCLUDE_DIR} )
   include_directories( ${TAC_INCLUDE_DIRECTORIES} )
 
-  if( FALSE )
-  set( TAC_SOURCES 
-    ${TAC_SOURCES}
-    "${CMAKE_SOURCE_DIR}/src/shell/sdl/tac_sdl_app.cpp"
-    "${CMAKE_SOURCE_DIR}/src/shell/sdl/tac_sdl_app.h"
-    "${CMAKE_SOURCE_DIR}/src/shell/sdl/tac_sdl_main.cpp" )
-  else()
   set( TAC_SOURCES ${TAC_SOURCES} ${TAC_SDL_MAIN_FILES} )
+
+  # Add the dl library for linux (dlopen, dlclose) used by gl3w.cpp
+  find_library( DL_LIBS ${CMAKE_DL_LIBS} )
+  if( DL_LIBS )
+    message("found dl libs")
+    set( TAC_LIBRARIES ${TAC_LIBRARIES} ${DL_LIBS} )
+  else()
+    message("found no dl libs")
   endif()
 
   
@@ -127,12 +128,18 @@ if( SDL2_FOUND )
   # from console to windows, which makes the console window go away
   #
   # If this is a unix build, will the WIN32 here fuck everything up?
-  message( "adding exe ${TAC_TARGET_NAME}" )
-  add_executable( ${TAC_TARGET_NAME} WIN32 ${TAC_SOURCES} )
+  if(WIN32)
+    add_executable( ${TAC_TARGET_NAME} WIN32 ${TAC_SOURCES} )
+  else()
+    add_executable( ${TAC_TARGET_NAME} ${TAC_SOURCES} )
+  endif()
+
   set( TAC_LIBRARIES ${TAC_LIBRARIES} ${SDL2_LIBRARY} )
+
+  # this was missing before, right?
   target_link_libraries( ${TAC_TARGET_NAME} ${TAC_LIBRARIES} )
+
   set_target_properties( ${TAC_TARGET_NAME} PROPERTIES OUTPUT_NAME "${TAC_EXE_NAME}" )
-  # target_sources( ${TAC_TARGET_NAME} PRIVATE ${Common} )
   set_target_properties( ${TAC_TARGET_NAME} PROPERTIES
     VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
     VS_STARTUP_PROJECT ${TAC_TARGET_NAME}
@@ -144,9 +151,7 @@ if( SDL2_FOUND )
   # ( comma separated items denote a list in cmake )
 
   if( ${TAC_DEBUGGING} )
-    message( "hi")
-    message( "sdl2 liubrary: ${SDL2_LIBRARY}")
-    message( "hi")
+    message( "sdl2 libraries: ${SDL2_LIBRARY}")
   endif()
 
   list( GET SDL2_LIBRARY 0 SDL_FIRST_LIBRARY)
@@ -154,14 +159,13 @@ if( SDL2_FOUND )
   set( SDL2_DLL_FULL_NAME "${SDL_DLL_FOLDER}/SDL2.dll" )
 
   if( ${TAC_DEBUGGING} )
-    message( "hi")
-    message( "sdl2 liubrary: ${SDL_FIRST_LIBRARY}")
-    message( "sdl2 folder: ${SDL_DLL_FOLDER}")
-    message( "sdl2 dll full path: ${SDL2_DLL_FULL_NAME}")
-    message( "hi")
+    message( "sdl2 first library: ${SDL_FIRST_LIBRARY}")
+    message( "sdl2 dll folder: ${SDL_DLL_FOLDER}")
+    message( "sdl2 dll full name: ${SDL2_DLL_FULL_NAME}")
   endif()
 
 
+if(WIN32)
 
   # CMAKE_COMMAND is the full path to the cmake executable
   # -E invokes command line tool mode
@@ -173,6 +177,7 @@ if( SDL2_FOUND )
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
       ${SDL2_DLL_FULL_NAME}
       $<TARGET_FILE_DIR:${TAC_TARGET_NAME}>)
+  endif()
 else()
 endif()
 
@@ -185,37 +190,16 @@ if( WIN32 )
   # Program Database for Edit & Continue
   add_definitions(/ZI)
 
-    #message( "creation_cmakelists, tac sources: ${TAC_SOURCES}")
-    message( "creation_cmakelists, tac_win_main_files : ${TAC_WIN_MAIN_FILES}")
-
   # the win32 here changes the
   # configuration properties --> linker --> system --> subsystem
   # from console to windows, which makes the console window go away
   add_executable( ${TAC_TARGET_NAME} WIN32 ${TAC_SOURCES} )
   target_link_libraries( ${TAC_TARGET_NAME} ${TAC_LIBRARIES} )
-  # target_sources( ${TAC_TARGET_NAME} PRIVATE ${Common} )
   set_target_properties( ${TAC_TARGET_NAME} PROPERTIES
     VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
     VS_STARTUP_PROJECT ${TAC_TARGET_NAME}
     OUTPUT_NAME "${TAC_EXE_NAME}"
-    # RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} # "${RUNTIME_OUTPUT_DIRECTORY}/${TAC_TARGET_NAME}"
-    # RUNTIME_OUTPUT_DIRECTORY  "${RUNTIME_OUTPUT_DIRECTORY}/${TAC_TARGET_NAME}"
     LINKER_LANGUAGE CXX )
-  # set_target_properties( ...
-  # nothing: ------------------------------------------------------------------> E:\Users\Nate\Documents\GitHub\tac\build\src\creation\Debug\
-  # RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} ------------------------------> E:\Users\Nate\Documents\GitHub\tac\build\Debug\
-  # RUNTIME_OUTPUT_DIRECTORY "${RUNTIME_OUTPUT_DIRECTORY}/${TAC_TARGET_NAME}" -> \CreationWin32\Debug\ <-- E:\CreationWin32\Debug\
-  # ... )
-
-# get_target_property(<VAR> target property)
-#[[
-  set_target_properties( targets...
-      PROPERTIES
-      ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
-      LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
-      RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
-      ]]#
-
 
 endif()
 

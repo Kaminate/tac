@@ -1,5 +1,6 @@
-#include "src/shell/sdl/tacSDLApp.h"
-#include "src/common/tacOS.h"
+#include "src/shell/sdl/tac_sdl_app.h"
+#include "src/common/tac_os.h"
+
 #include <SDL_syswm.h>
 
 namespace Tac

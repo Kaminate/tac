@@ -18,21 +18,19 @@
 namespace Tac
 {
   static const SystemRegistryEntry* sSystemRegistryEntry;
-  static const char* GetNSysPath()
-  {
-    return "SystemWindow.nSys";
-  }
+
+  static const char* GetNSysPath() { return "SystemWindow.nSys"; }
 
   CreationSystemWindow* CreationSystemWindow::Instance = nullptr;
-  CreationSystemWindow::CreationSystemWindow()
-  {
-    Instance = this;
-  }
+
+  CreationSystemWindow::CreationSystemWindow() { Instance = this; }
+
   CreationSystemWindow::~CreationSystemWindow()
   {
     DesktopAppDestroyWindow( mDesktopWindowHandle );
     Instance = nullptr;
   }
+
   void CreationSystemWindow::Init( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
@@ -42,7 +40,7 @@ namespace Tac
         sSystemRegistryEntry = &entry;
 
     mDesktopWindowHandle = gCreation.CreateWindow( gSystemWindowName );
-  };
+  }
 
   void CreationSystemWindow::ImGui()
   {
@@ -94,6 +92,7 @@ namespace Tac
     //}
     ImGuiEnd();
   }
+
   void CreationSystemWindow::Update( Errors& errors )
   {
     TAC_PROFILE_BLOCK;

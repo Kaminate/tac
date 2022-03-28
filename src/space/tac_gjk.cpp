@@ -4,6 +4,7 @@
 #include "src/common/math/tac_matrix4.h"
 #include "src/common/math/tac_vector4.h"
 #include <cmath>
+#include <algorithm> // std::find
 
 namespace Tac
 {
@@ -557,15 +558,14 @@ namespace Tac
       float bary1;
       float bary2;
       v3 closestPointOnTri = mEPAClosest.mNormal * mEPAClosest.mPlaneDist;
-      BarycentricTriangle(
-        closestPointOnTri,
-        mEPAClosest.mV0.mDiffPt,
-        mEPAClosest.mV1.mDiffPt,
-        mEPAClosest.mV2.mDiffPt,
-        mEPABarycentricFucked,
-        bary0,
-        bary1,
-        bary2 );
+      BarycentricTriangle( closestPointOnTri,
+                           mEPAClosest.mV0.mDiffPt,
+                           mEPAClosest.mV1.mDiffPt,
+                           mEPAClosest.mV2.mDiffPt,
+                           mEPABarycentricFucked,
+                           bary0,
+                           bary1,
+                           bary2 );
       if( mEPABarycentricFucked )
         return;
       mEPALeftPoint

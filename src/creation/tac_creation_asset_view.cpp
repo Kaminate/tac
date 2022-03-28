@@ -215,13 +215,13 @@ namespace Tac
     entityRoot->mName = SplitFilepath( path ).mFilename;
 
     Vector< Entity* > entityNodes;
-    for( int i = 0; i < gltfData->nodes_count; ++i )
+    for( int i = 0; i < (int)gltfData->nodes_count; ++i )
     {
       Entity* entityNode = loadedModel->mWorld.SpawnEntity( loadedModel->mEntityUUIDCounter.AllocateNewUUID() );
       entityNodes.push_back( entityNode );
     }
 
-    for( int i = 0; i < gltfData->nodes_count; ++i )
+    for( int i = 0; i < (int)gltfData->nodes_count; ++i )
     {
       const cgltf_node& node = gltfData->nodes[ i ];
 
