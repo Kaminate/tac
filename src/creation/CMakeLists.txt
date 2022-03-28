@@ -122,6 +122,7 @@ if( SDL2_FOUND )
     message("found no dl libs")
   endif()
 
+  message("tac target name: ${TAC_TARGET_NAME}")
   
   # the win32 here changes the
   # configuration properties --> linker --> system --> subsystem
