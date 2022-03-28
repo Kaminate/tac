@@ -17,6 +17,7 @@ if (MSVC)
     add_compile_options(/MP) # multi processor compilation
 else()
     add_compile_options(-Wall -Wextra -pedantic -Werror)
+    add_compile_options(-Wno-unused-parameter) #suppress unused-parameter
 endif()
 
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
