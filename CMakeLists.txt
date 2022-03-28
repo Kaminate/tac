@@ -21,6 +21,7 @@ else()
     # suppress annoying warnings
     add_compile_options(-Wno-unused-parameter)
     add_compile_options(-Wno-comment)
+    add_compile_options(-Wno-unused-value)
 endif()
 
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
