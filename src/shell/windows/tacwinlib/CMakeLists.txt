@@ -36,4 +36,8 @@ set_target_properties(${Target} PROPERTIES LINKER_LANGUAGE CXX)
 add_definitions(/ZI) # produce separate pdb file ( implies /debug )
 target_link_libraries( ${Target} ${TAC_LIBRARIES} )
 
+
+# this is used in tac_register_renderers for __has_include( "tac_renderer_directx11.h" )
+target_include_directories( ${Target} PUBLIC renderer )
+
 endif() # if WIN32

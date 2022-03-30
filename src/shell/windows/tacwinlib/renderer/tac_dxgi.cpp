@@ -64,7 +64,7 @@ namespace Tac
   {
     const UINT flags = IsDebugMode() ? DXGI_CREATE_FACTORY_DEBUG : 0;
     const HRESULT hr = CreateDXGIFactory2( flags, IID_PPV_ARGS( &mFactory ) );
-    TAC_HANDLE_ERROR_IF( FAILED( hr ), "failed to create dxgi factory", errors );
+    TAC_RAISE_ERROR_IF( FAILED( hr ), "failed to create dxgi factory", errors );
     NameDXGIObject( mFactory, "my-dxgi-factory" );
 
     IDXGIAdapter1* dxgiAdapter1;

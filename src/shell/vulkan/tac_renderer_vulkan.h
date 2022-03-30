@@ -1,5 +1,5 @@
-/*
 #pragma once
+/*
 #include "common/graphics/tac_renderer.h"
 #include "common/tac_shell.h"
 
@@ -115,3 +115,13 @@ void TacVulkanCallAux( TacErrors& errors, TacString functionName, VkResult res )
   }\
 }
 */
+
+namespace Tac
+{
+  namespace Render
+  {
+    void RegisterRendererVulkan();
+
+  } // namespace Render
+
+} // namespace Tac

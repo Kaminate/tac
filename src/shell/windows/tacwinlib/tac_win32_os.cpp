@@ -183,7 +183,7 @@ namespace Tac
 
   void Win32OSSetScreenspaceCursorPos( const v2& pos, Errors& errors )
   {
-    TAC_HANDLE_ERROR_IF( !SetCursorPos( ( int )pos.x, ( int )pos.y ), Win32GetLastErrorString(), errors );
+    TAC_RAISE_ERROR_IF( !SetCursorPos( ( int )pos.x, ( int )pos.y ), Win32GetLastErrorString(), errors );
   }
 
   void Win32OSDoesFolderExist( StringView path, bool& exists, Errors& errors )
@@ -336,7 +336,7 @@ namespace Tac
     tempTm.tm_isdst = -1; // forget what this is for
 
     const time_t result = std::mktime( &tempTm );
-    TAC_HANDLE_ERROR_IF( result == -1, "Calandar time cannot be represented", errors );
+    TAC_RAISE_ERROR_IF( result == -1, "Calandar time cannot be represented", errors );
 
     *time = result;
   }

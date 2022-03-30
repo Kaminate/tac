@@ -1,3 +1,19 @@
+#include "tac_renderer_vulkan.h"
+
+namespace Tac
+{
+  namespace Render
+  {
+    void RegisterRendererVulkan()
+    {
+
+    }
+
+  } // namespace Render
+
+} // namespace Tac
+
+
 /*
 #include "tacRendererVulkan.h"
 #include "common/tac_desktop_window.h"

@@ -874,7 +874,7 @@ namespace Tac
 
       ID3D11Device3* device3 = nullptr;
       HRESULT queried = mDevice->QueryInterface( &mDevice3 );
-      TAC_HANDLE_ERROR_IF( FAILED( queried ), "failed to query id3d11device3", errors );
+      TAC_RAISE_ERROR_IF( FAILED( queried ), "failed to query id3d11device3", errors );
     }
 
     void RendererDirectX11::RenderBegin( const Frame*, Errors& )
@@ -2048,7 +2048,7 @@ namespace Tac
 
         ID3D11Texture2D* pBackBuffer = nullptr;
         TAC_DXGI_CALL( errors, swapChain->GetBuffer, 0, IID_PPV_ARGS( &pBackBuffer ) );
-        TAC_HANDLE_ERROR_IF( !pBackBuffer, "no buffer to resize", errors );
+        TAC_RAISE_ERROR_IF( !pBackBuffer, "no buffer to resize", errors );
         ID3D11RenderTargetView* rtv = nullptr;
         D3D11_RENDER_TARGET_VIEW_DESC* rtvDesc = nullptr;
         TAC_DX11_CALL( errors, device->CreateRenderTargetView, pBackBuffer, rtvDesc, &rtv );
@@ -2358,7 +2358,7 @@ namespace Tac
       TAC_RELEASE_IUNKNOWN( framebuffer->mDepthStencilView );
 
       DXGI_SWAP_CHAIN_DESC desc;
-      TAC_HANDLE_ERROR_IF( FAILED( framebuffer->mSwapChain->GetDesc( &desc ) ),
+      TAC_RAISE_ERROR_IF( FAILED( framebuffer->mSwapChain->GetDesc( &desc ) ),
                            "Failed to get swap chain desc",
                            errors );
       framebuffer->mSwapChain->ResizeBuffers( framebuffer->mBufferCount,
@@ -2368,7 +2368,7 @@ namespace Tac
                                               desc.Flags );
       ID3D11Texture2D* pBackBuffer = nullptr;
       TAC_DXGI_CALL( errors, framebuffer->mSwapChain->GetBuffer, 0, IID_PPV_ARGS( &pBackBuffer ) );
-      TAC_HANDLE_ERROR_IF( !pBackBuffer, "no buffer to resize", errors );
+      TAC_RAISE_ERROR_IF( !pBackBuffer, "no buffer to resize", errors );
       ID3D11RenderTargetView* rtv = nullptr;
       D3D11_RENDER_TARGET_VIEW_DESC* rtvDesc = nullptr;
       TAC_DX11_CALL( errors, mDevice->CreateRenderTargetView,

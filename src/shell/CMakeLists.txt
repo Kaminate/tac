@@ -10,5 +10,5 @@ set("TAC_DESKTOP_APP_FILES"
 "${CMAKE_CURRENT_SOURCE_DIR}/tac_desktop_window_graphics.h"
 "${CMAKE_CURRENT_SOURCE_DIR}/tac_desktop_window_settings_tracker.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/tac_desktop_window_settings_tracker.h"
-
+"${CMAKE_CURRENT_SOURCE_DIR}/tac_register_renderers.cpp"
 CACHE INTERNAL "")

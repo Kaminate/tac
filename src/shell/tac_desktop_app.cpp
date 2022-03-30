@@ -104,6 +104,7 @@ namespace Tac
   thread_local ThreadType              gThreadType = ThreadType::Unknown;
 
 
+  void RegisterRenderers();
   static void CreateRenderer( Errors& )
   {
 
@@ -663,6 +664,8 @@ namespace Tac
     ShellSetInitialWorkingDir( workingDir );
 
 
+
+    RegisterRenderers();
     CreateRenderer( errors );
     Render::Init( errors );
     TAC_HANDLE_ERROR( errors );

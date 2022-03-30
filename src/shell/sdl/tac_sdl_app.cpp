@@ -201,14 +201,18 @@ namespace Tac
 
       // SDL doesn't have this functionality
       // Maybe we shouldn't and just rely on the folder already existing?
-    void            OSDoesFolderExist( StringView path, bool& exists, Errors& ) override
+    void            OSDoesFolderExist( StringView path, bool& exists, Errors& errors ) override
     {
-      TAC_CRITICAL_ERROR_UNIMPLEMENTED;
+      std::error_code ec;
+      exists = std::filesystem::exists( path.c_str(), ec );
+      TAC_RAISE_ERROR_IF( ec, ec.message().c_str(), errors );
     }
 
-    void            OSCreateFolder( StringView path, Errors& ) override
+    void            OSCreateFolder( StringView path, Errors& errors ) override
     {
-      TAC_CRITICAL_ERROR_UNIMPLEMENTED;
+      std::error_code ec;
+      std::filesystem::create_directory( path.c_str(), ec );
+      TAC_RAISE_ERROR_IF( ec, ec.message().c_str(), errors );
     }
 
     void            OSDebugBreak() override
@@ -224,16 +228,16 @@ namespace Tac
     void            OSGetApplicationDataPath( String& path, Errors& errors ) override
     {
       // ??????
-      static const char* org;
-      static const char* app;
-      if( !org )
+      static String org;
+      static String app;
+      if( org.empty() || app.empty() )
       {
-        ExecutableStartupInfo info;
+        ExecutableStartupInfo info = {};
         info.Init( errors );
         org = info.mStudioName;
         app = info.mAppName;
       }
-
+      TAC_ASSERT( !org.empty() && !app.empty() );
       path = SDL_GetPrefPath( org, app );
     }
 
@@ -338,7 +342,7 @@ namespace Tac
 
     void            OSSetScreenspaceCursorPos( const v2& pos, Errors& errors ) override
     {
-      TAC_HANDLE_ERROR_IF( SDL_WarpMouseGlobal( ( int )pos.x, ( int )pos.y ) < 0, SDL_GetError(), errors );
+      TAC_RAISE_ERROR_IF( SDL_WarpMouseGlobal( ( int )pos.x, ( int )pos.y ) < 0, SDL_GetError(), errors );
     }
 
 
@@ -380,7 +384,7 @@ namespace Tac
 
   void SDLOSInit( Errors& errors )
   {
-    TAC_HANDLE_ERROR_IF( SDL_Init( SDL_INIT_EVERYTHING ), SDL_GetError(), errors );
+    TAC_RAISE_ERROR_IF( SDL_Init( SDL_INIT_EVERYTHING ), SDL_GetError(), errors );
     SetOS( &sSDLOS );
   }
 
