@@ -6,6 +6,8 @@
 #include "src/space/light/tac_light.h"
 #include "src/space/tac_entity.h"
 
+#include <cmath> // std::acos, std::round
+
 namespace Tac
 {
   static ComponentRegistryEntry* sComponentRegistryEntry;

@@ -21,6 +21,7 @@
 #include "src/shell/tac_desktop_window_settings_tracker.h"
 
 #include <mutex>
+#include <thread> // std::this_thread
 
 namespace Tac
 {
@@ -30,6 +31,7 @@ namespace Tac
     Main,
     Logic
   };
+
   enum class DesktopEventType
   {
     Unknown = 0,
@@ -74,7 +76,7 @@ namespace Tac
     int               mEdgePx = 0;
   };
 
-  typedef FixedVector< WantSpawnInfo, kDesktopWindowCapacity > WindowRequestsCreate;
+  typedef FixedVector< WantSpawnInfo, kDesktopWindowCapacity >       WindowRequestsCreate;
   typedef FixedVector< DesktopWindowHandle, kDesktopWindowCapacity > WindowRequestsDestroy;
 
   static Errors                        gPlatformThreadErrors( Errors::Flags::kDebugBreakOnAppend );
@@ -108,7 +110,7 @@ namespace Tac
 #if defined _WIN32 || defined _WIN64 
     const String defaultRendererName = Render::RendererNameDirectX11;
 #else
-    const String defaultRendererName = RendererNameVulkan;
+    const String defaultRendererName = Render::RendererNameVulkan;
 #endif
     if( const Render::RendererFactory* factory = Render::RendererFactoriesFind( defaultRendererName ) )
     {
@@ -331,7 +333,7 @@ namespace Tac
   {
     std::lock_guard< std::mutex > lockGuard( mMutex );
     // Tac::WindowProc still spews out events while a popupbox is open
-    if( mQueue.capacity() - mQueue.size() < sizeof( DesktopEventType ) + dataByteCount )
+    if( mQueue.capacity() - mQueue.size() < (int)sizeof( DesktopEventType ) + dataByteCount )
       return;
     mQueue.Push( &desktopEventType, sizeof( DesktopEventType ) );
     mQueue.Push( dataBytes, dataByteCount );

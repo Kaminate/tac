@@ -66,6 +66,9 @@ namespace Tac
       r33 = c2[ 2 ];
     }
 
+    TAC_UNUSED_PARAMETER( r22 );
+    TAC_UNUSED_PARAMETER( r23 );
+
     // On-rotation-deformation-zones-for-finite-strain-Cosserat-plasticity.pdf
     // Rot( x, y, z ) = rotZ(phi) * rotY(theta) * rotX(psi)
     float zPhi = 0;

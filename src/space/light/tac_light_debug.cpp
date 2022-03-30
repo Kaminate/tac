@@ -9,12 +9,12 @@
 #include "src/space/tac_entity.h"
 #include "src/space/tac_world.h"
 
+#include <cmath> // std::tan
+
 namespace Tac
 {
   static struct LightTypeNames
   {
-    friend static const char* LightTypeToName( Light::Type );
-    //friend static Light::Type LightTypeFromName( const char* );
     LightTypeNames()
     {
       mNames[ Light::Type::kSpot ] = "Spot";
@@ -22,21 +22,7 @@ namespace Tac
       for( int i = 0; i < Light::Type::kCount; ++i )
         TAC_ASSERT( mNames[ i ] );
     }
-  private:
-
-    const char* GetName( const Light::Type type )
-    {
-      return mNames[ type ];
-    }
-
-    //Light::Type GetType( const char* name )
-    //{
-    //  for( int i = 0; i < Light::Type::kCount; ++i )
-    //    if( !StrCmp( mNames[ i ], name ) )
-    //      return ( Light::Type )i;
-    //  return Light::Type::kCount;
-    //}
-
+    const char* GetName( const Light::Type type ) { return mNames[ type ]; }
     const char* mNames[ Light::Type::kCount ] = {};
   } sLightTypeNames;
 

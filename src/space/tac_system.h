@@ -7,6 +7,7 @@ namespace Tac
 
   struct System
   {
+    virtual ~System() = default;
     virtual void DebugImgui() {};
     virtual void Update() {};
     World*       mWorld = nullptr;
