@@ -145,7 +145,10 @@ namespace Tac
   {
     sAssetViewFiles.clear();
     sAssetViewFolders.clear();
-    GetOS()->OSGetFilesInDirectory( sAssetViewFiles, sAssetViewFolderCur, OSGetFilesInDirectoryFlags::Default, sAssetViewErrors );
+    GetOS()->OSGetFilesInDirectory( sAssetViewFiles,
+                                    sAssetViewFolderCur,
+                                    OSGetFilesInDirectoryFlags::Default,
+                                    sAssetViewErrors );
     GetOS()->OSGetDirectoriesInDirectory( sAssetViewFolders, sAssetViewFolderCur, sAssetViewErrors );
   }
 

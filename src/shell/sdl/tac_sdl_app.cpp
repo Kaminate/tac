@@ -1,133 +1,387 @@
-#include "src/shell/sdl/tacSDLApp.h"
-#include "src/common/tacOS.h"
+#include "src/shell/sdl/tac_sdl_app.h"
+#include "src/common/tac_os.h"
+#include "src/common/tac_id_collection.h"
+#include "src/common/tac_desktop_window.h"
+
 #include <SDL_syswm.h>
+
+#include <filesystem> // ?!
 
 namespace Tac
 {
 
-//
-//  SDLWindow::~SDLWindow()
-//  {
-//    SDL_DestroyWindow( mWindow );
-//    SDLApp::Instance->mWindows.erase( this );
-//  }
-//  void* SDLWindow::GetOperatingSystemHandle()
-//  {
-//    return mOperatingSystemHandle;
-//  }
-//
-//  SDLApp* SDLApp::Instance;
-//  SDLApp::SDLApp()
-//  {
-//    Instance = this;
-//  }
-//  SDLApp::~SDLApp()
-//  {
-//  }
-//  void SDLApp::Init( Errors& errors )
-//  {
-//    int sdl_init_result = SDL_Init( SDL_INIT_EVERYTHING );
-//    if( sdl_init_result )
-//    {
-//      errors = SDL_GetError();
-//      return;
-//    }
-//  }
-//  void SDLApp::Poll( Errors& errors )
-//  {
-//    SDL_Event event;
-//    while( SDL_PollEvent( &event ) )
-//    {
-//      if( OSmShouldStopRunning )
-//        break;
-//      switch( event.type )
-//      {
-//        case SDL_QUIT:
-//        {
-//          OSmShouldStopRunning = true;
-//        } break;
-//        case SDL_WINDOWEVENT:
-//        {
-//          SDLWindow* sdlWindow = FindSDLWindowByID( event.window.windowID );
-//          switch( event.window.event )
-//          {
-//            case SDL_WINDOWEVENT_CLOSE:
-//            {
-//              delete sdlWindow;
-//            } break;
-//            case SDL_WINDOWEVENT_RESIZED:
-//            {
-//              sdlWindow->mWidth = ( int )event.window.data1;
-//              sdlWindow->mHeight = ( int )event.window.data2;
-//              //sdlWindow->mRendererData->OnResize( errors );
-//            } break;
-//          }
-//        } break;
-//      }
-//    }
-//  }
-//  void SDLApp::GetPrimaryMonitor( Monitor* monitor, Errors& errors )
-//  {
-//    SDL_Rect rect;
-//    if( SDL_GetDisplayBounds( 0, &rect ) )
-//    {
-//      errors = va( "Failed to get display bounds %s", SDL_GetError() );
-//      TAC_HANDLE_ERROR( errors );
-//    }
-//    monitor->w = rect.w;
-//    monitor->h = rect.h;
-//  }
-//  SDLWindow* SDLApp::FindSDLWindowByID( Uint32 windowID )
-//  {
-//    for( SDLWindow* linuxWindow : mWindows )
-//    {
-//      if( SDL_GetWindowID( linuxWindow->mWindow ) == windowID )
-//      {
-//        return linuxWindow;
-//      }
-//    }
-//    return nullptr;
-//  }
-//  void SDLApp::SpawnWindow( DesktopWindowHandle handle,
-//                            int x,
-//                            int y,
-//                            int width,
-//                            int height )
-//  {
-//    Uint32 flags =
-//      SDL_WINDOW_SHOWN |
-//      SDL_WINDOW_RESIZABLE |
-//      //SDL_WINDOW_BORDERLESS |
-//      0;
-//    SDL_Window* sdlWindow = SDL_CreateWindow( "Tac",
-//                                              x,
-//                                              y,
-//                                              width,
-//                                              height,
-//                                              flags );
-//    SDL_RaiseWindow( sdlWindow );
-//
-//    void* operatingSystemHandle = nullptr;
-//    void* operatingSystemApplicationHandle = nullptr;
-//#if defined(SDL_VIDEO_DRIVER_WINDOWS)
-//    SDL_SysWMinfo wmInfo;
-//    SDL_VERSION( &wmInfo.version );
-//    if( SDL_FALSE == SDL_GetWindowWMInfo( sdlWindow, &wmInfo ) )
-//    {
-//      TAC_INVALID_CODE_PATH;
-//      //errors = "Failed to get sdl window wm info";
-//      //TAC_HANDLE_ERROR( errors );
-//    }
-//    operatingSystemHandle = wmInfo.info.win.window;
-//    operatingSystemApplicationHandle = wmInfo.info.win.hinstance;
-//#endif
-//
-//    auto linuxWindow = new SDLWindow();
-//    linuxWindow->mWindow = sdlWindow;
-//    linuxWindow->mOperatingSystemHandle = operatingSystemHandle;
-//    linuxWindow->mOperatingSystemApplicationHandle = operatingSystemApplicationHandle;
-//    //*( WindowParams* )linuxWindow = windowParams;
-//    //*desktopWindow = linuxWindow;
-//    //mWindows.insert( linuxWindow );
-//  }
-}
+  static const int    kSDLSemaphoreCapacity = 10;
+  static IdCollection sSDLSemaphoreIds( kSDLSemaphoreCapacity );
+  static SDL_sem*     sSDLSemaphores[ kSDLSemaphoreCapacity ];
+
+
+
+  //
+  //  SDLWindow::~SDLWindow()
+  //  {
+  //    SDL_DestroyWindow( mWindow );
+  //    SDLApp::Instance->mWindows.erase( this );
+  //  }
+  //  void* SDLWindow::GetOperatingSystemHandle()
+  //  {
+  //    return mOperatingSystemHandle;
+  //  }
+  //
+  //  SDLApp* SDLApp::Instance;
+  //  SDLApp::SDLApp()
+  //  {
+  //    Instance = this;
+  //  }
+  //  SDLApp::~SDLApp()
+  //  {
+  //  }
+  //  void SDLApp::Init( Errors& errors )
+  //  {
+  //  }
+  //  void SDLApp::Poll( Errors& errors )
+  //  {
+  //    SDL_Event event;
+  //    while( SDL_PollEvent( &event ) )
+  //    {
+  //      if( OSmShouldStopRunning )
+  //        break;
+  //      switch( event.type )
+  //      {
+  //        case SDL_QUIT:
+  //        {
+  //          OSmShouldStopRunning = true;
+  //        } break;
+  //        case SDL_WINDOWEVENT:
+  //        {
+  //          SDLWindow* sdlWindow = FindSDLWindowByID( event.window.windowID );
+  //          switch( event.window.event )
+  //          {
+  //            case SDL_WINDOWEVENT_CLOSE:
+  //            {
+  //              delete sdlWindow;
+  //            } break;
+  //            case SDL_WINDOWEVENT_RESIZED:
+  //            {
+  //              sdlWindow->mWidth = ( int )event.window.data1;
+  //              sdlWindow->mHeight = ( int )event.window.data2;
+  //              //sdlWindow->mRendererData->OnResize( errors );
+  //            } break;
+  //          }
+  //        } break;
+  //      }
+  //    }
+  //  }
+  //  void SDLApp::GetPrimaryMonitor( Monitor* monitor, Errors& errors )
+  //  {
+  //    SDL_Rect rect;
+  //    if( SDL_GetDisplayBounds( 0, &rect ) )
+  //    {
+  //      errors = va( "Failed to get display bounds %s", SDL_GetError() );
+  //      TAC_HANDLE_ERROR( errors );
+  //    }
+  //    monitor->w = rect.w;
+  //    monitor->h = rect.h;
+  //  }
+  //  SDLWindow* SDLApp::FindSDLWindowByID( Uint32 windowID )
+  //  {
+  //    for( SDLWindow* linuxWindow : mWindows )
+  //    {
+  //      if( SDL_GetWindowID( linuxWindow->mWindow ) == windowID )
+  //      {
+  //        return linuxWindow;
+  //      }
+  //    }
+  //    return nullptr;
+  //  }
+  //  void SDLApp::SpawnWindow( DesktopWindowHandle handle,
+  //                            int x,
+  //                            int y,
+  //                            int width,
+  //                            int height )
+  //  {
+  //    Uint32 flags =
+  //      SDL_WINDOW_SHOWN |
+  //      SDL_WINDOW_RESIZABLE |
+  //      //SDL_WINDOW_BORDERLESS |
+  //      0;
+  //    SDL_Window* sdlWindow = SDL_CreateWindow( "Tac",
+  //                                              x,
+  //                                              y,
+  //                                              width,
+  //                                              height,
+  //                                              flags );
+  //    SDL_RaiseWindow( sdlWindow );
+  //
+  //    void* operatingSystemHandle = nullptr;
+  //    void* operatingSystemApplicationHandle = nullptr;
+  //#if defined(SDL_VIDEO_DRIVER_WINDOWS)
+  //    SDL_SysWMinfo wmInfo;
+  //    SDL_VERSION( &wmInfo.version );
+  //    if( SDL_FALSE == SDL_GetWindowWMInfo( sdlWindow, &wmInfo ) )
+  //    {
+  //      TAC_INVALID_CODE_PATH;
+  //      //errors = "Failed to get sdl window wm info";
+  //      //TAC_HANDLE_ERROR( errors );
+  //    }
+  //    operatingSystemHandle = wmInfo.info.win.window;
+  //    operatingSystemApplicationHandle = wmInfo.info.win.hinstance;
+  //#endif
+  //
+  //    auto linuxWindow = new SDLWindow();
+  //    linuxWindow->mWindow = sdlWindow;
+  //    linuxWindow->mOperatingSystemHandle = operatingSystemHandle;
+  //    linuxWindow->mOperatingSystemApplicationHandle = operatingSystemApplicationHandle;
+  //    //*( WindowParams* )linuxWindow = windowParams;
+  //    //*desktopWindow = linuxWindow;
+  //    //mWindows.insert( linuxWindow );
+  //  }
+
+  void                SDLProjectInit( Errors& )
+  {
+    TAC_CRITICAL_ERROR_UNIMPLEMENTED;
+  }
+
+  void                SDLProjectUpdate( Errors& )
+  {
+    TAC_CRITICAL_ERROR_UNIMPLEMENTED;
+  }
+
+  void                SDLProjectUninit( Errors& )
+  {
+    TAC_CRITICAL_ERROR_UNIMPLEMENTED;
+  }
+
+  void                SDLPlatformFrameBegin( Errors& )
+  {
+    TAC_CRITICAL_ERROR_UNIMPLEMENTED;
+  }
+
+  void                SDLPlatformFrameEnd( Errors& )
+  {
+    TAC_CRITICAL_ERROR_UNIMPLEMENTED;
+  }
+
+  void                SDLPlatformSpawnWindow( const DesktopWindowHandle&,
+                                              int x,
+                                              int y,
+                                              int width,
+                                              int height )
+  {
+    TAC_CRITICAL_ERROR_UNIMPLEMENTED;
+  }
+
+  void                SDLPlatformDespawnWindow( const DesktopWindowHandle& )
+  {
+    TAC_CRITICAL_ERROR_UNIMPLEMENTED;
+  }
+
+  void                SDLPlatformWindowMoveControls( const DesktopWindowHandle&, const DesktopWindowRect& )
+  {
+    TAC_CRITICAL_ERROR_UNIMPLEMENTED;
+  }
+
+  void                SDLPlatformWindowResizeControls( const DesktopWindowHandle&, int )
+  {
+    TAC_CRITICAL_ERROR_UNIMPLEMENTED;
+  }
+
+  DesktopWindowHandle SDLPlatformGetMouseHoveredWindow()
+  {
+    TAC_CRITICAL_ERROR_UNIMPLEMENTED;
+    return DesktopWindowHandle();
+  }
+
+
+  static struct SDLOS : public OS
+  {
+    void            OSSaveToFile( StringView path, void* bytes, int byteCount, Errors& ) override
+    {
+      TAC_CRITICAL_ERROR_UNIMPLEMENTED;
+    }
+
+      // SDL doesn't have this functionality
+      // Maybe we shouldn't and just rely on the folder already existing?
+    void            OSDoesFolderExist( StringView path, bool& exists, Errors& ) override
+    {
+      TAC_CRITICAL_ERROR_UNIMPLEMENTED;
+    }
+
+    void            OSCreateFolder( StringView path, Errors& ) override
+    {
+      TAC_CRITICAL_ERROR_UNIMPLEMENTED;
+    }
+
+    void            OSDebugBreak() override
+    {
+      SDL_TriggerBreakpoint();
+    }
+
+    void            OSDebugPopupBox( StringView s ) override
+    {
+      SDL_ShowSimpleMessageBox( SDL_MESSAGEBOX_ERROR, "Hello", s, nullptr );
+    }
+
+    void            OSGetApplicationDataPath( String& path, Errors& errors ) override
+    {
+      // ??????
+      static const char* org;
+      static const char* app;
+      if( !org )
+      {
+        ExecutableStartupInfo info;
+        info.Init( errors );
+        org = info.mStudioName;
+        app = info.mAppName;
+      }
+
+      path = SDL_GetPrefPath( org, app );
+    }
+
+    void            OSGetFileLastModifiedTime( std::time_t*, StringView path, Errors& ) override
+    {
+      TAC_CRITICAL_ERROR_UNIMPLEMENTED;
+    }
+
+    void            OSGetFilesInDirectoryAux( Vector< String >& files, const std::filesystem::directory_entry& entry )
+    {
+      if( entry.is_regular_file() )
+      {
+        String subDirPath = entry.path().string().c_str();
+        files.push_back( subDirPath );
+      }
+    }
+
+    void            OSGetFilesInDirectory( Vector< String >& files,
+                                           StringView dir,
+                                           OSGetFilesInDirectoryFlags flags,
+                                           Errors& ) override
+    {
+      std::filesystem::path dirpath = dir.c_str();
+      std::filesystem::recursive_directory_iterator itRecurse( dirpath );
+      std::filesystem::directory_iterator itNonRecurse( dirpath );
+      const bool recurse = ( int )flags & ( int )OSGetFilesInDirectoryFlags::Recursive;
+      if( recurse )
+      {
+        for( const std::filesystem::directory_entry& entry : itRecurse )
+        {
+          OSGetFilesInDirectoryAux( files, entry );
+        }
+      }
+      else
+      {
+        for( const std::filesystem::directory_entry& entry : itNonRecurse )
+        {
+          OSGetFilesInDirectoryAux( files, entry );
+        }
+      }
+    }
+
+    void            OSGetDirectoriesInDirectory( Vector< String >& dirs, StringView dir, Errors& ) override
+    {
+      std::filesystem::path dirpath = dir.c_str();
+      for( const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator( dirpath ) )
+      {
+        if( entry.is_directory() )
+        {
+          String subDirPath = entry.path().string().c_str();
+          dirs.push_back( subDirPath );
+        }
+      }
+    }
+
+    void            OSSaveDialog( String& path, StringView suggestedPath, Errors& ) override
+    {
+      TAC_CRITICAL_ERROR_UNIMPLEMENTED;
+    }
+
+    void            OSOpenDialog( String& path, Errors& ) override
+    {
+      TAC_CRITICAL_ERROR_UNIMPLEMENTED;
+    }
+
+    void            OSGetWorkingDir( String& dir, Errors& ) override
+    {
+      // how does this handle utf8? utf16? utf32?
+      dir = std::filesystem::current_path().string().c_str();
+    }
+
+    void            OSGetPrimaryMonitor( int* w, int* h ) override
+    {
+      int maxArea = 0;
+      int maxAreaW = 0;
+      int maxAreaH = 0;
+      for( int iDisplay = 0; iDisplay < SDL_GetNumVideoDisplays(); ++iDisplay )
+      {
+        SDL_DisplayMode mode;
+        int displayResult = SDL_GetCurrentDisplayMode( iDisplay, &mode );
+        if( displayResult )
+          continue; // todo use SDL_GetError()
+        int area = mode.w * mode.h;
+        if( area <= maxArea )
+          continue;
+        maxArea = area;
+        maxAreaW = mode.w;
+        maxAreaH = mode.h;
+      }
+      *w = maxAreaW;
+      *h = maxAreaH;
+    }
+
+    //void        OSSetScreenspaceCursorPos( v2& pos, Errors& ) override
+    //{
+    //  int x;
+    //  int y;
+    //  SDL_GetGlobalMouseState( &x, &y );
+    //  pos.x = x;
+    //  pos.y = y;
+    //}
+
+    void            OSSetScreenspaceCursorPos( const v2& pos, Errors& errors ) override
+    {
+      TAC_HANDLE_ERROR_IF( SDL_WarpMouseGlobal( ( int )pos.x, ( int )pos.y ) < 0, SDL_GetError(), errors );
+    }
+
+
+    SemaphoreHandle OSSemaphoreCreate() override
+    {
+      const int i = sSDLSemaphoreIds.Alloc();
+      SDL_sem* sem = SDL_CreateSemaphore( 0 );
+      sSDLSemaphores[ i ] = sem;
+      TAC_ASSERT( sem );
+      return i;
+    }
+
+    void            OSSemaphoreDecrementWait( SemaphoreHandle semaphoreHandle ) override
+    {
+      SDL_sem* semaphore = sSDLSemaphores[ ( int )semaphoreHandle ];
+      SDL_SemPost( semaphore );
+    }
+
+    void            OSSemaphoreIncrementPost( SemaphoreHandle semaphoreHandle ) override
+    {
+      SDL_sem* semaphore = sSDLSemaphores[ ( int )semaphoreHandle ];
+      SDL_SemPost( semaphore );
+    }
+
+  } sSDLOS;
+
+  void SDLAppInit( Errors& errors )
+  {
+    DesktopAppInit( SDLPlatformSpawnWindow,
+                    SDLPlatformDespawnWindow,
+                    SDLPlatformGetMouseHoveredWindow,
+                    SDLPlatformFrameBegin,
+                    SDLPlatformFrameEnd,
+                    SDLPlatformWindowMoveControls,
+                    SDLPlatformWindowResizeControls,
+                    errors );
+
+  }
+
+  void SDLOSInit( Errors& errors )
+  {
+    TAC_HANDLE_ERROR_IF( SDL_Init( SDL_INIT_EVERYTHING ), SDL_GetError(), errors );
+    SetOS( &sSDLOS );
+  }
+
+} // namespace Tac

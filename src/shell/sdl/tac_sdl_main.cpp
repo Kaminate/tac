@@ -1,12 +1,35 @@
-#include "src/shell/sdl/tacSDLApp.h"
-#include "src/common/tacErrorHandling.h"
-#include "src/common/tacOS.h"
+#include "src/shell/sdl/tac_sdl_app.h"
+#include "src/common/tac_error_handling.h"
+//#include "src/common/tac_os.h"
 
-int main( int argc, char **argv )
+// Exists a better way?
+#if _WIN32
+#include "src/shell/windows/tacwinlib/renderer/tac_renderer_directx11.h"
+#endif
+
+using namespace Tac;
+
+void mainAux( Errors& errors )
 {
-  TAC_UNUSED_PARAMETER( argc );
-  TAC_UNUSED_PARAMETER( argv );
-  //( new Tac::SDLApp )->Run();
+  SDLOSInit( errors );
+  TAC_HANDLE_ERROR( errors );
+
+#if _WIN32
+  Render::RegisterRendererDirectX11();
+#endif
+
+  SDLAppInit( errors );
+  TAC_HANDLE_ERROR( errors );
+
+  DesktopAppRun( errors );
+  TAC_HANDLE_ERROR( errors );
+}
+
+int main( int, char ** )
+{
+  mainAux( *GetMainErrors() );
+  DesktopAppReportErrors();
   return 0;
 }
+
 

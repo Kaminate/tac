@@ -18,12 +18,9 @@
 
 namespace Tac
 {
-  static Errors sWinMainErrors;
-  static void ReportError( StringView, Errors& );
-  static void WinMainAux( HINSTANCE hInstance,
-                          HINSTANCE hPrevInstance,
-                          LPSTR lpCmdLine,
-                          int nCmdShow );
+  //static Errors sWinMainErrors;
+  //static void ReportError( StringView, Errors& );
+  static void WinMainAux( HINSTANCE, HINSTANCE, LPSTR, int, Errors& );
 }
 
 
@@ -33,21 +30,22 @@ int CALLBACK WinMain( HINSTANCE hInstance,
                       int nCmdShow )
 {
   using namespace Tac;
-  WinMainAux( hInstance, hPrevInstance, lpCmdLine, nCmdShow );
-  ReportError( "WinMain", sWinMainErrors );
-  ReportError( "Platform thread", *GetPlatformThreadErrors() );
-  ReportError( "Logic thread", *GetLogicThreadErrors() );
+  WinMainAux( hInstance, hPrevInstance, lpCmdLine, nCmdShow, *GetMainErrors() );
+  DesktopAppReportErrors();
+  //ReportError( "WinMain", sWinMainErrors );
+  //ReportError( "Platform thread", *GetPlatformThreadErrors() );
+  //ReportError( "Logic thread", *GetLogicThreadErrors() );
   return 0;
 }
 #pragma warning( disable: 4996) // itoa deprecated
 
 namespace Tac
 {
-  static void ReportError( StringView desc, Errors& errors )
-  {
-    if( errors )
-      GetOS()->OSDebugPopupBox( desc + " - " + errors.ToString() );
-  }
+  //static void ReportError( StringView desc, Errors& errors )
+  //{
+  //  if( errors )
+  //    GetOS()->OSDebugPopupBox( desc + " - " + errors.ToString() );
+  //}
 
   static void Win32FrameBegin( Errors& errors )
   {
@@ -82,13 +80,13 @@ namespace Tac
   static void WinMainAux( const HINSTANCE hInstance,
                           const HINSTANCE hPrevInstance,
                           const LPSTR lpCmdLine,
-                          const int nCmdShow )
+                          const int nCmdShow,
+                          Errors& errors )
   {
     Win32OSInit();
     Win32SetStartupParams( hInstance, hPrevInstance, lpCmdLine, nCmdShow );
     RedirectStreamBuf();
     Render::RegisterRendererDirectX11();
-    Errors& errors = sWinMainErrors;
 
     auto xInput = TAC_NEW XInput();
     xInput->Init( errors );

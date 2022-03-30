@@ -23,7 +23,10 @@ namespace Tac
 
         Vector< String > heightmapPaths;
         Errors errors;
-        GetOS()->OSGetFilesInDirectory( heightmapPaths, "assets/heightmaps", OSGetFilesInDirectoryFlags::Recursive, errors );
+        GetOS()->OSGetFilesInDirectory( heightmapPaths,
+                                        "assets/heightmaps",
+                                        OSGetFilesInDirectoryFlags::Recursive,
+                                        errors );
         for( auto& heightmapPath : heightmapPaths )
         {
           if( ImGuiButton( heightmapPath ) )

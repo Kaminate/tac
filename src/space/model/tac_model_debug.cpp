@@ -48,7 +48,10 @@ namespace Tac
         needsRefresh = false;
         modelPaths.clear();
         Vector< String > allfiles;
-        GetOS()->OSGetFilesInDirectory( allfiles, "assets", OSGetFilesInDirectoryFlags::Recursive, getfilesErrors );
+        GetOS()->OSGetFilesInDirectory( allfiles,
+                                        "assets",
+                                        OSGetFilesInDirectoryFlags::Recursive,
+                                        getfilesErrors );
         for( String file : allfiles )
           if( IsModelPath( file ) )
             modelPaths.push_back( file );
@@ -57,7 +60,9 @@ namespace Tac
       }
 
       const double populateDuration = 0.1;
-      const int numberOfFilesPopulate = int( ( curSecTimestamp - refreshSecTimestamp ) / populateDuration * modelPaths.size() );
+      const int numberOfFilesPopulate = int(
+        ( curSecTimestamp - refreshSecTimestamp ) /
+        populateDuration * modelPaths.size() );
       for( int i = 0; i < Min( ( int )modelPaths.size(), numberOfFilesPopulate ); ++i )
       {
         const String& filepath = modelPaths[ i ];

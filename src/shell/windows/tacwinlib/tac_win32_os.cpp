@@ -102,13 +102,13 @@ namespace Tac
     }
   }
 
-  void OSGetPrimaryMonitor( int* w, int* h )
+  void Win32OSGetPrimaryMonitor( int* w, int* h )
   {
     *w = GetSystemMetrics( SM_CXSCREEN );
     *h = GetSystemMetrics( SM_CYSCREEN );
   }
 
-  void OSGetWorkingDir( String& dir, Errors& errors )
+  void Win32OSGetWorkingDir( String& dir, Errors& errors )
   {
     const int bufLen = 1024;
     char buf[ bufLen ] = {};
@@ -122,7 +122,7 @@ namespace Tac
     dir = String( buf, getCurrentDirectoryResult );
   };
 
-  void OSOpenDialog( String& path, Errors& errors )
+  void Win32OSOpenDialog( String& path, Errors& errors )
   {
     const int outBufSize = 256;
     char outBuf[ outBufSize ] = {};
@@ -156,7 +156,7 @@ namespace Tac
     }
   }
 
-  void OSSaveDialog( String& outPath, StringView suggestedPath, Errors& errors )
+  void Win32OSSaveDialog( String& outPath, StringView suggestedPath, Errors& errors )
   {
     Array< char, 256 > outBuf = {};
     MemCpy( outBuf.data(), suggestedPath.c_str(), suggestedPath.size() );
@@ -181,12 +181,12 @@ namespace Tac
     outPath = outBuf.data();
   };
 
-  void OSSetScreenspaceCursorPos( const v2& pos, Errors& errors )
+  void Win32OSSetScreenspaceCursorPos( const v2& pos, Errors& errors )
   {
     TAC_HANDLE_ERROR_IF( !SetCursorPos( ( int )pos.x, ( int )pos.y ), Win32GetLastErrorString(), errors );
   }
 
-  void OSDoesFolderExist( StringView path, bool& exists, Errors& errors )
+  void Win32OSDoesFolderExist( StringView path, bool& exists, Errors& errors )
   {
     String expandedPath;
     const char* pathBytes = path.c_str();
@@ -197,7 +197,7 @@ namespace Tac
     if( !isFullPath )
     {
       String workingDir;
-      OSGetWorkingDir( workingDir, errors );
+      Win32OSGetWorkingDir( workingDir, errors );
       expandedPath = workingDir + '\\' + String( path );
       pathBytes = expandedPath.c_str();
     }
@@ -216,7 +216,7 @@ namespace Tac
     exists = true;
   }
 
-  void OSCreateFolder( const StringView path, Errors& errors )
+  void Win32OSCreateFolder( const StringView path, Errors& errors )
   {
     const BOOL createDirectoryResult = CreateDirectoryA( path.c_str(), NULL );
     if( createDirectoryResult == 0 )
@@ -226,7 +226,7 @@ namespace Tac
     }
   }
 
-  void OSSaveToFile( StringView path, void* bytes, int byteCount, Errors& errors )
+  void Win32OSSaveToFile( StringView path, void* bytes, int byteCount, Errors& errors )
   {
     SplitFilepath splitFilepath( path );
     GetOS()->OSCreateFolderIfNotExist( splitFilepath.mDirectory, errors );
@@ -269,17 +269,17 @@ namespace Tac
     // Should we check that bytesWrittenCount == byteCount?
   }
 
-  void OSDebugBreak()
+  void Win32OSDebugBreak()
   {
     Win32DebugBreak();
   }
 
-  void OSDebugPopupBox( StringView s )
+  void Win32OSDebugPopupBox( StringView s )
   {
     MessageBox( nullptr, s.data(), nullptr, MB_OK );
   }
 
-  void OSGetApplicationDataPath( String& path, Errors& errors )
+  void Win32OSGetApplicationDataPath( String& path, Errors& errors )
   {
     WCHAR* outPath;
     const HRESULT hr = SHGetKnownFolderPath( FOLDERID_RoamingAppData, KF_FLAG_CREATE, nullptr, &outPath );
@@ -291,7 +291,7 @@ namespace Tac
     CoTaskMemFree( outPath );
   }
 
-  void OSGetFileLastModifiedTime( time_t* time,
+  void Win32OSGetFileLastModifiedTime( time_t* time,
                                   StringView path,
                                   Errors& errors )
   {
@@ -341,7 +341,7 @@ namespace Tac
     *time = result;
   }
 
-  void OSGetFilesInDirectory( Vector< String >& files,
+  void Win32OSGetFilesInDirectory( Vector< String >& files,
                               StringView dir,
                               OSGetFilesInDirectoryFlags flags,
                               Errors& errors )
@@ -376,7 +376,7 @@ namespace Tac
     Win32DirectoryIterate( dir, &functor, errors );
   }
 
-  void OSGetDirectoriesInDirectory( Vector< String >& dirs,
+  void Win32OSGetDirectoriesInDirectory( Vector< String >& dirs,
                                     StringView dir,
                                     Errors& errors )
   {
@@ -401,21 +401,23 @@ namespace Tac
   static IdCollection gSemaphoreIds( kSemaphoreCapacity );
   static HANDLE       gSemaphores[ kSemaphoreCapacity ];
 
-  SemaphoreHandle OSSemaphoreCreate()
+  SemaphoreHandle Win32OSSemaphoreCreate()
   {
     const int i = gSemaphoreIds.Alloc();
-    gSemaphores[ i ] = CreateSemaphoreA( NULL, 0, 100, NULL );
-    return { i };
+    HANDLE semaphore = CreateSemaphoreA( NULL, 0, 100, NULL );
+    TAC_ASSERT( semaphore );
+    gSemaphores[ i ] = semaphore;
+    return i;
   }
 
-  void            OSSemaphoreDecrementWait( const SemaphoreHandle handle )
+  void            Win32OSSemaphoreDecrementWait( const SemaphoreHandle handle )
   {
     TAC_ASSERT( handle.IsValid() );
     const HANDLE nativeHandle = gSemaphores[ ( int )handle ];
     WaitForSingleObject( nativeHandle, INFINITE );
   }
 
-  void            OSSemaphoreIncrementPost( const SemaphoreHandle handle )
+  void            Win32OSSemaphoreIncrementPost( const SemaphoreHandle handle )
   {
     TAC_ASSERT( handle.IsValid() );
     const HANDLE nativeHandle = gSemaphores[ ( int )handle ];
@@ -427,37 +429,31 @@ namespace Tac
   {
     void        OSSaveToFile( StringView path, void* bytes, int byteCount, Errors&  errors ) override
     {
-      return Tac::OSSaveToFile( path, bytes, byteCount, errors );
+      return Win32OSSaveToFile( path, bytes, byteCount, errors );
     }
 
     void        OSDoesFolderExist( StringView path, bool& exists, Errors& errors ) override
     {
-      return Tac::OSDoesFolderExist( path, exists, errors );
+      return Win32OSDoesFolderExist( path, exists, errors );
     }
 
     void        OSCreateFolder( StringView path, Errors& errors ) override
     {
-      return Tac::OSCreateFolder( path, errors );
+      return Win32OSCreateFolder( path, errors );
     }
 
-    void        OSDebugBreak() override
-    {
-      Tac::OSDebugBreak();
-    }
+    void        OSDebugBreak() override { Win32OSDebugBreak(); }
 
-    void        OSDebugPopupBox( StringView s ) override
-    {
-      return Tac::OSDebugPopupBox( s );
-    }
+    void        OSDebugPopupBox( StringView s ) override { return Win32OSDebugPopupBox( s ); }
 
     void        OSGetApplicationDataPath( String& path, Errors& e ) override
     {
-      return Tac::OSGetApplicationDataPath( path, e );
+      return Win32OSGetApplicationDataPath( path, e );
     }
 
     void        OSGetFileLastModifiedTime( time_t* t, StringView path, Errors& e ) override
     {
-      return Tac::OSGetFileLastModifiedTime( t, path, e );
+      return Win32OSGetFileLastModifiedTime( t, path, e );
     }
 
     void        OSGetFilesInDirectory( Vector< String >& files,
@@ -465,40 +461,40 @@ namespace Tac
                                        OSGetFilesInDirectoryFlags flags,
                                        Errors& e )
     {
-      return Tac::OSGetFilesInDirectory( files, dir, flags, e );
+      return Win32OSGetFilesInDirectory( files, dir, flags, e );
     }
 
     void        OSGetDirectoriesInDirectory( Vector< String >& dirs, StringView dir, Errors& e ) override
     {
-      return Tac::OSGetDirectoriesInDirectory( dirs, dir, e );
+      return Win32OSGetDirectoriesInDirectory( dirs, dir, e );
     }
 
     void        OSSaveDialog( String& path, StringView suggestedPath, Errors& e ) override
     {
-      return Tac::OSSaveDialog( path, suggestedPath, e );
+      return Win32OSSaveDialog( path, suggestedPath, e );
     }
 
     void        OSOpenDialog( String& path, Errors& e ) override
     {
-      return Tac::OSOpenDialog( path, e );
+      return Win32OSOpenDialog( path, e );
     }
 
 
     //                  same as current dir
     void        OSGetWorkingDir( String& dir, Errors& e ) override
     {
-      return Tac::OSGetWorkingDir( dir, e );
+      return Win32OSGetWorkingDir( dir, e );
     }
 
 
     void        OSGetPrimaryMonitor( int* w, int* h ) override
     {
-      return Tac::OSGetPrimaryMonitor( w, h );
+      return Win32OSGetPrimaryMonitor( w, h );
     }
 
     void        OSSetScreenspaceCursorPos( const v2& v, Errors& e ) override
     {
-      return Tac::OSSetScreenspaceCursorPos( v, e );
+      return Win32OSSetScreenspaceCursorPos( v, e );
     }
 
 
@@ -506,17 +502,17 @@ namespace Tac
 
     SemaphoreHandle OSSemaphoreCreate() override
     {
-      return Tac::OSSemaphoreCreate();
+      return Win32OSSemaphoreCreate();
     }
 
     void            OSSemaphoreDecrementWait( SemaphoreHandle handle ) override
     {
-      return            Tac::OSSemaphoreDecrementWait( handle );
+      return Win32OSSemaphoreDecrementWait( handle );
     }
 
     void            OSSemaphoreIncrementPost( SemaphoreHandle handle ) override
     {
-      return Tac::OSSemaphoreIncrementPost( handle );
+      return Win32OSSemaphoreIncrementPost( handle );
     }
 
 

@@ -74,9 +74,11 @@ namespace Tac
   void                DesktopAppResizeControls( const DesktopWindowHandle&, int edgePx = 7 );
   void                DesktopAppMoveControls( const DesktopWindowHandle&, DesktopWindowRect windowSpaceRect );
   void                DesktopAppMoveControls( const DesktopWindowHandle& );
+  void                DesktopAppReportErrors();
 
   Errors* GetPlatformThreadErrors();
   Errors* GetLogicThreadErrors();
+  Errors* GetMainErrors();
   bool    IsMainThread();
   bool    IsLogicThread();
 }

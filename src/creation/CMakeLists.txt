@@ -111,15 +111,7 @@ if( SDL2_FOUND )
   set( TAC_INCLUDE_DIRECTORIES ${TAC_INCLUDE_DIRECTORIES} ${SDL2_INCLUDE_DIR} )
   include_directories( ${TAC_INCLUDE_DIRECTORIES} )
 
-  if( FALSE )
-  set( TAC_SOURCES 
-    ${TAC_SOURCES}
-    "${CMAKE_SOURCE_DIR}/src/shell/sdl/tac_sdl_app.cpp"
-    "${CMAKE_SOURCE_DIR}/src/shell/sdl/tac_sdl_app.h"
-    "${CMAKE_SOURCE_DIR}/src/shell/sdl/tac_sdl_main.cpp" )
-  else()
   set( TAC_SOURCES ${TAC_SOURCES} ${TAC_SDL_MAIN_FILES} )
-  endif()
 
   
   # the win32 here changes the

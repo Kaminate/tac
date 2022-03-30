@@ -79,6 +79,7 @@ namespace Tac
 
   static Errors                        gPlatformThreadErrors( Errors::Flags::kDebugBreakOnAppend );
   static Errors                        gLogicThreadErrors( Errors::Flags::kDebugBreakOnAppend );
+  static Errors                        gMainFunctionErrors( Errors::Flags::kDebugBreakOnAppend );
   static PlatformSpawnWindow           sPlatformSpawnWindow;
   static PlatformDespawnWindow         sPlatformDespawnWindow;
   static PlatformGetMouseHoveredWindow sPlatformGetMouseHoveredWindow;
@@ -520,7 +521,7 @@ namespace Tac
                                                 const int w,
                                                 const int h )
   {
-    TAC_ASSERT(IsMainThread());
+    TAC_ASSERT( IsMainThread() );
     DesktopEventDataAssignHandle data;
     data.mDesktopWindowHandle = desktopWindowHandle;
     data.mNativeWindowHandle = nativeWindowHandle;
@@ -535,7 +536,7 @@ namespace Tac
                                               const int x,
                                               const int y )
   {
-    TAC_ASSERT(IsMainThread());
+    TAC_ASSERT( IsMainThread() );
     DesktopEventDataWindowMove data;
     data.mDesktopWindowHandle = desktopWindowHandle;
     data.mX = x;
@@ -547,7 +548,7 @@ namespace Tac
                                                 const int w,
                                                 const int h )
   {
-    TAC_ASSERT(IsMainThread());
+    TAC_ASSERT( IsMainThread() );
     DesktopEventDataWindowResize data;
     data.mDesktopWindowHandle = desktopWindowHandle;
     data.mWidth = w;
@@ -557,7 +558,7 @@ namespace Tac
 
   void                DesktopEventMouseWheel( const int ticks )
   {
-    TAC_ASSERT(IsMainThread());
+    TAC_ASSERT( IsMainThread() );
     DesktopEventDataMouseWheel data;
     data.mDelta = ticks;
     sEventQueue.QueuePush( DesktopEventType::MouseWheel, &data, sizeof( data ) );
@@ -567,7 +568,7 @@ namespace Tac
                                              const int x,
                                              const int y )
   {
-    TAC_ASSERT(IsMainThread());
+    TAC_ASSERT( IsMainThread() );
     DesktopEventDataMouseMove data;
     data.mDesktopWindowHandle = desktopWindowHandle;
     data.mX = x;
@@ -577,7 +578,7 @@ namespace Tac
 
   void                DesktopEventKeyState( const Key key, const bool down )
   {
-    TAC_ASSERT(IsMainThread());
+    TAC_ASSERT( IsMainThread() );
     DesktopEventDataKeyState data;
     data.mDown = down;
     data.mKey = key;
@@ -586,7 +587,7 @@ namespace Tac
 
   void                DesktopEventKeyInput( const Codepoint codepoint )
   {
-    TAC_ASSERT(IsMainThread());
+    TAC_ASSERT( IsMainThread() );
     DesktopEventDataKeyInput data;
     data.mCodepoint = codepoint;
     sEventQueue.QueuePush( DesktopEventType::KeyInput, &data, sizeof( data ) );
@@ -594,7 +595,7 @@ namespace Tac
 
   void                DesktopEventMouseHoveredWindow( const DesktopWindowHandle desktopWindowHandle )
   {
-    TAC_ASSERT(IsMainThread());
+    TAC_ASSERT( IsMainThread() );
     DesktopEventDataCursorUnobscured data;
     data.mDesktopWindowHandle = desktopWindowHandle;
     sEventQueue.QueuePush( DesktopEventType::CursorUnobscured, &data, sizeof( data ) );
@@ -640,6 +641,7 @@ namespace Tac
     GetOS()->OSGetWorkingDir( workingDir, errors );
     TAC_HANDLE_ERROR( errors );
 
+    // Platform Callbacks
     sPlatformSpawnWindow = platformSpawnWindow;
     sPlatformDespawnWindow = platformDespawnWindow;
     sPlatformGetMouseHoveredWindow = platformGetMouseHoveredWindow;
@@ -648,6 +650,7 @@ namespace Tac
     sPlatformWindowMoveControls = platformWindowMoveControls;
     sPlatformWindowResizeControls = platformWindowResizeControls;
 
+    // Project Callbacks
     sProjectInit = info.mProjectInit;
     sProjectUpdate = info.mProjectUpdate;
     sProjectUninit = info.mProjectUninit;
@@ -732,25 +735,31 @@ namespace Tac
     sWindowHandleLock.unlock();
   }
 
-  Errors*                        GetPlatformThreadErrors()
+  static void         DesktopAppReportError( const char* name, Errors& errors )
   {
-    return &gPlatformThreadErrors;
+    if( !errors )
+      return;
+    String s;
+    s += "Errors in ";
+    s += name;
+    s += " ";
+    s += errors.ToString();
+    GetOS()->OSDebugPopupBox( s );
   }
 
-  Errors*                        GetLogicThreadErrors()
+  void                DesktopAppReportErrors()
   {
-    return &gLogicThreadErrors;
-
+    DesktopAppReportError( "Platform Thread", gPlatformThreadErrors );
+    DesktopAppReportError( "Main Function", gMainFunctionErrors );
+    DesktopAppReportError( "Logic Thread", gLogicThreadErrors );
   }
 
-  bool                           IsMainThread()
-  {
-    return gThreadType == ThreadType::Main;
-  }
+  Errors*                        GetPlatformThreadErrors() { return &gPlatformThreadErrors; }
+  Errors*                        GetLogicThreadErrors()    { return &gLogicThreadErrors; }
+  Errors*                        GetMainErrors()           { return &gMainFunctionErrors; }
 
-  bool                           IsLogicThread()
-  {
-    return gThreadType == ThreadType::Logic;
-  }
+  bool                           IsMainThread() { return gThreadType == ThreadType::Main; }
+
+  bool                           IsLogicThread() { return gThreadType == ThreadType::Logic; }
 
 }
