@@ -4,5 +4,6 @@
         "array": "cpp",
         "type_traits": "cpp",
         "random": "cpp"
-    }
+    },
+    "cmake.buildDirectory": "${workspaceFolder}/build_unix_makefiles"
 }

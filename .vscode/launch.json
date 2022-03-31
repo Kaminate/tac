@@ -8,7 +8,7 @@
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/src/creation/Creation",
+            "program": "${workspaceFolder}/build_unix_makefiles/src/creation/Creation",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",

@@ -2,6 +2,8 @@ build/
 build_vs2017/
 build_vs2019/
 x64/
+CMakeFiles/
+*/CMakeFiles/*
 
 assets/imgui.ini
 
@@ -15,3 +17,4 @@ assets/imgui.ini
 
 cloc_found.txt
 cloc_ignored.txt
+src/creation/CMakeLists.txt

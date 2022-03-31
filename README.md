@@ -54,6 +54,12 @@ open command palette (ctrl + shift + p)
 >CMake: Select Variant (Debug)
 >CMake: Configure (Generates build files using kit and variant)
 >CMake: Build
+
+in .vscode/launch.json set
+    "program": "${workspaceFolder}/build_unix_makefiles/src/creation/Creation",
+in .vscode/settings.json set
+    "cmake.buildDirectory": "${workspaceFolder}/build_unix_makefiles"
+this is for run/run_unix_makefiles.h
 ```
 
 # License

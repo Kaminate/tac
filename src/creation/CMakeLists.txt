@@ -97,7 +97,13 @@ if( SDL2_FOUND )
   list( APPEND TAC_SOURCES ${TAC_SDL_MAIN_FILES})
 
   # Add the dl library for linux (dlopen, dlclose) used by gl3w.cpp
-  if( ${CMAKE_DL_LIBS} )
+  #
+  # variable name | value
+  # --------------+--------------------
+  # CMAKE_DL_LIBS | dl
+  # DL_LIBS       | /usr/lib64/libdl.so
+  #
+  if( CMAKE_DL_LIBS )
     message("attempting to link with dl libs")
     find_library( DL_LIBS ${CMAKE_DL_LIBS} )
     if( DL_LIBS )
@@ -106,9 +112,31 @@ if( SDL2_FOUND )
     else()
       message("found no dl libs")
     endif()
+  else()
+    message("CMAKE_DL_LIBS is empty")
   endif()
 
+  # message("CMAKE_DL_LIBS: ${CMAKE_DL_LIBS}")
+
+  # message("-----------------begin test ---------------")
+  # # # # if( CMAKE_DL_LIBS )
+    # message(CMAKE_DL_LIBS)
+    # message(${CMAKE_DL_LIBS})
+    # find_library( DL_LIBS ${CMAKE_DL_LIBS} )
+    # message(${DL_LIBS})
+  # # else()
+    # message("else branch")
+  # endif()
+  # message("-----------------end test ---------------")
+
+  
   message("tac target name: ${TAC_TARGET_NAME}")
+
+  message( "hello this is a default message") # this message appears
+  message( NOTICE "hello this is a notice message") # this message appears
+  message( DEBUG "hello this is a debug message") # this message never appears
+  message( STATUS "hello this is a status message") # this message appears prepended with '--'
+  message( WARNING "hello this is a warning message" ) # this message appears with file:line
   
   # the win32 here changes the
   # configuration properties --> linker --> system --> subsystem
