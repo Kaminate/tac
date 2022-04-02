@@ -1,4 +1,4 @@
-#include "src/shell/sdl/tac_sdl_app.h"
+#include "tac_sdl_app.h"
 #include "src/common/tac_os.h"
 #include "src/common/tac_id_collection.h"
 #include "src/common/tac_desktop_window.h"

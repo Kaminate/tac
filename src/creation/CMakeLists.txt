@@ -59,14 +59,19 @@ if( OPENGL_FOUND )
   list( APPEND TAC_LIBRARIES OpenGL::GL )
 endif()
 
-find_package( Vulkan )
-if( Vulkan_FOUND )
-  list( APPEND TAC_SOURCES ${Vulkan_INCLUDE_DIRS} ${TAC_VULKAN_SOURCE_FILES} )
-  if( WIN32 AND FALSE)
-    list( APPEND TAC_SOURCES "${CMAKE_SOURCE_DIR}/src/shell/windows/tac_renderer_vulkan_win32.cpp" )
-  endif()
-  list( APPEND TAC_LIBRARIES Vulkan::Vulkan )
+if( TARGET TacVkRenderer )
+  list( APPEND TAC_LIBRARIES TacVkRenderer )
 endif()
+
+#
+#find_package( Vulkan )
+#if( Vulkan_FOUND )
+#  list( APPEND TAC_SOURCES ${Vulkan_INCLUDE_DIRS} ${TAC_VULKAN_SOURCE_FILES} )
+#  if( WIN32 AND FALSE)
+#    list( APPEND TAC_SOURCES "${CMAKE_SOURCE_DIR}/src/shell/windows/tac_renderer_vulkan_win32.cpp" )
+#  endif()
+#  list( APPEND TAC_LIBRARIES Vulkan::Vulkan )
+#endif()
 
 list( APPEND TAC_INCLUDE_DIRECTORIES 
     "${CMAKE_SOURCE_DIR}/include"
@@ -92,9 +97,9 @@ endfunction()
 find_package( SDL2 )
 if( SDL2_FOUND )
   tac_target( "SDL" )
-  find_package( SDL2 REQUIRED )
+  # find_package( SDL2 REQUIRED )
   list( APPEND TAC_INCLUDE_DIRECTORIES ${SDL2_INCLUDE_DIR} )
-  list( APPEND TAC_SOURCES ${TAC_SDL_MAIN_FILES})
+  list( APPEND TAC_SOURCES ${TAC_SDL_MAIN_FILES} )
 
   # Add the dl library for linux (dlopen, dlclose) used by gl3w.cpp
   #
@@ -104,30 +109,12 @@ if( SDL2_FOUND )
   # DL_LIBS       | /usr/lib64/libdl.so
   #
   if( CMAKE_DL_LIBS )
-    message("attempting to link with dl libs")
     find_library( DL_LIBS ${CMAKE_DL_LIBS} )
     if( DL_LIBS )
-      message("found dl libs")
       list( APPEND TAC_LIBRARIES ${DL_LIBS} )
-    else()
-      message("found no dl libs")
     endif()
-  else()
-    message("CMAKE_DL_LIBS is empty")
   endif()
 
-  # message("CMAKE_DL_LIBS: ${CMAKE_DL_LIBS}")
-
-  # message("-----------------begin test ---------------")
-  # # # # if( CMAKE_DL_LIBS )
-    # message(CMAKE_DL_LIBS)
-    # message(${CMAKE_DL_LIBS})
-    # find_library( DL_LIBS ${CMAKE_DL_LIBS} )
-    # message(${DL_LIBS})
-  # # else()
-    # message("else branch")
-  # endif()
-  # message("-----------------end test ---------------")
 
   
   message("tac target name: ${TAC_TARGET_NAME}")
@@ -136,7 +123,7 @@ if( SDL2_FOUND )
   message( NOTICE "hello this is a notice message") # this message appears
   message( DEBUG "hello this is a debug message") # this message never appears
   message( STATUS "hello this is a status message") # this message appears prepended with '--'
-  message( WARNING "hello this is a warning message" ) # this message appears with file:line
+  # message( WARNING "hello this is a warning message" ) # this message appears with file:line
   
   # the win32 here changes the
   # configuration properties --> linker --> system --> subsystem
@@ -151,6 +138,7 @@ if( SDL2_FOUND )
 
   target_include_directories( ${TAC_TARGET_NAME} PUBLIC ${TAC_INCLUDE_DIRECTORIES} )
   list( APPEND TAC_LIBRARIES ${SDL2_LIBRARY} )
+  list( APPEND TAC_LIBRARIES TacSDLLib )
 
   # this was missing before, right?
   target_link_libraries( ${TAC_TARGET_NAME} ${TAC_LIBRARIES} )
@@ -179,9 +167,10 @@ if( SDL2_FOUND )
     message( "sdl2 dll folder: ${SDL_DLL_FOLDER}")
     message( "sdl2 dll full name: ${SDL2_DLL_FULL_NAME}")
   endif()
+endif() # if( SDL2_FOUND )
 
 
-if(WIN32)
+if( WIN32 )
 
   # CMAKE_COMMAND is the full path to the cmake executable
   # -E invokes command line tool mode
@@ -193,12 +182,7 @@ if(WIN32)
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
       ${SDL2_DLL_FULL_NAME}
       $<TARGET_FILE_DIR:${TAC_TARGET_NAME}>)
-  endif()
-else()
-endif()
 
-
-if( WIN32 )
   tac_target( "Win32" )
   list( APPEND TAC_SOURCES ${TAC_WIN_MAIN_FILES} )
 
