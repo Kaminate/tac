@@ -4,12 +4,12 @@
 #include "src/common/tac_error_handling.h"
 #include "src/common/tac_settings.h"
 #include "src/game-examples/tac_example_fluid.h"
+#include "src/game-examples/tac_example_meta.h"
 #include "src/game-examples/tac_examples.h"
 #include "src/shell/tac_desktop_app.h"
 #include "src/shell/tac_desktop_window_settings_tracker.h"
-#include "src/common/meta/tac_meta_fn.h"
-#include "src/common/meta/tac_meta_var.h"
-#include "src/common/meta/tac_meta_composite.h"
+
+#include <set>
 
 namespace Tac
 {
@@ -20,18 +20,28 @@ namespace Tac
   static Vector< Example* >    sExamples;
   static int                   sExampleIndex;
 
+  static void   VerifyExampleNames()
+  {
+    std::set< String > names;
+    for( auto example : sExamples )
+    {
+      const char* name = example->GetName();
+      TAC_ASSERT( name );
+
+      // Check for copy paste errors
+      TAC_ASSERT( names.find( name ) == names.end() );
+      names.insert( name );
+    }
+  }
+
   static void   ExamplesInitCallback( Errors& errors )
   {
-
-    MetaVarUnitTest();
-    MetaFnSigUnitTest();
-    MetaFnUnitTest();
-    MetaCompositeUnitTest();
-
-
-
     sDesktopWindowHandle = CreateTrackedWindow( "Example.Window" );
     sExamples.push_back( new ExampleFluid );
+    sExamples.push_back( new ExampleMeta );
+    VerifyExampleNames();
+
+    // Init just the first example, sExmpleIndex = 0
     sExamples[ sExampleIndex ]->Init( errors );
     TAC_HANDLE_ERROR( errors );
   }
@@ -65,7 +75,6 @@ namespace Tac
         if( ImGuiSelectable( sExamples[ i ]->GetName(), i == sExampleIndex ) )
           iSelected = i;
     }
-    ImGuiEnd();
 
     Example* example = sExamples[ sExampleIndex ];
     int exampleIndexNext = ( sExampleIndex + sExamples.size() + offset ) % sExamples.size();
@@ -84,6 +93,7 @@ namespace Tac
     example->Update( errors );
 
 
+    ImGuiEnd();
     TAC_HANDLE_ERROR( errors );
   }
 

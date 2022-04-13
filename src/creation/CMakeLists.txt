@@ -117,13 +117,15 @@ if( SDL2_FOUND )
 
 
   
-  message("tac target name: ${TAC_TARGET_NAME}")
+  if( FALSE )
+    message("tac target name: ${TAC_TARGET_NAME}")
 
-  message( "hello this is a default message") # this message appears
-  message( NOTICE "hello this is a notice message") # this message appears
-  message( DEBUG "hello this is a debug message") # this message never appears
-  message( STATUS "hello this is a status message") # this message appears prepended with '--'
-  # message( WARNING "hello this is a warning message" ) # this message appears with file:line
+    message( "hello this is a default message") # this message appears
+    message( NOTICE "hello this is a notice message") # this message appears
+    message( DEBUG "hello this is a debug message") # this message never appears
+    message( STATUS "hello this is a status message") # this message appears prepended with '--'
+    # message( WARNING "hello this is a warning message" ) # this message appears with file:line
+  endif()
   
   # the win32 here changes the
   # configuration properties --> linker --> system --> subsystem

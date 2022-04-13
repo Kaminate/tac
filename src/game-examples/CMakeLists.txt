@@ -10,6 +10,8 @@ set( TAC_INCLUDE_DIRECTORIES "" )
 set( TAC_SOURCES "" )
 set( TAC_EXE_NAME "TacExamples" )
 list( APPEND TAC_SOURCES
+  "${CMAKE_CURRENT_SOURCE_DIR}/tac_example_meta.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/tac_example_meta.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/tac_example_fluid.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/tac_example_fluid.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/tac_examples.cpp"
