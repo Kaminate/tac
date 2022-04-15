@@ -24,5 +24,9 @@ namespace Tac
 
   }
 
+  const char* ExampleMeta::GetName() const
+  {
+    return "Meta";
+  }
 
 } // namespace Tac

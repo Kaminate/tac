@@ -65,6 +65,9 @@ if( WIN32 )
   # from console to windows, which makes the console window go away
   add_executable( ${TAC_TARGET_NAME} WIN32 ${TAC_SOURCES} )
 
+
+  target_compile_options( ${TAC_TARGET_NAME} PUBLIC /ZI ) # Program Database for Edit & Continue
+
   target_link_libraries( ${TAC_TARGET_NAME} ${TAC_LIBRARIES} )
 
   set_target_properties( ${TAC_TARGET_NAME} PROPERTIES
@@ -118,6 +121,8 @@ if( SDL2_FOUND )
 
   # this was missing before, right?
   target_link_libraries( ${TAC_TARGET_NAME} ${TAC_LIBRARIES} )
+
+
 
   set_target_properties( ${TAC_TARGET_NAME} PROPERTIES
     OUTPUT_NAME "${TAC_EXE_NAME}"

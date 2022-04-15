@@ -15,7 +15,7 @@ namespace Tac
 {
 
   static DesktopWindowHandle   sDesktopWindowHandle;
-  static DesktopWindowState    sSavedDesktopWindowState;
+  //static DesktopWindowState    sSavedDesktopWindowState;
 
   static Vector< Example* >    sExamples;
   static int                   sExampleIndex;

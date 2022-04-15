@@ -11,7 +11,7 @@ namespace Tac
     void Init( Errors& ) override;
     void Update( Errors& ) override;
     void Uninit( Errors& ) override;
-    const char* GetName() const override { return "Fluid"; }
+    const char* GetName() const override;
   };
 
 }
