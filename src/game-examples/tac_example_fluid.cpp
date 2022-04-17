@@ -175,16 +175,18 @@ namespace Tac
   enum IterationExample
   {
     None,
-    FixedPoint
+    FixedPoint,
+    GaussSeidel,
 
 
   };
 
   static IterationExample sIterationExample;
-  static String sIterationExampleFn;
-  static float( *sGraphEqFx )( float );
-  static float( *sGraphEqGx )( float );
+  //static String sIterationExampleFn;
+  //static float( *sGraphEqFx )( float );
+  //static float( *sGraphEqGx )( float );
 
+  typedef float( *Fn2D )( float );
   float Ex1Fx( float x ) { return x - std::cos( x ); }
   float Ex1Gx( float x ) { return std::cos( x ); }
 
@@ -290,7 +292,7 @@ namespace Tac
 
     }
 
-    void DrawFn( float( *fn )( float ), float radius, v4 color, UI2DDrawData* drawData )
+    void DrawFn( Fn2D fn, float radius, v4 color, UI2DDrawData* drawData )
     {
       if( !fn )
         return;
@@ -364,41 +366,150 @@ namespace Tac
 
   void ExampleFluid::Update( Errors& errors )
   {
-    if( sIterationExample != IterationExample::None )
+    struct FnDraw
     {
-      ImGuiText( sIterationExampleFn );
+      FnDraw() = default;
+      FnDraw( Fn2D fn, v4 color, float lineRadius )
+      {
+        mFn = fn;
+        mColor = color;
+        mLineRadius = lineRadius;
+      }
 
-      // Relative to window viewport
+      Fn2D  mFn;
+      v4    mColor;
+      float mLineRadius;
+    };
+
+    static Vector< String > texts;
+    static Vector< FnDraw > fns;
+    const int NULL_STEP = -1;
+    static int iStep = NULL_STEP;
+    static int iStepNext;
+    static int stepCount;
+
+
+    ImGuiText( "--------------------------------" );
+    ImGuiText( va( "(debug text) iStep: %i, stepCount %i", iStep, stepCount ) );
+
+    for( auto& text : texts )
+    {
+      ImGuiText( text );
+    }
+
+    //if( sIterationExample != IterationExample::None )
+    //{
+      //ImGuiText( sIterationExampleFn );
+
+    if( fns.size() )
+    {
+    // Relative to window viewport
       const v2 canvas_pos = ImGuiGetCursorPos();
       const v2 canvas_size = v2( 400, 300 );
       ImGuiImage( ( int )Render::TextureHandle(), canvas_size );
       UI2DDrawData* drawData = ImGuiGetDrawData();
-
 
       sEquationGrapher.FrameBegin( canvas_pos, canvas_size );
       sEquationGrapher.DrawVerticalGridLines( drawData );
       sEquationGrapher.DrawHorizontalGridLines( drawData );
       sEquationGrapher.DrawXAxis( drawData );
       sEquationGrapher.DrawYAxis( drawData );
-      sEquationGrapher.DrawFn( sGraphEqFx, 1.0f, v4( 1, 0, 0, 1 ), drawData );
-      sEquationGrapher.DrawFn( sGraphEqGx, 1.0f, v4( 0, 1, 0, 1 ), drawData );
-      sEquationGrapher.DrawFn( []( float x ){ return x; }, 0.5f, v4( 0, 0, 0, 1 ), drawData );
+      for( auto fn : fns )
+        sEquationGrapher.DrawFn( fn.mFn, fn.mLineRadius, fn.mColor, drawData );
+      //sEquationGrapher.DrawFn( sGraphEqFx, 1.0f, v4( 1, 0, 0, 1 ), drawData );
+      //sEquationGrapher.DrawFn( sGraphEqGx, 1.0f, v4( 0, 1, 0, 1 ), drawData );
+      //sEquationGrapher.DrawFn( []( float x ){ return x; }, 0.5f, v4( 0, 0, 0, 1 ), drawData );
       sEquationGrapher.MouseDrag();
     }
+  //}
 
-    if( true )//|| ImGuiButton( "Fixed-Point Iteration" ) )
+
+  // Next/Prev step ui
     {
-      sIterationExample = IterationExample::FixedPoint;
-      sIterationExampleFn = "x - cos(x) = 0";
-      sGraphEqFx = Ex1Fx;
-      sGraphEqGx = Ex1Gx;
+      bool nextAvailable = iStep < stepCount - 1;
+      if( nextAvailable && ImGuiButton( "Next" ) )
+        iStepNext = iStep + 1;
+      bool prevAvailable = iStep > 0;
+      if( nextAvailable && prevAvailable )
+        ImGuiSameLine();
+      if( prevAvailable && ImGuiButton( "Prev" ) )
+        iStepNext = iStep - 1;
+    }
+
+    if( sIterationExample == IterationExample::FixedPoint )
+    {
+      stepCount = 2;
+      if( iStep != iStepNext )
+      {
+        iStep = iStepNext;
+        switch( iStep )
+        {
+          case 0:
+          {
+            texts = {
+              "------------------",
+              "Fixed Point Method",
+              "------------------",
+              "Solve the equation:",
+              "x - cos(x) = 0"
+            };
+            fns = { FnDraw( Ex1Fx, v4( 1,0,0,1 ), 1.0f ) };
+          } break;
+          case 1:
+          {
+            texts = {
+              "------------------",
+              "Fixed Point Method",
+              "------------------",
+              "Solve the equation:",
+              "x - cos(x) = 0"
+            };
+            texts.push_back( "Rewrite as" );
+            texts.push_back( "x = cos(x)" );
+            fns =
+            {
+              FnDraw( Ex1Fx, v4( 1,0,0,1 ), 1.0f ),
+              FnDraw( Ex1Gx, v4( 0,1,0,1 ), 1.0f )
+            };
+
+          }
+        }
+      }
+
+      if( iStep == 0 )
+      {
+      }
+
+      //sIterationExampleFn = "x - cos(x) = 0";
+      //sGraphEqFx = Ex1Fx;
+      //sGraphEqGx = Ex1Gx;
       // f(x) = x - cos(x) = 0
       // g(x) = cos(x) = x
 
     }
 
-    if( ImGuiButton( "Gauss-Seidel" ) )
-      const DesktopWindowHandle desktopWindowHandle = ImGuiGetWindowHandle();
+    if( ImGuiCollapsingHeader( "Select Method" ) )
+    {
+      TAC_IMGUI_INDENT_BLOCK;
+
+      IterationExample prev = sIterationExample;
+
+      if( ImGuiButton( "Fixed-Point Iteration" ) )
+        sIterationExample = IterationExample::FixedPoint;
+
+      if( ImGuiButton( "Gauss-Seidel" ) )
+        sIterationExample = IterationExample::GaussSeidel;
+
+      if( sIterationExample != prev )
+      {
+        iStep = NULL_STEP;
+        stepCount = 0;
+        iStepNext = 0;
+        texts.clear();
+        fns.clear();
+      }
+    }
+
   }
   void ExampleFluid::Uninit( Errors& errors ) { }
 
