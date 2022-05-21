@@ -187,8 +187,9 @@ namespace Tac
   //static float( *sGraphEqGx )( float );
 
   typedef float( *Fn2D )( float );
-  float Ex1Fx( float x ) { return x - std::cos( x ); }
-  float Ex1Gx( float x ) { return std::cos( x ); }
+  float Ex1FxEqualsXMinusCosX( float x ) { return x - std::cos( x ); }
+  float Ex1GxEqualsCosX( float x ) { return std::cos( x ); }
+  float Ex1YEqualsX( float x ) { return x; }
 
 
   struct EquationGrapher
@@ -292,6 +293,12 @@ namespace Tac
 
     }
 
+    v2   GraphToWindow( v2 p )
+    {
+      return v2( canvas_pos.x + ( p.x - viewMini.x ) * px_per_unit_x,
+                 canvas_pos.y + ( -p.y + viewMaxi.y ) * px_per_unit_y );
+    }
+
     void DrawFn( Fn2D fn, float radius, v4 color, UI2DDrawData* drawData )
     {
       if( !fn )
@@ -317,18 +324,8 @@ namespace Tac
         bool currVisible = isPointVisible( pCurr );
         if( prevVisible && currVisible )
         {
-          viewCenter;
-          viewHalfDims;
-
-          auto change = [ & ]( v2 p )
-          {
-            return v2(
-              canvas_pos.x + ( p.x - viewMini.x ) * px_per_unit_x,
-              canvas_pos.y + ( -p.y + viewMaxi.y ) * px_per_unit_y );
-          };
-
-          v2 from = change( pPrev );
-          v2 to = change( pCurr );
+          v2 from = GraphToWindow( pPrev );
+          v2 to = GraphToWindow( pCurr );
           drawData->AddLine( from, to, radius, color );
         }
 
@@ -392,100 +389,147 @@ namespace Tac
     ImGuiText( "--------------------------------" );
     ImGuiText( va( "(debug text) iStep: %i, stepCount %i", iStep, stepCount ) );
 
-    for( auto& text : texts )
-    {
-      ImGuiText( text );
-    }
 
     //if( sIterationExample != IterationExample::None )
     //{
       //ImGuiText( sIterationExampleFn );
 
-    if( fns.size() )
-    {
     // Relative to window viewport
-      const v2 canvas_pos = ImGuiGetCursorPos();
-      const v2 canvas_size = v2( 400, 300 );
-      ImGuiImage( ( int )Render::TextureHandle(), canvas_size );
-      UI2DDrawData* drawData = ImGuiGetDrawData();
+    const v2 canvas_pos = ImGuiGetCursorPos();
+    const v2 canvas_size = v2( 400, 300 );
+    ImGuiImage( ( int )Render::TextureHandle(), canvas_size );
+    UI2DDrawData* drawData = ImGuiGetDrawData();
 
-      sEquationGrapher.FrameBegin( canvas_pos, canvas_size );
-      sEquationGrapher.DrawVerticalGridLines( drawData );
-      sEquationGrapher.DrawHorizontalGridLines( drawData );
-      sEquationGrapher.DrawXAxis( drawData );
-      sEquationGrapher.DrawYAxis( drawData );
-      for( auto fn : fns )
-        sEquationGrapher.DrawFn( fn.mFn, fn.mLineRadius, fn.mColor, drawData );
-      //sEquationGrapher.DrawFn( sGraphEqFx, 1.0f, v4( 1, 0, 0, 1 ), drawData );
-      //sEquationGrapher.DrawFn( sGraphEqGx, 1.0f, v4( 0, 1, 0, 1 ), drawData );
-      //sEquationGrapher.DrawFn( []( float x ){ return x; }, 0.5f, v4( 0, 0, 0, 1 ), drawData );
-      sEquationGrapher.MouseDrag();
+    sEquationGrapher.FrameBegin( canvas_pos, canvas_size );
+    sEquationGrapher.DrawVerticalGridLines( drawData );
+    sEquationGrapher.DrawHorizontalGridLines( drawData );
+    sEquationGrapher.DrawXAxis( drawData );
+    sEquationGrapher.DrawYAxis( drawData );
+    for( auto fn : fns )
+      sEquationGrapher.DrawFn( fn.mFn, fn.mLineRadius, fn.mColor, drawData );
+    //sEquationGrapher.DrawFn( sGraphEqFx, 1.0f, v4( 1, 0, 0, 1 ), drawData );
+    //sEquationGrapher.DrawFn( sGraphEqGx, 1.0f, v4( 0, 1, 0, 1 ), drawData );
+    //sEquationGrapher.DrawFn( []( float x ){ return x; }, 0.5f, v4( 0, 0, 0, 1 ), drawData );
+    sEquationGrapher.MouseDrag();
+
+    for( auto& text : texts )
+    {
+      ImGuiText( text );
     }
   //}
 
 
   // Next/Prev step ui
     {
-      bool nextAvailable = iStep < stepCount - 1;
-      if( nextAvailable && ImGuiButton( "Next" ) )
-        iStepNext = iStep + 1;
-      bool prevAvailable = iStep > 0;
+      const bool nextAvailable = iStep < stepCount - 1;
+      const bool prevAvailable = iStep > 0;
+      if( prevAvailable && ( ImGuiButton( "Prev" ) || gKeyboardInput.IsKeyJustDown( Key::LeftArrow ) ) )
+        iStepNext = iStep - 1;
       if( nextAvailable && prevAvailable )
         ImGuiSameLine();
-      if( prevAvailable && ImGuiButton( "Prev" ) )
-        iStepNext = iStep - 1;
+      if( nextAvailable && ( ImGuiButton( "Next" ) || gKeyboardInput.IsKeyJustDown( Key::RightArrow ) ) )
+        iStepNext = iStep + 1;
     }
 
     if( sIterationExample == IterationExample::FixedPoint )
     {
-      stepCount = 2;
+      stepCount = 4;
       if( iStep != iStepNext )
       {
         iStep = iStepNext;
+
+        const Vector< String > textsStep0 = {
+              "------------------",
+              "Fixed Point Method",
+              "------------------",
+              "Solve the equation:",
+              "x - cos(x) = 0"
+        };
+
+        const Vector< FnDraw > fnsStep0 = { FnDraw( Ex1FxEqualsXMinusCosX, v4( 1,0,0,1 ), 1.0f ) };
+
+        const Vector< String > textsStep1 = [ & ]()
+        {
+          Vector< String > v = textsStep0;
+          v.push_back( "Rewrite as" );
+          v.push_back( "x = cos(x)" );
+          return v;
+        }( );
+
+        const Vector< FnDraw > fnsStep1 = [ & ]()
+        {
+          Vector< FnDraw > v = fnsStep0;
+          v.push_back( FnDraw( Ex1GxEqualsCosX, v4( 0, 1, 0, 1 ), 1.0f ) );
+          return v;
+        }( );
+
+        const Vector< String > textsStep2 = [ & ]()
+        {
+          Vector< String > u = textsStep1;
+          u.insert( u.end(),
+                    {
+                        "x = g(x)",
+                        "The fixed point of g(x) is the point (x,g(x))",
+                        "at which input x which equals output g(x)",
+                        "",
+                        "The series x_n+1 = g( x_n )",
+                        "converges via the banach fixed point theorem",
+                        "",
+                        "If the function is a contraction ( lipschitz type < 1 )",
+                        "Then it's a converging cauchy sequence",
+                        "x* = lim n -> infinity x_n"
+                    } );
+          return u;
+        }( );
+
+        const Vector< FnDraw > fnsStep2 = [ & ]()
+        {
+          Vector< FnDraw > v = fnsStep1;
+          v.push_back( FnDraw( Ex1YEqualsX, v4( 0, 0, 0, 1 ), 1.0f ) );
+          return v;
+        }( );
+
         switch( iStep )
         {
           case 0:
           {
-            texts = {
-              "------------------",
-              "Fixed Point Method",
-              "------------------",
-              "Solve the equation:",
-              "x - cos(x) = 0"
-            };
-            fns = { FnDraw( Ex1Fx, v4( 1,0,0,1 ), 1.0f ) };
+            texts = textsStep0;
+            fns = fnsStep0;
           } break;
+
           case 1:
           {
-            texts = {
-              "------------------",
-              "Fixed Point Method",
-              "------------------",
-              "Solve the equation:",
-              "x - cos(x) = 0"
-            };
-            texts.push_back( "Rewrite as" );
-            texts.push_back( "x = cos(x)" );
-            fns =
-            {
-              FnDraw( Ex1Fx, v4( 1,0,0,1 ), 1.0f ),
-              FnDraw( Ex1Gx, v4( 0,1,0,1 ), 1.0f )
-            };
+            texts = textsStep1;
+            fns = fnsStep1;
+          } break;
 
-          }
+          case 2:
+          {
+            texts = textsStep2;
+            fns = fnsStep2;
+          } break;
+
+          case 3:
+          {
+            texts = textsStep2;
+
+            float val = 3;
+            Vector< float > vals = { val };
+            for( int iter = 0; iter < 20; ++iter )
+            {
+              val = Ex1GxEqualsCosX( val );
+              vals.push_back( val );
+            }
+
+            for( int i = 0; i < vals.size(); ++i )
+            {
+              texts.push_back( va( "iteration %i, x = %f", i, vals[ i ] ) );
+            }
+            texts.push_back( "This converges to the Dottie number, 0.739085..." );
+            fns = fnsStep2;
+          } break;
         }
       }
-
-      if( iStep == 0 )
-      {
-      }
-
-      //sIterationExampleFn = "x - cos(x) = 0";
-      //sGraphEqFx = Ex1Fx;
-      //sGraphEqGx = Ex1Gx;
-      // f(x) = x - cos(x) = 0
-      // g(x) = cos(x) = x
-
     }
 
     if( ImGuiCollapsingHeader( "Select Method" ) )
