@@ -1,26 +1,27 @@
 #include "src/common/assetmanagers/tac_mesh.h"
-#include "src/common/profile/tac_profile.h"
-#include "src/common/tac_frame_memory.h"
 #include "src/common/assetmanagers/tac_model_asset_manager.h"
 #include "src/common/assetmanagers/tac_texture_asset_manager.h"
 #include "src/common/graphics/imgui/tac_imgui.h"
 #include "src/common/graphics/tac_debug_3d.h"
 #include "src/common/graphics/tac_renderer.h"
 #include "src/common/graphics/tac_ui_2d.h"
-#include "src/common/tac_camera.h"
-#include "src/common/tac_desktop_window.h"
-#include "src/common/tac_keyboard_input.h"
-#include "src/common/tac_os.h"
+#include "src/common/math/tac_math.h"
+#include "src/common/math/tac_matrix3.h"
+#include "src/common/profile/tac_profile.h"
 #include "src/common/shell/tac_shell.h"
 #include "src/common/shell/tac_shell_timer.h"
-#include "src/common/math/tac_math.h"
+#include "src/common/tac_camera.h"
+#include "src/common/tac_desktop_window.h"
+#include "src/common/tac_frame_memory.h"
+#include "src/common/tac_keyboard_input.h"
+#include "src/common/tac_os.h"
 #include "src/creation/tac_creation.h"
 #include "src/creation/tac_creation_game_window.h"
 #include "src/creation/tac_creation_prefab.h"
 #include "src/shell/tac_desktop_app.h"
 #include "src/shell/tac_desktop_window_graphics.h"
-#include "src/space/light/tac_light.h"
 #include "src/space/graphics/tac_graphics.h"
+#include "src/space/light/tac_light.h"
 #include "src/space/model/tac_model.h"
 #include "src/space/presentation/tac_game_presentation.h"
 #include "src/space/presentation/tac_skybox_presentation.h"
@@ -135,23 +136,14 @@ namespace Tac
   static DefaultCBufferPerFrame GetPerFrame( float w, float h )
   {
     const Camera* camera = gCreation.mEditorCamera;
-    const m4 view = camera->View();
     float a;
     float b;
-    Render::GetPerspectiveProjectionAB( camera->mFarPlane,
-                                        camera->mNearPlane,
-                                        a,
-                                        b );
-    const float aspect = w / h;
-    const m4 proj = m4::ProjPerspective( a, b, camera->mFovyrad, aspect );
-    DefaultCBufferPerFrame perFrameData;
-    perFrameData.mFar = camera->mFarPlane;
-    perFrameData.mNear = camera->mNearPlane;
-    perFrameData.mView = view;
-    perFrameData.mProjection = proj;
-    perFrameData.mGbufferSize = { w, h };
-
-    return perFrameData;
+    Render::GetPerspectiveProjectionAB( camera->mFarPlane, camera->mNearPlane, a, b );
+    return { .mView = camera->View(),
+             .mProjection = m4::ProjPerspective( a, b, camera->mFovyrad, w / h ),
+             .mFar = camera->mFarPlane,
+             .mNear = camera->mNearPlane,
+             .mGbufferSize = { w, h }};
   }
 
   static v3 SnapToUnitDir( const v3 v ) // Returns the unit vector that best aligns with v
@@ -219,78 +211,67 @@ namespace Tac
 
     m3DShader = Render::CreateShader( Render::ShaderSource::FromPath( "3DTest" ), TAC_STACK_FRAME );
 
-    const Render::VertexDeclaration posDecl = []()
+    m3DvertexFormatDecls = Render::VertexDeclarations
     {
-      Render::VertexDeclaration decl = {};
-      decl.mAlignedByteOffset = TAC_OFFSET_OF( GameWindowVertex, pos );
-      decl.mAttribute = Render::Attribute::Position;
-      decl.mTextureFormat.mElementCount = 3;
-      decl.mTextureFormat.mPerElementByteCount = sizeof( float );
-      decl.mTextureFormat.mPerElementDataType = Render::GraphicsType::real;
-      return decl;
-    }( );
-    const Render::VertexDeclaration norDecl = []()
-    {
-      Render::VertexDeclaration decl = {};
-      decl.mAlignedByteOffset = TAC_OFFSET_OF( GameWindowVertex, nor );
-      decl.mAttribute = Render::Attribute::Normal;
-      decl.mTextureFormat.mElementCount = 3;
-      decl.mTextureFormat.mPerElementByteCount = sizeof( float );
-      decl.mTextureFormat.mPerElementDataType = Render::GraphicsType::real;
-      return decl;
-    }( );
-    m3DvertexFormatDecls = Render::VertexDeclarations{ posDecl, norDecl };
+      {
+        .mAttribute = Render::Attribute::Position,
+        .mTextureFormat{.mElementCount = 3,
+                       .mPerElementByteCount = sizeof( float ),
+                       .mPerElementDataType = Render::GraphicsType::real },
+        .mAlignedByteOffset = TAC_OFFSET_OF( GameWindowVertex, pos ),
+      },
+      {
+        .mAttribute = Render::Attribute::Normal,
+        .mTextureFormat{ .mElementCount = 3,
+                       .mPerElementByteCount = sizeof( float ),
+                       .mPerElementDataType = Render::GraphicsType::real},
+        .mAlignedByteOffset = TAC_OFFSET_OF( GameWindowVertex, nor ),
+      }
+    };
     m3DVertexFormat = Render::CreateVertexFormat( m3DvertexFormatDecls,
                                                   m3DShader,
                                                   TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( m3DVertexFormat, "game-window-vtx-fmt" );
     TAC_HANDLE_ERROR( errors );
 
-    Render::BlendState blendStateData;
-    blendStateData.mSrcRGB = Render::BlendConstants::One;
-    blendStateData.mDstRGB = Render::BlendConstants::Zero;
-    blendStateData.mBlendRGB = Render::BlendMode::Add;
-    blendStateData.mSrcA = Render::BlendConstants::Zero;
-    blendStateData.mDstA = Render::BlendConstants::One;
-    blendStateData.mBlendA = Render::BlendMode::Add;
-    mBlendState = Render::CreateBlendState( blendStateData, TAC_STACK_FRAME );
+    mBlendState = Render::CreateBlendState( { .mSrcRGB = Render::BlendConstants::One,
+                                             .mDstRGB = Render::BlendConstants::Zero,
+                                             .mBlendRGB = Render::BlendMode::Add,
+                                             .mSrcA = Render::BlendConstants::Zero,
+                                             .mDstA = Render::BlendConstants::One,
+                                             .mBlendA = Render::BlendMode::Add}, TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( mBlendState, "game-window-blend" );
     TAC_HANDLE_ERROR( errors );
 
-    Render::BlendState alphaBlendStateData;
-    alphaBlendStateData.mSrcRGB = Render::BlendConstants::SrcA;
-    alphaBlendStateData.mDstRGB = Render::BlendConstants::OneMinusSrcA;
-    alphaBlendStateData.mBlendRGB = Render::BlendMode::Add;
-    alphaBlendStateData.mSrcA = Render::BlendConstants::Zero;
-    alphaBlendStateData.mDstA = Render::BlendConstants::One;
-    alphaBlendStateData.mBlendA = Render::BlendMode::Add;
-    mAlphaBlendState = Render::CreateBlendState( alphaBlendStateData, TAC_STACK_FRAME );
+    mAlphaBlendState = Render::CreateBlendState( { .mSrcRGB = Render::BlendConstants::SrcA,
+                                                  .mDstRGB = Render::BlendConstants::OneMinusSrcA,
+                                                  .mBlendRGB = Render::BlendMode::Add,
+                                                  .mSrcA = Render::BlendConstants::Zero,
+                                                  .mDstA = Render::BlendConstants::One,
+                                                  .mBlendA = Render::BlendMode::Add},
+                                                  TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( mAlphaBlendState, "game-window-alpha-blend" );
     TAC_HANDLE_ERROR( errors );
 
-    Render::DepthState depthStateData;
-    depthStateData.mDepthTest = true;
-    depthStateData.mDepthWrite = true;
-    depthStateData.mDepthFunc = Render::DepthFunc::Less;
-    mDepthState = Render::CreateDepthState( depthStateData,
+    mDepthState = Render::CreateDepthState( { .mDepthTest = true,
+                                              .mDepthWrite = true,
+                                              .mDepthFunc = Render::DepthFunc::Less},
                                             TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( mDepthState, "game-window-depth" );
     TAC_HANDLE_ERROR( errors );
 
-    Render::RasterizerState rasterizerStateData;
-    rasterizerStateData.mCullMode = Render::CullMode::None; // todo
-    rasterizerStateData.mFillMode = Render::FillMode::Solid;
-    rasterizerStateData.mFrontCounterClockwise = true;
-    rasterizerStateData.mMultisample = false;
-    rasterizerStateData.mScissor = true;
-    mRasterizerState = Render::CreateRasterizerState( rasterizerStateData,
+    
+    mRasterizerState = Render::CreateRasterizerState( { .mFillMode = Render::FillMode::Solid,
+                                                        .mCullMode = Render::CullMode::None, // todo
+                                                        .mFrontCounterClockwise = true,
+                                                        .mScissor = true,
+                                                        .mMultisample = false,
+                                                      },
                                                       TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( mRasterizerState, "game-window-rast" );
     TAC_HANDLE_ERROR( errors );
 
-    Render::SamplerState samplerStateData;
-    samplerStateData.mFilter = Render::Filter::Linear;
-    mSamplerState = Render::CreateSamplerState( samplerStateData, TAC_STACK_FRAME );
+    mSamplerState = Render::CreateSamplerState( { .mFilter = Render::Filter::Linear }, TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( mSamplerState, "game-window-samp" );
     TAC_HANDLE_ERROR( errors );
   }
@@ -651,10 +632,10 @@ namespace Tac
       const Light* light = lightVisitor.mLights[ iLight ];
       const char* groupName = FrameMemoryPrintf( "editor light %i", iLight );
 
-      DefaultCBufferPerObject perObjectData;
-      perObjectData.Color = v4( 1, 1, 1, 1 );
-      perObjectData.World = light->mEntity->mWorldTransform;
-      perObjectData.World.m00 = lightWidgetSize;
+
+      m4 world = light->mEntity->mWorldTransform;;
+      world.m00 = lightWidgetSize;
+      DefaultCBufferPerObject perObjectData{ .World = world, .Color = v4( 1, 1, 1, 1 )};
 
       Errors errors;
       Render::TextureHandle textureHandle = TextureAssetManager::GetTexture( "assets/editor/light.png", errors );

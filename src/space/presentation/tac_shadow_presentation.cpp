@@ -10,6 +10,7 @@
 #include "src/common/tac_camera.h"
 #include "src/common/tac_desktop_window.h"
 #include "src/common/tac_error_handling.h"
+#include "src/common/math/tac_math.h"
 #include "src/common/tac_frame_memory.h"
 #include "src/common/tac_memory.h"
 #include "src/common/tac_os.h"
@@ -21,7 +22,7 @@
 #include "src/space/tac_entity.h"
 #include "src/space/tac_world.h"
 
-#include <cmath> // std::fmod
+//#include <cmath> // std::fmod
 
 namespace Tac
 {
@@ -31,40 +32,7 @@ namespace Tac
 
   struct ShadowModelVisitor : public ModelVisitor
   {
-    void operator()( Model* model ) override
-    {
-      Errors errors;
-      Mesh* mesh = ModelAssetManagerGetMeshTryingNewThing( model->mModelPath.c_str(),
-                                                           model->mModelIndex,
-                                                           mVertexDeclarations,
-                                                           errors );
-      if( !mesh )
-        return;
-
-      DefaultCBufferPerObject objBuf;
-      objBuf.Color = { model->mColorRGB, 1 };
-      objBuf.World = model->mEntity->mWorldTransform;
-      Render::UpdateConstantBuffer( DefaultCBufferPerObject::Handle,
-                                    &objBuf,
-                                    sizeof( DefaultCBufferPerObject ),
-                                    TAC_STACK_FRAME );
-
-      for( const SubMesh& subMesh : mesh->mSubMeshes )
-      {
-        Render::BeginGroup( subMesh.mName, TAC_STACK_FRAME );
-        Render::SetShader( sShader );
-        Render::SetVertexBuffer( subMesh.mVertexBuffer, 0, subMesh.mVertexCount );
-        Render::SetIndexBuffer( subMesh.mIndexBuffer, 0, subMesh.mIndexCount );
-        Render::SetBlendState( mBlendState );
-        Render::SetRasterizerState( mRasterizerStateHandle );
-        Render::SetSamplerState( mSamplerState );
-        Render::SetDepthState( mDepthState );
-        Render::SetVertexFormat( mVertexFormatHandle );
-        Render::SetPrimitiveTopology( subMesh.mPrimitiveTopology );
-        Render::Submit( mViewHandle, TAC_STACK_FRAME );
-        Render::EndGroup( TAC_STACK_FRAME );
-      }
-    }
+    void operator()( Model* model ) override;
 
     Render::ViewHandle            mViewHandle;
     Render::DepthStateHandle      mDepthState;
@@ -76,15 +44,48 @@ namespace Tac
     Render::RasterizerStateHandle mRasterizerStateHandle;
   };
 
+  void ShadowModelVisitor::operator()( Model* model )
+  {
+    Errors errors;
+    Mesh* mesh = ModelAssetManagerGetMeshTryingNewThing( model->mModelPath.c_str(),
+                                                         model->mModelIndex,
+                                                         mVertexDeclarations,
+                                                         errors );
+    if( !mesh )
+      return;
+
+    DefaultCBufferPerObject objBuf{ .World = model->mEntity->mWorldTransform,
+                                    .Color = { model->mColorRGB, 1 } };
+    Render::UpdateConstantBuffer( DefaultCBufferPerObject::Handle,
+                                  &objBuf,
+                                  sizeof( DefaultCBufferPerObject ),
+                                  TAC_STACK_FRAME );
+
+    for( const SubMesh& subMesh : mesh->mSubMeshes )
+    {
+      Render::BeginGroup( subMesh.mName, TAC_STACK_FRAME );
+      Render::SetShader( sShader );
+      Render::SetVertexBuffer( subMesh.mVertexBuffer, 0, subMesh.mVertexCount );
+      Render::SetIndexBuffer( subMesh.mIndexBuffer, 0, subMesh.mIndexCount );
+      Render::SetBlendState( mBlendState );
+      Render::SetRasterizerState( mRasterizerStateHandle );
+      Render::SetSamplerState( mSamplerState );
+      Render::SetDepthState( mDepthState );
+      Render::SetVertexFormat( mVertexFormatHandle );
+      Render::SetPrimitiveTopology( subMesh.mPrimitiveTopology );
+      Render::Submit( mViewHandle, TAC_STACK_FRAME );
+      Render::EndGroup( TAC_STACK_FRAME );
+    }
+  }
+
   static Render::TextureHandle CreateShadowMapDepth( const Light* light )
   {
-    Render::TexSpec texSpecDepth;
-    texSpecDepth.mImage.mFormat.mElementCount = 1;
-    texSpecDepth.mImage.mFormat.mPerElementByteCount = 4;
-    texSpecDepth.mImage.mFormat.mPerElementDataType = Render::GraphicsType::real;
-    texSpecDepth.mImage.mWidth = light->mShadowResolution;
-    texSpecDepth.mImage.mHeight = light->mShadowResolution;
-    texSpecDepth.mBinding = Render::Binding::DepthStencil | Render::Binding::ShaderResource;
+    const Render::TexSpec texSpecDepth{ .mImage { .mWidth = light->mShadowResolution,
+                                                  .mHeight = light->mShadowResolution ,
+                                                  .mFormat { .mElementCount = 1,
+                                                             .mPerElementByteCount = 4,
+                                                             .mPerElementDataType = Render::GraphicsType::real } },
+                                        .mBinding = Render::Binding::DepthStencil | Render::Binding::ShaderResource };
     Render::TextureHandle textureHandleDepth = Render::CreateTexture( texSpecDepth, TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( textureHandleDepth, "shadowmap-depth" );
     return textureHandleDepth;
@@ -114,78 +115,65 @@ namespace Tac
 
   struct ShadowLightVisitor : public LightVisitor
   {
-    DefaultCBufferPerFrame GetPerFrameData( const Light* light )
-    {
+    DefaultCBufferPerFrame GetPerFrameData( const Light* light );
+    void operator()( Light* light ) override;
 
-
-      Camera my_camera = light->GetCamera();
-
-
-
-      Camera* camera = &my_camera;
-
-      float a;
-      float b;
-      Render::GetPerspectiveProjectionAB( camera->mFarPlane,
-                                          camera->mNearPlane,
-                                          a,
-                                          b );
-      const float w = ( float )light->mShadowResolution;
-      const float h = ( float )light->mShadowResolution;
-      const float aspect = w / h;
-      const m4 view = camera->View();
-      const m4 proj = camera->Proj( a, b, aspect );
-      const double elapsedSeconds = ShellGetElapsedSeconds();
-
-      DefaultCBufferPerFrame perFrameData;
-      perFrameData.mFar = camera->mFarPlane;
-      perFrameData.mNear = camera->mNearPlane;
-      perFrameData.mView = view;
-      perFrameData.mProjection = proj;
-      perFrameData.mGbufferSize = { w, h };
-      perFrameData.mSecModTau = ( float )std::fmod( elapsedSeconds, 6.2831853 );
-      return perFrameData;
-    }
-
-    void operator()( Light* light ) override
-    {
-      if( !light->mCastsShadows )
-        return;
-      TAC_RENDER_GROUP_BLOCK( FrameMemoryPrintf( "Light Shadow %p", light ) );
-      CreateShadowMapResources( light );
-
-      const DefaultCBufferPerFrame perFrameData = GetPerFrameData( light );
-
-
-
-
-      Render::SetViewFramebuffer( light->mShadowView, light->mShadowFramebuffer );
-      Render::SetViewport( light->mShadowView, Render::Viewport( light->mShadowResolution,
-                                                                 light->mShadowResolution ) );
-      Render::SetViewScissorRect( light->mShadowView, Render::ScissorRect( light->mShadowResolution,
-                                                                           light->mShadowResolution ) );
-      Render::UpdateConstantBuffer( DefaultCBufferPerFrame::Handle,
-                                    &perFrameData,
-                                    sizeof( DefaultCBufferPerFrame ),
-                                    TAC_STACK_FRAME );
-
-
-      ShadowModelVisitor modelVisitor;
-      modelVisitor.mViewHandle = light->mShadowView;
-      modelVisitor.mDepthState = GamePresentationGetDepthState();
-      modelVisitor.mBlendState = GamePresentationGetBlendState();
-      modelVisitor.mSamplerState = GamePresentationGetSamplerState();
-      modelVisitor.mVertexDeclarations = GamePresentationGetVertexDeclarations();
-      modelVisitor.mVertexFormatHandle = GamePresentationGetVertexFormat();
-      modelVisitor.mRasterizerStateHandle = GamePresentationGetRasterizerState();
-      modelVisitor.mShadowDepth = light->mShadowMapDepth;
-      graphics->VisitModels( &modelVisitor );
-    }
-
-    Graphics* graphics;
+    Graphics* graphics{};
   };
 
 
+  DefaultCBufferPerFrame ShadowLightVisitor::GetPerFrameData( const Light* light )
+  {
+    const Camera camera = light->GetCamera();
+    float a;
+    float b;
+    Render::GetPerspectiveProjectionAB( camera.mFarPlane, camera.mNearPlane, a, b );
+    const float w = ( float )light->mShadowResolution;
+    const float h = ( float )light->mShadowResolution;
+    const double elapsedSeconds = ShellGetElapsedSeconds();
+
+    return { .mView = camera.View(),
+             .mProjection = camera.Proj( a, b, w / h ),
+             .mFar = camera.mFarPlane,
+             .mNear = camera.mNearPlane,
+             .mGbufferSize = { w, h },
+             .mSecModTau = ( float )Fmod( elapsedSeconds, 6.2831853 )};
+  }
+
+  void ShadowLightVisitor::operator()( Light* light )
+  {
+    if( !light->mCastsShadows )
+      return;
+    TAC_RENDER_GROUP_BLOCK( FrameMemoryPrintf( "Light Shadow %p", light ) );
+    CreateShadowMapResources( light );
+
+    const DefaultCBufferPerFrame perFrameData = GetPerFrameData( light );
+
+
+
+
+    Render::SetViewFramebuffer( light->mShadowView, light->mShadowFramebuffer );
+    Render::SetViewport( light->mShadowView, Render::Viewport( light->mShadowResolution,
+                                                               light->mShadowResolution ) );
+    Render::SetViewScissorRect( light->mShadowView, Render::ScissorRect( light->mShadowResolution,
+                                                                         light->mShadowResolution ) );
+    Render::UpdateConstantBuffer( DefaultCBufferPerFrame::Handle,
+                                  &perFrameData,
+                                  sizeof( DefaultCBufferPerFrame ),
+                                  TAC_STACK_FRAME );
+
+
+    ShadowModelVisitor modelVisitor;
+    modelVisitor.mViewHandle = light->mShadowView;
+    modelVisitor.mDepthState = GamePresentationGetDepthState();
+    modelVisitor.mBlendState = GamePresentationGetBlendState();
+    modelVisitor.mSamplerState = GamePresentationGetSamplerState();
+    modelVisitor.mVertexDeclarations = GamePresentationGetVertexDeclarations();
+    modelVisitor.mVertexFormatHandle = GamePresentationGetVertexFormat();
+    modelVisitor.mRasterizerStateHandle = GamePresentationGetRasterizerState();
+    modelVisitor.mShadowDepth = light->mShadowMapDepth;
+    graphics->VisitModels( &modelVisitor );
+  }
 
   void        ShadowPresentationInit( Errors& errors )
   {

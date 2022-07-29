@@ -66,22 +66,26 @@ namespace Tac
 
   static void CheckShaderPadding()
   {
-    int sizeofshaderlight_estimated = 4 * ( 16 + 4 + 4 + 4 + 1 + 3 );
-    int sizeofshaderlight = sizeof( ShaderLight );
-    TAC_ASSERT( sizeofshaderlight % 16 == 0 );
-    TAC_ASSERT( sizeofshaderlight == sizeofshaderlight_estimated );
-
-    int light1Offset = ( int )TAC_OFFSET_OF( CBufferLights, lights[ 1 ] );
-    int light1OffsetReg = light1Offset / 16;
-    int light1OffsetAxis = light1Offset % 16;
-    TAC_ASSERT( light1OffsetReg == 8 );
-    TAC_ASSERT( light1OffsetAxis == 0 );
-
-    int lightCountOffset = ( int )TAC_OFFSET_OF( CBufferLights, lightCount );
-    int lightCountOffsetReg = lightCountOffset / 16;
-    int lightCountOffsetAxis = lightCountOffset % 16;
-    TAC_ASSERT( lightCountOffsetReg == 32 );
-    TAC_ASSERT( lightCountOffsetAxis == 0 );
+    const int sizeofshaderlight_estimated = 4 * ( 16 + 4 + 4 + 4 + 1 + 3 );
+    const int sizeofshaderlight = sizeof( ShaderLight );
+    const int light1Offset = ( int )TAC_OFFSET_OF( CBufferLights, lights[ 1 ] );
+    const int light1OffsetReg = light1Offset / 16;
+    const int light1OffsetAxis = light1Offset % 16;
+    const int lightCountOffset = ( int )TAC_OFFSET_OF( CBufferLights, lightCount );
+    const int lightCountOffsetReg = lightCountOffset / 16;
+    const int lightCountOffsetAxis = lightCountOffset % 16;
+    const bool check1 = sizeofshaderlight % 16 == 0;
+    const bool check2 = sizeofshaderlight == sizeofshaderlight_estimated;
+    const bool check3 = light1OffsetReg == 8;
+    const bool check4 = light1OffsetAxis == 0;
+    const bool check5 = lightCountOffsetReg == 32;
+    const bool check6 = lightCountOffsetAxis == 0;
+    TAC_ASSERT( check1 );
+    TAC_ASSERT( check2 );
+    TAC_ASSERT( check3 );
+    TAC_ASSERT( check4 );
+    TAC_ASSERT( check5 );
+    TAC_ASSERT( check6 );
   }
 
   static DefaultCBufferPerFrame GetPerFrameBuf( const Camera* camera,
@@ -95,20 +99,14 @@ namespace Tac
                                         camera->mNearPlane,
                                         a,
                                         b );
-
     const float w = ( float )viewWidth;
     const float h = ( float )viewHeight;
-    const float aspect = w / h;
-    const m4 view = camera->View();
-    const m4 proj = camera->Proj( a, b, aspect );
-    DefaultCBufferPerFrame perFrameData;
-    perFrameData.mFar = camera->mFarPlane;
-    perFrameData.mNear = camera->mNearPlane;
-    perFrameData.mView = view;
-    perFrameData.mProjection = proj;
-    perFrameData.mGbufferSize = { w, h };
-    perFrameData.mSecModTau = ( float )std::fmod( elapsedSeconds, 6.2831853 );
-    return perFrameData;
+    return { .mView = camera->View(),
+             .mProjection = camera->Proj( a, b, w / h ),
+             .mFar = camera->mFarPlane,
+             .mNear = camera->mNearPlane,
+             .mGbufferSize = { w, h },
+             .mSecModTau = ( float )std::fmod( elapsedSeconds, 6.2831853 )};
   }
 
   static TerrainVertex GetTerrainVertex( const Terrain* terrain,
@@ -116,11 +114,9 @@ namespace Tac
                                          const int c,
                                          const v2 uv )
   {
-    TerrainVertex terrainVertex = {};
-    terrainVertex.mPos = terrain->GetGridVal( r, c );
-    terrainVertex.mNor = terrain->GetGridValNormal( r, c );
-    terrainVertex.mUV = uv;
-    return terrainVertex;
+    return { .mPos = terrain->GetGridVal( r, c ),
+             .mNor = terrain->GetGridValNormal( r, c ),
+             .mUV = uv};
   }
 
   static void Debug3DEachTri( Graphics* graphics )
@@ -148,7 +144,7 @@ namespace Tac
           }
         }
       }
-      Debug3DDrawData* mDrawData;
+      Debug3DDrawData* mDrawData = nullptr;
     } visitor = {};
     visitor.mDrawData = graphics->mWorld->mDebug3DDrawData;
 
@@ -173,9 +169,8 @@ namespace Tac
     if( !mesh )
       return;
 
-    DefaultCBufferPerObject perObjectData;
-    perObjectData.Color = { model->mColorRGB, 1 };
-    perObjectData.World = model->mEntity->mWorldTransform;
+    const DefaultCBufferPerObject perObjectData{ .World = model->mEntity->mWorldTransform,
+                                                 .Color = { model->mColorRGB, 1 }};
 
     Render::DrawCallTextures drawCallTextures;
     if( mUseLights )
@@ -272,10 +267,9 @@ namespace Tac
                                                          TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( terrain->mVertexBuffer, "terrain-vtx-buf" );
 
-    Render::Format format;
-    format.mElementCount = 1;
-    format.mPerElementByteCount = sizeof( TerrainIndex );
-    format.mPerElementDataType = Render::GraphicsType::uint;
+    const Render::Format format{ .mElementCount = 1,
+                                  .mPerElementByteCount = sizeof( TerrainIndex ),
+                                  .mPerElementDataType = Render::GraphicsType::uint };
     terrain->mIndexBuffer = Render::CreateIndexBuffer( indexes.size() * sizeof( TerrainIndex ),
                                                        indexes.data(),
                                                        Render::Access::Default,
@@ -302,98 +296,87 @@ namespace Tac
   {
     TAC_UNUSED_PARAMETER( errors );
 
-    const Render::VertexDeclaration posDecl = []()
-    {
-      Render::VertexDeclaration vertexDeclaration = {};
-      vertexDeclaration.mAttribute = Render::Attribute::Position;
-      vertexDeclaration.mTextureFormat.mElementCount = 3;
-      vertexDeclaration.mTextureFormat.mPerElementByteCount = sizeof( float );
-      vertexDeclaration.mTextureFormat.mPerElementDataType = Render::GraphicsType::real;
-      vertexDeclaration.mAlignedByteOffset = TAC_OFFSET_OF( GameModelVtx, mPos );
-      return vertexDeclaration;
-    }( );
+    const Render::VertexDeclaration posDecl {
+      .mAttribute = Render::Attribute::Position,
+      .mTextureFormat{.mElementCount = 3,
+                     .mPerElementByteCount = sizeof( float ),
+                     .mPerElementDataType = Render::GraphicsType::real},
+      .mAlignedByteOffset = TAC_OFFSET_OF( GameModelVtx, mPos ),};
 
-    const Render::VertexDeclaration norDecl = []()
+    const Render::VertexDeclaration norDecl 
     {
-      Render::VertexDeclaration vertexDeclaration = {};
-      vertexDeclaration.mAttribute = Render::Attribute::Normal;
-      vertexDeclaration.mTextureFormat.mElementCount = 3;
-      vertexDeclaration.mTextureFormat.mPerElementByteCount = sizeof( float );
-      vertexDeclaration.mTextureFormat.mPerElementDataType = Render::GraphicsType::real;
-      vertexDeclaration.mAlignedByteOffset = TAC_OFFSET_OF( GameModelVtx, mNor );
-      return vertexDeclaration;
-    }( );
+      .mAttribute = Render::Attribute::Normal,
+      .mTextureFormat{.mElementCount = 3,
+                     .mPerElementByteCount = sizeof( float ),
+                     .mPerElementDataType = Render::GraphicsType::real},
+      .mAlignedByteOffset = TAC_OFFSET_OF( GameModelVtx, mNor ),
+    };
 
     m3DVertexFormatDecls = Render::VertexDeclarations{ posDecl, norDecl };
-    m3DVertexFormat = Render::CreateVertexFormat( m3DVertexFormatDecls,
-                                                  m3DShader,
-                                                  TAC_STACK_FRAME );
+    m3DVertexFormat = Render::CreateVertexFormat( m3DVertexFormatDecls, m3DShader, TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( m3DVertexFormat, "game-3d-vtx-fmt" );
   }
 
   static void CreateTerrainVertexFormat( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
-    Render::VertexDeclaration terrainPosDecl = {};
-    terrainPosDecl.mAttribute = Render::Attribute::Position;
-    terrainPosDecl.mTextureFormat.mElementCount = 3;
-    terrainPosDecl.mTextureFormat.mPerElementByteCount = sizeof( float );
-    terrainPosDecl.mTextureFormat.mPerElementDataType = Render::GraphicsType::real;
-    terrainPosDecl.mAlignedByteOffset = TAC_OFFSET_OF( TerrainVertex, mPos );
-
-    Render::VertexDeclaration terrainNorDecl = {};
-    terrainNorDecl.mAttribute = Render::Attribute::Normal;
-    terrainNorDecl.mTextureFormat.mElementCount = 3;
-    terrainNorDecl.mTextureFormat.mPerElementByteCount = sizeof( float );
-    terrainNorDecl.mTextureFormat.mPerElementDataType = Render::GraphicsType::real;
-    terrainNorDecl.mAlignedByteOffset = TAC_OFFSET_OF( TerrainVertex, mNor );
-
-    Render::VertexDeclaration terrainTexCoordDecl = {};
-    terrainTexCoordDecl.mAttribute = Render::Attribute::Texcoord;
-    terrainTexCoordDecl.mTextureFormat.mElementCount = 2;
-    terrainTexCoordDecl.mTextureFormat.mPerElementByteCount = sizeof( float );
-    terrainTexCoordDecl.mTextureFormat.mPerElementDataType = Render::GraphicsType::real;
-    terrainTexCoordDecl.mAlignedByteOffset = TAC_OFFSET_OF( TerrainVertex, mUV );
-
-    mTerrainVertexFormat = Render::CreateVertexFormat( { terrainPosDecl, terrainNorDecl, terrainTexCoordDecl },
-                                                       mTerrainShader,
-                                                       TAC_STACK_FRAME );
+    const Render::VertexDeclarations decls
+    {
+      {
+        .mAttribute = Render::Attribute::Position,
+        .mTextureFormat{ .mElementCount = 3,
+                         .mPerElementByteCount = sizeof( float ),
+                         .mPerElementDataType = Render::GraphicsType::real},
+        .mAlignedByteOffset = TAC_OFFSET_OF( TerrainVertex, mPos )
+      },
+      {
+        .mAttribute = Render::Attribute::Normal,
+        .mTextureFormat{ .mElementCount = 3,
+                         .mPerElementByteCount = sizeof( float ),
+                         .mPerElementDataType = Render::GraphicsType::real },
+        .mAlignedByteOffset = TAC_OFFSET_OF( TerrainVertex, mNor )
+      },
+      {
+        .mAttribute = Render::Attribute::Texcoord,
+        .mTextureFormat{ .mElementCount = 2,
+                         .mPerElementByteCount = sizeof( float ),
+                         .mPerElementDataType = Render::GraphicsType::real},
+        .mAlignedByteOffset = TAC_OFFSET_OF( TerrainVertex, mUV )
+      }
+    };
+    mTerrainVertexFormat = Render::CreateVertexFormat( decls, mTerrainShader, TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( mTerrainVertexFormat, "terrain-vtx-fmt" );
   }
 
   static void CreateDepthState( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
-    Render::DepthState depthStateData;
-    depthStateData.mDepthTest = true;
-    depthStateData.mDepthWrite = true;
-    depthStateData.mDepthFunc = Render::DepthFunc::Less;
-    mDepthState = Render::CreateDepthState( depthStateData, TAC_STACK_FRAME );
+    mDepthState = Render::CreateDepthState( { .mDepthTest = true,
+                                              .mDepthWrite = true,
+                                              .mDepthFunc = Render::DepthFunc::Less},
+                                            TAC_STACK_FRAME );
   }
 
   static void CreateBlendState( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
-    Render::BlendState blendStateData;
-    blendStateData.mSrcRGB = Render::BlendConstants::One;
-    blendStateData.mDstRGB = Render::BlendConstants::Zero;
-    blendStateData.mBlendRGB = Render::BlendMode::Add;
-    blendStateData.mSrcA = Render::BlendConstants::Zero;
-    blendStateData.mDstA = Render::BlendConstants::One;
-    blendStateData.mBlendA = Render::BlendMode::Add;
-    mBlendState = Render::CreateBlendState( blendStateData, TAC_STACK_FRAME );
+    mBlendState = Render::CreateBlendState( { .mSrcRGB = Render::BlendConstants::One,
+                                              .mDstRGB = Render::BlendConstants::Zero,
+                                              .mBlendRGB = Render::BlendMode::Add,
+                                              .mSrcA = Render::BlendConstants::Zero,
+                                              .mDstA = Render::BlendConstants::One,
+                                              .mBlendA = Render::BlendMode::Add},
+                                            TAC_STACK_FRAME );
   }
 
   static void CreateRasterizerState( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
-    Render::RasterizerState rasterizerStateData;
-    rasterizerStateData.mCullMode = Render::CullMode::Back;
-    rasterizerStateData.mFillMode = Render::FillMode::Solid;
-    rasterizerStateData.mFrontCounterClockwise = true;
-    rasterizerStateData.mMultisample = false;
-    rasterizerStateData.mScissor = true;
-    mRasterizerState = Render::CreateRasterizerState( rasterizerStateData,
+    mRasterizerState = Render::CreateRasterizerState( { .mFillMode = Render::FillMode::Solid,
+                                                        .mCullMode = Render::CullMode::Back,
+                                                        .mFrontCounterClockwise = true,
+                                                        .mScissor = true,
+                                                        .mMultisample = false},
                                                       TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( mRasterizerState, "game-pres-rast" );
 
@@ -401,20 +384,15 @@ namespace Tac
 
   static void CreateSamplerStateShadow( Errors& errors )
   {
-
     TAC_UNUSED_PARAMETER( errors );
-    Render::SamplerState data;
-    data.mFilter = Render::Filter::Point;
-    mSamplerStatePointShadow = Render::CreateSamplerState( data, TAC_STACK_FRAME );
+    mSamplerStatePointShadow = Render::CreateSamplerState( { .mFilter = Render::Filter::Point }, TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( mSamplerStateAniso, "game-shadow-samp" );
   }
 
   static void CreateSamplerState( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
-    Render::SamplerState samplerStateData;
-    samplerStateData.mFilter = Render::Filter::Aniso;
-    mSamplerStateAniso = Render::CreateSamplerState( samplerStateData, TAC_STACK_FRAME );
+    mSamplerStateAniso = Render::CreateSamplerState( { .mFilter = Render::Filter::Aniso }, TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( mSamplerStateAniso, "game-samp" );
   }
 
@@ -514,9 +492,7 @@ namespace Tac
       const Render::TextureHandle noiseTexture =
         TextureAssetManager::GetTexture( terrain->mNoiseTexturePath, mGetTextureErrorsNoise );
 
-      DefaultCBufferPerObject cbuf = {};
-      cbuf.Color = { 1, 1, 1, 1 };
-      cbuf.World = m4::Identity();
+      DefaultCBufferPerObject cbuf { .World = m4::Identity(), .Color = { 1, 1, 1, 1 }};
 
       Render::SetTexture( Render::DrawCallTextures{ terrainTexture, noiseTexture } );
       Render::UpdateConstantBuffer( DefaultCBufferPerObject::Handle,
@@ -557,10 +533,10 @@ namespace Tac
                                   mViewId,
                                   skybox->mSkyboxDir );
       }
-      int                mViewWidth;
-      int                mViewHeight;
+      int                mViewWidth = 0;
+      int                mViewHeight = 0;
       Render::ViewHandle mViewId;
-      const Camera*      mCamera;
+      const Camera*      mCamera = nullptr;
     } mySkyboxVisitor;
     mySkyboxVisitor.mViewWidth = viewWidth;
     mySkyboxVisitor.mViewHeight = viewHeight;

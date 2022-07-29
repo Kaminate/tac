@@ -70,7 +70,7 @@ namespace Tac
     bool                mSelectedGizmo = false;
     v3                  mTranslationGizmoDir = {};
     float               mTranslationGizmoOffset = 0;
-    Camera*             mEditorCamera;
+    Camera*             mEditorCamera{};
     //GamePresentation*   mGamePresentation = nullptr;
     //SkyboxPresentation* mSkyboxPresentation = nullptr;
 
@@ -86,5 +86,5 @@ namespace Tac
 
   extern Creation       gCreation;
 
-}
+} // namespace Tac
 

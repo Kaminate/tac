@@ -2,20 +2,16 @@
 
 set( TAC_DEBUGGING FALSE )
 set( TAC_LIBRARIES 
-CommonLibrary  
+  CommonLibrary  
   Ghost
 )
 set( TAC_INCLUDE_DIRECTORIES "" )
 set( TAC_SOURCES "" )
 set( TAC_EXE_NAME "Gravestory" )
-set( TAC_SOURCES 
-  ${TAC_SOURCES}
+list( APPEND TAC_SOURCES
   "${CMAKE_SOURCE_DIR}/src/game/tac_game.cpp"
   "${CMAKE_SOURCE_DIR}/src/game/tac_game.h"
-  "${CMAKE_SOURCE_DIR}/src/shell/tac_desktop_app.cpp"
-  "${CMAKE_SOURCE_DIR}/src/shell/tac_desktop_app.h"
-  "${CMAKE_SOURCE_DIR}/src/shell/tac_desktop_window_graphics.cpp"
-  "${CMAKE_SOURCE_DIR}/src/shell/tac_desktop_window_graphics.h" )
+  ${TAC_DESKTOP_APP_FILES} )
 if( WIN32 )
 
 if( FALSE )
@@ -44,9 +40,8 @@ endif()
 
 # note: variables names are case-sensitive
 
-set( TAC_INCLUDE_DIRECTORIES "" )
-set( TAC_INCLUDE_DIRECTORIES
-    ${TAC_INCLUDE_DIRECTORIES}
+
+list( APPEND TAC_INCLUDE_DIRECTORIES
     "${CMAKE_SOURCE_DIR}/include"
     "${CMAKE_SOURCE_DIR}/src" )
 
@@ -69,23 +64,16 @@ endfunction()
 
 if( WIN32 )
   tac_target( "Win32" )
-if(FALSE)
-  set( TAC_SOURCES 
-    ${TAC_SOURCES}
-    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWin32MouseEdge.cpp"
-    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWin32MouseEdge.h"
-    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWin32DesktopWindowManager.cpp"
-    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWin32DesktopWindowManager.h"
-    "${CMAKE_SOURCE_DIR}/src/shell/windows/tacWin32Main.cpp" )
-else()
   set( TAC_SOURCES ${TAC_SOURCES} ${TAC_WIN_MAIN_FILES})
-endif()
+  list( APPEND TAC_LIBRARIES TacWinLib )
   include_directories( ${TAC_INCLUDE_DIRECTORIES} )
+
 
   # the win32 here changes the
   # configuration properties --> linker --> system --> subsystem
   # from console to windows, which makes the console window go away
   add_executable( ${TAC_TARGET_NAME} WIN32 ${TAC_SOURCES} )
+  target_compile_options( ${TAC_TARGET_NAME} PUBLIC /ZI ) # Program Database for Edit & Continue
   target_link_libraries( ${TAC_TARGET_NAME} ${TAC_LIBRARIES} )
   # target_sources( ${TAC_TARGET_NAME} PRIVATE ${Common} )
   set_target_properties( ${TAC_TARGET_NAME} PROPERTIES

@@ -18,7 +18,6 @@
 
 #include <array>
 #include <algorithm>
-#include <iostream>
 
 namespace Tac
 {

@@ -1,12 +1,13 @@
 #include "src/common/math/tac_matrix3.h"
 #include "src/common/tac_camera.h"
 #include "src/common/tac_json.h"
+#include "src/common/math/tac_math.h"
 #include "src/common/graphics/tac_renderer_util.h"
 #include "src/space/graphics/tac_graphics.h"
 #include "src/space/light/tac_light.h"
 #include "src/space/tac_entity.h"
 
-#include <cmath> // std::acos, std::round
+//#include <cmath> // std::acos, std::round
 
 namespace Tac
 {
@@ -84,7 +85,7 @@ namespace Tac
     GetFrameRH( z, x, y );
 
     v3 up( 0, 1, 0 );
-    float rads = std::acos( Dot( up, y ) );
+    float rads = Acos( Dot( up, y ) );
 
     m3 m = m3::RotRadAngleAxis( rads, z );
     x = m * x;
@@ -100,9 +101,11 @@ namespace Tac
 
     // Try round up to nearest integer
     {
-      auto round3 = []( v3 v ){ return v3( std::round( v.x ),
-                                           std::round( v.y ),
-                                           std::round( v.z ) ); };
+      auto round3 = []( v3 v )
+      {
+        return v3( Round( v.x ),
+                   Round( v.y ),
+                   Round( v.z ) ); };
       const v3 roundedZ = round3( z );
       const v3 roundedX = round3( x );
       const v3 roundedY = round3( y );

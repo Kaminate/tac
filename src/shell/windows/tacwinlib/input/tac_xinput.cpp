@@ -6,10 +6,6 @@
 #include "src/common/shell/tac_shell_timer.h"
 #include "src/common/tac_error_handling.h"
 
-#include <algorithm>
-#include <cmath>
-#include <iostream>
-
 #pragma comment( lib, "dxguid.lib" ) // IID_IDirectInput8A
 #pragma comment( lib, "Dinput8.lib" )
 
@@ -37,7 +33,7 @@ namespace Tac
     result /= 65535.0f;
     result *= 2.0f;
     result -= 1.0f;
-    float sign = std::signbit( result ) ? -1.0f : 1.0f;
+    float sign = result < 0 ? -1.0f : 1.0f;
     result *= sign;
     result -= deadzonePercent;
     result /= 1.0f - deadzonePercent;

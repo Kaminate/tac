@@ -4,6 +4,7 @@
 #include "src/common/graphics/imgui/tac_imgui.h"
 #include "src/common/graphics/tac_renderer.h"
 #include "src/common/graphics/tac_ui_2d.h"
+#include "src/common/graphics/tac_font.h"
 #include "src/common/profile/tac_profile.h"
 #include "src/common/shell/tac_shell.h"
 #include "src/common/shell/tac_shell_timer.h"
@@ -308,19 +309,19 @@ namespace Tac
   //WindowHandleIterator::WindowHandleIterator() {  }
   //WindowHandleIterator::~WindowHandleIterator() {  }
 
-  int* WindowHandleIterator::begin()
-  {
-    TAC_ASSERT( IsLogicThread() );
-    sWindowHandleLock.lock();
-    return sDesktopWindowHandleIDs.begin();
-  }
+  //int* WindowHandleIterator::begin()
+  //{
+  //  TAC_ASSERT( IsLogicThread() );
+  //  sWindowHandleLock.lock();
+  //  return sDesktopWindowHandleIDs.begin();
+  //}
 
-  int* WindowHandleIterator::end()
-  {
-    int* result = sDesktopWindowHandleIDs.end();
-    sWindowHandleLock.unlock();
-    return result;
-  }
+  //int* WindowHandleIterator::end()
+  //{
+  //  int* result = sDesktopWindowHandleIDs.end();
+  //  sWindowHandleLock.unlock();
+  //  return result;
+  //}
 
   void DesktopEventQueueImpl::Init()
   {
@@ -485,9 +486,8 @@ namespace Tac
           DesktopEventDataMouseWheel data;
           sEventQueue.QueuePop( &data, sizeof( data ) );
           gKeyboardInput.mCurr.mMouseScroll += data.mDelta;
-          gKeyboardInput.mMouseDeltaScroll =
-            gKeyboardInput.mCurr.mMouseScroll -
-            gKeyboardInput.mPrev.mMouseScroll;
+          gKeyboardInput.mMouseDeltaScroll = gKeyboardInput.mCurr.mMouseScroll
+                                           - gKeyboardInput.mPrev.mMouseScroll;
         } break;
 
         case DesktopEventType::MouseMove:
@@ -496,11 +496,10 @@ namespace Tac
           sEventQueue.QueuePop( &data, sizeof( data ) );
           const DesktopWindowState* desktopWindowState = GetDesktopWindowState( data.mDesktopWindowHandle );
           gKeyboardInput.mCurr.mScreenspaceCursorPos = {
-            ( float )desktopWindowState->mX + ( float )data.mX,
-            ( float )desktopWindowState->mY + ( float )data.mY };
-          gKeyboardInput.mMouseDeltaPos =
-            gKeyboardInput.mCurr.mScreenspaceCursorPos -
-            gKeyboardInput.mPrev.mScreenspaceCursorPos;
+            (float)desktopWindowState->mX + (float)data.mX,
+            (float)desktopWindowState->mY + (float)data.mY };
+          gKeyboardInput.mMouseDeltaPos = gKeyboardInput.mCurr.mScreenspaceCursorPos
+                                        - gKeyboardInput.mPrev.mScreenspaceCursorPos;
         } break;
 
         case DesktopEventType::CursorUnobscured:
@@ -525,13 +524,12 @@ namespace Tac
                                                 const int h )
   {
     TAC_ASSERT( IsMainThread() );
-    DesktopEventDataAssignHandle data;
-    data.mDesktopWindowHandle = desktopWindowHandle;
-    data.mNativeWindowHandle = nativeWindowHandle;
-    data.mW = w;
-    data.mH = h;
-    data.mX = x;
-    data.mY = y;
+    DesktopEventDataAssignHandle data{ .mDesktopWindowHandle = desktopWindowHandle,
+                                       .mNativeWindowHandle = nativeWindowHandle,
+                                       .mX = x,
+                                       .mY = y,
+                                       .mW = w,
+                                       .mH = h, };
     sEventQueue.QueuePush( DesktopEventType::WindowAssignHandle, &data, sizeof( data ) );
   }
 
@@ -540,10 +538,7 @@ namespace Tac
                                               const int y )
   {
     TAC_ASSERT( IsMainThread() );
-    DesktopEventDataWindowMove data;
-    data.mDesktopWindowHandle = desktopWindowHandle;
-    data.mX = x;
-    data.mY = y;
+    DesktopEventDataWindowMove data{ .mDesktopWindowHandle = desktopWindowHandle,.mX = x,.mY = y };
     sEventQueue.QueuePush( DesktopEventType::WindowMove, &data, sizeof( data ) );
   }
 
@@ -552,18 +547,14 @@ namespace Tac
                                                 const int h )
   {
     TAC_ASSERT( IsMainThread() );
-    DesktopEventDataWindowResize data;
-    data.mDesktopWindowHandle = desktopWindowHandle;
-    data.mWidth = w;
-    data.mHeight = h;
+    DesktopEventDataWindowResize data{ .mDesktopWindowHandle = desktopWindowHandle, .mWidth = w,.mHeight = h };
     sEventQueue.QueuePush( DesktopEventType::WindowResize, &data, sizeof( data ) );
   }
 
   void                DesktopEventMouseWheel( const int ticks )
   {
     TAC_ASSERT( IsMainThread() );
-    DesktopEventDataMouseWheel data;
-    data.mDelta = ticks;
+    DesktopEventDataMouseWheel data{.mDelta = ticks};
     sEventQueue.QueuePush( DesktopEventType::MouseWheel, &data, sizeof( data ) );
   }
 
@@ -572,35 +563,28 @@ namespace Tac
                                              const int y )
   {
     TAC_ASSERT( IsMainThread() );
-    DesktopEventDataMouseMove data;
-    data.mDesktopWindowHandle = desktopWindowHandle;
-    data.mX = x;
-    data.mY = y;
+    DesktopEventDataMouseMove data{ .mDesktopWindowHandle = desktopWindowHandle, .mX = x, .mY = y };
     sEventQueue.QueuePush( DesktopEventType::MouseMove, &data, sizeof( data ) );
   }
 
   void                DesktopEventKeyState( const Key key, const bool down )
   {
     TAC_ASSERT( IsMainThread() );
-    DesktopEventDataKeyState data;
-    data.mDown = down;
-    data.mKey = key;
+    DesktopEventDataKeyState data{ .mKey = key, .mDown = down };
     sEventQueue.QueuePush( DesktopEventType::KeyState, &data, sizeof( data ) );
   }
 
   void                DesktopEventKeyInput( const Codepoint codepoint )
   {
     TAC_ASSERT( IsMainThread() );
-    DesktopEventDataKeyInput data;
-    data.mCodepoint = codepoint;
+    DesktopEventDataKeyInput data{ .mCodepoint = codepoint };
     sEventQueue.QueuePush( DesktopEventType::KeyInput, &data, sizeof( data ) );
   }
 
   void                DesktopEventMouseHoveredWindow( const DesktopWindowHandle desktopWindowHandle )
   {
     TAC_ASSERT( IsMainThread() );
-    DesktopEventDataCursorUnobscured data;
-    data.mDesktopWindowHandle = desktopWindowHandle;
+    DesktopEventDataCursorUnobscured data{ .mDesktopWindowHandle = desktopWindowHandle };
     sEventQueue.QueuePush( DesktopEventType::CursorUnobscured, &data, sizeof( data ) );
   }
 
@@ -719,12 +703,11 @@ namespace Tac
   {
     sWindowHandleLock.lock();
     const DesktopWindowHandle handle = { sDesktopWindowHandleIDs.Alloc() };
-    WantSpawnInfo info;
-    info.mX = x;
-    info.mY = y;
-    info.mWidth = width;
-    info.mHeight = height;
-    info.mHandle = handle;
+    WantSpawnInfo info = { .mHandle = handle,
+                           .mX = x,
+                           .mY = y,
+                           .mWidth = width,
+                           .mHeight = height, };
     sWindowRequestsCreate.push_back( info );
     sWindowHandleLock.unlock();
     return handle;

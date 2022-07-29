@@ -2,18 +2,18 @@
 #include "src/common/graphics/imgui/tac_imgui.h"
 #include "src/common/graphics/tac_font.h"
 #include "src/common/graphics/tac_renderer.h"
-
 #include "src/common/math/tac_math.h"
+#include "src/common/meta/tac_meta.h"
+#include "src/common/shell/tac_shell.h"
+#include "src/common/shell/tac_shell_timer.h"
 #include "src/common/tac_algorithm.h"
 #include "src/common/tac_controller_input.h"
 #include "src/common/tac_keyboard_input.h"
 #include "src/common/tac_localization.h"
 #include "src/common/tac_memory.h"
-#include "src/common/meta/tac_meta.h"
 #include "src/common/tac_preprocessor.h"
 #include "src/common/tac_settings.h"
-#include "src/common/shell/tac_shell.h"
-#include "src/common/shell/tac_shell_timer.h"
+#include "src/common/tac_temporary_memory.h"
 #include "src/common/tac_utility.h"
 #include "src/space/collider/tac_collider.h"
 #include "src/space/graphics/tac_graphics.h"
@@ -27,9 +27,9 @@
 #include "src/space/tac_server.h"
 #include "src/space/tac_world.h"
 
-#include <fstream>
-#include <iostream>
-#include <utility>
+//#include <fstream>
+//#include <iostream>
+//#include <utility>
 
 namespace Tac
 {
@@ -429,8 +429,9 @@ namespace Tac
     //World* world = mServerData->mWorld;
     //Physics* physics = Physics::GetSystem( world );
     String levelpath = "mylevel.txt";
-    std::ifstream ifs( levelpath.c_str() );
-    if( !ifs.is_open() )
+    Errors errors;
+    TemporaryMemory mem = TemporaryMemoryFromFile( levelpath, errors );
+    if( mem.empty() )
     {
       const String errorMsg = "failed to open " + levelpath;
       mLevelLoadErrors.Append( errorMsg );

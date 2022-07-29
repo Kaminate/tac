@@ -34,11 +34,11 @@ namespace Tac
     ProjectUninit mProjectUninit = nullptr;
   };
 
-  struct WindowHandleIterator
-  {
-    int* begin();
-    int* end();
-  };
+  //struct WindowHandleIterator
+  //{
+  //  int* begin();
+  //  int* end();
+  //};
 
   void                DesktopEventInit();
   void                DesktopEventAssignHandle( DesktopWindowHandle,

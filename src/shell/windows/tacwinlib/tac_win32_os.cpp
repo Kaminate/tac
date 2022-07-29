@@ -366,8 +366,8 @@ namespace Tac
         }
       }
 
-      bool              mIsRecursive;
-      Vector< String >* mFiles;
+      bool              mIsRecursive = false;
+      Vector< String >* mFiles = nullptr;
     } functor;
 
     functor.mIsRecursive = ( int )flags & ( int )OSGetFilesInDirectoryFlags::Recursive;
@@ -391,7 +391,7 @@ namespace Tac
         if( data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY )
           mDirs->push_back( data.cFileName );
       }
-      Vector< String >* mDirs;
+      Vector< String >* mDirs = nullptr;
     } functor;
     functor.mDirs = &dirs;
     Win32DirectoryIterate( dir, &functor, errors );

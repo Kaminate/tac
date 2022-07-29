@@ -198,7 +198,7 @@ namespace Tac
         if( saveDialogErrors )
         {
           // todo: log it, user feedback
-          std::cout << saveDialogErrors.ToString().c_str() << std::endl;
+          GetOS()->OSDebugPrintLine(saveDialogErrors.ToString());
           continue;
         }
 
@@ -220,7 +220,7 @@ namespace Tac
       if( saveToFileErrors )
       {
         // todo: log it, user feedback
-        std::cout << saveToFileErrors.ToString().c_str() << std::endl;
+        GetOS()->OSDebugPrintLine(saveToFileErrors.ToString());
         continue;
       }
     }

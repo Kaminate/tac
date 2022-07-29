@@ -20,6 +20,8 @@
 #include "src/space/tac_system.h"
 #include "src/space/tac_world.h"
 
+#include <map>
+
 namespace Tac
 {
   static void EntityImGuiRotation( Entity* entity )

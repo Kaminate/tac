@@ -5,6 +5,7 @@
 #include "src/common/tac_desktop_window.h"
 #include "src/common/tac_os.h"
 #include "src/common/tac_settings.h"
+#include "src/common/tac_error_handling.h"
 #include "src/common/shell/tac_shell.h"
 #include "src/creation/tac_creation.h"
 #include "src/creation/tac_creation_system_window.h"

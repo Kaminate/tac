@@ -1,6 +1,4 @@
-build/
-build_vs2017/
-build_vs2019/
+build*/
 x64/
 CMakeFiles/
 */CMakeFiles/*

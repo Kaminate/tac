@@ -7,16 +7,62 @@
 #include "src/common/tac_settings.h"
 #include "src/common/tac_algorithm.h"
 #include "src/common/tac_memory.h"
-#include <iostream>
-#include <thread> // std::this_thread::sleep_for
-#include <chrono> // std::chrono::miliseconds
+#include "src/common/tac_os.h"
 #include <Ws2tcpip.h> // inet_pton, getaddrinfo
+
+#include "src/shell/windows/tacwinlib/tac_win32.h"
+#include "src/common/string/tac_string.h"
+#include "src/common/tac_error_handling.h"
+#include "src/common/containers/tac_vector.h"
+#include "src/common/tac_net.h"
+
+#include <set>
+
+#include <WinSock2.h> // SOCKET
 
 #pragma comment( lib, "ws2_32.lib" )
 
 namespace Tac
 {
+  struct SocketWinsock : public Socket
+  {
+    ~SocketWinsock();
+    void        SetIsBlocking( bool isBlocking, Errors& );
+    void        SetKeepalive( bool keepAlive, Errors& );
+    void        Send( void* bytes, int byteCount, Errors& ) override;
+    void        TCPTryConnect( StringView hostname,
+                               uint16_t port,
+                               Errors& ) override;
+    SOCKET      mSocket = INVALID_SOCKET;
+    int         mWinsockAddressFamily = 0;
+    int         mWinsockSocketType = 0;
+    String      mHostname;
+  };
+
+  struct NetWinsock : public Net
+  {
+    ~NetWinsock();
+    static NetWinsock          Instance;
+    void                       Init( Errors& ) override;
+    void                       DebugImgui() override;
+    void                       Update( Errors& ) override;
+    Socket*                    CreateSocket( StringView name,
+                                             AddressFamily,
+                                             SocketType,
+                                             Errors& ) override;
+    Vector< Socket* >          GetSockets() override;
+    std::set< SocketWinsock* > mSocketWinsocks;
+    bool                       mPrintReceivedMessages = false;
+    // TODO: Only send a keepalive if we haven't received a message within mKeepaliveIntervalSeconds
+    double                     mKeepaliveNextSeconds = 0;
+    float                      mKeepaliveIntervalSeconds = 30;
+  };
+
   NetWinsock NetWinsock::Instance;
+  Net* GetNetWinsock() { return &NetWinsock::Instance; }
+
+
+
 
   static int GetWinsockAddressFamily( AddressFamily addressFamily )
   {
@@ -325,7 +371,7 @@ namespace Tac
       socketWinsock->mElapsedSecondsOnLastRecv = ShellGetElapsedSeconds();
       if( mPrintReceivedMessages )
       {
-        std::cout << "Received message: " << StringView( recvBuf, recvResult ).c_str() << std::endl;
+        GetOS()->OSDebugPrintLine( va( "Received message: %.*s",  recvResult, recvBuf ) );
       }
 
       socketWinsock->OnMessage( recvBuf, recvResult );

@@ -24,8 +24,22 @@ namespace Tac
 
   void               PlayerNetworkBitsRegister()
   {
-    sNetworkBits.Add( { "mEntityUUID",     (int)TAC_OFFSET_OF( Player, mEntityUUID ),     sizeof( EntityUUID ), 1 } );
-    sNetworkBits.Add( { "mInputDirection", (int)TAC_OFFSET_OF( Player, mInputDirection ), sizeof( float ),      2 } );
+    sNetworkBits = { .mNetworkBits{
+      NetworkBit
+      {
+        .mDebugName= "mEntityUUID",
+        .mByteOffset = (int)TAC_OFFSET_OF( Player, mEntityUUID ),
+        .mComponentByteCount = sizeof( EntityUUID ),
+        .mComponentCount = 1
+      },
+      NetworkBit
+      {
+        .mDebugName = "mInputDirection",
+        .mByteOffset = (int)TAC_OFFSET_OF( Player, mInputDirection ),
+        .mComponentByteCount = sizeof( float ),
+        .mComponentCount = 2
+      },
+    }};
   }
 
   const NetworkBits& PlayerNetworkBitsGet()

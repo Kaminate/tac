@@ -1,7 +1,7 @@
 #include "src/common/assetmanagers/tac_texture_asset_manager.h"
 #include "src/common/graphics/imgui/tac_imgui.h"
 #include "src/common/graphics/tac_color_util.h"
-#include "src/common/graphics/tac_font.h"
+//#include "src/common/graphics/tac_font.h"
 #include "src/common/graphics/tac_renderer.h"
 #include "src/common/graphics/tac_ui_2d.h"
 #include "src/common/math/tac_math.h"
@@ -56,7 +56,7 @@ namespace Tac
     String              mName;
     int                 mX, mY, mW, mH;
     const void*         mNativeWindowHandle;
-  } sCreatedWindowData[ kDesktopWindowCapacity ];
+  } sCreatedWindowData[ kDesktopWindowCapacity ]{};
 
   static void   CreationInitCallback( Errors& errors )   { gCreation.Init( errors ); }
   static void   CreationUninitCallback( Errors& errors ) { gCreation.Uninit( errors ); }
@@ -275,19 +275,12 @@ namespace Tac
     MetaFnUnitTest();
     MetaCompositeUnitTest();
 
-    //int a = 5;
-    //int b = 2;
-    //int c = test_add( a, b );
-    //std::cout << a << " + " << b << " = " << c << std::endl;
-
-
     SpaceInit();
     mWorld = TAC_NEW World;
-    mEditorCamera = TAC_NEW Camera;
-    mEditorCamera->mPos = { 0, 1, 5 };
-    mEditorCamera->mForwards = { 0, 0, -1 };
-    mEditorCamera->mRight = { 1, 0, 0 };
-    mEditorCamera->mUp = { 0, 1, 0 };
+    mEditorCamera = TAC_NEW Camera{ .mPos = { 0, 1, 5 },
+                                    .mForwards = { 0, 0, -1 },
+                                    .mRight = { 1, 0, 0 },
+                                    .mUp = { 0, 1, 0 } };
 
     SkyboxPresentationInit( errors );
     TAC_HANDLE_ERROR( errors );

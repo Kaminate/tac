@@ -15,8 +15,7 @@
 #include "src/shell/windows/tacwinlib/input/tac_win32_mouse_edge.h"
 #include "src/shell/windows/tacwinlib/input/tac_xinput.h"
 
-#include <thread>
-#include <iostream>
+//#include <iostream>
 #include <set>
 
 namespace Tac
@@ -127,7 +126,6 @@ namespace Tac
       // Sent when a window is being destroyed
       case WM_DESTROY:
       {
-        //std::cout << "WM_DESTROY" << std::endl;
         ImGuiSaveWindowSettings();
         sHWNDs[ ( int )desktopWindowHandle ] = nullptr;
         DesktopEventAssignHandle( desktopWindowHandle, nullptr, 0, 0, 0, 0 );
@@ -150,7 +148,6 @@ namespace Tac
       // Indicates a request to terminate an application
       case WM_QUIT:
       {
-        //std::cout << "WM_QUIT" << std::endl;
         // mRequestDeletion = true;
       } break;
 
@@ -200,12 +197,12 @@ namespace Tac
       case WM_SETFOCUS:
       {
         if( verboseFocus )
-          std::cout << "window gained keyboard focus " << std::endl;
+          GetOS()->OSDebugPrintLine("window gained keyboard focus ");
       } break;
       case WM_KILLFOCUS:
       {
         if( verboseFocus )
-          std::cout << "window about to lose keyboard focus" << std::endl;
+          GetOS()->OSDebugPrintLine("window about to lose keyboard focus" );
       } break;
 
       // Sent when a window belonging to a different application than the active window
@@ -218,19 +215,19 @@ namespace Tac
         if( wParam == TRUE )
         {
           if( verboseActivate )
-            std::cout << "The window is being activated" << std::endl;
+          GetOS()->OSDebugPrintLine("The window is being activated" );
         }
         else
         {
           if( verboseActivate )
-            std::cout << "The window is being deactivated" << std::endl;
+          GetOS()->OSDebugPrintLine("The window is being deactivated" );
         }
       } break;
 
       case WM_CAPTURECHANGED:
       {
         if( verboseCapture )
-          std::cout << "WM_CAPTURECHANGED ( mouse capture lost )" << std::endl;
+          GetOS()->OSDebugPrintLine("WM_CAPTURECHANGED ( mouse capture lost )" );
       } break;
 
 
@@ -250,7 +247,6 @@ namespace Tac
 
       case WM_LBUTTONDOWN:
       {
-        //std::cout << "WM_LBUTTONDOWN" << std::endl;
         DesktopEventKeyState( Key::MouseLeft, true );
 
         // make it so clicking the window brings the window to the top of the z order
@@ -262,8 +258,6 @@ namespace Tac
 
       case WM_LBUTTONUP:
       {
-        //if( uMsg == WM_LBUTTONUP ) { std::cout << "WM_LBUTTONUP" << std::endl; }
-        //else { std::cout << "WM_NCLBUTTONUP" << std::endl; }
         DesktopEventKeyState( Key::MouseLeft, false );
       } break;
 
@@ -316,8 +310,6 @@ namespace Tac
 
       case WM_MOUSELEAVE:
       {
-        //if( verboseMouseInWindow )
-        //  std::cout << mName << " mouse leave" << std::endl;
         //mIsMouseInWindow = false;
         //ReleaseCapture();
         //mCurrDown.clear();
@@ -493,6 +485,7 @@ namespace Tac
       //  }
       //);
       //TAC_HANDLE_ERROR( errors );
+      return;
     }
 
     // Sets the keyboard focus to the specified window

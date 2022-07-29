@@ -1,12 +1,12 @@
-#include "src/common/graphics/imgui/tacImGui.h"
+#include "src/common/graphics/imgui/tac_imgui.h"
 
-#include "src/common/tacDesktopWindow.h"
-#include "src/common/graphics/tacUI2D.h"
-#include "src/common/tacOS.h"
-#include "src/game/tacGame.h"
-#include "src/shell/tacDesktopApp.h"
-#include "src/space/tacGhost.h"
-#include "src/space/tacSpace.h"
+#include "src/common/tac_desktop_window.h"
+#include "src/common/graphics/tac_ui_2d.h"
+#include "src/common/tac_os.h"
+#include "src/game/tac_game.h"
+#include "src/shell/tac_desktop_app.h"
+#include "src/space/tac_ghost.h"
+#include "src/space/tac_space.h"
 
 #include <functional> // std::function
 

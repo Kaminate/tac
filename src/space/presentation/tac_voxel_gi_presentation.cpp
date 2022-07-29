@@ -52,15 +52,15 @@ namespace Tac
 
   struct VoxelSettings
   {
-    int                                voxelDimension = 1; // eventually 128
-    bool                               voxelDebug = true;
-    bool                               voxelDebugDrawVoxelOutlines = false;
-    bool                               voxelDebugDrawGridOutline = true;
-    bool                               voxelDebugDrawVoxels = true;
-    bool                               voxelEnabled = true;
-    v3                                 voxelGridCenter;
-    float                              voxelGridHalfWidth = 10.0f;
-    bool                               voxelGridSnapCamera;
+    int   voxelDimension = 1; // eventually 128
+    bool  voxelDebug = true;
+    bool  voxelDebugDrawVoxelOutlines = false;
+    bool  voxelDebugDrawGridOutline = true;
+    bool  voxelDebugDrawVoxels = true;
+    bool  voxelEnabled = true;
+    v3    voxelGridCenter = { 0, 0, 0 };
+    float voxelGridHalfWidth = 10.0f;
+    bool  voxelGridSnapCamera = false;
   };
 
   TAC_META_REGISTER_COMPOSITE_BEGIN( VoxelSettings )
@@ -108,48 +108,36 @@ namespace Tac
 
   static void                    CreateVoxelizeDepthState()
   {
-    Render::DepthState depthState = {};
-    depthState.mDepthTest = false;
-    depthState.mDepthWrite = false;
-    depthState.mDepthFunc = ( Render::DepthFunc )0;
-    voxelizeDepthState = Render::CreateDepthState( depthState, TAC_STACK_FRAME );
+    voxelizeDepthState = Render::CreateDepthState( { .mDepthTest = false,
+                                                     .mDepthWrite = false,
+                                                     .mDepthFunc = ( Render::DepthFunc )0 },
+                                                    TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( voxelCopyDepthState, "voxelize-depth" );
   }
 
   static void                    CreateVoxelDepthState()
   {
-    Render::DepthState depthState = {};
-    depthState.mDepthTest = false;
-    depthState.mDepthWrite = false;
-    depthState.mDepthFunc = ( Render::DepthFunc )0;
-    voxelCopyDepthState = Render::CreateDepthState( depthState, TAC_STACK_FRAME );
+    voxelCopyDepthState = Render::CreateDepthState( { .mDepthTest = false,
+                                                      .mDepthWrite = false,
+                                                      .mDepthFunc = ( Render::DepthFunc )0 },
+          TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( voxelCopyDepthState, "vox-copy-depth" );
   }
 
   static void                    CreateVoxelView()
   {
-    voxelFramebufferTexture = []()
-    {
-      // The framebuffer texture is only to allow for renderdoc debugging pixel shaders
-      Render::TexSpec texSpec;
-      texSpec.mImage.mWidth = voxelSettingsCurrent.voxelDimension;
-      texSpec.mImage.mHeight = voxelSettingsCurrent.voxelDimension;
-      texSpec.mImage.mFormat.mElementCount = 4;
-      texSpec.mImage.mFormat.mPerElementByteCount = 1;
-      texSpec.mImage.mFormat.mPerElementDataType = Render::GraphicsType::unorm;
-      texSpec.mBinding = Render::Binding::RenderTarget;
-      auto tex = Render::CreateTexture( texSpec, TAC_STACK_FRAME );
-      Render::SetRenderObjectDebugName( tex, "voxel-fbo-tex" );
-      return tex;
-    }( );
+    // The framebuffer texture is only to allow for renderdoc debugging pixel shaders
+    const Render::TexSpec texSpec{ .mImage{ .mWidth = voxelSettingsCurrent.voxelDimension,
+                                            .mHeight = voxelSettingsCurrent.voxelDimension,
+                                            .mFormat{ .mElementCount = 4,
+                                                      .mPerElementByteCount = 1,
+                                                      .mPerElementDataType = Render::GraphicsType::unorm } },
+                                   .mBinding = Render::Binding::RenderTarget };
+    voxelFramebufferTexture = Render::CreateTexture( texSpec, TAC_STACK_FRAME );
+    Render::SetRenderObjectDebugName( voxelFramebufferTexture, "voxel-fbo-tex" );
 
-    voxelFramebuffer = [](){
-      Render::FramebufferTextures framebufferTextures = { voxelFramebufferTexture };
-      Render::FramebufferHandle framebufferHandle
-        = Render::CreateFramebufferForRenderToTexture( framebufferTextures, TAC_STACK_FRAME );
-      Render::SetRenderObjectDebugName( framebufferHandle, "voxel-fbo" );
-      return framebufferHandle;
-    }( );
+    voxelFramebuffer = Render::CreateFramebufferForRenderToTexture( { voxelFramebufferTexture }, TAC_STACK_FRAME );
+    Render::SetRenderObjectDebugName( voxelFramebuffer, "voxel-fbo" );
 
     voxelView = Render::CreateView();
   }
@@ -171,14 +159,13 @@ namespace Tac
 
   static void                    CreateVoxelRasterizerState()
   {
-    Render::RasterizerState rasterizerStateData;
-    rasterizerStateData.mCullMode = Render::CullMode::None;
-    rasterizerStateData.mFillMode = Render::FillMode::Solid;
-    rasterizerStateData.mFrontCounterClockwise = true;
-    rasterizerStateData.mMultisample = false;
-    rasterizerStateData.mScissor = false;
-    rasterizerStateData.mConservativeRasterization = true;
-    voxelRasterizerState = Render::CreateRasterizerState( rasterizerStateData, TAC_STACK_FRAME );
+    voxelRasterizerState = Render::CreateRasterizerState( { .mFillMode = Render::FillMode::Solid,
+                                                            .mCullMode = Render::CullMode::None,
+                                                            .mFrontCounterClockwise = true,
+                                                            .mScissor = false,
+                                                            .mMultisample = false,
+                                                            .mConservativeRasterization = true },
+                                                          TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( voxelRasterizerState, "voxel-rasterizer-state" );
   }
 
@@ -198,8 +185,7 @@ namespace Tac
 
   static void                    CreateVoxelizerBlend()
   {
-    Render::BlendState blendState;
-    voxelBlend = Render::CreateBlendState( blendState, TAC_STACK_FRAME );
+    voxelBlend = Render::CreateBlendState( {}, TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( voxelBlend, "voxel-blend" );
   }
 
@@ -219,28 +205,30 @@ namespace Tac
       v2 uv;
     };
 
-    Render::VertexDeclaration pos;
-    pos.mAlignedByteOffset = TAC_OFFSET_OF( VoxelVtx, pos );
-    pos.mAttribute = Render::Attribute::Position;
-    pos.mTextureFormat.mElementCount = 3;
-    pos.mTextureFormat.mPerElementByteCount = sizeof( float );
-    pos.mTextureFormat.mPerElementDataType = Render::GraphicsType::real;
-
-    Render::VertexDeclaration nor;
-    nor.mAlignedByteOffset = TAC_OFFSET_OF( VoxelVtx, nor );
-    nor.mAttribute = Render::Attribute::Normal;
-    nor.mTextureFormat.mElementCount = 3;
-    nor.mTextureFormat.mPerElementByteCount = sizeof( float );
-    nor.mTextureFormat.mPerElementDataType = Render::GraphicsType::real;
-
-    Render::VertexDeclaration uv;
-    uv.mAlignedByteOffset = TAC_OFFSET_OF( VoxelVtx, uv );
-    uv.mAttribute = Render::Attribute::Texcoord;
-    uv.mTextureFormat.mElementCount = 2;
-    uv.mTextureFormat.mPerElementByteCount = sizeof( float );
-    uv.mTextureFormat.mPerElementDataType = Render::GraphicsType::real;
-
-    voxelVertexDeclarations = { pos, nor, uv };
+    voxelVertexDeclarations =
+    {
+      {
+        .mAttribute = Render::Attribute::Position,
+        .mTextureFormat{ .mElementCount = 3,
+                         .mPerElementByteCount = sizeof( float ),
+                         .mPerElementDataType = Render::GraphicsType::real },
+        .mAlignedByteOffset = TAC_OFFSET_OF( VoxelVtx, pos )
+      },
+      {
+        .mAttribute = Render::Attribute::Normal,
+        .mTextureFormat{ .mElementCount = 3,
+                         .mPerElementByteCount = sizeof( float ),
+                         .mPerElementDataType = Render::GraphicsType::real,},
+        .mAlignedByteOffset = TAC_OFFSET_OF( VoxelVtx, nor ),
+      },
+      {
+        .mAttribute = Render::Attribute::Texcoord,
+        .mTextureFormat{ .mElementCount = 2,
+                         .mPerElementByteCount = sizeof( float ),
+                         .mPerElementDataType = Render::GraphicsType::real,},
+        .mAlignedByteOffset = TAC_OFFSET_OF( VoxelVtx, uv ),
+      }
+    };
 
     voxelVertexFormat = Render::CreateVertexFormat( voxelVertexDeclarations,
                                                     voxelizerShader,
@@ -250,23 +238,20 @@ namespace Tac
 
   static Render::TexSpec         GetVoxRadianceTexSpec()
   {
-
-
     // rgba16f, 2 bytes (16 bits) per float, hdr values
-    Render::TexSpec texSpec;
-    texSpec.mAccess = Render::Access::Default;
-    texSpec.mBinding
-      = Render::Binding::ShaderResource
-      | Render::Binding::UnorderedAccess;
-    texSpec.mCpuAccess = Render::CPUAccess::None;
-    texSpec.mImage.mFormat.mElementCount = 4;
-    texSpec.mImage.mFormat.mPerElementDataType = Render::GraphicsType::real;
-    texSpec.mImage.mFormat.mPerElementByteCount = 2;
-    texSpec.mImage.mWidth = voxelSettingsCurrent.voxelDimension;
-    texSpec.mImage.mHeight = voxelSettingsCurrent.voxelDimension;
-    texSpec.mImage.mDepth = voxelSettingsCurrent.voxelDimension;
-    texSpec.mPitch = 0;
-    return texSpec;
+    return { .mImage = { .mWidth = voxelSettingsCurrent.voxelDimension,
+                         .mHeight = voxelSettingsCurrent.voxelDimension,
+                         .mDepth = voxelSettingsCurrent.voxelDimension,
+                         .mFormat = { .mElementCount = 4,
+                                      .mPerElementByteCount = 2,
+                                      .mPerElementDataType = Render::GraphicsType::real,
+                                    },
+                       },
+             .mPitch = 0,
+             .mBinding { Render::Binding::ShaderResource | Render::Binding::UnorderedAccess},
+             .mAccess = Render::Access::Default, 
+             .mCpuAccess = Render::CPUAccess::None
+           };
   }
 
   static void                    CreateVoxelTextureRadianceBounce1()
@@ -302,14 +287,12 @@ namespace Tac
 
   static CBufferVoxelizer        VoxelGetCBuffer()
   {
-    CBufferVoxelizer cpuCBufferVoxelizer = {};
-    cpuCBufferVoxelizer.gVoxelGridCenter = voxelSettingsCurrent.voxelGridCenter;
-    cpuCBufferVoxelizer.gVoxelGridHalfWidth = voxelSettingsCurrent.voxelGridHalfWidth;
-    cpuCBufferVoxelizer.gVoxelWidth
-      = ( voxelSettingsCurrent.voxelGridHalfWidth * 2.0f )
-      / voxelSettingsCurrent.voxelDimension;
-    cpuCBufferVoxelizer.gVoxelGridSize = voxelSettingsCurrent.voxelDimension;
-    return cpuCBufferVoxelizer;
+    const float gVoxelWidth = ( voxelSettingsCurrent.voxelGridHalfWidth * 2.0f )
+                            / voxelSettingsCurrent.voxelDimension;
+    return { .gVoxelGridCenter    = voxelSettingsCurrent.voxelGridCenter,
+             .gVoxelGridHalfWidth = voxelSettingsCurrent.voxelGridHalfWidth,
+             .gVoxelWidth         = gVoxelWidth,
+             .gVoxelGridSize      = (uint32_t)voxelSettingsCurrent.voxelDimension };
   }
 
   static void                    RenderDebugVoxelOutlineGrid( Debug3DDrawData* drawData )
@@ -414,8 +397,8 @@ namespace Tac
         if( cBufferLights->TryAddLight( LightToShaderLight( light ) ) )
           textures->push_back( light->mShadowMapDepth );
       }
-      CBufferLights* cBufferLights;
-      Render::DrawCallTextures* textures;
+      CBufferLights* cBufferLights{};
+      Render::DrawCallTextures* textures{};
     } lightVisitor;
     lightVisitor.cBufferLights = &cBufferLights;
     lightVisitor.textures = &textures;
@@ -467,8 +450,8 @@ namespace Tac
 
       Render::ViewHandle            mViewHandle;
       Render::SamplerStateHandle    mSamplerState;
-      Render::DrawCallTextures* textures;
-      CBufferLights* cBufferLights;
+      Render::DrawCallTextures* textures = nullptr;
+      CBufferLights* cBufferLights = nullptr;
     } modelVisitor;
     modelVisitor.mViewHandle = viewHandle;
     modelVisitor.mSamplerState = GamePresentationGetSamplerState();

@@ -36,13 +36,12 @@ namespace Tac
 
     mShader = Render::CreateShader( Render::ShaderSource::FromPath( "Skybox" ), TAC_STACK_FRAME );
 
-    Render::VertexDeclaration pos;
-    pos.mAlignedByteOffset = 0;
-    pos.mAttribute = Render::Attribute::Position;
-    pos.mTextureFormat.mElementCount = 3;
-    pos.mTextureFormat.mPerElementByteCount = sizeof( float );
-    pos.mTextureFormat.mPerElementDataType = Render::GraphicsType::real;
-    mVertexDecls = Render::VertexDeclarations{ pos };
+    mVertexDecls = { Render::VertexDeclaration {
+      .mAttribute = Render::Attribute::Position,
+      .mTextureFormat{ .mElementCount = 3,
+                       .mPerElementByteCount = sizeof( float ),
+                       .mPerElementDataType = Render::GraphicsType::real},
+      .mAlignedByteOffset = 0, } };
 
     mVertexFormat = Render::CreateVertexFormat( mVertexDecls,
                                                 mShader,
@@ -51,36 +50,30 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
 
 
-    Render::BlendState blendStateData;
-    blendStateData.mSrcRGB = Render::BlendConstants::One;
-    blendStateData.mDstRGB = Render::BlendConstants::Zero;
-    blendStateData.mBlendRGB = Render::BlendMode::Add;
-    blendStateData.mSrcA = Render::BlendConstants::Zero;
-    blendStateData.mDstA = Render::BlendConstants::One;
-    blendStateData.mBlendA = Render::BlendMode::Add;
-    mBlendState = Render::CreateBlendState( blendStateData, TAC_STACK_FRAME );
+    mBlendState = Render::CreateBlendState( { .mSrcRGB = Render::BlendConstants::One,
+                                              .mDstRGB = Render::BlendConstants::Zero,
+                                              .mBlendRGB = Render::BlendMode::Add,
+                                              .mSrcA = Render::BlendConstants::Zero,
+                                              .mDstA = Render::BlendConstants::One,
+                                              .mBlendA = Render::BlendMode::Add}, TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( mBlendState, "skybox-blend" );
 
-    Render::DepthState depthStateData;
-    depthStateData.mDepthTest = true;
-    depthStateData.mDepthWrite = true;
-    depthStateData.mDepthFunc = Render::DepthFunc::LessOrEqual;
-    mDepthState = Render::CreateDepthState( depthStateData, TAC_STACK_FRAME );
+    mDepthState = Render::CreateDepthState( { .mDepthTest = true,
+                                              .mDepthWrite = true,
+                                              .mDepthFunc = Render::DepthFunc::LessOrEqual},
+                                            TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( mDepthState, "skybox-depth" );
 
-    Render::RasterizerState rasterizerStateData;
-    rasterizerStateData.mCullMode = Render::CullMode::None; // todo
-    rasterizerStateData.mFillMode = Render::FillMode::Solid;
-    rasterizerStateData.mFrontCounterClockwise = true;
-    rasterizerStateData.mMultisample = false;
-    rasterizerStateData.mScissor = true;
-    mRasterizerState = Render::CreateRasterizerState( rasterizerStateData, TAC_STACK_FRAME );
+    mRasterizerState = Render::CreateRasterizerState( { .mFillMode = Render::FillMode::Solid,
+                                                        .mCullMode = Render::CullMode::None, // todo
+                                                        .mFrontCounterClockwise = true,
+                                                        .mScissor = true,
+                                                        .mMultisample = false},
+                                                      TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( mRasterizerState, "skybox-rast" );
     TAC_HANDLE_ERROR( errors );
 
-    Render::SamplerState samplerStateData;
-    samplerStateData.mFilter = Render::Filter::Linear;
-    mSamplerState = Render::CreateSamplerState( samplerStateData, TAC_STACK_FRAME );
+    mSamplerState = Render::CreateSamplerState( { .mFilter = Render::Filter::Linear }, TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( mSamplerState, "skybox-samp" );
     TAC_HANDLE_ERROR( errors );
   }
@@ -114,12 +107,11 @@ namespace Tac
                                  camera->mForwards,
                                  camera->mRight,
                                  camera->mUp );
-    DefaultCBufferPerFrame perFrame;
-    perFrame.mFar = camera->mFarPlane;
-    perFrame.mNear = camera->mNearPlane;
-    perFrame.mGbufferSize = { ( float )viewWidth, ( float )viewHeight };
-    perFrame.mView = view;
-    perFrame.mProjection = camera->Proj( a, b, aspect );
+    const DefaultCBufferPerFrame perFrame{ .mView = view,
+                                           .mProjection = camera->Proj( a, b, aspect ),
+                                           .mFar = camera->mFarPlane,
+                                           .mNear = camera->mNearPlane,
+                                           .mGbufferSize = { ( float )viewWidth, ( float )viewHeight } };
     const SubMesh* subMesh = &mesh->mSubMeshes[ 0 ];
     Render::SetViewport( viewId, Render::Viewport( viewWidth, viewHeight ) );
     Render::SetViewScissorRect( viewId, Render::ScissorRect( viewWidth, viewHeight ) );

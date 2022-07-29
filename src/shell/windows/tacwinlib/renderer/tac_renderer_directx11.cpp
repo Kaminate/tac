@@ -25,8 +25,6 @@
 #include <D3DCompiler.h> // D3DCOMPILE_...
 #include <d3dcommon.h> // WKPDID_D3DDebugObjectName
 
-#include <iostream> // std::cout
-#include <utility> // std::pair
 #include <sstream> // std::stringstream
 
 #pragma comment( lib, "d3d11.lib" )
@@ -540,13 +538,19 @@ namespace Tac
       {
         if( IsDebugMode() )
         {
-          std::cout << "Error loading shader from " << GetDirectX11ShaderPath( shaderSource ) << std::endl;
+          String shaderPath = GetDirectX11ShaderPath( shaderSource );
+          OS* os = GetOS();
+          os->OSDebugPrintLine( va( "Error loading shader from %s", shaderPath.c_str() ) );
           ParseData parseData( shaderStrFull.data(), shaderStrFull.size() );
           int lineNumber = 1;
-          std::cout << "----------------" << std::endl;
+          os->OSDebugPrintLine(" -----------" );
           while( parseData.GetRemainingByteCount() )
-            std::cout << va( "line %3i|", lineNumber++ ) << String( parseData.EatRestOfLine() ).c_str() << std::endl;
-          std::cout << "----------------" << std::endl;
+          {
+            StringView parseLine = parseData.EatRestOfLine();
+            const char* text = va( "line %3i|%.*s", lineNumber++, parseLine.size(), parseLine.data() );
+            os->OSDebugPrintLine( text );
+          }
+          os->OSDebugPrintLine(" -----------" );
         }
 
         const String errMsg = TryImproveShaderErrorMessage( shaderSource,
@@ -636,7 +640,7 @@ namespace Tac
       const String shaderPath
         = shaderSource.mType == ShaderSource::Type::kPath
         ? GetDirectX11ShaderPath( shaderSource.mStr )
-        : "<inlined  shader>";
+        : String( "<inlined  shader>" );
 
       ConstantBuffers constantBuffers;
 
@@ -880,7 +884,7 @@ namespace Tac
     void RendererDirectX11::RenderBegin( const Frame*, Errors& )
     {
       if( gVerbose )
-        std::cout << "Render2::Begin\n";
+        GetOS()->OSDebugPrintLine("Render2::Begin");
 
       // Clear bound shader resouce views
       mBoundSRVs.Clear();
@@ -931,7 +935,7 @@ namespace Tac
         } );
 
       if( gVerbose )
-        std::cout << "Render2::End\n";
+        GetOS()->OSDebugPrintLine("Render2::End");
     }
 
 #if 1
@@ -939,7 +943,7 @@ namespace Tac
     {
       D3D11_QUERY_DESC desc = {};
       desc.Query = D3D11_QUERY_EVENT;
-      ID3D11Query* query;
+      ID3D11Query* query = nullptr;
       auto createQueryResult = device->CreateQuery( &desc, &query );
       TAC_ASSERT( SUCCEEDED( createQueryResult ) );
       deviceContext->End( query );
@@ -1378,7 +1382,7 @@ namespace Tac
     void RendererDirectX11::SwapBuffers()
     {
       if( gVerbose )
-        std::cout << "SwapBuffers::Begin\n";
+        GetOS()->OSDebugPrintLine("SwapBuffers::Begin");
       for( int iWindow = 0; iWindow < mWindowCount; ++iWindow )
         //for( int iFramebuffer = 0; iFramebuffer < kMaxFramebuffers; ++iFramebuffer )
       {
@@ -1405,7 +1409,7 @@ namespace Tac
         framebuffer->mSwapChain->Present( 0, 0 );
       }
       if( gVerbose )
-        std::cout << "SwapBuffers::End\n";
+        GetOS()->OSDebugPrintLine("SwapBuffers::End");
     }
 
 

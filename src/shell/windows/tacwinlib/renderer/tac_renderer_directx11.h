@@ -13,9 +13,9 @@
 #include <d3d11_1.h>
 #include <d3d11_3.h> // ID3D11Device3, ID3D11RasterizerState2
 
-#include <map>
-#include <set>
-#include <thread>
+//#include <map>
+//#include <set>
+//#include <thread>
 
 namespace Tac
 {
@@ -206,12 +206,12 @@ namespace Tac
       BoundSRVs                  mBoundSRVs;
 
       //DrawCallSamplers           mBoundSamplers;
-      HashedValue                mBoundSamplerHash;
+      HashedValue                mBoundSamplerHash = 0;
 
       ViewHandle                 mBoundViewHandle;
       VertexBufferHandle         mBoundVertexBuffer;
       IndexBufferHandle          mBoundIndexBuffer;
-      bool                       mBoundFramebuffersThisFrame[ kMaxFramebuffers ];
+      bool                       mBoundFramebuffersThisFrame[ kMaxFramebuffers ] = {};
       DrawCallUAVs               mBoundDrawCallUAVs;
       VertexFormatHandle         mBoundDrawCallVertexFormat;
 

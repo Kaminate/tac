@@ -1,4 +1,3 @@
-
 #include "src/common/tac_memory.h"
 #include "src/common/tac_preprocessor.h"
 #include "src/common/tac_settings.h"
@@ -12,8 +11,8 @@
 #include "src/space/tac_space_net.h"
 #include "src/space/tac_space_net.h"
 #include "src/space/tac_world.h"
-#include <algorithm>
-#include <fstream>
+//#include <algorithm>
+//#include <fstream>
 
 namespace Tac
 {

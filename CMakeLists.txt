@@ -15,6 +15,7 @@ if (MSVC)
     add_compile_options(/W4) # warning level 4
     add_compile_options(/WX) # treat linker warnings as errors
     add_compile_options(/MP) # multi processor compilation
+    add_compile_options(/experimental:module) # modules???
 else()
     add_compile_options(
       -Wall

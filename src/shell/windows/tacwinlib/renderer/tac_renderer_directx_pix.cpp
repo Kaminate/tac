@@ -1,10 +1,11 @@
 #include "src/shell/windows/tacwinlib/renderer/tac_renderer_directx.h"
 #include "src/common/tac_preprocessor.h"
+#include "src/common/tac_os.h"
 
-#include <iostream>
-#include <filesystem>
-#include <shlobj.h>
-#include <Knownfolders.h>
+#include <shlobj.h> // SHGetKnownFolderPath
+
+//import std.core;
+import std.filesystem;
 
 namespace Tac
 {
@@ -30,13 +31,16 @@ namespace Tac
     if( !directoryExists )
       return {};
 
-    for( auto const& directory_entry : std::filesystem::directory_iterator( pixInstallationPath ) )
+    for( const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator( pixInstallationPath ) )
     {
-      if( directory_entry.is_directory() )
+      if( entry.is_directory() )
       {
-        if( newestVersionFound.empty() || newestVersionFound < directory_entry.path().filename().c_str() )
+        const std::filesystem::path& path = entry.path();
+        const std::filesystem::path filename = path.filename();
+        const std::wstring wstr = filename.wstring();
+        if( newestVersionFound.empty() || newestVersionFound < wstr )
         {
-          newestVersionFound = directory_entry.path().filename().c_str();
+          newestVersionFound = wstr;
         }
       }
     }
@@ -58,9 +62,9 @@ namespace Tac
     std::string path = wstring_to_string( wpath );
     HMODULE lib = LoadLibrary( path.c_str() );
     if( !lib )
-      std::cout
-      << "Warning: Could not find WinPixGpuCapturer.dll."
-      << " PIX (is it installed?) will not be attachable." << std::endl;
+      GetOS()->OSDebugPrintLine(
+        "Warning: Could not find WinPixGpuCapturer.dll."
+        " PIX (is it installed?) will not be attachable." );
   }
 
 } // namespace Tac

@@ -13,8 +13,10 @@
 #include "src/shell/windows/tacwinlib/input/tac_xinput.h"
 #include "src/shell/windows/tacwinlib/input/tac_win32_mouse_edge.h"
 #include "src/shell/windows/tacwinlib/renderer/tac_renderer_directx11.h"
+#include "src/common/tac_net.h"
 
-#include <iostream>
+#include <iostream> // okay maybe this should also be allowed
+
 
 namespace Tac
 {
@@ -107,7 +109,8 @@ namespace Tac
     Win32WindowManagerInit( errors );
     TAC_HANDLE_ERROR( errors );
 
-    NetWinsock::Instance.Init( errors );
+    Net* net = GetNetWinsock();
+    net->Init(errors);
     TAC_HANDLE_ERROR( errors );
 
     DesktopAppRun( errors );

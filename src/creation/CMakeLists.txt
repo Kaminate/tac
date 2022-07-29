@@ -95,7 +95,7 @@ function( tac_target TAC_TARGET_SUFFIX )
 endfunction()
 
 find_package( SDL2 )
-if( SDL2_FOUND )
+if( SDL2_FOUND AND FALSE )
   tac_target( "SDL" )
   # find_package( SDL2 REQUIRED )
   list( APPEND TAC_INCLUDE_DIRECTORIES ${SDL2_INCLUDE_DIR} )
@@ -169,30 +169,35 @@ if( SDL2_FOUND )
     message( "sdl2 dll folder: ${SDL_DLL_FOLDER}")
     message( "sdl2 dll full name: ${SDL2_DLL_FULL_NAME}")
   endif()
-endif() # if( SDL2_FOUND )
-
-
-if( WIN32 )
 
   # CMAKE_COMMAND is the full path to the cmake executable
   # -E invokes command line tool mode
   # https://cmake.org/cmake/help/latest/manual/cmake.1.html
   #
   # In visual studio, this takes the form as a Post-Build Event
+  #
+  # This must be after the add_executable and tac_target calls
   ADD_CUSTOM_COMMAND(TARGET ${TAC_TARGET_NAME}
     POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
       ${SDL2_DLL_FULL_NAME}
       $<TARGET_FILE_DIR:${TAC_TARGET_NAME}>)
+endif() # if( SDL2_FOUND )
 
+
+if( WIN32 )
   tac_target( "Win32" )
-  list( APPEND TAC_SOURCES ${TAC_WIN_MAIN_FILES} )
 
+  list( APPEND TAC_SOURCES ${TAC_WIN_MAIN_FILES} )
 
   # the win32 here changes the
   # configuration properties --> linker --> system --> subsystem
   # from console to windows, which makes the console window go away
   add_executable( ${TAC_TARGET_NAME} WIN32 ${TAC_SOURCES} )
+
+
+
+
 
   # add_definitions(/ZI) # Program Database for Edit & Continue
   target_compile_options( ${TAC_TARGET_NAME} PUBLIC /ZI ) # Program Database for Edit & Continue

@@ -1,16 +1,17 @@
 #include "src/common/assetmanagers/tac_texture_asset_manager.h"
 #include "src/common/graphics/imgui/tac_imgui.h"
-#include "src/common/profile/tac_profile.h"
 #include "src/common/graphics/tac_ui_2d.h"
-#include "src/common/tac_json.h"
-#include "src/common/tac_desktop_window.h"
-#include "src/common/tac_desktop_window.h"
-#include "src/common/tac_event.h"
-#include "src/common/tac_keyboard_input.h"
-#include "src/common/tac_os.h"
+#include "src/common/profile/tac_profile.h"
 #include "src/common/shell/tac_shell.h"
 #include "src/common/shell/tac_shell_timer.h"
 #include "src/common/shell/tac_shell_timer.h"
+#include "src/common/tac_desktop_window.h"
+#include "src/common/tac_desktop_window.h"
+#include "src/common/tac_error_handling.h"
+#include "src/common/tac_event.h"
+#include "src/common/tac_json.h"
+#include "src/common/tac_keyboard_input.h"
+#include "src/common/tac_os.h"
 #include "src/creation/tac_creation.h"
 #include "src/creation/tac_creation_game_object_menu_window.h"
 #include "src/creation/tac_creation_main_window.h"
@@ -19,8 +20,6 @@
 #include "src/shell/tac_desktop_window_graphics.h"
 #include "src/space/tac_entity.h"
 #include "src/space/tac_world.h"
-
-#include <iostream>
 
 namespace Tac
 {
@@ -122,7 +121,7 @@ namespace Tac
         if( saveDialogErrors )
         {
           // todo: log it, user feedback
-          std::cout << saveDialogErrors.ToString().c_str() << std::endl;
+          GetOS()->OSDebugPrintLine(saveDialogErrors.ToString());
           continue;
         }
 
@@ -139,7 +138,7 @@ namespace Tac
         if( saveToFileErrors )
         {
           // todo: log it, user feedback
-          std::cout << saveToFileErrors.ToString().c_str() << std::endl;
+          GetOS()->OSDebugPrintLine(saveToFileErrors.ToString());
           continue;
         }
       }

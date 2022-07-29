@@ -4,6 +4,7 @@
 #include "src/common/math/tac_math.h"
 #include "src/common/tac_job_queue.h"
 #include "src/common/tac_job_queue.h"
+#include "src/common/tac_os.h"
 #include "src/common/tac_json.h"
 #include "src/common/tac_log.h"
 #include "src/common/tac_memory.h"
@@ -19,7 +20,6 @@
 #include "src/space/tac_server.h"
 #include "src/space/tac_world.h"
 #include <cstdlib> // itoa
-#include <iostream> // cout
 
 namespace Tac
 {
@@ -278,7 +278,7 @@ namespace Tac
 		auto websocketKey = GenerateSecWebsocketKey();
 		httpRequest.FormatRequestWebsocket( "/game", mHostname, websocketKey );
 		if( mPrintHTTPRequest )
-			std::cout << httpRequest.ToString().c_str() << std::endl;
+          GetOS()->OSDebugPrintLine(httpRequest.ToString());
 		mSocket->Send( httpRequest, errors );
 		TAC_HANDLE_ERROR( errors );
 		mPretendWebsocketHandshakeDone = true;
@@ -461,7 +461,6 @@ namespace Tac
 		//      *g = ( uint8_t )( *g * percent );
 		//      *b = ( uint8_t )( *b * percent );
 		//    }
-		//    std::cout << std::endl;
 		//  }
 
 		//  Image image;
@@ -690,7 +689,6 @@ namespace Tac
 		////    {
 		////      auto* scriptMainMenu = ( ScriptMainMenu* )userData;
 		////      static int ihi;
-		////      std::cout << "hi" << " " << ihi++ << std::endl;
 		////    };
 		////    uiText->mButtonCallbacks.push_back( buttonCallback );
 		////  }
@@ -832,7 +830,7 @@ namespace Tac
 			mMatchmaker->TryConnect();
             mErrors = mMatchmaker->mConnectionErrors;
 		}
-		ScriptMatchmaker* mMatchmaker;
+		ScriptMatchmaker* mMatchmaker = nullptr;
 	};
 
 	ScriptMainMenu2::ScriptMainMenu2()

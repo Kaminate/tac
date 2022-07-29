@@ -9,7 +9,7 @@
 #include "src/space/tac_entity.h"
 #include "src/space/tac_world.h"
 
-#include <cmath> // std::tan
+//#include <cmath> // std::tan
 
 namespace Tac
 {
@@ -78,8 +78,8 @@ namespace Tac
 
   static void Camera3DDraw( const Camera& camera, Debug3DDrawData* drawData)
   {
-    const float nearPlaneHalfSize = camera.mNearPlane * std::tan( camera.mFovyrad / 2 ) ;
-    const float farPlaneHalfSize = camera.mFarPlane * std::tan( camera.mFovyrad / 2 ) ;
+    const float nearPlaneHalfSize = camera.mNearPlane * Tan( camera.mFovyrad / 2 ) ;
+    const float farPlaneHalfSize = camera.mFarPlane * Tan( camera.mFovyrad / 2 ) ;
 
     v3 nearPoints[ 4 ];
     v3 farPoints[ 4 ];

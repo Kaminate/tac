@@ -7,8 +7,8 @@
 #include "src/common/tac_json.h"
 #include "src/common/tac_preprocessor.h"
 
-#include <algorithm>
-#include <cmath>
+//#include <algorithm>
+//#include <cmath>
 
 namespace Tac
 {
@@ -78,9 +78,9 @@ namespace Tac
 
     if( r31 != 1.0f && r31 != -1.0f )
     {
-      yTheta = -std::asin( r31 );
-      xPsi = std::atan2( r32 / std::cos( yTheta ), r33 / std::cos( yTheta ) );
-      zPhi = std::atan2( r21 / std::cos( yTheta ), r11 / std::cos( yTheta ) );
+      yTheta = -Asin( r31 );
+      xPsi = Atan2( r32 / Cos( yTheta ), r33 / Cos( yTheta ) );
+      zPhi = Atan2( r21 / Cos( yTheta ), r11 / Cos( yTheta ) );
     }
     else
     {
@@ -88,20 +88,16 @@ namespace Tac
       if( r31 == -1.0f )
       {
         yTheta = 3.14f / 2.0f;
-        xPsi = std::atan2( r12, r13 );
+        xPsi = Atan2( r12, r13 );
       }
       else
       {
         yTheta = -3.14f / 2.0f;
-        xPsi = std::atan2( -r12, -r13 );
+        xPsi = Atan2( -r12, -r13 );
       }
     }
 
-    RelativeSpace relativeSpace;
-    relativeSpace.mEulerRads = { xPsi, yTheta, zPhi };
-    relativeSpace.mPosition = c3;
-    relativeSpace.mScale = scale;
-    return relativeSpace;
+    return { .mPosition = c3, .mEulerRads = { xPsi, yTheta, zPhi }, .mScale = scale };
   }
 
   void                      Components::Add( Component* component )

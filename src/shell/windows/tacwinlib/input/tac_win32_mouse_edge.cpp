@@ -2,12 +2,12 @@
 #include "src/common/tac_preprocessor.h"
 #include "src/common/string/tac_string.h"
 #include "src/common/tac_keyboard_input.h"
+#include "src/common/tac_os.h"
 #include "src/shell/tac_desktop_app.h"
 #include "src/shell/windows/tacwinlib/desktopwindow/tac_win32_desktop_window_manager.h"
 #include "src/shell/windows/tacwinlib/input/tac_win32_mouse_edge.h"
 #include "src/shell/windows/tacwinlib/tac_win32.h"
 
-#include <iostream>
 
 namespace Tac
 {
@@ -20,9 +20,9 @@ namespace Tac
 
   static struct // MouseEdge
   {
-    MouseEdgeFlags    mFlags;
+    MouseEdgeFlags    mFlags = MouseEdgeFlags::kNone;
     DesktopWindowRect mWindowSpaceMoveRect;
-    int               mResizeBorder;
+    int               mResizeBorder = false;
   } sMouseEdges[ kDesktopWindowCapacity ];
 
   //static MouseEdge sMouseEdges[ kDesktopWindowCapacity ];
@@ -103,7 +103,8 @@ namespace Tac
     bool verbose = false;
     if( verbose )
     {
-      std::cout << "Cursor lock: " << CursorDirToString( cursorDir ) << std::endl;;
+      const char* strDir = CursorDirToString( cursorDir );
+      GetOS()->OSDebugPrintLine( va( "Cursor lock: %s ", strDir ) );
     }
     mCursorLock = cursorDir;
   }

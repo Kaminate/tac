@@ -1,13 +1,14 @@
-#include "tac_example_fluid.h"
-#include "src/common/tac_preprocessor.h" // C4100
 #include "src/common/graphics/imgui/tac_imgui.h"
 #include "src/common/graphics/tac_renderer.h"
 #include "src/common/graphics/tac_ui_2d.h"
+#include "src/common/math/tac_math.h"
 #include "src/common/tac_desktop_window.h"
 #include "src/common/tac_keyboard_input.h"
+#include "src/common/tac_preprocessor.h" // C4100
+#include "src/game-examples/tac_example_fluid.h"
 
-#include <cmath>
-#include <iostream>
+//#include <cmath>
+//#include <iostream>
 
 // maybe broken up into
 // fluid_cpu,
@@ -187,8 +188,8 @@ namespace Tac
   //static float( *sGraphEqGx )( float );
 
   typedef float( *Fn2D )( float );
-  float Ex1FxEqualsXMinusCosX( float x ) { return x - std::cos( x ); }
-  float Ex1GxEqualsCosX( float x ) { return std::cos( x ); }
+  float Ex1FxEqualsXMinusCosX( float x ) { return x - Cos( x ); }
+  float Ex1GxEqualsCosX( float x ) { return Cos( x ); }
   float Ex1YEqualsX( float x ) { return x; }
 
 
@@ -200,19 +201,19 @@ namespace Tac
     v2 viewHalfDims = {};
 
     // Cached at the start of the frame
-    v2 viewMini;
-    v2 viewMaxi;
-    v2 viewDims;
+    v2 viewMini = { 0, 0 };
+    v2 viewMaxi = { 0, 0 };
+    v2 viewDims = { 0, 0 };
 
-    float px_per_unit_y;
-    float px_per_unit_x;
+    float px_per_unit_y = 0;
+    float px_per_unit_x = 0;
 
     const v4 axisColor = v4( 0, 0, 0, 1 );
     const float axisLineRadiusMinor = 0.5f;
     const float axisLineRadiusMajor = 2.0f;
 
     // Position of the graph's origin, in px, relative to the viewport of the desktop window
-    v2 originViewport;
+    v2 originViewport = { 0, 0 };
 
     void FrameBegin( v2 in_canvas_pos, v2 in_canvas_size )
     {
@@ -405,7 +406,7 @@ namespace Tac
     sEquationGrapher.DrawHorizontalGridLines( drawData );
     sEquationGrapher.DrawXAxis( drawData );
     sEquationGrapher.DrawYAxis( drawData );
-    for( auto fn : fns )
+    for( const FnDraw& fn : fns )
       sEquationGrapher.DrawFn( fn.mFn, fn.mLineRadius, fn.mColor, drawData );
     //sEquationGrapher.DrawFn( sGraphEqFx, 1.0f, v4( 1, 0, 0, 1 ), drawData );
     //sEquationGrapher.DrawFn( sGraphEqGx, 1.0f, v4( 0, 1, 0, 1 ), drawData );
