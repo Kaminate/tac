@@ -69,6 +69,11 @@ add_library(${Target} # MODULE
 "${CMAKE_CURRENT_SOURCE_DIR}/tac_world.h"
 )
 #${Common})
+
+target_precompile_headers( ${Target} PRIVATE 
+  "${CMAKE_SOURCE_DIR}/src/common/tac_precompiled_header.h"
+)
+
 include_directories("${CMAKE_SOURCE_DIR}/src")
 set_target_properties(${Target} PROPERTIES LINKER_LANGUAGE CXX)
 

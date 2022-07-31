@@ -1,10 +1,11 @@
-#include "src/shell/windows/tacwinlib/tac_win32.h"
 #include "src/shell/windows/tacwinlib/input/tac_xinput.h"
 #include "src/common/tac_preprocessor.h"
 #include "src/common/math/tac_math.h"
 #include "src/common/shell/tac_shell.h"
 #include "src/common/shell/tac_shell_timer.h"
 #include "src/common/tac_error_handling.h"
+
+#include <libloaderapi.h> // libloaderapi.h
 
 #pragma comment( lib, "dxguid.lib" ) // IID_IDirectInput8A
 #pragma comment( lib, "Dinput8.lib" )
@@ -100,7 +101,7 @@ namespace Tac
 
   void XInput::Init( Errors& errors )
   {
-    const HRESULT hr = DirectInput8Create( Win32GetStartupInstance(),
+    const HRESULT hr = DirectInput8Create( GetModuleHandleA(nullptr),
                                            DIRECTINPUT_VERSION,
                                            IID_IDirectInput8,
                                            ( LPVOID* )&mDirectInput,

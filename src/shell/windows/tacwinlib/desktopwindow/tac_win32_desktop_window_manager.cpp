@@ -13,9 +13,8 @@
 #include "src/shell/windows/tacwinlib/net/tac_net_winsock.h"
 #include "src/shell/windows/tacwinlib/desktopwindow/tac_win32_desktop_window_manager.h"
 #include "src/shell/windows/tacwinlib/input/tac_win32_mouse_edge.h"
-#include "src/shell/windows/tacwinlib/input/tac_xinput.h"
+//#include "src/shell/windows/tacwinlib/input/tac_xinput.h"
 
-//#include <iostream>
 #include <set>
 
 namespace Tac
@@ -25,7 +24,7 @@ namespace Tac
   //                         Elements in this array are added/removed by wndproc
   static HWND                sHWNDs[ kDesktopWindowCapacity ];
 
-  static HWND                mParentHWND = NULL;
+  static HWND                mParentHWND = nullptr;
   static DesktopWindowHandle sWindowUnderConstruction;
   static Key                 GetKey( uint8_t keyCode )
   {
@@ -156,16 +155,16 @@ namespace Tac
       // - notify the logic thread that the windowstate has been updated
       case WM_SIZE:
       {
-        const int width = ( int )LOWORD( lParam );
-        const int height = ( int )HIWORD( lParam );
+        const auto width = ( int )LOWORD( lParam );
+        const auto height = ( int )HIWORD( lParam );
         DesktopEventResizeWindow( desktopWindowHandle,
                                   width,
                                   height );
       } break;
       case WM_MOVE:
       {
-        const int x = ( int )LOWORD( lParam );
-        const int y = ( int )HIWORD( lParam );
+        const auto x = ( int )LOWORD( lParam );
+        const auto y = ( int )HIWORD( lParam );
         DesktopEventMoveWindow( desktopWindowHandle,
                                 x,
                                 y );
@@ -329,13 +328,13 @@ namespace Tac
       | LR_DEFAULTSIZE // default metrics based on the type (IMAGE_ICON, 32x32)
       | LR_SHARED;
     const char* iconPath = "assets/grave.ico";
-    const HICON icon = ( HICON )LoadImage( nullptr, iconPath, IMAGE_ICON, 0, 0, fuLoad );;
+    const auto icon = ( HICON )LoadImage( nullptr, iconPath, IMAGE_ICON, 0, 0, fuLoad );;
     TAC_ASSERT_MSG( icon, "filed to load icon %s", iconPath );
     WNDCLASSEX wc = {};
     wc.cbSize = sizeof( WNDCLASSEX );
-    wc.hCursor = NULL; // LoadCursor( NULL, IDC_ARROW );
+    wc.hCursor = nullptr; // LoadCursor( NULL, IDC_ARROW );
     wc.hIcon = icon;
-    wc.hIconSm = NULL; // If null, the system searches for a small icon from the hIcon member
+    wc.hIconSm = nullptr; // If null, the system searches for a small icon from the hIcon member
     wc.hInstance = Win32GetStartupInstance();
     wc.hbrBackground = ( HBRUSH )GetStockObject( BLACK_BRUSH );
     wc.lpfnWndProc = WindowProc;
@@ -368,7 +367,7 @@ namespace Tac
     POINT cursorPos;
     const bool cursorPosValid = 0 != ::GetCursorPos( &cursorPos );
     if( !cursorPosValid )
-      return DesktopWindowHandle();
+      return {};
 
     const HWND hoveredHwnd = ::WindowFromPoint( cursorPos );
     const DesktopWindowHandle desktopWindowHandle = Win32WindowManagerFindWindow( hoveredHwnd );
@@ -379,7 +378,7 @@ namespace Tac
   {
     //TAC_PROFILE_BLOCK;
     MSG msg = {};
-    while( PeekMessage( &msg, NULL, 0, 0, PM_REMOVE ) )
+    while( PeekMessage( &msg, nullptr, 0, 0, PM_REMOVE ) )
     {
       TranslateMessage( &msg );
       DispatchMessage( &msg );
@@ -388,7 +387,7 @@ namespace Tac
 
   void                Win32WindowManagerDespawnWindow( const DesktopWindowHandle& desktopWindowHandle )
   {
-    const int iWindow = ( int )desktopWindowHandle;
+    const auto iWindow = ( int )desktopWindowHandle;
     const HWND hwnd = sHWNDs[ iWindow ];
 
     // unparent the children to prevent them from being
@@ -466,10 +465,10 @@ namespace Tac
                                     y,
                                     w,
                                     h,
-                                    NULL,// mParentHWND,
-                                    NULL,
+                                    nullptr,// mParentHWND,
+                                    nullptr,
                                     Win32GetStartupInstance(),
-                                    NULL );
+                                    nullptr );
     if( !hwnd )
     {
       TAC_CRITICAL_ERROR_INVALID_CODE_PATH;

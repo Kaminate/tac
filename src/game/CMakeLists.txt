@@ -73,6 +73,11 @@ if( WIN32 )
   # configuration properties --> linker --> system --> subsystem
   # from console to windows, which makes the console window go away
   add_executable( ${TAC_TARGET_NAME} WIN32 ${TAC_SOURCES} )
+
+  target_precompile_headers( ${TAC_TARGET_NAME} PRIVATE 
+    "${CMAKE_SOURCE_DIR}/src/common/tac_precompiled_header.h"
+  )
+
   target_compile_options( ${TAC_TARGET_NAME} PUBLIC /ZI ) # Program Database for Edit & Continue
   target_link_libraries( ${TAC_TARGET_NAME} ${TAC_LIBRARIES} )
   # target_sources( ${TAC_TARGET_NAME} PRIVATE ${Common} )

@@ -65,6 +65,9 @@ if( WIN32 )
   # from console to windows, which makes the console window go away
   add_executable( ${TAC_TARGET_NAME} WIN32 ${TAC_SOURCES} )
 
+  target_precompile_headers( ${TAC_TARGET_NAME} PRIVATE 
+    "${CMAKE_SOURCE_DIR}/src/common/tac_precompiled_header.h"
+  )
 
   target_compile_options( ${TAC_TARGET_NAME} PUBLIC /ZI ) # Program Database for Edit & Continue
 
@@ -116,6 +119,10 @@ if( SDL2_FOUND )
   else()
     add_executable( ${TAC_TARGET_NAME} ${TAC_SOURCES} )
   endif()
+
+  target_precompile_headers( ${TAC_TARGET_NAME} PRIVATE 
+    "${CMAKE_SOURCE_DIR}/src/common/tac_precompiled_header.h"
+  )
 
   target_include_directories( ${TAC_TARGET_NAME} PUBLIC ${TAC_INCLUDE_DIRECTORIES} )
 

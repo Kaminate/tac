@@ -20,6 +20,9 @@ if( Vulkan_FOUND )
   )
   add_library(${Target} ${TAC_VK_LIB_FILES})
 
+  target_precompile_headers( ${Target} PRIVATE 
+    "${CMAKE_SOURCE_DIR}/src/common/tac_precompiled_header.h"
+  )
 
   # list( APPEND TAC_SOURCES ${Vulkan_INCLUDE_DIRS} ${TAC_VULKAN_SOURCE_FILES} )
   # if( WIN32 AND FALSE)

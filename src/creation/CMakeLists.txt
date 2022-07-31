@@ -138,6 +138,10 @@ if( SDL2_FOUND AND FALSE )
     add_executable( ${TAC_TARGET_NAME} ${TAC_SOURCES} )
   endif()
 
+  target_precompile_headers( ${TAC_TARGET_NAME} PRIVATE 
+    "${CMAKE_SOURCE_DIR}/src/common/tac_precompiled_header.h"
+  )
+
   target_include_directories( ${TAC_TARGET_NAME} PUBLIC ${TAC_INCLUDE_DIRECTORIES} )
   list( APPEND TAC_LIBRARIES ${SDL2_LIBRARY} )
   list( APPEND TAC_LIBRARIES TacSDLLib )
@@ -197,6 +201,11 @@ if( WIN32 )
 
 
 
+
+  # broken --> target_precompile_headers(${TAC_TARGET_NAME} REUSE_FROM CommonLibrary)
+  target_precompile_headers( ${TAC_TARGET_NAME} PRIVATE 
+    "${CMAKE_SOURCE_DIR}/src/common/tac_precompiled_header.h"
+  )
 
 
   # add_definitions(/ZI) # Program Database for Edit & Continue

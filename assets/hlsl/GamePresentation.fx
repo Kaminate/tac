@@ -7,7 +7,6 @@ struct VS_INPUT
   float3 Normal   : NORMAL;
 };
 
-// Texture2D shadowMaps[ 4 ] : register( t0 );
 Texture2D shadowMaps[ 4 ] : TAC_AUTO_REGISTER;
 sampler linearSampler     : TAC_AUTO_REGISTER;
 sampler shadowMapSampler  : TAC_AUTO_REGISTER;

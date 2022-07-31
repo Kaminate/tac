@@ -1,15 +1,18 @@
 // the directx11.h local path is included by src/shell/windows/tacwinlib/CMakeLists.txt
 
+namespace Tac
+{
+
+  namespace Render
+  {
 #if __has_include( "tac_renderer_vulkan.h" )
-#include "tac_renderer_vulkan.h"
+    void RegisterRendererVulkan();
 #endif
 
 #if __has_include( "tac_renderer_directx11.h" )
-#include "tac_renderer_directx11.h"
+    void RegisterRendererDirectX11();
 #endif
-
-namespace Tac
-{
+  }
 
   void RegisterRenderers()
   {

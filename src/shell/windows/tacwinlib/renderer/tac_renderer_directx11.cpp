@@ -25,8 +25,6 @@
 #include <D3DCompiler.h> // D3DCOMPILE_...
 #include <d3dcommon.h> // WKPDID_D3DDebugObjectName
 
-#include <sstream> // std::stringstream
-
 #pragma comment( lib, "d3d11.lib" )
 #pragma comment( lib, "dxguid.lib" )
 #pragma comment( lib, "D3DCompiler.lib" )
@@ -132,8 +130,7 @@ namespace Tac
 
 #define TAC_SCOPED_DX_FILTER( stuff ) ScopedDXFilter TAC_CONCAT( filter , __COUNTER__)( stuff );
 
-    // not a static function
-    String GetDirectX11ShaderPath( StringView shaderName )
+    static String DirectX11GetShaderPath( StringView shaderName )
     {
       String result;
       const char* prefix = "assets/hlsl/";
@@ -144,13 +141,6 @@ namespace Tac
       return result;
     }
 
-    String GetDirectX11ShaderPath( ShaderSource shaderSource )
-    {
-      if( shaderSource.mType == ShaderSource::Type::kPath )
-        return GetDirectX11ShaderPath( shaderSource.mStr );
-      else
-        return "<inlined shader>";
-    }
 
     static String TryInferDX11ErrorStr( HRESULT res )
     {
@@ -199,16 +189,11 @@ namespace Tac
 
     static String DX11CallAux( const char* fnCallWithArgs, HRESULT res )
     {
-      std::stringstream ss;
-      ss << fnCallWithArgs << " returned 0x" << std::hex << res;
+      String result = va( "%s returned 0x%x", fnCallWithArgs, res );
       String inferredErrorMessage = TryInferDX11ErrorStr( res );
       if( !inferredErrorMessage.empty() )
-      {
-        ss << "(";
-        ss << inferredErrorMessage.c_str();
-        ss << ")";
-      }
-      return  ss.str().c_str();
+        result += va( "(%s)", inferredErrorMessage.c_str() );
+      return result;
     }
 
     static void ReportLiveObjects()
@@ -424,14 +409,6 @@ namespace Tac
       return result;
     }
 
-    String ShaderPathToContentString( const StringView path, Errors& errors )
-    {
-      if( path.empty() )
-        return "";
-      String shaderFilePath = GetDirectX11ShaderPath( path );
-      String shaderFileContents = FileToString( shaderFilePath, errors );
-      return shaderFileContents + "\n";
-    }
 
     static String TryImproveShaderErrorMessageLine( const ShaderSource shaderSource,
                                                     const StringView shaderStrOrig,
@@ -474,17 +451,13 @@ namespace Tac
       if( origLineNumber == -1 )
         return errMsg;
 
-      std::stringstream ss;
-      ss
-        // o_o
-        << String( StringView( errMsg ).substr( StringView( errMsg ).find_first_of( ')' ) + 3 ) )
-        << std::endl
-        << SplitFilepath( GetDirectX11ShaderPath( shaderSource ) ).mFilename
-        << ":" << origLineNumber << " "
-        << String( errorLine ).c_str()
-        << std::endl;
-      const String result = ss.str().c_str();
-      return result;
+      String s1 = String( StringView( errMsg ).substr( StringView( errMsg ).find_first_of( ')' ) + 3 ) );
+      String s2 = SplitFilepath( GetShaderPath( shaderSource ) ).mFilename;
+      String s3 = va( ":%i ", origLineNumber );
+      String s4 = String( errorLine ).c_str();
+
+      const String result2 = va( "%s\n%s%s%s\n", s1.c_str(), s2.c_str(), s3.c_str(), s4.c_str() );
+      return result2;
     }
 
     static String TryImproveShaderErrorMessage( const ShaderSource shaderSource,
@@ -538,7 +511,7 @@ namespace Tac
       {
         if( IsDebugMode() )
         {
-          String shaderPath = GetDirectX11ShaderPath( shaderSource );
+          String shaderPath = GetShaderPath( shaderSource );
           OS* os = GetOS();
           os->OSDebugPrintLine( va( "Error loading shader from %s", shaderPath.c_str() ) );
           ParseData parseData( shaderStrFull.data(), shaderStrFull.size() );
@@ -639,7 +612,7 @@ namespace Tac
 
       const String shaderPath
         = shaderSource.mType == ShaderSource::Type::kPath
-        ? GetDirectX11ShaderPath( shaderSource.mStr )
+        ? GetShaderPath( shaderSource.mStr )
         : String( "<inlined  shader>" );
 
       ConstantBuffers constantBuffers;
@@ -1379,6 +1352,14 @@ namespace Tac
       RenderDrawCallIssueDrawCommand( drawCall );
     }
 
+
+
+
+    String RendererDirectX11::GetShaderPath( StringView s )
+    {
+      return DirectX11GetShaderPath( s);
+    }
+
     void RendererDirectX11::SwapBuffers()
     {
       if( gVerbose )
@@ -1764,7 +1745,7 @@ namespace Tac
       *program = LoadProgram( commandData->mShaderSource, errors );
       //program->mConstantBuffers = commandData->mConstantBuffers;
       if( commandData->mShaderSource.mType == ShaderSource::Type::kPath )
-        ShaderReloadHelperAdd( commandData->mShaderHandle, GetDirectX11ShaderPath( commandData->mShaderSource.mStr ) );
+        ShaderReloadHelperAdd( commandData->mShaderHandle, GetShaderPath( commandData->mShaderSource.mStr ) );
     }
 
     void RendererDirectX11::AddTexture( CommandDataCreateTexture* data,

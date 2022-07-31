@@ -50,7 +50,6 @@ PS_OUTPUT PS( VS_OUTPUT input )
   // | READ! |
   // +-------+
   output.mColor = Color * sampled;
-  // output.mColor.g *= input.DXTexCoord.y;
 
 #if TEST_RED
   output.mColor = float4( 1, 0, 0, 1 );

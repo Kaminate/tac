@@ -1,66 +1,57 @@
 #include "src/shell/windows/tacwinlib/renderer/tac_renderer_directx.h"
 #include "src/common/tac_preprocessor.h"
 #include "src/common/tac_os.h"
+#include "src/common/tac_error_handling.h"
 
-#include <shlobj.h> // SHGetKnownFolderPath
-
-//import std.core;
-import std.filesystem;
+//#include 	<libloaderapi.h>
 
 namespace Tac
 {
-  static std::string wstring_to_string( std::wstring s )
+  //static String ConvertUnsafe( LPWSTR p )
+  //{
+  //  String s;
+  //  while( *p )
+  //    s += (char)*p++;
+  //  return s;
+  //}
+
+  static String GetLatestWinPixGpuCapturerPath_Cpp17()
   {
-    std::string result;
-    for( auto c : s )
-      result += ( char )c;
-    return result;
-  }
+    String pixInstallPath = "C:\\Program Files";
+    pixInstallPath += "/Microsoft PIX";
 
-  static std::wstring GetLatestWinPixGpuCapturerPath_Cpp17()
-  {
-    LPWSTR programFilesPath = nullptr;
-    SHGetKnownFolderPath( FOLDERID_ProgramFiles, KF_FLAG_DEFAULT, NULL, &programFilesPath );
+    String newest;
 
-    std::filesystem::path pixInstallationPath = programFilesPath;
-    pixInstallationPath /= "Microsoft PIX";
-
-    std::wstring newestVersionFound;
-
-    bool directoryExists = std::filesystem::exists( pixInstallationPath );
-    if( !directoryExists )
+    Errors e;
+    bool exist = false;
+    GetOS()->OSDoesFolderExist( pixInstallPath, exist, e );
+    if( !exist )
       return {};
 
-    for( const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator( pixInstallationPath ) )
-    {
-      if( entry.is_directory() )
-      {
-        const std::filesystem::path& path = entry.path();
-        const std::filesystem::path filename = path.filename();
-        const std::wstring wstr = filename.wstring();
-        if( newestVersionFound.empty() || newestVersionFound < wstr )
-        {
-          newestVersionFound = wstr;
-        }
-      }
-    }
+    Vector< String > files;
+    GetOS()->OSGetDirectoriesInDirectory( files, pixInstallPath, e );
 
-    TAC_ASSERT( !newestVersionFound.empty() );
+    for( String s : files )
+      if( newest.empty() || newest < s )
+        s = newest;
 
-    return pixInstallationPath / newestVersionFound / L"WinPixGpuCapturer.dll";
+    TAC_ASSERT( !newest.empty());
+    return pixInstallPath + "/" + newest + "WinPixGpuCapturer.dll";
   }
 
   void AllowPIXDebuggerAttachment()
   {
     // Check to see if a copy of WinPixGpuCapturer.dll has already been injected into the application.
     // This may happen if the application is launched through the PIX UI. 
-    HMODULE moduleHandle = GetModuleHandle( "WinPixGpuCapturer.dll" );
-    if( moduleHandle )
+    if( GetOS()->OSGetLoadedDLL( "WinPixGpuCapturer.dll" ) )
       return;
+    //HMODULE moduleHandle = GetModuleHandleA( "WinPixGpuCapturer.dll" );
+    //if( moduleHandle )
+    //  return;
 
-    std::wstring wpath = GetLatestWinPixGpuCapturerPath_Cpp17();
-    std::string path = wstring_to_string( wpath );
-    HMODULE lib = LoadLibrary( path.c_str() );
+    String path = GetLatestWinPixGpuCapturerPath_Cpp17();
+    void* lib = GetOS()->OSLoadDLL( path.c_str() );
+    //HMODULE lib = LoadLibrary( path.c_str() );
     if( !lib )
       GetOS()->OSDebugPrintLine(
         "Warning: Could not find WinPixGpuCapturer.dll."

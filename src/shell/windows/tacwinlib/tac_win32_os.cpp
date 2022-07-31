@@ -186,6 +186,18 @@ namespace Tac
     TAC_RAISE_ERROR_IF( !SetCursorPos( ( int )pos.x, ( int )pos.y ), Win32GetLastErrorString(), errors );
   }
 
+  void* Win32OSGetLoadedDLL( StringView name )
+  {
+    HMODULE moduleHandle = GetModuleHandleA( name.c_str() );
+    return moduleHandle;
+  }
+
+  void* Win32OSLoadDLL( StringView path )
+  {
+    HMODULE lib = LoadLibraryA( path.c_str() );
+    return lib;
+  }
+
   void Win32OSDoesFolderExist( StringView path, bool& exists, Errors& errors )
   {
     String expandedPath;
@@ -497,6 +509,15 @@ namespace Tac
       return Win32OSSetScreenspaceCursorPos( v, e );
     }
 
+    void* OSGetLoadedDLL( StringView name ) override
+    {
+      return Win32OSGetLoadedDLL( name );
+    }
+
+    void* OSLoadDLL( StringView path ) override
+    {
+      return Win32OSLoadDLL( path );
+    }
 
 
 

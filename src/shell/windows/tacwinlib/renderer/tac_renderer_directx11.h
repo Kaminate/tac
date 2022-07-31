@@ -164,6 +164,7 @@ namespace Tac
       void RenderDrawCallPrimitiveTopology( const DrawCall* );
       void RenderDrawCallIssueDrawCommand( const DrawCall* );
 
+      String GetShaderPath( StringView ) override;
 
       // Non-virtual functions
 
@@ -218,10 +219,9 @@ namespace Tac
     };
 
 
-    String ShaderPathToContentString( StringView, Errors& );
-    String GetDirectX11ShaderPath( StringView );
-    String GetDirectX11ShaderPath( ShaderSource );
+    // impl in tac_renderer_directx11_shader_preprocess.cpp
     String PreprocessShaderSource( StringView, Errors& );
+
     void   RegisterRendererDirectX11();
   } // namespace Render
 } // namespace Tac

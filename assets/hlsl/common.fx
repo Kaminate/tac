@@ -12,15 +12,13 @@ cbuffer CBufferPerFrame : TAC_AUTO_REGISTER
   float            far;
   float            near;
   float2           gbufferSize;
-
-  // float            truncSecs;
-  // double           elapsedAppSeconds;
   float            secModTau;
 }
 
 cbuffer CBufferPerObject : TAC_AUTO_REGISTER
 {
   row_major matrix World;
+
   // Is this premultiplied alpha?
   float4           Color;
 }

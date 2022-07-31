@@ -135,10 +135,10 @@ namespace Tac
 
     for( const WantSpawnInfo& info : requestsCreate )
       sPlatformSpawnWindow( info.mHandle,
-                            info.mX,
-                            info.mY,
-                            info.mWidth,
-                            info.mHeight );
+        info.mX,
+        info.mY,
+        info.mWidth,
+        info.mHeight );
     for( DesktopWindowHandle desktopWindowHandle : requestsDestroy )
       sPlatformDespawnWindow( desktopWindowHandle );
   }
@@ -189,8 +189,7 @@ namespace Tac
     SettingsInit( errors );
     TAC_HANDLE_ERROR( errors );
 
-    TAC_NEW FontStuff;
-    gFontStuff.Load( errors );
+    FontApi::Init( errors );
     TAC_HANDLE_ERROR( errors );
 
     ImGuiInit();
@@ -244,7 +243,7 @@ namespace Tac
 
         gKeyboardInput.BeginFrame();
         ImGuiFrameBegin( ShellGetElapsedSeconds(),
-                         sPlatformGetMouseHoveredWindow() );
+          sPlatformGetMouseHoveredWindow() );
 
         if( ControllerInput::Instance )
           ControllerInput::Instance->Update();
@@ -330,12 +329,12 @@ namespace Tac
   }
 
   void DesktopEventQueueImpl::QueuePush( DesktopEventType desktopEventType,
-                                         void* dataBytes,
-                                         int dataByteCount )
+    void* dataBytes,
+    int dataByteCount )
   {
     std::lock_guard< std::mutex > lockGuard( mMutex );
     // Tac::WindowProc still spews out events while a popupbox is open
-    if( mQueue.capacity() - mQueue.size() < (int)sizeof( DesktopEventType ) + dataByteCount )
+    if( mQueue.capacity() - mQueue.size() < ( int )sizeof( DesktopEventType ) + dataByteCount )
       return;
     mQueue.Push( &desktopEventType, sizeof( DesktopEventType ) );
     mQueue.Push( dataBytes, dataByteCount );
@@ -349,7 +348,7 @@ namespace Tac
   }
 
   bool DesktopEventQueueImpl::QueuePop( void* dataBytes,
-                                        int dataByteCount )
+    int dataByteCount )
   {
     std::lock_guard< std::mutex > lockGuard( mMutex );
     return mQueue.Pop( dataBytes, dataByteCount );
@@ -358,7 +357,7 @@ namespace Tac
   struct DesktopEventDataAssignHandle
   {
     DesktopWindowHandle mDesktopWindowHandle;
-    const void*         mNativeWindowHandle = nullptr;
+    const void* mNativeWindowHandle = nullptr;
     int                 mX = 0;
     int                 mY = 0;
     int                 mW = 0;
@@ -424,104 +423,104 @@ namespace Tac
 
       switch( desktopEventType )
       {
-        case DesktopEventType::WindowAssignHandle:
+      case DesktopEventType::WindowAssignHandle:
+      {
+        DesktopEventDataAssignHandle data;
+        sEventQueue.QueuePop( &data, sizeof( data ) );
+        DesktopWindowState* desktopWindowState = GetDesktopWindowState( data.mDesktopWindowHandle );
+        if( desktopWindowState->mNativeWindowHandle != data.mNativeWindowHandle )
+          //if( !desktopWindowState->mNativeWindowHandle )
         {
-          DesktopEventDataAssignHandle data;
-          sEventQueue.QueuePop( &data, sizeof( data ) );
-          DesktopWindowState* desktopWindowState = GetDesktopWindowState( data.mDesktopWindowHandle );
-          if( desktopWindowState->mNativeWindowHandle != data.mNativeWindowHandle )
-            //if( !desktopWindowState->mNativeWindowHandle )
-          {
-            WindowGraphicsNativeHandleChanged( data.mDesktopWindowHandle,
-                                               data.mNativeWindowHandle,
-                                               data.mX,
-                                               data.mY,
-                                               data.mW,
-                                               data.mH );
-          }
-          desktopWindowState->mNativeWindowHandle = data.mNativeWindowHandle;
-          desktopWindowState->mWidth = data.mW;
-          desktopWindowState->mHeight = data.mH;
-          desktopWindowState->mX = data.mX;
-          desktopWindowState->mY = data.mY;
-        } break;
+          WindowGraphicsNativeHandleChanged( data.mDesktopWindowHandle,
+            data.mNativeWindowHandle,
+            data.mX,
+            data.mY,
+            data.mW,
+            data.mH );
+        }
+        desktopWindowState->mNativeWindowHandle = data.mNativeWindowHandle;
+        desktopWindowState->mWidth = data.mW;
+        desktopWindowState->mHeight = data.mH;
+        desktopWindowState->mX = data.mX;
+        desktopWindowState->mY = data.mY;
+      } break;
 
-        case DesktopEventType::WindowMove:
-        {
-          DesktopEventDataWindowMove data;
-          sEventQueue.QueuePop( &data, sizeof( data ) );
-          DesktopWindowState* state = GetDesktopWindowState( data.mDesktopWindowHandle );
-          state->mX = data.mX;
-          state->mY = data.mY;
-        } break;
+      case DesktopEventType::WindowMove:
+      {
+        DesktopEventDataWindowMove data;
+        sEventQueue.QueuePop( &data, sizeof( data ) );
+        DesktopWindowState* state = GetDesktopWindowState( data.mDesktopWindowHandle );
+        state->mX = data.mX;
+        state->mY = data.mY;
+      } break;
 
-        case DesktopEventType::WindowResize:
-        {
-          DesktopEventDataWindowResize data;
-          sEventQueue.QueuePop( &data, sizeof( data ) );
-          DesktopWindowState* desktopWindowState = GetDesktopWindowState( data.mDesktopWindowHandle );
-          desktopWindowState->mWidth = data.mWidth;
-          desktopWindowState->mHeight = data.mHeight;
-          WindowGraphicsResize( data.mDesktopWindowHandle,
-                                desktopWindowState->mWidth,
-                                desktopWindowState->mHeight );
-        } break;
+      case DesktopEventType::WindowResize:
+      {
+        DesktopEventDataWindowResize data;
+        sEventQueue.QueuePop( &data, sizeof( data ) );
+        DesktopWindowState* desktopWindowState = GetDesktopWindowState( data.mDesktopWindowHandle );
+        desktopWindowState->mWidth = data.mWidth;
+        desktopWindowState->mHeight = data.mHeight;
+        WindowGraphicsResize( data.mDesktopWindowHandle,
+          desktopWindowState->mWidth,
+          desktopWindowState->mHeight );
+      } break;
 
-        case DesktopEventType::KeyInput:
-        {
-          DesktopEventDataKeyInput data;
-          sEventQueue.QueuePop( &data, sizeof( data ) );
-          gKeyboardInput.mWMCharPressedHax = data.mCodepoint;
-        } break;
+      case DesktopEventType::KeyInput:
+      {
+        DesktopEventDataKeyInput data;
+        sEventQueue.QueuePop( &data, sizeof( data ) );
+        gKeyboardInput.mWMCharPressedHax = data.mCodepoint;
+      } break;
 
-        case DesktopEventType::KeyState:
-        {
-          DesktopEventDataKeyState data;
-          sEventQueue.QueuePop( &data, sizeof( data ) );
-          gKeyboardInput.SetIsKeyDown( data.mKey, data.mDown );
-        } break;
+      case DesktopEventType::KeyState:
+      {
+        DesktopEventDataKeyState data;
+        sEventQueue.QueuePop( &data, sizeof( data ) );
+        gKeyboardInput.SetIsKeyDown( data.mKey, data.mDown );
+      } break;
 
-        case DesktopEventType::MouseWheel:
-        {
-          DesktopEventDataMouseWheel data;
-          sEventQueue.QueuePop( &data, sizeof( data ) );
-          gKeyboardInput.mCurr.mMouseScroll += data.mDelta;
-          gKeyboardInput.mMouseDeltaScroll = gKeyboardInput.mCurr.mMouseScroll
-                                           - gKeyboardInput.mPrev.mMouseScroll;
-        } break;
+      case DesktopEventType::MouseWheel:
+      {
+        DesktopEventDataMouseWheel data;
+        sEventQueue.QueuePop( &data, sizeof( data ) );
+        gKeyboardInput.mCurr.mMouseScroll += data.mDelta;
+        gKeyboardInput.mMouseDeltaScroll = gKeyboardInput.mCurr.mMouseScroll
+          - gKeyboardInput.mPrev.mMouseScroll;
+      } break;
 
-        case DesktopEventType::MouseMove:
-        {
-          DesktopEventDataMouseMove data;
-          sEventQueue.QueuePop( &data, sizeof( data ) );
-          const DesktopWindowState* desktopWindowState = GetDesktopWindowState( data.mDesktopWindowHandle );
-          gKeyboardInput.mCurr.mScreenspaceCursorPos = {
-            (float)desktopWindowState->mX + (float)data.mX,
-            (float)desktopWindowState->mY + (float)data.mY };
-          gKeyboardInput.mMouseDeltaPos = gKeyboardInput.mCurr.mScreenspaceCursorPos
-                                        - gKeyboardInput.mPrev.mScreenspaceCursorPos;
-        } break;
+      case DesktopEventType::MouseMove:
+      {
+        DesktopEventDataMouseMove data;
+        sEventQueue.QueuePop( &data, sizeof( data ) );
+        const DesktopWindowState* desktopWindowState = GetDesktopWindowState( data.mDesktopWindowHandle );
+        gKeyboardInput.mCurr.mScreenspaceCursorPos = {
+          ( float )desktopWindowState->mX + ( float )data.mX,
+          ( float )desktopWindowState->mY + ( float )data.mY };
+        gKeyboardInput.mMouseDeltaPos = gKeyboardInput.mCurr.mScreenspaceCursorPos
+          - gKeyboardInput.mPrev.mScreenspaceCursorPos;
+      } break;
 
-        case DesktopEventType::CursorUnobscured:
-        {
-          DesktopEventDataCursorUnobscured data;
-          sEventQueue.QueuePop( &data, sizeof( data ) );
-          SetHoveredWindow( data.mDesktopWindowHandle );
-        } break;
+      case DesktopEventType::CursorUnobscured:
+      {
+        DesktopEventDataCursorUnobscured data;
+        sEventQueue.QueuePop( &data, sizeof( data ) );
+        SetHoveredWindow( data.mDesktopWindowHandle );
+      } break;
 
-        default:
-          TAC_CRITICAL_ERROR_INVALID_CASE( desktopEventType );
-          break;
+      default:
+        TAC_CRITICAL_ERROR_INVALID_CASE( desktopEventType );
+        break;
       }
     }
   }
 
   void                DesktopEventAssignHandle( const DesktopWindowHandle desktopWindowHandle,
-                                                const void* nativeWindowHandle,
-                                                const int x,
-                                                const int y,
-                                                const int w,
-                                                const int h )
+    const void* nativeWindowHandle,
+    const int x,
+    const int y,
+    const int w,
+    const int h )
   {
     TAC_ASSERT( IsMainThread() );
     DesktopEventDataAssignHandle data{ .mDesktopWindowHandle = desktopWindowHandle,
@@ -534,8 +533,8 @@ namespace Tac
   }
 
   void                DesktopEventMoveWindow( const DesktopWindowHandle desktopWindowHandle,
-                                              const int x,
-                                              const int y )
+    const int x,
+    const int y )
   {
     TAC_ASSERT( IsMainThread() );
     DesktopEventDataWindowMove data{ .mDesktopWindowHandle = desktopWindowHandle,.mX = x,.mY = y };
@@ -543,8 +542,8 @@ namespace Tac
   }
 
   void                DesktopEventResizeWindow( const DesktopWindowHandle desktopWindowHandle,
-                                                const int w,
-                                                const int h )
+    const int w,
+    const int h )
   {
     TAC_ASSERT( IsMainThread() );
     DesktopEventDataWindowResize data{ .mDesktopWindowHandle = desktopWindowHandle, .mWidth = w,.mHeight = h };
@@ -554,13 +553,13 @@ namespace Tac
   void                DesktopEventMouseWheel( const int ticks )
   {
     TAC_ASSERT( IsMainThread() );
-    DesktopEventDataMouseWheel data{.mDelta = ticks};
+    DesktopEventDataMouseWheel data{ .mDelta = ticks };
     sEventQueue.QueuePush( DesktopEventType::MouseWheel, &data, sizeof( data ) );
   }
 
   void                DesktopEventMouseMove( const DesktopWindowHandle desktopWindowHandle,
-                                             const int x,
-                                             const int y )
+    const int x,
+    const int y )
   {
     TAC_ASSERT( IsMainThread() );
     DesktopEventDataMouseMove data{ .mDesktopWindowHandle = desktopWindowHandle, .mX = x, .mY = y };
@@ -590,13 +589,13 @@ namespace Tac
 
 
   void                DesktopAppInit( PlatformSpawnWindow platformSpawnWindow,
-                                      PlatformDespawnWindow platformDespawnWindow,
-                                      PlatformGetMouseHoveredWindow platformGetMouseHoveredWindow,
-                                      PlatformFrameBegin platformFrameBegin,
-                                      PlatformFrameEnd platformFrameEnd,
-                                      PlatformWindowMoveControls platformWindowMoveControls,
-                                      PlatformWindowResizeControls platformWindowResizeControls,
-                                      Errors& errors )
+    PlatformDespawnWindow platformDespawnWindow,
+    PlatformGetMouseHoveredWindow platformGetMouseHoveredWindow,
+    PlatformFrameBegin platformFrameBegin,
+    PlatformFrameEnd platformFrameEnd,
+    PlatformWindowMoveControls platformWindowMoveControls,
+    PlatformWindowResizeControls platformWindowResizeControls,
+    Errors& errors )
   {
     PlatformThreadInit( errors );
     TAC_HANDLE_ERROR( errors );
@@ -742,9 +741,9 @@ namespace Tac
     DesktopAppReportError( "Logic Thread", gLogicThreadErrors );
   }
 
-  Errors*                        GetPlatformThreadErrors() { return &gPlatformThreadErrors; }
-  Errors*                        GetLogicThreadErrors()    { return &gLogicThreadErrors; }
-  Errors*                        GetMainErrors()           { return &gMainFunctionErrors; }
+  Errors* GetPlatformThreadErrors() { return &gPlatformThreadErrors; }
+  Errors* GetLogicThreadErrors()    { return &gLogicThreadErrors; }
+  Errors* GetMainErrors()           { return &gMainFunctionErrors; }
 
   bool                           IsMainThread() { return gThreadType == ThreadType::Main; }
 

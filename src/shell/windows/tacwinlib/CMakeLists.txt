@@ -32,6 +32,10 @@ if( WIN32 )
   )
   add_library( ${Target} ${TAC_WIN_LIB_FILES} )
 
+  target_precompile_headers( ${Target} PRIVATE 
+    "${CMAKE_SOURCE_DIR}/src/common/tac_precompiled_header.h"
+  )
+
   set_target_properties( ${Target} PROPERTIES LINKER_LANGUAGE CXX )
   add_definitions( /ZI ) # produce separate pdb file ( implies /debug )
   target_link_libraries( ${Target} ${TAC_LIBRARIES} )

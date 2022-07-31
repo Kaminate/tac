@@ -1,8 +1,10 @@
-#include "src/shell/windows/tacwinlib/renderer/tac_renderer_directx11.h"
+//#include "src/shell/windows/tacwinlib/renderer/tac_renderer_directx11.h"
+#include "src/common/graphics/tac_renderer.h"
 #include "src/common/containers/tac_array.h"
 #include "src/common/tac_text_parser.h"
 #include "src/common/tac_frame_memory.h"
 #include "src/common/math/tac_math.h"
+#include "src/common/tac_error_handling.h"
 
 namespace Tac
 {
@@ -25,6 +27,8 @@ namespace Tac
       Array< int, 128 > mLetterCounts;
 
     } sShaderRegisterMap;
+
+    String PreprocessShaderSource( const StringView , Errors& );
 
     static bool IsSingleLineCommented( const StringView line )
     {
@@ -87,8 +91,8 @@ namespace Tac
       lineParseData.EatUntilCharIsNext( '\"' );
       const char*      includeEnd = lineParseData.GetPos();
       const StringView includeName( includeBegin, includeEnd );
-      const String     includePath = GetDirectX11ShaderPath( includeName );
-      const String     includeSource = ShaderPathToContentString( includePath, errors );
+      const String     includePath = Render::GetShaderPath( includeName );
+      const String     includeSource = Render::ShaderPathToContentString( includePath, errors );
       const String     includeSourcePreproecssed = PreprocessShaderSource( includeSource, errors );
       String newLine;
       newLine += "//===----- (begin include " + includePath + ") -----===//\n";
@@ -273,7 +277,6 @@ namespace Tac
       }
       return line;
     }
-
 
     String PreprocessShaderSource( const StringView shaderSourceCode, Errors& errors )
     {
