@@ -14,6 +14,8 @@ list( APPEND TAC_SOURCES
   "${CMAKE_CURRENT_SOURCE_DIR}/tac_example_meta.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/tac_example_fluid.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/tac_example_fluid.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/tac_example_phys_sim_force.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/tac_example_phys_sim_force.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/tac_examples.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/tac_examples.h"
   ${TAC_DESKTOP_APP_FILES})
@@ -83,7 +85,7 @@ endif()
 
 
 find_package( SDL2 )
-if( SDL2_FOUND )
+if( SDL2_FOUND AND FALSE )
   tac_target( "SDL" )
   find_package( SDL2 REQUIRED )
 

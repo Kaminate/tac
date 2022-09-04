@@ -5,6 +5,7 @@
 #include "src/common/tac_settings.h"
 #include "src/game-examples/tac_example_fluid.h"
 #include "src/game-examples/tac_example_meta.h"
+#include "src/game-examples/tac_example_phys_sim_force.h"
 #include "src/game-examples/tac_examples.h"
 #include "src/shell/tac_desktop_app.h"
 #include "src/shell/tac_desktop_window_settings_tracker.h"
@@ -18,32 +19,61 @@ namespace Tac
   //static DesktopWindowState    sSavedDesktopWindowState;
 
   static Vector< Example* >    sExamples;
-  static int                   sExampleIndex;
+  static int                   sExampleIndex = -1;
+  static int                   exampleIndexNext = -1;
 
   static void   VerifyExampleNames()
   {
     std::set< String > names;
-    for( auto example : sExamples )
+    for( Example* example : sExamples )
     {
-      const char* name = example->GetName();
-      TAC_ASSERT( name );
+      String name = example->GetName();
+      TAC_ASSERT( !name.empty() );
+
+      TAC_ASSERT( !names.contains( name ) );
 
       // Check for copy paste errors
-      TAC_ASSERT( names.find( name ) == names.end() );
+      //TAC_ASSERT( names.find( name ) == names.end() );
       names.insert( name );
     }
   }
+
+  int GetExampleIndex( StringView name )
+  {
+    for( int i = 0; i < sExamples.size(); ++i )
+      if( sExamples[ i ]->GetName() == name )
+        return i;
+    return -1;
+  }
+
+  bool ExampleIndexValid( int i )
+  {
+    return i >= 0 && i < sExamples.size();
+  }
+
+  Example* GetExample( int i )
+  {
+    return ExampleIndexValid( i ) ? sExamples[ i ] : nullptr;
+  }
+
+
 
   static void   ExamplesInitCallback( Errors& errors )
   {
     sDesktopWindowHandle = CreateTrackedWindow( "Example.Window" );
     sExamples.push_back( new ExampleFluid );
     sExamples.push_back( new ExampleMeta );
+    sExamples.push_back( new ExamplePhysSimForce );
     VerifyExampleNames();
 
-    // Init just the first example, sExmpleIndex = 0
-    sExamples[ sExampleIndex ]->Init( errors );
-    TAC_HANDLE_ERROR( errors );
+    const StringView settingExampleName = SettingsGetString( "Example.Name", "" );
+    const int        settingExampleIndex = GetExampleIndex( settingExampleName );
+
+    exampleIndexNext = ExampleIndexValid( settingExampleIndex ) ? settingExampleIndex : 0;
+
+    //// Init just the first example, sExmpleIndex = 0
+    //sExamples[ sExampleIndex ]->Init( errors );
+    //TAC_HANDLE_ERROR( errors );
   }
 
   static void   ExamplesUninitCallback( Errors& errors )
@@ -60,14 +90,18 @@ namespace Tac
     int offset = 0;
     int iSelected = -1;
 
-    TAC_ASSERT( sExampleIndex >= 0 && sExampleIndex < sExamples.size() );
+    Example* curExample = GetExample( sExampleIndex );
 
     ImGuiSetNextWindowHandle( sDesktopWindowHandle );
     ImGuiBegin( "" );
-    ImGuiText( String("Current Example: " ) + sExamples[ sExampleIndex ]->GetName() );
-    offset -= ImGuiButton( "Prev" ) ? 1 : 0;
-    ImGuiSameLine();
-    offset += ImGuiButton( "Next" ) ? 1 : 0;
+    if( curExample )
+    {
+
+      ImGuiText( String( "Current Example: " ) + curExample->GetName() );
+      offset -= ImGuiButton( "Prev" ) ? 1 : 0;
+      ImGuiSameLine();
+      offset += ImGuiButton( "Next" ) ? 1 : 0;
+    }
     if( ImGuiCollapsingHeader( "Select Example" ) )
     {
       TAC_IMGUI_INDENT_BLOCK;
@@ -76,21 +110,26 @@ namespace Tac
           iSelected = i;
     }
 
-    Example* example = sExamples[ sExampleIndex ];
-    int exampleIndexNext = ( sExampleIndex + sExamples.size() + offset ) % sExamples.size();
-    exampleIndexNext = iSelected == -1 ? exampleIndexNext : iSelected;
-    if( exampleIndexNext != sExampleIndex )
+    if( curExample && offset )
+      exampleIndexNext = ( sExampleIndex + sExamples.size() + offset ) % sExamples.size();
+
+    if( ExampleIndexValid( exampleIndexNext ) && exampleIndexNext != sExampleIndex )
     {
-      example->Uninit( errors );
+      if( curExample )
+      {
+        curExample->Uninit( errors );
+        TAC_HANDLE_ERROR( errors );
+      }
+
+      curExample = GetExample( sExampleIndex = exampleIndexNext );
+      curExample->Init( errors );
       TAC_HANDLE_ERROR( errors );
 
-      example = sExamples[ sExampleIndex = exampleIndexNext ];
-      example->Init( errors );
-      TAC_HANDLE_ERROR( errors );
+      SettingsSetString( "Example.Name", curExample->GetName() );
     }
 
-
-    example->Update( errors );
+    if( curExample )
+      curExample->Update( errors );
 
 
     ImGuiEnd();
