@@ -1,5 +1,4 @@
-# Tac 3D Game Engine
-This repository contains the full source code, game assets, and formal documentation for the Tac 3D game engine.
+This repository contains the full source code, game assets, and formal documentation for the Tac 2D game engine.
 
 # Repository Structure
 ```
@@ -61,6 +60,38 @@ in .vscode/settings.json set
     "cmake.buildDirectory": "${workspaceFolder}/build_unix_makefiles"
 this is for run/run_unix_makefiles.h
 ```
+
+# Building ( MacOS, Visual Studio Code )
+
+```
+TODO:
+create a tac environment repo?
+- that automatically creates a ~/.vimrc that sources the github vimrc?
+- that downloads ~/.bash_profile
+  which contains an alias for gvim
+  which adds cmake to the path
+- that sets terminal.app to
+  preferences --> profile --> shell --> run command --> source ~/.bash_profile
+  run co
+```
+
+install homebrew package manager
+```
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
+install cmake using brew
+``` 
+brew install cmake
+```
+
+(does this work?)
+
+```
+cd run
+sh ./run_unix_makefiles.sh
+```
+
 
 # License
 (c) 2017 Nathan Park  

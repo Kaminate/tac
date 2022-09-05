@@ -11,6 +11,10 @@ assets/imgui.ini
 # vim temporary files
 *.swp
 
+
+# macOS Finder metadata
+*.DS_Store
+
 *.rdc
 
 cloc_found.txt

@@ -1,3 +1,6 @@
+
+# This file is used for Fedora and MacOS I think
+
 while true
 do
 
