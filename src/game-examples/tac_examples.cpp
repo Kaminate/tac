@@ -110,8 +110,9 @@ namespace Tac
           iSelected = i;
     }
 
-    if( curExample && offset )
-      exampleIndexNext = ( sExampleIndex + sExamples.size() + offset ) % sExamples.size();
+    int iOffset = ( sExampleIndex + sExamples.size() + offset ) % sExamples.size();
+    exampleIndexNext = curExample && offset ? iOffset : exampleIndexNext;
+    exampleIndexNext = iSelected != -1 ? iSelected : exampleIndexNext;
 
     if( ExampleIndexValid( exampleIndexNext ) && exampleIndexNext != sExampleIndex )
     {
