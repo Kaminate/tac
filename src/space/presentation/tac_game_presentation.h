@@ -8,10 +8,11 @@ namespace Tac
   struct Mesh;
   struct Model;
   struct Graphics;
+  struct World;
 
   void                          GamePresentationInit( Errors& );
   void                          GamePresentationUninit();
-  void                          GamePresentationRender( World*,
+  void                          GamePresentationRender( World*, // why is this non const?
                                                         const Camera*,
                                                         int viewWidth,
                                                         int viewHeight,

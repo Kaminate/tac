@@ -437,7 +437,7 @@ namespace Tac
   }
 
 
-  static struct : public OS
+  struct Win32OS : public OS
   {
     void        OSSaveToFile( StringView path, void* bytes, int byteCount, Errors&  errors ) override
     {
@@ -492,7 +492,7 @@ namespace Tac
     }
 
 
-    //                  same as current dir
+    //          same as current dir
     void        OSGetWorkingDir( String& dir, Errors& e ) override
     {
       return Win32OSGetWorkingDir( dir, e );
@@ -509,17 +509,15 @@ namespace Tac
       return Win32OSSetScreenspaceCursorPos( v, e );
     }
 
-    void* OSGetLoadedDLL( StringView name ) override
+    void*       OSGetLoadedDLL( StringView name ) override
     {
       return Win32OSGetLoadedDLL( name );
     }
 
-    void* OSLoadDLL( StringView path ) override
+    void*       OSLoadDLL( StringView path ) override
     {
       return Win32OSLoadDLL( path );
     }
-
-
 
     SemaphoreHandle OSSemaphoreCreate() override
     {
@@ -537,7 +535,9 @@ namespace Tac
     }
 
 
-  } sWin32OS;
+  };
+
+  static Win32OS sWin32OS;
 
   void             Win32OSInit()
   {

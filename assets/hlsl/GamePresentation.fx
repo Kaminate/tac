@@ -115,7 +115,8 @@ float3 ApplyLight( int iLight,
 
 PS_OUTPUT PS( VS_OUTPUT input )
 {
-  float3 colorDiffuse = float3( 0, 0, 0 );
+  float3 colorDiffuse = float3( 0.0001, 0.0001, 0.001 ); // ambient so that when you draw something, you see something without light
+  // float3 colorDiffuse = float3( 0, 0, 0 );
   if( useLights )
   {
     for( int iLight = 0; iLight < lightCount; ++iLight )

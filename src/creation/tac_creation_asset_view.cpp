@@ -341,27 +341,43 @@ namespace Tac
       const char* debugName = FrameMemoryPrintf( "%s-framebuffer-",
                                                  StripExt( SplitFilepath( path ).mFilename ).c_str() );
 
-      Render::TexSpec texSpecColor;
-      texSpecColor.mImage.mFormat.mElementCount = 4;
-      texSpecColor.mImage.mFormat.mPerElementByteCount = 1;
-      texSpecColor.mImage.mFormat.mPerElementDataType = Render::GraphicsType::unorm;
-      texSpecColor.mImage.mWidth = w;
-      texSpecColor.mImage.mHeight = h;
-      texSpecColor.mBinding = Render::Binding::ShaderResource | Render::Binding::RenderTarget ;
-      Render::TextureHandle textureHandleColor = Render::CreateTexture( texSpecColor, TAC_STACK_FRAME );
+      const Render::TexSpec texSpecColor =
+      {
+        .mImage =
+        {
+          .mWidth = w,
+          .mHeight = h,
+          .mFormat =
+          {
+            .mElementCount = 4,
+            .mPerElementByteCount = 1,
+            .mPerElementDataType = Render::GraphicsType::unorm,
+          },
+        },
+        .mBinding = Render::Binding::ShaderResource | Render::Binding::RenderTarget,
+      };
+      const Render::TextureHandle textureHandleColor = Render::CreateTexture( texSpecColor, TAC_STACK_FRAME );
       Render::SetRenderObjectDebugName( textureHandleColor, debugName );
 
-      Render::TexSpec texSpecDepth;
-      texSpecDepth.mImage.mFormat.mElementCount = 1;
-      texSpecDepth.mImage.mFormat.mPerElementByteCount = sizeof( uint16_t );
-      texSpecDepth.mImage.mFormat.mPerElementDataType = Render::GraphicsType::unorm;
-      texSpecDepth.mImage.mWidth = w;
-      texSpecDepth.mImage.mHeight = h;
-      texSpecDepth.mBinding = Render::Binding::DepthStencil; // = ( Render::Binding )( ( int )Render::Binding::ShaderResource | ( int )Render::Binding::RenderTarget );
-      Render::TextureHandle textureHandleDepth = Render::CreateTexture( texSpecDepth, TAC_STACK_FRAME );
+      const Render::TexSpec texSpecDepth = 
+      {
+        .mImage =
+        {
+          .mWidth = w,
+          .mHeight = h,
+          .mFormat =
+          {
+            .mElementCount = 1,
+            .mPerElementByteCount = sizeof( uint16_t ),
+            .mPerElementDataType = Render::GraphicsType::unorm,
+          },
+        },
+        .mBinding = Render::Binding::DepthStencil,
+      };
+      const Render::TextureHandle textureHandleDepth = Render::CreateTexture( texSpecDepth, TAC_STACK_FRAME );
       Render::SetRenderObjectDebugName( textureHandleDepth, debugName );
 
-      Render::FramebufferHandle framebufferHandle = Render::CreateFramebufferForRenderToTexture(
+      const Render::FramebufferHandle framebufferHandle = Render::CreateFramebufferForRenderToTexture(
         { textureHandleColor, textureHandleDepth }, TAC_STACK_FRAME );
       Render::ViewHandle viewHandle = Render::CreateView();
 

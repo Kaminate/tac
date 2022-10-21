@@ -1,0 +1,3 @@
+sphere.obj is a sphere of radius 1 centered at the origin.
+each face has 1 triangle, properly backfaced with the normal pointing outwards
+

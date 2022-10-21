@@ -20,6 +20,7 @@
 #include "src/shell/tac_desktop_app.h"
 #include "src/shell/tac_desktop_window_graphics.h"
 #include "src/shell/tac_desktop_window_settings_tracker.h"
+#include "src/space/tac_space.h"
 
 #include <mutex>
 #include <thread> // std::this_thread
@@ -193,6 +194,18 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
 
     ImGuiInit();
+   SpaceInit();
+
+    // ensure data path folder exists
+    {
+      OS* os = GetOS();
+      String dataPath;
+      os->OSGetApplicationDataPath( dataPath, errors );
+      TAC_HANDLE_ERROR( errors );
+
+      os->OSCreateFolderIfNotExist( dataPath, errors );
+      TAC_HANDLE_ERROR( errors );
+    }
 
     sProjectInit( errors );
     TAC_HANDLE_ERROR( errors );

@@ -173,22 +173,17 @@ namespace Tac
                                                  .Color = { model->mColorRGB, 1 }};
 
     Render::DrawCallTextures drawCallTextures;
+    CBufferLights cBufferLights;
     if( mUseLights )
     {
-      CBufferLights cBufferLights;
       for( int i = 0; i < lightCount; ++i )
       {
         const Light* light = lights[ i ];
         if( cBufferLights.TryAddLight( LightToShaderLight( light ) ) )
           drawCallTextures.push_back( light->mShadowMapDepth );
       }
-      Render::UpdateConstantBuffer( CBufferLights::Handle,
-                                    &cBufferLights,
-                                    sizeof( CBufferLights ),
-                                    TAC_STACK_FRAME );
-
-      mDebugCBufferLights = cBufferLights;
     }
+    mDebugCBufferLights = cBufferLights;
 
     Render::SetTexture( drawCallTextures );
 
@@ -445,14 +440,6 @@ namespace Tac
     myModelVisitor.mGraphics = graphics;
     //myModelVisitor.mWorld = world;
 
-    if( !mUseLights )
-    {
-      CBufferLights cBufferLights = {};
-      Render::UpdateConstantBuffer( CBufferLights::Handle,
-                                    &cBufferLights,
-                                    sizeof( CBufferLights ),
-                                    TAC_STACK_FRAME );
-    }
 
 
     TAC_RENDER_GROUP_BLOCK( "Visit Models" );

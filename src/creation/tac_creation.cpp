@@ -275,7 +275,6 @@ namespace Tac
     MetaFnUnitTest();
     MetaCompositeUnitTest();
 
-    SpaceInit();
     mWorld = TAC_NEW World;
     mEditorCamera = TAC_NEW Camera{ .mPos = { 0, 1, 5 },
                                     .mForwards = { 0, 0, -1 },
@@ -289,21 +288,15 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
 
     ShadowPresentationInit( errors );
+    TAC_HANDLE_ERROR( errors );
 
     VoxelGIPresentationInit( errors );
     TAC_HANDLE_ERROR( errors );
 
-    String dataPath;
-    GetOS()->OSGetApplicationDataPath( dataPath, errors );
-    TAC_HANDLE_ERROR( errors );
-
-    GetOS()->OSCreateFolderIfNotExist( dataPath, errors );
-    TAC_HANDLE_ERROR( errors );
 
     Json* windows;
     GetWindowsJson( &windows, errors );
     TAC_HANDLE_ERROR( errors );
-
 
     CreateInitialWindows( errors );
     TAC_HANDLE_ERROR( errors );
