@@ -6,6 +6,7 @@
 #include "src/common/graphics/tac_renderer_backend.h"
 #include "src/common/shell/tac_shell.h"
 #include "src/common/tac_hash.h"
+#include "src/common/containers/tac_optional.h"
 #include "src/common/string/tac_string_identifier.h"
 #include "src/shell/windows/tacwinlib/tac_win32.h"
 #include "src/shell/windows/tacwinlib/renderer/tac_dxgi.h"
@@ -207,7 +208,7 @@ namespace Tac
       BoundSRVs                  mBoundSRVs;
 
       //DrawCallSamplers           mBoundSamplers;
-      HashedValue                mBoundSamplerHash = 0;
+      Optional< HashedValue >    mBoundSamplerHash;
 
       ViewHandle                 mBoundViewHandle;
       VertexBufferHandle         mBoundVertexBuffer;

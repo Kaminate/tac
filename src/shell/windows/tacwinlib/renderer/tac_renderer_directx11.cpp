@@ -1188,15 +1188,21 @@ namespace Tac
 
     }
 
+    static HashedValue HashDrawCallSamplers(const DrawCallSamplers& drawCallSamplers )
+    {
+      Hasher hasher;
+
+      // to differeniate {} from {0}
+      hasher.Eat(drawCallSamplers.size());
+
+      for( const SamplerStateHandle& sampler : drawCallSamplers )
+        hasher.Eat( ( HashedValue )sampler );
+      return hasher;
+    }
+
     void RendererDirectX11::RenderDrawCallSamplerState( const DrawCall* drawCall )
     {
-      const HashedValue drawCallSamplerHash = [ & ]()
-      {
-        HashedValue hash = 0;
-        for( auto sampler : drawCall->mSamplerStateHandle )
-          hash = HashAdd( sampler, hash );
-        return hash;
-      }( );
+      const HashedValue drawCallSamplerHash = HashDrawCallSamplers(drawCall->mSamplerStateHandle);
 
       if( mBoundSamplerHash != drawCallSamplerHash )
       {
@@ -1210,7 +1216,16 @@ namespace Tac
         }
         mDeviceContext->VSSetSamplers( 0, Samplers.size(), Samplers.data() );
         mDeviceContext->PSSetSamplers( 0, Samplers.size(), Samplers.data() );
+
       }
+
+      // tmp
+      if( drawCall->mStackFrame.mLine == 327 )
+      {
+        ID3D11SamplerState* samplers[16];
+        mDeviceContext->PSGetSamplers(  0, 16, samplers );
+      }
+
     }
 
     void RendererDirectX11::RenderDrawCallVertexFormat( const DrawCall* drawCall )

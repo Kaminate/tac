@@ -187,7 +187,7 @@ namespace Tac
     Example* curExample = GetExample( sExampleIndex );
 
     ImGuiSetNextWindowHandle( sDesktopWindowHandle );
-    ImGuiBegin( "" );
+    ImGuiBegin( "Examples" );
     if( curExample )
     {
 
