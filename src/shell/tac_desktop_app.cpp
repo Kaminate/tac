@@ -510,7 +510,7 @@ namespace Tac
         gKeyboardInput.mCurr.mScreenspaceCursorPos = {
           ( float )desktopWindowState->mX + ( float )data.mX,
           ( float )desktopWindowState->mY + ( float )data.mY };
-        gKeyboardInput.mMouseDeltaPos = gKeyboardInput.mCurr.mScreenspaceCursorPos
+        gKeyboardInput.mMouseDeltaPos = KeyboardGetScreenspaceCursorPos()
           - gKeyboardInput.mPrev.mScreenspaceCursorPos;
       } break;
 

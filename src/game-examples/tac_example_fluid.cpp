@@ -353,7 +353,7 @@ namespace Tac
       {
         this->viewHalfDims.x -= gKeyboardInput.mMouseDeltaScroll * 0.3f;
       }
-      if( !gKeyboardInput.IsKeyDown( Key::MouseMiddle ) )
+      if( !KeyboardIsKeyDown( Key::MouseMiddle ) )
         return;
       viewCenter -= v2( gKeyboardInput.mMouseDeltaPos.x / px_per_unit_x,
                         -gKeyboardInput.mMouseDeltaPos.y / px_per_unit_y );
@@ -424,11 +424,11 @@ namespace Tac
     {
       const bool nextAvailable = iStep < stepCount - 1;
       const bool prevAvailable = iStep > 0;
-      if( prevAvailable && ( ImGuiButton( "Prev" ) || gKeyboardInput.IsKeyJustDown( Key::LeftArrow ) ) )
+      if( prevAvailable && ( ImGuiButton( "Prev" ) || KeyboardIsKeyJustDown( Key::LeftArrow ) ) )
         iStepNext = iStep - 1;
       if( nextAvailable && prevAvailable )
         ImGuiSameLine();
-      if( nextAvailable && ( ImGuiButton( "Next" ) || gKeyboardInput.IsKeyJustDown( Key::RightArrow ) ) )
+      if( nextAvailable && ( ImGuiButton( "Next" ) || KeyboardIsKeyJustDown( Key::RightArrow ) ) )
         iStepNext = iStep + 1;
     }
 

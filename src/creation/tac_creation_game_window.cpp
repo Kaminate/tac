@@ -364,7 +364,7 @@ namespace Tac
 
   void CreationGameWindow::MousePickingSelection()
   {
-    if( !gKeyboardInput.IsKeyJustDown( Key::MouseLeft ) )
+    if( !KeyboardIsKeyJustDown( Key::MouseLeft ) )
       return;
 
     switch( pickData.pickedObject )
@@ -423,7 +423,7 @@ namespace Tac
     const float h = ( float )desktopWindowState->mHeight;
     const float x = ( float )desktopWindowState->mX;
     const float y = ( float )desktopWindowState->mY;
-    const v2 screenspaceCursorPos = gKeyboardInput.mCurr.mScreenspaceCursorPos;
+    const v2 screenspaceCursorPos = KeyboardGetScreenspaceCursorPos();
     float xNDC = ( ( screenspaceCursorPos.x - x ) / w );
     float yNDC = ( ( screenspaceCursorPos.y - y ) / h );
     yNDC = 1 - yNDC;
@@ -882,7 +882,7 @@ namespace Tac
       return;
     const Camera oldCamera = *gCreation.mEditorCamera;
 
-    if( gKeyboardInput.IsKeyDown( Key::MouseRight ) &&
+    if( KeyboardIsKeyDown( Key::MouseRight ) &&
         gKeyboardInput.mMouseDeltaPos != v2( 0, 0 ) )
     {
       const float pixelsPerDeg = 400.0f / 90.0f;
@@ -914,7 +914,7 @@ namespace Tac
       gCreation.mEditorCamera->mUp.Normalize();
     }
 
-    if( gKeyboardInput.IsKeyDown( Key::MouseMiddle ) &&
+    if( KeyboardIsKeyDown( Key::MouseMiddle ) &&
         gKeyboardInput.mMouseDeltaPos != v2( 0, 0 ) )
     {
       const float unitsPerPixel = 5.0f / 100.0f;
@@ -1045,7 +1045,7 @@ namespace Tac
     //{
     //  prefab->mPosition += translate;
     //}
-    if( !gKeyboardInput.IsKeyDown( Key::MouseLeft ) )
+    if( !KeyboardIsKeyDown( Key::MouseLeft ) )
     {
       gCreation.mSelectedGizmo = false;
     }

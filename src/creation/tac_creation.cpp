@@ -82,8 +82,8 @@ namespace Tac
   {
     World* world = gCreation.mWorld;
     const bool triggered =
-      gKeyboardInput.IsKeyDown( Key::S ) &&
-      gKeyboardInput.IsKeyDown( Key::Modifier );
+      KeyboardIsKeyDown( Key::S ) &&
+      KeyboardIsKeyDown( Key::Modifier );
     if( !triggered )
       return;
     gKeyboardInput.SetIsKeyDown( Key::S, false );
@@ -250,7 +250,7 @@ namespace Tac
     if( !IsWindowHovered( gameWindow->mDesktopWindowHandle ) )
       return;
 
-    if( !gKeyboardInput.IsKeyJustDown( Key::Delete ) )
+    if( !KeyboardIsKeyJustDown( Key::Delete ) )
       return;
     DeleteEntities();
   }
