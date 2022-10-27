@@ -296,7 +296,7 @@ namespace Tac
       .mTextureFormat{.mElementCount = 3,
                      .mPerElementByteCount = sizeof( float ),
                      .mPerElementDataType = Render::GraphicsType::real},
-      .mAlignedByteOffset = TAC_OFFSET_OF( GameModelVtx, mPos ),};
+      .mAlignedByteOffset = (int)TAC_OFFSET_OF( GameModelVtx, mPos ),};
 
     const Render::VertexDeclaration norDecl 
     {
@@ -304,7 +304,7 @@ namespace Tac
       .mTextureFormat{.mElementCount = 3,
                      .mPerElementByteCount = sizeof( float ),
                      .mPerElementDataType = Render::GraphicsType::real},
-      .mAlignedByteOffset = TAC_OFFSET_OF( GameModelVtx, mNor ),
+      .mAlignedByteOffset = (int)TAC_OFFSET_OF( GameModelVtx, mNor ),
     };
 
     m3DVertexFormatDecls = Render::VertexDeclarations{ posDecl, norDecl };
@@ -322,21 +322,21 @@ namespace Tac
         .mTextureFormat{ .mElementCount = 3,
                          .mPerElementByteCount = sizeof( float ),
                          .mPerElementDataType = Render::GraphicsType::real},
-        .mAlignedByteOffset = TAC_OFFSET_OF( TerrainVertex, mPos )
+        .mAlignedByteOffset = (int)TAC_OFFSET_OF( TerrainVertex, mPos )
       },
       {
         .mAttribute = Render::Attribute::Normal,
         .mTextureFormat{ .mElementCount = 3,
                          .mPerElementByteCount = sizeof( float ),
                          .mPerElementDataType = Render::GraphicsType::real },
-        .mAlignedByteOffset = TAC_OFFSET_OF( TerrainVertex, mNor )
+        .mAlignedByteOffset = (int)TAC_OFFSET_OF( TerrainVertex, mNor )
       },
       {
         .mAttribute = Render::Attribute::Texcoord,
         .mTextureFormat{ .mElementCount = 2,
                          .mPerElementByteCount = sizeof( float ),
                          .mPerElementDataType = Render::GraphicsType::real},
-        .mAlignedByteOffset = TAC_OFFSET_OF( TerrainVertex, mUV )
+        .mAlignedByteOffset = (int)TAC_OFFSET_OF( TerrainVertex, mUV )
       }
     };
     mTerrainVertexFormat = Render::CreateVertexFormat( decls, mTerrainShader, TAC_STACK_FRAME );

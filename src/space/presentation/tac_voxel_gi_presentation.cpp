@@ -212,21 +212,21 @@ namespace Tac
         .mTextureFormat{ .mElementCount = 3,
                          .mPerElementByteCount = sizeof( float ),
                          .mPerElementDataType = Render::GraphicsType::real },
-        .mAlignedByteOffset = TAC_OFFSET_OF( VoxelVtx, pos )
+        .mAlignedByteOffset = (int)TAC_OFFSET_OF( VoxelVtx, pos )
       },
       {
         .mAttribute = Render::Attribute::Normal,
         .mTextureFormat{ .mElementCount = 3,
                          .mPerElementByteCount = sizeof( float ),
                          .mPerElementDataType = Render::GraphicsType::real,},
-        .mAlignedByteOffset = TAC_OFFSET_OF( VoxelVtx, nor ),
+        .mAlignedByteOffset = (int)TAC_OFFSET_OF( VoxelVtx, nor ),
       },
       {
         .mAttribute = Render::Attribute::Texcoord,
         .mTextureFormat{ .mElementCount = 2,
                          .mPerElementByteCount = sizeof( float ),
                          .mPerElementDataType = Render::GraphicsType::real,},
-        .mAlignedByteOffset = TAC_OFFSET_OF( VoxelVtx, uv ),
+        .mAlignedByteOffset = (int)TAC_OFFSET_OF( VoxelVtx, uv ),
       }
     };
 
@@ -248,7 +248,7 @@ namespace Tac
                                     },
                        },
              .mPitch = 0,
-             .mBinding { Render::Binding::ShaderResource | Render::Binding::UnorderedAccess},
+             .mBinding = Render::Binding::ShaderResource | Render::Binding::UnorderedAccess,
              .mAccess = Render::Access::Default, 
              .mCpuAccess = Render::CPUAccess::None
            };

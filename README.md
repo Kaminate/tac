@@ -72,7 +72,6 @@ create a tac environment repo?
   which adds cmake to the path
 - that sets terminal.app to
   preferences --> profile --> shell --> run command --> source ~/.bash_profile
-  run co
 ```
 
 install homebrew package manager
@@ -85,11 +84,49 @@ install cmake using brew
 brew install cmake
 ```
 
-(does this work?)
+install visual studio code 
+https://code.visualstudio.com/download
+
+
+(alternatively?)
+```
+brew install --cask visual-studio-code
+```
 
 ```
 cd run
 sh ./run_unix_makefiles.sh
+```
+
+in vscode
+```
+install extension C/C++ 
+install extension C/C++ Extension Pack
+install extension CMake
+install extension CMake Tools
+open command palette (ctrl + shift + p)
+
+>Cmake: Configure (Generates build files using kit and variant)
+
+```
+
+note: if the cmake configure fails with error no cmake at ""
+```
+>Preference: Open User Settings (JSON)
+```
+ensure that settings.json contains 
+"cmake.cmakePath": "/Applications/CMAKE.app/Contents/bin/cmake"
+or wherever your cmake is installed to
+
+
+in vscode
+```
+>Tasks: Configure Task
++-> Create tasks.json file from template
++-> Others
+
+this generates task.json
+modify it 
 ```
 
 
