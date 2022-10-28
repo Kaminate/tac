@@ -10,7 +10,9 @@ namespace Tac
     {
       v3 mPos;
       float mRadius;
+      float mMass;
       v3 mForce;
+      v3 mVelocity;
     };
     void Init( Errors& ) override;
     void Update( Errors& ) override;
@@ -19,6 +21,7 @@ namespace Tac
     struct Entity* mEntity = nullptr;
     struct Model* mModel = nullptr;
     Ball mBall;
+    float mSpringConstant;
   };
 
 }
