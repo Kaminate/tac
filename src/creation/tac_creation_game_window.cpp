@@ -787,7 +787,7 @@ namespace Tac
       { Key::E, camera->mUp},
     };
     for( const auto keyDir : keyDirs )
-      if( gKeyboardInput.IsKeyDown( keyDir.key ) )
+      if( KeyboardIsKeyDown( keyDir.key ) )
         combinedDir += keyDir.dir;
     if( combinedDir == v3( 0, 0, 0 ) )
       return;
@@ -810,7 +810,7 @@ namespace Tac
 
     v3 camOrbitSphericalOffset = {};
     for( auto keyDir : keyDirs )
-      if( gKeyboardInput.IsKeyDown( keyDir.key ) )
+      if( KeyboardIsKeyDown( keyDir.key ) )
         camOrbitSphericalOffset += keyDir.spherical;
     if( camOrbitSphericalOffset == v3( 0, 0, 0 ) )
       return;
@@ -882,12 +882,13 @@ namespace Tac
       return;
     const Camera oldCamera = *gCreation.mEditorCamera;
 
+    const v2 mouseDeltaPos = KeyboardGetMouseDeltaPos();
     if( KeyboardIsKeyDown( Key::MouseRight ) &&
-        gKeyboardInput.mMouseDeltaPos != v2( 0, 0 ) )
+        mouseDeltaPos != v2( 0, 0 ) )
     {
       const float pixelsPerDeg = 400.0f / 90.0f;
       const float radiansPerPixel = ( 1.0f / pixelsPerDeg ) * ( 3.14f / 180.0f );
-      const v2 angleRadians = gKeyboardInput.mMouseDeltaPos * radiansPerPixel;
+      const v2 angleRadians = mouseDeltaPos * radiansPerPixel;
 
       if( angleRadians.x != 0 )
       {
@@ -915,20 +916,21 @@ namespace Tac
     }
 
     if( KeyboardIsKeyDown( Key::MouseMiddle ) &&
-        gKeyboardInput.mMouseDeltaPos != v2( 0, 0 ) )
+        mouseDeltaPos != v2( 0, 0 ) )
     {
       const float unitsPerPixel = 5.0f / 100.0f;
       gCreation.mEditorCamera->mPos +=
         gCreation.mEditorCamera->mRight *
-        -gKeyboardInput.mMouseDeltaPos.x *
+        -mouseDeltaPos.x *
         unitsPerPixel;
       gCreation.mEditorCamera->mPos +=
         gCreation.mEditorCamera->mUp *
-        gKeyboardInput.mMouseDeltaPos.y *
+        mouseDeltaPos.y *
         unitsPerPixel;
     }
 
-    if( gKeyboardInput.mMouseDeltaScroll )
+    const int mouseDeltaScroll = KeyboardGetMouseDeltaScroll();
+    if( mouseDeltaScroll )
     {
       float unitsPerTick = 1.0f;
 
@@ -940,7 +942,7 @@ namespace Tac
 
       gCreation.mEditorCamera->mPos +=
         gCreation.mEditorCamera->mForwards *
-        ( float )gKeyboardInput.mMouseDeltaScroll *
+        ( float )mouseDeltaScroll *
         unitsPerTick;
     }
 

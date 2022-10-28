@@ -86,7 +86,7 @@ namespace Tac
       KeyboardIsKeyDown( Key::Modifier );
     if( !triggered )
       return;
-    gKeyboardInput.SetIsKeyDown( Key::S, false );
+    KeyboardSetIsKeyDown( Key::S, false );
     PrefabSave( world );
     if( CreationGameWindow::Instance )
     {

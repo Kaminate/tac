@@ -254,7 +254,7 @@ namespace Tac
 
         // To reduce input latency, update the game soon after polling the controller.
 
-        gKeyboardInput.BeginFrame();
+        KeyboardBeginFrame();
         ImGuiFrameBegin( ShellGetElapsedSeconds(),
           sPlatformGetMouseHoveredWindow() );
 
@@ -267,7 +267,7 @@ namespace Tac
         ImGuiFrameEnd( errors );
         TAC_HANDLE_ERROR( errors );
 
-        gKeyboardInput.EndFrame();
+        KeyboardEndFrame();
       }
 
       Render::SubmitFrame();
@@ -483,23 +483,21 @@ namespace Tac
       {
         DesktopEventDataKeyInput data;
         sEventQueue.QueuePop( &data, sizeof( data ) );
-        gKeyboardInput.mWMCharPressedHax = data.mCodepoint;
+        KeyboardSetWMCharPressedHax(data.mCodepoint);
       } break;
 
       case DesktopEventType::KeyState:
       {
         DesktopEventDataKeyState data;
         sEventQueue.QueuePop( &data, sizeof( data ) );
-        gKeyboardInput.SetIsKeyDown( data.mKey, data.mDown );
+        KeyboardSetIsKeyDown( data.mKey, data.mDown );
       } break;
 
       case DesktopEventType::MouseWheel:
       {
         DesktopEventDataMouseWheel data;
         sEventQueue.QueuePop( &data, sizeof( data ) );
-        gKeyboardInput.mCurr.mMouseScroll += data.mDelta;
-        gKeyboardInput.mMouseDeltaScroll = gKeyboardInput.mCurr.mMouseScroll
-          - gKeyboardInput.mPrev.mMouseScroll;
+        KeyboardMouseWheelEvent(data.mDelta);
       } break;
 
       case DesktopEventType::MouseMove:
@@ -507,11 +505,8 @@ namespace Tac
         DesktopEventDataMouseMove data;
         sEventQueue.QueuePop( &data, sizeof( data ) );
         const DesktopWindowState* desktopWindowState = GetDesktopWindowState( data.mDesktopWindowHandle );
-        gKeyboardInput.mCurr.mScreenspaceCursorPos = {
-          ( float )desktopWindowState->mX + ( float )data.mX,
-          ( float )desktopWindowState->mY + ( float )data.mY };
-        gKeyboardInput.mMouseDeltaPos = KeyboardGetScreenspaceCursorPos()
-          - gKeyboardInput.mPrev.mScreenspaceCursorPos;
+        KeyboardSetScreenspaceCursorPos( v2(( float )desktopWindowState->mX + ( float )data.mX,
+                                            ( float )desktopWindowState->mY + ( float )data.mY ) );
       } break;
 
       case DesktopEventType::CursorUnobscured:
