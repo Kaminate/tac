@@ -20,7 +20,9 @@ if( SDL2_FOUND )
   # target_link_libraries( ${Target} ${SDL2_LIBRARY} )
 
   set_target_properties( ${Target} PROPERTIES LINKER_LANGUAGE CXX )
-  add_definitions( /ZI ) # produce separate pdb file ( implies /debug )
+  if( WIN32 )
+    add_definitions( /ZI ) # produce separate pdb file ( implies /debug )
+  endif()
   target_link_libraries( ${Target} ${TAC_LIBRARIES} )
 
 endif()

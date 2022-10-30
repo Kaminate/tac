@@ -357,7 +357,7 @@ namespace Tac
 
     void            OSSemaphoreDecrementWait( SemaphoreHandle semaphoreHandle ) override
     {
-      SDL_sem* semaphore = sSDLSemaphores[ ( int )semaphoreHandle ];
+     
       SDL_SemPost( semaphore );
     }
 
@@ -371,6 +371,14 @@ namespace Tac
 
   void SDLAppInit( Errors& errors )
   {
+
+    TAC_CRITICAL_ERROR(
+      "todo:"
+      "- add the vulkan renderer back in"
+      "- make it default on sdl"
+      "- test it on macos"
+      );
+
     DesktopAppInit( SDLPlatformSpawnWindow,
                     SDLPlatformDespawnWindow,
                     SDLPlatformGetMouseHoveredWindow,

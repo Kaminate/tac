@@ -84,6 +84,17 @@ install cmake using brew
 brew install cmake
 ```
 
+install sdl2 using brew. sdl2 is used as the window manager
+```
+brew install sdl2
+```
+
+install gdb
+```
+brew install gdb
+nevermind, the x64 architecture is reqyired
+```
+
 install visual studio code 
 https://code.visualstudio.com/download
 

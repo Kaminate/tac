@@ -20,10 +20,6 @@ list( APPEND TAC_SOURCES
   "${CMAKE_CURRENT_SOURCE_DIR}/tac_examples.h"
   ${TAC_DESKTOP_APP_FILES})
 
-if( WIN32 )
-  # set( TAC_SOURCES ${TAC_SOURCES} ${TAC_WIN_LIB_FILES} )
-endif()
-
 # note: variables names are case-sensitive
 
 list( APPEND TAC_INCLUDE_DIRECTORIES
@@ -85,7 +81,7 @@ endif()
 
 
 find_package( SDL2 )
-if( SDL2_FOUND AND FALSE )
+if( SDL2_FOUND )
   tac_target( "SDL" )
   find_package( SDL2 REQUIRED )
 

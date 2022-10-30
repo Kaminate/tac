@@ -76,9 +76,7 @@ namespace Tac
   void                DesktopAppMoveControls( const DesktopWindowHandle& );
   void                DesktopAppReportErrors();
 
-  Errors*             GetPlatformThreadErrors();
-  Errors*             GetLogicThreadErrors();
-  Errors*             GetMainErrors();
+  Errors&             GetMainErrors();
   bool                IsMainThread();
   bool                IsLogicThread();
 }

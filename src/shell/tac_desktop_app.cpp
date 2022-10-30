@@ -107,9 +107,8 @@ namespace Tac
 
 
   void RegisterRenderers();
-  static void CreateRenderer( Errors& )
+  static void CreateRenderer( Errors& errors )
   {
-
 #if defined _WIN32 || defined _WIN64 
     const String defaultRendererName = Render::RendererNameDirectX11;
 #else
@@ -121,8 +120,13 @@ namespace Tac
       return;
     }
 
-    Render::RendererFactory& factory = *Render::RendererRegistry().begin();
-    factory.mCreateRenderer();
+    for( const Render::RendererFactory& factory : Render::RendererRegistry() )
+    {
+      factory.mCreateRenderer();
+      break;
+    }
+
+    TAC_RAISE_ERROR( "no registered renderer factories", errors );
   }
 
   static void DesktopAppUpdateWindowRequests()
@@ -655,7 +659,6 @@ namespace Tac
     ShellSetInitialWorkingDir( workingDir );
 
 
-
     RegisterRenderers();
     CreateRenderer( errors );
     Render::Init( errors );
@@ -749,9 +752,7 @@ namespace Tac
     DesktopAppReportError( "Logic Thread", gLogicThreadErrors );
   }
 
-  Errors* GetPlatformThreadErrors() { return &gPlatformThreadErrors; }
-  Errors* GetLogicThreadErrors()    { return &gLogicThreadErrors; }
-  Errors* GetMainErrors()           { return &gMainFunctionErrors; }
+  Errors& GetMainErrors()           { return gMainFunctionErrors; }
 
   bool                           IsMainThread() { return gThreadType == ThreadType::Main; }
 

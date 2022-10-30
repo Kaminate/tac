@@ -19,7 +19,8 @@ void mainAux( Errors& errors )
 
 int main( int, char ** )
 {
-  mainAux( *GetMainErrors() );
+  Errors& errors = GetMainErrors();
+  mainAux( errors );
   DesktopAppReportErrors();
 
   return 0;

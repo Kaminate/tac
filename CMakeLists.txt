@@ -1,15 +1,19 @@
+include( CMakePrintHelpers )
+
 # vulkan first supported in https://cmake.org/cmake/help/v3.7/module/FindVulkan.html
 # if vulkan still isn't found, update ${CMAKE_ROOT}/Modules/FindVulkan.cmake
 cmake_minimum_required(VERSION 3.7)
 cmake_policy(SET CMP0072 NEW) # prefer latest opengl
 project(Tac CXX)
 
-if( FALSE )
+if( TRUE )
   # group lib, dll, exe
   set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
   set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 endif()
+
+cmake_print_variables("cmake binary dir: " ${CMAKE_BINARY_DIR})
 
 if (MSVC)
     add_compile_options(/W4) # warning level 4
