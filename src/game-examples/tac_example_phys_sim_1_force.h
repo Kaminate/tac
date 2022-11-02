@@ -1,27 +1,33 @@
 #pragma once
 
 #include "src/game-examples/tac_examples.h"
+#include "src/common/math/tac_vector3.h"
+
 namespace Tac
 {
   struct Errors;
-  struct ExamplePhysSimForce : public Example
+  struct ExamplePhysSim1Force : public Example
   {
     struct Ball
     {
-      v3 mPos;
       float mRadius;
       float mMass;
-      v3 mForce;
+
+      v3 mPos;
       v3 mVelocity;
     };
-    void Init( Errors& ) override;
+
+    ExamplePhysSim1Force();
+    ~ExamplePhysSim1Force() override;
     void Update( Errors& ) override;
-    void Uninit( Errors& ) override;
     const char* GetName() const override;
+
     struct Entity* mEntity = nullptr;
     struct Model* mModel = nullptr;
+
     Ball mBall;
     float mSpringConstant;
   };
+
 
 }

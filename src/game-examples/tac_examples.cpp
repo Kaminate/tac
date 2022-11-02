@@ -1,14 +1,14 @@
 #include "src/common/graphics/imgui/tac_imgui.h"
 #include "src/common/graphics/tac_renderer.h"
+#include "src/common/tac_camera.h"
 #include "src/common/tac_desktop_window.h"
 #include "src/common/tac_os.h"
 #include "src/common/tac_error_handling.h"
 #include "src/common/tac_settings.h"
 #include "src/common/tac_frame_memory.h"
 #include "src/space/presentation/tac_game_presentation.h"
-#include "src/game-examples/tac_example_fluid.h"
-#include "src/game-examples/tac_example_meta.h"
-#include "src/game-examples/tac_example_phys_sim_force.h"
+#include "src/space/tac_entity.h"
+#include "src/space/tac_world.h"
 #include "src/game-examples/tac_examples.h"
 #include "src/shell/tac_desktop_app.h"
 #include "src/shell/tac_desktop_window_settings_tracker.h"
@@ -18,11 +18,45 @@
 namespace Tac
 {
 
+  Example::Example()
+  {
+    mWorld = TAC_NEW World;
+    mCamera = TAC_NEW Camera{ .mPos = { 0, 0, 5 },
+                              .mForwards = { 0, 0, -1 },
+                              .mRight = { 1, 0, 0 },
+                              .mUp = { 0, 1, 0 } };
+#if 0
+    EntityUUIDCounter u;
+    EntityUUID id = u.AllocateNewUUID();
+    mEntity = mWorld->SpawnEntity( id );
+    mModel = ( Model* )mEntity->AddNewComponent( Model().GetEntry() );
+    mModel->mModelPath = "assets/editor/single_triangle.obj";
+    mModel->mModelPath = "assets/essential/sphere.obj";
+    mModel->mModelIndex = 0;
+#endif
+  }
+
+  Example::~Example()
+  {
+
+    TAC_DELETE mWorld;
+    TAC_DELETE mCamera;
+  }
+
+
+  struct ExampleEntry
+  {
+    const char* GetName() { return mExampleName; }
+    const char* mExampleName;
+    Example*( * mExampleFactory )(); 
+  };
+
   static DesktopWindowHandle       sDesktopWindowHandle;
 
-  static Vector< Example* >        sExamples;
-  static int                       sExampleIndex = -1;
-  static int                       exampleIndexNext = -1;
+  static Vector< ExampleEntry >    sExamples;
+  static int                       sExampleIndexCurr = -1;
+  static int                       sExampleIndexNext = -1;
+  static Example*                  sCurrExample;
 
   static Render::ViewHandle        exampleView;
   static int                       exampleWidth;
@@ -31,12 +65,20 @@ namespace Tac
   static Render::TextureHandle     exampleDepth;
   static Render::FramebufferHandle exampleFramebuffer;
 
+  void ExampleRegistryAdd( const char* exampleName, Example*(* exampleFactory)() )
+  {
+    ExampleEntry exampleEntry;
+    exampleEntry.mExampleName = exampleName;;
+    exampleEntry.mExampleFactory = exampleFactory;
+    sExamples.push_back( exampleEntry);
+  }
+
   static void   VerifyExampleNames()
   {
     std::set< String > names;
-    for( Example* example : sExamples )
+    for( auto example : sExamples )
     {
-      String name = example->GetName();
+      String name = example.mExampleName;
       TAC_ASSERT( !name.empty() );
 
       TAC_ASSERT( !names.contains( name ) );
@@ -50,7 +92,7 @@ namespace Tac
   int GetExampleIndex( StringView name )
   {
     for( int i = 0; i < sExamples.size(); ++i )
-      if( sExamples[ i ]->GetName() == name )
+      if( sExamples[ i ].mExampleName == name )
         return i;
     return -1;
   }
@@ -60,9 +102,9 @@ namespace Tac
     return i >= 0 && i < sExamples.size();
   }
 
-  Example* GetExample( int i )
+  const ExampleEntry* GetExampleEntry( int i )
   {
-    return ExampleIndexValid( i ) ? sExamples[ i ] : nullptr;
+    return ExampleIndexValid( i ) ? &sExamples[ i ] : nullptr;
   }
 
   static void   ExamplesEnsureView(v2 size)
@@ -73,48 +115,46 @@ namespace Tac
     if( !shouldCreate )
       return;
 
-
-
-      const char* debugName = "examplesview";
-      const Render::TexSpec texSpecColor =
+    const char* debugName = "examplesview";
+    const Render::TexSpec texSpecColor =
+    {
+      .mImage =
       {
-        .mImage =
+        .mWidth = w,
+        .mHeight = h,
+        .mFormat =
         {
-          .mWidth = w,
-          .mHeight = h,
-          .mFormat =
-          {
-            .mElementCount = 4,
-            .mPerElementByteCount = 1,
-            .mPerElementDataType = Render::GraphicsType::unorm,
-          },
+          .mElementCount = 4,
+          .mPerElementByteCount = 1,
+          .mPerElementDataType = Render::GraphicsType::unorm,
         },
-        .mBinding = Render::Binding::ShaderResource | Render::Binding::RenderTarget,
-      };
-      const Render::TextureHandle textureHandleColor = Render::CreateTexture( texSpecColor, TAC_STACK_FRAME );
-      Render::SetRenderObjectDebugName( textureHandleColor, debugName );
+      },
+      .mBinding = Render::Binding::ShaderResource | Render::Binding::RenderTarget,
+    };
+    const Render::TextureHandle textureHandleColor = Render::CreateTexture( texSpecColor, TAC_STACK_FRAME );
+    Render::SetRenderObjectDebugName( textureHandleColor, debugName );
 
-      const Render::TexSpec texSpecDepth = 
+    const Render::TexSpec texSpecDepth = 
+    {
+      .mImage =
       {
-        .mImage =
+        .mWidth = w,
+        .mHeight = h,
+        .mFormat =
         {
-          .mWidth = w,
-          .mHeight = h,
-          .mFormat =
-          {
-            .mElementCount = 1,
-            .mPerElementByteCount = sizeof( uint16_t ),
-            .mPerElementDataType = Render::GraphicsType::unorm,
-          },
+          .mElementCount = 1,
+          .mPerElementByteCount = sizeof( uint16_t ),
+          .mPerElementDataType = Render::GraphicsType::unorm,
         },
-        .mBinding = Render::Binding::DepthStencil,
-      };
-      const Render::TextureHandle textureHandleDepth = Render::CreateTexture( texSpecDepth, TAC_STACK_FRAME );
-      Render::SetRenderObjectDebugName( textureHandleDepth, debugName );
+      },
+      .mBinding = Render::Binding::DepthStencil,
+    };
+    const Render::TextureHandle textureHandleDepth = Render::CreateTexture( texSpecDepth, TAC_STACK_FRAME );
+    Render::SetRenderObjectDebugName( textureHandleDepth, debugName );
 
-      const Render::FramebufferHandle framebufferHandle = Render::CreateFramebufferForRenderToTexture(
-        { textureHandleColor, textureHandleDepth }, TAC_STACK_FRAME );
-      const Render::ViewHandle viewHandle = Render::CreateView();
+    const Render::FramebufferHandle framebufferHandle = Render::CreateFramebufferForRenderToTexture(
+      { textureHandleColor, textureHandleDepth }, TAC_STACK_FRAME );
+    const Render::ViewHandle viewHandle = Render::CreateView();
 
     Render::DestroyView(exampleView);
     Render::DestroyTexture(exampleColor, TAC_STACK_FRAME);
@@ -133,15 +173,13 @@ namespace Tac
   static void   ExamplesInitCallback( Errors& errors )
   {
     sDesktopWindowHandle = CreateTrackedWindow( "Example.Window" );
-    sExamples.push_back( new ExampleFluid );
-    sExamples.push_back( new ExampleMeta );
-    sExamples.push_back( new ExamplePhysSimForce );
+    ExampleRegistryPopulate();
     VerifyExampleNames();
 
     const StringView settingExampleName = SettingsGetString( "Example.Name", "" );
     const int        settingExampleIndex = GetExampleIndex( settingExampleName );
 
-    exampleIndexNext = ExampleIndexValid( settingExampleIndex ) ? settingExampleIndex : 0;
+    sExampleIndexNext = ExampleIndexValid( settingExampleIndex ) ? settingExampleIndex : 0;
 
     //// Init just the first example, sExmpleIndex = 0
     //sExamples[ sExampleIndex ]->Init( errors );
@@ -153,7 +191,7 @@ namespace Tac
 
   static void   ExamplesUninitCallback( Errors& errors )
   {
-    sExamples[ sExampleIndex ]->Uninit( errors );
+    TAC_DELETE sCurrExample;
   }
 
   static void   ExamplesQuitOnWindowClose()
@@ -184,14 +222,12 @@ namespace Tac
     int offset = 0;
     int iSelected = -1;
 
-    Example* curExample = GetExample( sExampleIndex );
-
     ImGuiSetNextWindowHandle( sDesktopWindowHandle );
     ImGuiBegin( "Examples" );
-    if( curExample )
+    if( sCurrExample )
     {
 
-      ImGuiText( String( "Current Example: " ) + curExample->GetName() );
+      ImGuiText( String( "Current Example: " ) + sCurrExample->GetName() );
       offset -= ImGuiButton( "Prev" ) ? 1 : 0;
       ImGuiSameLine();
       offset += ImGuiButton( "Next" ) ? 1 : 0;
@@ -200,13 +236,13 @@ namespace Tac
     {
       TAC_IMGUI_INDENT_BLOCK;
       for( int i = 0; i < sExamples.size(); ++i )
-        if( ImGuiSelectable( sExamples[ i ]->GetName(), i == sExampleIndex ) )
+        if( ImGuiSelectable( sExamples[ i ].GetName(), i == sExampleIndexCurr ) )
           iSelected = i;
     }
 
-    int iOffset = ( sExampleIndex + sExamples.size() + offset ) % sExamples.size();
-    exampleIndexNext = curExample && offset ? iOffset : exampleIndexNext;
-    exampleIndexNext = iSelected != -1 ? iSelected : exampleIndexNext;
+    int iOffset = ( sExampleIndexCurr + sExamples.size() + offset ) % sExamples.size();
+    sExampleIndexNext = sCurrExample && offset ? iOffset : sExampleIndexNext;
+    sExampleIndexNext = iSelected != -1 ? iSelected : sExampleIndexNext;
 
     const v2 cursorPos = ImGuiGetCursorPos();
     const UIStyle& style = ImGuiGetStyle();
@@ -217,31 +253,30 @@ namespace Tac
     
     ExamplesEnsureView(drawSize);
 
-    if( ExampleIndexValid( exampleIndexNext ) && exampleIndexNext != sExampleIndex )
+    if( ExampleIndexValid( sExampleIndexNext ) && sExampleIndexNext != sExampleIndexCurr )
     {
-      if( curExample )
+      if( sCurrExample )
       {
-        curExample->Uninit( errors );
+        TAC_DELETE sCurrExample;
         TAC_HANDLE_ERROR( errors );
       }
 
-      curExample = GetExample( sExampleIndex = exampleIndexNext );
-      curExample->Init( errors );
+      sCurrExample = sExamples[ sExampleIndexCurr = sExampleIndexNext ].mExampleFactory();
       TAC_HANDLE_ERROR( errors );
 
-      SettingsSetString( "Example.Name", curExample->GetName() );
+      SettingsSetString( "Example.Name", sCurrExample->GetName() );
     }
 
-    if( curExample )
+    if( sCurrExample )
     {
-      curExample->Update( errors );
-      if( curExample->mWorld && curExample->mCamera && exampleView.IsValid() )
+      sCurrExample->Update( errors );
+      if( sCurrExample->mWorld && sCurrExample->mCamera && exampleView.IsValid() )
       {
         Render::SetViewport( exampleView, Render::Viewport( exampleWidth, exampleHeight ) );
         Render::SetViewScissorRect( exampleView, Render::ScissorRect( exampleWidth, exampleHeight ) );
         Render::SetViewFramebuffer( exampleView, exampleFramebuffer );
-        GamePresentationRender( curExample->mWorld,
-                                curExample->mCamera,
+        GamePresentationRender( sCurrExample->mWorld,
+                                sCurrExample->mCamera,
                                 exampleWidth,
                                 exampleHeight,
                                 exampleView );

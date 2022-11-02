@@ -357,7 +357,7 @@ namespace Tac
 
     void            OSSemaphoreDecrementWait( SemaphoreHandle semaphoreHandle ) override
     {
-     
+      SDL_sem* semaphore = sSDLSemaphores[ ( int )semaphoreHandle ];
       SDL_SemPost( semaphore );
     }
 

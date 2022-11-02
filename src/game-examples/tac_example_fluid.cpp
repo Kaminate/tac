@@ -171,7 +171,6 @@ namespace Tac
 
   }
 #else
-  void ExampleFluid::Init( Errors& errors ) { }
 
   enum IterationExample
   {
@@ -557,7 +556,6 @@ namespace Tac
     }
 
   }
-  void ExampleFluid::Uninit( Errors& errors ) { }
 
 
 #endif

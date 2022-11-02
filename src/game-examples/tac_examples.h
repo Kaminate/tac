@@ -4,16 +4,20 @@
 namespace Tac
 {
   struct Errors;
+  struct World;
+  struct Camera;
+
   struct Example
   {
-    virtual void Init( Errors& ){};
+    Example();
+    virtual ~Example();
     virtual void Update( Errors& ){};
-    virtual void Uninit( Errors& ){};
     virtual const char* GetName() const = 0;
-    struct World* mWorld = nullptr;
-    struct Camera* mCamera = nullptr;
-
+    World* mWorld;
+    Camera* mCamera;
   };
 
+  void ExampleRegistryAdd( const char* exampleName, Example*(*)() );
+  void ExampleRegistryPopulate();
 
 }

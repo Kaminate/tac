@@ -1,4 +1,3 @@
-
 include( CMakePrintHelpers )
 
 set( TAC_DEBUGGING FALSE )
@@ -14,8 +13,21 @@ list( APPEND TAC_SOURCES
   "${CMAKE_CURRENT_SOURCE_DIR}/tac_example_meta.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/tac_example_fluid.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/tac_example_fluid.h"
-  "${CMAKE_CURRENT_SOURCE_DIR}/tac_example_phys_sim_force.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/tac_example_phys_sim_force.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/tac_example_phys_sim_1_force.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/tac_example_phys_sim_1_force.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/tac_example_phys_sim_2_integration.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/tac_example_phys_sim_2_integration.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/tac_example_phys_sim_3_torque.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/tac_example_phys_sim_3_torque.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/tac_example_phys_sim_4_tank.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/tac_example_phys_sim_4_tank.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/tac_example_phys_sim_5_lincollision.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/tac_example_phys_sim_5_lincollision.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/tac_example_phys_sim_6_rotcollision.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/tac_example_phys_sim_6_rotcollision.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/tac_example_phys_sim_7_friction.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/tac_example_phys_sim_7_friction.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/tac_examples_registry.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/tac_examples.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/tac_examples.h"
   ${TAC_DESKTOP_APP_FILES})

@@ -7,23 +7,14 @@
 
 namespace Tac
 {
-  void ExampleMeta::Init( Errors& errors )
-  {
-      RunMetaUnitTestSuite();
-  }
 
   void ExampleMeta::Update( Errors& errors )
   {
-    if( ImGuiButton( "Run Unit Tests" ) )
-    {
+    mShouldRunTests |=  ImGuiButton( "Run Unit Tests" );
+    if( mShouldRunTests )
       RunMetaUnitTestSuite();
-    }
   }
 
-  void ExampleMeta::Uninit( Errors& errors )
-  {
-
-  }
 
   const char* ExampleMeta::GetName() const
   {
