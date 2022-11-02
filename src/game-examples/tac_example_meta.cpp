@@ -12,7 +12,10 @@ namespace Tac
   {
     mShouldRunTests |=  ImGuiButton( "Run Unit Tests" );
     if( mShouldRunTests )
+    {
       RunMetaUnitTestSuite();
+      mShouldRunTests = false;
+    }
   }
 
 

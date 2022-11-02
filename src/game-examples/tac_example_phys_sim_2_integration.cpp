@@ -1,4 +1,5 @@
 #include "src/game-examples/tac_example_phys_sim_2_integration.h"
+#include "src/common/graphics/imgui/tac_imgui.h"
 
 // This example based off
 // https://github.com/jvanverth/essentialmath/tree/master/src/Examples/Ch13-Simulation/...
@@ -25,7 +26,7 @@ namespace Tac
 
   }
 
-  void ExamplePhysSim2Integration::Update( Errors& errors )
+  void ExamplePhysSim2Integration::Update( Errors& )
   {
     for( int i = 0; i < IntegrationMode::Count; ++i )
     {

@@ -15,7 +15,7 @@ namespace Tac
 
   }
 
-  void ExamplePhysSim7Friction::Update( Errors& errors )
+  void ExamplePhysSim7Friction::Update( Errors& )
   {
   
   }

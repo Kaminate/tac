@@ -107,26 +107,34 @@ namespace Tac
 
 
   void RegisterRenderers();
-  static void CreateRenderer( Errors& errors )
+
+  static const char* GetDefaultRendererName()
   {
 #if defined _WIN32 || defined _WIN64 
-    const String defaultRendererName = Render::RendererNameDirectX11;
+    return Render::RendererNameDirectX11;
 #else
-    const String defaultRendererName = Render::RendererNameVulkan;
+    return Render::RendererNameVulkan;
 #endif
-    if( const Render::RendererFactory* factory = Render::RendererFactoriesFind( defaultRendererName ) )
-    {
-      factory->mCreateRenderer();
-      return;
-    }
+  }
 
-    for( const Render::RendererFactory& factory : Render::RendererRegistry() )
-    {
-      factory.mCreateRenderer();
-      break;
-    }
 
-    TAC_RAISE_ERROR( "no registered renderer factories", errors );
+  static const Render::RendererFactory* GetRendererFactory()
+  {
+    const String defaultRendererName = GetDefaultRendererName();
+    const Render::RendererFactory* defaultFactory = Render::RendererFactoriesFind( defaultRendererName );
+    if(defaultFactory)
+      return defaultFactory;
+    for( auto& factory : Render::RendererRegistry() )
+        return &factory;
+    return nullptr;
+  }
+
+  
+  static void CreateRenderer( Errors& errors )
+  {
+    const Render::RendererFactory* factory = GetRendererFactory();
+    TAC_RAISE_ERROR_IF( !factory, "Failed to create renderer, are any factories registered?", errors );
+    factory->mCreateRenderer();
   }
 
   static void DesktopAppUpdateWindowRequests()

@@ -11,7 +11,7 @@ namespace Tac
   {
     Euler,
     Count
-  }
+  };
 
   struct ExamplePhysSim2Integration : public Example
   {

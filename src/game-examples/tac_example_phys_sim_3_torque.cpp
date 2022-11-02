@@ -15,7 +15,7 @@ namespace Tac
 
   }
 
-  void ExamplePhysSim3Torque::Update( Errors& errors )
+  void ExamplePhysSim3Torque::Update( Errors& )
   {
   
   }

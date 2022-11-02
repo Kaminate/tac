@@ -32,7 +32,7 @@ int CALLBACK WinMain( HINSTANCE hInstance,
                       int nCmdShow )
 {
   using namespace Tac;
-  WinMainAux( hInstance, hPrevInstance, lpCmdLine, nCmdShow, *GetMainErrors() );
+  WinMainAux( hInstance, hPrevInstance, lpCmdLine, nCmdShow, GetMainErrors() );
   DesktopAppReportErrors();
   //ReportError( "WinMain", sWinMainErrors );
   //ReportError( "Platform thread", *GetPlatformThreadErrors() );

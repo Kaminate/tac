@@ -15,7 +15,7 @@ namespace Tac
 
   }
 
-  void ExamplePhysSim6RotCollision::Update( Errors& errors )
+  void ExamplePhysSim6RotCollision::Update( Errors& )
   {
   
   }
