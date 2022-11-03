@@ -19,11 +19,25 @@ namespace Tac
     ~ExamplePhysSim2Integration() override;
     void Update( Errors& ) override;
     const char* GetName() const override;
+    void UI();
+    void TrackPositions();
+    void DrawPositions();
+    void Reset();
 
     IntegrationMode mIntegrationMode{};
 
     v3 mPosition;
     v3 mVelocity;
     float mMass;
+
+    const int poscapacity = 1000;
+    v3* positions;
+    int poscount = 0;
+    int iposition = 0;
+
+
+    float timer = 0;
+    float mBallRadius;
+    float mOrbitRadius;
   };
 }
