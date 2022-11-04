@@ -11,6 +11,5 @@ namespace Tac
     ExamplePhysSim7Friction();
     ~ExamplePhysSim7Friction() override;
     void Update( Errors& ) override;
-    const char* GetName() const override;
   };
 }

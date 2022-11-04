@@ -11,6 +11,5 @@ namespace Tac
     ExamplePhysSim5LinCollision();
     ~ExamplePhysSim5LinCollision() override;
     void Update( Errors& ) override;
-    const char* GetName() const override;
   };
 }

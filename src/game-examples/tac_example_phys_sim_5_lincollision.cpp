@@ -20,6 +20,5 @@ namespace Tac
   
   }
 
-  const char* ExamplePhysSim5LinCollision::GetName() const { return "Phys Sim 5 Lin Collision"; }
 
 } // namespace Tac

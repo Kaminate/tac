@@ -63,6 +63,5 @@ namespace Tac
   {
   }
 
-  const char* ExamplePhysSim1Force::GetName() const { return "Phys Sim 1 Force"; }
 
 } // namespace Tac

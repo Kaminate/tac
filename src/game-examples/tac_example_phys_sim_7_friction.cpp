@@ -20,6 +20,4 @@ namespace Tac
   
   }
 
-  const char* ExamplePhysSim7Friction::GetName() const { return "Phys Sim 7 Friction"; }
-
 } // namespace Tac

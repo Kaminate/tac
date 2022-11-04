@@ -11,6 +11,5 @@ namespace Tac
     ExamplePhysSim6RotCollision();
     ~ExamplePhysSim6RotCollision() override;
     void Update( Errors& ) override;
-    const char* GetName() const override;
   };
 }

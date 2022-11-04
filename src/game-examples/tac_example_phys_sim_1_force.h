@@ -20,7 +20,6 @@ namespace Tac
     ExamplePhysSim1Force();
     ~ExamplePhysSim1Force() override;
     void Update( Errors& ) override;
-    const char* GetName() const override;
 
     struct Entity* mEntity = nullptr;
     struct Model* mModel = nullptr;

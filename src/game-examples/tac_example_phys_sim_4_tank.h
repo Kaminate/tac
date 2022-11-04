@@ -11,6 +11,5 @@ namespace Tac
     ExamplePhysSim4Tank();
     ~ExamplePhysSim4Tank() override;
     void Update( Errors& ) override;
-    const char* GetName() const override;
   };
 }

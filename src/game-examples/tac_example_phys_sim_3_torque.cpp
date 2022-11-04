@@ -20,6 +20,5 @@ namespace Tac
   
   }
   
-  const char* ExamplePhysSim3Torque::GetName() const { return "Phys Sim 3 Torque"; }
 
 } // namespace Tac

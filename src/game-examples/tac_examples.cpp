@@ -227,7 +227,7 @@ namespace Tac
     if( sCurrExample )
     {
 
-      ImGuiText( String( "Current Example: " ) + sCurrExample->GetName() );
+      ImGuiText( String( "Current Example: " ) + sCurrExample->mName );
       offset -= ImGuiButton( "Prev" ) ? 1 : 0;
       ImGuiSameLine();
       offset += ImGuiButton( "Next" ) ? 1 : 0;
@@ -261,10 +261,14 @@ namespace Tac
         TAC_HANDLE_ERROR( errors );
       }
 
-      sCurrExample = sExamples[ sExampleIndexCurr = sExampleIndexNext ].mExampleFactory();
+      sExampleIndexCurr = sExampleIndexNext;
+      const ExampleEntry& entry = sExamples[ sExampleIndexCurr ];
+
+      sCurrExample = entry.mExampleFactory();
+      sCurrExample->mName = entry.mExampleName;
       TAC_HANDLE_ERROR( errors );
 
-      SettingsSetString( "Example.Name", sCurrExample->GetName() );
+      SettingsSetString( "Example.Name", sCurrExample->mName );
     }
 
     if( sCurrExample )

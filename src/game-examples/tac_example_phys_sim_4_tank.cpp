@@ -20,6 +20,5 @@ namespace Tac
   
   }
 
-  const char* ExamplePhysSim4Tank::GetName() const { return "Phys Sim 4 Tank"; }
 
 } // namespace Tac

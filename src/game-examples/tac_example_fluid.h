@@ -9,7 +9,6 @@ namespace Tac
   struct ExampleFluid : public Example
   {
     void Update( Errors& ) override;
-    const char* GetName() const override;
   };
 
 }

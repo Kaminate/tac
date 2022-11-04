@@ -20,6 +20,5 @@ namespace Tac
   
   }
 
-  const char* ExamplePhysSim6RotCollision::GetName() const { return "Phys Sim 6 Rot Collision"; }
 
 } // namespace Tac

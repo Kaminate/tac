@@ -7,7 +7,6 @@
 
 namespace Tac
 {
-
   void ExampleMeta::Update( Errors& errors )
   {
     mShouldRunTests |=  ImGuiButton( "Run Unit Tests" );
@@ -17,11 +16,4 @@ namespace Tac
       mShouldRunTests = false;
     }
   }
-
-
-  const char* ExampleMeta::GetName() const
-  {
-    return "Meta";
-  }
-
 } // namespace Tac

@@ -6,6 +6,8 @@
 #include "src/common/shell/tac_shell_timer.h"
 #include "src/space/tac_world.h"
 
+#include "src/common/graphics/tac_color_util.h"
+
 // This example based off
 // https://github.com/jvanverth/essentialmath/tree/master/src/Examples/Ch13-Simulation/...
 
@@ -24,89 +26,108 @@ namespace Tac
 
   ExamplePhysSim2Integration::ExamplePhysSim2Integration()
   {
-    positions = TAC_NEW v3[ poscapacity ];
-
+    Reset();
   }
 
   ExamplePhysSim2Integration::~ExamplePhysSim2Integration()
   {
-      TAC_DELETE [] positions;
   }
 
   void ExamplePhysSim2Integration::UI()
   {
-    for( int i = 0; i < IntegrationMode::Count; ++i )
+    bool shouldReset = ImGuiButton( "Reset" );
+    if( ImGuiCollapsingHeader( "Change Integration Mode" ) )
     {
-      auto mode = (IntegrationMode)i;
-      if( ImGuiButton( ToString( mode ) ) )
+      TAC_IMGUI_INDENT_BLOCK;
+      for( int i = 0; i < IntegrationMode::Count; ++i )
       {
-        mIntegrationMode = mode;
+        const bool modePressed = ImGuiButton( ToString( ( IntegrationMode )i ) );
+        if( modePressed )
+          mIntegrationMode = ( IntegrationMode )i;
+        shouldReset |= modePressed;
       }
     }
+    if(shouldReset)
+      Reset();
   }
 
   void ExamplePhysSim2Integration::Reset()
   {
-    // seconds per 1 full 360 deg orbit
-    float duration = 4.0f;
+    mDuration = 4.0f;
 
-    // ( numerator: angle rotated in radians )
-    // ( denominator: rotation duration in seconds )
-    float angularVelocity = 2.0f * 3.14f / duration;
+    // angular velocity is measured in radians per second.
+    //   numerator:   angle rotated in radians
+    //   denominator: rotation duration in seconds
+    mAngularVelocity = 2.0f * 3.14f / mDuration;
 
-    float linearVelocity =  mOrbitRadius * angularVelocity;
+    float linearVelocity =  mOrbitRadius * mAngularVelocity;
 
     mPosition = mCamera->mUp * mOrbitRadius;
     mVelocity = -mCamera->mRight * linearVelocity;
     timer = 0;
-    poscount = 0;
+    mPositions.clear();
   }
 
   void ExamplePhysSim2Integration::TrackPositions()
   {
+    timer -= TAC_DELTA_FRAME_SECONDS;
+    if( timer > 0 )
+      return;
 
-    bool addpos = false;
-    timer += TAC_DELTA_FRAME_SECONDS;
-    if( timer > 0.5f )
-    {
-      addpos = true;
-      timer = 0;
-    }
-
-    if( addpos )
-    {
-      if( poscount == poscapacity )
-      {
-        iposition = ( iposition + 1 ) % poscapacity;
-        poscount--;
-      }
-      positions[ ( iposition + poscount ) % poscapacity ] = mPosition;
-      ++poscount;
-
-    }
+    timer = 0.05f;
+    if( mPositions.size() == mPositions.capacity() )
+      mPositions.pop_front();
+    mPositions.push_back( mPosition );
   }
 
   void ExamplePhysSim2Integration::DrawPositions()
   {
-    if( poscount < 2 )
+    if( mPositions.size() < 2 )
       return;
-    v3 prev = positions[ iposition ];
-    for( int i = 1; i < poscount; ++i )
+    v3 prev = mPositions[ 0 ];
+
+    for( int i = 1; i < mPositions.size(); ++i )
     {
-      v3 curr = positions[ ( iposition + 1 ) % poscapacity ];
-      mWorld->mDebug3DDrawData->DebugDraw3DLine( prev, curr );
+      v3 curr = mPositions[ i ];
+      v4 color = v4( HSVToRGB( v3( i / (float) mPositions.size(), 1.0f, 0.5f) ), 1.0f );
+      mWorld->mDebug3DDrawData->DebugDraw3DLine( prev, curr, color );
       prev = curr;
-
-
     }
+  }
 
+  v3   ExamplePhysSim2Integration::GetCentripetalAcceleration()
+  {
+    float radius = mPosition.Length();
+    float speed = radius * mAngularVelocity;
+
+    // centripetal acceleration
+    float accelLen = speed * speed * ( 1.0f / radius );
+    v3 accelDir = -Normalize( mPosition );
+    v3 accel = accelDir * accelLen;
+    return accel;
+  }
+
+  v3   ExamplePhysSim2Integration::GetCentripetalForce()
+  {
+    v3 force = mMass * GetCentripetalAcceleration();
+    return force;
+  }
+
+  v3   ExamplePhysSim2Integration::GetForce()
+  {
+    return GetCentripetalForce();
+  }
+
+  v3   ExamplePhysSim2Integration::GetAcceleration()
+  {
+    return GetForce() / mMass;
   }
 
   void ExamplePhysSim2Integration::Update( Errors& )
   {
     UI();
 
-    v3 accel{};
+    v3 accel = GetAcceleration();
 
     switch( mIntegrationMode)
     {
@@ -123,6 +144,5 @@ namespace Tac
     mWorld->mDebug3DDrawData->DebugDraw3DCircle( v3{}, mCamera->mForwards, mOrbitRadius );
   }
 
-  const char* ExamplePhysSim2Integration::GetName() const { return "Phys Sim 2 Integration"; }
 
 } // namespace Tac

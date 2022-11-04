@@ -2,6 +2,7 @@
 
 #include "src/game-examples/tac_examples.h"
 #include "src/common/math/tac_vector3.h"
+#include "src/common/containers/tac_ring_array.h"
 
 namespace Tac
 {
@@ -18,26 +19,28 @@ namespace Tac
     ExamplePhysSim2Integration();
     ~ExamplePhysSim2Integration() override;
     void Update( Errors& ) override;
-    const char* GetName() const override;
     void UI();
     void TrackPositions();
     void DrawPositions();
     void Reset();
+    v3   GetForce();
+    v3   GetAcceleration();
+    v3   GetCentripetalAcceleration();
+    v3   GetCentripetalForce();
 
     IntegrationMode mIntegrationMode{};
 
     v3 mPosition;
     v3 mVelocity;
-    float mMass;
+    float mMass = 10.0f;
 
-    const int poscapacity = 1000;
-    v3* positions;
-    int poscount = 0;
-    int iposition = 0;
-
+    RingArray< v3, 1000 > mPositions;
 
     float timer = 0;
-    float mBallRadius;
-    float mOrbitRadius;
+    float mBallRadius = 0.25f;
+    float mOrbitRadius = 1;
+
+    float mDuration;
+    float mAngularVelocity;
   };
 }

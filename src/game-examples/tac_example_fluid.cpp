@@ -560,9 +560,5 @@ namespace Tac
 
 #endif
 
-  const char* ExampleFluid::GetName() const
-  {
-    return "Fluid";
-  }
 
 } // namespace Tac

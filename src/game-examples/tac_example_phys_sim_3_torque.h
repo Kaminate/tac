@@ -11,6 +11,5 @@ namespace Tac
     ExamplePhysSim3Torque();
     ~ExamplePhysSim3Torque() override;
     void Update( Errors& ) override;
-    const char* GetName() const override;
   };
 }
