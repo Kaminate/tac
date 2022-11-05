@@ -201,7 +201,7 @@ namespace Tac
                                      Errors& errors )
   {
     TAC_ASSERT( mSocketType == SocketType::TCP );
-    auto portString = ToString( port );
+    String portString = ToString( port );
     addrinfo* addrinfos;
     int wsaErrorCode = getaddrinfo( hostname.c_str(), portString.c_str(), nullptr, &addrinfos );
     if( wsaErrorCode )
@@ -252,7 +252,7 @@ namespace Tac
 
   NetWinsock::~NetWinsock()
   {
-    for( auto netWinsocket : mSocketWinsocks )
+    for( SocketWinsock* netWinsocket : mSocketWinsocks )
       closesocket( netWinsocket->mSocket );
     WSACleanup();
   }
@@ -262,8 +262,8 @@ namespace Tac
                                     SocketType socketType,
                                     Errors& errors )
   {
-    const auto winsockSocketType = GetWinsockSocketType( socketType );
-    const auto winsockAddressFamily = GetWinsockAddressFamily( addressFamily );
+    const int winsockSocketType = GetWinsockSocketType( socketType );
+    const int winsockAddressFamily = GetWinsockAddressFamily( addressFamily );
     const int winsockProtocol = 0; // don't really know what this is
     const SOCKET winsockSocket = socket( winsockAddressFamily, winsockSocketType, winsockProtocol );
     if( winsockSocket == INVALID_SOCKET )
@@ -297,7 +297,7 @@ namespace Tac
   Vector< Socket* > NetWinsock::GetSockets()
   {
     Vector< Socket* > result;
-    for( auto netWinsocket : mSocketWinsocks )
+    for( SocketWinsock* netWinsocket : mSocketWinsocks )
       result.push_back( netWinsocket );
     return result;
   }
@@ -378,12 +378,12 @@ namespace Tac
     }
 
     Vector< SocketWinsock* > socketWinsocks;
-    for( auto socketWinsock : mSocketWinsocks )
+    for( SocketWinsock* socketWinsock : mSocketWinsocks )
       if( socketWinsock->mRequestDeletion )
         socketWinsocks.push_back( socketWinsock );
-    for( auto socketWinsock : socketWinsocks )
+    for( SocketWinsock*  socketWinsock : socketWinsocks )
     {
-      for( auto socketCallback : socketWinsock->mTCPOnConnectionClosed )
+      for( SocketCallbackData socketCallback : socketWinsock->mTCPOnConnectionClosed )
         socketCallback.mCallback( socketCallback.mUserData, socketWinsock );
       mSocketWinsocks.erase( socketWinsock );
       delete socketWinsock;

@@ -145,6 +145,8 @@ namespace Tac
       void UpdateTextureRegion( CommandDataUpdateTextureRegion*, Errors& ) override;
       void UpdateVertexBuffer( CommandDataUpdateVertexBuffer*, Errors& ) override;
       void UpdateConstantBuffer( CommandDataUpdateConstantBuffer*, Errors& ) override;
+
+      // THis could use string hash server...
       void DebugGroupBegin( StringView ) override;
       void DebugMarker( StringView ) override;
       void DebugGroupEnd() override;

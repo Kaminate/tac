@@ -1499,14 +1499,12 @@ namespace Tac
         newname += ", and ";
 #endif
         filter.Push( { D3D11_MESSAGE_ID_SETPRIVATEDATA_CHANGINGPARAMS } );
-    }
+      }
       newname += String( name );
 
       const HRESULT setHr = directXObject->SetPrivateData( WKPDID_D3DDebugObjectName, ( UINT )newname.size(), newname.c_str() );
       TAC_ASSERT( SUCCEEDED( setHr ) );
-  }
-
-
+    }
 
     void RendererDirectX11::AddMagicBuffer( CommandDataCreateMagicBuffer* commandDataCreateMagicBuffer,
                                             Errors& errors )

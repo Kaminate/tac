@@ -28,19 +28,16 @@ namespace Tac
     v3   GetCentripetalAcceleration();
     v3   GetCentripetalForce();
 
-    IntegrationMode mIntegrationMode{};
-
-    v3 mPosition;
-    v3 mVelocity;
-    float mMass = 10.0f;
-
-    RingArray< v3, 1000 > mPositions;
-
-    float timer = 0;
-    float mBallRadius = 0.25f;
-    float mOrbitRadius = 1;
-
-    float mDuration;
-    float mAngularVelocity;
+    static const int            kRingCount = 25;
+    IntegrationMode             mIntegrationMode{};
+    v3                          mPosition;
+    v3                          mVelocity;
+    float                       mMass = 10.0f;
+    RingArray< v3, kRingCount > mPositions;
+    float                       timer = 0;
+    float                       mBallRadius = 0.25f;
+    float                       mOrbitRadius = 1;
+    float                       mDuration;
+    float                       mAngularVelocity;
   };
 }

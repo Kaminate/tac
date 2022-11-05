@@ -2,16 +2,17 @@
 #include "src/common/graphics/tac_renderer.h"
 #include "src/common/tac_camera.h"
 #include "src/common/tac_desktop_window.h"
-#include "src/common/tac_os.h"
 #include "src/common/tac_error_handling.h"
-#include "src/common/tac_settings.h"
 #include "src/common/tac_frame_memory.h"
-#include "src/space/presentation/tac_game_presentation.h"
-#include "src/space/tac_entity.h"
-#include "src/space/tac_world.h"
+#include "src/common/tac_frame_memory.h"
+#include "src/common/tac_os.h"
+#include "src/common/tac_settings.h"
 #include "src/game-examples/tac_examples.h"
 #include "src/shell/tac_desktop_app.h"
 #include "src/shell/tac_desktop_window_settings_tracker.h"
+#include "src/space/presentation/tac_game_presentation.h"
+#include "src/space/tac_entity.h"
+#include "src/space/tac_world.h"
 
 #include <set>
 
@@ -226,8 +227,7 @@ namespace Tac
     ImGuiBegin( "Examples" );
     if( sCurrExample )
     {
-
-      ImGuiText( String( "Current Example: " ) + sCurrExample->mName );
+      ImGuiText( FrameMemoryPrintf( "Current Example: %s", sCurrExample->mName ) );
       offset -= ImGuiButton( "Prev" ) ? 1 : 0;
       ImGuiSameLine();
       offset += ImGuiButton( "Next" ) ? 1 : 0;
