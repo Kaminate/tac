@@ -13,6 +13,11 @@
 
 namespace Tac
 {
+  float ExamplePhysSim2Integration::mBallRadius;
+  float ExamplePhysSim2Integration::mOrbitRadius;
+  float ExamplePhysSim2Integration::mDuration;
+  float ExamplePhysSim2Integration::mMass;
+  float ExamplePhysSim2Integration::mAngularVelocity;
 
   const char* ToString( IntegrationMode m )
   {
@@ -24,6 +29,55 @@ namespace Tac
       default: TAC_CRITICAL_ERROR_INVALID_CASE( m ); return "";
     }
   }
+
+  struct Rk4StateDerivative
+  {
+    v3 mVelocity;
+    v3 mAcceleration;
+  };
+
+  Rk4StateDerivative operator * ( float f, const Rk4StateDerivative& k )
+  {
+    return Rk4StateDerivative
+    {
+      .mVelocity = f * k.mVelocity,
+      .mAcceleration = f * k.mAcceleration,
+    };
+  }
+
+  Rk4StateDerivative operator + ( const Rk4StateDerivative& lhs, const Rk4StateDerivative& rhs )
+  {
+    return Rk4StateDerivative
+    {
+      .mVelocity = lhs.mVelocity + rhs.mVelocity,
+      .mAcceleration = lhs.mAcceleration + rhs.mAcceleration,
+    };
+  }
+
+  struct RK4State
+  {
+    v3 mPosition;
+    v3 mVelocity;
+
+    Rk4StateDerivative Derive() const
+    {
+      return
+      {
+        .mVelocity = mVelocity,
+        .mAcceleration = ExamplePhysSim2Integration::GetAcceleration( mPosition )
+      };
+    }
+
+    RK4State operator + ( const Rk4StateDerivative& k ) const
+    {
+      return
+      {
+        .mPosition = mPosition + k.mVelocity,
+        .mVelocity = mVelocity + k.mAcceleration,
+      };
+    }
+
+  };
 
   ExamplePhysSim2Integration::ExamplePhysSim2Integration()
   {
@@ -55,6 +109,9 @@ namespace Tac
 
   void ExamplePhysSim2Integration::Reset()
   {
+    mBallRadius = 0.2f;
+    mOrbitRadius = 1;
+    mMass = 10;
     mDuration = 4.0f;
 
     // angular velocity is measured in radians per second.
@@ -97,49 +154,52 @@ namespace Tac
     }
   }
 
-  v3   ExamplePhysSim2Integration::GetCentripetalAcceleration()
+  v3   ExamplePhysSim2Integration::GetCentripetalAcceleration(v3 pos)
   {
-    float radius = mPosition.Length();
+    float radius = pos.Length();
     float speed = radius * mAngularVelocity;
 
     // centripetal acceleration
     float accelLen = speed * speed * ( 1.0f / radius );
-    v3 accelDir = -Normalize( mPosition );
+    v3 accelDir = -Normalize( pos );
     v3 accel = accelDir * accelLen;
     return accel;
   }
 
-  v3   ExamplePhysSim2Integration::GetCentripetalForce()
+  v3   ExamplePhysSim2Integration::GetCentripetalForce(v3 pos)
   {
-    v3 force = mMass * GetCentripetalAcceleration();
+    v3 force = mMass * GetCentripetalAcceleration(pos);
     return force;
   }
 
-  v3   ExamplePhysSim2Integration::GetForce()
+  v3   ExamplePhysSim2Integration::GetForce(v3 pos)
   {
-    return GetCentripetalForce();
+    return GetCentripetalForce(pos);
   }
 
-  v3   ExamplePhysSim2Integration::GetAcceleration()
+
+  v3   ExamplePhysSim2Integration::GetAcceleration(v3 pos)
   {
-    return GetForce() / mMass;
+    return GetForce(pos) / mMass;
   }
+
 
   void ExamplePhysSim2Integration::Update( Errors& )
   {
     UI();
 
-    v3 accel = GetAcceleration();
-
     switch( mIntegrationMode )
     {
       case IntegrationMode::Euler:
       {
+        v3 accel = GetAcceleration(mPosition);
         mPosition += mVelocity * TAC_DELTA_FRAME_SECONDS;
         mVelocity += accel * TAC_DELTA_FRAME_SECONDS;
       } break;
       case IntegrationMode::SemiImplicitEuler:
       {
+        v3 accel = GetAcceleration(mPosition);
+
         // Explicit velocity update step
         mVelocity += accel * TAC_DELTA_FRAME_SECONDS;
 
@@ -148,6 +208,30 @@ namespace Tac
       } break;
       case IntegrationMode::RK4:
       {
+        const RK4State s1
+        {
+          .mPosition = mPosition,
+          .mVelocity = mVelocity
+        };
+        const Rk4StateDerivative k1 = s1.Derive();
+
+        const RK4State s2 = s1 + 0.5f * TAC_DELTA_FRAME_SECONDS * k1;
+        const Rk4StateDerivative k2 = s2.Derive();
+
+        const RK4State s3 = s1 + 0.5f * TAC_DELTA_FRAME_SECONDS * k2;
+        const Rk4StateDerivative k3 = s3.Derive();
+
+        const RK4State s4 = s1 + TAC_DELTA_FRAME_SECONDS * k3;
+        const Rk4StateDerivative k4 = s4.Derive();
+
+        const Rk4StateDerivative k =
+          ( 1 / 6.0f ) * k1 +
+          ( 2 / 6.0f ) * k2 +
+          ( 2 / 6.0f ) * k3 +
+          ( 1 / 6.0f ) * k4;
+        const RK4State s = s1 + TAC_DELTA_FRAME_SECONDS * k;
+        mPosition = s.mPosition;
+        mVelocity = s.mVelocity;
       } break;
       default: TAC_CRITICAL_ERROR_INVALID_CASE( mIntegrationMode );
     }
