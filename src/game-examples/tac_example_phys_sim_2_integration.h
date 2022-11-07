@@ -10,7 +10,9 @@ namespace Tac
 
   enum IntegrationMode
   {
-    Euler,
+    Euler, // Euler's method
+    SemiImplicitEuler, // aka 'Symplectic', or 'Symplectic Euler'
+    RK4, // Runge-Kutta 4
     Count
   };
 

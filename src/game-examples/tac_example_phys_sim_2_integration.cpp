@@ -1,12 +1,12 @@
-#include "src/game-examples/tac_example_phys_sim_2_integration.h"
-#include "src/common/tac_camera.h"
-#include "src/common/graphics/tac_debug_3d.h"
-#include "src/common/graphics/imgui/tac_imgui.h"
 #include "src/common/containers/tac_vector.h"
-#include "src/common/shell/tac_shell_timer.h"
-#include "src/space/tac_world.h"
-
+#include "src/common/graphics/imgui/tac_imgui.h"
 #include "src/common/graphics/tac_color_util.h"
+#include "src/common/graphics/tac_debug_3d.h"
+#include "src/common/shell/tac_shell_timer.h"
+#include "src/common/tac_camera.h"
+#include "src/common/tac_frame_memory.h"
+#include "src/game-examples/tac_example_phys_sim_2_integration.h"
+#include "src/space/tac_world.h"
 
 // This example based off
 // https://github.com/jvanverth/essentialmath/tree/master/src/Examples/Ch13-Simulation/...
@@ -19,9 +19,10 @@ namespace Tac
     switch( m )
     {
       case Euler: return "Euler";
-      default: return "";
+      case SemiImplicitEuler: return "Semi-implicit Euler";
+      case RK4: return "Runge-Kutta 4";
+      default: TAC_CRITICAL_ERROR_INVALID_CASE( m ); return "";
     }
-
   }
 
   ExamplePhysSim2Integration::ExamplePhysSim2Integration()
@@ -36,17 +37,18 @@ namespace Tac
   void ExamplePhysSim2Integration::UI()
   {
     bool shouldReset = ImGuiButton( "Reset" );
-    if( ImGuiCollapsingHeader( "Change Integration Mode" ) )
+    ImGuiText( FrameMemoryPrintf( "Current Mode: %s", ToString( mIntegrationMode )) );
+
+    ImGuiText( "Change Mode:" );
+    for( int i = 0; i < IntegrationMode::Count; ++i )
     {
-      TAC_IMGUI_INDENT_BLOCK;
-      for( int i = 0; i < IntegrationMode::Count; ++i )
-      {
-        const bool modePressed = ImGuiButton( ToString( ( IntegrationMode )i ) );
-        if( modePressed )
-          mIntegrationMode = ( IntegrationMode )i;
-        shouldReset |= modePressed;
-      }
+      ImGuiSameLine();
+      const bool modePressed = ImGuiButton( ToString( ( IntegrationMode )i ) );
+      if( modePressed )
+        mIntegrationMode = ( IntegrationMode )i;
+      shouldReset |= modePressed;
     }
+
     if(shouldReset)
       Reset();
   }
@@ -129,19 +131,31 @@ namespace Tac
 
     v3 accel = GetAcceleration();
 
-    switch( mIntegrationMode)
+    switch( mIntegrationMode )
     {
       case IntegrationMode::Euler:
       {
         mPosition += mVelocity * TAC_DELTA_FRAME_SECONDS;
         mVelocity += accel * TAC_DELTA_FRAME_SECONDS;
       } break;
+      case IntegrationMode::SemiImplicitEuler:
+      {
+        // Explicit velocity update step
+        mVelocity += accel * TAC_DELTA_FRAME_SECONDS;
+
+        // Implicit position update step
+        mPosition += mVelocity * TAC_DELTA_FRAME_SECONDS;
+      } break;
+      case IntegrationMode::RK4:
+      {
+      } break;
+      default: TAC_CRITICAL_ERROR_INVALID_CASE( mIntegrationMode );
     }
 
-    TrackPositions();
-    DrawPositions();
     mWorld->mDebug3DDrawData->DebugDraw3DCircle( mPosition, mCamera->mForwards, mBallRadius );
     mWorld->mDebug3DDrawData->DebugDraw3DCircle( v3{}, mCamera->mForwards, mOrbitRadius );
+    TrackPositions();
+    DrawPositions();
   }
 
 
