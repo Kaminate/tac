@@ -256,9 +256,12 @@ namespace Tac
         TAC_PROFILE_BLOCK_NAMED( "update timer" );
 
         ShellTimerUpdate();
-        while( ShellTimerFrame() )
-        {
-        }
+        bool f = ShellTimerFrame();
+        if( !f )
+          continue;
+        //while( ShellTimerFrame() )
+        //{
+        //}
       }
 
       {
