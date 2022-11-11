@@ -148,12 +148,10 @@ namespace Tac
     mVelocity += a * TAC_DELTA_FRAME_SECONDS;
     mPosition += mVelocity * TAC_DELTA_FRAME_SECONDS;
 
-    // !!!
     mAngularMomentum += mTorqueAccumWs * TAC_DELTA_FRAME_SECONDS;
     mAngularVelocity = mOrientation * mInverseMoments * m3::Transpose( mOrientation ) * mAngularMomentum;
 
-    // !!!
-    mOrientation += TAC_DELTA_FRAME_SECONDS * (m3::CrossProduct(mAngularMomentum) * mOrientation);
+    mOrientation += TAC_DELTA_FRAME_SECONDS * (m3::CrossProduct(mAngularVelocity) * mOrientation);
 
     GramSchmidt( mOrientation );
 
