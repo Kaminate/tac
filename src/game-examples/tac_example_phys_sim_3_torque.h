@@ -10,7 +10,6 @@ namespace Tac
   struct ExamplePhysSim3Torque : public Example
   {
     ExamplePhysSim3Torque();
-    ~ExamplePhysSim3Torque() override;
     void Update( Errors& ) override;
     void Integrate();
     v3 GetKeyboardForce();
@@ -20,18 +19,19 @@ namespace Tac
     float mMass = 10;
     float mWidth = 2;
 
-    m3 mOrientation = m3::Identity();
-    v3 mPosition = {};
+    m3 mRot = m3::Identity();
+    v3 mPos = {};
     
     // linear dynamics
-    v3 mVelocity {};
-    v3 mAngularVelocity{};
+    v3 mLinVel{};
+    v3 mAngVel{};
     
     // rotational dynamics
-    m3 mInverseMoments{}; // inverse of inertia tensor
-    v3 mAngularMomentum {};
+    m3 mInvMoment{}; // inverse of inertia tensor
+    v3 mAngMomentum{};
 
-    v3 mForceAccumWs ={0,0,0};
-    v3 mTorqueAccumWs ={};
+    // frame accumulators
+    v3 mForceAccumWs{};
+    v3 mTorqueAccumWs{};
   };
 }

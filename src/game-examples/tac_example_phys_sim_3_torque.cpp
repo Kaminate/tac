@@ -44,16 +44,12 @@ namespace Tac
     m3UnitTest();
     v3UnitTest();
     m3 inertiaTensor = InertiaTensorBox( mMass, v3( mWidth ) );
-    bool inverted = inertiaTensor.Invert(&mInverseMoments);
+    bool inverted = inertiaTensor.Invert(&mInvMoment);
     TAC_ASSERT(inverted);
     mCamera->mPos = v3( 0, 2, -10 );
     mCamera->mPos = v3( 0, 2, 10 );
   }
 
-  ExamplePhysSim3Torque::~ExamplePhysSim3Torque()
-  {
-
-  }
 
   v3 ExamplePhysSim3Torque::GetKeyboardForce()
   {
@@ -66,24 +62,18 @@ namespace Tac
     if( q )
       wsKeyboardForce /= Sqrt( q );
     wsKeyboardForce *= 50.0f;
-
-    //static v3 wsKeyForcePrev;
-    //if( !q )
-    //  wsKeyboardForce = wsKeyForcePrev - wsKeyForcePrev * (0.5f) * TAC_DELTA_FRAME_SECONDS;
-    //wsKeyForcePrev = wsKeyboardForce;
-
     return wsKeyboardForce;
   }
 
   v3 ExamplePhysSim3Torque::GetDragForce()
   {
-    return 1.5f * mMass * -mVelocity.Length() * mVelocity;
+    return 1.5f * mMass * -mLinVel.Length() * mLinVel;
   }
 
   v3 ExamplePhysSim3Torque::GetDragTorque()
   {
     // fake angular friction ( should actually use moment of inertia idk )
-    v3 drag = -0.5f * mMass * mAngularVelocity.Length() * mAngularVelocity;
+    v3 drag = -0.5f * mMass * mAngVel.Length() * mAngVel;
     return drag;
   }
 
@@ -95,7 +85,7 @@ namespace Tac
     mTorqueAccumWs = {};
 
     // Where the force is applied ( offset relative to center of mass )
-    v3 wsOffset = mOrientation * kLocalForceOffset;
+    v3 wsOffset = mRot * kLocalForceOffset;
 
     v3 wsKeyboardForce = GetKeyboardForce();
     v3 wsKeyboardTorque = Cross( wsOffset, wsKeyboardForce );
@@ -110,16 +100,16 @@ namespace Tac
 
     Integrate();
 
-    mWorld->mDebug3DDrawData->DebugDraw3DCube(mPosition, mWidth,  mOrientation );
-    mWorld->mDebug3DDrawData->DebugDraw3DCircle(mPosition + wsOffset, mCamera->mForwards, 0.10f );
+    mWorld->mDebug3DDrawData->DebugDraw3DCube(mPos, mWidth,  mRot );
+    mWorld->mDebug3DDrawData->DebugDraw3DCircle(mPos + wsOffset, mCamera->mForwards, 0.10f );
 
     mWorld->mDebug3DDrawData->DebugDraw3DArrow(
-      mPosition + wsOffset,
-      mPosition + wsOffset + wsKeyboardForce, v3( 0, 1, 0 ) );
+      mPos + wsOffset,
+      mPos + wsOffset + wsKeyboardForce, v3( 0, 1, 0 ) );
     if(drawDragForce)
     mWorld->mDebug3DDrawData->DebugDraw3DArrow(
-      mPosition,
-      mPosition + dragForce,
+      mPos,
+      mPos + dragForce,
       v3( 1, 0, 0 ) );
   }
 
@@ -140,40 +130,46 @@ namespace Tac
 
     m = m3::FromColumns( x, y, z );
   }
-  
+
+  static void DebugPrintMtx( const m3& m )
+  {
+    const m3& mOrientation = m;
+    v3 r0 = mOrientation.GetRow( 0 );
+    v3 r1 = mOrientation.GetRow( 1 );
+    v3 r2 = mOrientation.GetRow( 2 );
+    char buf[ 1024 ];
+#define FMT "%.4f "
+    sprintf_s( buf,
+      FMT FMT FMT "\n"
+      FMT FMT FMT "\n"
+      FMT FMT FMT "\n",
+      r0.x, r0.y, r0.z,
+      r1.x, r1.y, r1.z,
+      r2.x, r2.y, r2.z );
+
+    OutputDebugStringA( buf );
+    OutputDebugStringA( "\n" );
+  }
+
   void ExamplePhysSim3Torque::Integrate()
   {
     v3 a = mForceAccumWs / mMass;
 
-    mVelocity += a * TAC_DELTA_FRAME_SECONDS;
-    mPosition += mVelocity * TAC_DELTA_FRAME_SECONDS;
+    mLinVel += a * TAC_DELTA_FRAME_SECONDS;
+    mPos += mLinVel * TAC_DELTA_FRAME_SECONDS;
 
-    mAngularMomentum += mTorqueAccumWs * TAC_DELTA_FRAME_SECONDS;
-    mAngularVelocity = mOrientation * mInverseMoments * m3::Transpose( mOrientation ) * mAngularMomentum;
+    mAngMomentum += mTorqueAccumWs * TAC_DELTA_FRAME_SECONDS;
+    mAngVel = mRot * mInvMoment * m3::Transpose( mRot ) * mAngMomentum;
 
-    mOrientation += TAC_DELTA_FRAME_SECONDS * (m3::CrossProduct(mAngularVelocity) * mOrientation);
+    mRot += TAC_DELTA_FRAME_SECONDS * ( m3::CrossProduct( mAngVel ) * mRot );
 
-    GramSchmidt( mOrientation );
+    GramSchmidt( mRot );
 
-    if( mAngularVelocity.x > 0 ||
-      mAngularVelocity.y > 0 ||
-      mAngularVelocity.z > 0 )
+    if( mAngVel.x > 0 ||
+      mAngVel.y > 0 ||
+      mAngVel.z > 0 )
     {
-      v3 r0 = mOrientation.GetRow(0);
-      v3 r1 = mOrientation.GetRow(1);
-      v3 r2 = mOrientation.GetRow(2);
-      char buf[ 1024 ];
-#define FMT "%.4f "
-      sprintf_s( buf,
-        FMT FMT FMT "\n"
-        FMT FMT FMT "\n"
-        FMT FMT FMT "\n",
-        r0.x, r0.y, r0.z,
-        r1.x, r1.y, r1.z,
-        r2.x, r2.y, r2.z );
-
-      OutputDebugStringA( buf );
-      OutputDebugStringA( "\n" );
+      DebugPrintMtx(mRot);
     }
 
   }

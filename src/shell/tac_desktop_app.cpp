@@ -257,10 +257,12 @@ namespace Tac
 
         ShellTimerUpdate();
 #if 1
+        // fixed time step
         bool f = ShellTimerFrame();
         if( !f )
           continue;
 #else
+        // ??? time step
         while( ShellTimerFrame() )
         {
         }
