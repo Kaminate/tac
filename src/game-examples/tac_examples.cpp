@@ -1,6 +1,7 @@
 #include "src/common/graphics/imgui/tac_imgui.h"
 #include "src/common/graphics/tac_renderer.h"
 #include "src/common/tac_camera.h"
+#include "src/common/math/tac_math.h"
 #include "src/common/tac_desktop_window.h"
 #include "src/common/tac_error_handling.h"
 #include "src/common/tac_frame_memory.h"
@@ -301,6 +302,19 @@ namespace Tac
     mProjectInit = ExamplesInitCallback;
     mProjectUpdate = ExamplesUpdateCallback;
     mProjectUninit = ExamplesUninitCallback;
+  }
+
+  v3 Example::GetWorldspaceKeyboardDir()
+  {
+    v3 wsKeyboardForce{}; // worldspace keyboard force
+    wsKeyboardForce += KeyboardIsKeyDown( Key::W ) ? mCamera->mUp : v3{};
+    wsKeyboardForce += KeyboardIsKeyDown( Key::A ) ? -mCamera->mRight : v3{};
+    wsKeyboardForce += KeyboardIsKeyDown( Key::S ) ? -mCamera->mUp : v3{};
+    wsKeyboardForce += KeyboardIsKeyDown( Key::D ) ? mCamera->mRight : v3{};
+    const float q = wsKeyboardForce.Quadrance();
+    if( q )
+      wsKeyboardForce /= Sqrt( q );
+    return wsKeyboardForce;
   }
 
 } // namespace Tac

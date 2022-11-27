@@ -39,7 +39,6 @@ namespace Tac
     ExamplePhysSim5LinCollision();
     void Update( Errors& ) override;
     void Draw( const ExamplePhys5SimObj&);
-    v3 GetKeyboardForce();
 
     ExamplePhys5SimObj mPlayer;
     ExamplePhys5SimObj mObstacle;

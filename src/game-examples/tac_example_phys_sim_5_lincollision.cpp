@@ -20,6 +20,24 @@ namespace Tac
              0, 0, s };
   }
 
+  struct CollisionResult
+  {
+    bool mCollided = false;
+    v3 mNormal; // collision normal from obj A to obj B
+    v3 mPoint; // collision point
+    float mDist; // penetration distance
+  };
+
+  CollisionResult Collide(const ExamplePhys5SimObj& objA, const ExamplePhys5SimObj& objB)
+  {
+    v3 n = objB.mLinPos - objA.mLinPos;
+    float q = n.Quadrance();
+    if( q > objA.mRadius * objA.mRadius + objB.mRadius * objB.mRadius )
+      return {};
+    
+    n /= Sqrt(q);
+  }
+
   ExamplePhys5SimObj::ExamplePhys5SimObj()
   {
     ComputeInertiaTensor();
@@ -68,27 +86,15 @@ namespace Tac
     mCamera->mPos = { 0, 2, 10 };
   }
 
-  v3 ExamplePhysSim5LinCollision::GetKeyboardForce()
-  {
-    v3 wsKeyboardForce{}; // worldspace keyboard force
-    wsKeyboardForce += KeyboardIsKeyDown( Key::W ) ? mCamera->mUp : v3{};
-    wsKeyboardForce += KeyboardIsKeyDown( Key::A ) ? -mCamera->mRight : v3{};
-    wsKeyboardForce += KeyboardIsKeyDown( Key::S ) ? -mCamera->mUp : v3{};
-    wsKeyboardForce += KeyboardIsKeyDown( Key::D ) ? mCamera->mRight : v3{};
-    const float q = wsKeyboardForce.Quadrance();
-    if( q )
-      wsKeyboardForce /= Sqrt( q );
-    wsKeyboardForce *= 50.0f;
 
-    return wsKeyboardForce;
-  }
 
   void ExamplePhysSim5LinCollision::Update( Errors& )
   {
     mPlayer.BeginFrame();
     mObstacle.BeginFrame();
 
-    const v3 keyboardForce = GetKeyboardForce();
+    const v3 keyboardForce = GetWorldspaceKeyboardDir() * 50.0f;
+
     mPlayer.AddForce( keyboardForce );
 
     mPlayer.Integrate();

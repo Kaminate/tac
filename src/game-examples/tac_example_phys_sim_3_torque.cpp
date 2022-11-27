@@ -50,21 +50,6 @@ namespace Tac
     mCamera->mPos = v3( 0, 2, 10 );
   }
 
-
-  v3 ExamplePhysSim3Torque::GetKeyboardForce()
-  {
-    v3 wsKeyboardForce{}; // worldspace keyboard force
-    wsKeyboardForce += KeyboardIsKeyDown( Key::W ) ? mCamera->mUp : v3{};
-    wsKeyboardForce += KeyboardIsKeyDown( Key::A ) ? -mCamera->mRight : v3{};
-    wsKeyboardForce += KeyboardIsKeyDown( Key::S ) ? -mCamera->mUp : v3{};
-    wsKeyboardForce += KeyboardIsKeyDown( Key::D ) ? mCamera->mRight : v3{};
-    float q = wsKeyboardForce.Quadrance();
-    if( q )
-      wsKeyboardForce /= Sqrt( q );
-    wsKeyboardForce *= 50.0f;
-    return wsKeyboardForce;
-  }
-
   v3 ExamplePhysSim3Torque::GetDragForce()
   {
     return 1.5f * mMass * -mLinVel.Length() * mLinVel;
@@ -87,7 +72,7 @@ namespace Tac
     // Where the force is applied ( offset relative to center of mass )
     v3 wsOffset = mRot * kLocalForceOffset;
 
-    v3 wsKeyboardForce = GetKeyboardForce();
+    v3 wsKeyboardForce = GetWorldspaceKeyboardDir() * 50.0f;
     v3 wsKeyboardTorque = Cross( wsOffset, wsKeyboardForce );
     mForceAccumWs += wsKeyboardForce;
     mTorqueAccumWs += wsKeyboardTorque;

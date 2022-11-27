@@ -12,7 +12,6 @@ namespace Tac
     ExamplePhysSim3Torque();
     void Update( Errors& ) override;
     void Integrate();
-    v3 GetKeyboardForce();
     v3 GetDragForce();
     v3 GetDragTorque();
 

@@ -12,6 +12,7 @@ namespace Tac
     Example();
     virtual ~Example();
     virtual void Update( Errors& ){};
+    v3 GetWorldspaceKeyboardDir();
     World* mWorld;
     Camera* mCamera;
     const char* mName;

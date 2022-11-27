@@ -34,24 +34,16 @@ namespace Tac
 
   void ExamplePhysSim1Force::Update( Errors& errors )
   {
-    v3 springForce = mSpringConstant * -mBall.mPos;
-    v3 gravityForce = 9.8f * -mCamera->mUp * mBall.mMass;
-    v3 dragForce = 0.2f * mBall.mMass * mBall.mVelocity.Length() * -mBall.mVelocity;
+    const v3 springForce = mSpringConstant * -mBall.mPos;
+    const v3 gravityForce = 9.8f * -mCamera->mUp * mBall.mMass;
+    const v3 dragForce = 0.2f * mBall.mMass * mBall.mVelocity.Length() * -mBall.mVelocity;
+    const v3 keyboardForce = GetWorldspaceKeyboardDir() * 75.0f;
+    const v3 totalForce = springForce
+                        + gravityForce
+                        + dragForce
+                        + keyboardForce;
+    const v3 accel = totalForce / mBall.mMass;
 
-    v3 keyboardForce{};
-    keyboardForce += KeyboardIsKeyDown( Key::W ) ? mCamera->mUp : v3{};
-    keyboardForce += KeyboardIsKeyDown( Key::A ) ? -mCamera->mRight : v3{};
-    keyboardForce += KeyboardIsKeyDown( Key::S ) ? -mCamera->mUp : v3{};
-    keyboardForce += KeyboardIsKeyDown( Key::D ) ? mCamera->mRight : v3{};
-    keyboardForce *= 75.0f / (keyboardForce.Quadrance() ? keyboardForce.Length() : 1.0f);
-
-    v3 totalForce{};
-    totalForce += springForce;
-    totalForce += gravityForce;
-    totalForce += dragForce;
-    totalForce += keyboardForce;
-
-    v3 accel = totalForce / mBall.mMass;
     mBall.mVelocity += accel * TAC_DELTA_FRAME_SECONDS;
     mBall.mPos += mBall.mVelocity * TAC_DELTA_FRAME_SECONDS;
 
