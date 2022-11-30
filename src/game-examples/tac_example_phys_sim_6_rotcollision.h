@@ -12,8 +12,12 @@ namespace Tac
     ExamplePhys6SimObj();
     float mMass = 5;
     float mElasticity = 0.5f;
-    float mRadius = 1.0f;
-    v3 mColor;
+
+    // distance between hemisphere centers
+    float mCapsuleHeight = 3;
+    float mCapsuleRadius = 0.5f;
+
+    v3 mColor{1,1,1};
 
     v3 mLinPos{};
     v3 mLinVel{};

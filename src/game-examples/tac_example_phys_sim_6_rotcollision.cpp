@@ -23,24 +23,25 @@ namespace Tac
 
   static Sim6CollisionResult Sim6Collide(const ExamplePhys6SimObj& objA, const ExamplePhys6SimObj& objB)
   {
-    const v3 dx = objB.mLinPos - objA.mLinPos; // vector from objA to objB
-    const float q = dx.Quadrance(); // quadrance between circles
-    const float rSum = objA.mRadius + objB.mRadius;
-    if( q > rSum * rSum )
-      return {};
-    
-    const float d = Sqrt(q);
-    const v3 n = dx / d;
-    const float penetrationDist = rSum - d;
-    const v3 ptA = objA.mLinPos + objA.mRadius * n;
-    const v3 ptB = objB.mLinPos - objB.mRadius * n;
-    const v3 pt = ( ptA + ptB ) / 2;
-    return {
-      .mCollided = true,
-      .mNormal = n,
-      .mPoint = pt,
-      .mDist = penetrationDist
-    };
+    return {};
+    //const v3 dx = objB.mLinPos - objA.mLinPos; // vector from objA to objB
+    //const float q = dx.Quadrance(); // quadrance between circles
+    //const float rSum = objA.mRadius + objB.mRadius;
+    //if( q > rSum * rSum )
+    //  return {};
+    //
+    //const float d = Sqrt(q);
+    //const v3 n = dx / d;
+    //const float penetrationDist = rSum - d;
+    //const v3 ptA = objA.mLinPos + objA.mRadius * n;
+    //const v3 ptB = objB.mLinPos - objB.mRadius * n;
+    //const v3 pt = ( ptA + ptB ) / 2;
+    //return {
+    //  .mCollided = true,
+    //  .mNormal = n,
+    //  .mPoint = pt,
+    //  .mDist = penetrationDist
+    //};
   }
 
   static void Sim6ResolveCollision( const Sim6CollisionResult& collisionResult,
@@ -66,14 +67,35 @@ namespace Tac
     ComputeInertiaTensor();
   }
 
+  // h - distance between hemisphere origins
+  // r - radius of hemisphere
+  // The capsule is centered in the middle, with the cylindar main axis as y-axis
+  static m3 InertiaTensorCapsule(float h, float r)
+  {
+    // mass of the cylindar
+    float mcy = h * r * r * 3.14f;
+
+    // mass of each hemisphere
+    float mhs = ( 2.0f / 3.0f ) * r * r * r * 3.14f;
+
+    float ixx = mcy * ( ( 1 / 12.0f ) * h * h
+                      + ( 1 / 4.0f ) * r * r )
+              + 2 * mhs * ( ( 2 / 5.0f ) * r * r
+                          + ( 1 / 2.0f ) * h * h
+                          + ( 3 / 8.0f ) * h * r );
+    float iyy = mcy * ( ( 1 / 2.0f ) * r * r )
+              + 2 * mhs * ( ( 2 / 5.0f ) * r * r );
+    float izz = ixx;
+    return { ixx, 0, 0,
+             0, iyy, 0,
+             0, 0, izz };
+  }
+
   void ExamplePhys6SimObj::ComputeInertiaTensor()
   {
-    TAC_CRITICAL_ERROR_UNIMPLEMENTED;
-#if 0
-    const m3 inertiaTensor = ;
+    const m3 inertiaTensor = InertiaTensorCapsule( mCapsuleHeight, mCapsuleRadius );
     const bool inverted = inertiaTensor.Invert( &mAngInvInertiaTensor );
     TAC_ASSERT( inverted );
-#endif
   }
 
   void ExamplePhys6SimObj::BeginFrame()
@@ -88,7 +110,6 @@ namespace Tac
     const v3 a = mLinForceAccum / mMass;
     mLinVel += a * dt;
     mLinPos += mLinVel * dt;
-
   }
 
   void ExamplePhys6SimObj::AddForce( v3 force )
@@ -98,7 +119,24 @@ namespace Tac
 
   ExamplePhysSim6RotCollision::ExamplePhysSim6RotCollision()
   {
+    mPlayer.mMass = 5;
+    mPlayer.mLinPos = {-2, -2, 0};
+    //mPlayer.mLinPos = {};
+    mPlayer.mCapsuleHeight = 3.0f;
+    mPlayer.mCapsuleRadius = 0.5f;
+    mPlayer.mElasticity = 0.75f;
+    mPlayer.mAngRot = m3::RotRadZ( 3.14f / 2.0f );
+    mPlayer.mColor = v3{ 37, 150, 190 } / 255.0f;
+    mPlayer.ComputeInertiaTensor();
 
+    mObstacle.mLinPos = { 0, 3, 0 };
+    //mObstacle.mLinPos = {};
+    mObstacle.mCapsuleRadius = 1.0f;
+    mObstacle.mCapsuleHeight = 2.0f;
+    mObstacle.mMass = 10;
+    mObstacle.mElasticity = 0.25f;
+    mObstacle.mColor = v3{ 224, 49, 92 } / 255.0f;
+    mObstacle.ComputeInertiaTensor();
   }
 
   ExamplePhysSim6RotCollision::~ExamplePhysSim6RotCollision()
@@ -111,7 +149,7 @@ namespace Tac
     mPlayer.BeginFrame();
     mObstacle.BeginFrame();
 
-    const v3 keyboardForce = GetWorldspaceKeyboardDir() * 50.0f;
+    const v3 keyboardForce = GetWorldspaceKeyboardDir() * 9;
 
     mPlayer.AddForce( keyboardForce );
 
@@ -133,8 +171,11 @@ namespace Tac
   void ExamplePhysSim6RotCollision::Draw( const ExamplePhys6SimObj& obj )
   {
     Debug3DDrawData* drawData = mWorld->mDebug3DDrawData;
-    drawData->DebugDraw3DCircle( obj.mLinPos, mCamera->mForwards, obj.mRadius, obj.mColor );
-    drawData->DebugDraw3DCapsule( p0, p1, radius, obj.mColor );
+    drawData->DebugDraw3DCircle( obj.mLinPos, mCamera->mForwards, 0.1f * obj.mCapsuleRadius, 2.0f * obj.mColor );
+    v3 wsUp = obj.mAngRot * v3{ 0,1,0 };
+    v3 p0 = obj.mLinPos + wsUp * obj.mCapsuleHeight * 0.5f;
+    v3 p1 = obj.mLinPos - wsUp * obj.mCapsuleHeight * 0.5f;
+    drawData->DebugDraw3DCapsule( p0, p1, obj.mCapsuleRadius, obj.mColor );
 
 #if 0
     v3 line = obj.mAngRot * v3( obj.mRadius, 0, 0 );;
