@@ -1,11 +1,13 @@
 #pragma once
-#include "src/common/string/tac_string.h"
+#include "src/common/graphics/tac_renderer.h"
 
 namespace Tac
 {
   struct Errors;
   struct World;
   struct Camera;
+  struct v3;
+  struct v2;
 
   struct Example
   {
@@ -13,12 +15,9 @@ namespace Tac
     virtual ~Example();
     virtual void Update( Errors& ){};
     v3 GetWorldspaceKeyboardDir();
-    World* mWorld;
-    Camera* mCamera;
-    const char* mName;
+    World* mWorld{};
+    Camera* mCamera{};
+    const char* mName{};
   };
-
-  void ExampleRegistryAdd( const char* exampleName, Example*(*)() );
-  void ExampleRegistryPopulate();
 
 }

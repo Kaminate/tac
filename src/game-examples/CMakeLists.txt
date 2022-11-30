@@ -28,6 +28,11 @@ list( APPEND TAC_SOURCES
   "${CMAKE_CURRENT_SOURCE_DIR}/tac_example_phys_sim_7_friction.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/tac_example_phys_sim_7_friction.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/tac_examples_registry.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/tac_examples_registry.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/tac_examples_presentation.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/tac_examples_presentation.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/tac_examples_state_machine.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/tac_examples_state_machine.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/tac_examples.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/tac_examples.h"
   ${TAC_DESKTOP_APP_FILES})

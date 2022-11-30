@@ -20,7 +20,7 @@ namespace Tac
              0, 0, s };
   }
 
-  struct CollisionResult
+  struct Sim5CollisionResult
   {
     bool mCollided = false;
     v3 mNormal; // collision normal from obj A to obj B
@@ -28,14 +28,44 @@ namespace Tac
     float mDist; // penetration distance
   };
 
-  CollisionResult Collide(const ExamplePhys5SimObj& objA, const ExamplePhys5SimObj& objB)
+  static Sim5CollisionResult Sim5Collide(const ExamplePhys5SimObj& objA, const ExamplePhys5SimObj& objB)
   {
-    v3 n = objB.mLinPos - objA.mLinPos;
-    float q = n.Quadrance();
-    if( q > objA.mRadius * objA.mRadius + objB.mRadius * objB.mRadius )
+    const v3 dx = objB.mLinPos - objA.mLinPos; // vector from objA to objB
+    const float q = dx.Quadrance(); // quadrance between circles
+    const float rSum = objA.mRadius + objB.mRadius;
+    if( q > rSum * rSum )
       return {};
     
-    n /= Sqrt(q);
+    const float d = Sqrt(q);
+    const v3 n = dx / d;
+    const float penetrationDist = rSum - d;
+    const v3 ptA = objA.mLinPos + objA.mRadius * n;
+    const v3 ptB = objB.mLinPos - objB.mRadius * n;
+    const v3 pt = ( ptA + ptB ) / 2;
+    return {
+      .mCollided = true,
+      .mNormal = n,
+      .mPoint = pt,
+      .mDist = penetrationDist
+    };
+  }
+
+  static void Sim5ResolveCollision( const Sim5CollisionResult& collisionResult,
+                                ExamplePhys5SimObj& objA,
+                                ExamplePhys5SimObj& objB )
+  {
+    if( !collisionResult.mCollided)
+      return;
+    objA.mLinPos -= 0.5f * collisionResult.mDist * collisionResult.mNormal;
+    objB.mLinPos += 0.5f * collisionResult.mDist * collisionResult.mNormal;
+    const v3 relVel = objA.mLinVel - objB.mLinVel;
+    const float vDotn = Dot( relVel, collisionResult.mNormal );
+    if( vDotn < 0 )
+      return;
+    const float restitution = objA.mElasticity * objB.mElasticity;
+    const float j = vDotn * ( -restitution - 1 ) / ( 1 / objA.mMass + 1 / objB.mMass );
+    objA.mLinVel += ( j / objA.mMass ) * collisionResult.mNormal;
+    objB.mLinVel -= ( j / objB.mMass ) * collisionResult.mNormal;
   }
 
   ExamplePhys5SimObj::ExamplePhys5SimObj()
@@ -61,8 +91,8 @@ namespace Tac
   {
     const float dt = TAC_DELTA_FRAME_SECONDS;
     const v3 a = mLinForceAccum / mMass;
-    mAngVel += a * dt;
-    mLinPos += mAngVel * dt;
+    mLinVel += a * dt;
+    mLinPos += mLinVel * dt;
 
   }
 
@@ -73,11 +103,13 @@ namespace Tac
 
   ExamplePhysSim5LinCollision::ExamplePhysSim5LinCollision()
   {
-    mPlayer.mLinPos = { 2, 1, 0 };
+    v3 pA = { 2, 0, 0 };
+    v3 pB = { -5, 0, 0 };
+    mPlayer.mLinPos = pB;
     mPlayer.mElasticity = 0.75f;
     mPlayer.mColor = v3{ 37, 150, 190 } / 255.0f;
 
-    mObstacle.mLinPos = { -5, 0, 0 };
+    mObstacle.mLinPos = pA;
     mObstacle.mElasticity = 0.65f;
     mObstacle.mMass = 20.0f;
     mObstacle.ComputeInertiaTensor();
@@ -101,7 +133,12 @@ namespace Tac
     mObstacle.Integrate();
 
 
-    mPlayer.mAngRot = m3::RotRadZ( (float)ShellGetElapsedSeconds() );
+    const Sim5CollisionResult collisionResult = Sim5Collide( mPlayer, mObstacle );
+    Sim5ResolveCollision( collisionResult, mPlayer, mObstacle );
+
+#if 0
+    Player.mAngRot = m3::RotRadZ( (float)ShellGetElapsedSeconds() );
+#endif
 
     Draw( mPlayer );
     Draw( mObstacle );
@@ -112,8 +149,10 @@ namespace Tac
     Debug3DDrawData* drawData = mWorld->mDebug3DDrawData;
     drawData->DebugDraw3DCircle( obj.mLinPos, mCamera->mForwards, obj.mRadius, obj.mColor );
 
+#if 0
     v3 line = obj.mAngRot * v3( obj.mRadius, 0, 0 );;
     drawData->DebugDraw3DLine( obj.mLinPos, obj.mLinPos + line, obj.mColor );
+#endif
   }
 
 
