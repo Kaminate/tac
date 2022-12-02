@@ -10,6 +10,11 @@
 // This example based off
 // https://github.com/jvanverth/essentialmath/tree/master/src/Examples/Ch13-Simulation/...
 
+
+static float density = 2.2f;
+static bool sEnableGravity;
+static bool spin = true;
+
 namespace Tac
 {
   static m3 InertiaTensorSphere( float mass, float radius )
@@ -93,7 +98,11 @@ namespace Tac
     const v3 a = mLinForceAccum / mMass;
     mLinVel += a * dt;
     mLinPos += mLinVel * dt;
+  }
 
+  float ExamplePhys5SimObj::Volume()
+  {
+    return (4.0f / 3.0f) * 3.14f * mRadius * mRadius * mRadius;
   }
 
   void ExamplePhys5SimObj::AddForce( v3 force )
@@ -108,37 +117,80 @@ namespace Tac
     mPlayer.mLinPos = pB;
     mPlayer.mElasticity = 0.75f;
     mPlayer.mColor = v3{ 37, 150, 190 } / 255.0f;
+    mPlayer.mName = "Player";
+    mPlayer.Recompute();
 
     mObstacle.mLinPos = pA;
     mObstacle.mElasticity = 0.65f;
-    mObstacle.mMass = 20.0f;
-    mObstacle.ComputeInertiaTensor();
-    mObstacle.mColor = v3{ 224, 49, 92 } / 255.0f;
+    mObstacle.mColor = v3{ 92, 49, 224 } / 255.0f;
+    mObstacle.mRadius = 1;
+    mObstacle.mName = "Obstacle";
+    mObstacle.Recompute();
 
     mCamera->mPos = { 0, 2, 10 };
   }
 
 
+  void ExamplePhys5SimObj::Recompute()
+  {
+    mMass = density * Volume();
+    ComputeInertiaTensor();
+  }
+
+  static void SimObjUI(ExamplePhys5SimObj& obj)
+  {
+    if (!ImGuiCollapsingHeader(obj.mName))
+      return;
+
+    bool changed = false;
+    changed |= ImGuiDragFloat("radius", &obj.mRadius);
+    if (changed)
+      obj.Recompute();
+  }
 
   void ExamplePhysSim5LinCollision::Update( Errors& )
   {
     mPlayer.BeginFrame();
     mObstacle.BeginFrame();
 
-    const v3 keyboardForce = GetWorldspaceKeyboardDir() * 50.0f;
+    const v3 keyboardForce = GetWorldspaceKeyboardDir() * 150.0f;
 
     mPlayer.AddForce( keyboardForce );
+
+    v3 grav{};
+    ImGuiCheckbox("Enable Gravity", &sEnableGravity);
+
+    SimObjUI(mPlayer);
+    SimObjUI(mObstacle);
+
+    if (sEnableGravity)
+    {
+      float g = 10;
+      float r = Distance(mPlayer.mLinPos, mObstacle.mLinPos);
+      float f = g * mPlayer.mMass * mObstacle.mMass / (r * r);
+      grav = Normalize(mObstacle.mLinPos - mPlayer.mLinPos) * f;
+      mPlayer.AddForce(grav);
+      mObstacle.AddForce(-grav);
+    }
+
 
     mPlayer.Integrate();
     mObstacle.Integrate();
 
+    if (sEnableGravity)
+      mWorld->mDebug3DDrawData->DebugDraw3DArrow(mPlayer.mLinPos,
+                                                mPlayer.mLinPos + grav * TAC_DELTA_FRAME_SECONDS,
+                                                mPlayer.mColor);
+    mWorld->mDebug3DDrawData->DebugDraw3DArrow(mPlayer.mLinPos,
+                                              mPlayer.mLinPos + keyboardForce * TAC_DELTA_FRAME_SECONDS,
+                                              mPlayer.mColor);
 
     const Sim5CollisionResult collisionResult = Sim5Collide( mPlayer, mObstacle );
     Sim5ResolveCollision( collisionResult, mPlayer, mObstacle );
 
-#if 0
-    Player.mAngRot = m3::RotRadZ( (float)ShellGetElapsedSeconds() );
-#endif
+    if(spin)
+        mPlayer.mAngRot = m3::RotRadZ( (float)ShellGetElapsedSeconds() );
+
 
     Draw( mPlayer );
     Draw( mObstacle );
@@ -149,10 +201,10 @@ namespace Tac
     Debug3DDrawData* drawData = mWorld->mDebug3DDrawData;
     drawData->DebugDraw3DCircle( obj.mLinPos, mCamera->mForwards, obj.mRadius, obj.mColor );
 
-#if 0
-    v3 line = obj.mAngRot * v3( obj.mRadius, 0, 0 );;
-    drawData->DebugDraw3DLine( obj.mLinPos, obj.mLinPos + line, obj.mColor );
-#endif
+    if(spin)
+        drawData->DebugDraw3DLine( obj.mLinPos,
+                                   obj.mLinPos + obj.mAngRot * v3( obj.mRadius, 0, 0 ),
+                                   obj.mColor );
   }
 
 

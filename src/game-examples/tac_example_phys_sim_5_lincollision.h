@@ -11,6 +11,7 @@ namespace Tac
   struct ExamplePhys5SimObj
   {
     ExamplePhys5SimObj();
+    const char* mName = "";
     float mMass = 5;
     float mElasticity = 0.5f;
     float mRadius = 1.0f;
@@ -31,6 +32,8 @@ namespace Tac
     void AddForce(v3);
     void BeginFrame();
     void Integrate();
+    float Volume();
+    void Recompute();
   };
 
 
