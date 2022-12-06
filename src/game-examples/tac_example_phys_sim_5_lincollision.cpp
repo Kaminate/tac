@@ -33,14 +33,11 @@ namespace Tac
     float mDist; // penetration distance
   };
 
-  static Sim5CollisionResult Sim5Collide(const ExamplePhys5SimObj& objA, const ExamplePhys5SimObj& objB)
+  static Sim5CollisionResult Sim5CollideSphereSphere(const ExamplePhys5SimObj& objA, const ExamplePhys5SimObj& objB)
   {
     const v3 dx = objB.mLinPos - objA.mLinPos; // vector from objA to objB
     const float q = dx.Quadrance(); // quadrance between circles
     const float rSum = objA.mRadius + objB.mRadius;
-    if( q > rSum * rSum )
-      return {};
-    
     const float d = Sqrt(q);
     const v3 n = dx / d;
     const float penetrationDist = rSum - d;
@@ -53,6 +50,17 @@ namespace Tac
       .mPoint = pt,
       .mDist = penetrationDist
     };
+  }
+
+  static Sim5CollisionResult Sim5Collide(const ExamplePhys5SimObj& objA, const ExamplePhys5SimObj& objB)
+  {
+    const v3 dx = objB.mLinPos - objA.mLinPos; // vector from objA to objB
+    const float q = dx.Quadrance(); // quadrance between circles
+    const float rSum = objA.mRadius + objB.mRadius;
+    if( q > rSum * rSum )
+      return {};
+    
+    return Sim5CollideSphereSphere(objA, objB);
   }
 
   static void Sim5ResolveCollision( const Sim5CollisionResult& collisionResult,

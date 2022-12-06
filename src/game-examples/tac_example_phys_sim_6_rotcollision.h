@@ -16,6 +16,7 @@ namespace Tac
     // distance between hemisphere centers
     float mCapsuleHeight = 3;
     float mCapsuleRadius = 0.5f;
+    float mBoundingSphereRadius;
 
     v3 mColor{1,1,1};
 
@@ -30,6 +31,7 @@ namespace Tac
     v3 mAngTorqueAccum{};
 
     // should be called when the radius or mass changes
+    void ComputeThings();
     void ComputeInertiaTensor();
     void AddForce(v3);
     void BeginFrame();
@@ -43,6 +45,11 @@ namespace Tac
 
     void Update( Errors& ) override;
     void Draw( const ExamplePhys6SimObj& );
+    void Render();
+    void RenderBoundingSpheres();
+    void RenderCapsuleCollsion();
+    void UI();
+    void TestLineSegmentPoint();
 
     ExamplePhys6SimObj mPlayer;
     ExamplePhys6SimObj mObstacle;
