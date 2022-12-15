@@ -12,7 +12,7 @@
 // https://github.com/jvanverth/essentialmath/tree/master/src/Examples/Ch13-Simulation/...
 
 static bool dorot = false;
-static bool drawCapsules = false;
+static bool drawCapsules = true;
 static bool drawCapsuleCollision = false;
 static bool drawLinPos = false;
 static bool drawBoundingSphere = false;
@@ -29,12 +29,13 @@ namespace Tac
     float mDist; // penetration distance
   };
 
-  static bool IsBroadphaseOverlapping( const ExamplePhys6SimObj& objA, const ExamplePhys6SimObj& objB )
+  static bool IsBroadphaseOverlapping( const ExamplePhys6SimObj& objA,
+                                       const ExamplePhys6SimObj& objB )
   {
     float rSum = objA.mBoundingSphereRadius + objB.mBoundingSphereRadius;
     float rSumSq = rSum * rSum;
     float q = Quadrance( objA.mLinPos, objB.mLinPos );
-    bool result = rSumSq < q;
+    bool result = q < rSumSq;
     return result;
   }
 
@@ -42,63 +43,83 @@ namespace Tac
 
 
   // inputs:
-  //   l1b - line 1 begin
-  //   l1e - line 1 end
-  //   l2b - line 2 begin
-  //   l2e - line 2 end
+  //   p1 - line 1 begin
+  //   q1 - line 1 end
+  //   p2 - line 2 begin
+  //   q2 - line 2 end
   // outputs:
-  //   l1c - line 1 closest point
-  //   l2c - line 2 closest point
+  //   c1 - line 1 closest point
+  //   c2 - line 2 closest point
   // returns:
   //   true if an answer exists, false otherwise
-  static bool ClosestPointTwoLines( const v3& l1b,
-    const v3& l1e,
-    const v3& l2b,
-    const v3& l2e,
-    v3* l1c,
-    v3* l2c )
+  //
+  // notes: ripped from real time collision detection
+  static bool ClosestPointTwoLineSegments( const v3& p1,
+                                           const v3& q1,
+                                           const v3& p2,
+                                           const v3& q2,
+                                           v3* c1,
+                                           v3* c2 )
   {
-    v3 l1d = l1e - l1b;
-    v3 l2d = l2e - l2b;
-    m2 m =
-    {
-      -Dot( l1d, l2d ), Dot( l2d, l2d ),
-      -Dot( l1d, l1d ), Dot( l1d, l2d ),
-    };
-
-    bool exists;
-    m2 minv;
-    m.Invert( &exists, &minv );
-    if( !exists )
-      return false;
-
-    v2 b{ Dot( l1b,l2d ) - Dot( l2d, l2b ),
-          Dot( l1b,l1d ) - Dot( l2b, l1d ) };
-
-    //v2 t = minv * b;
-    auto [t1, t2] = minv * b;
-    //auto [t1, t2 ] = minv * v2(Dot(l1b,l2d) - Dot(l2d, l2b)a,
-    if( t1 >= 0 && t1 <= 1 &&
-        t2 >= 0 && t2 <= 1 )
-    {
-      *l1c = l1b + t1 * l1d;
-      *l2c = l2b + t2 * l2d;
-      return true;
+    float s = -1;
+    float t = -1;
+    const float EPSILON = 0.001f;
+    v3 d1 = q1 - p1;
+    v3 d2 = q2 - p2;
+    v3 r = p1 - p2;
+    float a = Dot( d1, d1 );
+    float e = Dot( d2, d2 );
+    float f = Dot( d2, r );
+    if( a <= EPSILON && e <= EPSILON ) {
+      s = 0;
+      t = 0;
     }
-
-    //ClosestPointLineSegment( l1b, l1e, 
-    //else
+    else if( a <= EPSILON )
     {
+      s = 0;
+      t = f / e;
+      t = Clamp( t, 0, 1 );
     }
-
+    else if( e <= EPSILON )
+    {
+      float c = Dot( d1, r );
+      t = 0;
+      s = Clamp( -c / a, 0, 1 );
+    }
+    else
+    {
+      float c = Dot( d1, r );
+      float b = Dot( d1, d2 );
+      float denom = a * e - b * b;
+      s = denom ? Clamp( ( b * f - c * e ) / denom, 0, 1 ) : 0;
+      t = ( b * s + f ) / e;
+      if( t < 0 )
+      {
+        t = 0;
+        s = Clamp( -c / a, 0, 1 );
+      }
+      else if( t > 1 )
+      {
+        t = 1;
+        s = Clamp( ( b - c ) / a, 0, 1 );
+      }
+    }
+    *c1 = p1 + d1 * s;
+    *c2 = p2 + d2 * t;
     return true;
   }
 
-  // should be called Sim6LineSegment?
+
   struct Sim6LineSegment
   {
     v3 p0;
     v3 p1;
+  };
+
+  struct Sim6Capsule
+  {
+    Sim6LineSegment mLineSegment;
+    float mRadius;
   };
 
   Sim6LineSegment SimObjToLineSegment( const ExamplePhys6SimObj& obj )
@@ -111,13 +132,36 @@ namespace Tac
   }
 
   static Sim6CollisionResult Sim6CollideCapsuleCapsule( const ExamplePhys6SimObj& objA,
-    const ExamplePhys6SimObj& objB )
+                                                        const ExamplePhys6SimObj& objB )
   {
-    Sim6LineSegment c0 = SimObjToLineSegment( objA );
-    Sim6LineSegment c1 = SimObjToLineSegment( objB );
+    const Sim6LineSegment lineSegmentA = SimObjToLineSegment( objA );
+    const Sim6LineSegment lineSegmentB = SimObjToLineSegment( objB );
+    v3 closestA;
+    v3 closestB;
+    ClosestPointTwoLineSegments( lineSegmentA.p0,
+                                 lineSegmentA.p1,
+                                 lineSegmentB.p0,
+                                 lineSegmentB.p1,
+                                 &closestA,
+                                 &closestB );
+    const float radiusSum = objA.mCapsuleRadius + objB.mCapsuleRadius;
+    const v3 v = closestB - closestA;
+    const float q = v.Quadrance();
+    if( Square( radiusSum ) < q )
+      return {};
+    const float d = Sqrt( q );
 
+    const v3 n = v / d;
+    const v3 intersectionPoint = ( ( closestA + n * objA.mCapsuleRadius ) +
+                                   ( closestB - n * objB.mCapsuleRadius ) ) / 2;
+    const float penetrationDistance = radiusSum - d;
 
-    return {};
+    return {
+      .mCollided = true,
+      .mNormal = n,
+      .mPoint = intersectionPoint,
+      .mDist = penetrationDistance,
+    };
   }
 
   static Sim6CollisionResult Sim6Collide( const ExamplePhys6SimObj& objA, const ExamplePhys6SimObj& objB )
@@ -128,21 +172,51 @@ namespace Tac
   }
 
   static void Sim6ResolveCollision( const Sim6CollisionResult& collisionResult,
-    ExamplePhys6SimObj& objA,
-    ExamplePhys6SimObj& objB )
+                                    ExamplePhys6SimObj& objA,
+                                    ExamplePhys6SimObj& objB )
   {
     if( !collisionResult.mCollided )
       return;
-    objA.mLinPos -= 0.5f * collisionResult.mDist * collisionResult.mNormal;
-    objB.mLinPos += 0.5f * collisionResult.mDist * collisionResult.mNormal;
-    const v3 relVel = objA.mLinVel - objB.mLinVel;
-    const float vDotn = Dot( relVel, collisionResult.mNormal );
-    if( vDotn < 0 )
+
+    const v3& n = collisionResult.mNormal;
+
+    // Push out, scaling penetration distance by relative mass
+    const float tA = objA.mMass / ( objA.mMass + objB.mMass );
+    const float tB = objB.mMass / ( objA.mMass + objB.mMass );
+    objA.mLinPos -= tA * collisionResult.mDist * n;
+    objB.mLinPos += tB * collisionResult.mDist * n;
+    
+    // compute relative velocity
+    v3 rA = collisionResult.mPoint - objA.mLinPos;
+    v3 rB = collisionResult.mPoint - objB.mLinPos;
+    v3 velA = objA.mLinVel + Cross( objA.mAngVel, rA );
+    v3 velB = objB.mLinVel + Cross( objB.mAngVel, rB );
+    v3 relVel = velA - velB;
+
+    // objects are already going away
+    float vDotN = Dot( relVel, n );
+    if( vDotN < 0 )
       return;
-    const float restitution = objA.mElasticity * objB.mElasticity;
-    const float j = vDotn * ( -restitution - 1 ) / ( 1 / objA.mMass + 1 / objB.mMass );
-    objA.mLinVel += ( j / objA.mMass ) * collisionResult.mNormal;
-    objB.mLinVel -= ( j / objB.mMass ) * collisionResult.mNormal;
+
+    float restitution = objA.mElasticity * objB.mElasticity;
+
+    float denomPartMass = 1.0f / objA.mMass + 1.0f / objB.mMass;
+    v3 denomPartA = Cross( objA.mAngInvInertiaTensor * Cross( rA, n ), rA );
+    v3 denomPartB = Cross( objB.mAngInvInertiaTensor * Cross( rB, n ), rB );
+    float denominator = denomPartMass + Dot( denomPartA + denomPartB, n );
+    float numerator = -( 1 + restitution ) * vDotN;
+
+    //const v3 relVel = objA.mLinVel - objB.mLinVel;
+    //const float vDotn = Dot( relVel, collisionResult.mNormal );
+    //if( vDotn < 0 )
+    //  return;
+    //const float restitution = objA.mElasticity * objB.mElasticity;
+    //const float j = vDotn * ( -restitution - 1 ) / ( 1 / objA.mMass + 1 / objB.mMass );
+    //objA.mLinVel += ( j / objA.mMass ) * collisionResult.mNormal;
+    //objB.mLinVel -= ( j / objB.mMass ) * collisionResult.mNormal;
+
+
+    TAC_CRITICAL_ERROR_UNIMPLEMENTED;
   }
 
   ExamplePhys6SimObj::ExamplePhys6SimObj()
@@ -162,10 +236,10 @@ namespace Tac
     float mhs = ( 2.0f / 3.0f ) * r * r * r * 3.14f;
 
     float ixx = mcy * ( ( 1 / 12.0f ) * h * h
-      + ( 1 / 4.0f ) * r * r )
+                        + ( 1 / 4.0f ) * r * r )
       + 2 * mhs * ( ( 2 / 5.0f ) * r * r
-        + ( 1 / 2.0f ) * h * h
-        + ( 3 / 8.0f ) * h * r );
+                    + ( 1 / 2.0f ) * h * h
+                    + ( 3 / 8.0f ) * h * r );
     float iyy = mcy * ( ( 1 / 2.0f ) * r * r )
       + 2 * mhs * ( ( 2 / 5.0f ) * r * r );
     float izz = ixx;
@@ -208,6 +282,12 @@ namespace Tac
 
   ExamplePhysSim6RotCollision::ExamplePhysSim6RotCollision()
   {
+    mCamera->mPos = { 0, 0, 8 };
+    //mCamera = TAC_NEW Camera{ .mPos = { 0, 0, 5 },
+    //                          .mForwards = { 0, 0, -1 },
+    //                          .mRight = { 1, 0, 0 },
+    //                          .mUp = { 0, 1, 0 } };
+
     mPlayer.mMass = 5;
     mPlayer.mLinPos = { -2, -2, 0 };
     mPlayer.mCapsuleHeight = 3.0f;
@@ -231,17 +311,20 @@ namespace Tac
 
   }
 
-  void DrawCapsule( Sim6LineSegment cap, v3 color ,
-    Debug3DDrawData* drawData,
-    Camera* mCamera )
+  static void DrawLineSegment( Sim6LineSegment lineSegment,
+                               v3 color,
+                               Debug3DDrawData* drawData,
+                               Camera* mCamera )
   {
-      drawData->DebugDraw3DCircle( cap.p0, mCamera->mForwards, 0.1f, color );
-      drawData->DebugDraw3DCircle( cap.p1, mCamera->mForwards, 0.1f, color );
-      drawData->DebugDraw3DLine( cap.p0, cap.p1,  color );
+    drawData->DebugDraw3DCircle( lineSegment.p0, mCamera->mForwards, 0.1f, color );
+    drawData->DebugDraw3DCircle( lineSegment.p1, mCamera->mForwards, 0.1f, color );
+    drawData->DebugDraw3DLine( lineSegment.p0, lineSegment.p1, color );
   }
 
-  void DrawDashedLine(v3 p0, v3 p1, v3 color , 
-    Debug3DDrawData* drawData)
+  static void DrawDashedLine( v3 p0,
+                              v3 p1,
+                              v3 color,
+                              Debug3DDrawData* drawData )
   {
     v3 t = p1 - p0;
     float n = 10;
@@ -256,40 +339,57 @@ namespace Tac
     }
   }
 
-  void DrawCapsuleCapsuleCollision( Sim6LineSegment cap0,
-    v3 color0,
-    Sim6LineSegment cap1,
-    v3 color1,
-    Debug3DDrawData* drawData,
-    Camera* mCamera )
+  void DrawCapsuleCapsuleCollision( Sim6Capsule capsule0,
+                                    v3 color0,
+                                    Sim6Capsule capsule1,
+                                    v3 color1,
+                                    Debug3DDrawData* drawData,
+                                    Camera* mCamera )
   {
     v3 closest0{};
     v3 closest1{};
-    bool closestExists = ClosestPointTwoLines( cap0.p0, cap0.p1, cap1.p0, cap1.p1, &closest0, &closest1 );
+    bool closestExists = ClosestPointTwoLineSegments( capsule0.mLineSegment.p0,
+                                                      capsule0.mLineSegment.p1,
+                                                      capsule1.mLineSegment.p0,
+                                                      capsule1.mLineSegment.p1,
+                                                      &closest0,
+                                                      &closest1 );
 
-
+    bool intersecting = Quadrance( closest0, closest1 ) < Square( capsule0.mRadius + capsule1.mRadius );
     v3 colors[] = { color0, color1 };
-    Sim6LineSegment* caps[] = { &cap0, &cap1 };
+    Sim6Capsule* caps[] = { &capsule0, &capsule1 };
     v3 closests[] = { closest0, closest1 };
     for( int i = 0; i < 2; ++i )
     {
       v3 color = colors[ i ];
-      Sim6LineSegment* cap = caps[ i ];
-      DrawCapsule(*cap, color, drawData, mCamera);
+      Sim6Capsule* cap = caps[ i ];
+      DrawLineSegment( cap->mLineSegment, color, drawData, mCamera );
       v3 closest = closests[ i ];
 
       if( closestExists )
       {
-        drawData->DebugDraw3DCircle( closest, mCamera->mForwards, 0.1f, color );
+        drawData->DebugDraw3DCircle( closest, mCamera->mForwards, 0.1f + 0.05f * ( i + 1 ), color * 2.0f );
       }
     }
 
     if( closestExists )
     {
       v3 color = ( color0 + color1 ) / 2;
-      DrawDashedLine(closest0, closest1, color, drawData);
-      //drawData->DebugDraw3DLine( closest0, closest1, color );
+      DrawDashedLine( closest0, closest1, color, drawData );
     }
+
+    if( intersecting )
+    {
+      v3 n = closest1 - closest0;
+      float d = n.Length();
+      if( d > 0 )
+        n /= d;
+      v3 collisionPt = ( ( closest0 + n * capsule0.mRadius ) +
+                         ( closest1 - n * capsule1.mRadius ) ) / 2;
+      float penetration = d - capsule0.mRadius - capsule1.mRadius;
+      drawData->DebugDraw3DCircle( collisionPt, mCamera->mForwards, penetration / 2, ( color0 + color1 ) / 2 );
+    }
+
   }
 
   void ExamplePhysSim6RotCollision::RenderBoundingSpheres()
@@ -303,13 +403,24 @@ namespace Tac
       drawData->DebugDraw3DCircle( obj->mLinPos, mCamera->mForwards, obj->mBoundingSphereRadius, color );
   }
 
+
+  Sim6Capsule SimObjToCapsule( const ExamplePhys6SimObj& obj )
+  {
+    Sim6Capsule cap;
+    cap.mLineSegment = SimObjToLineSegment( obj );
+    cap.mRadius = obj.mCapsuleRadius;
+    return cap;
+  }
+
   void ExamplePhysSim6RotCollision::RenderCapsuleCollsion()
   {
     if( !drawCapsuleCollision )
       return;
     Debug3DDrawData* drawData = mWorld->mDebug3DDrawData;
-    Sim6LineSegment cap0 = SimObjToLineSegment( mPlayer );
-    Sim6LineSegment cap1 = SimObjToLineSegment( mObstacle );
+
+    Sim6Capsule cap0 = SimObjToCapsule( mPlayer );
+    Sim6Capsule cap1 = SimObjToCapsule( mObstacle );
+
     DrawCapsuleCapsuleCollision( cap0, mPlayer.mColor, cap1, mObstacle.mColor, drawData, mCamera );
   }
   void ExamplePhysSim6RotCollision::Render()
@@ -323,13 +434,13 @@ namespace Tac
   void ExamplePhysSim6RotCollision::UI()
   {
     ExamplePhys6SimObj* simobjs[] = { &mPlayer, &mObstacle };
-    ImGuiCheckbox("Do rot", &dorot);
-    ImGuiCheckbox("draw capsules", &drawCapsules);
-    ImGuiCheckbox("draw capsule collision", &drawCapsuleCollision);
-    ImGuiCheckbox("draw lin pos", &drawLinPos);
-    ImGuiCheckbox("draw bounding sphere", &drawBoundingSphere);
-    ImGuiCheckbox("test line segment", &drawClosestPointLineSegmentTest);
-    if(ImGuiButton("stop moving"))
+    ImGuiCheckbox( "Do rot", &dorot );
+    ImGuiCheckbox( "draw capsules", &drawCapsules );
+    ImGuiCheckbox( "draw capsule collision", &drawCapsuleCollision );
+    ImGuiCheckbox( "draw lin pos", &drawLinPos );
+    ImGuiCheckbox( "draw bounding sphere", &drawBoundingSphere );
+    ImGuiCheckbox( "test line segment", &drawClosestPointLineSegmentTest );
+    if( ImGuiButton( "stop moving" ) )
     {
       for( ExamplePhys6SimObj* obj : simobjs )
       {
@@ -339,14 +450,15 @@ namespace Tac
     }
   }
 
+  // visual unit test for ClosestPointLineSegment() function
   void ExamplePhysSim6RotCollision::TestLineSegmentPoint()
   {
-    if(!drawClosestPointLineSegmentTest)
+    if( !drawClosestPointLineSegmentTest )
       return;
 
-    static v3 p0 {-.6f, -.4f, 0};
-    static v3 p1 {-.2f, .8f, 0};
-    static v3 p {};
+    static v3 p0{ -.6f, -.4f, 0 };
+    static v3 p1{ -.2f, .8f, 0 };
+    static v3 p{};
 
     float r = 1.4f;
     float speed = 2.0f;
@@ -355,7 +467,7 @@ namespace Tac
 
     p += GetWorldspaceKeyboardDir() * 0.1f;
 
-    v3 lineColor = v3 ( 0.2f, 0.8f, 0.3f ) * 0.5f;
+    v3 lineColor = v3( 0.2f, 0.8f, 0.3f ) * 0.5f;
     v3 pointColor = v3( 0.6f, 0.3f, 0.4f );
     v3 closest = ClosestPointLineSegment( p0, p1, p );
 
@@ -368,9 +480,9 @@ namespace Tac
     drawData->DebugDraw3DCircle( p, mCamera->mForwards, 0.1f, pointColor );
 
     drawData->DebugDraw3DCircle( closest, mCamera->mForwards, 0.03f, pointColor );
-    DrawDashedLine( closest, p, pointColor, drawData);
-    drawData->DebugDraw3DCircle( v3(0,0,0), mCamera->mForwards, r, pointColor * 0.2f );
-    
+    DrawDashedLine( closest, p, pointColor, drawData );
+    drawData->DebugDraw3DCircle( v3( 0, 0, 0 ), mCamera->mForwards, r, pointColor * 0.2f );
+
   }
 
   void ExamplePhysSim6RotCollision::Update( Errors& )
@@ -384,7 +496,7 @@ namespace Tac
     mPlayer.AddForce( keyboardForce );
 
     ExamplePhys6SimObj* simobjs[] = { &mPlayer, &mObstacle };
-    for(ExamplePhys6SimObj* obj : simobjs )
+    for( ExamplePhys6SimObj* obj : simobjs )
       obj->Integrate();
 
     const Sim6CollisionResult collisionResult = Sim6Collide( mPlayer, mObstacle );
@@ -409,7 +521,7 @@ namespace Tac
       drawData->DebugDraw3DCapsule( cap.p0, cap.p1, obj.mCapsuleRadius, obj.mColor );
     }
 
-    if( drawLinPos  )
+    if( drawLinPos )
     {
       drawData->DebugDraw3DCircle( obj.mLinPos, mCamera->mForwards, 0.1f * obj.mCapsuleRadius, 2.0f * obj.mColor );
     }
