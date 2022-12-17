@@ -39,77 +39,6 @@ namespace Tac
     return result;
   }
 
-  // optimized, no?
-
-
-  // inputs:
-  //   p1 - line 1 begin
-  //   q1 - line 1 end
-  //   p2 - line 2 begin
-  //   q2 - line 2 end
-  // outputs:
-  //   c1 - line 1 closest point
-  //   c2 - line 2 closest point
-  // returns:
-  //   true if an answer exists, false otherwise
-  //
-  // notes: ripped from real time collision detection
-  static bool ClosestPointTwoLineSegments( const v3& p1,
-                                           const v3& q1,
-                                           const v3& p2,
-                                           const v3& q2,
-                                           v3* c1,
-                                           v3* c2 )
-  {
-    float s = -1;
-    float t = -1;
-    const float EPSILON = 0.001f;
-    v3 d1 = q1 - p1;
-    v3 d2 = q2 - p2;
-    v3 r = p1 - p2;
-    float a = Dot( d1, d1 );
-    float e = Dot( d2, d2 );
-    float f = Dot( d2, r );
-    if( a <= EPSILON && e <= EPSILON ) {
-      s = 0;
-      t = 0;
-    }
-    else if( a <= EPSILON )
-    {
-      s = 0;
-      t = f / e;
-      t = Clamp( t, 0, 1 );
-    }
-    else if( e <= EPSILON )
-    {
-      float c = Dot( d1, r );
-      t = 0;
-      s = Clamp( -c / a, 0, 1 );
-    }
-    else
-    {
-      float c = Dot( d1, r );
-      float b = Dot( d1, d2 );
-      float denom = a * e - b * b;
-      s = denom ? Clamp( ( b * f - c * e ) / denom, 0, 1 ) : 0;
-      t = ( b * s + f ) / e;
-      if( t < 0 )
-      {
-        t = 0;
-        s = Clamp( -c / a, 0, 1 );
-      }
-      else if( t > 1 )
-      {
-        t = 1;
-        s = Clamp( ( b - c ) / a, 0, 1 );
-      }
-    }
-    *c1 = p1 + d1 * s;
-    *c2 = p2 + d2 * t;
-    return true;
-  }
-
-
   struct Sim6LineSegment
   {
     v3 p0;
@@ -183,40 +112,42 @@ namespace Tac
     // Push out, scaling penetration distance by relative mass
     const float tA = objA.mMass / ( objA.mMass + objB.mMass );
     const float tB = objB.mMass / ( objA.mMass + objB.mMass );
-    objA.mLinPos -= tA * collisionResult.mDist * n;
-    objB.mLinPos += tB * collisionResult.mDist * n;
-    
+
     // compute relative velocity
-    v3 rA = collisionResult.mPoint - objA.mLinPos;
-    v3 rB = collisionResult.mPoint - objB.mLinPos;
-    v3 velA = objA.mLinVel + Cross( objA.mAngVel, rA );
-    v3 velB = objB.mLinVel + Cross( objB.mAngVel, rB );
-    v3 relVel = velA - velB;
+    const v3 rA = collisionResult.mPoint - objA.mLinPos;
+    const v3 rB = collisionResult.mPoint - objB.mLinPos;
+    const v3 velA = objA.mLinVel + Cross( objA.mAngVel, rA );
+    const v3 velB = objB.mLinVel + Cross( objB.mAngVel, rB );
+    const v3 relVel = velA - velB;
 
     // objects are already going away
-    float vDotN = Dot( relVel, n );
+    const float vDotN = Dot( relVel, n );
     if( vDotN < 0 )
       return;
 
-    float restitution = objA.mElasticity * objB.mElasticity;
+    const float restitution = objA.mElasticity * objB.mElasticity;
 
-    float denomPartMass = 1.0f / objA.mMass + 1.0f / objB.mMass;
-    v3 denomPartA = Cross( objA.mAngInvInertiaTensor * Cross( rA, n ), rA );
-    v3 denomPartB = Cross( objB.mAngInvInertiaTensor * Cross( rB, n ), rB );
-    float denominator = denomPartMass + Dot( denomPartA + denomPartB, n );
-    float numerator = -( 1 + restitution ) * vDotN;
+    const float j = [&](){
+      const float numerator = -( 1 + restitution ) * vDotN;
+      const float denomPartMass = 1.0f / objA.mMass + 1.0f / objB.mMass;
+      const v3 denomPartA = Cross( objA.mAngInvInertiaTensor * Cross( rA, n ), rA );
+      const v3 denomPartB = Cross( objB.mAngInvInertiaTensor * Cross( rB, n ), rB );
+      const float denominator = denomPartMass + Dot( denomPartA + denomPartB, n );
+      return numerator / denominator;
+    }( );
 
-    //const v3 relVel = objA.mLinVel - objB.mLinVel;
-    //const float vDotn = Dot( relVel, collisionResult.mNormal );
-    //if( vDotn < 0 )
-    //  return;
-    //const float restitution = objA.mElasticity * objB.mElasticity;
-    //const float j = vDotn * ( -restitution - 1 ) / ( 1 / objA.mMass + 1 / objB.mMass );
-    //objA.mLinVel += ( j / objA.mMass ) * collisionResult.mNormal;
-    //objB.mLinVel -= ( j / objB.mMass ) * collisionResult.mNormal;
+    objA.mLinPos -= tA * collisionResult.mDist * n;
+    objB.mLinPos += tB * collisionResult.mDist * n;
 
+    objA.mLinVel += ( j / objA.mMass ) * n;
+    objB.mLinVel -= ( j / objB.mMass ) * n;
 
-    TAC_CRITICAL_ERROR_UNIMPLEMENTED;
+    objA.mAngMomentum += Cross( rA, j * n );
+    objB.mAngMomentum -= Cross( rB, j * n );
+
+    // don't necessarily have to set it here since it will be recomputed during Integrate() but why not
+    objA.mAngVel = objA.mAngInvInertiaTensor * objA.mAngMomentum;
+    objB.mAngVel = objB.mAngInvInertiaTensor * objB.mAngMomentum;
   }
 
   ExamplePhys6SimObj::ExamplePhys6SimObj()
@@ -271,8 +202,16 @@ namespace Tac
   {
     const float dt = TAC_DELTA_FRAME_SECONDS;
     const v3 a = mLinForceAccum / mMass;
+
     mLinVel += a * dt;
     mLinPos += mLinVel * dt;
+
+    mAngMomentum += mAngTorqueAccum * TAC_DELTA_FRAME_SECONDS;
+    mAngVel = mAngRot * mAngInvInertiaTensor * m3::Transpose( mAngRot ) * mAngMomentum;
+
+    mAngRot += TAC_DELTA_FRAME_SECONDS * ( m3::CrossProduct( mAngVel ) * mAngRot );
+
+    mAngRot.OrthoNormalize();
   }
 
   void ExamplePhys6SimObj::AddForce( v3 force )
@@ -348,7 +287,7 @@ namespace Tac
   {
     v3 closest0{};
     v3 closest1{};
-    bool closestExists = ClosestPointTwoLineSegments( capsule0.mLineSegment.p0,
+     ClosestPointTwoLineSegments( capsule0.mLineSegment.p0,
                                                       capsule0.mLineSegment.p1,
                                                       capsule1.mLineSegment.p0,
                                                       capsule1.mLineSegment.p1,
@@ -366,17 +305,11 @@ namespace Tac
       DrawLineSegment( cap->mLineSegment, color, drawData, mCamera );
       v3 closest = closests[ i ];
 
-      if( closestExists )
-      {
-        drawData->DebugDraw3DCircle( closest, mCamera->mForwards, 0.1f + 0.05f * ( i + 1 ), color * 2.0f );
-      }
+      drawData->DebugDraw3DCircle( closest, mCamera->mForwards, 0.1f + 0.05f * ( i + 1 ), color * 2.0f );
     }
 
-    if( closestExists )
-    {
-      v3 color = ( color0 + color1 ) / 2;
-      DrawDashedLine( closest0, closest1, color, drawData );
-    }
+    v3 avgcolor = ( color0 + color1 ) / 2;
+    DrawDashedLine( closest0, closest1, avgcolor, drawData );
 
     if( intersecting )
     {
@@ -387,7 +320,7 @@ namespace Tac
       v3 collisionPt = ( ( closest0 + n * capsule0.mRadius ) +
                          ( closest1 - n * capsule1.mRadius ) ) / 2;
       float penetration = d - capsule0.mRadius - capsule1.mRadius;
-      drawData->DebugDraw3DCircle( collisionPt, mCamera->mForwards, penetration / 2, ( color0 + color1 ) / 2 );
+      drawData->DebugDraw3DCircle( collisionPt, mCamera->mForwards, penetration / 2, avgcolor );
     }
 
   }

@@ -22,13 +22,13 @@ namespace Tac
 
     v3 mLinPos{};
     v3 mLinVel{};
-    v3 mLinForceAccum{};
+    v3 mLinForceAccum{}; // worldspace
 
     m3 mAngRot = m3::Identity();
     m3 mAngInvInertiaTensor{};
     v3 mAngVel{};
     v3 mAngMomentum{};
-    v3 mAngTorqueAccum{};
+    v3 mAngTorqueAccum{}; // worldspace
 
     // should be called when the radius or mass changes
     void ComputeThings();

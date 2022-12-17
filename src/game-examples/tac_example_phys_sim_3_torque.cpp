@@ -19,6 +19,7 @@ namespace Tac
   // Where the force is applied, in the local space of the object
   const v3 kLocalForceOffset{1,1,1};
   static bool drawDragForce;
+  static bool debugPrintRotMtx;
 
   static m3 InertiaTensorBox(float mass, float a, float b, float c )
   {
@@ -66,6 +67,8 @@ namespace Tac
   {
     ImGuiCheckbox("Draw drag force", &drawDragForce);
 
+    ImGuiCheckbox( "Debug rot mtx", &debugPrintRotMtx );
+
     mForceAccumWs = {};
     mTorqueAccumWs = {};
 
@@ -98,23 +101,6 @@ namespace Tac
       v3( 1, 0, 0 ) );
   }
 
-  // Ortho normalizes a matrix
-  static void GramSchmidt( m3& m )
-  {
-    v3 x = m.GetColumn( 0 );
-    x.Normalize();
-
-    v3 y = m.GetColumn( 1 );
-    y -= Project( x, y );
-    y.Normalize();
-
-    v3 z = m.GetColumn( 2 );
-    z -= Project( x, z );
-    z -= Project( y, z );
-    z.Normalize();
-
-    m = m3::FromColumns( x, y, z );
-  }
 
   static void DebugPrintMtx( const m3& m )
   {
@@ -123,7 +109,7 @@ namespace Tac
     v3 r1 = mOrientation.GetRow( 1 );
     v3 r2 = mOrientation.GetRow( 2 );
     char buf[ 1024 ];
-#define FMT "%.4f "
+#define FMT "% .4f "
     sprintf_s( buf,
       FMT FMT FMT "\n"
       FMT FMT FMT "\n"
@@ -134,11 +120,19 @@ namespace Tac
 
     OutputDebugStringA( buf );
     OutputDebugStringA( "\n" );
+
+    ImGuiText( va(
+      FMT FMT FMT "\n"
+      FMT FMT FMT "\n"
+      FMT FMT FMT "\n",
+      r0.x, r0.y, r0.z,
+      r1.x, r1.y, r1.z,
+      r2.x, r2.y, r2.z ) );
   }
 
   void ExamplePhysSim3Torque::Integrate()
   {
-    v3 a = mForceAccumWs / mMass;
+    const v3 a = mForceAccumWs / mMass;
 
     mLinVel += a * TAC_DELTA_FRAME_SECONDS;
     mPos += mLinVel * TAC_DELTA_FRAME_SECONDS;
@@ -148,13 +142,11 @@ namespace Tac
 
     mRot += TAC_DELTA_FRAME_SECONDS * ( m3::CrossProduct( mAngVel ) * mRot );
 
-    GramSchmidt( mRot );
+    mRot.OrthoNormalize();
 
-    if( mAngVel.x > 0 ||
-      mAngVel.y > 0 ||
-      mAngVel.z > 0 )
+    if( debugPrintRotMtx && ( mAngVel.x > 0 || mAngVel.y > 0 || mAngVel.z > 0 ) )
     {
-      DebugPrintMtx(mRot);
+      DebugPrintMtx( mRot );
     }
 
   }
