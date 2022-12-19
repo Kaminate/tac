@@ -4,7 +4,6 @@
 #CACHE INTERNAL ""
 #)
 
-
 find_package( Vulkan )
 if( Vulkan_FOUND )
 
@@ -14,6 +13,9 @@ if( Vulkan_FOUND )
   set( TAC_LIBRARIES CommonLibrary  )
 
   set("TAC_VK_LIB_FILES"
+  "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/vkbootstrap/VkBootstrap.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/vkbootstrap/VkBootstrap.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/vma/vk_mem_alloc.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/tac_renderer_vulkan.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/tac_renderer_vulkan.h"
   CACHE INTERNAL ""
@@ -42,4 +44,9 @@ if( Vulkan_FOUND )
   target_include_directories( ${Target} PUBLIC . )
 
 # endif() # if WIN32
+
+
+# Dont need a else branch, if it fails to find vulkan, it emits the message
+# Could NOT find Vulkan (missing: Vulkan_LIBRARY Vulkan_INCLUDE_DIR) (found version "")
 endif()
+

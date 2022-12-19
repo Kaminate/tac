@@ -3,6 +3,7 @@
 namespace Tac
 {
 
+  // function forward declarations
   namespace Render
   {
 #if __has_include( "tac_renderer_vulkan.h" )
@@ -14,6 +15,7 @@ namespace Tac
 #endif
   }
 
+  // function calls
   void RegisterRenderers()
   {
 #if __has_include( "tac_renderer_vulkan.h" )

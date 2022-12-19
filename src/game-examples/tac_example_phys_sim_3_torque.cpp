@@ -6,10 +6,9 @@
 #include "src/common/graphics/tac_debug_3d.h"
 #include "src/common/tac_keyboard_input.h"
 #include "src/common/shell/tac_shell_timer.h"
+#include "src/common/tac_os.h"
 
-// delete me begin
-#include "windows.h"
-// delete me en
+#define FMT "% .4f "
 
 // This example based off
 // https://github.com/jvanverth/essentialmath/tree/master/src/Examples/Ch13-Simulation/...
@@ -108,9 +107,7 @@ namespace Tac
     v3 r0 = mOrientation.GetRow( 0 );
     v3 r1 = mOrientation.GetRow( 1 );
     v3 r2 = mOrientation.GetRow( 2 );
-    char buf[ 1024 ];
-#define FMT "% .4f "
-    sprintf_s( buf,
+    const char* buf = va( 
       FMT FMT FMT "\n"
       FMT FMT FMT "\n"
       FMT FMT FMT "\n",
@@ -118,8 +115,9 @@ namespace Tac
       r1.x, r1.y, r1.z,
       r2.x, r2.y, r2.z );
 
-    OutputDebugStringA( buf );
-    OutputDebugStringA( "\n" );
+    OS* os = GetOS();
+    os->OSDebugPrintLine( buf );
+    os->OSDebugPrintLine( "\n" );
 
     ImGuiText( va(
       FMT FMT FMT "\n"

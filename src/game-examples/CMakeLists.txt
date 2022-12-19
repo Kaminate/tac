@@ -43,6 +43,15 @@ list( APPEND TAC_INCLUDE_DIRECTORIES
     "${CMAKE_SOURCE_DIR}/include"
     "${CMAKE_SOURCE_DIR}/src" )
 
+
+# append the vulkan library if it was built...
+if(TARGET TacVkRenderer)
+  list( APPEND TAC_LIBRARIES TacVkRenderer )
+else()
+  message("not including vulkan renderer in game-examples")
+endif()
+
+
 set( TAC_SOURCES_BASE ${TAC_SOURCES} )
 set( TAC_LIBRARIES_BASE ${TAC_LIBRARIES} )
 set( TAC_INCLUDE_DIRECTORIES_BASE ${TAC_INCLUDE_DIRECTORIES} )
