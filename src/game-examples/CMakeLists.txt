@@ -1,14 +1,8 @@
 include( CMakePrintHelpers )
 
 set( TAC_DEBUGGING FALSE )
-set( TAC_LIBRARIES 
-  CommonLibrary  
-  Ghost
-)
-set( TAC_INCLUDE_DIRECTORIES "" )
-set( TAC_SOURCES "" )
-set( TAC_EXE_NAME "TacExamples" )
-list( APPEND TAC_SOURCES
+
+set( TAC_EXAMPLE_FILES 
   "${CMAKE_CURRENT_SOURCE_DIR}/tac_example_meta.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/tac_example_meta.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/tac_example_fluid.cpp"
@@ -35,104 +29,20 @@ list( APPEND TAC_SOURCES
   "${CMAKE_CURRENT_SOURCE_DIR}/tac_examples_state_machine.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/tac_examples.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/tac_examples.h"
-  ${TAC_DESKTOP_APP_FILES})
+)
 
-# note: variables names are case-sensitive
-
-list( APPEND TAC_INCLUDE_DIRECTORIES
-    "${CMAKE_SOURCE_DIR}/include"
-    "${CMAKE_SOURCE_DIR}/src" )
-
-
-# append the vulkan library if it was built...
-if(TARGET TacVkRenderer)
-  list( APPEND TAC_LIBRARIES TacVkRenderer )
-else()
-  message("not including vulkan renderer in game-examples")
-endif()
-
-
-set( TAC_SOURCES_BASE ${TAC_SOURCES} )
-set( TAC_LIBRARIES_BASE ${TAC_LIBRARIES} )
-set( TAC_INCLUDE_DIRECTORIES_BASE ${TAC_INCLUDE_DIRECTORIES} )
-
-# cached variables are bullshit ( can't get cleared in a parent scope from inside a function? )
-# properties suck
-# ...guess we just goota use PARENT_SCOPE
 function( tac_target TAC_TARGET_SUFFIX )
   # okay so like functions open up a new scope
   # this means we can't set variables normally
   # thus, everything is global
-  set( TAC_TARGET_NAME         "${TAC_EXE_NAME}${TAC_TARGET_SUFFIX}" PARENT_SCOPE )
-  set( TAC_INCLUDE_DIRECTORIES ${TAC_INCLUDE_DIRECTORIES_BASE}       PARENT_SCOPE )
-  set( TAC_SOURCES             ${TAC_SOURCES_BASE}                   PARENT_SCOPE )
-  set( TAC_LIBRARIES           ${TAC_LIBRARIES_BASE}                 PARENT_SCOPE )
-endfunction()
+  set( TAC_EXE_NAME            "TacExamples${TAC_TARGET_SUFFIX}" CACHE STRING "" FORCE)
+  set( TAC_TARGET_NAME         "${TAC_EXE_NAME}"                 CACHE STRING "" FORCE)
 
-#function( assert_nonempty str msg )
-#  message( "str: ${str}" )
-#  message( "msg: ${msg}" )
-#  if("${str}" STREQUAL "")
-#    message(FATAL_ERROR ${msg})
-#  endif()
-#endfunction()
-
-if( WIN32 )
-  tac_target( "Win32" )
-  list( APPEND TAC_SOURCES ${TAC_WIN_MAIN_FILES} )
-  list( APPEND TAC_LIBRARIES TacWinLib )
-
-  include_directories( ${TAC_INCLUDE_DIRECTORIES} )
-
-  # the win32 here changes the
-  # configuration properties --> linker --> system --> subsystem
-  # from console to windows, which makes the console window go away
-  add_executable( ${TAC_TARGET_NAME} WIN32 ${TAC_SOURCES} )
-
-  target_precompile_headers( ${TAC_TARGET_NAME} PRIVATE 
-    "${CMAKE_SOURCE_DIR}/src/common/tac_precompiled_header.h"
-  )
-
-  target_compile_options( ${TAC_TARGET_NAME} PUBLIC /ZI ) # Program Database for Edit & Continue
-
-  target_link_libraries( ${TAC_TARGET_NAME} ${TAC_LIBRARIES} )
-
-  set_target_properties( ${TAC_TARGET_NAME} PROPERTIES
-    VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
-    VS_STARTUP_PROJECT ${TAC_TARGET_NAME}
-    OUTPUT_NAME "${TAC_EXE_NAME}"
-    #RUNTIME_OUTPUT_DIRECTORY "${RUNTIME_OUTPUT_DIRECTORY}/${TAC_TARGET_NAME}"
-    LINKER_LANGUAGE CXX )
-endif()
-
-
-find_package( SDL2 )
-if( SDL2_FOUND )
-  tac_target( "SDL" )
-  find_package( SDL2 REQUIRED )
-
-  # necesssary?
-  list( APPEND TAC_INCLUDE_DIRECTORIES ${SDL2_INCLUDE_DIR} )
-
-  list( APPEND TAC_SOURCES ${TAC_SDL_MAIN_FILES} )
-  list( APPEND TAC_LIBRARIES ${SDL2_LIBRARY} )
-  list( APPEND TAC_LIBRARIES TacSDLLib )
-
-  # Add the dl library for linux (dlopen, dlclose) used by gl3w.cpp
-  #
-  # variable name | value
-  # --------------+--------------------
-  # CMAKE_DL_LIBS | dl
-  # DL_LIBS       | /usr/lib64/libdl.so
-  #
-  if( CMAKE_DL_LIBS )
-    find_library( DL_LIBS ${CMAKE_DL_LIBS} )
-    if( DL_LIBS )
-      list( APPEND TAC_LIBRARIES ${DL_LIBS} )
-    endif()
+  if( TAC_DEBUGGING )
+    message( "tac exe name: ${TAC_EXE_NAME}" )
+    message( "tac tgt name: ${TAC_TARGET_NAME}" )
   endif()
 
-  
   # the win32 here changes the
   # configuration properties --> linker --> system --> subsystem
   # from console to windows, which makes the console window go away
@@ -144,22 +54,80 @@ if( SDL2_FOUND )
     add_executable( ${TAC_TARGET_NAME} ${TAC_SOURCES} )
   endif()
 
+  target_sources(${TAC_TARGET_NAME} PRIVATE ${TAC_EXAMPLE_FILES}
+                                            ${TAC_DESKTOP_APP_FILES} )
+
+  target_include_directories( ${TAC_TARGET_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/include"
+                                                         "${CMAKE_SOURCE_DIR}/src" )
+
+  target_link_libraries( ${TAC_TARGET_NAME} TacCommon
+                                            TacGhost )
+  # append the vulkan library if it was built...
+  if(TARGET TacVkRenderer)
+    target_link_libraries( ${TAC_TARGET_NAME} TacVkRenderer  )
+  else()
+    message("not including vulkan renderer in game-examples")
+  endif()
+
+
+  set_target_properties( ${TAC_TARGET_NAME} PROPERTIES
+    VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    VS_STARTUP_PROJECT ${TAC_TARGET_NAME}
+    LINKER_LANGUAGE CXX )
+endfunction()
+
+
+if( WIN32 )
+  tac_target( "Win32" )
+
+
+  target_sources(${TAC_TARGET_NAME} PRIVATE ${TAC_WIN_MAIN_FILES})
+
   target_precompile_headers( ${TAC_TARGET_NAME} PRIVATE 
     "${CMAKE_SOURCE_DIR}/src/common/tac_precompiled_header.h"
   )
 
-  target_include_directories( ${TAC_TARGET_NAME} PUBLIC ${TAC_INCLUDE_DIRECTORIES} )
+  target_compile_options( ${TAC_TARGET_NAME} PUBLIC /ZI ) # Program Database for Edit & Continue
+
+  target_link_libraries( ${TAC_TARGET_NAME} TacWinLib  )
+
+endif()
+
+
+find_package( SDL2 )
+if( SDL2_FOUND )
+  tac_target( "SDL" )
+  find_package( SDL2 REQUIRED )
+
+  list( APPEND TAC_SOURCES ${TAC_SDL_MAIN_FILES} )
+
+
+  
+
+  target_precompile_headers( ${TAC_TARGET_NAME} PRIVATE 
+    "${CMAKE_SOURCE_DIR}/src/common/tac_precompiled_header.h"
+  )
+
+  target_include_directories( ${TAC_TARGET_NAME} PUBLIC ${SDL2_INCLUDE_DIR} )
 
   # this was missing before, right?
-  target_link_libraries( ${TAC_TARGET_NAME} ${TAC_LIBRARIES} )
+  target_link_libraries( ${TAC_TARGET_NAME} ${SDL2_LIBRARY}
+                                            TacSDL  )
 
+  # Add the dl library for linux (dlopen, dlclose) used by gl3w.cpp
+  #
+  # variable name | value
+  # --------------+--------------------
+  # CMAKE_DL_LIBS | dl
+  # DL_LIBS       | /usr/lib64/libdl.so
+  #
+  if( CMAKE_DL_LIBS )
+    find_library( DL_LIBS ${CMAKE_DL_LIBS} )
+    if( DL_LIBS )
+      target_link_libraries( ${TAC_TARGET_NAME} ${DL_LIBS} )
+    endif()
+  endif()
 
-
-  set_target_properties( ${TAC_TARGET_NAME} PROPERTIES
-    OUTPUT_NAME "${TAC_EXE_NAME}"
-    VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
-    VS_STARTUP_PROJECT ${TAC_TARGET_NAME}
-    LINKER_LANGUAGE CXX )
 
   # When we run the exe, it needs sdl2.dll to function ( not to compile )
   # As a post-build step, copy sdl2.dll to the exe output directory.

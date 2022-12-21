@@ -3,7 +3,7 @@ if( WIN32 )
   set( Target "TacWinLib" )
 
   project( ${Target} CXX )
-  set( TAC_LIBRARIES CommonLibrary  )
+  set( TAC_LIBRARIES TacCommon  )
 
   set("TAC_WIN_LIB_FILES"
   "${CMAKE_CURRENT_SOURCE_DIR}/net/tac_net_winsock.cpp"

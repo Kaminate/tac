@@ -66,13 +66,14 @@ if( WIN32 )
   tac_target( "Win32" )
   set( TAC_SOURCES ${TAC_SOURCES} ${TAC_WIN_MAIN_FILES})
   list( APPEND TAC_LIBRARIES TacWinLib )
-  include_directories( ${TAC_INCLUDE_DIRECTORIES} )
 
 
   # the win32 here changes the
   # configuration properties --> linker --> system --> subsystem
   # from console to windows, which makes the console window go away
   add_executable( ${TAC_TARGET_NAME} WIN32 ${TAC_SOURCES} )
+
+  target_include_directories( ${TAC_INCLUDE_DIRECTORIES} )
 
   target_precompile_headers( ${TAC_TARGET_NAME} PRIVATE 
     "${CMAKE_SOURCE_DIR}/src/common/tac_precompiled_header.h"

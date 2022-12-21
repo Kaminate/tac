@@ -1,5 +1,7 @@
 #include "tac_renderer_vulkan.h"
 
+#include "vk_types.h"
+
 namespace Tac
 {
   namespace Render
@@ -7,7 +9,13 @@ namespace Tac
     void RegisterRendererVulkan()
     {
 
+      VkResult vk;
+      ( void )vk;
     }
+
+    //TAC_RAISE_ERROR_RETURN();
+
+#define TAC_VK_CHECK(x) { if (VKResult)}
 
   } // namespace Render
 

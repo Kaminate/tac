@@ -16,37 +16,33 @@ endif()
 cmake_print_variables("cmake binary dir: " ${CMAKE_BINARY_DIR})
 
 if (MSVC)
-    add_compile_options(/W4) # warning level 4
-    add_compile_options(/WX) # treat linker warnings as errors
-    add_compile_options(/MP) # multi processor compilation
-    add_compile_options(/experimental:module) # modules???
+    add_compile_options( /W4  # warning level 4
+                         /WX  # treat linker warnings as errors
+                         /MP  # multi processor compilation
+                         /experimental:module) # modules???
 else()
-    add_compile_options(
-      -Wall
-      -Wextra
-      -Werror
-      -Wpedantic
-      )
+    add_compile_options( -Wall
+                         -Wextra
+                         -Werror
+                         -Wpedantic )
 
     # suppress annoying warnings
-    add_compile_options(
-      -Wno-comment
-      -Wno-missing-field-initializers
-      -Wno-reorder
-      -Wno-switch
-      -Wno-unused-but-set-variable
-      -Wno-unused-parameter
-      -Wno-unused-value
-      -Wno-unused-variable
-    )
+    add_compile_options( -Wno-comment
+                         -Wno-missing-field-initializers
+                         -Wno-reorder
+                         -Wno-switch
+                         -Wno-unused-but-set-variable
+                         -Wno-unused-parameter
+                         -Wno-unused-value
+                         -Wno-unused-variable )
 
 endif()
 
+include_directories( ${CMAKE_SOURCE_DIR} )
 
-set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}")
 
 #===----------------===#
 # Clone git submodules #

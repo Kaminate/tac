@@ -1,15 +1,5 @@
-project(Ghost CXX)
-set(Target "Ghost")
-set( TAC_LIBRARIES CommonLibrary  )
-#                        | ( commented out )
-#                        |
-#                        | | MODULE is for DLLs
-#                        v v
-
-
-# ${CMAKE_CURRENT_SOURCE_DIR}/myfile.h
-
-add_library(${Target} # MODULE
+project(TacGhost CXX)
+add_library(TacGhost
 "${CMAKE_CURRENT_SOURCE_DIR}/presentation/tac_voxel_gi_presentation.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/presentation/tac_voxel_gi_presentation.h"
 "${CMAKE_CURRENT_SOURCE_DIR}/presentation/tac_game_presentation.cpp"
@@ -70,18 +60,19 @@ add_library(${Target} # MODULE
 )
 #${Common})
 
-target_precompile_headers( ${Target} PRIVATE 
+target_precompile_headers( TacGhost PRIVATE 
   "${CMAKE_SOURCE_DIR}/src/common/tac_precompiled_header.h"
 )
 
-include_directories("${CMAKE_SOURCE_DIR}/src")
-set_target_properties(${Target} PROPERTIES LINKER_LANGUAGE CXX)
+# include_directories("${CMAKE_SOURCE_DIR}/src")
+set_target_properties(TacGhost PROPERTIES LINKER_LANGUAGE CXX)
+target_include_directories(TacGhost PRIVATE ${CMAKE_SOURCE_DIR})
 
 if( WIN32 )
   add_definitions(/ZI)
 endif()
 
-target_link_libraries( ${Target} ${TAC_LIBRARIES} )
+target_link_libraries( TacGhost TacCommon )
 
 
 
