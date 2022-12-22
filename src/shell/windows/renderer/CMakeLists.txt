@@ -1,4 +1,4 @@
-target_sources(TacWinLib PRIVATE
+target_sources(TacWin PRIVATE
   "tac_dxgi.cpp"
   "tac_dxgi.h"
   "tac_renderer_directx.h"

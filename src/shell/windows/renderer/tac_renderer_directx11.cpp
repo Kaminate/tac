@@ -16,9 +16,9 @@
 #include "src/common/tac_frame_memory.h"
 #include "src/common/string/tac_string.h"
 #include "src/shell/tac_desktop_app.h"
-#include "src/shell/windows/tacwinlib/renderer/tac_dxgi.h"
-#include "src/shell/windows/tacwinlib/renderer/tac_renderer_directx11.h"
-#include "src/shell/windows/tacwinlib/renderer/tac_renderer_directx.h"
+#include "src/shell/windows/renderer/tac_dxgi.h"
+#include "src/shell/windows/renderer/tac_renderer_directx11.h"
+#include "src/shell/windows/renderer/tac_renderer_directx.h"
 
 #include <initguid.h>
 #include <dxgidebug.h>

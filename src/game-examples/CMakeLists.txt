@@ -90,7 +90,7 @@ if( WIN32 )
 
   target_compile_options( ${TAC_TARGET_NAME} PUBLIC /ZI ) # Program Database for Edit & Continue
 
-  target_link_libraries( ${TAC_TARGET_NAME} TacWinLib  )
+  target_link_libraries( ${TAC_TARGET_NAME} TacWin  )
   if(TARGET TacVkRenderer)
     target_link_libraries( ${TAC_TARGET_NAME} TacVkRenderer  )
   endif()

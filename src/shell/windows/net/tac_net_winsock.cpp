@@ -1,24 +1,21 @@
-#include "src/shell/windows/tacwinlib/net/tac_net_winsock.h"
-#include "src/common/tac_preprocessor.h"
-#include "src/common/tac_utility.h"
-#include "src/common/tac_json.h"
-#include "src/common/tac_serialization.h"
-#include "src/common/shell/tac_shell_timer.h"
-#include "src/common/tac_settings.h"
-#include "src/common/tac_algorithm.h"
-#include "src/common/tac_memory.h"
-#include "src/common/tac_os.h"
-#include <Ws2tcpip.h> // inet_pton, getaddrinfo
-
-#include "src/shell/windows/tacwinlib/tac_win32.h"
-#include "src/common/string/tac_string.h"
-#include "src/common/tac_error_handling.h"
 #include "src/common/containers/tac_vector.h"
+#include "src/common/shell/tac_shell_timer.h"
+#include "src/common/string/tac_string.h"
+#include "src/common/tac_algorithm.h"
+#include "src/common/tac_error_handling.h"
+#include "src/common/tac_json.h"
+#include "src/common/tac_memory.h"
 #include "src/common/tac_net.h"
-
-#include <set>
-
+#include "src/common/tac_os.h"
+#include "src/common/tac_preprocessor.h"
+#include "src/common/tac_serialization.h"
+#include "src/common/tac_settings.h"
+#include "src/common/tac_utility.h"
+#include "src/shell/windows/net/tac_net_winsock.h"
+#include "src/shell/windows/tac_win32.h"
 #include <WinSock2.h> // SOCKET
+#include <Ws2tcpip.h> // inet_pton, getaddrinfo
+#include <set>
 
 #pragma comment( lib, "ws2_32.lib" )
 

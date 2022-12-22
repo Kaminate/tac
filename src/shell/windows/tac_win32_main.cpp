@@ -7,12 +7,12 @@
 #include "src/common/tac_settings.h"
 #include "src/common/string/tac_string.h"
 #include "src/shell/tac_desktop_app.h"
-#include "src/shell/windows/tacwinlib/net/tac_net_winsock.h"
-#include "src/shell/windows/tacwinlib/tac_win32.h"
-#include "src/shell/windows/tacwinlib/desktopwindow/tac_win32_desktop_window_manager.h"
-#include "src/shell/windows/tacwinlib/input/tac_xinput.h"
-#include "src/shell/windows/tacwinlib/input/tac_win32_mouse_edge.h"
-#include "src/shell/windows/tacwinlib/renderer/tac_renderer_directx11.h"
+#include "src/shell/windows/net/tac_net_winsock.h"
+#include "src/shell/windows/tac_win32.h"
+#include "src/shell/windows/desktopwindow/tac_win32_desktop_window_manager.h"
+#include "src/shell/windows/input/tac_xinput.h"
+#include "src/shell/windows/input/tac_win32_mouse_edge.h"
+#include "src/shell/windows/renderer/tac_renderer_directx11.h"
 #include "src/common/tac_net.h"
 
 #include <iostream> // okay maybe this should also be allowed

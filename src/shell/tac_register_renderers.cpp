@@ -1,4 +1,4 @@
-// the directx11.h local path is included by src/shell/windows/tacwinlib/CMakeLists.txt
+// the directx11.h local path is included by src/shell/windows/CMakeLists.txt
 
 namespace Tac
 {

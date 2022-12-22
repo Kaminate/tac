@@ -1,5 +1,5 @@
-#include "src/shell/windows/tacwinlib/renderer/tac_dxgi.h"
-#include "src/shell/windows/tacwinlib/tac_win32.h"
+#include "src/shell/windows/renderer/tac_dxgi.h"
+#include "src/shell/windows/tac_win32.h"
 #include "src/common/string/tac_string.h"
 #include "src/common/tac_error_handling.h"
 #include "src/common/tac_preprocessor.h"

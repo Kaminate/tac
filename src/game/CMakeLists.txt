@@ -24,7 +24,7 @@ target_precompile_headers( ${TAC_TARGET_NAME} PRIVATE
 )
 
 target_compile_options( ${TAC_TARGET_NAME} PUBLIC /ZI ) # Program Database for Edit & Continue
-target_link_libraries( ${TAC_TARGET_NAME} TacCommon TacGhost TacWinLib)
+target_link_libraries( ${TAC_TARGET_NAME} TacCommon TacGhost TacWin)
 set_target_properties( ${TAC_TARGET_NAME} PROPERTIES
   VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
   VS_STARTUP_PROJECT ${TAC_TARGET_NAME}

@@ -8,8 +8,8 @@
 #include "src/common/tac_hash.h"
 #include "src/common/containers/tac_optional.h"
 #include "src/common/string/tac_string_identifier.h"
-#include "src/shell/windows/tacwinlib/tac_win32.h"
-#include "src/shell/windows/tacwinlib/renderer/tac_dxgi.h"
+#include "src/shell/windows/tac_win32.h"
+#include "src/shell/windows/renderer/tac_dxgi.h"
 
 #include <d3d11_1.h>
 #include <d3d11_3.h> // ID3D11Device3, ID3D11RasterizerState2

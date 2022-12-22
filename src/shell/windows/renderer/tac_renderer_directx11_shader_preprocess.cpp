@@ -1,4 +1,4 @@
-//#include "src/shell/windows/tacwinlib/renderer/tac_renderer_directx11.h"
+//#include "src/shell/windows/renderer/tac_renderer_directx11.h"
 #include "src/common/graphics/tac_renderer.h"
 #include "src/common/containers/tac_array.h"
 #include "src/common/tac_text_parser.h"

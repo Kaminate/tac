@@ -4,9 +4,9 @@
 #include "src/common/tac_keyboard_input.h"
 #include "src/common/tac_os.h"
 #include "src/shell/tac_desktop_app.h"
-#include "src/shell/windows/tacwinlib/desktopwindow/tac_win32_desktop_window_manager.h"
-#include "src/shell/windows/tacwinlib/input/tac_win32_mouse_edge.h"
-#include "src/shell/windows/tacwinlib/tac_win32.h"
+#include "src/shell/windows/desktopwindow/tac_win32_desktop_window_manager.h"
+#include "src/shell/windows/input/tac_win32_mouse_edge.h"
+#include "src/shell/windows/tac_win32.h"
 
 
 namespace Tac
