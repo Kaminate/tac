@@ -1,13 +1,9 @@
-# the editor is a desktop app, no point building creation for playstation5
-set( DESKTOP_PLATFORMS ${WIN32} ${UNIX} )
-if( NOT( TRUE IN_LIST DESKTOP_PLATFORMS ) )
-  message( "true in list " ${DESKTOP_PLATFORMS} )
-  return()
-  else()
-  message( " not true in list " ${DESKTOP_PLATFORMS} )
-endif()
-
 set( TAC_DEBUGGING FALSE )
+
+# only build editor for desktop ( win32, unix ) platforms, ie not ps5
+if(NOT (WIN32 OR UNIX) )
+  return()
+endif()
 
 if( WIN32 )
 
@@ -30,9 +26,6 @@ endif()
 
 function( tac_target )
   if( WIN32 )
-    # the win32 here changes the
-    # configuration properties --> linker --> system --> subsystem
-    # from console to windows, which makes the console window go away
     add_executable( ${TAC_TARGET_NAME} WIN32 )
     target_link_libraries( ${TAC_TARGET_NAME} TacWin  ) 
   else()
@@ -102,8 +95,9 @@ if( SDL2_FOUND AND FALSE )
 
   target_include_directories( ${TAC_TARGET_NAME} PUBLIC 
     ${SDL2_INCLUDE_DIR} 
-    "${CMAKE_SOURCE_DIR}/include"
-    "${CMAKE_SOURCE_DIR}/src" )
+    # "${CMAKE_SOURCE_DIR}/include"
+    # "${CMAKE_SOURCE_DIR}/src"
+  )
 
 
   list( APPEND TAC_LIBRARIES  )

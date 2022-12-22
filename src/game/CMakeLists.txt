@@ -4,9 +4,6 @@ endif()
 
 set( TAC_TARGET_NAME "GravestoryWin32" )
 
-# the win32 here changes the
-# configuration properties --> linker --> system --> subsystem
-# from console to windows, which makes the console window go away
 add_executable( ${TAC_TARGET_NAME} WIN32 )
 target_sources( ${TAC_TARGET_NAME} PRIVATE
   "tac_game.cpp"
@@ -14,10 +11,6 @@ target_sources( ${TAC_TARGET_NAME} PRIVATE
   ${TAC_WIN_MAIN_FILES}
   ${TAC_DESKTOP_APP_FILES}
 )
-
-
-target_include_directories( ${TAC_TARGET_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/include"
-                                                       "${CMAKE_SOURCE_DIR}/src" )
 
 target_precompile_headers( ${TAC_TARGET_NAME} PRIVATE 
   "${CMAKE_SOURCE_DIR}/src/common/tac_precompiled_header.h"

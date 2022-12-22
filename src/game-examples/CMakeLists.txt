@@ -20,16 +20,6 @@ add_subdirectory( phy_sim )
 add_subdirectory( vk )
 
 function( tac_target )
-  # okay so like functions open up a new scope
-  # this means we can't set variables normally
-  # thus, everything is global
-
-
-  # the win32 here changes the
-  # configuration properties --> linker --> system --> subsystem
-  # from console to windows, which makes the console window go away
-  #
-  # If this is a unix build, will the WIN32 here fuck everything up?
   if( WIN32 )
     add_executable( ${PROJECT_NAME} WIN32 )
   else()
@@ -41,8 +31,6 @@ function( tac_target )
     ${TAC_DESKTOP_APP_FILES} )
 
 
-  target_include_directories( ${PROJECT_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/include"
-                                                         "${CMAKE_SOURCE_DIR}/src" )
 
   target_link_libraries( ${PROJECT_NAME} TacCommon TacGhost )
   # append the vulkan library if it was built...
