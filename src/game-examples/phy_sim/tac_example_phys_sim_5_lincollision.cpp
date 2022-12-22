@@ -4,7 +4,7 @@
 #include "src/common/shell/tac_shell_timer.h"
 #include "src/common/tac_camera.h"
 #include "src/common/tac_keyboard_input.h"
-#include "src/game-examples/tac_example_phys_sim_5_lincollision.h"
+#include "src/game-examples/phy_sim/tac_example_phys_sim_5_lincollision.h"
 #include "src/space/tac_world.h"
 
 // This example based off

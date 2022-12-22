@@ -1,4 +1,4 @@
-#include "src/game-examples/tac_example_phys_sim_3_torque.h"
+#include "src/game-examples/phy_sim/tac_example_phys_sim_3_torque.h"
 #include "src/space/tac_world.h"
 #include "src/common/tac_camera.h"
 #include "src/common/graphics/imgui/tac_imgui.h"

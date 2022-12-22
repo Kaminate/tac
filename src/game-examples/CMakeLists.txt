@@ -2,6 +2,23 @@ include( CMakePrintHelpers )
 
 set( TAC_DEBUGGING FALSE )
 
+set( TAC_SOURCES 
+  "tac_examples.cpp"
+  "tac_examples.h"
+  "tac_examples_presentation.cpp"
+  "tac_examples_presentation.h"
+  "tac_examples_registry.cpp"
+  "tac_examples_registry.h"
+  "tac_examples_state_machine.cpp"
+  "tac_examples_state_machine.h"
+  CACHE INTERNAL "" FORCE )
+
+add_subdirectory( d3d11 )
+add_subdirectory( fluid )
+add_subdirectory( meta )
+add_subdirectory( phy_sim )
+add_subdirectory( vk )
+
 function( tac_target )
   # okay so like functions open up a new scope
   # this means we can't set variables normally
@@ -14,43 +31,31 @@ function( tac_target )
   #
   # If this is a unix build, will the WIN32 here fuck everything up?
   if( WIN32 )
-    add_executable( PROJECT_NAME WIN32 ${TAC_SOURCES} )
+    add_executable( ${PROJECT_NAME} WIN32 )
   else()
-    add_executable( PROJECT_NAME ${TAC_SOURCES} )
+    add_executable( ${PROJECT_NAME} )
   endif()
 
-  target_sources(PROJECT_NAME PRIVATE 
-    "tac_examples.cpp"
-    "tac_examples.h"
-    "tac_examples_presentation.cpp"
-    "tac_examples_presentation.h"
-    "tac_examples_registry.cpp"
-    "tac_examples_registry.h"
-    "tac_examples_state_machine.cpp"
-    "tac_examples_state_machine.h"
+  target_sources( ${PROJECT_NAME} PRIVATE 
+    ${TAC_SOURCES}
     ${TAC_DESKTOP_APP_FILES} )
 
-  add_subdirectory( d3d11 )
-  add_subdirectory( fluid )
-  add_subdirectory( meta )
-  add_subdirectory( phy_sim )
-  add_subdirectory( vk )
 
-  target_include_directories( PROJECT_NAME PRIVATE "${CMAKE_SOURCE_DIR}/include"
+  target_include_directories( ${PROJECT_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/include"
                                                          "${CMAKE_SOURCE_DIR}/src" )
 
-  target_link_libraries( PROJECT_NAME TacCommon TacGhost )
+  target_link_libraries( ${PROJECT_NAME} TacCommon TacGhost )
   # append the vulkan library if it was built...
   if(TARGET TacVkRenderer)
-    target_link_libraries( PROJECT_NAME TacVkRenderer  )
+    target_link_libraries( ${PROJECT_NAME} TacVkRenderer  )
   else()
     message("not including vulkan renderer in game-examples")
   endif()
 
 
-  set_target_properties( PROJECT_NAME PROPERTIES
+  set_target_properties( ${PROJECT_NAME} PROPERTIES
     VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
-    VS_STARTUP_PROJECT PROJECT_NAME
+    VS_STARTUP_PROJECT ${PROJECT_NAME}
     LINKER_LANGUAGE CXX )
 
 
@@ -62,18 +67,18 @@ if( WIN32 )
   tac_target()
 
 
-  target_sources( PROJECT_NAME PRIVATE ${TAC_WIN_MAIN_FILES})
+  target_sources( ${PROJECT_NAME} PRIVATE ${TAC_WIN_MAIN_FILES})
 
-  target_precompile_headers( PROJECT_NAME PRIVATE 
+  target_precompile_headers( ${PROJECT_NAME} PRIVATE 
     "${CMAKE_SOURCE_DIR}/src/common/tac_precompiled_header.h"
   )
 
-  target_compile_options( PROJECT_NAME PUBLIC /ZI ) # Program Database for Edit & Continue
+  target_compile_options( ${PROJECT_NAME} PUBLIC /ZI ) # Program Database for Edit & Continue
 
-  target_link_libraries( PROJECT_NAME TacWin  )
+  target_link_libraries( ${PROJECT_NAME} TacWin  )
   
   if(TARGET TacVkRenderer)
-    target_link_libraries( PROJECT_NAME TacVkRenderer  )
+    target_link_libraries( ${PROJECT_NAME} TacVkRenderer  )
   endif()
 
 endif()
@@ -84,19 +89,18 @@ if( SDL2_FOUND )
   project( "TacExamplesSDL" )
   tac_target()
 
-  list( APPEND TAC_SOURCES ${TAC_SDL_MAIN_FILES} )
-
+  target_sources( ${PROJECT_NAME} PRIVATE ${TAC_SDL_MAIN_FILES} )
 
   
 
-  target_precompile_headers( PROJECT_NAME PRIVATE 
+  target_precompile_headers( ${PROJECT_NAME} PRIVATE 
     "${CMAKE_SOURCE_DIR}/src/common/tac_precompiled_header.h"
   )
 
-  target_include_directories( PROJECT_NAME PUBLIC ${SDL2_INCLUDE_DIR} )
+  target_include_directories( ${PROJECT_NAME} PUBLIC ${SDL2_INCLUDE_DIR} )
 
   # this was missing before, right?
-  target_link_libraries( PROJECT_NAME ${SDL2_LIBRARY}
+  target_link_libraries( ${PROJECT_NAME} ${SDL2_LIBRARY}
                                             TacSDL  )
 
   # Add the dl library for linux (dlopen, dlclose) used by gl3w.cpp
@@ -109,7 +113,7 @@ if( SDL2_FOUND )
   if( CMAKE_DL_LIBS )
     find_library( DL_LIBS ${CMAKE_DL_LIBS} )
     if( DL_LIBS )
-      target_link_libraries( PROJECT_NAME ${DL_LIBS} )
+      target_link_libraries( ${PROJECT_NAME} ${DL_LIBS} )
     endif()
   endif()
 
@@ -139,7 +143,7 @@ if( SDL2_FOUND )
     # https://cmake.org/cmake/help/latest/manual/cmake.1.html
     #
     # In visual studio, this takes the form as a Post-Build Event
-    ADD_CUSTOM_COMMAND(TARGET PROJECT_NAME
+    ADD_CUSTOM_COMMAND(TARGET ${PROJECT_NAME}
       POST_BUILD
       COMMAND ${CMAKE_COMMAND} -E copy_if_different
         ${SDL2_DLL_FULL_NAME}

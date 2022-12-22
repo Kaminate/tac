@@ -5,7 +5,7 @@
 #include "src/common/tac_desktop_window.h"
 #include "src/common/tac_keyboard_input.h"
 #include "src/common/tac_preprocessor.h" // C4100
-#include "src/game-examples/tac_example_fluid.h"
+#include "src/game-examples/fluid/tac_example_fluid.h"
 
 //#include <cmath>
 //#include <iostream>

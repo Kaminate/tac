@@ -5,7 +5,7 @@
 #include "src/common/shell/tac_shell_timer.h"
 #include "src/common/tac_camera.h"
 #include "src/common/tac_frame_memory.h"
-#include "src/game-examples/tac_example_phys_sim_2_integration.h"
+#include "src/game-examples/phy_sim/tac_example_phys_sim_2_integration.h"
 #include "src/space/tac_world.h"
 
 // This example based off

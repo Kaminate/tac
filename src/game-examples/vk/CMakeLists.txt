@@ -1,5 +1,8 @@
 
-target_sources(PROJECT_NAME PRIVATE
-  "tac_example_vk_1_tri.h"
+
+
+list( APPEND TAC_SOURCES
+  "${CMAKE_CURRENT_SOURCE_DIR}/tac_example_vk_1_tri.h"
 )
 
+set( TAC_SOURCES ${TAC_SOURCES} CACHE INTERNAL "" FORCE )
