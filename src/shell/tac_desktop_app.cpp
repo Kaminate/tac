@@ -120,12 +120,20 @@ namespace Tac
 
   static const Render::RendererFactory* GetRendererFactory()
   {
+    const String chosenRendererName = SettingsGetString( "chosen_renderer", "" );
+    const Render::RendererFactory* chosenFactory = Render::RendererFactoriesFind( chosenRendererName );
+    if( chosenFactory )
+      return chosenFactory;
+    SettingsSave( true );
+
     const String defaultRendererName = GetDefaultRendererName();
     const Render::RendererFactory* defaultFactory = Render::RendererFactoriesFind( defaultRendererName );
     if(defaultFactory)
       return defaultFactory;
+
     for( auto& factory : Render::RendererRegistry() )
         return &factory;
+
     return nullptr;
   }
 
@@ -199,14 +207,11 @@ namespace Tac
     ShellInit( errors );
     TAC_HANDLE_ERROR( errors );
 
-    SettingsInit( errors );
-    TAC_HANDLE_ERROR( errors );
-
     FontApi::Init( errors );
     TAC_HANDLE_ERROR( errors );
 
     ImGuiInit();
-   SpaceInit();
+    SpaceInit();
 
     // ensure data path folder exists
     {
@@ -617,13 +622,13 @@ namespace Tac
 
 
   void                DesktopAppInit( PlatformSpawnWindow platformSpawnWindow,
-    PlatformDespawnWindow platformDespawnWindow,
-    PlatformGetMouseHoveredWindow platformGetMouseHoveredWindow,
-    PlatformFrameBegin platformFrameBegin,
-    PlatformFrameEnd platformFrameEnd,
-    PlatformWindowMoveControls platformWindowMoveControls,
-    PlatformWindowResizeControls platformWindowResizeControls,
-    Errors& errors )
+                                      PlatformDespawnWindow platformDespawnWindow,
+                                      PlatformGetMouseHoveredWindow platformGetMouseHoveredWindow,
+                                      PlatformFrameBegin platformFrameBegin,
+                                      PlatformFrameEnd platformFrameEnd,
+                                      PlatformWindowMoveControls platformWindowMoveControls,
+                                      PlatformWindowResizeControls platformWindowResizeControls,
+                                      Errors& errors )
   {
     PlatformThreadInit( errors );
     TAC_HANDLE_ERROR( errors );
@@ -674,6 +679,8 @@ namespace Tac
     ShellSetPrefPath( prefPath.c_str() );
     ShellSetInitialWorkingDir( workingDir );
 
+    SettingsInit( errors );
+    TAC_HANDLE_ERROR( errors );
 
     RegisterRenderers();
     CreateRenderer( errors );

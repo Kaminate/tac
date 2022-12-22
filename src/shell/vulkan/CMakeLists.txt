@@ -31,4 +31,7 @@ endif()
 # [ ] Q: is this needed to go to definition on vulkan/vulkan.h?
 target_include_directories( TacVkRenderer SYSTEM PUBLIC ${Vulkan_INCLUDE_DIRS} )
 
+# this is used in tac_register_renderers for __has_include( "tac_renderer_vulkan.h" )
+target_include_directories( TacVkRenderer PUBLIC . )
+
 

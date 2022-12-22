@@ -33,14 +33,14 @@ namespace Tac
 
   const char*      TryInferDXGIErrorStr( HRESULT );
 
-#define TAC_DXGI_CALL( errors, call, ... )\
-{\
-  HRESULT result = call( __VA_ARGS__ );\
-  if( FAILED( result ) )\
-  {\
-    DXGICallAux( TAC_STRINGIFY( call ) "( " #__VA_ARGS__ " )", result, errors );\
-    TAC_HANDLE_ERROR( errors );\
-  }\
+#define TAC_DXGI_CALL( errors, call, ... )                                        \
+{                                                                                 \
+  HRESULT result = call( __VA_ARGS__ );                                           \
+  if( FAILED( result ) )                                                          \
+  {                                                                               \
+    DXGICallAux( TAC_STRINGIFY( call ) "( " #__VA_ARGS__ " )", result, errors );  \
+    TAC_HANDLE_ERROR( errors );                                                   \
+  }                                                                               \
 }
 
 

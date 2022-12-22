@@ -8,8 +8,8 @@ add_subdirectory(common)
 add_subdirectory(space)
 
 add_subdirectory(shell)
-#add_subdirectory(creation)
-#add_subdirectory(game)
+add_subdirectory(creation)
+add_subdirectory(game)
 add_subdirectory(game-examples)
-#add_subdirectory(game-weekendtrace)
+add_subdirectory(game-weekendtrace)
 

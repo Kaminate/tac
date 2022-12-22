@@ -60,8 +60,7 @@ function( tac_target TAC_TARGET_SUFFIX )
   target_include_directories( ${TAC_TARGET_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/include"
                                                          "${CMAKE_SOURCE_DIR}/src" )
 
-  target_link_libraries( ${TAC_TARGET_NAME} TacCommon
-                                            TacGhost )
+  target_link_libraries( ${TAC_TARGET_NAME} TacCommon TacGhost )
   # append the vulkan library if it was built...
   if(TARGET TacVkRenderer)
     target_link_libraries( ${TAC_TARGET_NAME} TacVkRenderer  )
@@ -74,6 +73,8 @@ function( tac_target TAC_TARGET_SUFFIX )
     VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
     VS_STARTUP_PROJECT ${TAC_TARGET_NAME}
     LINKER_LANGUAGE CXX )
+
+
 endfunction()
 
 
@@ -90,6 +91,9 @@ if( WIN32 )
   target_compile_options( ${TAC_TARGET_NAME} PUBLIC /ZI ) # Program Database for Edit & Continue
 
   target_link_libraries( ${TAC_TARGET_NAME} TacWinLib  )
+  if(TARGET TacVkRenderer)
+    target_link_libraries( ${TAC_TARGET_NAME} TacVkRenderer  )
+  endif()
 
 endif()
 

@@ -2,8 +2,9 @@ include( CMakePrintHelpers )
 
 # vulkan first supported in https://cmake.org/cmake/help/v3.7/module/FindVulkan.html
 # if vulkan still isn't found, update ${CMAKE_ROOT}/Modules/FindVulkan.cmake
-cmake_minimum_required(VERSION 3.7)
+cmake_minimum_required(VERSION 3.25.1)
 cmake_policy(SET CMP0072 NEW) # prefer latest opengl
+cmake_policy(SET CMP0076 NEW) # convert relative paths to absolute paths in target_sources
 project(Tac CXX)
 
 if( TRUE )
@@ -20,7 +21,7 @@ if (MSVC)
                          /WX  # treat linker warnings as errors
                          /MP  # multi processor compilation
                          /experimental:module) # modules???
-else()
+else() # gcc, clang
     add_compile_options( -Wall
                          -Wextra
                          -Werror
@@ -38,6 +39,7 @@ else()
 
 endif()
 
+# allow including files from #include "src/..."
 include_directories( ${CMAKE_SOURCE_DIR} )
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
