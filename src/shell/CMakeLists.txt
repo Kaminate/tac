@@ -1,14 +1,57 @@
-add_subdirectory(windows)
-add_subdirectory(opengl)
-add_subdirectory(sdl)
-add_subdirectory(vulkan)
 
-set("TAC_DESKTOP_APP_FILES"
-"${CMAKE_CURRENT_SOURCE_DIR}/tac_desktop_app.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/tac_desktop_app.h"
-"${CMAKE_CURRENT_SOURCE_DIR}/tac_desktop_window_graphics.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/tac_desktop_window_graphics.h"
-"${CMAKE_CURRENT_SOURCE_DIR}/tac_desktop_window_settings_tracker.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/tac_desktop_window_settings_tracker.h"
-"${CMAKE_CURRENT_SOURCE_DIR}/tac_register_renderers.cpp"
-CACHE INTERNAL "")
+find_package( Vulkan )
+if( Vulkan_FOUND )
+  if( WIN32 )
+    add_library( TacWinVk )
+    target_sources( TacWinVk PUBLIC
+      "tac_win_vk.cpp"
+      "tac_win_vk.h"
+      "tac_desktop_vk.h"
+      "tac_desktop_vk.cpp"
+    )
+    # target_link_libraries( TacWinVk Vulkan::Vulkan )
+    target_include_directories( TacWinVk SYSTEM PUBLIC ${Vulkan_INCLUDE_DIRS} )
+  endif() # if( WIN32 )
+
+  find_package( SDL2 )
+  if( SDL2_FOUND )
+    add_library( TacSDLVk )
+    target_sources( TacSDLVk PUBLIC
+      "tac_sdl_vk.cpp"
+      "tac_sdl_vk.h"
+      "tac_desktop_vk.h"
+      "tac_desktop_vk.cpp"
+    )
+    # target_link_libraries( TacSDLVk Vulkan::Vulkan )
+    target_include_directories( TacSDLVk SYSTEM PUBLIC ${Vulkan_INCLUDE_DIRS} )
+  endif() # if( SDL2_FOUND )
+endif() # if( Vulkan_FOUND )
+
+
+add_subdirectory( windows )
+add_subdirectory( opengl )
+add_subdirectory( sdl )
+add_subdirectory( vulkan )
+
+add_library( TacDesktopApp OBJECT )
+target_sources( TacDesktopApp
+  PRIVATE
+  "tac_desktop_app.cpp"
+  "tac_desktop_window_graphics.cpp"
+  "tac_desktop_window_settings_tracker.cpp"
+  "tac_register_renderers.cpp"
+  PUBLIC
+  "tac_desktop_window_graphics.h"
+  "tac_desktop_window_settings_tracker.h"
+  "tac_desktop_app.h"
+  "tac_register_renderers.h"
+)
+
+# for tac_register_renderers
+if( WIN32 )
+  target_include_directories( TacDesktopApp PRIVATE "windows/renderer" )
+endif()
+
+if( Vulkan_FOUND )
+  target_include_directories( TacDesktopApp PRIVATE "vulkan" )
+endif()

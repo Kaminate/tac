@@ -13,11 +13,17 @@ set( TAC_SOURCES
   "tac_examples_state_machine.h"
   CACHE INTERNAL "" FORCE )
 
+# These append to TAC_SOURCES
 add_subdirectory( d3d11 )
 add_subdirectory( fluid )
 add_subdirectory( meta )
 add_subdirectory( phy_sim )
 add_subdirectory( vk )
+
+
+add_library( TacExamples )
+target_sources( TacExamples PUBLIC ${TAC_SOURCES} )
+
 
 function( tac_target )
   if( WIN32 )
@@ -26,16 +32,17 @@ function( tac_target )
     add_executable( ${PROJECT_NAME} )
   endif()
 
-  target_sources( ${PROJECT_NAME} PRIVATE 
-    ${TAC_SOURCES}
-    ${TAC_DESKTOP_APP_FILES} )
+  # target_sources( ${PROJECT_NAME} PRIVATE ${TAC_SOURCES} )
 
-
-
-  target_link_libraries( ${PROJECT_NAME} TacCommon TacGhost )
+  target_link_libraries( ${PROJECT_NAME}
+    TacCommon
+    TacGhost
+    $<TARGET_OBJECTS:TacDesktopApp>
+    TacExamples
+  )
   # append the vulkan library if it was built...
   if(TARGET TacVkRenderer)
-    target_link_libraries( ${PROJECT_NAME} TacVkRenderer  )
+    target_link_libraries( ${PROJECT_NAME} TacVkRenderer TacWinVk )
   else()
     message("not including vulkan renderer in game-examples")
   endif()
@@ -66,7 +73,11 @@ if( WIN32 )
   target_link_libraries( ${PROJECT_NAME} TacWin  )
   
   if(TARGET TacVkRenderer)
-    target_link_libraries( ${PROJECT_NAME} TacVkRenderer  )
+    target_link_libraries( ${PROJECT_NAME} TacVkRenderer  TacWinVk )
+    target_sources( ${PROJECT_NAME} PRIVATE
+        "${CMAKE_SOURCE_DIR}/src/shell/tac_win_vk.cpp"
+        "${CMAKE_SOURCE_DIR}/src/shell/tac_win_vk.h"
+        )
   endif()
 
 endif()

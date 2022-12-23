@@ -121,15 +121,43 @@ void TacVulkanCallAux( TacErrors& errors, TacString functionName, VkResult res )
 
 #include <vulkan/vulkan.h>
 
+#define TAC_VK_CALL( errors, call, ... )                                       \
+{                                                                              \
+  VkResult result = call( __VA_ARGS__ );                                       \
+  if( result )                                                                 \
+  {                                                                            \
+    VkCallAux( TAC_STRINGIFY( call ) "( " #__VA_ARGS__ " )", result, errors ); \
+    TAC_HANDLE_ERROR( errors );                                                \
+  }                                                                            \
+}
 
 namespace Tac
 {
   struct Errors;
+
+
+  void VkCallAux( const char* fnCallWithArgs, VkResult, Errors& );
+
   namespace Render
   {
     void RegisterRendererVulkan();
 
-    void VkCallAux( const char* fnCallWithArgs, VkResult, Errors& );
+    struct FramebufferVk
+    {
+      VkSurfaceKHR _surface{}; // Vulkan window surface
+      VkSwapchainKHR _swapchain{}; // from other articles
+
+      // image format expected by the windowing system
+      VkFormat _swapchainImageFormat{};
+
+      //array of images from the swapchain
+      Vector<VkImage> _swapchainImages;
+
+      //array of image-views from the swapchain
+      Vector<VkImageView> _swapchainImageViews;
+
+      String mDebugName;
+    };
 
     struct RendererVulkan : public Renderer
     {
@@ -137,55 +165,58 @@ namespace Tac
       VkDebugUtilsMessengerEXT _debug_messenger{}; // Vulkan debug output handle
       VkPhysicalDevice _chosenGPU{  }; // GPU chosen as the default device
       VkDevice _device{}; // Vulkan device for commands
-      VkSurfaceKHR _surface{}; // Vulkan window surface
 
       virtual ~RendererVulkan();
       void Init( Errors& ) override;
-    void RenderBegin( const Render::Frame*, Errors& ) override;
-    void RenderDrawCall( const Render::Frame*, const Render::DrawCall*, Errors& ) override;
-    void RenderEnd( const Render::Frame*, Errors& ) override;
+      void RenderBegin( const Render::Frame*, Errors& ) override;
+      void RenderDrawCall( const Render::Frame*, const Render::DrawCall*, Errors& ) override;
+      void RenderEnd( const Render::Frame*, Errors& ) override;
 
-    void SwapBuffers() override;
-    void GetPerspectiveProjectionAB( float f,
-                                     float n,
-                                     float& a,
-                                     float& b ) override;
-    void AddBlendState( Render::CommandDataCreateBlendState*, Errors& ) override;
-    void AddConstantBuffer( Render::CommandDataCreateConstantBuffer*, Errors& ) override;
-    void AddDepthState( Render::CommandDataCreateDepthState*, Errors& ) override;
-    void AddFramebuffer( Render::CommandDataCreateFramebuffer*, Errors& ) override;
-    void AddIndexBuffer( Render::CommandDataCreateIndexBuffer*, Errors& ) override;
-    void AddRasterizerState( Render::CommandDataCreateRasterizerState*, Errors& ) override;
-    void AddSamplerState( Render::CommandDataCreateSamplerState*, Errors& ) override;
-    void AddShader( Render::CommandDataCreateShader*, Errors& ) override;
-    void AddTexture( Render::CommandDataCreateTexture*, Errors& ) override;
-    void AddMagicBuffer( Render::CommandDataCreateMagicBuffer*, Errors& ) override;
-    void AddVertexBuffer( Render::CommandDataCreateVertexBuffer*, Errors& ) override;
-    void AddVertexFormat( Render::CommandDataCreateVertexFormat*, Errors& ) override;
-    void DebugGroupBegin( StringView ) override;
-    void DebugGroupEnd() override;
-    void DebugMarker( StringView ) override;
-    void RemoveBlendState( Render::BlendStateHandle, Errors& ) override;
-    void RemoveConstantBuffer( Render::ConstantBufferHandle, Errors& ) override;
-    void RemoveDepthState( Render::DepthStateHandle, Errors& ) override;
-    void RemoveFramebuffer( Render::FramebufferHandle, Errors& ) override;
-    void RemoveIndexBuffer( Render::IndexBufferHandle, Errors& ) override;
-    void RemoveRasterizerState( Render::RasterizerStateHandle, Errors& ) override;
-    void RemoveSamplerState( Render::SamplerStateHandle, Errors& ) override;
-    void RemoveShader( Render::ShaderHandle, Errors& ) override;
-    void RemoveTexture( Render::TextureHandle, Errors& ) override;
-    void RemoveMagicBuffer( Render::MagicBufferHandle, Errors& ) override;
-    void RemoveVertexBuffer( Render::VertexBufferHandle, Errors& ) override;
-    void RemoveVertexFormat( Render::VertexFormatHandle, Errors& ) override;
-    void ResizeFramebuffer( Render::CommandDataResizeFramebuffer*, Errors& ) override;
-    void SetRenderObjectDebugName( Render::CommandDataSetRenderObjectDebugName*, Errors& ) override;
-    void UpdateConstantBuffer( Render::CommandDataUpdateConstantBuffer*, Errors& ) override;
-    void UpdateIndexBuffer( Render::CommandDataUpdateIndexBuffer*, Errors& ) override;
-    void UpdateTextureRegion( Render::CommandDataUpdateTextureRegion*, Errors& ) override;
-    void UpdateVertexBuffer( Render::CommandDataUpdateVertexBuffer*, Errors& ) override;
-    String GetShaderPath( StringView ) override;
+      void SwapBuffers() override;
+      void GetPerspectiveProjectionAB( float f,
+                                       float n,
+                                       float& a,
+                                       float& b ) override;
+      void AddBlendState( Render::CommandDataCreateBlendState*, Errors& ) override;
+      void AddConstantBuffer( Render::CommandDataCreateConstantBuffer*, Errors& ) override;
+      void AddDepthState( Render::CommandDataCreateDepthState*, Errors& ) override;
+      void AddFramebuffer( Render::CommandDataCreateFramebuffer*, Errors& ) override;
+      void AddIndexBuffer( Render::CommandDataCreateIndexBuffer*, Errors& ) override;
+      void AddRasterizerState( Render::CommandDataCreateRasterizerState*, Errors& ) override;
+      void AddSamplerState( Render::CommandDataCreateSamplerState*, Errors& ) override;
+      void AddShader( Render::CommandDataCreateShader*, Errors& ) override;
+      void AddTexture( Render::CommandDataCreateTexture*, Errors& ) override;
+      void AddMagicBuffer( Render::CommandDataCreateMagicBuffer*, Errors& ) override;
+      void AddVertexBuffer( Render::CommandDataCreateVertexBuffer*, Errors& ) override;
+      void AddVertexFormat( Render::CommandDataCreateVertexFormat*, Errors& ) override;
+      void DebugGroupBegin( StringView ) override;
+      void DebugGroupEnd() override;
+      void DebugMarker( StringView ) override;
+      void RemoveBlendState( Render::BlendStateHandle, Errors& ) override;
+      void RemoveConstantBuffer( Render::ConstantBufferHandle, Errors& ) override;
+      void RemoveDepthState( Render::DepthStateHandle, Errors& ) override;
+      void RemoveFramebuffer( Render::FramebufferHandle, Errors& ) override;
+      void RemoveIndexBuffer( Render::IndexBufferHandle, Errors& ) override;
+      void RemoveRasterizerState( Render::RasterizerStateHandle, Errors& ) override;
+      void RemoveSamplerState( Render::SamplerStateHandle, Errors& ) override;
+      void RemoveShader( Render::ShaderHandle, Errors& ) override;
+      void RemoveTexture( Render::TextureHandle, Errors& ) override;
+      void RemoveMagicBuffer( Render::MagicBufferHandle, Errors& ) override;
+      void RemoveVertexBuffer( Render::VertexBufferHandle, Errors& ) override;
+      void RemoveVertexFormat( Render::VertexFormatHandle, Errors& ) override;
+      void ResizeFramebuffer( Render::CommandDataResizeFramebuffer*, Errors& ) override;
+      void SetRenderObjectDebugName( Render::CommandDataSetRenderObjectDebugName*, Errors& ) override;
+      void UpdateConstantBuffer( Render::CommandDataUpdateConstantBuffer*, Errors& ) override;
+      void UpdateIndexBuffer( Render::CommandDataUpdateIndexBuffer*, Errors& ) override;
+      void UpdateTextureRegion( Render::CommandDataUpdateTextureRegion*, Errors& ) override;
+      void UpdateVertexBuffer( Render::CommandDataUpdateVertexBuffer*, Errors& ) override;
+      String GetShaderPath( StringView ) override;
+
+      FramebufferVk              mFramebuffers[ kMaxFramebuffers ] = {};
+      FramebufferHandle          mWindows[ kMaxFramebuffers ];
+      int                        mWindowCount = 0;
     };
-  
+
 
   } // namespace Render
 

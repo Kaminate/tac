@@ -34,4 +34,6 @@ target_include_directories( TacVkRenderer SYSTEM PUBLIC ${Vulkan_INCLUDE_DIRS} )
 # this is used in tac_register_renderers for __has_include( "tac_renderer_vulkan.h" )
 target_include_directories( TacVkRenderer PUBLIC . )
 
-
+# ???
+include_directories( . )
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR} )

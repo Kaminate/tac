@@ -20,6 +20,7 @@
 #include "src/shell/tac_desktop_app.h"
 #include "src/shell/tac_desktop_window_graphics.h"
 #include "src/shell/tac_desktop_window_settings_tracker.h"
+#include "src/shell/tac_register_renderers.h"
 #include "src/space/tac_space.h"
 
 #include <mutex>
@@ -106,7 +107,7 @@ namespace Tac
   thread_local ThreadType              gThreadType = ThreadType::Unknown;
 
 
-  void RegisterRenderers();
+  //void RegisterRenderers();
 
   static const char* GetDefaultRendererName()
   {

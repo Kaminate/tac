@@ -8,7 +8,5 @@ target_sources(TacWin PRIVATE
   "tac_renderer_directx12.cpp"
   "tac_renderer_directx12.h"
   "tac_renderer_directx_pix.cpp"
-  "tac_renderer_opengl4_win32.cpp"
-  "tac_renderer_vulkan_win32.cpp"
 )
 

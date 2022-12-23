@@ -434,7 +434,7 @@ namespace Tac
 
       Render::ViewHandle mViewId;
       //World*             mWorld;
-      Graphics*          mGraphics;
+      Graphics*          mGraphics = nullptr;
     } myModelVisitor;
     myModelVisitor.mViewId = viewId;
     myModelVisitor.mGraphics = graphics;

@@ -33,8 +33,14 @@ function( tac_target )
   endif()
 
   if( TARGET TacVkRenderer )
-    target_link_libraries( ${TAC_TARGET_NAME} TacVkRenderer ) 
+    target_link_libraries( ${TAC_TARGET_NAME} TacVkRenderer TacWinVk )
+
   endif()
+
+  target_link_libraries( ${TAC_TARGET_NAME} 
+    TacCommon
+    $<TARGET_OBJECTS:TacDesktopApp>
+    TacGhost )
 
   # note: variables names are case-sensitive
   find_package( OpenGL )
@@ -73,8 +79,6 @@ function( tac_target )
     "tac_creation_property_window.h"
     "tac_creation_system_window.cpp"
     "tac_creation_system_window.h"
-    ${TAC_CREATION_SOURCES}
-    ${TAC_DESKTOP_APP_FILES}
   )
 
 endfunction()
@@ -107,7 +111,6 @@ if( SDL2_FOUND AND FALSE )
   target_link_libraries( ${TAC_TARGET_NAME} 
     ${SDL2_LIBRARY}
     TacSDLLib 
-    TacCommon TacGhost
   )
 
   # Add the dl library for linux (dlopen, dlclose) used by gl3w.cpp
