@@ -8,15 +8,11 @@
 namespace Tac
 {
   void Win32VkCreateSurface( VkInstance instance,
-                             //HWND hWnd,
                              const void* nativeWindowHandle,
-                             //const DesktopWindowHandle& desktopWindowHandle,
                              VkSurfaceKHR* psurface,
                              Errors& errors )
   {
-    //const DesktopWindowState* state = GetDesktopWindowState( desktopWindowHandle );
     const HINSTANCE hInstance = Win32GetStartupInstance();
-    //const HWND hWnd = ( HWND )state->mNativeWindowHandle;
     const HWND hWnd = ( HWND )nativeWindowHandle;
     TAC_ASSERT( hInstance );
     TAC_ASSERT( hWnd );

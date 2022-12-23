@@ -5,6 +5,18 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "(lldb) sdl vk tri standalone",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build_unix_makefiles/standalone_sdl_vk_1_tri",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "lldb"
+        },
+        {
             "name": "debug tac Examples with clang",
             "type": "cppdbg",
             "request": "launch",

@@ -37,6 +37,12 @@ else() # gcc, clang
                          -Wno-unused-value
                          -Wno-unused-variable )
 
+    # vma library on macos
+    add_compile_options( #-Wno-nullability-completeness 
+                         -Wno-nullability-extension
+                         #-Wno-nonnull
+                         )
+
 endif()
 
 # allow including files from #include "src/..."

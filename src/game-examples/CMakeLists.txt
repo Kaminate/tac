@@ -42,7 +42,7 @@ function( tac_target )
   )
   # append the vulkan library if it was built...
   if(TARGET TacVkRenderer)
-    target_link_libraries( ${PROJECT_NAME} TacVkRenderer TacWinVk )
+    target_link_libraries( ${PROJECT_NAME} TacVkRenderer )
   else()
     message("not including vulkan renderer in game-examples")
   endif()
@@ -73,7 +73,7 @@ if( WIN32 )
   target_link_libraries( ${PROJECT_NAME} TacWin  )
   
   if(TARGET TacVkRenderer)
-    target_link_libraries( ${PROJECT_NAME} TacVkRenderer  TacWinVk )
+    target_link_libraries( ${PROJECT_NAME} TacWinVk )
     target_sources( ${PROJECT_NAME} PRIVATE
         "${CMAKE_SOURCE_DIR}/src/shell/tac_win_vk.cpp"
         "${CMAKE_SOURCE_DIR}/src/shell/tac_win_vk.h"
@@ -91,6 +91,13 @@ if( SDL2_FOUND )
   target_sources( ${PROJECT_NAME} PRIVATE ${TAC_SDL_MAIN_FILES} )
 
   
+  if(TARGET TacVkRenderer)
+    target_link_libraries( ${PROJECT_NAME} TacSDLVk )
+    target_sources( ${PROJECT_NAME} PRIVATE
+        "${CMAKE_SOURCE_DIR}/src/shell/tac_sdl_vk.cpp"
+        "${CMAKE_SOURCE_DIR}/src/shell/tac_sdl_vk.h"
+        )
+  endif()
 
   target_precompile_headers( ${PROJECT_NAME} PRIVATE 
     "${CMAKE_SOURCE_DIR}/src/common/tac_precompiled_header.h"

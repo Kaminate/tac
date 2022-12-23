@@ -2,10 +2,14 @@
 #include "src/common/tac_os.h"
 #include "src/common/tac_id_collection.h"
 #include "src/common/tac_desktop_window.h"
+#include "src/common/tac_utility.h"
 
-#include <SDL_syswm.h>
+#include <SDL_syswm.h> // system window manager
+#include <SDL_rwops.h> // file i/o abstraction, read write operations
 
 #include <filesystem> // ?!
+#include <iostream> // ?!
+#include <fstream> // ?!
 
 namespace Tac
 {
@@ -194,9 +198,24 @@ namespace Tac
 
   static struct SDLOS : public OS
   {
-    void            OSSaveToFile( StringView path, void* bytes, int byteCount, Errors& ) override
+    void            OSSaveToFile( StringView path, void* bytes, int byteCount, Errors& errors ) override
     {
-      TAC_CRITICAL_ERROR_UNIMPLEMENTED;
+
+      SplitFilepath splitFilepath( path );
+      GetOS()->OSCreateFolderIfNotExist( splitFilepath.mDirectory, errors );
+      TAC_HANDLE_ERROR( errors );
+
+      std::error_code ec;
+      std::filesystem::create_directory( path.c_str(), ec );
+
+      std::ofstream ofs( path.c_str(), std::ofstream::out | std::ofstream::binary );
+      if( !ofs.is_open() )
+      {
+        TAC_RAISE_ERROR( va("failed to open file at %s", path.c_str()), errors);
+      }
+      ofs.write( (const char*)bytes, byteCount );
+
+
     }
 
       // SDL doesn't have this functionality
@@ -371,14 +390,6 @@ namespace Tac
 
   void SDLAppInit( Errors& errors )
   {
-
-    TAC_CRITICAL_ERROR(
-      "todo:"
-      "- add the vulkan renderer back in"
-      "- make it default on sdl"
-      "- test it on macos"
-      );
-
     DesktopAppInit( SDLPlatformSpawnWindow,
                     SDLPlatformDespawnWindow,
                     SDLPlatformGetMouseHoveredWindow,
