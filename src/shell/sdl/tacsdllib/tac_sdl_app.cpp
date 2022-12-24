@@ -1,4 +1,4 @@
-#include "tac_sdl_app.h"
+#include "src/shell/sdl/tacsdllib/tac_sdl_app.h"
 #include "src/common/tac_os.h"
 #include "src/common/tac_id_collection.h"
 #include "src/common/tac_desktop_window.h"
@@ -246,16 +246,10 @@ namespace Tac
 
     void            OSGetApplicationDataPath( String& path, Errors& errors ) override
     {
-      // ??????
-      static String org;
-      static String app;
-      if( org.empty() || app.empty() )
-      {
-        ExecutableStartupInfo info = {};
-        info.Init( errors );
-        org = info.mStudioName;
-        app = info.mAppName;
-      }
+      //ExecutableStartupInfo info = ExecutableStartupInfo::Init();
+      ExecutableStartupInfo info = ExecutableStartupInfo::sInstance;
+      String org = info.mStudioName;
+      String app = info.mAppName;
       TAC_ASSERT( !org.empty() && !app.empty() );
       path = SDL_GetPrefPath( org, app );
     }

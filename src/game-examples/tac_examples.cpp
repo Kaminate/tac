@@ -143,13 +143,12 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
   }
 
-  void          ExecutableStartupInfo::Init( Errors& errors )
+  ExecutableStartupInfo          ExecutableStartupInfo::Init()
   {
-    TAC_UNUSED_PARAMETER( errors );
-    mAppName = "Examples";
-    mProjectInit = ExamplesInitCallback;
-    mProjectUpdate = ExamplesUpdateCallback;
-    mProjectUninit = ExamplesUninitCallback;
+    return { .mAppName = "Examples",
+             .mProjectInit = ExamplesInitCallback,
+             .mProjectUpdate = ExamplesUpdateCallback,
+             .mProjectUninit = ExamplesUninitCallback, };
   }
 
   v3 Example::GetWorldspaceKeyboardDir()

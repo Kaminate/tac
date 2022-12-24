@@ -26,14 +26,16 @@ namespace Tac
 
   struct ExecutableStartupInfo
   {
-    void          Init( Errors& );
+    static ExecutableStartupInfo sInstance;
     String        mAppName;
     String        mStudioName = "Sleeping Studio";
     ProjectInit   mProjectInit = nullptr;
     ProjectUpdate mProjectUpdate = nullptr;
     ProjectUninit mProjectUninit = nullptr;
+    static ExecutableStartupInfo Init();
   };
 
+  //ExecutableStartupInfo InitExecutableStartupInfo();
   //struct WindowHandleIterator
   //{
   //  int* begin();

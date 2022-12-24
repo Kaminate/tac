@@ -56,12 +56,11 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
   }
 
-  void ExecutableStartupInfo::Init( Errors& errors )
+  ExecutableStartupInfo ExecutableStartupInfo::Init()
   {
-    TAC_UNUSED_PARAMETER( errors );
-    mAppName = "Game";
-    mProjectInit = GameCallbackInit;
-    mProjectUpdate = GameCallbackUpdate;
+    return { .mAppName = "Game",
+    .mProjectInit = GameCallbackInit,
+    .mProjectUpdate = GameCallbackUpdate, };
   }
 
 }

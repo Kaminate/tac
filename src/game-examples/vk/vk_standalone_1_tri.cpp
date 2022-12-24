@@ -26,12 +26,12 @@ namespace Tac
   {
   }
 
-  void          ExecutableStartupInfo::Init( Errors& )
+  ExecutableStartupInfo          ExecutableStartupInfo::Init()
   {
-    mAppName = "Vk Ex";
-    mProjectInit = StandaloneInit;
-    mProjectUpdate = StandaloneUpdate;
-    mProjectUninit = StandaloneUninit;
+    return { .mAppName = "Vk Ex",
+    .mProjectInit = StandaloneInit,
+    .mProjectUpdate = StandaloneUpdate,
+    .mProjectUninit = StandaloneUninit, };
   }
 }
 

@@ -257,13 +257,12 @@ namespace Tac
 
   //===-------------- ExecutableStartupInfo -------------===//
 
-  void                ExecutableStartupInfo::Init( Errors& errors )
+  ExecutableStartupInfo                ExecutableStartupInfo::Init()
   {
-    TAC_UNUSED_PARAMETER( errors );
-    mAppName = "Creation";
-    mProjectInit = CreationInitCallback;
-    mProjectUpdate = CreationUpdateCallback;
-    mProjectUninit = CreationUninitCallback;
+    return { .mAppName = "Creation",
+    .mProjectInit = CreationInitCallback,
+    .mProjectUpdate = CreationUpdateCallback,
+    .mProjectUninit = CreationUninitCallback, };
   }
 
   //===-------------- Creation -------------===//

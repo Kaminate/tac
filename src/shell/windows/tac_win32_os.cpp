@@ -7,6 +7,7 @@
 #include "src/common/tac_os.h"
 #include "src/common/tac_preprocessor.h"
 #include "src/common/tac_utility.h"
+#include "src/shell/tac_desktop_app.h"
 #include "src/shell/windows/tac_win32.h"
 
 #include <iostream>
@@ -301,6 +302,10 @@ namespace Tac
     }
     path = WideStringToUTF8( outPath );
     CoTaskMemFree( outPath );
+    path += "\\";
+    path += ExecutableStartupInfo::sInstance.mStudioName;
+    path += "\\";
+    path += ExecutableStartupInfo::sInstance.mAppName;
   }
 
   void Win32OSGetFileLastModifiedTime( time_t* time,

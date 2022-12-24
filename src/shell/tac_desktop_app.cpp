@@ -106,6 +106,7 @@ namespace Tac
   static RequestResize                 sRequestResize[ kDesktopWindowCapacity ];
   thread_local ThreadType              gThreadType = ThreadType::Unknown;
 
+  ExecutableStartupInfo ExecutableStartupInfo::sInstance;
 
   //void RegisterRenderers();
 
@@ -636,26 +637,29 @@ namespace Tac
 
     sEventQueue.Init();
 
-    ExecutableStartupInfo info;
-    info.Init( errors );
-    TAC_HANDLE_ERROR( errors );
+    ExecutableStartupInfo info = ExecutableStartupInfo::Init();
+    ExecutableStartupInfo::sInstance = info;
 
     String appDataPath;
-    bool appDataPathExists;
+    //bool appDataPathExists;
+    // for project standalone_sdl_vk_1_tri on macos, appDataPath =
+    //     /Users/n473/Library/Application Support/Sleeping Studio/Vk Ex/
+    // for project standalone_win_vk_1_tri on win32, appDataPath =
+    //     C:\Users\Nate\AppData\Roaming
     GetOS()->OSGetApplicationDataPath( appDataPath, errors );
-    GetOS()->OSDoesFolderExist( appDataPath, appDataPathExists, errors );
+    GetOS()->OSCreateFolderIfNotExist( appDataPath, errors );
     TAC_HANDLE_ERROR( errors );
-    TAC_ASSERT( appDataPathExists );
+    //TAC_ASSERT( appDataPathExists );
 
-    String appName = info.mAppName;
-    String studioPath = appDataPath + "\\" + info.mStudioName + "\\";
-    String prefPath = studioPath + appName;
+    //String appName = info.mAppName;
+    //String studioPath = appDataPath + "\\" + info.mStudioName + "\\";
+    String prefPath = appDataPath;// studioPath + appName;
 
-    GetOS()->OSCreateFolderIfNotExist( studioPath, errors );
-    TAC_HANDLE_ERROR( errors );
+    //GetOS()->OSCreateFolderIfNotExist( studioPath, errors );
+    //TAC_HANDLE_ERROR( errors );
 
-    GetOS()->OSCreateFolderIfNotExist( prefPath, errors );
-    TAC_HANDLE_ERROR( errors );
+    //GetOS()->OSCreateFolderIfNotExist( prefPath, errors );
+    //TAC_HANDLE_ERROR( errors );
 
     String workingDir;
     GetOS()->OSGetWorkingDir( workingDir, errors );
@@ -676,7 +680,7 @@ namespace Tac
     sProjectUninit = info.mProjectUninit;
 
     // right place?
-    ShellSetAppName( appName.c_str() );
+    ShellSetAppName( info.mAppName.c_str() );
     ShellSetPrefPath( prefPath.c_str() );
     ShellSetInitialWorkingDir( workingDir );
 
