@@ -3,7 +3,7 @@ find_package( Vulkan )
 if( Vulkan_FOUND )
   if( WIN32 )
     add_library( TacWinVk )
-    target_sources( TacWinVk PUBLIC
+    target_sources( TacWinVk PRIVATE
       "tac_win_vk.cpp"
       "tac_win_vk.h"
       "tac_desktop_vk.h"
@@ -16,7 +16,7 @@ if( Vulkan_FOUND )
   find_package( SDL2 )
   if( SDL2_FOUND )
     add_library( TacSDLVk )
-    target_sources( TacSDLVk PUBLIC
+    target_sources( TacSDLVk PRIVATE
       "tac_sdl_vk.cpp"
       "tac_sdl_vk.h"
       "tac_desktop_vk.h"
