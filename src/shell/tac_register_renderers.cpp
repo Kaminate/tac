@@ -2,7 +2,7 @@
 
 #ifdef TAC_USE_RENDERER_VK
 
-#include "tac_renderer_vulkan.h"
+// #include "tac_renderer_vulkan.h"
 static int asdf;
 #endif
 
@@ -33,18 +33,25 @@ namespace Tac
   // function calls
   void RegisterRenderers()
   {
+    static int asdf;
+
 #ifdef TAC_USE_RENDERER_VK
+    asdf++;
 #if __has_include( "tac_renderer_vulkan.h" )
     Render::RegisterRendererVulkan();
+    asdf++;
 #endif
 #endif
 
 #ifdef TAC_USE_RENDERER_DX11
+    asdf++;
 #if __has_include( "tac_renderer_directx11.h" )
     Render::RegisterRendererDirectX11();
+    asdf++;
 #endif
 #endif
 
+    asdf++;
   }
 }
 

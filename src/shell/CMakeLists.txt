@@ -47,6 +47,16 @@ target_sources( TacDesktopApp
   "tac_register_renderers.h"
 )
 
+
+# test begin ???
+if( TARGET TacVkRenderer )
+  target_compile_definitions( TacDesktopApp PRIVATE TAC_USE_RENDERER_VK )
+endif()
+if( WIN32 )
+  target_include_directories( TacDesktopApp PRIVATE TAC_USE_RENDERER_DX11 )
+endif()
+# test end ???
+
 # for tac_register_renderers
 if( WIN32 )
   target_include_directories( TacDesktopApp PRIVATE "windows/renderer" )
