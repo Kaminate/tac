@@ -120,13 +120,19 @@ namespace Tac
   }
 
 
-  static const Render::RendererFactory* GetRendererFactory()
+  static const Render::RendererFactory* GetRendererFactory( Errors& errors )
   {
-    const String chosenRendererName = SettingsGetString( "chosen_renderer", "" );
+    String chosenRendererName = "";
+    Json* rendererJson = SettingsGetJson( "chosen_renderer" );
+    if( rendererJson->mType != JsonType::String )
+    {
+      chosenRendererName = SettingsGetString( "chosen_renderer", "" );
+      SettingsFlush( errors );
+    }
+
     const Render::RendererFactory* chosenFactory = Render::RendererFactoriesFind( chosenRendererName );
     if( chosenFactory )
       return chosenFactory;
-    SettingsSave( true );
 
     const String defaultRendererName = GetDefaultRendererName();
     const Render::RendererFactory* defaultFactory = Render::RendererFactoriesFind( defaultRendererName );
@@ -142,7 +148,8 @@ namespace Tac
   
   static void CreateRenderer( Errors& errors )
   {
-    const Render::RendererFactory* factory = GetRendererFactory();
+    const Render::RendererFactory* factory = GetRendererFactory( errors );
+    TAC_HANDLE_ERROR( errors );
     TAC_RAISE_ERROR_IF( !factory, "Failed to create renderer, are any factories registered?", errors );
     factory->mCreateRenderer();
   }
@@ -250,7 +257,7 @@ namespace Tac
       TAC_PROFILE_BLOCK;
       ProfileSetGameFrame();
 
-      SettingsUpdate( errors );
+      SettingsTick( errors );
       TAC_HANDLE_ERROR( errors );
 
       if( Net::Instance )

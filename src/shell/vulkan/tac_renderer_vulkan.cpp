@@ -87,17 +87,19 @@ namespace Tac
       Vector<String> extensions = GetVkExtensions();
       for( const String& extension : extensions )
       {
+        //.enable_extension( VK_KHR_WIN32_SURFACE_EXTENSION_NAME )
         builder.enable_extension( extension.c_str() );
       }
 
-      vkb::detail::Result<vkb::Instance> inst_ret = builder.set_app_name( appname )
-        .request_validation_layers( true )
-        .require_api_version( 1, 1, 0 )
-        //.enable_extension( VK_KHR_WIN32_SURFACE_EXTENSION_NAME )
-        .use_default_debug_messenger()
-        .build();
+      builder.set_app_name( appname );
+      builder.request_validation_layers( true );
+      builder.require_api_version( 1, 1, 0 );
+      builder.use_default_debug_messenger();
+      vkb::detail::Result<vkb::Instance> inst_ret = builder.build();
+      // idk, debugger on mac shits the bed here, refuses to inspect variables or step further
       if( !inst_ret )
       {
+        inst_ret.
         TAC_RAISE_ERROR( "failed to init vk", errors );
       }
 

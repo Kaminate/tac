@@ -198,15 +198,12 @@ namespace Tac
 
   static struct SDLOS : public OS
   {
-    void            OSSaveToFile( StringView path, void* bytes, int byteCount, Errors& errors ) override
+    void            OSSaveToFile( StringView path, const void* bytes, int byteCount, Errors& errors ) override
     {
 
       SplitFilepath splitFilepath( path );
       GetOS()->OSCreateFolderIfNotExist( splitFilepath.mDirectory, errors );
       TAC_HANDLE_ERROR( errors );
-
-      std::error_code ec;
-      std::filesystem::create_directory( path.c_str(), ec );
 
       std::ofstream ofs( path.c_str(), std::ofstream::out | std::ofstream::binary );
       if( !ofs.is_open() )

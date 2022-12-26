@@ -14,14 +14,33 @@
 namespace Tac
 {
   void SDLVkCreateSurface( VkInstance instance,
-                             const void* nativeWindowHandle,
-                             VkSurfaceKHR* psurface,
-                             Errors& errors )
+                           const void* nativeWindowHandle,
+                           VkSurfaceKHR* psurface,
+                           Errors& errors )
   {
+    TAC_CRITICAL_ERROR_UNIMPLEMENTED;
+
+    VkInstance instance = nullptr;
+
+    SDL_Window* window = nullptr;
+    SDL_bool created = SDL_Vulkan_CreateSurface( window, instance, psurface );
+    if( created == SDL_FALSE )
+    {
+      errors = "SDL_Vulkan_CreateSurface failed!";
+    }
+
+    // !!!
+    // SDL_CreateWindow(... SDL_WINDOW_VULKAN);
+
+    static int asdf;
+    ++asdf;
   }
 
   Vector<String> GetSDLVkExtensions()
   {
+    TAC_CRITICAL_ERROR_UNIMPLEMENTED;
+    static int asdf;
+    ++asdf;
     return { };
   }
 }

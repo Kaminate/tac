@@ -239,7 +239,7 @@ namespace Tac
     }
   }
 
-  void Win32OSSaveToFile( StringView path, void* bytes, int byteCount, Errors& errors )
+  void Win32OSSaveToFile( StringView path, const void* bytes, int byteCount, Errors& errors )
   {
     SplitFilepath splitFilepath( path );
     GetOS()->OSCreateFolderIfNotExist( splitFilepath.mDirectory, errors );
@@ -444,7 +444,7 @@ namespace Tac
 
   struct Win32OS : public OS
   {
-    void        OSSaveToFile( StringView path, void* bytes, int byteCount, Errors&  errors ) override
+    void        OSSaveToFile( StringView path, const void* bytes, int byteCount, Errors&  errors ) override
     {
       return Win32OSSaveToFile( path, bytes, byteCount, errors );
     }
