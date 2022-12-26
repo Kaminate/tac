@@ -39,6 +39,7 @@ namespace Tac
   Vector<String> GetSDLVkExtensions()
   {
     TAC_CRITICAL_ERROR_UNIMPLEMENTED;
+    // SDL_Vulkan_GetInstanceExtensions
     static int asdf;
     ++asdf;
     return { };
