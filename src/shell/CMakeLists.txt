@@ -23,6 +23,7 @@ if( Vulkan_FOUND )
       "tac_desktop_vk.cpp"
     )
     # target_link_libraries( TacSDLVk Vulkan::Vulkan )
+    target_link_libraries( TacSDLVk TacSDL )
     target_include_directories( TacSDLVk SYSTEM PUBLIC ${Vulkan_INCLUDE_DIRS} )
   endif() # if( SDL2_FOUND )
 endif() # if( Vulkan_FOUND )

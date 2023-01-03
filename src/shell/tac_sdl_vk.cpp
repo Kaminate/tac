@@ -10,6 +10,8 @@
 
 #include "src/shell/tac_sdl_vk.h"
 
+// #include <SDL.h>
+#include <SDL_vulkan.h> // SDL_Vulkan_CreateSurface
 
 namespace Tac
 {
@@ -20,28 +22,48 @@ namespace Tac
   {
     TAC_CRITICAL_ERROR_UNIMPLEMENTED;
 
-    VkInstance instance = nullptr;
+    // VkInstance instance = nullptr;
+
+    // The window must have been created with the SDL_WINDOW_VULKAN flag and instance must have been
+    // created with extensions returned by SDL_Vulkan_GetInstanceExtensions() enabled.
 
     SDL_Window* window = nullptr;
     SDL_bool created = SDL_Vulkan_CreateSurface( window, instance, psurface );
-    if( created == SDL_FALSE )
-    {
-      errors = "SDL_Vulkan_CreateSurface failed!";
-    }
-
-    // !!!
-    // SDL_CreateWindow(... SDL_WINDOW_VULKAN);
-
-    static int asdf;
-    ++asdf;
+    TAC_RAISE_ERROR_IF(created == SDL_FALSE, "SDL_Vulkan_CreateSurface failed", errors );
   }
 
-  Vector<String> GetSDLVkExtensions()
+
+  // SDL promises to deprecate the window parameter... one day
+  Vector<String> GetSDLVkExtensions( // SDL_Window* window,
+  Errors& errors )
   {
-    TAC_CRITICAL_ERROR_UNIMPLEMENTED;
-    // SDL_Vulkan_GetInstanceExtensions
-    static int asdf;
-    ++asdf;
-    return { };
+
+
+    SDL_Window* window ;
+    window = SDL_CreateWindow("", 1, 1, 1, 1, 
+      SDL_WINDOW_HIDDEN | SDL_WINDOW_VULKAN );
+    if( !window)
+    {
+      const char* str = SDL_GetError() ;
+      errors.Append( str );
+      return {};
+
+    }
+
+    unsigned int count;
+    const SDL_bool gotCount = SDL_Vulkan_GetInstanceExtensions(window, &count, nullptr );
+    TAC_RAISE_ERROR_IF_RETURN( gotCount != SDL_TRUE, "SDL_Vulkan_GetInstanceExtensions failed to get count", errors, {} );
+
+    Vector< const char* > names( count );
+    const SDL_bool gotNames = SDL_Vulkan_GetInstanceExtensions(window, &count, names.data() );
+    TAC_RAISE_ERROR_IF_RETURN( gotNames != SDL_TRUE, "SDL_Vulkan_GetInstanceExtensions failed to get names", errors, {} );
+
+    Vector< String > result( count );
+    for( unsigned int i = 0; i < count; ++i )
+      result[ i ] = names[ i ];
+
+    SDL_DestroyWindow( window );
+
+    return result;
   }
 }

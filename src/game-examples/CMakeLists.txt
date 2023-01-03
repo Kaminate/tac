@@ -74,10 +74,10 @@ if( WIN32 )
   
   if(TARGET TacVkRenderer)
     target_link_libraries( ${PROJECT_NAME} TacWinVk )
-    target_sources( ${PROJECT_NAME} PRIVATE
-        "${CMAKE_SOURCE_DIR}/src/shell/tac_win_vk.cpp"
-        "${CMAKE_SOURCE_DIR}/src/shell/tac_win_vk.h"
-        )
+    #target_sources( ${PROJECT_NAME} PRIVATE
+    #    "${CMAKE_SOURCE_DIR}/src/shell/tac_win_vk.cpp"
+    #    "${CMAKE_SOURCE_DIR}/src/shell/tac_win_vk.h"
+    #    )
   endif()
 
 endif()
@@ -93,10 +93,10 @@ if( SDL2_FOUND )
   
   if(TARGET TacVkRenderer)
     target_link_libraries( ${PROJECT_NAME} TacSDLVk )
-    target_sources( ${PROJECT_NAME} PRIVATE
-        "${CMAKE_SOURCE_DIR}/src/shell/tac_sdl_vk.cpp"
-        "${CMAKE_SOURCE_DIR}/src/shell/tac_sdl_vk.h"
-        )
+    #target_sources( ${PROJECT_NAME} PRIVATE
+    #     "${CMAKE_SOURCE_DIR}/src/shell/tac_sdl_vk.cpp"
+    #     "${CMAKE_SOURCE_DIR}/src/shell/tac_sdl_vk.h"
+    #     )
   endif()
 
   target_precompile_headers( ${PROJECT_NAME} PRIVATE 

@@ -78,6 +78,7 @@ namespace Tac
       vkDestroyDevice( _device, nullptr );
       vkDestroyInstance( _instance, nullptr );
     };
+
     void RendererVulkan::Init( Errors& errors )
     {
       vkb::InstanceBuilder builder;
@@ -97,11 +98,7 @@ namespace Tac
       builder.use_default_debug_messenger();
       vkb::detail::Result<vkb::Instance> inst_ret = builder.build();
       // idk, debugger on mac shits the bed here, refuses to inspect variables or step further
-      if( !inst_ret )
-      {
-        inst_ret.
-        TAC_RAISE_ERROR( "failed to init vk", errors );
-      }
+      TAC_RAISE_ERROR_IF( !inst_ret, "failed to init vk", errors );
 
       vkb::Instance vkb_inst = inst_ret.value();
       _instance = vkb_inst.instance;

@@ -15,7 +15,11 @@ namespace Tac
                                  VkSurfaceKHR*,
                                  Errors& );
 
+  // This GetVkSurfaceFn and GetVkExtensions are supposed to be platform-agnostic,
+  // so there will exist a Win32 and SDL version of them.
   VkSurfaceFn    GetVkSurfaceFn();
   Vector<String> GetVkExtensions();
+
+
 }
 
