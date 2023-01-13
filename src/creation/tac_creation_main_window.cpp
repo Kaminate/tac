@@ -117,11 +117,11 @@ namespace Tac
         String savePath;
         String suggestedName = entity->mName + ".prefab";
         Errors saveDialogErrors;
-        GetOS()->OSSaveDialog( savePath, suggestedName, saveDialogErrors );
+        OS::OSSaveDialog( savePath, suggestedName, saveDialogErrors );
         if( saveDialogErrors )
         {
           // todo: log it, user feedback
-          GetOS()->OSDebugPrintLine(saveDialogErrors.ToString());
+          OS::OSDebugPrintLine(saveDialogErrors.ToString());
           continue;
         }
 
@@ -134,11 +134,11 @@ namespace Tac
         Errors saveToFileErrors;
         void* bytes = prefabJsonString.data();
         int byteCount = prefabJsonString.size();
-        GetOS()->OSSaveToFile( savePath, bytes, byteCount, saveToFileErrors );
+        OS::OSSaveToFile( savePath, bytes, byteCount, saveToFileErrors );
         if( saveToFileErrors )
         {
           // todo: log it, user feedback
-          GetOS()->OSDebugPrintLine(saveToFileErrors.ToString());
+          OS::OSDebugPrintLine(saveToFileErrors.ToString());
           continue;
         }
       }
@@ -166,7 +166,7 @@ namespace Tac
 
     mCloseRequested |= ImGuiButton( "Close window" );
     if( ImGuiButton( "Close Application" ) )
-      GetOS()->OSAppStopRunning();
+      OS::OSAppStopRunning();
 
     //for( int i = 0; i < 2; ++i )
     //{

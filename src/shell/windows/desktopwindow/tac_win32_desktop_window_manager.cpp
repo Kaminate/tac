@@ -196,12 +196,12 @@ namespace Tac
       case WM_SETFOCUS:
       {
         if( verboseFocus )
-          GetOS()->OSDebugPrintLine("window gained keyboard focus ");
+          OS::OSDebugPrintLine("window gained keyboard focus ");
       } break;
       case WM_KILLFOCUS:
       {
         if( verboseFocus )
-          GetOS()->OSDebugPrintLine("window about to lose keyboard focus" );
+          OS::OSDebugPrintLine("window about to lose keyboard focus" );
       } break;
 
       // Sent when a window belonging to a different application than the active window
@@ -214,19 +214,19 @@ namespace Tac
         if( wParam == TRUE )
         {
           if( verboseActivate )
-          GetOS()->OSDebugPrintLine("The window is being activated" );
+          OS::OSDebugPrintLine("The window is being activated" );
         }
         else
         {
           if( verboseActivate )
-          GetOS()->OSDebugPrintLine("The window is being deactivated" );
+          OS::OSDebugPrintLine("The window is being deactivated" );
         }
       } break;
 
       case WM_CAPTURECHANGED:
       {
         if( verboseCapture )
-          GetOS()->OSDebugPrintLine("WM_CAPTURECHANGED ( mouse capture lost )" );
+          OS::OSDebugPrintLine("WM_CAPTURECHANGED ( mouse capture lost )" );
       } break;
 
 
@@ -435,7 +435,7 @@ namespace Tac
       else
       {
         int monitorW, monitorH;
-        GetOS()->OSGetPrimaryMonitor( &monitorW, &monitorH );
+        OS::OSGetPrimaryMonitor( &monitorW, &monitorH );
         x = monitorW / 4;
         y = monitorH / 4;
         w = monitorW / 2;

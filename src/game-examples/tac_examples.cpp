@@ -77,7 +77,7 @@ namespace Tac
     {
       if( windowEverOpened )
       {
-        GetOS()->OSAppStopRunning();
+        OS::OSAppStopRunning();
       }
     }
   }

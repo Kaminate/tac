@@ -278,7 +278,7 @@ namespace Tac
 		auto websocketKey = GenerateSecWebsocketKey();
 		httpRequest.FormatRequestWebsocket( "/game", mHostname, websocketKey );
 		if( mPrintHTTPRequest )
-          GetOS()->OSDebugPrintLine(httpRequest.ToString());
+          OS::OSDebugPrintLine(httpRequest.ToString());
 		mSocket->Send( httpRequest, errors );
 		TAC_HANDLE_ERROR( errors );
 		mPretendWebsocketHandshakeDone = true;

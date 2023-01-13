@@ -104,7 +104,7 @@ namespace Tac
     if( verbose )
     {
       const char* strDir = CursorDirToString( cursorDir );
-      GetOS()->OSDebugPrintLine( va( "Cursor lock: %s ", strDir ) );
+      OS::OSDebugPrintLine( va( "Cursor lock: %s ", strDir ) );
     }
     mCursorLock = cursorDir;
   }

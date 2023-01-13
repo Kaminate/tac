@@ -148,7 +148,7 @@ namespace Tac
     if( ImGuiButton( "Open Prefab" ) )
     {
       String prefabPath;
-      GetOS()->OSOpenDialog( prefabPath, errors );
+      OS::OSOpenDialog( prefabPath, errors );
       TAC_HANDLE_ERROR( errors );
       if( prefabPath.size() )
       {

@@ -512,18 +512,18 @@ namespace Tac
         if( IsDebugMode() )
         {
           String shaderPath = GetShaderPath( shaderSource );
-          OS* os = GetOS();
-          os->OSDebugPrintLine( va( "Error loading shader from %s", shaderPath.c_str() ) );
+          
+          OS::OSDebugPrintLine( va( "Error loading shader from %s", shaderPath.c_str() ) );
           ParseData parseData( shaderStrFull.data(), shaderStrFull.size() );
           int lineNumber = 1;
-          os->OSDebugPrintLine(" -----------" );
+          OS::OSDebugPrintLine(" -----------" );
           while( parseData.GetRemainingByteCount() )
           {
             StringView parseLine = parseData.EatRestOfLine();
             const char* text = va( "line %3i|%.*s", lineNumber++, parseLine.size(), parseLine.data() );
-            os->OSDebugPrintLine( text );
+            OS::OSDebugPrintLine( text );
           }
-          os->OSDebugPrintLine(" -----------" );
+          OS::OSDebugPrintLine(" -----------" );
         }
 
         const String errMsg = TryImproveShaderErrorMessage( shaderSource,
@@ -628,7 +628,7 @@ namespace Tac
             if( shaderSource.mType == ShaderSource::Type::kPath )
               errors.Append( "Error compiling shader: " + shaderPath );
             errors.Append( TAC_STACK_FRAME );
-            GetOS()->OSDebugPopupBox( errors.ToString() );
+            OS::OSDebugPopupBox( errors.ToString() );
             errors.clear();
           }
           else
@@ -857,7 +857,7 @@ namespace Tac
     void RendererDirectX11::RenderBegin( const Frame*, Errors& )
     {
       if( gVerbose )
-        GetOS()->OSDebugPrintLine("Render2::Begin");
+        OS::OSDebugPrintLine("Render2::Begin");
 
       // Clear bound shader resouce views
       mBoundSRVs.Clear();
@@ -908,7 +908,7 @@ namespace Tac
         } );
 
       if( gVerbose )
-        GetOS()->OSDebugPrintLine("Render2::End");
+        OS::OSDebugPrintLine("Render2::End");
     }
 
 #if 1
@@ -1125,7 +1125,7 @@ namespace Tac
         {
           const IndexBuffer* indexBuffer = &mIndexBuffers[ ( int )drawCall->mIndexBufferHandle ];
           if( !indexBuffer->mBuffer )
-            GetOS()->OSDebugBreak();
+            OS::OSDebugBreak();
           TAC_ASSERT( indexBuffer->mBuffer );
           const DXGI_FORMAT dxgiFormat = GetDXGIFormatTexture( indexBuffer->mFormat );
           const UINT byteOffset = 0; //  drawCall->mStartIndex * indexBuffer->mFormat.mPerElementByteCount;
@@ -1378,7 +1378,7 @@ namespace Tac
     void RendererDirectX11::SwapBuffers()
     {
       if( gVerbose )
-        GetOS()->OSDebugPrintLine("SwapBuffers::Begin");
+        OS::OSDebugPrintLine("SwapBuffers::Begin");
       for( int iWindow = 0; iWindow < mWindowCount; ++iWindow )
         //for( int iFramebuffer = 0; iFramebuffer < kMaxFramebuffers; ++iFramebuffer )
       {
@@ -1405,7 +1405,7 @@ namespace Tac
         framebuffer->mSwapChain->Present( 0, 0 );
       }
       if( gVerbose )
-        GetOS()->OSDebugPrintLine("SwapBuffers::End");
+        OS::OSDebugPrintLine("SwapBuffers::End");
     }
 
 

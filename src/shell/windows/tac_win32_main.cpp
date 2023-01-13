@@ -46,7 +46,7 @@ namespace Tac
   //static void ReportError( StringView desc, Errors& errors )
   //{
   //  if( errors )
-  //    GetOS()->OSDebugPopupBox( desc + " - " + errors.ToString() );
+  //    OS::OSDebugPopupBox( desc + " - " + errors.ToString() );
   //}
 
   static void Win32FrameBegin( Errors& errors )

@@ -478,7 +478,7 @@ namespace Tac
     UpdateCreatedWindowData();
 
     if( AllWindowsClosed() )
-      GetOS()->OSAppStopRunning();
+      OS::OSAppStopRunning();
 
 
     static bool checkedOnce;

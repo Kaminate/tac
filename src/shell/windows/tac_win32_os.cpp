@@ -11,6 +11,7 @@
 #include "src/shell/windows/tac_win32.h"
 
 #include <iostream>
+#include <filesystem>
 #include <ctime> // mktime
 #include <Shlobj.h> // SHGetKnownFolderPath
 #include <commdlg.h> // GetSaveFileNameA
@@ -18,6 +19,10 @@
 
 namespace Tac
 {
+  static const int    kSemaphoreCapacity = 10;
+  static IdCollection gSemaphoreIds( kSemaphoreCapacity );
+  static HANDLE       gSemaphores[ kSemaphoreCapacity ];
+
   struct Win32DirectoryCallbackFunctor
   {
     virtual void operator()( StringView dir,
@@ -103,13 +108,13 @@ namespace Tac
     }
   }
 
-  void Win32OSGetPrimaryMonitor( int* w, int* h )
+  static void Win32OSGetPrimaryMonitor( int* w, int* h )
   {
     *w = GetSystemMetrics( SM_CXSCREEN );
     *h = GetSystemMetrics( SM_CYSCREEN );
   }
 
-  void Win32OSGetWorkingDir( String& dir, Errors& errors )
+  static void Win32OSGetWorkingDir( String& dir, Errors& errors )
   {
     const int bufLen = 1024;
     char buf[ bufLen ] = {};
@@ -123,7 +128,7 @@ namespace Tac
     dir = String( buf, getCurrentDirectoryResult );
   };
 
-  void Win32OSOpenDialog( String& path, Errors& errors )
+  static void Win32OSOpenDialog( String& path, Errors& errors )
   {
     const int outBufSize = 256;
     char outBuf[ outBufSize ] = {};
@@ -157,7 +162,7 @@ namespace Tac
     }
   }
 
-  void Win32OSSaveDialog( String& outPath, StringView suggestedPath, Errors& errors )
+  static void Win32OSSaveDialog( String& outPath, StringView suggestedPath, Errors& errors )
   {
     Array< char, 256 > outBuf = {};
     MemCpy( outBuf.data(), suggestedPath.c_str(), suggestedPath.size() );
@@ -182,24 +187,24 @@ namespace Tac
     outPath = outBuf.data();
   };
 
-  void Win32OSSetScreenspaceCursorPos( const v2& pos, Errors& errors )
+  static void Win32OSSetScreenspaceCursorPos( const v2& pos, Errors& errors )
   {
     TAC_RAISE_ERROR_IF( !SetCursorPos( ( int )pos.x, ( int )pos.y ), Win32GetLastErrorString(), errors );
   }
 
-  void* Win32OSGetLoadedDLL( StringView name )
+  static void* Win32OSGetLoadedDLL( StringView name )
   {
     HMODULE moduleHandle = GetModuleHandleA( name.c_str() );
     return moduleHandle;
   }
 
-  void* Win32OSLoadDLL( StringView path )
+  static void* Win32OSLoadDLL( StringView path )
   {
     HMODULE lib = LoadLibraryA( path.c_str() );
     return lib;
   }
 
-  void Win32OSDoesFolderExist( StringView path, bool& exists, Errors& errors )
+  static void Win32OSDoesFolderExist( StringView path, bool& exists, Errors& errors )
   {
     String expandedPath;
     const char* pathBytes = path.c_str();
@@ -229,8 +234,24 @@ namespace Tac
     exists = true;
   }
 
-  void Win32OSCreateFolder( const StringView path, Errors& errors )
+  static void Win32OSCreateFolder( const StringView path, Errors& errors )
   {
+    bool exists;
+    OS::OSDoesFolderExist(path, exists, errors);
+    TAC_HANDLE_ERROR(errors);
+    if (exists)
+      return;
+
+#if 0
+    std::error_code ec;
+    bool createdbyfs = std::filesystem::create_directory(path.c_str(), ec);
+    TAC_UNUSED_PARAMETER(createdbyfs);
+    String ecmsg = ec.message().c_str();
+#endif
+
+
+
+
     const BOOL createDirectoryResult = CreateDirectoryA( path.c_str(), NULL );
     if( createDirectoryResult == 0 )
     {
@@ -239,10 +260,10 @@ namespace Tac
     }
   }
 
-  void Win32OSSaveToFile( StringView path, const void* bytes, int byteCount, Errors& errors )
+  static void Win32OSSaveToFile( StringView path, const void* bytes, int byteCount, Errors& errors )
   {
     SplitFilepath splitFilepath( path );
-    GetOS()->OSCreateFolderIfNotExist( splitFilepath.mDirectory, errors );
+    OS::OSCreateFolderIfNotExist( splitFilepath.mDirectory, errors );
     TAC_HANDLE_ERROR( errors );
 
     // Note ( from MSDN ):
@@ -282,17 +303,17 @@ namespace Tac
     // Should we check that bytesWrittenCount == byteCount?
   }
 
-  void Win32OSDebugBreak()
+  static void Win32OSDebugBreak()
   {
     Win32DebugBreak();
   }
 
-  void Win32OSDebugPopupBox( StringView s )
+  static void Win32OSDebugPopupBox( StringView s )
   {
     MessageBox( nullptr, s.data(), nullptr, MB_OK );
   }
 
-  void Win32OSGetApplicationDataPath( String& path, Errors& errors )
+  static void Win32OSGetApplicationDataPath( String& path, Errors& errors )
   {
     WCHAR* outPath;
     const HRESULT hr = SHGetKnownFolderPath( FOLDERID_RoamingAppData, KF_FLAG_CREATE, nullptr, &outPath );
@@ -304,11 +325,17 @@ namespace Tac
     CoTaskMemFree( outPath );
     path += "\\";
     path += ExecutableStartupInfo::sInstance.mStudioName;
+
+    OS::OSCreateFolder(path, errors);
+    TAC_HANDLE_ERROR(errors);
+
     path += "\\";
     path += ExecutableStartupInfo::sInstance.mAppName;
+    OS::OSCreateFolder(path, errors);
+    TAC_HANDLE_ERROR(errors);
   }
 
-  void Win32OSGetFileLastModifiedTime( time_t* time,
+  static void Win32OSGetFileLastModifiedTime( time_t* time,
                                   StringView path,
                                   Errors& errors )
   {
@@ -358,7 +385,7 @@ namespace Tac
     *time = result;
   }
 
-  void Win32OSGetFilesInDirectory( Vector< String >& files,
+  static void Win32OSGetFilesInDirectory( Vector< String >& files,
                               StringView dir,
                               OSGetFilesInDirectoryFlags flags,
                               Errors& errors )
@@ -393,7 +420,7 @@ namespace Tac
     Win32DirectoryIterate( dir, &functor, errors );
   }
 
-  void Win32OSGetDirectoriesInDirectory( Vector< String >& dirs,
+  static void Win32OSGetDirectoriesInDirectory( Vector< String >& dirs,
                                     StringView dir,
                                     Errors& errors )
   {
@@ -414,11 +441,8 @@ namespace Tac
     Win32DirectoryIterate( dir, &functor, errors );
   }
 
-  static const int    kSemaphoreCapacity = 10;
-  static IdCollection gSemaphoreIds( kSemaphoreCapacity );
-  static HANDLE       gSemaphores[ kSemaphoreCapacity ];
 
-  SemaphoreHandle Win32OSSemaphoreCreate()
+  static SemaphoreHandle Win32OSSemaphoreCreate()
   {
     const int i = gSemaphoreIds.Alloc();
     HANDLE semaphore = CreateSemaphoreA( NULL, 0, 100, NULL );
@@ -427,14 +451,14 @@ namespace Tac
     return i;
   }
 
-  void            Win32OSSemaphoreDecrementWait( const SemaphoreHandle handle )
+  static void            Win32OSSemaphoreDecrementWait( const SemaphoreHandle handle )
   {
     TAC_ASSERT( handle.IsValid() );
     const HANDLE nativeHandle = gSemaphores[ ( int )handle ];
     WaitForSingleObject( nativeHandle, INFINITE );
   }
 
-  void            Win32OSSemaphoreIncrementPost( const SemaphoreHandle handle )
+  static void            Win32OSSemaphoreIncrementPost( const SemaphoreHandle handle )
   {
     TAC_ASSERT( handle.IsValid() );
     const HANDLE nativeHandle = gSemaphores[ ( int )handle ];
@@ -442,111 +466,27 @@ namespace Tac
   }
 
 
-  struct Win32OS : public OS
-  {
-    void        OSSaveToFile( StringView path, const void* bytes, int byteCount, Errors&  errors ) override
-    {
-      return Win32OSSaveToFile( path, bytes, byteCount, errors );
-    }
-
-    void        OSDoesFolderExist( StringView path, bool& exists, Errors& errors ) override
-    {
-      return Win32OSDoesFolderExist( path, exists, errors );
-    }
-
-    void        OSCreateFolder( StringView path, Errors& errors ) override
-    {
-      return Win32OSCreateFolder( path, errors );
-    }
-
-    void        OSDebugBreak() override { Win32OSDebugBreak(); }
-
-    void        OSDebugPopupBox( StringView s ) override { return Win32OSDebugPopupBox( s ); }
-
-    void        OSGetApplicationDataPath( String& path, Errors& e ) override
-    {
-      return Win32OSGetApplicationDataPath( path, e );
-    }
-
-    void        OSGetFileLastModifiedTime( time_t* t, StringView path, Errors& e ) override
-    {
-      return Win32OSGetFileLastModifiedTime( t, path, e );
-    }
-
-    void        OSGetFilesInDirectory( Vector< String >& files,
-                                       StringView dir,
-                                       OSGetFilesInDirectoryFlags flags,
-                                       Errors& e )
-    {
-      return Win32OSGetFilesInDirectory( files, dir, flags, e );
-    }
-
-    void        OSGetDirectoriesInDirectory( Vector< String >& dirs, StringView dir, Errors& e ) override
-    {
-      return Win32OSGetDirectoriesInDirectory( dirs, dir, e );
-    }
-
-    void        OSSaveDialog( String& path, StringView suggestedPath, Errors& e ) override
-    {
-      return Win32OSSaveDialog( path, suggestedPath, e );
-    }
-
-    void        OSOpenDialog( String& path, Errors& e ) override
-    {
-      return Win32OSOpenDialog( path, e );
-    }
-
-
-    //          same as current dir
-    void        OSGetWorkingDir( String& dir, Errors& e ) override
-    {
-      return Win32OSGetWorkingDir( dir, e );
-    }
-
-
-    void        OSGetPrimaryMonitor( int* w, int* h ) override
-    {
-      return Win32OSGetPrimaryMonitor( w, h );
-    }
-
-    void        OSSetScreenspaceCursorPos( const v2& v, Errors& e ) override
-    {
-      return Win32OSSetScreenspaceCursorPos( v, e );
-    }
-
-    void*       OSGetLoadedDLL( StringView name ) override
-    {
-      return Win32OSGetLoadedDLL( name );
-    }
-
-    void*       OSLoadDLL( StringView path ) override
-    {
-      return Win32OSLoadDLL( path );
-    }
-
-    SemaphoreHandle OSSemaphoreCreate() override
-    {
-      return Win32OSSemaphoreCreate();
-    }
-
-    void            OSSemaphoreDecrementWait( SemaphoreHandle handle ) override
-    {
-      return Win32OSSemaphoreDecrementWait( handle );
-    }
-
-    void            OSSemaphoreIncrementPost( SemaphoreHandle handle ) override
-    {
-      return Win32OSSemaphoreIncrementPost( handle );
-    }
-
-
-  };
-
-  static Win32OS sWin32OS;
-
   void             Win32OSInit()
   {
-    SetOS( &sWin32OS );
+    OS::OSSemaphoreIncrementPost = &Win32OSSemaphoreIncrementPost;
+    OS::OSSemaphoreDecrementWait = Win32OSSemaphoreDecrementWait;
+    OS::OSSemaphoreCreate = Win32OSSemaphoreCreate;
+    OS::OSSaveToFile = Win32OSSaveToFile;
+    OS::OSDoesFolderExist = Win32OSDoesFolderExist;
+    OS::OSCreateFolder = Win32OSCreateFolder;
+    OS::OSDebugBreak = Win32OSDebugBreak;
+    OS::OSDebugPopupBox = Win32OSDebugPopupBox;
+    OS::OSGetApplicationDataPath = Win32OSGetApplicationDataPath;
+    OS::OSGetFileLastModifiedTime = Win32OSGetFileLastModifiedTime;
+    OS::OSGetFilesInDirectory = Win32OSGetFilesInDirectory;
+    OS::OSGetDirectoriesInDirectory = Win32OSGetDirectoriesInDirectory;
+    OS::OSSaveDialog = Win32OSSaveDialog;
+    OS::OSOpenDialog = Win32OSOpenDialog;
+    OS::OSGetWorkingDir = Win32OSGetWorkingDir;
+    OS::OSGetPrimaryMonitor = Win32OSGetPrimaryMonitor;
+    OS::OSSetScreenspaceCursorPos = Win32OSSetScreenspaceCursorPos;
+    OS::OSGetLoadedDLL = Win32OSGetLoadedDLL;
+    OS::OSLoadDLL = Win32OSLoadDLL;
   }
 }
 

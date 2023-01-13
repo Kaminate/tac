@@ -115,9 +115,9 @@ namespace Tac
       r1.x, r1.y, r1.z,
       r2.x, r2.y, r2.z );
 
-    OS* os = GetOS();
-    os->OSDebugPrintLine( buf );
-    os->OSDebugPrintLine( "\n" );
+    
+    OS::OSDebugPrintLine( buf );
+    OS::OSDebugPrintLine( "\n" );
 
     ImGuiText( va(
       FMT FMT FMT "\n"

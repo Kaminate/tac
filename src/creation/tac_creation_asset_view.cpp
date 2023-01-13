@@ -146,11 +146,11 @@ namespace Tac
   {
     sAssetViewFiles.clear();
     sAssetViewFolders.clear();
-    GetOS()->OSGetFilesInDirectory( sAssetViewFiles,
+    OS::OSGetFilesInDirectory( sAssetViewFiles,
                                     sAssetViewFolderCur,
                                     OSGetFilesInDirectoryFlags::Default,
                                     sAssetViewErrors );
-    GetOS()->OSGetDirectoriesInDirectory( sAssetViewFolders, sAssetViewFolderCur, sAssetViewErrors );
+    OS::OSGetDirectoriesInDirectory( sAssetViewFolders, sAssetViewFolderCur, sAssetViewErrors );
   }
 
   static void UIFoldersUpToCurr()

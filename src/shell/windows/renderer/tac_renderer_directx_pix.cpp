@@ -24,12 +24,12 @@ namespace Tac
 
     Errors e;
     bool exist = false;
-    GetOS()->OSDoesFolderExist( pixInstallPath, exist, e );
+    OS::OSDoesFolderExist( pixInstallPath, exist, e );
     if( !exist )
       return {};
 
     Vector< String > files;
-    GetOS()->OSGetDirectoriesInDirectory( files, pixInstallPath, e );
+    OS::OSGetDirectoriesInDirectory( files, pixInstallPath, e );
 
     for( String s : files )
       if( newest.empty() || newest < s )
@@ -47,17 +47,17 @@ namespace Tac
 
     // Check to see if a copy of WinPixGpuCapturer.dll has already been injected into the application.
     // This may happen if the application is launched through the PIX UI. 
-    if( GetOS()->OSGetLoadedDLL( "WinPixGpuCapturer.dll" ) )
+    if( OS::OSGetLoadedDLL( "WinPixGpuCapturer.dll" ) )
       return;
     //HMODULE moduleHandle = GetModuleHandleA( "WinPixGpuCapturer.dll" );
     //if( moduleHandle )
     //  return;
 
     String path = GetLatestWinPixGpuCapturerPath_Cpp17();
-    void* lib = GetOS()->OSLoadDLL( path.c_str() );
+    void* lib = OS::OSLoadDLL( path.c_str() );
     //HMODULE lib = LoadLibrary( path.c_str() );
     if( !lib )
-      GetOS()->OSDebugPrintLine(
+      OS::OSDebugPrintLine(
         "Warning: Could not find WinPixGpuCapturer.dll."
         " PIX (is it installed?) will not be attachable." );
   }

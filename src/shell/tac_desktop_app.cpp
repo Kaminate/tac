@@ -224,12 +224,12 @@ namespace Tac
 
     // ensure data path folder exists
     {
-      OS* os = GetOS();
+      
       String dataPath;
-      os->OSGetApplicationDataPath( dataPath, errors );
+      OS::OSGetApplicationDataPath( dataPath, errors );
       TAC_HANDLE_ERROR( errors );
 
-      os->OSCreateFolderIfNotExist( dataPath, errors );
+      OS::OSCreateFolderIfNotExist( dataPath, errors );
       TAC_HANDLE_ERROR( errors );
     }
 
@@ -241,7 +241,7 @@ namespace Tac
   {
     ImGuiUninit();
     if( gLogicThreadErrors )
-      GetOS()->OSAppStopRunning();
+      OS::OSAppStopRunning();
     Render::SubmitFinish();
   }
 
@@ -252,7 +252,7 @@ namespace Tac
     LogicThreadInit( errors );
     TAC_HANDLE_ERROR( errors );
 
-    while( GetOS()->OSAppIsRunning() )
+    while( OS::OSAppIsRunning() )
     {
       TAC_PROFILE_BLOCK;
       ProfileSetGameFrame();
@@ -314,7 +314,7 @@ namespace Tac
   static void PlatformThreadUninit()
   {
     if( gPlatformThreadErrors )
-      GetOS()->OSAppStopRunning();
+      OS::OSAppStopRunning();
     Render::RenderFinish();
   }
 
@@ -331,7 +331,7 @@ namespace Tac
     Errors& errors = gPlatformThreadErrors;
     TAC_ON_DESTRUCT( PlatformThreadUninit() );
 
-    while( GetOS()->OSAppIsRunning() )
+    while( OS::OSAppIsRunning() )
     {
       TAC_PROFILE_BLOCK;
 
@@ -647,29 +647,25 @@ namespace Tac
     ExecutableStartupInfo info = ExecutableStartupInfo::Init();
     ExecutableStartupInfo::sInstance = info;
 
-    String appDataPath;
-    //bool appDataPathExists;
-    // for project standalone_sdl_vk_1_tri on macos, appDataPath =
+    // for macos standalone_sdl_vk_1_tri, appDataPath =
+    //
     //     /Users/n473/Library/Application Support/Sleeping Studio/Vk Ex/
-    // for project standalone_win_vk_1_tri on win32, appDataPath =
-    //     C:\Users\Nate\AppData\Roaming
-    GetOS()->OSGetApplicationDataPath( appDataPath, errors );
-    GetOS()->OSCreateFolderIfNotExist( appDataPath, errors );
+    //
+    // for win32 project standalone_win_vk_1_tri, appDataPath =
+    //
+    //     C:\Users\Nate\AppData\Roaming + /Sleeping Studio + /Whatever bro
+    String appDataPath;
+    OS::OSGetApplicationDataPath( appDataPath, errors );
     TAC_HANDLE_ERROR( errors );
-    //TAC_ASSERT( appDataPathExists );
 
-    //String appName = info.mAppName;
-    //String studioPath = appDataPath + "\\" + info.mStudioName + "\\";
-    String prefPath = appDataPath;// studioPath + appName;
-
-    //GetOS()->OSCreateFolderIfNotExist( studioPath, errors );
-    //TAC_HANDLE_ERROR( errors );
-
-    //GetOS()->OSCreateFolderIfNotExist( prefPath, errors );
-    //TAC_HANDLE_ERROR( errors );
+    bool exists;
+    OS::OSDoesFolderExist(appDataPath, exists, errors);
+    TAC_HANDLE_ERROR( errors );
+    TAC_ASSERT(exists);
+    TAC_RAISE_ERROR_IF(!exists, va("app data path %s doesnt exist", appDataPath.c_str()), errors);
 
     String workingDir;
-    GetOS()->OSGetWorkingDir( workingDir, errors );
+    OS::OSGetWorkingDir( workingDir, errors );
     TAC_HANDLE_ERROR( errors );
 
     // Platform Callbacks
@@ -688,7 +684,7 @@ namespace Tac
 
     // right place?
     ShellSetAppName( info.mAppName.c_str() );
-    ShellSetPrefPath( prefPath.c_str() );
+    ShellSetPrefPath( appDataPath.c_str() );
     ShellSetInitialWorkingDir( workingDir );
 
     SettingsInit( errors );
@@ -698,7 +694,6 @@ namespace Tac
     CreateRenderer( errors );
     Render::Init( errors );
     TAC_HANDLE_ERROR( errors );
-
   }
 
   void                DesktopAppRun( Errors& errors )
@@ -777,7 +772,7 @@ namespace Tac
     s += name;
     s += " ";
     s += errors.ToString();
-    GetOS()->OSDebugPopupBox( s );
+    OS::OSDebugPopupBox( s );
   }
 
   void                DesktopAppReportErrors()

@@ -368,7 +368,7 @@ namespace Tac
       socketWinsock->mElapsedSecondsOnLastRecv = ShellGetElapsedSeconds();
       if( mPrintReceivedMessages )
       {
-        GetOS()->OSDebugPrintLine( va( "Received message: %.*s",  recvResult, recvBuf ) );
+        OS::OSDebugPrintLine( va( "Received message: %.*s",  recvResult, recvBuf ) );
       }
 
       socketWinsock->OnMessage( recvBuf, recvResult );
