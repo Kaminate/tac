@@ -4,3 +4,7 @@
 [submodule "src/game-weekendtrace"]
 	path = src/game-weekendtrace
 	url = https://github.com/Kaminate/weekendtrace
+[submodule "src/game-pbrt"]
+	path = src/game-pbrt
+	url = https://github.com/Kaminate/tac-pbrt
+

@@ -22,7 +22,7 @@ add_subdirectory( vk )
 
 
 add_library( TacExamples )
-target_sources( TacExamples PUBLIC ${TAC_SOURCES} )
+target_sources( TacExamples PRIVATE ${TAC_SOURCES} )
 
 
 function( tac_target )
