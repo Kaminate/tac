@@ -119,8 +119,7 @@ namespace Tac
 #endif
   }
 
-
-  static const Render::RendererFactory* GetRendererFactory( Errors& errors )
+  static const Render::RendererFactory* GetRendererFromSettings(Errors& errors)
   {
     String chosenRendererName = "";
     Json* rendererJson = SettingsGetJson( "chosen_renderer" );
@@ -131,16 +130,44 @@ namespace Tac
     }
 
     const Render::RendererFactory* chosenFactory = Render::RendererFactoriesFind( chosenRendererName );
-    if( chosenFactory )
-      return chosenFactory;
+    return chosenFactory;
+  }
 
-    const String defaultRendererName = GetDefaultRendererName();
-    const Render::RendererFactory* defaultFactory = Render::RendererFactoriesFind( defaultRendererName );
-    if(defaultFactory)
-      return defaultFactory;
+  static const Render::RendererFactory* GetRendererPreferredPreprocessorVk()
+  {
+    #if TAC_PREFER_RENDERER_VK
+    const Render::RendererFactory* factory = Render::RendererFactoriesFind( Render::RendererNameVulkan );
+    return factory;
+    #endif
+    return nullptr;
+  }
 
-    for( auto& factory : Render::RendererRegistry() )
+  static const Render::RendererFactory* GetFirstRendererFactory()
+  {
+    for( Render::RendererFactory& factory : Render::RendererRegistry() )
         return &factory;
+    return nullptr;
+  }
+
+  static const Render::RendererFactory* GetRendererFactoryDefault()
+  {
+    const String defaultRendererName = GetDefaultRendererName();
+    return Render::RendererFactoriesFind( defaultRendererName );
+  }
+
+  static const Render::RendererFactory* GetRendererFactory( Errors& errors )
+  {
+    if (const Render::RendererFactory* settingsFactory = GetRendererFromSettings(errors))
+      return settingsFactory;
+
+    if (const Render::RendererFactory* settingsFactory = GetRendererPreferredPreprocessorVk())
+      return settingsFactory;
+
+    if (const Render::RendererFactory* settingsFactory = GetRendererFactoryDefault())
+      return settingsFactory;
+
+    if (const Render::RendererFactory* settingsFactory = GetFirstRendererFactory())
+      return settingsFactory;
 
     return nullptr;
   }

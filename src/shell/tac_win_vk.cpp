@@ -25,7 +25,7 @@ namespace Tac
     TAC_VK_CALL( errors, vkCreateWin32SurfaceKHR, instance, &surface_create_info, nullptr, psurface );
   }
 
-  Vector<String> GetWin32VkExtensions()
+  Vector<String> GetWin32VkExtensions( Errors& )
   {
     return { VK_KHR_WIN32_SURFACE_EXTENSION_NAME };
   }

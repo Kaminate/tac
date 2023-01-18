@@ -2,7 +2,7 @@
 #include "src/common/tac_error_handling.h"
 #include "src/common/shell/tac_shell.h"
 #include "src/shell/tac_desktop_app.h"
-#include "src/shell/tac_desktop_vk.h"
+//#include "src/shell/tac_desktop_vk.h"
 
 #include "vk_types.h"
 #include "VkBootstrap.h"
@@ -81,11 +81,16 @@ namespace Tac
 
     void RendererVulkan::Init( Errors& errors )
     {
+      TAC_ASSERT(mGetVkExtensions);
+      TAC_ASSERT(mGetVkSurfaceFn);
+
       vkb::InstanceBuilder builder;
       const char* appname = ShellGetAppName();
 
 
-      Vector<String> extensions = GetVkExtensions();
+      Vector<String> extensions = mGetVkExtensions(errors); // GetVkExtensions( errors );
+      TAC_HANDLE_ERROR(errors);
+      TAC_ASSERT(!extensions.empty()); // probably
       for( const String& extension : extensions )
       {
         //.enable_extension( VK_KHR_WIN32_SURFACE_EXTENSION_NAME )
@@ -154,9 +159,10 @@ namespace Tac
 
       if( isWindowFramebuffer )
       {
-        VkSurfaceFn fn = GetVkSurfaceFn();
         VkSurfaceKHR _surface;
-        fn( _instance, data->mNativeWindowHandle, &_surface, errors );
+
+        //VkSurfaceFn fn =  GetVkSurfaceFn();
+        mGetVkSurfaceFn( _instance, data->mNativeWindowHandle, &_surface, errors );
         TAC_HANDLE_ERROR( errors );
 
 

@@ -54,13 +54,16 @@ if( WIN32 )
 
   target_compile_options( ${PROJECT_NAME} PUBLIC /ZI ) # Program Database for Edit & Continue
 
+  # this shit dont work...
+  target_compile_definitions( ${PROJECT_NAME} PUBLIC TAC_PREFER_RENDERER_VK )
+
   set_target_properties( ${PROJECT_NAME} PROPERTIES
     VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
     VS_STARTUP_PROJECT ${PROJECT_NAME}
     RUNTIME_OUTPUT_DIRECTORY "${RUNTIME_OUTPUT_DIRECTORY}/${PROJECT_NAME}"
     LINKER_LANGUAGE CXX )
 
-  target_compile_definitions( ${PROJECT_NAME} PRIVATE TAC_USE_RENDERER_DX11 )
+  # target_compile_definitions( ${PROJECT_NAME} PRIVATE TAC_USE_RENDERER_DX11 )
 
 endif() # if( WIN32 )
 

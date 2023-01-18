@@ -196,13 +196,11 @@ namespace Tac
   }
 
 
-  static struct SDLOS : public OS
-  {
-    void            OSSaveToFile( StringView path, const void* bytes, int byteCount, Errors& errors ) override
+    void            SDLOSSaveToFile( StringView path, const void* bytes, int byteCount, Errors& errors ) 
     {
 
       SplitFilepath splitFilepath( path );
-      GetOS()->OSCreateFolderIfNotExist( splitFilepath.mDirectory, errors );
+      OS::OSCreateFolderIfNotExist( splitFilepath.mDirectory, errors );
       TAC_HANDLE_ERROR( errors );
 
       std::ofstream ofs( path.c_str(), std::ofstream::out | std::ofstream::binary );
@@ -217,31 +215,31 @@ namespace Tac
 
       // SDL doesn't have this functionality
       // Maybe we shouldn't and just rely on the folder already existing?
-    void            OSDoesFolderExist( StringView path, bool& exists, Errors& errors ) override
+    void            SDLOSDoesFolderExist( StringView path, bool& exists, Errors& errors ) 
     {
       std::error_code ec;
       exists = std::filesystem::exists( path.c_str(), ec );
       TAC_RAISE_ERROR_IF( ec, ec.message().c_str(), errors );
     }
 
-    void            OSCreateFolder( StringView path, Errors& errors ) override
+    void            SDLOSCreateFolder( StringView path, Errors& errors ) 
     {
       std::error_code ec;
       std::filesystem::create_directory( path.c_str(), ec );
       TAC_RAISE_ERROR_IF( ec, ec.message().c_str(), errors );
     }
 
-    void            OSDebugBreak() override
+    void            SDLOSDebugBreak() 
     {
       SDL_TriggerBreakpoint();
     }
 
-    void            OSDebugPopupBox( StringView s ) override
+    void            SDLOSDebugPopupBox( StringView s ) 
     {
       SDL_ShowSimpleMessageBox( SDL_MESSAGEBOX_ERROR, "Hello", s, nullptr );
     }
 
-    void            OSGetApplicationDataPath( String& path, Errors& errors ) override
+    void            SDLOSGetApplicationDataPath( String& path, Errors& errors ) 
     {
       //ExecutableStartupInfo info = ExecutableStartupInfo::Init();
       ExecutableStartupInfo info = ExecutableStartupInfo::sInstance;
@@ -251,12 +249,12 @@ namespace Tac
       path = SDL_GetPrefPath( org, app );
     }
 
-    void            OSGetFileLastModifiedTime( std::time_t*, StringView path, Errors& ) override
+    void            SDLOSGetFileLastModifiedTime( std::time_t*, StringView path, Errors& ) 
     {
       TAC_CRITICAL_ERROR_UNIMPLEMENTED;
     }
 
-    void            OSGetFilesInDirectoryAux( Vector< String >& files, const std::filesystem::directory_entry& entry )
+    void            SDLOSGetFilesInDirectoryAux( Vector< String >& files, const std::filesystem::directory_entry& entry )
     {
       if( entry.is_regular_file() )
       {
@@ -265,10 +263,10 @@ namespace Tac
       }
     }
 
-    void            OSGetFilesInDirectory( Vector< String >& files,
+    void            SDLOSGetFilesInDirectory( Vector< String >& files,
                                            StringView dir,
                                            OSGetFilesInDirectoryFlags flags,
-                                           Errors& ) override
+                                           Errors& ) 
     {
       std::filesystem::path dirpath = dir.c_str();
       std::filesystem::recursive_directory_iterator itRecurse( dirpath );
@@ -278,19 +276,19 @@ namespace Tac
       {
         for( const std::filesystem::directory_entry& entry : itRecurse )
         {
-          OSGetFilesInDirectoryAux( files, entry );
+          SDLOSGetFilesInDirectoryAux( files, entry );
         }
       }
       else
       {
         for( const std::filesystem::directory_entry& entry : itNonRecurse )
         {
-          OSGetFilesInDirectoryAux( files, entry );
+          SDLOSGetFilesInDirectoryAux( files, entry );
         }
       }
     }
 
-    void            OSGetDirectoriesInDirectory( Vector< String >& dirs, StringView dir, Errors& ) override
+    void            SDLOSGetDirectoriesInDirectory( Vector< String >& dirs, StringView dir, Errors& ) 
     {
       std::filesystem::path dirpath = dir.c_str();
       for( const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator( dirpath ) )
@@ -303,23 +301,23 @@ namespace Tac
       }
     }
 
-    void            OSSaveDialog( String& path, StringView suggestedPath, Errors& ) override
+    void            SDLOSSaveDialog( String& path, StringView suggestedPath, Errors& ) 
     {
       TAC_CRITICAL_ERROR_UNIMPLEMENTED;
     }
 
-    void            OSOpenDialog( String& path, Errors& ) override
+    void            SDLOSOpenDialog( String& path, Errors& ) 
     {
       TAC_CRITICAL_ERROR_UNIMPLEMENTED;
     }
 
-    void            OSGetWorkingDir( String& dir, Errors& ) override
+    void            SDLOSGetWorkingDir( String& dir, Errors& ) 
     {
       // how does this handle utf8? utf16? utf32?
       dir = std::filesystem::current_path().string().c_str();
     }
 
-    void            OSGetPrimaryMonitor( int* w, int* h ) override
+    void            SDLOSGetPrimaryMonitor( int* w, int* h ) 
     {
       int maxArea = 0;
       int maxAreaW = 0;
@@ -341,7 +339,7 @@ namespace Tac
       *h = maxAreaH;
     }
 
-    //void        OSSetScreenspaceCursorPos( v2& pos, Errors& ) override
+    //void        OSSetScreenspaceCursorPos( v2& pos, Errors& ) 
     //{
     //  int x;
     //  int y;
@@ -350,13 +348,29 @@ namespace Tac
     //  pos.y = y;
     //}
 
-    void            OSSetScreenspaceCursorPos( const v2& pos, Errors& errors ) override
+    void            SDLOSSetScreenspaceCursorPos( const v2& pos, Errors& errors ) 
     {
       TAC_RAISE_ERROR_IF( SDL_WarpMouseGlobal( ( int )pos.x, ( int )pos.y ) < 0, SDL_GetError(), errors );
     }
 
 
-    SemaphoreHandle OSSemaphoreCreate() override
+    void* SDLOSGetLoadedDLL(StringView name)
+    {
+      // in windows, you can load a dll with ::LoadLibraryA, 
+      // and check if it has already been loaded with ::GetModuleHandleA
+      //
+      // in sdl, you can load a dll with SDL_LoadObject ( i think ),
+      // but i dont see any way to check if its already been loaded
+      TAC_CRITICAL_ERROR_UNIMPLEMENTED;
+      return nullptr;
+    }
+
+    void* SDLOSLoadDLL(StringView name)
+    {
+      return SDL_LoadObject(name.c_str());
+    }
+
+    SemaphoreHandle SDLOSSemaphoreCreate() 
     {
       const int i = sSDLSemaphoreIds.Alloc();
       SDL_sem* sem = SDL_CreateSemaphore( 0 );
@@ -365,19 +379,17 @@ namespace Tac
       return i;
     }
 
-    void            OSSemaphoreDecrementWait( SemaphoreHandle semaphoreHandle ) override
+    void            SDLOSSemaphoreDecrementWait( SemaphoreHandle semaphoreHandle ) 
     {
       SDL_sem* semaphore = sSDLSemaphores[ ( int )semaphoreHandle ];
       SDL_SemPost( semaphore );
     }
 
-    void            OSSemaphoreIncrementPost( SemaphoreHandle semaphoreHandle ) override
+    void            SDLOSSemaphoreIncrementPost( SemaphoreHandle semaphoreHandle ) 
     {
       SDL_sem* semaphore = sSDLSemaphores[ ( int )semaphoreHandle ];
       SDL_SemPost( semaphore );
     }
-
-  } sSDLOS;
 
   void SDLAppInit( Errors& errors )
   {
@@ -395,7 +407,25 @@ namespace Tac
   void SDLOSInit( Errors& errors )
   {
     TAC_RAISE_ERROR_IF( SDL_Init( SDL_INIT_EVERYTHING ), SDL_GetError(), errors );
-    SetOS( &sSDLOS );
+    OS::OSSaveToFile = SDLOSSaveToFile;
+    OS::OSDoesFolderExist = SDLOSDoesFolderExist;
+    OS::OSCreateFolder = SDLOSCreateFolder;
+    OS::OSDebugBreak = SDLOSDebugBreak;
+    OS::OSDebugPopupBox = SDLOSDebugPopupBox;
+    OS::OSGetApplicationDataPath = SDLOSGetApplicationDataPath;
+    OS::OSGetFileLastModifiedTime = SDLOSGetFileLastModifiedTime;
+    OS::OSGetFilesInDirectory = SDLOSGetFilesInDirectory;
+    OS::OSGetDirectoriesInDirectory = SDLOSGetDirectoriesInDirectory;
+    OS::OSSaveDialog = SDLOSSaveDialog;
+    OS::OSOpenDialog = SDLOSOpenDialog;
+    OS::OSGetWorkingDir = SDLOSGetWorkingDir;
+    OS::OSGetPrimaryMonitor = SDLOSGetPrimaryMonitor;
+    OS::OSSetScreenspaceCursorPos = SDLOSSetScreenspaceCursorPos;
+    OS::OSGetLoadedDLL = SDLOSGetLoadedDLL;
+    OS::OSLoadDLL = SDLOSLoadDLL;
+    OS::OSSemaphoreCreate = SDLOSSemaphoreCreate;
+    OS::OSSemaphoreDecrementWait = SDLOSSemaphoreDecrementWait;
+    OS::OSSemaphoreIncrementPost = SDLOSSemaphoreIncrementPost;
   }
 
 } // namespace Tac

@@ -165,6 +165,12 @@ namespace Tac
       VkDebugUtilsMessengerEXT _debug_messenger{}; // Vulkan debug output handle
       VkPhysicalDevice _chosenGPU{  }; // GPU chosen as the default device
       VkDevice _device{}; // Vulkan device for commands
+      Vector<String>(*mGetVkExtensions)(Errors&);
+      void ( *mGetVkSurfaceFn )( VkInstance,
+                                     const void* nativeWindowHandle,
+                                     //const DesktopWindowHandle&,
+                                     VkSurfaceKHR*,
+                                     Errors& );
 
       virtual ~RendererVulkan();
       void Init( Errors& ) override;

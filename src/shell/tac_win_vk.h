@@ -10,5 +10,5 @@ namespace Tac
                              //const DesktopWindowHandle& desktopWindowHandle,
                              VkSurfaceKHR* psurface,
                              Errors& errors );
-  Vector<String> GetWin32VkExtensions();
+  Vector<String> GetWin32VkExtensions( Errors& );
 }

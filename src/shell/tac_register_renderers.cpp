@@ -1,14 +1,18 @@
 #include "tac_register_renderers.h"
+#include "src/common/tac_preprocessor.h" // Tac::asdf
 
-#ifdef TAC_USE_RENDERER_VK
-
-// #include "tac_renderer_vulkan.h"
-static int asdf;
+#if defined( TAC_USE_RENDERER_VK ) && __has_include( "tac_renderer_vulkan.h" )
+#define TAC_INCLUDED_RENDERER_VULKAN true
+//#include "tac_renderer_vulkan.h"
+#else
+#define TAC_INCLUDED_RENDERER_VULKAN false
 #endif
 
-#ifdef TAC_USE_RENDERER_DX11
-#include "tac_renderer_directx11.h"
-static int fdsa;
+#if defined( TAC_USE_RENDERER_DX11 ) && __has_include( "tac_renderer_directx11.h" )
+#define TAC_INCLUDED_RENDERER_DIRECTX11 true
+//#include "tac_renderer_directx11.h"
+#else
+#define TAC_INCLUDED_RENDERER_DIRECTX11 false
 #endif
 
 namespace Tac
@@ -17,38 +21,24 @@ namespace Tac
   // function forward declarations
   namespace Render
   {
-#ifdef TAC_USE_RENDERER_VK
-#if __has_include( "tac_renderer_vulkan.h" )
+#if TAC_INCLUDED_RENDERER_VULKAN
     void RegisterRendererVulkan();
 #endif
-#endif
 
-#ifdef TAC_USE_RENDERER_DX11
-#if __has_include( "tac_renderer_directx11.h" )
+#if TAC_INCLUDED_RENDERER_DIRECTX11
     void RegisterRendererDirectX11();
-#endif
 #endif
   }
 
   // function calls
   void RegisterRenderers()
   {
-    static int asdf;
-
-#ifdef TAC_USE_RENDERER_VK
-    asdf++;
-#if __has_include( "tac_renderer_vulkan.h" )
+#if TAC_INCLUDED_RENDERER_VULKAN
     Render::RegisterRendererVulkan();
-    asdf++;
-#endif
 #endif
 
-#ifdef TAC_USE_RENDERER_DX11
-    asdf++;
-#if __has_include( "tac_renderer_directx11.h" )
+#if TAC_INCLUDED_RENDERER_DIRECTX11
     Render::RegisterRendererDirectX11();
-    asdf++;
-#endif
 #endif
 
     asdf++;

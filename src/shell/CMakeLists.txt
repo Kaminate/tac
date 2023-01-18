@@ -2,6 +2,7 @@
 find_package( Vulkan )
 if( Vulkan_FOUND )
   if( WIN32 )
+
     add_library( TacWinVk )
     target_sources( TacWinVk PRIVATE
       "tac_win_vk.cpp"
@@ -9,21 +10,34 @@ if( Vulkan_FOUND )
       "tac_desktop_vk.h"
       "tac_desktop_vk.cpp"
     )
+    target_compile_definitions( TacWinVk PRIVATE TAC_USE_DESKTOP_WIN32 )
+
     # target_link_libraries( TacWinVk Vulkan::Vulkan )
     target_include_directories( TacWinVk SYSTEM PUBLIC ${Vulkan_INCLUDE_DIRS} )
   endif() # if( WIN32 )
 
   find_package( SDL2 )
   if( SDL2_FOUND )
+
+  #
+  #  add_library( TacDesktopVk OBJECT )
+  #  set_target_properties(TacDesktopVk PROPERTIES LINKER_LANGUAGE CXX)
+  #  target_sources( TacDesktopVk
+  #    # PRIVATE "tac_desktop_vk.h"
+  #    PUBLIC "tac_desktop_vk.h" )
+#
+
+    # purpose of this library, uhh:
     add_library( TacSDLVk )
     target_sources( TacSDLVk PRIVATE
       "tac_sdl_vk.cpp"
       "tac_sdl_vk.h"
       "tac_desktop_vk.h"
-      "tac_desktop_vk.cpp"
-    )
+      "tac_desktop_vk.h" )
+
     # target_link_libraries( TacSDLVk Vulkan::Vulkan )
     target_link_libraries( TacSDLVk TacSDL )
+    target_compile_definitions( TacSDLVk PRIVATE TAC_USE_DESKTOP_SDL )
     target_include_directories( TacSDLVk SYSTEM PUBLIC ${Vulkan_INCLUDE_DIRS} )
   endif() # if( SDL2_FOUND )
 endif() # if( Vulkan_FOUND )
@@ -33,6 +47,7 @@ add_subdirectory( windows )
 add_subdirectory( opengl )
 add_subdirectory( sdl )
 add_subdirectory( vulkan )
+
 
 add_library( TacDesktopApp OBJECT )
 target_sources( TacDesktopApp
@@ -51,18 +66,18 @@ target_sources( TacDesktopApp
 
 # test begin ???
 if( TARGET TacVkRenderer )
-  target_compile_definitions( TacDesktopApp PRIVATE TAC_USE_RENDERER_VK )
+  target_compile_definitions( TacDesktopApp PUBLIC TAC_USE_RENDERER_VK )
 endif()
 if( WIN32 )
-  target_include_directories( TacDesktopApp PRIVATE TAC_USE_RENDERER_DX11 )
+  target_include_directories( TacDesktopApp PUBLIC TAC_USE_RENDERER_DX11 )
 endif()
 # test end ???
 
 # for tac_register_renderers
 if( WIN32 )
-  target_include_directories( TacDesktopApp PRIVATE "windows/renderer" )
+  target_include_directories( TacDesktopApp PUBLIC "windows/renderer" )
 endif()
 
 if( Vulkan_FOUND )
-  target_include_directories( TacDesktopApp PRIVATE "vulkan" )
+  target_include_directories( TacDesktopApp PUBLIC "vulkan" )
 endif()

@@ -14,6 +14,10 @@ project( TacVkRenderer CXX )
 
 target_link_libraries( TacVkRenderer TacCommon )
 target_link_libraries( TacVkRenderer Vulkan::Vulkan )
+if( TARGET TacDesktopVk)
+  target_link_libraries( TacVkRenderer 
+        $<TARGET_OBJECTS:TacDesktopVk> )
+endif()
 
 target_sources(TacVkRenderer PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/tac_renderer_vulkan.cpp"
                                      "${CMAKE_CURRENT_SOURCE_DIR}/vk_types.h"
