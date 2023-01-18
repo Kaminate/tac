@@ -10,10 +10,10 @@ namespace Tac
   {
     String              mPath;
     DesktopWindowHandle mDesktopWindowHandle;
-    int                 mX;
-    int                 mY;
-    int                 mW;
-    int                 mH;
+    int                 mX = 0;
+    int                 mY = 0;
+    int                 mW = 0;
+    int                 mH = 0;
   };
 
   static Vector< TrackInfo > sTrackInfos;

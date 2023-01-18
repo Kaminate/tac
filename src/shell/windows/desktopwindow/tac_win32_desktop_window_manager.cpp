@@ -119,6 +119,9 @@ namespace Tac
       // Sent as a signal that a window or an application should terminate.
       case WM_CLOSE:
       {
+        // should it be like...
+        // if( window.allow_alt_f4 )
+        //    close window?
         //DesktopEventAssignHandle( desktopWindowHandle, nullptr, 0, 0, 0, 0 );
       } break;
 
