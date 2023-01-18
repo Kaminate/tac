@@ -157,17 +157,15 @@ namespace Tac
 
   static const Render::RendererFactory* GetRendererFactory( Errors& errors )
   {
-    if (const Render::RendererFactory* settingsFactory = GetRendererFromSettings(errors))
-      return settingsFactory;
-
-    if (const Render::RendererFactory* settingsFactory = GetRendererPreferredPreprocessorVk())
-      return settingsFactory;
-
-    if (const Render::RendererFactory* settingsFactory = GetRendererFactoryDefault())
-      return settingsFactory;
-
-    if (const Render::RendererFactory* settingsFactory = GetFirstRendererFactory())
-      return settingsFactory;
+    for (const Render::RendererFactory* settingsFactory : {
+      GetRendererFromSettings(errors),
+      GetRendererPreferredPreprocessorVk(),
+      GetRendererFactoryDefault(),
+      GetFirstRendererFactory() })
+    {
+      if (settingsFactory)
+        return settingsFactory;
+    }
 
     return nullptr;
   }
