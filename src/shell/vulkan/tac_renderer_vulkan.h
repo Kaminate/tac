@@ -118,6 +118,7 @@ void TacVulkanCallAux( TacErrors& errors, TacString functionName, VkResult res )
 
 //#include "src/common/graphics/tac_renderer.h"
 #include "src/common/graphics/tac_renderer_backend.h"
+#include "src/common/tac_common.h"
 
 #include <vulkan/vulkan.h>
 
@@ -133,7 +134,6 @@ void TacVulkanCallAux( TacErrors& errors, TacString functionName, VkResult res )
 
 namespace Tac
 {
-  struct Errors;
 
 
   void VkCallAux( const char* fnCallWithArgs, VkResult, Errors& );

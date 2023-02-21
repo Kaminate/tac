@@ -1,6 +1,7 @@
 #include "src/common/graphics/imgui/tac_imgui.h"
 
 #include "src/common/tac_desktop_window.h"
+#include "src/common/tac_error_handling.h"
 #include "src/common/graphics/tac_ui_2d.h"
 #include "src/common/tac_os.h"
 #include "src/game/tac_game.h"

@@ -1,13 +1,12 @@
 #pragma once
 #include "src/common/containers/tac_vector.h"
 #include "src/common/string/tac_string.h"
+#include "src/common/tac_common.h"
 
 #include <vulkan/vulkan.h>
 
 namespace Tac
 {
-  struct Errors;
-  struct DesktopWindowHandle;
 
   typedef void ( *VkSurfaceFn )( VkInstance,
                                  const void* nativeWindowHandle,

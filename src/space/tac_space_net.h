@@ -1,15 +1,14 @@
-
 #pragma once
-#include "src/common/tac_serialization.h"
-#include "src/common/string/tac_string.h"
-#include "src/common/tac_error_handling.h"
-#include "src/space/tac_component.h"
+
+#include "src/common/tac_serialization.h" // Endianness
+#include "src/space/tac_space.h"
+#include "src/common/tac_common.h"
+
 #include <list>
 #include <cstdint>
+
 namespace Tac
 {
-
-  struct World;
   const Endianness GameEndianness = Endianness::Little;
   enum class NetMsgType : char
   {

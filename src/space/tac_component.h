@@ -1,18 +1,11 @@
 #pragma once
 
-//#include "src/common/containers/tac_fixed_vector.h"
-#include "src/common/tac_serialization.h"
-//#include "src/common/string/tac_string.h"
-//#include "src/space/tac_space_types.h"
+#include "src/common/tac_serialization.h" // NetworkBits
+#include "src/common/tac_common.h"
+#include "src/space/tac_space.h"
 
 namespace Tac
 {
-  struct Entity;
-  struct World;
-  struct ComponentRegistryEntry;
-  struct SystemRegistry;
-  struct SystemRegistryEntry;
-  struct Json;
 
   struct Component
   {

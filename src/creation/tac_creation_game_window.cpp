@@ -2,6 +2,7 @@
 #include "src/common/assetmanagers/tac_model_asset_manager.h"
 #include "src/common/assetmanagers/tac_texture_asset_manager.h"
 #include "src/common/graphics/imgui/tac_imgui.h"
+#include "src/common/tac_error_handling.h"
 #include "src/common/graphics/tac_debug_3d.h"
 #include "src/common/graphics/tac_renderer.h"
 #include "src/common/graphics/tac_ui_2d.h"

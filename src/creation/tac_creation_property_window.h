@@ -1,9 +1,10 @@
 #pragma once
 
+#include "src/common/tac_common.h"
+#include "src/space/tac_space.h"
+
 namespace Tac
 {
-  struct Entity;
-  struct Errors;
 
   struct CreationPropertyWindow
   {

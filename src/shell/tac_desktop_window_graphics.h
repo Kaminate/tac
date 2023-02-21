@@ -1,4 +1,7 @@
 #pragma once
+
+#include "src/common/tac_common.h"
+
 namespace Tac
 {
   namespace Render
@@ -6,8 +9,6 @@ namespace Tac
     struct FramebufferHandle;
     struct ViewHandle;
   }
-
-  struct DesktopWindowHandle;
 
   Render::FramebufferHandle WindowGraphicsGetFramebuffer( const DesktopWindowHandle& );
   Render::ViewHandle        WindowGraphicsGetView( const DesktopWindowHandle& );

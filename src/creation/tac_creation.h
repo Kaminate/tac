@@ -1,21 +1,12 @@
 #pragma once
 
+#include "src/common/tac_common.h"
 #include "src/common/containers/tac_vector.h"
 #include "src/space/tac_space_types.h"
+#include "src/space/tac_space.h"
 
 namespace Tac
 {
-  struct Errors;
-  struct Camera;
-  struct Json;
-  struct Entity;
-  struct World;
-  struct StringView;
-  struct DesktopWindowHandle;
-  struct RelativeSpace;
-  struct GamePresentation;
-  struct SkyboxPresentation;
-
   struct SelectedEntities
   {
     bool                empty();
@@ -71,8 +62,6 @@ namespace Tac
     v3                  mTranslationGizmoDir = {};
     float               mTranslationGizmoOffset = 0;
     Camera*             mEditorCamera{};
-    //GamePresentation*   mGamePresentation = nullptr;
-    //SkyboxPresentation* mSkyboxPresentation = nullptr;
 
     bool                mUpdateAssetView = false;
     EntityUUIDCounter   mEntityUUIDCounter;

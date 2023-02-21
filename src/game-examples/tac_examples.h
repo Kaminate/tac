@@ -1,14 +1,11 @@
 #pragma once
+
 #include "src/common/graphics/tac_renderer.h"
+#include "src/common/tac_common.h"
+#include "src/space/tac_space.h"
 
 namespace Tac
 {
-  struct Errors;
-  struct World;
-  struct Camera;
-  struct v3;
-  struct v2;
-
   struct Example
   {
     Example();

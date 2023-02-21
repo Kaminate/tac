@@ -1,11 +1,10 @@
 #pragma once
 
 #include "src/common/graphics/tac_renderer.h"
+#include "src/common/tac_common.h"
 
 namespace Tac
 {
-  struct Camera;
-  struct Errors;
 
   void SkyboxPresentationInit( Errors& );
   void SkyboxPresentationUninit();

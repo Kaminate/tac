@@ -1,24 +1,15 @@
 #pragma once
 
 #include "src/space/tac_space_types.h"
-#include "src/common/math/tac_vector2.h"
-#include "src/common/math/tac_matrix4.h"
-#include "src/common/string/tac_string.h"
+#include "src/space/tac_space.h"
+#include "src/common/tac_common.h"
 #include "src/common/containers/tac_vector.h"
-#include "src/common/containers/tac_array.h"
 
 #include <list>
 
 namespace Tac
 {
-  struct GameInterface;
-  struct Player;
-  struct Entity;
-  struct System;
-  struct String;
-  struct World;
-  struct Shell;
-  struct SystemRegistryEntry;
+  //struct GameInterface;
   struct Debug3DDrawData;
 
   static const int sPlayerCountMax = 4;

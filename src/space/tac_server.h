@@ -1,8 +1,10 @@
-
 #pragma once
+
 #include "src/space/tac_space_types.h"
 #include "src/space/tac_space_net.h"
+#include "src/space/tac_space.h"
 #include "src/common/containers/tac_vector.h"
+
 #include <list>
 #include <map>
 
@@ -24,14 +26,6 @@ namespace Tac
                                                      void* bytes,
                                                      int byteCount,
                                                      void* userData );
-
-  struct Reader;
-  struct Writer;
-  struct World;
-  struct Entity;
-  struct Player;
-  struct User;
-  struct ScriptRoot;
 
   struct ServerData
   {

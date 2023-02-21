@@ -1,10 +1,10 @@
 #pragma once
 
+#include "src/common/tac_common.h"
+#include "src/space/tac_space.h"
+
 namespace Tac
 {
-  struct World;
-  struct Camera;
-  struct Errors;
   void               VoxelGIPresentationInit( Errors& );
   void               VoxelGIPresentationUninit();
   void               VoxelGIPresentationRender( const World*,

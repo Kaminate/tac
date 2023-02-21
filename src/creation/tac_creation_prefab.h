@@ -1,16 +1,11 @@
 #pragma once
 
 #include "src/space/tac_space_types.h"
+#include "src/space/tac_space.h"
+#include "src/common/tac_common.h"
 
 namespace Tac
 {
-  struct World;
-  struct Camera;
-  struct Errors;
-  struct Entity;
-  struct StringView;
-  struct v3;
-  //struct EntityUUIDCounter;
 
   void                PrefabSave( World* );
   void                PrefabLoadAtPath( EntityUUIDCounter*, World*, Camera*, String, Errors& );

@@ -3,6 +3,7 @@
 
 #include "src/common/graphics/Renderer.h"
 #include "src/common/Shell.h"
+#include "src/common/tac_common.h"
 #include "src/shell/windows/DXGI.h"
 
 #include <d3d12.h>
@@ -16,7 +17,6 @@ namespace Tac
 {
 
 
-struct String;
 
 struct TextureDX12 : public Texture
 {

@@ -1,13 +1,12 @@
 #pragma once
 
 #include "src/common/string/tac_string.h"
+#include "src/space/tac_space.h"
+#include "src/common/tac_common.h"
 
 namespace Tac
 {
   struct Creation;
-  struct Entity;
-  struct Errors;
-  struct Shell;
   struct UI2DDrawData;
   struct UIHierarchyNode;
   struct UIRoot;

@@ -4,6 +4,8 @@
 #include "src/common/math/tac_vector3.h"
 #include "src/common/tac_desktop_window.h"
 #include "src/common/graphics/tac_renderer.h"
+#include "src/space/tac_space.h"
+#include "src/common/tac_common.h"
 
 namespace Tac
 {
@@ -13,20 +15,11 @@ namespace Tac
   struct Debug3DDrawData;
   struct DefaultCBufferPerObject;
   struct DepthState;
-  struct Entity;
-  struct Errors;
-  struct GamePresentation;
-  struct Light;
-  struct Mesh;
-  struct Model;
   struct RasterizerState;
   struct SamplerState;
   struct Shader;
-  struct Shell;
-  struct SkyboxPresentation;
   struct Soul;
   struct UI2DDrawData;
-  struct UIRoot;
   struct VertexFormat;
 
   struct CreationGameWindow

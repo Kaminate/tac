@@ -2,10 +2,10 @@
 
 #include "src/game-examples/tac_examples.h"
 #include "src/common/math/tac_vector3.h"
+#include "src/common/tac_common.h"
 
 namespace Tac
 {
-  struct Errors;
   struct ExamplePhysSim1Force : public Example
   {
     struct Ball

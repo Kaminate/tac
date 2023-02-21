@@ -2,7 +2,7 @@
 #pragma once
 
 #include "src/common/string/tac_string.h"
-#include "src/common/tac_error_handling.h"
+//#include "src/common/tac_error_handling.h"
 #include "src/common/containers/tac_vector.h"
 #include "src/common/shell/tac_shell.h"
 #include "src/common/tac_localization.h"
@@ -10,17 +10,13 @@
 #include "src/common/math/tac_vector2.h"
 #include "src/common/graphics/tac_renderer.h"
 #include "src/common/tac_controller_input.h"
+#include "src/space/tac_space.h"
 
 namespace Tac
 {
-  struct Ghost;
   struct Texture;
-  struct Player;
   struct DepthBuffer;
   struct Localization;
-  struct ServerData;
-  struct ClientData;
-  struct Shell;
   struct FontStuff;
   struct Renderer;
   struct FontAtlasCell;

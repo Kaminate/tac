@@ -1,14 +1,11 @@
 #pragma once
 
 #include "src/space/tac_system.h"
+#include "src/space/tac_space.h"
 
 
 namespace Tac
 {
-  struct World;
-  struct Model;
-  struct Skybox;
-  struct Light;
 
   template< typename T > struct ComponentVisitor { virtual void operator()( T* ) = 0; };
   typedef ComponentVisitor< Model > ModelVisitor;

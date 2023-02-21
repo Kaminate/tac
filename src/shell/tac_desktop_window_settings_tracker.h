@@ -1,8 +1,9 @@
 #pragma once
+
+#include "src/common/tac_common.h"
+
 namespace Tac
 {
-  struct DesktopWindowHandle;
-  struct StringView;
   DesktopWindowHandle CreateTrackedWindow( const StringView& path,
                                            int x = 50,
                                            int y = 50,

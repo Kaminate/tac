@@ -1,10 +1,10 @@
 #pragma once
 
 #include "src/common/string/tac_string.h"
+#include "src/common/tac_common.h"
 
 namespace Tac
 {
-  struct Errors;
 
   // you should be able to open this window from the main window menu bar
   // and then u can see each system ( graphics, physics, etc ) of creation->world->systems

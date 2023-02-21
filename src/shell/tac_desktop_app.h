@@ -1,13 +1,11 @@
 #pragma once
 
 #include "src/common/tac_keyboard_input.h"
+#include "src/common/tac_common.h"
 
 namespace Tac
 {
 
-  struct DesktopWindowHandle;
-  struct DesktopWindowRect;
-  struct Errors;
 
   typedef void( *ProjectInit )( Errors& );
   typedef void( *ProjectUpdate )( Errors& );

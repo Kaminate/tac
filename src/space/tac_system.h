@@ -1,10 +1,9 @@
 #pragma once
 
+#include "src/space/tac_space.h"
 
 namespace Tac
 {
-  struct World;
-
   struct System
   {
     virtual ~System() = default;

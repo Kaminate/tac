@@ -1,10 +1,10 @@
 #pragma once
 
 #include "src/common/tac_desktop_window.h"
+#include "src/common/tac_common.h"
 
 namespace Tac
 {
-  struct Errors;
   struct CreationGameObjectMenuWindow
   {
     CreationGameObjectMenuWindow();
