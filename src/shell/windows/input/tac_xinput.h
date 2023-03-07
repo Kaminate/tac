@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "src/common/tac_common.h"
 #include "src/common/tac_controller_input.h"
 
 #define DIRECTINPUT_VERSION 0x0800 // must be before dinput.h
