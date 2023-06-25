@@ -1,3 +1,5 @@
+# TODO: write about the purpose of this file, and
+# what relationship tac has with python scripts
 import os
 
 tac_root_env_key = 'TAC_ROOT'
