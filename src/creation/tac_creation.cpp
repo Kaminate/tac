@@ -116,9 +116,10 @@ namespace Tac
       CreatedWindowData* createdWindowData = &sCreatedWindowData[ i ];
       if( createdWindowData->mNativeWindowHandle != desktopWindowState->mNativeWindowHandle )
       {
+        createdWindowData->mNativeWindowHandle = desktopWindowState->mNativeWindowHandle;
         Json* json = gCreation.FindWindowJson( createdWindowData->mName );
         SettingsSetBool( "is_open",
-                         createdWindowData->mNativeWindowHandle = desktopWindowState->mNativeWindowHandle,
+                         (bool)desktopWindowState->mNativeWindowHandle,
                          json );
       }
 
@@ -389,7 +390,7 @@ namespace Tac
   {
     int x, y, w, h;
     GetWindowsJsonData( name, &x, &y, &w, &h );
-    DesktopWindowHandle desktopWindowHandle = DesktopAppCreateWindow( x, y, w, h );
+    DesktopWindowHandle desktopWindowHandle = DesktopAppCreateWindow( name, x, y, w, h );
     AddCreatedWindowData( desktopWindowHandle, name, x, y, w, h );
 
     DesktopAppMoveControls( desktopWindowHandle );
@@ -447,7 +448,7 @@ namespace Tac
 
   void                Creation::CreateInitialWindows( Errors& errors )
   {
-    CreateInitialWindow( gMainWindowName, &Creation::CreateMainWindow, errors );
+    Creation::CreateMainWindow( errors );
     CreateInitialWindow( gPropertyWindowName, &Creation::CreatePropertyWindow, errors );
     CreateInitialWindow( gGameWindowName, &Creation::CreateGameWindow, errors );
     CreateInitialWindow( gSystemWindowName, &Creation::CreateSystemWindow, errors );
@@ -479,29 +480,6 @@ namespace Tac
 
     if( AllWindowsClosed() )
       OS::OSAppStopRunning();
-
-
-    static bool checkedOnce;
-    if( !checkedOnce )
-    {
-      checkedOnce = true;
-      // cant use doesanywindowexist here because the
-      // CreationXXXWindow::Instance may exist but
-      // GetWindowState(CreationXXXWindow::Instance.mDesktopWindowHandle).nativewindowhandle may not
-      if( !CreationMainWindow::Instance &&
-          !CreationGameWindow::Instance &&
-          !CreationPropertyWindow::Instance &&
-          !CreationSystemWindow::Instance &&
-          !CreationProfileWindow::Instance )
-      {
-        checkedOnce = true;
-        //CreateMainWindow( errors );
-        //CreateGameWindow( errors );
-        //CreatePropertyWindow( errors );
-        //CreateSystemWindow( errors );
-        TAC_HANDLE_ERROR( errors );
-      }
-    }
 
     if( CreationMainWindow::Instance )
     {

@@ -11,7 +11,8 @@ indent_size = 2
 insert_final_newline = true
 
 # https://marketplace.visualstudio.com/items?itemName=PaulHarrington.EditorGuidelines
-#                           aarrggbb
-guidelines = 120 2px dotted 80cbcbcb
+
+# color is in aarrggbb
+guidelines = 100 1px dashed 40cbcbcb, 120 2px dotted 80cbcbcb
 
 

@@ -412,6 +412,7 @@ namespace Tac
   }
 
   void                Win32WindowManagerSpawnWindow( const DesktopWindowHandle& desktopWindowHandle,
+                                                     const char* name,
                                                      int x,
                                                      int y,
                                                      int w,
@@ -461,17 +462,23 @@ namespace Tac
     TAC_ASSERT( w && h );
 
     sWindowUnderConstruction = desktopWindowHandle;
+    static HWND parentHWND = nullptr;
     const HWND hwnd = CreateWindow( classname,
-                                    "butt",
+
+                                    // Name of the window, displayed in the window's title bar, or in the 
+                                    // alt-tab menu
+                                    name,
                                     windowStyle,
                                     x,
                                     y,
                                     w,
                                     h,
-                                    nullptr,// mParentHWND,
+                                    parentHWND,
                                     nullptr,
                                     Win32GetStartupInstance(),
                                     nullptr );
+
+
     if( !hwnd )
     {
       TAC_CRITICAL_ERROR_INVALID_CODE_PATH;
@@ -489,6 +496,8 @@ namespace Tac
       //TAC_HANDLE_ERROR( errors );
       return;
     }
+
+    parentHWND = hwnd;
 
     // Sets the keyboard focus to the specified window
     SetFocus( hwnd );

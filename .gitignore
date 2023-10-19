@@ -1,5 +1,6 @@
 build*/
 x64/
+*/__pycache__/*
 CMakeFiles/
 */CMakeFiles/*
 
@@ -16,6 +17,8 @@ assets/imgui.ini
 *.DS_Store
 
 *.rdc
+
+deleteme.bmp
 
 cloc_found.txt
 cloc_ignored.txt

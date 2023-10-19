@@ -7,7 +7,7 @@
 
 namespace Tac
 {
-  enum IntegrationMode
+  enum class IntegrationMode
   {
     Euler, // Euler's method
     SemiImplicitEuler, // aka 'Symplectic', or 'Symplectic Euler'

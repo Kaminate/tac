@@ -697,7 +697,8 @@ namespace Tac
                                 D3D_BLOB_INPUT_SIGNATURE_BLOB,
                                 0,
                                 &inputSignature );
-          ( ( RendererDirectX11* )Renderer::Instance )->SetDebugName( vertexShader, shaderSource.mStr );
+          RendererDirectX11* renderer = (RendererDirectX11*)Renderer::Instance;
+          renderer->SetDebugName( vertexShader, shaderSource.mStr, "vs" );
         }
 
         if( hasPixelShader )
@@ -1273,7 +1274,7 @@ namespace Tac
       mBoundShaderResourceViewCount = boundCount;
     }
 
-    bool BoundSRVs::operator ==( const BoundSRVs& other )
+    bool BoundSRVs::operator ==( const BoundSRVs& other ) const
     {
       if( mBoundShaderResourceViewCount != other.mBoundShaderResourceViewCount )
         return false;
@@ -1472,20 +1473,42 @@ namespace Tac
       return StringView( ( const char* )buf, len );
     }
 
-    void RendererDirectX11::SetDebugName( ID3D11DeviceChild* directXObject,
-                                          StringView name )
+    // RendererDirectX11::SetDebugName( IDXGIObject* directXObject, ... ) and 
+    // RendererDirectX11::SetDebugName( ID3D11DeviceChild* directXObject, ... ) differ because
+    // both IDXGIObject and ID3D11DeviceChild have the Get/SetPrivateData function,
+    // but IDXGIObject is for the IDXGISwapChain, while
+    // ID3D11DeviceChild is for most directx objects (ID3D11Texture2D, etc)
+
+    struct NameGetterSetter
+    {
+      IDXGIObject* dxgiObj = nullptr;
+      ID3D11DeviceChild* dx11Obj = nullptr;
+    };
+
+    static void SetDebugName( IDXGIObject* dxgiObj,
+                              ID3D11DeviceChild* dx11Obj,
+                              StringView name,
+                              StringView suffix )
     {
       TAC_ASSERT( IsMainThread() );
       TAC_ASSERT( name.size() );
       if( !IsDebugMode() )
         return;
-      if( !directXObject )
+      if( !(dxgiObj || dx11Obj))
         return;
+
       Array< char, 256 > data = {};
       UINT privateDataSize = data.size();
-      const HRESULT getHr = directXObject->GetPrivateData( WKPDID_D3DDebugObjectName,
-                                                           &privateDataSize,
-                                                           &data );
+      HRESULT getHr = E_FAIL;
+      
+      if( dx11Obj )
+        getHr = dx11Obj->GetPrivateData( WKPDID_D3DDebugObjectName,
+                                 &privateDataSize,
+                                 &data );
+      if( dxgiObj )
+        getHr = dxgiObj->GetPrivateData( WKPDID_D3DDebugObjectName,
+                                 &privateDataSize,
+                                 &data );
       TAC_ASSERT( SUCCEEDED( getHr ) || getHr == DXGI_ERROR_NOT_FOUND );
 
       String newname;
@@ -1500,10 +1523,33 @@ namespace Tac
 #endif
         filter.Push( { D3D11_MESSAGE_ID_SETPRIVATEDATA_CHANGINGPARAMS } );
       }
-      newname += String( name );
 
-      const HRESULT setHr = directXObject->SetPrivateData( WKPDID_D3DDebugObjectName, ( UINT )newname.size(), newname.c_str() );
+      newname += String( name );
+      newname += " ";
+      newname += String( suffix );
+
+      HRESULT setHr = E_FAIL;
+
+      if( dx11Obj )
+        setHr = dx11Obj->SetPrivateData( WKPDID_D3DDebugObjectName, ( UINT )newname.size(), newname.c_str() );
+
+      if( dxgiObj )
+        setHr = dxgiObj->SetPrivateData( WKPDID_D3DDebugObjectName, ( UINT )newname.size(), newname.c_str() );
       TAC_ASSERT( SUCCEEDED( setHr ) );
+    }
+
+    void RendererDirectX11::SetDebugName( IDXGIObject* dxgiObj,
+                                          StringView str,
+                                          StringView suffix )
+    {
+      Tac::Render::SetDebugName( dxgiObj, nullptr, str, suffix );
+    }
+
+    void RendererDirectX11::SetDebugName( ID3D11DeviceChild* directXObject,
+                                          StringView name,
+                                          StringView suffix )
+    {
+      Tac::Render::SetDebugName( nullptr, directXObject, name, suffix );
     }
 
     void RendererDirectX11::AddMagicBuffer( CommandDataCreateMagicBuffer* commandDataCreateMagicBuffer,
@@ -1841,6 +1887,7 @@ namespace Tac
                        &texDesc,
                        pInitialData,
                        &texture2D );
+        SetDebugName( texture2D, data->mStackFrame.ToString() );
       }
 
       ID3D11Texture3D* texture3D = nullptr;
@@ -1861,12 +1908,12 @@ namespace Tac
                        &texDesc,
                        pInitialData,
                        &texture3D );
+        SetDebugName( texture3D, data->mStackFrame.ToString() );
       }
 
       ID3D11Resource* resource
         = texture2D ? ( ID3D11Resource* )texture2D
         : texture3D ? ( ID3D11Resource* )texture3D : nullptr;
-      SetDebugName( resource, data->mStackFrame.ToString() );
 
       ID3D11RenderTargetView* rtv = nullptr;
       if( ( int )data->mTexSpec.mBinding & ( int )Binding::RenderTarget )
@@ -2375,18 +2422,18 @@ namespace Tac
                      &rtv );
 
       TAC_RELEASE_IUNKNOWN( pBackBuffer );
-      SetDebugName( rtv, nameRenderTargetView );
+      SetDebugName( rtv, nameRenderTargetView, "rtv" );
 
       ID3D11Texture2D* depthTexture;
       TAC_DX11_CALL( errors, mDevice->CreateTexture2D, &depthTextureDesc, nullptr, &depthTexture );
-      SetDebugName( depthTexture, nameDepthTexture );
+      SetDebugName( depthTexture, nameDepthTexture, "2D" );
 
       ID3D11DepthStencilView* dsv;
       D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = {};
       depthStencilViewDesc.Format = depthTextureDesc.Format;
       depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
       TAC_DX11_CALL( errors, mDevice->CreateDepthStencilView, depthTexture, &depthStencilViewDesc, &dsv );
-      SetDebugName( dsv, nameDepthStencilView );
+      SetDebugName( dsv, nameDepthStencilView, "dsv" );
 
       framebuffer->mDepthStencilView = dsv;
       framebuffer->mDepthTexture = depthTexture;

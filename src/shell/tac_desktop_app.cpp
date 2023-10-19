@@ -51,6 +51,7 @@ namespace Tac
   struct WantSpawnInfo
   {
     DesktopWindowHandle mHandle;
+    const char*         mName = nullptr;
     int                 mX = 0;
     int                 mY = 0;
     int                 mWidth = 0;
@@ -190,10 +191,11 @@ namespace Tac
 
     for( const WantSpawnInfo& info : requestsCreate )
       sPlatformSpawnWindow( info.mHandle,
-        info.mX,
-        info.mY,
-        info.mWidth,
-        info.mHeight );
+                            info.mName,
+                            info.mX,
+                            info.mY,
+                            info.mWidth,
+                            info.mHeight );
     for( DesktopWindowHandle desktopWindowHandle : requestsDestroy )
       sPlatformDespawnWindow( desktopWindowHandle );
   }
@@ -258,12 +260,16 @@ namespace Tac
       TAC_HANDLE_ERROR( errors );
     }
 
-    sProjectInit( errors );
+    if(sProjectInit)
+      sProjectInit( errors );
     TAC_HANDLE_ERROR( errors );
   }
 
   static void LogicThreadUninit()
   {
+    if(sProjectUninit)
+      sProjectUninit( gLogicThreadErrors );
+
     ImGuiUninit();
     if( gLogicThreadErrors )
       OS::OSAppStopRunning();
@@ -320,8 +326,11 @@ namespace Tac
         if( ControllerInput::Instance )
           ControllerInput::Instance->Update();
 
-        sProjectUpdate( errors );
-        TAC_HANDLE_ERROR( errors );
+        if( sProjectUpdate )
+        {
+          sProjectUpdate( errors );
+          TAC_HANDLE_ERROR( errors );
+        }
 
         ImGuiFrameEnd( errors );
         TAC_HANDLE_ERROR( errors );
@@ -670,6 +679,8 @@ namespace Tac
     sEventQueue.Init();
 
     ExecutableStartupInfo info = ExecutableStartupInfo::Init();
+    TAC_ASSERT( !info.mAppName.empty() );
+
     ExecutableStartupInfo::sInstance = info;
 
     // for macos standalone_sdl_vk_1_tri, appDataPath =
@@ -764,11 +775,12 @@ namespace Tac
     request->mRequested = true;
   }
 
-  DesktopWindowHandle DesktopAppCreateWindow( int x, int y, int width, int height )
+  DesktopWindowHandle DesktopAppCreateWindow( const char* name, int x, int y, int width, int height )
   {
     sWindowHandleLock.lock();
     const DesktopWindowHandle handle = { sDesktopWindowHandleIDs.Alloc() };
     WantSpawnInfo info = { .mHandle = handle,
+                           .mName = name,
                            .mX = x,
                            .mY = y,
                            .mWidth = width,

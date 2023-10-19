@@ -134,8 +134,6 @@ namespace Tac
     if( !windowHandle )
       return;
 
-
-
     POINT cursorPos;
     GetCursorPos( &cursorPos );
 
@@ -223,7 +221,6 @@ namespace Tac
     int y = rect.top;
     int w = rect.right - rect.left;
     int h = rect.bottom - rect.top;
-    //MoveWindow( mHwnd, x, y, w, h, TRUE );
     SetWindowPos( mHwnd, nullptr, x, y, w, h, SWP_ASYNCWINDOWPOS );
   }
 
@@ -243,7 +240,6 @@ namespace Tac
     int y = mWindowRectOnClick.top + cursorPos.y - mCursorPositionOnClick.y;
     int w = mWindowRectOnClick.right - mWindowRectOnClick.left;
     int h = mWindowRectOnClick.bottom - mWindowRectOnClick.top;
-    //MoveWindow( mHwnd, x, y, w, h, TRUE );
     SetWindowPos( mHwnd, nullptr, x, y, w, h, SWP_ASYNCWINDOWPOS );
   }
 

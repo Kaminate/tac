@@ -3,7 +3,7 @@
 #define TEST_RED 0
 #define TEST_UVS 0
 
-Texture2D atlas       : register( t0 );
+Texture2D image       : register( t0 );
 sampler linearSampler : register( s0 );
 
 struct VS_INPUT
@@ -40,7 +40,7 @@ struct PS_OUTPUT
 PS_OUTPUT PS( VS_OUTPUT input )
 {
   PS_OUTPUT output = ( PS_OUTPUT )0;
-  float4 sampled = atlas.Sample( linearSampler, input.DXTexCoord );
+  float4 sampled = image.Sample( linearSampler, input.DXTexCoord );
 
   // For reference, search https://en.wikipedia.org/wiki/Alpha_compositing
   // for "premultiplied" or "pre-multiplied"
@@ -49,7 +49,17 @@ PS_OUTPUT PS( VS_OUTPUT input )
   // +-------+
   // | READ! |
   // +-------+
-  output.mColor = Color * sampled;
+
+  // convert from sRGB, because our backbuffer is linear
+  v4 linearColor = v4(pow( Color.rgb, 2.2 ), Color.a);
+  v4 linearSampled = v4(pow( sampled.rgb, 2.2), sampled.a);
+
+  //output.mColor.rgb = linearColor * sampled.rgb;
+  output.mColor = linearColor * linearSampled;
+
+  // Color is srgb, but our backbuffer is linear, so convert the
+  // srgb color to linear to that they are both in linear space.
+  //output.mColor.rgb =  pow( output.mColor.rgb, 2.2 ); // srgb to linear
 
 #if TEST_RED
   output.mColor = float4( 1, 0, 0, 1 );

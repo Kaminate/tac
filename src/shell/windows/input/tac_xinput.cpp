@@ -1,17 +1,48 @@
 #include "src/shell/windows/input/tac_xinput.h"
+#include "src/shell/windows/tac_win32.h"
 #include "src/common/tac_preprocessor.h"
 #include "src/common/math/tac_math.h"
 #include "src/common/shell/tac_shell.h"
 #include "src/common/shell/tac_shell_timer.h"
 #include "src/common/tac_error_handling.h"
+#include "src/common/tac_common.h"
+#include "src/common/tac_controller_input.h"
 
-#include <libloaderapi.h> // libloaderapi.h
+#include <libloaderapi.h>
+
+#define DIRECTINPUT_VERSION 0x0800 // must be before dinput.h
+#include <dinput.h> // for other controller types
 
 #pragma comment( lib, "dxguid.lib" ) // IID_IDirectInput8A
 #pragma comment( lib, "Dinput8.lib" )
 
+
 namespace Tac
 {
+
+  struct DirectInputPerController : public Controller
+  {
+    ~DirectInputPerController();
+    void DebugImguiInner() override;
+
+    DIDEVICEINSTANCE          mInstance = {};
+    IDirectInputDevice8*      mDevice = nullptr;
+    DIJOYSTATE2               mJoystate = {};
+  };
+
+  struct XInput : public ControllerInput
+  {
+    void                      Init( Errors& );
+    void                      UpdateInner() override;
+    void                      DebugImguiInner() override;
+    void                      EnumerateController( const DIDEVICEINSTANCE* );
+    DirectInputPerController* FindDInputController( const DIDEVICEINSTANCE* );
+
+    IDirectInput8*            mDirectInput = nullptr;
+    float                     mSecondsTillDiscover = 0;
+    float                     mSecondsTillDiscoverMax = 1;
+  };
+
   static BOOL CALLBACK enumDirectInputDevices( const DIDEVICEINSTANCE* pdidInstance,
                                                LPVOID pvRef )
   {
@@ -99,6 +130,19 @@ namespace Tac
     //ImGui::Text( "rglFSlider: %i %i", js.rglFSlider[ 0 ], js.rglFSlider[ 1 ] );
   }
 
+  const char* GetDirectInput8CreateErr( HRESULT hr )
+  {
+    switch( hr )
+    {
+      case DIERR_BETADIRECTINPUTVERSION: return "beta ver"; 
+      case DIERR_INVALIDPARAM: return "invalid param"; 
+      case DIERR_OLDDIRECTINPUTVERSION: return "old ver"; 
+      case DIERR_OUTOFMEMORY: return "oom"; 
+    }
+
+    return "???";
+  }
+
   void XInput::Init( Errors& errors )
   {
     const HRESULT hr = DirectInput8Create( GetModuleHandleA(nullptr),
@@ -106,30 +150,12 @@ namespace Tac
                                            IID_IDirectInput8,
                                            ( LPVOID* )&mDirectInput,
                                            NULL );
-    const char* inputCreateErrorMessage = nullptr;
-    switch( hr )
+    if( hr != DI_OK )
     {
-      case DI_OK:
-        break;
-      case DIERR_BETADIRECTINPUTVERSION:
-        inputCreateErrorMessage= "DIERR_BETADIRECTINPUTVERSION";
-        break;
-      case DIERR_INVALIDPARAM:
-        inputCreateErrorMessage= "DIERR_INVALIDPARAM";
-        break;
-      case DIERR_OLDDIRECTINPUTVERSION:
-        inputCreateErrorMessage= "DIERR_OLDDIRECTINPUTVERSION";
-        break;
-      case DIERR_OUTOFMEMORY:
-        inputCreateErrorMessage= "DIERR_OUTOFMEMORY";
-        break;
-      default:
-        TAC_CRITICAL_ERROR_INVALID_CASE( hr );
-        inputCreateErrorMessage= "???";
-        break;
+      const char* errmsg = GetDirectInput8CreateErr( hr );
+      TAC_RAISE_ERROR( errmsg, errors );
     }
-    if( inputCreateErrorMessage )
-      TAC_RAISE_ERROR( inputCreateErrorMessage, errors );
+
   }
 
   DirectInputPerController* XInput::FindDInputController( const DIDEVICEINSTANCE* mDeviceInstance )
@@ -154,15 +180,16 @@ namespace Tac
   void XInput::UpdateInner()
   {
 
-    mSecondsTillDisconver -= TAC_DELTA_FRAME_SECONDS;
-    if( mSecondsTillDisconver < 0 )
+    mSecondsTillDiscover -= TAC_DELTA_FRAME_SECONDS;
+    if( mSecondsTillDiscover < 0 )
     {
-      mSecondsTillDisconver = mSecondsTillDiscoverMax;
+      mSecondsTillDiscover = mSecondsTillDiscoverMax;
       mDirectInput->EnumDevices( DI8DEVCLASS_GAMECTRL,
                                 enumDirectInputDevices,
                                 this,
                                 DIEDFL_ATTACHEDONLY );
     }
+
     HRESULT hr = S_OK;
     for( int iController = 0; iController < TAC_CONTROLLER_COUNT_MAX; ++iController)
     {
@@ -231,4 +258,13 @@ namespace Tac
 
     AddController( controller );
   }
-}
+
+  // API Functions
+
+  void XInputInit( Errors& errors )
+  {
+    auto xInput = TAC_NEW XInput();
+    xInput->Init( errors );
+  }
+
+} // namespace Tac

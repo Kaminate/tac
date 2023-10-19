@@ -1,4 +1,5 @@
 #include "Common.fx"
+
 #define TEST_RED 0
 #define TEST_UVS 0
 
@@ -38,8 +39,8 @@ struct PS_OUTPUT
 
 PS_OUTPUT PS( VS_OUTPUT input )
 {
-  float4 sampled = atlas.Sample( linearSampler, input.DXTexCoord );
-  PS_OUTPUT output = ( PS_OUTPUT )0;
+  //float4 sampled = atlas.Sample( linearSampler, input.DXTexCoord );
+  float sampled = atlas.Sample( linearSampler, input.DXTexCoord );
 
   // For reference, search https://en.wikipedia.org/wiki/Alpha_compositing
   // for "premultiplied" or "pre-multiplied"
@@ -49,20 +50,32 @@ PS_OUTPUT PS( VS_OUTPUT input )
   // | READ! |
   // +-------+
 
-  // The .x here differentiates the text and sprite shaders
-  //                              |
-  //                              v
-  output.mColor = Color * sampled.x;
+  // float4 color = Color;
+  float4 color = Color;
 
+  float oneedge = 128.0;
+  float idk = 30;
+
+  // smoothstep(min,max,x)
+  //   if x is less than min returns 0;
+  //   if x is greater than max returns 1;
+  //   otherwise, a value between 0 and 1 if x is in the range [min, max].
+  float ss = smoothstep( oneedge - idk, oneedge + idk, sampled * 255.0 );
+
+  color *= ss;
 
 #if TEST_RED
-  output.mColor = float4( 1, 0, 0, 1 );
+  color = float4( 1, 0, 0, 1 );
 #endif
 
 #if TEST_UVS
-  output.mColor += float4( input.DXTexCoord.x, input.DXTexCoord.y, 0, 1 );
+  color.xy += input.DXTexCoord * 1.0f;
 #endif
 
-  return output;
+  PS_OUTPUT result;
+  result.mColor = color;
+  return result;
+
+  // return output;
 }
 

@@ -20,7 +20,7 @@ if( TARGET TacDesktopVk)
 endif()
 
 target_sources(TacVkRenderer PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/tac_renderer_vulkan.cpp"
-                                     "${CMAKE_CURRENT_SOURCE_DIR}/vk_types.h"
+                                     "${CMAKE_CURRENT_SOURCE_DIR}/tac_vk_types.h"
                               PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/tac_renderer_vulkan.h" )
 
 target_precompile_headers( TacVkRenderer PRIVATE "${CMAKE_SOURCE_DIR}/src/common/tac_precompiled_header.h" )

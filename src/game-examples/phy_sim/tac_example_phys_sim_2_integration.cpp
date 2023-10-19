@@ -23,9 +23,9 @@ namespace Tac
   {
     switch( m )
     {
-      case Euler: return "Euler";
-      case SemiImplicitEuler: return "Semi-implicit Euler";
-      case RK4: return "Runge-Kutta 4";
+    case IntegrationMode::Euler: return "Euler";
+    case IntegrationMode::SemiImplicitEuler: return "Semi-implicit Euler";
+    case IntegrationMode::RK4: return "Runge-Kutta 4";
       default: TAC_CRITICAL_ERROR_INVALID_CASE( m ); return "";
     }
   }
@@ -94,7 +94,7 @@ namespace Tac
     ImGuiText( FrameMemoryPrintf( "Current Mode: %s", ToString( mIntegrationMode )) );
 
     ImGuiText( "Change Mode:" );
-    for( int i = 0; i < IntegrationMode::Count; ++i )
+    for( int i = 0; i < (int)IntegrationMode::Count; ++i )
     {
       ImGuiSameLine();
       const bool modePressed = ImGuiButton( ToString( ( IntegrationMode )i ) );

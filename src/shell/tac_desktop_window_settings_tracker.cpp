@@ -1,6 +1,7 @@
 #include "src/common/containers/tac_vector.h"
 #include "src/common/tac_desktop_window.h"
 #include "src/common/tac_settings.h"
+#include "src/common/tac_os.h"
 #include "src/shell/tac_desktop_app.h"
 #include "src/shell/tac_desktop_window_settings_tracker.h"
 
@@ -14,6 +15,8 @@ namespace Tac
     int                 mY = 0;
     int                 mW = 0;
     int                 mH = 0;
+    bool                mQuitOnClose = false;
+    bool                mEverOpened = false;
   };
 
   static Vector< TrackInfo > sTrackInfos;
@@ -30,7 +33,8 @@ namespace Tac
     y = ( int )SettingsGetNumber( "y", y, json );
     w = ( int )SettingsGetNumber( "w", w, json );
     h = ( int )SettingsGetNumber( "h", h, json );
-    DesktopWindowHandle desktopWindowHandle = DesktopAppCreateWindow( x, y, w, h );
+    const char* name = path; // just reuse it
+    DesktopWindowHandle desktopWindowHandle = DesktopAppCreateWindow( name, x, y, w, h );
     DesktopAppMoveControls( desktopWindowHandle );
     DesktopAppResizeControls( desktopWindowHandle );
     TrackInfo info;
@@ -49,8 +53,21 @@ namespace Tac
     for( TrackInfo& info : sTrackInfos )
     {
       DesktopWindowState* state = GetDesktopWindowState( info.mDesktopWindowHandle );
-      if( !state || !state->mNativeWindowHandle )
+      if( !state )
         continue;
+
+      if( !state->mNativeWindowHandle )
+      {
+        if( info.mEverOpened && info.mQuitOnClose )
+        {
+          OS::OSAppStopRunning();
+        }
+
+        continue;
+      }
+
+      info.mEverOpened = true;
+
       if( state->mX == info.mX &&
           state->mY == info.mY &&
           state->mWidth == info.mW &&
@@ -68,4 +85,19 @@ namespace Tac
     }
   }
 
-}
+  static TrackInfo* FindTrackInfo( const DesktopWindowHandle& desktopWindowHandle )
+  {
+    for( TrackInfo& info : sTrackInfos )
+      if( info.mDesktopWindowHandle == desktopWindowHandle )
+        return &info;
+    return nullptr;
+  }
+
+  void QuitProgramOnWindowClose( const DesktopWindowHandle& desktopWindowHandle )
+  {
+    TrackInfo* trackInfo = FindTrackInfo( desktopWindowHandle );
+    TAC_ASSERT( trackInfo ); // maybe todo make this work on non-tracked windows?
+    trackInfo->mQuitOnClose = true;
+  }
+
+} // namespace Tac

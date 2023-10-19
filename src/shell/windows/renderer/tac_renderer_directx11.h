@@ -95,7 +95,7 @@ namespace Tac
       BoundSRVs() = default;
       BoundSRVs( const DrawCall* );
       void Clear();
-      bool operator ==( const BoundSRVs& );
+      bool operator ==( const BoundSRVs& ) const;
       ID3D11ShaderResourceView*  mBoundShaderResourceViews[ D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT ] = {};
       int                        mBoundShaderResourceViewCount = 0;
     };
@@ -175,7 +175,38 @@ namespace Tac
       //                         String name,
       //                         String str,
       //                         Errors& errors );
-      void        SetDebugName( ID3D11DeviceChild*, StringView );
+
+
+      template< typename T > struct DX11ShortName {};
+#define Name(Type, str) template<> struct DX11ShortName <Type> { inline static const char* name = str; };
+      Name( IDXGISwapChain, "sc" );
+      Name( ID3D11UnorderedAccessView, "uav" );
+      Name( ID3D11Texture3D, "3d" );
+      Name( ID3D11Texture2D, "2d" );
+      Name( ID3D11ShaderResourceView, "srv" );
+      Name( ID3D11SamplerState, "ss" );
+      Name( ID3D11RenderTargetView, "rtv" );
+      Name( ID3D11RasterizerState, "rs" );
+      Name( ID3D11RasterizerState2, "rs2" );
+      Name( ID3D11InputLayout, "il" );
+      Name( ID3D11VertexShader, "vs" );
+      Name( ID3D11PixelShader, "ps" );
+      Name( ID3D11GeometryShader, "gs" );
+      Name( ID3D11BlendState, "bs" );
+      Name( ID3D11DepthStencilView, "dsv" );
+      Name( ID3D11DepthStencilState, "dss" );
+      Name( ID3D11Buffer, "buf" );
+#undef Name
+
+      template< typename T>
+      void        SetDebugName( T* t, StringView name )
+      {
+        SetDebugName( t, name, DX11ShortName<T>::name );
+      }
+
+      void        SetDebugName( ID3D11DeviceChild*, StringView str, StringView suffix );
+      void        SetDebugName( IDXGIObject*, StringView str, StringView suffix );
+
       StringView  GetDebugName( ID3D11DeviceChild* );
       void        SetDebugName( IDXGIObject* , StringView );
       void        UpdateBuffer( ID3D11Buffer*, const void* bytes, int byteCount, Errors& );

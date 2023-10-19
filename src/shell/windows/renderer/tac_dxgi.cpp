@@ -97,15 +97,10 @@ namespace Tac
                               Errors& errors )
   {
     IDXGISwapChain1* swapChain;
-    DXGI_SWAP_CHAIN_DESC1 scd1 = {};
-    {
-      scd1.Width = width;
-      scd1.Height = height;
-      scd1.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-      scd1.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
-      scd1.SampleDesc.Count = 1;
-      scd1.BufferCount = bufferCount;
-      scd1.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+
+    const DXGI_SWAP_CHAIN_DESC1 scd1 = {
+      .Width = width,
+      .Height = height,
 
       // Standard way of implementing hdr in games is to use 16 bit floating backbuffer, and
       // giving player brightness/gamma controls (?)
@@ -114,17 +109,23 @@ namespace Tac
       //   For presentation, integer-valued display formats (such as DXGI_FORMAT_B8G8R8A8_UNORM_SRGB)
       //   always contain sRGB gamma-corrected data.
       //   Float-valued display formats (ie DXGI_FORMAT_R16G16B16A16_FLOAT) contain linear-valued data.
-      scd1.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-      //scd1.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    }
-    DXGI_SWAP_CHAIN_FULLSCREEN_DESC scfsd = {};
-    {
-      scfsd.RefreshRate.Numerator = 1;
-      scfsd.RefreshRate.Denominator = 60;
-      scfsd.Windowed = TRUE;
-      scfsd.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
-      scfsd.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
-    }
+      //.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+      .Format = DXGI_FORMAT_R16G16B16A16_FLOAT, // which windows should be SRGB and which not?
+
+      .SampleDesc = {.Count = 1 },
+      .BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT,
+      .BufferCount = (UINT)bufferCount,
+
+      .SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL,
+      .Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH,
+    };
+
+    const DXGI_SWAP_CHAIN_FULLSCREEN_DESC scfsd = {
+      .RefreshRate = {.Numerator = 1, .Denominator = 60 },
+      .ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED,
+      .Scaling = DXGI_MODE_SCALING_UNSPECIFIED,
+      .Windowed = TRUE,
+    };
 
     // This call deprecates IDXGIFactory::CreateSwapChain
     const HRESULT hr = mFactory->CreateSwapChainForHwnd( pDevice, hwnd, &scd1, &scfsd, NULL, &swapChain );

@@ -90,8 +90,8 @@ namespace Tac
     RedirectStreamBuf();
     Render::RegisterRendererDirectX11();
 
-    auto xInput = TAC_NEW XInput();
-    xInput->Init( errors );
+
+    XInputInit( errors );
     TAC_HANDLE_ERROR( errors );
 
     Win32MouseEdgeInit();

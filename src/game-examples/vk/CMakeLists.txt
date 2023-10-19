@@ -28,7 +28,7 @@ function( tac_target )
   target_compile_definitions( ${PROJECT_NAME} PRIVATE TAC_USE_RENDERER_VK )
 
   target_sources( ${PROJECT_NAME} PRIVATE
-    "vk_standalone_1_tri.cpp"
+    "tac_vk_standalone_1_tri.cpp"
   )
 
   target_precompile_headers( ${PROJECT_NAME} PRIVATE 

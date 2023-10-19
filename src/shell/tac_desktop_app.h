@@ -13,6 +13,7 @@ namespace Tac
   typedef void( *PlatformFrameBegin )( Errors& );
   typedef void( *PlatformFrameEnd )( Errors& );
   typedef void( *PlatformSpawnWindow )( const DesktopWindowHandle&,
+                                        const char* name,
                                         int x,
                                         int y,
                                         int width,
@@ -68,7 +69,11 @@ namespace Tac
                                       PlatformWindowResizeControls,
                                       Errors& );
   void                DesktopAppRun( Errors& );
-  DesktopWindowHandle DesktopAppCreateWindow( int x = 0, int y = 0, int width = 0, int height = 0 );
+  DesktopWindowHandle DesktopAppCreateWindow( const char* name = nullptr,
+                                              int x = 0,
+                                              int y = 0,
+                                              int width = 0,
+                                              int height = 0 );
   void                DesktopAppDestroyWindow( DesktopWindowHandle );
   void                DesktopAppUpdate( Errors& );
   void                DesktopAppResizeControls( const DesktopWindowHandle&, int edgePx = 7 );

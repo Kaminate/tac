@@ -10,4 +10,5 @@ namespace Tac
                                            int w = 800,
                                            int h = 600 );
   void UpdateTrackedWindows();
+  void QuitProgramOnWindowClose( const DesktopWindowHandle& );
 }

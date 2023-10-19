@@ -68,6 +68,7 @@ target_sources( TacDesktopApp
 if( TARGET TacVkRenderer )
   target_compile_definitions( TacDesktopApp PUBLIC TAC_USE_RENDERER_VK )
 endif()
+
 if( WIN32 )
   target_include_directories( TacDesktopApp PUBLIC TAC_USE_RENDERER_DX11 )
 endif()

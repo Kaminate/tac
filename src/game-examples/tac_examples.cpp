@@ -49,6 +49,7 @@ namespace Tac
   static void   ExamplesInitCallback( Errors& errors )
   {
     sDesktopWindowHandle = CreateTrackedWindow( "Example.Window" );
+    QuitProgramOnWindowClose( sDesktopWindowHandle );
     ExampleRegistryPopulate();
 
     const StringView settingExampleName = SettingsGetString( "Example.Name", "" );
@@ -65,26 +66,26 @@ namespace Tac
     ExampleStateMachineUnint();
   }
 
-  static void   ExamplesQuitOnWindowClose()
-  {
-    static bool windowEverOpened;
-    DesktopWindowState* desktopWindowState = GetDesktopWindowState( sDesktopWindowHandle );
-    if( desktopWindowState->mNativeWindowHandle )
-    {
-      windowEverOpened = true;
-    }
-    else
-    {
-      if( windowEverOpened )
-      {
-        OS::OSAppStopRunning();
-      }
-    }
-  }
+  //static void   ExamplesQuitOnWindowClose()
+  //{
+  //  static bool windowEverOpened;
+  //  DesktopWindowState* desktopWindowState = GetDesktopWindowState( sDesktopWindowHandle );
+  //  if( desktopWindowState->mNativeWindowHandle )
+  //  {
+  //    windowEverOpened = true;
+  //  }
+  //  else
+  //  {
+  //    if( windowEverOpened )
+  //    {
+  //      OS::OSAppStopRunning();
+  //    }
+  //  }
+  //}
 
   static void   ExamplesUpdateCallback( Errors& errors )
   {
-    ExamplesQuitOnWindowClose();
+    //ExamplesQuitOnWindowClose();
 
     DesktopWindowState* desktopWindowState = GetDesktopWindowState( sDesktopWindowHandle );
     if( !desktopWindowState->mNativeWindowHandle )
