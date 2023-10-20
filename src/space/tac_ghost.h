@@ -2,14 +2,14 @@
 #pragma once
 
 #include "src/common/string/tac_string.h"
-//#include "src/common/tac_error_handling.h"
+//#include "src/common/core/tac_error_handling.h"
 #include "src/common/containers/tac_vector.h"
 #include "src/common/shell/tac_shell.h"
-#include "src/common/tac_localization.h"
+#include "src/common/i18n/tac_localization.h"
 #include "src/common/math/tac_vector4.h"
 #include "src/common/math/tac_vector2.h"
 #include "src/common/graphics/tac_renderer.h"
-#include "src/common/tac_controller_input.h"
+#include "src/common/input/tac_controller_input.h"
 #include "src/space/tac_space.h"
 
 namespace Tac

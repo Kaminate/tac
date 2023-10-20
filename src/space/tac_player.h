@@ -2,8 +2,8 @@
 #pragma once
 #include "src/space/tac_space_types.h"
 #include "src/space/tac_space.h"
-#include "src/common/tac_serialization.h"
-#include "src/common/tac_preprocessor.h"
+#include "src/common/dataprocess/tac_serialization.h"
+#include "src/common/core/tac_preprocessor.h"
 #include "src/common/math/tac_vector2.h"
 #include "src/common/math/tac_vector3.h"
 

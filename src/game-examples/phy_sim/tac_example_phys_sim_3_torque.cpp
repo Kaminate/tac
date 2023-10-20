@@ -1,12 +1,12 @@
 #include "src/game-examples/phy_sim/tac_example_phys_sim_3_torque.h"
 #include "src/space/tac_world.h"
-#include "src/common/tac_camera.h"
+#include "src/common/graphics/tac_camera.h"
 #include "src/common/graphics/imgui/tac_imgui.h"
 #include "src/common/math/tac_math.h"
 #include "src/common/graphics/tac_debug_3d.h"
-#include "src/common/tac_keyboard_input.h"
+#include "src/common/input/tac_keyboard_input.h"
 #include "src/common/shell/tac_shell_timer.h"
-#include "src/common/tac_os.h"
+#include "src/common/system/tac_os.h"
 
 #define FMT "% .4f "
 

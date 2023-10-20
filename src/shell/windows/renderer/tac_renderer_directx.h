@@ -3,7 +3,7 @@
 
 namespace Tac
 {
-  void AllowPIXDebuggerAttachment();
+  void AllowPIXDebuggerAttachment(struct Errors&);
 }
 
 

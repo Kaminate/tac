@@ -1,19 +1,21 @@
 #include "src/common/containers/tac_array.h"
 #include "src/common/graphics/tac_renderer_backend.h"
-#include "src/common/tac_text_parser.h"
-#include "src/common/tac_utility.h"
-#include "src/common/tac_frame_memory.h"
+#include "src/common/dataprocess/tac_text_parser.h"
+#include "src/common/system/tac_filesystem.h"
+#include "src/common/string/tac_string_util.h"
+#include "src/common/string/tac_string_util.h"
+#include "src/common/memory/tac_frame_memory.h"
 #include "src/common/containers/tac_frame_vector.h"
 #include "src/common/math/tac_math.h"
 #include "src/common/profile/tac_profile.h"
-#include "src/common/tac_algorithm.h"
-#include "src/common/tac_desktop_window.h"
-#include "src/common/tac_memory.h"
-#include "src/common/tac_preprocessor.h"
+#include "src/common/core/tac_algorithm.h"
+#include "src/common/system/tac_desktop_window.h"
+#include "src/common/memory/tac_memory.h"
+#include "src/common/core/tac_preprocessor.h"
 #include "src/common/shell/tac_shell.h"
-#include "src/common/tac_os.h"
-#include "src/common/tac_temporary_memory.h"
-#include "src/common/tac_frame_memory.h"
+#include "src/common/system/tac_os.h"
+#include "src/common/memory/tac_temporary_memory.h"
+#include "src/common/memory/tac_frame_memory.h"
 #include "src/common/string/tac_string.h"
 #include "src/shell/tac_desktop_app.h"
 #include "src/shell/windows/renderer/tac_dxgi.h"
@@ -848,7 +850,12 @@ namespace Tac
 
 
 
-      AllowPIXDebuggerAttachment();
+      if( IsDebugMode() )
+      {
+
+        AllowPIXDebuggerAttachment( errors );
+        TAC_HANDLE_ERROR( errors );
+      }
 
       ID3D11Device3* device3 = nullptr;
       HRESULT queried = mDevice->QueryInterface( &mDevice3 );

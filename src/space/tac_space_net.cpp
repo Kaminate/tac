@@ -1,6 +1,6 @@
 #include "src/space/tac_space_net.h"
 #include "src/space/tac_world.h"
-#include "src/common/tac_error_handling.h"
+#include "src/common/core/tac_error_handling.h"
 
 namespace Tac
 {

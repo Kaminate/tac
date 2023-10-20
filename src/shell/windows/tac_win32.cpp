@@ -1,12 +1,12 @@
 #include "src/shell/windows/tac_win32.h"
-#include "src/common/tac_preprocessor.h"
-#include "src/common/tac_utility.h"
-#include "src/common/tac_os.h"
+#include "src/common/core/tac_preprocessor.h"
+#include "src/common/string/tac_string_util.h"
+#include "src/common/system/tac_os.h"
 #include "src/common/graphics/tac_renderer.h"
-#include "src/common/tac_algorithm.h"
+#include "src/common/core/tac_algorithm.h"
 #include "src/common/shell/tac_shell.h"
 #include "src/common/containers/tac_fixed_vector.h"
-#include "src/common/tac_id_collection.h"
+#include "src/common/identifier/tac_id_collection.h"
 
 #include <iostream>
 #include <ctime> // mktime

@@ -5,7 +5,7 @@
 #include "src/common/graphics/tac_renderer.h"
 #include "src/common/graphics/tac_renderer_backend.h"
 #include "src/common/shell/tac_shell.h"
-#include "src/common/tac_hash.h"
+#include "src/common/dataprocess/tac_hash.h"
 #include "src/common/containers/tac_optional.h"
 #include "src/common/string/tac_string_identifier.h"
 #include "src/shell/windows/tac_win32.h"

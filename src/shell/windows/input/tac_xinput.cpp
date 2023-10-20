@@ -1,12 +1,12 @@
 #include "src/shell/windows/input/tac_xinput.h"
 #include "src/shell/windows/tac_win32.h"
-#include "src/common/tac_preprocessor.h"
+#include "src/common/core/tac_preprocessor.h"
 #include "src/common/math/tac_math.h"
 #include "src/common/shell/tac_shell.h"
 #include "src/common/shell/tac_shell_timer.h"
-#include "src/common/tac_error_handling.h"
+#include "src/common/core/tac_error_handling.h"
 #include "src/common/tac_common.h"
-#include "src/common/tac_controller_input.h"
+#include "src/common/input/tac_controller_input.h"
 
 #include <libloaderapi.h>
 

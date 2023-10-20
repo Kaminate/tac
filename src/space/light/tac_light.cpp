@@ -1,6 +1,6 @@
 #include "src/common/math/tac_matrix3.h"
-#include "src/common/tac_camera.h"
-#include "src/common/tac_json.h"
+#include "src/common/graphics/tac_camera.h"
+#include "src/common/dataprocess/tac_json.h"
 #include "src/common/math/tac_math.h"
 #include "src/common/graphics/tac_renderer_util.h"
 #include "src/space/graphics/tac_graphics.h"

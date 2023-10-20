@@ -1,8 +1,8 @@
 #include "src/game-examples/tac_examples.h"
 #include "src/game-examples/tac_examples_state_machine.h"
 #include "src/game-examples/tac_examples_registry.h"
-#include "src/common/tac_memory.h"
-#include "src/common/tac_error_handling.h"
+#include "src/common/memory/tac_memory.h"
+#include "src/common/core/tac_error_handling.h"
 
 namespace Tac
 {

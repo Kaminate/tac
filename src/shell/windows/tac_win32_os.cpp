@@ -1,12 +1,14 @@
 #include "src/common/containers/tac_array.h"
 #include "src/common/containers/tac_fixed_vector.h"
+#include "src/common/system/tac_filesystem.h"
+#include "src/common/string/tac_string_util.h"
 #include "src/common/graphics/tac_renderer.h"
 #include "src/common/shell/tac_shell.h"
-#include "src/common/tac_algorithm.h"
-#include "src/common/tac_id_collection.h"
-#include "src/common/tac_os.h"
-#include "src/common/tac_preprocessor.h"
-#include "src/common/tac_utility.h"
+#include "src/common/core/tac_algorithm.h"
+#include "src/common/identifier/tac_id_collection.h"
+#include "src/common/system/tac_os.h"
+#include "src/common/core/tac_preprocessor.h"
+#include "src/common/string/tac_string_util.h"
 #include "src/shell/tac_desktop_app.h"
 #include "src/shell/windows/tac_win32.h"
 
@@ -204,14 +206,38 @@ namespace Tac
     return lib;
   }
 
+  static bool IsDirectorySeparator( char c )
+  {
+    return c == '/' || c == '\\';
+  }
+
+  // returns true if the path starts from a Drive letter, ie C:/...
+  static bool IsFullPath( StringView path )
+  {
+    if( path.size() < 3 )
+      return false;
+
+    const char drive = path[ 0 ];
+    if( !IsAlpha( drive ) )
+      return false;
+
+    const char colon = path[ 1 ];
+    if( colon != ':' )
+      return false;
+
+    const char slash = path[ 2 ];
+    if( !IsDirectorySeparator( slash ) )
+      return false;
+
+    return true;
+  }
+
   static void Win32OSDoesFolderExist( StringView path, bool& exists, Errors& errors )
   {
     String expandedPath;
     const char* pathBytes = path.c_str();
 
-    bool isFullPath = IsAlpha( path[ 0 ] ) &&
-      ':' == path[ 1 ] &&
-      '\\' == path[ 2 ];
+    const bool isFullPath = IsFullPath( path );
     if( !isFullPath )
     {
       String workingDir;

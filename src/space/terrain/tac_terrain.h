@@ -2,7 +2,7 @@
 #include "src/common/containers/tac_vector.h"
 #include "src/common/math/tac_vector3.h"
 #include "src/common/math/tac_matrix4.h"
-#include "src/common/tac_error_handling.h"
+#include "src/common/core/tac_error_handling.h"
 #include "src/common/graphics/tac_renderer.h"
 #include "src/space/tac_component.h"
 

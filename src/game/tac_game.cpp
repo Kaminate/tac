@@ -1,10 +1,10 @@
-#include "src/common/graphics/imgui/tac_imgui.h"
-
-#include "src/common/tac_desktop_window.h"
-#include "src/common/tac_error_handling.h"
-#include "src/common/graphics/tac_ui_2d.h"
-#include "src/common/tac_os.h"
 #include "src/game/tac_game.h"
+
+#include "src/common/graphics/imgui/tac_imgui.h"
+#include "src/common/system/tac_desktop_window.h"
+#include "src/common/core/tac_error_handling.h"
+#include "src/common/graphics/tac_ui_2d.h"
+#include "src/common/system/tac_os.h"
 #include "src/shell/tac_desktop_app.h"
 #include "src/space/tac_ghost.h"
 #include "src/space/tac_space.h"
@@ -14,6 +14,7 @@
 namespace Tac
 {
   static DesktopWindowHandle   mDesktopWindowHandle;
+  static const char*           sAppName = "Game";
 
   void GameCallbackInit( Errors& errors )
   {
@@ -28,7 +29,8 @@ namespace Tac
     int windowHeight = ( int )( 0.8f * monitorHeight );
     int windowX = 0;
     int windowY = 0;
-    mDesktopWindowHandle = DesktopAppCreateWindow( windowX,
+    mDesktopWindowHandle = DesktopAppCreateWindow( sAppName,
+                                                   windowX,
                                                 windowY,
                                                 windowWidth,
                                                 windowHeight );
@@ -59,9 +61,12 @@ namespace Tac
 
   ExecutableStartupInfo ExecutableStartupInfo::Init()
   {
-    return { .mAppName = "Game",
+    return
+    {
+      .mAppName =sAppName,
     .mProjectInit = GameCallbackInit,
-    .mProjectUpdate = GameCallbackUpdate, };
+    .mProjectUpdate = GameCallbackUpdate,
+    };
   }
 
 }

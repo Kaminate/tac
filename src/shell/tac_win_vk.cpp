@@ -1,8 +1,8 @@
 #include "src/shell/vulkan/tac_renderer_vulkan.h" // TAC_VK_CALL
 #include "src/shell/tac_win_vk.h"
 #include "src/shell/windows/tac_win32.h"
-#include "src/common/tac_desktop_window.h"
-#include "src/common/tac_error_handling.h"
+#include "src/common/system/tac_desktop_window.h"
+#include "src/common/core/tac_error_handling.h"
 #include <vulkan/vulkan_win32.h>
 
 namespace Tac

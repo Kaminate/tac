@@ -8,7 +8,7 @@
 #include "src/space/collider/tac_collider.h"
 #include "src/common/graphics/tac_debug_3d.h"
 #include "src/common/profile/tac_profile.h"
-#include "src/common/tac_memory.h"
+#include "src/common/memory/tac_memory.h"
 
 #include <algorithm>
 

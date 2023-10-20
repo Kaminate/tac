@@ -1,10 +1,10 @@
 //#include "src/shell/windows/renderer/tac_renderer_directx11.h"
 #include "src/common/graphics/tac_renderer.h"
 #include "src/common/containers/tac_array.h"
-#include "src/common/tac_text_parser.h"
-#include "src/common/tac_frame_memory.h"
+#include "src/common/dataprocess/tac_text_parser.h"
+#include "src/common/memory/tac_frame_memory.h"
 #include "src/common/math/tac_math.h"
-#include "src/common/tac_error_handling.h"
+#include "src/common/core/tac_error_handling.h"
 
 namespace Tac
 {

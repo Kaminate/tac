@@ -2,10 +2,10 @@
 #include "src/space/tac_entity.h"
 #include "src/space/tac_system.h"
 #include "src/space/tac_world.h"
-#include "src/common/tac_frame_memory.h"
-#include "src/common/tac_algorithm.h"
-#include "src/common/tac_json.h"
-#include "src/common/tac_preprocessor.h"
+#include "src/common/memory/tac_frame_memory.h"
+#include "src/common/core/tac_algorithm.h"
+#include "src/common/dataprocess/tac_json.h"
+#include "src/common/core/tac_preprocessor.h"
 
 //#include <algorithm>
 //#include <cmath>

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "src/common/tac_serialization.h" // NetworkBits
+#include "src/common/dataprocess/tac_serialization.h" // NetworkBits
 #include "src/common/tac_common.h"
 #include "src/space/tac_space.h"
 

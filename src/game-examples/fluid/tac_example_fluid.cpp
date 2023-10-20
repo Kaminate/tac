@@ -2,9 +2,9 @@
 #include "src/common/graphics/tac_renderer.h"
 #include "src/common/graphics/tac_ui_2d.h"
 #include "src/common/math/tac_math.h"
-#include "src/common/tac_desktop_window.h"
-#include "src/common/tac_keyboard_input.h"
-#include "src/common/tac_preprocessor.h" // C4100
+#include "src/common/system/tac_desktop_window.h"
+#include "src/common/input/tac_keyboard_input.h"
+#include "src/common/core/tac_preprocessor.h" // C4100
 #include "src/game-examples/fluid/tac_example_fluid.h"
 
 //#include <cmath>

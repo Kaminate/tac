@@ -1,7 +1,8 @@
 #include "src/shell/windows/renderer/tac_renderer_directx.h"
-#include "src/common/tac_preprocessor.h"
-#include "src/common/tac_os.h"
-#include "src/common/tac_error_handling.h"
+#include "src/common/core/tac_preprocessor.h"
+#include "src/common/memory/tac_frame_memory.h"
+#include "src/common/system/tac_os.h"
+#include "src/common/core/tac_error_handling.h"
 
 //#include 	<libloaderapi.h>
 
@@ -15,51 +16,79 @@ namespace Tac
   //  return s;
   //}
 
-  static String GetLatestWinPixGpuCapturerPath_Cpp17()
+  static const char* pixInstallPath = "C:/Program Files/Microsoft PIX";
+  static const char* pixDllName = "WinPixGpuCapturer.dll";
+
+  static String GetPIXDllPath(Errors& errors)
   {
-    String pixInstallPath = "C:\\Program Files";
-    pixInstallPath += "/Microsoft PIX";
+    bool parentDirExist = false;
+    OS::OSDoesFolderExist( pixInstallPath, parentDirExist, errors );
+    TAC_HANDLE_ERROR_RETURN( errors, "" );
 
-    String newest;
+    if( !parentDirExist )
+      return "";
 
-    Errors e;
-    bool exist = false;
-    OS::OSDoesFolderExist( pixInstallPath, exist, e );
-    if( !exist )
-      return {};
+    Vector< String > subdirs;
+    OS::OSGetDirectoriesInDirectory( subdirs, pixInstallPath, errors );
+    TAC_HANDLE_ERROR_RETURN( errors, "" );
 
-    Vector< String > files;
-    OS::OSGetDirectoriesInDirectory( files, pixInstallPath, e );
+    String mostRecentVersion;
 
-    for( String s : files )
-      if( newest.empty() || newest < s )
-        s = newest;
+    // Pix version numbers are usually XXXX.YY https://devblogs.microsoft.com/pix/download/
+    for( const String& subdir : subdirs )
+    {
+      if( subdir.size() != 6 && subdir[ 4 ] != '.' )
+        continue;
 
-    TAC_ASSERT( !newest.empty());
-    return pixInstallPath + "/" + newest + "WinPixGpuCapturer.dll";
+      if( mostRecentVersion.empty() || subdir > mostRecentVersion )
+        mostRecentVersion = subdir;
+    }
+
+    std::vector< std::string > vers = { "2305.10" , "2303.30","2303.02","2208.10" };
+    std::string v = vers[ 0 ];
+    std::string_view sv = v;
+
+    Vector<int> tac_vec = { 1,2,3 };
+    StringView tacsv = mostRecentVersion;
+
+    TAC_ASSERT( !mostRecentVersion.empty());
+    String result;
+    result += pixInstallPath;
+    result += "/";
+    result += mostRecentVersion;
+    result += "/";
+    result += pixDllName;
+    return result;
   }
 
-  void AllowPIXDebuggerAttachment()
+  void AllowPIXDebuggerAttachment( Errors& errors )
   {
-    // TEMP
-    if( true )
-      return;
-
     // Check to see if a copy of WinPixGpuCapturer.dll has already been injected into the application.
     // This may happen if the application is launched through the PIX UI. 
-    if( OS::OSGetLoadedDLL( "WinPixGpuCapturer.dll" ) )
+    if( OS::OSGetLoadedDLL( pixDllName ) )
       return;
-    //HMODULE moduleHandle = GetModuleHandleA( "WinPixGpuCapturer.dll" );
-    //if( moduleHandle )
-    //  return;
 
-    String path = GetLatestWinPixGpuCapturerPath_Cpp17();
+    String path = GetPIXDllPath( errors );
+    if( path.empty() )
+    {
+        const char* str = FrameMemoryPrintf(
+          "Warning: Could not find PIX %s. Is it installed? "
+          "PIX will not be able to attach to the running process.",
+          pixDllName );
+        OS::OSDebugPrintLine( str );
+        return;
+    }
+
     void* lib = OS::OSLoadDLL( path.c_str() );
-    //HMODULE lib = LoadLibrary( path.c_str() );
     if( !lib )
-      OS::OSDebugPrintLine(
-        "Warning: Could not find WinPixGpuCapturer.dll."
-        " PIX (is it installed?) will not be attachable." );
+    {
+      const char* str = FrameMemoryPrintf(
+        "Failed to load PIX %s at path %s. Is the path correct?",
+        pixDllName,
+        path.c_str() );
+      OS::OSDebugPrintLine( str );
+    }
+
   }
 
 } // namespace Tac

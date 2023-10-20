@@ -9,7 +9,7 @@
 #include "src/game-examples/phy_sim/tac_example_phys_sim_7_friction.h"
 #include "src/game-examples/tac_examples.h"
 #include "src/game-examples/tac_examples_registry.h"
-#include "src/common/tac_memory.h"
+#include "src/common/memory/tac_memory.h"
 #include "src/common/containers/tac_vector.h"
 
 namespace Tac

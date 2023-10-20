@@ -60,9 +60,11 @@ PS_OUTPUT PS( VS_OUTPUT input )
   //   if x is less than min returns 0;
   //   if x is greater than max returns 1;
   //   otherwise, a value between 0 and 1 if x is in the range [min, max].
-  float ss = smoothstep( oneedge - idk, oneedge + idk, sampled * 255.0 );
+  // float ss = smoothstep( oneedge - idk, oneedge + idk, sampled * 255.0 );
 
-  color *= ss;
+  // color *= ss;
+  // color = sampled * 255.0 > oneedge ? float4( 1,1,1,1) : float4( 0,0,0,0);
+  color = float4( 1,1,1,1 ) * sampled;
 
 #if TEST_RED
   color = float4( 1, 0, 0, 1 );

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "src/common/tac_desktop_window.h"
+#include "src/common/system/tac_desktop_window.h"
 #include "src/common/tac_common.h"
-//#include "src/common/tac_error_handling.h"
+//#include "src/common/core/tac_error_handling.h"
 
 namespace Tac
 {

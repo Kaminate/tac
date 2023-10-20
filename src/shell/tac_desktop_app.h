@@ -1,6 +1,6 @@
 #pragma once
 
-#include "src/common/tac_keyboard_input.h"
+#include "src/common/input/tac_keyboard_input.h"
 #include "src/common/tac_common.h"
 
 namespace Tac

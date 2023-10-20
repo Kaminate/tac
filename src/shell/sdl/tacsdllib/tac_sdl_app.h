@@ -1,8 +1,8 @@
 #include "src/common/shell/tac_shell.h"
 #include "src/common/string/tac_string.h"
-#include "src/common/tac_error_handling.h"
+#include "src/common/core/tac_error_handling.h"
 #include "src/common/containers/tac_vector.h"
-#include "src/common/tac_event.h"
+#include "src/common/core/tac_event.h"
 #include "src/shell/tac_desktop_app.h"
 
 #include <SDL.h>

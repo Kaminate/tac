@@ -1,10 +1,10 @@
 #include "src/common/math/tac_math.h"
-#include "src/common/tac_algorithm.h"
-#include "src/common/tac_error_handling.h"
-#include "src/common/tac_keyboard_input.h"
-#include "src/common/tac_os.h"
-#include "src/common/tac_preprocessor.h"
-#include "src/common/tac_settings.h"
+#include "src/common/core/tac_algorithm.h"
+#include "src/common/core/tac_error_handling.h"
+#include "src/common/input/tac_keyboard_input.h"
+#include "src/common/system/tac_os.h"
+#include "src/common/core/tac_preprocessor.h"
+#include "src/common/dataprocess/tac_settings.h"
 #include "src/common/string/tac_string.h"
 #include "src/shell/tac_desktop_app.h"
 #include "src/shell/windows/net/tac_net_winsock.h"
@@ -13,7 +13,7 @@
 #include "src/shell/windows/input/tac_xinput.h"
 #include "src/shell/windows/input/tac_win32_mouse_edge.h"
 #include "src/shell/windows/renderer/tac_renderer_directx11.h"
-#include "src/common/tac_net.h"
+#include "src/common/net/tac_net.h"
 
 #include <iostream> // okay maybe this should also be allowed
 
@@ -34,6 +34,7 @@ int CALLBACK WinMain( HINSTANCE hInstance,
   using namespace Tac;
   WinMainAux( hInstance, hPrevInstance, lpCmdLine, nCmdShow, GetMainErrors() );
   DesktopAppReportErrors();
+
   //ReportError( "WinMain", sWinMainErrors );
   //ReportError( "Platform thread", *GetPlatformThreadErrors() );
   //ReportError( "Logic thread", *GetLogicThreadErrors() );
