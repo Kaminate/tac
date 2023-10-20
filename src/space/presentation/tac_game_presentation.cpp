@@ -106,7 +106,7 @@ namespace Tac
              .mFar = camera->mFarPlane,
              .mNear = camera->mNearPlane,
              .mGbufferSize = { w, h },
-             .mSecModTau = ( float )std::fmod( elapsedSeconds, 6.2831853 )};
+             .mSecModTau = ( float )Fmod( elapsedSeconds, 6.2831853 )};
   }
 
   static TerrainVertex GetTerrainVertex( const Terrain* terrain,

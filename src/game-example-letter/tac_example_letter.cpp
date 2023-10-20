@@ -1,6 +1,7 @@
-#include "src/game-example-letter/tac_example_letter.h"
+#include "src/game-example-letter/tac_example_letter.h" // self-include
 
 #include "src/common/graphics/imgui/tac_imgui.h"
+#include "src/common/shell/tac_shell_timer.h"
 #include "src/common/system/tac_desktop_window.h"
 #include "src/common/system/tac_os.h"
 #include "src/shell/tac_desktop_app.h"
@@ -17,6 +18,7 @@ namespace Tac
     QuitProgramOnWindowClose( sDesktopWindowHandle );
 
     ImGuiDebugColors();
+    ImGuiSetIsScrollbarEnabled( false );
   }
 
   static const char* quickbrownfox = "The quick brown fox jumps over the lazy dog";
@@ -48,19 +50,11 @@ namespace Tac
         FontApi::SetForceRedraw( setForceRedraw );
     }
 
-    TAC_IMGUI_FONT_SIZE_BLOCK( 64 );
-    static bool b = true;
-    if( ImGuiCheckbox( "", &b ) )
-    {
-    }
 
-    //ImGuiText( "" );
+    float fontSize = 10.0f;
+    for( int i = 0; i < 6; ++i, fontSize *=  2 )
+      Test( fontSize);
 
-    //float fontSize = 10.0f;
-    //for( int i = 0; i < 5; ++i, fontSize *=  2 )
-    //  Test( fontSize, i == 4 ? quickbrownfox : "" );
-
-    Test( 160, quickbrownfox );
 
     ImGuiEnd();
   }
