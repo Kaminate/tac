@@ -60,11 +60,11 @@ namespace Tac
       }
 
       if( mTerrain->mTestHeightmapLoadErrors )
-        ImGuiText( "Load heightmap errors: " + mTerrain->mTestHeightmapLoadErrors.ToString() );
+        ImGuiTextf( "Load heightmap errors: %s", mTerrain->mTestHeightmapLoadErrors.ToString().c_str() );
       if( mTerrainTextureDialogErrors )
-        ImGuiText( "Dialog heightmap errors: " + mTerrainTextureDialogErrors.ToString() );
+        ImGuiTextf( "Dialog heightmap errors: " , mTerrainTextureDialogErrors.ToString().c_str() );
       if( mNoiseTextureDialogErrors )
-        ImGuiText( "Dialog noise texture errors: " + mNoiseTextureDialogErrors.ToString() );
+        ImGuiTextf( "Dialog noise texture errors: " , mNoiseTextureDialogErrors.ToString().c_str() );
 
       changed |= ImGuiDragInt( "Subdivisions", &mTerrain->mSideVertexCount );
       changed |= ImGuiDragFloat( "Size", &mTerrain->mSideLength );

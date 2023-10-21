@@ -119,13 +119,13 @@ namespace Tac
     OS::OSDebugPrintLine( buf );
     OS::OSDebugPrintLine( "\n" );
 
-    ImGuiText( va(
+    ImGuiTextf( 
       FMT FMT FMT "\n"
       FMT FMT FMT "\n"
       FMT FMT FMT "\n",
       r0.x, r0.y, r0.z,
       r1.x, r1.y, r1.z,
-      r2.x, r2.y, r2.z ) );
+      r2.x, r2.y, r2.z );
   }
 
   void ExamplePhysSim3Torque::Integrate()

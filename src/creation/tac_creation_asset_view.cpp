@@ -202,7 +202,7 @@ namespace Tac
   static void UIFilesOther( const Vector< String >& paths )
   {
     for( const String& path : paths )
-      ImGuiText( SplitFilepath( path ).mFilename );
+      ImGuiText( SplitFilepath( path ).mFilename.c_str() );
   }
 
   static void AttemptLoadEntity( AssetViewImportedModel* loadedModel, const char* path )

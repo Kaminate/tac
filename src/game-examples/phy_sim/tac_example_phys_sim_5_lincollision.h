@@ -41,7 +41,7 @@ namespace Tac
   {
     ExamplePhysSim5LinCollision();
     void Update( Errors& ) override;
-    void Draw( const ExamplePhys5SimObj& );
+    void DrawObject( const ExamplePhys5SimObj& );
 
     ExamplePhys5SimObj mPlayer;
     ExamplePhys5SimObj mObstacle;

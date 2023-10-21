@@ -13,6 +13,8 @@ cbuffer CBufferPerFrame : TAC_AUTO_REGISTER
   float            near;
   float2           gbufferSize;
   float            secModTau;
+  float            sdfOnEdge; // [0, 1] (128/255.0) = 0.5
+  float            sdfPixelDistScale; // [0, 1] 128/5.0/255.0 = .1
 }
 
 cbuffer CBufferPerObject : TAC_AUTO_REGISTER
@@ -20,6 +22,7 @@ cbuffer CBufferPerObject : TAC_AUTO_REGISTER
   row_major matrix World;
 
   // Is this premultiplied alpha?
+  // Is this sRGB?
   float4           Color;
 }
 

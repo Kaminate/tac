@@ -130,7 +130,7 @@ namespace Tac
       {
         ImGuiSaveWindowSettings();
         sHWNDs[ ( int )desktopWindowHandle ] = nullptr;
-        DesktopEventAssignHandle( desktopWindowHandle, nullptr, 0, 0, 0, 0 );
+        DesktopEventAssignHandle( desktopWindowHandle, nullptr, nullptr, 0, 0, 0, 0 );
       } break;
 
       case WM_CREATE:
@@ -139,8 +139,10 @@ namespace Tac
         sWindowUnderConstruction = DesktopWindowHandle();
         auto windowInfo = ( const CREATESTRUCT* )lParam;
         TAC_ASSERT( windowInfo->cx && windowInfo->cy );
+        TAC_ASSERT( windowInfo->lpszName );
         DesktopEventAssignHandle( desktopWindowHandle,
                                   hwnd,
+                                  windowInfo->lpszName,
                                   windowInfo->x,
                                   windowInfo->y,
                                   windowInfo->cx,

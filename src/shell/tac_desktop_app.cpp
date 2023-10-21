@@ -25,6 +25,7 @@
 
 #include <mutex>
 #include <thread> // std::this_thread
+#include <type_traits>
 
 namespace Tac
 {
@@ -61,9 +62,19 @@ namespace Tac
   struct DesktopEventQueueImpl
   {
     void       Init();
-    void       QueuePush( DesktopEventType, void*, int );
+
+    template< typename T >
+    void       QueuePush( DesktopEventType type, const T* t )
+    {
+      static_assert( std::is_trivially_copyable_v<T> );
+      QueuePush( type, t, sizeof( T ) );
+    }
+
     bool       QueuePop( void*, int );
     bool       Empty();
+
+  private:
+    void       QueuePush( DesktopEventType, const void*, int );
     RingBuffer mQueue;
     std::mutex mMutex;
   };
@@ -100,8 +111,8 @@ namespace Tac
   static IdCollection                  sDesktopWindowHandleIDs( kDesktopWindowCapacity );
   static WindowRequestsCreate          sWindowRequestsCreate;
   static WindowRequestsDestroy         sWindowRequestsDestroy;
-  static ThreadAllocator               sAllocatorStuff;
-  static ThreadAllocator               sAllocatorMain;
+  //static ThreadAllocator               sAllocatorLogicThread;
+  //static ThreadAllocator               sAllocatorMainThread;
   static DesktopEventQueueImpl         sEventQueue;
   static RequestMove                   sRequestMove[ kDesktopWindowCapacity ];
   static RequestResize                 sRequestResize[ kDesktopWindowCapacity ];
@@ -237,8 +248,9 @@ namespace Tac
   static void LogicThreadInit( Errors& errors )
   {
     gThreadType = ThreadType::Logic;
-    sAllocatorStuff.Init( 1024 * 1024 * 10 );
-    FrameMemorySetThreadAllocator( &sAllocatorStuff );
+    //sAllocatorLogicThread.Init( 1024 * 1024 * 10 );
+    //FrameMemorySetThreadAllocator( &sAllocatorLogicThread );
+    FrameMemoryInitThreadAllocator(  1024 * 1024 * 10  );
 
     ShellInit( errors );
     TAC_HANDLE_ERROR( errors );
@@ -341,6 +353,7 @@ namespace Tac
       Render::SubmitFrame();
 
       DontMaxOutCpuGpuPowerUsage();
+      ShellIncrementFrameCounter();
     }
 
   }
@@ -356,8 +369,9 @@ namespace Tac
   {
     TAC_UNUSED_PARAMETER( errors );
     gThreadType = ThreadType::Main;
-    sAllocatorMain.Init( 1024 * 1024 * 10 );
-    FrameMemorySetThreadAllocator( &sAllocatorMain );
+    //sAllocatorMainThread.Init( 1024 * 1024 * 10 );
+    //FrameMemorySetThreadAllocator( &sAllocatorMainThread );
+    FrameMemoryInitThreadAllocator(  1024 * 1024 * 10  );
   }
 
   static void PlatformThread()
@@ -410,8 +424,8 @@ namespace Tac
   }
 
   void DesktopEventQueueImpl::QueuePush( DesktopEventType desktopEventType,
-    void* dataBytes,
-    int dataByteCount )
+                                         const void* dataBytes,
+                                         int dataByteCount )
   {
     std::lock_guard< std::mutex > lockGuard( mMutex );
     // Tac::WindowProc still spews out events while a popupbox is open
@@ -438,12 +452,14 @@ namespace Tac
   struct DesktopEventDataAssignHandle
   {
     DesktopWindowHandle mDesktopWindowHandle;
-    const void* mNativeWindowHandle = nullptr;
+    const void*         mNativeWindowHandle = nullptr;
+    ShortFixedString    mName;
     int                 mX = 0;
     int                 mY = 0;
     int                 mW = 0;
     int                 mH = 0;
   };
+
 
   struct DesktopEventDataCursorUnobscured
   {
@@ -513,13 +529,15 @@ namespace Tac
           //if( !desktopWindowState->mNativeWindowHandle )
         {
           WindowGraphicsNativeHandleChanged( data.mDesktopWindowHandle,
-            data.mNativeWindowHandle,
-            data.mX,
-            data.mY,
-            data.mW,
-            data.mH );
+                                             data.mNativeWindowHandle,
+                                             data.mName,
+                                             data.mX,
+                                             data.mY,
+                                             data.mW,
+                                             data.mH );
         }
         desktopWindowState->mNativeWindowHandle = data.mNativeWindowHandle;
+        desktopWindowState->mName = data.mName;
         desktopWindowState->mWidth = data.mW;
         desktopWindowState->mHeight = data.mH;
         desktopWindowState->mX = data.mX;
@@ -592,20 +610,25 @@ namespace Tac
   }
 
   void                DesktopEventAssignHandle( const DesktopWindowHandle desktopWindowHandle,
-    const void* nativeWindowHandle,
-    const int x,
-    const int y,
-    const int w,
-    const int h )
+                                                const void* nativeWindowHandle,
+                                                const char* name,
+                                                const int x,
+                                                const int y,
+                                                const int w,
+                                                const int h )
   {
     TAC_ASSERT( IsMainThread() );
-    DesktopEventDataAssignHandle data{ .mDesktopWindowHandle = desktopWindowHandle,
-                                       .mNativeWindowHandle = nativeWindowHandle,
-                                       .mX = x,
-                                       .mY = y,
-                                       .mW = w,
-                                       .mH = h, };
-    sEventQueue.QueuePush( DesktopEventType::WindowAssignHandle, &data, sizeof( data ) );
+    const DesktopEventDataAssignHandle data
+    {
+      .mDesktopWindowHandle = desktopWindowHandle,
+      .mNativeWindowHandle = nativeWindowHandle,
+      .mName = name,
+      .mX = x,
+      .mY = y,
+      .mW = w,
+      .mH = h,
+    };
+    sEventQueue.QueuePush( DesktopEventType::WindowAssignHandle, &data );
   }
 
   void                DesktopEventMoveWindow( const DesktopWindowHandle desktopWindowHandle,
@@ -614,7 +637,7 @@ namespace Tac
   {
     TAC_ASSERT( IsMainThread() );
     DesktopEventDataWindowMove data{ .mDesktopWindowHandle = desktopWindowHandle,.mX = x,.mY = y };
-    sEventQueue.QueuePush( DesktopEventType::WindowMove, &data, sizeof( data ) );
+    sEventQueue.QueuePush( DesktopEventType::WindowMove, &data );
   }
 
   void                DesktopEventResizeWindow( const DesktopWindowHandle desktopWindowHandle,
@@ -623,14 +646,14 @@ namespace Tac
   {
     TAC_ASSERT( IsMainThread() );
     DesktopEventDataWindowResize data{ .mDesktopWindowHandle = desktopWindowHandle, .mWidth = w,.mHeight = h };
-    sEventQueue.QueuePush( DesktopEventType::WindowResize, &data, sizeof( data ) );
+    sEventQueue.QueuePush( DesktopEventType::WindowResize, &data );
   }
 
   void                DesktopEventMouseWheel( const int ticks )
   {
     TAC_ASSERT( IsMainThread() );
     DesktopEventDataMouseWheel data{ .mDelta = ticks };
-    sEventQueue.QueuePush( DesktopEventType::MouseWheel, &data, sizeof( data ) );
+    sEventQueue.QueuePush( DesktopEventType::MouseWheel, &data );
   }
 
   void                DesktopEventMouseMove( const DesktopWindowHandle desktopWindowHandle,
@@ -639,28 +662,28 @@ namespace Tac
   {
     TAC_ASSERT( IsMainThread() );
     DesktopEventDataMouseMove data{ .mDesktopWindowHandle = desktopWindowHandle, .mX = x, .mY = y };
-    sEventQueue.QueuePush( DesktopEventType::MouseMove, &data, sizeof( data ) );
+    sEventQueue.QueuePush( DesktopEventType::MouseMove, &data );
   }
 
   void                DesktopEventKeyState( const Key key, const bool down )
   {
     TAC_ASSERT( IsMainThread() );
     DesktopEventDataKeyState data{ .mKey = key, .mDown = down };
-    sEventQueue.QueuePush( DesktopEventType::KeyState, &data, sizeof( data ) );
+    sEventQueue.QueuePush( DesktopEventType::KeyState, &data );
   }
 
   void                DesktopEventKeyInput( const Codepoint codepoint )
   {
     TAC_ASSERT( IsMainThread() );
     DesktopEventDataKeyInput data{ .mCodepoint = codepoint };
-    sEventQueue.QueuePush( DesktopEventType::KeyInput, &data, sizeof( data ) );
+    sEventQueue.QueuePush( DesktopEventType::KeyInput, &data );
   }
 
   void                DesktopEventMouseHoveredWindow( const DesktopWindowHandle desktopWindowHandle )
   {
     TAC_ASSERT( IsMainThread() );
     DesktopEventDataCursorUnobscured data{ .mDesktopWindowHandle = desktopWindowHandle };
-    sEventQueue.QueuePush( DesktopEventType::CursorUnobscured, &data, sizeof( data ) );
+    sEventQueue.QueuePush( DesktopEventType::CursorUnobscured, &data );
   }
 
 

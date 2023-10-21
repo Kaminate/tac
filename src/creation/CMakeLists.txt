@@ -5,12 +5,7 @@ if(NOT (WIN32 OR UNIX) )
   return()
 endif()
 
-if( WIN32 )
 
-  # Add the shader files to the Visual Studio Solution Explorer under the 'shaders' filter
-  list( APPEND TAC_SOURCES ${TAC_SHADERS} )
-  source_group("shaders" FILES ${TAC_SHADERS})
-endif()
 
 
 #

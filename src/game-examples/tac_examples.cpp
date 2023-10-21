@@ -1,6 +1,8 @@
 #include "src/common/graphics/imgui/tac_imgui.h"
 #include "src/common/graphics/tac_renderer.h"
 #include "src/common/graphics/tac_camera.h"
+#include "src/common/shell/tac_shell_timer.h"
+#include "src/shell/tac_desktop_window_graphics.h"
 #include "src/common/math/tac_math.h"
 #include "src/common/system/tac_desktop_window.h"
 #include "src/common/core/tac_error_handling.h"
@@ -38,18 +40,25 @@ namespace Tac
   }
 
 
-  static DesktopWindowHandle       sDesktopWindowHandle;
-
-  //const ExampleEntry* GetExampleEntry( int i )
-  //{
-  //  return ExampleIndexValid( i ) ? &sExamples[ i ] : nullptr;
-  //}
-
+  static DesktopWindowHandle       sNavWindow;
+  static DesktopWindowHandle       sDemoWindow;
 
   static void   ExamplesInitCallback( Errors& errors )
   {
-    sDesktopWindowHandle = CreateTrackedWindow( "Example.Window" );
-    QuitProgramOnWindowClose( sDesktopWindowHandle );
+    // nav
+    int x = 50;
+    int y = 50;
+    int w = 400;
+    int h = 200;
+    int spacing = 50;
+
+    // demo
+    int size = 600;
+
+    sNavWindow = CreateTrackedWindow( "Example.Nav", x, y, w, h );
+    sDemoWindow = CreateTrackedWindow( "Example.Demo", x + w + spacing, y, size, size  );
+    QuitProgramOnWindowClose( sNavWindow );
+
     ExampleRegistryPopulate();
 
     const StringView settingExampleName = SettingsGetString( "Example.Name", "" );
@@ -66,40 +75,21 @@ namespace Tac
     ExampleStateMachineUnint();
   }
 
-  //static void   ExamplesQuitOnWindowClose()
-  //{
-  //  static bool windowEverOpened;
-  //  DesktopWindowState* desktopWindowState = GetDesktopWindowState( sDesktopWindowHandle );
-  //  if( desktopWindowState->mNativeWindowHandle )
-  //  {
-  //    windowEverOpened = true;
-  //  }
-  //  else
-  //  {
-  //    if( windowEverOpened )
-  //    {
-  //      OS::OSAppStopRunning();
-  //    }
-  //  }
-  //}
 
-  static void   ExamplesUpdateCallback( Errors& errors )
+  static void ExampleSelectorWindow( Errors& errors )
   {
-    //ExamplesQuitOnWindowClose();
-
-    DesktopWindowState* desktopWindowState = GetDesktopWindowState( sDesktopWindowHandle );
-    if( !desktopWindowState->mNativeWindowHandle )
+    ImGuiSetNextWindowStretch();
+    ImGuiSetNextWindowHandle( sNavWindow );
+    if( !ImGuiBegin( "Examples" ) )
       return;
+
+    TAC_ON_DESTRUCT( ImGuiEnd());
 
     int offset = 0;
     int iSelected = -1;
-
-    ImGuiSetNextWindowHandle( sDesktopWindowHandle );
-    ImGuiBegin( "Examples" );
-
     if( Example* ex = GetCurrExample() )
     {
-      ImGuiText( FrameMemoryPrintf( "Current Example: %s", ex->mName ) );
+      ImGuiTextf( "Current Example: %s", ex->mName ) ;
       offset -= ImGuiButton( "Prev" ) ? 1 : 0;
       ImGuiSameLine();
       offset += ImGuiButton( "Next" ) ? 1 : 0;
@@ -115,54 +105,85 @@ namespace Tac
 
     if(offset)
       SetNextExample( GetCurrExampleIndex() + offset );
+
     if(iSelected != -1)
       SetNextExample( iSelected );
+  }
 
-    const v2 cursorPos = ImGuiGetCursorPos();
-    const UIStyle& style = ImGuiGetStyle();
-    style.windowPadding;
-    const v2 drawSize = {
-      desktopWindowState->mWidth - style.windowPadding * 2,
-      desktopWindowState->mHeight - style.windowPadding - cursorPos.y };
-    
+  static void ExampleDemoWindow(Errors& errors)
+  {
+    auto i = ShellGetFrameIndex();
+    ImGuiSetNextWindowStretch();
+    ImGuiSetNextWindowHandle( sDemoWindow );
+    if( !ImGuiBegin( "Examples Demo" ) )
+      return;
+    TAC_ON_DESTRUCT( ImGuiEnd() );
 
-    const int iOld = GetCurrExampleIndex();
-    ExampleStateMachineUpdate(errors);
-    TAC_HANDLE_ERROR(errors);
-    const int iNew = GetCurrExampleIndex();
-    if( iOld != iNew )
-      SettingsSetString( "Example.Name", GetExampleName( iNew ) );
+    DesktopWindowState* demoWindowState = GetDesktopWindowState( sDemoWindow );
+    int w = demoWindowState->mWidth;
+    int h = demoWindowState->mHeight;
 
     if( Example* ex = GetCurrExample() )
     {
-      ExamplesPresentationRender( ex->mWorld, ex->mCamera, drawSize );
-      ImGuiImage( ( int )ExamplesColor(), drawSize );
+
+      const Render::ViewHandle view = WindowGraphicsGetView( sDemoWindow );
+      const Render::FramebufferHandle fb = WindowGraphicsGetFramebuffer( sDemoWindow );
+      Render::SetViewFramebuffer( view, fb );
+      Render::SetViewport( view, Render::Viewport( w, h ) );
+      Render::SetViewScissorRect( view, Render::ScissorRect( w, h ) );
+      GamePresentationRender( ex->mWorld,
+                              ex->mCamera,
+                              w,
+                              h,
+                              view );
     }
 
+    const int iOld = GetCurrExampleIndex();
+    ExampleStateMachineUpdate( errors );
+    TAC_HANDLE_ERROR( errors );
+    const int iNew = GetCurrExampleIndex();
+    if( iOld != iNew )
+      SettingsSetString( "Example.Name", GetExampleName( iNew ) );
+  }
 
-    ImGuiEnd();
+  static void   ExamplesUpdateCallback( Errors& errors )
+  {
+    if( KeyboardIsKeyDown( Key::Escape ) )
+      OS::OSAppStopRunning();
+
+    if( !GetDesktopWindowState( sDemoWindow )->mNativeWindowHandle ||
+        !GetDesktopWindowState( sNavWindow )->mNativeWindowHandle )
+      return;
+
+    ExampleSelectorWindow( errors );
+    TAC_HANDLE_ERROR( errors );
+
+    ExampleDemoWindow(errors);
     TAC_HANDLE_ERROR( errors );
   }
 
   ExecutableStartupInfo          ExecutableStartupInfo::Init()
   {
-    return { .mAppName = "Examples",
-             .mProjectInit = ExamplesInitCallback,
-             .mProjectUpdate = ExamplesUpdateCallback,
-             .mProjectUninit = ExamplesUninitCallback, };
+    return
+    {
+      .mAppName = "Examples",
+      .mProjectInit = ExamplesInitCallback,
+      .mProjectUpdate = ExamplesUpdateCallback,
+      .mProjectUninit = ExamplesUninitCallback,
+    };
   }
 
   v3 Example::GetWorldspaceKeyboardDir()
   {
-    v3 wsKeyboardForce{};
-    wsKeyboardForce += KeyboardIsKeyDown( Key::W ) ? mCamera->mUp : v3{};
-    wsKeyboardForce += KeyboardIsKeyDown( Key::A ) ? -mCamera->mRight : v3{};
-    wsKeyboardForce += KeyboardIsKeyDown( Key::S ) ? -mCamera->mUp : v3{};
-    wsKeyboardForce += KeyboardIsKeyDown( Key::D ) ? mCamera->mRight : v3{};
-    const float q = wsKeyboardForce.Quadrance();
+    v3 force{};
+    force += KeyboardIsKeyDown( Key::W ) ? mCamera->mUp : v3{};
+    force += KeyboardIsKeyDown( Key::A ) ? -mCamera->mRight : v3{};
+    force += KeyboardIsKeyDown( Key::S ) ? -mCamera->mUp : v3{};
+    force += KeyboardIsKeyDown( Key::D ) ? mCamera->mRight : v3{};
+    const float q = force.Quadrance();
     if( q )
-      wsKeyboardForce /= Sqrt( q );
-    return wsKeyboardForce;
+      force /= Sqrt( q );
+    return force;
   }
 
 } // namespace Tac

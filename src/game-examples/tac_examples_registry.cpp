@@ -1,5 +1,6 @@
 #include "src/game-examples/fluid/tac_example_fluid.h"
 #include "src/game-examples/meta/tac_example_meta.h"
+#include "src/game-examples/text/tac_example_text.h"
 #include "src/game-examples/phy_sim/tac_example_phys_sim_1_force.h"
 #include "src/game-examples/phy_sim/tac_example_phys_sim_2_integration.h"
 #include "src/game-examples/phy_sim/tac_example_phys_sim_3_torque.h"
@@ -14,8 +15,6 @@
 
 namespace Tac
 {
-
-#define TAC_EXAMPLE_FACTORY( T ) []()->Example*{ return TAC_NEW T; }
 
   struct ExampleEntry
   {
@@ -51,16 +50,19 @@ namespace Tac
   //  return sExamples.end();
   //}
 
-  static void ExampleRegistryAdd( const char* exampleName, Example* ( *exampleFactory )( ) )
+  template< typename T >
+  static void ExampleRegistryAdd( const char* exampleName )
   {
     // Validation
     TAC_ASSERT( !StringView( exampleName ).empty() );
     for( const ExampleEntry& example : sExamples )
       TAC_ASSERT( !StringView( example.GetName() ).contains( exampleName ) );
 
-    ExampleEntry exampleEntry;
-    exampleEntry.mExampleName = exampleName;
-    exampleEntry.mExampleFactory = exampleFactory;
+    const ExampleEntry exampleEntry
+    {
+      .mExampleName = exampleName,
+      .mExampleFactory = []()->Example* { return TAC_NEW T; },
+    };
     sExamples.push_back( exampleEntry );
   }
 
@@ -74,15 +76,16 @@ namespace Tac
 
   void ExampleRegistryPopulate()
   {
-    ExampleRegistryAdd( "Fluid", TAC_EXAMPLE_FACTORY( ExampleFluid ) );
-    ExampleRegistryAdd( "Meta", TAC_EXAMPLE_FACTORY( ExampleMeta ) );
-    ExampleRegistryAdd( "Physics - Sim 1 Force", TAC_EXAMPLE_FACTORY( ExamplePhysSim1Force ) );
-    ExampleRegistryAdd( "Physics - Sim 2 Integration", TAC_EXAMPLE_FACTORY( ExamplePhysSim2Integration ) );
-    ExampleRegistryAdd( "Physics - Sim 3 Torque", TAC_EXAMPLE_FACTORY( ExamplePhysSim3Torque ) );
-    ExampleRegistryAdd( "Physics - Sim 4 Tank", TAC_EXAMPLE_FACTORY( ExamplePhysSim4Tank ) );
-    ExampleRegistryAdd( "Physics - Sim 5 Lin Collision", TAC_EXAMPLE_FACTORY( ExamplePhysSim5LinCollision ) );
-    ExampleRegistryAdd( "Physics - Sim 6 Rot Collision", TAC_EXAMPLE_FACTORY( ExamplePhysSim6RotCollision ) );
-    ExampleRegistryAdd( "Physics - Sim 7 Friction", TAC_EXAMPLE_FACTORY( ExamplePhysSim7Friction ) );
+    ExampleRegistryAdd<ExampleFluid >( "Fluid" );
+    ExampleRegistryAdd<ExampleMeta >( "Meta" );
+    ExampleRegistryAdd<ExamplePhysSim1Force >( "Physics - Sim 1 Force" );
+    ExampleRegistryAdd<ExamplePhysSim2Integration >( "Physics - Sim 2 Integration" );
+    ExampleRegistryAdd<ExamplePhysSim3Torque >( "Physics - Sim 3 Torque" );
+    ExampleRegistryAdd<ExamplePhysSim4Tank >( "Physics - Sim 4 Tank" );
+    ExampleRegistryAdd<ExamplePhysSim5LinCollision >( "Physics - Sim 5 Lin Collision" );
+    ExampleRegistryAdd<ExamplePhysSim6RotCollision >( "Physics - Sim 6 Rot Collision" );
+    ExampleRegistryAdd<ExamplePhysSim7Friction >( "Physics - Sim 7 Friction" );
+    ExampleRegistryAdd<ExampleText >( "Text" );
   }
 
   bool ExampleIndexValid( int i )

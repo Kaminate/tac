@@ -161,6 +161,7 @@ namespace Tac
     mPlayer.BeginFrame();
     mObstacle.BeginFrame();
 
+    ImGuiText( "Controls: WASD" );
     const v3 keyboardForce = GetWorldspaceKeyboardDir() * 150.0f;
 
     mPlayer.AddForce( keyboardForce );
@@ -200,11 +201,11 @@ namespace Tac
         mPlayer.mAngRot = m3::RotRadZ( (float)ShellGetElapsedSeconds() );
 
 
-    Draw( mPlayer );
-    Draw( mObstacle );
+    DrawObject( mPlayer );
+    DrawObject( mObstacle );
   }
 
-  void ExamplePhysSim5LinCollision::Draw( const ExamplePhys5SimObj& obj )
+  void ExamplePhysSim5LinCollision::DrawObject( const ExamplePhys5SimObj& obj )
   {
     Debug3DDrawData* drawData = mWorld->mDebug3DDrawData;
     drawData->DebugDraw3DCircle( obj.mLinPos, mCamera->mForwards, obj.mRadius, obj.mColor );

@@ -515,7 +515,7 @@ namespace Tac
         {
           String shaderPath = GetShaderPath( shaderSource );
           
-          OS::OSDebugPrintLine( va( "Error loading shader from %s", shaderPath.c_str() ) );
+          OS::OSDebugPrintfLine( "Error loading shader from %s", shaderPath.c_str() );
           ParseData parseData( shaderStrFull.data(), shaderStrFull.size() );
           int lineNumber = 1;
           OS::OSDebugPrintLine(" -----------" );

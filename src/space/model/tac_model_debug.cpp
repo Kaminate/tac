@@ -206,7 +206,7 @@ namespace Tac
         //               mesh->mTransform.m32,
         //               mesh->mTransform.m33 ) );
 
-        ImGuiText( va( "model index: %i", model->mModelIndex ) );
+        ImGuiTextf( "model index: %i", model->mModelIndex ) ;
         ImGuiDragInt( "model index", &model->mModelIndex );
         static int iSelectedSubmesh = -1;
         for( const SubMesh& subMesh : mesh->mSubMeshes )
@@ -222,7 +222,7 @@ namespace Tac
           ImGuiIndent();
           const SubMesh& subMesh = mesh->mSubMeshes[ iSelectedSubmesh ];
           ImGuiText( subMesh.mName );
-          ImGuiText( va( "tri count: %i", subMesh.mTris.size() ) );
+          ImGuiTextf( "tri count: %i", subMesh.mTris.size() );
           ImGuiUnindent();
         }
       }

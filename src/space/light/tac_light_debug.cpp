@@ -71,9 +71,9 @@ namespace Tac
     ImGuiSameLine();
     newDim = Max( newDim, 64 );
     newDim = Min( newDim, 1024 );
-    ImGuiText( FrameMemoryPrintf( "Shadow Resolution %ix%i",
+    ImGuiTextf( "Shadow Resolution %ix%i",
                                   light->mShadowResolution,
-                                  light->mShadowResolution ) );
+                                  light->mShadowResolution  );
   }
 
   static void Camera3DDraw( const Camera& camera, Debug3DDrawData* drawData)
@@ -162,9 +162,9 @@ namespace Tac
     v3 x = camera.mRight;
     v3 y = camera.mUp;
     v3 z = -camera.mForwards;
-    ImGuiText( FrameMemoryPrintf( "local x: (%.1f, %.1f, %.1f)", x[ 0 ], x[ 1 ], x[ 2 ] ) );
-    ImGuiText( FrameMemoryPrintf( "local y: (%.1f, %.1f, %.1f)", y[ 0 ], y[ 1 ], y[ 2 ] ) );
-    ImGuiText( FrameMemoryPrintf( "local z: (%.1f, %.1f, %.1f)", z[ 0 ], z[ 1 ], z[ 2 ] ) );
+    ImGuiTextf( "local x: (%.1f, %.1f, %.1f)", x[ 0 ], x[ 1 ], x[ 2 ] );
+    ImGuiTextf( "local y: (%.1f, %.1f, %.1f)", y[ 0 ], y[ 1 ], y[ 2 ] );
+    ImGuiTextf( "local z: (%.1f, %.1f, %.1f)", z[ 0 ], z[ 1 ], z[ 2 ] );
 
     //ImGuiText( "world xform" );
     //const char* r0 = FrameMemoryPrintf( "%.2f %.2f %.2f", world_xform.m00, world_xform.m01, world_xform.m02 );

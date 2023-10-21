@@ -425,6 +425,7 @@ namespace Tac
     mPlayer.BeginFrame();
     mObstacle.BeginFrame();
 
+    ImGuiText( "Controls: WASD" );
     const v3 keyboardForce = GetWorldspaceKeyboardDir() * 9;
     mPlayer.AddForce( keyboardForce );
 

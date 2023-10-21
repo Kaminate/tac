@@ -44,6 +44,7 @@ namespace Tac
   void                DesktopEventInit();
   void                DesktopEventAssignHandle( DesktopWindowHandle,
                                                 const void* nativeWindowHandle,
+                                                const char* name,
                                                 int x,
                                                 int y,
                                                 int w,
@@ -60,6 +61,7 @@ namespace Tac
   void                DesktopEventMouseMove( DesktopWindowHandle, int x, int y );
   void                DesktopEventMouseHoveredWindow( DesktopWindowHandle );
   void                DesktopEventApplyQueue();// DesktopWindowState* );
+
   void                DesktopAppInit( PlatformSpawnWindow,
                                       PlatformDespawnWindow,
                                       PlatformGetMouseHoveredWindow,

@@ -22,6 +22,7 @@ namespace Tac
 
   void WindowGraphicsNativeHandleChanged( const DesktopWindowHandle& desktopWindowHandle,
                                           const void* nativeWindowHandle,
+                                          const char* name,
                                           const int x,
                                           const int y,
                                           const int w,
@@ -33,8 +34,8 @@ namespace Tac
     {
       const Render::FramebufferHandle framebufferHandle =
         Render::CreateFramebufferForWindow( nativeWindowHandle, w, h, TAC_STACK_FRAME );
-      const char* name = FrameMemoryPrintf( "window-framebuf-%i", ( int )desktopWindowHandle );
-      Render::SetRenderObjectDebugName( framebufferHandle, name );
+      const char* framebufferName = FrameMemoryPrintf( "%s-framebuf-%i", name, ( int )desktopWindowHandle );
+      Render::SetRenderObjectDebugName( framebufferHandle, framebufferName );
       const Render::ViewHandle viewHandle = Render::CreateView();
       sWindowFramebuffers[ ( int )desktopWindowHandle ] = framebufferHandle;
       sWindowViews[ ( int )desktopWindowHandle ] = viewHandle;

@@ -388,7 +388,7 @@ namespace Tac
 
 
     ImGuiText( "--------------------------------" );
-    ImGuiText( va( "(debug text) iStep: %i, stepCount %i", iStep, stepCount ) );
+    ImGuiTextf( "(debug text) iStep: %i, stepCount %i", iStep, stepCount );
 
 
     //if( sIterationExample != IterationExample::None )
@@ -526,6 +526,7 @@ namespace Tac
             {
               texts.push_back( va( "iteration %i, x = %f", i, vals[ i ] ) );
             }
+
             texts.push_back( "This converges to the Dottie number, 0.739085..." );
             fns = fnsStep2;
           } break;

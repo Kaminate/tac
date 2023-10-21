@@ -19,6 +19,7 @@ add_subdirectory( fluid )
 add_subdirectory( meta )
 add_subdirectory( phy_sim )
 add_subdirectory( vk )
+add_subdirectory( text )
 
 
 add_library( TacExamples )

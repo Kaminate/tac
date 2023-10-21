@@ -14,6 +14,7 @@ namespace Tac
   Render::ViewHandle        WindowGraphicsGetView( const DesktopWindowHandle& );
   void                      WindowGraphicsNativeHandleChanged( const DesktopWindowHandle&,
                                                                const void* nativeWindowHandle,
+                                                               const char* name,
                                                                int x,
                                                                int y,
                                                                int w,

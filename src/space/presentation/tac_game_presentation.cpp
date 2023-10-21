@@ -632,8 +632,8 @@ namespace Tac
     if( mUseLights && ImGuiCollapsingHeader( "CBufferLights" ) )
     {
       TAC_IMGUI_INDENT_BLOCK;
-      ImGuiText( FrameMemoryPrintf( "light count %i", mDebugCBufferLights.lightCount ) );
-      ImGuiText( FrameMemoryPrintf( "text number %i", mDebugCBufferLights.testNumber ) );
+      ImGuiTextf(  "light count %i", mDebugCBufferLights.lightCount  );
+      ImGuiTextf(  "text number %i", mDebugCBufferLights.testNumber  );
       for( int iLight = 0; iLight < ( int )mDebugCBufferLights.lightCount; ++iLight )
       {
         if( !ImGuiCollapsingHeader( FrameMemoryPrintf( "Light %i", iLight ) ) )
@@ -664,10 +664,10 @@ namespace Tac
         ImGuiDragFloat( "light proj a", &shaderLight->mProjA );
         ImGuiDragFloat( "light proj b", &shaderLight->mProjB );
         ImGuiImage( -1, v2( 1, 1 ) * 50, v4( shaderLight->mColorRadiance.xyz(), 1.0f ) );
-        ImGuiText( FrameMemoryPrintf( "Light type: %s (%i)",
-                                      LightTypeToString( lightType ),
-                                      ( int )lightType ) );
-        ImGuiText( FrameMemoryPrintf( "casts shadows: %s", ( castsShadows ? "true" : "false" ) ) );
+        ImGuiTextf( "Light type: %s (%i)",
+                    LightTypeToString( lightType ),
+                    ( int )lightType );
+        ImGuiTextf( "casts shadows: %s", ( castsShadows ? "true" : "false" ) );
       }
     }
 

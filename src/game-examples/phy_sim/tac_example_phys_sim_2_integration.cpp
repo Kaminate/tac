@@ -91,7 +91,7 @@ namespace Tac
   void ExamplePhysSim2Integration::UI()
   {
     bool shouldReset = ImGuiButton( "Reset" );
-    ImGuiText( FrameMemoryPrintf( "Current Mode: %s", ToString( mIntegrationMode )) );
+    ImGuiTextf( "Current Mode: %s", ToString( mIntegrationMode ) );
 
     ImGuiText( "Change Mode:" );
     for( int i = 0; i < (int)IntegrationMode::Count; ++i )
