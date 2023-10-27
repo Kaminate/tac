@@ -7,6 +7,7 @@
 #include "src/common/core/tac_error_handling.h"
 #include "src/common/tac_common.h"
 #include "src/common/input/tac_controller_input.h"
+#include "src/common/input/tac_controller_internal.h"
 
 #include <libloaderapi.h>
 
@@ -17,7 +18,7 @@
 #pragma comment( lib, "Dinput8.lib" )
 
 
-namespace Tac
+namespace Tac::Input
 {
 
   struct DirectInputPerController : public Controller
@@ -143,7 +144,7 @@ namespace Tac
     return "???";
   }
 
-  void XInput::Init( Errors& errors )
+  void XInput::Init( Tac::Errors& errors )
   {
     const HRESULT hr = DirectInput8Create( GetModuleHandleA(nullptr),
                                            DIRECTINPUT_VERSION,

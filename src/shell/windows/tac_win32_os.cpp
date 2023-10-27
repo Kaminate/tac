@@ -157,10 +157,10 @@ namespace Tac
     path = outBuf;
 
     const StringView workingDir = ShellGetInitialWorkingDir();
-    if( StartsWith( path, workingDir ) )
+    if( path.starts_with( workingDir ) )
     {
       path = path.substr( workingDir.size() );
-      path = StripLeadingSlashes( path );
+      path = Filesystem::StripLeadingSlashes( path );
     }
   }
 
@@ -232,6 +232,7 @@ namespace Tac
     return true;
   }
 
+#if 0
   static void Win32OSDoesFolderExist( StringView path, bool& exists, Errors& errors )
   {
     String expandedPath;
@@ -252,11 +253,13 @@ namespace Tac
       exists = false;
       return;
     }
+
     if( !( dwAttrib & FILE_ATTRIBUTE_DIRECTORY ) )
     {
       const String errMsg = path + "is not a directory";
       TAC_RAISE_ERROR( errMsg, errors );
     }
+
     exists = true;
   }
 
@@ -267,15 +270,6 @@ namespace Tac
     TAC_HANDLE_ERROR(errors);
     if (exists)
       return;
-
-#if 0
-    std::error_code ec;
-    bool createdbyfs = std::filesystem::create_directory(path.c_str(), ec);
-    TAC_UNUSED_PARAMETER(createdbyfs);
-    String ecmsg = ec.message().c_str();
-#endif
-
-
 
 
     const BOOL createDirectoryResult = CreateDirectoryA( path.c_str(), NULL );
@@ -288,8 +282,8 @@ namespace Tac
 
   static void Win32OSSaveToFile( StringView path, const void* bytes, int byteCount, Errors& errors )
   {
-    SplitFilepath splitFilepath( path );
-    OS::OSCreateFolderIfNotExist( splitFilepath.mDirectory, errors );
+    String directory = Filesystem::FilepathToDirectory( path );
+    OS::OSCreateFolderIfNotExist( directory, errors );
     TAC_HANDLE_ERROR( errors );
 
     // Note ( from MSDN ):
@@ -328,6 +322,7 @@ namespace Tac
     }
     // Should we check that bytesWrittenCount == byteCount?
   }
+#endif
 
   static void Win32OSDebugBreak()
   {
@@ -497,9 +492,11 @@ namespace Tac
     OS::OSSemaphoreIncrementPost = &Win32OSSemaphoreIncrementPost;
     OS::OSSemaphoreDecrementWait = Win32OSSemaphoreDecrementWait;
     OS::OSSemaphoreCreate = Win32OSSemaphoreCreate;
+#if 0
     OS::OSSaveToFile = Win32OSSaveToFile;
     OS::OSDoesFolderExist = Win32OSDoesFolderExist;
     OS::OSCreateFolder = Win32OSCreateFolder;
+#endif
     OS::OSDebugBreak = Win32OSDebugBreak;
     OS::OSDebugPopupBox = Win32OSDebugPopupBox;
     OS::OSGetApplicationDataPath = Win32OSGetApplicationDataPath;

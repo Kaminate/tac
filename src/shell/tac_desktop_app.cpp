@@ -1,23 +1,25 @@
+#include "src/shell/tac_desktop_app.h" // self-include
+
 #include "src/common/containers/tac_fixed_vector.h"
 #include "src/common/containers/tac_frame_vector.h"
 #include "src/common/containers/tac_ring_buffer.h"
+#include "src/common/dataprocess/tac_settings.h"
 #include "src/common/graphics/imgui/tac_imgui.h"
+#include "src/common/graphics/tac_font.h"
 #include "src/common/graphics/tac_renderer.h"
 #include "src/common/graphics/tac_ui_2d.h"
-#include "src/common/graphics/tac_font.h"
+#include "src/common/identifier/tac_id_collection.h"
+#include "src/common/input/tac_controller_input.h"
+#include "src/common/input/tac_keyboard_input.h"
+#include "src/common/memory/tac_frame_memory.h"
+#include "src/common/net/tac_net.h"
 #include "src/common/profile/tac_profile.h"
 #include "src/common/shell/tac_shell.h"
 #include "src/common/shell/tac_shell_timer.h"
 #include "src/common/string/tac_string.h"
-#include "src/common/input/tac_controller_input.h"
 #include "src/common/system/tac_desktop_window.h"
-#include "src/common/memory/tac_frame_memory.h"
-#include "src/common/identifier/tac_id_collection.h"
-#include "src/common/input/tac_keyboard_input.h"
-#include "src/common/net/tac_net.h"
+#include "src/common/system/tac_filesystem.h"
 #include "src/common/system/tac_os.h"
-#include "src/common/dataprocess/tac_settings.h"
-#include "src/shell/tac_desktop_app.h"
 #include "src/shell/tac_desktop_window_graphics.h"
 #include "src/shell/tac_desktop_window_settings_tracker.h"
 #include "src/shell/tac_register_renderers.h"
@@ -268,6 +270,7 @@ namespace Tac
       OS::OSGetApplicationDataPath( dataPath, errors );
       TAC_HANDLE_ERROR( errors );
 
+      // ???
       OS::OSCreateFolderIfNotExist( dataPath, errors );
       TAC_HANDLE_ERROR( errors );
     }
@@ -335,8 +338,7 @@ namespace Tac
         ImGuiFrameBegin( ShellGetElapsedSeconds(),
           sPlatformGetMouseHoveredWindow() );
 
-        if( ControllerInput::Instance )
-          ControllerInput::Instance->Update();
+        Input::UpdateJoysticks();
 
         if( sProjectUpdate )
         {
@@ -718,8 +720,9 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
 
     bool exists;
-    OS::OSDoesFolderExist(appDataPath, exists, errors);
-    TAC_HANDLE_ERROR( errors );
+    //OS::OSDoesFolderExist(appDataPath, exists, errors);
+    //TAC_HANDLE_ERROR( errors );
+    exists = Filesystem::Exists( appDataPath );
     TAC_ASSERT(exists);
     TAC_RAISE_ERROR_IF(!exists, va("app data path %s doesnt exist", appDataPath.c_str()), errors);
 

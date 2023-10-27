@@ -36,13 +36,13 @@ namespace Tac
   struct User
   {
     User( Ghost* ghost, StringView name, Errors& );
-    void            Update( Errors& );
-    void            DebugImgui();
-    Player*         mPlayer = nullptr;
-    Ghost*          mGhost = nullptr;
-    String          mName;
-    bool            mHasControllerIndex = false;
-    ControllerIndex mControllerIndex = TAC_CONTROLLER_COUNT_MAX;
+    void                   Update( Errors& );
+    void                   DebugImgui();
+    Player*                mPlayer = nullptr;
+    Ghost*                 mGhost = nullptr;
+    String                 mName;
+    bool                   mHasControllerIndex = false;
+    Input::ControllerIndex mControllerIndex = Input::TAC_CONTROLLER_COUNT_MAX;
   };
 
 

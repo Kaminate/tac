@@ -202,7 +202,7 @@ namespace Tac
   static void UIFilesOther( const Vector< String >& paths )
   {
     for( const String& path : paths )
-      ImGuiText( SplitFilepath( path ).mFilename.c_str() );
+      ImGuiText( Filesystem::FilepathToFilename( path ) );
   }
 
   static void AttemptLoadEntity( AssetViewImportedModel* loadedModel, const char* path )
@@ -217,7 +217,7 @@ namespace Tac
     TAC_ON_DESTRUCT( loadedModel->mAttemptedToLoadEntity = true );
 
     Entity* entityRoot = loadedModel->mWorld.SpawnEntity( loadedModel->mEntityUUIDCounter.AllocateNewUUID() );
-    entityRoot->mName = SplitFilepath( path ).mFilename;
+    entityRoot->mName = Filesystem::FilepathToFilename( path );
 
     Vector< Entity* > entityNodes;
     for( int i = 0; i < (int)gltfData->nodes_count; ++i )
@@ -278,7 +278,7 @@ namespace Tac
 
   static void UIFilesModelImGui( const String& path )
   {
-    const String filename = SplitFilepath( path ).mFilename;
+    const String filename = Filesystem::FilepathToFilename( path );
     AssetViewImportedModel* loadedModel = GetLoadedModel( path );
 
     if( loadedModel )
@@ -326,7 +326,7 @@ namespace Tac
       AttemptLoadEntity( loadedModel, path.c_str() );
       if( loadedModel->mWorld.mEntities.size() )
       {
-        const String filename = SplitFilepath( path ).mFilename;
+        const String filename = Filesystem::FilepathToFilename( path );
         TAC_RENDER_GROUP_BLOCK( FrameMemoryPrintf( "asset preview %s", filename.c_str() ) );
         Render::SetViewFramebuffer( loadedModel->mViewHandle, loadedModel->mFramebufferHandle );
         Render::SetViewport( loadedModel->mViewHandle, Render::Viewport( w, h ) );
@@ -339,8 +339,10 @@ namespace Tac
     }
     else
     {
-      const char* debugName = FrameMemoryPrintf( "%s-framebuffer-",
-                                                 StripExt( SplitFilepath( path ).mFilename ).c_str() );
+      String filename = Filesystem::FilepathToFilename( path );
+      filename = Filesystem::StripExt( filename );
+
+      const char* debugName = FrameMemoryPrintf( "%s-framebuffer-", filename.c_str() );
 
       const Render::TexSpec texSpecColor =
       {
@@ -410,7 +412,7 @@ namespace Tac
         ImGuiSameLine();
       goSameLine = false;
       ImGuiBeginChild( path, { 200, 100 } );
-      ImGuiText( SplitFilepath( path ).mFilename );
+      ImGuiText( Filesystem::FilepathToFilename(  path ));
       const Render::TextureHandle textureHandle = TextureAssetManager::GetTexture( path, sAssetViewErrors );
       if( textureHandle.IsValid() )
         ImGuiImage( ( int )textureHandle, v2( 50, 50 ) );

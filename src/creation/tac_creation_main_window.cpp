@@ -7,6 +7,7 @@
 #include "src/common/shell/tac_shell_timer.h"
 #include "src/common/system/tac_desktop_window.h"
 #include "src/common/system/tac_desktop_window.h"
+#include "src/common/system/tac_filesystem.h"
 #include "src/common/core/tac_error_handling.h"
 #include "src/common/core/tac_event.h"
 #include "src/common/dataprocess/tac_json.h"
@@ -134,7 +135,8 @@ namespace Tac
         Errors saveToFileErrors;
         void* bytes = prefabJsonString.data();
         int byteCount = prefabJsonString.size();
-        OS::OSSaveToFile( savePath, bytes, byteCount, saveToFileErrors );
+        //OS::OSSaveToFile( savePath, bytes, byteCount, saveToFileErrors );
+        Filesystem::SaveToFile( savePath, bytes, byteCount, saveToFileErrors );
         if( saveToFileErrors )
         {
           // todo: log it, user feedback

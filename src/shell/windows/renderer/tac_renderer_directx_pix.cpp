@@ -1,5 +1,6 @@
 #include "src/shell/windows/renderer/tac_renderer_directx.h"
 #include "src/common/core/tac_preprocessor.h"
+#include "src/common/system/tac_filesystem.h"
 #include "src/common/memory/tac_frame_memory.h"
 #include "src/common/system/tac_os.h"
 #include "src/common/core/tac_error_handling.h"
@@ -21,8 +22,8 @@ namespace Tac
 
   static String GetPIXDllPath(Errors& errors)
   {
-    bool parentDirExist = false;
-    OS::OSDoesFolderExist( pixInstallPath, parentDirExist, errors );
+    bool parentDirExist = Filesystem::Exists( pixInstallPath );
+    //OS::OSDoesFolderExist( pixInstallPath, parentDirExist, errors );
     TAC_HANDLE_ERROR_RETURN( errors, "" );
 
     if( !parentDirExist )

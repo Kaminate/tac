@@ -282,6 +282,8 @@ namespace Tac
         return nullptr;
     }
   }
+
+  // Appends the failed function call error message to Errors
   void DXGICallAux( const char* fnCallWithArgs, HRESULT res, Errors& errors )
   {
     std::stringstream ss;
@@ -293,7 +295,8 @@ namespace Tac
       ss << inferredErrorMessage;
       ss << ")";
     }
-    errors.mMessage = ss.str().c_str();
+
+    errors.Append( ss.str().c_str() );
   }
 
 }

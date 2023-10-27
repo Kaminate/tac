@@ -454,7 +454,7 @@ namespace Tac
         return errMsg;
 
       String s1 = String( StringView( errMsg ).substr( StringView( errMsg ).find_first_of( ')' ) + 3 ) );
-      String s2 = SplitFilepath( GetShaderPath( shaderSource ) ).mFilename;
+      String s2 = Filesystem::FilepathToFilename( GetShaderPath( shaderSource ) );
       String s3 = va( ":%i ", origLineNumber );
       String s4 = String( errorLine ).c_str();
 

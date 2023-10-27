@@ -198,9 +198,8 @@ namespace Tac
 
     void            SDLOSSaveToFile( StringView path, const void* bytes, int byteCount, Errors& errors ) 
     {
-
-      SplitFilepath splitFilepath( path );
-      OS::OSCreateFolderIfNotExist( splitFilepath.mDirectory, errors );
+      String directory = Filesystem::FilepathToDirectory( path );
+      OS::OSCreateFolderIfNotExist( directory, errors );
       TAC_HANDLE_ERROR( errors );
 
       std::ofstream ofs( path.c_str(), std::ofstream::out | std::ofstream::binary );

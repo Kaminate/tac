@@ -1,15 +1,17 @@
+#include "src/creation/tac_creation_prefab.h" // self-include
+
 #include "src/common/containers/tac_vector.h"
-#include "src/common/graphics/tac_camera.h"
-#include "src/common/core/tac_error_handling.h"
 #include "src/common/core/tac_algorithm.h"
-#include "src/common/graphics/imgui/tac_imgui.h"
-#include "src/common/memory/tac_frame_memory.h"
-#include "src/common/system/tac_os.h"
+#include "src/common/core/tac_error_handling.h"
 #include "src/common/dataprocess/tac_settings.h"
-#include "src/common/string/tac_string_util.h"
-#include "src/common/string/tac_string.h"
+#include "src/common/graphics/imgui/tac_imgui.h"
+#include "src/common/graphics/tac_camera.h"
+#include "src/common/memory/tac_frame_memory.h"
 #include "src/common/memory/tac_temporary_memory.h"
-#include "src/creation/tac_creation_prefab.h"
+#include "src/common/string/tac_string.h"
+#include "src/common/string/tac_string_util.h"
+#include "src/common/system/tac_filesystem.h"
+#include "src/common/system/tac_os.h"
 #include "src/creation/tac_creation.h"
 #include "src/space/tac_entity.h"
 #include "src/space/tac_world.h"
@@ -216,7 +218,8 @@ namespace Tac
       Errors saveToFileErrors;
       void* bytes = prefabJsonString.data();
       int byteCount = prefabJsonString.size();
-      OS::OSSaveToFile( prefab->mDocumentPath, bytes, byteCount, saveToFileErrors );
+      //OS::OSSaveToFile( prefab->mDocumentPath, bytes, byteCount, saveToFileErrors );
+      Filesystem::SaveToFile( prefab->mDocumentPath, bytes, byteCount, saveToFileErrors );
       if( saveToFileErrors )
       {
         // todo: log it, user feedback

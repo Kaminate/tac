@@ -335,6 +335,7 @@ namespace Tac
     const char* iconPath = "assets/grave.ico";
     const auto icon = ( HICON )LoadImage( nullptr, iconPath, IMAGE_ICON, 0, 0, fuLoad );;
     TAC_ASSERT_MSG( icon, "filed to load icon %s", iconPath );
+
     WNDCLASSEX wc = {};
     wc.cbSize = sizeof( WNDCLASSEX );
     wc.hCursor = nullptr; // LoadCursor( NULL, IDC_ARROW );
@@ -345,10 +346,10 @@ namespace Tac
     wc.lpfnWndProc = WindowProc;
     wc.lpszClassName = classname;
     wc.style = CS_HREDRAW | CS_VREDRAW; // redraw window on movement or size adjustment
+
     if( !RegisterClassEx( &wc ) )
     {
-      errors.mMessage = "Failed to register window class " + String( classname );
-      TAC_HANDLE_ERROR( errors );
+      TAC_RAISE_ERROR( "Failed to register window class " + String( classname ), errors  );
     }
   }
 

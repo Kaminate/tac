@@ -1,19 +1,18 @@
-#include "src/common/graphics/imgui/tac_imgui.h"
+#include "src/common/core/tac_algorithm.h"
+#include "src/common/core/tac_preprocessor.h"
+#include "src/common/dataprocess/tac_settings.h"
 #include "src/common/graphics/imgui/tac_imgui.h"
 #include "src/common/graphics/tac_font.h"
 #include "src/common/graphics/tac_renderer.h"
+#include "src/common/i18n/tac_localization.h"
+#include "src/common/input/tac_controller_input.h"
+#include "src/common/input/tac_keyboard_input.h"
 #include "src/common/math/tac_math.h"
+#include "src/common/memory/tac_memory.h"
+#include "src/common/memory/tac_temporary_memory.h"
 #include "src/common/meta/tac_meta.h"
 #include "src/common/shell/tac_shell.h"
 #include "src/common/shell/tac_shell_timer.h"
-#include "src/common/core/tac_algorithm.h"
-#include "src/common/input/tac_controller_input.h"
-#include "src/common/input/tac_keyboard_input.h"
-#include "src/common/i18n/tac_localization.h"
-#include "src/common/memory/tac_memory.h"
-#include "src/common/core/tac_preprocessor.h"
-#include "src/common/dataprocess/tac_settings.h"
-#include "src/common/memory/tac_temporary_memory.h"
 #include "src/common/string/tac_string_util.h"
 #include "src/space/collider/tac_collider.h"
 #include "src/space/graphics/tac_graphics.h"
@@ -42,10 +41,7 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
     auto serverData = mGhost->mServerData;
     auto player = serverData->SpawnPlayer();
-    player->mCameraPos = v3(
-      -15,
-      12,
-      25 );
+    player->mCameraPos = v3( -15, 12, 25 );
     mPlayer = player;
     if( mGhost->mShouldPopulateWorldInitial )
     {
@@ -224,21 +220,23 @@ namespace Tac
     if( IsPartyFull() )
       return;
 
-    Vector< ControllerIndex > claimedControllerIndexes;
+    Vector< Input::ControllerIndex > claimedControllerIndexes;
     for( User* user : mUsers )
       if( user->mHasControllerIndex )
         claimedControllerIndexes.push_back( user->mControllerIndex );
 
-    TAC_ASSERT( ( int )claimedControllerIndexes.size() < TAC_CONTROLLER_COUNT_MAX );
+    TAC_ASSERT( ( int )claimedControllerIndexes.size() < Input::TAC_CONTROLLER_COUNT_MAX );
 
-    for( ControllerIndex controllerIndex = 0; controllerIndex < TAC_CONTROLLER_COUNT_MAX; ++controllerIndex )
+    for( Input::ControllerIndex controllerIndex = 0;
+         controllerIndex < Input::TAC_CONTROLLER_COUNT_MAX;
+         ++controllerIndex )
     {
       if( Contains( claimedControllerIndexes, controllerIndex ) )
         continue;
-      Controller* controller = ControllerInput::Instance->mControllers[ controllerIndex ];
+      Input::Controller* controller = Input::GetController( controllerIndex );
       if( !controller )
         continue;
-      if( !controller->IsButtonJustPressed( ControllerButton::Start ) )
+      if( !Input::IsButtonJustPressed( Input::ControllerButton::Start, controller ) )
         continue;
       User* user = AddPlayer( "Player " + ToString( ( int )mUsers.size() ), errors );
       if( errors )
@@ -250,11 +248,13 @@ namespace Tac
     }
 
   }
+
   bool Ghost::IsPartyFull()
   {
     bool result = ( int )mUsers.size() == sPlayerCountMax;
     return result;
   }
+
   void Ghost::DebugImgui( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
@@ -352,7 +352,7 @@ namespace Tac
     v3 camPos = {};
     if( !mUsers.empty() )
     {
-      for( auto user : mUsers )
+      for( User* user : mUsers )
         camPos += user->mPlayer->mCameraPos;
       camPos /= ( float )mUsers.size();
     }

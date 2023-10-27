@@ -2,10 +2,11 @@
 
 #pragma once
 
+#include "src/common/tac_common.h"
 
-namespace Tac
+namespace Tac::Input
 {
-  void XInputInit(struct Errors&);
+  void XInputInit(Errors&);
 
 
 }

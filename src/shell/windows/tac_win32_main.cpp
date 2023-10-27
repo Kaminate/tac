@@ -92,7 +92,7 @@ namespace Tac
     Render::RegisterRendererDirectX11();
 
 
-    XInputInit( errors );
+    Input::XInputInit( errors );
     TAC_HANDLE_ERROR( errors );
 
     Win32MouseEdgeInit();

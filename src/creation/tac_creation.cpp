@@ -583,10 +583,12 @@ namespace Tac
 
   void                ModifyPathRelative( String& savePath )
   {
-    if( StartsWith( savePath, ShellGetInitialWorkingDir() ) )
+    const char* workingDir = ShellGetInitialWorkingDir();
+
+    if( savePath.starts_with(workingDir ))
     {
-      savePath = savePath.substr( String( ShellGetInitialWorkingDir() ).size() );
-      savePath = StripLeadingSlashes( savePath );
+      savePath = savePath.substr( StrLen( workingDir ) );
+      savePath = Filesystem::StripLeadingSlashes( savePath );
     }
   }
 
