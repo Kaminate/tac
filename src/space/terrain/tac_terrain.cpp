@@ -1,15 +1,16 @@
+#include "src/space/terrain/tac_terrain.h" // self-include
+
+#include "src/common/dataprocess/tac_json.h"
+#include "src/common/graphics/tac_debug_3d.h"
+#include "src/common/graphics/tac_renderer.h"
+#include "src/common/math/tac_math.h"
+#include "src/common/memory/tac_memory.h"
+#include "src/common/system/tac_filesystem.h"
+#include "src/common/system/tac_os.h"
+#include "src/common/thirdparty/stb_image.h"
 #include "src/space/physics/tac_physics.h"
 #include "src/space/tac_entity.h"
 #include "src/space/tac_world.h"
-#include "src/space/terrain/tac_terrain.h"
-#include "src/common/graphics/tac_debug_3d.h"
-#include "src/common/memory/tac_temporary_memory.h"
-#include "src/common/system/tac_os.h"
-#include "src/common/graphics/tac_renderer.h"
-#include "src/common/dataprocess/tac_json.h"
-#include "src/common/memory/tac_memory.h"
-#include "src/common/thirdparty/stb_image.h"
-#include "src/common/math/tac_math.h"
 
 namespace Tac
 {
@@ -21,9 +22,9 @@ namespace Tac
     json[ "mSideVertexCount" ].SetNumber( terrain->mSideVertexCount );
     json[ "mSideLength" ].SetNumber( terrain->mSideLength );
     json[ "mHeight" ].SetNumber( terrain->mUpwardsHeight );
-    json[ "mHeightmapTexturePath" ].SetString( terrain->mHeightmapTexturePath );
-    json[ "mGroundTexturePath" ].SetString( terrain->mGroundTexturePath );
-    json[ "mNoiseTexturePath" ].SetString( terrain->mNoiseTexturePath );
+    json[ "mHeightmapTexturePath" ].SetString( terrain->mHeightmapTexturePath.u8string() );
+    json[ "mGroundTexturePath" ].SetString( terrain->mGroundTexturePath.u8string() );
+    json[ "mNoiseTexturePath" ].SetString( terrain->mNoiseTexturePath.u8string() );
   }
 
   static void        TerrainLoadPrefab( Json& json, Component* component )
@@ -81,8 +82,7 @@ namespace Tac
     if( mTestHeightmapLoadErrors )
       return; // tried to load already, but load failed
 
-
-    TemporaryMemory imageMemory = TemporaryMemoryFromFile( mHeightmapTexturePath, mTestHeightmapLoadErrors );
+    String imageMemory = FileToString( mHeightmapTexturePath, mTestHeightmapLoadErrors );
     if( mTestHeightmapLoadErrors )
       return;
 

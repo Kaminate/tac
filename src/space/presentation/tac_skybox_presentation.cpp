@@ -85,8 +85,8 @@ namespace Tac
                                  const StringView skyboxDir )
   {
     /*TAC_PROFILE_BLOCK*/;
-    const StringView defaultSkybox = "assets/skybox/daylight";
-    const StringView skyboxDirToUse = skyboxDir.empty() ? defaultSkybox : skyboxDir;
+    const AssetPath defaultSkybox = "assets/skybox/daylight";
+    const AssetPath skyboxDirToUse = skyboxDir.empty() ? defaultSkybox : AssetPath(skyboxDir);
     const Render::TextureHandle cubemap = TextureAssetManager::GetTextureCube( skyboxDirToUse,
                                                                                mGetSkyboxTextureErrors );
     TAC_ASSERT( mGetSkyboxTextureErrors.empty() );

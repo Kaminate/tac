@@ -1,9 +1,11 @@
 #include "src/space/terrain/tac_terrain.h"
+
+#include "src/common/graphics/imgui/tac_imgui.h"
+#include "src/common/graphics/tac_debug_3d.h"
+#include "src/common/system/tac_filesystem.h"
+#include "src/common/system/tac_os.h"
 #include "src/space/tac_entity.h"
 #include "src/space/tac_world.h"
-#include "src/common/graphics/imgui/tac_imgui.h"
-#include "src/common/system/tac_os.h"
-#include "src/common/graphics/tac_debug_3d.h"
 
 namespace Tac
 {
@@ -12,30 +14,46 @@ namespace Tac
     void DebugImgui()
     {
       bool changed = false;
-      bool changedHeightmap = false;
+
+      const Filesystem::Path oldHeightmapPath = mTerrain->mHeightmapTexturePath;
+
       if( ImGuiCollapsingHeader( "Heightmap" ) )
       {
         TAC_IMGUI_INDENT_BLOCK;
-        if( ImGuiInputText( "Heightmap path", mTerrain->mHeightmapTexturePath ) )
-        {
-          changedHeightmap = true;
-        }
 
-        Vector< String > heightmapPaths;
-        Errors errors;
-        OS::OSGetFilesInDirectory( heightmapPaths,
-                                        "assets/heightmaps",
-                                        OSGetFilesInDirectoryFlags::Recursive,
-                                        errors );
-        for( auto& heightmapPath : heightmapPaths )
+
+        ImGuiTextf( "Heightmap path: %s", mTerrain->mHeightmapTexturePath.u8string() );
+        if( ImGuiButton( "Change Heightmap" ) )
         {
-          if( ImGuiButton( heightmapPath ) )
+          mHeightmapFileDialogErrors.clear();
+          Filesystem::Path path = OS::OSOpenDialog( mHeightmapFileDialogErrors );
+          if( !path.empty() && mTerrain->mHeightmapTexturePath != path )
           {
-            mTerrain->mHeightmapTexturePath = heightmapPath;
-            changedHeightmap = true;
+            mTerrain->mHeightmapTexturePath = path;
           }
         }
 
+        if( !iterated || ImGuiButton("Refresh directory" ))
+        {
+          iterated = true;
+          mHeightmapDirectoryIterateErrors.clear();
+          heightmapPaths =
+            //OS::OSGetFilesInDirectory(
+            Filesystem::IterateFiles(
+              Filesystem::Path( "assets/heightmaps" ),
+              Filesystem::IterateType::Recursive, // OS::OSGetFilesInDirectoryFlags::Recursive,
+              mHeightmapDirectoryIterateErrors );
+        }
+
+        for( const Filesystem::Path& heightmapPath : heightmapPaths )
+        {
+          if( ImGuiButton( heightmapPath.u8string() ) )
+          {
+            mTerrain->mHeightmapTexturePath = heightmapPath;
+          }
+        }
+
+        const bool changedHeightmap = mTerrain->mHeightmapTexturePath != oldHeightmapPath;
         if( changedHeightmap )
         {
           mTerrain->mTestHeightmapLoadErrors.clear();
@@ -47,24 +65,35 @@ namespace Tac
 
       ImGuiCheckbox( "Draw grid", &mDrawGrid );
 
-      ImGuiInputText( "Ground texture", mTerrain->mGroundTexturePath );
-      ImGuiInputText( "Noise texture", mTerrain->mNoiseTexturePath );
+      ImGuiTextf( "Ground texture: %s", mTerrain->mGroundTexturePath.u8string().c_str() );
+      ImGuiTextf( "Noise texture: %s", mTerrain->mNoiseTexturePath.u8string().c_str() );
+
       if( ImGuiButton( "Open Ground Texture" ) )
       {
         mTerrain->mTestHeightmapLoadErrors.clear();
-        OS::OSOpenDialog( mTerrain->mGroundTexturePath, mTerrainTextureDialogErrors );
+        mTerrain->mGroundTexturePath = OS::OSOpenDialog(  mTerrainTextureDialogErrors );
       }
+
       if( ImGuiButton( "Open Noise Texture" ) )
       {
-        OS::OSOpenDialog( mTerrain->mNoiseTexturePath, mNoiseTextureDialogErrors );
+        mNoiseTextureDialogErrors.clear();
+        mTerrain->mNoiseTexturePath = OS::OSOpenDialog(  mNoiseTextureDialogErrors );
       }
 
       if( mTerrain->mTestHeightmapLoadErrors )
         ImGuiTextf( "Load heightmap errors: %s", mTerrain->mTestHeightmapLoadErrors.ToString().c_str() );
+
       if( mTerrainTextureDialogErrors )
         ImGuiTextf( "Dialog heightmap errors: " , mTerrainTextureDialogErrors.ToString().c_str() );
+
       if( mNoiseTextureDialogErrors )
         ImGuiTextf( "Dialog noise texture errors: " , mNoiseTextureDialogErrors.ToString().c_str() );
+
+      if( mHeightmapFileDialogErrors )
+        ImGuiTextf( "Heightmap file dialog errors: %s", mHeightmapFileDialogErrors.ToString().c_str() );
+
+      if( mHeightmapDirectoryIterateErrors )
+        ImGuiTextf( "Heightmap directory iterate errors: %s", mHeightmapDirectoryIterateErrors.ToString().c_str() );
 
       changed |= ImGuiDragInt( "Subdivisions", &mTerrain->mSideVertexCount );
       changed |= ImGuiDragFloat( "Size", &mTerrain->mSideLength );
@@ -121,7 +150,11 @@ namespace Tac
     bool mDrawGrid = false;
     Errors mNoiseTextureDialogErrors;
     Errors mTerrainTextureDialogErrors;
+    Errors mHeightmapFileDialogErrors;
+    Errors mHeightmapDirectoryIterateErrors;
     Terrain* mTerrain = nullptr;
+    bool iterated = false;
+    Vector< Filesystem::Path > heightmapPaths;
   } gTerrainDebugger;
 
   void TerrainDebugImgui( Terrain* terrain )

@@ -14,7 +14,7 @@
 #include "src/common/core/tac_preprocessor.h"
 #include "src/common/shell/tac_shell.h"
 #include "src/common/system/tac_os.h"
-#include "src/common/memory/tac_temporary_memory.h"
+#include "src/common/system/tac_filesystem.h"
 #include "src/common/memory/tac_frame_memory.h"
 #include "src/common/string/tac_string.h"
 #include "src/shell/tac_desktop_app.h"
@@ -132,9 +132,9 @@ namespace Tac
 
 #define TAC_SCOPED_DX_FILTER( stuff ) ScopedDXFilter TAC_CONCAT( filter , __COUNTER__)( stuff );
 
-    static String DirectX11GetShaderPath( StringView shaderName )
+    static Filesystem::Path DirectX11GetShaderPath( StringView shaderName )
     {
-      String result;
+      Filesystem::Path result;
       const char* prefix = "assets/hlsl/";
       const char* suffix = ".fx";
       result += shaderName.starts_with( prefix ) ? "" : prefix;
@@ -1378,7 +1378,7 @@ namespace Tac
 
 
 
-    String RendererDirectX11::GetShaderPath( StringView s )
+    Filesystem::Path RendererDirectX11::GetShaderPath( StringView s )
     {
       return DirectX11GetShaderPath( s);
     }

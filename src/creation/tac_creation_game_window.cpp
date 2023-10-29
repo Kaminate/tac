@@ -852,10 +852,10 @@ namespace Tac
 
   static void CameraUpdateSaved()
   {
-    static String savedPrefabPath;
+    static Filesystem::Path savedPrefabPath;
     static Camera savedCamera;
 
-    const StringView loadedPrefab = PrefabGetLoaded();
+    const Filesystem::Path loadedPrefab = PrefabGetLoaded();
     if( loadedPrefab != savedPrefabPath )
     {
       savedPrefabPath = loadedPrefab;

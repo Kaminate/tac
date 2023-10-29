@@ -1,18 +1,19 @@
+#include "src/common/assetmanagers/tac_mesh.h"
+#include "src/common/assetmanagers/tac_model_asset_manager.h"
+#include "src/common/core/tac_error_handling.h"
+#include "src/common/system/tac_filesystem.h"
+#include "src/common/core/tac_preprocessor.h"
 #include "src/common/graphics/imgui/tac_imgui.h"
 #include "src/common/math/tac_math.h"
-#include "src/common/core/tac_preprocessor.h"
-#include "src/common/core/tac_error_handling.h"
 #include "src/common/shell/tac_shell_timer.h"
-#include "src/common/assetmanagers/tac_model_asset_manager.h"
-#include "src/common/assetmanagers/tac_mesh.h"
-#include "src/common/system/tac_os.h"
 #include "src/common/string/tac_string_util.h"
+#include "src/common/system/tac_os.h"
 #include "src/space/model/tac_model.h"
 #include "src/space/presentation/tac_game_presentation.h"
 
 namespace Tac
 {
-  static bool IsModelPath( StringView s )
+  static bool IsModelPath( const Filesystem::Path& s )
   {
     const char* modelExtensions[] =
     {
@@ -47,12 +48,10 @@ namespace Tac
         getfilesErrors.clear();
         needsRefresh = false;
         modelPaths.clear();
-        Vector< String > allfiles;
-        OS::OSGetFilesInDirectory( allfiles,
-                                        "assets",
-                                        OSGetFilesInDirectoryFlags::Recursive,
-                                        getfilesErrors );
-        for( String file : allfiles )
+        const Vector< Filesystem::Path > allfiles = OS::OSGetFilesInDirectory( "assets",
+                                                                     OS::OSGetFilesInDirectoryFlags::Recursive,
+                                                                     getfilesErrors );
+        for( const Filesystem::Path& file : allfiles )
           if( IsModelPath( file ) )
             modelPaths.push_back( file );
 

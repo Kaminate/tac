@@ -721,15 +721,15 @@ void RendererDX12::AddShader( Shader** shader, const ShaderData& shaderData, Err
   shaderPartFragment.mShaderVersion = "ps_5_0";
   for( ;; )
   {
-    Vector< char > temporaryMemory;
+    Vector< char > String;
     if(!shaderData.mShaderPath.empty())
     {
       String shaderPath = shaderData.mShaderPath + ".fx";
-      temporaryMemory = TemporaryMemoryFromFile( shaderPath, errors );
+      String = FileToString( shaderPath, errors );
       TAC_HANDLE_ERROR( errors );
     }
 
-    Vector< char > common = TemporaryMemoryFromFile( "assets/common.fx", errors );
+    Vector< char > common = FileToString( "assets/common.fx", errors );
     TAC_HANDLE_ERROR( errors );
 
     // Using a string instead of a vector because it's null terminated,
@@ -739,7 +739,7 @@ void RendererDX12::AddShader( Shader** shader, const ShaderData& shaderData, Err
       shaderMemory.push_back( c );
     for( char c : shaderData.mShaderStr )
       shaderMemory.push_back( c );
-    for( char c : temporaryMemory )
+    for( char c : String )
       shaderMemory.push_back( c );
 
 

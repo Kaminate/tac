@@ -1,9 +1,11 @@
 #pragma once
+
 #include "src/common/containers/tac_vector.h"
-#include "src/common/math/tac_vector3.h"
-#include "src/common/math/tac_matrix4.h"
 #include "src/common/core/tac_error_handling.h"
 #include "src/common/graphics/tac_renderer.h"
+#include "src/common/math/tac_matrix4.h"
+#include "src/common/math/tac_vector3.h"
+#include "src/common/system/tac_filesystem.h"
 #include "src/space/tac_component.h"
 
 namespace Tac
@@ -41,9 +43,9 @@ namespace Tac
     float                          mUpwardsHeight = 20.0f;
     Vector< v3 >                   mRowMajorGrid;
     Vector< v3 >                   mRowMajorGridNormals;
-    String                         mHeightmapTexturePath;
-    String                         mGroundTexturePath = "";
-    String                         mNoiseTexturePath = "";
+    Filesystem::Path               mHeightmapTexturePath;
+    Filesystem::Path               mGroundTexturePath = "";
+    Filesystem::Path               mNoiseTexturePath = "";
     int                            mTestHeightmapWidth = 0;
     int                            mTestHeightmapHeight = 0;
     float                          mPower = 1;

@@ -266,13 +266,17 @@ namespace Tac
     // ensure data path folder exists
     {
       
-      String dataPath;
-      OS::OSGetApplicationDataPath( dataPath, errors );
+      Filesystem::Path dataPath = OS::OSGetApplicationDataPath( errors );
       TAC_HANDLE_ERROR( errors );
 
+      const bool dataPathExists = Filesystem::Exists( dataPath );
+      TAC_ASSERT( dataPathExists );
+
       // ???
-      OS::OSCreateFolderIfNotExist( dataPath, errors );
+      //OS::OSCreateFolderIfNotExist( dataPath, errors );
       TAC_HANDLE_ERROR( errors );
+
+      ++asdf;
     }
 
     if(sProjectInit)
@@ -715,19 +719,16 @@ namespace Tac
     // for win32 project standalone_win_vk_1_tri, appDataPath =
     //
     //     C:\Users\Nate\AppData\Roaming + /Sleeping Studio + /Whatever bro
-    String appDataPath;
-    OS::OSGetApplicationDataPath( appDataPath, errors );
+    Filesystem::Path appDataPath= OS::OSGetApplicationDataPath( errors );
     TAC_HANDLE_ERROR( errors );
 
-    bool exists;
     //OS::OSDoesFolderExist(appDataPath, exists, errors);
     //TAC_HANDLE_ERROR( errors );
-    exists = Filesystem::Exists( appDataPath );
+    const bool exists = Filesystem::Exists( appDataPath );
     TAC_ASSERT(exists);
-    TAC_RAISE_ERROR_IF(!exists, va("app data path %s doesnt exist", appDataPath.c_str()), errors);
+    TAC_RAISE_ERROR_IF(!exists, va("app data path %s doesnt exist", appDataPath.u8string().c_str()), errors);
 
-    String workingDir;
-    OS::OSGetWorkingDir( workingDir, errors );
+    const Filesystem::Path workingDir = Filesystem::GetCurrentWorkingDirectory(); //OS::OSGetWorkingDir( errors );
     TAC_HANDLE_ERROR( errors );
 
     // Platform Callbacks
@@ -746,7 +747,7 @@ namespace Tac
 
     // right place?
     ShellSetAppName( info.mAppName.c_str() );
-    ShellSetPrefPath( appDataPath.c_str() );
+    ShellSetPrefPath( appDataPath );
     ShellSetInitialWorkingDir( workingDir );
 
     SettingsInit( errors );

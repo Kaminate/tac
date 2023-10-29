@@ -13,7 +13,7 @@
 #include "src/common/shell/tac_shell.h"
 #include "src/common/shell/tac_shell_timer.h"
 #include "src/common/string/tac_string.h"
-#include "src/common/memory/tac_temporary_memory.h"
+#include "src/common/system/tac_filesystem.h"
 #include "src/common/string/tac_string_util.h"
 #include "src/common/thirdparty/cgltf.h"
 #include "src/creation/tac_creation.h"
@@ -149,7 +149,7 @@ namespace Tac
     sAssetViewFolders.clear();
     OS::OSGetFilesInDirectory( sAssetViewFiles,
                                     sAssetViewFolderCur,
-                                    OSGetFilesInDirectoryFlags::Default,
+                                    OS::OSGetFilesInDirectoryFlags::Default,
                                     sAssetViewErrors );
     OS::OSGetDirectoriesInDirectory( sAssetViewFolders, sAssetViewFolderCur, sAssetViewErrors );
   }

@@ -20,7 +20,7 @@
 #include "src/common/system/tac_os.h"
 #include "src/common/core/tac_preprocessor.h"
 #include "src/common/dataprocess/tac_settings.h"
-#include "src/common/memory/tac_temporary_memory.h"
+#include "src/common/system/tac_filesystem.h"
 #include "src/common/string/tac_string_util.h"
 #include "src/creation/tac_creation.h"
 #include "src/creation/tac_creation_asset_view.h"
@@ -581,9 +581,9 @@ namespace Tac
 
 
 
-  void                ModifyPathRelative( String& savePath )
+  void                ModifyPathRelative( Filesystem::Path& savePath )
   {
-    const char* workingDir = ShellGetInitialWorkingDir();
+    const Filesystem::Path workingDir = ShellGetInitialWorkingDir();
 
     if( savePath.starts_with(workingDir ))
     {

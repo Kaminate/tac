@@ -238,14 +238,15 @@ namespace Tac
       SDL_ShowSimpleMessageBox( SDL_MESSAGEBOX_ERROR, "Hello", s, nullptr );
     }
 
-    void            SDLOSGetApplicationDataPath( String& path, Errors& errors ) 
+    Filesystem::Path            SDLOSGetApplicationDataPath( Errors& errors ) 
     {
       //ExecutableStartupInfo info = ExecutableStartupInfo::Init();
       ExecutableStartupInfo info = ExecutableStartupInfo::sInstance;
       String org = info.mStudioName;
       String app = info.mAppName;
       TAC_ASSERT( !org.empty() && !app.empty() );
-      path = SDL_GetPrefPath( org, app );
+      Filesystem::Path path = SDL_GetPrefPath( org, app );
+      return path;
     }
 
     void            SDLOSGetFileLastModifiedTime( std::time_t*, StringView path, Errors& ) 
@@ -406,9 +407,11 @@ namespace Tac
   void SDLOSInit( Errors& errors )
   {
     TAC_RAISE_ERROR_IF( SDL_Init( SDL_INIT_EVERYTHING ), SDL_GetError(), errors );
+#if 0
     OS::OSSaveToFile = SDLOSSaveToFile;
     OS::OSDoesFolderExist = SDLOSDoesFolderExist;
     OS::OSCreateFolder = SDLOSCreateFolder;
+#endif
     OS::OSDebugBreak = SDLOSDebugBreak;
     OS::OSDebugPopupBox = SDLOSDebugPopupBox;
     OS::OSGetApplicationDataPath = SDLOSGetApplicationDataPath;

@@ -115,10 +115,9 @@ namespace Tac
         if( entity->mParent )
           continue;
 
-        String savePath;
-        String suggestedName = entity->mName + ".prefab";
+        const String suggestedName = entity->mName + ".prefab";
         Errors saveDialogErrors;
-        OS::OSSaveDialog( savePath, suggestedName, saveDialogErrors );
+        Filesystem::Path savePath = OS::OSSaveDialog( suggestedName, saveDialogErrors );
         if( saveDialogErrors )
         {
           // todo: log it, user feedback

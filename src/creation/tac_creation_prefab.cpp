@@ -7,7 +7,7 @@
 #include "src/common/graphics/imgui/tac_imgui.h"
 #include "src/common/graphics/tac_camera.h"
 #include "src/common/memory/tac_frame_memory.h"
-#include "src/common/memory/tac_temporary_memory.h"
+#include "src/common/system/tac_filesystem.h"
 #include "src/common/string/tac_string.h"
 #include "src/common/string/tac_string_util.h"
 #include "src/common/system/tac_filesystem.h"
@@ -32,7 +32,7 @@ namespace Tac
     Vector< Entity* > mEntities;
 
     //                Filepath of the serialized prefab
-    Tac::String       mDocumentPath;
+    Filesystem::Path  mDocumentPath;
   };
 
   static Vector< Prefab* >  mPrefabs;
@@ -40,7 +40,7 @@ namespace Tac
 
   static void         PrefabUpdateOpenedInEditor()
   {
-    Vector< String > documentPaths;
+    Vector< Filesystem::Path > documentPaths;
     for( Prefab* prefab : mPrefabs )
       for( Entity* entity : prefab->mEntities )
         if( !entity->mParent )
@@ -48,8 +48,9 @@ namespace Tac
 
     Json* prefabJson = SettingsGetJson( prefabSettingsPath );
     prefabJson->Clear();
-    for( auto documentPath : documentPaths )
-      *prefabJson->AddChild() = StringView( documentPath );
+    for( const Filesystem::Path& documentPath : documentPaths )
+      *prefabJson->AddChild() = StringView( documentPath ); // convert to UTF8
+
     SettingsSave();
   }
 
@@ -106,7 +107,7 @@ namespace Tac
       AllocateEntityUUIDsRecursively( entityUUIDCounter, entityChild );
   }
 
-  StringView          PrefabGetLoaded()
+  Filesystem::Path          PrefabGetLoaded()
   {
     for( Prefab* prefab : mPrefabs )
       for( Entity* entity : prefab->mEntities )
@@ -118,11 +119,11 @@ namespace Tac
   void                PrefabLoadAtPath( EntityUUIDCounter* entityUUIDCounter,
                                         World* world,
                                         Camera* camera,
-                                        String prefabPath,
+                                        Filesystem::Path prefabPath,
                                         Errors& errors )
   {
     ModifyPathRelative( prefabPath );
-    TemporaryMemory memory = TemporaryMemoryFromFile( prefabPath, errors );
+    String memory = FileToString( prefabPath, errors );
     TAC_HANDLE_ERROR( errors );
 
     Json prefabJson;
@@ -193,10 +194,9 @@ namespace Tac
       // Get document paths for prefabs missing them
       if( prefab->mDocumentPath.empty() )
       {
-        String savePath;
-        const String suggestedName = entity->mName + ".prefab";
+        const Filesystem::Path suggestedName = entity->mName + ".prefab";
         Errors saveDialogErrors;
-        OS::OSSaveDialog( savePath, suggestedName, saveDialogErrors );
+        Filesystem::Path savePath = OS::OSSaveDialog( suggestedName, saveDialogErrors );
         if( saveDialogErrors )
         {
           // todo: log it, user feedback

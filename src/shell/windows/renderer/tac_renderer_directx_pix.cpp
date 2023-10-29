@@ -20,23 +20,29 @@ namespace Tac
   static const char* pixInstallPath = "C:/Program Files/Microsoft PIX";
   static const char* pixDllName = "WinPixGpuCapturer.dll";
 
-  static String GetPIXDllPath(Errors& errors)
+
+  static Vector< String > GetInstalledPixVersions(Errors& errors)
   {
-    bool parentDirExist = Filesystem::Exists( pixInstallPath );
+    const bool parentDirExist = Filesystem::Exists( pixInstallPath );
     //OS::OSDoesFolderExist( pixInstallPath, parentDirExist, errors );
-    TAC_HANDLE_ERROR_RETURN( errors, "" );
+    TAC_HANDLE_ERROR_RETURN( errors, {} );
 
     if( !parentDirExist )
-      return "";
+      return {};
 
     Vector< String > subdirs;
     OS::OSGetDirectoriesInDirectory( subdirs, pixInstallPath, errors );
-    TAC_HANDLE_ERROR_RETURN( errors, "" );
+    TAC_HANDLE_ERROR_RETURN( errors, {} );
 
+    return subdirs;
+  }
+
+  static String GetMostRecentVersion( const Vector< String >& vers )
+  {
     String mostRecentVersion;
 
     // Pix version numbers are usually XXXX.YY https://devblogs.microsoft.com/pix/download/
-    for( const String& subdir : subdirs )
+    for( const String& subdir : vers )
     {
       if( subdir.size() != 6 && subdir[ 4 ] != '.' )
         continue;
@@ -45,14 +51,16 @@ namespace Tac
         mostRecentVersion = subdir;
     }
 
-    std::vector< std::string > vers = { "2305.10" , "2303.30","2303.02","2208.10" };
-    std::string v = vers[ 0 ];
-    std::string_view sv = v;
+    return mostRecentVersion;
+  }
 
-    Vector<int> tac_vec = { 1,2,3 };
-    StringView tacsv = mostRecentVersion;
+  static String GetPIXDllPath(Errors& errors)
+  {
+    const Vector< String > versions = GetInstalledPixVersions( errors );
+    const String mostRecentVersion = GetMostRecentVersion( versions );
+    if( mostRecentVersion.empty() )
+      return "";
 
-    TAC_ASSERT( !mostRecentVersion.empty());
     String result;
     result += pixInstallPath;
     result += "/";

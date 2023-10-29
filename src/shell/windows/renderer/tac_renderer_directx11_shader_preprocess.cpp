@@ -91,13 +91,13 @@ namespace Tac
       lineParseData.EatUntilCharIsNext( '\"' );
       const char*      includeEnd = lineParseData.GetPos();
       const StringView includeName( includeBegin, includeEnd );
-      const String     includePath = Render::GetShaderPath( includeName );
+      const Filesystem::Path includePath = Render::GetShaderPath( includeName );
       const String     includeSource = Render::ShaderPathToContentString( includePath, errors );
       const String     includeSourcePreproecssed = PreprocessShaderSource( includeSource, errors );
       String newLine;
-      newLine += "//===----- (begin include " + includePath + ") -----===//\n";
+      newLine += "//===----- (begin include " + includePath.u8string() + ") -----===//\n";
       newLine += includeSourcePreproecssed;
-      newLine += "//===----- (end include " + includePath + ") -----===//\n";
+      newLine += "//===----- (end include " + includePath.u8string() + ") -----===//\n";
       return newLine;
     }
 

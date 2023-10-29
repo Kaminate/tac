@@ -27,19 +27,31 @@ namespace Tac
 
   struct Win32DirectoryCallbackFunctor
   {
-    virtual void operator()( StringView dir,
+    virtual void operator()( const Filesystem::Path& dir,
                              const WIN32_FIND_DATA&,
                              Errors& ) = 0;
   };
 
-  static String WideStringToUTF8( WCHAR* inputWideStr )
+#if 0
+  static String WideStringToUTF8( WCHAR* inputWideStr, Errors& errors )
   {
     String result;
     auto wCharCount = ( int )wcslen( inputWideStr );
-    for( int i = 0; i < wCharCount; ++i )
-      result += ( char )inputWideStr[ i ];
+    result.resize( wCharCount * 8 ); // ought to be enough
+    const DWORD flags = 0;
+    int conversionResult = WideCharToMultiByte( CP_UTF8,
+                                                flags,
+                                                inputWideStr,
+                                                -1,
+                                                result.data(),
+                                                result.size(),
+                                                NULL,
+                                                NULL );
+    TAC_RAISE_ERROR_IF_RETURN( !conversionResult, Win32GetLastErrorString(), errors, "" );
+    result.resize( conversionResult );
     return result;
   }
+#endif
 
   static String GetFileDialogErrors( DWORD extError = CommDlgExtendedError() )
   {
@@ -70,7 +82,7 @@ namespace Tac
   // what if i inlined this into Win32DirectoryCallbackFunctor ?
   static void Win32DirectoryIterateAux( const WIN32_FIND_DATA& data,
                                         Win32DirectoryCallbackFunctor* fn,
-                                        StringView dir,
+                                        const Filesystem::Path& dir,
                                         Errors& errors )
   {
     const String dataFilename = data.cFileName;
@@ -79,11 +91,12 @@ namespace Tac
     ( *fn )( dir, data, errors );
   }
 
-  static void Win32DirectoryIterate( StringView dir,
+  static void Win32DirectoryIterate( const Filesystem::Path& dir,
                                      Win32DirectoryCallbackFunctor* fn,
                                      Errors& errors )
   {
-    const String path = dir + "/*";
+    Filesystem::Path path = dir;
+    path /= "/*";
     WIN32_FIND_DATA data;
     const HANDLE fileHandle = FindFirstFile( path.c_str(), &data );
     if( fileHandle == INVALID_HANDLE_VALUE )
@@ -130,7 +143,7 @@ namespace Tac
     dir = String( buf, getCurrentDirectoryResult );
   };
 
-  static void Win32OSOpenDialog( String& path, Errors& errors )
+  static Filesystem::Path Win32OSOpenDialog(  Errors& errors )
   {
     const int outBufSize = 256;
     char outBuf[ outBufSize ] = {};
@@ -148,15 +161,15 @@ namespace Tac
       const DWORD extError = CommDlgExtendedError();
       if( 0 == extError )
         // The user closed/canceled the dialog box
-        return;
+        return {};
 
       const String errMsg = GetFileDialogErrors( extError );
-      TAC_RAISE_ERROR( errMsg, errors );
+      TAC_RAISE_ERROR_RETURN( errMsg, errors, {} );
     }
 
-    path = outBuf;
+    Filesystem::Path path = outBuf;
 
-    const StringView workingDir = ShellGetInitialWorkingDir();
+    const Filesystem::Path workingDir = ShellGetInitialWorkingDir();
     if( path.starts_with( workingDir ) )
     {
       path = path.substr( workingDir.size() );
@@ -164,7 +177,7 @@ namespace Tac
     }
   }
 
-  static void Win32OSSaveDialog( String& outPath, StringView suggestedPath, Errors& errors )
+  static Filesystem::Path Win32OSSaveDialog(  const Filesystem::Path& suggestedPath, Errors& errors )
   {
     Array< char, 256 > outBuf = {};
     MemCpy( outBuf.data(), suggestedPath.c_str(), suggestedPath.size() );
@@ -172,21 +185,22 @@ namespace Tac
     // Prevent common file dialog from calling SetCurrentDirectory
     const DWORD flags = OFN_NOCHANGEDIR;
 
-    OPENFILENAME dialogParams = {};
-    dialogParams.lStructSize = sizeof( OPENFILENAME );
-    dialogParams.lpstrFilter = "All files\0*.*\0\0";
-    dialogParams.lpstrFile = outBuf.data();
-    dialogParams.nMaxFile = outBuf.size();
-    dialogParams.Flags = flags;
-    // dialogParams.lpstrInitialDir = (LPCSTR)Shell::Instance.mPrefPath.c_str();
-
-    if( !GetSaveFileNameA( &dialogParams ) )
+    OPENFILENAME dialogParams =
     {
-      const String errMsg = GetFileDialogErrors();
-      TAC_RAISE_ERROR( errMsg, errors );
-    }
+      .lStructSize = sizeof( OPENFILENAME ),
+      .lpstrFilter = "All files\0*.*\0\0",
+      .lpstrFile = outBuf.data(),
+      .nMaxFile = outBuf.size(),
+      .Flags = flags,
+    //.lpstrInitialDir = (LPCSTR)Shell::Instance.mPrefPath.c_str();
+    };
 
-    outPath = outBuf.data();
+    const BOOL saveResult = GetSaveFileNameA( &dialogParams );
+    TAC_RAISE_ERROR_IF_RETURN( !saveResult, GetFileDialogErrors(), errors,{} );
+
+
+    Filesystem::Path outPath = outBuf.data();
+    return outPath;
   };
 
   static void Win32OSSetScreenspaceCursorPos( const v2& pos, Errors& errors )
@@ -334,26 +348,41 @@ namespace Tac
     MessageBox( nullptr, s.data(), nullptr, MB_OK );
   }
 
-  static void Win32OSGetApplicationDataPath( String& path, Errors& errors )
+  static Filesystem::Path GetRoamingAppDataPathUTF8( Errors& errors )
   {
-    WCHAR* outPath;
+    PWSTR outPath;
     const HRESULT hr = SHGetKnownFolderPath( FOLDERID_RoamingAppData, KF_FLAG_CREATE, nullptr, &outPath );
-    if( hr != S_OK )
-    {
-      TAC_RAISE_ERROR( "Failed to get roaming folder", errors );
-    }
-    path = WideStringToUTF8( outPath );
-    CoTaskMemFree( outPath );
-    path += "\\";
-    path += ExecutableStartupInfo::sInstance.mStudioName;
+    TAC_ON_DESTRUCT( CoTaskMemFree( outPath ) );
+    TAC_RAISE_ERROR_IF_RETURN( hr != S_OK, "Failed to get roaming folder", errors, "" );
 
-    OS::OSCreateFolder(path, errors);
-    TAC_HANDLE_ERROR(errors);
+    return std::filesystem::path( outPath );
+  }
 
-    path += "\\";
-    path += ExecutableStartupInfo::sInstance.mAppName;
-    OS::OSCreateFolder(path, errors);
-    TAC_HANDLE_ERROR(errors);
+  static Filesystem::Path Win32OSGetApplicationDataPath( Errors& errors )
+  {
+    Filesystem::Path roamingAppDataUTF8 = GetRoamingAppDataPathUTF8( errors );
+    TAC_HANDLE_ERROR_RETURN( errors, {} );
+
+    Filesystem::Path path;
+
+    path = roamingAppDataUTF8;
+    path /= ExecutableStartupInfo::sInstance.mStudioName;
+
+#undef CreateDirectory
+
+    Filesystem::CreateDirectory( path );
+    const bool pathExists = Filesystem::Exists( path );
+    TAC_ASSERT( pathExists );
+    ++asdf;
+    //OS::OSCreateFolder(path, errors);
+    TAC_HANDLE_ERROR_RETURN( errors, {} );
+
+    path /= ExecutableStartupInfo::sInstance.mAppName;
+    const bool path2Exists = Filesystem::Exists( path );
+    TAC_ASSERT( pathExists );
+    ++asdf;
+    //OS::OSCreateFolder(path, errors);
+    TAC_HANDLE_ERROR_RETURN( errors, {} );
   }
 
   static void Win32OSGetFileLastModifiedTime( time_t* time,
@@ -406,14 +435,14 @@ namespace Tac
     *time = result;
   }
 
-  static void Win32OSGetFilesInDirectory( Vector< String >& files,
-                              StringView dir,
-                              OSGetFilesInDirectoryFlags flags,
-                              Errors& errors )
+  static Vector< String > Win32OSGetFilesInDirectory( const Filesystem::Path& dir,
+                                                      OS::OSGetFilesInDirectoryFlags flags,
+                                                      Errors& errors )
   {
+    Vector< String > files;
     struct : public Win32DirectoryCallbackFunctor
     {
-      void operator ()( StringView dir,
+      void operator ()( const Filesystem::Path& dir,
                         const WIN32_FIND_DATA& data,
                         Errors& errors ) override
       {
@@ -422,7 +451,10 @@ namespace Tac
         {
           if( mIsRecursive )
           {
-            Win32DirectoryIterate( dir + "/" + data.cFileName, this, errors );
+            Filesystem::Path newPath = dir / data.cFileName;
+
+            void operator ()( const Filesystem::Path& dir,
+            Win32DirectoryIterate( newPath, this, errors );
           }
         }
         else
@@ -435,31 +467,36 @@ namespace Tac
       Vector< String >* mFiles = nullptr;
     } functor;
 
-    functor.mIsRecursive = ( int )flags & ( int )OSGetFilesInDirectoryFlags::Recursive;
+    functor.mIsRecursive = ( int )flags & ( int )OS::OSGetFilesInDirectoryFlags::Recursive;
     functor.mFiles = &files;
 
     Win32DirectoryIterate( dir, &functor, errors );
+    return files;
   }
 
-  static void Win32OSGetDirectoriesInDirectory( Vector< String >& dirs,
-                                    StringView dir,
+  static Vector< Filesystem::Path > Win32OSGetDirectoriesInDirectory( 
+                                    const Filesystem::Path& dir,
                                     Errors& errors )
   {
+    Vector< Filesystem::Path > dirs;
     struct : public Win32DirectoryCallbackFunctor
     {
-      void operator ()( StringView dir,
+      void operator ()( const Filesystem::Path& dir,
                         const WIN32_FIND_DATA& data,
                         Errors& errors ) override
       {
         TAC_UNUSED_PARAMETER( dir );
         TAC_UNUSED_PARAMETER( errors );
-        if( data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY )
-          mDirs->push_back( data.cFileName );
+        if( !( data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ) )
+          return;
+
+        mDirs->push_back( data.cFileName );
       }
-      Vector< String >* mDirs = nullptr;
+      Vector< Filesystem::Path >* mDirs = nullptr;
     } functor;
     functor.mDirs = &dirs;
     Win32DirectoryIterate( dir, &functor, errors );
+    return dirs;
   }
 
 

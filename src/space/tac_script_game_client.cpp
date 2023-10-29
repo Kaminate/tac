@@ -12,7 +12,7 @@
 #include "src/common/system/tac_os.h"
 #include "src/common/dataprocess/tac_settings.h"
 #include "src/common/shell/tac_shell.h"
-#include "src/common/memory/tac_temporary_memory.h"
+#include "src/common/system/tac_filesystem.h"
 #include "src/common/thirdparty/stb_image.h"
 #include "src/space/tac_ghost.h"
 #include "src/space/graphics/tac_graphics.h"
@@ -430,7 +430,7 @@ namespace Tac
 		//if( !mPower.IsValid() )
 		//{
 		//  // TODO: use the asset manager to load this shit async
-		//  auto memory = TemporaryMemoryFromFile( "assets/power.png", errors );
+		//  auto memory = FileToString( "assets/power.png", errors );
 		//  TAC_HANDLE_ERROR( errors );
 
 		//  int x;

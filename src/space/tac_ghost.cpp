@@ -9,7 +9,7 @@
 #include "src/common/input/tac_keyboard_input.h"
 #include "src/common/math/tac_math.h"
 #include "src/common/memory/tac_memory.h"
-#include "src/common/memory/tac_temporary_memory.h"
+#include "src/common/system/tac_filesystem.h"
 #include "src/common/meta/tac_meta.h"
 #include "src/common/shell/tac_shell.h"
 #include "src/common/shell/tac_shell_timer.h"
@@ -428,12 +428,12 @@ namespace Tac
   {
     //World* world = mServerData->mWorld;
     //Physics* physics = Physics::GetSystem( world );
-    String levelpath = "mylevel.txt";
+    Filesystem::Path levelpath = "mylevel.txt";
     Errors errors;
-    TemporaryMemory mem = TemporaryMemoryFromFile( levelpath, errors );
+    String mem = FileToString( levelpath, errors );
     if( mem.empty() )
     {
-      const String errorMsg = "failed to open " + levelpath;
+      const String errorMsg = "failed to open " + levelpath.u8string();
       mLevelLoadErrors.Append( errorMsg );
       mLevelLoadErrors.Append( TAC_STACK_FRAME );
       return;

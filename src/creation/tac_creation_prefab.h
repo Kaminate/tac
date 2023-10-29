@@ -24,6 +24,6 @@ namespace Tac
   void                PrefabRemoveEntityRecursively( Entity* );
   const char*         PrefabGetOrNull( Entity* );
 
-  StringView          PrefabGetLoaded();
-}
+  Filesystem::Path    PrefabGetLoaded();
+} // namespace Tac
 
