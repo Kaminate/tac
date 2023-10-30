@@ -91,6 +91,8 @@ namespace Tac
       lineParseData.EatUntilCharIsNext( '\"' );
       const char*      includeEnd = lineParseData.GetPos();
       const StringView includeName( includeBegin, includeEnd );
+      const ShaderNameStringView shaderName( includeName );
+      const AssetPathStringView includeAssetPath = GetShaderAssetPath( shaderName );
       const Filesystem::Path includePath = Render::GetShaderPath( includeName );
       const String     includeSource = Render::ShaderPathToContentString( includePath, errors );
       const String     includeSourcePreproecssed = PreprocessShaderSource( includeSource, errors );

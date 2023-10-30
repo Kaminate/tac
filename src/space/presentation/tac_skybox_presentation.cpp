@@ -82,11 +82,11 @@ namespace Tac
                                  const int viewWidth,
                                  const int viewHeight,
                                  const Render::ViewHandle viewId,
-                                 const StringView skyboxDir )
+                                 const AssetPathStringView& skyboxDir )
   {
     /*TAC_PROFILE_BLOCK*/;
-    const AssetPath defaultSkybox = "assets/skybox/daylight";
-    const AssetPath skyboxDirToUse = skyboxDir.empty() ? defaultSkybox : AssetPath(skyboxDir);
+    const AssetPathStringView defaultSkybox = "assets/skybox/daylight";
+    const AssetPathStringView skyboxDirToUse = skyboxDir.empty() ? defaultSkybox : skyboxDir;
     const Render::TextureHandle cubemap = TextureAssetManager::GetTextureCube( skyboxDirToUse,
                                                                                mGetSkyboxTextureErrors );
     TAC_ASSERT( mGetSkyboxTextureErrors.empty() );

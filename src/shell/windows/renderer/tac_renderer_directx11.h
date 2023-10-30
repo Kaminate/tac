@@ -167,7 +167,7 @@ namespace Tac
       void RenderDrawCallPrimitiveTopology( const DrawCall* );
       void RenderDrawCallIssueDrawCommand( const DrawCall* );
 
-      String GetShaderPath( StringView ) override;
+      AssetPathStringView GetShaderPath( const ShaderNameStringView& ) override;
 
       // Non-virtual functions
 
@@ -177,8 +177,11 @@ namespace Tac
       //                         Errors& errors );
 
 
-      template< typename T > struct DX11ShortName {};
-#define Name(Type, str) template<> struct DX11ShortName <Type> { inline static const char* name = str; };
+
+
+      template< typename T> const char* GetShortName() { return nullptr; }
+
+#define Name(T, str) template<> const char* GetShortName<T>() { return str; }
       Name( IDXGISwapChain, "sc" );
       Name( ID3D11UnorderedAccessView, "uav" );
       Name( ID3D11Texture3D, "3d" );
@@ -199,13 +202,13 @@ namespace Tac
 #undef Name
 
       template< typename T>
-      void        SetDebugName( T* t, StringView name )
+      void        SetDebugName( T* t, const StringView& name )
       {
-        SetDebugName( t, name, DX11ShortName<T>::name );
+        SetDebugName( t, name, GetShortName<T>() );
       }
 
-      void        SetDebugName( ID3D11DeviceChild*, StringView str, StringView suffix );
-      void        SetDebugName( IDXGIObject*, StringView str, StringView suffix );
+      void        SetDebugName( ID3D11DeviceChild*, const StringView& str, const StringView& suffix );
+      void        SetDebugName( IDXGIObject*, const StringView& str, const StringView& suffix );
 
       StringView  GetDebugName( ID3D11DeviceChild* );
       void        SetDebugName( IDXGIObject* , StringView );

@@ -132,15 +132,16 @@ namespace Tac
 
 #define TAC_SCOPED_DX_FILTER( stuff ) ScopedDXFilter TAC_CONCAT( filter , __COUNTER__)( stuff );
 
-    static Filesystem::Path DirectX11GetShaderPath( StringView shaderName )
+    static AssetPathStringView DirectX11GetShaderPath( const ShaderNameStringView& shaderName )
     {
-      Filesystem::Path result;
       const char* prefix = "assets/hlsl/";
       const char* suffix = ".fx";
-      result += shaderName.starts_with( prefix ) ? "" : prefix;
-      result += shaderName;
-      result += shaderName.ends_with( suffix ) ? "" : suffix;
-      return result;
+      return FrameMemoryPrintf( "%s%s%s", prefix, shaderName.c_str(), suffix );
+      //Filesystem::Path result;
+      //result += shaderName.starts_with( prefix ) ? "" : prefix;
+      //result += shaderName;
+      //result += shaderName.ends_with( suffix ) ? "" : suffix;
+      //return result;
     }
 
 
@@ -604,13 +605,15 @@ namespace Tac
     }
 
 
-    static Program LoadProgram( ShaderSource shaderSource, Errors& errors )
+    static Program LoadProgram( ShaderNameStringView shaderName, Errors& errors )
     {
       ID3D11Device*         device = ( ( RendererDirectX11* )Renderer::Instance )->mDevice;
       ID3D11VertexShader*   vertexShader = nullptr;
       ID3D11PixelShader*    pixelShader = nullptr;
       ID3D11GeometryShader* geometryShader = nullptr;
       ID3DBlob*             inputSignature = nullptr;
+
+      AssetPathStringView assetPath = GetShaderAssetPath( shaderName );
 
       const String shaderPath
         = shaderSource.mType == ShaderSource::Type::kPath
@@ -1375,10 +1378,7 @@ namespace Tac
       RenderDrawCallIssueDrawCommand( drawCall );
     }
 
-
-
-
-    Filesystem::Path RendererDirectX11::GetShaderPath( StringView s )
+    AssetPathStringView RendererDirectX11::GetShaderPath( const ShaderNameStringView&  s)
     {
       return DirectX11GetShaderPath( s);
     }
@@ -1494,11 +1494,12 @@ namespace Tac
 
     static void SetDebugName( IDXGIObject* dxgiObj,
                               ID3D11DeviceChild* dx11Obj,
-                              StringView name,
-                              StringView suffix )
+                              const StringView& name,
+                              const StringView& suffix )
     {
       TAC_ASSERT( IsMainThread() );
       TAC_ASSERT( name.size() );
+      TAC_ASSERT( suffix.size() );
       if( !IsDebugMode() )
         return;
       if( !(dxgiObj || dx11Obj))
@@ -1546,15 +1547,15 @@ namespace Tac
     }
 
     void RendererDirectX11::SetDebugName( IDXGIObject* dxgiObj,
-                                          StringView str,
-                                          StringView suffix )
+                                          const StringView& str,
+                                          const StringView& suffix )
     {
       Tac::Render::SetDebugName( dxgiObj, nullptr, str, suffix );
     }
 
     void RendererDirectX11::SetDebugName( ID3D11DeviceChild* directXObject,
-                                          StringView name,
-                                          StringView suffix )
+                                          const StringView& name,
+                                          const StringView& suffix )
     {
       Tac::Render::SetDebugName( nullptr, directXObject, name, suffix );
     }
@@ -1808,7 +1809,7 @@ namespace Tac
       TAC_ASSERT( IsMainThread() );
 
       Program* program = &mPrograms[ ( int )commandData->mShaderHandle ];
-      *program = LoadProgram( commandData->mShaderSource, errors );
+      *program = LoadProgram( commandData->mNameStringView, errors );
       //program->mConstantBuffers = commandData->mConstantBuffers;
       if( commandData->mShaderSource.mType == ShaderSource::Type::kPath )
         ShaderReloadHelperAdd( commandData->mShaderHandle, GetShaderPath( commandData->mShaderSource.mStr ) );

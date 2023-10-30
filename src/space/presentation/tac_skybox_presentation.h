@@ -12,6 +12,6 @@ namespace Tac
                                  int viewWidth,
                                  int viewHeight,
                                  Render::ViewHandle viewId,
-                                 StringView skyboxDir );
+                                 const AssetPathStringView& skyboxDir );
 
 }
