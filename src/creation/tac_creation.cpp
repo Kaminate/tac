@@ -88,12 +88,24 @@ namespace Tac
       KeyboardIsKeyDown( Key::Modifier );
     if( !triggered )
       return;
+
     KeyboardSetIsKeyDown( Key::S, false );
-    PrefabSave( world );
-    if( CreationGameWindow::Instance )
+
+    Errors saveErrors;
+    PrefabSave( world, saveErrors );
+
+    if(CreationGameWindow* window = CreationGameWindow::Instance)
     {
-      CreationGameWindow::Instance->mStatusMessage = "Saved prefabs!";
-      CreationGameWindow::Instance->mStatusMessageEndTime = ShellGetElapsedSeconds() + 5.0f;
+      if( saveErrors )
+      {
+        window->mStatusMessage = saveErrors.ToString();
+        window->mStatusMessageEndTime = ShellGetElapsedSeconds() + 60.0f;
+      }
+      else
+      {
+        window->mStatusMessage = "Saved prefabs!";
+        window->mStatusMessageEndTime = ShellGetElapsedSeconds() + 5.0f;
+      }
     }
   }
 
@@ -530,9 +542,6 @@ namespace Tac
 
 
     mSelectedEntities.DeleteEntitiesCheck();
-
-
-
   }
 
 
@@ -581,6 +590,7 @@ namespace Tac
 
 
 
+  /*
   void                ModifyPathRelative( Filesystem::Path& savePath )
   {
     const Filesystem::Path workingDir = ShellGetInitialWorkingDir();
@@ -591,6 +601,7 @@ namespace Tac
       savePath = Filesystem::StripLeadingSlashes( savePath );
     }
   }
+  */
 
 }
 

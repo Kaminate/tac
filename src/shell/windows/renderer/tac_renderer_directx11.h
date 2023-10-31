@@ -182,23 +182,24 @@ namespace Tac
       template< typename T> const char* GetShortName() { return nullptr; }
 
 #define Name(T, str) template<> const char* GetShortName<T>() { return str; }
-      Name( IDXGISwapChain, "sc" );
+      Name( ID3D11BlendState,          "bs" );
+      Name( ID3D11Buffer,              "buf" );
+      Name( ID3D11ComputeShader,       "cs" );
+      Name( ID3D11DepthStencilState,   "dss" );
+      Name( ID3D11DepthStencilView,    "dsv" );
+      Name( ID3D11GeometryShader,      "gs" );
+      Name( ID3D11InputLayout,         "il" );
+      Name( ID3D11PixelShader,         "ps" );
+      Name( ID3D11RasterizerState,     "rs" );
+      Name( ID3D11RasterizerState2,    "rs2" );
+      Name( ID3D11RenderTargetView,    "rtv" );
+      Name( ID3D11SamplerState,        "ss" );
+      Name( ID3D11ShaderResourceView,  "srv" );
+      Name( ID3D11Texture2D,           "2d" );
+      Name( ID3D11Texture3D,           "3d" );
       Name( ID3D11UnorderedAccessView, "uav" );
-      Name( ID3D11Texture3D, "3d" );
-      Name( ID3D11Texture2D, "2d" );
-      Name( ID3D11ShaderResourceView, "srv" );
-      Name( ID3D11SamplerState, "ss" );
-      Name( ID3D11RenderTargetView, "rtv" );
-      Name( ID3D11RasterizerState, "rs" );
-      Name( ID3D11RasterizerState2, "rs2" );
-      Name( ID3D11InputLayout, "il" );
-      Name( ID3D11VertexShader, "vs" );
-      Name( ID3D11PixelShader, "ps" );
-      Name( ID3D11GeometryShader, "gs" );
-      Name( ID3D11BlendState, "bs" );
-      Name( ID3D11DepthStencilView, "dsv" );
-      Name( ID3D11DepthStencilState, "dss" );
-      Name( ID3D11Buffer, "buf" );
+      Name( ID3D11VertexShader,        "vs" );
+      Name( IDXGISwapChain,            "sc" );
 #undef Name
 
       template< typename T>

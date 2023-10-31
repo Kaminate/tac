@@ -71,7 +71,8 @@ namespace Tac
 
   //                    If input path is absolute, it will be converted to be 
   //                    relative to the working directory
-  void                  ModifyPathRelative( Filesystem::Path& path );
+  //void                  ModifyPathRelative( Filesystem::Path& path );
+
 
   extern Creation       gCreation;
 

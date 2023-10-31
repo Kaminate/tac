@@ -278,13 +278,13 @@ namespace Tac
   static void CreateTerrainShader( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
-    mTerrainShader = Render::CreateShader( Render::ShaderSource::FromPath( "Terrain" ), TAC_STACK_FRAME );
+    mTerrainShader = Render::CreateShader(  "Terrain" , TAC_STACK_FRAME );
   }
 
   static void Create3DShader( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
-    m3DShader = Render::CreateShader( Render::ShaderSource::FromPath( "GamePresentation" ), TAC_STACK_FRAME );
+    m3DShader = Render::CreateShader(  "GamePresentation" , TAC_STACK_FRAME );
   }
 
   static void Create3DVertexFormat( Errors& errors )

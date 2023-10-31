@@ -178,7 +178,7 @@ namespace Tac
 
   void        ShadowPresentationInit( Errors& errors )
   {
-    sShader = Render::CreateShader( Render::ShaderSource::FromPath( "Shadow" ), TAC_STACK_FRAME );
+    sShader = Render::CreateShader(  "Shadow" , TAC_STACK_FRAME );
   }
 
   void        ShadowPresentationUninit()

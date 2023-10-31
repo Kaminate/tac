@@ -1,28 +1,28 @@
+#include "src/creation/tac_creation_asset_view.h" // self-inc
+
 #include "src/common/assetmanagers/tac_model_load_synchronous.h"
-#include "src/common/profile/tac_profile.h"
-#include "src/common/system/tac_filesystem.h"
-#include "src/common/assetmanagers/tac_texture_asset_manager.h"
 #include "src/common/assetmanagers/tac_resident_model_file.h"
+#include "src/common/assetmanagers/tac_texture_asset_manager.h"
 #include "src/common/containers/tac_frame_vector.h"
-#include "src/common/graphics/imgui/tac_imgui.h"
-#include "src/common/graphics/tac_renderer.h"
 #include "src/common/core/tac_error_handling.h"
-#include "src/common/system/tac_job_queue.h"
+#include "src/common/graphics/imgui/tac_imgui.h"
+#include "src/common/graphics/tac_camera.h"
+#include "src/common/graphics/tac_renderer.h"
 #include "src/common/math/tac_math.h"
-#include "src/common/system/tac_os.h"
+#include "src/common/profile/tac_profile.h"
 #include "src/common/shell/tac_shell.h"
 #include "src/common/shell/tac_shell_timer.h"
 #include "src/common/string/tac_string.h"
-#include "src/common/system/tac_filesystem.h"
 #include "src/common/string/tac_string_util.h"
+#include "src/common/system/tac_filesystem.h"
+#include "src/common/system/tac_job_queue.h"
+#include "src/common/system/tac_os.h"
 #include "src/common/thirdparty/cgltf.h"
 #include "src/creation/tac_creation.h"
-#include "src/creation/tac_creation_asset_view.h"
+#include "src/space/model/tac_model.h"
 #include "src/space/presentation/tac_game_presentation.h"
 #include "src/space/tac_entity.h"
 #include "src/space/tac_world.h"
-#include "src/space/model/tac_model.h"
-#include "src/common/graphics/tac_camera.h"
 
 #include <map>
 //#include <cmath>
@@ -112,6 +112,7 @@ namespace Tac
     Render::FramebufferHandle mFramebufferHandle;
     Render::ViewHandle        mViewHandle;
     Camera                    mCamera;
+    AssetPathString           mAssetPath;
 
 
     // somethings are embedded in the model file
@@ -122,16 +123,16 @@ namespace Tac
     // - textures
   };
 
-  static String                                       sAssetViewFolderCur;
-  static Vector< String >                             sAssetViewFolderStack;
+  static AssetPathString                    sAssetViewFolderCur;
+  static Vector< String >                   sAssetViewFolderStack;
   static Errors                                       sAssetViewErrors;
-  static Vector< String >                             sAssetViewFiles;
-  static Vector< String >                             sAssetViewFolders;
-  static std::map< String, AssetViewImportedModel* >  sLoadedModels;
+  static Filesystem::Paths                            sAssetViewFiles;
+  static Filesystem::Paths                            sAssetViewFolders;
+  static std::map< AssetPathString, AssetViewImportedModel* > sLoadedModels;
 
   static String LoadEllipses() { return String( "...", ( int )ShellGetElapsedSeconds() % 4 ); }
 
-  static AssetViewImportedModel* GetLoadedModel( const String& path )
+  static AssetViewImportedModel* GetLoadedModel( const AssetPathStringView& path )
   {
     auto loadedModelIt = sLoadedModels.find( path );
     return loadedModelIt == sLoadedModels.end() ? nullptr : ( *loadedModelIt ).second;
@@ -145,21 +146,32 @@ namespace Tac
 
   static void PopulateFolderContents()
   {
-    sAssetViewFiles.clear();
-    sAssetViewFolders.clear();
-    OS::OSGetFilesInDirectory( sAssetViewFiles,
-                                    sAssetViewFolderCur,
-                                    OS::OSGetFilesInDirectoryFlags::Default,
-                                    sAssetViewErrors );
-    OS::OSGetDirectoriesInDirectory( sAssetViewFolders, sAssetViewFolderCur, sAssetViewErrors );
+    //sAssetViewFiles.clear();
+    //sAssetViewFolders.clear();
+    sAssetViewFiles = Filesystem::IterateFiles( sAssetViewFolderCur,
+                                                Filesystem::IterateType::Default,
+                                                sAssetViewErrors );
+    if( sAssetViewErrors )
+      return;
+
+    //OS::OSGetFilesInDirectory( sAssetViewFiles,
+    //                                sAssetViewFolderCur,
+    //                                OS::OSGetFilesInDirectoryFlags::Default,
+    //                                sAssetViewErrors );
+    sAssetViewFolders = Filesystem::IterateDirectories( sAssetViewFolderCur,
+                                                        Filesystem::IterateType::Default,
+                                                        sAssetViewErrors );
+    if( sAssetViewErrors )
+      return;
+    //OS::OSGetDirectoriesInDirectory( sAssetViewFolders, sAssetViewFolderCur, sAssetViewErrors );
   }
 
   static void UIFoldersUpToCurr()
   {
     for( int iStack = 0; iStack < sAssetViewFolderStack.size(); ++iStack )
     {
-      const String& folder = sAssetViewFolderStack[ iStack ];
-      if( ImGuiButton( folder ) )
+      const Filesystem::Path& folder = sAssetViewFolderStack[ iStack ];
+      if( ImGuiButton( folder.u8string() ) )
       {
         sAssetViewFolderStack.resize( iStack + 1 );
       }
@@ -175,37 +187,37 @@ namespace Tac
 
   static void UIFoldersNext()
   {
-    for( const String& path : sAssetViewFolders )
+    const int n = sAssetViewFolders.size();
+    for( int i = 0; i < n; ++i )
     {
-      const int iPath = ( int )( &path - sAssetViewFolders.data() );
-      if( ImGuiButton( path ) )
-      {
-        sAssetViewFolderStack.push_back( path );
-      }
+      const Filesystem::Path& path = sAssetViewFolders[ i ];
+      const int iPath = i;
+      if( ImGuiButton( path.u8string() ) )
+        sAssetViewFolderStack.push_back( path.u8string() );
       if( iPath != sAssetViewFolders.size() - 1 )
         ImGuiSameLine();
     }
   }
 
-  static bool HasExt( const StringView& path, Vector< const char* > extensions )
+  static bool HasExt( const Filesystem::Path& path, Vector< const char* > extensions )
   {
     for( const char* ext : extensions )
-      if( path.ends_with( ext ) )
+      if( path.u8string().ends_with( ext ) )
         return true;
     return false;
   }
 
-  static bool IsImage( const StringView& path ) { return HasExt( path, { ".png", ".jpg", ".bmp" } ); }
+  static bool IsImage( const Filesystem::Path& path ) { return HasExt( path, { ".png", ".jpg", ".bmp" } ); }
 
-  static bool IsModel( const StringView& path ) { return HasExt( path, { ".gltf", ".glb" } ); }
+  static bool IsModel( const Filesystem::Path& path ) { return HasExt( path, { ".gltf", ".glb" } ); }
 
-  static void UIFilesOther( const Vector< String >& paths )
+  static void UIFilesOther( const Filesystem::Paths& paths )
   {
-    for( const String& path : paths )
-      ImGuiText( Filesystem::FilepathToFilename( path ) );
+    for( const Filesystem::Path& path : paths )
+      ImGuiText( path.u8string() );
   }
 
-  static void AttemptLoadEntity( AssetViewImportedModel* loadedModel, const char* path )
+  static void AttemptLoadEntity( AssetViewImportedModel* loadedModel, const AssetPathStringView& path )
   {
     if( loadedModel->mAttemptedToLoadEntity )
       return;
@@ -217,7 +229,7 @@ namespace Tac
     TAC_ON_DESTRUCT( loadedModel->mAttemptedToLoadEntity = true );
 
     Entity* entityRoot = loadedModel->mWorld.SpawnEntity( loadedModel->mEntityUUIDCounter.AllocateNewUUID() );
-    entityRoot->mName = Filesystem::FilepathToFilename( path );
+    entityRoot->mName = path;// Filesystem::FilepathToFilename( path );
 
     Vector< Entity* > entityNodes;
     for( int i = 0; i < (int)gltfData->nodes_count; ++i )
@@ -236,20 +248,20 @@ namespace Tac
 
       if( node.mesh )
       {
-        const String modelPath = [ path ]()
-        {
-          const StringView initialWorkingDir = ShellGetInitialWorkingDir();
-          String modelPath = path;
-          if( modelPath.starts_with( initialWorkingDir ) )
-            modelPath = modelPath.substr( initialWorkingDir.size() );
-          while( modelPath.starts_with( '/' ) || modelPath.starts_with( '\\' ) )
-            modelPath.erase( 0, 1 );
-          return modelPath;
-        }( );
+        //const String modelPath = [ path ]()
+        //{
+        //  const Filesystem::Path& initialWorkingDir = ShellGetInitialWorkingDir();
+        //  String modelPath = path;
+        //  if( modelPath.starts_with( initialWorkingDir ) )
+        //    modelPath = modelPath.substr( initialWorkingDir.size() );
+        //  while( modelPath.starts_with( '/' ) || modelPath.starts_with( '\\' ) )
+        //    modelPath.erase( 0, 1 );
+        //  return modelPath;
+        //}( );
 
 
         auto model = ( Model* )entityNode->AddNewComponent( Model().GetEntry() );
-        model->mModelPath = modelPath;
+        model->mModelPath = path;
         //model->mModelName = node.mesh->name;
         model->mModelIndex = ( int )( node.mesh - gltfData->meshes );
         //model->mTryingNewThing = true;
@@ -276,74 +288,54 @@ namespace Tac
   const int w = 256;
   const int h = 256;
 
-  static void UIFilesModelImGui( const String& path )
+  static void UIFilesModelImGui( const Filesystem::Path& path )
   {
-    const String filename = Filesystem::FilepathToFilename( path );
-    AssetViewImportedModel* loadedModel = GetLoadedModel( path );
+    Errors errors;
+    AssetPathStringView assetPath = ModifyPathRelative( path, errors );
+    TAC_ASSERT( !errors );
 
-    if( loadedModel )
+    //const String filename = Filesystem::FilepathToFilename( path );
+    AssetViewImportedModel* loadedModel = GetLoadedModel( assetPath );
+    if( !loadedModel )
     {
-      if( loadedModel->mWorld.mEntities.size() )
-      {
-        ImGuiImage( ( int )loadedModel->mTextureHandleColor, v2( w, h ) );
-        ImGuiSameLine();
-        ImGuiBeginGroup();
-        ImGuiText( filename );
-        // this will select the entity in the loadedModel->mWorld, not gCreation.mWorld!!!
-        // probably a super hack
-        //if( ImGuiButton( "Select in property window" ) )
-        //{
-        //  gCreation.ClearSelection();
-        //  gCreation.AddToSelection( *loadedModel->mWorld.mEntities.begin() );
-        //}
+      ImGuiTextf( "Loading %s%s", assetPath.c_str(), LoadEllipses().c_str() );
+      return;
+    }
 
-        if( ImGuiButton( "Import object into scene" ) )
-        {
-          Entity* prefab = *loadedModel->mWorld.mEntities.begin();
-          gCreation.InstantiateAsCopy( prefab, gCreation.GetEditorCameraVisibleRelativeSpace() );
-        }
-        ImGuiEndGroup();
-      }
-      else if( loadedModel->mAttemptedToLoadEntity )
+    if( loadedModel->mWorld.mEntities.size() )
+    {
+      ImGuiImage( ( int )loadedModel->mTextureHandleColor, v2( w, h ) );
+      ImGuiSameLine();
+      ImGuiBeginGroup();
+      ImGuiText( assetPath );
+      // this will select the entity in the loadedModel->mWorld, not gCreation.mWorld!!!
+      // probably a super hack
+      //if( ImGuiButton( "Select in property window" ) )
+      //{
+      //  gCreation.ClearSelection();
+      //  gCreation.AddToSelection( *loadedModel->mWorld.mEntities.begin() );
+      //}
+
+      if( ImGuiButton( "Import object into scene" ) )
       {
-        ImGuiText( filename + " has nothing to import" );
+        Entity* prefab = *loadedModel->mWorld.mEntities.begin();
+        gCreation.InstantiateAsCopy( prefab, gCreation.GetEditorCameraVisibleRelativeSpace() );
       }
-      else
-      {
-        ImGuiText( "Loading " + filename + LoadEllipses() );
-      }
+      ImGuiEndGroup();
+    }
+    else if( loadedModel->mAttemptedToLoadEntity )
+    {
+      ImGuiTextf( "%s has nothing to import", assetPath.c_str() );
     }
     else
     {
-      ImGuiText( "Loading " + filename + LoadEllipses() );
+      ImGuiTextf( "IDK what this code path is %s", assetPath.c_str() );
     }
   }
 
-  static void UIFilesModel( const String& path )
+  static AssetViewImportedModel* CreateLoadedModel(const AssetPathStringView& assetPath)
   {
-    if( AssetViewImportedModel* loadedModel = GetLoadedModel( path ) )
-    {
-      AttemptLoadEntity( loadedModel, path.c_str() );
-      if( loadedModel->mWorld.mEntities.size() )
-      {
-        const String filename = Filesystem::FilepathToFilename( path );
-        TAC_RENDER_GROUP_BLOCK( FrameMemoryPrintf( "asset preview %s", filename.c_str() ) );
-        Render::SetViewFramebuffer( loadedModel->mViewHandle, loadedModel->mFramebufferHandle );
-        Render::SetViewport( loadedModel->mViewHandle, Render::Viewport( w, h ) );
-        Render::SetViewScissorRect( loadedModel->mViewHandle, Render::ScissorRect( w, h ) );
-        GamePresentationRender( &loadedModel->mWorld,
-                                &loadedModel->mCamera,
-                                w, h,
-                                loadedModel->mViewHandle );
-      }
-    }
-    else
-    {
-      String filename = Filesystem::FilepathToFilename( path );
-      filename = Filesystem::StripExt( filename );
-
-      const char* debugName = FrameMemoryPrintf( "%s-framebuffer-", filename.c_str() );
-
+      const char* debugName = FrameMemoryPrintf( "%s-framebuffer-", assetPath.c_str() );
       const Render::TexSpec texSpecColor =
       {
         .mImage =
@@ -384,39 +376,77 @@ namespace Tac
         { textureHandleColor, textureHandleDepth }, TAC_STACK_FRAME );
       Render::ViewHandle viewHandle = Render::CreateView();
 
-      loadedModel = new AssetViewImportedModel;
-      loadedModel->mFramebufferHandle = framebufferHandle;
-      loadedModel->mTextureHandleColor = textureHandleColor;
-      loadedModel->mTextureHandleDepth = textureHandleDepth;
-      loadedModel->mViewHandle = viewHandle;
-      sLoadedModels[ path ] = loadedModel;
-    }
+      auto* result = new AssetViewImportedModel
+      {
+         .mTextureHandleColor = textureHandleColor,
+         .mTextureHandleDepth = textureHandleDepth,
+         .mFramebufferHandle = framebufferHandle,
+         .mViewHandle = viewHandle,
+         .mAssetPath = assetPath,
+      };
+
+      sLoadedModels[ assetPath ] = result;
+      return result;
   }
 
-  static void UIFilesModels( const Vector< String >& paths )
+  static void RenderImportedModel( AssetViewImportedModel* loadedModel )
   {
-    for( const String& path : paths )
+    if( loadedModel->mWorld.mEntities.empty() )
+      return;
+
+    TAC_RENDER_GROUP_BLOCK( va( "asset preview %s", loadedModel->mAssetPath.c_str() ) );
+    Render::SetViewFramebuffer( loadedModel->mViewHandle, loadedModel->mFramebufferHandle );
+    Render::SetViewport( loadedModel->mViewHandle, Render::Viewport( w, h ) );
+    Render::SetViewScissorRect( loadedModel->mViewHandle, Render::ScissorRect( w, h ) );
+    GamePresentationRender( &loadedModel->mWorld,
+                            &loadedModel->mCamera,
+                            w, h,
+                            loadedModel->mViewHandle );
+  }
+
+  static void UIFilesModel( const Filesystem::Path& path )
+  {
+    Errors errors;
+    AssetPathString assetPath = ModifyPathRelative( path, errors );
+    TAC_ASSERT( !errors );
+
+    AssetViewImportedModel* loadedModel = GetLoadedModel( assetPath );
+    if( !loadedModel )
+      loadedModel = CreateLoadedModel( assetPath );
+
+    AttemptLoadEntity( loadedModel, assetPath );
+
+    RenderImportedModel( loadedModel );
+  }
+
+  static void UIFilesModels( const Filesystem::Paths& paths )
+  {
+    for( const Filesystem::Path& path : paths )
     {
       UIFilesModel( path );
       UIFilesModelImGui( path );
     }
   }
 
-  static void UIFilesImages( const Vector< String >& paths )
+  static void UIFilesImages( const Filesystem::Paths& paths )
   {
     int shownImageCount = 0;
     bool goSameLine = false;
-    for( const String& path : paths )
+    for( const Filesystem::Path& path : paths )
     {
       if( goSameLine )
         ImGuiSameLine();
       goSameLine = false;
-      ImGuiBeginChild( path, { 200, 100 } );
-      ImGuiText( Filesystem::FilepathToFilename(  path ));
-      const Render::TextureHandle textureHandle = TextureAssetManager::GetTexture( path, sAssetViewErrors );
+
+      const String pathUTF8 = path.u8string();
+
+      ImGuiBeginChild( pathUTF8, { 200, 100 } );
+      ImGuiText(  pathUTF8 );
+      const Render::TextureHandle textureHandle = TextureAssetManager::GetTexture( pathUTF8, sAssetViewErrors );
       if( textureHandle.IsValid() )
         ImGuiImage( ( int )textureHandle, v2( 50, 50 ) );
       ImGuiEndChild();
+
       if( shownImageCount++ % 3 < 3 - 1 )
         goSameLine = true;
     }
@@ -427,18 +457,18 @@ namespace Tac
     if( sAssetViewFiles.empty() )
       ImGuiText( "no files :(" );
 
-    Vector< String > imagePaths;
-    Vector< String > modelPaths;
-    Vector< String > otherPaths;
+    Filesystem::Paths imagePaths;
+    Filesystem::Paths modelPaths;
+    Filesystem::Paths otherPaths;
 
-    for( const String& path : sAssetViewFiles )
+    for( const Filesystem::Path& path : sAssetViewFiles )
     {
-      Vector< String >* paths = &otherPaths;
       if( IsImage( path ) )
-        paths = &imagePaths;
-      if( IsModel( path ) )
-        paths = &modelPaths;
-      ( *paths ).push_back( path );
+        imagePaths.push_back( path );
+      else if( IsModel( path ) )
+        modelPaths.push_back( path );
+      else
+        otherPaths.push_back( path );
     }
 
     UIFilesImages( imagePaths );
@@ -463,8 +493,8 @@ namespace Tac
       if( sAssetViewFolderStack.empty() )
       {
         //const String root = "assets";
-        const String root = ShellGetInitialWorkingDir() + String( "/assets" );
-        sAssetViewFolderStack.push_back( root );
+        //const Filesystem::Path root = ShellGetInitialWorkingDir() / "assets";
+        sAssetViewFolderStack.push_back( "assets" );
       }
 
       UIFoldersUpToCurr();

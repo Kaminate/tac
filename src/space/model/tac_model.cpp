@@ -29,7 +29,7 @@ namespace Tac
 		colorRGBJson[ "r" ].SetNumber( model->mColorRGB[ 0 ] );
 		colorRGBJson[ "g" ].SetNumber( model->mColorRGB[ 1 ] );
 		colorRGBJson[ "b" ].SetNumber( model->mColorRGB[ 2 ] );
-		modelJson[ "mModelPath" ].SetString( model->mModelPath );
+		modelJson[ "mModelPath" ].SetString( model->mModelPath.c_str() );
     modelJson[ "mModelIndex" ].SetNumber( model->mModelIndex );
     //modelJson[ "mTryingNewThing" ].SetNumber( model->mTryingNewThing );
 		modelJson[ "mColorRGB" ].DeepCopy( &colorRGBJson );

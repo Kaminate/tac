@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include "src/common/tac_common.h"
+
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
@@ -26,6 +28,7 @@
 #include <Windowsx.h>
 //#include <windef.h>
 
+
 namespace Tac
 {
   void             Win32SetStartupParams( HINSTANCE, HINSTANCE, LPSTR, int );
@@ -33,8 +36,14 @@ namespace Tac
   HINSTANCE        Win32GetStartupPrevInstance();
   LPSTR            Win32GetStartupCmdLine();
   int              Win32GetStartupCmdShow();
-  struct String    Win32ErrorToString( DWORD );
-  struct String    Win32GetLastErrorString();
+  String           Win32ErrorStringFromDWORD( DWORD );
+
+  //               ok so like this function should not exist, because the api that returns a HRESULT
+  //               also specifies the possible values that the HRESULT can be from that function
+  //
+  // String        Win32ErrorStringFromHRESULT( HRESULT );
+
+  String           Win32GetLastErrorString();
   //struct String    Win32GetWindowName( HWND );
   //void             Win32Assert( const struct Errors& );
   void             Win32DebugBreak();

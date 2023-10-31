@@ -3,6 +3,7 @@
 #include "src/common/graphics/imgui/tac_imgui.h"
 #include "src/common/graphics/tac_debug_3d.h"
 #include "src/common/system/tac_filesystem.h"
+#include "src/common/shell/tac_shell.h"
 #include "src/common/system/tac_os.h"
 #include "src/space/tac_entity.h"
 #include "src/space/tac_world.h"
@@ -22,34 +23,30 @@ namespace Tac
         TAC_IMGUI_INDENT_BLOCK;
 
 
-        ImGuiTextf( "Heightmap path: %s", mTerrain->mHeightmapTexturePath.u8string() );
+        ImGuiTextf( "Heightmap path: %s", mTerrain->mHeightmapTexturePath.c_str() );
         if( ImGuiButton( "Change Heightmap" ) )
         {
           mHeightmapFileDialogErrors.clear();
-          Filesystem::Path path = OS::OSOpenDialog( mHeightmapFileDialogErrors );
-          if( !path.empty() && mTerrain->mHeightmapTexturePath != path )
-          {
-            mTerrain->mHeightmapTexturePath = path;
-          }
+          mTerrain->mHeightmapTexturePath = GetAssetOpenDialog( mHeightmapFileDialogErrors );
         }
 
         if( !iterated || ImGuiButton("Refresh directory" ))
         {
           iterated = true;
           mHeightmapDirectoryIterateErrors.clear();
-          heightmapPaths =
-            //OS::OSGetFilesInDirectory(
-            Filesystem::IterateFiles(
-              Filesystem::Path( "assets/heightmaps" ),
-              Filesystem::IterateType::Recursive, // OS::OSGetFilesInDirectoryFlags::Recursive,
-              mHeightmapDirectoryIterateErrors );
+          heightmapPaths = Filesystem::IterateFiles(
+            Filesystem::Path( "assets/heightmaps" ),
+            Filesystem::IterateType::Recursive, // OS::OSGetFilesInDirectoryFlags::Recursive,
+            mHeightmapDirectoryIterateErrors );
         }
 
         for( const Filesystem::Path& heightmapPath : heightmapPaths )
         {
           if( ImGuiButton( heightmapPath.u8string() ) )
           {
-            mTerrain->mHeightmapTexturePath = heightmapPath;
+            Errors e;
+            mTerrain->mHeightmapTexturePath = ModifyPathRelative( heightmapPath, e );
+            TAC_ASSERT( !e );
           }
         }
 
@@ -65,19 +62,19 @@ namespace Tac
 
       ImGuiCheckbox( "Draw grid", &mDrawGrid );
 
-      ImGuiTextf( "Ground texture: %s", mTerrain->mGroundTexturePath.u8string().c_str() );
-      ImGuiTextf( "Noise texture: %s", mTerrain->mNoiseTexturePath.u8string().c_str() );
+      ImGuiTextf( "Ground texture: %s", mTerrain->mGroundTexturePath.c_str() );
+      ImGuiTextf( "Noise texture: %s", mTerrain->mNoiseTexturePath.c_str() );
 
       if( ImGuiButton( "Open Ground Texture" ) )
       {
         mTerrain->mTestHeightmapLoadErrors.clear();
-        mTerrain->mGroundTexturePath = OS::OSOpenDialog(  mTerrainTextureDialogErrors );
+        mTerrain->mGroundTexturePath = GetAssetOpenDialog( mTerrainTextureDialogErrors );
       }
 
       if( ImGuiButton( "Open Noise Texture" ) )
       {
         mNoiseTextureDialogErrors.clear();
-        mTerrain->mNoiseTexturePath = OS::OSOpenDialog(  mNoiseTextureDialogErrors );
+        mTerrain->mNoiseTexturePath = GetAssetOpenDialog( mNoiseTextureDialogErrors );
       }
 
       if( mTerrain->mTestHeightmapLoadErrors )

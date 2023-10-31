@@ -7,8 +7,12 @@
 namespace Tac
 {
 
-  void                PrefabSave( World* );
-  void                PrefabLoadAtPath( EntityUUIDCounter*, World*, Camera*, String, Errors& );
+  void                PrefabSave( World*, Errors& );
+  void                PrefabLoadAtPath( EntityUUIDCounter*,
+                                        World*,
+                                        Camera*,
+                                        const AssetPathStringView&,
+                                        Errors& );
 
   //                  TODO: when prefabs spawn, they need to have a entity uuid.
   //                        this can only be done by a serverdata.
@@ -22,8 +26,8 @@ namespace Tac
   //void                PrefabLoadCameraVec( Prefab*, StringView, v3& );
   void                PrefabSaveCamera( Camera* );
   void                PrefabRemoveEntityRecursively( Entity* );
-  const char*         PrefabGetOrNull( Entity* );
+  AssetPathStringView PrefabGetOrNull( Entity* );
 
-  Filesystem::Path    PrefabGetLoaded();
+  AssetPathStringView PrefabGetLoaded();
 } // namespace Tac
 

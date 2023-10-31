@@ -1,5 +1,6 @@
 #include "src/common/assetmanagers/tac_mesh.h"
 #include "src/common/assetmanagers/tac_model_asset_manager.h"
+#include "src/common/shell/tac_shell.h"
 #include "src/common/core/tac_error_handling.h"
 #include "src/common/system/tac_filesystem.h"
 #include "src/common/core/tac_preprocessor.h"
@@ -22,7 +23,7 @@ namespace Tac
       ".obj",
     };
     for( const char* modelExtension : modelExtensions )
-      if( s.ends_with( modelExtension ) )
+      if( s.u8string().ends_with( modelExtension ) )
         return true;
     return false;
   }
@@ -48,12 +49,13 @@ namespace Tac
         getfilesErrors.clear();
         needsRefresh = false;
         modelPaths.clear();
-        const Vector< Filesystem::Path > allfiles = OS::OSGetFilesInDirectory( "assets",
-                                                                     OS::OSGetFilesInDirectoryFlags::Recursive,
+        const Filesystem::Paths allfiles = Filesystem::IterateFiles( "assets",
+                                                                     Filesystem::IterateType::Recursive,
                                                                      getfilesErrors );
-        for( const Filesystem::Path& file : allfiles )
-          if( IsModelPath( file ) )
-            modelPaths.push_back( file );
+        if( !getfilesErrors )
+          for( const Filesystem::Path& file : allfiles )
+            if( IsModelPath( file ) )
+              modelPaths.push_back( ModifyPathRelative( file, getfilesErrors ) );
 
         refreshSecTimestamp = curSecTimestamp;
       }

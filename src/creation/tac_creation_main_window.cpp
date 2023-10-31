@@ -125,7 +125,13 @@ namespace Tac
           continue;
         }
 
-        ModifyPathRelative( savePath );
+        AssetPathStringView assetPath = ModifyPathRelative( savePath, saveDialogErrors  );
+        if( saveDialogErrors )
+        {
+          // todo: log it, user feedback
+          OS::OSDebugPrintLine(saveDialogErrors.ToString());
+          continue;
+        }
 
         Json entityJson;
         entity->Save( entityJson );

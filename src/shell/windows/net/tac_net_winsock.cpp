@@ -1,20 +1,23 @@
+#include "src/shell/windows/net/tac_net_winsock.h" // self-inc
+
 #include "src/common/containers/tac_vector.h"
-#include "src/common/shell/tac_shell_timer.h"
-#include "src/common/string/tac_string.h"
 #include "src/common/core/tac_algorithm.h"
 #include "src/common/core/tac_error_handling.h"
-#include "src/common/dataprocess/tac_json.h"
-#include "src/common/memory/tac_memory.h"
-#include "src/common/net/tac_net.h"
-#include "src/common/system/tac_os.h"
 #include "src/common/core/tac_preprocessor.h"
+#include "src/common/dataprocess/tac_json.h"
 #include "src/common/dataprocess/tac_serialization.h"
 #include "src/common/dataprocess/tac_settings.h"
+#include "src/common/memory/tac_memory.h"
+#include "src/common/net/tac_net.h"
+#include "src/common/shell/tac_shell_timer.h"
+#include "src/common/string/tac_string.h"
 #include "src/common/string/tac_string_util.h"
-#include "src/shell/windows/net/tac_net_winsock.h"
+#include "src/common/system/tac_os.h"
 #include "src/shell/windows/tac_win32.h"
+
 #include <WinSock2.h> // SOCKET
 #include <Ws2tcpip.h> // inet_pton, getaddrinfo
+
 #include <set>
 
 #pragma comment( lib, "ws2_32.lib" )
@@ -81,9 +84,17 @@ namespace Tac
     }
   }
 
+  static String GetWSAErrorString( int wsaErrorCode )
+  {
+    // From Win32 API: FormatMessage can obtain the message string for the returned error
+    const DWORD dwMessageId = wsaErrorCode;
+    return Win32ErrorStringFromDWORD( dwMessageId );
+  }
+
   static String GetLastWSAErrorString()
   {
-    return Win32ErrorToString( WSAGetLastError() );
+    const int errorCode = WSAGetLastError();
+    return GetWSAErrorString( errorCode );
   }
 
   SocketWinsock::~SocketWinsock()
@@ -173,7 +184,7 @@ namespace Tac
         mRequestDeletion = true;
         return;
       }
-      const String errMsg = Win32ErrorToString( wsaErrorCode );
+      const String errMsg = GetWSAErrorString( wsaErrorCode );
       TAC_RAISE_ERROR( errMsg, errors );
     }
   }
@@ -200,10 +211,12 @@ namespace Tac
     TAC_ASSERT( mSocketType == SocketType::TCP );
     String portString = ToString( port );
     addrinfo* addrinfos;
-    int wsaErrorCode = getaddrinfo( hostname.c_str(), portString.c_str(), nullptr, &addrinfos );
+    int wsaErrorCode = 0;
+      
+    wsaErrorCode = getaddrinfo( hostname.c_str(), portString.c_str(), nullptr, &addrinfos );
     if( wsaErrorCode )
     {
-      const String errorMsg = Win32ErrorToString( wsaErrorCode );
+      const String errorMsg = GetWSAErrorString( wsaErrorCode );
       TAC_RAISE_ERROR( errorMsg, errors );
     }
     TAC_ON_DESTRUCT( freeaddrinfo( addrinfos ) );
@@ -241,7 +254,7 @@ namespace Tac
     const int wsaErrorCode = WSAStartup( wsaVersion, &wsaData );
     if( wsaErrorCode )
     {
-      const String errorMsg = Win32ErrorToString( wsaErrorCode );
+      const String errorMsg = GetWSAErrorString( wsaErrorCode );
       TAC_RAISE_ERROR( errorMsg, errors );
     }
     mPrintReceivedMessages = true;
@@ -356,7 +369,7 @@ namespace Tac
           socketWinsock->mRequestDeletion = true;
           continue;
         }
-        const String errorMsg = Win32ErrorToString( wsaErrorCode );
+        const String errorMsg = GetWSAErrorString( wsaErrorCode );
         TAC_RAISE_ERROR( errorMsg, errors );
       }
       else if( recvResult == 0 )

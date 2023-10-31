@@ -3,6 +3,7 @@
 #include "src/space/tac_component.h"
 #include "src/common/containers/tac_vector.h"
 #include "src/common/string/tac_string.h"
+#include "src/common/assetmanagers/tac_asset.h"
 
 namespace Tac
 {
@@ -15,7 +16,7 @@ namespace Tac
     //TextureUUID                        mTextureUUID = NullTextureUUID;
     //GeometryUUID                       mGeometryUUID = NullGeometryUUID;
     v3                                   mColorRGB = { 1, 1, 1 };
-    String                               mModelPath;
+    AssetPathString                      mModelPath;
     int                                  mModelIndex = -1;
   };
 

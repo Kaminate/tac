@@ -210,7 +210,7 @@ namespace Tac
   {
 
 
-    m3DShader = Render::CreateShader( Render::ShaderSource::FromPath( "3DTest" ), TAC_STACK_FRAME );
+    m3DShader = Render::CreateShader(  "3DTest" , TAC_STACK_FRAME );
 
     m3DvertexFormatDecls = Render::VertexDeclarations
     {
@@ -303,7 +303,7 @@ namespace Tac
     PlayGame( errors );
     TAC_HANDLE_ERROR( errors );
 
-    spriteShader = Render::CreateShader( Render::ShaderSource::FromPath( "3DSprite" ), TAC_STACK_FRAME );
+    spriteShader = Render::CreateShader(  "3DSprite" , TAC_STACK_FRAME );
   }
 
   void CreationGameWindow::MousePickingGizmos()
@@ -852,10 +852,10 @@ namespace Tac
 
   static void CameraUpdateSaved()
   {
-    static Filesystem::Path savedPrefabPath;
+    static AssetPathString savedPrefabPath;
     static Camera savedCamera;
 
-    const Filesystem::Path loadedPrefab = PrefabGetLoaded();
+    const AssetPathString loadedPrefab = PrefabGetLoaded();
     if( loadedPrefab != savedPrefabPath )
     {
       savedPrefabPath = loadedPrefab;

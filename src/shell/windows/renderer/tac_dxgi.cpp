@@ -131,8 +131,9 @@ namespace Tac
     const HRESULT hr = mFactory->CreateSwapChainForHwnd( pDevice, hwnd, &scd1, &scfsd, NULL, &swapChain );
     if( FAILED( hr ) )
     {
+      const DWORD dwError = HRESULT_CODE( hr ); // ???
       errors.Append( TryInferDXGIErrorStr( hr ) );
-      errors.Append( Win32ErrorToString( HRESULT_CODE( hr ) ) );
+      errors.Append( Win32ErrorStringFromDWORD( dwError ) );
       TAC_RAISE_ERROR( "Failed to create swap chain", errors );
     }
 

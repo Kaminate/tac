@@ -22,9 +22,9 @@ namespace Tac
     json[ "mSideVertexCount" ].SetNumber( terrain->mSideVertexCount );
     json[ "mSideLength" ].SetNumber( terrain->mSideLength );
     json[ "mHeight" ].SetNumber( terrain->mUpwardsHeight );
-    json[ "mHeightmapTexturePath" ].SetString( terrain->mHeightmapTexturePath.u8string() );
-    json[ "mGroundTexturePath" ].SetString( terrain->mGroundTexturePath.u8string() );
-    json[ "mNoiseTexturePath" ].SetString( terrain->mNoiseTexturePath.u8string() );
+    json[ "mHeightmapTexturePath" ].SetString( terrain->mHeightmapTexturePath );
+    json[ "mGroundTexturePath" ].SetString( terrain->mGroundTexturePath );
+    json[ "mNoiseTexturePath" ].SetString( terrain->mNoiseTexturePath );
   }
 
   static void        TerrainLoadPrefab( Json& json, Component* component )
@@ -82,7 +82,7 @@ namespace Tac
     if( mTestHeightmapLoadErrors )
       return; // tried to load already, but load failed
 
-    String imageMemory = FileToString( mHeightmapTexturePath, mTestHeightmapLoadErrors );
+    const String imageMemory = Filesystem::LoadAssetPath( mHeightmapTexturePath, mTestHeightmapLoadErrors );
     if( mTestHeightmapLoadErrors )
       return;
 

@@ -44,10 +44,8 @@
 // End DXC includes
 
 
-namespace Tac
+namespace Tac::Render
 {
-  namespace Render
-  {
 
     static bool gVerbose;
 
@@ -413,7 +411,7 @@ namespace Tac
     }
 
 
-    static String TryImproveShaderErrorMessageLine( const ShaderSource shaderSource,
+    static String TryImproveShaderErrorMessageLine( const ShaderNameStringView& shaderSource,
                                                     const StringView shaderStrOrig,
                                                     const StringView shaderStrFull,
                                                     const StringView errMsg )
@@ -454,18 +452,19 @@ namespace Tac
       if( origLineNumber == -1 )
         return errMsg;
 
-      String s1 = String( StringView( errMsg ).substr( StringView( errMsg ).find_first_of( ')' ) + 3 ) );
-      String s2 = Filesystem::FilepathToFilename( GetShaderPath( shaderSource ) );
-      String s3 = va( ":%i ", origLineNumber );
-      String s4 = String( errorLine ).c_str();
+      const String s1 = String( StringView( errMsg ).substr( StringView( errMsg ).find_first_of( ')' ) + 3 ) );
+      // const String s2 = Filesystem::FilepathToFilename( GetShaderPath( shaderSource ) );
+      const String s2 = GetShaderAssetPath( shaderSource );
+      const String s3 = va( ":%i ", origLineNumber );
+      const String s4 = String( errorLine ).c_str();
 
       const String result2 = va( "%s\n%s%s%s\n", s1.c_str(), s2.c_str(), s3.c_str(), s4.c_str() );
       return result2;
     }
 
-    static String TryImproveShaderErrorMessage( const ShaderSource shaderSource,
-                                                const StringView shaderStrOrig,
-                                                const StringView shaderStrFull,
+    static String TryImproveShaderErrorMessage( const ShaderNameStringView& shaderSource,
+                                                const StringView& shaderStrOrig,
+                                                const StringView& shaderStrFull,
                                                 const char* errMsg )
     {
       String result;
@@ -483,14 +482,15 @@ namespace Tac
     }
 
 
-    static ID3DBlob* CompileShaderFromString( const ShaderSource& shaderSource,
-                                              const StringView shaderStrOrig,
-                                              const StringView shaderStrFull,
+    static ID3DBlob* CompileShaderFromString( const ShaderNameStringView& shaderSource,
+                                              const StringView& shaderStrOrig,
+                                              const StringView& shaderStrFull,
                                               const char* entryPoint,
                                               const char* shaderModel,
                                               Errors& errors )
     {
       TAC_ASSERT( IsMainThread() );
+
       DWORD dwShaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
       dwShaderFlags |= IsDebugMode() ? D3DCOMPILE_DEBUG : 0;
       dwShaderFlags |= IsDebugMode() ? D3DCOMPILE_SKIP_OPTIMIZATION : 0;
@@ -514,9 +514,9 @@ namespace Tac
       {
         if( IsDebugMode() )
         {
-          String shaderPath = GetShaderPath( shaderSource );
+          //String shaderPath = GetShaderPath( shaderSource );
           
-          OS::OSDebugPrintfLine( "Error loading shader from %s", shaderPath.c_str() );
+          OS::OSDebugPrintfLine( "Error loading shader from %s", shaderSource.c_str() );
           ParseData parseData( shaderStrFull.data(), shaderStrFull.size() );
           int lineNumber = 1;
           OS::OSDebugPrintLine(" -----------" );
@@ -605,9 +605,10 @@ namespace Tac
     }
 
 
-    static Program LoadProgram( ShaderNameStringView shaderName, Errors& errors )
+    static Program LoadProgram( const ShaderNameStringView& shaderName, Errors& errors )
     {
-      ID3D11Device*         device = ( ( RendererDirectX11* )Renderer::Instance )->mDevice;
+      RendererDirectX11*    renderer = ( RendererDirectX11* )Renderer::Instance;
+      ID3D11Device*         device = renderer->mDevice;
       ID3D11VertexShader*   vertexShader = nullptr;
       ID3D11PixelShader*    pixelShader = nullptr;
       ID3D11GeometryShader* geometryShader = nullptr;
@@ -615,10 +616,10 @@ namespace Tac
 
       AssetPathStringView assetPath = GetShaderAssetPath( shaderName );
 
-      const String shaderPath
-        = shaderSource.mType == ShaderSource::Type::kPath
-        ? GetShaderPath( shaderSource.mStr )
-        : String( "<inlined  shader>" );
+      //const String shaderPath
+      //  = shaderSource.mType == ShaderSource::Type::kPath
+      //  ? GetShaderPath( shaderSource.mStr )
+      //  : String( "<inlined  shader>" );
 
       ConstantBuffers constantBuffers;
 
@@ -630,8 +631,9 @@ namespace Tac
 
           if( IsDebugMode() )
           {
-            if( shaderSource.mType == ShaderSource::Type::kPath )
-              errors.Append( "Error compiling shader: " + shaderPath );
+            errors.Append( "Error compiling shader: " + shaderName );
+            //if( shaderSource.mType == ShaderSource::Type::kPath )
+            //  errors.Append( "Error compiling shader: " + shaderPath );
             errors.Append( TAC_STACK_FRAME );
             OS::OSDebugPopupBox( errors.ToString() );
             errors.clear();
@@ -643,16 +645,16 @@ namespace Tac
         }
 
 
-        String shaderStringOrig;
-        switch( shaderSource.mType )
-        {
-          case ShaderSource::Type::kPath:
-            shaderStringOrig += ShaderPathToContentString( shaderSource.mStr, errors );
-            break;
-          case ShaderSource::Type::kStr:
-            shaderStringOrig += shaderSource.mStr;
-            break;
-        }
+        String shaderStringOrig = Filesystem::LoadAssetPath( assetPath, errors  );
+        //switch( shaderSource.mType )
+        //{
+        //  case ShaderSource::Type::kPath:
+        //    shaderStringOrig += ShaderPathToContentString( shaderSource.mStr, errors );
+        //    break;
+        //  case ShaderSource::Type::kStr:
+        //    shaderStringOrig += shaderSource.mStr;
+        //    break;
+        //}
         if( errors )
           continue;
 
@@ -671,7 +673,7 @@ namespace Tac
         const bool hasGeometryShader = DoesShaderTextContainEntryPoint( shaderStringFull, geometryShaderEntryPoint );
         const bool hasPixelShader = DoesShaderTextContainEntryPoint( shaderStringFull, pixelShaderEntryPoint );
 
-        TAC_ASSERT_MSG( hasVertexShader, "shader %s missing %s", shaderPath.c_str(), vertexShaderEntryPoint );
+        TAC_ASSERT_MSG( hasVertexShader, "shader %s missing %s", shaderName.c_str(), vertexShaderEntryPoint );
 
         // Optional?
         // TAC_ASSERT_MSG( hasPixelShader, "shader %s missing %s", shaderPath.c_str(), pixelShaderEntryPoint );
@@ -680,7 +682,7 @@ namespace Tac
 
         if( hasVertexShader )
         {
-          ID3DBlob* pVSBlob = CompileShaderFromString( shaderSource,
+          ID3DBlob* pVSBlob = CompileShaderFromString( shaderName,
                                                        shaderStringOrig,
                                                        shaderStringFull,
                                                        vertexShaderEntryPoint,
@@ -702,13 +704,13 @@ namespace Tac
                                 D3D_BLOB_INPUT_SIGNATURE_BLOB,
                                 0,
                                 &inputSignature );
-          RendererDirectX11* renderer = (RendererDirectX11*)Renderer::Instance;
-          renderer->SetDebugName( vertexShader, shaderSource.mStr, "vs" );
+          //renderer->SetDebugName( vertexShader, shaderName, "vs" );
+          renderer->SetDebugName( vertexShader, shaderName);
         }
 
         if( hasPixelShader )
         {
-          ID3DBlob* pPSBlob = CompileShaderFromString( shaderSource,
+          ID3DBlob* pPSBlob = CompileShaderFromString( shaderName,
                                                        shaderStringOrig,
                                                        shaderStringFull,
                                                        pixelShaderEntryPoint,
@@ -726,12 +728,13 @@ namespace Tac
                                 &pixelShader );
           if( errors )
             continue;
-          ( ( RendererDirectX11* )Renderer::Instance )->SetDebugName( pixelShader, shaderSource.mStr );
+
+          renderer->SetDebugName( pixelShader, shaderName );
         }
 
         if( hasGeometryShader )
         {
-          ID3DBlob* blob = CompileShaderFromString( shaderSource,
+          ID3DBlob* blob = CompileShaderFromString( shaderName,
                                                     shaderStringOrig,
                                                     shaderStringFull,
                                                     geometryShaderEntryPoint,
@@ -749,7 +752,8 @@ namespace Tac
                                 &geometryShader );
           if( errors )
             continue;
-          ( ( RendererDirectX11* )Renderer::Instance )->SetDebugName( geometryShader, shaderSource.mStr );
+
+          renderer->SetDebugName( geometryShader, shaderName );
         }
 
         break;
@@ -910,13 +914,26 @@ namespace Tac
 
     void RendererDirectX11::RenderEnd( const Frame*, Errors& )
     {
-      ShaderReloadHelperUpdate(
-        []( ShaderHandle shaderHandle, const char* path )
-        {
-          RendererDirectX11* renderer = ( RendererDirectX11* )Renderer::Instance;
-          Errors errors;
-          renderer->mPrograms[ ( int )shaderHandle ] = LoadProgram( ShaderSource::FromPath( path ), errors );
-        } );
+
+      ShaderReloadFunction* fn = []( ShaderHandle shaderHandle, const ShaderNameStringView& shaderName )
+      {
+        RendererDirectX11* renderer = ( RendererDirectX11* )Renderer::Instance;
+        Errors errors;
+
+        Program* program = &renderer->mPrograms[ ( int )shaderHandle ];
+        *program = LoadProgram( shaderName, errors );
+      };
+
+      ShaderReloadHelperUpdate( fn );
+      //ShaderReloadHelperUpdate(
+      //  []( ShaderHandle shaderHandle, const ShaderNameStringView& shaderName )
+      //  {
+      //    RendererDirectX11* renderer = ( RendererDirectX11* )Renderer::Instance;
+      //    Errors errors;
+
+      //    Program* program = &renderer->mPrograms[ ( int )shaderHandle ];
+      //    *program = LoadProgram( shaderName, errors );
+      //  } );
 
       if( gVerbose )
         OS::OSDebugPrintLine("Render2::End");
@@ -1808,11 +1825,16 @@ namespace Tac
     {
       TAC_ASSERT( IsMainThread() );
 
+      const ShaderNameStringView& shaderName = commandData->mNameStringView;
+      //const AssetPathStringView shaderAssetPath = GetShaderPath( shaderName );
+      //const Filesystem::Path shaderFullPath( shaderAssetPath );
+
       Program* program = &mPrograms[ ( int )commandData->mShaderHandle ];
-      *program = LoadProgram( commandData->mNameStringView, errors );
+      *program = LoadProgram( shaderName, errors );
       //program->mConstantBuffers = commandData->mConstantBuffers;
-      if( commandData->mShaderSource.mType == ShaderSource::Type::kPath )
-        ShaderReloadHelperAdd( commandData->mShaderHandle, GetShaderPath( commandData->mShaderSource.mStr ) );
+      //if( commandData->mShaderSource.mType == ShaderSource::Type::kPath )
+
+      ShaderReloadHelperAdd( commandData->mShaderHandle, shaderName );
     }
 
     void RendererDirectX11::AddTexture( CommandDataCreateTexture* data,
@@ -2545,8 +2567,5 @@ namespace Tac
 
     }
 
-  } // namespace Render
-} // namespace Tac
-
-
+} // namespace Tac::Render
 

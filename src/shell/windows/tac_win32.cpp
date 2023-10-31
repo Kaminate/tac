@@ -31,13 +31,14 @@ namespace Tac
     glpCmdLine = lpCmdLine;
     gnCmdShow = nCmdShow;
   }
+
   HINSTANCE        Win32GetStartupInstance()     { return ghInstance; }
   HINSTANCE        Win32GetStartupPrevInstance() { return ghPrevInstance; }
   LPSTR            Win32GetStartupCmdLine()      { return glpCmdLine; }
   int              Win32GetStartupCmdShow()      { return gnCmdShow; }
 
 
-  String           Win32ErrorToString( const DWORD winErrorValue )
+  String           Win32ErrorStringFromDWORD( const DWORD winErrorValue )
   {
     if( !winErrorValue )
       return "no error";
@@ -60,10 +61,16 @@ namespace Tac
     return result;
   }
 
+  String           Win32ErrorStringFromHRESULT( const HRESULT hr )
+  {
+    const DWORD dw = ( DWORD )hr; // Is this kosher? NO IDEA
+    return Win32ErrorStringFromDWORD( dw );
+  }
+
   String           Win32GetLastErrorString()
   {
     const DWORD winErrorValue = GetLastError();
-    return Win32ErrorToString( winErrorValue );
+    return Win32ErrorStringFromDWORD( winErrorValue );
   }
 
   void             Win32DebugBreak()

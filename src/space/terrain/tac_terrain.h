@@ -43,9 +43,9 @@ namespace Tac
     float                          mUpwardsHeight = 20.0f;
     Vector< v3 >                   mRowMajorGrid;
     Vector< v3 >                   mRowMajorGridNormals;
-    Filesystem::Path               mHeightmapTexturePath;
-    Filesystem::Path               mGroundTexturePath = "";
-    Filesystem::Path               mNoiseTexturePath = "";
+    AssetPathString                mHeightmapTexturePath;
+    AssetPathString                mGroundTexturePath;
+    AssetPathString                mNoiseTexturePath;
     int                            mTestHeightmapWidth = 0;
     int                            mTestHeightmapHeight = 0;
     float                          mPower = 1;

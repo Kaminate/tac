@@ -1,3 +1,4 @@
+#include "src/shell/windows/tac_win32.h"
 #include "src/common/containers/tac_array.h"
 #include "src/common/containers/tac_fixed_vector.h"
 #include "src/common/system/tac_filesystem.h"
@@ -10,14 +11,20 @@
 #include "src/common/core/tac_preprocessor.h"
 #include "src/common/string/tac_string_util.h"
 #include "src/shell/tac_desktop_app.h"
-#include "src/shell/windows/tac_win32.h"
 
 #include <iostream>
 #include <filesystem>
 #include <ctime> // mktime
 #include <Shlobj.h> // SHGetKnownFolderPath
+
+#if 0
 #include <commdlg.h> // GetSaveFileNameA
 #pragma comment( lib, "Comdlg32.lib" ) // GetSaveFileNameA
+#else
+#include <shobjidl_core.h> // IFileSaveDialog, IFileOpenDialog
+#endif
+
+
 
 namespace Tac
 {
@@ -53,6 +60,7 @@ namespace Tac
   }
 #endif
 
+#if 0
   static String GetFileDialogErrors( DWORD extError = CommDlgExtendedError() )
   {
     String errors = "failed to save file because: ";
@@ -78,7 +86,9 @@ namespace Tac
     }
     return errors;
   }
+#endif
 
+#if 0
   // what if i inlined this into Win32DirectoryCallbackFunctor ?
   static void Win32DirectoryIterateAux( const WIN32_FIND_DATA& data,
                                         Win32DirectoryCallbackFunctor* fn,
@@ -107,14 +117,18 @@ namespace Tac
       const String errMsg = Win32ErrorToString( error );
       TAC_RAISE_ERROR( errMsg, errors );
     }
+
     TAC_ON_DESTRUCT( FindClose( fileHandle ) );
+
     Win32DirectoryIterateAux( data, fn, dir, errors );
     TAC_HANDLE_ERROR( errors );
+
     while( FindNextFile( fileHandle, &data ) )
     {
       Win32DirectoryIterateAux( data, fn, dir, errors );
       TAC_HANDLE_ERROR( errors );
     }
+
     const DWORD error = GetLastError();
     if( error != ERROR_NO_MORE_FILES )
     {
@@ -122,6 +136,7 @@ namespace Tac
       TAC_RAISE_ERROR( errMsg, errors );
     }
   }
+#endif
 
   static void Win32OSGetPrimaryMonitor( int* w, int* h )
   {
@@ -129,6 +144,7 @@ namespace Tac
     *h = GetSystemMetrics( SM_CYSCREEN );
   }
 
+#if 0
   static void Win32OSGetWorkingDir( String& dir, Errors& errors )
   {
     const int bufLen = 1024;
@@ -142,9 +158,11 @@ namespace Tac
     }
     dir = String( buf, getCurrentDirectoryResult );
   };
+#endif
 
   static Filesystem::Path Win32OSOpenDialog(  Errors& errors )
   {
+#if 0
     const int outBufSize = 256;
     char outBuf[ outBufSize ] = {};
     DWORD flags = OFN_NOCHANGEDIR;
@@ -175,10 +193,40 @@ namespace Tac
       path = path.substr( workingDir.size() );
       path = Filesystem::StripLeadingSlashes( path );
     }
+#else
+
+    IFileOpenDialog* pDialog = nullptr;
+    HRESULT hr = S_OK;
+
+    //hr = CoInitializeEx( NULL, COINIT_APARTMENTTHREADED 
+
+    hr = CoCreateInstance( CLSID_FileOpenDialog, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS( &pDialog ) );
+    TAC_RAISE_ERROR_IF_RETURN( FAILED( hr ), "Open dialog CoCreateInstance failed", errors, {} );
+    TAC_ON_DESTRUCT( pDialog->Release() );
+
+    hr = pDialog->Show( nullptr );
+    TAC_RAISE_ERROR_IF_RETURN( FAILED( hr ), "Failed to show open dialog", errors, {} );
+
+    IShellItem* pItem = nullptr;
+    hr = pDialog->GetResult( &pItem );
+    TAC_ON_DESTRUCT( pItem->Release() );
+    TAC_RAISE_ERROR_IF_RETURN( FAILED( hr ), "Failed to get open dialog result", errors, {} );
+
+    PWSTR pszFilePath;
+    hr = pItem->GetDisplayName( SIGDN_FILESYSPATH, &pszFilePath );
+    TAC_RAISE_ERROR_IF_RETURN( FAILED( hr ), "Failed to get open dialog file path", errors, {} );
+    TAC_ON_DESTRUCT(CoTaskMemFree( pszFilePath ));
+
+    //CoUninitialize();
+
+    const std::filesystem::path stdFsPath( pszFilePath );
+    return Filesystem::Path( stdFsPath );
+#endif
   }
 
   static Filesystem::Path Win32OSSaveDialog(  const Filesystem::Path& suggestedPath, Errors& errors )
   {
+#if 0
     Array< char, 256 > outBuf = {};
     MemCpy( outBuf.data(), suggestedPath.c_str(), suggestedPath.size() );
 
@@ -201,6 +249,34 @@ namespace Tac
 
     Filesystem::Path outPath = outBuf.data();
     return outPath;
+#else
+    IFileSaveDialog* pDialog = nullptr;
+    HRESULT hr = S_OK;
+
+    //hr = CoInitializeEx( NULL, COINIT_APARTMENTTHREADED 
+
+    hr = CoCreateInstance( CLSID_FileSaveDialog, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS( &pDialog ) );
+    TAC_RAISE_ERROR_IF_RETURN( FAILED( hr ), "Save dialog CoCreateInstance failed", errors, {} );
+    TAC_ON_DESTRUCT( pDialog->Release() );
+
+    hr = pDialog->Show( nullptr );
+    TAC_RAISE_ERROR_IF_RETURN( FAILED( hr ), "Failed to show save dialog", errors, {} );
+
+    IShellItem* pItem = nullptr;
+    hr = pDialog->GetResult( &pItem );
+    TAC_ON_DESTRUCT( pItem->Release() );
+    TAC_RAISE_ERROR_IF_RETURN( FAILED( hr ), "Failed to get save dialog result", errors, {} );
+
+    PWSTR pszFilePath;
+    hr = pItem->GetDisplayName( SIGDN_FILESYSPATH, &pszFilePath );
+    TAC_RAISE_ERROR_IF_RETURN( FAILED( hr ), "Failed to get save dialog file path", errors, {} );
+    TAC_ON_DESTRUCT(CoTaskMemFree( pszFilePath ));
+
+    //CoUninitialize();
+
+    const std::filesystem::path stdFsPath( pszFilePath );
+    return Filesystem::Path( stdFsPath );
+#endif
   };
 
   static void Win32OSSetScreenspaceCursorPos( const v2& pos, Errors& errors )
@@ -360,33 +436,26 @@ namespace Tac
 
   static Filesystem::Path Win32OSGetApplicationDataPath( Errors& errors )
   {
-    Filesystem::Path roamingAppDataUTF8 = GetRoamingAppDataPathUTF8( errors );
+    Filesystem::Path path = GetRoamingAppDataPathUTF8( errors );
     TAC_HANDLE_ERROR_RETURN( errors, {} );
+    TAC_ASSERT( Filesystem::Exists( path ) );
 
-    Filesystem::Path path;
-
-    path = roamingAppDataUTF8;
     path /= ExecutableStartupInfo::sInstance.mStudioName;
-
-#undef CreateDirectory
-
-    Filesystem::CreateDirectory( path );
-    const bool pathExists = Filesystem::Exists( path );
-    TAC_ASSERT( pathExists );
-    ++asdf;
-    //OS::OSCreateFolder(path, errors);
+    Filesystem::CreateDirectory2( path );
+    TAC_ASSERT( Filesystem::Exists( path ) );
     TAC_HANDLE_ERROR_RETURN( errors, {} );
 
     path /= ExecutableStartupInfo::sInstance.mAppName;
-    const bool path2Exists = Filesystem::Exists( path );
-    TAC_ASSERT( pathExists );
-    ++asdf;
-    //OS::OSCreateFolder(path, errors);
+    Filesystem::CreateDirectory2( path );
+    TAC_ASSERT( Filesystem::Exists( path ) );
     TAC_HANDLE_ERROR_RETURN( errors, {} );
+
+    return path;
   }
 
+#if 0
   static void Win32OSGetFileLastModifiedTime( time_t* time,
-                                  StringView path,
+                                  const StringView& path,
                                   Errors& errors )
   {
     // Path is allowed to be relative or full
@@ -434,7 +503,9 @@ namespace Tac
 
     *time = result;
   }
+#endif
 
+#if 0
   static Vector< String > Win32OSGetFilesInDirectory( const Filesystem::Path& dir,
                                                       OS::OSGetFilesInDirectoryFlags flags,
                                                       Errors& errors )
@@ -473,7 +544,9 @@ namespace Tac
     Win32DirectoryIterate( dir, &functor, errors );
     return files;
   }
+#endif
 
+#if 0
   static Vector< Filesystem::Path > Win32OSGetDirectoriesInDirectory( 
                                     const Filesystem::Path& dir,
                                     Errors& errors )
@@ -498,6 +571,7 @@ namespace Tac
     Win32DirectoryIterate( dir, &functor, errors );
     return dirs;
   }
+#endif
 
 
   static SemaphoreHandle Win32OSSemaphoreCreate()
@@ -533,16 +607,16 @@ namespace Tac
     OS::OSSaveToFile = Win32OSSaveToFile;
     OS::OSDoesFolderExist = Win32OSDoesFolderExist;
     OS::OSCreateFolder = Win32OSCreateFolder;
+    OS::OSGetFileLastModifiedTime = Win32OSGetFileLastModifiedTime;
+    OS::OSGetFilesInDirectory = Win32OSGetFilesInDirectory;
+    OS::OSGetDirectoriesInDirectory = Win32OSGetDirectoriesInDirectory;
+    OS::OSGetWorkingDir = Win32OSGetWorkingDir;
 #endif
     OS::OSDebugBreak = Win32OSDebugBreak;
     OS::OSDebugPopupBox = Win32OSDebugPopupBox;
     OS::OSGetApplicationDataPath = Win32OSGetApplicationDataPath;
-    OS::OSGetFileLastModifiedTime = Win32OSGetFileLastModifiedTime;
-    OS::OSGetFilesInDirectory = Win32OSGetFilesInDirectory;
-    OS::OSGetDirectoriesInDirectory = Win32OSGetDirectoriesInDirectory;
     OS::OSSaveDialog = Win32OSSaveDialog;
     OS::OSOpenDialog = Win32OSOpenDialog;
-    OS::OSGetWorkingDir = Win32OSGetWorkingDir;
     OS::OSGetPrimaryMonitor = Win32OSGetPrimaryMonitor;
     OS::OSSetScreenspaceCursorPos = Win32OSSetScreenspaceCursorPos;
     OS::OSGetLoadedDLL = Win32OSGetLoadedDLL;

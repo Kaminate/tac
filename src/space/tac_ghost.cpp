@@ -116,20 +116,25 @@ namespace Tac
     const String serverTypeGameClient = TAC_STRINGIFY( ScriptGameClient );
     String serverType = SettingsGetString( "server type",  serverTypeGameClient );
     TAC_HANDLE_ERROR( errors );
+
     ScriptThread* child = nullptr;
     if( serverType == serverTypeGameClient )
       child = TAC_NEW ScriptGameClient;
     else
       TAC_CRITICAL_ERROR_INVALID_CODE_PATH;
+
     mScriptRoot->AddChild( child );
     TAC_HANDLE_ERROR( errors );
+
     if( mShouldPopulateWorldInitial )
       PopulateWorldInitial();
-    auto playerNames = {
+
+    const char* playerNames[] = {
       "Server",
       //"Client",
     };
-    for( auto playerName : playerNames )
+
+    for( const char* playerName : playerNames )
     {
       AddPlayer( playerName, errors );
       TAC_HANDLE_ERROR( errors );
@@ -205,6 +210,7 @@ namespace Tac
 
     for( auto user : mUsers )
       user->Update( errors );
+
     mScriptRoot->Update( TAC_DELTA_FRAME_SECONDS, errors );
     //mServerData->Update( TAC_DELTA_FRAME_SECONDS, nullptr, nullptr, errors );
     TAC_HANDLE_ERROR( errors );
@@ -233,14 +239,18 @@ namespace Tac
     {
       if( Contains( claimedControllerIndexes, controllerIndex ) )
         continue;
+
       Input::Controller* controller = Input::GetController( controllerIndex );
       if( !controller )
         continue;
+
       if( !Input::IsButtonJustPressed( Input::ControllerButton::Start, controller ) )
         continue;
+
       User* user = AddPlayer( "Player " + ToString( ( int )mUsers.size() ), errors );
       if( errors )
         return;
+
       user->mHasControllerIndex = true;
       user->mControllerIndex = controllerIndex;
       if( IsPartyFull() )
@@ -424,20 +434,22 @@ namespace Tac
     //  mUIRoot->Render( errors );
     //}
   }
+
   void Ghost::PopulateWorldInitial()
   {
     //World* world = mServerData->mWorld;
     //Physics* physics = Physics::GetSystem( world );
-    Filesystem::Path levelpath = "mylevel.txt";
-    Errors errors;
-    String mem = FileToString( levelpath, errors );
-    if( mem.empty() )
-    {
-      const String errorMsg = "failed to open " + levelpath.u8string();
-      mLevelLoadErrors.Append( errorMsg );
-      mLevelLoadErrors.Append( TAC_STACK_FRAME );
-      return;
-    }
+
+    //Filesystem::Path levelpath = "mylevel.txt";
+    //Errors errors;
+    //String mem = FileToString( levelpath, errors );
+    //if( mem.empty() )
+    //{
+    //  const String errorMsg = "failed to open " + levelpath.u8string();
+    //  mLevelLoadErrors.Append( errorMsg );
+    //  mLevelLoadErrors.Append( TAC_STACK_FRAME );
+    //  return;
+    //}
 
     //auto meta = Meta::GetInstance();
     //auto terrain = new Terrain();
@@ -447,10 +459,12 @@ namespace Tac
     //  return;
     //physics->mTerrains.insert( terrain );
   }
+
   bool Ghost::CanDrawImgui()
   {
     return !mDrawDirectlyToScreen;
   }
+
   //extern "C" TAC_EXPORT Soul* TAC_GHOST_CREATE( Shell* shell, Errors& errors )
   //{
   //  return new Ghost( shell, errors );

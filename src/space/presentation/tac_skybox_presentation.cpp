@@ -34,7 +34,7 @@ namespace Tac
   void SkyboxPresentationInit( Errors& errors )
   {
 
-    mShader = Render::CreateShader( Render::ShaderSource::FromPath( "Skybox" ), TAC_STACK_FRAME );
+    mShader = Render::CreateShader(  "Skybox" , TAC_STACK_FRAME );
 
     mVertexDecls = { Render::VertexDeclaration {
       .mAttribute = Render::Attribute::Position,

@@ -21,7 +21,7 @@ namespace Tac
   static const char* pixDllName = "WinPixGpuCapturer.dll";
 
 
-  static Vector< String > GetInstalledPixVersions(Errors& errors)
+  static Filesystem::Paths GetInstalledPixVersions(Errors& errors)
   {
     const bool parentDirExist = Filesystem::Exists( pixInstallPath );
     //OS::OSDoesFolderExist( pixInstallPath, parentDirExist, errors );
@@ -30,25 +30,31 @@ namespace Tac
     if( !parentDirExist )
       return {};
 
-    Vector< String > subdirs;
-    OS::OSGetDirectoriesInDirectory( subdirs, pixInstallPath, errors );
-    TAC_HANDLE_ERROR_RETURN( errors, {} );
+    const Filesystem::Path parentDirFSPath( pixInstallPath );
+
+    const Filesystem::Paths subdirs = Filesystem::IterateDirectories( parentDirFSPath,
+                                                                Filesystem::IterateType::Default,
+                                                                errors );
+
+    //OS::OSGetDirectoriesInDirectory( subdirs, pixInstallPath, errors );
+    //TAC_HANDLE_ERROR_RETURN( errors, {} );
 
     return subdirs;
   }
 
-  static String GetMostRecentVersion( const Vector< String >& vers )
+  static String GetMostRecentVersion( const Filesystem::Paths& vers )
   {
     String mostRecentVersion;
 
     // Pix version numbers are usually XXXX.YY https://devblogs.microsoft.com/pix/download/
-    for( const String& subdir : vers )
+    for( const Filesystem::Path& subdir : vers )
     {
-      if( subdir.size() != 6 && subdir[ 4 ] != '.' )
+      const String ver = subdir.u8string();
+      if( ver.size() != 6 && ver[ 4 ] != '.' )
         continue;
 
-      if( mostRecentVersion.empty() || subdir > mostRecentVersion )
-        mostRecentVersion = subdir;
+      if( mostRecentVersion.empty() || ver > mostRecentVersion )
+        mostRecentVersion = ver;
     }
 
     return mostRecentVersion;
@@ -56,7 +62,7 @@ namespace Tac
 
   static String GetPIXDllPath(Errors& errors)
   {
-    const Vector< String > versions = GetInstalledPixVersions( errors );
+    const Filesystem::Paths versions = GetInstalledPixVersions( errors );
     const String mostRecentVersion = GetMostRecentVersion( versions );
     if( mostRecentVersion.empty() )
       return "";
@@ -77,7 +83,7 @@ namespace Tac
     if( OS::OSGetLoadedDLL( pixDllName ) )
       return;
 
-    String path = GetPIXDllPath( errors );
+    const String path = GetPIXDllPath( errors );
     if( path.empty() )
     {
         const char* str = FrameMemoryPrintf(

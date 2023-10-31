@@ -1,15 +1,17 @@
+#include "src/creation/tac_creation_property_window.h" // self-inc
+
+#include "src/common/assetmanagers/tac_asset.h"
+#include "src/common/core/tac_algorithm.h"
+#include "src/common/core/tac_error_handling.h"
 #include "src/common/graphics/imgui/tac_imgui.h"
+#include "src/common/graphics/tac_ui_2d.h"
 #include "src/common/memory/tac_frame_memory.h"
 #include "src/common/profile/tac_profile.h"
-#include "src/common/graphics/tac_ui_2d.h"
-#include "src/common/core/tac_algorithm.h"
-#include "src/common/system/tac_desktop_window.h"
-#include "src/common/core/tac_error_handling.h"
-#include "src/common/system/tac_os.h"
 #include "src/common/shell/tac_shell.h"
 #include "src/common/string/tac_string_util.h"
+#include "src/common/system/tac_desktop_window.h"
+#include "src/common/system/tac_os.h"
 #include "src/creation/tac_creation.h"
-#include "src/creation/tac_creation_property_window.h"
 #include "src/creation/tac_creation_prefab.h"
 #include "src/shell/tac_desktop_app.h"
 #include "src/shell/tac_desktop_window_graphics.h"
@@ -134,26 +136,30 @@ namespace Tac
     ImGuiBeginGroup();
     ImGuiBeginChild( "Hierarchy", v2( 250, -100 ) );
 
-
-
     World* world = gCreation.mWorld;
     for( Entity* entity : world->mEntities )
     {
       if( !entity->mParent )
         RecursiveEntityHierarchyElement( entity );
     }
+
     ImGuiEndChild();
+
     if( ImGuiButton( "Create Entity" ) )
       gCreation.CreateEntity();
+
     if( ImGuiButton( "Open Prefab" ) )
     {
-      String prefabPath;
-      OS::OSOpenDialog( prefabPath, errors );
+      AssetPathStringView prefabAssetPath = GetAssetOpenDialog(errors );
       TAC_HANDLE_ERROR( errors );
-      if( prefabPath.size() )
+
+      //String prefabPath;
+      //OS::OSOpenDialog( prefabPath, errors );
+      //TAC_HANDLE_ERROR( errors );
+      if( prefabAssetPath.size() )
       {
         Camera* cam = world->mEntities.size() ? nullptr : gCreation.mEditorCamera;
-        PrefabLoadAtPath( &gCreation.mEntityUUIDCounter, world, cam, prefabPath, errors );
+        PrefabLoadAtPath( &gCreation.mEntityUUIDCounter, world, cam, prefabAssetPath, errors );
         TAC_HANDLE_ERROR( errors );
       }
     }
@@ -165,8 +171,8 @@ namespace Tac
     {
       ImGuiInputText( "Name", entity->mName );
 
-      const char* prefabPath = PrefabGetOrNull( entity );
-      ImGuiText( "Prefab path: " + String( prefabPath ? prefabPath : "null" ) );
+      AssetPathStringView prefabPath = PrefabGetOrNull( entity );
+      ImGuiTextf( "Prefab path: %s,", prefabPath.c_str() );
 
       ImGuiText( "UUID: " + ToString( ( UUID )entity->mEntityUUID ) );
       if( ImGuiButton( "Reset Transform" ) )

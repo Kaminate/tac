@@ -172,14 +172,13 @@ namespace Tac
   static void                    CreateVoxelVisualizerShader()
   {
     // This shader is used to debug visualize the voxel radiance
-    voxelVisualizerShader = Render::CreateShader( Render::ShaderSource::FromPath( "VoxelVisualizer" ),
-                                                  TAC_STACK_FRAME );
+    voxelVisualizerShader = Render::CreateShader(  "VoxelVisualizer" , TAC_STACK_FRAME );
   }
 
   static void                    CreateVoxelCopyShader()
   {
     // This shader is used to copy from the 3d magic buffer to the 3d texture
-    voxelCopyShader = Render::CreateShader( Render::ShaderSource::FromPath( "VoxelCopy" ), TAC_STACK_FRAME );
+    voxelCopyShader = Render::CreateShader(  "VoxelCopy" , TAC_STACK_FRAME );
   }
 
 
@@ -193,7 +192,7 @@ namespace Tac
   {
     // The voxelizer shader turns geometry into a rwstructuredbuffer using atomics
     // to prevent flickering
-    voxelizerShader = Render::CreateShader( Render::ShaderSource::FromPath( "Voxelizer" ), TAC_STACK_FRAME );
+    voxelizerShader = Render::CreateShader(  "Voxelizer" , TAC_STACK_FRAME );
   }
 
   static void                    CreateVertexFormat()

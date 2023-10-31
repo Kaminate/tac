@@ -3,6 +3,7 @@
 #include "src/common/containers/tac_vector.h"
 #include "src/common/core/tac_algorithm.h"
 #include "src/common/core/tac_error_handling.h"
+#include "src/common/shell/tac_shell.h"
 #include "src/common/dataprocess/tac_settings.h"
 #include "src/common/graphics/imgui/tac_imgui.h"
 #include "src/common/graphics/tac_camera.h"
@@ -32,7 +33,8 @@ namespace Tac
     Vector< Entity* > mEntities;
 
     //                Filepath of the serialized prefab
-    Filesystem::Path  mDocumentPath;
+    //Filesystem::Path  mDocumentPath;
+    AssetPathString   mAssetPath;
   };
 
   static Vector< Prefab* >  mPrefabs;
@@ -40,16 +42,17 @@ namespace Tac
 
   static void         PrefabUpdateOpenedInEditor()
   {
-    Vector< Filesystem::Path > documentPaths;
+    Vector< AssetPathString > documentPaths;
+
     for( Prefab* prefab : mPrefabs )
       for( Entity* entity : prefab->mEntities )
         if( !entity->mParent )
-          documentPaths.push_back( prefab->mDocumentPath );
+          documentPaths.push_back( prefab->mAssetPath );
 
     Json* prefabJson = SettingsGetJson( prefabSettingsPath );
     prefabJson->Clear();
-    for( const Filesystem::Path& documentPath : documentPaths )
-      *prefabJson->AddChild() = StringView( documentPath ); // convert to UTF8
+    for( const AssetPathString& documentPath : documentPaths )
+      *prefabJson->AddChild() = Json( documentPath.c_str() );
 
     SettingsSave();
   }
@@ -57,8 +60,9 @@ namespace Tac
 
   static void         PrefabLoadCameraVec( Prefab* prefab, StringView refFrameVecName, v3& refFrameVec )
   {
-    if( prefab->mDocumentPath.empty() )
+    if( prefab->mAssetPath.empty() )
       return;
+
     for( int iAxis = 0; iAxis < 3; ++iAxis )
     {
       //const StringView axisName = "xyz"[ iAxis ];
@@ -66,7 +70,7 @@ namespace Tac
       const JsonNumber defaultValue = refFrameVec[ iAxis ];
 
       Json* refFramesJson = SettingsGetJson( { "prefabCameraRefFrames" } );
-      Json* refFrameJson = SettingsGetChildByKeyValuePair( "path", Json( prefab->mDocumentPath ), refFramesJson );
+      Json* refFrameJson = SettingsGetChildByKeyValuePair( "path", Json( prefab->mAssetPath ), refFramesJson );
       const JsonNumber axisValue = SettingsGetNumber( Join( { refFrameVecName, String( 1, "xyz"[ iAxis ] ) }, "." ),
                                                       defaultValue,
                                                       refFrameJson );
@@ -86,12 +90,13 @@ namespace Tac
 
   static void         PrefabSaveCameraVec( Prefab* prefab, StringView refFrameVecName, v3 refFrameVec )
   {
-    if( prefab->mDocumentPath.empty() )
+    if( prefab->mAssetPath.empty() )
       return;
+
     for( int iAxis = 0; iAxis < 3; ++iAxis )
     {
       Json* refFramesJson = SettingsGetJson( { "prefabCameraRefFrames" } );
-      Json* refFrameJson = SettingsGetChildByKeyValuePair( "path", Json( prefab->mDocumentPath ), refFramesJson );
+      Json* refFrameJson = SettingsGetChildByKeyValuePair( "path", Json( prefab->mAssetPath ), refFramesJson );
       SettingsSetNumber( Join( { refFrameVecName, String( 1, "xyz"[ iAxis ] ) }, "." ),
                          refFrameVec[ iAxis ],
                          refFrameJson );
@@ -107,23 +112,23 @@ namespace Tac
       AllocateEntityUUIDsRecursively( entityUUIDCounter, entityChild );
   }
 
-  Filesystem::Path          PrefabGetLoaded()
+  AssetPathStringView          PrefabGetLoaded()
   {
     for( Prefab* prefab : mPrefabs )
       for( Entity* entity : prefab->mEntities )
         if( !entity->mParent )
-          return prefab->mDocumentPath;
+          return prefab->mAssetPath;
     return "";
   }
 
   void                PrefabLoadAtPath( EntityUUIDCounter* entityUUIDCounter,
                                         World* world,
                                         Camera* camera,
-                                        Filesystem::Path prefabPath,
+                                        const AssetPathStringView& prefabPath,
                                         Errors& errors )
   {
-    ModifyPathRelative( prefabPath );
-    String memory = FileToString( prefabPath, errors );
+    //ModifyPathRelative( prefabPath );
+    const String memory = Filesystem::LoadAssetPath( prefabPath, errors );
     TAC_HANDLE_ERROR( errors );
 
     Json prefabJson;
@@ -136,9 +141,13 @@ namespace Tac
     AllocateEntityUUIDsRecursively( entityUUIDCounter, entity );
 
 
-    auto prefab = TAC_NEW Prefab;
-    prefab->mDocumentPath = prefabPath;
-    prefab->mEntities = { entity };
+    auto prefab = TAC_NEW Prefab
+    {
+      //prefab->mDocumentPath = prefabPath;
+      .mEntities = { entity },
+      .mAssetPath = prefabPath,
+    };
+
     mPrefabs.push_back( prefab );
 
     PrefabLoadCamera( prefab, camera );
@@ -175,57 +184,51 @@ namespace Tac
     return nullptr;
   }
 
-  void                PrefabSave( World* world )
+  static void PrefabSaveEntity( Entity* entity, Errors& errors )
+  {
+    // Why?
+    if( entity->mParent )
+      return;
+
+    Prefab* prefab = PrefabFind( entity );
+    if( !prefab )
+    {
+      prefab = TAC_NEW Prefab;
+      prefab->mEntities = { entity };
+      mPrefabs.push_back( prefab );
+    }
+
+
+    // Get document paths for prefabs missing them
+    if( prefab->mAssetPath.empty() )
+    {
+      const Filesystem::Path suggestedName = entity->mName + ".prefab";
+      
+      Filesystem::Path savePath = OS::OSSaveDialog( suggestedName, errors );
+      TAC_HANDLE_ERROR( errors );
+
+      AssetPathStringView assetPath = ModifyPathRelative( savePath, errors );
+      TAC_HANDLE_ERROR( errors );
+
+      prefab->mAssetPath = assetPath;
+    }
+
+    Json entityJson;
+    entity->Save( entityJson );
+
+    String prefabJsonString = entityJson.Stringify();
+    const void* bytes = prefabJsonString.data();
+    const int byteCount = prefabJsonString.size();
+    const Filesystem::Path fsPath( prefab->mAssetPath );
+    Filesystem::SaveToFile( fsPath, bytes, byteCount, errors );
+    TAC_HANDLE_ERROR( errors );
+  }
+
+  void                PrefabSave( World* world, Errors& errors )
   {
     for( Entity* entity : world->mEntities )
     {
-      if( entity->mParent )
-        continue;
-
-      Prefab* prefab = PrefabFind( entity );
-      if( !prefab )
-      {
-        prefab = TAC_NEW Prefab;
-        prefab->mEntities = { entity };
-        mPrefabs.push_back( prefab );
-      }
-
-
-      // Get document paths for prefabs missing them
-      if( prefab->mDocumentPath.empty() )
-      {
-        const Filesystem::Path suggestedName = entity->mName + ".prefab";
-        Errors saveDialogErrors;
-        Filesystem::Path savePath = OS::OSSaveDialog( suggestedName, saveDialogErrors );
-        if( saveDialogErrors )
-        {
-          // todo: log it, user feedback
-          OS::OSDebugPrintLine(saveDialogErrors.ToString());
-          continue;
-        }
-
-        ModifyPathRelative( savePath );
-
-        prefab->mDocumentPath = savePath;
-      }
-
-      //Entity* entity = prefab->mEntity;
-
-      Json entityJson;
-      entity->Save( entityJson );
-
-      String prefabJsonString = entityJson.Stringify();
-      Errors saveToFileErrors;
-      void* bytes = prefabJsonString.data();
-      int byteCount = prefabJsonString.size();
-      //OS::OSSaveToFile( prefab->mDocumentPath, bytes, byteCount, saveToFileErrors );
-      Filesystem::SaveToFile( prefab->mDocumentPath, bytes, byteCount, saveToFileErrors );
-      if( saveToFileErrors )
-      {
-        // todo: log it, user feedback
-        OS::OSDebugPrintLine(saveToFileErrors.ToString());
-        continue;
-      }
+      PrefabSaveEntity( entity, errors );
     }
 
   }
@@ -281,18 +284,19 @@ namespace Tac
   }
 
   // What if one of its ancestors is a prefab?
-  const char*         PrefabGetOrNull( Entity* entity )
+  AssetPathStringView         PrefabGetOrNull( Entity* entity )
   {
     for( Prefab* prefab : mPrefabs )
       if( Contains( prefab->mEntities, entity ) )
-        return prefab->mDocumentPath;
-    return nullptr;
+        return prefab->mAssetPath;
+    return {};
   }
 
   static void         PrefabImGui( Prefab* prefab )
   {
-    if( !ImGuiCollapsingHeader( prefab->mDocumentPath ) )
+    if( !ImGuiCollapsingHeader( prefab->mAssetPath ) )
       return;
+
     TAC_IMGUI_INDENT_BLOCK;
     for( Entity* entity : prefab->mEntities )
     {

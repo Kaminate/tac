@@ -143,8 +143,7 @@ namespace Tac
       SettingsFlush( errors );
     }
 
-    const Render::RendererFactory* chosenFactory = Render::RendererFactoriesFind( chosenRendererName );
-    return chosenFactory;
+    return Render::RendererFactoriesFind( chosenRendererName );
   }
 
   static const Render::RendererFactory* GetRendererPreferredPreprocessorVk()
@@ -719,16 +718,13 @@ namespace Tac
     // for win32 project standalone_win_vk_1_tri, appDataPath =
     //
     //     C:\Users\Nate\AppData\Roaming + /Sleeping Studio + /Whatever bro
-    Filesystem::Path appDataPath= OS::OSGetApplicationDataPath( errors );
+    const Filesystem::Path appDataPath= OS::OSGetApplicationDataPath( errors );
     TAC_HANDLE_ERROR( errors );
+    TAC_RAISE_ERROR_IF( !Filesystem::Exists( appDataPath ),
+                        va( "app data path %s doesnt exist", appDataPath.u8string().c_str() ),
+                        errors );
 
-    //OS::OSDoesFolderExist(appDataPath, exists, errors);
-    //TAC_HANDLE_ERROR( errors );
-    const bool exists = Filesystem::Exists( appDataPath );
-    TAC_ASSERT(exists);
-    TAC_RAISE_ERROR_IF(!exists, va("app data path %s doesnt exist", appDataPath.u8string().c_str()), errors);
-
-    const Filesystem::Path workingDir = Filesystem::GetCurrentWorkingDirectory(); //OS::OSGetWorkingDir( errors );
+    const Filesystem::Path workingDir = Filesystem::GetCurrentWorkingDirectory();
     TAC_HANDLE_ERROR( errors );
 
     // Platform Callbacks
@@ -755,23 +751,17 @@ namespace Tac
 
     RegisterRenderers();
     CreateRenderer( errors );
+    TAC_HANDLE_ERROR( errors );
+
     Render::Init( errors );
     TAC_HANDLE_ERROR( errors );
   }
 
   void                DesktopAppRun( Errors& errors )
   {
-    TAC_HANDLE_ERROR( errors );
-
-    std::thread threads[] =
-    {
-      std::thread( LogicThread ),
-    };
-
+    std::thread logicThread( LogicThread );
     PlatformThread();
-
-    for( std::thread& thread : threads )
-      thread.join();
+    logicThread.join();
   }
 
   void                DesktopAppUpdate( Errors& errors )
@@ -784,16 +774,20 @@ namespace Tac
 
   void                DesktopAppResizeControls( const DesktopWindowHandle& desktopWindowHandle, int edgePx )
   {
-    RequestResize* request = &sRequestResize[ ( int )desktopWindowHandle ];
-    request->mEdgePx = edgePx;
-    request->mRequested = true;
+    sRequestResize[ ( int )desktopWindowHandle ] = RequestResize
+    {
+     .mRequested = true,
+     .mEdgePx = edgePx,
+    };
   }
 
   void                DesktopAppMoveControls( const DesktopWindowHandle& desktopWindowHandle, DesktopWindowRect rect )
   {
-    RequestMove* request = &sRequestMove[ ( int )desktopWindowHandle ];
-    request->mRect = rect;
-    request->mRequested = true;
+    sRequestMove[ ( int )desktopWindowHandle ] = RequestMove
+    {
+      .mRequested = true,
+      .mRect = rect,
+    };
   }
 
   void                DesktopAppMoveControls( const DesktopWindowHandle& desktopWindowHandle )
@@ -806,12 +800,15 @@ namespace Tac
   {
     sWindowHandleLock.lock();
     const DesktopWindowHandle handle = { sDesktopWindowHandleIDs.Alloc() };
-    WantSpawnInfo info = { .mHandle = handle,
-                           .mName = name,
-                           .mX = x,
-                           .mY = y,
-                           .mWidth = width,
-                           .mHeight = height, };
+    const WantSpawnInfo info =
+    {
+      .mHandle = handle,
+      .mName = name,
+      .mX = x,
+      .mY = y,
+      .mWidth = width,
+      .mHeight = height,
+    };
     sWindowRequestsCreate.push_back( info );
     sWindowHandleLock.unlock();
     return handle;
@@ -831,11 +828,13 @@ namespace Tac
   {
     if( !errors )
       return;
+
     String s;
     s += "Errors in ";
     s += name;
     s += " ";
     s += errors.ToString();
+
     OS::OSDebugPopupBox( s );
   }
 
