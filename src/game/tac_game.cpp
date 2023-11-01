@@ -48,13 +48,11 @@ namespace Tac
     DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
     if(!desktopWindowState->mNativeWindowHandle)
           return;
-    Render::Viewport viewport;
-    viewport.mWidth = ( float )desktopWindowState->mWidth;
-    viewport.mHeight = ( float )desktopWindowState->mHeight;
 
-    Render::ScissorRect scissorRect;
-    scissorRect.mXMaxRelUpperLeftCornerPixel = ( float )desktopWindowState->mWidth;
-    scissorRect.mYMaxRelUpperLeftCornerPixel = ( float )desktopWindowState->mHeight;
+    const v2 size = desktopWindowState->GetSizeV2();
+    const Render::Viewport viewport( size );
+    const Render::ScissorRect scissorRect(size);
+
 
     TAC_HANDLE_ERROR( errors );
   }
@@ -69,5 +67,5 @@ namespace Tac
     };
   }
 
-}
+}// namespace Tac
 

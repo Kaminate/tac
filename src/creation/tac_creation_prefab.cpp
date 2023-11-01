@@ -1,14 +1,14 @@
 #include "src/creation/tac_creation_prefab.h" // self-include
 
+#include "src/common/assetmanagers/tac_asset.h"
 #include "src/common/containers/tac_vector.h"
 #include "src/common/core/tac_algorithm.h"
 #include "src/common/core/tac_error_handling.h"
-#include "src/common/shell/tac_shell.h"
 #include "src/common/dataprocess/tac_settings.h"
 #include "src/common/graphics/imgui/tac_imgui.h"
 #include "src/common/graphics/tac_camera.h"
 #include "src/common/memory/tac_frame_memory.h"
-#include "src/common/system/tac_filesystem.h"
+#include "src/common/shell/tac_shell.h"
 #include "src/common/string/tac_string.h"
 #include "src/common/string/tac_string_util.h"
 #include "src/common/system/tac_filesystem.h"
@@ -22,9 +22,9 @@
 namespace Tac
 {
   const char* refFrameVecNamePosition = "mPos";
-  const char* refFrameVecNameForward = "mForwards";
-  const char* refFrameVecNameRight = "mRight";
-  const char* refFrameVecNameUp = "mUp";
+  const char* refFrameVecNameForward  = "mForwards";
+  const char* refFrameVecNameRight    = "mRight";
+  const char* refFrameVecNameUp       = "mUp";
 
   // this would be saved as a .map file in cod engine
   struct Prefab
@@ -33,7 +33,6 @@ namespace Tac
     Vector< Entity* > mEntities;
 
     //                Filepath of the serialized prefab
-    //Filesystem::Path  mDocumentPath;
     AssetPathString   mAssetPath;
   };
 

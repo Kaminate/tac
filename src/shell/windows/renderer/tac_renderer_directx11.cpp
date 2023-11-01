@@ -134,7 +134,10 @@ namespace Tac::Render
     {
       const char* prefix = "assets/hlsl/";
       const char* suffix = ".fx";
-      return FrameMemoryPrintf( "%s%s%s", prefix, shaderName.c_str(), suffix );
+      return FrameMemoryPrintf( "%s" TAC_PRI_SV_FMT "%s",
+                                prefix,
+                                TAC_PRI_SV_ARG(shaderName),
+                                suffix );
       //Filesystem::Path result;
       //result += shaderName.starts_with( prefix ) ? "" : prefix;
       //result += shaderName;
@@ -607,6 +610,8 @@ namespace Tac::Render
 
     static Program LoadProgram( const ShaderNameStringView& shaderName, Errors& errors )
     {
+      TAC_ASSERT( !shaderName.empty() );
+
       RendererDirectX11*    renderer = ( RendererDirectX11* )Renderer::Instance;
       ID3D11Device*         device = renderer->mDevice;
       ID3D11VertexShader*   vertexShader = nullptr;

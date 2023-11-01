@@ -251,7 +251,7 @@ namespace Tac
 
       case WM_LBUTTONDOWN:
       {
-        DesktopEventKeyState( Key::MouseLeft, true );
+        DesktopEventMouseButtonState( Mouse::Button::MouseLeft, true );
 
         // make it so clicking the window brings the window to the top of the z order
         SetActiveWindow( hwnd );
@@ -262,23 +262,23 @@ namespace Tac
 
       case WM_LBUTTONUP:
       {
-        DesktopEventKeyState( Key::MouseLeft, false );
+        DesktopEventMouseButtonState( Mouse::Button::MouseLeft, false );
       } break;
 
       case WM_RBUTTONDOWN:
       {
-        DesktopEventKeyState( Key::MouseRight, true );
+        DesktopEventMouseButtonState( Mouse::Button::MouseRight, true );
         //BringWindowToTop( mHWND );
         SetActiveWindow( hwnd ); // make it so clicking the window brings the window to the top of the z order
       } break;
       case WM_RBUTTONUP:
       {
-        DesktopEventKeyState( Key::MouseRight, false );
+        DesktopEventMouseButtonState( Mouse::Button::MouseRight, false );
       } break;
 
       case WM_MBUTTONDOWN:
       {
-        DesktopEventKeyState( Key::MouseMiddle, true );
+        DesktopEventMouseButtonState( Mouse::Button::MouseMiddle, true );
         //BringWindowToTop( mHWND );
 
         // make it so clicking the window brings the window to the top of the z order
@@ -286,7 +286,7 @@ namespace Tac
       } break;
       case WM_MBUTTONUP:
       {
-        DesktopEventKeyState( Key::MouseMiddle, false );
+        DesktopEventMouseButtonState( Mouse::Button::MouseMiddle, false );
       } break;
 
       case WM_MOUSEMOVE:

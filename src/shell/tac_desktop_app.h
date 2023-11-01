@@ -55,7 +55,8 @@ namespace Tac
   void                DesktopEventResizeWindow( DesktopWindowHandle,
                                                 int w,
                                                 int h );
-  void                DesktopEventKeyState( Key, bool );
+  void                DesktopEventKeyState( Keyboard::Key, bool );
+  void                DesktopEventMouseButtonState( Mouse::Button, bool );
   void                DesktopEventKeyInput( Codepoint );
   void                DesktopEventMouseWheel( int ticks );
   void                DesktopEventMouseMove( DesktopWindowHandle, int x, int y );

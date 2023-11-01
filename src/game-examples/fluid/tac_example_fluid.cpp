@@ -352,7 +352,7 @@ namespace Tac
       {
         this->viewHalfDims.x -= KeyboardGetMouseDeltaScroll() * 0.3f;
       }
-      if( !KeyboardIsKeyDown( Key::MouseMiddle ) )
+      if( !KeyboardIsKeyDown( Mouse::Button::MouseMiddle ) )
         return;
       const v2 mouseDeltaPos = KeyboardGetMouseDeltaPos();
       viewCenter -= v2( mouseDeltaPos.x / px_per_unit_x,

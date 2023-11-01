@@ -140,11 +140,14 @@ namespace Tac
     float a;
     float b;
     Render::GetPerspectiveProjectionAB( camera->mFarPlane, camera->mNearPlane, a, b );
-    return { .mView = camera->View(),
-             .mProjection = m4::ProjPerspective( a, b, camera->mFovyrad, w / h ),
-             .mFar = camera->mFarPlane,
-             .mNear = camera->mNearPlane,
-             .mGbufferSize = { w, h }};
+    return
+    {
+      .mView = camera->View(),
+      .mProjection = m4::ProjPerspective( a, b, camera->mFovyrad, w / h ),
+      .mFar = camera->mFarPlane,
+      .mNear = camera->mNearPlane,
+      .mGbufferSize = { w, h }
+    };
   }
 
   static v3 SnapToUnitDir( const v3 v ) // Returns the unit vector that best aligns with v
@@ -365,7 +368,7 @@ namespace Tac
 
   void CreationGameWindow::MousePickingSelection()
   {
-    if( !KeyboardIsKeyJustDown( Key::MouseLeft ) )
+    if( !Mouse::ButtonJustDown( Mouse::Button::MouseLeft ) )
       return;
 
     switch( pickData.pickedObject )
@@ -424,7 +427,7 @@ namespace Tac
     const float h = ( float )desktopWindowState->mHeight;
     const float x = ( float )desktopWindowState->mX;
     const float y = ( float )desktopWindowState->mY;
-    const v2 screenspaceCursorPos = KeyboardGetScreenspaceCursorPos();
+    const v2 screenspaceCursorPos = Mouse::GetScreenspaceCursorPos();
     float xNDC = ( ( screenspaceCursorPos.x - x ) / w );
     float yNDC = ( ( screenspaceCursorPos.y - y ) / h );
     yNDC = 1 - yNDC;
@@ -884,7 +887,7 @@ namespace Tac
     const Camera oldCamera = *gCreation.mEditorCamera;
 
     const v2 mouseDeltaPos = KeyboardGetMouseDeltaPos();
-    if( KeyboardIsKeyDown( Key::MouseRight ) &&
+    if( KeyboardIsKeyDown( Mouse::Button::MouseRight ) &&
         mouseDeltaPos != v2( 0, 0 ) )
     {
       const float pixelsPerDeg = 400.0f / 90.0f;
@@ -916,7 +919,7 @@ namespace Tac
       gCreation.mEditorCamera->mUp.Normalize();
     }
 
-    if( KeyboardIsKeyDown( Key::MouseMiddle ) &&
+    if( KeyboardIsKeyDown( Mouse::Button::MouseMiddle ) &&
         mouseDeltaPos != v2( 0, 0 ) )
     {
       const float unitsPerPixel = 5.0f / 100.0f;
@@ -963,10 +966,9 @@ namespace Tac
 
     DesktopAppMoveControls( mDesktopWindowHandle );
 
-    const float w = ( float )desktopWindowState->mWidth;
-    const float h = ( float )desktopWindowState->mHeight;
-    const Render::Viewport viewport( w, h );
-    const Render::ScissorRect scissorRect( w, h );
+    const v2 size = desktopWindowState->GetSizeV2();
+    const Render::Viewport viewport(size);
+    const Render::ScissorRect scissorRect(size);
 
     Render::SetViewFramebuffer( viewHandle, framebufferHandle );
     Render::SetViewport( viewHandle, viewport );
@@ -1048,7 +1050,7 @@ namespace Tac
     //{
     //  prefab->mPosition += translate;
     //}
-    if( !KeyboardIsKeyDown( Key::MouseLeft ) )
+    if( !Mouse::ButtonIsDown( Mouse::Button::MouseLeft ) )
     {
       gCreation.mSelectedGizmo = false;
     }

@@ -4,9 +4,7 @@
 
 #include "src/common/tac_common.h"
 
-namespace Tac::Input
+namespace Tac::Controller
 {
   void XInputInit(Errors&);
-
-
 }

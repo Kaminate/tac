@@ -80,18 +80,28 @@ namespace Tac
       return result;
     }
 
+    static ShaderNameStringView GetShaderNameFromIncludeName( const StringView& includeName )
+    {
+      const StringView suffix = ".fx";
+      if( includeName.ends_with( suffix ) )
+        return includeName.substr( 0, includeName.size() - suffix.size() );
+
+      return includeName;
+    }
+
     static String PreprocessShaderIncludes( const StringView line, Errors& errors )
     {
       ParseData lineParseData( line.data(), line.size() );
       lineParseData.EatWhitespace();
       if( !lineParseData.EatStringExpected( "#include" ) )
         return line;
+
       lineParseData.EatUntilCharIsPrev( '\"' );
       const char* includeBegin = lineParseData.GetPos();
       lineParseData.EatUntilCharIsNext( '\"' );
       const char* includeEnd = lineParseData.GetPos();
       const StringView includeName( includeBegin, includeEnd );
-      const ShaderNameStringView shaderName( includeName );
+      const ShaderNameStringView shaderName = GetShaderNameFromIncludeName( includeName );
       const AssetPathStringView includeAssetPath = GetShaderAssetPath( shaderName );
       //const Filesystem::Path includePath = Render::GetShaderPath( includeName );
       //const Filesystem::Path includePath( includeAssetPath );// Render::GetShaderPath( includeName );

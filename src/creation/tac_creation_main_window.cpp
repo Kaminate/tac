@@ -233,7 +233,7 @@ namespace Tac
       CreationGameObjectMenuWindow::Instance->Update( errors );
       TAC_HANDLE_ERROR( errors );
 
-      if( KeyboardIsKeyJustDown( Key::MouseLeft )
+      if( Mouse::ButtonJustDown( Mouse::Button::MouseLeft )
           && !IsWindowHovered( desktopWindowHandle )
           && ShellGetElapsedSeconds() != CreationGameObjectMenuWindow::Instance->mCreationSeconds )
       {

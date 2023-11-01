@@ -65,14 +65,14 @@ namespace Tac
     DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
     if( !desktopWindowState->mNativeWindowHandle )
       return;
-    const float w = ( float )desktopWindowState->mWidth;
-    const float h = ( float )desktopWindowState->mHeight;
+
+    const v2 size = desktopWindowState->GetSizeV2();
 
     const Render::ViewHandle viewHandle = WindowGraphicsGetView( mDesktopWindowHandle );
     const Render::FramebufferHandle framebufferHandle = WindowGraphicsGetFramebuffer( mDesktopWindowHandle );
     Render::SetViewFramebuffer( viewHandle, framebufferHandle );
-    Render::SetViewport( viewHandle, Render::Viewport( w, h ) );
-    Render::SetViewScissorRect( viewHandle, Render::ScissorRect( w, h ) );
+    Render::SetViewport( viewHandle, Render::Viewport(size) );
+    Render::SetViewScissorRect( viewHandle, Render::ScissorRect(size) );
     ImGui();
     mUI2DDrawData->DrawToTexture( viewHandle,
                                   desktopWindowState->mWidth,
