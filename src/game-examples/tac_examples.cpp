@@ -148,7 +148,7 @@ namespace Tac
 
   static void   ExamplesUpdateCallback( Errors& errors )
   {
-    if( KeyboardIsKeyDown( Key::Escape ) )
+    if( Keyboard::KeyboardIsKeyDown( Keyboard::Key::Escape ) )
       OS::OSAppStopRunning();
 
     if( !GetDesktopWindowState( sDemoWindow )->mNativeWindowHandle ||
@@ -176,10 +176,10 @@ namespace Tac
   v3 Example::GetWorldspaceKeyboardDir()
   {
     v3 force{};
-    force += KeyboardIsKeyDown( Key::W ) ? mCamera->mUp : v3{};
-    force += KeyboardIsKeyDown( Key::A ) ? -mCamera->mRight : v3{};
-    force += KeyboardIsKeyDown( Key::S ) ? -mCamera->mUp : v3{};
-    force += KeyboardIsKeyDown( Key::D ) ? mCamera->mRight : v3{};
+    force += Keyboard::KeyboardIsKeyDown( Keyboard::Key::W ) ? mCamera->mUp : v3{};
+    force += Keyboard::KeyboardIsKeyDown( Keyboard::Key::A ) ? -mCamera->mRight : v3{};
+    force += Keyboard::KeyboardIsKeyDown( Keyboard::Key::S ) ? -mCamera->mUp : v3{};
+    force += Keyboard::KeyboardIsKeyDown( Keyboard::Key::D ) ? mCamera->mRight : v3{};
     const float q = force.Quadrance();
     if( q )
       force /= Sqrt( q );

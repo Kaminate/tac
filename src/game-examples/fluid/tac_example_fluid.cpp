@@ -346,15 +346,15 @@ namespace Tac
         return;
       const v2 desktopWindowPos( ( float )state->mX, ( float )state->mY );
       const ImGuiRect canvasRectScreenspace = ImGuiRect::FromPosSize( desktopWindowPos + canvas_pos, canvas_size );
-      if( !canvasRectScreenspace.ContainsPoint( KeyboardGetScreenspaceCursorPos() ) )
+      if( !canvasRectScreenspace.ContainsPoint( Mouse::GetScreenspaceCursorPos() ) )
         return;
-      if( KeyboardGetMouseDeltaScroll() )
+      if( Mouse::GetMouseDeltaScroll() )
       {
-        this->viewHalfDims.x -= KeyboardGetMouseDeltaScroll() * 0.3f;
+        this->viewHalfDims.x -= Mouse::GetMouseDeltaScroll() * 0.3f;
       }
-      if( !KeyboardIsKeyDown( Mouse::Button::MouseMiddle ) )
+      if( !Mouse::ButtonIsDown( Mouse::Button::MouseMiddle ) )
         return;
-      const v2 mouseDeltaPos = KeyboardGetMouseDeltaPos();
+      const v2 mouseDeltaPos = Mouse::GetMouseDeltaPos();
       viewCenter -= v2( mouseDeltaPos.x / px_per_unit_x,
                         -mouseDeltaPos.y / px_per_unit_y );
     }
@@ -424,11 +424,11 @@ namespace Tac
     {
       const bool nextAvailable = iStep < stepCount - 1;
       const bool prevAvailable = iStep > 0;
-      if( prevAvailable && ( ImGuiButton( "Prev" ) || KeyboardIsKeyJustDown( Key::LeftArrow ) ) )
+      if( prevAvailable && ( ImGuiButton( "Prev" ) || Keyboard::KeyboardIsKeyJustDown( Keyboard::Key::LeftArrow ) ) )
         iStepNext = iStep - 1;
       if( nextAvailable && prevAvailable )
         ImGuiSameLine();
-      if( nextAvailable && ( ImGuiButton( "Next" ) || KeyboardIsKeyJustDown( Key::RightArrow ) ) )
+      if( nextAvailable && ( ImGuiButton( "Next" ) || Keyboard::KeyboardIsKeyJustDown( Keyboard::Key::RightArrow ) ) )
         iStepNext = iStep + 1;
     }
 

@@ -559,7 +559,7 @@ namespace Tac
       mDebug3DDrawData->DebugDraw3DSphere( worldSpaceHitPoint, 0.2f, v3( 1, 1, 0 ) );
 
       static double mouseMovement;
-      TryConsumeMouseMovement( &mouseMovement, TAC_STACK_FRAME );
+      Mouse::TryConsumeMouseMovement( &mouseMovement, TAC_STACK_FRAME );
     }
 
   }
@@ -777,20 +777,23 @@ namespace Tac
   static void CameraWASDControlsPan( Camera* camera )
   {
     v3 combinedDir = {};
-    struct
+     
+    struct PanKeyDir
     {
-      Key key;
+      Keyboard::Key key;
       v3 dir;
-    } keyDirs[] =
-    {
-      { Key::W, camera->mForwards},
-      { Key::A, -camera->mRight},
-      { Key::S, -camera->mForwards},
-      { Key::D, camera->mRight},
-      { Key::Q, -camera->mUp },
-      { Key::E, camera->mUp},
     };
-    for( const auto keyDir : keyDirs )
+    
+    const PanKeyDir keyDirs[] =
+    {
+      { Keyboard::Key::W, camera->mForwards},
+      { Keyboard::Key::A, -camera->mRight},
+      { Keyboard::Key::S, -camera->mForwards},
+      { Keyboard::Key::D, camera->mRight},
+      { Keyboard::Key::Q, -camera->mUp },
+      { Keyboard::Key::E, camera->mUp},
+    };
+    for( const PanKeyDir& keyDir : keyDirs )
       if( KeyboardIsKeyDown( keyDir.key ) )
         combinedDir += keyDir.dir;
     if( combinedDir == v3( 0, 0, 0 ) )
@@ -802,18 +805,23 @@ namespace Tac
   {
     const float vertLimit = 0.1f;
 
-    struct
+    struct OrbitKeyDir
     {
-      Key key;
-      v3 spherical;
-    } keyDirs[] = { { Key::W, v3( 0, -1, 0 ) },
-                    { Key::A, v3( 0,  0, 1 ) },
-                    { Key::S, v3( 0, 1, 0 ) },
-                    { Key::D, v3( 0, 0, -1 ) } };
+      Keyboard::Key key;
+      v3            spherical;
+    };
+    
+    OrbitKeyDir keyDirs[] =
+    {
+      { Keyboard::Key::W, v3( 0, -1, 0 ) },
+      { Keyboard::Key::A, v3( 0,  0, 1 ) },
+      { Keyboard::Key::S, v3( 0, 1, 0 ) },
+      { Keyboard::Key::D, v3( 0, 0, -1 ) }
+    };
 
 
     v3 camOrbitSphericalOffset = {};
-    for( auto keyDir : keyDirs )
+    for( const OrbitKeyDir& keyDir : keyDirs )
       if( KeyboardIsKeyDown( keyDir.key ) )
         camOrbitSphericalOffset += keyDir.spherical;
     if( camOrbitSphericalOffset == v3( 0, 0, 0 ) )
@@ -886,8 +894,8 @@ namespace Tac
       return;
     const Camera oldCamera = *gCreation.mEditorCamera;
 
-    const v2 mouseDeltaPos = KeyboardGetMouseDeltaPos();
-    if( KeyboardIsKeyDown( Mouse::Button::MouseRight ) &&
+    const v2 mouseDeltaPos = Mouse::GetMouseDeltaPos();
+    if( Mouse::ButtonIsDown( Mouse::Button::MouseRight ) &&
         mouseDeltaPos != v2( 0, 0 ) )
     {
       const float pixelsPerDeg = 400.0f / 90.0f;
@@ -919,7 +927,7 @@ namespace Tac
       gCreation.mEditorCamera->mUp.Normalize();
     }
 
-    if( KeyboardIsKeyDown( Mouse::Button::MouseMiddle ) &&
+    if( Mouse::ButtonIsDown( Mouse::Button::MouseMiddle ) &&
         mouseDeltaPos != v2( 0, 0 ) )
     {
       const float unitsPerPixel = 5.0f / 100.0f;
@@ -933,7 +941,7 @@ namespace Tac
         unitsPerPixel;
     }
 
-    const int mouseDeltaScroll = KeyboardGetMouseDeltaScroll();
+    const int mouseDeltaScroll = Mouse::GetMouseDeltaScroll();
     if( mouseDeltaScroll )
     {
       float unitsPerTick = 1.0f;

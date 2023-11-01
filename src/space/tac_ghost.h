@@ -26,7 +26,7 @@ namespace Tac
   struct UIRoot;
   struct IndexBuffer;
   struct VertexBuffer;
-  struct Controller;
+  //struct Controller;
   struct NewI;
 
   //
@@ -42,7 +42,7 @@ namespace Tac
     Ghost*                 mGhost = nullptr;
     String                 mName;
     bool                   mHasControllerIndex = false;
-    Input::ControllerIndex mControllerIndex = Input::TAC_CONTROLLER_COUNT_MAX;
+    Controller::ControllerIndex mControllerIndex = Controller::TAC_CONTROLLER_COUNT_MAX;
   };
 
 

@@ -84,12 +84,12 @@ namespace Tac
   {
     World* world = gCreation.mWorld;
     const bool triggered =
-      KeyboardIsKeyDown( Key::S ) &&
-      KeyboardIsKeyDown( Key::Modifier );
+      Keyboard::KeyboardIsKeyDown( Keyboard::Key::S ) &&
+      Keyboard::KeyboardIsKeyDown( Keyboard::Key::Modifier );
     if( !triggered )
       return;
 
-    KeyboardSetIsKeyDown( Key::S, false );
+    Keyboard::KeyboardSetIsKeyDown( Keyboard::Key::S, false );
 
     Errors saveErrors;
     PrefabSave( world, saveErrors );
@@ -265,7 +265,7 @@ namespace Tac
     if( !IsWindowHovered( gameWindow->mDesktopWindowHandle ) )
       return;
 
-    if( !KeyboardIsKeyJustDown( Key::Delete ) )
+    if( !Keyboard::KeyboardIsKeyJustDown( Keyboard::Key::Delete ) )
       return;
     DeleteEntities();
   }

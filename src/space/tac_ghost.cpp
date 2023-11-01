@@ -64,16 +64,17 @@ namespace Tac
     TAC_UNUSED_PARAMETER( errors );
     if( !mGhost->mIsGrabbingInput )
       return;
+
     //auto serverData = mGhost->mServerData;
     v2 inputDirection = { 0, 0 };
-    if( KeyboardIsKeyDown( Key::RightArrow ) ) inputDirection += { 1, 0 };
-    if( KeyboardIsKeyDown( Key::UpArrow ) ) inputDirection += { 0, 1 };
-    if( KeyboardIsKeyDown( Key::DownArrow ) ) inputDirection += { 0, -1 };
-    if( KeyboardIsKeyDown( Key::LeftArrow ) ) inputDirection += { -1, 0 };
+    if( Keyboard::KeyboardIsKeyDown( Keyboard::Key::RightArrow ) ) inputDirection += { 1, 0 };
+    if( Keyboard::KeyboardIsKeyDown( Keyboard::Key::UpArrow ) ) inputDirection += { 0, 1 };
+    if( Keyboard::KeyboardIsKeyDown( Keyboard::Key::DownArrow ) ) inputDirection += { 0, -1 };
+    if( Keyboard::KeyboardIsKeyDown( Keyboard::Key::LeftArrow ) ) inputDirection += { -1, 0 };
     if( inputDirection.Length() )
       inputDirection.Normalize();
     mPlayer->mInputDirection = inputDirection;
-    mPlayer->mIsSpaceJustDown = KeyboardIsKeyDown( Key::Spacebar );
+    mPlayer->mIsSpaceJustDown = Keyboard::KeyboardIsKeyDown( Keyboard::Key::Spacebar );
   }
 
   Ghost::Ghost()
@@ -226,25 +227,25 @@ namespace Tac
     if( IsPartyFull() )
       return;
 
-    Vector< Input::ControllerIndex > claimedControllerIndexes;
+    Vector< Controller::ControllerIndex > claimedControllerIndexes;
     for( User* user : mUsers )
       if( user->mHasControllerIndex )
         claimedControllerIndexes.push_back( user->mControllerIndex );
 
-    TAC_ASSERT( ( int )claimedControllerIndexes.size() < Input::TAC_CONTROLLER_COUNT_MAX );
+    TAC_ASSERT( ( int )claimedControllerIndexes.size() < Controller::TAC_CONTROLLER_COUNT_MAX );
 
-    for( Input::ControllerIndex controllerIndex = 0;
-         controllerIndex < Input::TAC_CONTROLLER_COUNT_MAX;
+    for( Controller::ControllerIndex controllerIndex = 0;
+         controllerIndex < Controller::TAC_CONTROLLER_COUNT_MAX;
          ++controllerIndex )
     {
       if( Contains( claimedControllerIndexes, controllerIndex ) )
         continue;
 
-      Input::Controller* controller = Input::GetController( controllerIndex );
+      Controller::Controller* controller = Controller::GetController( controllerIndex );
       if( !controller )
         continue;
 
-      if( !Input::IsButtonJustPressed( Input::ControllerButton::Start, controller ) )
+      if( !Controller::IsButtonJustPressed( Controller::ControllerButton::Start, controller ) )
         continue;
 
       User* user = AddPlayer( "Player " + ToString( ( int )mUsers.size() ), errors );
@@ -471,5 +472,5 @@ namespace Tac
   //}
   //static_assert( std::is_same< decltype( TAC_GHOST_CREATE ), GhostCreateFn > ::value, "" );
 
-  }
+} // namespace Tac
 

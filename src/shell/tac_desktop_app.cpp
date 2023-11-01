@@ -329,13 +329,13 @@ namespace Tac
 
         // To reduce input latency, update the game soon after polling the controller.
 
-        Input::Keyboard::KeyboardBeginFrame();
-        Input::Mouse::MouseBeginFrame();
+        Keyboard::KeyboardBeginFrame();
+        Mouse::MouseBeginFrame();
 
         ImGuiFrameBegin( ShellGetElapsedSeconds(),
           sPlatformGetMouseHoveredWindow() );
 
-        Input::UpdateJoysticks();
+        Controller::UpdateJoysticks();
 
         sProjectUpdate( errors );
         TAC_HANDLE_ERROR( errors );
@@ -343,8 +343,8 @@ namespace Tac
         ImGuiFrameEnd( errors );
         TAC_HANDLE_ERROR( errors );
 
-        Input::Keyboard::KeyboardEndFrame();
-        Input::Mouse::MouseEndFrame();
+        Keyboard::KeyboardEndFrame();
+        Mouse::MouseEndFrame();
       }
 
       Render::SubmitFrame();
