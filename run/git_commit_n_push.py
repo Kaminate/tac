@@ -78,6 +78,8 @@ if len( repos_to_commit ) != 0:
 
     print("Please enter commit msg: ")
     commit_msg = input()
+    if len(commit_msg) == 0:
+        commit_msg = "asdf"
 
     for repo in repos_to_commit:
         print( f'pushing to {repo.remotes.origin.url}')
