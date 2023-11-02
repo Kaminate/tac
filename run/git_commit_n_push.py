@@ -1,35 +1,16 @@
-# This file does ...
+# This file commits and pushes the root git directory and all submodules
 #
 
 import tac_utils
-
-import os
 import logging
 import git
 
 
 tac_utils.BeginFile(__file__)
 
-print("hi")
-root_repo = git.Repo(tac_utils.tac_root)
-
-change_lines = []
+root_repo       = git.Repo(tac_utils.tac_root)
+change_lines    = []
 repos_to_commit = []
-
-def PrintRepoPath( repo ):
-    print( f'{repo.working_tree_dir} {repo.remotes.origin.url}' )
-
-###
-
-
-#          | name of remote repositiory you are connected to
-#          v 
-# git push origin master
-
-# repo.submodules
-#   https://gitpython.readthedocs.io/en/stable/reference.html#git.repo.base.Repo.submodules
-
-
 
 def VisitRepo(repo):
 
@@ -94,5 +75,7 @@ if len( repos_to_commit ) != 0:
 
         except Exception as e:
             print(e) 
+else:
+    print("no changes")
 
 tac_utils.EndFile(__file__)
