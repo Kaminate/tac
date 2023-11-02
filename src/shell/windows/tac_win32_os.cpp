@@ -284,13 +284,13 @@ namespace Tac
     TAC_RAISE_ERROR_IF( !SetCursorPos( ( int )pos.x, ( int )pos.y ), Win32GetLastErrorString(), errors );
   }
 
-  static void* Win32OSGetLoadedDLL( StringView name )
+  static void* Win32OSGetLoadedDLL( const StringView& name )
   {
     HMODULE moduleHandle = GetModuleHandleA( name.c_str() );
     return moduleHandle;
   }
 
-  static void* Win32OSLoadDLL( StringView path )
+  static void* Win32OSLoadDLL( const StringView& path )
   {
     HMODULE lib = LoadLibraryA( path.c_str() );
     return lib;
@@ -419,7 +419,7 @@ namespace Tac
     Win32DebugBreak();
   }
 
-  static void Win32OSDebugPopupBox( StringView s )
+  static void Win32OSDebugPopupBox( const StringView& s )
   {
     MessageBox( nullptr, s.data(), nullptr, MB_OK );
   }

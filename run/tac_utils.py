@@ -12,30 +12,73 @@
 
 import os
 import logging
+import subprocess
+import importlib.util
+
+# --------------------------------------------------------------------------------------------------
+
+# --------------------------------------------------------------------------------------------------
+
+# Functions to install a python module
+
+def PrintFile(file, state):
+    basename = os.path.basename(__file__)
+    logging.debug( '----- ' + basename + ' ' + state + ' -----'  )
+
+def BeginFile(file):
+    PrintFile(file, 'begin')
+
+def EndFile(file):
+    PrintFile(file, 'end')
+
+def RunSubprocess( args ):
+    logging.debug('> ' + ' '.join(args))
+    subprocess.run(args)
+
+def Uninstall(moduleName):
+    RunSubprocess(["pip", "uninstall", moduleName, "-y"])
+
+def IsInstalled(importName):
+  spec = importlib.util.find_spec(importName)
+  return spec is not None
+
+def Install(importName, moduleName):
+  if IsInstalled(importName):
+    logging.debug(moduleName + ' is installed')
+  else:
+    RunSubprocess(["pip", "install", moduleName])
+
+
+# --------------------------------------------------------------------------------------------------
+logging.basicConfig(level="INFO") # NOTSET, DEBUG, INFO, WARNING, ERROR, CRITICAL
+
+BeginFile(__file__)
+
+# --------------------------------------------------------------------------------------------------
+
+# set TAC_ROOT env var
 
 tac_root_env_key = 'TAC_ROOT'
-
-logging.basicConfig(level="INFO")
-
 tac_root = os.getenv( tac_root_env_key )
 if tac_root is None:
      
-  logging.info( '----- tac_utils.py begin -----'  )
-
-  # cwd      = E:\Users\Nate\Documents\GitHub\tac\run
-  cwd =  os.getcwd();
-  logging.info( 'env TAC_ROOT undefined' )
-  logging.info( ['cwd: ', cwd] )
-
-  # tac_root = E:\Users\Nate\Documents\GitHub\tac
-  # os.path.dirname returns 1st result of os.path.split
-  tac_root = os.path.dirname( os.getcwd() )
-
-  logging.info( ['setting TAC_ROOT to ', tac_root] )
-
+  cwd = os.getcwd(); # E:\Users\Nate\Documents\GitHub\tac\run
+  tac_root = os.path.dirname( cwd ) # E:\Users\Nate\Documents\GitHub\tac
   os.environ[ tac_root_env_key ] = tac_root
 
-  logging.info( '----- tac_utils.py end -----' )
+  logging.debug( 'env TAC_ROOT undefined' )
+  logging.debug( ['cwd: ', cwd] )
+  logging.debug( ['setting TAC_ROOT to ', tac_root] )
 
+def ChangeDirectoryToTacRoot():
+  os.chdir( tac_root )
 
+# --------------------------------------------------------------------------------------------------
 
+# allow use of import git
+
+Install( 'git', 'GitPython' ) 
+
+# --------------------------------------------------------------------------------------------------
+
+EndFile(__file__)

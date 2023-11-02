@@ -233,7 +233,7 @@ namespace Tac
       SDL_TriggerBreakpoint();
     }
 
-    void            SDLOSDebugPopupBox( StringView s ) 
+    void            SDLOSDebugPopupBox( const StringView& s ) 
     {
       SDL_ShowSimpleMessageBox( SDL_MESSAGEBOX_ERROR, "Hello", s, nullptr );
     }
