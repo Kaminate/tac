@@ -36,18 +36,13 @@ def VisitRepo(repo):
 
 
 
-# ONLY_DO_FIRST_SUBMODULE = True
-
 for sm in root_repo.submodules:
 
     if sm.exists() and sm.module_exists():
         repo = sm.module()
         VisitRepo(repo)
 
-    # if ONLY_DO_FIRST_SUBMODULE:
-        # break
 
-# if not ONLY_DO_FIRST_SUBMODULE:
 VisitRepo(root_repo)
 
 
