@@ -75,7 +75,5 @@ if len( repos_to_commit ) != 0:
 
         except Exception as e:
             print(e) 
-else:
-    print("no changes")
 
 tac_utils.EndFile(__file__)
