@@ -564,6 +564,13 @@ namespace Tac
 
   }
 
+  static v3 GetAxis( int i )
+  {
+    v3 v = { 0, 0, 0 };
+    v[ i ] = 1;
+    return v;
+  }
+
   void CreationGameWindow::RenderEditorWidgetsSelection( Render::ViewHandle viewHandle )
   {
     if( !sGizmosEnabled || gCreation.mSelectedEntities.empty() )
@@ -586,35 +593,51 @@ namespace Tac
 
     for( int i = 0; i < 3; ++i )
     {
-      v4 color = { 0, 0, 0, 1 };
-      color[ i ] = 1;
 
-      // Widget Translation Arrow
-      DefaultCBufferPerObject perObjectData;
-      perObjectData.Color = color;
-      perObjectData.World
-        = m4::Translate( selectionGizmoOrigin )
-        * rots[ i ]
-        * m4::Scale( v3( 1, 1, 1 ) * mArrowLen );
-      Render::UpdateConstantBuffer( DefaultCBufferPerObject::Handle,
-                                    &perObjectData,
-                                    sizeof( DefaultCBufferPerObject ),
-                                    TAC_STACK_FRAME );
-      AddDrawCall( mArrow, viewHandle );
+      const v3 axis = GetAxis( i );
+      const PremultipliedAlpha premultipliedColor = PremultipliedAlpha::From_sRGB( axis );
+
+        // Widget Translation Arrow
+      {
+        const m4 World
+          = m4::Translate( selectionGizmoOrigin )
+          * rots[ i ]
+          * m4::Scale( v3( 1, 1, 1 ) * mArrowLen );
+
+        const DefaultCBufferPerObject perObjectData
+        {
+          .World = World,
+          .Color = premultipliedColor,
+        };
+
+        Render::UpdateConstantBuffer( DefaultCBufferPerObject::Handle,
+                                      &perObjectData,
+                                      sizeof( DefaultCBufferPerObject ),
+                                      TAC_STACK_FRAME );
+        AddDrawCall( mArrow, viewHandle );
+      }
+
 
       // Widget Scale Cube
-      v3 axis = {};
-      axis[ i ] = 1;
-      perObjectData.World =
-        m4::Translate( selectionGizmoOrigin ) *
-        m4::Translate( axis * ( mArrowLen * 1.1f ) ) *
-        rots[ i ] *
-        m4::Scale( v3( 1, 1, 1 ) * mArrowLen * 0.1f );
-      Render::UpdateConstantBuffer( DefaultCBufferPerObject::Handle,
-                                    &perObjectData,
-                                    sizeof( DefaultCBufferPerObject ),
-                                    TAC_STACK_FRAME );
-      AddDrawCall( mCenteredUnitCube, viewHandle );
+      {
+        const m4 World =
+          m4::Translate( selectionGizmoOrigin ) *
+          m4::Translate( axis * ( mArrowLen * 1.1f ) ) *
+          rots[ i ] *
+          m4::Scale( v3( 1, 1, 1 ) * mArrowLen * 0.1f );
+
+        const DefaultCBufferPerObject perObjectData
+        {
+          .World = World,
+          .Color = premultipliedColor,
+        };
+
+        Render::UpdateConstantBuffer( DefaultCBufferPerObject::Handle,
+                                      &perObjectData,
+                                      sizeof( DefaultCBufferPerObject ),
+                                      TAC_STACK_FRAME );
+        AddDrawCall( mCenteredUnitCube, viewHandle );
+      }
     }
     Render::EndGroup( TAC_STACK_FRAME );
   }
@@ -637,9 +660,14 @@ namespace Tac
       const char* groupName = FrameMemoryPrintf( "editor light %i", iLight );
 
 
-      m4 world = light->mEntity->mWorldTransform;;
+      // Q: why am ii only scaling the m00, and not the m11 and m22?
+      m4 world = light->mEntity->mWorldTransform;
       world.m00 = lightWidgetSize;
-      DefaultCBufferPerObject perObjectData{ .World = world, .Color = v4( 1, 1, 1, 1 )};
+
+      const DefaultCBufferPerObject perObjectData
+      {
+        .World = world,
+      };
 
       Errors errors;
       Render::TextureHandle textureHandle = TextureAssetManager::GetTexture( "assets/editor/light.png", errors );

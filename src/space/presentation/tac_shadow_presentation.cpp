@@ -55,8 +55,12 @@ namespace Tac
     if( !mesh )
       return;
 
-    DefaultCBufferPerObject objBuf{ .World = model->mEntity->mWorldTransform,
-                                    .Color = { model->mColorRGB, 1 } };
+    const DefaultCBufferPerObject objBuf
+    {
+      .World = model->mEntity->mWorldTransform,
+      .Color = PremultipliedAlpha::From_sRGB(  model->mColorRGB ),
+    };
+
     Render::UpdateConstantBuffer( DefaultCBufferPerObject::Handle,
                                   &objBuf,
                                   sizeof( DefaultCBufferPerObject ),

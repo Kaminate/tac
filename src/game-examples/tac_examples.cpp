@@ -114,9 +114,11 @@ namespace Tac
   {
     auto i = ShellGetFrameIndex();
     ImGuiSetNextWindowStretch();
+    ImGuiSetNextWindowDisableBG();
     ImGuiSetNextWindowHandle( sDemoWindow );
     if( !ImGuiBegin( "Examples Demo" ) )
       return;
+
     TAC_ON_DESTRUCT( ImGuiEnd() );
 
     DesktopWindowState* demoWindowState = GetDesktopWindowState( sDemoWindow );

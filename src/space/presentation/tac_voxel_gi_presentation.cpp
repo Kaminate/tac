@@ -414,11 +414,11 @@ namespace Tac
         if( !mesh )
           return;
 
-        DefaultCBufferPerObject objBuf;
-        objBuf.Color = { model->mColorRGB, 1 };
-        objBuf.World = model->mEntity->mWorldTransform;
-
-
+        const DefaultCBufferPerObject objBuf =
+        {
+          .World = model->mEntity->mWorldTransform,
+          .Color = PremultipliedAlpha::From_sRGB( model->mColorRGB ),
+        };
 
         for( const SubMesh& subMesh : mesh->mSubMeshes )
         {

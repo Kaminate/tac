@@ -15,6 +15,8 @@ namespace Tac
     //static const ComponentRegistryEntry* GetEntryStatic();
     //TextureUUID                        mTextureUUID = NullTextureUUID;
     //GeometryUUID                       mGeometryUUID = NullGeometryUUID;
+
+    //                                   todo: rename mColor_sRGB
     v3                                   mColorRGB = { 1, 1, 1 };
     AssetPathString                      mModelPath;
     int                                  mModelIndex = -1;

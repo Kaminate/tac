@@ -169,8 +169,11 @@ namespace Tac
     if( !mesh )
       return;
 
-    const DefaultCBufferPerObject perObjectData{ .World = model->mEntity->mWorldTransform,
-                                                 .Color = { model->mColorRGB, 1 }};
+    const DefaultCBufferPerObject perObjectData
+    {
+      .World = model->mEntity->mWorldTransform,
+      .Color = PremultipliedAlpha::From_sRGB( model->mColorRGB ),
+    };
 
     Render::DrawCallTextures drawCallTextures;
     CBufferLights cBufferLights;
@@ -479,7 +482,7 @@ namespace Tac
       const Render::TextureHandle noiseTexture =
         TextureAssetManager::GetTexture( terrain->mNoiseTexturePath, mGetTextureErrorsNoise );
 
-      DefaultCBufferPerObject cbuf { .World = m4::Identity(), .Color = { 1, 1, 1, 1 }};
+      const DefaultCBufferPerObject cbuf;
 
       Render::SetTexture( Render::DrawCallTextures{ terrainTexture, noiseTexture } );
       Render::UpdateConstantBuffer( DefaultCBufferPerObject::Handle,
