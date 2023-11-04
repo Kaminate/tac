@@ -46,6 +46,23 @@ for sm in root_repo.submodules:
 VisitRepo(root_repo)
 
 
+commit_msg = ""
+
+def CommitAndPush( repo ):
+    try:
+        print( f'commit and pushing to {repo.remotes.origin.url}')
+
+        # Same as git commit -m commit_msg
+        repo.index.commit(commit_msg) 
+
+        origin = repo.remote(name='origin')
+
+        # Same as git push
+        origin.push() 
+
+    except Exception as e:
+        print(e) 
+
 if len( repos_to_commit ) != 0:
 
     # Print changed lines so the user knows what commit msg to write
@@ -58,17 +75,13 @@ if len( repos_to_commit ) != 0:
         commit_msg = "asdf"
 
     for repo in repos_to_commit:
-        print( f'pushing to {repo.remotes.origin.url}')
-        try:
-            # Same as git commit -m commit_msg
-            repo.index.commit(commit_msg) 
+        if repo != root_repo:
+          CommitAndPush( repo )
 
-            origin = repo.remote(name='origin')
+# Revisit the root to see if we can pickup the sumbodule change
+VisitRepo(root_repo)
 
-            # Same as git push
-            origin.push() 
-
-        except Exception as e:
-            print(e) 
+if root_repo in repos_to_commit:
+  CommitAndPush( root_repo )
 
 tac_utils.EndFile(__file__)
