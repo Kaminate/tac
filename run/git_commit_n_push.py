@@ -46,7 +46,7 @@ for sm in root_repo.submodules:
 VisitRepo(root_repo)
 
 
-commit_msg = ""
+commit_msg = ''
 
 def CommitAndPush( repo ):
     try:
@@ -69,10 +69,10 @@ if len( repos_to_commit ) != 0:
     for line in change_lines:
         print(line)
 
-    print("Please enter commit msg: ")
+    print('Please enter commit msg: ', end='')
     commit_msg = input()
     if len(commit_msg) == 0:
-        commit_msg = "asdf"
+        commit_msg = 'asdf'
 
     for repo in repos_to_commit:
         if repo != root_repo:
