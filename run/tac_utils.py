@@ -14,6 +14,7 @@ import os
 import logging
 import subprocess
 import importlib.util
+import time
 
 # --------------------------------------------------------------------------------------------------
 
@@ -22,14 +23,17 @@ import importlib.util
 # Functions to install a python module
 
 def PrintFile(file, state):
-    basename = os.path.basename(__file__)
+    basename = os.path.basename(file)
     logging.debug( '----- ' + basename + ' ' + state + ' -----'  )
 
 def BeginFile(file):
     PrintFile(file, 'begin')
+    return time.time()
 
-def EndFile(file):
-    PrintFile(file, 'end')
+def EndFile(file, beginTime):
+    elapsedSecs = time.time() - beginTime
+    PrintFile(file, 'end' + f' ({round(elapsedSecs,2)}s)')
+
 
 def RunSubprocess( args ):
     logging.debug('> ' + ' '.join(args))
@@ -50,9 +54,18 @@ def Install(importName, moduleName):
 
 
 # --------------------------------------------------------------------------------------------------
-logging.basicConfig(level="INFO") # NOTSET, DEBUG, INFO, WARNING, ERROR, CRITICAL
 
-BeginFile(__file__)
+def SetLogLevel( level ):
+
+  logging.getLogger().setLevel( level )
+
+
+# --------------------------------------------------------------------------------------------------
+
+ # NOTSET, DEBUG, INFO, WARNING, ERROR, CRITICAL
+logging.basicConfig(level="INFO")
+
+beginTime = BeginFile(__file__)
 
 # --------------------------------------------------------------------------------------------------
 
@@ -81,4 +94,4 @@ Install( 'git', 'GitPython' )
 
 # --------------------------------------------------------------------------------------------------
 
-EndFile(__file__)
+EndFile(__file__, beginTime)
