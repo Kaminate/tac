@@ -1,12 +1,16 @@
+# Tac
 This repository contains the full source code, game assets, and formal documentation for the Tac 2D game engine.
 
-# Repository Structure
+## Repository Structure
 ```
-src/                    C++ source code
 assets/                 Runtime loaded by the game (sound, textures, models...)
+cmake/                  The directory CMAKE_MODULE_PATH is set to for find_package to find Find<package>.cmake files
+run/                    Scripts
+src/                    C++ source code
+include/                GL stuff
 ```
 
-# Getting the source
+## Getting the source
 
 
 ```
@@ -23,7 +27,7 @@ git clone --recurse-submodules https://github.com/Kaminate/tac.git
 ```
 
 
-# Building ( Windows Visual Studio 2019 )
+## Building ( Windows Visual Studio 2019 )
 
 ```
 pushd run
@@ -33,7 +37,7 @@ pushd build_vs2019
 tac.sln
 ```
 
-# Building ( Linux Fedora 32 Visual Studio Code )
+## Building ( Linux Fedora 32 Visual Studio Code )
 
 (untested)
 
@@ -61,7 +65,7 @@ in .vscode/settings.json set
 this is for run/run_unix_makefiles.h
 ```
 
-# Building ( MacOS, Visual Studio Code )
+## Building ( MacOS, Visual Studio Code )
 
 ```
 TODO:
@@ -141,7 +145,7 @@ modify it
 ```
 
 
-# License
+## License
 (c) 2017 Nathan Park  
 This work is liscensed under a Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License.  
 You should have received a copy of the license along with this work.  
