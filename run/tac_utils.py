@@ -18,22 +18,26 @@ import time
 
 # --------------------------------------------------------------------------------------------------
 
-# --------------------------------------------------------------------------------------------------
-
 # Functions to install a python module
 
-def PrintFile(file, state):
-    basename = os.path.basename(file)
-    logging.debug( '----- ' + basename + ' ' + state + ' -----'  )
+
+class FileData:
+  def __init__(self):
+    self.basename = None
+    self.beginTime = None
 
 def BeginFile(file):
-    PrintFile(file, 'begin')
-    return time.time()
+    basename = os.path.basename(file)
+    logging.debug( f'----- {basename} begin -----'  )
 
-def EndFile(file, beginTime):
-    elapsedSecs = time.time() - beginTime
-    PrintFile(file, 'end' + f' ({round(elapsedSecs,2)}s)')
+    fileData = FileData()
+    fileData.basename = basename
+    fileData.beginTime = time.time()
+    return fileData
 
+def EndFile(fileData):
+    elapsedSecs = round(time.time() - fileData.beginTime, 2)
+    logging.debug( '----- {fileData.basename} end ({elapsedSecs}s)-----'  )
 
 def RunSubprocess( args ):
     logging.debug('> ' + ' '.join(args))
@@ -65,7 +69,7 @@ def SetLogLevel( level ):
  # NOTSET, DEBUG, INFO, WARNING, ERROR, CRITICAL
 logging.basicConfig(level="INFO")
 
-beginTime = BeginFile(__file__)
+fileData = BeginFile(__file__)
 
 # --------------------------------------------------------------------------------------------------
 
@@ -94,4 +98,5 @@ Install( 'git', 'GitPython' )
 
 # --------------------------------------------------------------------------------------------------
 
-EndFile(__file__, beginTime)
+EndFile(fileData)
+

@@ -6,7 +6,7 @@ import logging
 import git
 
 
-timeBegin = tac_utils.BeginFile(__file__)
+fileData = tac_utils.BeginFile(__file__)
 
 root_repo       = git.Repo(tac_utils.tac_root)
 change_lines    = []
@@ -84,4 +84,4 @@ VisitRepo(root_repo)
 if root_repo in repos_to_commit:
   CommitAndPush( root_repo )
 
-tac_utils.EndFile(__file__, timeBegin)
+tac_utils.EndFile(fileData)

@@ -7,7 +7,7 @@ import threading
 
 tac_utils.SetLogLevel( 'INFO' )
 
-beginTime = tac_utils.BeginFile(__file__)
+fileData = tac_utils.BeginFile(__file__)
 
 root_repo = git.Repo(tac_utils.tac_root)
 sub_repos = [sm.module() for sm in root_repo.submodules if sm.exists() and sm.module_exists()]
@@ -35,4 +35,5 @@ for name, out in zip(all_repo_names, thread_results):
   print(f"git pull {name} - {out}")
 
 
-tac_utils.EndFile(__file__, beginTime)
+tac_utils.EndFile(fileData)
+
