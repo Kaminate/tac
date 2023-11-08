@@ -2,7 +2,9 @@ include( CMakePrintHelpers )
 
 set( TAC_DEBUGGING FALSE )
 
-set( TAC_SOURCES 
+add_library( TacExamples )
+
+target_sources( TacExamples PRIVATE
   "tac_examples.cpp"
   "tac_examples.h"
   "tac_examples_presentation.cpp"
@@ -11,6 +13,17 @@ set( TAC_SOURCES
   "tac_examples_registry.h"
   "tac_examples_state_machine.cpp"
   "tac_examples_state_machine.h"
+)
+
+set( TAC_SOURCES 
+  #"tac_examples.cpp"
+  #"tac_examples.h"
+  #"tac_examples_presentation.cpp"
+  #"tac_examples_presentation.h"
+  #"tac_examples_registry.cpp"
+  #"tac_examples_registry.h"
+  #"tac_examples_state_machine.cpp"
+  #"tac_examples_state_machine.h"
   CACHE INTERNAL "" FORCE )
 
 # These append to TAC_SOURCES
@@ -20,9 +33,10 @@ add_subdirectory( meta )
 add_subdirectory( phy_sim )
 add_subdirectory( vk )
 add_subdirectory( text )
+add_subdirectory( imgui )
 
 
-add_library( TacExamples )
+# add_library( TacExamples )
 target_sources( TacExamples PRIVATE ${TAC_SOURCES} )
 
 
