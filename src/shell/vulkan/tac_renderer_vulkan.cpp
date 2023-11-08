@@ -1,16 +1,18 @@
-#include "tac_renderer_vulkan.h"
+#include "src/shell/vulkan/tac_renderer_vulkan.h" // self-inc
+
 #include "src/common/core/tac_error_handling.h"
 #include "src/common/shell/tac_shell.h"
 #include "src/shell/tac_desktop_app.h"
 //#include "src/shell/tac_desktop_vk.h"
+#include "src/shell/vulkan/tac_vk_types.h"
 
-#include "tac_vk_types.h"
 #include "VkBootstrap.h"
+
 #include <sstream>
 
 #define MAKE_VK_RESULT_PAIR( vkEnumValue ) { vkEnumValue, TAC_STRINGIFY( vkEnumValue ) },
 
-namespace Tac
+namespace Tac::Render
 {
 
   static std::map< VkResult, const char* > TacVulkanResultStrings = {
@@ -44,6 +46,7 @@ namespace Tac
     MAKE_VK_RESULT_PAIR( VK_ERROR_FRAGMENTATION_EXT )
     MAKE_VK_RESULT_PAIR( VK_ERROR_NOT_PERMITTED_EXT )
   };
+
   void VkCallAux( const char* fnCallWithArgs, VkResult res, Errors& errors )
   {
     std::stringstream ss;
@@ -55,11 +58,10 @@ namespace Tac
       ss << inferredErrorMessage;
       ss << ")";
     }
-    errors.mMessage = ss.str().c_str();
+
+    errors.Append( ss.str().c_str() );
   }
 
-  namespace Render
-  {
 
 
     void RegisterRendererVulkan()
@@ -247,11 +249,9 @@ namespace Tac
     void RendererVulkan::UpdateTextureRegion( Render::CommandDataUpdateTextureRegion*, Errors& ) {};
     void RendererVulkan::UpdateVertexBuffer( Render::CommandDataUpdateVertexBuffer*, Errors& ) {};
 
-    String RendererVulkan::GetShaderPath( StringView ) {
+    AssetPathStringView RendererVulkan::GetShaderPath(  const Render::ShaderNameStringView& ) 
+    {
       return "";
-
     }
 
-  } // namespace Render
-
-} // namespace Tac
+} // namespace Tac::Render

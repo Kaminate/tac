@@ -980,14 +980,17 @@ namespace Tac::Render
                                                       const DrawCall* drawCall )
     {
       const bool isSameView = mBoundViewHandle == drawCall->mViewHandle;
+
       const bool isSameUAV = [ & ]() // this could be replaced with a uav hash
       {
         for( int i = 0; i < TAC_ARRAY_SIZE( DrawCallUAVs::mUAVTextures ); ++i )
           if( drawCall->mDrawCallUAVs.mUAVTextures[ i ] != mBoundDrawCallUAVs.mUAVTextures[ i ] )
             return false;
+
         for( int i = 0; i < TAC_ARRAY_SIZE( DrawCallUAVs::mUAVMagicBuffers ); ++i )
           if( drawCall->mDrawCallUAVs.mUAVMagicBuffers[ i ] != mBoundDrawCallUAVs.mUAVMagicBuffers[ i ] )
             return false;
+
         return false;
       }( );
 

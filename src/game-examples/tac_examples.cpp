@@ -87,24 +87,26 @@ namespace Tac
 
     int offset = 0;
     int iSelected = -1;
+    const int iCurrent = GetCurrExampleIndex();
+    const int n = GetExampleCount();
     if( Example* ex = GetCurrExample() )
     {
-      ImGuiTextf( "Current Example: %s", ex->mName ) ;
+      ImGuiTextf( "Current Example (%i/%i): %s", iCurrent + 1, n, ex->mName ) ;
       offset -= ImGuiButton( "Prev" ) ? 1 : 0;
       ImGuiSameLine();
       offset += ImGuiButton( "Next" ) ? 1 : 0;
     }
 
-    if( ImGuiCollapsingHeader( "Select Example" ) )
+    if( ImGuiCollapsingHeader( "Select Example", ImGuiNodeFlags_DefaultOpen ) )
     {
       TAC_IMGUI_INDENT_BLOCK;
-      for( int i = 0; i < GetExampleCount(); ++i )
-        if( ImGuiSelectable( GetExampleName(i), i == GetCurrExampleIndex() ) )
+      for( int i = 0; i < n; ++i )
+        if( ImGuiSelectable( GetExampleName(i), i == iCurrent ) )
           iSelected = i;
     }
 
     if(offset)
-      SetNextExample( GetCurrExampleIndex() + offset );
+      SetNextExample( iCurrent + offset );
 
     if(iSelected != -1)
       SetNextExample( iSelected );

@@ -174,11 +174,9 @@ namespace Tac
 
   enum IterationExample
   {
-    None,
-    FixedPoint,
-    GaussSeidel,
-
-
+    IterationExample_None,
+    IterationExample_FixedPoint,
+    IterationExample_GaussSeidel,
   };
 
   static IterationExample sIterationExample;
@@ -432,7 +430,7 @@ namespace Tac
         iStepNext = iStep + 1;
     }
 
-    if( sIterationExample == IterationExample::FixedPoint )
+    if( sIterationExample == IterationExample_FixedPoint )
     {
       stepCount = 4;
       if( iStep != iStepNext )
@@ -541,10 +539,10 @@ namespace Tac
       IterationExample prev = sIterationExample;
 
       if( ImGuiButton( "Fixed-Point Iteration" ) )
-        sIterationExample = IterationExample::FixedPoint;
+        sIterationExample = IterationExample_FixedPoint;
 
       if( ImGuiButton( "Gauss-Seidel" ) )
-        sIterationExample = IterationExample::GaussSeidel;
+        sIterationExample = IterationExample_GaussSeidel;
 
       if( sIterationExample != prev )
       {

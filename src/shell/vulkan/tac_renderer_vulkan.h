@@ -124,7 +124,7 @@ void TacVulkanCallAux( TacErrors& errors, TacString functionName, VkResult res )
 
 #define TAC_VK_CALL( errors, call, ... )                                       \
 {                                                                              \
-  VkResult result = call( __VA_ARGS__ );                                       \
+  const VkResult result = call( __VA_ARGS__ );                                 \
   if( result )                                                                 \
   {                                                                            \
     VkCallAux( TAC_STRINGIFY( call ) "( " #__VA_ARGS__ " )", result, errors ); \
@@ -132,14 +132,11 @@ void TacVulkanCallAux( TacErrors& errors, TacString functionName, VkResult res )
   }                                                                            \
 }
 
-namespace Tac
+namespace Tac::Render
 {
 
+    void VkCallAux( const char* fnCallWithArgs, VkResult, Errors& );
 
-  void VkCallAux( const char* fnCallWithArgs, VkResult, Errors& );
-
-  namespace Render
-  {
     void RegisterRendererVulkan();
 
     struct FramebufferVk
@@ -216,14 +213,11 @@ namespace Tac
       void UpdateIndexBuffer( Render::CommandDataUpdateIndexBuffer*, Errors& ) override;
       void UpdateTextureRegion( Render::CommandDataUpdateTextureRegion*, Errors& ) override;
       void UpdateVertexBuffer( Render::CommandDataUpdateVertexBuffer*, Errors& ) override;
-      String GetShaderPath( StringView ) override;
+      AssetPathStringView GetShaderPath(  const Render::ShaderNameStringView& ) override;
 
       FramebufferVk              mFramebuffers[ kMaxFramebuffers ] = {};
       FramebufferHandle          mWindows[ kMaxFramebuffers ];
       int                        mWindowCount = 0;
     };
 
-
-  } // namespace Render
-
-} // namespace Tac
+} // namespace Tac::Render
