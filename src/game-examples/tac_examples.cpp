@@ -168,12 +168,17 @@ namespace Tac
 
   ExecutableStartupInfo          ExecutableStartupInfo::Init()
   {
-    return
+    const ProjectFns projectFns
     {
-      .mAppName = "Examples",
       .mProjectInit = ExamplesInitCallback,
       .mProjectUpdate = ExamplesUpdateCallback,
       .mProjectUninit = ExamplesUninitCallback,
+    };
+
+    return ExecutableStartupInfo
+    {
+      .mAppName = "Examples",
+      .mProjectFns = projectFns,
     };
   }
 

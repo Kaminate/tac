@@ -274,10 +274,18 @@ namespace Tac
 
   ExecutableStartupInfo                ExecutableStartupInfo::Init()
   {
-    return { .mAppName = "Creation",
-    .mProjectInit = CreationInitCallback,
-    .mProjectUpdate = CreationUpdateCallback,
-    .mProjectUninit = CreationUninitCallback, };
+    const ProjectFns creationProjectFns
+    {
+      .mProjectInit = CreationInitCallback,
+      .mProjectUpdate = CreationUpdateCallback,
+      .mProjectUninit = CreationUninitCallback,
+    };
+
+    return ExecutableStartupInfo
+    {
+      .mAppName = "Creation",
+      .mProjectFns = creationProjectFns,
+    };
   }
 
   //===-------------- Creation -------------===//

@@ -97,14 +97,18 @@ namespace Tac
 
     Win32MouseEdgeInit();
 
-    DesktopAppInit( Win32WindowManagerSpawnWindow,
-                    Win32WindowManagerDespawnWindow,
-                    Win32WindowManagerGetCursorUnobscuredWindow,
-                    Win32FrameBegin,
-                    Win32FrameEnd,
-                    Win32MouseEdgeSetMovable,
-                    Win32MouseEdgeSetResizable,
-                    errors );
+    const PlatformFns win32PlatformFns
+    {
+      .mPlatformFrameBegin = Win32FrameBegin,
+      .mPlatformFrameEnd = Win32FrameEnd,
+      .mPlatformSpawnWindow = Win32WindowManagerSpawnWindow,
+      .mPlatformDespawnWindow = Win32WindowManagerDespawnWindow,
+      .mPlatformWindowMoveControls = Win32MouseEdgeSetMovable,
+      .mPlatformWindowResizeControls = Win32MouseEdgeSetResizable,
+      .mPlatformGetMouseHoveredWindow = Win32WindowManagerGetCursorUnobscuredWindow,
+    };
+
+    DesktopAppInit( win32PlatformFns, errors );
     TAC_HANDLE_ERROR( errors );
 
     Win32WindowManagerInit( errors );
