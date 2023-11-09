@@ -1,4 +1,4 @@
-#include "src/creation/tac_creation_asset_view.h" // self-inc
+#include "src/level_editor/tac_level_editor_asset_view.h" // self-inc
 
 #include "src/common/assetmanagers/tac_model_load_synchronous.h"
 #include "src/common/assetmanagers/tac_resident_model_file.h"
@@ -18,7 +18,7 @@
 #include "src/common/system/tac_job_queue.h"
 #include "src/common/system/tac_os.h"
 #include "src/common/thirdparty/cgltf.h"
-#include "src/creation/tac_creation.h"
+#include "src/level_editor/tac_level_editor.h"
 #include "src/space/model/tac_model.h"
 #include "src/space/presentation/tac_game_presentation.h"
 #include "src/space/tac_entity.h"

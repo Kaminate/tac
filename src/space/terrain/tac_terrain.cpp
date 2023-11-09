@@ -127,7 +127,7 @@ namespace Tac
 
     if( MemCmp(
       mEntity->mWorldTransform.data(),
-      mWorldCreationTransform.data(), sizeof( m4 ) ) )
+      mWorldLevelEditorTransform.data(), sizeof( m4 ) ) )
     {
       Recompute();
     }
@@ -144,7 +144,7 @@ namespace Tac
     mSideVertexCount = Min( mSideVertexCount, mTestHeightmapHeight );
     mPower = Max( mPower, 1.0f );
 
-    mWorldCreationTransform = mEntity->mWorldTransform;
+    mWorldLevelEditorTransform = mEntity->mWorldTransform;
 
     const int totalVertexCount = mSideVertexCount * mSideVertexCount;
     terrain->mRowMajorGrid.reserve( totalVertexCount );
@@ -174,7 +174,7 @@ namespace Tac
         pos.x -= halfWidth;
         pos.z -= halfWidth;
 
-        //pos += mWorldCreationPoint;
+        //pos += mWorldLevelEditorPoint;
         pos = ( mEntity->mWorldTransform * v4( pos, 1.0f ) ).xyz();
 
         terrain->mRowMajorGrid.push_back( pos );

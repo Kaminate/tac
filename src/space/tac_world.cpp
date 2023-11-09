@@ -25,15 +25,19 @@ namespace Tac
     }
     mDebug3DDrawData = TAC_NEW Debug3DDrawData;
   }
+
   World::~World()
   {
     for( System* system : mSystems )
       delete system;
+
     for( Player* player : mPlayers )
       delete player;
+
     for( Entity* entity : mEntities )
       delete entity;
   }
+
   Entity* World::SpawnEntity( EntityUUID entityUUID )
   {
     auto entity = TAC_NEW Entity();
@@ -42,12 +46,14 @@ namespace Tac
     mEntities.push_back( entity );
     return entity;
   }
+
   Entity* World::FindEntity( PlayerUUID playerUUID )
   {
     if( Player* player = FindPlayer( playerUUID ) )
       return FindEntity( player->mEntityUUID );
     return nullptr;
   }
+
   Entity* World::FindEntity( EntityUUID entityUUID )
   {
     for( auto entity : mEntities )
@@ -55,6 +61,7 @@ namespace Tac
         return entity;
     return nullptr;
   }
+
   Entity* World::FindEntity( StringView name )
   {
     for( Entity* entity : mEntities )
@@ -62,6 +69,7 @@ namespace Tac
         return entity;
     return nullptr;
   }
+
   void    World::KillEntity( EntityIterator it )
   {
     TAC_ASSERT( it != mEntities.end() );
@@ -114,6 +122,7 @@ namespace Tac
       delete treeEntity;
     }
   }
+
   void    World::KillEntity( Entity* entity )
   {
     auto it = std::find(
@@ -122,6 +131,7 @@ namespace Tac
       entity );
     KillEntity( it );
   }
+
   void    World::KillEntity( EntityUUID entityUUID )
   {
     auto it = std::find_if( mEntities.begin(),
@@ -129,6 +139,7 @@ namespace Tac
                             [ & ]( Entity* entity ) { return entity->mEntityUUID == entityUUID; } );
     KillEntity( it );
   }
+
   Player* World::SpawnPlayer( PlayerUUID playerUUID )
   {
     auto player = TAC_NEW Player();
@@ -137,6 +148,7 @@ namespace Tac
     mPlayers.push_back( player );
     return player;
   }
+
   Player* World::FindPlayer( PlayerUUID playerUUID )
   {
     for( auto player : mPlayers )
@@ -144,6 +156,7 @@ namespace Tac
         return player;
     return nullptr;
   }
+
   Player* World::FindPlayer( EntityUUID entityUUID )
   {
     for( auto player : mPlayers )
@@ -151,6 +164,7 @@ namespace Tac
         return player;
     return nullptr;
   }
+
   void    World::KillPlayer( PlayerUUID playerUUID )
   {
     auto it = std::find_if( mPlayers.begin(),
@@ -162,6 +176,7 @@ namespace Tac
     delete player;
     mPlayers.erase( it );
   }
+
   void    World::ApplyInput( Player* player, float seconds )
   {
     TAC_UNUSED_PARAMETER( seconds );
@@ -186,6 +201,7 @@ namespace Tac
     //stuff->mWaddleParams.Update( player->mInputDirection, seconds );
     //stuff->zCCWEulerRotDeg = stuff->mWaddleParams.mAngle;
   }
+
   void    World::ComputeTransformsRecursively( const m4& parentTransform, Entity* entity )
   {
     m4 localTransform = m4::Transform( entity->mRelativeSpace.mScale,
@@ -211,6 +227,7 @@ namespace Tac
       ComputeTransformsRecursively( *parentTransformForChild, child );
     }
   }
+
   void    World::Step( float seconds )
   {
     TAC_PROFILE_BLOCK;
@@ -248,6 +265,7 @@ namespace Tac
       }
     }
   }
+
   void    World::DeepCopy( const World& world )
   {
     for( auto player : mPlayers )
@@ -273,10 +291,12 @@ namespace Tac
       toEntity->DeepCopy( *fromEntity );
     }
   }
+
   System* World::GetSystem( const SystemRegistryEntry* systemRegistryEntry )
   {
     return mSystems[ systemRegistryEntry->mIndex ];
   }
+
   const System* World::GetSystem( const SystemRegistryEntry* systemRegistryEntry ) const
   {
     return mSystems[ systemRegistryEntry->mIndex ];

@@ -1,4 +1,4 @@
-#include "src/creation/tac_creation_property_window.h" // self-inc
+#include "src/level_editor/tac_level_editor_property_window.h" // self-inc
 
 #include "src/common/assetmanagers/tac_asset.h"
 #include "src/common/core/tac_algorithm.h"
@@ -11,8 +11,8 @@
 #include "src/common/string/tac_string_util.h"
 #include "src/common/system/tac_desktop_window.h"
 #include "src/common/system/tac_os.h"
-#include "src/creation/tac_creation.h"
-#include "src/creation/tac_creation_prefab.h"
+#include "src/level_editor/tac_level_editor.h"
+#include "src/level_editor/tac_level_editor_prefab.h"
 #include "src/shell/tac_desktop_app.h"
 #include "src/shell/tac_desktop_window_graphics.h"
 #include "src/space/model/tac_model.h"

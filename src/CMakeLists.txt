@@ -8,7 +8,7 @@ add_subdirectory(common)
 add_subdirectory(space)
 
 add_subdirectory(shell)
-add_subdirectory(creation)
+add_subdirectory(level_editor)
 add_subdirectory(game)
 add_subdirectory(game-examples)
 add_subdirectory(game-weekendtrace)

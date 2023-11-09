@@ -66,7 +66,7 @@ namespace Tac
       ID3D11RenderTargetView*    mRenderTargetView = nullptr;
       ID3D11Texture2D*           mDepthTexture = nullptr;
       HWND                       mHwnd = nullptr;
-      //StackFrame                 mCreationStackFrame;
+      //StackFrame                 mLevelEditorStackFrame;
       String                     mDebugName;
     };
 

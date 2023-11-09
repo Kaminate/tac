@@ -50,7 +50,7 @@ namespace Tac
     int                            mTestHeightmapHeight = 0;
     float                          mPower = 1;
     Vector< unsigned char >        mTestHeightmapImageMemory;
-    m4                             mWorldCreationTransform = {};
+    m4                             mWorldLevelEditorTransform = {};
 
 
     // do you think this shit should actually be owned by the game presentation?

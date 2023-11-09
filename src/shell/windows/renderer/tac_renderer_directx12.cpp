@@ -558,7 +558,7 @@ void RendererDX12::CreateWindowContext( DesktopWindow* desktopWindow, Errors& er
     properties.Type = D3D12_HEAP_TYPE_CUSTOM;
     properties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_NOT_AVAILABLE;
     properties.MemoryPoolPreference = D3D12_MEMORY_POOL_L1;
-    properties.CreationNodeMask = 1;
+    properties.LevelEditorNodeMask = 1;
     properties.VisibleNodeMask = 1;
 
     D3D12_CLEAR_VALUE clearValue;

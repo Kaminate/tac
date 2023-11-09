@@ -1,4 +1,4 @@
-#include "src/creation/tac_creation_prefab.h" // self-include
+#include "src/level_editor/tac_level_editor_prefab.h" // self-include
 
 #include "src/common/assetmanagers/tac_asset.h"
 #include "src/common/containers/tac_vector.h"
@@ -13,7 +13,7 @@
 #include "src/common/string/tac_string_util.h"
 #include "src/common/system/tac_filesystem.h"
 #include "src/common/system/tac_os.h"
-#include "src/creation/tac_creation.h"
+#include "src/level_editor/tac_level_editor.h"
 #include "src/space/tac_entity.h"
 #include "src/space/tac_world.h"
 
@@ -306,6 +306,16 @@ namespace Tac
   }
   void                PrefabImGui()
   {
+    if( mPrefabs.empty() )
+    {
+      ImGuiText( "no prefabs" );
+      return;
+    }
+
+    if( !ImGuiCollapsingHeader( "Prefabs" ) )
+      return;
+
+    TAC_IMGUI_INDENT_BLOCK;
     for( Prefab* prefab : mPrefabs )
     {
       PrefabImGui( prefab );

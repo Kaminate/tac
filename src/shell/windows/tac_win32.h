@@ -38,10 +38,9 @@ namespace Tac
   int              Win32GetStartupCmdShow();
   String           Win32ErrorStringFromDWORD( DWORD );
 
-  //               ok so like this function should not exist, because the api that returns a HRESULT
-  //               also specifies the possible values that the HRESULT can be from that function
-  //
-  // String        Win32ErrorStringFromHRESULT( HRESULT );
+  //               This function is deleted because any api functions that returns an HRESULT
+  //               also specify the possible HRESULT values/reasons.
+  String           Win32ErrorStringFromHRESULT( HRESULT ) = delete;
 
   String           Win32GetLastErrorString();
   //struct String    Win32GetWindowName( HWND );

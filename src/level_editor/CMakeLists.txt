@@ -56,31 +56,31 @@ function( tac_target )
   endif()
 
   target_sources( ${TAC_TARGET_NAME} PRIVATE 
-    "tac_creation.cpp"
-    "tac_creation.h"
-    "tac_creation_asset_view.cpp"
-    "tac_creation_asset_view.h"
-    "tac_creation_prefab.cpp"
-    "tac_creation_prefab.h"
-    "tac_creation_game_object_menu_window.cpp"
-    "tac_creation_game_object_menu_window.h"
-    "tac_creation_game_window.cpp"
-    "tac_creation_game_window.h"
-    "tac_creation_main_window.cpp"
-    "tac_creation_main_window.h"
-    "tac_creation_profile_window.cpp"
-    "tac_creation_profile_window.h"
-    "tac_creation_property_window.cpp"
-    "tac_creation_property_window.h"
-    "tac_creation_system_window.cpp"
-    "tac_creation_system_window.h"
+    "tac_level_editor.cpp"
+    "tac_level_editor.h"
+    "tac_level_editor_asset_view.cpp"
+    "tac_level_editor_asset_view.h"
+    "tac_level_editor_prefab.cpp"
+    "tac_level_editor_prefab.h"
+    "tac_level_editor_game_object_menu_window.cpp"
+    "tac_level_editor_game_object_menu_window.h"
+    "tac_level_editor_game_window.cpp"
+    "tac_level_editor_game_window.h"
+    "tac_level_editor_main_window.cpp"
+    "tac_level_editor_main_window.h"
+    "tac_level_editor_profile_window.cpp"
+    "tac_level_editor_profile_window.h"
+    "tac_level_editor_property_window.cpp"
+    "tac_level_editor_property_window.h"
+    "tac_level_editor_system_window.cpp"
+    "tac_level_editor_system_window.h"
   )
 
 endfunction()
 
 find_package( SDL2 )
 if( SDL2_FOUND AND FALSE )
-  set( TAC_TARGET_NAME "CreationSDL"  CACHE STRING "" FORCE)
+  set( TAC_TARGET_NAME "LevelEditorSDL"  CACHE STRING "" FORCE)
 
   tac_target()
 
@@ -162,7 +162,7 @@ endif() # if( SDL2_FOUND )
 
 
 if( WIN32 )
-  set( TAC_TARGET_NAME "CreationWin32"  CACHE STRING "" FORCE)
+  set( TAC_TARGET_NAME "LevelEditorWin32"  CACHE STRING "" FORCE)
 
   tac_target()
 

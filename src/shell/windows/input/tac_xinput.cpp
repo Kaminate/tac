@@ -144,7 +144,7 @@ namespace Tac::Controller
     return "???";
   }
 
-  void XInput::Init( Tac::Errors& errors )
+  void XInput::Init( Errors& errors )
   {
     const HRESULT hr = DirectInput8Create( GetModuleHandleA(nullptr),
                                            DIRECTINPUT_VERSION,

@@ -364,7 +364,7 @@ enum class PreferredDeviceType {
 
 class PhysicalDeviceSelector {
 	public:
-	// Requires a vkb::Instance to construct, needed to pass instance creation info.
+	// Requires a vkb::Instance to construct, needed to pass instance level_editor info.
 	explicit PhysicalDeviceSelector (Instance const& instance);
 
 	detail::Result<PhysicalDevice> select () const;
@@ -412,7 +412,7 @@ class PhysicalDeviceSelector {
 	// Require a physical device which supports the features in VkPhysicalDeviceFeatures.
 	PhysicalDeviceSelector& set_required_features (VkPhysicalDeviceFeatures features);
 
-	// Used when surface creation happens after physical device selection.
+	// Used when surface level_editor happens after physical device selection.
 	// Warning: This disables checking if the physical device supports a given surface.
 	PhysicalDeviceSelector& defer_surface_initialization ();
 

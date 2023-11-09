@@ -24,9 +24,8 @@ namespace Tac
     void                       Init( Errors& );
     void                       Update( Errors& );
     void                       LoadTextures( Errors& );
-    void                       ImGui();
-    void                       ImGuiWindows();
-    void                       ImGuiPrefabs();
+    void                       ImGui(Errors&);
+    void                       ImGuiWindows(Errors&);
     void                       ImGuiSaveAs();
     DesktopWindowHandle        mDesktopWindowHandle;
     UIRoot*                    mUIRoot = nullptr;

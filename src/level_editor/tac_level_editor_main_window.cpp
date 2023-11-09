@@ -13,10 +13,10 @@
 #include "src/common/dataprocess/tac_json.h"
 #include "src/common/input/tac_keyboard_input.h"
 #include "src/common/system/tac_os.h"
-#include "src/creation/tac_creation.h"
-#include "src/creation/tac_creation_game_object_menu_window.h"
-#include "src/creation/tac_creation_main_window.h"
-#include "src/creation/tac_creation_prefab.h"
+#include "src/level_editor/tac_level_editor.h"
+#include "src/level_editor/tac_level_editor_game_object_menu_window.h"
+#include "src/level_editor/tac_level_editor_main_window.h"
+#include "src/level_editor/tac_level_editor_prefab.h"
 #include "src/shell/tac_desktop_app.h"
 #include "src/shell/tac_desktop_window_graphics.h"
 #include "src/space/tac_entity.h"
@@ -25,6 +25,7 @@
 namespace Tac
 {
   CreationMainWindow* CreationMainWindow::Instance = nullptr;
+
   CreationMainWindow::CreationMainWindow()
   {
     Instance = this;
@@ -72,35 +73,40 @@ namespace Tac
 
   }
 
-  void CreationMainWindow::ImGuiPrefabs()
-  {
-    if( !ImGuiCollapsingHeader( "Prefabs" ) )
-      return;
-    TAC_IMGUI_INDENT_BLOCK;
-    PrefabImGui();
-  }
-
-  void CreationMainWindow::ImGuiWindows()
+  void CreationMainWindow::ImGuiWindows( Errors& errors )
   {
     ImGuiText( "Windows" );
     ImGuiIndent();
 
-    static Errors createWindowErrors;
     if( ImGuiButton( "System" ) )
-      gCreation.CreateSystemWindow( createWindowErrors );
+    {
+      gCreation.CreateSystemWindow( errors );
+      TAC_HANDLE_ERROR( errors );
+    }
+
     if( ImGuiButton( "Game" ) )
-      gCreation.CreateGameWindow( createWindowErrors );
+    {
+      gCreation.CreateGameWindow( errors );
+      TAC_HANDLE_ERROR( errors );
+    }
+
     if( ImGuiButton( "Properties" ) )
-      gCreation.CreatePropertyWindow( createWindowErrors );
+    {
+      gCreation.CreatePropertyWindow( errors );
+      TAC_HANDLE_ERROR( errors );
+    }
+
     if( ImGuiButton( "Profile" ) )
-      gCreation.CreateProfileWindow( createWindowErrors );
+    {
+      gCreation.CreateProfileWindow( errors );
+      TAC_HANDLE_ERROR( errors );
+    }
 
     if( ImGuiButton( "Asset View" ) )
+    {
       gCreation.mUpdateAssetView = !gCreation.mUpdateAssetView;
+    }
 
-
-    if( createWindowErrors )
-      ImGuiText( createWindowErrors.ToString() );
 
     ImGuiUnindent();
   }
@@ -151,7 +157,8 @@ namespace Tac
       }
     }
   }
-  void CreationMainWindow::ImGui()
+
+  void CreationMainWindow::ImGui(Errors& errors)
   {
     DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
     if( !desktopWindowState->mNativeWindowHandle )
@@ -167,8 +174,11 @@ namespace Tac
     //ImGuiEndMenuBar();
 
     ImGuiSaveAs();
-    ImGuiWindows();
-    ImGuiPrefabs();
+
+    ImGuiWindows(errors);
+    TAC_HANDLE_ERROR( errors );
+
+    PrefabImGui();
 
 
     mCloseRequested |= ImGuiButton( "Close window" );
@@ -205,17 +215,12 @@ namespace Tac
     if( !desktopWindowState->mNativeWindowHandle )
       return;
 
-    ImGui();
+    ImGui( errors );
+    TAC_HANDLE_ERROR( errors );
 
-    Render::Viewport viewport;
-    viewport.mWidth = ( float )desktopWindowState->mWidth;
-    viewport.mHeight = ( float )desktopWindowState->mHeight;
-
-    Render::ScissorRect scissorRect;
-    scissorRect.mXMinRelUpperLeftCornerPixel = 0;
-    scissorRect.mXMaxRelUpperLeftCornerPixel = ( float )desktopWindowState->mWidth;
-    scissorRect.mYMinRelUpperLeftCornerPixel = 0;
-    scissorRect.mYMaxRelUpperLeftCornerPixel = ( float )desktopWindowState->mHeight;
+    const v2 size = desktopWindowState->GetSizeV2();
+    const Render::Viewport viewport = size;
+    const Render::ScissorRect scissorRect = size;
 
     Render::SetViewFramebuffer( viewHandle, framebufferHandle );
     Render::SetViewport( viewHandle, viewport );

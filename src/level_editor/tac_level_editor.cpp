@@ -22,14 +22,14 @@
 #include "src/common/dataprocess/tac_settings.h"
 #include "src/common/system/tac_filesystem.h"
 #include "src/common/string/tac_string_util.h"
-#include "src/creation/tac_creation.h"
-#include "src/creation/tac_creation_asset_view.h"
-#include "src/creation/tac_creation_game_window.h"
-#include "src/creation/tac_creation_main_window.h"
-#include "src/creation/tac_creation_prefab.h"
-#include "src/creation/tac_creation_profile_window.h"
-#include "src/creation/tac_creation_property_window.h"
-#include "src/creation/tac_creation_system_window.h"
+#include "src/level_editor/tac_level_editor.h"
+#include "src/level_editor/tac_level_editor_asset_view.h"
+#include "src/level_editor/tac_level_editor_game_window.h"
+#include "src/level_editor/tac_level_editor_main_window.h"
+#include "src/level_editor/tac_level_editor_prefab.h"
+#include "src/level_editor/tac_level_editor_profile_window.h"
+#include "src/level_editor/tac_level_editor_property_window.h"
+#include "src/level_editor/tac_level_editor_system_window.h"
 #include "src/shell/tac_desktop_app.h"
 #include "src/space/model/tac_model.h"
 #include "src/space/presentation/tac_game_presentation.h"
@@ -274,7 +274,7 @@ namespace Tac
 
   ExecutableStartupInfo                ExecutableStartupInfo::Init()
   {
-    const ProjectFns creationProjectFns
+    const ProjectFns level_editorProjectFns
     {
       .mProjectInit = CreationInitCallback,
       .mProjectUpdate = CreationUpdateCallback,
@@ -284,7 +284,7 @@ namespace Tac
     return ExecutableStartupInfo
     {
       .mAppName = "Creation",
-      .mProjectFns = creationProjectFns,
+      .mProjectFns = level_editorProjectFns,
     };
   }
 

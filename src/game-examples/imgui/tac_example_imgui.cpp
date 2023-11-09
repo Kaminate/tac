@@ -28,5 +28,33 @@ namespace Tac
       ImGuiSameLine();
       ImGuiText(ImGuiGetColName( col ));
     }
+
+    if( ImGuiCollapsingHeader( "DragInts" ) )
+    {
+      TAC_IMGUI_INDENT_BLOCK;
+      static int i1 = 1;
+      static int i2[] = { 1, 2 };
+      static int i3[] = { 1, 2, 3 };
+      static int i4[] = { 1, 2, 3, 4 };
+      ImGuiDragInt( "int1", &i1 );
+      ImGuiDragInt2( "int2", i2 );
+      ImGuiDragInt3( "int3", i3 );
+      ImGuiDragInt4( "int4", i4 );
+    }
+
+    if( ImGuiCollapsingHeader( "DragFloats" ) )
+    {
+      TAC_IMGUI_INDENT_BLOCK;
+
+      static float f1 = 1;
+      static float f2[] = { 1, 2 };
+      static float f3[] = { 1, 2, 3 };
+      static float f4[] = { 1, 2, 3, 4 };
+      ImGuiDragFloat( "f1", &f1 );
+      ImGuiDragFloat2( "f2", f2 );
+      ImGuiDragFloat3( "f3", f3 );
+      ImGuiDragFloat4( "f4", f4 );
+    }
+
   }
 } // namespace Tac

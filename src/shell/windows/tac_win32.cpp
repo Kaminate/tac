@@ -61,11 +61,11 @@ namespace Tac
     return result;
   }
 
-  String           Win32ErrorStringFromHRESULT( const HRESULT hr )
-  {
-    const DWORD dw = ( DWORD )hr; // Is this kosher? NO IDEA
-    return Win32ErrorStringFromDWORD( dw );
-  }
+  //String           Win32ErrorStringFromHRESULT( const HRESULT hr )
+  //{
+  //  const DWORD dw = ( DWORD )hr; // Is this kosher? NO IDEA
+  //  return Win32ErrorStringFromDWORD( dw );
+  //}
 
   String           Win32GetLastErrorString()
   {

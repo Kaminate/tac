@@ -16,9 +16,9 @@
 #include "src/common/memory/tac_frame_memory.h"
 #include "src/common/input/tac_keyboard_input.h"
 #include "src/common/system/tac_os.h"
-#include "src/creation/tac_creation.h"
-#include "src/creation/tac_creation_game_window.h"
-#include "src/creation/tac_creation_prefab.h"
+#include "src/level_editor/tac_level_editor.h"
+#include "src/level_editor/tac_level_editor_game_window.h"
+#include "src/level_editor/tac_level_editor_prefab.h"
 #include "src/shell/tac_desktop_app.h"
 #include "src/shell/tac_desktop_window_graphics.h"
 #include "src/space/graphics/tac_graphics.h"
@@ -58,8 +58,10 @@ namespace Tac
     float        closestDist;
     Entity*      closest;
     int          arrowAxis;
+
     bool IsNewClosest( float dist ) { return pickedObject == PickedObject::None || dist < closestDist; }
   };
+
   static PickData pickData;
 
 
@@ -571,11 +573,10 @@ namespace Tac
     return v;
   }
 
-  void CreationGameWindow::RenderEditorWidgetsSelection( Render::ViewHandle viewHandle )
+  void CreationGameWindow::RenderEditorWidgetsSelection( const Render::ViewHandle viewHandle )
   {
     if( !sGizmosEnabled || gCreation.mSelectedEntities.empty() )
       return;
-
 
     Render::BeginGroup( "Selection", TAC_STACK_FRAME );
 
@@ -585,29 +586,48 @@ namespace Tac
       m4::Identity(),
       m4::RotRadX( 3.14f / 2.0f ), };
 
-
     mDebug3DDrawData->DebugDraw3DCircle( selectionGizmoOrigin,
                                          gCreation.mEditorCamera->mForwards,
                                          mArrowLen );
-
 
     for( int i = 0; i < 3; ++i )
     {
 
       const v3 axis = GetAxis( i );
-      const PremultipliedAlpha premultipliedColor = PremultipliedAlpha::From_sRGB( axis );
+      const PremultipliedAlpha axisPremultipliedColor = PremultipliedAlpha::From_sRGB( axis );
 
-        // Widget Translation Arrow
+
+      // Widget Translation Arrow
       {
+        const bool picked =
+          pickData.pickedObject == PickedObject::WidgetTranslationArrow &&
+          pickData.arrowAxis == i;
+
+        const bool usingTranslationArrow =
+          gCreation.mSelectedGizmo &&
+          gCreation.mTranslationGizmoDir == axis;
+
+        const bool shine = picked || usingTranslationArrow;
+
+        PremultipliedAlpha arrowColor = axisPremultipliedColor;
+        if( shine )
+        {
+          float t = float( Sin( ShellGetElapsedSeconds() * 6.0 ) );
+          t *= t;
+          arrowColor.Color = Lerp( v4( 1, 1, 1, 1 ), axisPremultipliedColor.Color, t );
+
+        }
+
+
         const m4 World
           = m4::Translate( selectionGizmoOrigin )
           * rots[ i ]
-          * m4::Scale( v3( 1, 1, 1 ) * mArrowLen );
+          * m4::Scale( v3( 1, 1, 1 ) * mArrowLen  );
 
         const DefaultCBufferPerObject perObjectData
         {
           .World = World,
-          .Color = premultipliedColor,
+          .Color = arrowColor,
         };
 
         Render::UpdateConstantBuffer( DefaultCBufferPerObject::Handle,
@@ -629,7 +649,7 @@ namespace Tac
         const DefaultCBufferPerObject perObjectData
         {
           .World = World,
-          .Color = premultipliedColor,
+          .Color = axisPremultipliedColor,
         };
 
         Render::UpdateConstantBuffer( DefaultCBufferPerObject::Handle,
@@ -730,74 +750,84 @@ namespace Tac
 
   void CreationGameWindow::ImGuiOverlay( Errors& errors )
   {
-    ImGuiSetNextWindowSize( { 300, 405 } );
+    static bool mHideUI = false;
+    if( mHideUI )
+      return;
+
+    const float w = 400;
+    const float h = (float)GetDesktopWindowState( mDesktopWindowHandle )->mHeight;
+
+    ImGuiSetNextWindowSize( { w, h } );
     ImGuiSetNextWindowHandle( mDesktopWindowHandle );
     ImGuiBegin( "gameplay overlay" );
+
     mCloseRequested |= ImGuiButton( "Close Window" );
 
-    static bool mHideUI = false;
-    if( !mHideUI )
+    ImGuiCheckbox( "Draw grid", &drawGrid );
+    ImGuiCheckbox( "hide ui", &mHideUI ); // for screenshots
+    ImGuiCheckbox( "draw gizmos", &sGizmosEnabled );
+
+
+
+    if( mSoul )
     {
-      ImGuiCheckbox( "Draw grid", &drawGrid );
-      ImGuiCheckbox( "hide ui", &mHideUI );
-      ImGuiCheckbox( "draw gizmos", &sGizmosEnabled );
-
-      if( mSoul )
+      if( ImGuiButton( "End simulation" ) )
       {
-        if( ImGuiButton( "End simulation" ) )
-        {
-          delete mSoul;
-          mSoul = nullptr;
-        }
+        delete mSoul;
+        mSoul = nullptr;
       }
-      else
+    }
+    else
+    {
+      if( ImGuiButton( "Begin simulation" ) )
       {
-        if( ImGuiButton( "Begin simulation" ) )
-        {
-          PlayGame( errors );
-          TAC_HANDLE_ERROR( errors );
-        }
+        PlayGame( errors );
+        TAC_HANDLE_ERROR( errors );
       }
+    }
 
-      if( ImGuiCollapsingHeader( "Camera" ) )
+    if( ImGuiCollapsingHeader( "Camera" ) )
+    {
+      TAC_IMGUI_INDENT_BLOCK;
+      Camera* cam = gCreation.mEditorCamera;
+
+      ImGuiDragFloat( "pan speed", &sWASDCameraPanSpeed );
+      ImGuiDragFloat( "orbit speed", &sWASDCameraOrbitSpeed );
+
+      if( ImGuiCollapsingHeader( "transform" ) )
       {
         TAC_IMGUI_INDENT_BLOCK;
-        Camera* cam = gCreation.mEditorCamera;
-        if( ImGuiCollapsingHeader( "transform" ) )
-        {
-          TAC_IMGUI_INDENT_BLOCK;
-          if( ImGuiCollapsingHeader( "pos" ) )
-            ImGuiDragFloat3( "cam pos", cam->mPos.data() );
-          if( ImGuiCollapsingHeader( "forward" ) )
-            ImGuiDragFloat3( "cam forward", cam->mForwards.data() );
-          if( ImGuiCollapsingHeader( "right" ) )
-            ImGuiDragFloat3( "cam right", cam->mRight.data() );
-          if( ImGuiCollapsingHeader( "up" ) )
-            ImGuiDragFloat3( "cam up", cam->mUp.data() );
-        }
-        if( ImGuiCollapsingHeader( "clipping planes" ) )
-        {
-          TAC_IMGUI_INDENT_BLOCK;
-          ImGuiDragFloat( "cam far", &cam->mFarPlane );
-          ImGuiDragFloat( "cam near", &cam->mNearPlane );
-        }
-        ImGuiDragFloat( "cam fovyrad", &cam->mFovyrad );
-        if( ImGuiButton( "cam snap pos" ) )
-        {
-          cam->mPos.x = ( float )( int )cam->mPos.x;
-          cam->mPos.y = ( float )( int )cam->mPos.y;
-          cam->mPos.z = ( float )( int )cam->mPos.z;
-        }
-        if( ImGuiButton( "cam snap dir" ) )
-          cam->SetForwards( SnapToUnitDir( cam->mForwards ) );
+        ImGuiDragFloat3( "cam pos", cam->mPos.data() );
+        ImGuiDragFloat3( "cam forward", cam->mForwards.data() );
+        ImGuiDragFloat3( "cam right", cam->mRight.data() );
+        ImGuiDragFloat3( "cam up", cam->mUp.data() );
       }
-
-      if( ShellGetElapsedSeconds() < mStatusMessageEndTime )
+      if( ImGuiCollapsingHeader( "clipping planes" ) )
       {
-        ImGuiText( mStatusMessage );
+        TAC_IMGUI_INDENT_BLOCK;
+        ImGuiDragFloat( "cam far", &cam->mFarPlane );
+        ImGuiDragFloat( "cam near", &cam->mNearPlane );
       }
 
+      float deg = RadiansToDegrees(cam->mFovyrad);
+      if( ImGuiDragFloat( "entire y fov(deg)", &deg ) )
+        cam->mFovyrad = DegreesToRadians( deg );
+
+      if( ImGuiButton( "cam snap pos" ) )
+      {
+        cam->mPos.x = ( float )( int )cam->mPos.x;
+        cam->mPos.y = ( float )( int )cam->mPos.y;
+        cam->mPos.z = ( float )( int )cam->mPos.z;
+      }
+      if( ImGuiButton( "cam snap dir" ) )
+        cam->SetForwards( SnapToUnitDir( cam->mForwards ) );
     }
+
+    if( ShellGetElapsedSeconds() < mStatusMessageEndTime )
+    {
+      ImGuiText( mStatusMessage );
+    }
+
     ImGuiEnd();
   }
 

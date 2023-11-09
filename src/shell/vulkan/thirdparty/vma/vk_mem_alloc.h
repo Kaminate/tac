@@ -716,7 +716,7 @@ individually, e.g. by using vmaFreeMemory() or vmaDestroyBuffer(). You can free
 them in any order. New allocations are always made after last one - free space
 in the middle is not reused. However, when you release all the allocation and
 the pool becomes empty, allocation starts from the beginning again. This way you
-can use linear algorithm to speed up creation of allocations that you are going
+can use linear algorithm to speed up level_editor of allocations that you are going
 to release all at once.
 
 ![Free-at-once](../gfx/Linear_allocator_3_free_at_once.png)
@@ -728,7 +728,7 @@ value that allows multiple memory blocks.
 
 When you free an allocation that was created last, its space can be reused.
 Thanks to this, if you always release allocations in the order opposite to their
-creation (LIFO - Last In First Out), you can achieve behavior of a stack.
+level_editor (LIFO - Last In First Out), you can achieve behavior of a stack.
 
 ![Stack](../gfx/Linear_allocator_4_stack.png)
 
@@ -1060,7 +1060,7 @@ which can make allocation calls that use #VMA_ALLOCATION_CREATE_CAN_MAKE_OTHER_L
 flag quite slow. A new, more optimal algorithm and data structure to speed this
 up is planned for the future.
 
-<b>Q: When interleaving creation of new allocations with usage of existing ones,
+<b>Q: When interleaving level_editor of new allocations with usage of existing ones,
 how do you make sure that an allocation won't become lost while it's used in the
 current frame?</b>
 
@@ -1871,8 +1871,8 @@ Features deliberately excluded from the scope of this library:
   explicit memory type index and dedicated allocation anyway, so they don't
   interact with main features of this library. Such special purpose allocations
   should be made manually, using `vkCreateBuffer()` and `vkAllocateMemory()`.
-- Recreation of buffers and images. Although the library has functions for
-  buffer and image creation (vmaCreateBuffer(), vmaCreateImage()), you need to
+- Relevel_editor of buffers and images. Although the library has functions for
+  buffer and image level_editor (vmaCreateBuffer(), vmaCreateImage()), you need to
   recreate these objects yourself after defragmentation. That's because the big
   structures `VkBufferCreateInfo`, `VkImageCreateInfo` are not stored in
   #VmaAllocation object.
@@ -2259,7 +2259,7 @@ right after Vulkan is initialized and keep it alive until before Vulkan device i
         Suggested extension: "csv".
         If the file already exists, it will be overwritten.
         It will be opened for the whole time #VmaAllocator object is alive.
-        If opening this file fails, creation of the whole allocator object fails.
+        If opening this file fails, level_editor of the whole allocator object fails.
         */
         const char* VMA_NOT_NULL pFilePath;
     } VmaRecordSettings;
@@ -2333,7 +2333,7 @@ right after Vulkan is initialized and keep it alive until before Vulkan device i
 
         If not null, it enables recording of calls to VMA functions to a file.
         If support for recording is not enabled using `VMA_RECORDING_ENABLED` macro,
-        creation of the allocator object fails with `VK_ERROR_FEATURE_NOT_PRESENT`.
+        level_editor of the allocator object fails with `VK_ERROR_FEATURE_NOT_PRESENT`.
         */
         const VmaRecordSettings* VMA_NULLABLE pRecordSettings;
         /** \brief Handle to Vulkan instance object.
@@ -3131,7 +3131,7 @@ right after Vulkan is initialized and keep it alive until before Vulkan device i
 
     @param allocator Allocator object.
     @param pVkMemoryRequirements Memory requirements for each allocation.
-    @param pCreateInfo Creation parameters for each alloction.
+    @param pCreateInfo LevelEditor parameters for each alloction.
     @param allocationCount Number of allocations to make.
     @param[out] pAllocations Pointer to array that will be filled with handles to created allocations.
     @param[out] pAllocationInfo Optional. Pointer to array that will be filled with parameters of created allocations.
@@ -3672,7 +3672,7 @@ right after Vulkan is initialized and keep it alive until before Vulkan device i
     The function also frees empty `VkDeviceMemory` blocks.
 
     Warning: This function may be time-consuming, so you shouldn't call it too often
-    (like after every resource creation/destruction).
+    (like after every resource level_editor/destruction).
     You can call it on special occasions (like when reloading a game level or
     when you just destroyed a lot of objects). Calling it every frame may be OK, but
     you should measure that on your platform.
@@ -5933,7 +5933,7 @@ public:
         m_Flags{ userDataString ? (uint8_t)FLAG_USER_DATA_STRING : (uint8_t)0 }
     {
 #if VMA_STATS_STRING_ENABLED
-        m_CreationFrameIndex = currentFrameIndex;
+        m_LevelEditorFrameIndex = currentFrameIndex;
         m_BufferImageUsage = 0;
 #endif
     }
@@ -6064,7 +6064,7 @@ public:
     void DedicatedAllocUnmap(VmaAllocator hAllocator);
 
 #if VMA_STATS_STRING_ENABLED
-    uint32_t GetCreationFrameIndex() const { return m_CreationFrameIndex; }
+    uint32_t GetLevelEditorFrameIndex() const { return m_LevelEditorFrameIndex; }
     uint32_t GetBufferImageUsage() const { return m_BufferImageUsage; }
 
     void InitBufferImageUsage(uint32_t bufferImageUsage)
@@ -6113,7 +6113,7 @@ private:
     };
 
 #if VMA_STATS_STRING_ENABLED
-    uint32_t m_CreationFrameIndex;
+    uint32_t m_LevelEditorFrameIndex;
     uint32_t m_BufferImageUsage; // 0 if unknown.
 #endif
 
@@ -6933,7 +6933,7 @@ private:
     VMA_RW_MUTEX m_Mutex;
 
     /* There can be at most one allocation that is completely empty (except when minBlockCount > 0) -
-    a hysteresis to avoid pessimistic case of alternating creation and destruction of a VkDeviceMemory. */
+    a hysteresis to avoid pessimistic case of alternating level_editor and destruction of a VkDeviceMemory. */
     bool m_HasEmptyBlock;
     // Incrementally sorted by sumFreeSize, ascending.
     VmaVector< VmaDeviceMemoryBlock*, VmaStlAllocator<VmaDeviceMemoryBlock*> > m_Blocks;
@@ -7869,7 +7869,7 @@ public:
 
     /*
     Returns bit mask of memory types that can support defragmentation on GPU as
-    they support creation of required buffer for copy operations.
+    they support level_editor of required buffer for copy operations.
     */
     uint32_t GetGpuDefragmentationMemoryTypeBits();
 
@@ -7953,7 +7953,7 @@ private:
 
     /*
     Calculates and returns bit mask of memory types that can support defragmentation
-    on GPU as they support creation of required buffer for copy operations.
+    on GPU as they support level_editor of required buffer for copy operations.
     */
     uint32_t CalculateGpuDefragmentationMemoryTypeBits() const;
 
@@ -8555,8 +8555,8 @@ void VmaAllocation_T::PrintParameters(class VmaJsonWriter& json) const
         }
     }
 
-    json.WriteString("CreationFrameIndex");
-    json.WriteNumber(m_CreationFrameIndex);
+    json.WriteString("LevelEditorFrameIndex");
+    json.WriteNumber(m_LevelEditorFrameIndex);
 
     json.WriteString("LastUseFrameIndex");
     json.WriteNumber(GetLastUseFrameIndex());

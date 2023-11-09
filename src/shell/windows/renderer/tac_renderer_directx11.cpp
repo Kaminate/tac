@@ -1037,22 +1037,26 @@ namespace Tac::Render
         }
 
         TAC_ASSERT( view->mViewportSet );
-        D3D11_VIEWPORT viewport;
-        viewport.Height = view->mViewport.mHeight;
-        viewport.Width = view->mViewport.mWidth;
-        viewport.TopLeftX = view->mViewport.mBottomLeftX;
-        viewport.TopLeftY = -view->mViewport.mBottomLeftY; // convert opengl to directx
-        viewport.MinDepth = view->mViewport.mMinDepth;
-        viewport.MaxDepth = view->mViewport.mMaxDepth;
+        const D3D11_VIEWPORT viewport
+        {
+          .TopLeftX = view->mViewport.mBottomLeftX,
+          .TopLeftY = -view->mViewport.mBottomLeftY, // convert opengl to directx
+          .Width = view->mViewport.mWidth,
+          .Height = view->mViewport.mHeight,
+          .MinDepth = view->mViewport.mMinDepth,
+          .MaxDepth = view->mViewport.mMaxDepth,
+        };
         mDeviceContext->RSSetViewports( 1, &viewport );
 
         // used if the rasterizer state ScissorEnable is TRUE
         TAC_ASSERT( view->mScissorSet );
-        D3D11_RECT scissor;
-        scissor.bottom = ( LONG )view->mScissorRect.mYMaxRelUpperLeftCornerPixel;
-        scissor.left = ( LONG )view->mScissorRect.mXMinRelUpperLeftCornerPixel;
-        scissor.right = ( LONG )view->mScissorRect.mXMaxRelUpperLeftCornerPixel;
-        scissor.top = ( LONG )view->mScissorRect.mYMinRelUpperLeftCornerPixel;
+        const D3D11_RECT scissor
+        {
+          .left = ( LONG )view->mScissorRect.mXMinRelUpperLeftCornerPixel,
+          .top = ( LONG )view->mScissorRect.mYMinRelUpperLeftCornerPixel,
+          .right = ( LONG )view->mScissorRect.mXMaxRelUpperLeftCornerPixel,
+          .bottom = ( LONG )view->mScissorRect.mYMaxRelUpperLeftCornerPixel,
+        };
         mDeviceContext->RSSetScissorRects( 1, &scissor );
       }
 
@@ -2170,7 +2174,7 @@ namespace Tac::Render
         framebuffer->mHwnd = hwnd;
         framebuffer->mRenderTargetView = rtv;
         framebuffer->mBufferCount = bufferCount;
-        //framebuffer->mCreationStackFrame = data->mStackFrame;
+        //framebuffer->mLevelEditorStackFrame = data->mStackFrame;
         framebuffer->mDebugName = data->mStackFrame.ToString();
 
         mWindows[ mWindowCount++ ] = data->mFramebufferHandle;
@@ -2427,9 +2431,9 @@ namespace Tac::Render
         return name;
       };
 
-      //StringView nameRenderTargetView = getname( framebuffer->mRenderTargetView, framebuffer->mCreationStackFrame );
-      //StringView nameDepthTexture = getname( framebuffer->mDepthTexture, framebuffer->mCreationStackFrame );
-      //StringView nameDepthStencilView = getname( framebuffer->mDepthStencilView, framebuffer->mCreationStackFrame );
+      //StringView nameRenderTargetView = getname( framebuffer->mRenderTargetView, framebuffer->mLevelEditorStackFrame );
+      //StringView nameDepthTexture = getname( framebuffer->mDepthTexture, framebuffer->mLevelEditorStackFrame );
+      //StringView nameDepthStencilView = getname( framebuffer->mDepthStencilView, framebuffer->mLevelEditorStackFrame );
 
       StringView nameRenderTargetView = framebuffer->mDebugName;
       StringView nameDepthTexture = framebuffer->mDebugName;
