@@ -65,21 +65,24 @@ namespace Tac
     const UINT flags = IsDebugMode ? DXGI_CREATE_FACTORY_DEBUG : 0;
     const HRESULT hr = CreateDXGIFactory2( flags, IID_PPV_ARGS( &mFactory ) );
     TAC_RAISE_ERROR_IF( FAILED( hr ), "failed to create dxgi factory", errors );
-    NameDXGIObject( mFactory, "my-dxgi-factory" );
+    DXGISetObjectName( mFactory, "my-dxgi-factory" );
 
     IDXGIAdapter1* dxgiAdapter1;
     SIZE_T maxDedicatedVideoMemory = 0;
     for( UINT i = 0; mFactory->EnumAdapters1( i, &dxgiAdapter1 ) != DXGI_ERROR_NOT_FOUND; ++i )
     {
       TAC_ON_DESTRUCT( dxgiAdapter1->Release() );
+
       DXGI_ADAPTER_DESC1 dxgiAdapterDesc1;
       dxgiAdapter1->GetDesc1( &dxgiAdapterDesc1 );
       if( dxgiAdapterDesc1.DedicatedVideoMemory < maxDedicatedVideoMemory )
         continue;
+
       maxDedicatedVideoMemory = dxgiAdapterDesc1.DedicatedVideoMemory;
       TAC_DXGI_CALL( errors, dxgiAdapter1->QueryInterface, IID_PPV_ARGS( &mDxgiAdapter4 ) );
     }
-    NameDXGIObject( mDxgiAdapter4, "my-dxgi-adaptor" );
+
+    DXGISetObjectName( mDxgiAdapter4, "my-dxgi-adaptor" );
   }
 
   void DXGIUninit()
@@ -143,7 +146,7 @@ namespace Tac
   struct FormatPair
   {
     Render::Format mFormat;
-    DXGI_FORMAT mFormatDXGI;
+    DXGI_FORMAT    mFormatDXGI;
   };
 
   static const FormatPair gFormatPairs[] =
@@ -218,11 +221,25 @@ namespace Tac
   }
 
 
-  void NameDXGIObject( IDXGIObject* object, StringView name )
+  void DXGISetObjectName( IDXGIObject* object, const StringView& name )
   {
+    TAC_ASSERT( object );
     // https://docs.microsoft.com/en-us/windows/desktop/api/dxgi/nf-dxgi-idxgiobject-setprivatedata
-    HRESULT hr = object->SetPrivateData( WKPDID_D3DDebugObjectName, name.size(), name.data() );
+    const HRESULT hr = object->SetPrivateData( WKPDID_D3DDebugObjectName,
+                                               name.size(),
+                                               name.data() );
     TAC_ASSERT( hr == S_OK );
+  }
+
+  String DXGIGetObjectName(IDXGIObject* obj)
+  {
+    TAC_ASSERT( obj );
+    const int kBufSize = 256;
+    char buf[ kBufSize ]{};
+    UINT size = kBufSize;
+    const HRESULT getHr = obj->GetPrivateData( WKPDID_D3DDebugObjectName, &size, buf );
+    TAC_ASSERT( SUCCEEDED( getHr ) || getHr == DXGI_ERROR_NOT_FOUND );
+    return buf;
   }
 
 

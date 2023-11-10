@@ -45,107 +45,17 @@
 #pragma comment( lib, "dxcompiler.lib")
 #endif // End DXC includes
 
+
 namespace Tac::Render
 {
 
-  static bool gVerbose;
+  // -----------------------------------------------------------------------------------------------
 
-  void   RegisterRendererDirectX11()
-  {
-    RendererFactoriesRegister( { RendererNameDirectX11, []() { TAC_NEW RendererDirectX11; } } );
-  }
+#define notconstforsomereason
 
   // -----------------------------------------------------------------------------------------------
 
-  // Macros
-
-#define TAC_DX11_CALL( errors, call, ... )                                                       \
-{                                                                                                \
-  const HRESULT result = call( __VA_ARGS__ );                                                    \
-  if( FAILED( result ) )                                                                         \
-  {                                                                                              \
-    const String errorMsg = DX11CallAux( TAC_STRINGIFY( call ) "( " #__VA_ARGS__ " )", result ); \
-    TAC_RAISE_ERROR( errorMsg, errors );                                                         \
-  }                                                                                              \
-}
-
-#define TAC_DX11_CALL_RETURN( errors, retval, call, ... )                                        \
-{                                                                                                \
-  const HRESULT result = call( __VA_ARGS__ );                                                    \
-  if( FAILED( result ) )                                                                         \
-  {                                                                                              \
-    const String errorMsg = DX11CallAux( TAC_STRINGIFY( call ) "( " #__VA_ARGS__ " )", result ); \
-    TAC_RAISE_ERROR_RETURN( errorMsg, errors, retval );                                          \
-  }                                                                                              \
-}
-
-  // -----------------------------------------------------------------------------------------------
-
-  struct ScopedDXFilter
-  {
-    ScopedDXFilter()
-    {
-      Init();
-    }
-
-    ScopedDXFilter( std::initializer_list< D3D11_MESSAGE_ID > ts )
-    {
-      Init();
-      Push( ts );
-    }
-
-    ~ScopedDXFilter()
-    {
-      if( hide.size() )
-        mInfoQueueDEBUG->PopStorageFilter();
-    }
-
-    void Push( std::initializer_list< D3D11_MESSAGE_ID > ts )
-    {
-      TAC_ASSERT( hide.empty() );
-      for( D3D11_MESSAGE_ID t : ts )
-        hide.push_back( t );
-
-      if( hide.size() )
-      {
-        D3D11_INFO_QUEUE_FILTER filter = {};
-        filter.DenyList.NumIDs = hide.size();
-        filter.DenyList.pIDList = hide.data();
-        mInfoQueueDEBUG->PushStorageFilter( &filter );
-      }
-    }
-
-
-  private:
-    void Init()
-    {
-      RendererDirectX11* renderer = RendererDirectX11::GetInstance();
-      mInfoQueueDEBUG = renderer->mInfoQueueDEBUG;
-    }
-
-    ID3D11InfoQueue*                      mInfoQueueDEBUG = nullptr;
-    FrameMemoryVector< D3D11_MESSAGE_ID > hide;
-  };
-
-#define TAC_SCOPED_DX_FILTER( stuff ) ScopedDXFilter TAC_CONCAT( filter , __COUNTER__)( stuff );
-
-  static AssetPathStringView DirectX11GetShaderPath( const ShaderNameStringView& shaderName )
-  {
-    const char* prefix = "assets/hlsl/";
-    const char* suffix = ".fx";
-    return FrameMemoryPrintf( "%s" TAC_PRI_SV_FMT "%s",
-                              prefix,
-                              TAC_PRI_SV_ARG(shaderName),
-                              suffix );
-    //Filesystem::Path result;
-    //result += shaderName.starts_with( prefix ) ? "" : prefix;
-    //result += shaderName;
-    //result += shaderName.ends_with( suffix ) ? "" : suffix;
-    //return result;
-  }
-
-
-  static String TryInferDX11ErrorStr( HRESULT res )
+  static String TryInferDX11ErrorStr( const HRESULT res )
   {
     switch( res )
     {
@@ -190,13 +100,254 @@ namespace Tac::Render
     }
   }
 
-  static String DX11CallAux( const char* fnCallWithArgs, HRESULT res )
+  static String DX11CallAux( const char* fnCallWithArgs, const HRESULT res )
   {
     String result = va( "%s returned 0x%x", fnCallWithArgs, res );
-    String inferredErrorMessage = TryInferDX11ErrorStr( res );
+    const String inferredErrorMessage = TryInferDX11ErrorStr( res );
     if( !inferredErrorMessage.empty() )
       result += va( "(%s)", inferredErrorMessage.c_str() );
     return result;
+  }
+
+#define TAC_DX11_CALL( errors, call, ... )                                                       \
+{                                                                                                \
+  const HRESULT result = call( __VA_ARGS__ );                                                    \
+  if( FAILED( result ) )                                                                         \
+  {                                                                                              \
+    const String errorMsg = DX11CallAux( TAC_STRINGIFY( call ) "( " #__VA_ARGS__ " )", result ); \
+    TAC_RAISE_ERROR( errorMsg, errors );                                                         \
+  }                                                                                              \
+}
+
+#define TAC_DX11_CALL_RETURN( errors, retval, call, ... )                                        \
+{                                                                                                \
+  const HRESULT result = call( __VA_ARGS__ );                                                    \
+  if( FAILED( result ) )                                                                         \
+  {                                                                                              \
+    const String errorMsg = DX11CallAux( TAC_STRINGIFY( call ) "( " #__VA_ARGS__ " )", result ); \
+    TAC_RAISE_ERROR_RETURN( errorMsg, errors, retval );                                          \
+  }                                                                                              \
+}
+
+  // -----------------------------------------------------------------------------------------------
+
+  template< typename T>
+  static const char* GetShortName() = delete;
+
+  template< typename T>
+  static void        SetDebugName( T* , const StringView& );
+
+  // -----------------------------------------------------------------------------------------------
+
+  // Helper classes
+
+  struct ScopedDXFilter
+  {
+    ScopedDXFilter() = default;
+    ScopedDXFilter( D3D11_MESSAGE_ID* , int );
+    ScopedDXFilter( D3D11_MESSAGE_ID );
+    ~ScopedDXFilter();
+    void Push( D3D11_MESSAGE_ID );
+    void Push( D3D11_MESSAGE_ID* , int );
+
+  private:
+
+    FixedVector< D3D11_MESSAGE_ID, 100 > denyList;
+    int pushCount = 0;
+  };
+  
+
+  // -----------------------------------------------------------------------------------------------
+
+
+  static bool gVerbose;
+
+  void   RegisterRendererDirectX11()
+  {
+    RendererFactoriesRegister( { RendererNameDirectX11, []() { TAC_NEW RendererDirectX11; } } );
+  }
+
+  // -----------------------------------------------------------------------------------------------
+
+  static ID3D11InfoQueue* GetInfoQueue()
+  {
+    RendererDirectX11* renderer = RendererDirectX11::GetInstance();
+    return renderer->mInfoQueueDEBUG;
+  }
+
+  // -----------------------------------------------------------------------------------------------
+
+
+  // -----------------------------------------------------------------------------------------------
+
+  ScopedDXFilter::ScopedDXFilter( D3D11_MESSAGE_ID* msgs, int n ) { Push( msgs, n ); }
+
+  ScopedDXFilter::ScopedDXFilter( D3D11_MESSAGE_ID msg ) { Push( msg ); }
+
+  ScopedDXFilter::~ScopedDXFilter()
+  {
+    ID3D11InfoQueue* mInfoQueueDEBUG = GetInfoQueue();
+    for( int i = 0; i < pushCount; ++i )
+      mInfoQueueDEBUG->PopStorageFilter();
+  }
+
+  void ScopedDXFilter::Push( D3D11_MESSAGE_ID msg ) { Push( &msg, 1 ); }
+
+  void ScopedDXFilter::Push(  D3D11_MESSAGE_ID* msgs, int n )
+  {
+    notconstforsomereason D3D11_MESSAGE_ID* dst = denyList.end();
+    denyList.append_range( msgs, n );
+
+    const D3D11_INFO_QUEUE_FILTER_DESC DenyList =
+    {
+      .NumIDs = (UINT)n,
+      .pIDList = dst,
+    };
+
+    notconstforsomereason D3D11_INFO_QUEUE_FILTER filter =
+    {
+      .DenyList = DenyList
+    };
+
+    ID3D11InfoQueue* mInfoQueueDEBUG = GetInfoQueue();
+    mInfoQueueDEBUG->PushStorageFilter( &filter );
+    pushCount++;
+  }
+
+
+  // -----------------------------------------------------------------------------------------------
+
+  static AssetPathStringView DirectX11GetShaderPath( const ShaderNameStringView& shaderName )
+  {
+    const char* prefix = "assets/hlsl/";
+    const char* suffix = ".fx";
+    return FrameMemoryPrintf( "%s" TAC_PRI_SV_FMT "%s",
+                              prefix,
+                              TAC_PRI_SV_ARG(shaderName),
+                              suffix );
+    //Filesystem::Path result;
+    //result += shaderName.starts_with( prefix ) ? "" : prefix;
+    //result += shaderName;
+    //result += shaderName.ends_with( suffix ) ? "" : suffix;
+    //return result;
+  }
+
+
+
+
+  // -----------------------------------------------------------------------------------------------
+
+  struct BreakStuff
+  {
+    D3D11_MESSAGE_SEVERITY severity;
+    BOOL                   severityBreak;
+  };
+
+  struct BreakStuffs
+  {
+    BreakStuffs();
+    void Resume();
+    void Disable();
+  private:
+    void Add( D3D11_MESSAGE_SEVERITY );
+    FrameMemoryVector< BreakStuff > mBreakStuffs;
+  };
+
+  // -----------------------------------------------------------------------------------------------
+
+  BreakStuffs::BreakStuffs()
+  {
+    Add( D3D11_MESSAGE_SEVERITY_CORRUPTION );
+    Add( D3D11_MESSAGE_SEVERITY_ERROR );
+    Add( D3D11_MESSAGE_SEVERITY_WARNING );
+    //Add( D3D11_MESSAGE_SEVERITY_INFO );
+    //Add( D3D11_MESSAGE_SEVERITY_MESSAGE );
+  }
+
+  void BreakStuffs::Resume()
+  {
+
+    ID3D11InfoQueue* mInfoQueueDEBUG = GetInfoQueue();
+    for( BreakStuff& breakStuff : mBreakStuffs )
+      mInfoQueueDEBUG->SetBreakOnSeverity( breakStuff.severity, breakStuff.severityBreak );
+  }
+
+  void BreakStuffs::Disable()
+  {
+    ID3D11InfoQueue* mInfoQueueDEBUG = GetInfoQueue();
+    for( BreakStuff& breakStuff : mBreakStuffs )
+      mInfoQueueDEBUG->SetBreakOnSeverity( breakStuff.severity, FALSE );
+  }
+
+
+
+  void BreakStuffs::Add( D3D11_MESSAGE_SEVERITY s )
+  {
+    ID3D11InfoQueue* mInfoQueueDEBUG = GetInfoQueue();
+    const BOOL severityBreak = mInfoQueueDEBUG->GetBreakOnSeverity( s );
+    const BreakStuff breakStuff =
+    {
+      .severity = s,
+      .severityBreak = severityBreak,
+    };
+    mBreakStuffs.push_back( breakStuff );
+  }
+
+  // -----------------------------------------------------------------------------------------------
+
+  static void WaitUntilDrawCallFinishes( ID3D11Device* device, ID3D11DeviceContext* deviceContext )
+  {
+    D3D11_QUERY_DESC desc = {};
+    desc.Query = D3D11_QUERY_EVENT;
+    ID3D11Query* query = nullptr;
+    auto createQueryResult = device->CreateQuery( &desc, &query );
+    TAC_ASSERT( SUCCEEDED( createQueryResult ) );
+    deviceContext->End( query );
+
+    for( ;; )
+    {
+      HRESULT getDataResult = deviceContext->GetData( query, nullptr, 0, 0 );
+      if( getDataResult == S_FALSE )
+      {
+        // not finished gpu commands executing
+      }
+      else if( getDataResult == S_OK )
+      {
+        break;
+      }
+      else
+      {
+        TAC_CRITICAL_ERROR_INVALID_CODE_PATH;
+      }
+    }
+
+    query->Release();
+  }
+  // -----------------------------------------------------------------------------------------------
+
+  static IDXGIDebug* GetDXGIDebug()
+  {
+    if( !IsDebugMode )
+      return nullptr;
+
+    HMODULE hModule = GetModuleHandle( "Dxgidebug.dll" );
+    if( !hModule )
+      return nullptr;
+
+    using GetDXGIFn = HRESULT( WINAPI* )( REFIID, void** );
+
+    FARPROC fnAddr = GetProcAddress( hModule, "DXGIGetDebugInterface" );
+    if( !fnAddr )
+      return nullptr;
+
+    GetDXGIFn fn = (GetDXGIFn)fnAddr;
+
+    IDXGIDebug* dxgiDbg = nullptr;
+    const HRESULT hr = fn( IID_PPV_ARGS( &dxgiDbg ) );
+    if( FAILED( hr ) )
+      return nullptr;
+
+    return dxgiDbg; // this must be released by the caller
   }
 
   static void ReportLiveObjects()
@@ -204,70 +355,19 @@ namespace Tac::Render
     if( !IsDebugMode )
       return;
 
-    auto Dxgidebughandle = GetModuleHandle( "Dxgidebug.dll" );
-    if( !Dxgidebughandle )
+    IDXGIDebug* dxgiDbg = GetDXGIDebug();
+    if( !dxgiDbg )
       return;
+    TAC_ON_DESTRUCT( TAC_RELEASE_IUNKNOWN( dxgiDbg ) );
 
-    auto myDXGIGetDebugInterface = ( HRESULT( WINAPI* )( REFIID, void** ) )GetProcAddress( Dxgidebughandle,
-                                                                                           "DXGIGetDebugInterface" );
-    if( !myDXGIGetDebugInterface )
-      return;
-    IDXGIDebug* myIDXGIDebug;
-    const HRESULT hr = myDXGIGetDebugInterface( IID_PPV_ARGS( &myIDXGIDebug ) );
-    if( FAILED( hr ) )
-      return;
+    BreakStuffs breakStuffs;
 
-    struct BreakStuffs
-    {
-    public:
-
-      BreakStuffs()
-      {
-        RendererDirectX11* renderer = RendererDirectX11::GetInstance();
-        mInfoQueueDEBUG = renderer->mInfoQueueDEBUG;
-        Add( D3D11_MESSAGE_SEVERITY_CORRUPTION );
-        Add( D3D11_MESSAGE_SEVERITY_ERROR );
-        Add( D3D11_MESSAGE_SEVERITY_WARNING );
-        //Add( D3D11_MESSAGE_SEVERITY_INFO );
-        //Add( D3D11_MESSAGE_SEVERITY_MESSAGE );
-      }
-
-      void Resume()
-      {
-        for( BreakStuff& breakStuff : mBreakStuffs )
-          mInfoQueueDEBUG->SetBreakOnSeverity( breakStuff.severity, breakStuff.severityBreak );
-      }
-
-      void Disable()
-      {
-        for( BreakStuff& breakStuff : mBreakStuffs )
-          mInfoQueueDEBUG->SetBreakOnSeverity( breakStuff.severity, FALSE );
-      }
-
-    private:
-
-      struct BreakStuff
-      {
-        D3D11_MESSAGE_SEVERITY severity;
-        BOOL                   severityBreak;
-      };
-
-      void Add( D3D11_MESSAGE_SEVERITY s )
-      {
-        BreakStuff breakStuff;
-        breakStuff.severity = s;
-        breakStuff.severityBreak = mInfoQueueDEBUG->GetBreakOnSeverity( s );
-        mBreakStuffs.push_back( breakStuff );
-      }
-
-      FrameMemoryVector< BreakStuff > mBreakStuffs;
-      ID3D11InfoQueue*                mInfoQueueDEBUG = nullptr;
-    } breakStuffs;
+    // | Why is this stuff commented?
+    // | What did it used to do?
+    // v
     //breakStuffs.Disable();
-
-    //myIDXGIDebug->ReportLiveObjects( DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_ALL );
+    //dxgiDbg->ReportLiveObjects( DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_ALL );
     //breakStuffs.Resume();
-    TAC_RELEASE_IUNKNOWN( myIDXGIDebug );
   }
 
   static HashValue HashDrawCallSamplers(const DrawCallSamplers& drawCallSamplers )
@@ -283,10 +383,6 @@ namespace Tac::Render
     return hasher;
   }
 
-  RendererDirectX11* RendererDirectX11::GetInstance()
-  {
-      return ( RendererDirectX11* )Instance;
-  }
 
   static D3D11_TEXTURE_ADDRESS_MODE GetAddressMode( const AddressMode addressMode )
   {
@@ -708,7 +804,7 @@ namespace Tac::Render
                               D3D_BLOB_INPUT_SIGNATURE_BLOB,
                               0,
                               &inputSignature );
-        renderer->SetDebugName( vertexShader, shaderName);
+        SetDebugName( vertexShader, shaderName);
       }
 
       if( hasPS )
@@ -732,7 +828,7 @@ namespace Tac::Render
         if( errors )
           continue;
 
-        renderer->SetDebugName( pixelShader, shaderName );
+        SetDebugName( pixelShader, shaderName );
       }
 
       if( hasGS )
@@ -756,7 +852,7 @@ namespace Tac::Render
         if( errors )
           continue;
 
-        renderer->SetDebugName( geometryShader, shaderName );
+        SetDebugName( geometryShader, shaderName );
       }
 
       break;
@@ -774,12 +870,7 @@ namespace Tac::Render
     };
   }
 
-  //ID3D11Resource*            Texture::GetResource()
-  //{
-  //  return mTexture2D
-  //    ? ( ID3D11Resource* )mTexture2D
-  //    : ( ID3D11Resource* )mTexture3D;
-  //}
+  // -----------------------------------------------------------------------------------------------
 
   RendererDirectX11::~RendererDirectX11()
   {
@@ -872,6 +963,11 @@ namespace Tac::Render
     TAC_RAISE_ERROR_IF( FAILED( queried ), "failed to query id3d11device3", errors );
   }
 
+  RendererDirectX11* RendererDirectX11::GetInstance()
+  {
+      return ( RendererDirectX11* )Instance;
+  }
+
   void RendererDirectX11::RenderBegin( const Frame*, Errors& )
   {
     if( gVerbose )
@@ -928,36 +1024,6 @@ namespace Tac::Render
       OS::OSDebugPrintLine("Render2::End");
   }
 
-#if 1
-  static void WaitUntilDrawCallFinishes( ID3D11Device* device, ID3D11DeviceContext* deviceContext )
-  {
-    D3D11_QUERY_DESC desc = {};
-    desc.Query = D3D11_QUERY_EVENT;
-    ID3D11Query* query = nullptr;
-    auto createQueryResult = device->CreateQuery( &desc, &query );
-    TAC_ASSERT( SUCCEEDED( createQueryResult ) );
-    deviceContext->End( query );
-
-    for( ;; )
-    {
-      HRESULT getDataResult = deviceContext->GetData( query, nullptr, 0, 0 );
-      if( getDataResult == S_FALSE )
-      {
-        // not finished gpu commands executing
-      }
-      else if( getDataResult == S_OK )
-      {
-        break;
-      }
-      else
-      {
-        TAC_CRITICAL_ERROR_INVALID_CODE_PATH;
-      }
-    }
-
-    query->Release();
-  }
-#endif
 
 
   void RendererDirectX11::RenderDrawCallViewAndUAV( const Frame* frame,
@@ -1410,11 +1476,9 @@ namespace Tac::Render
   {
     if( gVerbose )
       OS::OSDebugPrintLine("SwapBuffers::Begin");
+
     for( int iWindow = 0; iWindow < mWindowCount; ++iWindow )
-      //for( int iFramebuffer = 0; iFramebuffer < kMaxFramebuffers; ++iFramebuffer )
     {
-
-
       FramebufferHandle framebufferHandle = mWindows[ iWindow ];
       Framebuffer* framebuffer = &mFramebuffers[ ( int )framebufferHandle ];
       if( !framebuffer->mSwapChain )
@@ -1435,6 +1499,7 @@ namespace Tac::Render
         //mDeviceContext->GSSetShaderResources( 0, 16, nullViews );
       framebuffer->mSwapChain->Present( 0, 0 );
     }
+
     if( gVerbose )
       OS::OSDebugPrintLine("SwapBuffers::End");
   }
@@ -1484,7 +1549,10 @@ namespace Tac::Render
   }
 
 
-  void RendererDirectX11::SetDebugName( IDXGIObject* obj, StringView name )
+  // -----------------------------------------------------------------------------------------------
+
+#if TAC_DELETE_ME()
+  void RendererDirectX11::SetDebugName( IDXGIObject* obj, const StringView& name )
   {
     if( !obj )
       return;
@@ -1503,93 +1571,135 @@ namespace Tac::Render
     return StringView( ( const char* )buf, len );
   }
 
-  // RendererDirectX11::SetDebugName( IDXGIObject* directXObject, ... ) and 
-  // RendererDirectX11::SetDebugName( ID3D11DeviceChild* directXObject, ... ) differ because
-  // both IDXGIObject and ID3D11DeviceChild have the Get/SetPrivateData function,
-  // but IDXGIObject is for the IDXGISwapChain, while
-  // ID3D11DeviceChild is for most directx objects (ID3D11Texture2D, etc)
+#endif()
 
-  struct NameGetterSetter
+  // -----------------------------------------------------------------------------------------------
+
+
+  static String ID3D11DeviceChildGetName(ID3D11DeviceChild* deviceChild)
   {
-    IDXGIObject* dxgiObj = nullptr;
-    ID3D11DeviceChild* dx11Obj = nullptr;
+    TAC_ASSERT( deviceChild );
+    const int kBufSize = 256;
+    char buf[ kBufSize ]{};
+    UINT size = kBufSize;
+    const HRESULT getHr = deviceChild->GetPrivateData( WKPDID_D3DDebugObjectName, &size, buf );
+    TAC_ASSERT( SUCCEEDED( getHr ) || getHr == DXGI_ERROR_NOT_FOUND );
+    return buf;
+  }
+
+
+  static void ID3D11DeviceChildSetName(ID3D11DeviceChild* deviceChild, const StringView& name)
+  {
+    TAC_ASSERT( deviceChild );
+    const UINT n = ( UINT )name.size();
+    const void* s = name.c_str();
+    const HRESULT setHr = deviceChild->SetPrivateData( WKPDID_D3DDebugObjectName, n, s );
+    TAC_ASSERT( SUCCEEDED( setHr ) );
+  }
+
+  // -----------------------------------------------------------------------------------------------
+
+  struct Namer
+  {
+    virtual void SetName(const StringView&) = 0;
+    virtual String GetName() = 0;
   };
 
-  static void SetDebugName( IDXGIObject* dxgiObj,
-                            ID3D11DeviceChild* dx11Obj,
-                            const StringView& name,
-                            const StringView& suffix )
+  struct DXGINamer : public Namer
+  {
+    DXGINamer( IDXGIObject* );
+    void SetName( const StringView& ) override;
+    String GetName() override;
+    IDXGIObject* mObj = nullptr;
+  };
+
+  struct ID3D11DeviceChildNamer : public Namer
+  {
+    ID3D11DeviceChildNamer( ID3D11DeviceChild* );
+    void SetName( const StringView& ) override;
+    String GetName() override;
+    ID3D11DeviceChild* mDeviceChild = nullptr;
+  };
+
+  // -----------------------------------------------------------------------------------------------
+
+  DXGINamer::DXGINamer( IDXGIObject* obj ) : mObj( obj ) {}
+
+  void DXGINamer::SetName( const StringView& name )
+  {
+    DXGISetObjectName( mObj, name );
+  }
+
+  String DXGINamer::GetName()
+  {
+    return DXGIGetObjectName( mObj );
+  }
+
+  // -----------------------------------------------------------------------------------------------
+
+  ID3D11DeviceChildNamer::ID3D11DeviceChildNamer( ID3D11DeviceChild* deviceChild )
+    : mDeviceChild( deviceChild )
+  {
+  }
+
+  void ID3D11DeviceChildNamer::SetName( const StringView& name ) 
+  {
+    ID3D11DeviceChildSetName( mDeviceChild, name );
+  }
+
+  String ID3D11DeviceChildNamer::GetName() 
+  {
+    return ID3D11DeviceChildGetName( mDeviceChild );
+  }
+
+  // -----------------------------------------------------------------------------------------------
+
+  static void SetTDebugName( Namer* namer,
+                             const StringView& name,
+                             const StringView& suffix )
   {
     TAC_ASSERT( IsMainThread() );
     TAC_ASSERT( name.size() );
     TAC_ASSERT( suffix.size() );
     if( !IsDebugMode )
       return;
-    if( !(dxgiObj || dx11Obj))
-      return;
 
-    Array< char, 256 > data = {};
-    UINT privateDataSize = data.size();
+    const String oldName = namer->GetName();
 
-    if( dx11Obj )
-    {
-      const HRESULT getHr = dx11Obj->GetPrivateData( WKPDID_D3DDebugObjectName, &privateDataSize, data.data() );
-      TAC_ASSERT( SUCCEEDED( getHr ) || getHr == DXGI_ERROR_NOT_FOUND );
-    }
-
-    if( dxgiObj )
-    {
-      const HRESULT getHr = dxgiObj->GetPrivateData( WKPDID_D3DDebugObjectName, &privateDataSize, data.data() );
-      TAC_ASSERT( SUCCEEDED( getHr ) || getHr == DXGI_ERROR_NOT_FOUND );
-    }
-
-    String newname;
+    String prefix;
 
     ScopedDXFilter filter;
 
-    if( privateDataSize )
+    const bool kAppendInsteadOfReplace = false;
+
+    if( !oldName.empty() )
     {
-#if 0
-      newname += String( data.data(), privateDataSize );
-      newname += ", and ";
-#endif
-      filter.Push( { D3D11_MESSAGE_ID_SETPRIVATEDATA_CHANGINGPARAMS } );
+      if( kAppendInsteadOfReplace )
+        prefix = oldName + ", and ";
+      else
+        filter.Push( { D3D11_MESSAGE_ID_SETPRIVATEDATA_CHANGINGPARAMS } );
     }
 
-    newname += String( name );
-    newname += " ";
-    newname += String( suffix );
+    const String newname = prefix + String(name) + String(" ") + String(suffix);
 
-
-    const UINT setByteCount = (UINT)newname.size();
-    const void* setBytes = newname.c_str();
-
-    if( dx11Obj )
-    {
-      HRESULT setHr = dx11Obj->SetPrivateData( WKPDID_D3DDebugObjectName, setByteCount, setBytes );
-      TAC_ASSERT( SUCCEEDED( setHr ) );
-    }
-
-    if( dxgiObj )
-    {
-      HRESULT setHr = dxgiObj->SetPrivateData( WKPDID_D3DDebugObjectName, setByteCount, setBytes );
-      TAC_ASSERT( SUCCEEDED( setHr ) );
-    }
-
+    namer->SetName( newname );
   }
 
-  void RendererDirectX11::SetDebugName( IDXGIObject* dxgiObj,
-                                        const StringView& str,
-                                        const StringView& suffix )
-  {
-    Tac::Render::SetDebugName( dxgiObj, nullptr, str, suffix );
-  }
 
-  void RendererDirectX11::SetDebugName( ID3D11DeviceChild* directXObject,
+  static void SetDebugNameAux( IDXGIObject* dxgiObj,
                                         const StringView& name,
                                         const StringView& suffix )
   {
-    Tac::Render::SetDebugName( nullptr, directXObject, name, suffix );
+    DXGINamer namer{ dxgiObj };
+    SetTDebugName( &namer, name, suffix);
+  }
+
+  static void SetDebugNameAux( ID3D11DeviceChild* directXObject,
+                                        const StringView& name,
+                                        const StringView& suffix )
+  {
+    ID3D11DeviceChildNamer namer{ directXObject };
+    SetTDebugName( &namer, name, suffix);
   }
 
   void RendererDirectX11::AddMagicBuffer( CommandDataCreateMagicBuffer* commandDataCreateMagicBuffer,
@@ -2462,24 +2572,9 @@ namespace Tac::Render
 
     D3D11_TEXTURE2D_DESC depthTextureDesc;
     framebuffer->mDepthTexture->GetDesc( &depthTextureDesc );
+
     depthTextureDesc.Width = data->mWidth;
     depthTextureDesc.Height = data->mHeight;
-
-    auto getname = [ this ]( ID3D11DeviceChild* obj, const StackFrame& created ) -> StringView
-    {
-      StringView name = GetDebugName( obj );
-      if( name.empty() )
-        name = created.ToString();
-      return name;
-    };
-
-    //StringView nameRenderTargetView = getname( framebuffer->mRenderTargetView, framebuffer->mLevelEditorStackFrame );
-    //StringView nameDepthTexture = getname( framebuffer->mDepthTexture, framebuffer->mLevelEditorStackFrame );
-    //StringView nameDepthStencilView = getname( framebuffer->mDepthStencilView, framebuffer->mLevelEditorStackFrame );
-
-    StringView nameRenderTargetView = framebuffer->mDebugName;
-    StringView nameDepthTexture = framebuffer->mDebugName;
-    StringView nameDepthStencilView = framebuffer->mDebugName;
 
     // Release outstanding back buffer references prior to calling IDXGISwapChain::ResizeBuffers
     TAC_RELEASE_IUNKNOWN( framebuffer->mRenderTargetView );
@@ -2498,26 +2593,31 @@ namespace Tac::Render
     ID3D11Texture2D* pBackBuffer = nullptr;
     TAC_DXGI_CALL( errors, framebuffer->mSwapChain->GetBuffer, 0, IID_PPV_ARGS( &pBackBuffer ) );
     TAC_RAISE_ERROR_IF( !pBackBuffer, "no buffer to resize", errors );
+
+    const D3D11_RENDER_TARGET_VIEW_DESC* rtvDesc = nullptr;
+
     ID3D11RenderTargetView* rtv = nullptr;
-    D3D11_RENDER_TARGET_VIEW_DESC* rtvDesc = nullptr;
     TAC_DX11_CALL( errors, mDevice->CreateRenderTargetView,
                    pBackBuffer,
                    rtvDesc,
                    &rtv );
 
     TAC_RELEASE_IUNKNOWN( pBackBuffer );
-    SetDebugName( rtv, nameRenderTargetView, "rtv" );
+    SetDebugName( rtv, framebuffer->mDebugName );
 
     ID3D11Texture2D* depthTexture;
     TAC_DX11_CALL( errors, mDevice->CreateTexture2D, &depthTextureDesc, nullptr, &depthTexture );
-    SetDebugName( depthTexture, nameDepthTexture, "2D" );
+    SetDebugName( depthTexture, framebuffer->mDebugName );
+
+    const D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc =
+    {
+      .Format = depthTextureDesc.Format,
+      .ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D,
+    };
 
     ID3D11DepthStencilView* dsv;
-    D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = {};
-    depthStencilViewDesc.Format = depthTextureDesc.Format;
-    depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
     TAC_DX11_CALL( errors, mDevice->CreateDepthStencilView, depthTexture, &depthStencilViewDesc, &dsv );
-    SetDebugName( dsv, nameDepthStencilView, "dsv" );
+    SetDebugName( dsv, framebuffer->mDebugName );
 
     framebuffer->mDepthStencilView = dsv;
     framebuffer->mDepthTexture = depthTexture;
@@ -2527,9 +2627,8 @@ namespace Tac::Render
   void RendererDirectX11::SetRenderObjectDebugName( CommandDataSetRenderObjectDebugName* data,
                                                     Errors& errors )
   {
-    if( data->mFramebufferHandle.IsValid() )
+    if( Framebuffer* framebuffer = FindFramebuffer( data->mFramebufferHandle ) )
     {
-      Framebuffer* framebuffer = &mFramebuffers[ ( int )data->mFramebufferHandle ];
       SetDebugName( framebuffer->mDepthStencilView, data->mName );
       SetDebugName( framebuffer->mRenderTargetView, data->mName );
       SetDebugName( framebuffer->mDepthTexture, data->mName );
@@ -2537,16 +2636,14 @@ namespace Tac::Render
       framebuffer->mDebugName = data->mName;
     }
 
-    if( data->mVertexBufferHandle.IsValid() )
-      SetDebugName( mVertexBuffers[ ( int )data->mVertexBufferHandle ].mBuffer, data->mName );
+    if( VertexBuffer* vb = FindVertexBuffer( data->mVertexBufferHandle ) )
+      SetDebugName( vb->mBuffer, data->mName );
 
-    if( data->mIndexBufferHandle.IsValid() )
+    if( IndexBuffer* ib = FindIndexBuffer( data->mIndexBufferHandle ) )
+      SetDebugName( ib->mBuffer, data->mName );
 
-      SetDebugName( mIndexBuffers[ ( int )data->mIndexBufferHandle ].mBuffer, data->mName );
-
-    if( data->mTextureHandle.IsValid() )
+    if( Texture* texture = FindTexture( data->mTextureHandle ))
     {
-      Texture* texture = &mTextures[ ( int )data->mTextureHandle ];
       SetDebugName( texture->mTexture2D, data->mName );
       SetDebugName( texture->mTexture3D, data->mName );
       SetDebugName( texture->mTextureSRV, data->mName );
@@ -2572,9 +2669,8 @@ namespace Tac::Render
     if( data->mConstantBufferHandle.IsValid() )
       SetDebugName( mConstantBuffers[ ( int )data->mConstantBufferHandle ].mBuffer, data->mName );
 
-    if( data->mMagicBufferHandle.IsValid() )
+    if( MagicBuffer* magicBuffer = FindMagicBuffer(data->mMagicBufferHandle) )
     {
-      MagicBuffer* magicBuffer = &mMagicBuffers[ ( int )data->mMagicBufferHandle ];
       SetDebugName( magicBuffer->mBuffer, data->mName );
       SetDebugName( magicBuffer->mSRV, data->mName );
       SetDebugName( magicBuffer->mUAV, data->mName );
@@ -2594,10 +2690,39 @@ namespace Tac::Render
     mDeviceContext->Unmap( buffer, 0 );
   }
 
-  const Program* RendererDirectX11::FindProgram( const ShaderHandle hShader ) const
+  // -----------------------------------------------------------------------------------------------
+
+  Program* RendererDirectX11::FindProgram( const ShaderHandle hShader )
   {
     return hShader.IsValid() ? &mPrograms[ hShader.GetIndex() ] : nullptr;
   }
+
+  Framebuffer* RendererDirectX11::FindFramebuffer( const FramebufferHandle hFB ) 
+  {
+    return hFB.IsValid() ? &mFramebuffers[ hFB.GetIndex() ] : nullptr;
+  }
+
+  Texture* RendererDirectX11::FindTexture( const TextureHandle hTex )
+  {
+    return hTex.IsValid() ? &mTextures[ hTex.GetIndex() ] : nullptr;
+  }
+
+  IndexBuffer* RendererDirectX11::FindIndexBuffer( const IndexBufferHandle hBuf )
+  {
+    return hBuf.IsValid() ? &mIndexBuffers[ hBuf.GetIndex() ] : nullptr;
+  }
+
+  VertexBuffer* RendererDirectX11::FindVertexBuffer( const VertexBufferHandle hBuf )
+  {
+    return hBuf.IsValid() ? &mVertexBuffers[ hBuf.GetIndex() ] : nullptr;
+  }
+
+  MagicBuffer* RendererDirectX11::FindMagicBuffer( const MagicBufferHandle hBuf )
+  {
+    return hBuf.IsValid() ? &mMagicBuffers[ hBuf.GetIndex() ] : nullptr;
+  }
+
+  // -----------------------------------------------------------------------------------------------
 
   void RendererDirectX11::DebugGroupBegin( StringView desc )
   {
@@ -2624,6 +2749,39 @@ namespace Tac::Render
     if( mUserAnnotationDEBUG )
       mUserAnnotationDEBUG->EndEvent();
 
+  }
+
+  // -----------------------------------------------------------------------------------------------
+
+#define Name(T, str) template<> inline const char* GetShortName<T>() { return str; }
+  Name( ID3D11BlendState,          "bs" );
+  Name( ID3D11Buffer,              "buf" );
+  Name( ID3D11ComputeShader,       "cs" );
+  Name( ID3D11DepthStencilState,   "dss" );
+  Name( ID3D11DepthStencilView,    "dsv" );
+  Name( ID3D11GeometryShader,      "gs" );
+  Name( ID3D11InputLayout,         "il" );
+  Name( ID3D11PixelShader,         "ps" );
+  Name( ID3D11RasterizerState,     "rs" );
+  Name( ID3D11RasterizerState2,    "rs2" );
+  Name( ID3D11RenderTargetView,    "rtv" );
+  Name( ID3D11SamplerState,        "ss" );
+  Name( ID3D11ShaderResourceView,  "srv" );
+  Name( ID3D11Texture2D,           "2d" );
+  Name( ID3D11Texture3D,           "3d" );
+  Name( ID3D11UnorderedAccessView, "uav" );
+  Name( ID3D11VertexShader,        "vs" );
+  Name( IDXGISwapChain,            "sc" );
+#undef Name
+
+  template <typename T>
+  static void SetDebugName<T>( T* t, const StringView& name )
+  {
+    if( !t )
+      return;
+
+    const char* suffix = GetShortName<T>();
+    SetDebugNameAux( t, name, suffix );
   }
 
 } // namespace Tac::Render

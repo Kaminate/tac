@@ -17,269 +17,244 @@
 
 namespace Tac::Render
 {
-    struct ConstantBuffer
-    {
-      ID3D11Buffer* mBuffer = nullptr;
+  struct ConstantBuffer
+  {
+    ID3D11Buffer* mBuffer = nullptr;
 
-      //            mName is used to
-      //            1) Insure that multiple cbuffers aren't created with the same name
-      //            2) Generate Program::mConstantBuffers while processing shader source
-      String        mName;
-    };
+    //            mName is used to
+    //            1) Insure that multiple cbuffers aren't created with the same name
+    //            2) Generate Program::mConstantBuffers while processing shader source
+    String        mName;
+  };
 
-    struct Program
-    {
-      ConstantBuffers            mConstantBuffers;
+  struct Program
+  {
+    ConstantBuffers            mConstantBuffers;
 
-      ID3D11VertexShader*        mVertexShader = nullptr;
-      ID3D11GeometryShader*      mGeometryShader = nullptr;
-      ID3D11PixelShader*         mPixelShader = nullptr;
+    ID3D11VertexShader*        mVertexShader = nullptr;
+    ID3D11GeometryShader*      mGeometryShader = nullptr;
+    ID3D11PixelShader*         mPixelShader = nullptr;
 
-      ID3DBlob*                  mInputSig = nullptr;
-    };
+    ID3DBlob*                  mInputSig = nullptr;
+  };
 
-    struct Texture
-    {
-      ID3D11DepthStencilView*    mTextureDSV = {};
-      ID3D11Texture2D*           mTexture2D = {};
-      ID3D11Texture3D*           mTexture3D = {};
-      ID3D11RenderTargetView*    mTextureRTV = {};
-      ID3D11ShaderResourceView*  mTextureSRV = {};
-      ID3D11UnorderedAccessView* mTextureUAV = {};
-    };
+  struct Texture
+  {
+    ID3D11DepthStencilView*    mTextureDSV = {};
+    ID3D11Texture2D*           mTexture2D = {};
+    ID3D11Texture3D*           mTexture3D = {};
+    ID3D11RenderTargetView*    mTextureRTV = {};
+    ID3D11ShaderResourceView*  mTextureSRV = {};
+    ID3D11UnorderedAccessView* mTextureUAV = {};
+  };
 
-    struct Framebuffer
-    {
-      // Window framebuffers own their depth textures, rtv, dsv.
-      //
-      // Render-to-texture framebuffers do not.
+  struct Framebuffer
+  {
+    // Window framebuffers own their depth textures, rtv, dsv.
+    //
+    // Render-to-texture framebuffers do not.
 
-      FLOAT                      mClearColorRGBA[ 4 ] = { 0, 0, 0, 1 };
-      bool                       mClearEachFrame = true;
+    FLOAT                      mClearColorRGBA[ 4 ] = { 0, 0, 0, 1 };
+    bool                       mClearEachFrame = true;
 
-      int                        mBufferCount = 0;
-      IDXGISwapChain*            mSwapChain = nullptr;
-      ID3D11DepthStencilView*    mDepthStencilView = nullptr;
-      ID3D11RenderTargetView*    mRenderTargetView = nullptr;
-      ID3D11Texture2D*           mDepthTexture = nullptr;
-      HWND                       mHwnd = nullptr;
-      String                     mDebugName;
-    };
+    int                        mBufferCount = 0;
+    IDXGISwapChain*            mSwapChain = nullptr;
+    ID3D11DepthStencilView*    mDepthStencilView = nullptr;
+    ID3D11RenderTargetView*    mRenderTargetView = nullptr;
+    ID3D11Texture2D*           mDepthTexture = nullptr;
+    HWND                       mHwnd = nullptr;
+    String                     mDebugName; // Used when resizing the framebuffer
+  };
 
-    struct VertexBuffer
-    {
-      ID3D11Buffer* mBuffer = nullptr;
-      UINT          mStride = 0;
-      //Format mFormat; bad. format is in the vertexformat
-    };
+  struct VertexBuffer
+  {
+    ID3D11Buffer* mBuffer = nullptr;
+    UINT          mStride = 0;
+    //Format mFormat; bad. format is in the vertexformat
+  };
 
-    struct IndexBuffer
-    {
-      ID3D11Buffer* mBuffer = nullptr;
-      Format        mFormat;
-    };
+  struct IndexBuffer
+  {
+    ID3D11Buffer* mBuffer = nullptr;
+    Format        mFormat;
+  };
 
-    struct MagicBuffer
-    {
-      ID3D11Buffer*              mBuffer = nullptr;
-      ID3D11UnorderedAccessView* mUAV = nullptr;
-      ID3D11ShaderResourceView*  mSRV = nullptr;
-    };
+  struct MagicBuffer
+  {
+    ID3D11Buffer*              mBuffer = nullptr;
+    ID3D11UnorderedAccessView* mUAV = nullptr;
+    ID3D11ShaderResourceView*  mSRV = nullptr;
+  };
 
-    using BoundSrvSlots = Array<
-      ID3D11ShaderResourceView*,
-      D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT >;
+  using BoundSrvSlots = Array<
+    ID3D11ShaderResourceView*,
+    D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT >;
 
-    struct BoundSRVs
-    {
-      static BoundSRVs DrawCallSRVs( const DrawCall* );
+  struct BoundSRVs
+  {
+    static BoundSRVs DrawCallSRVs( const DrawCall* );
 
-      //            Slots are allowed to be empty (ie, not memory contiguous)
-      BoundSrvSlots mBoundShaderResourceViews;
+    //            Slots are allowed to be empty (ie, not memory contiguous)
+    BoundSrvSlots mBoundShaderResourceViews;
 
-      int           mMaxUsedIndex = -1;
-      int           mBoundTextureCount = 0;
-      HashValue     mHash;
-    };
+    int           mMaxUsedIndex = -1;
+    int           mBoundTextureCount = 0;
+    HashValue     mHash = 0;
+  };
 
-    using BoundCBufSlots = Array<
-      ID3D11Buffer*,
-      D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT >;
+  using BoundCBufSlots = Array<
+    ID3D11Buffer*,
+    D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT >;
 
-    struct BoundCBufs
-    {
-      static BoundCBufs ShaderCBufs( const ConstantBuffers& );
+  struct BoundCBufs
+  {
+    static BoundCBufs ShaderCBufs( const ConstantBuffers& );
 
-      BoundCBufSlots mBoundConstantBuffers;
-      int            mMaxUsedIndex = -1;
-      int            mBoundCBufCount = 0;
-      HashValue      mHash;
-    };
+    BoundCBufSlots mBoundConstantBuffers;
+    int            mMaxUsedIndex = -1;
+    int            mBoundCBufCount = 0;
+    HashValue      mHash = 0;
+  };
 
-    struct RendererDirectX11 : public Renderer
-    {
-      ~RendererDirectX11();
+  struct RendererDirectX11 : public Renderer
+  {
+    ~RendererDirectX11();
 
-      // Virtual functions
+    // Virtual functions
 
-      void Init( Errors& ) override;
-      void RenderBegin( const Frame*, Errors& ) override;
-      void RenderDrawCall( const Frame*, const DrawCall*, Errors& ) override;
-      void RenderEnd( const Frame*, Errors& ) override;
-      void SwapBuffers() override;
-      void GetPerspectiveProjectionAB( float f,
-                                       float n,
-                                       float& a,
-                                       float& b ) override;
-      void AddBlendState( CommandDataCreateBlendState*, Errors& ) override;
-      void AddConstantBuffer( CommandDataCreateConstantBuffer*, Errors& ) override;
-      void AddDepthState( CommandDataCreateDepthState*, Errors& ) override;
-      void AddFramebuffer( CommandDataCreateFramebuffer*, Errors& ) override;
-      void AddIndexBuffer( CommandDataCreateIndexBuffer*, Errors& ) override;
-      void AddRasterizerState( CommandDataCreateRasterizerState*, Errors& ) override;
-      void AddSamplerState( CommandDataCreateSamplerState*, Errors& ) override;
-      void AddShader( CommandDataCreateShader*, Errors& ) override;
-      void AddTexture( CommandDataCreateTexture*, Errors& ) override;
-      void AddMagicBuffer( CommandDataCreateMagicBuffer*, Errors& ) override;
-      void AddVertexBuffer( CommandDataCreateVertexBuffer*, Errors& ) override;
-      void AddVertexFormat( CommandDataCreateVertexFormat*, Errors& ) override;
-      void RemoveBlendState( BlendStateHandle, Errors& ) override;
-      void RemoveConstantBuffer( ConstantBufferHandle, Errors& ) override;
-      void RemoveDepthState( DepthStateHandle, Errors& ) override;
-      void RemoveFramebuffer( FramebufferHandle, Errors& ) override;
-      void RemoveIndexBuffer( IndexBufferHandle, Errors& ) override;
-      void RemoveRasterizerState( RasterizerStateHandle, Errors& ) override;
-      void RemoveSamplerState( SamplerStateHandle, Errors& ) override;
-      void RemoveShader( ShaderHandle, Errors& ) override;
-      void RemoveTexture( TextureHandle, Errors& ) override;
-      void RemoveMagicBuffer( MagicBufferHandle, Errors& ) override;
-      void RemoveVertexBuffer( VertexBufferHandle, Errors& ) override;
-      void RemoveVertexFormat( VertexFormatHandle, Errors& ) override;
-      void ResizeFramebuffer( CommandDataResizeFramebuffer*, Errors& ) override;
-      void SetRenderObjectDebugName( CommandDataSetRenderObjectDebugName*, Errors& ) override;
-      void UpdateIndexBuffer( CommandDataUpdateIndexBuffer*, Errors& ) override;
-      void UpdateTextureRegion( CommandDataUpdateTextureRegion*, Errors& ) override;
-      void UpdateVertexBuffer( CommandDataUpdateVertexBuffer*, Errors& ) override;
-      void UpdateConstantBuffer( CommandDataUpdateConstantBuffer*, Errors& ) override;
+    void Init( Errors& ) override;
+    void RenderBegin( const Frame*, Errors& ) override;
+    void RenderDrawCall( const Frame*, const DrawCall*, Errors& ) override;
+    void RenderEnd( const Frame*, Errors& ) override;
+    void SwapBuffers() override;
+    void GetPerspectiveProjectionAB( float f,
+                                     float n,
+                                     float& a,
+                                     float& b ) override;
+    void AddBlendState( CommandDataCreateBlendState*, Errors& ) override;
+    void AddConstantBuffer( CommandDataCreateConstantBuffer*, Errors& ) override;
+    void AddDepthState( CommandDataCreateDepthState*, Errors& ) override;
+    void AddFramebuffer( CommandDataCreateFramebuffer*, Errors& ) override;
+    void AddIndexBuffer( CommandDataCreateIndexBuffer*, Errors& ) override;
+    void AddRasterizerState( CommandDataCreateRasterizerState*, Errors& ) override;
+    void AddSamplerState( CommandDataCreateSamplerState*, Errors& ) override;
+    void AddShader( CommandDataCreateShader*, Errors& ) override;
+    void AddTexture( CommandDataCreateTexture*, Errors& ) override;
+    void AddMagicBuffer( CommandDataCreateMagicBuffer*, Errors& ) override;
+    void AddVertexBuffer( CommandDataCreateVertexBuffer*, Errors& ) override;
+    void AddVertexFormat( CommandDataCreateVertexFormat*, Errors& ) override;
+    void RemoveBlendState( BlendStateHandle, Errors& ) override;
+    void RemoveConstantBuffer( ConstantBufferHandle, Errors& ) override;
+    void RemoveDepthState( DepthStateHandle, Errors& ) override;
+    void RemoveFramebuffer( FramebufferHandle, Errors& ) override;
+    void RemoveIndexBuffer( IndexBufferHandle, Errors& ) override;
+    void RemoveRasterizerState( RasterizerStateHandle, Errors& ) override;
+    void RemoveSamplerState( SamplerStateHandle, Errors& ) override;
+    void RemoveShader( ShaderHandle, Errors& ) override;
+    void RemoveTexture( TextureHandle, Errors& ) override;
+    void RemoveMagicBuffer( MagicBufferHandle, Errors& ) override;
+    void RemoveVertexBuffer( VertexBufferHandle, Errors& ) override;
+    void RemoveVertexFormat( VertexFormatHandle, Errors& ) override;
+    void ResizeFramebuffer( CommandDataResizeFramebuffer*, Errors& ) override;
+    void SetRenderObjectDebugName( CommandDataSetRenderObjectDebugName*, Errors& ) override;
+    void UpdateIndexBuffer( CommandDataUpdateIndexBuffer*, Errors& ) override;
+    void UpdateTextureRegion( CommandDataUpdateTextureRegion*, Errors& ) override;
+    void UpdateVertexBuffer( CommandDataUpdateVertexBuffer*, Errors& ) override;
+    void UpdateConstantBuffer( CommandDataUpdateConstantBuffer*, Errors& ) override;
 
-      // THis could use string hash server...
-      void DebugGroupBegin( StringView ) override;
-      void DebugMarker( StringView ) override;
-      void DebugGroupEnd() override;
-
-
-      // Render draw call functions
-
-      void RenderDrawCallShader( const DrawCall* );
-      void RenderDrawCallBlendState( const DrawCall* );
-      void RenderDrawCallDepthState( const DrawCall* );
-      void RenderDrawCallIndexBuffer( const DrawCall* );
-      void RenderDrawCallVertexBuffer( const DrawCall* );
-      void RenderDrawCallRasterizerState( const DrawCall* );
-      void RenderDrawCallSamplerState( const DrawCall* );
-      void RenderDrawCallVertexFormat( const DrawCall* );
-      void RenderDrawCallViewAndUAV( const Frame*, const DrawCall* );
-      void RenderDrawCallTextures( const DrawCall* );
-      void RenderDrawCallPrimitiveTopology( const DrawCall* );
-      void RenderDrawCallIssueDrawCommand( const DrawCall* );
-
-      AssetPathStringView GetShaderPath( const ShaderNameStringView& ) override;
-
-      // Non-virtual functions
-
-      //void LoadShaderInternal( ShaderDX11LoadData* loadData,
-      //                         String name,
-      //                         String str,
-      //                         Errors& errors );
+    // THis could use string hash server...
+    void DebugGroupBegin( StringView ) override;
+    void DebugMarker( StringView ) override;
+    void DebugGroupEnd() override;
 
 
-      static RendererDirectX11* GetInstance();
+    // Render draw call functions
+
+    void RenderDrawCallShader( const DrawCall* );
+    void RenderDrawCallBlendState( const DrawCall* );
+    void RenderDrawCallDepthState( const DrawCall* );
+    void RenderDrawCallIndexBuffer( const DrawCall* );
+    void RenderDrawCallVertexBuffer( const DrawCall* );
+    void RenderDrawCallRasterizerState( const DrawCall* );
+    void RenderDrawCallSamplerState( const DrawCall* );
+    void RenderDrawCallVertexFormat( const DrawCall* );
+    void RenderDrawCallViewAndUAV( const Frame*, const DrawCall* );
+    void RenderDrawCallTextures( const DrawCall* );
+    void RenderDrawCallPrimitiveTopology( const DrawCall* );
+    void RenderDrawCallIssueDrawCommand( const DrawCall* );
+
+    AssetPathStringView GetShaderPath( const ShaderNameStringView& ) override;
+
+    // Non-virtual functions
+
+    //void LoadShaderInternal( ShaderDX11LoadData* loadData,
+    //                         String name,
+    //                         String str,
+    //                         Errors& errors );
 
 
-      template< typename T> const char* GetShortName() { return nullptr; }
-
-#define Name(T, str) template<> const char* GetShortName<T>() { return str; }
-      Name( ID3D11BlendState,          "bs" );
-      Name( ID3D11Buffer,              "buf" );
-      Name( ID3D11ComputeShader,       "cs" );
-      Name( ID3D11DepthStencilState,   "dss" );
-      Name( ID3D11DepthStencilView,    "dsv" );
-      Name( ID3D11GeometryShader,      "gs" );
-      Name( ID3D11InputLayout,         "il" );
-      Name( ID3D11PixelShader,         "ps" );
-      Name( ID3D11RasterizerState,     "rs" );
-      Name( ID3D11RasterizerState2,    "rs2" );
-      Name( ID3D11RenderTargetView,    "rtv" );
-      Name( ID3D11SamplerState,        "ss" );
-      Name( ID3D11ShaderResourceView,  "srv" );
-      Name( ID3D11Texture2D,           "2d" );
-      Name( ID3D11Texture3D,           "3d" );
-      Name( ID3D11UnorderedAccessView, "uav" );
-      Name( ID3D11VertexShader,        "vs" );
-      Name( IDXGISwapChain,            "sc" );
-#undef Name
-
-      template< typename T>
-      void        SetDebugName( T* t, const StringView& name )
-      {
-        SetDebugName( t, name, GetShortName<T>() );
-      }
-
-      void        SetDebugName( ID3D11DeviceChild*, const StringView& str, const StringView& suffix );
-      void        SetDebugName( IDXGIObject*, const StringView& str, const StringView& suffix );
-
-      StringView  GetDebugName( ID3D11DeviceChild* );
-      void        SetDebugName( IDXGIObject* , StringView );
-      void        UpdateBuffer( ID3D11Buffer*, const void* bytes, int byteCount, Errors& );
-
-      const Program*    FindProgram( ShaderHandle ) const;
-
-      ID3D11InfoQueue*           mInfoQueueDEBUG = nullptr;
-      ID3DUserDefinedAnnotation* mUserAnnotationDEBUG = nullptr;
-      ID3D11Device*              mDevice = nullptr;
-      ID3D11Device3*             mDevice3 = nullptr;
-      ID3D11DeviceContext*       mDeviceContext = nullptr;
-
-      Texture                    mTextures[ kMaxTextures ] = {};
-      MagicBuffer                mMagicBuffers[ kMaxMagicBuffers ] = {};
-      VertexBuffer               mVertexBuffers[ kMaxVertexBuffers ] = {};
-      IndexBuffer                mIndexBuffers[ kMaxIndexBuffers ] = {};
-      Framebuffer                mFramebuffers[ kMaxFramebuffers ] = {};
-      FramebufferHandle          mWindows[ kMaxFramebuffers ];
-      int                        mWindowCount = 0;
-      ID3D11RasterizerState*     mRasterizerStates[ kMaxRasterizerStates ] = {};
-      ID3D11SamplerState*        mSamplerStates[ kMaxSamplerStates ] = {};
-      ID3D11DepthStencilState*   mDepthStencilStates[ kMaxDepthStencilStates ] = {};
-      ID3D11InputLayout*         mInputLayouts[ kMaxInputLayouts ] = {};
-      ID3D11BlendState*          mBlendStates[ kMaxBlendStates ] = {};
-      ConstantBuffer             mConstantBuffers[ kMaxConstantBuffers ] = {};
-      Program                    mPrograms[ kMaxPrograms ] = {};
+    static RendererDirectX11* GetInstance();
 
 
-      //                         Currently bound render variables
-      PrimitiveTopology          mBoundPrimitiveTopology = PrimitiveTopology::Unknown;
-      ID3D11BlendState*          mBoundBlendState = nullptr;
-      ID3D11DepthStencilState*   mBoundDepthStencilState = nullptr;
-      BoundCBufs                 mBoundConstantBuffers;
-      BoundSRVs                  mBoundSRVs;
+    void        UpdateBuffer( ID3D11Buffer*, const void* bytes, int byteCount, Errors& );
 
-      //DrawCallSamplers           mBoundSamplers;
-      Optional< HashValue >      mBoundSamplerHash;
+    Program*          FindProgram( ShaderHandle ) ;
+    Framebuffer*      FindFramebuffer( FramebufferHandle );
+    Texture*          FindTexture( TextureHandle );
+    IndexBuffer*      FindIndexBuffer( IndexBufferHandle );
+    VertexBuffer*     FindVertexBuffer( VertexBufferHandle );
+    MagicBuffer*      FindMagicBuffer( MagicBufferHandle );
 
-      ViewHandle                 mBoundViewHandle;
-      VertexBufferHandle         mBoundVertexBuffer;
-      IndexBufferHandle          mBoundIndexBuffer;
-      bool                       mBoundFramebuffersThisFrame[ kMaxFramebuffers ] = {};
-      DrawCallUAVs               mBoundDrawCallUAVs;
-      VertexFormatHandle         mBoundDrawCallVertexFormat;
+    ID3D11InfoQueue*           mInfoQueueDEBUG = nullptr;
+    ID3DUserDefinedAnnotation* mUserAnnotationDEBUG = nullptr;
+    ID3D11Device*              mDevice = nullptr;
+    ID3D11Device3*             mDevice3 = nullptr;
+    ID3D11DeviceContext*       mDeviceContext = nullptr;
 
-    };
+    Texture                    mTextures[ kMaxTextures ] = {};
+    MagicBuffer                mMagicBuffers[ kMaxMagicBuffers ] = {};
+    VertexBuffer               mVertexBuffers[ kMaxVertexBuffers ] = {};
+    IndexBuffer                mIndexBuffers[ kMaxIndexBuffers ] = {};
+    Framebuffer                mFramebuffers[ kMaxFramebuffers ] = {};
+    FramebufferHandle          mWindows[ kMaxFramebuffers ];
+    int                        mWindowCount = 0;
+    ID3D11RasterizerState*     mRasterizerStates[ kMaxRasterizerStates ] = {};
+    ID3D11SamplerState*        mSamplerStates[ kMaxSamplerStates ] = {};
+    ID3D11DepthStencilState*   mDepthStencilStates[ kMaxDepthStencilStates ] = {};
+    ID3D11InputLayout*         mInputLayouts[ kMaxInputLayouts ] = {};
+    ID3D11BlendState*          mBlendStates[ kMaxBlendStates ] = {};
+    ConstantBuffer             mConstantBuffers[ kMaxConstantBuffers ] = {};
+    Program                    mPrograms[ kMaxPrograms ] = {};
 
 
-    // impl in tac_renderer_directx11_shader_preprocess.cpp
-    String PreprocessShaderSource( StringView, Errors& );
+    //                         Currently bound render variables
+    PrimitiveTopology          mBoundPrimitiveTopology = PrimitiveTopology::Unknown;
+    ID3D11BlendState*          mBoundBlendState = nullptr;
+    ID3D11DepthStencilState*   mBoundDepthStencilState = nullptr;
+    BoundCBufs                 mBoundConstantBuffers;
+    BoundSRVs                  mBoundSRVs;
 
-    void   RegisterRendererDirectX11();
+    //DrawCallSamplers           mBoundSamplers;
+    Optional< HashValue >      mBoundSamplerHash;
+
+    ViewHandle                 mBoundViewHandle;
+    VertexBufferHandle         mBoundVertexBuffer;
+    IndexBufferHandle          mBoundIndexBuffer;
+    bool                       mBoundFramebuffersThisFrame[ kMaxFramebuffers ] = {};
+    DrawCallUAVs               mBoundDrawCallUAVs;
+    VertexFormatHandle         mBoundDrawCallVertexFormat;
+
+  };
+
+
+  // impl in tac_renderer_directx11_shader_preprocess.cpp
+  String PreprocessShaderSource( StringView, Errors& );
+
+  void   RegisterRendererDirectX11();
+
+// -------------------------------------------------------------------------------------------------
+
+
 
 } // namespace Tac::Render
 

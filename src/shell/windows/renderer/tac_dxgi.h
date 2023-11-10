@@ -27,7 +27,8 @@ namespace Tac
   DXGI_FORMAT      GetDXGIFormatTextureTypeless( int );
   DXGI_FORMAT      GetDXGIFormatDepth( int );
 
-  void             NameDXGIObject( IDXGIObject* , StringView );
+  void             DXGISetObjectName( IDXGIObject*, const StringView& );
+  String           DXGIGetObjectName( IDXGIObject* );
 
   void             DXGICallAux( const char* fnCallWithArgs, HRESULT , Errors& );
 
