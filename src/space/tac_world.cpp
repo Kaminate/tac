@@ -56,7 +56,7 @@ namespace Tac
 
   Entity* World::FindEntity( EntityUUID entityUUID )
   {
-    for( auto entity : mEntities )
+    for( Entity* entity : mEntities )
       if( entity->mEntityUUID == entityUUID )
         return entity;
     return nullptr;
@@ -151,7 +151,7 @@ namespace Tac
 
   Player* World::FindPlayer( PlayerUUID playerUUID )
   {
-    for( auto player : mPlayers )
+    for( Player* player : mPlayers )
       if( player->mPlayerUUID == playerUUID )
         return player;
     return nullptr;
@@ -159,7 +159,7 @@ namespace Tac
 
   Player* World::FindPlayer( EntityUUID entityUUID )
   {
-    for( auto player : mPlayers )
+    for( Player* player : mPlayers )
       if( player->mEntityUUID == entityUUID )
         return player;
     return nullptr;
@@ -268,12 +268,14 @@ namespace Tac
 
   void    World::DeepCopy( const World& world )
   {
-    for( auto player : mPlayers )
+    for( Player* player : mPlayers )
       delete player;
+
     mPlayers.clear();
 
-    for( auto entity : mEntities )
+    for( Entity* entity : mEntities )
       delete entity;
+
     mEntities.clear();
 
     mElapsedSecs = world.mElapsedSecs;

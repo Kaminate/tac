@@ -64,7 +64,7 @@ namespace Tac
 
   ScriptRoot::~ScriptRoot()
   {
-    for( auto child : mChildren )
+    for( ScriptThread* child : mChildren )
     {
       delete child;
     }
@@ -78,7 +78,7 @@ namespace Tac
     FrameMemoryVector< ScriptThread* > childrenToKill;
     //Vector< ScriptThread* > childrenToUpdate( mChildren.begin(), mChildren.end() );
     //Vector< ScriptThread* > childrenToKill;
-    for( auto child : childrenToUpdate )
+    for( ScriptThread* child : childrenToUpdate )
     {
       // should we check for complete? ( ie: child A sends a message that completes child B )
       if( child->mIsSleeping )
@@ -86,13 +86,16 @@ namespace Tac
         child->mSecondsSlept += seconds;
         if( child->mSecondsSlept > child->mSecondsToSleep )
           child->mIsSleeping = false;
+
         continue;
       }
+
       child->Update( seconds, errors );
       if( child->mIsComplete )
         childrenToKill.push_back( child );
     }
-    for( auto child : childrenToKill )
+
+    for( ScriptThread* child : childrenToKill )
     {
       mChildren.erase( child );
       delete child;
@@ -122,7 +125,7 @@ namespace Tac
   void          ScriptRoot::OnMsg( const ScriptMsg* scriptMsg )
   {
     TAC_ASSERT( scriptMsg->mType.size() );
-    for( auto child : mChildren )
+    for( ScriptThread* child : mChildren )
       child->OnMsg( scriptMsg );
   }
 
@@ -135,14 +138,12 @@ namespace Tac
 
   ScriptThread* ScriptRoot::GetThread( StringView name )
   {
-    for( auto scriptThread : mChildren )
-    {
+    for( ScriptThread* scriptThread : mChildren )
       if( scriptThread->mName == name )
         return scriptThread;
-    }
     return nullptr;
   }
 
 
-}
+} // namespace Tac
 

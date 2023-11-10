@@ -7,6 +7,7 @@
 #include "src/common/shell/tac_shell.h"
 #include "src/common/dataprocess/tac_hash.h"
 #include "src/common/containers/tac_optional.h"
+#include "src/common/containers/tac_array.h"
 #include "src/common/string/tac_string_identifier.h"
 #include "src/shell/windows/tac_win32.h"
 #include "src/shell/windows/renderer/tac_dxgi.h"
@@ -14,35 +15,31 @@
 #include <d3d11_1.h>
 #include <d3d11_3.h> // ID3D11Device3, ID3D11RasterizerState2
 
-//#include <map>
-//#include <set>
-//#include <thread>
-
-namespace Tac
+namespace Tac::Render
 {
-  namespace Render
-  {
     struct ConstantBuffer
     {
       ID3D11Buffer* mBuffer = nullptr;
-      //int           mShaderRegister = 0;
-      String        mName;
-      //StringID      mNameID;
 
+      //            mName is used to
+      //            1) Insure that multiple cbuffers aren't created with the same name
+      //            2) Generate Program::mConstantBuffers while processing shader source
+      String        mName;
     };
 
     struct Program
     {
       ConstantBuffers            mConstantBuffers;
+
       ID3D11VertexShader*        mVertexShader = nullptr;
       ID3D11GeometryShader*      mGeometryShader = nullptr;
       ID3D11PixelShader*         mPixelShader = nullptr;
+
       ID3DBlob*                  mInputSig = nullptr;
     };
 
     struct Texture
     {
-      //ID3D11Resource*            GetResource();
       ID3D11DepthStencilView*    mTextureDSV = {};
       ID3D11Texture2D*           mTexture2D = {};
       ID3D11Texture3D*           mTexture3D = {};
@@ -55,7 +52,7 @@ namespace Tac
     {
       // Window framebuffers own their depth textures, rtv, dsv.
       //
-      // Render-to-texture framebuffers do no.
+      // Render-to-texture framebuffers do not.
 
       FLOAT                      mClearColorRGBA[ 4 ] = { 0, 0, 0, 1 };
       bool                       mClearEachFrame = true;
@@ -66,7 +63,6 @@ namespace Tac
       ID3D11RenderTargetView*    mRenderTargetView = nullptr;
       ID3D11Texture2D*           mDepthTexture = nullptr;
       HWND                       mHwnd = nullptr;
-      //StackFrame                 mLevelEditorStackFrame;
       String                     mDebugName;
     };
 
@@ -90,14 +86,34 @@ namespace Tac
       ID3D11ShaderResourceView*  mSRV = nullptr;
     };
 
+    using BoundSrvSlots = Array<
+      ID3D11ShaderResourceView*,
+      D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT >;
+
     struct BoundSRVs
     {
-      BoundSRVs() = default;
-      BoundSRVs( const DrawCall* );
-      void Clear();
-      bool operator ==( const BoundSRVs& ) const;
-      ID3D11ShaderResourceView*  mBoundShaderResourceViews[ D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT ] = {};
-      int                        mBoundShaderResourceViewCount = 0;
+      static BoundSRVs DrawCallSRVs( const DrawCall* );
+
+      //            Slots are allowed to be empty (ie, not memory contiguous)
+      BoundSrvSlots mBoundShaderResourceViews;
+
+      int           mMaxUsedIndex = -1;
+      int           mBoundTextureCount = 0;
+      HashValue     mHash;
+    };
+
+    using BoundCBufSlots = Array<
+      ID3D11Buffer*,
+      D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT >;
+
+    struct BoundCBufs
+    {
+      static BoundCBufs ShaderCBufs( const ConstantBuffers& );
+
+      BoundCBufSlots mBoundConstantBuffers;
+      int            mMaxUsedIndex = -1;
+      int            mBoundCBufCount = 0;
+      HashValue      mHash;
     };
 
     struct RendererDirectX11 : public Renderer
@@ -177,6 +193,7 @@ namespace Tac
       //                         Errors& errors );
 
 
+      static RendererDirectX11* GetInstance();
 
 
       template< typename T> const char* GetShortName() { return nullptr; }
@@ -215,12 +232,14 @@ namespace Tac
       void        SetDebugName( IDXGIObject* , StringView );
       void        UpdateBuffer( ID3D11Buffer*, const void* bytes, int byteCount, Errors& );
 
+      const Program*    FindProgram( ShaderHandle ) const;
+
       ID3D11InfoQueue*           mInfoQueueDEBUG = nullptr;
       ID3DUserDefinedAnnotation* mUserAnnotationDEBUG = nullptr;
       ID3D11Device*              mDevice = nullptr;
       ID3D11Device3*             mDevice3 = nullptr;
       ID3D11DeviceContext*       mDeviceContext = nullptr;
-      //DXGI                       mDxgi;
+
       Texture                    mTextures[ kMaxTextures ] = {};
       MagicBuffer                mMagicBuffers[ kMaxMagicBuffers ] = {};
       VertexBuffer               mVertexBuffers[ kMaxVertexBuffers ] = {};
@@ -236,16 +255,16 @@ namespace Tac
       ConstantBuffer             mConstantBuffers[ kMaxConstantBuffers ] = {};
       Program                    mPrograms[ kMaxPrograms ] = {};
 
+
       //                         Currently bound render variables
       PrimitiveTopology          mBoundPrimitiveTopology = PrimitiveTopology::Unknown;
-      ID3D11Buffer*              mBoundConstantBuffers[ D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT ] = {};
-      int                        mBoundConstantBufferCount = 0;
       ID3D11BlendState*          mBoundBlendState = nullptr;
       ID3D11DepthStencilState*   mBoundDepthStencilState = nullptr;
+      BoundCBufs                 mBoundConstantBuffers;
       BoundSRVs                  mBoundSRVs;
 
       //DrawCallSamplers           mBoundSamplers;
-      Optional< HashedValue >    mBoundSamplerHash;
+      Optional< HashValue >      mBoundSamplerHash;
 
       ViewHandle                 mBoundViewHandle;
       VertexBufferHandle         mBoundVertexBuffer;
@@ -261,6 +280,6 @@ namespace Tac
     String PreprocessShaderSource( StringView, Errors& );
 
     void   RegisterRendererDirectX11();
-  } // namespace Render
-} // namespace Tac
+
+} // namespace Tac::Render
 

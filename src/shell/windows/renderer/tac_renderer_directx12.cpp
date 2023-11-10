@@ -148,7 +148,7 @@ void DX12Window::Submit( Errors& errors )
 
 void DX12Window::DebugDoubleCheckBackbufferIndex()
 {
-  if( !IsDebugMode() )
+  if( !IsDebugMode )
     return;
   ComPtr<IDXGISwapChain3> swapChain3;
   HRESULT hr = mSwapChain.As( &swapChain3 );
@@ -354,7 +354,7 @@ void RendererDX12::Init( Errors& errors )
   mDXGI.Init( errors );
   TAC_HANDLE_ERROR( errors );
 
-  bool shouldCreateDebugLayer = IsDebugMode() &&
+  bool shouldCreateDebugLayer = IsDebugMode &&
     // https://github.com/Microsoft/DirectX-Graphics-Samples/issues/158
     !isGraphicsDebugging;
 
@@ -374,7 +374,7 @@ void RendererDX12::Init( Errors& errors )
 
 
 
-  if( IsDebugMode() && mDebugController )
+  if( IsDebugMode && mDebugController )
   {
     TAC_DX12_CALL( errors, mDevice.As, &mInfoQueue );
     mInfoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE );
@@ -744,7 +744,7 @@ void RendererDX12::AddShader( Shader** shader, const ShaderData& shaderData, Err
 
 
     UINT flags = D3DCOMPILE_ENABLE_STRICTNESS;
-    if( IsDebugMode() )
+    if( IsDebugMode )
     {
       flags |= D3DCOMPILE_DEBUG;
     }
@@ -812,7 +812,7 @@ void RendererDX12::AddShader( Shader** shader, const ShaderData& shaderData, Err
 
     if( !failedShaderPart )
       break;
-    if( !IsDebugMode() )
+    if( !IsDebugMode )
       return;
 
 

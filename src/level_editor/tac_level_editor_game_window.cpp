@@ -639,6 +639,8 @@ namespace Tac
 
 
       // Widget Scale Cube
+      // ( it is not current interactable )
+      if( false )
       {
         const m4 World =
           m4::Translate( selectionGizmoOrigin ) *

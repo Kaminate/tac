@@ -22,9 +22,7 @@ namespace Tac
   };
 
   void WriteNetMsgHeader( Writer*, NetMsgType );
-  void ReadNetMsgHeader( Reader*, 
-                               NetMsgType*,
-                               Errors& );
+  void ReadNetMsgHeader( Reader*, NetMsgType*, Errors& );
 
   uint8_t GetNetworkBitfield( const void* oldData,
                               const void* newData,

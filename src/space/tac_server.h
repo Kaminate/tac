@@ -23,7 +23,7 @@ namespace Tac
   };
 
   typedef void( *ServerSendNetworkMessageCallback )( ConnectionUUID,
-                                                     void* bytes,
+                                                     const void* bytes,
                                                      int byteCount,
                                                      void* userData );
 
@@ -31,26 +31,36 @@ namespace Tac
   {
     ServerData();
     ~ServerData();
+
     Entity*                   SpawnEntity();
     Player*                   SpawnPlayer();
+
     void                      OnClientJoin( ConnectionUUID );
+
     void                      DebugImgui();
+
     OtherPlayer*              FindOtherPlayer( ConnectionUUID );
+
     void                      ReceiveMessage( ConnectionUUID,
                                               void* bytes,
                                               int byteCount,
                                               Errors& );
+
     void                      Update( float seconds,
                                       ServerSendNetworkMessageCallback,
                                       void* userData,
                                       Errors& );
+
     void                      OnLoseClient( ConnectionUUID );
+
     void                      ReadInput( Reader*,
                                          ConnectionUUID,
                                          Errors& );
+
     void                      WriteSnapshotBody( OtherPlayer*, Writer* );
+
     void                      ExecuteNetMsg( ConnectionUUID,
-                                             void* bytes,
+                                             const void* bytes,
                                              int byteCount,
                                              Errors& );
     SnapshotBuffer            mSnapshots;

@@ -209,7 +209,7 @@ namespace Tac
     mMouserCursorNDC *= 2;
     mMouserCursorNDC -= v2( 1, 1 );
 
-    for( auto user : mUsers )
+    for( User* user : mUsers )
       user->Update( errors );
 
     mScriptRoot->Update( TAC_DELTA_FRAME_SECONDS, errors );

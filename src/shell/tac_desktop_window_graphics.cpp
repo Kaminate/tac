@@ -32,13 +32,17 @@ namespace Tac
     TAC_UNUSED_PARAMETER( y );
     if( nativeWindowHandle )
     {
+      const int iWindow = desktopWindowHandle.GetIndex();
+
       const Render::FramebufferHandle framebufferHandle =
         Render::CreateFramebufferForWindow( nativeWindowHandle, w, h, TAC_STACK_FRAME );
-      const char* framebufferName = FrameMemoryPrintf( "%s-framebuf-%i", name, ( int )desktopWindowHandle );
+      const char* framebufferName = FrameMemoryPrintf( "%s-framebuf-%i", name, iWindow );
       Render::SetRenderObjectDebugName( framebufferHandle, framebufferName );
+
       const Render::ViewHandle viewHandle = Render::CreateView();
-      sWindowFramebuffers[ ( int )desktopWindowHandle ] = framebufferHandle;
-      sWindowViews[ ( int )desktopWindowHandle ] = viewHandle;
+
+      sWindowFramebuffers[ iWindow ] = framebufferHandle;
+      sWindowViews[ iWindow ] = viewHandle;
       Render::SetViewFramebuffer( viewHandle, framebufferHandle );
       Render::SetViewScissorRect( viewHandle, Render::ScissorRect( ( float )w, ( float )h ) );
       Render::SetViewport( viewHandle, Render::Viewport( ( float )w, ( float )h ) );

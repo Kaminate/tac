@@ -28,57 +28,48 @@ namespace Tac
 {
   static void EntityImGuiRotation( Entity* entity )
   {
-    v3 rotDeg = entity->mRelativeSpace.mEulerRads * ( 180.0f / 3.14f );
-    const v3 rotDegOld = rotDeg;
-    for( int i = 0; i < 3; ++i )
+    v3& eulerRads = entity->mRelativeSpace.mEulerRads;
+    v3 eulerDegs = RadiansToDegrees( eulerRads );
+
+    if( !ImGuiDragFloat3( "eul deg", eulerDegs.data() ) )
+      return;
+
+    for( float& eulerDeg : eulerDegs )
     {
-      float& rF = rotDeg[ i ];
-      float* pF = &rotDeg[ i ];
-      const char* axisNames[] = { "X","Y","Z" };
-      const char* axisName = axisNames[ i ];
-      //rF += ImGuiButton( "-90" ) ? -90 : 0;
-      //ImGuiSameLine();
-      //rF += ImGuiButton( "+90" ) ? 90 : 0;
-      //ImGuiSameLine();
-      ImGuiDragFloat( FrameMemoryPrintf( "%s eul deg", axisName ), pF );
-      rF += rF > 360 ? -360 : 0;
-      rF += rF < -360 ? 360 : 0;
+      eulerDeg = Fmod( eulerDeg, 360.0f );
+      eulerDeg -= eulerDeg > 360 ? 360 : 0;
+      eulerDeg += eulerDeg < -360 ? 360 : 0;
     }
-    if( rotDeg != rotDegOld )
-      entity->mRelativeSpace.mEulerRads = rotDeg * ( 3.14f / 180.0f );
+
+    eulerRads = DegreesToRadians( eulerDegs );
   }
 
   static void EntityImGuiScale( Entity* entity )
   {
-    static std::map< Entity*, bool > sRequestSeparateScaleMap;
-    const bool uniformScale = ( entity->mRelativeSpace.mScale.x == entity->mRelativeSpace.mScale.y &&
-                                entity->mRelativeSpace.mScale.x == entity->mRelativeSpace.mScale.z );
+    // true if requested to be uniform, false if requested to be separate
+    static std::map< Entity*, bool > sRequests;
 
-    const auto it = sRequestSeparateScaleMap.find( entity );
-    const bool requestedSeparateScale = it != sRequestSeparateScaleMap.end() && ( *it ).second;
-    const bool showSeparateScale = requestedSeparateScale || !uniformScale;
+    v3& scale = entity->mRelativeSpace.mScale;
 
-    if( showSeparateScale )
+    bool isUniform
+      =  sRequests.contains( entity ) 
+      ?  sRequests[ entity ]
+      : scale.x == scale.y && scale.x == scale.z;
+
+    if( isUniform )
     {
-      ImGuiDragFloat( "X Scale: ", &entity->mRelativeSpace.mScale.x );
-      ImGuiDragFloat( "Y Scale: ", &entity->mRelativeSpace.mScale.y );
-      ImGuiDragFloat( "Z Scale: ", &entity->mRelativeSpace.mScale.z );
-      if( ImGuiButton( "Use uniform scale controls" ) )
+      if( ImGuiDragFloat( "Scale", &scale.x ) )
       {
-        entity->mRelativeSpace.mScale = v3( 1, 1, 1 ) * ( entity->mRelativeSpace.mScale.x +
-                                                          entity->mRelativeSpace.mScale.y +
-                                                          entity->mRelativeSpace.mScale.z ) / 3.0f;
-        sRequestSeparateScaleMap[ entity ] = false;
+        scale = v3( scale.x );
       }
     }
     else
     {
-      if( ImGuiButton( "show separate scale" ) )
-        sRequestSeparateScaleMap.insert( { entity, true } );
-      ImGuiSameLine();
-      if( ImGuiDragFloat( "scale: ", &entity->mRelativeSpace.mScale.x ) )
-        entity->mRelativeSpace.mScale = v3( 1, 1, 1 ) * entity->mRelativeSpace.mScale.x;
+      ImGuiDragFloat3( "Scale", scale.data() );
     }
+
+    if( ImGuiCheckbox( "Uniform scale", &isUniform ) )
+      sRequests[ entity ] = isUniform;
   }
 
   CreationPropertyWindow* CreationPropertyWindow::Instance = nullptr;
@@ -176,18 +167,13 @@ namespace Tac
 
       ImGuiText( "UUID: " + ToString( ( UUID )entity->mEntityUUID ) );
       if( ImGuiButton( "Reset Transform" ) )
-      {
-        entity->mRelativeSpace.mPosition = {};
-        entity->mRelativeSpace.mEulerRads = {};
-        entity->mRelativeSpace.mScale = { 1, 1, 1 };
-      }
-      ImGuiDragFloat( "X Position: ", &entity->mRelativeSpace.mPosition.x );
-      ImGuiDragFloat( "Y Position: ", &entity->mRelativeSpace.mPosition.y );
-      ImGuiDragFloat( "Z Position: ", &entity->mRelativeSpace.mPosition.z );
+        entity->mRelativeSpace = {};
+
+      ImGuiDragFloat3( "Position", entity->mRelativeSpace.mPosition.data() );
+      EntityImGuiRotation( entity );
       EntityImGuiScale( entity );
 
       ImGuiCheckbox( "active", &entity->mActive );
-      EntityImGuiRotation( entity );
 
       Vector< const ComponentRegistryEntry* > addableComponentTypes;
 

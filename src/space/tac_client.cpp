@@ -93,21 +93,25 @@ namespace Tac
 
   void ClientData::ApplyPrediction( double lastTime )
   {
-    auto entity = mWorld->FindEntity( mPlayerUUID );
+    Entity* entity = mWorld->FindEntity( mPlayerUUID );
     if( !entity )
       return;
-    auto player = mWorld->FindPlayer( mPlayerUUID );
+
+    Player* player = mWorld->FindPlayer( mPlayerUUID );
     if( !player )
       return;
-    for( auto savedInput : mSavedInputs )
+
+    for( const SavedInput& savedInput : mSavedInputs )
     {
       auto timeDifference = ( float )( savedInput.mTimestamp - lastTime );
       if( timeDifference < 0 )
         continue;
+
       lastTime = savedInput.mTimestamp;
       Collider* collider = Collider::GetCollider( entity );
       if( !collider )
         continue;
+
       player->mInputDirection = savedInput.mInputDirection;
       mWorld->ApplyInput( player, timeDifference );
       entity->mRelativeSpace.mPosition += collider->mVelocity * timeDifference;

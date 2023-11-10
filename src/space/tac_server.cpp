@@ -35,7 +35,7 @@ namespace Tac
 
   ServerData::~ServerData()
   {
-    for( auto otherPlayer : mOtherPlayers )
+    for( OtherPlayer* otherPlayer : mOtherPlayers )
       delete otherPlayer;
     delete mWorld;
     delete mEmptyWorld;
@@ -62,7 +62,7 @@ namespace Tac
 
   OtherPlayer* ServerData::FindOtherPlayer( ConnectionUUID connectionID )
   {
-    for( auto otherPlayer : mOtherPlayers )
+    for( OtherPlayer* otherPlayer : mOtherPlayers )
       if( otherPlayer->mConnectionUUID == connectionID )
         return otherPlayer;
     return nullptr;
@@ -118,13 +118,14 @@ namespace Tac
     // Write deleted players
     {
       Vector< PlayerUUID > deletedPlayerUUIDs;
-      for( auto oldPlayer : oldWorld->mPlayers )
+      for( Player* oldPlayer : oldWorld->mPlayers )
       {
-        auto playerUUID = oldPlayer->mPlayerUUID;
-        auto newPlayer = mWorld->FindPlayer( playerUUID );
+        PlayerUUID playerUUID = oldPlayer->mPlayerUUID;
+        Player* newPlayer = mWorld->FindPlayer( playerUUID );
         if( !newPlayer )
           deletedPlayerUUIDs.push_back( playerUUID );
       }
+
       writer->Write( ( PlayerCount )deletedPlayerUUIDs.size() );
       for( PlayerUUID playerUUID : deletedPlayerUUIDs )
       {
@@ -142,18 +143,20 @@ namespace Tac
       };
       Vector< PlayerDifference > oldAndNewPlayers;
 
-      for( auto newPlayer : mWorld->mPlayers )
+      for( Player* newPlayer : mWorld->mPlayers )
       {
-        auto playerUUID = newPlayer->mPlayerUUID;
-        auto oldPlayer = oldWorld->FindPlayer( playerUUID );
-        auto bitfield = GetNetworkBitfield( oldPlayer, newPlayer, PlayerNetworkBitsGet() );
+        PlayerUUID playerUUID = newPlayer->mPlayerUUID;
+        Player* oldPlayer = oldWorld->FindPlayer( playerUUID );
+        uint8_t bitfield = GetNetworkBitfield( oldPlayer, newPlayer, PlayerNetworkBitsGet() );
         if( !bitfield )
           continue;
 
-        PlayerDifference diff;
-        diff.mBitfield = bitfield;
-        diff.mNewPlayer = newPlayer;
-        diff.playerUUID = playerUUID;
+        const PlayerDifference diff
+        {
+          .mBitfield = bitfield,
+          .mNewPlayer = newPlayer,
+          .playerUUID = playerUUID,
+        };
         oldAndNewPlayers.push_back( diff );
       }
       writer->Write( ( PlayerCount )oldAndNewPlayers.size() );
@@ -168,13 +171,14 @@ namespace Tac
     // Write deleted entites
     {
       Vector< EntityUUID > deletedEntityUUIDs;
-      for( auto entity : oldWorld->mEntities )
+      for( Entity* entity : oldWorld->mEntities )
       {
-        auto entityUUID = entity->mEntityUUID;
-        auto newEntity = mWorld->FindEntity( entityUUID );
+        EntityUUID entityUUID = entity->mEntityUUID;
+        Entity* newEntity = mWorld->FindEntity( entityUUID );
         if( !newEntity )
           deletedEntityUUIDs.push_back( entityUUID );
       }
+
       writer->Write( ( EntityCount )deletedEntityUUIDs.size() );
       for( EntityUUID uuid : deletedEntityUUIDs )
         writer->Write( uuid );
@@ -195,9 +199,9 @@ namespace Tac
       };
 
       Vector< EntityDifference > entityDifferences;
-      for( auto newEntity : mWorld->mEntities )
+      for( Entity* newEntity : mWorld->mEntities )
       {
-        auto oldEntity = oldWorld->FindEntity( newEntity->mEntityUUID );
+        Entity* oldEntity = oldWorld->FindEntity( newEntity->mEntityUUID );
 
         std::set< ComponentRegistryEntryIndex >       deletedComponents;
         std::map< ComponentRegistryEntryIndex, char > changedComponentBitfields;
@@ -209,14 +213,19 @@ namespace Tac
           Component* oldComponent = nullptr;
           if( oldEntity )
             oldComponent = oldEntity->GetComponent( componentData );
-          auto newComponent = newEntity->GetComponent( componentData );
+
+          Component* newComponent = newEntity->GetComponent( componentData );
           if( !oldComponent && !newComponent )
+          {
             continue;
+          }
           else if( oldComponent && !newComponent )
+          {
             deletedComponents.insert( componentType );
+          }
           else
           {
-            auto networkBitfield = GetNetworkBitfield( oldComponent,
+            uint8_t networkBitfield = GetNetworkBitfield( oldComponent,
                                                        newComponent,
                                                        componentData->mNetworkBits );
             if( networkBitfield )
@@ -242,19 +251,22 @@ namespace Tac
         writer->Write( entityDifference.mEntityUUID );
 
         char deletedComponentsBitfield = 0;
-        for( auto componentType : entityDifference.mDeletedComponents )
+        for( ComponentRegistryEntryIndex componentType : entityDifference.mDeletedComponents )
           deletedComponentsBitfield |= ComponentToBitField( componentType );
+
         writer->Write( deletedComponentsBitfield );
 
         char changedComponentsBitfield = 0;
         for( auto pair : entityDifference.mChangedComponentBitfields )
           changedComponentsBitfield |= ComponentToBitField( pair.first );
+
         writer->Write( changedComponentsBitfield );
 
         for( int iComponentType = 0; iComponentType < registeredComponentCount; ++iComponentType )
         {
           if( !( changedComponentsBitfield & iComponentType ) )
             continue;
+
           auto componentType = ( ComponentRegistryEntryIndex )iComponentType;
           const ComponentRegistryEntry* componentRegistryEntry = ComponentRegistry_GetComponentAtIndex( iComponentType );
           Component* component = entityDifference.mNewEntity->GetComponent( componentRegistryEntry );
@@ -268,9 +280,9 @@ namespace Tac
   }
 
 
-  void ServerData::ExecuteNetMsg( ConnectionUUID connectionID,
-                                  void* bytes,
-                                  int byteCount,
+  void ServerData::ExecuteNetMsg( const ConnectionUUID connectionID,
+                                  const void* bytes,
+                                  const int byteCount,
                                   Errors& errors )
   {
     Reader reader;
@@ -336,20 +348,19 @@ namespace Tac
       errors );
   }
 
-  void ServerData::Update( float seconds,
-                           ServerSendNetworkMessageCallback sendNetworkMessageCallback,
+  void ServerData::Update( const float seconds,
+                           const ServerSendNetworkMessageCallback sendNetworkMessageCallback,
                            void* userData,
                            Errors& errors )
   {
-    for( auto otherPlayer : mOtherPlayers )
+    for( OtherPlayer* otherPlayer : mOtherPlayers )
     {
       Vector< char > savedNetMsg;
       while( otherPlayer->delayedNetMsg.TryPopSavedMessage( savedNetMsg, mWorld->mElapsedSecs ) )
       {
-        ExecuteNetMsg( otherPlayer->mConnectionUUID,
-                       savedNetMsg.data(),
-                       ( int )savedNetMsg.size(),
-                       errors );
+        const void* bytes = savedNetMsg.data();
+        const int byteCount = ( int )savedNetMsg.size();
+        ExecuteNetMsg( otherPlayer->mConnectionUUID, bytes, byteCount, errors );
         TAC_HANDLE_ERROR( errors );
       }
     }
@@ -364,20 +375,22 @@ namespace Tac
 
     mSnapshots.AddSnapshot( mWorld );
 
-    for( auto otherPlayer : mOtherPlayers )
+    for( OtherPlayer* otherPlayer : mOtherPlayers )
     {
       Writer writer;
       writer.mFrom = GetEndianness();
       writer.mTo = GameEndianness;
+
       WriteNetMsgHeader( &writer, NetMsgType::Snapshot );
       WriteSnapshotBody( otherPlayer, &writer );
       if( sendNetworkMessageCallback )
       {
-        sendNetworkMessageCallback(
-          otherPlayer->mConnectionUUID,
-          writer.mBytes.data(),
-          ( int )writer.mBytes.size(),
-          userData );
+        const void* bytes = writer.mBytes.data();
+        const int byteCount = ( int )writer.mBytes.size();
+        sendNetworkMessageCallback( otherPlayer->mConnectionUUID,
+                                    bytes,
+                                    byteCount,
+                                    userData );
       }
     }
 

@@ -211,7 +211,7 @@ namespace Tac
     return false;
   }
 
-  int                 SelectedEntities::size() { return mSelectedEntities.size(); }
+  int                 SelectedEntities::size() const { return mSelectedEntities.size(); }
 
   Entity**            SelectedEntities::begin() { return mSelectedEntities.begin(); }
 
@@ -219,18 +219,18 @@ namespace Tac
 
   void                SelectedEntities::Select( Entity* e ) { mSelectedEntities = { e }; }
 
-  bool                SelectedEntities::empty()
+  bool                SelectedEntities::empty() const
   {
     return mSelectedEntities.empty();
   }
 
-  v3                  SelectedEntities::GetGizmoOrigin()
+  v3                  SelectedEntities::GetGizmoOrigin() const
   {
     TAC_ASSERT( !empty() );
     // do i really want average? or like center of bounding circle?
     v3 runningPosSum = {};
     int selectionCount = 0;
-    for( auto entity : mSelectedEntities )
+    for( Entity* entity : mSelectedEntities )
     {
       runningPosSum +=
         ( entity->mWorldTransform * v4( 0, 0, 0, 1 ) ).xyz();

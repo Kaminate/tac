@@ -233,5 +233,18 @@ namespace Tac
     }
   }
 
-}
+#if 0
+  CollideResult Collide( const Heightmap* heightmap, const Collider* collider )
+  {
+    TAC_UNUSED_PARAMETER( heightmap );
+    TAC_UNUSED_PARAMETER( collider );
+    // get all overlapping triangles
+    // get the one with the deepest penetration
+
+    CollideResult result;
+    return result;
+  }
+#endif
+
+} // namespace Tac
 

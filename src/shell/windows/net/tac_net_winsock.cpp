@@ -334,7 +334,7 @@ namespace Tac
     if( shouldSendKeepalive )
       mKeepaliveNextSeconds += mKeepaliveIntervalSeconds;
 
-    for( auto socketWinsock : mSocketWinsocks )
+    for( SocketWinsock* socketWinsock : mSocketWinsocks )
     {
       if( socketWinsock->mSocketType == SocketType::TCP &&
           !socketWinsock->mTCPIsConnected )

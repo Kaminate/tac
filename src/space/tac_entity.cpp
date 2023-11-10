@@ -251,7 +251,7 @@ namespace Tac
     }
     if( !couldBeAdded.empty() && ImGui::BeginMenu( "Add Component" ) )
     {
-      for( auto componentType : couldBeAdded )
+      for( ComponentRegistryEntryIndex componentType : couldBeAdded )
       {
         auto componentData = GetComponentData( componentType );
         if( !ImGui::MenuItem( componentData->mName ) )

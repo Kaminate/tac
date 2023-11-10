@@ -62,7 +62,7 @@ namespace Tac
   //}
   void DXGIInit( Errors& errors )
   {
-    const UINT flags = IsDebugMode() ? DXGI_CREATE_FACTORY_DEBUG : 0;
+    const UINT flags = IsDebugMode ? DXGI_CREATE_FACTORY_DEBUG : 0;
     const HRESULT hr = CreateDXGIFactory2( flags, IID_PPV_ARGS( &mFactory ) );
     TAC_RAISE_ERROR_IF( FAILED( hr ), "failed to create dxgi factory", errors );
     NameDXGIObject( mFactory, "my-dxgi-factory" );
@@ -146,7 +146,7 @@ namespace Tac
     DXGI_FORMAT mFormatDXGI;
   };
 
-  static FormatPair gFormatPairs[] =
+  static const FormatPair gFormatPairs[] =
   {
     FormatPair{ { 1, sizeof( uint32_t ), Render::GraphicsType::real  }, DXGI_FORMAT_R32_FLOAT          },
     FormatPair{ { 2, sizeof( uint32_t ), Render::GraphicsType::real  }, DXGI_FORMAT_R32G32_FLOAT       },
@@ -174,7 +174,7 @@ namespace Tac
 
   Render::Format GetFormat( const DXGI_FORMAT format )
   {
-    for( auto formatPair : gFormatPairs )
+    for( const FormatPair& formatPair : gFormatPairs )
       if( formatPair.mFormatDXGI == format )
         return formatPair.mFormat;
     TAC_CRITICAL_ERROR_INVALID_CODE_PATH;
@@ -199,18 +199,20 @@ namespace Tac
                     "You're making a depth buffer, right?"
                     "Byte count should be 2, aka sizeof( uint16_t ), not 16" );
 
-    for( auto formatPair : gFormatPairs )
+    for( const FormatPair& formatPair : gFormatPairs )
       if( formatPair.mFormat.mElementCount == textureFormat.mElementCount &&
           formatPair.mFormat.mPerElementByteCount == textureFormat.mPerElementByteCount &&
           formatPair.mFormat.mPerElementDataType == textureFormat.mPerElementDataType )
         return formatPair.mFormatDXGI;
+
     // try again, but bump the element count
     // ^ 2021-06-25 i dont know if this is good,
-    for( auto formatPair : gFormatPairs )
-      if( formatPair.mFormat.mElementCount >= textureFormat.mElementCount &&
+    for( const FormatPair& formatPair : gFormatPairs )
+      if( formatPair.mFormat.mElementCount >= textureFormat.mElementCount && // note the >=
           formatPair.mFormat.mPerElementByteCount == textureFormat.mPerElementByteCount &&
           formatPair.mFormat.mPerElementDataType == textureFormat.mPerElementDataType )
         return formatPair.mFormatDXGI;
+
     TAC_CRITICAL_ERROR_INVALID_CODE_PATH;
     return DXGI_FORMAT_UNKNOWN;
   }

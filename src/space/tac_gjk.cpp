@@ -125,7 +125,7 @@ namespace Tac
       { 1, 1, 1 },
     };
     auto transform = m4::Transform( obbHalfExtents, obbEulerRads, obbPos );
-    for( auto& point : mPoints )
+    for( v3& point : mPoints )
       point = ( transform * v4( point, 1.0f ) ).xyz();
   }
 
@@ -140,7 +140,7 @@ namespace Tac
                                   float height,
                                   float radius )
   {
-    v3 up( 0, 1, 0 );
+    const v3 up( 0, 1, 0 );
     mBotSpherePos = base + up * radius;
     mTopSpherePos = base + up * ( height - radius );
     mRadius = radius;
@@ -487,15 +487,19 @@ namespace Tac
       mIsColliding = true;
 
       // need more points to start a simplex for epa?
-      for( auto supportDir : {
+      const v3 supportDirs[] =
+      {
         v3( 1, 0, 0 ),
         v3( 0, 1, 0 ),
         v3( 0, 0, 1 ),
         v3( -1, 0, 0 ),
         v3( 0, -1, 0 ),
-        v3( 0, 0, -1 ) } )
+        v3( 0, 0, -1 ),
+      };
+
+      for( const v3& supportDir : supportDirs )
       {
-        CompoundSupport compoundSupport = GetCompountSupport( supportDir );
+        const CompoundSupport compoundSupport = GetCompountSupport( supportDir );
         bool valid = true;
         for( const CompoundSupport& point : mSupports )
         {
@@ -505,11 +509,14 @@ namespace Tac
             break;
           }
         }
+
         if( valid )
           mSupports.push_back( compoundSupport );
+
         if( mSupports.size() == 4 )
           break;
       }
+
       if( mSupports.size() == 4 )
       {
         EnsureCorrectTetrahedronOrientation();
@@ -517,10 +524,10 @@ namespace Tac
         const CompoundSupport& c = mSupports[ 1 ];
         const CompoundSupport& b = mSupports[ 2 ];
         const CompoundSupport& a = mSupports[ 3 ];
-        EPATriangle epaABC( a, b, c );
-        EPATriangle epaBDC( b, d, c );
-        EPATriangle epaADB( a, d, b );
-        EPATriangle epaACD( a, c, d );
+        const EPATriangle epaABC( a, b, c );
+        const EPATriangle epaBDC( b, d, c );
+        const EPATriangle epaADB( a, d, b );
+        const EPATriangle epaACD( a, c, d );
         mEPATriangles = {
           epaABC,
           epaBDC,

@@ -14,17 +14,18 @@
 
 namespace Tac
 {
-  static bool IsModelPath( const Filesystem::Path& s )
+  static bool IsModelPath( const AssetPathStringView& path )
   {
-    const char* modelExtensions[] =
+    const char* exts[] =
     {
-      ".glb",
-      ".gltf",
-      ".obj",
+      "glb",
+      "gltf",
+      "obj",
     };
-    for( const char* modelExtension : modelExtensions )
-      if( s.u8string().ends_with( modelExtension ) )
+    for( const char* ext : exts )
+      if( path.ends_with( ext ) )
         return true;
+
     return false;
   }
 
@@ -35,7 +36,7 @@ namespace Tac
       ImGuiIndent();
       TAC_ON_DESTRUCT( ImGuiUnindent() );
 
-      static Vector< String > modelPaths;
+      static AssetPathStrings modelPaths;
       static Errors getfilesErrors;
 
       if( getfilesErrors )
@@ -49,28 +50,31 @@ namespace Tac
         getfilesErrors.clear();
         needsRefresh = false;
         modelPaths.clear();
-        const Filesystem::Paths allfiles = Filesystem::IterateFiles( "assets",
+        const AssetPathStrings allfiles = Filesystem::IterateAssets( "assets",
                                                                      Filesystem::IterateType::Recursive,
                                                                      getfilesErrors );
-        if( !getfilesErrors )
-          for( const Filesystem::Path& file : allfiles )
-            if( IsModelPath( file ) )
-              modelPaths.push_back( ModifyPathRelative( file, getfilesErrors ) );
+        if( getfilesErrors )
+          return;
+
+        for( const AssetPathString& file : allfiles )
+          if( IsModelPath( file  ) )
+            modelPaths.push_back( file );
 
         refreshSecTimestamp = curSecTimestamp;
       }
 
-      const double populateDuration = 0.1;
+      const double populateDuration = 0.1; // how long it should take to populate the list
       const int numberOfFilesPopulate = int(
         ( curSecTimestamp - refreshSecTimestamp ) /
         populateDuration * modelPaths.size() );
-      for( int i = 0; i < Min( ( int )modelPaths.size(), numberOfFilesPopulate ); ++i )
+      const int numberOfFilesToShow = Min( ( int )modelPaths.size(), numberOfFilesPopulate );
+
+      for( int i = 0; i < numberOfFilesToShow; ++i )
       {
-        const String& filepath = modelPaths[ i ];
+        const AssetPathStringView filepath = modelPaths[ i ];
         if( ImGuiButton( filepath ) )
         {
           model->mModelPath = filepath;
-          //model->mesh = nullptr;
         }
       }
     }
@@ -235,9 +239,10 @@ namespace Tac
     }
     ModelDebugImguiChangeModel( model );
     ModelDebugImguiChangeTexture( model );
-    ImGuiDragFloat( "r", &model->mColorRGB[ 0 ] );
-    ImGuiDragFloat( "g", &model->mColorRGB[ 1 ] );
-    ImGuiDragFloat( "b", &model->mColorRGB[ 2 ] );
+    if( ImGuiDragFloat3( "rgb", model->mColorRGB.data() ) )
+      for( float& f : model->mColorRGB )
+        f = Saturate( f );
+
   }
 
   //void ModelDebugImgui( Component* component ) { ModelDebugImgui( ( Model* )component ); }

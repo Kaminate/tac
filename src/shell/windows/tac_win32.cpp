@@ -75,7 +75,7 @@ namespace Tac
 
   void             Win32DebugBreak()
   {
-    if( IsDebugMode() )
+    if( IsDebugMode )
       ::DebugBreak();
   }
 

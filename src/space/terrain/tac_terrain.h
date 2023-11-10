@@ -62,6 +62,7 @@ namespace Tac
   };
 
 
+#if 0
   struct CollideResult
   {
     bool mCollided = false;
@@ -69,6 +70,7 @@ namespace Tac
   };
 
   //CollideResult Collide( const Heightmap* heightmap, const Collider* collider );
+#endif
 
 }
 

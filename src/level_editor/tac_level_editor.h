@@ -9,11 +9,11 @@ namespace Tac
 {
   struct SelectedEntities
   {
-    bool                empty();
-    int                 size();
+    bool                empty() const;
+    int                 size() const;
     Entity**            begin();
     Entity**            end();
-    v3                  GetGizmoOrigin();
+    v3                  GetGizmoOrigin() const;
     void                clear();
     void                DeleteEntitiesCheck();
     void                DeleteEntities();

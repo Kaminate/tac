@@ -411,7 +411,7 @@ namespace Tac
     //sEquationGrapher.DrawFn( []( float x ){ return x; }, 0.5f, v4( 0, 0, 0, 1 ), drawData );
     sEquationGrapher.MouseDrag();
 
-    for( auto& text : texts )
+    for( const String& text : texts )
     {
       ImGuiText( text );
     }

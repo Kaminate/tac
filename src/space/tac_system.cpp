@@ -17,7 +17,7 @@ namespace Tac
   {
     const int index = mEntries.size();
     mEntries.resize( index + 1 );
-    SystemRegistryEntry* systemRegistryEntry = &mEntries[ index ];;
+    SystemRegistryEntry* systemRegistryEntry = &mEntries[ index ];
     systemRegistryEntry->mIndex = index;
     return systemRegistryEntry;
   }
