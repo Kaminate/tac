@@ -1,9 +1,9 @@
-
 #pragma once
 
-namespace Tac
-{
-  void AllowPIXDebuggerAttachment(struct Errors&);
-}
+#include "src/common/tac_common.h"
 
+namespace Tac::Render
+{
+  void AllowPIXDebuggerAttachment(Errors&);
+}
 

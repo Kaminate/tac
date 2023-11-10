@@ -12,7 +12,6 @@
 #include "src/shell/windows/tac_win32.h"
 #include "src/shell/windows/renderer/tac_dxgi.h"
 
-#include <d3d11_1.h>
 #include <d3d11_3.h> // ID3D11Device3, ID3D11RasterizerState2
 
 namespace Tac::Render
@@ -194,9 +193,11 @@ namespace Tac::Render
 
 
     static RendererDirectX11* GetInstance();
-
+    static ID3D11InfoQueue* GetInfoQueue();
 
     void        UpdateBuffer( ID3D11Buffer*, const void* bytes, int byteCount, Errors& );
+
+    ConstantBufferHandle FindCbufferOfName( const StringView& );
 
     Program*          FindProgram( ShaderHandle ) ;
     Framebuffer*      FindFramebuffer( FramebufferHandle );
@@ -247,10 +248,8 @@ namespace Tac::Render
   };
 
 
-  // impl in tac_renderer_directx11_shader_preprocess.cpp
-  String PreprocessShaderSource( StringView, Errors& );
-
   void   RegisterRendererDirectX11();
+
 
 // -------------------------------------------------------------------------------------------------
 

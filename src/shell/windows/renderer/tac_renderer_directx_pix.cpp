@@ -7,7 +7,7 @@
 
 //#include 	<libloaderapi.h>
 
-namespace Tac
+namespace Tac::Render
 {
   //static String ConvertUnsafe( LPWSTR p )
   //{
@@ -106,7 +106,7 @@ namespace Tac
 
   }
 
-} // namespace Tac
+} // namespace Tac::Render
 
 
 
