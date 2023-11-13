@@ -1,10 +1,13 @@
-#include "src/space/tac_gjk.h"
+#include "src/space/tac_gjk.h" // self-inc
+
 #include "src/common/core/tac_preprocessor.h"
 #include "src/common/math/tac_matrix3.h"
 #include "src/common/math/tac_matrix4.h"
 #include "src/common/math/tac_vector4.h"
-#include <cmath>
-#include <algorithm> // std::find
+
+import std;
+//#include <cmath>
+//#include <algorithm> // std::find
 
 namespace Tac
 {
@@ -477,7 +480,7 @@ namespace Tac
           return;
         }
       } break;
-      default: TAC_CRITICAL_ERROR_INVALID_CASE( supportCount ); return;
+      default: TAC_ASSERT_INVALID_CASE( supportCount ); return;
     }
 
     const float searchDirLen = Length( mClosestPoint );

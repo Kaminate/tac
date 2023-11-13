@@ -221,14 +221,14 @@ namespace Tac::Controller
       }
       else if( hr == DIERR_INPUTLOST )
       {
-        TAC_CRITICAL_ERROR_UNIMPLEMENTED;
+        TAC_ASSERT_UNIMPLEMENTED;
       }
       else
       {
         TAC_ASSERT( hr != DIERR_INVALIDPARAM );
         TAC_ASSERT( hr != DIERR_NOTACQUIRED );
         TAC_ASSERT( hr != DIERR_NOTINITIALIZED );
-        TAC_CRITICAL_ERROR_INVALID_CODE_PATH;
+        TAC_ASSERT_INVALID_CODE_PATH;
       }
 
       ControllerState controllerState = ToControllerState( js );

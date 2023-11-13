@@ -9,7 +9,7 @@
 #include "src/common/string/tac_string.h"
 #include "src/common/core/tac_error_handling.h"
 
-#include <list>
+import std; // #include <list>
 
 namespace Tac
 {

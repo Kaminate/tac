@@ -36,7 +36,17 @@ add_subdirectory( text )
 add_subdirectory( imgui )
 
 
-# add_library( TacExamples )
+if(FALSE)
+
+  set( MODULE_PROP "${CMAKE_SOURCE_DIR}/build_std_modules.props" )
+  if(EXISTS ${MODULE_PROP} )
+    SET_PROPERTY( TARGET TacExamples PROPERTY VS_USER_PROPS ${MODULE_PROP} )
+  else()
+    message( FATAL_ERROR "fuck")
+  endif()
+endif()
+
+
 target_sources( TacExamples PRIVATE ${TAC_SOURCES} )
 
 

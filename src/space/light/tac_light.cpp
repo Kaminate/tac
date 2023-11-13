@@ -173,7 +173,7 @@ namespace Tac
     {
       case Light::kDirectional: return "Directional";
       case Light::kSpot: return "Spot";
-      default: TAC_CRITICAL_ERROR_INVALID_CASE( type ); return nullptr;
+      default: TAC_ASSERT_INVALID_CASE( type ); return nullptr;
     }
   }
 

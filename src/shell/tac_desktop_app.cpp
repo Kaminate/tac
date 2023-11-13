@@ -25,9 +25,10 @@
 #include "src/shell/tac_register_renderers.h"
 #include "src/space/tac_space.h"
 
-#include <mutex>
-#include <thread> // std::this_thread
-#include <type_traits>
+import std;
+//#include <mutex>
+//#include <thread> // std::this_thread
+//#include <type_traits>
 
 namespace Tac
 {
@@ -600,7 +601,7 @@ namespace Tac
       } break;
 
       default:
-        TAC_CRITICAL_ERROR_INVALID_CASE( desktopEventType );
+        TAC_ASSERT_INVALID_CASE( desktopEventType );
         break;
       }
     }

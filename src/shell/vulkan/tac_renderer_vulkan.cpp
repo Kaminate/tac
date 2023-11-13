@@ -8,7 +8,7 @@
 
 #include "VkBootstrap.h"
 
-#include <sstream>
+import std;// #include <sstream>
 
 #define MAKE_VK_RESULT_PAIR( vkEnumValue ) { vkEnumValue, TAC_STRINGIFY( vkEnumValue ) },
 
@@ -197,11 +197,11 @@ namespace Tac::Render
       }
       else if( isRenderToTextureFramebuffer )
       {
-        TAC_CRITICAL_ERROR_INVALID_CODE_PATH;
+        TAC_ASSERT_INVALID_CODE_PATH;
       }
       else
       {
-        TAC_CRITICAL_ERROR_INVALID_CODE_PATH;
+        TAC_ASSERT_INVALID_CODE_PATH;
       }
     }
     void RendererVulkan::AddIndexBuffer( Render::CommandDataCreateIndexBuffer*, Errors& ) {};

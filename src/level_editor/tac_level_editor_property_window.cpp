@@ -22,7 +22,7 @@
 #include "src/space/tac_system.h"
 #include "src/space/tac_world.h"
 
-#include <map>
+import std; // #include <map>
 
 namespace Tac
 {

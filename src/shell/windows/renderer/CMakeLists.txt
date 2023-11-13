@@ -4,6 +4,8 @@ target_sources(TacWin PRIVATE
   "tac_renderer_directx.h"
   "tac_renderer_directx11.cpp"
   "tac_renderer_directx11.h"
+  "tac_renderer_directx11_enum_helper.cpp"
+  "tac_renderer_directx11_enum_helper.h"
   "tac_renderer_directx11_namer.cpp"
   "tac_renderer_directx11_namer.h"
   "tac_renderer_directx11_shader_preprocess.cpp"

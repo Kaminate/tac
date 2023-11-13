@@ -8,7 +8,6 @@
 #include "src/common/shell/tac_shell_timer.h"
 #include "src/common/system/tac_os.h"
 
-#define FMT "% .4f "
 
 // This example based off
 // https://github.com/jvanverth/essentialmath/tree/master/src/Examples/Ch13-Simulation/...
@@ -107,25 +106,30 @@ namespace Tac
     v3 r0 = mOrientation.GetRow( 0 );
     v3 r1 = mOrientation.GetRow( 1 );
     v3 r2 = mOrientation.GetRow( 2 );
-    const char* buf = va( 
+//#define FMT "% .4f "
+//    const char* buf = va( 
+//      FMT FMT FMT "\n"
+//      FMT FMT FMT "\n"
+//      FMT FMT FMT "\n",
+//      r0.x, r0.y, r0.z,
+//      r1.x, r1.y, r1.z,
+//      r2.x, r2.y, r2.z );
+//#undef FMT
+
+#define FMT "{: .4} "
+    const std::string s = std::format(
       FMT FMT FMT "\n"
       FMT FMT FMT "\n"
       FMT FMT FMT "\n",
       r0.x, r0.y, r0.z,
       r1.x, r1.y, r1.z,
       r2.x, r2.y, r2.z );
-
+#undef FMT
     
-    OS::OSDebugPrintLine( buf );
+    
+    OS::OSDebugPrintLine( s );
     OS::OSDebugPrintLine( "\n" );
 
-    ImGuiTextf( 
-      FMT FMT FMT "\n"
-      FMT FMT FMT "\n"
-      FMT FMT FMT "\n",
-      r0.x, r0.y, r0.z,
-      r1.x, r1.y, r1.z,
-      r2.x, r2.y, r2.z );
   }
 
   void ExamplePhysSim3Torque::Integrate()

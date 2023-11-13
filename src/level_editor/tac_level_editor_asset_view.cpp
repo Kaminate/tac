@@ -24,8 +24,7 @@
 #include "src/space/tac_entity.h"
 #include "src/space/tac_world.h"
 
-#include <map>
-//#include <cmath>
+import std; //#include <map>
 
 namespace Tac
 {

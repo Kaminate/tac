@@ -7,7 +7,7 @@
 
 #include <d3dcommon.h> // WKPDID_D3DDebugObjectName
 
-#include <sstream> // std::stringstream
+import std; // #include <sstream> // std::stringstream
 
 
 #include <dxgi1_6.h> // IDXGIFactory4, IDXGIAdapter4
@@ -171,7 +171,7 @@ namespace Tac
       // unorm here, float there...  hmm is that ok?
       case 2: return DXGI_FORMAT_D16_UNORM;
       case 4: return DXGI_FORMAT_D32_FLOAT;
-      default: TAC_CRITICAL_ERROR_INVALID_CODE_PATH; return DXGI_FORMAT_UNKNOWN;
+      default: TAC_ASSERT_INVALID_CODE_PATH; return DXGI_FORMAT_UNKNOWN;
     }
   }
 
@@ -180,7 +180,7 @@ namespace Tac
     for( const FormatPair& formatPair : gFormatPairs )
       if( formatPair.mFormatDXGI == format )
         return formatPair.mFormat;
-    TAC_CRITICAL_ERROR_INVALID_CODE_PATH;
+    TAC_ASSERT_INVALID_CODE_PATH;
     return {};
   }
 
@@ -192,7 +192,7 @@ namespace Tac
     {
       case c16: return DXGI_FORMAT_R16_TYPELESS;
       case c32: return DXGI_FORMAT_R32_TYPELESS;
-      default: TAC_CRITICAL_ERROR_INVALID_CODE_PATH; return DXGI_FORMAT_UNKNOWN;
+      default: TAC_ASSERT_INVALID_CODE_PATH; return DXGI_FORMAT_UNKNOWN;
     }
   }
 
@@ -216,7 +216,7 @@ namespace Tac
           formatPair.mFormat.mPerElementDataType == textureFormat.mPerElementDataType )
         return formatPair.mFormatDXGI;
 
-    TAC_CRITICAL_ERROR_INVALID_CODE_PATH;
+    TAC_ASSERT_INVALID_CODE_PATH;
     return DXGI_FORMAT_UNKNOWN;
   }
 

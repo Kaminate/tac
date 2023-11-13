@@ -5,7 +5,7 @@
 //#include "src/common/core/tac_preprocessor.h" // C4100
 #include "src/common/graphics/imgui/tac_imgui.h"
 
-#include <sstream>
+import std; // #include <sstream>
 
 namespace Tac
 {

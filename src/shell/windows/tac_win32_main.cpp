@@ -15,7 +15,7 @@
 #include "src/shell/windows/renderer/tac_renderer_directx11.h"
 #include "src/common/net/tac_net.h"
 
-#include <iostream> // okay maybe this should also be allowed
+import std; // #include <iostream> // okay maybe this should also be allowed
 
 
 namespace Tac

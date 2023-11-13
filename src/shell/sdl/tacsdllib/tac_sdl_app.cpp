@@ -7,9 +7,10 @@
 #include <SDL_syswm.h> // system window manager
 #include <SDL_rwops.h> // file i/o abstraction, read write operations
 
-#include <filesystem> // ?!
-#include <iostream> // ?!
-#include <fstream> // ?!
+import std;
+//#include <filesystem> // ?!
+//#include <iostream> // ?!
+//#include <fstream> // ?!
 
 namespace Tac
 {
@@ -198,7 +199,7 @@ namespace Tac
 
     void            SDLOSSaveToFile( StringView path, const void* bytes, int byteCount, Errors& errors ) 
     {
-      String directory = Filesystem::FilepathToDirectory( path );
+      String directory = AssetPathStringView( path ).GetDirectory(); // Filesystem::FilepathToDirectory( path );
       OS::OSCreateFolderIfNotExist( directory, errors );
       TAC_HANDLE_ERROR( errors );
 

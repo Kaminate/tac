@@ -17,7 +17,7 @@
 #include "src/space/tac_entity.h"
 #include "src/space/tac_world.h"
 
-#include <iostream>
+import std; // #include <iostream>
 
 namespace Tac
 {

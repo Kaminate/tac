@@ -6,7 +6,8 @@
 #include "src/shell/tac_desktop_app.h"
 
 #include <SDL.h>
-#include <set>
+
+import std; // #include <set>
 
 namespace Tac
 {

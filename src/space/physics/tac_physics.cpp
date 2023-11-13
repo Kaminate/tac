@@ -17,8 +17,9 @@
 #include "src/space/tac_world.h"
 #include "src/space/terrain/tac_terrain.h"
 
-#include <array>
-#include <algorithm>
+import std;
+//#include <array>
+//#include <algorithm>
 
 namespace Tac
 {

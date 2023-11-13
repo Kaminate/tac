@@ -9,7 +9,7 @@
 #include "src/space/tac_ghost.h"
 #include "src/space/tac_space.h"
 
-#include <functional> // std::function
+import std; // #include <functional> // std::function
 
 namespace Tac
 {

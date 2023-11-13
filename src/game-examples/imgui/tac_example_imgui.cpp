@@ -3,7 +3,6 @@
 #include "src/common/core/tac_error_handling.h"
 #include "src/common/graphics/imgui/tac_imgui.h"
 
-#define FMT "%3i "
 
 namespace Tac
 {
@@ -18,11 +17,16 @@ namespace Tac
       const v2 size( style.fontSize, style.fontSize );
       const int iTex = ( int )Render::TextureHandle();
 
-      ImGuiTextf( FMT FMT FMT FMT,
-                  int( 255 * col4[ 0 ] ),
-                  int( 255 * col4[ 1 ] ),
-                  int( 255 * col4[ 2 ] ),
-                  int( 255 * col4[ 3 ] ) );
+#define FMT "{:3}"
+      const std::string s = std::format( FMT FMT FMT FMT,
+                                   int( 255 * col4[ 0 ] ),
+                                   int( 255 * col4[ 1 ] ),
+                                   int( 255 * col4[ 2 ] ),
+                                   int( 255 * col4[ 3 ] ) );
+#undef FMT
+      const StringView sv( s.data(), (int)s.size() );
+
+      ImGuiText(sv );
       ImGuiSameLine();
       ImGuiImage( iTex, size, col4 );
       ImGuiSameLine();

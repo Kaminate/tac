@@ -49,8 +49,17 @@ endif()
 include_directories( ${CMAKE_SOURCE_DIR} )
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23) # modules, ie import std.filesystem
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
+# set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+if( MSVC)
+  set(CMAKE_EXPERIMENTAL_CXX_MODULE_DYNDEP 1)
+endif()
+
+
+
+
 
 #===----------------===#
 # Clone git submodules #
@@ -71,5 +80,56 @@ endif()
 
 add_subdirectory(src)
 add_subdirectory(assets/hlsl)
+
+if(FALSE)
+  set( MODULE_PROP "${CMAKE_SOURCE_DIR}/build_std_modules.props" )
+  if(EXISTS ${MODULE_PROP} )
+    message( "props file path: ${MODULE_PROP}" )
+    SET_PROPERTY( GLOBAL PROPERTY VS_USER_PROPS ${MODULE_PROP} )
+  else()
+    message( FATAL_ERROR "fuck")
+  endif()
+endif()
+
+# This function 
+
+# For each project, enable it's Visual Studio Project
+#   --> Property Pages
+#   --> Configuration Properties 
+#   --> C/C++
+#   --> Language
+#   --> Build ISO C++ 23 Standard Library Modules
+if(TRUE)
+  set( MODULE_PROP "${CMAKE_SOURCE_DIR}/build_std_modules.props" )
+  if(EXISTS ${MODULE_PROP} )
+    message( "props file path: ${MODULE_PROP}" )
+
+
+    # This function recursively iterates all folders, and appends each target name into
+    # the output variable (_get_all_cmake_targets)
+    function (_get_all_cmake_targets out_var current_dir)
+        get_property(targets DIRECTORY ${current_dir} PROPERTY BUILDSYSTEM_TARGETS)
+        get_property(subdirs DIRECTORY ${current_dir} PROPERTY SUBDIRECTORIES)
+
+        foreach(subdir ${subdirs})
+            _get_all_cmake_targets(subdir_targets ${subdir})
+            list(APPEND targets ${subdir_targets})
+        endforeach()
+
+        set(${out_var} ${targets} PARENT_SCOPE)
+    endfunction()
+
+    _get_all_cmake_targets(all_targets ${CMAKE_CURRENT_LIST_DIR})
+    foreach(target ${all_targets})
+      message ("cur target: ${target}")
+
+      SET_PROPERTY( TARGET ${target} PROPERTY VS_USER_PROPS ${MODULE_PROP} )
+
+    endforeach()
+  else()
+    message( FATAL_ERROR "fuck")
+  endif()
+endif()
+
 
 

@@ -5,7 +5,8 @@
 #pragma once
 #include "src/common/containers/tac_vector.h"
 #include "src/common/math/tac_vector3.h"
-#include <list>
+
+import std; // #include <list>
 
 namespace Tac
 {

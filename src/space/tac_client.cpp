@@ -32,7 +32,7 @@ namespace Tac
     if( !reader->Read( &deletedComponentsBitfield ) )
       TAC_RAISE_ERROR( "failed to read entity deleted component bits", errors );
 
-    TAC_CRITICAL_ERROR_UNIMPLEMENTED;
+    TAC_ASSERT_UNIMPLEMENTED;
     //for( int iComponentType = 0; iComponentType < ( int )ComponentRegistryEntryIndex::Count; ++iComponentType )
     //{
     //  if( !( deletedComponentsBitfield & iComponentType ) )
@@ -44,7 +44,7 @@ namespace Tac
     char changedComponentsBitfield;
     if( !reader->Read( &changedComponentsBitfield ) )
       TAC_RAISE_ERROR( "failed to read entity changed component bitfield", errors );
-    TAC_CRITICAL_ERROR_UNIMPLEMENTED;
+    TAC_ASSERT_UNIMPLEMENTED;
     //for( int iComponentType = 0; iComponentType < ( int )ComponentRegistryEntryIndex::Count; ++iComponentType )
     //{
     //  if( !( changedComponentsBitfield & iComponentType ) )

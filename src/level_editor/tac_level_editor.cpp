@@ -44,10 +44,11 @@
 
 //#include "tac-core/test.h"
 
-#include <iostream>
-#include <functional>
-#include <algorithm>
-#include <array>
+import std;
+//#include <iostream>
+//#include <functional>
+//#include <algorithm>
+//#include <array>
 
 namespace Tac
 {

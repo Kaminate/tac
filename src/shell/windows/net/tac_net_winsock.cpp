@@ -18,7 +18,7 @@
 #include <WinSock2.h> // SOCKET
 #include <Ws2tcpip.h> // inet_pton, getaddrinfo
 
-#include <set>
+import std; // #include <set>
 
 #pragma comment( lib, "ws2_32.lib" )
 
@@ -70,7 +70,7 @@ namespace Tac
     {
       case AddressFamily::IPv4: return AF_INET;
       case AddressFamily::IPv6: return AF_INET6;
-      default: TAC_CRITICAL_ERROR_INVALID_CASE( addressFamily ); return 0;
+      default: TAC_ASSERT_INVALID_CASE( addressFamily ); return 0;
     }
   }
 
@@ -80,7 +80,7 @@ namespace Tac
     {
       case SocketType::TCP: return SOCK_STREAM;
       case SocketType::UDP: return SOCK_DGRAM;
-      default: TAC_CRITICAL_ERROR_INVALID_CASE( socketType ); return 0;
+      default: TAC_ASSERT_INVALID_CASE( socketType ); return 0;
     }
   }
 

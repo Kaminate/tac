@@ -1,25 +1,26 @@
-#include "src/common/graphics/imgui/tac_imgui.h"
+#include "src/space/tac_script_game_client.h" // self-inc
 
-#include "src/common/shell/tac_shell_timer.h"
-#include "src/common/math/tac_math.h"
-#include "src/common/system/tac_job_queue.h"
-#include "src/common/system/tac_job_queue.h"
-#include "src/common/system/tac_os.h"
 #include "src/common/dataprocess/tac_json.h"
 #include "src/common/dataprocess/tac_log.h"
+#include "src/common/dataprocess/tac_settings.h"
+#include "src/common/graphics/imgui/tac_imgui.h"
+#include "src/common/math/tac_math.h"
 #include "src/common/memory/tac_memory.h"
 #include "src/common/net/tac_net.h"
-#include "src/common/system/tac_os.h"
-#include "src/common/dataprocess/tac_settings.h"
 #include "src/common/shell/tac_shell.h"
+#include "src/common/shell/tac_shell_timer.h"
 #include "src/common/system/tac_filesystem.h"
+#include "src/common/system/tac_job_queue.h"
+#include "src/common/system/tac_job_queue.h"
+#include "src/common/system/tac_os.h"
+#include "src/common/system/tac_os.h"
 #include "src/common/thirdparty/stb_image.h"
-#include "src/space/tac_ghost.h"
 #include "src/space/graphics/tac_graphics.h"
-#include "src/space/tac_script_game_client.h"
+#include "src/space/tac_ghost.h"
 #include "src/space/tac_server.h"
 #include "src/space/tac_world.h"
-#include <cstdlib> // itoa
+
+import std; // #include <cstdlib> // itoa
 
 namespace Tac
 {

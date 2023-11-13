@@ -14,16 +14,27 @@
 
 #include <d3d11_3.h> // ID3D11Device3, ID3D11RasterizerState2
 
+#include <wrl/client.h>
+
 namespace Tac::Render
 {
+  using Microsoft::WRL::ComPtr;
+
+  struct CommunistPtr;
+#define TAC_RELEASE_IUNKNOWN( p ) { if( p ){ p->Release(); p = nullptr; } }
+
   struct ConstantBuffer
   {
-    ID3D11Buffer* mBuffer = nullptr;
+    ComPtr<ID3D11Buffer> mBuffer;
+    //ID3D11Buffer* mBuffer = nullptr;
 
     //            mName is used to
     //            1) Insure that multiple cbuffers aren't created with the same name
     //            2) Generate Program::mConstantBuffers while processing shader source
     String        mName;
+
+    void clear();
+    
   };
 
   struct Program
@@ -83,6 +94,8 @@ namespace Tac::Render
     ID3D11Buffer*              mBuffer = nullptr;
     ID3D11UnorderedAccessView* mUAV = nullptr;
     ID3D11ShaderResourceView*  mSRV = nullptr;
+    void SetDebugName( const StringView& );
+    void clear();
   };
 
   using BoundSrvSlots = Array<
@@ -205,6 +218,7 @@ namespace Tac::Render
     IndexBuffer*      FindIndexBuffer( IndexBufferHandle );
     VertexBuffer*     FindVertexBuffer( VertexBufferHandle );
     MagicBuffer*      FindMagicBuffer( MagicBufferHandle );
+    ConstantBuffer*   FindConstantBuffer( ConstantBufferHandle );
 
     ID3D11InfoQueue*           mInfoQueueDEBUG = nullptr;
     ID3DUserDefinedAnnotation* mUserAnnotationDEBUG = nullptr;

@@ -12,9 +12,11 @@
 #include "src/common/string/tac_string_util.h"
 #include "src/shell/tac_desktop_app.h"
 
-#include <iostream>
-#include <filesystem>
-#include <ctime> // mktime
+import std;
+//#include <iostream>
+//#include <filesystem>
+//#include <ctime> // mktime
+
 #include <Shlobj.h> // SHGetKnownFolderPath
 #include <shobjidl_core.h> // IFileSaveDialog, IFileOpenDialog
 
