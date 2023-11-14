@@ -86,22 +86,20 @@ namespace Tac::Render
     const String path = GetPIXDllPath( errors );
     if( path.empty() )
     {
-        const char* str = FrameMemoryPrintf(
-          "Warning: Could not find PIX %s. Is it installed? "
+        OS::OSDebugPrintLine( va(
+          "Warning: Could not find PIX {}. Is it installed? "
           "PIX will not be able to attach to the running process.",
-          pixDllName );
-        OS::OSDebugPrintLine( str );
+          pixDllName ) );
         return;
     }
 
     void* lib = OS::OSLoadDLL( path.c_str() );
     if( !lib )
     {
-      const char* str = FrameMemoryPrintf(
-        "Failed to load PIX %s at path %s. Is the path correct?",
+      OS::OSDebugPrintLine( va(
+        "Failed to load PIX {} at path {}. Is the path correct?",
         pixDllName,
-        path.c_str() );
-      OS::OSDebugPrintLine( str );
+        path.c_str() ) );
     }
 
   }

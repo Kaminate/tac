@@ -206,7 +206,7 @@ namespace Tac
       std::ofstream ofs( path.c_str(), std::ofstream::out | std::ofstream::binary );
       if( !ofs.is_open() )
       {
-        TAC_RAISE_ERROR( va("failed to open file at %s", path.c_str()), errors);
+        TAC_RAISE_ERROR( va("failed to open file at {}", path.c_str()), errors);
       }
       ofs.write( (const char*)bytes, byteCount );
 

@@ -51,7 +51,7 @@ namespace Tac
     float                           mSecondsToSleep = 0;
     bool                            mIsComplete = false;
     bool                            mRunForever = false;
-    String                          mName;
+    String                          mName ;
     std::set< ScriptCallbackData* > mMsgCallbacks;
   };
 

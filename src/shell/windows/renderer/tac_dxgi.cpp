@@ -9,6 +9,9 @@
 
 import std; // #include <sstream> // std::stringstream
 
+using std::uint32_t;
+using std::uint16_t;
+using std::uint8_t;
 
 #include <dxgi1_6.h> // IDXGIFactory4, IDXGIAdapter4
 
@@ -186,8 +189,8 @@ namespace Tac
 
   DXGI_FORMAT      GetDXGIFormatTextureTypeless( int i )
   {
-    constexpr int c16 = sizeof( uint16_t );
-    constexpr int c32 = sizeof( uint32_t );
+    constexpr int c16 = sizeof( std::uint16_t );
+    constexpr int c32 = sizeof( std::uint32_t );
     switch( i )
     {
       case c16: return DXGI_FORMAT_R16_TYPELESS;

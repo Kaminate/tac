@@ -1889,13 +1889,10 @@ Features deliberately excluded from the scope of this library:
 
 */
 
+import std;
 #if VMA_RECORDING_ENABLED
-#include <chrono>
 #if defined(_WIN32)
 #include <windows.h>
-#else
-#include <sstream>
-#include <thread>
 #endif
 #endif
 
@@ -3844,10 +3841,6 @@ right after Vulkan is initialized and keep it alive until before Vulkan device i
 #ifdef VMA_IMPLEMENTATION
 #undef VMA_IMPLEMENTATION
 
-#include <cstdint>
-#include <cstdlib>
-#include <cstring>
-#include <utility>
 
 /*******************************************************************************
 CONFIGURATION SECTION
@@ -3910,24 +3903,18 @@ THESE INCLUDES ARE NOT ENABLED BY DEFAULT.
 Library has its own container implementation.
 */
 #if VMA_USE_STL_VECTOR
-#include <vector>
 #endif
 
 #if VMA_USE_STL_UNORDERED_MAP
-#include <unordered_map>
 #endif
 
 #if VMA_USE_STL_LIST
-#include <list>
 #endif
 
 /*
 Following headers are used in this CONFIGURATION section only, so feel free to
 remove them if not needed.
 */
-#include <cassert> // for assert
-#include <algorithm> // for min, max
-#include <mutex>
 
 #ifndef VMA_NULL
 // Value used as null pointer. Define it to e.g.: nullptr, NULL, 0, (void*)0.
@@ -3935,7 +3922,6 @@ remove them if not needed.
 #endif
 
 #if defined(__ANDROID_API__) && (__ANDROID_API__ < 16)
-#include <cstdlib>
 void* aligned_alloc(size_t alignment, size_t size)
 {
     // alignment must be >= sizeof(void*)
@@ -3947,7 +3933,6 @@ void* aligned_alloc(size_t alignment, size_t size)
     return memalign(alignment, size);
 }
 #elif defined(__APPLE__) || defined(__ANDROID__) || (defined(__linux__) && defined(__GLIBCXX__) && !defined(_GLIBCXX_HAVE_ALIGNED_ALLOC))
-#include <cstdlib>
 void* aligned_alloc(size_t alignment, size_t size)
 {
     // alignment must be >= sizeof(void*)
@@ -3965,8 +3950,6 @@ void* aligned_alloc(size_t alignment, size_t size)
 
 // If your compiler is not compatible with C++11 and definition of
 // aligned_alloc() function is missing, uncommeting following line may help:
-
-//#include <malloc.h>
 
 // Normal assert to check for programmer's errors, especially in Debug configuration.
 #ifndef VMA_ASSERT
@@ -4066,7 +4049,6 @@ private:
 #ifndef VMA_RW_MUTEX
 #if VMA_USE_STL_SHARED_MUTEX
     // Use std::shared_mutex from C++17.
-#include <shared_mutex>
 class VmaRWMutex
 {
 public:
@@ -4119,12 +4101,10 @@ private:
 If providing your own implementation, you need to implement a subset of std::atomic.
 */
 #ifndef VMA_ATOMIC_UINT32
-#include <atomic>
 #define VMA_ATOMIC_UINT32 std::atomic<uint32_t>
 #endif
 
 #ifndef VMA_ATOMIC_UINT64
-#include <atomic>
 #define VMA_ATOMIC_UINT64 std::atomic<uint64_t>
 #endif
 

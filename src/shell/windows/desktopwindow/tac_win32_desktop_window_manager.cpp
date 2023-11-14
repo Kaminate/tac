@@ -26,7 +26,7 @@ namespace Tac
 
   static HWND                mParentHWND = nullptr;
   static DesktopWindowHandle sWindowUnderConstruction;
-  static Keyboard::Key                 GetKey( uint8_t keyCode )
+  static Keyboard::Key                 GetKey( std::uint8_t keyCode )
   {
 
     // List of virtual key codes
@@ -187,7 +187,7 @@ namespace Tac
         const bool isDown = ( lParam & ( ( LPARAM )1 << 31 ) ) == 0;
         if( isDown == wasDown )
           break;
-        const Keyboard::Key key = GetKey( ( uint8_t )wParam );
+        const Keyboard::Key key = GetKey( ( std::uint8_t )wParam );
         if( key == Keyboard::Key::Count )
           break;
         DesktopEventKeyState( key, isDown );
@@ -334,7 +334,7 @@ namespace Tac
       | LR_SHARED;
     const char* iconPath = "assets/grave.ico";
     const auto icon = ( HICON )LoadImage( nullptr, iconPath, IMAGE_ICON, 0, 0, fuLoad );;
-    TAC_ASSERT_MSG( icon,  "filed to load icon %s", iconPath );
+    TAC_ASSERT_MSG( icon, va( "filed to load icon {}", iconPath ) );
 
     WNDCLASSEX wc = {};
     wc.cbSize = sizeof( WNDCLASSEX );

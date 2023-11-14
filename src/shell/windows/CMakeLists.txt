@@ -15,6 +15,7 @@ target_sources(TacWin PRIVATE
   "tac_win32.cpp"
   "tac_win32.h"
   "tac_win32_os.cpp"
+  "tac_win32_os.h"
 )
 
 target_precompile_headers( TacWin PRIVATE 

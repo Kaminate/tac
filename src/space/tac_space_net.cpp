@@ -48,15 +48,20 @@ namespace Tac
     return bitfield;
   }
 
-  void LagTest::SaveMessage( const Vector< char >& data, double elapsedSecs )
+  void LagTest::SaveMessage( const Vector< char >& data, Timestamp elapsedSecs )
   {
-    DelayedNetMsg delayedNetMsg;
-    delayedNetMsg.mData = data;
-    delayedNetMsg.mDelayedTillSecs = elapsedSecs + mLagSimulationMS * 0.001f;
+    Timestamp delayedTillSecs = elapsedSecs;
+    delayedTillSecs += mLagSimulationMS * 0.001f;
+
+    const DelayedNetMsg delayedNetMsg
+    {
+      .mDelayedTillSecs = delayedTillSecs,
+      .mData = data,
+    };
     mSavedNetworkMessages.push_back( delayedNetMsg );
   }
 
-  bool LagTest::TryPopSavedMessage( Vector< char >& data, double elapsedSecs )
+  bool LagTest::TryPopSavedMessage( Vector< char >& data, Timestamp elapsedSecs )
   {
     if( mSavedNetworkMessages.empty() )
       return false;
@@ -93,7 +98,7 @@ namespace Tac
     mSnapshots.push_back( snapshot );
   }
 
-  World* SnapshotBuffer::FindSnapshot( double elapsedGameSecs )
+  World* SnapshotBuffer::FindSnapshot( Timestamp elapsedGameSecs )
   {
     for( World* world : mSnapshots )
       if( world->mElapsedSecs == elapsedGameSecs )

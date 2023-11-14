@@ -28,10 +28,17 @@ namespace Tac
 
   ExecutableStartupInfo          ExecutableStartupInfo::Init()
   {
-    return { .mAppName = "Vk Ex",
-    .mProjectInit = StandaloneInit,
-    .mProjectUpdate = StandaloneUpdate,
-    .mProjectUninit = StandaloneUninit, };
+    const ProjectFns projectFns =
+    {
+      .mProjectInit = StandaloneInit,
+      .mProjectUpdate = StandaloneUpdate,
+      .mProjectUninit = StandaloneUninit,
+    };
+    return ExecutableStartupInfo
+    {
+      .mAppName = "Vk Ex",
+      .mProjectFns = projectFns,
+    };
   }
-}
+} // namespace Tac
 

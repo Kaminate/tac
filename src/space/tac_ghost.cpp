@@ -154,17 +154,21 @@ namespace Tac
     delete mServerData;
     delete mClientData;
   }
-  User* Ghost::AddPlayer( StringView name,
-                          Errors& errors )
+
+  User* Ghost::AddPlayer( StringView name, Errors& errors )
   {
     auto* user = TAC_NEW User( this, name, errors );
     mUsers.push_back( user );
-    ScriptMsg scriptMsg;
-    scriptMsg.mType = scriptMsgNameUserConnect;
-    scriptMsg.mData = user;
+
+    const ScriptMsg scriptMsg
+    {
+      .mType = scriptMsgNameUserConnect,
+      .mData = user,
+    };
     mScriptRoot->OnMsg( &scriptMsg );
     return user;
   }
+
   void Ghost::ImguiCreatePlayerPopup( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
@@ -248,7 +252,8 @@ namespace Tac
       if( !Controller::IsButtonJustPressed( Controller::ControllerButton::Start, controller ) )
         continue;
 
-      User* user = AddPlayer( "Player " + ToString( ( int )mUsers.size() ), errors );
+      ShortFixedString playerName = va( "Player {}", mUsers.size() );
+      User* user = AddPlayer( playerName, errors );
       if( errors )
         return;
 
@@ -320,7 +325,7 @@ namespace Tac
       for( int iUser = 0; iUser < mUsers.size(); ++iUser )
       {
         auto user = mUsers[ iUser ];
-        String userHeader = va( "User %i: %s", iUser, user->mName.c_str() );
+        String userHeader = va( "User {}: {}", iUser, user->mName.c_str() );
         if( !ImGui::CollapsingHeader( userHeader.c_str() ) )
           continue;
         ImGui::Indent();

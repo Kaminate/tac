@@ -15,12 +15,9 @@
 #define TAC_INCLUDED_RENDERER_DIRECTX11 false
 #endif
 
-namespace Tac
+// Function forward declarations
+namespace Tac::Render
 {
-
-  // function forward declarations
-  namespace Render
-  {
 #if TAC_INCLUDED_RENDERER_VULKAN
     void RegisterRendererVulkan();
 #endif
@@ -28,8 +25,10 @@ namespace Tac
 #if TAC_INCLUDED_RENDERER_DIRECTX11
     void RegisterRendererDirectX11();
 #endif
-  }
+}
 
+namespace Tac
+{
   // function calls
   void RegisterRenderers()
   {

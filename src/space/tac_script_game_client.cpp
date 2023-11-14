@@ -11,8 +11,6 @@
 #include "src/common/shell/tac_shell_timer.h"
 #include "src/common/system/tac_filesystem.h"
 #include "src/common/system/tac_job_queue.h"
-#include "src/common/system/tac_job_queue.h"
-#include "src/common/system/tac_os.h"
 #include "src/common/system/tac_os.h"
 #include "src/common/thirdparty/stb_image.h"
 #include "src/space/graphics/tac_graphics.h"
@@ -164,41 +162,42 @@ namespace Tac
 	ScriptMatchmaker::ScriptMatchmaker()
 	{
 		mName = scriptMatchmakerName;
-		mPrintHTTPRequest = false;
-		mShouldSpamServer = false;
-		mTryAutoConnect = false;
-		mShouldLog = false;
-		mPort = 0;
-		mConnectionAttemptStartSeconds = 0;
 	}
-	void ScriptMatchmaker::OnScriptGameConnectionClosed( Socket* socket )
+
+	void ScriptMatchmaker::OnScriptGameConnectionClosed( [[maybe_unused]] Network::Socket* socket )
 	{
-    TAC_UNUSED_PARAMETER( socket );
+    TAC_ASSERT( socket == mSocket );
 		Log( "on script game connection closed" );
 		mSocket = nullptr;
 		mPretendWebsocketHandshakeDone = false;
 		mLine = 0;
 		mScriptRoot->OnMsg( scriptMsgDisconnect );
 	}
-	void ScriptMatchmaker::OnScriptGameMessage( Socket* socket, void* bytes, int byteCount )
+
+  void ScriptMatchmaker::OnScriptGameMessage( [[maybe_unused ]] Network::Socket* socket,
+                                              void* bytes,
+                                              int byteCount )
 	{
-    TAC_UNUSED_PARAMETER( socket );
 		if( mLogReceivedMessages )
 			Log( String( ( const char* )bytes, byteCount ) );
 	}
+
 	void ScriptMatchmaker::PokeServer( Errors& errors )
 	{
 		TAC_ASSERT( mSocket );
 		if( !mSocket->mTCPIsConnected )
 			return;
-		String s =
+
+		const String s =
 			"ScriptGameClient messsage: elapsed time is " +
 			FormatFrameTime( ShellGetElapsedSeconds() );
+
 		Json json;
 		json[ "name" ].SetString( "Ping" );
 		Json& args = json[ "args" ];
 		args.mType = JsonType::Array;
-		auto arg0 = TAC_NEW( kHappyGrl ) Json;
+
+		Json* arg0 = TAC_NEW( kHappyGrl ) Json;
 		arg0->SetString( s );
 		args.mArrayElements.push_back( arg0 );
 
@@ -232,37 +231,67 @@ namespace Tac
 			return;
 		mSocket->TCPTryConnect( mHostname, mPort, mConnectionErrors );
 	}
+
+  void ScriptMatchmaker::TCPOnMessage( void* userData,
+                                       Network::Socket* socket,
+                                       void* bytes,
+                                       int byteCount )
+  {
+    auto matchMaker = ( ScriptMatchmaker* )userData;
+    matchMaker->OnScriptGameMessage( socket, bytes, byteCount );
+  };
+
+  void ScriptMatchmaker::TCPOnConnectionClosed( void* userData, Network::Socket* socket )
+  {
+    auto matchMaker = ( ScriptMatchmaker* )userData;
+    matchMaker->OnScriptGameConnectionClosed( socket );
+  };
+
+  void ScriptMatchmaker::KeepAlive(void* userData, Network::Socket* )
+  {
+    auto* scriptMatchmaker = ( ScriptMatchmaker* )userData;
+    Errors errors; // ???
+    scriptMatchmaker->PokeServer( errors );
+  };
+
 	void ScriptMatchmaker::Update( float seconds, Errors& errors )
 	{
     TAC_UNUSED_PARAMETER( seconds );
 		TAC_TIMELINE_BEGIN;
-		mSocket = Net::Instance->CreateSocket( "Matchmaking socket", AddressFamily::IPv4, SocketType::TCP, errors );
+		mSocket = Network::Net::Instance->CreateSocket( "Matchmaking socket",
+                                                    Network::AddressFamily::IPv4,
+                                                    Network::SocketType::TCP, errors );
 		TAC_HANDLE_ERROR( errors );
 
-		auto tCPOnMessage = []( void* userData, Socket* socket, void* bytes, int byteCount )
-		{
-			( ( ScriptMatchmaker* )userData )->OnScriptGameMessage( socket, bytes, byteCount );
-		};
-		SocketCallbackDataMessage socketCallbackDataMessage;
-		socketCallbackDataMessage.mCallback = tCPOnMessage;
-		socketCallbackDataMessage.mUserData = this;
+
+    const Network::SocketCallbackDataMessage socketCallbackDataMessage =
+    {
+      .mCallback = ScriptMatchmaker::TCPOnMessage,
+      .mUserData = this,
+    };
 		mSocket->mTCPOnMessage.push_back( socketCallbackDataMessage );
 
-		auto tcpOnConnectionClosed = []( void* userData, Socket* socket )
-		{
-			( ( ScriptMatchmaker* )userData )->OnScriptGameConnectionClosed( socket );
-		};
-		SocketCallbackData socketCallbackData;
-		socketCallbackData.mCallback = tcpOnConnectionClosed;
-		socketCallbackData.mUserData = this;
+    const Network::SocketCallbackData socketCallbackData =
+    {
+      .mCallback = TCPOnConnectionClosed,
+      .mUserData = this,
+    };
 		mSocket->mTCPOnConnectionClosed.push_back( socketCallbackData );
 
-		String hostname = SettingsGetString( "hostname" , defaultHostname );
+		//String hostname = SettingsGetString( "hostname" , defaultHostname );
 		mPort = ( uint16_t )SettingsGetNumber( "port" , ( JsonNumber )defaultPort );
 
 		mConnectionAttemptStartSeconds = ShellGetElapsedSeconds();
-		String text = "Attempting to connect to " + mHostname + ":" + ToString( mPort );
-		Log( text );
+
+    {
+      String text;
+      text += "Attempting to connect to ";
+      text += mHostname;
+      text += ":";
+      text += ToString( mPort );
+      Log( text );
+    }
+
 		TAC_TIMELINE_KEYFRAME;
 		SetNextKeyDelay( 1.0f );
 		TAC_TIMELINE_KEYFRAME;
@@ -270,13 +299,22 @@ namespace Tac
 
 		if( mTryAutoConnect )
 			TryConnect();
+
 		if( !mSocket->mTCPIsConnected )
 			return;
-		String text = "Connected to " + mHostname + ":" + ToString( mPort );
-		Log( text );
+
+    {
+      String text;
+      text += "Connected to ";
+      text += mHostname;
+      text += ":";
+      text += ToString( mPort );
+      Log( text );
+    }
+
 		TAC_TIMELINE_KEYFRAME;
-		HTTPRequest httpRequest;
-		auto websocketKey = GenerateSecWebsocketKey();
+		Network::HTTPRequest httpRequest;
+		auto websocketKey = Network::GenerateSecWebsocketKey();
 		httpRequest.FormatRequestWebsocket( "/game", mHostname, websocketKey );
 		if( mPrintHTTPRequest )
           OS::OSDebugPrintLine(httpRequest.ToString());
@@ -285,13 +323,7 @@ namespace Tac
 		mPretendWebsocketHandshakeDone = true;
 		mSocket->mRequiresWebsocketFrame = true;
 		mSocket->mKeepaliveOverride.mUserData = this;
-		mSocket->mKeepaliveOverride.mCallback = []( void* userData, Socket* socket )
-		{
-      TAC_UNUSED_PARAMETER( socket );
-			auto* scriptMatchmaker = ( ScriptMatchmaker* )userData;
-			Errors errors; // ???
-			scriptMatchmaker->PokeServer( errors );
-		};
+    mSocket->mKeepaliveOverride.mCallback = ScriptMatchmaker::KeepAlive;
 
 		mScriptRoot->OnMsg( scriptMsgConnect );
 
@@ -790,6 +822,7 @@ namespace Tac
 		for( TimelineAction* timelineAction : mTimelineActions )
 			delete timelineAction;
 	}
+
 	void Timeline::Update( double time, Errors& errors )
 	{
     TAC_UNUSED_PARAMETER( errors );
@@ -826,11 +859,8 @@ namespace Tac
 
 	struct ConnectToServerJob : public Job
 	{
-		void Execute() override
-		{
-			mMatchmaker->TryConnect();
-            mErrors = mMatchmaker->mConnectionErrors;
-		}
+    void Execute() override;
+		
 		ScriptMatchmaker* mMatchmaker = nullptr;
 	};
 
@@ -838,11 +868,11 @@ namespace Tac
 	{
 		mName = "Main Menu 2";
 	}
+
 	ScriptMainMenu2::~ScriptMainMenu2()
 	{
-		static int j;
-		++j;
 	}
+
 	void ScriptMainMenu2::RenderMainMenu()
 	{
 		//auto* scriptMatchmaker = ( ScriptMatchmaker* )mScriptRoot->GetThread( scriptMatchmakerName );
@@ -911,13 +941,15 @@ namespace Tac
 	{
     TAC_UNUSED_PARAMETER( seconds );
     TAC_UNUSED_PARAMETER( errors );
+
 		TAC_TIMELINE_BEGIN;
 
-		auto job = TAC_NEW ConnectToServerJob;
-		job->mMatchmaker = ( ScriptMatchmaker* )mScriptRoot->GetThread( scriptMatchmakerName );
+		auto matchMaker = ( ScriptMatchmaker* )mScriptRoot->GetThread( scriptMatchmakerName );
+
+		ConnectToServerJob* job = TAC_NEW ConnectToServerJob;
+		job->mMatchmaker = matchMaker;
+    
 		mConnectToServerJob = job;
-
-
 
 		TAC_TIMELINE_KEYFRAME;
 		TAC_TIMELINE_KEYFRAME;
@@ -928,4 +960,12 @@ namespace Tac
     RunForever();
 		TAC_TIMELINE_END;
 	}
-}
+
+
+  void ConnectToServerJob::Execute() 
+  {
+    mMatchmaker->TryConnect();
+    mErrors = mMatchmaker->mConnectionErrors;
+  }
+
+} // namespace Tac

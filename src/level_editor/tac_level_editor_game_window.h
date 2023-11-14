@@ -7,20 +7,23 @@
 #include "src/space/tac_space.h"
 #include "src/common/tac_common.h"
 
-namespace Tac
+namespace Tac::Render
 {
   struct BlendState;
-  struct CBuffer;
-  struct Creation;
-  struct Debug3DDrawData;
   struct DefaultCBufferPerObject;
   struct DepthState;
   struct RasterizerState;
   struct SamplerState;
+  //struct VertexFormat;
+}
+
+namespace Tac
+{
+  struct Debug3DDrawData;
+  struct Creation;
   struct Shader;
   struct Soul;
   struct UI2DDrawData;
-  struct VertexFormat;
 
   struct CreationGameWindow
   {
@@ -53,6 +56,8 @@ namespace Tac
     void                          CreateGraphicsObjects( Errors& );
     void                          ImGuiOverlay( Errors& );
     void                          PlayGame( Errors& );
+
+    void                          SetStatusMessage( const StringView&, const TimestampDifference& );
     DesktopWindowHandle           mDesktopWindowHandle;
     Soul*                         mSoul = nullptr;
     Render::ShaderHandle          m3DShader;
@@ -70,7 +75,7 @@ namespace Tac
     v3                            mWorldSpaceMouseDir = {};
     float                         mArrowLen = 0;
     String                        mStatusMessage;
-    double                        mStatusMessageEndTime = 0;
+    Timestamp                     mStatusMessageEndTime;
     bool                          mCloseRequested = false;
   };
 

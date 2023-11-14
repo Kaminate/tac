@@ -43,8 +43,8 @@ namespace Tac
         ImGuiText( getfilesErrors.ToString() );
 
       static bool needsRefresh = true;
-      static double refreshSecTimestamp;
-      const double curSecTimestamp = ShellGetElapsedSeconds();
+      static Timestamp refreshSecTimestamp;
+      const Timestamp curSecTimestamp = ShellGetElapsedSeconds();
       if( needsRefresh || ImGuiButton( "Refresh Model List" ) )
       {
         getfilesErrors.clear();
@@ -63,7 +63,9 @@ namespace Tac
         refreshSecTimestamp = curSecTimestamp;
       }
 
-      const double populateDuration = 0.1; // how long it should take to populate the list
+      // how long (in seconds) it should take to populate the list
+      const float populateDuration = 0.1f;
+
       const int numberOfFilesPopulate = int(
         ( curSecTimestamp - refreshSecTimestamp ) /
         populateDuration * modelPaths.size() );
@@ -211,14 +213,14 @@ namespace Tac
         //               mesh->mTransform.m32,
         //               mesh->mTransform.m33 ) );
 
-        ImGuiTextf( "model index: %i", model->mModelIndex ) ;
+        ImGuiText( va( "model index: {}", model->mModelIndex ) );
         ImGuiDragInt( "model index", &model->mModelIndex );
         static int iSelectedSubmesh = -1;
         for( const SubMesh& subMesh : mesh->mSubMeshes )
         {
           const int iSubMesh = ( int )( &subMesh - mesh->mSubMeshes.data() );
           if( ImGuiSelectable(
-            va( "submesh %i: %s", iSubMesh, subMesh.mName.c_str() ),
+            va( "submesh {}: {}", iSubMesh, subMesh.mName.c_str() ),
             iSubMesh == iSelectedSubmesh ) )
             iSelectedSubmesh = iSubMesh;
         }
@@ -227,7 +229,7 @@ namespace Tac
           ImGuiIndent();
           const SubMesh& subMesh = mesh->mSubMeshes[ iSelectedSubmesh ];
           ImGuiText( subMesh.mName );
-          ImGuiTextf( "tri count: %i", subMesh.mTris.size() );
+          ImGuiText( va( "tri count: {}", subMesh.mTris.size() ) );
           ImGuiUnindent();
         }
       }

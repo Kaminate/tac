@@ -22,7 +22,7 @@ import std; // #include <set>
 
 #pragma comment( lib, "ws2_32.lib" )
 
-namespace Tac
+namespace Tac::Network
 {
   struct SocketWinsock : public Socket
   {
@@ -42,7 +42,6 @@ namespace Tac
   struct NetWinsock : public Net
   {
     ~NetWinsock();
-    static NetWinsock          Instance;
     void                       Init( Errors& ) override;
     void                       DebugImgui() override;
     void                       Update( Errors& ) override;
@@ -54,14 +53,16 @@ namespace Tac
     std::set< SocketWinsock* > mSocketWinsocks;
     bool                       mPrintReceivedMessages = false;
     // TODO: Only send a keepalive if we haven't received a message within mKeepaliveIntervalSeconds
-    double                     mKeepaliveNextSeconds = 0;
-    float                      mKeepaliveIntervalSeconds = 30;
+    Timestamp                  mKeepaliveNextSeconds = 0.0;
+    TimestampDifference        mKeepaliveIntervalSeconds = 30.0f;
   };
 
-  NetWinsock NetWinsock::Instance;
-  Net* GetNetWinsock() { return &NetWinsock::Instance; }
+  static NetWinsock sNetWinsock;
 
-
+  void NetWinsockInit(Errors& errors)
+  {
+    sNetWinsock.Init( errors );
+  }
 
 
   static int GetWinsockAddressFamily( AddressFamily addressFamily )
@@ -209,7 +210,8 @@ namespace Tac
                                      Errors& errors )
   {
     TAC_ASSERT( mSocketType == SocketType::TCP );
-    String portString = ToString( port );
+    const String portString = Tac::ToString( port );
+
     addrinfo* addrinfos;
     int wsaErrorCode = 0;
       
@@ -381,7 +383,9 @@ namespace Tac
       socketWinsock->mElapsedSecondsOnLastRecv = ShellGetElapsedSeconds();
       if( mPrintReceivedMessages )
       {
-        OS::OSDebugPrintfLine( "Received message: %.*s",  recvResult, recvBuf );
+        ShortFixedString msg = "Received message: ";
+        msg += StringView( recvBuf, recvResult );
+        OS::OSDebugPrintLine( msg );
       }
 
       socketWinsock->OnMessage( recvBuf, recvResult );
@@ -400,5 +404,5 @@ namespace Tac
     }
   }
 
-}
+} // namespace Tac::Network
 

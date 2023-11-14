@@ -82,7 +82,7 @@ namespace Tac
     if( mTestHeightmapLoadErrors )
       return; // tried to load already, but load failed
 
-    const String imageMemory = Filesystem::LoadAssetPath( mHeightmapTexturePath, mTestHeightmapLoadErrors );
+    const String imageMemory = LoadAssetPath( mHeightmapTexturePath, mTestHeightmapLoadErrors );
     if( mTestHeightmapLoadErrors )
       return;
 

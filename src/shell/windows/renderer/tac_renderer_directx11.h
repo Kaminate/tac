@@ -2,6 +2,13 @@
 
 #pragma once
 
+// I am including the directx includes before the tac includes,
+// because theres some weird shit going on with c++20 std modules (import std),
+// and vcruntime_new align_val_t
+
+#include <d3d11_3.h> // ID3D11Device3, ID3D11RasterizerState2
+#include <wrl/client.h>
+
 #include "src/common/graphics/tac_renderer.h"
 #include "src/common/graphics/tac_renderer_backend.h"
 #include "src/common/shell/tac_shell.h"
@@ -12,9 +19,6 @@
 #include "src/shell/windows/tac_win32.h"
 #include "src/shell/windows/renderer/tac_dxgi.h"
 
-#include <d3d11_3.h> // ID3D11Device3, ID3D11RasterizerState2
-
-#include <wrl/client.h>
 
 namespace Tac::Render
 {

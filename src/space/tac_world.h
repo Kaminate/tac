@@ -1,6 +1,7 @@
 #pragma once
 
 #include "src/space/tac_space_types.h"
+#include "src/common/shell/tac_shell_timer.h"
 #include "src/space/tac_space.h"
 #include "src/common/tac_common.h"
 #include "src/common/containers/tac_vector.h"
@@ -46,7 +47,7 @@ namespace Tac
     Player*       FindPlayer( PlayerUUID );
     Player*       FindPlayer( EntityUUID );
 
-    double               mElapsedSecs = 0;
+    Timestamp            mElapsedSecs;
     bool                 mDebugDrawEntityOrigins = true;
     std::list< Player* > mPlayers;
     std::list< Entity* > mEntities;
@@ -56,5 +57,5 @@ namespace Tac
     //                   each system can access it
     Debug3DDrawData*     mDebug3DDrawData = nullptr;
   };
-}
+} // namespace Tac
 

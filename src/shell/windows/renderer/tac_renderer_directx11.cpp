@@ -1,5 +1,17 @@
+// I am including the directx includes before the tac includes,
+// because theres some weird shit going on with c++20 std modules (import std),
+// and vcruntime_new align_val_t
+
+#include <d3d11_3.h> // ID3D11Device3, ID3D11RasterizerState2
+#include <wrl/client.h>
+#include <initguid.h>
+#include <dxgidebug.h>
+#include <d3dcompiler.h> // D3DCOMPILE_...
+#include <d3dcommon.h> // WKPDID_D3DDebugObjectName, ID3DBlob
+
 #include "src/shell/windows/renderer/tac_renderer_directx11.h" // self-inc
 
+#include "src/common/assetmanagers/tac_asset.h"
 #include "src/common/containers/tac_array.h"
 #include "src/common/containers/tac_frame_vector.h"
 #include "src/common/core/tac_algorithm.h"
@@ -19,16 +31,11 @@
 #include "src/shell/tac_desktop_app.h"
 #include "src/shell/windows/renderer/tac_dxgi.h"
 #include "src/shell/windows/renderer/tac_renderer_directx.h" // AllowPixDebuggerAttachment
-#include "src/shell/windows/renderer/tac_renderer_directx11_shader_preprocess.h"
-#include "src/shell/windows/renderer/tac_renderer_directx11_shader_postprocess.h"
-#include "src/shell/windows/renderer/tac_renderer_directx11_shader_compiler.h"
-#include "src/shell/windows/renderer/tac_renderer_directx11_namer.h"
 #include "src/shell/windows/renderer/tac_renderer_directx11_enum_helper.h"
-
-#include <initguid.h>
-#include <dxgidebug.h>
-#include <d3dcompiler.h> // D3DCOMPILE_...
-#include <d3dcommon.h> // WKPDID_D3DDebugObjectName, ID3DBlob
+#include "src/shell/windows/renderer/tac_renderer_directx11_namer.h"
+#include "src/shell/windows/renderer/tac_renderer_directx11_shader_compiler.h"
+#include "src/shell/windows/renderer/tac_renderer_directx11_shader_postprocess.h"
+#include "src/shell/windows/renderer/tac_renderer_directx11_shader_preprocess.h"
 
 #pragma comment( lib, "d3d11.lib" )
 #pragma comment( lib, "dxguid.lib" )
@@ -101,10 +108,10 @@ namespace Tac::Render
 
   static String DX11CallAux( const char* fnCallWithArgs, const HRESULT res )
   {
-    String result = va( "%s returned 0x%x", fnCallWithArgs, res );
+    String result = (StringView)va( "{} returned {:#x}", fnCallWithArgs, res );
     const String inferredErrorMessage = TryInferDX11ErrorStr( res );
     if( !inferredErrorMessage.empty() )
-      result += va( "(%s)", inferredErrorMessage.c_str() );
+      result += va( "({})", inferredErrorMessage.c_str() );
     return result;
   }
 
@@ -332,7 +339,7 @@ namespace Tac::Render
   static bool DoesShaderTextContainEntryPoint( const StringView& shaderText,
                                                const char* entryPoint )
   {
-    return shaderText.contains( va( "%s(", entryPoint ) );
+    return shaderText.contains( (StringView)va( "{}(", entryPoint ) );
   }
 
 
@@ -343,9 +350,6 @@ namespace Tac::Render
         return ConstantBufferHandle( i );
     return ConstantBufferHandle();
   }
-
-
-
 
   static Program LoadProgram( const ShaderNameStringView& shaderName, Errors& errors )
   {
@@ -382,7 +386,7 @@ namespace Tac::Render
       }
 
 
-      const String shaderStringOrig = Filesystem::LoadAssetPath( assetPath, errors  );
+      const String shaderStringOrig = LoadAssetPath( assetPath, errors  );
       if( errors )
         continue;
 
@@ -400,7 +404,7 @@ namespace Tac::Render
       const bool hasGS = DoesShaderTextContainEntryPoint( shaderStringFull, gsEntryPoint );
       const bool hasPS = DoesShaderTextContainEntryPoint( shaderStringFull, psEntryPoint );
 
-      TAC_ASSERT_MSG( hasVS, "shader %s missing %s", shaderName.c_str(), vsEntryPoint );
+      TAC_ASSERT_MSG( hasVS, va( "shader {} missing {}", shaderName.c_str(), vsEntryPoint ) );
 
       const char* vsShaderModel = "vs_5_0";
       const char* psShaderModel = "ps_5_0";
@@ -1093,12 +1097,7 @@ namespace Tac::Render
 
   AssetPathStringView RendererDirectX11::GetShaderPath( const ShaderNameStringView& shaderName )
   {
-    const char* prefix = "assets/hlsl/";
-    const char* suffix = ".fx";
-    return FrameMemoryPrintf( "%s" TAC_PRI_SV_FMT "%s",
-                              prefix,
-                              TAC_PRI_SV_ARG(shaderName),
-                              suffix );
+    return FrameMemoryFormat( "assets/hlsl/{{}}.fx", shaderName.data(), shaderName.size() );
   }
 
   void RendererDirectX11::SwapBuffers()

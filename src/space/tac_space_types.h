@@ -21,9 +21,6 @@ namespace Tac
   enum class EntityUUID : UUID;
   const EntityUUID NullEntityUUID = ( EntityUUID )NullUUID;
 
-  enum class AssetUUID : UUID;
-  const AssetUUID NullAssetUUID = ( AssetUUID )NullUUID;
-
   typedef uint8_t PlayerCount;
   typedef uint16_t EntityCount;
 

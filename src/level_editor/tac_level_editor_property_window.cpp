@@ -163,7 +163,7 @@ namespace Tac
       ImGuiInputText( "Name", entity->mName );
 
       AssetPathStringView prefabPath = PrefabGetOrNull( entity );
-      ImGuiTextf( "Prefab path: %s,", prefabPath.c_str() );
+      ImGuiText(va( "Prefab path: {},", prefabPath.c_str() ));
 
       ImGuiText( "UUID: " + ToString( ( UUID )entity->mEntityUUID ) );
       if( ImGuiButton( "Reset Transform" ) )
@@ -256,7 +256,7 @@ namespace Tac
         TAC_IMGUI_INDENT_BLOCK;
         for( const ComponentRegistryEntry* componentType : addableComponentTypes )
         {
-          if( ImGuiButton( va( "Add %s component", componentType->mName ) ) )
+          if( ImGuiButton( va( "Add {} component", componentType->mName ) ) )
           {
             entity->AddNewComponent( componentType );
           }

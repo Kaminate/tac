@@ -49,7 +49,7 @@ namespace Tac
   static bool                          mRenderEnabledTerrain = true;
   static bool                          mRenderEnabledDebug3D = true;
   static bool                          mUseLights = true;
-  static CBufferLights                 mDebugCBufferLights = {};
+  static Render::CBufferLights         mDebugCBufferLights = {};
 
   struct TerrainVertex
   {
@@ -67,11 +67,11 @@ namespace Tac
   static void CheckShaderPadding()
   {
     const int sizeofshaderlight_estimated = 4 * ( 16 + 4 + 4 + 4 + 1 + 3 );
-    const int sizeofshaderlight = sizeof( ShaderLight );
-    const int light1Offset = ( int )TAC_OFFSET_OF( CBufferLights, lights[ 1 ] );
+    const int sizeofshaderlight = sizeof( Render::ShaderLight );
+    const int light1Offset = ( int )TAC_OFFSET_OF( Render::CBufferLights, lights[ 1 ] );
     const int light1OffsetReg = light1Offset / 16;
     const int light1OffsetAxis = light1Offset % 16;
-    const int lightCountOffset = ( int )TAC_OFFSET_OF( CBufferLights, lightCount );
+    const int lightCountOffset = ( int )TAC_OFFSET_OF( Render::CBufferLights, lightCount );
     const int lightCountOffsetReg = lightCountOffset / 16;
     const int lightCountOffsetAxis = lightCountOffset % 16;
     const bool check1 = sizeofshaderlight % 16 == 0;
@@ -88,11 +88,11 @@ namespace Tac
     TAC_ASSERT( check6 );
   }
 
-  static DefaultCBufferPerFrame GetPerFrameBuf( const Camera* camera,
+  static Render::DefaultCBufferPerFrame GetPerFrameBuf( const Camera* camera,
                                                 const int viewWidth,
                                                 const int viewHeight )
   {
-    const double elapsedSeconds = ShellGetElapsedSeconds();
+    const Timestamp elapsedSeconds = ShellGetElapsedSeconds();
     float a;
     float b;
     Render::GetPerspectiveProjectionAB( camera->mFarPlane,
@@ -101,12 +101,15 @@ namespace Tac
                                         b );
     const float w = ( float )viewWidth;
     const float h = ( float )viewHeight;
-    return { .mView = camera->View(),
-             .mProjection = camera->Proj( a, b, w / h ),
-             .mFar = camera->mFarPlane,
-             .mNear = camera->mNearPlane,
-             .mGbufferSize = { w, h },
-             .mSecModTau = ( float )Fmod( elapsedSeconds, 6.2831853 )};
+    return Render::DefaultCBufferPerFrame
+    {
+      .mView = camera->View(),
+      .mProjection = camera->Proj( a, b, w / h ),
+      .mFar = camera->mFarPlane,
+      .mNear = camera->mNearPlane,
+      .mGbufferSize = { w, h },
+      .mSecModTau = ( float )Fmod( elapsedSeconds, 6.2831853 )
+    };
   }
 
   static TerrainVertex GetTerrainVertex( const Terrain* terrain,
@@ -169,14 +172,14 @@ namespace Tac
     if( !mesh )
       return;
 
-    const DefaultCBufferPerObject perObjectData
+    const Render::DefaultCBufferPerObject perObjectData
     {
       .World = model->mEntity->mWorldTransform,
-      .Color = PremultipliedAlpha::From_sRGB( model->mColorRGB ),
+      .Color = Render::PremultipliedAlpha::From_sRGB( model->mColorRGB ),
     };
 
     Render::DrawCallTextures drawCallTextures;
-    CBufferLights cBufferLights;
+    Render::CBufferLights cBufferLights;
     if( mUseLights )
     {
       for( int i = 0; i < lightCount; ++i )
@@ -192,11 +195,9 @@ namespace Tac
 
     for( const SubMesh& subMesh : mesh->mSubMeshes )
     {
-      const  char* groupName = FrameMemoryPrintf( "%s %s", model->mEntity->mName.c_str(), subMesh.mName.c_str() );
-      Render::BeginGroup( groupName, TAC_STACK_FRAME );
-      //FrameMemoryPrintf( "%s %i", subMesh.mName.c_str(),
-      //                                         model->mModelPath.c_str(),
-      //                                         model->mModelIndex ), TAC_STACK_FRAME );
+      const char* entityName = model->mEntity->mName.c_str() ;
+      const char* subMeshName = subMesh.mName.c_str();
+      Render::BeginGroup( va("{} {}", entityName, subMeshName), TAC_STACK_FRAME );
       Render::SetShader( m3DShader );
       Render::SetVertexBuffer( subMesh.mVertexBuffer, 0, subMesh.mVertexCount );
       Render::SetIndexBuffer( subMesh.mIndexBuffer, 0, subMesh.mIndexCount );
@@ -206,9 +207,9 @@ namespace Tac
       Render::SetDepthState( mDepthState );
       Render::SetVertexFormat( m3DVertexFormat );
       Render::SetPrimitiveTopology( subMesh.mPrimitiveTopology );
-      Render::UpdateConstantBuffer( DefaultCBufferPerObject::Handle,
+      Render::UpdateConstantBuffer( Render::DefaultCBufferPerObject::Handle,
                                     &perObjectData,
-                                    sizeof( DefaultCBufferPerObject ),
+                                    sizeof( Render::DefaultCBufferPerObject ),
                                     TAC_STACK_FRAME );
       Render::Submit( viewId, TAC_STACK_FRAME );
       Render::EndGroup( TAC_STACK_FRAME );
@@ -402,12 +403,12 @@ namespace Tac
   {
     if( !mRenderEnabledModel )
       return;
-    const DefaultCBufferPerFrame perFrameData = GetPerFrameBuf( camera,
+    const Render::DefaultCBufferPerFrame perFrameData = GetPerFrameBuf( camera,
                                                                 viewWidth,
                                                                 viewHeight );
-    Render::UpdateConstantBuffer( DefaultCBufferPerFrame::Handle,
+    Render::UpdateConstantBuffer( Render::DefaultCBufferPerFrame::Handle,
                                   &perFrameData,
-                                  sizeof( DefaultCBufferPerFrame ),
+                                  sizeof( Render::DefaultCBufferPerFrame ),
                                   TAC_STACK_FRAME );
 
     Graphics* graphics = GetGraphics( world );
@@ -426,7 +427,8 @@ namespace Tac
         if( mUseLights )
           mGraphics->VisitLights( &sLightVisitor );
 
-        sLightVisitor.mLights.resize( Min( sLightVisitor.mLights.size(), CBufferLights::TAC_MAX_SHADER_LIGHTS ) );
+        sLightVisitor.mLights.resize(
+          Min( sLightVisitor.mLights.size(), Render::CBufferLights::TAC_MAX_SHADER_LIGHTS ) );
 
 
         RenderGameWorldAddDrawCall( sLightVisitor.mLights.data(),
@@ -459,12 +461,13 @@ namespace Tac
   {
     if( !mRenderEnabledTerrain )
       return;
-    const DefaultCBufferPerFrame perFrameData = GetPerFrameBuf( camera,
+
+    const Render::DefaultCBufferPerFrame perFrameData = GetPerFrameBuf( camera,
                                                                 viewWidth,
                                                                 viewHeight );
-    Render::UpdateConstantBuffer( DefaultCBufferPerFrame::Handle,
+    Render::UpdateConstantBuffer( Render::DefaultCBufferPerFrame::Handle,
                                   &perFrameData,
-                                  sizeof( DefaultCBufferPerFrame ),
+                                  sizeof( Render::DefaultCBufferPerFrame ),
                                   TAC_STACK_FRAME );
     Physics* physics = Physics::GetSystem( world );
 
@@ -482,12 +485,12 @@ namespace Tac
       const Render::TextureHandle noiseTexture =
         TextureAssetManager::GetTexture( terrain->mNoiseTexturePath, mGetTextureErrorsNoise );
 
-      const DefaultCBufferPerObject cbuf;
+      const Render::DefaultCBufferPerObject cbuf;
 
       Render::SetTexture( Render::DrawCallTextures{ terrainTexture, noiseTexture } );
-      Render::UpdateConstantBuffer( DefaultCBufferPerObject::Handle,
+      Render::UpdateConstantBuffer( Render::DefaultCBufferPerObject::Handle,
                                     &cbuf,
-                                    sizeof( DefaultCBufferPerObject ),
+                                    sizeof( Render::DefaultCBufferPerObject ),
                                     TAC_STACK_FRAME );
       Render::SetDepthState( mDepthState );
       Render::SetBlendState( mBlendState );
@@ -635,21 +638,24 @@ namespace Tac
     if( mUseLights && ImGuiCollapsingHeader( "CBufferLights" ) )
     {
       TAC_IMGUI_INDENT_BLOCK;
-      ImGuiTextf(  "light count %i", mDebugCBufferLights.lightCount  );
-      ImGuiTextf(  "text number %i", mDebugCBufferLights.testNumber  );
+      ImGuiText( va( "light count {}", mDebugCBufferLights.lightCount ) );
+      ImGuiText( va( "text number {}", mDebugCBufferLights.testNumber ) );
       for( int iLight = 0; iLight < ( int )mDebugCBufferLights.lightCount; ++iLight )
       {
-        if( !ImGuiCollapsingHeader( FrameMemoryPrintf( "Light %i", iLight ) ) )
+        if( !ImGuiCollapsingHeader( va( "Light {}", iLight ) ) )
           continue;
 
-        ShaderLight* shaderLight = &mDebugCBufferLights.lights[ iLight ];
+        Render::ShaderLight* shaderLight = &mDebugCBufferLights.lights[ iLight ];
         String rowsStrs[ 4 ];
         for( int r = 0; r < 4; ++r )
           for( int c = 0; c < 4; ++c )
-            rowsStrs[ r ] += FrameMemoryPrintf( "%.2f ", shaderLight->mWorldToClip( r, c ) );
+            rowsStrs[ r ] += va( "{:.2} ", shaderLight->mWorldToClip( r, c )  );
 
-        const Light::Type lightType = ( Light::Type )GetShaderLightFlagType()->Extract( shaderLight->mFlags );
-        const bool castsShadows = ( bool )GetShaderLightFlagCastsShadows()->Extract( shaderLight->mFlags );
+        const Render::ShaderFlags::Info* lightTypeInfo = Render::GetShaderLightFlagType();
+        const Render::ShaderFlags::Info* castsShadowsInfo = Render::GetShaderLightFlagCastsShadows();
+
+        const Light::Type lightType = ( Light::Type )lightTypeInfo->Extract( shaderLight->mFlags );
+        const bool castsShadows = ( bool )castsShadowsInfo->Extract( shaderLight->mFlags );
 
         TAC_IMGUI_INDENT_BLOCK;
         ImGuiText( "World to clip matrix" );
@@ -667,10 +673,10 @@ namespace Tac
         ImGuiDragFloat( "light proj a", &shaderLight->mProjA );
         ImGuiDragFloat( "light proj b", &shaderLight->mProjB );
         ImGuiImage( -1, v2( 1, 1 ) * 50, v4( shaderLight->mColorRadiance.xyz(), 1.0f ) );
-        ImGuiTextf( "Light type: %s (%i)",
+        ImGuiText( va("Light type: {} ({})",
                     LightTypeToString( lightType ),
-                    ( int )lightType );
-        ImGuiTextf( "casts shadows: %s", ( castsShadows ? "true" : "false" ) );
+                    ( int )lightType ) );
+        ImGuiText( va( "casts shadows: {}", ( castsShadows ? "true" : "false" ) ) );
       }
     }
 

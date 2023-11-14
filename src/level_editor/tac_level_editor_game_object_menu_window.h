@@ -2,6 +2,7 @@
 
 #include "src/common/system/tac_desktop_window.h"
 #include "src/common/tac_common.h"
+#include "src/common/shell/tac_shell_timer.h"
 
 namespace Tac
 {
@@ -13,7 +14,7 @@ namespace Tac
     void                                 Update( Errors& );
     static CreationGameObjectMenuWindow* Instance;
     DesktopWindowHandle                  mDesktopWindowHandle;
-    double                               mCreationSeconds = 0;
+    Timestamp                            mCreationSeconds;
   };
 }
 

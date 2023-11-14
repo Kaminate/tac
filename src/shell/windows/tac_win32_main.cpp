@@ -1,3 +1,10 @@
+// I am including the directx includes before the tac includes,
+// because theres some weird shit going on with c++20 std modules (import std),
+// and vcruntime_new align_val_t
+#include "src/shell/windows/renderer/tac_renderer_directx11.h"
+
+#include "src/shell/windows/tac_win32_main.h" // self-inc
+
 #include "src/common/math/tac_math.h"
 #include "src/common/core/tac_algorithm.h"
 #include "src/common/core/tac_error_handling.h"
@@ -12,7 +19,6 @@
 #include "src/shell/windows/desktopwindow/tac_win32_desktop_window_manager.h"
 #include "src/shell/windows/input/tac_xinput.h"
 #include "src/shell/windows/input/tac_win32_mouse_edge.h"
-#include "src/shell/windows/renderer/tac_renderer_directx11.h"
 #include "src/common/net/tac_net.h"
 
 import std; // #include <iostream> // okay maybe this should also be allowed
@@ -62,18 +68,19 @@ namespace Tac
 
   static void RedirectStreamBuf()
   {
-    static struct : public std::streambuf
+    struct RedirectBuf : public std::streambuf
     {
       int overflow( int c ) override
       {
-        if( c != EOF )
+        if( c > 0 )
         {
           char buf[] = { ( char )c, '\0' };
           OutputDebugString( buf );
         }
         return c;
       }
-    } streamBuf;
+    };
+    static RedirectBuf streamBuf;
     std::cout.rdbuf( &streamBuf );
     std::cerr.rdbuf( &streamBuf );
     std::clog.rdbuf( &streamBuf );
@@ -114,8 +121,7 @@ namespace Tac
     Win32WindowManagerInit( errors );
     TAC_HANDLE_ERROR( errors );
 
-    Net* net = GetNetWinsock();
-    net->Init(errors);
+    Network::NetWinsockInit(errors);
     TAC_HANDLE_ERROR( errors );
 
     DesktopAppRun( errors );

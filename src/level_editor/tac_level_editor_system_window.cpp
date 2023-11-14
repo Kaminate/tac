@@ -77,7 +77,7 @@ namespace Tac
 
     if( sSystemRegistryEntry &&
         sSystemRegistryEntry->mDebugImGui &&
-        ImGuiCollapsingHeader( FrameMemoryPrintf( "%s Debug", sSystemRegistryEntry->mName ) ) )
+        ImGuiCollapsingHeader( va( "{} Debug", sSystemRegistryEntry->mName ) ) )
     {
       TAC_IMGUI_INDENT_BLOCK;
       System* system = gCreation.mWorld->GetSystem( sSystemRegistryEntry );

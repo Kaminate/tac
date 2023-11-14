@@ -20,7 +20,6 @@ namespace Tac
   CreationGameObjectMenuWindow::CreationGameObjectMenuWindow()
   {
     Instance = this;
-    mCreationSeconds = 0;
   }
 
   CreationGameObjectMenuWindow::~CreationGameObjectMenuWindow()

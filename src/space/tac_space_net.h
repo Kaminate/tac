@@ -2,6 +2,7 @@
 
 #include "src/common/dataprocess/tac_serialization.h" // Endianness
 #include "src/space/tac_space.h"
+#include "src/common/shell/tac_shell_timer.h"
 #include "src/common/tac_common.h"
 
 import std;
@@ -32,14 +33,14 @@ namespace Tac
 
   struct DelayedNetMsg
   {
-    double         mDelayedTillSecs = 0;
+    Timestamp      mDelayedTillSecs;
     Vector< char > mData;
   };
 
   struct LagTest
   {
-    void                       SaveMessage( const Vector< char >& data, double elapsedSecs );
-    bool                       TryPopSavedMessage( Vector< char >& data, double elapsedSecs );
+    void                       SaveMessage( const Vector< char >& data, Timestamp elapsedSecs );
+    bool                       TryPopSavedMessage( Vector< char >& data, Timestamp elapsedSecs );
     int                        mLagSimulationMS = 0;
     std::list< DelayedNetMsg > mSavedNetworkMessages;
   };
@@ -48,7 +49,7 @@ namespace Tac
   {
     ~SnapshotBuffer();
     void                AddSnapshot( const World* );
-    World*              FindSnapshot( double elapsedGameSecs );
+    World*              FindSnapshot( Timestamp elapsedGameSecs );
     std::list< World* > mSnapshots;
     const int           maxSnapshots = 32;
   };

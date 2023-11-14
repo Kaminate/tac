@@ -1,8 +1,7 @@
-
 #pragma once
 
 #include "src/common/string/tac_string.h"
-//#include "src/common/core/tac_error_handling.h"
+#include "src/common/core/tac_error_handling.h"
 #include "src/common/containers/tac_vector.h"
 #include "src/common/shell/tac_shell.h"
 #include "src/common/i18n/tac_localization.h"

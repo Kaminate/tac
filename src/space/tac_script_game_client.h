@@ -5,21 +5,28 @@
 
 import std; 
 
+using std::uint16_t;
+
 //#include <list>
 //#include <set>
 
-struct UILayout;
-struct UIText;
-struct Job;
-struct Ghost;
-struct Socket;
-struct ScriptMainMenu;
-struct ScriptSplash;
-struct ScriptMatchmaker;
-struct ScriptGameClient;
+
+namespace Tac::Network
+{
+  struct Socket;
+}
 
 namespace Tac
 {
+  struct UILayout;
+  struct UIText;
+  struct Job;
+  struct Ghost;
+  struct ScriptMainMenu;
+  struct ScriptSplash;
+  struct ScriptMatchmaker;
+  struct ScriptGameClient;
+
   struct TimelineAction
   {
     virtual ~TimelineAction();
@@ -65,23 +72,28 @@ namespace Tac
     ScriptMatchmaker();
     void     Update( float seconds, Errors& ) override;
     void     DebugImgui( Errors& ) override;
-    void     OnScriptGameConnectionClosed( Socket* );
-    void     OnScriptGameMessage( Socket* socket, void* bytes, int byteCount );
+    void     OnScriptGameConnectionClosed( Network::Socket* );
+    void     OnScriptGameMessage( Network::Socket* , void* bytes, int byteCount );
     void     PokeServer( Errors& );
     void     ClearServerLog( Errors& );
     void     Log( StringView text );
     void     TryConnect();
-    Socket*  mSocket = nullptr;
-    String   mHostname;
-    Errors   mConnectionErrors;
-    uint16_t mPort;
-    bool     mPrintHTTPRequest;
-    bool     mPretendWebsocketHandshakeDone = false;
-    bool     mShouldSpamServer;
-    bool     mShouldLog;
-    bool     mLogReceivedMessages = false;
-    bool     mTryAutoConnect;
-    double   mConnectionAttemptStartSeconds;
+
+    static void TCPOnMessage( void*, Network::Socket*, void*, int );
+    static void TCPOnConnectionClosed( void*, Network::Socket* );
+    static void KeepAlive( void*, Network::Socket* );
+
+    Network::Socket* mSocket = nullptr;
+    String           mHostname;
+    Errors           mConnectionErrors;
+    uint16_t         mPort = 0;
+    bool             mPrintHTTPRequest = false;
+    bool             mPretendWebsocketHandshakeDone = false;
+    bool             mShouldSpamServer = false;
+    bool             mShouldLog = false;
+    bool             mLogReceivedMessages = false;
+    bool             mTryAutoConnect = false;
+    Timestamp        mConnectionAttemptStartSeconds;
   };
 
   // Mirrored in server.js

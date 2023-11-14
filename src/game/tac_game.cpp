@@ -59,11 +59,14 @@ namespace Tac
 
   ExecutableStartupInfo ExecutableStartupInfo::Init()
   {
-    return
+    return ExecutableStartupInfo
     {
-      .mAppName =sAppName,
-    .mProjectInit = GameCallbackInit,
-    .mProjectUpdate = GameCallbackUpdate,
+      .mAppName = sAppName,
+      .mProjectFns = ProjectFns
+      {
+        .mProjectInit = GameCallbackInit,
+        .mProjectUpdate = GameCallbackUpdate,
+      },
     };
   }
 

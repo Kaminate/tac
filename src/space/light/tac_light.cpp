@@ -189,7 +189,7 @@ namespace Tac
     return Light::Type::kCount;
   }
 
-  ShaderLight                            LightToShaderLight( const Light* light )
+  Render::ShaderLight                            LightToShaderLight( const Light* light )
   {
         Camera camera = light->GetCamera();
         float a;
@@ -206,10 +206,10 @@ namespace Tac
 
 
         const uint32_t flags = 0
-          | GetShaderLightFlagType()->ShiftResult( light->mType )
-          | GetShaderLightFlagCastsShadows()->ShiftResult( light->mCastsShadows );
+          | Render::GetShaderLightFlagType()->ShiftResult( light->mType )
+          | Render::GetShaderLightFlagCastsShadows()->ShiftResult( light->mCastsShadows );
 
-        ShaderLight shaderLight = {};
+        Render::ShaderLight shaderLight = {};
         shaderLight.mColorRadiance.xyz() = light->mColor;
         shaderLight.mColorRadiance.w = light->mRadiance;
         shaderLight.mFlags = flags;

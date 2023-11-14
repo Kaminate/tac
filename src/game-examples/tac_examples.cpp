@@ -1,6 +1,6 @@
 #include "src/common/graphics/imgui/tac_imgui.h"
 #include "src/common/graphics/tac_renderer.h"
-#if 0
+#if 1
 #include "src/common/graphics/tac_camera.h"
 #include "src/common/shell/tac_shell_timer.h"
 #include "src/shell/tac_desktop_window_graphics.h"
@@ -95,7 +95,7 @@ namespace Tac
     const int n = GetExampleCount();
     if( Example* ex = GetCurrExample() )
     {
-      ImGuiTextf( std::format( "Current Example ({}/{}): {}", iCurrent + 1, n, ex->mName ) ;
+      ImGuiText( va( "Current Example ({}/{}): {}", iCurrent + 1, n, ex->mName ) );
       offset -= ImGuiButton( "Prev" ) ? 1 : 0;
       ImGuiSameLine();
       offset += ImGuiButton( "Next" ) ? 1 : 0;

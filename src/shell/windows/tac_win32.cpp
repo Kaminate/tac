@@ -1,6 +1,8 @@
-#include "src/shell/windows/tac_win32.h"
+#include "src/shell/windows/tac_win32.h" // self-inc
+
 #include "src/common/core/tac_preprocessor.h"
 #include "src/common/string/tac_string_util.h"
+#include "src/common/memory/tac_frame_memory.h"
 #include "src/common/system/tac_os.h"
 #include "src/common/graphics/tac_renderer.h"
 #include "src/common/core/tac_algorithm.h"
@@ -81,4 +83,12 @@ namespace Tac
       ::DebugBreak();
   }
 
-}
+  const char* HrCallAux( const HRESULT hr, const char* fnName, const char* fnArgs )
+  {
+    return FrameMemoryFormat( "{}( {} ) failed, returning {:#X}",
+                              fnName,
+                              fnArgs,
+                              ( unsigned int )hr );
+  }
+
+} // namespace Tac

@@ -64,15 +64,15 @@ namespace Tac
 
     for( int iAxis = 0; iAxis < 3; ++iAxis )
     {
-      //const StringView axisName = "xyz"[ iAxis ];
-      Errors ignored;
       const JsonNumber defaultValue = refFrameVec[ iAxis ];
 
       Json* refFramesJson = SettingsGetJson( { "prefabCameraRefFrames" } );
       Json* refFrameJson = SettingsGetChildByKeyValuePair( "path", Json( prefab->mAssetPath ), refFramesJson );
-      const JsonNumber axisValue = SettingsGetNumber( Join( { refFrameVecName, String( 1, "xyz"[ iAxis ] ) }, "." ),
-                                                      defaultValue,
-                                                      refFrameJson );
+
+      String axisValuePath = refFrameVecName;
+      axisValuePath += '.';
+      axisValuePath += "xyz"[ iAxis ];
+      const JsonNumber axisValue = SettingsGetNumber( axisValuePath, defaultValue, refFrameJson );
       refFrameVec[ iAxis ] = ( float )axisValue;
     }
   }
@@ -96,9 +96,13 @@ namespace Tac
     {
       Json* refFramesJson = SettingsGetJson( { "prefabCameraRefFrames" } );
       Json* refFrameJson = SettingsGetChildByKeyValuePair( "path", Json( prefab->mAssetPath ), refFramesJson );
-      SettingsSetNumber( Join( { refFrameVecName, String( 1, "xyz"[ iAxis ] ) }, "." ),
-                         refFrameVec[ iAxis ],
-                         refFrameJson );
+
+      ShortFixedString numberPath;
+      numberPath += refFrameVecName;
+      numberPath += ".";
+      numberPath += "xyz"[ iAxis ];
+
+      SettingsSetNumber( numberPath, refFrameVec[ iAxis ], refFrameJson );
     }
 
   }
@@ -127,7 +131,7 @@ namespace Tac
                                         Errors& errors )
   {
     //ModifyPathRelative( prefabPath );
-    const String memory = Filesystem::LoadAssetPath( prefabPath, errors );
+    const String memory = LoadAssetPath( prefabPath, errors );
     TAC_HANDLE_ERROR( errors );
 
     Json prefabJson;
@@ -299,8 +303,7 @@ namespace Tac
     TAC_IMGUI_INDENT_BLOCK;
     for( Entity* entity : prefab->mEntities )
     {
-      const char* buttonText = FrameMemoryPrintf( "select entity of uuid %i", ( int )entity->mEntityUUID );
-      if( ImGuiButton( buttonText ) )
+      if( ImGuiButton( va( "select entity of uuid {}", ( UUID )entity->mEntityUUID ) ) )
         gCreation.mSelectedEntities.Select( entity );
     }
   }

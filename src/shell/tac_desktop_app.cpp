@@ -294,11 +294,9 @@ namespace Tac
       SettingsTick( errors );
       TAC_HANDLE_ERROR( errors );
 
-      if( Net::Instance )
-      {
-        Net::Instance->Update( errors );
-        TAC_HANDLE_ERROR( errors );
-      }
+      Network::NetApi::Update( errors );
+      TAC_HANDLE_ERROR( errors );
+
 
       {
         TAC_PROFILE_BLOCK_NAMED( "update timer" );
@@ -325,15 +323,19 @@ namespace Tac
         Keyboard::KeyboardBeginFrame();
         Mouse::MouseBeginFrame();
 
-        ImGuiFrameBegin( ShellGetElapsedSeconds(),
-          sPlatformFns.mPlatformGetMouseHoveredWindow() );
+        const BeginFrameData data =
+        {
+          .mElapsedSeconds = ShellGetElapsedSeconds(),
+          .mMouseHoveredWindow = sPlatformFns.mPlatformGetMouseHoveredWindow(),
+        };
+        ImGuiBeginFrame( data );
 
         Controller::UpdateJoysticks();
 
         sProjectFns.mProjectUpdate( errors );
         TAC_HANDLE_ERROR( errors );
 
-        ImGuiFrameEnd( errors );
+        ImGuiEndFrame( errors );
         TAC_HANDLE_ERROR( errors );
 
         Keyboard::KeyboardEndFrame();
@@ -534,7 +536,7 @@ namespace Tac
                                              data.mH );
         }
         desktopWindowState->mNativeWindowHandle = data.mNativeWindowHandle;
-        desktopWindowState->mName = data.mName;
+        desktopWindowState->mName = (StringView)data.mName;
         desktopWindowState->mWidth = data.mW;
         desktopWindowState->mHeight = data.mH;
         desktopWindowState->mX = data.mX;
@@ -568,7 +570,7 @@ namespace Tac
 
       case DesktopEventType::KeyState:
       {
-        const auto  data= sEventQueue.QueuePop<DesktopEventDataKeyState>();
+        const auto data = sEventQueue.QueuePop<DesktopEventDataKeyState>();
         Keyboard::KeyboardSetIsKeyDown( data.mKey, data.mDown );
       } break;
 
@@ -616,7 +618,7 @@ namespace Tac
                                                 const int h )
   {
     TAC_ASSERT( IsMainThread() );
-    const DesktopEventDataAssignHandle data
+    const DesktopEventDataAssignHandle data // is the equals operator defined?
     {
       .mDesktopWindowHandle = desktopWindowHandle,
       .mNativeWindowHandle = nativeWindowHandle,
@@ -737,7 +739,7 @@ namespace Tac
     const Filesystem::Path appDataPath = OS::OSGetApplicationDataPath( errors );
     TAC_HANDLE_ERROR( errors );
     TAC_RAISE_ERROR_IF( !Filesystem::Exists( appDataPath ),
-                        va( "app data path %s doesnt exist", appDataPath.u8string().c_str() ),
+                        va( "app data path {} doesnt exist", appDataPath.u8string().c_str() ),
                         errors );
 
     const Filesystem::Path workingDir = Filesystem::GetCurrentWorkingDirectory();

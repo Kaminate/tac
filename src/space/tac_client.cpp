@@ -91,7 +91,7 @@ namespace Tac
     mPlayerUUID = ( PlayerUUID )0;
   }
 
-  void ClientData::ApplyPrediction( double lastTime )
+  void ClientData::ApplyPrediction( Timestamp lastTime )
   {
     Entity* entity = mWorld->FindEntity( mPlayerUUID );
     if( !entity )
@@ -123,8 +123,8 @@ namespace Tac
   void ClientData::ReadSnapshotBody( Reader* reader,
                                      Errors& errors )
   {
-    double newGameTime;
-    if( !reader->Read( &newGameTime ) )
+    Timestamp newGameTime;
+    if( !reader->Read( &newGameTime.mSeconds ) )
     {
       TAC_RAISE_ERROR( "failed to read new snapshot time", errors );
     }
@@ -134,8 +134,8 @@ namespace Tac
     mMostRecentSnapshotTime = newGameTime;
 
 
-    double oldGameTime;
-    if( !reader->Read( &oldGameTime ) )
+    Timestamp oldGameTime;
+    if( !reader->Read( &oldGameTime.mSeconds ) )
     {
       TAC_RAISE_ERROR( "failed to read old snapshot time", errors );
     }

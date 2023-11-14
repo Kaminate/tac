@@ -1,5 +1,6 @@
 #pragma once
 
+#include "src/common/assetmanagers/tac_asset.h"
 #include "src/common/containers/tac_vector.h"
 #include "src/common/core/tac_error_handling.h"
 #include "src/common/graphics/tac_renderer.h"

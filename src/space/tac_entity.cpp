@@ -232,7 +232,7 @@ namespace Tac
 #if 0
     ImGui::PushID( this );
     OnDestruct( ImGui::PopID() );
-    if( !ImGui::CollapsingHeader( va( "Entity id %i", mEntityUUID ), ImGuiTreeNodeFlags_DefaultOpen ) )
+    if( !ImGui::CollapsingHeader( va( "Entity id {}", mEntityUUID ), ImGuiTreeNodeFlags_DefaultOpen ) )
       return;
     ImGui::Indent();
     OnDestruct( ImGui::Unindent() );

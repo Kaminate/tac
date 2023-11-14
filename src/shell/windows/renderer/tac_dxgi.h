@@ -30,20 +30,20 @@ namespace Tac
   void             DXGISetObjectName( IDXGIObject*, const StringView& );
   String           DXGIGetObjectName( IDXGIObject* );
 
-  void             DXGICallAux( const char* fnCallWithArgs, HRESULT , Errors& );
+  void             DXGICallAux( const char*, HRESULT, Errors& );
 
   const char*      TryInferDXGIErrorStr( HRESULT );
 
-#define TAC_DXGI_CALL( errors, call, ... )                                        \
-{                                                                                 \
-  HRESULT result = call( __VA_ARGS__ );                                           \
-  if( FAILED( result ) )                                                          \
-  {                                                                               \
-    DXGICallAux( TAC_STRINGIFY( call ) "( " #__VA_ARGS__ " )", result, errors );  \
-    TAC_HANDLE_ERROR( errors );                                                   \
-  }                                                                               \
-}
 
 
 } // namespace Tac
 
+#define TAC_DXGI_CALL( errors, call, ... )                                             \
+{                                                                                      \
+  HRESULT result = call( __VA_ARGS__ );                                                \
+  if( FAILED( result ) )                                                               \
+  {                                                                                    \
+    Tac::DXGICallAux( TAC_STRINGIFY( call ) "( " #__VA_ARGS__ " )", result, errors );  \
+    TAC_HANDLE_ERROR( errors );                                                        \
+  }                                                                                    \
+}

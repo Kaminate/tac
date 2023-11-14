@@ -1,11 +1,12 @@
+#include "src/level_editor/tac_level_editor_main_window.h" // self-inc
+
 #include "src/common/assetmanagers/tac_texture_asset_manager.h"
+#include "src/common/assetmanagers/tac_asset.h"
 #include "src/common/graphics/imgui/tac_imgui.h"
 #include "src/common/graphics/tac_ui_2d.h"
 #include "src/common/profile/tac_profile.h"
 #include "src/common/shell/tac_shell.h"
 #include "src/common/shell/tac_shell_timer.h"
-#include "src/common/shell/tac_shell_timer.h"
-#include "src/common/system/tac_desktop_window.h"
 #include "src/common/system/tac_desktop_window.h"
 #include "src/common/system/tac_filesystem.h"
 #include "src/common/core/tac_error_handling.h"
@@ -15,7 +16,6 @@
 #include "src/common/system/tac_os.h"
 #include "src/level_editor/tac_level_editor.h"
 #include "src/level_editor/tac_level_editor_game_object_menu_window.h"
-#include "src/level_editor/tac_level_editor_main_window.h"
 #include "src/level_editor/tac_level_editor_prefab.h"
 #include "src/shell/tac_desktop_app.h"
 #include "src/shell/tac_desktop_window_graphics.h"
@@ -121,37 +121,43 @@ namespace Tac
         if( entity->mParent )
           continue;
 
+        // TODO: use GetAssetSaveDialog
+
         const String suggestedName = entity->mName + ".prefab";
-        Errors saveDialogErrors;
-        Filesystem::Path savePath = OS::OSSaveDialog( suggestedName, saveDialogErrors );
-        if( saveDialogErrors )
+        Errors errors;
+        const Filesystem::Path savePath = OS::OSSaveDialog( suggestedName, errors );
+        if( errors )
         {
           // todo: log it, user feedback
-          OS::OSDebugPrintLine(saveDialogErrors.ToString());
+          OS::OSDebugPrintLine(errors.ToString());
           continue;
         }
 
-        AssetPathStringView assetPath = ModifyPathRelative( savePath, saveDialogErrors  );
-        if( saveDialogErrors )
+        if( savePath.empty() )
+          continue;
+
+        const AssetPathStringView assetPath = ModifyPathRelative( savePath, errors );
+        if( errors )
         {
           // todo: log it, user feedback
-          OS::OSDebugPrintLine(saveDialogErrors.ToString());
+          OS::OSDebugPrintLine(errors.ToString());
           continue;
         }
+
+        TAC_ASSERT( !assetPath.empty() );
 
         Json entityJson;
         entity->Save( entityJson );
 
-        String prefabJsonString = entityJson.Stringify();
-        Errors saveToFileErrors;
-        void* bytes = prefabJsonString.data();
-        int byteCount = prefabJsonString.size();
-        //OS::OSSaveToFile( savePath, bytes, byteCount, saveToFileErrors );
-        Filesystem::SaveToFile( savePath, bytes, byteCount, saveToFileErrors );
-        if( saveToFileErrors )
+        const String prefabJsonString = entityJson.Stringify();
+        const void* bytes = prefabJsonString.data();
+        const int byteCount = prefabJsonString.size();
+
+        SaveToFile( assetPath, bytes, byteCount, errors );
+        if( errors )
         {
           // todo: log it, user feedback
-          OS::OSDebugPrintLine(saveToFileErrors.ToString());
+          OS::OSDebugPrintLine(errors.ToString());
           continue;
         }
       }

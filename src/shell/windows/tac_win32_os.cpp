@@ -1,16 +1,19 @@
-#include "src/shell/windows/tac_win32.h"
+#include "src/shell/windows/tac_win32_os.h" // self-inc
+
+#include "src/common/assetmanagers/tac_asset.h"
 #include "src/common/containers/tac_array.h"
 #include "src/common/containers/tac_fixed_vector.h"
-#include "src/common/system/tac_filesystem.h"
-#include "src/common/string/tac_string_util.h"
-#include "src/common/graphics/tac_renderer.h"
-#include "src/common/shell/tac_shell.h"
 #include "src/common/core/tac_algorithm.h"
-#include "src/common/identifier/tac_id_collection.h"
-#include "src/common/system/tac_os.h"
+#include "src/common/core/tac_error_handling.h"
 #include "src/common/core/tac_preprocessor.h"
+#include "src/common/graphics/tac_renderer.h"
+#include "src/common/identifier/tac_id_collection.h"
+#include "src/common/shell/tac_shell.h"
 #include "src/common/string/tac_string_util.h"
+#include "src/common/system/tac_filesystem.h"
+#include "src/common/system/tac_os.h"
 #include "src/shell/tac_desktop_app.h"
+#include "src/shell/windows/tac_win32.h"
 
 import std;
 //#include <iostream>
@@ -32,21 +35,6 @@ namespace Tac
     *h = GetSystemMetrics( SM_CYSCREEN );
   }
 
-  const char* HrCallAux( const HRESULT hr, const char* fnName, const char* fnArgs )
-  {
-    return va( "%s( %s ) failed, returning %X", fnName, fnArgs, ( unsigned int )hr );
-  }
-
-#define TAC_HR_CALL( errors, fn, ... )                           \
-{                                                                \
-  const HRESULT hr = fn( __VA_ARGS__ );                          \
-  TAC_RAISE_ERROR_IF_RETURN( FAILED( hr ),                       \
-                             HrCallAux( hr, #fn, #__VA_ARGS__ ), \
-                             errors,                             \
-                             {} )                                \
-}
-
-
   static Filesystem::Path Win32OSOpenDialog(  Errors& errors )
   {
     IFileOpenDialog* pDialog = nullptr;
@@ -64,7 +52,7 @@ namespace Tac
 
 
     const Filesystem::Path dir = ShellGetInitialWorkingDir() / AssetPathRootFolderName;
-    const std::wstring wDir = dir.mPath.wstring();
+    const std::wstring wDir = dir.Get().wstring();
 
     IShellItem* shDir = NULL;
     TAC_HR_CALL( errors,
@@ -97,7 +85,7 @@ namespace Tac
     return std::filesystem::path ( pszFilePath );
   }
 
-  static Filesystem::Path Win32OSSaveDialog(  const Filesystem::Path& suggestedPath, Errors& errors )
+  static Filesystem::Path Win32OSSaveDialog( const Filesystem::Path& suggestedPath, Errors& errors )
   {
     TAC_HR_CALL( errors, CoInitializeEx, NULL, COINIT_APARTMENTTHREADED );
     TAC_ON_DESTRUCT(CoUninitialize());
@@ -110,6 +98,10 @@ namespace Tac
                  CLSCTX_INPROC_SERVER,
                  IID_PPV_ARGS( &pDialog ) );
     TAC_ON_DESTRUCT( pDialog->Release() );
+
+    // TODO: use suggestedPath, maybe 
+    //pDialog->SetFileName();
+    TAC_ASSERT_UNIMPLEMENTED;
 
     TAC_HR_CALL( errors, pDialog->Show, nullptr );
 

@@ -85,27 +85,26 @@ namespace Tac
   {
     World* world = gCreation.mWorld;
     const bool triggered =
-      Keyboard::KeyboardIsKeyDown( Keyboard::Key::S ) &&
+      Keyboard::KeyboardIsKeyJustDown( Keyboard::Key::S ) &&
       Keyboard::KeyboardIsKeyDown( Keyboard::Key::Modifier );
     if( !triggered )
       return;
 
-    Keyboard::KeyboardSetIsKeyDown( Keyboard::Key::S, false );
-
     Errors saveErrors;
     PrefabSave( world, saveErrors );
 
-    if(CreationGameWindow* window = CreationGameWindow::Instance)
+    CreationGameWindow* window = CreationGameWindow::Instance;
+    if( window )
     {
       if( saveErrors )
       {
-        window->mStatusMessage = saveErrors.ToString();
-        window->mStatusMessageEndTime = ShellGetElapsedSeconds() + 60.0f;
+        const TimestampDifference errorDurationSecs = 60.0f;
+        window->SetStatusMessage( saveErrors.ToString(), errorDurationSecs );
       }
       else
       {
-        window->mStatusMessage = "Saved prefabs!";
-        window->mStatusMessageEndTime = ShellGetElapsedSeconds() + 5.0f;
+        const TimestampDifference successDurationSecs = 5.0f;
+        window->SetStatusMessage( "Saved prefabs!", successDurationSecs );
       }
     }
   }
