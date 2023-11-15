@@ -1,4 +1,4 @@
-#include "src/shell/windows/renderer/tac_renderer_directx11_shader_compiler.h" // self-inc
+#include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_compiler.h" // self-inc
 
 #include "src/shell/tac_desktop_app.h" // IsMainThread
 #include "src/common/assetmanagers/tac_asset.h" // AssetPathStringView
@@ -6,6 +6,7 @@
 #include "src/common/dataprocess/tac_text_parser.h" // ParseData
 #include "src/common/core/tac_error_handling.h" // TAC_RAISE_ERROR_RETURN
 #include "src/common/graphics/tac_renderer_backend.h" // GetShaderAssetPath
+#include "src/common/memory/tac_frame_memory.h"
 
 #include <d3dcompiler.h> // D3DCompile
 
@@ -82,6 +83,20 @@ namespace Tac::Render
 
   }
 
+  static void PrintShaderToOutput(const StringView& shaderStrFull)
+  {
+        ParseData parseData( shaderStrFull.data(), shaderStrFull.size() );
+        int lineNumber = 1;
+        OS::OSDebugPrintLine(" -----------" );
+        while( parseData.GetRemainingByteCount() )
+        {
+          StringView parseLine = parseData.EatRestOfLine();
+          String text = FormatString( "line {:3}|{}", lineNumber++, parseLine );
+          OS::OSDebugPrintLine( text );
+        }
+        OS::OSDebugPrintLine(" -----------" );
+  }
+
   ID3DBlob* CompileShaderFromString( const ShaderNameStringView& shaderSource,
                                             const StringView& shaderStrOrig,
                                             const StringView& shaderStrFull,
@@ -114,19 +129,9 @@ namespace Tac::Render
     {
       if( IsDebugMode )
       {
-        //String shaderPath = GetShaderPath( shaderSource );
-        
         OS::OSDebugPrintLine( va( "Error loading shader from {}", shaderSource.c_str() ) );
-        ParseData parseData( shaderStrFull.data(), shaderStrFull.size() );
-        int lineNumber = 1;
-        OS::OSDebugPrintLine(" -----------" );
-        while( parseData.GetRemainingByteCount() )
-        {
-          StringView parseLine = parseData.EatRestOfLine();
-          ShortFixedString text = va( "line {:3}|{{}}", lineNumber++, parseLine.size(), parseLine.data() );
-          OS::OSDebugPrintLine( text );
-        }
-        OS::OSDebugPrintLine(" -----------" );
+
+        PrintShaderToOutput( shaderStrFull );
       }
 
       const String errMsg = TryImproveShaderErrorMessage( shaderSource,

@@ -2,12 +2,14 @@
 
 #pragma once
 
-// I am including the directx includes before the tac includes,
-// because theres some weird shit going on with c++20 std modules (import std),
-// and vcruntime_new align_val_t
+#define TAC_USING_STD_MODULES() 1
 
-#include <d3d11_3.h> // ID3D11Device3, ID3D11RasterizerState2
-#include <wrl/client.h>
+#if !TAC_USING_STD_MODULES()
+// There's some weird shit going on with c++20 std modules (import std),
+// and vcruntime_new align_val_t due to the inclusion of <wrl/client.h>
+#include <wrl/client.h> // Microsoft::WRL::ComPtr
+using Microsoft::WRL::ComPtr;
+#endif
 
 #include "src/common/graphics/tac_renderer.h"
 #include "src/common/graphics/tac_renderer_backend.h"
@@ -17,20 +19,21 @@
 #include "src/common/containers/tac_array.h"
 #include "src/common/string/tac_string_identifier.h"
 #include "src/shell/windows/tac_win32.h"
-#include "src/shell/windows/renderer/tac_dxgi.h"
+#include "src/shell/windows/renderer/dxgi/tac_dxgi.h"
 
+#include <d3d11_3.h> // ID3D11Device3, ID3D11RasterizerState2
 
 namespace Tac::Render
 {
-  using Microsoft::WRL::ComPtr;
+  //using Microsoft::WRL::ComPtr;
 
   struct CommunistPtr;
 #define TAC_RELEASE_IUNKNOWN( p ) { if( p ){ p->Release(); p = nullptr; } }
 
   struct ConstantBuffer
   {
-    ComPtr<ID3D11Buffer> mBuffer;
-    //ID3D11Buffer* mBuffer = nullptr;
+    //ComPtr<ID3D11Buffer> mBuffer;
+    ID3D11Buffer* mBuffer = nullptr;
 
     //            mName is used to
     //            1) Insure that multiple cbuffers aren't created with the same name

@@ -1,3 +1,5 @@
+#include "src/level_editor/tac_level_editor_game_window.h" // self-inc
+
 #include "src/common/assetmanagers/tac_mesh.h"
 #include "src/common/assetmanagers/tac_model_asset_manager.h"
 #include "src/common/assetmanagers/tac_texture_asset_manager.h"
@@ -17,7 +19,6 @@
 #include "src/common/input/tac_keyboard_input.h"
 #include "src/common/system/tac_os.h"
 #include "src/level_editor/tac_level_editor.h"
-#include "src/level_editor/tac_level_editor_game_window.h"
 #include "src/level_editor/tac_level_editor_prefab.h"
 #include "src/shell/tac_desktop_app.h"
 #include "src/shell/tac_desktop_window_graphics.h"
@@ -1125,10 +1126,10 @@ namespace Tac
   }
 
   void CreationGameWindow::SetStatusMessage( const StringView& msg,
-                                             const TimestampDifference& duration)
+                                             const TimestampDifference& duration )
   {
-      const Timestamp curTime = ShellGetElapsedSeconds();
-      mStatusMessage = msg;
-      mStatusMessageEndTime = curTime + duration;
+    const Timestamp curTime = ShellGetElapsedSeconds();
+    mStatusMessage = msg;
+    mStatusMessageEndTime = curTime + duration;
   }
 } // namespace Tac

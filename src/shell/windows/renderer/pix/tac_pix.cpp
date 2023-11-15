@@ -1,4 +1,5 @@
-#include "src/shell/windows/renderer/tac_renderer_directx.h"
+#include "src/shell/windows/renderer/pix/tac_pix.h" // self-inc
+
 #include "src/common/core/tac_preprocessor.h"
 #include "src/common/system/tac_filesystem.h"
 #include "src/common/memory/tac_frame_memory.h"
@@ -49,12 +50,31 @@ namespace Tac::Render
     // Pix version numbers are usually XXXX.YY https://devblogs.microsoft.com/pix/download/
     for( const Filesystem::Path& subdir : vers )
     {
-      const String ver = subdir.u8string();
+      const String ver = subdir.dirname().u8string();
+
+      //auto parent = subdir.parent_path();
+      //std::filesystem::path p =  subdir.Get();
+
+      //auto rootDir = p.root_directory();
+      //auto rootName = p.root_name();
+      //auto rootPath = p.root_path();
+      //auto relPath = p.relative_path();
+      //auto fname = p.filename();
+      //auto stem = p.stem();
+      //auto extension = p.extension();
+
+
+      //const String ver = subdir.u8string();
       if( ver.size() != 6 && ver[ 4 ] != '.' )
         continue;
 
       if( mostRecentVersion.empty() || ver > mostRecentVersion )
         mostRecentVersion = ver;
+    }
+
+    if( !vers.empty() )
+    {
+      TAC_ASSERT(!mostRecentVersion.empty());
     }
 
     return mostRecentVersion;

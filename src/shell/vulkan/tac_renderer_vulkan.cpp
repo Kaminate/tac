@@ -63,12 +63,14 @@ namespace Tac::Render
   }
 
 
+  static Renderer* RendererVulkanFactory()
+  {
+    return TAC_NEW RendererVulkan;
+  }
 
   void RegisterRendererVulkan()
   {
-    RendererFactoriesRegister( { RendererNameVulkan, []() { TAC_NEW RendererVulkan; } } );
-    VkResult vk;
-    ( void )vk;
+    SetRendererFactory<RendererVulkan>( RendererAPI::Vulkan );
   }
 
 

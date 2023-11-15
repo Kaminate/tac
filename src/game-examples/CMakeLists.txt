@@ -16,14 +16,6 @@ target_sources( TacExamples PRIVATE
 )
 
 set( TAC_SOURCES 
-  #"tac_examples.cpp"
-  #"tac_examples.h"
-  #"tac_examples_presentation.cpp"
-  #"tac_examples_presentation.h"
-  #"tac_examples_registry.cpp"
-  #"tac_examples_registry.h"
-  #"tac_examples_state_machine.cpp"
-  #"tac_examples_state_machine.h"
   CACHE INTERNAL "" FORCE )
 
 # These append to TAC_SOURCES
@@ -34,18 +26,6 @@ add_subdirectory( phy_sim )
 add_subdirectory( vk )
 add_subdirectory( text )
 add_subdirectory( imgui )
-
-
-if(FALSE)
-
-  set( MODULE_PROP "${CMAKE_SOURCE_DIR}/build_std_modules.props" )
-  if(EXISTS ${MODULE_PROP} )
-    SET_PROPERTY( TARGET TacExamples PROPERTY VS_USER_PROPS ${MODULE_PROP} )
-  else()
-    message( FATAL_ERROR "fuck")
-  endif()
-endif()
-
 
 target_sources( TacExamples PRIVATE ${TAC_SOURCES} )
 

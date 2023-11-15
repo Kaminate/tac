@@ -1,21 +1,10 @@
 target_sources(TacWin PRIVATE
-  "tac_dxgi.cpp"
-  "tac_dxgi.h"
-  "tac_renderer_directx.h"
-  "tac_renderer_directx11.cpp"
-  "tac_renderer_directx11.h"
-  "tac_renderer_directx11_enum_helper.cpp"
-  "tac_renderer_directx11_enum_helper.h"
-  "tac_renderer_directx11_namer.cpp"
-  "tac_renderer_directx11_namer.h"
-  "tac_renderer_directx11_shader_preprocess.cpp"
-  "tac_renderer_directx11_shader_preprocess.h"
-  "tac_renderer_directx11_shader_postprocess.cpp"
-  "tac_renderer_directx11_shader_postprocess.h"
-  "tac_renderer_directx11_shader_compiler.cpp"
-  "tac_renderer_directx11_shader_compiler.h"
-  "tac_renderer_directx12.cpp"
-  "tac_renderer_directx12.h"
-  "tac_renderer_directx_pix.cpp"
+  "tac_dx.cpp"
+  "tac_dx.h"
 )
+
+add_subdirectory(dx11)
+add_subdirectory(dx12)
+add_subdirectory(dxgi)
+add_subdirectory(pix)
 

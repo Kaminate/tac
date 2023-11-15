@@ -25,7 +25,7 @@ if( Vulkan_FOUND )
   #  target_sources( TacDesktopVk
   #    # PRIVATE "tac_desktop_vk.h"
   #    PUBLIC "tac_desktop_vk.h" )
-#
+  #
 
     # purpose of this library, uhh:
     add_library( TacSDLVk )
@@ -55,24 +55,29 @@ target_sources( TacDesktopApp
   "tac_desktop_app.cpp"
   "tac_desktop_window_graphics.cpp"
   "tac_desktop_window_settings_tracker.cpp"
-  "tac_register_renderers.cpp"
+  "tac_desktop_app_renderers.cpp"
   PUBLIC
   "tac_desktop_window_graphics.h"
   "tac_desktop_window_settings_tracker.h"
   "tac_desktop_app.h"
-  "tac_register_renderers.h"
+  "tac_desktop_app_renderers.h"
 )
 
 
-# test begin ???
-if( TARGET TacVkRenderer )
-  target_compile_definitions( TacDesktopApp PUBLIC TAC_USE_RENDERER_VK )
-endif()
+# if( False ) here because it should not be the responsibilty of the shell to determine which
+# renderers to use
+if( False )
 
-if( WIN32 )
-  target_include_directories( TacDesktopApp PUBLIC TAC_USE_RENDERER_DX11 )
+  # test begin ???
+  if( TARGET TacVkRenderer )
+    target_compile_definitions( TacDesktopApp PUBLIC TAC_USE_RENDERER_VK )
+  endif()
+
+  if( WIN32 )
+    target_compile_definitions( TacDesktopApp PUBLIC TAC_USE_RENDERER_DX11 )
+  endif()
+  # test end ???
 endif()
-# test end ???
 
 # for tac_register_renderers
 if( WIN32 )

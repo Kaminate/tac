@@ -72,6 +72,119 @@ namespace Tac
       sRequests[ entity ] = isUniform;
   }
 
+  static void EntityImGui(Entity* entity )
+  {
+    ImGuiInputText( "Name", entity->mName );
+
+    const AssetPathStringView prefabPath = PrefabGetOrNull( entity );
+    if( prefabPath.empty() )
+    {
+      ImGuiText( "<not a prefab>" );
+    }
+    else
+    {
+      ImGuiText(va( "Prefab path: {}", prefabPath.c_str() ));
+    }
+
+    ImGuiText( "UUID: " + ToString( ( UUID )entity->mEntityUUID ) );
+    if( ImGuiButton( "Reset Transform" ) )
+      entity->mRelativeSpace = {};
+
+    ImGuiDragFloat3( "Position", entity->mRelativeSpace.mPosition.data() );
+    EntityImGuiRotation( entity );
+    EntityImGuiScale( entity );
+
+    ImGuiCheckbox( "active", &entity->mActive );
+
+    Vector< const ComponentRegistryEntry* > addableComponentTypes;
+
+    if( entity->mParent )
+    {
+      ImGuiText( "Parent: " + entity->mParent->mName );
+      ImGuiSameLine();
+      if( ImGuiButton( "Unparent" ) )
+        entity->Unparent();
+    }
+    if( entity->mChildren.size() && ImGuiCollapsingHeader( "Children" ) )
+    {
+      TAC_IMGUI_INDENT_BLOCK;
+      Vector< Entity* > childrenCopy = entity->mChildren; // For iterator invalidation
+      for( Entity* child : childrenCopy )
+      {
+        ImGuiText( child->mName );
+        ImGuiSameLine();
+        if( ImGuiButton( "Select" ) )
+        {
+          gCreation.mSelectedEntities.Select( child );
+        }
+
+        ImGuiSameLine();
+        if( ImGuiButton( "Remove" ) )
+        {
+          child->Unparent();
+        }
+      }
+    }
+    Vector< Entity* > potentialParents;
+    for( Entity* potentialParent : gCreation.mWorld->mEntities )
+    {
+      if( potentialParent == entity )
+        continue;
+      if( entity->mParent == potentialParent )
+        continue;
+      potentialParents.push_back( potentialParent );
+    }
+    if( !potentialParents.empty() && ImGuiCollapsingHeader( "Set Parent" ) )
+    {
+      TAC_IMGUI_INDENT_BLOCK;
+      for( Entity* potentialParent : potentialParents )
+      {
+        if( ImGuiButton( "Set Parent: " + potentialParent->mName ) )
+        {
+          entity->Unparent();
+          potentialParent->mChildren.push_back( entity );
+          entity->mParent = potentialParent;
+        }
+      }
+    }
+
+    for( const ComponentRegistryEntry& componentRegistryEntry : ComponentRegistryIterator() )
+    {
+      if( !entity->HasComponent( &componentRegistryEntry ) )
+      {
+        addableComponentTypes.push_back( &componentRegistryEntry );
+        continue;
+      }
+      Component* component = entity->GetComponent( &componentRegistryEntry );
+      if( ImGuiCollapsingHeader( componentRegistryEntry.mName ) )
+      {
+        TAC_IMGUI_INDENT_BLOCK;
+        if( ImGuiButton( "Remove component" ) )
+        {
+          entity->RemoveComponent( &componentRegistryEntry );
+          break;
+        }
+
+        if( componentRegistryEntry.mDebugImguiFn )
+        {
+          componentRegistryEntry.mDebugImguiFn( component );
+        }
+      }
+    }
+
+    if( !addableComponentTypes.empty() && ImGuiCollapsingHeader( "Add component" ) )
+    {
+      TAC_IMGUI_INDENT_BLOCK;
+      for( const ComponentRegistryEntry* componentType : addableComponentTypes )
+      {
+        if( ImGuiButton( va( "Add {} component", componentType->mName ) ) )
+        {
+          entity->AddNewComponent( componentType );
+        }
+      }
+    }
+  }
+
   CreationPropertyWindow* CreationPropertyWindow::Instance = nullptr;
 
   CreationPropertyWindow::CreationPropertyWindow()
@@ -160,108 +273,7 @@ namespace Tac
 
     for( Entity* entity : gCreation.mSelectedEntities )
     {
-      ImGuiInputText( "Name", entity->mName );
-
-      AssetPathStringView prefabPath = PrefabGetOrNull( entity );
-      ImGuiText(va( "Prefab path: {},", prefabPath.c_str() ));
-
-      ImGuiText( "UUID: " + ToString( ( UUID )entity->mEntityUUID ) );
-      if( ImGuiButton( "Reset Transform" ) )
-        entity->mRelativeSpace = {};
-
-      ImGuiDragFloat3( "Position", entity->mRelativeSpace.mPosition.data() );
-      EntityImGuiRotation( entity );
-      EntityImGuiScale( entity );
-
-      ImGuiCheckbox( "active", &entity->mActive );
-
-      Vector< const ComponentRegistryEntry* > addableComponentTypes;
-
-      if( entity->mParent )
-      {
-        ImGuiText( "Parent: " + entity->mParent->mName );
-        ImGuiSameLine();
-        if( ImGuiButton( "Unparent" ) )
-          entity->Unparent();
-      }
-      if( entity->mChildren.size() && ImGuiCollapsingHeader( "Children" ) )
-      {
-        TAC_IMGUI_INDENT_BLOCK;
-        Vector< Entity* > childrenCopy = entity->mChildren; // For iterator invalidation
-        for( Entity* child : childrenCopy )
-        {
-          ImGuiText( child->mName );
-          ImGuiSameLine();
-          if( ImGuiButton( "Select" ) )
-          {
-            gCreation.mSelectedEntities.Select( child );
-          }
-
-          ImGuiSameLine();
-          if( ImGuiButton( "Remove" ) )
-          {
-            child->Unparent();
-          }
-        }
-      }
-      Vector< Entity* > potentialParents;
-      for( Entity* potentialParent : gCreation.mWorld->mEntities )
-      {
-        if( potentialParent == entity )
-          continue;
-        if( entity->mParent == potentialParent )
-          continue;
-        potentialParents.push_back( potentialParent );
-      }
-      if( !potentialParents.empty() && ImGuiCollapsingHeader( "Set Parent" ) )
-      {
-        TAC_IMGUI_INDENT_BLOCK;
-        for( Entity* potentialParent : potentialParents )
-        {
-          if( ImGuiButton( "Set Parent: " + potentialParent->mName ) )
-          {
-            entity->Unparent();
-            potentialParent->mChildren.push_back( entity );
-            entity->mParent = potentialParent;
-          }
-        }
-      }
-
-      for( const ComponentRegistryEntry& componentRegistryEntry : ComponentRegistryIterator() )
-      {
-        if( !entity->HasComponent( &componentRegistryEntry ) )
-        {
-          addableComponentTypes.push_back( &componentRegistryEntry );
-          continue;
-        }
-        Component* component = entity->GetComponent( &componentRegistryEntry );
-        if( ImGuiCollapsingHeader( componentRegistryEntry.mName ) )
-        {
-          TAC_IMGUI_INDENT_BLOCK;
-          if( ImGuiButton( "Remove component" ) )
-          {
-            entity->RemoveComponent( &componentRegistryEntry );
-            break;
-          }
-
-          if( componentRegistryEntry.mDebugImguiFn )
-          {
-            componentRegistryEntry.mDebugImguiFn( component );
-          }
-        }
-      }
-
-      if( !addableComponentTypes.empty() && ImGuiCollapsingHeader( "Add component" ) )
-      {
-        TAC_IMGUI_INDENT_BLOCK;
-        for( const ComponentRegistryEntry* componentType : addableComponentTypes )
-        {
-          if( ImGuiButton( va( "Add {} component", componentType->mName ) ) )
-          {
-            entity->AddNewComponent( componentType );
-          }
-        }
-      }
+      EntityImGui( entity );
     }
     ImGuiEndGroup();
 

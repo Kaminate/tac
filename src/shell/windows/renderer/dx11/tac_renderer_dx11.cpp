@@ -1,15 +1,4 @@
-// I am including the directx includes before the tac includes,
-// because theres some weird shit going on with c++20 std modules (import std),
-// and vcruntime_new align_val_t
-
-#include <d3d11_3.h> // ID3D11Device3, ID3D11RasterizerState2
-#include <wrl/client.h>
-#include <initguid.h>
-#include <dxgidebug.h>
-#include <d3dcompiler.h> // D3DCOMPILE_...
-#include <d3dcommon.h> // WKPDID_D3DDebugObjectName, ID3DBlob
-
-#include "src/shell/windows/renderer/tac_renderer_directx11.h" // self-inc
+#include "src/shell/windows/renderer/dx11/tac_renderer_dx11.h" // self-inc
 
 #include "src/common/assetmanagers/tac_asset.h"
 #include "src/common/containers/tac_array.h"
@@ -29,13 +18,18 @@
 #include "src/common/system/tac_filesystem.h"
 #include "src/common/system/tac_os.h"
 #include "src/shell/tac_desktop_app.h"
-#include "src/shell/windows/renderer/tac_dxgi.h"
-#include "src/shell/windows/renderer/tac_renderer_directx.h" // AllowPixDebuggerAttachment
-#include "src/shell/windows/renderer/tac_renderer_directx11_enum_helper.h"
-#include "src/shell/windows/renderer/tac_renderer_directx11_namer.h"
-#include "src/shell/windows/renderer/tac_renderer_directx11_shader_compiler.h"
-#include "src/shell/windows/renderer/tac_renderer_directx11_shader_postprocess.h"
-#include "src/shell/windows/renderer/tac_renderer_directx11_shader_preprocess.h"
+#include "src/shell/windows/renderer/dxgi/tac_dxgi.h"
+#include "src/shell/windows/renderer/pix/tac_pix.h"
+#include "src/shell/windows/renderer/dx11/tac_dx11_enum_helper.h"
+#include "src/shell/windows/renderer/dx11/tac_dx11_namer.h"
+#include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_compiler.h"
+#include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_postprocess.h"
+#include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_preprocess.h"
+
+#include <initguid.h>
+#include <dxgidebug.h>
+#include <d3dcompiler.h> // D3DCOMPILE_...
+#include <d3dcommon.h> // WKPDID_D3DDebugObjectName, ID3DBlob
 
 #pragma comment( lib, "d3d11.lib" )
 #pragma comment( lib, "dxguid.lib" )
@@ -151,7 +145,7 @@ namespace Tac::Render
 
   void   RegisterRendererDirectX11()
   {
-    RendererFactoriesRegister( { RendererNameDirectX11, []() { TAC_NEW RendererDirectX11; } } );
+    SetRendererFactory<RendererDirectX11>( RendererAPI::DirectX11 );
   }
 
   // -----------------------------------------------------------------------------------------------
@@ -531,7 +525,6 @@ namespace Tac::Render
 
   void RendererDirectX11::Init( Errors& errors )
   {
-    mName = RendererNameDirectX11;
     UINT createDeviceFlags = 0;
     if( IsDebugMode )
       createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
@@ -796,7 +789,7 @@ namespace Tac::Render
       const int iBuf = ( int )hCBuf;
       const ConstantBuffer& cBuf = pCBs[iBuf];
 
-      mBoundConstantBuffers[ iSlot ] = cBuf.mBuffer.Get();
+      mBoundConstantBuffers[ iSlot ] = cBuf.mBuffer;
       mMaxUsedIndex = Max( mMaxUsedIndex, iSlot );
       mHash.Eat( iSlot );
       mHash.Eat( iBuf );
@@ -1097,7 +1090,7 @@ namespace Tac::Render
 
   AssetPathStringView RendererDirectX11::GetShaderPath( const ShaderNameStringView& shaderName )
   {
-    return FrameMemoryFormat( "assets/hlsl/{{}}.fx", shaderName.data(), shaderName.size() );
+    return FrameMemoryFormat( "assets/hlsl/{}.fx", (StringView)shaderName );
   }
 
   void RendererDirectX11::SwapBuffers()
@@ -2028,7 +2021,7 @@ namespace Tac::Render
   {
     TAC_ASSERT(commandData->mConstantBufferHandle.IsValid());
     const ConstantBuffer* constantBuffer = &mConstantBuffers[ ( int )commandData->mConstantBufferHandle ];
-    UpdateBuffer( constantBuffer->mBuffer.Get(),
+    UpdateBuffer( constantBuffer->mBuffer,
                   commandData->mBytes,
                   commandData->mByteCount,
                   errors );
@@ -2145,7 +2138,7 @@ namespace Tac::Render
       SetDebugName( mInputLayouts[ ( int )data->mVertexFormatHandle ], data->mName );
 
     if( ConstantBuffer* cb = FindConstantBuffer(data->mConstantBufferHandle ) ) 
-      SetDebugName( cb->mBuffer.Get(), data->mName );
+      SetDebugName( cb->mBuffer, data->mName );
 
     if( MagicBuffer* magicBuffer = FindMagicBuffer(data->mMagicBufferHandle) )
     {

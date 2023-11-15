@@ -1,7 +1,7 @@
-#include "src/shell/windows/renderer/tac_renderer_directx11_namer.h" // self-inc
+#include "src/shell/windows/renderer/dx11/tac_dx11_namer.h" // self-inc
 
-#include "src/shell/windows/renderer/tac_renderer_directx11.h" // GetInfoQueue
-#include "src/shell/windows/renderer/tac_dxgi.h"
+#include "src/shell/windows/renderer/dx11/tac_renderer_dx11.h" // GetInfoQueue
+#include "src/shell/windows/renderer/dxgi/tac_dxgi.h"
 #include "src/shell/tac_desktop_app.h" // IsMainThread
 #include "src/common/string/tac_string.h"
 #include "src/common/core/tac_preprocessor.h" // TAC_ASSERT

@@ -22,13 +22,10 @@
 #include "src/common/system/tac_os.h"
 #include "src/shell/tac_desktop_window_graphics.h"
 #include "src/shell/tac_desktop_window_settings_tracker.h"
-#include "src/shell/tac_register_renderers.h"
+#include "src/shell/tac_desktop_app_renderers.h"
 #include "src/space/tac_space.h"
 
-import std;
-//#include <mutex>
-//#include <thread> // std::this_thread
-//#include <type_traits>
+import std; // mutex, thread, type_traits
 
 namespace Tac
 {
@@ -125,75 +122,6 @@ namespace Tac
 
   ExecutableStartupInfo ExecutableStartupInfo::sInstance;
 
-  //void RegisterRenderers();
-
-  static const char* GetDefaultRendererName()
-  {
-#if defined _WIN32 || defined _WIN64 
-    return Render::RendererNameDirectX11;
-#else
-    return Render::RendererNameVulkan;
-#endif
-  }
-
-  static const Render::RendererFactory* GetRendererFromSettings(Errors& errors)
-  {
-    String chosenRendererName = "";
-    Json* rendererJson = SettingsGetJson( "chosen_renderer" );
-    if( rendererJson->mType != JsonType::String )
-    {
-      chosenRendererName = SettingsGetString( "chosen_renderer", "" );
-      SettingsFlush( errors );
-    }
-
-    return Render::RendererFactoriesFind( chosenRendererName );
-  }
-
-  static const Render::RendererFactory* GetRendererPreferredPreprocessorVk()
-  {
-    #if TAC_PREFER_RENDERER_VK
-    const Render::RendererFactory* factory = Render::RendererFactoriesFind( Render::RendererNameVulkan );
-    return factory;
-    #endif
-    return nullptr;
-  }
-
-  static const Render::RendererFactory* GetFirstRendererFactory()
-  {
-    for( Render::RendererFactory& factory : Render::RendererRegistry() )
-        return &factory;
-    return nullptr;
-  }
-
-  static const Render::RendererFactory* GetRendererFactoryDefault()
-  {
-    const String defaultRendererName = GetDefaultRendererName();
-    return Render::RendererFactoriesFind( defaultRendererName );
-  }
-
-  static const Render::RendererFactory* GetRendererFactory( Errors& errors )
-  {
-    for (const Render::RendererFactory* settingsFactory : {
-      GetRendererFromSettings(errors),
-      GetRendererPreferredPreprocessorVk(),
-      GetRendererFactoryDefault(),
-      GetFirstRendererFactory() })
-    {
-      if (settingsFactory)
-        return settingsFactory;
-    }
-
-    return nullptr;
-  }
-
-  
-  static void CreateRenderer( Errors& errors )
-  {
-    const Render::RendererFactory* factory = GetRendererFactory( errors );
-    TAC_HANDLE_ERROR( errors );
-    TAC_RAISE_ERROR_IF( !factory, "Failed to create renderer, are any factories registered?", errors );
-    factory->mCreateRenderer();
-  }
 
   static void DesktopAppUpdateWindowRequests()
   {
@@ -252,8 +180,6 @@ namespace Tac
   static void LogicThreadInit( Errors& errors )
   {
     gThreadType = ThreadType::Logic;
-    //sAllocatorLogicThread.Init( 1024 * 1024 * 10 );
-    //FrameMemorySetThreadAllocator( &sAllocatorLogicThread );
     FrameMemoryInitThreadAllocator(  1024 * 1024 * 10  );
 
     ShellInit( errors );
@@ -392,22 +318,6 @@ namespace Tac
 
   }
 
-  //WindowHandleIterator::WindowHandleIterator() {  }
-  //WindowHandleIterator::~WindowHandleIterator() {  }
-
-  //int* WindowHandleIterator::begin()
-  //{
-  //  TAC_ASSERT( IsLogicThread() );
-  //  sWindowHandleLock.lock();
-  //  return sDesktopWindowHandleIDs.begin();
-  //}
-
-  //int* WindowHandleIterator::end()
-  //{
-  //  int* result = sDesktopWindowHandleIDs.end();
-  //  sWindowHandleLock.unlock();
-  //  return result;
-  //}
 
   void DesktopEventQueueImpl::Init()
   {
@@ -506,7 +416,7 @@ namespace Tac
     sEventQueue.Init();
   }
 
-  void                DesktopEventApplyQueue()// DesktopWindowState* desktopWindowStates )
+  void                DesktopEventApplyQueue()
   {
     TAC_ASSERT( IsLogicThread() );
     while( !sEventQueue.Empty() )
@@ -738,9 +648,11 @@ namespace Tac
     //     C:\Users\Nate\AppData\Roaming + /Sleeping Studio + /Whatever bro
     const Filesystem::Path appDataPath = OS::OSGetApplicationDataPath( errors );
     TAC_HANDLE_ERROR( errors );
-    TAC_RAISE_ERROR_IF( !Filesystem::Exists( appDataPath ),
-                        va( "app data path {} doesnt exist", appDataPath.u8string().c_str() ),
-                        errors );
+    if( !Filesystem::Exists( appDataPath ) )
+    {
+      const String msg = "app data path " + appDataPath.u8string() + " doesnt exist";
+      TAC_RAISE_ERROR( msg, errors );
+    }
 
     const Filesystem::Path workingDir = Filesystem::GetCurrentWorkingDirectory();
     TAC_HANDLE_ERROR( errors );
@@ -756,11 +668,7 @@ namespace Tac
     SettingsInit( errors );
     TAC_HANDLE_ERROR( errors );
 
-    RegisterRenderers();
-    CreateRenderer( errors );
-    TAC_HANDLE_ERROR( errors );
-
-    Render::Init( errors );
+    DesktopInitRendering(errors);
     TAC_HANDLE_ERROR( errors );
   }
 

@@ -1,10 +1,6 @@
-// I am including the directx includes before the tac includes,
-// because theres some weird shit going on with c++20 std modules (import std),
-// and vcruntime_new align_val_t
-#include "src/shell/windows/renderer/tac_renderer_directx11.h"
-
 #include "src/shell/windows/tac_win32_main.h" // self-inc
 
+#include "src/shell/windows/renderer/dx11/tac_renderer_dx11.h"
 #include "src/common/math/tac_math.h"
 #include "src/common/core/tac_algorithm.h"
 #include "src/common/core/tac_error_handling.h"
