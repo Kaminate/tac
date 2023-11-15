@@ -1,6 +1,7 @@
 #pragma once
 
-#include "src/shell/windows/renderer/tac_renderer_directx11.h"
+#include "src/common/graphics/tac_renderer.h"
+
 
 namespace Tac::Render
 {

@@ -2,13 +2,13 @@
 
 #include "src/common/core/tac_error_handling.h"
 #include "src/common/shell/tac_shell.h"
+#include "src/common/assetmanagers/tac_asset.h"
 #include "src/shell/tac_desktop_app.h"
-//#include "src/shell/tac_desktop_vk.h"
 #include "src/shell/vulkan/tac_vk_types.h"
 
 #include "VkBootstrap.h"
 
-#include <sstream>
+import std;// #include <sstream>
 
 #define MAKE_VK_RESULT_PAIR( vkEnumValue ) { vkEnumValue, TAC_STRINGIFY( vkEnumValue ) },
 
@@ -63,195 +63,197 @@ namespace Tac::Render
   }
 
 
+  static Renderer* RendererVulkanFactory()
+  {
+    return TAC_NEW RendererVulkan;
+  }
 
-    void RegisterRendererVulkan()
+  void RegisterRendererVulkan()
+  {
+    SetRendererFactory<RendererVulkan>( RendererAPI::Vulkan );
+  }
+
+
+  //TAC_RAISE_ERROR_RETURN();
+
+  RendererVulkan::~RendererVulkan()
+  {
+    vkb::destroy_debug_utils_messenger( _instance, _debug_messenger );
+    vkDestroyDevice( _device, nullptr );
+    vkDestroyInstance( _instance, nullptr );
+  };
+
+  void RendererVulkan::Init( Errors& errors )
+  {
+    TAC_ASSERT(mGetVkExtensions);
+    TAC_ASSERT(mGetVkSurfaceFn);
+
+    vkb::InstanceBuilder builder;
+    const char* appname = ShellGetAppName();
+
+
+    Vector<String> extensions = mGetVkExtensions(errors); // GetVkExtensions( errors );
+    TAC_HANDLE_ERROR(errors);
+    TAC_ASSERT(!extensions.empty()); // probably
+    for( const String& extension : extensions )
     {
-      RendererFactoriesRegister( { RendererNameVulkan, []() { TAC_NEW RendererVulkan; } } );
-      VkResult vk;
-      ( void )vk;
+      //.enable_extension( VK_KHR_WIN32_SURFACE_EXTENSION_NAME )
+      builder.enable_extension( extension.c_str() );
     }
 
+    builder.set_app_name( appname );
+    builder.request_validation_layers( true );
+    builder.require_api_version( 1, 1, 0 );
+    builder.use_default_debug_messenger();
+    vkb::detail::Result<vkb::Instance> inst_ret = builder.build();
+    // idk, debugger on mac shits the bed here, refuses to inspect variables or step further
+    TAC_RAISE_ERROR_IF( !inst_ret, "failed to init vk", errors );
 
-    //TAC_RAISE_ERROR_RETURN();
+    vkb::Instance vkb_inst = inst_ret.value();
+    _instance = vkb_inst.instance;
+    _debug_messenger = vkb_inst.debug_messenger;
 
-    RendererVulkan::~RendererVulkan()
+
+
+    //use vkbootstrap to select a GPU.
+    //We want a GPU that can write to the SDL surface and supports Vulkan 1.1
+    vkb::PhysicalDeviceSelector selector{ vkb_inst };
+    selector.set_minimum_version( 1, 1 );
+    selector.require_present( false ); // ???
+    selector.prefer_gpu_device_type( vkb::PreferredDeviceType::discrete );
+    selector.defer_surface_initialization();
+      //.set_surface( _surface )
+
+    vkb::detail::Result<vkb::PhysicalDevice> physicalDevice_result = selector.select();
+    if( !physicalDevice_result )
     {
-      vkb::destroy_debug_utils_messenger( _instance, _debug_messenger );
-      vkDestroyDevice( _device, nullptr );
-      vkDestroyInstance( _instance, nullptr );
-    };
-
-    void RendererVulkan::Init( Errors& errors )
-    {
-      TAC_ASSERT(mGetVkExtensions);
-      TAC_ASSERT(mGetVkSurfaceFn);
-
-      vkb::InstanceBuilder builder;
-      const char* appname = ShellGetAppName();
-
-
-      Vector<String> extensions = mGetVkExtensions(errors); // GetVkExtensions( errors );
-      TAC_HANDLE_ERROR(errors);
-      TAC_ASSERT(!extensions.empty()); // probably
-      for( const String& extension : extensions )
-      {
-        //.enable_extension( VK_KHR_WIN32_SURFACE_EXTENSION_NAME )
-        builder.enable_extension( extension.c_str() );
-      }
-
-      builder.set_app_name( appname );
-      builder.request_validation_layers( true );
-      builder.require_api_version( 1, 1, 0 );
-      builder.use_default_debug_messenger();
-      vkb::detail::Result<vkb::Instance> inst_ret = builder.build();
-      // idk, debugger on mac shits the bed here, refuses to inspect variables or step further
-      TAC_RAISE_ERROR_IF( !inst_ret, "failed to init vk", errors );
-
-      vkb::Instance vkb_inst = inst_ret.value();
-      _instance = vkb_inst.instance;
-      _debug_messenger = vkb_inst.debug_messenger;
-
-
-
-      //use vkbootstrap to select a GPU.
-      //We want a GPU that can write to the SDL surface and supports Vulkan 1.1
-      vkb::PhysicalDeviceSelector selector{ vkb_inst };
-      selector.set_minimum_version( 1, 1 );
-      selector.require_present( false ); // ???
-      selector.prefer_gpu_device_type( vkb::PreferredDeviceType::discrete );
-      selector.defer_surface_initialization();
-        //.set_surface( _surface )
-
-      vkb::detail::Result<vkb::PhysicalDevice> physicalDevice_result = selector.select();
-      if( !physicalDevice_result )
-      {
-        TAC_RAISE_ERROR( "failed to select physical vk device", errors );
-      }
-      vkb::PhysicalDevice physicalDevice = physicalDevice_result.value();
-
-      //create the final Vulkan device
-      vkb::DeviceBuilder deviceBuilder{ physicalDevice };
-
-      vkb::Device vkbDevice = deviceBuilder.build().value();
-
-      // Get the VkDevice handle used in the rest of a Vulkan application
-      _device = vkbDevice.device;
-      _chosenGPU = physicalDevice.physical_device;
-
-    };
-    void RendererVulkan::RenderBegin( const Render::Frame*, Errors& ) {};
-    void RendererVulkan::RenderDrawCall( const Render::Frame*, const Render::DrawCall*, Errors& ) {};
-    void RendererVulkan::RenderEnd( const Render::Frame*, Errors& ) {};
-
-    void RendererVulkan::SwapBuffers() {};
-    void RendererVulkan::GetPerspectiveProjectionAB( float f,
-                                                     float n,
-                                                     float& a,
-                                                     float& b ) {};
-    void RendererVulkan::AddBlendState( Render::CommandDataCreateBlendState*, Errors& ) {};
-    void RendererVulkan::AddConstantBuffer( Render::CommandDataCreateConstantBuffer*, Errors& ) {};
-    void RendererVulkan::AddDepthState( Render::CommandDataCreateDepthState*, Errors& ) {};
-    void RendererVulkan::AddFramebuffer( Render::CommandDataCreateFramebuffer* data, Errors& errors )
-    {
-      TAC_ASSERT( IsMainThread() );
-
-      const bool isWindowFramebuffer = data->mNativeWindowHandle && data->mWidth && data->mHeight;
-      const bool isRenderToTextureFramebuffer = !data->mFramebufferTextures.empty();
-      TAC_ASSERT( isWindowFramebuffer || isRenderToTextureFramebuffer );
-
-      if( isWindowFramebuffer )
-      {
-        VkSurfaceKHR _surface;
-
-        //VkSurfaceFn fn =  GetVkSurfaceFn();
-        mGetVkSurfaceFn( _instance, data->mNativeWindowHandle, &_surface, errors );
-        TAC_HANDLE_ERROR( errors );
-
-
-        vkb::SwapchainBuilder swapchainBuilder{ _chosenGPU,_device,_surface };
-        swapchainBuilder.use_default_format_selection();
-        swapchainBuilder.set_desired_present_mode( VK_PRESENT_MODE_FIFO_KHR );
-        swapchainBuilder.set_desired_extent( data->mWidth, data->mHeight );
-        vkb::Swapchain vkbSwapchain = swapchainBuilder.build().value();
-
-        //store swapchain and its related images
-        std::vector<VkImage> _swapchainImages = vkbSwapchain.get_images().value();
-        std::vector<VkImageView> _swapchainImageViews = vkbSwapchain.get_image_views().value();
-
-        mFramebuffers[ ( int )data->mFramebufferHandle ] = {
-          ._surface = _surface,
-          ._swapchain = vkbSwapchain.swapchain,
-          ._swapchainImageFormat = vkbSwapchain.image_format,
-          ._swapchainImages = Vector( _swapchainImages.data(),
-                                      _swapchainImages.data() + _swapchainImages.size() ),
-          ._swapchainImageViews = Vector( _swapchainImageViews.data(),
-                                          _swapchainImageViews.data() + _swapchainImageViews.size() ),
-          .mDebugName = data->mStackFrame.ToString(),
-        };
-
-        mWindows[ mWindowCount++ ] = data->mFramebufferHandle;
-
-      // get the surface of the window we opened with SDL
-      //SDL_Vulkan_CreateSurface( _window, _instance, &_surface );
-
-      }
-      else if( isRenderToTextureFramebuffer )
-      {
-        TAC_CRITICAL_ERROR_INVALID_CODE_PATH;
-      }
-      else
-      {
-        TAC_CRITICAL_ERROR_INVALID_CODE_PATH;
-      }
+      TAC_RAISE_ERROR( "failed to select physical vk device", errors );
     }
-    void RendererVulkan::AddIndexBuffer( Render::CommandDataCreateIndexBuffer*, Errors& ) {};
-    void RendererVulkan::AddRasterizerState( Render::CommandDataCreateRasterizerState*, Errors& ) {};
-    void RendererVulkan::AddSamplerState( Render::CommandDataCreateSamplerState*, Errors& ) {};
-    void RendererVulkan::AddShader( Render::CommandDataCreateShader*, Errors& ) {};
-    void RendererVulkan::AddTexture( Render::CommandDataCreateTexture*, Errors& ) {};
-    void RendererVulkan::AddMagicBuffer( Render::CommandDataCreateMagicBuffer*, Errors& ) {};
-    void RendererVulkan::AddVertexBuffer( Render::CommandDataCreateVertexBuffer*, Errors& ) {};
-    void RendererVulkan::AddVertexFormat( Render::CommandDataCreateVertexFormat*, Errors& ) {};
-    void RendererVulkan::DebugGroupBegin( StringView ) {};
-    void RendererVulkan::DebugGroupEnd() {};
-    void RendererVulkan::DebugMarker( StringView ) {};
-    void RendererVulkan::RemoveBlendState( Render::BlendStateHandle, Errors& ) {};
-    void RendererVulkan::RemoveConstantBuffer( Render::ConstantBufferHandle, Errors& ) {};
-    void RendererVulkan::RemoveDepthState( Render::DepthStateHandle, Errors& ) {};
-    void RendererVulkan::RemoveFramebuffer( Render::FramebufferHandle framebufferHandle, Errors& errors )
+    vkb::PhysicalDevice physicalDevice = physicalDevice_result.value();
+
+    //create the final Vulkan device
+    vkb::DeviceBuilder deviceBuilder{ physicalDevice };
+
+    vkb::Device vkbDevice = deviceBuilder.build().value();
+
+    // Get the VkDevice handle used in the rest of a Vulkan application
+    _device = vkbDevice.device;
+    _chosenGPU = physicalDevice.physical_device;
+
+  };
+  void RendererVulkan::RenderBegin( const Render::Frame*, Errors& ) {};
+  void RendererVulkan::RenderDrawCall( const Render::Frame*, const Render::DrawCall*, Errors& ) {};
+  void RendererVulkan::RenderEnd( const Render::Frame*, Errors& ) {};
+
+  void RendererVulkan::SwapBuffers() {};
+  void RendererVulkan::GetPerspectiveProjectionAB( float f,
+                                                   float n,
+                                                   float& a,
+                                                   float& b ) {};
+  void RendererVulkan::AddBlendState( Render::CommandDataCreateBlendState*, Errors& ) {};
+  void RendererVulkan::AddConstantBuffer( Render::CommandDataCreateConstantBuffer*, Errors& ) {};
+  void RendererVulkan::AddDepthState( Render::CommandDataCreateDepthState*, Errors& ) {};
+  void RendererVulkan::AddFramebuffer( Render::CommandDataCreateFramebuffer* data, Errors& errors )
+  {
+    TAC_ASSERT( IsMainThread() );
+
+    const bool isWindowFramebuffer = data->mNativeWindowHandle && data->mWidth && data->mHeight;
+    const bool isRenderToTextureFramebuffer = !data->mFramebufferTextures.empty();
+    TAC_ASSERT( isWindowFramebuffer || isRenderToTextureFramebuffer );
+
+    if( isWindowFramebuffer )
     {
-      for( int i = 0; i < mWindowCount; ++i )
-        if( mWindows[ i ] == framebufferHandle )
-          mWindows[ i ] = mWindows[ --mWindowCount ];
-      FramebufferVk* framebuffer = &mFramebuffers[ ( int )framebufferHandle ];
+      VkSurfaceKHR _surface;
 
-      vkDestroySwapchainKHR( _device,  framebuffer->_swapchain, nullptr );
-      for( VkImageView view : framebuffer->_swapchainImageViews )
-        vkDestroyImageView( _device, view, nullptr );
-
-      vkDestroySurfaceKHR( _instance, framebuffer->_surface, nullptr );
+      //VkSurfaceFn fn =  GetVkSurfaceFn();
+      mGetVkSurfaceFn( _instance, data->mNativeWindowHandle, &_surface, errors );
+      TAC_HANDLE_ERROR( errors );
 
 
-      *framebuffer = FramebufferVk();
+      vkb::SwapchainBuilder swapchainBuilder{ _chosenGPU,_device,_surface };
+      swapchainBuilder.use_default_format_selection();
+      swapchainBuilder.set_desired_present_mode( VK_PRESENT_MODE_FIFO_KHR );
+      swapchainBuilder.set_desired_extent( data->mWidth, data->mHeight );
+      vkb::Swapchain vkbSwapchain = swapchainBuilder.build().value();
+
+      //store swapchain and its related images
+      std::vector<VkImage> _swapchainImages = vkbSwapchain.get_images().value();
+      std::vector<VkImageView> _swapchainImageViews = vkbSwapchain.get_image_views().value();
+
+      mFramebuffers[ ( int )data->mFramebufferHandle ] = {
+        ._surface = _surface,
+        ._swapchain = vkbSwapchain.swapchain,
+        ._swapchainImageFormat = vkbSwapchain.image_format,
+        ._swapchainImages = Vector( _swapchainImages.data(),
+                                    _swapchainImages.data() + _swapchainImages.size() ),
+        ._swapchainImageViews = Vector( _swapchainImageViews.data(),
+                                        _swapchainImageViews.data() + _swapchainImageViews.size() ),
+        .mDebugName = data->mStackFrame.ToString(),
+      };
+
+      mWindows[ mWindowCount++ ] = data->mFramebufferHandle;
+
+    // get the surface of the window we opened with SDL
+    //SDL_Vulkan_CreateSurface( _window, _instance, &_surface );
+
     }
-    void RendererVulkan::RemoveIndexBuffer( Render::IndexBufferHandle, Errors& ) {};
-    void RendererVulkan::RemoveRasterizerState( Render::RasterizerStateHandle, Errors& ) {};
-    void RendererVulkan::RemoveSamplerState( Render::SamplerStateHandle, Errors& ) {};
-    void RendererVulkan::RemoveShader( Render::ShaderHandle, Errors& ) {};
-    void RendererVulkan::RemoveTexture( Render::TextureHandle, Errors& ) {};
-    void RendererVulkan::RemoveMagicBuffer( Render::MagicBufferHandle, Errors& ) {};
-    void RendererVulkan::RemoveVertexBuffer( Render::VertexBufferHandle, Errors& ) {};
-    void RendererVulkan::RemoveVertexFormat( Render::VertexFormatHandle, Errors& ) {};
-    void RendererVulkan::ResizeFramebuffer( Render::CommandDataResizeFramebuffer*, Errors& ) {};
-    void RendererVulkan::SetRenderObjectDebugName( Render::CommandDataSetRenderObjectDebugName*, Errors& ) {};
-    void RendererVulkan::UpdateConstantBuffer( Render::CommandDataUpdateConstantBuffer*, Errors& ) {};
-    void RendererVulkan::UpdateIndexBuffer( Render::CommandDataUpdateIndexBuffer*, Errors& ) {};
-    void RendererVulkan::UpdateTextureRegion( Render::CommandDataUpdateTextureRegion*, Errors& ) {};
-    void RendererVulkan::UpdateVertexBuffer( Render::CommandDataUpdateVertexBuffer*, Errors& ) {};
-
-    AssetPathStringView RendererVulkan::GetShaderPath(  const Render::ShaderNameStringView& ) 
+    else if( isRenderToTextureFramebuffer )
     {
-      return "";
+      TAC_ASSERT_INVALID_CODE_PATH;
     }
+    else
+    {
+      TAC_ASSERT_INVALID_CODE_PATH;
+    }
+  }
+  void RendererVulkan::AddIndexBuffer( Render::CommandDataCreateIndexBuffer*, Errors& ) {};
+  void RendererVulkan::AddRasterizerState( Render::CommandDataCreateRasterizerState*, Errors& ) {};
+  void RendererVulkan::AddSamplerState( Render::CommandDataCreateSamplerState*, Errors& ) {};
+  void RendererVulkan::AddShader( Render::CommandDataCreateShader*, Errors& ) {};
+  void RendererVulkan::AddTexture( Render::CommandDataCreateTexture*, Errors& ) {};
+  void RendererVulkan::AddMagicBuffer( Render::CommandDataCreateMagicBuffer*, Errors& ) {};
+  void RendererVulkan::AddVertexBuffer( Render::CommandDataCreateVertexBuffer*, Errors& ) {};
+  void RendererVulkan::AddVertexFormat( Render::CommandDataCreateVertexFormat*, Errors& ) {};
+  void RendererVulkan::DebugGroupBegin( StringView ) {};
+  void RendererVulkan::DebugGroupEnd() {};
+  void RendererVulkan::DebugMarker( StringView ) {};
+  void RendererVulkan::RemoveBlendState( Render::BlendStateHandle, Errors& ) {};
+  void RendererVulkan::RemoveConstantBuffer( Render::ConstantBufferHandle, Errors& ) {};
+  void RendererVulkan::RemoveDepthState( Render::DepthStateHandle, Errors& ) {};
+  void RendererVulkan::RemoveFramebuffer( Render::FramebufferHandle framebufferHandle, Errors& errors )
+  {
+    for( int i = 0; i < mWindowCount; ++i )
+      if( mWindows[ i ] == framebufferHandle )
+        mWindows[ i ] = mWindows[ --mWindowCount ];
+    FramebufferVk* framebuffer = &mFramebuffers[ ( int )framebufferHandle ];
+
+    vkDestroySwapchainKHR( _device,  framebuffer->_swapchain, nullptr );
+    for( VkImageView view : framebuffer->_swapchainImageViews )
+      vkDestroyImageView( _device, view, nullptr );
+
+    vkDestroySurfaceKHR( _instance, framebuffer->_surface, nullptr );
+
+
+    *framebuffer = FramebufferVk();
+  }
+  void RendererVulkan::RemoveIndexBuffer( Render::IndexBufferHandle, Errors& ) {};
+  void RendererVulkan::RemoveRasterizerState( Render::RasterizerStateHandle, Errors& ) {};
+  void RendererVulkan::RemoveSamplerState( Render::SamplerStateHandle, Errors& ) {};
+  void RendererVulkan::RemoveShader( Render::ShaderHandle, Errors& ) {};
+  void RendererVulkan::RemoveTexture( Render::TextureHandle, Errors& ) {};
+  void RendererVulkan::RemoveMagicBuffer( Render::MagicBufferHandle, Errors& ) {};
+  void RendererVulkan::RemoveVertexBuffer( Render::VertexBufferHandle, Errors& ) {};
+  void RendererVulkan::RemoveVertexFormat( Render::VertexFormatHandle, Errors& ) {};
+  void RendererVulkan::ResizeFramebuffer( Render::CommandDataResizeFramebuffer*, Errors& ) {};
+  void RendererVulkan::SetRenderObjectDebugName( Render::CommandDataSetRenderObjectDebugName*, Errors& ) {};
+  void RendererVulkan::UpdateConstantBuffer( Render::CommandDataUpdateConstantBuffer*, Errors& ) {};
+  void RendererVulkan::UpdateIndexBuffer( Render::CommandDataUpdateIndexBuffer*, Errors& ) {};
+  void RendererVulkan::UpdateTextureRegion( Render::CommandDataUpdateTextureRegion*, Errors& ) {};
+  void RendererVulkan::UpdateVertexBuffer( Render::CommandDataUpdateVertexBuffer*, Errors& ) {};
+
+  AssetPathStringView RendererVulkan::GetShaderPath(  const Render::ShaderNameStringView& ) 
+  {
+    return "";
+  }
 
 } // namespace Tac::Render

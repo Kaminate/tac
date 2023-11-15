@@ -1,6 +1,10 @@
-
 #pragma once
-#include <cstdint>
+
+import std;// #include <cstdint>
+using std::uint8_t;
+using std::uint16_t;
+using std::uint32_t;
+
 namespace Tac
 {
 
@@ -16,9 +20,6 @@ namespace Tac
 
   enum class EntityUUID : UUID;
   const EntityUUID NullEntityUUID = ( EntityUUID )NullUUID;
-
-  enum class AssetUUID : UUID;
-  const AssetUUID NullAssetUUID = ( AssetUUID )NullUUID;
 
   typedef uint8_t PlayerCount;
   typedef uint16_t EntityCount;

@@ -1,5 +1,6 @@
 #include "src/common/graphics/imgui/tac_imgui.h"
 #include "src/common/graphics/tac_renderer.h"
+#if 1
 #include "src/common/graphics/tac_camera.h"
 #include "src/common/shell/tac_shell_timer.h"
 #include "src/shell/tac_desktop_window_graphics.h"
@@ -19,7 +20,7 @@
 #include "src/space/tac_entity.h"
 #include "src/space/tac_world.h"
 
-#include <set>
+import std; //#include <set>
 
 namespace Tac
 {
@@ -27,10 +28,13 @@ namespace Tac
   Example::Example()
   {
     mWorld = TAC_NEW World;
-    mCamera = TAC_NEW Camera{ .mPos = { 0, 0, 5 },
-                              .mForwards = { 0, 0, -1 },
-                              .mRight = { 1, 0, 0 },
-                              .mUp = { 0, 1, 0 } };
+    mCamera = TAC_NEW Camera
+    {
+      .mPos = { 0, 0, 5 },
+      .mForwards = { 0, 0, -1 },
+      .mRight = { 1, 0, 0 },
+      .mUp = { 0, 1, 0 }
+    };
   }
 
   Example::~Example()
@@ -91,7 +95,7 @@ namespace Tac
     const int n = GetExampleCount();
     if( Example* ex = GetCurrExample() )
     {
-      ImGuiTextf( "Current Example (%i/%i): %s", iCurrent + 1, n, ex->mName ) ;
+      ImGuiText( va( "Current Example ({}/{}): {}", iCurrent + 1, n, ex->mName ) );
       offset -= ImGuiButton( "Prev" ) ? 1 : 0;
       ImGuiSameLine();
       offset += ImGuiButton( "Next" ) ? 1 : 0;
@@ -196,3 +200,4 @@ namespace Tac
   }
 
 } // namespace Tac
+#endif

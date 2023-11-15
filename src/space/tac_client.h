@@ -5,18 +5,19 @@
 #include "src/space/tac_space_net.h"
 #include "src/space/tac_world.h"
 #include "src/common/math/tac_vector2.h"
+#include "src/common/shell/tac_shell_timer.h"
 #include "src/common/containers/tac_vector.h"
 #include "src/common/string/tac_string.h"
 #include "src/common/core/tac_error_handling.h"
 
-#include <list>
+import std; // #include <list>
 
 namespace Tac
 {
   struct SavedInput
   {
-    double mTimestamp;
-    v2     mInputDirection;
+    Timestamp mTimestamp;
+    v2        mInputDirection;
   };
 
   typedef void( *ClientSendNetworkMessageCallback )( void* bytes,
@@ -40,13 +41,13 @@ namespace Tac
     bool                    mIsPredicting = true;
     // </>
 
-    double                  mMostRecentSnapshotTime = 0;
+    Timestamp               mMostRecentSnapshotTime;
     SnapshotBuffer          mSnapshots;
     void                    ReadSnapshotBody( Reader*, Errors& );
     void                    OnClientDisconnect();
     void                    WriteInputBody( Writer* );
     void                    ExecuteNetMsg( void* bytes, int byteCount, Errors& );
-    void                    ApplyPrediction( double lastTime );
+    void                    ApplyPrediction( Timestamp lastTime );
     void                    ReadEntityDifferences( Reader*, Errors& );
     void                    ReadPlayerDifferences( Reader*, Errors& );
     void                    Update( float seconds,

@@ -16,8 +16,10 @@
 
 #include "VkBootstrap.h"
 
-#include <cstdio>
-#include <cstring>
+import std;
+
+//#include <cstdio>
+//#include <cstring>
 
 #if defined(_WIN32)
 #include <fcntl.h>
@@ -29,7 +31,7 @@
 #include <dlfcn.h>
 #endif
 
-#include <mutex>
+//#include <mutex>
 
 namespace vkb {
 
@@ -295,7 +297,7 @@ VkBool32 default_debug_callback (VkDebugUtilsMessageSeverityFlagBitsEXT messageS
     void*) {
 	auto ms = to_string_message_severity (messageSeverity);
 	auto mt = to_string_message_type (messageType);
-	printf ("[%s: %s]\n%s\n", ms, mt, pCallbackData->pMessage);
+	std::printf ("[%s: %s]\n%s\n", ms, mt, pCallbackData->pMessage);
 
 	return VK_FALSE;
 }

@@ -1,6 +1,8 @@
-#include "src/shell/windows/tac_win32.h"
+#include "src/shell/windows/tac_win32.h" // self-inc
+
 #include "src/common/core/tac_preprocessor.h"
 #include "src/common/string/tac_string_util.h"
+#include "src/common/memory/tac_frame_memory.h"
 #include "src/common/system/tac_os.h"
 #include "src/common/graphics/tac_renderer.h"
 #include "src/common/core/tac_algorithm.h"
@@ -8,8 +10,10 @@
 #include "src/common/containers/tac_fixed_vector.h"
 #include "src/common/identifier/tac_id_collection.h"
 
-#include <iostream>
-#include <ctime> // mktime
+import std;
+//#include <iostream>
+//#include <ctime> // mktime
+
 #include <Shlobj.h> // SHGetKnownFolderPath
 #include <commdlg.h> // GetSaveFileNameA
 #pragma comment( lib, "Comdlg32.lib" ) // GetSaveFileNameA
@@ -79,4 +83,12 @@ namespace Tac
       ::DebugBreak();
   }
 
-}
+  const char* HrCallAux( const HRESULT hr, const char* fnName, const char* fnArgs )
+  {
+    return FrameMemoryFormat( "{}( {} ) failed, returning {:#X}",
+                              fnName,
+                              fnArgs,
+                              ( unsigned int )hr );
+  }
+
+} // namespace Tac

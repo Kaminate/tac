@@ -1,7 +1,7 @@
 #include "src/level_editor/tac_level_editor_asset_view.h" // self-inc
 
-#include "src/common/assetmanagers/tac_model_load_synchronous.h"
-#include "src/common/assetmanagers/tac_resident_model_file.h"
+#include "src/common/assetmanagers/gltf/tac_model_load_synchronous.h"
+#include "src/common/assetmanagers/gltf/tac_resident_model_file.h"
 #include "src/common/assetmanagers/tac_texture_asset_manager.h"
 #include "src/common/containers/tac_frame_vector.h"
 #include "src/common/core/tac_error_handling.h"
@@ -24,8 +24,7 @@
 #include "src/space/tac_entity.h"
 #include "src/space/tac_world.h"
 
-#include <map>
-//#include <cmath>
+import std; //#include <map>
 
 namespace Tac
 {
@@ -243,7 +242,7 @@ namespace Tac
       const cgltf_node& node = gltfData->nodes[ i ];
 
       Entity* entityNode = loadedModel->mWorld.SpawnEntity( loadedModel->mEntityUUIDCounter.AllocateNewUUID() );
-      entityNode->mName = node.name ? node.name : va( "node %i", i );
+      entityNode->mName = node.name ? (StringView)node.name : (StringView)va( "node {}", i );
       entityNode->mRelativeSpace = DecomposeGLTFTransform( &node );
 
       if( node.mesh )
@@ -298,7 +297,7 @@ namespace Tac
     AssetViewImportedModel* loadedModel = GetLoadedModel( assetPath );
     if( !loadedModel )
     {
-      ImGuiTextf( "Loading %s%s", assetPath.c_str(), LoadEllipses().c_str() );
+      ImGuiText( va( "Loading {}{}", assetPath.c_str(), LoadEllipses().c_str() ) );
       return;
     }
 
@@ -325,68 +324,67 @@ namespace Tac
     }
     else if( loadedModel->mAttemptedToLoadEntity )
     {
-      ImGuiTextf( "%s has nothing to import", assetPath.c_str() );
+      ImGuiText( va("{} has nothing to import", assetPath.c_str() ));
     }
     else
     {
-      ImGuiTextf( "IDK what this code path is %s", assetPath.c_str() );
+      ImGuiText( va("IDK what this code path is {}", assetPath.c_str() ));
     }
   }
 
   static AssetViewImportedModel* CreateLoadedModel(const AssetPathStringView& assetPath)
   {
-      const char* debugName = FrameMemoryPrintf( "%s-framebuffer-", assetPath.c_str() );
-      const Render::TexSpec texSpecColor =
+    const Render::TexSpec texSpecColor =
+    {
+      .mImage =
       {
-        .mImage =
+        .mWidth = w,
+        .mHeight = h,
+        .mFormat =
         {
-          .mWidth = w,
-          .mHeight = h,
-          .mFormat =
-          {
-            .mElementCount = 4,
-            .mPerElementByteCount = 1,
-            .mPerElementDataType = Render::GraphicsType::unorm,
-          },
+          .mElementCount = 4,
+          .mPerElementByteCount = 1,
+          .mPerElementDataType = Render::GraphicsType::unorm,
         },
-        .mBinding = Render::Binding::ShaderResource | Render::Binding::RenderTarget,
-      };
-      const Render::TextureHandle textureHandleColor = Render::CreateTexture( texSpecColor, TAC_STACK_FRAME );
-      Render::SetRenderObjectDebugName( textureHandleColor, debugName );
+      },
+      .mBinding = Render::Binding::ShaderResource | Render::Binding::RenderTarget,
+    };
+    const Render::TextureHandle textureHandleColor = Render::CreateTexture( texSpecColor, TAC_STACK_FRAME );
+    Render::SetRenderObjectDebugName( textureHandleColor, assetPath.GetFilename() );
 
-      const Render::TexSpec texSpecDepth = 
+    const Render::TexSpec texSpecDepth = 
+    {
+      .mImage =
       {
-        .mImage =
+        .mWidth = w,
+        .mHeight = h,
+        .mFormat =
         {
-          .mWidth = w,
-          .mHeight = h,
-          .mFormat =
-          {
-            .mElementCount = 1,
-            .mPerElementByteCount = sizeof( uint16_t ),
-            .mPerElementDataType = Render::GraphicsType::unorm,
-          },
+          .mElementCount = 1,
+          .mPerElementByteCount = sizeof( uint16_t ),
+          .mPerElementDataType = Render::GraphicsType::unorm,
         },
-        .mBinding = Render::Binding::DepthStencil,
-      };
-      const Render::TextureHandle textureHandleDepth = Render::CreateTexture( texSpecDepth, TAC_STACK_FRAME );
-      Render::SetRenderObjectDebugName( textureHandleDepth, debugName );
+      },
+      .mBinding = Render::Binding::DepthStencil,
+    };
+    const Render::TextureHandle textureHandleDepth = Render::CreateTexture( texSpecDepth, TAC_STACK_FRAME );
+    Render::SetRenderObjectDebugName( textureHandleDepth, assetPath.GetFilename() );
 
-      const Render::FramebufferHandle framebufferHandle = Render::CreateFramebufferForRenderToTexture(
-        { textureHandleColor, textureHandleDepth }, TAC_STACK_FRAME );
-      Render::ViewHandle viewHandle = Render::CreateView();
+    const Render::FramebufferHandle framebufferHandle = Render::CreateFramebufferForRenderToTexture(
+      { textureHandleColor, textureHandleDepth }, TAC_STACK_FRAME );
+    Render::ViewHandle viewHandle = Render::CreateView();
 
-      auto* result = new AssetViewImportedModel
-      {
-         .mTextureHandleColor = textureHandleColor,
-         .mTextureHandleDepth = textureHandleDepth,
-         .mFramebufferHandle = framebufferHandle,
-         .mViewHandle = viewHandle,
-         .mAssetPath = assetPath,
-      };
+    auto* result = new AssetViewImportedModel
+    {
+       .mTextureHandleColor = textureHandleColor,
+       .mTextureHandleDepth = textureHandleDepth,
+       .mFramebufferHandle = framebufferHandle,
+       .mViewHandle = viewHandle,
+       .mAssetPath = assetPath,
+    };
 
-      sLoadedModels[ assetPath ] = result;
-      return result;
+    sLoadedModels[ assetPath ] = result;
+    return result;
   }
 
   static void RenderImportedModel( AssetViewImportedModel* loadedModel )
@@ -394,7 +392,7 @@ namespace Tac
     if( loadedModel->mWorld.mEntities.empty() )
       return;
 
-    TAC_RENDER_GROUP_BLOCK( va( "asset preview %s", loadedModel->mAssetPath.c_str() ) );
+    TAC_RENDER_GROUP_BLOCK( va( "asset preview {}", loadedModel->mAssetPath.c_str() ) );
     Render::SetViewFramebuffer( loadedModel->mViewHandle, loadedModel->mFramebufferHandle );
     Render::SetViewport( loadedModel->mViewHandle, Render::Viewport( w, h ) );
     Render::SetViewScissorRect( loadedModel->mViewHandle, Render::ScissorRect( w, h ) );
@@ -503,12 +501,14 @@ namespace Tac
 
       if( oldStackSize != sAssetViewFolderStack.size() || ImGuiButton( "Refresh" ) )
       {
-        sAssetViewFolderCur = Join( sAssetViewFolderStack, "/" );
+        sAssetViewFolderCur = Join( sAssetViewFolderStack.data(),
+                                    sAssetViewFolderStack.size(),
+                                    "/" );
         PopulateFolderContents();
       }
     }
     ImGuiEnd();
   }
 
-}
+} // namespace Tac
 

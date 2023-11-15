@@ -16,14 +16,6 @@ target_sources( TacExamples PRIVATE
 )
 
 set( TAC_SOURCES 
-  #"tac_examples.cpp"
-  #"tac_examples.h"
-  #"tac_examples_presentation.cpp"
-  #"tac_examples_presentation.h"
-  #"tac_examples_registry.cpp"
-  #"tac_examples_registry.h"
-  #"tac_examples_state_machine.cpp"
-  #"tac_examples_state_machine.h"
   CACHE INTERNAL "" FORCE )
 
 # These append to TAC_SOURCES
@@ -35,8 +27,6 @@ add_subdirectory( vk )
 add_subdirectory( text )
 add_subdirectory( imgui )
 
-
-# add_library( TacExamples )
 target_sources( TacExamples PRIVATE ${TAC_SOURCES} )
 
 

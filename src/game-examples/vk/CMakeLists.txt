@@ -5,11 +5,6 @@ else()
 endif()
 
 
-list( APPEND TAC_SOURCES
-  "${CMAKE_CURRENT_SOURCE_DIR}/tac_example_vk_1_tri.h"
-)
-
-set( TAC_SOURCES ${TAC_SOURCES} CACHE INTERNAL "" FORCE )
 
 function( tac_target )
   if( WIN32 )
@@ -53,9 +48,6 @@ if( WIN32 )
   )
 
   target_compile_options( ${PROJECT_NAME} PUBLIC /ZI ) # Program Database for Edit & Continue
-
-  # this shit dont work...
-  target_compile_definitions( ${PROJECT_NAME} PUBLIC TAC_PREFER_RENDERER_VK )
 
   set_target_properties( ${PROJECT_NAME} PROPERTIES
     VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"

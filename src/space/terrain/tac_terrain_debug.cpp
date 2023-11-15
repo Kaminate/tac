@@ -23,7 +23,7 @@ namespace Tac
         TAC_IMGUI_INDENT_BLOCK;
 
 
-        ImGuiTextf( "Heightmap path: %s", mTerrain->mHeightmapTexturePath.c_str() );
+        ImGuiText( va("Heightmap path: {}", mTerrain->mHeightmapTexturePath.c_str() ));
         if( ImGuiButton( "Change Heightmap" ) )
         {
           mHeightmapFileDialogErrors.clear();
@@ -62,8 +62,8 @@ namespace Tac
 
       ImGuiCheckbox( "Draw grid", &mDrawGrid );
 
-      ImGuiTextf( "Ground texture: %s", mTerrain->mGroundTexturePath.c_str() );
-      ImGuiTextf( "Noise texture: %s", mTerrain->mNoiseTexturePath.c_str() );
+      ImGuiText( va("Ground texture: {}", mTerrain->mGroundTexturePath.c_str() ) );
+      ImGuiText( va("Noise texture: {}", mTerrain->mNoiseTexturePath.c_str() ) );
 
       if( ImGuiButton( "Open Ground Texture" ) )
       {
@@ -78,19 +78,19 @@ namespace Tac
       }
 
       if( mTerrain->mTestHeightmapLoadErrors )
-        ImGuiTextf( "Load heightmap errors: %s", mTerrain->mTestHeightmapLoadErrors.ToString().c_str() );
+        ImGuiText( va( "Load heightmap errors: {}", mTerrain->mTestHeightmapLoadErrors.ToString().c_str() ) );
 
       if( mTerrainTextureDialogErrors )
-        ImGuiTextf( "Dialog heightmap errors: " , mTerrainTextureDialogErrors.ToString().c_str() );
+        ImGuiText( va( "Dialog heightmap errors: {}" , mTerrainTextureDialogErrors.ToString().c_str() ) );
 
       if( mNoiseTextureDialogErrors )
-        ImGuiTextf( "Dialog noise texture errors: " , mNoiseTextureDialogErrors.ToString().c_str() );
+        ImGuiText( va( "Dialog noise texture errors: {}" , mNoiseTextureDialogErrors.ToString().c_str() ) );
 
       if( mHeightmapFileDialogErrors )
-        ImGuiTextf( "Heightmap file dialog errors: %s", mHeightmapFileDialogErrors.ToString().c_str() );
+        ImGuiText( va( "Heightmap file dialog errors: {}", mHeightmapFileDialogErrors.ToString().c_str() ));
 
       if( mHeightmapDirectoryIterateErrors )
-        ImGuiTextf( "Heightmap directory iterate errors: %s", mHeightmapDirectoryIterateErrors.ToString().c_str() );
+        ImGuiText( va( "Heightmap directory iterate errors: {}", mHeightmapDirectoryIterateErrors.ToString().c_str() ));
 
       changed |= ImGuiDragInt( "Subdivisions", &mTerrain->mSideVertexCount );
       changed |= ImGuiDragFloat( "Size", &mTerrain->mSideLength );

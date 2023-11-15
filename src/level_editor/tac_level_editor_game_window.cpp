@@ -1,3 +1,5 @@
+#include "src/level_editor/tac_level_editor_game_window.h" // self-inc
+
 #include "src/common/assetmanagers/tac_mesh.h"
 #include "src/common/assetmanagers/tac_model_asset_manager.h"
 #include "src/common/assetmanagers/tac_texture_asset_manager.h"
@@ -17,7 +19,6 @@
 #include "src/common/input/tac_keyboard_input.h"
 #include "src/common/system/tac_os.h"
 #include "src/level_editor/tac_level_editor.h"
-#include "src/level_editor/tac_level_editor_game_window.h"
 #include "src/level_editor/tac_level_editor_prefab.h"
 #include "src/shell/tac_desktop_app.h"
 #include "src/shell/tac_desktop_window_graphics.h"
@@ -31,7 +32,7 @@
 #include "src/space/tac_ghost.h"
 #include "src/space/tac_world.h"
 
-#include <cmath>
+//#include <cmath>
 
 namespace Tac
 {
@@ -136,13 +137,13 @@ namespace Tac
     }
   }
 
-  static DefaultCBufferPerFrame GetPerFrame( float w, float h )
+  static Render::DefaultCBufferPerFrame GetPerFrame( float w, float h )
   {
     const Camera* camera = gCreation.mEditorCamera;
     float a;
     float b;
     Render::GetPerspectiveProjectionAB( camera->mFarPlane, camera->mNearPlane, a, b );
-    return
+    return Render::DefaultCBufferPerFrame
     {
       .mView = camera->View(),
       .mProjection = m4::ProjPerspective( a, b, camera->mFovyrad, w / h ),
@@ -373,13 +374,13 @@ namespace Tac
     if( !Mouse::ButtonJustDown( Mouse::Button::MouseLeft ) )
       return;
 
+    const v3 worldSpaceHitPoint = gCreation.mEditorCamera->mPos + pickData.closestDist * mWorldSpaceMouseDir;
+
     switch( pickData.pickedObject )
     {
       case PickedObject::WidgetTranslationArrow:
       {
-        v3 worldSpaceHitPoint = gCreation.mEditorCamera->mPos + pickData.closestDist * mWorldSpaceMouseDir;
-        v3 gizmoOrigin = gCreation.mSelectedEntities.GetGizmoOrigin();
-        v3 pickPoint = gCreation.mEditorCamera->mPos + mWorldSpaceMouseDir * pickData.closestDist;
+        const v3 gizmoOrigin = gCreation.mSelectedEntities.GetGizmoOrigin();
         v3 arrowDir = {};
         arrowDir[ pickData.arrowAxis ] = 1;
         gCreation.mSelectedGizmo = true;
@@ -388,8 +389,7 @@ namespace Tac
       } break;
       case PickedObject::Entity:
       {
-        v3 worldSpaceHitPoint = gCreation.mEditorCamera->mPos + pickData.closestDist * mWorldSpaceMouseDir;
-        v3 entityWorldOrigin = ( pickData.closest->mWorldTransform * v4( 0, 0, 0, 1 ) ).xyz();
+        const v3 entityWorldOrigin = ( pickData.closest->mWorldTransform * v4( 0, 0, 0, 1 ) ).xyz();
         gCreation.mSelectedEntities.Select( pickData.closest );
         gCreation.mSelectedHitOffsetExists = true;
         gCreation.mSelectedHitOffset = worldSpaceHitPoint - entityWorldOrigin;
@@ -437,7 +437,7 @@ namespace Tac
     yNDC = yNDC * 2 - 1;
     const float aspect = w / h;
     const float theta = gCreation.mEditorCamera->mFovyrad / 2.0f;
-    const float cotTheta = 1.0f / std::tan( theta );
+    const float cotTheta = 1.0f / Tan( theta );
     const float sX = cotTheta / aspect;
     const float sY = cotTheta;
 
@@ -546,7 +546,7 @@ namespace Tac
                         gCreation.mEditorCamera->mUp );
     v3 pos = gCreation.mSelectedEntities.GetGizmoOrigin();
     v4 posVS4 = view * v4( pos, 1 );
-    float clip_height = std::abs( std::tan( gCreation.mEditorCamera->mFovyrad / 2.0f ) * posVS4.z * 2.0f );
+    float clip_height = Abs( Tan( gCreation.mEditorCamera->mFovyrad / 2.0f ) * posVS4.z * 2.0f );
     float arrowLen = clip_height * 0.2f;
     mArrowLen = arrowLen;
   }
@@ -560,7 +560,7 @@ namespace Tac
       worldSpaceHitPoint = gCreation.mEditorCamera->mPos + pickData.closestDist * mWorldSpaceMouseDir;
       mDebug3DDrawData->DebugDraw3DSphere( worldSpaceHitPoint, 0.2f, v3( 1, 1, 0 ) );
 
-      static double mouseMovement;
+      static Timestamp mouseMovement;
       Mouse::TryConsumeMouseMovement( &mouseMovement, TAC_STACK_FRAME );
     }
 
@@ -594,7 +594,7 @@ namespace Tac
     {
 
       const v3 axis = GetAxis( i );
-      const PremultipliedAlpha axisPremultipliedColor = PremultipliedAlpha::From_sRGB( axis );
+      const Render::PremultipliedAlpha axisPremultipliedColor = Render::PremultipliedAlpha::From_sRGB( axis );
 
 
       // Widget Translation Arrow
@@ -609,7 +609,7 @@ namespace Tac
 
         const bool shine = picked || usingTranslationArrow;
 
-        PremultipliedAlpha arrowColor = axisPremultipliedColor;
+        Render::PremultipliedAlpha arrowColor = axisPremultipliedColor;
         if( shine )
         {
           float t = float( Sin( ShellGetElapsedSeconds() * 6.0 ) );
@@ -624,15 +624,15 @@ namespace Tac
           * rots[ i ]
           * m4::Scale( v3( 1, 1, 1 ) * mArrowLen  );
 
-        const DefaultCBufferPerObject perObjectData
+        const Render::DefaultCBufferPerObject perObjectData
         {
           .World = World,
           .Color = arrowColor,
         };
 
-        Render::UpdateConstantBuffer( DefaultCBufferPerObject::Handle,
+        Render::UpdateConstantBuffer( Render::DefaultCBufferPerObject::Handle,
                                       &perObjectData,
-                                      sizeof( DefaultCBufferPerObject ),
+                                      sizeof( Render::DefaultCBufferPerObject ),
                                       TAC_STACK_FRAME );
         AddDrawCall( mArrow, viewHandle );
       }
@@ -648,15 +648,15 @@ namespace Tac
           rots[ i ] *
           m4::Scale( v3( 1, 1, 1 ) * mArrowLen * 0.1f );
 
-        const DefaultCBufferPerObject perObjectData
+        const Render::DefaultCBufferPerObject perObjectData
         {
           .World = World,
           .Color = axisPremultipliedColor,
         };
 
-        Render::UpdateConstantBuffer( DefaultCBufferPerObject::Handle,
+        Render::UpdateConstantBuffer( Render::DefaultCBufferPerObject::Handle,
                                       &perObjectData,
-                                      sizeof( DefaultCBufferPerObject ),
+                                      sizeof( Render::DefaultCBufferPerObject ),
                                       TAC_STACK_FRAME );
         AddDrawCall( mCenteredUnitCube, viewHandle );
       }
@@ -679,20 +679,24 @@ namespace Tac
     for( int iLight = 0; iLight < lightVisitor.mLights.size(); ++iLight )
     {
       const Light* light = lightVisitor.mLights[ iLight ];
-      const char* groupName = FrameMemoryPrintf( "editor light %i", iLight );
 
+      ShortFixedString groupName = "Editor light ";
+      groupName += ToString( iLight );
 
       // Q: why am ii only scaling the m00, and not the m11 and m22?
       m4 world = light->mEntity->mWorldTransform;
       world.m00 = lightWidgetSize;
 
-      const DefaultCBufferPerObject perObjectData
+      const Render::DefaultCBufferPerObject perObjectData
       {
         .World = world,
       };
 
+      const Render::ConstantBufferHandle hPerObj = Render::DefaultCBufferPerObject::Handle;
+      const int perObjSize = sizeof(Render::DefaultCBufferPerObject);
+
       Errors errors;
-      Render::TextureHandle textureHandle = TextureAssetManager::GetTexture( "assets/editor/light.png", errors );
+      const Render::TextureHandle textureHandle = TextureAssetManager::GetTexture( "assets/editor/light.png", errors );
 
       Render::BeginGroup( groupName, TAC_STACK_FRAME );
       Render::SetShader( spriteShader );
@@ -706,10 +710,7 @@ namespace Tac
       Render::SetVertexFormat( Render::VertexFormatHandle() );
       Render::SetPrimitiveTopology( Render::PrimitiveTopology::TriangleList );
       Render::SetTexture( textureHandle );
-      Render::UpdateConstantBuffer( DefaultCBufferPerObject::Handle,
-                                    &perObjectData,
-                                    sizeof( DefaultCBufferPerObject ),
-                                    TAC_STACK_FRAME );
+      Render::UpdateConstantBuffer( hPerObj, &perObjectData, perObjSize, TAC_STACK_FRAME );
       Render::Submit( viewHandle, TAC_STACK_FRAME );
       Render::EndGroup( TAC_STACK_FRAME );
     }
@@ -727,11 +728,10 @@ namespace Tac
     Render::BeginGroup( "Editor Widgets", TAC_STACK_FRAME );
     const float w = ( float )desktopWindowState->mWidth;
     const float h = ( float )desktopWindowState->mHeight;
-    const DefaultCBufferPerFrame perFrameData = GetPerFrame( w, h );
-    Render::UpdateConstantBuffer( DefaultCBufferPerFrame::Handle,
-                                  &perFrameData,
-                                  sizeof( DefaultCBufferPerFrame ),
-                                  TAC_STACK_FRAME );
+    const Render::DefaultCBufferPerFrame perFrameData = GetPerFrame( w, h );
+    const Render::ConstantBufferHandle hPerFrame = Render::DefaultCBufferPerFrame::Handle;
+    const int perFrameSize = sizeof( Render::DefaultCBufferPerFrame );
+    Render::UpdateConstantBuffer( hPerFrame, &perFrameData, perFrameSize, TAC_STACK_FRAME );
 
     RenderEditorWidgetsPicking( viewHandle );
     RenderEditorWidgetsSelection( viewHandle );
@@ -1124,4 +1124,12 @@ namespace Tac
     }
 
   }
-}
+
+  void CreationGameWindow::SetStatusMessage( const StringView& msg,
+                                             const TimestampDifference& duration )
+  {
+    const Timestamp curTime = ShellGetElapsedSeconds();
+    mStatusMessage = msg;
+    mStatusMessageEndTime = curTime + duration;
+  }
+} // namespace Tac

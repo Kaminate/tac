@@ -1,4 +1,4 @@
-#include "src/shell/windows/renderer/tac_dxgi.h"
+#include "src/shell/windows/renderer/dxgi/tac_dxgi.h"
 #include "src/shell/windows/tac_win32.h"
 #include "src/common/string/tac_string.h"
 #include "src/common/core/tac_error_handling.h"
@@ -7,8 +7,11 @@
 
 #include <d3dcommon.h> // WKPDID_D3DDebugObjectName
 
-#include <sstream> // std::stringstream
+import std; // #include <sstream> // std::stringstream
 
+using std::uint32_t;
+using std::uint16_t;
+using std::uint8_t;
 
 #include <dxgi1_6.h> // IDXGIFactory4, IDXGIAdapter4
 
@@ -171,7 +174,7 @@ namespace Tac
       // unorm here, float there...  hmm is that ok?
       case 2: return DXGI_FORMAT_D16_UNORM;
       case 4: return DXGI_FORMAT_D32_FLOAT;
-      default: TAC_CRITICAL_ERROR_INVALID_CODE_PATH; return DXGI_FORMAT_UNKNOWN;
+      default: TAC_ASSERT_INVALID_CODE_PATH; return DXGI_FORMAT_UNKNOWN;
     }
   }
 
@@ -180,19 +183,19 @@ namespace Tac
     for( const FormatPair& formatPair : gFormatPairs )
       if( formatPair.mFormatDXGI == format )
         return formatPair.mFormat;
-    TAC_CRITICAL_ERROR_INVALID_CODE_PATH;
+    TAC_ASSERT_INVALID_CODE_PATH;
     return {};
   }
 
   DXGI_FORMAT      GetDXGIFormatTextureTypeless( int i )
   {
-    constexpr int c16 = sizeof( uint16_t );
-    constexpr int c32 = sizeof( uint32_t );
+    constexpr int c16 = sizeof( std::uint16_t );
+    constexpr int c32 = sizeof( std::uint32_t );
     switch( i )
     {
       case c16: return DXGI_FORMAT_R16_TYPELESS;
       case c32: return DXGI_FORMAT_R32_TYPELESS;
-      default: TAC_CRITICAL_ERROR_INVALID_CODE_PATH; return DXGI_FORMAT_UNKNOWN;
+      default: TAC_ASSERT_INVALID_CODE_PATH; return DXGI_FORMAT_UNKNOWN;
     }
   }
 
@@ -216,7 +219,7 @@ namespace Tac
           formatPair.mFormat.mPerElementDataType == textureFormat.mPerElementDataType )
         return formatPair.mFormatDXGI;
 
-    TAC_CRITICAL_ERROR_INVALID_CODE_PATH;
+    TAC_ASSERT_INVALID_CODE_PATH;
     return DXGI_FORMAT_UNKNOWN;
   }
 

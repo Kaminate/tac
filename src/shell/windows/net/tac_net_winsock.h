@@ -2,9 +2,12 @@
 
 #pragma once
 
-namespace Tac
+#include "src/common/tac_common.h"
+
+namespace Tac::Network
 {
-  struct Net;
-  Net* GetNetWinsock();
+
+  void NetWinsockInit(Errors&);
+
 }
 

@@ -1,3 +1,6 @@
+#include "src/game-examples/fluid/tac_example_fluid.h" // self-inc
+
+#include "src/common/memory/tac_frame_memory.h"
 #include "src/common/graphics/imgui/tac_imgui.h"
 #include "src/common/graphics/tac_renderer.h"
 #include "src/common/graphics/tac_ui_2d.h"
@@ -5,7 +8,6 @@
 #include "src/common/system/tac_desktop_window.h"
 #include "src/common/input/tac_keyboard_input.h"
 #include "src/common/core/tac_preprocessor.h" // C4100
-#include "src/game-examples/fluid/tac_example_fluid.h"
 
 //#include <cmath>
 //#include <iostream>
@@ -80,7 +82,7 @@ namespace Tac
     }
     else
     {
-      TAC_CRITICAL_ERROR_UNIMPLEMENTED;
+      TAC_ASSERT_UNIMPLEMENTED;
     }
   }
 
@@ -386,7 +388,9 @@ namespace Tac
 
 
     ImGuiText( "--------------------------------" );
-    ImGuiTextf( "(debug text) iStep: %i, stepCount %i", iStep, stepCount );
+    const std::string s = std::format("(debug text) iStep: {}, stepCount {}", iStep, stepCount );
+    const StringView sv( s.data(), ( int )s.size() );
+    ImGuiText(sv);
 
 
     //if( sIterationExample != IterationExample::None )
@@ -522,7 +526,8 @@ namespace Tac
 
             for( int i = 0; i < vals.size(); ++i )
             {
-              texts.push_back( va( "iteration %i, x = %f", i, vals[ i ] ) );
+              const StringView text = FrameMemoryFormat( "iteration {}, x = {}", i, vals[ i ] );
+              texts.push_back(  text );
             }
 
             texts.push_back( "This converges to the Dottie number, 0.739085..." );

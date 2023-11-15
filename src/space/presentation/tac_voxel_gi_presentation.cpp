@@ -388,7 +388,7 @@ namespace Tac
 
     Render::DrawCallTextures textures = { Get1x1White() };
 
-    CBufferLights cBufferLights;
+    Render::CBufferLights cBufferLights;
     struct : public LightVisitor
     {
       void operator()( Light* light ) override
@@ -396,9 +396,10 @@ namespace Tac
         if( cBufferLights->TryAddLight( LightToShaderLight( light ) ) )
           textures->push_back( light->mShadowMapDepth );
       }
-      CBufferLights* cBufferLights{};
+      Render::CBufferLights* cBufferLights{};
       Render::DrawCallTextures* textures{};
     } lightVisitor;
+
     lightVisitor.cBufferLights = &cBufferLights;
     lightVisitor.textures = &textures;
 
@@ -414,10 +415,10 @@ namespace Tac
         if( !mesh )
           return;
 
-        const DefaultCBufferPerObject objBuf =
+        const Render::DefaultCBufferPerObject objBuf =
         {
           .World = model->mEntity->mWorldTransform,
-          .Color = PremultipliedAlpha::From_sRGB( model->mColorRGB ),
+          .Color = Render::PremultipliedAlpha::From_sRGB( model->mColorRGB ),
         };
 
         for( const SubMesh& subMesh : mesh->mSubMeshes )
@@ -432,13 +433,13 @@ namespace Tac
           Render::SetDepthState( voxelizeDepthState );
           Render::SetVertexFormat( voxelVertexFormat );
           Render::SetTexture( *textures );
-          Render::UpdateConstantBuffer( DefaultCBufferPerObject::Handle,
+          Render::UpdateConstantBuffer( Render::DefaultCBufferPerObject::Handle,
                                         &objBuf,
-                                        sizeof( DefaultCBufferPerObject ),
+                                        sizeof( Render::DefaultCBufferPerObject ),
                                         TAC_STACK_FRAME );
-          Render::UpdateConstantBuffer( CBufferLights::Handle,
+          Render::UpdateConstantBuffer( Render::CBufferLights::Handle,
                                         cBufferLights,
-                                        sizeof( CBufferLights ),
+                                        sizeof( Render::CBufferLights ),
                                         TAC_STACK_FRAME );
           Render::SetPixelShaderUnorderedAccessView( voxelRWStructuredBuf, 0 );
           Render::SetPrimitiveTopology( subMesh.mPrimitiveTopology );
@@ -450,7 +451,7 @@ namespace Tac
       Render::ViewHandle            mViewHandle;
       Render::SamplerStateHandle    mSamplerState;
       Render::DrawCallTextures* textures = nullptr;
-      CBufferLights* cBufferLights = nullptr;
+      Render::CBufferLights* cBufferLights = nullptr;
     } modelVisitor;
     modelVisitor.mViewHandle = viewHandle;
     modelVisitor.mSamplerState = GamePresentationGetSamplerState();

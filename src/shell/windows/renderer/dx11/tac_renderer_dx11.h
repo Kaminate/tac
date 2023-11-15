@@ -2,6 +2,15 @@
 
 #pragma once
 
+#define TAC_USING_STD_MODULES() 1
+
+#if !TAC_USING_STD_MODULES()
+// There's some weird shit going on with c++20 std modules (import std),
+// and vcruntime_new align_val_t due to the inclusion of <wrl/client.h>
+#include <wrl/client.h> // Microsoft::WRL::ComPtr
+using Microsoft::WRL::ComPtr;
+#endif
+
 #include "src/common/graphics/tac_renderer.h"
 #include "src/common/graphics/tac_renderer_backend.h"
 #include "src/common/shell/tac_shell.h"
@@ -10,20 +19,29 @@
 #include "src/common/containers/tac_array.h"
 #include "src/common/string/tac_string_identifier.h"
 #include "src/shell/windows/tac_win32.h"
-#include "src/shell/windows/renderer/tac_dxgi.h"
+#include "src/shell/windows/renderer/dxgi/tac_dxgi.h"
 
 #include <d3d11_3.h> // ID3D11Device3, ID3D11RasterizerState2
 
 namespace Tac::Render
 {
+  //using Microsoft::WRL::ComPtr;
+
+  struct CommunistPtr;
+#define TAC_RELEASE_IUNKNOWN( p ) { if( p ){ p->Release(); p = nullptr; } }
+
   struct ConstantBuffer
   {
+    //ComPtr<ID3D11Buffer> mBuffer;
     ID3D11Buffer* mBuffer = nullptr;
 
     //            mName is used to
     //            1) Insure that multiple cbuffers aren't created with the same name
     //            2) Generate Program::mConstantBuffers while processing shader source
     String        mName;
+
+    void clear();
+    
   };
 
   struct Program
@@ -83,6 +101,8 @@ namespace Tac::Render
     ID3D11Buffer*              mBuffer = nullptr;
     ID3D11UnorderedAccessView* mUAV = nullptr;
     ID3D11ShaderResourceView*  mSRV = nullptr;
+    void SetDebugName( const StringView& );
+    void clear();
   };
 
   using BoundSrvSlots = Array<
@@ -205,6 +225,7 @@ namespace Tac::Render
     IndexBuffer*      FindIndexBuffer( IndexBufferHandle );
     VertexBuffer*     FindVertexBuffer( VertexBufferHandle );
     MagicBuffer*      FindMagicBuffer( MagicBufferHandle );
+    ConstantBuffer*   FindConstantBuffer( ConstantBufferHandle );
 
     ID3D11InfoQueue*           mInfoQueueDEBUG = nullptr;
     ID3DUserDefinedAnnotation* mUserAnnotationDEBUG = nullptr;

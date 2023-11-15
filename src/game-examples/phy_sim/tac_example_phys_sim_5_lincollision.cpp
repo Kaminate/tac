@@ -1,10 +1,11 @@
+#include "src/game-examples/phy_sim/tac_example_phys_sim_5_lincollision.h" // self-inc
+
 #include "src/common/graphics/imgui/tac_imgui.h"
 #include "src/common/graphics/tac_debug_3d.h"
 #include "src/common/math/tac_math.h"
 #include "src/common/shell/tac_shell_timer.h"
 #include "src/common/graphics/tac_camera.h"
 #include "src/common/input/tac_keyboard_input.h"
-#include "src/game-examples/phy_sim/tac_example_phys_sim_5_lincollision.h"
 #include "src/space/tac_world.h"
 
 // This example based off
@@ -102,7 +103,7 @@ namespace Tac
 
   void ExamplePhys5SimObj::Integrate()
   {
-    const float dt = TAC_DELTA_FRAME_SECONDS;
+    float dt = (float)TAC_DELTA_FRAME_SECONDS;
     const v3 a = mLinForceAccum / mMass;
     mLinVel += a * dt;
     mLinPos += mLinVel * dt;

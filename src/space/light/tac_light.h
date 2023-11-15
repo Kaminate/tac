@@ -11,6 +11,12 @@
 // like we are writing the structUre for a light before the
 // pipeline for key/secondary/indirect lights exist
 //
+
+namespace Tac::Render
+{
+  struct ShaderLight;
+}
+
 namespace Tac
 {
   struct Light : public Component
@@ -50,7 +56,7 @@ namespace Tac
   };
 
 
-  struct ShaderLight                            LightToShaderLight( const Light* );
+  Render::ShaderLight                            LightToShaderLight( const Light* );
 
   void                                   RegisterLightComponent();
   const char*                            LightTypeToString( Light::Type );

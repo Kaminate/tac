@@ -17,12 +17,9 @@
 #pragma once
 
 #include <cassert>
-
-#include <vector>
-#include <system_error>
+import std;
 
 #include <vulkan/vulkan.h>
-
 
 namespace vkb {
 
@@ -83,18 +80,18 @@ template <typename T> class Result {
 		return *this;
 	}
 	// clang-format off
-	const T* operator-> () const { assert (m_init); return &m_value; }
-	T*       operator-> ()       { assert (m_init); return &m_value; }
-	const T& operator* () const& { assert (m_init);	return m_value; }
-	T&       operator* () &      { assert (m_init); return m_value; }
-	T&&      operator* () &&	 { assert (m_init); return std::move (m_value); }
-	const T&  value () const&    { assert (m_init); return m_value; }
-	T&        value () &         { assert (m_init); return m_value; }
-	const T&& value () const&&   { assert (m_init); return std::move (m_value); }
-	T&&       value () &&        { assert (m_init); return std::move (m_value); }
+	const T* operator-> () const  { assert (m_init); return &m_value; }
+	T*       operator-> ()        { assert (m_init); return &m_value; }
+	const T& operator* () const&  { assert (m_init); return m_value; }
+	T&       operator* () &       { assert (m_init); return m_value; }
+	T&&      operator* () &&	    { assert (m_init); return std::move (m_value); }
+	const T&  value () const&     { assert (m_init); return m_value; }
+	T&        value () &          { assert (m_init); return m_value; }
+	const T&& value () const&&    { assert (m_init); return std::move (m_value); }
+	T&&       value () &&         { assert (m_init); return std::move (m_value); }
 
-    std::error_code error() const { assert (!m_init); return m_error.type; }
-    VkResult vk_result() const { assert (!m_init); return m_error.vk_result; }
+  std::error_code error() const { assert (!m_init); return m_error.type; }
+  VkResult vk_result() const    { assert (!m_init); return m_error.vk_result; }
 	// clang-format on
 
 

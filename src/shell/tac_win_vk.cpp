@@ -1,8 +1,10 @@
+#include "src/shell/tac_win_vk.h" // self-inc
+
 #include "src/shell/vulkan/tac_renderer_vulkan.h" // TAC_VK_CALL
-#include "src/shell/tac_win_vk.h"
 #include "src/shell/windows/tac_win32.h"
 #include "src/common/system/tac_desktop_window.h"
 #include "src/common/core/tac_error_handling.h"
+
 #include <vulkan/vulkan_win32.h>
 
 namespace Tac
@@ -27,6 +29,8 @@ namespace Tac
 
   Vector<String> GetWin32VkExtensions( Errors& )
   {
-    return { VK_KHR_WIN32_SURFACE_EXTENSION_NAME };
+    Vector<String> exts;
+    exts.push_back( VK_KHR_WIN32_SURFACE_EXTENSION_NAME );
+    return exts;
   }
 }

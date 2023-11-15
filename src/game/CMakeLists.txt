@@ -23,13 +23,19 @@ target_link_libraries( ${PROJECT_NAME}
   $<TARGET_OBJECTS:TacDesktopApp>
 )
 
-  if(TARGET TacVkRenderer)
-    target_link_libraries( ${PROJECT_NAME} TacVkRenderer  TacSDLVk )
-    target_sources( ${PROJECT_NAME} PRIVATE
-        "${CMAKE_SOURCE_DIR}/src/shell/tac_win_vk.cpp"
-        "${CMAKE_SOURCE_DIR}/src/shell/tac_win_vk.h"
-        )
+if(TARGET TacVkRenderer)
+
+  if (TARGET TacSDLVk)
+    target_link_libraries( ${PROJECT_NAME} TacSDLVk )
   endif()
+
+  target_link_libraries( ${PROJECT_NAME} TacVkRenderer  )
+  target_sources( ${PROJECT_NAME} PRIVATE
+      "${CMAKE_SOURCE_DIR}/src/shell/tac_win_vk.cpp"
+      "${CMAKE_SOURCE_DIR}/src/shell/tac_win_vk.h"
+      )
+endif()
+
 set_target_properties( ${PROJECT_NAME} PROPERTIES
   VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
   VS_STARTUP_PROJECT ${PROJECT_NAME}

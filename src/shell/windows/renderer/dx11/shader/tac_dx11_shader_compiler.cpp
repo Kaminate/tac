@@ -1,10 +1,12 @@
-#include "src/shell/windows/renderer/tac_renderer_directx11_shader_compiler.h" // self-inc
+#include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_compiler.h" // self-inc
 
 #include "src/shell/tac_desktop_app.h" // IsMainThread
+#include "src/common/assetmanagers/tac_asset.h" // AssetPathStringView
 #include "src/common/system/tac_os.h" // OSDebugPrintLine
 #include "src/common/dataprocess/tac_text_parser.h" // ParseData
 #include "src/common/core/tac_error_handling.h" // TAC_RAISE_ERROR_RETURN
 #include "src/common/graphics/tac_renderer_backend.h" // GetShaderAssetPath
+#include "src/common/memory/tac_frame_memory.h"
 
 #include <d3dcompiler.h> // D3DCompile
 
@@ -52,14 +54,14 @@ namespace Tac::Render
     if( origLineNumber == -1 )
       return errMsg;
 
-    const String s1 = String( StringView( errMsg ).substr( StringView( errMsg ).find_first_of( ')' ) + 3 ) );
-    // const String s2 = Filesystem::FilepathToFilename( GetShaderPath( shaderSource ) );
-    const String s2 = GetShaderAssetPath( shaderSource );
-    const String s3 = va( ":%i ", origLineNumber );
-    const String s4 = String( errorLine ).c_str();
-
-    const String result2 = va( "%s\n%s%s%s\n", s1.c_str(), s2.c_str(), s3.c_str(), s4.c_str() );
-    return result2;
+    String result;
+    result += errMsg.substr( errMsg.find_first_of( ')' ) + 3 );
+    result += '\n';
+    result += GetShaderAssetPath( shaderSource );
+    result += va( ":{} ", origLineNumber );
+    result += errorLine;
+    result += '\n';
+    return result;
   }
 
   static String TryImproveShaderErrorMessage( const ShaderNameStringView& shaderSource,
@@ -79,6 +81,20 @@ namespace Tac::Render
 
     return result;
 
+  }
+
+  static void PrintShaderToOutput(const StringView& shaderStrFull)
+  {
+        ParseData parseData( shaderStrFull.data(), shaderStrFull.size() );
+        int lineNumber = 1;
+        OS::OSDebugPrintLine(" -----------" );
+        while( parseData.GetRemainingByteCount() )
+        {
+          StringView parseLine = parseData.EatRestOfLine();
+          String text = FormatString( "line {:3}|{}", lineNumber++, parseLine );
+          OS::OSDebugPrintLine( text );
+        }
+        OS::OSDebugPrintLine(" -----------" );
   }
 
   ID3DBlob* CompileShaderFromString( const ShaderNameStringView& shaderSource,
@@ -113,19 +129,9 @@ namespace Tac::Render
     {
       if( IsDebugMode )
       {
-        //String shaderPath = GetShaderPath( shaderSource );
-        
-        OS::OSDebugPrintfLine( "Error loading shader from %s", shaderSource.c_str() );
-        ParseData parseData( shaderStrFull.data(), shaderStrFull.size() );
-        int lineNumber = 1;
-        OS::OSDebugPrintLine(" -----------" );
-        while( parseData.GetRemainingByteCount() )
-        {
-          StringView parseLine = parseData.EatRestOfLine();
-          const char* text = va( "line %3i|%.*s", lineNumber++, parseLine.size(), parseLine.data() );
-          OS::OSDebugPrintLine( text );
-        }
-        OS::OSDebugPrintLine(" -----------" );
+        OS::OSDebugPrintLine( va( "Error loading shader from {}", shaderSource.c_str() ) );
+
+        PrintShaderToOutput( shaderStrFull );
       }
 
       const String errMsg = TryImproveShaderErrorMessage( shaderSource,

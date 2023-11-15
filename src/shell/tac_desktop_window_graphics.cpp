@@ -36,8 +36,7 @@ namespace Tac
 
       const Render::FramebufferHandle framebufferHandle =
         Render::CreateFramebufferForWindow( nativeWindowHandle, w, h, TAC_STACK_FRAME );
-      const char* framebufferName = FrameMemoryPrintf( "%s-framebuf-%i", name, iWindow );
-      Render::SetRenderObjectDebugName( framebufferHandle, framebufferName );
+      Render::SetRenderObjectDebugName( framebufferHandle, va( "{}.{}", name, iWindow ) );
 
       const Render::ViewHandle viewHandle = Render::CreateView();
 

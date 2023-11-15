@@ -1,11 +1,13 @@
+#include "src/shell/windows/input/tac_win32_mouse_edge.h" // self-inc
+
 #include "src/common/system/tac_desktop_window.h"
 #include "src/common/core/tac_preprocessor.h"
+#include "src/common/shell/tac_shell_timer.h"
 #include "src/common/string/tac_string.h"
 #include "src/common/input/tac_keyboard_input.h"
 #include "src/common/system/tac_os.h"
 #include "src/shell/tac_desktop_app.h"
 #include "src/shell/windows/desktopwindow/tac_win32_desktop_window_manager.h"
-#include "src/shell/windows/input/tac_win32_mouse_edge.h"
 #include "src/shell/windows/tac_win32.h"
 
 
@@ -64,7 +66,7 @@ namespace Tac
   static bool mMouseDownCurr = false;
   static bool mMouseDownPrev = false;
 
-  static double keyboardMoveT;
+  static Timestamp keyboardMoveT;
 
   static HCURSOR GetCursor( CursorDir cursorDir )
   {
@@ -104,7 +106,7 @@ namespace Tac
     if( verbose )
     {
       const char* strDir = CursorDirToString( cursorDir );
-      OS::OSDebugPrintfLine( "Cursor lock: %s ", strDir ) ;
+      OS::OSDebugPrintLine( va( "Cursor lock: {} ", strDir )  );
     }
     mCursorLock = cursorDir;
   }

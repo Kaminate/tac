@@ -26,7 +26,7 @@ namespace Tac
     case IntegrationMode::Euler: return "Euler";
     case IntegrationMode::SemiImplicitEuler: return "Semi-implicit Euler";
     case IntegrationMode::RK4: return "Runge-Kutta 4";
-      default: TAC_CRITICAL_ERROR_INVALID_CASE( m ); return "";
+      default: TAC_ASSERT_INVALID_CASE( m ); return "";
     }
   }
 
@@ -91,7 +91,8 @@ namespace Tac
   void ExamplePhysSim2Integration::UI()
   {
     bool shouldReset = ImGuiButton( "Reset" );
-    ImGuiTextf( "Current Mode: %s", ToString( mIntegrationMode ) );
+
+    ImGuiText( StringView(std::format( "Current Mode: {}", ToString( mIntegrationMode ) ) ) );
 
     ImGuiText( "Change Mode:" );
     for( int i = 0; i < (int)IntegrationMode::Count; ++i )
@@ -100,6 +101,7 @@ namespace Tac
       const bool modePressed = ImGuiButton( ToString( ( IntegrationMode )i ) );
       if( modePressed )
         mIntegrationMode = ( IntegrationMode )i;
+
       shouldReset |= modePressed;
     }
 
@@ -233,7 +235,7 @@ namespace Tac
         mPosition = s.mPosition;
         mVelocity = s.mVelocity;
       } break;
-      default: TAC_CRITICAL_ERROR_INVALID_CASE( mIntegrationMode );
+      default: TAC_ASSERT_INVALID_CASE( mIntegrationMode );
     }
 
     mWorld->mDebug3DDrawData->DebugDraw3DCircle( mPosition, mCamera->mForwards, mBallRadius );

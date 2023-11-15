@@ -1,5 +1,7 @@
-#include "src/space/presentation/tac_skybox_presentation.h"
+#include "src/space/presentation/tac_skybox_presentation.h" // self-inc
+
 #include "src/common/core/tac_error_handling.h"
+#include "src/common/assetmanagers/tac_asset.h"
 #include "src/common/string/tac_string.h"
 #include "src/common/memory/tac_memory.h"
 #include "src/common/system/tac_desktop_window.h"
@@ -107,17 +109,20 @@ namespace Tac
                                  camera->mForwards,
                                  camera->mRight,
                                  camera->mUp );
-    const DefaultCBufferPerFrame perFrame{ .mView = view,
-                                           .mProjection = camera->Proj( a, b, aspect ),
-                                           .mFar = camera->mFarPlane,
-                                           .mNear = camera->mNearPlane,
-                                           .mGbufferSize = { ( float )viewWidth, ( float )viewHeight } };
+    const Render::DefaultCBufferPerFrame perFrame
+    {
+      .mView = view,
+      .mProjection = camera->Proj( a, b, aspect ),
+      .mFar = camera->mFarPlane,
+      .mNear = camera->mNearPlane,
+      .mGbufferSize = { ( float )viewWidth, ( float )viewHeight }
+    };
     const SubMesh* subMesh = &mesh->mSubMeshes[ 0 ];
     Render::SetViewport( viewId, Render::Viewport( viewWidth, viewHeight ) );
     Render::SetViewScissorRect( viewId, Render::ScissorRect( viewWidth, viewHeight ) );
-    Render::UpdateConstantBuffer( DefaultCBufferPerFrame::Handle,
+    Render::UpdateConstantBuffer( Render::DefaultCBufferPerFrame::Handle,
                                   &perFrame,
-                                  sizeof( DefaultCBufferPerFrame ),
+                                  sizeof( Render::DefaultCBufferPerFrame ),
                                   TAC_STACK_FRAME );
     Render::SetVertexBuffer( subMesh->mVertexBuffer, 0, 0 );
     Render::SetIndexBuffer( subMesh->mIndexBuffer, 0, subMesh->mIndexCount );

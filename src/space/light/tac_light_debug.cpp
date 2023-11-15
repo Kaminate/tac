@@ -32,7 +32,8 @@ namespace Tac
 
   static void LightDebugImguiType( Light* light )
   {
-    ImGuiText( FrameMemoryPrintf( "Light type: %s", LightTypeToName( light->mType ) ) );
+    const char* lightTypeStr = LightTypeToName( light->mType );
+    ImGuiText( va( "Light type: {}", lightTypeStr ) );
     ImGuiText( "Change light type: " );
     for( Light::Type type = ( Light::Type )0; type < Light::Type::kCount; type = ( Light::Type )( type + 1 ) )
     {
@@ -45,7 +46,7 @@ namespace Tac
     }
 
     if( light->mType == Light::kSpot
-        && ImGuiCollapsingHeader( FrameMemoryPrintf( "%s light parameters", LightTypeToName( light->mType ) ) ) )
+        && ImGuiCollapsingHeader( va( "{} light parameters", lightTypeStr ) ) )
     {
       TAC_IMGUI_INDENT_BLOCK;
       float fovDeg = light->mSpotHalfFOVRadians * ( 180.0f / 3.14f );
@@ -71,9 +72,9 @@ namespace Tac
     ImGuiSameLine();
     newDim = Max( newDim, 64 );
     newDim = Min( newDim, 1024 );
-    ImGuiTextf( "Shadow Resolution %ix%i",
-                                  light->mShadowResolution,
-                                  light->mShadowResolution  );
+    ImGuiText( va( "Shadow Resolution {}x{}",
+               light->mShadowResolution,
+               light->mShadowResolution ) );
   }
 
   static void Camera3DDraw( const Camera& camera, Debug3DDrawData* drawData)
@@ -162,9 +163,9 @@ namespace Tac
     v3 x = camera.mRight;
     v3 y = camera.mUp;
     v3 z = -camera.mForwards;
-    ImGuiTextf( "local x: (%.1f, %.1f, %.1f)", x[ 0 ], x[ 1 ], x[ 2 ] );
-    ImGuiTextf( "local y: (%.1f, %.1f, %.1f)", y[ 0 ], y[ 1 ], y[ 2 ] );
-    ImGuiTextf( "local z: (%.1f, %.1f, %.1f)", z[ 0 ], z[ 1 ], z[ 2 ] );
+    ImGuiDragFloat3( "Local x", x.data() );
+    ImGuiDragFloat3( "Local y", y.data() );
+    ImGuiDragFloat3( "Local z", z.data() );
 
     //ImGuiText( "world xform" );
     //const char* r0 = FrameMemoryPrintf( "%.2f %.2f %.2f", world_xform.m00, world_xform.m01, world_xform.m02 );

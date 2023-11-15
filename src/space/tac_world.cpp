@@ -10,7 +10,8 @@
 #include "src/common/profile/tac_profile.h"
 #include "src/common/memory/tac_memory.h"
 
-#include <algorithm>
+import std;
+//#include <algorithm>
 
 namespace Tac
 {

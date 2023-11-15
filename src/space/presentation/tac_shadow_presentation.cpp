@@ -55,16 +55,16 @@ namespace Tac
     if( !mesh )
       return;
 
-    const DefaultCBufferPerObject objBuf
+    const Render::DefaultCBufferPerObject objBuf
     {
       .World = model->mEntity->mWorldTransform,
-      .Color = PremultipliedAlpha::From_sRGB(  model->mColorRGB ),
+      .Color = Render::PremultipliedAlpha::From_sRGB(  model->mColorRGB ),
     };
 
-    Render::UpdateConstantBuffer( DefaultCBufferPerObject::Handle,
-                                  &objBuf,
-                                  sizeof( DefaultCBufferPerObject ),
-                                  TAC_STACK_FRAME );
+    const Render::ConstantBufferHandle hPerObj = Render::DefaultCBufferPerObject::Handle;
+    const int perObjSize = sizeof( Render::DefaultCBufferPerObject );
+
+    Render::UpdateConstantBuffer( hPerObj, &objBuf, perObjSize, TAC_STACK_FRAME );
 
     for( const SubMesh& subMesh : mesh->mSubMeshes )
     {
@@ -120,14 +120,14 @@ namespace Tac
 
   struct ShadowLightVisitor : public LightVisitor
   {
-    DefaultCBufferPerFrame GetPerFrameData( const Light* light );
+    Render::DefaultCBufferPerFrame GetPerFrameData( const Light* light );
     void operator()( Light* light ) override;
 
     Graphics* graphics{};
   };
 
 
-  DefaultCBufferPerFrame ShadowLightVisitor::GetPerFrameData( const Light* light )
+  Render::DefaultCBufferPerFrame ShadowLightVisitor::GetPerFrameData( const Light* light )
   {
     const Camera camera = light->GetCamera();
     float a;
@@ -135,26 +135,30 @@ namespace Tac
     Render::GetPerspectiveProjectionAB( camera.mFarPlane, camera.mNearPlane, a, b );
     const float w = ( float )light->mShadowResolution;
     const float h = ( float )light->mShadowResolution;
-    const double elapsedSeconds = ShellGetElapsedSeconds();
+    const Timestamp elapsedSeconds = ShellGetElapsedSeconds();
 
-    return { .mView = camera.View(),
-             .mProjection = camera.Proj( a, b, w / h ),
-             .mFar = camera.mFarPlane,
-             .mNear = camera.mNearPlane,
-             .mGbufferSize = { w, h },
-             .mSecModTau = ( float )Fmod( elapsedSeconds, 6.2831853 )};
+    return Render::DefaultCBufferPerFrame
+    {
+      .mView = camera.View(),
+      .mProjection = camera.Proj( a, b, w / h ),
+      .mFar = camera.mFarPlane,
+      .mNear = camera.mNearPlane,
+      .mGbufferSize = { w, h },
+      .mSecModTau = ( float )Fmod( elapsedSeconds, 6.2831853 ),
+    };
   }
 
   void ShadowLightVisitor::operator()( Light* light )
   {
     if( !light->mCastsShadows )
       return;
-    TAC_RENDER_GROUP_BLOCK( FrameMemoryPrintf( "Light Shadow %p", light ) );
+
+    TAC_RENDER_GROUP_BLOCK( va( "Light Shadow {}", (UUID)light->mEntity->mEntityUUID ) );
     CreateShadowMapResources( light );
 
-    const DefaultCBufferPerFrame perFrameData = GetPerFrameData( light );
-
-
+    const Render::DefaultCBufferPerFrame perFrameData = GetPerFrameData( light );
+    const Render::ConstantBufferHandle hPerFrame = Render::DefaultCBufferPerFrame::Handle;
+    const int perFrameSize = sizeof( Render::DefaultCBufferPerFrame );
 
 
     Render::SetViewFramebuffer( light->mShadowView, light->mShadowFramebuffer );
@@ -162,9 +166,9 @@ namespace Tac
                                                                light->mShadowResolution ) );
     Render::SetViewScissorRect( light->mShadowView, Render::ScissorRect( light->mShadowResolution,
                                                                          light->mShadowResolution ) );
-    Render::UpdateConstantBuffer( DefaultCBufferPerFrame::Handle,
+    Render::UpdateConstantBuffer( hPerFrame,
                                   &perFrameData,
-                                  sizeof( DefaultCBufferPerFrame ),
+                                  perFrameSize,
                                   TAC_STACK_FRAME );
 
 
@@ -177,6 +181,7 @@ namespace Tac
     modelVisitor.mVertexFormatHandle = GamePresentationGetVertexFormat();
     modelVisitor.mRasterizerStateHandle = GamePresentationGetRasterizerState();
     modelVisitor.mShadowDepth = light->mShadowMapDepth;
+
     graphics->VisitModels( &modelVisitor );
   }
 
@@ -193,8 +198,10 @@ namespace Tac
   {
     TAC_RENDER_GROUP_BLOCK( "Render Shadow Maps" );
     Graphics* graphics = GetGraphics( world );
+
     ShadowLightVisitor lightVisitor;
     lightVisitor.graphics = graphics;
+
     graphics->VisitLights( &lightVisitor );
   }
 

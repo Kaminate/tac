@@ -9,7 +9,7 @@
 #include "src/space/tac_ghost.h"
 #include "src/space/tac_space.h"
 
-#include <functional> // std::function
+import std; // #include <functional> // std::function
 
 namespace Tac
 {
@@ -59,11 +59,14 @@ namespace Tac
 
   ExecutableStartupInfo ExecutableStartupInfo::Init()
   {
-    return
+    return ExecutableStartupInfo
     {
-      .mAppName =sAppName,
-    .mProjectInit = GameCallbackInit,
-    .mProjectUpdate = GameCallbackUpdate,
+      .mAppName = sAppName,
+      .mProjectFns = ProjectFns
+      {
+        .mProjectInit = GameCallbackInit,
+        .mProjectUpdate = GameCallbackUpdate,
+      },
     };
   }
 

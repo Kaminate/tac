@@ -15,7 +15,7 @@
 #include "src/shell/windows/input/tac_win32_mouse_edge.h"
 //#include "src/shell/windows/input/tac_xinput.h"
 
-#include <set>
+import std; // #include <set>
 
 namespace Tac
 {
@@ -26,7 +26,7 @@ namespace Tac
 
   static HWND                mParentHWND = nullptr;
   static DesktopWindowHandle sWindowUnderConstruction;
-  static Keyboard::Key                 GetKey( uint8_t keyCode )
+  static Keyboard::Key                 GetKey( std::uint8_t keyCode )
   {
 
     // List of virtual key codes
@@ -110,7 +110,7 @@ namespace Tac
         case WM_NCDESTROY:
           return DefWindowProc( hwnd, uMsg, wParam, lParam );
         default:
-          TAC_CRITICAL_ERROR_INVALID_CASE( uMsg );
+          TAC_ASSERT_INVALID_CASE( uMsg );
       }
     }
 
@@ -187,7 +187,7 @@ namespace Tac
         const bool isDown = ( lParam & ( ( LPARAM )1 << 31 ) ) == 0;
         if( isDown == wasDown )
           break;
-        const Keyboard::Key key = GetKey( ( uint8_t )wParam );
+        const Keyboard::Key key = GetKey( ( std::uint8_t )wParam );
         if( key == Keyboard::Key::Count )
           break;
         DesktopEventKeyState( key, isDown );
@@ -334,7 +334,7 @@ namespace Tac
       | LR_SHARED;
     const char* iconPath = "assets/grave.ico";
     const auto icon = ( HICON )LoadImage( nullptr, iconPath, IMAGE_ICON, 0, 0, fuLoad );;
-    TAC_ASSERT_MSG( icon, "filed to load icon %s", iconPath );
+    TAC_ASSERT_MSG( icon, va( "filed to load icon {}", iconPath ) );
 
     WNDCLASSEX wc = {};
     wc.cbSize = sizeof( WNDCLASSEX );
@@ -426,7 +426,7 @@ namespace Tac
     {
       RECT requestedRect = { 0, 0, w, h };
       if( !AdjustWindowRect( &requestedRect, windowStyle, FALSE ) )
-        TAC_CRITICAL_ERROR_INVALID_CODE_PATH;
+        TAC_ASSERT_INVALID_CODE_PATH;
       w = requestedRect.right - requestedRect.left;
       h = requestedRect.bottom - requestedRect.top;
     }
@@ -484,7 +484,7 @@ namespace Tac
 
     if( !hwnd )
     {
-      TAC_CRITICAL_ERROR_INVALID_CODE_PATH;
+      TAC_ASSERT_INVALID_CODE_PATH;
       //errors += Join( "\n",
       //  {
       //    // https://docs.microsoft.com/en-us/windows/desktop/api/winuser/nf-winuser-createwindowexa

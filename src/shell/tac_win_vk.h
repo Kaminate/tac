@@ -3,11 +3,11 @@
 
 namespace Tac
 {
-  void Win32VkCreateSurface( VkInstance instance,
+  void Win32VkCreateSurface( VkInstance ,
                              const void* nativeWindowHandle,
                              //HWND hwnd,
                              //const DesktopWindowHandle& desktopWindowHandle,
-                             VkSurfaceKHR* psurface,
-                             Errors& errors );
+                             VkSurfaceKHR* ,
+                             Errors& );
   Vector<String> GetWin32VkExtensions( Errors& );
 }

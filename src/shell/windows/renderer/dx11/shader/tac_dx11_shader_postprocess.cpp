@@ -1,5 +1,7 @@
-#include "src/shell/windows/renderer/tac_renderer_directx11_shader_postprocess.h" // self-inc
+#include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_postprocess.h" // self-inc
+
 #include "src/common/dataprocess/tac_text_parser.h"
+#include "src/shell/windows/renderer/dx11/tac_renderer_dx11.h"
 
 namespace Tac::Render
 {
