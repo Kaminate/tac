@@ -6,7 +6,6 @@
 #include "src/common/dataprocess/tac_settings.h"
 #include "src/common/graphics/imgui/tac_imgui.h"
 #include "src/common/graphics/tac_font.h"
-#include "src/common/graphics/tac_renderer.h"
 #include "src/common/graphics/tac_ui_2d.h"
 #include "src/common/identifier/tac_id_collection.h"
 #include "src/common/input/tac_controller_input.h"
@@ -50,15 +49,17 @@ namespace Tac
     MouseMove,
   };
 
-  struct WantSpawnInfo
-  {
-    DesktopWindowHandle mHandle;
-    const char* mName = nullptr;
-    int                 mX = 0;
-    int                 mY = 0;
-    int                 mWidth = 0;
-    int                 mHeight = 0;
-  };
+  using WantSpawnInfo = PlatformFns::SpawnWindowParams;
+
+  //struct WantSpawnInfo
+  //{
+  //  DesktopWindowHandle mHandle;
+  //  const char*         mName = nullptr;
+  //  int                 mX = 0;
+  //  int                 mY = 0;
+  //  int                 mWidth = 0;
+  //  int                 mHeight = 0;
+  //};
 
   struct DesktopEventQueueImpl
   {
@@ -108,8 +109,8 @@ namespace Tac
   static Errors                        gLogicThreadErrors( Errors::Flags::kDebugBreakOnAppend );
   static Errors                        gMainFunctionErrors( Errors::Flags::kDebugBreakOnAppend );
 
-  static PlatformFns                   sPlatformFns;
-  static ProjectFns                    sProjectFns;
+  static const PlatformFns*            sPlatformFns;
+  static const ProjectFns*             sProjectFns;
 
   static std::mutex                    sWindowHandleLock;
   static IdCollection                  sDesktopWindowHandleIDs( kDesktopWindowCapacity );
@@ -123,7 +124,7 @@ namespace Tac
   ExecutableStartupInfo ExecutableStartupInfo::sInstance;
 
 
-  static void DesktopAppUpdateWindowRequests()
+  static void DesktopAppUpdateWindowRequests(Errors&errors)
   {
     sWindowHandleLock.lock();
     WindowRequestsCreate requestsCreate = sWindowRequestsCreate;
@@ -133,14 +134,10 @@ namespace Tac
     sWindowHandleLock.unlock();
 
     for( const WantSpawnInfo& info : requestsCreate )
-      sPlatformFns.mPlatformSpawnWindow( info.mHandle,
-                            info.mName,
-                            info.mX,
-                            info.mY,
-                            info.mWidth,
-                            info.mHeight );
-    for( DesktopWindowHandle desktopWindowHandle : requestsDestroy )
-      sPlatformFns.mPlatformDespawnWindow( desktopWindowHandle );
+      sPlatformFns->PlatformSpawnWindow( info, errors );
+
+    for( const DesktopWindowHandle desktopWindowHandle : requestsDestroy )
+      sPlatformFns->PlatformDespawnWindow( desktopWindowHandle );
   }
 
   static void DesktopAppUpdateMoveResize()
@@ -159,14 +156,14 @@ namespace Tac
         const DesktopWindowRect desktopWindowRect = requestMove->mRect.IsEmpty()
           ? GetDesktopWindowRectWindowspace( desktopWindowHandle )
           : requestMove->mRect;
-        sPlatformFns.mPlatformWindowMoveControls( desktopWindowHandle, desktopWindowRect );
+        sPlatformFns->PlatformWindowMoveControls( desktopWindowHandle, desktopWindowRect );
         sRequestMove[ i ] = RequestMove();
       }
 
       const RequestResize* requestResize = &sRequestResize[ i ];
       if( requestResize->mRequested )
       {
-        sPlatformFns.mPlatformWindowResizeControls( desktopWindowHandle, requestResize->mEdgePx );
+        sPlatformFns->PlatformWindowResizeControls( desktopWindowHandle, requestResize->mEdgePx );
         sRequestResize[ i ] = RequestResize();
       }
     }
@@ -191,13 +188,13 @@ namespace Tac
     ImGuiInit();
     SpaceInit();
 
-    sProjectFns.mProjectInit( errors );
+    sProjectFns->ProjectInit( errors );
     TAC_HANDLE_ERROR( errors );
   }
 
   static void LogicThreadUninit()
   {
-    sProjectFns.mProjectUninit( gLogicThreadErrors );
+    sProjectFns->ProjectUninit( gLogicThreadErrors );
 
     ImGuiUninit();
     if( gLogicThreadErrors )
@@ -252,13 +249,13 @@ namespace Tac
         const BeginFrameData data =
         {
           .mElapsedSeconds = ShellGetElapsedSeconds(),
-          .mMouseHoveredWindow = sPlatformFns.mPlatformGetMouseHoveredWindow(),
+          .mMouseHoveredWindow = sPlatformFns->PlatformGetMouseHoveredWindow(),
         };
         ImGuiBeginFrame( data );
 
         Controller::UpdateJoysticks();
 
-        sProjectFns.mProjectUpdate( errors );
+        sProjectFns->ProjectUpdate( errors );
         TAC_HANDLE_ERROR( errors );
 
         ImGuiEndFrame( errors );
@@ -301,13 +298,13 @@ namespace Tac
     {
       TAC_PROFILE_BLOCK;
 
-      sPlatformFns.mPlatformFrameBegin( errors );
+      sPlatformFns->PlatformFrameBegin( errors );
       TAC_HANDLE_ERROR( errors );
 
       DesktopAppUpdate( errors );
       TAC_HANDLE_ERROR( errors );
 
-      sPlatformFns.mPlatformFrameEnd( errors );
+      sPlatformFns->PlatformFrameEnd( errors );
       TAC_HANDLE_ERROR( errors );
 
       Render::RenderFrame( errors );
@@ -318,6 +315,7 @@ namespace Tac
 
   }
 
+  // -----------------------------------------------------------------------------------------------
 
   void DesktopEventQueueImpl::Init()
   {
@@ -350,6 +348,8 @@ namespace Tac
     return mQueue.Pop( dataBytes, dataByteCount );
   }
 
+  // -----------------------------------------------------------------------------------------------
+
   struct DesktopEventDataAssignHandle
   {
     DesktopWindowHandle mDesktopWindowHandle;
@@ -360,7 +360,6 @@ namespace Tac
     int                 mW = 0;
     int                 mH = 0;
   };
-
 
   struct DesktopEventDataCursorUnobscured
   {
@@ -410,6 +409,8 @@ namespace Tac
     int                 mX = 0;
     int                 mY = 0;
   };
+
+  // -----------------------------------------------------------------------------------------------
 
   void                DesktopEventInit()
   {
@@ -542,8 +543,8 @@ namespace Tac
   }
 
   void                DesktopEventMoveWindow( const DesktopWindowHandle& desktopWindowHandle,
-    const int x,
-    const int y )
+                                              const int x,
+                                              const int y )
   {
     TAC_ASSERT( IsMainThread() );
     const DesktopEventDataWindowMove data
@@ -577,8 +578,8 @@ namespace Tac
   }
 
   void                DesktopEventMouseMove( const DesktopWindowHandle& desktopWindowHandle,
-    const int x,
-    const int y )
+                                             const int x,
+                                             const int y )
   {
     TAC_ASSERT( IsMainThread() );
     const DesktopEventDataMouseMove data
@@ -626,8 +627,9 @@ namespace Tac
     sEventQueue.QueuePush( DesktopEventType::CursorUnobscured, &data );
   }
 
+  // -----------------------------------------------------------------------------------------------
 
-  void                DesktopAppInit( const PlatformFns& platformFns, Errors& errors )
+  void                DesktopAppInit( PlatformFns* platformFns, Errors& errors )
   {
     PlatformThreadInit( errors );
     TAC_HANDLE_ERROR( errors );
@@ -682,7 +684,7 @@ namespace Tac
   void                DesktopAppUpdate( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
-    DesktopAppUpdateWindowRequests();
+    DesktopAppUpdateWindowRequests(errors);
     DesktopAppUpdateMoveResize();
     UpdateTrackedWindows();
   }
@@ -761,10 +763,61 @@ namespace Tac
     DesktopAppReportError( "Logic Thread", gLogicThreadErrors );
   }
 
+  void                DesktopAppDebugImGui(Errors& errors)
+  {
+    if( !ImGuiCollapsingHeader("DesktopAppDebugImGui"))
+      return;
+
+    TAC_IMGUI_INDENT_BLOCK;
+
+    DesktopWindowDebugImgui();
+
+    {
+      ShortFixedString text = "Hovered window: <none>";
+      const DesktopWindowHandle hoveredHandle = sPlatformFns->PlatformGetMouseHoveredWindow();
+      if( const DesktopWindowState* hovered = GetDesktopWindowState( hoveredHandle ) )
+      {
+        text = "Hovered window: ";
+        text += ToString(hoveredHandle.GetIndex());
+        text += " ";
+        text += ( StringView )hovered->mName;
+      }
+
+      ImGuiText( text );
+    }
+
+    sPlatformFns->PlatformImGui(errors);
+  }
+
+  // -----------------------------------------------------------------------------------------------
+
   Errors&             GetMainErrors() { return gMainFunctionErrors; }
 
   bool                IsMainThread()  { return gThreadType == ThreadType::Main; }
 
   bool                IsLogicThread() { return gThreadType == ThreadType::Logic; }
+
+  // -----------------------------------------------------------------------------------------------
+
+  void ProjectFns::ProjectInit( Errors& ) const { TAC_NO_OP; }
+  void ProjectFns::ProjectUpdate( Errors& ) const { TAC_NO_OP; }
+  void ProjectFns::ProjectUninit( Errors& ) const { TAC_NO_OP; }
+
+  // -----------------------------------------------------------------------------------------------
+
+  void PlatformFns::PlatformImGui( Errors& ) const { TAC_NO_OP; };
+  void PlatformFns::PlatformFrameBegin( Errors& ) const {TAC_NO_OP;}
+  void PlatformFns::PlatformFrameEnd( Errors& ) const {TAC_NO_OP;}
+  void PlatformFns::PlatformSpawnWindow( const SpawnWindowParams&, Errors& ) const { TAC_NO_OP; }
+  void PlatformFns::PlatformDespawnWindow ( const DesktopWindowHandle& ) const { TAC_NO_OP; }
+  void PlatformFns::PlatformWindowMoveControls ( const DesktopWindowHandle&,
+                                                 const DesktopWindowRect& ) const
+  {
+    TAC_NO_OP;
+  }
+  void PlatformFns::PlatformWindowResizeControls ( const DesktopWindowHandle&, int ) const { TAC_NO_OP; }
+  DesktopWindowHandle PlatformFns::PlatformGetMouseHoveredWindow() const { return {}; }
+
+  // -----------------------------------------------------------------------------------------------
 
 } // namespace Tac

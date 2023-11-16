@@ -25,8 +25,10 @@ namespace Tac
   static HWND                sHWNDs[ kDesktopWindowCapacity ];
 
   static HWND                mParentHWND = nullptr;
+
   static DesktopWindowHandle sWindowUnderConstruction;
-  static Keyboard::Key                 GetKey( std::uint8_t keyCode )
+
+  static Keyboard::Key       GetKey( std::uint8_t keyCode )
   {
 
     // List of virtual key codes
@@ -334,7 +336,13 @@ namespace Tac
       | LR_SHARED;
     const char* iconPath = "assets/grave.ico";
     const auto icon = ( HICON )LoadImage( nullptr, iconPath, IMAGE_ICON, 0, 0, fuLoad );;
-    TAC_ASSERT_MSG( icon, va( "filed to load icon {}", iconPath ) );
+    if( !icon )
+    {
+      String msg = "filed to load icon ";
+      msg += iconPath;
+      errors.Append( msg );
+      TAC_HANDLE_ERROR( errors );
+    }
 
     WNDCLASSEX wc = {};
     wc.cbSize = sizeof( WNDCLASSEX );
@@ -355,13 +363,42 @@ namespace Tac
 
   DesktopWindowHandle Win32WindowManagerFindWindow( HWND hwnd )
   {
-    //for( int i : WindowHandleIterator() )
     for( int i = 0; i < kDesktopWindowCapacity; ++i )
       if( sHWNDs[ i ] == hwnd )
         return { i };
-    return { -1 };
+    return {};
   }
 
+  void                Win32WindowManagerDebugImGui()
+  {
+    if(!ImGuiCollapsingHeader("Win32WindowManagerDebugImGui"))
+      return;
+
+    
+
+    TAC_IMGUI_INDENT_BLOCK;
+
+
+    int hwndCount = 0;
+    for( int i = 0; i < kDesktopWindowCapacity; ++i )
+    {
+      const HWND hwnd = sHWNDs[ i ];
+      if( !hwnd )
+        continue;
+
+      ShortFixedString text = "Window ";
+      text += ToString( i );
+      text += " has HWND ";
+      text += ToString( ( void* )hwnd );
+
+      ImGuiText(text);
+
+      hwndCount++;
+    }
+
+    if( !hwndCount )
+      ImGuiText("No windows... how are you seeing this?");
+  }
 
   void                Win32WindowManagerInit( Errors& errors )
   {
@@ -414,13 +451,16 @@ namespace Tac
     DestroyWindow( hwnd );
   }
 
-  void                Win32WindowManagerSpawnWindow( const DesktopWindowHandle& desktopWindowHandle,
-                                                     const char* name,
-                                                     int x,
-                                                     int y,
-                                                     int w,
-                                                     int h )
+  void                Win32WindowManagerSpawnWindow( const PlatformFns::SpawnWindowParams& params,
+                                                     Errors& errors )
   {
+    const DesktopWindowHandle& desktopWindowHandle = params.mHandle;
+    const char* name = params.mName;
+    int x = params.mX;
+    int y = params.mY;
+    int w = params.mWidth;
+    int h = params.mHeight;
+
     const DWORD windowStyle = WS_POPUP;
     if( w && h )
     {
@@ -465,7 +505,16 @@ namespace Tac
     TAC_ASSERT( w && h );
 
     sWindowUnderConstruction = desktopWindowHandle;
+
     static HWND parentHWND = nullptr;
+
+    if( parentHWND )
+    {
+      DesktopWindowHandle hParent = Win32WindowManagerFindWindow( parentHWND );
+      TAC_ASSERT_MSG( hParent.IsValid(), "The parent was deleted!" );
+    }
+
+    const HINSTANCE hinst = Win32GetStartupInstance();
     const HWND hwnd = CreateWindow( classname,
 
                                     // Name of the window, displayed in the window's title bar, or in the 
@@ -478,29 +527,31 @@ namespace Tac
                                     h,
                                     parentHWND,
                                     nullptr,
-                                    Win32GetStartupInstance(),
+                                    hinst,
                                     nullptr );
 
 
     if( !hwnd )
     {
-      TAC_ASSERT_INVALID_CODE_PATH;
-      //errors += Join( "\n",
-      //  {
-      //    // https://docs.microsoft.com/en-us/windows/desktop/api/winuser/nf-winuser-createwindowexa
-      //    "This function typically fails for one of the following reasons",
-      //    "- an invalid parameter value",
-      //    "- the system class was registered by a different module",
-      //    "- The WH_CBT hook is installed and returns a failure code",
-      //    "- if one of the controls in the dialog template is not registered, or its window window procedure fails WM_CREATE or WM_NCCREATE",
-      //    GetLastWin32ErrorString()
-      //  }
-      //);
-      //TAC_HANDLE_ERROR( errors );
-      return;
+      
+      const String lastErrorString = Win32GetLastErrorString();
+
+      String msg;
+      msg += "\nhttps://docs.microsoft.com/en-us/windows/desktop/api/winuser/nf-winuser-createwindowexa";
+      msg += "\n - This function typically fails for one of the following reasons";
+      msg += "\n - an invalid parameter value";
+      msg += "\n - the system class was registered by a different module";
+      msg += "\n - The WH_CBT hook is installed and returns a failure code";
+      msg += "\n - if one of the controls in the dialog template is not registered, or its window window procedure fails WM_CREATE or WM_NCCREATE";
+      msg += "\nGetLastError() returned: ";
+      msg += lastErrorString;
+
+      errors.Append( lastErrorString );
+      TAC_HANDLE_ERROR( errors );
     }
 
-    parentHWND = hwnd;
+    if( !parentHWND )
+      parentHWND = hwnd;
 
     // Sets the keyboard focus to the specified window
     SetFocus( hwnd );
@@ -520,4 +571,4 @@ namespace Tac
     mParentHWND = mParentHWND ? mParentHWND : hwnd; // combine windows into one tab group
   }
 
-}
+} // namespace Tac

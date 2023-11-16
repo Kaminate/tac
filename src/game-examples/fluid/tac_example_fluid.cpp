@@ -239,17 +239,20 @@ namespace Tac
 
     void DrawVerticalGridLines( UI2DDrawData* drawData )
     {
-
       const float line_begin_x = 1.0f - ( viewMini.x - ( int )viewMini.x );
       const int line_count_x = ( int )viewDims.x - 1;
-      float line_canvas_x = canvas_pos.x + line_begin_x * px_per_unit_x;
+
       for( int i = 0; i < line_count_x; ++i )
       {
-        drawData->AddLine( v2( line_canvas_x, canvas_pos.y ),
-                           v2( line_canvas_x, canvas_pos.y ) + v2( 0, canvas_size.y ),
-                           axisLineRadiusMinor,
-                           axisColor );
-        line_canvas_x += px_per_unit_x;
+        const float line_canvas_x = canvas_pos.x + ( line_begin_x + i ) * px_per_unit_x;
+        const UI2DDrawData::Line line =
+        {
+          .mP0 = v2( line_canvas_x, canvas_pos.y ),
+          .mP1 = v2( line_canvas_x, canvas_pos.y ) + v2( 0, canvas_size.y ),
+          .mLineRadius = axisLineRadiusMinor,
+          .mColor = axisColor ,
+        };
+        drawData->AddLine( line );
       }
     }
 
@@ -259,26 +262,37 @@ namespace Tac
       // draw horizontal axis lines
       const float line_begin_y = 1.0f - ( viewMini.y - ( int )viewMini.y );
       const int line_count_y = ( int )viewDims.y - 1;
-      float line_canvas_y = canvas_pos.y + canvas_size.y - line_begin_y * px_per_unit_y;
       for( int i = 0; i < line_count_y; ++i )
       {
-        drawData->AddLine( v2( canvas_pos.x, line_canvas_y ),
-                           v2( canvas_pos.x, line_canvas_y ) + v2( canvas_size.x, 0 ),
-                           axisLineRadiusMinor,
-                           axisColor );
-        line_canvas_y -= px_per_unit_y;
+        const float line_canvas_y
+          = canvas_pos.y
+          + canvas_size.y
+          - ( line_begin_y + i ) * px_per_unit_y;
+        const UI2DDrawData::Line line =
+        {
+          .mP0 = v2( canvas_pos.x, line_canvas_y ),
+          .mP1 = v2( canvas_pos.x, line_canvas_y ) + v2( canvas_size.x, 0 ),
+          .mLineRadius = axisLineRadiusMinor,
+          .mColor = axisColor,
+        };
+        drawData->AddLine( line );
       }
     }
 
     void DrawYAxis( UI2DDrawData* drawData )
     {
-
       const bool isYAxisVisible = viewMini.x < 0 && viewMaxi.x > 0;
       if( isYAxisVisible )
-        drawData->AddLine( v2( originViewport.x, canvas_pos.y ),
-                           v2( originViewport.x, canvas_pos.y ) + v2( 0, canvas_size.y ),
-                           axisLineRadiusMajor,
-                           axisColor );
+      {
+        const UI2DDrawData::Line line =
+        {
+          .mP0 = v2( originViewport.x, canvas_pos.y ),
+          .mP1 = v2( originViewport.x, canvas_pos.y ) + v2( 0, canvas_size.y ),
+          .mLineRadius = axisLineRadiusMajor,
+          .mColor = axisColor,
+        };
+        drawData->AddLine( line );
+      }
 
     }
 
@@ -286,17 +300,24 @@ namespace Tac
     {
       const bool isXAxisVisible = viewMini.y < 0 && viewMaxi.y > 0;
       if( isXAxisVisible )
-        drawData->AddLine( v2( canvas_pos.x, originViewport.y ),
-                           v2( canvas_pos.x, originViewport.y ) + v2( canvas_size.x, 0 ),
-                           axisLineRadiusMajor,
-                           axisColor );
+      {
+
+        const UI2DDrawData::Line line =
+        {
+          .mP0 = v2( canvas_pos.x, originViewport.y ),
+          .mP1 = v2( canvas_pos.x, originViewport.y ) + v2( canvas_size.x, 0 ),
+          .mLineRadius = axisLineRadiusMajor,
+          .mColor = axisColor,
+        };
+        drawData->AddLine( line );
+      }
 
     }
 
     v2   GraphToWindow( v2 p )
     {
-      return v2( canvas_pos.x + ( p.x - viewMini.x ) * px_per_unit_x,
-                 canvas_pos.y + ( -p.y + viewMaxi.y ) * px_per_unit_y );
+      return canvas_pos + v2( ( p.x - viewMini.x ) * px_per_unit_x,
+                              ( -p.y + viewMaxi.y ) * px_per_unit_y );
     }
 
     void DrawFn( Fn2D fn, float radius, v4 color, UI2DDrawData* drawData )
@@ -320,13 +341,18 @@ namespace Tac
       bool prevVisible = isPointVisible( pPrev );
       for( int i = 1; i < points.size(); ++i )
       {
-        v2 pCurr = points[ i ];
-        bool currVisible = isPointVisible( pCurr );
+        const v2 pCurr = points[ i ];
+        const bool currVisible = isPointVisible( pCurr );
         if( prevVisible && currVisible )
         {
-          v2 from = GraphToWindow( pPrev );
-          v2 to = GraphToWindow( pCurr );
-          drawData->AddLine( from, to, radius, color );
+          const UI2DDrawData::Line line =
+          {
+            .mP0 = GraphToWindow( pPrev ),
+            .mP1 = GraphToWindow( pCurr ),
+            .mLineRadius = radius,
+            .mColor = color,
+          };
+          drawData->AddLine(line);
         }
 
         pPrev = pCurr;

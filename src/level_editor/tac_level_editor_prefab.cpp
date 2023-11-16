@@ -324,5 +324,5 @@ namespace Tac
       PrefabImGui( prefab );
     }
   }
-}
+} // namespace Tac
 

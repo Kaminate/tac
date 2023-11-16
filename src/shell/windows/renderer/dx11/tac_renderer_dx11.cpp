@@ -891,20 +891,18 @@ namespace Tac::Render
   {
     if( drawCall->mVertexBufferHandle == mBoundVertexBuffer )
       return;
+
     mBoundVertexBuffer = drawCall->mVertexBufferHandle;
-    if( drawCall->mVertexBufferHandle.IsValid() )
+
+    if( const VertexBuffer* vertexBuffer = FindVertexBuffer( drawCall->mVertexBufferHandle ) )
     {
-      const VertexBuffer* vertexBuffer = &mVertexBuffers[ ( int )drawCall->mVertexBufferHandle ];
       TAC_ASSERT( vertexBuffer->mBuffer );
+      using PointerToBuffer = ID3D11Buffer*;
       const UINT startSlot = 0;
       const UINT NumBuffers = 1;
       const UINT Strides[ NumBuffers ] = { ( UINT )vertexBuffer->mStride };
-      const UINT ByteOffsets[ NumBuffers ] =
-      {
-        0
-        // ( UINT )( drawCall->mStartVertex * vertexBuffer->mStride )
-      };
-      ID3D11Buffer* buffers[ NumBuffers ] = { vertexBuffer->mBuffer };
+      const UINT ByteOffsets[ NumBuffers ] = { 0 };
+      const PointerToBuffer buffers[ NumBuffers ] = { vertexBuffer->mBuffer };
       mDeviceContext->IASetVertexBuffers( startSlot,
                                           NumBuffers,
                                           buffers,
@@ -978,23 +976,22 @@ namespace Tac::Render
     const Texture* mTextures = renderer->mTextures;
 
 
-    const int drawCallTextureCount = drawCall->mDrawCallTextures.size();
-    for( int iSlot = 0; iSlot < drawCallTextureCount; ++iSlot )
+    const int n = drawCall->mDrawCallTextures.size();
+    mHash.Eat( n );
+    for( int iSlot = 0; iSlot < n; ++iSlot )
     {
       const TextureHandle hTex = drawCall->mDrawCallTextures[ iSlot ];
-      if( !hTex.IsValid() )
+      const Texture* pTex = renderer->FindTexture( hTex );
+      if( !pTex )
         continue;
 
-      const int iTex = ( int )hTex;
-
-      const Texture* pTex = &mTextures[ iTex ];
       TAC_ASSERT_MSG( pTex->mTextureSRV, "Did you set the TexSpec::mBinding?" );
 
       mBoundShaderResourceViews[ iSlot ] = pTex->mTextureSRV;
       mBoundTextureCount++;
       mMaxUsedIndex = Max( mMaxUsedIndex, iSlot );
       mHash.Eat( iSlot );
-      mHash.Eat( iTex );
+      mHash.Eat( hTex.GetIndex() );
     }
 
     return BoundSRVs

@@ -75,6 +75,7 @@ namespace Tac
 
   void CreationMainWindow::ImGuiWindows( Errors& errors )
   {
+
     ImGuiText( "Windows" );
     ImGuiIndent();
 
@@ -174,7 +175,6 @@ namespace Tac
     ImGuiSetNextWindowStretch();
     ImGuiBegin( "Main Window" );
 
-
     //ImGuiBeginMenuBar();
     //ImGuiText( "file | edit | window" );
     //ImGuiEndMenuBar();
@@ -186,20 +186,12 @@ namespace Tac
 
     PrefabImGui();
 
-
     mCloseRequested |= ImGuiButton( "Close window" );
     if( ImGuiButton( "Close Application" ) )
       OS::OSAppStopRunning();
 
-    //for( int i = 0; i < 2; ++i )
-    //{
-    //for( char c = 'a'; c <= 'z'; ++c )
-    //{
-    //  String s;
-    //  s.push_back( c );
-    //  ImGuiText( s );
-    //}
-    //}
+    DesktopAppDebugImGui( errors );
+    TAC_HANDLE_ERROR( errors );
 
     ImGuiEnd();
   }

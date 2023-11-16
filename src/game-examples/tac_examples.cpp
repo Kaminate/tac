@@ -170,19 +170,21 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
   }
 
+  struct ExamplesProjectFns : public ProjectFns
+  {
+    void ProjectInit( Errors& errors ) const override { ExamplesInitCallback( errors ); }
+    void ProjectUpdate( Errors& errors ) const override { ExamplesUpdateCallback( errors ); }
+    void ProjectUninit( Errors& errors ) const override { ExamplesUninitCallback( errors ); }
+  };
+
+  static ExamplesProjectFns sProjectFns;
+
   ExecutableStartupInfo          ExecutableStartupInfo::Init()
   {
-    const ProjectFns projectFns
-    {
-      .mProjectInit = ExamplesInitCallback,
-      .mProjectUpdate = ExamplesUpdateCallback,
-      .mProjectUninit = ExamplesUninitCallback,
-    };
-
     return ExecutableStartupInfo
     {
       .mAppName = "Examples",
-      .mProjectFns = projectFns,
+      .mProjectFns = &sProjectFns,
     };
   }
 

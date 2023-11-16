@@ -266,9 +266,12 @@ namespace Tac
                                                          TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( terrain->mVertexBuffer, "terrain-vtx-buf" );
 
-    const Render::Format format{ .mElementCount = 1,
-                                  .mPerElementByteCount = sizeof( TerrainIndex ),
-                                  .mPerElementDataType = Render::GraphicsType::uint };
+    const Render::Format format
+    {
+      .mElementCount = 1,
+      .mPerElementByteCount = sizeof( TerrainIndex ),
+      .mPerElementDataType = Render::GraphicsType::uint
+    };
     terrain->mIndexBuffer = Render::CreateIndexBuffer( indexes.size() * sizeof( TerrainIndex ),
                                                        indexes.data(),
                                                        Render::Access::Default,

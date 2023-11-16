@@ -2,30 +2,37 @@
 
 #include "src/common/input/tac_keyboard_input.h"
 #include "src/common/tac_common.h"
+#include "src/common/system/tac_desktop_window.h"
 
 namespace Tac
 {
   struct ProjectFns
   {
-    void( *mProjectInit )( Errors& ) = []( Errors& ) {};
-    void( *mProjectUpdate )( Errors& ) = []( Errors& ) {};
-    void( *mProjectUninit )( Errors& ) = []( Errors& ) {};
+    virtual void ProjectInit( Errors& ) const;
+    virtual void ProjectUpdate( Errors& ) const;
+    virtual void ProjectUninit( Errors& ) const;
   };
 
   struct PlatformFns
   {
-    void( *mPlatformFrameBegin )( Errors& ) = nullptr;
-    void( *mPlatformFrameEnd )( Errors& ) = nullptr;
-    void( *mPlatformSpawnWindow )( const DesktopWindowHandle&,
-                                   const char* name,
-                                   int x,
-                                   int y,
-                                   int width,
-                                   int height ) = nullptr;
-    void( *mPlatformDespawnWindow )( const DesktopWindowHandle& ) = nullptr;
-    void( *mPlatformWindowMoveControls )( const DesktopWindowHandle&, const DesktopWindowRect& ) = nullptr;
-    void( *mPlatformWindowResizeControls )( const DesktopWindowHandle&, int ) = nullptr;
-    DesktopWindowHandle( *mPlatformGetMouseHoveredWindow )( ) = nullptr;
+    struct SpawnWindowParams
+    {
+      DesktopWindowHandle mHandle;
+      const char*         mName;
+      int                 mX;
+      int                 mY;
+      int                 mWidth;
+      int                 mHeight;
+    };
+
+    virtual void PlatformImGui( Errors& ) const;
+    virtual void PlatformFrameBegin( Errors& ) const;
+    virtual void PlatformFrameEnd( Errors& ) const;
+    virtual void PlatformSpawnWindow( const SpawnWindowParams&, Errors& ) const;
+    virtual void PlatformDespawnWindow( const DesktopWindowHandle& ) const;
+    virtual void PlatformWindowMoveControls( const DesktopWindowHandle&, const DesktopWindowRect& ) const;
+    virtual void PlatformWindowResizeControls( const DesktopWindowHandle&, int ) const;
+    virtual DesktopWindowHandle PlatformGetMouseHoveredWindow() const;
   };
 
   struct ExecutableStartupInfo
@@ -33,7 +40,7 @@ namespace Tac
     static ExecutableStartupInfo sInstance;
     String                       mAppName;
     String                       mStudioName = "Sleeping Studio";
-    ProjectFns                   mProjectFns;
+    ProjectFns*                  mProjectFns = nullptr;
     static ExecutableStartupInfo Init();
   };
 
@@ -56,7 +63,7 @@ namespace Tac
   void                DesktopEventMouseHoveredWindow( const DesktopWindowHandle& );
   void                DesktopEventApplyQueue();
 
-  void                DesktopAppInit( const PlatformFns&, Errors& );
+  void                DesktopAppInit( PlatformFns*, Errors& );
   void                DesktopAppRun( Errors& );
   DesktopWindowHandle DesktopAppCreateWindow( const char* name = nullptr,
                                               int x = 0,
@@ -66,8 +73,10 @@ namespace Tac
   void                DesktopAppDestroyWindow( const DesktopWindowHandle& );
   void                DesktopAppUpdate( Errors& );
   void                DesktopAppResizeControls( const DesktopWindowHandle&, int edgePx = 7 );
-  void                DesktopAppMoveControls( const DesktopWindowHandle&, const DesktopWindowRect& );
+  void                DesktopAppMoveControls( const DesktopWindowHandle&,
+                                              const DesktopWindowRect& );
   void                DesktopAppMoveControls( const DesktopWindowHandle& );
+  void                DesktopAppDebugImGui(Errors&);
   void                DesktopAppReportErrors();
 
   Errors&             GetMainErrors();

@@ -57,16 +57,20 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
   }
 
+  struct GameProjectFns : public ProjectFns
+  {
+    void ProjectInit( Errors& errors ) const override { GameCallbackInit( errors ); }
+    void ProjectUpdate( Errors& errors ) const override { GameCallbackUpdate( errors ); }
+  };
+
+  static GameProjectFns sProjectFns;
+
   ExecutableStartupInfo ExecutableStartupInfo::Init()
   {
     return ExecutableStartupInfo
     {
       .mAppName = sAppName,
-      .mProjectFns = ProjectFns
-      {
-        .mProjectInit = GameCallbackInit,
-        .mProjectUpdate = GameCallbackUpdate,
-      },
+      .mProjectFns = &sProjectFns,
     };
   }
 

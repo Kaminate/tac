@@ -1,5 +1,6 @@
 #include "src/shell/windows/input/tac_win32_mouse_edge.h" // self-inc
 
+#include "src/shell/windows/tac_win32.h"
 #include "src/common/system/tac_desktop_window.h"
 #include "src/common/core/tac_preprocessor.h"
 #include "src/common/shell/tac_shell_timer.h"
@@ -20,53 +21,50 @@ namespace Tac
     kResizable = 0b0100,
   };
 
-  static struct // MouseEdge
+  struct MouseEdge
   {
     MouseEdgeFlags    mFlags = MouseEdgeFlags::kNone;
     DesktopWindowRect mWindowSpaceMoveRect;
     int               mResizeBorder = false;
-  } sMouseEdges[ kDesktopWindowCapacity ];
-
-  //static MouseEdge sMouseEdges[ kDesktopWindowCapacity ];
-
+  };
+  
   enum HandlerType
   {
-    None,
+    None = 0,
     Move,
     Resize,
   };
 
-
   // If CursorDir |= CursorDirE, that means we would be dragging the left wide of the window,
   // and the right side of the window would be cursor locked.
   typedef int CursorDir;
-  const CursorDir CursorDirN = 0b0001;
-  const CursorDir CursorDirW = 0b0010;
-  const CursorDir CursorDirS = 0b0100;
-  const CursorDir CursorDirE = 0b1000;
 
-  static HCURSOR cursorArrow;
-  static HCURSOR cursorArrowNS;
-  static HCURSOR cursorArrowWE;
-  static HCURSOR cursorArrowNE_SW;
-  static HCURSOR cursorArrowNW_SE;
+  static MouseEdge   sMouseEdges[ kDesktopWindowCapacity ];
 
+  const CursorDir    CursorDirN = 0b0001;
+  const CursorDir    CursorDirW = 0b0010;
+  const CursorDir    CursorDirS = 0b0100;
+  const CursorDir    CursorDirE = 0b1000;
+
+  static HCURSOR     cursorArrow;
+  static HCURSOR     cursorArrowNS;
+  static HCURSOR     cursorArrowWE;
+  static HCURSOR     cursorArrowNE_SW;
+  static HCURSOR     cursorArrowNW_SE;
 
   // Used to set the cursor icon
-  static CursorDir mCursorLock = {};
-  static POINT mCursorPositionOnClick = {};
-  static RECT mWindowRectOnClick = {};
-  static int edgeDistResizePx;
-  static int edgeDistMovePx;
-  static bool mEverSet = false;
-  static HandlerType mHandlerType = HandlerType::None;
-  static bool mIsFinished = false;
-  static HWND mHwnd = NULL;
-
-  static bool mMouseDownCurr = false;
-  static bool mMouseDownPrev = false;
-
-  static Timestamp keyboardMoveT;
+  static CursorDir   mCursorLock;
+  static POINT       mCursorPositionOnClick;
+  static RECT        mWindowRectOnClick;
+  static int         edgeDistResizePx;
+  static int         edgeDistMovePx;
+  static bool        mEverSet;
+  static HandlerType mHandlerType;
+  static bool        mIsFinished;
+  static HWND        mHwnd;
+  static bool        mMouseDownCurr;
+  static bool        mMouseDownPrev;
+  static Timestamp   keyboardMoveT;
 
   static HCURSOR GetCursor( CursorDir cursorDir )
   {
@@ -289,11 +287,12 @@ namespace Tac
     mouseEdge.mWindowSpaceMoveRect = windowSpaceRect;
   }
 
-  void Win32MouseEdgeSetResizable( const DesktopWindowHandle& desktopWindowHandle, int borderPx )
+  void Win32MouseEdgeSetResizable( const DesktopWindowHandle& desktopWindowHandle,
+                                   int borderPx )
   {
     TAC_ASSERT( ( unsigned )desktopWindowHandle < kDesktopWindowCapacity );
     auto& mouseEdge = sMouseEdges[ ( int )desktopWindowHandle ];
     mouseEdge.mFlags = MouseEdgeFlags( ( int )mouseEdge.mFlags | ( int )MouseEdgeFlags::kResizable );
     mouseEdge.mResizeBorder = borderPx;
   }
-}
+} // namespace Tac

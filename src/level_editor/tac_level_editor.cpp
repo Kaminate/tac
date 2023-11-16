@@ -272,19 +272,21 @@ namespace Tac
 
   //===-------------- ExecutableStartupInfo -------------===//
 
+  struct LevelEditorProjectFns : public ProjectFns
+  {
+    void ProjectInit( Errors& errors ) const override { CreationInitCallback( errors ); }
+    void ProjectUpdate( Errors& errors ) const override { CreationUpdateCallback( errors ); }
+    void ProjectUninit( Errors& errors ) const override { CreationUninitCallback( errors ); }
+  };
+
+  static LevelEditorProjectFns sLevelEditorProjectFns;
+
   ExecutableStartupInfo                ExecutableStartupInfo::Init()
   {
-    const ProjectFns level_editorProjectFns
-    {
-      .mProjectInit = CreationInitCallback,
-      .mProjectUpdate = CreationUpdateCallback,
-      .mProjectUninit = CreationUninitCallback,
-    };
-
     return ExecutableStartupInfo
     {
       .mAppName = "Creation",
-      .mProjectFns = level_editorProjectFns,
+      .mProjectFns = &sLevelEditorProjectFns,
     };
   }
 

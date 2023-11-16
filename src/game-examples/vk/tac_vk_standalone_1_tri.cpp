@@ -26,18 +26,21 @@ namespace Tac
   {
   }
 
+  struct VkStandaloneTriFns : public ProjectFns
+  {
+    void ProjectInit( Errors& errors ) const override { StandaloneInit( errors ); }
+    void ProjectUpdate( Errors& errors ) const override { StandaloneUpdate( errors ); }
+    void ProjectUninit( Errors& errors ) const override { StandaloneUninit( errors ); }
+  };
+
+  static VkStandaloneTriFns sProjectFns;
+
   ExecutableStartupInfo          ExecutableStartupInfo::Init()
   {
-    const ProjectFns projectFns =
-    {
-      .mProjectInit = StandaloneInit,
-      .mProjectUpdate = StandaloneUpdate,
-      .mProjectUninit = StandaloneUninit,
-    };
     return ExecutableStartupInfo
     {
       .mAppName = "Vk Ex",
-      .mProjectFns = projectFns,
+      .mProjectFns = &sProjectFns,
     };
   }
 } // namespace Tac

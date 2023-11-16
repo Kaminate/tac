@@ -2,6 +2,7 @@
 
 #include "src/shell/windows/renderer/dx11/tac_renderer_dx11.h"
 #include "src/common/math/tac_math.h"
+#include "src/common/graphics/imgui/tac_imgui.h"
 #include "src/common/core/tac_algorithm.h"
 #include "src/common/core/tac_error_handling.h"
 #include "src/common/input/tac_keyboard_input.h"
@@ -82,6 +83,59 @@ namespace Tac
     std::clog.rdbuf( &streamBuf );
   }
 
+  // -----------------------------------------------------------------------------------------------
+  void Win32PlatformFns::PlatformImGui( Errors& errors ) const
+  {
+    if( !ImGuiCollapsingHeader( "Win32PlatformFns::PlatformImGui" ) )
+      return;
+
+    TAC_IMGUI_INDENT_BLOCK;
+
+    Win32WindowManagerDebugImGui();
+  }
+
+  void Win32PlatformFns::PlatformFrameBegin( Errors& errors ) const
+  {
+    Win32FrameBegin( errors );
+  }
+
+  void Win32PlatformFns::PlatformFrameEnd( Errors& errors ) const 
+  {
+    Win32FrameEnd( errors );
+  }
+
+  void Win32PlatformFns::PlatformSpawnWindow( const SpawnWindowParams& params,
+                                              Errors& errors ) const 
+  {
+    Win32WindowManagerSpawnWindow( params, errors );
+  }
+
+  void Win32PlatformFns::PlatformDespawnWindow( const DesktopWindowHandle& errors ) const 
+  {
+    Win32WindowManagerDespawnWindow( errors );
+  }
+
+  void Win32PlatformFns::PlatformWindowMoveControls( const DesktopWindowHandle& handle,
+                                   const DesktopWindowRect& rect ) const 
+  {
+    Win32MouseEdgeSetMovable( handle, rect );
+  }
+
+  void Win32PlatformFns::PlatformWindowResizeControls( const DesktopWindowHandle& handle,
+                                                       int i ) const 
+  {
+    Win32MouseEdgeSetResizable( handle, i );
+  }
+
+  DesktopWindowHandle Win32PlatformFns::PlatformGetMouseHoveredWindow() const 
+  {
+    return Win32WindowManagerGetCursorUnobscuredWindow();
+  }
+
+  // -----------------------------------------------------------------------------------------------
+
+  static Win32PlatformFns sWin32PlatformFns;
+
   // This function exists because TAC_HANDLE_ERROR cannot be used in WinMain
   static void WinMainAux( const HINSTANCE hInstance,
                           const HINSTANCE hPrevInstance,
@@ -94,24 +148,12 @@ namespace Tac
     RedirectStreamBuf();
     Render::RegisterRendererDirectX11();
 
-
     Controller::XInputInit( errors );
     TAC_HANDLE_ERROR( errors );
 
     Win32MouseEdgeInit();
 
-    const PlatformFns win32PlatformFns
-    {
-      .mPlatformFrameBegin = Win32FrameBegin,
-      .mPlatformFrameEnd = Win32FrameEnd,
-      .mPlatformSpawnWindow = Win32WindowManagerSpawnWindow,
-      .mPlatformDespawnWindow = Win32WindowManagerDespawnWindow,
-      .mPlatformWindowMoveControls = Win32MouseEdgeSetMovable,
-      .mPlatformWindowResizeControls = Win32MouseEdgeSetResizable,
-      .mPlatformGetMouseHoveredWindow = Win32WindowManagerGetCursorUnobscuredWindow,
-    };
-
-    DesktopAppInit( win32PlatformFns, errors );
+    DesktopAppInit( &sWin32PlatformFns, errors );
     TAC_HANDLE_ERROR( errors );
 
     Win32WindowManagerInit( errors );

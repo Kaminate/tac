@@ -184,67 +184,88 @@ namespace Tac
     //}
   }
 
-  void ModelDebugImgui( Model* model )
+  static void ModelDebugImguiMesh(  Model* model  )
   {
-    if( ImGuiCollapsingHeader( "Mesh" ) )
+    if( !ImGuiCollapsingHeader( "Mesh" ) )
+      return;
+
+    TAC_IMGUI_INDENT_BLOCK;
+
+    const Mesh* mesh = GamePresentationGetModelMesh( model );
+    if( !mesh )
     {
-      const Mesh* mesh = GamePresentationGetModelMesh( model );
-      if( mesh )
-      {
-
-        //ImGuiText( va( "%.1f %.1f %.1f %.1f",
-        //               mesh->mTransform.m00,
-        //               mesh->mTransform.m01,
-        //               mesh->mTransform.m02,
-        //               mesh->mTransform.m03 ) );
-        //ImGuiText( va( "%.1f %.1f %.1f %.1f",
-        //               mesh->mTransform.m10,
-        //               mesh->mTransform.m11,
-        //               mesh->mTransform.m12,
-        //               mesh->mTransform.m13 ) );
-        //ImGuiText( va( "%.1f %.1f %.1f %.1f",
-        //               mesh->mTransform.m20,
-        //               mesh->mTransform.m21,
-        //               mesh->mTransform.m22,
-        //               mesh->mTransform.m23 ) );
-        //ImGuiText( va( "%.1f %.1f %.1f %.1f",
-        //               mesh->mTransform.m30,
-        //               mesh->mTransform.m31,
-        //               mesh->mTransform.m32,
-        //               mesh->mTransform.m33 ) );
-
-        ImGuiText( va( "model index: {}", model->mModelIndex ) );
-        ImGuiDragInt( "model index", &model->mModelIndex );
-        static int iSelectedSubmesh = -1;
-        for( const SubMesh& subMesh : mesh->mSubMeshes )
-        {
-          const int iSubMesh = ( int )( &subMesh - mesh->mSubMeshes.data() );
-          if( ImGuiSelectable(
-            va( "submesh {}: {}", iSubMesh, subMesh.mName.c_str() ),
-            iSubMesh == iSelectedSubmesh ) )
-            iSelectedSubmesh = iSubMesh;
-        }
-        if( ( unsigned )iSelectedSubmesh < ( unsigned )mesh->mSubMeshes.size() )
-        {
-          ImGuiIndent();
-          const SubMesh& subMesh = mesh->mSubMeshes[ iSelectedSubmesh ];
-          ImGuiText( subMesh.mName );
-          ImGuiText( va( "tri count: {}", subMesh.mTris.size() ) );
-          ImGuiUnindent();
-        }
-      }
-      else
-      {
-        const String ellipses( "...", ( int )ShellGetElapsedSeconds() % 4 );
-        ImGuiText( "Loading" + ellipses );
-      }
+      const String ellipses( "...", ( int )ShellGetElapsedSeconds() % 4 );
+      ImGuiText( "Loading" + ellipses );
+      return;
     }
-    ModelDebugImguiChangeModel( model );
-    ModelDebugImguiChangeTexture( model );
+
+    //ImGuiText( va( "%.1f %.1f %.1f %.1f",
+    //               mesh->mTransform.m00,
+    //               mesh->mTransform.m01,
+    //               mesh->mTransform.m02,
+    //               mesh->mTransform.m03 ) );
+    //ImGuiText( va( "%.1f %.1f %.1f %.1f",
+    //               mesh->mTransform.m10,
+    //               mesh->mTransform.m11,
+    //               mesh->mTransform.m12,
+    //               mesh->mTransform.m13 ) );
+    //ImGuiText( va( "%.1f %.1f %.1f %.1f",
+    //               mesh->mTransform.m20,
+    //               mesh->mTransform.m21,
+    //               mesh->mTransform.m22,
+    //               mesh->mTransform.m23 ) );
+    //ImGuiText( va( "%.1f %.1f %.1f %.1f",
+    //               mesh->mTransform.m30,
+    //               mesh->mTransform.m31,
+    //               mesh->mTransform.m32,
+    //               mesh->mTransform.m33 ) );
+
+    ShortFixedString modelIndexStr = "model index: ";
+    modelIndexStr += ToString( model->mModelIndex );
+
+    ImGuiText(modelIndexStr);
+    ImGuiDragInt( "model index", &model->mModelIndex );
+    static int iSelectedSubmesh = -1;
+    for( const SubMesh& subMesh : mesh->mSubMeshes )
+    {
+      const int iSubMesh = ( int )( &subMesh - mesh->mSubMeshes.data() );
+      const bool selected = iSubMesh == iSelectedSubmesh;
+
+      ShortFixedString str = "submesh ";
+      str += ToString( iSubMesh );
+      str += ": ";
+      str += subMesh.mName;
+
+      if( ImGuiSelectable( str, selected ) )
+        iSelectedSubmesh = iSubMesh;
+    }
+    if( ( unsigned )iSelectedSubmesh < ( unsigned )mesh->mSubMeshes.size() )
+    {
+      const SubMesh& subMesh = mesh->mSubMeshes[ iSelectedSubmesh ];
+
+      ShortFixedString triCountStr = "tri count: ";
+      triCountStr += ToString(subMesh.mTris.size());
+
+      ImGuiIndent();
+      ImGuiText( subMesh.mName );
+      ImGuiText( triCountStr );
+      ImGuiUnindent();
+    }
+  }
+
+  static void ModelDebugImguiColor( Model* model )
+  {
     if( ImGuiDragFloat3( "rgb", model->mColorRGB.data() ) )
       for( float& f : model->mColorRGB )
         f = Saturate( f );
+  }
 
+  void ModelDebugImgui( Model* model )
+  {
+    ModelDebugImguiMesh( model );
+    ModelDebugImguiChangeModel( model );
+    ModelDebugImguiChangeTexture( model );
+    ModelDebugImguiColor( model );
   }
 
   //void ModelDebugImgui( Component* component ) { ModelDebugImgui( ( Model* )component ); }
