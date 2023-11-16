@@ -49,18 +49,6 @@ namespace Tac
     MouseMove,
   };
 
-  using WantSpawnInfo = PlatformFns::SpawnWindowParams;
-
-  //struct WantSpawnInfo
-  //{
-  //  DesktopWindowHandle mHandle;
-  //  const char*         mName = nullptr;
-  //  int                 mX = 0;
-  //  int                 mY = 0;
-  //  int                 mWidth = 0;
-  //  int                 mHeight = 0;
-  //};
-
   struct DesktopEventQueueImpl
   {
     void       Init();
@@ -102,15 +90,15 @@ namespace Tac
     int               mEdgePx = 0;
   };
 
-  typedef FixedVector< WantSpawnInfo, kDesktopWindowCapacity >       WindowRequestsCreate;
-  typedef FixedVector< DesktopWindowHandle, kDesktopWindowCapacity > WindowRequestsDestroy;
+  using WindowRequestsCreate = FixedVector< PlatformSpawnWindowParams, kDesktopWindowCapacity >;
+  using WindowRequestsDestroy = FixedVector< DesktopWindowHandle, kDesktopWindowCapacity >;
 
   static Errors                        gPlatformThreadErrors( Errors::Flags::kDebugBreakOnAppend );
   static Errors                        gLogicThreadErrors( Errors::Flags::kDebugBreakOnAppend );
   static Errors                        gMainFunctionErrors( Errors::Flags::kDebugBreakOnAppend );
 
-  static const PlatformFns*            sPlatformFns;
-  static const ProjectFns*             sProjectFns;
+  static PlatformFns*                  sPlatformFns;
+  static ProjectFns*                   sProjectFns;
 
   static std::mutex                    sWindowHandleLock;
   static IdCollection                  sDesktopWindowHandleIDs( kDesktopWindowCapacity );
@@ -133,7 +121,7 @@ namespace Tac
     sWindowRequestsDestroy.clear();
     sWindowHandleLock.unlock();
 
-    for( const WantSpawnInfo& info : requestsCreate )
+    for( const PlatformSpawnWindowParams& info : requestsCreate )
       sPlatformFns->PlatformSpawnWindow( info, errors );
 
     for( const DesktopWindowHandle desktopWindowHandle : requestsDestroy )
@@ -718,7 +706,7 @@ namespace Tac
   {
     sWindowHandleLock.lock();
     const DesktopWindowHandle handle = { sDesktopWindowHandleIDs.Alloc() };
-    const WantSpawnInfo info =
+    const PlatformSpawnWindowParams info =
     {
       .mHandle = handle,
       .mName = name,
@@ -799,24 +787,24 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  void ProjectFns::ProjectInit( Errors& ) const { TAC_NO_OP; }
-  void ProjectFns::ProjectUpdate( Errors& ) const { TAC_NO_OP; }
-  void ProjectFns::ProjectUninit( Errors& ) const { TAC_NO_OP; }
+  void ProjectFns::ProjectInit( Errors& )  { TAC_NO_OP; }
+  void ProjectFns::ProjectUpdate( Errors& )  { TAC_NO_OP; }
+  void ProjectFns::ProjectUninit( Errors& )  { TAC_NO_OP; }
 
   // -----------------------------------------------------------------------------------------------
 
-  void PlatformFns::PlatformImGui( Errors& ) const { TAC_NO_OP; };
-  void PlatformFns::PlatformFrameBegin( Errors& ) const {TAC_NO_OP;}
-  void PlatformFns::PlatformFrameEnd( Errors& ) const {TAC_NO_OP;}
-  void PlatformFns::PlatformSpawnWindow( const SpawnWindowParams&, Errors& ) const { TAC_NO_OP; }
-  void PlatformFns::PlatformDespawnWindow ( const DesktopWindowHandle& ) const { TAC_NO_OP; }
+  void PlatformFns::PlatformImGui( Errors& )  { TAC_NO_OP; };
+  void PlatformFns::PlatformFrameBegin( Errors& ) {TAC_NO_OP;}
+  void PlatformFns::PlatformFrameEnd( Errors& )  {TAC_NO_OP;}
+  void PlatformFns::PlatformSpawnWindow( const PlatformSpawnWindowParams&, Errors& ) { TAC_NO_OP; }
+  void PlatformFns::PlatformDespawnWindow ( const DesktopWindowHandle& ) { TAC_NO_OP; }
   void PlatformFns::PlatformWindowMoveControls ( const DesktopWindowHandle&,
-                                                 const DesktopWindowRect& ) const
+                                                 const DesktopWindowRect& ) 
   {
     TAC_NO_OP;
   }
-  void PlatformFns::PlatformWindowResizeControls ( const DesktopWindowHandle&, int ) const { TAC_NO_OP; }
-  DesktopWindowHandle PlatformFns::PlatformGetMouseHoveredWindow() const { return {}; }
+  void PlatformFns::PlatformWindowResizeControls ( const DesktopWindowHandle&, int ) { TAC_NO_OP; }
+  DesktopWindowHandle PlatformFns::PlatformGetMouseHoveredWindow() { return {}; }
 
   // -----------------------------------------------------------------------------------------------
 

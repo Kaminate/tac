@@ -84,7 +84,7 @@ namespace Tac
   }
 
   // -----------------------------------------------------------------------------------------------
-  void Win32PlatformFns::PlatformImGui( Errors& errors ) const
+  void Win32PlatformFns::PlatformImGui( Errors& errors ) 
   {
     if( !ImGuiCollapsingHeader( "Win32PlatformFns::PlatformImGui" ) )
       return;
@@ -94,40 +94,40 @@ namespace Tac
     Win32WindowManagerDebugImGui();
   }
 
-  void Win32PlatformFns::PlatformFrameBegin( Errors& errors ) const
+  void Win32PlatformFns::PlatformFrameBegin( Errors& errors ) 
   {
     Win32FrameBegin( errors );
   }
 
-  void Win32PlatformFns::PlatformFrameEnd( Errors& errors ) const 
+  void Win32PlatformFns::PlatformFrameEnd( Errors& errors ) 
   {
     Win32FrameEnd( errors );
   }
 
-  void Win32PlatformFns::PlatformSpawnWindow( const SpawnWindowParams& params,
-                                              Errors& errors ) const 
+  void Win32PlatformFns::PlatformSpawnWindow( const PlatformSpawnWindowParams& params,
+                                              Errors& errors ) 
   {
     Win32WindowManagerSpawnWindow( params, errors );
   }
 
-  void Win32PlatformFns::PlatformDespawnWindow( const DesktopWindowHandle& errors ) const 
+  void Win32PlatformFns::PlatformDespawnWindow( const DesktopWindowHandle& errors ) 
   {
     Win32WindowManagerDespawnWindow( errors );
   }
 
   void Win32PlatformFns::PlatformWindowMoveControls( const DesktopWindowHandle& handle,
-                                   const DesktopWindowRect& rect ) const 
+                                   const DesktopWindowRect& rect ) 
   {
     Win32MouseEdgeSetMovable( handle, rect );
   }
 
   void Win32PlatformFns::PlatformWindowResizeControls( const DesktopWindowHandle& handle,
-                                                       int i ) const 
+                                                       int i )
   {
     Win32MouseEdgeSetResizable( handle, i );
   }
 
-  DesktopWindowHandle Win32PlatformFns::PlatformGetMouseHoveredWindow() const 
+  DesktopWindowHandle Win32PlatformFns::PlatformGetMouseHoveredWindow() 
   {
     return Win32WindowManagerGetCursorUnobscuredWindow();
   }

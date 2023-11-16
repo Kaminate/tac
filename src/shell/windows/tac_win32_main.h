@@ -5,14 +5,14 @@ namespace Tac
 {
   struct Win32PlatformFns : public PlatformFns
   {
-    void PlatformImGui( Errors& ) const override;
-    void PlatformFrameBegin( Errors& ) const override;
-    void PlatformFrameEnd( Errors& ) const override;
-    void PlatformSpawnWindow( const SpawnWindowParams&, Errors& ) const override;
-    void PlatformDespawnWindow( const DesktopWindowHandle& ) const override;
+    void PlatformImGui( Errors& ) override;
+    void PlatformFrameBegin( Errors& ) override;
+    void PlatformFrameEnd( Errors& ) override;
+    void PlatformSpawnWindow( const PlatformSpawnWindowParams&, Errors& ) override;
+    void PlatformDespawnWindow( const DesktopWindowHandle& ) override;
     void PlatformWindowMoveControls( const DesktopWindowHandle&,
-                                     const DesktopWindowRect& ) const override;
-    void PlatformWindowResizeControls( const DesktopWindowHandle&, int ) const override;
-    DesktopWindowHandle PlatformGetMouseHoveredWindow() const override;
+                                     const DesktopWindowRect& ) override;
+    void PlatformWindowResizeControls( const DesktopWindowHandle&, int ) override;
+    DesktopWindowHandle PlatformGetMouseHoveredWindow() override;
   };
 }

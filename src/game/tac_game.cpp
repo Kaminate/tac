@@ -59,8 +59,8 @@ namespace Tac
 
   struct GameProjectFns : public ProjectFns
   {
-    void ProjectInit( Errors& errors ) const override { GameCallbackInit( errors ); }
-    void ProjectUpdate( Errors& errors ) const override { GameCallbackUpdate( errors ); }
+    void ProjectInit( Errors& errors ) override { GameCallbackInit( errors ); }
+    void ProjectUpdate( Errors& errors ) override { GameCallbackUpdate( errors ); }
   };
 
   static GameProjectFns sProjectFns;

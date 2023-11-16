@@ -28,9 +28,9 @@ namespace Tac
 
   struct VkStandaloneTriFns : public ProjectFns
   {
-    void ProjectInit( Errors& errors ) const override { StandaloneInit( errors ); }
-    void ProjectUpdate( Errors& errors ) const override { StandaloneUpdate( errors ); }
-    void ProjectUninit( Errors& errors ) const override { StandaloneUninit( errors ); }
+    void ProjectInit( Errors& errors ) override { StandaloneInit( errors ); }
+    void ProjectUpdate( Errors& errors ) override { StandaloneUpdate( errors ); }
+    void ProjectUninit( Errors& errors ) override { StandaloneUninit( errors ); }
   };
 
   static VkStandaloneTriFns sProjectFns;

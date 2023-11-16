@@ -172,9 +172,9 @@ namespace Tac
 
   struct ExamplesProjectFns : public ProjectFns
   {
-    void ProjectInit( Errors& errors ) const override { ExamplesInitCallback( errors ); }
-    void ProjectUpdate( Errors& errors ) const override { ExamplesUpdateCallback( errors ); }
-    void ProjectUninit( Errors& errors ) const override { ExamplesUninitCallback( errors ); }
+    void ProjectInit( Errors& errors ) override { ExamplesInitCallback( errors ); }
+    void ProjectUpdate( Errors& errors ) override { ExamplesUpdateCallback( errors ); }
+    void ProjectUninit( Errors& errors ) override { ExamplesUninitCallback( errors ); }
   };
 
   static ExamplesProjectFns sProjectFns;

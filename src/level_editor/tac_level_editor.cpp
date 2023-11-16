@@ -274,9 +274,9 @@ namespace Tac
 
   struct LevelEditorProjectFns : public ProjectFns
   {
-    void ProjectInit( Errors& errors ) const override { CreationInitCallback( errors ); }
-    void ProjectUpdate( Errors& errors ) const override { CreationUpdateCallback( errors ); }
-    void ProjectUninit( Errors& errors ) const override { CreationUninitCallback( errors ); }
+    void ProjectInit( Errors& errors )  override { CreationInitCallback( errors ); }
+    void ProjectUpdate( Errors& errors )  override { CreationUpdateCallback( errors ); }
+    void ProjectUninit( Errors& errors )  override { CreationUninitCallback( errors ); }
   };
 
   static LevelEditorProjectFns sLevelEditorProjectFns;

@@ -6,33 +6,34 @@
 
 namespace Tac
 {
+  
   struct ProjectFns
   {
-    virtual void ProjectInit( Errors& ) const;
-    virtual void ProjectUpdate( Errors& ) const;
-    virtual void ProjectUninit( Errors& ) const;
+    virtual void ProjectInit( Errors& ) ;
+    virtual void ProjectUpdate( Errors& ) ;
+    virtual void ProjectUninit( Errors& ) ;
+  };
+
+  struct PlatformSpawnWindowParams
+  {
+    DesktopWindowHandle mHandle;
+    const char*         mName;
+    int                 mX;
+    int                 mY;
+    int                 mWidth;
+    int                 mHeight;
   };
 
   struct PlatformFns
   {
-    struct SpawnWindowParams
-    {
-      DesktopWindowHandle mHandle;
-      const char*         mName;
-      int                 mX;
-      int                 mY;
-      int                 mWidth;
-      int                 mHeight;
-    };
-
-    virtual void PlatformImGui( Errors& ) const;
-    virtual void PlatformFrameBegin( Errors& ) const;
-    virtual void PlatformFrameEnd( Errors& ) const;
-    virtual void PlatformSpawnWindow( const SpawnWindowParams&, Errors& ) const;
-    virtual void PlatformDespawnWindow( const DesktopWindowHandle& ) const;
-    virtual void PlatformWindowMoveControls( const DesktopWindowHandle&, const DesktopWindowRect& ) const;
-    virtual void PlatformWindowResizeControls( const DesktopWindowHandle&, int ) const;
-    virtual DesktopWindowHandle PlatformGetMouseHoveredWindow() const;
+    virtual void PlatformImGui( Errors& );
+    virtual void PlatformFrameBegin( Errors& );
+    virtual void PlatformFrameEnd( Errors& );
+    virtual void PlatformSpawnWindow( const PlatformSpawnWindowParams&, Errors& );
+    virtual void PlatformDespawnWindow( const DesktopWindowHandle& );
+    virtual void PlatformWindowMoveControls( const DesktopWindowHandle&, const DesktopWindowRect& );
+    virtual void PlatformWindowResizeControls( const DesktopWindowHandle&, int );
+    virtual DesktopWindowHandle PlatformGetMouseHoveredWindow();
   };
 
   struct ExecutableStartupInfo

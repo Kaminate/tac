@@ -451,7 +451,7 @@ namespace Tac
     DestroyWindow( hwnd );
   }
 
-  void                Win32WindowManagerSpawnWindow( const PlatformFns::SpawnWindowParams& params,
+  void                Win32WindowManagerSpawnWindow( const PlatformSpawnWindowParams& params,
                                                      Errors& errors )
   {
     const DesktopWindowHandle& desktopWindowHandle = params.mHandle;
