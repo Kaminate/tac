@@ -787,24 +787,24 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  void ProjectFns::ProjectInit( Errors& )  { TAC_NO_OP; }
-  void ProjectFns::ProjectUpdate( Errors& )  { TAC_NO_OP; }
-  void ProjectFns::ProjectUninit( Errors& )  { TAC_NO_OP; }
+  void ProjectFns::ProjectInit( Errors& ) { TAC_NO_OP; }
+  void ProjectFns::ProjectUpdate( Errors& ) { TAC_NO_OP; }
+  void ProjectFns::ProjectUninit( Errors& ) { TAC_NO_OP; }
 
   // -----------------------------------------------------------------------------------------------
 
-  void PlatformFns::PlatformImGui( Errors& )  { TAC_NO_OP; };
-  void PlatformFns::PlatformFrameBegin( Errors& ) {TAC_NO_OP;}
-  void PlatformFns::PlatformFrameEnd( Errors& )  {TAC_NO_OP;}
+  void PlatformFns::PlatformImGui( Errors& ) { TAC_NO_OP; };
+  void PlatformFns::PlatformFrameBegin( Errors& ) { TAC_NO_OP; }
+  void PlatformFns::PlatformFrameEnd( Errors& ) { TAC_NO_OP; }
   void PlatformFns::PlatformSpawnWindow( const PlatformSpawnWindowParams&, Errors& ) { TAC_NO_OP; }
-  void PlatformFns::PlatformDespawnWindow ( const DesktopWindowHandle& ) { TAC_NO_OP; }
-  void PlatformFns::PlatformWindowMoveControls ( const DesktopWindowHandle&,
-                                                 const DesktopWindowRect& ) 
+  void PlatformFns::PlatformDespawnWindow( const DesktopWindowHandle& ) { TAC_NO_OP; }
+  void PlatformFns::PlatformWindowMoveControls( const DesktopWindowHandle&,
+                                                const DesktopWindowRect& )
   {
     TAC_NO_OP;
   }
   void PlatformFns::PlatformWindowResizeControls ( const DesktopWindowHandle&, int ) { TAC_NO_OP; }
-  DesktopWindowHandle PlatformFns::PlatformGetMouseHoveredWindow() { return {}; }
+  DesktopWindowHandle PlatformFns::PlatformGetMouseHoveredWindow() { TAC_NO_OP_RETURN( {} ); }
 
   // -----------------------------------------------------------------------------------------------
 

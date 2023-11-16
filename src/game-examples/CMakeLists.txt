@@ -7,8 +7,6 @@ add_library( TacExamples )
 target_sources( TacExamples PRIVATE
   "tac_examples.cpp"
   "tac_examples.h"
-  "tac_examples_presentation.cpp"
-  "tac_examples_presentation.h"
   "tac_examples_registry.cpp"
   "tac_examples_registry.h"
   "tac_examples_state_machine.cpp"

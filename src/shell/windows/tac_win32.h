@@ -20,14 +20,8 @@
 #define NOMINMAX
 #endif
 
-// https://developercommunity.visualstudio.com/t/vs-2017-1592-reports-unknown-attribute-no-init-all/387702
-// if youre getting intellisence error E1097 and want to try to fix it with preprocessor hacks,
-// know that it is fixed in vs2019 and will not be backported to vs2017
-
 #include <Windows.h>
 #include <Windowsx.h>
-//#include <windef.h>
-
 
 namespace Tac
 {
