@@ -41,7 +41,7 @@ namespace Tac
   void CreationMainWindow::Init( Errors& )
   {
     mUI2DDrawData = TAC_NEW UI2DDrawData;
-    mDesktopWindowHandle = gCreation.CreateWindow( gMainWindowName );
+    mDesktopWindowHandle = gCreation.CreateDesktopWindow( gMainWindowName );
   }
 
   void CreationMainWindow::LoadTextures( Errors& errors )

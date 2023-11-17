@@ -105,10 +105,8 @@ namespace Tac
   {
     bool verbose = false;
     if( verbose )
-    {
-      const char* strDir = CursorDirToString( cursorDir );
-      OS::OSDebugPrintLine( va( "Cursor lock: {} ", strDir )  );
-    }
+      OS::OSDebugPrintLine( ShortFixedString( "Cursor lock: ", cursorDir ) );
+
     mCursorLock = cursorDir;
   }
 

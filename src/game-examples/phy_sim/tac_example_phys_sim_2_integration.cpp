@@ -92,7 +92,7 @@ namespace Tac
   {
     bool shouldReset = ImGuiButton( "Reset" );
 
-    ImGuiText( StringView(std::format( "Current Mode: {}", ToString( mIntegrationMode ) ) ) );
+    ImGuiText( ShortFixedString::Concat( "Current Mode: ", ToString( mIntegrationMode ) ) );
 
     ImGuiText( "Change Mode:" );
     for( int i = 0; i < (int)IntegrationMode::Count; ++i )

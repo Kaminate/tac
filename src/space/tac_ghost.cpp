@@ -252,7 +252,8 @@ namespace Tac
       if( !Controller::IsButtonJustPressed( Controller::ControllerButton::Start, controller ) )
         continue;
 
-      ShortFixedString playerName = va( "Player {}", mUsers.size() );
+      const ShortFixedString playerName = ShortFixedString::Concat( "Player ",
+                                                                    ToString( mUsers.size() ) );
       User* user = AddPlayer( playerName, errors );
       if( errors )
         return;

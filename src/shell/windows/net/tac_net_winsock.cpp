@@ -365,12 +365,14 @@ namespace Tac::Network
         const int wsaErrorCode = WSAGetLastError();
         if( wsaErrorCode == WSAEWOULDBLOCK )
           continue;
+
         if( wsaErrorCode == WSAECONNRESET || // An existing connection was forcibly closed by the remote host
             wsaErrorCode == WSAECONNABORTED ) // An established connection was aborted by the software in your host machine.
         {
           socketWinsock->mRequestDeletion = true;
           continue;
         }
+
         const String errorMsg = GetWSAErrorString( wsaErrorCode );
         TAC_RAISE_ERROR( errorMsg, errors );
       }
@@ -380,12 +382,12 @@ namespace Tac::Network
         socketWinsock->mRequestDeletion = true;
         continue;
       }
+
       socketWinsock->mElapsedSecondsOnLastRecv = ShellGetElapsedSeconds();
       if( mPrintReceivedMessages )
       {
-        ShortFixedString msg = "Received message: ";
-        msg += StringView( recvBuf, recvResult );
-        OS::OSDebugPrintLine( msg );
+        const StringView recvMsg ( recvBuf, recvResult );
+        OS::OSDebugPrintLine( ShortFixedString::Concat( "Received message: ", recvMsg ) );
       }
 
       socketWinsock->OnMessage( recvBuf, recvResult );

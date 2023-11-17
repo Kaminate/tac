@@ -285,7 +285,7 @@ namespace Tac
 
   void CreationGameWindow::Init( Errors& errors )
   {
-    mDesktopWindowHandle = gCreation.CreateWindow( gGameWindowName );
+    mDesktopWindowHandle = gCreation.CreateDesktopWindow( gGameWindowName );
 
     CreateGraphicsObjects( errors );
     TAC_HANDLE_ERROR( errors );
@@ -680,8 +680,6 @@ namespace Tac
     {
       const Light* light = lightVisitor.mLights[ iLight ];
 
-      ShortFixedString groupName = "Editor light ";
-      groupName += ToString( iLight );
 
       // Q: why am ii only scaling the m00, and not the m11 and m22?
       m4 world = light->mEntity->mWorldTransform;
@@ -698,7 +696,9 @@ namespace Tac
       Errors errors;
       const Render::TextureHandle textureHandle = TextureAssetManager::GetTexture( "assets/editor/light.png", errors );
 
-      Render::BeginGroup( groupName, TAC_STACK_FRAME );
+      Render::BeginGroup( ShortFixedString::Concat( "Editor light ",
+                          ToString( iLight ) ),
+                          TAC_STACK_FRAME );
       Render::SetShader( spriteShader );
       Render::SetVertexBuffer( Render::VertexBufferHandle(), 0, 6 );
       Render::SetIndexBuffer( Render::IndexBufferHandle(), 0, 0 );

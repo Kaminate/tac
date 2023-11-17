@@ -2,6 +2,7 @@
 #include "src/common/graphics/tac_debug_3d.h"
 #include "src/common/graphics/tac_depth_buffer_visualizer.h"
 #include "src/common/math/tac_math.h"
+#include "src/common/string/tac_string_format.h"
 #include "src/common/string/tac_string.h"
 #include "src/common/graphics/tac_camera.h"
 #include "src/common/memory/tac_frame_memory.h"

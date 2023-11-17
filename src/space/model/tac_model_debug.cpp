@@ -220,10 +220,7 @@ namespace Tac
     //               mesh->mTransform.m32,
     //               mesh->mTransform.m33 ) );
 
-    ShortFixedString modelIndexStr = "model index: ";
-    modelIndexStr += ToString( model->mModelIndex );
-
-    ImGuiText(modelIndexStr);
+    ImGuiText( ShortFixedString::Concat( "model index: ", ToString( model->mModelIndex ) ) );
     ImGuiDragInt( "model index", &model->mModelIndex );
     static int iSelectedSubmesh = -1;
     for( const SubMesh& subMesh : mesh->mSubMeshes )
@@ -231,10 +228,10 @@ namespace Tac
       const int iSubMesh = ( int )( &subMesh - mesh->mSubMeshes.data() );
       const bool selected = iSubMesh == iSelectedSubmesh;
 
-      ShortFixedString str = "submesh ";
-      str += ToString( iSubMesh );
-      str += ": ";
-      str += subMesh.mName;
+      const ShortFixedString str = ShortFixedString::Concat( "submesh ",
+                                                             ToString( iSubMesh ),
+                                                             ": ",
+                                                             subMesh.mName );
 
       if( ImGuiSelectable( str, selected ) )
         iSelectedSubmesh = iSubMesh;
@@ -243,12 +240,9 @@ namespace Tac
     {
       const SubMesh& subMesh = mesh->mSubMeshes[ iSelectedSubmesh ];
 
-      ShortFixedString triCountStr = "tri count: ";
-      triCountStr += ToString(subMesh.mTris.size());
-
       ImGuiIndent();
       ImGuiText( subMesh.mName );
-      ImGuiText( triCountStr );
+      ImGuiText( ShortFixedString::Concat( "tri count: ", ToString( subMesh.mTris.size() ) ) );
       ImGuiUnindent();
     }
   }

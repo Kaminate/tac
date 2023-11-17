@@ -32,7 +32,7 @@ namespace Tac
   {
     TAC_UNUSED_PARAMETER( errors );
     mUI2DDrawData = TAC_NEW UI2DDrawData;
-    mDesktopWindowHandle = gCreation.CreateWindow( gProfileWindowName );
+    mDesktopWindowHandle = gCreation.CreateDesktopWindow( gProfileWindowName );
   }
 
   void CreationProfileWindow::ImGui()

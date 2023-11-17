@@ -47,7 +47,7 @@ namespace Tac
     void                CreateMainWindow( Errors& );
     void                CreateSystemWindow( Errors& );
     void                CreateProfileWindow( Errors& );
-    DesktopWindowHandle CreateWindow( StringView );
+    DesktopWindowHandle CreateDesktopWindow( StringView );
     bool                ShouldCreateWindowNamed( StringView );
     void                GetWindowsJson( Json** outJson, Errors& );
     void                GetWindowsJsonData( StringView windowName, int* x, int* y, int* w, int* h );

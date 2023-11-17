@@ -397,7 +397,7 @@ namespace Tac
 
   }
 
-  DesktopWindowHandle Creation::CreateWindow( StringView name )
+  DesktopWindowHandle Creation::CreateDesktopWindow( StringView name )
   {
     int x, y, w, h;
     GetWindowsJsonData( name, &x, &y, &w, &h );

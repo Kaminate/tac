@@ -241,8 +241,15 @@ namespace Tac
     {
       const cgltf_node& node = gltfData->nodes[ i ];
 
+      String name = node.name;
+      if( name.empty() )
+      {
+        name += "node ";
+        name += ToString( i );
+      }
+
       Entity* entityNode = loadedModel->mWorld.SpawnEntity( loadedModel->mEntityUUIDCounter.AllocateNewUUID() );
-      entityNode->mName = node.name ? (StringView)node.name : (StringView)va( "node {}", i );
+      entityNode->mName = name;
       entityNode->mRelativeSpace = DecomposeGLTFTransform( &node );
 
       if( node.mesh )
@@ -297,7 +304,11 @@ namespace Tac
     AssetViewImportedModel* loadedModel = GetLoadedModel( assetPath );
     if( !loadedModel )
     {
-      ImGuiText( va( "Loading {}{}", assetPath.c_str(), LoadEllipses().c_str() ) );
+      ShortFixedString text = "Loading ";
+      text += assetPath;
+      text += LoadEllipses();
+
+      ImGuiText(text);
       return;
     }
 
@@ -324,11 +335,11 @@ namespace Tac
     }
     else if( loadedModel->mAttemptedToLoadEntity )
     {
-      ImGuiText( va("{} has nothing to import", assetPath.c_str() ));
+      ImGuiText( ShortFixedString::Concat( assetPath, "has nothing to import" ) );
     }
     else
     {
-      ImGuiText( va("IDK what this code path is {}", assetPath.c_str() ));
+      ImGuiText( ShortFixedString::Concat( "IDK what this code path is ", assetPath ) );
     }
   }
 
@@ -392,7 +403,8 @@ namespace Tac
     if( loadedModel->mWorld.mEntities.empty() )
       return;
 
-    TAC_RENDER_GROUP_BLOCK( va( "asset preview {}", loadedModel->mAssetPath.c_str() ) );
+    TAC_RENDER_GROUP_BLOCK( ShortFixedString::Concat( "asset preview ",
+                            loadedModel->mAssetPath.c_str() ) );
     Render::SetViewFramebuffer( loadedModel->mViewHandle, loadedModel->mFramebufferHandle );
     Render::SetViewport( loadedModel->mViewHandle, Render::Viewport( w, h ) );
     Render::SetViewScissorRect( loadedModel->mViewHandle, Render::ScissorRect( w, h ) );

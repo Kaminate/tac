@@ -4,6 +4,7 @@
 #include "src/common/graphics/tac_debug_3d.h"
 #include "src/common/system/tac_filesystem.h"
 #include "src/common/shell/tac_shell.h"
+#include "src/common/string/tac_string_format.h"
 #include "src/common/system/tac_os.h"
 #include "src/space/tac_entity.h"
 #include "src/space/tac_world.h"

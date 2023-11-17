@@ -3,6 +3,7 @@
 #include "src/shell/tac_desktop_app.h" // IsMainThread
 #include "src/common/assetmanagers/tac_asset.h" // AssetPathStringView
 #include "src/common/system/tac_os.h" // OSDebugPrintLine
+#include "src/common/string/tac_string_format.h"
 #include "src/common/dataprocess/tac_text_parser.h" // ParseData
 #include "src/common/core/tac_error_handling.h" // TAC_RAISE_ERROR_RETURN
 #include "src/common/graphics/tac_renderer_backend.h" // GetShaderAssetPath

@@ -1,8 +1,8 @@
 #include "src/common/graphics/imgui/tac_imgui.h"
 #include "src/common/graphics/tac_renderer.h"
-#if 1
 #include "src/common/graphics/tac_camera.h"
 #include "src/common/shell/tac_shell_timer.h"
+#include "src/common/string/tac_string_format.h"
 #include "src/shell/tac_desktop_window_graphics.h"
 #include "src/common/math/tac_math.h"
 #include "src/common/system/tac_desktop_window.h"
@@ -192,4 +192,3 @@ namespace Tac
   }
 
 } // namespace Tac
-#endif

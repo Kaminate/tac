@@ -1,7 +1,9 @@
-#include "src/game-examples/phy_sim/tac_example_phys_sim_3_torque.h"
+#include "src/game-examples/phy_sim/tac_example_phys_sim_3_torque.h" // self-inc
+
 #include "src/space/tac_world.h"
 #include "src/common/graphics/tac_camera.h"
 #include "src/common/graphics/imgui/tac_imgui.h"
+#include "src/common/string/tac_string_format.h"
 #include "src/common/math/tac_math.h"
 #include "src/common/graphics/tac_debug_3d.h"
 #include "src/common/input/tac_keyboard_input.h"
@@ -106,18 +108,9 @@ namespace Tac
     v3 r0 = mOrientation.GetRow( 0 );
     v3 r1 = mOrientation.GetRow( 1 );
     v3 r2 = mOrientation.GetRow( 2 );
-//#define FMT "% .4f "
-//    const char* buf = va( 
-//      FMT FMT FMT "\n"
-//      FMT FMT FMT "\n"
-//      FMT FMT FMT "\n",
-//      r0.x, r0.y, r0.z,
-//      r1.x, r1.y, r1.z,
-//      r2.x, r2.y, r2.z );
-//#undef FMT
 
 #define FMT "{: .4} "
-    const std::string s = std::format(
+    const String s = FormatString(
       FMT FMT FMT "\n"
       FMT FMT FMT "\n"
       FMT FMT FMT "\n",

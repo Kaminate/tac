@@ -83,10 +83,10 @@ namespace Tac
     }
     else
     {
-      ImGuiText(va( "Prefab path: {}", prefabPath.c_str() ));
+      ImGuiText(ShortFixedString::Concat( "Prefab path: ", prefabPath ));
     }
 
-    ImGuiText( "UUID: " + ToString( ( UUID )entity->mEntityUUID ) );
+    ImGuiText( ShortFixedString::Concat( "UUID: ", ToString( ( UUID )entity->mEntityUUID ) ) );
     if( ImGuiButton( "Reset Transform" ) )
       entity->mRelativeSpace = {};
 
@@ -177,7 +177,12 @@ namespace Tac
       TAC_IMGUI_INDENT_BLOCK;
       for( const ComponentRegistryEntry* componentType : addableComponentTypes )
       {
-        if( ImGuiButton( va( "Add {} component", componentType->mName ) ) )
+        ShortFixedString str;
+        str += "Add ";
+        str += componentType->mName;
+        str += " component";
+
+        if( ImGuiButton( str ) )
         {
           entity->AddNewComponent( componentType );
         }
@@ -201,7 +206,7 @@ namespace Tac
   void CreationPropertyWindow::Init( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
-    mDesktopWindowHandle = gCreation.CreateWindow( gPropertyWindowName );
+    mDesktopWindowHandle = gCreation.CreateDesktopWindow( gPropertyWindowName );
   }
 
   void CreationPropertyWindow::RecursiveEntityHierarchyElement( Entity* entity )

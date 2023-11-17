@@ -1,6 +1,9 @@
+#include "src/space/presentation/tac_game_presentation.h" // self-inc
+
 #include "src/common/assetmanagers/tac_mesh.h"
 #include "src/common/assetmanagers/tac_model_asset_manager.h"
 #include "src/common/assetmanagers/tac_texture_asset_manager.h"
+#include "src/common/string/tac_string_format.h"
 #include "src/common/graphics/imgui/tac_imgui.h"
 #include "src/common/graphics/tac_debug_3d.h"
 #include "src/common/graphics/tac_renderer.h"
@@ -20,7 +23,6 @@
 #include "src/space/light/tac_light.h"
 #include "src/space/model/tac_model.h"
 #include "src/space/physics/tac_physics.h"
-#include "src/space/presentation/tac_game_presentation.h"
 #include "src/space/presentation/tac_shadow_presentation.h"
 #include "src/space/presentation/tac_skybox_presentation.h"
 #include "src/space/skybox/tac_skybox_component.h"

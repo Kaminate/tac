@@ -303,7 +303,8 @@ namespace Tac
     TAC_IMGUI_INDENT_BLOCK;
     for( Entity* entity : prefab->mEntities )
     {
-      if( ImGuiButton( va( "select entity of uuid {}", ( UUID )entity->mEntityUUID ) ) )
+      if( ImGuiButton( ShortFixedString::Concat( "select entity of uuid ",
+          ToString( ( UUID )entity->mEntityUUID ) ) ) )
         gCreation.mSelectedEntities.Select( entity );
     }
   }

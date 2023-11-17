@@ -40,7 +40,7 @@ namespace Tac
       if( !StrCmp( entry.mName, systemName.c_str() ) )
         sSystemRegistryEntry = &entry;
 
-    mDesktopWindowHandle = gCreation.CreateWindow( gSystemWindowName );
+    mDesktopWindowHandle = gCreation.CreateDesktopWindow( gSystemWindowName );
   }
 
   void CreationSystemWindow::ImGui()
@@ -77,7 +77,7 @@ namespace Tac
 
     if( sSystemRegistryEntry &&
         sSystemRegistryEntry->mDebugImGui &&
-        ImGuiCollapsingHeader( va( "{} Debug", sSystemRegistryEntry->mName ) ) )
+        ImGuiCollapsingHeader( ShortFixedString::Concat( sSystemRegistryEntry->mName, " Debug" ) ) )
     {
       TAC_IMGUI_INDENT_BLOCK;
       System* system = gCreation.mWorld->GetSystem( sSystemRegistryEntry );
