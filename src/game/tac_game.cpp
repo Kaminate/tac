@@ -14,7 +14,6 @@ import std; // #include <functional> // std::function
 namespace Tac
 {
   static DesktopWindowHandle   mDesktopWindowHandle;
-  static const char*           sAppName = "Game";
 
   void GameCallbackInit( Errors& errors )
   {
@@ -29,11 +28,11 @@ namespace Tac
     int windowHeight = ( int )( 0.8f * monitorHeight );
     int windowX = 0;
     int windowY = 0;
-    mDesktopWindowHandle = DesktopAppCreateWindow( sAppName,
+    mDesktopWindowHandle = DesktopAppCreateWindow( App::sInstance.mName,
                                                    windowX,
-                                                windowY,
-                                                windowWidth,
-                                                windowHeight );
+                                                   windowY,
+                                                   windowWidth,
+                                                   windowHeight );
     TAC_HANDLE_ERROR( errors );
 
 
@@ -57,22 +56,11 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
   }
 
-  struct GameProjectFns : public ProjectFns
-  {
-    void ProjectInit( Errors& errors ) override { GameCallbackInit( errors ); }
-    void ProjectUpdate( Errors& errors ) override { GameCallbackUpdate( errors ); }
-  };
+  void App::Init( Errors& errors ) { GameCallbackInit( errors ); }
+  void App::Update( Errors& errors ) { GameCallbackUpdate( errors ); }
+  void App::Uninit( Errors& ) {}
+  App App::sInstance = { .mName = "Game" };
 
-  static GameProjectFns sProjectFns;
-
-  ExecutableStartupInfo ExecutableStartupInfo::Init()
-  {
-    return ExecutableStartupInfo
-    {
-      .mAppName = sAppName,
-      .mProjectFns = &sProjectFns,
-    };
-  }
 
 }// namespace Tac
 

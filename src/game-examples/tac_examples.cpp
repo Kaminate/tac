@@ -12,7 +12,6 @@
 #include "src/common/dataprocess/tac_settings.h"
 #include "src/game-examples/tac_examples.h"
 #include "src/game-examples/tac_examples_state_machine.h"
-#include "src/game-examples/tac_examples_presentation.h"
 #include "src/game-examples/tac_examples_registry.h"
 #include "src/shell/tac_desktop_app.h"
 #include "src/shell/tac_desktop_window_settings_tracker.h"
@@ -170,23 +169,14 @@ namespace Tac
     TAC_HANDLE_ERROR( errors );
   }
 
-  struct ExamplesProjectFns : public ProjectFns
+  void App::Init( Errors& errors ) { ExamplesInitCallback( errors ); }
+  void App::Update( Errors& errors ) { ExamplesUpdateCallback( errors ); }
+  void App::Uninit( Errors& errors ) { ExamplesUninitCallback( errors ); }
+  App App::sInstance =
   {
-    void ProjectInit( Errors& errors ) override { ExamplesInitCallback( errors ); }
-    void ProjectUpdate( Errors& errors ) override { ExamplesUpdateCallback( errors ); }
-    void ProjectUninit( Errors& errors ) override { ExamplesUninitCallback( errors ); }
+    .mName = "Examples",
   };
 
-  static ExamplesProjectFns sProjectFns;
-
-  ExecutableStartupInfo          ExecutableStartupInfo::Init()
-  {
-    return ExecutableStartupInfo
-    {
-      .mAppName = "Examples",
-      .mProjectFns = &sProjectFns,
-    };
-  }
 
   v3 Example::GetWorldspaceKeyboardDir()
   {

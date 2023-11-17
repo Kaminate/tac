@@ -185,12 +185,12 @@ namespace Tac
     TAC_HANDLE_ERROR_RETURN( errors, {} );
     TAC_ASSERT( Filesystem::Exists( path ) );
 
-    path /= ExecutableStartupInfo::sInstance.mStudioName;
+    path /= App::sInstance.mStudioName;
     Filesystem::CreateDirectory2( path );
     TAC_ASSERT( Filesystem::Exists( path ) );
     TAC_HANDLE_ERROR_RETURN( errors, {} );
 
-    path /= ExecutableStartupInfo::sInstance.mAppName;
+    path /= App::sInstance.mName;
     Filesystem::CreateDirectory2( path );
     TAC_ASSERT( Filesystem::Exists( path ) );
     TAC_HANDLE_ERROR_RETURN( errors, {} );

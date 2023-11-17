@@ -6,13 +6,17 @@
 
 namespace Tac
 {
-  
-  struct ProjectFns
+  struct App
   {
-    virtual void ProjectInit( Errors& ) ;
-    virtual void ProjectUpdate( Errors& ) ;
-    virtual void ProjectUninit( Errors& ) ;
+    void Init( Errors& );
+    void Update( Errors& );
+    void Uninit( Errors& );
+    static App sInstance;
+    String mName;
+    String mStudioName = "Sleeping Studio";
   };
+
+  // -----------------------------------------------------------------------------------------------
 
   struct PlatformSpawnWindowParams
   {
@@ -36,33 +40,25 @@ namespace Tac
     virtual DesktopWindowHandle PlatformGetMouseHoveredWindow();
   };
 
-  struct ExecutableStartupInfo
-  {
-    static ExecutableStartupInfo sInstance;
-    String                       mAppName;
-    String                       mStudioName = "Sleeping Studio";
-    ProjectFns*                  mProjectFns = nullptr;
-    static ExecutableStartupInfo Init();
-  };
+  // -----------------------------------------------------------------------------------------------
 
+  //void                DesktopEventAssignHandle( const DesktopWindowHandle&,
+  //                                              const void* nativeWindowHandle,
+  //                                              const char* name,
+  //                                              int x,
+  //                                              int y,
+  //                                              int w,
+  //                                              int h );
+  //void                DesktopEventMoveWindow( const DesktopWindowHandle&, int x, int y );
+  //void                DesktopEventResizeWindow( const DesktopWindowHandle&, int w, int h );
+  //void                DesktopEventKeyState( const Keyboard::Key &, bool );
+  //void                DesktopEventMouseButtonState( const Mouse::Button&, bool );
+  //void                DesktopEventKeyInput( const Codepoint& );
+  //void                DesktopEventMouseWheel( int ticks );
+  //void                DesktopEventMouseMove( const DesktopWindowHandle&, int x, int y );
+  //void                DesktopEventMouseHoveredWindow( const DesktopWindowHandle& );
 
-  void                DesktopEventInit();
-  void                DesktopEventAssignHandle( const DesktopWindowHandle&,
-                                                const void* nativeWindowHandle,
-                                                const char* name,
-                                                int x,
-                                                int y,
-                                                int w,
-                                                int h );
-  void                DesktopEventMoveWindow( const DesktopWindowHandle&, int x, int y );
-  void                DesktopEventResizeWindow( const DesktopWindowHandle&, int w, int h );
-  void                DesktopEventKeyState( const Keyboard::Key &, bool );
-  void                DesktopEventMouseButtonState( const Mouse::Button&, bool );
-  void                DesktopEventKeyInput( const Codepoint& );
-  void                DesktopEventMouseWheel( int ticks );
-  void                DesktopEventMouseMove( const DesktopWindowHandle&, int x, int y );
-  void                DesktopEventMouseHoveredWindow( const DesktopWindowHandle& );
-  void                DesktopEventApplyQueue();
+  // -----------------------------------------------------------------------------------------------
 
   void                DesktopAppInit( PlatformFns*, Errors& );
   void                DesktopAppRun( Errors& );
@@ -79,6 +75,8 @@ namespace Tac
   void                DesktopAppMoveControls( const DesktopWindowHandle& );
   void                DesktopAppDebugImGui(Errors&);
   void                DesktopAppReportErrors();
+
+  // -----------------------------------------------------------------------------------------------
 
   Errors&             GetMainErrors();
   bool                IsMainThread();

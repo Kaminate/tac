@@ -1,22 +1,23 @@
 #include "src/shell/windows/tac_win32_main.h" // self-inc
 
-#include "src/shell/windows/renderer/dx11/tac_renderer_dx11.h"
-#include "src/common/math/tac_math.h"
-#include "src/common/graphics/imgui/tac_imgui.h"
 #include "src/common/core/tac_algorithm.h"
 #include "src/common/core/tac_error_handling.h"
-#include "src/common/input/tac_keyboard_input.h"
-#include "src/common/system/tac_os.h"
 #include "src/common/core/tac_preprocessor.h"
 #include "src/common/dataprocess/tac_settings.h"
-#include "src/common/string/tac_string.h"
-#include "src/shell/tac_desktop_app.h"
-#include "src/shell/windows/net/tac_net_winsock.h"
-#include "src/shell/windows/tac_win32.h"
-#include "src/shell/windows/desktopwindow/tac_win32_desktop_window_manager.h"
-#include "src/shell/windows/input/tac_xinput.h"
-#include "src/shell/windows/input/tac_win32_mouse_edge.h"
+#include "src/common/graphics/imgui/tac_imgui.h"
+#include "src/common/input/tac_keyboard_input.h"
+#include "src/common/math/tac_math.h"
 #include "src/common/net/tac_net.h"
+#include "src/common/string/tac_string.h"
+#include "src/common/system/tac_os.h"
+#include "src/shell/tac_desktop_app.h"
+#include "src/shell/tac_desktop_event.h"
+#include "src/shell/windows/desktopwindow/tac_win32_desktop_window_manager.h"
+#include "src/shell/windows/input/tac_win32_mouse_edge.h"
+#include "src/shell/windows/input/tac_xinput.h"
+#include "src/shell/windows/net/tac_net_winsock.h"
+#include "src/shell/windows/renderer/dx11/tac_renderer_dx11.h"
+#include "src/shell/windows/tac_win32.h"
 
 import std; // #include <iostream> // okay maybe this should also be allowed
 
@@ -61,6 +62,7 @@ namespace Tac
   static void Win32FrameEnd( Errors& )
   {
     Win32MouseEdgeUpdate();
+    DesktopEvent( DesktopEventDataCursorUnobscured{ Win32MouseEdgeGetCursorHovered() } );
   }
 
   static void RedirectStreamBuf()

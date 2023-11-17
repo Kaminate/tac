@@ -53,14 +53,16 @@ add_library( TacDesktopApp OBJECT )
 target_sources( TacDesktopApp
   PRIVATE
   "tac_desktop_app.cpp"
+  "tac_desktop_app_renderers.cpp"
+  "tac_desktop_event.cpp"
   "tac_desktop_window_graphics.cpp"
   "tac_desktop_window_settings_tracker.cpp"
-  "tac_desktop_app_renderers.cpp"
   PUBLIC
-  "tac_desktop_window_graphics.h"
-  "tac_desktop_window_settings_tracker.h"
   "tac_desktop_app.h"
   "tac_desktop_app_renderers.h"
+  "tac_desktop_event.h"
+  "tac_desktop_window_graphics.h"
+  "tac_desktop_window_settings_tracker.h"
 )
 
 

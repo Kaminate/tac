@@ -6,6 +6,7 @@
 #pragma once
 
 #include "src/common/tac_common.h"
+#include "src/shell/windows/tac_win32.h"
 
 namespace Tac
 {
@@ -13,4 +14,5 @@ namespace Tac
   void Win32MouseEdgeUpdate();
   void Win32MouseEdgeSetMovable( const DesktopWindowHandle&, const DesktopWindowRect& );
   void Win32MouseEdgeSetResizable( const DesktopWindowHandle&, int );
+  DesktopWindowHandle Win32MouseEdgeGetCursorHovered();
 }

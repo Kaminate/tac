@@ -1,19 +1,20 @@
-#include "src/common/math/tac_math.h"
+#include "src/shell/windows/desktopwindow/tac_win32_desktop_window_manager.h" // self-inc
+
 #include "src/common/core/tac_algorithm.h"
-#include "src/common/profile/tac_profile.h"
-#include "src/common/system/tac_desktop_window.h"
 #include "src/common/core/tac_error_handling.h"
-#include "src/common/input/tac_keyboard_input.h"
-#include "src/common/system/tac_os.h"
-#include "src/common/graphics/imgui/tac_imgui.h"
 #include "src/common/core/tac_preprocessor.h"
 #include "src/common/dataprocess/tac_settings.h"
+#include "src/common/graphics/imgui/tac_imgui.h"
+#include "src/common/input/tac_keyboard_input.h"
+#include "src/common/math/tac_math.h"
+#include "src/common/profile/tac_profile.h"
 #include "src/common/string/tac_string.h"
+#include "src/common/system/tac_desktop_window.h"
+#include "src/common/system/tac_os.h"
 #include "src/shell/tac_desktop_app.h"
-#include "src/shell/windows/net/tac_net_winsock.h"
-#include "src/shell/windows/desktopwindow/tac_win32_desktop_window_manager.h"
+#include "src/shell/tac_desktop_event.h"
 #include "src/shell/windows/input/tac_win32_mouse_edge.h"
-//#include "src/shell/windows/input/tac_xinput.h"
+#include "src/shell/windows/net/tac_net_winsock.h"
 
 import std; // #include <set>
 
@@ -132,7 +133,8 @@ namespace Tac
       {
         ImGuiSaveWindowSettings();
         sHWNDs[ ( int )desktopWindowHandle ] = nullptr;
-        DesktopEventAssignHandle( desktopWindowHandle, nullptr, nullptr, 0, 0, 0, 0 );
+        
+        DesktopEvent( DesktopEventDataAssignHandle{ .mDesktopWindowHandle = desktopWindowHandle } );
       } break;
 
       case WM_CREATE:
@@ -142,13 +144,16 @@ namespace Tac
         auto windowInfo = ( const CREATESTRUCT* )lParam;
         TAC_ASSERT( windowInfo->cx && windowInfo->cy );
         TAC_ASSERT( windowInfo->lpszName );
-        DesktopEventAssignHandle( desktopWindowHandle,
-                                  hwnd,
-                                  windowInfo->lpszName,
-                                  windowInfo->x,
-                                  windowInfo->y,
-                                  windowInfo->cx,
-                                  windowInfo->cy );
+        DesktopEvent( DesktopEventDataAssignHandle
+          {
+              .mDesktopWindowHandle = desktopWindowHandle,
+              .mNativeWindowHandle = hwnd,
+              .mName = windowInfo->lpszName,
+              .mX = windowInfo->x,
+              .mY = windowInfo->y,
+              .mW = windowInfo->cx,
+              .mH = windowInfo->cy,
+          } );
       } break;
 
       // Indicates a request to terminate an application
@@ -162,23 +167,27 @@ namespace Tac
       // - notify the logic thread that the windowstate has been updated
       case WM_SIZE:
       {
-        const auto width = ( int )LOWORD( lParam );
-        const auto height = ( int )HIWORD( lParam );
-        DesktopEventResizeWindow( desktopWindowHandle,
-                                  width,
-                                  height );
+        const DesktopEventDataWindowResize data
+        {
+          .mDesktopWindowHandle = desktopWindowHandle,
+          .mWidth = ( int )LOWORD( lParam ),
+          .mHeight = ( int )HIWORD( lParam ),
+        };
+        DesktopEvent(data);
       } break;
       case WM_MOVE:
       {
-        const auto x = ( int )LOWORD( lParam );
-        const auto y = ( int )HIWORD( lParam );
-        DesktopEventMoveWindow( desktopWindowHandle,
-                                x,
-                                y );
+        const DesktopEventDataWindowMove data
+        {
+          .mDesktopWindowHandle = desktopWindowHandle,
+          .mX = ( int )LOWORD( lParam ),
+          .mY = ( int )HIWORD( lParam ),
+        };
+        DesktopEvent( data );
       } break;
       case WM_CHAR:
       {
-        DesktopEventKeyInput( ( Codepoint )wParam );
+        DesktopEvent( DesktopEventDataKeyInput{ ( Codepoint )wParam } );
       } break;
       case WM_SYSKEYDOWN: // fallthrough
       case WM_SYSKEYUP: // fallthrough
@@ -189,10 +198,17 @@ namespace Tac
         const bool isDown = ( lParam & ( ( LPARAM )1 << 31 ) ) == 0;
         if( isDown == wasDown )
           break;
+
         const Keyboard::Key key = GetKey( ( std::uint8_t )wParam );
         if( key == Keyboard::Key::Count )
           break;
-        DesktopEventKeyState( key, isDown );
+
+        const DesktopEventDataKeyState data
+        {
+          .mKey = key,
+          .mDown = isDown,
+        };
+        DesktopEvent(data);
       } break;
 
       //case WM_SETCURSOR:
@@ -253,7 +269,13 @@ namespace Tac
 
       case WM_LBUTTONDOWN:
       {
-        DesktopEventMouseButtonState( Mouse::Button::MouseLeft, true );
+
+        const DesktopEventDataMouseButtonState data
+        {
+          .mButton = Mouse::Button::MouseLeft,
+          .mDown = true,
+        };
+        DesktopEvent(data);
 
         // make it so clicking the window brings the window to the top of the z order
         SetActiveWindow( hwnd );
@@ -264,23 +286,43 @@ namespace Tac
 
       case WM_LBUTTONUP:
       {
-        DesktopEventMouseButtonState( Mouse::Button::MouseLeft, false );
+        const DesktopEventDataMouseButtonState data
+        {
+          .mButton = Mouse::Button::MouseLeft,
+          .mDown = false,
+        };
+        DesktopEvent(data);
       } break;
 
       case WM_RBUTTONDOWN:
       {
-        DesktopEventMouseButtonState( Mouse::Button::MouseRight, true );
+        const DesktopEventDataMouseButtonState data
+        {
+          .mButton = Mouse::Button::MouseRight,
+          .mDown = true,
+        };
+        DesktopEvent(data);
         //BringWindowToTop( mHWND );
         SetActiveWindow( hwnd ); // make it so clicking the window brings the window to the top of the z order
       } break;
       case WM_RBUTTONUP:
       {
-        DesktopEventMouseButtonState( Mouse::Button::MouseRight, false );
+        const DesktopEventDataMouseButtonState data
+        {
+          .mButton = Mouse::Button::MouseRight,
+          .mDown = false,
+        };
+        DesktopEvent(data);
       } break;
 
       case WM_MBUTTONDOWN:
       {
-        DesktopEventMouseButtonState( Mouse::Button::MouseMiddle, true );
+        const DesktopEventDataMouseButtonState data
+        {
+          .mButton = Mouse::Button::MouseMiddle,
+          .mDown = true,
+        };
+        DesktopEvent(data);
         //BringWindowToTop( mHWND );
 
         // make it so clicking the window brings the window to the top of the z order
@@ -288,7 +330,12 @@ namespace Tac
       } break;
       case WM_MBUTTONUP:
       {
-        DesktopEventMouseButtonState( Mouse::Button::MouseMiddle, false );
+        const DesktopEventDataMouseButtonState data
+        {
+          .mButton = Mouse::Button::MouseMiddle,
+          .mDown = false,
+        };
+        DesktopEvent(data);
       } break;
 
       case WM_MOUSEMOVE:
@@ -304,14 +351,22 @@ namespace Tac
 
         const int xPos = GET_X_LPARAM( lParam );
         const int yPos = GET_Y_LPARAM( lParam );
-        DesktopEventMouseMove( desktopWindowHandle, xPos, yPos );
+
+        const DesktopEventDataMouseMove data
+        {
+          .mDesktopWindowHandle = desktopWindowHandle,
+          .mX = xPos,
+          .mY = yPos,
+        };
+        DesktopEvent(data);
       } break;
 
       case WM_MOUSEWHEEL:
       {
         const short wheelDeltaParam = GET_WHEEL_DELTA_WPARAM( wParam );
         const short ticks = wheelDeltaParam / WHEEL_DELTA;
-        DesktopEventMouseWheel( ( int )ticks );
+        
+        DesktopEvent( DesktopEventDataMouseWheel{ ( int )ticks } );
       } break;
 
       case WM_MOUSELEAVE:

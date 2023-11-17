@@ -270,25 +270,12 @@ namespace Tac
     DeleteEntities();
   }
 
-  //===-------------- ExecutableStartupInfo -------------===//
+  //===-------------- App -------------===//
 
-  struct LevelEditorProjectFns : public ProjectFns
-  {
-    void ProjectInit( Errors& errors )  override { CreationInitCallback( errors ); }
-    void ProjectUpdate( Errors& errors )  override { CreationUpdateCallback( errors ); }
-    void ProjectUninit( Errors& errors )  override { CreationUninitCallback( errors ); }
-  };
-
-  static LevelEditorProjectFns sLevelEditorProjectFns;
-
-  ExecutableStartupInfo                ExecutableStartupInfo::Init()
-  {
-    return ExecutableStartupInfo
-    {
-      .mAppName = "Creation",
-      .mProjectFns = &sLevelEditorProjectFns,
-    };
-  }
+  void App::Init( Errors& errors ) { CreationInitCallback( errors ); }
+  void App::Update( Errors& errors ) { CreationUpdateCallback( errors ); }
+  void App::Uninit( Errors& errors ) { CreationUninitCallback( errors ); }
+  App App::sInstance = { .mName = "Level Editor" };
 
   //===-------------- Creation -------------===//
 

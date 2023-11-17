@@ -1,9 +1,9 @@
 #include "src/shell/windows/input/tac_win32_mouse_edge.h" // self-inc
 
-#include "src/shell/windows/tac_win32.h"
 #include "src/common/system/tac_desktop_window.h"
 #include "src/common/core/tac_preprocessor.h"
 #include "src/common/shell/tac_shell_timer.h"
+#include "src/shell/tac_desktop_event.h"
 #include "src/common/string/tac_string.h"
 #include "src/common/input/tac_keyboard_input.h"
 #include "src/common/system/tac_os.h"
@@ -66,6 +66,9 @@ namespace Tac
   static bool        mMouseDownPrev;
   static Timestamp   keyboardMoveT;
 
+  static HWND                sMouseHoveredHwnd;
+  static DesktopWindowHandle sMouseHoveredDesktopWindow;
+
   static HCURSOR GetCursor( CursorDir cursorDir )
   {
     // switch by the integral type cuz of the bit-twiddling
@@ -112,33 +115,34 @@ namespace Tac
   static HWND GetMouseHoveredHWND()
   {
     POINT cursorPos;
-    const bool cursorPosValid = 0 != ::GetCursorPos( &cursorPos );
-    if( !cursorPosValid )
+    if( !::GetCursorPos( &cursorPos ) )
       return NULL;
 
-    const HWND hoveredHwnd = ::WindowFromPoint( cursorPos );
-    const DesktopWindowHandle desktopWindowHandle = Win32WindowManagerFindWindow( hoveredHwnd );
-
-    DesktopEventMouseHoveredWindow( desktopWindowHandle );
-
-    if( !desktopWindowHandle.IsValid() )
-      return NULL;
-
-    return hoveredHwnd;
+    return ::WindowFromPoint( cursorPos );
   }
 
+  DesktopWindowHandle Win32MouseEdgeGetCursorHovered()
+  {
+    return sMouseHoveredDesktopWindow;
+  }
 
   static void UpdateIdle()
   {
-    const HWND windowHandle = GetMouseHoveredHWND();
+    if( !sMouseHoveredDesktopWindow.IsValid() )
+      return;
+
+    const DesktopWindowHandle desktopWindowHandle = sMouseHoveredDesktopWindow;
+    const HWND windowHandle = sMouseHoveredHwnd;
     if( !windowHandle )
       return;
 
     POINT cursorPos;
-    GetCursorPos( &cursorPos );
+    if( !GetCursorPos( &cursorPos ) )
+      return;
 
     RECT windowRect;
-    GetWindowRect( windowHandle, &windowRect );
+    if( !GetWindowRect( windowHandle, &windowRect ) )
+      return;
 
     if( cursorPos.x < windowRect.left ||
         cursorPos.x > windowRect.right ||
@@ -146,8 +150,7 @@ namespace Tac
         cursorPos.y < windowRect.top )
       return;
 
-    DesktopWindowHandle desktopWindowHandle = Win32WindowManagerFindWindow( windowHandle );
-    auto& mouseEdge = sMouseEdges[ ( int )desktopWindowHandle ];
+    MouseEdge& mouseEdge = sMouseEdges[ ( int )desktopWindowHandle ];
     const bool mouseEdgeMovable = ( int )mouseEdge.mFlags | ( int )MouseEdgeFlags::kMovable;
     const bool mouseEdgeResizable = ( int )mouseEdge.mFlags | ( int )MouseEdgeFlags::kResizable;
 
@@ -164,10 +167,11 @@ namespace Tac
     if( mCursorLock != cursorLock || !mEverSet )
     {
       mEverSet = true;
-      HCURSOR cursor = GetCursor( cursorLock );
+      const HCURSOR cursor = GetCursor( cursorLock );
       SetCursor( cursor );
       SetCursorLock( cursorLock );
     }
+
     if( mMouseDownCurr && !mMouseDownPrev )
     {
       const int moveH = mouseEdge.mWindowSpaceMoveRect.mBottom - mouseEdge.mWindowSpaceMoveRect.mTop;
@@ -209,14 +213,18 @@ namespace Tac
     Mouse::TryConsumeMouseMovement( &keyboardMoveT, TAC_STACK_FRAME );
 
     POINT cursorPos;
-    GetCursorPos( &cursorPos );
+    if( !GetCursorPos( &cursorPos ))
+      return;
+
     LONG dx = cursorPos.x - mCursorPositionOnClick.x;
     LONG dy = cursorPos.y - mCursorPositionOnClick.y;
+
     RECT rect = mWindowRectOnClick;
     rect.bottom += mCursorLock & CursorDirN ? dy : 0;
     rect.top += mCursorLock & CursorDirS ? dy : 0;
     rect.left += mCursorLock & CursorDirE ? dx : 0;
     rect.right += mCursorLock & CursorDirW ? dx : 0;
+
     int x = rect.left;
     int y = rect.top;
     int w = rect.right - rect.left;
@@ -235,7 +243,9 @@ namespace Tac
     Mouse::TryConsumeMouseMovement( &keyboardMoveT, TAC_STACK_FRAME );
 
     POINT cursorPos;
-    GetCursorPos( &cursorPos );
+    if( !GetCursorPos( &cursorPos ) )
+      return;
+
     int x = mWindowRectOnClick.left + cursorPos.x - mCursorPositionOnClick.x;
     int y = mWindowRectOnClick.top + cursorPos.y - mCursorPositionOnClick.y;
     int w = mWindowRectOnClick.right - mWindowRectOnClick.left;
@@ -243,7 +253,7 @@ namespace Tac
     SetWindowPos( mHwnd, nullptr, x, y, w, h, SWP_ASYNCWINDOWPOS );
   }
 
-  void SetCursor( CursorDir cursorDir )
+  void SetCursor( const CursorDir cursorDir )
   {
     const HCURSOR cursor = GetCursor( cursorDir );
     SetCursor( cursor );
@@ -268,6 +278,9 @@ namespace Tac
 
   void Win32MouseEdgeUpdate()
   {
+    sMouseHoveredHwnd = GetMouseHoveredHWND();
+    sMouseHoveredDesktopWindow = Win32WindowManagerFindWindow( sMouseHoveredHwnd );
+
     mMouseDownPrev = mMouseDownCurr;
     mMouseDownCurr = GetKeyState( VK_LBUTTON ) & 0x100;
     switch( mHandlerType )
