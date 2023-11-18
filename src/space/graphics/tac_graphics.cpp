@@ -124,7 +124,7 @@ namespace Tac
 
   void      GraphicsDebugImgui( System* ); // Defined in tacgraphicsdebug.cpp
 
-  void      RegisterGraphicsSystem()
+  void      Graphics::SpaceInitGraphics()
   {
     gGraphicsSystemRegistryEntry = SystemRegisterNewEntry();
     gGraphicsSystemRegistryEntry->mCreateFn = CreateGraphicsSystem;

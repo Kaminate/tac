@@ -322,4 +322,10 @@ namespace Tac
     errors.Append( ss.str().c_str() );
   }
 
+  IDXGIAdapter* DXGIGetAdapter()
+  {
+    TAC_ASSERT( mDxgiAdapter4 );
+    return mDxgiAdapter4;
+  }
+
 }

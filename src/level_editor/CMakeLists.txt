@@ -6,19 +6,6 @@ if(NOT (WIN32 OR UNIX) )
 endif()
 
 
-
-
-#
-#find_package( Vulkan )
-#if( Vulkan_FOUND )
-#  list( APPEND TAC_SOURCES ${Vulkan_INCLUDE_DIRS} ${TAC_VULKAN_SOURCE_FILES} )
-#  if( WIN32 AND FALSE)
-#    list( APPEND TAC_SOURCES "${CMAKE_SOURCE_DIR}/src/shell/windows/tac_renderer_vulkan_win32.cpp" )
-#  endif()
-#  list( APPEND TAC_LIBRARIES Vulkan::Vulkan )
-#endif()
-
-
 function( tac_target )
   if( WIN32 )
     add_executable( ${TAC_TARGET_NAME} WIN32 )
@@ -49,9 +36,6 @@ function( tac_target )
       "${CMAKE_SOURCE_DIR}/src/shell/opengl/tac_renderer_opengl4.cpp"
       "${CMAKE_SOURCE_DIR}/src/shell/opengl/tac_renderer_opengl4.h"
     )
-    if( WIN32 AND FALSE )
-      list( APPEND TAC_SOURCES "${CMAKE_SOURCE_DIR}/src/shell/windows/tac_renderer_opengl4_win32.cpp" )
-    endif()
     target_link_libraries( ${TAC_TARGET_NAME} OpenGL::GL ) 
   endif()
 
@@ -84,7 +68,6 @@ if( SDL2_FOUND AND FALSE )
 
   tac_target()
 
-  target_sources( ${TAC_TARGET_NAME} ${TAC_SOURCES} )
   target_sources( ${TAC_TARGET_NAME} ${TAC_SDL_MAIN_FILES} )
 
 

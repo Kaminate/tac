@@ -27,9 +27,9 @@ namespace Tac
     virtual void    VisitLights( LightVisitor* ) const = 0;
 
     void            DebugImgui() override;
+    static void     SpaceInitGraphics();
   };
 
-  void              RegisterGraphicsSystem();
   Graphics*         GetGraphics( World* );
   const Graphics*   GetGraphics( const World* );
 }

@@ -35,6 +35,9 @@ namespace Tac
   const char*      TryInferDXGIErrorStr( HRESULT );
 
 
+  //               represents a display subsystem (GPU, VRAM, etc)
+  IDXGIAdapter*    DXGIGetAdapter();
+
 
 } // namespace Tac
 

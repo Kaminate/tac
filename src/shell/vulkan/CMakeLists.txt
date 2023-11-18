@@ -28,7 +28,6 @@ target_precompile_headers( TacVkRenderer PRIVATE "${CMAKE_SOURCE_DIR}/src/common
 set_target_properties(TacVkRenderer PROPERTIES LINKER_LANGUAGE CXX)
 
 if( WIN32 )
-  #  list( APPEND TAC_SOURCES "${CMAKE_SOURCE_DIR}/src/shell/windows/tac_renderer_vulkan_win32.cpp" )
   add_definitions(/ZI) # produce separate pdb file ( implies /debug )
 endif()
 

@@ -13,11 +13,7 @@ target_sources( TacExamples PRIVATE
   "tac_examples_state_machine.h"
 )
 
-set( TAC_SOURCES 
-  CACHE INTERNAL "" FORCE )
-
-# These append to TAC_SOURCES
-add_subdirectory( d3d11 )
+add_subdirectory( dx12 )
 add_subdirectory( fluid )
 add_subdirectory( meta )
 add_subdirectory( phy_sim )
@@ -25,17 +21,12 @@ add_subdirectory( vk )
 add_subdirectory( text )
 add_subdirectory( imgui )
 
-target_sources( TacExamples PRIVATE ${TAC_SOURCES} )
-
-
 function( tac_target )
   if( WIN32 )
     add_executable( ${PROJECT_NAME} WIN32 )
   else()
     add_executable( ${PROJECT_NAME} )
   endif()
-
-  # target_sources( ${PROJECT_NAME} PRIVATE ${TAC_SOURCES} )
 
   target_link_libraries( ${PROJECT_NAME}
     TacCommon
