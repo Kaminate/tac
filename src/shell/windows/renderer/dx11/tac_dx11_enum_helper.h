@@ -1,5 +1,3 @@
-// This file implements the rendering backend using directx11
-
 #pragma once
 
 #include "src/common/graphics/tac_renderer.h"

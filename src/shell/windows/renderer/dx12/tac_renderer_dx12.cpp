@@ -46,63 +46,6 @@ namespace Tac
 
 bool isGraphicsDebugging = true;
 
-static D3D12_COMPARISON_FUNC GetDepthFuncDX12( DepthFunc depthFunc )
-{
-  switch( depthFunc )
-  {
-  case DepthFunc::Less: return D3D12_COMPARISON_FUNC_LESS;
-  case DepthFunc::LessOrEqual: return D3D12_COMPARISON_FUNC_LESS_EQUAL;
-    TAC_ASSERT_INVALID_DEFAULT_CASE( depthFunc );
-  }
-  return D3D12_COMPARISON_FUNC_LESS;
-}
-
-static D3D12_FILL_MODE GetFillModeDX12( FillMode fillMode )
-{
-  switch( fillMode )
-  {
-  case FillMode::Solid: return D3D12_FILL_MODE_SOLID;
-  case FillMode::Wireframe:return D3D12_FILL_MODE_WIREFRAME;
-    TAC_ASSERT_INVALID_DEFAULT_CASE( fillMode );
-  }
-  return D3D12_FILL_MODE_SOLID;
-}
-
-static D3D12_CULL_MODE GetCullModeDX12( CullMode cullMode )
-{
-  switch( cullMode )
-  {
-  case CullMode::None: return D3D12_CULL_MODE_NONE;
-  case CullMode::Back: return D3D12_CULL_MODE_BACK;
-  case CullMode::Front: return D3D12_CULL_MODE_FRONT;
-    TAC_ASSERT_INVALID_DEFAULT_CASE( cullMode );
-  }
-  return D3D12_CULL_MODE_NONE;
-}
-
-static D3D12_BLEND GetBlendDX12( BlendConstants blendConstants )
-{
-  switch( blendConstants )
-  {
-  case BlendConstants::One: return D3D12_BLEND_ONE;
-  case BlendConstants::Zero: return D3D12_BLEND_ZERO;
-  case BlendConstants::SrcRGB: return D3D12_BLEND_SRC_COLOR;
-  case BlendConstants::SrcA: return D3D12_BLEND_SRC_ALPHA;
-  case BlendConstants::OneMinusSrcA: return D3D12_BLEND_INV_SRC_ALPHA;
-    TAC_ASSERT_INVALID_DEFAULT_CASE( blendConstants );
-  }
-  return D3D12_BLEND_ONE;
-}
-
-static D3D12_BLEND_OP GetBlendOpDX12( BlendMode blendMode )
-{
-  switch( blendMode )
-  {
-  case BlendMode::Add: return D3D12_BLEND_OP_ADD;
-    TAC_ASSERT_INVALID_DEFAULT_CASE( blendMode );
-  }
-  return D3D12_BLEND_OP_ADD;
-}
 
 static Vector< WCHAR > ToWChar( const String& str )
 {

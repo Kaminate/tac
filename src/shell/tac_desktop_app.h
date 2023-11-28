@@ -8,12 +8,26 @@ namespace Tac
 {
   struct App
   {
-    void Init( Errors& );
-    void Update( Errors& );
-    void Uninit( Errors& );
-    static App sInstance;
-    String mName;
-    String mStudioName = "Sleeping Studio";
+    void        Init( Errors& );
+    void        Update( Errors& );
+    void        Uninit( Errors& );
+
+    static App  sInstance;
+
+    String      mName;
+    String      mStudioName = "Sleeping Studio";
+    bool        mDisableRenderer;
+  };
+
+  // -----------------------------------------------------------------------------------------------
+
+  struct DesktopAppCreateWindowParams
+  {
+    const char* mName = "";
+    int         mX = 0;
+    int         mY = 0;
+    int         mWidth = 0;
+    int         mHeight = 0;
   };
 
   // -----------------------------------------------------------------------------------------------
@@ -62,11 +76,7 @@ namespace Tac
 
   void                DesktopAppInit( PlatformFns*, Errors& );
   void                DesktopAppRun( Errors& );
-  DesktopWindowHandle DesktopAppCreateWindow( const char* name = nullptr,
-                                              int x = 0,
-                                              int y = 0,
-                                              int width = 0,
-                                              int height = 0 );
+  DesktopWindowHandle DesktopAppCreateWindow( const DesktopAppCreateWindowParams& );
   void                DesktopAppDestroyWindow( const DesktopWindowHandle& );
   void                DesktopAppUpdate( Errors& );
   void                DesktopAppResizeControls( const DesktopWindowHandle&, int edgePx = 7 );

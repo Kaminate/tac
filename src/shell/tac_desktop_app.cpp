@@ -109,6 +109,8 @@ namespace Tac
   static RequestResize                 sRequestResize[ kDesktopWindowCapacity ];
   thread_local ThreadType              gThreadType = ThreadType::Unknown;
 
+  static bool                          sRenderEnabled;
+
   static void DesktopAppUpdateWindowRequests(Errors&errors)
   {
     sWindowHandleLock.lock();
@@ -186,7 +188,8 @@ namespace Tac
     if( gLogicThreadErrors )
       OS::OSAppStopRunning();
 
-    Render::SubmitFinish();
+    if( sRenderEnabled )
+      Render::SubmitFinish();
   }
 
   static void LogicThread()
@@ -252,7 +255,8 @@ namespace Tac
         Mouse::MouseEndFrame();
       }
 
-      Render::SubmitFrame();
+      if( sRenderEnabled )
+        Render::SubmitFrame();
 
       DontMaxOutCpuGpuPowerUsage();
       ShellIncrementFrameCounter();
@@ -264,7 +268,9 @@ namespace Tac
   {
     if( gPlatformThreadErrors )
       OS::OSAppStopRunning();
-    Render::RenderFinish();
+
+    if( sRenderEnabled )
+      Render::RenderFinish();
   }
 
   static void PlatformThreadInit( Errors& errors )
@@ -294,8 +300,11 @@ namespace Tac
       sPlatformFns->PlatformFrameEnd( errors );
       TAC_HANDLE_ERROR( errors );
 
-      Render::RenderFrame( errors );
-      TAC_HANDLE_ERROR( errors );
+      if( sRenderEnabled )
+      {
+        Render::RenderFrame( errors );
+        TAC_HANDLE_ERROR( errors );
+      }
 
       DontMaxOutCpuGpuPowerUsage();
     }
@@ -624,6 +633,8 @@ namespace Tac
     DesktopEventInit();
 
     App& info = App::sInstance;
+    sRenderEnabled = !info.mDisableRenderer;
+
     TAC_ASSERT( !info.mName.empty() );
 
 
@@ -648,15 +659,18 @@ namespace Tac
     sPlatformFns = platformFns;
 
     // right place?
-    ShellSetAppName( App::sInstance.mName.c_str() );
+    ShellSetAppName( info.mName );
     ShellSetPrefPath( appDataPath );
     ShellSetInitialWorkingDir( workingDir );
 
     SettingsInit( errors );
     TAC_HANDLE_ERROR( errors );
 
-    DesktopInitRendering(errors);
-    TAC_HANDLE_ERROR( errors );
+    if( sRenderEnabled )
+    {
+      DesktopInitRendering( errors );
+      TAC_HANDLE_ERROR( errors );
+    }
   }
 
   void                DesktopAppRun( Errors& errors )
@@ -699,18 +713,18 @@ namespace Tac
     request->mRequested = true;
   }
 
-  DesktopWindowHandle DesktopAppCreateWindow( const char* name, int x, int y, int width, int height )
+  DesktopWindowHandle DesktopAppCreateWindow( const DesktopAppCreateWindowParams& desktopParams )
   {
     sWindowHandleLock.lock();
     const DesktopWindowHandle handle = { sDesktopWindowHandleIDs.Alloc() };
     const PlatformSpawnWindowParams info =
     {
       .mHandle = handle,
-      .mName = name,
-      .mX = x,
-      .mY = y,
-      .mWidth = width,
-      .mHeight = height,
+      .mName = desktopParams.mName,
+      .mX = desktopParams.mX,
+      .mY = desktopParams.mY,
+      .mWidth = desktopParams.mWidth,
+      .mHeight = desktopParams.mHeight,
     };
     sWindowRequestsCreate.push_back( info );
     sWindowHandleLock.unlock();
@@ -748,6 +762,24 @@ namespace Tac
     DesktopAppReportError( "Logic Thread", gLogicThreadErrors );
   }
 
+  static void         DesktopAppDebugImGuiHoveredWindow()
+  {
+    const DesktopWindowHandle hoveredHandle = sPlatformFns->PlatformGetMouseHoveredWindow();
+    const DesktopWindowState* hovered = GetDesktopWindowState( hoveredHandle );
+    if( !hovered )
+    {
+      ImGuiText( "Hovered window: <none>" );
+      return;
+    }
+
+    const ShortFixedString text = ShortFixedString::Concat(
+      "Hovered window: ",
+      ToString( hoveredHandle.GetIndex() ),
+      " ",
+      hovered->mName );
+    ImGuiText( text );
+  }
+
   void                DesktopAppDebugImGui(Errors& errors)
   {
     if( !ImGuiCollapsingHeader("DesktopAppDebugImGui"))
@@ -757,19 +789,7 @@ namespace Tac
 
     DesktopWindowDebugImgui();
 
-    {
-      ShortFixedString text = "Hovered window: <none>";
-      const DesktopWindowHandle hoveredHandle = sPlatformFns->PlatformGetMouseHoveredWindow();
-      if( const DesktopWindowState* hovered = GetDesktopWindowState( hoveredHandle ) )
-      {
-        text = "Hovered window: ";
-        text += ToString(hoveredHandle.GetIndex());
-        text += " ";
-        text += ( StringView )hovered->mName;
-      }
-
-      ImGuiText( text );
-    }
+    DesktopAppDebugImGuiHoveredWindow();
 
     sPlatformFns->PlatformImGui(errors);
   }

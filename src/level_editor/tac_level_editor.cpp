@@ -401,7 +401,16 @@ namespace Tac
   {
     int x, y, w, h;
     GetWindowsJsonData( name, &x, &y, &w, &h );
-    DesktopWindowHandle desktopWindowHandle = DesktopAppCreateWindow( name, x, y, w, h );
+
+    const DesktopAppCreateWindowParams createParams
+    {
+      .mName = name,
+      .mX = x,
+      .mY = y,
+      .mWidth = w,
+      .mHeight = h,
+    };
+    const DesktopWindowHandle desktopWindowHandle = DesktopAppCreateWindow(createParams);
     AddCreatedWindowData( desktopWindowHandle, name, x, y, w, h );
 
     DesktopAppMoveControls( desktopWindowHandle );
@@ -409,7 +418,11 @@ namespace Tac
     return desktopWindowHandle;
   }
 
-  void                Creation::GetWindowsJsonData( StringView windowName, int* x, int* y, int* w, int* h )
+  void                Creation::GetWindowsJsonData( StringView windowName,
+                                                    int* x,
+                                                    int* y,
+                                                    int* w,
+                                                    int* h )
   {
     Json* windowJson = FindWindowJson( windowName );
     if( !windowJson )

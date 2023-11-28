@@ -34,16 +34,29 @@ namespace Tac
     w = ( int )SettingsGetNumber( "w", w, json );
     h = ( int )SettingsGetNumber( "h", h, json );
     const char* name = path; // just reuse it
-    DesktopWindowHandle desktopWindowHandle = DesktopAppCreateWindow( name, x, y, w, h );
+
+    const DesktopAppCreateWindowParams createParams
+    {
+      .mName = path,
+      .mX = x,
+      .mY = y,
+      .mWidth = w,
+      .mHeight = h,
+    };
+
+    const DesktopWindowHandle desktopWindowHandle = DesktopAppCreateWindow( createParams );
     DesktopAppMoveControls( desktopWindowHandle );
     DesktopAppResizeControls( desktopWindowHandle );
-    TrackInfo info;
-    info.mPath = path;
-    info.mDesktopWindowHandle = desktopWindowHandle;
-    info.mX = x;
-    info.mY = y;
-    info.mW = w;
-    info.mH = h;
+
+    const TrackInfo info
+    {
+      .mPath = path,
+      .mDesktopWindowHandle = desktopWindowHandle,
+      .mX = x,
+      .mY = y,
+      .mW = w,
+      .mH = h,
+    };
     sTrackInfos.push_back( info );
     return desktopWindowHandle;
   }

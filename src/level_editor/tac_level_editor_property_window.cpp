@@ -177,10 +177,10 @@ namespace Tac
       TAC_IMGUI_INDENT_BLOCK;
       for( const ComponentRegistryEntry* componentType : addableComponentTypes )
       {
-        ShortFixedString str;
-        str += "Add ";
-        str += componentType->mName;
-        str += " component";
+        const ShortFixedString str = ShortFixedString::Concat(
+          "Add ",
+          componentType->mName,
+          " component" );
 
         if( ImGuiButton( str ) )
         {

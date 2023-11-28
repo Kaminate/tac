@@ -26,13 +26,17 @@ namespace Tac
 
     int windowWidth = ( int )( 0.8f * monitorWidth );
     int windowHeight = ( int )( 0.8f * monitorHeight );
-    int windowX = 0;
-    int windowY = 0;
-    mDesktopWindowHandle = DesktopAppCreateWindow( App::sInstance.mName,
-                                                   windowX,
-                                                   windowY,
-                                                   windowWidth,
-                                                   windowHeight );
+
+    const DesktopAppCreateWindowParams params
+    {
+      .mName = App::sInstance.mName,
+      .mX = 0,
+      .mY = 0,
+      .mWidth = windowWidth,
+      .mHeight = windowHeight,
+    };
+
+    mDesktopWindowHandle = DesktopAppCreateWindow(params);
     TAC_HANDLE_ERROR( errors );
 
 

@@ -12,7 +12,6 @@ namespace Tac
 
   enum class DesktopEventType
   {
-    Unknown = 0,
     WindowAssignHandle,
     WindowResize,
     WindowMove,
@@ -22,6 +21,7 @@ namespace Tac
     KeyInput,
     MouseWheel,
     MouseMove,
+    Count,
   };
 
   // -----------------------------------------------------------------------------------------------
@@ -31,7 +31,7 @@ namespace Tac
     void       Init();
 
     template< typename T >
-    void       QueuePush( DesktopEventType type, const T* t )
+    void       QueuePush( const DesktopEventType type, const T* t )
     {
       static_assert( std::is_trivially_copyable_v<T> );
       QueuePush( type, t, sizeof( T ) );
@@ -76,6 +76,7 @@ namespace Tac
     // Tac::WindowProc still spews out events while a popupbox is open
     if( mQueue.capacity() - mQueue.size() < ( int )sizeof( DesktopEventType ) + dataByteCount )
       return;
+
     mQueue.Push( &desktopEventType, sizeof( DesktopEventType ) );
     mQueue.Push( dataBytes, dataByteCount );
   }
@@ -95,14 +96,123 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
+  using EventHandler = void( * )( );
+
   static DesktopEventQueueImpl         sEventQueue;
+  static EventHandler sEventHandlers[ ( int )DesktopEventType::Count ];
 
   // -----------------------------------------------------------------------------------------------
+
+
+  static void HandleDesktopEvent( DesktopEventDataAssignHandle data )
+  {
+
+    DesktopWindowState* desktopWindowState = GetDesktopWindowState( data.mDesktopWindowHandle );
+    if( desktopWindowState->mNativeWindowHandle != data.mNativeWindowHandle )
+    {
+      WindowGraphicsNativeHandleChanged( data.mDesktopWindowHandle,
+                                         data.mNativeWindowHandle,
+                                         data.mName,
+                                         data.mX,
+                                         data.mY,
+                                         data.mW,
+                                         data.mH );
+    }
+    desktopWindowState->mNativeWindowHandle = data.mNativeWindowHandle;
+    desktopWindowState->mName = ( StringView )data.mName;
+    desktopWindowState->mWidth = data.mW;
+    desktopWindowState->mHeight = data.mH;
+    desktopWindowState->mX = data.mX;
+    desktopWindowState->mY = data.mY;
+  }
+
+  static void HandleDesktopEvent( DesktopEventDataWindowMove data )
+  {
+    DesktopWindowState* state = GetDesktopWindowState( data.mDesktopWindowHandle );
+    state->mX = data.mX;
+    state->mY = data.mY;
+  }
+
+  static void HandleDesktopEvent( DesktopEventDataWindowResize data )
+  {
+    DesktopWindowState* desktopWindowState = GetDesktopWindowState( data.mDesktopWindowHandle );
+    desktopWindowState->mWidth = data.mWidth;
+    desktopWindowState->mHeight = data.mHeight;
+    WindowGraphicsResize( data.mDesktopWindowHandle,
+                          desktopWindowState->mWidth,
+                          desktopWindowState->mHeight );
+  }
+
+  static void HandleDesktopEvent( DesktopEventDataKeyInput data )
+  {
+    Keyboard::KeyboardSetWMCharPressedHax( data.mCodepoint );
+  }
+
+  static void HandleDesktopEvent( DesktopEventDataKeyState data )
+  {
+    Keyboard::KeyboardSetIsKeyDown( data.mKey, data.mDown );
+  }
+
+  static void HandleDesktopEvent( DesktopEventDataMouseButtonState data )
+  {
+    Mouse::ButtonSetIsDown( data.mButton, data.mDown );
+  }
+
+  static void HandleDesktopEvent( DesktopEventDataMouseWheel data )
+  {
+    Mouse::MouseWheelEvent( data.mDelta );
+  }
+
+  static void HandleDesktopEvent( DesktopEventDataMouseMove data )
+  {
+    const DesktopWindowState* desktopWindowState = GetDesktopWindowState( data.mDesktopWindowHandle );
+    const v2 windowPos = desktopWindowState->GetPosV2();
+    const v2 dataPos( ( float )data.mX, ( float )data.mY );
+    const v2 pos = windowPos + dataPos;
+    Mouse::SetScreenspaceCursorPos( pos );
+  }
+
+  static void HandleDesktopEvent( DesktopEventDataCursorUnobscured data )
+  {
+    SetHoveredWindow( data.mDesktopWindowHandle );
+  }
+
+  template< typename T >
+  static void HandleDesktopEventT()
+  {
+      const auto data = sEventQueue.QueuePop<T>();
+      HandleDesktopEvent( data );
+  }
+
+  // -----------------------------------------------------------------------------------------------
+
+  static void RegisterDesktopEventHandler( DesktopEventType type, EventHandler handler )
+  {
+    sEventHandlers[ ( int )type ] = handler;
+  }
+
+  template< typename T >
+  static void RegisterDesktopEventHandlerT( DesktopEventType type )
+  {
+     EventHandler handler  = HandleDesktopEventT< T >;
+
+    RegisterDesktopEventHandler( type, handler );
+  }
 
   void         DesktopEventInit()
   {
     TAC_ASSERT( IsMainThread() );
     sEventQueue.Init();
+
+    RegisterDesktopEventHandlerT<DesktopEventDataAssignHandle>( DesktopEventType::WindowAssignHandle );
+    RegisterDesktopEventHandlerT<DesktopEventDataWindowResize>( DesktopEventType::WindowResize );
+    RegisterDesktopEventHandlerT<DesktopEventDataWindowMove>( DesktopEventType::WindowMove );
+    RegisterDesktopEventHandlerT<DesktopEventDataCursorUnobscured>( DesktopEventType::CursorUnobscured );
+    RegisterDesktopEventHandlerT<DesktopEventDataKeyState>( DesktopEventType::KeyState);
+    RegisterDesktopEventHandlerT<DesktopEventDataMouseButtonState>( DesktopEventType::MouseButtonState);
+    RegisterDesktopEventHandlerT<DesktopEventDataKeyInput>( DesktopEventType::KeyInput);
+    RegisterDesktopEventHandlerT<DesktopEventDataMouseWheel>( DesktopEventType::MouseWheel);
+    RegisterDesktopEventHandlerT<DesktopEventDataMouseMove>( DesktopEventType::MouseMove);
   }
 
   void         DesktopEventApplyQueue()
@@ -110,138 +220,109 @@ namespace Tac
     TAC_ASSERT( IsLogicThread() );
     while( !sEventQueue.Empty() )
     {
-      //DesktopEventType desktopEventType = {};
-      //if( !sEventQueue.QueuePop( &desktopEventType, sizeof( DesktopEventType ) ) )
-      //  break;
       const auto desktopEventType = sEventQueue.QueuePop<DesktopEventType>();
+      const EventHandler handler = sEventHandlers[ (int)desktopEventType ];
+      TAC_ASSERT(handler);
+      handler();
+
+#if TAC_DELETE_ME()
 
       switch( desktopEventType )
       {
       case DesktopEventType::WindowAssignHandle:
       {
-        //DesktopEventDataAssignHandle data;
-        //sEventQueue.QueuePop( &data, sizeof( data ) );
         const auto data = sEventQueue.QueuePop<DesktopEventDataAssignHandle>();
-        DesktopWindowState* desktopWindowState = GetDesktopWindowState( data.mDesktopWindowHandle );
-        if( desktopWindowState->mNativeWindowHandle != data.mNativeWindowHandle )
-          //if( !desktopWindowState->mNativeWindowHandle )
-        {
-          WindowGraphicsNativeHandleChanged( data.mDesktopWindowHandle,
-                                             data.mNativeWindowHandle,
-                                             data.mName,
-                                             data.mX,
-                                             data.mY,
-                                             data.mW,
-                                             data.mH );
-        }
-        desktopWindowState->mNativeWindowHandle = data.mNativeWindowHandle;
-        desktopWindowState->mName = (StringView)data.mName;
-        desktopWindowState->mWidth = data.mW;
-        desktopWindowState->mHeight = data.mH;
-        desktopWindowState->mX = data.mX;
-        desktopWindowState->mY = data.mY;
+        HandleDesktopEvent( data );
       } break;
 
       case DesktopEventType::WindowMove:
       {
-        const auto data= sEventQueue.QueuePop<DesktopEventDataWindowMove>();
-        DesktopWindowState* state = GetDesktopWindowState( data.mDesktopWindowHandle );
-        state->mX = data.mX;
-        state->mY = data.mY;
+        const auto data = sEventQueue.QueuePop<DesktopEventDataWindowMove>();
+        HandleDesktopEvent( data );
       } break;
 
       case DesktopEventType::WindowResize:
       {
-        const auto data= sEventQueue.QueuePop<DesktopEventDataWindowResize>();
-        DesktopWindowState* desktopWindowState = GetDesktopWindowState( data.mDesktopWindowHandle );
-        desktopWindowState->mWidth = data.mWidth;
-        desktopWindowState->mHeight = data.mHeight;
-        WindowGraphicsResize( data.mDesktopWindowHandle,
-                              desktopWindowState->mWidth,
-                              desktopWindowState->mHeight );
+        const auto data = sEventQueue.QueuePop<DesktopEventDataWindowResize>();
+        HandleDesktopEvent( data );
       } break;
 
       case DesktopEventType::KeyInput:
       {
-        const auto data= sEventQueue.QueuePop<DesktopEventDataKeyInput>();
-        Keyboard::KeyboardSetWMCharPressedHax(data.mCodepoint);
+        const auto data = sEventQueue.QueuePop<DesktopEventDataKeyInput>();
+        HandleDesktopEvent( data );
       } break;
 
       case DesktopEventType::KeyState:
       {
         const auto data = sEventQueue.QueuePop<DesktopEventDataKeyState>();
-        Keyboard::KeyboardSetIsKeyDown( data.mKey, data.mDown );
+        HandleDesktopEvent( data );
       } break;
 
       case DesktopEventType::MouseButtonState:
       {
         const auto  data = sEventQueue.QueuePop<DesktopEventDataMouseButtonState>();
-        Mouse::ButtonSetIsDown( data.mButton, data.mDown );
+        HandleDesktopEvent( data );
       } break;
 
       case DesktopEventType::MouseWheel:
       {
         const auto data = sEventQueue.QueuePop<DesktopEventDataMouseWheel>();
-        Mouse::MouseWheelEvent(data.mDelta);
+        HandleDesktopEvent( data );
       } break;
 
       case DesktopEventType::MouseMove:
       {
         const auto data = sEventQueue.QueuePop<DesktopEventDataMouseMove>();
-        const DesktopWindowState* desktopWindowState = GetDesktopWindowState( data.mDesktopWindowHandle );
-        const v2 windowPos = desktopWindowState->GetPosV2();
-        const v2 dataPos( ( float )data.mX, ( float )data.mY );
-        const v2 pos = windowPos + dataPos;
-        Mouse::SetScreenspaceCursorPos( pos );
+        HandleDesktopEvent( data );
       } break;
 
       case DesktopEventType::CursorUnobscured:
       {
         const auto data = sEventQueue.QueuePop<DesktopEventDataCursorUnobscured>();
-        SetHoveredWindow( data.mDesktopWindowHandle );
+        HandleDesktopEvent( data );
       } break;
 
-      default:
-        TAC_ASSERT_INVALID_CASE( desktopEventType );
-        break;
+      default: TAC_ASSERT_INVALID_CASE( desktopEventType ); break;
       }
+#endif
     }
   }
 
 
   // -----------------------------------------------------------------------------------------------
 
-  void                DesktopEvent( const DesktopEventDataAssignHandle& data)
+  void                DesktopEvent( const DesktopEventDataAssignHandle& data )
   {
     sEventQueue.QueuePush( DesktopEventType::WindowAssignHandle, &data );
   }
 
-  void                DesktopEvent(const DesktopEventDataWindowMove& data)
+  void                DesktopEvent( const DesktopEventDataWindowMove& data )
   {
     sEventQueue.QueuePush( DesktopEventType::WindowMove, &data );
   }
 
-  void                DesktopEvent( const DesktopEventDataWindowResize& data)
+  void                DesktopEvent( const DesktopEventDataWindowResize& data )
   {
     sEventQueue.QueuePush( DesktopEventType::WindowResize, &data );
   }
 
-  void                DesktopEvent(const DesktopEventDataMouseWheel& data)
+  void                DesktopEvent( const DesktopEventDataMouseWheel& data )
   {
     sEventQueue.QueuePush( DesktopEventType::MouseWheel, &data );
   }
 
-  void                DesktopEvent( const DesktopEventDataMouseMove& data)
+  void                DesktopEvent( const DesktopEventDataMouseMove& data )
   {
     sEventQueue.QueuePush( DesktopEventType::MouseMove, &data );
   }
 
-  void                DesktopEvent( const DesktopEventDataKeyState& data)
+  void                DesktopEvent( const DesktopEventDataKeyState& data )
   {
     sEventQueue.QueuePush( DesktopEventType::KeyState, &data );
   }
 
-  void                DesktopEvent( const DesktopEventDataMouseButtonState& data)
+  void                DesktopEvent( const DesktopEventDataMouseButtonState& data )
   {
     sEventQueue.QueuePush( DesktopEventType::MouseButtonState, &data );
   }
@@ -251,7 +332,7 @@ namespace Tac
     sEventQueue.QueuePush( DesktopEventType::KeyInput, &data );
   }
 
-  void                DesktopEvent( const DesktopEventDataCursorUnobscured& data)
+  void                DesktopEvent( const DesktopEventDataCursorUnobscured& data )
   {
     sEventQueue.QueuePush( DesktopEventType::CursorUnobscured, &data );
   }

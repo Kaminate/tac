@@ -2,6 +2,21 @@
 
 ---
 
+## to const ref or pass by value
+
+Should Tac::StringView be passed by `const StringView&` or by `StringView`?
+According to the internet, the pass by reference may involve
+- taking an address/dereferencing
+- pointer aliasing with other parameters
+- memory being reloaded even though the variable is const, the variable behind may possibly change
+whereas the pass by value can fit the data in cpu registers.
+
+On the otherhand, the pass by reference means we can forward declare our type and possbly compile faster.
+A contrived example on godbolt shows the same assembly, but the example may have been contrived.
+
+
+---
+
 ## `TAC_SCOPE_GUARD`
 
 2023-11-10 Together C & C++ Discord

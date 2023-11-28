@@ -304,9 +304,9 @@ namespace Tac
     AssetViewImportedModel* loadedModel = GetLoadedModel( assetPath );
     if( !loadedModel )
     {
-      ShortFixedString text = "Loading ";
-      text += assetPath;
-      text += LoadEllipses();
+      const ShortFixedString text = ShortFixedString::Concat( "Loading ",
+                                                              assetPath,
+                                                              LoadEllipses() );
 
       ImGuiText(text);
       return;

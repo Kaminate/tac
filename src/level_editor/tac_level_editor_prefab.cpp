@@ -97,10 +97,10 @@ namespace Tac
       Json* refFramesJson = SettingsGetJson( { "prefabCameraRefFrames" } );
       Json* refFrameJson = SettingsGetChildByKeyValuePair( "path", Json( prefab->mAssetPath ), refFramesJson );
 
-      ShortFixedString numberPath;
-      numberPath += refFrameVecName;
-      numberPath += ".";
-      numberPath += "xyz"[ iAxis ];
+      const ShortFixedString numberPath = ShortFixedString::Concat(
+        refFrameVecName,
+        ".",
+        StringView( "xyz" + iAxis, 1 ) );
 
       SettingsSetNumber( numberPath, refFrameVec[ iAxis ], refFrameJson );
     }

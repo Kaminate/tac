@@ -26,6 +26,15 @@ namespace Tac
   static ID3D12Device* sDevice;
   static ID3D12CommandQueue* sCommandQueue;
 
+  static DesktopWindowHandle hDesktopWindow;
+
+  static IDXGISwapChain* swapChain;
+  static ID3D12CommandQueue* m_commandQueue;
+
+
+  const int bufferCount = 2;
+  
+
   static const char* DX12_HRESULT_ToString( const HRESULT hr )
   {
     switch( hr )
@@ -78,21 +87,67 @@ namespace Tac
     const D3D12_COMMAND_QUEUE_DESC queueDesc = {};
     TAC_DX12_CALL( errors, sDevice->CreateCommandQueue, &queueDesc, IID_PPV_ARGS( &sCommandQueue ) );
 
+
+    const DesktopAppCreateWindowParams desktopParams
+    {
+      .mName = "DX12 Window",
+      .mX = 50,
+      .mY = 50,
+      .mWidth = 800,
+      .mHeight = 600,
+    };
+
+    hDesktopWindow = DesktopAppCreateWindow( desktopParams );
     
       
     
   }
 
-  void App::Update( Errors& )
+  void App::Update( Errors& errors )
   {
+    if( !swapChain )
+    {
+      const DesktopWindowState* state = GetDesktopWindowState( hDesktopWindow );
+      //const HWND hwnd = ( HWND )GetDesktopWindowNativeHandle( hDesktopWindow );
+      const auto hwnd = ( HWND )state->mNativeWindowHandle;
+      if( !hwnd )
+        return;
+
+      const auto width = ( UINT )state->mWidth;
+      const auto height = ( UINT )state->mHeight;
+
+      const D3D12_COMMAND_QUEUE_DESC queueDesc =
+      {
+      .Type = D3D12_COMMAND_LIST_TYPE_DIRECT,
+      .Flags = D3D12_COMMAND_QUEUE_FLAG_NONE,
+      };
+
+      TAC_DX12_CALL( errors, sDevice->CreateCommandQueue, &queueDesc, IID_PPV_ARGS( &m_commandQueue ) );
+
+      DXGICreateSwapChain( hwnd,
+                           m_commandQueue, // swap chain can force flush the queue
+                           bufferCount,
+                           width,
+                           height,
+                           &swapChain,
+                           errors );
+      TAC_HANDLE_ERROR( errors );
+
+    }
+
+    ++asdf;
   }
 
   void App::Uninit( Errors& )
   {
   }
 
-  App App::sInstance{ .mName = "DX12 Hello Window", };
+  App App::sInstance
+  {
+    .mName = "DX12 Hello Window",
+    .mDisableRenderer = true,
+  };
 
 
-}
+} // namespace Tac
 

@@ -104,7 +104,13 @@ namespace Tac
   {
     IDXGISwapChain1* swapChain;
 
-    const DXGI_SWAP_CHAIN_DESC1 scd1 = {
+    const DXGI_SAMPLE_DESC SampleDesc = 
+    {
+      .Count = 1,
+    };
+
+    const DXGI_SWAP_CHAIN_DESC1 scd1 =
+    {
       .Width = width,
       .Height = height,
 
@@ -118,7 +124,7 @@ namespace Tac
       //.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
       .Format = DXGI_FORMAT_R16G16B16A16_FLOAT, // which windows should be SRGB and which not?
 
-      .SampleDesc = {.Count = 1 },
+      .SampleDesc = SampleDesc,
       .BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT,
       .BufferCount = (UINT)bufferCount,
 
@@ -126,8 +132,14 @@ namespace Tac
       .Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH,
     };
 
+    const DXGI_RATIONAL RefreshRate
+    {
+      .Numerator = 1,
+      .Denominator = 60,
+    };
+
     const DXGI_SWAP_CHAIN_FULLSCREEN_DESC scfsd = {
-      .RefreshRate = {.Numerator = 1, .Denominator = 60 },
+      .RefreshRate = RefreshRate,
       .ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED,
       .Scaling = DXGI_MODE_SCALING_UNSPECIFIED,
       .Windowed = TRUE,

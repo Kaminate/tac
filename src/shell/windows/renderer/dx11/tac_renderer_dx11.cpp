@@ -1,7 +1,6 @@
 #include "src/shell/windows/renderer/dx11/tac_renderer_dx11.h" // self-inc
 
 #include "src/common/assetmanagers/tac_asset.h"
-#include "src/common/string/tac_string_format.h"
 #include "src/common/containers/tac_array.h"
 #include "src/common/containers/tac_frame_vector.h"
 #include "src/common/core/tac_algorithm.h"
@@ -14,18 +13,19 @@
 #include "src/common/profile/tac_profile.h"
 #include "src/common/shell/tac_shell.h"
 #include "src/common/string/tac_string.h"
+#include "src/common/string/tac_string_format.h"
 #include "src/common/string/tac_string_util.h"
 #include "src/common/system/tac_desktop_window.h"
 #include "src/common/system/tac_filesystem.h"
 #include "src/common/system/tac_os.h"
 #include "src/shell/tac_desktop_app.h"
-#include "src/shell/windows/renderer/dxgi/tac_dxgi.h"
-#include "src/shell/windows/renderer/pix/tac_pix.h"
-#include "src/shell/windows/renderer/dx11/tac_dx11_enum_helper.h"
-#include "src/shell/windows/renderer/dx11/tac_dx11_namer.h"
 #include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_compiler.h"
 #include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_postprocess.h"
 #include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_preprocess.h"
+#include "src/shell/windows/renderer/dx11/tac_dx11_enum_helper.h"
+#include "src/shell/windows/renderer/dx11/tac_dx11_namer.h"
+#include "src/shell/windows/renderer/dxgi/tac_dxgi.h"
+#include "src/shell/windows/renderer/pix/tac_pix.h"
 
 #include <initguid.h>
 #include <dxgidebug.h>
@@ -103,10 +103,19 @@ namespace Tac::Render
 
   static String DX11CallAux( const char* fnCallWithArgs, const HRESULT res )
   {
-    String result = (StringView)va( "{} returned {:#x}", fnCallWithArgs, res );
+    String result;
+    result += fnCallWithArgs;
+    result += " returned ";
+    result += Tac::ToString( ( const void* )( std::uintptr_t )res );
+
     const String inferredErrorMessage = TryInferDX11ErrorStr( res );
     if( !inferredErrorMessage.empty() )
-      result += va( "({})", inferredErrorMessage.c_str() );
+    {
+      result += "(";
+      result += inferredErrorMessage;
+      result += ")";
+    }
+    
     return result;
   }
 
@@ -334,7 +343,8 @@ namespace Tac::Render
   static bool DoesShaderTextContainEntryPoint( const StringView& shaderText,
                                                const char* entryPoint )
   {
-    return shaderText.contains( (StringView)va( "{}(", entryPoint ) );
+    const ShortFixedString search = ShortFixedString::Concat(entryPoint, "(");
+    return shaderText.contains((StringView)search);
   }
 
 
@@ -399,7 +409,14 @@ namespace Tac::Render
       const bool hasGS = DoesShaderTextContainEntryPoint( shaderStringFull, gsEntryPoint );
       const bool hasPS = DoesShaderTextContainEntryPoint( shaderStringFull, psEntryPoint );
 
-      TAC_ASSERT_MSG( hasVS, va( "shader {} missing {}", shaderName.c_str(), vsEntryPoint ) );
+      if( !hasVS )
+      {
+        const ShortFixedString msg = ShortFixedString::Concat( "shader ",
+                                                               shaderName,
+                                                               " missing entry point ",
+                                                               vsEntryPoint );
+        TAC_ASSERT_CRITICAL( msg );
+      }
 
       const char* vsShaderModel = "vs_5_0";
       const char* psShaderModel = "ps_5_0";
@@ -1707,160 +1724,176 @@ namespace Tac::Render
     SetDebugName( depthStencilState, commandData->mStackFrame.ToString() );
   }
 
+  void RendererDirectX11::AddFramebufferForRenderToTexture( CommandDataCreateFramebuffer* data,
+                                                            Errors& errors )
+  {
+    TAC_ASSERT( IsMainThread() );
+
+    TAC_ASSERT( !data->mFramebufferTextures.empty() );
+
+    ID3D11DepthStencilView* dsv = nullptr;
+    ID3D11RenderTargetView* rtv = nullptr;
+    ID3D11Texture2D*        depthTexture = nullptr;
+
+    for( TextureHandle textureHandle : data->mFramebufferTextures )
+    {
+      TAC_ASSERT( textureHandle.IsValid() );
+      Texture* texture = &mTextures[ ( int )textureHandle ];
+
+      D3D11_TEXTURE2D_DESC desc;
+      texture->mTexture2D->GetDesc( &desc );
+
+#if 0
+      const bool isDepthTexture =
+        desc.Format == DXGI_FORMAT_D16_UNORM ||
+        desc.Format == DXGI_FORMAT_D24_UNORM_S8_UINT ||
+        desc.Format == DXGI_FORMAT_D32_FLOAT ||
+        desc.Format == DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
+      if( isDepthTexture )
+      {
+        D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = {};
+        depthStencilViewDesc.Format = desc.Format;
+        depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+        TAC_DX11_CALL( errors,
+                       mDevice->CreateDepthStencilView,
+                       texture->mTexture2D,
+                       &depthStencilViewDesc,
+                       &dsv );
+        SetDebugName( dsv, data->mStackFrame.ToString() );
+
+        depthTexture = texture->mTexture2D;
+    }
+#else
+      if( texture->mTextureDSV )
+      {
+        dsv = texture->mTextureDSV;
+      }
+#endif
+      else
+      {
+        rtv = texture->mTextureRTV;
+      }
+  }
+
+    Framebuffer* framebuffer = &mFramebuffers[ ( int )data->mFramebufferHandle ];
+    framebuffer->mDebugName = data->mStackFrame.ToString();
+    framebuffer->mRenderTargetView = rtv;
+    framebuffer->mDepthStencilView = dsv;
+    framebuffer->mDepthTexture = depthTexture;
+  }
+
+  void RendererDirectX11::AddFramebufferForWindow( CommandDataCreateFramebuffer* data,
+                                                   Errors& errors )
+  {
+    TAC_ASSERT( IsMainThread() );
+
+    TAC_ASSERT( data->mFramebufferTextures.empty() );
+    TAC_ASSERT( data->mNativeWindowHandle && data->mWidth && data->mHeight );
+
+    const HWND hwnd = ( HWND )data->mNativeWindowHandle;
+    const int bufferCount = 4;
+    const UINT width = data->mWidth;
+    const UINT height = data->mHeight;
+
+    IDXGISwapChain* swapChain;
+    DXGICreateSwapChain( hwnd,
+                         mDevice,
+                         bufferCount,
+                         width,
+                         height,
+                         &swapChain,
+                         errors );
+    TAC_HANDLE_ERROR( errors );
+
+    ID3D11Device* device = mDevice;
+
+    // this seems to be unused...
+    //
+    // DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
+    // swapChain->GetDesc( &swapChainDesc );
+
+    ID3D11Texture2D* pBackBuffer = nullptr;
+    TAC_DXGI_CALL( errors, swapChain->GetBuffer, 0, IID_PPV_ARGS( &pBackBuffer ) );
+    TAC_RAISE_ERROR_IF( !pBackBuffer, "no buffer to resize", errors );
+    TAC_ON_DESTRUCT(pBackBuffer->Release());
+
+    ID3D11RenderTargetView* rtv = nullptr;
+    D3D11_RENDER_TARGET_VIEW_DESC* rtvDesc = nullptr;
+    TAC_DX11_CALL( errors, device->CreateRenderTargetView, pBackBuffer, rtvDesc, &rtv );
+    SetDebugName( rtv, data->mStackFrame.ToString() );
+
+    // this seems to be unused...
+    //
+    // D3D11_RENDER_TARGET_VIEW_DESC createdDesc = {};
+    // rtv->GetDesc( &createdDesc );
+
+    const DXGI_SAMPLE_DESC SampleDesc =
+    {
+      .Count = 1,
+      .Quality = 0,
+    };
+
+    const D3D11_TEXTURE2D_DESC texture2dDesc =
+    {
+      .Width = width,
+      .Height = height,
+      .MipLevels = 1,
+      .ArraySize = 1,
+      .Format = DXGI_FORMAT_D24_UNORM_S8_UINT,
+      .SampleDesc = SampleDesc,
+      .BindFlags = D3D11_BIND_DEPTH_STENCIL,
+    };
+
+    ID3D11Texture2D* texture;
+    TAC_DX11_CALL( errors, mDevice->CreateTexture2D, &texture2dDesc, nullptr, &texture );
+    SetDebugName( texture, data->mStackFrame.ToString() );
+
+    const D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc =
+    {
+      .Format = texture2dDesc.Format,
+      .ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D,
+    };
+
+    ID3D11DepthStencilView* dsv;
+    TAC_DX11_CALL( errors, mDevice->CreateDepthStencilView, texture, &depthStencilViewDesc, &dsv );
+    SetDebugName( dsv, data->mStackFrame.ToString() );
+
+
+    const FramebufferHandle hFB = data->mFramebufferHandle;
+    const int iFB = hFB.GetIndex();
+
+    mFramebuffers[iFB] = Framebuffer
+    {
+      .mBufferCount = bufferCount,
+      .mSwapChain = swapChain,
+      .mDepthStencilView = dsv,
+      .mRenderTargetView = rtv,
+      .mDepthTexture = texture,
+      .mHwnd = hwnd,
+      .mDebugName = data->mStackFrame.ToString(),
+    };
+
+    mWindows[ mWindowCount++ ] = hFB;
+  }
+
   void RendererDirectX11::AddFramebuffer( CommandDataCreateFramebuffer* data,
                                           Errors& errors )
   {
     TAC_ASSERT( IsMainThread() );
 
-    const bool isWindowFramebuffer = data->mNativeWindowHandle && data->mWidth && data->mHeight;
-    const bool isRenderToTextureFramebuffer = !data->mFramebufferTextures.empty();
-    TAC_ASSERT( isWindowFramebuffer || isRenderToTextureFramebuffer );
-
-    if( isWindowFramebuffer )
+    if( data->mNativeWindowHandle && data->mWidth && data->mHeight )
     {
-      TAC_ASSERT( data->mWidth );
-
-      const HWND hwnd = ( HWND )data->mNativeWindowHandle;
-      const int bufferCount = 4;
-      const UINT width = data->mWidth;
-      const UINT height = data->mHeight;
-
-      IDXGISwapChain* swapChain;
-      DXGICreateSwapChain( hwnd,
-                           mDevice,
-                           bufferCount,
-                           width,
-                           height,
-                           &swapChain,
-                           errors );
-      TAC_HANDLE_ERROR( errors );
-
-      ID3D11Device* device = mDevice;
-
-      // this seems to be unused...
-      //
-      // DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
-      // swapChain->GetDesc( &swapChainDesc );
-
-      ID3D11Texture2D* pBackBuffer = nullptr;
-      TAC_DXGI_CALL( errors, swapChain->GetBuffer, 0, IID_PPV_ARGS( &pBackBuffer ) );
-      TAC_RAISE_ERROR_IF( !pBackBuffer, "no buffer to resize", errors );
-      TAC_ON_DESTRUCT(pBackBuffer->Release());
-
-      ID3D11RenderTargetView* rtv = nullptr;
-      D3D11_RENDER_TARGET_VIEW_DESC* rtvDesc = nullptr;
-      TAC_DX11_CALL( errors, device->CreateRenderTargetView, pBackBuffer, rtvDesc, &rtv );
-      SetDebugName( rtv, data->mStackFrame.ToString() );
-
-      // this seems to be unused...
-      //
-      // D3D11_RENDER_TARGET_VIEW_DESC createdDesc = {};
-      // rtv->GetDesc( &createdDesc );
-
-      const DXGI_SAMPLE_DESC SampleDesc =
-      {
-        .Count = 1,
-        .Quality = 0,
-      };
-
-      const D3D11_TEXTURE2D_DESC texture2dDesc =
-      {
-        .Width = width,
-        .Height = height,
-        .MipLevels = 1,
-        .ArraySize = 1,
-        .Format = DXGI_FORMAT_D24_UNORM_S8_UINT,
-        .SampleDesc = SampleDesc,
-        .BindFlags = D3D11_BIND_DEPTH_STENCIL,
-      };
-
-      ID3D11Texture2D* texture;
-      TAC_DX11_CALL( errors, mDevice->CreateTexture2D, &texture2dDesc, nullptr, &texture );
-      SetDebugName( texture, data->mStackFrame.ToString() );
-
-      const D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc =
-      {
-        .Format = texture2dDesc.Format,
-        .ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D,
-      };
-
-      ID3D11DepthStencilView* dsv;
-      TAC_DX11_CALL( errors, mDevice->CreateDepthStencilView, texture, &depthStencilViewDesc, &dsv );
-      SetDebugName( dsv, data->mStackFrame.ToString() );
-
-
-      const FramebufferHandle hFB = data->mFramebufferHandle;
-      const int iFB = hFB.GetIndex();
-
-      mFramebuffers[iFB] = Framebuffer
-      {
-        .mBufferCount = bufferCount,
-        .mSwapChain = swapChain,
-        .mDepthStencilView = dsv,
-        .mRenderTargetView = rtv,
-        .mDepthTexture = texture,
-        .mHwnd = hwnd,
-        .mDebugName = data->mStackFrame.ToString(),
-      };
-
-      mWindows[ mWindowCount++ ] = hFB;
-    }
-    else if( isRenderToTextureFramebuffer )
-    {
-      ID3D11DepthStencilView* dsv = nullptr;
-      ID3D11RenderTargetView* rtv = nullptr;
-      ID3D11Texture2D*        depthTexture = nullptr;
-
-      for( TextureHandle textureHandle : data->mFramebufferTextures )
-      {
-        TAC_ASSERT( textureHandle.IsValid() );
-        Texture* texture = &mTextures[ ( int )textureHandle ];
-
-        D3D11_TEXTURE2D_DESC desc;
-        texture->mTexture2D->GetDesc( &desc );
-
-#if 0
-        const bool isDepthTexture =
-          desc.Format == DXGI_FORMAT_D16_UNORM ||
-          desc.Format == DXGI_FORMAT_D24_UNORM_S8_UINT ||
-          desc.Format == DXGI_FORMAT_D32_FLOAT ||
-          desc.Format == DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
-        if( isDepthTexture )
-        {
-          D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = {};
-          depthStencilViewDesc.Format = desc.Format;
-          depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-          TAC_DX11_CALL( errors,
-                         mDevice->CreateDepthStencilView,
-                         texture->mTexture2D,
-                         &depthStencilViewDesc,
-                         &dsv );
-          SetDebugName( dsv, data->mStackFrame.ToString() );
-
-          depthTexture = texture->mTexture2D;
-      }
-#else
-        if( texture->mTextureDSV )
-        {
-          dsv = texture->mTextureDSV;
-        }
-#endif
-        else
-        {
-          rtv = texture->mTextureRTV;
-        }
+      AddFramebufferForWindow( data, errors );
+      return;
     }
 
-      Framebuffer* framebuffer = &mFramebuffers[ ( int )data->mFramebufferHandle ];
-      framebuffer->mDebugName = data->mStackFrame.ToString();
-      framebuffer->mRenderTargetView = rtv;
-      framebuffer->mDepthStencilView = dsv;
-      framebuffer->mDepthTexture = depthTexture;
-  }
-    else
+    if( !data->mFramebufferTextures.empty() )
     {
-      TAC_ASSERT_INVALID_CODE_PATH;
+      AddFramebufferForRenderToTexture( data, errors );
+      return;
     }
+
+    TAC_ASSERT_INVALID_CODE_PATH;
   }
 
   void RendererDirectX11::RemoveVertexBuffer( VertexBufferHandle vertexBufferHandle, Errors& )

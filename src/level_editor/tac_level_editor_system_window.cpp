@@ -45,7 +45,7 @@ namespace Tac
 
   void CreationSystemWindow::ImGui()
   {
-    DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
+    const DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
     if( !desktopWindowState->mNativeWindowHandle )
       return;
 
@@ -99,9 +99,10 @@ namespace Tac
     TAC_PROFILE_BLOCK;
     DesktopAppResizeControls( mDesktopWindowHandle );
     DesktopAppMoveControls( mDesktopWindowHandle );
-    DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
+    const DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
     if( !desktopWindowState->mNativeWindowHandle )
       return;
+
     ImGui();
     const v2 size = desktopWindowState->GetSizeV2();
     const Render::ViewHandle viewHandle = WindowGraphicsGetView( mDesktopWindowHandle );

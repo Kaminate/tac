@@ -154,6 +154,9 @@ namespace Tac::Render
     void AddConstantBuffer( CommandDataCreateConstantBuffer*, Errors& ) override;
     void AddDepthState( CommandDataCreateDepthState*, Errors& ) override;
     void AddFramebuffer( CommandDataCreateFramebuffer*, Errors& ) override;
+    void AddFramebufferForRenderToTexture( CommandDataCreateFramebuffer*, Errors& );
+    void AddFramebufferForWindow( CommandDataCreateFramebuffer*, Errors& );
+
     void AddIndexBuffer( CommandDataCreateIndexBuffer*, Errors& ) override;
     void AddRasterizerState( CommandDataCreateRasterizerState*, Errors& ) override;
     void AddSamplerState( CommandDataCreateSamplerState*, Errors& ) override;

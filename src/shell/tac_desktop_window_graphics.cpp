@@ -8,7 +8,7 @@
 namespace Tac
 {
   static Render::FramebufferHandle sWindowFramebuffers[ kDesktopWindowCapacity ];
-  static Render::ViewHandle sWindowViews[ kDesktopWindowCapacity ];
+  static Render::ViewHandle        sWindowViews[ kDesktopWindowCapacity ];
 
   Render::FramebufferHandle WindowGraphicsGetFramebuffer( const DesktopWindowHandle& desktopWindowHandle )
   {
@@ -38,7 +38,10 @@ namespace Tac
 
       const Render::FramebufferHandle framebufferHandle =
         Render::CreateFramebufferForWindow( nativeWindowHandle, w, h, TAC_STACK_FRAME );
-      Render::SetRenderObjectDebugName( framebufferHandle, va( "{}.{}", name, iWindow ) );
+
+      const ShortFixedString dbgname = ShortFixedString::Concat( name, ".", ToString( iWindow ) );
+
+      Render::SetRenderObjectDebugName( framebufferHandle, dbgname );
 
       const Render::ViewHandle viewHandle = Render::CreateView();
 

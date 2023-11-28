@@ -112,8 +112,7 @@ namespace Tac
         //case WM_NCACTIVATE: // ??????????????????????
         case WM_NCDESTROY:
           return DefWindowProc( hwnd, uMsg, wParam, lParam );
-        default:
-          TAC_ASSERT_INVALID_CASE( uMsg );
+        default: TAC_ASSERT_INVALID_CASE( uMsg );
       }
     }
 
@@ -441,10 +440,10 @@ namespace Tac
       if( !hwnd )
         continue;
 
-      ShortFixedString text = "Window ";
-      text += ToString( i );
-      text += " has HWND ";
-      text += ToString( ( void* )hwnd );
+      const ShortFixedString text = ShortFixedString::Concat( "Window ",
+                                                              ToString( i ),
+                                                              " has HWND ",
+                                                              ToString( ( void* )hwnd ) );
 
       ImGuiText(text);
 
