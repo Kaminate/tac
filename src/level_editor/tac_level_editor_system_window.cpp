@@ -110,7 +110,6 @@ namespace Tac
     Render::SetViewFramebuffer( viewHandle, framebufferHandle );
     Render::SetViewport( viewHandle, Render::Viewport(size) );
     Render::SetViewScissorRect( viewHandle, Render::ScissorRect(size) );
-    TAC_HANDLE_ERROR( errors );
   }
 
 

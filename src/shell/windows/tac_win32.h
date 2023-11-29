@@ -47,20 +47,20 @@ namespace Tac
   const char* HrCallAux( const HRESULT, const char*, const char* );
 }
 
-#define TAC_HR_CALL( errors, fn, ... ) {                         \
+#define TAC_HR_CALL( fn, ... ) {                                 \
   const HRESULT hr = fn( __VA_ARGS__ );                          \
   if( FAILED( hr ) )                                             \
   {                                                              \
     const char* msg = Tac::HrCallAux(hr, #fn, #__VA_ARGS__);     \
-    TAC_RAISE_ERROR_RETURN( msg, errors, {} );                   \
+    TAC_RAISE_ERROR_RETURN( msg, {} );                           \
   }                                                              \
 }
 
-#define TAC_HR_CALL_NO_RET( errors, fn, ... ) {                  \
+#define TAC_HR_CALL_NO_RET( fn, ... ) {                          \
   const HRESULT hr = fn( __VA_ARGS__ );                          \
   if( FAILED( hr ) )                                             \
   {                                                              \
     const char* msg = Tac::HrCallAux(hr, #fn, #__VA_ARGS__);     \
-    TAC_RAISE_ERROR( msg, errors );                              \
+    TAC_RAISE_ERROR( msg );                                      \
   }                                                              \
 }

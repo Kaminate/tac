@@ -21,6 +21,18 @@ namespace Tac::Render
     }
   }
 
+  static WCHAR* ToWStr( StringView sv )
+  {
+    const int n = 100;
+    TAC_ASSERT( sv.size() < n );
+    static WCHAR buf[ n ];
+    int i = 0;
+    for( char c : sv )
+      buf[ i++ ] = c;
+    buf[ i ] = '\0';
+    return buf;
+  }
+
   void DX12CallAux( const char* fn, const char* args, const HRESULT hr, Errors& errors )
   {
     String msg = fn;
@@ -30,6 +42,12 @@ namespace Tac::Render
     msg += DX12_HRESULT_ToString( hr );
 
     errors.Append( msg );
+  }
+
+  void DX12SetName( ID3D12Object* obj, StringView sv )
+  {
+    const HRESULT hr = obj->SetName( ToWStr( sv ) );
+    TAC_ASSERT( hr == S_OK );
   }
 
 } // namespace Tac::Render

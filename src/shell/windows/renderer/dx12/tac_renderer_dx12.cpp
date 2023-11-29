@@ -29,6 +29,7 @@
 #include "src/common/DesktopWindow.h"
 #include "src/shell/windows/Windows.h"
 #include "src/shell/windows/RendererDirectX12.h"
+#include "src/shell/windows/renderer/dx12/tac_dx12_helper.h"
 
 #include <sstream>
 #include <d3d11_1.h>
@@ -46,22 +47,11 @@ namespace Tac
 
 bool isGraphicsDebugging = true;
 
-
-static Vector< WCHAR > ToWChar( const String& str )
-{
-  Vector< WCHAR > result;
-  for( char c : str )
-    result.push_back( c );
-  result.push_back( ( WCHAR )'\0' );
-  return result;
-}
-
 static void NameDirectX12Object( ID3D12Object* obj, const String& name )
 {
-  Vector< WCHAR > nameWchar = ToWChar( name );
-  HRESULT hr = obj->SetName( nameWchar.data() );
-  Assert( hr == S_OK );
+  DX12SetName( obj, name );
 }
+
 
 void DX12Window::Submit( Errors& errors )
 {
@@ -78,12 +68,11 @@ void DX12Window::Submit( Errors& errors )
     {
       switch( hr )
       {
-      case DXGI_ERROR_DEVICE_RESET: errors = "DXGI_ERROR_DEVICE_RESET"; break;
-      case DXGI_ERROR_DEVICE_REMOVED: errors = "DXGI_ERROR_DEVICE_REMOVED"; break;
-      case DXGI_STATUS_OCCLUDED: errors = "DXGI_STATUS_OCCLUDED"; break;
-          TAC_ASSERT_INVALID_DEFAULT_CASE( hr );
+      case DXGI_ERROR_DEVICE_RESET: TAC_RAISE_ERROR( "DXGI_ERROR_DEVICE_RESET" ); break;
+      case DXGI_ERROR_DEVICE_REMOVED: TAC_RAISE_ERROR( "DXGI_ERROR_DEVICE_REMOVED" ); break;
+      case DXGI_STATUS_OCCLUDED: TAC_RAISE_ERROR( "DXGI_STATUS_OCCLUDED" ); break;
+      default: TAC_ASSERT_INVALID_CASE( hr );
       }
-      TAC_HANDLE_ERROR( errors );
     }
   }
   mBackbufferIndex = ( mBackbufferIndex + 1 ) % mBackbufferColors.size();
@@ -132,29 +121,6 @@ static String TryInferDX12ErrorStr( HRESULT res )
   }
 }
 
-void DX12CallAux( const char* fnCallWithArgs, HRESULT res, Errors& errors )
-{
-  std::stringstream ss;
-  ss << fnCallWithArgs << " returned 0x" << std::hex << res;
-  String inferredErrorMessage = TryInferDX12ErrorStr( res );
-  if(!inferredErrorMessage.empty())
-  {
-    ss << "(";
-    ss << inferredErrorMessage;
-    ss << ")";
-  }
-  errors.mMessage = ss.str().c_str();
-}
-
-#define TAC_DX12_CALL( errors, call, ... )\
-{\
-  HRESULT result = call( __VA_ARGS__ );\
-  if( FAILED( result ) )\
-  {\
-    DX12CallAux( Stringify( call ) "( " #__VA_ARGS__ " )", result, errors );\
-    TAC_HANDLE_ERROR( errors );\
-  }\
-}
 
 struct RendererBufferDX12
 {
@@ -176,16 +142,13 @@ struct RendererBufferDX12
     D3D12_HEAP_PROPERTIES properties = {};
     properties.Type = D3D12_HEAP_TYPE_DEFAULT;
 
-    TAC_DX12_CALL(
-      errors,
-      device->CreateCommittedResource,
-      &properties,
-      D3D12_HEAP_FLAG_NONE,
-      &resourceDesc,
-      resourceStates,
-      nullptr, // clear value
-      IID_PPV_ARGS( &resource ) );
-    TAC_HANDLE_ERROR( errors );
+    TAC_DX12_CALL( device->CreateCommittedResource,
+                   &properties,
+                   D3D12_HEAP_FLAG_NONE,
+                   &resourceDesc,
+                   resourceStates,
+                   nullptr, // clear value
+                   IID_PPV_ARGS( &resource ) );
     NameDirectX12Object( resource, name );
     mResourceBuffer = resource;
     mState = resourceStates;
@@ -210,16 +173,13 @@ struct RendererBufferDX12
     uploadResourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE; // mostly for texture stuff
     D3D12_HEAP_PROPERTIES uploadProps = {};
     uploadProps.Type = D3D12_HEAP_TYPE_UPLOAD;
-    TAC_DX12_CALL(
-      errors,
-      device->CreateCommittedResource,
-      &uploadProps,
-      D3D12_HEAP_FLAG_NONE,
-      &uploadResourceDesc,
-      D3D12_RESOURCE_STATE_GENERIC_READ, // gpu will read from this buffer and copy its contents somewhere
-      nullptr, // optimized clear value
-      IID_PPV_ARGS( &uploadResource ) );
-    TAC_HANDLE_ERROR( errors );
+    TAC_DX12_CALL( device->CreateCommittedResource,
+                   &uploadProps,
+                   D3D12_HEAP_FLAG_NONE,
+                   &uploadResourceDesc,
+                   D3D12_RESOURCE_STATE_GENERIC_READ, // gpu will read from this buffer and copy its contents somewhere
+                   nullptr, // optimized clear value
+                   IID_PPV_ARGS( &uploadResource ) );
     NameDirectX12Object( uploadResource, name + "\"upload object\"" );
     mResourceStaging = uploadResource;
   }
@@ -294,8 +254,7 @@ RendererDX12::RendererDX12()
 
 void RendererDX12::Init( Errors& errors )
 {
-  mDXGI.Init( errors );
-  TAC_HANDLE_ERROR( errors );
+  TAC_CALL( mDXGI.Init, errors );
 
   bool shouldCreateDebugLayer = IsDebugMode &&
     // https://github.com/Microsoft/DirectX-Graphics-Samples/issues/158
@@ -668,12 +627,10 @@ void RendererDX12::AddShader( Shader** shader, const ShaderData& shaderData, Err
     if(!shaderData.mShaderPath.empty())
     {
       String shaderPath = shaderData.mShaderPath + ".fx";
-      String = FileToString( shaderPath, errors );
-      TAC_HANDLE_ERROR( errors );
+      TAC_CALL( String = FileToString, shaderPath, errors );
     }
 
-    Vector< char > common = FileToString( "assets/common.fx", errors );
-    TAC_HANDLE_ERROR( errors );
+    TAC_CALL( Vector< char > common = FileToString, "assets/common.fx", errors );
 
     // Using a string instead of a vector because it's null terminated,
     // which means it will debug visualizes better
@@ -1212,8 +1169,7 @@ void RendererDX12::Render( Errors& errors )
         // set pipeline state
         {
           ID3D12PipelineState *pipelineState = nullptr;
-          GetPSOStuff( drawCall2, &pipelineState, errors );
-          TAC_HANDLE_ERROR( errors );
+          TAC_CALL( GetPSOStuff, drawCall2, &pipelineState, errors );
           mCommandList->SetPipelineState( pipelineState );
         }
 
@@ -1313,8 +1269,7 @@ void RendererDX12::Render( Errors& errors )
     }
   }
   mDrawCall2s.clear();
-  FinishRendering( errors );
-  TAC_HANDLE_ERROR( errors );
+  TAC_CALL( FinishRendering, errors );
 }
 
 void RendererDX12::FinishRendering( Errors& errors )
@@ -1331,8 +1286,7 @@ void RendererDX12::FinishRendering( Errors& errors )
 
   for( DX12Window* window : mWindows )
   {
-    window->Submit( errors );
-    TAC_HANDLE_ERROR( errors );
+    TAC_CALL( window->Submit, errors );
   }
 
   bool shouldSignalFence = true;
@@ -1352,9 +1306,9 @@ void RendererDX12::FinishRendering( Errors& errors )
     UINT64 completedFenceValue = mFence->GetCompletedValue();
     if( completedFenceValue == fenceDevicedRemovedValue )
     {
-      errors = "the device has been removed because\n";
-      errors += GetDeviceRemovedReason();
-      TAC_HANDLE_ERROR( errors );
+      String msg = "the device has been removed because\n";
+      msg += GetDeviceRemovedReason();
+      TAC_RAISE_ERROR( msg );
     }
     if( completedFenceValue == nextFenceValue )
       break;
@@ -1364,8 +1318,7 @@ void RendererDX12::FinishRendering( Errors& errors )
     HRESULT hr = mFence->SetEventOnCompletion( nextFenceValue, fenceEvent );
     if( FAILED( hr ) )
     {
-      errors = "failed to set fence event";
-      TAC_HANDLE_ERROR( errors );
+      TAC_RAISE_ERROR( "failed to set fence event");
     }
     WaitForSingleObject( fenceEvent, INFINITE );
   }
@@ -1380,13 +1333,14 @@ void RendererDX12::FinishRendering( Errors& errors )
   {
     if( hr == E_FAIL )
     {
-      errors = "There is an actively recording command list referencing the command allocator";
+      String msg = "There is an actively recording command list referencing the command allocator";
+      TAC_RAISE_ERROR( msg );
     }
     else
     {
-      errors = "Failed to reset command allocator " + TryInferDX12ErrorStr( hr );
+      String msg = "Failed to reset command allocator " + TryInferDX12ErrorStr( hr );
+      TAC_RAISE_ERROR( msg );
     }
-    TAC_HANDLE_ERROR( errors );
   }
   // should be done... after resetting the command allocator?
   TAC_DX12_CALL( errors, mCommandList->Reset, mCommandAllocator.Get(), nullptr );

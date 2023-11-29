@@ -22,7 +22,7 @@ namespace Tac
   {
     EntityUUID entityUUID;
     if( !reader->Read( &entityUUID ) )
-      TAC_RAISE_ERROR( "failed to read different entity uuid", errors );
+      TAC_RAISE_ERROR( "failed to read different entity uuid");
 
     auto entity = mWorld->FindEntity( entityUUID );
     if( !entity )
@@ -30,7 +30,7 @@ namespace Tac
 
     char deletedComponentsBitfield;
     if( !reader->Read( &deletedComponentsBitfield ) )
-      TAC_RAISE_ERROR( "failed to read entity deleted component bits", errors );
+      TAC_RAISE_ERROR( "failed to read entity deleted component bits");
 
     TAC_ASSERT_UNIMPLEMENTED;
     //for( int iComponentType = 0; iComponentType < ( int )ComponentRegistryEntryIndex::Count; ++iComponentType )
@@ -43,7 +43,7 @@ namespace Tac
 
     char changedComponentsBitfield;
     if( !reader->Read( &changedComponentsBitfield ) )
-      TAC_RAISE_ERROR( "failed to read entity changed component bitfield", errors );
+      TAC_RAISE_ERROR( "failed to read entity changed component bitfield");
     TAC_ASSERT_UNIMPLEMENTED;
     //for( int iComponentType = 0; iComponentType < ( int )ComponentRegistryEntryIndex::Count; ++iComponentType )
     //{
@@ -59,7 +59,7 @@ namespace Tac
     //  if( !reader->Read( component, componentStuff->mNetworkBits ) )
     //  {
     //    errors += "fuck";
-    //    TAC_HANDLE_ERROR( errors );
+    //    TAC_HANDLE_ERROR();
     //  }
     //  component->PostReadDifferences();
     //}
@@ -70,12 +70,12 @@ namespace Tac
   {
     PlayerUUID differentPlayerUUID;
     if( !reader->Read( &differentPlayerUUID ) )
-      TAC_RAISE_ERROR( "failed to read player uuid", errors );
+      TAC_RAISE_ERROR( "failed to read player uuid");
     auto player = mWorld->FindPlayer( differentPlayerUUID );
     if( !player )
       player = mWorld->SpawnPlayer( differentPlayerUUID );
     if( !reader->Read( player, PlayerNetworkBitsGet()  ) )
-      TAC_RAISE_ERROR( "failed to read player bits", errors );
+      TAC_RAISE_ERROR( "failed to read player bits");
   }
 
   void ClientData::WriteInputBody( Writer* writer )
@@ -126,7 +126,7 @@ namespace Tac
     Timestamp newGameTime;
     if( !reader->Read( &newGameTime.mSeconds ) )
     {
-      TAC_RAISE_ERROR( "failed to read new snapshot time", errors );
+      TAC_RAISE_ERROR( "failed to read new snapshot time");
     }
 
     if( newGameTime < mMostRecentSnapshotTime )
@@ -137,7 +137,7 @@ namespace Tac
     Timestamp oldGameTime;
     if( !reader->Read( &oldGameTime.mSeconds ) )
     {
-      TAC_RAISE_ERROR( "failed to read old snapshot time", errors );
+      TAC_RAISE_ERROR( "failed to read old snapshot time");
     }
 
     auto snapshotFrom = mSnapshots.FindSnapshot( oldGameTime );
@@ -163,20 +163,20 @@ namespace Tac
 
     if( !reader->Read( ( UUID* )&mPlayerUUID ) )
     {
-      TAC_RAISE_ERROR( "Failed to read player UUID", errors );
+      TAC_RAISE_ERROR( "Failed to read player UUID");
     }
 
     PlayerCount numPlayerDeleted;
     if( !reader->Read( &numPlayerDeleted ) )
     {
-      TAC_RAISE_ERROR( "Failed to read deleted player count", errors );
+      TAC_RAISE_ERROR( "Failed to read deleted player count");
     }
     for( PlayerCount i = 0; i < numPlayerDeleted; ++i )
     {
       PlayerUUID deletedPlayerUUID;
       if( !reader->Read( ( UUID* )&deletedPlayerUUID ) )
       {
-        TAC_RAISE_ERROR( "Failed to read deleted player uuid", errors );
+        TAC_RAISE_ERROR( "Failed to read deleted player uuid");
       }
 
       mWorld->KillPlayer( deletedPlayerUUID );
@@ -185,25 +185,24 @@ namespace Tac
     PlayerCount numPlayersDifferent;
     if( !reader->Read( &numPlayersDifferent ) )
     {
-      TAC_RAISE_ERROR( "Failed to read different player count", errors );
+      TAC_RAISE_ERROR( "Failed to read different player count");
     }
     for( PlayerCount i = 0; i < numPlayersDifferent; ++i )
     {
-      ReadPlayerDifferences( reader, errors );
-      TAC_HANDLE_ERROR( errors );
+      TAC_CALL( ReadPlayerDifferences, reader, errors );
     }
 
     EntityCount numDeletedEntities;
     if( !reader->Read( &numDeletedEntities ) )
     {
-      TAC_RAISE_ERROR( "Failed to read deleted entity count", errors );
+      TAC_RAISE_ERROR( "Failed to read deleted entity count");
     }
     for( EntityCount i = 0; i < numDeletedEntities; ++i )
     {
       EntityUUID entityUUID;
       if( !reader->Read( ( UUID* )&entityUUID ) )
       {
-        TAC_RAISE_ERROR( "Failed to read deleted entity uuid", errors );
+        TAC_RAISE_ERROR( "Failed to read deleted entity uuid");
       }
       mWorld->KillEntity( entityUUID );
     }
@@ -211,7 +210,7 @@ namespace Tac
     EntityCount numEntitiesDifferent;
     if( !reader->Read( &numEntitiesDifferent ) )
     {
-      TAC_RAISE_ERROR( "Failed to read different entity count", errors );
+      TAC_RAISE_ERROR( "Failed to read different entity count");
     }
 
     for( EntityCount i = 0; i < numEntitiesDifferent; ++i )
@@ -233,15 +232,13 @@ namespace Tac
     reader.mBegin = bytes;
     reader.mEnd = ( char* )bytes + byteCount;
     NetMsgType networkMessage = NetMsgType::Count;
-    ReadNetMsgHeader( &reader, &networkMessage, errors );
-    TAC_HANDLE_ERROR( errors );
+    TAC_CALL( ReadNetMsgHeader, &reader, &networkMessage, errors );
 
     switch( networkMessage )
     {
       case NetMsgType::Snapshot:
       {
-        ReadSnapshotBody( &reader, errors );
-        TAC_HANDLE_ERROR( errors );
+        TAC_CALL( ReadSnapshotBody, &reader, errors );
       } break;
       //case NetMsgType::Text: { ReadIncomingChatMessageBody( &reader, &mChat, errors ); } break;
     }
@@ -257,15 +254,14 @@ namespace Tac
     Vector< char > delayedMsg;
     while( mSavedNetworkMessages.TryPopSavedMessage( delayedMsg, mWorld->mElapsedSecs ) )
     {
-      ExecuteNetMsg( delayedMsg.data(), ( int )delayedMsg.size(), errors );
-      TAC_HANDLE_ERROR( errors );
+      TAC_CALL( ExecuteNetMsg, delayedMsg.data(), ( int )delayedMsg.size(), errors );
     }
 
     Writer writer;
     writer.mFrom = GetEndianness();
     writer.mTo = GameEndianness;
+
     WriteNetMsgHeader( &writer, NetMsgType::Input );
-    TAC_HANDLE_ERROR( errors );
 
     SavedInput newInput;
     newInput.mTimestamp = mWorld->mElapsedSecs;
@@ -282,7 +278,6 @@ namespace Tac
     }
 
     WriteInputBody( &writer );
-    TAC_HANDLE_ERROR( errors );
 
     sendNetworkMessageCallback(
       writer.mBytes.data(),
@@ -297,7 +292,7 @@ namespace Tac
     //  mChat.mIsReadyToSend = false;
     //  writer->mBuffer = buffer;
     //  WriteOutgoingChatMessage( writer, &mChat, errors );
-    //  TAC_HANDLE_ERROR( errors );
+    //  TAC_HANDLE_ERROR();
     //  sendNetworkMessageCallback(
     //    ( u8* )writer->mBuffer.mBytes,
     //    writer->mBuffer.mByteCountCur,

@@ -6,15 +6,9 @@ using namespace Tac;
 
 void mainAux( Errors& errors )
 {
-  SDLOSInit( errors );
-  TAC_HANDLE_ERROR( errors );
-
-
-  SDLAppInit( errors );
-  TAC_HANDLE_ERROR( errors );
-
-  DesktopAppRun( errors );
-  TAC_HANDLE_ERROR( errors );
+  TAC_CALL( SDLOSInit, errors );
+  TAC_CALL( SDLAppInit, errors );
+  TAC_CALL( DesktopAppRun, errors );
 }
 
 int main( int, char ** )

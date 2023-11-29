@@ -552,31 +552,23 @@ namespace Tac
 
     CheckShaderPadding();
 
-    Create3DShader( errors );
-    TAC_HANDLE_ERROR( errors );
+    TAC_CALL( Create3DShader, errors );
 
-    CreateTerrainShader( errors );
-    TAC_HANDLE_ERROR( errors );
+    TAC_CALL( CreateTerrainShader, errors );
 
-    Create3DVertexFormat( errors );
-    TAC_HANDLE_ERROR( errors );
+    TAC_CALL( Create3DVertexFormat, errors );
 
-    CreateTerrainVertexFormat( errors );
-    TAC_HANDLE_ERROR( errors );
+    TAC_CALL( CreateTerrainVertexFormat, errors );
 
-    CreateBlendState( errors );
-    TAC_HANDLE_ERROR( errors );
+    TAC_CALL( CreateBlendState, errors );
 
-    CreateDepthState( errors );
-    TAC_HANDLE_ERROR( errors );
+    TAC_CALL( CreateDepthState, errors );
 
-    CreateRasterizerState( errors );
-    TAC_HANDLE_ERROR( errors );
+    TAC_CALL( CreateRasterizerState, errors );
 
-    CreateSamplerState( errors );
-    TAC_HANDLE_ERROR( errors );
+    TAC_CALL( CreateSamplerState, errors );
 
-    CreateSamplerStateShadow( errors );
+    TAC_CALL(CreateSamplerStateShadow, errors );
   }
 
   void        GamePresentationUninit()

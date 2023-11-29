@@ -1,3 +1,5 @@
+#include "src/level_editor/tac_level_editor_profile_window.h" // self-inc
+
 #include "src/common/graphics/imgui/tac_imgui.h"
 #include "src/common/graphics/tac_ui_2d.h"
 #include "src/common/profile/tac_profile.h"
@@ -6,7 +8,6 @@
 #include "src/common/system/tac_os.h"
 #include "src/common/core/tac_error_handling.h"
 #include "src/level_editor/tac_level_editor.h"
-#include "src/level_editor/tac_level_editor_profile_window.h"
 #include "src/shell/tac_desktop_app.h"
 #include "src/shell/tac_desktop_window_graphics.h"
 #include "src/space/tac_entity.h"
@@ -74,13 +75,12 @@ namespace Tac
     Render::SetViewport( viewHandle, Render::Viewport(size) );
     Render::SetViewScissorRect( viewHandle, Render::ScissorRect(size) );
     ImGui();
-    mUI2DDrawData->DrawToTexture( viewHandle,
+    TAC_CALL(mUI2DDrawData->DrawToTexture, viewHandle,
                                   desktopWindowState->mWidth,
                                   desktopWindowState->mHeight,
                                   errors );
-    TAC_HANDLE_ERROR( errors );
   }
 
 
-}
+} // namespace Tac
 

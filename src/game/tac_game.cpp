@@ -31,13 +31,11 @@ namespace Tac
     };
 
     mDesktopWindowHandle = DesktopAppCreateWindow(params);
-    TAC_HANDLE_ERROR( errors );
 
 
     auto ghost = TAC_NEW Ghost;
     //ghost->mRenderView = mDesktopWindow->mRenderView;
-    ghost->Init( errors );
-    TAC_HANDLE_ERROR( errors );
+    TAC_CALL( ghost->Init, errors );
   }
 
   void GameCallbackUpdate( Errors& errors )
@@ -51,7 +49,6 @@ namespace Tac
     const Render::ScissorRect scissorRect( size );
 
 
-    TAC_HANDLE_ERROR( errors );
   }
 
   void App::Init( Errors& errors ) { GameCallbackInit( errors ); }

@@ -69,8 +69,7 @@ namespace Tac
 
     SetNextExample(settingExampleIndex);
 
-    GamePresentationInit( errors );
-    TAC_HANDLE_ERROR( errors );
+    TAC_CALL( GamePresentationInit, errors );
   }
 
   static void   ExamplesUninitCallback( Errors& errors )
@@ -146,8 +145,7 @@ namespace Tac
     }
 
     const int iOld = GetCurrExampleIndex();
-    ExampleStateMachineUpdate( errors );
-    TAC_HANDLE_ERROR( errors );
+    TAC_CALL( ExampleStateMachineUpdate, errors );
     const int iNew = GetCurrExampleIndex();
     if( iOld != iNew )
       SettingsSetString( "Example.Name", GetExampleName( iNew ) );
@@ -162,11 +160,9 @@ namespace Tac
         !GetDesktopWindowState( sNavWindow )->mNativeWindowHandle )
       return;
 
-    ExampleSelectorWindow( errors );
-    TAC_HANDLE_ERROR( errors );
+    TAC_CALL( ExampleSelectorWindow, errors );
 
-    ExampleDemoWindow(errors);
-    TAC_HANDLE_ERROR( errors );
+    TAC_CALL( ExampleDemoWindow,errors);
   }
 
   void App::Init( Errors& errors ) { ExamplesInitCallback( errors ); }

@@ -143,21 +143,16 @@ namespace Tac
 
     Render::RegisterRendererDirectX11();
 
-    Controller::XInputInit( errors );
-    TAC_HANDLE_ERROR( errors );
+    TAC_CALL( Controller::XInputInit, errors );
 
     Win32MouseEdgeInit();
 
-    DesktopAppInit( &sWin32PlatformFns, errors );
-    TAC_HANDLE_ERROR( errors );
+    TAC_CALL( DesktopAppInit, &sWin32PlatformFns, errors );
 
-    Win32WindowManagerInit( errors );
-    TAC_HANDLE_ERROR( errors );
+    TAC_CALL( Win32WindowManagerInit, errors );
 
-    Network::NetWinsockInit(errors);
-    TAC_HANDLE_ERROR( errors );
+    TAC_CALL( Network::NetWinsockInit,errors);
 
-    DesktopAppRun( errors );
-    TAC_HANDLE_ERROR( errors );
+    TAC_CALL( DesktopAppRun, errors );
   }
 } // namespace Tac

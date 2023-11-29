@@ -92,8 +92,7 @@ namespace Tac::Render
     const char* appname = ShellGetAppName();
 
 
-    Vector<String> extensions = mGetVkExtensions(errors); // GetVkExtensions( errors );
-    TAC_HANDLE_ERROR(errors);
+    Vector<String> extensions = TAC_CALL( mGetVkExtensions, errors );
     TAC_ASSERT(!extensions.empty()); // probably
     for( const String& extension : extensions )
     {
@@ -107,7 +106,7 @@ namespace Tac::Render
     builder.use_default_debug_messenger();
     vkb::detail::Result<vkb::Instance> inst_ret = builder.build();
     // idk, debugger on mac shits the bed here, refuses to inspect variables or step further
-    TAC_RAISE_ERROR_IF( !inst_ret, "failed to init vk", errors );
+    TAC_RAISE_ERROR_IF( !inst_ret, "failed to init vk" );
 
     vkb::Instance vkb_inst = inst_ret.value();
     _instance = vkb_inst.instance;
@@ -125,10 +124,8 @@ namespace Tac::Render
       //.set_surface( _surface )
 
     vkb::detail::Result<vkb::PhysicalDevice> physicalDevice_result = selector.select();
-    if( !physicalDevice_result )
-    {
-      TAC_RAISE_ERROR( "failed to select physical vk device", errors );
-    }
+    TAC_RAISE_ERROR_IF( !physicalDevice_result, "failed to select physical vk device" );
+
     vkb::PhysicalDevice physicalDevice = physicalDevice_result.value();
 
     //create the final Vulkan device
@@ -164,8 +161,7 @@ namespace Tac::Render
       VkSurfaceKHR _surface;
 
       //VkSurfaceFn fn =  GetVkSurfaceFn();
-      mGetVkSurfaceFn( _instance, data->mNativeWindowHandle, &_surface, errors );
-      TAC_HANDLE_ERROR( errors );
+      TAC_CALL( mGetVkSurfaceFn, _instance, data->mNativeWindowHandle, &_surface, errors );
 
 
       vkb::SwapchainBuilder swapchainBuilder{ _chosenGPU,_device,_surface };

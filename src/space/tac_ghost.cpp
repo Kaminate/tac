@@ -38,7 +38,6 @@ namespace Tac
   {
     mName = name;
     mGhost = ghost;
-    TAC_HANDLE_ERROR( errors );
     auto serverData = mGhost->mServerData;
     auto player = serverData->SpawnPlayer();
     player->mCameraPos = v3( -15, 12, 25 );
@@ -115,8 +114,7 @@ namespace Tac
     //_HANDLE_ERROR( errors );
 
     const String serverTypeGameClient = TAC_STRINGIFY( ScriptGameClient );
-    String serverType = SettingsGetString( "server type",  serverTypeGameClient );
-    TAC_HANDLE_ERROR( errors );
+    const String serverType = SettingsGetString( "server type",  serverTypeGameClient );
 
     ScriptThread* child = nullptr;
     if( serverType == serverTypeGameClient )
@@ -125,7 +123,6 @@ namespace Tac
       TAC_ASSERT_INVALID_CODE_PATH;
 
     mScriptRoot->AddChild( child );
-    TAC_HANDLE_ERROR( errors );
 
     if( mShouldPopulateWorldInitial )
       PopulateWorldInitial();
@@ -137,8 +134,7 @@ namespace Tac
 
     for( const char* playerName : playerNames )
     {
-      AddPlayer( playerName, errors );
-      TAC_HANDLE_ERROR( errors );
+      TAC_CALL( AddPlayer, playerName, errors );
     }
 
     //mUIRoot->mElapsedSeconds = &ShellGetElapsedSeconds(); // eww
@@ -216,15 +212,11 @@ namespace Tac
     for( User* user : mUsers )
       user->Update( errors );
 
-    mScriptRoot->Update( TAC_DELTA_FRAME_SECONDS, errors );
-    //mServerData->Update( TAC_DELTA_FRAME_SECONDS, nullptr, nullptr, errors );
-    TAC_HANDLE_ERROR( errors );
+    TAC_CALL( mScriptRoot->Update, TAC_DELTA_FRAME_SECONDS, errors );
     //mUIRoot->Update();
-    Draw( errors );
-    TAC_HANDLE_ERROR( errors );
+    TAC_CALL( Draw, errors );
 
-    AddMorePlayers( errors );
-    TAC_HANDLE_ERROR( errors );
+    TAC_CALL( AddMorePlayers, errors );
   }
   void Ghost::AddMorePlayers( Errors& errors )
   {
@@ -315,10 +307,8 @@ namespace Tac
     ImGui::Checkbox( "Draw to screen", &mDrawDirectlyToScreen );
     ImGui::Checkbox( "Grabbing Input", &mIsGrabbingInput );
     mServerData->DebugImgui();
-    mScriptRoot->DebugImgui( errors );
-    TAC_HANDLE_ERROR( errors );
-    ImguiCreatePlayerPopup( errors );
-    TAC_HANDLE_ERROR( errors );
+    TAC_CALL( mScriptRoot->DebugImgui, errors );
+    TAC_CALL( ImguiCreatePlayerPopup, errors );
     if( ImGui::CollapsingHeader( "Users" ) )
     {
       ImGui::Indent();

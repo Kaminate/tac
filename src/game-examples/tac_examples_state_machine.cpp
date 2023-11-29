@@ -1,4 +1,3 @@
-#if 1
 #include "src/game-examples/tac_examples.h"
 #include "src/game-examples/tac_examples_state_machine.h"
 #include "src/game-examples/tac_examples_registry.h"
@@ -49,11 +48,9 @@ namespace Tac
 
     if( sCurrExample )
     {
-      sCurrExample->Update( errors );
-      TAC_HANDLE_ERROR( errors);
+      TAC_CALL( sCurrExample->Update, errors );
     }
   }
 
 
 } // namespace Tac
-#endif

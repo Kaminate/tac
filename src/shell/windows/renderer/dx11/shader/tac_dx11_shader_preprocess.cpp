@@ -40,7 +40,7 @@ namespace Tac::Render
       PreprocessShaderRegister( line ),
       PreprocessShaderSemanticName( line ),
     };
-    TAC_HANDLE_ERROR_RETURN( errors, line );
+    TAC_HANDLE_ERROR_RETURN( line );
 
     for( const String& s : preprocessedLines )
     {

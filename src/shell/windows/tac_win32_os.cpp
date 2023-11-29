@@ -15,10 +15,7 @@
 #include "src/shell/tac_desktop_app.h"
 #include "src/shell/windows/tac_win32.h"
 
-import std;
-//#include <iostream>
-//#include <filesystem>
-//#include <ctime> // mktime
+import std; // iostream, filesystem, ctime (mktime )
 
 #include <Shlobj.h> // SHGetKnownFolderPath
 #include <shobjidl_core.h> // IFileSaveDialog, IFileOpenDialog
@@ -38,15 +35,14 @@ namespace Tac
     };
   }
 
-  static Filesystem::Path Win32OSOpenDialog(  Errors& errors )
+  static Filesystem::Path Win32OSOpenDialog( Errors& errors )
   {
     IFileOpenDialog* pDialog = nullptr;
 
-    TAC_HR_CALL( errors, CoInitializeEx, NULL, COINIT_APARTMENTTHREADED );
+    TAC_HR_CALL( CoInitializeEx, NULL, COINIT_APARTMENTTHREADED );
     TAC_ON_DESTRUCT(CoUninitialize());
 
-    TAC_HR_CALL( errors,
-                 CoCreateInstance,
+    TAC_HR_CALL( CoCreateInstance,
                  CLSID_FileOpenDialog,
                  NULL,
                  CLSCTX_INPROC_SERVER,
@@ -58,31 +54,28 @@ namespace Tac
     const std::wstring wDir = dir.Get().wstring();
 
     IShellItem* shDir = NULL;
-    TAC_HR_CALL( errors,
-                 SHCreateItemFromParsingName,
+    TAC_HR_CALL( SHCreateItemFromParsingName,
                  wDir.c_str(),
                  NULL,
                  IID_PPV_ARGS( &shDir ) );
     TAC_ON_DESTRUCT(shDir->Release());
 
-    TAC_HR_CALL( errors, pDialog->SetDefaultFolder,shDir);
+    TAC_HR_CALL( pDialog->SetDefaultFolder,shDir);
 
     {
       const HRESULT hr = pDialog->Show( nullptr );
       if( hr == HRESULT_FROM_WIN32( ERROR_CANCELLED ) )
         return {};
-      else if( FAILED( hr ) )
-      {
-        TAC_RAISE_ERROR_RETURN( "failed to show dialog", errors, {} );
-      }
+
+      TAC_RAISE_ERROR_IF_RETURN( FAILED( hr ), "failed to show dialog", {} );
     }
 
     IShellItem* pItem = nullptr;
-    TAC_HR_CALL( errors,  pDialog->GetResult, &pItem );
+    TAC_HR_CALL( pDialog->GetResult, &pItem );
     TAC_ON_DESTRUCT( pItem->Release() );
 
     PWSTR pszFilePath;
-    TAC_HR_CALL( errors, pItem->GetDisplayName, SIGDN_FILESYSPATH, &pszFilePath );
+    TAC_HR_CALL( pItem->GetDisplayName, SIGDN_FILESYSPATH, &pszFilePath );
     TAC_ON_DESTRUCT(CoTaskMemFree( pszFilePath ));
 
     return std::filesystem::path ( pszFilePath );
@@ -90,12 +83,11 @@ namespace Tac
 
   static Filesystem::Path Win32OSSaveDialog( const Filesystem::Path& suggestedPath, Errors& errors )
   {
-    TAC_HR_CALL( errors, CoInitializeEx, NULL, COINIT_APARTMENTTHREADED );
+    TAC_HR_CALL( CoInitializeEx, NULL, COINIT_APARTMENTTHREADED );
     TAC_ON_DESTRUCT(CoUninitialize());
 
     IFileSaveDialog* pDialog = nullptr;
-    TAC_HR_CALL( errors,
-                 CoCreateInstance,
+    TAC_HR_CALL( CoCreateInstance,
                  CLSID_FileSaveDialog,
                  NULL,
                  CLSCTX_INPROC_SERVER,
@@ -106,14 +98,14 @@ namespace Tac
     //pDialog->SetFileName();
     TAC_ASSERT_UNIMPLEMENTED;
 
-    TAC_HR_CALL( errors, pDialog->Show, nullptr );
+    TAC_HR_CALL( pDialog->Show, nullptr );
 
     IShellItem* pItem = nullptr;
-    TAC_HR_CALL( errors, pDialog->GetResult, &pItem );
+    TAC_HR_CALL( pDialog->GetResult, &pItem );
     TAC_ON_DESTRUCT( pItem->Release() );
 
     PWSTR pszFilePath;
-    TAC_HR_CALL( errors, pItem->GetDisplayName, SIGDN_FILESYSPATH, &pszFilePath );
+    TAC_HR_CALL( pItem->GetDisplayName, SIGDN_FILESYSPATH, &pszFilePath );
     TAC_ON_DESTRUCT(CoTaskMemFree( pszFilePath ));
 
     return std::filesystem::path ( pszFilePath );
@@ -121,7 +113,7 @@ namespace Tac
 
   static void Win32OSSetScreenspaceCursorPos( const v2& pos, Errors& errors )
   {
-    TAC_RAISE_ERROR_IF( !SetCursorPos( ( int )pos.x, ( int )pos.y ), Win32GetLastErrorString(), errors );
+    TAC_RAISE_ERROR_IF( !SetCursorPos( ( int )pos.x, ( int )pos.y ), Win32GetLastErrorString() );
   }
 
   static void* Win32OSGetLoadedDLL( const StringView& name )
@@ -174,29 +166,25 @@ namespace Tac
 
   static Filesystem::Path GetRoamingAppDataPathUTF8( Errors& errors )
   {
-    PWSTR outPath;
+    PWSTR outPath = nullptr;
     const HRESULT hr = SHGetKnownFolderPath( FOLDERID_RoamingAppData, KF_FLAG_CREATE, nullptr, &outPath );
     TAC_ON_DESTRUCT( CoTaskMemFree( outPath ) );
-    TAC_RAISE_ERROR_IF_RETURN( hr != S_OK, "Failed to get roaming folder", errors, "" );
-
+    TAC_RAISE_ERROR_IF_RETURN( hr != S_OK, "Failed to get roaming folder", "" );
     return std::filesystem::path( outPath );
   }
 
   static Filesystem::Path Win32OSGetApplicationDataPath( Errors& errors )
   {
-    Filesystem::Path path = GetRoamingAppDataPathUTF8( errors );
-    TAC_HANDLE_ERROR_RETURN( errors, {} );
+    Filesystem::Path path = TAC_CALL_RET( {}, GetRoamingAppDataPathUTF8, errors );
     TAC_ASSERT( Filesystem::Exists( path ) );
 
     path /= App::sInstance.mStudioName;
     Filesystem::CreateDirectory2( path );
     TAC_ASSERT( Filesystem::Exists( path ) );
-    TAC_HANDLE_ERROR_RETURN( errors, {} );
 
     path /= App::sInstance.mName;
     Filesystem::CreateDirectory2( path );
     TAC_ASSERT( Filesystem::Exists( path ) );
-    TAC_HANDLE_ERROR_RETURN( errors, {} );
 
     return path;
   }

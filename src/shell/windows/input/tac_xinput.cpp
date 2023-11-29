@@ -151,12 +151,7 @@ namespace Tac::Controller
                                            IID_IDirectInput8,
                                            ( LPVOID* )&mDirectInput,
                                            NULL );
-    if( hr != DI_OK )
-    {
-      const char* errmsg = GetDirectInput8CreateErr( hr );
-      TAC_RAISE_ERROR( errmsg, errors );
-    }
-
+    TAC_RAISE_ERROR_IF( hr != DI_OK, GetDirectInput8CreateErr( hr ) );
   }
 
   DirectInputPerController* XInput::FindDInputController( const DIDEVICEINSTANCE* mDeviceInstance )
@@ -165,10 +160,12 @@ namespace Tac::Controller
     {
       if( !controller )
         continue;
+
       DirectInputPerController* directInputPerController = ( DirectInputPerController * )controller;
       if( mDeviceInstance->guidInstance == directInputPerController->mInstance.guidInstance )
         return directInputPerController;
     }
+
     return nullptr;
   }
 

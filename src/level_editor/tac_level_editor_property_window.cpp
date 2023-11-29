@@ -229,7 +229,6 @@ namespace Tac
   {
     TAC_PROFILE_BLOCK;
 
-    TAC_HANDLE_ERROR( errors );
 
     DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
     if( !desktopWindowState->mNativeWindowHandle )
@@ -259,17 +258,12 @@ namespace Tac
 
     if( ImGuiButton( "Open Prefab" ) )
     {
-      AssetPathStringView prefabAssetPath = GetAssetOpenDialog(errors );
-      TAC_HANDLE_ERROR( errors );
+      TAC_CALL( AssetPathStringView prefabAssetPath = GetAssetOpenDialog,errors );
 
-      //String prefabPath;
-      //OS::OSOpenDialog( prefabPath, errors );
-      //TAC_HANDLE_ERROR( errors );
       if( prefabAssetPath.size() )
       {
         Camera* cam = world->mEntities.size() ? nullptr : gCreation.mEditorCamera;
-        PrefabLoadAtPath( &gCreation.mEntityUUIDCounter, world, cam, prefabAssetPath, errors );
-        TAC_HANDLE_ERROR( errors );
+        TAC_CALL( PrefabLoadAtPath, &gCreation.mEntityUUIDCounter, world, cam, prefabAssetPath, errors );
       }
     }
     ImGuiEndGroup();
@@ -295,6 +289,5 @@ namespace Tac
     Render::SetViewFramebuffer( viewHandle, framebufferHandle );
     Render::SetViewport( viewHandle, Render::Viewport(size) );
     Render::SetViewScissorRect( viewHandle, Render::ScissorRect(size) );
-    TAC_HANDLE_ERROR( errors );
   }
 }

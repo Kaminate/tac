@@ -3,6 +3,7 @@
 #include "src/common/string/tac_string.h"
 #include "src/space/tac_space.h"
 #include "src/common/tac_common.h"
+#include "src/common/system/tac_desktop_window.h"
 
 namespace Tac
 {

@@ -67,7 +67,7 @@ namespace Tac
   {
     const UINT flags = IsDebugMode ? DXGI_CREATE_FACTORY_DEBUG : 0;
     const HRESULT hr = CreateDXGIFactory2( flags, IID_PPV_ARGS( &mFactory ) );
-    TAC_RAISE_ERROR_IF( FAILED( hr ), "failed to create dxgi factory", errors );
+    TAC_RAISE_ERROR_IF( FAILED( hr ), "failed to create dxgi factory" );
     DXGISetObjectName( mFactory, "my-dxgi-factory" );
 
     IDXGIAdapter1* dxgiAdapter1;
@@ -82,7 +82,7 @@ namespace Tac
         continue;
 
       maxDedicatedVideoMemory = dxgiAdapterDesc1.DedicatedVideoMemory;
-      TAC_DXGI_CALL( errors, dxgiAdapter1->QueryInterface, IID_PPV_ARGS( &mDxgiAdapter4 ) );
+      TAC_DXGI_CALL( dxgiAdapter1->QueryInterface, IID_PPV_ARGS( &mDxgiAdapter4 ) );
     }
 
     DXGISetObjectName( mDxgiAdapter4, "my-dxgi-adaptor" );
@@ -152,7 +152,7 @@ namespace Tac
       const DWORD dwError = HRESULT_CODE( hr ); // ???
       errors.Append( TryInferDXGIErrorStr( hr ) );
       errors.Append( Win32ErrorStringFromDWORD( dwError ) );
-      TAC_RAISE_ERROR( "Failed to create swap chain", errors );
+      TAC_RAISE_ERROR( "Failed to create swap chain" );
     }
 
     *ppSwapChain = swapChain;

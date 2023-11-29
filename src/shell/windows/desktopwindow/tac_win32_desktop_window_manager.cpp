@@ -390,13 +390,8 @@ namespace Tac
       | LR_SHARED;
     const char* iconPath = "assets/grave.ico";
     const auto icon = ( HICON )LoadImage( nullptr, iconPath, IMAGE_ICON, 0, 0, fuLoad );;
-    if( !icon )
-    {
-      String msg = "filed to load icon ";
-      msg += iconPath;
-      errors.Append( msg );
-      TAC_HANDLE_ERROR( errors );
-    }
+    TAC_RAISE_ERROR_IF( !icon,
+                        ShortFixedString::Concat( "Failed to load icon from: \"", iconPath, "\"" ) );
 
     WNDCLASSEX wc = {};
     wc.cbSize = sizeof( WNDCLASSEX );
@@ -409,10 +404,8 @@ namespace Tac
     wc.lpszClassName = classname;
     wc.style = CS_HREDRAW | CS_VREDRAW; // redraw window on movement or size adjustment
 
-    if( !RegisterClassEx( &wc ) )
-    {
-      TAC_RAISE_ERROR( "Failed to register window class " + String( classname ), errors  );
-    }
+    TAC_RAISE_ERROR_IF( !RegisterClassEx( &wc ),
+                        "Failed to register window class " + String( classname ) );
   }
 
   DesktopWindowHandle Win32WindowManagerFindWindow( HWND hwnd )
@@ -599,8 +592,7 @@ namespace Tac
       msg += "\nGetLastError() returned: ";
       msg += lastErrorString;
 
-      errors.Append( lastErrorString );
-      TAC_HANDLE_ERROR( errors );
+      TAC_RAISE_ERROR( msg );
     }
 
     if( !parentHWND )

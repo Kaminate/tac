@@ -119,23 +119,23 @@ namespace Tac::Render
     return result;
   }
 
-#define TAC_DX11_CALL( errors, call, ... )                                                       \
+#define TAC_DX11_CALL( call, ... )                                                               \
 {                                                                                                \
   const HRESULT result = call( __VA_ARGS__ );                                                    \
   if( FAILED( result ) )                                                                         \
   {                                                                                              \
     const String errorMsg = DX11CallAux( TAC_STRINGIFY( call ) "( " #__VA_ARGS__ " )", result ); \
-    TAC_RAISE_ERROR( errorMsg, errors );                                                         \
+    TAC_RAISE_ERROR( errorMsg );                                                                 \
   }                                                                                              \
 }
 
-#define TAC_DX11_CALL_RETURN( errors, retval, call, ... )                                        \
+#define TAC_DX11_CALL_RETURN( retval, call, ... )                                                \
 {                                                                                                \
   const HRESULT result = call( __VA_ARGS__ );                                                    \
   if( FAILED( result ) )                                                                         \
   {                                                                                              \
     const String errorMsg = DX11CallAux( TAC_STRINGIFY( call ) "( " #__VA_ARGS__ " )", result ); \
-    TAC_RAISE_ERROR_RETURN( errorMsg, errors, retval );                                          \
+    TAC_RAISE_ERROR_RETURN( errorMsg, retval );                                                  \
   }                                                                                              \
 }
 
@@ -386,7 +386,7 @@ namespace Tac::Render
         }
         else
         {
-          TAC_HANDLE_ERROR_RETURN( errors, {} );
+          TAC_HANDLE_ERROR_RETURN( {} );
         }
       }
 
@@ -433,13 +433,13 @@ namespace Tac::Render
         if( errors )
           continue;
         TAC_ON_DESTRUCT( pVSBlob->Release() );
-        TAC_DX11_CALL_RETURN( errors, Program(),
+        TAC_DX11_CALL_RETURN( Program(),
                               device->CreateVertexShader,
                               pVSBlob->GetBufferPointer(),
                               pVSBlob->GetBufferSize(),
                               nullptr,
                               &vertexShader );
-        TAC_DX11_CALL_RETURN( errors, Program(),
+        TAC_DX11_CALL_RETURN( Program(),
                               D3DGetBlobPart,
                               pVSBlob->GetBufferPointer(),
                               pVSBlob->GetBufferSize(),
@@ -461,7 +461,7 @@ namespace Tac::Render
           continue;
         TAC_ON_DESTRUCT( pPSBlob->Release() );
 
-        TAC_DX11_CALL_RETURN( errors, Program(),
+        TAC_DX11_CALL_RETURN( Program(),
                               device->CreatePixelShader,
                               pPSBlob->GetBufferPointer(),
                               pPSBlob->GetBufferSize(),
@@ -485,7 +485,7 @@ namespace Tac::Render
           continue;
         TAC_ON_DESTRUCT( blob->Release() );
 
-        TAC_DX11_CALL_RETURN( errors, Program(),
+        TAC_DX11_CALL_RETURN( Program(),
                               device->CreateGeometryShader,
                               blob->GetBufferPointer(),
                               blob->GetBufferSize(),
@@ -554,8 +554,7 @@ namespace Tac::Render
     D3D_DRIVER_TYPE DriverType = D3D_DRIVER_TYPE_HARDWARE;
     HMODULE Software = NULL;
 
-    TAC_DX11_CALL( errors,
-                   D3D11CreateDevice,
+    TAC_DX11_CALL( D3D11CreateDevice,
                    pAdapter,
                    DriverType,
                    Software,
@@ -570,8 +569,8 @@ namespace Tac::Render
     // your output window, it likes to put error messages there
     if( IsDebugMode )
     {
-      TAC_DX11_CALL( errors, mDevice->QueryInterface, IID_PPV_ARGS( &mInfoQueueDEBUG ) );
-      TAC_DX11_CALL( errors, mDeviceContext->QueryInterface, IID_PPV_ARGS( &mUserAnnotationDEBUG ) );
+      TAC_DX11_CALL( mDevice->QueryInterface, IID_PPV_ARGS( &mInfoQueueDEBUG ) );
+      TAC_DX11_CALL( mDeviceContext->QueryInterface, IID_PPV_ARGS( &mUserAnnotationDEBUG ) );
 
       //const D3D11_MESSAGE_SEVERITY breakSeverities[] =
       //{
@@ -584,24 +583,19 @@ namespace Tac::Render
       //for( const D3D11_MESSAGE_SEVERITY severity : breakSeverities )
       //  mInfoQueueDEBUG->SetBreakOnSeverity( severity, TRUE );
 
-
     }
 
-    DXGIInit( errors );
-    TAC_HANDLE_ERROR( errors );
-
-
+    TAC_CALL( DXGIInit, errors );
 
     if( IsDebugMode )
     {
 
-      AllowPIXDebuggerAttachment( errors );
-      TAC_HANDLE_ERROR( errors );
+      TAC_CALL( AllowPIXDebuggerAttachment, errors );
     }
 
     ID3D11Device3* device3 = nullptr;
-    HRESULT queried = mDevice->QueryInterface( &mDevice3 );
-    TAC_RAISE_ERROR_IF( FAILED( queried ), "failed to query id3d11device3", errors );
+    const HRESULT queried = mDevice->QueryInterface( &mDevice3 );
+    TAC_RAISE_ERROR_IF( FAILED( queried ), "failed to query id3d11device3" );
   }
 
   RendererDirectX11* RendererDirectX11::GetInstance()
@@ -1231,7 +1225,7 @@ namespace Tac::Render
       ? &InitialData
       : nullptr;
 
-    TAC_DX11_CALL( errors, mDevice->CreateBuffer, &desc, pInitialData, &magicBuffer->mBuffer );
+    TAC_DX11_CALL( mDevice->CreateBuffer, &desc, pInitialData, &magicBuffer->mBuffer );
     SetDebugName( magicBuffer->mBuffer, commandDataCreateMagicBuffer->mStackFrame.ToString() );
 
     // https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/sm5-object-structuredbuffer
@@ -1248,7 +1242,7 @@ namespace Tac::Render
       uavDesc.Buffer.FirstElement = 0; // index, not byte offset
       uavDesc.Buffer.Flags = 0;
       uavDesc.Buffer.NumElements = NumElements;
-      TAC_DX11_CALL( errors, mDevice->CreateUnorderedAccessView,
+      TAC_DX11_CALL( mDevice->CreateUnorderedAccessView,
                      magicBuffer->mBuffer,
                      &uavDesc,
                      &magicBuffer->mUAV );
@@ -1263,8 +1257,7 @@ namespace Tac::Render
       srvDesc.Buffer.FirstElement = 0; // index, not byte offset
       srvDesc.Buffer.NumElements = NumElements;
       // srvDesc.BufferEx... = ;
-      TAC_DX11_CALL( errors,
-                     mDevice->CreateShaderResourceView,
+      TAC_DX11_CALL( mDevice->CreateShaderResourceView,
                      magicBuffer->mBuffer,
                      &srvDesc,
                      &magicBuffer->mSRV );
@@ -1287,8 +1280,7 @@ namespace Tac::Render
     initData.pSysMem = data->mOptionalInitialBytes;
     D3D11_SUBRESOURCE_DATA* pInitData = data->mOptionalInitialBytes ? &initData : nullptr;
     ID3D11Buffer* buffer;
-    TAC_DX11_CALL( errors,
-                   mDevice->CreateBuffer,
+    TAC_DX11_CALL( mDevice->CreateBuffer,
                    &bd,
                    pInitData,
                    &buffer );
@@ -1339,8 +1331,7 @@ namespace Tac::Render
     }
     ID3DBlob* inputSig = mPrograms[ ( int )commandData->mShaderHandle ].mInputSig;
     ID3D11InputLayout* inputLayout;
-    TAC_DX11_CALL( errors,
-                   mDevice->CreateInputLayout,
+    TAC_DX11_CALL( mDevice->CreateInputLayout,
                    inputElementDescs.data(),
                    ( UINT )inputElementDescs.size(),
                    inputSig->GetBufferPointer(),
@@ -1369,8 +1360,7 @@ namespace Tac::Render
     D3D11_SUBRESOURCE_DATA initData = {};
     initData.pSysMem = data->mOptionalInitialBytes;
     ID3D11Buffer* buffer;
-    TAC_DX11_CALL( errors,
-                   mDevice->CreateBuffer,
+    TAC_DX11_CALL( mDevice->CreateBuffer,
                    &bd,
                    data->mOptionalInitialBytes ? &initData : nullptr,
                    &buffer );
@@ -1395,7 +1385,7 @@ namespace Tac::Render
     desc.DepthClipEnable = true;
     desc.FrontCounterClockwise = commandData->mRasterizerState.mFrontCounterClockwise;
     ID3D11RasterizerState* rasterizerState;
-    TAC_DX11_CALL( errors, mDevice->CreateRasterizerState, &desc, &rasterizerState );
+    TAC_DX11_CALL( mDevice->CreateRasterizerState, &desc, &rasterizerState );
     mRasterizerStates[ ( int )commandData->mRasterizerStateHandle ] = rasterizerState;
     SetDebugName( rasterizerState, commandData->mStackFrame.ToString() );
 #else
@@ -1415,7 +1405,7 @@ namespace Tac::Render
     desc2.ConservativeRaster = conservativeRasterizationMode;
 
     ID3D11RasterizerState2* rasterizerState2;
-    TAC_DX11_CALL( errors, mDevice3->CreateRasterizerState2, &desc2, &rasterizerState2 );
+    TAC_DX11_CALL( mDevice3->CreateRasterizerState2, &desc2, &rasterizerState2 );
     SetDebugName( rasterizerState2, commandData->mStackFrame.ToString() );
     mRasterizerStates[ ( int )commandData->mRasterizerStateHandle ] = rasterizerState2;
 #endif
@@ -1437,7 +1427,7 @@ namespace Tac::Render
     };
 
     ID3D11SamplerState* samplerStateDX11;
-    TAC_DX11_CALL( errors, mDevice->CreateSamplerState, &desc, &samplerStateDX11 );
+    TAC_DX11_CALL( mDevice->CreateSamplerState, &desc, &samplerStateDX11 );
     mSamplerStates[ ( int )commandData->mSamplerStateHandle ] = samplerStateDX11;
     SetDebugName( samplerStateDX11, commandData->mStackFrame.ToString() );
   }
@@ -1547,8 +1537,7 @@ namespace Tac::Render
         .CPUAccessFlags = GetCPUAccessFlags( data->mTexSpec.mCpuAccess ),
         .MiscFlags = MiscFlagsBinding | MiscFlagsCubemap,
       };
-      TAC_DX11_CALL( errors,
-                     mDevice->CreateTexture2D,
+      TAC_DX11_CALL( mDevice->CreateTexture2D,
                      &texDesc,
                      pInitialData,
                      &texture2D );
@@ -1571,8 +1560,7 @@ namespace Tac::Render
         .MiscFlags = MiscFlagsBinding | MiscFlagsCubemap,
       };
 
-      TAC_DX11_CALL( errors,
-                     mDevice->CreateTexture3D,
+      TAC_DX11_CALL( mDevice->CreateTexture3D,
                      &texDesc,
                      pInitialData,
                      &texture3D );
@@ -1586,7 +1574,7 @@ namespace Tac::Render
     ID3D11RenderTargetView* rtv = nullptr;
     if( ( int )data->mTexSpec.mBinding & ( int )Binding::RenderTarget )
     {
-      TAC_DX11_CALL( errors, mDevice->CreateRenderTargetView,
+      TAC_DX11_CALL( mDevice->CreateRenderTargetView,
                      resource,
                      nullptr,
                      &rtv );
@@ -1624,7 +1612,7 @@ namespace Tac::Render
         TAC_ASSERT_INVALID_CODE_PATH;
       }
 
-      TAC_DX11_CALL( errors, mDevice->CreateUnorderedAccessView, resource, &uavDesc, &uav );
+      TAC_DX11_CALL( mDevice->CreateUnorderedAccessView, resource, &uavDesc, &uav );
       SetDebugName( uav, data->mStackFrame.ToString() );
     }
 
@@ -1646,7 +1634,7 @@ namespace Tac::Render
           .Texture2D = D3D11_TEX2D_SRV{.MipLevels = 1 },
         };
 
-        TAC_DX11_CALL( errors, mDevice->CreateShaderResourceView, resource, &srvDesc, &srv );
+        TAC_DX11_CALL( mDevice->CreateShaderResourceView, resource, &srvDesc, &srv );
         SetDebugName( srv, data->mStackFrame.ToString() );
       }
 
@@ -1661,8 +1649,7 @@ namespace Tac::Render
       D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = {};
       depthStencilViewDesc.Format = GetDXGIFormatDepth( data->mTexSpec.mImage.mFormat.mPerElementByteCount );
       depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-      TAC_DX11_CALL( errors,
-                     mDevice->CreateDepthStencilView,
+      TAC_DX11_CALL( mDevice->CreateDepthStencilView,
                      resource,
                      &depthStencilViewDesc,
                      &dsv );
@@ -1682,22 +1669,27 @@ namespace Tac::Render
                                          Errors& errors )
   {
     TAC_ASSERT( IsMainThread() );
-    BlendStateHandle blendStateHandle = commandData->mBlendStateHandle;
     const BlendState* blendState = &commandData->mBlendState;
-    D3D11_BLEND_DESC desc = {};
-    D3D11_RENDER_TARGET_BLEND_DESC* d3d11rtbd = &desc.RenderTarget[ 0 ];
-    d3d11rtbd->BlendEnable = true;
-    d3d11rtbd->SrcBlend = GetBlend( blendState->mSrcRGB );
-    d3d11rtbd->DestBlend = GetBlend( blendState->mDstRGB );
-    d3d11rtbd->BlendOp = GetBlendOp( blendState->mBlendRGB );
-    d3d11rtbd->SrcBlendAlpha = GetBlend( blendState->mSrcA );
-    d3d11rtbd->DestBlendAlpha = GetBlend( blendState->mDstA );
-    d3d11rtbd->BlendOpAlpha = GetBlendOp( blendState->mBlendA );
-    d3d11rtbd->RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+    const D3D11_RENDER_TARGET_BLEND_DESC blendDesc
+    {
+      .BlendEnable = true,
+      .SrcBlend = GetBlend( blendState->mSrcRGB ),
+      .DestBlend = GetBlend( blendState->mDstRGB ),
+      .BlendOp = GetBlendOp( blendState->mBlendRGB ),
+      .SrcBlendAlpha = GetBlend( blendState->mSrcA ),
+      .DestBlendAlpha = GetBlend( blendState->mDstA ),
+      .BlendOpAlpha = GetBlendOp( blendState->mBlendA ),
+      .RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL,
+    };
+
+    const D3D11_BLEND_DESC desc = { .RenderTarget = { blendDesc } };
+
     ID3D11BlendState* blendStateDX11;
-    TAC_DX11_CALL( errors, mDevice->CreateBlendState, &desc, &blendStateDX11 );
+    TAC_DX11_CALL( mDevice->CreateBlendState, &desc, &blendStateDX11 );
     SetDebugName( blendStateDX11, commandData->mStackFrame.ToString() );
-    mBlendStates[ ( int )blendStateHandle ] = blendStateDX11;
+
+    mBlendStates[ commandData->mBlendStateHandle.GetIndex() ] = blendStateDX11;
   }
 
   void RendererDirectX11::AddConstantBuffer( const CommandDataCreateConstantBuffer* commandData,
@@ -1717,7 +1709,7 @@ namespace Tac::Render
     };
 
     ID3D11Buffer* cbufferhandle;
-    TAC_DX11_CALL( errors, mDevice->CreateBuffer, &bd, nullptr, &cbufferhandle );
+    TAC_DX11_CALL( mDevice->CreateBuffer, &bd, nullptr, &cbufferhandle );
     SetDebugName( cbufferhandle, commandData->mStackFrame.ToString() );
 
     mConstantBuffers[ iCB ] = ConstantBuffer
@@ -1749,7 +1741,7 @@ namespace Tac::Render
     const int iDepth = hDepth.GetIndex();
 
     ID3D11DepthStencilState* depthStencilState;
-    TAC_DX11_CALL( errors, mDevice->CreateDepthStencilState, &desc, &depthStencilState );
+    TAC_DX11_CALL( mDevice->CreateDepthStencilState, &desc, &depthStencilState );
     mDepthStencilStates[ iDepth ] = depthStencilState;
     SetDebugName( depthStencilState, commandData->mStackFrame.ToString() );
   }
@@ -1784,8 +1776,7 @@ namespace Tac::Render
         D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = {};
         depthStencilViewDesc.Format = desc.Format;
         depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-        TAC_DX11_CALL( errors,
-                       mDevice->CreateDepthStencilView,
+        TAC_DX11_CALL( mDevice->CreateDepthStencilView,
                        texture->mTexture2D,
                        &depthStencilViewDesc,
                        &dsv );
@@ -1826,14 +1817,13 @@ namespace Tac::Render
     const UINT height = data->mHeight;
 
     IDXGISwapChain* swapChain;
-    DXGICreateSwapChain( hwnd,
+    TAC_CALL(DXGICreateSwapChain, hwnd,
                          mDevice,
                          bufferCount,
                          width,
                          height,
                          &swapChain,
                          errors );
-    TAC_HANDLE_ERROR( errors );
 
     ID3D11Device* device = mDevice;
 
@@ -1843,13 +1833,13 @@ namespace Tac::Render
     // swapChain->GetDesc( &swapChainDesc );
 
     ID3D11Texture2D* pBackBuffer = nullptr;
-    TAC_DXGI_CALL( errors, swapChain->GetBuffer, 0, IID_PPV_ARGS( &pBackBuffer ) );
-    TAC_RAISE_ERROR_IF( !pBackBuffer, "no buffer to resize", errors );
+    TAC_DXGI_CALL( swapChain->GetBuffer, 0, IID_PPV_ARGS( &pBackBuffer ) );
+    TAC_RAISE_ERROR_IF( !pBackBuffer, "no buffer to resize" );
     TAC_ON_DESTRUCT(pBackBuffer->Release());
 
     ID3D11RenderTargetView* rtv = nullptr;
     D3D11_RENDER_TARGET_VIEW_DESC* rtvDesc = nullptr;
-    TAC_DX11_CALL( errors, device->CreateRenderTargetView, pBackBuffer, rtvDesc, &rtv );
+    TAC_DX11_CALL( device->CreateRenderTargetView, pBackBuffer, rtvDesc, &rtv );
     SetDebugName( rtv, data->mStackFrame.ToString() );
 
     // this seems to be unused...
@@ -1875,7 +1865,7 @@ namespace Tac::Render
     };
 
     ID3D11Texture2D* texture;
-    TAC_DX11_CALL( errors, mDevice->CreateTexture2D, &texture2dDesc, nullptr, &texture );
+    TAC_DX11_CALL( mDevice->CreateTexture2D, &texture2dDesc, nullptr, &texture );
     SetDebugName( texture, data->mStackFrame.ToString() );
 
     const D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc =
@@ -1885,7 +1875,7 @@ namespace Tac::Render
     };
 
     ID3D11DepthStencilView* dsv;
-    TAC_DX11_CALL( errors, mDevice->CreateDepthStencilView, texture, &depthStencilViewDesc, &dsv );
+    TAC_DX11_CALL( mDevice->CreateDepthStencilView, texture, &depthStencilViewDesc, &dsv );
     SetDebugName( dsv, data->mStackFrame.ToString() );
 
 
@@ -2053,8 +2043,7 @@ namespace Tac::Render
     ID3D11Resource* dstTex = mTextures[ ( int )commandData->mTextureHandle ].mTexture2D;
     TAC_ASSERT( dstTex );
     ID3D11Texture2D* srcTex;
-    TAC_DX11_CALL( errors,
-                   mDevice->CreateTexture2D,
+    TAC_DX11_CALL( mDevice->CreateTexture2D,
                    &texDesc,
                    &subResource,
                    &srcTex );
@@ -2115,21 +2104,21 @@ namespace Tac::Render
 
     DXGI_SWAP_CHAIN_DESC desc;
     TAC_RAISE_ERROR_IF( FAILED( framebuffer->mSwapChain->GetDesc( &desc ) ),
-                         "Failed to get swap chain desc",
-                         errors );
+                        "Failed to get swap chain desc" );
+
     framebuffer->mSwapChain->ResizeBuffers( framebuffer->mBufferCount,
                                             data->mWidth,
                                             data->mHeight,
                                             DXGI_FORMAT_UNKNOWN,
                                             desc.Flags );
     ID3D11Texture2D* pBackBuffer = nullptr;
-    TAC_DXGI_CALL( errors, framebuffer->mSwapChain->GetBuffer, 0, IID_PPV_ARGS( &pBackBuffer ) );
-    TAC_RAISE_ERROR_IF( !pBackBuffer, "no buffer to resize", errors );
+    TAC_DXGI_CALL( framebuffer->mSwapChain->GetBuffer, 0, IID_PPV_ARGS( &pBackBuffer ) );
+    TAC_RAISE_ERROR_IF( !pBackBuffer, "no buffer to resize" );
 
     const D3D11_RENDER_TARGET_VIEW_DESC* rtvDesc = nullptr;
 
     ID3D11RenderTargetView* rtv = nullptr;
-    TAC_DX11_CALL( errors, mDevice->CreateRenderTargetView,
+    TAC_DX11_CALL( mDevice->CreateRenderTargetView,
                    pBackBuffer,
                    rtvDesc,
                    &rtv );
@@ -2138,7 +2127,7 @@ namespace Tac::Render
     SetDebugName( rtv, framebuffer->mDebugName );
 
     ID3D11Texture2D* depthTexture;
-    TAC_DX11_CALL( errors, mDevice->CreateTexture2D, &depthTextureDesc, nullptr, &depthTexture );
+    TAC_DX11_CALL( mDevice->CreateTexture2D, &depthTextureDesc, nullptr, &depthTexture );
     SetDebugName( depthTexture, framebuffer->mDebugName );
 
     const D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc =
@@ -2148,7 +2137,7 @@ namespace Tac::Render
     };
 
     ID3D11DepthStencilView* dsv;
-    TAC_DX11_CALL( errors, mDevice->CreateDepthStencilView, depthTexture, &depthStencilViewDesc, &dsv );
+    TAC_DX11_CALL( mDevice->CreateDepthStencilView, depthTexture, &depthStencilViewDesc, &dsv );
     SetDebugName( dsv, framebuffer->mDebugName );
 
     framebuffer->mDepthStencilView = dsv;
@@ -2217,7 +2206,7 @@ namespace Tac::Render
     TAC_ASSERT( IsMainThread() );
     TAC_ASSERT( IsSubmitAllocated( bytes ) );
     D3D11_MAPPED_SUBRESOURCE mappedResource;
-    TAC_DX11_CALL( errors, mDeviceContext->Map, buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource );
+    TAC_DX11_CALL( mDeviceContext->Map, buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource );
     MemCpy( mappedResource.pData, bytes, byteCount );
     mDeviceContext->Unmap( buffer, 0 );
   }

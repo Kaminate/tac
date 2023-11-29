@@ -238,7 +238,6 @@ namespace Tac
                                                   m3DShader,
                                                   TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( m3DVertexFormat, "game-window-vtx-fmt" );
-    TAC_HANDLE_ERROR( errors );
 
     mBlendState = Render::CreateBlendState( { .mSrcRGB = Render::BlendConstants::One,
                                              .mDstRGB = Render::BlendConstants::Zero,
@@ -247,7 +246,6 @@ namespace Tac
                                              .mDstA = Render::BlendConstants::One,
                                              .mBlendA = Render::BlendMode::Add}, TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( mBlendState, "game-window-blend" );
-    TAC_HANDLE_ERROR( errors );
 
     mAlphaBlendState = Render::CreateBlendState( { .mSrcRGB = Render::BlendConstants::SrcA,
                                                   .mDstRGB = Render::BlendConstants::OneMinusSrcA,
@@ -257,14 +255,12 @@ namespace Tac
                                                   .mBlendA = Render::BlendMode::Add},
                                                   TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( mAlphaBlendState, "game-window-alpha-blend" );
-    TAC_HANDLE_ERROR( errors );
 
     mDepthState = Render::CreateDepthState( { .mDepthTest = true,
                                               .mDepthWrite = true,
                                               .mDepthFunc = Render::DepthFunc::Less},
                                             TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( mDepthState, "game-window-depth" );
-    TAC_HANDLE_ERROR( errors );
 
     
     mRasterizerState = Render::CreateRasterizerState( { .mFillMode = Render::FillMode::Solid,
@@ -275,38 +271,32 @@ namespace Tac
                                                       },
                                                       TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( mRasterizerState, "game-window-rast" );
-    TAC_HANDLE_ERROR( errors );
 
     mSamplerState = Render::CreateSamplerState( { .mFilter = Render::Filter::Linear }, TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( mSamplerState, "game-window-samp" );
-    TAC_HANDLE_ERROR( errors );
   }
 
   void CreationGameWindow::Init( Errors& errors )
   {
     mDesktopWindowHandle = gCreation.mWindowManager.CreateDesktopWindow( gGameWindowName );
 
-    CreateGraphicsObjects( errors );
-    TAC_HANDLE_ERROR( errors );
+    TAC_CALL( CreateGraphicsObjects, errors );
 
 
 
-    mCenteredUnitCube = ModelAssetManagerGetMeshTryingNewThing( "assets/editor/box.gltf",
+    mCenteredUnitCube = TAC_CALL( ModelAssetManagerGetMeshTryingNewThing, "assets/editor/box.gltf",
                                                                 0,
                                                                 m3DvertexFormatDecls,
                                                                 errors );
-    TAC_HANDLE_ERROR( errors );
 
-    mArrow = ModelAssetManagerGetMeshTryingNewThing( "assets/editor/arrow.gltf",
+    mArrow = TAC_CALL( ModelAssetManagerGetMeshTryingNewThing, "assets/editor/arrow.gltf",
                                                      0,
                                                      m3DvertexFormatDecls,
                                                      errors );
-    TAC_HANDLE_ERROR( errors );
 
     mDebug3DDrawData = TAC_NEW Debug3DDrawData;
 
-    PlayGame( errors );
-    TAC_HANDLE_ERROR( errors );
+    TAC_CALL( PlayGame, errors );
 
     spriteShader = Render::CreateShader(  "3DSprite" , TAC_STACK_FRAME );
   }
@@ -744,8 +734,7 @@ namespace Tac
       return;
     auto ghost = TAC_NEW Ghost;
     //ghost->mRenderView = mDesktopWindow->mRenderView;
-    ghost->Init( errors );
-    TAC_HANDLE_ERROR( errors );
+    TAC_CALL( ghost->Init, errors );
     mSoul = ghost;
   }
 
@@ -782,8 +771,7 @@ namespace Tac
     {
       if( ImGuiButton( "Begin simulation" ) )
       {
-        PlayGame( errors );
-        TAC_HANDLE_ERROR( errors );
+        TAC_CALL( PlayGame, errors );
       }
     }
 
@@ -1054,8 +1042,7 @@ namespace Tac
       //  auto model = ( Model* )entity->AddNewComponent( ComponentRegistryEntryIndex::Model );
       //  model->mModelPath = "assets/editor/Box.gltf";
       //}
-      mSoul->Update( errors );
-      TAC_HANDLE_ERROR( errors );
+      TAC_CALL( mSoul->Update, errors );
     }
 
     if( drawGrid )
@@ -1088,9 +1075,7 @@ namespace Tac
                                             errors );
 
     UpdateGizmo();
-    ImGuiOverlay( errors );
-
-    TAC_HANDLE_ERROR( errors );
+    TAC_CALL( ImGuiOverlay, errors );
   }
 
   void CreationGameWindow::UpdateGizmo()

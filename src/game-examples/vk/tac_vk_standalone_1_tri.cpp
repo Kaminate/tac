@@ -10,7 +10,6 @@ namespace Tac
   static void   StandaloneInit( Errors& errors )
   {
     sDesktopWindowHandle = CreateTrackedWindow( "Vk Example.Window" );
-    TAC_HANDLE_ERROR( errors );
   }
 
   static void   StandaloneUpdate( Errors& errors )

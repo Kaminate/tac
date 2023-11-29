@@ -139,7 +139,7 @@ namespace Tac::Render
                                                           shaderStrOrig,
                                                           shaderStrFull,
                                                           ( const char* )pErrorBlob->GetBufferPointer() );
-      TAC_RAISE_ERROR_RETURN( errMsg, errors, nullptr );
+      TAC_RAISE_ERROR_RETURN( errMsg, nullptr );
     }
 
     return pBlobOut;

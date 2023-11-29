@@ -64,7 +64,7 @@ namespace Tac
     //for( TextureAndPath textureAndPath : textureAndPaths )
     //{
     //  TextureAssetManager::GetTexture( textureAndPath.path, errors );
-    //  TAC_HANDLE_ERROR( errors );
+    //  TAC_HANDLE_ERROR();
     //  if( *textureAndPath.texture )
     //    loadedTextureCount++;
     //}
@@ -97,8 +97,7 @@ namespace Tac
     {
       if( ImGuiButton(name) )
       {
-        ( gCreation.mWindowManager.*fn ) ( errors );
-        TAC_HANDLE_ERROR( errors );
+        TAC_CALL( ( gCreation.mWindowManager.*fn ) , errors );
       }
     }
 
@@ -181,8 +180,7 @@ namespace Tac
 
     ImGuiSaveAs();
 
-    ImGuiWindows(errors);
-    TAC_HANDLE_ERROR( errors );
+    TAC_CALL( ImGuiWindows,errors);
 
     PrefabImGui();
 
@@ -190,8 +188,7 @@ namespace Tac
     if( ImGuiButton( "Close Application" ) )
       OS::OSAppStopRunning();
 
-    DesktopAppDebugImGui( errors );
-    TAC_HANDLE_ERROR( errors );
+    TAC_CALL( DesktopAppDebugImGui, errors );
 
     ImGuiEnd();
   }
@@ -205,16 +202,14 @@ namespace Tac
     const Render::FramebufferHandle framebufferHandle = WindowGraphicsGetFramebuffer( mDesktopWindowHandle );
     const Render::ViewHandle viewHandle = WindowGraphicsGetView( mDesktopWindowHandle );
 
-    LoadTextures( errors );
-    TAC_HANDLE_ERROR( errors );
+    TAC_CALL( LoadTextures, errors );
 
 
     const DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
     if( !desktopWindowState->mNativeWindowHandle )
       return;
 
-    ImGui( errors );
-    TAC_HANDLE_ERROR( errors );
+    TAC_CALL( ImGui, errors );
 
     const v2 size = desktopWindowState->GetSizeV2();
     const Render::Viewport viewport = size;
@@ -224,17 +219,15 @@ namespace Tac
     Render::SetViewport( viewHandle, viewport );
     Render::SetViewScissorRect( viewHandle, scissorRect );
 
-    mUI2DDrawData->DrawToTexture( viewHandle,
+    TAC_CALL(mUI2DDrawData->DrawToTexture, viewHandle,
                                   desktopWindowState->mWidth,
                                   desktopWindowState->mHeight,
                                   errors );
-    TAC_HANDLE_ERROR( errors );
 
     if( CreationGameObjectMenuWindow::Instance )
     {
       DesktopWindowHandle desktopWindowHandle = CreationGameObjectMenuWindow::Instance->mDesktopWindowHandle;
-      CreationGameObjectMenuWindow::Instance->Update( errors );
-      TAC_HANDLE_ERROR( errors );
+      TAC_CALL( CreationGameObjectMenuWindow::Instance->Update, errors );
 
       if( Mouse::ButtonJustDown( Mouse::Button::MouseLeft )
           && !IsWindowHovered( desktopWindowHandle )

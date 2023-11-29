@@ -258,10 +258,9 @@ namespace Tac
 	{
     TAC_UNUSED_PARAMETER( seconds );
 		TAC_TIMELINE_BEGIN;
-		mSocket = Network::Net::Instance->CreateSocket( "Matchmaking socket",
+		mSocket = TAC_CALL( Network::Net::Instance->CreateSocket, "Matchmaking socket",
                                                     Network::AddressFamily::IPv4,
                                                     Network::SocketType::TCP, errors );
-		TAC_HANDLE_ERROR( errors );
 
 
     const Network::SocketCallbackDataMessage socketCallbackDataMessage =
@@ -318,8 +317,7 @@ namespace Tac
 		httpRequest.FormatRequestWebsocket( "/game", mHostname, websocketKey );
 		if( mPrintHTTPRequest )
           OS::OSDebugPrintLine(httpRequest.ToString());
-		mSocket->Send( httpRequest, errors );
-		TAC_HANDLE_ERROR( errors );
+		TAC_CALL( mSocket->Send, httpRequest, errors );
 		mPretendWebsocketHandshakeDone = true;
 		mSocket->mRequiresWebsocketFrame = true;
 		mSocket->mKeepaliveOverride.mUserData = this;
@@ -464,7 +462,7 @@ namespace Tac
 		//{
 		//  // TODO: use the asset manager to load this shit async
 		//  auto memory = FileToString( "assets/power.png", errors );
-		//  TAC_HANDLE_ERROR( errors );
+		//  TAC_HANDLE_ERROR();
 
 		//  int x;
 		//  int y;
@@ -510,7 +508,7 @@ namespace Tac
 		//  textureData.mImage = image;
 		//  textureData.mPitch = image.mFormat.mElementCount * image.mFormat.mPerElementByteCount * image.mWidth;
 		//  mPower = Render::CreateTexture( "power", textureData, TAC_STACK_FRAME );
-		//  TAC_HANDLE_ERROR( errors );
+		//  TAC_HANDLE_ERROR();
 		//}
 
 		//float dotPeriodSeconds = 1;
@@ -789,7 +787,7 @@ namespace Tac
 
 
 		//mTimeline.Update( ShellGetElapsedSeconds(), errors );
-		//TAC_HANDLE_ERROR( errors );
+		//TAC_HANDLE_ERROR();
 
 		//return;
 

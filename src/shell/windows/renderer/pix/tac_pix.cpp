@@ -27,7 +27,7 @@ namespace Tac::Render
   {
     const bool parentDirExist = Filesystem::Exists( pixInstallPath );
     //OS::OSDoesFolderExist( pixInstallPath, parentDirExist, errors );
-    TAC_HANDLE_ERROR_RETURN( errors, {} );
+    TAC_HANDLE_ERROR_RETURN( {} );
 
     if( !parentDirExist )
       return {};

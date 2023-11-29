@@ -17,13 +17,12 @@ namespace Tac
 
   // ID3D12 objects
   static ID3D12Device*       sDevice;
-  static ID3D12CommandQueue* sCommandQueue;
   static ID3D12CommandQueue* m_commandQueue;
 
   // IDXGI objects
   static IDXGISwapChain*     swapChain;
 
-  void App::Init( Errors& errors )
+  static void DX12EnableDebug( Errors& errors )
   {
     if( IsDebugMode )
     {
@@ -34,16 +33,22 @@ namespace Tac
 
       dx12debug->EnableDebugLayer();
     }
+  }
 
-    DXGIInit(errors);
-    TAC_HANDLE_ERROR( errors );
-
+  static void DX12CreateDevice( Errors& errors )
+  {
     IDXGIAdapter* adapter = DXGIGetAdapter();
     TAC_DX12_CALL( errors, D3D12CreateDevice, adapter, D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS( &sDevice ) );
+    Render::DX12SetName( sDevice, "Device" );
+  }
 
-    const D3D12_COMMAND_QUEUE_DESC queueDesc = {};
-    TAC_DX12_CALL( errors, sDevice->CreateCommandQueue, &queueDesc, IID_PPV_ARGS( &sCommandQueue ) );
+  void App::Init( Errors& errors )
+  {
+    TAC_CALL( DX12EnableDebug, errors );
 
+    TAC_CALL( DXGIInit, errors );
+
+    TAC_CALL( DX12CreateDevice, errors );
 
     const DesktopAppCreateWindowParams desktopParams
     {
@@ -74,20 +79,20 @@ namespace Tac
 
       const D3D12_COMMAND_QUEUE_DESC queueDesc =
       {
-      .Type = D3D12_COMMAND_LIST_TYPE_DIRECT,
-      .Flags = D3D12_COMMAND_QUEUE_FLAG_NONE,
+        .Type = D3D12_COMMAND_LIST_TYPE_DIRECT,
+        .Flags = D3D12_COMMAND_QUEUE_FLAG_NONE,
       };
 
       TAC_DX12_CALL( errors, sDevice->CreateCommandQueue, &queueDesc, IID_PPV_ARGS( &m_commandQueue ) );
+      Render::DX12SetName( m_commandQueue, "Command Queue" );
 
-      DXGICreateSwapChain( hwnd,
+      TAC_CALL( DXGICreateSwapChain, hwnd,
                            m_commandQueue, // swap chain can force flush the queue
                            bufferCount,
                            width,
                            height,
                            &swapChain,
                            errors );
-      TAC_HANDLE_ERROR( errors );
 
     }
 

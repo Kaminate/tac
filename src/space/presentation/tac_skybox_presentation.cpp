@@ -49,7 +49,6 @@ namespace Tac
                                                 mShader,
                                                 TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( mVertexFormat, "skybox-fmt" );
-    TAC_HANDLE_ERROR( errors );
 
 
     mBlendState = Render::CreateBlendState( { .mSrcRGB = Render::BlendConstants::One,
@@ -73,11 +72,9 @@ namespace Tac
                                                         .mMultisample = false},
                                                       TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( mRasterizerState, "skybox-rast" );
-    TAC_HANDLE_ERROR( errors );
 
     mSamplerState = Render::CreateSamplerState( { .mFilter = Render::Filter::Linear }, TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( mSamplerState, "skybox-samp" );
-    TAC_HANDLE_ERROR( errors );
   }
 
   void SkyboxPresentationRender( const Camera* camera,
@@ -94,6 +91,7 @@ namespace Tac
     TAC_ASSERT( mGetSkyboxTextureErrors.empty() );
     if( !cubemap.IsValid() )
       return;
+
     Mesh* mesh = ModelAssetManagerGetMeshTryingNewThing( "assets/editor/Box.gltf",
                                                          0,
                                                          mVertexDecls,

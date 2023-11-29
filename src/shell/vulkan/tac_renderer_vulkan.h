@@ -112,7 +112,7 @@ void TacVulkanCallAux( TacErrors& errors, TacString functionName, VkResult res )
   if( result != VK_SUCCESS )\
   {\
     TacVulkanCallAux( errors, TacStringify( call ), result );\
-    TAC_HANDLE_ERROR( errors );\
+    TAC_HANDLE_ERROR();\
   }\
 }
 */
@@ -128,8 +128,7 @@ void TacVulkanCallAux( TacErrors& errors, TacString functionName, VkResult res )
   if( result )                                                                      \
   {                                                                                 \
     const char* fnCall = TAC_STRINGIFY( call ) "( " #__VA_ARGS__ " )";              \
-    Tac::Render::VkCallAux( fnCall, result, errors );                               \
-    TAC_HANDLE_ERROR( errors );                                                     \
+    TAC_CALL( Tac::Render::VkCallAux, fnCall, result, errors );                     \
   }                                                                                 \
 }
 

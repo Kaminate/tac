@@ -95,12 +95,12 @@ namespace Tac
 
     if( !reader->Read( &player->mInputDirection ) )
     {
-      TAC_RAISE_ERROR( "failed to read player input direction", errors );
+      TAC_RAISE_ERROR( "failed to read player input direction");
     }
 
     if( !reader->Read( &otherPlayer->mTimeStamp ) )
     {
-      TAC_RAISE_ERROR( "failed to read player time stamp", errors );
+      TAC_RAISE_ERROR( "failed to read player time stamp");
     }
   }
 
@@ -292,8 +292,7 @@ namespace Tac
     reader.mTo = GetEndianness();
 
     NetMsgType networkMessage = NetMsgType::Count;
-    ReadNetMsgHeader( &reader, &networkMessage, errors );
-    TAC_HANDLE_ERROR( errors );
+    TAC_CALL( ReadNetMsgHeader, &reader, &networkMessage, errors );
     switch( networkMessage )
     {
       case NetMsgType::Input:
@@ -360,8 +359,7 @@ namespace Tac
       {
         const void* bytes = savedNetMsg.data();
         const int byteCount = ( int )savedNetMsg.size();
-        ExecuteNetMsg( otherPlayer->mConnectionUUID, bytes, byteCount, errors );
-        TAC_HANDLE_ERROR( errors );
+        TAC_CALL( ExecuteNetMsg, otherPlayer->mConnectionUUID, bytes, byteCount, errors );
       }
     }
 
@@ -400,7 +398,7 @@ namespace Tac
     //  mChat.mIsReadyToSend = false;
     //  writer->mBuffer = buffer;
     //  WriteOutgoingChatMessage( writer, &mChat, errors );
-    //  TAC_HANDLE_ERROR( errors );
+    //  TAC_HANDLE_ERROR();
     //  for( auto otherPlayer : mOtherPlayers )
     //  {
     //    sendNetworkMessageCallback(

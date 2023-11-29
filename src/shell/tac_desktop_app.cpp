@@ -166,17 +166,14 @@ namespace Tac
     gThreadType = ThreadType::Logic;
     FrameMemoryInitThreadAllocator(  1024 * 1024 * 10  );
 
-    ShellInit( errors );
-    TAC_HANDLE_ERROR( errors );
+    TAC_CALL( ShellInit, errors );
 
-    FontApi::Init( errors );
-    TAC_HANDLE_ERROR( errors );
+    TAC_CALL( FontApi::Init, errors );
 
     ImGuiInit();
     SpaceInit();
 
-    App::sInstance.Init( errors );
-    TAC_HANDLE_ERROR( errors );
+    TAC_CALL( App::sInstance.Init, errors );
   }
 
   static void LogicThreadUninit()
@@ -196,19 +193,16 @@ namespace Tac
   {
     Errors& errors = gLogicThreadErrors;
     TAC_ON_DESTRUCT( LogicThreadUninit() );
-    LogicThreadInit( errors );
-    TAC_HANDLE_ERROR( errors );
+    TAC_CALL( LogicThreadInit, errors );
 
     while( OS::OSAppIsRunning() )
     {
       TAC_PROFILE_BLOCK;
       ProfileSetGameFrame();
 
-      SettingsTick( errors );
-      TAC_HANDLE_ERROR( errors );
+      TAC_CALL( SettingsTick, errors );
 
-      Network::NetApi::Update( errors );
-      TAC_HANDLE_ERROR( errors );
+      TAC_CALL( Network::NetApi::Update, errors );
 
 
       {
@@ -245,11 +239,9 @@ namespace Tac
 
         Controller::UpdateJoysticks();
 
-        App::sInstance.Update( errors );
-        TAC_HANDLE_ERROR( errors );
+        TAC_CALL( App::sInstance.Update, errors );
 
-        ImGuiEndFrame( errors );
-        TAC_HANDLE_ERROR( errors );
+        TAC_CALL( ImGuiEndFrame, errors );
 
         Keyboard::KeyboardEndFrame();
         Mouse::MouseEndFrame();
@@ -291,19 +283,15 @@ namespace Tac
     {
       TAC_PROFILE_BLOCK;
 
-      sPlatformFns->PlatformFrameBegin( errors );
-      TAC_HANDLE_ERROR( errors );
+      TAC_CALL( sPlatformFns->PlatformFrameBegin, errors );
 
-      DesktopAppUpdate( errors );
-      TAC_HANDLE_ERROR( errors );
+      TAC_CALL( DesktopAppUpdate, errors );
 
-      sPlatformFns->PlatformFrameEnd( errors );
-      TAC_HANDLE_ERROR( errors );
+      TAC_CALL( sPlatformFns->PlatformFrameEnd, errors );
 
       if( sRenderEnabled )
       {
-        Render::RenderFrame( errors );
-        TAC_HANDLE_ERROR( errors );
+        TAC_CALL( Render::RenderFrame, errors );
       }
 
       DontMaxOutCpuGpuPowerUsage();
@@ -627,8 +615,7 @@ namespace Tac
 
   void                DesktopAppInit( PlatformFns* platformFns, Errors& errors )
   {
-    PlatformThreadInit( errors );
-    TAC_HANDLE_ERROR( errors );
+    TAC_CALL( PlatformThreadInit, errors );
 
     DesktopEventInit();
 
@@ -645,16 +632,15 @@ namespace Tac
     // for win32 project standalone_win_vk_1_tri, appDataPath =
     //
     //     C:\Users\Nate\AppData\Roaming + /Sleeping Studio + /Whatever bro
-    const Filesystem::Path appDataPath = OS::OSGetApplicationDataPath( errors );
-    TAC_HANDLE_ERROR( errors );
+    const Filesystem::Path appDataPath = TAC_CALL( OS::OSGetApplicationDataPath, errors );
+
     if( !Filesystem::Exists( appDataPath ) )
     {
       const String msg = "app data path " + appDataPath.u8string() + " doesnt exist";
-      TAC_RAISE_ERROR( msg, errors );
+      TAC_RAISE_ERROR( msg );
     }
 
     const Filesystem::Path workingDir = Filesystem::GetCurrentWorkingDirectory();
-    TAC_HANDLE_ERROR( errors );
 
     sPlatformFns = platformFns;
 
@@ -663,13 +649,11 @@ namespace Tac
     ShellSetPrefPath( appDataPath );
     ShellSetInitialWorkingDir( workingDir );
 
-    SettingsInit( errors );
-    TAC_HANDLE_ERROR( errors );
+    TAC_CALL( SettingsInit, errors );
 
     if( sRenderEnabled )
     {
-      DesktopInitRendering( errors );
-      TAC_HANDLE_ERROR( errors );
+      TAC_CALL( DesktopInitRendering, errors );
     }
   }
 
@@ -682,8 +666,7 @@ namespace Tac
 
   void                DesktopAppUpdate( Errors& errors )
   {
-    TAC_UNUSED_PARAMETER( errors );
-    DesktopAppUpdateWindowRequests(errors);
+    TAC_CALL( DesktopAppUpdateWindowRequests,errors);
     DesktopAppUpdateMoveResize();
     UpdateTrackedWindows();
   }

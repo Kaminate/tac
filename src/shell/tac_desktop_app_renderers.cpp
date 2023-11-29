@@ -108,7 +108,7 @@ namespace Tac
     Render::RegisterRenderers();
 
     const Render::RendererFactory factory = Render::GetFactory();
-    TAC_RAISE_ERROR_IF( !factory, "No renderer factories!", errors );
+    TAC_RAISE_ERROR_IF( !factory, "No renderer factories!" );
 
     Render::Renderer::Instance = factory();
 

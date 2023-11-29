@@ -112,7 +112,7 @@ namespace Tac::Network
     if( wsaErrorCode == SOCKET_ERROR )
     {
       const String errMsg = GetLastWSAErrorString();
-      TAC_RAISE_ERROR( errMsg, errors );
+      TAC_RAISE_ERROR( errMsg);
     }
   }
 
@@ -186,7 +186,7 @@ namespace Tac::Network
         return;
       }
       const String errMsg = GetWSAErrorString( wsaErrorCode );
-      TAC_RAISE_ERROR( errMsg, errors );
+      TAC_RAISE_ERROR( errMsg);
     }
   }
 
@@ -201,7 +201,7 @@ namespace Tac::Network
     if( wsaErrorCode == SOCKET_ERROR )
     {
       const String errMsg =  GetLastWSAErrorString();
-      TAC_RAISE_ERROR( errMsg, errors );
+      TAC_RAISE_ERROR( errMsg);
     }
   }
 
@@ -219,7 +219,7 @@ namespace Tac::Network
     if( wsaErrorCode )
     {
       const String errorMsg = GetWSAErrorString( wsaErrorCode );
-      TAC_RAISE_ERROR( errorMsg, errors );
+      TAC_RAISE_ERROR( errorMsg);
     }
     TAC_ON_DESTRUCT( freeaddrinfo( addrinfos ) );
     addrinfo* targetAddrInfo = nullptr;
@@ -230,7 +230,7 @@ namespace Tac::Network
       targetAddrInfo = curAddrInfo;
     }
     if( !targetAddrInfo )
-      TAC_RAISE_ERROR( "Cannot find addr info", errors );
+      TAC_RAISE_ERROR( "Cannot find addr info");
     wsaErrorCode = connect( mSocket, targetAddrInfo->ai_addr, ( int )targetAddrInfo->ai_addrlen );
     if( wsaErrorCode == SOCKET_ERROR )
     {
@@ -244,7 +244,7 @@ namespace Tac::Network
           wsaErrorCode == WSAEALREADY ) // 10037 already connected
         return;
       const String errorMsg = GetLastWSAErrorString();
-      TAC_RAISE_ERROR( errorMsg, errors );
+      TAC_RAISE_ERROR( errorMsg);
     }
     mTCPIsConnected = true;
   }
@@ -257,7 +257,7 @@ namespace Tac::Network
     if( wsaErrorCode )
     {
       const String errorMsg = GetWSAErrorString( wsaErrorCode );
-      TAC_RAISE_ERROR( errorMsg, errors );
+      TAC_RAISE_ERROR( errorMsg);
     }
     mPrintReceivedMessages = true;
   }
@@ -374,7 +374,7 @@ namespace Tac::Network
         }
 
         const String errorMsg = GetWSAErrorString( wsaErrorCode );
-        TAC_RAISE_ERROR( errorMsg, errors );
+        TAC_RAISE_ERROR( errorMsg);
       }
       else if( recvResult == 0 )
       {

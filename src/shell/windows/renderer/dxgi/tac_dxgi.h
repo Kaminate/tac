@@ -41,12 +41,11 @@ namespace Tac
 
 } // namespace Tac
 
-#define TAC_DXGI_CALL( errors, call, ... )                                             \
-{                                                                                      \
-  HRESULT result = call( __VA_ARGS__ );                                                \
-  if( FAILED( result ) )                                                               \
-  {                                                                                    \
-    Tac::DXGICallAux( TAC_STRINGIFY( call ) "( " #__VA_ARGS__ " )", result, errors );  \
-    TAC_HANDLE_ERROR( errors );                                                        \
-  }                                                                                    \
+#define TAC_DXGI_CALL( call, ... )                                                              \
+{                                                                                               \
+  HRESULT result = call( __VA_ARGS__ );                                                         \
+  if( FAILED( result ) )                                                                        \
+  {                                                                                             \
+    TAC_CALL( Tac::DXGICallAux, TAC_STRINGIFY( call ) "( " #__VA_ARGS__ " )", result, errors ); \
+  }                                                                                             \
 }
