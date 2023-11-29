@@ -10,8 +10,8 @@ namespace Tac
   {
     struct Ball
     {
-      float mRadius;
-      float mMass;
+      float mRadius = 0;
+      float mMass = 0;
 
       v3 mPos;
       v3 mVelocity;

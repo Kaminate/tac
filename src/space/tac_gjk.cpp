@@ -230,19 +230,19 @@ namespace Tac
     {
       case 1:
       {
-        auto a = mSupports[ 0 ];
+        const CompoundSupport& a = mSupports[ 0 ];
         mClosestPoint = a.mDiffPt;
       } break;
       case 2:
       {
-        auto b = mSupports[ 0 ];
-        auto a = mSupports[ 1 ];
-        auto ab = b.mDiffPt - a.mDiffPt;
-        auto ao = o - a.mDiffPt;
+        const CompoundSupport& b = mSupports[ 0 ];
+        const CompoundSupport& a = mSupports[ 1 ];
+        const v3 ab = b.mDiffPt - a.mDiffPt;
+        const v3 ao = o - a.mDiffPt;
         if( Dot( ao, ab ) > 0 )
         {
-          auto bo = o - b.mDiffPt;
-          auto ba = -ab;
+          const v3 bo = o - b.mDiffPt;
+          const v3 ba = -ab;
           if( Dot( bo, ba ) > 0 )
           {
             mClosestPoint = a.mDiffPt + Project( ab, ao );
@@ -261,45 +261,42 @@ namespace Tac
       } break;
       case 3:
       {
-        const auto& c = mSupports[ 0 ];
-        const auto& b = mSupports[ 1 ];
-        const auto& a = mSupports[ 2 ];
+        const CompoundSupport& c = mSupports[ 0 ];
+        const CompoundSupport& b = mSupports[ 1 ];
+        const CompoundSupport& a = mSupports[ 2 ];
 
-        auto ao = o - a.mDiffPt;
-        auto ab = b.mDiffPt - a.mDiffPt;
-        auto ac = c.mDiffPt - a.mDiffPt;
+        const v3 ao = o - a.mDiffPt;
+        const v3 ab = b.mDiffPt - a.mDiffPt;
+        const v3 ac = c.mDiffPt - a.mDiffPt;
 
-        auto bo = o - b.mDiffPt;
-        auto ba = a.mDiffPt - b.mDiffPt;
-        auto bc = c.mDiffPt - b.mDiffPt;
+        const v3 bo = o - b.mDiffPt;
+        const v3 ba = a.mDiffPt - b.mDiffPt;
+        const v3 bc = c.mDiffPt - b.mDiffPt;
 
-        auto co = o - c.mDiffPt;
-        auto ca = a.mDiffPt - c.mDiffPt;
-        auto cb = b.mDiffPt - c.mDiffPt;
+        const v3 co = o - c.mDiffPt;
+        const v3 ca = a.mDiffPt - c.mDiffPt;
+        const v3 cb = b.mDiffPt - c.mDiffPt;
 
-        auto n = Cross( ac, ab );
-        auto abOut = Cross( n, ab );
-        auto acOut = Cross( ac, n );
-        auto bcOut = Cross( n, bc );
+        const v3 n = Cross( ac, ab );
+        const v3 abOut = Cross( n, ab );
+        const v3 acOut = Cross( ac, n );
+        const v3 bcOut = Cross( n, bc );
 
         // vertex voronoi region
-        if(
-          Dot( ao, ab ) < 0 &&
-          Dot( ao, ac ) < 0 )
+        if( Dot( ao, ab ) < 0 &&
+            Dot( ao, ac ) < 0 )
         {
           mSupports = { a };
           mClosestPoint = a.mDiffPt;
         }
-        else if(
-          Dot( bo, ba ) < 0 &&
-          Dot( bo, bc ) < 0 )
+        else if( Dot( bo, ba ) < 0 &&
+                 Dot( bo, bc ) < 0 )
         {
           mSupports = { b };
           mClosestPoint = b.mDiffPt;
         }
-        else if(
-          Dot( co, ca ) < 0 &&
-          Dot( co, cb ) < 0 )
+        else if( Dot( co, ca ) < 0 &&
+                 Dot( co, cb ) < 0 )
         {
           mSupports = { c };
           mClosestPoint = c.mDiffPt;

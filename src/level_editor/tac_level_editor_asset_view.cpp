@@ -17,7 +17,7 @@
 #include "src/common/system/tac_filesystem.h"
 #include "src/common/system/tac_job_queue.h"
 #include "src/common/system/tac_os.h"
-#include "src/common/thirdparty/cgltf.h"
+#include "src/common/assetmanagers/gltf/tac_gltf.h"
 #include "src/level_editor/tac_level_editor.h"
 #include "src/space/model/tac_model.h"
 #include "src/space/presentation/tac_game_presentation.h"

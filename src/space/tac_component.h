@@ -28,7 +28,7 @@ namespace Tac
     //                     Used for
     //                     - debugging network bits
     //                     - prefab serialization
-    const char*            mName;
+    const char*            mName = nullptr;
 
     //                     Used to create components at runtime
     //                     ( from prefabs, or hardcode, or in editor, or whenever )

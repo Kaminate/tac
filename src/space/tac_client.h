@@ -17,7 +17,7 @@ namespace Tac
   struct SavedInput
   {
     Timestamp mTimestamp;
-    v2        mInputDirection;
+    v2        mInputDirection{};
   };
 
   typedef void( *ClientSendNetworkMessageCallback )( void* bytes,

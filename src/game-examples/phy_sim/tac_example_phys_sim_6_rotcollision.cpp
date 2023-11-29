@@ -48,7 +48,7 @@ namespace Tac
   struct Sim6Capsule
   {
     Sim6LineSegment mLineSegment;
-    float mRadius;
+    float mRadius = 0;
   };
 
   Sim6LineSegment SimObjToLineSegment( const ExamplePhys6SimObj& obj )
