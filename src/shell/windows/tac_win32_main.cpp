@@ -24,8 +24,6 @@ import std; // #include <iostream> // okay maybe this should also be allowed
 
 namespace Tac
 {
-  //static Errors sWinMainErrors;
-  //static void ReportError( StringView, Errors& );
   static void WinMainAux( HINSTANCE, HINSTANCE, LPSTR, int, Errors& );
 }
 
@@ -38,21 +36,11 @@ int CALLBACK WinMain( HINSTANCE hInstance,
   using namespace Tac;
   WinMainAux( hInstance, hPrevInstance, lpCmdLine, nCmdShow, GetMainErrors() );
   DesktopAppReportErrors();
-
-  //ReportError( "WinMain", sWinMainErrors );
-  //ReportError( "Platform thread", *GetPlatformThreadErrors() );
-  //ReportError( "Logic thread", *GetLogicThreadErrors() );
   return 0;
 }
-#pragma warning( disable: 4996) // itoa deprecated
 
 namespace Tac
 {
-  //static void ReportError( StringView desc, Errors& errors )
-  //{
-  //  if( errors )
-  //    OS::OSDebugPopupBox( desc + " - " + errors.ToString() );
-  //}
 
   static void Win32FrameBegin( Errors& errors )
   {
@@ -65,6 +53,7 @@ namespace Tac
     DesktopEvent( DesktopEventDataCursorUnobscured{ Win32MouseEdgeGetCursorHovered() } );
   }
 
+  // Redirect stdout to output window
   static void RedirectStreamBuf()
   {
     struct RedirectBuf : public std::streambuf
@@ -76,9 +65,11 @@ namespace Tac
           char buf[] = { ( char )c, '\0' };
           OutputDebugString( buf );
         }
+
         return c;
       }
     };
+
     static RedirectBuf streamBuf;
     std::cout.rdbuf( &streamBuf );
     std::cerr.rdbuf( &streamBuf );
@@ -147,7 +138,9 @@ namespace Tac
   {
     Win32OSInit();
     Win32SetStartupParams( hInstance, hPrevInstance, lpCmdLine, nCmdShow );
+
     RedirectStreamBuf();
+
     Render::RegisterRendererDirectX11();
 
     Controller::XInputInit( errors );
@@ -167,4 +160,4 @@ namespace Tac
     DesktopAppRun( errors );
     TAC_HANDLE_ERROR( errors );
   }
-}
+} // namespace Tac

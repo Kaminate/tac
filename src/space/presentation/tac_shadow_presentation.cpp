@@ -132,9 +132,10 @@ namespace Tac
   Render::DefaultCBufferPerFrame ShadowLightVisitor::GetPerFrameData( const Light* light )
   {
     const Camera camera = light->GetCamera();
-    float a;
-    float b;
-    Render::GetPerspectiveProjectionAB( camera.mFarPlane, camera.mNearPlane, a, b );
+    const Render::InProj inProj = { .mNear = camera.mNearPlane, .mFar = camera.mFarPlane };
+    const Render::OutProj outProj = Render::GetPerspectiveProjectionAB( inProj );
+    const float a = outProj.mA;
+    const float b = outProj.mB;
     const float w = ( float )light->mShadowResolution;
     const float h = ( float )light->mShadowResolution;
     const Timestamp elapsedSeconds = ShellGetElapsedSeconds();

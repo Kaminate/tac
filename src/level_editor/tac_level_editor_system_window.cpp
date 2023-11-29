@@ -40,7 +40,7 @@ namespace Tac
       if( !StrCmp( entry.mName, systemName.c_str() ) )
         sSystemRegistryEntry = &entry;
 
-    mDesktopWindowHandle = gCreation.CreateDesktopWindow( gSystemWindowName );
+    mDesktopWindowHandle = gCreation.mWindowManager.CreateDesktopWindow( gSystemWindowName );
   }
 
   void CreationSystemWindow::ImGui()

@@ -101,9 +101,11 @@ namespace Tac
     TAC_ASSERT( mGetSkyboxMeshErrors.empty() );
     if( !mesh )
       return;
-    float a;
-    float b;
-    Render::GetPerspectiveProjectionAB( camera->mFarPlane, camera->mNearPlane, a, b );
+
+    const Render::InProj inProj = { .mNear = camera->mNearPlane, .mFar = camera->mFarPlane };
+    const Render::OutProj outProj = Render::GetPerspectiveProjectionAB( inProj );
+    const float a = outProj.mA;
+    const float b = outProj.mB;
     const float aspect = ( float )viewWidth / ( float )viewHeight;
     const m4 view = m4::ViewInv( v3( 0, 0, 0 ),
                                  camera->mForwards,

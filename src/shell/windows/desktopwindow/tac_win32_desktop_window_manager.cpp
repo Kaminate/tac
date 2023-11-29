@@ -535,8 +535,7 @@ namespace Tac
       }
       else
       {
-        int monitorW, monitorH;
-        OS::OSGetPrimaryMonitor( &monitorW, &monitorH );
+        auto [monitorW, monitorH] = OS::OSGetPrimaryMonitor();
         x = monitorW / 4;
         y = monitorH / 4;
         w = monitorW / 2;

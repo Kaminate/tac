@@ -146,25 +146,22 @@ namespace Tac::Render
     void RenderDrawCall( const Frame*, const DrawCall*, Errors& ) override;
     void RenderEnd( const Frame*, Errors& ) override;
     void SwapBuffers() override;
-    void GetPerspectiveProjectionAB( float f,
-                                     float n,
-                                     float& a,
-                                     float& b ) override;
-    void AddBlendState( CommandDataCreateBlendState*, Errors& ) override;
-    void AddConstantBuffer( CommandDataCreateConstantBuffer*, Errors& ) override;
-    void AddDepthState( CommandDataCreateDepthState*, Errors& ) override;
-    void AddFramebuffer( CommandDataCreateFramebuffer*, Errors& ) override;
-    void AddFramebufferForRenderToTexture( CommandDataCreateFramebuffer*, Errors& );
-    void AddFramebufferForWindow( CommandDataCreateFramebuffer*, Errors& );
+    OutProj GetPerspectiveProjectionAB(InProj) override;
+    void AddBlendState( const CommandDataCreateBlendState*, Errors& ) override;
+    void AddConstantBuffer( const CommandDataCreateConstantBuffer*, Errors& ) override;
+    void AddDepthState( const CommandDataCreateDepthState*, Errors& ) override;
+    void AddFramebuffer( const CommandDataCreateFramebuffer*, Errors& ) override;
+    void AddFramebufferForRenderToTexture( const CommandDataCreateFramebuffer*, Errors& );
+    void AddFramebufferForWindow( const CommandDataCreateFramebuffer*, Errors& );
 
-    void AddIndexBuffer( CommandDataCreateIndexBuffer*, Errors& ) override;
-    void AddRasterizerState( CommandDataCreateRasterizerState*, Errors& ) override;
-    void AddSamplerState( CommandDataCreateSamplerState*, Errors& ) override;
-    void AddShader( CommandDataCreateShader*, Errors& ) override;
-    void AddTexture( CommandDataCreateTexture*, Errors& ) override;
-    void AddMagicBuffer( CommandDataCreateMagicBuffer*, Errors& ) override;
-    void AddVertexBuffer( CommandDataCreateVertexBuffer*, Errors& ) override;
-    void AddVertexFormat( CommandDataCreateVertexFormat*, Errors& ) override;
+    void AddIndexBuffer( const CommandDataCreateIndexBuffer*, Errors& ) override;
+    void AddRasterizerState( const CommandDataCreateRasterizerState*, Errors& ) override;
+    void AddSamplerState( const CommandDataCreateSamplerState*, Errors& ) override;
+    void AddShader( const CommandDataCreateShader*, Errors& ) override;
+    void AddTexture( const CommandDataCreateTexture*, Errors& ) override;
+    void AddMagicBuffer( const CommandDataCreateMagicBuffer*, Errors& ) override;
+    void AddVertexBuffer( const CommandDataCreateVertexBuffer*, Errors& ) override;
+    void AddVertexFormat( const CommandDataCreateVertexFormat*, Errors& ) override;
     void RemoveBlendState( BlendStateHandle, Errors& ) override;
     void RemoveConstantBuffer( ConstantBufferHandle, Errors& ) override;
     void RemoveDepthState( DepthStateHandle, Errors& ) override;
@@ -177,12 +174,12 @@ namespace Tac::Render
     void RemoveMagicBuffer( MagicBufferHandle, Errors& ) override;
     void RemoveVertexBuffer( VertexBufferHandle, Errors& ) override;
     void RemoveVertexFormat( VertexFormatHandle, Errors& ) override;
-    void ResizeFramebuffer( CommandDataResizeFramebuffer*, Errors& ) override;
-    void SetRenderObjectDebugName( CommandDataSetRenderObjectDebugName*, Errors& ) override;
-    void UpdateIndexBuffer( CommandDataUpdateIndexBuffer*, Errors& ) override;
-    void UpdateTextureRegion( CommandDataUpdateTextureRegion*, Errors& ) override;
-    void UpdateVertexBuffer( CommandDataUpdateVertexBuffer*, Errors& ) override;
-    void UpdateConstantBuffer( CommandDataUpdateConstantBuffer*, Errors& ) override;
+    void ResizeFramebuffer( const CommandDataResizeFramebuffer*, Errors& ) override;
+    void SetRenderObjectDebugName( const CommandDataSetRenderObjectDebugName*, Errors& ) override;
+    void UpdateIndexBuffer( const CommandDataUpdateIndexBuffer*, Errors& ) override;
+    void UpdateTextureRegion( const CommandDataUpdateTextureRegion*, Errors& ) override;
+    void UpdateVertexBuffer( const CommandDataUpdateVertexBuffer*, Errors& ) override;
+    void UpdateConstantBuffer( const CommandDataUpdateConstantBuffer*, Errors& ) override;
 
     // THis could use string hash server...
     void DebugGroupBegin( StringView ) override;

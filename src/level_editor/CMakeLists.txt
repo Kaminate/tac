@@ -40,6 +40,10 @@ function( tac_target )
   endif()
 
   target_sources( ${TAC_TARGET_NAME} PRIVATE 
+    "tac_entity_selection.cpp"
+    "tac_entity_selection.h"
+    "tac_level_editor_window_manager.cpp"
+    "tac_level_editor_window_manager.h"
     "tac_level_editor.cpp"
     "tac_level_editor.h"
     "tac_level_editor_asset_view.cpp"

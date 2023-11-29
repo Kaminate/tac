@@ -206,7 +206,7 @@ namespace Tac
   void CreationPropertyWindow::Init( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
-    mDesktopWindowHandle = gCreation.CreateDesktopWindow( gPropertyWindowName );
+    mDesktopWindowHandle = gCreation.mWindowManager.CreateDesktopWindow( gPropertyWindowName );
   }
 
   void CreationPropertyWindow::RecursiveEntityHierarchyElement( Entity* entity )

@@ -18,22 +18,16 @@ namespace Tac
   void GameCallbackInit( Errors& errors )
   {
     SpaceInit();
-    //Instance = this;
 
-    int monitorWidth;
-    int monitorHeight;
-    OS::OSGetPrimaryMonitor( &monitorWidth, &monitorHeight );
-
-    int windowWidth = ( int )( 0.8f * monitorWidth );
-    int windowHeight = ( int )( 0.8f * monitorHeight );
+    auto [monitorWidth, monitorHeight] = OS::OSGetPrimaryMonitor();
 
     const DesktopAppCreateWindowParams params
     {
       .mName = App::sInstance.mName,
       .mX = 0,
       .mY = 0,
-      .mWidth = windowWidth,
-      .mHeight = windowHeight,
+      .mWidth = ( int )( 0.8f * monitorWidth ),
+      .mHeight = ( int )( 0.8f * monitorHeight ),
     };
 
     mDesktopWindowHandle = DesktopAppCreateWindow(params);
@@ -54,7 +48,7 @@ namespace Tac
 
     const v2 size = desktopWindowState->GetSizeV2();
     const Render::Viewport viewport( size );
-    const Render::ScissorRect scissorRect(size);
+    const Render::ScissorRect scissorRect( size );
 
 
     TAC_HANDLE_ERROR( errors );

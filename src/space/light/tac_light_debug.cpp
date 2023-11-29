@@ -142,13 +142,13 @@ namespace Tac
     //ImGuiImage( ( int )light->mShadowMapColor, { 100, 100 } );
     LightDebugImguiShadowResolution( light );
 
-    Camera camera = light->GetCamera();
-    Render::TextureHandle viz = DepthBufferLinearVisualizationRender( light->mShadowMapDepth,
-                                                                      light->mShadowResolution,
-                                                                      light->mShadowResolution,
-                                                                      camera.mFarPlane,
-                                                                      camera.mNearPlane );
-    v2 shadowMapSize = v2( 1, 1 ) * 256;
+    const Camera camera = light->GetCamera();
+    const Render::InProj inProj = { .mNear = camera.mNearPlane, .mFar = camera.mFarPlane };
+    const Render::TextureHandle viz = DepthBufferLinearVisualizationRender( light->mShadowMapDepth,
+                                                                            light->mShadowResolution,
+                                                                            light->mShadowResolution,
+                                                                            inProj );
+    const v2 shadowMapSize = v2( 1, 1 ) * 256;
     ImGuiImage( ( int )viz, shadowMapSize );
 
     Render::DestroyTexture( viz, TAC_STACK_FRAME );

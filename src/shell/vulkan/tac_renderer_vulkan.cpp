@@ -141,19 +141,17 @@ namespace Tac::Render
     _chosenGPU = physicalDevice.physical_device;
 
   };
-  void RendererVulkan::RenderBegin( const Render::Frame*, Errors& ) {};
-  void RendererVulkan::RenderDrawCall( const Render::Frame*, const Render::DrawCall*, Errors& ) {};
-  void RendererVulkan::RenderEnd( const Render::Frame*, Errors& ) {};
+  void RendererVulkan::RenderBegin( const Frame*, Errors& ) {};
+  void RendererVulkan::RenderDrawCall( const Frame*, const DrawCall*, Errors& ) {};
+  void RendererVulkan::RenderEnd( const Frame*, Errors& ) {};
+
+  OutProj RendererVulkan::GetPerspectiveProjectionAB( InProj ) { return { }; };
 
   void RendererVulkan::SwapBuffers() {};
-  void RendererVulkan::GetPerspectiveProjectionAB( float f,
-                                                   float n,
-                                                   float& a,
-                                                   float& b ) {};
-  void RendererVulkan::AddBlendState( Render::CommandDataCreateBlendState*, Errors& ) {};
-  void RendererVulkan::AddConstantBuffer( Render::CommandDataCreateConstantBuffer*, Errors& ) {};
-  void RendererVulkan::AddDepthState( Render::CommandDataCreateDepthState*, Errors& ) {};
-  void RendererVulkan::AddFramebuffer( Render::CommandDataCreateFramebuffer* data, Errors& errors )
+  void RendererVulkan::AddBlendState( const CommandDataCreateBlendState*, Errors& ) {};
+  void RendererVulkan::AddConstantBuffer( const CommandDataCreateConstantBuffer*, Errors& ) {};
+  void RendererVulkan::AddDepthState( const CommandDataCreateDepthState*, Errors& ) {};
+  void RendererVulkan::AddFramebuffer( const CommandDataCreateFramebuffer* data, Errors& errors )
   {
     TAC_ASSERT( IsMainThread() );
 
@@ -206,21 +204,21 @@ namespace Tac::Render
       TAC_ASSERT_INVALID_CODE_PATH;
     }
   }
-  void RendererVulkan::AddIndexBuffer( Render::CommandDataCreateIndexBuffer*, Errors& ) {};
-  void RendererVulkan::AddRasterizerState( Render::CommandDataCreateRasterizerState*, Errors& ) {};
-  void RendererVulkan::AddSamplerState( Render::CommandDataCreateSamplerState*, Errors& ) {};
-  void RendererVulkan::AddShader( Render::CommandDataCreateShader*, Errors& ) {};
-  void RendererVulkan::AddTexture( Render::CommandDataCreateTexture*, Errors& ) {};
-  void RendererVulkan::AddMagicBuffer( Render::CommandDataCreateMagicBuffer*, Errors& ) {};
-  void RendererVulkan::AddVertexBuffer( Render::CommandDataCreateVertexBuffer*, Errors& ) {};
-  void RendererVulkan::AddVertexFormat( Render::CommandDataCreateVertexFormat*, Errors& ) {};
+  void RendererVulkan::AddIndexBuffer( const CommandDataCreateIndexBuffer*, Errors& ) {};
+  void RendererVulkan::AddRasterizerState( const CommandDataCreateRasterizerState*, Errors& ) {};
+  void RendererVulkan::AddSamplerState( const CommandDataCreateSamplerState*, Errors& ) {};
+  void RendererVulkan::AddShader( const CommandDataCreateShader*, Errors& ) {};
+  void RendererVulkan::AddTexture( const CommandDataCreateTexture*, Errors& ) {};
+  void RendererVulkan::AddMagicBuffer( const CommandDataCreateMagicBuffer*, Errors& ) {};
+  void RendererVulkan::AddVertexBuffer( const CommandDataCreateVertexBuffer*, Errors& ) {};
+  void RendererVulkan::AddVertexFormat( const CommandDataCreateVertexFormat*, Errors& ) {};
   void RendererVulkan::DebugGroupBegin( StringView ) {};
   void RendererVulkan::DebugGroupEnd() {};
   void RendererVulkan::DebugMarker( StringView ) {};
-  void RendererVulkan::RemoveBlendState( Render::BlendStateHandle, Errors& ) {};
-  void RendererVulkan::RemoveConstantBuffer( Render::ConstantBufferHandle, Errors& ) {};
-  void RendererVulkan::RemoveDepthState( Render::DepthStateHandle, Errors& ) {};
-  void RendererVulkan::RemoveFramebuffer( Render::FramebufferHandle framebufferHandle, Errors& errors )
+  void RendererVulkan::RemoveBlendState( BlendStateHandle, Errors& ) {};
+  void RendererVulkan::RemoveConstantBuffer( ConstantBufferHandle, Errors& ) {};
+  void RendererVulkan::RemoveDepthState( DepthStateHandle, Errors& ) {};
+  void RendererVulkan::RemoveFramebuffer( FramebufferHandle framebufferHandle, Errors& errors )
   {
     for( int i = 0; i < mWindowCount; ++i )
       if( mWindows[ i ] == framebufferHandle )
@@ -236,22 +234,22 @@ namespace Tac::Render
 
     *framebuffer = FramebufferVk();
   }
-  void RendererVulkan::RemoveIndexBuffer( Render::IndexBufferHandle, Errors& ) {};
-  void RendererVulkan::RemoveRasterizerState( Render::RasterizerStateHandle, Errors& ) {};
-  void RendererVulkan::RemoveSamplerState( Render::SamplerStateHandle, Errors& ) {};
-  void RendererVulkan::RemoveShader( Render::ShaderHandle, Errors& ) {};
-  void RendererVulkan::RemoveTexture( Render::TextureHandle, Errors& ) {};
-  void RendererVulkan::RemoveMagicBuffer( Render::MagicBufferHandle, Errors& ) {};
-  void RendererVulkan::RemoveVertexBuffer( Render::VertexBufferHandle, Errors& ) {};
-  void RendererVulkan::RemoveVertexFormat( Render::VertexFormatHandle, Errors& ) {};
-  void RendererVulkan::ResizeFramebuffer( Render::CommandDataResizeFramebuffer*, Errors& ) {};
-  void RendererVulkan::SetRenderObjectDebugName( Render::CommandDataSetRenderObjectDebugName*, Errors& ) {};
-  void RendererVulkan::UpdateConstantBuffer( Render::CommandDataUpdateConstantBuffer*, Errors& ) {};
-  void RendererVulkan::UpdateIndexBuffer( Render::CommandDataUpdateIndexBuffer*, Errors& ) {};
-  void RendererVulkan::UpdateTextureRegion( Render::CommandDataUpdateTextureRegion*, Errors& ) {};
-  void RendererVulkan::UpdateVertexBuffer( Render::CommandDataUpdateVertexBuffer*, Errors& ) {};
+  void RendererVulkan::RemoveIndexBuffer( IndexBufferHandle, Errors& ) {};
+  void RendererVulkan::RemoveRasterizerState( RasterizerStateHandle, Errors& ) {};
+  void RendererVulkan::RemoveSamplerState( SamplerStateHandle, Errors& ) {};
+  void RendererVulkan::RemoveShader( ShaderHandle, Errors& ) {};
+  void RendererVulkan::RemoveTexture( TextureHandle, Errors& ) {};
+  void RendererVulkan::RemoveMagicBuffer( MagicBufferHandle, Errors& ) {};
+  void RendererVulkan::RemoveVertexBuffer( VertexBufferHandle, Errors& ) {};
+  void RendererVulkan::RemoveVertexFormat( VertexFormatHandle, Errors& ) {};
+  void RendererVulkan::ResizeFramebuffer( const CommandDataResizeFramebuffer*, Errors& ) {};
+  void RendererVulkan::SetRenderObjectDebugName( const CommandDataSetRenderObjectDebugName*, Errors& ) {};
+  void RendererVulkan::UpdateConstantBuffer( const CommandDataUpdateConstantBuffer*, Errors& ) {};
+  void RendererVulkan::UpdateIndexBuffer( const CommandDataUpdateIndexBuffer*, Errors& ) {};
+  void RendererVulkan::UpdateTextureRegion( const CommandDataUpdateTextureRegion*, Errors& ) {};
+  void RendererVulkan::UpdateVertexBuffer( const CommandDataUpdateVertexBuffer*, Errors& ) {};
 
-  AssetPathStringView RendererVulkan::GetShaderPath(  const Render::ShaderNameStringView& ) 
+  AssetPathStringView RendererVulkan::GetShaderPath(  const ShaderNameStringView& ) 
   {
     return "";
   }

@@ -15,9 +15,11 @@ namespace Tac
                              Errors& errors )
   {
     const HINSTANCE hInstance = Win32GetStartupInstance();
-    const HWND hWnd = ( HWND )nativeWindowHandle;
     TAC_ASSERT( hInstance );
+
+    const HWND hWnd = ( HWND )nativeWindowHandle;
     TAC_ASSERT( hWnd );
+
     const VkWin32SurfaceCreateInfoKHR surface_create_info =
     {
       .sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,

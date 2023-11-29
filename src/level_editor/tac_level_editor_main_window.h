@@ -20,13 +20,16 @@ namespace Tac
   {
     CreationMainWindow();
     ~CreationMainWindow();
+
     static CreationMainWindow* Instance;
+
     void                       Init( Errors& );
     void                       Update( Errors& );
     void                       LoadTextures( Errors& );
     void                       ImGui(Errors&);
     void                       ImGuiWindows(Errors&);
     void                       ImGuiSaveAs();
+
     DesktopWindowHandle        mDesktopWindowHandle;
     UIRoot*                    mUIRoot = nullptr;
     UI2DDrawData*              mUI2DDrawData = nullptr;

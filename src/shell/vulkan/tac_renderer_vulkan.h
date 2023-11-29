@@ -1,4 +1,5 @@
 #pragma once
+
 /*
 #include "common/graphics/tac_renderer.h"
 #include "common/tac_shell.h"
@@ -171,49 +172,46 @@ namespace Tac::Render
 
     ~RendererVulkan() override;
     void Init( Errors& ) override;
-    void RenderBegin( const Render::Frame*, Errors& ) override;
-    void RenderDrawCall( const Render::Frame*, const Render::DrawCall*, Errors& ) override;
-    void RenderEnd( const Render::Frame*, Errors& ) override;
+    void RenderBegin( const Frame*, Errors& ) override;
+    void RenderDrawCall( const Frame*, const DrawCall*, Errors& ) override;
+    void RenderEnd( const Frame*, Errors& ) override;
 
     void SwapBuffers() override;
-    void GetPerspectiveProjectionAB( float f,
-                                     float n,
-                                     float& a,
-                                     float& b ) override;
-    void AddBlendState( Render::CommandDataCreateBlendState*, Errors& ) override;
-    void AddConstantBuffer( Render::CommandDataCreateConstantBuffer*, Errors& ) override;
-    void AddDepthState( Render::CommandDataCreateDepthState*, Errors& ) override;
-    void AddFramebuffer( Render::CommandDataCreateFramebuffer*, Errors& ) override;
-    void AddIndexBuffer( Render::CommandDataCreateIndexBuffer*, Errors& ) override;
-    void AddRasterizerState( Render::CommandDataCreateRasterizerState*, Errors& ) override;
-    void AddSamplerState( Render::CommandDataCreateSamplerState*, Errors& ) override;
-    void AddShader( Render::CommandDataCreateShader*, Errors& ) override;
-    void AddTexture( Render::CommandDataCreateTexture*, Errors& ) override;
-    void AddMagicBuffer( Render::CommandDataCreateMagicBuffer*, Errors& ) override;
-    void AddVertexBuffer( Render::CommandDataCreateVertexBuffer*, Errors& ) override;
-    void AddVertexFormat( Render::CommandDataCreateVertexFormat*, Errors& ) override;
+    OutProj GetPerspectiveProjectionAB(InProj) override;
+    void AddBlendState( const CommandDataCreateBlendState*, Errors& ) override;
+    void AddConstantBuffer( const CommandDataCreateConstantBuffer*, Errors& ) override;
+    void AddDepthState( const CommandDataCreateDepthState*, Errors& ) override;
+    void AddFramebuffer( const CommandDataCreateFramebuffer*, Errors& ) override;
+    void AddIndexBuffer( const CommandDataCreateIndexBuffer*, Errors& ) override;
+    void AddRasterizerState( const CommandDataCreateRasterizerState*, Errors& ) override;
+    void AddSamplerState( const CommandDataCreateSamplerState*, Errors& ) override;
+    void AddShader( const CommandDataCreateShader*, Errors& ) override;
+    void AddTexture( const CommandDataCreateTexture*, Errors& ) override;
+    void AddMagicBuffer( const CommandDataCreateMagicBuffer*, Errors& ) override;
+    void AddVertexBuffer( const CommandDataCreateVertexBuffer*, Errors& ) override;
+    void AddVertexFormat( const CommandDataCreateVertexFormat*, Errors& ) override;
     void DebugGroupBegin( StringView ) override;
     void DebugGroupEnd() override;
     void DebugMarker( StringView ) override;
-    void RemoveBlendState( Render::BlendStateHandle, Errors& ) override;
-    void RemoveConstantBuffer( Render::ConstantBufferHandle, Errors& ) override;
-    void RemoveDepthState( Render::DepthStateHandle, Errors& ) override;
-    void RemoveFramebuffer( Render::FramebufferHandle, Errors& ) override;
-    void RemoveIndexBuffer( Render::IndexBufferHandle, Errors& ) override;
-    void RemoveRasterizerState( Render::RasterizerStateHandle, Errors& ) override;
-    void RemoveSamplerState( Render::SamplerStateHandle, Errors& ) override;
-    void RemoveShader( Render::ShaderHandle, Errors& ) override;
-    void RemoveTexture( Render::TextureHandle, Errors& ) override;
-    void RemoveMagicBuffer( Render::MagicBufferHandle, Errors& ) override;
-    void RemoveVertexBuffer( Render::VertexBufferHandle, Errors& ) override;
-    void RemoveVertexFormat( Render::VertexFormatHandle, Errors& ) override;
-    void ResizeFramebuffer( Render::CommandDataResizeFramebuffer*, Errors& ) override;
-    void SetRenderObjectDebugName( Render::CommandDataSetRenderObjectDebugName*, Errors& ) override;
-    void UpdateConstantBuffer( Render::CommandDataUpdateConstantBuffer*, Errors& ) override;
-    void UpdateIndexBuffer( Render::CommandDataUpdateIndexBuffer*, Errors& ) override;
-    void UpdateTextureRegion( Render::CommandDataUpdateTextureRegion*, Errors& ) override;
-    void UpdateVertexBuffer( Render::CommandDataUpdateVertexBuffer*, Errors& ) override;
-    AssetPathStringView GetShaderPath(  const Render::ShaderNameStringView& ) override;
+    void RemoveBlendState( BlendStateHandle, Errors& ) override;
+    void RemoveConstantBuffer( ConstantBufferHandle, Errors& ) override;
+    void RemoveDepthState( DepthStateHandle, Errors& ) override;
+    void RemoveFramebuffer( FramebufferHandle, Errors& ) override;
+    void RemoveIndexBuffer( IndexBufferHandle, Errors& ) override;
+    void RemoveRasterizerState( RasterizerStateHandle, Errors& ) override;
+    void RemoveSamplerState( SamplerStateHandle, Errors& ) override;
+    void RemoveShader( ShaderHandle, Errors& ) override;
+    void RemoveTexture( TextureHandle, Errors& ) override;
+    void RemoveMagicBuffer( MagicBufferHandle, Errors& ) override;
+    void RemoveVertexBuffer( VertexBufferHandle, Errors& ) override;
+    void RemoveVertexFormat( VertexFormatHandle, Errors& ) override;
+    void ResizeFramebuffer( const CommandDataResizeFramebuffer*, Errors& ) override;
+    void SetRenderObjectDebugName( const CommandDataSetRenderObjectDebugName*, Errors& ) override;
+    void UpdateConstantBuffer( const CommandDataUpdateConstantBuffer*, Errors& ) override;
+    void UpdateIndexBuffer( const CommandDataUpdateIndexBuffer*, Errors& ) override;
+    void UpdateTextureRegion( const CommandDataUpdateTextureRegion*, Errors& ) override;
+    void UpdateVertexBuffer( const CommandDataUpdateVertexBuffer*, Errors& ) override;
+    AssetPathStringView GetShaderPath(  const ShaderNameStringView& ) override;
 
     FramebufferVk              mFramebuffers[ kMaxFramebuffers ] = {};
     FramebufferHandle          mWindows[ kMaxFramebuffers ];

@@ -95,12 +95,10 @@ namespace Tac
                                                 const int viewHeight )
   {
     const Timestamp elapsedSeconds = ShellGetElapsedSeconds();
-    float a;
-    float b;
-    Render::GetPerspectiveProjectionAB( camera->mFarPlane,
-                                        camera->mNearPlane,
-                                        a,
-                                        b );
+    const Render::InProj inProj = { .mNear = camera->mNearPlane, .mFar = camera->mFarPlane };
+    const Render::OutProj outProj = Render::GetPerspectiveProjectionAB( inProj );
+    const float a = outProj.mA;
+    const float b = outProj.mB;
     const float w = ( float )viewWidth;
     const float h = ( float )viewHeight;
     return Render::DefaultCBufferPerFrame

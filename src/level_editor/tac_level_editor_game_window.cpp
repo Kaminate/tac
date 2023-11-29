@@ -140,13 +140,12 @@ namespace Tac
   static Render::DefaultCBufferPerFrame GetPerFrame( float w, float h )
   {
     const Camera* camera = gCreation.mEditorCamera;
-    float a;
-    float b;
-    Render::GetPerspectiveProjectionAB( camera->mFarPlane, camera->mNearPlane, a, b );
+    const Render::InProj inProj = { .mNear = camera->mNearPlane, .mFar = camera->mFarPlane };
+    const Render::OutProj outProj = Render::GetPerspectiveProjectionAB(inProj);
     return Render::DefaultCBufferPerFrame
     {
       .mView = camera->View(),
-      .mProjection = m4::ProjPerspective( a, b, camera->mFovyrad, w / h ),
+      .mProjection = m4::ProjPerspective( outProj.mA, outProj.mB, camera->mFovyrad, w / h ),
       .mFar = camera->mFarPlane,
       .mNear = camera->mNearPlane,
       .mGbufferSize = { w, h }
@@ -285,7 +284,7 @@ namespace Tac
 
   void CreationGameWindow::Init( Errors& errors )
   {
-    mDesktopWindowHandle = gCreation.CreateDesktopWindow( gGameWindowName );
+    mDesktopWindowHandle = gCreation.mWindowManager.CreateDesktopWindow( gGameWindowName );
 
     CreateGraphicsObjects( errors );
     TAC_HANDLE_ERROR( errors );

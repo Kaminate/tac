@@ -78,11 +78,9 @@ namespace Tac
 
   struct EPAHalfEdge
   {
-    EPAHalfEdge() = default;
-    EPAHalfEdge( CompoundSupport from,
-                 CompoundSupport to );
     EPAHalfEdge Reverse() const;
     bool operator == ( const EPAHalfEdge& other ) const;
+
     CompoundSupport mFrom;
     CompoundSupport mTo;
   };
@@ -106,16 +104,16 @@ namespace Tac
     const Support* mLeft = nullptr;
     const Support* mRight = nullptr;
 
-    bool mEPAIsComplete = false;
+    bool                     mEPAIsComplete = false;
     std::list< EPATriangle > mEPATriangles;
-    int mEPATriangleCount = 4;
-    EPATriangle mEPAClosest;
-    CompoundSupport mEPAClosestSupportPoint;
-    v3 mEPALeftPoint = {};
-    v3 mEPALeftNormal = {};
-    bool mEPABarycentricFucked = true;
-    float mEPAPenetrationDist = 0;
-    int mEPAIteration = 0;
+    int                      mEPATriangleCount = 4;
+    EPATriangle              mEPAClosest;
+    CompoundSupport          mEPAClosestSupportPoint;
+    v3                       mEPALeftPoint = {};
+    v3                       mEPALeftNormal = {};
+    bool                     mEPABarycentricFucked = true;
+    float                    mEPAPenetrationDist = 0;
+    int                      mEPAIteration = 0;
 
   };
 

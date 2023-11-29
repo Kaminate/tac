@@ -29,10 +29,13 @@ namespace Tac
   static IdCollection gSemaphoreIds( kSemaphoreCapacity );
   static HANDLE       gSemaphores[ kSemaphoreCapacity ];
 
-  static void Win32OSGetPrimaryMonitor( int* w, int* h )
+  static OS::Monitor Win32OSGetPrimaryMonitor()
   {
-    *w = GetSystemMetrics( SM_CXSCREEN );
-    *h = GetSystemMetrics( SM_CYSCREEN );
+    return 
+    {
+      .mWidth = GetSystemMetrics( SM_CXSCREEN ),
+      .mHeight = GetSystemMetrics( SM_CYSCREEN ),
+    };
   }
 
   static Filesystem::Path Win32OSOpenDialog(  Errors& errors )

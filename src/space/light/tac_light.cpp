@@ -1,13 +1,12 @@
+#include "src/space/light/tac_light.h" // self-inc
+
 #include "src/common/math/tac_matrix3.h"
 #include "src/common/graphics/tac_camera.h"
 #include "src/common/dataprocess/tac_json.h"
 #include "src/common/math/tac_math.h"
 #include "src/common/graphics/tac_renderer_util.h"
 #include "src/space/graphics/tac_graphics.h"
-#include "src/space/light/tac_light.h"
 #include "src/space/tac_entity.h"
-
-//#include <cmath> // std::acos, std::round
 
 namespace Tac
 {
@@ -41,16 +40,22 @@ namespace Tac
   static void       LoadLightComponent( Json& lightJson, Component* component )
   {
     auto light = ( Light* )component;
+
     if( lightJson.HasChild( TAC_MEMBER_NAME( Light, mSpotHalfFOVRadians ) ) )
       light->mSpotHalfFOVRadians = ( float )lightJson[ TAC_MEMBER_NAME( Light, mSpotHalfFOVRadians ) ].mNumber;
+
     if( lightJson.HasChild( TAC_MEMBER_NAME( Light, mType ) ) )
       light->mType = LightTypeFromString( lightJson[ TAC_MEMBER_NAME( Light, mType ) ].mString );
+
     if( lightJson.HasChild( TAC_MEMBER_NAME( Light, mShadowResolution ) ) )
       light->mShadowResolution = ( int )lightJson[ TAC_MEMBER_NAME( Light, mShadowResolution ) ].mNumber;
+
     if( lightJson.HasChild( TAC_MEMBER_NAME( Light, mOverrideClipPlanes ) ) )
       light->mOverrideClipPlanes = ( bool )lightJson[ TAC_MEMBER_NAME( Light, mOverrideClipPlanes ) ].mBoolean;
+
     if( lightJson.HasChild( TAC_MEMBER_NAME( Light, mFarPlaneOverride ) ) )
       light->mFarPlaneOverride = ( float )lightJson[ TAC_MEMBER_NAME( Light, mFarPlaneOverride ) ].mNumber;
+
     if( lightJson.HasChild( TAC_MEMBER_NAME( Light, mNearPlaneOverride ) ) )
       light->mNearPlaneOverride = ( float )lightJson[ TAC_MEMBER_NAME( Light, mNearPlaneOverride ) ].mNumber;
   }
@@ -191,36 +196,34 @@ namespace Tac
 
   Render::ShaderLight                            LightToShaderLight( const Light* light )
   {
-        Camera camera = light->GetCamera();
-        float a;
-        float b;
-        Render::GetPerspectiveProjectionAB( camera.mFarPlane,
-                                            camera.mNearPlane,
-                                            a,
-                                            b );
-        const float w = ( float )light->mShadowResolution;
-        const float h = ( float )light->mShadowResolution;
-        const float aspect = w / h;
-        const m4 view = camera.View();
-        const m4 proj = camera.Proj( a, b, aspect );
+    const Camera camera = light->GetCamera();
+    const Render::InProj inProj = { .mNear = camera.mNearPlane, .mFar = camera.mFarPlane };
+    const Render::OutProj outProj = Render::GetPerspectiveProjectionAB( inProj );
+    const float a = outProj.mA;
+    const float b = outProj.mB;
+    const float w = ( float )light->mShadowResolution;
+    const float h = ( float )light->mShadowResolution;
+    const float aspect = w / h;
+    const m4 view = camera.View();
+    const m4 proj = camera.Proj( a, b, aspect );
 
 
-        const uint32_t flags = 0
-          | Render::GetShaderLightFlagType()->ShiftResult( light->mType )
-          | Render::GetShaderLightFlagCastsShadows()->ShiftResult( light->mCastsShadows );
+    const uint32_t flags = 0
+      | Render::GetShaderLightFlagType()->ShiftResult( light->mType )
+      | Render::GetShaderLightFlagCastsShadows()->ShiftResult( light->mCastsShadows );
 
-        Render::ShaderLight shaderLight = {};
-        shaderLight.mColorRadiance.xyz() = light->mColor;
-        shaderLight.mColorRadiance.w = light->mRadiance;
-        shaderLight.mFlags = flags;
-        shaderLight.mWorldSpaceUnitDirection.xyz() = light->GetUnitDirection();
-        shaderLight.mWorldSpacePosition.xyz() = light->mEntity->mWorldPosition;
-        shaderLight.mWorldToClip = proj * view;
-        shaderLight.mProjA = a;
-        shaderLight.mProjB = b;
-        return shaderLight;
+    Render::ShaderLight shaderLight = {};
+    shaderLight.mColorRadiance.xyz() = light->mColor;
+    shaderLight.mColorRadiance.w = light->mRadiance;
+    shaderLight.mFlags = flags;
+    shaderLight.mWorldSpaceUnitDirection.xyz() = light->GetUnitDirection();
+    shaderLight.mWorldSpacePosition.xyz() = light->mEntity->mWorldPosition;
+    shaderLight.mWorldToClip = proj * view;
+    shaderLight.mProjA = a;
+    shaderLight.mProjB = b;
+    return shaderLight;
 
   }
 
-}
+} // namespace Tac
 

@@ -41,7 +41,7 @@ namespace Tac
   void CreationMainWindow::Init( Errors& )
   {
     mUI2DDrawData = TAC_NEW UI2DDrawData;
-    mDesktopWindowHandle = gCreation.CreateDesktopWindow( gMainWindowName );
+    mDesktopWindowHandle = gCreation.mWindowManager.CreateDesktopWindow( gMainWindowName );
   }
 
   void CreationMainWindow::LoadTextures( Errors& errors )
@@ -79,28 +79,27 @@ namespace Tac
     ImGuiText( "Windows" );
     ImGuiIndent();
 
-    if( ImGuiButton( "System" ) )
+    const struct
     {
-      gCreation.CreateSystemWindow( errors );
-      TAC_HANDLE_ERROR( errors );
-    }
+      using Fn = void ( LevelEditorWindowManager::* )( Errors& );
+      const char* mName;
+      Fn          mFn;
+    } buttons[] =
+    {
+      { "System",  &LevelEditorWindowManager::CreateSystemWindow },
+      { "Game",  &LevelEditorWindowManager::CreateGameWindow },
+      { "Properties",  &LevelEditorWindowManager::CreatePropertyWindow },
+      { "Profile",  &LevelEditorWindowManager::CreateProfileWindow },
+    };
 
-    if( ImGuiButton( "Game" ) )
+    // c++17 structured binding
+    for( auto [name, fn] : buttons )
     {
-      gCreation.CreateGameWindow( errors );
-      TAC_HANDLE_ERROR( errors );
-    }
-
-    if( ImGuiButton( "Properties" ) )
-    {
-      gCreation.CreatePropertyWindow( errors );
-      TAC_HANDLE_ERROR( errors );
-    }
-
-    if( ImGuiButton( "Profile" ) )
-    {
-      gCreation.CreateProfileWindow( errors );
-      TAC_HANDLE_ERROR( errors );
+      if( ImGuiButton(name) )
+      {
+        ( gCreation.mWindowManager.*fn ) ( errors );
+        TAC_HANDLE_ERROR( errors );
+      }
     }
 
     if( ImGuiButton( "Asset View" ) )
@@ -125,6 +124,7 @@ namespace Tac
         // TODO: use GetAssetSaveDialog
 
         const String suggestedName = entity->mName + ".prefab";
+
         Errors errors;
         const Filesystem::Path savePath = OS::OSSaveDialog( suggestedName, errors );
         if( errors )
@@ -244,5 +244,5 @@ namespace Tac
       }
     }
   }
-}
+} // namespace Tac
 

@@ -579,9 +579,9 @@ namespace Tac
       if( mEPABarycentricFucked )
         return;
       mEPALeftPoint
-        = mEPAClosest.mV0.mLeftPoint*bary0
-        + mEPAClosest.mV1.mLeftPoint*bary1
-        + mEPAClosest.mV2.mLeftPoint*bary2;
+        = mEPAClosest.mV0.mLeftPoint * bary0
+        + mEPAClosest.mV1.mLeftPoint * bary1
+        + mEPAClosest.mV2.mLeftPoint * bary2;
       mEPALeftNormal = mEPAClosest.mNormal;
       // this is degenerate?
       // v
@@ -592,6 +592,7 @@ namespace Tac
       return;
     }
 
+    // why the fuck is this a std::list
     std::list< EPAHalfEdge > epaHalfEdges;
     auto iTri = mEPATriangles.begin();
     while( iTri != mEPATriangles.end() )
@@ -604,12 +605,17 @@ namespace Tac
         ++iTri;
         continue;
       }
-      for( const EPAHalfEdge& edge : {
-        EPAHalfEdge( iTri->mV0, iTri->mV1 ),
-        EPAHalfEdge( iTri->mV1, iTri->mV2 ),
-        EPAHalfEdge( iTri->mV2, iTri->mV0 ) } )
+
+      const EPAHalfEdge edges[] =
       {
-        EPAHalfEdge reversed = edge.Reverse();
+        EPAHalfEdge{.mFrom = iTri->mV0, .mTo = iTri->mV1 },
+        EPAHalfEdge{.mFrom = iTri->mV1,.mTo = iTri->mV2 },
+        EPAHalfEdge{.mFrom = iTri->mV2, .mTo = iTri->mV0 },
+      };
+
+      for( const EPAHalfEdge& edge : edges )
+      {
+        const EPAHalfEdge reversed = edge.Reverse();
         auto iEdge = std::find( epaHalfEdges.begin(), epaHalfEdges.end(), reversed );
         if( iEdge == epaHalfEdges.end() )
         {
@@ -620,14 +626,14 @@ namespace Tac
           epaHalfEdges.erase( iEdge );
         }
       }
+
       iTri = mEPATriangles.erase( iTri );
       --mEPATriangleCount;
     }
+
     for( const EPAHalfEdge& edge : epaHalfEdges )
     {
-      EPATriangle tri( edge.mFrom,
-        edge.mTo,
-        mEPAClosestSupportPoint );
+      const EPATriangle tri( edge.mFrom, edge.mTo, mEPAClosestSupportPoint );
       mEPATriangles.push_back( tri );
       ++mEPATriangleCount;
     }
@@ -636,12 +642,15 @@ namespace Tac
 
   CompoundSupport GJK::GetCompountSupport( const v3& dir )
   {
-    auto leftSupport = mLeft->GetFurthestPoint( dir );
-    auto rightSupport = mRight->GetFurthestPoint( -dir );
-    auto minkowskiDiffSupport = leftSupport - rightSupport;
-    CompoundSupport result;
-    result.mLeftPoint = leftSupport;
-    result.mDiffPt = minkowskiDiffSupport;
+    const v3 leftSupport = mLeft->GetFurthestPoint( dir );
+    const v3 rightSupport = mRight->GetFurthestPoint( -dir );
+    const v3 minkowskiDiffSupport = leftSupport - rightSupport;
+
+    const CompoundSupport result
+    {
+      .mDiffPt = minkowskiDiffSupport,
+      .mLeftPoint = leftSupport,
+    };
     return result;
   }
 
@@ -682,18 +691,14 @@ namespace Tac
     //Assert( mPlaneDist >= 0.0f );
   }
 
-  EPAHalfEdge::EPAHalfEdge( CompoundSupport from,
-                            CompoundSupport to )
-  {
-    mFrom = from;
-    mTo = to;
-  }
 
   EPAHalfEdge EPAHalfEdge::Reverse() const
   {
-    EPAHalfEdge result;
-    result.mFrom = mTo;
-    result.mTo = mFrom;
+    EPAHalfEdge result
+    {
+      .mFrom = mTo,
+      .mTo = mFrom,
+    };
     return result;
   }
 
@@ -704,5 +709,5 @@ namespace Tac
   }
 
 
-}
+} // namespace Tac
 
