@@ -165,14 +165,15 @@ namespace Tac
     TAC_CALL( ExampleDemoWindow,errors);
   }
 
-  void App::Init( Errors& errors ) { ExamplesInitCallback( errors ); }
-  void App::Update( Errors& errors ) { ExamplesUpdateCallback( errors ); }
-  void App::Uninit( Errors& errors ) { ExamplesUninitCallback( errors ); }
-  App App::sInstance =
+  struct ExamplesApp : public App
   {
-    .mName = "Examples",
+    ExamplesApp( const Config& config ) : App( config ) {}
+    void Init( Errors& errors ) override { ExamplesInitCallback( errors ); }
+    void Update( Errors& errors ) override { ExamplesUpdateCallback( errors ); }
+    void Uninit( Errors& errors ) override { ExamplesUninitCallback( errors ); }
   };
 
+  App* App::Create() { return TAC_NEW ExamplesApp(Config { .mName = "Examples" }); }
 
   v3 Example::GetWorldspaceKeyboardDir()
   {

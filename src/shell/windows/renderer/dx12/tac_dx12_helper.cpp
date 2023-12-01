@@ -33,12 +33,10 @@ namespace Tac::Render
     return buf;
   }
 
-  void DX12CallAux( const char* fn, const char* args, const HRESULT hr, Errors& errors )
+  void DX12CallAux( const char* fn, const HRESULT hr, Errors& errors )
   {
     String msg = fn;
-    msg += "( ";
-    msg += args;
-    msg += " ) failed with ";
+    msg += " failed with ";
     msg += DX12_HRESULT_ToString( hr );
 
     errors.Append( msg );

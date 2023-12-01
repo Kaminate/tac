@@ -25,10 +25,15 @@ namespace Tac
   {
   }
 
-  void App::Init( Errors& errors ) { StandaloneInit( errors ); }
-  void App::Update( Errors& errors ) { StandaloneUpdate( errors ); }
-  void App::Uninit( Errors& errors ) { StandaloneUninit( errors ); }
-  App App::sInstance = { .mName = "Vk_ex_01_tri" };
+  struct VKApp1Tri : public App
+  {
+    VKApp1Tri( const Config& cfg ) : App( cfg ) {}
+    void Init( Errors& errors ) override { StandaloneInit( errors ); }
+    void Update( Errors& errors ) override { StandaloneUpdate( errors ); }
+    void Uninit( Errors& errors ) override{  StandaloneUninit( errors ); }
+  };
+
+  App* App::Create() { return TAC_NEW VKApp1Tri( { .mName = "Vk_ex_01_tri" } ); }
 
 } // namespace Tac
 

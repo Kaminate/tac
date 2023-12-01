@@ -50,7 +50,7 @@ namespace Tac
     TAC_ON_DESTRUCT( pDialog->Release() );
 
 
-    const Filesystem::Path dir = ShellGetInitialWorkingDir() / AssetPathRootFolderName;
+    const Filesystem::Path dir = sShellInitialWorkingDir / AssetPathRootFolderName;
     const std::wstring wDir = dir.Get().wstring();
 
     IShellItem* shDir = NULL;
@@ -178,11 +178,12 @@ namespace Tac
     Filesystem::Path path = TAC_CALL_RET( {}, GetRoamingAppDataPathUTF8, errors );
     TAC_ASSERT( Filesystem::Exists( path ) );
 
-    path /= App::sInstance.mStudioName;
+    path /= sShellStudioName;
     Filesystem::CreateDirectory2( path );
     TAC_ASSERT( Filesystem::Exists( path ) );
 
-    path /= App::sInstance.mName;
+    
+    path /= sShellAppName;
     Filesystem::CreateDirectory2( path );
     TAC_ASSERT( Filesystem::Exists( path ) );
 

@@ -1811,19 +1811,18 @@ namespace Tac::Render
     TAC_ASSERT( data->mFramebufferTextures.empty() );
     TAC_ASSERT( data->mNativeWindowHandle && data->mWidth && data->mHeight );
 
-    const HWND hwnd = ( HWND )data->mNativeWindowHandle;
+    const auto hwnd = ( HWND )data->mNativeWindowHandle;
     const int bufferCount = 4;
     const UINT width = data->mWidth;
     const UINT height = data->mHeight;
 
-    IDXGISwapChain* swapChain;
-    TAC_CALL(DXGICreateSwapChain, hwnd,
-                         mDevice,
-                         bufferCount,
-                         width,
-                         height,
-                         &swapChain,
-                         errors );
+    auto swapChain = TAC_CALL( DXGICreateSwapChain,
+                               hwnd,
+                               mDevice,
+                               bufferCount,
+                               width,
+                               height,
+                               errors );
 
     ID3D11Device* device = mDevice;
 

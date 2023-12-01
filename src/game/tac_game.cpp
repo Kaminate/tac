@@ -15,15 +15,17 @@ namespace Tac
 {
   static DesktopWindowHandle   mDesktopWindowHandle;
 
-  void GameCallbackInit( Errors& errors )
+  static void GameCallbackInit( Errors& errors )
   {
     SpaceInit();
 
     auto [monitorWidth, monitorHeight] = OS::OSGetPrimaryMonitor();
 
+    TAC_ASSERT( !sShellAppName.empty() );
+
     const DesktopAppCreateWindowParams params
     {
-      .mName = App::sInstance.mName,
+      .mName = sShellAppName,
       .mX = 0,
       .mY = 0,
       .mWidth = ( int )( 0.8f * monitorWidth ),
@@ -38,7 +40,7 @@ namespace Tac
     TAC_CALL( ghost->Init, errors );
   }
 
-  void GameCallbackUpdate( Errors& errors )
+  static void GameCallbackUpdate( Errors& errors )
   {
     DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
     if(!desktopWindowState->mNativeWindowHandle)
@@ -51,10 +53,13 @@ namespace Tac
 
   }
 
-  void App::Init( Errors& errors ) { GameCallbackInit( errors ); }
-  void App::Update( Errors& errors ) { GameCallbackUpdate( errors ); }
-  void App::Uninit( Errors& ) {}
-  App App::sInstance = { .mName = "Game" };
+  struct GameApp : public App
+  {
+    GameApp( const Config& cfg ) : App( cfg ) {}
+    void Init( Errors& errors ) override { GameCallbackInit( errors ); }
+    void Update( Errors& errors ) override { GameCallbackUpdate( errors ); }
+  };
+  App* App::Create() { return TAC_NEW GameApp( { .mName = "Game" } ); }
 
 
 }// namespace Tac

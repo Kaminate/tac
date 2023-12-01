@@ -6,17 +6,26 @@
 
 namespace Tac
 {
+
   struct App
   {
-    void        Init( Errors& );
-    void        Update( Errors& );
-    void        Uninit( Errors& );
+    struct Config
+    {
+      String mName;
+      String mStudioName = "Sleeping Studio";
+      bool   mDisableRenderer = false;
+    };
 
-    static App  sInstance;
+    App(const Config& );
+    virtual ~App() {};
 
-    String      mName;
-    String      mStudioName = "Sleeping Studio";
-    bool        mDisableRenderer;
+    virtual void Init( Errors& ) {};
+    virtual void Update( Errors& ) {};
+    virtual void Uninit( Errors& ) {};
+
+    static App*  Create();
+
+    Config mConfig;
   };
 
   // -----------------------------------------------------------------------------------------------

@@ -68,7 +68,7 @@ namespace Tac
     const UINT flags = IsDebugMode ? DXGI_CREATE_FACTORY_DEBUG : 0;
     const HRESULT hr = CreateDXGIFactory2( flags, IID_PPV_ARGS( &mFactory ) );
     TAC_RAISE_ERROR_IF( FAILED( hr ), "failed to create dxgi factory" );
-    DXGISetObjectName( mFactory, "my-dxgi-factory" );
+    DXGISetObjectName( mFactory, "my-dxgi-factory-4" );
 
     IDXGIAdapter1* dxgiAdapter1;
     SIZE_T maxDedicatedVideoMemory = 0;
@@ -85,7 +85,7 @@ namespace Tac
       TAC_DXGI_CALL( dxgiAdapter1->QueryInterface, IID_PPV_ARGS( &mDxgiAdapter4 ) );
     }
 
-    DXGISetObjectName( mDxgiAdapter4, "my-dxgi-adaptor" );
+    DXGISetObjectName( mDxgiAdapter4, "my-dxgi-adaptor-4" );
   }
 
   void DXGIUninit()
@@ -94,15 +94,13 @@ namespace Tac
     TAC_RELEASE_IUNKNOWN( mDxgiAdapter4 );
   }
 
-  void DXGICreateSwapChain( HWND hwnd,
-                              IUnknown* pDevice,
-                              int bufferCount,
-                              UINT width,
-                              UINT height,
-                              IDXGISwapChain** ppSwapChain,
-                              Errors& errors )
+  IDXGISwapChain4* DXGICreateSwapChain( HWND hwnd,
+                                        IUnknown* pDevice,
+                                        int bufferCount,
+                                        UINT width,
+                                        UINT height,
+                                        Errors& errors )
   {
-    IDXGISwapChain1* swapChain;
 
     const DXGI_SAMPLE_DESC SampleDesc = 
     {
@@ -145,17 +143,29 @@ namespace Tac
       .Windowed = TRUE,
     };
 
+    IDXGISwapChain1* swapChain1;
+
     // This call deprecates IDXGIFactory::CreateSwapChain
-    const HRESULT hr = mFactory->CreateSwapChainForHwnd( pDevice, hwnd, &scd1, &scfsd, NULL, &swapChain );
-    if( FAILED( hr ) )
+    const HRESULT createSwapChainHR = mFactory->CreateSwapChainForHwnd( pDevice,
+                                                                        hwnd,
+                                                                        &scd1,
+                                                                        &scfsd,
+                                                                        nullptr,
+                                                                        &swapChain1 );
+    if( FAILED( createSwapChainHR ) )
     {
-      const DWORD dwError = HRESULT_CODE( hr ); // ???
-      errors.Append( TryInferDXGIErrorStr( hr ) );
+      const DWORD dwError = HRESULT_CODE( createSwapChainHR ); // ???
+
+      errors.Append( TryInferDXGIErrorStr( createSwapChainHR ) );
       errors.Append( Win32ErrorStringFromDWORD( dwError ) );
-      TAC_RAISE_ERROR( "Failed to create swap chain" );
+      TAC_RAISE_ERROR_RETURN( "Failed to create swap chain", nullptr );
     }
 
-    *ppSwapChain = swapChain;
+    IDXGISwapChain4* swapChain4;
+    const HRESULT scQueryHR = swapChain1->QueryInterface( IID_PPV_ARGS( &swapChain4 ) );
+    TAC_RAISE_ERROR_IF_RETURN( FAILED( scQueryHR ), "Failed to query swap chain4", nullptr );
+
+    return swapChain4;
   }
 
   struct FormatPair

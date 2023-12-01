@@ -1,5 +1,6 @@
 #include "src/level_editor/tac_level_editor.h" // self-inc
 
+// common
 #include "src/common/assetmanagers/tac_texture_asset_manager.h"
 #include "src/common/core/tac_algorithm.h"
 #include "src/common/core/tac_preprocessor.h"
@@ -22,6 +23,7 @@
 #include "src/common/system/tac_filesystem.h"
 #include "src/common/system/tac_os.h"
 
+// level_editor
 #include "src/level_editor/tac_level_editor_asset_view.h"
 #include "src/level_editor/tac_level_editor_game_window.h"
 #include "src/level_editor/tac_level_editor_main_window.h"
@@ -30,8 +32,10 @@
 #include "src/level_editor/tac_level_editor_property_window.h"
 #include "src/level_editor/tac_level_editor_system_window.h"
 
+// shell
 #include "src/shell/tac_desktop_app.h"
 
+// space
 #include "src/space/model/tac_model.h"
 #include "src/space/presentation/tac_game_presentation.h"
 #include "src/space/presentation/tac_shadow_presentation.h"
@@ -115,10 +119,15 @@ namespace Tac
 
   //===-------------- App -------------===//
 
-  void App::Init( Errors& errors ) { CreationInitCallback( errors ); }
-  void App::Update( Errors& errors ) { CreationUpdateCallback( errors ); }
-  void App::Uninit( Errors& errors ) { CreationUninitCallback( errors ); }
-  App App::sInstance = { .mName = "Level Editor" };
+  struct LevelEditorApp : public App
+  {
+    LevelEditorApp( const Config& cfg ) : App( cfg ) {}
+    void Init( Errors& errors ) override { CreationInitCallback( errors ); }
+    void Update( Errors& errors ) override { CreationUpdateCallback( errors ); }
+    void Uninit( Errors& errors ) override { CreationUninitCallback( errors ); }
+  };
+
+  App* App::Create() { return TAC_NEW LevelEditorApp( { .mName = "Level Editor" } ); }
 
   //===-------------- Creation -------------===//
 

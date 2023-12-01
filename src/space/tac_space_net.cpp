@@ -9,24 +9,21 @@ namespace Tac
 
   void WriteNetMsgHeader( Writer* writer, NetMsgType networkMessageType )
   {
-    writer->Write( tac.data(), ( int )tac.size(), 1 );
+    writer->Write( tac.data(), tac.size(), 1 );
     writer->Write( networkMessageType );
   }
 
   void ReadNetMsgHeader( Reader* reader, NetMsgType* netMsgType, Errors& errors )
   {
-    for( char c : tac )
+    for( char cExpected : tac )
     {
-      char l;
-      if( !reader->Read( &l ) )
-        TAC_RAISE_ERROR( "failed reading net msg header tac", errors );
+      char cActual;
+      TAC_RAISE_ERROR_IF( !reader->Read( &cActual ), "failed reading net msg header tac" );
 
-      if( l != c )
-        TAC_RAISE_ERROR( "mismatchg reading net msg header tac", errors );
+      TAC_RAISE_ERROR_IF( cExpected != cActual, "mismatchg reading net msg header tac" );
     }
 
-    if( !reader->Read(netMsgType) )
-      TAC_RAISE_ERROR( "failure reading NetMsgType", errors );
+    TAC_RAISE_ERROR_IF( !reader->Read(netMsgType),  "failure reading NetMsgType" );
   }
 
   uint8_t GetNetworkBitfield( const void* oldData,
@@ -35,6 +32,7 @@ namespace Tac
   {
     if( !oldData )
       return 0xff;
+
     uint8_t bitfield = 0;
     for( int i = 0; i < networkBits.size(); ++i )
     {
@@ -50,9 +48,8 @@ namespace Tac
 
   void LagTest::SaveMessage( const Vector< char >& data, Timestamp elapsedSecs )
   {
-    Timestamp delayedTillSecs = elapsedSecs;
-    delayedTillSecs += mLagSimulationMS * 0.001f;
-
+    const TimestampDifference lagSimSecs = mLagSimulationMS * 0.001f;
+    const Timestamp delayedTillSecs = elapsedSecs + lagSimSecs;
     const DelayedNetMsg delayedNetMsg
     {
       .mDelayedTillSecs = delayedTillSecs,

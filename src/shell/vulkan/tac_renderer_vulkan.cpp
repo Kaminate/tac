@@ -89,8 +89,6 @@ namespace Tac::Render
     TAC_ASSERT(mGetVkSurfaceFn);
 
     vkb::InstanceBuilder builder;
-    const char* appname = ShellGetAppName();
-
 
     Vector<String> extensions = TAC_CALL( mGetVkExtensions, errors );
     TAC_ASSERT(!extensions.empty()); // probably
@@ -100,7 +98,7 @@ namespace Tac::Render
       builder.enable_extension( extension.c_str() );
     }
 
-    builder.set_app_name( appname );
+    builder.set_app_name( sShellAppName );
     builder.request_validation_layers( true );
     builder.require_api_version( 1, 1, 0 );
     builder.use_default_debug_messenger();

@@ -5,22 +5,21 @@
 #include "src/common/graphics/tac_renderer.h"
 
 #include <dxgiformat.h> // DXGI_FORMAT
-#include <dxgi.h> // IDXGIObject
+#include <dxgi1_5.h> // IDXGIObject, IDXGISwapChain4
 
 #define TAC_RELEASE_IUNKNOWN( p ) { if( p ){ p->Release(); p = nullptr; } }
 
 namespace Tac
 {
 
-    void           DXGIInit( Errors& );
-    void           DXGIUninit();
-    void           DXGICreateSwapChain( HWND hwnd,
-                                    IUnknown* pDevice,
-                                    int bufferCount,
-                                    UINT width,
-                                    UINT height,
-                                    IDXGISwapChain** ppSwapChain,
-                                    Errors& errors );
+  void             DXGIInit( Errors& );
+  void             DXGIUninit();
+  IDXGISwapChain4* DXGICreateSwapChain( HWND hwnd,
+                                        IUnknown* pDevice,
+                                        int bufferCount,
+                                        UINT width,
+                                        UINT height,
+                                        Errors& errors );
 
 
   DXGI_FORMAT      GetDXGIFormatTexture( Render::Format );
