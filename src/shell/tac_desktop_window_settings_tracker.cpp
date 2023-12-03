@@ -20,7 +20,24 @@ namespace Tac
   };
 
   static Vector< TrackInfo > sTrackInfos;
+
+  static String GetJsonPath( StringView oldName )
+  {
+    String name = oldName;
+    for( char& c : name )
+      if( !IsAlpha(c ) && !IsDigit(c) )
+        c = '_';
+    return name;
+  }
   
+  DesktopWindowHandle CreateTrackedWindow( DesktopAppCreateWindowParams params )
+  {
+    return CreateTrackedWindow( params.mName,
+                                params.mX,
+                                params.mY,
+                                params.mWidth,
+                                params.mHeight );
+  }
 
   DesktopWindowHandle CreateTrackedWindow( const StringView& path,
                                            int x,
@@ -28,7 +45,8 @@ namespace Tac
                                            int w,
                                            int h )
   {
-    Json* json = SettingsGetJson( path );
+    String jsonPath = GetJsonPath( path );
+    Json* json = SettingsGetJson( jsonPath );
     x = ( int )SettingsGetNumber( "x", x, json );
     y = ( int )SettingsGetNumber( "y", y, json );
     w = ( int )SettingsGetNumber( "w", w, json );

@@ -39,6 +39,7 @@ namespace Tac::Render
   Name( ID3D11InputLayout,         "il" );
   Name( ID3D11PixelShader,         "ps" );
   Name( ID3D11RasterizerState,     "rs" );
+  Name( ID3D11RasterizerState1,    "rs1" );
   Name( ID3D11RasterizerState2,    "rs2" );
   Name( ID3D11RenderTargetView,    "rtv" );
   Name( ID3D11SamplerState,        "ss" );
@@ -48,6 +49,10 @@ namespace Tac::Render
   Name( ID3D11UnorderedAccessView, "uav" );
   Name( ID3D11VertexShader,        "vs" );
   Name( IDXGISwapChain,            "sc" );
+  Name( IDXGISwapChain1,           "sc1" );
+  Name( IDXGISwapChain2,           "sc2" );
+  Name( IDXGISwapChain3,           "sc3" );
+  Name( IDXGISwapChain4,           "sc4" );
 #undef Name
 
 

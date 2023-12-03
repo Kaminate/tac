@@ -9,6 +9,7 @@
 #include "src/common/core/tac_error_handling.h"
 #include "src/shell/windows/renderer/dx12/tac_dx12_helper.h"
 #include "src/common/containers/tac_array.h"
+#include "src/shell/tac_desktop_window_settings_tracker.h"
 
 
 #pragma comment( lib, "d3d12.lib" ) // D3D12...
@@ -33,10 +34,12 @@ namespace Tac
       .mWidth = s,
       .mHeight = s,
     };
+    hDesktopWindow = CreateTrackedWindow( desktopParams );
 
-    hDesktopWindow = DesktopAppCreateWindow( desktopParams );
+    //hDesktopWindow = DesktopAppCreateWindow( desktopParams );
     DesktopAppResizeControls( hDesktopWindow );
     DesktopAppMoveControls( hDesktopWindow );
+    QuitProgramOnWindowClose( hDesktopWindow );
   }
 
   void DX12AppHelloWindow::DX12EnableDebug( Errors& errors )
@@ -44,17 +47,54 @@ namespace Tac
     if( !IsDebugMode )
       return;
 
-    ID3D12Debug* dx12debug = nullptr;
-    TAC_DX12_CALL( D3D12GetDebugInterface, IID_PPV_ARGS( &dx12debug ) );
-    TAC_ON_DESTRUCT( dx12debug->Release() );
+    Render::PCom<ID3D12Debug> dx12debug;
+    TAC_DX12_CALL( D3D12GetDebugInterface, dx12debug.iid(), dx12debug.ppv() );
+
+    auto dx12debug6 = dx12debug.QueryInterface< ID3D12Debug6>();
+    auto dx12debug5 = dx12debug.QueryInterface< ID3D12Debug5>();
+    auto dx12debug4 = dx12debug.QueryInterface< ID3D12Debug4>();
+    auto dx12debug3 = dx12debug.QueryInterface< ID3D12Debug3>();
+    auto dx12debug2 = dx12debug.QueryInterface< ID3D12Debug2>();
+    auto dx12debug1 = dx12debug.QueryInterface< ID3D12Debug1>();
+
+    // EnableDebugLayer must be called before the device is created
+    TAC_ASSERT( ! m_device );
     dx12debug->EnableDebugLayer();
+    m_dbgLayerEnabled = true;
+
+
+
+
+  }
+
+  void DX12AppHelloWindow::DX12CreateInfoQueue( Errors& )
+  {
+    if( !IsDebugMode )
+      return;
+
+    TAC_ASSERT( m_dbgLayerEnabled );
+
+    m_infoQueue = m_device.QueryInterface<ID3D12InfoQueue>( );
+    m_infoQueue1 = m_device.QueryInterface<ID3D12InfoQueue1>( );
+
+    TAC_ASSERT(m_infoQueue);
+
+    // Make the application debug break when bad things happen
+    m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE );
+    m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_ERROR, TRUE );
+    m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_WARNING, TRUE );
   }
 
   void DX12AppHelloWindow::DX12CreateDevice( Errors& errors )
   {
-    IDXGIAdapter* adapter = DXGIGetAdapter();
-    TAC_DX12_CALL( D3D12CreateDevice, adapter, D3D_FEATURE_LEVEL_12_1, m_device.id(), m_device.pp() );
-    Render::DX12SetName( m_device, "Device" );
+    TAC_DX12_CALL( D3D12CreateDevice,
+                   ( IDXGIAdapter* )DXGIGetBestAdapter(),
+                   D3D_FEATURE_LEVEL_12_1,
+                   m_device.iid(),
+                   m_device.ppv() );
+    Render::DX12SetName( ( ID3D12Device* )m_device, "Device" );
+
+    auto device10 = m_device.QueryInterface<ID3D12Device10>();
   }
 
   void DX12AppHelloWindow::CreateCommandQueue( Errors& errors )
@@ -78,9 +118,9 @@ namespace Tac
 
     TAC_DX12_CALL( m_device->CreateCommandQueue,
                    &queueDesc,
-                   m_commandQueue.id(),
-                   m_commandQueue.pp() );
-    Render::DX12SetName( m_commandQueue, "Command Queue" );
+                   m_commandQueue.iid(),
+                   m_commandQueue.ppv() );
+    Render::DX12SetName( (ID3D12CommandQueue*)m_commandQueue, "Command Queue" );
   }
 
   void DX12AppHelloWindow::CreateRTVDescriptorHeap( Errors& errors )
@@ -100,8 +140,8 @@ namespace Tac
     };
     TAC_DX12_CALL( m_device->CreateDescriptorHeap,
                    &desc,
-                   m_rtvHeap.id(),
-                   m_rtvHeap.pp() );
+                   m_rtvHeap.iid(),
+                   m_rtvHeap.ppv() );
     m_rtvDescriptorSize = m_device->GetDescriptorHandleIncrementSize( D3D12_DESCRIPTOR_HEAP_TYPE_RTV );
   }
 
@@ -110,8 +150,8 @@ namespace Tac
     TAC_ASSERT( m_device );
     TAC_DX12_CALL( m_device->CreateCommandAllocator,
                    D3D12_COMMAND_LIST_TYPE_DIRECT,
-                   m_commandAllocator.id(),
-                   m_commandAllocator.pp()  );
+                   m_commandAllocator.iid(),
+                   m_commandAllocator.ppv()  );
   }
 
   void DX12AppHelloWindow::CreateCommandList( Errors& errors )
@@ -120,10 +160,10 @@ namespace Tac
     TAC_DX12_CALL( m_device->CreateCommandList,
                    0,
                    D3D12_COMMAND_LIST_TYPE_DIRECT,
-                   m_commandAllocator,
+                   (ID3D12CommandAllocator*)m_commandAllocator,
                    nullptr,
-                   m_commandList.id(),
-                   m_commandList.pp() );
+                   m_commandList.iid(),
+                   m_commandList.ppv() );
 
     // Command lists are created in the recording state, but there is nothing
     // to record yet. The main loop expects it to be closed, so close it now.
@@ -133,7 +173,7 @@ namespace Tac
   void DX12AppHelloWindow::CreateFence( Errors& errors )
   {
     // Create synchronization objects.
-    TAC_DX12_CALL( m_device->CreateFence, 0, D3D12_FENCE_FLAG_NONE, m_fence.id(), m_fence.pp() );
+    TAC_DX12_CALL( m_device->CreateFence, 0, D3D12_FENCE_FLAG_NONE, m_fence.iid(), m_fence.ppv() );
     m_fenceValue = 1;
 
     // Create an event handle to use for frame synchronization.
@@ -176,12 +216,12 @@ namespace Tac
     // Create a RTV for each frame.
     for( UINT i = 0; i < bufferCount; i++ )
     {
-      auto& renderTarget = m_renderTargets[ i ];
+      Render::PCom< ID3D12Resource >& renderTarget = m_renderTargets[ i ];
       TAC_DX12_CALL( m_swapChain->GetBuffer,
                      i,
-                     renderTarget.id(),
-                     renderTarget.pp() );
-      m_device->CreateRenderTargetView( renderTarget, nullptr, rtvHandle );
+                     renderTarget.iid(),
+                     renderTarget.ppv() );
+      m_device->CreateRenderTargetView( ( ID3D12Resource* )renderTarget, nullptr, rtvHandle );
 
       rtvHandle.ptr += m_rtvDescriptorSize;
     }
@@ -199,9 +239,11 @@ namespace Tac
     // However, when ExecuteCommandList() is called on a particular command 
     // list, that command list can then be reset at any time and must be before 
     // re-recording.
-    TAC_DX12_CALL( m_commandList->Reset, m_commandAllocator, m_pipelineState );
+    TAC_DX12_CALL( m_commandList->Reset,
+                   ( ID3D12CommandAllocator* )m_commandAllocator,
+                   ( ID3D12PipelineState* )m_pipelineState );
 
-    ID3D12Resource* resource = m_renderTargets[ m_frameIndex ];
+    Render::PCom< ID3D12Resource >& resource = m_renderTargets[ m_frameIndex ];
     TAC_ASSERT( resource );
 
 
@@ -212,7 +254,7 @@ namespace Tac
         .Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION,
         .Transition = D3D12_RESOURCE_TRANSITION_BARRIER
         {
-          .pResource = resource,
+          .pResource = (ID3D12Resource*)resource,
           .Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES,
           .StateBefore = D3D12_RESOURCE_STATE_PRESENT,
           .StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET,
@@ -246,7 +288,7 @@ namespace Tac
         .Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION,
         .Transition = D3D12_RESOURCE_TRANSITION_BARRIER
         {
-          .pResource = resource,
+          .pResource = (ID3D12Resource*)resource,
           .Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES,
           .StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET,
           .StateAfter = D3D12_RESOURCE_STATE_PRESENT,
@@ -262,7 +304,7 @@ namespace Tac
 
   void DX12AppHelloWindow::ExecuteCommandLists()
   {
-    const Array lists = { (ID3D12CommandList*)m_commandList };
+    const Array lists = { ( ID3D12CommandList* )( ID3D12GraphicsCommandList* )m_commandList };
     const auto n = ( UINT )lists.size();
     const auto p = ( ID3D12CommandList** )lists.data();
     m_commandQueue->ExecuteCommandLists( n, p );
@@ -283,7 +325,7 @@ namespace Tac
 
     // Signal and increment the fence value.
     const UINT64 fence = m_fenceValue;
-    TAC_DX12_CALL( m_commandQueue->Signal, m_fence, fence );
+    TAC_DX12_CALL( m_commandQueue->Signal, (ID3D12Fence*)m_fence, fence );
 
     m_fenceValue++;
 
@@ -309,6 +351,7 @@ namespace Tac
     TAC_CALL( DXGIInit, errors );
     TAC_CALL( DX12EnableDebug, errors );
     TAC_CALL( DX12CreateDevice, errors );
+    TAC_CALL( DX12CreateInfoQueue, errors );
     TAC_CALL( CreateCommandQueue, errors );
     TAC_CALL( CreateRTVDescriptorHeap, errors );
     TAC_CALL( CreateCommandAllocator, errors );
@@ -346,6 +389,8 @@ namespace Tac
     TAC_CALL( WaitForPreviousFrame, errors );
 
     CloseHandle( m_fenceEvent );
+
+    DXGIUninit();
   }
 
   App* App::Create()

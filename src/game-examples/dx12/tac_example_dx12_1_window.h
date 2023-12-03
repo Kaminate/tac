@@ -22,6 +22,7 @@ namespace Tac
     void CreateDesktopWindow();
     void DX12EnableDebug( Errors& );
     void DX12CreateDevice( Errors& );
+    void DX12CreateInfoQueue( Errors& );
     void CreateCommandQueue( Errors& );
     void CreateRTVDescriptorHeap( Errors& );
     void CreateCommandAllocator( Errors& );
@@ -38,6 +39,7 @@ namespace Tac
     void WaitForPreviousFrame( Errors& );
 
     static const int                            bufferCount = 2;
+    bool                                        m_dbgLayerEnabled = false;
 
     DesktopWindowHandle                         hDesktopWindow;
 
@@ -70,9 +72,12 @@ namespace Tac
     Render::PCom< ID3D12Resource >            m_renderTargets[ bufferCount ];
     Render::PCom< ID3D12Fence >               m_fence;
     Render::PCom< ID3D12PipelineState >       m_pipelineState;
+    Render::PCom< ID3D12InfoQueue >           m_infoQueue;
+    Render::PCom< ID3D12InfoQueue1 >          m_infoQueue1;
 
     // DXGI objects
     Render::PCom< IDXGISwapChain4 >           m_swapChain;
+
 
     // Frame timings
     UINT                                      m_frameIndex{};

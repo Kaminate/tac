@@ -20,6 +20,7 @@ using Microsoft::WRL::ComPtr;
 #include "src/common/string/tac_string_identifier.h"
 #include "src/shell/windows/tac_win32.h"
 #include "src/shell/windows/renderer/dxgi/tac_dxgi.h"
+#include "src/shell/windows/renderer/tac_dx.h"
 
 #include <d3d11_3.h> // ID3D11Device3, ID3D11RasterizerState2
 
@@ -75,7 +76,7 @@ namespace Tac::Render
     bool                       mClearEachFrame = true;
 
     int                        mBufferCount = 0;
-    IDXGISwapChain*            mSwapChain = nullptr;
+    PCom<IDXGISwapChain4>      mSwapChain;
     ID3D11DepthStencilView*    mDepthStencilView = nullptr;
     ID3D11RenderTargetView*    mRenderTargetView = nullptr;
     ID3D11Texture2D*           mDepthTexture = nullptr;

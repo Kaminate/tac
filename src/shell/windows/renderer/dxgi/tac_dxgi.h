@@ -3,6 +3,7 @@
 
 #include "src/common/core/tac_error_handling.h"
 #include "src/common/graphics/tac_renderer.h"
+#include "src/shell/windows/renderer/tac_dx.h"
 
 #include <dxgiformat.h> // DXGI_FORMAT
 #include <dxgi1_5.h> // IDXGIObject, IDXGISwapChain4
@@ -14,12 +15,12 @@ namespace Tac
 
   void             DXGIInit( Errors& );
   void             DXGIUninit();
-  IDXGISwapChain4* DXGICreateSwapChain( HWND hwnd,
-                                        IUnknown* pDevice,
-                                        int bufferCount,
-                                        UINT width,
-                                        UINT height,
-                                        Errors& errors );
+  Render::PCom<IDXGISwapChain4> DXGICreateSwapChain( HWND ,
+                                                     IUnknown* pDevice,
+                                                     int bufferCount,
+                                                     UINT width,
+                                                     UINT height,
+                                                     Errors& );
 
 
   DXGI_FORMAT      GetDXGIFormatTexture( Render::Format );
@@ -35,7 +36,7 @@ namespace Tac
 
 
   //               represents a display subsystem (GPU, VRAM, etc)
-  IDXGIAdapter*    DXGIGetAdapter();
+  Render::PCom<IDXGIAdapter>    DXGIGetBestAdapter();
 
 
 } // namespace Tac

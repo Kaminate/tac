@@ -18,6 +18,7 @@
 #include "src/shell/windows/net/tac_net_winsock.h"
 #include "src/shell/windows/renderer/dx11/tac_renderer_dx11.h"
 #include "src/shell/windows/tac_win32.h"
+#include "src/shell/windows/renderer/dxgi/tac_dxgi_debug.h"
 
 import std; // #include <iostream> // okay maybe this should also be allowed
 
@@ -109,7 +110,7 @@ namespace Tac
   }
 
   void Win32PlatformFns::PlatformWindowMoveControls( const DesktopWindowHandle& handle,
-                                   const DesktopWindowRect& rect ) 
+                                                     const DesktopWindowRect& rect )
   {
     Win32MouseEdgeSetMovable( handle, rect );
   }
@@ -154,5 +155,7 @@ namespace Tac
     TAC_CALL( Network::NetWinsockInit,errors);
 
     TAC_CALL( DesktopAppRun, errors );
+
+    Render::DXGIReportLiveObjects();
   }
 } // namespace Tac

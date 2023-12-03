@@ -9,6 +9,8 @@ namespace Tac
                                            int y = 50,
                                            int w = 800,
                                            int h = 600 );
+  DesktopWindowHandle CreateTrackedWindow( struct DesktopAppCreateWindowParams );
+
   void UpdateTrackedWindows();
   void QuitProgramOnWindowClose( const DesktopWindowHandle& );
 }

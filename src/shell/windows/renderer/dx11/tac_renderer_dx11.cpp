@@ -25,10 +25,10 @@
 #include "src/shell/windows/renderer/dx11/tac_dx11_enum_helper.h"
 #include "src/shell/windows/renderer/dx11/tac_dx11_namer.h"
 #include "src/shell/windows/renderer/dxgi/tac_dxgi.h"
+#include "src/shell/windows/renderer/dxgi/tac_dxgi_debug.h"
 #include "src/shell/windows/renderer/pix/tac_pix.h"
 
 #include <initguid.h>
-#include <dxgidebug.h>
 #include <d3dcompiler.h> // D3DCOMPILE_...
 #include <d3dcommon.h> // WKPDID_D3DDebugObjectName, ID3DBlob
 
@@ -177,61 +177,49 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
-  struct BreakStuff
-  {
-    D3D11_MESSAGE_SEVERITY severity;
-    BOOL                   severityBreak;
-  };
 
-  struct BreakStuffs
+  struct ScopedSeverityBreak
   {
-    BreakStuffs();
-    void Resume();
-    void Disable();
+    ScopedSeverityBreak();
+    ~ScopedSeverityBreak();
   private:
-    void Add( D3D11_MESSAGE_SEVERITY );
-    FrameMemoryVector< BreakStuff > mBreakStuffs;
+    FrameMemoryVector< D3D11_MESSAGE_SEVERITY > mSeverities;
   };
 
   // -----------------------------------------------------------------------------------------------
 
-  BreakStuffs::BreakStuffs()
+  ScopedSeverityBreak::ScopedSeverityBreak()
   {
-    Add( D3D11_MESSAGE_SEVERITY_CORRUPTION );
-    Add( D3D11_MESSAGE_SEVERITY_ERROR );
-    Add( D3D11_MESSAGE_SEVERITY_WARNING );
-    //Add( D3D11_MESSAGE_SEVERITY_INFO );
-    //Add( D3D11_MESSAGE_SEVERITY_MESSAGE );
-  }
-
-  void BreakStuffs::Resume()
-  {
-
-    ID3D11InfoQueue* mInfoQueueDEBUG = RendererDirectX11::GetInfoQueue();
-    for( BreakStuff& breakStuff : mBreakStuffs )
-      mInfoQueueDEBUG->SetBreakOnSeverity( breakStuff.severity, breakStuff.severityBreak );
-  }
-
-  void BreakStuffs::Disable()
-  {
-    ID3D11InfoQueue* mInfoQueueDEBUG = RendererDirectX11::GetInfoQueue();
-    for( BreakStuff& breakStuff : mBreakStuffs )
-      mInfoQueueDEBUG->SetBreakOnSeverity( breakStuff.severity, FALSE );
-  }
-
-
-
-  void BreakStuffs::Add( D3D11_MESSAGE_SEVERITY s )
-  {
-    ID3D11InfoQueue* mInfoQueueDEBUG = RendererDirectX11::GetInfoQueue();
-    const BOOL severityBreak = mInfoQueueDEBUG->GetBreakOnSeverity( s );
-    const BreakStuff breakStuff =
+    const D3D11_MESSAGE_SEVERITY severities[] =
     {
-      .severity = s,
-      .severityBreak = severityBreak,
+      D3D11_MESSAGE_SEVERITY_CORRUPTION,
+      D3D11_MESSAGE_SEVERITY_ERROR,
+      D3D11_MESSAGE_SEVERITY_WARNING,
+#if 0
+      D3D11_MESSAGE_SEVERITY_INFO,
+      D3D11_MESSAGE_SEVERITY_MESSAGE,
+#endif
     };
-    mBreakStuffs.push_back( breakStuff );
+
+    for( const D3D11_MESSAGE_SEVERITY severity : severities )
+    {
+      ID3D11InfoQueue* mInfoQueueDEBUG = RendererDirectX11::GetInfoQueue();
+      const BOOL breakOnSeverity = mInfoQueueDEBUG->GetBreakOnSeverity( severity );
+      if( breakOnSeverity )
+      {
+        mSeverities.push_back( severity );
+        mInfoQueueDEBUG->SetBreakOnSeverity( severity, FALSE );
+      }
+    }
   }
+
+  ScopedSeverityBreak::~ScopedSeverityBreak()
+  {
+    ID3D11InfoQueue* mInfoQueueDEBUG = RendererDirectX11::GetInfoQueue();
+    for( const D3D11_MESSAGE_SEVERITY severity : mSeverities )
+      mInfoQueueDEBUG->SetBreakOnSeverity( severity, TRUE );
+  }
+
 
   // -----------------------------------------------------------------------------------------------
 
@@ -265,50 +253,6 @@ namespace Tac::Render
   }
   // -----------------------------------------------------------------------------------------------
 
-  static IDXGIDebug* GetDXGIDebug()
-  {
-    if( !IsDebugMode )
-      return nullptr;
-
-    HMODULE hModule = GetModuleHandle( "Dxgidebug.dll" );
-    if( !hModule )
-      return nullptr;
-
-    using GetDXGIFn = HRESULT( WINAPI* )( REFIID, void** );
-
-    FARPROC fnAddr = GetProcAddress( hModule, "DXGIGetDebugInterface" );
-    if( !fnAddr )
-      return nullptr;
-
-    GetDXGIFn fn = (GetDXGIFn)fnAddr;
-
-    IDXGIDebug* dxgiDbg = nullptr;
-    const HRESULT hr = fn( IID_PPV_ARGS( &dxgiDbg ) );
-    if( FAILED( hr ) )
-      return nullptr;
-
-    return dxgiDbg; // this must be released by the caller
-  }
-
-  static void ReportLiveObjects()
-  {
-    if( !IsDebugMode )
-      return;
-
-    IDXGIDebug* dxgiDbg = GetDXGIDebug();
-    if( !dxgiDbg )
-      return;
-    TAC_ON_DESTRUCT( TAC_RELEASE_IUNKNOWN( dxgiDbg ) );
-
-    BreakStuffs breakStuffs;
-
-    // | Why is this stuff commented?
-    // | What did it used to do?
-    // v
-    //breakStuffs.Disable();
-    //dxgiDbg->ReportLiveObjects( DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_ALL );
-    //breakStuffs.Resume();
-  }
 
   static HashValue HashDrawCallSamplers(const DrawCallSamplers& drawCallSamplers )
   {
@@ -538,7 +482,8 @@ namespace Tac::Render
       mUserAnnotationDEBUG->Release();
       mUserAnnotationDEBUG = nullptr;
     }
-    ReportLiveObjects();
+
+    DXGIReportLiveObjects();
   }
 
   void RendererDirectX11::Init( Errors& errors )
@@ -572,16 +517,18 @@ namespace Tac::Render
       TAC_DX11_CALL( mDevice->QueryInterface, IID_PPV_ARGS( &mInfoQueueDEBUG ) );
       TAC_DX11_CALL( mDeviceContext->QueryInterface, IID_PPV_ARGS( &mUserAnnotationDEBUG ) );
 
-      //const D3D11_MESSAGE_SEVERITY breakSeverities[] =
-      //{
-      //  D3D11_MESSAGE_SEVERITY_CORRUPTION,
-      //  D3D11_MESSAGE_SEVERITY_ERROR,
-      //  D3D11_MESSAGE_SEVERITY_WARNING,
-      //  D3D11_MESSAGE_SEVERITY_INFO,
-      //  D3D11_MESSAGE_SEVERITY_MESSAGE
-      //};
-      //for( const D3D11_MESSAGE_SEVERITY severity : breakSeverities )
-      //  mInfoQueueDEBUG->SetBreakOnSeverity( severity, TRUE );
+      const D3D11_MESSAGE_SEVERITY breakSeverities[] =
+      {
+        D3D11_MESSAGE_SEVERITY_CORRUPTION,
+        D3D11_MESSAGE_SEVERITY_ERROR,
+        D3D11_MESSAGE_SEVERITY_WARNING,
+#if 0
+        D3D11_MESSAGE_SEVERITY_INFO,
+        D3D11_MESSAGE_SEVERITY_MESSAGE
+#endif
+      };
+      for( const D3D11_MESSAGE_SEVERITY severity : breakSeverities )
+        mInfoQueueDEBUG->SetBreakOnSeverity( severity, TRUE );
 
     }
 
@@ -1884,7 +1831,7 @@ namespace Tac::Render
     mFramebuffers[iFB] = Framebuffer
     {
       .mBufferCount = bufferCount,
-      .mSwapChain = swapChain,
+      .mSwapChain = Tac::move(swapChain),
       .mDepthStencilView = dsv,
       .mRenderTargetView = rtv,
       .mDepthTexture = texture,
@@ -1984,7 +1931,6 @@ namespace Tac::Render
       TAC_RELEASE_IUNKNOWN( framebuffer->mDepthStencilView );
       TAC_RELEASE_IUNKNOWN( framebuffer->mDepthTexture );
       TAC_RELEASE_IUNKNOWN( framebuffer->mRenderTargetView );
-      TAC_RELEASE_IUNKNOWN( framebuffer->mSwapChain );
     }
 
     *framebuffer = Framebuffer();
@@ -2152,7 +2098,7 @@ namespace Tac::Render
       SetDebugName( framebuffer->mDepthStencilView, data->mName );
       SetDebugName( framebuffer->mRenderTargetView, data->mName );
       SetDebugName( framebuffer->mDepthTexture, data->mName );
-      SetDebugName( framebuffer->mSwapChain, data->mName );
+      SetDebugName( (IDXGISwapChain4*)framebuffer->mSwapChain, data->mName );
       framebuffer->mDebugName = data->mName;
     }
 
