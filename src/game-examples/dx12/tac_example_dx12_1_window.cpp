@@ -15,7 +15,9 @@
 
 namespace Tac
 {
+  // A graphics root signature defines what resources are bound to the graphics pipeline.
 
+  // A pipeline state object maintains the state of all currently set shaders as well as certain fixed function state objects (such as the input assembler, tesselator, rasterizer and output merger).
 
   // -----------------------------------------------------------------------------------------------
 
@@ -107,6 +109,7 @@ namespace Tac
 
   void DX12AppHelloWindow::CreateCommandAllocator( Errors& errors )
   {
+    // a command allocator manages storage for cmd lists and bundles
     TAC_ASSERT( m_device );
     TAC_DX12_CALL( m_device->CreateCommandAllocator,
                    D3D12_COMMAND_LIST_TYPE_DIRECT,
