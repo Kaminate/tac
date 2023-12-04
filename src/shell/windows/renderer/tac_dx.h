@@ -18,9 +18,9 @@ namespace Tac::Render
   template< typename T > requires std::is_base_of_v< IUnknown, T >
   struct PCom
   {
-    //PCom( T* t = nullptr ) : mT( t ) {}
-
+    // Constructors
     PCom() = default;
+    PCom( T* ) = delete;
     PCom( const PCom& other )
     {
       mT = other.mT;
@@ -29,43 +29,59 @@ namespace Tac::Render
 
     PCom( PCom&& other )
     {
-      mT = other.mT;
-      other.mT = nullptr;
+      //mT = other.mT;
+      //other.mT = nullptr;
+      swap( std::move(other) );
     }
 
     ~PCom()
     {
       TryRelease();
     }
-    
-    //void clear()
-    //{
-    //  TryRelease();
-    //  if( IUnknown* iUk = mT )
-    //  {
-    //    iUk->Release();
-    //    mT = nullptr;
-    //  }
-    //}
-
-    operator bool() const { return mT; }
-
-    REFIID iid()     { return __uuidof(*mT); }
-    void** ppv()     { return (void**)&mT; }
-    T**    pp()      { return &mT; }
-    explicit operator T* ()   { return mT; }
-    T* operator ->() { return mT; }
 
 
-    template< typename U > // requires std::is_base_of_v< IUnknown, U >
+    // IID_PPV_ARGS
+    REFIID iid()          { return __uuidof(*mT); }
+    void** ppv()          { return (void**)&mT; }
+
+    // Member functions
+    T**    CreateAddress() { return &mT; } // used during creation by a typed api
+    T*     Get()           { return mT; }
+
+    //void   clear()         { TryRelease(); }
+    void swap( PCom&& other )
+    {
+      std::swap( mT, other.mT );
+    }
+
+    // Query Interface
+
+    template< typename U >
     PCom< U > QueryInterface()
     {
       PCom< U > u;
-      if( IUnknown* iUk = mT)
-        iUk->QueryInterface( u.iid(), u.ppv() );
+      QueryInterface( u );
       return u;
     }
 
+    template< typename U >
+    void QueryInterface( PCom<U>& u )
+    {
+      if( auto unknown = GetUnknown() )
+        unknown->QueryInterface( u.iid(), u.ppv() );
+    }
+
+    // arrow oeprator
+
+    T*     operator ->()  { return mT; }
+
+    // Conversion operators
+
+    template< typename U > explicit operator U* ( ) const { return static_cast< U* >( mT ); }
+
+    operator bool() const { return mT; }
+
+    // Assignment operators
 
     void operator = (T*) = delete;
 
@@ -77,35 +93,33 @@ namespace Tac::Render
 
     void operator = ( PCom&& other )
     {
-      TryRelease();
-      mT = other.mT;
-      other.mT = nullptr;
+      swap( Tac::move( other ) );
+      //TryRelease();
+      //mT = other.mT;
+      //other.mT = nullptr;
     }
 
-    //void operator = ( T* t )
-    //{
-    //  TAC_ASSERT( !mT );
-    //  mT = t;
-    //}
-    
-    PCom( T* ) = delete;
 
   private:
 
+    IUnknown* GetUnknown()
+    {
+      return static_cast<IUnknown*>(mT);
+    }
+
     void TryAddRef()
     {
-      if( IUnknown* iUk = mT )
-        iUk->AddRef();
+      if( auto unknown = GetUnknown() )
+        unknown->AddRef();
     }
 
     void TryRelease()
     {
-      if( IUnknown* iUk = mT )
-        iUk->Release();
+      if( auto unknown = GetUnknown() )
+        unknown->Release();
       mT = nullptr;
     }
     
-    //PCom( T* t ) : mT( t ) {};
     T* mT = nullptr;
   };
 

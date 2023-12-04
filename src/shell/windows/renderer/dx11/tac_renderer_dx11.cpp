@@ -305,7 +305,7 @@ namespace Tac::Render
     TAC_ASSERT( !shaderName.empty() );
 
     RendererDirectX11* renderer = RendererDirectX11::GetInstance();
-    ID3D11Device* device = renderer->mDevice;
+    auto device = (ID3D11Device*)renderer->mDevice;
 
     ConstantBuffers constantBuffers;
     ID3D11VertexShader* vertexShader = nullptr;
@@ -461,22 +461,16 @@ namespace Tac::Render
   RendererDirectX11::~RendererDirectX11()
   {
     DXGIUninit();
-    //mDxgi.Uninit();
-    if( mDeviceContext )
-    {
-      mDeviceContext->Release();
-      mDeviceContext = nullptr;
-    }
-    if( mDevice )
-    {
-      mDevice->Release();
-      mDevice = nullptr;
-    }
+
+    mDeviceContext.swap( {});
+    mDevice.swap( {});
+
     if( mInfoQueueDEBUG )
     {
       mInfoQueueDEBUG->Release();
       mInfoQueueDEBUG = nullptr;
     }
+
     if( mUserAnnotationDEBUG )
     {
       mUserAnnotationDEBUG->Release();
@@ -499,6 +493,9 @@ namespace Tac::Render
     D3D_DRIVER_TYPE DriverType = D3D_DRIVER_TYPE_HARDWARE;
     HMODULE Software = NULL;
 
+    PCom<ID3D11Device> device;
+    PCom<ID3D11DeviceContext> deviceContext;
+
     TAC_DX11_CALL( D3D11CreateDevice,
                    pAdapter,
                    DriverType,
@@ -507,9 +504,9 @@ namespace Tac::Render
                    featureLevels.data(),
                    featureLevels.size(),
                    D3D11_SDK_VERSION,
-                   &mDevice,
+                   device.CreateAddress(),
                    &featureLevel,
-                   &mDeviceContext );
+                   deviceContext.CreateAddress() );
     // If you're directx is crashing / throwing exception, don't forget to check
     // your output window, it likes to put error messages there
     if( IsDebugMode )
@@ -540,9 +537,12 @@ namespace Tac::Render
       TAC_CALL( AllowPIXDebuggerAttachment, errors );
     }
 
-    ID3D11Device3* device3 = nullptr;
-    const HRESULT queried = mDevice->QueryInterface( &mDevice3 );
-    TAC_RAISE_ERROR_IF( FAILED( queried ), "failed to query id3d11device3" );
+    device.QueryInterface( mDevice );
+    deviceContext.QueryInterface( mDeviceContext );
+
+    TAC_ASSERT( mDevice );
+    TAC_ASSERT( mDeviceContext );
+
   }
 
   RendererDirectX11* RendererDirectX11::GetInstance()
@@ -1352,7 +1352,7 @@ namespace Tac::Render
     desc2.ConservativeRaster = conservativeRasterizationMode;
 
     ID3D11RasterizerState2* rasterizerState2;
-    TAC_DX11_CALL( mDevice3->CreateRasterizerState2, &desc2, &rasterizerState2 );
+    TAC_DX11_CALL( mDevice->CreateRasterizerState2, &desc2, &rasterizerState2 );
     SetDebugName( rasterizerState2, commandData->mStackFrame.ToString() );
     mRasterizerStates[ ( int )commandData->mRasterizerStateHandle ] = rasterizerState2;
 #endif
@@ -1763,15 +1763,16 @@ namespace Tac::Render
     const UINT width = data->mWidth;
     const UINT height = data->mHeight;
 
-    auto swapChain = TAC_CALL( DXGICreateSwapChain,
-                               hwnd,
-                               mDevice,
-                               bufferCount,
-                               width,
-                               height,
-                               errors );
+    const SwapChainCreateInfo scInfo
+    {
+      .mHwnd = hwnd,
+      .mDevice = (IUnknown*)mDevice,
+      .mBufferCount = bufferCount,
+      .mWidth = data->mWidth,
+      .mHeight = data->mWidth,
+    };
+    auto swapChain = TAC_CALL( DXGICreateSwapChain, scInfo, errors );
 
-    ID3D11Device* device = mDevice;
 
     // this seems to be unused...
     //
@@ -1785,7 +1786,7 @@ namespace Tac::Render
 
     ID3D11RenderTargetView* rtv = nullptr;
     D3D11_RENDER_TARGET_VIEW_DESC* rtvDesc = nullptr;
-    TAC_DX11_CALL( device->CreateRenderTargetView, pBackBuffer, rtvDesc, &rtv );
+    TAC_DX11_CALL( mDevice->CreateRenderTargetView, pBackBuffer, rtvDesc, &rtv );
     SetDebugName( rtv, data->mStackFrame.ToString() );
 
     // this seems to be unused...

@@ -230,9 +230,8 @@ namespace Tac::Render
 
     ID3D11InfoQueue*           mInfoQueueDEBUG = nullptr;
     ID3DUserDefinedAnnotation* mUserAnnotationDEBUG = nullptr;
-    ID3D11Device*              mDevice = nullptr;
-    ID3D11Device3*             mDevice3 = nullptr;
-    ID3D11DeviceContext*       mDeviceContext = nullptr;
+    PCom<ID3D11Device3>        mDevice;
+    PCom<ID3D11DeviceContext4> mDeviceContext;
 
     Texture                    mTextures[ kMaxTextures ] = {};
     MagicBuffer                mMagicBuffers[ kMaxMagicBuffers ] = {};
