@@ -3,7 +3,7 @@
 
 namespace Tac::Render
 {
-  static const char* DX12_HRESULT_ToString( const HRESULT hr )
+  const char* DX12_HRESULT_ToString( const HRESULT hr )
   {
     switch( hr )
     {

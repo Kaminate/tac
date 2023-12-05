@@ -67,13 +67,14 @@ namespace Tac::Render
     template< typename U >
     void QueryInterface( PCom<U>& u )
     {
-      if( auto unknown = GetUnknown() )
+      if( IUnknown* unknown = GetUnknown() )
         unknown->QueryInterface( u.iid(), u.ppv() );
     }
 
-    // arrow oeprator
+    // arrow oprator
 
-    T*     operator ->()  { return mT; }
+    T*       operator ->()       { return mT; }
+    const T* operator ->() const { return mT; }
 
     // Conversion operators
 
@@ -109,13 +110,13 @@ namespace Tac::Render
 
     void TryAddRef()
     {
-      if( auto unknown = GetUnknown() )
+      if( IUnknown* unknown = GetUnknown() )
         unknown->AddRef();
     }
 
     void TryRelease()
     {
-      if( auto unknown = GetUnknown() )
+      if( IUnknown* unknown = GetUnknown() )
         unknown->Release();
       mT = nullptr;
     }

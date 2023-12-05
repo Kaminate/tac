@@ -12,12 +12,15 @@ if( TRUE )
   set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
   set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+  cmake_print_variables("cmake binary dir: " ${CMAKE_BINARY_DIR})
 endif()
 
-cmake_print_variables("cmake binary dir: " ${CMAKE_BINARY_DIR})
 
 if (MSVC)
-    add_compile_options( /W4  # warning level 4
+
+    set( CMAKE_VS_DEBUGGER_WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} )
+    add_compile_options( /ZI  # program database for edit and continue
+                         /W4  # warning level 4
                          /WX  # treat linker warnings as errors
                          /MP  # multi processor compilation
                          /experimental:module) # modules???
@@ -51,7 +54,6 @@ include_directories( ${CMAKE_SOURCE_DIR} )
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 set(CMAKE_CXX_STANDARD 23) # modules, ie import std.filesystem
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-# set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if( MSVC)
   set(CMAKE_EXPERIMENTAL_CXX_MODULE_DYNDEP 1)
@@ -121,7 +123,10 @@ if(TRUE)
 
     _get_all_cmake_targets(all_targets ${CMAKE_CURRENT_LIST_DIR})
     foreach(target ${all_targets})
-      message ("cur target: ${target}")
+      
+      if( FALSE )
+        message ("cur target: ${target}")
+      endif()
 
       SET_PROPERTY( TARGET ${target} PROPERTY VS_USER_PROPS ${MODULE_PROP} )
 
