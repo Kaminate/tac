@@ -1,20 +1,21 @@
-#include "Common.fx"
+#include "Common.hlsl"
+
 struct VS_INPUT
 {
   float3 Position : POSITION;
-  float3 Color    : COLOR;
+  float4 Color    : COLOR;
 };
+
 struct VS_OUTPUT
 {
   float4 mClipSpacePosition : SV_POSITION;
-  float3 mColor             : SV_AUTO_SEMANTIC;
+  float4 mColor             : TAC_AUTO_SEMANTIC;
 };
 
 VS_OUTPUT VS( VS_INPUT input )
 {
-  float4 worldSpacePosition = mul( World, float4( input.Position, 1 ) );
-  float4 viewSpacePosition = mul( View, worldSpacePosition );
-  float4 clipSpacePosition = mul( Projection, viewSpacePosition);
+  float4 viewSpacePosition = mul( View, float4( input.Position, 1 ) );
+  float4 clipSpacePosition = mul( Projection, viewSpacePosition );
 
   VS_OUTPUT output = ( VS_OUTPUT )0;
   output.mClipSpacePosition = clipSpacePosition;
@@ -30,9 +31,7 @@ struct PS_OUTPUT
 PS_OUTPUT PS( VS_OUTPUT input )
 {
   PS_OUTPUT output = ( PS_OUTPUT )0;
-  output.mColor = Color;
-  output.mColor.xyz *= pow( input.mColor, 1.0 / 2.2 );
-
+  output.mColor = input.mColor;
   return output;
 }
 

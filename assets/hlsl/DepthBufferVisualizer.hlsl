@@ -47,7 +47,7 @@ float4 FullScreenTrianglePosition( uint i )
 struct VS_OUTPUT
 {
   float4 mClipSpacePosition : SV_POSITION;
-  float2 mUV                : SV_AUTO_SEMANTIC;
+  float2 mUV                : TAC_AUTO_SEMANTIC;
 };
 
 

@@ -22,15 +22,12 @@ namespace Tac::Render
     const char* fxFrameworkStrs[] = { "SamplerState" }; // Are there more?
     for( const char* s : fxFrameworkStrs )
     {
-      if( line.contains( s ) )
-      {
-        String msg = s;
-        msg +=
-          " is a deprecated directx fx framework feature and wont be supported in the newer "
-          "DXIL compiler. Create and bind your resources manually.";
-        TAC_ASSERT_CRITICAL( msg );
-      }
+      TAC_ASSERT_MSG( !line.contains( s ),
+                      String( s ) + " "
+                      "is a deprecated directx fx framework feature and wont be supported "
+                      "in the newer DXIL compiler. Create and bind your resources manually." );
     }
+
     return line;
   }
 } // namespace Tac::Render

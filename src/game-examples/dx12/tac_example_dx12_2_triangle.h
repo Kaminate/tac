@@ -8,6 +8,8 @@
 
 namespace Tac
 {
+  using namespace Render;
+
   struct Win32Event
   {
     void Init(Errors&);
@@ -41,6 +43,8 @@ namespace Tac
     void CreateCommandAllocator( Errors& );
     void CreateCommandList( Errors& );
     void CreateFence( Errors& );
+    void CreateRootSignature( Errors&);
+    void CreatePipelineState( Errors&);
 
     // Helper functions for Update()
     void DX12CreateSwapChain( Errors& );
@@ -64,11 +68,11 @@ namespace Tac
 
     // ID3D12 objects
 
-    Render::PCom< ID3D12Device5 >              m_device;
+    PCom< ID3D12Device5 >              m_device;
 
-    Render::PCom< ID3D12Debug3 >               m_debug;
+    PCom< ID3D12Debug3 >               m_debug;
     bool                                       m_debugLayerEnabled = false;
-    Render::PCom< ID3D12DescriptorHeap >       m_rtvHeap;
+    PCom< ID3D12DescriptorHeap >       m_rtvHeap;
     UINT                                       m_rtvDescriptorSize{};
     D3D12_CPU_DESCRIPTOR_HANDLE                m_rtvHeapStart;
 
@@ -88,26 +92,36 @@ namespace Tac
     // Together, CommandLists/CommandQueues replace the ID3D11DeviceContext (?)
     //
     // tldr: A command queue can submit command lists
-    Render::PCom< ID3D12CommandQueue >         m_commandQueue;
-    Render::PCom< ID3D12CommandAllocator >     m_commandAllocator;
-    Render::PCom< ID3D12GraphicsCommandList4 > m_commandList;
-    Render::PCom< ID3D12Resource >             m_renderTargets[ bufferCount ];
+    PCom< ID3D12CommandQueue >         m_commandQueue;
+    PCom< ID3D12CommandAllocator >     m_commandAllocator;
+    PCom< ID3D12GraphicsCommandList4 > m_commandList;
+    PCom< ID3D12Resource >             m_renderTargets[ bufferCount ];
     D3D12_RESOURCE_STATES                      m_renderTargetStates[ bufferCount ];
 
     // A fence is used to synchronize the CPU with the GPU (see Multi-engine synchronization).
     // https://learn.microsoft.com/en-us/windows/win32/direct3d12/user-mode-heap-synchronization
-    Render::PCom< ID3D12Fence1 >               m_fence;
-    Render::PCom< ID3D12PipelineState >        m_pipelineState;
-    Render::PCom< ID3D12InfoQueue >            m_infoQueue;
+    PCom< ID3D12Fence1 >               m_fence;
+    PCom< ID3D12PipelineState >        m_pipelineState;
+    PCom< ID3D12InfoQueue >            m_infoQueue;
 
-    void CreateRootSignature( Errors&);
-    Render::PCom< ID3D12RootSignature >        m_rootSignature;
+    // A root signature defines what resources are bound to the graphics pipeline.
+    // https://learn.microsoft.com/en-us/windows/win32/direct3d12/root-signatures
+    //
+    // I think you're supposed to think of the rootsignature as a function signature of the entire
+    // graphics pipeline. A function signature is composed of function parameters/arguments,
+    // or in the dx12 case, rootparameters/rootarguments (SRV descriptors, CBV descriptors, etc)
+    PCom< ID3D12RootSignature >        m_rootSignature;
+
+    // A pipeline state object maintains the state of all currently set shaders as well as certain
+    // fixed function state objects
+    // (such as the input assembler, tesselator, rasterizer and output merger).
+    PCom< ID3D12PipelineState >        mPipelineState;
 
     // ---------------------------------------------------------------------------------------------
 
     // DXGI objects
 
-    Render::PCom< IDXGISwapChain4 >            m_swapChain;
+    PCom< IDXGISwapChain4 >            m_swapChain;
     DXGI_SWAP_CHAIN_DESC1                      m_swapChainDesc;
  
     // ---------------------------------------------------------------------------------------------

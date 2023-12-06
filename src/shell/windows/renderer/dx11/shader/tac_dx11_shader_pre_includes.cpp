@@ -13,11 +13,8 @@ namespace Tac::Render
 
   static ShaderNameStringView GetShaderNameFromIncludeName( const StringView& includeName )
   {
-    const StringView suffix = ".fx";
-    if( includeName.ends_with( suffix ) )
-      return includeName.substr( 0, includeName.size() - suffix.size() );
-
-    return includeName;
+    const int iDot = includeName.find_last_of( '.' );
+    return iDot == String::npos ? includeName : includeName.substr( 0, iDot );
   }
 
   String PreprocessShaderIncludes( const StringView& line, Errors& errors )

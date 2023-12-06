@@ -1,4 +1,4 @@
-#include "VoxelCommon.fx"
+#include "VoxelCommon.hlsl"
 
 RWStructuredBuffer< Voxel > mySB              : register( u0 );
 RWTexture3D< float4 >       myRadianceTexture : register( u1 );

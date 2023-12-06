@@ -64,8 +64,9 @@ namespace Tac::Render
     ParseData shaderParseData( shaderSourceCode.data(), shaderSourceCode.size() );
     while( shaderParseData.GetRemainingByteCount() )
     {
-      StringView line = shaderParseData.EatRestOfLine();
-      result += PreprocessShaderLine( line , errors ) + "\n";
+      const StringView line = shaderParseData.EatRestOfLine();
+      result += PreprocessShaderLine( line , errors );
+      result + '\n';
     }
 
     --recurseCount;

@@ -298,19 +298,17 @@ namespace Tac
   {
     TAC_UNUSED_PARAMETER( errors );
 
-    const Render::VertexDeclaration posDecl {
+    const Render::VertexDeclaration posDecl
+    {
       .mAttribute = Render::Attribute::Position,
-      .mTextureFormat{.mElementCount = 3,
-                     .mPerElementByteCount = sizeof( float ),
-                     .mPerElementDataType = Render::GraphicsType::real},
-      .mAlignedByteOffset = (int)TAC_OFFSET_OF( GameModelVtx, mPos ),};
+      .mTextureFormat = Render::Format::sv3,
+      .mAlignedByteOffset = (int)TAC_OFFSET_OF( GameModelVtx, mPos ),
+    };
 
     const Render::VertexDeclaration norDecl 
     {
       .mAttribute = Render::Attribute::Normal,
-      .mTextureFormat{.mElementCount = 3,
-                     .mPerElementByteCount = sizeof( float ),
-                     .mPerElementDataType = Render::GraphicsType::real},
+      .mTextureFormat = Render::Format::sv3,
       .mAlignedByteOffset = (int)TAC_OFFSET_OF( GameModelVtx, mNor ),
     };
 
@@ -326,24 +324,18 @@ namespace Tac
     {
       {
         .mAttribute = Render::Attribute::Position,
-        .mTextureFormat{ .mElementCount = 3,
-                         .mPerElementByteCount = sizeof( float ),
-                         .mPerElementDataType = Render::GraphicsType::real},
-        .mAlignedByteOffset = (int)TAC_OFFSET_OF( TerrainVertex, mPos )
+        .mTextureFormat = Render::Format::sv3,
+        .mAlignedByteOffset = (int)TAC_OFFSET_OF( TerrainVertex, mPos ),
       },
       {
         .mAttribute = Render::Attribute::Normal,
-        .mTextureFormat{ .mElementCount = 3,
-                         .mPerElementByteCount = sizeof( float ),
-                         .mPerElementDataType = Render::GraphicsType::real },
-        .mAlignedByteOffset = (int)TAC_OFFSET_OF( TerrainVertex, mNor )
+        .mTextureFormat = Render::Format::sv3,
+        .mAlignedByteOffset = (int)TAC_OFFSET_OF( TerrainVertex, mNor ),
       },
       {
         .mAttribute = Render::Attribute::Texcoord,
-        .mTextureFormat{ .mElementCount = 2,
-                         .mPerElementByteCount = sizeof( float ),
-                         .mPerElementDataType = Render::GraphicsType::real},
-        .mAlignedByteOffset = (int)TAC_OFFSET_OF( TerrainVertex, mUV )
+        .mTextureFormat = Render::Format::sv2,
+        .mAlignedByteOffset = (int)TAC_OFFSET_OF( TerrainVertex, mUV ),
       }
     };
     mTerrainVertexFormat = Render::CreateVertexFormat( decls, mTerrainShader, TAC_STACK_FRAME );
@@ -362,24 +354,31 @@ namespace Tac
   static void CreateBlendState( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
-    mBlendState = Render::CreateBlendState( { .mSrcRGB = Render::BlendConstants::One,
-                                              .mDstRGB = Render::BlendConstants::Zero,
-                                              .mBlendRGB = Render::BlendMode::Add,
-                                              .mSrcA = Render::BlendConstants::Zero,
-                                              .mDstA = Render::BlendConstants::One,
-                                              .mBlendA = Render::BlendMode::Add},
-                                            TAC_STACK_FRAME );
+    const Render::BlendState state
+    {
+      .mSrcRGB = Render::BlendConstants::One,
+      .mDstRGB = Render::BlendConstants::Zero,
+      .mBlendRGB = Render::BlendMode::Add,
+      .mSrcA = Render::BlendConstants::Zero,
+      .mDstA = Render::BlendConstants::One,
+      .mBlendA = Render::BlendMode::Add
+    };
+    mBlendState = Render::CreateBlendState( state, TAC_STACK_FRAME );
+    Render::SetRenderObjectDebugName( mBlendState, "game-pres-blend" );
   }
 
   static void CreateRasterizerState( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
-    mRasterizerState = Render::CreateRasterizerState( { .mFillMode = Render::FillMode::Solid,
-                                                        .mCullMode = Render::CullMode::Back,
-                                                        .mFrontCounterClockwise = true,
-                                                        .mScissor = true,
-                                                        .mMultisample = false},
-                                                      TAC_STACK_FRAME );
+    const Render::RasterizerState state
+    {
+      .mFillMode = Render::FillMode::Solid,
+      .mCullMode = Render::CullMode::Back,
+      .mFrontCounterClockwise = true,
+      .mScissor = true,
+      .mMultisample = false
+    };
+    mRasterizerState = Render::CreateRasterizerState( state, TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( mRasterizerState, "game-pres-rast" );
 
   }

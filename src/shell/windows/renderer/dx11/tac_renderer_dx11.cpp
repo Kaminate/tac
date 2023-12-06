@@ -1046,7 +1046,7 @@ namespace Tac::Render
 
   AssetPathStringView RendererDirectX11::GetShaderPath( const ShaderNameStringView& shaderName )
   {
-    return FrameMemoryFormat( "assets/hlsl/{}.fx", (StringView)shaderName );
+    return FrameMemoryCopy( ShortFixedString::Concat( "assets/hlsl/", shaderName, ".hlsl" ) );
   }
 
   void RendererDirectX11::SwapBuffers()
@@ -1322,40 +1322,24 @@ namespace Tac::Render
   void RendererDirectX11::AddRasterizerState( const CommandDataCreateRasterizerState* commandData,
                                               Errors& errors )
   {
-#if 0
-    TAC_ASSERT( IsMainThread() );
-    D3D11_RASTERIZER_DESC desc = {};
-    desc.FillMode = GetFillMode( commandData->mRasterizerState.mFillMode );
-    desc.CullMode = GetCullMode( commandData->mRasterizerState.mCullMode );
-    desc.ScissorEnable = commandData->mRasterizerState.mScissor;
-    desc.MultisampleEnable = commandData->mRasterizerState.mMultisample;
-    desc.DepthClipEnable = true;
-    desc.FrontCounterClockwise = commandData->mRasterizerState.mFrontCounterClockwise;
-    ID3D11RasterizerState* rasterizerState;
-    TAC_DX11_CALL( mDevice->CreateRasterizerState, &desc, &rasterizerState );
-    mRasterizerStates[ ( int )commandData->mRasterizerStateHandle ] = rasterizerState;
-    SetDebugName( rasterizerState, commandData->mStackFrame.ToString() );
-#else
-
-    const D3D11_CONSERVATIVE_RASTERIZATION_MODE conservativeRasterizationMode
-      = commandData->mRasterizerState.mConservativeRasterization
-      ? D3D11_CONSERVATIVE_RASTERIZATION_MODE_ON
-      : D3D11_CONSERVATIVE_RASTERIZATION_MODE_OFF;
-
-    D3D11_RASTERIZER_DESC2 desc2 = {};
-    desc2.FillMode = GetFillMode( commandData->mRasterizerState.mFillMode );
-    desc2.CullMode = GetCullMode( commandData->mRasterizerState.mCullMode );
-    desc2.ScissorEnable = commandData->mRasterizerState.mScissor;
-    desc2.MultisampleEnable = commandData->mRasterizerState.mMultisample;
-    desc2.DepthClipEnable = true;
-    desc2.FrontCounterClockwise = commandData->mRasterizerState.mFrontCounterClockwise;
-    desc2.ConservativeRaster = conservativeRasterizationMode;
+    const D3D11_RASTERIZER_DESC2 desc2
+    {
+      .FillMode = GetFillMode( commandData->mRasterizerState.mFillMode ),
+      .CullMode = GetCullMode( commandData->mRasterizerState.mCullMode ),
+      .FrontCounterClockwise = commandData->mRasterizerState.mFrontCounterClockwise,
+      .DepthClipEnable = true,
+      .ScissorEnable = commandData->mRasterizerState.mScissor,
+      .MultisampleEnable = commandData->mRasterizerState.mMultisample,
+      .ConservativeRaster
+        = commandData->mRasterizerState.mConservativeRasterization
+        ? D3D11_CONSERVATIVE_RASTERIZATION_MODE_ON
+        : D3D11_CONSERVATIVE_RASTERIZATION_MODE_OFF,
+    };
 
     ID3D11RasterizerState2* rasterizerState2;
     TAC_DX11_CALL( mDevice->CreateRasterizerState2, &desc2, &rasterizerState2 );
     SetDebugName( rasterizerState2, commandData->mStackFrame.ToString() );
     mRasterizerStates[ ( int )commandData->mRasterizerStateHandle ] = rasterizerState2;
-#endif
 }
 
   void RendererDirectX11::AddSamplerState( const CommandDataCreateSamplerState* commandData,

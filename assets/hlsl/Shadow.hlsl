@@ -1,4 +1,4 @@
-#include "Common.fx"
+#include "Common.hlsl"
 
 struct VS_INPUT
 {
@@ -8,8 +8,8 @@ struct VS_INPUT
 struct VS_OUTPUT
 {
   float4 mClipSpacePosition : SV_POSITION;
-  float4 debug_view_pos     : SV_AUTO_SEMANTIC;
-  float3 debug_ndc_pos      : SV_AUTO_SEMANTIC;
+  float4 debug_view_pos     : TAC_AUTO_SEMANTIC;
+  float3 debug_ndc_pos      : TAC_AUTO_SEMANTIC;
 };
 
 VS_OUTPUT VS( VS_INPUT input )

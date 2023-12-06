@@ -1,9 +1,18 @@
 #include "tac_example_dx12_2_triangle.h" // self-inc
 
+// todo: dx12ify
+#include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_preprocess.h"
+
 #include "src/common/containers/tac_array.h"
+#include "src/common/dataprocess/tac_text_parser.h"
+#include "src/common/containers/tac_frame_vector.h"
+#include "src/common/assetmanagers/tac_asset.h"
+#include "src/common/memory/tac_frame_memory.h"
 #include "src/common/core/tac_error_handling.h"
 #include "src/common/core/tac_preprocessor.h"
 #include "src/common/math/tac_math.h"
+#include "src/common/math/tac_vector4.h"
+#include "src/common/math/tac_vector3.h"
 #include "src/common/shell/tac_shell_timer.h"
 #include "src/common/system/tac_os.h"
 #include "src/shell/tac_desktop_app.h"
@@ -11,14 +20,15 @@
 #include "src/shell/windows/renderer/dx12/tac_dx12_helper.h"
 #include "src/shell/windows/tac_win32.h"
 
+#include <D3Dcompiler.h> // D3DCOMPILE_DEBUG
 
 #pragma comment( lib, "d3d12.lib" ) // D3D12...
 
+import std;
+
 namespace Tac
 {
-  // A graphics root signature defines what resources are bound to the graphics pipeline.
-
-  // A pipeline state object maintains the state of all currently set shaders as well as certain fixed function state objects (such as the input assembler, tesselator, rasterizer and output merger).
+  using namespace Render;
 
   void Win32Event::Init( Errors& errors )
   {
@@ -80,7 +90,7 @@ namespace Tac
     if( !IsDebugMode )
       return;
 
-    Render::PCom<ID3D12Debug> dx12debug;
+    PCom<ID3D12Debug> dx12debug;
     TAC_DX12_CALL( D3D12GetDebugInterface, dx12debug.iid(), dx12debug.ppv() );
 
     dx12debug.QueryInterface( m_debug );
@@ -111,15 +121,15 @@ namespace Tac
   void DX12AppHelloTriangle::CreateDevice( Errors& errors )
   {
     
-    auto adapter = ( IDXGIAdapter* )Render::DXGIGetBestAdapter();
-    Render::PCom< ID3D12Device > device;
+    auto adapter = ( IDXGIAdapter* )DXGIGetBestAdapter();
+    PCom< ID3D12Device > device;
     TAC_DX12_CALL( D3D12CreateDevice,
                    adapter,
                    D3D_FEATURE_LEVEL_12_1,
                    device.iid(),
                    device.ppv() );
     m_device = device.QueryInterface<ID3D12Device5>();
-    Render::DX12SetName( m_device, "Device" );
+    DX12SetName( m_device, "Device" );
   }
 
   void DX12AppHelloTriangle::CreateCommandQueue( Errors& errors )
@@ -145,7 +155,7 @@ namespace Tac
                    &queueDesc,
                    m_commandQueue.iid(),
                    m_commandQueue.ppv() );
-    Render::DX12SetName( (ID3D12CommandQueue*)m_commandQueue, "Command Queue" );
+    DX12SetName( (ID3D12CommandQueue*)m_commandQueue, "Command Queue" );
   }
 
   void DX12AppHelloTriangle::CreateRTVDescriptorHeap( Errors& errors )
@@ -184,7 +194,7 @@ namespace Tac
   void DX12AppHelloTriangle::CreateCommandList( Errors& errors )
   {
     // Create the command list (CreateCommandList1 creates it in a closed state).
-    Render::PCom< ID3D12CommandList > commandList;
+    PCom< ID3D12CommandList > commandList;
     TAC_DX12_CALL( m_device->CreateCommandList1,
                    0,
                    D3D12_COMMAND_LIST_TYPE_DIRECT,
@@ -202,7 +212,7 @@ namespace Tac
 
     const UINT64 initialVal = 0;
 
-    Render::PCom< ID3D12Fence > fence;
+    PCom< ID3D12Fence > fence;
     TAC_DX12_CALL( m_device->CreateFence,
                    initialVal,
                    D3D12_FENCE_FLAG_NONE,
@@ -232,8 +242,8 @@ namespace Tac
       .Desc_1_1 = Desc_1_1,
     };
 
-    Render::PCom<ID3DBlob> blob;
-    Render::PCom<ID3DBlob> blobErr;
+    PCom<ID3DBlob> blob;
+    PCom<ID3DBlob> blobErr;
 
     // cursed or based?
     TAC_RAISE_ERROR_IF( const HRESULT hr =
@@ -244,7 +254,7 @@ namespace Tac
                         String() +
                         "Failed to serialize root signature! "
                         "Blob = " + ( const char* )blobErr->GetBufferPointer() + ", "
-                        "HRESULT = " + Render::DX12_HRESULT_ToString( hr ) );
+                        "HRESULT = " + DX12_HRESULT_ToString( hr ) );
 
     TAC_DX12_CALL( m_device->CreateRootSignature,
                    0,
@@ -252,6 +262,323 @@ namespace Tac
                    blob->GetBufferSize(),
                    m_rootSignature.iid(),
                    m_rootSignature.ppv() );
+
+  }
+
+  struct DX12ShaderCompileFromStringInput
+  {
+    StringView  mPreprocessedShader;
+    const char* mEntryPoint;
+    const char* mTarget;
+  };
+
+  struct DX12ShaderCompileOutput
+  {
+    PCom< ID3DBlob >      mBlob;
+    D3D12_SHADER_BYTECODE mByteCode;
+  };
+
+  String DX12PreprocessShader( StringView shader )
+  {
+    String newShader;
+
+    ParseData parse( shader );
+    while( parse )
+    {
+      const StringView line = parse.EatRestOfLine();
+
+      newShader += PreprocessShaderSemanticName( line );
+      newShader += '\n';
+    }
+
+    return newShader;
+  }
+
+  DX12ShaderCompileOutput DX12CompileShaderFromString(
+    const DX12ShaderCompileFromStringInput& input,
+    Errors& errors )
+  {
+    PCom< ID3DBlob > blob;
+    PCom< ID3DBlob > blobErr;
+
+    const UINT flags = IsDebugMode ? D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION : 0;
+
+    
+    // todo: add an assert that if we are using d3dcompile, shader model is 5_1 or below
+
+    TAC_RAISE_ERROR_IF_RETURN(
+      const HRESULT hr = D3DCompile(
+      input.mPreprocessedShader.data(),
+      input.mPreprocessedShader.size(),
+      nullptr,
+      nullptr,
+      nullptr,
+      input.mEntryPoint,
+      input.mTarget,
+      flags,
+      0,
+      blob.CreateAddress(),
+      blobErr.CreateAddress() );
+    FAILED( hr ),
+      String() +
+      "DX12 failed to compile shader, "
+      "error blob: " + ( const char* )blobErr->GetBufferPointer() + ", "
+      "hr: " + DX12_HRESULT_ToString( hr ) + ", "
+      "shader: \n" + input.mPreprocessedShader,
+      DX12ShaderCompileOutput{} );
+
+    return
+    {
+      .mBlob = blob,
+      .mByteCode = D3D12_SHADER_BYTECODE
+      {
+        .pShaderBytecode = blob->GetBufferPointer(),
+        .BytecodeLength = blob->GetBufferSize(),
+      },
+    };
+  }
+
+  struct Vertex
+  {
+    v3 mPos;
+    v4 mColor;
+  };
+
+  struct DX12InputLayoutBuilder
+  {
+    DX12InputLayoutBuilder() = default;
+    DX12InputLayoutBuilder( const VertexDeclarations& vtxDecls )
+    {
+      for( const auto& decl : vtxDecls )
+      {
+        decl.mAlignedByteOffset;
+        decl.mAttribute;
+        decl.mTextureFormat;
+      }
+    }
+
+    void Append( const char* semanticName,
+                 DXGI_FORMAT fmt,
+                 UINT offset = D3D12_APPEND_ALIGNED_ELEMENT)
+    {
+      const D3D12_INPUT_ELEMENT_DESC desc
+      {
+        .SemanticName = semanticName,
+        .Format = fmt,
+        .AlignedByteOffset = offset,
+      };
+
+      mElementDescs.push_back( desc );
+    }
+
+    D3D12_INPUT_LAYOUT_DESC GetLayoutDesc()
+    {
+      UpdateLayoutDesc();
+      return mLayoutDesc;
+    }
+
+  private:
+    void UpdateLayoutDesc()
+    {
+      mLayoutDesc = D3D12_INPUT_LAYOUT_DESC
+      {
+        .pInputElementDescs = mElementDescs.data(),
+        .NumElements = ( UINT )mElementDescs.size(),
+      };
+    }
+    FixedVector< D3D12_INPUT_ELEMENT_DESC, 10 > mElementDescs;
+    D3D12_INPUT_LAYOUT_DESC                     mLayoutDesc;
+  };
+
+  static D3D_SHADER_MODEL GetHighestShaderModel( ID3D12Device* device )
+  {
+    const D3D_SHADER_MODEL lowestShaderModel = D3D_SHADER_MODEL_5_1;
+    D3D_SHADER_MODEL highestShaderModel = D3D_HIGHEST_SHADER_MODEL;
+    for( ;; )
+    {
+      D3D12_FEATURE_DATA_SHADER_MODEL shaderModel{ highestShaderModel };
+      if( SUCCEEDED( device->CheckFeatureSupport( D3D12_FEATURE_SHADER_MODEL,
+          &shaderModel,
+          sizeof( D3D12_FEATURE_DATA_SHADER_MODEL ) ) ) )
+        break;
+      highestShaderModel = D3D_SHADER_MODEL(highestShaderModel - 1);
+      if( highestShaderModel == lowestShaderModel )
+        break;
+    }
+
+    return highestShaderModel;
+  }
+
+  String GetTarget( const char* shader, D3D_SHADER_MODEL model )
+  {
+    //char buf[ 10 ];
+
+    std::stringstream ss;
+    ss << std::hex << (int) model;
+    auto hexStr = ss.str();
+
+    //std::itoa( (int) model, buf, 16 );
+    //model.D3D_HIGHEST_SHADER_MODEL;
+
+    TAC_ASSERT( hexStr.size() == 2 );
+
+    String s;
+    s += shader;
+    s += '_';
+    s += hexStr[0];
+    s += '_';
+    s += hexStr[1];
+    return s;
+  }
+
+  void DX12AppHelloTriangle::CreatePipelineState( Errors& errors )
+  {
+    const AssetPathStringView shaderAssetPath = "assets/hlsl/DX12HelloTriangle.hlsl";
+
+    const String shaderStrRaw = TAC_CALL( LoadAssetPath, shaderAssetPath, errors );
+    const String shaderStrProcessed = DX12PreprocessShader( shaderStrRaw );
+
+    D3D_SHADER_MODEL shaderModel = D3D_SHADER_MODEL_6_6;
+
+    const DX12ShaderCompileFromStringInput vsInput
+    {
+      .mPreprocessedShader = shaderStrProcessed,
+      .mEntryPoint = "VSMain",
+      .mTarget = "vs_5_1",// GetTarget( "vs", shaderModel ), //"vs_6_6",
+    };
+
+    const DX12ShaderCompileFromStringInput psInput
+    {
+      .mPreprocessedShader = shaderStrProcessed,
+      .mEntryPoint = "PSMain",
+      .mTarget = "ps_6_4",// GetTarget( "ps", shaderModel ), // "ps_6_6",
+    };
+
+
+
+
+    D3D_SHADER_MODEL highestShaderModel = GetHighestShaderModel( (ID3D12Device*)m_device );
+    TAC_ASSERT( highestShaderModel >= shaderModel );
+
+
+
+    // so use dxc, and assert that the shader model is above 5_1
+    TAC_ASSERT_CRITICAL( 
+    "the d3dcompiler.dll and D3Dcompiler.h D3DCompile() is only valid for shader models up to 5_1,"
+    "for shader model 6_0+, need dxc.exe dxcompiler.dll" );
+
+    auto [ vsBlob, vsBytecode ] = TAC_CALL( DX12CompileShaderFromString, vsInput, errors );
+    auto [ psBlob, psBytecode ] = TAC_CALL( DX12CompileShaderFromString, psInput, errors );
+
+
+    PCom< ID3D12ShaderReflection > refl;
+    TAC_DX12_CALL( D3DReflect,
+                   vsBytecode.pShaderBytecode,
+                   vsBytecode.BytecodeLength,
+                   refl.iid(),
+                   refl.ppv() );
+
+    D3D12_SHADER_DESC shaderDesc;
+    TAC_DX12_CALL( refl->GetDesc, &shaderDesc );
+
+    for( UINT ParameterIndex = 0;
+         ParameterIndex < shaderDesc.InputParameters;
+         ParameterIndex++ )
+    {
+      D3D12_SIGNATURE_PARAMETER_DESC desc;
+      TAC_DX12_CALL(refl->GetInputParameterDesc,ParameterIndex, &desc );
+
+      desc.SemanticName;
+      ++asdf;
+    }
+    
+
+    //const VertexDeclarations vtxDecls
+    //{
+    //  {
+    //    .mAttribute = Attribute::Position,
+    //    .mTextureFormat = Format::sv3,
+    //    .mAlignedByteOffset = TAC_OFFSET_OF( Vertex, mPos ),
+    //  },
+    //  {
+    //    .mAttribute = Attribute::Color,
+    //    .mTextureFormat = Format::sv4,
+    //    .mAlignedByteOffset = TAC_OFFSET_OF( Vertex, mColor ),
+    //  },
+    //};
+
+  //{
+  //  Attribute mAttribute = Attribute::Count;
+  //  Format    mTextureFormat;
+
+  //  //        Offset of the variable from the vertex buffer
+  //  //        ie: OffsetOf( MyVertexType, mPosition)
+  //  int       mAlignedByteOffset = 0;
+  //};
+  //  };
+    //Render::inputlay
+
+    DX12InputLayoutBuilder inputLayout;
+    inputLayout.Append( "POOP", DXGI_FORMAT_R32G32B32_FLOAT );
+    inputLayout.Append( "POOP", DXGI_FORMAT_R32G32B32A32_FLOAT );
+
+    const D3D12_INPUT_LAYOUT_DESC inputLayoutDesc = inputLayout.GetLayoutDesc();
+
+    const D3D12_RASTERIZER_DESC RasterizerState
+    {
+      .FillMode = D3D12_FILL_MODE_SOLID,
+      .CullMode = D3D12_CULL_MODE_BACK,
+      .FrontCounterClockwise = true,
+      .DepthBias = D3D12_DEFAULT_DEPTH_BIAS,
+      .DepthBiasClamp = D3D12_DEFAULT_DEPTH_BIAS_CLAMP,
+      .SlopeScaledDepthBias = D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS,
+      .DepthClipEnable = true,
+    };
+
+    const D3D12_BLEND_DESC BlendState
+    {
+      .RenderTarget = 
+      {
+        D3D12_RENDER_TARGET_BLEND_DESC
+        {
+        // [ ] Q: ??? why enable = false?
+          .BlendEnable = false,
+          .LogicOpEnable = false,
+          .SrcBlend = D3D12_BLEND_ONE,
+          .DestBlend = D3D12_BLEND_ZERO,
+          .BlendOp = D3D12_BLEND_OP_ADD,
+          .SrcBlendAlpha= D3D12_BLEND_ONE,
+          .DestBlendAlpha= D3D12_BLEND_ZERO,
+          .BlendOpAlpha= D3D12_BLEND_OP_ADD,
+          .LogicOp = D3D12_LOGIC_OP_NOOP,
+          .RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL,
+        },
+      },
+    };
+
+    const D3D12_DEPTH_STENCIL_DESC DepthStencilState {};
+
+    const D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc
+    {
+      .pRootSignature = ( ID3D12RootSignature* )m_rootSignature,
+      .VS = vsBytecode,
+      .PS = psBytecode,
+      .BlendState = BlendState,
+      .SampleMask = UINT_MAX,
+      .RasterizerState = RasterizerState,
+      .DepthStencilState = DepthStencilState,
+      //.InputLayout = inputLayoutDesc,
+      .PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE,
+      .NumRenderTargets = 1,
+      .RTVFormats = { DXGIGetSwapChainFormat() },
+      .SampleDesc = { .Count = 1 },
+    };
+    TAC_CALL( m_device->CreateGraphicsPipelineState,
+              &psoDesc,
+              mPipelineState.iid(),
+              mPipelineState.ppv() );
+
+    ++asdf;
 
   }
 
@@ -268,7 +595,7 @@ namespace Tac
 
     TAC_ASSERT( m_commandQueue );
 
-    const Render::SwapChainCreateInfo scInfo
+    const SwapChainCreateInfo scInfo
     {
       .mHwnd = hwnd,
       .mDevice = (IUnknown*)m_commandQueue, // swap chain can force flush the queue
@@ -276,7 +603,7 @@ namespace Tac
       .mWidth = state->mWidth,
       .mHeight = state->mHeight,
     };
-    m_swapChain = TAC_CALL( Render::DXGICreateSwapChain, scInfo, errors );
+    m_swapChain = TAC_CALL( DXGICreateSwapChain, scInfo, errors );
     TAC_CALL( m_swapChain->GetDesc1, &m_swapChainDesc );
   }
 
@@ -296,7 +623,7 @@ namespace Tac
     for( UINT i = 0; i < bufferCount; i++ )
     {
       const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = GetRenderTargetDescriptorHandle( i );
-      Render::PCom< ID3D12Resource >& renderTarget = m_renderTargets[ i ];
+      PCom< ID3D12Resource >& renderTarget = m_renderTargets[ i ];
       TAC_DX12_CALL( m_swapChain->GetBuffer, i, renderTarget.iid(), renderTarget.ppv() );
       m_device->CreateRenderTargetView( ( ID3D12Resource* )renderTarget, nullptr, rtvHandle );
 
@@ -515,7 +842,7 @@ namespace Tac
   {
     CreateDesktopWindow();
 
-    TAC_CALL( Render::DXGIInit, errors );
+    TAC_CALL( DXGIInit, errors );
     TAC_CALL( EnableDebug, errors );
     TAC_CALL( CreateDevice, errors );
     TAC_CALL( CreateInfoQueue, errors );
@@ -525,6 +852,8 @@ namespace Tac
     TAC_CALL( CreateCommandList, errors );
     TAC_CALL( CreateFence, errors );
     TAC_CALL( CreateRootSignature, errors );
+    TAC_CALL( CreatePipelineState, errors );
+
   }
 
   void DX12AppHelloTriangle::Update( Errors& errors )
@@ -558,7 +887,7 @@ namespace Tac
     // cleaned up by the destructor.
     TAC_CALL( WaitForPreviousFrame, errors );
 
-    Render::DXGIUninit();
+    DXGIUninit();
   }
 
   App* App::Create()

@@ -626,11 +626,11 @@ void RendererDX12::AddShader( Shader** shader, const ShaderData& shaderData, Err
     Vector< char > String;
     if(!shaderData.mShaderPath.empty())
     {
-      String shaderPath = shaderData.mShaderPath + ".fx";
+      String shaderPath = shaderData.mShaderPath + ".hlsl";
       TAC_CALL( String = FileToString, shaderPath, errors );
     }
 
-    TAC_CALL( Vector< char > common = FileToString, "assets/common.fx", errors );
+    TAC_CALL( Vector< char > common = FileToString, "assets/Common.hlsl", errors );
 
     // Using a string instead of a vector because it's null terminated,
     // which means it will debug visualizes better

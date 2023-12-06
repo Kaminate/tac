@@ -1,4 +1,4 @@
-#include "Common.fx"
+#include "Common.hlsl"
 
 #define TEST_RED 0
 #define TEST_UVS 0
@@ -16,7 +16,7 @@ struct VS_INPUT
 struct VS_OUTPUT
 {
   float4 mClipSpacePosition : SV_POSITION;
-  float2 DXTexCoord         : SV_AUTO_SEMANTIC;
+  float2 DXTexCoord         : TAC_AUTO_SEMANTIC;
 };
 
 VS_OUTPUT VS( VS_INPUT input )

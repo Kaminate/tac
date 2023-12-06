@@ -6,28 +6,29 @@ namespace Tac::Render
 {
   String PreprocessShaderSemanticName( const StringView& line )
   {
-    const int iAutoSemantic = line.find( "SV_AUTO_SEMANTIC" );
+    const StringView autoSemantic = "TAC_AUTO_SEMANTIC";
+    const int iAutoSemantic = line.find( autoSemantic );
     if( iAutoSemantic == line.npos )
       return line;
 
-    const int iColon = line.find( ":" );
-    if( iColon == line.npos )
-      return line;
+    int i = line.find( ":" );
+    TAC_ASSERT( i != String::npos );
+    i--;
+    while( IsSpace( line[ i ] ) )
+      i--;
 
-    int iSemanticCharLast = iColon - 1;
-    while( iSemanticCharLast > 0 && IsSpace( line[ iSemanticCharLast ] ) )
-      iSemanticCharLast--;
+    const char* varEnd = line.data() + i + 1;
+    while( !IsSpace( line[i - 1] ) )
+      i--;
 
-    int iSemanticCharFirst = iSemanticCharLast;
-    while( iSemanticCharFirst > 0 && !IsSpace( line[ iSemanticCharFirst - 1 ] ) )
-      iSemanticCharFirst--;
+    const char* varBegin = line.data() + i;
+    TAC_ASSERT( varEnd > varBegin );
 
-    const String newLine
-      = line.substr( 0, iAutoSemantic )
-      + String( line.data() + iSemanticCharFirst, line.data() + iSemanticCharLast + 1 )
-      + ";";
+    const StringView varName( varBegin, varEnd );
 
-    return newLine;
+    String result = line;
+    result.replace( autoSemantic, varName );
+    return result;
   }
 } // namespace Tac::Render
 

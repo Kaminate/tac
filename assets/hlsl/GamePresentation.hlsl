@@ -1,5 +1,5 @@
-#include "Common.fx"
-#include "LightsCommon.fx"
+#include "Common.hlsl"
+#include "LightsCommon.hlsl"
 
 struct VS_INPUT
 {
@@ -14,8 +14,8 @@ sampler shadowMapSampler  : TAC_AUTO_REGISTER;
 struct VS_OUTPUT
 {
   float4 mClipSpacePosition  : SV_POSITION;
-  float4 mWorldSpacePosition : SV_AUTO_SEMANTIC;
-  float3 mWorldSpaceNormal   : SV_AUTO_SEMANTIC;
+  float4 mWorldSpacePosition : TAC_AUTO_SEMANTIC;
+  float3 mWorldSpaceNormal   : TAC_AUTO_SEMANTIC;
 };
 
 VS_OUTPUT VS( VS_INPUT input )

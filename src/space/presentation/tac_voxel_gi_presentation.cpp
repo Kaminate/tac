@@ -1,3 +1,5 @@
+#include "src/space/presentation/tac_voxel_gi_presentation.h" // self-inc
+
 #include "src/common/assetmanagers/tac_mesh.h"
 #include "src/common/assetmanagers/tac_model_asset_manager.h"
 #include "src/common/containers/tac_frame_vector.h"
@@ -20,7 +22,6 @@
 #include "src/space/graphics/tac_graphics.h"
 #include "src/space/model/tac_model.h"
 #include "src/space/presentation/tac_game_presentation.h"
-#include "src/space/presentation/tac_voxel_gi_presentation.h"
 #include "src/space/tac_entity.h"
 #include "src/space/light/tac_light.h"
 #include "src/space/tac_world.h"
@@ -127,12 +128,22 @@ namespace Tac
   static void                    CreateVoxelView()
   {
     // The framebuffer texture is only to allow for renderdoc debugging pixel shaders
-    const Render::TexSpec texSpec{ .mImage{ .mWidth = voxelSettingsCurrent.voxelDimension,
-                                            .mHeight = voxelSettingsCurrent.voxelDimension,
-                                            .mFormat{ .mElementCount = 4,
-                                                      .mPerElementByteCount = 1,
-                                                      .mPerElementDataType = Render::GraphicsType::unorm } },
-                                   .mBinding = Render::Binding::RenderTarget };
+    const Render::TexSpec texSpec
+    {
+      .mImage
+      {
+        .mWidth = voxelSettingsCurrent.voxelDimension,
+        .mHeight = voxelSettingsCurrent.voxelDimension,
+        .mFormat
+        {
+          .mElementCount = 4,
+          .mPerElementByteCount = 1,
+          .mPerElementDataType = Render::GraphicsType::unorm
+        },
+      },
+      .mBinding = Render::Binding::RenderTarget
+    };
+
     voxelFramebufferTexture = Render::CreateTexture( texSpec, TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( voxelFramebufferTexture, "voxel-fbo-tex" );
 
@@ -238,19 +249,25 @@ namespace Tac
   static Render::TexSpec         GetVoxRadianceTexSpec()
   {
     // rgba16f, 2 bytes (16 bits) per float, hdr values
-    return { .mImage = { .mWidth = voxelSettingsCurrent.voxelDimension,
-                         .mHeight = voxelSettingsCurrent.voxelDimension,
-                         .mDepth = voxelSettingsCurrent.voxelDimension,
-                         .mFormat = { .mElementCount = 4,
-                                      .mPerElementByteCount = 2,
-                                      .mPerElementDataType = Render::GraphicsType::real,
-                                    },
-                       },
-             .mPitch = 0,
-             .mBinding = Render::Binding::ShaderResource | Render::Binding::UnorderedAccess,
-             .mAccess = Render::Access::Default, 
-             .mCpuAccess = Render::CPUAccess::None
-           };
+    return Render::TexSpec
+    {
+      .mImage =
+      {
+        .mWidth = voxelSettingsCurrent.voxelDimension,
+        .mHeight = voxelSettingsCurrent.voxelDimension,
+        .mDepth = voxelSettingsCurrent.voxelDimension,
+        .mFormat =
+        {
+          .mElementCount = 4,
+          .mPerElementByteCount = 2,
+          .mPerElementDataType = Render::GraphicsType::real,
+        },
+      },
+      .mPitch = 0,
+      .mBinding = Render::Binding::ShaderResource | Render::Binding::UnorderedAccess,
+      .mAccess = Render::Access::Default, 
+      .mCpuAccess = Render::CPUAccess::None
+    };
   }
 
   static void                    CreateVoxelTextureRadianceBounce1()

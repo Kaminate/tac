@@ -25,6 +25,7 @@ namespace Tac::Render
   PCom<IDXGISwapChain4> DXGICreateSwapChain( const SwapChainCreateInfo&, Errors& );
 
 
+  DXGI_FORMAT      DXGIGetSwapChainFormat();
   DXGI_FORMAT      GetDXGIFormatTexture( Format );
   DXGI_FORMAT      GetDXGIFormatTextureTypeless( int );
   DXGI_FORMAT      GetDXGIFormatDepth( int );

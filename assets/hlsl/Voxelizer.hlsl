@@ -1,9 +1,9 @@
 // inject direct lighting
 // list of lights, with depth buffers?
 
-#include "Common.fx"
-#include "LightsCommon.fx"
-#include "VoxelCommon.fx"
+#include "Common.hlsl"
+#include "LightsCommon.hlsl"
+#include "VoxelCommon.hlsl"
 
 #define DEBUG_MAKE_EVERY_VOXEL_YELLOW 0
 #define DEBUG_INPUT_VARIABLES         0
@@ -54,9 +54,9 @@ struct VS_OUT_GS_IN
   //
   //                               ^ update: i have preprocessor'd my problems away
   //
-  float3 mWorldSpacePosition     : SV_AUTO_SEMANTIC;
-  float3 mWorldSpaceUnitNormal   : SV_AUTO_SEMANTIC;
-  float2 mTexCoord               : SV_AUTO_SEMANTIC;
+  float3 mWorldSpacePosition     : TAC_AUTO_SEMANTIC;
+  float3 mWorldSpaceUnitNormal   : TAC_AUTO_SEMANTIC;
+  float2 mTexCoord               : TAC_AUTO_SEMANTIC;
 };
 
 VS_OUT_GS_IN VS( VS_INPUT input )
@@ -72,16 +72,16 @@ VS_OUT_GS_IN VS( VS_INPUT input )
 
 struct GS_OUT_PS_IN
 {
-  float2 mTexCoord                     : SV_AUTO_SEMANTIC;
-  float3 mWorldSpaceUnitNormal         : SV_AUTO_SEMANTIC;
-  float3 mWorldSpacePosition           : SV_AUTO_SEMANTIC;
+  float2 mTexCoord                     : TAC_AUTO_SEMANTIC;
+  float3 mWorldSpaceUnitNormal         : TAC_AUTO_SEMANTIC;
+  float3 mWorldSpacePosition           : TAC_AUTO_SEMANTIC;
   float4 mClipSpacePosition            : SV_POSITION;
 
 #if DEBUG_INPUT_VARIABLES
-  float3 debug_worldspaceabsfacenormal : SV_AUTO_SEMANTIC;
-  float3 debug_gvoxelgridcenter        : SV_AUTO_SEMANTIC;
-  float  debug_gvoxelwidth             : SV_AUTO_SEMANTIC;
-  float  debug_gvoxelgridhalfwidth     : SV_AUTO_SEMANTIC;
+  float3 debug_worldspaceabsfacenormal : TAC_AUTO_SEMANTIC;
+  float3 debug_gvoxelgridcenter        : TAC_AUTO_SEMANTIC;
+  float  debug_gvoxelwidth             : TAC_AUTO_SEMANTIC;
+  float  debug_gvoxelgridhalfwidth     : TAC_AUTO_SEMANTIC;
 #endif
 };
 
@@ -144,10 +144,10 @@ float3 ApplyLight( int iLight, GS_OUT_PS_IN input )
   if( lightCastsShadows )
   {
     // TODO:
-    // this code is in both Voxelizer.fx( this file )
-    // and GamePresentation.fx.
+    // this code is in both Voxelizer.hlsl( this file )
+    // and GamePresentation.hlsl.
     //
-    // Move to LightsCommon.fx?
+    // Move to LightsCommon.hlsl?
 
 
     const float4 pixelLightClipSpacePosition = mul( light.mWorldToClip, float4( input.mWorldSpacePosition, 1 ) );

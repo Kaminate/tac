@@ -158,6 +158,24 @@ namespace Tac::Render
 
   void DXGIUninit() { sImpl = {}; }
 
+  DXGI_FORMAT      DXGIGetSwapChainFormat()
+  {
+      // Standard way of implementing hdr in games is to use 16 bit floating backbuffer, and
+      // giving player brightness/gamma controls (?)
+      //
+      // https://docs.microsoft.com/en-us/windows/win32/direct3ddxgi/converting-data-color-space
+      //   For presentation, integer display formats (DXGI_FORMAT_B8G8R8A8_UNORM_SRGB) contain
+      //   sRGB gamma-corrected data.
+      //
+      //   Float display formats (DXGI_FORMAT_R16G16B16A16_FLOAT) contain linear data.
+
+      //return DXGI_FORMAT_R8G8B8A8_UNORM;
+      return DXGI_FORMAT_R16G16B16A16_FLOAT;
+  }
+
+  // https://learn.microsoft.com/en-us/windows/win32/direct3ddxgi/for-best-performance--use-dxgi-flip-model
+  static const DXGI_SWAP_EFFECT SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+
   PCom<IDXGISwapChain4> DXGICreateSwapChain( const SwapChainCreateInfo& info, Errors& errors )
   {
 
@@ -170,24 +188,11 @@ namespace Tac::Render
     {
       .Width = (UINT)info.mWidth,
       .Height = (UINT)info.mHeight,
-
-      // Standard way of implementing hdr in games is to use 16 bit floating backbuffer, and
-      // giving player brightness/gamma controls (?)
-      //
-      // https://docs.microsoft.com/en-us/windows/win32/direct3ddxgi/converting-data-color-space
-      //   For presentation, integer-valued display formats (such as DXGI_FORMAT_B8G8R8A8_UNORM_SRGB)
-      //   always contain sRGB gamma-corrected data.
-      //   Float-valued display formats (ie DXGI_FORMAT_R16G16B16A16_FLOAT) contain linear-valued data.
-      //.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-      .Format = DXGI_FORMAT_R16G16B16A16_FLOAT, // which windows should be SRGB and which not?
-
+      .Format = DXGIGetSwapChainFormat(),
       .SampleDesc = SampleDesc,
       .BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT,
       .BufferCount = (UINT)info.mBufferCount,
-
-      // https://learn.microsoft.com/en-us/windows/win32/direct3ddxgi/for-best-performance--use-dxgi-flip-model
-      .SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL,
-
+      .SwapEffect = SwapEffect,
       .Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH,
     };
 

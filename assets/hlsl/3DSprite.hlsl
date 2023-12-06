@@ -1,4 +1,4 @@
-#include "Common.fx"
+#include "Common.hlsl"
 
 Texture2D sprite      : TAC_AUTO_REGISTER;
 sampler linearSampler : TAC_AUTO_REGISTER;
@@ -11,7 +11,7 @@ struct VS_INPUT
 struct VS_OUTPUT
 {
   float4 mClipSpacePosition : SV_POSITION;
-  float2 mDXTexCoord        : SV_AUTO_SEMANTIC;
+  float2 mDXTexCoord        : TAC_AUTO_SEMANTIC;
 };
 
 const float2 GetQuadPos( uint iVertex )
