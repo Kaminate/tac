@@ -1,20 +1,29 @@
-include( CMakePrintHelpers )
+# include( CMakePrintHelpers )
+
+# --------------------------------------------------------------------------------------------------
 
 # vulkan first supported in https://cmake.org/cmake/help/v3.7/module/FindVulkan.html
 # if vulkan still isn't found, update ${CMAKE_ROOT}/Modules/FindVulkan.cmake
 cmake_minimum_required(VERSION 3.25.1)
+
+# --------------------------------------------------------------------------------------------------
+
 cmake_policy(SET CMP0072 NEW) # prefer latest opengl
 cmake_policy(SET CMP0076 NEW) # convert relative paths to absolute paths in target_sources
+
+# --------------------------------------------------------------------------------------------------
+
 project(Tac CXX)
 
-if( TRUE )
-  # group lib, dll, exe
-  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-  cmake_print_variables("cmake binary dir: " ${CMAKE_BINARY_DIR})
-endif()
+# --------------------------------------------------------------------------------------------------
 
+# group lib, dll, exe
+set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} )
+set( CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} )
+set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} )
+message( VERBOSE "cmake binary dir: ${CMAKE_BINARY_DIR}" )
+
+# --------------------------------------------------------------------------------------------------
 
 if (MSVC)
 
@@ -48,23 +57,37 @@ else() # gcc, clang
 
 endif()
 
+# --------------------------------------------------------------------------------------------------
+
 # allow including files from #include "src/..."
+#
+# Note Prefer the target_include_directories() command to add include directories to individual
+# targets and optionally propagate/export them to dependents.
 include_directories( ${CMAKE_SOURCE_DIR} )
 
+# --------------------------------------------------------------------------------------------------
+
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
-set(CMAKE_CXX_STANDARD 23) # modules, ie import std.filesystem
+
+# --------------------------------------------------------------------------------------------------
+
+# https://cmake.org/cmake/help/latest/variable/CMAKE_INCLUDE_CURRENT_DIR.html
+# Auto adds CMAKE_CURRENT_SOURCE_DIR and CMAKE_CURRENT_BINARY_DIR to the inc path for each dir.
+# These do not propagate down to subdirectories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+# --------------------------------------------------------------------------------------------------
+
+# C++20 Modules, and `import std;`
+set(CMAKE_CXX_STANDARD 23)
 
 if( MSVC)
   set(CMAKE_EXPERIMENTAL_CXX_MODULE_DYNDEP 1)
 endif()
 
+# --------------------------------------------------------------------------------------------------
 
-
-
-
-#===----------------===#
-# Clone git submodules #
+# Clone git submodules (does this work?)
 
 find_package(Git REQUIRED)
 if(GIT_FOUND)
@@ -77,23 +100,28 @@ if(GIT_FOUND)
   endif()
 endif()
 
-# Clone git submodules #
-#===----------------===#
+# --------------------------------------------------------------------------------------------------
 
 add_subdirectory(src)
-add_subdirectory(assets/hlsl)
+add_subdirectory(assets)
 
-if(FALSE)
-  set( MODULE_PROP "${CMAKE_SOURCE_DIR}/build_std_modules.props" )
-  if(EXISTS ${MODULE_PROP} )
-    message( "props file path: ${MODULE_PROP}" )
-    SET_PROPERTY( GLOBAL PROPERTY VS_USER_PROPS ${MODULE_PROP} )
-  else()
-    message( FATAL_ERROR "fuck")
-  endif()
-endif()
+# --------------------------------------------------------------------------------------------------
 
-# This function 
+# This function recursively iterates all folders, and appends each target name into
+# the output variable (_get_all_cmake_targets)
+function (_get_all_cmake_targets out_var current_dir)
+    get_property(targets DIRECTORY ${current_dir} PROPERTY BUILDSYSTEM_TARGETS)
+    get_property(subdirs DIRECTORY ${current_dir} PROPERTY SUBDIRECTORIES)
+
+    foreach(subdir ${subdirs})
+        _get_all_cmake_targets(subdir_targets ${subdir})
+        list(APPEND targets ${subdir_targets})
+    endforeach()
+
+    set(${out_var} ${targets} PARENT_SCOPE)
+endfunction()
+
+# --------------------------------------------------------------------------------------------------
 
 # For each project, enable it's Visual Studio Project
 #   --> Property Pages
@@ -101,40 +129,18 @@ endif()
 #   --> C/C++
 #   --> Language
 #   --> Build ISO C++ 23 Standard Library Modules
-if(TRUE)
-  set( MODULE_PROP "${CMAKE_SOURCE_DIR}/build_std_modules.props" )
-  if(EXISTS ${MODULE_PROP} )
-    message( "props file path: ${MODULE_PROP}" )
 
-
-    # This function recursively iterates all folders, and appends each target name into
-    # the output variable (_get_all_cmake_targets)
-    function (_get_all_cmake_targets out_var current_dir)
-        get_property(targets DIRECTORY ${current_dir} PROPERTY BUILDSYSTEM_TARGETS)
-        get_property(subdirs DIRECTORY ${current_dir} PROPERTY SUBDIRECTORIES)
-
-        foreach(subdir ${subdirs})
-            _get_all_cmake_targets(subdir_targets ${subdir})
-            list(APPEND targets ${subdir_targets})
-        endforeach()
-
-        set(${out_var} ${targets} PARENT_SCOPE)
-    endfunction()
-
-    _get_all_cmake_targets(all_targets ${CMAKE_CURRENT_LIST_DIR})
-    foreach(target ${all_targets})
-      
-      if( FALSE )
-        message ("cur target: ${target}")
-      endif()
-
-      SET_PROPERTY( TARGET ${target} PROPERTY VS_USER_PROPS ${MODULE_PROP} )
-
-    endforeach()
-  else()
-    message( FATAL_ERROR "fuck")
-  endif()
+set( MODULE_PROP "${CMAKE_SOURCE_DIR}/build_std_modules.props" )
+if(NOT EXISTS ${MODULE_PROP} )
+  message( FATAL_ERROR "cannot find std modules .props")
 endif()
 
+_get_all_cmake_targets(all_targets ${CMAKE_CURRENT_LIST_DIR})
+foreach(target ${all_targets})
+  message ( VERBOSE "setting target ${target} props to ${MODULE_PROP}")
+  set_property( TARGET ${target} PROPERTY VS_USER_PROPS ${MODULE_PROP} )
+endforeach()
+
+# --------------------------------------------------------------------------------------------------
 
 

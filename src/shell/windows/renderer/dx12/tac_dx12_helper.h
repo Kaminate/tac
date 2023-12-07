@@ -31,3 +31,13 @@ namespace Tac::Render
   }                                                                                    \
 }
 
+#define TAC_DX12_CALL_RET( ret, call, ... )                                            \
+{                                                                                      \
+  const HRESULT result = call( __VA_ARGS__ );                                          \
+  if( FAILED( result ) )                                                               \
+  {                                                                                    \
+    const char* fn = #call "(" #__VA_ARGS__ ")";                                       \
+    TAC_CALL_RET( ret, Tac::Render::DX12CallAux, fn, result, errors );                 \
+  }                                                                                    \
+}
+

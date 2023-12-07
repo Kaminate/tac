@@ -10,8 +10,8 @@ namespace Tac::Render
   ID3DBlob* CompileShaderFromString( const ShaderNameStringView& shaderSource,
                                      const StringView& shaderStrOrig,
                                      const StringView& shaderStrFull,
-                                     const char* entryPoint,
-                                     const char* shaderModel,
+                                     const StringView& entryPoint,
+                                     const StringView& shaderModel,
                                      Errors& errors );
 } // namespace Tac::Render
 

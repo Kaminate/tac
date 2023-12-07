@@ -66,7 +66,7 @@ function( tac_target )
 
 endfunction()
 
-find_package( SDL2 )
+find_package( SDL2 QUIET )
 if( SDL2_FOUND AND FALSE )
   set( TAC_TARGET_NAME "LevelEditorSDL"  CACHE STRING "" FORCE)
 

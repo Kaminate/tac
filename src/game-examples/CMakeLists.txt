@@ -77,7 +77,7 @@ if( WIN32 )
 endif()
 
 
-find_package( SDL2 )
+find_package( SDL2 QUIET )
 if( SDL2_FOUND )
   project( "TacExamplesSDL" )
   tac_target()
@@ -147,7 +147,8 @@ if( SDL2_FOUND )
       POST_BUILD
       COMMAND ${CMAKE_COMMAND} -E copy_if_different
         ${SDL2_DLL_FULL_NAME}
-        $<TARGET_FILE_DIR:${PROJECT_NAME}>)
+        $<TARGET_FILE_DIR:${PROJECT_NAME}> # directory of target named ${PROJECT_NAME}
+    )
   endif()
 endif()
 

@@ -59,7 +59,9 @@ namespace Tac::Render
     result += errMsg.substr( errMsg.find_first_of( ')' ) + 3 );
     result += '\n';
     result += GetShaderAssetPath( shaderSource );
-    result += va( ":{} ", origLineNumber );
+    result += ":";
+    result += Tac::ToString( origLineNumber );
+    result += " ";
     result += errorLine;
     result += '\n';
     return result;
@@ -91,18 +93,23 @@ namespace Tac::Render
         OS::OSDebugPrintLine(" -----------" );
         while( parseData.GetRemainingByteCount() )
         {
-          StringView parseLine = parseData.EatRestOfLine();
-          String text = FormatString( "line {:3}|{}", lineNumber++, parseLine );
-          OS::OSDebugPrintLine( text );
+          const StringView parseLine = parseData.EatRestOfLine();
+
+          String lineNumberStr = Tac::ToString( lineNumber );
+          while( lineNumberStr.size() < 3 )
+            lineNumberStr += " ";
+
+          OS::OSDebugPrintLine( String() + "line " + lineNumberStr + "|" + parseLine );
+          lineNumber++;
         }
         OS::OSDebugPrintLine(" -----------" );
   }
 
-  ID3DBlob* CompileShaderFromString( const ShaderNameStringView& shaderSource,
+  ID3DBlob* CompileShaderFromString( const ShaderNameStringView& shaderName,
                                             const StringView& shaderStrOrig,
                                             const StringView& shaderStrFull,
-                                            const char* entryPoint,
-                                            const char* shaderModel,
+                                            const StringView& entryPoint,
+                                            const StringView& shaderModel,
                                             Errors& errors )
   {
     TAC_ASSERT( IsMainThread() );
@@ -113,6 +120,13 @@ namespace Tac::Render
 
     ID3DBlob* pErrorBlob = nullptr;
     ID3DBlob* pBlobOut = nullptr;
+
+
+    TAC_ASSERT( shaderModel.size() == 6 ); // ie "vs_5_0"
+    const String shaderModelVer = String() + shaderModel[ 3 ] + '.' + shaderModel[ 5 ];
+    TAC_ASSERT_MSG( StrCmp( shaderModelVer, "5.1" ) <= 0,
+                    String() + "fxc cannot compile a shader model " + shaderModelVer +
+                    " use dxc instead" );
 
     const HRESULT hr = D3DCompile( shaderStrFull.data(),
                                    shaderStrFull.size(),
@@ -130,12 +144,12 @@ namespace Tac::Render
     {
       if( IsDebugMode )
       {
-        OS::OSDebugPrintLine( va( "Error loading shader from {}", shaderSource.c_str() ) );
+        OS::OSDebugPrintLine( String() + "Error loading shader from " + shaderName );
 
         PrintShaderToOutput( shaderStrFull );
       }
 
-      const String errMsg = TryImproveShaderErrorMessage( shaderSource,
+      const String errMsg = TryImproveShaderErrorMessage( shaderName,
                                                           shaderStrOrig,
                                                           shaderStrFull,
                                                           ( const char* )pErrorBlob->GetBufferPointer() );

@@ -16,7 +16,7 @@ if( Vulkan_FOUND )
     target_include_directories( TacWinVk SYSTEM PUBLIC ${Vulkan_INCLUDE_DIRS} )
   endif() # if( WIN32 )
 
-  find_package( SDL2 )
+  find_package( SDL2 QUIET )
   if( SDL2_FOUND )
 
   #

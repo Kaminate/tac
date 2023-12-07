@@ -60,7 +60,7 @@ if( WIN32 )
 endif() # if( WIN32 )
 
 
-find_package( SDL2 )
+find_package( SDL2 QUIET )
 if( SDL2_FOUND )
   project( "standalone_sdl_vk_1_tri" )
   tac_target()
