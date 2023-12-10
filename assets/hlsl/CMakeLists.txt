@@ -1,5 +1,8 @@
-IF (WIN32)
-  set(TAC_SHADERS 
+IF (NOT WIN32)
+  return()
+endif()
+
+set(TAC_SHADERS 
   ${CMAKE_CURRENT_SOURCE_DIR}/2D.hlsl
   ${CMAKE_CURRENT_SOURCE_DIR}/2DText.hlsl
   ${CMAKE_CURRENT_SOURCE_DIR}/3DDebug.hlsl
@@ -17,6 +20,7 @@ IF (WIN32)
   ${CMAKE_CURRENT_SOURCE_DIR}/VoxelCopy.hlsl
   ${CMAKE_CURRENT_SOURCE_DIR}/VoxelVisualizer.hlsl
   ${CMAKE_CURRENT_SOURCE_DIR}/Voxelizer.hlsl
+  ${CMAKE_CURRENT_SOURCE_DIR}/DX12HelloTriangle.hlsl
+  ${CMAKE_CURRENT_SOURCE_DIR}/DX12HelloTriangleNoVB.hlsl
   CACHE INTERNAL "")
-ENDIF()
 

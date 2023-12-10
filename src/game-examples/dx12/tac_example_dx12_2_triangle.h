@@ -23,6 +23,9 @@ namespace Tac
     HANDLE mEvent{};
   };
 
+  inline const int kViewportCount = D3D12_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE;
+  inline const int kScissorRectCount = D3D12_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE;
+
   struct DX12AppHelloTriangle : public App
   {
     DX12AppHelloTriangle( const Config& );
@@ -42,6 +45,7 @@ namespace Tac
     void CreateRTVDescriptorHeap( Errors& );
     void CreateCommandAllocator( Errors& );
     void CreateCommandList( Errors& );
+    void CreateVertexBuffer( Errors& );
     void CreateFence( Errors& );
     void CreateRootSignature( Errors&);
     void CreatePipelineState( Errors&);
@@ -101,7 +105,6 @@ namespace Tac
     // A fence is used to synchronize the CPU with the GPU (see Multi-engine synchronization).
     // https://learn.microsoft.com/en-us/windows/win32/direct3d12/user-mode-heap-synchronization
     PCom< ID3D12Fence1 >               m_fence;
-    PCom< ID3D12PipelineState >        m_pipelineState;
     PCom< ID3D12InfoQueue >            m_infoQueue;
 
     // A root signature defines what resources are bound to the graphics pipeline.
@@ -116,6 +119,15 @@ namespace Tac
     // fixed function state objects
     // (such as the input assembler, tesselator, rasterizer and output merger).
     PCom< ID3D12PipelineState >        mPipelineState;
+
+    PCom<ID3D12Resource> m_vertexBuffer;
+    D3D12_VERTEX_BUFFER_VIEW m_vertexBufferView;
+
+    D3D12_VIEWPORT m_viewport;
+    D3D12_RECT m_scissorRect;
+
+    FixedVector< D3D12_VIEWPORT, kViewportCount > m_viewports;
+    FixedVector< D3D12_RECT, kScissorRectCount > m_scissorRects;
 
     // ---------------------------------------------------------------------------------------------
 

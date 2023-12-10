@@ -22,14 +22,15 @@
 #include "src/shell/windows/renderer/dx12/tac_dx12_helper.h"
 #include "src/shell/windows/tac_win32.h"
 
+#define TAC_USE_VB() 1
 
 #define TAC_USE_OLD_FXC_SHADER_COMPILER() 0
+#define TAC_USE_NEW_DXC_SHADER_COMPILER() 1
 
 #if TAC_USE_OLD_FXC_SHADER_COMPILER() // d3dcompiler.dll, D3DCompile, valid only for shader model up to 5_1
 #include <D3Dcompiler.h> // D3DCOMPILE_DEBUG
 #endif
 
-#define TAC_USE_NEW_DXC_SHADER_COMPILER() 1
 #if TAC_USE_NEW_DXC_SHADER_COMPILER()
 #include <dxcapi.h> // IDxcUtils, IDxcCompiler3, DxcCreateInstance, 
 #pragma comment (lib, "dxcompiler.lib" )
@@ -37,10 +38,18 @@
 
 #pragma comment( lib, "d3d12.lib" ) // D3D12...
 
+const UINT myParamIndex = 0;
+
 import std;
 
 namespace Tac
 {
+  struct Vertex
+  {
+    v3 mPos;
+    v4 mColor;
+  };
+
   using namespace Render;
 
   void Win32Event::Init( Errors& errors )
@@ -133,7 +142,6 @@ namespace Tac
 
   void DX12AppHelloTriangle::CreateDevice( Errors& errors )
   {
-    
     auto adapter = ( IDXGIAdapter* )DXGIGetBestAdapter();
     PCom< ID3D12Device > device;
     TAC_DX12_CALL( D3D12CreateDevice,
@@ -206,7 +214,9 @@ namespace Tac
 
   void DX12AppHelloTriangle::CreateCommandList( Errors& errors )
   {
-    // Create the command list (CreateCommandList1 creates it in a closed state).
+    // Create the command list
+    // (CreateCommandList1 creates it in a closed state, as opposed to
+    //  CreateCommandList, which creates in a open state).
     PCom< ID3D12CommandList > commandList;
     TAC_DX12_CALL( m_device->CreateCommandList1,
                    0,
@@ -217,6 +227,84 @@ namespace Tac
 
     commandList.QueryInterface( m_commandList );
     TAC_ASSERT(m_commandList);
+  }
+
+  void DX12AppHelloTriangle::CreateVertexBuffer( Errors& errors )
+  {
+    const float m_aspectRatio = (float)m_swapChainDesc.Width / (float)m_swapChainDesc.Height; 
+
+    // Define the geometry for a triangle.
+    const Vertex triangleVertices[] =
+    {
+        Vertex{ .mPos{ 0.0f, 0.25f * m_aspectRatio, 0.0f }, .mColor{ 1.0f, 0.0f, 0.0f, 1.0f } },
+        Vertex{ .mPos{ -0.25f, -0.25f * m_aspectRatio, 0.0f }, .mColor{ 0.0f, 0.0f, 1.0f, 1.0f } },
+        Vertex{ .mPos{ 0.25f, -0.25f * m_aspectRatio, 0.0f }, .mColor{ 0.0f, 1.0f, 0.0f, 1.0f } },
+    };
+
+    const UINT vertexBufferSize = sizeof( triangleVertices );
+
+    // Note: using upload heaps to transfer static data like vert buffers is not 
+    // recommended. Every time the GPU needs it, the upload heap will be marshalled 
+    // over. Please read up on Default Heap usage. An upload heap is used here for 
+    // code simplicity and because there are very few verts to actually transfer.
+
+    const D3D12_HEAP_PROPERTIES heapProps
+    {
+      .Type = D3D12_HEAP_TYPE_UPLOAD,
+      .CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN,
+      .MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN,
+      .CreationNodeMask = 1,
+      .VisibleNodeMask = 1,
+    };
+
+    const D3D12_RESOURCE_DESC resourceDesc
+    {
+      .Dimension = D3D12_RESOURCE_DIMENSION_BUFFER,
+      .Alignment = 0,
+      .Width = vertexBufferSize,
+      .Height = 1,
+      .DepthOrArraySize = 1,
+      .MipLevels = 1,
+      .Format = DXGI_FORMAT_UNKNOWN,
+      .SampleDesc
+      {
+        .Count = 1,
+        .Quality = 0,
+      },
+      .Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR,
+    };
+
+
+    TAC_CALL( m_device->CreateCommittedResource,
+      &heapProps,
+      D3D12_HEAP_FLAG_NONE,
+      &resourceDesc,
+      D3D12_RESOURCE_STATE_GENERIC_READ,
+      nullptr, // D3D12_CLEAR_VALUE*
+      m_vertexBuffer.iid(),
+      m_vertexBuffer.ppv() );
+
+
+    // Copy the triangle data to the vertex buffer.
+    const D3D12_RANGE readRange{}; // not reading from CPU
+    void* pVertexDataBegin;
+    TAC_DX12_CALL( m_vertexBuffer->Map, 0, &readRange, &pVertexDataBegin );
+    MemCpy( pVertexDataBegin, triangleVertices, vertexBufferSize );
+    m_vertexBuffer->Unmap( 0, nullptr );
+
+
+    // Initialize the vertex buffer view.
+    m_vertexBufferView = D3D12_VERTEX_BUFFER_VIEW 
+    {
+      .BufferLocation = m_vertexBuffer->GetGPUVirtualAddress(),
+      .SizeInBytes = vertexBufferSize,
+      .StrideInBytes = sizeof( Vertex ),
+    };
+
+
+
+
+
   }
 
   void DX12AppHelloTriangle::CreateFence( Errors& errors )
@@ -244,8 +332,28 @@ namespace Tac
   {
     // Create an empty root signature.
 
+
+    const Array params =
+    {
+      // at myParamIndex
+      D3D12_ROOT_PARAMETER1
+      {
+        .ParameterType = D3D12_ROOT_PARAMETER_TYPE_UAV,
+        .Descriptor = D3D12_ROOT_DESCRIPTOR1
+        {
+          .ShaderRegister = 0,
+          .RegisterSpace = 0,
+        },
+        .ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX,
+      },
+    };
+
+    TAC_ASSERT( myParamIndex == 0 && params.size() > myParamIndex )
+
     const D3D12_ROOT_SIGNATURE_DESC1 Desc_1_1
     {
+      .NumParameters = (UINT)params.size(),
+      .pParameters = params.data(),
       .Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT,
     };
 
@@ -286,11 +394,21 @@ namespace Tac
     D3D_SHADER_MODEL mShaderModel = (D3D_SHADER_MODEL)0;
   };
 
-  struct DX12ShaderCompileOutput
+#if TAC_USE_OLD_FXC_SHADER_COMPILER()
+  struct DX12FXCOutput
   {
     PCom< ID3DBlob >      mBlob;
     D3D12_SHADER_BYTECODE mByteCode;
   };
+#endif
+
+#if TAC_USE_NEW_DXC_SHADER_COMPILER()
+  struct DX12DXCOutput
+  {
+    PCom<IDxcBlob>        mBlob;
+    D3D12_SHADER_BYTECODE mByteCode;
+  };
+#endif
 
   String DX12PreprocessShader( StringView shader )
   {
@@ -395,11 +513,10 @@ namespace Tac
     TAC_CALL( SaveBlobToFile,bytes,byteCount, stem, ext, errors );
   }
 
-  DX12ShaderCompileOutput DX12CompileShader( const DX12ShaderCompileFromStringInput& input,
-                                             Errors& errors )
+#if TAC_USE_OLD_FXC_SHADER_COMPILER()
+  DX12FXCOutput DX12CompileShaderFXC( const DX12ShaderCompileFromStringInput& input,
+                                      Errors& errors )
   {
-
-#if TAC_USE_OLD_FXC_SHADER_COMPILER
 
     TAC_ASSERT_MSG( input.mShaderModel < D3D_SHADER_MODEL_5_1,
                     "D3DCompile only supports old versions, use dxc instead" );
@@ -442,9 +559,13 @@ namespace Tac
         .BytecodeLength = blob->GetBufferSize(),
       },
     };
+  }
 #endif
 
 #if TAC_USE_NEW_DXC_SHADER_COMPILER()
+  DX12DXCOutput DX12CompileShaderDXC( const DX12ShaderCompileFromStringInput& input,
+                                             Errors& errors )
+  {
 
     TAC_ASSERT_MSG(
       input.mShaderModel >= D3D_SHADER_MODEL_6_0,
@@ -542,6 +663,7 @@ namespace Tac
     //
     // Save pdb.
     //
+
     PCom<IDxcBlob> pPDB ;
     PCom<IDxcBlobUtf16> pPDBName ;
     pResults->GetOutput( DXC_OUT_PDB,
@@ -551,72 +673,49 @@ namespace Tac
     TAC_ASSERT( pPDB );
     TAC_CALL_RET( {}, SaveBlobToFile, pPDB, pShaderStem, "pdb", errors );
 
-  DX12ShaderCompileOutput output
-  {
-    .mBlob = pShader,
-    .mByteCode = 
+    const DX12DXCOutput output
     {
-      .pShaderBytecode = pShader->GetBufferPointer(),
-      .BytecodeLength = pShader->GetBufferSize(),
-    },
-  };
+      .mBlob = pShader,
+      .mByteCode = 
+      {
+        .pShaderBytecode = pShader->GetBufferPointer(),
+        .BytecodeLength = pShader->GetBufferSize(),
+      },
+    };
 
-  return output;
-
-#endif
+    return output;
   }
+#endif
 
-  struct Vertex
-  {
-    v3 mPos;
-    v4 mColor;
-  };
 
-  struct DX12InputLayoutBuilder
+
+#if TAC_USE_VB()
+  struct DX12BuiltInputLayout : public D3D12_INPUT_LAYOUT_DESC
   {
-    DX12InputLayoutBuilder() = default;
-    DX12InputLayoutBuilder( const VertexDeclarations& vtxDecls )
+    DX12BuiltInputLayout( const VertexDeclarations& vtxDecls )
     {
-      for( const auto& decl : vtxDecls )
+      const int n = vtxDecls.size();
+      mElementDescs.resize(n );
+      for( int i = 0; i < n; ++i )
       {
-        decl.mAlignedByteOffset;
-        decl.mAttribute;
-        decl.mTextureFormat;
+        const auto& decl = vtxDecls[ i ];
+        mElementDescs[ i ] = D3D12_INPUT_ELEMENT_DESC
+        {
+          .SemanticName = GetSemanticName( decl.mAttribute ),
+          .Format = GetDXGIFormatTexture( decl.mTextureFormat ),
+          .AlignedByteOffset = (UINT)decl.mAlignedByteOffset,
+        };
       }
-    }
 
-    void Append( const char* semanticName,
-                 DXGI_FORMAT fmt,
-                 UINT offset = D3D12_APPEND_ALIGNED_ELEMENT)
-    {
-      const D3D12_INPUT_ELEMENT_DESC desc
+      *( D3D12_INPUT_LAYOUT_DESC* )this = D3D12_INPUT_LAYOUT_DESC
       {
-        .SemanticName = semanticName,
-        .Format = fmt,
-        .AlignedByteOffset = offset,
-      };
-
-      mElementDescs.push_back( desc );
-    }
-
-    D3D12_INPUT_LAYOUT_DESC GetLayoutDesc()
-    {
-      UpdateLayoutDesc();
-      return mLayoutDesc;
-    }
-
-  private:
-    void UpdateLayoutDesc()
-    {
-      mLayoutDesc = D3D12_INPUT_LAYOUT_DESC
-      {
-        .pInputElementDescs = mElementDescs.data(),
-        .NumElements = ( UINT )mElementDescs.size(),
+            .pInputElementDescs = mElementDescs.data(),
+            .NumElements = (UINT)n,
       };
     }
     FixedVector< D3D12_INPUT_ELEMENT_DESC, 10 > mElementDescs;
-    D3D12_INPUT_LAYOUT_DESC                     mLayoutDesc;
   };
+#endif
 
   static D3D_SHADER_MODEL GetHighestShaderModel( ID3D12Device* device )
   {
@@ -640,12 +739,16 @@ namespace Tac
 
   void DX12AppHelloTriangle::CreatePipelineState( Errors& errors )
   {
+#if TAC_USE_VB()
     const AssetPathStringView shaderAssetPath = "assets/hlsl/DX12HelloTriangle.hlsl";
+#else
+    const AssetPathStringView shaderAssetPath = "assets/hlsl/DX12HelloTriangleNoVB.hlsl";
+#endif
 
     const String shaderStrRaw = TAC_CALL( LoadAssetPath, shaderAssetPath, errors );
     const String shaderStrProcessed = DX12PreprocessShader( shaderStrRaw );
 
-    const D3D_SHADER_MODEL shaderModel = D3D_SHADER_MODEL_6_6;
+    const D3D_SHADER_MODEL shaderModel = D3D_SHADER_MODEL_6_5;
 
     const DX12ShaderCompileFromStringInput vsInput
     {
@@ -660,13 +763,14 @@ namespace Tac
       .mPreprocessedShader = shaderStrProcessed,
       .mEntryPoint = "PSMain",
       .mType = ShaderType::Fragment,
+      .mShaderModel = shaderModel,
     };
 
     const D3D_SHADER_MODEL highestShaderModel = GetHighestShaderModel( (ID3D12Device*)m_device );
     TAC_ASSERT( highestShaderModel >= shaderModel );
 
-    auto [ vsBlob, vsBytecode ] = TAC_CALL( DX12CompileShader, vsInput, errors );
-    auto [ psBlob, psBytecode ] = TAC_CALL( DX12CompileShader, psInput, errors );
+    auto [ vsBlob, vsBytecode ] = TAC_CALL( DX12CompileShaderDXC, vsInput, errors );
+    auto [ psBlob, psBytecode ] = TAC_CALL( DX12CompileShaderDXC, psInput, errors );
 
 
 #if TAC_USE_OLD_FXC_SHADER_COMPILER()
@@ -692,37 +796,27 @@ namespace Tac
     }
 #endif
     
+#if TAC_USE_VB()
 
-    //const VertexDeclarations vtxDecls
-    //{
-    //  {
-    //    .mAttribute = Attribute::Position,
-    //    .mTextureFormat = Format::sv3,
-    //    .mAlignedByteOffset = TAC_OFFSET_OF( Vertex, mPos ),
-    //  },
-    //  {
-    //    .mAttribute = Attribute::Color,
-    //    .mTextureFormat = Format::sv4,
-    //    .mAlignedByteOffset = TAC_OFFSET_OF( Vertex, mColor ),
-    //  },
-    //};
+    const DX12BuiltInputLayout inputLayout(
+      VertexDeclarations
+      {
+        VertexDeclaration
+        {
+          .mAttribute = Attribute::Position,
+          .mTextureFormat = Format::sv3,
+          .mAlignedByteOffset = TAC_OFFSET_OF( Vertex, mPos ),
+        },
+        VertexDeclaration
+        {
+          .mAttribute = Attribute::Color,
+          .mTextureFormat = Format::sv4,
+          .mAlignedByteOffset = TAC_OFFSET_OF( Vertex, mColor ),
+        },
 
-  //{
-  //  Attribute mAttribute = Attribute::Count;
-  //  Format    mTextureFormat;
+      } );
+#endif
 
-  //  //        Offset of the variable from the vertex buffer
-  //  //        ie: OffsetOf( MyVertexType, mPosition)
-  //  int       mAlignedByteOffset = 0;
-  //};
-  //  };
-    //Render::inputlay
-
-    DX12InputLayoutBuilder inputLayout;
-    inputLayout.Append( "POOP", DXGI_FORMAT_R32G32B32_FLOAT );
-    inputLayout.Append( "POOP", DXGI_FORMAT_R32G32B32A32_FLOAT );
-
-    const D3D12_INPUT_LAYOUT_DESC inputLayoutDesc = inputLayout.GetLayoutDesc();
 
     const D3D12_RASTERIZER_DESC RasterizerState
     {
@@ -767,7 +861,9 @@ namespace Tac
       .SampleMask = UINT_MAX,
       .RasterizerState = RasterizerState,
       .DepthStencilState = DepthStencilState,
-      //.InputLayout = inputLayoutDesc,
+#if TAC_USE_VB()
+      .InputLayout = inputLayout,
+#endif
       .PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE,
       .NumRenderTargets = 1,
       .RTVFormats = { DXGIGetSwapChainFormat() },
@@ -826,6 +922,8 @@ namespace Tac
       PCom< ID3D12Resource >& renderTarget = m_renderTargets[ i ];
       TAC_DX12_CALL( m_swapChain->GetBuffer, i, renderTarget.iid(), renderTarget.ppv() );
       m_device->CreateRenderTargetView( ( ID3D12Resource* )renderTarget, nullptr, rtvHandle );
+
+      const D3D12_RESOURCE_DESC desc= renderTarget->GetDesc();
 
       // the render target resource is created in a state that is ready to be displayed on screen
       m_renderTargetStates[i] = D3D12_RESOURCE_STATE_PRESENT;
@@ -894,12 +992,51 @@ namespace Tac
     //   you can submit a cmd list, reset it, and reuse the allocated memory for another cmd list
     TAC_DX12_CALL( m_commandList->Reset,
                    ( ID3D12CommandAllocator* )m_commandAllocator,
-                   ( ID3D12PipelineState* )m_pipelineState );
+
+                   // The associated pipeline state (IA, OM, RS, ... )
+                   // that the command list will modify, all leading to a draw call?
+                   ( ID3D12PipelineState* )mPipelineState );
+
+#if TAC_USE_VB()
+    // Root signature... of the pipeline state?... which has already been created with said
+    // root signature?
+    m_commandList->SetGraphicsRootSignature( m_rootSignature.Get() );
+#endif
+    // sets the viewport of the pipeline state's rasterizer state?
+    m_commandList->RSSetViewports( (UINT)m_viewports.size(), m_viewports.data() );
+
+    // sets the scissor rect of the pipeline state's rasterizer state?
+    m_commandList->RSSetScissorRects( (UINT)m_scissorRects.size(), m_scissorRects.data() );
+
+
+#if !TAC_USE_VB()
+    // test
+    {
+      m_commandList->SetGraphicsRootUnorderedAccessView( myParamIndex,
+    }
+
+#endif
 
     // Indicate that the back buffer will be used as a render target.
     TransitionRenderTarget( m_frameIndex, D3D12_RESOURCE_STATE_RENDER_TARGET );
 
+#if TAC_USE_VB()
+    const Array rtCpuHDescs = { GetRenderTargetDescriptorHandle( m_frameIndex ) };
+
+    m_commandList->OMSetRenderTargets( ( UINT )rtCpuHDescs.size(),
+                                       rtCpuHDescs.data(),
+                                       false,
+                                       nullptr );
+#endif
+
     ClearRenderTargetView();
+
+#if TAC_USE_VB()
+    const Array vbViews = {m_vertexBufferView};
+    m_commandList->IASetVertexBuffers(0, (UINT)vbViews.size(), vbViews.data() );
+    m_commandList->IASetPrimitiveTopology( D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
+    m_commandList->DrawInstanced(3, 1, 0, 0);
+#endif
 
     // Indicate that the back buffer will now be used to present.
     //
@@ -916,12 +1053,16 @@ namespace Tac
   {
     const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = GetRenderTargetDescriptorHandle( m_frameIndex );
 
+#if 0
     const double speed = 3;
     const auto t = ( float )Sin( ShellGetElapsedSeconds() * speed ) * 0.5f + 0.5f;
 
     // Record commands.
-    const float clearColor[] = { t, 0.2f, 0.4f, 1.0f };
-    m_commandList->ClearRenderTargetView( rtvHandle, clearColor, 0, nullptr );
+    const v4 clearColor = { t, 0.2f, 0.4f, 1.0f };
+#else
+    const v4 clearColor = v4{ 91, 128, 193, 255.0f } / 255.0f;
+#endif
+    m_commandList->ClearRenderTargetView( rtvHandle, clearColor.data(), 0, nullptr );
   }
 
   void DX12AppHelloTriangle::ExecuteCommandLists()
@@ -1066,6 +1207,23 @@ namespace Tac
     {
       TAC_CALL( DX12CreateSwapChain, errors );
       TAC_CALL( CreateRenderTargetViews, errors );
+      TAC_CALL( CreateVertexBuffer, errors );
+
+      m_viewport = D3D12_VIEWPORT
+      {
+       .Width = ( float )m_swapChainDesc.Width,
+       .Height = ( float )m_swapChainDesc.Height,
+      };
+
+      m_viewports = { m_viewport };
+
+      m_scissorRect = D3D12_RECT
+      {
+        .right = ( LONG )m_swapChainDesc.Width,
+        .bottom = ( LONG )m_swapChainDesc.Height,
+      };
+
+      m_scissorRects = { m_scissorRect };
     }
 
     // Record all the commands we need to render the scene into the command list.
