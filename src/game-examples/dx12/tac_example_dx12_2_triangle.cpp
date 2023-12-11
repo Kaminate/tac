@@ -3,6 +3,7 @@
 // todo: dx12ify
 #include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_preprocess.h"
 
+#include "tac_example_dx12_2_dxc.h"
 #include "src/common/containers/tac_array.h"
 #include "src/common/dataprocess/tac_text_parser.h"
 #include "src/common/containers/tac_frame_vector.h"
@@ -25,16 +26,8 @@
 #define TAC_USE_VB() 1
 
 #define TAC_USE_OLD_FXC_SHADER_COMPILER() 0
-#define TAC_USE_NEW_DXC_SHADER_COMPILER() 1
+#define TAC_USE_NEW_DXC_SHADER_COMPILER() 0
 
-#if TAC_USE_OLD_FXC_SHADER_COMPILER() // d3dcompiler.dll, D3DCompile, valid only for shader model up to 5_1
-#include <D3Dcompiler.h> // D3DCOMPILE_DEBUG
-#endif
-
-#if TAC_USE_NEW_DXC_SHADER_COMPILER()
-#include <dxcapi.h> // IDxcUtils, IDxcCompiler3, DxcCreateInstance, 
-#pragma comment (lib, "dxcompiler.lib" )
-#endif
 
 #pragma comment( lib, "d3d12.lib" ) // D3D12...
 
@@ -44,10 +37,23 @@ import std;
 
 namespace Tac
 {
+  struct CSPos3
+  {
+    explicit CSPos3( v3 v ) : mValue( v ) {}
+    explicit CSPos3(float x, float y, float z) : mValue{ x,y,z } {}
+    v3 mValue;
+  };
+  struct LinCol3
+  {
+    explicit LinCol3( v3 v ) : mValue( v ) {}
+    explicit LinCol3( float x, float y, float z ) : mValue{ x, y, z } {}
+    v3 mValue;
+  };
+
   struct Vertex
   {
-    v3 mPos;
-    v4 mColor;
+    CSPos3 mPos;
+    LinCol3 mCol;
   };
 
   using namespace Render;
@@ -236,9 +242,21 @@ namespace Tac
     // Define the geometry for a triangle.
     const Vertex triangleVertices[] =
     {
-        Vertex{ .mPos{ 0.0f, 0.25f * m_aspectRatio, 1.0f }, .mColor{ 1.0f, 0.0f, 0.0f, 1.0f } },
-        Vertex{ .mPos{ -0.25f, -0.25f * m_aspectRatio, 1.0f }, .mColor{ 0.0f, 0.0f, 1.0f, 1.0f } },
-        Vertex{ .mPos{ 0.25f, -0.25f * m_aspectRatio, 1.0f }, .mColor{ 0.0f, 1.0f, 0.0f, 1.0f } },
+      Vertex
+      {
+        .mPos = CSPos3{0.0f, 0.25f * m_aspectRatio, 0.0f},
+        .mCol = LinCol3{ 1.0f, 0.0f, 0.0f}
+      },
+      Vertex
+      {
+        .mPos = CSPos3{ -0.25f, -0.25f * m_aspectRatio, 0.0f},
+        .mCol = LinCol3{ 0.0f, 0.0f, 1.0f}
+      },
+      Vertex
+      {
+        .mPos = CSPos3{ 0.25f, -0.25f * m_aspectRatio, 0.0f},
+        .mCol = LinCol3{ 0.0f, 1.0f, 0.0f}
+      },
     };
 
     const UINT vertexBufferSize = sizeof( triangleVertices );
@@ -300,10 +318,6 @@ namespace Tac
       .SizeInBytes = vertexBufferSize,
       .StrideInBytes = sizeof( Vertex ),
     };
-
-
-
-
 
   }
 
@@ -386,29 +400,6 @@ namespace Tac
 
   }
 
-  struct DX12ShaderCompileFromStringInput
-  {
-    StringView mPreprocessedShader;
-    StringView mEntryPoint;
-    ShaderType mType = ShaderType::Count;
-    D3D_SHADER_MODEL mShaderModel = (D3D_SHADER_MODEL)0;
-  };
-
-#if TAC_USE_OLD_FXC_SHADER_COMPILER()
-  struct DX12FXCOutput
-  {
-    PCom< ID3DBlob >      mBlob;
-    D3D12_SHADER_BYTECODE mByteCode;
-  };
-#endif
-
-#if TAC_USE_NEW_DXC_SHADER_COMPILER()
-  struct DX12DXCOutput
-  {
-    PCom<IDxcBlob>        mBlob;
-    D3D12_SHADER_BYTECODE mByteCode;
-  };
-#endif
 
   String DX12PreprocessShader( StringView shader )
   {
@@ -425,269 +416,6 @@ namespace Tac
 
     return newShader;
   }
-
-  // https://github.com/microsoft/DirectXShaderCompiler/wiki/Using-dxc.exe-and-dxcompiler.dll
-  struct DXCArgHelper
-  {
-    void DefineMacro( String s )        { AddArgs( "-D", s ); }
-    void SetEntryPoint( String s )      { AddArgs( "-E", s ); }
-    void SetTargetProfile( String s )   { AddArgs( "-T", s ); }
-    void DisableOptimizations()         { AddArg( "-Od" ); }
-    void ColPackMtxs()                  { AddArg( "-Zpc" ); }
-    void RowPackMtxs()                  { AddArg( "-Zpr" ); }
-    void EnableDebugInfo()              { AddArg( "-Zi" ); }
-    void AddArgs( StringView , StringView );
-    void AddArg( StringView );
-
-    struct
-    {
-      LPCWSTR *pArguments;
-      UINT32 argCount;
-    } Finalize()
-    {
-      AddArgs( "-HV", "2021" ); // set hlsl version to 2021 for templates
-
-      const int n = mWStrs.size();
-      mWChars.resize( n );
-      for( int i =0; i < n; ++i )
-        mWChars[i] = mWStrs[i].c_str();
-      return
-      {
-        mWChars.data(),
-        (UINT32)mWChars.size(),
-      };
-    }
-
-
-  private:
-    Vector< std::wstring > mWStrs;
-    Vector< const wchar_t* > mWChars;
-  };
-
-  void DXCArgHelper::AddArgs( StringView arg0, StringView arg1 )
-  {
-    AddArg( arg0 );
-    AddArg( arg1 );
-  }
-
-  void DXCArgHelper::AddArg( StringView arg )
-  {
-    std::wstring ws;
-    for( char c : arg )
-      ws += c;
-    mWStrs.push_back( ws );
-  }
-
-
-  static String GetTarget( ShaderType type, D3D_SHADER_MODEL model )
-  {
-    const String shaders[] =
-    {
-      "vs",
-      "ps",
-      "cs",
-    };
-    static_assert( TAC_ARRAY_SIZE( shaders ) == ( int )ShaderType::Count );
-    TAC_ASSERT_INDEX( type, ShaderType::Count );
-    return shaders[ ( int )type ]
-      + "_" + ( '0' + ( char )( ( int )model / 16 ) )
-      + "_" + ( '0' + ( char )( ( int )model % 16 ) );
-  }
-
-  // ext does not include '.'
-  static void SaveBlobToFile( const void* bytes,
-                              const int byteCount,
-                              const StringView stem,
-                              const StringView ext,
-                              Errors& errors )
-  {
-    const String filename = String() + stem + '.' + ext; 
-    const std::filesystem::path path = sShellPrefPath.Get() / filename.c_str();
-    TAC_CALL( Filesystem::SaveToFile, path, bytes, byteCount, errors );
-  }
-  static void SaveBlobToFile( TAC_NOT_CONST PCom< IDxcBlob> blob,
-                              const StringView stem,
-                              const StringView ext,
-                              Errors& errors )
-  {
-    const void* bytes = blob->GetBufferPointer();
-    const int byteCount = ( int )blob->GetBufferSize();
-    TAC_CALL( SaveBlobToFile,bytes,byteCount, stem, ext, errors );
-  }
-
-#if TAC_USE_OLD_FXC_SHADER_COMPILER()
-  DX12FXCOutput DX12CompileShaderFXC( const DX12ShaderCompileFromStringInput& input,
-                                      Errors& errors )
-  {
-
-    TAC_ASSERT_MSG( input.mShaderModel < D3D_SHADER_MODEL_5_1,
-                    "D3DCompile only supports old versions, use dxc instead" );
-
-    const String target = GetTarget( input.mType, input.mShaderModel );
-
-    PCom< ID3DBlob > blob;
-    PCom< ID3DBlob > blobErr;
-    const UINT flags = IsDebugMode ? D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION : 0;
-
-    // todo: add an assert that if we are using d3dcompile, shader model is 5_1 or below
-
-    TAC_RAISE_ERROR_IF_RETURN(
-      const HRESULT hr = D3DCompile(
-      input.mPreprocessedShader.data(),
-      input.mPreprocessedShader.size(),
-      nullptr,
-      nullptr,
-      nullptr,
-      input.mEntryPoint,
-      target,
-      flags,
-      0,
-      blob.CreateAddress(),
-      blobErr.CreateAddress() );
-    FAILED( hr ),
-      String() +
-      "DX12 failed to compile shader, "
-      "error blob: " + ( const char* )blobErr->GetBufferPointer() + ", "
-      "hr: " + DX12_HRESULT_ToString( hr ) + ", "
-      "shader: \n" + input.mPreprocessedShader,
-      DX12ShaderCompileOutput{} );
-
-    return
-    {
-      .mBlob = blob,
-      .mByteCode = D3D12_SHADER_BYTECODE
-      {
-        .pShaderBytecode = blob->GetBufferPointer(),
-        .BytecodeLength = blob->GetBufferSize(),
-      },
-    };
-  }
-#endif
-
-#if TAC_USE_NEW_DXC_SHADER_COMPILER()
-  DX12DXCOutput DX12CompileShaderDXC( const DX12ShaderCompileFromStringInput& input,
-                                             Errors& errors )
-  {
-
-    TAC_ASSERT_MSG(
-      input.mShaderModel >= D3D_SHADER_MODEL_6_0,
-      "Specifically using dxc instead of d3dcompiler to support a newer shader model" );
-
-    // https://github.com/microsoft/DirectXShaderCompiler/wiki/Using-dxc.exe-and-dxcompiler.dll
-    PCom<IDxcUtils> pUtils;
-    PCom<IDxcCompiler3> pCompiler;
-    TAC_DX12_CALL_RET( {}, DxcCreateInstance, CLSID_DxcUtils, pUtils.iid(), pUtils.ppv() );
-    TAC_DX12_CALL_RET( {}, DxcCreateInstance, CLSID_DxcCompiler, pCompiler.iid(), pCompiler.ppv() );
-
-    const String target = GetTarget( input.mType, input.mShaderModel );
-    const String pShaderStem = "foo";
-
-    const std::filesystem::path pShaderName{ ( pShaderStem + ".hlsl" ).data() };
-
-    const void* shaderBytes = input.mPreprocessedShader.data();
-    const int shaderByteCount = input.mPreprocessedShader.size();
-    TAC_CALL_RET( {}, SaveBlobToFile, shaderBytes, shaderByteCount, pShaderStem, "hlsl", errors );
-
-    TAC_NOT_CONST DXCArgHelper argHelper;
-    argHelper.SetEntryPoint( input.mEntryPoint );
-    argHelper.SetTargetProfile( target );
-    if( IsDebugMode )
-    {
-      argHelper.EnableDebugInfo();
-      argHelper.DisableOptimizations();
-    }
-
-    const auto [ pArguments, argCount ] = argHelper.Finalize(); 
-
-    const DxcBuffer Source
-    {
-      .Ptr = input.mPreprocessedShader.data(),
-      .Size = (SIZE_T)input.mPreprocessedShader.size(),
-      .Encoding = DXC_CP_ACP,
-    };
-
-    PCom<IDxcResult> pResults;
-    HRESULT compileHR = pCompiler->Compile( &Source,
-      pArguments,
-      argCount,
-      nullptr,
-      pResults.iid(),
-      pResults.ppv() );
-
-    TAC_ASSERT( SUCCEEDED( compileHR  ) );
-
-    const auto outN = pResults->GetNumOutputs();
-    Vector< DXC_OUT_KIND > outKinds( (int)outN );
-    for( UINT32 i = 0; i < outN; ++i )
-      outKinds[ i ] = pResults->GetOutputByIndex(i);
-
-
-    //
-    // Print errors if present.
-    //
-    PCom<IDxcBlobUtf8> pErrors;
-    pResults->GetOutput( DXC_OUT_ERRORS, pErrors.iid(), pErrors.ppv(), nullptr );
-    const StringView errorSV = pErrors
-      ? StringView( pErrors->GetStringPointer(), (int)pErrors->GetStringLength() )
-      : StringView();
-
-    // Note that d3dcompiler would return null if no errors or warnings are present.
-    // IDxcCompiler3::Compile will always return an error buffer, but its length
-    // will be zero if there are no warnings or errors.
-    if( !errorSV.empty() )
-    {
-      TAC_ASSERT_CRITICAL( errorSV );
-    }
-
-    //
-    // Quit if the compilation failed.
-    //
-    HRESULT hrStatus;
-    pResults->GetStatus( &hrStatus );
-    if( FAILED( hrStatus ) )
-    {
-      TAC_ASSERT_CRITICAL( "Compilation failed" );
-    }
-
-    //
-    // Save shader binary.
-    //
-    PCom<IDxcBlob> pShader;
-    TAC_DX12_CALL_RET( {},
-                       pResults->GetOutput,
-                       DXC_OUT_OBJECT,
-                       pShader.iid(),
-                       pShader.ppv(),
-                       nullptr );
-    TAC_ASSERT( pShader );
-    TAC_CALL_RET( {}, SaveBlobToFile, pShader, pShaderStem, "bin", errors );
-
-    //
-    // Save pdb.
-    //
-
-    PCom<IDxcBlob> pPDB ;
-    PCom<IDxcBlobUtf16> pPDBName ;
-    pResults->GetOutput( DXC_OUT_PDB,
-                         pPDB.iid(),
-                         pPDB.ppv(),
-                         pPDBName.CreateAddress() );
-    TAC_ASSERT( pPDB );
-    TAC_CALL_RET( {}, SaveBlobToFile, pPDB, pShaderStem, "pdb", errors );
-
-    const DX12DXCOutput output
-    {
-      .mBlob = pShader,
-      .mByteCode = 
-      {
-        .pShaderBytecode = pShader->GetBufferPointer(),
-        .BytecodeLength = pShader->GetBufferSize(),
-      },
-    };
-
-    return output;
-  }
-#endif
 
 
 
@@ -751,6 +479,8 @@ namespace Tac
     const String shaderStrProcessed = DX12PreprocessShader( shaderStrRaw );
 
     const D3D_SHADER_MODEL shaderModel = D3D_SHADER_MODEL_6_5;
+    const D3D_SHADER_MODEL highestShaderModel = GetHighestShaderModel( (ID3D12Device*)m_device );
+    TAC_ASSERT( shaderModel >= D3D_SHADER_MODEL_5_1 && shaderModel <= highestShaderModel );
 
     const DX12ShaderCompileFromStringInput vsInput
     {
@@ -768,35 +498,9 @@ namespace Tac
       .mShaderModel = shaderModel,
     };
 
-    const D3D_SHADER_MODEL highestShaderModel = GetHighestShaderModel( (ID3D12Device*)m_device );
-    TAC_ASSERT( highestShaderModel >= shaderModel );
 
     auto [ vsBlob, vsBytecode ] = TAC_CALL( DX12CompileShaderDXC, vsInput, errors );
     auto [ psBlob, psBytecode ] = TAC_CALL( DX12CompileShaderDXC, psInput, errors );
-
-
-#if TAC_USE_OLD_FXC_SHADER_COMPILER()
-    PCom< ID3D12ShaderReflection > refl;
-    TAC_DX12_CALL( D3DReflect,
-                   vsBytecode.pShaderBytecode,
-                   vsBytecode.BytecodeLength,
-                   refl.iid(),
-                   refl.ppv() );
-
-    D3D12_SHADER_DESC shaderDesc;
-    TAC_DX12_CALL( refl->GetDesc, &shaderDesc );
-
-    for( UINT ParameterIndex = 0;
-         ParameterIndex < shaderDesc.InputParameters;
-         ParameterIndex++ )
-    {
-      D3D12_SIGNATURE_PARAMETER_DESC desc;
-      TAC_DX12_CALL(refl->GetInputParameterDesc,ParameterIndex, &desc );
-
-      desc.SemanticName;
-      ++asdf;
-    }
-#endif
     
 #if TAC_USE_VB()
 
@@ -812,8 +516,8 @@ namespace Tac
         VertexDeclaration
         {
           .mAttribute = Attribute::Color,
-          .mTextureFormat = Format::sv4,
-          .mAlignedByteOffset = TAC_OFFSET_OF( Vertex, mColor ),
+          .mTextureFormat = Format::sv3,
+          .mAlignedByteOffset = TAC_OFFSET_OF( Vertex, mCol ),
         },
 
       } );

@@ -9,37 +9,26 @@
 //
 //*********************************************************
 
-#define TAC_USE_TEMPLATE_POSITIONS() 0
-
-struct ClipSpace { };
-
-template< typename T >
-struct Position
+struct CSPos // clip space position
 {
   float4 mValue;
 };
 
-
-#if TAC_USE_TEMPLATE_POSITIONS()
-struct Vertex
+struct LinCol // linear color
 {
-  float4 mPosition : POSITION;
-  float4 mColor    : COLOR;
+  float4 mValue;
 };
 
-#else
 struct Vertex
 {
-  float4 mPosition : POSITION;
-  float4 mColor    : COLOR;
+  CSPos  mPosition : POSITION;
+  LinCol mColor    : COLOR;
 };
-#endif
-
 
 struct PSInput
 {
-    float4 mPosition : SV_POSITION;
-    float4 mColor    : TAC_AUTO_SEMANTIC;
+    CSPos  mPosition : SV_POSITION;
+    LinCol mColor    : TAC_AUTO_SEMANTIC;
 };
 
 PSInput VSMain(Vertex input)
@@ -57,12 +46,7 @@ float4 sRGBToLinear(float4 color)
 }
 #endif
 
-struct PSOutput
-{
-  float4 mLinearColor;
-};
-
-PSOutput PSMain(PSInput input) : SV_TARGET
+LinCol PSMain(PSInput input) : SV_TARGET
 {
   // NOTE (on gamma)
   //
@@ -79,7 +63,5 @@ PSOutput PSMain(PSInput input) : SV_TARGET
   // So, if we wanted the vertexes to have a specific sRGB color value, we should first convert it
   // to linear in the vertex shader.
 
-  PSOutput output;
-  output.mLinearColor = input.mColor;
-  return output;
+  return input.mColor;
 }

@@ -10,6 +10,8 @@ add_executable( standalone_win_dx12_1_window WIN32
 add_executable( standalone_win_dx12_2_triangle WIN32 
   "tac_example_dx12_2_triangle.cpp"
   "tac_example_dx12_2_triangle.h"
+  "tac_example_dx12_2_dxc.cpp"
+  "tac_example_dx12_2_dxc.h"
 )
 
 # Get a semicolon-separated list of executable target names
