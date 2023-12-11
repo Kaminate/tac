@@ -9,32 +9,53 @@
 //
 //*********************************************************
 
+#define TAC_USE_TEMPLATE_POSITIONS() 0
 
+struct ClipSpace { };
+
+template< typename T >
+struct Position
+{
+  float4 mValue;
+};
+
+
+#if TAC_USE_TEMPLATE_POSITIONS()
 struct Vertex
 {
-  float4 position : POSITION;
-  float4 color    : COLOR;
+  float4 mPosition : POSITION;
+  float4 mColor    : COLOR;
 };
+
+#else
+struct Vertex
+{
+  float4 mPosition : POSITION;
+  float4 mColor    : COLOR;
+};
+#endif
 
 
 struct PSInput
 {
-    float4 position : SV_POSITION;
-    float4 color    : TAC_AUTO_SEMANTIC;
+    float4 mPosition : SV_POSITION;
+    float4 mColor    : TAC_AUTO_SEMANTIC;
 };
 
 PSInput VSMain(Vertex input)
 {
   PSInput result;
-  result.position = input.position;
-  result.color = input.color;
+  result.mPosition = input.mPosition;
+  result.mColor    = input.mColor;
   return result;
 }
 
+#if 0
 float4 sRGBToLinear(float4 color)
 {
   return pow(color, 2.2);
 }
+#endif
 
 struct PSOutput
 {
@@ -43,31 +64,22 @@ struct PSOutput
 
 PSOutput PSMain(PSInput input) : SV_TARGET
 {
-  //return pow(input.color, 1.0 / 2.0);
-  //return input.color;
-  //return pow(input.color,  2.0);
-  //return sRGBToLinear(input.color);
-
-
-  // a note on gamma:
+  // NOTE (on gamma)
   //
-  //   the triangle vertexes are red, green, and blue, which have the same values in
-  //   linear and sRGB space.
+  //   The triangle vertexes are red, green, and blue, which have the same values in
+  //   linear and sRGB space (1,0,0), (0,1,0), (0,0,1).
   //
-  //   What I think is happening is that first the vertex shader receives these linear values.
+  //   1) Vertex Shader - First the vertex shader receives these values, and we can
+  //      treat them as linear values here.
+  //   2) Rasterizer - These linear values are interpolated, and fed to the pixel shader.
+  //   3) Pixel shader - These linear values are output to the backbuffer, which is
+  //      DXGI_FORMAT_R16G16B16A16_FLOAT. This float display format receives linear-valued data,
+  //      which afterwards windows will convert to sRGB when displaying on the monitor.
   //
-  //   Then in the rasterizer, these linear values are interpolated, and fed to the pixel shader.
-  //   
-  //   Then in the pixel shader, these linear values are output to the backbuffer,
-  //   which is DXGI_FORMAT_R16G16B16A16_FLOAT.
-  //
-  //   This float display formats receive linear-valued data, which afterwards windows will convert
-  //   to sRGB when displaying on the monitor.
-  //
-  // So, if we wanted the vertexes to have a sRGB color value, then we should first convert it to
-  // linear in the vertex shader.
+  // So, if we wanted the vertexes to have a specific sRGB color value, we should first convert it
+  // to linear in the vertex shader.
 
   PSOutput output;
-  output.mLinearColor = input.color;
+  output.mLinearColor = input.mColor;
   return output;
 }

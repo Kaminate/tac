@@ -236,9 +236,9 @@ namespace Tac
     // Define the geometry for a triangle.
     const Vertex triangleVertices[] =
     {
-        Vertex{ .mPos{ 0.0f, 0.25f * m_aspectRatio, 0.0f }, .mColor{ 1.0f, 0.0f, 0.0f, 1.0f } },
-        Vertex{ .mPos{ -0.25f, -0.25f * m_aspectRatio, 0.0f }, .mColor{ 0.0f, 0.0f, 1.0f, 1.0f } },
-        Vertex{ .mPos{ 0.25f, -0.25f * m_aspectRatio, 0.0f }, .mColor{ 0.0f, 1.0f, 0.0f, 1.0f } },
+        Vertex{ .mPos{ 0.0f, 0.25f * m_aspectRatio, 1.0f }, .mColor{ 1.0f, 0.0f, 0.0f, 1.0f } },
+        Vertex{ .mPos{ -0.25f, -0.25f * m_aspectRatio, 1.0f }, .mColor{ 0.0f, 0.0f, 1.0f, 1.0f } },
+        Vertex{ .mPos{ 0.25f, -0.25f * m_aspectRatio, 1.0f }, .mColor{ 0.0f, 1.0f, 0.0f, 1.0f } },
     };
 
     const UINT vertexBufferSize = sizeof( triangleVertices );
@@ -445,6 +445,8 @@ namespace Tac
       UINT32 argCount;
     } Finalize()
     {
+      AddArgs( "-HV", "2021" ); // set hlsl version to 2021 for templates
+
       const int n = mWStrs.size();
       mWChars.resize( n );
       for( int i =0; i < n; ++i )
