@@ -1,10 +1,17 @@
 cls
 
+:: change directory to that of this file (in case this bat file was called from another path )
+:: so the pushd and popd calls later refer to the root tac dir
+pushd "%~dp0"
+
 :: -------------------------------------------------------------------------------------------------
-:: Call vcvars64.bat to set $ENV{WindowsSdkVerBinPath} for cmake
-SETLOCAL
-CALL "D:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat"
+:: Running from Developer Command Prompt for VS2022 sets $ENV{WindowsSdkVerBinPath} for cmake
 :: -------------------------------------------------------------------------------------------------
+IF NOT defined WindowsSdkVerBinPath (
+  echo "please run this script from Developer Command Prompt for VS2022"
+  pause
+  exit /b 1
+)
 
 :: loop label for goto
 :loop
