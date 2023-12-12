@@ -88,9 +88,6 @@ namespace Tac::Render
     SetFilename( setup.mFilename );
 
     StripBytecodeDebug();
-    StripBytecodeReflection();
-    StripBytecodeRootSignature();
-    //StripBytecodePrivateData();
 
     SaveReflection();
     SaveBytecode();
@@ -100,6 +97,12 @@ namespace Tac::Render
     {
       EnableDebug();
       DisableOptimizations();
+    }
+    else
+    {
+      StripBytecodeReflection();
+      StripBytecodeRootSignature();
+      //StripBytecodePrivateData();
     }
   }
 
