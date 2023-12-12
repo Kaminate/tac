@@ -1,3 +1,4 @@
+
 #include "tac_example_dx12_2_triangle.h" // self-inc
 
 // todo: dx12ify
@@ -23,6 +24,7 @@
 #include "src/shell/windows/renderer/dx12/tac_dx12_helper.h"
 #include "src/shell/windows/tac_win32.h"
 
+
 #define TAC_USE_VB() 1
 
 #define TAC_USE_OLD_FXC_SHADER_COMPILER() 0
@@ -37,12 +39,14 @@ import std;
 
 namespace Tac
 {
+  // -----------------------------------------------------------------------------------------------
   struct CSPos3
   {
     explicit CSPos3( v3 v ) : mValue( v ) {}
     explicit CSPos3(float x, float y, float z) : mValue{ x,y,z } {}
     v3 mValue;
   };
+
   struct LinCol3
   {
     explicit LinCol3( v3 v ) : mValue( v ) {}
@@ -55,6 +59,8 @@ namespace Tac
     CSPos3 mPos;
     LinCol3 mCol;
   };
+
+  // -----------------------------------------------------------------------------------------------
 
   using namespace Render;
 
@@ -129,21 +135,45 @@ namespace Tac
     m_debugLayerEnabled = true;
   }
 
-  void DX12AppHelloTriangle::CreateInfoQueue( Errors& )
+  void  MyD3D12MessageFunc( D3D12_MESSAGE_CATEGORY Category,
+                            D3D12_MESSAGE_SEVERITY Severity,
+                            D3D12_MESSAGE_ID ID,
+                            LPCSTR pDescription,
+                            void* pContext )
+  {
+    OS::OSDebugBreak();
+  }
+
+  void DX12AppHelloTriangle::CreateInfoQueue( Errors& errors )
   {
     if( !IsDebugMode )
       return;
 
     TAC_ASSERT( m_debugLayerEnabled );
 
-    m_infoQueue = m_device.QueryInterface<ID3D12InfoQueue>( );
-
+    m_device.QueryInterface( m_infoQueue );
     TAC_ASSERT(m_infoQueue);
 
     // Make the application debug break when bad things happen
-    m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE );
-    m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_ERROR, TRUE );
-    m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_WARNING, TRUE );
+    TAC_DX12_CALL(m_infoQueue->SetBreakOnSeverity, D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE );
+    TAC_DX12_CALL(m_infoQueue->SetBreakOnSeverity, D3D12_MESSAGE_SEVERITY_ERROR, TRUE );
+    TAC_DX12_CALL(m_infoQueue->SetBreakOnSeverity, D3D12_MESSAGE_SEVERITY_WARNING, TRUE );
+
+    // First available in Windows 10 Release Preview build 20236,
+    // But as of 2023-12-11 not available on my machine :(
+    if( auto infoQueue1 = m_infoQueue.QueryInterface<ID3D12InfoQueue1>() )
+    {
+      const D3D12MessageFunc CallbackFunc = MyD3D12MessageFunc;
+      const D3D12_MESSAGE_CALLBACK_FLAGS CallbackFilterFlags = D3D12_MESSAGE_CALLBACK_FLAG_NONE;
+      void* pContext = this;
+      DWORD pCallbackCookie;
+
+      TAC_DX12_CALL( infoQueue1->RegisterMessageCallback,
+                     CallbackFunc,
+                     CallbackFilterFlags,
+                     pContext,
+                     &pCallbackCookie );
+    }
   }
 
   void DX12AppHelloTriangle::CreateDevice( Errors& errors )
@@ -449,21 +479,26 @@ namespace Tac
 
   static D3D_SHADER_MODEL GetHighestShaderModel( ID3D12Device* device )
   {
-    const D3D_SHADER_MODEL lowestShaderModel = D3D_SHADER_MODEL_5_1;
-    D3D_SHADER_MODEL highestShaderModel = D3D_HIGHEST_SHADER_MODEL;
-    for( ;; )
+    const D3D_SHADER_MODEL lowest = D3D_SHADER_MODEL_5_1;
+    for( D3D_SHADER_MODEL shaderModel = D3D_HIGHEST_SHADER_MODEL;
+         shaderModel >= lowest;
+         shaderModel = D3D_SHADER_MODEL( shaderModel - 1 ) )
     {
-      D3D12_FEATURE_DATA_SHADER_MODEL shaderModel{ highestShaderModel };
-      if( SUCCEEDED( device->CheckFeatureSupport( D3D12_FEATURE_SHADER_MODEL,
-          &shaderModel,
-          sizeof( D3D12_FEATURE_DATA_SHADER_MODEL ) ) ) )
-        break;
-      highestShaderModel = D3D_SHADER_MODEL(highestShaderModel - 1);
-      if( highestShaderModel == lowestShaderModel )
-        break;
+      // https://learn.microsoft.com/en-us/windows/win32/api/d3d12/ns-d3d12-d3d12_feature_data_shader_model
+      //   After the function completes successfully, the HighestShaderModel field contains the
+      //   highest shader model that is both supported by the device and no higher than the
+      //   shader model passed in.
+      TAC_NOT_CONST D3D12_FEATURE_DATA_SHADER_MODEL featureData{ shaderModel };
+      if( SUCCEEDED( device->CheckFeatureSupport(
+        D3D12_FEATURE_SHADER_MODEL,
+        &featureData,
+        sizeof(D3D12_FEATURE_DATA_SHADER_MODEL) ) ) )
+        
+        // For some godforsaken fucking reason, this isn't the same as shaderModel
+        return featureData.HighestShaderModel;
     }
 
-    return highestShaderModel;
+    return lowest;
   }
 
 
@@ -480,10 +515,11 @@ namespace Tac
 
     const D3D_SHADER_MODEL shaderModel = D3D_SHADER_MODEL_6_5;
     const D3D_SHADER_MODEL highestShaderModel = GetHighestShaderModel( (ID3D12Device*)m_device );
-    TAC_ASSERT( shaderModel >= D3D_SHADER_MODEL_5_1 && shaderModel <= highestShaderModel );
+    TAC_ASSERT( shaderModel <= highestShaderModel );
 
     const DX12ShaderCompileFromStringInput vsInput
     {
+      .mShaderAssetPath = shaderAssetPath,
       .mPreprocessedShader = shaderStrProcessed,
       .mEntryPoint = "VSMain",
       .mType = ShaderType::Vertex,
@@ -492,6 +528,7 @@ namespace Tac
 
     const DX12ShaderCompileFromStringInput psInput
     {
+      .mShaderAssetPath = shaderAssetPath,
       .mPreprocessedShader = shaderStrProcessed,
       .mEntryPoint = "PSMain",
       .mType = ShaderType::Fragment,

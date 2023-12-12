@@ -2,6 +2,8 @@
 
 #include "src/common/shell/tac_shell.h" // sShellPrefPath
 #include "src/common/system/tac_filesystem.h" // Tac::Filesystem
+#include "src/common/containers/tac_array.h"
+#include "src/common/string/tac_string_util.h" // IsAscii
 #include "src/shell/windows/renderer/dx12/tac_dx12_helper.h" // TAC_DX12_CALL_RET
 
 // d3d12 must be included before dxcapi
@@ -17,57 +19,142 @@ namespace Tac::Render
   // https://github.com/microsoft/DirectXShaderCompiler/wiki/Using-dxc.exe-and-dxcompiler.dll
   struct DXCArgHelper
   {
-    struct Result
+    struct BasicSetup
     {
-      LPCWSTR *pArguments;
-      UINT32 argCount;
+      String mEntryPoint;
+      String mTargetProfile;
+      String mFilename;
+      Filesystem::Path mPDBDir;
+      PCom<IDxcUtils> mUtils;
     };
 
-    void DefineMacro( String s )        { AddArgs( "-D", s ); }
-    void SetEntryPoint( String s )      { AddArgs( "-E", s ); }
-    void SetTargetProfile( String s )   { AddArgs( "-T", s ); }
-    void DisableOptimizations()         { AddArg( "-Od" ); }
-    void ColPackMtxs()                  { AddArg( "-Zpc" ); }
-    void RowPackMtxs()                  { AddArg( "-Zpr" ); }
-    void EnableDebugInfo()              { AddArg( "-Zi" ); }
+    DXCArgHelper( TAC_NOT_CONST BasicSetup& );
 
+    void SetEntryPoint( String s )         { AddArgs( "-E", s ); }
+    void SetTargetProfile( String s )      { AddArgs( "-T", s ); }
+    void SetFilename( String );
+    void DefineMacro( String s )           { AddArgs( "-D", s ); }
+    void ColPackMtxs()                     { AddArg( "-Zpc" ); }
+    void RowPackMtxs()                     { AddArg( "-Zpr" ); }
+    void DisableOptimizations()            { AddArg( "-Od" ); }
+    void EnableDebug()                     { AddArg( "-Zi" ); } // enable pdb
+    void StripBytecodeDebug()              { AddArg( "-Qstrip_debug" ); }
+    void StripBytecodeReflection()         { AddArg( "-Qstrip_reflect" ); }
+    void StripBytecodeRootSignature()      { AddArg( "-Qstrip_rootsignature" ); }
+    //void StripBytecodePrivateData()        { AddArg( "-Qstrip_priv" ); }
+    void SaveReflection();
+    void SaveBytecode();
+    void SaveDebug( const Filesystem::Path& pdbDir );
     void AddArgs( StringView , StringView );
     void AddArg( StringView );
 
-    Result Finalize();
+    auto GetArgs()     { return mArgs->GetArguments(); }
+    auto GetArgCount() { return mArgs->GetCount(); }
+
 
   private:
-    Vector< std::wstring > mWStrs;
-    Vector< const wchar_t* > mWChars;
+    std::wstring ToWStr(StringView);
+    PCom<IDxcCompilerArgs>   mArgs;
+    String                   mFilename;
+    String                   mStem;
   };
+
+  std::wstring DXCArgHelper::ToWStr(StringView s)
+  {
+    std::wstring result;
+    for( char c : s )
+      result += c;
+    return result;
+  }
+
+  DXCArgHelper::DXCArgHelper( TAC_NOT_CONST BasicSetup& setup )
+  {
+    TAC_ASSERT(!setup.mFilename.empty());
+
+    const HRESULT hr = setup.mUtils->BuildArguments(
+      ToWStr( setup.mFilename ).data(),
+      ToWStr( setup.mEntryPoint ).data(),
+      ToWStr( setup.mTargetProfile ).data(),
+      nullptr,
+      0,
+      nullptr,
+      0,
+      mArgs.CreateAddress() );
+    TAC_ASSERT( SUCCEEDED(hr) );
+
+
+    //SetTargetProfile(setup.mTargetProfile);
+    //SetEntryPoint( setup.mEntryPoint );
+    SetFilename( setup.mFilename );
+
+    StripBytecodeDebug();
+    StripBytecodeReflection();
+    StripBytecodeRootSignature();
+    //StripBytecodePrivateData();
+
+    SaveReflection();
+    SaveBytecode();
+    SaveDebug(setup.mPDBDir);
+
+    if( IsDebugMode )
+    {
+      EnableDebug();
+      DisableOptimizations();
+    }
+  }
 
   void DXCArgHelper::AddArgs( StringView arg0, StringView arg1 )
   {
-    AddArg( arg0 );
-    AddArg( arg1 );
+    AddArg(arg0);
+    AddArg(arg1);
   }
 
   void DXCArgHelper::AddArg( StringView arg )
   {
-    std::wstring ws;
-    for( char c : arg )
-      ws += c;
-    mWStrs.push_back( ws );
+    TAC_NOT_CONST Array args = { arg.data() };
+    const HRESULT hr = mArgs->AddArgumentsUTF8( args.data(), args.size() );
+    TAC_ASSERT( SUCCEEDED( hr ) );
   }
 
-  DXCArgHelper::Result DXCArgHelper::Finalize()
-    {
-      const int n = mWStrs.size();
-      mWChars.resize( n );
-      for( int i =0; i < n; ++i )
-        mWChars[i] = mWStrs[i].c_str();
+  void DXCArgHelper::SetFilename( String s )
+  {
+    const Filesystem::Path fsPath = s;
+    auto ext = fsPath.extension();
+    TAC_ASSERT( fsPath.has_extension() && ext == ".hlsl" );
+    TAC_ASSERT( !fsPath.has_parent_path() );
+    TAC_ASSERT( fsPath.has_stem() );
+    TAC_ASSERT( mFilename.empty() && mStem.empty() );
 
-      return
-      {
-        mWChars.data(),
-        (UINT32)mWChars.size(),
-      };
-    }
+    mFilename = s;
+    mStem = fsPath.stem().u8string();
+    TAC_ASSERT( IsAscii( mStem ) );
+    TAC_ASSERT(!mStem.empty());
+  }
+
+  void DXCArgHelper::SaveReflection()
+  {
+    TAC_ASSERT(!mStem.empty());
+    AddArgs( "-Fre", mStem + ".refl" );
+  }
+
+  void DXCArgHelper::SaveBytecode()  
+  {
+    TAC_ASSERT(!mStem.empty());
+    AddArgs( "-Fo", mStem + ".dxo");
+  } // assert path ends in .dxo (it is a dxil file)
+
+  // https://devblogs.microsoft.com/pix/using-automatic-shader-pdb-resolution-in-pix/
+  // Best practice is to let dxc name the shader with the hash
+  void DXCArgHelper::SaveDebug( const Filesystem::Path& pdbDir )
+  {
+    TAC_ASSERT( Filesystem::IsDirectory( pdbDir ) );
+    String dir = pdbDir.u8string();
+    if( !dir.ends_with( "/" ) ||
+        !dir.ends_with( "\\" ) )
+      dir += '\\'; // ensure trailing slash
+
+    AddArgs( "-Fd",  dir  ); // not quoted
+  }
 
   // -----------------------------------------------------------------------------------------------
 
@@ -89,24 +176,42 @@ namespace Tac::Render
   // -----------------------------------------------------------------------------------------------
 
   // ext does not include '.'
-  static void SaveBlobToFile( const void* bytes,
-                              const int byteCount,
-                              const StringView stem,
-                              const StringView ext,
-                              Errors& errors )
+  static Filesystem::Path FileStemExtToName( const StringView stem,
+                                           const StringView ext )
   {
-    const String filename = String() + stem + '.' + ext; 
-    const std::filesystem::path path = sShellPrefPath.Get() / filename.c_str();
-    TAC_CALL( Filesystem::SaveToFile, path, bytes, byteCount, errors );
+    TAC_ASSERT( !ext.contains( '.' ) );
+    return stem + "." + ext;
   }
+
+  static Filesystem::Path FilenameToPath( StringView filename )
+  {
+    return sShellPrefPath.Get() / filename.c_str();
+  }
+
   static void SaveBlobToFile( TAC_NOT_CONST PCom< IDxcBlob> blob,
-                              const StringView stem,
-                              const StringView ext,
+                              const Filesystem::Path& path,
                               Errors& errors )
   {
     const void* bytes = blob->GetBufferPointer();
     const int byteCount = ( int )blob->GetBufferSize();
-    TAC_CALL( SaveBlobToFile,bytes,byteCount, stem, ext, errors );
+    TAC_CALL( Filesystem::SaveToFile, path, bytes, byteCount, errors );
+  }
+
+  static String GetBlob16AsUTF8( PCom< IDxcBlobUtf16> blob16, PCom<IDxcUtils> pUtils )
+  {
+    if( !blob16 )
+      return {};
+    PCom< IDxcBlobUtf8> pName8;
+    TAC_ASSERT( SUCCEEDED( pUtils->GetBlobAsUtf8( ( IDxcBlob* )blob16, pName8.CreateAddress() ) ) );
+    return String( pName8->GetStringPointer(),
+                  ( int )pName8->GetStringLength() );
+  }
+
+  static bool DidCompileSucceed( PCom<IDxcResult> pResults )
+  {
+    HRESULT hrStatus;
+    TAC_ASSERT( SUCCEEDED( pResults->GetStatus( &hrStatus ) ) );
+    return SUCCEEDED( hrStatus );
   }
 
   // -----------------------------------------------------------------------------------------------
@@ -126,24 +231,23 @@ namespace Tac::Render
     TAC_DX12_CALL_RET( {}, DxcCreateInstance, CLSID_DxcCompiler, pCompiler.iid(), pCompiler.ppv() );
 
     const String target = GetTarget( input.mType, input.mShaderModel );
-    const String pShaderStem = "foo";
+    const String inputShaderName =  input.mShaderAssetPath.GetFilename();
+    const Filesystem::Path hlslShaderPath = sShellPrefPath / inputShaderName;
 
-    const std::filesystem::path pShaderName{ ( pShaderStem + ".hlsl" ).data() };
+    TAC_CALL_RET( {}, Filesystem::SaveToFile, hlslShaderPath, input.mPreprocessedShader , errors );
 
-    const void* shaderBytes = input.mPreprocessedShader.data();
-    const int shaderByteCount = input.mPreprocessedShader.size();
-    TAC_CALL_RET( {}, SaveBlobToFile, shaderBytes, shaderByteCount, pShaderStem, "hlsl", errors );
-
-    TAC_NOT_CONST DXCArgHelper argHelper;
-    argHelper.SetEntryPoint( input.mEntryPoint );
-    argHelper.SetTargetProfile( target );
-    if( IsDebugMode )
+    TAC_NOT_CONST DXCArgHelper::BasicSetup argHelperSetup
     {
-      argHelper.EnableDebugInfo();
-      argHelper.DisableOptimizations();
-    }
+      .mEntryPoint = input.mEntryPoint ,
+      .mTargetProfile = target,
+      .mFilename = inputShaderName,
+      .mPDBDir = sShellPrefPath,
+      .mUtils = pUtils,
+    };
+    TAC_NOT_CONST DXCArgHelper argHelper( argHelperSetup );
 
-    const auto [ pArguments, argCount ] = argHelper.Finalize(); 
+    const auto pArguments = argHelper.GetArgs();
+    const auto argCount = argHelper.GetArgCount();
 
     const DxcBuffer Source
     {
@@ -153,73 +257,83 @@ namespace Tac::Render
     };
 
     PCom<IDxcResult> pResults;
-    HRESULT compileHR = pCompiler->Compile( &Source,
+    TAC_ASSERT( SUCCEEDED( pCompiler->Compile(
+      &Source,
       pArguments,
       argCount,
       nullptr,
       pResults.iid(),
-      pResults.ppv() );
-
-    TAC_ASSERT( SUCCEEDED( compileHR  ) );
-
-    const auto outN = pResults->GetNumOutputs();
-    Vector< DXC_OUT_KIND > outKinds( (int)outN );
-    for( UINT32 i = 0; i < outN; ++i )
-      outKinds[ i ] = pResults->GetOutputByIndex(i);
-
-
-    //
-    // Print errors if present.
-    //
-    PCom<IDxcBlobUtf8> pErrors;
-    pResults->GetOutput( DXC_OUT_ERRORS, pErrors.iid(), pErrors.ppv(), nullptr );
-    const StringView errorSV = pErrors
-      ? StringView( pErrors->GetStringPointer(), (int)pErrors->GetStringLength() )
-      : StringView();
-
-    // Note that d3dcompiler would return null if no errors or warnings are present.
-    // IDxcCompiler3::Compile will always return an error buffer, but its length
-    // will be zero if there are no warnings or errors.
-    if( !errorSV.empty() )
-    {
-      TAC_ASSERT_CRITICAL( errorSV );
-    }
+      pResults.ppv() ) ) );
 
     //
     // Quit if the compilation failed.
     //
-    HRESULT hrStatus;
-    pResults->GetStatus( &hrStatus );
-    if( FAILED( hrStatus ) )
+    if( !DidCompileSucceed( pResults ) )
     {
-      TAC_ASSERT_CRITICAL( "Compilation failed" );
+      PCom<IDxcBlobUtf8> pErrors;
+      String errorStr = "Shader compilation failed";
+      if( pResults->HasOutput( DXC_OUT_ERRORS ) )
+      {
+
+        //
+        // Print errors if present.
+        //
+        TAC_ASSERT( SUCCEEDED( pResults->GetOutput(
+          DXC_OUT_ERRORS,
+          pErrors.iid(),
+          pErrors.ppv(),
+          nullptr ) ) );
+        if( pErrors )
+          errorStr += StringView( pErrors->GetStringPointer(),
+                                  ( int )pErrors->GetStringLength() );
+
+      }
+
+
+
+      TAC_RAISE_ERROR_RETURN( errorStr, {} );
     }
 
-    //
-    // Save shader binary.
-    //
     PCom<IDxcBlob> pShader;
-    TAC_DX12_CALL_RET( {},
-                       pResults->GetOutput,
-                       DXC_OUT_OBJECT,
-                       pShader.iid(),
-                       pShader.ppv(),
-                       nullptr );
-    TAC_ASSERT( pShader );
-    TAC_CALL_RET( {}, SaveBlobToFile, pShader, pShaderStem, "bin", errors );
+    if( pResults->HasOutput( DXC_OUT_OBJECT ) )
+    {
+      //
+      // Save shader binary.
+      //
+      PCom< IDxcBlobUtf16> pShaderName;
+      TAC_DX12_CALL_RET( {},
+                         pResults->GetOutput,
+                         DXC_OUT_OBJECT,
+                         pShader.iid(),
+                         pShader.ppv(),
+                         pShaderName.CreateAddress() );
+      TAC_RAISE_ERROR_IF_RETURN( !pShader, "No shader dxil", {} );
+      const String outputShaderName = GetBlob16AsUTF8( pShaderName, pUtils );
+      const Filesystem::Path dxilShaderPath = sShellPrefPath / outputShaderName;
+      TAC_CALL_RET( {}, SaveBlobToFile,pShader, dxilShaderPath, errors );
+    }
+    else
+    {
+      TAC_RAISE_ERROR_RETURN( "no object", {} );
+    }
 
-    //
-    // Save pdb.
-    //
+    if( pResults->HasOutput( DXC_OUT_PDB ) )
+    {
+      //
+      // Save pdb.
+      //
 
-    PCom<IDxcBlob> pPDB ;
-    PCom<IDxcBlobUtf16> pPDBName ;
-    pResults->GetOutput( DXC_OUT_PDB,
-                         pPDB.iid(),
-                         pPDB.ppv(),
-                         pPDBName.CreateAddress() );
-    TAC_ASSERT( pPDB );
-    TAC_CALL_RET( {}, SaveBlobToFile, pPDB, pShaderStem, "pdb", errors );
+      PCom<IDxcBlob> pPDB ;
+      PCom<IDxcBlobUtf16> pPDBName ;
+      pResults->GetOutput( DXC_OUT_PDB,
+                           pPDB.iid(),
+                           pPDB.ppv(),
+                           pPDBName.CreateAddress() );
+      TAC_RAISE_ERROR_IF_RETURN( !pShader, "No shader pdb", {} );
+      const String pdbName = GetBlob16AsUTF8( pPDBName, pUtils );
+      const Filesystem::Path pdbPath = sShellPrefPath / pdbName;
+      TAC_CALL_RET( {}, SaveBlobToFile,pPDB, pdbPath, errors );
+    }
 
     const DX12DXCOutput output
     {

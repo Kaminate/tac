@@ -23,8 +23,13 @@ namespace Tac
     HANDLE mEvent{};
   };
 
-  inline const int kViewportCount = D3D12_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE;
-  inline const int kScissorRectCount = D3D12_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE;
+  using Viewports = FixedVector<
+    D3D12_VIEWPORT,
+    D3D12_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE >;
+
+  using ScissorRects = FixedVector<
+    D3D12_RECT,
+    D3D12_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE >;
 
   struct DX12AppHelloTriangle : public App
   {
@@ -64,9 +69,9 @@ namespace Tac
 
     // ---------------------------------------------------------------------------------------------
 
-    static const int                           bufferCount = 2;
+    static const int                   bufferCount = 2;
 
-    DesktopWindowHandle                        hDesktopWindow;
+    DesktopWindowHandle                hDesktopWindow;
 
     // ---------------------------------------------------------------------------------------------
 
@@ -75,10 +80,10 @@ namespace Tac
     PCom< ID3D12Device5 >              m_device;
 
     PCom< ID3D12Debug3 >               m_debug;
-    bool                                       m_debugLayerEnabled = false;
+    bool                               m_debugLayerEnabled = false;
     PCom< ID3D12DescriptorHeap >       m_rtvHeap;
-    UINT                                       m_rtvDescriptorSize{};
-    D3D12_CPU_DESCRIPTOR_HANDLE                m_rtvHeapStart;
+    UINT                               m_rtvDescriptorSize{};
+    D3D12_CPU_DESCRIPTOR_HANDLE        m_rtvHeapStart;
 
     // A ID3D12CommandQueue provides methods for
     // - submitting command lists,
@@ -100,7 +105,7 @@ namespace Tac
     PCom< ID3D12CommandAllocator >     m_commandAllocator;
     PCom< ID3D12GraphicsCommandList4 > m_commandList;
     PCom< ID3D12Resource >             m_renderTargets[ bufferCount ];
-    D3D12_RESOURCE_STATES                      m_renderTargetStates[ bufferCount ];
+    D3D12_RESOURCE_STATES              m_renderTargetStates[ bufferCount ];
 
     // A fence is used to synchronize the CPU with the GPU (see Multi-engine synchronization).
     // https://learn.microsoft.com/en-us/windows/win32/direct3d12/user-mode-heap-synchronization
@@ -120,21 +125,21 @@ namespace Tac
     // (such as the input assembler, tesselator, rasterizer and output merger).
     PCom< ID3D12PipelineState >        mPipelineState;
 
-    PCom<ID3D12Resource> m_vertexBuffer;
-    D3D12_VERTEX_BUFFER_VIEW m_vertexBufferView;
+    PCom<ID3D12Resource>               m_vertexBuffer;
+    D3D12_VERTEX_BUFFER_VIEW           m_vertexBufferView;
 
-    D3D12_VIEWPORT m_viewport;
-    D3D12_RECT m_scissorRect;
+    D3D12_VIEWPORT                     m_viewport;
+    D3D12_RECT                         m_scissorRect;
 
-    FixedVector< D3D12_VIEWPORT, kViewportCount > m_viewports;
-    FixedVector< D3D12_RECT, kScissorRectCount > m_scissorRects;
+    Viewports                          m_viewports;
+    ScissorRects                       m_scissorRects;
 
     // ---------------------------------------------------------------------------------------------
 
     // DXGI objects
 
     PCom< IDXGISwapChain4 >            m_swapChain;
-    DXGI_SWAP_CHAIN_DESC1                      m_swapChainDesc;
+    DXGI_SWAP_CHAIN_DESC1              m_swapChainDesc;
  
     // ---------------------------------------------------------------------------------------------
 
@@ -143,11 +148,11 @@ namespace Tac
     // Index of the render target that
     // 1. our commands will be drawing onto
     // 2. our swap chain will present to the monitor
-    UINT                                      m_frameIndex{};
-    Win32Event                                m_fenceEvent;
+    UINT                               m_frameIndex{};
+    Win32Event                         m_fenceEvent;
 
     // UINT64 is big enough to run at 1000 fps for 500 million years
-    UINT64                                    m_fenceValue{};
+    UINT64                             m_fenceValue{};
   };
 } // namespace Tac
 

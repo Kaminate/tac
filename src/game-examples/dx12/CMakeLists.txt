@@ -28,6 +28,22 @@ foreach(targetname ${targetnames})
 
 endforeach()
 
+# -------------------------------------------------------------------------------------------------
+if( FALSE ) # fucks up import std module
+  include(FetchContent)
+
+  FetchContent_Declare(
+      DirectX-Headers
+      GIT_REPOSITORY https://github.com/Microsoft/DirectX-Headers.git
+      GIT_TAG v1.611.0
+  )
+  FetchContent_MakeAvailable(DirectX-Headers)
+
+  target_link_libraries(standalone_win_dx12_2_triangle Microsoft::DirectX-Headers )
+endif()
+
+# -------------------------------------------------------------------------------------------------
+
 # see more comments at where DXIL_PATH was cached
 if( NOT EXISTS ${DXIL_PATH} )
   message( FATAL_ERROR "DXIL_PATH cache var doesnt exist, did you run run_vs2022.bat?")

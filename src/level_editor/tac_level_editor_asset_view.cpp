@@ -206,9 +206,15 @@ namespace Tac
     return false;
   }
 
-  static bool IsImage( const Filesystem::Path& path ) { return HasExt( path, { ".png", ".jpg", ".bmp" } ); }
+  static bool IsImage( const Filesystem::Path& path )
+  {
+    return HasExt( path, { ".png", ".jpg", ".bmp" } );
+  }
 
-  static bool IsModel( const Filesystem::Path& path ) { return HasExt( path, { ".gltf", ".glb" } ); }
+  static bool IsModel( const Filesystem::Path& path )
+  {
+    return HasExt( path, { ".gltf", ".glb" } );
+  }
 
   static void UIFilesOther( const Filesystem::Paths& paths )
   {
@@ -513,9 +519,7 @@ namespace Tac
 
       if( oldStackSize != sAssetViewFolderStack.size() || ImGuiButton( "Refresh" ) )
       {
-        sAssetViewFolderCur = Join( sAssetViewFolderStack.data(),
-                                    sAssetViewFolderStack.size(),
-                                    "/" );
+        sAssetViewFolderCur = Join( sAssetViewFolderStack, "/" );
         PopulateFolderContents();
       }
     }
