@@ -53,4 +53,9 @@ else()
                       COMMAND ${CMAKE_COMMAND} -E copy_if_different
                               ${DXIL_PATH}
                               $<TARGET_FILE_DIR:standalone_win_dx12_2_triangle> )
+  add_custom_command( TARGET standalone_win_dx12_2_triangle
+                      PRE_BUILD
+                      COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                              ${DXCOMPILER_PATH}
+                              $<TARGET_FILE_DIR:standalone_win_dx12_2_triangle> )
 endif()

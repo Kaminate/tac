@@ -122,8 +122,15 @@ message( "windows sdk ver bin path: $ENV{WindowsSdkVerBinPath} ")
 if(EXISTS $ENV{WindowsSdkVerBinPath} )
   set( DXIL_PATH $ENV{WindowsSdkVerBinPath}x64/dxil.dll CACHE FILEPATH "dxil for signing shaders" )
   if( NOT EXISTS ${DXIL_PATH})
-    message( FATAL_ERROR "cannot find dxil at path ${DXIL_PATH}")
+    message( FATAL_ERROR "cannot find dxil.dll at path ${DXIL_PATH}")
   endif()
+
+  # Getting errors on windows surface without dxcompiler.dll
+  set( DXCOMPILER_PATH $ENV{WindowsSdkVerBinPath}x64/dxcompiler.dll CACHE FILEPATH "dxcompiler for compiling shaders" )
+  if( NOT EXISTS ${DXCOMPILER_PATH})
+    message( FATAL_ERROR "cannot find dxcompiler.dll at path ${DXCOMPILER_PATH}")
+  endif()
+
 endif()
 
 

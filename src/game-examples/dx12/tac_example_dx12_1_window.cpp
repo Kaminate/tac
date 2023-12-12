@@ -84,7 +84,6 @@ namespace Tac
     Render::PCom<ID3D12Debug> dx12debug;
     TAC_DX12_CALL( D3D12GetDebugInterface, dx12debug.iid(), dx12debug.ppv() );
 
-    auto dx12debug6 = dx12debug.QueryInterface< ID3D12Debug6>();
     auto dx12debug5 = dx12debug.QueryInterface< ID3D12Debug5>();
     auto dx12debug4 = dx12debug.QueryInterface< ID3D12Debug4>();
     auto dx12debug3 = dx12debug.QueryInterface< ID3D12Debug3>();

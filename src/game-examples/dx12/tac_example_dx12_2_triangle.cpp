@@ -479,9 +479,10 @@ namespace Tac
 
   static D3D_SHADER_MODEL GetHighestShaderModel( ID3D12Device* device )
   {
-    const D3D_SHADER_MODEL lowest = D3D_SHADER_MODEL_5_1;
-    for( D3D_SHADER_MODEL shaderModel = D3D_HIGHEST_SHADER_MODEL;
-         shaderModel >= lowest;
+    const D3D_SHADER_MODEL lowestDefined = D3D_SHADER_MODEL_5_1;
+    const D3D_SHADER_MODEL highestDefined = D3D_SHADER_MODEL_6_7; // D3D_HIGHEST_SHADER_MODEL undefined?;
+    for( D3D_SHADER_MODEL shaderModel = highestDefined; 
+         shaderModel >= lowestDefined;
          shaderModel = D3D_SHADER_MODEL( shaderModel - 1 ) )
     {
       // https://learn.microsoft.com/en-us/windows/win32/api/d3d12/ns-d3d12-d3d12_feature_data_shader_model
@@ -498,7 +499,7 @@ namespace Tac
         return featureData.HighestShaderModel;
     }
 
-    return lowest;
+    return lowestDefined;
   }
 
 
