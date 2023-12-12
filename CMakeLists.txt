@@ -102,6 +102,36 @@ endif()
 
 # --------------------------------------------------------------------------------------------------
 
+# --------------------------------------------------------------------------------------------------
+
+# In a program that is using dxc to compile shaders via `#include <dxcapi.h>` and
+# `#pragma comment (lib, "dxcompiler.lib" )`, the call to `IDxcCompiler::Compile` will emit the
+# following warning if dxil.dll is not in the same folder as the target executable:
+#
+#   DXIL.dll not found. Resulting DXIL will not be signed for use in release environments
+#
+# Copy dxil.dll to the same folder as the target executable
+#
+# Cache DXIL_PATH to be used by the shader compiler.
+# CMake must have been run after vcvars.bat to have $ENV{WindowsSdkVerBinPath}
+# (see tac/run/run_vs2022.bat which runs vcvars.bat prior to CMake)
+# The reason DXIL_PATH is cached is because cmake can be re-run from inside visual studio,
+# which doesn't have $ENV{WindowsSdkVerBinPath}.
+#
+message( "windows sdk ver bin path: $ENV{WindowsSdkVerBinPath} ")
+if(EXISTS $ENV{WindowsSdkVerBinPath} )
+  set( DXIL_PATH $ENV{WindowsSdkVerBinPath}x64/dxil.dll CACHE FILEPATH "dxil for signing shaders" )
+  if( NOT EXISTS ${DXIL_PATH})
+    message( FATAL_ERROR "cannot find dxil at path ${DXIL_PATH}")
+  endif()
+endif()
+
+
+
+# --------------------------------------------------------------------------------------------------
+
+
+
 add_subdirectory(src)
 add_subdirectory(assets)
 
@@ -141,32 +171,5 @@ foreach(target ${all_targets})
   set_property( TARGET ${target} PROPERTY VS_USER_PROPS ${MODULE_PROP} )
 endforeach()
 
-# --------------------------------------------------------------------------------------------------
-
-# In a program that is using dxc to compile shaders via `#include <dxcapi.h>` and
-# `#pragma comment (lib, "dxcompiler.lib" )`, the call to `IDxcCompiler::Compile` will emit the
-# following warning if dxil.dll is not in the same folder as the target executable:
-#
-#   DXIL.dll not found. Resulting DXIL will not be signed for use in release environments
-#
-# Copy dxil.dll to the same folder as the target executable
-#
-# Cache DXIL_PATH to be used by the shader compiler.
-# CMake must have been run after vcvars.bat to have $ENV{WindowsSdkVerBinPath}
-# (see tac/run/run_vs2022.bat which runs vcvars.bat prior to CMake)
-# The reason DXIL_PATH is cached is because cmake can be re-run from inside visual studio,
-# which doesn't have $ENV{WindowsSdkVerBinPath}.
-#
-message( "windows sdk ver bin path: $ENV{WindowsSdkVerBinPath} ")
-if(EXISTS $ENV{WindowsSdkVerBinPath} )
-  set( DXIL_PATH $ENV{WindowsSdkVerBinPath}x64/dxil.dll CACHE FILEPATH "dxil for signing shaders" )
-  if( NOT EXISTS ${DXIL_PATH})
-    message( FATAL_ERROR "cannot find dxil at path ${DXIL_PATH}")
-  endif()
-endif()
-
-
-
-# --------------------------------------------------------------------------------------------------
 
 
