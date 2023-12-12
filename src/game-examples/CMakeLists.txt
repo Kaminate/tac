@@ -52,7 +52,7 @@ endfunction()
 
 
 if( WIN32 )
-  project( "TacExamplesWin32" )
+  project( "TacExamplesWin32" CXX)
   tac_target()
 
 
@@ -79,7 +79,7 @@ endif()
 
 find_package( SDL2 QUIET )
 if( SDL2_FOUND )
-  project( "TacExamplesSDL" )
+  project( "TacExamplesSDL" CXX)
   tac_target()
 
   target_sources( ${PROJECT_NAME} PRIVATE ${TAC_SDL_MAIN_FILES} )

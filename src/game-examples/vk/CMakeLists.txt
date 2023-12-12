@@ -33,7 +33,7 @@ function( tac_target )
 endfunction()
 
 if( WIN32 )
-  project( "standalone_win_vk_1_tri" )
+  project( "standalone_win_vk_1_tri" CXX)
   tac_target()
 
   target_link_libraries( ${PROJECT_NAME}
@@ -62,7 +62,7 @@ endif() # if( WIN32 )
 
 find_package( SDL2 QUIET )
 if( SDL2_FOUND )
-  project( "standalone_sdl_vk_1_tri" )
+  project( "standalone_sdl_vk_1_tri" CXX)
   tac_target()
 
   target_sources( ${PROJECT_NAME} PRIVATE

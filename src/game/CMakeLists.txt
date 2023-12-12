@@ -2,7 +2,7 @@ if( NOT WIN32 )
   return()
 endif()
 
-project("GravestoryWin32")
+project("GravestoryWin32" CXX)
 
 add_executable( ${PROJECT_NAME} WIN32 )
 target_sources( ${PROJECT_NAME} PRIVATE
