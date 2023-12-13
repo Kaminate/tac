@@ -531,11 +531,6 @@ namespace Tac::Render
 
     TAC_CALL( DXGIInit, errors );
 
-    if( IsDebugMode )
-    {
-
-      TAC_CALL( AllowPIXDebuggerAttachment, errors );
-    }
 
     device.QueryInterface( mDevice );
     deviceContext.QueryInterface( mDeviceContext );

@@ -17,6 +17,7 @@
 #include "src/shell/windows/input/tac_xinput.h"
 #include "src/shell/windows/net/tac_net_winsock.h"
 #include "src/shell/windows/renderer/dx11/tac_renderer_dx11.h"
+#include "src/shell/windows/renderer/pix/tac_pix.h"
 #include "src/shell/windows/tac_win32.h"
 #include "src/shell/windows/renderer/dxgi/tac_dxgi_debug.h"
 
@@ -142,6 +143,7 @@ namespace Tac
 
     RedirectStreamBuf();
 
+    TAC_CALL( Render::AllowPIXDebuggerAttachment, errors );
     Render::RegisterRendererDirectX11();
 
     TAC_CALL( Controller::XInputInit, errors );

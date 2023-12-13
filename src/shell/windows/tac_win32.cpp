@@ -80,7 +80,7 @@ namespace Tac
 
   void             Win32DebugBreak()
   {
-    if( IsDebugMode )
+    if constexpr( IsDebugMode )
       ::DebugBreak();
   }
 

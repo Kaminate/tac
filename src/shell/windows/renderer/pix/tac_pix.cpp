@@ -19,108 +19,95 @@ namespace Tac::Render
   //  return s;
   //}
 
-  static const char* pixInstallPath = "C:/Program Files/Microsoft PIX";
+  static const Filesystem::Path pixInstallPath = "C:/Program Files/Microsoft PIX";
   static const char* pixDllName = "WinPixGpuCapturer.dll";
 
 
-  static Filesystem::Paths GetInstalledPixVersions(Errors& errors)
-  {
-    const bool parentDirExist = Filesystem::Exists( pixInstallPath );
-    //OS::OSDoesFolderExist( pixInstallPath, parentDirExist, errors );
-    TAC_HANDLE_ERROR_RETURN( {} );
 
-    if( !parentDirExist )
+  // Looking at https://devblogs.microsoft.com/pix/download/
+  // Pix version numbers seem to usually be XXXX.YY 
+  static bool IsVersionPattern(StringView sv)
+  {
+    if( sv.size() != 7 )
+      return false;
+
+    const char* p = sv.data();
+
+    for( int i = 0; i < 4; ++i )
+      if( !IsDigit( *p++ ) )
+        return false;
+
+    if( '.' != *p++ )
+      return false;
+
+    for( int i = 0; i < 2; ++i )
+      if( !IsDigit( *p++ ) )
+        return false;
+
+    return true;
+  }
+
+  static Filesystem::Path TryFindPIXDllPath(Errors& errors)
+  {
+    if( !Filesystem::Exists( pixInstallPath ) )
       return {};
 
-    const Filesystem::Path parentDirFSPath( pixInstallPath );
+    const Filesystem::Paths subdirs = TAC_CALL_RET( {}, Filesystem::IterateDirectories,
+      pixInstallPath,
+      Filesystem::IterateType::Default,
+      errors );
 
-    const Filesystem::Paths subdirs = Filesystem::IterateDirectories( parentDirFSPath,
-                                                                Filesystem::IterateType::Default,
-                                                                errors );
+    if( subdirs.empty() )
+      return {};
 
-    //OS::OSGetDirectoriesInDirectory( subdirs, pixInstallPath, errors );
-    //TAC_HANDLE_ERROR_RETURN( errors, {} );
-
-    return subdirs;
-  }
-
-  static String GetMostRecentVersion( const Filesystem::Paths& vers )
-  {
-    String mostRecentVersion;
-
-    // Pix version numbers are usually XXXX.YY https://devblogs.microsoft.com/pix/download/
-    for( const Filesystem::Path& subdir : vers )
+    String bestVer;
+    for( const Filesystem::Path& subdir : subdirs )
     {
       const String ver = subdir.dirname().u8string();
-
-      //auto parent = subdir.parent_path();
-      //std::filesystem::path p =  subdir.Get();
-
-      //auto rootDir = p.root_directory();
-      //auto rootName = p.root_name();
-      //auto rootPath = p.root_path();
-      //auto relPath = p.relative_path();
-      //auto fname = p.filename();
-      //auto stem = p.stem();
-      //auto extension = p.extension();
-
-
-      //const String ver = subdir.u8string();
-      if( ver.size() != 6 && ver[ 4 ] != '.' )
+      if( !IsVersionPattern( ver ) || ver < bestVer )// ( !bestSubdir.empty() && ver < bestSubdir ) )
         continue;
 
-      if( mostRecentVersion.empty() || ver > mostRecentVersion )
-        mostRecentVersion = ver;
+      bestVer = ver;
     }
 
-    if( !vers.empty() )
+    if( !bestVer.empty() )
     {
-      TAC_ASSERT(!mostRecentVersion.empty());
+      const String minVer = "2312.08" ;
+      TAC_RAISE_ERROR_IF_RETURN( bestVer < minVer,
+                                 "Most recent pix version " + bestVer + " "
+                                 "is below min required PIX ver " + minVer + " "
+                                 "please update PIX", {} );
+      return pixInstallPath / bestVer / pixDllName;
     }
-
-    return mostRecentVersion;
-  }
-
-  static String GetPIXDllPath(Errors& errors)
-  {
-    const Filesystem::Paths versions = GetInstalledPixVersions( errors );
-    const String mostRecentVersion = GetMostRecentVersion( versions );
-    if( mostRecentVersion.empty() )
-      return "";
-
-    String result;
-    result += pixInstallPath;
-    result += "/";
-    result += mostRecentVersion;
-    result += "/";
-    result += pixDllName;
-    return result;
+    
+    return subdirs.front() / pixDllName;
   }
 
   void AllowPIXDebuggerAttachment( Errors& errors )
   {
+    if constexpr( !IsDebugMode )
+      return;
+
     // Check to see if a copy of WinPixGpuCapturer.dll has already been injected into the application.
     // This may happen if the application is launched through the PIX UI. 
     if( OS::OSGetLoadedDLL( pixDllName ) )
       return;
 
-    const String path = GetPIXDllPath( errors );
-    if( path.empty() )
+    const Filesystem::Path path = TryFindPIXDllPath( errors );
+    const String path8 = path.u8string();
+    if( path8.empty() )
     {
-        OS::OSDebugPrintLine( va(
-          "Warning: Could not find PIX {}. Is it installed? "
-          "PIX will not be able to attach to the running process.",
-          pixDllName ) );
-        return;
+      OS::OSDebugPrintLine( String() + "Warning: Could not find PIX dll " + pixDllName
+                            + ". Is it installed? "
+                            "PIX will not be able to attach to the running process." );
+      return;
     }
 
-    void* lib = OS::OSLoadDLL( path.c_str() );
+    void* lib = OS::OSLoadDLL( path.u8string() );
     if( !lib )
     {
-      OS::OSDebugPrintLine( va(
-        "Failed to load PIX {} at path {}. Is the path correct?",
-        pixDllName,
-        path.c_str() ) );
+      OS::OSDebugPrintLine( String() +
+                            "Failed to load PIX dll " + pixDllName + " at path " + path8 + "." );
     }
 
   }

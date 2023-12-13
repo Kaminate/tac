@@ -56,7 +56,7 @@ namespace Tac::Render
 
   static int GetBitCount( const StringView& line )
   {
-    if( IsDebugMode )
+    if constexpr( IsDebugMode )
     {
       int digitCount = 0;
       for( char c : line )

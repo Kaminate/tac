@@ -7,12 +7,16 @@ add_executable( standalone_win_dx12_1_window WIN32
   "tac_example_dx12_1_window.h"
 )
 
+set_property( TARGET standalone_win_dx12_1_window PROPERTY OUTPUT_NAME "DX12 Window" )
+
 add_executable( standalone_win_dx12_2_triangle WIN32 
   "tac_example_dx12_2_triangle.cpp"
   "tac_example_dx12_2_triangle.h"
   "tac_example_dx12_2_dxc.cpp"
   "tac_example_dx12_2_dxc.h"
 )
+
+set_property( TARGET standalone_win_dx12_2_triangle PROPERTY OUTPUT_NAME "DX12 Triangle" )
 
 # Get a semicolon-separated list of executable target names
 get_property(targetnames DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY BUILDSYSTEM_TARGETS)

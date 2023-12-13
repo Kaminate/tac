@@ -316,9 +316,10 @@ namespace Tac
       for( int iUser = 0; iUser < mUsers.size(); ++iUser )
       {
         auto user = mUsers[ iUser ];
-        String userHeader = va( "User {}: {}", iUser, user->mName.c_str() );
+        const String userHeader = String() + "User: " + ToString( iUser ) + ": " user->mName;
         if( !ImGui::CollapsingHeader( userHeader.c_str() ) )
           continue;
+
         ImGui::Indent();
         TAC_ON_DESTRUCT( ImGui::Unindent() );
         user->DebugImgui();

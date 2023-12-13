@@ -42,24 +42,43 @@ namespace Tac
   private:
 
     // Helper functions for Init
+    void PreSwapChainInit(Errors&);
+    void PostSwapChainInit(Errors&);
     void CreateDesktopWindow();
+
     void EnableDebug( Errors& );
+
     void CreateDevice( Errors& );
     void CreateInfoQueue( Errors& );
     void CreateCommandQueue( Errors& );
     void CreateRTVDescriptorHeap( Errors& );
+    void CreateSRVDescriptorHeap( Errors& );
+    void CreateSRV( Errors& );
     void CreateCommandAllocator( Errors& );
     void CreateCommandList( Errors& );
     void CreateVertexBuffer( Errors& );
     void CreateFence( Errors& );
-    void CreateRootSignature( Errors&);
-    void CreatePipelineState( Errors&);
+    void CreateRootSignature( Errors& );
+    void CreatePipelineState( Errors& );
+    void InitDescriptorSizes();
+    
 
     // Helper functions for Update()
     void DX12CreateSwapChain( Errors& );
     void CreateRenderTargetViews( Errors& );
     void ClearRenderTargetView();
-    D3D12_CPU_DESCRIPTOR_HANDLE GetRenderTargetDescriptorHandle(int) const;
+    D3D12_CPU_DESCRIPTOR_HANDLE GetRTVCpuDescHandle( int ) const;
+    D3D12_GPU_DESCRIPTOR_HANDLE GetRTVGpuDescHandle( int ) const;
+
+    D3D12_CPU_DESCRIPTOR_HANDLE GetSRVCpuDescHandle( int ) const;
+    D3D12_GPU_DESCRIPTOR_HANDLE GetSRVGpuDescHandle( int ) const;
+
+    D3D12_CPU_DESCRIPTOR_HANDLE OffsetCpuDescHandle( D3D12_CPU_DESCRIPTOR_HANDLE,
+                                                     D3D12_DESCRIPTOR_HEAP_TYPE,
+                                                     int ) const;
+    D3D12_GPU_DESCRIPTOR_HANDLE OffsetGpuDescHandle( D3D12_GPU_DESCRIPTOR_HANDLE,
+                                                     D3D12_DESCRIPTOR_HEAP_TYPE,
+                                                     int ) const;
     void PopulateCommandList( Errors& );
     void ExecuteCommandLists();
     void ResourceBarrier( const D3D12_RESOURCE_BARRIER& );
@@ -81,9 +100,19 @@ namespace Tac
 
     PCom< ID3D12Debug3 >               m_debug;
     bool                               m_debugLayerEnabled = false;
+    PCom<ID3D12DebugDevice2>           m_debugDevice;
+
+    // rtvs
     PCom< ID3D12DescriptorHeap >       m_rtvHeap;
-    UINT                               m_rtvDescriptorSize{};
-    D3D12_CPU_DESCRIPTOR_HANDLE        m_rtvHeapStart;
+    D3D12_CPU_DESCRIPTOR_HANDLE        m_rtvCpuHeapStart;
+    D3D12_GPU_DESCRIPTOR_HANDLE        m_rtvGpuHeapStart;
+
+    // srvs
+    PCom< ID3D12DescriptorHeap >       m_srvHeap;
+    D3D12_CPU_DESCRIPTOR_HANDLE        m_srvCpuHeapStart;
+    D3D12_GPU_DESCRIPTOR_HANDLE        m_srvGpuHeapStart;
+
+    UINT                               m_descriptorSizes[ D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES ]{};
 
     // A ID3D12CommandQueue provides methods for
     // - submitting command lists,
@@ -106,6 +135,7 @@ namespace Tac
     PCom< ID3D12GraphicsCommandList4 > m_commandList;
     PCom< ID3D12Resource >             m_renderTargets[ bufferCount ];
     D3D12_RESOURCE_STATES              m_renderTargetStates[ bufferCount ];
+    D3D12_RESOURCE_DESC                m_renderTargetDescs[ bufferCount ];
 
     // A fence is used to synchronize the CPU with the GPU (see Multi-engine synchronization).
     // https://learn.microsoft.com/en-us/windows/win32/direct3d12/user-mode-heap-synchronization

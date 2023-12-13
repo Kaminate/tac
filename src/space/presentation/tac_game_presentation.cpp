@@ -195,9 +195,8 @@ namespace Tac
 
     for( const SubMesh& subMesh : mesh->mSubMeshes )
     {
-      const char* entityName = model->mEntity->mName.c_str() ;
-      const char* subMeshName = subMesh.mName.c_str();
-      Render::BeginGroup( va("{} {}", entityName, subMeshName), TAC_STACK_FRAME );
+      Render::BeginGroup( ShortFixedString::Concat( model->mEntity->mName, " ", subMesh.mName ),
+                          TAC_STACK_FRAME );
       Render::SetShader( m3DShader );
       Render::SetVertexBuffer( subMesh.mVertexBuffer, 0, subMesh.mVertexCount );
       Render::SetIndexBuffer( subMesh.mIndexBuffer, 0, subMesh.mIndexCount );
@@ -632,18 +631,20 @@ namespace Tac
     if( mUseLights && ImGuiCollapsingHeader( "CBufferLights" ) )
     {
       TAC_IMGUI_INDENT_BLOCK;
-      ImGuiText( va( "light count {}", mDebugCBufferLights.lightCount ) );
-      ImGuiText( va( "text number {}", mDebugCBufferLights.testNumber ) );
+      ImGuiText( ShortFixedString::Concat( "light count ",
+                 ToString( mDebugCBufferLights.lightCount ) ) );
+      ImGuiText( ShortFixedString::Concat( "text number ",
+                 ToString( mDebugCBufferLights.testNumber ) ) );
       for( int iLight = 0; iLight < ( int )mDebugCBufferLights.lightCount; ++iLight )
       {
-        if( !ImGuiCollapsingHeader( va( "Light {}", iLight ) ) )
+        if( !ImGuiCollapsingHeader( ShortFixedString::Concat( "Light ", ToString( iLight ) ) ) )
           continue;
 
         Render::ShaderLight* shaderLight = &mDebugCBufferLights.lights[ iLight ];
         String rowsStrs[ 4 ];
         for( int r = 0; r < 4; ++r )
           for( int c = 0; c < 4; ++c )
-            rowsStrs[ r ] += va( "{:.2} ", shaderLight->mWorldToClip( r, c )  );
+            rowsStrs[ r ] += ToString( shaderLight->mWorldToClip( r, c )  );
 
         const Render::ShaderFlags::Info* lightTypeInfo = Render::GetShaderLightFlagType();
         const Render::ShaderFlags::Info* castsShadowsInfo = Render::GetShaderLightFlagCastsShadows();
@@ -667,9 +668,11 @@ namespace Tac
         ImGuiDragFloat( "light proj a", &shaderLight->mProjA );
         ImGuiDragFloat( "light proj b", &shaderLight->mProjB );
         ImGuiImage( -1, v2( 1, 1 ) * 50, v4( shaderLight->mColorRadiance.xyz(), 1.0f ) );
-        ImGuiText( va("Light type: {} ({})",
-                    LightTypeToString( lightType ),
-                    ( int )lightType ) );
+        ImGuiText( ShortFixedString::Concat( "Light type: ",
+                   LightTypeToString( lightType ),
+                   "(",
+                   ToString( ( int )lightType ),
+                   ")" ) );
         ImGuiText( va( "casts shadows: {}", ( castsShadows ? "true" : "false" ) ) );
       }
     }

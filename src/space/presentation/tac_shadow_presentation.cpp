@@ -156,7 +156,8 @@ namespace Tac
     if( !light->mCastsShadows )
       return;
 
-    TAC_RENDER_GROUP_BLOCK( va( "Light Shadow {}", (UUID)light->mEntity->mEntityUUID ) );
+    TAC_RENDER_GROUP_BLOCK( ShortFixedString::Concat( "Light Shadow ",
+                            ToString( ( UUID )light->mEntity->mEntityUUID ) ) );
     CreateShadowMapResources( light );
 
     const Render::DefaultCBufferPerFrame perFrameData = GetPerFrameData( light );

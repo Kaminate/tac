@@ -80,7 +80,7 @@ void DX12Window::Submit( Errors& errors )
 
 void DX12Window::DebugDoubleCheckBackbufferIndex()
 {
-  if( !IsDebugMode )
+  if constexpr( !IsDebugMode )
     return;
   ComPtr<IDXGISwapChain3> swapChain3;
   HRESULT hr = mSwapChain.As( &swapChain3 );
@@ -644,7 +644,7 @@ void RendererDX12::AddShader( Shader** shader, const ShaderData& shaderData, Err
 
 
     UINT flags = D3DCOMPILE_ENABLE_STRICTNESS;
-    if( IsDebugMode )
+    if constexpr( IsDebugMode )
     {
       flags |= D3DCOMPILE_DEBUG;
     }
@@ -712,7 +712,7 @@ void RendererDX12::AddShader( Shader** shader, const ShaderData& shaderData, Err
 
     if( !failedShaderPart )
       break;
-    if( !IsDebugMode )
+    if constexpr( !IsDebugMode )
       return;
 
 

@@ -232,8 +232,11 @@ namespace Tac
 #if 0
     ImGui::PushID( this );
     OnDestruct( ImGui::PopID() );
-    if( !ImGui::CollapsingHeader( va( "Entity id {}", mEntityUUID ), ImGuiTreeNodeFlags_DefaultOpen ) )
+
+    const auto headerName = ShortFixedString::Concant( "Entity id ", ToString( mEntityUUID );
+    if( !ImGui::CollapsingHeader( headerName, ImGuiTreeNodeFlags_DefaultOpen ) )
       return;
+
     ImGui::Indent();
     OnDestruct( ImGui::Unindent() );
     ImGui::DragFloat3( "Position", mPosition.data(), 0.1f );
@@ -244,11 +247,13 @@ namespace Tac
       auto componentType = ( ComponentRegistryEntryIndex )i;
       if( HasComponent( componentType ) )
         continue;
+
       auto componentData = GetComponentData( componentType );
       if( !componentData )
         continue;
       couldBeAdded.push_back( componentType );
     }
+
     if( !couldBeAdded.empty() && ImGui::BeginMenu( "Add Component" ) )
     {
       for( ComponentRegistryEntryIndex componentType : couldBeAdded )
@@ -256,9 +261,11 @@ namespace Tac
         auto componentData = GetComponentData( componentType );
         if( !ImGui::MenuItem( componentData->mName ) )
           continue;
+
         AddNewComponent( componentType );
         break;
       }
+
       ImGui::EndMenu();
     }
 

@@ -344,8 +344,9 @@ namespace Tac
       {
         ImGui::PushID( terrain );
         OnDestruct( ImGui::PopID() );
-        if( !ImGui::CollapsingHeader( va( "Terrain {}", iTerrain++ ) ) )
+        if( !ImGui::CollapsingHeader( ShortFixedString::Concat( "Terrain ", ToString( iTerrain++ ) ) ) )
           continue;
+
         if( ImGui::Button( "Add OBB" ) )
         {
           TerrainOBB obb = {};
@@ -358,8 +359,9 @@ namespace Tac
           TerrainOBB& obb = terrain->mTerrainOBBs[ iOBB ];
           ImGui::PushID( &obb );
           OnDestruct( ImGui::PopID() );
-          if( !ImGui::CollapsingHeader( ( va( "OBB {}", iOBB ) ) ) )
+          if( !ImGui::CollapsingHeader( ( ShortFixedString::Concat( "OBB ", ToString(iOBB) ) ) ) )
             continue;
+
           ImGui::Indent();
           OnDestruct( ImGui::Unindent() );
           ImGui::DragFloat3( "pos", obb.mPos.data(), 0.1f );

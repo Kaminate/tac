@@ -142,7 +142,7 @@ namespace Tac::Render
 
     if( FAILED( hr ) )
     {
-      if( IsDebugMode )
+      if constexpr( IsDebugMode )
       {
         OS::OSDebugPrintLine( String() + "Error loading shader from " + shaderName );
 

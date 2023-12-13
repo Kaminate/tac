@@ -57,17 +57,17 @@ namespace Tac::Render
     }
   }
 
-  static WCHAR* ToWStr( StringView sv )
-  {
-    const int n = 100;
-    TAC_ASSERT( sv.size() < n );
-    static WCHAR buf[ n ];
-    int i = 0;
-    for( char c : sv )
-      buf[ i++ ] = c;
-    buf[ i ] = '\0';
-    return buf;
-  }
+  //static WCHAR* ToWStr( StringView sv )
+  //{
+  //  const int n = 100;
+  //  TAC_ASSERT( sv.size() < n );
+  //  static WCHAR buf[ n ];
+  //  int i = 0;
+  //  for( char c : sv )
+  //    buf[ i++ ] = c;
+  //  buf[ i ] = '\0';
+  //  return buf;
+  //}
 
   void DX12CallAux( const char* fn, const HRESULT hr, Errors& errors )
   {
@@ -78,9 +78,13 @@ namespace Tac::Render
     errors.Append( msg );
   }
 
-  void DX12SetName( ID3D12Object* obj, StringView sv )
+  void DX12SetNameAux( ID3D12Object* obj, StringView sv )
   {
-    const HRESULT hr = obj->SetName( ToWStr( sv ) );
+    std::wstring ws;
+    for( char c : sv )
+      ws += c;
+
+    const HRESULT hr = obj->SetName( ws.c_str() );
     TAC_ASSERT( hr == S_OK );
   }
 

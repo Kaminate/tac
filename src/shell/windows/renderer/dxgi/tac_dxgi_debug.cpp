@@ -9,7 +9,7 @@ namespace Tac::Render
 
   static PCom<IDXGIDebug> GetDXGIDebug()
   {
-    if( !IsDebugMode )
+    if constexpr( !IsDebugMode )
       return {};
 
     HMODULE hModule = GetModuleHandle( "Dxgidebug.dll" );
@@ -34,7 +34,7 @@ namespace Tac::Render
 
   void DXGIReportLiveObjects()
   {
-    if( !IsDebugMode )
+    if constexpr( !IsDebugMode )
       return;
 
     PCom<IDXGIDebug> dxgiDbg = GetDXGIDebug();

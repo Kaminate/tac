@@ -9,44 +9,34 @@
 //
 //*********************************************************
 
-struct CSPos // clip space position
-{
-  float4 mValue;
-};
-
-struct LinCol // linear color
-{
-  float4 mValue;
-};
+struct ClipSpacePosition3 { float3 mValue; };
+struct ClipSpacePosition4 { float4 mValue; };
+struct LinearColor3 { float3 mValue; };
+struct LinearColor4 { float4 mValue; };
 
 struct Vertex
 {
-  CSPos  mPosition : POSITION;
-  LinCol mColor    : COLOR;
+  ClipSpacePosition4 mPosition : POSITION;
+  LinearColor4       mColor    : COLOR;
 };
 
-struct PSInput
+struct VSOutput
 {
-    CSPos  mPosition : SV_POSITION;
-    LinCol mColor    : TAC_AUTO_SEMANTIC;
+    ClipSpacePosition4  mPosition : SV_POSITION;
+    LinearColor4        mColor    : TAC_AUTO_SEMANTIC;
 };
 
-PSInput VSMain(Vertex input)
+typedef VSOutput PSInput;
+
+VSOutput VSMain(Vertex input)
 {
-  PSInput result;
+  VSOutput result;
   result.mPosition = input.mPosition;
   result.mColor    = input.mColor;
   return result;
 }
 
-#if 0
-float4 sRGBToLinear(float4 color)
-{
-  return pow(color, 2.2);
-}
-#endif
-
-LinCol PSMain(PSInput input) : SV_TARGET
+LinearColor4 PSMain(PSInput input) : SV_TARGET
 {
   // NOTE (on gamma)
   //

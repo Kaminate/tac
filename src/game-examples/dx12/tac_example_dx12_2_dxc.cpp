@@ -93,7 +93,7 @@ namespace Tac::Render
     SaveBytecode();
     SaveDebug(setup.mPDBDir);
 
-    if( IsDebugMode )
+    if constexpr( IsDebugMode )
     {
       EnableDebug();
       DisableOptimizations();

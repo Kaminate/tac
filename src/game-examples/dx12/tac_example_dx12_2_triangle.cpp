@@ -24,12 +24,10 @@
 #include "src/shell/windows/renderer/dx12/tac_dx12_helper.h"
 #include "src/shell/windows/tac_win32.h"
 
-
-#define TAC_USE_VB() 1
-
-#define TAC_USE_OLD_FXC_SHADER_COMPILER() 0
-#define TAC_USE_NEW_DXC_SHADER_COMPILER() 0
-
+// set to true to use IASetVertexBuffers with an input layout
+// set to false to use bindless through a descriptor table
+// ( technically both use a vertex buffer, but only one uses input layout )
+static const bool sUseInputLayout = false;
 
 #pragma comment( lib, "d3d12.lib" ) // D3D12...
 
@@ -40,24 +38,24 @@ import std;
 namespace Tac
 {
   // -----------------------------------------------------------------------------------------------
-  struct CSPos3
+  struct ClipSpacePosition3
   {
-    explicit CSPos3( v3 v ) : mValue( v ) {}
-    explicit CSPos3(float x, float y, float z) : mValue{ x,y,z } {}
+    explicit ClipSpacePosition3( v3 v ) : mValue( v ) {}
+    explicit ClipSpacePosition3(float x, float y, float z) : mValue{ x,y,z } {}
     v3 mValue;
   };
 
-  struct LinCol3
+  struct LinearColor3
   {
-    explicit LinCol3( v3 v ) : mValue( v ) {}
-    explicit LinCol3( float x, float y, float z ) : mValue{ x, y, z } {}
+    explicit LinearColor3( v3 v ) : mValue( v ) {}
+    explicit LinearColor3( float x, float y, float z ) : mValue{ x, y, z } {}
     v3 mValue;
   };
 
   struct Vertex
   {
-    CSPos3 mPos;
-    LinCol3 mCol;
+    ClipSpacePosition3 mPos;
+    LinearColor3 mCol;
   };
 
   // -----------------------------------------------------------------------------------------------
@@ -121,7 +119,7 @@ namespace Tac
 
   void DX12AppHelloTriangle::EnableDebug( Errors& errors )
   {
-    if( !IsDebugMode )
+    if constexpr( !IsDebugMode )
       return;
 
     PCom<ID3D12Debug> dx12debug;
@@ -133,6 +131,7 @@ namespace Tac
     TAC_ASSERT( !m_device );
     m_debug->EnableDebugLayer();
     m_debugLayerEnabled = true;
+
   }
 
   void  MyD3D12MessageFunc( D3D12_MESSAGE_CATEGORY Category,
@@ -146,7 +145,7 @@ namespace Tac
 
   void DX12AppHelloTriangle::CreateInfoQueue( Errors& errors )
   {
-    if( !IsDebugMode )
+    if constexpr( !IsDebugMode )
       return;
 
     TAC_ASSERT( m_debugLayerEnabled );
@@ -187,6 +186,23 @@ namespace Tac
                    device.ppv() );
     m_device = device.QueryInterface<ID3D12Device5>();
     DX12SetName( m_device, "Device" );
+
+    if constexpr( IsDebugMode )
+    {
+      m_device.QueryInterface( m_debugDevice );
+      TAC_ASSERT( m_debugDevice );
+    }
+
+    InitDescriptorSizes();
+  }
+
+  void DX12AppHelloTriangle::InitDescriptorSizes()
+  {
+    for( int i = 0; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; i++ )
+    {
+      const auto type = ( D3D12_DESCRIPTOR_HEAP_TYPE )i;
+      m_descriptorSizes[ i ] = m_device->GetDescriptorHandleIncrementSize( type );
+    }
   }
 
   void DX12AppHelloTriangle::CreateCommandQueue( Errors& errors )
@@ -212,7 +228,7 @@ namespace Tac
                    &queueDesc,
                    m_commandQueue.iid(),
                    m_commandQueue.ppv() );
-    DX12SetName( (ID3D12CommandQueue*)m_commandQueue, "Command Queue" );
+    DX12SetName( m_commandQueue, "Command Queue" );
   }
 
   void DX12AppHelloTriangle::CreateRTVDescriptorHeap( Errors& errors )
@@ -234,8 +250,54 @@ namespace Tac
                    &desc,
                    m_rtvHeap.iid(),
                    m_rtvHeap.ppv() );
-    m_rtvDescriptorSize = m_device->GetDescriptorHandleIncrementSize( D3D12_DESCRIPTOR_HEAP_TYPE_RTV );
-    m_rtvHeapStart = m_rtvHeap->GetCPUDescriptorHandleForHeapStart();
+    m_rtvCpuHeapStart = m_rtvHeap->GetCPUDescriptorHandleForHeapStart();
+    m_rtvGpuHeapStart = m_rtvHeap->GetGPUDescriptorHandleForHeapStart();
+  }
+
+  void DX12AppHelloTriangle::CreateSRVDescriptorHeap( Errors& errors )
+  {
+    const D3D12_DESCRIPTOR_HEAP_DESC desc =
+    {
+      .Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
+      .NumDescriptors = 1,
+      .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,
+    };
+    TAC_DX12_CALL( m_device->CreateDescriptorHeap,
+                   &desc,
+                   m_srvHeap.iid(),
+                   m_srvHeap.ppv() );
+    m_srvCpuHeapStart = m_srvHeap->GetCPUDescriptorHandleForHeapStart();
+    m_srvGpuHeapStart = m_srvHeap->GetGPUDescriptorHandleForHeapStart();
+
+  }
+
+  void DX12AppHelloTriangle::CreateSRV( Errors& errors )
+  {
+    TAC_ASSERT( m_vertexBuffer );
+
+    // srv --> byteaddressbuffer
+    // uav --> rwbyteaddressbuffer
+
+    const D3D12_SHADER_RESOURCE_VIEW_DESC Desc
+    {
+      .Format = DXGI_FORMAT_R32_TYPELESS, // for byteaddressbuffer
+      .ViewDimension = D3D12_SRV_DIMENSION_BUFFER,
+      .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING, // swizzling?
+      .Buffer = D3D12_BUFFER_SRV
+      {
+        .FirstElement = 0,
+        .NumElements = m_vertexBufferView.SizeInBytes / ( UINT )sizeof( std::uint32_t ),
+        .Flags = D3D12_BUFFER_SRV_FLAG_RAW, // for byteaddressbuffer
+      },
+    };
+
+
+    const D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor = GetSRVCpuDescHandle( 0 );
+    
+    m_device->CreateShaderResourceView( ( ID3D12Resource* )m_vertexBuffer,
+                                        &Desc,
+                                        DestDescriptor );
+
   }
 
   void DX12AppHelloTriangle::CreateCommandAllocator( Errors& errors )
@@ -246,6 +308,7 @@ namespace Tac
                    D3D12_COMMAND_LIST_TYPE_DIRECT,
                    m_commandAllocator.iid(),
                    m_commandAllocator.ppv()  );
+    DX12SetName( m_commandAllocator, "My Command Allocator");
   }
 
   void DX12AppHelloTriangle::CreateCommandList( Errors& errors )
@@ -258,11 +321,12 @@ namespace Tac
                    0,
                    D3D12_COMMAND_LIST_TYPE_DIRECT,
                    D3D12_COMMAND_LIST_FLAG_NONE,
-                   m_commandList.iid(),
-                   m_commandList.ppv() );
-
+                   commandList.iid(),
+                   commandList.ppv() );
+    TAC_ASSERT(commandList);
     commandList.QueryInterface( m_commandList );
     TAC_ASSERT(m_commandList);
+    DX12SetName( m_commandList, "My Command List");
   }
 
   void DX12AppHelloTriangle::CreateVertexBuffer( Errors& errors )
@@ -274,18 +338,18 @@ namespace Tac
     {
       Vertex
       {
-        .mPos = CSPos3{0.0f, 0.25f * m_aspectRatio, 0.0f},
-        .mCol = LinCol3{ 1.0f, 0.0f, 0.0f}
+        .mPos = ClipSpacePosition3{0.0f, 0.25f * m_aspectRatio, 0.0f},
+        .mCol = LinearColor3{ 1.0f, 0.0f, 0.0f}
       },
       Vertex
       {
-        .mPos = CSPos3{ -0.25f, -0.25f * m_aspectRatio, 0.0f},
-        .mCol = LinCol3{ 0.0f, 0.0f, 1.0f}
+        .mPos = ClipSpacePosition3{ -0.25f, -0.25f * m_aspectRatio, 0.0f},
+        .mCol = LinearColor3{ 0.0f, 0.0f, 1.0f}
       },
       Vertex
       {
-        .mPos = CSPos3{ 0.25f, -0.25f * m_aspectRatio, 0.0f},
-        .mCol = LinCol3{ 0.0f, 1.0f, 0.0f}
+        .mPos = ClipSpacePosition3{ 0.25f, -0.25f * m_aspectRatio, 0.0f},
+        .mCol = LinearColor3{ 0.0f, 1.0f, 0.0f}
       },
     };
 
@@ -301,8 +365,6 @@ namespace Tac
       .Type = D3D12_HEAP_TYPE_UPLOAD,
       .CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN,
       .MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN,
-      .CreationNodeMask = 1,
-      .VisibleNodeMask = 1,
     };
 
     const D3D12_RESOURCE_DESC resourceDesc
@@ -332,6 +394,7 @@ namespace Tac
       m_vertexBuffer.iid(),
       m_vertexBuffer.ppv() );
 
+    DX12SetName( m_vertexBuffer, "vertexes");
 
     // Copy the triangle data to the vertex buffer.
     const D3D12_RANGE readRange{}; // not reading from CPU
@@ -365,6 +428,7 @@ namespace Tac
                    fence.ppv() );
 
     fence.QueryInterface(m_fence);
+    DX12SetName( fence, "fence" );
 
     m_fenceValue = 1;
 
@@ -376,29 +440,52 @@ namespace Tac
   {
     // Create an empty root signature.
 
+    const D3D12_DESCRIPTOR_RANGE1 descRange
+    {
+      .RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
+      .NumDescriptors = 1,
+      .BaseShaderRegister = 0, // t0
+      .RegisterSpace = 0, // space0
+      .Flags = D3D12_DESCRIPTOR_RANGE_FLAG_NONE,
+      .OffsetInDescriptorsFromTableStart = 0,
+    };
+
+    const Array descRanges =
+    {
+      descRange
+    };
 
     const Array params =
     {
-      // at myParamIndex
       D3D12_ROOT_PARAMETER1
       {
-        .ParameterType = D3D12_ROOT_PARAMETER_TYPE_UAV,
-        .Descriptor = D3D12_ROOT_DESCRIPTOR1
+        .ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE,
+        .DescriptorTable = D3D12_ROOT_DESCRIPTOR_TABLE1
         {
-          .ShaderRegister = 0,
-          .RegisterSpace = 0,
+          .NumDescriptorRanges = (UINT)descRanges.size(),
+          .pDescriptorRanges = descRanges.data()
         },
         .ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX,
       },
     };
 
-    TAC_ASSERT( myParamIndex == 0 && params.size() > myParamIndex )
+    TAC_ASSERT( myParamIndex == 0 && params.size() > myParamIndex );
+
+    const D3D12_ROOT_SIGNATURE_FLAGS rootSigFlags = sUseInputLayout
+      ? D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT
+      : D3D12_ROOT_SIGNATURE_FLAG_NONE;
 
     const D3D12_ROOT_SIGNATURE_DESC1 Desc_1_1
     {
       .NumParameters = (UINT)params.size(),
       .pParameters = params.data(),
-      .Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT,
+
+
+       // The app is opting in to using the Input Assembler
+       // ( requiring an input layout that defines a set of vertex buffer bindings ).
+       // Omitting this flag can result in one root argument space being saved on some hardware.
+       // Omit this flag if the Input Assembler is not required, though the optimization is minor.
+      .Flags = rootSigFlags,
     };
 
     const D3D12_VERSIONED_ROOT_SIGNATURE_DESC desc
@@ -428,6 +515,8 @@ namespace Tac
                    m_rootSignature.iid(),
                    m_rootSignature.ppv() );
 
+    DX12SetName( m_rootSignature, "My Root Signature" );
+
   }
 
 
@@ -449,7 +538,6 @@ namespace Tac
 
 
 
-#if TAC_USE_VB()
   struct DX12BuiltInputLayout : public D3D12_INPUT_LAYOUT_DESC
   {
     DX12BuiltInputLayout( const VertexDeclarations& vtxDecls )
@@ -475,7 +563,6 @@ namespace Tac
     }
     FixedVector< D3D12_INPUT_ELEMENT_DESC, 10 > mElementDescs;
   };
-#endif
 
   static D3D_SHADER_MODEL GetHighestShaderModel( ID3D12Device* device )
   {
@@ -505,11 +592,9 @@ namespace Tac
 
   void DX12AppHelloTriangle::CreatePipelineState( Errors& errors )
   {
-#if TAC_USE_VB()
-    const AssetPathStringView shaderAssetPath = "assets/hlsl/DX12HelloTriangle.hlsl";
-#else
-    const AssetPathStringView shaderAssetPath = "assets/hlsl/DX12HelloTriangleNoVB.hlsl";
-#endif
+    const AssetPathStringView shaderAssetPath = sUseInputLayout
+      ? "assets/hlsl/DX12HelloTriangle.hlsl"
+      : "assets/hlsl/DX12HelloTriangleBindless.hlsl";
 
     const String shaderStrRaw = TAC_CALL( LoadAssetPath, shaderAssetPath, errors );
     const String shaderStrProcessed = DX12PreprocessShader( shaderStrRaw );
@@ -540,7 +625,6 @@ namespace Tac
     auto [ vsBlob, vsBytecode ] = TAC_CALL( DX12CompileShaderDXC, vsInput, errors );
     auto [ psBlob, psBytecode ] = TAC_CALL( DX12CompileShaderDXC, psInput, errors );
     
-#if TAC_USE_VB()
 
     const DX12BuiltInputLayout inputLayout(
       VertexDeclarations
@@ -557,9 +641,7 @@ namespace Tac
           .mTextureFormat = Format::sv3,
           .mAlignedByteOffset = TAC_OFFSET_OF( Vertex, mCol ),
         },
-
       } );
-#endif
 
 
     const D3D12_RASTERIZER_DESC RasterizerState
@@ -594,8 +676,6 @@ namespace Tac
       },
     };
 
-    const D3D12_DEPTH_STENCIL_DESC DepthStencilState {};
-
     const D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc
     {
       .pRootSignature = ( ID3D12RootSignature* )m_rootSignature,
@@ -604,10 +684,10 @@ namespace Tac
       .BlendState = BlendState,
       .SampleMask = UINT_MAX,
       .RasterizerState = RasterizerState,
-      .DepthStencilState = DepthStencilState,
-#if TAC_USE_VB()
-      .InputLayout = inputLayout,
-#endif
+      .DepthStencilState = D3D12_DEPTH_STENCIL_DESC{},
+      .InputLayout = sUseInputLayout
+          ? ( D3D12_INPUT_LAYOUT_DESC )inputLayout
+          : D3D12_INPUT_LAYOUT_DESC{},
       .PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE,
       .NumRenderTargets = 1,
       .RTVFormats = { DXGIGetSwapChainFormat() },
@@ -618,7 +698,7 @@ namespace Tac
               mPipelineState.iid(),
               mPipelineState.ppv() );
 
-    ++asdf;
+    DX12SetName( mPipelineState, "My Pipeline State" );
 
   }
 
@@ -647,11 +727,48 @@ namespace Tac
     TAC_CALL( m_swapChain->GetDesc1, &m_swapChainDesc );
   }
 
-  D3D12_CPU_DESCRIPTOR_HANDLE DX12AppHelloTriangle::GetRenderTargetDescriptorHandle( int i ) const
+  D3D12_CPU_DESCRIPTOR_HANDLE DX12AppHelloTriangle::OffsetCpuDescHandle(
+    D3D12_CPU_DESCRIPTOR_HANDLE heapStart,
+    D3D12_DESCRIPTOR_HEAP_TYPE heapType,
+    int iOffset ) const
   {
-    D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_rtvHeapStart;
-    rtvHandle.ptr += i * m_rtvDescriptorSize;
-    return rtvHandle;
+    const UINT descriptorSize = m_descriptorSizes[heapType];
+    const SIZE_T ptr = heapStart.ptr + iOffset * descriptorSize;
+    return D3D12_CPU_DESCRIPTOR_HANDLE{ ptr };
+  }
+
+  D3D12_GPU_DESCRIPTOR_HANDLE DX12AppHelloTriangle::OffsetGpuDescHandle(
+    D3D12_GPU_DESCRIPTOR_HANDLE heapStart,
+    D3D12_DESCRIPTOR_HEAP_TYPE heapType,
+    int iOffset ) const
+  {
+    const UINT descriptorSize = m_descriptorSizes[heapType];
+    const SIZE_T ptr = heapStart.ptr + iOffset * descriptorSize;
+    return D3D12_GPU_DESCRIPTOR_HANDLE{ ptr };
+  }
+
+  D3D12_CPU_DESCRIPTOR_HANDLE DX12AppHelloTriangle::GetRTVCpuDescHandle( int i ) const
+  {
+    TAC_ASSERT( m_rtvHeap );
+    return OffsetCpuDescHandle( m_rtvCpuHeapStart, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, i );
+  }
+
+  D3D12_GPU_DESCRIPTOR_HANDLE DX12AppHelloTriangle::GetRTVGpuDescHandle( int i ) const
+  {
+    TAC_ASSERT( m_rtvHeap );
+    return OffsetGpuDescHandle( m_rtvGpuHeapStart, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, i );
+  }
+
+  D3D12_CPU_DESCRIPTOR_HANDLE DX12AppHelloTriangle::GetSRVCpuDescHandle( int i ) const
+  {
+    TAC_ASSERT( m_srvHeap );
+    return OffsetCpuDescHandle( m_srvCpuHeapStart, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, i );
+  }
+
+  D3D12_GPU_DESCRIPTOR_HANDLE DX12AppHelloTriangle::GetSRVGpuDescHandle( int i ) const
+  {
+    TAC_ASSERT( m_srvHeap );
+    return OffsetGpuDescHandle( m_srvGpuHeapStart, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, i );
   }
 
   void DX12AppHelloTriangle::CreateRenderTargetViews( Errors& errors )
@@ -662,12 +779,14 @@ namespace Tac
     // Create a RTV for each frame.
     for( UINT i = 0; i < bufferCount; i++ )
     {
-      const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = GetRenderTargetDescriptorHandle( i );
+      const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = GetRTVCpuDescHandle( i );
       PCom< ID3D12Resource >& renderTarget = m_renderTargets[ i ];
       TAC_DX12_CALL( m_swapChain->GetBuffer, i, renderTarget.iid(), renderTarget.ppv() );
       m_device->CreateRenderTargetView( ( ID3D12Resource* )renderTarget, nullptr, rtvHandle );
 
-      const D3D12_RESOURCE_DESC desc= renderTarget->GetDesc();
+      DX12SetName( renderTarget, "Render Target " + ToString( i ) );
+
+      m_renderTargetDescs[i] = renderTarget->GetDesc();
 
       // the render target resource is created in a state that is ready to be displayed on screen
       m_renderTargetStates[i] = D3D12_RESOURCE_STATE_PRESENT;
@@ -741,46 +860,65 @@ namespace Tac
                    // that the command list will modify, all leading to a draw call?
                    ( ID3D12PipelineState* )mPipelineState );
 
-#if TAC_USE_VB()
+    //m_commandList->SetPipelineState( ( ID3D12PipelineState* )mPipelineState );
+
     // Root signature... of the pipeline state?... which has already been created with said
     // root signature?
+    //
+    // You can pass nullptr to unbind the current root signature.
+    //
+    // Since you can share root signatures between pipelines you only need to set the root sig
+    // when that should change
     m_commandList->SetGraphicsRootSignature( m_rootSignature.Get() );
-#endif
+
     // sets the viewport of the pipeline state's rasterizer state?
     m_commandList->RSSetViewports( (UINT)m_viewports.size(), m_viewports.data() );
 
     // sets the scissor rect of the pipeline state's rasterizer state?
     m_commandList->RSSetScissorRects( (UINT)m_scissorRects.size(), m_scissorRects.data() );
 
-
-#if !TAC_USE_VB()
-    // test
-    {
-      m_commandList->SetGraphicsRootUnorderedAccessView( myParamIndex,
-    }
-
-#endif
-
     // Indicate that the back buffer will be used as a render target.
     TransitionRenderTarget( m_frameIndex, D3D12_RESOURCE_STATE_RENDER_TARGET );
 
-#if TAC_USE_VB()
-    const Array rtCpuHDescs = { GetRenderTargetDescriptorHandle( m_frameIndex ) };
+    const Array rtCpuHDescs = { GetRTVCpuDescHandle( m_frameIndex ) };
 
     m_commandList->OMSetRenderTargets( ( UINT )rtCpuHDescs.size(),
                                        rtCpuHDescs.data(),
                                        false,
                                        nullptr );
-#endif
 
     ClearRenderTargetView();
 
-#if TAC_USE_VB()
-    const Array vbViews = {m_vertexBufferView};
-    m_commandList->IASetVertexBuffers(0, (UINT)vbViews.size(), vbViews.data() );
+
+    if( sUseInputLayout )
+    {
+      const Array vbViews = { m_vertexBufferView };
+      m_commandList->IASetVertexBuffers(0, (UINT)vbViews.size(), vbViews.data() );
+    }
+    else
+    {
+      // ...
+      const Array descHeaps = { ( ID3D12DescriptorHeap* )m_srvHeap };
+      m_commandList->SetDescriptorHeaps( ( UINT )descHeaps.size(), descHeaps.data() );
+
+      // ...
+      const UINT RootParameterIndex = 0;
+      m_commandList->SetGraphicsRootDescriptorTable( RootParameterIndex, m_srvGpuHeapStart );
+    }
+
     m_commandList->IASetPrimitiveTopology( D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
-    m_commandList->DrawInstanced(3, 1, 0, 0);
-#endif
+
+    const D3D12_DRAW_ARGUMENTS drawArgs
+    {
+      .VertexCountPerInstance = 3,
+      .InstanceCount = 1,
+      .StartVertexLocation = 0,
+      .StartInstanceLocation = 0,
+    };
+    m_commandList->DrawInstanced( drawArgs.VertexCountPerInstance,
+                                  drawArgs.InstanceCount,
+                                  drawArgs.StartVertexLocation,
+                                  drawArgs.StartInstanceLocation );
 
     // Indicate that the back buffer will now be used to present.
     //
@@ -795,7 +933,7 @@ namespace Tac
 
   void DX12AppHelloTriangle::ClearRenderTargetView()
   {
-    const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = GetRenderTargetDescriptorHandle( m_frameIndex );
+    const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = GetRTVCpuDescHandle( m_frameIndex );
 
 #if 0
     const double speed = 3;
@@ -811,13 +949,13 @@ namespace Tac
 
   void DX12AppHelloTriangle::ExecuteCommandLists()
   {
-    const Array lists =
+    const FrameMemoryVector< ID3D12CommandList* > cmdLists =
     {
-      ( ID3D12CommandList* )( ID3D12GraphicsCommandList* )m_commandList
+      (ID3D12CommandList*)m_commandList
     };
 
     // Submits an array of command lists for execution.
-    m_commandQueue->ExecuteCommandLists( ( UINT )lists.size(), lists.data() );
+    m_commandQueue->ExecuteCommandLists( ( UINT )cmdLists.size(), cmdLists.data() );
   }
 
   void DX12AppHelloTriangle::SwapChainPresent( Errors& errors )
@@ -925,50 +1063,74 @@ namespace Tac
 
   void DX12AppHelloTriangle::Init( Errors& errors )
   {
-    CreateDesktopWindow();
+    TAC_CALL( PreSwapChainInit, errors );
+  }
 
+  void DX12AppHelloTriangle::PreSwapChainInit( Errors& errors)
+  {
+    CreateDesktopWindow();
     TAC_CALL( DXGIInit, errors );
     TAC_CALL( EnableDebug, errors );
     TAC_CALL( CreateDevice, errors );
-    TAC_CALL( CreateInfoQueue, errors );
+    TAC_CALL( CreateFence, errors );
     TAC_CALL( CreateCommandQueue, errors );
     TAC_CALL( CreateRTVDescriptorHeap, errors );
+    //return;
+    TAC_CALL( CreateInfoQueue, errors );
+    TAC_CALL( CreateSRVDescriptorHeap, errors );
     TAC_CALL( CreateCommandAllocator, errors );
     TAC_CALL( CreateCommandList, errors );
-    TAC_CALL( CreateFence, errors );
     TAC_CALL( CreateRootSignature, errors );
     TAC_CALL( CreatePipelineState, errors );
+  }
+  void DX12AppHelloTriangle::PostSwapChainInit( Errors& errors)
+  {
+    if( m_swapChain )
+      return;
 
+    TAC_CALL( DX12CreateSwapChain, errors );
+    TAC_CALL( CreateRenderTargetViews, errors );
+    TAC_CALL( CreateVertexBuffer, errors );
+    TAC_CALL( CreateSRV, errors );
+
+    m_viewport = D3D12_VIEWPORT
+    {
+     .Width = ( float )m_swapChainDesc.Width,
+     .Height = ( float )m_swapChainDesc.Height,
+    };
+
+    m_viewports = { m_viewport };
+
+    m_scissorRect = D3D12_RECT
+    {
+      .right = ( LONG )m_swapChainDesc.Width,
+      .bottom = ( LONG )m_swapChainDesc.Height,
+    };
+
+    m_scissorRects = { m_scissorRect };
   }
 
   void DX12AppHelloTriangle::Update( Errors& errors )
   {
-
     if( !GetDesktopWindowNativeHandle( hDesktopWindow ) )
       return;
 
-    if( !m_swapChain )
+    if( false )
     {
-      TAC_CALL( DX12CreateSwapChain, errors );
-      TAC_CALL( CreateRenderTargetViews, errors );
-      TAC_CALL( CreateVertexBuffer, errors );
 
-      m_viewport = D3D12_VIEWPORT
+      if( !m_swapChain )
       {
-       .Width = ( float )m_swapChainDesc.Width,
-       .Height = ( float )m_swapChainDesc.Height,
-      };
+        TAC_CALL( DX12CreateSwapChain, errors );
+        TAC_CALL( CreateRenderTargetViews, errors );
+      }
 
-      m_viewports = { m_viewport };
-
-      m_scissorRect = D3D12_RECT
-      {
-        .right = ( LONG )m_swapChainDesc.Width,
-        .bottom = ( LONG )m_swapChainDesc.Height,
-      };
-
-      m_scissorRects = { m_scissorRect };
+      TAC_CALL( SwapChainPresent, errors );
+      TAC_CALL( WaitForPreviousFrame, errors );
+      return;
     }
+
+
+    TAC_CALL( PostSwapChainInit, errors );
 
     // Record all the commands we need to render the scene into the command list.
     TAC_CALL( PopulateCommandList, errors );
@@ -977,10 +1139,8 @@ namespace Tac
 
     TAC_CALL( SwapChainPresent, errors );
 
-
     TAC_CALL( WaitForPreviousFrame, errors );
 
-    ++asdf;
   }
 
   void DX12AppHelloTriangle::Uninit( Errors& errors )

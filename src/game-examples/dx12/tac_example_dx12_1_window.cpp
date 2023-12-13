@@ -78,7 +78,7 @@ namespace Tac
 
   void DX12AppHelloWindow::EnableDebug( Errors& errors )
   {
-    if( !IsDebugMode )
+    if constexpr( !IsDebugMode )
       return;
 
     Render::PCom<ID3D12Debug> dx12debug;
@@ -102,7 +102,7 @@ namespace Tac
 
   void DX12AppHelloWindow::CreateInfoQueue( Errors& )
   {
-    if( !IsDebugMode )
+    if constexpr( !IsDebugMode )
       return;
 
     TAC_ASSERT( m_dbgLayerEnabled );
@@ -154,7 +154,7 @@ namespace Tac
                    &queueDesc,
                    m_commandQueue.iid(),
                    m_commandQueue.ppv() );
-    Render::DX12SetName( (ID3D12CommandQueue*)m_commandQueue, "Command Queue" );
+    Render::DX12SetName( m_commandQueue, "Command Queue" );
   }
 
   void DX12AppHelloWindow::CreateRTVDescriptorHeap( Errors& errors )

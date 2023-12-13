@@ -92,7 +92,7 @@ namespace Tac::Render
     TAC_ASSERT( IsMainThread() );
     TAC_ASSERT( name.size() );
     TAC_ASSERT( suffix.size() );
-    if( !IsDebugMode )
+    if constexpr( !IsDebugMode )
       return;
 
     const String oldName = namer->GetName();

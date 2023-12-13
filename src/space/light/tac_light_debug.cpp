@@ -34,7 +34,7 @@ namespace Tac
   static void LightDebugImguiType( Light* light )
   {
     const char* lightTypeStr = LightTypeToName( light->mType );
-    ImGuiText( va( "Light type: {}", lightTypeStr ) );
+    ImGuiText( ShortFixedString::Concat( "Light type: ", ToString( lightTypeStr ) ) );
     ImGuiText( "Change light type: " );
     for( Light::Type type = ( Light::Type )0; type < Light::Type::kCount; type = ( Light::Type )( type + 1 ) )
     {
@@ -47,7 +47,7 @@ namespace Tac
     }
 
     if( light->mType == Light::kSpot
-        && ImGuiCollapsingHeader( va( "{} light parameters", lightTypeStr ) ) )
+        && ImGuiCollapsingHeader( ShortFixedString::Concat( lightTypeStr, " light parameters" ) ) )
     {
       TAC_IMGUI_INDENT_BLOCK;
       float fovDeg = light->mSpotHalfFOVRadians * ( 180.0f / 3.14f );
@@ -73,9 +73,10 @@ namespace Tac
     ImGuiSameLine();
     newDim = Max( newDim, 64 );
     newDim = Min( newDim, 1024 );
-    ImGuiText( va( "Shadow Resolution {}x{}",
-               light->mShadowResolution,
-               light->mShadowResolution ) );
+    ImGuiText( ShortFixedString::Concat( "Shadow Resolution ",
+               ToString( light->mShadowResolution ),
+               "x",
+               ToString( light->mShadowResolution ) ) );
   }
 
   static void Camera3DDraw( const Camera& camera, Debug3DDrawData* drawData)
