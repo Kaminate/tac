@@ -131,7 +131,6 @@ namespace Tac
     TAC_ASSERT( !m_device );
     m_debug->EnableDebugLayer();
     m_debugLayerEnabled = true;
-
   }
 
   void  MyD3D12MessageFunc( D3D12_MESSAGE_CATEGORY Category,
@@ -199,10 +198,8 @@ namespace Tac
   void DX12AppHelloTriangle::InitDescriptorSizes()
   {
     for( int i = 0; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; i++ )
-    {
-      const auto type = ( D3D12_DESCRIPTOR_HEAP_TYPE )i;
-      m_descriptorSizes[ i ] = m_device->GetDescriptorHandleIncrementSize( type );
-    }
+      m_descriptorSizes[ i ]
+      = m_device->GetDescriptorHandleIncrementSize( ( D3D12_DESCRIPTOR_HEAP_TYPE )i );
   }
 
   void DX12AppHelloTriangle::CreateCommandQueue( Errors& errors )
@@ -216,13 +213,10 @@ namespace Tac
       //
       // [ ] Q: What GPU state does a bundle command list inherit?
       // [ ] A: 
-      //
-      // [ ] Q: differnece between createcommandQueue and createCOmmandList?
-      //        why does createCommandQUeue have a D3D12_COMMAND_LIST_TYPE_...?
-      // [ ] A: 
+
+      // This command queue manages direct command lists (direct for graphics rendering)
       .Type = D3D12_COMMAND_LIST_TYPE_DIRECT,
     };
-
 
     TAC_DX12_CALL( m_device->CreateCommandQueue,
                    &queueDesc,
@@ -235,8 +229,6 @@ namespace Tac
   {
     // https://learn.microsoft.com/en-us/windows/win32/direct3d12/descriptors
     // Descriptors are the primary unit of binding for a single resource in D3D12.
-
-
 
     // https://learn.microsoft.com/en-us/windows/win32/direct3d12/descriptor-heaps
     // A descriptor heap is a collection of contiguous allocations of descriptors,
@@ -268,7 +260,6 @@ namespace Tac
                    m_srvHeap.ppv() );
     m_srvCpuHeapStart = m_srvHeap->GetCPUDescriptorHandleForHeapStart();
     m_srvGpuHeapStart = m_srvHeap->GetGPUDescriptorHandleForHeapStart();
-
   }
 
   void DX12AppHelloTriangle::CreateSRV( Errors& errors )
@@ -355,12 +346,8 @@ namespace Tac
 
     const UINT vertexBufferSize = sizeof( triangleVertices );
 
-    // Note: using upload heaps to transfer static data like vert buffers is not 
-    // recommended. Every time the GPU needs it, the upload heap will be marshalled 
-    // over. Please read up on Default Heap usage. An upload heap is used here for 
-    // code simplicity and because there are very few verts to actually transfer.
 
-    const D3D12_HEAP_PROPERTIES heapProps
+    const D3D12_HEAP_PROPERTIES uploadHeapProps
     {
       .Type = D3D12_HEAP_TYPE_UPLOAD,
       .CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN,
@@ -384,13 +371,38 @@ namespace Tac
       .Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR,
     };
 
+    // must be null for buffer
+    const D3D12_CLEAR_VALUE* pOptimizedClearValue = nullptr;
 
+    // D3D12_RESOURCE_STATE_GENERIC_READ
+    //   An OR'd combination of other read-state bits.
+    //   The required starting state for an upload heap
+    const D3D12_RESOURCE_STATES uploadHeapResourceStates = D3D12_RESOURCE_STATE_GENERIC_READ;
     TAC_CALL( m_device->CreateCommittedResource,
-      &heapProps,
+              &uploadHeapProps,
+              D3D12_HEAP_FLAG_NONE,
+              &resourceDesc,
+              uploadHeapResourceStates,
+              pOptimizedClearValue,
+              m_vertexBufferUploadHeap.iid(),
+              m_vertexBufferUploadHeap.ppv() );
+
+    const D3D12_HEAP_PROPERTIES defaultHeapProps
+    {
+      .Type = D3D12_HEAP_TYPE_DEFAULT,
+      .CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN,
+      .MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN,
+    };
+
+    // Creates both a resource and an implicit heap,
+    // such that the heap is big enough to contain the entire resource,
+    // and the resource is mapped to the heap.
+    TAC_CALL( m_device->CreateCommittedResource,
+      &defaultHeapProps,
       D3D12_HEAP_FLAG_NONE,
       &resourceDesc,
-      D3D12_RESOURCE_STATE_GENERIC_READ,
-      nullptr, // D3D12_CLEAR_VALUE*
+      D3D12_RESOURCE_STATE_COPY_DEST, // we want to copy into here from the uplaod buffer
+      pOptimizedClearValue,
       m_vertexBuffer.iid(),
       m_vertexBuffer.ppv() );
 
@@ -403,6 +415,8 @@ namespace Tac
     MemCpy( pVertexDataBegin, triangleVertices, vertexBufferSize );
     m_vertexBuffer->Unmap( 0, nullptr );
 
+
+    m_commandList->ResourceBarrier;
 
     // Initialize the vertex buffer view.
     m_vertexBufferView = D3D12_VERTEX_BUFFER_VIEW 
@@ -516,11 +530,10 @@ namespace Tac
                    m_rootSignature.ppv() );
 
     DX12SetName( m_rootSignature, "My Root Signature" );
-
   }
 
 
-  String DX12PreprocessShader( StringView shader )
+  static String DX12PreprocessShader( StringView shader )
   {
     String newShader;
 
@@ -535,8 +548,6 @@ namespace Tac
 
     return newShader;
   }
-
-
 
   struct DX12BuiltInputLayout : public D3D12_INPUT_LAYOUT_DESC
   {
@@ -557,8 +568,8 @@ namespace Tac
 
       *( D3D12_INPUT_LAYOUT_DESC* )this = D3D12_INPUT_LAYOUT_DESC
       {
-            .pInputElementDescs = mElementDescs.data(),
-            .NumElements = (UINT)n,
+        .pInputElementDescs = mElementDescs.data(),
+        .NumElements = (UINT)n,
       };
     }
     FixedVector< D3D12_INPUT_ELEMENT_DESC, 10 > mElementDescs;
@@ -1114,21 +1125,6 @@ namespace Tac
   {
     if( !GetDesktopWindowNativeHandle( hDesktopWindow ) )
       return;
-
-    if( false )
-    {
-
-      if( !m_swapChain )
-      {
-        TAC_CALL( DX12CreateSwapChain, errors );
-        TAC_CALL( CreateRenderTargetViews, errors );
-      }
-
-      TAC_CALL( SwapChainPresent, errors );
-      TAC_CALL( WaitForPreviousFrame, errors );
-      return;
-    }
-
 
     TAC_CALL( PostSwapChainInit, errors );
 

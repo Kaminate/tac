@@ -11,20 +11,12 @@
 
 namespace Tac::Render
 {
-
   static bool IsSingleLineCommented( const StringView& line )
   {
     ParseData shaderParseData( line.data(), line.size() );
     shaderParseData.EatWhitespace();
     return shaderParseData.EatStringExpected( "//" );
   }
-
-
-
-
-
-
-
 
   static String PreprocessShaderLine( const StringView& line, Errors& errors )
   {
@@ -58,6 +50,7 @@ namespace Tac::Render
     static int recurseCount;
     if( !recurseCount )
       ResetShaderRegisters();
+
     ++recurseCount;
 
     String result;

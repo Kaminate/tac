@@ -155,6 +155,7 @@ namespace Tac
     // (such as the input assembler, tesselator, rasterizer and output merger).
     PCom< ID3D12PipelineState >        mPipelineState;
 
+    PCom<ID3D12Resource>               m_vertexBufferUploadHeap;
     PCom<ID3D12Resource>               m_vertexBuffer;
     D3D12_VERTEX_BUFFER_VIEW           m_vertexBufferView;
 
