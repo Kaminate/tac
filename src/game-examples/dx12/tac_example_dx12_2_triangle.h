@@ -158,6 +158,8 @@ namespace Tac
     PCom<ID3D12Resource>               m_vertexBufferUploadHeap;
     PCom<ID3D12Resource>               m_vertexBuffer;
     D3D12_VERTEX_BUFFER_VIEW           m_vertexBufferView;
+    UINT                               m_vertexBufferSize;
+    bool                               m_vertexBufferCopied = false;
 
     D3D12_VIEWPORT                     m_viewport;
     D3D12_RECT                         m_scissorRect;

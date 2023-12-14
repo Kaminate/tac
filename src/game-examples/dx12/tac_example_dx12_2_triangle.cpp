@@ -27,7 +27,7 @@
 // set to true to use IASetVertexBuffers with an input layout
 // set to false to use bindless through a descriptor table
 // ( technically both use a vertex buffer, but only one uses input layout )
-static const bool sUseInputLayout = false;
+static const bool sUseInputLayout = true;
 
 #pragma comment( lib, "d3d12.lib" ) // D3D12...
 
@@ -344,7 +344,7 @@ namespace Tac
       },
     };
 
-    const UINT vertexBufferSize = sizeof( triangleVertices );
+    m_vertexBufferSize = sizeof( triangleVertices );
 
 
     const D3D12_HEAP_PROPERTIES uploadHeapProps
@@ -358,7 +358,7 @@ namespace Tac
     {
       .Dimension = D3D12_RESOURCE_DIMENSION_BUFFER,
       .Alignment = 0,
-      .Width = vertexBufferSize,
+      .Width = m_vertexBufferSize,
       .Height = 1,
       .DepthOrArraySize = 1,
       .MipLevels = 1,
@@ -407,22 +407,22 @@ namespace Tac
       m_vertexBuffer.ppv() );
 
     DX12SetName( m_vertexBuffer, "vertexes");
+    DX12SetName( m_vertexBufferUploadHeap, "vertex upload");
 
-    // Copy the triangle data to the vertex buffer.
+    // Copy the triangle data to the vertex buffer upload heap.
     const D3D12_RANGE readRange{}; // not reading from CPU
     void* pVertexDataBegin;
-    TAC_DX12_CALL( m_vertexBuffer->Map, 0, &readRange, &pVertexDataBegin );
-    MemCpy( pVertexDataBegin, triangleVertices, vertexBufferSize );
-    m_vertexBuffer->Unmap( 0, nullptr );
+    TAC_DX12_CALL( m_vertexBufferUploadHeap->Map, 0, &readRange, &pVertexDataBegin );
+    MemCpy( pVertexDataBegin, triangleVertices, m_vertexBufferSize );
+    m_vertexBufferUploadHeap->Unmap( 0, nullptr );
 
-
-    m_commandList->ResourceBarrier;
+    
 
     // Initialize the vertex buffer view.
     m_vertexBufferView = D3D12_VERTEX_BUFFER_VIEW 
     {
       .BufferLocation = m_vertexBuffer->GetGPUVirtualAddress(),
-      .SizeInBytes = vertexBufferSize,
+      .SizeInBytes = m_vertexBufferSize,
       .StrideInBytes = sizeof( Vertex ),
     };
 
@@ -861,6 +861,10 @@ namespace Tac
     // re-recording.
     //
     // ID3D12GraphicsCommandList::Reset
+    //
+    //   Resets a command list back to its initial state as if a new command list was just created.
+    //   After Reset succeeds, the command list is left in the "recording" state.
+    //
     //   you can re-use command list tracking structures without any allocations
     //   you can call Reset while the command list is still being executed
     //   you can submit a cmd list, reset it, and reuse the allocated memory for another cmd list
@@ -870,6 +874,34 @@ namespace Tac
                    // The associated pipeline state (IA, OM, RS, ... )
                    // that the command list will modify, all leading to a draw call?
                    ( ID3D12PipelineState* )mPipelineState );
+
+    if( !m_vertexBufferCopied )
+    {
+      m_vertexBufferCopied = true;
+      const D3D12_RESOURCE_STATES StateAfter = sUseInputLayout
+          ? D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER
+          : D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE; // byteaddressbuffer
+
+      const D3D12_RESOURCE_BARRIER barrier
+      {
+       .Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION,
+        .Transition = D3D12_RESOURCE_TRANSITION_BARRIER
+        {
+          .pResource = (ID3D12Resource*)m_vertexBuffer,
+          .StateBefore = D3D12_RESOURCE_STATE_COPY_DEST,
+          .StateAfter =  StateAfter
+        },
+      };
+      const Array barriers = { barrier };
+
+      m_commandList->CopyBufferRegion( (ID3D12Resource*)m_vertexBuffer,
+                                       0,
+                                       (ID3D12Resource*)m_vertexBufferUploadHeap,
+                                       0,
+                                       m_vertexBufferSize );
+
+      m_commandList->ResourceBarrier( ( UINT )barriers.size(), barriers.data() );
+    }
 
     //m_commandList->SetPipelineState( ( ID3D12PipelineState* )mPipelineState );
 
@@ -1086,7 +1118,6 @@ namespace Tac
     TAC_CALL( CreateFence, errors );
     TAC_CALL( CreateCommandQueue, errors );
     TAC_CALL( CreateRTVDescriptorHeap, errors );
-    //return;
     TAC_CALL( CreateInfoQueue, errors );
     TAC_CALL( CreateSRVDescriptorHeap, errors );
     TAC_CALL( CreateCommandAllocator, errors );
@@ -1094,6 +1125,7 @@ namespace Tac
     TAC_CALL( CreateRootSignature, errors );
     TAC_CALL( CreatePipelineState, errors );
   }
+
   void DX12AppHelloTriangle::PostSwapChainInit( Errors& errors)
   {
     if( m_swapChain )
@@ -1110,14 +1142,13 @@ namespace Tac
      .Height = ( float )m_swapChainDesc.Height,
     };
 
-    m_viewports = { m_viewport };
-
     m_scissorRect = D3D12_RECT
     {
       .right = ( LONG )m_swapChainDesc.Width,
       .bottom = ( LONG )m_swapChainDesc.Height,
     };
 
+    m_viewports = { m_viewport };
     m_scissorRects = { m_scissorRect };
   }
 
