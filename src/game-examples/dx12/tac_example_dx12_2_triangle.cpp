@@ -27,7 +27,7 @@
 // set to true to use IASetVertexBuffers with an input layout
 // set to false to use bindless through a descriptor table
 // ( technically both use a vertex buffer, but only one uses input layout )
-static const bool sUseInputLayout = true;
+static const bool sUseInputLayout = false;
 
 #pragma comment( lib, "d3d12.lib" ) // D3D12...
 
@@ -637,7 +637,7 @@ namespace Tac
     auto [ psBlob, psBytecode ] = TAC_CALL( DX12CompileShaderDXC, psInput, errors );
     
 
-    const DX12BuiltInputLayout inputLayout(
+    const DX12BuiltInputLayout inputLayout{
       VertexDeclarations
       {
         VertexDeclaration
@@ -652,7 +652,7 @@ namespace Tac
           .mTextureFormat = Format::sv3,
           .mAlignedByteOffset = TAC_OFFSET_OF( Vertex, mCol ),
         },
-      } );
+      } };
 
 
     const D3D12_RASTERIZER_DESC RasterizerState
@@ -903,7 +903,8 @@ namespace Tac
       m_commandList->ResourceBarrier( ( UINT )barriers.size(), barriers.data() );
     }
 
-    //m_commandList->SetPipelineState( ( ID3D12PipelineState* )mPipelineState );
+    // no need to call ID3D12GraphicsCommandList::SetPipelineState( ID3D12PipelineState* ), I think
+    // that's implicitly done by ID3D12GraphicsCommandList::Reset( ..., ID3D12PipelineState* )
 
     // Root signature... of the pipeline state?... which has already been created with said
     // root signature?
@@ -931,7 +932,6 @@ namespace Tac
                                        nullptr );
 
     ClearRenderTargetView();
-
 
     if( sUseInputLayout )
     {
