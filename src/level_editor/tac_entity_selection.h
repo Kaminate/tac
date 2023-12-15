@@ -1,10 +1,10 @@
 #pragma once
 
-#include "src/common/tac_common.h"
+#include "src/common/tac_core.h"
 #include "src/common/math/tac_vector3.h"
 #include "src/common/containers/tac_vector.h"
-#include "src/space/tac_space_types.h"
-#include "src/space/tac_space.h"
+#include "space/tac_space_types.h"
+#include "space/tac_space.h"
 
 namespace Tac
 {

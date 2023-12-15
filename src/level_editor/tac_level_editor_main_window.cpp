@@ -9,8 +9,7 @@
 #include "src/common/shell/tac_shell_timer.h"
 #include "src/common/system/tac_desktop_window.h"
 #include "src/common/system/tac_filesystem.h"
-#include "src/common/core/tac_error_handling.h"
-#include "src/common/core/tac_event.h"
+#include "src/common/error/tac_error_handling.h"
 #include "src/common/dataprocess/tac_json.h"
 #include "src/common/input/tac_keyboard_input.h"
 #include "src/common/system/tac_os.h"
@@ -19,8 +18,8 @@
 #include "src/level_editor/tac_level_editor_prefab.h"
 #include "src/shell/tac_desktop_app.h"
 #include "src/shell/tac_desktop_window_graphics.h"
-#include "src/space/tac_entity.h"
-#include "src/space/tac_world.h"
+#include "space/ecs/tac_entity.h"
+#include "space/world/tac_world.h"
 
 namespace Tac
 {

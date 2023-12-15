@@ -1,12 +1,12 @@
-#include "src/space/presentation/tac_skybox_presentation.h" // self-inc
+#include "space/presentation/tac_skybox_presentation.h" // self-inc
 
-#include "src/common/core/tac_error_handling.h"
+#include "src/common/error/tac_error_handling.h"
 #include "src/common/assetmanagers/tac_asset.h"
 #include "src/common/string/tac_string.h"
 #include "src/common/memory/tac_memory.h"
 #include "src/common/system/tac_desktop_window.h"
 #include "src/common/graphics/tac_camera.h"
-#include "src/common/core/tac_error_handling.h"
+#include "src/common/error/tac_error_handling.h"
 #include "src/common/assetmanagers/tac_texture_asset_manager.h"
 #include "src/common/assetmanagers/tac_model_asset_manager.h"
 #include "src/common/assetmanagers/tac_mesh.h"

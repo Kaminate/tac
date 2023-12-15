@@ -16,18 +16,25 @@ add_executable( standalone_win_dx12_2_triangle WIN32
   "tac_example_dx12_2_dxc.h"
 )
 
+add_executable( standalone_win_dx12_3_texture WIN32 
+  "tac_example_dx12_3_texture.cpp"
+  "tac_example_dx12_3_texture.h"
+  "tac_example_dx12_2_dxc.cpp"
+  "tac_example_dx12_2_dxc.h"
+)
+
 set_property( TARGET standalone_win_dx12_2_triangle PROPERTY OUTPUT_NAME "DX12 Triangle" )
 
 # Get a semicolon-separated list of executable target names
 get_property(targetnames DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY BUILDSYSTEM_TARGETS)
 
 foreach(targetname ${targetnames})
-  target_sources(${targetname} PRIVATE ${TAC_WIN_MAIN_FILES})
   target_link_libraries( ${targetname}
-    TacCommon
+    TacCore
     TacGhost
     TacWin
-    $<TARGET_OBJECTS:TacDesktopApp>
+    TacDesktopApp
+    TacWinMain
   )
 
 endforeach()

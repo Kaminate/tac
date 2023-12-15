@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "src/common/tac_common.h"
+#include "src/common/tac_core.h"
 #include <d3d11_3.h> // ID3D11DeviceChild
 
 namespace Tac::Render

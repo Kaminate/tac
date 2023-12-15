@@ -1,7 +1,5 @@
 #include "tac_example_dx12_2_dxc.h" // self-inc
 
-#include "src/common/shell/tac_shell.h" // sShellPrefPath
-#include "src/common/system/tac_filesystem.h" // Tac::Filesystem
 #include "src/common/containers/tac_array.h"
 #include "src/common/string/tac_string_util.h" // IsAscii
 #include "src/shell/windows/renderer/dx12/tac_dx12_helper.h" // TAC_DX12_CALL_RET
@@ -184,19 +182,6 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
-  // ext does not include '.'
-  static Filesystem::Path FileStemExtToName( const StringView stem,
-                                           const StringView ext )
-  {
-    TAC_ASSERT( !ext.contains( '.' ) );
-    return stem + "." + ext;
-  }
-
-  static Filesystem::Path FilenameToPath( StringView filename )
-  {
-    return sShellPrefPath.Get() / filename.c_str();
-  }
-
   static void SaveBlobToFile( TAC_NOT_CONST PCom< IDxcBlob> blob,
                               const Filesystem::Path& path,
                               Errors& errors )
@@ -228,6 +213,7 @@ namespace Tac::Render
   DX12DXCOutput DX12CompileShaderDXC( const DX12ShaderCompileFromStringInput& input,
                                              Errors& errors )
   {
+    TAC_ASSERT( !input.mOutputDir.empty() );
 
     TAC_ASSERT_MSG(
       input.mShaderModel >= D3D_SHADER_MODEL_6_0,
@@ -241,7 +227,7 @@ namespace Tac::Render
 
     const String target = GetTarget( input.mType, input.mShaderModel );
     const String inputShaderName =  input.mShaderAssetPath.GetFilename();
-    const Filesystem::Path hlslShaderPath = sShellPrefPath / inputShaderName;
+    const Filesystem::Path hlslShaderPath = input.mOutputDir / inputShaderName;
 
     TAC_CALL_RET( {}, Filesystem::SaveToFile, hlslShaderPath, input.mPreprocessedShader , errors );
 
@@ -250,7 +236,7 @@ namespace Tac::Render
       .mEntryPoint = input.mEntryPoint ,
       .mTargetProfile = target,
       .mFilename = inputShaderName,
-      .mPDBDir = sShellPrefPath,
+      .mPDBDir = input.mOutputDir,
       .mUtils = pUtils,
     };
     TAC_NOT_CONST DXCArgHelper argHelper( argHelperSetup );
@@ -318,7 +304,7 @@ namespace Tac::Render
                          pShaderName.CreateAddress() );
       TAC_RAISE_ERROR_IF_RETURN( !pShader, "No shader dxil", {} );
       const String outputShaderName = GetBlob16AsUTF8( pShaderName, pUtils );
-      const Filesystem::Path dxilShaderPath = sShellPrefPath / outputShaderName;
+      const Filesystem::Path dxilShaderPath = input.mOutputDir / outputShaderName;
       TAC_CALL_RET( {}, SaveBlobToFile,pShader, dxilShaderPath, errors );
     }
     else
@@ -340,7 +326,7 @@ namespace Tac::Render
                            pPDBName.CreateAddress() );
       TAC_RAISE_ERROR_IF_RETURN( !pShader, "No shader pdb", {} );
       const String pdbName = GetBlob16AsUTF8( pPDBName, pUtils );
-      const Filesystem::Path pdbPath = sShellPrefPath / pdbName;
+      const Filesystem::Path pdbPath = input.mOutputDir / pdbName;
       TAC_CALL_RET( {}, SaveBlobToFile,pPDB, pdbPath, errors );
     }
 

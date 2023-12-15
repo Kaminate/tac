@@ -9,8 +9,8 @@
 #include "src/common/containers/tac_frame_vector.h"
 #include "src/common/assetmanagers/tac_asset.h"
 #include "src/common/memory/tac_frame_memory.h"
-#include "src/common/core/tac_error_handling.h"
-#include "src/common/core/tac_preprocessor.h"
+#include "src/common/error/tac_error_handling.h"
+#include "src/common/preprocess/tac_preprocessor.h"
 #include "src/common/math/tac_math.h"
 #include "src/common/math/tac_vector4.h"
 #include "src/common/system/tac_filesystem.h"
@@ -623,6 +623,7 @@ namespace Tac
       .mEntryPoint = "VSMain",
       .mType = ShaderType::Vertex,
       .mShaderModel = shaderModel,
+      .mOutputDir = sShellPrefPath,
     };
 
     const DX12ShaderCompileFromStringInput psInput
@@ -632,12 +633,11 @@ namespace Tac
       .mEntryPoint = "PSMain",
       .mType = ShaderType::Fragment,
       .mShaderModel = shaderModel,
+      .mOutputDir = sShellPrefPath,
     };
 
-
-    auto [ vsBlob, vsBytecode ] = TAC_CALL( DX12CompileShaderDXC, vsInput, errors );
-    auto [ psBlob, psBytecode ] = TAC_CALL( DX12CompileShaderDXC, psInput, errors );
-    
+    const DX12DXCOutput vs = TAC_CALL( DX12CompileShaderDXC, vsInput, errors );
+    const DX12DXCOutput ps = TAC_CALL( DX12CompileShaderDXC, psInput, errors );
 
     const DX12BuiltInputLayout inputLayout{
       VertexDeclarations
@@ -695,8 +695,8 @@ namespace Tac
     const D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc
     {
       .pRootSignature = ( ID3D12RootSignature* )m_rootSignature,
-      .VS = vsBytecode,
-      .PS = psBytecode,
+      .VS = vs.mByteCode,
+      .PS = ps.mByteCode,
       .BlendState = BlendState,
       .SampleMask = UINT_MAX,
       .RasterizerState = RasterizerState,
@@ -1189,7 +1189,7 @@ namespace Tac
   {
     const App::Config config
     {
-      .mName = "DX12 Hello Window",
+      .mName = "DX12 Hello Triangle",
       .mDisableRenderer = true,
     };
     return TAC_NEW DX12AppHelloTriangle( config );

@@ -3,8 +3,8 @@
 #include "src/common/assetmanagers/tac_asset.h"
 #include "src/common/containers/tac_array.h"
 #include "src/common/containers/tac_frame_vector.h"
-#include "src/common/core/tac_algorithm.h"
-#include "src/common/core/tac_preprocessor.h"
+#include "src/common/algorithm/tac_algorithm.h"
+#include "src/common/preprocess/tac_preprocessor.h"
 #include "src/common/dataprocess/tac_text_parser.h"
 #include "src/common/graphics/tac_renderer_backend.h"
 #include "src/common/math/tac_math.h"
@@ -310,6 +310,8 @@ namespace Tac::Render
     PCom<ID3D11Device> device;
     PCom<ID3D11DeviceContext> deviceContext;
 
+    TAC_CALL( DXGIInit, errors );
+
     TAC_DX11_CALL( D3D11CreateDevice,
                    pAdapter,
                    DriverType,
@@ -321,6 +323,14 @@ namespace Tac::Render
                    device.CreateAddress(),
                    &featureLevel,
                    deviceContext.CreateAddress() );
+
+    TAC_ASSERT( device );
+    TAC_ASSERT( deviceContext );
+    device.QueryInterface( mDevice );
+    deviceContext.QueryInterface( mDeviceContext );
+    TAC_ASSERT( mDevice );
+    TAC_ASSERT( mDeviceContext );
+
     // If you're directx is crashing / throwing exception, don't forget to check
     // your output window, it likes to put error messages there
     if constexpr( IsDebugMode )
@@ -343,14 +353,9 @@ namespace Tac::Render
 
     }
 
-    TAC_CALL( DXGIInit, errors );
 
 
-    device.QueryInterface( mDevice );
-    deviceContext.QueryInterface( mDeviceContext );
 
-    TAC_ASSERT( mDevice );
-    TAC_ASSERT( mDeviceContext );
 
   }
 

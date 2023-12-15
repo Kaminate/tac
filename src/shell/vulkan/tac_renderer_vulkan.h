@@ -119,7 +119,7 @@ void TacVulkanCallAux( TacErrors& errors, TacString functionName, VkResult res )
 
 //#include "src/common/graphics/tac_renderer.h"
 #include "src/common/graphics/tac_renderer_backend.h"
-#include "src/common/tac_common.h"
+#include "src/common/tac_core.h"
 
 #include <vulkan/vulkan.h>
 

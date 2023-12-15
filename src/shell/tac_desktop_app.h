@@ -1,7 +1,7 @@
 #pragma once
 
 #include "src/common/input/tac_keyboard_input.h"
-#include "src/common/tac_common.h"
+#include "src/common/tac_core.h"
 #include "src/common/system/tac_desktop_window.h"
 
 namespace Tac

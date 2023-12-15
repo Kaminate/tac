@@ -1,8 +1,8 @@
 #include "src/shell/windows/desktopwindow/tac_win32_desktop_window_manager.h" // self-inc
 
-#include "src/common/core/tac_algorithm.h"
-#include "src/common/core/tac_error_handling.h"
-#include "src/common/core/tac_preprocessor.h"
+#include "src/common/algorithm/tac_algorithm.h"
+#include "src/common/error/tac_error_handling.h"
+#include "src/common/preprocess/tac_preprocessor.h"
 #include "src/common/dataprocess/tac_settings.h"
 #include "src/common/graphics/imgui/tac_imgui.h"
 #include "src/common/input/tac_keyboard_input.h"

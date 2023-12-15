@@ -2,14 +2,14 @@
 #include "src/common/graphics/tac_font.h"
 #include "src/common/math/tac_math.h"
 #include "src/common/memory/tac_memory.h"
-#include "src/common/core/tac_preprocessor.h"
-#include "src/space/graphics/tac_graphics.h"
-#include "src/space/light/tac_light.h"
-#include "src/space/model/tac_model.h"
-#include "src/space/tac_entity.h"
-#include "src/space/skybox/tac_skybox_component.h"
-#include "src/space/tac_component.h"
-#include "src/space/tac_world.h"
+#include "src/common/preprocess/tac_preprocessor.h"
+#include "space/graphics/tac_graphics.h"
+#include "space/graphics/light/tac_light.h"
+#include "space/graphics/model/tac_model.h"
+#include "space/ecs/tac_entity.h"
+#include "space/graphics/skybox/tac_skybox_component.h"
+#include "space/ecs/tac_component.h"
+#include "space/world/tac_world.h"
 
 import std;
 //#include <set>

@@ -3,7 +3,7 @@
 #include "src/shell/vulkan/tac_renderer_vulkan.h" // TAC_VK_CALL
 #include "src/shell/windows/tac_win32.h"
 #include "src/common/system/tac_desktop_window.h"
-#include "src/common/core/tac_error_handling.h"
+#include "src/common/error/tac_error_handling.h"
 
 #include <vulkan/vulkan_win32.h>
 

@@ -1,6 +1,6 @@
 #include "src/game-examples/phy_sim/tac_example_phys_sim_3_torque.h" // self-inc
 
-#include "src/space/tac_world.h"
+#include "space/world/tac_world.h"
 #include "src/common/graphics/tac_camera.h"
 #include "src/common/graphics/imgui/tac_imgui.h"
 #include "src/common/string/tac_string_format.h"

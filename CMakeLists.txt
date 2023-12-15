@@ -118,7 +118,7 @@ endif()
 # The reason DXIL_PATH is cached is because cmake can be re-run from inside visual studio,
 # which doesn't have $ENV{WindowsSdkVerBinPath}.
 #
-message( "windows sdk ver bin path: $ENV{WindowsSdkVerBinPath} ")
+message( VERBOSE "windows sdk ver bin path: $ENV{WindowsSdkVerBinPath} ")
 if(EXISTS $ENV{WindowsSdkVerBinPath} )
   set( DXIL_PATH $ENV{WindowsSdkVerBinPath}x64/dxil.dll CACHE FILEPATH "dxil for signing shaders" )
   if( NOT EXISTS ${DXIL_PATH})
@@ -136,8 +136,6 @@ endif()
 
 
 # --------------------------------------------------------------------------------------------------
-
-
 
 add_subdirectory(src)
 add_subdirectory(assets)

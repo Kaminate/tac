@@ -6,7 +6,7 @@
 #include "src/shell/tac_desktop_window_graphics.h"
 #include "src/common/math/tac_math.h"
 #include "src/common/system/tac_desktop_window.h"
-#include "src/common/core/tac_error_handling.h"
+#include "src/common/error/tac_error_handling.h"
 #include "src/common/memory/tac_frame_memory.h"
 #include "src/common/system/tac_os.h"
 #include "src/common/dataprocess/tac_settings.h"
@@ -15,9 +15,9 @@
 #include "src/game-examples/tac_examples_registry.h"
 #include "src/shell/tac_desktop_app.h"
 #include "src/shell/tac_desktop_window_settings_tracker.h"
-#include "src/space/presentation/tac_game_presentation.h"
-#include "src/space/tac_entity.h"
-#include "src/space/tac_world.h"
+#include "space/presentation/tac_game_presentation.h"
+#include "space/ecs/tac_entity.h"
+#include "space/world/tac_world.h"
 
 import std; //#include <set>
 

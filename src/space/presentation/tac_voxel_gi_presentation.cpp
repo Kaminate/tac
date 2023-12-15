@@ -1,4 +1,4 @@
-#include "src/space/presentation/tac_voxel_gi_presentation.h" // self-inc
+#include "space/presentation/tac_voxel_gi_presentation.h" // self-inc
 
 #include "src/common/assetmanagers/tac_mesh.h"
 #include "src/common/assetmanagers/tac_model_asset_manager.h"
@@ -12,19 +12,19 @@
 #include "src/common/profile/tac_profile.h"
 #include "src/common/shell/tac_shell_timer.h"
 #include "src/common/graphics/tac_camera.h"
-#include "src/common/core/tac_error_handling.h"
+#include "src/common/error/tac_error_handling.h"
 #include "src/common/memory/tac_frame_memory.h"
 #include "src/common/dataprocess/tac_hash.h"
 #include "src/common/memory/tac_memory.h"
 #include "src/common/dataprocess/tac_settings.h"
 #include "src/common/meta/tac_meta.h"
 #include "src/common/meta/tac_meta_composite.h"
-#include "src/space/graphics/tac_graphics.h"
-#include "src/space/model/tac_model.h"
-#include "src/space/presentation/tac_game_presentation.h"
-#include "src/space/tac_entity.h"
-#include "src/space/light/tac_light.h"
-#include "src/space/tac_world.h"
+#include "space/graphics/tac_graphics.h"
+#include "space/graphics/model/tac_model.h"
+#include "space/presentation/tac_game_presentation.h"
+#include "space/ecs/tac_entity.h"
+#include "space/graphics/light/tac_light.h"
+#include "space/world/tac_world.h"
 
 #if _MSC_VER
 #pragma warning( disable: 4505)

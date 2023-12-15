@@ -1,7 +1,7 @@
 #include "src/level_editor/tac_level_editor_window_manager.h" // self-inc
 
-#include "src/common/core/tac_error_handling.h"
-#include "src/common/core/tac_preprocessor.h"
+#include "src/common/error/tac_error_handling.h"
+#include "src/common/preprocess/tac_preprocessor.h"
 #include "src/common/system/tac_desktop_window.h"
 #include "src/common/dataprocess/tac_json.h"
 #include "src/common/dataprocess/tac_settings.h"

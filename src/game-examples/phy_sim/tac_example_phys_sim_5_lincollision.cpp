@@ -6,7 +6,7 @@
 #include "src/common/shell/tac_shell_timer.h"
 #include "src/common/graphics/tac_camera.h"
 #include "src/common/input/tac_keyboard_input.h"
-#include "src/space/tac_world.h"
+#include "space/world/tac_world.h"
 
 // This example based off
 // https://github.com/jvanverth/essentialmath/tree/master/src/Examples/Ch13-Simulation/...

@@ -1,12 +1,12 @@
 #include "src/shell/windows/tac_win32.h" // self-inc
 
-#include "src/common/core/tac_preprocessor.h"
+#include "src/common/preprocess/tac_preprocessor.h"
 #include "src/common/string/tac_string_format.h"
 #include "src/common/string/tac_string_util.h"
 #include "src/common/memory/tac_frame_memory.h"
 #include "src/common/system/tac_os.h"
 #include "src/common/graphics/tac_renderer.h"
-#include "src/common/core/tac_algorithm.h"
+#include "src/common/algorithm/tac_algorithm.h"
 #include "src/common/shell/tac_shell.h"
 #include "src/common/containers/tac_fixed_vector.h"
 #include "src/common/identifier/tac_id_collection.h"

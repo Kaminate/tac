@@ -4,7 +4,7 @@
 #include "src/common/assetmanagers/gltf/tac_resident_model_file.h"
 #include "src/common/assetmanagers/tac_texture_asset_manager.h"
 #include "src/common/containers/tac_frame_vector.h"
-#include "src/common/core/tac_error_handling.h"
+#include "src/common/error/tac_error_handling.h"
 #include "src/common/graphics/imgui/tac_imgui.h"
 #include "src/common/graphics/tac_camera.h"
 #include "src/common/graphics/tac_renderer.h"
@@ -19,10 +19,10 @@
 #include "src/common/system/tac_os.h"
 #include "src/common/assetmanagers/gltf/tac_gltf.h"
 #include "src/level_editor/tac_level_editor.h"
-#include "src/space/model/tac_model.h"
-#include "src/space/presentation/tac_game_presentation.h"
-#include "src/space/tac_entity.h"
-#include "src/space/tac_world.h"
+#include "space/graphics/model/tac_model.h"
+#include "space/presentation/tac_game_presentation.h"
+#include "space/ecs/tac_entity.h"
+#include "space/world/tac_world.h"
 
 import std; //#include <map>
 

@@ -65,6 +65,7 @@ target_sources( TacDesktopApp
   "tac_desktop_window_settings_tracker.h"
 )
 
+target_link_libraries( TacDesktopApp TacGhost )
 
 # if( False ) here because it should not be the responsibilty of the shell to determine which
 # renderers to use

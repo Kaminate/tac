@@ -1,9 +1,9 @@
 #include "src/shell/windows/net/tac_net_winsock.h" // self-inc
 
 #include "src/common/containers/tac_vector.h"
-#include "src/common/core/tac_algorithm.h"
-#include "src/common/core/tac_error_handling.h"
-#include "src/common/core/tac_preprocessor.h"
+#include "src/common/algorithm/tac_algorithm.h"
+#include "src/common/error/tac_error_handling.h"
+#include "src/common/preprocess/tac_preprocessor.h"
 #include "src/common/dataprocess/tac_json.h"
 #include "src/common/dataprocess/tac_serialization.h"
 #include "src/common/dataprocess/tac_settings.h"

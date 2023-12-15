@@ -1,14 +1,14 @@
 #include "src/common/graphics/tac_debug_3d.h"
 #include "src/common/graphics/tac_camera.h"
-#include "src/common/core/tac_error_handling.h"
-#include "src/common/core/tac_preprocessor.h"
+#include "src/common/error/tac_error_handling.h"
+#include "src/common/preprocess/tac_preprocessor.h"
 #include "src/common/input/tac_keyboard_input.h"
 #include "src/common/shell/tac_shell_timer.h"
 #include "src/game-examples/phy_sim/tac_example_phys_sim_1_force.h"
-#include "src/space/model/tac_model.h"
-#include "src/space/presentation/tac_game_presentation.h"
-#include "src/space/tac_entity.h"
-#include "src/space/tac_world.h"
+#include "space/graphics/model/tac_model.h"
+#include "space/presentation/tac_game_presentation.h"
+#include "space/ecs/tac_entity.h"
+#include "space/world/tac_world.h"
 
 // This example based off
 // https://github.com/jvanverth/essentialmath/tree/master/src/Examples/Ch13-Simulation/Simulation-01-Force

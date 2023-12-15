@@ -1,4 +1,4 @@
-#include "src/space/terrain/tac_terrain.h"
+#include "space/terrain/tac_terrain.h"
 
 #include "src/common/graphics/imgui/tac_imgui.h"
 #include "src/common/graphics/tac_debug_3d.h"
@@ -6,8 +6,8 @@
 #include "src/common/shell/tac_shell.h"
 #include "src/common/string/tac_string_format.h"
 #include "src/common/system/tac_os.h"
-#include "src/space/tac_entity.h"
-#include "src/space/tac_world.h"
+#include "space/ecs/tac_entity.h"
+#include "space/world/tac_world.h"
 
 namespace Tac
 {

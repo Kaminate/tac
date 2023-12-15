@@ -4,7 +4,7 @@
 #include "src/shell/windows/renderer/dxgi/tac_dxgi.h"
 #include "src/shell/tac_desktop_app.h" // IsMainThread
 #include "src/common/string/tac_string.h"
-#include "src/common/core/tac_preprocessor.h" // TAC_ASSERT
+#include "src/common/preprocess/tac_preprocessor.h" // TAC_ASSERT
 
 
 namespace Tac::Render

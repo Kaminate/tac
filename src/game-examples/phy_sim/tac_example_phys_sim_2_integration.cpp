@@ -6,7 +6,7 @@
 #include "src/common/graphics/tac_camera.h"
 #include "src/common/memory/tac_frame_memory.h"
 #include "src/game-examples/phy_sim/tac_example_phys_sim_2_integration.h"
-#include "src/space/tac_world.h"
+#include "space/world/tac_world.h"
 
 // This example based off
 // https://github.com/jvanverth/essentialmath/tree/master/src/Examples/Ch13-Simulation/...

@@ -39,7 +39,7 @@
 #include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_preprocess.h" // self-inc
 
 #include "src/common/string/tac_string.h" // String
-#include "src/common/core/tac_preprocessor.h" // TAC_ASSERT
+#include "src/common/preprocess/tac_preprocessor.h" // TAC_ASSERT
 
 namespace Tac::Render
 {

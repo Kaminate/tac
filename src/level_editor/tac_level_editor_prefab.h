@@ -1,8 +1,8 @@
 #pragma once
 
-#include "src/space/tac_space_types.h"
-#include "src/space/tac_space.h"
-#include "src/common/tac_common.h"
+#include "space/tac_space_types.h"
+#include "space/tac_space.h"
+#include "src/common/tac_core.h"
 
 namespace Tac
 {

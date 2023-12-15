@@ -2,7 +2,7 @@
 #include "src/game-examples/tac_examples_state_machine.h"
 #include "src/game-examples/tac_examples_registry.h"
 #include "src/common/memory/tac_memory.h"
-#include "src/common/core/tac_error_handling.h"
+#include "src/common/error/tac_error_handling.h"
 
 namespace Tac
 {

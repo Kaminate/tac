@@ -2,7 +2,7 @@
 
 #include "src/common/assetmanagers/tac_asset.h"
 #include "src/common/containers/tac_array.h"
-#include "src/common/core/tac_error_handling.h"
+#include "src/common/error/tac_error_handling.h"
 #include "src/common/dataprocess/tac_text_parser.h"
 #include "src/common/graphics/tac_renderer.h"
 #include "src/common/graphics/tac_renderer_backend.h"
@@ -59,7 +59,7 @@ namespace Tac::Render
     {
       const StringView line = shaderParseData.EatRestOfLine();
       result += PreprocessShaderLine( line , errors );
-      result + '\n';
+      result += '\n';
     }
 
     --recurseCount;

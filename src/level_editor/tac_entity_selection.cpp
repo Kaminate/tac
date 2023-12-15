@@ -7,9 +7,9 @@
 #include "src/common/input/tac_keyboard_input.h"
 // TODO: remove dependency on these end
 
-#include "src/space/tac_entity.h"
-#include "src/space/tac_world.h"
-#include "src/common/core/tac_algorithm.h"
+#include "space/ecs/tac_entity.h"
+#include "space/world/tac_world.h"
+#include "src/common/algorithm/tac_algorithm.h"
 #include "src/common/math/tac_vector4.h"
 
 namespace Tac

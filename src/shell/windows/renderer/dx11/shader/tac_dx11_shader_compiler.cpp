@@ -5,7 +5,7 @@
 #include "src/common/system/tac_os.h" // OSDebugPrintLine
 #include "src/common/string/tac_string_format.h"
 #include "src/common/dataprocess/tac_text_parser.h" // ParseData
-#include "src/common/core/tac_error_handling.h" // TAC_RAISE_ERROR_RETURN
+#include "src/common/error/tac_error_handling.h" // TAC_RAISE_ERROR_RETURN
 #include "src/common/graphics/tac_renderer_backend.h" // GetShaderAssetPath
 #include "src/common/memory/tac_frame_memory.h"
 
@@ -105,7 +105,7 @@ namespace Tac::Render
         OS::OSDebugPrintLine(" -----------" );
   }
 
-  ID3DBlob* CompileShaderFromString( const ShaderNameStringView& shaderName,
+  PCom<ID3DBlob> CompileShaderFromString( const ShaderNameStringView& shaderName,
                                             const StringView& shaderStrOrig,
                                             const StringView& shaderStrFull,
                                             const StringView& entryPoint,
@@ -118,8 +118,8 @@ namespace Tac::Render
     dwShaderFlags |= IsDebugMode ? D3DCOMPILE_DEBUG : 0;
     dwShaderFlags |= IsDebugMode ? D3DCOMPILE_SKIP_OPTIMIZATION : 0;
 
-    ID3DBlob* pErrorBlob = nullptr;
-    ID3DBlob* pBlobOut = nullptr;
+    PCom<ID3DBlob> errorBlob;
+    PCom<ID3DBlob> shaderBlob;
 
 
     TAC_ASSERT( shaderModel.size() == 6 ); // ie "vs_5_0"
@@ -137,8 +137,8 @@ namespace Tac::Render
                                    shaderModel,
                                    dwShaderFlags,
                                    0,
-                                   &pBlobOut,
-                                   &pErrorBlob );
+                                   shaderBlob.CreateAddress(),
+                                   errorBlob.CreateAddress() );
 
     if( FAILED( hr ) )
     {
@@ -149,14 +149,15 @@ namespace Tac::Render
         PrintShaderToOutput( shaderStrFull );
       }
 
+      const auto errorBlobStr = ( const char* )errorBlob->GetBufferPointer();
       const String errMsg = TryImproveShaderErrorMessage( shaderName,
                                                           shaderStrOrig,
                                                           shaderStrFull,
-                                                          ( const char* )pErrorBlob->GetBufferPointer() );
-      TAC_RAISE_ERROR_RETURN( errMsg, nullptr );
+                                                          errorBlobStr );
+      TAC_RAISE_ERROR_RETURN( errMsg, {} );
     }
 
-    return pBlobOut;
+    return shaderBlob;
   }
 
 } // namespace Tac::Render

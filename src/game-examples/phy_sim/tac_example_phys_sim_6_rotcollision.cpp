@@ -6,7 +6,7 @@
 #include "src/common/graphics/tac_camera.h"
 #include "src/common/input/tac_keyboard_input.h"
 #include "src/game-examples/phy_sim/tac_example_phys_sim_6_rotcollision.h"
-#include "src/space/tac_world.h"
+#include "space/world/tac_world.h"
 
 // This example based off
 // https://github.com/jvanverth/essentialmath/tree/master/src/Examples/Ch13-Simulation/...

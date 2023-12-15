@@ -1,21 +1,21 @@
-#include "src/space/physics/tac_physics.h" // self-inc
+#include "space/physics/tac_physics.h" // self-inc
 
 #include "src/common/assetmanagers/tac_texture_asset_manager.h"
 #include "src/common/containers/tac_vector.h"
-#include "src/common/core/tac_preprocessor.h"
+#include "src/common/preprocess/tac_preprocessor.h"
 #include "src/common/graphics/tac_debug_3d.h"
 #include "src/common/math/tac_math.h"
 #include "src/common/memory/tac_memory.h"
 #include "src/common/profile/tac_profile.h"
 #include "src/common/shell/tac_shell.h"
 #include "src/common/thirdparty/stb_image.h"
-#include "src/space/collider/tac_collider.h"
-#include "src/space/graphics/tac_graphics.h"
-#include "src/space/tac_component.h"
-#include "src/space/tac_entity.h"
-#include "src/space/tac_gjk.h"
-#include "src/space/tac_world.h"
-#include "src/space/terrain/tac_terrain.h"
+#include "space/physics/collider/tac_collider.h"
+#include "space/graphics/tac_graphics.h"
+#include "space/ecs/tac_component.h"
+#include "space/ecs/tac_entity.h"
+#include "space/physics/tac_gjk.h"
+#include "space/world/tac_world.h"
+#include "space/terrain/tac_terrain.h"
 
 import std;
 //#include <array>

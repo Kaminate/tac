@@ -1,4 +1,4 @@
-#include "src/space/presentation/tac_game_presentation.h" // self-inc
+#include "space/presentation/tac_game_presentation.h" // self-inc
 
 #include "src/common/assetmanagers/tac_mesh.h"
 #include "src/common/assetmanagers/tac_model_asset_manager.h"
@@ -19,16 +19,16 @@
 #include "src/common/memory/tac_frame_memory.h"
 #include "src/common/memory/tac_memory.h"
 #include "src/common/system/tac_os.h"
-#include "src/space/graphics/tac_graphics.h"
-#include "src/space/light/tac_light.h"
-#include "src/space/model/tac_model.h"
-#include "src/space/physics/tac_physics.h"
-#include "src/space/presentation/tac_shadow_presentation.h"
-#include "src/space/presentation/tac_skybox_presentation.h"
-#include "src/space/skybox/tac_skybox_component.h"
-#include "src/space/tac_entity.h"
-#include "src/space/tac_world.h"
-#include "src/space/terrain/tac_terrain.h"
+#include "space/graphics/tac_graphics.h"
+#include "space/graphics/light/tac_light.h"
+#include "space/graphics/model/tac_model.h"
+#include "space/physics/tac_physics.h"
+#include "space/presentation/tac_shadow_presentation.h"
+#include "space/presentation/tac_skybox_presentation.h"
+#include "space/graphics/skybox/tac_skybox_component.h"
+#include "space/ecs/tac_entity.h"
+#include "space/world/tac_world.h"
+#include "space/terrain/tac_terrain.h"
 
 //#include <cmath> // std::fmod
 

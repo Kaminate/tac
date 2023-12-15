@@ -2,8 +2,8 @@
 
 // common
 #include "src/common/assetmanagers/tac_texture_asset_manager.h"
-#include "src/common/core/tac_algorithm.h"
-#include "src/common/core/tac_preprocessor.h"
+#include "src/common/algorithm/tac_algorithm.h"
+#include "src/common/preprocess/tac_preprocessor.h"
 #include "src/common/dataprocess/tac_json.h"
 #include "src/common/dataprocess/tac_settings.h"
 #include "src/common/graphics/imgui/tac_imgui.h"
@@ -36,16 +36,16 @@
 #include "src/shell/tac_desktop_app.h"
 
 // space
-#include "src/space/model/tac_model.h"
-#include "src/space/presentation/tac_game_presentation.h"
-#include "src/space/presentation/tac_shadow_presentation.h"
-#include "src/space/presentation/tac_skybox_presentation.h"
-#include "src/space/presentation/tac_voxel_gi_presentation.h"
-#include "src/space/tac_entity.h"
-#include "src/space/tac_ghost.h"
-#include "src/space/tac_space.h"
-#include "src/space/tac_world.h"
-#include "src/space/terrain/tac_terrain.h"
+#include "space/graphics/model/tac_model.h"
+#include "space/presentation/tac_game_presentation.h"
+#include "space/presentation/tac_shadow_presentation.h"
+#include "space/presentation/tac_skybox_presentation.h"
+#include "space/presentation/tac_voxel_gi_presentation.h"
+#include "space/ecs/tac_entity.h"
+#include "space/ghost/tac_ghost.h"
+#include "space/tac_space.h"
+#include "space/world/tac_world.h"
+#include "space/terrain/tac_terrain.h"
 
 
 import std; // iostream, functional, algorithm
@@ -133,11 +133,6 @@ namespace Tac
 
   void                Creation::Init( Errors& errors )
   {
-    MetaVarUnitTest();
-    MetaFnSigUnitTest();
-    MetaFnUnitTest();
-    MetaCompositeUnitTest();
-
     mWorld = TAC_NEW World;
     mEditorCamera = TAC_NEW Camera
     {

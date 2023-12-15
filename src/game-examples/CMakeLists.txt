@@ -13,6 +13,8 @@ target_sources( TacExamples PRIVATE
   "tac_examples_state_machine.h"
 )
 
+target_link_libraries( TacExamples PUBLIC TacGhost )
+
 add_subdirectory( dx12 )
 add_subdirectory( fluid )
 add_subdirectory( meta )
@@ -29,23 +31,19 @@ function( tac_target )
   endif()
 
   target_link_libraries( ${PROJECT_NAME}
-    TacCommon
-    TacGhost
-    $<TARGET_OBJECTS:TacDesktopApp>
+    PUBLIC
+    TacCore
+    TacDesktopApp
     TacExamples
+    TacGhost
   )
   # append the vulkan library if it was built...
   if(TARGET TacVkRenderer)
-    target_link_libraries( ${PROJECT_NAME} TacVkRenderer )
+    
+    target_link_libraries( ${PROJECT_NAME} PUBLIC TacVkRenderer )
   else()
     message("not including vulkan renderer in game-examples")
   endif()
-
-
-  set_target_properties( ${PROJECT_NAME} PROPERTIES
-    #VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
-    VS_STARTUP_PROJECT ${PROJECT_NAME}
-    LINKER_LANGUAGE CXX )
 
 
 endfunction()
@@ -56,18 +54,18 @@ if( WIN32 )
   tac_target()
 
 
-  target_sources( ${PROJECT_NAME} PRIVATE ${TAC_WIN_MAIN_FILES})
 
   target_precompile_headers( ${PROJECT_NAME} PRIVATE 
     "${CMAKE_SOURCE_DIR}/src/common/tac_precompiled_header.h"
   )
 
-  target_compile_options( ${PROJECT_NAME} PUBLIC /ZI ) # Program Database for Edit & Continue
-
-  target_link_libraries( ${PROJECT_NAME} TacWin  )
+  target_link_libraries( ${PROJECT_NAME} PUBLIC
+    TacWin
+    TacWinMain
+  )
   
   if(TARGET TacVkRenderer)
-    target_link_libraries( ${PROJECT_NAME} TacWinVk )
+    target_link_libraries( ${PROJECT_NAME} PUBLIC TacWinVk )
     #target_sources( ${PROJECT_NAME} PRIVATE
     #    "${CMAKE_SOURCE_DIR}/src/shell/tac_win_vk.cpp"
     #    "${CMAKE_SOURCE_DIR}/src/shell/tac_win_vk.h"
@@ -86,7 +84,7 @@ if( SDL2_FOUND )
 
   
   if(TARGET TacVkRenderer)
-    target_link_libraries( ${PROJECT_NAME} TacSDLVk )
+    target_link_libraries( ${PROJECT_NAME} PUBLIC TacSDLVk )
     #target_sources( ${PROJECT_NAME} PRIVATE
     #     "${CMAKE_SOURCE_DIR}/src/shell/tac_sdl_vk.cpp"
     #     "${CMAKE_SOURCE_DIR}/src/shell/tac_sdl_vk.h"
@@ -100,8 +98,7 @@ if( SDL2_FOUND )
   target_include_directories( ${PROJECT_NAME} PUBLIC ${SDL2_INCLUDE_DIR} )
 
   # this was missing before, right?
-  target_link_libraries( ${PROJECT_NAME} ${SDL2_LIBRARY}
-                                            TacSDL  )
+  target_link_libraries( ${PROJECT_NAME} PUBLIC ${SDL2_LIBRARY} TacSDL  )
 
   # Add the dl library for linux (dlopen, dlclose) used by gl3w.cpp
   #
@@ -113,7 +110,7 @@ if( SDL2_FOUND )
   if( CMAKE_DL_LIBS )
     find_library( DL_LIBS ${CMAKE_DL_LIBS} )
     if( DL_LIBS )
-      target_link_libraries( ${PROJECT_NAME} ${DL_LIBS} )
+      target_link_libraries( ${PROJECT_NAME} PUBLIC ${DL_LIBS} )
     endif()
   endif()
 

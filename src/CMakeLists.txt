@@ -5,6 +5,7 @@ add_subdirectory(common)
 
 # make this second, as space uses common,
 # and creation/game uses space?
+# and shell uses space
 add_subdirectory(space)
 
 add_subdirectory(shell)

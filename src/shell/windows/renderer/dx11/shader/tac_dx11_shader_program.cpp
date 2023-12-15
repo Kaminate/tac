@@ -15,20 +15,26 @@ namespace Tac::Render
     {
       switch( type )
       {
-      case ShaderType::Vertex: return  "VS";
-      case ShaderType::Fragment: return  "PS";
-      case ShaderType::Geometry: return  "GS";
+      case ShaderType::Vertex: return "VS";
+      case ShaderType::Fragment: return "PS";
+      case ShaderType::Geometry: return "GS";
+      case ShaderType::Compute: return "CS";
       default: return nullptr;
       }
     }
 
     static const char* GetShaderModel( const ShaderType type )
     {
+      // Although shader model 5.1 is the highest shader model supported by fxc.exe,
+      // When using it, I get D3D11 ERROR : ID3D11Device::CreateVertexShader 
+      // Shader must be vs_4_0, vs_4_1, or vs_5_0.
+
       switch( type )
       {
-      case ShaderType::Vertex: return  "vs_4_0";
-      case ShaderType::Fragment: return  "ps_4_0";
-      case ShaderType::Geometry: return  "gs_4_0";
+      case ShaderType::Vertex: return "vs_5_0";
+      case ShaderType::Fragment: return "ps_5_0";
+      case ShaderType::Geometry: return "gs_5_0";
+      case ShaderType::Compute: return "cs_5_0";
       default: return nullptr;
       }
     }
@@ -47,39 +53,32 @@ namespace Tac::Render
       mProgram.mConstantBuffers = PostprocessShaderSource( mShaderStringFull );
       TAC_ASSERT( !mProgram.mConstantBuffers.empty() );
 
-      for( int i = 0; i < ( int )ShaderType::Count; ++i )
-      {
-        mBlobs[ i ] = TAC_CALL( CompileShaderBlob, ( ShaderType )i, errors )
-      }
 
       TAC_CALL( TryLoadVertexShader, errors );
       TAC_CALL( TryLoadPixelShader, errors );
       TAC_CALL( TryLoadGeometryShader, errors );
     }
 
-    ~DX11ProgramLoader()
+    bool HasShader(const ShaderType type)
     {
-      for( ID3DBlob* blob : mBlobs )
-        if( blob )
-          blob->Release();
+      const char* entryPoint = GetEntryPoint( type );
+      if( !entryPoint )
+        return false;
+
+      const auto search = ShortFixedString::Concat(entryPoint, "(");
+      const bool result = mShaderStringFull.contains((StringView)search);
+      return result;
     }
 
-
-    ID3DBlob* CompileShaderBlob( const ShaderType type, Errors& errors )
+    PCom<ID3DBlob> CompileShaderBlob( const ShaderType type, Errors& errors )
     {
       const char* shaderModel = GetShaderModel( type );
       if( !shaderModel )
-        return nullptr;
+        return {};
 
       const char* entryPoint = GetEntryPoint( type );
       if( !entryPoint )
-        return nullptr;
-
-
-      const auto search = ShortFixedString::Concat(entryPoint, "(");
-      const bool hasEntryPoint = mShaderStringFull.contains((StringView)search);
-      if( !hasEntryPoint )
-        return nullptr;
+        return {};
 
       return CompileShaderFromString( mShaderName,
                                       mShaderStringOrig,
@@ -91,18 +90,18 @@ namespace Tac::Render
 
     void TryLoadVertexShader( Errors& errors )
     {
-      ID3DBlob* pVSBlob = GetBlob( ShaderType::Vertex );
-      if( !pVSBlob )
+      if( !HasShader( ShaderType::Vertex ) )
         return;
 
+      PCom<ID3DBlob> blob = TAC_CALL( CompileShaderBlob, ShaderType::Vertex, errors )
       TAC_DX11_CALL( mDevice->CreateVertexShader,
-                            pVSBlob->GetBufferPointer(),
-                            pVSBlob->GetBufferSize(),
+                            blob->GetBufferPointer(),
+                            blob->GetBufferSize(),
                             nullptr,
                             &mProgram.mVertexShader );
       TAC_DX11_CALL( D3DGetBlobPart,
-                            pVSBlob->GetBufferPointer(),
-                            pVSBlob->GetBufferSize(),
+                            blob->GetBufferPointer(),
+                            blob->GetBufferSize(),
                             D3D_BLOB_INPUT_SIGNATURE_BLOB,
                             0,
                             &mProgram.mInputSig);
@@ -111,13 +110,13 @@ namespace Tac::Render
 
     void TryLoadPixelShader( Errors& errors )
     {
-      ID3DBlob* pPSBlob = GetBlob( ShaderType::Fragment );
-      if( !pPSBlob )
+      if( !HasShader( ShaderType::Fragment ) )
         return;
 
+      PCom<ID3DBlob> blob = TAC_CALL( CompileShaderBlob, ShaderType::Fragment , errors )
       TAC_DX11_CALL( mDevice->CreatePixelShader,
-                     pPSBlob->GetBufferPointer(),
-                     pPSBlob->GetBufferSize(),
+                     blob->GetBufferPointer(),
+                     blob->GetBufferSize(),
                      nullptr,
                      &mProgram.mPixelShader );
 
@@ -126,10 +125,10 @@ namespace Tac::Render
 
     void TryLoadGeometryShader( Errors& errors )
     {
-      ID3DBlob* blob = GetBlob( ShaderType::Geometry );
-      if( !blob )
+      if( !HasShader( ShaderType::Geometry ) )
         return;
 
+      PCom<ID3DBlob> blob = TAC_CALL( CompileShaderBlob, ShaderType::Geometry , errors )
       TAC_DX11_CALL( mDevice->CreateGeometryShader,
                      blob->GetBufferPointer(),
                      blob->GetBufferSize(),
@@ -138,16 +137,12 @@ namespace Tac::Render
       SetDebugName( mProgram.mGeometryShader, mShaderName );
     }
 
-    ID3DBlob* GetBlob( ShaderType type ) { return mBlobs[ ( int )type ]; }
 
     ShaderNameStringView   mShaderName;
-    StringView             mShaderStringOrig;
-    StringView             mShaderStringFull;
-
-    ID3DBlob*              mBlobs[ ( int )ShaderType::Count ]{};
+    String                 mShaderStringOrig;
+    String                 mShaderStringFull;
     ID3D11Device*          mDevice;
-
-    DX11Program                mProgram;
+    DX11Program            mProgram;
   };
 
 

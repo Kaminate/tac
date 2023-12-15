@@ -20,8 +20,8 @@ function( tac_target )
   endif()
 
   target_link_libraries( ${TAC_TARGET_NAME} 
-    TacCommon
-    $<TARGET_OBJECTS:TacDesktopApp>
+    TacCore
+    TacDesktopApp
     TacGhost )
 
   # note: variables names are case-sensitive
@@ -86,9 +86,6 @@ if( SDL2_FOUND AND FALSE )
   )
 
 
-  list( APPEND TAC_LIBRARIES  )
-  list( APPEND TAC_LIBRARIES )
-
   # this was missing before, right?
   target_link_libraries( ${TAC_TARGET_NAME} 
     ${SDL2_LIBRARY}
@@ -109,10 +106,6 @@ if( SDL2_FOUND AND FALSE )
     endif()
   endif()
 
-  set_target_properties( ${TAC_TARGET_NAME} PROPERTIES
-    #VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
-    VS_STARTUP_PROJECT ${TAC_TARGET_NAME}
-    LINKER_LANGUAGE CXX )
 
   # When we run the exe, it needs sdl2.dll to function ( not to compile )
   # As a post-build step, copy sdl2.dll to the exe output directory.
@@ -153,29 +146,17 @@ if( WIN32 )
 
   tac_target()
 
-  target_sources( ${TAC_TARGET_NAME} PRIVATE ${TAC_WIN_MAIN_FILES} )
-
-
-
 
   # broken --> target_precompile_headers(${TAC_TARGET_NAME} REUSE_FROM CommonLibrary)
   target_precompile_headers( ${TAC_TARGET_NAME} PRIVATE 
     "${CMAKE_SOURCE_DIR}/src/common/tac_precompiled_header.h"
   )
 
-
-  # add_definitions(/ZI) # Program Database for Edit & Continue
-  target_compile_options( ${TAC_TARGET_NAME} PUBLIC /ZI ) # Program Database for Edit & Continue
-
   target_include_directories( ${TAC_TARGET_NAME} PUBLIC 
     ${TAC_INCLUDE_DIRECTORIES} 
     "${CMAKE_SOURCE_DIR}/include"
     "${CMAKE_SOURCE_DIR}/src" )
-  target_link_libraries( ${TAC_TARGET_NAME} ${TAC_LIBRARIES} )
-  set_target_properties( ${TAC_TARGET_NAME} PROPERTIES
-    #VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
-    VS_STARTUP_PROJECT ${TAC_TARGET_NAME}
-    LINKER_LANGUAGE CXX )
+  target_link_libraries( ${TAC_TARGET_NAME} TacWinMain )
 
 endif()
 

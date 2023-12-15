@@ -1,9 +1,9 @@
-#include "src/space/presentation/tac_shadow_presentation.h" // self-inc
+#include "space/presentation/tac_shadow_presentation.h" // self-inc
 
 #include "src/common/assetmanagers/tac_mesh.h"
 #include "src/common/assetmanagers/tac_model_asset_manager.h"
 #include "src/common/assetmanagers/tac_texture_asset_manager.h"
-#include "src/common/core/tac_error_handling.h"
+#include "src/common/error/tac_error_handling.h"
 #include "src/common/graphics/imgui/tac_imgui.h"
 #include "src/common/graphics/tac_camera.h"
 #include "src/common/graphics/tac_debug_3d.h"
@@ -18,12 +18,12 @@
 #include "src/common/string/tac_string_format.h"
 #include "src/common/system/tac_desktop_window.h"
 #include "src/common/system/tac_os.h"
-#include "src/space/graphics/tac_graphics.h"
-#include "src/space/light/tac_light.h"
-#include "src/space/model/tac_model.h"
-#include "src/space/presentation/tac_game_presentation.h"
-#include "src/space/tac_entity.h"
-#include "src/space/tac_world.h"
+#include "space/graphics/tac_graphics.h"
+#include "space/graphics/light/tac_light.h"
+#include "space/graphics/model/tac_model.h"
+#include "space/presentation/tac_game_presentation.h"
+#include "space/ecs/tac_entity.h"
+#include "space/world/tac_world.h"
 
 //#include <cmath> // std::fmod
 

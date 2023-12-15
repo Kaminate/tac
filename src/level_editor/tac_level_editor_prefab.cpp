@@ -2,8 +2,8 @@
 
 #include "src/common/assetmanagers/tac_asset.h"
 #include "src/common/containers/tac_vector.h"
-#include "src/common/core/tac_algorithm.h"
-#include "src/common/core/tac_error_handling.h"
+#include "src/common/algorithm/tac_algorithm.h"
+#include "src/common/error/tac_error_handling.h"
 #include "src/common/dataprocess/tac_settings.h"
 #include "src/common/graphics/imgui/tac_imgui.h"
 #include "src/common/graphics/tac_camera.h"
@@ -14,8 +14,8 @@
 #include "src/common/system/tac_filesystem.h"
 #include "src/common/system/tac_os.h"
 #include "src/level_editor/tac_level_editor.h"
-#include "src/space/tac_entity.h"
-#include "src/space/tac_world.h"
+#include "space/ecs/tac_entity.h"
+#include "space/world/tac_world.h"
 
 import std; // #include <iostream>
 

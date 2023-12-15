@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "src/common/tac_common.h"
+#include "src/common/tac_core.h"
 
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN

@@ -1,7 +1,7 @@
 #include "src/shell/tac_desktop_app_renderers.h" // self-inc
 
-#include "src/common/core/tac_preprocessor.h" // Tac::asdf
-#include "src/common/core/tac_error_handling.h"
+#include "src/common/preprocess/tac_preprocessor.h" // Tac::asdf
+#include "src/common/error/tac_error_handling.h"
 #include "src/common/graphics/tac_renderer_backend.h"
 #include "src/common/graphics/tac_renderer.h"
 #include "src/common/dataprocess/tac_settings.h"

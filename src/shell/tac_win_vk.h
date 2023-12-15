@@ -1,5 +1,5 @@
 #include "src/shell/tac_desktop_vk.h"
-#include "src/common/tac_common.h"
+#include "src/common/tac_core.h"
 
 namespace Tac
 {

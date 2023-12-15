@@ -1,4 +1,4 @@
-#include "src/space/terrain/tac_terrain.h" // self-include
+#include "space/terrain/tac_terrain.h" // self-include
 
 #include "src/common/dataprocess/tac_json.h"
 #include "src/common/graphics/tac_debug_3d.h"
@@ -8,9 +8,9 @@
 #include "src/common/system/tac_filesystem.h"
 #include "src/common/system/tac_os.h"
 #include "src/common/thirdparty/stb_image.h"
-#include "src/space/physics/tac_physics.h"
-#include "src/space/tac_entity.h"
-#include "src/space/tac_world.h"
+#include "space/physics/tac_physics.h"
+#include "space/ecs/tac_entity.h"
+#include "space/world/tac_world.h"
 
 namespace Tac
 {

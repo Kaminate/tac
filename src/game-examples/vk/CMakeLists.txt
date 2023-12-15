@@ -14,9 +14,9 @@ function( tac_target )
   endif()
 
   target_link_libraries( ${PROJECT_NAME}
-    TacCommon
+    TacCore
     TacGhost
-    $<TARGET_OBJECTS:TacDesktopApp>
+    TacDesktopApp
     TacVkRenderer 
   )
 
@@ -39,21 +39,8 @@ if( WIN32 )
   target_link_libraries( ${PROJECT_NAME}
     TacWinVk 
     TacWin
+    TacWinMain
   )
-
-  target_sources( ${PROJECT_NAME} PRIVATE
-    ${TAC_WIN_MAIN_FILES}
-    #"${CMAKE_SOURCE_DIR}/src/shell/tac_win_vk.cpp"
-    #"${CMAKE_SOURCE_DIR}/src/shell/tac_win_vk.h"
-  )
-
-  target_compile_options( ${PROJECT_NAME} PUBLIC /ZI ) # Program Database for Edit & Continue
-
-  set_target_properties( ${PROJECT_NAME} PROPERTIES
-    #VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
-    VS_STARTUP_PROJECT ${PROJECT_NAME}
-    RUNTIME_OUTPUT_DIRECTORY "${RUNTIME_OUTPUT_DIRECTORY}/${PROJECT_NAME}"
-    LINKER_LANGUAGE CXX )
 
   # target_compile_definitions( ${PROJECT_NAME} PRIVATE TAC_USE_RENDERER_DX11 )
 

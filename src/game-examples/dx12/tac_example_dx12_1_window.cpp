@@ -5,8 +5,8 @@
 #include "src/common/system/tac_os.h"
 #include "src/common/math/tac_math.h"
 #include "src/shell/windows/tac_win32.h"
-#include "src/common/core/tac_preprocessor.h"
-#include "src/common/core/tac_error_handling.h"
+#include "src/common/preprocess/tac_preprocessor.h"
+#include "src/common/error/tac_error_handling.h"
 #include "src/shell/windows/renderer/dx12/tac_dx12_helper.h"
 #include "src/common/containers/tac_array.h"
 #include "src/shell/tac_desktop_window_settings_tracker.h"
@@ -16,6 +16,8 @@
 
 namespace Tac
 {
+  using namespace Render;
+
   // A graphics root signature defines what resources are bound to the graphics pipeline.
 
   // A pipeline state object maintains the state of all currently set shaders as well as certain fixed function state objects (such as the input assembler, tesselator, rasterizer and output merger).
@@ -81,7 +83,7 @@ namespace Tac
     if constexpr( !IsDebugMode )
       return;
 
-    Render::PCom<ID3D12Debug> dx12debug;
+    PCom<ID3D12Debug> dx12debug;
     TAC_DX12_CALL( D3D12GetDebugInterface, dx12debug.iid(), dx12debug.ppv() );
 
     auto dx12debug5 = dx12debug.QueryInterface< ID3D12Debug5>();
@@ -120,15 +122,15 @@ namespace Tac
   void DX12AppHelloWindow::CreateDevice( Errors& errors )
   {
     
-    auto adapter = ( IDXGIAdapter* )Render::DXGIGetBestAdapter();
-    Render::PCom< ID3D12Device > device;
+    auto adapter = ( IDXGIAdapter* )DXGIGetBestAdapter();
+    PCom< ID3D12Device > device;
     TAC_DX12_CALL( D3D12CreateDevice,
                    adapter,
                    D3D_FEATURE_LEVEL_12_1,
                    device.iid(),
                    device.ppv() );
     m_device = device.QueryInterface<ID3D12Device5>();
-    Render::DX12SetName( m_device, "Device" );
+    DX12SetName( m_device, "Device" );
   }
 
   void DX12AppHelloWindow::CreateCommandQueue( Errors& errors )
@@ -154,7 +156,7 @@ namespace Tac
                    &queueDesc,
                    m_commandQueue.iid(),
                    m_commandQueue.ppv() );
-    Render::DX12SetName( m_commandQueue, "Command Queue" );
+    DX12SetName( m_commandQueue, "Command Queue" );
   }
 
   void DX12AppHelloWindow::CreateRTVDescriptorHeap( Errors& errors )
@@ -193,7 +195,7 @@ namespace Tac
   void DX12AppHelloWindow::CreateCommandList( Errors& errors )
   {
     // Create the command list (CreateCommandList1 creates it in a closed state).
-    Render::PCom< ID3D12CommandList > commandList;
+    PCom< ID3D12CommandList > commandList;
     TAC_DX12_CALL( m_device->CreateCommandList1,
                    0,
                    D3D12_COMMAND_LIST_TYPE_DIRECT,
@@ -211,7 +213,7 @@ namespace Tac
 
     const UINT64 initialVal = 0;
 
-    Render::PCom< ID3D12Fence > fence;
+    PCom< ID3D12Fence > fence;
     TAC_DX12_CALL( m_device->CreateFence,
                    initialVal,
                    D3D12_FENCE_FLAG_NONE,
@@ -238,7 +240,7 @@ namespace Tac
 
     TAC_ASSERT( m_commandQueue );
 
-    const Render::SwapChainCreateInfo scInfo
+    const SwapChainCreateInfo scInfo
     {
       .mHwnd = hwnd,
       .mDevice = (IUnknown*)m_commandQueue, // swap chain can force flush the queue
@@ -246,7 +248,7 @@ namespace Tac
       .mWidth = state->mWidth,
       .mHeight = state->mHeight,
     };
-    m_swapChain = TAC_CALL( Render::DXGICreateSwapChain, scInfo, errors );
+    m_swapChain = TAC_CALL( DXGICreateSwapChain, scInfo, errors );
     TAC_CALL( m_swapChain->GetDesc1, &m_swapChainDesc );
   }
 
@@ -266,7 +268,7 @@ namespace Tac
     for( UINT i = 0; i < bufferCount; i++ )
     {
       const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = GetRenderTargetDescriptorHandle( i );
-      Render::PCom< ID3D12Resource >& renderTarget = m_renderTargets[ i ];
+      PCom< ID3D12Resource >& renderTarget = m_renderTargets[ i ];
       TAC_DX12_CALL( m_swapChain->GetBuffer, i, renderTarget.iid(), renderTarget.ppv() );
       m_device->CreateRenderTargetView( ( ID3D12Resource* )renderTarget, nullptr, rtvHandle );
 
@@ -485,7 +487,7 @@ namespace Tac
   {
     CreateDesktopWindow();
 
-    TAC_CALL( Render::DXGIInit, errors );
+    TAC_CALL( DXGIInit, errors );
     TAC_CALL( EnableDebug, errors );
     TAC_CALL( CreateDevice, errors );
     TAC_CALL( CreateInfoQueue, errors );
@@ -527,7 +529,7 @@ namespace Tac
     // cleaned up by the destructor.
     TAC_CALL( WaitForPreviousFrame, errors );
 
-    Render::DXGIUninit();
+    DXGIUninit();
   }
 
   App* App::Create()

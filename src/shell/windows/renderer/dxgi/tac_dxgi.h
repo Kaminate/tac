@@ -1,6 +1,6 @@
 #pragma once
 
-#include "src/common/core/tac_error_handling.h"
+#include "src/common/error/tac_error_handling.h"
 #include "src/common/graphics/tac_renderer.h"
 #include "src/shell/windows/renderer/tac_dx.h"
 

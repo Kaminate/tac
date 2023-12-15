@@ -2,12 +2,12 @@
 
 #include "src/common/graphics/imgui/tac_imgui.h"
 #include "src/common/system/tac_desktop_window.h"
-#include "src/common/core/tac_error_handling.h"
+#include "src/common/error/tac_error_handling.h"
 #include "src/common/graphics/tac_ui_2d.h"
 #include "src/common/system/tac_os.h"
 #include "src/shell/tac_desktop_app.h"
-#include "src/space/tac_ghost.h"
-#include "src/space/tac_space.h"
+#include "space/ghost/tac_ghost.h"
+#include "space/tac_space.h"
 
 import std; // #include <functional> // std::function
 

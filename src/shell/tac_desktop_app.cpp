@@ -23,7 +23,7 @@
 #include "src/shell/tac_desktop_window_settings_tracker.h"
 #include "src/shell/tac_desktop_app_renderers.h"
 #include "src/shell/tac_desktop_event.h"
-#include "src/space/tac_space.h"
+#include "space/tac_space.h"
 
 import std; // mutex, thread, type_traits
 

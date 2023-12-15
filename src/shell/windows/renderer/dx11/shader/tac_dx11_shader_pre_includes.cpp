@@ -1,8 +1,8 @@
 #include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_preprocess.h" // self-inc
 
 #include "src/common/string/tac_string.h" // String
-#include "src/common/core/tac_preprocessor.h" // TAC_ASSERT
-#include "src/common/core/tac_error_handling.h" // TAC_HANDLE_ERROR_RETURN
+#include "src/common/preprocess/tac_preprocessor.h" // TAC_ASSERT
+#include "src/common/error/tac_error_handling.h" // TAC_HANDLE_ERROR_RETURN
 #include "src/common/graphics/tac_renderer.h" // ShaderNameStringView
 #include "src/common/dataprocess/tac_text_parser.h" // ParseData
 #include "src/common/graphics/tac_renderer_backend.h" // GetShaderAssetPath

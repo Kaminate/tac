@@ -1,8 +1,8 @@
 #include "src/level_editor/tac_level_editor_property_window.h" // self-inc
 
 #include "src/common/assetmanagers/tac_asset.h"
-#include "src/common/core/tac_algorithm.h"
-#include "src/common/core/tac_error_handling.h"
+#include "src/common/algorithm/tac_algorithm.h"
+#include "src/common/error/tac_error_handling.h"
 #include "src/common/graphics/imgui/tac_imgui.h"
 #include "src/common/graphics/tac_ui_2d.h"
 #include "src/common/memory/tac_frame_memory.h"
@@ -15,12 +15,12 @@
 #include "src/level_editor/tac_level_editor_prefab.h"
 #include "src/shell/tac_desktop_app.h"
 #include "src/shell/tac_desktop_window_graphics.h"
-#include "src/space/model/tac_model.h"
-#include "src/space/tac_component.h"
-#include "src/space/tac_entity.h"
-#include "src/space/tac_space_types.h"
-#include "src/space/tac_system.h"
-#include "src/space/tac_world.h"
+#include "space/graphics/model/tac_model.h"
+#include "space/ecs/tac_component.h"
+#include "space/ecs/tac_entity.h"
+#include "space/tac_space_types.h"
+#include "space/ecs/tac_system.h"
+#include "space/world/tac_world.h"
 
 import std; // #include <map>
 
