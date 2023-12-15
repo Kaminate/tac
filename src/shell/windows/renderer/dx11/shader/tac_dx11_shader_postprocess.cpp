@@ -2,6 +2,7 @@
 
 #include "src/common/dataprocess/tac_text_parser.h"
 #include "src/shell/windows/renderer/dx11/tac_renderer_dx11.h"
+#include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_preprocess.h" // IsSingleLineCommented
 
 namespace Tac::Render
 {
@@ -22,37 +23,42 @@ namespace Tac::Render
     return Atoi( digits );
   }
 
-  static void PostprocessShaderLineCbuffer( const StringView& line, ConstantBuffers* constantBuffers )
+  struct Postprocesser
   {
+    void PostprocessShaderLine( const StringView& line );
+
+    ConstantBuffers mConstantBuffers;
+  };
+
+  void Postprocesser::PostprocessShaderLine( const StringView& line)
+  {
+    if( IsSingleLineCommented( line ) )
+      return;
+
     ParseData parseData( line.begin(), line.end() );
     parseData.EatWhitespace();
     if( !parseData.EatStringExpected( "cbuffer" ) )
       return;
+
     RendererDirectX11* renderer = RendererDirectX11::GetInstance();
     const StringView cbufname = parseData.EatWord();
     const ConstantBufferHandle constantBufferHandle = renderer->FindCbufferOfName( cbufname );
     const int parsedBinding = ParseBinding( line );
-    const int predictedBinding = constantBuffers->size();
+    const int predictedBinding = mConstantBuffers.size();
     TAC_ASSERT( constantBufferHandle.IsValid() );
     TAC_ASSERT( parsedBinding == predictedBinding );
-    constantBuffers->push_back( constantBufferHandle );
+    mConstantBuffers.push_back( constantBufferHandle );
   }
 
-  static void PostprocessShaderLine( const StringView& line, ConstantBuffers* constantBuffers )
+  ConstantBuffers PostprocessShaderSource( const StringView& shaderStr )
   {
-    ParseData parseData( line.begin(), line.end() );
-    parseData.EatWhitespace();
-    if( parseData.EatStringExpected( "//" ) )
-      return;
+    Postprocesser postprocessor;
 
-    PostprocessShaderLineCbuffer( line, constantBuffers );
-  }
-
-  void PostprocessShaderSource( const StringView& shaderStr, ConstantBuffers* constantBuffers )
-  {
     ParseData parseData( shaderStr.data(), shaderStr.size() );
     while( parseData.GetRemainingByteCount() )
-      PostprocessShaderLine( parseData.EatRestOfLine(), constantBuffers );
+      postprocessor.PostprocessShaderLine( parseData.EatRestOfLine() );
+
+    return postprocessor.mConstantBuffers;
   }
 
 } // namespace Tac::Render

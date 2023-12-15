@@ -9,6 +9,8 @@ target_sources(TacWin PRIVATE
   "tac_dx11_shader_preprocess.h"
   "tac_dx11_shader_postprocess.cpp"
   "tac_dx11_shader_postprocess.h"
+  "tac_dx11_shader_program.cpp"
+  "tac_dx11_shader_program.h"
   "tac_dx11_shader_compiler.cpp"
   "tac_dx11_shader_compiler.h"
 )

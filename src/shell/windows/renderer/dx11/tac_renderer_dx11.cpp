@@ -21,6 +21,7 @@
 #include "src/shell/tac_desktop_app.h"
 #include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_compiler.h"
 #include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_postprocess.h"
+#include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_program.h"
 #include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_preprocess.h"
 #include "src/shell/windows/renderer/dx11/tac_dx11_enum_helper.h"
 #include "src/shell/windows/renderer/dx11/tac_dx11_namer.h"
@@ -40,14 +41,6 @@
 #if _MSC_VER
 #pragma warning( disable : 4505 ) // unreferenced local function has been removed
 #endif
-
-
-#if 0 // Begin DXC includes
-#include <dxcapi.h>
-#include <atlbase.h> //ccomptr
-#pragma comment( lib, "dxcompiler.lib")
-#endif // End DXC includes
-
 
 namespace Tac::Render
 {
@@ -101,7 +94,7 @@ namespace Tac::Render
     }
   }
 
-  static String DX11CallAux( const char* fnCallWithArgs, const HRESULT res )
+  void DX11CallAux( const char* fnCallWithArgs, const HRESULT res, Errors& errors )
   {
     String result;
     result += fnCallWithArgs;
@@ -116,28 +109,9 @@ namespace Tac::Render
       result += ")";
     }
     
-    return result;
+    TAC_RAISE_ERROR( result );
   }
 
-#define TAC_DX11_CALL( call, ... )                                                               \
-{                                                                                                \
-  const HRESULT result = call( __VA_ARGS__ );                                                    \
-  if( FAILED( result ) )                                                                         \
-  {                                                                                              \
-    const String errorMsg = DX11CallAux( TAC_STRINGIFY( call ) "( " #__VA_ARGS__ " )", result ); \
-    TAC_RAISE_ERROR( errorMsg );                                                                 \
-  }                                                                                              \
-}
-
-#define TAC_DX11_CALL_RETURN( retval, call, ... )                                                \
-{                                                                                                \
-  const HRESULT result = call( __VA_ARGS__ );                                                    \
-  if( FAILED( result ) )                                                                         \
-  {                                                                                              \
-    const String errorMsg = DX11CallAux( TAC_STRINGIFY( call ) "( " #__VA_ARGS__ " )", result ); \
-    TAC_RAISE_ERROR_RETURN( errorMsg, retval );                                                  \
-  }                                                                                              \
-}
 
   // -----------------------------------------------------------------------------------------------
 
@@ -284,12 +258,6 @@ namespace Tac::Render
 
 
 
-  static bool DoesShaderTextContainEntryPoint( const StringView& shaderText,
-                                               const char* entryPoint )
-  {
-    const ShortFixedString search = ShortFixedString::Concat(entryPoint, "(");
-    return shaderText.contains((StringView)search);
-  }
 
 
   ConstantBufferHandle RendererDirectX11::FindCbufferOfName( const StringView& name )
@@ -300,161 +268,6 @@ namespace Tac::Render
     return ConstantBufferHandle();
   }
 
-  static Program LoadProgram( const ShaderNameStringView& shaderName, Errors& errors )
-  {
-    TAC_ASSERT( !shaderName.empty() );
-
-    RendererDirectX11* renderer = RendererDirectX11::GetInstance();
-    auto device = (ID3D11Device*)renderer->mDevice;
-
-    ConstantBuffers constantBuffers;
-    ID3D11VertexShader* vertexShader = nullptr;
-    ID3D11PixelShader* pixelShader = nullptr;
-    ID3D11GeometryShader* geometryShader = nullptr;
-    ID3DBlob* inputSignature = nullptr;
-
-    const AssetPathStringView assetPath = GetShaderAssetPath( shaderName );
-
-    for( ;; )
-    {
-      if( errors )
-      {
-        constantBuffers.clear();
-
-        if( IsDebugMode )
-        {
-          errors.Append( "Error compiling shader: " + shaderName );
-          errors.Append( TAC_STACK_FRAME );
-          OS::OSDebugPopupBox( errors.ToString() );
-          errors.clear();
-        }
-        else
-        {
-          TAC_HANDLE_ERROR_RETURN( {} );
-        }
-      }
-
-
-      const String shaderStringOrig = LoadAssetPath( assetPath, errors  );
-      if( errors )
-        continue;
-
-      const String shaderStringFull = PreprocessShaderSource( shaderStringOrig, errors );
-      if( errors )
-        continue;
-
-      PostprocessShaderSource( shaderStringFull, &constantBuffers );
-
-      const char* vsEntryPoint = "VS";
-      const char* psEntryPoint = "PS";
-      const char* gsEntryPoint = "GS";
-
-      const bool hasVS = DoesShaderTextContainEntryPoint( shaderStringFull, vsEntryPoint );
-      const bool hasGS = DoesShaderTextContainEntryPoint( shaderStringFull, gsEntryPoint );
-      const bool hasPS = DoesShaderTextContainEntryPoint( shaderStringFull, psEntryPoint );
-
-      if( !hasVS )
-      {
-        const ShortFixedString msg = ShortFixedString::Concat( "shader ",
-                                                               shaderName,
-                                                               " missing entry point ",
-                                                               vsEntryPoint );
-        TAC_ASSERT_CRITICAL( msg );
-      }
-
-      const char* vsShaderModel = "vs_5_0";
-      const char* psShaderModel = "ps_5_0";
-      const char* gsShaderModel = "gs_5_0";
-
-      if( hasVS )
-      {
-        ID3DBlob* pVSBlob = CompileShaderFromString( shaderName,
-                                                     shaderStringOrig,
-                                                     shaderStringFull,
-                                                     vsEntryPoint,
-                                                     vsShaderModel,
-                                                     errors );
-        if( errors )
-          continue;
-        TAC_ON_DESTRUCT( pVSBlob->Release() );
-        TAC_DX11_CALL_RETURN( Program(),
-                              device->CreateVertexShader,
-                              pVSBlob->GetBufferPointer(),
-                              pVSBlob->GetBufferSize(),
-                              nullptr,
-                              &vertexShader );
-        TAC_DX11_CALL_RETURN( Program(),
-                              D3DGetBlobPart,
-                              pVSBlob->GetBufferPointer(),
-                              pVSBlob->GetBufferSize(),
-                              D3D_BLOB_INPUT_SIGNATURE_BLOB,
-                              0,
-                              &inputSignature );
-        SetDebugName( vertexShader, shaderName);
-      }
-
-      if( hasPS )
-      {
-        ID3DBlob* pPSBlob = CompileShaderFromString( shaderName,
-                                                     shaderStringOrig,
-                                                     shaderStringFull,
-                                                     psEntryPoint,
-                                                     psShaderModel,
-                                                     errors );
-        if( errors )
-          continue;
-        TAC_ON_DESTRUCT( pPSBlob->Release() );
-
-        TAC_DX11_CALL_RETURN( Program(),
-                              device->CreatePixelShader,
-                              pPSBlob->GetBufferPointer(),
-                              pPSBlob->GetBufferSize(),
-                              nullptr,
-                              &pixelShader );
-        if( errors )
-          continue;
-
-        SetDebugName( pixelShader, shaderName );
-      }
-
-      if( hasGS )
-      {
-        ID3DBlob* blob = CompileShaderFromString( shaderName,
-                                                  shaderStringOrig,
-                                                  shaderStringFull,
-                                                  gsEntryPoint,
-                                                  gsShaderModel,
-                                                  errors );
-        if( errors )
-          continue;
-        TAC_ON_DESTRUCT( blob->Release() );
-
-        TAC_DX11_CALL_RETURN( Program(),
-                              device->CreateGeometryShader,
-                              blob->GetBufferPointer(),
-                              blob->GetBufferSize(),
-                              nullptr,
-                              &geometryShader );
-        if( errors )
-          continue;
-
-        SetDebugName( geometryShader, shaderName );
-      }
-
-      break;
-    }
-
-    TAC_ASSERT( !constantBuffers.empty() );
-
-    return Program
-    {
-      .mConstantBuffers = constantBuffers,
-      .mVertexShader = vertexShader,
-      .mGeometryShader = geometryShader,
-      .mPixelShader = pixelShader,
-      .mInputSig = inputSignature,
-    };
-  }
 
   // -----------------------------------------------------------------------------------------------
 
@@ -480,18 +293,19 @@ namespace Tac::Render
     DXGIReportLiveObjects();
   }
 
+
   void RendererDirectX11::Init( Errors& errors )
   {
     UINT createDeviceFlags = 0;
-    if( IsDebugMode )
+    if constexpr( IsDebugMode )
       createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 
     D3D_FEATURE_LEVEL featureLevel;
     FrameMemoryVector< D3D_FEATURE_LEVEL > featureLevels = { D3D_FEATURE_LEVEL_12_1 };
 
-    IDXGIAdapter* pAdapter = NULL;
+    IDXGIAdapter* pAdapter = nullptr;
     D3D_DRIVER_TYPE DriverType = D3D_DRIVER_TYPE_HARDWARE;
-    HMODULE Software = NULL;
+    HMODULE Software = nullptr;
 
     PCom<ID3D11Device> device;
     PCom<ID3D11DeviceContext> deviceContext;
@@ -509,7 +323,7 @@ namespace Tac::Render
                    deviceContext.CreateAddress() );
     // If you're directx is crashing / throwing exception, don't forget to check
     // your output window, it likes to put error messages there
-    if( IsDebugMode )
+    if constexpr( IsDebugMode )
     {
       TAC_DX11_CALL( mDevice->QueryInterface, IID_PPV_ARGS( &mInfoQueueDEBUG ) );
       TAC_DX11_CALL( mDeviceContext->QueryInterface, IID_PPV_ARGS( &mUserAnnotationDEBUG ) );
@@ -582,20 +396,18 @@ namespace Tac::Render
 
   }
 
-  void RendererDirectX11::RenderEnd( const Frame*, Errors& )
+  static void DX11ShaderReloadFunction( const ShaderHandle shaderHandle,
+                                        const ShaderNameStringView& shaderName,
+                                        Errors& errors )
   {
+    const int iProgram = shaderHandle.GetIndex();
+    RendererDirectX11* renderer = RendererDirectX11::GetInstance();
+    renderer->mPrograms[ iProgram ] = DX11LoadProgram( shaderName, errors );
+  }
 
-    ShaderReloadFunction* fn = []( const ShaderHandle shaderHandle,
-                                   const ShaderNameStringView& shaderName )
-    {
-      RendererDirectX11* renderer = RendererDirectX11::GetInstance();
-      Errors errors;
-
-      Program* program = &renderer->mPrograms[ ( int )shaderHandle ];
-      *program = LoadProgram( shaderName, errors );
-    };
-
-    ShaderReloadHelperUpdate( fn );
+  void RendererDirectX11::RenderEnd( const Frame*, Errors& errors )
+  {
+    ShaderReloadHelperUpdate( DX11ShaderReloadFunction, errors );
 
     if( gVerbose )
       OS::OSDebugPrintLine("Render2::End");
@@ -762,7 +574,7 @@ namespace Tac::Render
 
   void RendererDirectX11::RenderDrawCallShader( const DrawCall* drawCall )
   {
-    const Program* program = FindProgram( drawCall->mShaderHandle );
+    const DX11Program* program = FindProgram( drawCall->mShaderHandle );
     if( !program )
       return;
 
@@ -1212,23 +1024,28 @@ namespace Tac::Render
   {
     TAC_ASSERT( data->mStride );
     TAC_ASSERT( IsMainThread() );
-    D3D11_BUFFER_DESC bd = {};
-    bd.ByteWidth = data->mByteCount;
-    bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    bd.Usage = GetUsage( data->mAccess );
-    bd.CPUAccessFlags = data->mAccess == Access::Dynamic ? D3D11_CPU_ACCESS_WRITE : 0;
     TAC_ASSERT( !data->mOptionalInitialBytes || IsSubmitAllocated( data->mOptionalInitialBytes ) );
-    D3D11_SUBRESOURCE_DATA initData = {};
-    initData.pSysMem = data->mOptionalInitialBytes;
-    D3D11_SUBRESOURCE_DATA* pInitData = data->mOptionalInitialBytes ? &initData : nullptr;
+
+    const D3D11_BUFFER_DESC bd {
+      .ByteWidth = (UINT)data->mByteCount,
+      .Usage = GetUsage( data->mAccess ),
+      .BindFlags = D3D11_BIND_VERTEX_BUFFER,
+      .CPUAccessFlags = data->mAccess == Access::Dynamic ? D3D11_CPU_ACCESS_WRITE : (UINT)0,
+    };
+    const D3D11_SUBRESOURCE_DATA initData { .pSysMem = data->mOptionalInitialBytes, };
+    const D3D11_SUBRESOURCE_DATA* pInitData = data->mOptionalInitialBytes ? &initData : nullptr;
+
     ID3D11Buffer* buffer;
     TAC_DX11_CALL( mDevice->CreateBuffer,
                    &bd,
                    pInitData,
                    &buffer );
-    VertexBuffer* vertexBuffer = &mVertexBuffers[ ( int )data->mVertexBufferHandle ];
-    vertexBuffer->mBuffer = buffer;
-    vertexBuffer->mStride = data->mStride;
+
+    mVertexBuffers[ ( int )data->mVertexBufferHandle ] = VertexBuffer
+    {
+      .mBuffer = buffer,
+      .mStride = ( UINT )data->mStride,
+    };
 
     SetDebugName( buffer, data->mStackFrame.ToString() );
   }
@@ -1358,21 +1175,12 @@ namespace Tac::Render
     SetDebugName( samplerStateDX11, commandData->mStackFrame.ToString() );
   }
 
-  void RendererDirectX11::AddShader( const CommandDataCreateShader* commandData,
-                                     Errors& errors )
+  void RendererDirectX11::AddShader( const CommandDataCreateShader* commandData, Errors& errors )
   {
     TAC_ASSERT( IsMainThread() );
 
-    const ShaderNameStringView& shaderName = commandData->mNameStringView;
-    //const AssetPathStringView shaderAssetPath = GetShaderPath( shaderName );
-    //const Filesystem::Path shaderFullPath( shaderAssetPath );
-
-    Program* program = &mPrograms[ ( int )commandData->mShaderHandle ];
-    *program = LoadProgram( shaderName, errors );
-    //program->mConstantBuffers = commandData->mConstantBuffers;
-    //if( commandData->mShaderSource.mType == ShaderSource::Type::kPath )
-
-    ShaderReloadHelperAdd( commandData->mShaderHandle, shaderName );
+    DX11ShaderReloadFunction( commandData->mShaderHandle, commandData->mNameStringView, errors );
+    ShaderReloadHelperAdd( commandData->mShaderHandle, commandData->mNameStringView );
   }
 
   void RendererDirectX11::AddTexture( const CommandDataCreateTexture* oldData,
@@ -1873,7 +1681,7 @@ namespace Tac::Render
 
   void RendererDirectX11::RemoveShader( const ShaderHandle shaderHandle, Errors& )
   {
-    Program* program = &mPrograms[ ( int )shaderHandle ];
+    DX11Program* program = &mPrograms[ ( int )shaderHandle ];
     TAC_RELEASE_IUNKNOWN( program->mInputSig );
     TAC_RELEASE_IUNKNOWN( program->mVertexShader );
     TAC_RELEASE_IUNKNOWN( program->mPixelShader );
@@ -2138,7 +1946,7 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
-  Program* RendererDirectX11::FindProgram( const ShaderHandle hShader )
+  DX11Program* RendererDirectX11::FindProgram( const ShaderHandle hShader )
   {
     return hShader.IsValid() ? &mPrograms[ hShader.GetIndex() ] : nullptr;
   }

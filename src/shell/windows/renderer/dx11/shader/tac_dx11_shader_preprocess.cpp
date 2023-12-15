@@ -11,7 +11,7 @@
 
 namespace Tac::Render
 {
-  static bool IsSingleLineCommented( const StringView& line )
+  bool IsSingleLineCommented( const StringView& line )
   {
     ParseData shaderParseData( line.data(), line.size() );
     shaderParseData.EatWhitespace();

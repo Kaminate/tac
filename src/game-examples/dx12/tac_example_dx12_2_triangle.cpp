@@ -214,7 +214,7 @@ namespace Tac
       // [ ] Q: What GPU state does a bundle command list inherit?
       // [ ] A: 
 
-      // This command queue manages direct command lists (direct for graphics rendering)
+      // This command queue manages direct command lists (direct = for graphics rendering)
       .Type = D3D12_COMMAND_LIST_TYPE_DIRECT,
     };
 

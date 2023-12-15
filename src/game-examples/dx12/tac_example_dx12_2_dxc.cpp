@@ -161,17 +161,23 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
+  static const char* GetTargetPrefix( ShaderType type )
+  {
+    switch( type )
+    {
+    case ShaderType::Vertex: return "vs";
+    case ShaderType::Fragment: return "ps";
+    case ShaderType::Geometry: return "gs";
+    case ShaderType::Compute: return "cs";
+    default: TAC_ASSERT_INVALID_CASE( type ); return "";
+    }
+  }
+
   static String GetTarget( ShaderType type, D3D_SHADER_MODEL model )
   {
-    const String shaders[] =
-    {
-      "vs",
-      "ps",
-      "cs",
-    };
-    static_assert( TAC_ARRAY_SIZE( shaders ) == ( int )ShaderType::Count );
+    const char* prefix = GetTargetPrefix( type );
     TAC_ASSERT_INDEX( type, ShaderType::Count );
-    return shaders[ ( int )type ]
+    return String() + prefix 
       + "_" + ( '0' + ( char )( ( int )model / 16 ) )
       + "_" + ( '0' + ( char )( ( int )model % 16 ) );
   }

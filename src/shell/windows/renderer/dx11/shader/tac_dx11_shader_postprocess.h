@@ -5,6 +5,6 @@
 
 namespace Tac::Render
 {
-  void PostprocessShaderSource( const StringView&, ConstantBuffers* );
+  ConstantBuffers PostprocessShaderSource( const StringView& );
 } // namespace Tac::Render
 

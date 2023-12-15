@@ -24,9 +24,29 @@ using Microsoft::WRL::ComPtr;
 
 #include <d3d11_3.h> // ID3D11Device3, ID3D11RasterizerState2
 
+#define TAC_DX11_CALL( call, ... )                                                               \
+{                                                                                                \
+  const HRESULT hr = call( __VA_ARGS__ );                                                        \
+  if( FAILED( hr ) )                                                                             \
+  {                                                                                              \
+    const char* fnSig = TAC_STRINGIFY( call ) "( " #__VA_ARGS__ " )";                            \
+    TAC_CALL( Tac::Render::DX11CallAux, fnSig, hr, errors );                                     \
+  }                                                                                              \
+}
+
+#define TAC_DX11_CALL_RETURN( retval, call, ... )                                                \
+{                                                                                                \
+  const HRESULT hr = call( __VA_ARGS__ );                                                        \
+  if( FAILED( hr ) )                                                                             \
+  {                                                                                              \
+    const char* fnSig =  TAC_STRINGIFY( call ) "( " #__VA_ARGS__ " )";                           \
+    TAC_CALL_RET( retval, Tac::Render::DX11CallAux, fnSig, hr, errors );                         \
+  }                                                                                              \
+}
+
 namespace Tac::Render
 {
-  //using Microsoft::WRL::ComPtr;
+  void DX11CallAux( const char*, const HRESULT, Errors& );
 
   struct CommunistPtr;
 #define TAC_RELEASE_IUNKNOWN( p ) { if( p ){ p->Release(); p = nullptr; } }
@@ -45,7 +65,7 @@ namespace Tac::Render
     
   };
 
-  struct Program
+  struct DX11Program
   {
     ConstantBuffers            mConstantBuffers;
 
@@ -220,7 +240,7 @@ namespace Tac::Render
 
     ConstantBufferHandle FindCbufferOfName( const StringView& );
 
-    Program*          FindProgram( ShaderHandle ) ;
+    DX11Program*          FindProgram( ShaderHandle ) ;
     Framebuffer*      FindFramebuffer( FramebufferHandle );
     Texture*          FindTexture( TextureHandle );
     IndexBuffer*      FindIndexBuffer( IndexBufferHandle );
@@ -246,7 +266,7 @@ namespace Tac::Render
     ID3D11InputLayout*         mInputLayouts[ kMaxInputLayouts ] = {};
     ID3D11BlendState*          mBlendStates[ kMaxBlendStates ] = {};
     ConstantBuffer             mConstantBuffers[ kMaxConstantBuffers ] = {};
-    Program                    mPrograms[ kMaxPrograms ] = {};
+    DX11Program                mPrograms[ kMaxPrograms ] = {};
 
 
     //                         Currently bound render variables
