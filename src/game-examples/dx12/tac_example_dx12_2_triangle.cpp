@@ -1,4 +1,3 @@
-
 #include "tac_example_dx12_2_triangle.h" // self-inc
 
 // todo: dx12ify
@@ -305,8 +304,9 @@ namespace Tac
   void DX12AppHelloTriangle::CreateCommandList( Errors& errors )
   {
     // Create the command list
-    // (CreateCommandList1 creates it in a closed state, as opposed to
-    //  CreateCommandList, which creates in a open state).
+    //
+    // Note: CreateCommandList1 creates it the command list in a closed state, as opposed to
+    //       CreateCommandList, which creates in a open state.
     PCom< ID3D12CommandList > commandList;
     TAC_DX12_CALL( m_device->CreateCommandList1,
                    0,
@@ -314,15 +314,15 @@ namespace Tac
                    D3D12_COMMAND_LIST_FLAG_NONE,
                    commandList.iid(),
                    commandList.ppv() );
-    TAC_ASSERT(commandList);
+    TAC_ASSERT( commandList );
     commandList.QueryInterface( m_commandList );
-    TAC_ASSERT(m_commandList);
-    DX12SetName( m_commandList, "My Command List");
+    TAC_ASSERT( m_commandList );
+    DX12SetName( m_commandList, "My Command List" );
   }
 
   void DX12AppHelloTriangle::CreateVertexBuffer( Errors& errors )
   {
-    const float m_aspectRatio = (float)m_swapChainDesc.Width / (float)m_swapChainDesc.Height; 
+    const float m_aspectRatio = ( float )m_swapChainDesc.Width / ( float )m_swapChainDesc.Height;
 
     // Define the geometry for a triangle.
     const Vertex triangleVertices[] =
@@ -485,6 +485,12 @@ namespace Tac
 
     TAC_ASSERT( myParamIndex == 0 && params.size() > myParamIndex );
 
+    // D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT
+    //
+    //   Omitting this flag can result in one root argument space being saved on some hardware.
+    //   Omit this flag if the Input Assembler is not required, though the optimization is minor.
+    //   This flat opts in to using the input assembler, which requires an input layout that
+    //   defines a set of vertex buffer bindings.
     const D3D12_ROOT_SIGNATURE_FLAGS rootSigFlags = sUseInputLayout
       ? D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT
       : D3D12_ROOT_SIGNATURE_FLAG_NONE;
@@ -495,10 +501,6 @@ namespace Tac
       .pParameters = params.data(),
 
 
-       // The app is opting in to using the Input Assembler
-       // ( requiring an input layout that defines a set of vertex buffer bindings ).
-       // Omitting this flag can result in one root argument space being saved on some hardware.
-       // Omit this flag if the Input Assembler is not required, though the optimization is minor.
       .Flags = rootSigFlags,
     };
 
@@ -672,16 +674,19 @@ namespace Tac
       {
         D3D12_RENDER_TARGET_BLEND_DESC
         {
-        // [ ] Q: ??? why enable = false?
+          // [x] Q: Why is BlendEnable = false? Why not just leave it out?
+          //     A: You can leave it out.
+#if 0
           .BlendEnable = false,
           .LogicOpEnable = false,
           .SrcBlend = D3D12_BLEND_ONE,
           .DestBlend = D3D12_BLEND_ZERO,
           .BlendOp = D3D12_BLEND_OP_ADD,
-          .SrcBlendAlpha= D3D12_BLEND_ONE,
-          .DestBlendAlpha= D3D12_BLEND_ZERO,
-          .BlendOpAlpha= D3D12_BLEND_OP_ADD,
+          .SrcBlendAlpha = D3D12_BLEND_ONE,
+          .DestBlendAlpha = D3D12_BLEND_ZERO,
+          .BlendOpAlpha = D3D12_BLEND_OP_ADD,
           .LogicOp = D3D12_LOGIC_OP_NOOP,
+#endif
           .RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL,
         },
       },
@@ -879,8 +884,8 @@ namespace Tac
     {
       m_vertexBufferCopied = true;
       const D3D12_RESOURCE_STATES StateAfter = sUseInputLayout
-          ? D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER
-          : D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE; // byteaddressbuffer
+          ? D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER // <-- vtx buffer
+          : D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE; // <-- byteaddressbuffer
 
       const D3D12_RESOURCE_BARRIER barrier
       {
@@ -946,6 +951,7 @@ namespace Tac
 
       // ...
       const UINT RootParameterIndex = 0;
+      static_assert( RootParameterIndex == myParamIndex );
       m_commandList->SetGraphicsRootDescriptorTable( RootParameterIndex, m_srvGpuHeapStart );
     }
 

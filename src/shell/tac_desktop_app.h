@@ -13,6 +13,8 @@ namespace Tac
     {
       String mName;
       String mStudioName = "Sleeping Studio";
+
+      //     Can disable the renderer for headless apps or for apps that define their own renderer
       bool   mDisableRenderer = false;
     };
 
