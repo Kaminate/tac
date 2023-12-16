@@ -1,10 +1,6 @@
-# include( CMakePrintHelpers )
-
 # --------------------------------------------------------------------------------------------------
 
-# vulkan first supported in https://cmake.org/cmake/help/v3.7/module/FindVulkan.html
-# if vulkan still isn't found, update ${CMAKE_ROOT}/Modules/FindVulkan.cmake
-cmake_minimum_required(VERSION 3.25.1)
+cmake_minimum_required(VERSION 3.28.0)
 
 # --------------------------------------------------------------------------------------------------
 
@@ -49,7 +45,7 @@ else() # gcc, clang
                          -Wno-unused-value
                          -Wno-unused-variable )
 
-    # vma library on macos
+    # vma library on macOS
     add_compile_options( #-Wno-nullability-completeness 
                          -Wno-nullability-extension
                          #-Wno-nonnull
@@ -102,41 +98,6 @@ endif()
 
 # --------------------------------------------------------------------------------------------------
 
-# --------------------------------------------------------------------------------------------------
-
-# In a program that is using dxc to compile shaders via `#include <dxcapi.h>` and
-# `#pragma comment (lib, "dxcompiler.lib" )`, the call to `IDxcCompiler::Compile` will emit the
-# following warning if dxil.dll is not in the same folder as the target executable:
-#
-#   DXIL.dll not found. Resulting DXIL will not be signed for use in release environments
-#
-# Copy dxil.dll to the same folder as the target executable
-#
-# Cache DXIL_PATH to be used by the shader compiler.
-# CMake must have been run after vcvars.bat to have $ENV{WindowsSdkVerBinPath}
-# (see tac/run/run_vs2022.bat which runs vcvars.bat prior to CMake)
-# The reason DXIL_PATH is cached is because cmake can be re-run from inside visual studio,
-# which doesn't have $ENV{WindowsSdkVerBinPath}.
-#
-message( VERBOSE "windows sdk ver bin path: $ENV{WindowsSdkVerBinPath} ")
-if(EXISTS $ENV{WindowsSdkVerBinPath} )
-  set( DXIL_PATH $ENV{WindowsSdkVerBinPath}x64/dxil.dll CACHE FILEPATH "dxil for signing shaders" )
-  if( NOT EXISTS ${DXIL_PATH})
-    message( FATAL_ERROR "cannot find dxil.dll at path ${DXIL_PATH}")
-  endif()
-
-  # Getting errors on windows surface without dxcompiler.dll
-  set( DXCOMPILER_PATH $ENV{WindowsSdkVerBinPath}x64/dxcompiler.dll CACHE FILEPATH "dxcompiler for compiling shaders" )
-  if( NOT EXISTS ${DXCOMPILER_PATH})
-    message( FATAL_ERROR "cannot find dxcompiler.dll at path ${DXCOMPILER_PATH}")
-  endif()
-
-endif()
-
-
-
-# --------------------------------------------------------------------------------------------------
-
 add_subdirectory(src)
 add_subdirectory(assets)
 
@@ -172,9 +133,11 @@ endif()
 
 _get_all_cmake_targets(all_targets ${CMAKE_CURRENT_LIST_DIR})
 foreach(target ${all_targets})
-  message ( VERBOSE "setting target ${target} props to ${MODULE_PROP}")
   set_property( TARGET ${target} PROPERTY VS_USER_PROPS ${MODULE_PROP} )
 endforeach()
+list(LENGTH all_targets target_count)
+message( VERBOSE "setting all ${target_count} target VS_USER_PROPS to ${MODULE_PROP}")
 
 
+# --------------------------------------------------------------------------------------------------
 

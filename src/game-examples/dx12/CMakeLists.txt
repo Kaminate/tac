@@ -7,8 +7,6 @@ add_executable( standalone_win_dx12_1_window WIN32
   "tac_example_dx12_1_window.h"
 )
 
-set_property( TARGET standalone_win_dx12_1_window PROPERTY OUTPUT_NAME "DX12 Window" )
-
 add_executable( standalone_win_dx12_2_triangle WIN32 
   "tac_example_dx12_2_triangle.cpp"
   "tac_example_dx12_2_triangle.h"
@@ -23,7 +21,9 @@ add_executable( standalone_win_dx12_3_texture WIN32
   "tac_example_dx12_2_dxc.h"
 )
 
+set_property( TARGET standalone_win_dx12_1_window   PROPERTY OUTPUT_NAME "DX12 Window" )
 set_property( TARGET standalone_win_dx12_2_triangle PROPERTY OUTPUT_NAME "DX12 Triangle" )
+set_property( TARGET standalone_win_dx12_3_texture  PROPERTY OUTPUT_NAME "DX12 Texture" )
 
 # Get a semicolon-separated list of executable target names
 get_property(targetnames DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY BUILDSYSTEM_TARGETS)
@@ -40,33 +40,62 @@ foreach(targetname ${targetnames})
 endforeach()
 
 # -------------------------------------------------------------------------------------------------
-if( FALSE ) # fucks up import std module
-  include(FetchContent)
 
-  FetchContent_Declare(
-      DirectX-Headers
-      GIT_REPOSITORY https://github.com/Microsoft/DirectX-Headers.git
-      GIT_TAG v1.611.0
-  )
-  FetchContent_MakeAvailable(DirectX-Headers)
-
-  target_link_libraries(standalone_win_dx12_2_triangle Microsoft::DirectX-Headers )
-endif()
+# Not using FetchContent_Declare( DirectX-Headers ... ) because it fucks import std module
 
 # -------------------------------------------------------------------------------------------------
 
-# see more comments at where DXIL_PATH was cached
-if( NOT EXISTS ${DXIL_PATH} )
-  message( FATAL_ERROR "DXIL_PATH cache var doesnt exist, did you run run_vs2022.bat?")
-else()
-  add_custom_command( TARGET standalone_win_dx12_2_triangle
-                      PRE_BUILD
-                      COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                              ${DXIL_PATH}
-                              $<TARGET_FILE_DIR:standalone_win_dx12_2_triangle> )
-  add_custom_command( TARGET standalone_win_dx12_2_triangle
-                      PRE_BUILD
-                      COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                              ${DXCOMPILER_PATH}
-                              $<TARGET_FILE_DIR:standalone_win_dx12_2_triangle> )
-endif()
+# In a program that is using dxc to compile shaders via #include <dxcapi.h> and
+# #pragma comment (lib, "dxcompiler.lib" ), the call to IDxcCompiler::Compile will emit the
+# following warning if dxil.dll is not in the same folder as the target executable:
+# +---------------------------------------------------------------------------------------+
+# | DXIL.dll not found. Resulting DXIL will not be signed for use in release environments |
+# +---------------------------------------------------------------------------------------+
+# We define the cmake CACHE vars TAC_DXIL_DLL_PATH and TAC_DXCOMPILER_DLL_PATH to copy the dlls
+# to the same folder as the target executable
+#
+# If $ENV{WindowsSdkVerBinPath} is defined, we use that
+#
+# Cache DXIL_PATH to be used by the shader compiler.
+# CMake must have been run after vcvars.bat to have 
+# (see tac/run/run_vs2022.bat which runs vcvars.bat prior to CMake)
+# The reason DXIL_PATH is cached is because cmake can be re-run from inside visual studio,
+# which doesn't have $ENV{WindowsSdkVerBinPath}.
+
+# Try to define TAC_DXIL_DLL_PATH and TAC_DXCOMPILER_DLL_PATH using the
+# WindowsSdkVerBinPath environment variable. WindowsSdkVerBinPath will be set if vcvars has been
+# run or if cmake is being run from the Developer Command Prompt for VS
+function( _define_dx_path varName filename )
+  set( docStr "path to ${filename} for shader compiling/signing" )
+  set( ${varName} "" CACHE FILEPATH ${docStr} )
+  set( varVal $CACHE{${varName}} )
+  if( EXISTS ${varVal} )
+    return()
+  endif()
+
+
+  if( DEFINED ENV{WindowsSdkVerBinPath} AND EXISTS "$ENV{WindowsSdkVerBinPath}x64/${filename}" )
+    set( ${varName} "$ENV{WindowsSdkVerBinPath}x64/${filename}" CACHE FILEPATH ${docStr} FORCE )
+    return()
+  endif()
+
+  message( FATAL_ERROR
+           "Could not find ${filename} at path: " ${varVal} ", "
+           "please check ${varName} configuration" )
+
+endfunction()
+
+_define_dx_path( TAC_DXIL_DLL_PATH       "dxil.dll"       )
+_define_dx_path( TAC_DXCOMPILER_DLL_PATH "dxcompiler.dll" )
+
+add_custom_command( TARGET standalone_win_dx12_2_triangle
+                    PRE_BUILD
+                    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                            ${TAC_DXIL_DLL_PATH}
+                            $<TARGET_FILE_DIR:standalone_win_dx12_2_triangle> )
+
+add_custom_command( TARGET standalone_win_dx12_2_triangle
+                    PRE_BUILD
+                    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                            ${TAC_DXCOMPILER_DLL_PATH}
+                            $<TARGET_FILE_DIR:standalone_win_dx12_2_triangle> )
