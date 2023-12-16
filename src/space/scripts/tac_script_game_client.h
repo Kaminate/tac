@@ -3,13 +3,9 @@
 #include "space/script/tac_script.h"
 #include "src/common/graphics/tac_font.h"
 
-import std; 
+import std; // uint16_t , <set>
 
 using std::uint16_t;
-
-//#include <list>
-//#include <set>
-
 
 namespace Tac::Network
 {

@@ -32,8 +32,6 @@ static const bool sUseInputLayout = false;
 
 const UINT myParamIndex = 0;
 
-import std;
-
 namespace Tac
 {
   // -----------------------------------------------------------------------------------------------
@@ -276,7 +274,7 @@ namespace Tac
       .Buffer = D3D12_BUFFER_SRV
       {
         .FirstElement = 0,
-        .NumElements = m_vertexBufferView.SizeInBytes / ( UINT )sizeof( std::uint32_t ),
+        .NumElements = m_vertexBufferView.SizeInBytes / 4,
         .Flags = D3D12_BUFFER_SRV_FLAG_RAW, // for byteaddressbuffer
       },
     };

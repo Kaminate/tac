@@ -10,8 +10,7 @@
 #include "src/common/profile/tac_profile.h"
 #include "src/common/memory/tac_memory.h"
 
-import std;
-//#include <algorithm>
+import std; // <algorithm>(find)
 
 namespace Tac
 {
@@ -241,8 +240,10 @@ namespace Tac
 
     for( Player* player : mPlayers )
       ApplyInput( player, seconds );
+
     for( System* system : mSystems )
       system->Update();
+
     for( Entity* entity : mEntities )
     {
       TAC_UNUSED_PARAMETER( entity );

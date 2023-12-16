@@ -11,10 +11,6 @@
 #include "src/common/containers/tac_fixed_vector.h"
 #include "src/common/identifier/tac_id_collection.h"
 
-import std;
-//#include <iostream>
-//#include <ctime> // mktime
-
 #include <Shlobj.h> // SHGetKnownFolderPath
 #include <commdlg.h> // GetSaveFileNameA
 #pragma comment( lib, "Comdlg32.lib" ) // GetSaveFileNameA

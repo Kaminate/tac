@@ -5,7 +5,7 @@
 #include "src/shell/tac_desktop_window_graphics.h"
 #include "src/shell/tac_desktop_app.h"
 
-import std;
+import std; // mutex, lock_guard, is_trivially_copyable_v
 
 namespace Tac
 {

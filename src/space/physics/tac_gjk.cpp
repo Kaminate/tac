@@ -4,10 +4,9 @@
 #include "src/common/math/tac_matrix3.h"
 #include "src/common/math/tac_matrix4.h"
 #include "src/common/math/tac_vector4.h"
+#include "src/common/math/tac_math.h"
 
-import std;
-//#include <cmath>
-//#include <algorithm> // std::find
+import std; // <algorithm> // std::find
 
 namespace Tac
 {
@@ -29,7 +28,7 @@ namespace Tac
     float d20 = Dot( v2, v0 );
     float d21 = Dot( v2, v1 );
     float denom = d00 * d11 - d01 * d01;
-    fucked = std::abs( denom ) < 0.000001f;
+    fucked = Abs( denom ) < 0.000001f;
     if( fucked )
       return;
     float invDenom = 1.0f / denom;
@@ -606,7 +605,7 @@ namespace Tac
       const EPAHalfEdge edges[] =
       {
         EPAHalfEdge{.mFrom = iTri->mV0, .mTo = iTri->mV1 },
-        EPAHalfEdge{.mFrom = iTri->mV1,.mTo = iTri->mV2 },
+        EPAHalfEdge{.mFrom = iTri->mV1, .mTo = iTri->mV2 },
         EPAHalfEdge{.mFrom = iTri->mV2, .mTo = iTri->mV0 },
       };
 

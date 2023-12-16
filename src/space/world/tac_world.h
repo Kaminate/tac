@@ -6,12 +6,10 @@
 #include "src/common/tac_core.h"
 #include "src/common/containers/tac_vector.h"
 
-import std;
-//#include <list>
+import std; // <list>
 
 namespace Tac
 {
-  //struct GameInterface;
   struct Debug3DDrawData;
 
   static const int sPlayerCountMax = 4;

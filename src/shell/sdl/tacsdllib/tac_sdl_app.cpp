@@ -7,11 +7,6 @@
 #include <SDL_syswm.h> // system window manager
 #include <SDL_rwops.h> // file i/o abstraction, read write operations
 
-import std;
-//#include <filesystem> // ?!
-//#include <iostream> // ?!
-//#include <fstream> // ?!
-
 namespace Tac
 {
 
@@ -197,199 +192,163 @@ namespace Tac
   }
 
 
-    void            SDLOSSaveToFile( StringView path, const void* bytes, int byteCount, Errors& errors ) 
-    {
-      String directory = AssetPathStringView( path ).GetDirectory(); // Filesystem::FilepathToDirectory( path );
-      TAC_CALL( OS::OSCreateFolderIfNotExist, directory, errors );
+  void            SDLOSDebugBreak() 
+  {
+    SDL_TriggerBreakpoint();
+  }
 
-      std::ofstream ofs( path.c_str(), std::ofstream::out | std::ofstream::binary );
-      if( !ofs.is_open() )
+  void            SDLOSDebugPopupBox( const StringView& s ) 
+  {
+    SDL_ShowSimpleMessageBox( SDL_MESSAGEBOX_ERROR, "Hello", s, nullptr );
+  }
+
+  Filesystem::Path            SDLOSGetApplicationDataPath( Errors& errors ) 
+  {
+    //ExecutableStartupInfo info = ExecutableStartupInfo::Init();
+    ExecutableStartupInfo info = ExecutableStartupInfo::sInstance;
+    String org = info.mStudioName;
+    String app = info.mAppName;
+    TAC_ASSERT( !org.empty() && !app.empty() );
+    Filesystem::Path path = SDL_GetPrefPath( org, app );
+    return path;
+  }
+
+  void            SDLOSGetFileLastModifiedTime( std::time_t*, StringView path, Errors& ) 
+  {
+    TAC_CRITICAL_ERROR_UNIMPLEMENTED;
+  }
+
+  void            SDLOSGetFilesInDirectoryAux( Vector< String >& files, const std::filesystem::directory_entry& entry )
+  {
+    if( entry.is_regular_file() )
+    {
+      String subDirPath = entry.path().string().c_str();
+      files.push_back( subDirPath );
+    }
+  }
+
+  void            SDLOSGetFilesInDirectory( Vector< String >& files,
+                                         StringView dir,
+                                         OSGetFilesInDirectoryFlags flags,
+                                         Errors& ) 
+  {
+    std::filesystem::path dirpath = dir.c_str();
+    std::filesystem::recursive_directory_iterator itRecurse( dirpath );
+    std::filesystem::directory_iterator itNonRecurse( dirpath );
+    const bool recurse = ( int )flags & ( int )OSGetFilesInDirectoryFlags::Recursive;
+    if( recurse )
+    {
+      for( const std::filesystem::directory_entry& entry : itRecurse )
       {
-        TAC_RAISE_ERROR( va("failed to open file at {}", path.c_str()), errors);
+        SDLOSGetFilesInDirectoryAux( files, entry );
       }
-      ofs.write( (const char*)bytes, byteCount );
-
-
     }
-
-      // SDL doesn't have this functionality
-      // Maybe we shouldn't and just rely on the folder already existing?
-    void            SDLOSDoesFolderExist( StringView path, bool& exists, Errors& errors ) 
+    else
     {
-      std::error_code ec;
-      exists = std::filesystem::exists( path.c_str(), ec );
-      TAC_RAISE_ERROR_IF( ec, ec.message().c_str(), errors );
+      for( const std::filesystem::directory_entry& entry : itNonRecurse )
+      {
+        SDLOSGetFilesInDirectoryAux( files, entry );
+      }
     }
+  }
 
-    void            SDLOSCreateFolder( StringView path, Errors& errors ) 
+  void            SDLOSGetDirectoriesInDirectory( Vector< String >& dirs, StringView dir, Errors& ) 
+  {
+    std::filesystem::path dirpath = dir.c_str();
+    for( const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator( dirpath ) )
     {
-      std::error_code ec;
-      std::filesystem::create_directory( path.c_str(), ec );
-      TAC_RAISE_ERROR_IF( ec, ec.message().c_str(), errors );
-    }
-
-    void            SDLOSDebugBreak() 
-    {
-      SDL_TriggerBreakpoint();
-    }
-
-    void            SDLOSDebugPopupBox( const StringView& s ) 
-    {
-      SDL_ShowSimpleMessageBox( SDL_MESSAGEBOX_ERROR, "Hello", s, nullptr );
-    }
-
-    Filesystem::Path            SDLOSGetApplicationDataPath( Errors& errors ) 
-    {
-      //ExecutableStartupInfo info = ExecutableStartupInfo::Init();
-      ExecutableStartupInfo info = ExecutableStartupInfo::sInstance;
-      String org = info.mStudioName;
-      String app = info.mAppName;
-      TAC_ASSERT( !org.empty() && !app.empty() );
-      Filesystem::Path path = SDL_GetPrefPath( org, app );
-      return path;
-    }
-
-    void            SDLOSGetFileLastModifiedTime( std::time_t*, StringView path, Errors& ) 
-    {
-      TAC_CRITICAL_ERROR_UNIMPLEMENTED;
-    }
-
-    void            SDLOSGetFilesInDirectoryAux( Vector< String >& files, const std::filesystem::directory_entry& entry )
-    {
-      if( entry.is_regular_file() )
+      if( entry.is_directory() )
       {
         String subDirPath = entry.path().string().c_str();
-        files.push_back( subDirPath );
+        dirs.push_back( subDirPath );
       }
     }
+  }
 
-    void            SDLOSGetFilesInDirectory( Vector< String >& files,
-                                           StringView dir,
-                                           OSGetFilesInDirectoryFlags flags,
-                                           Errors& ) 
+  void            SDLOSSaveDialog( String& path, StringView suggestedPath, Errors& ) 
+  {
+    TAC_CRITICAL_ERROR_UNIMPLEMENTED;
+  }
+
+  void            SDLOSOpenDialog( String& path, Errors& ) 
+  {
+    TAC_CRITICAL_ERROR_UNIMPLEMENTED;
+  }
+
+
+  void            SDLOSGetPrimaryMonitor( int* w, int* h ) 
+  {
+    int maxArea = 0;
+    int maxAreaW = 0;
+    int maxAreaH = 0;
+    for( int iDisplay = 0; iDisplay < SDL_GetNumVideoDisplays(); ++iDisplay )
     {
-      std::filesystem::path dirpath = dir.c_str();
-      std::filesystem::recursive_directory_iterator itRecurse( dirpath );
-      std::filesystem::directory_iterator itNonRecurse( dirpath );
-      const bool recurse = ( int )flags & ( int )OSGetFilesInDirectoryFlags::Recursive;
-      if( recurse )
-      {
-        for( const std::filesystem::directory_entry& entry : itRecurse )
-        {
-          SDLOSGetFilesInDirectoryAux( files, entry );
-        }
-      }
-      else
-      {
-        for( const std::filesystem::directory_entry& entry : itNonRecurse )
-        {
-          SDLOSGetFilesInDirectoryAux( files, entry );
-        }
-      }
+      SDL_DisplayMode mode;
+      int displayResult = SDL_GetCurrentDisplayMode( iDisplay, &mode );
+      if( displayResult )
+        continue; // todo use SDL_GetError()
+      int area = mode.w * mode.h;
+      if( area <= maxArea )
+        continue;
+      maxArea = area;
+      maxAreaW = mode.w;
+      maxAreaH = mode.h;
     }
+    *w = maxAreaW;
+    *h = maxAreaH;
+  }
 
-    void            SDLOSGetDirectoriesInDirectory( Vector< String >& dirs, StringView dir, Errors& ) 
-    {
-      std::filesystem::path dirpath = dir.c_str();
-      for( const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator( dirpath ) )
-      {
-        if( entry.is_directory() )
-        {
-          String subDirPath = entry.path().string().c_str();
-          dirs.push_back( subDirPath );
-        }
-      }
-    }
+  //void        OSSetScreenspaceCursorPos( v2& pos, Errors& ) 
+  //{
+  //  int x;
+  //  int y;
+  //  SDL_GetGlobalMouseState( &x, &y );
+  //  pos.x = x;
+  //  pos.y = y;
+  //}
 
-    void            SDLOSSaveDialog( String& path, StringView suggestedPath, Errors& ) 
-    {
-      TAC_CRITICAL_ERROR_UNIMPLEMENTED;
-    }
-
-    void            SDLOSOpenDialog( String& path, Errors& ) 
-    {
-      TAC_CRITICAL_ERROR_UNIMPLEMENTED;
-    }
-
-    void            SDLOSGetWorkingDir( String& dir, Errors& ) 
-    {
-      // how does this handle utf8? utf16? utf32?
-      dir = std::filesystem::current_path().string().c_str();
-    }
-
-    void            SDLOSGetPrimaryMonitor( int* w, int* h ) 
-    {
-      int maxArea = 0;
-      int maxAreaW = 0;
-      int maxAreaH = 0;
-      for( int iDisplay = 0; iDisplay < SDL_GetNumVideoDisplays(); ++iDisplay )
-      {
-        SDL_DisplayMode mode;
-        int displayResult = SDL_GetCurrentDisplayMode( iDisplay, &mode );
-        if( displayResult )
-          continue; // todo use SDL_GetError()
-        int area = mode.w * mode.h;
-        if( area <= maxArea )
-          continue;
-        maxArea = area;
-        maxAreaW = mode.w;
-        maxAreaH = mode.h;
-      }
-      *w = maxAreaW;
-      *h = maxAreaH;
-    }
-
-    //void        OSSetScreenspaceCursorPos( v2& pos, Errors& ) 
-    //{
-    //  int x;
-    //  int y;
-    //  SDL_GetGlobalMouseState( &x, &y );
-    //  pos.x = x;
-    //  pos.y = y;
-    //}
-
-    void            SDLOSSetScreenspaceCursorPos( const v2& pos, Errors& errors ) 
-    {
-      TAC_RAISE_ERROR_IF( SDL_WarpMouseGlobal( ( int )pos.x, ( int )pos.y ) < 0, SDL_GetError(), errors );
-    }
+  void            SDLOSSetScreenspaceCursorPos( const v2& pos, Errors& errors ) 
+  {
+    TAC_RAISE_ERROR_IF( SDL_WarpMouseGlobal( ( int )pos.x, ( int )pos.y ) < 0, SDL_GetError(), errors );
+  }
 
 
-    void* SDLOSGetLoadedDLL(StringView name)
-    {
-      // in windows, you can load a dll with ::LoadLibraryA, 
-      // and check if it has already been loaded with ::GetModuleHandleA
-      //
-      // in sdl, you can load a dll with SDL_LoadObject ( i think ),
-      // but i dont see any way to check if its already been loaded
-      TAC_CRITICAL_ERROR_UNIMPLEMENTED;
-      return nullptr;
-    }
+  void* SDLOSGetLoadedDLL(StringView name)
+  {
+    // in windows, you can load a dll with ::LoadLibraryA, 
+    // and check if it has already been loaded with ::GetModuleHandleA
+    //
+    // in sdl, you can load a dll with SDL_LoadObject ( i think ),
+    // but i dont see any way to check if its already been loaded
+    TAC_CRITICAL_ERROR_UNIMPLEMENTED;
+    return nullptr;
+  }
 
-    void* SDLOSLoadDLL(StringView name)
-    {
-      return SDL_LoadObject(name.c_str());
-    }
+  void* SDLOSLoadDLL(StringView name)
+  {
+    return SDL_LoadObject(name.c_str());
+  }
 
-    SemaphoreHandle SDLOSSemaphoreCreate() 
-    {
-      const int i = sSDLSemaphoreIds.Alloc();
-      SDL_sem* sem = SDL_CreateSemaphore( 0 );
-      sSDLSemaphores[ i ] = sem;
-      TAC_ASSERT( sem );
-      return i;
-    }
+  SemaphoreHandle SDLOSSemaphoreCreate() 
+  {
+    const int i = sSDLSemaphoreIds.Alloc();
+    SDL_sem* sem = SDL_CreateSemaphore( 0 );
+    sSDLSemaphores[ i ] = sem;
+    TAC_ASSERT( sem );
+    return i;
+  }
 
-    void            SDLOSSemaphoreDecrementWait( SemaphoreHandle semaphoreHandle ) 
-    {
-      SDL_sem* semaphore = sSDLSemaphores[ ( int )semaphoreHandle ];
-      SDL_SemPost( semaphore );
-    }
+  void            SDLOSSemaphoreDecrementWait( SemaphoreHandle semaphoreHandle ) 
+  {
+    SDL_sem* semaphore = sSDLSemaphores[ ( int )semaphoreHandle ];
+    SDL_SemPost( semaphore );
+  }
 
-    void            SDLOSSemaphoreIncrementPost( SemaphoreHandle semaphoreHandle ) 
-    {
-      SDL_sem* semaphore = sSDLSemaphores[ ( int )semaphoreHandle ];
-      SDL_SemPost( semaphore );
-    }
+  void            SDLOSSemaphoreIncrementPost( SemaphoreHandle semaphoreHandle ) 
+  {
+    SDL_sem* semaphore = sSDLSemaphores[ ( int )semaphoreHandle ];
+    SDL_SemPost( semaphore );
+  }
 
   void SDLAppInit( Errors& errors )
   {
@@ -407,11 +366,7 @@ namespace Tac
   void SDLOSInit( Errors& errors )
   {
     TAC_RAISE_ERROR_IF( SDL_Init( SDL_INIT_EVERYTHING ), SDL_GetError(), errors );
-#if 0
-    OS::OSSaveToFile = SDLOSSaveToFile;
-    OS::OSDoesFolderExist = SDLOSDoesFolderExist;
-    OS::OSCreateFolder = SDLOSCreateFolder;
-#endif
+
     OS::OSDebugBreak = SDLOSDebugBreak;
     OS::OSDebugPopupBox = SDLOSDebugPopupBox;
     OS::OSGetApplicationDataPath = SDLOSGetApplicationDataPath;
@@ -420,7 +375,6 @@ namespace Tac
     OS::OSGetDirectoriesInDirectory = SDLOSGetDirectoriesInDirectory;
     OS::OSSaveDialog = SDLOSSaveDialog;
     OS::OSOpenDialog = SDLOSOpenDialog;
-    OS::OSGetWorkingDir = SDLOSGetWorkingDir;
     OS::OSGetPrimaryMonitor = SDLOSGetPrimaryMonitor;
     OS::OSSetScreenspaceCursorPos = SDLOSSetScreenspaceCursorPos;
     OS::OSGetLoadedDLL = SDLOSGetLoadedDLL;

@@ -16,8 +16,6 @@
 #include "src/level_editor/tac_level_editor_system_window.h"
 #include "src/shell/tac_desktop_app.h"
 
-import std;
-
 namespace Tac
 {
 

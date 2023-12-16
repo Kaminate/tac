@@ -5,10 +5,8 @@
 #include "src/common/shell/tac_shell_timer.h"
 #include "src/common/tac_core.h"
 
-import std;
+import std; // <list>, <cstdint>(uint8_t)
 using std::uint8_t;
-//#include <list>
-//#include <cstdint>
 
 namespace Tac
 {

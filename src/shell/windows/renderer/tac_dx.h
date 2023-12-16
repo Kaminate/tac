@@ -4,18 +4,15 @@
 
 #pragma once
 
-//#include "src/common/error/tac_error_handling.h"
-#include "src/common/preprocess/tac_preprocessor.h"
+#include "src/common/preprocess/tac_preprocessor.h" // Tac::move
 
 #include <unknwn.h> // IUnknown
 #include <guiddef.h>
 
-import std;
-
 namespace Tac::Render
 {
   // Wrapper for Com Object, similar to Microsoft::WRL::ComPtr
-  template< typename T > requires std::is_base_of_v< IUnknown, T >
+  template< typename T >
   struct PCom
   {
     // Constructors
@@ -29,9 +26,7 @@ namespace Tac::Render
 
     PCom( PCom&& other )
     {
-      //mT = other.mT;
-      //other.mT = nullptr;
-      swap( std::move(other) );
+      swap( Tac::move(other) );
     }
 
     ~PCom()
@@ -51,7 +46,9 @@ namespace Tac::Render
     //void   clear()         { TryRelease(); }
     void swap( PCom&& other )
     {
-      std::swap( mT, other.mT );
+      T* t = mT;
+      mT = other.mT;
+      other.mT = t;
     }
 
     // Query Interface

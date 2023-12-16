@@ -11,9 +11,7 @@
 #include "space/ecs/tac_component.h"
 #include "space/world/tac_world.h"
 
-import std;
-//#include <set>
-//#include <cmath>
+import std; // <set>
 
 namespace Tac
 {

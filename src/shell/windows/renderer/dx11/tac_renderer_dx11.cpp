@@ -296,32 +296,26 @@ namespace Tac::Render
 
   void RendererDirectX11::Init( Errors& errors )
   {
-    UINT createDeviceFlags = 0;
-    if constexpr( IsDebugMode )
-      createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
-
-    D3D_FEATURE_LEVEL featureLevel;
-    FrameMemoryVector< D3D_FEATURE_LEVEL > featureLevels = { D3D_FEATURE_LEVEL_12_1 };
-
-    IDXGIAdapter* pAdapter = nullptr;
-    D3D_DRIVER_TYPE DriverType = D3D_DRIVER_TYPE_HARDWARE;
-    HMODULE Software = nullptr;
+    const UINT createDeviceFlags = IsDebugMode ? D3D11_CREATE_DEVICE_DEBUG : 0;
+    const Array featureLevels = { D3D_FEATURE_LEVEL_12_1 };
 
     PCom<ID3D11Device> device;
     PCom<ID3D11DeviceContext> deviceContext;
 
     TAC_CALL( DXGIInit, errors );
 
+    auto adapter = DXGIGetBestAdapter();
+
     TAC_DX11_CALL( D3D11CreateDevice,
-                   pAdapter,
-                   DriverType,
-                   Software,
+                   (IDXGIAdapter*)adapter,
+                   D3D_DRIVER_TYPE_UNKNOWN,
+                   nullptr,
                    createDeviceFlags,
                    featureLevels.data(),
                    featureLevels.size(),
                    D3D11_SDK_VERSION,
                    device.CreateAddress(),
-                   &featureLevel,
+                   nullptr,
                    deviceContext.CreateAddress() );
 
     TAC_ASSERT( device );
