@@ -1,9 +1,9 @@
 #include "tac_example_dx12_3_texture.h" // self-inc
-
-// todo: dx12ify
-#include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_preprocess.h"
-
+#include "tac_example_dx12_shader_compile.h"
+#include "tac_example_dx12_shader_compile.h"
 #include "tac_example_dx12_2_dxc.h"
+
+#include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_preprocess.h"
 #include "src/common/containers/tac_array.h"
 #include "src/common/dataprocess/tac_text_parser.h"
 #include "src/common/containers/tac_frame_vector.h"
@@ -115,7 +115,7 @@ namespace Tac
       return;
 
     PCom<ID3D12Debug> dx12debug;
-    TAC_DX12_CALL( D3D12GetDebugInterface, dx12debug.iid(), dx12debug.ppv() );
+    TAC_DX12_CALL( D3D12GetDebugInterface( dx12debug.iid(), dx12debug.ppv() ) );
 
     dx12debug.QueryInterface( m_debug );
 
@@ -145,9 +145,9 @@ namespace Tac
     TAC_ASSERT(m_infoQueue);
 
     // Make the application debug break when bad things happen
-    TAC_DX12_CALL(m_infoQueue->SetBreakOnSeverity, D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE );
-    TAC_DX12_CALL(m_infoQueue->SetBreakOnSeverity, D3D12_MESSAGE_SEVERITY_ERROR, TRUE );
-    TAC_DX12_CALL(m_infoQueue->SetBreakOnSeverity, D3D12_MESSAGE_SEVERITY_WARNING, TRUE );
+    TAC_DX12_CALL(m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE ) );
+    TAC_DX12_CALL(m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_ERROR, TRUE ) );
+    TAC_DX12_CALL(m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_WARNING, TRUE ) );
 
     // First available in Windows 10 Release Preview build 20236,
     // But as of 2023-12-11 not available on my machine :(
@@ -158,11 +158,11 @@ namespace Tac
       void* pContext = this;
       DWORD pCallbackCookie;
 
-      TAC_DX12_CALL( infoQueue1->RegisterMessageCallback,
+      TAC_DX12_CALL( infoQueue1->RegisterMessageCallback(
                      CallbackFunc,
                      CallbackFilterFlags,
                      pContext,
-                     &pCallbackCookie );
+                     &pCallbackCookie ) );
     }
   }
 
@@ -170,11 +170,11 @@ namespace Tac
   {
     auto adapter = ( IDXGIAdapter* )DXGIGetBestAdapter();
     PCom< ID3D12Device > device;
-    TAC_DX12_CALL( D3D12CreateDevice,
+    TAC_DX12_CALL( D3D12CreateDevice(
                    adapter,
                    D3D_FEATURE_LEVEL_12_1,
                    device.iid(),
-                   device.ppv() );
+                   device.ppv() ) );
     m_device = device.QueryInterface<ID3D12Device5>();
     DX12SetName( m_device, "Device" );
 
@@ -210,10 +210,10 @@ namespace Tac
       .Type = D3D12_COMMAND_LIST_TYPE_DIRECT,
     };
 
-    TAC_DX12_CALL( m_device->CreateCommandQueue,
+    TAC_DX12_CALL( m_device->CreateCommandQueue(
                    &queueDesc,
                    m_commandQueue.iid(),
-                   m_commandQueue.ppv() );
+                   m_commandQueue.ppv() ) );
     DX12SetName( m_commandQueue, "Command Queue" );
   }
 
@@ -230,10 +230,10 @@ namespace Tac
       .Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
       .NumDescriptors = bufferCount,
     };
-    TAC_DX12_CALL( m_device->CreateDescriptorHeap,
+    TAC_DX12_CALL( m_device->CreateDescriptorHeap(
                    &desc,
                    m_rtvHeap.iid(),
-                   m_rtvHeap.ppv() );
+                   m_rtvHeap.ppv() ) );
     m_rtvCpuHeapStart = m_rtvHeap->GetCPUDescriptorHandleForHeapStart();
     m_rtvGpuHeapStart = m_rtvHeap->GetGPUDescriptorHandleForHeapStart();
   }
@@ -246,10 +246,10 @@ namespace Tac
       .NumDescriptors = 1,
       .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,
     };
-    TAC_DX12_CALL( m_device->CreateDescriptorHeap,
+    TAC_DX12_CALL( m_device->CreateDescriptorHeap(
                    &desc,
                    m_srvHeap.iid(),
-                   m_srvHeap.ppv() );
+                   m_srvHeap.ppv() ) );
     m_srvCpuHeapStart = m_srvHeap->GetCPUDescriptorHandleForHeapStart();
     m_srvGpuHeapStart = m_srvHeap->GetGPUDescriptorHandleForHeapStart();
   }
@@ -287,10 +287,10 @@ namespace Tac
   {
     // a command allocator manages storage for cmd lists and bundles
     TAC_ASSERT( m_device );
-    TAC_DX12_CALL( m_device->CreateCommandAllocator,
+    TAC_DX12_CALL( m_device->CreateCommandAllocator(
                    D3D12_COMMAND_LIST_TYPE_DIRECT,
                    m_commandAllocator.iid(),
-                   m_commandAllocator.ppv()  );
+                   m_commandAllocator.ppv()  ) );
     DX12SetName( m_commandAllocator, "My Command Allocator");
   }
 
@@ -301,12 +301,12 @@ namespace Tac
     // Note: CreateCommandList1 creates it the command list in a closed state, as opposed to
     //       CreateCommandList, which creates in a open state.
     PCom< ID3D12CommandList > commandList;
-    TAC_DX12_CALL( m_device->CreateCommandList1,
+    TAC_DX12_CALL( m_device->CreateCommandList1(
                    0,
                    D3D12_COMMAND_LIST_TYPE_DIRECT,
                    D3D12_COMMAND_LIST_FLAG_NONE,
                    commandList.iid(),
-                   commandList.ppv() );
+                   commandList.ppv() ) );
     TAC_ASSERT( commandList );
     commandList.QueryInterface( m_commandList );
     TAC_ASSERT( m_commandList );
@@ -371,14 +371,14 @@ namespace Tac
     //   An OR'd combination of other read-state bits.
     //   The required starting state for an upload heap
     const D3D12_RESOURCE_STATES uploadHeapResourceStates = D3D12_RESOURCE_STATE_GENERIC_READ;
-    TAC_CALL( m_device->CreateCommittedResource,
+    TAC_CALL( m_device->CreateCommittedResource(
               &uploadHeapProps,
               D3D12_HEAP_FLAG_NONE,
               &resourceDesc,
               uploadHeapResourceStates,
               pOptimizedClearValue,
               m_vertexBufferUploadHeap.iid(),
-              m_vertexBufferUploadHeap.ppv() );
+              m_vertexBufferUploadHeap.ppv() ) );
 
     const D3D12_HEAP_PROPERTIES defaultHeapProps
     {
@@ -390,14 +390,14 @@ namespace Tac
     // Creates both a resource and an implicit heap,
     // such that the heap is big enough to contain the entire resource,
     // and the resource is mapped to the heap.
-    TAC_CALL( m_device->CreateCommittedResource,
+    TAC_CALL( m_device->CreateCommittedResource(
       &defaultHeapProps,
       D3D12_HEAP_FLAG_NONE,
       &resourceDesc,
       D3D12_RESOURCE_STATE_COPY_DEST, // we want to copy into here from the uplaod buffer
       pOptimizedClearValue,
       m_vertexBuffer.iid(),
-      m_vertexBuffer.ppv() );
+      m_vertexBuffer.ppv() ) );
 
     DX12SetName( m_vertexBuffer, "vertexes");
     DX12SetName( m_vertexBufferUploadHeap, "vertex upload");
@@ -405,7 +405,7 @@ namespace Tac
     // Copy the triangle data to the vertex buffer upload heap.
     const D3D12_RANGE readRange{}; // not reading from CPU
     void* pVertexDataBegin;
-    TAC_DX12_CALL( m_vertexBufferUploadHeap->Map, 0, &readRange, &pVertexDataBegin );
+    TAC_DX12_CALL( m_vertexBufferUploadHeap->Map( 0, &readRange, &pVertexDataBegin ) );
     MemCpy( pVertexDataBegin, triangleVertices, m_vertexBufferSize );
     m_vertexBufferUploadHeap->Unmap( 0, nullptr );
 
@@ -428,18 +428,18 @@ namespace Tac
     const UINT64 initialVal = 0;
 
     PCom< ID3D12Fence > fence;
-    TAC_DX12_CALL( m_device->CreateFence,
+    TAC_DX12_CALL( m_device->CreateFence(
                    initialVal,
                    D3D12_FENCE_FLAG_NONE,
                    fence.iid(),
-                   fence.ppv() );
+                   fence.ppv() ) );
 
     fence.QueryInterface(m_fence);
     DX12SetName( fence, "fence" );
 
     m_fenceValue = 1;
 
-    TAC_CALL( m_fenceEvent.Init, errors );
+    TAC_CALL( m_fenceEvent.Init( errors ) );
   }
 
 
@@ -515,12 +515,12 @@ namespace Tac
                         "Blob = " + ( const char* )blobErr->GetBufferPointer() + ", "
                         "HRESULT = " + DX12_HRESULT_ToString( hr ) );
 
-    TAC_DX12_CALL( m_device->CreateRootSignature,
+    TAC_DX12_CALL( m_device->CreateRootSignature(
                    0,
                    blob->GetBufferPointer(),
                    blob->GetBufferSize(),
                    m_rootSignature.iid(),
-                   m_rootSignature.ppv() );
+                   m_rootSignature.ppv() ) );
 
     DX12SetName( m_rootSignature, "My Root Signature" );
   }
@@ -568,67 +568,16 @@ namespace Tac
     FixedVector< D3D12_INPUT_ELEMENT_DESC, 10 > mElementDescs;
   };
 
-  static D3D_SHADER_MODEL GetHighestShaderModel( ID3D12Device* device )
-  {
-    const D3D_SHADER_MODEL lowestDefined = D3D_SHADER_MODEL_5_1;
-    const D3D_SHADER_MODEL highestDefined = D3D_SHADER_MODEL_6_7; // D3D_HIGHEST_SHADER_MODEL undefined?;
-    for( D3D_SHADER_MODEL shaderModel = highestDefined; 
-         shaderModel >= lowestDefined;
-         shaderModel = D3D_SHADER_MODEL( shaderModel - 1 ) )
-    {
-      // https://learn.microsoft.com/en-us/windows/win32/api/d3d12/ns-d3d12-d3d12_feature_data_shader_model
-      //   After the function completes successfully, the HighestShaderModel field contains the
-      //   highest shader model that is both supported by the device and no higher than the
-      //   shader model passed in.
-      TAC_NOT_CONST D3D12_FEATURE_DATA_SHADER_MODEL featureData{ shaderModel };
-      if( SUCCEEDED( device->CheckFeatureSupport(
-        D3D12_FEATURE_SHADER_MODEL,
-        &featureData,
-        sizeof(D3D12_FEATURE_DATA_SHADER_MODEL) ) ) )
-        
-        // For some godforsaken fucking reason, this isn't the same as shaderModel
-        return featureData.HighestShaderModel;
-    }
-
-    return lowestDefined;
-  }
 
 
   void DX12AppHelloTexture::CreatePipelineState( Errors& errors )
   {
-    const AssetPathStringView shaderAssetPath = "assets/hlsl/DX12HelloTextureBindless.hlsl";
+    //const AssetPathStringView shaderAssetPath = "assets/hlsl/DX12HelloTextureBindless.hlsl";
+    const AssetPathStringView shaderAssetPath = "assets/hlsl/DX12HelloTriangleBindless.hlsl";
 
-    const String shaderStrRaw = TAC_CALL( LoadAssetPath, shaderAssetPath, errors );
-    const String shaderStrProcessed = DX12PreprocessShader( shaderStrRaw );
+    TAC_CALL( DX12ProgramCompiler compiler( ( ID3D12Device* )m_device, errors ) );
 
-    const D3D_SHADER_MODEL shaderModel = D3D_SHADER_MODEL_6_5;
-    const D3D_SHADER_MODEL highestShaderModel = GetHighestShaderModel( (ID3D12Device*)m_device );
-    TAC_ASSERT( shaderModel <= highestShaderModel );
-
-    const DX12ShaderCompileFromStringInput vsInput
-    {
-      .mShaderAssetPath = shaderAssetPath,
-      .mPreprocessedShader = shaderStrProcessed,
-      .mEntryPoint = "VSMain",
-      .mType = ShaderType::Vertex,
-      .mShaderModel = shaderModel,
-      .mOutputDir = sShellPrefPath,
-    };
-
-    const DX12ShaderCompileFromStringInput psInput
-    {
-      .mShaderAssetPath = shaderAssetPath,
-      .mPreprocessedShader = shaderStrProcessed,
-      .mEntryPoint = "PSMain",
-      .mType = ShaderType::Fragment,
-      .mShaderModel = shaderModel,
-      .mOutputDir = sShellPrefPath,
-    };
-
-
-    const DX12DXCOutput vs = TAC_CALL( DX12CompileShaderDXC, vsInput, errors );
-    const DX12DXCOutput ps = TAC_CALL( DX12CompileShaderDXC, psInput, errors );
-    
+    DX12ProgramCompiler::Result compileResult = TAC_CALL( compiler.Compile(shaderAssetPath, errors) );
 
     const DX12BuiltInputLayout inputLayout{
       VertexDeclarations
@@ -686,8 +635,8 @@ namespace Tac
     const D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc
     {
       .pRootSignature = ( ID3D12RootSignature* )m_rootSignature,
-      .VS = vs.mByteCode,
-      .PS = ps.mByteCode,
+      .VS = compileResult.GetBytecode(Render::ShaderType::Vertex ),
+      .PS = compileResult.GetBytecode(Render::ShaderType::Fragment ),
       .BlendState = BlendState,
       .SampleMask = UINT_MAX,
       .RasterizerState = RasterizerState,
@@ -698,10 +647,10 @@ namespace Tac
       .RTVFormats = { DXGIGetSwapChainFormat() },
       .SampleDesc = { .Count = 1 },
     };
-    TAC_CALL( m_device->CreateGraphicsPipelineState,
+    TAC_CALL( m_device->CreateGraphicsPipelineState(
               &psoDesc,
               mPipelineState.iid(),
-              mPipelineState.ppv() );
+              mPipelineState.ppv() ) );
 
     DX12SetName( mPipelineState, "My Pipeline State" );
 
@@ -728,8 +677,8 @@ namespace Tac
       .mWidth = state->mWidth,
       .mHeight = state->mHeight,
     };
-    m_swapChain = TAC_CALL( DXGICreateSwapChain, scInfo, errors );
-    TAC_CALL( m_swapChain->GetDesc1, &m_swapChainDesc );
+    m_swapChain = TAC_CALL( DXGICreateSwapChain( scInfo, errors ) );
+    TAC_CALL( m_swapChain->GetDesc1( &m_swapChainDesc ) );
   }
 
   D3D12_CPU_DESCRIPTOR_HANDLE DX12AppHelloTexture::OffsetCpuDescHandle(
@@ -786,7 +735,7 @@ namespace Tac
     {
       const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = GetRTVCpuDescHandle( i );
       PCom< ID3D12Resource >& renderTarget = m_renderTargets[ i ];
-      TAC_DX12_CALL( m_swapChain->GetBuffer, i, renderTarget.iid(), renderTarget.ppv() );
+      TAC_DX12_CALL( m_swapChain->GetBuffer( i, renderTarget.iid(), renderTarget.ppv() ) );
       m_device->CreateRenderTargetView( ( ID3D12Resource* )renderTarget, nullptr, rtvHandle );
 
       DX12SetName( renderTarget, "Render Target " + ToString( i ) );
@@ -848,9 +797,9 @@ namespace Tac
     //   Indicates to re-use the memory that is associated with the command allocator.
     //   From this call to Reset, the runtime and driver determine that the GPU is no longer
     //   executing any command lists that have recorded commands with the command allocator.
-    TAC_DX12_CALL( m_commandAllocator->Reset );
+    TAC_DX12_CALL( m_commandAllocator->Reset() );
 
-    // However, when ExecuteCommandList() is called on a particular command 
+    // However( when ExecuteCommandList() is called on a particular command 
     // list, that command list can then be reset at any time and must be before 
     // re-recording.
     //
@@ -862,12 +811,12 @@ namespace Tac
     //   you can re-use command list tracking structures without any allocations
     //   you can call Reset while the command list is still being executed
     //   you can submit a cmd list, reset it, and reuse the allocated memory for another cmd list
-    TAC_DX12_CALL( m_commandList->Reset,
+    TAC_DX12_CALL( m_commandList->Reset(
                    ( ID3D12CommandAllocator* )m_commandAllocator,
 
                    // The associated pipeline state (IA, OM, RS, ... )
                    // that the command list will modify, all leading to a draw call?
-                   ( ID3D12PipelineState* )mPipelineState );
+                   ( ID3D12PipelineState* )mPipelineState ) );
 
     if( !m_vertexBufferCopied )
     {
@@ -958,7 +907,7 @@ namespace Tac
     TransitionRenderTarget( m_frameIndex, D3D12_RESOURCE_STATE_PRESENT );
 
     // Indicates that recording to the command list has finished.
-    TAC_DX12_CALL( m_commandList->Close );
+    TAC_DX12_CALL( m_commandList->Close() );
   }
 
   void DX12AppHelloTexture::ClearRenderTargetView()
@@ -1024,7 +973,7 @@ namespace Tac
     const UINT PresentFlags = 0;
 
     // I think this technically adds a frame onto the present queue
-    TAC_DX12_CALL( m_swapChain->Present1, SyncInterval, PresentFlags, &params );
+    TAC_DX12_CALL( m_swapChain->Present1( SyncInterval, PresentFlags, &params ) );
   }
 
   void DX12AppHelloTexture::WaitForPreviousFrame( Errors& errors )
@@ -1055,7 +1004,7 @@ namespace Tac
 
     // Use this method to set a fence value from the GPU side
     // [ ] Q: ^ ???
-    TAC_DX12_CALL( m_commandQueue->Signal, (ID3D12Fence*)m_fence, signalValue );
+    TAC_DX12_CALL( m_commandQueue->Signal( (ID3D12Fence*)m_fence, signalValue ) );
 
     m_fenceValue++;
 
@@ -1078,7 +1027,7 @@ namespace Tac
       //
       // the event will be 'complete' when it reaches the specified value.
       // This value is set by the cmdqueue::Signal
-      TAC_DX12_CALL( m_fence->SetEventOnCompletion, signalValue, (HANDLE)m_fenceEvent );
+      TAC_DX12_CALL( m_fence->SetEventOnCompletion( signalValue, (HANDLE)m_fenceEvent ) );
       WaitForSingleObject( (HANDLE)m_fenceEvent, INFINITE );
     }
 
@@ -1093,24 +1042,24 @@ namespace Tac
 
   void DX12AppHelloTexture::Init( Errors& errors )
   {
-    TAC_CALL( PreSwapChainInit, errors );
+    TAC_CALL( PreSwapChainInit( errors ) );
   }
 
   void DX12AppHelloTexture::PreSwapChainInit( Errors& errors)
   {
     CreateDesktopWindow();
-    TAC_CALL( DXGIInit, errors );
-    TAC_CALL( EnableDebug, errors );
-    TAC_CALL( CreateDevice, errors );
-    TAC_CALL( CreateFence, errors );
-    TAC_CALL( CreateCommandQueue, errors );
-    TAC_CALL( CreateRTVDescriptorHeap, errors );
-    TAC_CALL( CreateInfoQueue, errors );
-    TAC_CALL( CreateSRVDescriptorHeap, errors );
-    TAC_CALL( CreateCommandAllocator, errors );
-    TAC_CALL( CreateCommandList, errors );
-    TAC_CALL( CreateRootSignature, errors );
-    TAC_CALL( CreatePipelineState, errors );
+    TAC_CALL( DXGIInit( errors ) );
+    TAC_CALL( EnableDebug( errors ) );
+    TAC_CALL( CreateDevice( errors ) );
+    TAC_CALL( CreateFence( errors ) );
+    TAC_CALL( CreateCommandQueue( errors ) );
+    TAC_CALL( CreateRTVDescriptorHeap( errors ) );
+    TAC_CALL( CreateInfoQueue( errors ) );
+    TAC_CALL( CreateSRVDescriptorHeap( errors ) );
+    TAC_CALL( CreateCommandAllocator( errors ) );
+    TAC_CALL( CreateCommandList( errors ) );
+    TAC_CALL( CreateRootSignature( errors ) );
+    TAC_CALL( CreatePipelineState( errors ) );
   }
 
   void DX12AppHelloTexture::PostSwapChainInit( Errors& errors)
@@ -1118,10 +1067,10 @@ namespace Tac
     if( m_swapChain )
       return;
 
-    TAC_CALL( DX12CreateSwapChain, errors );
-    TAC_CALL( CreateRenderTargetViews, errors );
-    TAC_CALL( CreateVertexBuffer, errors );
-    TAC_CALL( CreateSRV, errors );
+    TAC_CALL( DX12CreateSwapChain( errors ) );
+    TAC_CALL( CreateRenderTargetViews( errors ) );
+    TAC_CALL( CreateVertexBuffer( errors ) );
+    TAC_CALL( CreateSRV( errors ) );
 
     m_viewport = D3D12_VIEWPORT
     {
@@ -1144,16 +1093,16 @@ namespace Tac
     if( !GetDesktopWindowNativeHandle( hDesktopWindow ) )
       return;
 
-    TAC_CALL( PostSwapChainInit, errors );
+    TAC_CALL( PostSwapChainInit( errors ) );
 
     // Record all the commands we need to render the scene into the command list.
-    TAC_CALL( PopulateCommandList, errors );
+    TAC_CALL( PopulateCommandList( errors ) );
 
     ExecuteCommandLists();
 
-    TAC_CALL( SwapChainPresent, errors );
+    TAC_CALL( SwapChainPresent( errors ) );
 
-    TAC_CALL( WaitForPreviousFrame, errors );
+    TAC_CALL( WaitForPreviousFrame( errors ) );
 
   }
 
@@ -1161,7 +1110,7 @@ namespace Tac
   {
     // Ensure that the GPU is no longer referencing resources that are about to be
     // cleaned up by the destructor.
-    TAC_CALL( WaitForPreviousFrame, errors );
+    TAC_CALL( WaitForPreviousFrame( errors ) );
 
     DXGIUninit();
   }

@@ -131,7 +131,7 @@ namespace Tac
                                         Errors& errors )
   {
     //ModifyPathRelative( prefabPath );
-    TAC_CALL( const String memory = LoadAssetPath, prefabPath, errors );
+    TAC_CALL( const String memory = LoadAssetPath( prefabPath, errors ) );
 
     Json prefabJson;
     prefabJson.Parse( memory.data(), memory.size(), errors );
@@ -169,7 +169,7 @@ namespace Tac
       paths.push_back( child->mString );
     for( String path : paths )
     {
-      TAC_CALL( PrefabLoadAtPath, entityUUIDCounter, world, camera, path, errors );
+      TAC_CALL( PrefabLoadAtPath( entityUUIDCounter, world, camera, path, errors ) );
     }
   }
 
@@ -205,9 +205,9 @@ namespace Tac
     {
       const Filesystem::Path suggestedName = entity->mName + ".prefab";
       
-      TAC_CALL( Filesystem::Path savePath = OS::OSSaveDialog, suggestedName, errors );
+      TAC_CALL( Filesystem::Path savePath = OS::OSSaveDialog( suggestedName, errors ) );
 
-      TAC_CALL( AssetPathStringView assetPath = ModifyPathRelative, savePath, errors );
+      TAC_CALL( AssetPathStringView assetPath = ModifyPathRelative( savePath, errors ) );
 
       prefab->mAssetPath = assetPath;
     }
@@ -219,7 +219,7 @@ namespace Tac
     const void* bytes = prefabJsonString.data();
     const int byteCount = prefabJsonString.size();
     const Filesystem::Path fsPath( prefab->mAssetPath );
-    TAC_CALL( Filesystem::SaveToFile, fsPath, bytes, byteCount, errors );
+    TAC_CALL( Filesystem::SaveToFile( fsPath, bytes, byteCount, errors ) );
   }
 
   void                PrefabSave( World* world, Errors& errors )

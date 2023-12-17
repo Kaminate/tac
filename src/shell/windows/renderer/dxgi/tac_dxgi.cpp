@@ -125,7 +125,7 @@ namespace Tac::Render
           break;
 
       DXGI_ADAPTER_DESC1 desc{};
-      TAC_DXGI_CALL_RET( {}, currAdapter->GetDesc1, &desc );
+      TAC_DXGI_CALL_RET( {}, currAdapter->GetDesc1( &desc ));
       if( bestAdapter && desc.DedicatedVideoMemory < bestdesc.DedicatedVideoMemory  )
         continue;
 
@@ -141,18 +141,18 @@ namespace Tac::Render
     // Only CreateDXGIFactory2 allows the use of flags
     const UINT flags = IsDebugMode ? DXGI_CREATE_FACTORY_DEBUG : 0;
     PCom< IDXGIFactory2 > factory2;
-    TAC_DXGI_CALL( CreateDXGIFactory2, flags, factory2.iid(), factory2.ppv() );
+    TAC_DXGI_CALL( CreateDXGIFactory2( flags, factory2.iid(), factory2.ppv() ) );
     TAC_ASSERT( factory2 );
 
     mFactory = factory2.QueryInterface< IDXGIFactory4 >();
     TAC_ASSERT( mFactory );
     DXGISetObjectName( ( IDXGIFactory4* )mFactory, "my-dxgi-factory" );
 
-    auto bestAdapter = TAC_CALL( GetBestAdapter, ( IDXGIFactory1* )mFactory, errors );
+    auto bestAdapter = TAC_CALL( GetBestAdapter( ( IDXGIFactory1* )mFactory, errors ) );
 
     mAdapter = bestAdapter.QueryInterface<IDXGIAdapter4>();
     TAC_ASSERT(mAdapter);
-    TAC_DXGI_CALL( mAdapter->GetDesc3, &mAdapterDesc );
+    TAC_DXGI_CALL( mAdapter->GetDesc3( &mAdapterDesc ) );
     DXGISetObjectName( ( IDXGIAdapter* )mAdapter, "my-dxgi-adaptor" );
   }
 

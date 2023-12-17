@@ -4,6 +4,7 @@
 #include "src/common/string/tac_string_format.h"
 #include "src/common/string/tac_string_util.h"
 #include "src/common/memory/tac_frame_memory.h"
+#include "src/common/error/tac_error_handling.h"
 #include "src/common/system/tac_os.h"
 #include "src/common/graphics/tac_renderer.h"
 #include "src/common/algorithm/tac_algorithm.h"
@@ -80,12 +81,10 @@ namespace Tac
       ::DebugBreak();
   }
 
-  const char* HrCallAux( const HRESULT hr, const char* fnName, const char* fnArgs )
+  void HrCallAux( const HRESULT hr, const char* fnName, Errors& errors )
   {
-    return FrameMemoryFormat( "{}( {} ) failed, returning {:#X}",
-                              fnName,
-                              fnArgs,
-                              ( unsigned int )hr );
+    TAC_RAISE_ERROR( String() +
+      fnName + " failed with return value " + ToString( ( unsigned long long ) hr ) );
   }
 
 } // namespace Tac

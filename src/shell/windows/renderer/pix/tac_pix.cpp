@@ -52,10 +52,10 @@ namespace Tac::Render
     if( !Filesystem::Exists( pixInstallPath ) )
       return {};
 
-    const Filesystem::Paths subdirs = TAC_CALL_RET( {}, Filesystem::IterateDirectories,
+    const Filesystem::Paths subdirs = TAC_CALL_RET( {}, Filesystem::IterateDirectories(
       pixInstallPath,
       Filesystem::IterateType::Default,
-      errors );
+      errors ) );
 
     if( subdirs.empty() )
       return {};

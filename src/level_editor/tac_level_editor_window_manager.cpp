@@ -106,7 +106,7 @@ namespace Tac
 
 
     TAC_NEW CreationPropertyWindow;
-    TAC_CALL( CreationPropertyWindow::Instance->Init, errors );
+    TAC_CALL( CreationPropertyWindow::Instance->Init( errors ) );
   }
 
   void                LevelEditorWindowManager::CreateGameWindow( Errors& errors )
@@ -118,7 +118,7 @@ namespace Tac
     }
 
     TAC_NEW CreationGameWindow;
-    TAC_CALL( CreationGameWindow::Instance->Init, errors );
+    TAC_CALL( CreationGameWindow::Instance->Init( errors ) );
   }
 
   void                LevelEditorWindowManager::CreateMainWindow( Errors& errors )
@@ -130,7 +130,7 @@ namespace Tac
     }
 
     TAC_NEW CreationMainWindow;
-    TAC_CALL( CreationMainWindow::Instance->Init, errors );
+    TAC_CALL( CreationMainWindow::Instance->Init( errors ) );
   }
 
   void                LevelEditorWindowManager::CreateSystemWindow( Errors& errors )
@@ -142,7 +142,7 @@ namespace Tac
     }
 
     TAC_NEW CreationSystemWindow;
-    TAC_CALL( CreationSystemWindow::Instance->Init, errors );
+    TAC_CALL( CreationSystemWindow::Instance->Init( errors ) );
 
   }
 
@@ -155,7 +155,7 @@ namespace Tac
     }
 
     TAC_NEW CreationProfileWindow;
-    TAC_CALL( CreationProfileWindow::Instance->Init, errors );
+    TAC_CALL( CreationProfileWindow::Instance->Init( errors ) );
 
   }
 
@@ -246,7 +246,7 @@ namespace Tac
     {
       if( ShouldCreateWindowNamed( name ) )
       {
-        TAC_CALL(( this->*fn ), errors );
+        TAC_CALL(( this->*fn )( errors ) );
       }
     }
   }
@@ -267,35 +267,35 @@ namespace Tac
 
     if( CreationMainWindow::Instance )
     {
-      TAC_CALL( CreationMainWindow::Instance->Update, errors );
+      TAC_CALL( CreationMainWindow::Instance->Update( errors ) );
       if( CreationMainWindow::Instance->mCloseRequested )
         TAC_DELETE CreationMainWindow::Instance;
     }
 
     if( CreationGameWindow::Instance )
     {
-      TAC_CALL( CreationGameWindow::Instance->Update, errors );
+      TAC_CALL( CreationGameWindow::Instance->Update( errors ) );
       if( CreationGameWindow::Instance->mCloseRequested )
         TAC_DELETE CreationGameWindow::Instance;
     }
 
     if( CreationPropertyWindow::Instance )
     {
-      TAC_CALL( CreationPropertyWindow::Instance->Update, errors );
+      TAC_CALL( CreationPropertyWindow::Instance->Update( errors ) );
       if( CreationPropertyWindow::Instance->mCloseRequested )
         TAC_DELETE CreationPropertyWindow::Instance;
     }
 
     if( CreationSystemWindow::Instance )
     {
-      TAC_CALL( CreationSystemWindow::Instance->Update, errors );
+      TAC_CALL( CreationSystemWindow::Instance->Update( errors ) );
       if( CreationSystemWindow::Instance->mCloseRequested )
         TAC_DELETE CreationSystemWindow::Instance;
     }
 
     if( CreationProfileWindow::Instance )
     {
-      TAC_CALL( CreationProfileWindow::Instance->Update, errors );
+      TAC_CALL( CreationProfileWindow::Instance->Update( errors ) );
       if( CreationProfileWindow::Instance->mCloseRequested )
         TAC_DELETE CreationProfileWindow::Instance;
     }

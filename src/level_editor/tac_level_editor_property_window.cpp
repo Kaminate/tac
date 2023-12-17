@@ -258,12 +258,12 @@ namespace Tac
 
     if( ImGuiButton( "Open Prefab" ) )
     {
-      TAC_CALL( AssetPathStringView prefabAssetPath = GetAssetOpenDialog,errors );
+      TAC_CALL( AssetPathStringView prefabAssetPath = GetAssetOpenDialog(errors ) );
 
       if( prefabAssetPath.size() )
       {
         Camera* cam = world->mEntities.size() ? nullptr : gCreation.mEditorCamera;
-        TAC_CALL( PrefabLoadAtPath, &gCreation.mEntityUUIDCounter, world, cam, prefabAssetPath, errors );
+        TAC_CALL( PrefabLoadAtPath( &gCreation.mEntityUUIDCounter, world, cam, prefabAssetPath, errors ) );
       }
     }
     ImGuiEndGroup();

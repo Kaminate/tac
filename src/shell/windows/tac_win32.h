@@ -44,23 +44,24 @@ namespace Tac
   //void             Win32PopupBox( const struct StringView& );
   //void             Win32Output( const struct StringView& );
 
-  const char* HrCallAux( const HRESULT, const char*, const char* );
+  void HrCallAux( const HRESULT, const char*, Errors& );
 }
 
-#define TAC_HR_CALL( fn, ... ) {                                 \
-  const HRESULT hr = fn( __VA_ARGS__ );                          \
-  if( FAILED( hr ) )                                             \
-  {                                                              \
-    const char* msg = Tac::HrCallAux(hr, #fn, #__VA_ARGS__);     \
-    TAC_RAISE_ERROR_RETURN( msg, {} );                           \
-  }                                                              \
+#define TAC_HR_CALL( fn ) {                                                                        \
+  const HRESULT hr = fn;                                                                           \
+  const bool failed = FAILED( hr );                                                                \
+  if( failed )                                                                                     \
+  {                                                                                                \
+    TAC_CALL( Tac::HrCallAux( hr, #fn, errors ) );                                                 \
+  }                                                                                                \
 }
 
-#define TAC_HR_CALL_NO_RET( fn, ... ) {                          \
-  const HRESULT hr = fn( __VA_ARGS__ );                          \
-  if( FAILED( hr ) )                                             \
-  {                                                              \
-    const char* msg = Tac::HrCallAux(hr, #fn, #__VA_ARGS__);     \
-    TAC_RAISE_ERROR( msg );                                      \
-  }                                                              \
+#define TAC_HR_CALL_RET( ret, fn ) {                                                               \
+  const HRESULT hr = fn;                                                                           \
+  const bool failed = FAILED( hr );                                                                \
+  if( failed )                                                                                     \
+  {                                                                                                \
+    TAC_CALL_RET( ret, Tac::HrCallAux( hr, #fn, errors ) );                                        \
+  }                                                                                                \
 }
+

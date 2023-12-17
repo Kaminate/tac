@@ -302,11 +302,11 @@ namespace Tac::Render
     PCom<ID3D11Device> device;
     PCom<ID3D11DeviceContext> deviceContext;
 
-    TAC_CALL( DXGIInit, errors );
+    TAC_CALL( DXGIInit( errors ));
 
     auto adapter = DXGIGetBestAdapter();
 
-    TAC_DX11_CALL( D3D11CreateDevice,
+    TAC_DX11_CALL( D3D11CreateDevice(
                    (IDXGIAdapter*)adapter,
                    D3D_DRIVER_TYPE_UNKNOWN,
                    nullptr,
@@ -316,7 +316,7 @@ namespace Tac::Render
                    D3D11_SDK_VERSION,
                    device.CreateAddress(),
                    nullptr,
-                   deviceContext.CreateAddress() );
+                   deviceContext.CreateAddress() ) );
 
     TAC_ASSERT( device );
     TAC_ASSERT( deviceContext );
@@ -329,8 +329,8 @@ namespace Tac::Render
     // your output window, it likes to put error messages there
     if constexpr( IsDebugMode )
     {
-      TAC_DX11_CALL( mDevice->QueryInterface, IID_PPV_ARGS( &mInfoQueueDEBUG ) );
-      TAC_DX11_CALL( mDeviceContext->QueryInterface, IID_PPV_ARGS( &mUserAnnotationDEBUG ) );
+      TAC_DX11_CALL( mDevice->QueryInterface( IID_PPV_ARGS( &mInfoQueueDEBUG ) ) );
+      TAC_DX11_CALL( mDeviceContext->QueryInterface( IID_PPV_ARGS( &mUserAnnotationDEBUG ) ) );
 
       const D3D11_MESSAGE_SEVERITY breakSeverities[] =
       {
@@ -978,7 +978,7 @@ namespace Tac::Render
       ? &InitialData
       : nullptr;
 
-    TAC_DX11_CALL( mDevice->CreateBuffer, &desc, pInitialData, &magicBuffer->mBuffer );
+    TAC_DX11_CALL( mDevice->CreateBuffer( &desc, pInitialData, &magicBuffer->mBuffer ));
     SetDebugName( magicBuffer->mBuffer, commandDataCreateMagicBuffer->mStackFrame.ToString() );
 
     // https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/sm5-object-structuredbuffer
@@ -995,10 +995,10 @@ namespace Tac::Render
       uavDesc.Buffer.FirstElement = 0; // index, not byte offset
       uavDesc.Buffer.Flags = 0;
       uavDesc.Buffer.NumElements = NumElements;
-      TAC_DX11_CALL( mDevice->CreateUnorderedAccessView,
-                     magicBuffer->mBuffer,
-                     &uavDesc,
-                     &magicBuffer->mUAV );
+      TAC_DX11_CALL( mDevice->CreateUnorderedAccessView(
+        magicBuffer->mBuffer,
+        &uavDesc,
+        &magicBuffer->mUAV ) );
       SetDebugName( magicBuffer->mUAV, commandDataCreateMagicBuffer->mStackFrame.ToString() );
     }
 
@@ -1010,10 +1010,7 @@ namespace Tac::Render
       srvDesc.Buffer.FirstElement = 0; // index, not byte offset
       srvDesc.Buffer.NumElements = NumElements;
       // srvDesc.BufferEx... = ;
-      TAC_DX11_CALL( mDevice->CreateShaderResourceView,
-                     magicBuffer->mBuffer,
-                     &srvDesc,
-                     &magicBuffer->mSRV );
+      TAC_DX11_CALL( mDevice->CreateShaderResourceView( magicBuffer->mBuffer, &srvDesc, &magicBuffer->mSRV ));
       SetDebugName( magicBuffer->mSRV, commandDataCreateMagicBuffer->mStackFrame.ToString() );
     }
   }
@@ -1035,10 +1032,7 @@ namespace Tac::Render
     const D3D11_SUBRESOURCE_DATA* pInitData = data->mOptionalInitialBytes ? &initData : nullptr;
 
     ID3D11Buffer* buffer;
-    TAC_DX11_CALL( mDevice->CreateBuffer,
-                   &bd,
-                   pInitData,
-                   &buffer );
+    TAC_DX11_CALL( mDevice->CreateBuffer( &bd, pInitData, &buffer ));
 
     mVertexBuffers[ ( int )data->mVertexBufferHandle ] = VertexBuffer
     {
@@ -1089,12 +1083,12 @@ namespace Tac::Render
     }
     ID3DBlob* inputSig = mPrograms[ ( int )commandData->mShaderHandle ].mInputSig;
     ID3D11InputLayout* inputLayout;
-    TAC_DX11_CALL( mDevice->CreateInputLayout,
+    TAC_DX11_CALL( mDevice->CreateInputLayout(
                    inputElementDescs.data(),
                    ( UINT )inputElementDescs.size(),
                    inputSig->GetBufferPointer(),
                    inputSig->GetBufferSize(),
-                   &inputLayout );
+                   &inputLayout ) );
 
     SetDebugName( inputLayout, commandData->mStackFrame.ToString() );
     mInputLayouts[ ( int )vertexFormatHandle ] = inputLayout;
@@ -1118,10 +1112,10 @@ namespace Tac::Render
     D3D11_SUBRESOURCE_DATA initData = {};
     initData.pSysMem = data->mOptionalInitialBytes;
     ID3D11Buffer* buffer;
-    TAC_DX11_CALL( mDevice->CreateBuffer,
+    TAC_DX11_CALL( mDevice->CreateBuffer(
                    &bd,
                    data->mOptionalInitialBytes ? &initData : nullptr,
-                   &buffer );
+                   &buffer ) );
 
     SetDebugName( buffer, data->mStackFrame.ToString() );
 
@@ -1148,7 +1142,7 @@ namespace Tac::Render
     };
 
     ID3D11RasterizerState2* rasterizerState2;
-    TAC_DX11_CALL( mDevice->CreateRasterizerState2, &desc2, &rasterizerState2 );
+    TAC_DX11_CALL( mDevice->CreateRasterizerState2( &desc2, &rasterizerState2 ) );
     SetDebugName( rasterizerState2, commandData->mStackFrame.ToString() );
     mRasterizerStates[ ( int )commandData->mRasterizerStateHandle ] = rasterizerState2;
 }
@@ -1169,7 +1163,7 @@ namespace Tac::Render
     };
 
     ID3D11SamplerState* samplerStateDX11;
-    TAC_DX11_CALL( mDevice->CreateSamplerState, &desc, &samplerStateDX11 );
+    TAC_DX11_CALL( mDevice->CreateSamplerState( &desc, &samplerStateDX11 ) );
     mSamplerStates[ ( int )commandData->mSamplerStateHandle ] = samplerStateDX11;
     SetDebugName( samplerStateDX11, commandData->mStackFrame.ToString() );
   }
@@ -1270,10 +1264,10 @@ namespace Tac::Render
         .CPUAccessFlags = GetCPUAccessFlags( data->mTexSpec.mCpuAccess ),
         .MiscFlags = MiscFlagsBinding | MiscFlagsCubemap,
       };
-      TAC_DX11_CALL( mDevice->CreateTexture2D,
+      TAC_DX11_CALL( mDevice->CreateTexture2D(
                      &texDesc,
                      pInitialData,
-                     &texture2D );
+                     &texture2D ) );
       SetDebugName( texture2D, data->mStackFrame.ToString() );
     }
 
@@ -1293,10 +1287,7 @@ namespace Tac::Render
         .MiscFlags = MiscFlagsBinding | MiscFlagsCubemap,
       };
 
-      TAC_DX11_CALL( mDevice->CreateTexture3D,
-                     &texDesc,
-                     pInitialData,
-                     &texture3D );
+      TAC_DX11_CALL( mDevice->CreateTexture3D( &texDesc, pInitialData, &texture3D ));
       SetDebugName( texture3D, data->mStackFrame.ToString() );
     }
 
@@ -1307,10 +1298,7 @@ namespace Tac::Render
     ID3D11RenderTargetView* rtv = nullptr;
     if( ( int )data->mTexSpec.mBinding & ( int )Binding::RenderTarget )
     {
-      TAC_DX11_CALL( mDevice->CreateRenderTargetView,
-                     resource,
-                     nullptr,
-                     &rtv );
+      TAC_DX11_CALL( mDevice->CreateRenderTargetView( resource, nullptr, &rtv ) );
       SetDebugName( rtv, data->mStackFrame.ToString() );
     }
 
@@ -1345,7 +1333,7 @@ namespace Tac::Render
         TAC_ASSERT_INVALID_CODE_PATH;
       }
 
-      TAC_DX11_CALL( mDevice->CreateUnorderedAccessView, resource, &uavDesc, &uav );
+      TAC_DX11_CALL( mDevice->CreateUnorderedAccessView( resource, &uavDesc, &uav ) );
       SetDebugName( uav, data->mStackFrame.ToString() );
     }
 
@@ -1367,7 +1355,7 @@ namespace Tac::Render
           .Texture2D = D3D11_TEX2D_SRV{.MipLevels = 1 },
         };
 
-        TAC_DX11_CALL( mDevice->CreateShaderResourceView, resource, &srvDesc, &srv );
+        TAC_DX11_CALL( mDevice->CreateShaderResourceView( resource, &srvDesc, &srv ) );
         SetDebugName( srv, data->mStackFrame.ToString() );
       }
 
@@ -1382,10 +1370,10 @@ namespace Tac::Render
       D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = {};
       depthStencilViewDesc.Format = GetDXGIFormatDepth( data->mTexSpec.mImage.mFormat.mPerElementByteCount );
       depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-      TAC_DX11_CALL( mDevice->CreateDepthStencilView,
+      TAC_DX11_CALL( mDevice->CreateDepthStencilView(
                      resource,
                      &depthStencilViewDesc,
-                     &dsv );
+                     &dsv ) );
       SetDebugName( dsv, data->mStackFrame.ToString() );
     }
 
@@ -1419,7 +1407,7 @@ namespace Tac::Render
     const D3D11_BLEND_DESC desc = { .RenderTarget = { blendDesc } };
 
     ID3D11BlendState* blendStateDX11;
-    TAC_DX11_CALL( mDevice->CreateBlendState, &desc, &blendStateDX11 );
+    TAC_DX11_CALL( mDevice->CreateBlendState( &desc, &blendStateDX11 ) );
     SetDebugName( blendStateDX11, commandData->mStackFrame.ToString() );
 
     mBlendStates[ commandData->mBlendStateHandle.GetIndex() ] = blendStateDX11;
@@ -1442,7 +1430,7 @@ namespace Tac::Render
     };
 
     ID3D11Buffer* cbufferhandle;
-    TAC_DX11_CALL( mDevice->CreateBuffer, &bd, nullptr, &cbufferhandle );
+    TAC_DX11_CALL( mDevice->CreateBuffer( &bd, nullptr, &cbufferhandle ) );
     SetDebugName( cbufferhandle, commandData->mStackFrame.ToString() );
 
     mConstantBuffers[ iCB ] = ConstantBuffer
@@ -1474,7 +1462,7 @@ namespace Tac::Render
     const int iDepth = hDepth.GetIndex();
 
     ID3D11DepthStencilState* depthStencilState;
-    TAC_DX11_CALL( mDevice->CreateDepthStencilState, &desc, &depthStencilState );
+    TAC_DX11_CALL( mDevice->CreateDepthStencilState( &desc, &depthStencilState ) );
     mDepthStencilStates[ iDepth ] = depthStencilState;
     SetDebugName( depthStencilState, commandData->mStackFrame.ToString() );
   }
@@ -1509,10 +1497,10 @@ namespace Tac::Render
         D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = {};
         depthStencilViewDesc.Format = desc.Format;
         depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-        TAC_DX11_CALL( mDevice->CreateDepthStencilView,
+        TAC_DX11_CALL( mDevice->CreateDepthStencilView(
                        texture->mTexture2D,
                        &depthStencilViewDesc,
-                       &dsv );
+                       &dsv ) );
         SetDebugName( dsv, data->mStackFrame.ToString() );
 
         depthTexture = texture->mTexture2D;
@@ -1557,7 +1545,7 @@ namespace Tac::Render
       .mWidth = data->mWidth,
       .mHeight = data->mWidth,
     };
-    auto swapChain = TAC_CALL( DXGICreateSwapChain, scInfo, errors );
+    auto swapChain = TAC_CALL( DXGICreateSwapChain( scInfo, errors ));
 
 
     // this seems to be unused...
@@ -1566,13 +1554,13 @@ namespace Tac::Render
     // swapChain->GetDesc( &swapChainDesc );
 
     ID3D11Texture2D* pBackBuffer = nullptr;
-    TAC_DXGI_CALL( swapChain->GetBuffer, 0, IID_PPV_ARGS( &pBackBuffer ) );
+    TAC_DXGI_CALL( swapChain->GetBuffer( 0, IID_PPV_ARGS( &pBackBuffer ) ) );
     TAC_RAISE_ERROR_IF( !pBackBuffer, "no buffer to resize" );
     TAC_ON_DESTRUCT(pBackBuffer->Release());
 
     ID3D11RenderTargetView* rtv = nullptr;
     D3D11_RENDER_TARGET_VIEW_DESC* rtvDesc = nullptr;
-    TAC_DX11_CALL( mDevice->CreateRenderTargetView, pBackBuffer, rtvDesc, &rtv );
+    TAC_DX11_CALL( mDevice->CreateRenderTargetView( pBackBuffer, rtvDesc, &rtv ) );
     SetDebugName( rtv, data->mStackFrame.ToString() );
 
     // this seems to be unused...
@@ -1598,7 +1586,7 @@ namespace Tac::Render
     };
 
     ID3D11Texture2D* texture;
-    TAC_DX11_CALL( mDevice->CreateTexture2D, &texture2dDesc, nullptr, &texture );
+    TAC_DX11_CALL( mDevice->CreateTexture2D( &texture2dDesc, nullptr, &texture ) );
     SetDebugName( texture, data->mStackFrame.ToString() );
 
     const D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc =
@@ -1608,7 +1596,7 @@ namespace Tac::Render
     };
 
     ID3D11DepthStencilView* dsv;
-    TAC_DX11_CALL( mDevice->CreateDepthStencilView, texture, &depthStencilViewDesc, &dsv );
+    TAC_DX11_CALL( mDevice->CreateDepthStencilView( texture, &depthStencilViewDesc, &dsv ));
     SetDebugName( dsv, data->mStackFrame.ToString() );
 
 
@@ -1775,10 +1763,7 @@ namespace Tac::Render
     ID3D11Resource* dstTex = mTextures[ ( int )commandData->mTextureHandle ].mTexture2D;
     TAC_ASSERT( dstTex );
     ID3D11Texture2D* srcTex;
-    TAC_DX11_CALL( mDevice->CreateTexture2D,
-                   &texDesc,
-                   &subResource,
-                   &srcTex );
+    TAC_DX11_CALL( mDevice->CreateTexture2D( &texDesc, &subResource, &srcTex ));
 
     mDeviceContext->CopySubresourceRegion( dstTex,
                                            0, // dst subresource
@@ -1844,22 +1829,19 @@ namespace Tac::Render
                                             DXGI_FORMAT_UNKNOWN,
                                             desc.Flags );
     ID3D11Texture2D* pBackBuffer = nullptr;
-    TAC_DXGI_CALL( framebuffer->mSwapChain->GetBuffer, 0, IID_PPV_ARGS( &pBackBuffer ) );
+    TAC_DXGI_CALL( framebuffer->mSwapChain->GetBuffer( 0, IID_PPV_ARGS( &pBackBuffer ) ));
     TAC_RAISE_ERROR_IF( !pBackBuffer, "no buffer to resize" );
 
     const D3D11_RENDER_TARGET_VIEW_DESC* rtvDesc = nullptr;
 
     ID3D11RenderTargetView* rtv = nullptr;
-    TAC_DX11_CALL( mDevice->CreateRenderTargetView,
-                   pBackBuffer,
-                   rtvDesc,
-                   &rtv );
+    TAC_DX11_CALL( mDevice->CreateRenderTargetView( pBackBuffer, rtvDesc, &rtv ));
 
     TAC_RELEASE_IUNKNOWN( pBackBuffer );
     SetDebugName( rtv, framebuffer->mDebugName );
 
     ID3D11Texture2D* depthTexture;
-    TAC_DX11_CALL( mDevice->CreateTexture2D, &depthTextureDesc, nullptr, &depthTexture );
+    TAC_DX11_CALL( mDevice->CreateTexture2D( &depthTextureDesc, nullptr, &depthTexture ));
     SetDebugName( depthTexture, framebuffer->mDebugName );
 
     const D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc =
@@ -1869,7 +1851,7 @@ namespace Tac::Render
     };
 
     ID3D11DepthStencilView* dsv;
-    TAC_DX11_CALL( mDevice->CreateDepthStencilView, depthTexture, &depthStencilViewDesc, &dsv );
+    TAC_DX11_CALL( mDevice->CreateDepthStencilView( depthTexture, &depthStencilViewDesc, &dsv ));
     SetDebugName( dsv, framebuffer->mDebugName );
 
     framebuffer->mDepthStencilView = dsv;
@@ -1938,7 +1920,7 @@ namespace Tac::Render
     TAC_ASSERT( IsMainThread() );
     TAC_ASSERT( IsSubmitAllocated( bytes ) );
     D3D11_MAPPED_SUBRESOURCE mappedResource;
-    TAC_DX11_CALL( mDeviceContext->Map, buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource );
+    TAC_DX11_CALL( mDeviceContext->Map( buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource ));
     MemCpy( mappedResource.pData, bytes, byteCount );
     mDeviceContext->Unmap( buffer, 0 );
   }

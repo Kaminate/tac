@@ -43,22 +43,22 @@ namespace Tac::Render
 
 } // namespace Tac::Render
 
-#define TAC_DXGI_CALL( call, ... )                                       \
-{                                                                        \
-  const HRESULT result = call( __VA_ARGS__ );                            \
-  if( FAILED( result ) )                                                 \
-  {                                                                      \
-    const char* fn = TAC_STRINGIFY( call ) "( " #__VA_ARGS__ " )";       \
-    TAC_CALL( Tac::Render::DXGICallAux, fn, result, errors );            \
-  }                                                                      \
+#define TAC_DXGI_CALL( call )                                                                      \
+{                                                                                                  \
+  const HRESULT result = call;                                                                     \
+  const bool fail = FAILED( result );                                                              \
+  if( fail )                                                                                       \
+  {                                                                                                \
+    TAC_CALL( Tac::Render::DXGICallAux( #call, result, errors ) );                                 \
+  }                                                                                                \
 }
 
-#define TAC_DXGI_CALL_RET( ret, call, ... )                              \
-{                                                                        \
-  const HRESULT result = call( __VA_ARGS__ );                            \
-  if( FAILED( result ) )                                                 \
-  {                                                                      \
-    const char* fn = TAC_STRINGIFY( call ) "( " #__VA_ARGS__ " )";       \
-    TAC_CALL_RET( ret, Tac::Render::DXGICallAux, fn, result, errors );   \
-  }                                                                      \
+#define TAC_DXGI_CALL_RET( ret, call )                                                             \
+{                                                                                                  \
+  const HRESULT result = call;                                                                     \
+  const bool fail = FAILED( result );                                                              \
+  if( fail )                                                                                       \
+  {                                                                                                \
+    TAC_CALL_RET( ret, Tac::Render::DXGICallAux( #call, result, errors ) );                        \
+  }                                                                                                \
 }

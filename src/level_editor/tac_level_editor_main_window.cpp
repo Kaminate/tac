@@ -96,7 +96,7 @@ namespace Tac
     {
       if( ImGuiButton(name) )
       {
-        TAC_CALL( ( gCreation.mWindowManager.*fn ) , errors );
+        TAC_CALL( ( gCreation.mWindowManager.*fn ) ( errors ) );
       }
     }
 
@@ -179,7 +179,7 @@ namespace Tac
 
     ImGuiSaveAs();
 
-    TAC_CALL( ImGuiWindows,errors);
+    TAC_CALL( ImGuiWindows(errors) );
 
     PrefabImGui();
 
@@ -187,7 +187,7 @@ namespace Tac
     if( ImGuiButton( "Close Application" ) )
       OS::OSAppStopRunning();
 
-    TAC_CALL( DesktopAppDebugImGui, errors );
+    TAC_CALL( DesktopAppDebugImGui( errors ) );
 
     ImGuiEnd();
   }
@@ -201,14 +201,14 @@ namespace Tac
     const Render::FramebufferHandle framebufferHandle = WindowGraphicsGetFramebuffer( mDesktopWindowHandle );
     const Render::ViewHandle viewHandle = WindowGraphicsGetView( mDesktopWindowHandle );
 
-    TAC_CALL( LoadTextures, errors );
+    TAC_CALL( LoadTextures( errors ) );
 
 
     const DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
     if( !desktopWindowState->mNativeWindowHandle )
       return;
 
-    TAC_CALL( ImGui, errors );
+    TAC_CALL( ImGui( errors ) );
 
     const v2 size = desktopWindowState->GetSizeV2();
     const Render::Viewport viewport = size;
@@ -218,15 +218,15 @@ namespace Tac
     Render::SetViewport( viewHandle, viewport );
     Render::SetViewScissorRect( viewHandle, scissorRect );
 
-    TAC_CALL(mUI2DDrawData->DrawToTexture, viewHandle,
+    TAC_CALL(mUI2DDrawData->DrawToTexture( viewHandle,
                                   desktopWindowState->mWidth,
                                   desktopWindowState->mHeight,
-                                  errors );
+                                  errors ) );
 
     if( CreationGameObjectMenuWindow::Instance )
     {
       DesktopWindowHandle desktopWindowHandle = CreationGameObjectMenuWindow::Instance->mDesktopWindowHandle;
-      TAC_CALL( CreationGameObjectMenuWindow::Instance->Update, errors );
+      TAC_CALL( CreationGameObjectMenuWindow::Instance->Update( errors ) );
 
       if( Mouse::ButtonJustDown( Mouse::Button::MouseLeft )
           && !IsWindowHovered( desktopWindowHandle )

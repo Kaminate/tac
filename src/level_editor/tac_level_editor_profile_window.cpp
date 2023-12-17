@@ -75,10 +75,10 @@ namespace Tac
     Render::SetViewport( viewHandle, Render::Viewport(size) );
     Render::SetViewScissorRect( viewHandle, Render::ScissorRect(size) );
     ImGui();
-    TAC_CALL(mUI2DDrawData->DrawToTexture, viewHandle,
+    TAC_CALL(mUI2DDrawData->DrawToTexture( viewHandle,
                                   desktopWindowState->mWidth,
                                   desktopWindowState->mHeight,
-                                  errors );
+                                  errors ) );
   }
 
 

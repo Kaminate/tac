@@ -11,7 +11,7 @@ namespace Tac
 {
   void Win32VkCreateSurface( VkInstance instance,
                              const void* nativeWindowHandle,
-                             VkSurfaceKHR* psurface,
+                             VkSurfaceKHR* surface,
                              Errors& errors )
   {
     const HINSTANCE hInstance = Win32GetStartupInstance();
@@ -20,13 +20,13 @@ namespace Tac
     const HWND hWnd = ( HWND )nativeWindowHandle;
     TAC_ASSERT( hWnd );
 
-    const VkWin32SurfaceCreateInfoKHR surface_create_info =
+    const VkWin32SurfaceCreateInfoKHR info =
     {
       .sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,
       .hinstance = hInstance,
       .hwnd = hWnd,
     };
-    TAC_VK_CALL( errors, vkCreateWin32SurfaceKHR, instance, &surface_create_info, nullptr, psurface );
+    TAC_VK_CALL( errors, vkCreateWin32SurfaceKHR( instance, &info, nullptr, surface ) );
   }
 
   Vector<String> GetWin32VkExtensions( Errors& )

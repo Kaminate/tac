@@ -292,7 +292,7 @@ namespace Tac
     reader.mTo = GetEndianness();
 
     NetMsgType networkMessage = NetMsgType::Count;
-    TAC_CALL( ReadNetMsgHeader, &reader, &networkMessage, errors );
+    TAC_CALL( ReadNetMsgHeader( &reader, &networkMessage, errors ) ) ;
     switch( networkMessage )
     {
       case NetMsgType::Input:
@@ -359,7 +359,7 @@ namespace Tac
       {
         const void* bytes = savedNetMsg.data();
         const int byteCount = ( int )savedNetMsg.size();
-        TAC_CALL( ExecuteNetMsg, otherPlayer->mConnectionUUID, bytes, byteCount, errors );
+        TAC_CALL( ExecuteNetMsg( otherPlayer->mConnectionUUID, bytes, byteCount, errors ) );
       }
     }
 

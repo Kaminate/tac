@@ -124,11 +124,10 @@ void TacVulkanCallAux( TacErrors& errors, TacString functionName, VkResult res )
 #include <vulkan/vulkan.h>
 
 #define TAC_VK_CALL( errors, call, ... ) {                                          \
-  const VkResult result = call( __VA_ARGS__ );                                      \
+  const VkResult result = call;                                                     \
   if( result )                                                                      \
   {                                                                                 \
-    const char* fnCall = TAC_STRINGIFY( call ) "( " #__VA_ARGS__ " )";              \
-    TAC_CALL( Tac::Render::VkCallAux, fnCall, result, errors );                     \
+    TAC_CALL( Tac::Render::VkCallAux( #call, result, errors ) );                    \
   }                                                                                 \
 }
 

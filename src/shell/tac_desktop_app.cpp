@@ -170,14 +170,14 @@ namespace Tac
     gThreadType = ThreadType::Logic;
     FrameMemoryInitThreadAllocator(  1024 * 1024 * 10  );
 
-    TAC_CALL( ShellInit, errors );
+    TAC_CALL( ShellInit( errors ) );
 
-    TAC_CALL( FontApi::Init, errors );
+    TAC_CALL( FontApi::Init( errors ) );
 
     ImGuiInit();
     SpaceInit();
 
-    TAC_CALL( sApp->Init, errors );
+    TAC_CALL( sApp->Init( errors ) );
   }
 
   static void LogicThreadUninit()
@@ -201,16 +201,16 @@ namespace Tac
   {
     Errors& errors = gLogicThreadErrors;
     TAC_ON_DESTRUCT( LogicThreadUninit() );
-    TAC_CALL( LogicThreadInit, errors );
+    TAC_CALL( LogicThreadInit( errors ) );
 
     while( OS::OSAppIsRunning() )
     {
       TAC_PROFILE_BLOCK;
       ProfileSetGameFrame();
 
-      TAC_CALL( SettingsTick, errors );
+      TAC_CALL( SettingsTick( errors ) );
 
-      TAC_CALL( Network::NetApi::Update, errors );
+      TAC_CALL( Network::NetApi::Update( errors ) );
 
 
       {
@@ -247,9 +247,9 @@ namespace Tac
 
         Controller::UpdateJoysticks();
 
-        TAC_CALL( sApp->Update, errors );
+        TAC_CALL( sApp->Update( errors ) );
 
-        TAC_CALL( ImGuiEndFrame, errors );
+        TAC_CALL( ImGuiEndFrame( errors ) );
 
         Keyboard::KeyboardEndFrame();
         Mouse::MouseEndFrame();
@@ -294,15 +294,15 @@ namespace Tac
     {
       TAC_PROFILE_BLOCK;
 
-      TAC_CALL( sPlatformFns->PlatformFrameBegin, errors );
+      TAC_CALL( sPlatformFns->PlatformFrameBegin( errors ) );
 
-      TAC_CALL( DesktopAppUpdate, errors );
+      TAC_CALL( DesktopAppUpdate( errors ) );
 
-      TAC_CALL( sPlatformFns->PlatformFrameEnd, errors );
+      TAC_CALL( sPlatformFns->PlatformFrameEnd( errors ) );
 
       if( sRenderEnabled )
       {
-        TAC_CALL( Render::RenderFrame, errors );
+        TAC_CALL( Render::RenderFrame( errors ) );
       }
 
       std::this_thread::sleep_for( std::chrono::milliseconds( 1 ) ); // Dont max out power usage
@@ -314,7 +314,7 @@ namespace Tac
 
   void                DesktopAppInit( PlatformFns* platformFns, Errors& errors )
   {
-    TAC_CALL( PlatformThreadInit, errors );
+    TAC_CALL( PlatformThreadInit( errors ) );
 
     DesktopEventInit();
 
@@ -327,7 +327,7 @@ namespace Tac
     // right place?
     sShellAppName = sApp->mConfig.mName;
     sShellStudioName = sApp->mConfig.mStudioName;
-    sShellPrefPath = TAC_CALL( OS::OSGetApplicationDataPath, errors );
+    sShellPrefPath = TAC_CALL( OS::OSGetApplicationDataPath( errors ) );
     sShellInitialWorkingDir = Filesystem::GetCurrentWorkingDirectory();
 
     // for macos standalone_sdl_vk_1_tri, appDataPath =
@@ -343,11 +343,11 @@ namespace Tac
       TAC_RAISE_ERROR( msg );
     }
 
-    TAC_CALL( SettingsInit, errors );
+    TAC_CALL( SettingsInit( errors ) );
 
     if( sRenderEnabled )
     {
-      TAC_CALL( DesktopInitRendering, errors );
+      TAC_CALL( DesktopInitRendering( errors ) );
     }
   }
 
@@ -360,7 +360,7 @@ namespace Tac
 
   void                DesktopAppUpdate( Errors& errors )
   {
-    TAC_CALL( DesktopAppUpdateWindowRequests,errors);
+    TAC_CALL( DesktopAppUpdateWindowRequests(errors) );
     DesktopAppUpdateMoveResize();
     UpdateTrackedWindows();
   }

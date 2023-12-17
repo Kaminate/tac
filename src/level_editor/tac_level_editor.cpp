@@ -142,17 +142,17 @@ namespace Tac
       .mUp = { 0, 1, 0 }
     };
 
-    TAC_CALL( SkyboxPresentationInit, errors );
+    TAC_CALL( SkyboxPresentationInit( errors ) );
 
-    TAC_CALL( GamePresentationInit, errors );
+    TAC_CALL( GamePresentationInit( errors ) );
 
-    TAC_CALL( ShadowPresentationInit, errors );
+    TAC_CALL( ShadowPresentationInit( errors ) );
 
-    TAC_CALL( VoxelGIPresentationInit, errors );
+    TAC_CALL( VoxelGIPresentationInit( errors ) );
 
-    TAC_CALL( mWindowManager.CreateInitialWindows, errors );
+    TAC_CALL( mWindowManager.CreateInitialWindows( errors ) );
 
-    TAC_CALL( PrefabLoad, &mEntityUUIDCounter, mWorld, mEditorCamera, errors );
+    TAC_CALL( PrefabLoad( &mEntityUUIDCounter, mWorld, mEditorCamera, errors ) );
   }
 
   void                Creation::Uninit( Errors& errors )
@@ -171,7 +171,7 @@ namespace Tac
 
     CheckSavePrefab();
 
-    TAC_CALL( mWindowManager.Update, errors );
+    TAC_CALL( mWindowManager.Update( errors ) );
 
     if( mWindowManager.AllWindowsClosed() )
       OS::OSAppStopRunning();

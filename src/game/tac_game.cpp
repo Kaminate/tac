@@ -37,7 +37,7 @@ namespace Tac
 
     auto ghost = TAC_NEW Ghost;
     //ghost->mRenderView = mDesktopWindow->mRenderView;
-    TAC_CALL( ghost->Init, errors );
+    TAC_CALL( ghost->Init( errors ));
   }
 
   static void GameCallbackUpdate( Errors& errors )

@@ -10,16 +10,13 @@ add_executable( standalone_win_dx12_1_window WIN32
 add_executable( standalone_win_dx12_2_triangle WIN32 
   "tac_example_dx12_2_triangle.cpp"
   "tac_example_dx12_2_triangle.h"
-  "tac_example_dx12_2_dxc.cpp"
-  "tac_example_dx12_2_dxc.h"
 )
 
 add_executable( standalone_win_dx12_3_texture WIN32 
   "tac_example_dx12_3_texture.cpp"
   "tac_example_dx12_3_texture.h"
-  "tac_example_dx12_2_dxc.cpp"
-  "tac_example_dx12_2_dxc.h"
 )
+
 
 set_property( TARGET standalone_win_dx12_1_window   PROPERTY OUTPUT_NAME "DX12 Window" )
 set_property( TARGET standalone_win_dx12_2_triangle PROPERTY OUTPUT_NAME "DX12 Triangle" )
@@ -28,13 +25,21 @@ set_property( TARGET standalone_win_dx12_3_texture  PROPERTY OUTPUT_NAME "DX12 T
 # Get a semicolon-separated list of executable target names
 get_property(targetnames DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY BUILDSYSTEM_TARGETS)
 
-foreach(targetname ${targetnames})
+add_library( TacDX12ShaderCompile
+  tac_example_dx12_shader_compile.cpp
+  tac_example_dx12_shader_compile.h
+  tac_example_dx12_2_dxc.cpp
+  tac_example_dx12_2_dxc.h
+)
+
+foreach( targetname ${targetnames} )
   target_link_libraries( ${targetname}
     TacCore
     TacGhost
     TacWin
     TacDesktopApp
     TacWinMain
+    TacDX12ShaderCompile
   )
 
 endforeach()
@@ -88,14 +93,16 @@ endfunction()
 _define_dx_path( TAC_DXIL_DLL_PATH       "dxil.dll"       )
 _define_dx_path( TAC_DXCOMPILER_DLL_PATH "dxcompiler.dll" )
 
-add_custom_command( TARGET standalone_win_dx12_2_triangle
-                    PRE_BUILD
-                    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                            ${TAC_DXIL_DLL_PATH}
-                            $<TARGET_FILE_DIR:standalone_win_dx12_2_triangle> )
+# Bad things (shader corruption) may happen if one dll is copied but not the other
+foreach( dllPath ${TAC_DXIL_DLL_PATH} ${TAC_DXCOMPILER_DLL_PATH} )
+  add_custom_command( TARGET TacDX12ShaderCompile
+                      PRE_BUILD
+                      COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                              ${dllPath}
+                              $<TARGET_FILE_DIR:TacDX12ShaderCompile> )
 
-add_custom_command( TARGET standalone_win_dx12_2_triangle
-                    PRE_BUILD
-                    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                            ${TAC_DXCOMPILER_DLL_PATH}
-                            $<TARGET_FILE_DIR:standalone_win_dx12_2_triangle> )
+endforeach()
+
+
+
+

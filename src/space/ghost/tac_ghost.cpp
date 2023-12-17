@@ -134,7 +134,7 @@ namespace Tac
 
     for( const char* playerName : playerNames )
     {
-      TAC_CALL( AddPlayer, playerName, errors );
+      TAC_CALL( AddPlayer( playerName, errors ));
     }
 
     //mUIRoot->mElapsedSeconds = &ShellGetElapsedSeconds(); // eww
@@ -212,11 +212,11 @@ namespace Tac
     for( User* user : mUsers )
       user->Update( errors );
 
-    TAC_CALL( mScriptRoot->Update, TAC_DELTA_FRAME_SECONDS, errors );
+    TAC_CALL( mScriptRoot->Update( TAC_DELTA_FRAME_SECONDS, errors ));
     //mUIRoot->Update();
-    TAC_CALL( Draw, errors );
+    TAC_CALL( Draw( errors ));
 
-    TAC_CALL( AddMorePlayers, errors );
+    TAC_CALL( AddMorePlayers( errors ));
   }
   void Ghost::AddMorePlayers( Errors& errors )
   {
@@ -307,8 +307,8 @@ namespace Tac
     ImGui::Checkbox( "Draw to screen", &mDrawDirectlyToScreen );
     ImGui::Checkbox( "Grabbing Input", &mIsGrabbingInput );
     mServerData->DebugImgui();
-    TAC_CALL( mScriptRoot->DebugImgui, errors );
-    TAC_CALL( ImguiCreatePlayerPopup, errors );
+    TAC_CALL( mScriptRoot->DebugImgui( errors ));
+    TAC_CALL( ImguiCreatePlayerPopup( errors ));
     if( ImGui::CollapsingHeader( "Users" ) )
     {
       ImGui::Indent();

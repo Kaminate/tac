@@ -31,9 +31,9 @@ namespace Tac::Render
     const StringView includeName( includeBegin, includeEnd );
     const ShaderNameStringView shaderName = GetShaderNameFromIncludeName( includeName );
     const AssetPathStringView includeAssetPath = GetShaderAssetPath( shaderName );
-    const String includeSource = TAC_CALL_RET( {}, LoadAssetPath, includeAssetPath, errors );
+    const String includeSource = TAC_CALL_RET( {}, LoadAssetPath( includeAssetPath, errors ));
     const String includeSourcePreproecssed =
-      TAC_CALL_RET( {}, PreprocessShaderSource, includeSource, errors );
+      TAC_CALL_RET( {}, PreprocessShaderSource( includeSource, errors ));
 
     String result;
     result += "//===----- (begin include " + includeAssetPath + ") -----===//\n";

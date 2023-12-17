@@ -258,9 +258,10 @@ namespace Tac
 	{
     TAC_UNUSED_PARAMETER( seconds );
 		TAC_TIMELINE_BEGIN;
-		mSocket = TAC_CALL( Network::Net::Instance->CreateSocket, "Matchmaking socket",
-                                                    Network::AddressFamily::IPv4,
-                                                    Network::SocketType::TCP, errors );
+    mSocket = TAC_CALL( Network::Net::Instance->CreateSocket(
+      "Matchmaking socket",
+      Network::AddressFamily::IPv4,
+      Network::SocketType::TCP, errors ) );
 
 
     const Network::SocketCallbackDataMessage socketCallbackDataMessage =
@@ -317,7 +318,7 @@ namespace Tac
 		httpRequest.FormatRequestWebsocket( "/game", mHostname, websocketKey );
 		if( mPrintHTTPRequest )
           OS::OSDebugPrintLine(httpRequest.ToString());
-		TAC_CALL( mSocket->Send, httpRequest, errors );
+		TAC_CALL( mSocket->Send( httpRequest, errors ) );
 		mPretendWebsocketHandshakeDone = true;
 		mSocket->mRequiresWebsocketFrame = true;
 		mSocket->mKeepaliveOverride.mUserData = this;

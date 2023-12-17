@@ -39,14 +39,14 @@ namespace Tac
   {
     IFileOpenDialog* pDialog = nullptr;
 
-    TAC_HR_CALL( CoInitializeEx, NULL, COINIT_APARTMENTTHREADED );
+    TAC_HR_CALL_RET( {},CoInitializeEx( NULL, COINIT_APARTMENTTHREADED ) );
     TAC_ON_DESTRUCT(CoUninitialize());
 
-    TAC_HR_CALL( CoCreateInstance,
+    TAC_HR_CALL_RET( {},CoCreateInstance(
                  CLSID_FileOpenDialog,
                  NULL,
                  CLSCTX_INPROC_SERVER,
-                 IID_PPV_ARGS( &pDialog ) );
+                 IID_PPV_ARGS( &pDialog ) ) );
     TAC_ON_DESTRUCT( pDialog->Release() );
 
 
@@ -54,13 +54,13 @@ namespace Tac
     const std::wstring wDir = dir.Get().wstring();
 
     IShellItem* shDir = NULL;
-    TAC_HR_CALL( SHCreateItemFromParsingName,
+    TAC_HR_CALL_RET( {},SHCreateItemFromParsingName(
                  wDir.c_str(),
                  NULL,
-                 IID_PPV_ARGS( &shDir ) );
+                 IID_PPV_ARGS( &shDir ) ) );
     TAC_ON_DESTRUCT(shDir->Release());
 
-    TAC_HR_CALL( pDialog->SetDefaultFolder,shDir);
+    TAC_HR_CALL_RET( {},pDialog->SetDefaultFolder(shDir) );
 
     {
       const HRESULT hr = pDialog->Show( nullptr );
@@ -71,11 +71,11 @@ namespace Tac
     }
 
     IShellItem* pItem = nullptr;
-    TAC_HR_CALL( pDialog->GetResult, &pItem );
+    TAC_HR_CALL_RET( {},pDialog->GetResult( &pItem ) );
     TAC_ON_DESTRUCT( pItem->Release() );
 
     PWSTR pszFilePath;
-    TAC_HR_CALL( pItem->GetDisplayName, SIGDN_FILESYSPATH, &pszFilePath );
+    TAC_HR_CALL_RET( {},pItem->GetDisplayName( SIGDN_FILESYSPATH, &pszFilePath ) );
     TAC_ON_DESTRUCT(CoTaskMemFree( pszFilePath ));
 
     return std::filesystem::path ( pszFilePath );
@@ -83,29 +83,29 @@ namespace Tac
 
   static Filesystem::Path Win32OSSaveDialog( const Filesystem::Path& suggestedPath, Errors& errors )
   {
-    TAC_HR_CALL( CoInitializeEx, NULL, COINIT_APARTMENTTHREADED );
+    TAC_HR_CALL_RET( {},CoInitializeEx( NULL, COINIT_APARTMENTTHREADED ) );
     TAC_ON_DESTRUCT(CoUninitialize());
 
     IFileSaveDialog* pDialog = nullptr;
-    TAC_HR_CALL( CoCreateInstance,
+    TAC_HR_CALL_RET( {},CoCreateInstance(
                  CLSID_FileSaveDialog,
                  NULL,
                  CLSCTX_INPROC_SERVER,
-                 IID_PPV_ARGS( &pDialog ) );
+                 IID_PPV_ARGS( &pDialog ) ) );
     TAC_ON_DESTRUCT( pDialog->Release() );
 
     // TODO: use suggestedPath, maybe 
     //pDialog->SetFileName();
     TAC_ASSERT_UNIMPLEMENTED;
 
-    TAC_HR_CALL( pDialog->Show, nullptr );
+    TAC_HR_CALL_RET( {},pDialog->Show( nullptr ) );
 
     IShellItem* pItem = nullptr;
-    TAC_HR_CALL( pDialog->GetResult, &pItem );
+    TAC_HR_CALL_RET( {},pDialog->GetResult( &pItem ) );
     TAC_ON_DESTRUCT( pItem->Release() );
 
     PWSTR pszFilePath;
-    TAC_HR_CALL( pItem->GetDisplayName, SIGDN_FILESYSPATH, &pszFilePath );
+    TAC_HR_CALL_RET( {},pItem->GetDisplayName( SIGDN_FILESYSPATH, &pszFilePath ) );
     TAC_ON_DESTRUCT(CoTaskMemFree( pszFilePath ));
 
     return std::filesystem::path ( pszFilePath );
@@ -175,7 +175,7 @@ namespace Tac
 
   static Filesystem::Path Win32OSGetApplicationDataPath( Errors& errors )
   {
-    Filesystem::Path path = TAC_CALL_RET( {}, GetRoamingAppDataPathUTF8, errors );
+    Filesystem::Path path = TAC_CALL_RET( {}, GetRoamingAppDataPathUTF8( errors ));
     TAC_ASSERT( Filesystem::Exists( path ) );
 
     path /= sShellStudioName;

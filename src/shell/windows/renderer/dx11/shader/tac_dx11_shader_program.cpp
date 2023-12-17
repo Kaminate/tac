@@ -48,15 +48,15 @@ namespace Tac::Render
     {
       TAC_ASSERT( !shaderName.empty() );
       const AssetPathStringView assetPath = GetShaderAssetPath( mShaderName );
-      mShaderStringOrig = TAC_CALL( LoadAssetPath, assetPath, errors );
-      mShaderStringFull = TAC_CALL( PreprocessShaderSource, mShaderStringOrig, errors );
+      mShaderStringOrig = TAC_CALL( LoadAssetPath( assetPath, errors ) );
+      mShaderStringFull = TAC_CALL( PreprocessShaderSource( mShaderStringOrig, errors ) );
       mProgram.mConstantBuffers = PostprocessShaderSource( mShaderStringFull );
       TAC_ASSERT( !mProgram.mConstantBuffers.empty() );
 
 
-      TAC_CALL( TryLoadVertexShader, errors );
-      TAC_CALL( TryLoadPixelShader, errors );
-      TAC_CALL( TryLoadGeometryShader, errors );
+      TAC_CALL( TryLoadVertexShader( errors ) );
+      TAC_CALL( TryLoadPixelShader( errors ) );
+      TAC_CALL( TryLoadGeometryShader( errors ) );
     }
 
     bool HasShader(const ShaderType type)
@@ -93,18 +93,18 @@ namespace Tac::Render
       if( !HasShader( ShaderType::Vertex ) )
         return;
 
-      PCom<ID3DBlob> blob = TAC_CALL( CompileShaderBlob, ShaderType::Vertex, errors )
-      TAC_DX11_CALL( mDevice->CreateVertexShader,
+      PCom<ID3DBlob> blob = TAC_CALL( CompileShaderBlob( ShaderType::Vertex, errors ) );
+      TAC_DX11_CALL( mDevice->CreateVertexShader(
                             blob->GetBufferPointer(),
                             blob->GetBufferSize(),
                             nullptr,
-                            &mProgram.mVertexShader );
-      TAC_DX11_CALL( D3DGetBlobPart,
+                            &mProgram.mVertexShader ) );
+      TAC_DX11_CALL( D3DGetBlobPart(
                             blob->GetBufferPointer(),
                             blob->GetBufferSize(),
                             D3D_BLOB_INPUT_SIGNATURE_BLOB,
                             0,
-                            &mProgram.mInputSig);
+                            &mProgram.mInputSig) );
       SetDebugName( mProgram.mVertexShader, mShaderName );
     }
 
@@ -113,12 +113,12 @@ namespace Tac::Render
       if( !HasShader( ShaderType::Fragment ) )
         return;
 
-      PCom<ID3DBlob> blob = TAC_CALL( CompileShaderBlob, ShaderType::Fragment , errors )
-      TAC_DX11_CALL( mDevice->CreatePixelShader,
+      PCom<ID3DBlob> blob = TAC_CALL( CompileShaderBlob( ShaderType::Fragment , errors ) );
+      TAC_DX11_CALL( mDevice->CreatePixelShader(
                      blob->GetBufferPointer(),
                      blob->GetBufferSize(),
                      nullptr,
-                     &mProgram.mPixelShader );
+                     &mProgram.mPixelShader ) );
 
       SetDebugName( mProgram.mPixelShader, mShaderName );
     }
@@ -128,12 +128,12 @@ namespace Tac::Render
       if( !HasShader( ShaderType::Geometry ) )
         return;
 
-      PCom<ID3DBlob> blob = TAC_CALL( CompileShaderBlob, ShaderType::Geometry , errors )
-      TAC_DX11_CALL( mDevice->CreateGeometryShader,
+      PCom<ID3DBlob> blob = TAC_CALL( CompileShaderBlob( ShaderType::Geometry , errors ) );
+      TAC_DX11_CALL( mDevice->CreateGeometryShader(
                      blob->GetBufferPointer(),
                      blob->GetBufferSize(),
                      nullptr,
-                     &mProgram.mGeometryShader );
+                     &mProgram.mGeometryShader ) );
       SetDebugName( mProgram.mGeometryShader, mShaderName );
     }
 

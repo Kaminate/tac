@@ -143,20 +143,20 @@ namespace Tac
 
     RedirectStreamBuf();
 
-    TAC_CALL( Render::AllowPIXDebuggerAttachment, errors );
+    TAC_CALL( Render::AllowPIXDebuggerAttachment( errors ));
     Render::RegisterRendererDirectX11();
 
-    TAC_CALL( Controller::XInputInit, errors );
+    TAC_CALL( Controller::XInputInit( errors ));
 
     Win32MouseEdgeInit();
 
-    TAC_CALL( DesktopAppInit, &sWin32PlatformFns, errors );
+    TAC_CALL( DesktopAppInit( &sWin32PlatformFns, errors ));
 
-    TAC_CALL( Win32WindowManagerInit, errors );
+    TAC_CALL( Win32WindowManagerInit( errors ));
 
-    TAC_CALL( Network::NetWinsockInit,errors);
+    TAC_CALL( Network::NetWinsockInit(errors));
 
-    TAC_CALL( DesktopAppRun, errors );
+    TAC_CALL( DesktopAppRun( errors ));
 
     Render::DXGIReportLiveObjects();
   }

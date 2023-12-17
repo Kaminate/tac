@@ -9,9 +9,8 @@
 //#include <dxcapi.h> // IDxcUtils, IDxcCompiler3, DxcCreateInstance, 
 #pragma comment (lib, "dxcompiler.lib" )
 
-namespace Tac::Render
+namespace Tac::Render::DXC
 {
-
   // -----------------------------------------------------------------------------------------------
 
   // https://github.com/microsoft/DirectXShaderCompiler/wiki/Using-dxc.exe-and-dxcompiler.dll
@@ -19,14 +18,14 @@ namespace Tac::Render
   {
     struct BasicSetup
     {
-      String mEntryPoint;
-      String mTargetProfile;
-      String mFilename;
+      StringView mEntryPoint;
+      StringView mTargetProfile;
+      StringView mFilename;
       Filesystem::Path mPDBDir;
       PCom<IDxcUtils> mUtils;
     };
 
-    DXCArgHelper( TAC_NOT_CONST BasicSetup& );
+    DXCArgHelper( BasicSetup );
 
     void SetEntryPoint( String s )         { AddArgs( "-E", s ); }
     void SetTargetProfile( String s )      { AddArgs( "-T", s ); }
@@ -65,7 +64,7 @@ namespace Tac::Render
     return result;
   }
 
-  DXCArgHelper::DXCArgHelper( TAC_NOT_CONST BasicSetup& setup )
+  DXCArgHelper::DXCArgHelper( BasicSetup setup )
   {
     TAC_ASSERT(!setup.mFilename.empty());
 
@@ -188,17 +187,19 @@ namespace Tac::Render
   {
     const void* bytes = blob->GetBufferPointer();
     const int byteCount = ( int )blob->GetBufferSize();
-    TAC_CALL( Filesystem::SaveToFile, path, bytes, byteCount, errors );
+    TAC_CALL( Filesystem::SaveToFile( path, bytes, byteCount, errors ) );
   }
 
   static String GetBlob16AsUTF8( PCom< IDxcBlobUtf16> blob16, PCom<IDxcUtils> pUtils )
   {
     if( !blob16 )
       return {};
+
     PCom< IDxcBlobUtf8> pName8;
-    TAC_ASSERT( SUCCEEDED( pUtils->GetBlobAsUtf8( ( IDxcBlob* )blob16, pName8.CreateAddress() ) ) );
-    return String( pName8->GetStringPointer(),
-                  ( int )pName8->GetStringLength() );
+    TAC_ASSERT( SUCCEEDED( pUtils->GetBlobAsUtf8(
+      ( IDxcBlob* )blob16,
+      pName8.CreateAddress() ) ) );
+    return String( pName8->GetStringPointer(), ( int )pName8->GetStringLength() );
   }
 
   static bool DidCompileSucceed( PCom<IDxcResult> pResults )
@@ -210,8 +211,7 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
-  DX12DXCOutput DX12CompileShaderDXC( const DX12ShaderCompileFromStringInput& input,
-                                             Errors& errors )
+  PCom<IDxcBlob> Compile( const Input& input, Errors& errors )
   {
     TAC_ASSERT( !input.mOutputDir.empty() );
 
@@ -222,14 +222,14 @@ namespace Tac::Render
     // https://github.com/microsoft/DirectXShaderCompiler/wiki/Using-dxc.exe-and-dxcompiler.dll
     PCom<IDxcUtils> pUtils;
     PCom<IDxcCompiler3> pCompiler;
-    TAC_DX12_CALL_RET( {}, DxcCreateInstance, CLSID_DxcUtils, pUtils.iid(), pUtils.ppv() );
-    TAC_DX12_CALL_RET( {}, DxcCreateInstance, CLSID_DxcCompiler, pCompiler.iid(), pCompiler.ppv() );
+    TAC_DX12_CALL_RET( {}, DxcCreateInstance( CLSID_DxcUtils, pUtils.iid(), pUtils.ppv() ) );
+    TAC_DX12_CALL_RET( {}, DxcCreateInstance( CLSID_DxcCompiler, pCompiler.iid(), pCompiler.ppv() ) );
 
     const String target = GetTarget( input.mType, input.mShaderModel );
     const String inputShaderName =  input.mShaderAssetPath.GetFilename();
     const Filesystem::Path hlslShaderPath = input.mOutputDir / inputShaderName;
 
-    TAC_CALL_RET( {}, Filesystem::SaveToFile, hlslShaderPath, input.mPreprocessedShader , errors );
+    TAC_CALL_RET( {}, Filesystem::SaveToFile( hlslShaderPath, input.mPreprocessedShader, errors ) );
 
     TAC_NOT_CONST DXCArgHelper::BasicSetup argHelperSetup
     {
@@ -297,15 +297,15 @@ namespace Tac::Render
       //
       PCom< IDxcBlobUtf16> pShaderName;
       TAC_DX12_CALL_RET( {},
-                         pResults->GetOutput,
+                         pResults->GetOutput(
                          DXC_OUT_OBJECT,
                          pShader.iid(),
                          pShader.ppv(),
-                         pShaderName.CreateAddress() );
+                         pShaderName.CreateAddress() ) );
       TAC_RAISE_ERROR_IF_RETURN( !pShader, "No shader dxil", {} );
       const String outputShaderName = GetBlob16AsUTF8( pShaderName, pUtils );
       const Filesystem::Path dxilShaderPath = input.mOutputDir / outputShaderName;
-      TAC_CALL_RET( {}, SaveBlobToFile,pShader, dxilShaderPath, errors );
+      TAC_CALL_RET( {}, SaveBlobToFile(pShader, dxilShaderPath, errors ));
     }
     else
     {
@@ -320,27 +320,18 @@ namespace Tac::Render
 
       PCom<IDxcBlob> pPDB ;
       PCom<IDxcBlobUtf16> pPDBName ;
-      pResults->GetOutput( DXC_OUT_PDB,
-                           pPDB.iid(),
-                           pPDB.ppv(),
-                           pPDBName.CreateAddress() );
+      TAC_DX12_CALL_RET( {},
+                         pResults->GetOutput( DXC_OUT_PDB,
+                         pPDB.iid(),
+                         pPDB.ppv(),
+                         pPDBName.CreateAddress() ) );
       TAC_RAISE_ERROR_IF_RETURN( !pShader, "No shader pdb", {} );
       const String pdbName = GetBlob16AsUTF8( pPDBName, pUtils );
       const Filesystem::Path pdbPath = input.mOutputDir / pdbName;
-      TAC_CALL_RET( {}, SaveBlobToFile,pPDB, pdbPath, errors );
+      TAC_CALL_RET( {}, SaveBlobToFile(pPDB, pdbPath, errors ));
     }
 
-    const DX12DXCOutput output
-    {
-      .mBlob = pShader,
-      .mByteCode = 
-      {
-        .pShaderBytecode = pShader->GetBufferPointer(),
-        .BytecodeLength = pShader->GetBufferSize(),
-      },
-    };
-
-    return output;
+    return pShader;
   }
-} // namespace Tac
+} // namespace Tac::Render::DXC
 

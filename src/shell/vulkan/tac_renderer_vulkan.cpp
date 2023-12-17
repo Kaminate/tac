@@ -90,7 +90,7 @@ namespace Tac::Render
 
     vkb::InstanceBuilder builder;
 
-    Vector<String> extensions = TAC_CALL( mGetVkExtensions, errors );
+    Vector<String> extensions = TAC_CALL( mGetVkExtensions( errors ));
     TAC_ASSERT(!extensions.empty()); // probably
     for( const String& extension : extensions )
     {
@@ -159,7 +159,7 @@ namespace Tac::Render
       VkSurfaceKHR _surface;
 
       //VkSurfaceFn fn =  GetVkSurfaceFn();
-      TAC_CALL( mGetVkSurfaceFn, _instance, data->mNativeWindowHandle, &_surface, errors );
+      TAC_CALL( mGetVkSurfaceFn( _instance, data->mNativeWindowHandle, &_surface, errors ));
 
 
       vkb::SwapchainBuilder swapchainBuilder{ _chosenGPU,_device,_surface };

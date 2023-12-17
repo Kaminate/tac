@@ -188,7 +188,7 @@ namespace Tac
     }
     for( PlayerCount i = 0; i < numPlayersDifferent; ++i )
     {
-      TAC_CALL( ReadPlayerDifferences, reader, errors );
+      TAC_CALL( ReadPlayerDifferences( reader, errors ) );
     }
 
     EntityCount numDeletedEntities;
@@ -231,13 +231,13 @@ namespace Tac
     reader.mBegin = bytes;
     reader.mEnd = ( char* )bytes + byteCount;
     NetMsgType networkMessage = NetMsgType::Count;
-    TAC_CALL( ReadNetMsgHeader, &reader, &networkMessage, errors );
+    TAC_CALL( ReadNetMsgHeader( &reader, &networkMessage, errors ) );
 
     switch( networkMessage )
     {
       case NetMsgType::Snapshot:
       {
-        TAC_CALL( ReadSnapshotBody, &reader, errors );
+        TAC_CALL( ReadSnapshotBody( &reader, errors ) );
       } break;
       //case NetMsgType::Text: { ReadIncomingChatMessageBody( &reader, &mChat, errors ); } break;
     }
@@ -253,7 +253,7 @@ namespace Tac
     Vector< char > delayedMsg;
     while( mSavedNetworkMessages.TryPopSavedMessage( delayedMsg, mWorld->mElapsedSecs ) )
     {
-      TAC_CALL( ExecuteNetMsg, delayedMsg.data(), ( int )delayedMsg.size(), errors );
+      TAC_CALL( ExecuteNetMsg( delayedMsg.data(), ( int )delayedMsg.size(), errors ) );
     }
 
     Writer writer;

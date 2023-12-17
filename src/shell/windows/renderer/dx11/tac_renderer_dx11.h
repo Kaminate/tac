@@ -24,24 +24,24 @@ using Microsoft::WRL::ComPtr;
 
 #include <d3d11_3.h> // ID3D11Device3, ID3D11RasterizerState2
 
-#define TAC_DX11_CALL( call, ... )                                                               \
-{                                                                                                \
-  const HRESULT hr = call( __VA_ARGS__ );                                                        \
-  if( FAILED( hr ) )                                                                             \
-  {                                                                                              \
-    const char* fnSig = TAC_STRINGIFY( call ) "( " #__VA_ARGS__ " )";                            \
-    TAC_CALL( Tac::Render::DX11CallAux, fnSig, hr, errors );                                     \
-  }                                                                                              \
+#define TAC_DX11_CALL( call )                                                                      \
+{                                                                                                  \
+  const HRESULT hr = call;                                                                         \
+  const bool failed = FAILED( hr );                                                                \
+  if( failed )                                                                                     \
+  {                                                                                                \
+    TAC_CALL( Tac::Render::DX11CallAux( #call, hr, errors ) );                                     \
+  }                                                                                                \
 }
 
-#define TAC_DX11_CALL_RETURN( retval, call, ... )                                                \
-{                                                                                                \
-  const HRESULT hr = call( __VA_ARGS__ );                                                        \
-  if( FAILED( hr ) )                                                                             \
-  {                                                                                              \
-    const char* fnSig =  TAC_STRINGIFY( call ) "( " #__VA_ARGS__ " )";                           \
-    TAC_CALL_RET( retval, Tac::Render::DX11CallAux, fnSig, hr, errors );                         \
-  }                                                                                              \
+#define TAC_DX11_CALL_RETURN( retval, call )                                                       \
+{                                                                                                  \
+  const HRESULT hr = call;                                                                         \
+  const bool failed = FAILED( hr );                                                                \
+  if( failed )                                                                                     \
+  {                                                                                                \
+    TAC_CALL_RET( retval, Tac::Render::DX11CallAux( #call, hr, errors ) );                         \
+  }                                                                                                \
 }
 
 namespace Tac::Render

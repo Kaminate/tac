@@ -280,23 +280,23 @@ namespace Tac
   {
     mDesktopWindowHandle = gCreation.mWindowManager.CreateDesktopWindow( gGameWindowName );
 
-    TAC_CALL( CreateGraphicsObjects, errors );
+    TAC_CALL( CreateGraphicsObjects( errors ) );
 
 
 
-    mCenteredUnitCube = TAC_CALL( ModelAssetManagerGetMeshTryingNewThing, "assets/editor/box.gltf",
+    mCenteredUnitCube = TAC_CALL( ModelAssetManagerGetMeshTryingNewThing( "assets/editor/box.gltf",
                                                                 0,
                                                                 m3DvertexFormatDecls,
-                                                                errors );
+                                                                errors ) );
 
-    mArrow = TAC_CALL( ModelAssetManagerGetMeshTryingNewThing, "assets/editor/arrow.gltf",
+    mArrow = TAC_CALL( ModelAssetManagerGetMeshTryingNewThing( "assets/editor/arrow.gltf",
                                                      0,
                                                      m3DvertexFormatDecls,
-                                                     errors );
+                                                     errors ) );
 
     mDebug3DDrawData = TAC_NEW Debug3DDrawData;
 
-    TAC_CALL( PlayGame, errors );
+    TAC_CALL( PlayGame( errors ) );
 
     spriteShader = Render::CreateShader(  "3DSprite" , TAC_STACK_FRAME );
   }
@@ -734,7 +734,7 @@ namespace Tac
       return;
     auto ghost = TAC_NEW Ghost;
     //ghost->mRenderView = mDesktopWindow->mRenderView;
-    TAC_CALL( ghost->Init, errors );
+    TAC_CALL( ghost->Init( errors ) );
     mSoul = ghost;
   }
 
@@ -771,7 +771,7 @@ namespace Tac
     {
       if( ImGuiButton( "Begin simulation" ) )
       {
-        TAC_CALL( PlayGame, errors );
+        TAC_CALL( PlayGame( errors ) );
       }
     }
 
@@ -1042,7 +1042,7 @@ namespace Tac
       //  auto model = ( Model* )entity->AddNewComponent( ComponentRegistryEntryIndex::Model );
       //  model->mModelPath = "assets/editor/Box.gltf";
       //}
-      TAC_CALL( mSoul->Update, errors );
+      TAC_CALL( mSoul->Update( errors ) );
     }
 
     if( drawGrid )
@@ -1075,7 +1075,7 @@ namespace Tac
                                             errors );
 
     UpdateGizmo();
-    TAC_CALL( ImGuiOverlay, errors );
+    TAC_CALL( ImGuiOverlay( errors ) );
   }
 
   void CreationGameWindow::UpdateGizmo()

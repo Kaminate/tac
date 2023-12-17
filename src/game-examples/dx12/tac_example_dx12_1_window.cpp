@@ -84,7 +84,7 @@ namespace Tac
       return;
 
     PCom<ID3D12Debug> dx12debug;
-    TAC_DX12_CALL( D3D12GetDebugInterface, dx12debug.iid(), dx12debug.ppv() );
+    TAC_DX12_CALL( D3D12GetDebugInterface( dx12debug.iid(), dx12debug.ppv() ) );
 
     auto dx12debug5 = dx12debug.QueryInterface< ID3D12Debug5>();
     auto dx12debug4 = dx12debug.QueryInterface< ID3D12Debug4>();
@@ -124,11 +124,11 @@ namespace Tac
     
     auto adapter = ( IDXGIAdapter* )DXGIGetBestAdapter();
     PCom< ID3D12Device > device;
-    TAC_DX12_CALL( D3D12CreateDevice,
+    TAC_DX12_CALL( D3D12CreateDevice(
                    adapter,
                    D3D_FEATURE_LEVEL_12_1,
                    device.iid(),
-                   device.ppv() );
+                   device.ppv() ) );
     m_device = device.QueryInterface<ID3D12Device5>();
     DX12SetName( m_device, "Device" );
   }
@@ -152,10 +152,10 @@ namespace Tac
     };
 
 
-    TAC_DX12_CALL( m_device->CreateCommandQueue,
+    TAC_DX12_CALL( m_device->CreateCommandQueue(
                    &queueDesc,
                    m_commandQueue.iid(),
-                   m_commandQueue.ppv() );
+                   m_commandQueue.ppv() ) );
     DX12SetName( m_commandQueue, "Command Queue" );
   }
 
@@ -174,10 +174,10 @@ namespace Tac
       .Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
       .NumDescriptors = bufferCount,
     };
-    TAC_DX12_CALL( m_device->CreateDescriptorHeap,
+    TAC_DX12_CALL( m_device->CreateDescriptorHeap(
                    &desc,
                    m_rtvHeap.iid(),
-                   m_rtvHeap.ppv() );
+                   m_rtvHeap.ppv() ) );
     m_rtvDescriptorSize = m_device->GetDescriptorHandleIncrementSize( D3D12_DESCRIPTOR_HEAP_TYPE_RTV );
     m_rtvHeapStart = m_rtvHeap->GetCPUDescriptorHandleForHeapStart();
   }
@@ -186,22 +186,22 @@ namespace Tac
   {
     // a command allocator manages storage for cmd lists and bundles
     TAC_ASSERT( m_device );
-    TAC_DX12_CALL( m_device->CreateCommandAllocator,
+    TAC_DX12_CALL( m_device->CreateCommandAllocator(
                    D3D12_COMMAND_LIST_TYPE_DIRECT,
                    m_commandAllocator.iid(),
-                   m_commandAllocator.ppv()  );
+                   m_commandAllocator.ppv()  ) );
   }
 
   void DX12AppHelloWindow::CreateCommandList( Errors& errors )
   {
     // Create the command list (CreateCommandList1 creates it in a closed state).
     PCom< ID3D12CommandList > commandList;
-    TAC_DX12_CALL( m_device->CreateCommandList1,
+    TAC_DX12_CALL( m_device->CreateCommandList1(
                    0,
                    D3D12_COMMAND_LIST_TYPE_DIRECT,
                    D3D12_COMMAND_LIST_FLAG_NONE,
                    m_commandList.iid(),
-                   m_commandList.ppv() );
+                   m_commandList.ppv() ) );
 
     commandList.QueryInterface( m_commandList );
     TAC_ASSERT(m_commandList);
@@ -214,17 +214,17 @@ namespace Tac
     const UINT64 initialVal = 0;
 
     PCom< ID3D12Fence > fence;
-    TAC_DX12_CALL( m_device->CreateFence,
+    TAC_DX12_CALL( m_device->CreateFence(
                    initialVal,
                    D3D12_FENCE_FLAG_NONE,
                    fence.iid(),
-                   fence.ppv() );
+                   fence.ppv() ) );
 
     fence.QueryInterface(m_fence);
 
     m_fenceValue = 1;
 
-    TAC_CALL( m_fenceEvent.Init, errors );
+    TAC_CALL( m_fenceEvent.Init( errors ) );
   }
 
   // -----------------------------------------------------------------------------------------------
@@ -248,8 +248,8 @@ namespace Tac
       .mWidth = state->mWidth,
       .mHeight = state->mHeight,
     };
-    m_swapChain = TAC_CALL( DXGICreateSwapChain, scInfo, errors );
-    TAC_CALL( m_swapChain->GetDesc1, &m_swapChainDesc );
+    m_swapChain = TAC_CALL( DXGICreateSwapChain( scInfo, errors ) );
+    TAC_CALL( m_swapChain->GetDesc1( &m_swapChainDesc ) );
   }
 
   D3D12_CPU_DESCRIPTOR_HANDLE DX12AppHelloWindow::GetRenderTargetDescriptorHandle( int i ) const
@@ -269,7 +269,7 @@ namespace Tac
     {
       const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = GetRenderTargetDescriptorHandle( i );
       PCom< ID3D12Resource >& renderTarget = m_renderTargets[ i ];
-      TAC_DX12_CALL( m_swapChain->GetBuffer, i, renderTarget.iid(), renderTarget.ppv() );
+      TAC_DX12_CALL( m_swapChain->GetBuffer( i, renderTarget.iid(), renderTarget.ppv() ) );
       m_device->CreateRenderTargetView( ( ID3D12Resource* )renderTarget, nullptr, rtvHandle );
 
       // the render target resource is created in a state that is ready to be displayed on screen
@@ -327,9 +327,9 @@ namespace Tac
     //   Indicates to re-use the memory that is associated with the command allocator.
     //   From this call to Reset, the runtime and driver determine that the GPU is no longer
     //   executing any command lists that have recorded commands with the command allocator.
-    TAC_DX12_CALL( m_commandAllocator->Reset );
+    TAC_DX12_CALL( m_commandAllocator->Reset() );
 
-    // However, when ExecuteCommandList() is called on a particular command 
+    // However( when ExecuteCommandList() is called on a particular command 
     // list, that command list can then be reset at any time and must be before 
     // re-recording.
     //
@@ -337,9 +337,9 @@ namespace Tac
     //   you can re-use command list tracking structures without any allocations
     //   you can call Reset while the command list is still being executed
     //   you can submit a cmd list, reset it, and reuse the allocated memory for another cmd list
-    TAC_DX12_CALL( m_commandList->Reset,
+    TAC_DX12_CALL( m_commandList->Reset(
                    ( ID3D12CommandAllocator* )m_commandAllocator,
-                   ( ID3D12PipelineState* )m_pipelineState );
+                   ( ID3D12PipelineState* )m_pipelineState ) );
 
     // Indicate that the back buffer will be used as a render target.
     TransitionRenderTarget( m_frameIndex, D3D12_RESOURCE_STATE_RENDER_TARGET );
@@ -354,7 +354,7 @@ namespace Tac
     TransitionRenderTarget( m_frameIndex, D3D12_RESOURCE_STATE_PRESENT );
 
     // Indicates that recording to the command list has finished.
-    TAC_DX12_CALL( m_commandList->Close );
+    TAC_DX12_CALL( m_commandList->Close() );
   }
 
   void DX12AppHelloWindow::ClearRenderTargetView()
@@ -416,7 +416,7 @@ namespace Tac
     const UINT PresentFlags = 0;
 
     // I think this technically adds a frame onto the present queue
-    TAC_DX12_CALL( m_swapChain->Present1, SyncInterval, PresentFlags, &params );
+    TAC_DX12_CALL( m_swapChain->Present1( SyncInterval, PresentFlags, &params ) );
   }
 
   void DX12AppHelloWindow::WaitForPreviousFrame( Errors& errors )
@@ -447,7 +447,7 @@ namespace Tac
 
     // Use this method to set a fence value from the GPU side
     // [ ] Q: ^ ???
-    TAC_DX12_CALL( m_commandQueue->Signal, (ID3D12Fence*)m_fence, signalValue );
+    TAC_DX12_CALL( m_commandQueue->Signal( (ID3D12Fence*)m_fence, signalValue ) );
 
     m_fenceValue++;
 
@@ -470,7 +470,7 @@ namespace Tac
       //
       // the event will be 'complete' when it reaches the specified value.
       // This value is set by the cmdqueue::Signal
-      TAC_DX12_CALL( m_fence->SetEventOnCompletion, signalValue, (HANDLE)m_fenceEvent );
+      TAC_DX12_CALL( m_fence->SetEventOnCompletion( signalValue, (HANDLE)m_fenceEvent ) );
       WaitForSingleObject( (HANDLE)m_fenceEvent, INFINITE );
     }
 
@@ -487,15 +487,15 @@ namespace Tac
   {
     CreateDesktopWindow();
 
-    TAC_CALL( DXGIInit, errors );
-    TAC_CALL( EnableDebug, errors );
-    TAC_CALL( CreateDevice, errors );
-    TAC_CALL( CreateInfoQueue, errors );
-    TAC_CALL( CreateCommandQueue, errors );
-    TAC_CALL( CreateRTVDescriptorHeap, errors );
-    TAC_CALL( CreateCommandAllocator, errors );
-    TAC_CALL( CreateCommandList, errors );
-    TAC_CALL( CreateFence, errors );
+    TAC_CALL( DXGIInit( errors ) );
+    TAC_CALL( EnableDebug( errors ) );
+    TAC_CALL( CreateDevice( errors ) );
+    TAC_CALL( CreateInfoQueue( errors ) );
+    TAC_CALL( CreateCommandQueue( errors ) );
+    TAC_CALL( CreateRTVDescriptorHeap( errors ) );
+    TAC_CALL( CreateCommandAllocator( errors ) );
+    TAC_CALL( CreateCommandList( errors ) );
+    TAC_CALL( CreateFence( errors ) );
   }
 
   void DX12AppHelloWindow::Update( Errors& errors )
@@ -506,19 +506,19 @@ namespace Tac
 
     if( !m_swapChain )
     {
-      TAC_CALL( DX12CreateSwapChain, errors );
-      TAC_CALL( CreateRenderTargetViews, errors );
+      TAC_CALL( DX12CreateSwapChain( errors ) );
+      TAC_CALL( CreateRenderTargetViews( errors ) );
     }
 
     // Record all the commands we need to render the scene into the command list.
-    TAC_CALL( PopulateCommandList, errors );
+    TAC_CALL( PopulateCommandList( errors ) );
 
     ExecuteCommandLists();
 
-    TAC_CALL( SwapChainPresent, errors );
+    TAC_CALL( SwapChainPresent( errors ) );
 
 
-    TAC_CALL( WaitForPreviousFrame, errors );
+    TAC_CALL( WaitForPreviousFrame( errors ) );
 
     ++asdf;
   }
@@ -527,7 +527,7 @@ namespace Tac
   {
     // Ensure that the GPU is no longer referencing resources that are about to be
     // cleaned up by the destructor.
-    TAC_CALL( WaitForPreviousFrame, errors );
+    TAC_CALL( WaitForPreviousFrame( errors ));
 
     DXGIUninit();
   }

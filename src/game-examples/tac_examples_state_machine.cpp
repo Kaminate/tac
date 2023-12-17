@@ -48,7 +48,7 @@ namespace Tac
 
     if( sCurrExample )
     {
-      TAC_CALL( sCurrExample->Update, errors );
+      TAC_CALL( sCurrExample->Update( errors ));
     }
   }
 

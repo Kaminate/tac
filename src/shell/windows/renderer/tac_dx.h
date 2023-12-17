@@ -20,10 +20,9 @@ namespace Tac::Render
     PCom( T* ) = delete;
     PCom( const PCom& other )
     {
-      mT = other.mT;
-      TryAddRef();
+      if( auto unknown = static_cast< IUnknown* >( mT = other.mT ) )
+        unknown->AddRef();
     }
-
     PCom( PCom&& other )
     {
       swap( Tac::move(other) );
@@ -31,11 +30,11 @@ namespace Tac::Render
 
     ~PCom()
     {
-      TryRelease();
+      if( auto unknown = static_cast< IUnknown* >( mT ) )
+        unknown->Release();
     }
 
-
-    // IID_PPV_ARGS
+    // IID_PPV_ARGS == iid(), ppv()
     REFIID iid()          { return __uuidof(*mT); }
     void** ppv()          { return (void**)&mT; }
 
@@ -43,7 +42,6 @@ namespace Tac::Render
     T**    CreateAddress() { return &mT; } // used during creation by a typed api
     T*     Get()           { return mT; }
 
-    //void   clear()         { TryRelease(); }
     void swap( PCom&& other )
     {
       T* t = mT;
@@ -64,7 +62,7 @@ namespace Tac::Render
     template< typename U >
     void QueryInterface( PCom<U>& u )
     {
-      if( IUnknown* unknown = GetUnknown() )
+      if( auto unknown = static_cast< IUnknown* >( mT ) )
         unknown->QueryInterface( u.iid(), u.ppv() );
     }
 
@@ -85,38 +83,20 @@ namespace Tac::Render
 
     void operator = ( const PCom& other )
     {
-      mT = other.mT;
-      TryAddRef();
+      if( auto unknown = static_cast< IUnknown* >( mT ) )
+        unknown->Release();
+
+      if( auto unknown = static_cast< IUnknown* >( mT = other.mT ) )
+        unknown->AddRef();
     }
 
     void operator = ( PCom&& other )
     {
       swap( Tac::move( other ) );
-      //TryRelease();
-      //mT = other.mT;
-      //other.mT = nullptr;
     }
 
 
   private:
-
-    IUnknown* GetUnknown()
-    {
-      return static_cast<IUnknown*>(mT);
-    }
-
-    void TryAddRef()
-    {
-      if( IUnknown* unknown = GetUnknown() )
-        unknown->AddRef();
-    }
-
-    void TryRelease()
-    {
-      if( IUnknown* unknown = GetUnknown() )
-        unknown->Release();
-      mT = nullptr;
-    }
     
     T* mT = nullptr;
   };
