@@ -51,15 +51,10 @@ namespace Tac::Render
   {
     std::stringstream ss;
     ss << fnCallWithArgs << " returned 0x" << std::hex << res;
-    const char* inferredErrorMessage = TacVulkanResultStrings[ res ];
-    if( inferredErrorMessage )
-    {
-      ss << "(";
-      ss << inferredErrorMessage;
-      ss << ")";
-    }
+    if( const char* inferredErrorMessage = TacVulkanResultStrings[ res ] )
+      ss << "( " << inferredErrorMessage << " )";
 
-    errors.Append( ss.str().c_str() );
+    TAC_RAISE_ERROR( ss.str().c_str() );
   }
 
 

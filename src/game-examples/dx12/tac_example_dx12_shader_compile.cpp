@@ -116,10 +116,12 @@ namespace Tac::Render
   {
     Result result;
     for( int i = 0; i < ( int )ShaderType::Count; ++i )
+    {
       result.mBlobs[ i ] = TAC_CALL_RET( {},
                                          CompileShader( ( ShaderType )i,
                                          shaderAssetPath,
                                          errors ) );
+    }
 
     return result;
   }

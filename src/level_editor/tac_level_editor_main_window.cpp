@@ -62,8 +62,7 @@ namespace Tac
     //int loadedTextureCount = 0;
     //for( TextureAndPath textureAndPath : textureAndPaths )
     //{
-    //  TextureAssetManager::GetTexture( textureAndPath.path, errors );
-    //  TAC_HANDLE_ERROR();
+    //  TAC_CALL( TextureAssetManager::GetTexture( textureAndPath.path, errors ) );
     //  if( *textureAndPath.texture )
     //    loadedTextureCount++;
     //}

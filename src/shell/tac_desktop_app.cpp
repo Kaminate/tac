@@ -1,5 +1,7 @@
 #include "src/shell/tac_desktop_app.h" // self-include
 
+#include "space/tac_space.h"
+
 #include "src/common/containers/tac_fixed_vector.h"
 #include "src/common/containers/tac_frame_vector.h"
 #include "src/common/containers/tac_ring_buffer.h"
@@ -16,14 +18,15 @@
 #include "src/common/shell/tac_shell.h"
 #include "src/common/shell/tac_shell_timer.h"
 #include "src/common/string/tac_string.h"
+#include "src/common/string/tac_string_util.h"
 #include "src/common/system/tac_desktop_window.h"
 #include "src/common/system/tac_filesystem.h"
 #include "src/common/system/tac_os.h"
-#include "src/shell/tac_desktop_window_graphics.h"
-#include "src/shell/tac_desktop_window_settings_tracker.h"
+
 #include "src/shell/tac_desktop_app_renderers.h"
 #include "src/shell/tac_desktop_event.h"
-#include "space/tac_space.h"
+#include "src/shell/tac_desktop_window_graphics.h"
+#include "src/shell/tac_desktop_window_settings_tracker.h"
 
 import std; // mutex, thread, type_traits
 
@@ -35,49 +38,6 @@ namespace Tac
     Main,
     Logic
   };
-
-  //enum class DesktopEventType
-  //{
-  //  Unknown = 0,
-  //  WindowAssignHandle,
-  //  WindowResize,
-  //  WindowMove,
-  //  CursorUnobscured,
-  //  KeyState,
-  //  MouseButtonState,
-  //  KeyInput,
-  //  MouseWheel,
-  //  MouseMove,
-  //};
-
-  //struct DesktopEventQueueImpl
-  //{
-  //  void       Init();
-
-  //  template< typename T >
-  //  void       QueuePush( DesktopEventType type, const T* t )
-  //  {
-  //    static_assert( std::is_trivially_copyable_v<T> );
-  //    QueuePush( type, t, sizeof( T ) );
-  //  }
-
-  //  bool       QueuePop( void*, int );
-
-  //  template< typename T >
-  //  T          QueuePop()
-  //  {
-  //    T t;
-  //    QueuePop( &t, sizeof( T ) );
-  //    return t;
-  //  }
-
-  //  bool       Empty();
-
-  //private:
-  //  void       QueuePush( DesktopEventType, const void*, int );
-  //  RingBuffer mQueue;
-  //  std::mutex mMutex;
-  //};
 
   struct RequestMove
   {
@@ -94,9 +54,9 @@ namespace Tac
   using WindowRequestsCreate = FixedVector< PlatformSpawnWindowParams, kDesktopWindowCapacity >;
   using WindowRequestsDestroy = FixedVector< DesktopWindowHandle, kDesktopWindowCapacity >;
 
-  static Errors                        gPlatformThreadErrors( Errors::Flags::kDebugBreakOnAppend );
-  static Errors                        gLogicThreadErrors( Errors::Flags::kDebugBreakOnAppend );
-  static Errors                        gMainFunctionErrors( Errors::Flags::kDebugBreakOnAppend );
+  static Errors                        gPlatformThreadErrors( Errors::kDebugBreaks );
+  static Errors                        gLogicThreadErrors( Errors::kDebugBreaks );
+  static Errors                        gMainFunctionErrors( Errors::kDebugBreaks );
 
   static PlatformFns*                  sPlatformFns;
 
@@ -107,7 +67,6 @@ namespace Tac
   static IdCollection                  sDesktopWindowHandleIDs( kDesktopWindowCapacity );
   static WindowRequestsCreate          sWindowRequestsCreate;
   static WindowRequestsDestroy         sWindowRequestsDestroy;
-  //static DesktopEventQueueImpl         sEventQueue;
   static RequestMove                   sRequestMove[ kDesktopWindowCapacity ];
   static RequestResize                 sRequestResize[ kDesktopWindowCapacity ];
   thread_local ThreadType              gThreadType = ThreadType::Unknown;
@@ -160,6 +119,41 @@ namespace Tac
         sPlatformFns->PlatformWindowResizeControls( desktopWindowHandle, requestResize->mEdgePx );
         sRequestResize[ i ] = RequestResize();
       }
+    }
+  }
+
+  static void DesktopAppReportErrors( Errors& errors )
+  {
+    struct NamedError
+    {
+      const char* mName;
+      Errors *mErrorPointer;
+    };
+
+    const NamedError namedErrors[] =
+    {
+      { "Platform Thread", &gPlatformThreadErrors },
+      { "Main Function", &gMainFunctionErrors },
+      { "Logic Thread", &gLogicThreadErrors },
+    };
+
+    String logStr;
+
+    for( const NamedError& namedError : namedErrors )
+      if( !namedError.mErrorPointer->empty() )
+      {
+        const String errStr =  String()
+          + "Errors in " + namedError.mName + "\n"
+          + namedError.mErrorPointer->ToString();
+
+        OS::OSDebugPopupBox( errStr );
+        logStr += errStr;
+        logStr += '\n';
+      }
+
+    if( !logStr.empty() )
+    {
+      Filesystem::SaveToFile( sShellPrefPath / "tac_error.txt", logStr, errors );
     }
   }
 
@@ -337,11 +331,8 @@ namespace Tac
     // for win32 project standalone_win_vk_1_tri, appDataPath =
     //
     //     C:\Users\Nate\AppData\Roaming + /Sleeping Studio + /Whatever bro
-    if( !Filesystem::Exists( sShellPrefPath ) )
-    {
-      const String msg = "app data path " + sShellPrefPath.u8string() + " doesnt exist";
-      TAC_RAISE_ERROR( msg );
-    }
+    TAC_RAISE_ERROR_IF( !Filesystem::Exists( sShellPrefPath ),
+                        String() + "app data path " + sShellPrefPath.u8string() + " doesnt exist" );
 
     TAC_CALL( SettingsInit( errors ) );
 
@@ -356,6 +347,8 @@ namespace Tac
     std::thread logicThread( LogicThread );
     PlatformThread();
     logicThread.join();
+
+    DesktopAppReportErrors( errors );
   }
 
   void                DesktopAppUpdate( Errors& errors )
@@ -418,26 +411,7 @@ namespace Tac
     sWindowHandleLock.unlock();
   }
 
-  static void         DesktopAppReportError( const char* name, Errors& errors )
-  {
-    if( !errors )
-      return;
 
-    String s;
-    s += "Errors in ";
-    s += name;
-    s += " ";
-    s += errors.ToString();
-
-    OS::OSDebugPopupBox( s );
-  }
-
-  void                DesktopAppReportErrors()
-  {
-    DesktopAppReportError( "Platform Thread", gPlatformThreadErrors );
-    DesktopAppReportError( "Main Function", gMainFunctionErrors );
-    DesktopAppReportError( "Logic Thread", gLogicThreadErrors );
-  }
 
   static void         DesktopAppDebugImGuiHoveredWindow()
   {

@@ -3,6 +3,7 @@
 
 namespace Tac
 {
+  void RedirectStreamBuf();
   struct Win32PlatformFns : public PlatformFns
   {
     void PlatformImGui( Errors& ) override;

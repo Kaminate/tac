@@ -462,8 +462,7 @@ namespace Tac
 		//if( !mPower.IsValid() )
 		//{
 		//  // TODO: use the asset manager to load this shit async
-		//  auto memory = FileToString( "assets/power.png", errors );
-		//  TAC_HANDLE_ERROR();
+		//  auto memory = TAC_CALL( FileToString( "assets/power.png", errors ) );
 
 		//  int x;
 		//  int y;
@@ -509,7 +508,6 @@ namespace Tac
 		//  textureData.mImage = image;
 		//  textureData.mPitch = image.mFormat.mElementCount * image.mFormat.mPerElementByteCount * image.mWidth;
 		//  mPower = Render::CreateTexture( "power", textureData, TAC_STACK_FRAME );
-		//  TAC_HANDLE_ERROR();
 		//}
 
 		//float dotPeriodSeconds = 1;
@@ -787,8 +785,7 @@ namespace Tac
 		//TAC_TIMELINE_KEYFRAME;
 
 
-		//mTimeline.Update( ShellGetElapsedSeconds(), errors );
-		//TAC_HANDLE_ERROR();
+		//TAC_CALL(mTimeline.Update( ShellGetElapsedSeconds(), errors ));
 
 		//return;
 

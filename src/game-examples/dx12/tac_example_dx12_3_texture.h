@@ -33,6 +33,13 @@ namespace Tac
 
   struct DX12AppHelloTexture : public App
   {
+    enum SRVIndexes
+    {
+      TriangleVertexBuffer,
+      TriangleTexture,
+      Count,
+    };
+
     DX12AppHelloTexture( const Config& );
 
     void Init( Errors& ) override;
@@ -52,8 +59,11 @@ namespace Tac
     void CreateInfoQueue( Errors& );
     void CreateCommandQueue( Errors& );
     void CreateRTVDescriptorHeap( Errors& );
+    void CreateSamplerDescriptorHeap( Errors& );
     void CreateSRVDescriptorHeap( Errors& );
-    void CreateSRV( Errors& );
+    void CreateVertexBufferSRV( Errors& );
+    void CreateSampler( Errors& );
+    void CreateTexture( Errors& );
     void CreateCommandAllocator( Errors& );
     void CreateCommandList( Errors& );
     void CreateVertexBuffer( Errors& );
@@ -73,6 +83,9 @@ namespace Tac
     D3D12_CPU_DESCRIPTOR_HANDLE GetSRVCpuDescHandle( int ) const;
     D3D12_GPU_DESCRIPTOR_HANDLE GetSRVGpuDescHandle( int ) const;
 
+    D3D12_CPU_DESCRIPTOR_HANDLE GetSamplerCpuDescHandle( int ) const;
+    D3D12_GPU_DESCRIPTOR_HANDLE GetSamplerGpuDescHandle( int ) const;
+
     D3D12_CPU_DESCRIPTOR_HANDLE OffsetCpuDescHandle( D3D12_CPU_DESCRIPTOR_HANDLE,
                                                      D3D12_DESCRIPTOR_HEAP_TYPE,
                                                      int ) const;
@@ -82,6 +95,15 @@ namespace Tac
     void PopulateCommandList( Errors& );
     void ExecuteCommandLists();
     void ResourceBarrier( const D3D12_RESOURCE_BARRIER& );
+
+    struct TransitionParams
+    {
+       ID3D12Resource*        mResource;
+       D3D12_RESOURCE_STATES* mCurrentState;
+       D3D12_RESOURCE_STATES  mTargetState;
+    };
+    void TransitionResource( TransitionParams );
+
     void TransitionRenderTarget( int, D3D12_RESOURCE_STATES );
     void SwapChainPresent( Errors& );
     void WaitForPreviousFrame( Errors& );
@@ -101,6 +123,11 @@ namespace Tac
     PCom< ID3D12Debug3 >               m_debug;
     bool                               m_debugLayerEnabled = false;
     PCom<ID3D12DebugDevice2>           m_debugDevice;
+
+    // samplers
+    PCom< ID3D12DescriptorHeap >       m_samplerHeap;
+    D3D12_CPU_DESCRIPTOR_HANDLE        m_samplerCpuHeapStart;
+    D3D12_GPU_DESCRIPTOR_HANDLE        m_samplerGpuHeapStart;
 
     // rtvs
     PCom< ID3D12DescriptorHeap >       m_rtvHeap;
@@ -155,10 +182,14 @@ namespace Tac
     // (such as the input assembler, tesselator, rasterizer and output merger).
     PCom< ID3D12PipelineState >        mPipelineState;
 
+    PCom<ID3D12Resource>               m_texture;
+    D3D12_RESOURCE_DESC                m_textureDesc;
+    D3D12_RESOURCE_STATES              m_textureResourceStates;
+
     PCom<ID3D12Resource>               m_vertexBufferUploadHeap;
     PCom<ID3D12Resource>               m_vertexBuffer;
-    D3D12_VERTEX_BUFFER_VIEW           m_vertexBufferView;
-    UINT                               m_vertexBufferSize;
+    //D3D12_VERTEX_BUFFER_VIEW           m_vertexBufferView;
+    UINT                               m_vertexBufferByteCount;
     bool                               m_vertexBufferCopied = false;
 
     D3D12_VIEWPORT                     m_viewport;

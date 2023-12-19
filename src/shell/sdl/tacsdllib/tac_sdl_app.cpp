@@ -76,8 +76,7 @@ namespace Tac
   //    SDL_Rect rect;
   //    if( SDL_GetDisplayBounds( 0, &rect ) )
   //    {
-  //      errors = va( "Failed to get display bounds %s", SDL_GetError() );
-  //      TAC_HANDLE_ERROR( errors );
+  //      TAC_RAISE_ERROR( String() + "Failed to get display bounds " + SDL_GetError() );
   //    }
   //    monitor->w = rect.w;
   //    monitor->h = rect.h;
@@ -119,9 +118,7 @@ namespace Tac
   //    SDL_VERSION( &wmInfo.version );
   //    if( SDL_FALSE == SDL_GetWindowWMInfo( sdlWindow, &wmInfo ) )
   //    {
-  //      TAC_INVALID_CODE_PATH;
-  //      //errors = "Failed to get sdl window wm info";
-  //      //TAC_HANDLE_ERROR( errors );
+  //      TAC_RAISE_ERROR( "Failed to get sdl window wm info" );
   //    }
   //    operatingSystemHandle = wmInfo.info.win.window;
   //    operatingSystemApplicationHandle = wmInfo.info.win.hinstance;

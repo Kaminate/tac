@@ -95,7 +95,6 @@ namespace Tac
                                               const DesktopWindowRect& );
   void                DesktopAppMoveControls( const DesktopWindowHandle& );
   void                DesktopAppDebugImGui(Errors&);
-  void                DesktopAppReportErrors();
 
   // -----------------------------------------------------------------------------------------------
 

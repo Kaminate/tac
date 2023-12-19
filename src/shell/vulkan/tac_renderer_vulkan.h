@@ -104,17 +104,6 @@ struct TacVulkanRenderer : public TacRenderer
 
 
 
-void TacVulkanCallAux( TacErrors& errors, TacString functionName, VkResult res );
-
-#define TAC_VULKAN_CALL( errors, call, ... )\
-{\
-  VkResult result = call( __VA_ARGS__ );\
-  if( result != VK_SUCCESS )\
-  {\
-    TacVulkanCallAux( errors, TacStringify( call ), result );\
-    TAC_HANDLE_ERROR();\
-  }\
-}
 */
 
 //#include "src/common/graphics/tac_renderer.h"

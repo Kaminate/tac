@@ -397,8 +397,7 @@ namespace Tac
     //  // todo: keep sending until the client has acknowled our message
     //  mChat.mIsReadyToSend = false;
     //  writer->mBuffer = buffer;
-    //  WriteOutgoingChatMessage( writer, &mChat, errors );
-    //  TAC_HANDLE_ERROR();
+    //  TAC_CALL( WriteOutgoingChatMessage( writer, &mChat, errors ) );
     //  for( auto otherPlayer : mOtherPlayers )
     //  {
     //    sendNetworkMessageCallback(

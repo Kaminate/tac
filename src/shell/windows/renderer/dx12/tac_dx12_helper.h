@@ -8,7 +8,7 @@
 
 namespace Tac::Render
 {
-  void DX12CallAux( const char*, HRESULT, Errors& );
+  String DX12CallAux( const char*, HRESULT );
 
   const char* DX12_HRESULT_ToString( HRESULT );
 
@@ -24,21 +24,15 @@ namespace Tac::Render
 
 #define TAC_DX12_CALL( call )                                                                      \
 {                                                                                                  \
-  const HRESULT result = call;                                                                     \
-  const bool failed = FAILED( result );                                                            \
-  if( failed )                                                                                     \
-  {                                                                                                \
-    TAC_CALL( Tac::Render::DX12CallAux( #call, result, errors ) );                                 \
-  }                                                                                                \
+  const HRESULT hr = call;                                                                         \
+  const bool failed = FAILED( hr );                                                                \
+  TAC_RAISE_ERROR_IF( failed, Tac::Render::DX12CallAux( #call, hr ) );                             \
 }
 
 #define TAC_DX12_CALL_RET( ret, call )                                                             \
 {                                                                                                  \
-  const HRESULT result = call;                                                                     \
-  const bool failed = FAILED( result );                                                            \
-  if( failed )                                                                                     \
-  {                                                                                                \
-    TAC_CALL_RET( ret, Tac::Render::DX12CallAux( #call, result, errors ) );                        \
-  }                                                                                                \
+  const HRESULT hr = call;                                                                         \
+  const bool failed = FAILED( hr );                                                                \
+  TAC_RAISE_ERROR_IF_RETURN( failed, Tac::Render::DX12CallAux( #call, hr ), ret );                 \
 }
 

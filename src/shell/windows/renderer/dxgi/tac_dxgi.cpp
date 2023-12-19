@@ -221,10 +221,12 @@ namespace Tac::Render
     if( FAILED( createSwapChainHR ) )
     {
       const DWORD dwError = HRESULT_CODE( createSwapChainHR ); // ???
-
-      errors.Append( TryInferDXGIErrorStr( createSwapChainHR ) );
-      errors.Append( Win32ErrorStringFromDWORD( dwError ) );
-      TAC_RAISE_ERROR_RETURN( "Failed to create swap chain", {} );
+      const String dxgiErrStr = TryInferDXGIErrorStr( createSwapChainHR );
+      const String win32ErrStr = Win32ErrorStringFromDWORD( dwError );
+      TAC_RAISE_ERROR_RETURN( String()
+                              + "CreateSwapChainForHwnd failed, "
+                              + dxgiErrStr
+                              + win32ErrStr, {} );
     }
 
     return swapChain1.QueryInterface<IDXGISwapChain4>();
@@ -332,7 +334,7 @@ namespace Tac::Render
 
 
   // Appends the failed function call error message to Errors
-  void DXGICallAux( const char* fnCallWithArgs, HRESULT res, Errors& errors )
+  String DXGICallAux( const char* fnCallWithArgs, HRESULT res )
   {
     std::stringstream ss;
     ss << fnCallWithArgs << " returned 0x" << std::hex << res;
@@ -344,7 +346,7 @@ namespace Tac::Render
       ss << ")";
     }
 
-    errors.Append( ss.str().c_str() );
+    return ss.str().c_str();
   }
 
   PCom<IDXGIAdapter4> DXGIGetBestAdapter()

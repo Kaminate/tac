@@ -69,13 +69,10 @@ namespace Tac::Render
   //  return buf;
   //}
 
-  void DX12CallAux( const char* fn, const HRESULT hr, Errors& errors )
+  String DX12CallAux( const char* fn, const HRESULT hr )
   {
-    String msg = fn;
-    msg += " failed with ";
-    msg += DX12_HRESULT_ToString( hr );
-
-    errors.Append( msg );
+    const String hrStr = DX12_HRESULT_ToString( hr );
+    return String() + fn + " failed with " + hrStr;
   }
 
   void DX12SetNameAux( ID3D12Object* obj, StringView sv )

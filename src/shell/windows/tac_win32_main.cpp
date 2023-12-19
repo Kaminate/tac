@@ -23,12 +23,7 @@
 
 import std; // #include <iostream> // okay maybe this should also be allowed
 
-
-namespace Tac
-{
-  static void WinMainAux( HINSTANCE, HINSTANCE, LPSTR, int, Errors& );
-}
-
+static Tac::Win32PlatformFns sWin32PlatformFns;
 
 int CALLBACK WinMain( HINSTANCE hInstance,
                       HINSTANCE hPrevInstance,
@@ -36,8 +31,30 @@ int CALLBACK WinMain( HINSTANCE hInstance,
                       int nCmdShow )
 {
   using namespace Tac;
-  WinMainAux( hInstance, hPrevInstance, lpCmdLine, nCmdShow, GetMainErrors() );
-  DesktopAppReportErrors();
+  Errors& errors = GetMainErrors();
+
+  Win32OSInit();
+  Win32SetStartupParams( hInstance, hPrevInstance, lpCmdLine, nCmdShow );
+
+  RedirectStreamBuf();
+
+  TAC_CALL_RET( 0, Render::AllowPIXDebuggerAttachment( errors ));
+  Render::RegisterRendererDirectX11();
+
+  TAC_CALL_RET( 0, Controller::XInputInit( errors ));
+
+  Win32MouseEdgeInit();
+
+  TAC_CALL_RET( 0, DesktopAppInit( &sWin32PlatformFns, errors ));
+
+  TAC_CALL_RET( 0, Win32WindowManagerInit( errors ));
+
+  TAC_CALL_RET( 0, Network::NetWinsockInit(errors));
+
+  TAC_CALL_RET( 0, DesktopAppRun( errors ));
+
+  Render::DXGIReportLiveObjects();
+
   return 0;
 }
 
@@ -56,19 +73,14 @@ namespace Tac
   }
 
   // Redirect stdout to output window
-  static void RedirectStreamBuf()
+  void RedirectStreamBuf()
   {
     struct RedirectBuf : public std::streambuf
     {
-      int overflow( int c ) override
+      std::streamsize xsputn( const char* s, std::streamsize n ) override
       {
-        if( c > 0 )
-        {
-          char buf[] = { ( char )c, '\0' };
-          OutputDebugString( buf );
-        }
-
-        return c;
+        OutputDebugString( s );
+        return n;
       }
     };
 
@@ -129,35 +141,5 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  static Win32PlatformFns sWin32PlatformFns;
 
-  // This function exists because TAC_HANDLE_ERROR cannot be used in WinMain
-  static void WinMainAux( const HINSTANCE hInstance,
-                          const HINSTANCE hPrevInstance,
-                          const LPSTR lpCmdLine,
-                          const int nCmdShow,
-                          Errors& errors )
-  {
-    Win32OSInit();
-    Win32SetStartupParams( hInstance, hPrevInstance, lpCmdLine, nCmdShow );
-
-    RedirectStreamBuf();
-
-    TAC_CALL( Render::AllowPIXDebuggerAttachment( errors ));
-    Render::RegisterRendererDirectX11();
-
-    TAC_CALL( Controller::XInputInit( errors ));
-
-    Win32MouseEdgeInit();
-
-    TAC_CALL( DesktopAppInit( &sWin32PlatformFns, errors ));
-
-    TAC_CALL( Win32WindowManagerInit( errors ));
-
-    TAC_CALL( Network::NetWinsockInit(errors));
-
-    TAC_CALL( DesktopAppRun( errors ));
-
-    Render::DXGIReportLiveObjects();
-  }
 } // namespace Tac

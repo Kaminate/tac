@@ -23,24 +23,17 @@ namespace Tac::Render
     if( IsSingleLineCommented( line ) )
       return line;
 
-    const String preprocessedLines[] =
-    {
-      PreprocessShaderBitfield( line ),
-      PreprocessShaderFXFramework( line ),
-      PreprocessShaderIncludes( line, errors ),
-      PreprocessShaderPadding( line ),
-      PreprocessShaderRegister( line ),
-      PreprocessShaderSemanticName( line ),
-    };
-    TAC_HANDLE_ERROR_RETURN( line );
+    const String bitfield = PreprocessShaderBitfield( line );
+    const String fxFramework = PreprocessShaderFXFramework( line );
+    const String inc = TAC_CALL_RET( line, PreprocessShaderIncludes( line, errors ) );
+    const String pad = PreprocessShaderPadding( line );
+    const String reg = PreprocessShaderRegister( line );
+    const String semanticName = PreprocessShaderSemanticName( line );
+    const String processedLines[] = { bitfield, fxFramework, inc, pad, reg, semanticName };
 
-    for( const String& s : preprocessedLines )
-    {
-      if( s != line )
-      {
-        return PreprocessShaderSource( s, errors );
-      }
-    }
+    for( const String& processedLine : processedLines )
+      if( processedLine != line )
+        return PreprocessShaderSource( processedLine, errors );
 
     return line;
   }

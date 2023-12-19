@@ -33,7 +33,7 @@ namespace Tac::Render
   void             DXGISetObjectName( IDXGIObject*, const StringView& );
   String           DXGIGetObjectName( IDXGIObject* );
 
-  void             DXGICallAux( const char*, HRESULT, Errors& );
+  String           DXGICallAux( const char*, HRESULT );
 
 
 
@@ -45,20 +45,14 @@ namespace Tac::Render
 
 #define TAC_DXGI_CALL( call )                                                                      \
 {                                                                                                  \
-  const HRESULT result = call;                                                                     \
-  const bool fail = FAILED( result );                                                              \
-  if( fail )                                                                                       \
-  {                                                                                                \
-    TAC_CALL( Tac::Render::DXGICallAux( #call, result, errors ) );                                 \
-  }                                                                                                \
+  const HRESULT hr = call;                                                                         \
+  const bool failed = FAILED( hr );                                                                \
+  TAC_RAISE_ERROR_IF( failed, Tac::Render::DXGICallAux( #call, hr ) );                             \
 }
 
 #define TAC_DXGI_CALL_RET( ret, call )                                                             \
 {                                                                                                  \
-  const HRESULT result = call;                                                                     \
-  const bool fail = FAILED( result );                                                              \
-  if( fail )                                                                                       \
-  {                                                                                                \
-    TAC_CALL_RET( ret, Tac::Render::DXGICallAux( #call, result, errors ) );                        \
-  }                                                                                                \
+  const HRESULT hr = call;                                                                         \
+  const bool failed = FAILED( hr );                                                                \
+  TAC_RAISE_ERROR_IF_RETURN( failed, Tac::Render::DXGICallAux( #call, hr ), ret );                 \
 }

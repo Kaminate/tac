@@ -14,6 +14,7 @@
 
 #include <Shlobj.h> // SHGetKnownFolderPath
 #include <commdlg.h> // GetSaveFileNameA
+#include <debugapi.h> // IsDebuggerPresent
 #pragma comment( lib, "Comdlg32.lib" ) // GetSaveFileNameA
 
 namespace Tac
@@ -77,8 +78,17 @@ namespace Tac
 
   void             Win32DebugBreak()
   {
+    // todo: replace with std::breakpoint_if_debugging (C++26)
     if constexpr( IsDebugMode )
-      ::DebugBreak();
+    {
+      if( ::IsDebuggerPresent() )
+      {
+        // If the process is not being debugged, the function uses the search logic of a standard
+        // exception handler. In most cases, this causes the calling process to terminate because
+        // of an unhandled breakpoint exception.
+        ::DebugBreak();
+      }
+    }
   }
 
   void HrCallAux( const HRESULT hr, const char* fnName, Errors& errors )

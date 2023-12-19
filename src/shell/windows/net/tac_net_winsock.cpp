@@ -278,13 +278,9 @@ namespace Tac::Network
     const int winsockAddressFamily = GetWinsockAddressFamily( addressFamily );
     const int winsockProtocol = 0; // don't really know what this is
     const SOCKET winsockSocket = socket( winsockAddressFamily, winsockSocketType, winsockProtocol );
-    if( winsockSocket == INVALID_SOCKET )
-    {
-      const String errorMsg = GetLastWSAErrorString();
-      errors.Append( errorMsg );
-      errors.Append( TAC_STACK_FRAME );
-      return nullptr;
-    }
+    TAC_RAISE_ERROR_IF_RETURN( winsockSocket == INVALID_SOCKET,
+                               String() + "socket failed with: " + GetLastWSAErrorString(),
+                               nullptr );
 
     auto netWinsocket = TAC_NEW SocketWinsock;
     TAC_ON_DESTRUCT( if( errors ) delete netWinsocket );
@@ -296,12 +292,9 @@ namespace Tac::Network
     netWinsocket->mWinsockAddressFamily = winsockAddressFamily;
     netWinsocket->mWinsockSocketType = winsockSocketType;
     netWinsocket->mElapsedSecondsOnLastRecv = ShellGetElapsedSeconds();
-    netWinsocket->SetKeepalive( true, errors );
-    if( errors )
-      return nullptr;
-    netWinsocket->SetIsBlocking( false, errors );
-    if( errors )
-      return nullptr;
+    TAC_CALL_RET( nullptr, netWinsocket->SetKeepalive( true, errors ) );
+    TAC_CALL_RET( nullptr, netWinsocket->SetIsBlocking( false, errors ) );
+
     mSocketWinsocks.insert( netWinsocket );
     return ( Socket* )netWinsocket;
   }

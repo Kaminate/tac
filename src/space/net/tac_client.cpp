@@ -32,49 +32,56 @@ namespace Tac
       TAC_RAISE_ERROR( "failed to read entity deleted component bits");
 
     TAC_ASSERT_UNIMPLEMENTED;
-    //for( int iComponentType = 0; iComponentType < ( int )ComponentRegistryEntryIndex::Count; ++iComponentType )
-    //{
-    //  if( !( deletedComponentsBitfield & iComponentType ) )
-    //    continue;
-    //  auto componentType = ( ComponentRegistryEntryIndex )iComponentType;
-    //  entity->RemoveComponent( componentType );
-    //}
+#if 0
+    for( int iComponentType = 0; iComponentType < ( int )ComponentRegistryEntryIndex::Count; ++iComponentType )
+    {
+      if( !( deletedComponentsBitfield & iComponentType ) )
+        continue;
+      auto componentType = ( ComponentRegistryEntryIndex )iComponentType;
+      entity->RemoveComponent( componentType );
+    }
+#endif
 
     char changedComponentsBitfield;
     if( !reader->Read( &changedComponentsBitfield ) )
       TAC_RAISE_ERROR( "failed to read entity changed component bitfield");
     TAC_ASSERT_UNIMPLEMENTED;
-    //for( int iComponentType = 0; iComponentType < ( int )ComponentRegistryEntryIndex::Count; ++iComponentType )
-    //{
-    //  if( !( changedComponentsBitfield & iComponentType ) )
-    //    continue;
-    //  auto componentType = ( ComponentRegistryEntryIndex )iComponentType;
-    //  auto component = entity->GetComponent( componentType );
-    //  if( !component )
-    //    component = entity->AddNewComponent( componentType );
-    //  auto componentStuff = GetComponentData( componentType );
 
-    //  component->PreReadDifferences();
-    //  if( !reader->Read( component, componentStuff->mNetworkBits ) )
-    //  {
-    //    errors += "fuck";
-    //    TAC_HANDLE_ERROR();
-    //  }
-    //  component->PostReadDifferences();
-    //}
+#if 0
+    for( int iComponentType = 0; iComponentType < ( int )ComponentRegistryEntryIndex::Count; ++iComponentType )
+    {
+      if( !( changedComponentsBitfield & iComponentType ) )
+        continue;
+
+      auto componentType = ( ComponentRegistryEntryIndex )iComponentType;
+      auto component = entity->GetComponent( componentType );
+      if( !component )
+        component = entity->AddNewComponent( componentType );
+
+      auto componentStuff = GetComponentData( componentType );
+
+      component->PreReadDifferences();
+      if( !reader->Read( component, componentStuff->mNetworkBits ) )
+      {
+        TAC_RAISE_ERROR( "fuck" );
+      }
+      component->PostReadDifferences();
+    }
+#endif
   }
 
   void ClientData::ReadPlayerDifferences( Reader* reader,
                                           Errors& errors )
   {
     PlayerUUID differentPlayerUUID;
-    if( !reader->Read( &differentPlayerUUID ) )
-      TAC_RAISE_ERROR( "failed to read player uuid");
+    TAC_RAISE_ERROR_IF(  !reader->Read( &differentPlayerUUID ),
+                        "failed to read player uuid");
     auto player = mWorld->FindPlayer( differentPlayerUUID );
     if( !player )
       player = mWorld->SpawnPlayer( differentPlayerUUID );
-    if( !reader->Read( player, PlayerNetworkBitsGet()  ) )
-      TAC_RAISE_ERROR( "failed to read player bits");
+
+    TAC_RAISE_ERROR_IF( !reader->Read( player, PlayerNetworkBitsGet() ),
+                        "failed to read player bits" );
   }
 
   void ClientData::WriteInputBody( Writer* writer )
@@ -290,8 +297,7 @@ namespace Tac
     //  // todo: keep sending until the client has acknowledged our message
     //  mChat.mIsReadyToSend = false;
     //  writer->mBuffer = buffer;
-    //  WriteOutgoingChatMessage( writer, &mChat, errors );
-    //  TAC_HANDLE_ERROR();
+    //  TAC_CALL( WriteOutgoingChatMessage( writer, &mChat, errors ) );
     //  sendNetworkMessageCallback(
     //    ( u8* )writer->mBuffer.mBytes,
     //    writer->mBuffer.mByteCountCur,
