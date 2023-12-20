@@ -278,10 +278,10 @@ namespace Tac::Render::DXC
           pErrors.iid(),
           pErrors.ppv(),
           nullptr ) ) );
-        if( pErrors )
-          errorStr += StringView( pErrors->GetStringPointer(),
-                                  ( int )pErrors->GetStringLength() );
 
+        errorStr += '\n';
+        errorStr += StringView( pErrors->GetStringPointer(),
+                                ( int )pErrors->GetStringLength() );
       }
 
 

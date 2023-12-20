@@ -9,23 +9,23 @@
 //
 //*********************************************************
 
-struct ClipSpacePosition3 { float3 mValue; };
-struct ClipSpacePosition4 { float4 mValue; };
-struct LinearColor3       { float3 mValue; };
-struct LinearColor4       { float4 mValue; };
-struct TextureCoordinate2 { float2 mValue; };
+struct ClipSpacePosition3 { float3 mFloat3; };
+struct ClipSpacePosition4 { float4 mFloat4; };
+struct LinearColor3       { float3 mFloat3; };
+struct LinearColor4       { float4 mFloat4; };
+struct TextureCoordinate2 { float2 mFloat2; };
 
 ClipSpacePosition4 ClipSpacePosition3to4(const ClipSpacePosition3 pos)
 {
   ClipSpacePosition4 result;
-  result.mValue = float4(pos.mValue, 1.0f);
+  result.mFloat4 = float4(pos.mFloat3, 1.0f);
   return result;
 }
 
 LinearColor4 LinearColor3to4(const LinearColor3 col)
 {
   LinearColor4 result;
-  result.mValue = float4(col.mValue, 1.0f);
+  result.mFloat4 = float4(col.mFloat3, 1.0f);
   return result;
 }
 
@@ -74,11 +74,11 @@ VSOutput VSMain(uint iVtx : SV_VertexID )
 LinearColor4 PSMain(PSInput input) : SV_TARGET
 {
   Texture2D texture = Textures[mTexture];
-  float4 sample = texture.Sample(Sampler, input.mUVs.mValue);
+
+  const float sample = texture.Sample(Sampler, input.mUVs.mFloat2).x;
+  const float3 rgb = lerp(input.mColor.mFloat3, float3(1, 1, 1), sample);
 
   LinearColor4 result;
-  result.mValue = float4(0,0,0,0);
-  result.mValue.rgb += input.mColor.mValue;
-  result.mValue.rg += sample.rg;
+  result.mFloat4 = float4(rgb, 1);
   return result;
 }

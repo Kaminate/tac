@@ -1185,6 +1185,8 @@ namespace Tac
 
   void DX12AppHelloTexture::PopulateCommandList( Errors& errors )
   {
+    // Record all the commands we need to render the scene into the command list.
+
     // Command list allocators can only be reset when the associated 
     // command lists have finished execution on the GPU; apps should use 
     // fences to determine GPU execution progress.
@@ -1495,14 +1497,9 @@ namespace Tac
     TAC_CALL( CreateCommandList( errors ) );
     TAC_CALL( CreateRootSignature( errors ) );
     TAC_CALL( CreatePipelineState( errors ) );
-
-    // why is this post swapchain init? because it's data?
     TAC_CALL( CreateSamplerDescriptorHeap( errors ) );
     TAC_CALL( CreateSampler( errors ) );
   }
-
-
-
 
   void DX12AppHelloTexture::Update( Errors& errors )
   {
@@ -1512,27 +1509,14 @@ namespace Tac
     TAC_CALL( PreSwapChainInit( errors ) );
     TAC_CALL( DX12CreateSwapChain( errors ) );
     TAC_CALL( CreateRenderTargetViews( errors ) );
-
-    if( ShellGetElapsedSeconds() < 5.0 )
-    {
-      TAC_CALL( SwapChainPresent( errors ) );
-      return;
-    }
-
     TAC_CALL( CreateVertexBuffer( errors ) );
-
     TAC_CALL( CreateTexture( errors ) );
-
-
-    // Record all the commands we need to render the scene into the command list.
     TAC_CALL( PopulateCommandList( errors ) );
 
     ExecuteCommandLists();
 
     TAC_CALL( SwapChainPresent( errors ) );
-
     TAC_CALL( WaitForPreviousFrame( errors ) );
-
   }
 
   void DX12AppHelloTexture::Uninit( Errors& errors )
