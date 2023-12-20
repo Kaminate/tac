@@ -4,6 +4,7 @@
 #include "src/common/error/tac_error_handling.h"
 #include "src/common/preprocess/tac_preprocessor.h"
 #include "src/common/dataprocess/tac_settings.h"
+#include "src/common/dataprocess/tac_log.h"
 #include "src/common/graphics/imgui/tac_imgui.h"
 #include "src/common/input/tac_keyboard_input.h"
 #include "src/common/math/tac_math.h"
@@ -32,6 +33,10 @@ int CALLBACK WinMain( HINSTANCE hInstance,
 {
   using namespace Tac;
   Errors& errors = GetMainErrors();
+
+  TAC_SCOPE_GUARD( LogScope );
+
+  TAC_MEDIEVAL_DEBUG;
 
   Win32OSInit();
   Win32SetStartupParams( hInstance, hPrevInstance, lpCmdLine, nCmdShow );

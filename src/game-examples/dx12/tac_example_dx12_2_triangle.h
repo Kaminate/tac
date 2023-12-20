@@ -1,6 +1,6 @@
 #pragma once
 
-#include "src/shell/windows/renderer/tac_dx.h"
+#include "src/shell/windows/tac_win32_com_ptr.h"
 #include "src/shell/tac_desktop_app.h"
 #include "src/shell/windows/renderer/dxgi/tac_dxgi.h"
 

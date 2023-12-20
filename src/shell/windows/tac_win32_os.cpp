@@ -1,8 +1,10 @@
 #include "src/shell/windows/tac_win32_os.h" // self-inc
 
+#include "src/shell/windows/tac_win32_com_ptr.h"
 #include "src/common/assetmanagers/tac_asset.h"
 #include "src/common/containers/tac_array.h"
 #include "src/common/containers/tac_fixed_vector.h"
+#include "src/common/containers/tac_optional.h"
 #include "src/common/algorithm/tac_algorithm.h"
 #include "src/common/error/tac_error_handling.h"
 #include "src/common/preprocess/tac_preprocessor.h"
@@ -35,80 +37,94 @@ namespace Tac
     };
   }
 
-  static Filesystem::Path Win32OSOpenDialog( Errors& errors )
+  struct FileDialogHelper
   {
-    IFileOpenDialog* pDialog = nullptr;
-
-    TAC_HR_CALL_RET( {},CoInitializeEx( NULL, COINIT_APARTMENTTHREADED ) );
-    TAC_ON_DESTRUCT(CoUninitialize());
-
-    TAC_HR_CALL_RET( {},CoCreateInstance(
-                 CLSID_FileOpenDialog,
-                 NULL,
-                 CLSCTX_INPROC_SERVER,
-                 IID_PPV_ARGS( &pDialog ) ) );
-    TAC_ON_DESTRUCT( pDialog->Release() );
-
-
-    const Filesystem::Path dir = sShellInitialWorkingDir / AssetPathRootFolderName;
-    const std::wstring wDir = dir.Get().wstring();
-
-    IShellItem* shDir = NULL;
-    TAC_HR_CALL_RET( {},SHCreateItemFromParsingName(
-                 wDir.c_str(),
-                 NULL,
-                 IID_PPV_ARGS( &shDir ) ) );
-    TAC_ON_DESTRUCT(shDir->Release());
-
-    TAC_HR_CALL_RET( {},pDialog->SetDefaultFolder(shDir) );
-
+    enum Type
     {
-      const HRESULT hr = pDialog->Show( nullptr );
-      if( hr == HRESULT_FROM_WIN32( ERROR_CANCELLED ) )
-        return {};
+      kOpen,
+      kSave,
+    };
 
-      TAC_RAISE_ERROR_IF_RETURN( FAILED( hr ), "failed to show dialog", {} );
+    FileDialogHelper( Type type ) : mType( type ) { }
+
+    ~FileDialogHelper()
+    {
+      CoUninitialize();
     }
 
-    IShellItem* pItem = nullptr;
-    TAC_HR_CALL_RET( {},pDialog->GetResult( &pItem ) );
-    TAC_ON_DESTRUCT( pItem->Release() );
+    Filesystem::Path Run( Errors& errors )
+    {
+      TAC_HR_CALL_RET( {}, CoInitializeEx( NULL, COINIT_APARTMENTTHREADED ) );
+      TAC_CALL_RET( {}, CreateDialogInstance( errors ) );
+      TAC_CALL_RET( {}, SetDefaultFolder( errors ) );
+      TAC_CALL_RET( {}, Show( errors ) );
+      if( mCancelled )
+        return {};
+      return GetResult( errors );
+    }
 
-    PWSTR pszFilePath;
-    TAC_HR_CALL_RET( {},pItem->GetDisplayName( SIGDN_FILESYSPATH, &pszFilePath ) );
-    TAC_ON_DESTRUCT(CoTaskMemFree( pszFilePath ));
+  private:
+    void SetDefaultFolder(Errors& errors)
+    {
+      const Filesystem::Path dir = sShellInitialWorkingDir / AssetPathRootFolderName;
+      const std::wstring wDir = dir.Get().wstring();
 
-    return std::filesystem::path ( pszFilePath );
+      PCom<IShellItem> shDir;
+      TAC_HR_CALL( SHCreateItemFromParsingName(
+                   wDir.c_str(),
+                   NULL,
+                   shDir.iid(),
+                   shDir.ppv() ) );
+      TAC_HR_CALL( mDialog->SetDefaultFolder( ( IShellItem* )shDir ) );
+    }
+
+    void CreateDialogInstance(Errors& errors)
+    {
+      REFCLSID sid = mType == Type::kOpen ? CLSID_FileOpenDialog : CLSID_FileSaveDialog;
+      REFIID iid = mType == Type::kOpen ? mOpenDialog.iid() : mSaveDialog.iid();
+      void** ppv = mType == Type::kOpen ? mOpenDialog.ppv() : mSaveDialog.ppv();
+      TAC_HR_CALL( CoCreateInstance( sid, NULL, CLSCTX_INPROC_SERVER, iid, ppv ) );
+      mDialog = mType == Type::kOpen ? (IFileDialog*)mOpenDialog : (IFileDialog*)mSaveDialog;
+    };
+
+    void Show(Errors& errors)
+    {
+      const HRESULT hr = mDialog->Show( nullptr );
+      mCancelled = hr == HRESULT_FROM_WIN32( ERROR_CANCELLED );
+      TAC_RAISE_ERROR_IF( FAILED( hr ) && !mCancelled, "Failed to show dialog");
+    }
+
+    Filesystem::Path GetResult( Errors& errors )
+    {
+      PCom<IShellItem> pItem;
+      TAC_HR_CALL_RET( {}, mDialog->GetResult( pItem.CreateAddress() ) );
+
+      PWSTR pszFilePath;
+      TAC_HR_CALL_RET( {}, pItem->GetDisplayName( SIGDN_FILESYSPATH, &pszFilePath ) );
+      TAC_ON_DESTRUCT( CoTaskMemFree( pszFilePath ) );
+
+      return std::filesystem::path( pszFilePath );
+    }
+
+    IFileDialog* mDialog = nullptr;
+    PCom<IFileOpenDialog> mOpenDialog;
+    PCom<IFileSaveDialog> mSaveDialog;
+    bool mCancelled = false;
+    Type mType;
+  };
+
+  static Filesystem::Path Win32OSOpenDialog( Errors& errors )
+  {
+    FileDialogHelper helper( FileDialogHelper::kOpen );
+    return  helper.Run( errors  );
   }
 
-  static Filesystem::Path Win32OSSaveDialog( const Filesystem::Path& suggestedPath, Errors& errors )
+  static Filesystem::Path Win32OSSaveDialog( const OS::SaveParams& saveParams, Errors& errors )
   {
-    TAC_HR_CALL_RET( {},CoInitializeEx( NULL, COINIT_APARTMENTTHREADED ) );
-    TAC_ON_DESTRUCT(CoUninitialize());
+    [[maybe_unused]] auto suggestedFilename = saveParams.mSuggestedFilename; // todo
 
-    IFileSaveDialog* pDialog = nullptr;
-    TAC_HR_CALL_RET( {},CoCreateInstance(
-                 CLSID_FileSaveDialog,
-                 NULL,
-                 CLSCTX_INPROC_SERVER,
-                 IID_PPV_ARGS( &pDialog ) ) );
-    TAC_ON_DESTRUCT( pDialog->Release() );
-
-    // TODO: use suggestedPath, maybe 
-    //pDialog->SetFileName();
-    TAC_ASSERT_UNIMPLEMENTED;
-
-    TAC_HR_CALL_RET( {},pDialog->Show( nullptr ) );
-
-    IShellItem* pItem = nullptr;
-    TAC_HR_CALL_RET( {},pDialog->GetResult( &pItem ) );
-    TAC_ON_DESTRUCT( pItem->Release() );
-
-    PWSTR pszFilePath;
-    TAC_HR_CALL_RET( {},pItem->GetDisplayName( SIGDN_FILESYSPATH, &pszFilePath ) );
-    TAC_ON_DESTRUCT(CoTaskMemFree( pszFilePath ));
-
-    return std::filesystem::path ( pszFilePath );
+    FileDialogHelper helper( FileDialogHelper::kSave );
+    return  helper.Run( errors  );
   };
 
   static void Win32OSSetScreenspaceCursorPos( const v2& pos, Errors& errors )
@@ -154,14 +170,13 @@ namespace Tac
     return true;
   }
 
-  static void Win32OSDebugBreak()
-  {
-    Win32DebugBreak();
-  }
 
   static void Win32OSDebugPopupBox( const StringView& s )
   {
-    MessageBox( nullptr, s.data(), nullptr, MB_OK );
+    if constexpr( IsDebugMode )
+    {
+      MessageBox( nullptr, s.data(), nullptr, MB_OK );
+    }
   }
 
   static Filesystem::Path GetRoamingAppDataPathUTF8( Errors& errors )
@@ -219,7 +234,7 @@ namespace Tac
     OS::OSSemaphoreIncrementPost = &Win32OSSemaphoreIncrementPost;
     OS::OSSemaphoreDecrementWait = Win32OSSemaphoreDecrementWait;
     OS::OSSemaphoreCreate = Win32OSSemaphoreCreate;
-    OS::OSDebugBreak = Win32OSDebugBreak;
+    OS::OSDebugBreak = Win32DebugBreak;
     OS::OSDebugPopupBox = Win32OSDebugPopupBox;
     OS::OSGetApplicationDataPath = Win32OSGetApplicationDataPath;
     OS::OSSaveDialog = Win32OSSaveDialog;

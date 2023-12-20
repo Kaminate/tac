@@ -1,7 +1,7 @@
 // This file serves as a wrapper around dxc
 #pragma once
 
-#include "src/shell/windows/renderer/tac_dx.h" // PCom
+#include "src/shell/windows/tac_win32_com_ptr.h" // PCom
 #include "src/common/graphics/tac_renderer.h" // ShaderType
 #include "src/common/assetmanagers/tac_asset.h" // AssetPathStringView
 #include "src/common/system/tac_filesystem.h" // Filesystem::Path

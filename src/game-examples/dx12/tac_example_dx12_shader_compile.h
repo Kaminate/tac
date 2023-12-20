@@ -5,7 +5,7 @@
 
 #include "src/common/tac_core.h"
 #include "src/common/graphics/tac_renderer.h"
-#include "src/shell/windows/renderer/tac_dx.h"
+#include "src/shell/windows/tac_win32_com_ptr.h"
 
 namespace Tac::Render
 {

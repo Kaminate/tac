@@ -20,7 +20,7 @@ using Microsoft::WRL::ComPtr;
 #include "src/common/string/tac_string_identifier.h"
 #include "src/shell/windows/tac_win32.h"
 #include "src/shell/windows/renderer/dxgi/tac_dxgi.h"
-#include "src/shell/windows/renderer/tac_dx.h"
+#include "src/shell/windows/tac_win32_com_ptr.h"
 
 #include <d3d11_3.h> // ID3D11Device3, ID3D11RasterizerState2
 

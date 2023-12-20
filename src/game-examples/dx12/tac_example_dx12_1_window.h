@@ -1,6 +1,6 @@
 #pragma once
 
-#include "src/shell/windows/renderer/tac_dx.h"
+#include "src/shell/windows/tac_win32_com_ptr.h"
 #include "src/shell/tac_desktop_app.h"
 #include "src/shell/windows/renderer/dxgi/tac_dxgi.h"
 
@@ -56,20 +56,20 @@ namespace Tac
 
     // ---------------------------------------------------------------------------------------------
 
-    static const int                            bufferCount = 2;
-    bool                                        m_dbgLayerEnabled = false;
+    static const int                   bufferCount = 2;
+    bool                               m_dbgLayerEnabled = false;
 
-    DesktopWindowHandle                         hDesktopWindow;
+    DesktopWindowHandle                hDesktopWindow;
 
     // ---------------------------------------------------------------------------------------------
 
     // ID3D12 objects
 
-    Render::PCom< ID3D12Device5 >              m_device;
+    PCom< ID3D12Device5 >              m_device;
 
-    Render::PCom< ID3D12DescriptorHeap >      m_rtvHeap;
-    UINT                                      m_rtvDescriptorSize{};
-    D3D12_CPU_DESCRIPTOR_HANDLE               m_rtvHeapStart;
+    PCom< ID3D12DescriptorHeap >       m_rtvHeap;
+    UINT                               m_rtvDescriptorSize{};
+    D3D12_CPU_DESCRIPTOR_HANDLE        m_rtvHeapStart;
 
     // A ID3D12CommandQueue provides methods for
     // - submitting command lists,
@@ -87,24 +87,24 @@ namespace Tac
     // Together, CommandLists/CommandQueues replace the ID3D11DeviceContext (?)
     //
     // tldr: A command queue can submit command lists
-    Render::PCom< ID3D12CommandQueue >         m_commandQueue;
-    Render::PCom< ID3D12CommandAllocator >     m_commandAllocator;
-    Render::PCom< ID3D12GraphicsCommandList4 > m_commandList;
-    Render::PCom< ID3D12Resource >             m_renderTargets[ bufferCount ];
-    D3D12_RESOURCE_STATES                      m_renderTargetStates[ bufferCount ];
+    PCom< ID3D12CommandQueue >         m_commandQueue;
+    PCom< ID3D12CommandAllocator >     m_commandAllocator;
+    PCom< ID3D12GraphicsCommandList4 > m_commandList;
+    PCom< ID3D12Resource >             m_renderTargets[ bufferCount ];
+    D3D12_RESOURCE_STATES              m_renderTargetStates[ bufferCount ];
 
     // A fence is used to synchronize the CPU with the GPU (see Multi-engine synchronization).
     // https://learn.microsoft.com/en-us/windows/win32/direct3d12/user-mode-heap-synchronization
-    Render::PCom< ID3D12Fence1 >               m_fence;
-    Render::PCom< ID3D12PipelineState >        m_pipelineState;
-    Render::PCom< ID3D12InfoQueue >            m_infoQueue;
+    PCom< ID3D12Fence1 >               m_fence;
+    PCom< ID3D12PipelineState >        m_pipelineState;
+    PCom< ID3D12InfoQueue >            m_infoQueue;
 
     // ---------------------------------------------------------------------------------------------
 
     // DXGI objects
 
-    Render::PCom< IDXGISwapChain4 >            m_swapChain;
-    DXGI_SWAP_CHAIN_DESC1                      m_swapChainDesc;
+    PCom< IDXGISwapChain4 >            m_swapChain;
+    DXGI_SWAP_CHAIN_DESC1              m_swapChainDesc;
  
     // ---------------------------------------------------------------------------------------------
 
@@ -113,11 +113,11 @@ namespace Tac
     // Index of the render target that
     // 1. our commands will be drawing onto
     // 2. our swap chain will present to the monitor
-    UINT                                      m_frameIndex{};
-    Win32Event                                m_fenceEvent;
+    UINT                               m_frameIndex{};
+    Win32Event                         m_fenceEvent;
 
     // UINT64 is big enough to run at 1000 fps for 500 million years
-    UINT64                                    m_fenceValue{};
+    UINT64                             m_fenceValue{};
   };
 } // namespace Tac
 

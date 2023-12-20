@@ -110,56 +110,46 @@ namespace Tac
 
   void CreationMainWindow::ImGuiSaveAs()
   {
-    if( ImGuiButton( "save as" ) )
+    static Errors saveErrors;
+    Errors& errors = saveErrors;
+
+    if( saveErrors )
+      ImGuiText( saveErrors.ToString() );
+
+    if( !ImGuiButton( "save as" ) )
+      return;
+
+    World* world = gCreation.mWorld;
+    for( Entity* entity : world->mEntities )
     {
-      World* world = gCreation.mWorld;
-      for( Entity* entity : world->mEntities )
-      {
-        if( entity->mParent )
-          continue;
-
-        // TODO: use GetAssetSaveDialog
-
-        const String suggestedName = entity->mName + ".prefab";
-
-        Errors errors;
-        const Filesystem::Path savePath = OS::OSSaveDialog( suggestedName, errors );
-        if( errors )
-        {
-          // todo: log it, user feedback
-          OS::OSDebugPrintLine(errors.ToString());
-          continue;
-        }
-
-        if( savePath.empty() )
-          continue;
-
-        const AssetPathStringView assetPath = ModifyPathRelative( savePath, errors );
-        if( errors )
-        {
-          // todo: log it, user feedback
-          OS::OSDebugPrintLine(errors.ToString());
-          continue;
-        }
-
-        TAC_ASSERT( !assetPath.empty() );
-
-        Json entityJson;
-        entity->Save( entityJson );
-
-        const String prefabJsonString = entityJson.Stringify();
-        const void* bytes = prefabJsonString.data();
-        const int byteCount = prefabJsonString.size();
-
-        SaveToFile( assetPath, bytes, byteCount, errors );
-        if( errors )
-        {
-          // todo: log it, user feedback
-          OS::OSDebugPrintLine(errors.ToString());
-          continue;
-        }
-      }
+      TAC_CALL( ImGuiSaveAs( entity, errors ) );
     }
+  }
+
+  void CreationMainWindow::ImGuiSaveAs(Entity* entity, Errors& errors)
+  {
+    if( entity->mParent )
+      return; // why?
+
+    // TODO: use GetAssetSaveDialog instead of OSSaveDialog
+
+    const AssetSaveDialogParams saveParams
+    {
+      .mSuggestedFilename = entity->mName + ".prefab",
+    };
+
+    const AssetPathStringView assetPath = TAC_CALL( AssetSaveDialog( saveParams, errors ) );
+    if( assetPath.empty() )
+      return;
+
+    Json entityJson;
+    entity->Save( entityJson );
+
+    const String prefabJsonString = entityJson.Stringify();
+    const void* bytes = prefabJsonString.data();
+    const int byteCount = prefabJsonString.size();
+
+    TAC_CALL( SaveToFile( assetPath, bytes, byteCount, errors ) );
   }
 
   void CreationMainWindow::ImGui(Errors& errors)

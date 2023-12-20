@@ -6,7 +6,7 @@
 #include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_preprocess.h"
 #include "src/common/containers/tac_array.h"
 #include "src/common/dataprocess/tac_text_parser.h"
-#include "src/common/containers/tac_frame_vector.h"
+#include "src/common/containers/tac_span.h"
 #include "src/common/assetmanagers/tac_asset.h"
 #include "src/common/memory/tac_frame_memory.h"
 #include "src/common/error/tac_error_handling.h"
@@ -74,6 +74,7 @@ namespace Tac
     TAC_RAISE_ERROR_IF( !mEvent, Win32GetLastErrorString() );
   }
 
+  Win32Event::operator bool() const { return mEvent; }
   Win32Event::operator HANDLE() const { return mEvent; }
 
   void Win32Event::clear()
@@ -383,6 +384,11 @@ namespace Tac
   void DX12AppHelloTexture::CreateTexture( Errors& errors )
   {
     
+    static bool sCreated;
+    if( sCreated )
+      return;
+    sCreated = true;
+
     // Note: ComPtr's are CPU objects but this resource needs to stay in scope until
     // the command list that references it has finished executing on the GPU.
     // We will flush the GPU at the end of this method to ensure the resource is not
@@ -634,6 +640,11 @@ namespace Tac
 
   void DX12AppHelloTexture::CreateVertexBuffer( Errors& errors )
   {
+    static bool sCreated;
+    if( sCreated )
+      return;
+    sCreated = true;
+
     const float m_aspectRatio = ( float )m_swapChainDesc.Width / ( float )m_swapChainDesc.Height;
 
     // Define the geometry for a triangle.
@@ -790,33 +801,6 @@ namespace Tac
     TAC_CALL( m_fenceEvent.Init( errors ) );
   }
 
-  // Span is basically a StringView for an Array/Vector/etc
-  // So it should be used to pass data to functions, but not to store the data
-  template< typename T >
-  struct Span
-  {
-    Span( T* ts, int tCount ) : mTs{ ts }, mTCount{ tCount } {}
-    Span( T* t ) : Span( t, 1 ) {}
-    Span( T& t ) : Span( &t, 1 ) {}
-    Span( T&& t ) = delete;
-
-    int      size() const              { return mTCount; }
-    T&       operator[]( int i )       { return mTs[ i ]; }
-    const T& operator[]( int i ) const { return mTs[ i ]; }
-    const T* data() const              { return mTs; }
-    T*       data()                    { return mTs; }
-
-    void operator = ( const Span<T> other )
-    {
-      TAC_ASSERT( mTCount == other.mTCount );
-      for( int i = 0; i < mTCount; ++i )
-        mTs[ i ] = other.mTs[ i ];
-    }
-
-  private:
-    T* mTs;
-    int mTCount;
-  };
 
   struct RootSignatureBuilder
   {
@@ -1056,6 +1040,9 @@ namespace Tac
 
   void DX12AppHelloTexture::DX12CreateSwapChain( Errors& errors )
   {
+    if( m_swapChain )
+      return;
+
     const DesktopWindowState* state = GetDesktopWindowState( hDesktopWindow );
     const auto hwnd = ( HWND )state->mNativeWindowHandle;
     if( !hwnd )
@@ -1133,6 +1120,11 @@ namespace Tac
 
   void DX12AppHelloTexture::CreateRenderTargetViews( Errors& errors )
   {
+    if( m_renderTargetInitialized )
+      return;
+
+    m_renderTargetInitialized = true;
+
     TAC_ASSERT( m_swapChain );
     TAC_ASSERT( m_device );
 
@@ -1151,6 +1143,21 @@ namespace Tac
       // the render target resource is created in a state that is ready to be displayed on screen
       m_renderTargetStates[i] = D3D12_RESOURCE_STATE_PRESENT;
     }
+
+    m_viewport = D3D12_VIEWPORT
+    {
+     .Width = ( float )m_swapChainDesc.Width,
+     .Height = ( float )m_swapChainDesc.Height,
+    };
+
+    m_scissorRect = D3D12_RECT
+    {
+      .right = ( LONG )m_swapChainDesc.Width,
+      .bottom = ( LONG )m_swapChainDesc.Height,
+    };
+
+    m_viewports = { m_viewport };
+    m_scissorRects = { m_scissorRect };
   }
 
   void DX12AppHelloTexture::TransitionRenderTarget( const int iRT,
@@ -1318,6 +1325,8 @@ namespace Tac
 
   void DX12AppHelloTexture::SwapChainPresent( Errors& errors )
   {
+    TAC_ASSERT( m_renderTargetInitialized );
+
     // Present the frame.
 
     // [x] Q: What is the frame?
@@ -1340,7 +1349,45 @@ namespace Tac
     // 2. Direct3D runtime passes the app surface to DWM
     // 3. DWM renders the app surface onto screen( Read, Write )
 
-    TAC_ASSERT( m_swapChainDesc.SwapEffect == DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL );
+    struct ValidateSwapChainEffect
+    {
+      ValidateSwapChainEffect( DXGI_SWAP_EFFECT cur, DXGI_SWAP_EFFECT tgt, Errors& errors )
+      {
+        if( cur == tgt )
+          return;
+
+        TAC_ASSERT( false );
+
+        TAC_RAISE_ERROR( String() +
+                         "The swap chain effect is " + FormatSwapEffectString( cur ) + " "
+                         "when it was expected to be " + FormatSwapEffectString( tgt ) );
+      }
+    private:
+
+      String FormatSwapEffectString( DXGI_SWAP_EFFECT fx )
+      {
+        return String() + GetSwapEffectName(fx) + "(" + ToString( (int)fx ) + ")";
+      }
+
+      const char* GetSwapEffectName( DXGI_SWAP_EFFECT fx )
+      {
+        switch( fx )
+        {
+#define Case( x ) case x: return #x
+          Case(DXGI_SWAP_EFFECT_DISCARD);
+          Case(DXGI_SWAP_EFFECT_SEQUENTIAL);
+          Case(DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL);
+          Case(DXGI_SWAP_EFFECT_FLIP_DISCARD);
+        default: return "Unknown";
+        }
+      }
+
+    };
+
+    TAC_CALL( ValidateSwapChainEffect(
+      m_swapChainDesc.SwapEffect,
+      DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL,
+      errors ) );
 
     const DXGI_PRESENT_PARAMETERS params{};
 
@@ -1356,6 +1403,7 @@ namespace Tac
 
     // Is this a better place to update the m_frameIndex?
     m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();
+
   }
 
   void DX12AppHelloTexture::WaitForPreviousFrame( Errors& errors )
@@ -1429,6 +1477,12 @@ namespace Tac
 
   void DX12AppHelloTexture::PreSwapChainInit( Errors& errors)
   {
+    static bool didPreSwapChainInit;
+    if(didPreSwapChainInit)
+      return;
+
+    didPreSwapChainInit = true;
+
     TAC_CALL( DXGIInit( errors ) );
     TAC_CALL( EnableDebug( errors ) );
     TAC_CALL( CreateDevice( errors ) );
@@ -1443,57 +1497,32 @@ namespace Tac
     TAC_CALL( CreatePipelineState( errors ) );
 
     // why is this post swapchain init? because it's data?
-    TAC_CALL( CreateVertexBuffer( errors ) );
     TAC_CALL( CreateSamplerDescriptorHeap( errors ) );
     TAC_CALL( CreateSampler( errors ) );
-    TAC_CALL( CreateTexture( errors ) );
   }
 
-  void DX12AppHelloTexture::PostSwapChainInit( Errors& errors)
-  {
-    if( m_swapChain )
-      return;
-
-    TAC_CALL( DX12CreateSwapChain( errors ) );
-    TAC_CALL( CreateRenderTargetViews( errors ) );
 
 
-    m_viewport = D3D12_VIEWPORT
-    {
-     .Width = ( float )m_swapChainDesc.Width,
-     .Height = ( float )m_swapChainDesc.Height,
-    };
-
-    m_scissorRect = D3D12_RECT
-    {
-      .right = ( LONG )m_swapChainDesc.Width,
-      .bottom = ( LONG )m_swapChainDesc.Height,
-    };
-
-    m_viewports = { m_viewport };
-    m_scissorRects = { m_scissorRect };
-  }
 
   void DX12AppHelloTexture::Update( Errors& errors )
   {
-    TAC_RAISE_ERROR("Asdf");
+    if( !GetDesktopWindowNativeHandle( hDesktopWindow ) )
+      return;
+
+    TAC_CALL( PreSwapChainInit( errors ) );
+    TAC_CALL( DX12CreateSwapChain( errors ) );
+    TAC_CALL( CreateRenderTargetViews( errors ) );
+
     if( ShellGetElapsedSeconds() < 5.0 )
     {
       TAC_CALL( SwapChainPresent( errors ) );
       return;
     }
 
-    static bool didPreSwapChainInit = false;
-    if( !didPreSwapChainInit )
-    {
-      TAC_CALL( PreSwapChainInit( errors ) );
-      didPreSwapChainInit = true;
-    }
+    TAC_CALL( CreateVertexBuffer( errors ) );
 
-    if( !GetDesktopWindowNativeHandle( hDesktopWindow ) )
-      return;
+    TAC_CALL( CreateTexture( errors ) );
 
-    TAC_CALL( PostSwapChainInit( errors ) );
 
     // Record all the commands we need to render the scene into the command list.
     TAC_CALL( PopulateCommandList( errors ) );
@@ -1508,9 +1537,11 @@ namespace Tac
 
   void DX12AppHelloTexture::Uninit( Errors& errors )
   {
-    // Ensure that the GPU is no longer referencing resources that are about to be
-    // cleaned up by the destructor.
-    TAC_CALL( WaitForPreviousFrame( errors ) );
+
+    if( m_commandQueue && m_fence && m_fenceEvent )
+      // Ensure that the GPU is no longer referencing resources that are about to be
+      // cleaned up by the destructor.
+      TAC_CALL( WaitForPreviousFrame( errors ) );
 
     DXGIUninit();
   }

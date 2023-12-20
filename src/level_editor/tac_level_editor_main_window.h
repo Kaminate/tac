@@ -2,7 +2,8 @@
 
 #include "src/common/system/tac_desktop_window.h"
 #include "src/common/tac_core.h"
-//#include "src/common/error/tac_error_handling.h"
+
+#include "src/space/tac_space.h"
 
 namespace Tac
 {
@@ -26,9 +27,10 @@ namespace Tac
     void                       Init( Errors& );
     void                       Update( Errors& );
     void                       LoadTextures( Errors& );
-    void                       ImGui(Errors&);
-    void                       ImGuiWindows(Errors&);
+    void                       ImGui( Errors& );
+    void                       ImGuiWindows( Errors& );
     void                       ImGuiSaveAs();
+    void                       ImGuiSaveAs( Entity*, Errors& );
 
     DesktopWindowHandle        mDesktopWindowHandle;
     UIRoot*                    mUIRoot = nullptr;

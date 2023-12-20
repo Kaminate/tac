@@ -28,7 +28,7 @@ namespace Tac
         if( ImGuiButton( "Change Heightmap" ) )
         {
           mHeightmapFileDialogErrors.clear();
-          mTerrain->mHeightmapTexturePath = GetAssetOpenDialog( mHeightmapFileDialogErrors );
+          mTerrain->mHeightmapTexturePath = AssetOpenDialog( mHeightmapFileDialogErrors );
         }
 
         if( !iterated || ImGuiButton("Refresh directory" ))
@@ -69,13 +69,13 @@ namespace Tac
       if( ImGuiButton( "Open Ground Texture" ) )
       {
         mTerrain->mTestHeightmapLoadErrors.clear();
-        mTerrain->mGroundTexturePath = GetAssetOpenDialog( mTerrainTextureDialogErrors );
+        mTerrain->mGroundTexturePath = AssetOpenDialog( mTerrainTextureDialogErrors );
       }
 
       if( ImGuiButton( "Open Noise Texture" ) )
       {
         mNoiseTextureDialogErrors.clear();
-        mTerrain->mNoiseTexturePath = GetAssetOpenDialog( mNoiseTextureDialogErrors );
+        mTerrain->mNoiseTexturePath = AssetOpenDialog( mNoiseTextureDialogErrors );
       }
 
       if( mTerrain->mTestHeightmapLoadErrors )

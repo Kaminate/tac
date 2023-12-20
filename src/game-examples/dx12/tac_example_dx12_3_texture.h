@@ -1,6 +1,6 @@
 #pragma once
 
-#include "src/shell/windows/renderer/tac_dx.h"
+#include "src/shell/windows/tac_win32_com_ptr.h"
 #include "src/shell/tac_desktop_app.h"
 #include "src/shell/windows/renderer/dxgi/tac_dxgi.h"
 
@@ -17,6 +17,7 @@ namespace Tac
     void clear();
 
     void operator = ( Win32Event&& other );
+    operator bool() const;
 
     explicit operator HANDLE() const;
 
@@ -50,7 +51,6 @@ namespace Tac
 
     // Helper functions for Init
     void PreSwapChainInit(Errors&);
-    void PostSwapChainInit(Errors&);
     void CreateDesktopWindow();
 
     void EnableDebug( Errors& );
@@ -112,7 +112,7 @@ namespace Tac
 
     static const int                   bufferCount = 2;
 
-    DesktopWindowHandle                hDesktopWindow;
+    DesktopWindowHandle                hDesktopWindow{};
 
     // ---------------------------------------------------------------------------------------------
 
@@ -126,18 +126,18 @@ namespace Tac
 
     // samplers
     PCom< ID3D12DescriptorHeap >       m_samplerHeap;
-    D3D12_CPU_DESCRIPTOR_HANDLE        m_samplerCpuHeapStart;
-    D3D12_GPU_DESCRIPTOR_HANDLE        m_samplerGpuHeapStart;
+    D3D12_CPU_DESCRIPTOR_HANDLE        m_samplerCpuHeapStart{};
+    D3D12_GPU_DESCRIPTOR_HANDLE        m_samplerGpuHeapStart{};
 
     // rtvs
     PCom< ID3D12DescriptorHeap >       m_rtvHeap;
-    D3D12_CPU_DESCRIPTOR_HANDLE        m_rtvCpuHeapStart;
-    D3D12_GPU_DESCRIPTOR_HANDLE        m_rtvGpuHeapStart;
+    D3D12_CPU_DESCRIPTOR_HANDLE        m_rtvCpuHeapStart{};
+    D3D12_GPU_DESCRIPTOR_HANDLE        m_rtvGpuHeapStart{};
 
     // srvs
     PCom< ID3D12DescriptorHeap >       m_srvHeap;
-    D3D12_CPU_DESCRIPTOR_HANDLE        m_srvCpuHeapStart;
-    D3D12_GPU_DESCRIPTOR_HANDLE        m_srvGpuHeapStart;
+    D3D12_CPU_DESCRIPTOR_HANDLE        m_srvCpuHeapStart{};
+    D3D12_GPU_DESCRIPTOR_HANDLE        m_srvGpuHeapStart{};
 
     UINT                               m_descriptorSizes[ D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES ]{};
 
@@ -163,6 +163,7 @@ namespace Tac
     PCom< ID3D12Resource >             m_renderTargets[ bufferCount ];
     D3D12_RESOURCE_STATES              m_renderTargetStates[ bufferCount ];
     D3D12_RESOURCE_DESC                m_renderTargetDescs[ bufferCount ];
+    bool                               m_renderTargetInitialized = false;
 
     // A fence is used to synchronize the CPU with the GPU (see Multi-engine synchronization).
     // https://learn.microsoft.com/en-us/windows/win32/direct3d12/user-mode-heap-synchronization
@@ -183,17 +184,17 @@ namespace Tac
     PCom< ID3D12PipelineState >        mPipelineState;
 
     PCom<ID3D12Resource>               m_texture;
-    D3D12_RESOURCE_DESC                m_textureDesc;
-    D3D12_RESOURCE_STATES              m_textureResourceStates;
+    D3D12_RESOURCE_DESC                m_textureDesc{};
+    D3D12_RESOURCE_STATES              m_textureResourceStates{};
 
     PCom<ID3D12Resource>               m_vertexBufferUploadHeap;
     PCom<ID3D12Resource>               m_vertexBuffer;
     //D3D12_VERTEX_BUFFER_VIEW           m_vertexBufferView;
-    UINT                               m_vertexBufferByteCount;
+    UINT                               m_vertexBufferByteCount{};
     bool                               m_vertexBufferCopied = false;
 
-    D3D12_VIEWPORT                     m_viewport;
-    D3D12_RECT                         m_scissorRect;
+    D3D12_VIEWPORT                     m_viewport{};
+    D3D12_RECT                         m_scissorRect{};
 
     Viewports                          m_viewports;
     ScissorRects                       m_scissorRects;
@@ -203,7 +204,7 @@ namespace Tac
     // DXGI objects
 
     PCom< IDXGISwapChain4 >            m_swapChain;
-    DXGI_SWAP_CHAIN_DESC1              m_swapChainDesc;
+    DXGI_SWAP_CHAIN_DESC1              m_swapChainDesc{};
  
     // ---------------------------------------------------------------------------------------------
 

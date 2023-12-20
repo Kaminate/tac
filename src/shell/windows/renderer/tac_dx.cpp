@@ -1,4 +1,4 @@
-#include "src/shell/windows/renderer/tac_dx.h" // self-inc
+#include "src/shell/windows/tac_win32_com_ptr.h" // self-inc
 
 namespace Tac::Render
 {

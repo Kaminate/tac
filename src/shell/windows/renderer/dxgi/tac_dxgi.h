@@ -2,7 +2,8 @@
 
 #include "src/common/error/tac_error_handling.h"
 #include "src/common/graphics/tac_renderer.h"
-#include "src/shell/windows/renderer/tac_dx.h"
+#include "src/shell/windows/tac_win32_com_ptr.h"
+#include "src/shell/windows/tac_win32_com_ptr.h"
 
 #include <dxgiformat.h> // DXGI_FORMAT
 #include <dxgi1_6.h> // IDXGIObject, IDXGISwapChain4, IDXGIFactory4, IDXGIAdapter4

@@ -6,12 +6,14 @@
 #include "src/common/containers/tac_frame_vector.h"
 #include "src/common/containers/tac_ring_buffer.h"
 #include "src/common/dataprocess/tac_settings.h"
+#include "src/common/dataprocess/tac_log.h"
 #include "src/common/graphics/imgui/tac_imgui.h"
 #include "src/common/graphics/tac_font.h"
 #include "src/common/graphics/tac_ui_2d.h"
 #include "src/common/identifier/tac_id_collection.h"
 #include "src/common/input/tac_controller_input.h"
 #include "src/common/input/tac_keyboard_input.h"
+#include "src/common/math/tac_math.h" // Max
 #include "src/common/memory/tac_frame_memory.h"
 #include "src/common/net/tac_net.h"
 #include "src/common/profile/tac_profile.h"
@@ -124,10 +126,63 @@ namespace Tac
 
   static void DesktopAppReportErrors( Errors& errors )
   {
+    struct FrameFormatter
+    {
+    private:
+      auto Fmt( StringView sv, int n ) { return String() + sv + String( n - sv.size(), ' ' ); }
+      auto FmtFile( StackFrame sf ) { return Fmt( sf.mFile, mMaxLenFilename ); }
+      auto FmtLine( StackFrame sf ) { return Fmt( Tac::ToString( sf.mLine ), mMaxLenLine ); }
+
+    public:
+
+      FrameFormatter( const Span< StackFrame > frames )
+      {
+        for( const StackFrame& frame : frames )
+        {
+          mMaxLenFilename = Max( mMaxLenFilename, StrLen( frame.mFile ) );
+          mMaxLenLine = Max( mMaxLenLine, ToString( frame.mLine ).size() );
+        }
+      }
+
+      auto FormatFrame( StackFrame sf )
+      {
+        return String() + 
+          "File: " + FmtFile( sf ) + ", "
+          "Line: " + FmtLine( sf ) + ", "
+          "Fn: " + sf.mFunction + "()" "\n";
+      }
+      
+      
+    private:
+      int mMaxLenFilename = 0;
+      int mMaxLenLine = 0;
+    };
+
+
+
     struct NamedError
     {
+      String FormatErrorString() const
+      {
+        const Span< StackFrame > frames = mErrorPointer->GetFrames();
+
+        FrameFormatter frameFormatter( frames );
+
+
+        String errorStr;
+        errorStr += "Errors in ";
+        errorStr += mName;
+        errorStr += '\n';
+        errorStr += mErrorPointer->GetMessage();
+        errorStr += '\n';
+        for( StackFrame frame : frames )
+          errorStr += frameFormatter.FormatFrame( frame ) + '\n';
+
+        return errorStr;
+      }
+
       const char* mName;
-      Errors *mErrorPointer;
+      Errors*     mErrorPointer;
     };
 
     const NamedError namedErrors[] =
@@ -137,23 +192,16 @@ namespace Tac
       { "Logic Thread", &gLogicThreadErrors },
     };
 
-    String logStr;
-
-    for( const NamedError& namedError : namedErrors )
+    String combinedErrorStr;
+    for( NamedError namedError : namedErrors )
       if( !namedError.mErrorPointer->empty() )
-      {
-        const String errStr =  String()
-          + "Errors in " + namedError.mName + "\n"
-          + namedError.mErrorPointer->ToString();
+        combinedErrorStr += namedError.FormatErrorString() + '\n';
 
-        OS::OSDebugPopupBox( errStr );
-        logStr += errStr;
-        logStr += '\n';
-      }
-
-    if( !logStr.empty() )
+    if( !combinedErrorStr.empty() )
     {
-      Filesystem::SaveToFile( sShellPrefPath / "tac_error.txt", logStr, errors );
+      LogApi::LogMessage( combinedErrorStr );
+      LogApi::LogFlush();
+      OS::OSDebugPopupBox( combinedErrorStr );
     }
   }
 
