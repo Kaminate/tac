@@ -164,6 +164,10 @@ namespace Tac
     D3D12_RESOURCE_STATES              m_renderTargetStates[ bufferCount ];
     D3D12_RESOURCE_DESC                m_renderTargetDescs[ bufferCount ];
     bool                               m_renderTargetInitialized = false;
+    // Note: the official imgui dx12 main just keeps an array of D3D12_CPU_DESCRIPTOR_HANDLE for
+    //       their render targets, like so:
+    //       D3D12_CPU_DESCRIPTOR_HANDLE  g_mainRenderTargetDescriptor[ NUM_BACK_BUFFERS ] = {};
+
 
     // A fence is used to synchronize the CPU with the GPU (see Multi-engine synchronization).
     // https://learn.microsoft.com/en-us/windows/win32/direct3d12/user-mode-heap-synchronization

@@ -917,21 +917,6 @@ namespace Tac
   }
 
 
-  static String DX12PreprocessShader( StringView shader )
-  {
-    String newShader;
-
-    ParseData parse( shader );
-    while( parse )
-    {
-      const StringView line = parse.EatRestOfLine();
-
-      newShader += PreprocessShaderSemanticName( line );
-      newShader += '\n';
-    }
-
-    return newShader;
-  }
 
   struct DX12BuiltInputLayout : public D3D12_INPUT_LAYOUT_DESC
   {
@@ -963,7 +948,6 @@ namespace Tac
 
   void DX12AppHelloBundle::CreatePipelineState( Errors& errors )
   {
-    //const AssetPathStringView shaderAssetPath = "assets/hlsl/DX12HelloBundleBindless.hlsl";
     const AssetPathStringView shaderAssetPath = "assets/hlsl/DX12HelloBundle.hlsl";
 
     TAC_CALL( DX12ProgramCompiler compiler( ( ID3D12Device* )m_device, errors ) );

@@ -82,10 +82,19 @@ namespace Tac
   {
     struct RedirectBuf : public std::streambuf
     {
+      // xsputn() outputs strings of size n
       std::streamsize xsputn( const char* s, std::streamsize n ) override
       {
-        OutputDebugString( s );
+        OutputDebugStringA( s );
         return n;
+      }
+
+      // overflow() outputs characters such as '\n'
+      int overflow( int c ) override
+      {
+        const char s[] = { (char)c, '\0' };
+        OutputDebugStringA( s );
+        return c;
       }
     };
 

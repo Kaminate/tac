@@ -917,22 +917,6 @@ namespace Tac
   }
 
 
-  static String DX12PreprocessShader( StringView shader )
-  {
-    String newShader;
-
-    ParseData parse( shader );
-    while( parse )
-    {
-      const StringView line = parse.EatRestOfLine();
-
-      newShader += PreprocessShaderSemanticName( line );
-      newShader += '\n';
-    }
-
-    return newShader;
-  }
-
   struct DX12BuiltInputLayout : public D3D12_INPUT_LAYOUT_DESC
   {
     DX12BuiltInputLayout( const VertexDeclarations& vtxDecls )

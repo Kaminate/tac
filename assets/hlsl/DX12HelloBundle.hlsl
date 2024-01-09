@@ -83,3 +83,4 @@ LinearColor4 PSMain(PSInput input) : SV_TARGET
   result.mFloat4 = float4(rgb, 1);
   return result;
 }
+
