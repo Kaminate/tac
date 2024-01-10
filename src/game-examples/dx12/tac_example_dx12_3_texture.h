@@ -159,7 +159,9 @@ namespace Tac
     // tldr: A command queue can submit command lists
     PCom< ID3D12CommandQueue >         m_commandQueue;
     PCom< ID3D12CommandAllocator >     m_commandAllocator;
+    PCom< ID3D12CommandAllocator >     m_commandAllocatorBundle;
     PCom< ID3D12GraphicsCommandList4 > m_commandList;
+    PCom< ID3D12GraphicsCommandList4 > m_commandListBundle;
     PCom< ID3D12Resource >             m_renderTargets[ bufferCount ];
     D3D12_RESOURCE_STATES              m_renderTargetStates[ bufferCount ];
     D3D12_RESOURCE_DESC                m_renderTargetDescs[ bufferCount ];

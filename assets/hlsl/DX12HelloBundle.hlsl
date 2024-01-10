@@ -9,6 +9,27 @@
 //
 //*********************************************************
 
+// -------------------------------------------------------------------------------------------------
+
+
+//const int verA = __DXC_VERSION_MAJOR;
+//const int verB = __DXC_VERSION_MINOR;
+//const int verC = __DXC_VERSION_RELEASE;
+//const int verD = __DXC_VERSION_COMMITS;
+// version is a.b.c.d
+
+
+
+
+//template< typename T, uint N>
+//uint StrLen(T str[N])
+//{
+//    // Includes the null terminator
+//  return N;
+//}
+
+// -------------------------------------------------------------------------------------------------
+
 struct ClipSpacePosition3 { float3 mFloat3; };
 struct ClipSpacePosition4 { float4 mFloat4; };
 struct LinearColor3       { float3 mFloat3; };

@@ -426,8 +426,14 @@ namespace Tac
     m_textureResourceStates = D3D12_RESOURCE_STATE_COPY_DEST;
 
     UINT64 totalBytes;
-    m_device->GetCopyableFootprints(
-      &resourceDesc, 0, 1, 0, nullptr, nullptr, nullptr, &totalBytes );
+    m_device->GetCopyableFootprints( &resourceDesc,
+                                     0,
+                                     1,
+                                     0,
+                                     nullptr,
+                                     nullptr,
+                                     nullptr,
+                                     &totalBytes );
 
     const D3D12_HEAP_PROPERTIES uploadHeapProps { .Type = D3D12_HEAP_TYPE_UPLOAD, };
 

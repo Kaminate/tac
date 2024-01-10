@@ -83,18 +83,48 @@ endforeach()
 # WindowsSdkVerBinPath environment variable. WindowsSdkVerBinPath will be set if vcvars has been
 # run or if cmake is being run from the Developer Command Prompt for VS
 function( _define_dx_path varName filename )
+
   set( docStr "path to ${filename} for shader compiling/signing" )
   set( ${varName} "" CACHE FILEPATH ${docStr} )
   set( varVal $CACHE{${varName}} )
+
+  # Use cache value if it exists
   if( EXISTS ${varVal} )
     return()
   endif()
 
+  #message(" sdk bin path dir thing:  $ENV{WindowsSdkVerBinPath}x64/${filename}" )
+  #list( APPEND bins "D:/Program Files (x86)/DXC/bin/x64/${filename}" )
+  #list( APPEND varVals "$ENV{WindowsSdkVerBinPath}x64/${filename}" )
 
-  if( DEFINED ENV{WindowsSdkVerBinPath} AND EXISTS "$ENV{WindowsSdkVerBinPath}x64/${filename}" )
-    set( ${varName} "$ENV{WindowsSdkVerBinPath}x64/${filename}" CACHE FILEPATH ${docStr} FORCE )
-    return()
+  # This is just where I downloaded the latest release bins of
+  # https://github.com/microsoft/DirectXShaderCompiler/
+  list( APPEND bins "D:/Program Files (x86)/DXC/bin/" )
+  if( DEFINED ENV{WindowsSdkVerBinPath} )
+    list( APPEND bins $ENV{WindowsSdkVerBinPath} )
   endif()
+
+  foreach(bin ${bins})
+    set( varVal ${bin}x64/${filename} )
+    if( EXISTS ${varVal} )
+      message( VERBOSE "Setting ${varName} to ${varVal}" )
+      set( ${varName} ${varVal} CACHE FILEPATH ${docStr} FORCE )
+      return()
+    endif()
+  endforeach()
+
+  # set( varVal "D:/Program Files (x86)/DXC/bin/x64/${filename}" )
+  # if( EXISTS ${varVal} )
+  #   set( ${varName} ${varVal} CACHE FILEPATH ${docStr} FORCE )
+  #   return()
+  # endif()
+
+  # if( DEFINED ENV{WindowsSdkVerBinPath} )
+  #   if( EXISTS "$ENV{WindowsSdkVerBinPath}x64/${filename}" )
+  #   set( varVal "$ENV{WindowsSdkVerBinPath}x64/${filename}" )
+  #   set( ${varName} ${varVal} CACHE FILEPATH ${docStr} FORCE )
+  #   return()
+  # endif()
 
   message( FATAL_ERROR
            "Could not find ${filename} at path: " ${varVal} ", "

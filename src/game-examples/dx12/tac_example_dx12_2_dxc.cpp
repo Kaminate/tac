@@ -30,6 +30,7 @@ namespace Tac::Render::DXC
     void SetEntryPoint( String s )         { AddArgs( "-E", s ); }
     void SetTargetProfile( String s )      { AddArgs( "-T", s ); }
     void SetFilename( String );
+    void SetHLSLVersion( StringView ver = "2021" );
     void DefineMacro( String s )           { AddArgs( "-D", s ); }
     void ColPackMtxs()                     { AddArg( "-Zpc" ); }
     void RowPackMtxs()                     { AddArg( "-Zpr" ); }
@@ -90,6 +91,8 @@ namespace Tac::Render::DXC
     SaveBytecode();
     SaveDebug(setup.mPDBDir);
 
+    SetHLSLVersion();
+
     if constexpr( IsDebugMode )
     {
       EnableDebug();
@@ -129,6 +132,11 @@ namespace Tac::Render::DXC
     mStem = fsPath.stem().u8string();
     TAC_ASSERT( IsAscii( mStem ) );
     TAC_ASSERT(!mStem.empty());
+  }
+
+  void DXCArgHelper::SetHLSLVersion( StringView ver )
+  {
+    AddArgs( "-HV", ver );
   }
 
   void DXCArgHelper::SaveReflection()
@@ -224,6 +232,30 @@ namespace Tac::Render::DXC
     PCom<IDxcCompiler3> pCompiler;
     TAC_DX12_CALL_RET( {}, DxcCreateInstance( CLSID_DxcUtils, pUtils.iid(), pUtils.ppv() ) );
     TAC_DX12_CALL_RET( {}, DxcCreateInstance( CLSID_DxcCompiler, pCompiler.iid(), pCompiler.ppv() ) );
+
+    if( false )
+    {
+      //PCom<IDxcCompilerArgs> mArgs;
+      TAC_NOT_CONST Array args = { L"--version" };
+      //const HRESULT hr = mArgs->AddArgumentsUTF8( args.data(), args.size() );
+      PCom<IDxcResult> pResults;
+      HRESULT hr = pCompiler->Compile( nullptr,
+                          args.data(),
+                          args.size(),
+                          //mArgs->GetArguments(),
+                          //mArgs->GetCount(),
+                          nullptr,
+                          pResults.iid(),
+                          pResults.ppv() );
+
+      const UINT32 n = pResults->GetNumOutputs();
+      for( UINT32 i = 0; i < n; ++i )
+      {
+        DXC_OUT_KIND kind = pResults->GetOutputByIndex( i );
+        ++asdf;
+      }
+      ++asdf;
+    }
 
     const String target = GetTarget( input.mType, input.mShaderModel );
     const String inputShaderName =  input.mShaderAssetPath.GetFilename();
