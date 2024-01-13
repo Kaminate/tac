@@ -26,5 +26,13 @@ set(TAC_SHADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/DX12HelloBundle.hlsl
   ${CMAKE_CURRENT_SOURCE_DIR}/DX12HelloConstBuf.hlsl
   ${CMAKE_CURRENT_SOURCE_DIR}/DX12HelloFrameBuf.hlsl
+  ${CMAKE_CURRENT_SOURCE_DIR}/dx12_math_clip_space_position.hlsl
+  ${CMAKE_CURRENT_SOURCE_DIR}/dx12_math_clip_space_position.hlsli
+  ${CMAKE_CURRENT_SOURCE_DIR}/dx12_math_linear_color.hlsl
+  ${CMAKE_CURRENT_SOURCE_DIR}/dx12_math_linear_color.hlsli
+  ${CMAKE_CURRENT_SOURCE_DIR}/dx12_math_texture_coordinate.hlsl
+  ${CMAKE_CURRENT_SOURCE_DIR}/dx12_math_texture_coordinate.hlsli
+  ${CMAKE_CURRENT_SOURCE_DIR}/dx12_math_types.hlsl
+  ${CMAKE_CURRENT_SOURCE_DIR}/dx12_math_types.hlsli
   CACHE INTERNAL "")
 

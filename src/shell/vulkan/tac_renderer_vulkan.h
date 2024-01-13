@@ -198,7 +198,8 @@ namespace Tac::Render
     void UpdateIndexBuffer( const CommandDataUpdateIndexBuffer*, Errors& ) override;
     void UpdateTextureRegion( const CommandDataUpdateTextureRegion*, Errors& ) override;
     void UpdateVertexBuffer( const CommandDataUpdateVertexBuffer*, Errors& ) override;
-    AssetPathStringView GetShaderPath(  const ShaderNameStringView& ) override;
+    AssetPathStringView GetShaderPath(  const ShaderNameStringView& ) const override;
+    AssetPathStringView GetShaderDir() const override;
 
     FramebufferVk              mFramebuffers[ kMaxFramebuffers ] = {};
     FramebufferHandle          mWindows[ kMaxFramebuffers ];

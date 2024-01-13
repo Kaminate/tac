@@ -1,6 +1,7 @@
 #include "Common.hlsl"
-TextureCube cubemap   : register( t0 );
-sampler linearSampler : register( s0 );
+
+TextureCube  cubemap       : TAC_AUTO_REGISTER;
+SamplerState linearSampler : TAC_AUTO_REGISTER;
 
 struct VS_INPUT
 {

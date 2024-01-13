@@ -49,10 +49,9 @@ namespace Tac::Render
       TAC_ASSERT( !shaderName.empty() );
       const AssetPathStringView assetPath = GetShaderAssetPath( mShaderName );
       mShaderStringOrig = TAC_CALL( LoadAssetPath( assetPath, errors ) );
-      mShaderStringFull = TAC_CALL( PreprocessShaderSource( mShaderStringOrig, errors ) );
+      mShaderStringFull = TAC_CALL( DX11PreprocessShader( assetPath, errors ) );
       mProgram.mConstantBuffers = PostprocessShaderSource( mShaderStringFull );
       TAC_ASSERT( !mProgram.mConstantBuffers.empty() );
-
 
       TAC_CALL( TryLoadVertexShader( errors ) );
       TAC_CALL( TryLoadPixelShader( errors ) );

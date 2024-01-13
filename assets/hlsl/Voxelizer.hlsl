@@ -16,15 +16,12 @@
 // these share the same buffer as rtvs and start after the render target views,
 // so atm we have 1 rtv occupying slot 0, so the uav starts at index 1
 //
-//  so we definitely dont want to use an auto register macro here
-RWStructuredBuffer< Voxel > mySB : register( u1 );
+RWStructuredBuffer< Voxel > mySB    : register( u1 ); // <-- don't use TAC_AUTO_REGISTER here
 
-Texture2D diffuseMaterialTexture : TAC_AUTO_REGISTER;
-
-Texture2D shadowMaps[ 4 ]        : TAC_AUTO_REGISTER;
-
-sampler linearSampler            : TAC_AUTO_REGISTER;
-sampler shadowMapSampler         : TAC_AUTO_REGISTER;
+Texture2D    diffuseMaterialTexture : TAC_AUTO_REGISTER;
+Texture2D    shadowMaps[ 4 ]        : TAC_AUTO_REGISTER;
+SamplerState linearSampler          : TAC_AUTO_REGISTER;
+SamplerState shadowMapSampler       : TAC_AUTO_REGISTER;
 
 
 

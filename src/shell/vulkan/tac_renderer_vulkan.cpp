@@ -238,7 +238,12 @@ namespace Tac::Render
   void RendererVulkan::UpdateTextureRegion( const CommandDataUpdateTextureRegion*, Errors& ) {};
   void RendererVulkan::UpdateVertexBuffer( const CommandDataUpdateVertexBuffer*, Errors& ) {};
 
-  AssetPathStringView RendererVulkan::GetShaderPath(  const ShaderNameStringView& ) 
+  AssetPathStringView RendererVulkan::GetShaderPath(  const ShaderNameStringView& ) const
+  {
+    return "";
+  }
+
+  AssetPathStringView RendererVulkan::GetShaderDir() const
   {
     return "";
   }

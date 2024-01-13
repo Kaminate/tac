@@ -3,8 +3,8 @@
 #define TEST_RED 0
 #define TEST_UVS 0
 
-Texture2D image       : register( t0 );
-sampler linearSampler : register( s0 );
+Texture2D    image         : register( t0 );
+SamplerState linearSampler : register( s0 );
 
 struct VS_INPUT
 {

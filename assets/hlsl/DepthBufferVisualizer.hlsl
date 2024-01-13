@@ -1,6 +1,6 @@
-Texture2D depthbuf    : TAC_AUTO_REGISTER;
-sampler   pointSamp   : TAC_AUTO_REGISTER;
-cbuffer   CBufferVizf : TAC_AUTO_REGISTER
+Texture2D    depthbuf    : TAC_AUTO_REGISTER;
+SamplerState pointSamp   : TAC_AUTO_REGISTER;
+cbuffer      CBufferVizf : TAC_AUTO_REGISTER
 {
   float projA;
   float projB;

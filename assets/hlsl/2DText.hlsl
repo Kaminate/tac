@@ -4,8 +4,8 @@
 #define TEST_UVS 0
 #define TEST_SDF_SHOW_ONEEDGE 0 // this dont work
 
-Texture2D atlas       : register( t0 );
-sampler linearSampler : register( s0 );
+Texture2D    atlas         : TAC_AUTO_REGISTER;
+SamplerState linearSampler : TAC_AUTO_REGISTER;
 
 struct VS_INPUT
 {

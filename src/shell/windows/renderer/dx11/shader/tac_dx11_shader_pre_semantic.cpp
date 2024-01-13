@@ -4,12 +4,13 @@
 
 namespace Tac::Render
 {
-  String PreprocessShaderSemanticName( const StringView& line )
+  Optional<String> PreprocessShaderLineSemanticName( const StringView line, Errors& )
   {
+    if(!line.contains("TAC_AUTO_SEMANTIC"))
+      return {};
+
     const StringView autoSemantic = "TAC_AUTO_SEMANTIC";
     const int iAutoSemantic = line.find( autoSemantic );
-    if( iAutoSemantic == line.npos )
-      return line;
 
     int i = line.find( ":" );
     TAC_ASSERT( i != String::npos );

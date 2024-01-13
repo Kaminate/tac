@@ -91,7 +91,7 @@ namespace Tac::Render
     return result;
   }
 
-  String PreprocessShaderBitfield( const StringView& line )
+  Optional<String> PreprocessShaderLineBitfield( const StringView line, Errors& )
   {
     static int sRunningBitCount;
     static bool sProcessing;
@@ -140,10 +140,10 @@ namespace Tac::Render
       TAC_ASSERT( sProcessing );
       sProcessing = false;
       sRunningBitCount = 0;
-      return "";
+      return Optional<String>("");
     }
 
-    return line;
+    return {};
   }
 } // namespace Tac::Render
 

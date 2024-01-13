@@ -1,5 +1,6 @@
 #include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_preprocess.h" // self-inc
 
+#include "src/shell/windows/renderer/dx_shader_preprocess/tac_dx_shader_preprocess.h"
 #include "src/common/assetmanagers/tac_asset.h"
 #include "src/common/containers/tac_array.h"
 #include "src/common/error/tac_error_handling.h"
@@ -18,45 +19,40 @@ namespace Tac::Render
     return shaderParseData.EatStringExpected( "//" );
   }
 
-  static String PreprocessShaderLine( const StringView& line, Errors& errors )
+  Optional<String> PreprocessShaderLineComment( const StringView line, Errors& )
   {
-    if( IsSingleLineCommented( line ) )
-      return line;
-
-    const String bitfield = PreprocessShaderBitfield( line );
-    const String fxFramework = PreprocessShaderFXFramework( line );
-    const String inc = TAC_CALL_RET( line, PreprocessShaderIncludes( line, errors ) );
-    const String pad = PreprocessShaderPadding( line );
-    const String reg = PreprocessShaderRegister( line );
-    const String semanticName = PreprocessShaderSemanticName( line );
-    const String processedLines[] = { bitfield, fxFramework, inc, pad, reg, semanticName };
-
-    for( const String& processedLine : processedLines )
-      if( processedLine != line )
-        return PreprocessShaderSource( processedLine, errors );
-
-    return line;
+    return IsSingleLineCommented( line ) ? Optional< String >( line ) : Optional< String >{};
   }
 
-  String PreprocessShaderSource( const StringView& shaderSourceCode, Errors& errors )
+  // -----------------------------------------------------------------------------------------------
+  Optional<String> ShaderPreprocessorFunction::Preprocess( const StringView sv, Errors& errors ) 
   {
-    static int recurseCount;
-    if( !recurseCount )
-      ResetShaderRegisters();
+    return mFn(  sv, errors );
+  }
 
-    ++recurseCount;
+  ShaderPreprocessorFunction::ShaderPreprocessorFunction( ShaderPreprocessFn fn ) : mFn( fn ) {}
+  // -----------------------------------------------------------------------------------------------
 
-    String result;
-    ParseData shaderParseData( shaderSourceCode.data(), shaderSourceCode.size() );
-    while( shaderParseData.GetRemainingByteCount() )
-    {
-      const StringView line = shaderParseData.EatRestOfLine();
-      result += PreprocessShaderLine( line , errors );
-      result += '\n';
-    }
 
-    --recurseCount;
-    return result;
+  String DX11PreprocessShader( AssetPathStringView assetPath, Errors& errors )
+  {
+    const String shaderStrRaw = TAC_CALL_RET( {}, LoadAssetPath( assetPath, errors ));
+
+    ShaderPreprocessorRegister processReg;
+    ShaderPreprocessorIncludes processInc( assetPath );
+    ShaderPreprocessorPadding processPad;
+
+    ShaderPreprocessor preprocessor;
+    preprocessor.mAssetPath = assetPath;
+    preprocessor.Add( PreprocessShaderLineComment );
+    preprocessor.Add( PreprocessShaderLineBitfield );
+    preprocessor.Add( PreprocessShaderLineDeprecations );
+    preprocessor.Add( PreprocessShaderLineSemanticName );
+    preprocessor.Add( &processReg );
+    preprocessor.Add( &processInc );
+    preprocessor.Add( &processPad );
+
+    return DXPreprocessShaderSource( shaderStrRaw, &preprocessor, errors );
   }
 
 } // namespace Tac::Render

@@ -223,7 +223,8 @@ namespace Tac::Render
     void RenderDrawCallPrimitiveTopology( const DrawCall* );
     void RenderDrawCallIssueDrawCommand( const DrawCall* );
 
-    AssetPathStringView GetShaderPath( const ShaderNameStringView& ) override;
+    AssetPathStringView GetShaderPath( const ShaderNameStringView& ) const override;
+    AssetPathStringView GetShaderDir() const override;
 
     // Non-virtual functions
 

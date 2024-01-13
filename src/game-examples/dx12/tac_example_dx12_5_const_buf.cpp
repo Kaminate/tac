@@ -619,6 +619,17 @@ namespace Tac
     DX12SetName( m_commandAllocator, "My Command Allocator");
   }
 
+  void DX12AppHelloConstBuf::CreateCommandAllocatorBundle( Errors& errors )
+  {
+    // a command allocator manages storage for cmd lists and bundles
+    TAC_ASSERT( m_device );
+    TAC_DX12_CALL( m_device->CreateCommandAllocator(
+      D3D12_COMMAND_LIST_TYPE_BUNDLE,
+      m_commandAllocatorBundle.iid(),
+      m_commandAllocatorBundle.ppv() ) );
+    DX12SetName( m_commandAllocatorBundle, "Bundle Allocator" );
+  }
+
   void DX12AppHelloConstBuf::CreateCommandList( Errors& errors )
   {
     // Create the command list
@@ -626,16 +637,34 @@ namespace Tac
     // Note: CreateCommandList1 creates it the command list in a closed state, as opposed to
     //       CreateCommandList, which creates in a open state.
     PCom< ID3D12CommandList > commandList;
-    TAC_DX12_CALL( m_device->CreateCommandList1(
-                   0,
-                   D3D12_COMMAND_LIST_TYPE_DIRECT,
-                   D3D12_COMMAND_LIST_FLAG_NONE,
-                   commandList.iid(),
-                   commandList.ppv() ) );
+    TAC_DX12_CALL( m_device->CreateCommandList1( 0,
+                                                 D3D12_COMMAND_LIST_TYPE_DIRECT,
+                                                 D3D12_COMMAND_LIST_FLAG_NONE,
+                                                 commandList.iid(),
+                                                 commandList.ppv() ) );
     TAC_ASSERT( commandList );
     commandList.QueryInterface( m_commandList );
     TAC_ASSERT( m_commandList );
     DX12SetName( m_commandList, "My Command List" );
+  }
+
+  void DX12AppHelloConstBuf::CreateCommandListBundle( Errors& errors )
+  {
+    // Create the command list
+    //
+    // Note: CreateCommandList1 creates it the command list in a closed state, as opposed to
+    //       CreateCommandList, which creates in a open state.
+    PCom< ID3D12CommandList > commandList;
+    TAC_DX12_CALL( m_device->CreateCommandList1( 0,
+                                                 D3D12_COMMAND_LIST_TYPE_BUNDLE,
+                                                 D3D12_COMMAND_LIST_FLAG_NONE,
+                                                 commandList.iid(),
+                                                 commandList.ppv() ) );
+
+    TAC_ASSERT( commandList );
+    commandList.QueryInterface( m_commandListBundle );
+    TAC_ASSERT( m_commandListBundle );
+    DX12SetName( m_commandListBundle, "my_bundle_cmdlist" );
   }
 
   void DX12AppHelloConstBuf::CreateVertexBuffer( Errors& errors )
@@ -943,11 +972,8 @@ namespace Tac
     FixedVector< D3D12_INPUT_ELEMENT_DESC, 10 > mElementDescs;
   };
 
-
-
   void DX12AppHelloConstBuf::CreatePipelineState( Errors& errors )
   {
-    //const AssetPathStringView shaderAssetPath = "assets/hlsl/DX12HelloConstBufBindless.hlsl";
     const AssetPathStringView shaderAssetPath = "assets/hlsl/DX12HelloConstBuf.hlsl";
 
     TAC_CALL( DX12ProgramCompiler compiler( ( ID3D12Device* )m_device, errors ) );
@@ -1195,42 +1221,18 @@ namespace Tac
     //   you can call Reset while the command list is still being executed
     //   you can submit a cmd list, reset it, and reuse the allocated memory for another cmd list
     TAC_DX12_CALL( m_commandList->Reset(
-                   ( ID3D12CommandAllocator* )m_commandAllocator,
+      ( ID3D12CommandAllocator* )m_commandAllocator,
 
-                   // The associated pipeline state (IA, OM, RS, ... )
-                   // that the command list will modify, all leading to a draw call?
-                   ( ID3D12PipelineState* )mPipelineState ) );
-
-
-    // no need to call ID3D12GraphicsCommandList::SetPipelineState( ID3D12PipelineState* ), I think
-    // that's implicitly done by ID3D12GraphicsCommandList::Reset( ..., ID3D12PipelineState* )
-
-    // Root signature... of the pipeline state?... which has already been created with said
-    // root signature?
-    //
-    // You can pass nullptr to unbind the current root signature.
-    //
-    // Since you can share root signatures between pipelines you only need to set the root sig
-    // when that should change
-    m_commandList->SetGraphicsRootSignature( m_rootSignature.Get() );
+      // The associated pipeline state (IA, OM, RS, ... )
+      // that the command list will modify, all leading to a draw call?
+      ( ID3D12PipelineState* )mPipelineState ) );
 
     // sets the viewport of the pipeline state's rasterizer state?
-    m_commandList->RSSetViewports( (UINT)m_viewports.size(), m_viewports.data() );
+    m_commandList->RSSetViewports( ( UINT )m_viewports.size(), m_viewports.data() );
 
     // sets the scissor rect of the pipeline state's rasterizer state?
-    m_commandList->RSSetScissorRects( (UINT)m_scissorRects.size(), m_scissorRects.data() );
+    m_commandList->RSSetScissorRects( ( UINT )m_scissorRects.size(), m_scissorRects.data() );
 
-    // Indicate that the back buffer will be used as a render target.
-    TransitionRenderTarget( m_frameIndex, D3D12_RESOURCE_STATE_RENDER_TARGET );
-
-    const Array rtCpuHDescs = { GetRTVCpuDescHandle( m_frameIndex ) };
-
-    m_commandList->OMSetRenderTargets( ( UINT )rtCpuHDescs.size(),
-                                       rtCpuHDescs.data(),
-                                       false,
-                                       nullptr );
-
-    ClearRenderTargetView();
 
     // [ ] TODO: comment this function
     const Array descHeaps = {
@@ -1241,6 +1243,9 @@ namespace Tac
 
     // [ ] TODO: comment this function
     {
+      // Set the root signature. If it doesn't match, throws an access violation
+      m_commandList->SetGraphicsRootSignature( m_rootSignature.Get() );
+
       // samplers
       m_commandList->SetGraphicsRootDescriptorTable( 0, m_samplerGpuHeapStart );
 
@@ -1260,19 +1265,105 @@ namespace Tac
       }
     }
 
-    m_commandList->IASetPrimitiveTopology( D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
-
-    const D3D12_DRAW_ARGUMENTS drawArgs
+    static bool recordedBundle;
+    if( !recordedBundle )
     {
-      .VertexCountPerInstance = 3,
-      .InstanceCount = 1,
-      .StartVertexLocation = 0,
-      .StartInstanceLocation = 0,
-    };
-    m_commandList->DrawInstanced( drawArgs.VertexCountPerInstance,
-                                  drawArgs.InstanceCount,
-                                  drawArgs.StartVertexLocation,
-                                  drawArgs.StartInstanceLocation );
+      const D3D12_DRAW_ARGUMENTS drawArgs
+      {
+        .VertexCountPerInstance = 3,
+        .InstanceCount = 1,
+        .StartVertexLocation = 0,
+        .StartInstanceLocation = 0,
+      };
+
+#if 0
+      m_commandListBundle->Reset( m_commandAllocatorBundle.Get(), nullptr );
+      m_commandListBundle->SetPipelineState( ( ID3D12PipelineState* )mPipelineState );
+#else
+
+      m_commandListBundle->Reset( m_commandAllocatorBundle.Get(), mPipelineState.Get() );
+#endif
+
+      // Root signature... of the pipeline state?... which has already been created with said
+      // root signature?
+      //
+      // You can pass nullptr to unbind the current root signature.
+      //
+      // Since you can share root signatures between pipelines you only need to set the root sig
+      // when that should change
+      //
+      // for bundles... if this is the same as the root signature of the calling command list,
+      // then it will inherit bindings (descriptor tables? constant buffers?)
+      //
+      // Throws an error if the root signature doesnt match the pso
+      m_commandListBundle->SetGraphicsRootSignature( m_rootSignature.Get() );
+
+      m_commandListBundle->IASetPrimitiveTopology( D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
+
+      m_commandListBundle->DrawInstanced( drawArgs.VertexCountPerInstance,
+                                          drawArgs.InstanceCount,
+                                          drawArgs.StartVertexLocation,
+                                          drawArgs.StartInstanceLocation );
+
+#if 0
+      // DirectX-Graphics-Samples\Samples\Desktop\D3D12Bundles\src\FrameResource.cpp
+      // Here pCommandList is a bundle, drawing each object with its own constant buffer.
+
+      // Calculate the descriptor offset due to multiple frame resources.
+      // 1 SRV + how many CBVs we have currently.
+      UINT frameResourceDescriptorOffset =
+        1 + ( frameResourceIndex * m_cityRowCount * m_cityColumnCount );
+
+      CD3DX12_GPU_DESCRIPTOR_HANDLE cbvSrvHandle(
+        pCbvSrvDescriptorHeap->GetGPUDescriptorHandleForHeapStart(),
+        frameResourceDescriptorOffset,
+        cbvSrvDescriptorSize );
+
+      BOOL usePso1 = TRUE;
+      for( UINT i = 0; i < m_cityRowCount; i++ )
+      {
+        for( UINT j = 0; j < m_cityColumnCount; j++ )
+        {
+          // Alternate which PSO to use; the pixel shader is different on 
+          // each just as a PSO setting demonstration.
+          pCommandList->SetPipelineState( usePso1 ? pPso1 : pPso2 );
+          usePso1 = !usePso1;
+
+          // Set this city's CBV table and move to the next descriptor.
+          pCommandList->SetGraphicsRootDescriptorTable( 2, cbvSrvHandle );
+          cbvSrvHandle.Offset( cbvSrvDescriptorSize );
+
+          pCommandList->DrawIndexedInstanced( numIndices, 1, 0, 0, 0 );
+        }
+      }
+#endif
+
+
+      m_commandListBundle->Close();
+
+      recordedBundle = true;
+    }
+
+    // no need to call ID3D12GraphicsCommandList::SetPipelineState( ID3D12PipelineState* ), I think
+    // that's implicitly done by ID3D12GraphicsCommandList::Reset( ..., ID3D12PipelineState* )
+
+
+
+    // Indicate that the back buffer will be used as a render target.
+    TransitionRenderTarget( m_frameIndex, D3D12_RESOURCE_STATE_RENDER_TARGET );
+
+    const Array rtCpuHDescs = { GetRTVCpuDescHandle( m_frameIndex ) };
+
+    m_commandList->OMSetRenderTargets( ( UINT )rtCpuHDescs.size(),
+                                       rtCpuHDescs.data(),
+                                       false,
+                                       nullptr );
+
+    ClearRenderTargetView();
+
+
+    m_commandList->ExecuteBundle( ( ID3D12GraphicsCommandList* )m_commandListBundle );
+
 
     // Indicate that the back buffer will now be used to present.
     //
@@ -1284,6 +1375,7 @@ namespace Tac
     // Indicates that recording to the command list has finished.
     TAC_DX12_CALL( m_commandList->Close() );
   }
+  
 
   void DX12AppHelloConstBuf::ClearRenderTargetView()
   {
@@ -1307,6 +1399,20 @@ namespace Tac
 
     // Submits an array of command lists for execution.
     m_commandQueue->ExecuteCommandLists( ( UINT )cmdLists.size(), cmdLists.data() );
+  }
+
+  static String FormattedSwapEffect( const DXGI_SWAP_EFFECT fx )
+  {
+    const char* name = "Unknown";
+    switch( fx )
+    {
+    case DXGI_SWAP_EFFECT_DISCARD: name = "DXGI_SWAP_EFFECT_DISCARD"; break;
+    case DXGI_SWAP_EFFECT_SEQUENTIAL: name = "DXGI_SWAP_EFFECT_SEQUENTIAL"; break;
+    case DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL: name = "DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL"; break;
+    case DXGI_SWAP_EFFECT_FLIP_DISCARD: name = "DXGI_SWAP_EFFECT_FLIP_DISCARD"; break;
+    }
+
+    return String() + name + "(" + ToString( ( int )fx ) + ")";
   }
 
   void DX12AppHelloConstBuf::SwapChainPresent( Errors& errors )
@@ -1334,46 +1440,11 @@ namespace Tac
     // 1.	The app updates its frame (Write)
     // 2. Direct3D runtime passes the app surface to DWM
     // 3. DWM renders the app surface onto screen( Read, Write )
-
-    struct ValidateSwapChainEffect
-    {
-      ValidateSwapChainEffect( DXGI_SWAP_EFFECT cur, DXGI_SWAP_EFFECT tgt, Errors& errors )
-      {
-        if( cur == tgt )
-          return;
-
-        TAC_ASSERT( false );
-
-        TAC_RAISE_ERROR( String() +
-                         "The swap chain effect is " + FormatSwapEffectString( cur ) + " "
-                         "when it was expected to be " + FormatSwapEffectString( tgt ) );
-      }
-    private:
-
-      String FormatSwapEffectString( DXGI_SWAP_EFFECT fx )
-      {
-        return String() + GetSwapEffectName(fx) + "(" + ToString( (int)fx ) + ")";
-      }
-
-      const char* GetSwapEffectName( DXGI_SWAP_EFFECT fx )
-      {
-        switch( fx )
-        {
-#define Case( x ) case x: return #x
-          Case(DXGI_SWAP_EFFECT_DISCARD);
-          Case(DXGI_SWAP_EFFECT_SEQUENTIAL);
-          Case(DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL);
-          Case(DXGI_SWAP_EFFECT_FLIP_DISCARD);
-        default: return "Unknown";
-        }
-      }
-
-    };
-
-    TAC_CALL( ValidateSwapChainEffect(
-      m_swapChainDesc.SwapEffect,
-      DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL,
-      errors ) );
+    const DXGI_SWAP_EFFECT cur = m_swapChainDesc.SwapEffect;
+    const DXGI_SWAP_EFFECT tgt = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+    TAC_RAISE_ERROR_IF( cur != tgt, String() +
+                        "The swap chain effect is " + FormattedSwapEffect( cur ) + " "
+                        "when it was expected to be " + FormattedSwapEffect( tgt ) );
 
     const DXGI_PRESENT_PARAMETERS params{};
 
@@ -1478,7 +1549,9 @@ namespace Tac
     TAC_CALL( CreateInfoQueue( errors ) );
     TAC_CALL( CreateSRVDescriptorHeap( errors ) );
     TAC_CALL( CreateCommandAllocator( errors ) );
+    TAC_CALL( CreateCommandAllocatorBundle( errors ) );
     TAC_CALL( CreateCommandList( errors ) );
+    TAC_CALL( CreateCommandListBundle( errors ) );
     TAC_CALL( CreateRootSignature( errors ) );
     TAC_CALL( CreatePipelineState( errors ) );
     TAC_CALL( CreateSamplerDescriptorHeap( errors ) );

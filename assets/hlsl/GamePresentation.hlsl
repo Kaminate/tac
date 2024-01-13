@@ -7,9 +7,9 @@ struct VS_INPUT
   float3 Normal   : NORMAL;
 };
 
-Texture2D shadowMaps[ 4 ] : TAC_AUTO_REGISTER;
-sampler linearSampler     : TAC_AUTO_REGISTER;
-sampler shadowMapSampler  : TAC_AUTO_REGISTER;
+Texture2D    shadowMaps[ 4 ]   : TAC_AUTO_REGISTER;
+SamplerState linearSampler     : TAC_AUTO_REGISTER;
+SamplerState shadowMapSampler  : TAC_AUTO_REGISTER;
 
 struct VS_OUTPUT
 {

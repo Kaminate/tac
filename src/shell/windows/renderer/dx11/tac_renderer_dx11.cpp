@@ -850,9 +850,14 @@ namespace Tac::Render
     RenderDrawCallIssueDrawCommand( drawCall );
   }
 
-  AssetPathStringView RendererDirectX11::GetShaderPath( const ShaderNameStringView& shaderName )
+  AssetPathStringView RendererDirectX11::GetShaderPath( const ShaderNameStringView& shaderName ) const
   {
     return FrameMemoryCopy( ShortFixedString::Concat( "assets/hlsl/", shaderName, ".hlsl" ) );
+  }
+
+  AssetPathStringView RendererDirectX11::GetShaderDir() const
+  {
+    return "assets/hlsl";
   }
 
   void RendererDirectX11::SwapBuffers()

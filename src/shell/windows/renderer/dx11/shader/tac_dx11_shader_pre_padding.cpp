@@ -26,15 +26,14 @@ namespace Tac::Render
     return padByteCount;
   }
 
-  String PreprocessShaderPadding( const StringView& line )
+  Optional<String> ShaderPreprocessorPadding::Preprocess( const StringView line, Errors& )
   {
+    if( !line.contains("TAC_PAD_BYTES") )
+      return {};
+
     const int iPad = line.find( "TAC_PAD_BYTES" );
-    if( iPad == line.npos )
-      return line;
-
     const int padByteCount = GetPadByteCount( line );
-
-    static int padCounter;
+    const int count = mCounter++;
 
     const String spaces( iPad, ' ' );
 
@@ -42,7 +41,7 @@ namespace Tac::Render
     for( int i = 0; i < padByteCount / 4; ++i )
     {
       const char* separator = i ? "\n" : "";
-      const String varName = "pad" + ToString( padCounter++ );
+      const String varName = "pad" + ToString( count );
 
       result += separator;
       result += spaces + "uint ";

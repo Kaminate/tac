@@ -1,7 +1,7 @@
 #include "Common.hlsl"
 
-Texture2D sprite      : TAC_AUTO_REGISTER;
-sampler linearSampler : TAC_AUTO_REGISTER;
+Texture2D    sprite        : TAC_AUTO_REGISTER;
+SamplerState linearSampler : TAC_AUTO_REGISTER;
 
 struct VS_INPUT
 {

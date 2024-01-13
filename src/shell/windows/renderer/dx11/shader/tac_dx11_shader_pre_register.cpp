@@ -8,10 +8,9 @@
 namespace Tac::Render
 {
 
-  // The shader register map is used in conjunction with the TAC_AUTO_REGISTER shader macro
-  // to assign unique registers to each shader resource.
-  struct ShaderRegisterMap
-  {
+
+  // -----------------------------------------------------------------------------------------------
+
     // c - The resource type name ( 
     // n - The resources count
     // 
@@ -22,15 +21,7 @@ namespace Tac::Render
     //       This results in Add( 'b', 1 )
     // 
     // The return value is the register assigned to each resource.
-    int Add( char c, int n );
-
-  private:
-    Array< int, 128 > mLetterCounts;
-  };
-
-  // -----------------------------------------------------------------------------------------------
-
-  int ShaderRegisterMap::Add( char c, int n )
+  int ShaderPreprocessorRegister::Add( char c, int n )
   {
     const int iResource = mLetterCounts[ c ];
     mLetterCounts[ c ] += n;
@@ -39,13 +30,6 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
   
-  static ShaderRegisterMap sShaderRegisterMap;
-
-  void ResetShaderRegisters()
-  {
-    sShaderRegisterMap = {};
-  }
-
   static int GetRegisterCount(StringView line )
   {
       const int iOpen = line.find( '[' );
@@ -80,18 +64,18 @@ namespace Tac::Render
     return ( char )0;
   }
 
-  String PreprocessShaderRegister( const StringView& line )
+  Optional<String> ShaderPreprocessorRegister::Preprocess( const StringView line, Errors& )
   {
     const StringView autoRegister = "TAC_AUTO_REGISTER";
     const int iReplace = line.find( autoRegister );
     if( iReplace == line.npos )
-      return line;
+      return {};
 
     const int regCount = GetRegisterCount( line );
     const char letter = GetResourceLetter( line );
     TAC_ASSERT( letter );
 
-    const int iResource = sShaderRegisterMap.Add( letter, regCount );
+    const int iResource = Add( letter, regCount );
     const auto registerStr = String() +
       "register(" + ToString( letter ) + ToString( iResource ) + " )";
 
@@ -104,6 +88,7 @@ namespace Tac::Render
     result += line.substr( iReplace + autoRegister.size() ); // everything after TAC_AUTO_REGISTER
     return result;
   }
+
 } // namespace Tac::Render
 
 

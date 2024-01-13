@@ -4,8 +4,9 @@
 #include "src/common/error/tac_error_handling.h"
 #include "src/common/assetmanagers/tac_asset.h"
 #include "src/common/dataprocess/tac_text_parser.h"
+#include "src/common/system/tac_os.h" //tmp
 #include "src/common/shell/tac_shell.h" // sShellPrefPath
-#include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_preprocess.h"
+#include "src/shell/windows/renderer/dx12/tac_dx12_shader_preprocess.h"
 
 
 namespace Tac::Render
@@ -14,21 +15,6 @@ namespace Tac::Render
 
   // static helper functions
 
-  static String DX12PreprocessShader( StringView shader )
-  {
-    String newShader;
-
-    ParseData parse( shader );
-    while( parse )
-    {
-      const StringView line = parse.EatRestOfLine();
-
-      newShader += PreprocessShaderSemanticName( line );
-      newShader += '\n';
-    }
-
-    return newShader;
-  }
 
   static D3D_SHADER_MODEL GetHighestShaderModel( ID3D12Device* device )
   {
@@ -83,8 +69,7 @@ namespace Tac::Render
                                        AssetPathStringView shaderAssetPath,
                                        Errors& errors)
   {
-    const String shaderStrRaw = TAC_CALL_RET( {}, LoadAssetPath( shaderAssetPath, errors ));
-    const String shaderStrProcessed = DX12PreprocessShader( shaderStrRaw );
+    const String shaderStrProcessed = DX12PreprocessShader( shaderAssetPath, errors );
 
     const char* entryPoints[ ( int )ShaderType::Count ]{};
     entryPoints[ ( int )ShaderType::Vertex ] = "VSMain";

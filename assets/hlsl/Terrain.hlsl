@@ -1,9 +1,8 @@
 #include "Common.hlsl"
-Texture2D terrainTexture : register( t0 );
-Texture2D noiseTexture : register( t1 );
 
-sampler linearSampler : register( s0 );
-
+Texture2D    terrainTexture : TAC_AUTO_REGISTER;
+Texture2D    noiseTexture   : TAC_AUTO_REGISTER;
+SamplerState linearSampler  : TAC_AUTO_REGISTER;
 
 struct VS_INPUT
 {
@@ -14,11 +13,11 @@ struct VS_INPUT
 
 struct VS_OUTPUT
 {
-  float3 mWorldSpacePosition  : HI;
-  float3 mWorldSpaceNormal    : NORMAL;
-  float2 mTexCoord            : TEXCOORD0;
+  float3 mWorldSpacePosition  : TAC_AUTO_SEMANTIC;
+  float3 mWorldSpaceNormal    : TAC_AUTO_SEMANTIC;
+  float2 mTexCoord            : TAC_AUTO_SEMANTIC;
   float4 mClipSpacePosition   : SV_POSITION;
-  float4 mScreenSpacePosition : TEXCOORD1;
+  float4 mScreenSpacePosition : TAC_AUTO_SEMANTIC;
 };
 
 VS_OUTPUT VS( VS_INPUT input )
