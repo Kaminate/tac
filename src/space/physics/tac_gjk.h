@@ -117,24 +117,6 @@ namespace Tac
 
   };
 
-  void BarycentricTriangle( v3 p,
-                            v3 tri0,
-                            v3 tri1,
-                            v3 tri2,
-                            bool& fucked,
-                            float& bary0,
-                            float& bary1,
-                            float& bary2 );
-  void BarycentricTetrahedron( v3 p,
-                               v3 tet0,
-                               v3 tet1,
-                               v3 tet2,
-                               v3 tet3,
-                               bool& fucked,
-                               float& bary0,
-                               float& bary1,
-                               float& bary2,
-                               float& bary3 );
 
 
 }

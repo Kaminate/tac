@@ -1,85 +1,19 @@
 #include "space/physics/tac_gjk.h" // self-inc
 
+#include "space/physics/tac_barycentric.h"
 #include "src/common/preprocess/tac_preprocessor.h"
 #include "src/common/math/tac_matrix3.h"
 #include "src/common/math/tac_matrix4.h"
 #include "src/common/math/tac_vector4.h"
 #include "src/common/math/tac_math.h"
+#include "src/common/containers/tac_optional.h"
 
 import std; // <algorithm> // std::find
 
 namespace Tac
 {
-  void BarycentricTriangle( v3 p,
-                            v3 tri0,
-                            v3 tri1,
-                            v3 tri2,
-                            bool& fucked,
-                            float& bary0,
-                            float& bary1,
-                            float& bary2 )
-  {
-    v3 v0 = tri1 - tri0;
-    v3 v1 = tri2 - tri0;
-    v3 v2 = p - tri0;
-    float d00 = Dot( v0, v0 );
-    float d01 = Dot( v0, v1 );
-    float d11 = Dot( v1, v1 );
-    float d20 = Dot( v2, v0 );
-    float d21 = Dot( v2, v1 );
-    float denom = d00 * d11 - d01 * d01;
-    fucked = Abs( denom ) < 0.000001f;
-    if( fucked )
-      return;
-    float invDenom = 1.0f / denom;
-    float v = ( d11 * d20 - d01 * d21 ) * invDenom;
-    float w = ( d00 * d21 - d01 * d20 ) * invDenom;
-    float u = 1.0f - v - w;
-    bary0 = u;
-    bary1 = v;
-    bary2 = w;
-  }
 
-  void BarycentricTetrahedron( v3 p,
-                               v3 tet0,
-                               v3 tet1,
-                               v3 tet2,
-                               v3 tet3,
-                               bool& fucked,
-                               float& bary0,
-                               float& bary1,
-                               float& bary2,
-                               float& bary3 )
-  {
-    v3 a = tet1 - tet0;
-    v3 b = tet2 - tet0;
-    v3 c = tet3 - tet0;
-    v3 d = p - tet0;
-
-    auto denominatorMatrix = m3::FromColumns( a, b, c );
-    auto denominator = denominatorMatrix.determinant();
-    fucked = std::abs( denominator ) < 0.001f;
-    if( fucked )
-      return;
-    auto invDenominator = 1.0f / denominator;
-
-    auto xNumeratorMatrix = m3::FromColumns( d, b, c );
-    auto xNumerator = xNumeratorMatrix.determinant();
-    auto x = xNumerator * invDenominator;
-
-    auto yNumeratorMatrix = m3::FromColumns( a, d, c );
-    auto yNumerator = yNumeratorMatrix.determinant();
-    auto y = yNumerator * invDenominator;
-
-    auto zNumeratorMatrix = m3::FromColumns( a, b, d );
-    auto zNumerator = zNumeratorMatrix.determinant();
-    auto z = zNumerator * invDenominator;
-
-    bary0 = 1.0f - x - y - z;
-    bary1 = x;
-    bary2 = y;
-    bary3 = z;
-  }
+  
 
   // Two possible orientations,
   //   
@@ -133,7 +67,7 @@ namespace Tac
 
   v3 SphereSupport::GetFurthestPoint( const v3& dir ) const
   {
-    TAC_ASSERT( std::abs( dir.Length() - 1 ) < 0.001f );
+    TAC_ASSERT( Abs( dir.Length() - 1 ) < 0.001f );
     auto result = mOrigin + mRadius * dir;
     return result;
   }
@@ -150,20 +84,12 @@ namespace Tac
 
   v3 CapsuleSupport::GetFurthestPoint( const v3& dir ) const
   {
-    TAC_ASSERT( std::abs( dir.Length() - 1 ) < 0.001f );
-    auto botDot = Dot( dir, mBotSpherePos );
-    auto topDot = Dot( dir, mTopSpherePos );
-
-    v3 result;
-    if( botDot > topDot )
-    {
-      result = mBotSpherePos + dir * mRadius;
-    }
-    else
-    {
-      result = mTopSpherePos + dir * mRadius;
-    }
-    return result;
+    TAC_ASSERT( Abs( dir.Length() - 1 ) < 0.001f );
+    const float botDot = Dot( dir, mBotSpherePos );
+    const float topDot = Dot( dir, mTopSpherePos );
+    return botDot > topDot
+      ? mBotSpherePos + dir * mRadius
+      : mTopSpherePos + dir * mRadius;
   }
 
   v3 ConvexPolygonSupport::GetFurthestPoint( const v3& dir ) const
@@ -560,24 +486,24 @@ namespace Tac
     if( pointDist - mEPAClosest.mPlaneDist < 0.1f )
     {
       mEPAIsComplete = true;
-      float bary0;
-      float bary1;
-      float bary2;
       v3 closestPointOnTri = mEPAClosest.mNormal * mEPAClosest.mPlaneDist;
-      BarycentricTriangle( closestPointOnTri,
-                           mEPAClosest.mV0.mDiffPt,
-                           mEPAClosest.mV1.mDiffPt,
-                           mEPAClosest.mV2.mDiffPt,
-                           mEPABarycentricFucked,
-                           bary0,
-                           bary1,
-                           bary2 );
-      if( mEPABarycentricFucked )
+
+      BarycentricTriInput baryIn
+      {
+        .mP = closestPointOnTri,
+        .mTri0 = mEPAClosest.mV0.mDiffPt,
+        .mTri1 = mEPAClosest.mV1.mDiffPt,
+        .mTri2 = mEPAClosest.mV2.mDiffPt,
+      };
+
+      const Optional< BarycentricTriOutput > optBaryOut = BarycentricTriangle( baryIn );
+      if( optBaryOut.HasValue() )
         return;
+
       mEPALeftPoint
-        = mEPAClosest.mV0.mLeftPoint * bary0
-        + mEPAClosest.mV1.mLeftPoint * bary1
-        + mEPAClosest.mV2.mLeftPoint * bary2;
+        = mEPAClosest.mV0.mLeftPoint * optBaryOut->mBary0
+        + mEPAClosest.mV1.mLeftPoint * optBaryOut->mBary1
+        + mEPAClosest.mV2.mLeftPoint * optBaryOut->mBary2;
       mEPALeftNormal = mEPAClosest.mNormal;
       // this is degenerate?
       // v

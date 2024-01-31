@@ -5,6 +5,8 @@ target_sources(TacGhost
   PRIVATE
   "tac_gjk.cpp"
   "tac_physics.cpp"
+  "tac_barycentric.cpp"
+  "tac_barycentric.h"
   "tac_meta_physics.cpp"
   "tac_physics_debug.cpp"
 )
