@@ -1,5 +1,7 @@
 #include "space/graphics/light/tac_light.h" // self-inc
 
+#include "src/common/tac_ints.h"
+
 #include "src/common/math/tac_matrix3.h"
 #include "src/common/graphics/tac_camera.h"
 #include "src/common/dataprocess/tac_json.h"
@@ -208,7 +210,7 @@ namespace Tac
     const m4 proj = camera.Proj( a, b, aspect );
 
 
-    const uint32_t flags = 0
+    const u32 flags = 0
       | Render::GetShaderLightFlagType()->ShiftResult( light->mType )
       | Render::GetShaderLightFlagCastsShadows()->ShiftResult( light->mCastsShadows );
 

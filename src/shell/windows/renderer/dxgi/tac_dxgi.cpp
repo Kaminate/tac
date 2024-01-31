@@ -5,15 +5,12 @@
 #include "src/common/error/tac_error_handling.h"
 #include "src/common/preprocess/tac_preprocessor.h"
 #include "src/common/containers/tac_array.h"
+#include "src/common/tac_ints.h"
+
 
 #include <d3dcommon.h> // WKPDID_D3DDebugObjectName
 
 import std; // #include <sstream> // std::stringstream
-
-using std::uint32_t;
-using std::uint16_t;
-using std::uint8_t;
-
 
 #pragma comment( lib, "DXGI.lib" )
 
@@ -240,17 +237,17 @@ namespace Tac::Render
 
   static const FormatPair gFormatPairs[] =
   {
-    FormatPair{ { 1, sizeof( uint32_t ), GraphicsType::real  }, DXGI_FORMAT_R32_FLOAT          },
-    FormatPair{ { 2, sizeof( uint32_t ), GraphicsType::real  }, DXGI_FORMAT_R32G32_FLOAT       },
-    FormatPair{ { 3, sizeof( uint32_t ), GraphicsType::real  }, DXGI_FORMAT_R32G32B32_FLOAT    },
-    FormatPair{ { 4, sizeof( uint16_t ), GraphicsType::real  }, DXGI_FORMAT_R16G16B16A16_FLOAT },
-    FormatPair{ { 4, sizeof( uint32_t ), GraphicsType::real  }, DXGI_FORMAT_R32G32B32A32_FLOAT },
-    FormatPair{ { 1, sizeof( uint8_t ),  GraphicsType::unorm }, DXGI_FORMAT_R8_UNORM           },
-    FormatPair{ { 2, sizeof( uint8_t ),  GraphicsType::unorm }, DXGI_FORMAT_R8G8_UNORM         },
-    FormatPair{ { 4, sizeof( uint8_t ),  GraphicsType::unorm }, DXGI_FORMAT_R8G8B8A8_UNORM     },
-    FormatPair{ { 1, sizeof( uint16_t ), GraphicsType::uint  }, DXGI_FORMAT_R16_UINT           },
-    FormatPair{ { 1, sizeof( uint32_t ), GraphicsType::uint  }, DXGI_FORMAT_R32_UINT           },
-    FormatPair{ { 1, sizeof( uint16_t ), GraphicsType::unorm }, DXGI_FORMAT_R16_UNORM          },
+    FormatPair{ { 1, sizeof( u32 ), GraphicsType::real  }, DXGI_FORMAT_R32_FLOAT          },
+    FormatPair{ { 2, sizeof( u32 ), GraphicsType::real  }, DXGI_FORMAT_R32G32_FLOAT       },
+    FormatPair{ { 3, sizeof( u32 ), GraphicsType::real  }, DXGI_FORMAT_R32G32B32_FLOAT    },
+    FormatPair{ { 4, sizeof( u16 ), GraphicsType::real  }, DXGI_FORMAT_R16G16B16A16_FLOAT },
+    FormatPair{ { 4, sizeof( u32 ), GraphicsType::real  }, DXGI_FORMAT_R32G32B32A32_FLOAT },
+    FormatPair{ { 1, sizeof( u8 ),  GraphicsType::unorm }, DXGI_FORMAT_R8_UNORM           },
+    FormatPair{ { 2, sizeof( u8 ),  GraphicsType::unorm }, DXGI_FORMAT_R8G8_UNORM         },
+    FormatPair{ { 4, sizeof( u8 ),  GraphicsType::unorm }, DXGI_FORMAT_R8G8B8A8_UNORM     },
+    FormatPair{ { 1, sizeof( u16 ), GraphicsType::uint  }, DXGI_FORMAT_R16_UINT           },
+    FormatPair{ { 1, sizeof( u32 ), GraphicsType::uint  }, DXGI_FORMAT_R32_UINT           },
+    FormatPair{ { 1, sizeof( u16 ), GraphicsType::unorm }, DXGI_FORMAT_R16_UNORM          },
   };
 
   DXGI_FORMAT      GetDXGIFormatDepth( const int i )
@@ -275,12 +272,10 @@ namespace Tac::Render
 
   DXGI_FORMAT      GetDXGIFormatTextureTypeless( int i )
   {
-    constexpr int c16 = sizeof( std::uint16_t );
-    constexpr int c32 = sizeof( std::uint32_t );
     switch( i )
     {
-      case c16: return DXGI_FORMAT_R16_TYPELESS;
-      case c32: return DXGI_FORMAT_R32_TYPELESS;
+      case 2: return DXGI_FORMAT_R16_TYPELESS;
+      case 4: return DXGI_FORMAT_R32_TYPELESS;
       default: TAC_ASSERT_INVALID_CODE_PATH; return DXGI_FORMAT_UNKNOWN;
     }
   }
@@ -289,7 +284,7 @@ namespace Tac::Render
   {
     TAC_ASSERT_MSG( textureFormat.mPerElementByteCount != 16,
                     "You're making a depth buffer, right?"
-                    "Byte count should be 2, aka sizeof( uint16_t ), not 16" );
+                    "Byte count should be 2, aka sizeof( u16 ), not 16" );
 
     for( const FormatPair& formatPair : gFormatPairs )
       if( formatPair.mFormat.mElementCount == textureFormat.mElementCount &&

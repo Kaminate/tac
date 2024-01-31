@@ -25,7 +25,7 @@ namespace Tac
 
 
 	const String defaultHostname = "tac.nate.rocks";
-	const uint16_t defaultPort = 8081;
+	const u16 defaultPort = 8081;
 
 	v4 colorText = v4( 202, 234, 241, 255 ) / 255.0f;
 
@@ -279,7 +279,7 @@ namespace Tac
 		mSocket->mTCPOnConnectionClosed.push_back( socketCallbackData );
 
 		//String hostname = SettingsGetString( "hostname" , defaultHostname );
-		mPort = ( uint16_t )SettingsGetNumber( "port" , ( JsonNumber )defaultPort );
+		mPort = ( u16 )SettingsGetNumber( "port" , ( JsonNumber )defaultPort );
 
 		mConnectionAttemptStartSeconds = ShellGetElapsedSeconds();
 
@@ -482,15 +482,15 @@ namespace Tac
 		//  {
 		//    for( int j = 0; j < x; ++j )
 		//    {
-		//      uint8_t* r = l++;
-		//      uint8_t* g = l++;
-		//      uint8_t* b = l++;
-		//      uint8_t* a = l++;
+		//      u8* r = l++;
+		//      u8* g = l++;
+		//      u8* b = l++;
+		//      u8* a = l++;
 		//      float percent = *a / 255.0f;
 
-		//      *r = ( uint8_t )( *r * percent );
-		//      *g = ( uint8_t )( *g * percent );
-		//      *b = ( uint8_t )( *b * percent );
+		//      *r = ( u8 )( *r * percent );
+		//      *g = ( u8 )( *g * percent );
+		//      *b = ( u8 )( *b * percent );
 		//    }
 		//  }
 
@@ -907,7 +907,7 @@ namespace Tac
 		//  ImGuiInputText( "Hostname", scriptMatchmaker->mHostname );
 		//  String portString = ToString( scriptMatchmaker->mPort );
 		//  if( ImGuiInputText( "Port", portString ) )
-		//    scriptMatchmaker->mPort = ( uint16_t )std::atoi( portString.c_str() );
+		//    scriptMatchmaker->mPort = ( u16 )std::atoi( portString.c_str() );
 		//  JobState status = mConnectToServerJob->GetStatus();
 		//  if( status == JobState::ThreadQueued ||
 		//    status == JobState::ThreadRunning )

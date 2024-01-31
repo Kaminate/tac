@@ -1,6 +1,8 @@
 #pragma once
 
 /*
+#include "src/common/tac_ints.h"
+
 #include "common/graphics/tac_renderer.h"
 #include "common/tac_shell.h"
 
@@ -84,11 +86,11 @@ struct TacVulkanRenderer : public TacRenderer
   void AddRasterizerState( TacRasterizerState** outputRasterizerState, TacRasterizerStateData rasterizerStateData, TacErrors& errors ) override;
   void AddDepthState( TacDepthState** outputDepthState, TacDepthStateData depthStateData, TacErrors& errors ) override;
   void CreateWindowContext( struct TacDesktopWindow* desktopWindow, TacErrors& errors ) override;
-  uint32_t GetMemory( uint32_t typeBits, VkMemoryPropertyFlags properties, TacErrors& errors );
+  u32 GetMemory( u32 typeBits, VkMemoryPropertyFlags properties, TacErrors& errors );
   void FlushCommandBuffer( VkCommandBuffer commandBuffer, TacErrors& errors );
 
 
-  uint32_t mSelectedQueueFamilyIndex = 0;
+  u32 mSelectedQueueFamilyIndex = 0;
   VkInstance mInstance = nullptr;
   VkDevice mDevice = nullptr;
   VkPhysicalDeviceMemoryProperties mDeviceMemoryProperties;

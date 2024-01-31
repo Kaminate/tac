@@ -5,8 +5,7 @@
 #include "src/common/shell/tac_shell_timer.h"
 #include "src/common/tac_core.h"
 
-import std; // <list>, <cstdint>(uint8_t)
-using std::uint8_t;
+import std; // <list>
 
 namespace Tac
 {
@@ -25,7 +24,7 @@ namespace Tac
   void WriteNetMsgHeader( Writer*, NetMsgType );
   void ReadNetMsgHeader( Reader*, NetMsgType*, Errors& );
 
-  uint8_t GetNetworkBitfield( const void* oldData,
+  u8 GetNetworkBitfield( const void* oldData,
                               const void* newData,
                               const NetworkBits& networkBits );
 

@@ -160,7 +160,7 @@ namespace Tac
 
         int heightmapX = ( int )( xPercent * ( mTestHeightmapWidth - 1 ) );
         int heightmapY = ( int )( zPercent * ( mTestHeightmapHeight - 1 ) );
-        uint8_t heightmapValue = mTestHeightmapImageMemory[ heightmapX + heightmapY * mTestHeightmapWidth ];
+        u8 heightmapValue = mTestHeightmapImageMemory[ heightmapX + heightmapY * mTestHeightmapWidth ];
         float heightmapPercent = heightmapValue / 255.0f;
         heightmapPercent *= heightmapPercent;
         heightmapPercent = Pow( heightmapPercent, mPower );

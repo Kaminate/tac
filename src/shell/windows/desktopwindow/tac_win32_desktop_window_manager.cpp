@@ -29,7 +29,7 @@ namespace Tac
 
   static DesktopWindowHandle sWindowUnderConstruction;
 
-  static Keyboard::Key       GetKey( std::uint8_t keyCode )
+  static Keyboard::Key       GetKey( u8 keyCode )
   {
 
     // List of virtual key codes
@@ -198,7 +198,7 @@ namespace Tac
         if( isDown == wasDown )
           break;
 
-        const Keyboard::Key key = GetKey( ( std::uint8_t )wParam );
+        const Keyboard::Key key = GetKey( ( u8 )wParam );
         if( key == Keyboard::Key::Count )
           break;
 

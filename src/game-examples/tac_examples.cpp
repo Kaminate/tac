@@ -116,7 +116,7 @@ namespace Tac
 
   static void ExampleDemoWindow(Errors& errors)
   {
-    auto i = ShellGetFrameIndex();
+    //auto i = ShellGetFrameIndex();
     ImGuiSetNextWindowStretch();
     ImGuiSetNextWindowDisableBG();
     ImGuiSetNextWindowHandle( sDemoWindow );

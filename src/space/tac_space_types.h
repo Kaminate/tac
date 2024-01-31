@@ -1,15 +1,12 @@
 #pragma once
 
-import std;// #include <cstdint>
-using std::uint8_t;
-using std::uint16_t;
-using std::uint32_t;
+#include "src/common/tac_ints.h"
 
 namespace Tac
 {
 
+  using UUID = u32;
 
-  typedef uint32_t UUID;
   const UUID NullUUID = 0;
 
   enum class ConnectionUUID : UUID;
@@ -21,8 +18,8 @@ namespace Tac
   enum class EntityUUID : UUID;
   const EntityUUID NullEntityUUID = ( EntityUUID )NullUUID;
 
-  typedef uint8_t PlayerCount;
-  typedef uint16_t EntityCount;
+  using PlayerCount = u8;
+  using EntityCount = u16;
 
   template < typename T >
   struct UUIDCounter

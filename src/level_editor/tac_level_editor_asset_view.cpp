@@ -378,7 +378,7 @@ namespace Tac
         .mFormat =
         {
           .mElementCount = 1,
-          .mPerElementByteCount = sizeof( uint16_t ),
+          .mPerElementByteCount = sizeof( u16 ),
           .mPerElementDataType = Render::GraphicsType::unorm,
         },
       },

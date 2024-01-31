@@ -1,5 +1,7 @@
 #include "space/presentation/tac_game_presentation.h" // self-inc
 
+#include "src/common/tac_ints.h"
+
 #include "src/common/assetmanagers/tac_mesh.h"
 #include "src/common/assetmanagers/tac_model_asset_manager.h"
 #include "src/common/assetmanagers/tac_texture_asset_manager.h"
@@ -224,7 +226,7 @@ namespace Tac
       return;
 
 
-    typedef uint32_t TerrainIndex;
+    typedef u32 TerrainIndex;
 
 
     Vector< TerrainVertex > vertexes;

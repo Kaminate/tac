@@ -26,14 +26,14 @@ namespace Tac
     TAC_RAISE_ERROR_IF( !reader->Read(netMsgType),  "failure reading NetMsgType" );
   }
 
-  uint8_t GetNetworkBitfield( const void* oldData,
+  u8 GetNetworkBitfield( const void* oldData,
                               const void* newData,
                               const NetworkBits& networkBits )
   {
     if( !oldData )
       return 0xff;
 
-    uint8_t bitfield = 0;
+    u8 bitfield = 0;
     for( int i = 0; i < networkBits.size(); ++i )
     {
       const NetworkBit& bits = networkBits[ i ];

@@ -31,7 +31,7 @@ namespace Tac::Network
     void        SetKeepalive( bool keepAlive, Errors& );
     void        Send( void* bytes, int byteCount, Errors& ) override;
     void        TCPTryConnect( StringView hostname,
-                               uint16_t port,
+                               u16 port,
                                Errors& ) override;
     SOCKET      mSocket = INVALID_SOCKET;
     int         mWinsockAddressFamily = 0;
@@ -118,52 +118,62 @@ namespace Tac::Network
 
   void SocketWinsock::Send( void* bytes, int byteCount, Errors& errors )
   {
-    Vector< uint8_t > framed;
+    Vector< u8 > framed;
     if( mRequiresWebsocketFrame )
     {
-      uint8_t payloadByteCount7Bit = 0;
-      //int payloadByteCountExtra = 0;
-      Writer writer;
-      writer.mFrom = GetEndianness();
-      writer.mTo = Endianness::Big;
+      u8 payloadByteCount7Bit = 0;
+
+      Writer writer
+      {
+        .mFrom = GetEndianness(),
+        .mTo = Endianness::Big,
+      };
+
       if( byteCount < 126 )
-        payloadByteCount7Bit = ( uint8_t )byteCount;
+        payloadByteCount7Bit = ( u8 )byteCount;
       else if( byteCount < 1 << 16 )
       {
         payloadByteCount7Bit = 126;
-        writer.Write( ( uint16_t )byteCount );
+        writer.Write( ( u16 )byteCount );
       }
       else
       {
         payloadByteCount7Bit = 127;
-        writer.Write( ( uint64_t )byteCount );
+        writer.Write( ( u64 )byteCount );
       }
-      int frameByteCount = 2 + ( int )writer.mBytes.size() + 4 + byteCount;
+
+      const int frameByteCount = 2 + ( int )writer.mBytes.size() + 4 + byteCount;
       framed.resize( frameByteCount );
+
       int iByte = 0;
       framed[ iByte++ ] =
         0b10000000 | // fin
         0x2; // opcode binary frame
+
       framed[ iByte++ ] =
         0b10000000 | // is masked
         payloadByteCount7Bit;
+
       for( char b : writer.mBytes )
         framed[ iByte++ ] = b;
-      uint8_t masks[ 4 ];
+
+      u8 masks[ 4 ];
       for( int i = 0; i < 4; ++i )
       {
-        uint8_t mask = std::rand() % 256;
+        u8 mask = std::rand() % 256;
         masks[ i ] = mask;
         framed[ iByte++ ] = mask;
       }
-      uint8_t* unmaskedBytes = ( uint8_t* )bytes;
+
+      u8* unmaskedBytes = ( u8* )bytes;
       for( int i = 0; i < byteCount; ++i )
       {
-        uint8_t unmaskedByte = *unmaskedBytes++;
-        uint8_t mask = masks[ i % 4 ];
-        uint8_t maskedByte = unmaskedByte ^ mask;
+        u8 unmaskedByte = *unmaskedBytes++;
+        u8 mask = masks[ i % 4 ];
+        u8 maskedByte = unmaskedByte ^ mask;
         framed[ iByte++ ] = maskedByte;
       }
+
       TAC_ASSERT( iByte == frameByteCount );
 
       bytes = framed.data();
@@ -206,7 +216,7 @@ namespace Tac::Network
   }
 
   void SocketWinsock::TCPTryConnect( StringView hostname,
-                                     uint16_t port,
+                                     u16 port,
                                      Errors& errors )
   {
     TAC_ASSERT( mSocketType == SocketType::TCP );

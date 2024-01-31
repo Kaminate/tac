@@ -1,5 +1,7 @@
 /*
 
+#include "src/common/tac_ints.h"
+
 
 // ok heres the fuckin deal:
 // you want to set event markers and event groups for convenient graphcis debugging
@@ -406,7 +408,7 @@ void RendererDX12::CreateWindowContext( DesktopWindow* desktopWindow, Errors& er
   }
 
   // TODO: how the fuck does any of this work?
-  uint32_t rtvDescriptorSize = mDevice->GetDescriptorHandleIncrementSize( D3D12_DESCRIPTOR_HEAP_TYPE_RTV );
+  u32 rtvDescriptorSize = mDevice->GetDescriptorHandleIncrementSize( D3D12_DESCRIPTOR_HEAP_TYPE_RTV );
   D3D12_CPU_DESCRIPTOR_HANDLE handle = mRTVDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
   Vector< TextureDX12* > backbufferColors;
   for( UINT i = 0; i < bufferCount; ++i )

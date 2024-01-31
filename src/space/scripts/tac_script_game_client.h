@@ -3,9 +3,7 @@
 #include "space/script/tac_script.h"
 #include "src/common/graphics/tac_font.h"
 
-import std; // uint16_t , <set>
-
-using std::uint16_t;
+import std; //  <set>
 
 namespace Tac::Network
 {
@@ -82,7 +80,7 @@ namespace Tac
     Network::Socket* mSocket = nullptr;
     String           mHostname;
     Errors           mConnectionErrors;
-    uint16_t         mPort = 0;
+    u16              mPort = 0;
     bool             mPrintHTTPRequest = false;
     bool             mPretendWebsocketHandshakeDone = false;
     bool             mShouldSpamServer = false;

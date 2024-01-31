@@ -1,6 +1,8 @@
 #include "space/presentation/tac_voxel_gi_presentation.h" // self-inc
 
 #include "src/common/assetmanagers/tac_mesh.h"
+#include "src/common/tac_ints.h"
+
 #include "src/common/assetmanagers/tac_model_asset_manager.h"
 #include "src/common/containers/tac_frame_vector.h"
 #include "src/common/graphics/imgui/tac_imgui.h"
@@ -92,7 +94,7 @@ namespace Tac
     float    gVoxelWidth;
 
     //       Number of voxels on each side of the grid
-    uint32_t gVoxelGridSize;
+    u32 gVoxelGridSize;
 
     static Render::ConstantBufferHandle  Handle;
 
@@ -284,7 +286,7 @@ namespace Tac
 
   static void                    CreateVoxelRWStructredBuf()
   {
-    const int voxelStride = sizeof( uint32_t ) * 2;
+    const int voxelStride = sizeof( u32 ) * 2;
     const int voxelCount
       = voxelSettingsCurrent.voxelDimension
       * voxelSettingsCurrent.voxelDimension
@@ -308,7 +310,7 @@ namespace Tac
     return { .gVoxelGridCenter    = voxelSettingsCurrent.voxelGridCenter,
              .gVoxelGridHalfWidth = voxelSettingsCurrent.voxelGridHalfWidth,
              .gVoxelWidth         = gVoxelWidth,
-             .gVoxelGridSize      = (uint32_t)voxelSettingsCurrent.voxelDimension };
+             .gVoxelGridSize      = (u32)voxelSettingsCurrent.voxelDimension };
   }
 
   static void                    RenderDebugVoxelOutlineGrid( Debug3DDrawData* drawData )

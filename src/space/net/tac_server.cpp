@@ -137,7 +137,7 @@ namespace Tac
     {
       struct PlayerDifference
       {
-        uint8_t    mBitfield;
+        u8    mBitfield;
         Player*    mNewPlayer;
         PlayerUUID playerUUID;
       };
@@ -147,7 +147,7 @@ namespace Tac
       {
         PlayerUUID playerUUID = newPlayer->mPlayerUUID;
         Player* oldPlayer = oldWorld->FindPlayer( playerUUID );
-        uint8_t bitfield = GetNetworkBitfield( oldPlayer, newPlayer, PlayerNetworkBitsGet() );
+        u8 bitfield = GetNetworkBitfield( oldPlayer, newPlayer, PlayerNetworkBitsGet() );
         if( !bitfield )
           continue;
 
@@ -225,7 +225,7 @@ namespace Tac
           }
           else
           {
-            uint8_t networkBitfield = GetNetworkBitfield( oldComponent,
+            u8 networkBitfield = GetNetworkBitfield( oldComponent,
                                                        newComponent,
                                                        componentData->mNetworkBits );
             if( networkBitfield )
