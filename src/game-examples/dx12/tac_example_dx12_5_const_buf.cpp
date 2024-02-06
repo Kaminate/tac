@@ -1,12 +1,13 @@
 #include "tac_example_dx12_5_const_buf.h" // self-inc
 #include "tac_example_dx12_shader_compile.h"
-#include "tac_example_dx12_shader_compile.h"
 #include "tac_example_dx12_2_dxc.h"
 
-#include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_preprocess.h"
 #include "src/common/containers/tac_array.h"
 #include "src/common/dataprocess/tac_text_parser.h"
 #include "src/common/containers/tac_span.h"
+#include "src/common/containers/tac_map.h"
+#include "src/common/containers/tac_list.h"
+#include "src/common/containers/tac_set.h"
 #include "src/common/assetmanagers/tac_asset.h"
 #include "src/common/memory/tac_frame_memory.h"
 #include "src/common/error/tac_error_handling.h"
@@ -21,6 +22,7 @@
 #include "src/shell/tac_desktop_app.h"
 #include "src/shell/tac_desktop_window_settings_tracker.h"
 #include "src/shell/windows/renderer/dx12/tac_dx12_helper.h"
+#include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_preprocess.h"
 #include "src/shell/windows/tac_win32.h"
 
 #pragma comment( lib, "d3d12.lib" ) // D3D12...

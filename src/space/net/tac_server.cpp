@@ -193,7 +193,7 @@ namespace Tac
       struct EntityDifference
       {
         std::set< ComponentRegistryEntryIndex >       mDeletedComponents;
-        std::map< ComponentRegistryEntryIndex, char > mChangedComponentBitfields;
+        std::map< ComponentRegistryEntryIndex, u8 >   mChangedComponentBitfields;
         Entity*                                       mNewEntity = nullptr;
         EntityUUID                                    mEntityUUID = NullEntityUUID;
       };
@@ -204,7 +204,7 @@ namespace Tac
         Entity* oldEntity = oldWorld->FindEntity( newEntity->mEntityUUID );
 
         std::set< ComponentRegistryEntryIndex >       deletedComponents;
-        std::map< ComponentRegistryEntryIndex, char > changedComponentBitfields;
+        std::map< ComponentRegistryEntryIndex, u8 > changedComponentBitfields;
 
         for( int iComponentType = 0; iComponentType < registeredComponentCount; ++iComponentType )
         {
@@ -257,8 +257,8 @@ namespace Tac
         writer->Write( deletedComponentsBitfield );
 
         char changedComponentsBitfield = 0;
-        for( auto pair : entityDifference.mChangedComponentBitfields )
-          changedComponentsBitfield |= ComponentToBitField( pair.first );
+        for( auto [iEntry, bitfield] : entityDifference.mChangedComponentBitfields )
+          changedComponentsBitfield |= ComponentToBitField( iEntry );
 
         writer->Write( changedComponentsBitfield );
 

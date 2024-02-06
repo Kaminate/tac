@@ -92,8 +92,8 @@ namespace Tac
 
   void ClientData::OnClientDisconnect()
   {
-    mWorld->mEntities.clear();
-    mWorld->mPlayers.clear();
+    mWorld->mEntities.Clear();
+    mWorld->mPlayers.Clear();
     mPlayerUUID = ( PlayerUUID )0;
   }
 
