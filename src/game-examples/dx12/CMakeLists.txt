@@ -73,10 +73,10 @@ endforeach()
 #
 # If $ENV{WindowsSdkVerBinPath} is defined, we use that
 #
-# Cache DXIL_PATH to be used by the shader compiler.
+# Cache TAC_DXIL_DLL_PATH/TAC_DXCOMPILER_DLL_PATH to be used by the shader compiler.
 # CMake must have been run after vcvars.bat to have 
 # (see tac/run/run_vs2022.bat which runs vcvars.bat prior to CMake)
-# The reason DXIL_PATH is cached is because cmake can be re-run from inside visual studio,
+# The reason TAC_DXIL_DLL_PATH is cached is because cmake can be re-run from inside visual studio,
 # which doesn't have $ENV{WindowsSdkVerBinPath}.
 
 # Try to define TAC_DXIL_DLL_PATH and TAC_DXCOMPILER_DLL_PATH using the
@@ -99,6 +99,7 @@ function( _define_dx_path varName filename )
 
   # This is just where I downloaded the latest release bins of
   # https://github.com/microsoft/DirectXShaderCompiler/
+  list( APPEND bins "C:/Program Files (x86)/DXC/bin/" )
   list( APPEND bins "D:/Program Files (x86)/DXC/bin/" )
   if( DEFINED ENV{WindowsSdkVerBinPath} )
     list( APPEND bins $ENV{WindowsSdkVerBinPath} )
@@ -128,7 +129,10 @@ function( _define_dx_path varName filename )
 
   message( FATAL_ERROR
            "Could not find ${filename} at path: " ${varVal} ", "
-           "please check ${varName} configuration" )
+           "please check ${varName} configuration, or try running CMake on the "
+           "Developer Command Prompt for VS and we will try to guess the windows sdk bin for you "
+           "or download https://github.com/microsoft/DirectXShaderCompiler/ to "
+           "C:/Program Files (x86)/DXC/bin/" )
 
 endfunction()
 
