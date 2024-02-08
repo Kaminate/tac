@@ -9,6 +9,7 @@
 #include "src/common/graphics/tac_debug_3d.h"
 #include "src/common/memory/tac_memory.h"
 #include "src/common/profile/tac_profile.h"
+#include "src/common/algorithm/tac_algorithm.h"
 
 Tac::World::World()
 {
@@ -94,14 +95,12 @@ void               Tac::World::KillEntity( EntityIterator it )
   {
     if( iTreeIterator == treeIterators.size() )
       break;
+
     EntityIterator treeIterator = treeIterators[ iTreeIterator ];
     Entity* treeEntity = *treeIterator;
     for( Entity* treeEntityChild : treeEntity->mChildren )
     {
-      EntityIterator treeEntityChildIterator = std::find(
-        mEntities.begin(),
-        mEntities.end(),
-        treeEntityChild );
+      EntityIterator treeEntityChildIterator = mEntities.Find( treeEntityChild );
       treeIterators.push_back( treeEntityChildIterator );
     }
     iTreeIterator++;
@@ -113,22 +112,22 @@ void               Tac::World::KillEntity( EntityIterator it )
     if( Player* player = FindPlayer( treeEntity->mEntityUUID ) )
       player->mEntityUUID = NullEntityUUID;
 
-    mEntities.erase( treeIterator );
+    mEntities.Erase( treeIterator );
     delete treeEntity;
   }
 }
 
 void               Tac::World::KillEntity( Entity* entity )
 {
-  auto it = std::find( mEntities.begin(), mEntities.end(), entity );
+  auto it = Find( mEntities.begin(), mEntities.end(), entity );
   KillEntity( it );
 }
 
 void               Tac::World::KillEntity( EntityUUID entityUUID )
 {
-  auto it = std::find_if( mEntities.begin(),
-                          mEntities.end(),
-                          [ & ]( Entity* entity ) { return entity->mEntityUUID == entityUUID; } );
+  auto it = FindIf( mEntities.begin(),
+                    mEntities.end(),
+                    [ & ]( Entity* entity ) { return entity->mEntityUUID == entityUUID; } );
   KillEntity( it );
 }
 
@@ -159,14 +158,14 @@ Tac::Player*       Tac::World::FindPlayer( EntityUUID entityUUID )
 
 void               Tac::World::KillPlayer( PlayerUUID playerUUID )
 {
-  auto it = std::find_if( mPlayers.begin(),
-                          mPlayers.end(),
-                          [ & ]( Player* player ) { return player->mPlayerUUID == playerUUID; } );
+  auto it = FindIf( mPlayers.begin(),
+                    mPlayers.end(),
+                    [ & ]( Player* player ) { return player->mPlayerUUID == playerUUID; } );
   TAC_ASSERT( it != mPlayers.end() );
   auto player = *it;
   KillEntity( player->mEntityUUID );
   delete player;
-  mPlayers.erase( it );
+  mPlayers.Erase( it );
 }
 
 void               Tac::World::ApplyInput( Player* player, float seconds )
@@ -266,16 +265,16 @@ void               Tac::World::DeepCopy( const World& world )
   for( Player* player : mPlayers )
     delete player;
 
-  mPlayers.Clear();
+  mPlayers.clear();
 
   for( Entity* entity : mEntities )
     delete entity;
 
-  mEntities.Clear();
+  mEntities.clear();
 
   mElapsedSecs = world.mElapsedSecs;
 
-  for( Player* fromPlayer : world.mPlayers )
+  for( const Player* fromPlayer : world.mPlayers )
   {
     auto player = TAC_NEW Player;
     *player = *fromPlayer;

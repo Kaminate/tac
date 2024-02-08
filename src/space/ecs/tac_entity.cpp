@@ -350,8 +350,9 @@ namespace Tac
     // I think these should have its own mComponents json node
     for( auto& pair : prefabJson.mObjectChildrenMap )
     {
-      StringView key = pair.first;
-      Json* componentJson = pair.second;
+      StringView key = pair.mFirst;
+      Json* componentJson = pair.mSecond;
+
       ComponentRegistryEntry* componentRegistryEntry = ComponentRegistry_FindComponentByName( key );
       if( !componentRegistryEntry )
         continue; // This key-value pair is not a component

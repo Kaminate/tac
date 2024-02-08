@@ -1,31 +1,25 @@
+#include "space/net/tac_server.h" // self-inc
+
 #include "src/common/memory/tac_memory.h"
 #include "src/common/preprocess/tac_preprocessor.h"
 #include "src/common/dataprocess/tac_settings.h"
 #include "src/common/string/tac_string_util.h"
+#include "src/common/containers/tac_set.h"
 #include "space/ecs/tac_component.h"
 #include "space/ecs/tac_entity.h"
+#include "space/ecs/tac_component_registry.h"
 #include "space/player/tac_player.h"
 #include "space/script/tac_script.h"
 #include "space/scripts/tac_script_game_client.h"
-#include "space/net/tac_server.h"
 #include "space/net/tac_space_net.h"
 #include "space/net/tac_space_net.h"
 #include "space/world/tac_world.h"
-//#include <algorithm>
-//#include <fstream>
 
 namespace Tac
 {
   // decreasing to 0 for easier debugging
   // ( consistant update between server/client )
   const float sSnapshotUntilNextSecondsMax = 0; //0.1f;
-
-  typedef int ComponentRegistryEntryIndex;
-  static char ComponentToBitField( ComponentRegistryEntryIndex componentType )
-  {
-    char result = 1 << ( char )componentType;
-    return result;
-  }
 
   ServerData::ServerData()
   {
@@ -186,16 +180,51 @@ namespace Tac
 
     // Write entity differenes
     {
-      //const ComponentRegistry* componentRegistry = ComponentRegistry::Instance();
-      const int registeredComponentCount = ComponentRegistry_GetComponentCount();
 
+      // Bit shifted index, to be 
+      //struct ComponentRegistryBit
+      //{
+      //  ComponentRegistryBit( ComponentRegistryIndex i ) : mBit( 1 << i.mIndex ) {}
+      //  u64 mBit;
+      //};
+
+      struct ComponentRegistryBits
+      {
+        //void UnionWith( ComponentRegistryBit b ) { mBitfield |= b.mBit; }
+        //void UnionWith( ComponentRegistryIndex i ) { UnionWith( ComponentRegistryBit( i ) ); }
+        void UnionWith( ComponentRegistryIndex i ) { mBitfield |= 1 << i.mIndex; }
+
+        u64 mBitfield = 0;
+      };
+
+
+
+      const ComponentRegistryIndex registeredComponentCount = ComponentRegistry_GetComponentCount();
+
+      struct ChangedComponentBitfields
+      {
+        void Set( ComponentRegistryIndex idx, u8 data )
+        {
+          if( data )
+          {
+            mData[ idx ] = data;
+            mDirty = true;
+          }
+        }
+        u8   Get( ComponentRegistryIndex idx ) const    { return mData[ idx ]; }
+        bool IsDirty() const                            { return mDirty; }
+
+      private:
+        u8   mData[ 64 ] = {};
+        bool mDirty = false;
+      };
 
       struct EntityDifference
       {
-        std::set< ComponentRegistryEntryIndex >       mDeletedComponents;
-        std::map< ComponentRegistryEntryIndex, u8 >   mChangedComponentBitfields;
-        Entity*                                       mNewEntity = nullptr;
-        EntityUUID                                    mEntityUUID = NullEntityUUID;
+        ComponentRegistryBits     mComponents = 0;
+        ChangedComponentBitfields mChangedComponentBitfields;
+        Entity*                   mNewEntity = nullptr;
+        EntityUUID                mEntityUUID = NullEntityUUID;
       };
 
       Vector< EntityDifference > entityDifferences;
@@ -203,41 +232,42 @@ namespace Tac
       {
         Entity* oldEntity = oldWorld->FindEntity( newEntity->mEntityUUID );
 
-        std::set< ComponentRegistryEntryIndex >       deletedComponents;
-        std::map< ComponentRegistryEntryIndex, u8 > changedComponentBitfields;
+        ComponentRegistryBits oldComponents = 0;
+        ComponentRegistryBits newComponents = 0;
+        ChangedComponentBitfields changedComponentBitfields;
 
-        for( int iComponentType = 0; iComponentType < registeredComponentCount; ++iComponentType )
+        for( ComponentRegistryIndex iComponentType = 0;
+             iComponentType.mIndex < registeredComponentCount.mIndex;
+             iComponentType.mIndex++ )
         {
-          auto componentType = ( ComponentRegistryEntryIndex )iComponentType;
+          //const ComponentRegistryBit componentType = 1 << iComponentType;
           const ComponentRegistryEntry* componentData = ComponentRegistry_GetComponentAtIndex( iComponentType );
-          Component* oldComponent = nullptr;
-          if( oldEntity )
-            oldComponent = oldEntity->GetComponent( componentData );
+
+          Component* oldComponent = oldEntity ? oldEntity->GetComponent( componentData ) : nullptr;
+          if( oldComponent )
+            oldComponents |= componentType;
 
           Component* newComponent = newEntity->GetComponent( componentData );
-          if( !oldComponent && !newComponent )
+          if( newComponent )
+            newComponents |= componentType;
+
+          if( oldComponent && newComponent )
           {
-            continue;
-          }
-          else if( oldComponent && !newComponent )
-          {
-            deletedComponents.insert( componentType );
-          }
-          else
-          {
-            u8 networkBitfield = GetNetworkBitfield( oldComponent,
-                                                       newComponent,
-                                                       componentData->mNetworkBits );
-            if( networkBitfield )
-              changedComponentBitfields[ componentType ] = networkBitfield;
+            const auto netBit = GetNetworkBitfield( oldComponent,
+                                                    newComponent,
+                                                    componentData->mNetworkBits );
+
+            changedComponentBitfields.Set( componentType, netBit );
           }
         }
 
-        if( deletedComponents.empty() && changedComponentBitfields.empty() )
+        if( const bool nothingChanged
+            = oldComponents == newComponents
+            && !changedComponentBitfields.IsDirty() )
           continue;
 
         EntityDifference entityDifference;
-        entityDifference.mDeletedComponents = deletedComponents;
+        entityDifference.mComponents = newComponents;
         entityDifference.mChangedComponentBitfields = changedComponentBitfields;
         entityDifference.mNewEntity = newEntity;
         entityDifference.mEntityUUID = newEntity->mEntityUUID;
@@ -250,24 +280,18 @@ namespace Tac
       {
         writer->Write( entityDifference.mEntityUUID );
 
-        char deletedComponentsBitfield = 0;
-        for( ComponentRegistryEntryIndex componentType : entityDifference.mDeletedComponents )
-          deletedComponentsBitfield |= ComponentToBitField( componentType );
+        writer->Write( entityDifference.mComponents );
 
-        writer->Write( deletedComponentsBitfield );
-
-        char changedComponentsBitfield = 0;
-        for( auto [iEntry, bitfield] : entityDifference.mChangedComponentBitfields )
-          changedComponentsBitfield |= ComponentToBitField( iEntry );
-
-        writer->Write( changedComponentsBitfield );
+        const ChangedComponentBitfields& changedComponentsBitfield =
+          entityDifference.mChangedComponentBitfields;
 
         for( int iComponentType = 0; iComponentType < registeredComponentCount; ++iComponentType )
         {
+          if( entityDifference.mChangedComponentBitfields;
           if( !( changedComponentsBitfield & iComponentType ) )
             continue;
 
-          auto componentType = ( ComponentRegistryEntryIndex )iComponentType;
+          auto componentType = ( ComponentRegistryIndex )iComponentType;
           const ComponentRegistryEntry* componentRegistryEntry = ComponentRegistry_GetComponentAtIndex( iComponentType );
           Component* component = entityDifference.mNewEntity->GetComponent( componentRegistryEntry );
           char componentBitfield = entityDifference.mChangedComponentBitfields.at( componentType );

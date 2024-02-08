@@ -13,7 +13,7 @@ namespace Tac
 
   static const int sPlayerCountMax = 4;
 
-  typedef std::list< Entity* >::iterator EntityIterator;
+  typedef List< Entity* >::Iterator EntityIterator;
 
   struct World;
 }

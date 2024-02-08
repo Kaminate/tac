@@ -7,6 +7,7 @@
 #include "src/common/containers/tac_span.h"
 #include "src/common/containers/tac_map.h"
 #include "src/common/containers/tac_list.h"
+#include "src/common/containers/tac_forward_list.h"
 #include "src/common/containers/tac_set.h"
 #include "src/common/assetmanagers/tac_asset.h"
 #include "src/common/memory/tac_frame_memory.h"
@@ -1532,6 +1533,9 @@ namespace Tac
   void DX12AppHelloConstBuf::Init( Errors& errors )
   {
     CreateDesktopWindow();
+
+    ListUnitTest();
+    ForwardListUnitTest();
   }
 
   void DX12AppHelloConstBuf::PreSwapChainInit( Errors& errors)
