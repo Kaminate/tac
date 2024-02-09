@@ -4,7 +4,6 @@
 
 namespace Tac
 {
-
   const String tac( "tac" );
 
   void WriteNetMsgHeader( Writer* writer, NetMsgType networkMessageType )
@@ -13,25 +12,23 @@ namespace Tac
     writer->Write( networkMessageType );
   }
 
-  void ReadNetMsgHeader( Reader* reader, NetMsgType* netMsgType, Errors& errors )
+  NetMsgType ReadNetMsgHeader( Reader* reader,  Errors& errors )
   {
-    for( char cExpected : tac )
+    for( const char cExpected : tac )
     {
-      char cActual;
-      TAC_RAISE_ERROR_IF( !reader->Read( &cActual ), "failed reading net msg header tac" );
-
-      TAC_RAISE_ERROR_IF( cExpected != cActual, "mismatchg reading net msg header tac" );
+      const char cActual = TAC_CALL_RET( {}, reader->Read< char >( errors ) );
+      TAC_RAISE_ERROR_IF_RETURN( cExpected != cActual, "net msg header mismatch", {} );
     }
 
-    TAC_RAISE_ERROR_IF( !reader->Read(netMsgType),  "failure reading NetMsgType" );
+    return reader->Read<NetMsgType>( errors );
   }
 
-  u8 GetNetworkBitfield( const void* oldData,
-                              const void* newData,
-                              const NetworkBits& networkBits )
+  NetBitDiff GetNetworkBitfield( const void* oldData,
+                                 const void* newData,
+                                 const NetworkBits& networkBits )
   {
     if( !oldData )
-      return 0xff;
+      return NetBitDiff{ 0xff };
 
     u8 bitfield = 0;
     for( int i = 0; i < networkBits.size(); ++i )
@@ -40,10 +37,10 @@ namespace Tac
       auto oldBits = ( char* )oldData + bits.mByteOffset;
       auto newBits = ( char* )newData + bits.mByteOffset;
       auto componentTotalSize = bits.mComponentCount * bits.mComponentByteCount;
-      if( std::memcmp( oldBits, newBits, componentTotalSize ) )
+      if( MemCmp( oldBits, newBits, componentTotalSize ) )
         bitfield |= 1 << i;
     }
-    return bitfield;
+    return NetBitDiff{ bitfield };
   }
 
   void LagTest::SaveMessage( const Vector< char >& data, Timestamp elapsedSecs )

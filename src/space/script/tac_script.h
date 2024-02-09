@@ -3,11 +3,11 @@
 #include "src/common/string/tac_string.h"
 #include "src/common/error/tac_error_handling.h"
 #include "src/common/containers/tac_vector.h"
-
-import std;// #include <set>
+#include "src/common/containers/tac_set.h"
 
 namespace Tac
 {
+
 #define TAC_TIMELINE_KEYFRAME_BEGIN case __COUNTER__: {
 #define TAC_TIMELINE_KEYFRAME_END   mLine++; } break;
 #define TAC_TIMELINE_KEYFRAME       TAC_TIMELINE_KEYFRAME_END TAC_TIMELINE_KEYFRAME_BEGIN
@@ -52,7 +52,7 @@ namespace Tac
     bool                            mIsComplete = false;
     bool                            mRunForever = false;
     String                          mName ;
-    std::set< ScriptCallbackData* > mMsgCallbacks;
+    Set< ScriptCallbackData* >      mMsgCallbacks;
   };
 
   struct ScriptRoot
@@ -64,7 +64,7 @@ namespace Tac
     void                      OnMsg( const ScriptMsg* scriptMsg );
     void                      OnMsg( StringView scriptMsgType );
     ScriptThread*             GetThread( StringView name );
-    std::set< ScriptThread* > mChildren;
+    Set< ScriptThread* >      mChildren;
     Ghost*                    mGhost = nullptr;
   };
 

@@ -40,7 +40,7 @@ Tac::Entity*       Tac::World::SpawnEntity( EntityUUID entityUUID )
   auto entity = TAC_NEW Entity();
   entity->mEntityUUID = entityUUID;
   entity->mWorld = this;
-  mEntities.PushFront( entity );
+  mEntities.push_front( entity );
   return entity;
 }
 
@@ -112,7 +112,7 @@ void               Tac::World::KillEntity( EntityIterator it )
     if( Player* player = FindPlayer( treeEntity->mEntityUUID ) )
       player->mEntityUUID = NullEntityUUID;
 
-    mEntities.Erase( treeIterator );
+    mEntities.erase( treeIterator );
     delete treeEntity;
   }
 }
@@ -136,7 +136,7 @@ Tac::Player*       Tac::World::SpawnPlayer( PlayerUUID playerUUID )
   auto player = TAC_NEW Player();
   player->mPlayerUUID = playerUUID;
   player->mWorld = this;
-  mPlayers.PushFront( player );
+  mPlayers.push_front( player );
   return player;
 }
 
@@ -165,7 +165,7 @@ void               Tac::World::KillPlayer( PlayerUUID playerUUID )
   auto player = *it;
   KillEntity( player->mEntityUUID );
   delete player;
-  mPlayers.Erase( it );
+  mPlayers.erase( it );
 }
 
 void               Tac::World::ApplyInput( Player* player, float seconds )
@@ -278,7 +278,7 @@ void               Tac::World::DeepCopy( const World& world )
   {
     auto player = TAC_NEW Player;
     *player = *fromPlayer;
-    mPlayers.PushFront( player );
+    mPlayers.push_front( player );
   }
 
   for( Entity* fromEntity : world.mEntities )

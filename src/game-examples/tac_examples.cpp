@@ -1,25 +1,27 @@
-#include "src/common/graphics/imgui/tac_imgui.h"
-#include "src/common/graphics/tac_renderer.h"
-#include "src/common/graphics/tac_camera.h"
-#include "src/common/shell/tac_shell_timer.h"
-#include "src/common/string/tac_string_format.h"
-#include "src/shell/tac_desktop_window_graphics.h"
-#include "src/common/math/tac_math.h"
-#include "src/common/system/tac_desktop_window.h"
-#include "src/common/error/tac_error_handling.h"
-#include "src/common/memory/tac_frame_memory.h"
-#include "src/common/system/tac_os.h"
-#include "src/common/dataprocess/tac_settings.h"
 #include "src/game-examples/tac_examples.h"
-#include "src/game-examples/tac_examples_state_machine.h"
-#include "src/game-examples/tac_examples_registry.h"
-#include "src/shell/tac_desktop_app.h"
-#include "src/shell/tac_desktop_window_settings_tracker.h"
-#include "space/presentation/tac_game_presentation.h"
+
 #include "space/ecs/tac_entity.h"
+#include "space/presentation/tac_game_presentation.h"
 #include "space/world/tac_world.h"
 
-import std; //#include <set>
+#include "src/common/dataprocess/tac_settings.h"
+#include "src/common/error/tac_error_handling.h"
+#include "src/common/graphics/imgui/tac_imgui.h"
+#include "src/common/graphics/tac_camera.h"
+#include "src/common/graphics/tac_renderer.h"
+#include "src/common/math/tac_math.h"
+#include "src/common/memory/tac_frame_memory.h"
+#include "src/common/shell/tac_shell_timer.h"
+#include "src/common/string/tac_string_format.h"
+#include "src/common/system/tac_desktop_window.h"
+#include "src/common/system/tac_os.h"
+
+#include "src/game-examples/tac_examples_registry.h"
+#include "src/game-examples/tac_examples_state_machine.h"
+
+#include "src/shell/tac_desktop_app.h"
+#include "src/shell/tac_desktop_window_graphics.h"
+#include "src/shell/tac_desktop_window_settings_tracker.h"
 
 namespace Tac
 {

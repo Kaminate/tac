@@ -42,6 +42,7 @@
 #include "space/presentation/tac_skybox_presentation.h"
 #include "space/presentation/tac_voxel_gi_presentation.h"
 #include "space/ecs/tac_entity.h"
+#include "space/ecs/tac_component_registry.h"
 #include "space/ghost/tac_ghost.h"
 #include "space/tac_space.h"
 #include "space/world/tac_world.h"

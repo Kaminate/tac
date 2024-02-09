@@ -3,6 +3,7 @@
 #include "src/common/assetmanagers/tac_asset.h"
 #include "src/common/algorithm/tac_algorithm.h"
 #include "src/common/error/tac_error_handling.h"
+#include "src/common/containers/tac_map.h"
 #include "src/common/graphics/imgui/tac_imgui.h"
 #include "src/common/graphics/tac_ui_2d.h"
 #include "src/common/memory/tac_frame_memory.h"
@@ -15,14 +16,14 @@
 #include "src/level_editor/tac_level_editor_prefab.h"
 #include "src/shell/tac_desktop_app.h"
 #include "src/shell/tac_desktop_window_graphics.h"
+
 #include "space/graphics/model/tac_model.h"
 #include "space/ecs/tac_component.h"
 #include "space/ecs/tac_entity.h"
+#include "space/ecs/tac_component_registry.h"
 #include "space/tac_space_types.h"
 #include "space/ecs/tac_system.h"
 #include "space/world/tac_world.h"
-
-import std; // #include <map>
 
 namespace Tac
 {
@@ -47,7 +48,7 @@ namespace Tac
   static void EntityImGuiScale( Entity* entity )
   {
     // true if requested to be uniform, false if requested to be separate
-    static std::map< Entity*, bool > sRequests;
+    static Map< Entity*, bool > sRequests;
 
     v3& scale = entity->mRelativeSpace.mScale;
 

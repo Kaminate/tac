@@ -12,6 +12,11 @@ namespace Tac
   ComponentRegistryEntry* ComponentRegistryIterator::begin() { return mEntries.begin(); }
   ComponentRegistryEntry* ComponentRegistryIterator::end() { return mEntries.end(); }
 
+  int                    ComponentRegistryEntry::GetIndex() const
+  {
+    return ( int )( this - mEntries.data() );
+  }
+
   ComponentRegistryEntry* ComponentRegistry_RegisterComponent()
   {
     mEntries.push_back( ComponentRegistryEntry() );
@@ -26,15 +31,9 @@ namespace Tac
     return nullptr;
   }
 
-  int                     ComponentRegistry_GetComponentCount()
-  {
-    return mEntries.size();
-  }
+  int                     ComponentRegistry_GetComponentCount() { return mEntries.size(); }
 
-  ComponentRegistryEntry* ComponentRegistry_GetComponentAtIndex( ComponentRegistryIndex i )
-  {
-    return &mEntries[ i.mIndex ];
-  }
+  ComponentRegistryEntry* ComponentRegistry_GetComponentAtIndex( int i ) { return &mEntries[ i ]; }
 
 }
 

@@ -1,6 +1,7 @@
 #include "space/physics/collider/tac_collider.h"
 #include "space/ecs/tac_entity.h"
 #include "space/physics/tac_physics.h"
+#include "space/ecs/tac_component_registry.h"
 
 namespace Tac
 {

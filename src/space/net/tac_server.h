@@ -4,9 +4,8 @@
 #include "space/net/tac_space_net.h"
 #include "space/tac_space.h"
 #include "src/common/containers/tac_vector.h"
+#include "src/common/containers/tac_list.h"
 #include "src/common/shell/tac_shell_timer.h"
-
-import std; // <list>
 
 namespace Tac
 {
@@ -68,7 +67,7 @@ namespace Tac
     World*                    mWorld = nullptr;
     World*                    mEmptyWorld = nullptr;
     static const int          sOtherPlayerCountMax = 3;
-    std::list< OtherPlayer* > mOtherPlayers;
+    List< OtherPlayer* >      mOtherPlayers;
     //PlayerUUID                mPlayerUUIDCounter = NullPlayerUUID;
     //EntityUUID                mEntityUUIDCounter = NullEntityUUID;
     PlayerUUIDCounter         mPlayerUUIDCounter;
@@ -76,7 +75,5 @@ namespace Tac
   };
 
   extern const float sSnapshotUntilNextSecondsMax;
-
-
 }
 

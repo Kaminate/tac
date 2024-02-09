@@ -2,8 +2,7 @@
 
 #include "space/script/tac_script.h"
 #include "src/common/graphics/tac_font.h"
-
-import std; //  <set>
+#include "src/common/containers/tac_set.h"
 
 namespace Tac::Network
 {
@@ -98,7 +97,7 @@ namespace Tac
   static const String scriptMsgConnect = "websocket connect";
 
   typedef void ( ScriptMainMenu:: *ScriptMainMenuMessageCallback )( const ScriptMsg* scriptMsg );
-  typedef std::set< ScriptMainMenuMessageCallback > ScriptCallbacks;
+  typedef Set< ScriptMainMenuMessageCallback > ScriptCallbacks;
 
   struct ScriptMainMenu : public ScriptThread
   {

@@ -1,60 +1,28 @@
+
 #include "src/shell/vulkan/tac_renderer_vulkan.h" // self-inc
 
 #include "src/common/error/tac_error_handling.h"
 #include "src/common/shell/tac_shell.h"
+#include "src/common/containers/tac_map.h"
 #include "src/common/assetmanagers/tac_asset.h"
 #include "src/shell/tac_desktop_app.h"
 #include "src/shell/vulkan/tac_vk_types.h"
 
 #include "VkBootstrap.h"
 
-import std;// #include <sstream>
-
-#define MAKE_VK_RESULT_PAIR( vkEnumValue ) { vkEnumValue, TAC_STRINGIFY( vkEnumValue ) },
+//#include <vulkan/vk_enum_string_helper.h> // string_VkResult <-- ... import std issues?
 
 namespace Tac::Render
 {
-
-  static std::map< VkResult, const char* > TacVulkanResultStrings = {
-    MAKE_VK_RESULT_PAIR( VK_SUCCESS )
-    MAKE_VK_RESULT_PAIR( VK_NOT_READY )
-    MAKE_VK_RESULT_PAIR( VK_TIMEOUT )
-    MAKE_VK_RESULT_PAIR( VK_EVENT_SET )
-    MAKE_VK_RESULT_PAIR( VK_EVENT_RESET )
-    MAKE_VK_RESULT_PAIR( VK_INCOMPLETE )
-    MAKE_VK_RESULT_PAIR( VK_ERROR_OUT_OF_HOST_MEMORY )
-    MAKE_VK_RESULT_PAIR( VK_ERROR_OUT_OF_DEVICE_MEMORY )
-    MAKE_VK_RESULT_PAIR( VK_ERROR_INITIALIZATION_FAILED )
-    MAKE_VK_RESULT_PAIR( VK_ERROR_DEVICE_LOST )
-    MAKE_VK_RESULT_PAIR( VK_ERROR_MEMORY_MAP_FAILED )
-    MAKE_VK_RESULT_PAIR( VK_ERROR_LAYER_NOT_PRESENT )
-    MAKE_VK_RESULT_PAIR( VK_ERROR_EXTENSION_NOT_PRESENT )
-    MAKE_VK_RESULT_PAIR( VK_ERROR_FEATURE_NOT_PRESENT )
-    MAKE_VK_RESULT_PAIR( VK_ERROR_INCOMPATIBLE_DRIVER )
-    MAKE_VK_RESULT_PAIR( VK_ERROR_TOO_MANY_OBJECTS )
-    MAKE_VK_RESULT_PAIR( VK_ERROR_FORMAT_NOT_SUPPORTED )
-    MAKE_VK_RESULT_PAIR( VK_ERROR_FRAGMENTED_POOL )
-    MAKE_VK_RESULT_PAIR( VK_ERROR_OUT_OF_POOL_MEMORY )
-    MAKE_VK_RESULT_PAIR( VK_ERROR_INVALID_EXTERNAL_HANDLE )
-    MAKE_VK_RESULT_PAIR( VK_ERROR_SURFACE_LOST_KHR )
-    MAKE_VK_RESULT_PAIR( VK_ERROR_NATIVE_WINDOW_IN_USE_KHR )
-    MAKE_VK_RESULT_PAIR( VK_SUBOPTIMAL_KHR )
-    MAKE_VK_RESULT_PAIR( VK_ERROR_OUT_OF_DATE_KHR )
-    MAKE_VK_RESULT_PAIR( VK_ERROR_INCOMPATIBLE_DISPLAY_KHR )
-    MAKE_VK_RESULT_PAIR( VK_ERROR_VALIDATION_FAILED_EXT )
-    MAKE_VK_RESULT_PAIR( VK_ERROR_INVALID_SHADER_NV )
-    MAKE_VK_RESULT_PAIR( VK_ERROR_FRAGMENTATION_EXT )
-    MAKE_VK_RESULT_PAIR( VK_ERROR_NOT_PERMITTED_EXT )
-  };
-
   void VkCallAux( const char* fnCallWithArgs, VkResult res, Errors& errors )
   {
-    std::stringstream ss;
-    ss << fnCallWithArgs << " returned 0x" << std::hex << res;
-    if( const char* inferredErrorMessage = TacVulkanResultStrings[ res ] )
-      ss << "( " << inferredErrorMessage << " )";
+    String str;
+    str += fnCallWithArgs;
+    str += " returned 0x";
+    str += Tac::ToString( (void*)res ); // std::hex hack
+    //str += String() + "(" + string_VkResult( res ) + ")";
 
-    TAC_RAISE_ERROR( ss.str().c_str() );
+    TAC_RAISE_ERROR( str );
   }
 
 
@@ -164,8 +132,14 @@ namespace Tac::Render
       vkb::Swapchain vkbSwapchain = swapchainBuilder.build().value();
 
       //store swapchain and its related images
-      std::vector<VkImage> _swapchainImages = vkbSwapchain.get_images().value();
-      std::vector<VkImageView> _swapchainImageViews = vkbSwapchain.get_image_views().value();
+      Vector<VkImage> _swapchainImages;
+      for( VkImage& img : vkbSwapchain.get_images().value() )
+        _swapchainImages.push_back(img);
+      
+      
+      Vector<VkImageView> _swapchainImageViews;
+      for( VkImageView& view : vkbSwapchain.get_image_views().value())
+        _swapchainImageViews.push_back(view);
 
       mFramebuffers[ ( int )data->mFramebufferHandle ] = {
         ._surface = _surface,

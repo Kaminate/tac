@@ -8,6 +8,8 @@
 
 #include "space/physics/collider/tac_collider.h"
 #include "space/net/tac_client.h"
+#include "space/net/tac_player_diff.h"
+#include "space/net/tac_entity_diff.h"
 #include "space/ecs/tac_component.h"
 #include "space/ecs/tac_entity.h"
 #include "space/player/tac_player.h"
@@ -16,73 +18,7 @@ namespace Tac
 {
 
 
-  void ClientData::ReadEntityDifferences( Reader* reader,
-                                          Errors& errors )
-  {
-    EntityUUID entityUUID;
-    if( !reader->Read( &entityUUID ) )
-      TAC_RAISE_ERROR( "failed to read different entity uuid");
 
-    auto entity = mWorld->FindEntity( entityUUID );
-    if( !entity )
-      entity = mWorld->SpawnEntity( entityUUID );
-
-    char deletedComponentsBitfield;
-    if( !reader->Read( &deletedComponentsBitfield ) )
-      TAC_RAISE_ERROR( "failed to read entity deleted component bits");
-
-    TAC_ASSERT_UNIMPLEMENTED;
-#if 0
-    for( int iComponentType = 0; iComponentType < ( int )ComponentRegistryEntryIndex::Count; ++iComponentType )
-    {
-      if( !( deletedComponentsBitfield & iComponentType ) )
-        continue;
-      auto componentType = ( ComponentRegistryEntryIndex )iComponentType;
-      entity->RemoveComponent( componentType );
-    }
-#endif
-
-    char changedComponentsBitfield;
-    if( !reader->Read( &changedComponentsBitfield ) )
-      TAC_RAISE_ERROR( "failed to read entity changed component bitfield");
-    TAC_ASSERT_UNIMPLEMENTED;
-
-#if 0
-    for( int iComponentType = 0; iComponentType < ( int )ComponentRegistryEntryIndex::Count; ++iComponentType )
-    {
-      if( !( changedComponentsBitfield & iComponentType ) )
-        continue;
-
-      auto componentType = ( ComponentRegistryEntryIndex )iComponentType;
-      auto component = entity->GetComponent( componentType );
-      if( !component )
-        component = entity->AddNewComponent( componentType );
-
-      auto componentStuff = GetComponentData( componentType );
-
-      component->PreReadDifferences();
-      if( !reader->Read( component, componentStuff->mNetworkBits ) )
-      {
-        TAC_RAISE_ERROR( "fuck" );
-      }
-      component->PostReadDifferences();
-    }
-#endif
-  }
-
-  void ClientData::ReadPlayerDifferences( Reader* reader,
-                                          Errors& errors )
-  {
-    PlayerUUID differentPlayerUUID;
-    TAC_RAISE_ERROR_IF(  !reader->Read( &differentPlayerUUID ),
-                        "failed to read player uuid");
-    auto player = mWorld->FindPlayer( differentPlayerUUID );
-    if( !player )
-      player = mWorld->SpawnPlayer( differentPlayerUUID );
-
-    TAC_RAISE_ERROR_IF( !reader->Read( player, PlayerNetworkBitsGet() ),
-                        "failed to read player bits" );
-  }
 
   void ClientData::WriteInputBody( Writer* writer )
   {
@@ -129,24 +65,15 @@ namespace Tac
   void ClientData::ReadSnapshotBody( Reader* reader,
                                      Errors& errors )
   {
-    Timestamp newGameTime;
-    if( !reader->Read( &newGameTime.mSeconds ) )
-    {
-      TAC_RAISE_ERROR( "failed to read new snapshot time");
-    }
-
+    const auto newGameTime = TAC_CALL( reader->Read< Timestamp >( errors ) );
     if( newGameTime < mMostRecentSnapshotTime )
       return;
+
     mMostRecentSnapshotTime = newGameTime;
 
+    const auto oldGameTime = TAC_CALL( reader->Read<Timestamp >( errors ) );
 
-    Timestamp oldGameTime;
-    if( !reader->Read( &oldGameTime.mSeconds ) )
-    {
-      TAC_RAISE_ERROR( "failed to read old snapshot time");
-    }
-
-    auto snapshotFrom = mSnapshots.FindSnapshot( oldGameTime );
+    World* snapshotFrom = mSnapshots.FindSnapshot( oldGameTime );
     if( !snapshotFrom )
     {
       if( oldGameTime ) // we need the server to send us the full state
@@ -167,60 +94,10 @@ namespace Tac
     mWorld->DeepCopy( *snapshotFrom );
     mWorld->mElapsedSecs = newGameTime;
 
-    if( !reader->Read( ( UUID* )&mPlayerUUID ) )
-    {
-      TAC_RAISE_ERROR( "Failed to read player UUID");
-    }
+    TAC_CALL( mPlayerUUID = reader->Read<PlayerUUID>( errors ) );
 
-    PlayerCount numPlayerDeleted;
-    if( !reader->Read( &numPlayerDeleted ) )
-    {
-      TAC_RAISE_ERROR( "Failed to read deleted player count");
-    }
-    for( PlayerCount i = 0; i < numPlayerDeleted; ++i )
-    {
-      PlayerUUID deletedPlayerUUID;
-      if( !reader->Read( ( UUID* )&deletedPlayerUUID ) )
-      {
-        TAC_RAISE_ERROR( "Failed to read deleted player uuid");
-      }
-
-      mWorld->KillPlayer( deletedPlayerUUID );
-    }
-
-    PlayerCount numPlayersDifferent;
-    if( !reader->Read( &numPlayersDifferent ) )
-    {
-      TAC_RAISE_ERROR( "Failed to read different player count");
-    }
-    for( PlayerCount i = 0; i < numPlayersDifferent; ++i )
-    {
-      TAC_CALL( ReadPlayerDifferences( reader, errors ) );
-    }
-
-    EntityCount numDeletedEntities;
-    if( !reader->Read( &numDeletedEntities ) )
-    {
-      TAC_RAISE_ERROR( "Failed to read deleted entity count");
-    }
-    for( EntityCount i = 0; i < numDeletedEntities; ++i )
-    {
-      EntityUUID entityUUID;
-      if( !reader->Read( ( UUID* )&entityUUID ) )
-      {
-        TAC_RAISE_ERROR( "Failed to read deleted entity uuid");
-      }
-      mWorld->KillEntity( entityUUID );
-    }
-
-    EntityCount numEntitiesDifferent;
-    if( !reader->Read( &numEntitiesDifferent ) )
-    {
-      TAC_RAISE_ERROR( "Failed to read different entity count");
-    }
-
-    for( EntityCount i = 0; i < numEntitiesDifferent; ++i )
-      ReadEntityDifferences( reader, errors );
+    TAC_CALL( PlayerDiffs::Read(mWorld, reader, errors ) );
+    TAC_CALL( EntityDiffs::Read( mWorld, reader, errors ) );
 
     mSnapshots.AddSnapshot( mWorld );;
 
@@ -232,13 +109,15 @@ namespace Tac
                                   int byteCount,
                                   Errors& errors )
   {
-    Reader reader;
-    reader.mFrom = GameEndianness;
-    reader.mTo = GetEndianness();
-    reader.mBegin = bytes;
-    reader.mEnd = ( char* )bytes + byteCount;
-    NetMsgType networkMessage = NetMsgType::Count;
-    TAC_CALL( ReadNetMsgHeader( &reader, &networkMessage, errors ) );
+    Reader reader
+    {
+      .mFrom = GameEndianness,
+      .mTo = GetEndianness(),
+      .mBegin = bytes,
+      .mEnd = ( char* )bytes + byteCount,
+    };
+
+    const auto networkMessage = TAC_CALL( ReadNetMsgHeader( &reader, errors ) );
 
     switch( networkMessage )
     {
@@ -263,15 +142,20 @@ namespace Tac
       TAC_CALL( ExecuteNetMsg( delayedMsg.data(), ( int )delayedMsg.size(), errors ) );
     }
 
-    Writer writer;
-    writer.mFrom = GetEndianness();
-    writer.mTo = GameEndianness;
+    Writer writer
+    {
+      .mFrom = GetEndianness(),
+      .mTo = GameEndianness,
+    };
 
     WriteNetMsgHeader( &writer, NetMsgType::Input );
 
-    SavedInput newInput;
-    newInput.mTimestamp = mWorld->mElapsedSecs;
-    newInput.mInputDirection = inputDir;
+    SavedInput newInput
+    {
+      .mTimestamp = mWorld->mElapsedSecs,
+      .mInputDirection = inputDir,
+    };
+
     if( mSavedInputs.size() == ClientData::sMaxSavedInputCount )
       mSavedInputs.pop_front();
     mSavedInputs.push_back( newInput );
@@ -285,10 +169,9 @@ namespace Tac
 
     WriteInputBody( &writer );
 
-    sendNetworkMessageCallback(
-      writer.mBytes.data(),
-      ( int )writer.mBytes.size(),
-      userData );
+    sendNetworkMessageCallback( writer.mBytes.data(),
+                                ( int )writer.mBytes.size(),
+                                userData );
 
     mWorld->Step( seconds );
 
@@ -318,5 +201,5 @@ namespace Tac
     ExecuteNetMsg( bytes, byteCount, errors );
   }
 
-}
+} // namespace Tac
 

@@ -4,6 +4,7 @@
 #include "src/common/assetmanagers/gltf/tac_resident_model_file.h"
 #include "src/common/assetmanagers/tac_texture_asset_manager.h"
 #include "src/common/containers/tac_frame_vector.h"
+#include "src/common/containers/tac_map.h"
 #include "src/common/error/tac_error_handling.h"
 #include "src/common/graphics/imgui/tac_imgui.h"
 #include "src/common/graphics/tac_camera.h"
@@ -23,8 +24,6 @@
 #include "space/presentation/tac_game_presentation.h"
 #include "space/ecs/tac_entity.h"
 #include "space/world/tac_world.h"
-
-import std; //#include <map>
 
 namespace Tac
 {
@@ -122,19 +121,21 @@ namespace Tac
     // - textures
   };
 
-  static AssetPathString                    sAssetViewFolderCur;
-  static Vector< String >                   sAssetViewFolderStack;
-  static Errors                                       sAssetViewErrors;
-  static Filesystem::Paths                            sAssetViewFiles;
-  static Filesystem::Paths                            sAssetViewFolders;
-  static std::map< AssetPathString, AssetViewImportedModel* > sLoadedModels;
+  static AssetPathString                                 sAssetViewFolderCur;
+  static Vector< String >                                sAssetViewFolderStack;
+  static Errors                                          sAssetViewErrors;
+  static Filesystem::Paths                               sAssetViewFiles;
+  static Filesystem::Paths                               sAssetViewFolders;
+
+
+  static Map< AssetPathString, AssetViewImportedModel* > sLoadedModels;
 
   static String LoadEllipses() { return String( "...", ( int )ShellGetElapsedSeconds() % 4 ); }
 
   static AssetViewImportedModel* GetLoadedModel( const AssetPathStringView& path )
   {
-    auto loadedModelIt = sLoadedModels.find( path );
-    return loadedModelIt == sLoadedModels.end() ? nullptr : ( *loadedModelIt ).second;
+    auto loadedModelIt = sLoadedModels.Find( path );
+    return loadedModelIt ? loadedModelIt.GetValue() : nullptr;
   }
 
   //static AssetViewImportingModel* GetLoadingModel( const String& path )

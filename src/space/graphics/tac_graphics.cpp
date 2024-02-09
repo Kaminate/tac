@@ -1,17 +1,18 @@
+#include "space/graphics/tac_graphics.h" // self-inc
+
 #include "src/common/graphics/imgui/tac_imgui.h"
 #include "src/common/graphics/tac_font.h"
 #include "src/common/math/tac_math.h"
 #include "src/common/memory/tac_memory.h"
 #include "src/common/preprocess/tac_preprocessor.h"
-#include "space/graphics/tac_graphics.h"
+#include "src/common/containers/tac_set.h"
+
 #include "space/graphics/light/tac_light.h"
 #include "space/graphics/model/tac_model.h"
 #include "space/ecs/tac_entity.h"
 #include "space/graphics/skybox/tac_skybox_component.h"
 #include "space/ecs/tac_component.h"
 #include "space/world/tac_world.h"
-
-import std; // <set>
 
 namespace Tac
 {
@@ -32,9 +33,7 @@ namespace Tac
 
     void                DestroyModelComponent( Model* model ) override
     {
-      auto it = mModels.find( model );
-      TAC_ASSERT( it != mModels.end() );
-      mModels.erase( it );
+      mModels.erase( model );
       delete model;
     }
 
@@ -57,9 +56,7 @@ namespace Tac
 
     void                DestroySkyboxComponent( Skybox* skybox ) override
     {
-      auto it = mSkyboxes.find( skybox );
-      TAC_ASSERT( it != mSkyboxes.end() );
-      mSkyboxes.erase( it );
+      mSkyboxes.erase( skybox );
       delete skybox;
     }
 
@@ -81,9 +78,7 @@ namespace Tac
 
     void                DestroyLightComponent( Light* light ) override
     {
-      auto it = mLights.find( light );
-      TAC_ASSERT( it != mLights.end() );
-      mLights.erase( it );
+       mLights.erase( light );
       delete light;
     }
 
@@ -95,9 +90,9 @@ namespace Tac
     }
 
 
-    std::set< Model* >  mModels;
-    std::set< Skybox* > mSkyboxes;
-    std::set< Light* >  mLights;
+    Set< Model* >  mModels;
+    Set< Skybox* > mSkyboxes;
+    Set< Light* >  mLights;
   };
 
   static SystemRegistryEntry* gGraphicsSystemRegistryEntry;

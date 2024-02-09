@@ -8,8 +8,10 @@
 #include "src/common/system/tac_filesystem.h"
 #include "src/common/system/tac_os.h"
 #include "src/common/thirdparty/stb_image.h"
+
 #include "space/physics/tac_physics.h"
 #include "space/ecs/tac_entity.h"
+#include "space/ecs/tac_component_registry.h"
 #include "space/world/tac_world.h"
 
 namespace Tac

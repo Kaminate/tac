@@ -1,6 +1,7 @@
 #include "src/shell/windows/net/tac_net_winsock.h" // self-inc
 
 #include "src/common/containers/tac_vector.h"
+#include "src/common/containers/tac_set.h"
 #include "src/common/algorithm/tac_algorithm.h"
 #include "src/common/error/tac_error_handling.h"
 #include "src/common/preprocess/tac_preprocessor.h"
@@ -17,8 +18,6 @@
 
 #include <WinSock2.h> // SOCKET
 #include <Ws2tcpip.h> // inet_pton, getaddrinfo
-
-import std; // #include <set>
 
 #pragma comment( lib, "ws2_32.lib" )
 
@@ -50,7 +49,7 @@ namespace Tac::Network
                                              SocketType,
                                              Errors& ) override;
     Vector< Socket* >          GetSockets() override;
-    std::set< SocketWinsock* > mSocketWinsocks;
+    Set< SocketWinsock* > mSocketWinsocks;
     bool                       mPrintReceivedMessages = false;
     // TODO: Only send a keepalive if we haven't received a message within mKeepaliveIntervalSeconds
     Timestamp                  mKeepaliveNextSeconds = 0.0;
@@ -400,7 +399,7 @@ namespace Tac::Network
     for( SocketWinsock* socketWinsock : mSocketWinsocks )
       if( socketWinsock->mRequestDeletion )
         socketWinsocks.push_back( socketWinsock );
-    for( SocketWinsock*  socketWinsock : socketWinsocks )
+    for( SocketWinsock* socketWinsock : socketWinsocks )
     {
       for( SocketCallbackData socketCallback : socketWinsock->mTCPOnConnectionClosed )
         socketCallback.mCallback( socketCallback.mUserData, socketWinsock );

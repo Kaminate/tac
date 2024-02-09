@@ -3,6 +3,7 @@
 #include "space/graphics/tac_graphics.h"
 #include "space/physics/tac_physics.h"
 #include "space/ecs/tac_component.h"
+#include "space/ecs/tac_component_registry.h"
 
 namespace Tac
 {

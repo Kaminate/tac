@@ -12,6 +12,8 @@
 #include "space/script/tac_script.h"
 #include "space/scripts/tac_script_game_client.h"
 #include "space/net/tac_space_net.h"
+#include "space/net/tac_entity_diff.h"
+#include "space/net/tac_player_diff.h"
 #include "space/net/tac_space_net.h"
 #include "space/world/tac_world.h"
 
@@ -42,12 +44,13 @@ namespace Tac
       mWorld->DebugImgui();
     }
   }
+
   void ServerData::OnClientJoin( ConnectionUUID connectionID )
   {
-    auto player = SpawnPlayer();
+    Player* player = SpawnPlayer();
     TAC_ASSERT( player );
     TAC_ASSERT( mOtherPlayers.size() < ServerData::sOtherPlayerCountMax );
-    auto otherPlayer = new OtherPlayer();
+    OtherPlayer* otherPlayer = new OtherPlayer();
     otherPlayer->mPlayerUUID = player->mPlayerUUID;
     otherPlayer->mConnectionUUID = connectionID;
     mOtherPlayers.push_back( otherPlayer );
@@ -64,13 +67,21 @@ namespace Tac
 
   void ServerData::OnLoseClient( ConnectionUUID connectionID )
   {
-    auto it = std::find_if( mOtherPlayers.begin(),
-                            mOtherPlayers.end(),
-                            [ & ]( OtherPlayer* otherPlayer )
-                            { return otherPlayer->mConnectionUUID == connectionID; } );
+    auto it = [ & ]()
+      {
+        for( auto it = mOtherPlayers.begin(); it != mOtherPlayers.end(); ++it )
+        {
+          OtherPlayer* otherPlayer = *it;
+          if( otherPlayer->mConnectionUUID == connectionID )
+            return it;
+        }
+        return mOtherPlayers.end();
+      }( );
+
     if( it == mOtherPlayers.end() )
       return;
-    auto otherPlayer = *it;
+
+    OtherPlayer* otherPlayer = *it;
     mWorld->KillPlayer( otherPlayer->mPlayerUUID );
     delete otherPlayer;
     mOtherPlayers.erase( it );
@@ -80,243 +91,50 @@ namespace Tac
                               ConnectionUUID connectionID,
                               Errors& errors )
   {
-    auto otherPlayer = FindOtherPlayer( connectionID );
+    OtherPlayer* otherPlayer = FindOtherPlayer( connectionID );
     TAC_ASSERT( otherPlayer );
 
-    auto player = mWorld->FindPlayer( otherPlayer->mPlayerUUID );
+    Player* player = mWorld->FindPlayer( otherPlayer->mPlayerUUID );
     if( !player )
       return;
 
-    if( !reader->Read( &player->mInputDirection ) )
-    {
-      TAC_RAISE_ERROR( "failed to read player input direction");
-    }
+    TAC_RAISE_ERROR_IF( !reader->Read( &player->mInputDirection ),
+                        "failed to read player input direction" );
 
-    if( !reader->Read( &otherPlayer->mTimeStamp ) )
-    {
-      TAC_RAISE_ERROR( "failed to read player time stamp");
-    }
+    TAC_RAISE_ERROR_IF( !reader->Read( &otherPlayer->mTimeStamp ),
+                        "failed to read player time stamp" );
   }
 
+  // OtherPlayer is the player who is the receipient of this snapshot
   void ServerData::WriteSnapshotBody( OtherPlayer* otherPlayer, Writer* writer )
   {
     writer->Write( mWorld->mElapsedSecs );
     TAC_ASSERT( otherPlayer );
-    auto oldWorld = mSnapshots.FindSnapshot( otherPlayer->mTimeStamp );
+    World* oldWorld = mSnapshots.FindSnapshot( otherPlayer->mTimeStamp );
     if( !oldWorld )
       oldWorld = mEmptyWorld;
 
     writer->Write( otherPlayer->mTimeStamp );
     writer->Write( ( UUID )otherPlayer->mPlayerUUID );
 
-    // Write deleted players
-    {
-      Vector< PlayerUUID > deletedPlayerUUIDs;
-      for( Player* oldPlayer : oldWorld->mPlayers )
-      {
-        PlayerUUID playerUUID = oldPlayer->mPlayerUUID;
-        Player* newPlayer = mWorld->FindPlayer( playerUUID );
-        if( !newPlayer )
-          deletedPlayerUUIDs.push_back( playerUUID );
-      }
-
-      writer->Write( ( PlayerCount )deletedPlayerUUIDs.size() );
-      for( PlayerUUID playerUUID : deletedPlayerUUIDs )
-      {
-        writer->Write( playerUUID );
-      }
-    }
-
-    // Write player differences
-    {
-      struct PlayerDifference
-      {
-        u8    mBitfield;
-        Player*    mNewPlayer;
-        PlayerUUID playerUUID;
-      };
-      Vector< PlayerDifference > oldAndNewPlayers;
-
-      for( Player* newPlayer : mWorld->mPlayers )
-      {
-        PlayerUUID playerUUID = newPlayer->mPlayerUUID;
-        Player* oldPlayer = oldWorld->FindPlayer( playerUUID );
-        u8 bitfield = GetNetworkBitfield( oldPlayer, newPlayer, PlayerNetworkBitsGet() );
-        if( !bitfield )
-          continue;
-
-        const PlayerDifference diff
-        {
-          .mBitfield = bitfield,
-          .mNewPlayer = newPlayer,
-          .playerUUID = playerUUID,
-        };
-        oldAndNewPlayers.push_back( diff );
-      }
-      writer->Write( ( PlayerCount )oldAndNewPlayers.size() );
-
-      for( PlayerDifference& diff : oldAndNewPlayers )
-      {
-        writer->Write( diff.playerUUID );
-        writer->Write( diff.mNewPlayer, diff.mBitfield, PlayerNetworkBitsGet() );
-      }
-    }
-
-    // Write deleted entites
-    {
-      Vector< EntityUUID > deletedEntityUUIDs;
-      for( Entity* entity : oldWorld->mEntities )
-      {
-        EntityUUID entityUUID = entity->mEntityUUID;
-        Entity* newEntity = mWorld->FindEntity( entityUUID );
-        if( !newEntity )
-          deletedEntityUUIDs.push_back( entityUUID );
-      }
-
-      writer->Write( ( EntityCount )deletedEntityUUIDs.size() );
-      for( EntityUUID uuid : deletedEntityUUIDs )
-        writer->Write( uuid );
-    }
-
-    // Write entity differenes
-    {
-
-      // Bit shifted index, to be 
-      //struct ComponentRegistryBit
-      //{
-      //  ComponentRegistryBit( ComponentRegistryIndex i ) : mBit( 1 << i.mIndex ) {}
-      //  u64 mBit;
-      //};
-
-      struct ComponentRegistryBits
-      {
-        //void UnionWith( ComponentRegistryBit b ) { mBitfield |= b.mBit; }
-        //void UnionWith( ComponentRegistryIndex i ) { UnionWith( ComponentRegistryBit( i ) ); }
-        void UnionWith( ComponentRegistryIndex i ) { mBitfield |= 1 << i.mIndex; }
-
-        u64 mBitfield = 0;
-      };
-
-
-
-      const ComponentRegistryIndex registeredComponentCount = ComponentRegistry_GetComponentCount();
-
-      struct ChangedComponentBitfields
-      {
-        void Set( ComponentRegistryIndex idx, u8 data )
-        {
-          if( data )
-          {
-            mData[ idx ] = data;
-            mDirty = true;
-          }
-        }
-        u8   Get( ComponentRegistryIndex idx ) const    { return mData[ idx ]; }
-        bool IsDirty() const                            { return mDirty; }
-
-      private:
-        u8   mData[ 64 ] = {};
-        bool mDirty = false;
-      };
-
-      struct EntityDifference
-      {
-        ComponentRegistryBits     mComponents = 0;
-        ChangedComponentBitfields mChangedComponentBitfields;
-        Entity*                   mNewEntity = nullptr;
-        EntityUUID                mEntityUUID = NullEntityUUID;
-      };
-
-      Vector< EntityDifference > entityDifferences;
-      for( Entity* newEntity : mWorld->mEntities )
-      {
-        Entity* oldEntity = oldWorld->FindEntity( newEntity->mEntityUUID );
-
-        ComponentRegistryBits oldComponents = 0;
-        ComponentRegistryBits newComponents = 0;
-        ChangedComponentBitfields changedComponentBitfields;
-
-        for( ComponentRegistryIndex iComponentType = 0;
-             iComponentType.mIndex < registeredComponentCount.mIndex;
-             iComponentType.mIndex++ )
-        {
-          //const ComponentRegistryBit componentType = 1 << iComponentType;
-          const ComponentRegistryEntry* componentData = ComponentRegistry_GetComponentAtIndex( iComponentType );
-
-          Component* oldComponent = oldEntity ? oldEntity->GetComponent( componentData ) : nullptr;
-          if( oldComponent )
-            oldComponents |= componentType;
-
-          Component* newComponent = newEntity->GetComponent( componentData );
-          if( newComponent )
-            newComponents |= componentType;
-
-          if( oldComponent && newComponent )
-          {
-            const auto netBit = GetNetworkBitfield( oldComponent,
-                                                    newComponent,
-                                                    componentData->mNetworkBits );
-
-            changedComponentBitfields.Set( componentType, netBit );
-          }
-        }
-
-        if( const bool nothingChanged
-            = oldComponents == newComponents
-            && !changedComponentBitfields.IsDirty() )
-          continue;
-
-        EntityDifference entityDifference;
-        entityDifference.mComponents = newComponents;
-        entityDifference.mChangedComponentBitfields = changedComponentBitfields;
-        entityDifference.mNewEntity = newEntity;
-        entityDifference.mEntityUUID = newEntity->mEntityUUID;
-        entityDifferences.push_back( entityDifference );
-      }
-
-      writer->Write( ( EntityCount )entityDifferences.size() );
-
-      for( const EntityDifference& entityDifference : entityDifferences )
-      {
-        writer->Write( entityDifference.mEntityUUID );
-
-        writer->Write( entityDifference.mComponents );
-
-        const ChangedComponentBitfields& changedComponentsBitfield =
-          entityDifference.mChangedComponentBitfields;
-
-        for( int iComponentType = 0; iComponentType < registeredComponentCount; ++iComponentType )
-        {
-          if( entityDifference.mChangedComponentBitfields;
-          if( !( changedComponentsBitfield & iComponentType ) )
-            continue;
-
-          auto componentType = ( ComponentRegistryIndex )iComponentType;
-          const ComponentRegistryEntry* componentRegistryEntry = ComponentRegistry_GetComponentAtIndex( iComponentType );
-          Component* component = entityDifference.mNewEntity->GetComponent( componentRegistryEntry );
-          char componentBitfield = entityDifference.mChangedComponentBitfields.at( componentType );
-          writer->Write( component,
-                         componentBitfield,
-                         componentRegistryEntry->mNetworkBits );
-        }
-      }
-    }
+    PlayerDiffs::Write( oldWorld, mWorld, writer );
+    EntityDiffs::Write( oldWorld, mWorld, writer );
   }
-
 
   void ServerData::ExecuteNetMsg( const ConnectionUUID connectionID,
                                   const void* bytes,
                                   const int byteCount,
                                   Errors& errors )
   {
-    Reader reader;
-    reader.mBegin = bytes;
-    reader.mEnd = ( char* )bytes + byteCount;
-    reader.mFrom = GameEndianness;
-    reader.mTo = GetEndianness();
+    Reader reader
+    {
+      .mFrom = GameEndianness,
+      .mTo = GetEndianness(),
+      .mBegin = bytes,
+      .mEnd = ( char* )bytes + byteCount,
+    };
 
-    NetMsgType networkMessage = NetMsgType::Count;
-    TAC_CALL( ReadNetMsgHeader( &reader, &networkMessage, errors ) ) ;
+    const auto networkMessage = TAC_CALL( ReadNetMsgHeader( &reader, errors ) );
     switch( networkMessage )
     {
       case NetMsgType::Input:
@@ -339,9 +157,9 @@ namespace Tac
 
   Player* ServerData::SpawnPlayer()
   {
-    if( mWorld->mPlayers.size() >= sPlayerCountMax )
-      return nullptr;
-    return mWorld->SpawnPlayer( mPlayerUUIDCounter.AllocateNewUUID() );
+    return mWorld->mPlayers.size() < sPlayerCountMax
+      ? mWorld->SpawnPlayer( mPlayerUUIDCounter.AllocateNewUUID() )
+      : nullptr;
   }
 
 
@@ -350,7 +168,7 @@ namespace Tac
                                    int byteCount,
                                    Errors& errors )
   {
-    auto otherPlayer = FindOtherPlayer( connectionID );
+    OtherPlayer* otherPlayer = FindOtherPlayer( connectionID );
     if( !otherPlayer )
       return;
 
@@ -422,7 +240,7 @@ namespace Tac
     //  mChat.mIsReadyToSend = false;
     //  writer->mBuffer = buffer;
     //  TAC_CALL( WriteOutgoingChatMessage( writer, &mChat, errors ) );
-    //  for( auto otherPlayer : mOtherPlayers )
+    //  for( OtherPlayer* otherPlayer : mOtherPlayers )
     //  {
     //    sendNetworkMessageCallback(
     //      otherPlayer->mConnectionUUID,

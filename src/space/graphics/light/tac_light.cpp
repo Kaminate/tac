@@ -9,6 +9,7 @@
 #include "src/common/graphics/tac_renderer_util.h"
 #include "space/graphics/tac_graphics.h"
 #include "space/ecs/tac_entity.h"
+#include "space/ecs/tac_component_registry.h"
 
 namespace Tac
 {

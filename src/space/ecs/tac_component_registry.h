@@ -13,6 +13,7 @@ namespace Tac
     typedef void           ComponentDebugImguiFn( Component* );
     typedef void           ComponentSaveFn( Json&, Component* );
     typedef void           ComponentLoadFn( Json&, Component* );
+    int                    GetIndex() const;
 
     //                     Used for
     //                     - debugging network bits
@@ -40,14 +41,23 @@ namespace Tac
   };
 
   // Index of a registered component in the ComponentRegistryEntry
-  struct ComponentRegistryIndex
-  {
-    ComponentRegistryIndex( int i ) : mIndex( i ) {}
-    int mIndex = -1;
-  };
+  //enum ComponentRegistryIndex : int {};
+
+  //struct ComponentRegistryIndexes
+  //{
+  //  struct Iterator
+  //  {
+  //    ComponentRegistryIndex operator*() { return ComponentRegistryIndex{ mIndex }; }
+  //    void operator++() { mIndex++; }
+  //    int mIndex;
+  //  };
+  //  Iterator begin() { return { 0 }; }
+  //  Iterator end() { return { ComponentRegistry_GetComponentCount() }; }
+  //};
+
 
   int                     ComponentRegistry_GetComponentCount();
-  ComponentRegistryEntry* ComponentRegistry_GetComponentAtIndex( ComponentRegistryIndex );
+  ComponentRegistryEntry* ComponentRegistry_GetComponentAtIndex( int );
   ComponentRegistryEntry* ComponentRegistry_RegisterComponent();
   ComponentRegistryEntry* ComponentRegistry_FindComponentByName( const char* );
 

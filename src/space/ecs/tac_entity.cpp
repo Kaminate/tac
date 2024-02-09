@@ -1,23 +1,16 @@
+#include "space/ecs/tac_entity.h" // self-inc
+
 #include "space/ecs/tac_component.h"
-#include "space/ecs/tac_entity.h"
+#include "space/ecs/tac_component_registry.h"
 #include "space/ecs/tac_system.h"
 #include "space/world/tac_world.h"
-#include "src/common/memory/tac_frame_memory.h"
 #include "src/common/algorithm/tac_algorithm.h"
 #include "src/common/dataprocess/tac_json.h"
+#include "src/common/memory/tac_frame_memory.h"
 #include "src/common/preprocess/tac_preprocessor.h"
-
-//#include <algorithm>
-//#include <cmath>
 
 namespace Tac
 {
-  struct ComponentFindFunctor
-  {
-    bool operator()( Component* component ) { return component->GetEntry() == componentRegistryEntry; }
-    const ComponentRegistryEntry* componentRegistryEntry;
-  };
-
   static v3 Vector3FromJson( Json& json )
   {
     v3 v =
@@ -112,13 +105,17 @@ namespace Tac
 
   Component*                Components::Remove( const ComponentRegistryEntry* componentRegistryEntry )
   {
-    auto it = std::find_if( mComponents.begin(),
-                            mComponents.end(),
-                            ComponentFindFunctor{ componentRegistryEntry } );
-    TAC_ASSERT( it != mComponents.end() );
-    Component* component = *it;
-    mComponents.erase( it );
-    return component;
+    for( auto it = mComponents.begin(); it != mComponents.end(); ++it )
+    {
+      Component* component = *it;
+      if( component->GetEntry() == componentRegistryEntry )
+      {
+        mComponents.erase(it);
+        return component;
+      }
+    }
+
+    return nullptr;
   }
 
   //Components::ConstIterator Components::begin() const { return mComponents.begin(); }
@@ -176,18 +173,7 @@ namespace Tac
 
   void             Entity::RemoveComponent( const ComponentRegistryEntry* entry )
   {
-    //TAC_ASSERT_UNIMPLEMENTED;
-    //auto it = std::find_if(
-    //	mComponents.begin(),
-    //	mComponents.end(),
-    //	[ & ]( Component* component ) { return component->GetEntry() == entry; } );
-    //TAC_ASSERT( it != mComponents.end() );
-    //Component* component = *it;
-    //mComponents.erase( it );
-
     Component* component = mComponents.Remove( entry );
-
-    //ComponentRegistryEntry* entry = component->GetEntry();
     entry->mDestroyFn( mWorld, component );
   }
 

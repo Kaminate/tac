@@ -1,12 +1,14 @@
 
-#include "space/graphics/model/tac_model.h"
+#include "space/graphics/model/tac_model.h" // self-inc
+
+#include "space/ecs/tac_component_registry.h"
 #include "space/ecs/tac_entity.h"
 #include "space/graphics/tac_graphics.h"
-#include "src/common/graphics/imgui/tac_imgui.h"
-#include "src/common/system/tac_os.h"
-#include "src/common/string/tac_string_util.h"
-#include "src/common/error/tac_error_handling.h"
 #include "src/common/dataprocess/tac_json.h"
+#include "src/common/error/tac_error_handling.h"
+#include "src/common/graphics/imgui/tac_imgui.h"
+#include "src/common/string/tac_string_util.h"
+#include "src/common/system/tac_os.h"
 
 namespace Tac
 {

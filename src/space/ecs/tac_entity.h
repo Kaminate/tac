@@ -4,10 +4,10 @@
 #include "space/tac_space.h"
 #include "src/common/preprocess/tac_preprocessor.h"
 #include "src/common/math/tac_vector3.h"
+#include "src/common/containers/tac_vector.h"
+#include "src/common/containers/tac_list.h"
 #include "src/common/math/tac_matrix4.h"
 #include "src/common/string/tac_string.h"
-
-import std;// #include <list>
 
 namespace Tac
 {
@@ -23,15 +23,13 @@ namespace Tac
 
   struct Components
   {
-    //typedef std::list< Component* >::const_iterator ConstIterator;
     void          Add( Component* );
     void          Clear();
     Component*    Remove( const ComponentRegistryEntry* );
     auto          begin() const { return mComponents.begin(); };
     auto          end() const { return mComponents.end(); }
-    //ConstIterator begin() const;
-    //ConstIterator end()const;
-    std::list< Component* > mComponents;
+
+    List< Component* > mComponents;
   };
 
   struct Entity

@@ -7,8 +7,6 @@
 
 #include <SDL.h>
 
-import std; // #include <set>
-
 namespace Tac
 {
 

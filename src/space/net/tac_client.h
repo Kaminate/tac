@@ -1,17 +1,15 @@
-
 #pragma once
 
 #include "src/common/math/tac_vector2.h"
 #include "src/common/shell/tac_shell_timer.h"
 #include "src/common/containers/tac_vector.h"
+#include "src/common/containers/tac_list.h"
 #include "src/common/string/tac_string.h"
 #include "src/common/error/tac_error_handling.h"
 
 #include "space/tac_space_types.h"
 #include "space/net/tac_space_net.h"
 #include "space/world/tac_world.h"
-
-import std; // #include <list>
 
 namespace Tac
 {
@@ -38,7 +36,7 @@ namespace Tac
 
     // < Prediction >
     static const int        sMaxSavedInputCount = 60;
-    std::list< SavedInput > mSavedInputs;
+    List< SavedInput >      mSavedInputs;
     bool                    mIsPredicting = true;
     // </>
 
@@ -49,8 +47,6 @@ namespace Tac
     void                    WriteInputBody( Writer* );
     void                    ExecuteNetMsg( void* bytes, int byteCount, Errors& );
     void                    ApplyPrediction( Timestamp lastTime );
-    void                    ReadEntityDifferences( Reader*, Errors& );
-    void                    ReadPlayerDifferences( Reader*, Errors& );
     void                    Update( float seconds,
                                     v2 inputDir,
                                     ClientSendNetworkMessageCallback sendNetworkMessageCallback,

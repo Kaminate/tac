@@ -16,8 +16,6 @@
 #include "src/shell/windows/input/tac_win32_mouse_edge.h"
 #include "src/shell/windows/net/tac_net_winsock.h"
 
-import std; // #include <set>
-
 namespace Tac
 {
   static const char*         classname = "tac";

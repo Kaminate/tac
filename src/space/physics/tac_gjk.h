@@ -1,12 +1,11 @@
-
 // The Gilbert–Johnson–Keerthi algorithm computes the intersection
 // of two convex polygons. We use it for physics integration and collision detection
 
 #pragma once
-#include "src/common/containers/tac_vector.h"
-#include "src/common/math/tac_vector3.h"
 
-import std; // #include <list>
+#include "src/common/containers/tac_vector.h"
+#include "src/common/containers/tac_list.h"
+#include "src/common/math/tac_vector3.h"
 
 namespace Tac
 {
@@ -105,7 +104,9 @@ namespace Tac
     const Support* mRight = nullptr;
 
     bool                     mEPAIsComplete = false;
-    std::list< EPATriangle > mEPATriangles;
+
+    // why in the fuck is this a list
+    List< EPATriangle >      mEPATriangles;
     int                      mEPATriangleCount = 4;
     EPATriangle              mEPAClosest;
     CompoundSupport          mEPAClosestSupportPoint;

@@ -8,8 +8,6 @@
 #include "src/common/math/tac_math.h"
 #include "src/common/containers/tac_optional.h"
 
-import std; // <algorithm> // std::find
-
 namespace Tac
 {
 
@@ -394,11 +392,11 @@ namespace Tac
           EPATriangle epaBDC( b, d, c, bdc );
           EPATriangle epaADB( a, d, b, adb );
           EPATriangle epaACD( a, c, d, acd );
-          mEPATriangles = {
-            epaABC,
-            epaBDC,
-            epaADB,
-            epaACD };
+          mEPATriangles.clear();
+          mEPATriangles.push_back( epaABC );
+          mEPATriangles.push_back( epaBDC );
+          mEPATriangles.push_back( epaADB );
+          mEPATriangles.push_back( epaACD );
           return;
         }
       } break;
@@ -453,11 +451,11 @@ namespace Tac
         const EPATriangle epaBDC( b, d, c );
         const EPATriangle epaADB( a, d, b );
         const EPATriangle epaACD( a, c, d );
-        mEPATriangles = {
-          epaABC,
-          epaBDC,
-          epaADB,
-          epaACD };
+        mEPATriangles.clear();
+        mEPATriangles.push_back( epaABC );
+        mEPATriangles.push_back( epaBDC );
+        mEPATriangles.push_back( epaADB );
+        mEPATriangles.push_back( epaACD );
       }
       return;
     }
@@ -514,8 +512,8 @@ namespace Tac
       return;
     }
 
-    // why the fuck is this a std::list
-    std::list< EPAHalfEdge > epaHalfEdges;
+    // why the fuck is this a list
+    List< EPAHalfEdge > epaHalfEdges;
     auto iTri = mEPATriangles.begin();
     while( iTri != mEPATriangles.end() )
     {
@@ -530,23 +528,18 @@ namespace Tac
 
       const EPAHalfEdge edges[] =
       {
-        EPAHalfEdge{.mFrom = iTri->mV0, .mTo = iTri->mV1 },
-        EPAHalfEdge{.mFrom = iTri->mV1, .mTo = iTri->mV2 },
-        EPAHalfEdge{.mFrom = iTri->mV2, .mTo = iTri->mV0 },
+        EPAHalfEdge{ .mFrom = iTri->mV0, .mTo = iTri->mV1 },
+        EPAHalfEdge{ .mFrom = iTri->mV1, .mTo = iTri->mV2 },
+        EPAHalfEdge{ .mFrom = iTri->mV2, .mTo = iTri->mV0 },
       };
 
       for( const EPAHalfEdge& edge : edges )
       {
         const EPAHalfEdge reversed = edge.Reverse();
-        auto iEdge = std::find( epaHalfEdges.begin(), epaHalfEdges.end(), reversed );
-        if( iEdge == epaHalfEdges.end() )
-        {
-          epaHalfEdges.push_back( edge );
-        }
-        else
-        {
+        if( auto iEdge = epaHalfEdges.Find( reversed ) )
           epaHalfEdges.erase( iEdge );
-        }
+        else
+          epaHalfEdges.push_back( edge );
       }
 
       iTri = mEPATriangles.erase( iTri );
