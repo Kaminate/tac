@@ -198,6 +198,16 @@ namespace Tac
     }
   }
 
+  bool DX12AppHelloConstBuf::SupportsRayTracing(Errors& errors)
+  {
+    D3D12_FEATURE_DATA_D3D12_OPTIONS5 opt5{};
+    TAC_DX12_CALL_RET( false,
+                       m_device->CheckFeatureSupport( D3D12_FEATURE_D3D12_OPTIONS5,
+                       &opt5,
+                       sizeof( opt5 ) ) );
+    return opt5.RaytracingTier >= D3D12_RAYTRACING_TIER_1_0;
+  }
+
   void DX12AppHelloConstBuf::CreateDevice( Errors& errors )
   {
     auto adapter = ( IDXGIAdapter* )DXGIGetBestAdapter();
@@ -217,6 +227,7 @@ namespace Tac
     }
 
     InitDescriptorSizes();
+
   }
 
   void DX12AppHelloConstBuf::InitDescriptorSizes()
@@ -1533,9 +1544,6 @@ namespace Tac
   void DX12AppHelloConstBuf::Init( Errors& errors )
   {
     CreateDesktopWindow();
-
-    ListUnitTest();
-    ForwardListUnitTest();
   }
 
   void DX12AppHelloConstBuf::PreSwapChainInit( Errors& errors)

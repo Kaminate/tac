@@ -224,68 +224,6 @@ namespace Tac
       const EventHandler handler = sEventHandlers[ (int)desktopEventType ];
       TAC_ASSERT(handler);
       handler();
-
-#if TAC_DELETE_ME()
-
-      switch( desktopEventType )
-      {
-      case DesktopEventType::WindowAssignHandle:
-      {
-        const auto data = sEventQueue.QueuePop<DesktopEventDataAssignHandle>();
-        HandleDesktopEvent( data );
-      } break;
-
-      case DesktopEventType::WindowMove:
-      {
-        const auto data = sEventQueue.QueuePop<DesktopEventDataWindowMove>();
-        HandleDesktopEvent( data );
-      } break;
-
-      case DesktopEventType::WindowResize:
-      {
-        const auto data = sEventQueue.QueuePop<DesktopEventDataWindowResize>();
-        HandleDesktopEvent( data );
-      } break;
-
-      case DesktopEventType::KeyInput:
-      {
-        const auto data = sEventQueue.QueuePop<DesktopEventDataKeyInput>();
-        HandleDesktopEvent( data );
-      } break;
-
-      case DesktopEventType::KeyState:
-      {
-        const auto data = sEventQueue.QueuePop<DesktopEventDataKeyState>();
-        HandleDesktopEvent( data );
-      } break;
-
-      case DesktopEventType::MouseButtonState:
-      {
-        const auto  data = sEventQueue.QueuePop<DesktopEventDataMouseButtonState>();
-        HandleDesktopEvent( data );
-      } break;
-
-      case DesktopEventType::MouseWheel:
-      {
-        const auto data = sEventQueue.QueuePop<DesktopEventDataMouseWheel>();
-        HandleDesktopEvent( data );
-      } break;
-
-      case DesktopEventType::MouseMove:
-      {
-        const auto data = sEventQueue.QueuePop<DesktopEventDataMouseMove>();
-        HandleDesktopEvent( data );
-      } break;
-
-      case DesktopEventType::CursorUnobscured:
-      {
-        const auto data = sEventQueue.QueuePop<DesktopEventDataCursorUnobscured>();
-        HandleDesktopEvent( data );
-      } break;
-
-      default: TAC_ASSERT_INVALID_CASE( desktopEventType ); break;
-      }
-#endif
     }
   }
 

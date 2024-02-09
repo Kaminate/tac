@@ -415,9 +415,10 @@ namespace Tac
 
 
     ImGuiText( "--------------------------------" );
-    const std::string s = std::format("(debug text) iStep: {}, stepCount {}", iStep, stepCount );
-    const StringView sv( s.data(), ( int )s.size() );
-    ImGuiText(sv);
+
+    ImGuiText(String() + "(debug text) "
+               + "iStep: " + ToString( iStep ) + " , "
+               + "stepCount: " + ToString( stepCount ));
 
 
     //if( sIterationExample != IterationExample::None )

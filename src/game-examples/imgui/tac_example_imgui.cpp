@@ -6,6 +6,20 @@
 
 namespace Tac
 {
+  static String FormatColor( const v4& col4 )
+  {
+      String s;
+      for( int i = 0; i < 4; ++i )
+      {
+        int col = int( 255 * col4[ i ] );
+        String s2 = ToString( col );
+        while( s2.size() < 3 )
+          s2 += " ";
+        s += s2;
+      }
+      return s;
+  }
+
   void ExampleImgui::Update( Errors& errors )
   {
     ImGuiText( "r   g   b   a" );
@@ -17,16 +31,7 @@ namespace Tac
       const v2 size( style.fontSize, style.fontSize );
       const int iTex = ( int )Render::TextureHandle();
 
-#define FMT "{:3}"
-      const std::string s = std::format( FMT FMT FMT FMT,
-                                   int( 255 * col4[ 0 ] ),
-                                   int( 255 * col4[ 1 ] ),
-                                   int( 255 * col4[ 2 ] ),
-                                   int( 255 * col4[ 3 ] ) );
-#undef FMT
-      const StringView sv( s.data(), (int)s.size() );
-
-      ImGuiText(sv );
+      ImGuiText( FormatColor( col4 ) );
       ImGuiSameLine();
       ImGuiImage( iTex, size, col4 );
       ImGuiSameLine();

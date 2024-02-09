@@ -7,10 +7,7 @@
 #include "src/common/containers/tac_array.h"
 #include "src/common/tac_ints.h"
 
-
 #include <d3dcommon.h> // WKPDID_D3DDebugObjectName
-
-import std; // #include <sstream> // std::stringstream
 
 #pragma comment( lib, "DXGI.lib" )
 
@@ -48,7 +45,7 @@ namespace Tac::Render
       case DXGI_ERROR_WAIT_TIMEOUT: return "DXGI_ERROR_WAIT_TIMEOUT The time - out interval elapsed before the next desktop frame was available.";
       case DXGI_ERROR_WAS_STILL_DRAWING: return "DXGI_ERROR_WAS_STILL_DRAWING The GPU was busy at the moment when a call was made to perform an operation, and did not execute or schedule the operation.";
       case S_OK: return "S_OK";
-      default: return nullptr;
+      default: return "unknown";
     }
   }
 
@@ -331,17 +328,11 @@ namespace Tac::Render
   // Appends the failed function call error message to Errors
   String DXGICallAux( const char* fnCallWithArgs, HRESULT res )
   {
-    std::stringstream ss;
-    ss << fnCallWithArgs << " returned 0x" << std::hex << res;
     const char* inferredErrorMessage = TryInferDXGIErrorStr( res );
-    if( inferredErrorMessage )
-    {
-      ss << "(";
-      ss << inferredErrorMessage;
-      ss << ")";
-    }
-
-    return ss.str().c_str();
+    String str = String()
+      + fnCallWithArgs + " returned 0x" + Tac::Itoa( ( int )res )
+      + "(" + inferredErrorMessage + ")";
+    return str;
   }
 
   PCom<IDXGIAdapter4> DXGIGetBestAdapter()

@@ -17,8 +17,6 @@
 #include "space/ecs/tac_entity.h"
 #include "space/world/tac_world.h"
 
-import std; // #include <iostream>
-
 namespace Tac
 {
   const char* refFrameVecNamePosition = "mPos";

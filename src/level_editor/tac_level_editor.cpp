@@ -49,8 +49,6 @@
 #include "space/terrain/tac_terrain.h"
 
 
-import std; // iostream, functional, algorithm
-
 namespace Tac
 {
   Creation gCreation;

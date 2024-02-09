@@ -2,6 +2,7 @@
 
 #include "space/physics/tac_barycentric.h"
 #include "src/common/preprocess/tac_preprocessor.h"
+#include "src/common/algorithm/tac_algorithm.h"
 #include "src/common/math/tac_matrix3.h"
 #include "src/common/math/tac_matrix4.h"
 #include "src/common/math/tac_vector4.h"
@@ -28,13 +29,16 @@ namespace Tac
   //      a-----c          a-----b
   //
   // Ensure orientation 2
-  bool IsCorrectTetrahedronOrientation( v3 a, v3 b, v3 c, v3 d )
+  static bool IsCorrectTetrahedronOrientation( const v3& a,
+                                               const v3& b,
+                                               const v3& c,
+                                               const v3& d )
   {
-    v3 ab = b - a;
-    v3 ac = c - a;
-    v3 ad = d - a;
-    auto abc = Cross( ab, ac );
-    auto result = Dot( abc, ad ) < 0;
+    const v3 ab = b - a;
+    const v3 ac = c - a;
+    const v3 ad = d - a;
+    const v3 abc = Cross( ab, ac );
+    const bool result = Dot( abc, ad ) < 0;
     return result;
   }
 
@@ -123,7 +127,7 @@ namespace Tac
       mSupports[ 1 ].mDiffPt,
       mSupports[ 0 ].mDiffPt ) )
     {
-      std::swap( mSupports[ 2 ], mSupports[ 1 ] );
+      Swap( mSupports[ 2 ], mSupports[ 1 ] );
     }
   }
 
