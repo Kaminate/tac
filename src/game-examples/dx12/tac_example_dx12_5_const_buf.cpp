@@ -3,6 +3,7 @@
 #include "tac_example_dx12_2_dxc.h"
 
 #include "src/common/containers/tac_array.h"
+#include "src/common/algorithm/tac_algorithm.h"
 #include "src/common/dataprocess/tac_text_parser.h"
 #include "src/common/containers/tac_span.h"
 #include "src/common/containers/tac_map.h"
@@ -36,6 +37,233 @@ static const UINT TexturePixelSize = 4;    // The number of bytes used to repres
 
 namespace Tac
 {
+  struct GPUUploadAllocator
+  {
+
+    struct DynAlloc
+    {
+      D3D12_GPU_VIRTUAL_ADDRESS mGPUAddr;
+      void*                     mCPUAddr;
+      int                       mByteCount;
+    };
+
+    struct Page
+    {
+      PCom<ID3D12Resource>      mBuffer;
+      //D3D12_RESOURCE_STATES     DefaultUsage{ D3D12_RESOURCE_STATE_GENERIC_READ };
+
+      D3D12_GPU_VIRTUAL_ADDRESS mGPUAddr = 0;
+      void*                     mCPUAddr = nullptr;
+      int                       mByteCount = 0;
+
+      //bool IsValid() const { return mGPUAddr != 0; }
+
+      static const int          kDefaultByteCount = 2 * 1024 * 1024;
+
+    };
+
+    struct RetiredPage
+    {
+      Page mPage;
+      u64 mFence;
+    };
+
+    DynAlloc Allocate( int const byteCount, Errors& errors )
+    {
+      // so the deal with large pages, is that they can't be reused as default pages.
+      // so normally, when allocating a page, you first check if a retired page can be reused,
+      // but large pages are just deleted when they are no longer used.
+      TAC_ASSERT_MSG( byteCount < Page::kDefaultByteCount, "large pages currently unsupported" );
+
+      TAC_ASSERT_MSG( false, "need to align byteCount and mCurPageUsedByteCount" );
+
+      Page* curPage = mActivePages.empty() ? nullptr : &mActivePages.back();
+      if( mActivePages.empty() || byteCount > curPage->mByteCount - mCurPageUsedByteCount )
+      {
+        TAC_CALL_RET( {}, RequestPage( Page::kDefaultByteCount, errors ) );
+      }
+
+      D3D12_GPU_VIRTUAL_ADDRESS const gpuAddr = curPage->mGPUAddr + mCurPageUsedByteCount;
+      void*                     const cpuAddr = ( u8* )curPage->mCPUAddr + mCurPageUsedByteCount;
+
+      mCurPageUsedByteCount += byteCount;
+
+      return DynAlloc
+      {
+        .mGPUAddr = gpuAddr,
+        .mCPUAddr = cpuAddr,
+        .mByteCount = byteCount,
+      };
+    }
+
+    // call at end of each frame
+    void FreeAll( u64 FenceID )
+    {
+      for( const Page& page : mActivePages )
+      {
+        RetiredPage retiredPage
+        {
+          .mPage = page,
+          .mFence = FenceID,
+        };
+        mRetiredPages.push_back(retiredPage);
+      }
+      // ...
+    }
+
+
+  private:
+
+    //void RetireCurPage( u64 FenceID )
+    //{
+    //  if( mActivePages.empty() )
+    //    return;
+    //  //if( !mCurPage.IsValid() )
+    //  //  return;
+    //  //mRetiredPages.push_back( mCurPage );
+    //  mCurPageUsedByteCount = 0;
+    //}
+
+    bool IsFenceComplete( u64 fenceValue )
+    {
+      return false;
+
+        //bool CommandQueue::IsFenceComplete(uint64_t FenceValue)
+        //{
+        //    if (FenceValue > m_LastCompletedFenceValue)
+        //        m_LastCompletedFenceValue = std::max(m_LastCompletedFenceValue, m_pFence->GetCompletedValue());
+        //    return FenceValue <= m_LastCompletedFenceValue;
+        //}
+    }
+
+    void UnretirePages()
+    {
+      int n = mRetiredPages.size();
+      if( !n )
+        return;
+
+      int i = 0;
+      while( i < n )
+      {
+        RetiredPage& currPage = mRetiredPages[ i ];
+        RetiredPage& backPage = mRetiredPages[ n - 1 ];
+
+        const u64 fenceValue = currPage.mFence;
+        if( IsFenceComplete( fenceValue ) )
+        {
+          mAvailablePages.push_back( currPage.mPage );
+          Swap( currPage, backPage );
+          --n;
+        }
+        else
+        {
+          break;
+          //++i;
+        }
+      }
+
+      mRetiredPages.resize( n );
+    }
+
+    void RequestPage( int byteCount, Errors& errors )
+    {
+      UnretirePages();
+
+      Page page{};
+      if( mAvailablePages.empty() )
+      {
+        page = mAvailablePages.back();
+        mAvailablePages.pop_back();
+      }
+      else
+      {
+        page = AllocateNewPage( byteCount, errors );
+      }
+
+      mActivePages.push_back( page );
+      mCurPageUsedByteCount = 0;
+    }
+
+    Page AllocateNewPage( int byteCount, Errors& errors )
+    {
+      //TAC_ASSERT( !mCurPage.IsValid() );
+      TAC_ASSERT( byteCount == Page::kDefaultByteCount );
+
+
+      const D3D12_HEAP_PROPERTIES HeapProps
+      {
+        .Type = D3D12_HEAP_TYPE_UPLOAD,
+        .CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN,
+        .MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN,
+        .CreationNodeMask = 1,
+        .VisibleNodeMask = 1,
+      };
+
+      const D3D12_RESOURCE_DESC ResourceDesc
+      {
+        .Dimension = D3D12_RESOURCE_DIMENSION_BUFFER,
+        .Alignment = 0,
+        .Width = (UINT64)byteCount,
+        .Height = 1,
+        .DepthOrArraySize = 1,
+        .MipLevels = 1,
+        .Format = DXGI_FORMAT_UNKNOWN,
+        .SampleDesc = DXGI_SAMPLE_DESC{.Count = 1, .Quality = 0 },
+        .Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR,
+        .Flags = D3D12_RESOURCE_FLAG_NONE,
+      };
+
+      const D3D12_RESOURCE_STATES DefaultUsage{ D3D12_RESOURCE_STATE_GENERIC_READ };
+
+      PCom<ID3D12Resource> buffer;
+      TAC_DX12_CALL_RET( {}, m_device->CreateCommittedResource(
+        &HeapProps,
+        D3D12_HEAP_FLAG_NONE,
+        &ResourceDesc,
+        DefaultUsage,
+        nullptr,
+        buffer.iid(),
+        buffer.ppv() ) );
+
+      DX12SetName( buffer, "upload page" );
+
+      void* cpuAddr;
+
+      TAC_DX12_CALL_RET( {}, buffer->Map(
+        0, // subrsc idx
+        nullptr, // nullptr indicates the whole subrsc may be read by cpu
+        &cpuAddr ) );
+
+      Page page
+      {
+        .mBuffer = buffer,
+        .mGPUAddr = buffer->GetGPUVirtualAddress(),
+        .mCPUAddr = cpuAddr,
+        .mByteCount = byteCount,
+      };
+
+    }
+
+    PCom< ID3D12Device > m_device;
+
+    int            mCurPageUsedByteCount = 0;
+
+    // Currently in use by command queues the current frame, memory cannot be freed.
+    // The last page is the current page
+    Vector< Page > mActivePages;
+
+    // | at the end of each frame, active pages go into retired pages
+    // V
+
+    Vector< RetiredPage > mRetiredPages;
+
+    // | when pages are no long used
+    // V
+
+    Vector< Page > mAvailablePages;
+
+  };
+
   // -----------------------------------------------------------------------------------------------
   struct ClipSpacePosition3
   {
