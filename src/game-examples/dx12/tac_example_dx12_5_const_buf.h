@@ -32,6 +32,56 @@ namespace Tac
     D3D12_RECT,
     D3D12_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE >;
 
+
+  struct DX12CommandQueue
+  {
+    struct Signal { u64 mValue; };
+
+    void Create(ID3D12Device*, Errors&);
+
+    bool   IsFenceComplete( Signal );
+    Signal ExecuteCommandList( ID3D12CommandList*, Errors& );
+    void   WaitForFence( Signal, Errors& );
+    void   WaitForIdle( Errors& errors );
+
+    ID3D12CommandQueue* GetCommandQueue() { return m_commandQueue.Get(); }
+    
+  private:
+    Signal IncrementFence(Errors& errors);
+    void   UpdateLastCompletedFenceValue();
+    void   CreateFence(ID3D12Device*, Errors&);
+    void   CreateCommandQueue(ID3D12Device*, Errors&);
+  public:
+
+    // A fence is used to synchronize the CPU with the GPU (see Multi-engine synchronization).
+    // https://learn.microsoft.com/en-us/windows/win32/direct3d12/user-mode-heap-synchronization
+    PCom< ID3D12Fence1 >               m_fence;
+
+    Win32Event                         m_fenceEvent;
+
+    UINT64                             mLastCompletedFenceValue{};
+    UINT64                             mNextFenceValue{1};
+
+    // A ID3D12CommandQueue provides methods for
+    // - submitting command lists,
+    // - synchronizing command list execution,
+    // - instrumenting the command queue,
+    // - etc
+    //
+    // Some examples:
+    // - ID3D12CommandQueue::ExecuteCommandLists
+    // - ID3D12CommandQueue::GetClockCalibration
+    // - ID3D12CommandQueue::GetTimestampFrequency
+    // - ID3D12CommandQueue::Signal
+    // - ID3D12CommandQueue::Wait
+    // 
+    // Together, CommandLists/CommandQueues replace the ID3D11DeviceContext (?)
+    //
+    // tldr: A command queue can submit command lists
+    PCom< ID3D12CommandQueue >         m_commandQueue;
+  };
+
+
   struct DX12AppHelloConstBuf : public App
   {
     enum SRVIndexes
@@ -57,7 +107,6 @@ namespace Tac
 
     void CreateDevice( Errors& );
     void CreateInfoQueue( Errors& );
-    void CreateCommandQueue( Errors& );
     void CreateRTVDescriptorHeap( Errors& );
     void CreateSamplerDescriptorHeap( Errors& );
     void CreateSRVDescriptorHeap( Errors& );
@@ -69,7 +118,6 @@ namespace Tac
     void CreateCommandList( Errors& );
     void CreateCommandListBundle( Errors& );
     void CreateVertexBuffer( Errors& );
-    void CreateFence( Errors& );
     void CreateRootSignature( Errors& );
     void CreatePipelineState( Errors& );
     void InitDescriptorSizes();
@@ -96,7 +144,6 @@ namespace Tac
                                                      D3D12_DESCRIPTOR_HEAP_TYPE,
                                                      int ) const;
     void PopulateCommandList( Errors& );
-    void ExecuteCommandLists();
     void ResourceBarrier( const D3D12_RESOURCE_BARRIER& );
 
     struct TransitionParams
@@ -109,7 +156,6 @@ namespace Tac
 
     void TransitionRenderTarget( int, D3D12_RESOURCE_STATES );
     void SwapChainPresent( Errors& );
-    void WaitForPreviousFrame( Errors& );
 
     // ---------------------------------------------------------------------------------------------
 
@@ -144,23 +190,6 @@ namespace Tac
 
     UINT                               m_descriptorSizes[ D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES ]{};
 
-    // A ID3D12CommandQueue provides methods for
-    // - submitting command lists,
-    // - synchronizing command list execution,
-    // - instrumenting the command queue,
-    // - etc
-    //
-    // Some examples:
-    // - ID3D12CommandQueue::ExecuteCommandLists
-    // - ID3D12CommandQueue::GetClockCalibration
-    // - ID3D12CommandQueue::GetTimestampFrequency
-    // - ID3D12CommandQueue::Signal
-    // - ID3D12CommandQueue::Wait
-    // 
-    // Together, CommandLists/CommandQueues replace the ID3D11DeviceContext (?)
-    //
-    // tldr: A command queue can submit command lists
-    PCom< ID3D12CommandQueue >         m_commandQueue;
     PCom< ID3D12CommandAllocator >     m_commandAllocator;
     PCom< ID3D12CommandAllocator >     m_commandAllocatorBundle;
     PCom< ID3D12GraphicsCommandList4 > m_commandList;
@@ -170,9 +199,6 @@ namespace Tac
     D3D12_RESOURCE_DESC                m_renderTargetDescs[ bufferCount ];
     bool                               m_renderTargetInitialized = false;
 
-    // A fence is used to synchronize the CPU with the GPU (see Multi-engine synchronization).
-    // https://learn.microsoft.com/en-us/windows/win32/direct3d12/user-mode-heap-synchronization
-    PCom< ID3D12Fence1 >               m_fence;
     PCom< ID3D12InfoQueue >            m_infoQueue;
 
     // A root signature defines what resources are bound to the graphics pipeline.
@@ -219,10 +245,9 @@ namespace Tac
     // 1. our commands will be drawing onto
     // 2. our swap chain will present to the monitor
     UINT                               m_frameIndex{};
-    Win32Event                         m_fenceEvent;
 
-    // UINT64 is big enough to run at 1000 fps for 500 million years
-    UINT64                             m_fenceValue{};
+
+    DX12CommandQueue                   mCommandQueue;
   };
 } // namespace Tac
 

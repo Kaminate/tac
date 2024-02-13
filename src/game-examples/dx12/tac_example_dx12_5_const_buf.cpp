@@ -37,6 +37,125 @@ static const UINT TexturePixelSize = 4;    // The number of bytes used to repres
 
 namespace Tac
 {
+
+  // -----------------------------------------------------------------------------------------------
+
+  DX12CommandQueue::Signal DX12CommandQueue::ExecuteCommandList( ID3D12CommandList* cmdlist, Errors& errors )
+  {
+    const Array cmdLists{ cmdlist };
+
+    // Submits an array of command lists for execution.
+    m_commandQueue->ExecuteCommandLists( ( UINT )cmdLists.size(), cmdLists.data() );
+
+    return IncrementFence(errors);
+  }
+
+  DX12CommandQueue::Signal DX12CommandQueue::IncrementFence(Errors& errors)
+  {
+    const UINT64 signalValue = mNextFenceValue;
+
+    // Use this method to set a fence value from the GPU side
+    TAC_DX12_CALL_RET( {}, m_commandQueue->Signal( ( ID3D12Fence* )m_fence, mNextFenceValue ) );
+    mNextFenceValue++;
+    return { signalValue };
+  }
+
+  void DX12CommandQueue::WaitForFence(Signal signalValue, Errors& errors )
+  {
+    if( IsFenceComplete( signalValue ) )
+      return;
+
+    // ID3D12Fence::GetCompletedValue
+    // - Gets the current value of the fence.
+    //
+    // Wait until the previous frame is finished.
+
+    // I think this if statement is used because the alternative
+    // would be while( m_fence->GetCompletedValue() != fence ) { TAC_NO_OP; }
+    //const UINT64 curValue = m_fence->GetCompletedValue();
+    //if( curValue < signalValue.mValue )
+    //{
+    // m_fenceEvent is only ever used in this scope 
+
+    // ID3D12Fence::SetEventOnCompletion
+    // - Specifies an event that's raised when the fence reaches a certain value.
+    //
+    // the event will be 'complete' when it reaches the specified value.
+    // This value is set by the cmdqueue::Signal
+    TAC_DX12_CALL( m_fence->SetEventOnCompletion( signalValue.mValue, ( HANDLE )m_fenceEvent ) );
+    WaitForSingleObject( ( HANDLE )m_fenceEvent, INFINITE );
+    mLastCompletedFenceValue = signalValue.mValue;
+  }
+
+  void DX12CommandQueue::UpdateLastCompletedFenceValue()
+  {
+    const u64 curFenceValue = m_fence->GetCompletedValue();
+    mLastCompletedFenceValue = Max( mLastCompletedFenceValue, curFenceValue );
+  }
+
+  bool DX12CommandQueue::IsFenceComplete( Signal fenceValue )
+  {
+    if( fenceValue.mValue > mLastCompletedFenceValue )
+      UpdateLastCompletedFenceValue();
+
+    return fenceValue.mValue <= mLastCompletedFenceValue;
+  }
+
+  void DX12CommandQueue::Create(ID3D12Device* device, Errors& errors )
+  {
+    TAC_CALL( CreateFence( device, errors ) );
+    TAC_CALL( CreateCommandQueue( device, errors ) );
+  }
+
+  void DX12CommandQueue::CreateFence(ID3D12Device* device, Errors& errors)
+  {
+    // Create synchronization objects.
+
+    PCom< ID3D12Fence > fence;
+    TAC_DX12_CALL( device->CreateFence(
+                   mLastCompletedFenceValue, // initial value
+                   D3D12_FENCE_FLAG_NONE,
+                   fence.iid(),
+                   fence.ppv() ) );
+
+    fence.QueryInterface( m_fence );
+    DX12SetName( fence, "fence" );
+
+    TAC_CALL( m_fenceEvent.Init( errors ) );
+  }
+
+  void DX12CommandQueue::CreateCommandQueue( ID3D12Device* device, Errors& errors )
+  {
+    const D3D12_COMMAND_QUEUE_DESC queueDesc
+    {
+      // Specifies a command buffer that the GPU can execute.
+      // A direct command list doesn't inherit any GPU state.
+      // [ ] Q: 
+      // [ ] A(?): ( As opposed to a bundle command list, which does )
+      //
+      // [ ] Q: What GPU state does a bundle command list inherit?
+      // [ ] A: 
+
+      // This command queue manages direct command lists (direct = for graphics rendering)
+      .Type = D3D12_COMMAND_LIST_TYPE_DIRECT,
+    };
+
+    TAC_DX12_CALL( device->CreateCommandQueue(
+                   &queueDesc,
+                   m_commandQueue.iid(),
+                   m_commandQueue.ppv() ) );
+    DX12SetName( m_commandQueue, "Command Queue" );
+  }
+
+
+  void DX12CommandQueue::WaitForIdle( Errors& errors )
+  {
+    Signal fenceValue = TAC_CALL( IncrementFence( errors ) );
+    TAC_CALL( WaitForFence( fenceValue, errors ) );
+  };
+
+  // -----------------------------------------------------------------------------------------------
+
   struct GPUUploadAllocator
   {
 
@@ -65,7 +184,7 @@ namespace Tac
     struct RetiredPage
     {
       Page mPage;
-      u64 mFence;
+      DX12CommandQueue::Signal mFence;
     };
 
     DynAlloc Allocate( int const byteCount, Errors& errors )
@@ -97,7 +216,7 @@ namespace Tac
     }
 
     // call at end of each frame
-    void FreeAll( u64 FenceID )
+    void FreeAll( DX12CommandQueue::Signal FenceID )
     {
       for( const Page& page : mActivePages )
       {
@@ -124,18 +243,6 @@ namespace Tac
     //  mCurPageUsedByteCount = 0;
     //}
 
-    bool IsFenceComplete( u64 fenceValue )
-    {
-      return false;
-
-        //bool CommandQueue::IsFenceComplete(uint64_t FenceValue)
-        //{
-        //    if (FenceValue > m_LastCompletedFenceValue)
-        //        m_LastCompletedFenceValue = std::max(m_LastCompletedFenceValue, m_pFence->GetCompletedValue());
-        //    return FenceValue <= m_LastCompletedFenceValue;
-        //}
-    }
-
     void UnretirePages()
     {
       int n = mRetiredPages.size();
@@ -148,8 +255,8 @@ namespace Tac
         RetiredPage& currPage = mRetiredPages[ i ];
         RetiredPage& backPage = mRetiredPages[ n - 1 ];
 
-        const u64 fenceValue = currPage.mFence;
-        if( IsFenceComplete( fenceValue ) )
+        const DX12CommandQueue::Signal fenceValue = currPage.mFence;
+        if( mCommandQueue->IsFenceComplete( fenceValue ) )
         {
           mAvailablePages.push_back( currPage.mPage );
           Swap( currPage, backPage );
@@ -262,6 +369,7 @@ namespace Tac
 
     Vector< Page > mAvailablePages;
 
+    DX12CommandQueue* mCommandQueue = nullptr;
   };
 
   // -----------------------------------------------------------------------------------------------
@@ -465,28 +573,7 @@ namespace Tac
       = m_device->GetDescriptorHandleIncrementSize( ( D3D12_DESCRIPTOR_HEAP_TYPE )i );
   }
 
-  void DX12AppHelloConstBuf::CreateCommandQueue( Errors& errors )
-  {
-    const D3D12_COMMAND_QUEUE_DESC queueDesc
-    {
-      // Specifies a command buffer that the GPU can execute.
-      // A direct command list doesn't inherit any GPU state.
-      // [ ] Q: 
-      // [ ] A(?): ( As opposed to a bundle command list, which does )
-      //
-      // [ ] Q: What GPU state does a bundle command list inherit?
-      // [ ] A: 
 
-      // This command queue manages direct command lists (direct = for graphics rendering)
-      .Type = D3D12_COMMAND_LIST_TYPE_DIRECT,
-    };
-
-    TAC_DX12_CALL( m_device->CreateCommandQueue(
-                   &queueDesc,
-                   m_commandQueue.iid(),
-                   m_commandQueue.ppv() ) );
-    DX12SetName( m_commandQueue, "Command Queue" );
-  }
 
   void DX12AppHelloConstBuf::CreateRTVDescriptorHeap( Errors& errors )
   {
@@ -816,13 +903,14 @@ namespace Tac
     // Indicates that recording to the command list has finished.
     TAC_DX12_CALL( m_commandList->Close() );
 
-    ExecuteCommandLists();
+    const DX12CommandQueue::Signal signalValue =
+      TAC_CALL( mCommandQueue.ExecuteCommandList( m_commandList.Get(), errors ));
 
     // wait until assets have been uploaded to the GPU.
     // Wait for the command list to execute; we are reusing the same command 
     // list in our main loop but for now, we just want to wait for setup to 
     // complete before continuing.
-    TAC_CALL( WaitForPreviousFrame( errors ) );
+    TAC_CALL(mCommandQueue.WaitForFence(signalValue, errors ));
   }
 
 
@@ -1040,37 +1128,19 @@ namespace Tac
     // Indicates that recording to the command list has finished.
     TAC_DX12_CALL( m_commandList->Close() );
 
-    ExecuteCommandLists();
+    const DX12CommandQueue::Signal signalValue =
+      TAC_CALL( mCommandQueue.ExecuteCommandList( m_commandList.Get(), errors ) );
 
     // wait until assets have been uploaded to the GPU.
     // Wait for the command list to execute; we are reusing the same command 
     // list in our main loop but for now, we just want to wait for setup to 
     // complete before continuing.
-    TAC_CALL( WaitForPreviousFrame( errors ) );
+    TAC_CALL( mCommandQueue.WaitForFence(signalValue, errors ) ) ;
+
 
     TAC_CALL( CreateVertexBufferSRV( errors ) );
   }
 
-  void DX12AppHelloConstBuf::CreateFence( Errors& errors )
-  {
-    // Create synchronization objects.
-
-    const UINT64 initialVal = 0;
-
-    PCom< ID3D12Fence > fence;
-    TAC_DX12_CALL( m_device->CreateFence(
-                   initialVal,
-                   D3D12_FENCE_FLAG_NONE,
-                   fence.iid(),
-                   fence.ppv() ) );
-
-    fence.QueryInterface(m_fence);
-    DX12SetName( fence, "fence" );
-
-    m_fenceValue = 1;
-
-    TAC_CALL( m_fenceEvent.Init( errors ) );
-  }
 
 
   struct RootSignatureBuilder
@@ -1300,12 +1370,13 @@ namespace Tac
     if( !hwnd )
       return;
 
-    TAC_ASSERT( m_commandQueue );
+    ID3D12CommandQueue* commandQueue = mCommandQueue.GetCommandQueue();
+    TAC_ASSERT( commandQueue );
 
     const SwapChainCreateInfo scInfo
     {
       .mHwnd = hwnd,
-      .mDevice = (IUnknown*)m_commandQueue, // swap chain can force flush the queue
+      .mDevice = (IUnknown*)commandQueue, // swap chain can force flush the queue
       .mBufferCount = bufferCount,
       .mWidth = state->mWidth,
       .mHeight = state->mHeight,
@@ -1635,13 +1706,6 @@ namespace Tac
     m_commandList->ClearRenderTargetView( rtvHandle, clearColor.data(), 0, nullptr );
   }
 
-  void DX12AppHelloConstBuf::ExecuteCommandLists()
-  {
-    const Array cmdLists{ ( ID3D12CommandList* )m_commandList };
-
-    // Submits an array of command lists for execution.
-    m_commandQueue->ExecuteCommandLists( ( UINT )cmdLists.size(), cmdLists.data() );
-  }
 
   static String FormattedSwapEffect( const DXGI_SWAP_EFFECT fx )
   {
@@ -1705,62 +1769,6 @@ namespace Tac
 
   }
 
-  void DX12AppHelloConstBuf::WaitForPreviousFrame( Errors& errors )
-  {
-    // WAITING FOR THE FRAME TO COMPLETE BEFORE CONTINUING IS NOT BEST PRACTICE.
-    // This is code implemented as such for simplicity. The D3D12HelloFrameBuffering
-    // sample illustrates how to use fences for efficient resource usage and to
-    // maximize GPU utilization.
-
-    // ID3D12CommandQueue::Signal
-    // - Updates a fence to a specified value.
-    // ^ I think this adds a signal command to the queue, which basically delay sets the fence
-    //   to a value
-    // ^ A command queue is a not a command list, so this maybe adds a signal to be fired
-    //   in between execution of command lists?
-
-    // Signal and increment the fence value.
-
-    // (first call)
-    //   m_fence was initialized with value 0,
-    //   m_fenceValue was initialized to 1
-    //
-    //   so we signal m_fence(0) with m_fenceValue(1)
-    //   increment m_fenceValue(2)
-    //
-
-    const UINT64 signalValue = m_fenceValue;
-
-    // Use this method to set a fence value from the GPU side
-    // [ ] Q: ^ ???
-    TAC_DX12_CALL( m_commandQueue->Signal( (ID3D12Fence*)m_fence, signalValue ) );
-
-    m_fenceValue++;
-
-    // Experimentally, m_fence->GetCompletedValue() doesn't hit the signalled value until
-
-    // ID3D12Fence::GetCompletedValue
-    // - Gets the current value of the fence.
-    //
-    // Wait until the previous frame is finished.
-
-    // I think this if statement is used because the alternative
-    // would be while( m_fence->GetCompletedValue() != fence ) { TAC_NO_OP; }
-    const UINT64 curValue = m_fence->GetCompletedValue();
-    if( curValue < signalValue )
-    {
-      // m_fenceEvent is only ever used in this scope 
-
-      // ID3D12Fence::SetEventOnCompletion
-      // - Specifies an event that's raised when the fence reaches a certain value.
-      //
-      // the event will be 'complete' when it reaches the specified value.
-      // This value is set by the cmdqueue::Signal
-      TAC_DX12_CALL( m_fence->SetEventOnCompletion( signalValue, (HANDLE)m_fenceEvent ) );
-      WaitForSingleObject( (HANDLE)m_fenceEvent, INFINITE );
-    }
-
-  }
 
 
   // -----------------------------------------------------------------------------------------------
@@ -1785,8 +1793,7 @@ namespace Tac
     TAC_CALL( DXGIInit( errors ) );
     TAC_CALL( EnableDebug( errors ) );
     TAC_CALL( CreateDevice( errors ) );
-    TAC_CALL( CreateFence( errors ) );
-    TAC_CALL( CreateCommandQueue( errors ) );
+    TAC_CALL( mCommandQueue.Create( m_device.Get(), errors ) );
     TAC_CALL( CreateRTVDescriptorHeap( errors ) );
     TAC_CALL( CreateInfoQueue( errors ) );
     TAC_CALL( CreateSRVDescriptorHeap( errors ) );
@@ -1812,19 +1819,20 @@ namespace Tac
     TAC_CALL( CreateTexture( errors ) );
     TAC_CALL( PopulateCommandList( errors ) );
 
-    ExecuteCommandLists();
+    const DX12CommandQueue::Signal signalValue =
+      TAC_CALL( mCommandQueue.ExecuteCommandList( m_commandList.Get(), errors ) );
 
     TAC_CALL( SwapChainPresent( errors ) );
-    TAC_CALL( WaitForPreviousFrame( errors ) );
+
+    // this is bad dont do this?
+    TAC_CALL( mCommandQueue.WaitForFence( signalValue, errors ) );
   }
 
   void DX12AppHelloConstBuf::Uninit( Errors& errors )
   {
-
-    if( m_commandQueue && m_fence && m_fenceEvent )
       // Ensure that the GPU is no longer referencing resources that are about to be
       // cleaned up by the destructor.
-      TAC_CALL( WaitForPreviousFrame( errors ) );
+    TAC_CALL( mCommandQueue.WaitForIdle( errors ) );
 
     DXGIUninit();
   }
