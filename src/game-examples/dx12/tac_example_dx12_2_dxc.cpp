@@ -2,6 +2,7 @@
 
 #include "src/common/containers/tac_array.h"
 #include "src/common/string/tac_string_util.h" // IsAscii
+#include "src/common/system/tac_os.h"
 #include "src/shell/windows/renderer/dx12/tac_dx12_helper.h" // TAC_DX12_CALL_RET
 
 // d3d12 must be included before dxcapi
@@ -219,6 +220,59 @@ namespace Tac::Render::DXC
 
   // -----------------------------------------------------------------------------------------------
 
+  static void PrintCompilerInfo( IDxcPdbUtils* pdbUtils, IDxcBlob* pPDB)
+  {
+    static bool printed;
+    if( printed )
+      return;
+
+    printed = true;
+
+    if constexpr ( not IsDebugMode )
+      return;
+
+
+    if( S_OK != pdbUtils->Load( pPDB ) )
+      return;
+
+    PCom<IDxcVersionInfo> verInfo;
+
+    if( S_OK != pdbUtils->GetVersionInfo( verInfo.CreateAddress() ) )
+      return;
+
+    //TAC_DX12_CALL_RET( {}, pdbUtils->GetVersionInfo( verInfo.CreateAddress() ) );
+
+
+
+    if( PCom<IDxcVersionInfo2> verInfo2 = verInfo.QueryInterface<IDxcVersionInfo2>() )
+    {
+      UINT32 commitCount{};
+      char* commitHash{};
+      verInfo2->GetCommitInfo( &commitCount, &commitHash );
+
+      UINT32 flags{};
+      verInfo2->GetFlags( &flags );
+
+      UINT32 major{};
+      UINT32 minor{};
+      verInfo2->GetVersion( &major, &minor );
+
+      String str = String()
+        + "Compiler commit count " + Tac::ToString( commitCount ) + " hash " + commitHash + "\n"
+        + "Flags: " + Tac::ToString( flags ) + "\n"
+        + "Version: " + Tac::ToString( major ) + "." + Tac::ToString( minor );
+
+      OS::OSDebugPrintLine( str );
+    }
+
+    if( PCom<IDxcVersionInfo3> verInfo3 = verInfo.QueryInterface<IDxcVersionInfo3>() )
+    {
+      char* ver{};
+      verInfo3->GetCustomVersionString( &ver );
+      OS::OSDebugPrintLine( String() + "Custom version: " + ver );
+    }
+  }
+
   PCom<IDxcBlob> Compile( const Input& input, Errors& errors )
   {
     TAC_ASSERT( !input.mOutputDir.empty() );
@@ -370,45 +424,7 @@ namespace Tac::Render::DXC
       const Filesystem::Path pdbPath = input.mOutputDir / pdbName;
       TAC_CALL_RET( {}, SaveBlobToFile(pPDB, pdbPath, errors ));
 
-#if 1
-      HRESULT loadhr = pdbUtils->Load( pPDB.Get() );
-      if( loadhr == S_OK )
-      {
-
-
-        PCom<IDxcVersionInfo> verInfo;
-        HRESULT myHr = pdbUtils->GetVersionInfo( verInfo.CreateAddress() );
-        if( myHr == S_OK )
-        {
-
-          //TAC_DX12_CALL_RET( {}, pdbUtils->GetVersionInfo( verInfo.CreateAddress() ) );
-
-          UINT32 commitCount{};
-          char* commitHash{  };
-          UINT32 flags{};
-
-          UINT32 major{};
-          UINT32 minor{};
-          char* ver{};
-          if( PCom<IDxcVersionInfo2> verInfo2 = verInfo.QueryInterface<IDxcVersionInfo2>() )
-          {
-            verInfo2->GetCommitInfo( &commitCount, &commitHash );
-
-            verInfo2->GetFlags( &flags );
-
-            verInfo2->GetVersion( &major, &minor );
-
-          }
-
-          if( PCom<IDxcVersionInfo3> verInfo3 = verInfo.QueryInterface<IDxcVersionInfo3>() )
-          {
-            verInfo3->GetCustomVersionString( &ver );
-
-          }
-          ++asdf;
-        }
-      }
-#endif
+      PrintCompilerInfo( pdbUtils.Get(), pPDB.Get() );
 
     }
 

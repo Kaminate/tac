@@ -1090,17 +1090,22 @@ namespace Tac
 
     ClearRenderTargetView();
 
-    // [ ] TODO: comment this function
+    // Set the descriptor heaps where all the SRVs live.
+    // calls to SetGraphicsRootDescriptorTable map regions within the descriptor heap
+    // to register spaces within the shaders, as specified by the root signature.
     const Array descHeaps = {
       ( ID3D12DescriptorHeap* )m_srvHeap,
       ( ID3D12DescriptorHeap* )m_samplerHeap,
     };
     m_commandList->SetDescriptorHeaps( ( UINT )descHeaps.size(), descHeaps.data() );
 
-    // [ ] TODO: comment this function
+    // The TriangleVertexBuffer and TriangleTexture SRVs both live in the m_srvHeap.
+    // Connect ranges from the srv heap to descriptor tables within the root signature
     {
       // samplers
-      m_commandList->SetGraphicsRootDescriptorTable( 0, m_samplerGpuHeapStart );
+      {
+        m_commandList->SetGraphicsRootDescriptorTable( 0, m_samplerGpuHeapStart );
+      }
 
       // vtx buffers
       {

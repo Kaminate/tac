@@ -1,10 +1,17 @@
 #pragma once
 
-struct ClipSpacePosition3 { float3 mFloat3; };
+struct ClipSpacePosition3
+{
+  float3 mFloat3;
+  //void operator = (ClipSpacePosition3){ }
+};
 
+// https://github.com/microsoft/DirectXShaderCompiler/wiki/HLSL-2021#operator-overloading
+// the sample code doesn't compile, because the conversion operator = straight up doesn't work
+// https://github.com/microsoft/DirectXShaderCompiler/issues/6081
 struct ClipSpacePosition4
 {
-#if 1
+#if 0
   // Error: Shader compilation failed
   // error: overloading 'operator=' is not allowed
   void operator = (ClipSpacePosition3 ) {}
