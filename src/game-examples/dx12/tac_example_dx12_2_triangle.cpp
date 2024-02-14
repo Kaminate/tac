@@ -401,7 +401,7 @@ namespace Tac
       &defaultHeapProps,
       D3D12_HEAP_FLAG_NONE,
       &resourceDesc,
-      D3D12_RESOURCE_STATE_COPY_DEST, // we want to copy into here from the uplaod buffer
+      D3D12_RESOURCE_STATE_COPY_DEST, // we want to copy into here from the upload buffer
       pOptimizedClearValue,
       m_vertexBuffer.iid(),
       m_vertexBuffer.ppv() ) );

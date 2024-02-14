@@ -680,7 +680,7 @@ namespace Tac
 
     const D3D12_HEAP_PROPERTIES defaultHeapProps { .Type = D3D12_HEAP_TYPE_DEFAULT, };
 
-    // we want to copy into here from the uplaod buffer
+    // we want to copy into here from the upload buffer
     D3D12_RESOURCE_STATES defaultHeapState = D3D12_RESOURCE_STATE_COPY_DEST;
 
     // Creates both a resource and an implicit heap,

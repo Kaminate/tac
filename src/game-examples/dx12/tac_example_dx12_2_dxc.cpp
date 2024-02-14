@@ -228,22 +228,30 @@ namespace Tac::Render::DXC
       "Specifically using dxc instead of d3dcompiler to support a newer shader model" );
 
     // https://github.com/microsoft/DirectXShaderCompiler/wiki/Using-dxc.exe-and-dxcompiler.dll
-    PCom<IDxcUtils> pUtils;
+
     PCom<IDxcCompiler3> pCompiler;
-    TAC_DX12_CALL_RET( {}, DxcCreateInstance( CLSID_DxcUtils, pUtils.iid(), pUtils.ppv() ) );
     TAC_DX12_CALL_RET( {}, DxcCreateInstance( CLSID_DxcCompiler, pCompiler.iid(), pCompiler.ppv() ) );
 
+    PCom<IDxcUtils> pUtils;
+    TAC_DX12_CALL_RET( {}, DxcCreateInstance( CLSID_DxcUtils, pUtils.iid(), pUtils.ppv() ) );
+
+    PCom<IDxcPdbUtils> pdbUtils;
+    TAC_DX12_CALL_RET( {}, DxcCreateInstance( CLSID_DxcPdbUtils, pdbUtils.iid(), pdbUtils.ppv() ) );
+
+
+
+    // this shit don't work (try and get the version)
     if( false )
     {
       //PCom<IDxcCompilerArgs> mArgs;
       TAC_NOT_CONST Array args = { L"--version" };
       //const HRESULT hr = mArgs->AddArgumentsUTF8( args.data(), args.size() );
       PCom<IDxcResult> pResults;
+
+      // E_INVALIDARG
       HRESULT hr = pCompiler->Compile( nullptr,
                           args.data(),
                           args.size(),
-                          //mArgs->GetArguments(),
-                          //mArgs->GetCount(),
                           nullptr,
                           pResults.iid(),
                           pResults.ppv() );
@@ -361,6 +369,47 @@ namespace Tac::Render::DXC
       const String pdbName = GetBlob16AsUTF8( pPDBName, pUtils );
       const Filesystem::Path pdbPath = input.mOutputDir / pdbName;
       TAC_CALL_RET( {}, SaveBlobToFile(pPDB, pdbPath, errors ));
+
+#if 1
+      HRESULT loadhr = pdbUtils->Load( pPDB.Get() );
+      if( loadhr == S_OK )
+      {
+
+
+        PCom<IDxcVersionInfo> verInfo;
+        HRESULT myHr = pdbUtils->GetVersionInfo( verInfo.CreateAddress() );
+        if( myHr == S_OK )
+        {
+
+          //TAC_DX12_CALL_RET( {}, pdbUtils->GetVersionInfo( verInfo.CreateAddress() ) );
+
+          UINT32 commitCount{};
+          char* commitHash{  };
+          UINT32 flags{};
+
+          UINT32 major{};
+          UINT32 minor{};
+          char* ver{};
+          if( PCom<IDxcVersionInfo2> verInfo2 = verInfo.QueryInterface<IDxcVersionInfo2>() )
+          {
+            verInfo2->GetCommitInfo( &commitCount, &commitHash );
+
+            verInfo2->GetFlags( &flags );
+
+            verInfo2->GetVersion( &major, &minor );
+
+          }
+
+          if( PCom<IDxcVersionInfo3> verInfo3 = verInfo.QueryInterface<IDxcVersionInfo3>() )
+          {
+            verInfo3->GetCustomVersionString( &ver );
+
+          }
+          ++asdf;
+        }
+      }
+#endif
+
     }
 
     return pShader;
