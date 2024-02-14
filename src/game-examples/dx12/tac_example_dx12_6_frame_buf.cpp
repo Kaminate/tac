@@ -2,6 +2,9 @@
 #include "tac_example_dx12_shader_compile.h"
 #include "tac_example_dx12_shader_compile.h"
 #include "tac_example_dx12_2_dxc.h"
+#include "tac_example_dx12_root_sig_builder.h"
+#include "tac_example_dx12_input_layout_builder.h"
+#include "tac_example_dx12_checkerboard.h"
 
 #include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_preprocess.h"
 #include "src/common/containers/tac_array.h"
@@ -27,9 +30,6 @@
 
 static const UINT myParamIndex = 0;
 
-static const UINT TextureWidth = 256;
-static const UINT TextureHeight = 256;
-static const UINT TexturePixelSize = 4;    // The number of bytes used to represent a pixel in the texture.
 
 namespace Tac
 {
@@ -345,41 +345,6 @@ namespace Tac
     m_device->CreateSampler( &Desc, DestDescriptor );
   }
 
-  static Vector<UINT8> GenerateCheckerboardTextureData()
-{
-    const UINT rowPitch = TextureWidth * TexturePixelSize;
-    const UINT cellPitch = rowPitch >> 3;        // The width of a cell in the checkboard texture.
-    const UINT cellHeight = TextureWidth >> 3;    // The height of a cell in the checkerboard texture.
-    const UINT textureSize = rowPitch * TextureHeight;
-
-    Vector<UINT8> data(textureSize);
-    UINT8* pData = &data[0];
-
-    for (UINT n = 0; n < textureSize; n += TexturePixelSize)
-    {
-        UINT x = n % rowPitch;
-        UINT y = n / rowPitch;
-        UINT i = x / cellPitch;
-        UINT j = y / cellHeight;
-
-        if (i % 2 == j % 2)
-        {
-            pData[n] = 0x00;        // R
-            pData[n + 1] = 0x00;    // G
-            pData[n + 2] = 0x00;    // B
-            pData[n + 3] = 0xff;    // A
-        }
-        else
-        {
-            pData[n] = 0xff;        // R
-            pData[n + 1] = 0xff;    // G
-            pData[n + 2] = 0xff;    // B
-            pData[n + 3] = 0xff;    // A
-        }
-    }
-
-    return data;
-}
 
   void DX12AppHelloFrameBuf::CreateTexture( Errors& errors )
   {
@@ -402,8 +367,8 @@ namespace Tac
     const D3D12_RESOURCE_DESC resourceDesc =
     {
       .Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D,
-      .Width = TextureWidth,
-      .Height = TextureHeight,
+      .Width = Checkerboard::TextureWidth,
+      .Height = Checkerboard::TextureHeight,
       .DepthOrArraySize = 1,
       .MipLevels = 1,
       .Format = DXGI_FORMAT_R8G8B8A8_UNORM,
@@ -454,13 +419,13 @@ namespace Tac
 
     // Copy data to the intermediate upload heap and then schedule a copy 
     // from the upload heap to the Texture2D.
-    const Vector<UINT8> texture = GenerateCheckerboardTextureData();
+    const Vector<UINT8> texture = Checkerboard::GenerateCheckerboardTextureData();
 
     const D3D12_SUBRESOURCE_DATA textureData =
     {
       .pData = texture.data(),
-      .RowPitch = TexturePixelSize * TextureWidth,
-      .SlicePitch = TexturePixelSize * TextureWidth * TextureHeight,
+      .RowPitch = Checkerboard::TexturePixelSize * Checkerboard::TextureWidth,
+      .SlicePitch = Checkerboard::TexturePixelSize * Checkerboard::TextureWidth * Checkerboard::TextureHeight,
     };
 
     // --- update subresource begin ---
@@ -802,89 +767,6 @@ namespace Tac
   }
 
 
-  struct RootSignatureBuilder
-  {
-    RootSignatureBuilder( ID3D12Device* device ) : mDevice( device ) {}
-
-    void AddRootDescriptorTable( D3D12_SHADER_VISIBILITY vis,
-                                 D3D12_DESCRIPTOR_RANGE1 toAdd )
-    {
-      AddRootDescriptorTable( vis, Span( toAdd ) );
-    }
-
-    void AddRootDescriptorTable( D3D12_SHADER_VISIBILITY vis,
-                                 Span<D3D12_DESCRIPTOR_RANGE1> toAdd )
-    {
-      Span dst( &mRanges[ mRanges.size() ], toAdd.size() );
-      dst = toAdd;
-      mRanges.resize( mRanges.size() + toAdd.size() );
-      
-      const D3D12_ROOT_PARAMETER1 rootParam
-      {
-        .ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE,
-        .DescriptorTable = D3D12_ROOT_DESCRIPTOR_TABLE1
-        {
-          .NumDescriptorRanges = (UINT)dst.size(),
-          .pDescriptorRanges = dst.data(),
-        },
-        .ShaderVisibility = vis,
-      };
-
-      mRootParams.push_back( rootParam );
-    }
-
-    PCom< ID3D12RootSignature > Build(Errors& errors)
-    {
-      TAC_ASSERT( !mRootParams.empty() );
-
-      // D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT
-      //
-      //   Omitting this flag can result in one root argument space being saved on some hardware.
-      //   Omit this flag if the Input Assembler is not required, though the optimization is minor.
-      //   This flat opts in to using the input assembler, which requires an input layout that
-      //   defines a set of vertex buffer bindings.
-      const D3D12_ROOT_SIGNATURE_FLAGS rootSigFlags = D3D12_ROOT_SIGNATURE_FLAG_NONE;
-
-      const D3D12_VERSIONED_ROOT_SIGNATURE_DESC desc
-      {
-        .Version = D3D_ROOT_SIGNATURE_VERSION_1_1,
-        .Desc_1_1 = D3D12_ROOT_SIGNATURE_DESC1
-        {
-          .NumParameters = (UINT)mRootParams.size(),
-          .pParameters = mRootParams.data(),
-          .Flags = rootSigFlags,
-        },
-      };
-
-      PCom<ID3DBlob> blob;
-      PCom<ID3DBlob> blobErr;
-
-      TAC_RAISE_ERROR_IF_RETURN( const HRESULT hr =
-                                 D3D12SerializeVersionedRootSignature(
-                                 &desc,
-                                 blob.CreateAddress(),
-                                 blobErr.CreateAddress() ); FAILED( hr ),
-                                 String() +
-                                 "Failed to serialize root signature! "
-                                 "Blob = " + ( const char* )blobErr->GetBufferPointer() + ", "
-                                 "HRESULT = " + DX12_HRESULT_ToString( hr ), {} );
-
-      PCom< ID3D12RootSignature > rootSignature;
-      TAC_DX12_CALL_RET( {},
-                         mDevice->CreateRootSignature( 0,
-                         blob->GetBufferPointer(),
-                         blob->GetBufferSize(),
-                         rootSignature.iid(),
-                         rootSignature.ppv() ) );
-
-      return rootSignature;
-    }
-
-  private:
-    Vector< D3D12_ROOT_PARAMETER1 > mRootParams;
-    FixedVector< D3D12_DESCRIPTOR_RANGE1, 100 > mRanges;
-    ID3D12Device* mDevice;
-  };
 
   void DX12AppHelloFrameBuf::CreateRootSignature( Errors& errors )
   {
@@ -918,31 +800,6 @@ namespace Tac
 
 
 
-  struct DX12BuiltInputLayout : public D3D12_INPUT_LAYOUT_DESC
-  {
-    DX12BuiltInputLayout( const VertexDeclarations& vtxDecls )
-    {
-      const int n = vtxDecls.size();
-      mElementDescs.resize(n );
-      for( int i = 0; i < n; ++i )
-      {
-        const auto& decl = vtxDecls[ i ];
-        mElementDescs[ i ] = D3D12_INPUT_ELEMENT_DESC
-        {
-          .SemanticName = GetSemanticName( decl.mAttribute ),
-          .Format = GetDXGIFormatTexture( decl.mTextureFormat ),
-          .AlignedByteOffset = (UINT)decl.mAlignedByteOffset,
-        };
-      }
-
-      *( D3D12_INPUT_LAYOUT_DESC* )this = D3D12_INPUT_LAYOUT_DESC
-      {
-        .pInputElementDescs = mElementDescs.data(),
-        .NumElements = (UINT)n,
-      };
-    }
-    FixedVector< D3D12_INPUT_ELEMENT_DESC, 10 > mElementDescs;
-  };
 
 
 

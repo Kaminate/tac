@@ -1,5 +1,6 @@
 #include "tac_example_dx12_2_triangle.h" // self-inc
 #include "tac_example_dx12_shader_compile.h"
+#include "tac_example_dx12_input_layout_builder.h"
 
 // todo: dx12ify
 #include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_preprocess.h"
@@ -533,31 +534,6 @@ namespace Tac
     DX12SetName( m_rootSignature, "My Root Signature" );
   }
 
-  struct DX12BuiltInputLayout : public D3D12_INPUT_LAYOUT_DESC
-  {
-    DX12BuiltInputLayout( const VertexDeclarations& vtxDecls )
-    {
-      const int n = vtxDecls.size();
-      mElementDescs.resize(n );
-      for( int i = 0; i < n; ++i )
-      {
-        const auto& decl = vtxDecls[ i ];
-        mElementDescs[ i ] = D3D12_INPUT_ELEMENT_DESC
-        {
-          .SemanticName = GetSemanticName( decl.mAttribute ),
-          .Format = GetDXGIFormatTexture( decl.mTextureFormat ),
-          .AlignedByteOffset = (UINT)decl.mAlignedByteOffset,
-        };
-      }
-
-      *( D3D12_INPUT_LAYOUT_DESC* )this = D3D12_INPUT_LAYOUT_DESC
-      {
-        .pInputElementDescs = mElementDescs.data(),
-        .NumElements = (UINT)n,
-      };
-    }
-    FixedVector< D3D12_INPUT_ELEMENT_DESC, 10 > mElementDescs;
-  };
 
 
 

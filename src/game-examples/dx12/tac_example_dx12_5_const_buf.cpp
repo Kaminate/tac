@@ -1,6 +1,9 @@
 #include "tac_example_dx12_5_const_buf.h" // self-inc
 #include "tac_example_dx12_shader_compile.h"
 #include "tac_example_dx12_2_dxc.h"
+#include "tac_example_dx12_root_sig_builder.h"
+#include "tac_example_dx12_input_layout_builder.h"
+#include "tac_example_dx12_checkerboard.h"
 
 #include "src/common/containers/tac_array.h"
 #include "src/common/algorithm/tac_algorithm.h"
@@ -31,348 +34,11 @@
 
 static const UINT myParamIndex = 0;
 
-static const UINT TextureWidth = 256;
-static const UINT TextureHeight = 256;
-static const UINT TexturePixelSize = 4;    // The number of bytes used to represent a pixel in the texture.
 
 namespace Tac
 {
-
   // -----------------------------------------------------------------------------------------------
 
-  DX12CommandQueue::Signal DX12CommandQueue::ExecuteCommandList( ID3D12CommandList* cmdlist, Errors& errors )
-  {
-    const Array cmdLists{ cmdlist };
-
-    // Submits an array of command lists for execution.
-    m_commandQueue->ExecuteCommandLists( ( UINT )cmdLists.size(), cmdLists.data() );
-
-    return IncrementFence(errors);
-  }
-
-  DX12CommandQueue::Signal DX12CommandQueue::IncrementFence(Errors& errors)
-  {
-    const UINT64 signalValue = mNextFenceValue;
-
-    // Use this method to set a fence value from the GPU side
-    TAC_DX12_CALL_RET( {}, m_commandQueue->Signal( ( ID3D12Fence* )m_fence, mNextFenceValue ) );
-    mNextFenceValue++;
-    return { signalValue };
-  }
-
-  void DX12CommandQueue::WaitForFence(Signal signalValue, Errors& errors )
-  {
-    if( IsFenceComplete( signalValue ) )
-      return;
-
-    // ID3D12Fence::GetCompletedValue
-    // - Gets the current value of the fence.
-    //
-    // Wait until the previous frame is finished.
-
-    // I think this if statement is used because the alternative
-    // would be while( m_fence->GetCompletedValue() != fence ) { TAC_NO_OP; }
-    //const UINT64 curValue = m_fence->GetCompletedValue();
-    //if( curValue < signalValue.mValue )
-    //{
-    // m_fenceEvent is only ever used in this scope 
-
-    // ID3D12Fence::SetEventOnCompletion
-    // - Specifies an event that's raised when the fence reaches a certain value.
-    //
-    // the event will be 'complete' when it reaches the specified value.
-    // This value is set by the cmdqueue::Signal
-    TAC_DX12_CALL( m_fence->SetEventOnCompletion( signalValue.mValue, ( HANDLE )m_fenceEvent ) );
-    WaitForSingleObject( ( HANDLE )m_fenceEvent, INFINITE );
-    mLastCompletedFenceValue = signalValue.mValue;
-  }
-
-  void DX12CommandQueue::UpdateLastCompletedFenceValue()
-  {
-    const u64 curFenceValue = m_fence->GetCompletedValue();
-    mLastCompletedFenceValue = Max( mLastCompletedFenceValue, curFenceValue );
-  }
-
-  bool DX12CommandQueue::IsFenceComplete( Signal fenceValue )
-  {
-    if( fenceValue.mValue > mLastCompletedFenceValue )
-      UpdateLastCompletedFenceValue();
-
-    return fenceValue.mValue <= mLastCompletedFenceValue;
-  }
-
-  void DX12CommandQueue::Create(ID3D12Device* device, Errors& errors )
-  {
-    TAC_CALL( CreateFence( device, errors ) );
-    TAC_CALL( CreateCommandQueue( device, errors ) );
-  }
-
-  void DX12CommandQueue::CreateFence(ID3D12Device* device, Errors& errors)
-  {
-    // Create synchronization objects.
-
-    PCom< ID3D12Fence > fence;
-    TAC_DX12_CALL( device->CreateFence(
-                   mLastCompletedFenceValue, // initial value
-                   D3D12_FENCE_FLAG_NONE,
-                   fence.iid(),
-                   fence.ppv() ) );
-
-    fence.QueryInterface( m_fence );
-    DX12SetName( fence, "fence" );
-
-    TAC_CALL( m_fenceEvent.Init( errors ) );
-  }
-
-  void DX12CommandQueue::CreateCommandQueue( ID3D12Device* device, Errors& errors )
-  {
-    const D3D12_COMMAND_QUEUE_DESC queueDesc
-    {
-      // Specifies a command buffer that the GPU can execute.
-      // A direct command list doesn't inherit any GPU state.
-      // [ ] Q: 
-      // [ ] A(?): ( As opposed to a bundle command list, which does )
-      //
-      // [ ] Q: What GPU state does a bundle command list inherit?
-      // [ ] A: 
-
-      // This command queue manages direct command lists (direct = for graphics rendering)
-      .Type = D3D12_COMMAND_LIST_TYPE_DIRECT,
-    };
-
-    TAC_DX12_CALL( device->CreateCommandQueue(
-                   &queueDesc,
-                   m_commandQueue.iid(),
-                   m_commandQueue.ppv() ) );
-    DX12SetName( m_commandQueue, "Command Queue" );
-  }
-
-
-  void DX12CommandQueue::WaitForIdle( Errors& errors )
-  {
-    Signal fenceValue = TAC_CALL( IncrementFence( errors ) );
-    TAC_CALL( WaitForFence( fenceValue, errors ) );
-  };
-
-  // -----------------------------------------------------------------------------------------------
-
-  struct GPUUploadAllocator
-  {
-
-    struct DynAlloc
-    {
-      D3D12_GPU_VIRTUAL_ADDRESS mGPUAddr;
-      void*                     mCPUAddr;
-      int                       mByteCount;
-    };
-
-    struct Page
-    {
-      PCom<ID3D12Resource>      mBuffer;
-      //D3D12_RESOURCE_STATES     DefaultUsage{ D3D12_RESOURCE_STATE_GENERIC_READ };
-
-      D3D12_GPU_VIRTUAL_ADDRESS mGPUAddr = 0;
-      void*                     mCPUAddr = nullptr;
-      int                       mByteCount = 0;
-
-      //bool IsValid() const { return mGPUAddr != 0; }
-
-      static const int          kDefaultByteCount = 2 * 1024 * 1024;
-
-    };
-
-    struct RetiredPage
-    {
-      Page mPage;
-      DX12CommandQueue::Signal mFence;
-    };
-
-    DynAlloc Allocate( int const byteCount, Errors& errors )
-    {
-      // so the deal with large pages, is that they can't be reused as default pages.
-      // so normally, when allocating a page, you first check if a retired page can be reused,
-      // but large pages are just deleted when they are no longer used.
-      TAC_ASSERT_MSG( byteCount < Page::kDefaultByteCount, "large pages currently unsupported" );
-
-      TAC_ASSERT_MSG( false, "need to align byteCount and mCurPageUsedByteCount" );
-
-      Page* curPage = mActivePages.empty() ? nullptr : &mActivePages.back();
-      if( mActivePages.empty() || byteCount > curPage->mByteCount - mCurPageUsedByteCount )
-      {
-        TAC_CALL_RET( {}, RequestPage( Page::kDefaultByteCount, errors ) );
-      }
-
-      D3D12_GPU_VIRTUAL_ADDRESS const gpuAddr = curPage->mGPUAddr + mCurPageUsedByteCount;
-      void*                     const cpuAddr = ( u8* )curPage->mCPUAddr + mCurPageUsedByteCount;
-
-      mCurPageUsedByteCount += byteCount;
-
-      return DynAlloc
-      {
-        .mGPUAddr = gpuAddr,
-        .mCPUAddr = cpuAddr,
-        .mByteCount = byteCount,
-      };
-    }
-
-    // call at end of each frame
-    void FreeAll( DX12CommandQueue::Signal FenceID )
-    {
-      for( const Page& page : mActivePages )
-      {
-        RetiredPage retiredPage
-        {
-          .mPage = page,
-          .mFence = FenceID,
-        };
-        mRetiredPages.push_back(retiredPage);
-      }
-      // ...
-    }
-
-
-  private:
-
-    //void RetireCurPage( u64 FenceID )
-    //{
-    //  if( mActivePages.empty() )
-    //    return;
-    //  //if( !mCurPage.IsValid() )
-    //  //  return;
-    //  //mRetiredPages.push_back( mCurPage );
-    //  mCurPageUsedByteCount = 0;
-    //}
-
-    void UnretirePages()
-    {
-      int n = mRetiredPages.size();
-      if( !n )
-        return;
-
-      int i = 0;
-      while( i < n )
-      {
-        RetiredPage& currPage = mRetiredPages[ i ];
-        RetiredPage& backPage = mRetiredPages[ n - 1 ];
-
-        const DX12CommandQueue::Signal fenceValue = currPage.mFence;
-        if( mCommandQueue->IsFenceComplete( fenceValue ) )
-        {
-          mAvailablePages.push_back( currPage.mPage );
-          Swap( currPage, backPage );
-          --n;
-        }
-        else
-        {
-          break;
-          //++i;
-        }
-      }
-
-      mRetiredPages.resize( n );
-    }
-
-    void RequestPage( int byteCount, Errors& errors )
-    {
-      UnretirePages();
-
-      Page page{};
-      if( mAvailablePages.empty() )
-      {
-        page = mAvailablePages.back();
-        mAvailablePages.pop_back();
-      }
-      else
-      {
-        page = AllocateNewPage( byteCount, errors );
-      }
-
-      mActivePages.push_back( page );
-      mCurPageUsedByteCount = 0;
-    }
-
-    Page AllocateNewPage( int byteCount, Errors& errors )
-    {
-      //TAC_ASSERT( !mCurPage.IsValid() );
-      TAC_ASSERT( byteCount == Page::kDefaultByteCount );
-
-
-      const D3D12_HEAP_PROPERTIES HeapProps
-      {
-        .Type = D3D12_HEAP_TYPE_UPLOAD,
-        .CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN,
-        .MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN,
-        .CreationNodeMask = 1,
-        .VisibleNodeMask = 1,
-      };
-
-      const D3D12_RESOURCE_DESC ResourceDesc
-      {
-        .Dimension = D3D12_RESOURCE_DIMENSION_BUFFER,
-        .Alignment = 0,
-        .Width = (UINT64)byteCount,
-        .Height = 1,
-        .DepthOrArraySize = 1,
-        .MipLevels = 1,
-        .Format = DXGI_FORMAT_UNKNOWN,
-        .SampleDesc = DXGI_SAMPLE_DESC{.Count = 1, .Quality = 0 },
-        .Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR,
-        .Flags = D3D12_RESOURCE_FLAG_NONE,
-      };
-
-      const D3D12_RESOURCE_STATES DefaultUsage{ D3D12_RESOURCE_STATE_GENERIC_READ };
-
-      PCom<ID3D12Resource> buffer;
-      TAC_DX12_CALL_RET( {}, m_device->CreateCommittedResource(
-        &HeapProps,
-        D3D12_HEAP_FLAG_NONE,
-        &ResourceDesc,
-        DefaultUsage,
-        nullptr,
-        buffer.iid(),
-        buffer.ppv() ) );
-
-      DX12SetName( buffer, "upload page" );
-
-      void* cpuAddr;
-
-      TAC_DX12_CALL_RET( {}, buffer->Map(
-        0, // subrsc idx
-        nullptr, // nullptr indicates the whole subrsc may be read by cpu
-        &cpuAddr ) );
-
-      Page page
-      {
-        .mBuffer = buffer,
-        .mGPUAddr = buffer->GetGPUVirtualAddress(),
-        .mCPUAddr = cpuAddr,
-        .mByteCount = byteCount,
-      };
-
-    }
-
-    PCom< ID3D12Device > m_device;
-
-    int            mCurPageUsedByteCount = 0;
-
-    // Currently in use by command queues the current frame, memory cannot be freed.
-    // The last page is the current page
-    Vector< Page > mActivePages;
-
-    // | at the end of each frame, active pages go into retired pages
-    // V
-
-    Vector< RetiredPage > mRetiredPages;
-
-    // | when pages are no long used
-    // V
-
-    Vector< Page > mAvailablePages;
-
-    DX12CommandQueue* mCommandQueue = nullptr;
-  };
-
-  // -----------------------------------------------------------------------------------------------
   struct ClipSpacePosition3
   {
     explicit ClipSpacePosition3( v3 v ) : mValue( v ) {}
@@ -404,38 +70,16 @@ namespace Tac
 
   using namespace Render;
 
-  void Win32Event::Init( Errors& errors )
+  static void  MyD3D12MessageFunc( D3D12_MESSAGE_CATEGORY Category,
+                            D3D12_MESSAGE_SEVERITY Severity,
+                            D3D12_MESSAGE_ID ID,
+                            LPCSTR pDescription,
+                            void* pContext )
   {
-    TAC_ASSERT( !mEvent );
-
-    // Create an event handle to use for frame synchronization.
-    mEvent = CreateEvent( nullptr, FALSE, FALSE, nullptr );
-    TAC_RAISE_ERROR_IF( !mEvent, Win32GetLastErrorString() );
+    OS::OSDebugBreak();
   }
 
-  Win32Event::operator bool() const { return mEvent; }
-  Win32Event::operator HANDLE() const { return mEvent; }
 
-  void Win32Event::clear()
-  {
-    if( mEvent )
-    {
-      CloseHandle( mEvent );
-      mEvent = nullptr;
-    }
-  }
-
-  Win32Event::~Win32Event()
-  {
-    clear();
-  }
-
-  void Win32Event::operator = ( Win32Event&& other )
-  {
-    clear();
-    mEvent = other.mEvent;
-    other.mEvent = nullptr;
-  }
 
   // -----------------------------------------------------------------------------------------------
 
@@ -493,14 +137,6 @@ namespace Tac
     m_debugLayerEnabled = true;
   }
 
-  void  MyD3D12MessageFunc( D3D12_MESSAGE_CATEGORY Category,
-                            D3D12_MESSAGE_SEVERITY Severity,
-                            D3D12_MESSAGE_ID ID,
-                            LPCSTR pDescription,
-                            void* pContext )
-  {
-    OS::OSDebugBreak();
-  }
 
   void DX12AppHelloConstBuf::CreateInfoQueue( Errors& errors )
   {
@@ -674,41 +310,6 @@ namespace Tac
     m_device->CreateSampler( &Desc, DestDescriptor );
   }
 
-  static Vector<UINT8> GenerateCheckerboardTextureData()
-{
-    const UINT rowPitch = TextureWidth * TexturePixelSize;
-    const UINT cellPitch = rowPitch >> 3;        // The width of a cell in the checkboard texture.
-    const UINT cellHeight = TextureWidth >> 3;    // The height of a cell in the checkerboard texture.
-    const UINT textureSize = rowPitch * TextureHeight;
-
-    Vector<UINT8> data(textureSize);
-    UINT8* pData = &data[0];
-
-    for (UINT n = 0; n < textureSize; n += TexturePixelSize)
-    {
-        UINT x = n % rowPitch;
-        UINT y = n / rowPitch;
-        UINT i = x / cellPitch;
-        UINT j = y / cellHeight;
-
-        if (i % 2 == j % 2)
-        {
-            pData[n] = 0x00;        // R
-            pData[n + 1] = 0x00;    // G
-            pData[n + 2] = 0x00;    // B
-            pData[n + 3] = 0xff;    // A
-        }
-        else
-        {
-            pData[n] = 0xff;        // R
-            pData[n + 1] = 0xff;    // G
-            pData[n + 2] = 0xff;    // B
-            pData[n + 3] = 0xff;    // A
-        }
-    }
-
-    return data;
-}
 
   void DX12AppHelloConstBuf::CreateTexture( Errors& errors )
   {
@@ -731,8 +332,8 @@ namespace Tac
     const D3D12_RESOURCE_DESC resourceDesc =
     {
       .Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D,
-      .Width = TextureWidth,
-      .Height = TextureHeight,
+      .Width = Checkerboard::TextureWidth,
+      .Height = Checkerboard::TextureHeight,
       .DepthOrArraySize = 1,
       .MipLevels = 1,
       .Format = DXGI_FORMAT_R8G8B8A8_UNORM,
@@ -783,13 +384,13 @@ namespace Tac
 
     // Copy data to the intermediate upload heap and then schedule a copy 
     // from the upload heap to the Texture2D.
-    const Vector<UINT8> texture = GenerateCheckerboardTextureData();
+    const Vector<UINT8> texture = Checkerboard::GenerateCheckerboardTextureData();
 
     const D3D12_SUBRESOURCE_DATA textureData =
     {
       .pData = texture.data(),
-      .RowPitch = TexturePixelSize * TextureWidth,
-      .SlicePitch = TexturePixelSize * TextureWidth * TextureHeight,
+      .RowPitch = Checkerboard::TexturePixelSize * Checkerboard::TextureWidth,
+      .SlicePitch = Checkerboard::TexturePixelSize * Checkerboard::TextureWidth * Checkerboard::TextureHeight,
     };
 
     // --- update subresource begin ---
@@ -1143,89 +744,6 @@ namespace Tac
 
 
 
-  struct RootSignatureBuilder
-  {
-    RootSignatureBuilder( ID3D12Device* device ) : mDevice( device ) {}
-
-    void AddRootDescriptorTable( D3D12_SHADER_VISIBILITY vis,
-                                 D3D12_DESCRIPTOR_RANGE1 toAdd )
-    {
-      AddRootDescriptorTable( vis, Span( toAdd ) );
-    }
-
-    void AddRootDescriptorTable( D3D12_SHADER_VISIBILITY vis,
-                                 Span<D3D12_DESCRIPTOR_RANGE1> toAdd )
-    {
-      Span dst( &mRanges[ mRanges.size() ], toAdd.size() );
-      dst = toAdd;
-      mRanges.resize( mRanges.size() + toAdd.size() );
-      
-      const D3D12_ROOT_PARAMETER1 rootParam
-      {
-        .ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE,
-        .DescriptorTable = D3D12_ROOT_DESCRIPTOR_TABLE1
-        {
-          .NumDescriptorRanges = (UINT)dst.size(),
-          .pDescriptorRanges = dst.data(),
-        },
-        .ShaderVisibility = vis,
-      };
-
-      mRootParams.push_back( rootParam );
-    }
-
-    PCom< ID3D12RootSignature > Build(Errors& errors)
-    {
-      TAC_ASSERT( !mRootParams.empty() );
-
-      // D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT
-      //
-      //   Omitting this flag can result in one root argument space being saved on some hardware.
-      //   Omit this flag if the Input Assembler is not required, though the optimization is minor.
-      //   This flat opts in to using the input assembler, which requires an input layout that
-      //   defines a set of vertex buffer bindings.
-      const D3D12_ROOT_SIGNATURE_FLAGS rootSigFlags = D3D12_ROOT_SIGNATURE_FLAG_NONE;
-
-      const D3D12_VERSIONED_ROOT_SIGNATURE_DESC desc
-      {
-        .Version = D3D_ROOT_SIGNATURE_VERSION_1_1,
-        .Desc_1_1 = D3D12_ROOT_SIGNATURE_DESC1
-        {
-          .NumParameters = (UINT)mRootParams.size(),
-          .pParameters = mRootParams.data(),
-          .Flags = rootSigFlags,
-        },
-      };
-
-      PCom<ID3DBlob> blob;
-      PCom<ID3DBlob> blobErr;
-
-      TAC_RAISE_ERROR_IF_RETURN( const HRESULT hr =
-                                 D3D12SerializeVersionedRootSignature(
-                                 &desc,
-                                 blob.CreateAddress(),
-                                 blobErr.CreateAddress() ); FAILED( hr ),
-                                 String() +
-                                 "Failed to serialize root signature! "
-                                 "Blob = " + ( const char* )blobErr->GetBufferPointer() + ", "
-                                 "HRESULT = " + DX12_HRESULT_ToString( hr ), {} );
-
-      PCom< ID3D12RootSignature > rootSignature;
-      TAC_DX12_CALL_RET( {},
-                         mDevice->CreateRootSignature( 0,
-                         blob->GetBufferPointer(),
-                         blob->GetBufferSize(),
-                         rootSignature.iid(),
-                         rootSignature.ppv() ) );
-
-      return rootSignature;
-    }
-
-  private:
-    Vector< D3D12_ROOT_PARAMETER1 > mRootParams;
-    FixedVector< D3D12_DESCRIPTOR_RANGE1, 100 > mRanges;
-    ID3D12Device* mDevice;
-  };
 
   void DX12AppHelloConstBuf::CreateRootSignature( Errors& errors )
   {
@@ -1258,31 +776,6 @@ namespace Tac
   }
 
 
-  struct DX12BuiltInputLayout : public D3D12_INPUT_LAYOUT_DESC
-  {
-    DX12BuiltInputLayout( const VertexDeclarations& vtxDecls )
-    {
-      const int n = vtxDecls.size();
-      mElementDescs.resize(n );
-      for( int i = 0; i < n; ++i )
-      {
-        const auto& decl = vtxDecls[ i ];
-        mElementDescs[ i ] = D3D12_INPUT_ELEMENT_DESC
-        {
-          .SemanticName = GetSemanticName( decl.mAttribute ),
-          .Format = GetDXGIFormatTexture( decl.mTextureFormat ),
-          .AlignedByteOffset = (UINT)decl.mAlignedByteOffset,
-        };
-      }
-
-      *( D3D12_INPUT_LAYOUT_DESC* )this = D3D12_INPUT_LAYOUT_DESC
-      {
-        .pInputElementDescs = mElementDescs.data(),
-        .NumElements = (UINT)n,
-      };
-    }
-    FixedVector< D3D12_INPUT_ELEMENT_DESC, 10 > mElementDescs;
-  };
 
   void DX12AppHelloConstBuf::CreatePipelineState( Errors& errors )
   {
@@ -1849,4 +1342,5 @@ namespace Tac
 
 
 } // namespace Tac
+
 

@@ -44,6 +44,21 @@ add_library( TacDX12ShaderCompile
   tac_example_dx12_2_dxc.h
 )
 
+add_library( TacDX12ExampleHelpers 
+  tac_example_dx12_command_queue.cpp
+  tac_example_dx12_command_queue.h
+  tac_example_dx12_gpu_upload_allocator.cpp
+  tac_example_dx12_gpu_upload_allocator.h
+  tac_example_dx12_input_layout_builder.cpp
+  tac_example_dx12_input_layout_builder.h
+  tac_example_dx12_root_sig_builder.cpp
+  tac_example_dx12_root_sig_builder.h
+  tac_example_dx12_win32_event.cpp
+  tac_example_dx12_win32_event.h
+  tac_example_dx12_checkerboard.cpp
+  tac_example_dx12_checkerboard.h
+)
+
 foreach( targetname ${targetnames} )
   target_link_libraries( ${targetname}
     TacCore
@@ -52,6 +67,7 @@ foreach( targetname ${targetnames} )
     TacDesktopApp
     TacWinMain
     TacDX12ShaderCompile
+    TacDX12ExampleHelpers
   )
 
 endforeach()
