@@ -36,11 +36,10 @@ namespace Tac::Render
 
   String           DXGICallAux( const char*, HRESULT );
 
-
-
   //               represents a display subsystem (GPU, VRAM, etc)
   PCom<IDXGIAdapter4>    DXGIGetBestAdapter();
 
+  void CheckSwapEffect(DXGI_SWAP_EFFECT, Errors&);
 
 } // namespace Tac::Render
 

@@ -3,6 +3,9 @@
 #include "src/shell/windows/tac_win32_com_ptr.h"
 #include "src/shell/tac_desktop_app.h"
 #include "src/shell/windows/renderer/dxgi/tac_dxgi.h"
+#include "tac_example_dx12_command_queue.h"
+#include "tac_example_dx12_gpu_upload_allocator.h"
+
 
 #include <d3d12.h> // D3D12...
 
@@ -10,19 +13,6 @@ namespace Tac
 {
   using namespace Render;
 
-  struct Win32Event
-  {
-    void Init(Errors&);
-    ~Win32Event();
-    void clear();
-
-    void operator = ( Win32Event&& other );
-    operator bool() const;
-
-    explicit operator HANDLE() const;
-
-    HANDLE mEvent{};
-  };
 
   using Viewports = FixedVector<
     D3D12_VIEWPORT,
@@ -53,7 +43,6 @@ namespace Tac
     void PreSwapChainInit(Errors&);
     void CreateDesktopWindow();
 
-    void CreateCommandQueue( Errors& );
     void CreateRTVDescriptorHeap( Errors& );
     void CreateSamplerDescriptorHeap( Errors& );
     void CreateSRVDescriptorHeap( Errors& );
@@ -61,9 +50,10 @@ namespace Tac
     void CreateSampler( Errors& );
     void CreateTexture( Errors& );
     void CreateCommandAllocator( Errors& );
+    void CreateCommandAllocatorBundle( Errors& );
     void CreateCommandList( Errors& );
+    void CreateCommandListBundle( Errors& );
     void CreateVertexBuffer( Errors& );
-    void CreateFence( Errors& );
     void CreateRootSignature( Errors& );
     void CreatePipelineState( Errors& );
     void InitDescriptorSizes();
@@ -89,7 +79,6 @@ namespace Tac
                                                      D3D12_DESCRIPTOR_HEAP_TYPE,
                                                      int ) const;
     void PopulateCommandList( Errors& );
-    void ExecuteCommandLists();
     void ResourceBarrier( const D3D12_RESOURCE_BARRIER& );
 
     struct TransitionParams
@@ -102,7 +91,6 @@ namespace Tac
 
     void TransitionRenderTarget( int, D3D12_RESOURCE_STATES );
     void SwapChainPresent( Errors& );
-    void WaitForPreviousFrame( Errors& );
 
     // ---------------------------------------------------------------------------------------------
 
@@ -137,33 +125,15 @@ namespace Tac
 
     UINT                               m_descriptorSizes[ D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES ]{};
 
-    // A ID3D12CommandQueue provides methods for
-    // - submitting command lists,
-    // - synchronizing command list execution,
-    // - instrumenting the command queue,
-    // - etc
-    //
-    // Some examples:
-    // - ID3D12CommandQueue::ExecuteCommandLists
-    // - ID3D12CommandQueue::GetClockCalibration
-    // - ID3D12CommandQueue::GetTimestampFrequency
-    // - ID3D12CommandQueue::Signal
-    // - ID3D12CommandQueue::Wait
-    // 
-    // Together, CommandLists/CommandQueues replace the ID3D11DeviceContext (?)
-    //
-    // tldr: A command queue can submit command lists
-    PCom< ID3D12CommandQueue >         m_commandQueue;
     PCom< ID3D12CommandAllocator >     m_commandAllocator;
+    PCom< ID3D12CommandAllocator >     m_commandAllocatorBundle;
     PCom< ID3D12GraphicsCommandList4 > m_commandList;
+    PCom< ID3D12GraphicsCommandList4 > m_commandListBundle;
     PCom< ID3D12Resource >             m_renderTargets[ bufferCount ];
     D3D12_RESOURCE_STATES              m_renderTargetStates[ bufferCount ];
     D3D12_RESOURCE_DESC                m_renderTargetDescs[ bufferCount ];
     bool                               m_renderTargetInitialized = false;
 
-    // A fence is used to synchronize the CPU with the GPU (see Multi-engine synchronization).
-    // https://learn.microsoft.com/en-us/windows/win32/direct3d12/user-mode-heap-synchronization
-    PCom< ID3D12Fence1 >               m_fence;
     PCom< ID3D12InfoQueue >            m_infoQueue;
 
     // A root signature defines what resources are bound to the graphics pipeline.
@@ -210,10 +180,10 @@ namespace Tac
     // 1. our commands will be drawing onto
     // 2. our swap chain will present to the monitor
     UINT                               m_frameIndex{};
-    Win32Event                         m_fenceEvent;
 
-    // UINT64 is big enough to run at 1000 fps for 500 million years
-    UINT64                             m_fenceValue{};
+
+    DX12CommandQueue                   mCommandQueue;
+    GPUUploadAllocator                 mUploadAllocator;
   };
 } // namespace Tac
 

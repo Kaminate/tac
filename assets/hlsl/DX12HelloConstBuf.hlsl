@@ -53,11 +53,12 @@ struct VSOutput
 
 #pragma pack_matrix( row_major )
 
+// must match MyCBufType in c++
 struct MyCBufType
 {
+  matrix           mWorld;
   uint             mVertexBuffer;
   uint             mTexture;
-  matrix           mWorld;
 };
 
 static uint mVertexBuffer = 0;

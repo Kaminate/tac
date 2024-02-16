@@ -1262,19 +1262,6 @@ namespace Tac
     m_commandQueue->ExecuteCommandLists( ( UINT )cmdLists.size(), cmdLists.data() );
   }
 
-  static String FormattedSwapEffect( const DXGI_SWAP_EFFECT fx )
-  {
-    const char* name = "Unknown";
-    switch( fx )
-    {
-    case DXGI_SWAP_EFFECT_DISCARD: name = "DXGI_SWAP_EFFECT_DISCARD"; break;
-    case DXGI_SWAP_EFFECT_SEQUENTIAL: name = "DXGI_SWAP_EFFECT_SEQUENTIAL"; break;
-    case DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL: name = "DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL"; break;
-    case DXGI_SWAP_EFFECT_FLIP_DISCARD: name = "DXGI_SWAP_EFFECT_FLIP_DISCARD"; break;
-    }
-
-    return String() + name + "(" + ToString( ( int )fx ) + ")";
-  }
 
   void DX12AppHelloBundle::SwapChainPresent( Errors& errors )
   {
@@ -1296,16 +1283,8 @@ namespace Tac
     //        I think the swap chain flushes the command queue before rendering,
     //        so the frame being presented is the one that we just called ExecuteCommandLists() on
 
-    // https://learn.microsoft.com/en-us/windows/win32/direct3ddxgi/dxgi-flip-model
-    // In the flip model, all back buffers are shared with the Desktop Window Manager (DWM)
-    // 1.	The app updates its frame (Write)
-    // 2. Direct3D runtime passes the app surface to DWM
-    // 3. DWM renders the app surface onto screen( Read, Write )
-    const DXGI_SWAP_EFFECT cur = m_swapChainDesc.SwapEffect;
-    const DXGI_SWAP_EFFECT tgt = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
-    TAC_RAISE_ERROR_IF( cur != tgt, String() +
-                        "The swap chain effect is " + FormattedSwapEffect( cur ) + " "
-                        "when it was expected to be " + FormattedSwapEffect( tgt ) );
+
+    TAC_CALL( CheckSwapEffect( m_swapChainDesc.SwapEffect, errors ));
 
     const DXGI_PRESENT_PARAMETERS params{};
 

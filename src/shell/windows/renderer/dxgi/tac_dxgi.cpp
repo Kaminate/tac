@@ -15,38 +15,78 @@ namespace Tac::Render
 {
   // -----------------------------------------------------------------------------------------------
 
-  static const char* TryInferDXGIErrorStr( const HRESULT res )
+  static const char* DXGI_ERROR_ToString( const HRESULT res )
   {
-    // https://docs.microsoft.com/en-us/windows/desktop/direct3ddxgi/dxgi-error
     switch( res )
     {
-      case DXGI_ERROR_ACCESS_DENIED: return "DXGI_ERROR_ACCESS_DENIED You tried to use a resource to which you did not have the required access privileges.This error is most typically caused when you write to a shared resource with read - only access.";
-      case DXGI_ERROR_ACCESS_LOST: return "DXGI_ERROR_ACCESS_LOST The desktop duplication interface is invalid.The desktop duplication interface typically becomes invalid when a different type of image is displayed on the desktop.";
-      case DXGI_ERROR_ALREADY_EXISTS: return "DXGI_ERROR_ALREADY_EXISTS The desired element already exists.This is returned by DXGIDeclareAdapterRemovalSupport if it is not the first time that the function is called.";
-      case DXGI_ERROR_CANNOT_PROTECT_CONTENT: return "DXGI_ERROR_CANNOT_PROTECT_CONTENT DXGI can't provide content protection on the swap chain. This error is typically caused by an older driver, or when you use a swap chain that is incompatible with content protection.";
-      case DXGI_ERROR_DEVICE_HUNG: return "DXGI_ERROR_DEVICE_HUNG The application's device failed due to badly formed commands sent by the application. This is an design-time issue that should be investigated and fixed.";
-      case DXGI_ERROR_DEVICE_REMOVED: return "DXGI_ERROR_DEVICE_REMOVED The video card has been physically removed from the system, or a driver upgrade for the video card has occurred.The application should destroy and recreate the device.For help debugging the problem, call ID3D10Device::GetDeviceRemovedReason.";
-      case DXGI_ERROR_DEVICE_RESET: return "DXGI_ERROR_DEVICE_RESET The device failed due to a badly formed command.This is a run - time issue; The application should destroy and recreate the device.";
-      case DXGI_ERROR_DRIVER_INTERNAL_ERROR: return "DXGI_ERROR_DRIVER_INTERNAL_ERROR The driver encountered a problem and was put into the device removed state.";
-      case DXGI_ERROR_FRAME_STATISTICS_DISJOINT: return "DXGI_ERROR_FRAME_STATISTICS_DISJOINT An event( for example, a power cycle ) interrupted the gathering of presentation statistics.";
-      case DXGI_ERROR_GRAPHICS_VIDPN_SOURCE_IN_USE: return "DXGI_ERROR_GRAPHICS_VIDPN_SOURCE_IN_USE The application attempted to acquire exclusive ownership of an output, but failed because some other application( or device within the application ) already acquired ownership.";
-      case DXGI_ERROR_INVALID_CALL: return "DXGI_ERROR_INVALID_CALL The application provided invalid parameter data; this must be debugged and fixed before the application is released.";
-      case DXGI_ERROR_MORE_DATA: return "DXGI_ERROR_MORE_DATA The buffer supplied by the application is not big enough to hold the requested data.";
-      case DXGI_ERROR_NAME_ALREADY_EXISTS: return "DXGI_ERROR_NAME_ALREADY_EXISTS The supplied name of a resource in a call to IDXGIResource1::CreateSharedHandle is already associated with some other resource.";
-      case DXGI_ERROR_NONEXCLUSIVE: return "DXGI_ERROR_NONEXCLUSIVE A global counter resource is in use, and the Direct3D device can't currently use the counter resource.";
-      case DXGI_ERROR_NOT_CURRENTLY_AVAILABLE: return "DXGI_ERROR_NOT_CURRENTLY_AVAILABLE The resource or request is not currently available, but it might become available later.";
-      case DXGI_ERROR_NOT_FOUND: return "DXGI_ERROR_NOT_FOUND When calling IDXGIObject::GetPrivateData, the GUID passed in is not recognized as one previously passed to IDXGIObject::SetPrivateData or IDXGIObject::SetPrivateDataInterface.When calling IDXGIFactory::EnumAdapters or IDXGIAdapter::EnumOutputs, the enumerated ordinal is out of range.";
-      case DXGI_ERROR_REMOTE_CLIENT_DISCONNECTED: return "DXGI_ERROR_REMOTE_CLIENT_DISCONNECTED Reserved";
-      case DXGI_ERROR_REMOTE_OUTOFMEMORY: return "DXGI_ERROR_REMOTE_OUTOFMEMORY Reserved";
-      case DXGI_ERROR_RESTRICT_TO_OUTPUT_STALE: return "DXGI_ERROR_RESTRICT_TO_OUTPUT_STALE The DXGI output( monitor ) to which the swap chain content was restricted is now disconnected or changed.";
-      case DXGI_ERROR_SDK_COMPONENT_MISSING: return "DXGI_ERROR_SDK_COMPONENT_MISSING The operation depends on an SDK component that is missing or mismatched.";
-      case DXGI_ERROR_SESSION_DISCONNECTED: return "DXGI_ERROR_SESSION_DISCONNECTED The Remote Desktop Services session is currently disconnected.";
-      case DXGI_ERROR_UNSUPPORTED: return "DXGI_ERROR_UNSUPPORTED The requested functionality is not supported by the device or the driver.";
-      case DXGI_ERROR_WAIT_TIMEOUT: return "DXGI_ERROR_WAIT_TIMEOUT The time - out interval elapsed before the next desktop frame was available.";
-      case DXGI_ERROR_WAS_STILL_DRAWING: return "DXGI_ERROR_WAS_STILL_DRAWING The GPU was busy at the moment when a call was made to perform an operation, and did not execute or schedule the operation.";
-      case S_OK: return "S_OK";
-      default: return "unknown";
+#define CASE( c ) case c: return #c
+      CASE( DXGI_ERROR_ACCESS_DENIED );
+      CASE( DXGI_ERROR_ACCESS_LOST );
+      CASE( DXGI_ERROR_ALREADY_EXISTS );
+      CASE( DXGI_ERROR_CANNOT_PROTECT_CONTENT );
+      CASE( DXGI_ERROR_DEVICE_HUNG );
+      CASE( DXGI_ERROR_DEVICE_REMOVED );
+      CASE( DXGI_ERROR_DEVICE_RESET );
+      CASE( DXGI_ERROR_DRIVER_INTERNAL_ERROR );
+      CASE( DXGI_ERROR_FRAME_STATISTICS_DISJOINT );
+      CASE( DXGI_ERROR_GRAPHICS_VIDPN_SOURCE_IN_USE );
+      CASE( DXGI_ERROR_INVALID_CALL );
+      CASE( DXGI_ERROR_MORE_DATA );
+      CASE( DXGI_ERROR_NAME_ALREADY_EXISTS );
+      CASE( DXGI_ERROR_NONEXCLUSIVE );
+      CASE( DXGI_ERROR_NOT_CURRENTLY_AVAILABLE );
+      CASE( DXGI_ERROR_NOT_FOUND );
+      CASE( DXGI_ERROR_REMOTE_CLIENT_DISCONNECTED );
+      CASE( DXGI_ERROR_REMOTE_OUTOFMEMORY );
+      CASE( DXGI_ERROR_RESTRICT_TO_OUTPUT_STALE );
+      CASE( DXGI_ERROR_SDK_COMPONENT_MISSING );
+      CASE( DXGI_ERROR_SESSION_DISCONNECTED );
+      CASE( DXGI_ERROR_UNSUPPORTED );
+      CASE( DXGI_ERROR_WAIT_TIMEOUT );
+      CASE( DXGI_ERROR_WAS_STILL_DRAWING );
+#undef CASE
     }
+    return "unknown";
+  }
+
+  static const char* DXGI_ERROR_DescToString( const HRESULT res )
+  {
+    switch( res )
+    {
+      case DXGI_ERROR_ACCESS_DENIED:                return "You tried to use a resource to which you did not have the required access privileges.This error is most typically caused when you write to a shared resource with read - only access.";
+      case DXGI_ERROR_ACCESS_LOST:                  return "The desktop duplication interface is invalid.The desktop duplication interface typically becomes invalid when a different type of image is displayed on the desktop.";
+      case DXGI_ERROR_ALREADY_EXISTS:               return "The desired element already exists.This is returned by DXGIDeclareAdapterRemovalSupport if it is not the first time that the function is called.";
+      case DXGI_ERROR_CANNOT_PROTECT_CONTENT:       return "DXGI can't provide content protection on the swap chain. This error is typically caused by an older driver, or when you use a swap chain that is incompatible with content protection.";
+      case DXGI_ERROR_DEVICE_HUNG:                  return "The application's device failed due to badly formed commands sent by the application. This is an design-time issue that should be investigated and fixed.";
+      case DXGI_ERROR_DEVICE_REMOVED:               return "The video card has been physically removed from the system, or a driver upgrade for the video card has occurred.The application should destroy and recreate the device.For help debugging the problem, call ID3D10Device::GetDeviceRemovedReason.";
+      case DXGI_ERROR_DEVICE_RESET:                 return "The device failed due to a badly formed command.This is a run - time issue; The application should destroy and recreate the device.";
+      case DXGI_ERROR_DRIVER_INTERNAL_ERROR:        return "The driver encountered a problem and was put into the device removed state.";
+      case DXGI_ERROR_FRAME_STATISTICS_DISJOINT:    return "An event( for example, a power cycle ) interrupted the gathering of presentation statistics.";
+      case DXGI_ERROR_GRAPHICS_VIDPN_SOURCE_IN_USE: return "The application attempted to acquire exclusive ownership of an output, but failed because some other application( or device within the application ) already acquired ownership.";
+      case DXGI_ERROR_INVALID_CALL:                 return "The application provided invalid parameter data; this must be debugged and fixed before the application is released.";
+      case DXGI_ERROR_MORE_DATA:                    return "The buffer supplied by the application is not big enough to hold the requested data.";
+      case DXGI_ERROR_NAME_ALREADY_EXISTS:          return "The supplied name of a resource in a call to IDXGIResource1::CreateSharedHandle is already associated with some other resource.";
+      case DXGI_ERROR_NONEXCLUSIVE:                 return "A global counter resource is in use, and the Direct3D device can't currently use the counter resource.";
+      case DXGI_ERROR_NOT_CURRENTLY_AVAILABLE:      return "The resource or request is not currently available, but it might become available later.";
+      case DXGI_ERROR_NOT_FOUND:                    return "When calling IDXGIObject::GetPrivateData, the GUID passed in is not recognized as one previously passed to IDXGIObject::SetPrivateData or IDXGIObject::SetPrivateDataInterface.When calling IDXGIFactory::EnumAdapters or IDXGIAdapter::EnumOutputs, the enumerated ordinal is out of range.";
+      case DXGI_ERROR_REMOTE_CLIENT_DISCONNECTED:   return "Reserved";
+      case DXGI_ERROR_REMOTE_OUTOFMEMORY:           return "Reserved";
+      case DXGI_ERROR_RESTRICT_TO_OUTPUT_STALE:     return "The DXGI output( monitor ) to which the swap chain content was restricted is now disconnected or changed.";
+      case DXGI_ERROR_SDK_COMPONENT_MISSING:        return "The operation depends on an SDK component that is missing or mismatched.";
+      case DXGI_ERROR_SESSION_DISCONNECTED:         return "The Remote Desktop Services session is currently disconnected.";
+      case DXGI_ERROR_UNSUPPORTED:                  return "The requested functionality is not supported by the device or the driver.";
+      case DXGI_ERROR_WAIT_TIMEOUT:                 return "The time - out interval elapsed before the next desktop frame was available.";
+      case DXGI_ERROR_WAS_STILL_DRAWING:            return "The GPU was busy at the moment when a call was made to perform an operation, and did not execute or schedule the operation.";
+    }
+    return "unknown";
+  }
+
+  static String TryInferDXGIErrorStr( const HRESULT res )
+  {
+    if( res == S_OK )
+      return "There is no error, it is S_OK";
+
+    return String() + DXGI_ERROR_ToString( res ) + " " + DXGI_ERROR_DescToString( res );
   }
 
   // -----------------------------------------------------------------------------------------------
@@ -328,7 +368,7 @@ namespace Tac::Render
   // Appends the failed function call error message to Errors
   String DXGICallAux( const char* fnCallWithArgs, HRESULT res )
   {
-    const char* inferredErrorMessage = TryInferDXGIErrorStr( res );
+    String inferredErrorMessage = TryInferDXGIErrorStr( res );
     String str = String()
       + fnCallWithArgs + " returned 0x" + Tac::Itoa( ( int )res )
       + "(" + inferredErrorMessage + ")";
@@ -339,6 +379,40 @@ namespace Tac::Render
   {
     TAC_ASSERT( sImpl.mAdapter );
     return sImpl.mAdapter;
+  }
+
+
+  static const char* DXGI_SWAP_EFFECT_ToString( const DXGI_SWAP_EFFECT fx )
+  {
+    switch( fx )
+    {
+#define CASE( c ) case c: return #c;
+      CASE( DXGI_SWAP_EFFECT_DISCARD );
+      CASE( DXGI_SWAP_EFFECT_SEQUENTIAL );
+      CASE( DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL );
+      CASE( DXGI_SWAP_EFFECT_FLIP_DISCARD );
+#undef CASE
+    }
+    return "unknown";
+  }
+
+
+  static String FormattedSwapEffect( const DXGI_SWAP_EFFECT fx )
+  {
+    return String() + DXGI_SWAP_EFFECT_ToString( fx ) + "(" + Tac::ToString( ( int )fx ) + ")";
+  }
+
+  void CheckSwapEffect( const DXGI_SWAP_EFFECT cur, Errors& errors )
+  {
+    // https://learn.microsoft.com/en-us/windows/win32/direct3ddxgi/dxgi-flip-model
+    // In the flip model, all back buffers are shared with the Desktop Window Manager (DWM)
+    // 1.	The app updates its frame (Write)
+    // 2. Direct3D runtime passes the app surface to DWM
+    // 3. DWM renders the app surface onto screen( Read, Write )
+    const DXGI_SWAP_EFFECT tgt = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+    TAC_RAISE_ERROR_IF( cur != tgt, String() +
+                        "The swap chain effect is " + FormattedSwapEffect( cur ) + " "
+                        "when it was expected to be " + FormattedSwapEffect( tgt ) );
   }
 
 

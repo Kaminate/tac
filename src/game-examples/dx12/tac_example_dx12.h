@@ -43,5 +43,7 @@ namespace Tac::Render
 
   bool DX12SupportsRayTracing( ID3D12Device* , Errors& );
 
+  
+
 } // namespace Tac::Render
 

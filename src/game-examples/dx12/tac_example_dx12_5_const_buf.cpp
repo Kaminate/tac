@@ -6,30 +6,31 @@
 #include "tac_example_dx12_checkerboard.h"
 #include "tac_example_dx12.h"
 
-
-#include "src/common/containers/tac_array.h"
 #include "src/common/algorithm/tac_algorithm.h"
-#include "src/common/dataprocess/tac_text_parser.h"
-#include "src/common/containers/tac_span.h"
-#include "src/common/containers/tac_map.h"
-#include "src/common/containers/tac_list.h"
-#include "src/common/containers/tac_forward_list.h"
-#include "src/common/containers/tac_set.h"
 #include "src/common/assetmanagers/tac_asset.h"
-#include "src/common/memory/tac_frame_memory.h"
+#include "src/common/containers/tac_array.h"
+#include "src/common/containers/tac_forward_list.h"
+#include "src/common/containers/tac_list.h"
+#include "src/common/containers/tac_map.h"
+#include "src/common/containers/tac_set.h"
+#include "src/common/containers/tac_span.h"
+#include "src/common/dataprocess/tac_text_parser.h"
 #include "src/common/error/tac_error_handling.h"
-#include "src/common/preprocess/tac_preprocessor.h"
 #include "src/common/math/tac_math.h"
-#include "src/common/math/tac_vector4.h"
-#include "src/common/system/tac_filesystem.h"
+#include "src/common/math/tac_matrix4.h"
 #include "src/common/math/tac_vector3.h"
-#include "src/common/shell/tac_shell_timer.h"
-#include "src/common/system/tac_os.h"
+#include "src/common/math/tac_vector4.h"
+#include "src/common/memory/tac_frame_memory.h"
+#include "src/common/preprocess/tac_preprocessor.h"
 #include "src/common/shell/tac_shell.h"
+#include "src/common/shell/tac_shell_timer.h"
+#include "src/common/system/tac_filesystem.h"
+#include "src/common/system/tac_os.h"
+
 #include "src/shell/tac_desktop_app.h"
 #include "src/shell/tac_desktop_window_settings_tracker.h"
-#include "src/shell/windows/renderer/dx12/tac_dx12_helper.h"
 #include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_preprocess.h"
+#include "src/shell/windows/renderer/dx12/tac_dx12_helper.h"
 #include "src/shell/windows/tac_win32.h"
 
 #pragma comment( lib, "d3d12.lib" ) // D3D12...
@@ -95,13 +96,6 @@ namespace Tac
     DesktopAppMoveControls( hDesktopWindow );
     QuitProgramOnWindowClose( hDesktopWindow );
   }
-
-  
-
-
-  
-
-
 
   void DX12AppHelloConstBuf::InitDescriptorSizes()
   {
@@ -955,14 +949,15 @@ namespace Tac
     m_commandList->RSSetScissorRects( ( UINT )m_scissorRects.size(), m_scissorRects.data() );
 
 
-    // [ ] TODO: comment this function
+
     const Array descHeaps = {
       ( ID3D12DescriptorHeap* )m_srvHeap,
       ( ID3D12DescriptorHeap* )m_samplerHeap,
     };
     m_commandList->SetDescriptorHeaps( ( UINT )descHeaps.size(), descHeaps.data() );
 
-    // [ ] TODO: comment this function
+    // The TriangleVertexBuffer and TriangleTexture SRVs both live in the m_srvHeap.
+    // Connect ranges from the srv heap to descriptor tables within the root signature
     {
       // Set the root signature. If it doesn't match, throws an access violation
       m_commandList->SetGraphicsRootSignature( m_rootSignature.Get() );
@@ -987,8 +982,30 @@ namespace Tac
 
       // Constant Buffer
       {
-        const D3D12_GPU_VIRTUAL_ADDRESS BufferLocation = 0; // TODO
-        OS::OSDebugBreak();
+        // must match MyCBufType in hlsl
+        struct MyCBufType
+        {
+          m4           mWorld;
+          u32          mVertexBuffer;
+          u32          mTexture;
+        };
+
+        const float t = (float) Sin( ShellGetElapsedSeconds().mSeconds );
+        const m4 transform = m4::Translate( v3( t, 0, 0 ) );
+        MyCBufType cbuf
+        {
+          .mWorld = transform,
+          .mVertexBuffer = 0,
+          .mTexture = 0,
+        };
+
+        const int byteCount = sizeof(MyCBufType);
+        GPUUploadAllocator::DynAlloc allocation =
+          TAC_CALL(mUploadAllocator.Allocate(byteCount, errors));
+
+        MemCpy( allocation.mCPUAddr, &cbuf, byteCount );
+
+        const D3D12_GPU_VIRTUAL_ADDRESS BufferLocation = allocation.mGPUAddr;
         m_commandList->SetGraphicsRootConstantBufferView( 3, BufferLocation );
       }
     }
@@ -1122,19 +1139,6 @@ namespace Tac
   }
 
 
-  static String FormattedSwapEffect( const DXGI_SWAP_EFFECT fx )
-  {
-    const char* name = "Unknown";
-    switch( fx )
-    {
-    case DXGI_SWAP_EFFECT_DISCARD: name = "DXGI_SWAP_EFFECT_DISCARD"; break;
-    case DXGI_SWAP_EFFECT_SEQUENTIAL: name = "DXGI_SWAP_EFFECT_SEQUENTIAL"; break;
-    case DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL: name = "DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL"; break;
-    case DXGI_SWAP_EFFECT_FLIP_DISCARD: name = "DXGI_SWAP_EFFECT_FLIP_DISCARD"; break;
-    }
-
-    return String() + name + "(" + ToString( ( int )fx ) + ")";
-  }
 
   void DX12AppHelloConstBuf::SwapChainPresent( Errors& errors )
   {
@@ -1156,16 +1160,7 @@ namespace Tac
     //        I think the swap chain flushes the command queue before rendering,
     //        so the frame being presented is the one that we just called ExecuteCommandLists() on
 
-    // https://learn.microsoft.com/en-us/windows/win32/direct3ddxgi/dxgi-flip-model
-    // In the flip model, all back buffers are shared with the Desktop Window Manager (DWM)
-    // 1.	The app updates its frame (Write)
-    // 2. Direct3D runtime passes the app surface to DWM
-    // 3. DWM renders the app surface onto screen( Read, Write )
-    const DXGI_SWAP_EFFECT cur = m_swapChainDesc.SwapEffect;
-    const DXGI_SWAP_EFFECT tgt = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
-    TAC_RAISE_ERROR_IF( cur != tgt, String() +
-                        "The swap chain effect is " + FormattedSwapEffect( cur ) + " "
-                        "when it was expected to be " + FormattedSwapEffect( tgt ) );
+    TAC_CALL(CheckSwapEffect(m_swapChainDesc.SwapEffect,errors));
 
     const DXGI_PRESENT_PARAMETERS params{};
 
@@ -1221,6 +1216,7 @@ namespace Tac
     DX12InfoQueue infoQueue;
     TAC_CALL(infoQueue.Init( debugLayer, m_device.Get(), errors ));
 
+    InitDescriptorSizes();
     TAC_CALL( mCommandQueue.Create( m_device.Get(), errors ) );
     TAC_CALL( CreateRTVDescriptorHeap( errors ) );
     TAC_CALL( CreateSRVDescriptorHeap( errors ) );
@@ -1248,6 +1244,8 @@ namespace Tac
 
     const DX12CommandQueue::Signal signalValue =
       TAC_CALL( mCommandQueue.ExecuteCommandList( m_commandList.Get(), errors ) );
+
+    mUploadAllocator.FreeAll( signalValue );
 
     TAC_CALL( SwapChainPresent( errors ) );
 

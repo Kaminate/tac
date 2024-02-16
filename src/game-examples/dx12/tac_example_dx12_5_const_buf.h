@@ -5,6 +5,7 @@
 #include "src/shell/windows/renderer/dxgi/tac_dxgi.h"
 
 #include "tac_example_dx12_command_queue.h"
+#include "tac_example_dx12_gpu_upload_allocator.h"
 
 #include <d3d12.h> // D3D12...
 
@@ -188,6 +189,7 @@ namespace Tac
 
 
     DX12CommandQueue                   mCommandQueue;
+    GPUUploadAllocator                 mUploadAllocator;
   };
 } // namespace Tac
 
