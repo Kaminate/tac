@@ -62,7 +62,6 @@ namespace Tac
     void CreateRootSignature( Errors& );
     void CreatePipelineState( Errors& );
     void InitDescriptorSizes();
-    bool SupportsRayTracing(Errors&);
     
 
     // Helper functions for Update()
