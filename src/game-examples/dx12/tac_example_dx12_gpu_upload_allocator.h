@@ -40,9 +40,9 @@ namespace Tac::Render
       DX12CommandQueue::Signal mFence;
     };
 
+    void     Init( ID3D12Device* , DX12CommandQueue*  );
     DynAlloc Allocate( int const byteCount, Errors& );
-
-    void FreeAll( DX12CommandQueue::Signal FenceID );
+    void     FreeAll( DX12CommandQueue::Signal FenceID );
 
   private:
 

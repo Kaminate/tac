@@ -527,8 +527,8 @@ namespace Tac
 
     m_vertexBufferByteCount = sizeof( triangleVertices );
 
-    const D3D12_HEAP_PROPERTIES uploadHeapProps { .Type = D3D12_HEAP_TYPE_UPLOAD, };
 
+    // used for both default and upload heaps
     const D3D12_RESOURCE_DESC resourceDesc
     {
       .Dimension = D3D12_RESOURCE_DIMENSION_BUFFER,
@@ -546,48 +546,60 @@ namespace Tac
       .Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR,
     };
 
-    // must be null for resources of dimension buffer
-    const D3D12_CLEAR_VALUE* pOptimizedClearValue = nullptr;
+    // Create upload heap
+    {
+      const D3D12_HEAP_PROPERTIES uploadHeapProps{ .Type = D3D12_HEAP_TYPE_UPLOAD, };
 
-    // D3D12_RESOURCE_STATE_GENERIC_READ
-    //   An OR'd combination of other read-state bits.
-    //   The required starting state for an upload heap
-    const D3D12_RESOURCE_STATES uploadHeapResourceStates = D3D12_RESOURCE_STATE_GENERIC_READ;
-    TAC_CALL( m_device->CreateCommittedResource(
-              &uploadHeapProps,
-              D3D12_HEAP_FLAG_NONE,
-              &resourceDesc,
-              uploadHeapResourceStates,
-              pOptimizedClearValue,
-              m_vertexBufferUploadHeap.iid(),
-              m_vertexBufferUploadHeap.ppv() ) );
+      // D3D12_RESOURCE_STATE_GENERIC_READ
+      //   An OR'd combination of other read-state bits.
+      //   The required starting state for an upload heap
+      const D3D12_RESOURCE_STATES uploadHeapResourceStates = D3D12_RESOURCE_STATE_GENERIC_READ;
 
-    const D3D12_HEAP_PROPERTIES defaultHeapProps { .Type = D3D12_HEAP_TYPE_DEFAULT, };
+      TAC_CALL( m_device->CreateCommittedResource(
+        &uploadHeapProps,
+        D3D12_HEAP_FLAG_NONE,
+        &resourceDesc,
+        uploadHeapResourceStates,
+        nullptr,
+        m_vertexBufferUploadHeap.iid(),
+        m_vertexBufferUploadHeap.ppv() ) );
 
-    // we want to copy into here from the upload buffer
-    //D3D12_RESOURCE_STATES defaultHeapState = D3D12_RESOURCE_STATE_COPY_DEST;
-    //
-    // https://microsoft.github.io/DirectX-Specs/d3d/D3D12EnhancedBarriers.html#initial-resource-state
-    // Despite the fact that legacy resource creation API’s have an Initial State, buffers do not have a layout, and thus are treated as though they have an initial state of D3D12_RESOURCE_STATE_COMMON. 
-    // ... am I using a legacy API?
-    // ID3D12Device10::CreateCommittedResource3 uses a D3D12_BARRIER_LAYOUT 
-    // instead of a D3D12_RESOURCE_STATES
+      DX12SetName( m_vertexBufferUploadHeap, "vtx upload buf" );
+    }
+
+    // Create default heap
     D3D12_RESOURCE_STATES defaultHeapState = D3D12_RESOURCE_STATE_COMMON;
+    {
 
-    // Creates both a resource and an implicit heap,
-    // such that the heap is big enough to contain the entire resource,
-    // and the resource is mapped to the heap.
-    TAC_CALL( m_device->CreateCommittedResource(
-      &defaultHeapProps,
-      D3D12_HEAP_FLAG_NONE,
-      &resourceDesc,
-      defaultHeapState, 
-      pOptimizedClearValue,
-      m_vertexBuffer.iid(),
-      m_vertexBuffer.ppv() ) );
+      const D3D12_HEAP_PROPERTIES defaultHeapProps{ .Type = D3D12_HEAP_TYPE_DEFAULT, };
 
-    DX12SetName( m_vertexBuffer, "vtxbuf");
-    DX12SetName( m_vertexBufferUploadHeap, "vtx upload buf");
+      // we want to copy into here from the upload buffer
+      //D3D12_RESOURCE_STATES defaultHeapState = D3D12_RESOURCE_STATE_COPY_DEST;
+      //
+      // https://microsoft.github.io/DirectX-Specs/d3d/D3D12EnhancedBarriers.html#initial-resource-state
+      // Despite the fact that legacy resource creation API’s have an Initial State,
+      // buffers do not have a layout, and thus are treated as though they have an initial state of
+      // D3D12_RESOURCE_STATE_COMMON. 
+      // ... am I using a legacy API?
+      // ID3D12Device10::CreateCommittedResource3 uses a D3D12_BARRIER_LAYOUT 
+      // instead of a D3D12_RESOURCE_STATES
+
+      // Creates both a resource and an implicit heap,
+      // such that the heap is big enough to contain the entire resource,
+      // and the resource is mapped to the heap.
+      TAC_CALL( m_device->CreateCommittedResource(
+        &defaultHeapProps,
+        D3D12_HEAP_FLAG_NONE,
+        &resourceDesc,
+        defaultHeapState,
+        nullptr,
+        m_vertexBuffer.iid(),
+        m_vertexBuffer.ppv() ) );
+
+      DX12SetName( m_vertexBuffer, "vtxbuf" );
+
+    }
+
 
     // Copy the triangle data to the vertex buffer upload heap.
     {
@@ -610,6 +622,16 @@ namespace Tac
       TAC_DX12_CALL( m_commandList->Reset(
         ( ID3D12CommandAllocator* )m_commandAllocator,
         nullptr ) );
+
+      const TransitionParams transition1
+      {
+        .mResource = (ID3D12Resource*)m_vertexBuffer,
+        .mCurrentState = &defaultHeapState,
+
+        // for the vertex shader byteaddressbuffer
+        .mTargetState = D3D12_RESOURCE_STATE_COPY_DEST,
+      };
+      TransitionResource( transition1 );
 
       m_commandList->CopyBufferRegion( ( ID3D12Resource* )m_vertexBuffer, // dst
                                        0, // dstoffest
@@ -982,6 +1004,7 @@ namespace Tac
 
       // Constant Buffer
       {
+
         // must match MyCBufType in hlsl
         struct MyCBufType
         {
@@ -999,13 +1022,24 @@ namespace Tac
           .mTexture = 0,
         };
 
-        const int byteCount = sizeof(MyCBufType);
+        // So I was supposed to learn about D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT from
+        // https://learn.microsoft.com/en-us/windows/win32/direct3d12/uploading-resources
+        // maybe
+
+        const int byteCount = RoundUpToNearestMultiple(
+          sizeof( MyCBufType ),
+          D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT );
+
         GPUUploadAllocator::DynAlloc allocation =
           TAC_CALL(mUploadAllocator.Allocate(byteCount, errors));
 
-        MemCpy( allocation.mCPUAddr, &cbuf, byteCount );
+        MemCpy( allocation.mCPUAddr, &cbuf, sizeof( MyCBufType ) );
 
         const D3D12_GPU_VIRTUAL_ADDRESS BufferLocation = allocation.mGPUAddr;
+
+        // Here we are using SetGraphicsRootConstantBufferView to set a root CBV, as opposed to
+        // using SetGraphicsRootDescriptorTable to set a table containing an element 
+        // (ID3D12Device::CreateConstantBufferView) which describes a CBV.
         m_commandList->SetGraphicsRootConstantBufferView( 3, BufferLocation );
       }
     }
@@ -1213,6 +1247,9 @@ namespace Tac
     m_debugDevice = deviceInitializer.GetDebugDevice()
       .QueryInterface<ID3D12DebugDevice2 >();
 
+
+
+
     DX12InfoQueue infoQueue;
     TAC_CALL(infoQueue.Init( debugLayer, m_device.Get(), errors ));
 
@@ -1228,6 +1265,7 @@ namespace Tac
     TAC_CALL( CreatePipelineState( errors ) );
     TAC_CALL( CreateSamplerDescriptorHeap( errors ) );
     TAC_CALL( CreateSampler( errors ) );
+    mUploadAllocator.Init( m_device.Get(), &mCommandQueue  );
   }
 
   void DX12AppHelloConstBuf::Update( Errors& errors )

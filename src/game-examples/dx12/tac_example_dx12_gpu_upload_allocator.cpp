@@ -7,20 +7,44 @@
 
 namespace Tac::Render
 {
+  void GPUUploadAllocator::Init( ID3D12Device * device, DX12CommandQueue* cmdQ )
+  {
+    m_device = device;
+    mCommandQueue = cmdQ;
+  }
+
   GPUUploadAllocator::DynAlloc GPUUploadAllocator::Allocate( int const byteCount, Errors& errors )
   {
+    // 1) check if we need to use a large page
+
     // so the deal with large pages, is that they can't be reused as default pages.
     // so normally, when allocating a page, you first check if a retired page can be reused,
     // but large pages are just deleted when they are no longer used.
     TAC_ASSERT_MSG( byteCount < Page::kDefaultByteCount, "large pages currently unsupported" );
+      
+    // 2) use a small page
 
-    TAC_ASSERT_MSG( false, "need to align byteCount and mCurPageUsedByteCount" );
 
-    Page* curPage = mActivePages.empty() ? nullptr : &mActivePages.back();
-    if( mActivePages.empty() || byteCount > curPage->mByteCount - mCurPageUsedByteCount )
+    Page* curPage = nullptr;
+    if( mActivePages.empty() )
     {
       TAC_CALL_RET( {}, RequestPage( Page::kDefaultByteCount, errors ) );
+      curPage = &mActivePages.back();
     }
+    else
+    {
+      curPage = &mActivePages.back();
+
+      // 3) check if we need to retire the current page
+      mCurPageUsedByteCount = RoundUpToNearestMultiple( mCurPageUsedByteCount, byteCount );
+      if( byteCount > curPage->mByteCount - mCurPageUsedByteCount )
+      {
+        TAC_CALL_RET( {}, RequestPage( Page::kDefaultByteCount, errors ) );
+        curPage = &mActivePages.back();
+      }
+    }
+
+    TAC_ASSERT( curPage );
 
     D3D12_GPU_VIRTUAL_ADDRESS const gpuAddr = curPage->mGPUAddr + mCurPageUsedByteCount;
     void* const cpuAddr = ( u8* )curPage->mCPUAddr + mCurPageUsedByteCount;
@@ -47,6 +71,9 @@ namespace Tac::Render
       };
       mRetiredPages.push_back( retiredPage );
     }
+
+    mActivePages.clear();
+    mCurPageUsedByteCount = 0;
     // ...
   }
 
@@ -71,8 +98,9 @@ namespace Tac::Render
       }
       else
       {
+        // Break instead of ++i.
+        // If earlier pages fences arent complete, later pages wont be either.
         break;
-        //++i;
       }
     }
 
@@ -86,13 +114,15 @@ namespace Tac::Render
     Page page{};
     if( mAvailablePages.empty() )
     {
-      page = mAvailablePages.back();
-      mAvailablePages.pop_back();
+      page = AllocateNewPage( byteCount, errors );
     }
     else
     {
-      page = AllocateNewPage( byteCount, errors );
+      page = mAvailablePages.back();
+      mAvailablePages.pop_back();
     }
+
+    TAC_ASSERT_MSG( mActivePages.size() < 100, "why do you have so many pages bro" );
 
     mActivePages.push_back( page );
     mCurPageUsedByteCount = 0;

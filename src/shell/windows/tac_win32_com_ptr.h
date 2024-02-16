@@ -13,12 +13,16 @@ namespace Tac
   {
     // Constructors
     PCom() = default;
+
+    // why delete this?
     PCom( T* ) = delete;
+
     PCom( const PCom& other )
     {
       if( auto unknown = static_cast< IUnknown* >( mT = other.mT ) )
         unknown->AddRef();
     }
+
     PCom( PCom&& other )
     {
       swap( Tac::move(other) );
@@ -75,7 +79,13 @@ namespace Tac
 
     // Assignment operators
 
-    void operator = (T*) = delete;
+    //void operator = (T*) = delete;
+    // im undeleting this idk why it was deleted
+    void operator = ( T* t )
+    {
+      if( auto unknown = static_cast< IUnknown* >( mT = t ) )
+        unknown->AddRef();
+    }
 
     void operator = ( const PCom& other )
     {
