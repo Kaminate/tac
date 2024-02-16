@@ -16,12 +16,15 @@ namespace Tac::Render
   {
     RootSignatureBuilder( ID3D12Device* device ) ;
 
-    void AddRootDescriptorTable( D3D12_SHADER_VISIBILITY vis,
-                                 D3D12_DESCRIPTOR_RANGE1 toAdd );
+    void AddConstantBuffer( D3D12_SHADER_VISIBILITY,
+                            D3D12_ROOT_DESCRIPTOR1 );
+
+    void AddRootDescriptorTable( D3D12_SHADER_VISIBILITY ,
+                                 D3D12_DESCRIPTOR_RANGE1 );
     
 
-    void AddRootDescriptorTable( D3D12_SHADER_VISIBILITY vis,
-                                 Span<D3D12_DESCRIPTOR_RANGE1> toAdd );
+    void AddRootDescriptorTable( D3D12_SHADER_VISIBILITY ,
+                                 Span< D3D12_DESCRIPTOR_RANGE1 > );
     
 
     PCom< ID3D12RootSignature > Build( Errors& errors );

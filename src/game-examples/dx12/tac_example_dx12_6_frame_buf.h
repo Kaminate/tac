@@ -53,10 +53,6 @@ namespace Tac
     void PreSwapChainInit(Errors&);
     void CreateDesktopWindow();
 
-    void EnableDebug( Errors& );
-
-    void CreateDevice( Errors& );
-    void CreateInfoQueue( Errors& );
     void CreateCommandQueue( Errors& );
     void CreateRTVDescriptorHeap( Errors& );
     void CreateSamplerDescriptorHeap( Errors& );

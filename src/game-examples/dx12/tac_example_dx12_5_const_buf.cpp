@@ -4,6 +4,8 @@
 #include "tac_example_dx12_root_sig_builder.h"
 #include "tac_example_dx12_input_layout_builder.h"
 #include "tac_example_dx12_checkerboard.h"
+#include "tac_example_dx12.h"
+
 
 #include "src/common/containers/tac_array.h"
 #include "src/common/algorithm/tac_algorithm.h"
@@ -33,7 +35,6 @@
 #pragma comment( lib, "d3d12.lib" ) // D3D12...
 
 static const UINT myParamIndex = 0;
-
 
 namespace Tac
 {
@@ -70,15 +71,6 @@ namespace Tac
 
   using namespace Render;
 
-  static void  MyD3D12MessageFunc( D3D12_MESSAGE_CATEGORY Category,
-                            D3D12_MESSAGE_SEVERITY Severity,
-                            D3D12_MESSAGE_ID ID,
-                            LPCSTR pDescription,
-                            void* pContext )
-  {
-    OS::OSDebugBreak();
-  }
-
 
 
   // -----------------------------------------------------------------------------------------------
@@ -104,103 +96,12 @@ namespace Tac
     QuitProgramOnWindowClose( hDesktopWindow );
   }
 
-  void DX12AppHelloConstBuf::EnableDebug( Errors& errors )
-  {
-    if constexpr( !IsDebugMode )
-      return;
-
-    PCom<ID3D12Debug> dx12debug;
-    TAC_DX12_CALL( D3D12GetDebugInterface( dx12debug.iid(), dx12debug.ppv() ) );
-
-    dx12debug.QueryInterface( m_debug );
-
-    // EnableDebugLayer must be called before the device is created
-    TAC_ASSERT( !m_device );
-    m_debug->EnableDebugLayer();
-
-    // ( this should already be enabled by default )
-    m_debug->SetEnableSynchronizedCommandQueueValidation( TRUE );
-
-    // https://learn.microsoft.com
-    // GPU-based validation can be enabled only prior to creating a device. Disabled by default.
-    //
-    // https://learn.microsoft.com/en-us/windows/win32/direct3d12/using-d3d12-debug-layer-gpu-based-validation
-    // GPU-based validation helps to identify the following errors:
-    // - Use of uninitialized or incompatible descriptors in a shader.
-    // - Use of descriptors referencing deleted Resources in a shader.
-    // - Validation of promoted resource states and resource state decay.
-    // - Indexing beyond the end of the descriptor heap in a shader.
-    // - Shader accesses of resources in incompatible state.
-    // - Use of uninitialized or incompatible Samplers in a shader.
-    m_debug->SetEnableGPUBasedValidation( TRUE );
-
-    m_debugLayerEnabled = true;
-  }
+  
 
 
-  void DX12AppHelloConstBuf::CreateInfoQueue( Errors& errors )
-  {
-    if constexpr( !IsDebugMode )
-      return;
+  
 
-    TAC_ASSERT( m_debugLayerEnabled );
 
-    m_device.QueryInterface( m_infoQueue );
-    TAC_ASSERT(m_infoQueue);
-
-    // Make the application debug break when bad things happen
-    TAC_DX12_CALL(m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE ) );
-    TAC_DX12_CALL(m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_ERROR, TRUE ) );
-    TAC_DX12_CALL(m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_WARNING, TRUE ) );
-
-    // First available in Windows 10 Release Preview build 20236,
-    // But as of 2023-12-11 not available on my machine :(
-    if( auto infoQueue1 = m_infoQueue.QueryInterface<ID3D12InfoQueue1>() )
-    {
-      const D3D12MessageFunc CallbackFunc = MyD3D12MessageFunc;
-      const D3D12_MESSAGE_CALLBACK_FLAGS CallbackFilterFlags = D3D12_MESSAGE_CALLBACK_FLAG_NONE;
-      void* pContext = this;
-      DWORD pCallbackCookie;
-
-      TAC_DX12_CALL( infoQueue1->RegisterMessageCallback(
-                     CallbackFunc,
-                     CallbackFilterFlags,
-                     pContext,
-                     &pCallbackCookie ) );
-    }
-  }
-
-  bool DX12AppHelloConstBuf::SupportsRayTracing(Errors& errors)
-  {
-    D3D12_FEATURE_DATA_D3D12_OPTIONS5 opt5{};
-    TAC_DX12_CALL_RET( false,
-                       m_device->CheckFeatureSupport( D3D12_FEATURE_D3D12_OPTIONS5,
-                       &opt5,
-                       sizeof( opt5 ) ) );
-    return opt5.RaytracingTier >= D3D12_RAYTRACING_TIER_1_0;
-  }
-
-  void DX12AppHelloConstBuf::CreateDevice( Errors& errors )
-  {
-    auto adapter = ( IDXGIAdapter* )DXGIGetBestAdapter();
-    PCom< ID3D12Device > device;
-    TAC_DX12_CALL( D3D12CreateDevice(
-                   adapter,
-                   D3D_FEATURE_LEVEL_12_1,
-                   device.iid(),
-                   device.ppv() ) );
-    m_device = device.QueryInterface<ID3D12Device5>();
-    DX12SetName( m_device, "Device" );
-
-    if constexpr( IsDebugMode )
-    {
-      m_device.QueryInterface( m_debugDevice );
-      TAC_ASSERT( m_debugDevice );
-    }
-
-    InitDescriptorSizes();
-
-  }
 
   void DX12AppHelloConstBuf::InitDescriptorSizes()
   {
@@ -670,7 +571,14 @@ namespace Tac
     const D3D12_HEAP_PROPERTIES defaultHeapProps { .Type = D3D12_HEAP_TYPE_DEFAULT, };
 
     // we want to copy into here from the upload buffer
-    D3D12_RESOURCE_STATES defaultHeapState = D3D12_RESOURCE_STATE_COPY_DEST;
+    //D3D12_RESOURCE_STATES defaultHeapState = D3D12_RESOURCE_STATE_COPY_DEST;
+    //
+    // https://microsoft.github.io/DirectX-Specs/d3d/D3D12EnhancedBarriers.html#initial-resource-state
+    // Despite the fact that legacy resource creation API’s have an Initial State, buffers do not have a layout, and thus are treated as though they have an initial state of D3D12_RESOURCE_STATE_COMMON. 
+    // ... am I using a legacy API?
+    // ID3D12Device10::CreateCommittedResource3 uses a D3D12_BARRIER_LAYOUT 
+    // instead of a D3D12_RESOURCE_STATES
+    D3D12_RESOURCE_STATES defaultHeapState = D3D12_RESOURCE_STATE_COMMON;
 
     // Creates both a resource and an implicit heap,
     // such that the heap is big enough to contain the entire resource,
@@ -770,6 +678,13 @@ namespace Tac
                                       .NumDescriptors = 1,
                                       .BaseShaderRegister = 0,
                                       .RegisterSpace = 1, } );
+
+    builder.AddConstantBuffer( D3D12_SHADER_VISIBILITY_ALL,
+                             D3D12_ROOT_DESCRIPTOR1
+                             {
+                                .ShaderRegister = 0,
+                                .RegisterSpace = 0,
+                             } );
 
     m_rootSignature = TAC_CALL( builder.Build( errors ) );
     DX12SetName( m_rootSignature, "My Root Signature" );
@@ -1069,6 +984,13 @@ namespace Tac
 
         m_commandList->SetGraphicsRootDescriptorTable( 2, BaseDescriptor );
       }
+
+      // Constant Buffer
+      {
+        const D3D12_GPU_VIRTUAL_ADDRESS BufferLocation = 0; // TODO
+        OS::OSDebugBreak();
+        m_commandList->SetGraphicsRootConstantBufferView( 3, BufferLocation );
+      }
     }
 
     static bool recordedBundle;
@@ -1284,11 +1206,23 @@ namespace Tac
     didPreSwapChainInit = true;
 
     TAC_CALL( DXGIInit( errors ) );
-    TAC_CALL( EnableDebug( errors ) );
-    TAC_CALL( CreateDevice( errors ) );
+
+    DX12DebugLayer debugLayer;
+    TAC_CALL( debugLayer.Init( errors ) );
+
+    DX12DeviceInitializer deviceInitializer;
+    TAC_CALL(deviceInitializer.Init( debugLayer, errors ));
+
+    m_device = deviceInitializer.GetDevice()
+      .QueryInterface<ID3D12Device5>();
+    m_debugDevice = deviceInitializer.GetDebugDevice()
+      .QueryInterface<ID3D12DebugDevice2 >();
+
+    DX12InfoQueue infoQueue;
+    TAC_CALL(infoQueue.Init( debugLayer, m_device.Get(), errors ));
+
     TAC_CALL( mCommandQueue.Create( m_device.Get(), errors ) );
     TAC_CALL( CreateRTVDescriptorHeap( errors ) );
-    TAC_CALL( CreateInfoQueue( errors ) );
     TAC_CALL( CreateSRVDescriptorHeap( errors ) );
     TAC_CALL( CreateCommandAllocator( errors ) );
     TAC_CALL( CreateCommandAllocatorBundle( errors ) );

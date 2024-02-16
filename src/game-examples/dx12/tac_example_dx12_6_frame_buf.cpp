@@ -5,6 +5,7 @@
 #include "tac_example_dx12_root_sig_builder.h"
 #include "tac_example_dx12_input_layout_builder.h"
 #include "tac_example_dx12_checkerboard.h"
+#include "tac_example_dx12.h"
 
 #include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_preprocess.h"
 #include "src/common/containers/tac_array.h"
@@ -65,39 +66,6 @@ namespace Tac
 
   using namespace Render;
 
-  void Win32Event::Init( Errors& errors )
-  {
-    TAC_ASSERT( !mEvent );
-
-    // Create an event handle to use for frame synchronization.
-    mEvent = CreateEvent( nullptr, FALSE, FALSE, nullptr );
-    TAC_RAISE_ERROR_IF( !mEvent, Win32GetLastErrorString() );
-  }
-
-  Win32Event::operator bool() const { return mEvent; }
-  Win32Event::operator HANDLE() const { return mEvent; }
-
-  void Win32Event::clear()
-  {
-    if( mEvent )
-    {
-      CloseHandle( mEvent );
-      mEvent = nullptr;
-    }
-  }
-
-  Win32Event::~Win32Event()
-  {
-    clear();
-  }
-
-  void Win32Event::operator = ( Win32Event&& other )
-  {
-    clear();
-    mEvent = other.mEvent;
-    other.mEvent = nullptr;
-  }
-
   // -----------------------------------------------------------------------------------------------
 
   // Helper functions for App::Init
@@ -119,101 +87,6 @@ namespace Tac
     DesktopAppResizeControls( hDesktopWindow );
     DesktopAppMoveControls( hDesktopWindow );
     QuitProgramOnWindowClose( hDesktopWindow );
-  }
-
-  void DX12AppHelloFrameBuf::EnableDebug( Errors& errors )
-  {
-    if constexpr( !IsDebugMode )
-      return;
-
-    PCom<ID3D12Debug> dx12debug;
-    TAC_DX12_CALL( D3D12GetDebugInterface( dx12debug.iid(), dx12debug.ppv() ) );
-
-    dx12debug.QueryInterface( m_debug );
-
-    // EnableDebugLayer must be called before the device is created
-    TAC_ASSERT( !m_device );
-    m_debug->EnableDebugLayer();
-
-    // ( this should already be enabled by default )
-    m_debug->SetEnableSynchronizedCommandQueueValidation( TRUE );
-
-    // https://learn.microsoft.com
-    // GPU-based validation can be enabled only prior to creating a device. Disabled by default.
-    //
-    // https://learn.microsoft.com/en-us/windows/win32/direct3d12/using-d3d12-debug-layer-gpu-based-validation
-    // GPU-based validation helps to identify the following errors:
-    // - Use of uninitialized or incompatible descriptors in a shader.
-    // - Use of descriptors referencing deleted Resources in a shader.
-    // - Validation of promoted resource states and resource state decay.
-    // - Indexing beyond the end of the descriptor heap in a shader.
-    // - Shader accesses of resources in incompatible state.
-    // - Use of uninitialized or incompatible Samplers in a shader.
-    m_debug->SetEnableGPUBasedValidation( TRUE );
-
-    m_debugLayerEnabled = true;
-  }
-
-  void  MyD3D12MessageFunc( D3D12_MESSAGE_CATEGORY Category,
-                            D3D12_MESSAGE_SEVERITY Severity,
-                            D3D12_MESSAGE_ID ID,
-                            LPCSTR pDescription,
-                            void* pContext )
-  {
-    OS::OSDebugBreak();
-  }
-
-  void DX12AppHelloFrameBuf::CreateInfoQueue( Errors& errors )
-  {
-    if constexpr( !IsDebugMode )
-      return;
-
-    TAC_ASSERT( m_debugLayerEnabled );
-
-    m_device.QueryInterface( m_infoQueue );
-    TAC_ASSERT(m_infoQueue);
-
-    // Make the application debug break when bad things happen
-    TAC_DX12_CALL(m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE ) );
-    TAC_DX12_CALL(m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_ERROR, TRUE ) );
-    TAC_DX12_CALL(m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_WARNING, TRUE ) );
-
-    // First available in Windows 10 Release Preview build 20236,
-    // But as of 2023-12-11 not available on my machine :(
-    if( auto infoQueue1 = m_infoQueue.QueryInterface<ID3D12InfoQueue1>() )
-    {
-      const D3D12MessageFunc CallbackFunc = MyD3D12MessageFunc;
-      const D3D12_MESSAGE_CALLBACK_FLAGS CallbackFilterFlags = D3D12_MESSAGE_CALLBACK_FLAG_NONE;
-      void* pContext = this;
-      DWORD pCallbackCookie;
-
-      TAC_DX12_CALL( infoQueue1->RegisterMessageCallback(
-                     CallbackFunc,
-                     CallbackFilterFlags,
-                     pContext,
-                     &pCallbackCookie ) );
-    }
-  }
-
-  void DX12AppHelloFrameBuf::CreateDevice( Errors& errors )
-  {
-    auto adapter = ( IDXGIAdapter* )DXGIGetBestAdapter();
-    PCom< ID3D12Device > device;
-    TAC_DX12_CALL( D3D12CreateDevice(
-                   adapter,
-                   D3D_FEATURE_LEVEL_12_1,
-                   device.iid(),
-                   device.ppv() ) );
-    m_device = device.QueryInterface<ID3D12Device5>();
-    DX12SetName( m_device, "Device" );
-
-    if constexpr( IsDebugMode )
-    {
-      m_device.QueryInterface( m_debugDevice );
-      TAC_ASSERT( m_debugDevice );
-    }
-
-    InitDescriptorSizes();
   }
 
   void DX12AppHelloFrameBuf::InitDescriptorSizes()
@@ -1333,12 +1206,25 @@ namespace Tac
     didPreSwapChainInit = true;
 
     TAC_CALL( DXGIInit( errors ) );
-    TAC_CALL( EnableDebug( errors ) );
-    TAC_CALL( CreateDevice( errors ) );
+
+    DX12DebugLayer debugLayer;
+    TAC_CALL( debugLayer.Init( errors ) );
+
+    DX12DeviceInitializer deviceInitializer;
+    TAC_CALL(deviceInitializer.Init( debugLayer, errors ));
+
+    m_device = deviceInitializer.GetDevice()
+      .QueryInterface<ID3D12Device5>();
+    m_debugDevice = deviceInitializer.GetDebugDevice()
+      .QueryInterface<ID3D12DebugDevice2 >();
+
+    DX12InfoQueue infoQueue;
+    TAC_CALL(infoQueue.Init( debugLayer, m_device.Get(), errors ));
+
+    InitDescriptorSizes();
     TAC_CALL( CreateFence( errors ) );
     TAC_CALL( CreateCommandQueue( errors ) );
     TAC_CALL( CreateRTVDescriptorHeap( errors ) );
-    TAC_CALL( CreateInfoQueue( errors ) );
     TAC_CALL( CreateSRVDescriptorHeap( errors ) );
     TAC_CALL( CreateCommandAllocator( errors ) );
     TAC_CALL( CreateCommandList( errors ) );

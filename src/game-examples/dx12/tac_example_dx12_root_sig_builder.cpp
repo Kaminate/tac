@@ -13,6 +13,20 @@ namespace Tac::Render
       AddRootDescriptorTable( vis, Span( toAdd ) );
     }
 
+
+    void RootSignatureBuilder::AddConstantBuffer( D3D12_SHADER_VISIBILITY vis,
+                                                  D3D12_ROOT_DESCRIPTOR1 descriptor )
+    {
+      const D3D12_ROOT_PARAMETER1 rootParam
+      {
+        .ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV,
+        .Descriptor = descriptor,
+        .ShaderVisibility = vis,
+      };
+
+      mRootParams.push_back( rootParam );
+    }
+
     void RootSignatureBuilder::AddRootDescriptorTable( D3D12_SHADER_VISIBILITY vis,
                                  Span<D3D12_DESCRIPTOR_RANGE1> toAdd )
     {

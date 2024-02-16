@@ -57,6 +57,8 @@ add_library( TacDX12ExampleHelpers
   tac_example_dx12_win32_event.h
   tac_example_dx12_checkerboard.cpp
   tac_example_dx12_checkerboard.h
+  tac_example_dx12.cpp
+  tac_example_dx12.h
 )
 
 foreach( targetname ${targetnames} )
