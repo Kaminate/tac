@@ -18,6 +18,7 @@
 #include "src/common/system/tac_desktop_window.h"
 #include "src/common/system/tac_filesystem.h"
 #include "src/common/system/tac_os.h"
+
 #include "src/shell/tac_desktop_app.h"
 #include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_compiler.h"
 #include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_postprocess.h"
@@ -28,6 +29,7 @@
 #include "src/shell/windows/renderer/dxgi/tac_dxgi.h"
 #include "src/shell/windows/renderer/dxgi/tac_dxgi_debug.h"
 #include "src/shell/windows/renderer/pix/tac_pix.h"
+#include "src/shell/tac_desktop_app_threads.h"
 
 #include <initguid.h>
 #include <d3dcompiler.h> // D3DCOMPILE_...
@@ -953,7 +955,7 @@ namespace Tac::Render
   void RendererDirectX11::AddMagicBuffer( const CommandDataCreateMagicBuffer* commandDataCreateMagicBuffer,
                                           Errors& errors )
   {
-    TAC_ASSERT( IsMainThread() );
+    TAC_ASSERT( DesktopAppThreads::IsMainThread() );
     D3D11_BUFFER_DESC desc = {};
     desc.BindFlags = GetBindFlags( commandDataCreateMagicBuffer->mBinding );
     desc.ByteWidth = commandDataCreateMagicBuffer->mByteCount;
@@ -1024,7 +1026,7 @@ namespace Tac::Render
                                            Errors& errors )
   {
     TAC_ASSERT( data->mStride );
-    TAC_ASSERT( IsMainThread() );
+    TAC_ASSERT( DesktopAppThreads::IsMainThread() );
     TAC_ASSERT( !data->mOptionalInitialBytes || IsSubmitAllocated( data->mOptionalInitialBytes ) );
 
     const D3D11_BUFFER_DESC bd {
@@ -1051,7 +1053,7 @@ namespace Tac::Render
   void RendererDirectX11::AddVertexFormat( const CommandDataCreateVertexFormat* commandData,
                                            Errors& errors )
   {
-    TAC_ASSERT( IsMainThread() );
+    TAC_ASSERT( DesktopAppThreads::IsMainThread() );
     VertexFormatHandle vertexFormatHandle = commandData->mVertexFormatHandle;
 
     // Let's say your shader doesn't require buffers.
@@ -1102,7 +1104,7 @@ namespace Tac::Render
   void RendererDirectX11::AddIndexBuffer( const CommandDataCreateIndexBuffer* data,
                                           Errors& errors )
   {
-    TAC_ASSERT( IsMainThread() );
+    TAC_ASSERT( DesktopAppThreads::IsMainThread() );
     IndexBufferHandle index = data->mIndexBufferHandle;
     TAC_ASSERT( data->mFormat.mPerElementDataType == GraphicsType::uint );
     TAC_ASSERT( data->mFormat.mElementCount == 1 );
@@ -1155,7 +1157,7 @@ namespace Tac::Render
   void RendererDirectX11::AddSamplerState( const CommandDataCreateSamplerState* commandData,
                                            Errors& errors )
   {
-    TAC_ASSERT( IsMainThread() );
+    TAC_ASSERT( DesktopAppThreads::IsMainThread() );
 
     const D3D11_SAMPLER_DESC desc =
     {
@@ -1175,7 +1177,7 @@ namespace Tac::Render
 
   void RendererDirectX11::AddShader( const CommandDataCreateShader* commandData, Errors& errors )
   {
-    TAC_ASSERT( IsMainThread() );
+    TAC_ASSERT( DesktopAppThreads::IsMainThread() );
 
     DX11ShaderReloadFunction( commandData->mShaderHandle, commandData->mNameStringView, errors );
     ShaderReloadHelperAdd( commandData->mShaderHandle, commandData->mNameStringView );
@@ -1184,7 +1186,7 @@ namespace Tac::Render
   void RendererDirectX11::AddTexture( const CommandDataCreateTexture* oldData,
                                       Errors& errors )
   {
-    TAC_ASSERT( IsMainThread() );
+    TAC_ASSERT( DesktopAppThreads::IsMainThread() );
    CommandDataCreateTexture newData = *oldData;
    const CommandDataCreateTexture* data = &newData;
 
@@ -1394,7 +1396,7 @@ namespace Tac::Render
   void RendererDirectX11::AddBlendState( const CommandDataCreateBlendState* commandData,
                                          Errors& errors )
   {
-    TAC_ASSERT( IsMainThread() );
+    TAC_ASSERT( DesktopAppThreads::IsMainThread() );
     const BlendState* blendState = &commandData->mBlendState;
 
     const D3D11_RENDER_TARGET_BLEND_DESC blendDesc
@@ -1421,7 +1423,7 @@ namespace Tac::Render
   void RendererDirectX11::AddConstantBuffer( const CommandDataCreateConstantBuffer* commandData,
                                              Errors& errors )
   {
-    TAC_ASSERT( IsMainThread() );
+    TAC_ASSERT( DesktopAppThreads::IsMainThread() );
     TAC_ASSERT( commandData->mName );
     TAC_ASSERT( !FindCbufferOfName( commandData->mName ).IsValid() );
 
@@ -1448,7 +1450,7 @@ namespace Tac::Render
   void RendererDirectX11::AddDepthState( const CommandDataCreateDepthState* commandData,
                                          Errors& errors )
   {
-    TAC_ASSERT( IsMainThread() );
+    TAC_ASSERT( DesktopAppThreads::IsMainThread() );
     const D3D11_DEPTH_WRITE_MASK DepthWriteMask
       = commandData->mDepthState.mDepthWrite
       ? D3D11_DEPTH_WRITE_MASK_ALL
@@ -1475,7 +1477,7 @@ namespace Tac::Render
   void RendererDirectX11::AddFramebufferForRenderToTexture( const CommandDataCreateFramebuffer* data,
                                                             Errors& errors )
   {
-    TAC_ASSERT( IsMainThread() );
+    TAC_ASSERT( DesktopAppThreads::IsMainThread() );
 
     TAC_ASSERT( !data->mFramebufferTextures.empty() );
 
@@ -1532,7 +1534,7 @@ namespace Tac::Render
   void RendererDirectX11::AddFramebufferForWindow( const CommandDataCreateFramebuffer* data,
                                                    Errors& errors )
   {
-    TAC_ASSERT( IsMainThread() );
+    TAC_ASSERT( DesktopAppThreads::IsMainThread() );
 
     TAC_ASSERT( data->mFramebufferTextures.empty() );
     TAC_ASSERT( data->mNativeWindowHandle && data->mWidth && data->mHeight );
@@ -1625,7 +1627,7 @@ namespace Tac::Render
   void RendererDirectX11::AddFramebuffer( const CommandDataCreateFramebuffer* data,
                                           Errors& errors )
   {
-    TAC_ASSERT( IsMainThread() );
+    TAC_ASSERT( DesktopAppThreads::IsMainThread() );
 
     if( data->mNativeWindowHandle && data->mWidth && data->mHeight )
     {
@@ -1735,7 +1737,7 @@ namespace Tac::Render
   void RendererDirectX11::UpdateTextureRegion( const CommandDataUpdateTextureRegion* commandData,
                                                Errors& errors )
   {
-    TAC_ASSERT( IsMainThread() );
+    TAC_ASSERT( DesktopAppThreads::IsMainThread() );
     const TexUpdate* data = &commandData->mTexUpdate;
     TAC_ASSERT( IsSubmitAllocated( data->mSrcBytes ) );
 
@@ -1922,7 +1924,7 @@ namespace Tac::Render
                                         int byteCount,
                                         Errors& errors )
   {
-    TAC_ASSERT( IsMainThread() );
+    TAC_ASSERT( DesktopAppThreads::IsMainThread() );
     TAC_ASSERT( IsSubmitAllocated( bytes ) );
     D3D11_MAPPED_SUBRESOURCE mappedResource;
     TAC_DX11_CALL( mDeviceContext->Map( buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource ));

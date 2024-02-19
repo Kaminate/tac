@@ -15,7 +15,7 @@
 #include "src/common/math/tac_vector3.h"
 #include "src/common/math/tac_vector4.h"
 #include "src/common/profile/tac_profile.h"
-#include "src/common/shell/tac_shell_timer.h"
+#include "src/common/shell/tac_shell_timestep.h"
 #include "src/common/graphics/tac_camera.h"
 #include "src/common/system/tac_desktop_window.h"
 #include "src/common/memory/tac_frame_memory.h"

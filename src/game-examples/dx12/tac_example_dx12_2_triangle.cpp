@@ -17,7 +17,7 @@
 #include "src/common/math/tac_vector4.h"
 #include "src/common/system/tac_filesystem.h"
 #include "src/common/math/tac_vector3.h"
-#include "src/common/shell/tac_shell_timer.h"
+#include "src/common/shell/tac_shell_timestep.h"
 #include "src/common/system/tac_os.h"
 #include "src/common/shell/tac_shell.h"
 #include "src/shell/tac_desktop_app.h"
@@ -111,8 +111,8 @@ namespace Tac
     };
     hDesktopWindow = CreateTrackedWindow( desktopParams );
 
-    DesktopAppResizeControls( hDesktopWindow );
-    DesktopAppMoveControls( hDesktopWindow );
+    DesktopApp::GetInstance()->ResizeControls( hDesktopWindow );
+    DesktopApp::GetInstance()->MoveControls( hDesktopWindow );
     QuitProgramOnWindowClose( hDesktopWindow );
   }
 

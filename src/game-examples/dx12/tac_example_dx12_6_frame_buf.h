@@ -13,6 +13,8 @@ namespace Tac
 {
   using namespace Render;
 
+  const int MAX_FRAMES_IN_FLIGHT_COUNT = 2;
+  const int SWAP_CHAIN_BUFFER_COUNT = 3;
 
   using Viewports = FixedVector<
     D3D12_VIEWPORT,

@@ -62,9 +62,9 @@ namespace Tac
       .mHeight = h,
     };
 
-    const DesktopWindowHandle desktopWindowHandle = DesktopAppCreateWindow( createParams );
-    DesktopAppMoveControls( desktopWindowHandle );
-    DesktopAppResizeControls( desktopWindowHandle );
+    const DesktopWindowHandle desktopWindowHandle = DesktopApp::GetInstance()->CreateWindow( createParams );
+    DesktopApp::GetInstance()->MoveControls( desktopWindowHandle );
+    DesktopApp::GetInstance()->ResizeControls( desktopWindowHandle );
 
     const TrackInfo info
     {

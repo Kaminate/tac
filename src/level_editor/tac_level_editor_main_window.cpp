@@ -6,7 +6,7 @@
 #include "src/common/graphics/tac_ui_2d.h"
 #include "src/common/profile/tac_profile.h"
 #include "src/common/shell/tac_shell.h"
-#include "src/common/shell/tac_shell_timer.h"
+#include "src/common/shell/tac_shell_timestep.h"
 #include "src/common/system/tac_desktop_window.h"
 #include "src/common/system/tac_filesystem.h"
 #include "src/common/error/tac_error_handling.h"
@@ -32,7 +32,7 @@ namespace Tac
 
   CreationMainWindow::~CreationMainWindow()
   {
-    DesktopAppDestroyWindow( mDesktopWindowHandle );
+    DesktopApp::GetInstance()->DestroyWindow( mDesktopWindowHandle );
     Instance = nullptr;
     delete mUI2DDrawData;
   }
@@ -142,9 +142,7 @@ namespace Tac
     if( assetPath.empty() )
       return;
 
-    Json entityJson;
-    entity->Save( entityJson );
-
+    const Json entityJson = entity->Save();
     const String prefabJsonString = entityJson.Stringify();
     const void* bytes = prefabJsonString.data();
     const int byteCount = prefabJsonString.size();
@@ -176,7 +174,8 @@ namespace Tac
     if( ImGuiButton( "Close Application" ) )
       OS::OSAppStopRunning();
 
-    TAC_CALL( DesktopAppDebugImGui( errors ) );
+    DesktopApp* desktopApp = DesktopApp::GetInstance();
+    TAC_CALL( desktopApp->DebugImGui( errors ) );
 
     ImGuiEnd();
   }
@@ -184,8 +183,8 @@ namespace Tac
   void CreationMainWindow::Update( Errors& errors )
   {
     TAC_PROFILE_BLOCK;
-    DesktopAppResizeControls( mDesktopWindowHandle );
-    DesktopAppMoveControls( mDesktopWindowHandle );
+    DesktopApp::GetInstance()->ResizeControls( mDesktopWindowHandle );
+    DesktopApp::GetInstance()->MoveControls( mDesktopWindowHandle );
 
     const Render::FramebufferHandle framebufferHandle = WindowGraphicsGetFramebuffer( mDesktopWindowHandle );
     const Render::ViewHandle viewHandle = WindowGraphicsGetView( mDesktopWindowHandle );

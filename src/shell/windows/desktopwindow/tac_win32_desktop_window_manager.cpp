@@ -500,6 +500,8 @@ namespace Tac
                                                      Errors& errors )
   {
     const DesktopWindowHandle& desktopWindowHandle = params.mHandle;
+
+    // Name of the window, displayed in the window's title bar or alt-tab menu
     const char* name = params.mName;
     int x = params.mX;
     int y = params.mY;
@@ -559,10 +561,7 @@ namespace Tac
     }
 
     const HINSTANCE hinst = Win32GetStartupInstance();
-    const HWND hwnd = CreateWindow( classname,
-
-                                    // Name of the window, displayed in the window's title bar, or in the 
-                                    // alt-tab menu
+    const HWND hwnd = CreateWindowA( classname,
                                     name,
                                     windowStyle,
                                     x,

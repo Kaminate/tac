@@ -201,7 +201,7 @@ namespace Tac
   CreationPropertyWindow::~CreationPropertyWindow()
   {
     Instance = nullptr;
-    DesktopAppDestroyWindow( mDesktopWindowHandle );
+    DesktopApp::GetInstance()->DestroyWindow( mDesktopWindowHandle );
   }
 
   void CreationPropertyWindow::Init( Errors& errors )

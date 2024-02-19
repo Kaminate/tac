@@ -50,13 +50,17 @@ int CALLBACK WinMain( HINSTANCE hInstance,
 
   Win32MouseEdgeInit();
 
-  TAC_CALL_RET( 0, DesktopAppInit( &sWin32PlatformFns, errors ));
+  DesktopApp* desktopApp = DesktopApp::GetInstance();
 
-  TAC_CALL_RET( 0, Win32WindowManagerInit( errors ));
+  PlatformFns::SetInstance( &sWin32PlatformFns );
 
-  TAC_CALL_RET( 0, Network::NetWinsockInit(errors));
+  TAC_CALL_RET( 0, desktopApp->Init( errors ) );
 
-  TAC_CALL_RET( 0, DesktopAppRun( errors ));
+  TAC_CALL_RET( 0, Win32WindowManagerInit( errors ) );
+
+  TAC_CALL_RET( 0, Network::NetWinsockInit( errors ) );
+
+  TAC_CALL_RET( 0, desktopApp->Run( errors ) );
 
   Render::DXGIReportLiveObjects();
 

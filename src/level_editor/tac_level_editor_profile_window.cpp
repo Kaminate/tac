@@ -26,7 +26,7 @@ namespace Tac
   {
     Instance = nullptr;
     delete mUI2DDrawData;
-    DesktopAppDestroyWindow( mDesktopWindowHandle );
+    DesktopApp::GetInstance()->DestroyWindow( mDesktopWindowHandle );
   }
 
   void CreationProfileWindow::Init( Errors& errors )
@@ -43,7 +43,7 @@ namespace Tac
     if( !desktopWindowState->mNativeWindowHandle )
       return;
     
-    DesktopAppMoveControls( mDesktopWindowHandle );
+    DesktopApp::GetInstance()->MoveControls( mDesktopWindowHandle );
 
     ImGuiSetNextWindowStretch();
     ImGuiSetNextWindowHandle( mDesktopWindowHandle );

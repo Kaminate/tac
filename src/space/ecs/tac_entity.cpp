@@ -290,9 +290,11 @@ namespace Tac
     // todo: relative positioning
   }
 
-  void             Entity::Save( Json& entityJson )
+  Json             Entity::Save()
   {
     Entity* entity = this;
+
+    Json entityJson;
     entityJson[ "mPosition" ].DeepCopy( Vector3ToJson( entity->mRelativeSpace.mPosition ) );
     entityJson[ "mScale" ].DeepCopy( Vector3ToJson( entity->mRelativeSpace.mScale ) );
     entityJson[ "mName" ].SetString( entity->mName );
@@ -313,8 +315,10 @@ namespace Tac
     {
       Json& childrenJson = entityJson[ "mChildren" ];
       for( Entity* childEntity : entity->mChildren )
-        childEntity->Save( *childrenJson.AddChild() );
+        childrenJson.AddChild( childEntity->Save() );
     }
+
+    return entityJson;
   }
 
   void             Entity::Load( Json& prefabJson )

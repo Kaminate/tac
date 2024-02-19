@@ -1,6 +1,8 @@
 #include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_compiler.h" // self-inc
 
 #include "src/shell/tac_desktop_app.h" // IsMainThread
+#include "src/shell/tac_desktop_app_threads.h"
+
 #include "src/common/assetmanagers/tac_asset.h" // AssetPathStringView
 #include "src/common/system/tac_os.h" // OSDebugPrintLine
 #include "src/common/string/tac_string_format.h"
@@ -112,7 +114,7 @@ namespace Tac::Render
                                             const StringView& shaderModel,
                                             Errors& errors )
   {
-    TAC_ASSERT( IsMainThread() );
+    TAC_ASSERT( DesktopAppThreads::IsMainThread() );
 
     DWORD dwShaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
     dwShaderFlags |= IsDebugMode ? D3DCOMPILE_DEBUG : 0;

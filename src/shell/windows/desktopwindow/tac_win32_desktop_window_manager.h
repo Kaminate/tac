@@ -3,6 +3,7 @@
 #include "src/shell/windows/tac_win32.h"
 #include "src/common/tac_core.h"
 #include "src/shell/tac_desktop_app.h"
+#include "src/shell/tac_platform.h"
 
 namespace Tac
 {

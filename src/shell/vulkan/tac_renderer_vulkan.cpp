@@ -1,12 +1,13 @@
-
 #include "src/shell/vulkan/tac_renderer_vulkan.h" // self-inc
 
 #include "src/common/error/tac_error_handling.h"
 #include "src/common/shell/tac_shell.h"
 #include "src/common/containers/tac_map.h"
 #include "src/common/assetmanagers/tac_asset.h"
+
 #include "src/shell/tac_desktop_app.h"
 #include "src/shell/vulkan/tac_vk_types.h"
+#include "src/shell/tac_desktop_app_threads.h"
 
 #include "VkBootstrap.h"
 
@@ -111,7 +112,7 @@ namespace Tac::Render
   void RendererVulkan::AddDepthState( const CommandDataCreateDepthState*, Errors& ) {};
   void RendererVulkan::AddFramebuffer( const CommandDataCreateFramebuffer* data, Errors& errors )
   {
-    TAC_ASSERT( IsMainThread() );
+    TAC_ASSERT( DesktopAppThreads::IsMainThread() );
 
     const bool isWindowFramebuffer = data->mNativeWindowHandle && data->mWidth && data->mHeight;
     const bool isRenderToTextureFramebuffer = !data->mFramebufferTextures.empty();

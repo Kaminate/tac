@@ -12,7 +12,7 @@
 #include "src/common/math/tac_math.h"
 #include "src/common/math/tac_math_meta.h"
 #include "src/common/profile/tac_profile.h"
-#include "src/common/shell/tac_shell_timer.h"
+#include "src/common/shell/tac_shell_timestep.h"
 #include "src/common/graphics/tac_camera.h"
 #include "src/common/error/tac_error_handling.h"
 #include "src/common/memory/tac_frame_memory.h"

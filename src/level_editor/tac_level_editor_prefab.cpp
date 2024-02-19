@@ -213,10 +213,8 @@ namespace Tac
       prefab->mAssetPath = assetPath;
     }
 
-    Json entityJson;
-    entity->Save( entityJson );
-
-    String prefabJsonString = entityJson.Stringify();
+    const Json entityJson = entity->Save();
+    const String prefabJsonString = entityJson.Stringify();
     const void* bytes = prefabJsonString.data();
     const int byteCount = prefabJsonString.size();
     const Filesystem::Path fsPath( prefab->mAssetPath );

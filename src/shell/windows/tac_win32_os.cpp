@@ -116,7 +116,7 @@ namespace Tac
   static Filesystem::Path Win32OSOpenDialog( Errors& errors )
   {
     FileDialogHelper helper( FileDialogHelper::kOpen );
-    return  helper.Run( errors  );
+    return helper.Run( errors );
   }
 
   static Filesystem::Path Win32OSSaveDialog( const OS::SaveParams& saveParams, Errors& errors )
@@ -124,7 +124,7 @@ namespace Tac
     [[maybe_unused]] auto suggestedFilename = saveParams.mSuggestedFilename; // todo
 
     FileDialogHelper helper( FileDialogHelper::kSave );
-    return  helper.Run( errors  );
+    return helper.Run( errors );
   };
 
   static void Win32OSSetScreenspaceCursorPos( const v2& pos, Errors& errors )

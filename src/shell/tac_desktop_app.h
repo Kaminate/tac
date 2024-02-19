@@ -3,32 +3,16 @@
 #include "src/common/input/tac_keyboard_input.h"
 #include "src/common/tac_core.h"
 #include "src/common/system/tac_desktop_window.h"
+#include "src/common/containers/tac_list.h"
+#include "src/shell/tac_iapp.h"
+
+// Undef CreateWindow (thanks windows.h) so that we may name a function the same
+#undef CreateWindow
 
 namespace Tac
 {
+  struct PlatformFns;
 
-  struct App
-  {
-    struct Config
-    {
-      String mName;
-      String mStudioName = "Sleeping Studio";
-
-      //     Can disable the renderer for headless apps or for apps that define their own renderer
-      bool   mDisableRenderer = false;
-    };
-
-    App(const Config& );
-    virtual ~App() {};
-
-    virtual void Init( Errors& ) {};
-    virtual void Update( Errors& ) {};
-    virtual void Uninit( Errors& ) {};
-
-    static App*  Create();
-
-    Config mConfig;
-  };
 
   // -----------------------------------------------------------------------------------------------
 
@@ -43,62 +27,24 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  struct PlatformSpawnWindowParams
+
+  struct DesktopApp
   {
-    DesktopWindowHandle mHandle;
-    const char*         mName;
-    int                 mX;
-    int                 mY;
-    int                 mWidth;
-    int                 mHeight;
+    void                Init( Errors& );
+    void                Run( Errors& );
+    DesktopWindowHandle CreateWindow( const DesktopAppCreateWindowParams& );
+    void                DestroyWindow( const DesktopWindowHandle& );
+    void                Update( Errors& );
+    void                ResizeControls( const DesktopWindowHandle&, int edgePx = 7 );
+    void                MoveControls( const DesktopWindowHandle&,
+                                      const DesktopWindowRect& );
+    void                MoveControls( const DesktopWindowHandle& );
+    void                DebugImGui( Errors& );
+    static DesktopApp*  GetInstance();
   };
-
-  struct PlatformFns
-  {
-    virtual void PlatformImGui( Errors& );
-    virtual void PlatformFrameBegin( Errors& );
-    virtual void PlatformFrameEnd( Errors& );
-    virtual void PlatformSpawnWindow( const PlatformSpawnWindowParams&, Errors& );
-    virtual void PlatformDespawnWindow( const DesktopWindowHandle& );
-    virtual void PlatformWindowMoveControls( const DesktopWindowHandle&, const DesktopWindowRect& );
-    virtual void PlatformWindowResizeControls( const DesktopWindowHandle&, int );
-    virtual DesktopWindowHandle PlatformGetMouseHoveredWindow();
-  };
-
-  // -----------------------------------------------------------------------------------------------
-
-  //void                DesktopEventAssignHandle( const DesktopWindowHandle&,
-  //                                              const void* nativeWindowHandle,
-  //                                              const char* name,
-  //                                              int x,
-  //                                              int y,
-  //                                              int w,
-  //                                              int h );
-  //void                DesktopEventMoveWindow( const DesktopWindowHandle&, int x, int y );
-  //void                DesktopEventResizeWindow( const DesktopWindowHandle&, int w, int h );
-  //void                DesktopEventKeyState( const Keyboard::Key &, bool );
-  //void                DesktopEventMouseButtonState( const Mouse::Button&, bool );
-  //void                DesktopEventKeyInput( const Codepoint& );
-  //void                DesktopEventMouseWheel( int ticks );
-  //void                DesktopEventMouseMove( const DesktopWindowHandle&, int x, int y );
-  //void                DesktopEventMouseHoveredWindow( const DesktopWindowHandle& );
-
-  // -----------------------------------------------------------------------------------------------
-
-  void                DesktopAppInit( PlatformFns*, Errors& );
-  void                DesktopAppRun( Errors& );
-  DesktopWindowHandle DesktopAppCreateWindow( const DesktopAppCreateWindowParams& );
-  void                DesktopAppDestroyWindow( const DesktopWindowHandle& );
-  void                DesktopAppUpdate( Errors& );
-  void                DesktopAppResizeControls( const DesktopWindowHandle&, int edgePx = 7 );
-  void                DesktopAppMoveControls( const DesktopWindowHandle&,
-                                              const DesktopWindowRect& );
-  void                DesktopAppMoveControls( const DesktopWindowHandle& );
-  void                DesktopAppDebugImGui(Errors&);
 
   // -----------------------------------------------------------------------------------------------
 
   Errors&             GetMainErrors();
-  bool                IsMainThread();
-  bool                IsLogicThread();
+
 } // namespace Tac

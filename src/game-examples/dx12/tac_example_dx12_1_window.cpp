@@ -1,7 +1,7 @@
 #include "tac_example_dx12_1_window.h" // self-inc
 
 #include "src/shell/tac_desktop_app.h"
-#include "src/common/shell/tac_shell_timer.h"
+#include "src/common/shell/tac_shell_timestep.h"
 #include "src/common/system/tac_os.h"
 #include "src/common/math/tac_math.h"
 #include "src/shell/windows/tac_win32.h"
@@ -72,9 +72,9 @@ namespace Tac
     };
     hDesktopWindow = CreateTrackedWindow( desktopParams );
 
-    //hDesktopWindow = DesktopAppCreateWindow( desktopParams );
-    DesktopAppResizeControls( hDesktopWindow );
-    DesktopAppMoveControls( hDesktopWindow );
+    //hDesktopWindow = DesktopApp::GetInstance()->CreateWindow( desktopParams );
+    DesktopApp::GetInstance()->ResizeControls( hDesktopWindow );
+    DesktopApp::GetInstance()->MoveControls( hDesktopWindow );
     QuitProgramOnWindowClose( hDesktopWindow );
   }
 

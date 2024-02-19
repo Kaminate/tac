@@ -9,7 +9,7 @@
 #include "src/level_editor/tac_level_editor_game_object_menu_window.h"
 #include "src/level_editor/tac_level_editor_main_window.h"
 #include "src/shell/tac_desktop_app.h"
-#include "src/common/shell/tac_shell_timer.h"
+#include "src/common/shell/tac_shell_timestep.h"
 #include "space/ecs/tac_entity.h"
 #include "space/world/tac_world.h"
 

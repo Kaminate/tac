@@ -12,7 +12,7 @@
 #include "src/common/math/tac_matrix3.h"
 #include "src/common/profile/tac_profile.h"
 #include "src/common/shell/tac_shell.h"
-#include "src/common/shell/tac_shell_timer.h"
+#include "src/common/shell/tac_shell_timestep.h"
 #include "src/common/graphics/tac_camera.h"
 #include "src/common/system/tac_desktop_window.h"
 #include "src/common/memory/tac_frame_memory.h"
@@ -207,7 +207,7 @@ namespace Tac
     Render::DestroyBlendState( mBlendState, TAC_STACK_FRAME );
     Render::DestroyRasterizerState( mRasterizerState, TAC_STACK_FRAME );
     Render::DestroySamplerState( mSamplerState, TAC_STACK_FRAME );
-    DesktopAppDestroyWindow( mDesktopWindowHandle );
+    DesktopApp::GetInstance()->DestroyWindow( mDesktopWindowHandle );
     delete mDebug3DDrawData;
   }
 
@@ -1019,7 +1019,7 @@ namespace Tac
     if( !desktopWindowState->mNativeWindowHandle )
       return;
 
-    DesktopAppMoveControls( mDesktopWindowHandle );
+    DesktopApp::GetInstance()->MoveControls( mDesktopWindowHandle );
 
     const v2 size = desktopWindowState->GetSizeV2();
     const Render::Viewport viewport(size);

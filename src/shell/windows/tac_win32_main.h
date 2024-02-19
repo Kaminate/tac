@@ -1,9 +1,11 @@
 #pragma once
-#include "src/shell/tac_desktop_app.h"
+
+#include "src/shell/tac_platform.h"
 
 namespace Tac
 {
   void RedirectStreamBuf();
+
   struct Win32PlatformFns : public PlatformFns
   {
     void PlatformImGui( Errors& ) override;
@@ -16,4 +18,5 @@ namespace Tac
     void PlatformWindowResizeControls( const DesktopWindowHandle&, int ) override;
     DesktopWindowHandle PlatformGetMouseHoveredWindow() override;
   };
-}
+} // namespace
+

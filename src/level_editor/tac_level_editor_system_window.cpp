@@ -14,7 +14,7 @@
 #include "space/ecs/tac_entity.h"
 #include "space/ecs/tac_system.h"
 #include "space/world/tac_world.h"
-#include "src/common/shell/tac_shell_timer.h"
+#include "src/common/shell/tac_shell_timestep.h"
 
 namespace Tac
 {
@@ -28,7 +28,7 @@ namespace Tac
 
   CreationSystemWindow::~CreationSystemWindow()
   {
-    DesktopAppDestroyWindow( mDesktopWindowHandle );
+    DesktopApp::GetInstance()->DestroyWindow( mDesktopWindowHandle );
     Instance = nullptr;
   }
 
@@ -97,8 +97,8 @@ namespace Tac
   void CreationSystemWindow::Update( Errors& errors )
   {
     TAC_PROFILE_BLOCK;
-    DesktopAppResizeControls( mDesktopWindowHandle );
-    DesktopAppMoveControls( mDesktopWindowHandle );
+    DesktopApp::GetInstance()->ResizeControls( mDesktopWindowHandle );
+    DesktopApp::GetInstance()->MoveControls( mDesktopWindowHandle );
     const DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
     if( !desktopWindowState->mNativeWindowHandle )
       return;

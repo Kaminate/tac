@@ -11,7 +11,7 @@
 #include "src/common/graphics/tac_renderer.h"
 #include "src/common/math/tac_math.h"
 #include "src/common/memory/tac_frame_memory.h"
-#include "src/common/shell/tac_shell_timer.h"
+#include "src/common/shell/tac_shell_timestep.h"
 #include "src/common/string/tac_string_format.h"
 #include "src/common/system/tac_desktop_window.h"
 #include "src/common/system/tac_os.h"
@@ -118,7 +118,6 @@ namespace Tac
 
   static void ExampleDemoWindow(Errors& errors)
   {
-    //auto i = ShellGetFrameIndex();
     ImGuiSetNextWindowStretch();
     ImGuiSetNextWindowDisableBG();
     ImGuiSetNextWindowHandle( sDemoWindow );

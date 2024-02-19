@@ -22,6 +22,7 @@
 
 #include <Windows.h>
 #include <Windowsx.h>
+#undef CreateWindow
 
 namespace Tac
 {

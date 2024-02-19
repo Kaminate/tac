@@ -10,7 +10,6 @@
 #include "src/common/graphics/imgui/tac_imgui.h"
 #include "src/common/graphics/tac_font.h"
 #include "src/common/graphics/tac_ui_2d.h"
-#include "src/common/identifier/tac_id_collection.h"
 #include "src/common/input/tac_controller_input.h"
 #include "src/common/input/tac_keyboard_input.h"
 #include "src/common/math/tac_math.h" // Max
@@ -18,7 +17,7 @@
 #include "src/common/net/tac_net.h"
 #include "src/common/profile/tac_profile.h"
 #include "src/common/shell/tac_shell.h"
-#include "src/common/shell/tac_shell_timer.h"
+#include "src/common/shell/tac_shell_timestep.h"
 #include "src/common/string/tac_string.h"
 #include "src/common/string/tac_string_util.h"
 #include "src/common/system/tac_desktop_window.h"
@@ -26,345 +25,43 @@
 #include "src/common/system/tac_os.h"
 
 #include "src/shell/tac_desktop_app_renderers.h"
+#include "src/shell/tac_desktop_app_error_report.h"
 #include "src/shell/tac_desktop_event.h"
 #include "src/shell/tac_desktop_window_graphics.h"
 #include "src/shell/tac_desktop_window_settings_tracker.h"
+#include "src/shell/tac_desktop_window_life.h"
+#include "src/shell/tac_desktop_window_move.h"
+#include "src/shell/tac_desktop_window_resize.h"
+#include "src/shell/tac_render_state.h"
+#include "src/shell/tac_platform.h"
+#include "src/shell/tac_desktop_app_threads.h"
+#include "src/shell/tac_logic_thread.h"
+#include "src/shell/tac_platform_thread.h"
 
 import std; // mutex, thread, type_traits
 
+
 namespace Tac
 {
-  enum class ThreadType
-  {
-    Unknown,
-    Main,
-    Logic
-  };
-
-  struct RequestMove
-  {
-    bool              mRequested = false;
-    DesktopWindowRect mRect = {};
-  };
-
-  struct RequestResize
-  {
-    bool              mRequested = false;
-    int               mEdgePx = 0;
-  };
-
-  using WindowRequestsCreate = FixedVector< PlatformSpawnWindowParams, kDesktopWindowCapacity >;
-  using WindowRequestsDestroy = FixedVector< DesktopWindowHandle, kDesktopWindowCapacity >;
-
   static Errors                        gPlatformThreadErrors( Errors::kDebugBreaks );
   static Errors                        gLogicThreadErrors( Errors::kDebugBreaks );
   static Errors                        gMainFunctionErrors( Errors::kDebugBreaks );
 
-  static PlatformFns*                  sPlatformFns;
-
   static App*                          sApp;
-  static bool                          sRenderEnabled;
 
-  static std::mutex                    sWindowHandleLock;
-  static IdCollection                  sDesktopWindowHandleIDs( kDesktopWindowCapacity );
-  static WindowRequestsCreate          sWindowRequestsCreate;
-  static WindowRequestsDestroy         sWindowRequestsDestroy;
-  static RequestMove                   sRequestMove[ kDesktopWindowCapacity ];
-  static RequestResize                 sRequestResize[ kDesktopWindowCapacity ];
-  thread_local ThreadType              gThreadType = ThreadType::Unknown;
+  static DesktopApp                    sDesktopApp;
 
   // -----------------------------------------------------------------------------------------------
 
-  App::App(const App::Config& config) : mConfig( config ){};
+  DesktopApp*         DesktopApp::GetInstance() { return &sDesktopApp; }
 
-  // -----------------------------------------------------------------------------------------------
 
-  static void DesktopAppUpdateWindowRequests(Errors&errors)
+  void                DesktopApp::Init( Errors& errors )
   {
-    sWindowHandleLock.lock();
-    WindowRequestsCreate requestsCreate = sWindowRequestsCreate;
-    WindowRequestsDestroy requestsDestroy = sWindowRequestsDestroy;
-    sWindowRequestsCreate.clear();
-    sWindowRequestsDestroy.clear();
-    sWindowHandleLock.unlock();
-
-    for( const PlatformSpawnWindowParams& info : requestsCreate )
-      sPlatformFns->PlatformSpawnWindow( info, errors );
-
-    for( const DesktopWindowHandle desktopWindowHandle : requestsDestroy )
-      sPlatformFns->PlatformDespawnWindow( desktopWindowHandle );
-  }
-
-  static void DesktopAppUpdateMoveResize()
-  {
-    for( int i = 0; i < kDesktopWindowCapacity; ++i )
-    {
-      const DesktopWindowHandle desktopWindowHandle = { i };
-      const DesktopWindowState* desktopWindowState = GetDesktopWindowState( desktopWindowHandle );
-      if( !desktopWindowState->mNativeWindowHandle )
-        continue;
-
-      const RequestMove* requestMove = &sRequestMove[ i ];
-      if( requestMove->mRequested )
-      {
-        const bool useRect = requestMove->mRect.mLeft != 0 && requestMove->mRect.mRight != 0;
-        const DesktopWindowRect desktopWindowRect = requestMove->mRect.IsEmpty()
-          ? GetDesktopWindowRectWindowspace( desktopWindowHandle )
-          : requestMove->mRect;
-        sPlatformFns->PlatformWindowMoveControls( desktopWindowHandle, desktopWindowRect );
-        sRequestMove[ i ] = RequestMove();
-      }
-
-      const RequestResize* requestResize = &sRequestResize[ i ];
-      if( requestResize->mRequested )
-      {
-        sPlatformFns->PlatformWindowResizeControls( desktopWindowHandle, requestResize->mEdgePx );
-        sRequestResize[ i ] = RequestResize();
-      }
-    }
-  }
-
-  static void DesktopAppReportErrors( Errors& errors )
-  {
-    struct FrameFormatter
-    {
-    private:
-      auto Fmt( StringView sv, int n ) { return String() + sv + String( n - sv.size(), ' ' ); }
-      auto FmtFile( StackFrame sf ) { return Fmt( sf.mFile, mMaxLenFilename ); }
-      auto FmtLine( StackFrame sf ) { return Fmt( Tac::ToString( sf.mLine ), mMaxLenLine ); }
-
-    public:
-
-      FrameFormatter( const Span< StackFrame > frames )
-      {
-        for( const StackFrame& frame : frames )
-        {
-          mMaxLenFilename = Max( mMaxLenFilename, StrLen( frame.mFile ) );
-          mMaxLenLine = Max( mMaxLenLine, ToString( frame.mLine ).size() );
-        }
-      }
-
-      auto FormatFrame( StackFrame sf )
-      {
-        return String() + 
-          "File: " + FmtFile( sf ) + ", "
-          "Line: " + FmtLine( sf ) + ", "
-          "Fn: " + sf.mFunction + "()" "\n";
-      }
-      
-      
-    private:
-      int mMaxLenFilename = 0;
-      int mMaxLenLine = 0;
-    };
-
-
-
-    struct NamedError
-    {
-      String FormatErrorString() const
-      {
-        const Span< StackFrame > frames = mErrorPointer->GetFrames();
-
-        FrameFormatter frameFormatter( frames );
-
-
-        String errorStr;
-        errorStr += "Errors in ";
-        errorStr += mName;
-        errorStr += '\n';
-        errorStr += mErrorPointer->GetMessage();
-        errorStr += '\n';
-        for( StackFrame frame : frames )
-          errorStr += frameFormatter.FormatFrame( frame ) + '\n';
-
-        return errorStr;
-      }
-
-      const char* mName;
-      Errors*     mErrorPointer;
-    };
-
-    const NamedError namedErrors[] =
-    {
-      { "Platform Thread", &gPlatformThreadErrors },
-      { "Main Function", &gMainFunctionErrors },
-      { "Logic Thread", &gLogicThreadErrors },
-    };
-
-    String combinedErrorStr;
-    for( NamedError namedError : namedErrors )
-      if( !namedError.mErrorPointer->empty() )
-        combinedErrorStr += namedError.FormatErrorString() + '\n';
-
-    if( !combinedErrorStr.empty() )
-    {
-      LogApi::LogMessage( combinedErrorStr );
-      LogApi::LogFlush();
-      OS::OSDebugPopupBox( combinedErrorStr );
-    }
-  }
-
-  // -----------------------------------------------------------------------------------------------
-
-  static void LogicThreadInit( Errors& errors )
-  {
-    gThreadType = ThreadType::Logic;
-    FrameMemoryInitThreadAllocator(  1024 * 1024 * 10  );
-
-    TAC_CALL( ShellInit( errors ) );
-
-    TAC_CALL( FontApi::Init( errors ) );
-
-    ImGuiInit();
-    SpaceInit();
-
-    TAC_CALL( sApp->Init( errors ) );
-  }
-
-  static void LogicThreadUninit()
-  {
-    {
-      sApp->Uninit( gLogicThreadErrors );
-      TAC_DELETE sApp;
-      sApp = nullptr;
-    }
-
-    ImGuiUninit();
-
-    if( gLogicThreadErrors )
-      OS::OSAppStopRunning();
-
-    if( sRenderEnabled )
-      Render::SubmitFinish();
-  }
-
-  static void LogicThread()
-  {
-    Errors& errors = gLogicThreadErrors;
-    TAC_ON_DESTRUCT( LogicThreadUninit() );
-    TAC_CALL( LogicThreadInit( errors ) );
-
-    while( OS::OSAppIsRunning() )
-    {
-      TAC_PROFILE_BLOCK;
-      ProfileSetGameFrame();
-
-      TAC_CALL( SettingsTick( errors ) );
-
-      TAC_CALL( Network::NetApi::Update( errors ) );
-
-
-      {
-        TAC_PROFILE_BLOCK_NAMED( "update timer" );
-
-        ShellTimerUpdate();
-#if 1
-        // fixed time step
-        bool f = ShellTimerFrame();
-        if( !f )
-          continue;
-#else
-        // ??? time step
-        while( ShellTimerFrame() )
-        {
-        }
-#endif
-      }
-
-      {
-        DesktopEventApplyQueue();
-
-        // To reduce input latency, update the game soon after polling the controller.
-
-        Keyboard::KeyboardBeginFrame();
-        Mouse::MouseBeginFrame();
-
-        const BeginFrameData data =
-        {
-          .mElapsedSeconds = ShellGetElapsedSeconds(),
-          .mMouseHoveredWindow = sPlatformFns->PlatformGetMouseHoveredWindow(),
-        };
-        ImGuiBeginFrame( data );
-
-        Controller::UpdateJoysticks();
-
-        TAC_CALL( sApp->Update( errors ) );
-
-        TAC_CALL( ImGuiEndFrame( errors ) );
-
-        Keyboard::KeyboardEndFrame();
-        Mouse::MouseEndFrame();
-      }
-
-      if( sRenderEnabled )
-        Render::SubmitFrame();
-
-      std::this_thread::sleep_for( std::chrono::milliseconds( 1 ) ); // Dont max out power usage
-
-      ShellIncrementFrameCounter();
-    }
-
-  }
-
-  // -----------------------------------------------------------------------------------------------
-
-  static void PlatformThreadUninit()
-  {
-    if( gPlatformThreadErrors )
-      OS::OSAppStopRunning();
-
-    if( sRenderEnabled )
-      Render::RenderFinish();
-  }
-
-  static void PlatformThreadInit( Errors& errors )
-  {
-    TAC_UNUSED_PARAMETER( errors );
-    gThreadType = ThreadType::Main;
-    //sAllocatorMainThread.Init( 1024 * 1024 * 10 );
-    //FrameMemorySetThreadAllocator( &sAllocatorMainThread );
-    FrameMemoryInitThreadAllocator(  1024 * 1024 * 10  );
-  }
-
-  static void PlatformThread()
-  {
-    Errors& errors = gPlatformThreadErrors;
-    TAC_ON_DESTRUCT( PlatformThreadUninit() );
-
-    while( OS::OSAppIsRunning() )
-    {
-      TAC_PROFILE_BLOCK;
-
-      TAC_CALL( sPlatformFns->PlatformFrameBegin( errors ) );
-
-      TAC_CALL( DesktopAppUpdate( errors ) );
-
-      TAC_CALL( sPlatformFns->PlatformFrameEnd( errors ) );
-
-      if( sRenderEnabled )
-      {
-        TAC_CALL( Render::RenderFrame( errors ) );
-      }
-
-      std::this_thread::sleep_for( std::chrono::milliseconds( 1 ) ); // Dont max out power usage
-    }
-
-  }
-
-  // -----------------------------------------------------------------------------------------------
-
-  void                DesktopAppInit( PlatformFns* platformFns, Errors& errors )
-  {
-    TAC_CALL( PlatformThreadInit( errors ) );
-
-    DesktopEventInit();
+    TAC_ASSERT( PlatformFns::GetInstance() );
 
     sApp = App::Create();
-    sRenderEnabled = !sApp->mConfig.mDisableRenderer;
     TAC_ASSERT( !sApp->mConfig.mName.empty() );
-
-    sPlatformFns = platformFns;
 
     // right place?
     sShellAppName = sApp->mConfig.mName;
@@ -384,86 +81,84 @@ namespace Tac
 
     TAC_CALL( SettingsInit( errors ) );
 
-    if( sRenderEnabled )
+    if( sApp->IsRenderEnabled() )
     {
       TAC_CALL( DesktopInitRendering( errors ) );
     }
   }
 
-  void                DesktopAppRun( Errors& errors )
+  void                DesktopApp::Run( Errors& errors )
   {
-    std::thread logicThread( LogicThread );
-    PlatformThread();
+    LogicThread sLogicThread =
+    {
+      .mApp = sApp,
+      .mErrors = &gLogicThreadErrors
+    };
+
+    PlatformThread sPlatformThread =
+    {
+      .mApp = sApp,
+      .mErrors = &gLogicThreadErrors,
+    };
+
+    std::thread logicThread( &LogicThread::Update, sLogicThread, std::ref(gLogicThreadErrors) );
+
+    sPlatformThread.mApp = sApp;
+    sPlatformThread.mErrors = &gPlatformThreadErrors;
+    sPlatformThread.Update( gPlatformThreadErrors );
     logicThread.join();
 
-    DesktopAppReportErrors( errors );
+    sPlatformThread.Uninit();
+    sLogicThread.Uninit();
+
+    DesktopAppErrorReport errorReport;
+    errorReport.Add( "Platform Thread", &gPlatformThreadErrors );
+    errorReport.Add( "Main Function", &gMainFunctionErrors );
+    errorReport.Add( "Logic Thread", &gLogicThreadErrors );
+    errorReport.Report();
   }
 
-  void                DesktopAppUpdate( Errors& errors )
+  void                DesktopApp::Update( Errors& errors )
   {
-    TAC_CALL( DesktopAppUpdateWindowRequests(errors) );
-    DesktopAppUpdateMoveResize();
+    TAC_CALL( DesktopAppUpdateWindowRequests( errors ) );
+    DesktopAppUpdateMove();
+    DesktopAppUpdateResize();
     UpdateTrackedWindows();
   }
 
-  void                DesktopAppResizeControls( const DesktopWindowHandle& desktopWindowHandle, int edgePx )
+  void                DesktopApp::ResizeControls( const DesktopWindowHandle& desktopWindowHandle,
+                                                  int edgePx )
   {
-    sRequestResize[ ( int )desktopWindowHandle ] = RequestResize
-    {
-     .mRequested = true,
-     .mEdgePx = edgePx,
-    };
+    DesktopAppImplResizeControls( desktopWindowHandle, edgePx );
   }
 
-  void                DesktopAppMoveControls( const DesktopWindowHandle& desktopWindowHandle,
-                                              const DesktopWindowRect& rect )
+  void                DesktopApp::MoveControls( const DesktopWindowHandle& desktopWindowHandle,
+                                                const DesktopWindowRect& rect )
   {
-    sRequestMove[ ( int )desktopWindowHandle ] = RequestMove
-    {
-      .mRequested = true,
-      .mRect = rect,
-    };
+    DesktopAppImplMoveControls( desktopWindowHandle, rect );
   }
 
-  void                DesktopAppMoveControls( const DesktopWindowHandle& desktopWindowHandle )
+  void                DesktopApp::MoveControls( const DesktopWindowHandle& desktopWindowHandle )
   {
-    RequestMove* request = &sRequestMove[ ( int )desktopWindowHandle ];
-    request->mRequested = true;
+    DesktopAppImplMoveControls( desktopWindowHandle );
   }
 
-  DesktopWindowHandle DesktopAppCreateWindow( const DesktopAppCreateWindowParams& desktopParams )
+  DesktopWindowHandle DesktopApp::CreateWindow( const DesktopAppCreateWindowParams& desktopParams )
   {
-    sWindowHandleLock.lock();
-    const DesktopWindowHandle handle = { sDesktopWindowHandleIDs.Alloc() };
-    const PlatformSpawnWindowParams info =
-    {
-      .mHandle = handle,
-      .mName = desktopParams.mName,
-      .mX = desktopParams.mX,
-      .mY = desktopParams.mY,
-      .mWidth = desktopParams.mWidth,
-      .mHeight = desktopParams.mHeight,
-    };
-    sWindowRequestsCreate.push_back( info );
-    sWindowHandleLock.unlock();
-    return handle;
+    return DesktopAppImplCreateWindow( desktopParams );
   }
 
-  void                DesktopAppDestroyWindow( const DesktopWindowHandle& desktopWindowHandle )
+  void                DesktopApp::DestroyWindow( const DesktopWindowHandle& desktopWindowHandle )
   {
-    if( !desktopWindowHandle.IsValid() )
-      return;
-    sWindowHandleLock.lock();
-    sDesktopWindowHandleIDs.Free( ( int )desktopWindowHandle );
-    sWindowRequestsDestroy.push_back( desktopWindowHandle );
-    sWindowHandleLock.unlock();
+    return DesktopAppImplDestroyWindow(desktopWindowHandle);
   }
 
 
 
   static void         DesktopAppDebugImGuiHoveredWindow()
   {
-    const DesktopWindowHandle hoveredHandle = sPlatformFns->PlatformGetMouseHoveredWindow();
+    PlatformFns* platform = PlatformFns::GetInstance();
+    const DesktopWindowHandle hoveredHandle = platform->PlatformGetMouseHoveredWindow();
     const DesktopWindowState* hovered = GetDesktopWindowState( hoveredHandle );
     if( !hovered )
     {
@@ -479,7 +174,7 @@ namespace Tac
     ImGuiText( text );
   }
 
-  void                DesktopAppDebugImGui(Errors& errors)
+  void                DesktopApp::DebugImGui(Errors& errors)
   {
     if( !ImGuiCollapsingHeader("DesktopAppDebugImGui"))
       return;
@@ -490,34 +185,17 @@ namespace Tac
 
     DesktopAppDebugImGuiHoveredWindow();
 
-    sPlatformFns->PlatformImGui(errors);
+    PlatformFns* platform =  PlatformFns::GetInstance();
+    platform->PlatformImGui(errors);
   }
 
   // -----------------------------------------------------------------------------------------------
 
-  Errors&             GetMainErrors() { return gMainFunctionErrors; }
 
-  bool                IsMainThread()  { return gThreadType == ThreadType::Main; }
 
-  bool                IsLogicThread() { return gThreadType == ThreadType::Logic; }
-
-  // -----------------------------------------------------------------------------------------------
-
-  // -----------------------------------------------------------------------------------------------
-
-  void PlatformFns::PlatformImGui( Errors& ) { TAC_NO_OP; };
-  void PlatformFns::PlatformFrameBegin( Errors& ) { TAC_NO_OP; }
-  void PlatformFns::PlatformFrameEnd( Errors& ) { TAC_NO_OP; }
-  void PlatformFns::PlatformSpawnWindow( const PlatformSpawnWindowParams&, Errors& ) { TAC_NO_OP; }
-  void PlatformFns::PlatformDespawnWindow( const DesktopWindowHandle& ) { TAC_NO_OP; }
-  void PlatformFns::PlatformWindowMoveControls( const DesktopWindowHandle&,
-                                                const DesktopWindowRect& )
-  {
-    TAC_NO_OP;
-  }
-  void PlatformFns::PlatformWindowResizeControls ( const DesktopWindowHandle&, int ) { TAC_NO_OP; }
-  DesktopWindowHandle PlatformFns::PlatformGetMouseHoveredWindow() { TAC_NO_OP_RETURN( {} ); }
-
-  // -----------------------------------------------------------------------------------------------
 
 } // namespace Tac
+
+Tac::Errors&             Tac::GetMainErrors() { return gMainFunctionErrors; }
+
+

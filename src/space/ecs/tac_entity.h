@@ -48,7 +48,7 @@ namespace Tac
     //void Integrate( float time );
     void              Unparent();
     void              AddChild( Entity* );
-    void              Save( Json& );
+    Json              Save();
     void              Load( Json& );
 
     Entity*           mParent = nullptr;

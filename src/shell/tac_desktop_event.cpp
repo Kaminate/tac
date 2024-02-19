@@ -2,8 +2,10 @@
 
 #include "src/common/containers/tac_ring_buffer.h"
 #include "src/common/preprocess/tac_preprocessor.h"
+
 #include "src/shell/tac_desktop_window_graphics.h"
 #include "src/shell/tac_desktop_app.h"
+#include "src/shell/tac_desktop_app_threads.h"
 
 import std; // mutex, lock_guard, is_trivially_copyable_v
 
@@ -71,7 +73,7 @@ namespace Tac
                                          const void* dataBytes,
                                          int dataByteCount )
   {
-    TAC_ASSERT( IsMainThread() );
+    TAC_ASSERT( DesktopAppThreads::IsMainThread() );
     std::lock_guard< std::mutex > lockGuard( mMutex );
     // Tac::WindowProc still spews out events while a popupbox is open
     if( mQueue.capacity() - mQueue.size() < ( int )sizeof( DesktopEventType ) + dataByteCount )
@@ -201,7 +203,7 @@ namespace Tac
 
   void         DesktopEventInit()
   {
-    TAC_ASSERT( IsMainThread() );
+    TAC_ASSERT( DesktopAppThreads::IsMainThread() );
     sEventQueue.Init();
 
     RegisterDesktopEventHandlerT<DesktopEventDataAssignHandle>( DesktopEventType::WindowAssignHandle );
@@ -217,7 +219,7 @@ namespace Tac
 
   void         DesktopEventApplyQueue()
   {
-    TAC_ASSERT( IsLogicThread() );
+    TAC_ASSERT( DesktopAppThreads::IsLogicThread() );
     while( !sEventQueue.Empty() )
     {
       const auto desktopEventType = sEventQueue.QueuePop<DesktopEventType>();

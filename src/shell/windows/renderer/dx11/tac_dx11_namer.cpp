@@ -3,6 +3,8 @@
 #include "src/shell/windows/renderer/dx11/tac_renderer_dx11.h" // GetInfoQueue
 #include "src/shell/windows/renderer/dxgi/tac_dxgi.h"
 #include "src/shell/tac_desktop_app.h" // IsMainThread
+#include "src/shell/tac_desktop_app_threads.h"
+
 #include "src/common/string/tac_string.h"
 #include "src/common/preprocess/tac_preprocessor.h" // TAC_ASSERT
 
@@ -89,7 +91,7 @@ namespace Tac::Render
                              const StringView& name,
                              const StringView& suffix )
   {
-    TAC_ASSERT( IsMainThread() );
+    TAC_ASSERT( DesktopAppThreads::IsMainThread() );
     TAC_ASSERT( name.size() );
     TAC_ASSERT( suffix.size() );
     if constexpr( !IsDebugMode )

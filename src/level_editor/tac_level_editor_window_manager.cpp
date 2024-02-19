@@ -162,7 +162,7 @@ namespace Tac
   DesktopWindowHandle LevelEditorWindowManager::CreateDesktopWindow( StringView name )
   {
     const DesktopAppCreateWindowParams createParams = GetWindowsJsonData( name );
-    const DesktopWindowHandle desktopWindowHandle = DesktopAppCreateWindow( createParams );
+    const DesktopWindowHandle desktopWindowHandle = DesktopApp::GetInstance()->CreateWindow( createParams );
     sCreatedWindowData[ desktopWindowHandle.GetIndex() ] =
       CreatedWindowData
     {
@@ -174,8 +174,8 @@ namespace Tac
       .mNativeWindowHandle = nullptr,
     };
 
-    DesktopAppMoveControls( desktopWindowHandle );
-    DesktopAppResizeControls( desktopWindowHandle );
+    DesktopApp::GetInstance()->MoveControls( desktopWindowHandle );
+    DesktopApp::GetInstance()->ResizeControls( desktopWindowHandle );
     return desktopWindowHandle;
   }
 
