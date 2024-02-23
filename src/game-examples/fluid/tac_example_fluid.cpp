@@ -7,7 +7,6 @@
 #include "src/common/input/tac_keyboard_input.h"
 #include "src/common/math/tac_math.h"
 #include "src/common/memory/tac_frame_memory.h"
-#include "src/common/string/tac_string_format.h"
 #include "src/common/system/tac_desktop_window.h"
 
 //#include <cmath>
@@ -401,9 +400,9 @@ namespace Tac
         mLineRadius = lineRadius;
       }
 
-      Fn2D  mFn;
-      v4    mColor;
-      float mLineRadius;
+      Fn2D  mFn{};
+      v4    mColor{};
+      float mLineRadius{};
     };
 
     static Vector< String > texts;
@@ -554,7 +553,8 @@ namespace Tac
 
             for( int i = 0; i < vals.size(); ++i )
             {
-              const StringView text = FrameMemoryFormat( "iteration {}, x = {}", i, vals[ i ] );
+              const String text = String()
+                + "iteration " + ToString(i) + ", x = " + ToString( vals[i] );
               texts.push_back(  text );
             }
 

@@ -59,6 +59,11 @@ add_library( TacDX12ExampleHelpers
   tac_example_dx12_checkerboard.h
   tac_example_dx12.cpp
   tac_example_dx12.h
+  tac_example_dx12_command_allocator_pool.cpp
+  tac_example_dx12_command_allocator_pool.h
+  tac_example_dx12_context_manager.cpp
+  tac_example_dx12_context_manager.h
+  tac_example_dx12_fence.h
 )
 
 foreach( targetname ${targetnames} )

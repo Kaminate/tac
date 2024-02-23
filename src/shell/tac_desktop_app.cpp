@@ -101,7 +101,7 @@ namespace Tac
       .mErrors = &gLogicThreadErrors,
     };
 
-    std::thread logicThread( &LogicThread::Update, sLogicThread, std::ref(gLogicThreadErrors) );
+    std::thread logicThread( &LogicThread::Update, sLogicThread, std::ref( gLogicThreadErrors ) );
 
     sPlatformThread.mApp = sApp;
     sPlatformThread.mErrors = &gPlatformThreadErrors;

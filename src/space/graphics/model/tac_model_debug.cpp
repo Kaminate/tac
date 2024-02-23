@@ -50,9 +50,9 @@ namespace Tac
         getfilesErrors.clear();
         needsRefresh = false;
         modelPaths.clear();
-        const AssetPathStrings allfiles = Filesystem::IterateAssets( "assets",
-                                                                     Filesystem::IterateType::Recursive,
-                                                                     getfilesErrors );
+        const AssetPathStrings allfiles = IterateAssetsInDir( "assets",
+                                                              AssetIterateType::Recursive,
+                                                              getfilesErrors );
         if( getfilesErrors )
           return;
 

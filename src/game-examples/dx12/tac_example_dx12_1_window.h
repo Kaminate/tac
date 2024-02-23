@@ -4,22 +4,11 @@
 #include "src/shell/tac_desktop_app.h"
 #include "src/shell/windows/renderer/dxgi/tac_dxgi.h"
 
+#include "tac_example_dx12_win32_event.h"
 #include <d3d12.h> // D3D12...
 
 namespace Tac
 {
-  struct Win32Event
-  {
-    void Init(Errors&);
-    ~Win32Event();
-    void clear();
-
-    void operator = ( Win32Event&& other );
-
-    explicit operator HANDLE() const;
-
-    HANDLE mEvent{};
-  };
 
   struct DX12AppHelloWindow : public App
   {

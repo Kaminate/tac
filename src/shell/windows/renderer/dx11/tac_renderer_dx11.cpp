@@ -13,7 +13,6 @@
 #include "src/common/profile/tac_profile.h"
 #include "src/common/shell/tac_shell.h"
 #include "src/common/string/tac_string.h"
-#include "src/common/string/tac_string_format.h"
 #include "src/common/string/tac_string_util.h"
 #include "src/common/system/tac_desktop_window.h"
 #include "src/common/system/tac_filesystem.h"
@@ -1179,14 +1178,22 @@ namespace Tac::Render
   {
     TAC_ASSERT( DesktopAppThreads::IsMainThread() );
 
-    DX11ShaderReloadFunction( commandData->mShaderHandle, commandData->mNameStringView, errors );
-    ShaderReloadHelperAdd( commandData->mShaderHandle, commandData->mNameStringView );
+    TAC_CALL( DX11ShaderReloadFunction(
+      commandData->mShaderHandle,
+      commandData->mNameStringView,
+      errors ) );
+
+    TAC_CALL( ShaderReloadHelperAdd(
+      commandData->mShaderHandle,
+      commandData->mNameStringView,
+      errors ) );
   }
 
   void RendererDirectX11::AddTexture( const CommandDataCreateTexture* oldData,
                                       Errors& errors )
   {
     TAC_ASSERT( DesktopAppThreads::IsMainThread() );
+
    CommandDataCreateTexture newData = *oldData;
    const CommandDataCreateTexture* data = &newData;
 

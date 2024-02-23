@@ -1,7 +1,6 @@
 #include "tac_example_dx12_win32_event.h" // self-inc
 
 #include "src/common/error/tac_error_handling.h"
-#include "src/shell/windows/tac_win32.h" // CreateEvent
 
 namespace Tac
 {
@@ -31,7 +30,7 @@ namespace Tac
     clear();
   }
 
-  void Win32Event::operator = ( Win32Event&& other )
+  void Win32Event::operator = ( Win32Event&& other ) noexcept
   {
     clear();
     mEvent = other.mEvent;

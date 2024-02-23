@@ -119,10 +119,8 @@ namespace Tac
     return helper.Run( errors );
   }
 
-  static Filesystem::Path Win32OSSaveDialog( const OS::SaveParams& saveParams, Errors& errors )
+  static Filesystem::Path Win32OSSaveDialog( const OS::SaveParams& , Errors& errors )
   {
-    [[maybe_unused]] auto suggestedFilename = saveParams.mSuggestedFilename; // todo
-
     FileDialogHelper helper( FileDialogHelper::kSave );
     return helper.Run( errors );
   };

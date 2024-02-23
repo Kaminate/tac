@@ -1,5 +1,6 @@
-#include "src/shell/windows/tac_win32.h"
+#pragma once
 
+#include "src/shell/windows/tac_win32.h"
 
 namespace Tac
 {
@@ -7,13 +8,12 @@ namespace Tac
 
   struct Win32Event
   {
-    void Init( Errors& );
     ~Win32Event();
-    void clear();
 
-    void operator = ( Win32Event&& other );
+    void     Init( Errors& );
+    void     clear();
+    void     operator = ( Win32Event&& ) noexcept;
     operator bool() const;
-
     explicit operator HANDLE() const;
 
     HANDLE mEvent{};

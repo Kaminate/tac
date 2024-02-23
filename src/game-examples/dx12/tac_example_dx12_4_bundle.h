@@ -3,26 +3,13 @@
 #include "src/shell/windows/tac_win32_com_ptr.h"
 #include "src/shell/tac_desktop_app.h"
 #include "src/shell/windows/renderer/dxgi/tac_dxgi.h"
+#include "tac_example_dx12_win32_event.h"
 
 #include <d3d12.h> // D3D12...
 
 namespace Tac
 {
   using namespace Render;
-
-  struct Win32Event
-  {
-    void Init(Errors&);
-    ~Win32Event();
-    void clear();
-
-    void operator = ( Win32Event&& other );
-    operator bool() const;
-
-    explicit operator HANDLE() const;
-
-    HANDLE mEvent{};
-  };
 
   using Viewports = FixedVector<
     D3D12_VIEWPORT,

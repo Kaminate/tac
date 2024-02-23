@@ -20,15 +20,15 @@ namespace Tac::Render
     // so the deal with large pages, is that they can't be reused as default pages.
     // so normally, when allocating a page, you first check if a retired page can be reused,
     // but large pages are just deleted when they are no longer used.
-    TAC_ASSERT_MSG( byteCount < Page::kDefaultByteCount, "large pages currently unsupported" );
+    TAC_ASSERT_MSG( byteCount < GPUUploadPage::kDefaultByteCount, "large pages currently unsupported" );
       
     // 2) use a small page
 
 
-    Page* curPage = nullptr;
+    GPUUploadPage* curPage = nullptr;
     if( mActivePages.empty() )
     {
-      TAC_CALL_RET( {}, RequestPage( Page::kDefaultByteCount, errors ) );
+      TAC_CALL_RET( {}, RequestPage( GPUUploadPage::kDefaultByteCount, errors ) );
       curPage = &mActivePages.back();
     }
     else
@@ -39,7 +39,7 @@ namespace Tac::Render
       mCurPageUsedByteCount = RoundUpToNearestMultiple( mCurPageUsedByteCount, byteCount );
       if( byteCount > curPage->mByteCount - mCurPageUsedByteCount )
       {
-        TAC_CALL_RET( {}, RequestPage( Page::kDefaultByteCount, errors ) );
+        TAC_CALL_RET( {}, RequestPage( GPUUploadPage::kDefaultByteCount, errors ) );
         curPage = &mActivePages.back();
       }
     }
@@ -60,9 +60,9 @@ namespace Tac::Render
   }
 
   // call at end of each frame
-  void GPUUploadAllocator::FreeAll( DX12CommandQueue::Signal FenceID )
+  void GPUUploadAllocator::FreeAll( FenceSignal FenceID )
   {
-    for( const Page& page : mActivePages )
+    for( const GPUUploadPage& page : mActivePages )
     {
       RetiredPage retiredPage
       {
@@ -89,7 +89,7 @@ namespace Tac::Render
       RetiredPage& currPage = mRetiredPages[ i ];
       RetiredPage& backPage = mRetiredPages[ n - 1 ];
 
-      const DX12CommandQueue::Signal fenceValue = currPage.mFence;
+      const FenceSignal fenceValue = currPage.mFence;
       if( mCommandQueue->IsFenceComplete( fenceValue ) )
       {
         mAvailablePages.push_back( currPage.mPage );
@@ -111,7 +111,7 @@ namespace Tac::Render
   {
     UnretirePages();
 
-    Page page{};
+    GPUUploadPage page{};
     if( mAvailablePages.empty() )
     {
       page = AllocateNewPage( byteCount, errors );
@@ -128,10 +128,10 @@ namespace Tac::Render
     mCurPageUsedByteCount = 0;
   }
 
-  GPUUploadAllocator::Page GPUUploadAllocator::AllocateNewPage( int byteCount, Errors& errors )
+  GPUUploadAllocator::GPUUploadPage GPUUploadAllocator::AllocateNewPage( int byteCount, Errors& errors )
   {
     //TAC_ASSERT( !mCurPage.IsValid() );
-    TAC_ASSERT( byteCount == Page::kDefaultByteCount );
+    TAC_ASSERT( byteCount == GPUUploadPage::kDefaultByteCount );
 
 
     const D3D12_HEAP_PROPERTIES HeapProps
@@ -178,7 +178,7 @@ namespace Tac::Render
       nullptr, // nullptr indicates the whole subrsc may be read by cpu
       &cpuAddr ) );
 
-    return Page
+    return GPUUploadPage
     {
       .mBuffer = buffer,
       .mGPUAddr = buffer->GetGPUVirtualAddress(),

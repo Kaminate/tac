@@ -4,6 +4,7 @@
 #include "src/shell/windows/tac_win32_com_ptr.h" // PCom
 
 #include "tac_example_dx12_win32_event.h" // Win32Event
+#include "tac_example_dx12_fence.h"
 
 #include <d3d12.h> // ID3D12...
 
@@ -14,22 +15,27 @@ namespace Tac
 
 namespace Tac::Render
 {
+  // Wrapper around ID3D12CommandQueue*
+  // This is basically a singleton, there is (should be)
+  // 1 Graphics CommandQueue
+  // 1 Copy CommandQueue
+  // 1 Compute CommandQueue
   struct DX12CommandQueue
   {
-    struct Signal { u64 mValue; };
 
-    void   Create(ID3D12Device*, Errors&);
+    void        Create(ID3D12Device*, Errors&);
 
-    bool   IsFenceComplete( Signal );
-    Signal ExecuteCommandList( ID3D12CommandList*, Errors& );
-    void   WaitForFence( Signal, Errors& );
-    void   WaitForIdle( Errors& errors );
+    bool        IsFenceComplete( FenceSignal );
+    FenceSignal ExecuteCommandList( ID3D12CommandList*, Errors& );
+    void        WaitForFence( FenceSignal, Errors& );
+    void        WaitForIdle( Errors& );
+    FenceSignal IncrementFence(Errors& );
+    FenceSignal GetLastCompletedFenceValue();
 
     ID3D12CommandQueue* GetCommandQueue() { return m_commandQueue.Get(); }
     
   private:
-    Signal IncrementFence(Errors& errors);
-    void   UpdateLastCompletedFenceValue();
+    //void   UpdateLastCompletedFenceValue(u64);
     void   CreateFence(ID3D12Device*, Errors&);
     void   CreateCommandQueue(ID3D12Device*, Errors&);
   public:
@@ -38,6 +44,7 @@ namespace Tac::Render
     // https://learn.microsoft.com/en-us/windows/win32/direct3d12/user-mode-heap-synchronization
     PCom< ID3D12Fence1 >               m_fence;
 
+    // set on fence completion, then immediately waited on
     Win32Event                         m_fenceEvent;
 
     UINT64                             mLastCompletedFenceValue{0};

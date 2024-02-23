@@ -135,9 +135,9 @@ namespace Tac
     PCom< ID3D12CommandAllocator >     m_commandAllocatorBundle;
     PCom< ID3D12GraphicsCommandList4 > m_commandList;
     PCom< ID3D12GraphicsCommandList4 > m_commandListBundle;
-    PCom< ID3D12Resource >             m_renderTargets[ bufferCount ];
-    D3D12_RESOURCE_STATES              m_renderTargetStates[ bufferCount ];
-    D3D12_RESOURCE_DESC                m_renderTargetDescs[ bufferCount ];
+    PCom< ID3D12Resource >             m_renderTargets[ bufferCount ]{};
+    D3D12_RESOURCE_STATES              m_renderTargetStates[ bufferCount ]{};
+    D3D12_RESOURCE_DESC                m_renderTargetDescs[ bufferCount ]{};
     bool                               m_renderTargetInitialized = false;
 
     PCom< ID3D12InfoQueue >            m_infoQueue;
@@ -168,8 +168,8 @@ namespace Tac
     D3D12_VIEWPORT                     m_viewport{};
     D3D12_RECT                         m_scissorRect{};
 
-    Viewports                          m_viewports;
-    ScissorRects                       m_scissorRects;
+    Viewports                          m_viewports{};
+    ScissorRects                       m_scissorRects{};
 
     // ---------------------------------------------------------------------------------------------
 

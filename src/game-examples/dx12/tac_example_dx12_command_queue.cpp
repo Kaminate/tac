@@ -8,7 +8,7 @@ namespace Tac::Render
 {
   // -----------------------------------------------------------------------------------------------
 
-  DX12CommandQueue::Signal DX12CommandQueue::ExecuteCommandList( ID3D12CommandList* cmdlist, Errors& errors )
+  FenceSignal DX12CommandQueue::ExecuteCommandList( ID3D12CommandList* cmdlist, Errors& errors )
   {
     const Array cmdLists{ cmdlist };
 
@@ -18,7 +18,14 @@ namespace Tac::Render
     return IncrementFence( errors );
   }
 
-  DX12CommandQueue::Signal DX12CommandQueue::IncrementFence( Errors& errors )
+  FenceSignal DX12CommandQueue::GetLastCompletedFenceValue()
+  {
+    u64 val = m_fence->GetCompletedValue();
+    mLastCompletedFenceValue = val;
+    return val;
+  }
+
+  FenceSignal DX12CommandQueue::IncrementFence( Errors& errors )
   {
     const UINT64 signalValue = mNextFenceValue;
 
@@ -28,7 +35,7 @@ namespace Tac::Render
     return { signalValue };
   }
 
-  void DX12CommandQueue::WaitForFence( Signal signalValue, Errors& errors )
+  void DX12CommandQueue::WaitForFence( FenceSignal signalValue, Errors& errors )
   {
     if( IsFenceComplete( signalValue ) )
       return;
@@ -50,23 +57,30 @@ namespace Tac::Render
     //
     // the event will be 'complete' when it reaches the specified value.
     // This value is set by the cmdqueue::Signal
-    TAC_DX12_CALL( m_fence->SetEventOnCompletion( signalValue.mValue, ( HANDLE )m_fenceEvent ) );
+    const u64 val = signalValue.GetValue();
+    TAC_DX12_CALL( m_fence->SetEventOnCompletion( val, ( HANDLE )m_fenceEvent ) );
     WaitForSingleObject( ( HANDLE )m_fenceEvent, INFINITE );
-    mLastCompletedFenceValue = signalValue.mValue;
+    mLastCompletedFenceValue = val;
+    TAC_ASSERT( mLastCompletedFenceValue == m_fence->GetCompletedValue() );
   }
 
-  void DX12CommandQueue::UpdateLastCompletedFenceValue()
-  {
-    const u64 curFenceValue = m_fence->GetCompletedValue();
-    mLastCompletedFenceValue = Max( mLastCompletedFenceValue, curFenceValue );
-  }
+  //void DX12CommandQueue::UpdateLastCompletedFenceValue(u64 val)
+  //{
+  //  if( val < mLastCompletedFenceValue )
+  //    return;
 
-  bool DX12CommandQueue::IsFenceComplete( Signal fenceValue )
-  {
-    if( fenceValue.mValue > mLastCompletedFenceValue )
-      UpdateLastCompletedFenceValue();
+  //  const u64 curFenceValue = m_fence->GetCompletedValue();
+  //  mLastCompletedFenceValue = Max( mLastCompletedFenceValue, curFenceValue );
+  //}
 
-    return fenceValue.mValue <= mLastCompletedFenceValue;
+  bool DX12CommandQueue::IsFenceComplete( FenceSignal fenceValue )
+  {
+    const u64 val = fenceValue.GetValue();
+    if( val < mLastCompletedFenceValue )
+      return false;
+
+    mLastCompletedFenceValue = m_fence->GetCompletedValue();
+    return val <= mLastCompletedFenceValue;
   }
 
   void DX12CommandQueue::Create( ID3D12Device* device, Errors& errors )
@@ -118,7 +132,7 @@ namespace Tac::Render
 
   void DX12CommandQueue::WaitForIdle( Errors& errors )
   {
-    Signal fenceValue = TAC_CALL( IncrementFence( errors ) );
+    FenceSignal fenceValue = TAC_CALL( IncrementFence( errors ) );
     TAC_CALL( WaitForFence( fenceValue, errors ) );
   };
 }

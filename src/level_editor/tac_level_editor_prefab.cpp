@@ -201,9 +201,10 @@ namespace Tac
     // Get document paths for prefabs missing them
     if( prefab->mAssetPath.empty() )
     {
+      Filesystem::Path suggestedFilename = entity->mName + ".prefab";
       const OS::SaveParams saveParams
       {
-        .mSuggestedFilename = entity->mName + ".prefab",
+        .mSuggestedFilename = &suggestedFilename,
       };
       
       TAC_CALL( Filesystem::Path savePath = OS::OSSaveDialog( saveParams, errors ) );

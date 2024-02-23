@@ -23,13 +23,22 @@ namespace Tac
       bool   mDisableRenderer = false;
     };
 
+    struct RenderParams
+    {
+      IState* mOldState;
+      IState* mNewState;
+      float mT; // [0-1]
+    };
+
     App(const Config& config ) : mConfig( config ) {}
     virtual ~App() {};
 
     virtual void Init( Errors& ) {};
     virtual void Update( Errors& ) {};
     virtual void Uninit( Errors& ) {};
-    virtual void Render( IState*, IState*, float, Errors& ) {};
+
+
+    virtual void Render( RenderParams, Errors& ) {};
     virtual IState* GetGameState() { return nullptr; }
 
     static App*  Create();

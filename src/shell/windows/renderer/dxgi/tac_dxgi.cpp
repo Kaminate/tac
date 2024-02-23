@@ -15,6 +15,8 @@ namespace Tac::Render
 {
   // -----------------------------------------------------------------------------------------------
 
+  // static functions
+
   static const char* DXGI_ERROR_ToString( const HRESULT res )
   {
     switch( res )
@@ -53,32 +55,51 @@ namespace Tac::Render
   {
     switch( res )
     {
-      case DXGI_ERROR_ACCESS_DENIED:                return "You tried to use a resource to which you did not have the required access privileges.This error is most typically caused when you write to a shared resource with read - only access.";
-      case DXGI_ERROR_ACCESS_LOST:                  return "The desktop duplication interface is invalid.The desktop duplication interface typically becomes invalid when a different type of image is displayed on the desktop.";
-      case DXGI_ERROR_ALREADY_EXISTS:               return "The desired element already exists.This is returned by DXGIDeclareAdapterRemovalSupport if it is not the first time that the function is called.";
-      case DXGI_ERROR_CANNOT_PROTECT_CONTENT:       return "DXGI can't provide content protection on the swap chain. This error is typically caused by an older driver, or when you use a swap chain that is incompatible with content protection.";
-      case DXGI_ERROR_DEVICE_HUNG:                  return "The application's device failed due to badly formed commands sent by the application. This is an design-time issue that should be investigated and fixed.";
-      case DXGI_ERROR_DEVICE_REMOVED:               return "The video card has been physically removed from the system, or a driver upgrade for the video card has occurred.The application should destroy and recreate the device.For help debugging the problem, call ID3D10Device::GetDeviceRemovedReason.";
-      case DXGI_ERROR_DEVICE_RESET:                 return "The device failed due to a badly formed command.This is a run - time issue; The application should destroy and recreate the device.";
-      case DXGI_ERROR_DRIVER_INTERNAL_ERROR:        return "The driver encountered a problem and was put into the device removed state.";
-      case DXGI_ERROR_FRAME_STATISTICS_DISJOINT:    return "An event( for example, a power cycle ) interrupted the gathering of presentation statistics.";
-      case DXGI_ERROR_GRAPHICS_VIDPN_SOURCE_IN_USE: return "The application attempted to acquire exclusive ownership of an output, but failed because some other application( or device within the application ) already acquired ownership.";
-      case DXGI_ERROR_INVALID_CALL:                 return "The application provided invalid parameter data; this must be debugged and fixed before the application is released.";
-      case DXGI_ERROR_MORE_DATA:                    return "The buffer supplied by the application is not big enough to hold the requested data.";
-      case DXGI_ERROR_NAME_ALREADY_EXISTS:          return "The supplied name of a resource in a call to IDXGIResource1::CreateSharedHandle is already associated with some other resource.";
-      case DXGI_ERROR_NONEXCLUSIVE:                 return "A global counter resource is in use, and the Direct3D device can't currently use the counter resource.";
-      case DXGI_ERROR_NOT_CURRENTLY_AVAILABLE:      return "The resource or request is not currently available, but it might become available later.";
-      case DXGI_ERROR_NOT_FOUND:                    return "When calling IDXGIObject::GetPrivateData, the GUID passed in is not recognized as one previously passed to IDXGIObject::SetPrivateData or IDXGIObject::SetPrivateDataInterface.When calling IDXGIFactory::EnumAdapters or IDXGIAdapter::EnumOutputs, the enumerated ordinal is out of range.";
-      case DXGI_ERROR_REMOTE_CLIENT_DISCONNECTED:   return "Reserved";
-      case DXGI_ERROR_REMOTE_OUTOFMEMORY:           return "Reserved";
-      case DXGI_ERROR_RESTRICT_TO_OUTPUT_STALE:     return "The DXGI output( monitor ) to which the swap chain content was restricted is now disconnected or changed.";
-      case DXGI_ERROR_SDK_COMPONENT_MISSING:        return "The operation depends on an SDK component that is missing or mismatched.";
-      case DXGI_ERROR_SESSION_DISCONNECTED:         return "The Remote Desktop Services session is currently disconnected.";
-      case DXGI_ERROR_UNSUPPORTED:                  return "The requested functionality is not supported by the device or the driver.";
-      case DXGI_ERROR_WAIT_TIMEOUT:                 return "The time - out interval elapsed before the next desktop frame was available.";
-      case DXGI_ERROR_WAS_STILL_DRAWING:            return "The GPU was busy at the moment when a call was made to perform an operation, and did not execute or schedule the operation.";
+    case DXGI_ERROR_ACCESS_DENIED:                return "You tried to use a resource to which you did not have the required access privileges.This error is most typically caused when you write to a shared resource with read - only access.";
+    case DXGI_ERROR_ACCESS_LOST:                  return "The desktop duplication interface is invalid.The desktop duplication interface typically becomes invalid when a different type of image is displayed on the desktop.";
+    case DXGI_ERROR_ALREADY_EXISTS:               return "The desired element already exists.This is returned by DXGIDeclareAdapterRemovalSupport if it is not the first time that the function is called.";
+    case DXGI_ERROR_CANNOT_PROTECT_CONTENT:       return "DXGI can't provide content protection on the swap chain. This error is typically caused by an older driver, or when you use a swap chain that is incompatible with content protection.";
+    case DXGI_ERROR_DEVICE_HUNG:                  return "The application's device failed due to badly formed commands sent by the application. This is an design-time issue that should be investigated and fixed.";
+    case DXGI_ERROR_DEVICE_REMOVED:               return "The video card has been physically removed from the system, or a driver upgrade for the video card has occurred.The application should destroy and recreate the device.For help debugging the problem, call ID3D10Device::GetDeviceRemovedReason.";
+    case DXGI_ERROR_DEVICE_RESET:                 return "The device failed due to a badly formed command.This is a run - time issue; The application should destroy and recreate the device.";
+    case DXGI_ERROR_DRIVER_INTERNAL_ERROR:        return "The driver encountered a problem and was put into the device removed state.";
+    case DXGI_ERROR_FRAME_STATISTICS_DISJOINT:    return "An event( for example, a power cycle ) interrupted the gathering of presentation statistics.";
+    case DXGI_ERROR_GRAPHICS_VIDPN_SOURCE_IN_USE: return "The application attempted to acquire exclusive ownership of an output, but failed because some other application( or device within the application ) already acquired ownership.";
+    case DXGI_ERROR_INVALID_CALL:                 return "The application provided invalid parameter data; this must be debugged and fixed before the application is released.";
+    case DXGI_ERROR_MORE_DATA:                    return "The buffer supplied by the application is not big enough to hold the requested data.";
+    case DXGI_ERROR_NAME_ALREADY_EXISTS:          return "The supplied name of a resource in a call to IDXGIResource1::CreateSharedHandle is already associated with some other resource.";
+    case DXGI_ERROR_NONEXCLUSIVE:                 return "A global counter resource is in use, and the Direct3D device can't currently use the counter resource.";
+    case DXGI_ERROR_NOT_CURRENTLY_AVAILABLE:      return "The resource or request is not currently available, but it might become available later.";
+    case DXGI_ERROR_NOT_FOUND:                    return "When calling IDXGIObject::GetPrivateData, the GUID passed in is not recognized as one previously passed to IDXGIObject::SetPrivateData or IDXGIObject::SetPrivateDataInterface.When calling IDXGIFactory::EnumAdapters or IDXGIAdapter::EnumOutputs, the enumerated ordinal is out of range.";
+    case DXGI_ERROR_REMOTE_CLIENT_DISCONNECTED:   return "Reserved";
+    case DXGI_ERROR_REMOTE_OUTOFMEMORY:           return "Reserved";
+    case DXGI_ERROR_RESTRICT_TO_OUTPUT_STALE:     return "The DXGI output( monitor ) to which the swap chain content was restricted is now disconnected or changed.";
+    case DXGI_ERROR_SDK_COMPONENT_MISSING:        return "The operation depends on an SDK component that is missing or mismatched.";
+    case DXGI_ERROR_SESSION_DISCONNECTED:         return "The Remote Desktop Services session is currently disconnected.";
+    case DXGI_ERROR_UNSUPPORTED:                  return "The requested functionality is not supported by the device or the driver.";
+    case DXGI_ERROR_WAIT_TIMEOUT:                 return "The time - out interval elapsed before the next desktop frame was available.";
+    case DXGI_ERROR_WAS_STILL_DRAWING:            return "The GPU was busy at the moment when a call was made to perform an operation, and did not execute or schedule the operation.";
     }
     return "unknown";
+  }
+
+  static const char* DXGI_SWAP_EFFECT_ToString( const DXGI_SWAP_EFFECT fx )
+  {
+    switch( fx )
+    {
+#define CASE( c ) case c: return #c;
+      CASE( DXGI_SWAP_EFFECT_DISCARD );
+      CASE( DXGI_SWAP_EFFECT_SEQUENTIAL );
+      CASE( DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL );
+      CASE( DXGI_SWAP_EFFECT_FLIP_DISCARD );
+#undef CASE
+    }
+    return "unknown";
+  }
+
+  static String FormattedSwapEffect( const DXGI_SWAP_EFFECT fx )
+  {
+    return String() + DXGI_SWAP_EFFECT_ToString( fx ) + "(" + Tac::ToString( ( int )fx ) + ")";
   }
 
   static String TryInferDXGIErrorStr( const HRESULT res )
@@ -89,7 +110,33 @@ namespace Tac::Render
     return String() + DXGI_ERROR_ToString( res ) + " " + DXGI_ERROR_DescToString( res );
   }
 
+  static PCom<IDXGIAdapter1> GetBestAdapter( IDXGIFactory1* factory, Errors& errors )
+  {
+    PCom<IDXGIAdapter1> bestAdapter;
+    DXGI_ADAPTER_DESC1 bestdesc{};
+
+    UINT iAdapter = 0;
+    for( ;; )
+    {
+      PCom<IDXGIAdapter1> currAdapter;
+      if( S_OK != factory->EnumAdapters1( iAdapter++, currAdapter.CreateAddress() ) )
+          break;
+
+      DXGI_ADAPTER_DESC1 desc{};
+      TAC_DXGI_CALL_RET( {}, currAdapter->GetDesc1( &desc ));
+      if( bestAdapter && desc.DedicatedVideoMemory < bestdesc.DedicatedVideoMemory  )
+        continue;
+
+      bestdesc = desc;
+      bestAdapter = currAdapter;
+    }
+
+    return bestAdapter;
+  }
+
   // -----------------------------------------------------------------------------------------------
+
+  // structs
 
   struct DXGIImpl
   {
@@ -101,7 +148,66 @@ namespace Tac::Render
     void Init( Errors& );
   };
 
+  struct FormatPair
+  {
+    Format mFormat;
+    DXGI_FORMAT    mFormatDXGI;
+  };
+
+  // -----------------------------------------------------------------------------------------------
+
+  // static variables
+
   static DXGIImpl sImpl;
+
+  // https://learn.microsoft.com/en-us/windows/win32/direct3ddxgi/for-best-performance--use-dxgi-flip-model
+  //   bad: DXGI_SWAP_EFFECT_DISCARD
+  //   bad: DXGI_SWAP_EFFECT_SEQUENTIAL
+  //   good: DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL
+  //   good: DXGI_SWAP_EFFECT_FLIP_DISCARD
+  static const DXGI_SWAP_EFFECT SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+
+  static const FormatPair gFormatPairs[] =
+  {
+    FormatPair{ { 1, sizeof( u32 ), GraphicsType::real  }, DXGI_FORMAT_R32_FLOAT          },
+    FormatPair{ { 2, sizeof( u32 ), GraphicsType::real  }, DXGI_FORMAT_R32G32_FLOAT       },
+    FormatPair{ { 3, sizeof( u32 ), GraphicsType::real  }, DXGI_FORMAT_R32G32B32_FLOAT    },
+    FormatPair{ { 4, sizeof( u16 ), GraphicsType::real  }, DXGI_FORMAT_R16G16B16A16_FLOAT },
+    FormatPair{ { 4, sizeof( u32 ), GraphicsType::real  }, DXGI_FORMAT_R32G32B32A32_FLOAT },
+    FormatPair{ { 1, sizeof( u8 ),  GraphicsType::unorm }, DXGI_FORMAT_R8_UNORM           },
+    FormatPair{ { 2, sizeof( u8 ),  GraphicsType::unorm }, DXGI_FORMAT_R8G8_UNORM         },
+    FormatPair{ { 4, sizeof( u8 ),  GraphicsType::unorm }, DXGI_FORMAT_R8G8B8A8_UNORM     },
+    FormatPair{ { 1, sizeof( u16 ), GraphicsType::uint  }, DXGI_FORMAT_R16_UINT           },
+    FormatPair{ { 1, sizeof( u32 ), GraphicsType::uint  }, DXGI_FORMAT_R32_UINT           },
+    FormatPair{ { 1, sizeof( u16 ), GraphicsType::unorm }, DXGI_FORMAT_R16_UNORM          },
+  };
+
+}
+
+namespace Tac
+{
+
+  void Render::DXGIImpl::Init( Errors& errors )
+  {
+    // Only CreateDXGIFactory2 allows the use of flags
+    const UINT flags = IsDebugMode ? DXGI_CREATE_FACTORY_DEBUG : 0;
+    PCom< IDXGIFactory2 > factory2;
+    TAC_DXGI_CALL( CreateDXGIFactory2( flags, factory2.iid(), factory2.ppv() ) );
+    TAC_ASSERT( factory2 );
+
+    mFactory = factory2.QueryInterface< IDXGIFactory4 >();
+    TAC_ASSERT( mFactory );
+    DXGISetObjectName( ( IDXGIFactory4* )mFactory, "my-dxgi-factory" );
+
+    auto bestAdapter = TAC_CALL( GetBestAdapter( ( IDXGIFactory1* )mFactory, errors ) );
+
+    mAdapter = bestAdapter.QueryInterface<IDXGIAdapter4>();
+    TAC_ASSERT(mAdapter);
+    TAC_DXGI_CALL( mAdapter->GetDesc3( &mAdapterDesc ) );
+    DXGISetObjectName( ( IDXGIAdapter* )mAdapter, "my-dxgi-adaptor" );
+  }
+
+  // -----------------------------------------------------------------------------------------------
 
 
   //void DXGI::CheckHDRSupport()
@@ -144,55 +250,13 @@ namespace Tac::Render
   //  }
   //}
 
-  void DXGIInit( Errors& errors ) { sImpl.Init( errors ); }
+  void Render::DXGIInit( Errors& errors ) { sImpl.Init( errors ); }
 
-  static PCom<IDXGIAdapter1> GetBestAdapter( IDXGIFactory1* factory, Errors& errors )
-  {
-    PCom<IDXGIAdapter1> bestAdapter;
-    DXGI_ADAPTER_DESC1 bestdesc{};
 
-    UINT iAdapter = 0;
-    for( ;; )
-    {
-      PCom<IDXGIAdapter1> currAdapter;
-      if( S_OK != factory->EnumAdapters1( iAdapter++, currAdapter.CreateAddress() ) )
-          break;
 
-      DXGI_ADAPTER_DESC1 desc{};
-      TAC_DXGI_CALL_RET( {}, currAdapter->GetDesc1( &desc ));
-      if( bestAdapter && desc.DedicatedVideoMemory < bestdesc.DedicatedVideoMemory  )
-        continue;
+  void Render::DXGIUninit() { sImpl = {}; }
 
-      bestdesc = desc;
-      bestAdapter = currAdapter;
-    }
-
-    return bestAdapter;
-  }
-
-  void DXGIImpl::Init( Errors& errors )
-  {
-    // Only CreateDXGIFactory2 allows the use of flags
-    const UINT flags = IsDebugMode ? DXGI_CREATE_FACTORY_DEBUG : 0;
-    PCom< IDXGIFactory2 > factory2;
-    TAC_DXGI_CALL( CreateDXGIFactory2( flags, factory2.iid(), factory2.ppv() ) );
-    TAC_ASSERT( factory2 );
-
-    mFactory = factory2.QueryInterface< IDXGIFactory4 >();
-    TAC_ASSERT( mFactory );
-    DXGISetObjectName( ( IDXGIFactory4* )mFactory, "my-dxgi-factory" );
-
-    auto bestAdapter = TAC_CALL( GetBestAdapter( ( IDXGIFactory1* )mFactory, errors ) );
-
-    mAdapter = bestAdapter.QueryInterface<IDXGIAdapter4>();
-    TAC_ASSERT(mAdapter);
-    TAC_DXGI_CALL( mAdapter->GetDesc3( &mAdapterDesc ) );
-    DXGISetObjectName( ( IDXGIAdapter* )mAdapter, "my-dxgi-adaptor" );
-  }
-
-  void DXGIUninit() { sImpl = {}; }
-
-  DXGI_FORMAT      DXGIGetSwapChainFormat()
+  DXGI_FORMAT      Render::DXGIGetSwapChainFormat()
   {
       // Standard way of implementing hdr in games is to use 16 bit floating backbuffer, and
       // giving player brightness/gamma controls (?)
@@ -207,10 +271,9 @@ namespace Tac::Render
       return DXGI_FORMAT_R16G16B16A16_FLOAT;
   }
 
-  // https://learn.microsoft.com/en-us/windows/win32/direct3ddxgi/for-best-performance--use-dxgi-flip-model
-  static const DXGI_SWAP_EFFECT SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
 
-  PCom<IDXGISwapChain4> DXGICreateSwapChain( const SwapChainCreateInfo& info, Errors& errors )
+  PCom<IDXGISwapChain4> Render::DXGICreateSwapChain( const SwapChainCreateInfo& info,
+                                                     Errors& errors )
   {
 
     const DXGI_SAMPLE_DESC SampleDesc = 
@@ -266,28 +329,9 @@ namespace Tac::Render
     return swapChain1.QueryInterface<IDXGISwapChain4>();
   }
 
-  struct FormatPair
-  {
-    Format mFormat;
-    DXGI_FORMAT    mFormatDXGI;
-  };
 
-  static const FormatPair gFormatPairs[] =
-  {
-    FormatPair{ { 1, sizeof( u32 ), GraphicsType::real  }, DXGI_FORMAT_R32_FLOAT          },
-    FormatPair{ { 2, sizeof( u32 ), GraphicsType::real  }, DXGI_FORMAT_R32G32_FLOAT       },
-    FormatPair{ { 3, sizeof( u32 ), GraphicsType::real  }, DXGI_FORMAT_R32G32B32_FLOAT    },
-    FormatPair{ { 4, sizeof( u16 ), GraphicsType::real  }, DXGI_FORMAT_R16G16B16A16_FLOAT },
-    FormatPair{ { 4, sizeof( u32 ), GraphicsType::real  }, DXGI_FORMAT_R32G32B32A32_FLOAT },
-    FormatPair{ { 1, sizeof( u8 ),  GraphicsType::unorm }, DXGI_FORMAT_R8_UNORM           },
-    FormatPair{ { 2, sizeof( u8 ),  GraphicsType::unorm }, DXGI_FORMAT_R8G8_UNORM         },
-    FormatPair{ { 4, sizeof( u8 ),  GraphicsType::unorm }, DXGI_FORMAT_R8G8B8A8_UNORM     },
-    FormatPair{ { 1, sizeof( u16 ), GraphicsType::uint  }, DXGI_FORMAT_R16_UINT           },
-    FormatPair{ { 1, sizeof( u32 ), GraphicsType::uint  }, DXGI_FORMAT_R32_UINT           },
-    FormatPair{ { 1, sizeof( u16 ), GraphicsType::unorm }, DXGI_FORMAT_R16_UNORM          },
-  };
 
-  DXGI_FORMAT      GetDXGIFormatDepth( const int i )
+  DXGI_FORMAT      Render::GetDXGIFormatDepth( const int i )
   {
     switch( i )
     {
@@ -298,16 +342,19 @@ namespace Tac::Render
     }
   }
 
-  Format GetFormat( const DXGI_FORMAT format )
+#if 0
+  Render::Format Render::GetFormat( const DXGI_FORMAT format )
   {
-    for( const FormatPair& formatPair : gFormatPairs )
+    for( const Render::FormatPair& formatPair : gFormatPairs )
       if( formatPair.mFormatDXGI == format )
         return formatPair.mFormat;
     TAC_ASSERT_INVALID_CODE_PATH;
     return {};
   }
+#endif
 
-  DXGI_FORMAT      GetDXGIFormatTextureTypeless( int i )
+
+  DXGI_FORMAT      Render::GetDXGIFormatTextureTypeless( int i )
   {
     switch( i )
     {
@@ -317,7 +364,7 @@ namespace Tac::Render
     }
   }
 
-  DXGI_FORMAT GetDXGIFormatTexture( const Format textureFormat )
+  DXGI_FORMAT Render::GetDXGIFormatTexture( const Format textureFormat )
   {
     TAC_ASSERT_MSG( textureFormat.mPerElementByteCount != 16,
                     "You're making a depth buffer, right?"
@@ -342,7 +389,7 @@ namespace Tac::Render
   }
 
 
-  void DXGISetObjectName( IDXGIObject* object, const StringView& name )
+  void Render::DXGISetObjectName( IDXGIObject* object, const StringView& name )
   {
     TAC_ASSERT( object );
     // https://docs.microsoft.com/en-us/windows/desktop/api/dxgi/nf-dxgi-idxgiobject-setprivatedata
@@ -352,7 +399,7 @@ namespace Tac::Render
     TAC_ASSERT( hr == S_OK );
   }
 
-  String DXGIGetObjectName(IDXGIObject* obj)
+  String Render::DXGIGetObjectName(IDXGIObject* obj)
   {
     TAC_ASSERT( obj );
     const int kBufSize = 256;
@@ -366,7 +413,7 @@ namespace Tac::Render
 
 
   // Appends the failed function call error message to Errors
-  String DXGICallAux( const char* fnCallWithArgs, HRESULT res )
+  String Render::DXGICallAux( const char* fnCallWithArgs, HRESULT res )
   {
     String inferredErrorMessage = TryInferDXGIErrorStr( res );
     String str = String()
@@ -375,46 +422,18 @@ namespace Tac::Render
     return str;
   }
 
-  PCom<IDXGIAdapter4> DXGIGetBestAdapter()
+  PCom<IDXGIAdapter4> Render::DXGIGetBestAdapter()
   {
     TAC_ASSERT( sImpl.mAdapter );
     return sImpl.mAdapter;
   }
 
-
-  static const char* DXGI_SWAP_EFFECT_ToString( const DXGI_SWAP_EFFECT fx )
+  void Render::CheckSwapEffect( const DXGI_SWAP_EFFECT cur, Errors& errors )
   {
-    switch( fx )
-    {
-#define CASE( c ) case c: return #c;
-      CASE( DXGI_SWAP_EFFECT_DISCARD );
-      CASE( DXGI_SWAP_EFFECT_SEQUENTIAL );
-      CASE( DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL );
-      CASE( DXGI_SWAP_EFFECT_FLIP_DISCARD );
-#undef CASE
-    }
-    return "unknown";
-  }
-
-
-  static String FormattedSwapEffect( const DXGI_SWAP_EFFECT fx )
-  {
-    return String() + DXGI_SWAP_EFFECT_ToString( fx ) + "(" + Tac::ToString( ( int )fx ) + ")";
-  }
-
-  void CheckSwapEffect( const DXGI_SWAP_EFFECT cur, Errors& errors )
-  {
-    // https://learn.microsoft.com/en-us/windows/win32/direct3ddxgi/dxgi-flip-model
-    // In the flip model, all back buffers are shared with the Desktop Window Manager (DWM)
-    // 1.	The app updates its frame (Write)
-    // 2. Direct3D runtime passes the app surface to DWM
-    // 3. DWM renders the app surface onto screen( Read, Write )
-    const DXGI_SWAP_EFFECT tgt = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+    const DXGI_SWAP_EFFECT tgt = SwapEffect;
     TAC_RAISE_ERROR_IF( cur != tgt, String() +
                         "The swap chain effect is " + FormattedSwapEffect( cur ) + " "
                         "when it was expected to be " + FormattedSwapEffect( tgt ) );
   }
 
-
-
-} // namespace Tac::Render
+} // namespace Tac

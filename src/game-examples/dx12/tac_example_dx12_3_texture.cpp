@@ -65,38 +65,6 @@ namespace Tac
 
   using namespace Render;
 
-  void Win32Event::Init( Errors& errors )
-  {
-    TAC_ASSERT( !mEvent );
-
-    // Create an event handle to use for frame synchronization.
-    mEvent = CreateEvent( nullptr, FALSE, FALSE, nullptr );
-    TAC_RAISE_ERROR_IF( !mEvent, Win32GetLastErrorString() );
-  }
-
-  Win32Event::operator bool() const { return mEvent; }
-  Win32Event::operator HANDLE() const { return mEvent; }
-
-  void Win32Event::clear()
-  {
-    if( mEvent )
-    {
-      CloseHandle( mEvent );
-      mEvent = nullptr;
-    }
-  }
-
-  Win32Event::~Win32Event()
-  {
-    clear();
-  }
-
-  void Win32Event::operator = ( Win32Event&& other )
-  {
-    clear();
-    mEvent = other.mEvent;
-    other.mEvent = nullptr;
-  }
 
   // -----------------------------------------------------------------------------------------------
 
@@ -1192,51 +1160,9 @@ namespace Tac
     //        I think the swap chain flushes the command queue before rendering,
     //        so the frame being presented is the one that we just called ExecuteCommandLists() on
 
-    // https://learn.microsoft.com/en-us/windows/win32/direct3ddxgi/dxgi-flip-model
-    // In the flip model, all back buffers are shared with the Desktop Window Manager (DWM)
-    // 1.	The app updates its frame (Write)
-    // 2. Direct3D runtime passes the app surface to DWM
-    // 3. DWM renders the app surface onto screen( Read, Write )
 
-    struct ValidateSwapChainEffect
-    {
-      ValidateSwapChainEffect( DXGI_SWAP_EFFECT cur, DXGI_SWAP_EFFECT tgt, Errors& errors )
-      {
-        if( cur == tgt )
-          return;
+    TAC_CALL( CheckSwapEffect( m_swapChainDesc.SwapEffect, errors ) );
 
-        TAC_ASSERT( false );
-
-        TAC_RAISE_ERROR( String() +
-                         "The swap chain effect is " + FormatSwapEffectString( cur ) + " "
-                         "when it was expected to be " + FormatSwapEffectString( tgt ) );
-      }
-    private:
-
-      String FormatSwapEffectString( DXGI_SWAP_EFFECT fx )
-      {
-        return String() + GetSwapEffectName(fx) + "(" + ToString( (int)fx ) + ")";
-      }
-
-      const char* GetSwapEffectName( DXGI_SWAP_EFFECT fx )
-      {
-        switch( fx )
-        {
-#define Case( x ) case x: return #x
-          Case(DXGI_SWAP_EFFECT_DISCARD);
-          Case(DXGI_SWAP_EFFECT_SEQUENTIAL);
-          Case(DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL);
-          Case(DXGI_SWAP_EFFECT_FLIP_DISCARD);
-        default: return "Unknown";
-        }
-      }
-
-    };
-
-    TAC_CALL( ValidateSwapChainEffect(
-      m_swapChainDesc.SwapEffect,
-      DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL,
-      errors ) );
 
     const DXGI_PRESENT_PARAMETERS params{};
 

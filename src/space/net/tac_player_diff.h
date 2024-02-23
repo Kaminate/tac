@@ -10,9 +10,9 @@ namespace Tac
 
   struct PlayerDifference
   {
-    NetBitDiff mBitfield;
-    Player*    mNewPlayer;
-    PlayerUUID playerUUID;
+    NetBitDiff mBitfield{};
+    Player*    mNewPlayer = nullptr;
+    PlayerUUID playerUUID{};
   };
 
   struct PlayerDiffs
@@ -23,7 +23,7 @@ namespace Tac
     PlayerDiffs( World* oldWorld, World* newWorld );
     void Write( Writer* );
 
-    Vector< PlayerUUID > deletedPlayerUUIDs;
+    Vector< PlayerUUID >       deletedPlayerUUIDs;
     Vector< PlayerDifference > oldAndNewPlayers;
   };
 

@@ -23,7 +23,7 @@ namespace Tac
         unknown->AddRef();
     }
 
-    PCom( PCom&& other )
+    PCom( PCom&& other ) noexcept
     {
       swap( Tac::move(other) );
     }
@@ -96,7 +96,7 @@ namespace Tac
         unknown->AddRef();
     }
 
-    void operator = ( PCom&& other )
+    void operator = ( PCom&& other ) noexcept
     {
       swap( Tac::move( other ) );
     }

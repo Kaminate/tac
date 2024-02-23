@@ -105,7 +105,7 @@ namespace Tac::Render
       const D3D12MessageFunc CallbackFunc = MyD3D12MessageFunc;
       const D3D12_MESSAGE_CALLBACK_FLAGS CallbackFilterFlags = D3D12_MESSAGE_CALLBACK_FLAG_NONE;
       void* pContext = this;
-      DWORD pCallbackCookie;
+      DWORD pCallbackCookie = 0;
 
       TAC_DX12_CALL( infoQueue1->RegisterMessageCallback(
                      CallbackFunc,

@@ -3,7 +3,12 @@
 #include "src/shell/windows/tac_win32_com_ptr.h"
 #include "src/shell/tac_desktop_app.h"
 #include "src/shell/windows/renderer/dxgi/tac_dxgi.h"
+
+#include "src/common/containers/tac_ring_vector.h"
+
 #include "tac_example_dx12_command_queue.h"
+#include "tac_example_dx12_command_allocator_pool.h"
+#include "tac_example_dx12_context_manager.h"
 #include "tac_example_dx12_gpu_upload_allocator.h"
 
 
@@ -13,7 +18,15 @@ namespace Tac
 {
   using namespace Render;
 
-  const int MAX_FRAMES_IN_FLIGHT_COUNT = 2;
+  struct DX12CommandList
+  {
+    PCom< ID3D12GraphicsCommandList > m_commandList;
+  };
+
+  // maximum number of frames submitted to the gpu at one time
+  const int MAX_GPU_FRAME_COUNT = 2;
+
+  // number of textures in the swap chain
   const int SWAP_CHAIN_BUFFER_COUNT = 3;
 
   using Viewports = FixedVector<
@@ -33,11 +46,19 @@ namespace Tac
       Count,
     };
 
+    struct State : public IState
+    {
+      float mTranslateX;
+    };
+
+
     DX12AppHelloFrameBuf( const Config& );
 
-    void Init( Errors& ) override;
-    void Update( Errors& ) override;
-    void Uninit( Errors& ) override;
+    void     Init( Errors& ) override;
+    void     Update( Errors& ) override;
+    void     Uninit( Errors& ) override;
+    void     Render( RenderParams, Errors& ) override;
+    IState*  GetGameState() override;
 
   private:
 
@@ -60,6 +81,8 @@ namespace Tac
     void CreatePipelineState( Errors& );
     void InitDescriptorSizes();
     
+    void RenderBegin(Errors&);
+    void RenderEnd(Errors&);
 
     // Helper functions for Update()
     void DX12CreateSwapChain( Errors& );
@@ -96,8 +119,6 @@ namespace Tac
 
     // ---------------------------------------------------------------------------------------------
 
-    static const int                   bufferCount = 2;
-
     DesktopWindowHandle                hDesktopWindow{};
 
     // ---------------------------------------------------------------------------------------------
@@ -129,11 +150,10 @@ namespace Tac
 
     PCom< ID3D12CommandAllocator >     m_commandAllocator;
     PCom< ID3D12CommandAllocator >     m_commandAllocatorBundle;
-    PCom< ID3D12GraphicsCommandList4 > m_commandList;
     PCom< ID3D12GraphicsCommandList4 > m_commandListBundle;
-    PCom< ID3D12Resource >             m_renderTargets[ bufferCount ];
-    D3D12_RESOURCE_STATES              m_renderTargetStates[ bufferCount ];
-    D3D12_RESOURCE_DESC                m_renderTargetDescs[ bufferCount ];
+    PCom< ID3D12Resource >             m_renderTargets[ SWAP_CHAIN_BUFFER_COUNT ];
+    D3D12_RESOURCE_STATES              m_renderTargetStates[ SWAP_CHAIN_BUFFER_COUNT ]{};
+    D3D12_RESOURCE_DESC                m_renderTargetDescs[ SWAP_CHAIN_BUFFER_COUNT ]{};
     bool                               m_renderTargetInitialized = false;
 
     PCom< ID3D12InfoQueue >            m_infoQueue;
@@ -164,8 +184,8 @@ namespace Tac
     D3D12_VIEWPORT                     m_viewport{};
     D3D12_RECT                         m_scissorRect{};
 
-    Viewports                          m_viewports;
-    ScissorRects                       m_scissorRects;
+    Viewports                          m_viewports{};
+    ScissorRects                       m_scissorRects{};
 
     // ---------------------------------------------------------------------------------------------
 
@@ -181,11 +201,18 @@ namespace Tac
     // Index of the render target that
     // 1. our commands will be drawing onto
     // 2. our swap chain will present to the monitor
-    UINT                               m_frameIndex{};
+    UINT                               m_frameIndex{}; // todo: rename backbuffer idx
+    u64                                m_gpuFrameIndex = 0;
 
 
     DX12CommandQueue                   mCommandQueue;
     GPUUploadAllocator                 mUploadAllocator;
+    DX12CommandAllocatorPool           mCommandAllocatorPool;
+    DX12ContextManager                 mContextManager;
+
+    State mState;
+
+    FenceSignal mFenceValues[ MAX_GPU_FRAME_COUNT ]{};
   };
 } // namespace Tac
 

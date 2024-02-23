@@ -70,6 +70,8 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
+  // -----------------------------------------------------------------------------------------------
+
   // Helper functions for App::Init
 
   void DX12AppHelloFrameBuf::CreateDesktopWindow()
@@ -98,7 +100,6 @@ namespace Tac
       = m_device->GetDescriptorHandleIncrementSize( ( D3D12_DESCRIPTOR_HEAP_TYPE )i );
   }
 
-
   void DX12AppHelloFrameBuf::CreateRTVDescriptorHeap( Errors& errors )
   {
     // https://learn.microsoft.com/en-us/windows/win32/direct3d12/descriptors
@@ -110,7 +111,7 @@ namespace Tac
     const D3D12_DESCRIPTOR_HEAP_DESC desc =
     {
       .Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
-      .NumDescriptors = bufferCount,
+      .NumDescriptors = SWAP_CHAIN_BUFFER_COUNT,
     };
     TAC_DX12_CALL( m_device->CreateDescriptorHeap(
                    &desc,
@@ -135,7 +136,6 @@ namespace Tac
     m_samplerCpuHeapStart = m_samplerHeap->GetCPUDescriptorHandleForHeapStart();
     m_samplerGpuHeapStart = m_samplerHeap->GetGPUDescriptorHandleForHeapStart();
   }
-
 
   void DX12AppHelloFrameBuf::CreateSRVDescriptorHeap( Errors& errors )
   {
@@ -197,7 +197,6 @@ namespace Tac
     const D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor = GetSamplerCpuDescHandle( 0 );
     m_device->CreateSampler( &Desc, DestDescriptor );
   }
-
 
   void DX12AppHelloFrameBuf::CreateTexture( Errors& errors )
   {
@@ -340,6 +339,13 @@ namespace Tac
     }
 
     TAC_DX12_CALL( m_commandAllocator->Reset() );
+
+
+    DX12ContextScope context = TAC_CALL( mContextManager.GetContext( errors ) );
+
+
+    ID3D12GraphicsCommandList* m_commandList = context.GetCommandList();
+
     TAC_DX12_CALL( m_commandList->Reset(
       ( ID3D12CommandAllocator* )m_commandAllocator,
       nullptr ) );
@@ -392,7 +398,7 @@ namespace Tac
     // Indicates that recording to the command list has finished.
     TAC_DX12_CALL( m_commandList->Close() );
 
-    const DX12CommandQueue::Signal signalValue =
+    const FenceSignal signalValue =
       TAC_CALL( mCommandQueue.ExecuteCommandList( m_commandList.Get(), errors ));
 
     // wait until assets have been uploaded to the GPU.
@@ -401,7 +407,6 @@ namespace Tac
     // complete before continuing.
     TAC_CALL(mCommandQueue.WaitForFence(signalValue, errors ));
   }
-
 
   void DX12AppHelloFrameBuf::TransitionResource( TransitionParams params )
   {
@@ -646,7 +651,7 @@ namespace Tac
     // Indicates that recording to the command list has finished.
     TAC_DX12_CALL( m_commandList->Close() );
 
-    const DX12CommandQueue::Signal signalValue =
+    const FenceSignal signalValue =
       TAC_CALL( mCommandQueue.ExecuteCommandList( m_commandList.Get(), errors ) );
 
     // wait until assets have been uploaded to the GPU.
@@ -658,9 +663,6 @@ namespace Tac
 
     TAC_CALL( CreateVertexBufferSRV( errors ) );
   }
-
-
-
 
   void DX12AppHelloFrameBuf::CreateRootSignature( Errors& errors )
   {
@@ -698,11 +700,6 @@ namespace Tac
     m_rootSignature = TAC_CALL( builder.Build( errors ) );
     DX12SetName( m_rootSignature, "My Root Signature" );
   }
-
-
-
-
-
 
   void DX12AppHelloFrameBuf::CreatePipelineState( Errors& errors )
   {
@@ -796,8 +793,8 @@ namespace Tac
     const SwapChainCreateInfo scInfo
     {
       .mHwnd = hwnd,
-      .mDevice = (IUnknown*)commandQueue, // swap chain can force flush the queue
-      .mBufferCount = bufferCount,
+      .mDevice = ( IUnknown* )commandQueue, // swap chain can force flush the queue
+      .mBufferCount = SWAP_CHAIN_BUFFER_COUNT,
       .mWidth = state->mWidth,
       .mHeight = state->mHeight,
     };
@@ -872,7 +869,7 @@ namespace Tac
     TAC_ASSERT( m_device );
 
     // Create a RTV for each frame.
-    for( UINT i = 0; i < bufferCount; i++ )
+    for( UINT i = 0; i < SWAP_CHAIN_BUFFER_COUNT; i++ )
     {
       const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = GetRTVCpuDescHandle( i );
       PCom< ID3D12Resource >& renderTarget = m_renderTargets[ i ];
@@ -965,8 +962,6 @@ namespace Tac
 
     // sets the scissor rect of the pipeline state's rasterizer state?
     m_commandList->RSSetScissorRects( ( UINT )m_scissorRects.size(), m_scissorRects.data() );
-
-
 
     const Array descHeaps = {
       ( ID3D12DescriptorHeap* )m_srvHeap,
@@ -1167,8 +1162,6 @@ namespace Tac
     m_commandList->ClearRenderTargetView( rtvHandle, clearColor.data(), 0, nullptr );
   }
 
-
-
   void DX12AppHelloFrameBuf::SwapChainPresent( Errors& errors )
   {
     TAC_ASSERT( m_renderTargetInitialized );
@@ -1203,12 +1196,8 @@ namespace Tac
     // I think this technically adds a frame onto the present queue
     TAC_DX12_CALL( m_swapChain->Present1( SyncInterval, PresentFlags, &params ) );
 
-    // Is this a better place to update the m_frameIndex?
-    m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();
 
   }
-
-
 
   // -----------------------------------------------------------------------------------------------
 
@@ -1216,12 +1205,12 @@ namespace Tac
 
   DX12AppHelloFrameBuf::DX12AppHelloFrameBuf( const Config& cfg ) : App( cfg ) {}
 
-  void DX12AppHelloFrameBuf::Init( Errors& errors )
+  void         DX12AppHelloFrameBuf::Init( Errors& errors )
   {
     CreateDesktopWindow();
   }
 
-  void DX12AppHelloFrameBuf::PreSwapChainInit( Errors& errors)
+  void         DX12AppHelloFrameBuf::PreSwapChainInit( Errors& errors)
   {
     static bool didPreSwapChainInit;
     if(didPreSwapChainInit)
@@ -1260,30 +1249,16 @@ namespace Tac
     mUploadAllocator.Init( m_device.Get(), &mCommandQueue  );
   }
 
-  void DX12AppHelloFrameBuf::Update( Errors& errors )
+  void         DX12AppHelloFrameBuf::Update( Errors& errors )
   {
     if( !GetDesktopWindowNativeHandle( hDesktopWindow ) )
       return;
 
-    TAC_CALL( PreSwapChainInit( errors ) );
-    TAC_CALL( DX12CreateSwapChain( errors ) );
-    TAC_CALL( CreateRenderTargetViews( errors ) );
-    TAC_CALL( CreateVertexBuffer( errors ) );
-    TAC_CALL( CreateTexture( errors ) );
-    TAC_CALL( PopulateCommandList( errors ) );
+    mState.mTranslateX = ( float )Sin( ShellGetElapsedSeconds().mSeconds );
 
-    const DX12CommandQueue::Signal signalValue =
-      TAC_CALL( mCommandQueue.ExecuteCommandList( m_commandList.Get(), errors ) );
-
-    mUploadAllocator.FreeAll( signalValue );
-
-    TAC_CALL( SwapChainPresent( errors ) );
-
-    // this is bad dont do this?
-    TAC_CALL( mCommandQueue.WaitForFence( signalValue, errors ) );
   }
 
-  void DX12AppHelloFrameBuf::Uninit( Errors& errors )
+  void         DX12AppHelloFrameBuf::Uninit( Errors& errors )
   {
 
       // Ensure that the GPU is no longer referencing resources that are about to be
@@ -1293,16 +1268,69 @@ namespace Tac
     DXGIUninit();
   }
 
+  App::IState* DX12AppHelloFrameBuf::GetGameState()
+  {
+    State* state = TAC_NEW State;
+    *state = mState;
+    return state;
+  }
+
+  void DX12AppHelloFrameBuf::RenderBegin( Errors& errors )
+  {
+    FenceSignal signalValue = mFenceValues[ m_gpuFrameIndex ];
+    TAC_CALL( mCommandQueue.WaitForFence( signalValue, errors ) );
+  }
+
+  void DX12AppHelloFrameBuf::RenderEnd( Errors& errors )
+  {
+    mFenceValues[ m_gpuFrameIndex ] = TAC_CALL( mCommandQueue.IncrementFence( errors ) );
+    TAC_CALL( SwapChainPresent( errors ) );
+
+    m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();
+    m_gpuFrameIndex++;
+
+    TAC_ASSERT( m_frameIndex == m_gpuFrameIndex % SWAP_CHAIN_BUFFER_COUNT );
+  }
+   
+
+  void         DX12AppHelloFrameBuf::Render( RenderParams params, Errors& errors )
+  {
+    TAC_CALL( RenderBegin( errors ) );
+
+    Errors e;
+    auto foo = Tac::Filesystem::GetFileLastModifiedTime( "C:/Users/Nate/Desktop/0.png", e );
+
+    const State* oldState = ( State* )params.mOldState;
+    const State* newState = ( State* )params.mNewState;
+    const float t = params.mT;
+    const float translateX = Lerp( oldState->mTranslateX, newState->mTranslateX, t );
+
+    TAC_CALL( PreSwapChainInit( errors ) );
+    TAC_CALL( DX12CreateSwapChain( errors ) );
+    TAC_CALL( CreateRenderTargetViews( errors ) );
+    TAC_CALL( CreateVertexBuffer( errors ) );
+    TAC_CALL( CreateTexture( errors ) );
+    TAC_CALL( PopulateCommandList( errors ) );
+
+    const FenceSignal signalValue =
+      TAC_CALL( mCommandQueue.ExecuteCommandList( m_commandList.Get(), errors ) );
+
+    mUploadAllocator.FreeAll( signalValue );
+
+    TAC_CALL( RenderEnd( errors ) );
+  }
+
+  // -----------------------------------------------------------------------------------------------
+
   App* App::Create()
   {
     const App::Config config
     {
-      .mName = "DX12 Hello Texture",
+      .mName = "DX12 Hello Frame Buf",
       .mDisableRenderer = true,
     };
     return TAC_NEW DX12AppHelloFrameBuf( config );
   };
-
 
 } // namespace Tac
 

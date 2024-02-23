@@ -15,7 +15,6 @@
 #include "src/common/memory/tac_memory.h"
 #include "src/common/profile/tac_profile.h"
 #include "src/common/shell/tac_shell_timestep.h"
-#include "src/common/string/tac_string_format.h"
 #include "src/common/system/tac_desktop_window.h"
 #include "src/common/system/tac_os.h"
 #include "space/graphics/tac_graphics.h"

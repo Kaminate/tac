@@ -82,7 +82,7 @@ namespace Tac
         errorStr += '\n';
         errorStr += mErrorPointer->GetMessage();
         errorStr += '\n';
-        for( StackFrame frame : frames )
+        for( const StackFrame& frame : frames )
           errorStr += frameFormatter.FormatFrame( frame ) + '\n';
 
         return errorStr;

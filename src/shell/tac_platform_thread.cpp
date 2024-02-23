@@ -24,12 +24,12 @@ namespace Tac
       Render::RenderFinish();
   }
 
-  void PlatformThread::Init(Errors& errors)
+  void PlatformThread::Init( Errors& errors )
   {
     TAC_ASSERT( mErrors && mApp );
-    DesktopAppThreads::SetType(DesktopAppThreads::ThreadType::Main );
+    DesktopAppThreads::SetType( DesktopAppThreads::ThreadType::Main );
 
-    FrameMemoryInitThreadAllocator(  1024 * 1024 * 10  );
+    FrameMemoryInitThreadAllocator( 1024 * 1024 * 10 );
 
     DesktopEventInit();
   }

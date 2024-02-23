@@ -61,37 +61,6 @@ namespace Tac
 
   using namespace Render;
 
-  void Win32Event::Init( Errors& errors )
-  {
-    TAC_ASSERT( !mEvent );
-
-    // Create an event handle to use for frame synchronization.
-    mEvent = CreateEvent( nullptr, FALSE, FALSE, nullptr );
-    TAC_RAISE_ERROR_IF( !mEvent, Win32GetLastErrorString() );
-  }
-
-  Win32Event::operator HANDLE() const { return mEvent; }
-
-  void Win32Event::clear()
-  {
-    if( mEvent )
-    {
-      CloseHandle( mEvent );
-      mEvent = nullptr;
-    }
-  }
-
-  Win32Event::~Win32Event()
-  {
-    clear();
-  }
-
-  void Win32Event::operator = ( Win32Event&& other )
-  {
-    clear();
-    mEvent = other.mEvent;
-    other.mEvent = nullptr;
-  }
 
   // -----------------------------------------------------------------------------------------------
 
@@ -163,7 +132,7 @@ namespace Tac
       const D3D12MessageFunc CallbackFunc = MyD3D12MessageFunc;
       const D3D12_MESSAGE_CALLBACK_FLAGS CallbackFilterFlags = D3D12_MESSAGE_CALLBACK_FLAG_NONE;
       void* pContext = this;
-      DWORD pCallbackCookie;
+      DWORD pCallbackCookie = 0;
 
       TAC_DX12_CALL( infoQueue1->RegisterMessageCallback(
                      CallbackFunc,
@@ -932,13 +901,8 @@ namespace Tac
     //        I think the swap chain flushes the command queue before rendering,
     //        so the frame being presented is the one that we just called ExecuteCommandLists() on
 
-    // https://learn.microsoft.com/en-us/windows/win32/direct3ddxgi/dxgi-flip-model
-    // In the flip model, all back buffers are shared with the Desktop Window Manager (DWM)
-    // 1.	The app updates its frame (Write)
-    // 2. Direct3D runtime passes the app surface to DWM
-    // 3. DWM renders the app surface onto screen( Read, Write )
 
-    TAC_ASSERT( m_swapChainDesc.SwapEffect == DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL );
+    TAC_CALL( CheckSwapEffect( m_swapChainDesc.SwapEffect, errors ) );
 
     const DXGI_PRESENT_PARAMETERS params{};
 

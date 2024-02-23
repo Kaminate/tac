@@ -9,17 +9,8 @@
 
 namespace Tac::Render
 {
-  struct GPUUploadAllocator
-  {
 
-    struct DynAlloc
-    {
-      D3D12_GPU_VIRTUAL_ADDRESS mGPUAddr;
-      void* mCPUAddr;
-      int                       mByteCount;
-    };
-
-    struct Page
+    struct GPUUploadPage
     {
       PCom<ID3D12Resource>      mBuffer;
       //D3D12_RESOURCE_STATES     DefaultUsage{ D3D12_RESOURCE_STATE_GENERIC_READ };
@@ -34,15 +25,31 @@ namespace Tac::Render
 
     };
 
+  struct GPUUploadPageManager
+  {
+    GPUUploadPage AllocateNewPage( int byteCount, Errors& );
+  };
+
+  struct GPUUploadAllocator
+  {
+
+    struct DynAlloc
+    {
+      D3D12_GPU_VIRTUAL_ADDRESS mGPUAddr;
+      void* mCPUAddr;
+      int                       mByteCount;
+    };
+
+
     struct RetiredPage
     {
-      Page mPage;
-      DX12CommandQueue::Signal mFence;
+      GPUUploadPage mPage;
+      FenceSignal mFence{};
     };
 
     void     Init( ID3D12Device* , DX12CommandQueue*  );
     DynAlloc Allocate( int const byteCount, Errors& );
-    void     FreeAll( DX12CommandQueue::Signal FenceID );
+    void     FreeAll( FenceSignal FenceID );
 
   private:
 
@@ -50,14 +57,13 @@ namespace Tac::Render
     void UnretirePages();
     void RequestPage( int byteCount, Errors& );
 
-    Page AllocateNewPage( int byteCount, Errors& );
     PCom< ID3D12Device > m_device;
 
     int            mCurPageUsedByteCount = 0;
 
     // Currently in use by command queues the current frame, memory cannot be freed.
     // The last page is the current page
-    Vector< Page > mActivePages;
+    Vector< GPUUploadPage > mActivePages;
 
     // | at the end of each frame, active pages go into retired pages
     // V
@@ -67,7 +73,7 @@ namespace Tac::Render
     // | when pages are no long used
     // V
 
-    Vector< Page > mAvailablePages;
+    Vector< GPUUploadPage > mAvailablePages;
 
     DX12CommandQueue* mCommandQueue = nullptr;
   };

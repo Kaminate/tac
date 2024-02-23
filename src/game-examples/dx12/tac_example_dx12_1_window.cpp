@@ -1,15 +1,18 @@
 #include "tac_example_dx12_1_window.h" // self-inc
 
-#include "src/shell/tac_desktop_app.h"
+#include "tac_example_dx12_win32_event.h"
+
+#include "src/common/containers/tac_array.h"
+#include "src/common/error/tac_error_handling.h"
+#include "src/common/math/tac_math.h"
+#include "src/common/preprocess/tac_preprocessor.h"
 #include "src/common/shell/tac_shell_timestep.h"
 #include "src/common/system/tac_os.h"
-#include "src/common/math/tac_math.h"
-#include "src/shell/windows/tac_win32.h"
-#include "src/common/preprocess/tac_preprocessor.h"
-#include "src/common/error/tac_error_handling.h"
-#include "src/shell/windows/renderer/dx12/tac_dx12_helper.h"
-#include "src/common/containers/tac_array.h"
+
+#include "src/shell/tac_desktop_app.h"
 #include "src/shell/tac_desktop_window_settings_tracker.h"
+#include "src/shell/windows/renderer/dx12/tac_dx12_helper.h"
+#include "src/shell/windows/tac_win32.h"
 
 
 #pragma comment( lib, "d3d12.lib" ) // D3D12...
@@ -22,37 +25,6 @@ namespace Tac
 
   // A pipeline state object maintains the state of all currently set shaders as well as certain fixed function state objects (such as the input assembler, tesselator, rasterizer and output merger).
 
-  void Win32Event::Init( Errors& errors )
-  {
-    TAC_ASSERT( !mEvent );
-
-    // Create an event handle to use for frame synchronization.
-    mEvent = CreateEvent( nullptr, FALSE, FALSE, nullptr );
-    TAC_RAISE_ERROR_IF( !mEvent, Win32GetLastErrorString() );
-  }
-
-  Win32Event::operator HANDLE() const { return mEvent; }
-
-  void Win32Event::clear()
-  {
-    if( mEvent )
-    {
-      CloseHandle( mEvent );
-      mEvent = nullptr;
-    }
-  }
-
-  Win32Event::~Win32Event()
-  {
-    clear();
-  }
-
-  void Win32Event::operator = ( Win32Event&& other )
-  {
-    clear();
-    mEvent = other.mEvent;
-    other.mEvent = nullptr;
-  }
 
   // -----------------------------------------------------------------------------------------------
 
@@ -398,13 +370,7 @@ namespace Tac
     //        I think the swap chain flushes the command queue before rendering,
     //        so the frame being presented is the one that we just called ExecuteCommandLists() on
 
-    // https://learn.microsoft.com/en-us/windows/win32/direct3ddxgi/dxgi-flip-model
-    // In the flip model, all back buffers are shared with the Desktop Window Manager (DWM)
-    // 1.	The app updates its frame (Write)
-    // 2. Direct3D runtime passes the app surface to DWM
-    // 3. DWM renders the app surface onto screen( Read, Write )
-
-    TAC_ASSERT( m_swapChainDesc.SwapEffect == DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL );
+    TAC_CALL( CheckSwapEffect( m_swapChainDesc.SwapEffect, errors ) );
 
     const DXGI_PRESENT_PARAMETERS params{};
 
@@ -470,7 +436,7 @@ namespace Tac
       //
       // the event will be 'complete' when it reaches the specified value.
       // This value is set by the cmdqueue::Signal
-      TAC_DX12_CALL( m_fence->SetEventOnCompletion( signalValue, (HANDLE)m_fenceEvent ) );
+      TAC_DX12_CALL( m_fence->SetEventOnCompletion( signalValue, ( HANDLE )m_fenceEvent ) );
       WaitForSingleObject( (HANDLE)m_fenceEvent, INFINITE );
     }
 

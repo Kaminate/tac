@@ -3,7 +3,6 @@
 #include "space/world/tac_world.h"
 #include "src/common/graphics/tac_camera.h"
 #include "src/common/graphics/imgui/tac_imgui.h"
-#include "src/common/string/tac_string_format.h"
 #include "src/common/math/tac_math.h"
 #include "src/common/graphics/tac_debug_3d.h"
 #include "src/common/input/tac_keyboard_input.h"
@@ -101,6 +100,15 @@ namespace Tac
       v3( 1, 0, 0 ) );
   }
 
+  static String Format( float f )
+  {
+    String result = Tac::ToString( f );
+    while( result.size() < 4 )
+      result += " ";
+    while( result.size() > 4 )
+      result.pop_back();
+    return result;
+  }
 
   static void DebugPrintMtx( const m3& m )
   {
@@ -109,16 +117,10 @@ namespace Tac
     v3 r1 = mOrientation.GetRow( 1 );
     v3 r2 = mOrientation.GetRow( 2 );
 
-#define FMT "{: .4} "
-    const String s = FormatString(
-      FMT FMT FMT "\n"
-      FMT FMT FMT "\n"
-      FMT FMT FMT "\n",
-      r0.x, r0.y, r0.z,
-      r1.x, r1.y, r1.z,
-      r2.x, r2.y, r2.z );
-#undef FMT
-    
+    const String s = String()
+      + Format( r0.x ) + " " + Format( r0.y ) + " " + Format( r0.z ) + "\n"
+      + Format( r1.x ) + " " + Format( r1.y ) + " " + Format( r1.z ) + "\n"
+      + Format( r2.x ) + " " + Format( r2.y ) + " " + Format( r2.z ) + "\n";
     
     OS::OSDebugPrintLine( s );
     OS::OSDebugPrintLine( "\n" );

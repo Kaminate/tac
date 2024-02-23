@@ -1,7 +1,6 @@
 #include "src/shell/windows/tac_win32.h" // self-inc
 
 #include "src/common/preprocess/tac_preprocessor.h"
-#include "src/common/string/tac_string_format.h"
 #include "src/common/string/tac_string_util.h"
 #include "src/common/memory/tac_frame_memory.h"
 #include "src/common/error/tac_error_handling.h"

@@ -399,7 +399,7 @@ namespace Tac
     // Indicates that recording to the command list has finished.
     TAC_DX12_CALL( m_commandList->Close() );
 
-    const DX12CommandQueue::Signal signalValue =
+    const FenceSignal signalValue =
       TAC_CALL( mCommandQueue.ExecuteCommandList( m_commandList.Get(), errors ));
 
     // wait until assets have been uploaded to the GPU.
@@ -653,7 +653,7 @@ namespace Tac
     // Indicates that recording to the command list has finished.
     TAC_DX12_CALL( m_commandList->Close() );
 
-    const DX12CommandQueue::Signal signalValue =
+    const FenceSignal signalValue =
       TAC_CALL( mCommandQueue.ExecuteCommandList( m_commandList.Get(), errors ) );
 
     // wait until assets have been uploaded to the GPU.
@@ -1280,7 +1280,7 @@ namespace Tac
     TAC_CALL( CreateTexture( errors ) );
     TAC_CALL( PopulateCommandList( errors ) );
 
-    const DX12CommandQueue::Signal signalValue =
+    const FenceSignal signalValue =
       TAC_CALL( mCommandQueue.ExecuteCommandList( m_commandList.Get(), errors ) );
 
     mUploadAllocator.FreeAll( signalValue );
@@ -1304,7 +1304,7 @@ namespace Tac
   {
     const App::Config config
     {
-      .mName = "DX12 Hello Texture",
+      .mName = "DX12 Hello Const Buf",
       .mDisableRenderer = true,
     };
     return TAC_NEW DX12AppHelloConstBuf( config );

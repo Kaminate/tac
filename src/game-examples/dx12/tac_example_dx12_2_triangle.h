@@ -4,24 +4,14 @@
 #include "src/shell/tac_desktop_app.h"
 #include "src/shell/windows/renderer/dxgi/tac_dxgi.h"
 
+#include "tac_example_dx12_win32_event.h"
+
 #include <d3d12.h> // D3D12...
 
 namespace Tac
 {
   using namespace Render;
 
-  struct Win32Event
-  {
-    void Init(Errors&);
-    ~Win32Event();
-    void clear();
-
-    void operator = ( Win32Event&& other );
-
-    explicit operator HANDLE() const;
-
-    HANDLE mEvent{};
-  };
 
   using Viewports = FixedVector<
     D3D12_VIEWPORT,
@@ -104,13 +94,13 @@ namespace Tac
 
     // rtvs
     PCom< ID3D12DescriptorHeap >       m_rtvHeap;
-    D3D12_CPU_DESCRIPTOR_HANDLE        m_rtvCpuHeapStart;
-    D3D12_GPU_DESCRIPTOR_HANDLE        m_rtvGpuHeapStart;
+    D3D12_CPU_DESCRIPTOR_HANDLE        m_rtvCpuHeapStart{};
+    D3D12_GPU_DESCRIPTOR_HANDLE        m_rtvGpuHeapStart{};
 
     // srvs
     PCom< ID3D12DescriptorHeap >       m_srvHeap;
-    D3D12_CPU_DESCRIPTOR_HANDLE        m_srvCpuHeapStart;
-    D3D12_GPU_DESCRIPTOR_HANDLE        m_srvGpuHeapStart;
+    D3D12_CPU_DESCRIPTOR_HANDLE        m_srvCpuHeapStart{};
+    D3D12_GPU_DESCRIPTOR_HANDLE        m_srvGpuHeapStart{};
 
     UINT                               m_descriptorSizes[ D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES ]{};
 

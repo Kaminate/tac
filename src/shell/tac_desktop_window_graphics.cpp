@@ -2,7 +2,6 @@
 
 #include "src/common/graphics/tac_renderer.h"
 #include "src/common/system/tac_desktop_window.h"
-#include "src/common/string/tac_string_format.h"
 #include "src/common/memory/tac_frame_memory.h"
 
 namespace Tac

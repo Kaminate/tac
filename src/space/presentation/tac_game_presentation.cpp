@@ -5,7 +5,6 @@
 #include "src/common/assetmanagers/tac_mesh.h"
 #include "src/common/assetmanagers/tac_model_asset_manager.h"
 #include "src/common/assetmanagers/tac_texture_asset_manager.h"
-#include "src/common/string/tac_string_format.h"
 #include "src/common/graphics/imgui/tac_imgui.h"
 #include "src/common/graphics/tac_debug_3d.h"
 #include "src/common/graphics/tac_renderer.h"
@@ -618,11 +617,79 @@ namespace Tac
   Render::VertexDeclarations    GamePresentationGetVertexDeclarations()   { return m3DVertexFormatDecls; }
   Render::VertexFormatHandle    GamePresentationGetVertexFormat()         { return m3DVertexFormat; }
 
+  static void DebugImguiCBufferLight( int iLight )
+  {
+    if( !ImGuiCollapsingHeader( ShortFixedString::Concat( "Light ", ToString( iLight ) ) ) )
+      return;
+
+    Render::ShaderLight* shaderLight = &mDebugCBufferLights.lights[ iLight ];
+    String rowsStrs[ 4 ];
+    for( int r = 0; r < 4; ++r )
+      for( int c = 0; c < 4; ++c )
+        rowsStrs[ r ] += ToString( shaderLight->mWorldToClip( r, c ) );
+
+    const Render::ShaderFlags::Info* lightTypeInfo = Render::GetShaderLightFlagType();
+    const Render::ShaderFlags::Info* castsShadowsInfo = Render::GetShaderLightFlagCastsShadows();
+
+    const Light::Type lightType = ( Light::Type )lightTypeInfo->Extract( shaderLight->mFlags );
+    const bool castsShadows = ( bool )castsShadowsInfo->Extract( shaderLight->mFlags );
+
+    TAC_IMGUI_INDENT_BLOCK;
+    ImGuiText( "World to clip matrix" );
+    ImGuiText( rowsStrs[ 0 ] );
+    ImGuiText( rowsStrs[ 1 ] );
+    ImGuiText( rowsStrs[ 2 ] );
+    ImGuiText( rowsStrs[ 3 ] );
+    ImGuiDragFloat4( "worldspace pos", shaderLight->mWorldSpacePosition.data() );
+    ImGuiDragFloat3( "worldspace pos", shaderLight->mWorldSpacePosition.data() );
+    ImGuiDragFloat3( "worldspace unit dir", shaderLight->mWorldSpaceUnitDirection.data() );
+    ImGuiDragFloat3( "light color", shaderLight->mColorRadiance.data() );
+    ImGuiDragFloat( "light radiance", &shaderLight->mColorRadiance.w );
+    //ImGuiDragFloat( "light near plane", &shaderLight->mNear );
+    //ImGuiDragFloat( "light far plane", &shaderLight->mFar );
+    ImGuiDragFloat( "light proj a", &shaderLight->mProjA );
+    ImGuiDragFloat( "light proj b", &shaderLight->mProjB );
+    ImGuiImage( -1, v2( 1, 1 ) * 50, v4( shaderLight->mColorRadiance.xyz(), 1.0f ) );
+    ImGuiText( ShortFixedString::Concat( "Light type: ",
+               LightTypeToString( lightType ),
+               "(",
+               ToString( ( int )lightType ),
+               ")" ) );
+    ImGuiText( String() + "casts shadows: " + ( castsShadows ? "true" : "false" ) );
+  }
+
+  static void DebugImguiCBufferLights()
+  {
+    if( !ImGuiCollapsingHeader( "CBufferLights" ) )
+      return;
+
+    TAC_IMGUI_INDENT_BLOCK;
+
+    ImGuiText( String() + "light count " + ToString( mDebugCBufferLights.lightCount ) );
+    ImGuiText( String() + "text number " + ToString( mDebugCBufferLights.testNumber ) );
+
+    const int n = ( int )mDebugCBufferLights.lightCount;
+    for( int iLight = 0; iLight < n; iLight++ )
+      DebugImguiCBufferLight( iLight );
+  }
+
+  static void DebugImgui3DTris( Graphics* graphics )
+  {
+    if( !mRenderEnabledDebug3D )
+      return;
+
+    static bool debugEachTri;
+    ImGuiCheckbox( "debug each tri", &debugEachTri );
+
+    if( debugEachTri )
+      Debug3DEachTri( graphics );
+  }
 
   void                          GamePresentationDebugImGui( Graphics* graphics )
   {
     if( !ImGuiCollapsingHeader( "Game Presentation" ) )
       return;
+
     TAC_IMGUI_INDENT_BLOCK;
     ImGuiCheckbox( "Game Presentation Enabled Model", &mRenderEnabledModel );
     ImGuiCheckbox( "Game Presentation Enabled Skybox", &mRenderEnabledSkybox );
@@ -630,63 +697,9 @@ namespace Tac
     ImGuiCheckbox( "Game Presentation Enabled Debug3D", &mRenderEnabledDebug3D );
 
     ImGuiCheckbox( "Game Presentation use lights", &mUseLights );
-    if( mUseLights && ImGuiCollapsingHeader( "CBufferLights" ) )
-    {
-      TAC_IMGUI_INDENT_BLOCK;
-      ImGuiText( ShortFixedString::Concat( "light count ",
-                 ToString( mDebugCBufferLights.lightCount ) ) );
-      ImGuiText( ShortFixedString::Concat( "text number ",
-                 ToString( mDebugCBufferLights.testNumber ) ) );
-      for( int iLight = 0; iLight < ( int )mDebugCBufferLights.lightCount; ++iLight )
-      {
-        if( !ImGuiCollapsingHeader( ShortFixedString::Concat( "Light ", ToString( iLight ) ) ) )
-          continue;
+    if( mUseLights )
+      DebugImguiCBufferLights();
 
-        Render::ShaderLight* shaderLight = &mDebugCBufferLights.lights[ iLight ];
-        String rowsStrs[ 4 ];
-        for( int r = 0; r < 4; ++r )
-          for( int c = 0; c < 4; ++c )
-            rowsStrs[ r ] += ToString( shaderLight->mWorldToClip( r, c )  );
-
-        const Render::ShaderFlags::Info* lightTypeInfo = Render::GetShaderLightFlagType();
-        const Render::ShaderFlags::Info* castsShadowsInfo = Render::GetShaderLightFlagCastsShadows();
-
-        const Light::Type lightType = ( Light::Type )lightTypeInfo->Extract( shaderLight->mFlags );
-        const bool castsShadows = ( bool )castsShadowsInfo->Extract( shaderLight->mFlags );
-
-        TAC_IMGUI_INDENT_BLOCK;
-        ImGuiText( "World to clip matrix" );
-        ImGuiText( rowsStrs[ 0 ] );
-        ImGuiText( rowsStrs[ 1 ] );
-        ImGuiText( rowsStrs[ 2 ] );
-        ImGuiText( rowsStrs[ 3 ] );
-        ImGuiDragFloat4( "worldspace pos", shaderLight->mWorldSpacePosition.data() );
-        ImGuiDragFloat3( "worldspace pos", shaderLight->mWorldSpacePosition.data() );
-        ImGuiDragFloat3( "worldspace unit dir", shaderLight->mWorldSpaceUnitDirection.data() );
-        ImGuiDragFloat3( "light color", shaderLight->mColorRadiance.data() );
-        ImGuiDragFloat( "light radiance", &shaderLight->mColorRadiance.w );
-        //ImGuiDragFloat( "light near plane", &shaderLight->mNear );
-        //ImGuiDragFloat( "light far plane", &shaderLight->mFar );
-        ImGuiDragFloat( "light proj a", &shaderLight->mProjA );
-        ImGuiDragFloat( "light proj b", &shaderLight->mProjB );
-        ImGuiImage( -1, v2( 1, 1 ) * 50, v4( shaderLight->mColorRadiance.xyz(), 1.0f ) );
-        ImGuiText( ShortFixedString::Concat( "Light type: ",
-                   LightTypeToString( lightType ),
-                   "(",
-                   ToString( ( int )lightType ),
-                   ")" ) );
-        ImGuiText( va( "casts shadows: {}", ( castsShadows ? "true" : "false" ) ) );
-      }
-    }
-
-    if( mRenderEnabledDebug3D )
-    {
-      static bool debugEachTri;
-      ImGuiCheckbox( "debug each tri", &debugEachTri );
-      if( debugEachTri )
-      {
-        Debug3DEachTri( graphics );
-      }
-    }
+    DebugImgui3DTris( graphics );
   }
-}
+} // namespace Tac
