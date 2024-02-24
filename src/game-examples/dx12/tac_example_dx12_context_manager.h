@@ -2,6 +2,7 @@
 
 #include "src/shell/windows/tac_win32_com_ptr.h" // PCom
 #include "src/common/containers/tac_vector.h"
+#include "tac_example_dx12_gpu_upload_allocator.h"
 
 #include <d3d12.h> // ID3D12...
 
@@ -13,7 +14,6 @@ namespace Tac
 namespace Tac::Render
 {
   struct DX12CommandAllocatorPool;
-  struct GPUUploadAllocator;
   struct DX12ContextManager;
   struct DX12CommandQueue;
 
@@ -38,34 +38,44 @@ namespace Tac::Render
 
   struct DX12ContextScope
   {
+    DX12ContextScope() = default;
+    DX12ContextScope( DX12ContextScope&& ) noexcept;
     ~DX12ContextScope();
 
-    ID3D12GraphicsCommandList* GetCommandList() { return mContext.GetCommandList(); }
-    void ExecuteSynchronously() { mSynchronous = true; }
+    ID3D12GraphicsCommandList* GetCommandList();
+    void                       ExecuteSynchronously();
 
-    DX12Context mContext;
-    bool        mSynchronous = false;
+    DX12Context                mContext;
+    bool                       mSynchronous = false;
 
     // singletons
-    DX12CommandAllocatorPool* mCommandAllocatorPool = nullptr;
-    DX12ContextManager*       mContextManager = nullptr;
-    DX12CommandQueue*         mCommandQueue = nullptr;
+    DX12CommandAllocatorPool*  mCommandAllocatorPool = nullptr;
+    DX12ContextManager*        mContextManager = nullptr;
+    DX12CommandQueue*          mCommandQueue = nullptr;
+    Errors*                    mParentScopeErrors = nullptr;
+    bool                       mMoved = false;
   };
 
   // a contextmanager manages contexts
   struct DX12ContextManager
   {
+    void Init( DX12CommandAllocatorPool*,
+               DX12CommandQueue*,
+               GPUUploadPageManager*,
+               PCom<ID3D12Device> );
+    
     DX12ContextScope                 GetContext( Errors& );
     void                             RetireContext( DX12Context context );
     
     PCom<ID3D12GraphicsCommandList > CreateCommandList(Errors&);
 
-    Vector< DX12Context > mAvailableContexts;
+  private:
+    Vector< DX12Context >     mAvailableContexts;
 
     // singletons
     DX12CommandAllocatorPool* mCommandAllocatorPool = nullptr;
     DX12CommandQueue*         mCommandQueue = nullptr;
-    GPUUploadAllocator*       mGPUUploadAllocator = nullptr;
-    PCom<ID3D12Device4 >      mDevice; // device4 needed for createcommandlist1
+    GPUUploadPageManager*     mUploadPageManager = nullptr;
+    PCom< ID3D12Device5 >     mDevice; // device4 needed for createcommandlist1
   };
 }

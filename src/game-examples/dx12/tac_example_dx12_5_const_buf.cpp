@@ -1265,7 +1265,8 @@ namespace Tac
     TAC_CALL( CreatePipelineState( errors ) );
     TAC_CALL( CreateSamplerDescriptorHeap( errors ) );
     TAC_CALL( CreateSampler( errors ) );
-    mUploadAllocator.Init( m_device.Get(), &mCommandQueue  );
+    mUploadPageManager.Init( m_device.Get(), &mCommandQueue );
+    mUploadAllocator.Init( &mUploadPageManager );
   }
 
   void DX12AppHelloConstBuf::Update( Errors& errors )

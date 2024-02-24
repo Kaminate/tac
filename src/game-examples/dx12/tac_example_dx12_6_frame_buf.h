@@ -74,12 +74,12 @@ namespace Tac
     void CreateTexture( Errors& );
     void CreateCommandAllocator( Errors& );
     void CreateCommandAllocatorBundle( Errors& );
-    void CreateCommandList( Errors& );
     void CreateCommandListBundle( Errors& );
     void CreateVertexBuffer( Errors& );
     void CreateRootSignature( Errors& );
     void CreatePipelineState( Errors& );
     void InitDescriptorSizes();
+    void RecordBundle();
     
     void RenderBegin(Errors&);
     void RenderEnd(Errors&);
@@ -87,7 +87,7 @@ namespace Tac
     // Helper functions for Update()
     void DX12CreateSwapChain( Errors& );
     void CreateRenderTargetViews( Errors& );
-    void ClearRenderTargetView();
+    void ClearRenderTargetView( ID3D12GraphicsCommandList* );
     D3D12_CPU_DESCRIPTOR_HANDLE GetRTVCpuDescHandle( int ) const;
     D3D12_GPU_DESCRIPTOR_HANDLE GetRTVGpuDescHandle( int ) const;
 
@@ -104,7 +104,7 @@ namespace Tac
                                                      D3D12_DESCRIPTOR_HEAP_TYPE,
                                                      int ) const;
     void PopulateCommandList( Errors& );
-    void ResourceBarrier( const D3D12_RESOURCE_BARRIER& );
+    void ResourceBarrier( ID3D12GraphicsCommandList*, const D3D12_RESOURCE_BARRIER& );
 
     struct TransitionParams
     {
@@ -112,9 +112,9 @@ namespace Tac
        D3D12_RESOURCE_STATES* mCurrentState;
        D3D12_RESOURCE_STATES  mTargetState;
     };
-    void TransitionResource( TransitionParams );
+    void TransitionResource( ID3D12GraphicsCommandList*, TransitionParams );
 
-    void TransitionRenderTarget( int, D3D12_RESOURCE_STATES );
+    void TransitionRenderTarget( ID3D12GraphicsCommandList*, int, D3D12_RESOURCE_STATES );
     void SwapChainPresent( Errors& );
 
     // ---------------------------------------------------------------------------------------------
@@ -125,10 +125,12 @@ namespace Tac
 
     // ID3D12 objects
 
+    PCom< ID3D12Device >               m_device0;
     PCom< ID3D12Device5 >              m_device;
 
     PCom< ID3D12Debug3 >               m_debug;
     bool                               m_debugLayerEnabled = false;
+    PCom<ID3D12DebugDevice>            m_debugDevice0;
     PCom<ID3D12DebugDevice2>           m_debugDevice;
 
     // samplers
@@ -179,7 +181,6 @@ namespace Tac
     PCom<ID3D12Resource>               m_vertexBuffer;
     //D3D12_VERTEX_BUFFER_VIEW           m_vertexBufferView;
     UINT                               m_vertexBufferByteCount{};
-    bool                               m_vertexBufferCopied = false;
 
     D3D12_VIEWPORT                     m_viewport{};
     D3D12_RECT                         m_scissorRect{};
@@ -206,9 +207,9 @@ namespace Tac
 
 
     DX12CommandQueue                   mCommandQueue;
-    GPUUploadAllocator                 mUploadAllocator;
     DX12CommandAllocatorPool           mCommandAllocatorPool;
     DX12ContextManager                 mContextManager;
+    GPUUploadPageManager               mUploadPageManager;
 
     State mState;
 

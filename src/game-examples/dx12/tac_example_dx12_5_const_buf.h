@@ -190,6 +190,7 @@ namespace Tac
 
     DX12CommandQueue                   mCommandQueue;
     GPUUploadAllocator                 mUploadAllocator;
+    GPUUploadPageManager               mUploadPageManager;
   };
 } // namespace Tac
 

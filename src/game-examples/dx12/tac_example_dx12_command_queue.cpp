@@ -61,7 +61,8 @@ namespace Tac::Render
     TAC_DX12_CALL( m_fence->SetEventOnCompletion( val, ( HANDLE )m_fenceEvent ) );
     WaitForSingleObject( ( HANDLE )m_fenceEvent, INFINITE );
     mLastCompletedFenceValue = val;
-    TAC_ASSERT( mLastCompletedFenceValue == m_fence->GetCompletedValue() );
+    UINT64 completedValue = m_fence->GetCompletedValue();
+    TAC_ASSERT( mLastCompletedFenceValue == completedValue );
   }
 
   //void DX12CommandQueue::UpdateLastCompletedFenceValue(u64 val)
@@ -76,8 +77,8 @@ namespace Tac::Render
   bool DX12CommandQueue::IsFenceComplete( FenceSignal fenceValue )
   {
     const u64 val = fenceValue.GetValue();
-    if( val < mLastCompletedFenceValue )
-      return false;
+    if( val <= mLastCompletedFenceValue )
+      return true;
 
     mLastCompletedFenceValue = m_fence->GetCompletedValue();
     return val <= mLastCompletedFenceValue;

@@ -27,7 +27,7 @@ namespace Tac
   {
     TAC_ASSERT( mErrors && mApp );
 
-    DesktopAppThreads::SetType(DesktopAppThreads::ThreadType::Logic );
+    DesktopAppThreads::SetType( DesktopAppThreads::ThreadType::Logic );
 
     FrameMemoryInitThreadAllocator(  1024 * 1024 * 10  );
 

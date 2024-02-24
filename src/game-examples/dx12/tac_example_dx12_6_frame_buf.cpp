@@ -200,10 +200,8 @@ namespace Tac
 
   void DX12AppHelloFrameBuf::CreateTexture( Errors& errors )
   {
-    
     static bool sCreated;
-    if( sCreated )
-      return;
+    TAC_ASSERT(!sCreated);
     sCreated = true;
 
     // Note: ComPtr's are CPU objects but this resource needs to stay in scope until
@@ -338,18 +336,8 @@ namespace Tac
       textureUploadHeap->Unmap( subresourceIndex, nullptr);
     }
 
-    TAC_DX12_CALL( m_commandAllocator->Reset() );
-
-
     DX12ContextScope context = TAC_CALL( mContextManager.GetContext( errors ) );
-
-
     ID3D12GraphicsCommandList* m_commandList = context.GetCommandList();
-
-    TAC_DX12_CALL( m_commandList->Reset(
-      ( ID3D12CommandAllocator* )m_commandAllocator,
-      nullptr ) );
-
 
     for( int iSubRes = 0; iSubRes < nSubRes; ++iSubRes )
     {
@@ -379,7 +367,7 @@ namespace Tac
        .mTargetState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
     };
 
-    TransitionResource( transitionParams );
+    TransitionResource( m_commandList, transitionParams );
 
     // Describe and create a SRV for the texture.
     const D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {
@@ -395,20 +383,16 @@ namespace Tac
                                         &srvDesc,
                                         DestDescriptor);
     
-    // Indicates that recording to the command list has finished.
-    TAC_DX12_CALL( m_commandList->Close() );
-
-    const FenceSignal signalValue =
-      TAC_CALL( mCommandQueue.ExecuteCommandList( m_commandList.Get(), errors ));
 
     // wait until assets have been uploaded to the GPU.
     // Wait for the command list to execute; we are reusing the same command 
     // list in our main loop but for now, we just want to wait for setup to 
     // complete before continuing.
-    TAC_CALL(mCommandQueue.WaitForFence(signalValue, errors ));
+    context.ExecuteSynchronously();
   }
 
-  void DX12AppHelloFrameBuf::TransitionResource( TransitionParams params )
+  void DX12AppHelloFrameBuf::TransitionResource( ID3D12GraphicsCommandList* m_commandList,
+                                                 TransitionParams params )
   {
     const D3D12_RESOURCE_STATES StateBefore = *params.mCurrentState;
 
@@ -427,7 +411,7 @@ namespace Tac
       },
     };
 
-    ResourceBarrier( barrier );
+    ResourceBarrier( m_commandList, barrier );
 
     *params.mCurrentState = params.mTargetState;
   }
@@ -454,24 +438,6 @@ namespace Tac
     DX12SetName( m_commandAllocatorBundle, "Bundle Allocator" );
   }
 
-  void DX12AppHelloFrameBuf::CreateCommandList( Errors& errors )
-  {
-    // Create the command list
-    //
-    // Note: CreateCommandList1 creates it the command list in a closed state, as opposed to
-    //       CreateCommandList, which creates in a open state.
-    PCom< ID3D12CommandList > commandList;
-    TAC_DX12_CALL( m_device->CreateCommandList1( 0,
-                   D3D12_COMMAND_LIST_TYPE_DIRECT,
-                   D3D12_COMMAND_LIST_FLAG_NONE,
-                   commandList.iid(),
-                   commandList.ppv() ) );
-    TAC_ASSERT( commandList );
-    commandList.QueryInterface( m_commandList );
-    TAC_ASSERT( m_commandList );
-    DX12SetName( m_commandList, "My Command List" );
-  }
-
   void DX12AppHelloFrameBuf::CreateCommandListBundle( Errors& errors )
   {
     // Create the command list
@@ -493,10 +459,9 @@ namespace Tac
 
   void DX12AppHelloFrameBuf::CreateVertexBuffer( Errors& errors )
   {
-    static bool sCreated;
-    if( sCreated )
-      return;
-    sCreated = true;
+    static bool sInitialized;
+    TAC_ASSERT(!sInitialized);
+    sInitialized = true;
 
     const float m_aspectRatio = ( float )m_swapChainDesc.Width / ( float )m_swapChainDesc.Height;
 
@@ -611,16 +576,11 @@ namespace Tac
       m_vertexBufferUploadHeap->Unmap( 0, nullptr );
     }
 
-    if( !m_vertexBufferCopied )
+    DX12ContextScope context = TAC_CALL( mContextManager.GetContext( errors ) );
+    ID3D12GraphicsCommandList* m_commandList = context.GetCommandList();
+
+    // copy the vertex buffer
     {
-      m_vertexBufferCopied = true;
-
-
-      TAC_DX12_CALL( m_commandAllocator->Reset() );
-      TAC_DX12_CALL( m_commandList->Reset(
-        ( ID3D12CommandAllocator* )m_commandAllocator,
-        nullptr ) );
-
       const TransitionParams transition1
       {
         .mResource = (ID3D12Resource*)m_vertexBuffer,
@@ -629,7 +589,7 @@ namespace Tac
         // for the vertex shader byteaddressbuffer
         .mTargetState = D3D12_RESOURCE_STATE_COPY_DEST,
       };
-      TransitionResource( transition1 );
+      TransitionResource( m_commandList, transition1 );
 
       m_commandList->CopyBufferRegion( ( ID3D12Resource* )m_vertexBuffer, // dst
                                        0, // dstoffest
@@ -645,21 +605,14 @@ namespace Tac
         // for the vertex shader byteaddressbuffer
         .mTargetState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE,
       };
-      TransitionResource( transitionParams );
+      TransitionResource( m_commandList, transitionParams );
     }
-
-    // Indicates that recording to the command list has finished.
-    TAC_DX12_CALL( m_commandList->Close() );
-
-    const FenceSignal signalValue =
-      TAC_CALL( mCommandQueue.ExecuteCommandList( m_commandList.Get(), errors ) );
 
     // wait until assets have been uploaded to the GPU.
     // Wait for the command list to execute; we are reusing the same command 
     // list in our main loop but for now, we just want to wait for setup to 
     // complete before continuing.
-    TAC_CALL( mCommandQueue.WaitForFence(signalValue, errors ) ) ;
-
+    context.ExecuteSynchronously();
 
     TAC_CALL( CreateVertexBufferSRV( errors ) );
   }
@@ -779,8 +732,7 @@ namespace Tac
 
   void DX12AppHelloFrameBuf::DX12CreateSwapChain( Errors& errors )
   {
-    if( m_swapChain )
-      return;
+    TAC_ASSERT( !m_swapChain );
 
     const DesktopWindowState* state = GetDesktopWindowState( hDesktopWindow );
     const auto hwnd = ( HWND )state->mNativeWindowHandle;
@@ -860,10 +812,8 @@ namespace Tac
 
   void DX12AppHelloFrameBuf::CreateRenderTargetViews( Errors& errors )
   {
-    if( m_renderTargetInitialized )
-      return;
-
-    m_renderTargetInitialized = true;
+    TAC_ASSERT( !m_renderTargetInitialized );
+    m_renderTargetInitialized = true; // dont delete this var, its used elsewhere
 
     TAC_ASSERT( m_swapChain );
     TAC_ASSERT( m_device );
@@ -900,8 +850,10 @@ namespace Tac
     m_scissorRects = { m_scissorRect };
   }
 
-  void DX12AppHelloFrameBuf::TransitionRenderTarget( const int iRT,
-                                                    const D3D12_RESOURCE_STATES targetState )
+
+  void DX12AppHelloFrameBuf::TransitionRenderTarget( ID3D12GraphicsCommandList* m_commandList,
+                                                     const int iRT,
+                                                     const D3D12_RESOURCE_STATES targetState )
   {
     TransitionParams params
     {
@@ -910,10 +862,11 @@ namespace Tac
        .mTargetState = targetState,
     };
 
-    TransitionResource( params );
+    TransitionResource( m_commandList, params );
   }
 
-  void DX12AppHelloFrameBuf::ResourceBarrier( const D3D12_RESOURCE_BARRIER& barrier )
+  void DX12AppHelloFrameBuf::ResourceBarrier( ID3D12GraphicsCommandList* m_commandList,
+                                              const D3D12_RESOURCE_BARRIER& barrier )
   {
     // Resource barriers are used to manage resource transitions.
 
@@ -923,39 +876,70 @@ namespace Tac
     m_commandList->ResourceBarrier( ( UINT )barriers.size(), barriers.data() );
   }
 
+  void DX12AppHelloFrameBuf::RecordBundle()
+  {
+    static bool sRecorded;
+    TAC_ASSERT( !sRecorded );
+    sRecorded = true;
+
+    const D3D12_DRAW_ARGUMENTS drawArgs
+    {
+      .VertexCountPerInstance = 3,
+      .InstanceCount = 1,
+      .StartVertexLocation = 0,
+      .StartInstanceLocation = 0,
+    };
+
+#if 0
+    m_commandListBundle->Reset( m_commandAllocatorBundle.Get(), nullptr );
+    m_commandListBundle->SetPipelineState( ( ID3D12PipelineState* )mPipelineState );
+#else
+
+    m_commandListBundle->Reset( m_commandAllocatorBundle.Get(), mPipelineState.Get() );
+#endif
+
+    // Root signature... of the pipeline state?... which has already been created with said
+    // root signature?
+    //
+    // You can pass nullptr to unbind the current root signature.
+    //
+    // Since you can share root signatures between pipelines you only need to set the root sig
+    // when that should change
+    //
+    // for bundles... if this is the same as the root signature of the calling command list,
+    // then it will inherit bindings (descriptor tables? constant buffers?)
+    //
+    // Throws an error if the root signature doesnt match the pso
+    m_commandListBundle->SetGraphicsRootSignature( m_rootSignature.Get() );
+
+    m_commandListBundle->IASetPrimitiveTopology( D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
+
+    m_commandListBundle->DrawInstanced( drawArgs.VertexCountPerInstance,
+                                        drawArgs.InstanceCount,
+                                        drawArgs.StartVertexLocation,
+                                        drawArgs.StartInstanceLocation );
+
+    m_commandListBundle->Close();
+  }
+
   void DX12AppHelloFrameBuf::PopulateCommandList( Errors& errors )
   {
     // Record all the commands we need to render the scene into the command list.
 
-    // Command list allocators can only be reset when the associated 
-    // command lists have finished execution on the GPU; apps should use 
-    // fences to determine GPU execution progress.
-    //
-    // https://learn.microsoft.com/en-us/windows/win32/api/d3d12/nf-d3d12-id3d12commandallocator-reset
-    // ID3D12CommandAllocator::Reset
-    //   Indicates to re-use the memory that is associated with the command allocator.
-    //   From this call to Reset, the runtime and driver determine that the GPU is no longer
-    //   executing any command lists that have recorded commands with the command allocator.
-    TAC_DX12_CALL( m_commandAllocator->Reset() );
+    DX12ContextScope context = TAC_CALL( mContextManager.GetContext( errors ) );
+    ID3D12GraphicsCommandList* m_commandList = context.GetCommandList();
 
-    // However( when ExecuteCommandList() is called on a particular command 
-    // list, that command list can then be reset at any time and must be before 
-    // re-recording.
-    //
-    // ID3D12GraphicsCommandList::Reset
-    //
-    //   Resets a command list back to its initial state as if a new command list was just created.
-    //   After Reset succeeds, the command list is left in the "recording" state.
-    //
-    //   you can re-use command list tracking structures without any allocations
-    //   you can call Reset while the command list is still being executed
-    //   you can submit a cmd list, reset it, and reuse the allocated memory for another cmd list
+    // The associated pipeline state (IA, OM, RS, ... )
+    // that the command list will modify, all leading to a draw call?
+    m_commandList->SetPipelineState( ( ID3D12PipelineState* )mPipelineState );
+
+#if 0 // an alternative to SetPipelineState?
+
     TAC_DX12_CALL( m_commandList->Reset(
       ( ID3D12CommandAllocator* )m_commandAllocator,
 
-      // The associated pipeline state (IA, OM, RS, ... )
-      // that the command list will modify, all leading to a draw call?
       ( ID3D12PipelineState* )mPipelineState ) );
+#endif
 
     // sets the viewport of the pipeline state's rasterizer state?
     m_commandList->RSSetViewports( ( UINT )m_viewports.size(), m_viewports.data() );
@@ -1021,8 +1005,10 @@ namespace Tac
           sizeof( MyCBufType ),
           D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT );
 
+        GPUUploadAllocator& mUploadAllocator = context.mContext.mGPUUploadAllocator;
+
         GPUUploadAllocator::DynAlloc allocation =
-          TAC_CALL(mUploadAllocator.Allocate(byteCount, errors));
+          TAC_CALL( mUploadAllocator.Allocate( byteCount, errors ) );
 
         MemCpy( allocation.mCPUAddr, &cbuf, sizeof( MyCBufType ) );
 
@@ -1035,84 +1021,6 @@ namespace Tac
       }
     }
 
-    static bool recordedBundle;
-    if( !recordedBundle )
-    {
-      const D3D12_DRAW_ARGUMENTS drawArgs
-      {
-        .VertexCountPerInstance = 3,
-        .InstanceCount = 1,
-        .StartVertexLocation = 0,
-        .StartInstanceLocation = 0,
-      };
-
-#if 0
-      m_commandListBundle->Reset( m_commandAllocatorBundle.Get(), nullptr );
-      m_commandListBundle->SetPipelineState( ( ID3D12PipelineState* )mPipelineState );
-#else
-
-      m_commandListBundle->Reset( m_commandAllocatorBundle.Get(), mPipelineState.Get() );
-#endif
-
-      // Root signature... of the pipeline state?... which has already been created with said
-      // root signature?
-      //
-      // You can pass nullptr to unbind the current root signature.
-      //
-      // Since you can share root signatures between pipelines you only need to set the root sig
-      // when that should change
-      //
-      // for bundles... if this is the same as the root signature of the calling command list,
-      // then it will inherit bindings (descriptor tables? constant buffers?)
-      //
-      // Throws an error if the root signature doesnt match the pso
-      m_commandListBundle->SetGraphicsRootSignature( m_rootSignature.Get() );
-
-      m_commandListBundle->IASetPrimitiveTopology( D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
-
-      m_commandListBundle->DrawInstanced( drawArgs.VertexCountPerInstance,
-                                          drawArgs.InstanceCount,
-                                          drawArgs.StartVertexLocation,
-                                          drawArgs.StartInstanceLocation );
-
-#if 0
-      // DirectX-Graphics-Samples\Samples\Desktop\D3D12Bundles\src\FrameResource.cpp
-      // Here pCommandList is a bundle, drawing each object with its own constant buffer.
-
-      // Calculate the descriptor offset due to multiple frame resources.
-      // 1 SRV + how many CBVs we have currently.
-      UINT frameResourceDescriptorOffset =
-        1 + ( frameResourceIndex * m_cityRowCount * m_cityColumnCount );
-
-      CD3DX12_GPU_DESCRIPTOR_HANDLE cbvSrvHandle(
-        pCbvSrvDescriptorHeap->GetGPUDescriptorHandleForHeapStart(),
-        frameResourceDescriptorOffset,
-        cbvSrvDescriptorSize );
-
-      BOOL usePso1 = TRUE;
-      for( UINT i = 0; i < m_cityRowCount; i++ )
-      {
-        for( UINT j = 0; j < m_cityColumnCount; j++ )
-        {
-          // Alternate which PSO to use; the pixel shader is different on 
-          // each just as a PSO setting demonstration.
-          pCommandList->SetPipelineState( usePso1 ? pPso1 : pPso2 );
-          usePso1 = !usePso1;
-
-          // Set this city's CBV table and move to the next descriptor.
-          pCommandList->SetGraphicsRootDescriptorTable( 2, cbvSrvHandle );
-          cbvSrvHandle.Offset( cbvSrvDescriptorSize );
-
-          pCommandList->DrawIndexedInstanced( numIndices, 1, 0, 0, 0 );
-        }
-      }
-#endif
-
-
-      m_commandListBundle->Close();
-
-      recordedBundle = true;
-    }
 
     // no need to call ID3D12GraphicsCommandList::SetPipelineState( ID3D12PipelineState* ), I think
     // that's implicitly done by ID3D12GraphicsCommandList::Reset( ..., ID3D12PipelineState* )
@@ -1120,7 +1028,7 @@ namespace Tac
 
 
     // Indicate that the back buffer will be used as a render target.
-    TransitionRenderTarget( m_frameIndex, D3D12_RESOURCE_STATE_RENDER_TARGET );
+    TransitionRenderTarget( m_commandList, m_frameIndex, D3D12_RESOURCE_STATE_RENDER_TARGET );
 
     const Array rtCpuHDescs = { GetRTVCpuDescHandle( m_frameIndex ) };
 
@@ -1129,7 +1037,7 @@ namespace Tac
                                        false,
                                        nullptr );
 
-    ClearRenderTargetView();
+    ClearRenderTargetView(m_commandList);
 
 
     m_commandList->ExecuteBundle( ( ID3D12GraphicsCommandList* )m_commandListBundle );
@@ -1140,13 +1048,10 @@ namespace Tac
     // When a back buffer is presented, it must be in the D3D12_RESOURCE_STATE_PRESENT state.
     // If IDXGISwapChain1::Present1 is called on a resource which is not in the PRESENT state,
     // a debug layer warning will be emitted.
-    TransitionRenderTarget( m_frameIndex, D3D12_RESOURCE_STATE_PRESENT );
-
-    // Indicates that recording to the command list has finished.
-    TAC_DX12_CALL( m_commandList->Close() );
+    TransitionRenderTarget( m_commandList, m_frameIndex, D3D12_RESOURCE_STATE_PRESENT );
   }
 
-  void DX12AppHelloFrameBuf::ClearRenderTargetView()
+  void DX12AppHelloFrameBuf::ClearRenderTargetView( ID3D12GraphicsCommandList* m_commandList )
   {
     const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = GetRTVCpuDescHandle( m_frameIndex );
 
@@ -1212,11 +1117,6 @@ namespace Tac
 
   void         DX12AppHelloFrameBuf::PreSwapChainInit( Errors& errors)
   {
-    static bool didPreSwapChainInit;
-    if(didPreSwapChainInit)
-      return;
-
-    didPreSwapChainInit = true;
 
     TAC_CALL( DXGIInit( errors ) );
 
@@ -1224,15 +1124,15 @@ namespace Tac
     TAC_CALL( debugLayer.Init( errors ) );
 
     DX12DeviceInitializer deviceInitializer;
-    TAC_CALL(deviceInitializer.Init( debugLayer, errors ));
+    TAC_CALL( deviceInitializer.Init( debugLayer, errors ) );
 
-    m_device = deviceInitializer.GetDevice()
-      .QueryInterface<ID3D12Device5>();
-    m_debugDevice = deviceInitializer.GetDebugDevice()
-      .QueryInterface<ID3D12DebugDevice2 >();
+    m_device0 = deviceInitializer.GetDevice();
+    m_device = m_device0.QueryInterface<ID3D12Device5>();
+    m_debugDevice0 = deviceInitializer.GetDebugDevice();
+    m_debugDevice = m_debugDevice0.QueryInterface<ID3D12DebugDevice2 >();
 
     DX12InfoQueue infoQueue;
-    TAC_CALL(infoQueue.Init( debugLayer, m_device.Get(), errors ));
+    TAC_CALL( infoQueue.Init( debugLayer, m_device.Get(), errors ) );
 
     InitDescriptorSizes();
     TAC_CALL( mCommandQueue.Create( m_device.Get(), errors ) );
@@ -1240,13 +1140,19 @@ namespace Tac
     TAC_CALL( CreateSRVDescriptorHeap( errors ) );
     TAC_CALL( CreateCommandAllocator( errors ) );
     TAC_CALL( CreateCommandAllocatorBundle( errors ) );
-    TAC_CALL( CreateCommandList( errors ) );
     TAC_CALL( CreateCommandListBundle( errors ) );
     TAC_CALL( CreateRootSignature( errors ) );
     TAC_CALL( CreatePipelineState( errors ) );
     TAC_CALL( CreateSamplerDescriptorHeap( errors ) );
     TAC_CALL( CreateSampler( errors ) );
-    mUploadAllocator.Init( m_device.Get(), &mCommandQueue  );
+
+    mCommandAllocatorPool.Init( m_device0, &mCommandQueue );
+    mContextManager.Init( &mCommandAllocatorPool,
+                          &mCommandQueue,
+                          &mUploadPageManager,
+                          m_device0 );
+
+    mUploadPageManager.Init( m_device.Get(), &mCommandQueue );
   }
 
   void         DX12AppHelloFrameBuf::Update( Errors& errors )
@@ -1277,6 +1183,7 @@ namespace Tac
 
   void DX12AppHelloFrameBuf::RenderBegin( Errors& errors )
   {
+    TAC_ASSERT_INDEX(m_gpuFrameIndex, MAX_GPU_FRAME_COUNT);
     FenceSignal signalValue = mFenceValues[ m_gpuFrameIndex ];
     TAC_CALL( mCommandQueue.WaitForFence( signalValue, errors ) );
   }
@@ -1295,28 +1202,30 @@ namespace Tac
 
   void         DX12AppHelloFrameBuf::Render( RenderParams params, Errors& errors )
   {
-    TAC_CALL( RenderBegin( errors ) );
 
-    Errors e;
-    auto foo = Tac::Filesystem::GetFileLastModifiedTime( "C:/Users/Nate/Desktop/0.png", e );
 
     const State* oldState = ( State* )params.mOldState;
     const State* newState = ( State* )params.mNewState;
     const float t = params.mT;
     const float translateX = Lerp( oldState->mTranslateX, newState->mTranslateX, t );
 
-    TAC_CALL( PreSwapChainInit( errors ) );
-    TAC_CALL( DX12CreateSwapChain( errors ) );
-    TAC_CALL( CreateRenderTargetViews( errors ) );
-    TAC_CALL( CreateVertexBuffer( errors ) );
-    TAC_CALL( CreateTexture( errors ) );
+    static bool once;
+    if( !once )
+    {
+      once = true;
+      TAC_CALL( PreSwapChainInit( errors ) );
+      TAC_CALL( DX12CreateSwapChain( errors ) );
+      TAC_CALL( CreateRenderTargetViews( errors ) );
+      TAC_CALL( CreateVertexBuffer( errors ) );
+      TAC_CALL( CreateTexture( errors ) );
+      RecordBundle();
+    }
+
+    if( !GetDesktopWindowNativeHandle( hDesktopWindow ) )
+      return;
+
+    TAC_CALL( RenderBegin( errors ) );
     TAC_CALL( PopulateCommandList( errors ) );
-
-    const FenceSignal signalValue =
-      TAC_CALL( mCommandQueue.ExecuteCommandList( m_commandList.Get(), errors ) );
-
-    mUploadAllocator.FreeAll( signalValue );
-
     TAC_CALL( RenderEnd( errors ) );
   }
 
