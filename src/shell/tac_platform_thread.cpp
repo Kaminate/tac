@@ -5,7 +5,9 @@
 #include "src/common/profile/tac_profile.h"
 #include "src/common/system/tac_os.h"
 #include "src/common/graphics/tac_renderer.h"
+#include "src/common/shell/tac_shell_timestep.h"
 
+#include "src/shell/tac_render_state.h"
 #include "src/shell/tac_desktop_app.h"
 #include "src/shell/tac_desktop_app_threads.h"
 #include "src/shell/tac_desktop_event.h"
@@ -54,6 +56,18 @@ namespace Tac
       {
         TAC_CALL( Render::RenderFrame( errors ) );
       }
+
+      if( GameStateManager::Pair pair = sGameStateManager->Dequeue(); pair.IsValid() )
+      {
+        const App::RenderParams params
+        {
+          .mOldState = pair.mOldState,
+          .mNewState = pair.mNewState,
+          .mT = ShellGetInterpolationPercent(),
+        };
+        TAC_CALL( mApp->Render( params, errors ) );
+      }
+
 
       std::this_thread::sleep_for( std::chrono::milliseconds( 1 ) ); // Dont max out power usage
     }

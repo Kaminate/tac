@@ -922,7 +922,7 @@ namespace Tac
     m_commandListBundle->Close();
   }
 
-  void DX12AppHelloFrameBuf::PopulateCommandList( Errors& errors )
+  void DX12AppHelloFrameBuf::PopulateCommandList( float translateX, Errors& errors )
   {
     // Record all the commands we need to render the scene into the command list.
 
@@ -988,8 +988,7 @@ namespace Tac
           u32          mTexture;
         };
 
-        const float t = (float) Sin( ShellGetElapsedSeconds().mSeconds );
-        const m4 transform = m4::Translate( v3( t, 0, 0 ) );
+        const m4 transform = m4::Translate( v3( translateX, 0, 0 ) );
         MyCBufType cbuf
         {
           .mWorld = transform,
@@ -1028,9 +1027,9 @@ namespace Tac
 
 
     // Indicate that the back buffer will be used as a render target.
-    TransitionRenderTarget( m_commandList, m_frameIndex, D3D12_RESOURCE_STATE_RENDER_TARGET );
+    TransitionRenderTarget( m_commandList, m_backbufferIndex, D3D12_RESOURCE_STATE_RENDER_TARGET );
 
-    const Array rtCpuHDescs = { GetRTVCpuDescHandle( m_frameIndex ) };
+    const Array rtCpuHDescs = { GetRTVCpuDescHandle( m_backbufferIndex ) };
 
     m_commandList->OMSetRenderTargets( ( UINT )rtCpuHDescs.size(),
                                        rtCpuHDescs.data(),
@@ -1048,12 +1047,12 @@ namespace Tac
     // When a back buffer is presented, it must be in the D3D12_RESOURCE_STATE_PRESENT state.
     // If IDXGISwapChain1::Present1 is called on a resource which is not in the PRESENT state,
     // a debug layer warning will be emitted.
-    TransitionRenderTarget( m_commandList, m_frameIndex, D3D12_RESOURCE_STATE_PRESENT );
+    TransitionRenderTarget( m_commandList, m_backbufferIndex, D3D12_RESOURCE_STATE_PRESENT );
   }
 
   void DX12AppHelloFrameBuf::ClearRenderTargetView( ID3D12GraphicsCommandList* m_commandList )
   {
-    const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = GetRTVCpuDescHandle( m_frameIndex );
+    const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = GetRTVCpuDescHandle( m_backbufferIndex );
 
 #if 0
     const double speed = 3;
@@ -1160,8 +1159,8 @@ namespace Tac
     if( !GetDesktopWindowNativeHandle( hDesktopWindow ) )
       return;
 
-    mState.mTranslateX = ( float )Sin( ShellGetElapsedSeconds().mSeconds );
-
+    const double t = ShellGetElapsedSeconds().mSeconds;
+    mState.mTranslateX = ( float )Sin( t );
   }
 
   void         DX12AppHelloFrameBuf::Uninit( Errors& errors )
@@ -1183,20 +1182,23 @@ namespace Tac
 
   void DX12AppHelloFrameBuf::RenderBegin( Errors& errors )
   {
-    TAC_ASSERT_INDEX(m_gpuFrameIndex, MAX_GPU_FRAME_COUNT);
-    FenceSignal signalValue = mFenceValues[ m_gpuFrameIndex ];
+    TAC_ASSERT_INDEX( m_gpuFlightFrameIndex, MAX_GPU_FRAME_COUNT );
+
+    const FenceSignal signalValue = mFenceValues[ m_gpuFlightFrameIndex ];
     TAC_CALL( mCommandQueue.WaitForFence( signalValue, errors ) );
   }
 
   void DX12AppHelloFrameBuf::RenderEnd( Errors& errors )
   {
-    mFenceValues[ m_gpuFrameIndex ] = TAC_CALL( mCommandQueue.IncrementFence( errors ) );
+    mFenceValues[ m_gpuFlightFrameIndex ] = TAC_CALL( mCommandQueue.IncrementFence( errors ) );
     TAC_CALL( SwapChainPresent( errors ) );
 
-    m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();
-    m_gpuFrameIndex++;
+    m_backbufferIndex = m_swapChain->GetCurrentBackBufferIndex();
+    mSentGPUFrameCount++;
+    ++m_gpuFlightFrameIndex %= MAX_GPU_FRAME_COUNT;
 
-    TAC_ASSERT( m_frameIndex == m_gpuFrameIndex % SWAP_CHAIN_BUFFER_COUNT );
+    TAC_ASSERT( m_backbufferIndex == mSentGPUFrameCount % SWAP_CHAIN_BUFFER_COUNT );
+    TAC_ASSERT( m_gpuFlightFrameIndex == mSentGPUFrameCount % MAX_GPU_FRAME_COUNT );
   }
    
 
@@ -1207,6 +1209,9 @@ namespace Tac
     const State* oldState = ( State* )params.mOldState;
     const State* newState = ( State* )params.mNewState;
     const float t = params.mT;
+
+    OS::OSDebugPrintLine( "T: " + ToString( t ) );
+
     const float translateX = Lerp( oldState->mTranslateX, newState->mTranslateX, t );
 
     static bool once;
@@ -1225,7 +1230,8 @@ namespace Tac
       return;
 
     TAC_CALL( RenderBegin( errors ) );
-    TAC_CALL( PopulateCommandList( errors ) );
+    TAC_CALL( PopulateCommandList( translateX, errors ) );
+    //TAC_CALL( PopulateCommandList( oldState->mTranslateX, errors ) );
     TAC_CALL( RenderEnd( errors ) );
   }
 

@@ -16,7 +16,7 @@ namespace Tac
     struct Pair
     {
       ~Pair();
-      operator bool() { return mOldState && mNewState; }
+      bool IsValid() const { return mOldState && mNewState; }
 
       App::IState* mOldState;
       int*         mOldUsedCounter;

@@ -4,6 +4,7 @@ namespace Tac
 {
   struct Errors;
   struct App;
+  struct GameStateManager;
 
   struct LogicThread
   {
@@ -13,6 +14,7 @@ namespace Tac
 
     App*    mApp = nullptr;
     Errors* mErrors = nullptr;
+    GameStateManager* sGameStateManager = nullptr;
   };
 
 }

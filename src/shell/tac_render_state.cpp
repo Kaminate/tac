@@ -4,7 +4,7 @@ import std; // mutex
 
 namespace Tac
 {
-  static std::mutex sMutex;
+  static std::mutex sMutex; // protects mElements
 
   void GameStateManager::Enqueue( App::IState* state )
   {
@@ -13,11 +13,17 @@ namespace Tac
 
     TAC_SCOPE_GUARD( std::lock_guard, sMutex );
 
-    auto it = mElements.begin();
-    while( mElements.size() > 2 && !it->mUsedCounter )
+    // leave 2 elements, so something can be dequeued
+    int n = mElements.size();
+    while( n > 2 )
     {
-      TAC_DELETE it->mState;
-      it = mElements.erase( it );
+      Element& element = mElements.front();
+      if( element.mUsedCounter )
+        break;
+
+      TAC_DELETE element.mState;
+      mElements.pop_front();
+      n--;
     }
 
     Element element
@@ -26,42 +32,44 @@ namespace Tac
       .mUsedCounter = 0,
     };
     mElements.push_back( element );
+    TAC_ASSERT_MSG( mElements.size() < 10, "sanity check" );
   }
 
   GameStateManager::Pair GameStateManager::Dequeue()
   {
     TAC_SCOPE_GUARD( std::lock_guard, sMutex );
 
-    if( mElements.size() < 2 )
+    if( const int n = mElements.size(); n < 2 )
       return {};
 
     auto it = mElements.rbegin();
-    
-    App::IState* newState = it->mState;
-    int* newCounter = &it->mUsedCounter;
+    Element& newStateElement = *it--;
+    Element& oldStateElement = *it--;
 
-    --it;
+    TAC_ASSERT( oldStateElement.mState != newStateElement.mState );
+    oldStateElement.mUsedCounter++;
+    newStateElement.mUsedCounter++;
 
-    App::IState* oldState = it->mState;
-    int* oldCounter = &it->mUsedCounter;
-
-    Pair pair
+    return Pair 
     {
-      .mOldState = newState,
-      .mOldUsedCounter = oldCounter,
-      .mNewState = newState,
-      .mNewUsedCounter = newCounter,
+      .mOldState = oldStateElement.mState,
+      .mOldUsedCounter = &oldStateElement.mUsedCounter,
+      .mNewState = newStateElement.mState,
+      .mNewUsedCounter = &newStateElement.mUsedCounter,
     };
-
-    return pair;
   }
 
   GameStateManager::Pair::~Pair()
   {
-    if( mOldState && mNewState )
-    {
-      ( *mOldUsedCounter )--;
-      ( *mNewUsedCounter )--;
-    }
+    if( !IsValid() )
+      return;
+
+    int& n1 = *mOldUsedCounter;
+    int& n2 = *mNewUsedCounter;
+    n1--;
+    n2--;
+
+    TAC_ASSERT( n1 >= 0 && n1 <= 2 );
+    TAC_ASSERT( n2 >= 0 && n2 <= 2 );
   };
 } // namespace Tac

@@ -48,7 +48,7 @@ namespace Tac
 
     struct State : public IState
     {
-      float mTranslateX;
+      float mTranslateX = 0;
     };
 
 
@@ -103,7 +103,7 @@ namespace Tac
     D3D12_GPU_DESCRIPTOR_HANDLE OffsetGpuDescHandle( D3D12_GPU_DESCRIPTOR_HANDLE,
                                                      D3D12_DESCRIPTOR_HEAP_TYPE,
                                                      int ) const;
-    void PopulateCommandList( Errors& );
+    void PopulateCommandList( float translateX, Errors& );
     void ResourceBarrier( ID3D12GraphicsCommandList*, const D3D12_RESOURCE_BARRIER& );
 
     struct TransitionParams
@@ -202,8 +202,13 @@ namespace Tac
     // Index of the render target that
     // 1. our commands will be drawing onto
     // 2. our swap chain will present to the monitor
-    UINT                               m_frameIndex{}; // todo: rename backbuffer idx
-    u64                                m_gpuFrameIndex = 0;
+    int                                m_backbufferIndex{};
+
+    // total number of frames sent to the gpu
+    u64                                mSentGPUFrameCount = 0;
+
+    // index of the next gpu frame to be in-flight ( see also MAX_GPU_FRAME_COUNT )
+    u64                                m_gpuFlightFrameIndex = 0;
 
 
     DX12CommandQueue                   mCommandQueue;
@@ -211,9 +216,9 @@ namespace Tac
     DX12ContextManager                 mContextManager;
     GPUUploadPageManager               mUploadPageManager;
 
-    State mState;
+    State                              mState;
 
-    FenceSignal mFenceValues[ MAX_GPU_FRAME_COUNT ]{};
+    FenceSignal                        mFenceValues[ MAX_GPU_FRAME_COUNT ]{};
   };
 } // namespace Tac
 

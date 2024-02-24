@@ -21,7 +21,6 @@
 
 namespace Tac
 {
-  static GameStateManager              sGameStateManager;
 
   void LogicThread::Init( Errors& errors )
   {
@@ -107,21 +106,9 @@ namespace Tac
 
       ShellIncrementFrameCounter();
 
-      {
-        App::IState* gameState = mApp->GetGameState();
-        sGameStateManager.Enqueue( gameState );
-      }
+      App::IState* gameState = mApp->GetGameState();
+      sGameStateManager->Enqueue( gameState );
 
-      if( GameStateManager::Pair gameStatePair = sGameStateManager.Dequeue() )
-      {
-        const App::RenderParams params
-        {
-          .mOldState = gameStatePair.mOldState,
-          .mNewState = gameStatePair.mNewState,
-          .mT = ShellGetInterpolationPercent(),
-        };
-        TAC_CALL( mApp->Render( params, errors ) );
-      }
 
       if( mApp->IsRenderEnabled() )
         Render::SubmitFrame();

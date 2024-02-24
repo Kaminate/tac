@@ -49,6 +49,7 @@ namespace Tac
 
   static App*                          sApp;
 
+  static GameStateManager              sGameStateManager;
   static DesktopApp                    sDesktopApp;
 
   // -----------------------------------------------------------------------------------------------
@@ -92,13 +93,15 @@ namespace Tac
     LogicThread sLogicThread =
     {
       .mApp = sApp,
-      .mErrors = &gLogicThreadErrors
+      .mErrors = &gLogicThreadErrors,
+      .sGameStateManager = &sGameStateManager,
     };
 
     PlatformThread sPlatformThread =
     {
       .mApp = sApp,
       .mErrors = &gLogicThreadErrors,
+      .sGameStateManager = &sGameStateManager,
     };
 
     std::thread logicThread( &LogicThread::Update, sLogicThread, std::ref( gLogicThreadErrors ) );
