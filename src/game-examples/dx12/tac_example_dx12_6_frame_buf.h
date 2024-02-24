@@ -103,7 +103,7 @@ namespace Tac
     D3D12_GPU_DESCRIPTOR_HANDLE OffsetGpuDescHandle( D3D12_GPU_DESCRIPTOR_HANDLE,
                                                      D3D12_DESCRIPTOR_HEAP_TYPE,
                                                      int ) const;
-    void PopulateCommandList( float translateX, Errors& );
+    void PopulateCommandList( DX12ContextScope&, float translateX, float translateY, float scale, Errors& );
     void ResourceBarrier( ID3D12GraphicsCommandList*, const D3D12_RESOURCE_BARRIER& );
 
     struct TransitionParams

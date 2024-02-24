@@ -922,16 +922,16 @@ namespace Tac
     m_commandListBundle->Close();
   }
 
-  void DX12AppHelloFrameBuf::PopulateCommandList( float translateX, Errors& errors )
+  void DX12AppHelloFrameBuf::PopulateCommandList( DX12ContextScope& context,
+                                                  float translateX,
+                                                  float translateY,
+                                                  float scale,
+                                                  Errors& errors )
   {
     // Record all the commands we need to render the scene into the command list.
 
-    DX12ContextScope context = TAC_CALL( mContextManager.GetContext( errors ) );
     ID3D12GraphicsCommandList* m_commandList = context.GetCommandList();
 
-    // The associated pipeline state (IA, OM, RS, ... )
-    // that the command list will modify, all leading to a draw call?
-    m_commandList->SetPipelineState( ( ID3D12PipelineState* )mPipelineState );
 
 #if 0 // an alternative to SetPipelineState?
 
@@ -988,7 +988,7 @@ namespace Tac
           u32          mTexture;
         };
 
-        const m4 transform = m4::Translate( v3( translateX, 0, 0 ) );
+        const m4 transform = m4::Translate( v3( translateX, translateY, 0 ) ) * m4::Scale( v3( scale ) );
         MyCBufType cbuf
         {
           .mWorld = transform,
@@ -1026,28 +1026,11 @@ namespace Tac
 
 
 
-    // Indicate that the back buffer will be used as a render target.
-    TransitionRenderTarget( m_commandList, m_backbufferIndex, D3D12_RESOURCE_STATE_RENDER_TARGET );
-
-    const Array rtCpuHDescs = { GetRTVCpuDescHandle( m_backbufferIndex ) };
-
-    m_commandList->OMSetRenderTargets( ( UINT )rtCpuHDescs.size(),
-                                       rtCpuHDescs.data(),
-                                       false,
-                                       nullptr );
-
-    ClearRenderTargetView(m_commandList);
 
 
     m_commandList->ExecuteBundle( ( ID3D12GraphicsCommandList* )m_commandListBundle );
 
 
-    // Indicate that the back buffer will now be used to present.
-    //
-    // When a back buffer is presented, it must be in the D3D12_RESOURCE_STATE_PRESENT state.
-    // If IDXGISwapChain1::Present1 is called on a resource which is not in the PRESENT state,
-    // a debug layer warning will be emitted.
-    TransitionRenderTarget( m_commandList, m_backbufferIndex, D3D12_RESOURCE_STATE_PRESENT );
   }
 
   void DX12AppHelloFrameBuf::ClearRenderTargetView( ID3D12GraphicsCommandList* m_commandList )
@@ -1160,7 +1143,7 @@ namespace Tac
       return;
 
     const double t = ShellGetElapsedSeconds().mSeconds;
-    mState.mTranslateX = ( float )Sin( t );
+    mState.mTranslateX = ( float )Sin( t * 0.2f );
   }
 
   void         DX12AppHelloFrameBuf::Uninit( Errors& errors )
@@ -1230,8 +1213,46 @@ namespace Tac
       return;
 
     TAC_CALL( RenderBegin( errors ) );
-    TAC_CALL( PopulateCommandList( translateX, errors ) );
-    //TAC_CALL( PopulateCommandList( oldState->mTranslateX, errors ) );
+
+    {
+      DX12ContextScope context = TAC_CALL( mContextManager.GetContext( errors ) );
+      ID3D12GraphicsCommandList* m_commandList = context.GetCommandList();
+
+      // The associated pipeline state (IA, OM, RS, ... )
+      // that the command list will modify, all leading to a draw call?
+      m_commandList->SetPipelineState( ( ID3D12PipelineState* )mPipelineState );
+
+
+      // Indicate that the back buffer will be used as a render target.
+      TransitionRenderTarget( m_commandList, m_backbufferIndex, D3D12_RESOURCE_STATE_RENDER_TARGET );
+
+      const Array rtCpuHDescs = { GetRTVCpuDescHandle( m_backbufferIndex ) };
+
+      m_commandList->OMSetRenderTargets( ( UINT )rtCpuHDescs.size(),
+                                         rtCpuHDescs.data(),
+                                         false,
+                                         nullptr );
+
+      ClearRenderTargetView( m_commandList );
+
+
+      // note: y is up
+      TAC_CALL( PopulateCommandList( context, translateX, 0, 1, errors ) );
+      float oldTranslateY = 0; // -0.5f;
+      float newTranslateY = 0; // 0.5f;
+      float oldScale = 0.5f; // -0.5f;
+      float newScale = 0.5f; // 0.5f;
+      TAC_CALL( PopulateCommandList( context, oldState->mTranslateX, oldTranslateY, oldScale, errors ) );
+      TAC_CALL( PopulateCommandList( context, newState->mTranslateX, newTranslateY, newScale, errors ) );
+
+
+      // Indicate that the back buffer will now be used to present.
+      //
+      // When a back buffer is presented, it must be in the D3D12_RESOURCE_STATE_PRESENT state.
+      // If IDXGISwapChain1::Present1 is called on a resource which is not in the PRESENT state,
+      // a debug layer warning will be emitted.
+      TransitionRenderTarget( m_commandList, m_backbufferIndex, D3D12_RESOURCE_STATE_PRESENT );
+    }
     TAC_CALL( RenderEnd( errors ) );
   }
 
