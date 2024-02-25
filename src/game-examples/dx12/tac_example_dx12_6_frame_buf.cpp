@@ -22,6 +22,7 @@
 #include "src/common/shell/tac_shell_timestep.h"
 #include "src/common/system/tac_os.h"
 #include "src/common/shell/tac_shell.h"
+#include "src/common/algorithm/tac_algorithm.h"
 
 #include "src/shell/tac_desktop_app.h"
 #include "src/shell/tac_desktop_window_settings_tracker.h"
@@ -752,6 +753,7 @@ namespace Tac
     };
     m_swapChain = TAC_CALL( DXGICreateSwapChain( scInfo, errors ) );
     TAC_CALL( m_swapChain->GetDesc1( &m_swapChainDesc ) );
+
   }
 
   D3D12_CPU_DESCRIPTOR_HANDLE DX12AppHelloFrameBuf::OffsetCpuDescHandle(
@@ -1039,7 +1041,7 @@ namespace Tac
 
 #if 0
     const double speed = 3;
-    const auto t = ( float )Sin( ShellGetElapsedSeconds() * speed ) * 0.5f + 0.5f;
+    const auto t = ( float )Sin( Timestep::GetElapsedTime() * speed ) * 0.5f + 0.5f;
 
     // Record commands.
     const v4 clearColor = { t, 0.2f, 0.4f, 1.0f };
@@ -1054,6 +1056,10 @@ namespace Tac
     TAC_ASSERT( m_renderTargetInitialized );
 
     // Present the frame.
+
+    // Q: What does it mean to 'present' the frame?
+    //    ... it is added to the present queue(?)
+
 
     // [x] Q: What is the frame?
     //        Is it the current frame?
@@ -1142,7 +1148,7 @@ namespace Tac
     if( !GetDesktopWindowNativeHandle( hDesktopWindow ) )
       return;
 
-    const double t = ShellGetElapsedSeconds().mSeconds;
+    const double t = Timestep::GetElapsedTime().mSeconds;
     mState.mTranslateX = ( float )Sin( t * 0.2f );
   }
 
@@ -1193,8 +1199,6 @@ namespace Tac
     const State* newState = ( State* )params.mNewState;
     const float t = params.mT;
 
-    OS::OSDebugPrintLine( "T: " + ToString( t ) );
-
     const float translateX = Lerp( oldState->mTranslateX, newState->mTranslateX, t );
 
     static bool once;
@@ -1237,13 +1241,29 @@ namespace Tac
 
 
       // note: y is up
-      TAC_CALL( PopulateCommandList( context, translateX, 0, 1, errors ) );
-      float oldTranslateY = 0; // -0.5f;
-      float newTranslateY = 0; // 0.5f;
-      float oldScale = 0.5f; // -0.5f;
-      float newScale = 0.5f; // 0.5f;
-      TAC_CALL( PopulateCommandList( context, oldState->mTranslateX, oldTranslateY, oldScale, errors ) );
-      TAC_CALL( PopulateCommandList( context, newState->mTranslateX, newTranslateY, newScale, errors ) );
+      float curTranslateX = translateX;
+      float curTranslateY = 0;
+      float curScale = 0.10f;
+
+      float oldTranslateX = oldState->mTranslateX;
+      static float oldTranslateY = -0.1f;
+      static float oldScale = 0.2f; // -0.5f;
+
+      float newTranslateX = newState->mTranslateX;
+      static float newTranslateY = 0.1f;
+      static float newScale = 0.5f; // 0.5f;
+
+      static float prevOldTranslateX = oldTranslateX;
+      if( prevOldTranslateX != oldTranslateX )
+      {
+        prevOldTranslateX = oldTranslateX;
+        Swap( oldScale, newScale );
+        Swap( oldTranslateY, newTranslateY );
+      }
+
+      TAC_CALL( PopulateCommandList( context, oldTranslateX, oldTranslateY, oldScale, errors ) );
+      TAC_CALL( PopulateCommandList( context, newTranslateX, newTranslateY, newScale, errors ) );
+      TAC_CALL( PopulateCommandList( context, curTranslateX, curTranslateY, curScale, errors ) );
 
 
       // Indicate that the back buffer will now be used to present.

@@ -1,6 +1,7 @@
 #include "tac_platform_thread.h" // self-inc
 
 #include "src/common/error/tac_error_handling.h"
+#include "src/common/math/tac_math.h" // Clamp
 #include "src/common/memory/tac_frame_memory.h"
 #include "src/common/profile/tac_profile.h"
 #include "src/common/system/tac_os.h"
@@ -16,6 +17,7 @@
 
 namespace Tac
 {
+  static bool sVerbose;
   void PlatformThread::Uninit()
   {
     Errors& errors = *mErrors;
@@ -57,13 +59,36 @@ namespace Tac
         TAC_CALL( Render::RenderFrame( errors ) );
       }
 
+      // Interpolate between game states and render
+      //
+      // Explanation:
+      //   Suppose we have game states A, B, and C, except C doesn't exist yet, because C is in
+      //   the future. If the current time is 25% of the way from B to C, we render (25% A + 75% B).
+      //   This introduces some latency at the expense of misprediction (the alternative is 
+      //   predicting 125% B)
       if( GameStateManager::Pair pair = sGameStateManager->Dequeue(); pair.IsValid() )
       {
+        const TimestampDifference dt = pair.mNewState->mTimestamp - pair.mOldState->mTimestamp;
+        const Timepoint prevTime = pair.mNewState->mTimepoint;
+        const Timepoint currTime = Timestep::GetLastTick();
+
+        float t = ( currTime - prevTime ) / dt;
+
+        // if currTime is inbetween pair.mOldState->mTimestamp and pair.mNewState->mTimestamp,
+        // then we should instead of picking the two most recent simulation states, should pick
+        // a pair thats one frame less recent
+        TAC_ASSERT( t >= 0 );
+
+        if( sVerbose )
+          OS::OSDebugPrintLine( String() + "unminned t: " + ToString( t ) );
+
+        t = Min( t, 1.0f );
+
         const App::RenderParams params
         {
-          .mOldState = pair.mOldState,
-          .mNewState = pair.mNewState,
-          .mT = ShellGetInterpolationPercent(),
+          .mOldState = pair.mOldState, // A
+          .mNewState = pair.mNewState, // B
+          .mT = t, // inbetween B and (future) C
         };
         TAC_CALL( mApp->Render( params, errors ) );
       }

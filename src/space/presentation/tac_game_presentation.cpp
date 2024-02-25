@@ -95,7 +95,7 @@ namespace Tac
                                                 const int viewWidth,
                                                 const int viewHeight )
   {
-    const Timestamp elapsedSeconds = ShellGetElapsedSeconds();
+    const Timestamp elapsedSeconds = Timestep::GetElapsedTime();
     const Render::InProj inProj = { .mNear = camera->mNearPlane, .mFar = camera->mFarPlane };
     const Render::OutProj outProj = Render::GetPerspectiveProjectionAB( inProj );
     const float a = outProj.mA;

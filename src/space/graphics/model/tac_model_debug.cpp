@@ -44,7 +44,7 @@ namespace Tac
 
       static bool needsRefresh = true;
       static Timestamp refreshSecTimestamp;
-      const Timestamp curSecTimestamp = ShellGetElapsedSeconds();
+      const Timestamp curSecTimestamp = Timestep::GetElapsedTime();
       if( needsRefresh || ImGuiButton( "Refresh Model List" ) )
       {
         getfilesErrors.clear();
@@ -194,7 +194,7 @@ namespace Tac
     const Mesh* mesh = GamePresentationGetModelMesh( model );
     if( !mesh )
     {
-      const String ellipses( "...", ( int )ShellGetElapsedSeconds() % 4 );
+      const String ellipses( "...", ( int )Timestep::GetElapsedTime() % 4 );
       ImGuiText( "Loading" + ellipses );
       return;
     }

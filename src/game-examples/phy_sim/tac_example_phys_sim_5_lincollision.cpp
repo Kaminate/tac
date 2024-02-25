@@ -199,7 +199,7 @@ namespace Tac
     Sim5ResolveCollision( collisionResult, mPlayer, mObstacle );
 
     if(spin)
-        mPlayer.mAngRot = m3::RotRadZ( (float)ShellGetElapsedSeconds() );
+        mPlayer.mAngRot = m3::RotRadZ( (float)Timestep::GetElapsedTime() );
 
 
     DrawObject( mPlayer );

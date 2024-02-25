@@ -395,8 +395,8 @@ namespace Tac
 
     float r = 1.4f;
     float speed = 2.0f;
-    p.x = ( float )Cos( speed * ShellGetElapsedSeconds() ) * r;
-    p.y = ( float )Sin( speed * ShellGetElapsedSeconds() ) * r;
+    p.x = ( float )Cos( speed * Timestep::GetElapsedTime() ) * r;
+    p.y = ( float )Sin( speed * Timestep::GetElapsedTime() ) * r;
 
     p += GetWorldspaceKeyboardDir() * 0.1f;
 
@@ -439,7 +439,7 @@ namespace Tac
     Render();
 
     if( dorot )
-      mPlayer.mAngRot = m3::RotRadZ( ( float )ShellGetElapsedSeconds() );
+      mPlayer.mAngRot = m3::RotRadZ( ( float )Timestep::GetElapsedTime() );
 
     TestLineSegmentPoint();
     UI();

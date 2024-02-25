@@ -188,7 +188,7 @@ namespace Tac
 
 		const String s =
 			"ScriptGameClient messsage: elapsed time is " +
-			FormatFrameTime( ShellGetElapsedSeconds() );
+			FormatFrameTime( Timestep::GetElapsedTime() );
 
 		Json json;
 		json[ "name" ].SetString( "Ping" );
@@ -279,7 +279,7 @@ namespace Tac
 		//String hostname = SettingsGetString( "hostname" , defaultHostname );
 		mPort = ( u16 )SettingsGetNumber( "port" , ( JsonNumber )defaultPort );
 
-		mConnectionAttemptStartSeconds = ShellGetElapsedSeconds();
+		mConnectionAttemptStartSeconds = Timestep::GetElapsedTime();
 
     {
       String text;
@@ -513,7 +513,7 @@ namespace Tac
 		//{
 		//  String utf8 = "Trying to connect";
 		//  int maxDotCount = 3;
-		//  double elapsedSeconds = ShellGetElapsedSeconds() - scriptMatchmaker->mConnectionAttemptStartSeconds;
+		//  double elapsedSeconds = Timestep::GetElapsedTime() - scriptMatchmaker->mConnectionAttemptStartSeconds;
 		//  double partialDotSeconds = std::fmod( elapsedSeconds, ( double )( ( maxDotCount + 1 ) * dotPeriodSeconds ) );
 		//  for( int i = 0; i < int( partialDotSeconds / dotPeriodSeconds ); ++i )
 		//    utf8 += '.';
@@ -526,7 +526,7 @@ namespace Tac
 		//if( mUITextPressStart )
 		//{
 		//  double pressStartPeriod = 2.0f;
-		//  double s = std::fmod( ShellGetElapsedSeconds(), pressStartPeriod );
+		//  double s = std::fmod( Timestep::GetElapsedTime(), pressStartPeriod );
 		//  bool b = s > pressStartPeriod * 0.5f;
 		//  if( mPressStart != b )
 		//  {
@@ -548,7 +548,7 @@ namespace Tac
 		////UIAnchorHorizontal menuAnchorHorizontal = UIAnchorHorizontal::Left;
 		////UIAnchorVertical menuAnchorVertical = UIAnchorVertical::Center;
 
-		//double timelineSeconds = ShellGetElapsedSeconds();
+		//double timelineSeconds = Timestep::GetElapsedTime();
 
 		////auto createGameTitle = [ = ]()
 		////{
@@ -783,7 +783,7 @@ namespace Tac
 		//TAC_TIMELINE_KEYFRAME;
 
 
-		//TAC_CALL(mTimeline.Update( ShellGetElapsedSeconds(), errors ));
+		//TAC_CALL(mTimeline.Update( Timestep::GetElapsedTime(), errors ));
 
 		//return;
 
@@ -911,7 +911,7 @@ namespace Tac
 		//    status == JobState::ThreadRunning )
 		//  {
 		//    String text = "Connecting to server";
-		//    for( int i = 0; i < ( int )ShellGetElapsedSeconds() % 4; ++i )
+		//    for( int i = 0; i < ( int )Timestep::GetElapsedTime() % 4; ++i )
 		//      text += ".";
 		//    ImGuiText( text );
 		//  }

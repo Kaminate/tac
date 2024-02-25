@@ -601,7 +601,7 @@ namespace Tac
         Render::PremultipliedAlpha arrowColor = axisPremultipliedColor;
         if( shine )
         {
-          float t = float( Sin( ShellGetElapsedSeconds() * 6.0 ) );
+          float t = float( Sin( Timestep::GetElapsedTime() * 6.0 ) );
           t *= t;
           arrowColor.Color = Lerp( v4( 1, 1, 1, 1 ), axisPremultipliedColor.Color, t );
 
@@ -812,7 +812,7 @@ namespace Tac
         cam->SetForwards( SnapToUnitDir( cam->mForwards ) );
     }
 
-    if( ShellGetElapsedSeconds() < mStatusMessageEndTime )
+    if( Timestep::GetElapsedTime() < mStatusMessageEndTime )
     {
       ImGuiText( mStatusMessage );
     }
@@ -1112,7 +1112,7 @@ namespace Tac
   void CreationGameWindow::SetStatusMessage( const StringView& msg,
                                              const TimestampDifference& duration )
   {
-    const Timestamp curTime = ShellGetElapsedSeconds();
+    const Timestamp curTime = Timestep::GetElapsedTime();
     mStatusMessage = msg;
     mStatusMessageEndTime = curTime + duration;
   }

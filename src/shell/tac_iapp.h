@@ -4,6 +4,9 @@
 #include "src/common/tac_core.h"
 #include "src/common/system/tac_desktop_window.h"
 #include "src/common/containers/tac_list.h"
+#include "src/common/shell/tac_shell_timestep.h" // FrameIndex
+#include "src/common/shell/tac_shell_timestamp.h" // Timestamp
+#include "src/common/shell/tac_shell_timer.h" // Timepoint
 
 namespace Tac
 {
@@ -12,6 +15,10 @@ namespace Tac
     struct IState
     {
       virtual ~IState() = default;
+
+      FrameIndex mFrameIndex{};
+      Timestamp  mTimestamp{};
+      Timepoint  mTimepoint{};
     };
 
     struct Config

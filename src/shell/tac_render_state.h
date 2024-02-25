@@ -29,6 +29,9 @@ namespace Tac
     void Enqueue( App::IState* ); // takes ownership
     Pair Dequeue();
 
+  private:
+    void CleanUnneeded();
+
     List< Element > mElements;
   };
 } // namespace Tac

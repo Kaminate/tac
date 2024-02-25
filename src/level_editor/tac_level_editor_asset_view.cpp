@@ -130,7 +130,7 @@ namespace Tac
 
   static Map< AssetPathString, AssetViewImportedModel* > sLoadedModels;
 
-  static String LoadEllipses() { return String( "...", ( int )ShellGetElapsedSeconds() % 4 ); }
+  static String LoadEllipses() { return String( "...", ( int )Timestep::GetElapsedTime() % 4 ); }
 
   static AssetViewImportedModel* GetLoadedModel( const AssetPathStringView& path )
   {

@@ -137,7 +137,7 @@ namespace Tac
     const float b = outProj.mB;
     const float w = ( float )light->mShadowResolution;
     const float h = ( float )light->mShadowResolution;
-    const Timestamp elapsedSeconds = ShellGetElapsedSeconds();
+    const Timestamp elapsedSeconds = Timestep::GetElapsedTime();
 
     return Render::DefaultCBufferPerFrame
     {

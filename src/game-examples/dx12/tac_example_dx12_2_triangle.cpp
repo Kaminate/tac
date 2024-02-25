@@ -862,7 +862,7 @@ namespace Tac
 
 #if 0
     const double speed = 3;
-    const auto t = ( float )Sin( ShellGetElapsedSeconds() * speed ) * 0.5f + 0.5f;
+    const auto t = ( float )Sin( Timestep::GetElapsedTime() * speed ) * 0.5f + 0.5f;
 
     // Record commands.
     const v4 clearColor = { t( 0.2f, 0.4f, 1.0f } );

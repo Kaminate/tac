@@ -137,7 +137,7 @@ namespace Tac
       TAC_CALL( AddPlayer( playerName, errors ));
     }
 
-    //mUIRoot->mElapsedSeconds = &ShellGetElapsedSeconds(); // eww
+    //mUIRoot->mElapsedSeconds = &Timestep::GetElapsedTime(); // eww
     //mUIRoot->mGhost = this;
   }
   Ghost::~Ghost()

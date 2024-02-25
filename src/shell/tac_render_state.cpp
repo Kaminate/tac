@@ -1,10 +1,66 @@
 #include "src/shell/tac_render_state.h" // self-inc
 
+#if !TAC_DELETE_ME()
+#include "src/common/system/tac_os.h"
+#endif
+
 import std; // mutex
 
 namespace Tac
 {
   static std::mutex sMutex; // protects mElements
+  static bool sVerbose;
+
+  static void RemoveElements()
+  {
+  }
+
+  void GameStateManager::CleanUnneeded()
+  {
+    if( mElements.size() < 2 )
+      return;
+
+    if( sVerbose )
+    {
+      OS::OSDebugPrintLine( String() + "element count: " + ToString( mElements.size() ) );
+
+      int i = 0;
+      for( auto it = mElements.begin(); it != mElements.end(); ++it )
+      {
+        OS::OSDebugPrintLine
+        (
+          String()
+          + ToString( i ) + ", "
+          + "node addr: " + ToString( it.mNode ) + ", "
+          + "frame idx: " + ToString( it.mNode->mT.mState->mFrameIndex ) + ", "
+          + "used counter: " + ToString( it.mNode->mT.mUsedCounter )
+        );
+        it.mNode;
+
+        ++i;
+      }
+    }
+
+    auto it = mElements.rbegin();
+
+
+    // Don't remove most recent 2 elements, so a pair can be dequeueud
+    --it;
+    --it;
+
+    // remove all the unused elements
+    while( it != mElements.end() )
+    {
+      auto elementIt = it;
+      --it;
+
+      if( Element& element = *elementIt; !element.mUsedCounter )
+      {
+        TAC_DELETE element.mState;
+        mElements.erase( elementIt );
+      }
+    }
+  }
 
   void GameStateManager::Enqueue( App::IState* state )
   {
@@ -13,18 +69,7 @@ namespace Tac
 
     TAC_SCOPE_GUARD( std::lock_guard, sMutex );
 
-    // leave 2 elements, so something can be dequeued
-    int n = mElements.size();
-    while( n > 2 )
-    {
-      Element& element = mElements.front();
-      if( element.mUsedCounter )
-        break;
-
-      TAC_DELETE element.mState;
-      mElements.pop_front();
-      n--;
-    }
+    CleanUnneeded();
 
     Element element
     {
@@ -42,7 +87,17 @@ namespace Tac
     if( const int n = mElements.size(); n < 2 )
       return {};
 
+    //Timestamp ts = Timestep::GetElapsedTime();
+    //FrameIndex fi = ShellGetFrameIndex();
+    //float t = ShellGetInterpolationPercent();
+
     auto it = mElements.rbegin();
+    //while( it != mElements.end() )
+    //{
+    //  Element& element = *it--;
+    //  if( element.mState->mTimestamp 
+    //}
+
     Element& newStateElement = *it--;
     Element& oldStateElement = *it--;
 

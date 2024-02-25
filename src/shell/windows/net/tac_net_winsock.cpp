@@ -300,7 +300,7 @@ namespace Tac::Network
     netWinsocket->mSocketType = socketType;
     netWinsocket->mWinsockAddressFamily = winsockAddressFamily;
     netWinsocket->mWinsockSocketType = winsockSocketType;
-    netWinsocket->mElapsedSecondsOnLastRecv = ShellGetElapsedSeconds();
+    netWinsocket->mElapsedSecondsOnLastRecv = Timestep::GetElapsedTime();
     TAC_CALL_RET( nullptr, netWinsocket->SetKeepalive( true, errors ) );
     TAC_CALL_RET( nullptr, netWinsocket->SetIsBlocking( false, errors ) );
 
@@ -334,7 +334,7 @@ namespace Tac::Network
 
   void NetWinsock::Update( Errors& errors )
   {
-    bool shouldSendKeepalive = ShellGetElapsedSeconds() > mKeepaliveNextSeconds;
+    bool shouldSendKeepalive = Timestep::GetElapsedTime() > mKeepaliveNextSeconds;
     if( shouldSendKeepalive )
       mKeepaliveNextSeconds += mKeepaliveIntervalSeconds;
 
@@ -385,7 +385,7 @@ namespace Tac::Network
         continue;
       }
 
-      socketWinsock->mElapsedSecondsOnLastRecv = ShellGetElapsedSeconds();
+      socketWinsock->mElapsedSecondsOnLastRecv = Timestep::GetElapsedTime();
       if( mPrintReceivedMessages )
       {
         const StringView recvMsg ( recvBuf, recvResult );

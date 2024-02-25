@@ -334,7 +334,7 @@ namespace Tac
     const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = GetRenderTargetDescriptorHandle( m_frameIndex );
 
     const double speed = 3;
-    const auto t = ( float )Sin( ShellGetElapsedSeconds() * speed ) * 0.5f + 0.5f;
+    const auto t = ( float )Sin( Timestep::GetElapsedTime() * speed ) * 0.5f + 0.5f;
 
     // Record commands.
     const float clearColor[] = { t, 0.2f, 0.4f, 1.0f };

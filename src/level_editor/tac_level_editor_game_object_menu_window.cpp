@@ -29,7 +29,7 @@ namespace Tac
   void CreationGameObjectMenuWindow::Init( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
-    mCreationSeconds = ShellGetElapsedSeconds();
+    mCreationSeconds = Timestep::GetElapsedTime();
   }
 
   void CreationGameObjectMenuWindow::Update( Errors& )

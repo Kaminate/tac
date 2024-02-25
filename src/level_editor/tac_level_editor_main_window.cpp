@@ -218,7 +218,7 @@ namespace Tac
 
       if( Mouse::ButtonJustDown( Mouse::Button::MouseLeft )
           && !IsWindowHovered( desktopWindowHandle )
-          && ShellGetElapsedSeconds() != CreationGameObjectMenuWindow::Instance->mCreationSeconds )
+          && Timestep::GetElapsedTime() != CreationGameObjectMenuWindow::Instance->mCreationSeconds )
       {
         delete CreationGameObjectMenuWindow::Instance;
       }
