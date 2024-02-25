@@ -240,37 +240,35 @@ namespace Tac::Render::DXC
     if( S_OK != pdbUtils->GetVersionInfo( verInfo.CreateAddress() ) )
       return;
 
-    //TAC_DX12_CALL_RET( {}, pdbUtils->GetVersionInfo( verInfo.CreateAddress() ) );
 
-
-
-    if( PCom<IDxcVersionInfo2> verInfo2 = verInfo.QueryInterface<IDxcVersionInfo2>() )
-    {
       UINT32 commitCount{};
       char* commitHash{};
-      verInfo2->GetCommitInfo( &commitCount, &commitHash );
-
       UINT32 flags{};
-      verInfo2->GetFlags( &flags );
-
       UINT32 major{};
       UINT32 minor{};
-      verInfo2->GetVersion( &major, &minor );
+      if( PCom<IDxcVersionInfo2> verInfo2 = verInfo.QueryInterface<IDxcVersionInfo2>() )
+      {
+        verInfo2->GetCommitInfo( &commitCount, &commitHash );
+        verInfo2->GetFlags( &flags );
+        verInfo2->GetVersion( &major, &minor );
+      }
 
-      String str = String()
-        + "Compiler commit count " + Tac::ToString( commitCount ) + " hash " + commitHash + "\n"
-        + "Flags: " + Tac::ToString( flags ) + "\n"
-        + "Version: " + Tac::ToString( major ) + "." + Tac::ToString( minor );
+      char* ver = nullptr;
+      if( PCom<IDxcVersionInfo3> verInfo3 = verInfo.QueryInterface<IDxcVersionInfo3>() )
+      {
+        verInfo3->GetCustomVersionString( &ver );
+      }
 
-      OS::OSDebugPrintLine( str );
-    }
+      Vector< String > strs;
+      strs.push_back( String() + "Dxc Compiler commit count "
+                      + Tac::ToString( commitCount ) + " hash " + commitHash );
+      strs.push_back( String() + "Flags: " + Tac::ToString( flags ) );
+      strs.push_back( String() + "Version: "
+                      + Tac::ToString( major ) + "."
+                      + Tac::ToString( minor ) );
+      strs.push_back( String() + "Custom Version: " + ( ver ? ver : "n/a" ) );
 
-    if( PCom<IDxcVersionInfo3> verInfo3 = verInfo.QueryInterface<IDxcVersionInfo3>() )
-    {
-      char* ver{};
-      verInfo3->GetCustomVersionString( &ver );
-      OS::OSDebugPrintLine( String() + "Custom version: " + ver );
-    }
+      OS::OSDebugPrintLine( AsciiBoxAround( Join( strs, "\n" ) ) );
   }
 
   PCom<IDxcBlob> Compile( const Input& input, Errors& errors )

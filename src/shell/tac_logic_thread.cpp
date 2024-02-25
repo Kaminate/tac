@@ -70,54 +70,52 @@ namespace Tac
       if( !Timestep::Update() )
         continue;
 
-        // update at the end so that frameindex 0 has timestep 0
+      // update at the end so that frameindex 0 has timestep 0
 
-        TAC_PROFILE_BLOCK;
-        ProfileSetGameFrame();
+      TAC_PROFILE_BLOCK;
+      ProfileSetGameFrame();
 
-        TAC_CALL( SettingsTick( errors ) );
-        TAC_CALL( Network::NetApi::Update( errors ) );
+      TAC_CALL( SettingsTick( errors ) );
+      TAC_CALL( Network::NetApi::Update( errors ) );
 
-        // imo, the best time to pump the message queue would be right before simulation update
-        // because it reduces input-->sim latency.
-        // (ignore input-->render latency because of interp?)
-        // So maybe wndproc should be moved here from the platform thread, and Render::SubmitFrame
-        // and Render::RenderFrame should be rearranged
-        TAC_PROFILE_BLOCK_NAMED( "frame" );
-        DesktopEventApplyQueue();
+      // imo, the best time to pump the message queue would be right before simulation update
+      // because it reduces input-->sim latency.
+      // (ignore input-->render latency because of interp?)
+      // So maybe wndproc should be moved here from the platform thread, and Render::SubmitFrame
+      // and Render::RenderFrame should be rearranged
+      TAC_PROFILE_BLOCK_NAMED( "frame" );
+      DesktopEventApplyQueue();
 
-        Keyboard::KeyboardBeginFrame();
-        Mouse::MouseBeginFrame();
+      Keyboard::KeyboardBeginFrame();
+      Mouse::MouseBeginFrame();
 
-        const BeginFrameData data =
-        {
-          .mElapsedSeconds = Timestep::GetElapsedTime(),
-          .mMouseHoveredWindow = platform->PlatformGetMouseHoveredWindow(),
-        };
-        ImGuiBeginFrame( data );
+      const BeginFrameData data =
+      {
+        .mElapsedSeconds = Timestep::GetElapsedTime(),
+        .mMouseHoveredWindow = platform->PlatformGetMouseHoveredWindow(),
+      };
+      ImGuiBeginFrame( data );
 
-        Controller::UpdateJoysticks();
+      Controller::UpdateJoysticks();
 
-        TAC_CALL( mApp->Update( errors ) );
+      TAC_CALL( mApp->Update( errors ) );
 
-        TAC_CALL( ImGuiEndFrame( errors ) );
+      TAC_CALL( ImGuiEndFrame( errors ) );
 
-        Keyboard::KeyboardEndFrame();
-        Mouse::MouseEndFrame();
+      Keyboard::KeyboardEndFrame();
+      Mouse::MouseEndFrame();
 
-        App::IState* gameState = mApp->GetGameState();
-        gameState->mFrameIndex = Timestep::GetElapsedFrames();
-        gameState->mTimestamp = Timestep::GetElapsedTime();
-        gameState->mTimepoint = Timestep::GetLastTick();
+      App::IState* gameState = mApp->GetGameState();
+      gameState->mFrameIndex = Timestep::GetElapsedFrames();
+      gameState->mTimestamp = Timestep::GetElapsedTime();
+      gameState->mTimepoint = Timestep::GetLastTick();
 
-        sGameStateManager->Enqueue( gameState );
+      sGameStateManager->Enqueue( gameState );
 
-        Timestep::AdvanceFrame();
+      if( mApp->IsRenderEnabled() )
+        Render::SubmitFrame();
 
-        if( mApp->IsRenderEnabled() )
-          Render::SubmitFrame();
-
-        std::this_thread::sleep_for( std::chrono::milliseconds( 1 ) ); // Dont max out power usage
+      std::this_thread::sleep_for( std::chrono::milliseconds( 1 ) ); // Dont max out power usage
 
 
     } // while

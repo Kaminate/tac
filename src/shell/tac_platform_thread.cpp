@@ -69,6 +69,8 @@ namespace Tac
       if( GameStateManager::Pair pair = sGameStateManager->Dequeue(); pair.IsValid() )
       {
         const TimestampDifference dt = pair.mNewState->mTimestamp - pair.mOldState->mTimestamp;
+        TAC_ASSERT( dt.mSeconds != 0 );
+
         const Timepoint prevTime = pair.mNewState->mTimepoint;
         const Timepoint currTime = Timestep::GetLastTick();
 
