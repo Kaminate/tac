@@ -448,7 +448,7 @@ namespace Tac
           Render::SetIndexBuffer( subMesh.mIndexBuffer, 0, subMesh.mIndexCount );
           Render::SetBlendState( voxelBlend );
           Render::SetRasterizerState( voxelRasterizerState );
-          Render::SetSamplerState( mSamplerState );
+          Render::SetSamplerState( { mSamplerState } );
           Render::SetDepthState( voxelizeDepthState );
           Render::SetVertexFormat( voxelVertexFormat );
           Render::SetTexture( *textures );

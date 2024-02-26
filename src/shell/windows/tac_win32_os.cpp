@@ -25,7 +25,7 @@ import std; // iostream, filesystem, ctime (mktime )
 namespace Tac
 {
   static const int    kSemaphoreCapacity = 10;
-  static IdCollection gSemaphoreIds( kSemaphoreCapacity );
+  static IdCollection gSemaphoreIds;
   static HANDLE       gSemaphores[ kSemaphoreCapacity ];
 
   static OS::Monitor Win32OSGetPrimaryMonitor()

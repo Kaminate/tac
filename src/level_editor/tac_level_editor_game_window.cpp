@@ -185,7 +185,7 @@ namespace Tac
       Render::SetDepthState( CreationGameWindow::Instance->mDepthState );
       Render::SetRasterizerState( CreationGameWindow::Instance->mRasterizerState );
       Render::SetVertexFormat( CreationGameWindow::Instance->m3DVertexFormat );
-      Render::SetSamplerState( CreationGameWindow::Instance->mSamplerState );
+      Render::SetSamplerState( { CreationGameWindow::Instance->mSamplerState }  );
       Render::Submit( viewHandle, TAC_STACK_FRAME );
     }
   }
@@ -694,11 +694,11 @@ namespace Tac
       //Render::SetBlendState( mBlendState );
       Render::SetBlendState( mAlphaBlendState );
       Render::SetRasterizerState( mRasterizerState );
-      Render::SetSamplerState( mSamplerState );
+      Render::SetSamplerState( { mSamplerState } );
       Render::SetDepthState( mDepthState );
       Render::SetVertexFormat( Render::VertexFormatHandle() );
       Render::SetPrimitiveTopology( Render::PrimitiveTopology::TriangleList );
-      Render::SetTexture( textureHandle );
+      Render::SetTexture( { textureHandle } );
       Render::UpdateConstantBuffer( hPerObj, &perObjectData, perObjSize, TAC_STACK_FRAME );
       Render::Submit( viewHandle, TAC_STACK_FRAME );
       Render::EndGroup( TAC_STACK_FRAME );

@@ -53,18 +53,6 @@ namespace Tac
 {
   Creation gCreation;
 
-  struct CreatedWindowData
-  {
-    String              mName;
-    int                 mX;
-    int                 mY;
-    int                 mW;
-    int                 mH;
-    const void*         mNativeWindowHandle;
-  };
-  
-  static CreatedWindowData sCreatedWindowData[ kDesktopWindowCapacity ]{};
-
   static void   CreationInitCallback( Errors& errors )   { gCreation.Init( errors ); }
   static void   CreationUninitCallback( Errors& errors ) { gCreation.Uninit( errors ); }
   static void   CreationUpdateCallback( Errors& errors ) { gCreation.Update( errors ); }

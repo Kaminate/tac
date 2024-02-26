@@ -228,7 +228,7 @@ namespace Tac
   {
     CreateMainWindow( errors );
 
-    using Fn = void(LevelEditorWindowManager::*)( Errors&);
+    using Fn = void( LevelEditorWindowManager::* )( Errors& );
 
     const struct
     {
@@ -303,11 +303,8 @@ namespace Tac
 
   void                LevelEditorWindowManager::Update( Errors& errors )
   {
-
     UpdateCreatedWindowData();
-
-    UpdateWindows(errors);
-
+    UpdateWindows( errors );
   }
 
 

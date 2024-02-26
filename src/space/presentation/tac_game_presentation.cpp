@@ -497,7 +497,7 @@ namespace Tac
       Render::SetDepthState( mDepthState );
       Render::SetBlendState( mBlendState );
       Render::SetRasterizerState( mRasterizerState );
-      Render::SetSamplerState( mSamplerStateAniso );
+      Render::SetSamplerState( { mSamplerStateAniso } );
       Render::SetShader( mTerrainShader );
       Render::SetIndexBuffer( terrain->mIndexBuffer, 0, terrain->mIndexCount );
       Render::SetVertexBuffer( terrain->mVertexBuffer, 0, 0 );

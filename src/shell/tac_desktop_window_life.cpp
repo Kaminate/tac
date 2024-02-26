@@ -11,7 +11,7 @@ namespace Tac
   using WindowRequestsCreate = FixedVector< PlatformSpawnWindowParams, kDesktopWindowCapacity >;
   using WindowRequestsDestroy = FixedVector< DesktopWindowHandle, kDesktopWindowCapacity >;
 
-  static IdCollection                  sDesktopWindowHandleIDs( kDesktopWindowCapacity );
+  static IdCollection                  sDesktopWindowHandleIDs;
   static std::mutex                    sWindowHandleLock;
   static WindowRequestsCreate          sWindowRequestsCreate;
   static WindowRequestsDestroy         sWindowRequestsDestroy;

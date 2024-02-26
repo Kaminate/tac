@@ -75,7 +75,7 @@ namespace Tac
       Render::SetIndexBuffer( subMesh.mIndexBuffer, 0, subMesh.mIndexCount );
       Render::SetBlendState( mBlendState );
       Render::SetRasterizerState( mRasterizerStateHandle );
-      Render::SetSamplerState( mSamplerState );
+      Render::SetSamplerState( { mSamplerState } );
       Render::SetDepthState( mDepthState );
       Render::SetVertexFormat( mVertexFormatHandle );
       Render::SetPrimitiveTopology( subMesh.mPrimitiveTopology );
