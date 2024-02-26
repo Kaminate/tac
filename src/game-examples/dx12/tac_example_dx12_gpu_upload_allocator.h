@@ -61,9 +61,11 @@ namespace Tac::Render
 
     struct DynAlloc
     {
-      D3D12_GPU_VIRTUAL_ADDRESS mGPUAddr;
-      void*                     mCPUAddr;
-      int                       mByteCount;
+      ID3D12Resource*           mResource = nullptr;
+      u64                       mResourceOffest = 0;
+      D3D12_GPU_VIRTUAL_ADDRESS mGPUAddr = 0; // already offset
+      void*                     mCPUAddr = 0; // already offset
+      int                       mByteCount = 0;
     };
 
 

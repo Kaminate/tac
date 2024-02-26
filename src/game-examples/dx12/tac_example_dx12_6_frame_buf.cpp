@@ -6,7 +6,6 @@
 #include "tac_example_dx12_checkerboard.h"
 #include "tac_example_dx12.h"
 
-
 #include "src/common/containers/tac_array.h"
 #include "src/common/dataprocess/tac_text_parser.h"
 #include "src/common/containers/tac_span.h"
@@ -31,9 +30,6 @@
 #include "src/shell/windows/tac_win32.h"
 
 #pragma comment( lib, "d3d12.lib" ) // D3D12...
-
-static const UINT myParamIndex = 0;
-
 
 namespace Tac
 {
@@ -68,8 +64,6 @@ namespace Tac
   // -----------------------------------------------------------------------------------------------
 
   using namespace Render;
-
-  // -----------------------------------------------------------------------------------------------
 
   // -----------------------------------------------------------------------------------------------
 
@@ -258,6 +252,9 @@ namespace Tac
       .Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR,
     };
 
+    DX12ContextScope context = TAC_CALL( mContextManager.GetContext( errors ) );
+    ID3D12GraphicsCommandList* m_commandList = context.GetCommandList();
+
     // Create the GPU upload buffer.
     TAC_CALL( m_device->CreateCommittedResource(
       &uploadHeapProps,
@@ -275,8 +272,11 @@ namespace Tac
     const D3D12_SUBRESOURCE_DATA textureData =
     {
       .pData = texture.data(),
-      .RowPitch = Checkerboard::TexturePixelSize * Checkerboard::TextureWidth,
-      .SlicePitch = Checkerboard::TexturePixelSize * Checkerboard::TextureWidth * Checkerboard::TextureHeight,
+      .RowPitch = Checkerboard::TexturePixelSize
+                * Checkerboard::TextureWidth,
+      .SlicePitch = Checkerboard::TexturePixelSize
+                  * Checkerboard::TextureWidth
+                  * Checkerboard::TextureHeight,
     };
 
     // --- update subresource begin ---
@@ -296,17 +296,17 @@ namespace Tac
                                      &requiredByteCount );
 
     // for each subresource
-    for( int subresourceIndex = 0; subresourceIndex < nSubRes; ++subresourceIndex )
+    for( int iSubRes = 0; iSubRes < nSubRes; ++iSubRes )
     {
 
       TAC_ASSERT( totalBytes >= requiredByteCount );
 
       const D3D12_RANGE readRange{}; // not reading from CPU
       void* mappedData;
-      TAC_DX12_CALL( textureUploadHeap->Map( (UINT)subresourceIndex, &readRange, &mappedData ) );
+      TAC_DX12_CALL( textureUploadHeap->Map( (UINT)iSubRes, &readRange, &mappedData ) );
 
-      const D3D12_PLACED_SUBRESOURCE_FOOTPRINT& layout = footprints[ subresourceIndex ];
-      const UINT rowCount = rowCounts[ subresourceIndex];
+      const D3D12_PLACED_SUBRESOURCE_FOOTPRINT& layout = footprints[ iSubRes ];
+      const UINT rowCount = rowCounts[ iSubRes];
 
       const D3D12_MEMCPY_DEST DestData 
       {
@@ -315,7 +315,7 @@ namespace Tac
         .SlicePitch = SIZE_T( layout.Footprint.RowPitch ) * SIZE_T( rowCount ),
       };
 
-      const int rowByteCount = ( int )rowByteCounts[ subresourceIndex ];
+      const int rowByteCount = ( int )rowByteCounts[ iSubRes ];
 
       const UINT NumSlices = layout.Footprint.Depth;
 
@@ -334,29 +334,27 @@ namespace Tac
       }
 
 
-      textureUploadHeap->Unmap( subresourceIndex, nullptr);
+      textureUploadHeap->Unmap( iSubRes, nullptr);
     }
 
-    DX12ContextScope context = TAC_CALL( mContextManager.GetContext( errors ) );
-    ID3D12GraphicsCommandList* m_commandList = context.GetCommandList();
 
     for( int iSubRes = 0; iSubRes < nSubRes; ++iSubRes )
     {
-        const D3D12_TEXTURE_COPY_LOCATION Dst
-        {
-          .pResource = (ID3D12Resource *)m_texture,
-          .Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
-          .SubresourceIndex = (UINT)iSubRes,
-        };
+      const D3D12_TEXTURE_COPY_LOCATION Dst
+      {
+        .pResource = ( ID3D12Resource* )m_texture,
+        .Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
+        .SubresourceIndex = ( UINT )iSubRes,
+      };
 
-        const D3D12_TEXTURE_COPY_LOCATION Src
-        {
-          .pResource = (ID3D12Resource *)textureUploadHeap,
-          .Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT,
-          .PlacedFootprint = footprints[ iSubRes ],
-        };
+      const D3D12_TEXTURE_COPY_LOCATION Src
+      {
+        .pResource = ( ID3D12Resource* )textureUploadHeap,
+        .Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT,
+        .PlacedFootprint = footprints[ iSubRes ],
+      };
 
-        m_commandList->CopyTextureRegion( &Dst, 0, 0, 0, &Src, nullptr );
+      m_commandList->CopyTextureRegion( &Dst, 0, 0, 0, &Src, nullptr );
     }
 
     // --- update subresource end ---
@@ -510,26 +508,8 @@ namespace Tac
       .Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR,
     };
 
-    // Create upload heap
-    {
-      const D3D12_HEAP_PROPERTIES uploadHeapProps{ .Type = D3D12_HEAP_TYPE_UPLOAD, };
-
-      // D3D12_RESOURCE_STATE_GENERIC_READ
-      //   An OR'd combination of other read-state bits.
-      //   The required starting state for an upload heap
-      const D3D12_RESOURCE_STATES uploadHeapResourceStates = D3D12_RESOURCE_STATE_GENERIC_READ;
-
-      TAC_CALL( m_device->CreateCommittedResource(
-        &uploadHeapProps,
-        D3D12_HEAP_FLAG_NONE,
-        &resourceDesc,
-        uploadHeapResourceStates,
-        nullptr,
-        m_vertexBufferUploadHeap.iid(),
-        m_vertexBufferUploadHeap.ppv() ) );
-
-      DX12SetName( m_vertexBufferUploadHeap, "vtx upload buf" );
-    }
+    DX12ContextScope context = TAC_CALL( mContextManager.GetContext( errors ) );
+    ID3D12GraphicsCommandList* m_commandList = context.GetCommandList();
 
     // Create default heap
     D3D12_RESOURCE_STATES defaultHeapState = D3D12_RESOURCE_STATE_COMMON;
@@ -566,19 +546,10 @@ namespace Tac
 
 
     // Copy the triangle data to the vertex buffer upload heap.
-    {
-      // An empty range indicates that we are not reading from CPU.
-      // A nullptr indicates that the entire subresource may be read by the CPU
-      const D3D12_RANGE readRange{};
+    GPUUploadAllocator::DynAlloc alloc = TAC_CALL(
+      context.mContext.mGPUUploadAllocator.Allocate( m_vertexBufferByteCount, errors ) );
+    MemCpy( alloc.mCPUAddr, triangleVertices, m_vertexBufferByteCount );
 
-      void* pVertexDataBegin;
-      TAC_DX12_CALL( m_vertexBufferUploadHeap->Map( 0, &readRange, &pVertexDataBegin ) );
-      MemCpy( pVertexDataBegin, triangleVertices, m_vertexBufferByteCount );
-      m_vertexBufferUploadHeap->Unmap( 0, nullptr );
-    }
-
-    DX12ContextScope context = TAC_CALL( mContextManager.GetContext( errors ) );
-    ID3D12GraphicsCommandList* m_commandList = context.GetCommandList();
 
     // copy the vertex buffer
     {
@@ -594,8 +565,8 @@ namespace Tac
 
       m_commandList->CopyBufferRegion( ( ID3D12Resource* )m_vertexBuffer, // dst
                                        0, // dstoffest
-                                       ( ID3D12Resource* )m_vertexBufferUploadHeap, // src
-                                       0, // srcoffset
+                                       alloc.mResource, // src
+                                       alloc.mResourceOffest, // srcoffset
                                        m_vertexBufferByteCount );
 
       const TransitionParams transitionParams
@@ -753,7 +724,6 @@ namespace Tac
     };
     m_swapChain = TAC_CALL( DXGICreateSwapChain( scInfo, errors ) );
     TAC_CALL( m_swapChain->GetDesc1( &m_swapChainDesc ) );
-
   }
 
   D3D12_CPU_DESCRIPTOR_HANDLE DX12AppHelloFrameBuf::OffsetCpuDescHandle(
@@ -892,13 +862,7 @@ namespace Tac
       .StartInstanceLocation = 0,
     };
 
-#if 0
-    m_commandListBundle->Reset( m_commandAllocatorBundle.Get(), nullptr );
-    m_commandListBundle->SetPipelineState( ( ID3D12PipelineState* )mPipelineState );
-#else
-
     m_commandListBundle->Reset( m_commandAllocatorBundle.Get(), mPipelineState.Get() );
-#endif
 
     // Root signature... of the pipeline state?... which has already been created with said
     // root signature?
@@ -1026,28 +990,14 @@ namespace Tac
     // no need to call ID3D12GraphicsCommandList::SetPipelineState( ID3D12PipelineState* ), I think
     // that's implicitly done by ID3D12GraphicsCommandList::Reset( ..., ID3D12PipelineState* )
 
-
-
-
-
     m_commandList->ExecuteBundle( ( ID3D12GraphicsCommandList* )m_commandListBundle );
-
-
   }
 
   void DX12AppHelloFrameBuf::ClearRenderTargetView( ID3D12GraphicsCommandList* m_commandList )
   {
     const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = GetRTVCpuDescHandle( m_backbufferIndex );
 
-#if 0
-    const double speed = 3;
-    const auto t = ( float )Sin( Timestep::GetElapsedTime() * speed ) * 0.5f + 0.5f;
-
-    // Record commands.
-    const v4 clearColor = { t, 0.2f, 0.4f, 1.0f };
-#else
     const v4 clearColor = v4{ 91, 128, 193, 255.0f } / 255.0f;
-#endif
     m_commandList->ClearRenderTargetView( rtvHandle, clearColor.data(), 0, nullptr );
   }
 
@@ -1169,7 +1119,7 @@ namespace Tac
     return state;
   }
 
-  void DX12AppHelloFrameBuf::RenderBegin( Errors& errors )
+  void         DX12AppHelloFrameBuf::RenderBegin( Errors& errors )
   {
     TAC_ASSERT_INDEX( m_gpuFlightFrameIndex, MAX_GPU_FRAME_COUNT );
 
@@ -1177,7 +1127,7 @@ namespace Tac
     TAC_CALL( mCommandQueue.WaitForFence( signalValue, errors ) );
   }
 
-  void DX12AppHelloFrameBuf::RenderEnd( Errors& errors )
+  void         DX12AppHelloFrameBuf::RenderEnd( Errors& errors )
   {
     mFenceValues[ m_gpuFlightFrameIndex ] = TAC_CALL( mCommandQueue.IncrementFence( errors ) );
     TAC_CALL( SwapChainPresent( errors ) );
@@ -1190,7 +1140,6 @@ namespace Tac
     TAC_ASSERT( m_gpuFlightFrameIndex == mSentGPUFrameCount % MAX_GPU_FRAME_COUNT );
   }
    
-
   void         DX12AppHelloFrameBuf::Render( RenderParams params, Errors& errors )
   {
 
