@@ -25,14 +25,14 @@ namespace Tac
   CreationProfileWindow::~CreationProfileWindow()
   {
     Instance = nullptr;
-    delete mUI2DDrawData;
+    //delete mUI2DDrawData;
     DesktopApp::GetInstance()->DestroyWindow( mDesktopWindowHandle );
   }
 
   void CreationProfileWindow::Init( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
-    mUI2DDrawData = TAC_NEW UI2DDrawData;
+    //mUI2DDrawData = TAC_NEW UI2DDrawData;
     mDesktopWindowHandle = gCreation.mWindowManager.CreateDesktopWindow( gProfileWindowName );
   }
 
@@ -75,10 +75,10 @@ namespace Tac
     Render::SetViewport( viewHandle, Render::Viewport(size) );
     Render::SetViewScissorRect( viewHandle, Render::ScissorRect(size) );
     ImGui();
-    TAC_CALL(mUI2DDrawData->DrawToTexture( viewHandle,
-                                  desktopWindowState->mWidth,
-                                  desktopWindowState->mHeight,
-                                  errors ) );
+    //TAC_CALL(mUI2DDrawData->DrawToTexture( viewHandle,
+    //                              desktopWindowState->mWidth,
+    //                              desktopWindowState->mHeight,
+    //                              errors ) );
   }
 
 

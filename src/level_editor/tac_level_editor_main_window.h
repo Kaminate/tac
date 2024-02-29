@@ -11,7 +11,7 @@ namespace Tac
   struct Creation;
   struct DesktopApp;
   struct Texture;
-  struct UI2DDrawData;
+  //struct UI2DDrawData;
   struct UIHierarchyNode;
   struct UILayout;
   struct UIRoot;
@@ -34,7 +34,7 @@ namespace Tac
 
     DesktopWindowHandle        mDesktopWindowHandle;
     UIRoot*                    mUIRoot = nullptr;
-    UI2DDrawData*              mUI2DDrawData = nullptr;
+    //UI2DDrawData*              mUI2DDrawData = nullptr;
     Texture*                   mIconWindow = nullptr;
     Texture*                   mIconClose = nullptr;
     Texture*                   mIconMaximize = nullptr;

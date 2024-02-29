@@ -1,11 +1,15 @@
 #include "tac_level_editor.h" // self-inc
 
 #include "src/shell/tac_iapp.h" // App
+#include "src/shell/tac_desktop_app.h"
+
 #include "src/common/graphics/imgui/tac_imgui.h"
+#include "src/common/graphics/tac_render.h"
 
 namespace Tac
 {
   Creation gCreation;
+  DesktopWindowHandle hWnd ;
 
   // -----------------------------------------------------------------------------------------------
 
@@ -25,7 +29,21 @@ namespace Tac
 
   LevelEditorApp::LevelEditorApp( const Config& cfg ) : App( cfg ) {}
 
-  void LevelEditorApp::Init( Errors& errors ) { gCreation.Init( errors ); }
+  void LevelEditorApp::Init( Errors& errors )
+  {
+    DesktopApp* desktopApp = DesktopApp::GetInstance();
+
+    DesktopAppCreateWindowParams params
+    {
+      .mName = "level editor",
+      .mX = 50,
+      .mY = 50,
+      .mWidth = 800,
+      .mHeight = 600,
+    };
+    hWnd = desktopApp->CreateWindow(params);
+    gCreation.Init( errors );
+  }
 
   void LevelEditorApp::Update( Errors& errors ) { gCreation.Uninit( errors ); }
 
@@ -33,17 +51,31 @@ namespace Tac
 
   void LevelEditorApp::Render( RenderParams, Errors& )
   {
-    if( gCreation.mShowMainWindow )
+    gCreation.mShowUnownedWindow = true;
+    gCreation.mShowOwnedWindow = false;
+
+    if( gCreation.mShowUnownedWindow )
     {
-      ImGuiSetNextWindowPosition( v2( 50, 50 ) );
-      ImGuiSetNextWindowSize( v2( 800, 600 ) );
+      ImGuiSetNextWindowHandle( hWnd );
+      if( ImGuiBegin( "Unowned Window" ) )
+      {
+        ImGuiButton( "" );
+        ImGuiEnd();
+      }
+    }
+
+    if( gCreation.mShowOwnedWindow )
+    {
+      ImGuiSetNextWindowPosition( v2( 500, 100 ) );
+      ImGuiSetNextWindowSize( v2( 300, 300 ) );
       ImGuiSetNextWindowMoveResize();
-      if( ImGuiBegin( "Main Window" ) )
+      if( ImGuiBegin( "Owned Window" ) )
       {
         ImGuiButton("");
         ImGuiEnd();
       }
     }
+
   }
 
   App::IState* LevelEditorApp::GetGameState() 
@@ -67,7 +99,6 @@ namespace Tac
 
   void                Creation::Init( Errors& errors )
   {
-    mShowMainWindow = true;
   }
   
 

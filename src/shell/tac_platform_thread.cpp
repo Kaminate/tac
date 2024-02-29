@@ -3,6 +3,8 @@
 #include "src/common/error/tac_error_handling.h"
 #include "src/common/math/tac_math.h" // Clamp
 #include "src/common/memory/tac_frame_memory.h"
+#include "src/common/graphics/imgui/tac_imgui.h"
+#include "src/common/graphics/tac_render.h"
 #include "src/common/profile/tac_profile.h"
 #include "src/common/system/tac_os.h"
 #include "src/common/graphics/tac_renderer.h"
@@ -24,8 +26,10 @@ namespace Tac
     if( !errors.empty() )
       OS::OSAppStopRunning();
 
+    ImGuiUninit();
     if( mApp->IsRenderEnabled() )
       Render::RenderFinish();
+
   }
 
   void PlatformThread::Init( Errors& errors )
@@ -36,6 +40,8 @@ namespace Tac
     FrameMemoryInitThreadAllocator( 1024 * 1024 * 10 );
 
     DesktopEventInit();
+    Render::Init2();
+    ImGuiInit( Render::GetMaxGPUFrameCount() );
   }
 
   void PlatformThread::Update( Errors& errors )
@@ -86,6 +92,18 @@ namespace Tac
 
         t = Min( t, 1.0f );
 
+        const Timestamp interpolatedTimestamp = Lerp( pair.mOldState->mTimestamp.mSeconds,
+                                                      pair.mNewState->mTimestamp.mSeconds,
+                                                      t );
+
+
+        const BeginFrameData imguiBeginFrameData =
+        {
+          .mElapsedSeconds = interpolatedTimestamp,
+          .mMouseHoveredWindow = platform->PlatformGetMouseHoveredWindow(),
+        };
+        ImGuiBeginFrame( imguiBeginFrameData );
+
         const App::RenderParams params
         {
           .mOldState = pair.mOldState, // A
@@ -93,6 +111,7 @@ namespace Tac
           .mT = t, // inbetween B and (future) C
         };
         TAC_CALL( mApp->Render( params, errors ) );
+        TAC_CALL( ImGuiEndFrame( errors ) );
       }
 
 

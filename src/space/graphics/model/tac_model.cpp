@@ -12,7 +12,7 @@
 
 namespace Tac
 {
-  static ComponentRegistryEntry* sComponentRegistryEntry;
+  static int sRegistryIndex;
 
 	static Component* CreateModelComponent( World* world )
 	{
@@ -51,31 +51,42 @@ namespace Tac
 
 	const Model*                   Model::GetModel( const Entity* entity )
 	{
-		return ( Model* )entity->GetComponent( sComponentRegistryEntry );
+    const ComponentRegistryEntry* entry = ComponentRegistry_GetComponentAtIndex( sRegistryIndex );
+		return ( Model* )entity->GetComponent( entry );
 	}
 
 	Model*                         Model::GetModel( Entity* entity )
 	{
-		return ( Model* )entity->GetComponent( sComponentRegistryEntry );
+    const ComponentRegistryEntry* entry = ComponentRegistry_GetComponentAtIndex( sRegistryIndex );
+		return ( Model* )entity->GetComponent( entry );
 	}
 
 	const ComponentRegistryEntry*  Model::GetEntry() const
 	{
-    return sComponentRegistryEntry;
+    return ComponentRegistry_GetComponentAtIndex( sRegistryIndex );
 	}
 
 	void ModelDebugImgui( Model* );
 
+  static void DebugImguiFn( Component* component )
+  {
+    ModelDebugImgui( (Model*) component );
+  }
+
 	void RegisterModelComponent()
 	{
-    sComponentRegistryEntry = ComponentRegistry_RegisterComponent();
-		sComponentRegistryEntry->mName = "Model";
-		//sComponentRegistryEntry->mNetworkBits = ComponentModelBits;
-		sComponentRegistryEntry->mCreateFn = CreateModelComponent;
-		sComponentRegistryEntry->mDestroyFn = DestroyModelComponent;
-    sComponentRegistryEntry->mDebugImguiFn = []( Component* component ){ ModelDebugImgui( ( Model* )component ); };
-		sComponentRegistryEntry->mSaveFn = SaveModelComponent;
-		sComponentRegistryEntry->mLoadFn = LoadModelComponent;
+    ComponentRegistryEntry* entry = ComponentRegistry_RegisterComponent();
+    sRegistryIndex = entry->GetIndex(); 
+    *entry = ComponentRegistryEntry
+    {
+      .mName = "Model",
+      //.mNetworkBits = ComponentModelBits,
+      .mCreateFn = CreateModelComponent,
+      .mDestroyFn = DestroyModelComponent,
+      .mDebugImguiFn = DebugImguiFn,
+      .mSaveFn = SaveModelComponent,
+      .mLoadFn = LoadModelComponent,
+    };
 	}
 
 }

@@ -34,7 +34,6 @@ namespace Tac
 
     TAC_CALL( FontApi::Init( errors ) );
 
-    ImGuiInit();
     SpaceInit();
 
     TAC_CALL( mApp->Init( errors ) );
@@ -50,7 +49,6 @@ namespace Tac
       mApp = nullptr;
     }
 
-    ImGuiUninit();
 
     if( !errors.empty() )
       OS::OSAppStopRunning();

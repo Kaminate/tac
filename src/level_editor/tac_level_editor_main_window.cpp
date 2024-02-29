@@ -34,12 +34,12 @@ namespace Tac
   {
     DesktopApp::GetInstance()->DestroyWindow( mDesktopWindowHandle );
     Instance = nullptr;
-    delete mUI2DDrawData;
+    //delete mUI2DDrawData;
   }
 
   void CreationMainWindow::Init( Errors& )
   {
-    mUI2DDrawData = TAC_NEW UI2DDrawData;
+    //mUI2DDrawData = TAC_NEW UI2DDrawData;
     mDesktopWindowHandle = gCreation.mWindowManager.CreateDesktopWindow( gMainWindowName );
   }
 
@@ -206,10 +206,10 @@ namespace Tac
     Render::SetViewport( viewHandle, viewport );
     Render::SetViewScissorRect( viewHandle, scissorRect );
 
-    TAC_CALL(mUI2DDrawData->DrawToTexture( viewHandle,
-                                  desktopWindowState->mWidth,
-                                  desktopWindowState->mHeight,
-                                  errors ) );
+    //TAC_CALL(mUI2DDrawData->DrawToTexture( viewHandle,
+    //                              desktopWindowState->mWidth,
+    //                              desktopWindowState->mHeight,
+    //                              errors ) );
 
     if( CreationGameObjectMenuWindow::Instance )
     {

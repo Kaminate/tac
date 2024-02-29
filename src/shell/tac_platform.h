@@ -28,7 +28,7 @@ namespace Tac
     virtual DesktopWindowHandle PlatformGetMouseHoveredWindow() { return{}; }
 
     static PlatformFns* GetInstance();
-    static void         SetInstance(PlatformFns*);
+    static void         SetInstance( PlatformFns* );
   };
 
 } // namespace Tac

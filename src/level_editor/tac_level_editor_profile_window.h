@@ -21,7 +21,7 @@ namespace Tac
     void                          Update( Errors& );
     void                          ImGui();
     DesktopWindowHandle           mDesktopWindowHandle;
-    UI2DDrawData*                 mUI2DDrawData = nullptr;
+    //UI2DDrawData*                 mUI2DDrawData = nullptr;
     bool                          mCloseRequested = false;
   };
 

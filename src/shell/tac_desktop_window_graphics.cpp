@@ -11,13 +11,13 @@ namespace Tac
 
   Render::FramebufferHandle WindowGraphicsGetFramebuffer( const DesktopWindowHandle& desktopWindowHandle )
   {
-    TAC_ASSERT( ( unsigned )desktopWindowHandle < kDesktopWindowCapacity );
+    TAC_ASSERT_INDEX( desktopWindowHandle, kDesktopWindowCapacity );
     return sWindowFramebuffers[ ( int )desktopWindowHandle ];
   }
 
   Render::ViewHandle WindowGraphicsGetView( const DesktopWindowHandle& desktopWindowHandle )
   {
-    TAC_ASSERT( ( unsigned )desktopWindowHandle < kDesktopWindowCapacity );
+    TAC_ASSERT_INDEX( desktopWindowHandle, kDesktopWindowCapacity );
     return sWindowViews[ ( int )desktopWindowHandle ];
   }
 

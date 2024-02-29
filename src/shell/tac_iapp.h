@@ -19,6 +19,7 @@ namespace Tac
       FrameIndex mFrameIndex{};
       Timestamp  mTimestamp{};
       Timepoint  mTimepoint{};
+
     };
 
     struct Config

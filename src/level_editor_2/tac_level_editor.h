@@ -11,7 +11,8 @@ namespace Tac
     void                Uninit( Errors& );
     void                Update( Errors& );
 
-    bool mShowMainWindow{};
+    bool mShowUnownedWindow{};
+    bool mShowOwnedWindow{};
   };
 
   extern Creation gCreation;
