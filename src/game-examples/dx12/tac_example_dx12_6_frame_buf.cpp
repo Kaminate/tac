@@ -7,6 +7,7 @@
 #include "tac_example_dx12.h"
 
 #include "src/common/containers/tac_array.h"
+#include "src/common/error/tac_assert.h"
 #include "src/common/dataprocess/tac_text_parser.h"
 #include "src/common/containers/tac_span.h"
 #include "src/common/assetmanagers/tac_asset.h"

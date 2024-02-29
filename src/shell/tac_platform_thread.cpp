@@ -112,6 +112,7 @@ namespace Tac
         };
         TAC_CALL( mApp->Render( params, errors ) );
         TAC_CALL( ImGuiEndFrame( errors ) );
+        Render::FrameEnd();
       }
 
 

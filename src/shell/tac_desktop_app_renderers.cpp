@@ -100,10 +100,8 @@ namespace Tac::Render
 
 }
 
-namespace Tac
-{
 
-  void DesktopInitRendering( struct Errors& errors )
+  void Tac::DesktopInitRendering( struct Errors& errors )
   {
     Render::RegisterRenderers();
 
@@ -114,7 +112,5 @@ namespace Tac
 
     Render::Init( errors );
   }
-
-}
 
 

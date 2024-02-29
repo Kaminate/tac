@@ -1,4 +1,5 @@
 #include "src/shell/tac_render_state.h" // self-inc
+#include "src/common/error/tac_assert.h"
 
 #if !TAC_DELETE_ME()
 #include "src/common/system/tac_os.h"

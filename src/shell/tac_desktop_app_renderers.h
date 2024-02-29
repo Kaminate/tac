@@ -2,6 +2,6 @@
 
 namespace Tac
 {
-  void DesktopInitRendering(struct Errors&);
+  void DesktopInitRendering( struct Errors& );
 }
 
