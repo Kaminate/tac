@@ -2,8 +2,8 @@
 
 #include "src/common/preprocess/tac_preprocessor.h" // Tac::asdf
 #include "src/common/error/tac_error_handling.h"
-#include "src/common/graphics/tac_renderer_backend.h"
-#include "src/common/graphics/tac_renderer.h"
+#include "src/common/graphics/renderer/tac_renderer_backend.h"
+#include "src/common/graphics/renderer/tac_renderer.h"
 #include "src/common/dataprocess/tac_settings.h"
 
 #if defined( TAC_USE_RENDERER_VK ) && __has_include( "tac_renderer_vulkan.h" )

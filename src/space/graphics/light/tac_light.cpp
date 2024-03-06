@@ -3,7 +3,7 @@
 #include "src/common/tac_ints.h"
 
 #include "src/common/math/tac_matrix3.h"
-#include "src/common/graphics/tac_camera.h"
+#include "src/common/graphics/camera/tac_camera.h"
 #include "src/common/dataprocess/tac_json.h"
 #include "src/common/math/tac_math.h"
 #include "src/common/graphics/tac_renderer_util.h"

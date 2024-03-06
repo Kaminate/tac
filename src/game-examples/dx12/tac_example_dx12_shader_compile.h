@@ -4,7 +4,7 @@
 #include <dxcapi.h> // (must be included after d3d12.h) IDxc..., Dxc...
 
 #include "src/common/tac_core.h"
-#include "src/common/graphics/tac_renderer.h"
+#include "src/common/graphics/renderer/tac_renderer.h"
 #include "src/shell/windows/tac_win32_com_ptr.h"
 
 namespace Tac::Render

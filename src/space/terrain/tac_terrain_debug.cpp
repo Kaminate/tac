@@ -1,7 +1,7 @@
 #include "space/terrain/tac_terrain.h"
 
-#include "src/common/graphics/imgui/tac_imgui.h"
-#include "src/common/graphics/tac_debug_3d.h"
+#include "src/common/graphics/ui/imgui/tac_imgui.h"
+#include "src/common/graphics/debug/tac_debug_3d.h"
 #include "src/common/system/tac_filesystem.h"
 #include "src/common/shell/tac_shell.h"
 #include "src/common/system/tac_os.h"

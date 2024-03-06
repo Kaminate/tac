@@ -7,7 +7,7 @@
 #include "src/common/i18n/tac_localization.h"
 #include "src/common/math/tac_vector4.h"
 #include "src/common/math/tac_vector2.h"
-#include "src/common/graphics/tac_renderer.h"
+#include "src/common/graphics/renderer/tac_renderer.h"
 #include "src/common/input/tac_controller_input.h"
 #include "space/tac_space.h"
 

@@ -3,11 +3,11 @@
 #include "src/common/error/tac_error_handling.h"
 #include "src/common/math/tac_math.h" // Clamp
 #include "src/common/memory/tac_frame_memory.h"
-#include "src/common/graphics/imgui/tac_imgui.h"
-#include "src/common/graphics/tac_render.h"
+#include "src/common/graphics/ui/imgui/tac_imgui.h"
+#include "src/common/graphics/render/tac_render.h"
 #include "src/common/profile/tac_profile.h"
 #include "src/common/system/tac_os.h"
-#include "src/common/graphics/tac_renderer.h"
+#include "src/common/graphics/renderer/tac_renderer.h"
 #include "src/common/shell/tac_shell_timestep.h"
 
 #include "src/shell/tac_render_state.h"
@@ -112,7 +112,7 @@ namespace Tac
         };
         TAC_CALL( mApp->Render( params, errors ) );
         TAC_CALL( ImGuiEndFrame( errors ) );
-        Render::FrameEnd();
+        //Render::FrameEnd();
       }
 
 

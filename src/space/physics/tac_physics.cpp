@@ -3,7 +3,7 @@
 #include "src/common/assetmanagers/tac_texture_asset_manager.h"
 #include "src/common/containers/tac_vector.h"
 #include "src/common/preprocess/tac_preprocessor.h"
-#include "src/common/graphics/tac_debug_3d.h"
+#include "src/common/graphics/debug/tac_debug_3d.h"
 #include "src/common/math/tac_math.h"
 #include "src/common/memory/tac_memory.h"
 #include "src/common/profile/tac_profile.h"

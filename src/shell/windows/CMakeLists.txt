@@ -12,6 +12,8 @@ add_subdirectory(renderer)
 target_sources(TacWin PRIVATE
   "tac_win32.cpp"
   "tac_win32.h"
+  "tac_win32_event.cpp"
+  "tac_win32_event.h"
   "tac_win32_os.cpp"
   "tac_win32_os.h"
   "tac_win32_com_ptr.h"

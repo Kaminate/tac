@@ -1135,38 +1135,6 @@ namespace Tac
                                           drawArgs.StartVertexLocation,
                                           drawArgs.StartInstanceLocation );
 
-#if 0
-      // DirectX-Graphics-Samples\Samples\Desktop\D3D12Bundles\src\FrameResource.cpp
-      // Here pCommandList is a bundle, drawing each object with its own constant buffer.
-
-      // Calculate the descriptor offset due to multiple frame resources.
-      // 1 SRV + how many CBVs we have currently.
-      UINT frameResourceDescriptorOffset =
-        1 + ( frameResourceIndex * m_cityRowCount * m_cityColumnCount );
-
-      CD3DX12_GPU_DESCRIPTOR_HANDLE cbvSrvHandle(
-        pCbvSrvDescriptorHeap->GetGPUDescriptorHandleForHeapStart(),
-        frameResourceDescriptorOffset,
-        cbvSrvDescriptorSize );
-
-      BOOL usePso1 = TRUE;
-      for( UINT i = 0; i < m_cityRowCount; i++ )
-      {
-        for( UINT j = 0; j < m_cityColumnCount; j++ )
-        {
-          // Alternate which PSO to use; the pixel shader is different on 
-          // each just as a PSO setting demonstration.
-          pCommandList->SetPipelineState( usePso1 ? pPso1 : pPso2 );
-          usePso1 = !usePso1;
-
-          // Set this city's CBV table and move to the next descriptor.
-          pCommandList->SetGraphicsRootDescriptorTable( 2, cbvSrvHandle );
-          cbvSrvHandle.Offset( cbvSrvDescriptorSize );
-
-          pCommandList->DrawIndexedInstanced( numIndices, 1, 0, 0, 0 );
-        }
-      }
-#endif
 
 
       m_commandListBundle->Close();

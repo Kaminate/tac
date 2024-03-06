@@ -4,9 +4,9 @@
 #include "src/common/preprocess/tac_preprocessor.h" // TAC_ASSERT
 #include "src/common/algorithm/tac_algorithm.h" // Contains
 #include "src/common/error/tac_error_handling.h" // TAC_CALL_RET
-#include "src/common/graphics/tac_renderer.h" // ShaderNameStringView
+#include "src/common/graphics/renderer/tac_renderer.h" // ShaderNameStringView
 #include "src/common/dataprocess/tac_text_parser.h" // ParseData
-#include "src/common/graphics/tac_renderer_backend.h" // GetShaderAssetPath
+#include "src/common/graphics/renderer/tac_renderer_backend.h" // GetShaderAssetPath
 #include "src/common/assetmanagers/tac_asset.h" // LoadAssetPath
 
 namespace Tac::Render

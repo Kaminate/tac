@@ -5,8 +5,8 @@
 #include "src/common/containers/tac_array.h"
 #include "src/common/error/tac_error_handling.h"
 #include "src/common/dataprocess/tac_text_parser.h"
-#include "src/common/graphics/tac_renderer.h"
-#include "src/common/graphics/tac_renderer_backend.h"
+#include "src/common/graphics/renderer/tac_renderer.h"
+#include "src/common/graphics/renderer/tac_renderer_backend.h"
 #include "src/common/math/tac_math.h"
 #include "src/common/memory/tac_frame_memory.h"
 

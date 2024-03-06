@@ -5,7 +5,7 @@
 #include "src/common/memory/tac_frame_memory.h"
 #include "src/common/error/tac_error_handling.h"
 #include "src/common/system/tac_os.h"
-#include "src/common/graphics/tac_renderer.h"
+#include "src/common/graphics/renderer/tac_renderer.h"
 #include "src/common/algorithm/tac_algorithm.h"
 #include "src/common/shell/tac_shell.h"
 #include "src/common/containers/tac_fixed_vector.h"

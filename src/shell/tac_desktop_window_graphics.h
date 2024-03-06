@@ -1,9 +1,9 @@
 #pragma once
 
-#include "src/common/tac_core.h"
-
 namespace Tac
 {
+  struct DesktopWindowHandle;
+
   namespace Render
   {
     struct FramebufferHandle;

@@ -15,10 +15,7 @@ namespace Tac::Render
   void DX12SetNameAux( ID3D12Object*, StringView );
 
   template< typename T >
-  void DX12SetName( const PCom<T>& t, StringView sv )
-  {
-    DX12SetNameAux( ( ID3D12Object* )t, sv );
-  }
+  void DX12SetName( const PCom<T>& t, StringView sv ) { DX12SetNameAux( ( ID3D12Object* )t, sv ); }
 
 } // namespace Tac::Render
 

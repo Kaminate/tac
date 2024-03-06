@@ -53,8 +53,6 @@ add_library( TacDX12ExampleHelpers
   tac_example_dx12_input_layout_builder.h
   tac_example_dx12_root_sig_builder.cpp
   tac_example_dx12_root_sig_builder.h
-  tac_example_dx12_win32_event.cpp
-  tac_example_dx12_win32_event.h
   tac_example_dx12_checkerboard.cpp
   tac_example_dx12_checkerboard.h
   tac_example_dx12.cpp

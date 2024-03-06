@@ -1,8 +1,8 @@
 #include "space/terrain/tac_terrain.h" // self-include
 
 #include "src/common/dataprocess/tac_json.h"
-#include "src/common/graphics/tac_debug_3d.h"
-#include "src/common/graphics/tac_renderer.h"
+#include "src/common/graphics/debug/tac_debug_3d.h"
+#include "src/common/graphics/renderer/tac_renderer.h"
 #include "src/common/math/tac_math.h"
 #include "src/common/memory/tac_memory.h"
 #include "src/common/system/tac_filesystem.h"

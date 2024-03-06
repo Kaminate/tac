@@ -8,7 +8,7 @@
 #include "src/common/algorithm/tac_algorithm.h"
 #include "src/common/error/tac_error_handling.h"
 #include "src/common/preprocess/tac_preprocessor.h"
-#include "src/common/graphics/tac_renderer.h"
+#include "src/common/graphics/renderer/tac_renderer.h"
 #include "src/common/identifier/tac_id_collection.h"
 #include "src/common/shell/tac_shell.h"
 #include "src/common/string/tac_string_util.h"

@@ -7,9 +7,9 @@
 #include "src/common/containers/tac_ring_buffer.h"
 #include "src/common/dataprocess/tac_settings.h"
 #include "src/common/dataprocess/tac_log.h"
-#include "src/common/graphics/imgui/tac_imgui.h"
-#include "src/common/graphics/tac_font.h"
-#include "src/common/graphics/tac_ui_2d.h"
+#include "src/common/graphics/ui/imgui/tac_imgui.h"
+#include "src/common/graphics/ui/tac_font.h"
+#include "src/common/graphics/ui/tac_ui_2d.h"
 #include "src/common/input/tac_controller_input.h"
 #include "src/common/input/tac_keyboard_input.h"
 #include "src/common/math/tac_math.h" // Max

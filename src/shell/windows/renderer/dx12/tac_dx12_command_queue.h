@@ -2,9 +2,8 @@
 
 #include "src/common/tac_ints.h"
 #include "src/shell/windows/tac_win32_com_ptr.h" // PCom
-
 #include "src/shell/windows/tac_win32_event.h" // Win32Event
-#include "tac_example_dx12_fence.h"
+#include "tac_dx12_fence.h"
 
 #include <d3d12.h> // ID3D12...
 

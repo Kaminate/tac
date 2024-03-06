@@ -1,6 +1,6 @@
 #pragma once
 
-#include "src/common/graphics/tac_renderer.h"
+#include "src/common/graphics/renderer/tac_renderer.h"
 #include "src/shell/windows/tac_win32_com_ptr.h" // PCom
 
 #include <d3dcommon.h> // WKPDID_D3DDebugObjectName, ID3DBlob

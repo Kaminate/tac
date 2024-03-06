@@ -3,8 +3,8 @@
 #include "src/shell/tac_iapp.h" // App
 #include "src/shell/tac_desktop_app.h"
 
-#include "src/common/graphics/imgui/tac_imgui.h"
-#include "src/common/graphics/tac_render.h"
+#include "src/common/graphics/ui/imgui/tac_imgui.h"
+#include "src/common/graphics/render/tac_render.h"
 
 namespace Tac
 {

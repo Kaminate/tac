@@ -11,8 +11,8 @@
 using Microsoft::WRL::ComPtr;
 #endif
 
-#include "src/common/graphics/tac_renderer.h"
-#include "src/common/graphics/tac_renderer_backend.h"
+#include "src/common/graphics/renderer/tac_renderer.h"
+#include "src/common/graphics/renderer/tac_renderer_backend.h"
 #include "src/common/shell/tac_shell.h"
 #include "src/common/dataprocess/tac_hash.h"
 #include "src/common/containers/tac_optional.h"

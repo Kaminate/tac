@@ -12,8 +12,8 @@
 #include "src/common/system/tac_os.h"
 #include "src/common/error/tac_error_handling.h"
 #include "src/common/shell/tac_shell.h"
-#include "src/common/graphics/tac_font.h"
-#include "src/common/graphics/imgui/tac_imgui.h"
+#include "src/common/graphics/ui/tac_font.h"
+//#include "src/common/graphics/ui/imgui/tac_imgui.h"
 #include "src/common/dataprocess/tac_settings.h"
 #include "src/common/input/tac_controller_input.h"
 #include "src/common/net/tac_net.h"
@@ -87,18 +87,18 @@ namespace Tac
       Keyboard::KeyboardBeginFrame();
       Mouse::MouseBeginFrame();
 
-      const BeginFrameData data =
-      {
-        .mElapsedSeconds = Timestep::GetElapsedTime(),
-        .mMouseHoveredWindow = platform->PlatformGetMouseHoveredWindow(),
-      };
-      ImGuiBeginFrame( data );
+      //const BeginFrameData data =
+      //{
+      //  .mElapsedSeconds = Timestep::GetElapsedTime(),
+      //  .mMouseHoveredWindow = platform->PlatformGetMouseHoveredWindow(),
+      //};
+      //ImGuiBeginFrame( data );
 
       Controller::UpdateJoysticks();
 
       TAC_CALL( mApp->Update( errors ) );
 
-      TAC_CALL( ImGuiEndFrame( errors ) );
+      //TAC_CALL( ImGuiEndFrame( errors ) );
 
       Keyboard::KeyboardEndFrame();
       Mouse::MouseEndFrame();

@@ -18,11 +18,6 @@ namespace Tac
 {
   using namespace Render;
 
-  struct DX12CommandList
-  {
-    PCom< ID3D12GraphicsCommandList > m_commandList;
-  };
-
   // maximum number of frames submitted to the gpu at one time
   const int MAX_GPU_FRAME_COUNT = 2;
 

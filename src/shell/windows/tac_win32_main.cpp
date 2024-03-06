@@ -5,7 +5,8 @@
 #include "src/common/preprocess/tac_preprocessor.h"
 #include "src/common/dataprocess/tac_settings.h"
 #include "src/common/dataprocess/tac_log.h"
-#include "src/common/graphics/imgui/tac_imgui.h"
+#include "src/common/graphics/ui/imgui/tac_imgui.h"
+#include "src/common/graphics/render/tac_render_backend.h"
 #include "src/common/input/tac_keyboard_input.h"
 #include "src/common/math/tac_math.h"
 #include "src/common/net/tac_net.h"
@@ -18,6 +19,7 @@
 #include "src/shell/windows/input/tac_xinput.h"
 #include "src/shell/windows/net/tac_net_winsock.h"
 #include "src/shell/windows/renderer/dx11/tac_renderer_dx11.h"
+#include "src/shell/windows/renderer/dx12/tac_renderer_dx12_ver2.h"
 #include "src/shell/windows/renderer/pix/tac_pix.h"
 #include "src/shell/windows/tac_win32.h"
 #include "src/shell/windows/renderer/dxgi/tac_dxgi_debug.h"
@@ -45,6 +47,10 @@ int CALLBACK WinMain( HINSTANCE hInstance,
 
   TAC_CALL_RET( 0, Render::AllowPIXDebuggerAttachment( errors ));
   Render::RegisterRendererDirectX11();
+
+  Render::DX12Backend dx12Backend;
+  Render::IBackend::Set( &dx12Backend );
+  TAC_CALL_RET( 0, dx12Backend.Init( errors ) );
 
   TAC_CALL_RET( 0, Controller::XInputInit( errors ));
 

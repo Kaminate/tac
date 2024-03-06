@@ -3,7 +3,7 @@
 #include "src/common/assetmanagers/tac_asset.h"
 #include "src/common/containers/tac_vector.h"
 #include "src/common/error/tac_error_handling.h"
-#include "src/common/graphics/tac_renderer.h"
+#include "src/common/graphics/renderer/tac_renderer.h"
 #include "src/common/math/tac_matrix4.h"
 #include "src/common/math/tac_vector3.h"
 #include "src/common/system/tac_filesystem.h"

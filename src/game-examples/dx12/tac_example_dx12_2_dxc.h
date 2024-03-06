@@ -2,7 +2,7 @@
 #pragma once
 
 #include "src/shell/windows/tac_win32_com_ptr.h" // PCom
-#include "src/common/graphics/tac_renderer.h" // ShaderType
+#include "src/common/graphics/renderer/tac_renderer.h" // ShaderType
 #include "src/common/assetmanagers/tac_asset.h" // AssetPathStringView
 #include "src/common/system/tac_filesystem.h" // Filesystem::Path
 

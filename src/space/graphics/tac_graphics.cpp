@@ -1,7 +1,7 @@
 #include "space/graphics/tac_graphics.h" // self-inc
 
-#include "src/common/graphics/imgui/tac_imgui.h"
-#include "src/common/graphics/tac_font.h"
+#include "src/common/graphics/ui/imgui/tac_imgui.h"
+#include "src/common/graphics/ui/tac_font.h"
 #include "src/common/math/tac_math.h"
 #include "src/common/memory/tac_memory.h"
 #include "src/common/preprocess/tac_preprocessor.h"
