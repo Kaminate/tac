@@ -253,7 +253,7 @@ namespace Tac
       .Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR,
     };
 
-    DX12ContextScope context = TAC_CALL( mContextManager.GetContext( errors ) );
+    DX12ExampleContextScope context = TAC_CALL( mContextManager.GetContext( errors ) );
     ID3D12GraphicsCommandList* m_commandList = context.GetCommandList();
 
     // Create the GPU upload buffer.
@@ -416,16 +416,6 @@ namespace Tac
     *params.mCurrentState = params.mTargetState;
   }
 
-  void DX12AppHelloFrameBuf::CreateCommandAllocator( Errors& errors )
-  {
-    // a command allocator manages storage for cmd lists and bundles
-    TAC_ASSERT( m_device );
-    TAC_DX12_CALL( m_device->CreateCommandAllocator(
-                   D3D12_COMMAND_LIST_TYPE_DIRECT,
-                   m_commandAllocator.iid(),
-                   m_commandAllocator.ppv()  ) );
-    DX12SetName( m_commandAllocator, "My Command Allocator");
-  }
 
   void DX12AppHelloFrameBuf::CreateCommandAllocatorBundle( Errors& errors )
   {
@@ -509,7 +499,7 @@ namespace Tac
       .Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR,
     };
 
-    DX12ContextScope context = TAC_CALL( mContextManager.GetContext( errors ) );
+    DX12ExampleContextScope context = TAC_CALL( mContextManager.GetContext( errors ) );
     ID3D12GraphicsCommandList* m_commandList = context.GetCommandList();
 
     // Create default heap
@@ -547,7 +537,7 @@ namespace Tac
 
 
     // Copy the triangle data to the vertex buffer upload heap.
-    GPUUploadAllocator::DynAlloc alloc = TAC_CALL(
+    DX12ExampleGPUUploadAllocator::DynAlloc alloc = TAC_CALL(
       context.mContext.mGPUUploadAllocator.Allocate( m_vertexBufferByteCount, errors ) );
     MemCpy( alloc.mCPUAddr, triangleVertices, m_vertexBufferByteCount );
 
@@ -889,7 +879,7 @@ namespace Tac
     m_commandListBundle->Close();
   }
 
-  void DX12AppHelloFrameBuf::PopulateCommandList( DX12ContextScope& context,
+  void DX12AppHelloFrameBuf::PopulateCommandList( DX12ExampleContextScope& context,
                                                   float translateX,
                                                   float translateY,
                                                   float scale,
@@ -900,13 +890,6 @@ namespace Tac
     ID3D12GraphicsCommandList* m_commandList = context.GetCommandList();
 
 
-#if 0 // an alternative to SetPipelineState?
-
-    TAC_DX12_CALL( m_commandList->Reset(
-      ( ID3D12CommandAllocator* )m_commandAllocator,
-
-      ( ID3D12PipelineState* )mPipelineState ) );
-#endif
 
     // sets the viewport of the pipeline state's rasterizer state?
     m_commandList->RSSetViewports( ( UINT )m_viewports.size(), m_viewports.data() );
@@ -971,9 +954,9 @@ namespace Tac
           sizeof( MyCBufType ),
           D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT );
 
-        GPUUploadAllocator& mUploadAllocator = context.mContext.mGPUUploadAllocator;
+        DX12ExampleGPUUploadAllocator& mUploadAllocator = context.mContext.mGPUUploadAllocator;
 
-        GPUUploadAllocator::DynAlloc allocation =
+        DX12ExampleGPUUploadAllocator::DynAlloc allocation =
           TAC_CALL( mUploadAllocator.Allocate( byteCount, errors ) );
 
         MemCpy( allocation.mCPUAddr, &cbuf, sizeof( MyCBufType ) );
@@ -1059,25 +1042,24 @@ namespace Tac
 
     TAC_CALL( DXGIInit( errors ) );
 
-    DX12DebugLayer debugLayer;
+    DX12ExampleDebugLayer debugLayer;
     TAC_CALL( debugLayer.Init( errors ) );
 
-    DX12DeviceInitializer deviceInitializer;
+    DX12ExampleDevice deviceInitializer;
     TAC_CALL( deviceInitializer.Init( debugLayer, errors ) );
 
-    m_device0 = deviceInitializer.GetDevice();
+    m_device0 = deviceInitializer.m_device;
     m_device = m_device0.QueryInterface<ID3D12Device5>();
-    m_debugDevice0 = deviceInitializer.GetDebugDevice();
+    m_debugDevice0 = deviceInitializer.m_debugDevice;
     m_debugDevice = m_debugDevice0.QueryInterface<ID3D12DebugDevice2 >();
 
-    DX12InfoQueue infoQueue;
+    DX12ExampleInfoQueue infoQueue;
     TAC_CALL( infoQueue.Init( debugLayer, m_device.Get(), errors ) );
 
     InitDescriptorSizes();
     TAC_CALL( mCommandQueue.Create( m_device.Get(), errors ) );
     TAC_CALL( CreateRTVDescriptorHeap( errors ) );
     TAC_CALL( CreateSRVDescriptorHeap( errors ) );
-    TAC_CALL( CreateCommandAllocator( errors ) );
     TAC_CALL( CreateCommandAllocatorBundle( errors ) );
     TAC_CALL( CreateCommandListBundle( errors ) );
     TAC_CALL( CreateRootSignature( errors ) );
@@ -1169,7 +1151,7 @@ namespace Tac
     TAC_CALL( RenderBegin( errors ) );
 
     {
-      DX12ContextScope context = TAC_CALL( mContextManager.GetContext( errors ) );
+      DX12ExampleContextScope context = TAC_CALL( mContextManager.GetContext( errors ) );
       ID3D12GraphicsCommandList* m_commandList = context.GetCommandList();
 
       // The associated pipeline state (IA, OM, RS, ... )

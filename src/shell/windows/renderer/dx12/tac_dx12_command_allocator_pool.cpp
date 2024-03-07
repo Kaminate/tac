@@ -6,11 +6,11 @@
 namespace Tac::Render
 {
 
-  void DX12CommandAllocatorPool::Init( PCom<ID3D12Device > device,
+  void DX12CommandAllocatorPool::Init( ID3D12Device* device,
                                        DX12CommandQueue* commandQueue )
   {
     mCommandQueue = commandQueue;
-    m_device = device.QueryInterface<ID3D12Device5>();
+    m_device = device;
   }
 
   void DX12CommandAllocatorPool::Retire( PCom< ID3D12CommandAllocator > allocator,

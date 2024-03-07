@@ -8,11 +8,11 @@
 
 namespace Tac::Render
 {
-  String DX12CallAux( const char*, HRESULT );
+  String      DX12CallAux( const char*, HRESULT );
 
   const char* DX12_HRESULT_ToString( HRESULT );
 
-  void DX12SetNameAux( ID3D12Object*, StringView );
+  void        DX12SetNameAux( ID3D12Object*, StringView );
 
   template< typename T >
   void DX12SetName( const PCom<T>& t, StringView sv ) { DX12SetNameAux( ( ID3D12Object* )t, sv ); }

@@ -13,15 +13,15 @@ namespace Tac
 
 namespace Tac::Render
 {
-  struct DX12CommandAllocatorPool;
-  struct DX12ContextManager;
-  struct DX12CommandQueue;
+  struct DX12ExampleCommandAllocatorPool;
+  struct DX12ExampleContextManager;
+  struct DX12ExampleCommandQueue;
 
   // A context has a commandlist, even if the context is recycled, the commandlist stays with it
   // forever.
   //
   // However, the commandallocator is changed every time the context is recycled
-  struct DX12Context
+  struct DX12ExampleContext
   {
 
     // note(n473): i dont like how with dx12context::Begin and dx12context::Finish,
@@ -33,49 +33,49 @@ namespace Tac::Render
     PCom<ID3D12CommandAllocator> mCommandAllocator;
 
     // ok so like this needs to be owned so different command lists dont mix up their upload memory
-    GPUUploadAllocator mGPUUploadAllocator;
+    DX12ExampleGPUUploadAllocator mGPUUploadAllocator;
   };
 
-  struct DX12ContextScope
+  struct DX12ExampleContextScope
   {
-    DX12ContextScope() = default;
-    DX12ContextScope( DX12ContextScope&& ) noexcept;
-    ~DX12ContextScope();
+    DX12ExampleContextScope() = default;
+    DX12ExampleContextScope( DX12ExampleContextScope&& ) noexcept;
+    ~DX12ExampleContextScope();
 
     ID3D12GraphicsCommandList* GetCommandList();
     void                       ExecuteSynchronously();
 
-    DX12Context                mContext;
+    DX12ExampleContext         mContext;
     bool                       mSynchronous = false;
 
     // singletons
-    DX12CommandAllocatorPool*  mCommandAllocatorPool = nullptr;
-    DX12ContextManager*        mContextManager = nullptr;
-    DX12CommandQueue*          mCommandQueue = nullptr;
+    DX12ExampleCommandAllocatorPool*  mCommandAllocatorPool = nullptr;
+    DX12ExampleContextManager*        mContextManager = nullptr;
+    DX12ExampleCommandQueue*          mCommandQueue = nullptr;
     Errors*                    mParentScopeErrors = nullptr;
     bool                       mMoved = false;
   };
 
   // a contextmanager manages contexts
-  struct DX12ContextManager
+  struct DX12ExampleContextManager
   {
-    void Init( DX12CommandAllocatorPool*,
-               DX12CommandQueue*,
-               GPUUploadPageManager*,
+    void Init( DX12ExampleCommandAllocatorPool*,
+               DX12ExampleCommandQueue*,
+               DX12ExampleGPUUploadPageManager*,
                PCom<ID3D12Device> );
     
-    DX12ContextScope                 GetContext( Errors& );
-    void                             RetireContext( DX12Context context );
+    DX12ExampleContextScope                 GetContext( Errors& );
+    void                             RetireContext( DX12ExampleContext context );
     
     PCom<ID3D12GraphicsCommandList > CreateCommandList(Errors&);
 
   private:
-    Vector< DX12Context >     mAvailableContexts;
+    Vector< DX12ExampleContext >     mAvailableContexts;
 
     // singletons
-    DX12CommandAllocatorPool* mCommandAllocatorPool = nullptr;
-    DX12CommandQueue*         mCommandQueue = nullptr;
-    GPUUploadPageManager*     mUploadPageManager = nullptr;
+    DX12ExampleCommandAllocatorPool* mCommandAllocatorPool = nullptr;
+    DX12ExampleCommandQueue*         mCommandQueue = nullptr;
+    DX12ExampleGPUUploadPageManager*     mUploadPageManager = nullptr;
     PCom< ID3D12Device5 >     mDevice; // device4 needed for createcommandlist1
   };
 }

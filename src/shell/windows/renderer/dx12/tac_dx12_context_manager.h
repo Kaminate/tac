@@ -74,7 +74,7 @@ namespace Tac::Render
     void Init( DX12CommandAllocatorPool*,
                DX12CommandQueue*,
                GPUUploadPageManager*,
-               PCom<ID3D12Device> );
+               ID3D12Device* );
     
     DX12ContextScope                 GetContext( Errors& );
     DX12Context                      GetContextNoScope( Errors& );
@@ -89,6 +89,6 @@ namespace Tac::Render
     DX12CommandAllocatorPool* mCommandAllocatorPool = nullptr;
     DX12CommandQueue*         mCommandQueue = nullptr;
     GPUUploadPageManager*     mUploadPageManager = nullptr;
-    PCom< ID3D12Device5 >     mDevice; // device4 needed for createcommandlist1
+    PCom< ID3D12Device4 >     mDevice;
   };
 }

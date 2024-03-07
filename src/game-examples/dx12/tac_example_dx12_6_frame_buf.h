@@ -67,7 +67,6 @@ namespace Tac
     void CreateVertexBufferSRV( Errors& );
     void CreateSampler( Errors& );
     void CreateTexture( Errors& );
-    void CreateCommandAllocator( Errors& );
     void CreateCommandAllocatorBundle( Errors& );
     void CreateCommandListBundle( Errors& );
     void CreateVertexBuffer( Errors& );
@@ -98,7 +97,7 @@ namespace Tac
     D3D12_GPU_DESCRIPTOR_HANDLE OffsetGpuDescHandle( D3D12_GPU_DESCRIPTOR_HANDLE,
                                                      D3D12_DESCRIPTOR_HEAP_TYPE,
                                                      int ) const;
-    void PopulateCommandList( DX12ContextScope&, float translateX, float translateY, float scale, Errors& );
+    void PopulateCommandList( DX12ExampleContextScope&, float translateX, float translateY, float scale, Errors& );
     void ResourceBarrier( ID3D12GraphicsCommandList*, const D3D12_RESOURCE_BARRIER& );
 
     struct TransitionParams
@@ -120,6 +119,7 @@ namespace Tac
 
     // ID3D12 objects
 
+    
     PCom< ID3D12Device >               m_device0;
     PCom< ID3D12Device5 >              m_device;
 
@@ -145,7 +145,6 @@ namespace Tac
 
     UINT                               m_descriptorSizes[ D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES ]{};
 
-    PCom< ID3D12CommandAllocator >     m_commandAllocator;
     PCom< ID3D12CommandAllocator >     m_commandAllocatorBundle;
     PCom< ID3D12GraphicsCommandList4 > m_commandListBundle;
     PCom< ID3D12Resource >             m_renderTargets[ SWAP_CHAIN_BUFFER_COUNT ];
@@ -206,10 +205,10 @@ namespace Tac
     u64                                m_gpuFlightFrameIndex = 0;
 
 
-    DX12CommandQueue                   mCommandQueue;
-    DX12CommandAllocatorPool           mCommandAllocatorPool;
-    DX12ContextManager                 mContextManager;
-    GPUUploadPageManager               mUploadPageManager;
+    DX12ExampleCommandQueue                   mCommandQueue;
+    DX12ExampleCommandAllocatorPool           mCommandAllocatorPool;
+    DX12ExampleContextManager                 mContextManager;
+    DX12ExampleGPUUploadPageManager               mUploadPageManager;
 
     State                              mState;
 

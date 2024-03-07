@@ -10,7 +10,7 @@
 namespace Tac::Render
 {
 
-  struct GPUUploadPage
+  struct DX12ExampleGPUUploadPage
   {
     PCom<ID3D12Resource>      mBuffer;
 
@@ -22,39 +22,39 @@ namespace Tac::Render
     static const int          kDefaultByteCount = 2 * 1024 * 1024;
   };
 
-  struct GPUUploadPageManager
+  struct DX12ExampleGPUUploadPageManager
   {
-    void Init( ID3D12Device* device, DX12CommandQueue* commandQueue )
+    void Init( ID3D12Device* device, DX12ExampleCommandQueue* commandQueue )
     {
       m_device = device;
       mCommandQueue = commandQueue;
     };
 
-    GPUUploadPage RequestPage( int byteCount, Errors& );
+    DX12ExampleGPUUploadPage RequestPage( int byteCount, Errors& );
     void          UnretirePages();
-    void          RetirePage( GPUUploadPage, FenceSignal );
+    void          RetirePage( DX12ExampleGPUUploadPage, FenceSignal );
 
   private:
-    GPUUploadPage AllocateNewPage( int byteCount, Errors& );
+    DX12ExampleGPUUploadPage AllocateNewPage( int byteCount, Errors& );
 
     struct RetiredPage
     {
-      GPUUploadPage mPage;
+      DX12ExampleGPUUploadPage mPage;
       FenceSignal mFence{};
     };
 
     Vector< RetiredPage > mRetiredPages;
-    Vector< GPUUploadPage > mAvailablePages;
+    Vector< DX12ExampleGPUUploadPage > mAvailablePages;
 
     // singletons
     PCom< ID3D12Device > m_device;
-    DX12CommandQueue* mCommandQueue = nullptr;
+    DX12ExampleCommandQueue* mCommandQueue = nullptr;
   };
 
-  struct GPUUploadAllocator
+  struct DX12ExampleGPUUploadAllocator
   {
 
-    void Init( GPUUploadPageManager* pageManager )
+    void Init( DX12ExampleGPUUploadPageManager* pageManager )
     {
       mPageManager = pageManager;
     }
@@ -78,10 +78,10 @@ namespace Tac::Render
 
     // Currently in use by command queues the current frame, memory cannot be freed.
     // The last page is the current page
-    Vector< GPUUploadPage > mActivePages;
-    Vector< GPUUploadPage > mLargePages;
+    Vector< DX12ExampleGPUUploadPage > mActivePages;
+    Vector< DX12ExampleGPUUploadPage > mLargePages;
 
     // singletons
-    GPUUploadPageManager* mPageManager = nullptr;
+    DX12ExampleGPUUploadPageManager* mPageManager = nullptr;
   };
 }//namespace Tac::Render

@@ -1,6 +1,8 @@
 target_sources(TacWin PRIVATE
   "tac_dx12_helper.cpp"
   "tac_dx12_helper.h"
+  "tac_dx12_samplers.cpp"
+  "tac_dx12_samplers.h"
   "tac_dx12_enum_helper.cpp"
   "tac_dx12_enum_helper.h"
   "tac_dx12_shader_preprocess.cpp"
@@ -18,6 +20,14 @@ target_sources(TacWin PRIVATE
   "tac_renderer_dx12.h"
   "tac_renderer_dx12_ver2.cpp"
   "tac_renderer_dx12_ver2.h"
+  "tac_dx12_device.cpp"
+  "tac_dx12_device.h"
+  "tac_dx12_info_queue.cpp"
+  "tac_dx12_info_queue.h"
+  "tac_dx12_debug_layer.cpp"
+  "tac_dx12_debug_layer.h"
+  "tac_dx12_descriptor_heap.h"
+  "tac_dx12_descriptor_heap.cpp"
 )
 
 

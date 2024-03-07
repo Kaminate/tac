@@ -16,7 +16,7 @@ namespace Tac
 
     FileDialogHelper::~FileDialogHelper()
     {
-      // CoUninitialize does bad things if we dont first release
+      // CoUninitialize does bad things if we dont first release our iunknowns
       mOpenDialog = {};
       mSaveDialog = {};
       CoUninitialize();

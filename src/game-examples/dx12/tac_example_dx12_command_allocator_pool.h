@@ -5,7 +5,7 @@
 // allocator back into the pool. However, we cannot reuse that allocator until the value associated
 // with the GPU completion of all commands has been signalled.
 //
-// tl;dr: DX12CommandAllocatorPool exists to be able to re-use ID3D12CommandAllocator's
+// tl;dr: DX12ExampleCommandAllocatorPool exists to be able to re-use ID3D12CommandAllocator's
 
 #pragma once
 
@@ -18,7 +18,7 @@
 namespace Tac { struct Errors; }
 namespace Tac::Render
 {
-  struct DX12CommandQueue;
+  struct DX12ExampleCommandQueue;
 
   // a Id3D12CommandAllocator Represents the allocations of storage for graphics processing unit (GPU) commands.
 
@@ -26,9 +26,9 @@ namespace Tac::Render
 
   // wtf is this. this should not be a pool of id3d12graphicscommandlist, it should be a pool of
   // commandlistallocators
-  struct DX12CommandAllocatorPool
+  struct DX12ExampleCommandAllocatorPool
   {
-    void                           Init( PCom<ID3D12Device >, DX12CommandQueue* );
+    void                           Init( PCom<ID3D12Device >, DX12ExampleCommandQueue* );
     
     void                           Retire( PCom< ID3D12CommandAllocator >, FenceSignal  );
     PCom< ID3D12CommandAllocator > GetAllocator( FenceSignal, Errors&  );
@@ -46,7 +46,7 @@ namespace Tac::Render
 
     PCom< ID3D12Device5 > m_device; // device4 has createcommandlist1 method
     RingVector< Element > mElements;
-    DX12CommandQueue* mCommandQueue = nullptr;
+    DX12ExampleCommandQueue* mCommandQueue = nullptr;
   };
 
 } // namespace Tac

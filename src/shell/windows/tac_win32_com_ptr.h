@@ -62,6 +62,8 @@ namespace Tac
     template< typename U >
     void QueryInterface( PCom<U>& u )
     {
+      // If the call to QueryInterface is successful, IUnknown::AddRef is automatically
+      // called on the COM object. Otherwise, the pointed address is set to nullptr
       if( auto unknown = static_cast< IUnknown* >( mT ) )
         unknown->QueryInterface( u.iid(), u.ppv() );
     }

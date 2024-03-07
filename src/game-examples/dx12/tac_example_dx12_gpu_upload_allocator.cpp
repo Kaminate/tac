@@ -9,18 +9,18 @@ namespace Tac::Render
 {
   // -----------------------------------------------------------------------------------------------
 
-  // GPUUploadAllocator
+  // DX12ExampleGPUUploadAllocator
 
-  GPUUploadAllocator::DynAlloc GPUUploadAllocator::Allocate( int const byteCount, Errors& errors )
+  DX12ExampleGPUUploadAllocator::DynAlloc DX12ExampleGPUUploadAllocator::Allocate( int const byteCount, Errors& errors )
   {
     // so the deal with large pages, is that they can't be reused as default pages.
     // so normally, when allocating a page, you first check if a retired page can be reused,
     // but large pages are just deleted when they are no longer used.
 
-    GPUUploadPage* pageToAllocateFrom = nullptr;
-    if( byteCount > GPUUploadPage::kDefaultByteCount )
+    DX12ExampleGPUUploadPage* pageToAllocateFrom = nullptr;
+    if( byteCount > DX12ExampleGPUUploadPage::kDefaultByteCount )
     {
-      GPUUploadPage requested =
+      DX12ExampleGPUUploadPage requested =
         TAC_CALL_RET( {}, mPageManager->RequestPage( byteCount, errors ) );
       mLargePages.push_back( requested );
       pageToAllocateFrom = &mLargePages.back();
@@ -29,7 +29,7 @@ namespace Tac::Render
     // see if the allocation will fit in the current page
     if( !pageToAllocateFrom && !mActivePages.empty() )
     {
-      GPUUploadPage* curPage = &mActivePages.back();
+      DX12ExampleGPUUploadPage* curPage = &mActivePages.back();
 
       // if the allocation doesn't fit this page will be retired
       mCurPageUsedByteCount = RoundUpToNearestMultiple( mCurPageUsedByteCount, byteCount );
@@ -42,8 +42,8 @@ namespace Tac::Render
 
     if( !pageToAllocateFrom )
     {
-        GPUUploadPage requested =
-          TAC_CALL_RET( {}, mPageManager->RequestPage( GPUUploadPage::kDefaultByteCount, errors ) );
+        DX12ExampleGPUUploadPage requested =
+          TAC_CALL_RET( {}, mPageManager->RequestPage( DX12ExampleGPUUploadPage::kDefaultByteCount, errors ) );
         mActivePages.push_back( requested );
 
         TAC_ASSERT_MSG( mActivePages.size() < 100, "why do you have so many pages bro" );
@@ -72,14 +72,14 @@ namespace Tac::Render
   }
 
   // call at end of each context
-  void GPUUploadAllocator::FreeAll( FenceSignal FenceID )
+  void DX12ExampleGPUUploadAllocator::FreeAll( FenceSignal FenceID )
   {
-    for( const GPUUploadPage& page : mActivePages )
+    for( const DX12ExampleGPUUploadPage& page : mActivePages )
     {
       mPageManager->RetirePage( page, FenceID );
     }
 
-    for( const GPUUploadPage& page : mLargePages )
+    for( const DX12ExampleGPUUploadPage& page : mLargePages )
     {
       mPageManager->RetirePage( page, FenceID );
     }
@@ -91,9 +91,9 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
-  // GPUUploadPageManager
+  // DX12ExampleGPUUploadPageManager
 
-  void GPUUploadPageManager::UnretirePages()
+  void DX12ExampleGPUUploadPageManager::UnretirePages()
   {
     int n = mRetiredPages.size();
     if( !n )
@@ -108,7 +108,7 @@ namespace Tac::Render
       const FenceSignal fenceValue = currPage.mFence;
       if( mCommandQueue->IsFenceComplete( fenceValue ) )
       {
-        if( currPage.mPage.mByteCount <= GPUUploadPage::kDefaultByteCount )
+        if( currPage.mPage.mByteCount <= DX12ExampleGPUUploadPage::kDefaultByteCount )
         {
           mAvailablePages.push_back( currPage.mPage );
         }
@@ -128,11 +128,11 @@ namespace Tac::Render
     mRetiredPages.resize( n );
   }
 
-  GPUUploadPage GPUUploadPageManager::RequestPage( int byteCount, Errors& errors )
+  DX12ExampleGPUUploadPage DX12ExampleGPUUploadPageManager::RequestPage( int byteCount, Errors& errors )
   {
     UnretirePages();
 
-    GPUUploadPage page{};
+    DX12ExampleGPUUploadPage page{};
     if( mAvailablePages.empty() )
     {
       page = AllocateNewPage( byteCount, errors );
@@ -147,10 +147,10 @@ namespace Tac::Render
 
   }
 
-  GPUUploadPage GPUUploadPageManager::AllocateNewPage( int byteCount, Errors& errors )
+  DX12ExampleGPUUploadPage DX12ExampleGPUUploadPageManager::AllocateNewPage( int byteCount, Errors& errors )
   {
     //TAC_ASSERT( !mCurPage.IsValid() );
-    TAC_ASSERT( byteCount == GPUUploadPage::kDefaultByteCount );
+    TAC_ASSERT( byteCount == DX12ExampleGPUUploadPage::kDefaultByteCount );
 
 
     const D3D12_HEAP_PROPERTIES HeapProps
@@ -197,7 +197,7 @@ namespace Tac::Render
       nullptr, // nullptr indicates the whole subrsc may be read by cpu
       &cpuAddr ) );
 
-    return GPUUploadPage
+    return DX12ExampleGPUUploadPage
     {
       .mBuffer = buffer,
       .mGPUAddr = buffer->GetGPUVirtualAddress(),
@@ -207,7 +207,7 @@ namespace Tac::Render
 
   }
 
-  void          GPUUploadPageManager::RetirePage( GPUUploadPage page, FenceSignal signal )
+  void          DX12ExampleGPUUploadPageManager::RetirePage( DX12ExampleGPUUploadPage page, FenceSignal signal )
   {
     RetiredPage retired{ .mPage = page, .mFence = signal };
     mRetiredPages.push_back( retired );

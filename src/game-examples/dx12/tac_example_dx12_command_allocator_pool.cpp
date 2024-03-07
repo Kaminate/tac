@@ -6,13 +6,14 @@
 namespace Tac::Render
 {
 
-    void DX12CommandAllocatorPool::Init( PCom<ID3D12Device > device,
-                                         DX12CommandQueue* commandQueue )
+  void DX12ExampleCommandAllocatorPool::Init( PCom<ID3D12Device > device,
+                                         DX12ExampleCommandQueue* commandQueue )
     {
       mCommandQueue = commandQueue;
       m_device = device.QueryInterface<ID3D12Device5>();
     }
-  void DX12CommandAllocatorPool::Retire( PCom< ID3D12CommandAllocator > allocator,
+
+  void DX12ExampleCommandAllocatorPool::Retire( PCom< ID3D12CommandAllocator > allocator,
                                  FenceSignal signalVal )
   {
     Element element
@@ -24,7 +25,7 @@ namespace Tac::Render
     mElements.Push( element );
   }
 
-  PCom< ID3D12CommandAllocator > DX12CommandAllocatorPool::CreateNewCmdAllocator( Errors& errors )
+  PCom< ID3D12CommandAllocator > DX12ExampleCommandAllocatorPool::CreateNewCmdAllocator( Errors& errors )
   {
     PCom< ID3D12CommandAllocator > allocator;
 
@@ -39,13 +40,13 @@ namespace Tac::Render
     return allocator;
   }
 
-  PCom< ID3D12CommandAllocator > DX12CommandAllocatorPool::GetAllocator( Errors& errors )
+  PCom< ID3D12CommandAllocator > DX12ExampleCommandAllocatorPool::GetAllocator( Errors& errors )
   {
     FenceSignal fenceSignal = mCommandQueue->GetLastCompletedFenceValue();
     return GetAllocator( fenceSignal, errors );
   }
 
-  PCom< ID3D12CommandAllocator > DX12CommandAllocatorPool::GetAllocator(
+  PCom< ID3D12CommandAllocator > DX12ExampleCommandAllocatorPool::GetAllocator(
     FenceSignal signalVal, Errors& errors )
   {
     if( auto allocator = TryReuseAllocator( signalVal ) )
@@ -54,7 +55,7 @@ namespace Tac::Render
     return CreateNewCmdAllocator(errors);
   }
 
-  PCom< ID3D12CommandAllocator > DX12CommandAllocatorPool::TryReuseAllocator(
+  PCom< ID3D12CommandAllocator > DX12ExampleCommandAllocatorPool::TryReuseAllocator(
     FenceSignal signalVal )
   {
     if( mElements.empty() )

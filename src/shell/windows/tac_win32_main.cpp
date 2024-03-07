@@ -49,8 +49,8 @@ int CALLBACK WinMain( HINSTANCE hInstance,
   Render::RegisterRendererDirectX11();
 
   Render::DX12Backend dx12Backend;
+  
   Render::IBackend::Set( &dx12Backend );
-  TAC_CALL_RET( 0, dx12Backend.Init( errors ) );
 
   TAC_CALL_RET( 0, Controller::XInputInit( errors ));
 

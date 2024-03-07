@@ -24,7 +24,7 @@ namespace Tac::Render
 
   // ----
 
-  void DX12DebugLayer::Init( Errors& errors )
+  void DX12ExampleDebugLayer::Init( Errors& errors )
   {
     if constexpr( !IsDebugMode )
       return;
@@ -61,7 +61,7 @@ namespace Tac::Render
   
   // ---
 
-  void DX12DeviceInitializer::Init( const DX12DebugLayer& debugLayer , Errors& errors)
+  void DX12ExampleDevice::Init( const DX12ExampleDebugLayer& debugLayer , Errors& errors)
   {
     TAC_ASSERT( !IsDebugMode || debugLayer.IsEnabled() );
 
@@ -82,7 +82,7 @@ namespace Tac::Render
   }
 
 
-  void DX12InfoQueue::Init( const DX12DebugLayer& debugLayer,
+  void DX12ExampleInfoQueue::Init( const DX12ExampleDebugLayer& debugLayer,
                             ID3D12Device* device,
                             Errors& errors )
   {

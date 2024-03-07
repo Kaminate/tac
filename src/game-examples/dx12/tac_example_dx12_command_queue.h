@@ -15,12 +15,12 @@ namespace Tac
 
 namespace Tac::Render
 {
-  // Wrapper around ID3D12CommandQueue*
+  // Wrapper around ID3D12ExampleCommandQueue*
   // This is basically a singleton, there is (should be)
   // 1 Graphics CommandQueue
   // 1 Copy CommandQueue
   // 1 Compute CommandQueue
-  struct DX12CommandQueue
+  struct DX12ExampleCommandQueue
   {
 
     void        Create(ID3D12Device*, Errors&);
@@ -50,18 +50,18 @@ namespace Tac::Render
     UINT64                             mLastCompletedFenceValue{0};
     UINT64                             mNextFenceValue{1};
 
-    // A ID3D12CommandQueue provides methods for
+    // A ID3D12ExampleCommandQueue provides methods for
     // - submitting command lists,
     // - synchronizing command list execution,
     // - instrumenting the command queue,
     // - etc
     //
     // Some examples:
-    // - ID3D12CommandQueue::ExecuteCommandLists
-    // - ID3D12CommandQueue::GetClockCalibration
-    // - ID3D12CommandQueue::GetTimestampFrequency
-    // - ID3D12CommandQueue::Signal
-    // - ID3D12CommandQueue::Wait
+    // - ID3D12ExampleCommandQueue::ExecuteCommandLists
+    // - ID3D12ExampleCommandQueue::GetClockCalibration
+    // - ID3D12ExampleCommandQueue::GetTimestampFrequency
+    // - ID3D12ExampleCommandQueue::Signal
+    // - ID3D12ExampleCommandQueue::Wait
     // 
     // Together, CommandLists/CommandQueues replace the ID3D11DeviceContext (?)
     //

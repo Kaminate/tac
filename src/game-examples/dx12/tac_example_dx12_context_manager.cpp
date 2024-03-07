@@ -10,7 +10,7 @@
 namespace Tac::Render
 {
 
-  DX12ContextScope::~DX12ContextScope()
+  DX12ExampleContextScope::~DX12ExampleContextScope()
   {
     if( mMoved )
       return;
@@ -37,26 +37,26 @@ namespace Tac::Render
     mContextManager->RetireContext( mContext );
   }
 
-  ID3D12GraphicsCommandList* DX12ContextScope::GetCommandList()
+  ID3D12GraphicsCommandList* DX12ExampleContextScope::GetCommandList()
   {
     return mContext.GetCommandList();
   }
 
-  void DX12ContextScope::ExecuteSynchronously()
+  void DX12ExampleContextScope::ExecuteSynchronously()
   {
     mSynchronous = true;
   }
 
   // -----------------------------------------------------------------------------------------------
 
-  void DX12ContextManager::RetireContext( DX12Context context )
+  void DX12ExampleContextManager::RetireContext( DX12ExampleContext context )
   {
     TAC_ASSERT( !context.mCommandAllocator );
     mAvailableContexts.push_back( context );
   }
 
 
-  PCom<ID3D12GraphicsCommandList > DX12ContextManager::CreateCommandList( Errors& errors )
+  PCom<ID3D12GraphicsCommandList > DX12ExampleContextManager::CreateCommandList( Errors& errors )
   {
 
     // Create the command list
@@ -79,20 +79,20 @@ namespace Tac::Render
     return graphicsList;
   }
 
-    void DX12ContextManager::Init( DX12CommandAllocatorPool* commandAllocatorPool,
-      DX12CommandQueue* commandQueue,
-      GPUUploadPageManager* uploadPageManager,
-      PCom<ID3D12Device> device )
-    {
-      mCommandAllocatorPool = commandAllocatorPool;
-      mCommandQueue = commandQueue;
-      mUploadPageManager = uploadPageManager;
-      mDevice = device.QueryInterface<ID3D12Device5>();
+  void DX12ExampleContextManager::Init( DX12ExampleCommandAllocatorPool* commandAllocatorPool,
+                                        DX12ExampleCommandQueue* commandQueue,
+                                        DX12ExampleGPUUploadPageManager* uploadPageManager,
+                                        PCom< ID3D12Device > device )
+  {
+    mCommandAllocatorPool = commandAllocatorPool;
+    mCommandQueue = commandQueue;
+    mUploadPageManager = uploadPageManager;
+    mDevice = device.QueryInterface<ID3D12Device5>();
     }
 
-  DX12ContextScope DX12ContextManager::GetContext( Errors& errors )
+  DX12ExampleContextScope DX12ExampleContextManager::GetContext( Errors& errors )
   {
-    DX12Context context;
+    DX12ExampleContext context;
 
     if( mAvailableContexts.empty() )
     {
@@ -138,7 +138,7 @@ namespace Tac::Render
     //   you can submit a cmd list, reset it, and reuse the allocated memory for another cmd list
     TAC_DX12_CALL_RET( {}, dxCommandList->Reset( dxCommandAllocator, nullptr ) );
 
-    DX12ContextScope scope;
+    DX12ExampleContextScope scope;
     scope.mContext = context;
     scope.mCommandAllocatorPool = mCommandAllocatorPool;
     scope.mContextManager = this;
@@ -148,7 +148,7 @@ namespace Tac::Render
     return scope;
   }
 
-  DX12ContextScope::DX12ContextScope( DX12ContextScope&& other ) noexcept
+  DX12ExampleContextScope::DX12ExampleContextScope( DX12ExampleContextScope&& other ) noexcept
   {
     other.mMoved = true;
 

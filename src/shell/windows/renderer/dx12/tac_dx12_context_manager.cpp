@@ -74,14 +74,15 @@ namespace Tac::Render
   }
 
   void DX12ContextManager::Init( DX12CommandAllocatorPool* commandAllocatorPool,
-    DX12CommandQueue* commandQueue,
-    GPUUploadPageManager* uploadPageManager,
-    PCom<ID3D12Device> device )
+                                 DX12CommandQueue* commandQueue,
+                                 GPUUploadPageManager* uploadPageManager,
+                                 ID3D12Device* device )
   {
     mCommandAllocatorPool = commandAllocatorPool;
     mCommandQueue = commandQueue;
     mUploadPageManager = uploadPageManager;
-    mDevice = device.QueryInterface<ID3D12Device5>();
+    device->QueryInterface( mDevice.iid(), mDevice.ppv() );
+    TAC_ASSERT( mDevice );
   }
 
   DX12Context DX12ContextManager::GetContextNoScope( Errors& errors )

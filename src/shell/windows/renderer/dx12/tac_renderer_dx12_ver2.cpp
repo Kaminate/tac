@@ -1,8 +1,10 @@
 #include "tac_renderer_dx12_ver2.h" // self-inc
+
 #include "src/common/system/tac_os.h"
 #include "src/common/graphics/render/tac_render.h"
 #include "src/common/error/tac_error_handling.h"
 #include "src/shell/windows/renderer/dx12/tac_dx12_helper.h"
+#include "src/shell/windows/renderer/dxgi/tac_dxgi.h"
 
 #pragma comment( lib, "d3d12.lib" ) // D3D12...
 
@@ -13,6 +15,31 @@ namespace Tac::Render
     const int maxGPUFrameCount = Render::GetMaxGPUFrameCount();
     TAC_ASSERT( maxGPUFrameCount );
     mFenceValues.resize( maxGPUFrameCount );
+
+    DXGIInit( errors );
+
+    TAC_CALL( debugLayer.Init( errors ) );
+
+    TAC_CALL( mDevice.Init( debugLayer, errors ) );
+    ID3D12Device* device = mDevice.GetID3D12Device();
+
+    TAC_CALL( infoQueue.Init( debugLayer, device, errors ) );
+
+    TAC_CALL( mCommandQueue.Create( device, errors ) );
+
+    TAC_CALL( mRTVDescriptorHeap.InitRTV( 100, device, errors ) );
+    TAC_CALL( mSRVDescriptorHeap.InitSRV( 100, device, errors ) );
+    TAC_CALL( mSamplerDescriptorHeap.InitSampler( 100, device, errors ) );
+
+    mCommandAllocatorPool.Init( device, &mCommandQueue );
+    mContextManager.Init( &mCommandAllocatorPool,
+                          &mCommandQueue,
+                          &mUploadPageManager,
+                          device );
+
+    mUploadPageManager.Init( device, &mCommandQueue );
+
+    mSamplers.Init( device, &mSamplerDescriptorHeap );
   }
 
 

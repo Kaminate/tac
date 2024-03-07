@@ -40,7 +40,8 @@ namespace Tac
     FrameMemoryInitThreadAllocator( 1024 * 1024 * 10 );
 
     DesktopEventInit();
-    Render::Init2();
+    
+    TAC_CALL( Render::Init2( Render::InitParams{}, errors ) );
     ImGuiInit( Render::GetMaxGPUFrameCount() );
   }
 
