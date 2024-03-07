@@ -46,9 +46,7 @@ namespace Tac::Render
     return SmartPtr< ICommandList >{ dx12CmdList };
   }
 
-  void DX12Backend::CreateDynamicBuffer2( DynamicBufferHandle2 h,
-                                          const int byteCount,
-                                          const StackFrame& sf )
+  void DX12Backend::CreateDynamicBuffer2( const DynBufCreateParams& )
   {
 #if 0
     const D3D12_HEAP_PROPERTIES HeapProps

@@ -87,20 +87,3 @@ SlyBach
 
 maybe `Foo()` should be `Foo{}` to resolve ambiguity between constructing a foo and a function declaration
 
----
-
-## Use of auto
-
-Auto should be used if it avoids a type nobody cares about
-`auto it = ... // Map< Foo, Bar >::Iterator `
-
-Auto can be used if it avoids repeating types
-`auto foo = new Foo` 
-
-Auto should not be used when it hides useful type information
-`auto whatIsThisType = SomeFnCall()`
-
----
-
-
-

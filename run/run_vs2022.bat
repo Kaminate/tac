@@ -10,7 +10,12 @@ pushd "%~dp0"
 :: change directory from tac/run to tac/ before running cmake
 pushd ..
 :: cmake                   -G "Visual Studio 17 2022" -A x64 -B build_vs2022
+
+:: generate project files
 cmake --log-level=VERBOSE -G "Visual Studio 17 2022" -A x64 -B build_vs2022
+
+::build the project
+cmake --build build_vs2022
 
 popd
 

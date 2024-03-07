@@ -32,4 +32,24 @@ if( foo )
 }
 ```
 
+## scope guards
+
+use `TAC_SCOPE_GUARD`
+
+## Use of auto
+
+Auto should be used if it avoids a type nobody cares about
+`auto it = ... // Map< Foo, Bar >::Iterator `
+
+Auto can be used if it avoids repeating types
+`auto foo = new Foo` 
+
+Auto should not be used when it hides useful type information
+`auto whatIsThisType = SomeFnCall()`
+
+use of auto for template fuckery is ok
+
+---
+
+
 

@@ -34,14 +34,15 @@ namespace Tac::Render
     void Draw() override;
   };
 
+
   // you know, do we even inherit form renderer?
   // this is our chance to rebuild the renderer
   struct DX12Backend : public IBackend
   {
     void Init( Errors& ) override;
 
-    void CreateDynamicBuffer2( DynamicBufferHandle2, int, const StackFrame& ) override;
-    SmartPtr< ICommandList > GetCommandList( ContextHandle, Errors& ) override;
+    void CreateDynamicBuffer2( const DynBufCreateParams& ) override;
+    Cmds GetCommandList( ContextHandle, Errors& ) override;
 
     PCom< ID3D12Device >               m_device0;
 
