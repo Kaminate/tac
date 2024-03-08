@@ -23,17 +23,15 @@ namespace Tac::Render
   // However, the commandallocator is changed every time the context is recycled
   struct DX12Context
   {
-
     // note(n473): i dont like how with dx12context::Begin and dx12context::Finish,
     // there is no protection (afaict) to prevent someone from forgetting to call Finish.
+    ID3D12GraphicsCommandList*        GetCommandList();
 
-    ID3D12GraphicsCommandList* GetCommandList() { return mCommandList.Get(); }
-
-    PCom<ID3D12GraphicsCommandList> mCommandList;
-    PCom<ID3D12CommandAllocator> mCommandAllocator;
+    PCom< ID3D12GraphicsCommandList > mCommandList;
+    PCom< ID3D12CommandAllocator >    mCommandAllocator;
 
     // ok so like this needs to be owned so different command lists dont mix up their upload memory
-    GPUUploadAllocator mGPUUploadAllocator;
+    DX12UploadAllocator               mGPUUploadAllocator;
   };
 
   struct DX12ContextScope
@@ -73,7 +71,7 @@ namespace Tac::Render
   {
     void Init( DX12CommandAllocatorPool*,
                DX12CommandQueue*,
-               GPUUploadPageManager*,
+               DX12UploadPageMgr*,
                ID3D12Device* );
     
     DX12ContextScope                 GetContext( Errors& );
@@ -88,7 +86,7 @@ namespace Tac::Render
     // singletons
     DX12CommandAllocatorPool* mCommandAllocatorPool = nullptr;
     DX12CommandQueue*         mCommandQueue = nullptr;
-    GPUUploadPageManager*     mUploadPageManager = nullptr;
+    DX12UploadPageMgr*     mUploadPageManager = nullptr;
     PCom< ID3D12Device4 >     mDevice;
   };
 }

@@ -10,6 +10,28 @@
 
 namespace Tac::Render
 {
+
+  // -----------------------------------------------------------------------------------------------
+
+  // DX12CommandList
+
+  void DX12CommandList::Draw()
+  {
+    ID3D12GraphicsCommandList* cmdList = mContext.GetCommandList();
+    const UINT vtxCountPerInstance = 0;
+    const UINT instanceCount = 0;
+    const UINT startVertexLocation = 0;
+    const UINT startIndexLocation = 0;
+    cmdList->DrawInstanced( vtxCountPerInstance,
+                            instanceCount,
+                            startVertexLocation,
+                            startIndexLocation );
+  }
+
+  // -----------------------------------------------------------------------------------------------
+
+  // DX12Backend
+
   void DX12Backend::Init( Errors& errors )
   {
     const int maxGPUFrameCount = Render::GetMaxGPUFrameCount();
@@ -42,24 +64,10 @@ namespace Tac::Render
     mSamplers.Init( device, &mSamplerDescriptorHeap );
   }
 
-
-  void DX12CommandList::Draw()
-  {
-    ID3D12GraphicsCommandList* cmdList = mContext.GetCommandList();
-    const UINT vtxCountPerInstance = 0;
-    const UINT instanceCount = 0;
-    const UINT startVertexLocation = 0;
-    const UINT startIndexLocation = 0;
-    cmdList->DrawInstanced( vtxCountPerInstance,
-                            instanceCount,
-                            startVertexLocation,
-                            startIndexLocation );
-  }
-
   SmartPtr< ICommandList > DX12Backend::GetCommandList( ContextHandle handle, Errors& errors )
   {
-    const int i = handle.mHandle.GetIndex();
-    if( i < mContexts.size() )
+    const int i = handle.GetHandleIndex();
+    if( !( i < mContexts.size() ) )
     {
       mContexts.resize( i + 1 );
     }
@@ -73,9 +81,8 @@ namespace Tac::Render
     return SmartPtr< ICommandList >{ dx12CmdList };
   }
 
-  void DX12Backend::CreateDynamicBuffer2( const DynBufCreateParams& )
+  void DX12Backend::CreateDynamicBuffer2( const DynBufCreateParams& params, Errors& errors )
   {
-#if 0
     const D3D12_HEAP_PROPERTIES HeapProps
     {
       .Type = D3D12_HEAP_TYPE_UPLOAD,
@@ -89,7 +96,7 @@ namespace Tac::Render
     {
       .Dimension = D3D12_RESOURCE_DIMENSION_BUFFER,
       .Alignment = 0,
-      .Width = ( UINT64 )byteCount,
+      .Width = ( UINT64 )params.mByteCount,
       .Height = 1,
       .DepthOrArraySize = 1,
       .MipLevels = 1,
@@ -105,8 +112,10 @@ namespace Tac::Render
 
     const D3D12_RESOURCE_STATES DefaultUsage{ D3D12_RESOURCE_STATE_GENERIC_READ };
 
-    PCom<ID3D12Resource> buffer;
-    TAC_DX12_CALL_RET( {}, m_device->CreateCommittedResource(
+    ID3D12Device* device = mDevice.GetID3D12Device();
+
+    PCom< ID3D12Resource > buffer;
+    TAC_DX12_CALL( device->CreateCommittedResource(
       &HeapProps,
       D3D12_HEAP_FLAG_NONE,
       &ResourceDesc,
@@ -115,25 +124,36 @@ namespace Tac::Render
       buffer.iid(),
       buffer.ppv() ) );
 
-    DX12SetName( buffer, "upload page" );
+    DX12SetName( buffer, params.mStackFrame.ToString() );
 
     void* cpuAddr;
 
-    TAC_DX12_CALL_RET( {}, buffer->Map(
+    TAC_DX12_CALL( buffer->Map(
       0, // subrsc idx
       nullptr, // nullptr indicates the whole subrsc may be read by cpu
       &cpuAddr ) );
 
-    return GPUUploadPage
+    const int i = params.mHandle.GetHandleIndex();
+    const int n = mDynBufs.size();
+    if( !( i < n ) )
+      mDynBufs.resize( i + 1 );
+
+    mDynBufs[ i ] = DX12DynBuf
     {
-      .mBuffer = buffer,
-      .mGPUAddr = buffer->GetGPUVirtualAddress(),
-      .mCPUAddr = cpuAddr,
-      .mByteCount = byteCount,
+      .mResource = buffer,
+      .mMappedCPUAddr = cpuAddr,
     };
+  }
 
-#endif
+  void DX12Backend::UpdateDynamicBuffer2( const DynBufUpdateParams& params )
+  {
+    const void* srcBytes = params.mUpdateMemory->GetBytes();
+    const int srcByteCount = params.mUpdateMemory->GetByteCount();
 
-    OS::OSDebugBreak();
+    const int iBuf = params.mHandle.GetHandleIndex();
+    DX12DynBuf& dynBuf = mDynBufs[ iBuf ];
+    void* dstBytes = ( char* )dynBuf.mMappedCPUAddr + params.mByteOffset;
+
+    MemCpy( dstBytes, srcBytes, srcByteCount );
   }
 }

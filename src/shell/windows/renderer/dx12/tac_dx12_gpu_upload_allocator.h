@@ -9,56 +9,47 @@
 
 namespace Tac::Render
 {
-
-  struct GPUUploadPage
+  struct DX12UploadPage
   {
-    PCom<ID3D12Resource>      mBuffer;
+    static const int          kDefaultByteCount = 2 * 1024 * 1024;
 
+    PCom< ID3D12Resource >    mBuffer;
     D3D12_GPU_VIRTUAL_ADDRESS mGPUAddr = 0;
     void*                     mCPUAddr = nullptr;
     int                       mByteCount = 0;
-
-
-    static const int          kDefaultByteCount = 2 * 1024 * 1024;
   };
 
-  struct GPUUploadPageManager
+  struct DX12UploadPageMgr
   {
     void Init( ID3D12Device* device, DX12CommandQueue* commandQueue )
     {
-      m_device = device;
+      mDevice = device;
       mCommandQueue = commandQueue;
     };
 
-    GPUUploadPage RequestPage( int byteCount, Errors& );
+    DX12UploadPage RequestPage( int byteCount, Errors& );
     void          UnretirePages();
-    void          RetirePage( GPUUploadPage, FenceSignal );
+    void          RetirePage( DX12UploadPage, FenceSignal );
 
   private:
-    GPUUploadPage AllocateNewPage( int byteCount, Errors& );
+    DX12UploadPage AllocateNewPage( int byteCount, Errors& );
 
     struct RetiredPage
     {
-      GPUUploadPage mPage;
-      FenceSignal mFence{};
+      DX12UploadPage mPage;
+      FenceSignal   mFence{};
     };
 
-    Vector< RetiredPage > mRetiredPages;
-    Vector< GPUUploadPage > mAvailablePages;
+    Vector< RetiredPage >   mRetiredPages;
+    Vector< DX12UploadPage > mAvailablePages;
 
     // singletons
-    PCom< ID3D12Device > m_device;
-    DX12CommandQueue* mCommandQueue = nullptr;
+    PCom< ID3D12Device >    mDevice;
+    DX12CommandQueue*       mCommandQueue = nullptr;
   };
 
-  struct GPUUploadAllocator
+  struct DX12UploadAllocator
   {
-
-    void Init( GPUUploadPageManager* pageManager )
-    {
-      mPageManager = pageManager;
-    }
-
     struct DynAlloc
     {
       ID3D12Resource*           mResource = nullptr;
@@ -68,20 +59,20 @@ namespace Tac::Render
       int                       mByteCount = 0;
     };
 
-
+    void     Init( DX12UploadPageMgr* );
     DynAlloc Allocate( int const byteCount, Errors& );
-    void     FreeAll( FenceSignal FenceID );
+    void     FreeAll( FenceSignal );
 
   private:
 
-    int            mCurPageUsedByteCount = 0;
 
     // Currently in use by command queues the current frame, memory cannot be freed.
     // The last page is the current page
-    Vector< GPUUploadPage > mActivePages;
-    Vector< GPUUploadPage > mLargePages;
+    Vector< DX12UploadPage > mActivePages;
+    Vector< DX12UploadPage > mLargePages;
+    int                      mCurPageUsedByteCount = 0;
 
     // singletons
-    GPUUploadPageManager* mPageManager = nullptr;
+    DX12UploadPageMgr*       mPageManager = nullptr;
   };
 }//namespace Tac::Render

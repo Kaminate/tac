@@ -28,10 +28,16 @@ namespace Tac::Render
 
   struct DX12CommandList : public ICommandList
   {
-    DX12Context mContext;
     void Draw() override;
+
+    DX12Context mContext;
   };
 
+  struct DX12DynBuf
+  {
+    PCom< ID3D12Resource > mResource;
+    void*                  mMappedCPUAddr = nullptr;
+  };
 
   // you know, do we even inherit form renderer?
   // this is our chance to rebuild the renderer
@@ -39,7 +45,8 @@ namespace Tac::Render
   {
     void Init( Errors& ) override;
 
-    void CreateDynamicBuffer2( const DynBufCreateParams& ) override;
+    void CreateDynamicBuffer2( const DynBufCreateParams&, Errors& ) override;
+    void UpdateDynamicBuffer2( const DynBufUpdateParams& ) override;
     Cmds GetCommandList( ContextHandle, Errors& ) override;
 
     // ---------------------------------------------------------------------------------------------
@@ -68,8 +75,9 @@ namespace Tac::Render
     DX12DescriptorHeap         mSRVDescriptorHeap;
     DX12DescriptorHeap         mSamplerDescriptorHeap;
     DX12Samplers               mSamplers;
-    GPUUploadPageManager       mUploadPageManager;
+    DX12UploadPageMgr          mUploadPageManager;
     Vector< FenceSignal >      mFenceValues;
     Vector< DX12Context >      mContexts;
+    Vector< DX12DynBuf >       mDynBufs;
   };
-}
+} // namespace Tac::Render

@@ -9,6 +9,33 @@
 
 namespace Tac::Render
 {
+  // -----------------------------------------------------------------------------------------------
+
+  // DX12Context
+
+  ID3D12GraphicsCommandList* DX12Context::GetCommandList() { return mCommandList.Get(); }
+
+  // -----------------------------------------------------------------------------------------------
+
+  // DX12ContextScope
+
+  DX12ContextScope::DX12ContextScope( DX12Context context,
+                                      DX12CommandAllocatorPool* pool,
+                                      DX12ContextManager* mgr,
+                                      DX12CommandQueue* q,
+                                      Errors* e )
+  {
+    mContext = context;
+    mCommandAllocatorPool = mCommandAllocatorPool;
+    mContextManager = mgr;
+    mCommandQueue = mCommandQueue;
+    mParentScopeErrors = e;
+  }
+
+  DX12ContextScope::DX12ContextScope( DX12ContextScope&& other ) noexcept
+  {
+    MoveFrom( ( DX12ContextScope&& )other );
+  }
 
   DX12ContextScope::~DX12ContextScope()
   {
@@ -38,10 +65,26 @@ namespace Tac::Render
     mContextManager->RetireContext( mContext );
   }
 
+  ID3D12GraphicsCommandList* DX12ContextScope::GetCommandList()       { return mContext.GetCommandList(); }
+  void                       DX12ContextScope::ExecuteSynchronously() { mSynchronous = true; }
+
+  void DX12ContextScope::MoveFrom( DX12ContextScope&& other ) noexcept
+  {
+    other.mMoved = true;
+
+    mContext = other.mContext;
+    mSynchronous = other.mSynchronous;
+    mCommandAllocatorPool = other.mCommandAllocatorPool;
+    mContextManager = other.mContextManager;
+    mCommandQueue = other.mCommandQueue;
+    mParentScopeErrors = other.mParentScopeErrors;
+  }
 
   void DX12ContextScope::operator = ( DX12ContextScope&& other ) noexcept { other.mMoved = true; }
 
   // -----------------------------------------------------------------------------------------------
+
+  // DX12ContextManager
 
   void DX12ContextManager::RetireContext( DX12Context context )
   {
@@ -49,8 +92,7 @@ namespace Tac::Render
     mAvailableContexts.push_back( context );
   }
 
-
-  PCom<ID3D12GraphicsCommandList > DX12ContextManager::CreateCommandList( Errors& errors )
+  PCom< ID3D12GraphicsCommandList > DX12ContextManager::CreateCommandList( Errors& errors )
   {
 
     // Create the command list
@@ -75,7 +117,7 @@ namespace Tac::Render
 
   void DX12ContextManager::Init( DX12CommandAllocatorPool* commandAllocatorPool,
                                  DX12CommandQueue* commandQueue,
-                                 GPUUploadPageManager* uploadPageManager,
+                                 DX12UploadPageMgr* uploadPageManager,
                                  ID3D12Device* device )
   {
     mCommandAllocatorPool = commandAllocatorPool;
@@ -146,36 +188,4 @@ namespace Tac::Render
     return scope;
   }
 
-  DX12ContextScope::DX12ContextScope( DX12Context context,
-                                      DX12CommandAllocatorPool* pool,
-                                      DX12ContextManager* mgr,
-                                      DX12CommandQueue* q,
-                                      Errors* e )
-  {
-    mContext = context;
-    mCommandAllocatorPool = mCommandAllocatorPool;
-    mContextManager = mgr;
-    mCommandQueue = mCommandQueue;
-    mParentScopeErrors = e;
-  }
-
-    ID3D12GraphicsCommandList* DX12ContextScope::GetCommandList()       { return mContext.GetCommandList(); }
-    void                       DX12ContextScope::ExecuteSynchronously() { mSynchronous = true; }
-
-  void DX12ContextScope::MoveFrom( DX12ContextScope&& other ) noexcept
-  {
-    other.mMoved = true;
-
-    mContext = other.mContext;
-    mSynchronous = other.mSynchronous;
-    mCommandAllocatorPool = other.mCommandAllocatorPool;
-    mContextManager = other.mContextManager;
-    mCommandQueue = other.mCommandQueue;
-    mParentScopeErrors = other.mParentScopeErrors;
-  }
-
-  DX12ContextScope::DX12ContextScope( DX12ContextScope&& other ) noexcept
-  {
-    MoveFrom( ( DX12ContextScope&& )other );
-  }
 }
