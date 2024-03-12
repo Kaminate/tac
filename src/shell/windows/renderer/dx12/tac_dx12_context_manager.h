@@ -26,6 +26,7 @@ namespace Tac::Render
     // note(n473): i dont like how with dx12context::Begin and dx12context::Finish,
     // there is no protection (afaict) to prevent someone from forgetting to call Finish.
     ID3D12GraphicsCommandList*        GetCommandList();
+    void SetName( StringView );
 
     PCom< ID3D12GraphicsCommandList > mCommandList;
     PCom< ID3D12CommandAllocator >    mCommandAllocator;

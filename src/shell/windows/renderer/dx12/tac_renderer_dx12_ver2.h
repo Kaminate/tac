@@ -35,6 +35,8 @@ namespace Tac::Render
 
   struct DX12DynBuf
   {
+    void SetName( StringView );
+
     PCom< ID3D12Resource > mResource;
     void*                  mMappedCPUAddr = nullptr;
   };
@@ -47,6 +49,8 @@ namespace Tac::Render
 
     void CreateDynamicBuffer2( const DynBufCreateParams&, Errors& ) override;
     void UpdateDynamicBuffer2( const DynBufUpdateParams& ) override;
+    void SetRenderObjectName( const SetRenderObjectNameParams& ) override;
+
     Cmds GetCommandList( ContextHandle, Errors& ) override;
 
     // ---------------------------------------------------------------------------------------------

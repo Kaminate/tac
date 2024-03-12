@@ -41,6 +41,7 @@ namespace Tac
     // Member functions
     T**    CreateAddress() { return &mT; } // used during creation by a typed api
     T*     Get()           { return mT; }
+    T*     Get() const     { return mT; }
 
     void swap( PCom&& other )
     {

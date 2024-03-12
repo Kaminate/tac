@@ -113,13 +113,15 @@ namespace Tac
     DesktopWindowState* desktopWindowState = GetDesktopWindowState( data.mDesktopWindowHandle );
     if( desktopWindowState->mNativeWindowHandle != data.mNativeWindowHandle )
     {
-      WindowGraphicsNativeHandleChanged( data.mDesktopWindowHandle,
-                                         data.mNativeWindowHandle,
-                                         data.mName,
-                                         data.mX,
-                                         data.mY,
-                                         data.mW,
-                                         data.mH );
+      WindowGraphics::NativeHandleChangedData handleChangedData
+      {
+        .mDesktopWindowHandle = data.mDesktopWindowHandle,
+        .mNativeWindowHandle = data.mNativeWindowHandle,
+        .mName = data.mName,
+        .mW = data.mW,
+        .mH = data.mH,
+      };
+      WindowGraphics::Instance().NativeHandleChanged( handleChangedData );
     }
     desktopWindowState->mNativeWindowHandle = data.mNativeWindowHandle;
     desktopWindowState->mName = ( StringView )data.mName;
@@ -141,9 +143,9 @@ namespace Tac
     DesktopWindowState* desktopWindowState = GetDesktopWindowState( data.mDesktopWindowHandle );
     desktopWindowState->mWidth = data.mWidth;
     desktopWindowState->mHeight = data.mHeight;
-    WindowGraphicsResize( data.mDesktopWindowHandle,
-                          desktopWindowState->mWidth,
-                          desktopWindowState->mHeight );
+    WindowGraphics::Instance().Resize( data.mDesktopWindowHandle,
+                                       desktopWindowState->mWidth,
+                                       desktopWindowState->mHeight );
   }
 
   static void HandleDesktopEvent( DesktopEventDataKeyInput data )

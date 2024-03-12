@@ -15,6 +15,12 @@ namespace Tac::Render
 
   ID3D12GraphicsCommandList* DX12Context::GetCommandList() { return mCommandList.Get(); }
 
+  void DX12Context::SetName( StringView name )
+  {
+    DX12SetName( mCommandAllocator, name );
+    DX12SetName( mCommandList, name );
+  }
+
   // -----------------------------------------------------------------------------------------------
 
   // DX12ContextScope

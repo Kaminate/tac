@@ -30,6 +30,15 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
+  // DX12DynBuf
+
+  void DX12DynBuf::SetName( StringView name )
+  {
+    DX12SetName( mResource, name );
+  }
+
+  // -----------------------------------------------------------------------------------------------
+
   // DX12Backend
 
   void DX12Backend::Init( Errors& errors )
@@ -156,4 +165,15 @@ namespace Tac::Render
 
     MemCpy( dstBytes, srcBytes, srcByteCount );
   }
-}
+
+  void DX12Backend::SetRenderObjectName( const SetRenderObjectNameParams& params )
+  {
+    const int i = params.mHandle.GetHandleIndex();
+    const HandleType type = params.mHandle.GetHandleType();
+    switch( type )
+    {
+    case HandleType::kDynamicBuffer: mDynBufs[ i ].SetName( params.mName ); break;
+    case HandleType::kContext: mContexts[ i ].SetName( params.mName ); break;
+    }
+  }
+} // namespace Tac::Render
