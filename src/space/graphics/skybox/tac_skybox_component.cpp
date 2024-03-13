@@ -1,4 +1,4 @@
-#include "space/graphics/skybox/tac_skybox_component.h" // self-inc
+#include "tac_skybox_component.h" // self-inc
 
 #include "space/ecs/tac_entity.h"
 #include "space/ecs/tac_component_registry.h"

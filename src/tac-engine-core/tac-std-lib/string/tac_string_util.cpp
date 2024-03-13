@@ -1,4 +1,4 @@
-#include "tac-std-lib/string/tac_string_util.h" // self-inc
+#include "tac_string_util.h" // self-inc
 
 #include "tac-std-lib/algorithm/tac_algorithm.h"
 #include "tac-std-lib/containers/tac_vector.h"

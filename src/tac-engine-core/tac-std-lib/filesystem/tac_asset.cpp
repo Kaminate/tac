@@ -1,4 +1,4 @@
-#include "tac-std-lib/filesystem/tac_asset.h" // self-inc
+#include "tac_asset.h" // self-inc
 
 #include "tac-std-lib/preprocess/tac_preprocessor.h" // IsDebugMode
 #include "tac-std-lib/filesystem/tac_filesystem.h"

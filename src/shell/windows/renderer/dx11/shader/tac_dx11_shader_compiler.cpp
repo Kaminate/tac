@@ -1,4 +1,4 @@
-#include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_compiler.h" // self-inc
+#include "tac_dx11_shader_compiler.h" // self-inc
 
 #include "src/shell/tac_desktop_app.h" // IsMainThread
 #include "src/shell/tac_desktop_app_threads.h"

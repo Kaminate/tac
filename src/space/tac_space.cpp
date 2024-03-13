@@ -1,4 +1,4 @@
-#include "space/tac_space.h" // self-inc
+#include "tac_space.h" // self-inc
 
 #include "space/graphics/tac_graphics.h"
 #include "space/physics/tac_physics.h"

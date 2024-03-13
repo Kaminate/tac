@@ -1,4 +1,4 @@
-#include "tac-std-lib/input/tac_keyboard_input.h" // self-inc
+#include "tac_keyboard_input.h" // self-inc
 
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"

@@ -1,4 +1,4 @@
-#include "tac-std-lib/meta/tac_meta_composite.h" // self-inc
+#include "tac_meta_composite.h" // self-inc
 
 #include "tac-std-lib/dataprocess/tac_json.h"
 #include "tac-std-lib/os/tac_os.h"

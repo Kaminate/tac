@@ -1,4 +1,4 @@
-#include "space/physics/tac_gjk.h" // self-inc
+#include "tac_gjk.h" // self-inc
 
 #include "space/physics/tac_barycentric.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"

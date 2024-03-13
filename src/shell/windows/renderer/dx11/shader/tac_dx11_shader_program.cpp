@@ -1,4 +1,4 @@
-#include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_program.h" // self-inc
+#include "tac_dx11_shader_program.h" // self-inc
 
 #include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_compiler.h" // CompileShaderFromString
 #include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_postprocess.h"

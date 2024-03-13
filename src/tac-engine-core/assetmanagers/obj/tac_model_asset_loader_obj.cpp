@@ -1,4 +1,4 @@
-#include "tac-engine-core/assetmanagers/obj/tac_model_asset_loader_obj.h" // self-inc
+#include "tac_model_asset_loader_obj.h" // self-inc
 
 #include "tac-engine-core/assetmanagers/tac_mesh.h"
 #include "tac-std-lib/filesystem/tac_asset.h"

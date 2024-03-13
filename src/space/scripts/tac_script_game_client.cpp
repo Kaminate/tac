@@ -1,4 +1,4 @@
-#include "space/scripts/tac_script_game_client.h" // self-inc
+#include "tac_script_game_client.h" // self-inc
 
 #include "tac-std-lib/dataprocess/tac_json.h"
 #include "tac-std-lib/dataprocess/tac_log.h"

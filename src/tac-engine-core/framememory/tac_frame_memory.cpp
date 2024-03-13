@@ -1,4 +1,4 @@
-#include "tac-engine-core/framememory/tac_frame_memory.h" // self-inc
+#include "tac_frame_memory.h" // self-inc
 
 #include "tac-std-lib/memory/tac_memory.h"
 #include "tac-std-lib/containers/tac_array.h"

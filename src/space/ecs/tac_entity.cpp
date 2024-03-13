@@ -1,4 +1,4 @@
-#include "space/ecs/tac_entity.h" // self-inc
+#include "tac_entity.h" // self-inc
 
 #include "space/ecs/tac_component.h"
 #include "space/ecs/tac_component_registry.h"

@@ -1,4 +1,4 @@
-#include "src/shell/windows/renderer/dx12/tac_dx12_helper.h" // self-inc
+#include "tac_dx12_helper.h" // self-inc
 
 #include <D3d9.h> // D3DERR_INVALIDCALL
 

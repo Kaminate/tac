@@ -1,4 +1,4 @@
-#include "src/shell/windows/net/tac_net_winsock.h" // self-inc
+#include "tac_net_winsock.h" // self-inc
 
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac-std-lib/containers/tac_set.h"

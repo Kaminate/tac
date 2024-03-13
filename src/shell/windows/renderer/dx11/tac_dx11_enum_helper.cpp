@@ -1,4 +1,4 @@
-#include "src/shell/windows/renderer/dx11/tac_dx11_enum_helper.h" // self-inc
+#include "tac_dx11_enum_helper.h" // self-inc
 
 
 namespace Tac::Render

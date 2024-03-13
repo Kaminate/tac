@@ -1,4 +1,4 @@
-#include "tac-engine-core/assetmanagers/tac_model_asset_manager.h" // self-inc
+#include "tac_model_asset_manager.h" // self-inc
 
 #include "tac-engine-core/assetmanagers/gltf/tac_model_asset_loader_gltf.h"
 #include "tac-engine-core/assetmanagers/gltf/tac_resident_model_file.h"

@@ -1,4 +1,4 @@
-#include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_preprocess.h" // self-inc
+#include "tac_dx11_shader_preprocess.h" // self-inc
 
 #include "src/shell/windows/renderer/dx_shader_preprocess/tac_dx_shader_preprocess.h"
 #include "tac-std-lib/assetmanagers/tac_asset.h"

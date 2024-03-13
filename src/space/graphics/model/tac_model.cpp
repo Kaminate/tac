@@ -1,5 +1,4 @@
-
-#include "space/graphics/model/tac_model.h" // self-inc
+#include "tac_model.h" // self-inc
 
 #include "space/ecs/tac_component_registry.h"
 #include "space/ecs/tac_entity.h"

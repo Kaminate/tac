@@ -1,4 +1,4 @@
-#include "space/physics/tac_physics.h" // self-inc
+#include "tac_physics.h" // self-inc
 
 #include "tac-std-lib/assetmanagers/tac_texture_asset_manager.h"
 #include "tac-std-lib/containers/tac_vector.h"

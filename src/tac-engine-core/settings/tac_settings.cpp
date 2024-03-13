@@ -1,4 +1,4 @@
-#include "tac-std-lib/dataprocess/tac_settings.h" // self-inc
+#include "tac_settings.h" // self-inc
 
 #include "tac-std-lib/algorithm/tac_algorithm.h"
 #include "tac-std-lib/math/tac_math.h"

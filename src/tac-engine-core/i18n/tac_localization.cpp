@@ -1,4 +1,4 @@
-#include "tac-std-lib/i18n/tac_localization.h" // self-inc
+#include "tac_localization.h" // self-inc
 
 #include "tac-std-lib/string/tac_string_util.h"
 #include "tac-std-lib/containers/tac_map.h"

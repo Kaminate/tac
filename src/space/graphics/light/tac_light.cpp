@@ -1,4 +1,4 @@
-#include "space/graphics/light/tac_light.h" // self-inc
+#include "tac_light.h" // self-inc
 
 #include "tac-std-lib/tac_ints.h"
 

@@ -1,4 +1,4 @@
-#include "src/shell/windows/renderer/dx11/tac_dx11_namer.h" // self-inc
+#include "tac_dx11_namer.h" // self-inc
 
 #include "src/shell/windows/renderer/dx11/tac_renderer_dx11.h" // GetInfoQueue
 #include "src/shell/windows/renderer/dxgi/tac_dxgi.h"
