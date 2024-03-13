@@ -4,7 +4,7 @@
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac-std-lib/containers/tac_list.h"
 #include "tac-std-lib/containers/tac_map.h"
-#include "tac-std-lib/profile/tac_profile_function.h"
+#include "tac-engine-core/profile/tac_profile_function.h"
 
 import std; // <thread>
 

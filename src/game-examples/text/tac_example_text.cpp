@@ -1,4 +1,4 @@
-#include "src/game-examples/text/tac_example_text.h" // self-include
+#include "tac_example_text.h" // self-inc
 
 #include "src/common/graphics/imgui/tac_imgui.h"
 #include "src/common/shell/tac_shell_timestep.h"
@@ -8,11 +8,8 @@
 #include "src/shell/tac_desktop_window_settings_tracker.h"
 #include "src/common/graphics/tac_font.h"
 
-
-
 namespace Tac
 {
-
   static const char* quickbrownfox = "The quick brown fox jumps over the lazy dog";
   static const bool sShowRedrawDialog;
 

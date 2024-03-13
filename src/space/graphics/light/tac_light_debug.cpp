@@ -1,6 +1,6 @@
 #include "tac-rhi/ui/imgui/tac_imgui.h"
-#include "tac-rhi/debug/tac_debug_3d.h"
-#include "tac-rhi/debug/tac_depth_buffer_visualizer.h"
+#include "tac-engine-core/graphics/debug/tac_debug_3d.h"
+#include "tac-engine-core/graphics/debug/tac_depth_buffer_visualizer.h"
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-rhi/camera/tac_camera.h"

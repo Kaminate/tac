@@ -1,7 +1,10 @@
 #pragma once
 
-#include "tac-rhi/renderer/tac_renderer.h"
-
+namespace Tac::Render
+{
+  struct TextureHandle;
+  struct InProj;
+}
 
 namespace Tac
 {
@@ -12,9 +15,9 @@ namespace Tac
   // h - desired height of output texture 
   // f - far plane camera dist
   // n - near plane camera dist
-  Render::TextureHandle DepthBufferLinearVisualizationRender( Render::TextureHandle,
+  Render::TextureHandle DepthBufferLinearVisualizationRender( const Render::TextureHandle&,
                                                               int w,
                                                               int h,
-                                                              Render::InProj );
+                                                              const Render::InProj& );
 
 }

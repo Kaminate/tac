@@ -1,35 +1,33 @@
 #include "tac_imgui.h" // self-inc
+
 #include "tac_imgui_drag.h"
 
 #include "tac-std-lib/containers/tac_array.h"
 #include "tac-std-lib/containers/tac_frame_vector.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
-#include "tac-std-lib/dataprocess/tac_settings.h"
-#include "tac-rhi/ui/imgui/tac_imgui_state.h"
+#include "tac-engine-core/settings/tac_settings.h"
+#include "tac-engine-core/graphics/ui/imgui/tac_imgui_state.h"
 #include "tac-rhi/renderer/tac_renderer.h"
-#include "tac-rhi/tac_renderer_util.h"
-#include "tac-rhi/ui/tac_text_edit.h"
-#include "tac-rhi/ui/tac_ui_2d.h"
-#include "tac-std-lib/input/tac_keyboard_input.h"
+#include "tac-engine-core/graphics/tac_renderer_util.h"
+#include "tac-engine-core/graphics/ui/tac_text_edit.h"
+#include "tac-engine-core/graphics/ui/tac_ui_2d.h"
+#include "tac-engine-core/input/tac_keyboard_input.h"
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/math/tac_vector4.h"
-#include "tac-std-lib/profile/tac_profile.h"
-#include "tac-std-lib/shell/tac_shell.h"
+#include "tac-engine-core/profile/tac_profile.h"
+//#include "tac-std-lib/shell/tac_shell.h"
 #include "tac-std-lib/string/tac_string.h"
-#include "tac-std-lib/system/tac_desktop_window.h"
+#include "tac-engine-core/system/tac_desktop_window.h"
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/algorithm/tac_algorithm.h"
 //#include "tac-rhi/tac_render.h" // ?
 
-#include "src/shell/tac_desktop_app.h"
-#include "src/shell/tac_desktop_window_graphics.h"
+//#include "src/shell/tac_desktop_app.h"
+#include "tac-engine-core/system/tac_desktop_window_graphics.h"
 
 namespace Tac
 {
-
-
-
   int GetCaret( const Vector< Codepoint >& codepoints,
                        float mousePos ) // mouse pos rel text top left corner
   {
@@ -1134,7 +1132,7 @@ namespace Tac
   void ImGuiDebugDraw()
   {
     const ImGuiId id = ImGuiGlobals::Instance.mCurrentWindow->GetActiveID();
-    ImGuiText( ShortFixedString::Concat( "Cur window active id: ", ToString( id ) ) );
+    ImGuiText( String() + "Cur window active id: " + ToString( id ) );
   }
 
 

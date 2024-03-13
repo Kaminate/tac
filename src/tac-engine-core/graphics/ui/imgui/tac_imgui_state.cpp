@@ -2,20 +2,20 @@
 
 #include "tac-std-lib/dataprocess/tac_hash.h"
 #include "tac-std-lib/error/tac_error_handling.h"
-#include "tac-rhi/color/tac_color_util.h"
-#include "tac-rhi/ui/tac_text_edit.h"
-#include "tac-rhi/ui/tac_ui_2d.h"
-#include "tac-rhi/ui/tac_ui_2d.h"
+#include "tac-engine-core/graphics/color/tac_color_util.h"
+#include "tac-engine-core/graphics/ui/tac_text_edit.h"
+#include "tac-engine-core/graphics/ui/tac_ui_2d.h"
+#include "tac-engine-core/graphics/ui/tac_ui_2d.h"
 #include "tac-rhi/render/tac_render.h" // CreateContext
-#include "tac-std-lib/input/tac_keyboard_input.h"
-#include "tac-rhi/ui/tac_font.h"
+#include "tac-engine-core/input/tac_keyboard_input.h"
+#include "tac-engine-core/graphics/ui/tac_font.h"
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-std-lib/os/tac_os.h"
 
 // This is a shell include, how is it in tac/src/common?
-#include "src/shell/tac_desktop_window_graphics.h"
+#include "tac-engine-core/system/tac_desktop_window_graphics.h"
 
 namespace Tac
 {
@@ -379,7 +379,7 @@ namespace Tac
   ImGuiWindow* ImGuiGlobals::FindWindow( const StringView& name )
   {
     for( ImGuiWindow* window : mAllWindows )
-      if( window->mName == name )
+      if( ( StringView )window->mName == name )
         return window;
 
     return nullptr;

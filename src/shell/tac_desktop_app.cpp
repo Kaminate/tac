@@ -1,4 +1,4 @@
-#include "src/shell/tac_desktop_app.h" // self-include
+#include "tac_desktop_app.h" // self-inc
 
 #include "space/tac_space.h"
 
@@ -7,22 +7,22 @@
 #include "tac-std-lib/containers/tac_ring_buffer.h"
 #include "tac-std-lib/dataprocess/tac_settings.h"
 #include "tac-std-lib/dataprocess/tac_log.h"
-#include "tac-rhi/ui/imgui/tac_imgui.h"
-#include "tac-rhi/ui/tac_font.h"
-#include "tac-rhi/ui/tac_ui_2d.h"
-#include "tac-std-lib/input/tac_controller_input.h"
-#include "tac-std-lib/input/tac_keyboard_input.h"
+#include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
+#include "tac-engine-core/graphics/ui/tac_font.h"
+#include "tac-engine-core/graphics/ui/tac_ui_2d.h"
+#include "tac-engine-core/input/tac_controller_input.h"
+#include "tac-engine-core/input/tac_keyboard_input.h"
 #include "tac-std-lib/math/tac_math.h" // Max
 #include "tac-std-lib/memory/tac_frame_memory.h"
 #include "tac-std-lib/net/tac_net.h"
-#include "tac-std-lib/profile/tac_profile.h"
+#include "tac-engine-core/profile/tac_profile.h"
 #include "tac-std-lib/shell/tac_shell.h"
 #include "tac-std-lib/shell/tac_shell_timestep.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/string/tac_string_util.h"
 #include "tac-std-lib/string/tac_string_view.h"
-#include "tac-std-lib/system/tac_desktop_window.h"
-#include "tac-std-lib/system/tac_filesystem.h"
+#include "tac-engine-core/system/tac_desktop_window.h"
+#include "tac-engine-core/system/tac_filesystem.h"
 #include "tac-std-lib/os/tac_os.h"
 
 #include "src/shell/tac_desktop_app_renderers.h"

@@ -1,7 +1,7 @@
-#include "tac-std-lib/net/tac_net.h"
+#include "tac_net.h" // self-inc
+
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/string/tac_string_util.h"
-
 #include "tac-std-lib/tac_ints.h"
 
 //#include <cstdlib> // std::rand

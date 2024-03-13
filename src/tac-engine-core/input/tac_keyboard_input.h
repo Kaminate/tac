@@ -1,9 +1,11 @@
 #pragma once
 
-#include "tac-std-lib/tac_core.h"
-#include "tac-std-lib/i18n/tac_localization.h"
+//#include "tac-std-lib/tac_core.h"
+#include "tac-engine-core/i18n/tac_localization.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/math/tac_vector2.h"
+
+namespace Tac { struct StackFrame; struct Timestamp; }
 
 namespace Tac::Keyboard
 {

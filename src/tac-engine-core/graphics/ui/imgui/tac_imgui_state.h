@@ -4,12 +4,13 @@
 
 #pragma once
 
-#include "tac-rhi/ui/imgui/tac_imgui.h"
+#include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-std-lib/math/tac_vector2.h"
 #include "tac-std-lib/math/tac_vector4.h"
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac-std-lib/string/tac_string.h"
-#include "tac-std-lib/system/tac_desktop_window.h"
+#include "tac-std-lib/string/tac_string_view.h"
+#include "tac-engine-core/system/tac_desktop_window.h"
 #include "tac-std-lib/containers/tac_map.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-rhi/render/tac_render_handles.h" // DynamicBufferHandle2

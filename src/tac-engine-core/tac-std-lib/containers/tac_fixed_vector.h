@@ -6,8 +6,8 @@
 
 import std; // initializer list
 
-#include "tac-std-lib/preprocess/tac_preprocessor.h" // TAC_ASSERT
-#include "tac-std-lib/error/tac_assert.h"
+//#include "tac-std-lib/preprocess/tac_preprocessor.h" // TAC_ASSERT
+#include "tac-std-lib/error/tac_assert.h" // TAC_ASSERT
 
 namespace Tac
 {

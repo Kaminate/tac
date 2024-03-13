@@ -3,10 +3,11 @@
 #pragma once
 
 #include "tac-std-lib/dataprocess/tac_json.h"
-#include "tac-std-lib/tac_core.h"
+//#include "tac-std-lib/tac_core.h"
 
 namespace Tac
 {
+
 	void       SettingsInit( Errors& );
 
 	//         Instructs that the settings file should be updated next write tick

@@ -1,6 +1,7 @@
-#include "tac-std-lib/input/tac_controller_internal.h" // self-include
+#include "tac_controller_internal.h" // self-inc
 
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
+#include "tac-std-lib/error/tac_assert.h"
 
 namespace Tac::Controller
 {

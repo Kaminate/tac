@@ -1,6 +1,6 @@
 #pragma once
 
-#include "tac-std-lib/tac_core.h"
+//#include "tac-std-lib/tac_core.h"
 //#include "tac-std-lib/containers/tac_vector.h"
 //#include "tac-std-lib/string/tac_string.h"
 //#include "tac-std-lib/math/tac_vector3.h"

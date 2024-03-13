@@ -1,11 +1,11 @@
 #include "tac_win32_mouse_edge.h" // self-inc
 
-#include "tac-std-lib/system/tac_desktop_window.h"
+#include "tac-engine-core/system/tac_desktop_window.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/shell/tac_shell_timestep.h"
 #include "src/shell/tac_desktop_event.h"
 #include "tac-std-lib/string/tac_string.h"
-#include "tac-std-lib/input/tac_keyboard_input.h"
+#include "tac-engine-core/input/tac_keyboard_input.h"
 #include "tac-std-lib/os/tac_os.h"
 #include "src/shell/tac_desktop_app.h"
 #include "src/shell/windows/desktopwindow/tac_win32_desktop_window_manager.h"

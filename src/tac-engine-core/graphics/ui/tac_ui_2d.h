@@ -3,12 +3,12 @@
 
 #pragma once
 
-#include "tac-std-lib/i18n/tac_localization.h" // Codepoint
+#include "tac-engine-core/i18n/tac_localization.h" // Codepoint
 #include "tac-std-lib/containers/tac_vector.h" // Vector
 #include "tac-rhi/renderer/tac_renderer.h" // Render::
-#include "tac-rhi/tac_renderer_util.h" // DefaultCBufferPerObject
+#include "tac-engine-core/graphics/tac_renderer_util.h" // DefaultCBufferPerObject
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
-#include "tac-rhi/debug/tac_debug_group.h"
+#include "tac-engine-core/graphics/debug/tac_debug_group.h"
 #include "tac-std-lib/containers/tac_span.h"
 
 namespace Tac

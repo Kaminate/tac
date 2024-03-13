@@ -6,7 +6,7 @@
 #include "tac-rhi/debug/tac_debug_3d.h"
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/memory/tac_memory.h"
-#include "tac-std-lib/profile/tac_profile.h"
+#include "tac-engine-core/profile/tac_profile.h"
 #include "tac-std-lib/shell/tac_shell.h"
 #include "tac-std-lib/thirdparty/stb_image.h"
 #include "space/physics/collider/tac_collider.h"

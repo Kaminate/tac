@@ -1,4 +1,4 @@
-#include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h" // self-include
+#include "tac_texture_asset_manager.h" // self-inc
 
 #include "tac-std-lib/algorithm/tac_algorithm.h"
 #include "tac-std-lib/filesystem/tac_asset.h"
@@ -10,7 +10,7 @@
 #include "tac-std-lib/filesystem/tac_filesystem.h"
 #include "tac-engine-core/system/tac_job_queue.h"
 #include "tac-std-lib/os/tac_os.h"
-#include "tac-std-lib/thirdparty/stb_image.h"
+#include "tac-engine-core/thirdparty/stb_image.h"
 
 
 namespace Tac::TextureAssetManager

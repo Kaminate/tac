@@ -1,12 +1,29 @@
 #pragma once
 
-#include "tac-std-lib/identifier/tac_handle.h"
+//#include "tac-std-lib/identifier/tac_handle.h"
 #include "tac-std-lib/string/tac_string.h"
-#include "tac-std-lib/tac_core.h"
+//#include "tac-std-lib/tac_core.h"
 
 namespace Tac
 {
-  TAC_DEFINE_HANDLE( DesktopWindowHandle );
+  struct v2;
+
+  struct DesktopWindowHandle
+  {
+    DesktopWindowHandle( int index = -1 ) : mIndex{ index } {}
+
+    explicit operator int() const { return mIndex; }
+    explicit operator unsigned() const { return ( unsigned )mIndex; }
+
+    bool operator ==( const DesktopWindowHandle& ) const = default;
+    bool operator !=( const DesktopWindowHandle& ) const = default;
+
+    bool              IsValid() const { return mIndex != -1; }
+    int               GetIndex() const { return mIndex; }
+
+  private:
+    int               mIndex;
+  };
 
   struct DesktopWindowRect
   {

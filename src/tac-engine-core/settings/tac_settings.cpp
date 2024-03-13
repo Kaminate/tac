@@ -3,13 +3,13 @@
 #include "tac-std-lib/algorithm/tac_algorithm.h"
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/memory/tac_memory.h"
-#include "tac-std-lib/shell/tac_shell.h"
+//#include "tac-std-lib/shell/tac_shell.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-std-lib/string/tac_string_util.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/filesystem/tac_filesystem.h"
 #include "tac-std-lib/os/tac_os.h"
-#include "src/shell/tac_desktop_app.h"
+//#include "src/shell/tac_desktop_app.h"
 
 //#include <filesystem>
 

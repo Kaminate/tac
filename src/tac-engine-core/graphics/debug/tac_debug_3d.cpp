@@ -1,10 +1,11 @@
-#include "tac-rhi/debug/tac_debug_3d.h"
+#include "tac_debug_3d.h" // self-inc
+
 #include "tac-rhi/renderer/tac_renderer.h"
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/math/tac_matrix3.h"
-#include "tac-rhi/tac_renderer_util.h"
-#include "tac-std-lib/profile/tac_profile.h"
-#include "tac-rhi/camera/tac_camera.h"
+#include "tac-engine-core/graphics/tac_renderer_util.h"
+#include "tac-engine-core/profile/tac_profile.h"
+#include "tac-engine-core/graphics/camera/tac_camera.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/memory/tac_memory.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
@@ -95,31 +96,34 @@ namespace Tac
     mDepthLess = Render::CreateDepthState( depthStateData, TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( mDepthLess, "debug-3d-depth-state" );
 
-    const Render::VertexDeclarations decls
+    const Render::VertexDeclaration posDecl
     {
-      Render::VertexDeclaration 
+      .mAttribute = Render::Attribute::Position,
+      .mTextureFormat
       {
-        .mAttribute = Render::Attribute::Position,
-        .mTextureFormat
-        {
-          .mElementCount = 3,
-          .mPerElementByteCount = sizeof( float ),
-          .mPerElementDataType = Render::GraphicsType::real
-        },
-        .mAlignedByteOffset = (int)TAC_OFFSET_OF( DefaultVertexColor, mPosition )
+        .mElementCount = 3,
+        .mPerElementByteCount = sizeof( float ),
+        .mPerElementDataType = Render::GraphicsType::real
       },
-      Render::VertexDeclaration 
+      .mAlignedByteOffset = (int)TAC_OFFSET_OF( DefaultVertexColor, mPosition )
+    } ;
+
+    const Render::VertexDeclaration colDecl
+    {
+      .mAttribute = Render::Attribute::Color,
+      .mTextureFormat
       {
-        .mAttribute = Render::Attribute::Color,
-        .mTextureFormat
-        {
-          .mElementCount = 4,
-          .mPerElementByteCount = sizeof( float ),
-          .mPerElementDataType = Render::GraphicsType::real
-        },
-        .mAlignedByteOffset = (int)TAC_OFFSET_OF( DefaultVertexColor, mColor )
-      }
-    };
+        .mElementCount = 4,
+        .mPerElementByteCount = sizeof( float ),
+        .mPerElementDataType = Render::GraphicsType::real
+      },
+      .mAlignedByteOffset = (int)TAC_OFFSET_OF( DefaultVertexColor, mColor )
+    } ;
+
+    Render::VertexDeclarations decls;
+    decls.push_back( posDecl );
+    decls.push_back( colDecl );
+
     mVertexColorFormat = Render::CreateVertexFormat( decls, m3DVertexColorShader, TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( mVertexColorFormat, "debug-3d-vtx-fmt" );
 

@@ -1,11 +1,11 @@
-#include "space/terrain/tac_terrain.h" // self-include
+#include "tac_terrain.h" // self-inc
 
 #include "tac-std-lib/dataprocess/tac_json.h"
 #include "tac-rhi/debug/tac_debug_3d.h"
 #include "tac-rhi/renderer/tac_renderer.h"
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/memory/tac_memory.h"
-#include "tac-std-lib/system/tac_filesystem.h"
+#include "tac-engine-core/system/tac_filesystem.h"
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/thirdparty/stb_image.h"
 

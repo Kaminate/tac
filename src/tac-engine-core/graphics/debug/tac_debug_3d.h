@@ -7,6 +7,8 @@
 
 namespace Tac
 {
+  struct m3;
+  struct Camera;
 
   struct DefaultVertexColor
   {

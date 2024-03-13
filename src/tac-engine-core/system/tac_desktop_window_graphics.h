@@ -1,15 +1,12 @@
 #pragma once
 
-#include "tac-std-lib/system/tac_desktop_window.h"
+#include "tac-engine-core/system/tac_desktop_window.h"
+#include "tac-std-lib/string/tac_string_view.h"
+
+namespace Tac::Render { struct FramebufferHandle; struct ViewHandle; }
 
 namespace Tac
 {
-  namespace Render
-  {
-    struct FramebufferHandle;
-    struct ViewHandle;
-  }
-
   struct WindowGraphics
   {
     struct NativeHandleChangedData

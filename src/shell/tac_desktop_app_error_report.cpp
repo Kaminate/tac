@@ -1,4 +1,4 @@
-#include "tac_desktop_app_error_report.h" // self-include
+#include "tac_desktop_app_error_report.h" // self-inc
 
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"

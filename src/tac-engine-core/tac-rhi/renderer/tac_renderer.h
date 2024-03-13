@@ -279,11 +279,28 @@ namespace Tac::Render
     ShaderNameString( const StringView& );
   };
 
-  typedef FixedVector< VertexDeclaration, 10 >    VertexDeclarations;
-  typedef FixedVector< TextureHandle, 10 >        FramebufferTextures;
-  typedef FixedVector< SamplerStateHandle, 4 >    DrawCallSamplers;
-  typedef FixedVector< TextureHandle, 5 >         DrawCallTextures;
-  typedef FixedVector< ConstantBufferHandle, 10 > ConstantBuffers;
+  // this exists so that other files can forward declare VertexDeclarations/... as a struct,
+  // and not a typedef of FixedVector
+  template< typename T, int N >
+  struct FixedVectorWrapper
+  {
+    FixedVectorWrapper() = default;
+    FixedVectorWrapper( const T& t ) { mElements = { t }; }
+    //FixedVectorWrapper( std::initializer_list< T > ts ) : mElements{ ts } {}
+    void push_back( const T& t )   { mElements.push_back( t ); }
+    auto begin() const             { return mElements.begin(); } 
+    auto end() const               { return mElements.end(); } 
+    auto size() const              { return mElements.size(); } 
+    void clear()                   { mElements.clear(); }
+    auto operator[]( int i ) const { return mElements[ i ]; }
+    FixedVector< T, N > mElements;
+  };
+
+  struct VertexDeclarations : public FixedVectorWrapper< VertexDeclaration, 10 > {};
+  struct FramebufferTextures : public FixedVectorWrapper< TextureHandle, 10 > {};
+  struct DrawCallSamplers : public FixedVectorWrapper< SamplerStateHandle, 4 > {};
+  struct DrawCallTextures : public FixedVectorWrapper< TextureHandle, 5 > {};
+  struct ConstantBuffers : public FixedVectorWrapper< ConstantBufferHandle, 10 > {};
 
   struct DepthState
   {

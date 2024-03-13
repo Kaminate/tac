@@ -5,18 +5,18 @@
 #include "tac-std-lib/assetmanagers/tac_mesh.h"
 #include "tac-std-lib/assetmanagers/tac_model_asset_manager.h"
 #include "tac-std-lib/assetmanagers/tac_texture_asset_manager.h"
-#include "tac-rhi/ui/imgui/tac_imgui.h"
+#include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-rhi/debug/tac_debug_3d.h"
 #include "tac-rhi/renderer/tac_renderer.h"
-#include "tac-rhi/tac_renderer_util.h"
+#include "tac-engine-core/graphics/tac_renderer_util.h"
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/math/tac_matrix4.h"
 #include "tac-std-lib/math/tac_vector3.h"
 #include "tac-std-lib/math/tac_vector4.h"
-#include "tac-std-lib/profile/tac_profile.h"
+#include "tac-engine-core/profile/tac_profile.h"
 #include "tac-std-lib/shell/tac_shell_timestep.h"
-#include "tac-rhi/camera/tac_camera.h"
-#include "tac-std-lib/system/tac_desktop_window.h"
+#include "tac-engine-core/graphics/camera/tac_camera.h"
+#include "tac-engine-core/system/tac_desktop_window.h"
 #include "tac-std-lib/memory/tac_frame_memory.h"
 #include "tac-std-lib/memory/tac_memory.h"
 #include "tac-std-lib/os/tac_os.h"
@@ -312,7 +312,10 @@ namespace Tac
       .mAlignedByteOffset = (int)TAC_OFFSET_OF( GameModelVtx, mNor ),
     };
 
-    m3DVertexFormatDecls = Render::VertexDeclarations{ posDecl, norDecl };
+    m3DVertexFormatDecls.clear();
+    m3DVertexFormatDecls.push_back( posDecl );
+    m3DVertexFormatDecls.push_back( norDecl );
+
     m3DVertexFormat = Render::CreateVertexFormat( m3DVertexFormatDecls, m3DShader, TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( m3DVertexFormat, "game-3d-vtx-fmt" );
   }

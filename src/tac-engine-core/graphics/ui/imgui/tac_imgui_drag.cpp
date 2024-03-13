@@ -3,10 +3,10 @@
 
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/error/tac_error_handling.h"
-#include "tac-rhi/ui/tac_ui_2d.h"
-#include "tac-std-lib/input/tac_keyboard_input.h"
+#include "tac-engine-core/graphics/ui/tac_ui_2d.h"
+#include "tac-engine-core/input/tac_keyboard_input.h"
 #include "tac-std-lib/os/tac_os.h"
-#include "tac-rhi/ui/tac_text_edit.h"
+#include "tac-engine-core/graphics/ui/tac_text_edit.h"
 
 namespace Tac
 {

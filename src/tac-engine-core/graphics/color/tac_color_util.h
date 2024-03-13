@@ -1,13 +1,15 @@
 #pragma once
 
-#include "tac-std-lib/tac_core.h"
+//#include "tac-std-lib/tac_core.h"
 
 #include "tac-std-lib/tac_ints.h"
 
 
-
 namespace Tac
 {
+  struct v3;
+  struct v4;
+
   v4   GetColorSchemeA( float t );
 
   void RGBToHSV( const v3& inputRGB, float* h, float* s, float* v );

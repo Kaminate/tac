@@ -4,15 +4,15 @@
 #include "tac-std-lib/assetmanagers/tac_asset.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/memory/tac_memory.h"
-#include "tac-std-lib/system/tac_desktop_window.h"
-#include "tac-rhi/camera/tac_camera.h"
+#include "tac-engine-core/system/tac_desktop_window.h"
+#include "tac-engine-core/graphics/camera/tac_camera.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/assetmanagers/tac_texture_asset_manager.h"
 #include "tac-std-lib/assetmanagers/tac_model_asset_manager.h"
 #include "tac-std-lib/assetmanagers/tac_mesh.h"
 #include "tac-rhi/renderer/tac_renderer.h"
-#include "tac-rhi/tac_renderer_util.h"
-#include "tac-std-lib/profile/tac_profile.h"
+#include "tac-engine-core/graphics/tac_renderer_util.h"
+#include "tac-engine-core/profile/tac_profile.h"
 
 namespace Tac
 {

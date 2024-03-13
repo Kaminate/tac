@@ -7,10 +7,13 @@
 
 #pragma once
 
-#include "tac-std-lib/tac_core.h"
+//#include "tac-std-lib/tac_core.h"
 
 #include "tac-std-lib/tac_ints.h"
 
+
+namespace Tac{ struct StringView; struct Errors; }
+namespace Tac::Filesystem { struct Path; }
 
 namespace Tac
 {

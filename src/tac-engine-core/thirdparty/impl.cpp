@@ -15,7 +15,7 @@
 #endif
 
 #define CGLTF_IMPLEMENTATION
-#include "tac-std-lib/thirdparty/cgltf.h"
+#include "tac-engine-core/thirdparty/cgltf.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"

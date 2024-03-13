@@ -56,7 +56,7 @@ namespace Tac
       return *mesh;
 
     const StringView pathExt = path.GetFileExtension();
-    MeshLoadFunction* meshLoadFunction = ModelLoadFunctionFind( pathExt );
+    MeshLoadFunction meshLoadFunction = ModelLoadFunctionFind( pathExt );
     if( !meshLoadFunction )
       return nullptr;
 

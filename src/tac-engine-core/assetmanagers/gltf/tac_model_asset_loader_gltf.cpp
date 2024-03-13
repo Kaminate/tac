@@ -7,6 +7,8 @@
 #include "tac-engine-core/assetmanagers/tac_model_asset_manager_backend.h"
 #include "tac-engine-core/framememory/tac_frame_memory.h"
 
+#include "tac-rhi/renderer/tac_renderer.h"
+
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/filesystem/tac_asset.h"
@@ -76,11 +78,11 @@ namespace Tac
   {
     int dstVtxStride = 0;
 
-    for(const Render::VertexDeclaration& vertexDeclaration : vertexDeclarations)
+    for( const Render::VertexDeclaration& decl : vertexDeclarations )
     {
       const int vertexEnd =
-        vertexDeclaration.mAlignedByteOffset +
-        vertexDeclaration.mTextureFormat.CalculateTotalByteCount();
+        decl.mAlignedByteOffset +
+        decl.mTextureFormat.CalculateTotalByteCount();
       dstVtxStride = Max( dstVtxStride, vertexEnd );
     }
 
@@ -127,7 +129,9 @@ namespace Tac
         const int vertexCount = ( int )parsedPrim->attributes[ 0 ].data->count;
         Vector< char > dstVtxBytes( vertexCount * dstVtxStride, ( char )0 );
 
-        for( int iVertexDeclaration = 0; iVertexDeclaration < vertexDeclarations.size(); ++iVertexDeclaration )
+        for( int iVertexDeclaration = 0;
+             iVertexDeclaration < vertexDeclarations.size();
+             iVertexDeclaration++ )
         {
           const Render::VertexDeclaration& vertexDeclaration = vertexDeclarations[ iVertexDeclaration ];
           const Render::Format& dstFormat = vertexDeclaration.mTextureFormat;

@@ -1,12 +1,13 @@
-#include "tac-rhi/debug/tac_depth_buffer_visualizer.h"
+#include "tac_depth_buffer_visualizer.h" // self-inc
+
+#include "tac-rhi/renderer/tac_renderer.h"
 
 namespace Tac
 {
-#define TAC_CALL_ONCE { static bool initialized; if( initialized ) return; initialized = true; }
-
   static Render::ShaderHandle         shader;
   static Render::SamplerStateHandle   samplerStateHandle;
   static Render::ConstantBufferHandle constantBuffer;
+  static bool                         sInitialized;
 
   struct CBufferDepthViz
   {
@@ -18,7 +19,10 @@ namespace Tac
 
   static void DepthBufferVisuzliationInit()
   {
-    TAC_CALL_ONCE;
+    if( sInitialized )
+      return;
+
+    sInitialized = true;
 
     samplerStateHandle = Render::CreateSamplerState( { .mFilter = Render::Filter::Point }, TAC_STACK_FRAME );
 

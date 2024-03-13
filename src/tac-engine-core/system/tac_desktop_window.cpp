@@ -2,35 +2,24 @@
 
 #include "tac-std-lib/containers/tac_array.h"
 #include "tac-rhi/renderer/tac_renderer.h"
-#include "tac-rhi/ui/imgui/tac_imgui.h"
+#include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-std-lib/math/tac_vector2.h"
 #include "tac-std-lib/math/tac_math.h"
-#include "tac-std-lib/shell/tac_shell.h"
-#include "tac-std-lib/os/tac_os.h"
+#include "tac-std-lib/string/tac_short_fixed_string.h"
+//#include "tac-std-lib/shell/tac_shell.h"
+//#include "tac-std-lib/os/tac_os.h"
 
 namespace Tac
 {
   static DesktopWindowState sDesktopWindowStates[ kDesktopWindowCapacity ];
   static DesktopWindowHandle sMouseHoveredWindowHandle;
 
-  v2                        DesktopWindowState::GetPosV2() const
-  {
-    float x = (float)mX;
-    float y = (float)mY;
-    return { x, y };
-  }
-
-  v2                        DesktopWindowState::GetSizeV2() const
-  {
-    float w = (float)mWidth;
-    float h = (float)mHeight;
-    return { w, h };
-  }
-
-  int  DesktopWindowRect::GetArea() const { return GetWidth() * GetHeight(); }
-  bool DesktopWindowRect::IsEmpty() const { return GetArea() == 0; }
-  int  DesktopWindowRect::GetWidth() const { return mRight - mLeft; }
-  int  DesktopWindowRect::GetHeight() const { return mBottom - mTop; }
+  v2   DesktopWindowState::GetPosV2() const  { return { ( float )mX, ( float )mY }; }
+  v2   DesktopWindowState::GetSizeV2() const { return { ( float )mWidth, ( float )mHeight }; }
+  int  DesktopWindowRect::GetArea() const    { return GetWidth() * GetHeight(); }
+  bool DesktopWindowRect::IsEmpty() const    { return GetArea() == 0; }
+  int  DesktopWindowRect::GetWidth() const   { return mRight - mLeft; }
+  int  DesktopWindowRect::GetHeight() const  { return mBottom - mTop; }
 
 
   bool                        IsWindowHovered( const DesktopWindowHandle desktopWindowHandle )
@@ -101,12 +90,12 @@ namespace Tac
       if( !state->mNativeWindowHandle )
         continue;
 
-      ShortFixedString handleStr = ToString( iWindow );
+      String handleStr = ToString( iWindow );
       while( handleStr.size() < 2 )
         handleStr += ' ';
 
-      ShortFixedString nameStr = (StringView)state->mName;
-      while(nameStr.size() < maxNameLen)
+      String nameStr = state->mName;
+      while( nameStr.size() < maxNameLen )
         nameStr += ' ';
 
       String str;
@@ -129,8 +118,8 @@ namespace Tac
       stateCount++;
     }
 
-    if( !stateCount)
-      ImGuiText(" No desktop window states (how are you reading this)" );
+    if( !stateCount )
+      ImGuiText( " No desktop window states (how are you reading this)" );
   }
 } // namespace Tac
 

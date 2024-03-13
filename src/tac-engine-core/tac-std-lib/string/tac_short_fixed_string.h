@@ -62,12 +62,12 @@ namespace Tac
     void operator += ( char );
     void operator += ( const StringView& );
 
-    //operator StringView() const               { return StringView( mBuf, mSize ); }
+    operator StringView() const               { return StringView( mBuf, mSize ); }
 
 
     // needed to convert the FixedString result from va()
     // into the const char* in TAC_ASSERT HandleAssert
-    operator const char*() const;
+    //operator const char*() const;
 
     FixedStringData GetFSD();
 

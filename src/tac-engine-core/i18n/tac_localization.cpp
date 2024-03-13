@@ -101,7 +101,7 @@ namespace Tac
   static LocalizedString* FindLocalizedString( StringView reference )
   {
     for( LocalizedString& str : mLocalizedStrings )
-      if( str.mReference == reference )
+      if( ( StringView )str.mReference == reference )
         return &str;
     return nullptr;
   }
@@ -126,7 +126,7 @@ namespace Tac
   Language GetLanguage( StringView str )
   {
     for( int i = 0; i < ( int )Language::Count; ++i )
-      if( Languages[ i ] == str )
+      if( ( StringView )Languages[ i ] == str )
         return ( Language )i;
     return Language::Count;
   }

@@ -1,15 +1,15 @@
-#include "tac-rhi/ui/tac_ui_2d.h" // self-inc
+#include "tac_ui_2d.h" // self-inc
 
 #include "tac-std-lib/containers/tac_array.h"
-#include "tac-rhi/ui/imgui/tac_imgui.h"
+#include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-rhi/renderer/tac_renderer.h"
-#include "tac-rhi/tac_renderer_util.h"
+#include "tac-engine-core/graphics/tac_renderer_util.h"
 #include "tac-engine-core/framememory/tac_frame_memory.h"
-#include "tac-std-lib/os/tac_os.h" // deleteme
+//#include "tac-std-lib/os/tac_os.h" // deleteme
 #include "tac-std-lib/math/tac_math.h"
-#include "tac-std-lib/profile/tac_profile.h"
-#include "tac-rhi/ui/tac_font.h"
+#include "tac-engine-core/profile/tac_profile.h"
+#include "tac-engine-core/graphics/ui/tac_font.h"
 #include "tac-std-lib/math/tac_math_unit_test_helper.h"
 #include "tac-std-lib/algorithm/tac_algorithm.h"
 #include "tac-std-lib/math/tac_matrix3.h"
@@ -25,6 +25,7 @@ namespace Tac
   {
     void Init( Errors& );
     void Uninit();
+
     Render::TextureHandle         m1x1White;
     Render::VertexFormatHandle    mFormat;
     Render::ShaderHandle          mShader;
@@ -244,9 +245,11 @@ namespace Tac
       .mAlignedByteOffset = TAC_OFFSET_OF( UI2DVertex, mGLTexCoord ),
     };
 
-    mFormat = Render::CreateVertexFormat( Render::VertexDeclarations{ posData, uvData },
-                                          mShader,
-                                          TAC_STACK_FRAME );
+    Render::VertexDeclarations decls;
+    decls.push_back( posData );
+    decls.push_back( uvData );
+
+    mFormat = Render::CreateVertexFormat( decls, mShader, TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( mFormat, "2dVtxFmt" );
 
     const Render::BlendState blendStateData

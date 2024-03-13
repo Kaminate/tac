@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "tac-std-lib/tac_core.h"
+//#include "tac-std-lib/tac_core.h"
 #include "tac-std-lib/math/tac_vector2.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/tac_ints.h"

@@ -2,7 +2,7 @@
 
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
-#include "tac-std-lib/shell/tac_shell.h"
+//#include "tac-std-lib/shell/tac_shell.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-std-lib/string/tac_string_util.h"
 #include "tac-std-lib/os/tac_os.h"

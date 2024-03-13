@@ -1,4 +1,4 @@
-#include "src/shell/tac_desktop_event.h" // self-include
+#include "tac_desktop_event.h" // self-inc
 
 #include "tac-std-lib/containers/tac_ring_buffer.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"

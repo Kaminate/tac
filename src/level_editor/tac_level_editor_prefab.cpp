@@ -1,4 +1,4 @@
-#include "src/level_editor/tac_level_editor_prefab.h" // self-include
+#include "tac_level_editor_prefab.h" // self-inc
 
 #include "src/common/assetmanagers/tac_asset.h"
 #include "src/common/containers/tac_vector.h"

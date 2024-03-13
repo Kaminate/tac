@@ -1,10 +1,12 @@
 #pragma once
 
-#include "tac-std-lib/tac_core.h"
-#include "tac-std-lib/string/tac_string.h"
+//#include "tac-std-lib/tac_core.h"
+//#include "tac-std-lib/string/tac_string.h"
 
 namespace Tac
 {
+  struct StringView;
+
   void        FrameMemoryInitThreadAllocator( int byteCount );
   void*       FrameMemoryAllocate( int );
   StringView  FrameMemoryCopy( const StringView& );

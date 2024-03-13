@@ -12,7 +12,7 @@
 #include "tac-std-lib/identifier/tac_id_collection.h"
 #include "tac-std-lib/shell/tac_shell.h"
 #include "tac-std-lib/string/tac_string_util.h"
-#include "tac-std-lib/system/tac_filesystem.h"
+#include "tac-engine-core/system/tac_filesystem.h"
 #include "tac-std-lib/os/tac_os.h"
 #include "src/shell/tac_desktop_app.h"
 #include "src/shell/windows/tac_win32.h"

@@ -83,7 +83,7 @@ namespace Tac
 
   // needed to convert the FixedString result from va()
   // into the const char* in TAC_ASSERT HandleAssert
-  ShortFixedString::operator const char*() const               { return mBuf; }
+  //ShortFixedString::operator const char*() const               { return mBuf; }
 
   FixedStringData ShortFixedString::GetFSD()
   {

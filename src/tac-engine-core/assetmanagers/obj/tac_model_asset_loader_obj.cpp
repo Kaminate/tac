@@ -1,14 +1,16 @@
 #include "tac_model_asset_loader_obj.h" // self-inc
 
 #include "tac-engine-core/assetmanagers/tac_mesh.h"
-#include "tac-std-lib/filesystem/tac_asset.h"
 #include "tac-engine-core/assetmanagers/tac_model_asset_manager_backend.h"
+#include "tac-engine-core/framememory/tac_frame_memory.h"
 #include "tac-std-lib/algorithm/tac_algorithm.h"
 #include "tac-std-lib/dataprocess/tac_text_parser.h"
-#include "tac-std-lib/math/tac_math.h"
-#include "tac-engine-core/framememory/tac_frame_memory.h"
-#include "tac-std-lib/string/tac_string_util.h"
+#include "tac-std-lib/filesystem/tac_asset.h"
 #include "tac-std-lib/filesystem/tac_filesystem.h"
+#include "tac-std-lib/math/tac_math.h"
+#include "tac-std-lib/string/tac_string_util.h"
+#include "tac-std-lib/string/tac_string.h"
+#include "tac-std-lib/string/tac_string_view.h"
 
 namespace Tac
 {
@@ -102,27 +104,27 @@ namespace Tac
         break;
 
       const StringView word = parseData.EatWord();
-      if( word == "f" )
+      if( word == StringView("f" ) )
         faces.push_back( WavefrontObjParseFace( &parseData ) );
 
-      if( word == "vn" )
+      if( word == StringView("vn") )
         normals.push_back( EatV3Unchecked( &parseData ) );
 
-      if( word == "vt" )
+      if( word == StringView("vt") )
         texcoords.push_back( EatV2Unchecked( &parseData ) );
 
-      if( word == "v" )
+      if( word == StringView("v") )
         positions.push_back( EatV3Unchecked( &parseData ) );
 
       parseData.EatRestOfLine();
     }
 
-    WavefrontObj result;
-    result.normals = normals;
-    result.texcoords = texcoords;
-    result.positions = positions;
-    result.faces = faces;
-    return result;
+    return WavefrontObj{
+      .normals = normals,
+      .texcoords = texcoords,
+      .positions = positions,
+      .faces = faces,
+    };
   }
 
   static int                WavefrontObjCalculateStride( const Render::VertexDeclarations& vertexDeclarations )

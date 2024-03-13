@@ -1,10 +1,13 @@
 #pragma once
-#include "tac-std-lib/i18n/tac_localization.h"
+
+#include "tac-engine-core/i18n/tac_localization.h"
 #include "tac-std-lib/containers/tac_vector.h"
-#include "tac-std-lib/tac_core.h"
+//#include "tac-std-lib/tac_core.h"
 
 namespace Tac
 {
+  struct String;
+
   enum class TextInputKey
   {
     LeftArrow,
