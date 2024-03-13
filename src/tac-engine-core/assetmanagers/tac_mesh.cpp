@@ -1,4 +1,4 @@
-#include "tac-std-lib/assetmanagers/tac_mesh.h"
+#include "tac-engine-core/assetmanagers/tac_mesh.h"
 #include "tac-std-lib/math/tac_vector4.h"
 
 namespace Tac

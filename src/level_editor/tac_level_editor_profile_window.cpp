@@ -1,4 +1,4 @@
-#include "src/level_editor/tac_level_editor_profile_window.h" // self-inc
+#include "tac_level_editor_profile_window.h" // self-inc
 
 #include "src/common/graphics/imgui/tac_imgui.h"
 #include "src/common/graphics/tac_ui_2d.h"

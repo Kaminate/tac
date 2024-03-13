@@ -1,4 +1,4 @@
-#include "src/game-examples/phy_sim/tac_example_phys_sim_5_lincollision.h" // self-inc
+#include "tac_example_phys_sim_5_lincollision.h" // self-inc
 
 #include "src/common/graphics/imgui/tac_imgui.h"
 #include "src/common/graphics/tac_debug_3d.h"

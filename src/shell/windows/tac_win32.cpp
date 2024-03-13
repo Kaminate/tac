@@ -1,4 +1,4 @@
-#include "src/shell/windows/tac_win32.h" // self-inc
+#include "tac_win32.h" // self-inc
 
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/string/tac_string_util.h"

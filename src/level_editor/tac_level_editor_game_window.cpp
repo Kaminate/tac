@@ -1,4 +1,4 @@
-#include "src/level_editor/tac_level_editor_game_window.h" // self-inc
+#include "tac_level_editor_game_window.h" // self-inc
 
 #include "src/common/assetmanagers/tac_mesh.h"
 #include "src/common/assetmanagers/tac_model_asset_manager.h"

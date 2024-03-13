@@ -1,4 +1,4 @@
-#include "src/game-examples/phy_sim/tac_example_phys_sim_3_torque.h" // self-inc
+#include "tac_example_phys_sim_3_torque.h" // self-inc
 
 #include "space/world/tac_world.h"
 #include "src/common/graphics/tac_camera.h"

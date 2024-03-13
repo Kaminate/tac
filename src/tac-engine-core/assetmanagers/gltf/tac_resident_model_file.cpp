@@ -1,13 +1,13 @@
-#include "tac-std-lib/assetmanagers/gltf/tac_resident_model_file.h" // self-inc
+#include "tac_resident_model_file.h" // self-inc
 
-#include "tac-std-lib/assetmanagers/gltf/tac_gltf.h"
-#include "tac-std-lib/assetmanagers/tac_asset.h"
-#include "tac-std-lib/shell/tac_shell_timestep.h"
+#include "tac-engine-core/assetmanagers/gltf/tac_gltf.h"
+#include "tac-std-lib/filesystem/tac_asset.h"
+#include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-std-lib/string/tac_string_identifier.h"
 #include "tac-std-lib/string/tac_string.h"
-#include "tac-std-lib/system/tac_filesystem.h"
-#include "tac-std-lib/system/tac_job_queue.h"
-#include "tac-std-lib/assetmanagers/gltf/tac_gltf.h"
+#include "tac-std-lib/filesystem/tac_filesystem.h"
+#include "tac-engine-core/system/tac_job_queue.h"
+#include "tac-engine-core/assetmanagers/gltf/tac_gltf.h"
 
 namespace Tac
 {

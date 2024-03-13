@@ -1,8 +1,8 @@
 #include "tac-std-lib/shell/tac_shell.h" // self-include
 
-#include "tac-std-lib/assetmanagers/tac_model_asset_manager.h"
-#include "tac-std-lib/assetmanagers/tac_asset.h"
-#include "tac-std-lib/assetmanagers/tac_texture_asset_manager.h"
+#include "tac-engine-core/assetmanagers/tac_model_asset_manager.h"
+#include "tac-std-lib/filesystem/tac_asset.h"
+#include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h"
 #include "tac-std-lib/algorithm/tac_algorithm.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/dataprocess/tac_log.h"
@@ -14,14 +14,14 @@
 #include "tac-rhi/ui/tac_ui_2d.h"
 #include "tac-std-lib/input/tac_controller_input.h"
 #include "tac-std-lib/input/tac_keyboard_input.h"
-#include "tac-std-lib/memory/tac_frame_memory.h"
+#include "tac-engine-core/framememory/tac_frame_memory.h"
 #include "tac-std-lib/net/tac_net.h"
 #include "tac-std-lib/profile/tac_profile.h"
-#include "tac-std-lib/shell/tac_shell_timestep.h"
+#include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-std-lib/string/tac_string.h"
-#include "tac-std-lib/assetmanagers/tac_asset.h"
-#include "tac-std-lib/system/tac_filesystem.h"
-#include "tac-std-lib/system/tac_job_queue.h"
+#include "tac-std-lib/filesystem/tac_asset.h"
+#include "tac-std-lib/filesystem/tac_filesystem.h"
+#include "tac-engine-core/system/tac_job_queue.h"
 #include "tac-std-lib/os/tac_os.h"
 
 //#include <iostream>

@@ -1,4 +1,4 @@
-#include "src/level_editor/tac_level_editor_property_window.h" // self-inc
+#include "tac_level_editor_property_window.h" // self-inc
 
 #include "src/common/assetmanagers/tac_asset.h"
 #include "src/common/algorithm/tac_algorithm.h"

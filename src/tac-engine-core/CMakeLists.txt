@@ -42,10 +42,13 @@ add_subdirectory( shell )
 add_subdirectory( system )
 add_subdirectory( thirdparty )
 
-add_subdirectory(tac-std-lib)
-add_subdirectory(tac-rhi)
+add_subdirectory( tac-std-lib )
+add_subdirectory( tac-rhi )
 
-target_link_libraries( TacStdLib TacRHI )
+target_link_libraries( TacEngineCore
+  TacRHI  
+  TacStdLib )
+
 
 # -------------------------------------------
 # Create visual studio project filters
@@ -59,7 +62,7 @@ if( MSVC )
 endif()
 # -------------------------------------------
 
-target_include_directories( TacEngineCore PUBLIC ${CMAKE_SOURCE_DIR})
+target_include_directories( TacEngineCore PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../ )
 
 # This does weird things where sometimes after rebuilding ( without cleaning ) the program will immediately exit
 # without hitting main
@@ -67,5 +70,5 @@ target_include_directories( TacEngineCore PUBLIC ${CMAKE_SOURCE_DIR})
 # Given the list of input files (just tac_precompiled_header.h atm),
 # cmake precompiles them into cmake_pch.cxx and force includes them (/FI MSVC) into each of the target (TacEngineCore)
 # source files.
-target_precompile_headers( TacEngineCore PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tac_precompiled_header.h)
+target_precompile_headers( TacEngineCore PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tac_engine_core_pch.h)
 

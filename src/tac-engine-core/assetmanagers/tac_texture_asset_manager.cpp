@@ -1,14 +1,14 @@
-#include "tac-std-lib/assetmanagers/tac_texture_asset_manager.h" // self-include
+#include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h" // self-include
 
 #include "tac-std-lib/algorithm/tac_algorithm.h"
-#include "tac-std-lib/assetmanagers/tac_asset.h"
+#include "tac-std-lib/filesystem/tac_asset.h"
 #include "tac-rhi/renderer/tac_renderer.h"
 #include "tac-std-lib/containers/tac_map.h"
 #include "tac-std-lib/memory/tac_memory.h"
 #include "tac-std-lib/string/tac_string_identifier.h"
 #include "tac-std-lib/string/tac_string_util.h"
-#include "tac-std-lib/system/tac_filesystem.h"
-#include "tac-std-lib/system/tac_job_queue.h"
+#include "tac-std-lib/filesystem/tac_filesystem.h"
+#include "tac-engine-core/system/tac_job_queue.h"
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/thirdparty/stb_image.h"
 

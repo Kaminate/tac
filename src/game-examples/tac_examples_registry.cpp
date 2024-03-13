@@ -1,6 +1,6 @@
-#include "src/game-examples/tac_examples_registry.h" // self-inc
-#include "src/game-examples/tac_examples.h"
+#include "tac_examples_registry.h" // self-inc
 
+#include "src/game-examples/tac_examples.h"
 #include "src/game-examples/fluid/tac_example_fluid.h"
 #include "src/game-examples/meta/tac_example_meta.h"
 #include "src/game-examples/text/tac_example_text.h"

@@ -1,4 +1,4 @@
-#include "src/shell/windows/input/tac_win32_mouse_edge.h" // self-inc
+#include "tac_win32_mouse_edge.h" // self-inc
 
 #include "tac-std-lib/system/tac_desktop_window.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"

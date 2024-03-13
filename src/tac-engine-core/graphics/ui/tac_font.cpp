@@ -3,15 +3,15 @@
 #include "tac-std-lib/dataprocess/tac_settings.h"
 #include "tac-rhi/renderer/tac_renderer.h"
 #include "tac-std-lib/math/tac_math.h"
-#include "tac-std-lib/memory/tac_frame_memory.h"
+#include "tac-engine-core/framememory/tac_frame_memory.h"
 #include "tac-std-lib/memory/tac_memory.h"
 #include "tac-std-lib/memory/tac_memory_util.h"
 #include "tac-std-lib/shell/tac_shell.h"
 #include "tac-std-lib/string/tac_string_util.h"
-#include "tac-std-lib/system/tac_filesystem.h"
+#include "tac-std-lib/filesystem/tac_filesystem.h"
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/thirdparty/stb_truetype.h"
-#include "tac-std-lib/assetmanagers/tac_asset.h"
+#include "tac-std-lib/filesystem/tac_asset.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 
 #define TAC_DEBUGGING_ATLAS 0

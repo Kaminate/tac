@@ -10,7 +10,7 @@
 #include "tac-std-lib/math/tac_vector2.h" // v2
 #include "tac-rhi/renderer/tac_renderer.h" // Render::TextureHandle
 #include "tac-std-lib/tac_core.h"
-#include "tac-std-lib/shell/tac_shell_timestep.h"
+#include "tac-engine-core/shell/tac_shell_timestep.h"
 
 namespace Tac
 {

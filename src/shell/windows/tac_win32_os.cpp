@@ -1,4 +1,4 @@
-#include "src/shell/windows/tac_win32_os.h" // self-inc
+#include "tac_win32_os.h" // self-inc
 
 #include "src/shell/windows/tac_win32_com_ptr.h"
 #include "tac-std-lib/assetmanagers/tac_asset.h"

@@ -1,4 +1,4 @@
-#include "src/level_editor/tac_entity_selection.h" // self-inc
+#include "tac_entity_selection.h" // self-inc
 
 // TODO: remove dependency on these begin
 #include "src/level_editor/tac_level_editor.h" // gCreation

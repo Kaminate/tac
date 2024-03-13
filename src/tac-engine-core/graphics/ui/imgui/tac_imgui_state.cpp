@@ -11,7 +11,7 @@
 #include "tac-rhi/ui/tac_font.h"
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
-#include "tac-std-lib/shell/tac_shell_timestep.h"
+#include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-std-lib/os/tac_os.h"
 
 // This is a shell include, how is it in tac/src/common?

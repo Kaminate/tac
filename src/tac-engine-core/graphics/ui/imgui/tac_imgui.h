@@ -5,7 +5,7 @@
 #include "tac-std-lib/math/tac_vector4.h"
 #include "tac-std-lib/tac_core.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
-#include "tac-std-lib/shell/tac_shell_timestep.h"
+#include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-std-lib/i18n/tac_localization.h" // codepoint (temp include)
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac-std-lib/system/tac_desktop_window.h"

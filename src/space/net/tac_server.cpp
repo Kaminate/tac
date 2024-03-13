@@ -1,4 +1,4 @@
-#include "space/net/tac_server.h" // self-inc
+#include "tac_server.h" // self-inc
 
 #include "tac-std-lib/memory/tac_memory.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"

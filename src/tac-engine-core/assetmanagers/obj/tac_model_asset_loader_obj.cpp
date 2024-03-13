@@ -1,14 +1,14 @@
-#include "tac-std-lib/assetmanagers/obj/tac_model_asset_loader_obj.h" // self-inc
+#include "tac-engine-core/assetmanagers/obj/tac_model_asset_loader_obj.h" // self-inc
 
-#include "tac-std-lib/assetmanagers/tac_mesh.h"
-#include "tac-std-lib/assetmanagers/tac_asset.h"
-#include "tac-std-lib/assetmanagers/tac_model_asset_manager_backend.h"
+#include "tac-engine-core/assetmanagers/tac_mesh.h"
+#include "tac-std-lib/filesystem/tac_asset.h"
+#include "tac-engine-core/assetmanagers/tac_model_asset_manager_backend.h"
 #include "tac-std-lib/algorithm/tac_algorithm.h"
 #include "tac-std-lib/dataprocess/tac_text_parser.h"
 #include "tac-std-lib/math/tac_math.h"
-#include "tac-std-lib/memory/tac_frame_memory.h"
+#include "tac-engine-core/framememory/tac_frame_memory.h"
 #include "tac-std-lib/string/tac_string_util.h"
-#include "tac-std-lib/system/tac_filesystem.h"
+#include "tac-std-lib/filesystem/tac_filesystem.h"
 
 namespace Tac
 {

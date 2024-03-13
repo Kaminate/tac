@@ -1,4 +1,4 @@
-#include "src/shell/vulkan/tac_renderer_vulkan.h" // self-inc
+#include "tac_renderer_vulkan.h" // self-inc
 
 #include "src/common/error/tac_error_handling.h"
 #include "src/common/shell/tac_shell.h"

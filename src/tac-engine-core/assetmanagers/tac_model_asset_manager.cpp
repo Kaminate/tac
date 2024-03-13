@@ -1,21 +1,21 @@
-#include "tac-std-lib/assetmanagers/tac_model_asset_manager.h" // self-inc
+#include "tac-engine-core/assetmanagers/tac_model_asset_manager.h" // self-inc
 
-#include "tac-std-lib/assetmanagers/gltf/tac_model_asset_loader_gltf.h"
-#include "tac-std-lib/assetmanagers/gltf/tac_resident_model_file.h"
-#include "tac-std-lib/assetmanagers/gltf/tac_model_load_synchronous.h"
-#include "tac-std-lib/assetmanagers/obj/tac_model_asset_loader_obj.h"
-#include "tac-std-lib/assetmanagers/tac_asset.h"
-#include "tac-std-lib/assetmanagers/tac_mesh.h"
-#include "tac-std-lib/assetmanagers/tac_model_asset_manager_backend.h"
+#include "tac-engine-core/assetmanagers/gltf/tac_model_asset_loader_gltf.h"
+#include "tac-engine-core/assetmanagers/gltf/tac_resident_model_file.h"
+#include "tac-engine-core/assetmanagers/gltf/tac_model_load_synchronous.h"
+#include "tac-engine-core/assetmanagers/obj/tac_model_asset_loader_obj.h"
+#include "tac-std-lib/filesystem/tac_asset.h"
+#include "tac-engine-core/assetmanagers/tac_mesh.h"
+#include "tac-engine-core/assetmanagers/tac_model_asset_manager_backend.h"
 #include "tac-rhi/renderer/tac_renderer.h"
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/memory/tac_memory.h"
 #include "tac-std-lib/string/tac_string_identifier.h"
 #include "tac-std-lib/containers/tac_map.h"
 #include "tac-std-lib/string/tac_string_util.h"
-#include "tac-std-lib/system/tac_filesystem.h"
-#include "tac-std-lib/system/tac_job_queue.h"
-#include "tac-std-lib/assetmanagers/gltf/tac_gltf.h"
+#include "tac-std-lib/filesystem/tac_filesystem.h"
+#include "tac-engine-core/system/tac_job_queue.h"
+#include "tac-engine-core/assetmanagers/gltf/tac_gltf.h"
 
 
 namespace Tac

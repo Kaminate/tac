@@ -1,4 +1,4 @@
-#include "space/presentation/tac_voxel_gi_presentation.h" // self-inc
+#include "tac_voxel_gi_presentation.h" // self-inc
 
 #include "tac-std-lib/assetmanagers/tac_mesh.h"
 #include "tac-std-lib/tac_ints.h"

@@ -1,4 +1,4 @@
-#include "src/shell/tac_win_vk.h" // self-inc
+#include "tac_win_vk.h" // self-inc
 
 #include "src/shell/vulkan/tac_renderer_vulkan.h" // TAC_VK_CALL
 #include "src/shell/windows/tac_win32.h"

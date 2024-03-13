@@ -1,4 +1,4 @@
-#include "src/level_editor/tac_level_editor.h" // self-inc
+#include "tac_level_editor.h" // self-inc
 
 // common
 #include "src/common/assetmanagers/tac_texture_asset_manager.h"

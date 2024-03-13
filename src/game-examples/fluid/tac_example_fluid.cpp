@@ -1,4 +1,4 @@
-#include "src/game-examples/fluid/tac_example_fluid.h" // self-inc
+#include "tac_example_fluid.h" // self-inc
 
 #include "src/common/preprocess/tac_preprocessor.h" // C4100
 #include "src/common/graphics/imgui/tac_imgui.h"

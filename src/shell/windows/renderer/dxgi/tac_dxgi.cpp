@@ -1,4 +1,4 @@
-#include "src/shell/windows/renderer/dxgi/tac_dxgi.h" // self-inc
+#include "tac_dxgi.h" // self-inc
 
 #include "src/shell/windows/tac_win32.h"
 #include "tac-std-lib/string/tac_string.h"

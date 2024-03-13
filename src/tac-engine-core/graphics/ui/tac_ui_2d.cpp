@@ -2,10 +2,10 @@
 
 #include "tac-std-lib/containers/tac_array.h"
 #include "tac-rhi/ui/imgui/tac_imgui.h"
-#include "tac-std-lib/shell/tac_shell_timestep.h"
+#include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-rhi/renderer/tac_renderer.h"
 #include "tac-rhi/tac_renderer_util.h"
-#include "tac-std-lib/memory/tac_frame_memory.h"
+#include "tac-engine-core/framememory/tac_frame_memory.h"
 #include "tac-std-lib/os/tac_os.h" // deleteme
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/profile/tac_profile.h"

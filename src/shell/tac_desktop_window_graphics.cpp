@@ -1,4 +1,4 @@
-#include "src/shell/tac_desktop_window_graphics.h" // self-inc
+#include "tac_desktop_window_graphics.h" // self-inc
 
 #include "tac-rhi/renderer/tac_renderer.h"
 #include "tac-std-lib/system/tac_desktop_window.h"

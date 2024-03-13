@@ -1,4 +1,4 @@
-#include "tac-rhi/color/tac_color_util.h" // self-inc
+#include "tac_color_util.h" // self-inc
 
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/dataprocess/tac_serialization.h"

@@ -1,4 +1,4 @@
-#include "src/shell/windows/renderer/dxgi/tac_dxgi_debug.h" // self-inc
+#include "tac_dxgi_debug.h" // self-inc
 
 #include "src/shell/windows/tac_win32_com_ptr.h"
 

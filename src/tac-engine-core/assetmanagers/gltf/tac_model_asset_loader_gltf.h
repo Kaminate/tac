@@ -2,8 +2,5 @@
 
 namespace Tac
 {
-
   void                        GltfLoaderInit();
-
-
-} // namespace Tac
+}

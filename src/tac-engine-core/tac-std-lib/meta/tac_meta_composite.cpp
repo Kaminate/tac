@@ -28,7 +28,7 @@ namespace Tac
     return mSize;
   }
 
-  const char*       MetaCompositeType::ToString( const void* ) const
+  String            MetaCompositeType::ToString( const void* ) const
   {
     TAC_ASSERT_INVALID_CODE_PATH;
     return 0;

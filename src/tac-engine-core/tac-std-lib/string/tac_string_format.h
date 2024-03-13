@@ -8,7 +8,7 @@
 import std; // size_t, formatted_size, forward, format_to_n, format_string, formatter, ...
 
 #include "tac-std-lib/string/tac_string.h"
-#include "tac-std-lib/memory/tac_frame_memory.h"
+#include "tac-engine-core/framememory/tac_frame_memory.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 
 #include <cstdint>

@@ -1,6 +1,6 @@
-#include "tac-std-lib/assetmanagers/gltf/tac_gltf.h" // self-inc
+#include "tac_gltf.h" // self-inc
 
-#include "tac-std-lib/memory/tac_frame_memory.h"
+#include "tac-engine-core/framememory/tac_frame_memory.h"
 
 namespace Tac
 {

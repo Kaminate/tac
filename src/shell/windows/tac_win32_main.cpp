@@ -1,4 +1,4 @@
-#include "src/shell/windows/tac_win32_main.h" // self-inc
+#include "tac_win32_main.h" // self-inc
 
 #include "tac-std-lib/algorithm/tac_algorithm.h"
 #include "tac-std-lib/error/tac_error_handling.h"

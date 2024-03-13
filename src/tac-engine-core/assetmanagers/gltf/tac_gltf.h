@@ -14,7 +14,8 @@
 #pragma warning( disable : 6262 )
 #pragma warning( disable : 6308 )
 #endif
-#include "tac-std-lib/thirdparty/cgltf.h"
+
+#include "tac-engine-core/thirdparty/cgltf.h"
 
 namespace Tac
 {
