@@ -1,8 +1,7 @@
 #include "tac_assert.h" // self-inc
-#include "tac-std-lib/error/tac_stack_frame.h"
+
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/string/tac_string.h"
-#include "tac-std-lib/string/tac_string_view.h"
 //#include "tac-std-lib/memory/tac_frame_memory.h"
 
 namespace Tac
@@ -11,7 +10,7 @@ namespace Tac
 
   //void AssertFns::SetCallback( Callback callback ) { sCallback = callback; }
 
-  void AssertFns::HandleAssert( const char* message, StackFrame sf )
+  void AssertFns::HandleAssert( StringView message, StackFrame sf )
   {
     //if( sCallback )
     //  sCallback( message, sf );

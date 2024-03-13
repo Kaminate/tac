@@ -1,5 +1,4 @@
 
-
 # Create a library named TacEngineCore
 add_library( TacEngineCore )
 
@@ -42,6 +41,9 @@ add_subdirectory( settings )
 add_subdirectory( shell )
 add_subdirectory( system )
 add_subdirectory( thirdparty )
+
+add_subdirectory(tac-std-lib)
+add_subdirectory(tac-rhi)
 
 target_link_libraries( TacStdLib TacRHI )
 

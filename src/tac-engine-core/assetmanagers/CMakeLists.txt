@@ -1,6 +1,4 @@
 target_sources( TacEngineCore PRIVATE
-  tac_asset.cpp
-  tac_asset.h
   tac_mesh.cpp
   tac_mesh.h
   tac_model_asset_manager.cpp

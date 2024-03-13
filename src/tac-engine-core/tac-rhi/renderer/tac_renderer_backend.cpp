@@ -9,13 +9,13 @@
 #include "tac-std-lib/algorithm/tac_algorithm.h"
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/error/tac_error_handling.h"
-#include "tac-std-lib/profile/tac_profile.h"
+//#include "tac-std-lib/profile/tac_profile.h"
 #include "tac-std-lib/os/tac_os.h"
-#include "tac-std-lib/shell/tac_shell_timestep.h"
+//#include "tac-std-lib/shell/tac_shell_timestep.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
-#include "tac-std-lib/assetmanagers/tac_asset.h"
-#include "src/shell/tac_desktop_app.h"
-#include "src/shell/tac_desktop_app_threads.h"
+#include "tac-std-lib/filesystem/tac_asset.h"
+//#include "src/shell/tac_desktop_app.h"
+//#include "src/shell/tac_desktop_app_threads.h"
 
 namespace Tac::Render
 {
@@ -32,42 +32,13 @@ namespace Tac::Render
   // -----------------------------------------------------------------------------------------------
 
 
-  void Encoder::Submit( const ViewHandle viewHandle,
-                        const StackFrame& stackFrame )
-  {
-    if( gSubmitFrame->mDrawCalls.size() == kDrawCallCapacity )
-    {
-      OS::OSDebugBreak();
-      return;
-    }
-
-    int iUniformBegin = 0;
-    int iUniformEnd = 0;
-    const int uniformBufferSize = gSubmitFrame->mUniformBuffer.size();
-    if( mUniformBufferIndex != uniformBufferSize )
-    {
-      iUniformBegin = mUniformBufferIndex;
-      iUniformEnd = uniformBufferSize;
-      mUniformBufferIndex = uniformBufferSize; // Now update after its been used
-    }
-
-    mDrawCall.mStackFrame = stackFrame;
-    mDrawCall.iUniformBegin = iUniformBegin;
-    mDrawCall.iUniformEnd = iUniformEnd;
-    mDrawCall.mViewHandle = viewHandle;
-
-    gSubmitFrame->mDrawCalls.push_back( mDrawCall );
-
-    // Prepare the next draw
-    mDrawCall = DrawCall();
-  }
 
   // -----------------------------------------------------------------------------------------------
 
   static thread_local Encoder gEncoder;
   static SubmitRingBuffer     gSubmitRingBuffer;
-  static SemaphoreHandle      gSubmitSemaphore;
-  static SemaphoreHandle      gRenderSemaphore;
+  static OS::ISemaphore*      gSubmitSemaphore;
+  static OS::ISemaphore*      gRenderSemaphore;
   static int                  gFrameCount;
   static Frame                gFrames[ 2 ];
   static Frame* gRenderFrame = &gFrames[ 0 ];
@@ -78,7 +49,7 @@ namespace Tac::Render
 
   static void RenderDrawCalls( Errors& errors )
   {
-    TAC_PROFILE_BLOCK;
+    //TAC_PROFILE_BLOCK;
     Renderer* renderer = Renderer::Instance;
     const DrawCall* drawCallBegin = gRenderFrame->mDrawCalls.data();
     const int drawCallCount = gRenderFrame->mDrawCalls.size();
@@ -109,6 +80,35 @@ namespace Tac::Render
     }
   }
 
+  void Encoder::Submit( const ViewHandle viewHandle,
+                        const StackFrame& stackFrame )
+  {
+    if( gSubmitFrame->mDrawCalls.size() == kDrawCallCapacity )
+    {
+      OS::OSDebugBreak();
+      return;
+    }
+
+    int iUniformBegin = 0;
+    int iUniformEnd = 0;
+    const int uniformBufferSize = gSubmitFrame->mUniformBuffer.size();
+    if( mUniformBufferIndex != uniformBufferSize )
+    {
+      iUniformBegin = mUniformBufferIndex;
+      iUniformEnd = uniformBufferSize;
+      mUniformBufferIndex = uniformBufferSize; // Now update after its been used
+    }
+
+    mDrawCall.mStackFrame = stackFrame;
+    mDrawCall.iUniformBegin = iUniformBegin;
+    mDrawCall.iUniformEnd = iUniformEnd;
+    mDrawCall.mViewHandle = viewHandle;
+
+    gSubmitFrame->mDrawCalls.push_back( mDrawCall );
+
+    // Prepare the next draw
+    mDrawCall = DrawCall();
+  }
 
 }
 
@@ -277,24 +277,24 @@ namespace Tac
 
   void Render::RenderFinish()
   {
-    TAC_ASSERT( DesktopAppThreads::IsMainThread() );
-    OS::OSSemaphoreIncrementPost( gRenderSemaphore );
+    //TAC_ASSERT( DesktopAppThreads::IsMainThread() );
+    gRenderSemaphore->IncrementPost(  );
   }
 
 
   void Render::RenderFrame( Errors& errors )
   {
-    TAC_PROFILE_BLOCK;
+    //TAC_PROFILE_BLOCK;
 
-    TAC_ASSERT( DesktopAppThreads::IsMainThread() );
+    //TAC_ASSERT( DesktopAppThreads::IsMainThread() );
 
     Renderer* renderer = Renderer::Instance;
     if( !renderer )
       return;
 
     {
-      TAC_PROFILE_BLOCK_NAMED( "wait submit" );
-      OS::OSSemaphoreDecrementWait( gSubmitSemaphore );
+      //TAC_PROFILE_BLOCK_NAMED( "wait submit" );
+      gSubmitSemaphore->DecrementWait(  );
     }
 
     if( gRenderFrame->mBreakOnFrameRender )
@@ -310,10 +310,10 @@ namespace Tac
 
     TAC_CALL( renderer->RenderEnd( gRenderFrame, errors ));
 
-    OS::OSSemaphoreIncrementPost( gRenderSemaphore );
+    gRenderSemaphore->IncrementPost(  );
 
     {
-      TAC_PROFILE_BLOCK_NAMED( "swap buffers" );
+      //TAC_PROFILE_BLOCK_NAMED( "swap buffers" );
       renderer->SwapBuffers();
     }
   }
@@ -321,18 +321,18 @@ namespace Tac
 
   void Render::SubmitFinish()
   {
-    TAC_ASSERT( DesktopAppThreads::IsLogicThread() );
-    OS::OSSemaphoreIncrementPost( gSubmitSemaphore );
+    //TAC_ASSERT( DesktopAppThreads::IsLogicThread() );
+    gSubmitSemaphore->IncrementPost(  );
   }
 
   void Render::SubmitFrame()
   {
-    TAC_ASSERT( DesktopAppThreads::IsLogicThread() );
+    //TAC_ASSERT( DesktopAppThreads::IsLogicThread() );
 
     // Finish submitting this frame
     {
-      TAC_PROFILE_BLOCK_NAMED( "wait render" );
-      OS::OSSemaphoreDecrementWait( gRenderSemaphore );
+      //TAC_PROFILE_BLOCK_NAMED( "wait render" );
+      gRenderSemaphore->DecrementWait(  );
     }
 
     gSubmitFrame->mFreeDeferredHandles.FinishFreeingHandles();
@@ -358,7 +358,7 @@ namespace Tac
     gFrameCount++;
 
     // Start submitting the next frame
-    OS::OSSemaphoreIncrementPost( gSubmitSemaphore );
+    gSubmitSemaphore->IncrementPost();
   }
 
   void Render::Init( Errors& errors )
@@ -367,7 +367,7 @@ namespace Tac
     gRenderSemaphore = OS::OSSemaphoreCreate();
 
     // i guess well make render frame go first
-    OS::OSSemaphoreIncrementPost( gSubmitSemaphore );
+    gSubmitSemaphore->IncrementPost();
 
     Renderer::Instance->Init( errors );
   }

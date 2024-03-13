@@ -1,11 +1,12 @@
 #include "tac_shader_reload_helper.h" // self-inc
 
 #include "tac-rhi/renderer/tac_renderer_backend.h"
+#include "tac-rhi/renderer/tac_render_frame.h"
+
 #include "tac-std-lib/filesystem/tac_filesystem.h"
-#include "tac-std-lib/shell/tac_shell_timestep.h"
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/error/tac_error_handling.h"
-#include "tac-std-lib/assetmanagers/tac_asset.h"
+#include "tac-std-lib/filesystem/tac_asset.h"
 
 namespace Tac::Render
 {
@@ -34,7 +35,7 @@ namespace Tac::Render
     if constexpr( !IsDebugMode )
       return;
 
-    const AssetPathStringView shaderAssetPath = GetShaderAssetPath(shaderName);
+    const AssetPathStringView shaderAssetPath = GetShaderAssetPath( shaderName );
     const Filesystem::Path fullPath( shaderAssetPath );
 
     const Filesystem::Time time =
@@ -73,20 +74,20 @@ namespace Tac::Render
     shaderReloadFunction( shaderHandle, shaderReloadInfo->mShaderName, errors );
   }
 
-  void               ShaderReloadHelperUpdate( ShaderReloadFunction* shaderReloadFunction,
+  void               ShaderReloadHelperUpdate( float dt,
+                                               ShaderReloadFunction* shaderReloadFunction,
                                                Errors& errors )
   {
     if constexpr( !IsDebugMode )
       return;
 
-    static Timestamp lastUpdateSeconds;
-
-    const Timestamp curSec = Timestep::GetElapsedTime();
-    const TimestampDifference shaderReloadPeriodSecs = 0.5f;
-    if( curSec < lastUpdateSeconds + shaderReloadPeriodSecs )
+    static float accumSec;
+    accumSec += dt;
+    if( accumSec < 0.5f )
       return;
 
-    lastUpdateSeconds = curSec;
+    accumSec = 0;
+
     for( ShaderReloadInfo& shaderReloadInfo : sShaderReloadInfos )
       ShaderReloadHelperUpdateAux( &shaderReloadInfo, shaderReloadFunction, errors );
   }

@@ -1,5 +1,3 @@
-add_subdirectory(tac-std-lib)
-add_subdirectory(tac-rhi)
 add_subdirectory(tac-engine-core)
 
 # make this second, as space uses common,

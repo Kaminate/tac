@@ -9,7 +9,7 @@
 
 #include "tac-rhi/renderer/tac_renderer_backend.h"
 
-#include "tac-engine-core/shell/tac_shell.h"
+//#include "tac-engine-core/shell/tac_shell.h"
 
 namespace Tac::Render
 {
@@ -118,7 +118,8 @@ namespace Tac::Render
 
   ShaderNameStringView::ShaderNameStringView( const StringView& s) : StringView(s) { Validate(s); }
 
-  ShaderNameStringView::ShaderNameStringView( const ShaderNameString& s ) : StringView( s ) {}
+  //ShaderNameStringView::ShaderNameStringView( const ShaderNameString& s ) : StringView{ s.operator StringView() } {}
+  ShaderNameStringView::ShaderNameStringView( const ShaderNameString& s ) : StringView{ s } {}
 
   // ---------------------------------------------------------------------------------------------
 

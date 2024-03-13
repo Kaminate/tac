@@ -13,7 +13,7 @@ namespace Tac
   {
     virtual const char* GetName() const = 0;
     virtual size_t      GetSizeOf() const = 0;
-    virtual const char* ToString( const void* ) const = 0;
+    virtual String      ToString( const void* ) const = 0;
     virtual float       ToNumber( const void* ) const = 0;
     virtual void        Cast( void* dst, const void* src, const MetaType* srcType ) const = 0;
     virtual void        JsonSerialize( Json*, const void* ) const = 0;

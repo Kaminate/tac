@@ -1,11 +1,14 @@
 #pragma once
 
 #include "tac-std-lib/string/tac_string.h"
+#include "tac-std-lib/string/tac_string_view.h"
 #include "tac-std-lib/containers/tac_vector.h"
-#include "tac-std-lib/tac_core.h"
+//#include "tac-std-lib/tac_core.h"
 
 namespace Tac
 {
+  struct Errors;
+  
   // An asset path
   // - is a local path to an asset
   // - starts with "assets/", or is an empty string
@@ -35,10 +38,10 @@ namespace Tac
   struct AssetPathStringView : public StringView
   {
     AssetPathStringView() = default;
-    AssetPathStringView(const char*);
-    AssetPathStringView(const String&);
-    AssetPathStringView(const StringView&);
-    AssetPathStringView(const AssetPathString&);
+    AssetPathStringView( const char* );
+    AssetPathStringView( const String& );
+    AssetPathStringView( const StringView& );
+    AssetPathStringView( const AssetPathString& );
     AssetPathStringView GetDirectory() const;
     StringView          GetFilename() const; // "foo/bar.qux" --> "bar.qux"
     StringView          GetFileExtension() const; // ".png", ".txt"

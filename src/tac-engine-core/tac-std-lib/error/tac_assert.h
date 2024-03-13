@@ -1,6 +1,7 @@
 #pragma once
 
 #include "tac-std-lib/error/tac_stack_frame.h"
+#include "tac-std-lib/string/tac_string_view.h"
 
 namespace Tac
 {
@@ -8,7 +9,7 @@ namespace Tac
   {
     //using Callback = void ( * )( const char*, StackFrame );
     //static void SetCallback( Callback );
-    static void HandleAssert( const char*, StackFrame );
+    static void HandleAssert( StringView, StackFrame );
     static void HandleAssertCase( const char*, int, StackFrame );
     static void HandleAssertIndex( unsigned, unsigned, StackFrame );
   };

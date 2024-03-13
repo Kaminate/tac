@@ -1,5 +1,7 @@
 #include "tac_id_collection.h" // self-inc
+
 #include "tac-std-lib/memory/tac_memory.h"
+#include "tac-std-lib/string/tac_string_view.h"
 #include "tac-std-lib/algorithm/tac_algorithm.h"
 
 namespace Tac

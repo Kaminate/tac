@@ -1,9 +1,13 @@
-#include "tac-std-lib/assetmanagers/tac_asset.h" // self-inc
+#include "tac-std-lib/filesystem/tac_asset.h" // self-inc
 
 #include "tac-std-lib/preprocess/tac_preprocessor.h" // IsDebugMode
-#include "tac-std-lib/system/tac_filesystem.h"
+#include "tac-std-lib/filesystem/tac_filesystem.h"
 #include "tac-std-lib/error/tac_error_handling.h"
-#include "tac-std-lib/shell/tac_shell.h"
+#include "tac-std-lib/error/tac_assert.h"
+#if !TAC_DELETE_ME()
+#include "tac-std-lib/os/tac_os.h" 
+#endif
+//#include "tac-std-lib/shell/tac_shell.h"
 
 namespace Tac
 {
@@ -170,7 +174,15 @@ namespace Tac
     AssetPathStrings result;
     for( const Filesystem::Path& path : paths )
     {
-      const AssetPathStringView assetPath = ModifyPathRelative( path, errors );
+      OS::OSDebugBreak();
+      String s = path.u8string();
+      s.replace("\\", "/");
+      int i = s.find( "assets/" );
+      s = s.substr(i);
+
+    AssetPathString assetPath;
+
+      //const AssetPathStringView assetPath = ModifyPathRelative( path, errors );
       result.push_back( assetPath );
     }
 

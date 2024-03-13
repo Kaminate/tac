@@ -11,19 +11,18 @@ namespace Tac::OS
 
     static bool mStopRunRequested = false;
 
-    decltype( OSDebugBreak )              OSDebugBreak = nullptr;
-    decltype( OSDebugPopupBox )           OSDebugPopupBox = nullptr;
-    decltype( OSGetApplicationDataPath )  OSGetApplicationDataPath = nullptr;
-    decltype( OSSaveDialog )              OSSaveDialog = nullptr;
-    decltype( OSOpenDialog )              OSOpenDialog = nullptr;
-    decltype( OSGetPrimaryMonitor )       OSGetPrimaryMonitor = nullptr;
-    decltype( OSSetScreenspaceCursorPos ) OSSetScreenspaceCursorPos = nullptr;
-    decltype( OSGetLoadedDLL )            OSGetLoadedDLL = nullptr;
-    decltype( OSLoadDLL )                 OSLoadDLL = nullptr;
-    //decltype( OSSemaphoreCreate )         OSSemaphoreCreate = nullptr;
-    //decltype( OSSemaphoreDecrementWait )  OSSemaphoreDecrementWait = nullptr;
-    //decltype( OSSemaphoreIncrementPost )  OSSemaphoreIncrementPost = nullptr;
+#define TAC_INIT_PTR( ptr ) decltype( ptr ) ptr = nullptr
 
+    TAC_INIT_PTR( OSDebugBreak );
+    TAC_INIT_PTR( OSDebugPopupBox );
+    TAC_INIT_PTR( OSGetApplicationDataPath );
+    TAC_INIT_PTR( OSSaveDialog );
+    TAC_INIT_PTR( OSOpenDialog );
+    TAC_INIT_PTR( OSGetPrimaryMonitor );
+    TAC_INIT_PTR( OSSetScreenspaceCursorPos );
+    TAC_INIT_PTR( OSGetLoadedDLL );
+    TAC_INIT_PTR( OSLoadDLL );
+    TAC_INIT_PTR( OSSemaphoreCreate );
 
     bool        OSAppIsRunning() { return !mStopRunRequested; }
 

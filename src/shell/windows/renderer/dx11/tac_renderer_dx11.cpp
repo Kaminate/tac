@@ -1,6 +1,6 @@
 #include "src/shell/windows/renderer/dx11/tac_renderer_dx11.h" // self-inc
 
-#include "tac-std-lib/assetmanagers/tac_asset.h"
+#include "tac-std-lib/filesystem/tac_asset.h"
 #include "tac-std-lib/containers/tac_array.h"
 #include "tac-std-lib/containers/tac_frame_vector.h"
 #include "tac-std-lib/algorithm/tac_algorithm.h"

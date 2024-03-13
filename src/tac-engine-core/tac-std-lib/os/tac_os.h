@@ -62,13 +62,16 @@ namespace Tac::OS
   extern void*        (*OSGetLoadedDLL)(const StringView& name);
   extern void*        (*OSLoadDLL)(const StringView& path);
 
+  struct ISemaphore
+  {
+    virtual void DecrementWait() = 0;
+    virtual void IncrementPost() = 0;
+  };
 
   // semaphore values cannot go less than 0,
   // so if the semaphore is currently at 0, it needs to wait for
   // someone to increment the semaphore first.
-  //extern SemaphoreHandle (*OSSemaphoreCreate)();
-  //extern void            (*OSSemaphoreDecrementWait)( SemaphoreHandle );
-  //extern void            (*OSSemaphoreIncrementPost)( SemaphoreHandle );
+  extern ISemaphore* ( *OSSemaphoreCreate )( );
 
   //MutexHandle     OSMutexCreate();
   //void            OSMutexLock( MutexHandle );

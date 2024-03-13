@@ -155,7 +155,7 @@ Tac::String Tac::ToString( double val )
   return String()
     + ( isNegative ? "-" : "" )
     + ItoaU64( integralPart )
-    + "." + 
+    + "."
     + ItoaU64( fractionalPart );
 }
 
@@ -198,7 +198,7 @@ namespace Tac
     mLen = 0;
   }
 
-  String::operator const char* () const          { return mStr; }
+  //String::operator const char* () const          { return mStr; }
   void         String::clear()                   { assign( "" ); }
   bool         String::empty() const             { return !mLen; }
   const char*  String::c_str() const             { return mStr; }

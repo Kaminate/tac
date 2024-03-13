@@ -72,7 +72,10 @@ namespace Tac
     void operator += ( const StringView& );
     //void operator += ( const String& );
     void operator += ( char );
-    operator const char* () const;
+
+   // stl doesnt have this, there is only operator string_view
+    //operator const char* () const = delete;
+
     void   clear();
     bool   empty() const;
     const char*  c_str() const;
@@ -86,7 +89,7 @@ namespace Tac
     void   assign( const char*, int );
     void   assign( const StringView& );
     void   append( const char*, int );
-    void   append( const char*);
+    void   append( const char* );
     void   append( const String& );
     void   prepend( const String& );
     void   reserve( int lenNotIncNull );

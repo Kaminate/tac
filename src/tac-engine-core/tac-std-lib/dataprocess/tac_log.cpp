@@ -222,6 +222,23 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
+  struct File
+  {
+    void Open(const Filesystem::Path& path, std::ios_base::openmode mode )
+    {
+      mOfs.open( path.u8string().data(), mode );
+    }
+
+    void Write( const char* str, int n )
+    {
+      mOfs.write( str, n );
+    }
+    
+    bool is_open() const { return mOfs.is_open(); }
+
+    std::ofstream    mOfs;
+  };
+
   struct Log
   {
     void Flush();
@@ -232,26 +249,26 @@ namespace Tac
 
     String           mBuffer;
     Filesystem::Path mPath;
-    std::ofstream    mOfs;
+    File             mFile;
   };
 
   // -----------------------------------------------------------------------------------------------
 
   void Log::EnsureOpen()
   {
-    if( mOfs.is_open() )
+    if( mFile.is_open() )
       return;
 
     EnsurePath();
 
     const std::ios_base::openmode flags = std::ios::out | std::ios::trunc;
-    mOfs.open( mPath.u8string(), flags );
+    mFile.Open( mPath, flags );
   }
 
 
   void Log::LogSetPath( StringView path )
   {
-    TAC_ASSERT( !mOfs.is_open() );
+    TAC_ASSERT( !mFile.is_open() );
     mPath = path;
   }
 
@@ -278,7 +295,7 @@ namespace Tac
   void Log::Flush()
   {
     EnsureOpen();
-    mOfs << mBuffer.c_str();
+    mFile.Write( mBuffer.data(), mBuffer.size() );
     mBuffer.clear();
 
     // Question: Should this close the file and reopen in append mode?

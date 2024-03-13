@@ -276,7 +276,7 @@ namespace Tac::Render
   struct ShaderNameString : public String
   {
     ShaderNameString() = default;
-    ShaderNameString(const StringView&);
+    ShaderNameString( const StringView& );
   };
 
   typedef FixedVector< VertexDeclaration, 10 >    VertexDeclarations;

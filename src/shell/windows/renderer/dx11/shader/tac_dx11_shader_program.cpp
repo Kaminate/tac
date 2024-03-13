@@ -4,7 +4,7 @@
 #include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_postprocess.h"
 #include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_preprocess.h"
 #include "src/shell/windows/renderer/dx11/tac_dx11_namer.h"
-#include "tac-std-lib/assetmanagers/tac_asset.h"
+#include "tac-std-lib/filesystem/tac_asset.h"
 #include "tac-std-lib/os/tac_os.h"
 
 #include <d3dcompiler.h> // D3D_BLOB_INPUT_SIGNATURE_BLOB
