@@ -1,9 +1,9 @@
 #pragma once
 
-#include "src/common/dataprocess/tac_serialization.h" // Endianness
-#include "src/common/shell/tac_shell_timestep.h"
-#include "src/common/containers/tac_list.h"
-#include "src/common/tac_core.h"
+#include "tac-std-lib/dataprocess/tac_serialization.h" // Endianness
+#include "tac-std-lib/shell/tac_shell_timestep.h"
+#include "tac-std-lib/containers/tac_list.h"
+#include "tac-std-lib/tac_core.h"
 
 #include "space/tac_space.h"
 

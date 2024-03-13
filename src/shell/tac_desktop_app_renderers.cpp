@@ -1,10 +1,10 @@
 #include "src/shell/tac_desktop_app_renderers.h" // self-inc
 
-#include "src/common/preprocess/tac_preprocessor.h" // Tac::asdf
-#include "src/common/error/tac_error_handling.h"
-#include "src/common/graphics/renderer/tac_renderer_backend.h"
-#include "src/common/graphics/renderer/tac_renderer.h"
-#include "src/common/dataprocess/tac_settings.h"
+#include "tac-std-lib/preprocess/tac_preprocessor.h" // Tac::asdf
+#include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-rhi/renderer/tac_renderer_backend.h"
+#include "tac-rhi/renderer/tac_renderer.h"
+#include "tac-std-lib/dataprocess/tac_settings.h"
 
 #if defined( TAC_USE_RENDERER_VK ) && __has_include( "tac_renderer_vulkan.h" )
 #define TAC_INCLUDED_RENDERER_VULKAN true

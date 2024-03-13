@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include "src/common/containers/tac_vector.h"
-#include "src/common/containers/tac_list.h"
-#include "src/common/math/tac_vector3.h"
+#include "tac-std-lib/containers/tac_vector.h"
+#include "tac-std-lib/containers/tac_list.h"
+#include "tac-std-lib/math/tac_vector3.h"
 
 namespace Tac
 {

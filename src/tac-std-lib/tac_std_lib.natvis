@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+  The Visual Studio Natvis framework customizes the way native types appear in debugger variable
+  windows, such as the Locals and Watch windows, and in DataTips. Natvis visualizations can help
+  make the types you create more visible during debugging.
+
+  Natvis documentation
+    - https://learn.microsoft.com/en-us/visualstudio/debugger/format-specifiers-in-cpp
+    - https://learn.microsoft.com/en-us/visualstudio/debugger/create-custom-views-of-native-objects
+  
+  Examples
+    - stl.natvis
+    - imgui.natvis
+    - Unreal.natvis
+
+-->
+
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+
+  <Type Name="Tac::StringView">
+    <DisplayString>{mStr,[mLen]na}</DisplayString>
+    <StringView>mStr,[mLen]na</StringView>
+  </Type>
+
+  <Type Name="Tac::String">
+    <DisplayString>{mStr,na}</DisplayString>
+    <StringView>mStr,na</StringView>
+  </Type>
+
+  <Type Name="Tac::Vector&lt;*&gt;">
+    <DisplayString>{{size={mTCount}}}</DisplayString>
+	  <Expand>
+      <Item Name="[size]">mTCount</Item>
+      <Item Name="[capacity]">mTCapacity</Item>
+		  <ArrayItems>
+			  <Size>mTCount</Size>
+			  <ValuePointer>mTs</ValuePointer>
+		  </ArrayItems>
+	  </Expand>
+  </Type>
+
+</AutoVisualizer>
+

@@ -1,6 +1,3 @@
-[submodule "src/common"]
-	path = src/common
-	url = https://github.com/Kaminate/tac-core
 [submodule "src/game-weekendtrace"]
 	path = src/game-weekendtrace
 	url = https://github.com/Kaminate/weekendtrace

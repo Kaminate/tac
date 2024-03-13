@@ -1,9 +1,9 @@
 #pragma once
 
-#include "src/common/containers/tac_optional.h"
-#include "src/common/containers/tac_vector.h"
-#include "src/common/string/tac_string.h"
-#include "src/common/tac_core.h"
+#include "tac-std-lib/containers/tac_optional.h"
+#include "tac-std-lib/containers/tac_vector.h"
+#include "tac-std-lib/string/tac_string.h"
+#include "tac-std-lib/tac_core.h"
 #include "src/shell/windows/renderer/dx_shader_preprocess/tac_dx_shader_preprocess.h"
 
 namespace Tac::Render

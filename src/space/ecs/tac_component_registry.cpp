@@ -1,5 +1,5 @@
 #include "space/ecs/tac_component_registry.h"
-#include "src/common/string/tac_string.h"
+#include "tac-std-lib/string/tac_string.h"
 
 namespace Tac
 {

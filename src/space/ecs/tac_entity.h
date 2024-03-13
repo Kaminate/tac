@@ -2,12 +2,12 @@
 
 #include "space/tac_space_types.h"
 #include "space/tac_space.h"
-#include "src/common/preprocess/tac_preprocessor.h"
-#include "src/common/math/tac_vector3.h"
-#include "src/common/containers/tac_vector.h"
-#include "src/common/containers/tac_list.h"
-#include "src/common/math/tac_matrix4.h"
-#include "src/common/string/tac_string.h"
+#include "tac-std-lib/preprocess/tac_preprocessor.h"
+#include "tac-std-lib/math/tac_vector3.h"
+#include "tac-std-lib/containers/tac_vector.h"
+#include "tac-std-lib/containers/tac_list.h"
+#include "tac-std-lib/math/tac_matrix4.h"
+#include "tac-std-lib/string/tac_string.h"
 
 namespace Tac
 {

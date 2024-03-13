@@ -1,8 +1,8 @@
 #include "tac_renderer_dx12_ver2.h" // self-inc
 
-#include "src/common/system/tac_os.h"
-#include "src/common/graphics/render/tac_render.h"
-#include "src/common/error/tac_error_handling.h"
+#include "tac-std-lib/os/tac_os.h"
+#include "tac-rhi/render/tac_render.h"
+#include "tac-std-lib/error/tac_error_handling.h"
 #include "src/shell/windows/renderer/dx12/tac_dx12_helper.h"
 #include "src/shell/windows/renderer/dxgi/tac_dxgi.h"
 

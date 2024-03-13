@@ -1,12 +1,12 @@
 #include "space/graphics/light/tac_light.h" // self-inc
 
-#include "src/common/tac_ints.h"
+#include "tac-std-lib/tac_ints.h"
 
-#include "src/common/math/tac_matrix3.h"
-#include "src/common/graphics/camera/tac_camera.h"
-#include "src/common/dataprocess/tac_json.h"
-#include "src/common/math/tac_math.h"
-#include "src/common/graphics/tac_renderer_util.h"
+#include "tac-std-lib/math/tac_matrix3.h"
+#include "tac-rhi/camera/tac_camera.h"
+#include "tac-std-lib/dataprocess/tac_json.h"
+#include "tac-std-lib/math/tac_math.h"
+#include "tac-rhi/tac_renderer_util.h"
 #include "space/graphics/tac_graphics.h"
 #include "space/ecs/tac_entity.h"
 #include "space/ecs/tac_component_registry.h"

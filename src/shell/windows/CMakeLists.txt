@@ -22,7 +22,7 @@ target_sources(TacWin PRIVATE
 )
 
 target_precompile_headers( TacWin PRIVATE 
-  "${CMAKE_SOURCE_DIR}/src/common/tac_precompiled_header.h"
+  "${CMAKE_SOURCE_DIR}/tac-std-lib/tac_precompiled_header.h"
 )
 
 target_link_libraries( TacWin TacCore )

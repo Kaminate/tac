@@ -1,7 +1,7 @@
 #pragma once
 
-#include "src/common/containers/tac_optional.h"
-#include "src/common/tac_ints.h"
+#include "tac-std-lib/containers/tac_optional.h"
+#include "tac-std-lib/tac_ints.h"
 
 #include "space/tac_space_types.h"
 #include "space/net/tac_space_net.h"

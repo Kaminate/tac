@@ -1,6 +1,6 @@
 #include "space/physics/tac_barycentric.h" // self-inc
-#include "src/common/math/tac_matrix3.h"
-#include "src/common/math/tac_math.h"
+#include "tac-std-lib/math/tac_matrix3.h"
+#include "tac-std-lib/math/tac_math.h"
 
 
 namespace Tac

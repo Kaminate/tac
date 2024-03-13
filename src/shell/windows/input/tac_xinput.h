@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "src/common/tac_core.h"
+#include "tac-std-lib/tac_core.h"
 
 namespace Tac::Controller
 {

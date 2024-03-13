@@ -1,7 +1,7 @@
-#include "src/common/containers/tac_vector.h"
-#include "src/common/system/tac_desktop_window.h"
-#include "src/common/dataprocess/tac_settings.h"
-#include "src/common/system/tac_os.h"
+#include "tac-std-lib/containers/tac_vector.h"
+#include "tac-std-lib/system/tac_desktop_window.h"
+#include "tac-std-lib/dataprocess/tac_settings.h"
+#include "tac-std-lib/os/tac_os.h"
 #include "src/shell/tac_desktop_app.h"
 #include "src/shell/tac_desktop_window_settings_tracker.h"
 

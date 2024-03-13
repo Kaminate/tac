@@ -1,8 +1,8 @@
 #include "src/shell/tac_desktop_event.h" // self-include
 
-#include "src/common/containers/tac_ring_buffer.h"
-#include "src/common/preprocess/tac_preprocessor.h"
-#include "src/common/error/tac_assert.h"
+#include "tac-std-lib/containers/tac_ring_buffer.h"
+#include "tac-std-lib/preprocess/tac_preprocessor.h"
+#include "tac-std-lib/error/tac_assert.h"
 
 #include "src/shell/tac_desktop_window_graphics.h"
 #include "src/shell/tac_desktop_app.h"

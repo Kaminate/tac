@@ -6,7 +6,7 @@
 
 #if 0 // this is now in tac_win32_com_ptr.h
 
-#include "src/common/preprocess/tac_preprocessor.h" // Tac::move
+#include "tac-std-lib/preprocess/tac_preprocessor.h" // Tac::move
 
 #include <unknwn.h> // IUnknown
 #include <guiddef.h>

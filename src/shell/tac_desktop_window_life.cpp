@@ -1,8 +1,8 @@
 #include "tac_desktop_window_life.h"
 
-#include "src/common/identifier/tac_id_collection.h"
-#include "src/common/error/tac_error_handling.h"
-#include "src/common/containers/tac_fixed_vector.h"
+#include "tac-std-lib/identifier/tac_id_collection.h"
+#include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-std-lib/containers/tac_fixed_vector.h"
 #include "src/shell/tac_platform.h"
 #include "src/shell/tac_desktop_app.h"
 

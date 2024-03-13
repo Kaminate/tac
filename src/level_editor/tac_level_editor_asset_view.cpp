@@ -1,4 +1,4 @@
-#include "src/level_editor/tac_level_editor_asset_view.h" // self-inc
+#include "tac_level_editor_asset_view.h" // self-inc
 
 #include "src/common/assetmanagers/gltf/tac_model_load_synchronous.h"
 #include "src/common/assetmanagers/gltf/tac_resident_model_file.h"

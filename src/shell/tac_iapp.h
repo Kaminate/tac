@@ -1,12 +1,12 @@
 #pragma once
 
-#include "src/common/input/tac_keyboard_input.h"
-#include "src/common/tac_core.h"
-#include "src/common/system/tac_desktop_window.h"
-#include "src/common/containers/tac_list.h"
-#include "src/common/shell/tac_shell_timestep.h" // FrameIndex
-#include "src/common/shell/tac_shell_timestamp.h" // Timestamp
-#include "src/common/shell/tac_shell_timer.h" // Timepoint
+#include "tac-std-lib/input/tac_keyboard_input.h"
+#include "tac-std-lib/tac_core.h"
+#include "tac-std-lib/system/tac_desktop_window.h"
+#include "tac-std-lib/containers/tac_list.h"
+#include "tac-std-lib/shell/tac_shell_timestep.h" // FrameIndex
+#include "tac-std-lib/shell/tac_shell_timestamp.h" // Timestamp
+#include "tac-std-lib/shell/tac_shell_timer.h" // Timepoint
 
 namespace Tac
 {

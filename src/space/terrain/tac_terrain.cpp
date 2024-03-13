@@ -1,13 +1,13 @@
 #include "space/terrain/tac_terrain.h" // self-include
 
-#include "src/common/dataprocess/tac_json.h"
-#include "src/common/graphics/debug/tac_debug_3d.h"
-#include "src/common/graphics/renderer/tac_renderer.h"
-#include "src/common/math/tac_math.h"
-#include "src/common/memory/tac_memory.h"
-#include "src/common/system/tac_filesystem.h"
-#include "src/common/system/tac_os.h"
-#include "src/common/thirdparty/stb_image.h"
+#include "tac-std-lib/dataprocess/tac_json.h"
+#include "tac-rhi/debug/tac_debug_3d.h"
+#include "tac-rhi/renderer/tac_renderer.h"
+#include "tac-std-lib/math/tac_math.h"
+#include "tac-std-lib/memory/tac_memory.h"
+#include "tac-std-lib/system/tac_filesystem.h"
+#include "tac-std-lib/os/tac_os.h"
+#include "tac-std-lib/thirdparty/stb_image.h"
 
 #include "space/physics/tac_physics.h"
 #include "space/ecs/tac_entity.h"

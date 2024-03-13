@@ -4,7 +4,7 @@
 #include "src/shell/tac_desktop_app.h"
 #include "src/shell/windows/renderer/dxgi/tac_dxgi.h"
 
-#include "src/common/containers/tac_ring_vector.h"
+#include "tac-std-lib/containers/tac_ring_vector.h"
 
 #include "tac_example_dx12_command_queue.h"
 #include "tac_example_dx12_command_allocator_pool.h"

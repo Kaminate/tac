@@ -1,13 +1,13 @@
 #include "tac_dx_shader_preprocess.h" // self-inc
 
-//#include "src/common/assetmanagers/tac_asset.h"
-//#include "src/common/containers/tac_array.h"
-#include "src/common/error/tac_error_handling.h"
-#include "src/common/dataprocess/tac_text_parser.h"
-//#include "src/common/graphics/renderer/tac_renderer.h"
-//#include "src/common/graphics/renderer/tac_renderer_backend.h"
-//#include "src/common/math/tac_math.h"
-//#include "src/common/memory/tac_frame_memory.h"
+//#include "tac-std-lib/assetmanagers/tac_asset.h"
+//#include "tac-std-lib/containers/tac_array.h"
+#include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-std-lib/dataprocess/tac_text_parser.h"
+//#include "tac-rhi/renderer/tac_renderer.h"
+//#include "tac-rhi/renderer/tac_renderer_backend.h"
+//#include "tac-std-lib/math/tac_math.h"
+//#include "tac-std-lib/memory/tac_frame_memory.h"
 
 namespace Tac::Render
 {

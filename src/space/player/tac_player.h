@@ -2,10 +2,10 @@
 #pragma once
 #include "space/tac_space_types.h"
 #include "space/tac_space.h"
-#include "src/common/dataprocess/tac_serialization.h"
-#include "src/common/preprocess/tac_preprocessor.h"
-#include "src/common/math/tac_vector2.h"
-#include "src/common/math/tac_vector3.h"
+#include "tac-std-lib/dataprocess/tac_serialization.h"
+#include "tac-std-lib/preprocess/tac_preprocessor.h"
+#include "tac-std-lib/math/tac_vector2.h"
+#include "tac-std-lib/math/tac_vector3.h"
 
 namespace Tac
 {

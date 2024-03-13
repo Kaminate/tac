@@ -1,8 +1,8 @@
 #include "tac_example_dx12_command_queue.h"
 
 #include "src/shell/windows/renderer/dx12/tac_dx12_helper.h" // TAC_DX12_CALL_RET
-#include "src/common/containers/tac_array.h"
-#include "src/common/algorithm/tac_algorithm.h"
+#include "tac-std-lib/containers/tac_array.h"
+#include "tac-std-lib/algorithm/tac_algorithm.h"
 
 namespace Tac::Render
 {

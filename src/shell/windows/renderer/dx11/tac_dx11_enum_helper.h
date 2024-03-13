@@ -1,6 +1,6 @@
 #pragma once
 
-#include "src/common/graphics/renderer/tac_renderer.h"
+#include "tac-rhi/renderer/tac_renderer.h"
 
 #include <d3d11.h>
 

@@ -6,10 +6,10 @@
 #include "space/physics/collider/tac_collider.h"
 #include "space/physics/tac_physics.h"
 #include "space/player/tac_player.h"
-#include "src/common/graphics/debug/tac_debug_3d.h"
-#include "src/common/memory/tac_memory.h"
-#include "src/common/profile/tac_profile.h"
-#include "src/common/algorithm/tac_algorithm.h"
+#include "tac-rhi/debug/tac_debug_3d.h"
+#include "tac-std-lib/memory/tac_memory.h"
+#include "tac-std-lib/profile/tac_profile.h"
+#include "tac-std-lib/algorithm/tac_algorithm.h"
 
 namespace Tac
 {

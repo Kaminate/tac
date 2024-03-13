@@ -1,14 +1,14 @@
 #include "tac_platform_thread.h" // self-inc
 
-#include "src/common/error/tac_error_handling.h"
-#include "src/common/math/tac_math.h" // Clamp
-#include "src/common/memory/tac_frame_memory.h"
-#include "src/common/graphics/ui/imgui/tac_imgui.h"
-#include "src/common/graphics/render/tac_render.h"
-#include "src/common/profile/tac_profile.h"
-#include "src/common/system/tac_os.h"
-#include "src/common/graphics/renderer/tac_renderer.h"
-#include "src/common/shell/tac_shell_timestep.h"
+#include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-std-lib/math/tac_math.h" // Clamp
+#include "tac-std-lib/memory/tac_frame_memory.h"
+#include "tac-rhi/ui/imgui/tac_imgui.h"
+#include "tac-rhi/render/tac_render.h"
+#include "tac-std-lib/profile/tac_profile.h"
+#include "tac-std-lib/os/tac_os.h"
+#include "tac-rhi/renderer/tac_renderer.h"
+#include "tac-std-lib/shell/tac_shell_timestep.h"
 
 #include "src/shell/tac_render_state.h"
 #include "src/shell/tac_desktop_app.h"

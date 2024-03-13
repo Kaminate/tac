@@ -1,7 +1,7 @@
 #pragma once
 
 #include "space/ecs/tac_component.h"
-#include "src/common/string/tac_string.h"
+#include "tac-std-lib/string/tac_string.h"
 
 namespace Tac
 {

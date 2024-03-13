@@ -1,8 +1,8 @@
 #pragma once
 
-#include "src/common/system/tac_desktop_window.h"
-#include "src/common/i18n/tac_localization.h"
-#include "src/common/input/tac_keyboard_input.h"
+#include "tac-std-lib/system/tac_desktop_window.h"
+#include "tac-std-lib/i18n/tac_localization.h"
+#include "tac-std-lib/input/tac_keyboard_input.h"
 
 
 namespace Tac

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "src/common/containers/tac_vector.h"
-#include "src/common/tac_ints.h"
+#include "tac-std-lib/containers/tac_vector.h"
+#include "tac-std-lib/tac_ints.h"
 
 namespace Tac
 {

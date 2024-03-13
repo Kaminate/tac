@@ -1,11 +1,11 @@
 #include "space/graphics/tac_graphics.h" // self-inc
 
-#include "src/common/graphics/ui/imgui/tac_imgui.h"
-#include "src/common/graphics/ui/tac_font.h"
-#include "src/common/math/tac_math.h"
-#include "src/common/memory/tac_memory.h"
-#include "src/common/preprocess/tac_preprocessor.h"
-#include "src/common/containers/tac_set.h"
+#include "tac-rhi/ui/imgui/tac_imgui.h"
+#include "tac-rhi/ui/tac_font.h"
+#include "tac-std-lib/math/tac_math.h"
+#include "tac-std-lib/memory/tac_memory.h"
+#include "tac-std-lib/preprocess/tac_preprocessor.h"
+#include "tac-std-lib/containers/tac_set.h"
 
 #include "space/graphics/light/tac_light.h"
 #include "space/graphics/model/tac_model.h"

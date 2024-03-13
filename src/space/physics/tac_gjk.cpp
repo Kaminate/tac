@@ -1,13 +1,13 @@
 #include "space/physics/tac_gjk.h" // self-inc
 
 #include "space/physics/tac_barycentric.h"
-#include "src/common/preprocess/tac_preprocessor.h"
-#include "src/common/algorithm/tac_algorithm.h"
-#include "src/common/math/tac_matrix3.h"
-#include "src/common/math/tac_matrix4.h"
-#include "src/common/math/tac_vector4.h"
-#include "src/common/math/tac_math.h"
-#include "src/common/containers/tac_optional.h"
+#include "tac-std-lib/preprocess/tac_preprocessor.h"
+#include "tac-std-lib/algorithm/tac_algorithm.h"
+#include "tac-std-lib/math/tac_matrix3.h"
+#include "tac-std-lib/math/tac_matrix4.h"
+#include "tac-std-lib/math/tac_vector4.h"
+#include "tac-std-lib/math/tac_math.h"
+#include "tac-std-lib/containers/tac_optional.h"
 
 namespace Tac
 {

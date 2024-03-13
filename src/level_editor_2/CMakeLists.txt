@@ -41,7 +41,7 @@ target_sources( LevelEditor2 PRIVATE
 )
 
 target_precompile_headers( LevelEditor2 PRIVATE 
-  "${CMAKE_SOURCE_DIR}/src/common/tac_precompiled_header.h"
+  "${CMAKE_SOURCE_DIR}/tac-std-lib/tac_precompiled_header.h"
 )
 
 target_include_directories( LevelEditor2 PUBLIC 

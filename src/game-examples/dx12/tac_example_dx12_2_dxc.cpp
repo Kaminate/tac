@@ -1,9 +1,9 @@
 #include "tac_example_dx12_2_dxc.h" // self-inc
 
-#include "src/common/containers/tac_array.h"
-#include "src/common/string/tac_string_util.h" // IsAscii
-#include "src/common/system/tac_os.h"
-#include "src/common/error/tac_assert.h"
+#include "tac-std-lib/containers/tac_array.h"
+#include "tac-std-lib/string/tac_string_util.h" // IsAscii
+#include "tac-std-lib/os/tac_os.h"
+#include "tac-std-lib/error/tac_assert.h"
 #include "src/shell/windows/renderer/dx12/tac_dx12_helper.h" // TAC_DX12_CALL_RET
 
 // d3d12 must be included before dxcapi

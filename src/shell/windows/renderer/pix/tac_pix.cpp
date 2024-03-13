@@ -1,10 +1,10 @@
 #include "src/shell/windows/renderer/pix/tac_pix.h" // self-inc
 
-#include "src/common/preprocess/tac_preprocessor.h"
-#include "src/common/system/tac_filesystem.h"
-#include "src/common/memory/tac_frame_memory.h"
-#include "src/common/system/tac_os.h"
-#include "src/common/error/tac_error_handling.h"
+#include "tac-std-lib/preprocess/tac_preprocessor.h"
+#include "tac-std-lib/system/tac_filesystem.h"
+#include "tac-std-lib/memory/tac_frame_memory.h"
+#include "tac-std-lib/os/tac_os.h"
+#include "tac-std-lib/error/tac_error_handling.h"
 
 //#include 	<libloaderapi.h>
 

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "src/common/tac_core.h"
-#include "src/common/string/tac_string.h"
+#include "tac-std-lib/tac_core.h"
+#include "tac-std-lib/string/tac_string.h"
 
 namespace Tac::Render
 {

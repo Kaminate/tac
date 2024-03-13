@@ -1,6 +1,6 @@
 #include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_preprocess.h" // self-inc
 
-#include "src/common/string/tac_string.h" // String
+#include "tac-std-lib/string/tac_string.h" // String
 
 namespace Tac::Render
 {

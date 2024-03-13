@@ -1,8 +1,8 @@
 #include "src/shell/tac_desktop_window_graphics.h" // self-inc
 
-#include "src/common/graphics/renderer/tac_renderer.h"
-#include "src/common/system/tac_desktop_window.h"
-#include "src/common/memory/tac_frame_memory.h"
+#include "tac-rhi/renderer/tac_renderer.h"
+#include "tac-std-lib/system/tac_desktop_window.h"
+#include "tac-std-lib/memory/tac_frame_memory.h"
 
 namespace Tac
 {

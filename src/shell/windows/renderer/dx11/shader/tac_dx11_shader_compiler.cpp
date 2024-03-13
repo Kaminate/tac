@@ -3,12 +3,12 @@
 #include "src/shell/tac_desktop_app.h" // IsMainThread
 #include "src/shell/tac_desktop_app_threads.h"
 
-#include "src/common/assetmanagers/tac_asset.h" // AssetPathStringView
-#include "src/common/system/tac_os.h" // OSDebugPrintLine
-#include "src/common/dataprocess/tac_text_parser.h" // ParseData
-#include "src/common/error/tac_error_handling.h" // TAC_RAISE_ERROR_RETURN
-#include "src/common/graphics/renderer/tac_renderer_backend.h" // GetShaderAssetPath
-#include "src/common/memory/tac_frame_memory.h"
+#include "tac-std-lib/assetmanagers/tac_asset.h" // AssetPathStringView
+#include "tac-std-lib/os/tac_os.h" // OSDebugPrintLine
+#include "tac-std-lib/dataprocess/tac_text_parser.h" // ParseData
+#include "tac-std-lib/error/tac_error_handling.h" // TAC_RAISE_ERROR_RETURN
+#include "tac-rhi/renderer/tac_renderer_backend.h" // GetShaderAssetPath
+#include "tac-std-lib/memory/tac_frame_memory.h"
 
 #include <d3dcompiler.h> // D3DCompile
 

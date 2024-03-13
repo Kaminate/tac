@@ -1,6 +1,6 @@
 #include "tac_example_dx12_root_sig_builder.h"
 
-#include "src/common/error/tac_error_handling.h"
+#include "tac-std-lib/error/tac_error_handling.h"
 #include "src/shell/windows/renderer/dx12/tac_dx12_helper.h"
 
 namespace Tac::Render

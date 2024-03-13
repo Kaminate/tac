@@ -1,9 +1,9 @@
 #pragma once
 
-#include "src/common/input/tac_keyboard_input.h"
-#include "src/common/tac_core.h"
-#include "src/common/system/tac_desktop_window.h"
-#include "src/common/containers/tac_list.h"
+#include "tac-std-lib/input/tac_keyboard_input.h"
+#include "tac-std-lib/tac_core.h"
+#include "tac-std-lib/system/tac_desktop_window.h"
+#include "tac-std-lib/containers/tac_list.h"
 #include "src/shell/tac_iapp.h"
 
 // Undef CreateWindow (thanks windows.h) so that we may name a function the same

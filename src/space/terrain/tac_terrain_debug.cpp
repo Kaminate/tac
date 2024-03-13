@@ -1,10 +1,10 @@
 #include "space/terrain/tac_terrain.h"
 
-#include "src/common/graphics/ui/imgui/tac_imgui.h"
-#include "src/common/graphics/debug/tac_debug_3d.h"
-#include "src/common/system/tac_filesystem.h"
-#include "src/common/shell/tac_shell.h"
-#include "src/common/system/tac_os.h"
+#include "tac-rhi/ui/imgui/tac_imgui.h"
+#include "tac-rhi/debug/tac_debug_3d.h"
+#include "tac-std-lib/system/tac_filesystem.h"
+#include "tac-std-lib/shell/tac_shell.h"
+#include "tac-std-lib/os/tac_os.h"
 #include "space/ecs/tac_entity.h"
 #include "space/world/tac_world.h"
 

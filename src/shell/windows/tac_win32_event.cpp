@@ -1,7 +1,7 @@
 #include "tac_win32_event.h" // self-inc
 
-#include "src/common/error/tac_error_handling.h"
-#include "src/common/error/tac_assert.h"
+#include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-std-lib/error/tac_assert.h"
 
 namespace Tac
 {

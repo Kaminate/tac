@@ -1,9 +1,9 @@
 /*
 #pragma once
 
-#include "src/common/graphics/Renderer.h"
-#include "src/common/Shell.h"
-#include "src/common/tac_core.h"
+#include "tac-rhi/Renderer.h"
+#include "tac-std-lib/Shell.h"
+#include "tac-std-lib/tac_core.h"
 #include "src/shell/windows/DXGI.h"
 
 #include <d3d12.h>

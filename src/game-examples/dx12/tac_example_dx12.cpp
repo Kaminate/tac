@@ -1,10 +1,10 @@
 #include "tac_example_dx12.h" // self-inc
 
-#include "src/common/system/tac_os.h"
-#include "src/common/string/tac_string.h"
+#include "tac-std-lib/os/tac_os.h"
+#include "tac-std-lib/string/tac_string.h"
 #include "src/shell/windows/renderer/dx12/tac_dx12_helper.h"
 #include "src/shell/windows/renderer/dxgi/tac_dxgi.h"
-#include "src/common/error/tac_assert.h"
+#include "tac-std-lib/error/tac_assert.h"
 
 namespace Tac::Render
 {

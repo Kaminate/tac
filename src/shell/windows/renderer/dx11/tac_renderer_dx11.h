@@ -11,13 +11,13 @@
 using Microsoft::WRL::ComPtr;
 #endif
 
-#include "src/common/graphics/renderer/tac_renderer.h"
-#include "src/common/graphics/renderer/tac_renderer_backend.h"
-#include "src/common/shell/tac_shell.h"
-#include "src/common/dataprocess/tac_hash.h"
-#include "src/common/containers/tac_optional.h"
-#include "src/common/containers/tac_array.h"
-#include "src/common/string/tac_string_identifier.h"
+#include "tac-rhi/renderer/tac_renderer.h"
+#include "tac-rhi/renderer/tac_renderer_backend.h"
+#include "tac-std-lib/shell/tac_shell.h"
+#include "tac-std-lib/dataprocess/tac_hash.h"
+#include "tac-std-lib/containers/tac_optional.h"
+#include "tac-std-lib/containers/tac_array.h"
+#include "tac-std-lib/string/tac_string_identifier.h"
 #include "src/shell/windows/tac_win32.h"
 #include "src/shell/windows/renderer/dxgi/tac_dxgi.h"
 #include "src/shell/windows/tac_win32_com_ptr.h"

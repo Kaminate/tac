@@ -1,11 +1,11 @@
 #include "tac_example_dx12_shader_compile.h" // self-inc
 #include "tac_example_dx12_2_dxc.h"
 
-#include "src/common/error/tac_error_handling.h"
-#include "src/common/assetmanagers/tac_asset.h"
-#include "src/common/dataprocess/tac_text_parser.h"
-#include "src/common/system/tac_os.h" //tmp
-#include "src/common/shell/tac_shell.h" // sShellPrefPath
+#include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-std-lib/assetmanagers/tac_asset.h"
+#include "tac-std-lib/dataprocess/tac_text_parser.h"
+#include "tac-std-lib/os/tac_os.h" //tmp
+#include "tac-std-lib/shell/tac_shell.h" // sShellPrefPath
 #include "src/shell/windows/renderer/dx12/tac_dx12_shader_preprocess.h"
 
 

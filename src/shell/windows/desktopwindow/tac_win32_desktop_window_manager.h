@@ -1,7 +1,7 @@
 #pragma once
 
 #include "src/shell/windows/tac_win32.h"
-#include "src/common/tac_core.h"
+#include "tac-std-lib/tac_core.h"
 #include "src/shell/tac_desktop_app.h"
 #include "src/shell/tac_platform.h"
 

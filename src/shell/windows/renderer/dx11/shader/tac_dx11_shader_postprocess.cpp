@@ -1,6 +1,6 @@
 #include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_postprocess.h" // self-inc
 
-#include "src/common/dataprocess/tac_text_parser.h"
+#include "tac-std-lib/dataprocess/tac_text_parser.h"
 #include "src/shell/windows/renderer/dx11/tac_renderer_dx11.h"
 #include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_preprocess.h" // IsSingleLineCommented
 

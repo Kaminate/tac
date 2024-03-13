@@ -1,10 +1,10 @@
 #include "space/net/tac_server.h" // self-inc
 
-#include "src/common/memory/tac_memory.h"
-#include "src/common/preprocess/tac_preprocessor.h"
-#include "src/common/dataprocess/tac_settings.h"
-#include "src/common/string/tac_string_util.h"
-#include "src/common/containers/tac_set.h"
+#include "tac-std-lib/memory/tac_memory.h"
+#include "tac-std-lib/preprocess/tac_preprocessor.h"
+#include "tac-std-lib/dataprocess/tac_settings.h"
+#include "tac-std-lib/string/tac_string_util.h"
+#include "tac-std-lib/containers/tac_set.h"
 #include "space/ecs/tac_component.h"
 #include "space/ecs/tac_entity.h"
 #include "space/ecs/tac_component_registry.h"

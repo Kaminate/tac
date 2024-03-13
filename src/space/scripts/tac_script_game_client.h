@@ -1,8 +1,8 @@
 #pragma once
 
 #include "space/script/tac_script.h"
-#include "src/common/graphics/ui/tac_font.h"
-#include "src/common/containers/tac_set.h"
+#include "tac-rhi/ui/tac_font.h"
+#include "tac-std-lib/containers/tac_set.h"
 
 namespace Tac::Network
 {

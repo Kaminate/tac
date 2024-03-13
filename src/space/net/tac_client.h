@@ -1,11 +1,11 @@
 #pragma once
 
-#include "src/common/math/tac_vector2.h"
-#include "src/common/shell/tac_shell_timestep.h"
-#include "src/common/containers/tac_vector.h"
-#include "src/common/containers/tac_list.h"
-#include "src/common/string/tac_string.h"
-#include "src/common/error/tac_error_handling.h"
+#include "tac-std-lib/math/tac_vector2.h"
+#include "tac-std-lib/shell/tac_shell_timestep.h"
+#include "tac-std-lib/containers/tac_vector.h"
+#include "tac-std-lib/containers/tac_list.h"
+#include "tac-std-lib/string/tac_string.h"
+#include "tac-std-lib/error/tac_error_handling.h"
 
 #include "space/tac_space_types.h"
 #include "space/net/tac_space_net.h"

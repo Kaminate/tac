@@ -1,9 +1,9 @@
 #pragma once
 
 #include "src/shell/windows/tac_win32_com_ptr.h"
-#include "src/common/containers/tac_span.h"
-#include "src/common/containers/tac_vector.h"
-#include "src/common/containers/tac_fixed_vector.h"
+#include "tac-std-lib/containers/tac_span.h"
+#include "tac-std-lib/containers/tac_vector.h"
+#include "tac-std-lib/containers/tac_fixed_vector.h"
 
 #include <d3d12.h> // ID3D12...
 

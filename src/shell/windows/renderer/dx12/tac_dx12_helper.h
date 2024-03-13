@@ -1,6 +1,6 @@
 #pragma once
 
-#include "src/common/error/tac_error_handling.h"
+#include "tac-std-lib/error/tac_error_handling.h"
 #include "src/shell/windows/tac_win32_com_ptr.h"
 
 #include <winnt.h> // HRESULT

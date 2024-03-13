@@ -5,8 +5,8 @@
 #include "src/shell/tac_desktop_app.h" // IsMainThread
 #include "src/shell/tac_desktop_app_threads.h"
 
-#include "src/common/string/tac_string.h"
-#include "src/common/preprocess/tac_preprocessor.h" // TAC_ASSERT
+#include "tac-std-lib/string/tac_string.h"
+#include "tac-std-lib/preprocess/tac_preprocessor.h" // TAC_ASSERT
 
 
 namespace Tac::Render

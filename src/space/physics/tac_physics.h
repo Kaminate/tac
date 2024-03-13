@@ -1,7 +1,7 @@
 #pragma once
 
-#include "src/common/math/tac_vector3.h"
-#include "src/common/containers/tac_set.h"
+#include "tac-std-lib/math/tac_vector3.h"
+#include "tac-std-lib/containers/tac_set.h"
 
 #include "space/ecs/tac_system.h"
 #include "space/tac_space.h"

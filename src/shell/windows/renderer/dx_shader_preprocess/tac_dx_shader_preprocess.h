@@ -1,12 +1,12 @@
 #pragma once
 
-#include "src/common/tac_core.h"
-#include "src/common/assetmanagers/tac_asset.h"
-//#include "src/common/string/tac_string.h"
-#include "src/common/containers/tac_optional.h"
-#include "src/common/containers/tac_vector.h"
-#include "src/common/containers/tac_span.h"
-#include "src/common/memory/tac_memory.h"
+#include "tac-std-lib/tac_core.h"
+#include "tac-std-lib/assetmanagers/tac_asset.h"
+//#include "tac-std-lib/string/tac_string.h"
+#include "tac-std-lib/containers/tac_optional.h"
+#include "tac-std-lib/containers/tac_vector.h"
+#include "tac-std-lib/containers/tac_span.h"
+#include "tac-std-lib/memory/tac_memory.h"
 
 namespace Tac::Render
 {

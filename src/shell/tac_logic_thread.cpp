@@ -7,16 +7,16 @@
 #include "src/shell/tac_render_state.h"
 #include "src/space/tac_space.h"
 
-#include "src/common/memory/tac_frame_memory.h"
-#include "src/common/profile/tac_profile.h"
-#include "src/common/system/tac_os.h"
-#include "src/common/error/tac_error_handling.h"
-#include "src/common/shell/tac_shell.h"
-#include "src/common/graphics/ui/tac_font.h"
-//#include "src/common/graphics/ui/imgui/tac_imgui.h"
-#include "src/common/dataprocess/tac_settings.h"
-#include "src/common/input/tac_controller_input.h"
-#include "src/common/net/tac_net.h"
+#include "tac-std-lib/memory/tac_frame_memory.h"
+#include "tac-std-lib/profile/tac_profile.h"
+#include "tac-std-lib/os/tac_os.h"
+#include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-std-lib/shell/tac_shell.h"
+#include "tac-rhi/ui/tac_font.h"
+//#include "tac-rhi/ui/imgui/tac_imgui.h"
+#include "tac-std-lib/dataprocess/tac_settings.h"
+#include "tac-std-lib/input/tac_controller_input.h"
+#include "tac-std-lib/net/tac_net.h"
 
 
 namespace Tac

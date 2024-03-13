@@ -1,6 +1,6 @@
 /*
 
-#include "src/common/tac_ints.h"
+#include "tac-std-lib/tac_ints.h"
 
 
 // ok heres the fuckin deal:
@@ -22,13 +22,13 @@
 // So you decide to live without debug markers
 
 
-#include "src/common/Utility.h"
-#include "src/common/Memory.h"
-#include "src/common/Preprocessor.h"
-#include "src/common/containers/Array.h"
-#include "src/common/math/Math.h"
-#include "src/common/OS.h"
-#include "src/common/DesktopWindow.h"
+#include "tac-std-lib/Utility.h"
+#include "tac-std-lib/Memory.h"
+#include "tac-std-lib/Preprocessor.h"
+#include "tac-std-lib/containers/Array.h"
+#include "tac-std-lib/math/Math.h"
+#include "tac-std-lib/OS.h"
+#include "tac-std-lib/DesktopWindow.h"
 #include "src/shell/windows/Windows.h"
 #include "src/shell/windows/RendererDirectX12.h"
 #include "src/shell/windows/renderer/dx12/tac_dx12_helper.h"

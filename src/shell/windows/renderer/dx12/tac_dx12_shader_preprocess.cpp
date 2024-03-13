@@ -1,7 +1,7 @@
 #include "tac_dx12_shader_preprocess.h" // self-inc
 
 #include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_preprocess.h"
-#include "src/common/error/tac_error_handling.h"
+#include "tac-std-lib/error/tac_error_handling.h"
 
 namespace Tac::Render
 {

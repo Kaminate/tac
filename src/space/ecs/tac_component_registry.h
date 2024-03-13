@@ -1,7 +1,7 @@
 #pragma once
 
-#include "src/common/dataprocess/tac_serialization.h" // NetworkBits
-#include "src/common/tac_core.h"
+#include "tac-std-lib/dataprocess/tac_serialization.h" // NetworkBits
+#include "tac-std-lib/tac_core.h"
 #include "space/tac_space.h"
 
 namespace Tac

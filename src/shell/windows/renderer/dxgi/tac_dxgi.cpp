@@ -1,11 +1,11 @@
 #include "src/shell/windows/renderer/dxgi/tac_dxgi.h" // self-inc
 
 #include "src/shell/windows/tac_win32.h"
-#include "src/common/string/tac_string.h"
-#include "src/common/error/tac_error_handling.h"
-#include "src/common/preprocess/tac_preprocessor.h"
-#include "src/common/containers/tac_array.h"
-#include "src/common/tac_ints.h"
+#include "tac-std-lib/string/tac_string.h"
+#include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-std-lib/preprocess/tac_preprocessor.h"
+#include "tac-std-lib/containers/tac_array.h"
+#include "tac-std-lib/tac_ints.h"
 
 #include <d3dcommon.h> // WKPDID_D3DDebugObjectName
 

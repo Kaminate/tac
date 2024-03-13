@@ -1,6 +1,6 @@
 #pragma once
 
-#include "src/common/tac_ints.h"
+#include "tac-std-lib/tac_ints.h"
 
 namespace Tac::Render
 {

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "src/common/error/tac_error_handling.h"
-#include "src/common/graphics/renderer/tac_renderer.h"
+#include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-rhi/renderer/tac_renderer.h"
 #include "src/shell/windows/tac_win32_com_ptr.h"
 #include "src/shell/windows/tac_win32_com_ptr.h"
 

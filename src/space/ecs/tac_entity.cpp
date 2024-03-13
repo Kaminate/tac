@@ -4,10 +4,10 @@
 #include "space/ecs/tac_component_registry.h"
 #include "space/ecs/tac_system.h"
 #include "space/world/tac_world.h"
-#include "src/common/algorithm/tac_algorithm.h"
-#include "src/common/dataprocess/tac_json.h"
-#include "src/common/memory/tac_frame_memory.h"
-#include "src/common/preprocess/tac_preprocessor.h"
+#include "tac-std-lib/algorithm/tac_algorithm.h"
+#include "tac-std-lib/dataprocess/tac_json.h"
+#include "tac-std-lib/memory/tac_frame_memory.h"
+#include "tac-std-lib/preprocess/tac_preprocessor.h"
 
 namespace Tac
 {

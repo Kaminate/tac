@@ -1,6 +1,6 @@
 #include "tac_desktop_app_threads.h"
 
-#include "src/common/error/tac_error_handling.h"
+#include "tac-std-lib/error/tac_error_handling.h"
 
 namespace Tac
 {

@@ -1,9 +1,9 @@
 #pragma once
 
-#include "src/common/tac_ints.h" // u64
+#include "tac-std-lib/tac_ints.h" // u64
 #include "src/shell/windows/tac_win32_com_ptr.h" // PCom
-#include "src/common/graphics/render/tac_render_backend.h"
-#include "src/common/graphics/render/tac_render_command_list.h"
+#include "tac-rhi/render/tac_render_backend.h"
+#include "tac-rhi/render/tac_render_command_list.h"
 
 #include "tac_dx12_device.h"
 #include "tac_dx12_info_queue.h"

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "src/common/math/tac_vector3.h"
-#include "src/common/preprocess/tac_preprocessor.h"
+#include "tac-std-lib/math/tac_vector3.h"
+#include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "space/ecs/tac_component.h"
 
 namespace Tac

@@ -1,9 +1,9 @@
 #pragma once
 
-#include "src/common/string/tac_string.h"
-#include "src/common/error/tac_error_handling.h"
-#include "src/common/containers/tac_vector.h"
-#include "src/common/containers/tac_set.h"
+#include "tac-std-lib/string/tac_string.h"
+#include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-std-lib/containers/tac_vector.h"
+#include "tac-std-lib/containers/tac_set.h"
 
 namespace Tac
 {

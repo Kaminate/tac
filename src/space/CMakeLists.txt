@@ -17,7 +17,7 @@ add_subdirectory(terrain)
 add_subdirectory(world)
 
 target_precompile_headers( TacGhost PRIVATE 
-  "${CMAKE_SOURCE_DIR}/src/common/tac_precompiled_header.h"
+  "${CMAKE_SOURCE_DIR}/tac-std-lib/tac_precompiled_header.h"
 )
 
 # hmm.. i think this makes it so files in ghost can include 

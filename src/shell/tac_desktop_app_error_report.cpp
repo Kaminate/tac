@@ -1,13 +1,13 @@
 #include "tac_desktop_app_error_report.h" // self-include
 
-#include "src/common/string/tac_string.h"
-#include "src/common/preprocess/tac_preprocessor.h"
-#include "src/common/containers/tac_span.h"
-#include "src/common/dataprocess/tac_log.h"
-#include "src/common/system/tac_os.h"
-#include "src/common/containers/tac_vector.h"
-#include "src/common/math/tac_math.h"
-#include "src/common/error/tac_error_handling.h"
+#include "tac-std-lib/string/tac_string.h"
+#include "tac-std-lib/preprocess/tac_preprocessor.h"
+#include "tac-std-lib/containers/tac_span.h"
+#include "tac-std-lib/dataprocess/tac_log.h"
+#include "tac-std-lib/os/tac_os.h"
+#include "tac-std-lib/containers/tac_vector.h"
+#include "tac-std-lib/math/tac_math.h"
+#include "tac-std-lib/error/tac_error_handling.h"
 
 namespace Tac
 {

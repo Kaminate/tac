@@ -4,11 +4,11 @@
 #include "space/ecs/tac_component_registry.h"
 #include "space/ecs/tac_entity.h"
 #include "space/graphics/tac_graphics.h"
-#include "src/common/dataprocess/tac_json.h"
-#include "src/common/error/tac_error_handling.h"
-#include "src/common/graphics/ui/imgui/tac_imgui.h"
-#include "src/common/string/tac_string_util.h"
-#include "src/common/system/tac_os.h"
+#include "tac-std-lib/dataprocess/tac_json.h"
+#include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-rhi/ui/imgui/tac_imgui.h"
+#include "tac-std-lib/string/tac_string_util.h"
+#include "tac-std-lib/os/tac_os.h"
 
 namespace Tac
 {

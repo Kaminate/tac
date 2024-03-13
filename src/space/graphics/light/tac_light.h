@@ -1,8 +1,8 @@
 #pragma once
 
-#include "src/common/graphics/renderer/tac_renderer.h"
+#include "tac-rhi/renderer/tac_renderer.h"
 #include "space/ecs/tac_component.h"
-#include "src/common/tac_core.h"
+#include "tac-std-lib/tac_core.h"
 
 // Okay but like
 // arent we already making too many generalizations?

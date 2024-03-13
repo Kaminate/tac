@@ -1,13 +1,13 @@
 #include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_preprocess.h" // self-inc
 
-#include "src/common/string/tac_string.h" // String
-#include "src/common/preprocess/tac_preprocessor.h" // TAC_ASSERT
-#include "src/common/algorithm/tac_algorithm.h" // Contains
-#include "src/common/error/tac_error_handling.h" // TAC_CALL_RET
-#include "src/common/graphics/renderer/tac_renderer.h" // ShaderNameStringView
-#include "src/common/dataprocess/tac_text_parser.h" // ParseData
-#include "src/common/graphics/renderer/tac_renderer_backend.h" // GetShaderAssetPath
-#include "src/common/assetmanagers/tac_asset.h" // LoadAssetPath
+#include "tac-std-lib/string/tac_string.h" // String
+#include "tac-std-lib/preprocess/tac_preprocessor.h" // TAC_ASSERT
+#include "tac-std-lib/algorithm/tac_algorithm.h" // Contains
+#include "tac-std-lib/error/tac_error_handling.h" // TAC_CALL_RET
+#include "tac-rhi/renderer/tac_renderer.h" // ShaderNameStringView
+#include "tac-std-lib/dataprocess/tac_text_parser.h" // ParseData
+#include "tac-rhi/renderer/tac_renderer_backend.h" // GetShaderAssetPath
+#include "tac-std-lib/assetmanagers/tac_asset.h" // LoadAssetPath
 
 namespace Tac::Render
 {

@@ -2,10 +2,10 @@
 
 #include "space/tac_space_types.h"
 #include "space/tac_space.h"
-#include "src/common/shell/tac_shell_timestep.h"
-#include "src/common/tac_core.h"
-#include "src/common/containers/tac_vector.h"
-#include "src/common/containers/tac_list.h"
+#include "tac-std-lib/shell/tac_shell_timestep.h"
+#include "tac-std-lib/tac_core.h"
+#include "tac-std-lib/containers/tac_vector.h"
+#include "tac-std-lib/containers/tac_list.h"
 
 namespace Tac
 {

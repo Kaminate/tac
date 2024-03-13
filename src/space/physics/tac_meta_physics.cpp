@@ -1,6 +1,6 @@
 #include "space/physics/tac_physics.h"
-#include "src/common/meta/tac_meta.h"
-#include "src/common/preprocess/tac_preprocessor.h"
+#include "tac-std-lib/meta/tac_meta.h"
+#include "tac-std-lib/preprocess/tac_preprocessor.h"
 namespace Tac
 {
 

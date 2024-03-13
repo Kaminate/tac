@@ -2,27 +2,28 @@
 
 #include "space/tac_space.h"
 
-#include "src/common/containers/tac_fixed_vector.h"
-#include "src/common/containers/tac_frame_vector.h"
-#include "src/common/containers/tac_ring_buffer.h"
-#include "src/common/dataprocess/tac_settings.h"
-#include "src/common/dataprocess/tac_log.h"
-#include "src/common/graphics/ui/imgui/tac_imgui.h"
-#include "src/common/graphics/ui/tac_font.h"
-#include "src/common/graphics/ui/tac_ui_2d.h"
-#include "src/common/input/tac_controller_input.h"
-#include "src/common/input/tac_keyboard_input.h"
-#include "src/common/math/tac_math.h" // Max
-#include "src/common/memory/tac_frame_memory.h"
-#include "src/common/net/tac_net.h"
-#include "src/common/profile/tac_profile.h"
-#include "src/common/shell/tac_shell.h"
-#include "src/common/shell/tac_shell_timestep.h"
-#include "src/common/string/tac_string.h"
-#include "src/common/string/tac_string_util.h"
-#include "src/common/system/tac_desktop_window.h"
-#include "src/common/system/tac_filesystem.h"
-#include "src/common/system/tac_os.h"
+#include "tac-std-lib/containers/tac_fixed_vector.h"
+#include "tac-std-lib/containers/tac_frame_vector.h"
+#include "tac-std-lib/containers/tac_ring_buffer.h"
+#include "tac-std-lib/dataprocess/tac_settings.h"
+#include "tac-std-lib/dataprocess/tac_log.h"
+#include "tac-rhi/ui/imgui/tac_imgui.h"
+#include "tac-rhi/ui/tac_font.h"
+#include "tac-rhi/ui/tac_ui_2d.h"
+#include "tac-std-lib/input/tac_controller_input.h"
+#include "tac-std-lib/input/tac_keyboard_input.h"
+#include "tac-std-lib/math/tac_math.h" // Max
+#include "tac-std-lib/memory/tac_frame_memory.h"
+#include "tac-std-lib/net/tac_net.h"
+#include "tac-std-lib/profile/tac_profile.h"
+#include "tac-std-lib/shell/tac_shell.h"
+#include "tac-std-lib/shell/tac_shell_timestep.h"
+#include "tac-std-lib/string/tac_string.h"
+#include "tac-std-lib/string/tac_string_util.h"
+#include "tac-std-lib/string/tac_string_view.h"
+#include "tac-std-lib/system/tac_desktop_window.h"
+#include "tac-std-lib/system/tac_filesystem.h"
+#include "tac-std-lib/os/tac_os.h"
 
 #include "src/shell/tac_desktop_app_renderers.h"
 #include "src/shell/tac_desktop_app_error_report.h"
@@ -54,6 +55,21 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
+  static String ToStem( StringView sv )
+  {
+    String result;
+    for( char c : sv )
+    {
+      const bool isValid = IsAlpha( c ) || IsDigit( c ) || c == ' ' || c == '_';
+      result += isValid ? c : ' ';
+    }
+
+    if( result.empty() )
+      return "tac";
+
+    return result;
+  }
+
   DesktopApp*         DesktopApp::GetInstance() { return &sDesktopApp; }
 
 
@@ -69,6 +85,7 @@ namespace Tac
     sShellStudioName = sApp->mConfig.mStudioName;
     sShellPrefPath = TAC_CALL( OS::OSGetApplicationDataPath( errors ) );
     sShellInitialWorkingDir = Filesystem::GetCurrentWorkingDirectory();
+    TAC_ASSERT( !sShellAppName.empty() && !sShellPrefPath.empty() );
 
     // for macos standalone_sdl_vk_1_tri, appDataPath =
     //
@@ -79,6 +96,8 @@ namespace Tac
     //     C:\Users\Nate\AppData\Roaming + /Sleeping Studio + /Whatever bro
     TAC_RAISE_ERROR_IF( !Filesystem::Exists( sShellPrefPath ),
                         String() + "app data path " + sShellPrefPath.u8string() + " doesnt exist" );
+
+    LogApi::LogSetPath( sShellPrefPath / ( ToStem( sShellAppName ) + ".tac.log" ) );
 
     TAC_CALL( SettingsInit( errors ) );
 
