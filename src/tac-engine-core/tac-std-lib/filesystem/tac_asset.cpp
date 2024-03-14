@@ -174,13 +174,13 @@ namespace Tac
     AssetPathStrings result;
     for( const Filesystem::Path& path : paths )
     {
-      OS::OSDebugBreak();
       String s = path.u8string();
       s.replace("\\", "/");
-      int i = s.find( "assets/" );
+      const int i = s.find( "assets/" );
+      TAC_ASSERT( i != s.npos );
       s = s.substr(i);
 
-    AssetPathString assetPath;
+      const AssetPathString assetPath( s );
 
       //const AssetPathStringView assetPath = ModifyPathRelative( path, errors );
       result.push_back( assetPath );

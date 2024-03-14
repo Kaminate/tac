@@ -1,6 +1,8 @@
 #pragma once
 
-namespace Tac { struct String; struct StringView; }
+#include "tac-std-lib/string/tac_string_view.h"
+
+namespace Tac { struct String; }
 
 namespace Tac
 {
@@ -107,7 +109,9 @@ namespace Tac
     bool   contains( char c ) const;
     String substr( int pos = 0, int len = npos ) const;
 
-    constexpr operator StringView() const noexcept;
+    // This constexpr implicit conversion function, which calls constexpr StringView(),
+    // allows for String() == StringView()
+    constexpr operator StringView() const noexcept { return StringView( mStr, mLen ); }
 
     static const int ssocapacity = 20;               // small string optimization allocates on stack
     static const int npos = -1;                      // mimicking the standard library

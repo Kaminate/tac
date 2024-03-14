@@ -1,10 +1,9 @@
 #pragma once
 
+namespace Tac { struct Errors; }
 
 namespace Tac
 {
-  struct Errors;
-
   struct Creation
   {
     void                Init( Errors& );

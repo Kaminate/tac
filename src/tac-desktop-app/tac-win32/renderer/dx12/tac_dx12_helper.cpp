@@ -2,9 +2,9 @@
 
 #include <D3d9.h> // D3DERR_INVALIDCALL
 
-namespace Tac::Render
+namespace Tac
 {
-  const char* DX12_HRESULT_ToString( const HRESULT hr )
+  const char* Render::DX12_HRESULT_ToString( const HRESULT hr )
   {
     switch( hr )
     {
@@ -69,13 +69,13 @@ namespace Tac::Render
   //  return buf;
   //}
 
-  String DX12CallAux( const char* fn, const HRESULT hr )
+  String Render::DX12CallAux( const char* fn, const HRESULT hr )
   {
     const String hrStr = DX12_HRESULT_ToString( hr );
     return String() + fn + " failed with " + hrStr;
   }
 
-  void DX12SetNameAux( ID3D12Object* obj, StringView sv )
+  void Render::DX12SetNameAux( ID3D12Object* obj, StringView sv )
   {
     std::wstring ws;
     for( char c : sv )
@@ -83,6 +83,11 @@ namespace Tac::Render
 
     const HRESULT hr = obj->SetName( ws.c_str() );
     TAC_ASSERT( hr == S_OK );
+  }
+
+  void Render::DX12SetNameAux( ID3D12Object* obj, StackFrame sf )
+  {
+    DX12SetNameAux( obj, String() + sf.mFile + ":" + Tac::ToString( sf.mLine ) );
   }
 
 } // namespace Tac::Render

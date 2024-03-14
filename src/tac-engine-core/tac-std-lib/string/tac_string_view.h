@@ -19,8 +19,11 @@ namespace Tac
     StringView() = default;
     StringView( const char* );
     //        StringView( const char*, int );
-    constexpr StringView( const char*, int );
-    constexpr StringView( const char* strBegin, const char* strEnd );
+    constexpr StringView( const char* , int );
+  //        StringView::StringView( const char* str, int len ) : mStr( str ), mLen( len ) {}
+
+    constexpr StringView( const char* , const char* );
+    //constexpr StringView( const char* strBegin, const char* strEnd );
     //StringView( const String& );
     //StringView( const StringLiteral& );
     //StringView( const ShortFixedString& );
@@ -62,4 +65,12 @@ namespace Tac
 
 
 } // namespace Tac
+
+constexpr Tac::StringView::StringView( const char* str, int len ) : mStr{ str }, mLen{ len } {}
+
+constexpr Tac::StringView::StringView( const char* strBegin, const char* strEnd ) :
+  mStr( strBegin ),
+  mLen( ( int )( strEnd - strBegin ) )
+{
+}
 

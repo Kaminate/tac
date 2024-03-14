@@ -35,7 +35,7 @@ set_property( TARGET standalone_win_dx12_5_const_buf PROPERTY OUTPUT_NAME "DX12 
 set_property( TARGET standalone_win_dx12_6_frame_buf PROPERTY OUTPUT_NAME "DX12 6 Frame Buf" )
 
 # temp
-target_link_libraries( standalone_win_dx12_6_frame_buf TacStdLib )
+# target_link_libraries( standalone_win_dx12_6_frame_buf TacStdLib )
 
 # Get a semicolon-separated list of executable target names
 get_property(targetnames DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY BUILDSYSTEM_TARGETS)
@@ -73,6 +73,7 @@ add_library( TacDX12ExampleHelpers
 target_link_libraries( TacDX12ExampleHelpers TacWin32 TacStdLib TacDesktopApp )
 
 foreach( targetname ${targetnames} )
+  message( "targetname: ${targetname}" )
   target_link_libraries( ${targetname}
     TacStdLib
     TacEngineCore

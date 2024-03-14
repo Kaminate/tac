@@ -343,7 +343,7 @@ namespace Tac
 
   // This constexpr implicit conversion function, which calls constexpr StringView(),
   // allows for String() == StringView()
-  constexpr String::operator StringView() const noexcept { return StringView( mStr, mLen ); }
+  //constexpr String::operator StringView() const noexcept { return StringView( mStr, mLen ); }
 
 } // namespace Tac
 

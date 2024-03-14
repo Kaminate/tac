@@ -33,11 +33,12 @@ namespace Tac
 
     shader = Render::CreateShader(  "DepthBufferVisualizer" , TAC_STACK_FRAME );
   }
+}
 
-  Render::TextureHandle DepthBufferLinearVisualizationRender( Render::TextureHandle depthTexture,
+  Tac::Render::TextureHandle Tac::DepthBufferLinearVisualizationRender( const Render::TextureHandle& depthTexture,
                                                               int w,
                                                               int h,
-                                                              Render::InProj inProj )
+                                                              const Render::InProj& inProj )
   {
     TAC_RENDER_GROUP_BLOCK( __func__ );
 
@@ -90,4 +91,3 @@ namespace Tac
     Render::DestroyFramebuffer( framebufferHandle, TAC_STACK_FRAME );
     return outTex;
   }
-}

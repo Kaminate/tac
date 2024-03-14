@@ -5,7 +5,21 @@
 ## prefer not to inline fns
 
 prioritize keeping the api easier to understand rather than
-keeping total h + cpp code count low
+keeping total h + cpp code count low.
+
+
+For constexpr functions, which become inline, their body must be visible in every translation unit
+that uses it, they should be declared outside the struct in the .h file.
+```cpp
+// .h file
+struct StringView
+{
+  constexpr StringView( const char* , int );
+};
+
+// still the .h file
+constexpr StringView::StringView( const char* str, int len ) : mStr{ str }, mLen{ len } {}
+```
 
 ## Single line ifs
 

@@ -17,9 +17,8 @@ namespace Tac
     static Timepoint           GetLastTick();
   };
 
-  // Fun to change to 1 for debugging
-  const int                 TAC_FRAMES_PER_SECOND = 60;
-  const TimestampDifference TAC_DELTA_FRAME_SECONDS = 1.0f / TAC_FRAMES_PER_SECOND;
+  extern const int                 TAC_FRAMES_PER_SECOND;
+  extern const TimestampDifference TAC_DELTA_FRAME_SECONDS;
 
 
 } // namespace Tac

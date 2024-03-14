@@ -1,6 +1,6 @@
 #pragma once
 
-#include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-std-lib/error/tac_error_handling.h" // TAC_RAISE_ERROR_IF
 #include "tac-win32/tac_win32_com_ptr.h"
 
 #include <winnt.h> // HRESULT
@@ -13,7 +13,7 @@ namespace Tac::Render
   const char* DX12_HRESULT_ToString( HRESULT );
 
   void        DX12SetNameAux( ID3D12Object*, StringView );
-  void        DX12SetNameAux( ID3D12Object*, const StackFrame& );
+  void        DX12SetNameAux( ID3D12Object*, StackFrame );
 
   template< typename T >
   void DX12SetName( const PCom<T>& t, StringView sv )

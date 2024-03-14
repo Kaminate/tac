@@ -1,9 +1,9 @@
 #include "tac_level_editor.h" // self-inc
 
-#include "src/shell/tac_iapp.h" // App
-#include "src/shell/tac_desktop_app.h"
+#include "tac-desktop-app/tac_iapp.h" // App
+#include "tac-desktop-app/tac_desktop_app.h"
 
-#include "tac-rhi/ui/imgui/tac_imgui.h"
+#include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-rhi/render/tac_render.h"
 
 namespace Tac
