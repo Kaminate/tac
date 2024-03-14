@@ -2,7 +2,7 @@
 
 #include "tac-std-lib/filesystem/tac_asset.h" // AssetPathRootFolderName
 #include "tac-std-lib/error/tac_error_handling.h" // Errors
-#include "tac-std-lib/shell/tac_shell.h" // sShellInitialWorkingDir
+#include "tac-engine-core/shell/tac_shell.h" // sShellInitialWorkingDir
 #include "tac-win32/tac_win32.h" // TAC_HR_CALL
 
 
@@ -33,7 +33,7 @@ namespace Tac
       return GetResult( errors );
     }
 
-    void FileDialogHelper::SetDefaultFolder(Errors& errors)
+    void FileDialogHelper::SetDefaultFolder( Errors& errors )
     {
       const Filesystem::Path dir = sShellInitialWorkingDir / AssetPathRootFolderName;
       const std::wstring wDir = dir.Get().wstring();
@@ -47,7 +47,7 @@ namespace Tac
       TAC_HR_CALL( mDialog->SetDefaultFolder( ( IShellItem* )shDir ) );
     }
 
-    void FileDialogHelper::CreateDialogInstance(Errors& errors)
+    void FileDialogHelper::CreateDialogInstance( Errors& errors )
     {
       REFCLSID sid = mType == Type::kOpen ? CLSID_FileOpenDialog : CLSID_FileSaveDialog;
       REFIID iid = mType == Type::kOpen ? mOpenDialog.iid() : mSaveDialog.iid();
@@ -56,7 +56,7 @@ namespace Tac
       mDialog = mType == Type::kOpen ? (IFileDialog*)mOpenDialog : (IFileDialog*)mSaveDialog;
     };
 
-    void FileDialogHelper::Show(Errors& errors)
+    void FileDialogHelper::Show( Errors& errors )
     {
       const HRESULT hr = mDialog->Show( nullptr );
       mCancelled = hr == HRESULT_FROM_WIN32( ERROR_CANCELLED );

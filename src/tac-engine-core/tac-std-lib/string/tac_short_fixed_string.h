@@ -62,7 +62,7 @@ namespace Tac
     void operator += ( char );
     void operator += ( const StringView& );
 
-    operator StringView() const               { return StringView( mBuf, mSize ); }
+    operator StringView() const;
 
 
     // needed to convert the FixedString result from va()

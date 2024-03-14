@@ -87,7 +87,7 @@ namespace Tac::Render
       if( optNewLines.HasValue() )
       {
         String newLines = optNewLines.GetValueUnchecked();
-        if( newLines != oldLine )
+        if( ( StringView )newLines != oldLine )
         {
           // Recurse
           optNewLines = TAC_CALL_RET(

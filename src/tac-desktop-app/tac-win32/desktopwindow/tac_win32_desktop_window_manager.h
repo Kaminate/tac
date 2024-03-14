@@ -2,7 +2,7 @@
 
 #include "tac-win32/tac_win32.h"
 #include "tac-desktop-app/tac_desktop_app.h"
-#include "tac-desktop-app/tac_platform.h"
+#include "tac-engine-core/system/tac_platform.h"
 
 namespace Tac
 {

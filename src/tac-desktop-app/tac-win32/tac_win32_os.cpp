@@ -9,10 +9,10 @@
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-rhi/renderer/tac_renderer.h"
-#include "tac-std-lib/identifier/tac_id_collection.h"
-#include "tac-std-lib/shell/tac_shell.h"
+//#include "tac-std-lib/identifier/tac_id_collection.h"
+#include "tac-engine-core/shell/tac_shell.h"
 #include "tac-std-lib/string/tac_string_util.h"
-#include "tac-engine-core/system/tac_filesystem.h"
+#include "tac-std-lib/filesystem/tac_filesystem.h"
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-desktop-app/tac_desktop_app.h"
 #include "tac-win32/tac_win32.h"
@@ -25,9 +25,25 @@ import std; // iostream, filesystem, ctime (mktime )
 
 namespace Tac
 {
-  static const int    kSemaphoreCapacity = 10;
-  static IdCollection gSemaphoreIds;
-  static HANDLE       gSemaphores[ kSemaphoreCapacity ];
+  struct Win32Semaphore : public OS::ISemaphore
+  {
+    Win32Semaphore()
+    {
+      mNativeHandle = CreateSemaphoreA( NULL, 0, 100, NULL );
+    }
+
+    void DecrementWait() override
+    {
+      WaitForSingleObject( mNativeHandle, INFINITE );
+    }
+
+    void IncrementPost() override
+    {
+      ReleaseSemaphore( mNativeHandle, 1, NULL );
+    }
+
+    HANDLE mNativeHandle;
+  };
 
   static OS::Monitor Win32OSGetPrimaryMonitor()
   {
@@ -44,7 +60,7 @@ namespace Tac
     return helper.Run( errors );
   }
 
-  static Filesystem::Path Win32OSSaveDialog( const OS::SaveParams& , Errors& errors )
+  static Filesystem::Path Win32OSSaveDialog( const OS::SaveParams&, Errors& errors )
   {
     FileDialogHelper helper( FileDialogHelper::kSave );
     return helper.Run( errors );
@@ -128,34 +144,10 @@ namespace Tac
     return path;
   }
 
-  static SemaphoreHandle Win32OSSemaphoreCreate()
-  {
-    const int i = gSemaphoreIds.Alloc();
-    HANDLE semaphore = CreateSemaphoreA( NULL, 0, 100, NULL );
-    TAC_ASSERT( semaphore );
-    gSemaphores[ i ] = semaphore;
-    return i;
-  }
-
-  static void            Win32OSSemaphoreDecrementWait( const SemaphoreHandle handle )
-  {
-    TAC_ASSERT( handle.IsValid() );
-    const HANDLE nativeHandle = gSemaphores[ ( int )handle ];
-    WaitForSingleObject( nativeHandle, INFINITE );
-  }
-
-  static void            Win32OSSemaphoreIncrementPost( const SemaphoreHandle handle )
-  {
-    TAC_ASSERT( handle.IsValid() );
-    const HANDLE nativeHandle = gSemaphores[ ( int )handle ];
-    ReleaseSemaphore( nativeHandle, 1, NULL );
-  }
-
+  static OS::ISemaphore* Win32OSSemaphoreCreate() { return TAC_NEW Win32Semaphore; }
 
   void             Win32OSInit()
   {
-    OS::OSSemaphoreIncrementPost = &Win32OSSemaphoreIncrementPost;
-    OS::OSSemaphoreDecrementWait = Win32OSSemaphoreDecrementWait;
     OS::OSSemaphoreCreate = Win32OSSemaphoreCreate;
     OS::OSDebugBreak = Win32DebugBreak;
     OS::OSDebugPopupBox = Win32OSDebugPopupBox;

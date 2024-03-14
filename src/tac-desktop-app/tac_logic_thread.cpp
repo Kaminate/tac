@@ -1,22 +1,22 @@
 #include "tac_logic_thread.h" // self-inc
 
-#include "src/shell/tac_desktop_app_threads.h"
-#include "src/shell/tac_iapp.h"
-#include "src/shell/tac_platform.h"
-#include "src/shell/tac_desktop_event.h"
-#include "src/shell/tac_render_state.h"
-#include "src/space/tac_space.h"
+#include "tac-desktop-app/tac_desktop_app_threads.h"
+#include "tac-desktop-app/tac_iapp.h"
+#include "tac-engine-core/system/tac_platform.h"
+#include "tac-desktop-app/tac_desktop_event.h"
+#include "tac-desktop-app/tac_render_state.h"
+#include "tac-ecs/tac_space.h"
 
-#include "tac-std-lib/memory/tac_frame_memory.h"
-#include "tac-std-lib/profile/tac_profile.h"
+#include "tac-engine-core/framememory/tac_frame_memory.h"
+#include "tac-engine-core/profile/tac_profile.h"
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/error/tac_error_handling.h"
-#include "tac-std-lib/shell/tac_shell.h"
-#include "tac-rhi/ui/tac_font.h"
-//#include "tac-rhi/ui/imgui/tac_imgui.h"
-#include "tac-std-lib/dataprocess/tac_settings.h"
-#include "tac-std-lib/input/tac_controller_input.h"
-#include "tac-std-lib/net/tac_net.h"
+#include "tac-engine-core/shell/tac_shell.h"
+#include "tac-engine-core/graphics/ui/tac_font.h"
+//#include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
+#include "tac-engine-core/settings/tac_settings.h"
+#include "tac-engine-core/input/tac_controller_input.h"
+#include "tac-engine-core/net/tac_net.h"
 
 
 namespace Tac
@@ -28,7 +28,7 @@ namespace Tac
 
     DesktopAppThreads::SetType( DesktopAppThreads::ThreadType::Logic );
 
-    FrameMemoryInitThreadAllocator(  1024 * 1024 * 10  );
+    FrameMemoryInitThreadAllocator( 1024 * 1024 * 10  );
 
     TAC_CALL( ShellInit( errors ) );
 

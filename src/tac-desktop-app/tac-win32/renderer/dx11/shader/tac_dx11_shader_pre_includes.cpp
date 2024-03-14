@@ -55,7 +55,7 @@ namespace Tac::Render
     const StringView includeName( includeBegin, includeEnd );
 
     {
-      if( Contains( mIncluded, includeName ) )
+      if( Contains( mIncluded, ( String )includeName ) )
         return Optional<String>{ "" };
 
       mIncluded.push_back( includeName );

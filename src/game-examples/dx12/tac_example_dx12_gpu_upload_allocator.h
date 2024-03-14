@@ -2,7 +2,7 @@
 
 #include <d3d12.h> // ID3D12...
 
-#include "src/shell/windows/tac_win32_com_ptr.h" // PCom
+#include "tac-win32/tac_win32_com_ptr.h" // PCom
 #include "tac-std-lib/containers/tac_vector.h"
 
 #include "tac_example_dx12_command_queue.h"

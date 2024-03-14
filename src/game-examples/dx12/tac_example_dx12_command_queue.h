@@ -1,17 +1,13 @@
 #pragma once
 
 #include "tac-std-lib/tac_ints.h"
-#include "src/shell/windows/tac_win32_com_ptr.h" // PCom
-
-#include "src/shell/windows/tac_win32_event.h" // Win32Event
+#include "tac-win32/tac_win32_com_ptr.h" // PCom
+#include "tac-win32/tac_win32_event.h" // Win32Event
 #include "tac_example_dx12_fence.h"
 
 #include <d3d12.h> // ID3D12...
 
-namespace Tac
-{
-  struct Errors;
-}
+namespace Tac { struct Errors; }
 
 namespace Tac::Render
 {
@@ -23,21 +19,21 @@ namespace Tac::Render
   struct DX12ExampleCommandQueue
   {
 
-    void        Create(ID3D12Device*, Errors&);
+    void        Create( ID3D12Device*, Errors& );
 
     bool        IsFenceComplete( FenceSignal );
     FenceSignal ExecuteCommandList( ID3D12CommandList*, Errors& );
     void        WaitForFence( FenceSignal, Errors& );
     void        WaitForIdle( Errors& );
-    FenceSignal IncrementFence(Errors& );
+    FenceSignal IncrementFence( Errors& );
     FenceSignal GetLastCompletedFenceValue();
 
     ID3D12CommandQueue* GetCommandQueue() { return m_commandQueue.Get(); }
     
   private:
     //void   UpdateLastCompletedFenceValue(u64);
-    void   CreateFence(ID3D12Device*, Errors&);
-    void   CreateCommandQueue(ID3D12Device*, Errors&);
+    void   CreateFence( ID3D12Device*, Errors& );
+    void   CreateCommandQueue( ID3D12Device*, Errors& );
   public:
 
     // A fence is used to synchronize the CPU with the GPU (see Multi-engine synchronization).
@@ -47,8 +43,8 @@ namespace Tac::Render
     // set on fence completion, then immediately waited on
     Win32Event                         m_fenceEvent;
 
-    UINT64                             mLastCompletedFenceValue{0};
-    UINT64                             mNextFenceValue{1};
+    UINT64                             mLastCompletedFenceValue{ 0 };
+    UINT64                             mNextFenceValue{ 1 };
 
     // A ID3D12ExampleCommandQueue provides methods for
     // - submitting command lists,

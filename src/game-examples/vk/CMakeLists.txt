@@ -15,7 +15,7 @@ function( tac_target )
 
   target_link_libraries( ${PROJECT_NAME}
     TacEngineCore
-    TacGhost
+    TacECS
     TacDesktopApp
     TacVkRenderer 
   )
@@ -26,9 +26,7 @@ function( tac_target )
     "tac_vk_standalone_1_tri.cpp"
   )
 
-  target_precompile_headers( ${PROJECT_NAME} PRIVATE 
-    "${CMAKE_SOURCE_DIR}/src/common/tac_precompiled_header.h"
-  )
+  #target_precompile_headers( ${PROJECT_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/src/common/tac_precompiled_header.h" )
 
 endfunction()
 

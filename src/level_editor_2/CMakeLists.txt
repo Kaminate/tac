@@ -13,7 +13,7 @@ target_link_libraries( LevelEditor2
   TacWin32Main
   TacEngineCore
   TacDesktopApp
-  TacGhost )
+  TacECS )
 
 target_sources( LevelEditor2 PRIVATE 
 #  "tac_entity_selection.cpp"
@@ -40,9 +40,7 @@ target_sources( LevelEditor2 PRIVATE
 #  "tac_level_editor_system_window.h"
 )
 
-target_precompile_headers( LevelEditor2 PRIVATE 
-  "${CMAKE_SOURCE_DIR}/tac-std-lib/tac_precompiled_header.h"
-)
+# target_precompile_headers( LevelEditor2 PRIVATE "${CMAKE_SOURCE_DIR}/tac-std-lib/tac_precompiled_header.h")
 
 target_include_directories( LevelEditor2 PUBLIC 
 #  ${TAC_INCLUDE_DIRECTORIES} 

@@ -4,9 +4,9 @@
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/error/tac_assert.h"
 
-#include "src/shell/tac_desktop_window_graphics.h"
-#include "src/shell/tac_desktop_app.h"
-#include "src/shell/tac_desktop_app_threads.h"
+#include "tac-engine-core/system/tac_desktop_window_graphics.h"
+#include "tac-desktop-app/tac_desktop_app.h"
+#include "tac-desktop-app/tac_desktop_app_threads.h"
 
 import std; // mutex, lock_guard, is_trivially_copyable_v
 

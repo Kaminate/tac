@@ -8,14 +8,14 @@
 #include "tac-std-lib/dataprocess/tac_text_parser.h"
 #include "tac-rhi/renderer/tac_renderer_backend.h"
 #include "tac-std-lib/math/tac_math.h"
-//#include "tac-std-lib/memory/tac_frame_memory.h"
+//#include "tac-engine-core/framememory/tac_frame_memory.h"
 #include "tac-std-lib/memory/tac_memory.h"
 #include "tac-engine-core/profile/tac_profile.h"
-//#include "tac-std-lib/shell/tac_shell.h"
+//#include "tac-engine-core/shell/tac_shell.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/string/tac_string_util.h"
 #include "tac-engine-core/system/tac_desktop_window.h"
-//#include "tac-engine-core/system/tac_filesystem.h"
+//#include "tac-std-lib/filesystem/tac_filesystem.h"
 #include "tac-std-lib/os/tac_os.h"
 
 #include "tac-desktop-app/tac_desktop_app.h"
@@ -1519,21 +1519,24 @@ namespace Tac::Render
         SetDebugName( dsv, data->mStackFrame );
 
         depthTexture = texture->mTexture2D;
-    }
-#else
+      }
+  #else
       if( texture->mTextureDSV )
       {
         dsv = texture->mTextureDSV;
       }
-#endif
+  #endif
       else
       {
         rtv = texture->mTextureRTV;
       }
-  }
+    }
+
+    const String debugName = String()
+      + data->mStackFrame.mFile + ":" + Tac::ToString( data->mStackFrame.mLine );
 
     Framebuffer* framebuffer = &mFramebuffers[ ( int )data->mFramebufferHandle ];
-    framebuffer->mDebugName = data->mStackFrame.ToString();
+    framebuffer->mDebugName = debugName;
     framebuffer->mRenderTargetView = rtv;
     framebuffer->mDepthStencilView = dsv;
     framebuffer->mDepthTexture = depthTexture;

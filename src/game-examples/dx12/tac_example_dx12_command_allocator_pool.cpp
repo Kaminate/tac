@@ -1,7 +1,7 @@
-#include  "tac_example_dx12_command_allocator_pool.h" // self-inc
-#include  "tac_example_dx12_command_queue.h"
+#include "tac_example_dx12_command_allocator_pool.h" // self-inc
 
-#include "src/shell/windows/renderer/dx12/tac_dx12_helper.h" // TAC_DX12_CALL
+#include "tac_example_dx12_command_queue.h"
+#include "tac-win32/renderer/dx12/tac_dx12_helper.h" // TAC_DX12_CALL
 
 namespace Tac::Render
 {

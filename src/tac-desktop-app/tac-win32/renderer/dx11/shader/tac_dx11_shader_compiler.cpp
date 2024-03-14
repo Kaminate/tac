@@ -8,7 +8,7 @@
 #include "tac-std-lib/dataprocess/tac_text_parser.h" // ParseData
 #include "tac-std-lib/error/tac_error_handling.h" // TAC_RAISE_ERROR_RETURN
 #include "tac-rhi/renderer/tac_renderer_backend.h" // GetShaderAssetPath
-//#include "tac-std-lib/memory/tac_frame_memory.h"
+//#include "tac-engine-core/framememory/tac_frame_memory.h"
 
 #include <d3dcompiler.h> // D3DCompile
 
@@ -125,7 +125,7 @@ namespace Tac::Render
 
     TAC_ASSERT( shaderModel.size() == 6 ); // ie "vs_5_0"
     const String shaderModelVer = String() + shaderModel[ 3 ] + '.' + shaderModel[ 5 ];
-    TAC_ASSERT_MSG( StrCmp( shaderModelVer, "5.1" ) <= 0,
+    TAC_ASSERT_MSG( StrCmp( shaderModelVer.data(), "5.1" ) <= 0,
                     String() + "fxc cannot compile a shader model " + shaderModelVer +
                     " use dxc instead" );
 

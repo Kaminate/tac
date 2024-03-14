@@ -1,5 +1,7 @@
 #include "tac_dx12_samplers.h" // self-inc
+
 #include "tac_dx12_descriptor_heap.h"
+#include "tac-std-lib/error/tac_assert.h"
 
 namespace Tac::Render
 {

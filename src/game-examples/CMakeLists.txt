@@ -13,7 +13,7 @@ target_sources( TacExamples PRIVATE
   "tac_examples_state_machine.h"
 )
 
-target_link_libraries( TacExamples PUBLIC TacGhost )
+target_link_libraries( TacExamples PUBLIC TacECS )
 
 add_subdirectory( dx12 )
 add_subdirectory( fluid )
@@ -35,7 +35,7 @@ function( tac_target )
     TacEngineCore
     TacDesktopApp
     TacExamples
-    TacGhost
+    TacECS
   )
   # append the vulkan library if it was built...
   if(TARGET TacVkRenderer)
@@ -55,9 +55,7 @@ if( WIN32 )
 
 
 
-  target_precompile_headers( ${PROJECT_NAME} PRIVATE 
-    "${CMAKE_SOURCE_DIR}/src/common/tac_precompiled_header.h"
-  )
+  #target_precompile_headers( ${PROJECT_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/src/common/tac_precompiled_header.h" )
 
   target_link_libraries( ${PROJECT_NAME} PUBLIC
     TacWin32
@@ -91,9 +89,7 @@ if( SDL2_FOUND )
     #     )
   endif()
 
-  target_precompile_headers( ${PROJECT_NAME} PRIVATE 
-    "${CMAKE_SOURCE_DIR}/src/common/tac_precompiled_header.h"
-  )
+  #target_precompile_headers( ${PROJECT_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/src/common/tac_precompiled_header.h" )
 
   target_include_directories( ${PROJECT_NAME} PUBLIC ${SDL2_INCLUDE_DIR} )
 

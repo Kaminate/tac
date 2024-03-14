@@ -6,19 +6,14 @@
 
 #pragma once
 
-//#include "tac-std-lib/string/tac_string.h"
-//#include "tac-std-lib/filesystem/tac_filesystem.h"
-//#include "tac-std-lib/tac_precompiled_header.h"
-//#include "tac-std-lib/tac_ints.h"
-
-//import std; // fstream(ofstream)
 
 // this hsould probably be pulled out of tac std lib, and isntead when an asser tis hit,
 // it calls an assert callback set by the os.1j
+namespace Tac { struct StringView; struct StackFrame; }
+namespace Tac::Filesystem { struct Path; }
+
 namespace Tac
 {
-  struct StringView;
-  struct StackFrame;
 
 #if 0
   using LogNumber = u32;
@@ -64,7 +59,7 @@ namespace Tac
     void LogMessage( const StringView& );
     void LogStackFrame( const StackFrame& );
     void LogFlush();
-    void LogSetPath( const StringView& );
+    void LogSetPath( const Filesystem::Path& );
   }
 
   // -----------------------------------------------------------------------------------------------

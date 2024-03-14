@@ -22,7 +22,7 @@ function( tac_target )
   target_link_libraries( ${TAC_TARGET_NAME} 
     TacEngineCore
     TacDesktopApp
-    TacGhost )
+    TacECS )
 
   # note: variables names are case-sensitive
   find_package( OpenGL )
@@ -75,9 +75,7 @@ if( SDL2_FOUND AND FALSE )
   target_sources( ${TAC_TARGET_NAME} ${TAC_SDL_MAIN_FILES} )
 
 
-  target_precompile_headers( ${TAC_TARGET_NAME} PRIVATE 
-    "${CMAKE_SOURCE_DIR}/src/common/tac_precompiled_header.h"
-  )
+  #target_precompile_headers( ${TAC_TARGET_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/src/common/tac_precompiled_header.h" )
 
   target_include_directories( ${TAC_TARGET_NAME} PUBLIC 
     ${SDL2_INCLUDE_DIR} 
@@ -148,9 +146,7 @@ if( WIN32 )
 
 
   # broken --> target_precompile_headers(${TAC_TARGET_NAME} REUSE_FROM CommonLibrary)
-  target_precompile_headers( ${TAC_TARGET_NAME} PRIVATE 
-    "${CMAKE_SOURCE_DIR}/src/common/tac_precompiled_header.h"
-  )
+  # target_precompile_headers( ${TAC_TARGET_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/src/common/tac_precompiled_header.h" )
 
   target_include_directories( ${TAC_TARGET_NAME} PUBLIC 
     ${TAC_INCLUDE_DIRECTORIES} 

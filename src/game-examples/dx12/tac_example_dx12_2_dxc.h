@@ -1,10 +1,10 @@
 // This file serves as a wrapper around dxc
 #pragma once
 
-#include "src/shell/windows/tac_win32_com_ptr.h" // PCom
+#include "tac-win32/tac_win32_com_ptr.h" // PCom
 #include "tac-rhi/renderer/tac_renderer.h" // ShaderType
-#include "tac-std-lib/assetmanagers/tac_asset.h" // AssetPathStringView
-#include "tac-std-lib/system/tac_filesystem.h" // Filesystem::Path
+#include "tac-std-lib/filesystem/tac_asset.h" // AssetPathStringView
+#include "tac-std-lib/filesystem/tac_filesystem.h" // Filesystem::Path
 
 #include <d3d12.h> // D3D12_SHADER_BYTECODE
 #include <dxcapi.h> // (include after d3d12.h) IDxcBlob IDxcUtils, IDxcCompiler3, DxcCreateInstance

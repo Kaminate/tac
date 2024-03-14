@@ -1,4 +1,5 @@
 #include "tac_example_dx12_6_frame_buf.h" // self-inc
+
 #include "tac_example_dx12_shader_compile.h"
 #include "tac_example_dx12_2_dxc.h"
 #include "tac_example_dx12_root_sig_builder.h"
@@ -10,25 +11,26 @@
 #include "tac-std-lib/error/tac_assert.h"
 #include "tac-std-lib/dataprocess/tac_text_parser.h"
 #include "tac-std-lib/containers/tac_span.h"
-#include "tac-std-lib/assetmanagers/tac_asset.h"
-#include "tac-std-lib/memory/tac_frame_memory.h"
+#include "tac-std-lib/filesystem/tac_asset.h"
+//#include "tac-engine-core/framememory/tac_frame_memory.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/math/tac_vector4.h"
 #include "tac-std-lib/math/tac_matrix4.h"
-#include "tac-std-lib/system/tac_filesystem.h"
+#include "tac-std-lib/filesystem/tac_filesystem.h"
 #include "tac-std-lib/math/tac_vector3.h"
-#include "tac-std-lib/shell/tac_shell_timestep.h"
+#include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-std-lib/os/tac_os.h"
-#include "tac-std-lib/shell/tac_shell.h"
+#include "tac-engine-core/shell/tac_shell.h"
 #include "tac-std-lib/algorithm/tac_algorithm.h"
 
-#include "src/shell/tac_desktop_app.h"
-#include "src/shell/tac_desktop_window_settings_tracker.h"
-#include "src/shell/windows/renderer/dx12/tac_dx12_helper.h"
-#include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_preprocess.h"
-#include "src/shell/windows/tac_win32.h"
+#include "tac-desktop-app/tac_desktop_app.h"
+#include "tac-desktop-app/tac_desktop_window_settings_tracker.h"
+#include "tac-win32/renderer/dx12/tac_dx12_helper.h"
+#include "tac-win32/renderer/dx12/tac_dx12_helper.h"
+#include "tac-win32/renderer/dx11/shader/tac_dx11_shader_preprocess.h"
+#include "tac-win32/tac_win32.h"
 
 #pragma comment( lib, "d3d12.lib" ) // D3D12...
 
@@ -621,27 +623,35 @@ namespace Tac
   {
     const AssetPathStringView shaderAssetPath = "assets/hlsl/DX12HelloFrameBuf.hlsl";
 
-    TAC_CALL( DX12ProgramCompiler compiler( ( ID3D12Device* )m_device, errors ) );
+    const DX12ProgramCompiler::Params compilerParams
+    {
+      .mOutputDir = sShellPrefPath,
+      .mDevice = ( ID3D12Device* )m_device,
+    };
+    TAC_CALL( DX12ProgramCompiler compiler( compilerParams, errors ) );
 
-    DX12ProgramCompiler::Result compileResult = TAC_CALL( compiler.Compile(shaderAssetPath, errors) );
+    DX12ProgramCompiler::Result compileResult = TAC_CALL( compiler.Compile( shaderAssetPath, errors ) );
 
-    const DX12BuiltInputLayout inputLayout{
-      VertexDeclarations
-      {
-        VertexDeclaration
-        {
-          .mAttribute = Attribute::Position,
-          .mTextureFormat = Format::sv3,
-          .mAlignedByteOffset = TAC_OFFSET_OF( Vertex, mPos ),
-        },
-        VertexDeclaration
-        {
-          .mAttribute = Attribute::Color,
-          .mTextureFormat = Format::sv3,
-          .mAlignedByteOffset = TAC_OFFSET_OF( Vertex, mCol ),
-        },
-      } };
 
+    const VertexDeclaration posDecl
+    {
+      .mAttribute = Attribute::Position,
+      .mTextureFormat = Format::sv3,
+      .mAlignedByteOffset = TAC_OFFSET_OF( Vertex, mPos ),
+    };
+
+    const VertexDeclaration colDecl
+    {
+      .mAttribute = Attribute::Color,
+      .mTextureFormat = Format::sv3,
+      .mAlignedByteOffset = TAC_OFFSET_OF( Vertex, mCol ),
+    };
+
+    VertexDeclarations vtxDecls;
+    vtxDecls.push_back( posDecl );
+    vtxDecls.push_back( colDecl );
+
+    const DX12BuiltInputLayout inputLayout{ vtxDecls };
 
     const D3D12_RASTERIZER_DESC RasterizerState
     {

@@ -23,6 +23,8 @@ namespace Tac
     virtual void PlatformFrameEnd( Errors& ) {}
     virtual void PlatformSpawnWindow( const PlatformSpawnWindowParams&, Errors& ) {}
     virtual void PlatformDespawnWindow( const DesktopWindowHandle& ) {}
+    virtual void PlatformSetWindowPos( const DesktopWindowHandle&, int , int  ) {}
+    virtual void PlatformSetWindowSize( const DesktopWindowHandle&, int , int  ) {}
     virtual void PlatformWindowMoveControls( const DesktopWindowHandle&,
                                              const DesktopWindowRect& ) {}
     virtual void PlatformWindowResizeControls( const DesktopWindowHandle&, int ) {}

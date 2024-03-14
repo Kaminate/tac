@@ -3,6 +3,7 @@
 #include "tac-engine-core/input/tac_keyboard_input.h"
 #include "tac-engine-core/system/tac_desktop_window.h"
 #include "tac-std-lib/containers/tac_list.h"
+#include "tac-std-lib/string/tac_string.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h" // FrameIndex
 #include "tac-engine-core/shell/tac_shell_timestamp.h" // Timestamp
 #include "tac-engine-core/shell/tac_shell_timer.h" // Timepoint

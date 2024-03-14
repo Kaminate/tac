@@ -1,6 +1,11 @@
 #pragma once
 
-#include "tac-std-lib/tac_core.h"
+namespace Tac
+{
+  struct StringView;
+  struct DesktopAppCreateWindowParams;
+  struct DesktopWindowHandle;
+}
 
 namespace Tac
 {
@@ -9,7 +14,7 @@ namespace Tac
                                            int y = 50,
                                            int w = 800,
                                            int h = 600 );
-  DesktopWindowHandle CreateTrackedWindow( struct DesktopAppCreateWindowParams );
+  DesktopWindowHandle CreateTrackedWindow( const DesktopAppCreateWindowParams& );
 
   void UpdateTrackedWindows();
   void QuitProgramOnWindowClose( const DesktopWindowHandle& );

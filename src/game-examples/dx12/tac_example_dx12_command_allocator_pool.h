@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "src/shell/windows/tac_win32_com_ptr.h" // PCom
+#include "tac-win32/tac_win32_com_ptr.h" // PCom
 #include "tac-std-lib/containers/tac_ring_vector.h"
 #include  "tac_example_dx12_fence.h"
 

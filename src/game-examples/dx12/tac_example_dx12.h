@@ -1,6 +1,6 @@
 #pragma once
 
-#include "src/shell/windows/tac_win32_com_ptr.h"
+#include "tac-win32/tac_win32_com_ptr.h"
 
 #include <d3d12.h> // D3D12...
 

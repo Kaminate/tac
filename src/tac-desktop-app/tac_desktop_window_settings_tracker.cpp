@@ -1,9 +1,10 @@
+#include "tac_desktop_window_settings_tracker.h" // self-inc
+
 #include "tac-std-lib/containers/tac_vector.h"
-#include "tac-std-lib/system/tac_desktop_window.h"
-#include "tac-std-lib/dataprocess/tac_settings.h"
+#include "tac-engine-core/system/tac_desktop_window.h"
+#include "tac-engine-core/settings/tac_settings.h"
 #include "tac-std-lib/os/tac_os.h"
-#include "src/shell/tac_desktop_app.h"
-#include "src/shell/tac_desktop_window_settings_tracker.h"
+#include "tac-desktop-app/tac_desktop_app.h"
 
 namespace Tac
 {
@@ -30,7 +31,7 @@ namespace Tac
     return name;
   }
   
-  DesktopWindowHandle CreateTrackedWindow( DesktopAppCreateWindowParams params )
+  DesktopWindowHandle CreateTrackedWindow( const DesktopAppCreateWindowParams& params )
   {
     return CreateTrackedWindow( params.mName,
                                 params.mX,

@@ -3,7 +3,7 @@
 #include "tac-win32/tac_win32.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/math/tac_math.h"
-#include "tac-std-lib/shell/tac_shell.h"
+#include "tac-engine-core/shell/tac_shell.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-engine-core/input/tac_controller_input.h"

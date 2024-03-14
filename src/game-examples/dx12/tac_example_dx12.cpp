@@ -2,8 +2,8 @@
 
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/string/tac_string.h"
-#include "src/shell/windows/renderer/dx12/tac_dx12_helper.h"
-#include "src/shell/windows/renderer/dxgi/tac_dxgi.h"
+#include "tac-win32/renderer/dx12/tac_dx12_helper.h"
+#include "tac-win32/renderer/dxgi/tac_dxgi.h"
 #include "tac-std-lib/error/tac_assert.h"
 
 namespace Tac::Render

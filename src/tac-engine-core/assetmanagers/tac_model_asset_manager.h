@@ -1,12 +1,10 @@
 #pragma once
 
 namespace Tac::Render { struct VertexDeclarations; }
+namespace Tac { struct Errors; struct Mesh; struct AssetPathStringView; }
 
 namespace Tac
 {
-  struct Errors;
-  struct Mesh;
-  struct AssetPathStringView;
 
   void  ModelAssetManagerInit();
   void  ModelAssetManagerUninit();

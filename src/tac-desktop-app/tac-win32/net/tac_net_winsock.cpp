@@ -7,9 +7,10 @@
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/dataprocess/tac_json.h"
 #include "tac-std-lib/dataprocess/tac_serialization.h"
-#include "tac-std-lib/dataprocess/tac_settings.h"
+#include "tac-engine-core/settings/tac_settings.h"
+#include "tac-engine-core/settings/tac_settings.h"
 #include "tac-std-lib/memory/tac_memory.h"
-#include "tac-std-lib/net/tac_net.h"
+#include "tac-engine-core/net/tac_net.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/string/tac_string_util.h"
@@ -388,8 +389,8 @@ namespace Tac::Network
       socketWinsock->mElapsedSecondsOnLastRecv = Timestep::GetElapsedTime();
       if( mPrintReceivedMessages )
       {
-        const StringView recvMsg ( recvBuf, recvResult );
-        OS::OSDebugPrintLine( ShortFixedString::Concat( "Received message: ", recvMsg ) );
+        const StringView recvMsg( recvBuf, recvResult );
+        OS::OSDebugPrintLine( String() + "Received message: " + recvMsg );
       }
 
       socketWinsock->OnMessage( recvBuf, recvResult );

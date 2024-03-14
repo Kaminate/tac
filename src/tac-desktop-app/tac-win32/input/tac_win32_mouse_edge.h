@@ -7,6 +7,7 @@
 
 #include "tac-win32/tac_win32.h"
 
+namespace Tac { struct DesktopWindowHandle; struct DesktopWindowRect; }
 namespace Tac
 {
   void Win32MouseEdgeInit();

@@ -1,7 +1,7 @@
 #include "tac_desktop_window_move.h"
 
-#include "tac-std-lib/system/tac_desktop_window.h"
-#include "src/shell/tac_platform.h"
+#include "tac-engine-core/system/tac_desktop_window.h"
+#include "tac-engine-core/system/tac_platform.h"
 
 namespace Tac
 {

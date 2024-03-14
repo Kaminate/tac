@@ -137,7 +137,6 @@ struct Tac::Set
       i = ( i + 1 ) % mCapacity;
     }
 
-    return -1;
   }
 
 

@@ -2,20 +2,20 @@
 
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/math/tac_math.h" // Clamp
-#include "tac-std-lib/memory/tac_frame_memory.h"
-#include "tac-rhi/ui/imgui/tac_imgui.h"
+#include "tac-engine-core/framememory/tac_frame_memory.h"
+#include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-rhi/render/tac_render.h"
-#include "tac-std-lib/profile/tac_profile.h"
+#include "tac-engine-core/profile/tac_profile.h"
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-rhi/renderer/tac_renderer.h"
-#include "tac-std-lib/shell/tac_shell_timestep.h"
+#include "tac-engine-core/shell/tac_shell_timestep.h"
 
-#include "src/shell/tac_render_state.h"
-#include "src/shell/tac_desktop_app.h"
-#include "src/shell/tac_desktop_app_threads.h"
-#include "src/shell/tac_desktop_event.h"
-#include "src/shell/tac_platform.h"
-#include "src/shell/tac_iapp.h"
+#include "tac-desktop-app/tac_render_state.h"
+#include "tac-desktop-app/tac_desktop_app.h"
+#include "tac-desktop-app/tac_desktop_app_threads.h"
+#include "tac-desktop-app/tac_desktop_event.h"
+#include "tac-engine-core/system/tac_platform.h"
+#include "tac-desktop-app/tac_iapp.h"
 
 namespace Tac
 {
@@ -42,7 +42,43 @@ namespace Tac
     DesktopEventInit();
     
     TAC_CALL( Render::Init2( Render::InitParams{}, errors ) );
-    ImGuiInit( Render::GetMaxGPUFrameCount() );
+
+    const ImGuiInitParams imguiInitParams 
+    {
+      .mMaxGpuFrameCount = Render::GetMaxGPUFrameCount() ,
+      .mSetWindowPos = []( DesktopWindowHandle handle, v2 pos )
+      {
+        PlatformFns* platform = PlatformFns::GetInstance();
+        platform->PlatformSetWindowPos( handle, ( int )pos.x, ( int )pos.y );
+      },
+      .mSetWindowSize = []( DesktopWindowHandle handle, v2 size )
+      {
+        PlatformFns* platform = PlatformFns::GetInstance();
+        platform->PlatformSetWindowSize( handle, ( int )size.x, ( int )size.y );
+      },
+      .mCreateWindow = []( const ImGuiCreateWindowParams& imguiParams )
+      {
+        DesktopApp* desktopApp =  DesktopApp::GetInstance();
+
+        DesktopAppCreateWindowParams desktopParams
+        {
+          .mName = "<unnamed>",
+          .mX = (int)imguiParams.mPos.x,
+          .mY = (int)imguiParams.mPos.y,
+          .mWidth = (int)imguiParams.mSize.x,
+          .mHeight = (int)imguiParams.mSize.y,
+        };
+
+        return desktopApp->CreateWindow( desktopParams );
+      },
+      .mDestroyWindow = []( const DesktopWindowHandle& handle)
+      {
+        DesktopApp* desktopApp =  DesktopApp::GetInstance();
+
+        desktopApp->DestroyWindow( handle );
+      },
+    };
+    ImGuiInit( imguiInitParams );
   }
 
   void PlatformThread::Update( Errors& errors )

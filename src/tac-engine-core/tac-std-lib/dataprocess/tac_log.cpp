@@ -7,7 +7,7 @@
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/string/tac_string_view.h"
 #include "tac-std-lib/filesystem/tac_filesystem.h"
-//#include "tac-std-lib/shell/tac_shell.h"
+//#include "tac-engine-core/shell/tac_shell.h"
 #include "tac-std-lib/os/tac_os.h"
 
 namespace Tac
@@ -245,7 +245,7 @@ namespace Tac
     void EnsurePath();
     void EnsureOpen();
     void LogMessage( StringView );
-    void LogSetPath( StringView );
+    void SetPath( Filesystem::Path );
 
     String           mBuffer;
     Filesystem::Path mPath;
@@ -266,7 +266,7 @@ namespace Tac
   }
 
 
-  void Log::LogSetPath( StringView path )
+  void Log::SetPath( Filesystem::Path path )
   {
     TAC_ASSERT( !mFile.is_open() );
     mPath = path;
@@ -338,6 +338,11 @@ namespace Tac
   void LogApi::LogFlush()
   {
     sLog.Flush();
+  }
+
+  void LogApi::LogSetPath( const Filesystem::Path& path )
+  {
+    sLog.SetPath( path );
   }
 } // namespace Tac
 

@@ -24,7 +24,7 @@
 #include <Windowsx.h>
 #undef CreateWindow
 
-namespace Tac { struct Errors; }
+namespace Tac { struct Errors; struct String; }
 
 namespace Tac
 {

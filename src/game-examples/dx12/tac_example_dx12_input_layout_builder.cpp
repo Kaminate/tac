@@ -1,6 +1,6 @@
-#include "tac_example_dx12_input_layout_builder.h"
+#include "tac_example_dx12_input_layout_builder.h" // self-inc
 
-#include "src/shell/windows/renderer/dxgi/tac_dxgi.h"
+#include "tac-win32/renderer/dxgi/tac_dxgi.h"
 
 namespace Tac::Render
 {

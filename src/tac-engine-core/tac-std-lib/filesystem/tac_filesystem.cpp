@@ -1,7 +1,7 @@
 #include "tac_filesystem.h" // self-inc
 
 #include "tac-std-lib/error/tac_error_handling.h"
-//#include "tac-std-lib/shell/tac_shell.h"
+//#include "tac-engine-core/shell/tac_shell.h"
 #include "tac-std-lib/string/tac_string_util.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/string/tac_string_view.h"
@@ -123,7 +123,8 @@ namespace Tac::Filesystem
   bool   Path::has_extension() const             { return Get().has_extension(); }
   bool   Path::has_filename() const              { return Get().has_filename(); }
   bool   Path::has_dirname() const               { return Get().has_filename(); }
-  Path&  Path::operator /= ( const char* p )     { Get() /= p; return *this; }
+  //Path&  Path::operator /= ( const char* p )     { Get() /= p; return *this; }
+  Path&  Path::operator /= (const StringView& s ) { Get() /= s.data(); return *this; }
 
   std::filesystem::path&       Path::Get()       { return mPath; }
   const std::filesystem::path& Path::Get() const { return mPath; }

@@ -3,6 +3,7 @@
 #include "tac-win32/tac_win32_com_ptr.h"
 
 #include <dxgidebug.h>
+#include <dxgi1_3.h> // DXGIGetDebugInterface1
 
 namespace Tac::Render
 {

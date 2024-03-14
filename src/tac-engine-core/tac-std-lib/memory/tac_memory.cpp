@@ -1,7 +1,7 @@
 #include "tac_memory.h" // self-inc
 
 //#include "tac-desktop-app/tac_desktop_app.h" // temp
-//#include "tac-std-lib/shell/tac_shell.h"
+//#include "tac-engine-core/shell/tac_shell.h"
 //#include "tac-engine-core/shell/tac_shell_timestep.h"
 
 namespace Tac

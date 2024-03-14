@@ -2,16 +2,17 @@
 #include "tac_example_dx12_2_dxc.h"
 
 #include "tac-std-lib/error/tac_error_handling.h"
-#include "tac-std-lib/assetmanagers/tac_asset.h"
+#include "tac-std-lib/filesystem/tac_asset.h"
 #include "tac-std-lib/dataprocess/tac_text_parser.h"
 #include "tac-std-lib/os/tac_os.h" //tmp
-#include "tac-std-lib/shell/tac_shell.h" // sShellPrefPath
-#include "src/shell/windows/renderer/dx12/tac_dx12_shader_preprocess.h"
+//#include "tac-std-lib/shell/tac_shell.h" // sShellPrefPath
+#include "tac-win32/renderer/dx12/tac_dx12_shader_preprocess.h"
 
 
 namespace Tac::Render
 {
   // -----------------------------------------------------------------------------------------------
+  static Filesystem::Path sOutputDir; // = sShellPrefPath,
 
   // static helper functions
 
@@ -59,10 +60,12 @@ namespace Tac::Render
 
   const D3D_SHADER_MODEL shaderModel = D3D_SHADER_MODEL_6_5;
 
-  DX12ProgramCompiler::DX12ProgramCompiler( ID3D12Device* device, Errors& errors )
+  DX12ProgramCompiler::DX12ProgramCompiler( Params params, Errors& errors )
   {
+    ID3D12Device* device = params.mDevice;
+    sOutputDir = params.mOutputDir;
     const D3D_SHADER_MODEL highestShaderModel = GetHighestShaderModel( device );
-    TAC_RAISE_ERROR_IF( shaderModel > highestShaderModel, "Shader model too high" ); 
+    TAC_RAISE_ERROR_IF( shaderModel > highestShaderModel, "Shader model too high" );
   }
 
   static PCom<IDxcBlob> CompileShader( ShaderType shaderType,
@@ -89,7 +92,7 @@ namespace Tac::Render
       .mEntryPoint = entryPoint,
       .mType = shaderType,
       .mShaderModel = shaderModel,
-      .mOutputDir = sShellPrefPath,
+      .mOutputDir = sOutputDir,
     };
     return TAC_CALL_RET( {}, DXC::Compile( input, errors ));
   }

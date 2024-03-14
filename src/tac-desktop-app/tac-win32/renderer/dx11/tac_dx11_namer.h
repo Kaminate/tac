@@ -4,6 +4,7 @@
 #include "tac-std-lib/string/tac_string.h"
 
 #include <d3d11_3.h> // ID3D11DeviceChild
+#include <dxgi1_5.h> // IDXGISwapChain4
 
 namespace Tac::Render
 {
@@ -64,8 +65,6 @@ namespace Tac::Render
   Name( IDXGISwapChain3,           "sc3" );
   Name( IDXGISwapChain4,           "sc4" );
 #undef Name
-
-
 
 
 } // namespace Tac::Render

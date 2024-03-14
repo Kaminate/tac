@@ -82,7 +82,7 @@ target_sources( TacDesktopApp
 )
 
 target_include_directories( TacDesktopApp PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../ )
-target_link_libraries( TacDesktopApp TacGhost )
+target_link_libraries( TacDesktopApp TacECS )
 
 # if( False ) here because it should not be the responsibilty of the shell to determine which
 # renderers to use

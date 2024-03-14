@@ -1,6 +1,6 @@
 #pragma once
 
-#include "src/shell/windows/tac_win32_com_ptr.h"
+#include "tac-win32/tac_win32_com_ptr.h"
 #include "tac-std-lib/containers/tac_span.h"
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac-std-lib/containers/tac_fixed_vector.h"

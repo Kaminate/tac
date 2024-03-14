@@ -44,6 +44,9 @@ add_library( TacDX12ShaderCompile
   tac_example_dx12_2_dxc.h
 )
 
+target_link_libraries( TacDX12ShaderCompile TacWin32 TacRHI TacStdLib )
+
+
 add_library( TacDX12ExampleHelpers 
   tac_example_dx12_command_queue.cpp
   tac_example_dx12_command_queue.h
@@ -64,12 +67,15 @@ add_library( TacDX12ExampleHelpers
   tac_example_dx12_fence.h
 )
 
+target_link_libraries( TacDX12ExampleHelpers TacWin32 TacStdLib TacDesktopApp )
+
 foreach( targetname ${targetnames} )
   target_link_libraries( ${targetname}
+    TacStdLib
     TacEngineCore
-    TacGhost
-    TacWin32
+    TacECS
     TacDesktopApp
+    TacWin32
     TacWin32Main
     TacDX12ShaderCompile
     TacDX12ExampleHelpers

@@ -1,20 +1,44 @@
 #include "tac_desktop_window_life.h"
 
-#include "tac-std-lib/identifier/tac_id_collection.h"
+//#include "tac-std-lib/identifier/tac_id_collection.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/containers/tac_fixed_vector.h"
-#include "src/shell/tac_platform.h"
-#include "src/shell/tac_desktop_app.h"
+#include "tac-engine-core/system/tac_platform.h"
+#include "tac-desktop-app/tac_desktop_app.h"
 
 namespace Tac
 {
   using WindowRequestsCreate = FixedVector< PlatformSpawnWindowParams, kDesktopWindowCapacity >;
   using WindowRequestsDestroy = FixedVector< DesktopWindowHandle, kDesktopWindowCapacity >;
 
-  static IdCollection                  sDesktopWindowHandleIDs;
+  static int sIDCounter;
+  static Vector<int> sFreeIds;
+  //static IdCollection                  sDesktopWindowHandleIDs;
   static std::mutex                    sWindowHandleLock;
   static WindowRequestsCreate          sWindowRequestsCreate;
   static WindowRequestsDestroy         sWindowRequestsDestroy;
+
+  static void                FreeDesktopWindowHandle( DesktopWindowHandle handle )
+  {
+    sFreeIds.push_back( handle.GetIndex() );
+  }
+
+  static DesktopWindowHandle AllocDesktopWindowHandle()
+  {
+      DesktopWindowHandle handle;
+      if( sFreeIds.empty() )
+      {
+        handle = sIDCounter++;
+      }
+      else
+      {
+        handle = sFreeIds.back();
+        sFreeIds.pop_back();
+      }
+
+      return handle;
+
+  }
 }
 
 void Tac::DesktopAppUpdateWindowRequests( Errors& errors )
@@ -35,10 +59,14 @@ void Tac::DesktopAppUpdateWindowRequests( Errors& errors )
     platform->PlatformDespawnWindow( desktopWindowHandle );
 }
 
+
 Tac::DesktopWindowHandle Tac::DesktopAppImplCreateWindow( const DesktopAppCreateWindowParams& desktopParams )
 {
     sWindowHandleLock.lock();
-    const DesktopWindowHandle handle = { sDesktopWindowHandleIDs.Alloc() };
+
+    //const DesktopWindowHandle handle = { sDesktopWindowHandleIDs.Alloc() };
+    const DesktopWindowHandle handle = AllocDesktopWindowHandle();
+
     const PlatformSpawnWindowParams info =
     {
       .mHandle = handle,
@@ -60,7 +88,8 @@ void                Tac::DesktopAppImplDestroyWindow( const DesktopWindowHandle&
     return;
 
   sWindowHandleLock.lock();
-  sDesktopWindowHandleIDs.Free( ( int )desktopWindowHandle );
+  //sDesktopWindowHandleIDs.Free( ( int )desktopWindowHandle );
+  FreeDesktopWindowHandle( desktopWindowHandle );
   sWindowRequestsDestroy.push_back( desktopWindowHandle );
   sWindowHandleLock.unlock();
 }

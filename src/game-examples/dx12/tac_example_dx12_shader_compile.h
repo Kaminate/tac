@@ -4,9 +4,10 @@
 #include <dxcapi.h> // (must be included after d3d12.h) IDxc..., Dxc...
 
 #include "tac-rhi/renderer/tac_renderer.h"
-#include "src/shell/windows/tac_win32_com_ptr.h"
+#include "tac-win32/tac_win32_com_ptr.h"
+#include "tac-std-lib/filesystem/tac_filesystem.h"
 
-namespace Tac { struct Errors; struct AssetpathStringView; }
+namespace Tac { struct Errors; struct AssetPathStringView; }
 namespace Tac::Render
 {
   struct DX12ProgramCompiler
@@ -17,7 +18,13 @@ namespace Tac::Render
       PCom<IDxcBlob> mBlobs[ (int) ShaderType::Count ];
     };
 
-    DX12ProgramCompiler( ID3D12Device*, Errors& );
+    struct Params
+    {
+      Filesystem::Path mOutputDir;
+      ID3D12Device* mDevice;
+    };
+
+    DX12ProgramCompiler( Params, Errors& );
     Result Compile( const AssetPathStringView&, Errors& );
 
   };

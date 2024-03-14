@@ -133,7 +133,7 @@ namespace Tac::Render
       buffer.iid(),
       buffer.ppv() ) );
 
-    DX12SetName( buffer, params.mStackFrame.ToString() );
+    DX12SetName( buffer, params.mStackFrame );
 
     void* cpuAddr;
 

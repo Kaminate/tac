@@ -18,7 +18,6 @@
 #include <Windowsx.h>
 #undef CreateWindow
 
-#include <d3d11_3.h>
 #include <d3d12.h>
 #include <dxgi1_5.h>
 

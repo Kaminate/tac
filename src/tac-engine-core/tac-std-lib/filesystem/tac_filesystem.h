@@ -52,7 +52,8 @@ namespace Tac::Filesystem
 
 
     //operator const std::filesystem::path &() const;
-    Path& operator /= ( const char* );
+    //Path& operator /= ( const char* );
+    Path& operator /= ( const StringView& );
     Path& operator = ( const Path& ) = default;
 
   private:

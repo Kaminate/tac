@@ -64,8 +64,8 @@ namespace Tac::Render
       if( !entryPoint )
         return false;
 
-      const auto search = ShortFixedString::Concat(entryPoint, "(");
-      const bool result = mShaderStringFull.contains((StringView)search);
+      const String search = String() + entryPoint + "(";
+      const bool result = mShaderStringFull.contains( ( StringView )search );
       return result;
     }
 
