@@ -1,7 +1,6 @@
 #pragma once
 
 #include "space/tac_space.h"
-#include "tac-std-lib/tac_core.h"
 
 namespace Tac
 {

@@ -32,7 +32,7 @@ function( tac_target )
 
   target_link_libraries( ${PROJECT_NAME}
     PUBLIC
-    TacCore
+    TacEngineCore
     TacDesktopApp
     TacExamples
     TacGhost
@@ -60,8 +60,8 @@ if( WIN32 )
   )
 
   target_link_libraries( ${PROJECT_NAME} PUBLIC
-    TacWin
-    TacWinMain
+    TacWin32
+    TacWin32Main
   )
   
   if(TARGET TacVkRenderer)

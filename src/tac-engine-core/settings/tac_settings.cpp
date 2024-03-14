@@ -9,7 +9,7 @@
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/filesystem/tac_filesystem.h"
 #include "tac-std-lib/os/tac_os.h"
-//#include "src/shell/tac_desktop_app.h"
+//#include "tac-desktop-app/tac_desktop_app.h"
 
 //#include <filesystem>
 
@@ -43,9 +43,9 @@ namespace Tac
     return leaf;
   }
 
-  void          SettingsInit( Errors& errors )
+  void          SettingsInit( const Filesystem::Path& path , Errors& errors )
   {
-    savePath = sShellPrefPath / ( sShellAppName + "Settings.txt" );
+    savePath = path; 
     if( Filesystem::Exists( savePath ))
     {
       const String loaded = LoadFilePath( savePath, errors );

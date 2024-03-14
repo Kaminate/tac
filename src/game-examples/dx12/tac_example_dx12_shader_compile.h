@@ -3,10 +3,10 @@
 #include <d3d12.h> // D3D12_SHADER_BYTECODE
 #include <dxcapi.h> // (must be included after d3d12.h) IDxc..., Dxc...
 
-#include "tac-std-lib/tac_core.h"
 #include "tac-rhi/renderer/tac_renderer.h"
 #include "src/shell/windows/tac_win32_com_ptr.h"
 
+namespace Tac { struct Errors; struct AssetpathStringView; }
 namespace Tac::Render
 {
   struct DX12ProgramCompiler
@@ -18,7 +18,7 @@ namespace Tac::Render
     };
 
     DX12ProgramCompiler( ID3D12Device*, Errors& );
-    Result Compile( AssetPathStringView, Errors& );
+    Result Compile( const AssetPathStringView&, Errors& );
 
   };
 

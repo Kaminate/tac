@@ -12,7 +12,8 @@ pushd ..
 :: cmake                   -G "Visual Studio 17 2022" -A x64 -B build_vs2022
 
 :: generate project files
-cmake --log-level=VERBOSE -G "Visual Studio 17 2022" -A x64 -B build_vs2022
+:: -WDev enables developer warnings
+cmake --log-level=VERBOSE -G "Visual Studio 17 2022" -A x64 -B build_vs2022 -Wdev
 
 :: build the project
 :: cmake --build build_vs2022

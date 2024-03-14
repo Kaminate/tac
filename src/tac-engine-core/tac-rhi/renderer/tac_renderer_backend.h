@@ -24,7 +24,7 @@ namespace Tac::Render
 
     virtual void RenderBegin( const Frame*, Errors& ) = 0;
     virtual void RenderDrawCall( const Frame*, const DrawCall*, Errors& ) = 0;
-    virtual void RenderEnd( const Frame*, Errors& ) = 0;
+    virtual void RenderEnd( float dt, const Frame*, Errors& ) = 0;
     virtual void SwapBuffers() = 0;
 
     virtual void DebugGroupBegin( StringView ) = 0;

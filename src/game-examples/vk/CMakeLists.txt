@@ -14,7 +14,7 @@ function( tac_target )
   endif()
 
   target_link_libraries( ${PROJECT_NAME}
-    TacCore
+    TacEngineCore
     TacGhost
     TacDesktopApp
     TacVkRenderer 
@@ -38,8 +38,8 @@ if( WIN32 )
 
   target_link_libraries( ${PROJECT_NAME}
     TacWinVk 
-    TacWin
-    TacWinMain
+    TacWin32
+    TacWin32Main
   )
 
   # target_compile_definitions( ${PROJECT_NAME} PRIVATE TAC_USE_RENDERER_DX11 )

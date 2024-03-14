@@ -1,8 +1,5 @@
 #pragma once
 
-//#include "tac-rhi/renderer/tac_renderer.h"
-//#include "tac-std-lib/tac_core.h"
-
 namespace Tac::Render { struct VertexDeclarations; }
 
 namespace Tac

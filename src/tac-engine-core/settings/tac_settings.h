@@ -5,10 +5,12 @@
 #include "tac-std-lib/dataprocess/tac_json.h"
 //#include "tac-std-lib/tac_core.h"
 
+namespace Tac::Filesystem { struct Path; }
+
 namespace Tac
 {
 
-	void       SettingsInit( Errors& );
+	void       SettingsInit( const Filesystem::Path&, Errors& );
 
 	//         Instructs that the settings file should be updated next write tick
 	void       SettingsSave();

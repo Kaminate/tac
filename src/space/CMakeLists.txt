@@ -27,7 +27,7 @@ target_include_directories(TacGhost
   "${CMAKE_SOURCE_DIR}/src"
 )
 
-target_link_libraries( TacGhost TacCore )
+target_link_libraries( TacGhost TacEngineCore )
 
 
 

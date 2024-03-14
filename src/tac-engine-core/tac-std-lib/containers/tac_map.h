@@ -182,9 +182,6 @@ int              Tac::Map<TKey, TVal>::FindNodeIndex( TKey key ) const
 
     i = ( i + 1 ) % mCapacity;
   }
-
-  // should never happen
-  return -1;
 }
 
 

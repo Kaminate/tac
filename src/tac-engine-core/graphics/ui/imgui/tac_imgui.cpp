@@ -23,7 +23,7 @@
 #include "tac-std-lib/algorithm/tac_algorithm.h"
 //#include "tac-rhi/tac_render.h" // ?
 
-//#include "src/shell/tac_desktop_app.h"
+//#include "tac-desktop-app/tac_desktop_app.h"
 #include "tac-engine-core/system/tac_desktop_window_graphics.h"
 
 namespace Tac
@@ -212,6 +212,10 @@ namespace Tac
     //TAC_CALL( sWindowDraws.Render( errors ) );
   }
 
+  ImGuiMouseCursor ImGuiGetMouseCursor()
+  {
+    return ImGuiGlobals::Instance.mMouseCursor;
+  }
 
   const char* ImGuiGetColName( const ImGuiCol colIdx )
   {
@@ -367,6 +371,7 @@ namespace Tac
   //        why is that?
   bool ImGuiBegin( const StringView& name )
   {
+    ImGuiCreateWindow createWindowFn = ImGuiGlobals::Instance.mCreateWindow;
     ImGuiWindow* window = ImGuiGlobals::Instance.FindWindow( name );
     if( !window )
     {
@@ -393,16 +398,25 @@ namespace Tac
 
         ImGuiLoadWindowSettings( name, &x, &y, &w, &h );
 
-        const DesktopAppCreateWindowParams createParams
+        //PlatformFns* platform = PlatformFns::GetInstance();
+        //
+
+        //const DesktopAppCreateWindowParams createParams
+        //{
+        //  .mName = name,
+        //  .mX = x,
+        //  .mY = y,
+        //  .mWidth = w,
+        //  .mHeight = h,
+        //};
+
+        const ImGuiCreateWindowParams params
         {
-          .mName = name,
-          .mX = x,
-          .mY = y,
-          .mWidth = w,
-          .mHeight = h,
+          .mPos = { ( float )x, ( float )y },
+          .mSize = { ( float )w, ( float )h },
         };
 
-        hDesktopWindow = DesktopApp::GetInstance()->CreateWindow(createParams);
+        hDesktopWindow = createWindowFn(params );// DesktopApp::GetInstance()->CreateWindow(createParams);
         desktopWindowWidth = w;
         desktopWindowHeight = h;
       }
@@ -1179,8 +1193,15 @@ namespace Tac
         if( DesktopWindowHandle desktopWindowHandle = window->GetDesktopWindowHandle();
             desktopWindowHandle.IsValid() )
         {
-          DesktopApp::GetInstance()->MoveControls( desktopWindowHandle );
-          DesktopApp::GetInstance()->ResizeControls( desktopWindowHandle );
+          OS::OSDebugBreak();
+          // TODO: copy MoveControls and ResizeControls logic here
+          //DesktopApp::GetInstance()->MoveControls( desktopWindowHandle );
+          //DesktopApp::GetInstance()->ResizeControls( desktopWindowHandle );
+
+          //v2 newPos = ;
+          //v2 newSize = ;
+          //ImGuiGlobals::Instance.mSetWindowPos( desktopWindowHandle, newPos ); 
+          //ImGuiGlobals::Instance.mSetWindowSize( desktopWindowHandle, newSize ); 
         }
       }
 
@@ -1189,7 +1210,8 @@ namespace Tac
     for( ImGuiWindow* window : windowsToDeleteImGui )
     {
       // Destroy the desktop app window
-      DesktopApp::GetInstance()->DestroyWindow( window->GetDesktopWindowHandle() );
+      //DesktopApp::GetInstance()->DestroyWindow( window->GetDesktopWindowHandle() );
+      ImGuiGlobals::Instance.mDestroyWindow( window->GetDesktopWindowHandle() );
 
       // Destroy the imgui window
       {
@@ -1228,9 +1250,14 @@ namespace Tac
     return style.buttonPadding;
   }
 
-  void ImGuiInit(int maxGPUFrameCount )
+  void ImGuiInit( const ImGuiInitParams& params )
   {
-    ImGuiGlobals::Instance.mMaxGpuFrameCount = maxGPUFrameCount;
+    ImGuiGlobals& globals = ImGuiGlobals::Instance;
+    globals.mMaxGpuFrameCount = params.mMaxGpuFrameCount;
+    globals.mSetWindowPos = params.mSetWindowPos;
+    globals.mSetWindowSize = params.mSetWindowSize;
+    globals.mCreateWindow = params.mCreateWindow;
+    globals.mDestroyWindow = params.mDestroyWindow;
   }
 
   void ImGuiSaveWindowSettings()

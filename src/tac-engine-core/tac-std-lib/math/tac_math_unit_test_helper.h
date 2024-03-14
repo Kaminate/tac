@@ -2,7 +2,6 @@
 
 // auto include assert macro to assert that invert exists
 #include "tac-std-lib/preprocess/tac_preprocessor.h" // TAC_ASSERT
-//#include "tac-std-lib/tac_core.h"
 
 namespace Tac
 {

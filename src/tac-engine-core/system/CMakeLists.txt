@@ -5,5 +5,7 @@ target_sources( TacEngineCore PRIVATE
   tac_desktop_window_graphics.h
   tac_job_queue.cpp
   tac_job_queue.h
+  tac_platform.cpp
+  tac_platform.h
 )
 

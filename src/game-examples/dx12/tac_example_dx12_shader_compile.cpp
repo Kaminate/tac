@@ -96,7 +96,7 @@ namespace Tac::Render
 
   // you know... this code assumes all the shaders are in the same file... why would that
   // even be a fair assumption...
-  DX12ProgramCompiler::Result DX12ProgramCompiler::Compile( AssetPathStringView shaderAssetPath,
+  DX12ProgramCompiler::Result DX12ProgramCompiler::Compile( const AssetPathStringView& path,
                                                             Errors& errors )
   {
     Result result;
@@ -104,7 +104,7 @@ namespace Tac::Render
     {
       result.mBlobs[ i ] = TAC_CALL_RET( {},
                                          CompileShader( ( ShaderType )i,
-                                         shaderAssetPath,
+                                         path,
                                          errors ) );
     }
 

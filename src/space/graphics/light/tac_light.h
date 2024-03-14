@@ -2,7 +2,6 @@
 
 #include "tac-rhi/renderer/tac_renderer.h"
 #include "space/ecs/tac_component.h"
-#include "tac-std-lib/tac_core.h"
 
 // Okay but like
 // arent we already making too many generalizations?

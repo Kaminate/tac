@@ -1,7 +1,6 @@
 #pragma once
 
 #include "tac-rhi/renderer/tac_renderer.h"
-#include "tac-std-lib/tac_core.h"
 #include "space/tac_space.h"
 
 namespace Tac

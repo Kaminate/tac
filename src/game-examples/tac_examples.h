@@ -1,9 +1,9 @@
 #pragma once
 
 #include "src/common/graphics/tac_renderer.h"
-#include "src/common/tac_core.h"
 #include "space/tac_space.h"
 
+namespace Tac { struct Errors; }
 namespace Tac
 {
   struct Example

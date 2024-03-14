@@ -14,8 +14,8 @@
 //#include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/filesystem/tac_asset.h"
-//#include "src/shell/tac_desktop_app.h"
-//#include "src/shell/tac_desktop_app_threads.h"
+//#include "tac-desktop-app/tac_desktop_app.h"
+//#include "tac-desktop-app/tac_desktop_app_threads.h"
 
 namespace Tac::Render
 {
@@ -294,23 +294,23 @@ namespace Tac
 
     {
       //TAC_PROFILE_BLOCK_NAMED( "wait submit" );
-      gSubmitSemaphore->DecrementWait(  );
+      gSubmitSemaphore->DecrementWait();
     }
 
     if( gRenderFrame->mBreakOnFrameRender )
       OS::OSDebugBreak();
 
-    TAC_CALL( ExecuteCommands( &gRenderFrame->mCommandBufferFrameBegin, errors ));
+    TAC_CALL( ExecuteCommands( &gRenderFrame->mCommandBufferFrameBegin, errors ) );
 
     renderer->RenderBegin( gRenderFrame, errors );
 
-    TAC_CALL( RenderDrawCalls( errors ));
+    TAC_CALL( RenderDrawCalls( errors ) );
 
-    TAC_CALL( ExecuteCommands( &gRenderFrame->mCommandBufferFrameEnd, errors ));
+    TAC_CALL( ExecuteCommands( &gRenderFrame->mCommandBufferFrameEnd, errors ) );
 
-    TAC_CALL( renderer->RenderEnd( gRenderFrame, errors ));
+    TAC_CALL( renderer->RenderEnd( 1.0f / 60.0f, gRenderFrame, errors ) ); // hackkk
 
-    gRenderSemaphore->IncrementPost(  );
+    gRenderSemaphore->IncrementPost();
 
     {
       //TAC_PROFILE_BLOCK_NAMED( "swap buffers" );
@@ -322,7 +322,7 @@ namespace Tac
   void Render::SubmitFinish()
   {
     //TAC_ASSERT( DesktopAppThreads::IsLogicThread() );
-    gSubmitSemaphore->IncrementPost(  );
+    gSubmitSemaphore->IncrementPost();
   }
 
   void Render::SubmitFrame()

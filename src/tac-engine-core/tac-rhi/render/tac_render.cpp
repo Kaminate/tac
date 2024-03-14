@@ -13,7 +13,7 @@
 #include "tac-rhi/render/tac_render_backend_cmd_data.h"
 
 //#if !TAC_TEMPORARILY_DISABLED()
-//#include "src/shell/windows/renderer/dx12/tac_dx12_context_manager.h"
+//#include "tac-win32/renderer/dx12/tac_dx12_context_manager.h"
 //#endif
 
 import std; // mutex

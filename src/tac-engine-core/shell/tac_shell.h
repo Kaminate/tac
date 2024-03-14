@@ -8,14 +8,10 @@
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac-std-lib/string/tac_string.h"
 
+namespace Tac::Filesystem { struct Path; }
+namespace Tac { struct Errors; struct AssetPathStringView; }
 namespace Tac
 {
-  struct Errors;
-  struct AssetPathStringView;
-  namespace Tac::Filesystem { struct Path; }
-  //struct Log;
-
-
   struct Soul
   {
     Soul();
@@ -54,16 +50,4 @@ namespace Tac
   };
 
   AssetPathStringView     AssetSaveDialog( const AssetSaveDialogParams&, Errors& );
-
-
-  //Log*            mLog = nullptr;
-  //String          mAppName;
-
-  // This is the directory where files can be written.
-  // Unique per user, per application.
-  // ( doesn't include a trailing slash )
-  //String          mPrefPath;
-
-  //String          mInitialWorkingDir;
-  //Vector< Soul* > mSouls;
 }

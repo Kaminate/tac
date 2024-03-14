@@ -1,10 +1,10 @@
 #pragma once
 
 #include "src/common/system/tac_desktop_window.h"
-#include "src/common/tac_core.h"
 
 #include "space/tac_space.h"
 
+namespace Tac { struct Errors; }
 namespace Tac
 {
 

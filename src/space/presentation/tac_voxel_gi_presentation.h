@@ -1,6 +1,5 @@
 #pragma once
 
-#include "tac-std-lib/tac_core.h"
 #include "tac-rhi/renderer/tac_renderer.h"
 #include "space/tac_space.h"
 

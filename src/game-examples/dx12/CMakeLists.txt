@@ -66,11 +66,11 @@ add_library( TacDX12ExampleHelpers
 
 foreach( targetname ${targetnames} )
   target_link_libraries( ${targetname}
-    TacCore
+    TacEngineCore
     TacGhost
-    TacWin
+    TacWin32
     TacDesktopApp
-    TacWinMain
+    TacWin32Main
     TacDX12ShaderCompile
     TacDX12ExampleHelpers
   )

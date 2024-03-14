@@ -12,11 +12,11 @@ target_precompile_headers( TacGravestory PRIVATE
 )
 
 target_link_libraries( TacGravestory
-  TacCore
+  TacEngineCore
   TacGhost
-  TacWin
+  TacWin32
+  TacWin32Main
   TacDesktopApp
-  TacWinMain
 )
 
 if(TARGET TacVkRenderer)
@@ -27,8 +27,8 @@ if(TARGET TacVkRenderer)
 
   target_link_libraries( TacGravestory TacVkRenderer  )
   target_sources( TacGravestory PRIVATE
-      "${CMAKE_SOURCE_DIR}/src/shell/tac_win_vk.cpp"
-      "${CMAKE_SOURCE_DIR}/src/shell/tac_win_vk.h"
+      "${CMAKE_SOURCE_DIR}/src/tac-desktop-app/tac_win_vk.cpp"
+      "${CMAKE_SOURCE_DIR}/src/tac-desktop-app/tac_win_vk.h"
     )
 endif()
 

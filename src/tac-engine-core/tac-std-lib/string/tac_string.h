@@ -1,11 +1,9 @@
 #pragma once
 
+namespace Tac { struct String; struct StringView; }
+
 namespace Tac
 {
-  struct String;
-  struct StringView;
-  struct StringLiteral;
-  struct ShortFixedString;
 
   bool       IsSpace( char );
   bool       IsAlpha( char );

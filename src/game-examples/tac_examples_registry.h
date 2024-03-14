@@ -1,10 +1,9 @@
 #pragma once
 
-#include "src/common/tac_core.h"
 
+namespace Tac { struct StringView; struct Example; }
 namespace Tac
 {
-  struct Example;
 
   bool ExampleIndexValid( int );
   void ExampleRegistryPopulate();

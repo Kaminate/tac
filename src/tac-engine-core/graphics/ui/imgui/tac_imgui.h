@@ -58,6 +58,18 @@ namespace Tac
     Count,
   };
 
+  enum class ImGuiMouseCursor
+  {
+    kNone,
+    kArrow,
+    kResizeNS,
+    kResizeEW,
+    kResizeNESW,
+    kResizeNWSE,
+    kCount,
+  };
+
+  ImGuiMouseCursor ImGuiGetMouseCursor();
   const char* ImGuiGetColName( ImGuiCol );
 
   enum ImGuiNodeFlags
@@ -91,8 +103,28 @@ namespace Tac
     const DesktopWindowHandle& mMouseHoveredWindow;
   };
 
+  struct ImGuiCreateWindowParams
+  {
+    v2 mPos;
+    v2 mSize;
+  };
+
+  using ImGuiSetWindowPos = void( * )( DesktopWindowHandle, v2 );
+  using ImGuiSetWindowSize = void( * )( DesktopWindowHandle, v2 );
+  using ImGuiCreateWindow = DesktopWindowHandle( * )( const ImGuiCreateWindowParams& );
+  using ImGuiDestroyWindow = void ( * )( const DesktopWindowHandle& );
+
+  struct ImGuiInitParams
+  {
+    int                mMaxGpuFrameCount{};
+    ImGuiSetWindowPos  mSetWindowPos{};
+    ImGuiSetWindowSize mSetWindowSize{};
+    ImGuiCreateWindow  mCreateWindow{};
+    ImGuiDestroyWindow mDestroyWindow{};
+  };
+
   //   ImGui System Functions
-  void ImGuiInit(int maxGpuFrameCount);
+  void ImGuiInit( const ImGuiInitParams& );
   void ImGuiUninit();
   void ImGuiSaveWindowSettings();
   void ImGuiDebugDraw();
@@ -103,7 +135,7 @@ namespace Tac
   void ImGuiBeginMenuBar();
   void ImGuiBeginChild( const StringView& name, const v2& size );
   void ImGuiBeginGroup();
-  void ImGuiBeginFrame(const BeginFrameData&);
+  void ImGuiBeginFrame( const BeginFrameData& );
 
   //   ImGuiEnd
   void ImGuiEnd();

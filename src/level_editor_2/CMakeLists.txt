@@ -9,9 +9,9 @@ add_executable( LevelEditor2 WIN32 )
 target_link_libraries( LevelEditor2 ) 
 
 target_link_libraries( LevelEditor2 
-  TacWin  
-  TacWinMain
-  TacCore
+  TacWin32
+  TacWin32Main
+  TacEngineCore
   TacDesktopApp
   TacGhost )
 

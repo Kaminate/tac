@@ -5,7 +5,7 @@ add_subdirectory(tac-engine-core)
 # and shell uses space
 add_subdirectory(space)
 
-add_subdirectory(shell)
+add_subdirectory(tac-desktop-app)
 add_subdirectory(level_editor)
 add_subdirectory(level_editor_2)
 add_subdirectory(game)

@@ -174,6 +174,7 @@ namespace Tac
   {
     static ImGuiGlobals               Instance;
 
+    ImGuiMouseCursor                  mMouseCursor = ImGuiMouseCursor::kNone;
     ImGuiWindow*                      FindWindow( const StringView& name );
     ImGuiDesktopWindowImpl*           FindDesktopWindow( DesktopWindowHandle );
 
@@ -187,6 +188,10 @@ namespace Tac
     DesktopWindowHandle               mMouseHoveredWindow;
     bool                              mScrollBarEnabled = true;
     int                               mMaxGpuFrameCount{};
+    ImGuiSetWindowPos                 mSetWindowPos{};
+    ImGuiSetWindowSize                mSetWindowSize{};
+    ImGuiCreateWindow                 mCreateWindow{};
+    ImGuiDestroyWindow                mDestroyWindow{};
   };
 
   struct ImGuiNextWindow

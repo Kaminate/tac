@@ -291,6 +291,7 @@ namespace Tac::Render
     auto begin() const             { return mElements.begin(); } 
     auto end() const               { return mElements.end(); } 
     auto size() const              { return mElements.size(); } 
+    auto empty() const             { return mElements.empty(); } 
     void clear()                   { mElements.clear(); }
     auto operator[]( int i ) const { return mElements[ i ]; }
     FixedVector< T, N > mElements;
