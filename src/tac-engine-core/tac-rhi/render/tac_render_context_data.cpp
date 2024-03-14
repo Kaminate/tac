@@ -4,7 +4,7 @@ namespace Tac::Render
 {
   // -----------------------------------------------------------------------------------------------
 
-  BackendCmdSerializer::BackendCmdSerializer( BackendCmdData* data ) :mData{ data } {}
+  BackendCmdSerializer::BackendCmdSerializer( BackendCmdData* data ) : mData{ data } {}
 
   void BackendCmdSerializer::PushCommandType( CommandType2 type )
   {

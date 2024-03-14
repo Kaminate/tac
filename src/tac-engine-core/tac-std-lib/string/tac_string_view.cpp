@@ -19,6 +19,7 @@ namespace Tac
   StringView::StringView( const char* str ) : mStr( str ), mLen( str ? StrLen( str ) : 0 ) { }
 
   constexpr StringView::StringView( const char* str, int len ) : mStr( str ), mLen( len ) {}
+  //        StringView::StringView( const char* str, int len ) : mStr( str ), mLen( len ) {}
 
   constexpr StringView::StringView( const char* strBegin, const char* strEnd ) :
     mStr( strBegin ),

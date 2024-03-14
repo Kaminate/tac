@@ -21,7 +21,7 @@ message( VERBOSE "cmake binary dir: ${CMAKE_BINARY_DIR}" )
 
 # --------------------------------------------------------------------------------------------------
 
-if (MSVC)
+if( MSVC )
 
     set( CMAKE_VS_DEBUGGER_WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} )
     add_compile_options( /ZI  # program database for edit and continue
@@ -76,7 +76,7 @@ set( CMAKE_INCLUDE_CURRENT_DIR ON )
 # --------------------------------------------------------------------------------------------------
 
 # C++20 Modules, and `import std;`
-set(CMAKE_CXX_STANDARD 23)
+set( CMAKE_CXX_STANDARD 23 )
 
 if( MSVC )
   set( CMAKE_EXPERIMENTAL_CXX_MODULE_DYNDEP 1 )
@@ -128,7 +128,7 @@ endfunction()
 #   --> Build ISO C++ 23 Standard Library Modules
 
 set( MODULE_PROP "${CMAKE_SOURCE_DIR}/build_std_modules.props" )
-if(NOT EXISTS ${MODULE_PROP} )
+if( NOT EXISTS ${MODULE_PROP} )
   message( FATAL_ERROR "cannot find std modules .props" )
 endif()
 

@@ -18,6 +18,7 @@ namespace Tac
   {
     StringView() = default;
     StringView( const char* );
+    //        StringView( const char*, int );
     constexpr StringView( const char*, int );
     constexpr StringView( const char* strBegin, const char* strEnd );
     //StringView( const String& );
