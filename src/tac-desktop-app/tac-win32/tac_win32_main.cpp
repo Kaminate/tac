@@ -88,7 +88,9 @@ namespace Tac
   static void Win32FrameEnd( Errors& )
   {
     Win32MouseEdgeUpdate();
-    DesktopEvent( DesktopEventDataCursorUnobscured{ Win32MouseEdgeGetCursorHovered() } );
+
+    const DesktopEventApi::CursorUnobscuredEvent data{ Win32MouseEdgeGetCursorHovered() };
+    DesktopEventApi::Queue( data );
   }
 
   // Redirect stdout to output window

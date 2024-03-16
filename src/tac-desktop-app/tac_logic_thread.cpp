@@ -82,7 +82,7 @@ namespace Tac
       // So maybe wndproc should be moved here from the platform thread, and Render::SubmitFrame
       // and Render::RenderFrame should be rearranged
       TAC_PROFILE_BLOCK_NAMED( "frame" );
-      DesktopEventApplyQueue();
+      DesktopEventApi::Apply();
 
       Keyboard::KeyboardBeginFrame();
       Mouse::MouseBeginFrame();

@@ -108,270 +108,280 @@ namespace Tac
       switch( uMsg )
       {
         //case WM_NCACTIVATE: // ??????????????????????
-        case WM_NCDESTROY:
-          return DefWindowProc( hwnd, uMsg, wParam, lParam );
-        default: TAC_ASSERT_INVALID_CASE( uMsg );
+      case WM_NCDESTROY:
+        return DefWindowProc( hwnd, uMsg, wParam, lParam );
+      default: TAC_ASSERT_INVALID_CASE( uMsg );
       }
     }
 
     switch( uMsg )
     {
       // Sent as a signal that a window or an application should terminate.
-      case WM_CLOSE:
-      {
-        // should it be like...
-        // if( window.allow_alt_f4 )
-        //    close window?
-        //DesktopEventAssignHandle( desktopWindowHandle, nullptr, 0, 0, 0, 0 );
-      } break;
+    case WM_CLOSE:
+    {
+      // should it be like...
+      // if( window.allow_alt_f4 )
+      //    close window?
+      //DesktopEventAssignHandle( desktopWindowHandle, nullptr, 0, 0, 0, 0 );
+    } break;
 
-      // Sent when a window is being destroyed
-      case WM_DESTROY:
+    // Sent when a window is being destroyed
+    case WM_DESTROY:
+    {
+      ImGuiSaveWindowSettings();
+      sHWNDs[ ( int )desktopWindowHandle ] = nullptr;
+      const DesktopEventApi::AssignHandleEvent data
       {
-        ImGuiSaveWindowSettings();
-        sHWNDs[ ( int )desktopWindowHandle ] = nullptr;
-        
-        DesktopEvent( DesktopEventDataAssignHandle{ .mDesktopWindowHandle = desktopWindowHandle } );
-      } break;
+        .mDesktopWindowHandle = desktopWindowHandle
+      };
+      DesktopEventApi::Queue( data );
+    } break;
 
-      case WM_CREATE:
+    case WM_CREATE:
+    {
+      sHWNDs[ ( int )desktopWindowHandle ] = hwnd;
+      sWindowUnderConstruction = DesktopWindowHandle();
+      auto windowInfo = ( const CREATESTRUCT* )lParam;
+      TAC_ASSERT( windowInfo->cx && windowInfo->cy );
+      TAC_ASSERT( windowInfo->lpszName );
+      const DesktopEventApi::AssignHandleEvent data
       {
-        sHWNDs[ ( int )desktopWindowHandle ] = hwnd;
-        sWindowUnderConstruction = DesktopWindowHandle();
-        auto windowInfo = ( const CREATESTRUCT* )lParam;
-        TAC_ASSERT( windowInfo->cx && windowInfo->cy );
-        TAC_ASSERT( windowInfo->lpszName );
-        DesktopEvent( DesktopEventDataAssignHandle
-          {
-              .mDesktopWindowHandle = desktopWindowHandle,
-              .mNativeWindowHandle = hwnd,
-              .mName = windowInfo->lpszName,
-              .mX = windowInfo->x,
-              .mY = windowInfo->y,
-              .mW = windowInfo->cx,
-              .mH = windowInfo->cy,
-          } );
-      } break;
-
-      // Indicates a request to terminate an application
-      case WM_QUIT:
-      {
-        // mRequestDeletion = true;
-      } break;
-
-      // - the window has already been resized ( if you want to resize the window, 
-      //   use bgfx WM_USER_WINDOW_SET_SIZE );
-      // - notify the logic thread that the windowstate has been updated
-      case WM_SIZE:
-      {
-        const DesktopEventDataWindowResize data
-        {
           .mDesktopWindowHandle = desktopWindowHandle,
-          .mWidth = ( int )LOWORD( lParam ),
-          .mHeight = ( int )HIWORD( lParam ),
-        };
-        DesktopEvent(data);
-      } break;
-      case WM_MOVE:
+          .mNativeWindowHandle = hwnd,
+          .mName = windowInfo->lpszName,
+          .mX = windowInfo->x,
+          .mY = windowInfo->y,
+          .mW = windowInfo->cx,
+          .mH = windowInfo->cy,
+      }; 
+      DesktopEventApi::Queue( data );
+    } break;
+
+    // Indicates a request to terminate an application
+    case WM_QUIT:
+    {
+      // mRequestDeletion = true;
+    } break;
+
+    // - the window has already been resized ( if you want to resize the window, 
+    //   use bgfx WM_USER_WINDOW_SET_SIZE );
+    // - notify the logic thread that the windowstate has been updated
+    case WM_SIZE:
+    {
+      const DesktopEventApi::WindowResizeEvent data
       {
-        const DesktopEventDataWindowMove data
-        {
-          .mDesktopWindowHandle = desktopWindowHandle,
-          .mX = ( int )LOWORD( lParam ),
-          .mY = ( int )HIWORD( lParam ),
-        };
-        DesktopEvent( data );
-      } break;
-      case WM_CHAR:
+        .mDesktopWindowHandle = desktopWindowHandle,
+        .mWidth = ( int )LOWORD( lParam ),
+        .mHeight = ( int )HIWORD( lParam ),
+      };
+      DesktopEventApi::Queue( data );
+    } break;
+    case WM_MOVE:
+    {
+      const DesktopEventApi::WindowMoveEvent data
       {
-        DesktopEvent( DesktopEventDataKeyInput{ ( Codepoint )wParam } );
-      } break;
-      case WM_SYSKEYDOWN: // fallthrough
-      case WM_SYSKEYUP: // fallthrough
-      case WM_KEYDOWN: // fallthrough
-      case WM_KEYUP: // fallthrough
+        .mDesktopWindowHandle = desktopWindowHandle,
+        .mX = ( int )LOWORD( lParam ),
+        .mY = ( int )HIWORD( lParam ),
+      };
+      DesktopEventApi::Queue( data );
+    } break;
+    case WM_CHAR:
+    {
+      const DesktopEventApi::KeyInputEvent data
       {
-        const bool wasDown = ( lParam & ( ( LPARAM )1 << 30 ) ) != 0;
-        const bool isDown = ( lParam & ( ( LPARAM )1 << 31 ) ) == 0;
-        if( isDown == wasDown )
-          break;
+        ( Codepoint )wParam
+      };
+      DesktopEventApi::Queue( data );
+    } break;
+    case WM_SYSKEYDOWN: // fallthrough
+    case WM_SYSKEYUP: // fallthrough
+    case WM_KEYDOWN: // fallthrough
+    case WM_KEYUP: // fallthrough
+    {
+      const bool wasDown = ( lParam & ( ( LPARAM )1 << 30 ) ) != 0;
+      const bool isDown = ( lParam & ( ( LPARAM )1 << 31 ) ) == 0;
+      if( isDown == wasDown )
+        break;
 
-        const Keyboard::Key key = GetKey( ( u8 )wParam );
-        if( key == Keyboard::Key::Count )
-          break;
+      const Keyboard::Key key = GetKey( ( u8 )wParam );
+      if( key == Keyboard::Key::Count )
+        break;
 
-        const DesktopEventDataKeyState data
-        {
-          .mKey = key,
-          .mDown = isDown,
-        };
-        DesktopEvent(data);
-      } break;
-
-      //case WM_SETCURSOR:
-      //{
-      //  result = TRUE;
-      //} break;
-
-      case WM_SETFOCUS:
+      const DesktopEventApi::KeyStateEvent data
       {
-        if( verboseFocus )
-          OS::OSDebugPrintLine("window gained keyboard focus ");
-      } break;
-      case WM_KILLFOCUS:
+        .mKey = key,
+        .mDown = isDown,
+      };
+      DesktopEventApi::Queue( data );
+    } break;
+
+    //case WM_SETCURSOR:
+    //{
+    //  result = TRUE;
+    //} break;
+
+    case WM_SETFOCUS:
+    {
+      if( verboseFocus )
+        OS::OSDebugPrintLine( "window gained keyboard focus " );
+    } break;
+
+    case WM_KILLFOCUS:
+    {
+      if( verboseFocus )
+        OS::OSDebugPrintLine( "window about to lose keyboard focus" );
+    } break;
+
+    // Sent when a window belonging to a different application than the active window
+    // is about to be activated.
+    //
+    // The message is sent to the application whose window is being activated
+    // and to the application whose window is being deactivated.
+    case WM_ACTIVATEAPP:
+    {
+      if( wParam == TRUE )
       {
-        if( verboseFocus )
-          OS::OSDebugPrintLine("window about to lose keyboard focus" );
-      } break;
-
-      // Sent when a window belonging to a different application than the active window
-      // is about to be activated.
-      //
-      // The message is sent to the application whose window is being activated
-      // and to the application whose window is being deactivated.
-      case WM_ACTIVATEAPP:
+        if( verboseActivate )
+          OS::OSDebugPrintLine( "The window is being activated" );
+      }
+      else
       {
-        if( wParam == TRUE )
-        {
-          if( verboseActivate )
-          OS::OSDebugPrintLine("The window is being activated" );
-        }
-        else
-        {
-          if( verboseActivate )
-          OS::OSDebugPrintLine("The window is being deactivated" );
-        }
-      } break;
+        if( verboseActivate )
+          OS::OSDebugPrintLine( "The window is being deactivated" );
+      }
+    } break;
 
-      case WM_CAPTURECHANGED:
+    case WM_CAPTURECHANGED:
+    {
+      if( verboseCapture )
+        OS::OSDebugPrintLine( "WM_CAPTURECHANGED ( mouse capture lost )" );
+    } break;
+
+
+    // this is XBUTTON1 or XBUTTON2 ( side mouse buttons )
+    case WM_XBUTTONDOWN:
+    {
+      SetActiveWindow( hwnd );
+    } break;
+
+
+    // https://docs.microsoft.com/en-us/windows/desktop/inputdev/wm-nclbuttonup
+    // Posted when the user releases the left mouse button while the cursor is
+    // within the nonclient area of a window.
+    // This message is posted to the window that contains the cursor.
+    // If a window has captured the mouse, this message is not posted.
+    // case WM_NCLBUTTONUP:
+
+    case WM_LBUTTONDOWN:
+    {
+
+      const DesktopEventApi::MouseButtonStateEvent data
       {
-        if( verboseCapture )
-          OS::OSDebugPrintLine("WM_CAPTURECHANGED ( mouse capture lost )" );
-      } break;
+        .mButton = Mouse::Button::MouseLeft,
+        .mDown = true,
+      };
+      DesktopEventApi::Queue( data );
 
+      // make it so clicking the window brings the window to the top of the z order
+      SetActiveWindow( hwnd );
 
-      // this is XBUTTON1 or XBUTTON2 ( side mouse buttons )
-      case WM_XBUTTONDOWN:
+      //SetForegroundWindow( mHWND );
+
+    } break;
+
+    case WM_LBUTTONUP:
+    {
+      const DesktopEventApi::MouseButtonStateEvent data
       {
-        SetActiveWindow( hwnd );
-      } break;
+        .mButton = Mouse::Button::MouseLeft,
+        .mDown = false,
+      };
+      DesktopEventApi::Queue( data );
+    } break;
 
-
-      // https://docs.microsoft.com/en-us/windows/desktop/inputdev/wm-nclbuttonup
-      // Posted when the user releases the left mouse button while the cursor is
-      // within the nonclient area of a window.
-      // This message is posted to the window that contains the cursor.
-      // If a window has captured the mouse, this message is not posted.
-      // case WM_NCLBUTTONUP:
-
-      case WM_LBUTTONDOWN:
+    case WM_RBUTTONDOWN:
+    {
+      const DesktopEventApi::MouseButtonStateEvent data
       {
-
-        const DesktopEventDataMouseButtonState data
-        {
-          .mButton = Mouse::Button::MouseLeft,
-          .mDown = true,
-        };
-        DesktopEvent(data);
-
-        // make it so clicking the window brings the window to the top of the z order
-        SetActiveWindow( hwnd );
-
-        //SetForegroundWindow( mHWND );
-
-      } break;
-
-      case WM_LBUTTONUP:
+        .mButton = Mouse::Button::MouseRight,
+        .mDown = true,
+      };
+      DesktopEventApi::Queue( data );
+      //BringWindowToTop( mHWND );
+      SetActiveWindow( hwnd ); // make it so clicking the window brings the window to the top of the z order
+    } break;
+    case WM_RBUTTONUP:
+    {
+      const DesktopEventApi::MouseButtonStateEvent data
       {
-        const DesktopEventDataMouseButtonState data
-        {
-          .mButton = Mouse::Button::MouseLeft,
-          .mDown = false,
-        };
-        DesktopEvent(data);
-      } break;
+        .mButton = Mouse::Button::MouseRight,
+        .mDown = false,
+      };
+      DesktopEventApi::Queue( data );
+    } break;
 
-      case WM_RBUTTONDOWN:
+    case WM_MBUTTONDOWN:
+    {
+      const DesktopEventApi::MouseButtonStateEvent data
       {
-        const DesktopEventDataMouseButtonState data
-        {
-          .mButton = Mouse::Button::MouseRight,
-          .mDown = true,
-        };
-        DesktopEvent(data);
-        //BringWindowToTop( mHWND );
-        SetActiveWindow( hwnd ); // make it so clicking the window brings the window to the top of the z order
-      } break;
-      case WM_RBUTTONUP:
+        .mButton = Mouse::Button::MouseMiddle,
+        .mDown = true,
+      };
+      DesktopEventApi::Queue( data );
+      //BringWindowToTop( mHWND );
+
+      // make it so clicking the window brings the window to the top of the z order
+      SetActiveWindow( hwnd );
+    } break;
+    case WM_MBUTTONUP:
+    {
+      const DesktopEventApi::MouseButtonStateEvent data
       {
-        const DesktopEventDataMouseButtonState data
-        {
-          .mButton = Mouse::Button::MouseRight,
-          .mDown = false,
-        };
-        DesktopEvent(data);
-      } break;
+        .mButton = Mouse::Button::MouseMiddle,
+        .mDown = false,
+      };
+      DesktopEventApi::Queue( data );
+    } break;
 
-      case WM_MBUTTONDOWN:
+    case WM_MOUSEMOVE:
+    {
+      // Allow the window to receive WM_MOUSEMOVE even if the cursor is outside the client area
+      // Used for Tac.ImGuiDragFloat
+      static HWND mouseTracking;
+      if( mouseTracking != hwnd )
       {
-        const DesktopEventDataMouseButtonState data
-        {
-          .mButton = Mouse::Button::MouseMiddle,
-          .mDown = true,
-        };
-        DesktopEvent(data);
-        //BringWindowToTop( mHWND );
+        SetCapture( hwnd );
+        mouseTracking = hwnd;
+      }
 
-        // make it so clicking the window brings the window to the top of the z order
-        SetActiveWindow( hwnd );
-      } break;
-      case WM_MBUTTONUP:
+      const int xPos = GET_X_LPARAM( lParam );
+      const int yPos = GET_Y_LPARAM( lParam );
+
+      const DesktopEventApi::MouseMoveEvent data
       {
-        const DesktopEventDataMouseButtonState data
-        {
-          .mButton = Mouse::Button::MouseMiddle,
-          .mDown = false,
-        };
-        DesktopEvent(data);
-      } break;
+        .mDesktopWindowHandle = desktopWindowHandle,
+        .mX = xPos,
+        .mY = yPos,
+      };
+      DesktopEventApi::Queue( data );
+    } break;
 
-      case WM_MOUSEMOVE:
-      {
-        // Allow the window to receive WM_MOUSEMOVE even if the cursor is outside the client area
-        // Used for Tac.ImGuiDragFloat
-        static HWND mouseTracking;
-        if( mouseTracking != hwnd )
-        {
-          SetCapture( hwnd );
-          mouseTracking = hwnd;
-        }
+    case WM_MOUSEWHEEL:
+    {
+      const short wheelDeltaParam = GET_WHEEL_DELTA_WPARAM( wParam );
+      const short ticks = wheelDeltaParam / WHEEL_DELTA;
 
-        const int xPos = GET_X_LPARAM( lParam );
-        const int yPos = GET_Y_LPARAM( lParam );
+      const DesktopEventApi::MouseWheelEvent data{ ( int )ticks };
+      DesktopEventApi::Queue( data );
+    } break;
 
-        const DesktopEventDataMouseMove data
-        {
-          .mDesktopWindowHandle = desktopWindowHandle,
-          .mX = xPos,
-          .mY = yPos,
-        };
-        DesktopEvent(data);
-      } break;
-
-      case WM_MOUSEWHEEL:
-      {
-        const short wheelDeltaParam = GET_WHEEL_DELTA_WPARAM( wParam );
-        const short ticks = wheelDeltaParam / WHEEL_DELTA;
-        
-        DesktopEvent( DesktopEventDataMouseWheel{ ( int )ticks } );
-      } break;
-
-      case WM_MOUSELEAVE:
-      {
-        //mIsMouseInWindow = false;
-        //ReleaseCapture();
-        //mCurrDown.clear();
-      } break;
+    case WM_MOUSELEAVE:
+    {
+      //mIsMouseInWindow = false;
+      //ReleaseCapture();
+      //mCurrDown.clear();
+    } break;
     }
 
     return DefWindowProc( hwnd, uMsg, wParam, lParam );

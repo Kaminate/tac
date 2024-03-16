@@ -1,5 +1,7 @@
 #include "tac_platform_thread.h" // self-inc
 
+#include "tac-engine-core/system/tac_desktop_window_graphics.h"
+#include "tac-desktop-app/tac_desktop_app.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/math/tac_math.h" // Clamp
 #include "tac-engine-core/framememory/tac_frame_memory.h"
@@ -9,13 +11,92 @@
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-rhi/renderer/tac_renderer.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
-
 #include "tac-desktop-app/tac_render_state.h"
 #include "tac-desktop-app/tac_desktop_app.h"
 #include "tac-desktop-app/tac_desktop_app_threads.h"
 #include "tac-desktop-app/tac_desktop_event.h"
 #include "tac-engine-core/system/tac_platform.h"
 #include "tac-desktop-app/tac_iapp.h"
+
+namespace Tac::DesktopEventApi
+{
+  static struct : public Handler
+  {
+    void Handle( const AssignHandleEvent& data ) override
+    {
+      DesktopWindowState* desktopWindowState = GetDesktopWindowState( data.mDesktopWindowHandle );
+      if( desktopWindowState->mNativeWindowHandle != data.mNativeWindowHandle )
+      {
+        WindowGraphics::NativeHandleChangedData handleChangedData
+        {
+          .mDesktopWindowHandle = data.mDesktopWindowHandle,
+          .mNativeWindowHandle = data.mNativeWindowHandle,
+          .mName = data.mName,
+          .mW = data.mW,
+          .mH = data.mH,
+        };
+        WindowGraphics::Instance().NativeHandleChanged( handleChangedData );
+      }
+      desktopWindowState->mNativeWindowHandle = data.mNativeWindowHandle;
+      desktopWindowState->mName = ( StringView )data.mName;
+      desktopWindowState->mWidth = data.mW;
+      desktopWindowState->mHeight = data.mH;
+      desktopWindowState->mX = data.mX;
+      desktopWindowState->mY = data.mY;
+    }
+
+    void Handle( const CursorUnobscuredEvent& data ) override
+    {
+      SetHoveredWindow( data.mDesktopWindowHandle );
+    }
+
+    void Handle( const KeyInputEvent& data ) override
+    {
+      Keyboard::KeyboardSetWMCharPressedHax( data.mCodepoint );
+    }
+
+    void Handle( const KeyStateEvent& data ) override
+    {
+      Keyboard::KeyboardSetIsKeyDown( data.mKey, data.mDown );
+    }
+
+    void Handle( const MouseButtonStateEvent& data ) override
+    {
+      Mouse::ButtonSetIsDown( data.mButton, data.mDown );
+    }
+
+    void Handle( const MouseMoveEvent& data ) override
+    {
+      const DesktopWindowState* desktopWindowState = GetDesktopWindowState( data.mDesktopWindowHandle );
+      const v2 windowPos = desktopWindowState->GetPosV2();
+      const v2 dataPos( ( float )data.mX, ( float )data.mY );
+      const v2 pos = windowPos + dataPos;
+      Mouse::SetScreenspaceCursorPos( pos );
+    }
+
+    void Handle( const MouseWheelEvent& data ) override
+    {
+      Mouse::MouseWheelEvent( data.mDelta );
+    }
+
+    void Handle( const WindowMoveEvent& data ) override
+    {
+      DesktopWindowState* state = GetDesktopWindowState( data.mDesktopWindowHandle );
+      state->mX = data.mX;
+      state->mY = data.mY;
+    }
+
+    void Handle( const WindowResizeEvent& data ) override
+    {
+      DesktopWindowState* desktopWindowState = GetDesktopWindowState( data.mDesktopWindowHandle );
+      desktopWindowState->mWidth = data.mWidth;
+      desktopWindowState->mHeight = data.mHeight;
+      WindowGraphics::Instance().Resize( data.mDesktopWindowHandle,
+                                         desktopWindowState->mWidth,
+                                         desktopWindowState->mHeight );
+    }
+  } sDesktopEventHandler;
+}
 
 namespace Tac
 {
@@ -39,7 +120,7 @@ namespace Tac
 
     FrameMemoryInitThreadAllocator( 1024 * 1024 * 10 );
 
-    DesktopEventInit();
+    DesktopEventApi::Init( &DesktopEventApi::sDesktopEventHandler );
     
     TAC_CALL( Render::Init2( Render::InitParams{}, errors ) );
 
