@@ -18,9 +18,90 @@
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/math/tac_math.h" // Clamp
 #include "tac-std-lib/os/tac_os.h"
+#include "tac-std-lib/containers/tac_array.h"
 
 namespace Tac::DesktopEventApi
 {
+
+  // this whole keystate/protected keystae should be commentedj
+  struct KeyState
+  {
+    bool mIsDown;
+
+    // Number of times the key flipped positions, since the last time the
+    // key state was consumed
+    // For example, if the key was initially down and mToggleCount == 2,
+    // then the key was flipped up then back down again.
+    int mToggleCount;
+  };
+  
+  static KeyState sKeyStates[ ( int )Keyboard::Key::Count ];
+
+
+  static std::mutex sSavedKeyStateMutex;
+  static Array< KeyState, ( int )Keyboard::Key::Count > sSavedKeyStates;
+
+  struct GameLogicKeyStates
+  {
+    Array< KeyState, ( int )Keyboard::Key::Count > mSavedKeyStates;
+  };
+
+  // the platform thread saves this
+  static void AppendUpdateKeyState()
+  {
+    TAC_SCOPE_GUARD( std::lock_guard, sSavedKeyStateMutex );
+
+    for( int i = 0; i < ( int )Keyboard::Key::Count; ++i )
+    {
+      KeyState& keyState = sKeyStates[ i ];
+      KeyState& savedKeyState = sSavedKeyStates[ i ];
+
+      if constexpr( IsDebugMode )
+      {
+        const bool predictedKeyState
+          = keyState.mToggleCount % 2
+          ? savedKeyState.mIsDown
+          : !savedKeyState.mIsDown;
+        TAC_ASSERT( predictedKeyState == keyState.mIsDown );
+      }
+
+      savedKeyState.mToggleCount += keyState.mToggleCount;
+      savedKeyState.mIsDown = keyState.mIsDown;
+
+      keyState.mToggleCount %= 2;
+    }
+  }
+
+  // the game logic thread loads this
+  static void ConsumeKeyState( GameLogicKeyStates* states )
+  {
+    // the saved key state contains everything that happened since the last time it was consumed
+    TAC_SCOPE_GUARD( std::lock_guard, sSavedKeyStateMutex );
+    for( int i = 0; i < ( int )Keyboard::Key::Count; ++i )
+    {
+      for( int i = 0; i < ( int )Keyboard::Key::Count; ++i )
+      {
+        KeyState& savedKeyStateEater = states->mSavedKeyStates[ i ];
+        KeyState& savedKeyStateEaten = sSavedKeyStates[ i ];
+
+        if constexpr( IsDebugMode )
+        {
+          const bool predictedKeyState
+            = savedKeyStateEaten.mToggleCount % 2
+            ? savedKeyStateEater.mIsDown
+            : !savedKeyStateEater.mIsDown;
+          TAC_ASSERT( predictedKeyState == savedKeyStateEaten.mIsDown );
+        }
+
+        savedKeyStateEater.mToggleCount += savedKeyStateEaten.mToggleCount;
+        savedKeyStateEater.mIsDown = savedKeyStateEaten.mIsDown;
+
+        savedKeyStateEaten.mToggleCount %= 2;
+      }
+    }
+  };
+
+
   static struct : public Handler
   {
     void Handle( const AssignHandleEvent& data ) override
@@ -51,6 +132,7 @@ namespace Tac::DesktopEventApi
       SetHoveredWindow( data.mDesktopWindowHandle );
     }
 
+    // --------------------------------------------------------------
     void Handle( const KeyInputEvent& data ) override
     {
       Keyboard::KeyboardSetWMCharPressedHax( data.mCodepoint );
@@ -58,7 +140,15 @@ namespace Tac::DesktopEventApi
 
     void Handle( const KeyStateEvent& data ) override
     {
-      Keyboard::KeyboardSetIsKeyDown( data.mKey, data.mDown );
+      //Keyboard::KeyboardSetIsKeyDown( data.mKey, data.mDown );
+      KeyState& state = sKeyStates[ ( int )data.mKey ];
+      if( state.mIsDown != data.mDown )
+      {
+        state.mIsDown = data.mDown;
+        state.mToggleCount++;
+      }
+
+
     }
 
     void Handle( const MouseButtonStateEvent& data ) override
@@ -80,6 +170,7 @@ namespace Tac::DesktopEventApi
     {
       Mouse::MouseWheelEvent( data.mDelta );
     }
+    // --------------------------------------------------------------
 
     void Handle( const WindowMoveEvent& data ) override
     {

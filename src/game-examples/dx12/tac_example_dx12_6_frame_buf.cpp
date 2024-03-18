@@ -1019,7 +1019,7 @@ namespace Tac
     //        I think the swap chain flushes the command queue before rendering,
     //        so the frame being presented is the one that we just called ExecuteCommandLists() on
 
-    TAC_CALL(CheckSwapEffect(m_swapChainDesc.SwapEffect,errors));
+    TAC_CALL( CheckSwapEffect( m_swapChainDesc.SwapEffect, errors ) );
 
     const DXGI_PRESENT_PARAMETERS params{};
 
@@ -1032,8 +1032,6 @@ namespace Tac
 
     // I think this technically adds a frame onto the present queue
     TAC_DX12_CALL( m_swapChain->Present1( SyncInterval, PresentFlags, &params ) );
-
-
   }
 
   // -----------------------------------------------------------------------------------------------

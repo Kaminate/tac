@@ -487,7 +487,6 @@ namespace Tac
     ( ++mFrameIndex ) %= ImGuiGlobals::Instance.mMaxGpuFrameCount;
 
     // combine draw data
-    OS::OSDebugBreak();
     //Render::ContextHandle context = TAC_CALL( Render::CreateContext( errors ) );
     //TAC_CALL( frameData.CopyVertexes( context, &renderBuffers, errors ) );
     //TAC_CALL( frameData.CopyIndexes( context, &renderBuffers, errors ) );
