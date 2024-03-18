@@ -181,7 +181,7 @@ namespace Tac
   {
     PlatformFns* platform = PlatformFns::GetInstance();
     const DesktopWindowHandle hoveredHandle = platform->PlatformGetMouseHoveredWindow();
-    const DesktopWindowState* hovered = GetDesktopWindowState( hoveredHandle );
+    const DesktopWindowState* hovered = hoveredHandle.GetDesktopWindowState();
     if( !hovered )
     {
       ImGuiText( "Hovered window: <none>" );

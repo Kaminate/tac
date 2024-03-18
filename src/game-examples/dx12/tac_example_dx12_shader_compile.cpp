@@ -6,7 +6,7 @@
 #include "tac-std-lib/dataprocess/tac_text_parser.h"
 #include "tac-std-lib/os/tac_os.h" //tmp
 //#include "tac-std-lib/shell/tac_shell.h" // sShellPrefPath
-#include "tac-win32/renderer/dx12/tac_dx12_shader_preprocess.h"
+#include "tac-win32/dx/dx12/tac_dx12_shader_preprocess.h"
 
 
 namespace Tac::Render

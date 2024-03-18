@@ -12,19 +12,32 @@ namespace Tac::Render
   // -----------------------------------------------------------------------------------------------
 
   // ViewHandle2 
+
+  static Vector< ViewData > sViewData;
+
+  //void ViewHandle2::ViewHandle2( Viewport vp )
   void ViewHandle2::SetViewport( Viewport vp )
   {
+    ViewData* mViewData = GetViewData();
     mViewData->mViewport = vp;
     mViewData->mIsViewportSet = true;
   }
-  void ViewHandle2::SetFramebuffer() {}
+
+  void ViewHandle2::SetFramebuffer()
+  {
+  }
+
   void ViewHandle2::SetScissorRect( ScissorRect sr )
   {
+    ViewData* mViewData = GetViewData();
     mViewData->mScissorRect = sr;
     mViewData->mIsScissorSet = true;
   }
-  void ViewHandle2::SetViewData( ViewData* viewData ) { mViewData = viewData; }
-  const ViewData* ViewHandle2::GetViewData() const { return mViewData; }
+
+  ViewData* ViewHandle2::GetViewData()
+  {
+    return &sViewData[ mIndex ];
+  }
   // -----------------------------------------------------------------------------------------------
 
   // ContextHandle 

@@ -1,22 +1,23 @@
 #include "tac_platform_thread.h" // self-inc
 
-#include "tac-engine-core/system/tac_desktop_window_graphics.h"
 #include "tac-desktop-app/tac_desktop_app.h"
-#include "tac-std-lib/error/tac_error_handling.h"
-#include "tac-std-lib/math/tac_math.h" // Clamp
-#include "tac-engine-core/framememory/tac_frame_memory.h"
-#include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
-#include "tac-rhi/render/tac_render.h"
-#include "tac-engine-core/profile/tac_profile.h"
-#include "tac-std-lib/os/tac_os.h"
-#include "tac-rhi/renderer/tac_renderer.h"
-#include "tac-engine-core/shell/tac_shell_timestep.h"
-#include "tac-desktop-app/tac_render_state.h"
 #include "tac-desktop-app/tac_desktop_app.h"
 #include "tac-desktop-app/tac_desktop_app_threads.h"
 #include "tac-desktop-app/tac_desktop_event.h"
-#include "tac-engine-core/system/tac_platform.h"
 #include "tac-desktop-app/tac_iapp.h"
+#include "tac-desktop-app/tac_render_state.h"
+#include "tac-engine-core/framememory/tac_frame_memory.h"
+#include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
+#include "tac-engine-core/profile/tac_profile.h"
+#include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-engine-core/system/tac_desktop_window_graphics.h"
+#include "tac-engine-core/system/tac_platform.h"
+//#include "tac-rhi/render/tac_render.h"
+#include "tac-rhi/render3/tac_render_api.h"
+//#include "tac-rhi/renderer/tac_renderer.h"
+#include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-std-lib/math/tac_math.h" // Clamp
+#include "tac-std-lib/os/tac_os.h"
 
 namespace Tac::DesktopEventApi
 {
@@ -24,7 +25,7 @@ namespace Tac::DesktopEventApi
   {
     void Handle( const AssignHandleEvent& data ) override
     {
-      DesktopWindowState* desktopWindowState = GetDesktopWindowState( data.mDesktopWindowHandle );
+      DesktopWindowState* desktopWindowState = data.mDesktopWindowHandle.GetDesktopWindowState();
       if( desktopWindowState->mNativeWindowHandle != data.mNativeWindowHandle )
       {
         WindowGraphics::NativeHandleChangedData handleChangedData
@@ -65,13 +66,14 @@ namespace Tac::DesktopEventApi
       Mouse::ButtonSetIsDown( data.mButton, data.mDown );
     }
 
-    void Handle( const MouseMoveEvent& data ) override
+    void Handle( const MouseMoveEvent& mouseState ) override
     {
-      const DesktopWindowState* desktopWindowState = GetDesktopWindowState( data.mDesktopWindowHandle );
-      const v2 windowPos = desktopWindowState->GetPosV2();
-      const v2 dataPos( ( float )data.mX, ( float )data.mY );
-      const v2 pos = windowPos + dataPos;
-      Mouse::SetScreenspaceCursorPos( pos );
+      const DesktopWindowState* windowState
+        = mouseState.mDesktopWindowHandle.GetDesktopWindowState();
+
+      const v2 screenSpaceWindowPos = windowState->GetPosV2();
+      const v2 windowSpaceMousePos = { ( float )mouseState.mX, ( float )mouseState.mY };
+      Mouse::SetScreenspaceCursorPos( screenSpaceWindowPos + windowSpaceMousePos );
     }
 
     void Handle( const MouseWheelEvent& data ) override
@@ -81,14 +83,14 @@ namespace Tac::DesktopEventApi
 
     void Handle( const WindowMoveEvent& data ) override
     {
-      DesktopWindowState* state = GetDesktopWindowState( data.mDesktopWindowHandle );
+      DesktopWindowState* state = data.mDesktopWindowHandle.GetDesktopWindowState();
       state->mX = data.mX;
       state->mY = data.mY;
     }
 
     void Handle( const WindowResizeEvent& data ) override
     {
-      DesktopWindowState* desktopWindowState = GetDesktopWindowState( data.mDesktopWindowHandle );
+      DesktopWindowState* desktopWindowState = data.mDesktopWindowHandle.GetDesktopWindowState();
       desktopWindowState->mWidth = data.mWidth;
       desktopWindowState->mHeight = data.mHeight;
       WindowGraphics::Instance().Resize( data.mDesktopWindowHandle,
@@ -108,8 +110,8 @@ namespace Tac
       OS::OSAppStopRunning();
 
     ImGuiUninit();
-    if( mApp->IsRenderEnabled() )
-      Render::RenderFinish();
+    //if( mApp->IsRenderEnabled() )
+    //  Render::RenderFinish();
 
   }
 
@@ -122,11 +124,12 @@ namespace Tac
 
     DesktopEventApi::Init( &DesktopEventApi::sDesktopEventHandler );
     
-    TAC_CALL( Render::Init2( Render::InitParams{}, errors ) );
+    TAC_CALL( Render::RenderApi::Init( {}, errors ) );
+    //TAC_CALL( Render::Init2( Render::InitParams{}, errors ) );
 
     const ImGuiInitParams imguiInitParams 
     {
-      .mMaxGpuFrameCount = Render::GetMaxGPUFrameCount() ,
+      .mMaxGpuFrameCount = Render::RenderApi::GetMaxGPUFrameCount() ,
       .mSetWindowPos = []( DesktopWindowHandle handle, v2 pos )
       {
         PlatformFns* platform = PlatformFns::GetInstance();
@@ -178,10 +181,10 @@ namespace Tac
       TAC_CALL( desktopApp->Update( errors ) );
       TAC_CALL( platform->PlatformFrameEnd( errors ) );
 
-      if( mApp->IsRenderEnabled() )
-      {
-        TAC_CALL( Render::RenderFrame( errors ) );
-      }
+      //if( mApp->IsRenderEnabled() )
+      //{
+      //  TAC_CALL( Render::RenderFrame( errors ) );
+      //}
 
       // Interpolate between game states and render
       //

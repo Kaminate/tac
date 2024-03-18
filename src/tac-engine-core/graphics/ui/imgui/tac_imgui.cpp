@@ -381,7 +381,7 @@ namespace Tac
 
       if( hDesktopWindow.IsValid() )
       {
-        const DesktopWindowState* desktopWindowState = GetDesktopWindowState( hDesktopWindow );
+        const DesktopWindowState* desktopWindowState = hDesktopWindow.GetDesktopWindowState();
         TAC_ASSERT( desktopWindowState );
         if( !desktopWindowState->mNativeWindowHandle )
           return false;
@@ -416,7 +416,7 @@ namespace Tac
           .mSize = { ( float )w, ( float )h },
         };
 
-        hDesktopWindow = createWindowFn(params );// DesktopApp::GetInstance()->CreateWindow(createParams);
+        hDesktopWindow = createWindowFn( params );// DesktopApp::GetInstance()->CreateWindow(createParams);
         desktopWindowWidth = w;
         desktopWindowHeight = h;
       }

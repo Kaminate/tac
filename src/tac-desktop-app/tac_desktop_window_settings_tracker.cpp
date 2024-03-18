@@ -84,7 +84,7 @@ namespace Tac
   {
     for( TrackInfo& info : sTrackInfos )
     {
-      DesktopWindowState* state = GetDesktopWindowState( info.mDesktopWindowHandle );
+      DesktopWindowState* state = info.mDesktopWindowHandle.GetDesktopWindowState();
       if( !state )
         continue;
 
@@ -105,6 +105,7 @@ namespace Tac
           state->mWidth == info.mW &&
           state->mHeight == info.mH )
         continue;
+
       info.mX = state->mX;
       info.mY = state->mY;
       info.mW = state->mWidth;

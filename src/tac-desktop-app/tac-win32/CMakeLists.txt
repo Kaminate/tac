@@ -7,7 +7,7 @@ add_library( TacWin32 )
 add_subdirectory( desktopwindow )
 add_subdirectory( input )
 add_subdirectory( net )
-add_subdirectory( renderer )
+add_subdirectory( dx )
 
 target_sources( TacWin32 PRIVATE
   "tac_win32.cpp"

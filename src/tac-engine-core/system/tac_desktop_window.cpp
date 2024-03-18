@@ -16,11 +16,11 @@ namespace Tac
 
   v2   DesktopWindowState::GetPosV2() const  { return { ( float )mX, ( float )mY }; }
   v2   DesktopWindowState::GetSizeV2() const { return { ( float )mWidth, ( float )mHeight }; }
+
   int  DesktopWindowRect::GetArea() const    { return GetWidth() * GetHeight(); }
   bool DesktopWindowRect::IsEmpty() const    { return GetArea() == 0; }
   int  DesktopWindowRect::GetWidth() const   { return mRight - mLeft; }
   int  DesktopWindowRect::GetHeight() const  { return mBottom - mTop; }
-
 
   bool                        IsWindowHovered( const DesktopWindowHandle desktopWindowHandle )
   {
@@ -32,22 +32,22 @@ namespace Tac
     sMouseHoveredWindowHandle = desktopWindowHandle;
   }
 
-  DesktopWindowState*         GetDesktopWindowState( const DesktopWindowHandle desktopWindowHandle )
+  DesktopWindowState*         DesktopWindowHandle::GetDesktopWindowState() const
   {
-    return desktopWindowHandle.IsValid()
-      ? &sDesktopWindowStates[ desktopWindowHandle.GetIndex() ]
+    return IsValid()
+      ? &sDesktopWindowStates[ GetIndex() ]
       : nullptr;
   }
 
-  const void* GetDesktopWindowNativeHandle( const DesktopWindowHandle hWnd )
+  const void*                 DesktopWindowHandle::GetDesktopWindowNativeHandle() const
   {
-    const DesktopWindowState* state = GetDesktopWindowState(hWnd);
+    const DesktopWindowState* state = GetDesktopWindowState();
     return state ? state->mNativeWindowHandle : nullptr;
   }
 
-  DesktopWindowRect           GetDesktopWindowRectScreenspace( const DesktopWindowHandle hWnd )
+  DesktopWindowRect           DesktopWindowHandle::GetDesktopWindowRectScreenspace() const
   {
-    const DesktopWindowState* desktopWindowState = GetDesktopWindowState( hWnd );
+    const DesktopWindowState* desktopWindowState = GetDesktopWindowState();
     const DesktopWindowRect desktopWindowRect
     {
       .mLeft = desktopWindowState->mX,
@@ -58,9 +58,9 @@ namespace Tac
     return desktopWindowRect;
   }
 
-  DesktopWindowRect           GetDesktopWindowRectWindowspace( DesktopWindowHandle desktopWindowHandle )
+  DesktopWindowRect           DesktopWindowHandle::GetDesktopWindowRectWindowspace() const
   {
-    DesktopWindowState* desktopWindowState = GetDesktopWindowState( desktopWindowHandle );
+    const DesktopWindowState* desktopWindowState = GetDesktopWindowState();
     const DesktopWindowRect desktopWindowRect
     {
       .mLeft = 0,

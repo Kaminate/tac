@@ -1,6 +1,5 @@
 #pragma once
 
-#include "tac-rhi/render/tac_render_handle.h"
 #include "tac-rhi/render/tac_render_handles.h"
 #include "tac-rhi/render/tac_render_update_memory.h"
 

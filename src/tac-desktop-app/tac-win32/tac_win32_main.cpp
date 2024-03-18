@@ -8,7 +8,7 @@
 #include "tac-engine-core/net/tac_net.h"
 #include "tac-engine-core/settings/tac_settings.h"
 
-#include "tac-rhi/render/tac_render_backend.h"
+//#include "tac-rhi/render/tac_render_backend.h"
 
 #include "tac-std-lib/algorithm/tac_algorithm.h"
 #include "tac-std-lib/dataprocess/tac_log.h"
@@ -22,15 +22,18 @@
 #include "tac-win32/input/tac_win32_mouse_edge.h"
 #include "tac-win32/input/tac_xinput.h"
 #include "tac-win32/net/tac_net_winsock.h"
-#include "tac-win32/renderer/dx11/tac_renderer_dx11.h"
-#include "tac-win32/renderer/dx12/tac_renderer_dx12_ver2.h"
-#include "tac-win32/renderer/dxgi/tac_dxgi_debug.h"
-#include "tac-win32/renderer/pix/tac_pix.h"
+//#include "tac-win32/dx/dx11/tac_renderer_dx11.h"
+//#include "tac-win32/dx/dx12/tac_renderer_dx12_ver2.h"
+//#include "tac-win32/dx/dx12/tac_renderer_dx12_ver2.h"
+#include "tac-win32/dx/dx12/tac_renderer_dx12_ver3.h" // DX12Backend
+#include "tac-win32/dx/dxgi/tac_dxgi_debug.h" // DXGIReportLiveObjects
+#include "tac-win32/dx/pix/tac_pix.h" // AllowPIXDebuggerAttachment
 #include "tac-win32/tac_win32.h"
 
 import std; // #include <iostream> // okay maybe this should also be allowed
 
 static Tac::Win32PlatformFns sWin32PlatformFns;
+static Tac::Render::DX12Backend sDX12Backend;
 
 int CALLBACK WinMain( HINSTANCE hInstance,
                       HINSTANCE hPrevInstance,
@@ -50,11 +53,10 @@ int CALLBACK WinMain( HINSTANCE hInstance,
   RedirectStreamBuf();
 
   TAC_CALL_RET( 0, Render::AllowPIXDebuggerAttachment( errors ));
-  Render::RegisterRendererDirectX11();
+  //Render::RegisterRendererDirectX11();
 
-  Render::DX12Backend dx12Backend;
   
-  Render::IBackend::Set( &dx12Backend );
+  //Render::IRenderBackend3::Set( &dx12Backend );
 
   TAC_CALL_RET( 0, Controller::XInputInit( errors ));
 

@@ -2,14 +2,11 @@
 
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/string/tac_string_util.h"
-//#include "tac-engine-core/framememory/tac_frame_memory.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-rhi/renderer/tac_renderer.h"
 #include "tac-std-lib/algorithm/tac_algorithm.h"
-//#include "tac-engine-core/shell/tac_shell.h"
 #include "tac-std-lib/containers/tac_fixed_vector.h"
-//#include "tac-std-lib/identifier/tac_id_collection.h"
 
 #include <Shlobj.h> // SHGetKnownFolderPath
 #include <commdlg.h> // GetSaveFileNameA

@@ -2,7 +2,7 @@
 
 #include "tac-win32/tac_win32_com_ptr.h"
 #include "tac-desktop-app/tac_desktop_app.h"
-#include "tac-win32/renderer/dxgi/tac_dxgi.h"
+#include "tac-win32/dx/dxgi/tac_dxgi.h"
 
 #include "tac-std-lib/containers/tac_ring_vector.h"
 

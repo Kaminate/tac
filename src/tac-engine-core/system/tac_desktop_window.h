@@ -8,21 +8,17 @@ namespace Tac
 {
   struct v2;
 
-  struct DesktopWindowHandle
+  struct DesktopWindowState
   {
-    DesktopWindowHandle( int index = -1 ) : mIndex{ index } {}
+    v2                        GetPosV2() const;
+    v2                        GetSizeV2() const;
 
-    explicit operator int() const { return mIndex; }
-    explicit operator unsigned() const { return ( unsigned )mIndex; }
-
-    bool operator ==( const DesktopWindowHandle& ) const = default;
-    bool operator !=( const DesktopWindowHandle& ) const = default;
-
-    bool              IsValid() const { return mIndex != -1; }
-    int               GetIndex() const { return mIndex; }
-
-  private:
-    int               mIndex;
+    int                       mX = 0;
+    int                       mY = 0;
+    int                       mWidth = 0;
+    int                       mHeight = 0;
+    const void*               mNativeWindowHandle = nullptr;
+    String                    mName;
   };
 
   struct DesktopWindowRect
@@ -38,26 +34,32 @@ namespace Tac
     int  mTop = 0;
   };
 
-  struct DesktopWindowState
-  {
-    v2                        GetPosV2() const;
-    v2                        GetSizeV2() const;
 
-    int                       mX = 0;
-    int                       mY = 0;
-    int                       mWidth = 0;
-    int                       mHeight = 0;
-    const void*               mNativeWindowHandle = nullptr;
-    String                    mName;
+  struct DesktopWindowHandle
+  {
+    DesktopWindowHandle( int index = -1 ) : mIndex{ index } {}
+
+    explicit operator int() const { return mIndex; }
+    explicit operator unsigned() const { return ( unsigned )mIndex; }
+
+    bool operator ==( const DesktopWindowHandle& ) const = default;
+    bool operator !=( const DesktopWindowHandle& ) const = default;
+
+    bool              IsValid() const { return mIndex != -1; }
+    int               GetIndex() const { return mIndex; }
+
+    DesktopWindowState* GetDesktopWindowState() const;
+    const void*         GetDesktopWindowNativeHandle() const;
+    DesktopWindowRect   GetDesktopWindowRectScreenspace() const;
+    DesktopWindowRect   GetDesktopWindowRectWindowspace() const;
+
+  private:
+    int               mIndex;
   };
 
   static const int            kDesktopWindowCapacity = 10;
-  DesktopWindowState*         GetDesktopWindowState( DesktopWindowHandle );
-  const void*                 GetDesktopWindowNativeHandle( DesktopWindowHandle );
   bool                        IsWindowHovered( DesktopWindowHandle );
   void                        SetHoveredWindow( DesktopWindowHandle );
-  DesktopWindowRect           GetDesktopWindowRectScreenspace( DesktopWindowHandle );
-  DesktopWindowRect           GetDesktopWindowRectWindowspace( DesktopWindowHandle );
   void                        DesktopWindowDebugImgui();
 } // namespace Tac
 

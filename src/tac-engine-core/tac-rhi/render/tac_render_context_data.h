@@ -5,7 +5,6 @@
 #include "tac-std-lib/string/tac_string_view.h"
 #include "tac-rhi/render/tac_render_update_memory.h"
 #include "tac-rhi/render/tac_render_command_type.h"
-#include "tac-rhi/render/tac_render_handle.h"
 #include "tac-rhi/render/tac_render_backend_cmd_data.h"
 
 namespace Tac::Render

@@ -21,8 +21,7 @@ void Tac::DesktopAppUpdateResize()
   for( int i = 0; i < kDesktopWindowCapacity; ++i )
   {
     const DesktopWindowHandle desktopWindowHandle = { i };
-    const DesktopWindowState* desktopWindowState = GetDesktopWindowState( desktopWindowHandle );
-    if( !desktopWindowState->mNativeWindowHandle )
+    if( !desktopWindowHandle.GetDesktopWindowNativeHandle() )
       continue;
 
     const RequestResize* requestResize = &sRequestResize[ i ];

@@ -340,8 +340,7 @@ namespace Tac
 
   const DesktopWindowState* ImGuiWindow::GetDesktopWindowState() const
   {
-    DesktopWindowHandle desktopWindowHandle = GetDesktopWindowHandle();
-    return Tac::GetDesktopWindowState( desktopWindowHandle );
+    return GetDesktopWindowHandle().GetDesktopWindowState();
   }
 
   v2 ImGuiWindow::GetMousePosViewport()
@@ -387,6 +386,7 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
+#if 0
   void ImGuiDesktopWindowImpl::FrameDrawData::CopyVertexes( Render::ContextHandle context,
                                                             ImGuiRenderBuffers* gDrawInterface,
                                                             Errors& errors )
@@ -441,6 +441,7 @@ namespace Tac
       byteOffset += src->GetByteCount();
     }
   }
+#endif
    
   ImGuiDesktopWindowImpl::ImGuiDesktopWindowImpl()
     : mRenderBuffers( ImGuiGlobals::Instance.mMaxGpuFrameCount )
@@ -486,9 +487,10 @@ namespace Tac
     ( ++mFrameIndex ) %= ImGuiGlobals::Instance.mMaxGpuFrameCount;
 
     // combine draw data
-    Render::ContextHandle context = TAC_CALL( Render::CreateContext( errors ) );
-    TAC_CALL( frameData.CopyVertexes( context, &renderBuffers, errors ) );
-    TAC_CALL( frameData.CopyIndexes( context, &renderBuffers, errors ) );
+    OS::OSDebugBreak();
+    //Render::ContextHandle context = TAC_CALL( Render::CreateContext( errors ) );
+    //TAC_CALL( frameData.CopyVertexes( context, &renderBuffers, errors ) );
+    //TAC_CALL( frameData.CopyIndexes( context, &renderBuffers, errors ) );
 
 #if 0
     TAC_RENDER_GROUP_BLOCK( String() + __FUNCTION__
@@ -500,9 +502,10 @@ namespace Tac
     const DesktopWindowHandle hDesktopWindow = mDesktopWindowHandle;
 
     TAC_ASSERT( hDesktopWindow.IsValid() );
-    const DesktopWindowState* desktopWindowState = GetDesktopWindowState( hDesktopWindow );
-    if( !desktopWindowState->mNativeWindowHandle )
+    if(! hDesktopWindow.GetDesktopWindowNativeHandle())
       return;
+
+    const DesktopWindowState* desktopWindowState = hDesktopWindow.GetDesktopWindowState();
 
     const v2 size = desktopWindowState->GetSizeV2();
     const int w = desktopWindowState->mWidth;
@@ -572,7 +575,7 @@ namespace Tac
       }
     }
 
-    TAC_CALL( Render::ExecuteCommands( { context }, errors ) );
+    //TAC_CALL( Render::ExecuteCommands( { context }, errors ) );
 
     //mDebugGroupStack.IterateEnd( debugGroupIterator, TAC_STACK_FRAME );
     //mDebugGroupStack = {};

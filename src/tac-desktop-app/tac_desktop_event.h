@@ -61,7 +61,9 @@ namespace Tac::DesktopEventApi
 
   struct MouseMoveEvent
   {
+    // Window that the mouse moved over (?)
     DesktopWindowHandle mDesktopWindowHandle;
+
     // Position of the mouse relative to the top left corner of the window
     int                 mX = 0;
     int                 mY = 0;

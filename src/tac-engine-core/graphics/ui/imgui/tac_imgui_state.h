@@ -156,8 +156,8 @@ namespace Tac
     // Used to combine these draws into a single vtx/idx buffer.
     struct FrameDrawData
     {
-      void CopyIndexes( Render::ContextHandle, ImGuiRenderBuffers*, Errors& );
-      void CopyVertexes( Render::ContextHandle, ImGuiRenderBuffers*, Errors& );
+      //void CopyIndexes( Render::ContextHandle, ImGuiRenderBuffers*, Errors& );
+      //void CopyVertexes( Render::ContextHandle, ImGuiRenderBuffers*, Errors& );
 
       Vector< UI2DDrawData* > mDrawData;
       int                     mVertexCount{};

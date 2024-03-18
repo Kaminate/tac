@@ -5,6 +5,7 @@
 
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-rhi/render/tac_render.h"
+#include "tac-rhi/render/tac_render_handles.h"
 
 namespace Tac
 {
@@ -41,8 +42,14 @@ namespace Tac
       .mWidth = 800,
       .mHeight = 600,
     };
-    hWnd = desktopApp->CreateWindow(params);
+    hWnd = desktopApp->CreateWindow( params );
     gCreation.Init( errors );
+
+    {
+      //Render::ViewHandle2 viewHandle = Render::CreateView2();
+    }
+    ++asdf;
+
   }
 
   void LevelEditorApp::Update( Errors& errors ) { gCreation.Uninit( errors ); }

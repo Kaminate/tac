@@ -21,8 +21,7 @@ void Tac::DesktopAppUpdateMove()
   for( int i = 0; i < kDesktopWindowCapacity; ++i )
   {
     const DesktopWindowHandle desktopWindowHandle = { i };
-    const DesktopWindowState* desktopWindowState = GetDesktopWindowState( desktopWindowHandle );
-    if( !desktopWindowState->mNativeWindowHandle )
+    if( !desktopWindowHandle.GetDesktopWindowNativeHandle() )
       continue;
 
     const RequestMove* requestMove = &sRequestMove[ i ];
@@ -30,7 +29,7 @@ void Tac::DesktopAppUpdateMove()
       continue;
 
     const DesktopWindowRect desktopWindowRect = requestMove->mRect.IsEmpty()
-      ? GetDesktopWindowRectWindowspace( desktopWindowHandle )
+      ?  desktopWindowHandle.GetDesktopWindowRectWindowspace() 
       : requestMove->mRect;
 
     sPlatformFns->PlatformWindowMoveControls( desktopWindowHandle, desktopWindowRect );

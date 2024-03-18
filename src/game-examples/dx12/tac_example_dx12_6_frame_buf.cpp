@@ -27,9 +27,9 @@
 
 #include "tac-desktop-app/tac_desktop_app.h"
 #include "tac-desktop-app/tac_desktop_window_settings_tracker.h"
-#include "tac-win32/renderer/dx12/tac_dx12_helper.h"
-#include "tac-win32/renderer/dx12/tac_dx12_helper.h"
-#include "tac-win32/renderer/dx11/shader/tac_dx11_shader_preprocess.h"
+#include "tac-win32/dx/dx12/tac_dx12_helper.h"
+#include "tac-win32/dx/dx12/tac_dx12_helper.h"
+#include "tac-win32/dx/dx11/shader/tac_dx11_shader_preprocess.h"
 #include "tac-win32/tac_win32.h"
 
 #pragma comment( lib, "d3d12.lib" ) // D3D12...
@@ -707,7 +707,7 @@ namespace Tac
   {
     TAC_ASSERT( !m_swapChain );
 
-    const DesktopWindowState* state = GetDesktopWindowState( hDesktopWindow );
+    const DesktopWindowState* state = hDesktopWindow.GetDesktopWindowState();
     const auto hwnd = ( HWND )state->mNativeWindowHandle;
     if( !hwnd )
       return;
@@ -1088,7 +1088,7 @@ namespace Tac
 
   void         DX12AppHelloFrameBuf::Update( Errors& errors )
   {
-    if( !GetDesktopWindowNativeHandle( hDesktopWindow ) )
+    if( !hDesktopWindow.GetDesktopWindowNativeHandle(  ) )
       return;
 
     const double t = Timestep::GetElapsedTime().mSeconds;
@@ -1155,7 +1155,7 @@ namespace Tac
       RecordBundle();
     }
 
-    if( !GetDesktopWindowNativeHandle( hDesktopWindow ) )
+    if( !hDesktopWindow.GetDesktopWindowNativeHandle(  ) )
       return;
 
     TAC_CALL( RenderBegin( errors ) );

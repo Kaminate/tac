@@ -160,7 +160,7 @@ namespace Tac::Render
   DynBufCreateParams BackendCmdDeserializer::PopDynBufCreateParams()
   {
     DynBufCreateParams params;
-    params.mHandle.Assign( PopRenderHandle() );
+    params.mHandle = PopRenderHandle();
     params.mByteCount = PopInt();
     params.mStackFrame = PopStackFrame();
     return params;
