@@ -1,13 +1,11 @@
 #pragma once
 
-//#include "tac-std-lib/identifier/tac_handle.h"
 #include "tac-std-lib/string/tac_string.h"
-//#include "tac-std-lib/tac_core.h"
+
+namespace Tac { struct v2; }
 
 namespace Tac
 {
-  struct v2;
-
   struct DesktopWindowState
   {
     v2                        GetPosV2() const;
@@ -37,24 +35,20 @@ namespace Tac
 
   struct DesktopWindowHandle
   {
-    DesktopWindowHandle( int index = -1 ) : mIndex{ index } {}
+    DesktopWindowHandle( int index = -1 );
 
-    //explicit operator int() const { return mIndex; }
-    //explicit operator unsigned() const { return ( unsigned )mIndex; }
-
-    bool operator ==( const DesktopWindowHandle& ) const = default;
-    bool operator !=( const DesktopWindowHandle& ) const = default;
-
-    bool              IsValid() const { return mIndex != -1; }
-    int               GetIndex() const { return mIndex; }
-
+    bool                IsValid() const;
+    int                 GetIndex() const;
     DesktopWindowState* GetDesktopWindowState() const;
     const void*         GetDesktopWindowNativeHandle() const;
     DesktopWindowRect   GetDesktopWindowRectScreenspace() const;
     DesktopWindowRect   GetDesktopWindowRectWindowspace() const;
 
+    bool operator ==( const DesktopWindowHandle& ) const = default;
+    bool operator !=( const DesktopWindowHandle& ) const = default;
+
   private:
-    int               mIndex;
+    int mIndex;
   };
 
   static const int            kDesktopWindowCapacity = 10;
