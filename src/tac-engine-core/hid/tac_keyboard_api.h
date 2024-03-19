@@ -10,9 +10,9 @@ namespace Tac
   struct KeyboardApi
   {
     static bool                IsPressed( Key );
-    static bool                IsDepressed( Key ); // i'm depressed :(
-    static bool                JustReleased( Key );
+    static bool                IsDepressed( Key );
     static bool                JustPressed( Key );
+    static bool                JustReleased( Key );
 
     // This function returns a float instead of TimestampDifference
     // because it is a difference of Tac.Timepoint and not Tac.Timestamp.

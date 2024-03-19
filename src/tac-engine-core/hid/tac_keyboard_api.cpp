@@ -38,10 +38,13 @@ namespace Tac
 
   bool KeyboardApi::IsDepressed( Key key )
   {
+    if( key == Key::Myself )
+      return true; // :(
+
     return IsKeyInState( key, KeyState::Up );
   }
 
-  bool KeyboardApi::JustReleased( Key key ) 
+  bool KeyboardApi::JustDepressed( Key key ) 
   {
     const int keyToggleCount = GetKeyToggleCount( key );
     return IsDepressed( key ) && keyToggleCount >= 1;

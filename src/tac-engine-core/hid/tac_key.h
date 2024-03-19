@@ -12,6 +12,7 @@ namespace Tac
     Escape,
     Tab,
     Backtick,
+    Myself,
 
     Debug, // ???
 
