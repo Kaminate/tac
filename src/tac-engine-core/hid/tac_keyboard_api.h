@@ -10,6 +10,7 @@ namespace Tac
   struct KeyboardApi
   {
     static bool                IsPressed( Key );
+    static bool                IsDepressed( Key ); // i'm depressed :(
     static bool                JustReleased( Key );
     static bool                JustPressed( Key );
 

@@ -4,7 +4,12 @@
 
 namespace Tac
 {
-  static KeyboardBackend::KeyState  GetKeyState( Key key )
+  using KeyboardBackend::KeyState;
+  using KeyboardBackend::sGameLogicCurr;
+  using KeyboardBackend::sGameLogicPrev;
+  using KeyboardBackend::sGameLogicDelta;
+
+  static KeyState  GetKeyState( Key key )
   {
     return sGameLogicCurr.mKeyStates[ ( int )key ];
   }
@@ -16,50 +21,55 @@ namespace Tac
 
   static Timepoint GetKeyTime( Key key )      
   {
+    return sGameLogicCurr.mKeyTimes[ ( int )key ];
   }
 
-  static bool IsKeyInState( Key key, KeyboardBackend::KeyState keyState )
+  static bool IsKeyInState( Key key, KeyState keyState )
   {
-    return keyState == sGameLogicCurr.mKeyStates[ ( int )key ];
+    return keyState == GetKeyState( key );
   }
 
+  // -----------------------------------------------------------------------------------------------
 
   bool KeyboardApi::IsPressed( Key key ) 
   {
-    return IsKeyInState( key, KeyboardBackend::KeyState::Down );
+    return IsKeyInState( key, KeyState::Down );
+  }
+
+  bool KeyboardApi::IsDepressed( Key key )
+  {
+    return IsKeyInState( key, KeyState::Up );
   }
 
   bool KeyboardApi::JustReleased( Key key ) 
   {
-    const KeyState keyState = GetKeyState( key );
     const int keyToggleCount = GetKeyToggleCount( key );
-    return IsKeyInState( key, KeyboardBackend::KeyState::Up ) && keyToggleCount >= 1;
+    return IsDepressed( key ) && keyToggleCount >= 1;
   }
 
   bool KeyboardApi::JustPressed( Key key ) 
   {
-    const KeyState keyState = GetKeyState( key );
     const int keyToggleCount = GetKeyToggleCount( key );
-    return keyState == KeyState::Down && keyToggleCount >= 1;
+    return IsPressed( key ) && keyToggleCount >= 1;
   }
 
   float KeyboardApi::HeldSeconds( Key key )
   {
-    const KeyState keyState = GetKeyState( key );
-    if( keyState == KeyState::Up )
+    if( IsDepressed( key ) )
       return 0;
 
-    const Timepoint keyTime = sGameLogicCurr.mKeyTimes[ ( int )key ];
-    return sGameLogicCurr.mTime - keyTime;
+    const Timepoint keyTime = GetKeyTime( key );
+    const Timepoint curTime = sGameLogicCurr.mTime;
+    const Timepoint::NanosecondDuration ns
+      = curTime.TimeSinceEpoch()
+      - keyTime.TimeSinceEpoch();
+    return ( float )( ns / 1e9 );
   }
 
   Span< Codepoint >   KeyboardApi::GetCodepoints()
   {
-    return
-    {
-      sGameLogicDelta.mCodepointDelta.data(),
-      sGameLogicDelta.mCodepointDelta.size()
-    };
+    Vector< Codepoint >& vec = sGameLogicDelta.mCodepointDelta;
+    return { vec.data(), vec.size() };
   }
 
   float               KeyboardApi::GetMouseWheelDelta()
