@@ -8,7 +8,7 @@
 #include "tac-std-lib/math/tac_vector4.h"
 #include "tac-std-lib/math/tac_vector2.h"
 #include "tac-rhi/renderer/tac_renderer.h"
-#include "tac-engine-core/input/tac_controller_input.h"
+#include "tac-engine-core/hid/controller/tac_controller_input.h"
 #include "tac-ecs/tac_space.h"
 
 namespace Tac

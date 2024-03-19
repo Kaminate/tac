@@ -6,128 +6,27 @@
 #include "tac-desktop-app/tac_desktop_event.h"
 #include "tac-desktop-app/tac_iapp.h"
 #include "tac-desktop-app/tac_render_state.h"
+
 #include "tac-engine-core/framememory/tac_frame_memory.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/profile/tac_profile.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-engine-core/system/tac_desktop_window_graphics.h"
 #include "tac-engine-core/system/tac_platform.h"
+#include "tac-engine-core/shell/tac_shell_timer.h"
+#include "tac-engine-core/hid/tac_keyboard_backend.h"
+
 //#include "tac-rhi/render/tac_render.h"
 #include "tac-rhi/render3/tac_render_api.h"
 //#include "tac-rhi/renderer/tac_renderer.h"
+
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/math/tac_math.h" // Clamp
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/containers/tac_array.h"
-#include "tac-engine-core/shell/tac_shell_timer.h"
 
 namespace Tac::DesktopEventApi
 {
-
-
-  using KeyStateArray = Array< KeyState, ( int )Key::Count >;
-
-  struct KeyboardInput
-  {
-
-
-    friend class KeyboardInputManager;
-
-  private:
-    KeyState& GetKeyState( Key key ) { return mKeyStateArray[ ( int )key ]; }
-    KeyStateArray mKeyStateArray;
-  };
-
-  struct KeyboardInputManager
-  {
-    void Consume( KeyboardInput& giver, KeyboardInput& taker )
-    {
-    }
-
-    void UpdateKeyState( Key key, bool isDown )
-    {
-      KeyState& state = GetKeyState(key);
-      if( state.mIsDown != data.mDown )
-      {
-        state.mIsDown = data.mDown;
-        state.mToggleCount++;
-        state.mDownTimepoint = isDown ? Timepoint::Now() : Timepoint();
-      }
-    }
-
-    KeyboardInput mKeyboardInputPlatform;
-    KeyboardInput mKeybaordInputPlatformSaved;
-    KeyboardInput mKeyboardInputGameLogic;
-    std::mutex mKeyboardInputPlatformSavedMutex;
-  } sKeyboardInputManager;
-
-  
-  static KeyState sKeyStates[ ( int )Key::Count ];
-
-
-  static std::mutex sSavedKeyStateMutex;
-  static Array< KeyState, ( int )Key::Count > sSavedKeyStates;
-
-  struct GameLogicKeyStates
-  {
-    Array< KeyState, ( int )Key::Count > mSavedKeyStates;
-  };
-
-  // the platform thread saves this
-  static void AppendUpdateKeyState()
-  {
-    TAC_SCOPE_GUARD( std::lock_guard, sSavedKeyStateMutex );
-
-    for( int i = 0; i < ( int )Key::Count; ++i )
-    {
-      KeyState& keyState = sKeyStates[ i ];
-      KeyState& savedKeyState = sSavedKeyStates[ i ];
-
-      if constexpr( IsDebugMode )
-      {
-        const bool predictedKeyState
-          = keyState.mToggleCount % 2
-          ? savedKeyState.mIsDown
-          : !savedKeyState.mIsDown;
-        TAC_ASSERT( predictedKeyState == keyState.mIsDown );
-      }
-
-      savedKeyState.mToggleCount += keyState.mToggleCount;
-      savedKeyState.mIsDown = keyState.mIsDown;
-
-      keyState.mToggleCount %= 2;
-    }
-  }
-
-  // the game logic thread loads this
-  static void ConsumeKeyState( GameLogicKeyStates* states )
-  {
-    // the saved key state contains everything that happened since the last time it was consumed
-    TAC_SCOPE_GUARD( std::lock_guard, sSavedKeyStateMutex );
-    for( int i = 0; i < ( int )Key::Count; ++i )
-    {
-      for( int i = 0; i < ( int )Key::Count; ++i )
-      {
-        KeyState& savedKeyStateEater = states->mSavedKeyStates[ i ];
-        KeyState& savedKeyStateEaten = sSavedKeyStates[ i ];
-
-        if constexpr( IsDebugMode )
-        {
-          const bool predictedKeyState
-            = savedKeyStateEaten.mToggleCount % 2
-            ? savedKeyStateEater.mIsDown
-            : !savedKeyStateEater.mIsDown;
-          TAC_ASSERT( predictedKeyState == savedKeyStateEaten.mIsDown );
-        }
-
-        savedKeyStateEater.mToggleCount += savedKeyStateEaten.mToggleCount;
-        savedKeyStateEater.mIsDown = savedKeyStateEaten.mIsDown;
-
-        savedKeyStateEaten.mToggleCount %= 2;
-      }
-    }
-  };
-
 
   static struct : public Handler
   {
@@ -162,25 +61,16 @@ namespace Tac::DesktopEventApi
     // --------------------------------------------------------------
     void Handle( const KeyInputEvent& data ) override
     {
-      KeyboardSetWMCharPressedHax( data.mCodepoint );
+      KeyboardBackend::SetCodepoint( data.mCodepoint );
     }
 
     void Handle( const KeyStateEvent& data ) override
     {
-      //KeyboardSetIsKeyDown( data.mKey, data.mDown );
-      KeyState& state = sKeyStates[ ( int )data.mKey ];
-      if( state.mIsDown != data.mDown )
-      {
-        state.mIsDown = data.mDown;
-        state.mToggleCount++;
-      }
+      const KeyboardBackend::KeyState state = data.mDown
+        ? KeyboardBackend::KeyState::Down
+        : KeyboardBackend::KeyState::Up;
 
-
-    }
-
-    void Handle( const MouseButtonStateEvent& data ) override
-    {
-      Mouse::ButtonSetIsDown( data.mButton, data.mDown );
+      KeyboardBackend::SetKeyState( data.mKey, state );
     }
 
     void Handle( const MouseMoveEvent& mouseState ) override
@@ -190,12 +80,12 @@ namespace Tac::DesktopEventApi
 
       const v2 screenSpaceWindowPos = windowState->GetPosV2();
       const v2 windowSpaceMousePos = { ( float )mouseState.mX, ( float )mouseState.mY };
-      Mouse::SetScreenspaceCursorPos( screenSpaceWindowPos + windowSpaceMousePos );
+      KeyboardBackend::SetMousePos( screenSpaceWindowPos + windowSpaceMousePos );
     }
 
     void Handle( const MouseWheelEvent& data ) override
     {
-      Mouse::MouseWheelEvent( data.mDelta );
+      KeyboardBackend::SetMouseWheel( data.mDelta );
     }
     // --------------------------------------------------------------
 
@@ -295,7 +185,9 @@ namespace Tac
     {
       TAC_PROFILE_BLOCK;
 
+      // Win32FrameBegin polls wndproc
       TAC_CALL( platform->PlatformFrameBegin( errors ) );
+
       TAC_CALL( desktopApp->Update( errors ) );
       TAC_CALL( platform->PlatformFrameEnd( errors ) );
 

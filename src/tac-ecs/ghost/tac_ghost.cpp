@@ -1,34 +1,40 @@
 #include "tac_ghost.h" // self-inc
 
-#include "tac-std-lib/algorithm/tac_algorithm.h"
-#include "tac-std-lib/preprocess/tac_preprocessor.h"
-#include "tac-engine-core/settings/tac_settings.h"
-#include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
-#include "tac-engine-core/graphics/ui/tac_font.h"
-#include "tac-rhi/renderer/tac_renderer.h"
-#include "tac-engine-core/i18n/tac_localization.h"
-#include "tac-engine-core/input/tac_controller_input.h"
-#include "tac-engine-core/hid/tac_keyboard_api.h"
-#include "tac-std-lib/math/tac_math.h"
-#include "tac-std-lib/memory/tac_memory.h"
-#include "tac-std-lib/filesystem/tac_filesystem.h"
-#include "tac-std-lib/meta/tac_meta.h"
-#include "tac-engine-core/shell/tac_shell.h"
-#include "tac-engine-core/shell/tac_shell_timestep.h"
-#include "tac-std-lib/string/tac_string_util.h"
-#include "tac-ecs/physics/collider/tac_collider.h"
-#include "tac-ecs/graphics/tac_graphics.h"
-#include "tac-ecs/physics/tac_physics.h"
-#include "tac-ecs/net/tac_client.h"
 #include "tac-ecs/entity/tac_entity.h"
+#include "tac-ecs/graphics/tac_graphics.h"
+#include "tac-ecs/net/tac_client.h"
+#include "tac-ecs/net/tac_server.h"
+#include "tac-ecs/physics/collider/tac_collider.h"
+#include "tac-ecs/physics/tac_physics.h"
 #include "tac-ecs/player/tac_player.h"
 #include "tac-ecs/script/tac_script.h"
 #include "tac-ecs/scripts/tac_script_game_client.h"
-#include "tac-ecs/net/tac_server.h"
 #include "tac-ecs/world/tac_world.h"
+
+#include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
+#include "tac-engine-core/graphics/ui/tac_font.h"
+#include "tac-engine-core/hid/controller/tac_controller_input.h"
+#include "tac-engine-core/hid/tac_keyboard_api.h"
+#include "tac-engine-core/i18n/tac_localization.h"
+#include "tac-engine-core/settings/tac_settings.h"
+#include "tac-engine-core/shell/tac_shell.h"
+#include "tac-engine-core/shell/tac_shell_timestep.h"
+
+#include "tac-rhi/renderer/tac_renderer.h"
+
+#include "tac-std-lib/algorithm/tac_algorithm.h"
+#include "tac-std-lib/filesystem/tac_filesystem.h"
+#include "tac-std-lib/math/tac_math.h"
+#include "tac-std-lib/memory/tac_memory.h"
+#include "tac-std-lib/meta/tac_meta.h"
+#include "tac-std-lib/preprocess/tac_preprocessor.h"
+#include "tac-std-lib/string/tac_string_util.h"
 
 namespace Tac
 {
+
+  // -----------------------------------------------------------------------------------------------
+
   User::User( Ghost* ghost,
               StringView name,
               Errors& errors )
@@ -49,12 +55,14 @@ namespace Tac
       player->mEntityUUID = entity->mEntityUUID;
     }
   }
+
   void User::DebugImgui()
   {
     //if( mPlayer )
     //  mPlayer->DebugImgui();
     //ImGui::InputText( "Name", mName );
   }
+
   void User::Update( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
@@ -63,15 +71,19 @@ namespace Tac
 
     //auto serverData = mGhost->mServerData;
     v2 inputDirection = { 0, 0 };
-    if( KeyboardIsKeyDown( Key::RightArrow ) ) inputDirection += { 1, 0 };
-    if( KeyboardIsKeyDown( Key::UpArrow ) ) inputDirection += { 0, 1 };
-    if( KeyboardIsKeyDown( Key::DownArrow ) ) inputDirection += { 0, -1 };
-    if( KeyboardIsKeyDown( Key::LeftArrow ) ) inputDirection += { -1, 0 };
+    if( KeyboardApi::IsPressed( Key::RightArrow ) ) inputDirection += { 1, 0 };
+    if( KeyboardApi::IsPressed( Key::UpArrow ) ) inputDirection += { 0, 1 };
+    if( KeyboardApi::IsPressed( Key::DownArrow ) ) inputDirection += { 0, -1 };
+    if( KeyboardApi::IsPressed( Key::LeftArrow ) ) inputDirection += { -1, 0 };
     if( inputDirection.Length() )
       inputDirection.Normalize();
+
     mPlayer->mInputDirection = inputDirection;
-    mPlayer->mIsSpaceJustDown = KeyboardIsKeyDown( Key::Spacebar );
+    mPlayer->mIsSpaceJustDown = KeyboardApi::JustPressed( Key::Spacebar );
   }
+
+
+  // -----------------------------------------------------------------------------------------------
 
   Ghost::Ghost()
   {
@@ -79,6 +91,19 @@ namespace Tac
     //mUIRoot = new UIRoot;
     mServerData = TAC_NEW ServerData;
   }
+
+  Ghost::~Ghost()
+  {
+    //delete mFBOTexture;
+    //delete mFBODepthBuffer;
+    for( User* user : mUsers )
+      delete user;
+    //delete mUIRoot;
+    delete mServerData;
+    delete mClientData;
+  }
+
+
   void Ghost::Init( Errors& errors )
   {
     mShouldPopulateWorldInitial = false;
@@ -137,16 +162,6 @@ namespace Tac
     //mUIRoot->mElapsedSeconds = &Timestep::GetElapsedTime(); // eww
     //mUIRoot->mGhost = this;
   }
-  Ghost::~Ghost()
-  {
-    //delete mFBOTexture;
-    //delete mFBODepthBuffer;
-    for( User* user : mUsers )
-      delete user;
-    //delete mUIRoot;
-    delete mServerData;
-    delete mClientData;
-  }
 
   User* Ghost::AddPlayer( StringView name, Errors& errors )
   {
@@ -182,6 +197,7 @@ namespace Tac
     //if( errors )
     //  return;
   }
+
   void Ghost::Update( Errors& errors )
   {
 
@@ -215,6 +231,7 @@ namespace Tac
 
     TAC_CALL( AddMorePlayers( errors ));
   }
+
   void Ghost::AddMorePlayers( Errors& errors )
   {
     if( IsPartyFull() )
@@ -327,6 +344,7 @@ namespace Tac
     ImGui::DragFloat( "Splash alpha", &mSplashAlpha, 0.1f, 0.0f, 1.0f );
 #endif
   }
+
   void Ghost::Draw( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );

@@ -1,22 +1,24 @@
 #include "tac_logic_thread.h" // self-inc
 
 #include "tac-desktop-app/tac_desktop_app_threads.h"
-#include "tac-desktop-app/tac_iapp.h"
-#include "tac-engine-core/system/tac_platform.h"
 #include "tac-desktop-app/tac_desktop_event.h"
+#include "tac-desktop-app/tac_iapp.h"
 #include "tac-desktop-app/tac_render_state.h"
+
 #include "tac-ecs/tac_space.h"
 
 #include "tac-engine-core/framememory/tac_frame_memory.h"
-#include "tac-engine-core/profile/tac_profile.h"
-#include "tac-std-lib/os/tac_os.h"
-#include "tac-std-lib/error/tac_error_handling.h"
-#include "tac-engine-core/shell/tac_shell.h"
 #include "tac-engine-core/graphics/ui/tac_font.h"
-//#include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
-#include "tac-engine-core/settings/tac_settings.h"
-#include "tac-engine-core/input/tac_controller_input.h"
+#include "tac-engine-core/hid/controller/tac_controller_input.h"
+#include "tac-engine-core/hid/tac_keyboard_backend.h"
 #include "tac-engine-core/net/tac_net.h"
+#include "tac-engine-core/profile/tac_profile.h"
+#include "tac-engine-core/settings/tac_settings.h"
+#include "tac-engine-core/shell/tac_shell.h"
+#include "tac-engine-core/system/tac_platform.h"
+
+#include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-std-lib/os/tac_os.h"
 
 
 namespace Tac
@@ -84,8 +86,9 @@ namespace Tac
       TAC_PROFILE_BLOCK_NAMED( "frame" );
       DesktopEventApi::Apply();
 
-      KeyboardBeginFrame();
-      Mouse::MouseBeginFrame();
+      //KeyboardBeginFrame();
+      //Mouse::MouseBeginFrame();
+      KeyboardBackend::UpdateGameLogicKeyState();
 
       //const BeginFrameData data =
       //{
@@ -100,8 +103,8 @@ namespace Tac
 
       //TAC_CALL( ImGuiEndFrame( errors ) );
 
-      KeyboardEndFrame();
-      Mouse::MouseEndFrame();
+      //KeyboardEndFrame();
+      //Mouse::MouseEndFrame();
 
       App::IState* gameState = mApp->GetGameState();
       gameState->mFrameIndex = Timestep::GetElapsedFrames();

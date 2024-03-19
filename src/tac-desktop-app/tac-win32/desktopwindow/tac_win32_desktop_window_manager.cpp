@@ -275,10 +275,9 @@ namespace Tac
 
     case WM_LBUTTONDOWN:
     {
-
-      const DesktopEventApi::MouseButtonStateEvent data
+      const DesktopEventApi::KeyStateEvent data
       {
-        .mButton = Key::MouseLeft,
+        .mKey = Key::MouseLeft,
         .mDown = true,
       };
       DesktopEventApi::Queue( data );
@@ -292,9 +291,9 @@ namespace Tac
 
     case WM_LBUTTONUP:
     {
-      const DesktopEventApi::MouseButtonStateEvent data
+      const DesktopEventApi::KeyStateEvent data
       {
-        .mButton = Key::MouseLeft,
+        .mKey = Key::MouseLeft,
         .mDown = false,
       };
       DesktopEventApi::Queue( data );
@@ -302,20 +301,21 @@ namespace Tac
 
     case WM_RBUTTONDOWN:
     {
-      const DesktopEventApi::MouseButtonStateEvent data
+      const DesktopEventApi::KeyStateEvent data
       {
-        .mButton = Mouse::Button::MouseRight,
+        .mKey = Key::MouseRight,
         .mDown = true,
       };
       DesktopEventApi::Queue( data );
       //BringWindowToTop( mHWND );
       SetActiveWindow( hwnd ); // make it so clicking the window brings the window to the top of the z order
     } break;
+
     case WM_RBUTTONUP:
     {
-      const DesktopEventApi::MouseButtonStateEvent data
+      const DesktopEventApi::KeyStateEvent data
       {
-        .mButton = Mouse::Button::MouseRight,
+        .mKey = Key::MouseRight,
         .mDown = false,
       };
       DesktopEventApi::Queue( data );
@@ -323,9 +323,9 @@ namespace Tac
 
     case WM_MBUTTONDOWN:
     {
-      const DesktopEventApi::MouseButtonStateEvent data
+      const DesktopEventApi::KeyStateEvent data
       {
-        .mButton = Mouse::Button::MouseMiddle,
+        .mKey = Key::MouseMiddle,
         .mDown = true,
       };
       DesktopEventApi::Queue( data );
@@ -334,11 +334,12 @@ namespace Tac
       // make it so clicking the window brings the window to the top of the z order
       SetActiveWindow( hwnd );
     } break;
+
     case WM_MBUTTONUP:
     {
-      const DesktopEventApi::MouseButtonStateEvent data
+      const DesktopEventApi::KeyStateEvent data
       {
-        .mButton = Mouse::Button::MouseMiddle,
+        .mKey = Key::MouseMiddle,
         .mDown = false,
       };
       DesktopEventApi::Queue( data );
@@ -369,10 +370,9 @@ namespace Tac
 
     case WM_MOUSEWHEEL:
     {
-      const short wheelDeltaParam = GET_WHEEL_DELTA_WPARAM( wParam );
-      const short ticks = wheelDeltaParam / WHEEL_DELTA;
-
-      const DesktopEventApi::MouseWheelEvent data{ ( int )ticks };
+      const short delta = GET_WHEEL_DELTA_WPARAM( wParam );
+      const float deltaScaled = ( float )delta / WHEEL_DELTA;
+      const DesktopEventApi::MouseWheelEvent data{ deltaScaled };
       DesktopEventApi::Queue( data );
     } break;
 

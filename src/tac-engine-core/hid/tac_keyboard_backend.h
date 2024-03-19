@@ -7,9 +7,7 @@
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac-std-lib/math/tac_vector2.h"
 
-namespace Tac { struct StackFrame; struct Timestamp; }
-
-namespace Tac
+namespace Tac::KeyboardBackend
 {
   enum KeyState { Up = 0, Down = 1 };
 
@@ -40,6 +38,5 @@ namespace Tac
   void SetCodepoint( Codepoint );
   void SetMousePos( v2 screenspace );
   void SetMouseWheel( float );
-
   void UpdateGameLogicKeyState();
 }

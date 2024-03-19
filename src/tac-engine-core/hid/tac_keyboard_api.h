@@ -19,7 +19,7 @@ namespace Tac
     // Returns 0 if the key is up
     static float               HeldSeconds( Key );
     static Span< Codepoint >   GetCodepoints();
-    static float               GetMouseWheelDelta();
+    static float               GetMouseWheelDelta(); // units are magic
     static v2                  GetMousePosScreenspace();
     static v2                  GetMousePosDelta();
   };

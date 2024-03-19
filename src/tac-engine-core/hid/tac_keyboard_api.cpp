@@ -1,22 +1,39 @@
 #include "tac_keyboard_api.h" // self-inc
 #include "tac_keyboard_backend.h"
 
+
 namespace Tac
 {
-  static KeyState  GetKeyState( Key key )       { return sGameLogicCurr.mKeyStates[ ( int )key ]; }
-  static int       GetKeyToggleCount( Key key ) { return sGameLogicDelta.mToggles[ ( int )key ]; }
-  static Timepoint GetKeyTime( Key key )        { return sGameLogicCurr.mKeyTimes[ ( int )key ]; }
+  static KeyboardBackend::KeyState  GetKeyState( Key key )
+  {
+    return sGameLogicCurr.mKeyStates[ ( int )key ];
+  }
+
+  static int       GetKeyToggleCount( Key key )
+  {
+    return sGameLogicDelta.mToggles[ ( int )key ];
+  }
+
+  static Timepoint GetKeyTime( Key key )      
+  {
+  }
+
+  static bool IsKeyInState( Key key, KeyboardBackend::KeyState keyState )
+  {
+    return keyState == sGameLogicCurr.mKeyStates[ ( int )key ];
+  }
+
 
   bool KeyboardApi::IsPressed( Key key ) 
   {
-    return GetKeyState( key ) == KeyState::Down;
+    return IsKeyInState( key, KeyboardBackend::KeyState::Down );
   }
 
   bool KeyboardApi::JustReleased( Key key ) 
   {
     const KeyState keyState = GetKeyState( key );
     const int keyToggleCount = GetKeyToggleCount( key );
-    return keyState == KeyState::Up && keyToggleCount >= 1;
+    return IsKeyInState( key, KeyboardBackend::KeyState::Up ) && keyToggleCount >= 1;
   }
 
   bool KeyboardApi::JustPressed( Key key ) 
@@ -32,7 +49,7 @@ namespace Tac
     if( keyState == KeyState::Up )
       return 0;
 
-    const Timepoint keyTime = GetKeyTime( key );
+    const Timepoint keyTime = sGameLogicCurr.mKeyTimes[ ( int )key ];
     return sGameLogicCurr.mTime - keyTime;
   }
 
