@@ -28,7 +28,7 @@
 namespace Tac::DesktopEventApi
 {
 
-  static struct : public Handler
+  struct DesktopEventHandler : public Handler
   {
     void Handle( const AssignHandleEvent& data ) override
     {
@@ -58,7 +58,6 @@ namespace Tac::DesktopEventApi
       SetHoveredWindow( data.mDesktopWindowHandle );
     }
 
-    // --------------------------------------------------------------
     void Handle( const KeyInputEvent& data ) override
     {
       KeyboardBackend::SetCodepoint( data.mCodepoint );
@@ -87,7 +86,6 @@ namespace Tac::DesktopEventApi
     {
       KeyboardBackend::SetMouseWheel( data.mDelta );
     }
-    // --------------------------------------------------------------
 
     void Handle( const WindowMoveEvent& data ) override
     {
@@ -105,11 +103,48 @@ namespace Tac::DesktopEventApi
                                          desktopWindowState->mWidth,
                                          desktopWindowState->mHeight );
     }
-  } sDesktopEventHandler;
+  };
+
+  static DesktopEventHandler sDesktopEventHandler;
 }
 
 namespace Tac
 {
+  static void                ImGuiPlatformSetWindowPos( DesktopWindowHandle handle, v2 pos )
+  {
+    PlatformFns* platform = PlatformFns::GetInstance();
+    platform->PlatformSetWindowPos( handle, ( int )pos.x, ( int )pos.y );
+  }
+
+  static void                ImGuiPlatformSetWindowSize( DesktopWindowHandle handle, v2 size )
+  {
+    PlatformFns* platform = PlatformFns::GetInstance();
+    platform->PlatformSetWindowSize( handle, ( int )size.x, ( int )size.y );
+  }
+
+  static DesktopWindowHandle ImGuiPlatformCreateWindow( const ImGuiCreateWindowParams& params )
+  {
+    DesktopApp* desktopApp = DesktopApp::GetInstance();
+    const DesktopAppCreateWindowParams desktopParams
+    {
+      .mName = "<unnamed>",
+      .mX = ( int )params.mPos.x,
+      .mY = ( int )params.mPos.y,
+      .mWidth = ( int )params.mSize.x,
+      .mHeight = ( int )params.mSize.y,
+    };
+    return desktopApp->CreateWindow( desktopParams );
+  }
+
+  static void                ImGuiPlatformDestroyWindow( const DesktopWindowHandle& handle )
+  {
+    DesktopApp* desktopApp = DesktopApp::GetInstance();
+
+    desktopApp->DestroyWindow( handle );
+  }
+  
+
+
   static bool sVerbose;
   void PlatformThread::Uninit()
   {
@@ -138,37 +173,10 @@ namespace Tac
     const ImGuiInitParams imguiInitParams 
     {
       .mMaxGpuFrameCount = Render::RenderApi::GetMaxGPUFrameCount() ,
-      .mSetWindowPos = []( DesktopWindowHandle handle, v2 pos )
-      {
-        PlatformFns* platform = PlatformFns::GetInstance();
-        platform->PlatformSetWindowPos( handle, ( int )pos.x, ( int )pos.y );
-      },
-      .mSetWindowSize = []( DesktopWindowHandle handle, v2 size )
-      {
-        PlatformFns* platform = PlatformFns::GetInstance();
-        platform->PlatformSetWindowSize( handle, ( int )size.x, ( int )size.y );
-      },
-      .mCreateWindow = []( const ImGuiCreateWindowParams& imguiParams )
-      {
-        DesktopApp* desktopApp =  DesktopApp::GetInstance();
-
-        DesktopAppCreateWindowParams desktopParams
-        {
-          .mName = "<unnamed>",
-          .mX = (int)imguiParams.mPos.x,
-          .mY = (int)imguiParams.mPos.y,
-          .mWidth = (int)imguiParams.mSize.x,
-          .mHeight = (int)imguiParams.mSize.y,
-        };
-
-        return desktopApp->CreateWindow( desktopParams );
-      },
-      .mDestroyWindow = []( const DesktopWindowHandle& handle)
-      {
-        DesktopApp* desktopApp =  DesktopApp::GetInstance();
-
-        desktopApp->DestroyWindow( handle );
-      },
+      .mSetWindowPos = ImGuiPlatformSetWindowPos,
+      .mSetWindowSize = ImGuiPlatformSetWindowSize,
+      .mCreateWindow = ImGuiPlatformCreateWindow,
+      .mDestroyWindow = ImGuiPlatformDestroyWindow,
     };
     ImGuiInit( imguiInitParams );
   }
