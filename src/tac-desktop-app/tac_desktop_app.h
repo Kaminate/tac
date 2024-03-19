@@ -32,13 +32,13 @@ namespace Tac
   {
     void                Init( Errors& );
     void                Run( Errors& );
-    DesktopWindowHandle CreateWindow( const DesktopAppCreateWindowParams& );
-    void                DestroyWindow( const DesktopWindowHandle& );
+    //DesktopWindowHandle CreateWindow( const DesktopAppCreateWindowParams& );
+    //void                DestroyWindow( const DesktopWindowHandle& );
     void                Update( Errors& );
-    void                ResizeControls( const DesktopWindowHandle&, int edgePx = 7 );
-    void                MoveControls( const DesktopWindowHandle&,
-                                      const DesktopWindowRect& );
-    void                MoveControls( const DesktopWindowHandle& );
+    //void                ResizeControls( const DesktopWindowHandle&, int edgePx = 7 );
+    //void                MoveControls( const DesktopWindowHandle&,
+    //                                  const DesktopWindowRect& );
+    //void                MoveControls( const DesktopWindowHandle& );
     void                DebugImGui( Errors& );
     static DesktopApp*  GetInstance();
   };

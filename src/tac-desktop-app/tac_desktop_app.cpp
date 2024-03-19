@@ -148,32 +148,32 @@ namespace Tac
     UpdateTrackedWindows();
   }
 
-  void                DesktopApp::ResizeControls( const DesktopWindowHandle& desktopWindowHandle,
-                                                  int edgePx )
-  {
-    DesktopAppImplResizeControls( desktopWindowHandle, edgePx );
-  }
+  //void                DesktopApp::ResizeControls( const DesktopWindowHandle& desktopWindowHandle,
+  //                                                int edgePx )
+  //{
+  //  DesktopAppImplResizeControls( desktopWindowHandle, edgePx );
+  //}
 
-  void                DesktopApp::MoveControls( const DesktopWindowHandle& desktopWindowHandle,
-                                                const DesktopWindowRect& rect )
-  {
-    DesktopAppImplMoveControls( desktopWindowHandle, rect );
-  }
+  //void                DesktopApp::MoveControls( const DesktopWindowHandle& desktopWindowHandle,
+  //                                              const DesktopWindowRect& rect )
+  //{
+  //  DesktopAppImplMoveControls( desktopWindowHandle, rect );
+  //}
 
-  void                DesktopApp::MoveControls( const DesktopWindowHandle& desktopWindowHandle )
-  {
-    DesktopAppImplMoveControls( desktopWindowHandle );
-  }
+  //void                DesktopApp::MoveControls( const DesktopWindowHandle& desktopWindowHandle )
+  //{
+  //  DesktopAppImplMoveControls( desktopWindowHandle );
+  //}
 
-  DesktopWindowHandle DesktopApp::CreateWindow( const DesktopAppCreateWindowParams& desktopParams )
-  {
-    return DesktopAppImplCreateWindow( desktopParams );
-  }
+  //DesktopWindowHandle DesktopApp::CreateWindow( const DesktopAppCreateWindowParams& desktopParams )
+  //{
+  //  return DesktopAppImplCreateWindow( desktopParams );
+  //}
 
-  void                DesktopApp::DestroyWindow( const DesktopWindowHandle& desktopWindowHandle )
-  {
-    return DesktopAppImplDestroyWindow(desktopWindowHandle);
-  }
+  //void                DesktopApp::DestroyWindow( const DesktopWindowHandle& desktopWindowHandle )
+  //{
+  //  return DesktopAppImplDestroyWindow(desktopWindowHandle);
+  //}
 
 
 
