@@ -41,7 +41,7 @@ void Tac::DesktopAppUpdateMove()
 void                Tac::DesktopAppImplMoveControls( const DesktopWindowHandle& desktopWindowHandle,
                                                      const DesktopWindowRect& rect )
 {
-  sRequestMove[ ( int )desktopWindowHandle ] = RequestMove
+  sRequestMove[ desktopWindowHandle.GetIndex() ] = RequestMove
   {
     .mRequested = true,
     .mRect = rect,
@@ -50,6 +50,5 @@ void                Tac::DesktopAppImplMoveControls( const DesktopWindowHandle& 
 
 void                Tac::DesktopAppImplMoveControls( const DesktopWindowHandle& desktopWindowHandle )
 {
-  RequestMove* request = &sRequestMove[ ( int )desktopWindowHandle ];
-  request->mRequested = true;
+  sRequestMove[ desktopWindowHandle.GetIndex() ].mRequested = true;
 }

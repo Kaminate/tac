@@ -36,7 +36,7 @@ void Tac::DesktopAppUpdateResize()
 void Tac::DesktopAppImplResizeControls( const DesktopWindowHandle& desktopWindowHandle,
                                         int edgePx )
 {
-  sRequestResize[ ( int )desktopWindowHandle ] = RequestResize
+  sRequestResize[ desktopWindowHandle.GetIndex() ] = RequestResize
   {
    .mRequested = true,
    .mEdgePx = edgePx,

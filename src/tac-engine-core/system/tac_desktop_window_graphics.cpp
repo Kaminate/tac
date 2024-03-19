@@ -18,14 +18,16 @@ namespace Tac
 
   Render::FramebufferHandle WindowGraphics::GetFramebuffer( const DesktopWindowHandle& handle )
   {
-    TAC_ASSERT_INDEX( handle, kDesktopWindowCapacity );
-    return sWindowFramebuffers[ ( int )handle ];
+    const int i = handle.GetIndex();
+    TAC_ASSERT_INDEX( i, kDesktopWindowCapacity );
+    return sWindowFramebuffers[ i ];
   }
 
   Render::ViewHandle WindowGraphics::GetView( const DesktopWindowHandle& handle )
   {
-    TAC_ASSERT_INDEX( handle, kDesktopWindowCapacity );
-    return sWindowViews[ ( int )handle ];
+    const int i = handle.GetIndex();
+    TAC_ASSERT_INDEX( i, kDesktopWindowCapacity );
+    return sWindowViews[ i ];
   }
 
 
@@ -68,8 +70,9 @@ namespace Tac
                                   const int w,
                                   const int h )
   {
-    const Render::FramebufferHandle framebufferHandle = sWindowFramebuffers[ ( int )desktopWindowHandle ];
-    const Render::ViewHandle viewHandle = sWindowViews[ ( int )desktopWindowHandle ];
+    const int i = desktopWindowHandle.GetIndex();
+    const Render::FramebufferHandle framebufferHandle = sWindowFramebuffers[ i ];
+    const Render::ViewHandle viewHandle = sWindowViews[ i ];
     Render::ResizeFramebuffer( framebufferHandle, w, h, TAC_STACK_FRAME );
     Render::SetViewScissorRect( viewHandle, Render::ScissorRect( ( float )w, ( float )h ) );
     Render::SetViewport( viewHandle, Render::Viewport( ( float )w, ( float )h ) );

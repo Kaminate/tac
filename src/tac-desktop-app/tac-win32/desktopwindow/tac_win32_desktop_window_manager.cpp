@@ -129,7 +129,8 @@ namespace Tac
     case WM_DESTROY:
     {
       ImGuiSaveWindowSettings();
-      sHWNDs[ ( int )desktopWindowHandle ] = nullptr;
+      const int i = desktopWindowHandle.GetIndex();
+      sHWNDs[ i ] = nullptr;
       const DesktopEventApi::AssignHandleEvent data
       {
         .mDesktopWindowHandle = desktopWindowHandle
@@ -139,7 +140,8 @@ namespace Tac
 
     case WM_CREATE:
     {
-      sHWNDs[ ( int )desktopWindowHandle ] = hwnd;
+      const int i = desktopWindowHandle.GetIndex();
+      sHWNDs[ i ] = hwnd;
       sWindowUnderConstruction = DesktopWindowHandle();
       auto windowInfo = ( const CREATESTRUCT* )lParam;
       TAC_ASSERT( windowInfo->cx && windowInfo->cy );
@@ -485,8 +487,8 @@ namespace Tac
 
   void                Win32WindowManagerDespawnWindow( const DesktopWindowHandle& desktopWindowHandle )
   {
-    const auto iWindow = ( int )desktopWindowHandle;
-    const HWND hwnd = sHWNDs[ iWindow ];
+    const auto i = desktopWindowHandle.GetIndex();
+    const HWND hwnd = sHWNDs[ i ];
 
     // unparent the children to prevent them from being
     // sent WM_DESTROY when the parent is destroyed

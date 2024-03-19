@@ -39,8 +39,8 @@ namespace Tac
   {
     DesktopWindowHandle( int index = -1 ) : mIndex{ index } {}
 
-    explicit operator int() const { return mIndex; }
-    explicit operator unsigned() const { return ( unsigned )mIndex; }
+    //explicit operator int() const { return mIndex; }
+    //explicit operator unsigned() const { return ( unsigned )mIndex; }
 
     bool operator ==( const DesktopWindowHandle& ) const = default;
     bool operator !=( const DesktopWindowHandle& ) const = default;
