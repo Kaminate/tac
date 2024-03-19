@@ -1,25 +1,20 @@
+// TODO: The prupose of this file is...
+
 #pragma once
 
 #include "tac-std-lib/string/tac_string_view.h"
 
+namespace Tac { struct v2i; }
 namespace Tac
 {
   struct WindowHandle
   {
     WindowHandle( int index = -1 );
 
-    bool       IsShown() const;
-
-    int        GetWidth() const;
-    int        GetHeight() const;
-    v2i        GetSize() const;
-
-    int        GetX() const;
-    int        GetY() const;
     v2i        GetPos() const;
-
+    v2i        GetSize() const;
     StringView GetName() const;
-
+    bool       IsShown() const;
     bool       IsValid() const;
     int        GetIndex() const;
 
@@ -49,7 +44,6 @@ namespace Tac
 
     static WindowHandle CreateWindow( CreateParams );
     static void         DestroyWindow( WindowHandle );
-    static const int    kWindowCapacity = 100;
   };
 
 } // namespace Tac

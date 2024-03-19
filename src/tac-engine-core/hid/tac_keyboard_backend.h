@@ -1,3 +1,5 @@
+// TODO: The purpose of this file is...
+
 #pragma once
 
 #include "tac-engine-core/i18n/tac_localization.h" // Codepoint
@@ -34,9 +36,14 @@ namespace Tac::KeyboardBackend
   extern KeyboardMouseState sGameLogicCurr;
   extern KeyboardDelta      sGameLogicDelta;
 
+  // ... api wise, this could return a structure that holds
+  // the lock, and has member functions that update state..
+  void ApplyBegin();
   void SetKeyState( Key, KeyState );
   void SetCodepoint( Codepoint );
   void SetMousePos( v2 screenspace );
   void SetMouseWheel( float );
+  void ApplyEnd();
+  
   void UpdateGameLogicKeyState();
 }

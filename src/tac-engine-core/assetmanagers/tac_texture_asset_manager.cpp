@@ -8,7 +8,7 @@
 #include "tac-std-lib/string/tac_string_identifier.h"
 #include "tac-std-lib/string/tac_string_util.h"
 #include "tac-std-lib/filesystem/tac_filesystem.h"
-#include "tac-engine-core/system/tac_job_queue.h"
+#include "tac-engine-core/job/tac_job_queue.h"
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-engine-core/thirdparty/stb_image.h"
 

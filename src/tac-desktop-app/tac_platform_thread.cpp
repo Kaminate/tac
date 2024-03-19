@@ -11,8 +11,9 @@
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/profile/tac_profile.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
-#include "tac-engine-core/system/tac_desktop_window_graphics.h"
-#include "tac-engine-core/system/tac_platform.h"
+//#include "tac-engine-core/system/tac_desktop_window_graphics.h"
+#include "tac-engine-core/platform/tac_platform.h"
+#include "tac-engine-core/window/tac_window_backend.h"
 #include "tac-engine-core/shell/tac_shell_timer.h"
 #include "tac-engine-core/hid/tac_keyboard_backend.h"
 
@@ -30,32 +31,37 @@ namespace Tac::DesktopEventApi
 
   struct DesktopEventHandler : public Handler
   {
-    void Handle( const AssignHandleEvent& data ) override
+    void HandleBegin() override
     {
-      DesktopWindowState* desktopWindowState = data.mDesktopWindowHandle.GetDesktopWindowState();
-      if( desktopWindowState->mNativeWindowHandle != data.mNativeWindowHandle )
-      {
-        WindowGraphics::NativeHandleChangedData handleChangedData
-        {
-          .mDesktopWindowHandle = data.mDesktopWindowHandle,
-          .mNativeWindowHandle = data.mNativeWindowHandle,
-          .mName = data.mName,
-          .mW = data.mW,
-          .mH = data.mH,
-        };
-        WindowGraphics::Instance().NativeHandleChanged( handleChangedData );
-      }
-      desktopWindowState->mNativeWindowHandle = data.mNativeWindowHandle;
-      desktopWindowState->mName = ( StringView )data.mName;
-      desktopWindowState->mWidth = data.mW;
-      desktopWindowState->mHeight = data.mH;
-      desktopWindowState->mX = data.mX;
-      desktopWindowState->mY = data.mY;
+      WindowBackend::ApplyBegin();
+      KeyboardBackend::ApplyBegin();
+    }
+
+    void HandleEnd() override
+    {
+      WindowBackend::ApplyEnd();
+      KeyboardBackend::ApplyEnd();
+    }
+
+    void Handle( const WindowDestroyEvent& data ) override
+    {
+      WindowBackend::SetWindowDestroyed( data.mWindowHandle );
+    }
+
+    void Handle( const WindowCreateEvent& data ) override
+    {
+      const v2i pos{ data.mX, data.mY };
+      const v2i size{ data.mW, data.mH };
+      WindowBackend::SetWindowCreated( data.mWindowHandle,
+                                       data.mNativeWindowHandle,
+                                       data.mName,
+                                       pos,
+                                       size );
     }
 
     void Handle( const CursorUnobscuredEvent& data ) override
     {
-      SetHoveredWindow( data.mDesktopWindowHandle );
+      //SetHoveredWindow( data.mDesktopWindowHandle );
     }
 
     void Handle( const KeyInputEvent& data ) override
@@ -89,16 +95,13 @@ namespace Tac::DesktopEventApi
 
     void Handle( const WindowMoveEvent& data ) override
     {
-      DesktopWindowState* state = data.mDesktopWindowHandle.GetDesktopWindowState();
-      state->mX = data.mX;
-      state->mY = data.mY;
+      WindowBackend::SetWindowPos( data.mDesktopWindowHandle, v2i( data.mX, data.mY ) );
     }
 
     void Handle( const WindowResizeEvent& data ) override
     {
-      DesktopWindowState* desktopWindowState = data.mDesktopWindowHandle.GetDesktopWindowState();
-      desktopWindowState->mWidth = data.mWidth;
-      desktopWindowState->mHeight = data.mHeight;
+      WindowBackend::SetWindowSize( data.mDesktopWindowHandle, v2i( data.mWidth, data.mHeight ) );
+
       WindowGraphics::Instance().Resize( data.mDesktopWindowHandle,
                                          desktopWindowState->mWidth,
                                          desktopWindowState->mHeight );

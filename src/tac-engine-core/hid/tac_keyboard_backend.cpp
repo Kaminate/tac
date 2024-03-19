@@ -9,6 +9,7 @@ namespace Tac::KeyboardBackend
   static v2                  sMousePosScreenspace;
   static Vector< Codepoint > sCodepointDelta;
   static std::mutex          sMutex;
+  static bool                sModificationAllowed;
   static float               sMouseWheel;
 }
 
@@ -18,9 +19,21 @@ namespace Tac
   KeyboardBackend::KeyboardMouseState KeyboardBackend::sGameLogicCurr;
   KeyboardBackend::KeyboardDelta      KeyboardBackend::sGameLogicDelta;
 
+  void KeyboardBackend::ApplyBegin()
+  {
+    sMutex.lock();
+    sModificationAllowed = true;
+  }
+
+  void KeyboardBackend::ApplyEnd()
+  {
+    sModificationAllowed = false;
+    sMutex.unlock();
+  }
+
   void KeyboardBackend::SetKeyState( Key key, KeyState state )
   {
-    TAC_SCOPE_GUARD( std::lock_guard, sMutex );
+    TAC_ASSERT( sModificationAllowed );
     if( const int i = ( int )key; sKeyStates[ i ] != state )
     {
       sKeyStates[ i ] = state;
@@ -31,19 +44,19 @@ namespace Tac
 
   void KeyboardBackend::SetCodepoint( Codepoint codepoint )
   {
-    TAC_SCOPE_GUARD( std::lock_guard, sMutex );
+    TAC_ASSERT( sModificationAllowed );
     sCodepointDelta.push_back( codepoint );
   }
 
   void KeyboardBackend::SetMousePos( v2 screenspace )
   {
-    TAC_SCOPE_GUARD( std::lock_guard, sMutex );
+    TAC_ASSERT( sModificationAllowed );
     sMousePosScreenspace = screenspace;
   }
 
   void KeyboardBackend::SetMouseWheel( float wheelPos )
   {
-    TAC_SCOPE_GUARD( std::lock_guard, sMutex );
+    TAC_ASSERT( sModificationAllowed );
     sMouseWheel = wheelPos;
   }
 

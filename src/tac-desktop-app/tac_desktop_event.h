@@ -7,32 +7,36 @@
 //
 #pragma once
 
-#include "tac-engine-core/system/tac_desktop_window.h"
+#include "tac-engine-core/window/tac_window_api.h"
 #include "tac-engine-core/i18n/tac_localization.h"
 #include "tac-engine-core/hid/tac_key.h"
 #include "tac-std-lib/string/tac_short_fixed_string.h"
 
 namespace Tac::DesktopEventApi
 {
-  struct AssignHandleEvent
+  struct WindowCreateEvent
   {
-    DesktopWindowHandle mDesktopWindowHandle;
-    const void* mNativeWindowHandle = nullptr;
-    ShortFixedString    mName;
-    int                 mX = 0;
-    int                 mY = 0;
-    int                 mW = 0;
-    int                 mH = 0;
+    WindowHandle mWindowHandle;
+    const void* mNativeWindowHandle;
+    int mX;
+    int mY;
+    int mW;
+    int mH;
+  };
+
+  struct WindowDestroyEvent
+  {
+    WindowHandle mDesktopWindowHandle;
   };
 
   struct CursorUnobscuredEvent
   {
-    DesktopWindowHandle mDesktopWindowHandle;
+    WindowHandle mDesktopWindowHandle;
   };
 
   struct WindowResizeEvent
   {
-    DesktopWindowHandle mDesktopWindowHandle;
+    WindowHandle mDesktopWindowHandle;
     int                 mWidth = 0;
     int                 mHeight = 0;
   };
@@ -56,7 +60,7 @@ namespace Tac::DesktopEventApi
   struct MouseMoveEvent
   {
     // Window that the mouse moved over (?)
-    DesktopWindowHandle mDesktopWindowHandle;
+    WindowHandle mDesktopWindowHandle;
 
     // Position of the mouse relative to the top left corner of the window
     int                 mX = 0;
@@ -65,7 +69,7 @@ namespace Tac::DesktopEventApi
 
   struct WindowMoveEvent
   {
-    DesktopWindowHandle mDesktopWindowHandle;
+    WindowHandle mDesktopWindowHandle;
     int                 mX = 0;
     int                 mY = 0;
   };
@@ -74,7 +78,9 @@ namespace Tac::DesktopEventApi
 
   struct Handler
   {
-    virtual void Handle( const AssignHandleEvent& ) {};
+    virtual void HandleBegin() {};
+    virtual void Handle( const WindowCreateEvent& ) {};
+    virtual void Handle( const WindowDestroyEvent& ) {};
     virtual void Handle( const CursorUnobscuredEvent& ) {};
     virtual void Handle( const KeyInputEvent& ) {};
     virtual void Handle( const KeyStateEvent& ) {};
@@ -82,10 +88,12 @@ namespace Tac::DesktopEventApi
     virtual void Handle( const MouseWheelEvent& ) {};
     virtual void Handle( const WindowMoveEvent& ) {};
     virtual void Handle( const WindowResizeEvent& ) {};
+    virtual void HandleEnd() {};
   };
 
   void Init( Handler* );
-  void Queue( const AssignHandleEvent& );
+  void Queue( const WindowCreateEvent& );
+  void Queue( const WindowDestroyEvent& );
   void Queue( const CursorUnobscuredEvent& );
   void Queue( const KeyInputEvent& );
   void Queue( const KeyStateEvent& );
