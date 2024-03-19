@@ -8,7 +8,7 @@
 #include "tac-rhi/renderer/tac_renderer.h"
 #include "tac-engine-core/i18n/tac_localization.h"
 #include "tac-engine-core/input/tac_controller_input.h"
-#include "tac-engine-core/input/tac_keyboard_input.h"
+#include "tac-engine-core/hid/tac_keyboard_api.h"
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/memory/tac_memory.h"
 #include "tac-std-lib/filesystem/tac_filesystem.h"
@@ -63,14 +63,14 @@ namespace Tac
 
     //auto serverData = mGhost->mServerData;
     v2 inputDirection = { 0, 0 };
-    if( Keyboard::KeyboardIsKeyDown( Keyboard::Key::RightArrow ) ) inputDirection += { 1, 0 };
-    if( Keyboard::KeyboardIsKeyDown( Keyboard::Key::UpArrow ) ) inputDirection += { 0, 1 };
-    if( Keyboard::KeyboardIsKeyDown( Keyboard::Key::DownArrow ) ) inputDirection += { 0, -1 };
-    if( Keyboard::KeyboardIsKeyDown( Keyboard::Key::LeftArrow ) ) inputDirection += { -1, 0 };
+    if( KeyboardIsKeyDown( Key::RightArrow ) ) inputDirection += { 1, 0 };
+    if( KeyboardIsKeyDown( Key::UpArrow ) ) inputDirection += { 0, 1 };
+    if( KeyboardIsKeyDown( Key::DownArrow ) ) inputDirection += { 0, -1 };
+    if( KeyboardIsKeyDown( Key::LeftArrow ) ) inputDirection += { -1, 0 };
     if( inputDirection.Length() )
       inputDirection.Normalize();
     mPlayer->mInputDirection = inputDirection;
-    mPlayer->mIsSpaceJustDown = Keyboard::KeyboardIsKeyDown( Keyboard::Key::Spacebar );
+    mPlayer->mIsSpaceJustDown = KeyboardIsKeyDown( Key::Spacebar );
   }
 
   Ghost::Ghost()

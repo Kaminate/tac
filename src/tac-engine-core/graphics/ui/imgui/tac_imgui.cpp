@@ -12,7 +12,7 @@
 #include "tac-engine-core/graphics/tac_renderer_util.h"
 #include "tac-engine-core/graphics/ui/tac_text_edit.h"
 #include "tac-engine-core/graphics/ui/tac_ui_2d.h"
-#include "tac-engine-core/input/tac_keyboard_input.h"
+#include "tac-engine-core/hid/tac_keyboard_api.h"
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/math/tac_vector4.h"
 #include "tac-engine-core/profile/tac_profile.h"
@@ -58,33 +58,38 @@ namespace Tac
   {
     struct KeyMap
     {
-      Keyboard::Key mKey;
+      Key mKey;
       TextInputKey  mTextInputKey;
     };
     
     const KeyMap keyMaps[] =
     {
-      { Keyboard::Key::LeftArrow, TextInputKey::LeftArrow },
-      { Keyboard::Key::RightArrow, TextInputKey::RightArrow },
-      { Keyboard::Key::Backspace, TextInputKey::Backspace },
-      { Keyboard::Key::Delete, TextInputKey::Delete },
+      { Key::LeftArrow, TextInputKey::LeftArrow },
+      { Key::RightArrow, TextInputKey::RightArrow },
+      { Key::Backspace, TextInputKey::Backspace },
+      { Key::Delete, TextInputKey::Delete },
     };
 
     for( const KeyMap& keyMap : keyMaps )
-      if( Keyboard::KeyboardIsKeyJustDown( keyMap.mKey ) )
+      if( KeyboardApi::JustPressed( keyMap.mKey ) )
         inputData->OnKeyPressed( keyMap.mTextInputKey );
 
-    if( Keyboard::KeyboardGetWMCharPressedHax() )
-      inputData->OnCodepoint( Keyboard::KeyboardGetWMCharPressedHax() );
 
-    if( Mouse::ButtonIsDown( Mouse::Button::MouseLeft ) )
+    const Span< Codepoint > codepoints = KeyboardApi::GetCodepoints();
+    for( Codepoint codepoint : codepoints )
+      inputData->OnCodepoint( codepoint );
+
+    if( KeyboardApi::JustPressed( Key::MouseLeft ) )
     {
       const int numGlyphsBeforeCaret = GetCaret( inputData->mCodepoints,
                                                  mousePos.x - textPos.x );
-      if( Mouse::ButtonWasDown( Mouse::Button::MouseLeft ) )
-        inputData->OnDrag( numGlyphsBeforeCaret );
-      else
-        inputData->OnClick( numGlyphsBeforeCaret );
+      inputData->OnClick( numGlyphsBeforeCaret );
+    }
+    else if( KeyboardApi::IsPressed( Key::MouseLeft ) )
+    {
+      const int numGlyphsBeforeCaret = GetCaret( inputData->mCodepoints,
+                                                 mousePos.x - textPos.x );
+      inputData->OnDrag( numGlyphsBeforeCaret );
     }
   }
 
@@ -133,7 +138,7 @@ namespace Tac
 
   static const v4& GetFrameColor( const bool hovered )
   {
-    const bool active = hovered && Mouse::ButtonIsDown( Mouse::Button::MouseLeft );
+    const bool active = hovered && KeyboardApi::IsPressed( Key::MouseLeft );
     const v4& boxColor = ImGuiGetColor( active ? ImGuiCol::FrameBGActive :
                                         hovered ? ImGuiCol::FrameBGHovered : ImGuiCol::FrameBG );
     return boxColor;
@@ -477,7 +482,7 @@ namespace Tac
 
   bool ImGuiIsMouseHoveringRectScreenspace( ImGuiRect rectScreenspace )
   {
-    const v2 screenspaceMousePos = Mouse::GetScreenspaceCursorPos();
+    const v2 screenspaceMousePos = KeyboardApi::GetMousePosScreenspace();
     return rectScreenspace.ContainsPoint( screenspaceMousePos );
   }
 
@@ -654,10 +659,10 @@ namespace Tac
     const bool hovered = window->IsHovered( clipRect );
     if( hovered )
     {
-      static Timestamp mouseMovementConsummation;
-      Mouse::TryConsumeMouseMovement( &mouseMovementConsummation, TAC_STACK_FRAME );
+      //static Timestamp mouseMovementConsummation;
+      //Mouse::TryConsumeMouseMovement( &mouseMovementConsummation, TAC_STACK_FRAME );
 
-      if( Mouse::ButtonJustDown( Mouse::Button::MouseLeft ) )
+      if( KeyboardApi::JustPressed( Key::MouseLeft ) )
         window->SetActiveID( id );
     }
 
@@ -687,11 +692,11 @@ namespace Tac
       // handle double click
       static Timestamp lastMouseReleaseSeconds;
       static v2 lastMousePositionDesktopWindowspace;
-      if( Mouse::ButtonJustBeenReleased ( Mouse::Button::MouseLeft ) &&
+      if( KeyboardApi::JustReleased ( Key::MouseLeft ) &&
           hovered &&
           !textInputData->mCodepoints.empty() )
       {
-        const v2 screenspaceMousePos = Mouse::GetScreenspaceCursorPos();
+        const v2 screenspaceMousePos = KeyboardApi::GetMousePosScreenspace();
         const Timestamp elapsedSecs = ImGuiGlobals::Instance.mElapsedSeconds;
         const TimestampDifference kDoubleClickSecs = 0.5f;
         const bool releasedRecently = elapsedSecs - lastMouseReleaseSeconds < kDoubleClickSecs;
@@ -759,7 +764,7 @@ namespace Tac
 
     const ImGuiRect clipRectViewport = window->Clip( origRect );
     const bool hovered = window->IsHovered( clipRectViewport );
-    const bool clicked = hovered && Mouse::ButtonJustDown( Mouse::Button::MouseLeft );
+    const bool clicked = hovered && KeyboardApi::JustPressed( Key::MouseLeft );
     if(clicked)
       window->SetActiveID( id );
 
@@ -810,8 +815,8 @@ namespace Tac
 
     if( hovered )
     {
-      static Timestamp d;
-      Mouse::TryConsumeMouseMovement( &d, TAC_STACK_FRAME );
+      //static Timestamp d;
+      //Mouse::TryConsumeMouseMovement( &d, TAC_STACK_FRAME );
     }
 
     const UI2DDrawData::Box box =
@@ -836,7 +841,7 @@ namespace Tac
     drawData->AddText( text, &clipRect );
     drawData->PopDebugGroup();
 
-    return hovered && Mouse::ButtonJustDown( Mouse::Button::MouseLeft );
+    return hovered && KeyboardApi::JustPressed( Key::MouseLeft );
   }
 
   static void ImGuiDrawCheckMark( const v2& pos, const  float boxWidth )
@@ -902,12 +907,12 @@ namespace Tac
 
     const ImGuiRect clipRect = window->Clip(origRect);
     const bool hovered = window->IsHovered( clipRect );
-    const Mouse::Button lmb = Mouse::Button::MouseLeft;
+    const Key lmb = Key::MouseLeft;
 
-    if( hovered && Mouse::ButtonJustDown( lmb ) )
+    if( hovered && KeyboardApi::JustPressed( lmb ) )
     {
       *value = !*value;
-      Mouse::ButtonSetIsDown( lmb, false );
+      //Mouse::ButtonSetIsDown( lmb, false );
     }
 
     const UI2DDrawData::Box box =
@@ -1066,7 +1071,7 @@ namespace Tac
 
     bool& isOpen = window->mCollapsingHeaderStates[ id ];
 
-    if( hovered && Mouse::ButtonJustDown( Mouse::Button::MouseLeft ) )
+    if( hovered && KeyboardApi::JustPressed( Key::MouseLeft ) )
       isOpen = !isOpen;
 
     const UI2DDrawData::Box box =

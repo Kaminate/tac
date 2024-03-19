@@ -3,7 +3,7 @@
 #include "tac-engine-core/profile/tac_profile_backend.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-std-lib/os/tac_os.h"
-#include "tac-engine-core/input/tac_keyboard_input.h"
+#include "tac-engine-core/hid/tac_keyboard_api.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui_state.h"
 #include "tac-std-lib/containers/tac_map.h"
 #include "tac-engine-core/framememory/tac_frame_memory.h"
@@ -207,7 +207,7 @@ namespace Tac
           const float boxDeltaMsec = ( float )( boxDeltaSeconds * 1000 );
 
 
-          ImGuiSetNextWindowPosition( Mouse::GetScreenspaceCursorPos() );
+          ImGuiSetNextWindowPosition( KeyboardApi::GetMousePosScreenspace() );
           ImGuiSetNextWindowSize( textSize + v2( 1, 1 ) * 50.0f );
           ImGuiBegin( "hovered" );
           ImGuiText( profileFunction->mName );
@@ -239,19 +239,19 @@ namespace Tac
       const ImGuiRect viewRect = ImGuiRect::FromPosSize( cameraViewportPos, cameraViewportSize );
       if( imguiWindow->IsHovered( viewRect ) )
       {
-        static Timestamp mouseMovement;
-        Mouse::TryConsumeMouseMovement( &mouseMovement, TAC_STACK_FRAME );
+        //static Timestamp mouseMovement;
+        //Mouse::TryConsumeMouseMovement( &mouseMovement, TAC_STACK_FRAME );
 
-        if( mouseMovement )
+        //if( mouseMovement )
         {
-          if( Mouse::ButtonIsDown( Mouse::Button::MouseLeft ) )
+          if( KeyboardApi::IsPressed( Key::MouseLeft ) )
           {
-            const float movePixels = Mouse::GetMouseDeltaPos().x;
+            const float movePixels = KeyboardApi::GetMousePosDelta().x;
             const float movePercent = movePixels / cameraViewportSize.x;
             const float moveSeconds = movePercent * ( sMilisecondsToDisplay / 1000 );
             sPauseSec -= moveSeconds;
           }
-          sMilisecondsToDisplay -= Mouse::GetMouseDeltaScroll()  * 0.4f;
+          sMilisecondsToDisplay -= KeyboardApi::GetMouseWheelDelta() * 0.4f;
         }
       }
     }

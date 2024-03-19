@@ -1,12 +1,14 @@
 #pragma once
 
+//#include "tac-std-lib/tac_core.h"
 #include "tac-engine-core/i18n/tac_localization.h"
+#include "tac-engine-core/input/tac_keyboard_key.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/math/tac_vector2.h"
 
 namespace Tac { struct StackFrame; struct Timestamp; }
 
-namespace Tac::Keyboard
+namespace Tac::HID
 {
   enum class Key
   {
@@ -26,38 +28,6 @@ namespace Tac::Keyboard
     F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12,
     Count,
   };
-
-  struct GameLogicState
-  {
-    // return number of times released;
-    int Released( Key );
-    int Pressed( Key );
-  };
-
-  struct KeyState
-  {
-    bool mIsDown = false;
-    int mToggleCount = 0;
-  };
-
-  struct GameLogicState
-  {
-    KeyState mKeyStates[ ( int )Key::Count ]{};
-  };
-
-  struct PlatformState
-  {
-    void KeyDownEvent( Key );
-    void KeyUpEvent( Key );
-    void UpdateGameLogicState( GameLogicState* );
-
-    KeyState mKeyStates[ ( int )Key::Count ]{};
-  };
-}
-
-namespace Tac
-{
-};
 
   String    ToString( Key );
 

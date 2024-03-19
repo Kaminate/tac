@@ -2,29 +2,41 @@
 
 #include "tac-std-lib/error/tac_assert.h"
 
+import std; // chrono
+
 namespace Tac
 {
+  struct true_type { static const bool value = true; };
+  struct false_type { static const bool value = true; };
+  template< typename T, typename U > struct is_same : public false_type {};
+  template< typename T >             struct is_same< T, T > : public true_type {};
+
+  static_assert( is_same< std::chrono::nanoseconds::rep, Timepoint::NanosecondDuration >::value );
+
+  // -----------------------------------------------------------------------------------------------
 
   Timepoint Timepoint::Now()
   {
-    return Timepoint{ clock::now() };
+    //       std::time_point                           std::duration      long long
+    return { std::chrono::high_resolution_clock::now().time_since_epoch().count() };
   }
 
   void Timepoint::operator -= ( TimestampDifference d )
   {
-    const double nsDouble = d.mSeconds * 1e9;
-    const nanoseconds::rep nsRep = ( nanoseconds::rep )nsDouble;
-    const nanoseconds ns( nsRep );
-    mTimePoint -= ns;
+    mTimeSinceEpoch -= ( Timepoint::NanosecondDuration )( d.mSeconds * 1e9 );
   }
+
+  Timepoint::Timepoint( NanosecondDuration ns ) { mTimeSinceEpoch = ns; }
+  Timepoint::NanosecondDuration Timepoint::TimeSinceEpoch() const { return mTimeSinceEpoch; }
 
   TimestampDifference operator - ( const Timepoint& a, const Timepoint& b )
   {
-    const Timepoint::nanoseconds c = a.mTimePoint - b.mTimePoint;
-    const Timepoint::nanoseconds::rep n = c.count();
-    const double seconds = n / 1e9;
+    const Timepoint::NanosecondDuration ns = a.TimeSinceEpoch() - b.TimeSinceEpoch();
+    const double seconds = ns / 1e9;
     return TimestampDifference{ ( float )seconds };
   }
+
+  // -----------------------------------------------------------------------------------------------
 
   void                Timer::Start()
   {
@@ -44,7 +56,5 @@ namespace Tac
 
   bool                Timer::IsRunning() const   { return mStarted; }
   Timepoint           Timer::GetLastTick() const { return mLastTick; }
-
-
 
 } // namespace Tac

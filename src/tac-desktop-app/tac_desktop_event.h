@@ -9,7 +9,7 @@
 
 #include "tac-engine-core/system/tac_desktop_window.h"
 #include "tac-engine-core/i18n/tac_localization.h"
-#include "tac-engine-core/input/tac_keyboard_input.h"
+#include "tac-engine-core/hid/tac_key.h"
 #include "tac-std-lib/string/tac_short_fixed_string.h"
 
 namespace Tac::DesktopEventApi
@@ -39,14 +39,8 @@ namespace Tac::DesktopEventApi
 
   struct KeyStateEvent
   {
-    Keyboard::Key       mKey = Keyboard::Key::Count;
-    bool                mDown = false;
-  };
-
-  struct MouseButtonStateEvent
-  {
-    Mouse::Button       mButton = Mouse::Button::Count;
-    bool                mDown = false;
+    Key  mKey = Key::Count;
+    bool mDown = false;
   };
 
   struct KeyInputEvent
@@ -56,7 +50,7 @@ namespace Tac::DesktopEventApi
 
   struct MouseWheelEvent
   {
-    int mDelta = 0;
+    float mDelta = 0;
   };
 
   struct MouseMoveEvent
@@ -70,11 +64,11 @@ namespace Tac::DesktopEventApi
   };
 
   struct WindowMoveEvent
-    {
-      DesktopWindowHandle mDesktopWindowHandle;
-      int                 mX = 0;
-      int                 mY = 0;
-    };
+  {
+    DesktopWindowHandle mDesktopWindowHandle;
+    int                 mX = 0;
+    int                 mY = 0;
+  };
 
   // -----------------------------------------------------------------------------------------------
 
@@ -84,7 +78,6 @@ namespace Tac::DesktopEventApi
     virtual void Handle( const CursorUnobscuredEvent& ) {};
     virtual void Handle( const KeyInputEvent& ) {};
     virtual void Handle( const KeyStateEvent& ) {};
-    virtual void Handle( const MouseButtonStateEvent& ) {};
     virtual void Handle( const MouseMoveEvent& ) {};
     virtual void Handle( const MouseWheelEvent& ) {};
     virtual void Handle( const WindowMoveEvent& ) {};
@@ -96,7 +89,6 @@ namespace Tac::DesktopEventApi
   void Queue( const CursorUnobscuredEvent& );
   void Queue( const KeyInputEvent& );
   void Queue( const KeyStateEvent& );
-  void Queue( const MouseButtonStateEvent& );
   void Queue( const MouseMoveEvent& );
   void Queue( const MouseWheelEvent& );
   void Queue( const WindowMoveEvent& );

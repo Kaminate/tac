@@ -1,21 +1,25 @@
 #pragma once
 
 #include "tac-engine-core/shell/tac_shell_timestamp.h"
+#include "tac-std-lib/tac_ints.h"
 
-import std; // chrono
+//import std; // chrono
 
 namespace Tac
 {
   struct Timepoint
   {
-    using clock       = std::chrono::high_resolution_clock;
-    using nanoseconds = std::chrono::nanoseconds;
-    using time_point  = std::chrono::time_point< clock, nanoseconds >;
+    using NanosecondDuration = i64;
 
-    static Timepoint Now();
+    Timepoint() = default;
+    Timepoint( NanosecondDuration );
+    NanosecondDuration TimeSinceEpoch() const;
     void operator -= ( TimestampDifference );
 
-    time_point mTimePoint;
+    static Timepoint Now();
+
+  private:
+    NanosecondDuration mTimeSinceEpoch = 0;
   };
 
   TimestampDifference operator - (const Timepoint&, const Timepoint&);

@@ -4,7 +4,7 @@
 #include "tac-desktop-app/tac_desktop_event.h"
 
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
-#include "tac-engine-core/input/tac_keyboard_input.h"
+#include "tac-engine-core/hid/tac_keyboard_api.h"
 #include "tac-engine-core/net/tac_net.h"
 #include "tac-engine-core/settings/tac_settings.h"
 

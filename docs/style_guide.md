@@ -65,5 +65,9 @@ use of auto for template fuckery is ok
 
 ---
 
+## Enums to strings
 
+Write a `StringView EnumNameToString( EnumName )` that uses a simple switch statement, with a `default: TAC_ASSERT_INVALID_CASE`. This is all temporary anyways once reflection is part of the c++ std library (hopefully).
+
+---
 

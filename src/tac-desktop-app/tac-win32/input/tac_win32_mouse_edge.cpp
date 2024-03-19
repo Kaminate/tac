@@ -5,7 +5,7 @@
 #include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-desktop-app/tac_desktop_event.h"
 #include "tac-std-lib/string/tac_string.h"
-#include "tac-engine-core/input/tac_keyboard_input.h"
+#include "tac-engine-core/hid/tac_keyboard_api.h"
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-desktop-app/tac_desktop_app.h"
 #include "tac-win32/desktopwindow/tac_win32_desktop_window_manager.h"

@@ -19,31 +19,58 @@
 #include "tac-std-lib/math/tac_math.h" // Clamp
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/containers/tac_array.h"
+#include "tac-engine-core/shell/tac_shell_timer.h"
 
 namespace Tac::DesktopEventApi
 {
 
-  // this whole keystate/protected keystae should be commentedj
-  struct KeyState
-  {
-    bool mIsDown;
 
-    // Number of times the key flipped positions, since the last time the
-    // key state was consumed
-    // For example, if the key was initially down and mToggleCount == 2,
-    // then the key was flipped up then back down again.
-    int mToggleCount;
+  using KeyStateArray = Array< KeyState, ( int )Key::Count >;
+
+  struct KeyboardInput
+  {
+
+
+    friend class KeyboardInputManager;
+
+  private:
+    KeyState& GetKeyState( Key key ) { return mKeyStateArray[ ( int )key ]; }
+    KeyStateArray mKeyStateArray;
   };
+
+  struct KeyboardInputManager
+  {
+    void Consume( KeyboardInput& giver, KeyboardInput& taker )
+    {
+    }
+
+    void UpdateKeyState( Key key, bool isDown )
+    {
+      KeyState& state = GetKeyState(key);
+      if( state.mIsDown != data.mDown )
+      {
+        state.mIsDown = data.mDown;
+        state.mToggleCount++;
+        state.mDownTimepoint = isDown ? Timepoint::Now() : Timepoint();
+      }
+    }
+
+    KeyboardInput mKeyboardInputPlatform;
+    KeyboardInput mKeybaordInputPlatformSaved;
+    KeyboardInput mKeyboardInputGameLogic;
+    std::mutex mKeyboardInputPlatformSavedMutex;
+  } sKeyboardInputManager;
+
   
-  static KeyState sKeyStates[ ( int )Keyboard::Key::Count ];
+  static KeyState sKeyStates[ ( int )Key::Count ];
 
 
   static std::mutex sSavedKeyStateMutex;
-  static Array< KeyState, ( int )Keyboard::Key::Count > sSavedKeyStates;
+  static Array< KeyState, ( int )Key::Count > sSavedKeyStates;
 
   struct GameLogicKeyStates
   {
-    Array< KeyState, ( int )Keyboard::Key::Count > mSavedKeyStates;
+    Array< KeyState, ( int )Key::Count > mSavedKeyStates;
   };
 
   // the platform thread saves this
@@ -51,7 +78,7 @@ namespace Tac::DesktopEventApi
   {
     TAC_SCOPE_GUARD( std::lock_guard, sSavedKeyStateMutex );
 
-    for( int i = 0; i < ( int )Keyboard::Key::Count; ++i )
+    for( int i = 0; i < ( int )Key::Count; ++i )
     {
       KeyState& keyState = sKeyStates[ i ];
       KeyState& savedKeyState = sSavedKeyStates[ i ];
@@ -77,9 +104,9 @@ namespace Tac::DesktopEventApi
   {
     // the saved key state contains everything that happened since the last time it was consumed
     TAC_SCOPE_GUARD( std::lock_guard, sSavedKeyStateMutex );
-    for( int i = 0; i < ( int )Keyboard::Key::Count; ++i )
+    for( int i = 0; i < ( int )Key::Count; ++i )
     {
-      for( int i = 0; i < ( int )Keyboard::Key::Count; ++i )
+      for( int i = 0; i < ( int )Key::Count; ++i )
       {
         KeyState& savedKeyStateEater = states->mSavedKeyStates[ i ];
         KeyState& savedKeyStateEaten = sSavedKeyStates[ i ];
@@ -135,12 +162,12 @@ namespace Tac::DesktopEventApi
     // --------------------------------------------------------------
     void Handle( const KeyInputEvent& data ) override
     {
-      Keyboard::KeyboardSetWMCharPressedHax( data.mCodepoint );
+      KeyboardSetWMCharPressedHax( data.mCodepoint );
     }
 
     void Handle( const KeyStateEvent& data ) override
     {
-      //Keyboard::KeyboardSetIsKeyDown( data.mKey, data.mDown );
+      //KeyboardSetIsKeyDown( data.mKey, data.mDown );
       KeyState& state = sKeyStates[ ( int )data.mKey ];
       if( state.mIsDown != data.mDown )
       {

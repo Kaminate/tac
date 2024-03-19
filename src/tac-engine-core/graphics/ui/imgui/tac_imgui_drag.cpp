@@ -4,7 +4,7 @@
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-engine-core/graphics/ui/tac_ui_2d.h"
-#include "tac-engine-core/input/tac_keyboard_input.h"
+#include "tac-engine-core/hid/tac_keyboard_api.h"
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-engine-core/graphics/ui/tac_text_edit.h"
 
@@ -70,11 +70,11 @@ namespace Tac
     const v2 valuePos = pos + v2( buttonPadding, 0 );
     const bool hovered = window->IsHovered( clipRect );
 
-    static Timestamp consumeMouse;
-    if( hovered )
-      Mouse::TryConsumeMouseMovement( &consumeMouse, TAC_STACK_FRAME );
+    //static Timestamp consumeMouse;
+    //if( hovered )
+    //  Mouse::TryConsumeMouseMovement( &consumeMouse, TAC_STACK_FRAME );
 
-    if( hovered && Mouse::ButtonJustDown( Mouse::Button::MouseLeft ) )
+    if( hovered && KeyboardApi::JustPressed( Key::MouseLeft ) )
       window->SetActiveID( id );
 
 
@@ -84,39 +84,35 @@ namespace Tac
     {
       if( dragFloatData->mMode == DragMode::Drag )
       {
-        v2 screenspaceMousePos = Mouse::GetScreenspaceCursorPos();
+        v2 screenspaceMousePos = KeyboardApi::GetMousePosScreenspace();
         static float lastMouseXDesktopWindowspace;
 
 
-        if( Mouse::ButtonIsDown( Mouse::Button::MouseLeft ) )
+        if( KeyboardApi::JustPressed( Key::MouseLeft ) )
         {
-          if( Mouse::ButtonJustDown( Mouse::Button::MouseLeft ) )
+          lastMouseXDesktopWindowspace = screenspaceMousePos.x;
+          dragFloatData->mDragDistPx = 0;
+          MemCpy( dragFloatData->mValueCopy, valueBytes, valueByteCount );
+        }
+        else if ( KeyboardApi::IsPressed( Key::MouseLeft ) )
+        {
+          const v2 desktopWindowPos = window->GetDesktopWindowState()->GetPosV2();
+          const v2 viewportSpaceMousePos = screenspaceMousePos - desktopWindowPos;
+
+          float moveCursorDir = 0;
+          moveCursorDir = viewportSpaceMousePos.x > clipRect.mMaxi.x ? -1 : moveCursorDir;
+          moveCursorDir = viewportSpaceMousePos.x < clipRect.mMini.x ? 1 : moveCursorDir;
+          if( moveCursorDir )
           {
-            lastMouseXDesktopWindowspace = screenspaceMousePos.x;
-            dragFloatData->mDragDistPx = 0;
-            MemCpy( dragFloatData->mValueCopy, valueBytes, valueByteCount );
+            Errors errors;
+            screenspaceMousePos.x += moveCursorDir * clipRect.GetWidth();
+            OS::OSSetScreenspaceCursorPos( screenspaceMousePos, errors );
           }
-
-          if( Mouse::ButtonWasDown( Mouse::Button::MouseLeft ) )
+          else
           {
-            const v2 desktopWindowPos = window->GetDesktopWindowState()->GetPosV2();
-            const v2 viewportSpaceMousePos = screenspaceMousePos - desktopWindowPos;
-
-            float moveCursorDir = 0;
-            moveCursorDir = viewportSpaceMousePos.x > clipRect.mMaxi.x ? -1 : moveCursorDir;
-            moveCursorDir = viewportSpaceMousePos.x < clipRect.mMini.x ? 1 : moveCursorDir;
-            if( moveCursorDir )
-            {
-              Errors errors;
-              screenspaceMousePos.x += moveCursorDir * clipRect.GetWidth();
-              OS::OSSetScreenspaceCursorPos( screenspaceMousePos, errors );
-            }
-            else
-            {
-              dragFloatData->mDragDistPx += screenspaceMousePos.x - lastMouseXDesktopWindowspace;
-              mouseHandler( dragFloatData->mDragDistPx, dragFloatData->mValueCopy, valueBytes );
-              changed = true;
-            }
+            dragFloatData->mDragDistPx += screenspaceMousePos.x - lastMouseXDesktopWindowspace;
+            mouseHandler( dragFloatData->mDragDistPx, dragFloatData->mValueCopy, valueBytes );
+            changed = true;
           }
         }
 
@@ -125,7 +121,7 @@ namespace Tac
         // handle double click
         static Timestamp lastMouseReleaseSeconds;
         static v2 lastMousePositionDesktopWindowspace;
-        if( Mouse::ButtonJustBeenReleased( Mouse::Button::MouseLeft ) && hovered )
+        if( KeyboardApi::JustReleased( Key::MouseLeft ) && hovered )
         {
           const Timestamp mouseReleaseSeconds = ImGuiGlobals::Instance.mElapsedSeconds;
           const TimestampDifference kDoubleClickSecs = 0.5f;
@@ -163,7 +159,7 @@ namespace Tac
           valueStr = newText;
 
           // tab between x,y,z for imguidragfloat3
-          if( Keyboard::KeyboardIsKeyJustDown( Keyboard::Key::Tab ) )
+          if( KeyboardApi::JustPressed( Key::Tab ) )
             window->mIDAllocator->mActiveID++;
         }
       }

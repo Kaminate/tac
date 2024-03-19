@@ -84,7 +84,7 @@ namespace Tac
       TAC_PROFILE_BLOCK_NAMED( "frame" );
       DesktopEventApi::Apply();
 
-      Keyboard::KeyboardBeginFrame();
+      KeyboardBeginFrame();
       Mouse::MouseBeginFrame();
 
       //const BeginFrameData data =
@@ -100,7 +100,7 @@ namespace Tac
 
       //TAC_CALL( ImGuiEndFrame( errors ) );
 
-      Keyboard::KeyboardEndFrame();
+      KeyboardEndFrame();
       Mouse::MouseEndFrame();
 
       App::IState* gameState = mApp->GetGameState();

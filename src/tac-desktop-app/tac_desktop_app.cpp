@@ -11,7 +11,7 @@
 #include "tac-engine-core/graphics/ui/tac_font.h"
 #include "tac-engine-core/graphics/ui/tac_ui_2d.h"
 #include "tac-engine-core/input/tac_controller_input.h"
-#include "tac-engine-core/input/tac_keyboard_input.h"
+#include "tac-engine-core/hid/tac_keyboard_api.h"
 #include "tac-std-lib/math/tac_math.h" // Max
 #include "tac-engine-core/framememory/tac_frame_memory.h"
 #include "tac-engine-core/net/tac_net.h"

@@ -13,7 +13,6 @@ namespace Tac
     CursorUnobscured,
     KeyInput,
     KeyState,
-    MouseButtonState,
     MouseMove,
     MouseWheel,
     WindowAssignHandle,
@@ -100,7 +99,6 @@ namespace Tac
   void DesktopEventApi::Queue( const CursorUnobscuredEvent& data ) { sEventQueue.QueuePush( DesktopEventType::CursorUnobscured,   &data, sizeof( CursorUnobscuredEvent ) ); }
   void DesktopEventApi::Queue( const KeyInputEvent& data )         { sEventQueue.QueuePush( DesktopEventType::KeyInput,           &data, sizeof( KeyInputEvent ) ); }
   void DesktopEventApi::Queue( const KeyStateEvent& data )         { sEventQueue.QueuePush( DesktopEventType::KeyState,           &data, sizeof( KeyStateEvent ) ); }
-  void DesktopEventApi::Queue( const MouseButtonStateEvent& data ) { sEventQueue.QueuePush( DesktopEventType::MouseButtonState,   &data, sizeof( MouseButtonStateEvent ) ); }
   void DesktopEventApi::Queue( const MouseMoveEvent& data )        { sEventQueue.QueuePush( DesktopEventType::MouseMove,          &data, sizeof( MouseMoveEvent ) ); }
   void DesktopEventApi::Queue( const MouseWheelEvent& data )       { sEventQueue.QueuePush( DesktopEventType::MouseWheel,         &data, sizeof( MouseWheelEvent ) ); }
   void DesktopEventApi::Queue( const WindowMoveEvent& data )       { sEventQueue.QueuePush( DesktopEventType::WindowMove,         &data, sizeof( WindowMoveEvent ) ); }
@@ -117,7 +115,6 @@ namespace Tac
       case DesktopEventType::CursorUnobscured:   sHandler->Handle( sEventQueue.QueuePop<CursorUnobscuredEvent>() ); break;
       case DesktopEventType::KeyInput:           sHandler->Handle( sEventQueue.QueuePop<KeyInputEvent>() );         break;
       case DesktopEventType::KeyState:           sHandler->Handle( sEventQueue.QueuePop<KeyStateEvent>() );         break;
-      case DesktopEventType::MouseButtonState:   sHandler->Handle( sEventQueue.QueuePop<MouseButtonStateEvent>() ); break;
       case DesktopEventType::MouseMove:          sHandler->Handle( sEventQueue.QueuePop<MouseMoveEvent>() );        break;
       case DesktopEventType::MouseWheel:         sHandler->Handle( sEventQueue.QueuePop<MouseWheelEvent>() );       break;
       case DesktopEventType::WindowAssignHandle: sHandler->Handle( sEventQueue.QueuePop<AssignHandleEvent>() );     break;
