@@ -121,7 +121,7 @@ namespace Tac
         // handle double click
         static Timestamp lastMouseReleaseSeconds;
         static v2 lastMousePositionDesktopWindowspace;
-        if( KeyboardApi::JustReleased( Key::MouseLeft ) && hovered )
+        if( KeyboardApi::JustDepressed( Key::MouseLeft ) && hovered )
         {
           const Timestamp mouseReleaseSeconds = ImGuiGlobals::Instance.mElapsedSeconds;
           const TimestampDifference kDoubleClickSecs = 0.5f;

@@ -12,7 +12,7 @@ namespace Tac
     static bool                IsPressed( Key );
     static bool                IsDepressed( Key );
     static bool                JustPressed( Key );
-    static bool                JustReleased( Key );
+    static bool                JustDepressed( Key );
 
     // This function returns a float instead of TimestampDifference
     // because it is a difference of Tac.Timepoint and not Tac.Timestamp.

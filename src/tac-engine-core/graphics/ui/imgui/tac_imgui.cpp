@@ -692,7 +692,7 @@ namespace Tac
       // handle double click
       static Timestamp lastMouseReleaseSeconds;
       static v2 lastMousePositionDesktopWindowspace;
-      if( KeyboardApi::JustReleased ( Key::MouseLeft ) &&
+      if( KeyboardApi::JustDepressed ( Key::MouseLeft ) &&
           hovered &&
           !textInputData->mCodepoints.empty() )
       {
