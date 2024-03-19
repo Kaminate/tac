@@ -29,21 +29,21 @@ if( WIN32 )
                                VS_SETTINGS "ExcludedFromBuild=true" )
 endif()
 
-
 add_subdirectory( assetmanagers )
 add_subdirectory( framememory )
 add_subdirectory( graphics )
-add_subdirectory( i18n )
 add_subdirectory( hid )
+add_subdirectory( i18n )
+add_subdirectory( job )
 add_subdirectory( net )
+add_subdirectory( platform )
 add_subdirectory( profile )
 add_subdirectory( settings )
 add_subdirectory( shell )
-add_subdirectory( system )
-add_subdirectory( thirdparty )
-
-add_subdirectory( tac-std-lib )
 add_subdirectory( tac-rhi )
+add_subdirectory( tac-std-lib )
+add_subdirectory( thirdparty )
+add_subdirectory( window )
 
 target_link_libraries( TacEngineCore
   TacRHI  

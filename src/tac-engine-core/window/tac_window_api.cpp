@@ -15,7 +15,8 @@ namespace Tac
     int                       mY = 0;
     int                       mWidth = 0;
     int                       mHeight = 0;
-    const void*               mNativeWindowHandle = nullptr;
+    //const void*               mNativeWindowHandle = nullptr;
+    bool                      mShown = false;
     String                    mName;
   };
 
