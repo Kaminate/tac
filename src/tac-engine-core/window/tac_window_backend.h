@@ -8,6 +8,7 @@
 #include "tac-std-lib/containers/tac_array.h"
 
 #include "tac-engine-core/window/tac_window_api.h"
+#include "tac-rhi/render3/tac_render_api.h"
 
 namespace Tac { struct Errors; }
 namespace Tac::WindowBackend
@@ -47,6 +48,7 @@ namespace Tac::WindowBackend
 
   void PlatformApplyRequests( Errors& );
   const void* GetNativeWindowHandle( WindowHandle );
+  
 
 
   // -----------------------------------------------------------------------------------------------
