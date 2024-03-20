@@ -96,7 +96,10 @@ namespace Tac
         }
         else if ( KeyboardApi::IsPressed( Key::MouseLeft ) )
         {
-          const v2 desktopWindowPos = window->GetDesktopWindowState()->GetPosV2();
+          WindowHandle windowHandle = window->GetWindowHandle();
+          const v2 desktopWindowPos( ( float )windowHandle.GetX(),
+                                     ( float )windowHandle.GetY() );
+          //const v2 desktopWindowPos = window->GetDesktopWindowState()->GetPosV2();
           const v2 viewportSpaceMousePos = screenspaceMousePos - desktopWindowPos;
 
           float moveCursorDir = 0;

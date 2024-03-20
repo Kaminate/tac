@@ -6,7 +6,7 @@
 #include "tac-std-lib/string/tac_string_identifier.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/filesystem/tac_filesystem.h"
-#include "tac-engine-core/system/tac_job_queue.h"
+#include "tac-engine-core/job/tac_job_queue.h"
 #include "tac-engine-core/assetmanagers/gltf/tac_gltf.h"
 
 namespace Tac

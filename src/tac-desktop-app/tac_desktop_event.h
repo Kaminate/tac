@@ -26,17 +26,17 @@ namespace Tac::DesktopEventApi
 
   struct WindowDestroyEvent
   {
-    WindowHandle mDesktopWindowHandle;
+    WindowHandle mWindowHandle;
   };
 
   struct CursorUnobscuredEvent
   {
-    WindowHandle mDesktopWindowHandle;
+    WindowHandle mWindowHandle;
   };
 
   struct WindowResizeEvent
   {
-    WindowHandle mDesktopWindowHandle;
+    WindowHandle mWindowHandle;
     int                 mWidth = 0;
     int                 mHeight = 0;
   };
@@ -60,7 +60,7 @@ namespace Tac::DesktopEventApi
   struct MouseMoveEvent
   {
     // Window that the mouse moved over (?)
-    WindowHandle mDesktopWindowHandle;
+    WindowHandle mWindowHandle;
 
     // Position of the mouse relative to the top left corner of the window
     int                 mX = 0;
@@ -69,7 +69,7 @@ namespace Tac::DesktopEventApi
 
   struct WindowMoveEvent
   {
-    WindowHandle mDesktopWindowHandle;
+    WindowHandle mWindowHandle;
     int                 mX = 0;
     int                 mY = 0;
   };

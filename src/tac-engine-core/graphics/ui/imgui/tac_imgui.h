@@ -7,7 +7,7 @@
 #include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-engine-core/i18n/tac_localization.h" // Codepoint
 #include "tac-std-lib/containers/tac_vector.h"
-#include "tac-engine-core/system/tac_desktop_window.h" // DesktopWindowHandle
+#include "tac-engine-core/window/tac_window_api.h" // WindowHandle
 
 
 namespace Tac
@@ -17,7 +17,7 @@ namespace Tac
   struct ImGuiDesktopWindow
   {
     virtual ~ImGuiDesktopWindow() = default;
-    DesktopWindowHandle mDesktopWindowHandle;
+    WindowHandle mWindowHandle;
   };
 
   // +--> x
@@ -100,7 +100,7 @@ namespace Tac
   struct BeginFrameData
   {
     Timestamp                  mElapsedSeconds;
-    const DesktopWindowHandle& mMouseHoveredWindow;
+    const WindowHandle& mMouseHoveredWindow;
   };
 
   struct ImGuiCreateWindowParams
@@ -109,10 +109,10 @@ namespace Tac
     v2 mSize;
   };
 
-  using ImGuiSetWindowPos = void( * )( DesktopWindowHandle, v2 );
-  using ImGuiSetWindowSize = void( * )( DesktopWindowHandle, v2 );
-  using ImGuiCreateWindow = DesktopWindowHandle( * )( const ImGuiCreateWindowParams& );
-  using ImGuiDestroyWindow = void ( * )( const DesktopWindowHandle& );
+  using ImGuiSetWindowPos = void( * )( WindowHandle, v2 );
+  using ImGuiSetWindowSize = void( * )( WindowHandle, v2 );
+  using ImGuiCreateWindow = WindowHandle( * )( const ImGuiCreateWindowParams& );
+  using ImGuiDestroyWindow = void ( * )( const WindowHandle& );
 
   struct ImGuiInitParams
   {
@@ -150,13 +150,13 @@ namespace Tac
   void ImGuiIndent();
   void ImGuiUnindent();
 
-	DesktopWindowHandle ImGuiGetWindowHandle();
+	WindowHandle ImGuiGetWindowHandle();
 
   //   ImGuiSetNextWindow...
 	void ImGuiSetNextWindowMoveResize();
 	void ImGuiSetNextWindowPosition( v2 );
 	void ImGuiSetNextWindowStretch();
-	void ImGuiSetNextWindowHandle( const DesktopWindowHandle& );
+	void ImGuiSetNextWindowHandle( const WindowHandle& );
   void ImGuiSetNextWindowSize( v2 );
   void ImGuiSetNextWindowDisableBG();
 

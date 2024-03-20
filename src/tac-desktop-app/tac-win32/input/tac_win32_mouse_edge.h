@@ -7,12 +7,12 @@
 
 #include "tac-win32/tac_win32.h"
 
-namespace Tac { struct DesktopWindowHandle; struct DesktopWindowRect; }
+namespace Tac { struct WindowHandle; struct DesktopWindowRect; }
 namespace Tac
 {
   void Win32MouseEdgeInit();
   void Win32MouseEdgeUpdate();
-  void Win32MouseEdgeSetMovable( const DesktopWindowHandle&, const DesktopWindowRect& );
-  void Win32MouseEdgeSetResizable( const DesktopWindowHandle&, int );
-  DesktopWindowHandle Win32MouseEdgeGetCursorHovered();
+  void Win32MouseEdgeSetMovable( const WindowHandle&, const DesktopWindowRect& );
+  void Win32MouseEdgeSetResizable( const WindowHandle&, int );
+  WindowHandle Win32MouseEdgeGetCursorHovered();
 }

@@ -1,6 +1,6 @@
 #include "tac_desktop_window_move.h"
 
-#include "tac-engine-core/system/tac_desktop_window.h"
+#include "tac-engine-core/window/tac_window_api.h"
 #include "tac-engine-core/system/tac_platform.h"
 
 namespace Tac
@@ -20,8 +20,8 @@ void Tac::DesktopAppUpdateMove()
 
   for( int i = 0; i < kDesktopWindowCapacity; ++i )
   {
-    const DesktopWindowHandle desktopWindowHandle = { i };
-    if( !desktopWindowHandle.GetDesktopWindowNativeHandle() )
+    const WindowHandle WindowHandle = { i };
+    if( !WindowHandle.GetDesktopWindowNativeHandle() )
       continue;
 
     const RequestMove* requestMove = &sRequestMove[ i ];
@@ -29,26 +29,26 @@ void Tac::DesktopAppUpdateMove()
       continue;
 
     const DesktopWindowRect desktopWindowRect = requestMove->mRect.IsEmpty()
-      ?  desktopWindowHandle.GetDesktopWindowRectWindowspace() 
+      ?  WindowHandle.GetDesktopWindowRectWindowspace() 
       : requestMove->mRect;
 
-    sPlatformFns->PlatformWindowMoveControls( desktopWindowHandle, desktopWindowRect );
+    sPlatformFns->PlatformWindowMoveControls( WindowHandle, desktopWindowRect );
     sRequestMove[ i ] = RequestMove();
   }
 }
 
 
-void                Tac::DesktopAppImplMoveControls( const DesktopWindowHandle& desktopWindowHandle,
+void                Tac::DesktopAppImplMoveControls( const WindowHandle& WindowHandle,
                                                      const DesktopWindowRect& rect )
 {
-  sRequestMove[ desktopWindowHandle.GetIndex() ] = RequestMove
+  sRequestMove[ WindowHandle.GetIndex() ] = RequestMove
   {
     .mRequested = true,
     .mRect = rect,
   };
 }
 
-void                Tac::DesktopAppImplMoveControls( const DesktopWindowHandle& desktopWindowHandle )
+void                Tac::DesktopAppImplMoveControls( const WindowHandle& WindowHandle )
 {
-  sRequestMove[ desktopWindowHandle.GetIndex() ].mRequested = true;
+  sRequestMove[ WindowHandle.GetIndex() ].mRequested = true;
 }

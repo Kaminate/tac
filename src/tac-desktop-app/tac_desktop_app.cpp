@@ -25,8 +25,8 @@
 #include "tac-engine-core/settings/tac_settings.h"
 #include "tac-engine-core/shell/tac_shell.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
-#include "tac-engine-core/system/tac_desktop_window.h"
-#include "tac-engine-core/system/tac_desktop_window_graphics.h"
+#include "tac-engine-core/window/tac_window_api.h"
+#include "tac-engine-core/window/tac_window_api_graphics.h"
 #include "tac-engine-core/system/tac_platform.h"
 
 #include "tac-std-lib/containers/tac_fixed_vector.h"
@@ -148,31 +148,31 @@ namespace Tac
     UpdateTrackedWindows();
   }
 
-  //void                DesktopApp::ResizeControls( const DesktopWindowHandle& desktopWindowHandle,
+  //void                DesktopApp::ResizeControls( const WindowHandle& WindowHandle,
   //                                                int edgePx )
   //{
-  //  DesktopAppImplResizeControls( desktopWindowHandle, edgePx );
+  //  DesktopAppImplResizeControls( WindowHandle, edgePx );
   //}
 
-  //void                DesktopApp::MoveControls( const DesktopWindowHandle& desktopWindowHandle,
+  //void                DesktopApp::MoveControls( const WindowHandle& WindowHandle,
   //                                              const DesktopWindowRect& rect )
   //{
-  //  DesktopAppImplMoveControls( desktopWindowHandle, rect );
+  //  DesktopAppImplMoveControls( WindowHandle, rect );
   //}
 
-  //void                DesktopApp::MoveControls( const DesktopWindowHandle& desktopWindowHandle )
+  //void                DesktopApp::MoveControls( const WindowHandle& WindowHandle )
   //{
-  //  DesktopAppImplMoveControls( desktopWindowHandle );
+  //  DesktopAppImplMoveControls( WindowHandle );
   //}
 
-  //DesktopWindowHandle DesktopApp::CreateWindow( const DesktopAppCreateWindowParams& desktopParams )
+  //WindowHandle DesktopApp::CreateWindow( const DesktopAppCreateWindowParams& desktopParams )
   //{
   //  return DesktopAppImplCreateWindow( desktopParams );
   //}
 
-  //void                DesktopApp::DestroyWindow( const DesktopWindowHandle& desktopWindowHandle )
+  //void                DesktopApp::DestroyWindow( const WindowHandle& WindowHandle )
   //{
-  //  return DesktopAppImplDestroyWindow(desktopWindowHandle);
+  //  return DesktopAppImplDestroyWindow(WindowHandle);
   //}
 
 
@@ -180,7 +180,7 @@ namespace Tac
   static void         DesktopAppDebugImGuiHoveredWindow()
   {
     PlatformFns* platform = PlatformFns::GetInstance();
-    const DesktopWindowHandle hoveredHandle = platform->PlatformGetMouseHoveredWindow();
+    const WindowHandle hoveredHandle = platform->PlatformGetMouseHoveredWindow();
     const DesktopWindowState* hovered = hoveredHandle.GetDesktopWindowState();
     if( !hovered )
     {

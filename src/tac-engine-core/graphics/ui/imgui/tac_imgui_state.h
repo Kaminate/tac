@@ -10,7 +10,7 @@
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/string/tac_string_view.h"
-#include "tac-engine-core/system/tac_desktop_window.h"
+#include "tac-engine-core/window/tac_window_api.h"
 #include "tac-std-lib/containers/tac_map.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-rhi/render/tac_render_handles.h" // DynamicBufferHandle2
@@ -78,8 +78,8 @@ namespace Tac
     void                          PushXOffset();
 
     float                         GetRemainingWidth() const;
-    DesktopWindowHandle           GetDesktopWindowHandle() const;
-    const DesktopWindowState*     GetDesktopWindowState() const;
+    WindowHandle                  GetWindowHandle() const;
+    //const DesktopWindowState*     GetDesktopWindowState() const;
 
 
     String                        mName;
@@ -124,7 +124,7 @@ namespace Tac
     struct UI2DDrawData*          mDrawData = nullptr;
 
     ImGuiDesktopWindow*           mDesktopWindow;
-    bool                          mDesktopWindowHandleOwned = false;
+    bool                          mWindowHandleOwned = false;
 
     //                            [ ] Q: What does this parameter do
     bool                          mStretchWindow = false;
@@ -176,7 +176,7 @@ namespace Tac
 
     ImGuiMouseCursor                  mMouseCursor = ImGuiMouseCursor::kNone;
     ImGuiWindow*                      FindWindow( const StringView& name );
-    ImGuiDesktopWindowImpl*           FindDesktopWindow( DesktopWindowHandle );
+    ImGuiDesktopWindowImpl*           FindDesktopWindow( WindowHandle );
 
     Timestamp                         mElapsedSeconds;
     Vector< ImGuiWindow* >            mAllWindows;
@@ -185,7 +185,7 @@ namespace Tac
     ImGuiWindow*                      mCurrentWindow = nullptr;
     Vector< float >                   mFontSizeSK; // wtf does sk stand for?
     UIStyle                           mUIStyle;
-    DesktopWindowHandle               mMouseHoveredWindow;
+    WindowHandle               mMouseHoveredWindow;
     bool                              mScrollBarEnabled = true;
     int                               mMaxGpuFrameCount{};
     ImGuiSetWindowPos                 mSetWindowPos{};
@@ -198,7 +198,7 @@ namespace Tac
   {
     v2                            mPosition = {};
     v2                            mSize = {};
-		DesktopWindowHandle           mDesktopWindowHandle;
+		WindowHandle           mWindowHandle;
     bool                          mStretch = false;
     bool                          mMoveResize = false;
     bool                          mEnableBG = true; // Set false to disable background render

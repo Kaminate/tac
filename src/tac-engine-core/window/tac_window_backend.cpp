@@ -160,7 +160,7 @@ namespace Tac
       sFreeHandles.pop_back();
     }
 
-    const CreateRequest request
+    const SimWindowCreate request
     {
       .mHandle = WindowHandle{ i },
       .mName = params.mName,

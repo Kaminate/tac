@@ -1,7 +1,7 @@
 #pragma once
 
 #include "tac-engine-core/hid/tac_keyboard_api.h"
-#include "tac-engine-core/system/tac_desktop_window.h"
+#include "tac-engine-core/window/tac_window_api.h"
 #include "tac-std-lib/containers/tac_list.h"
 #include "tac-desktop-app/tac_iapp.h"
 
@@ -32,13 +32,13 @@ namespace Tac
   {
     void                Init( Errors& );
     void                Run( Errors& );
-    //DesktopWindowHandle CreateWindow( const DesktopAppCreateWindowParams& );
-    //void                DestroyWindow( const DesktopWindowHandle& );
+    //WindowHandle CreateWindow( const DesktopAppCreateWindowParams& );
+    //void                DestroyWindow( const WindowHandle& );
     void                Update( Errors& );
-    //void                ResizeControls( const DesktopWindowHandle&, int edgePx = 7 );
-    //void                MoveControls( const DesktopWindowHandle&,
+    //void                ResizeControls( const WindowHandle&, int edgePx = 7 );
+    //void                MoveControls( const WindowHandle&,
     //                                  const DesktopWindowRect& );
-    //void                MoveControls( const DesktopWindowHandle& );
+    //void                MoveControls( const WindowHandle& );
     void                DebugImGui( Errors& );
     static DesktopApp*  GetInstance();
   };

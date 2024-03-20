@@ -92,7 +92,7 @@ namespace Tac
   //    }
   //    return nullptr;
   //  }
-  //  void SDLApp::SpawnWindow( DesktopWindowHandle handle,
+  //  void SDLApp::SpawnWindow( WindowHandle handle,
   //                            int x,
   //                            int y,
   //                            int width,
@@ -158,7 +158,7 @@ namespace Tac
     TAC_CRITICAL_ERROR_UNIMPLEMENTED;
   }
 
-  void                SDLPlatformSpawnWindow( const DesktopWindowHandle&,
+  void                SDLPlatformSpawnWindow( const WindowHandle&,
                                               int x,
                                               int y,
                                               int width,
@@ -167,25 +167,25 @@ namespace Tac
     TAC_CRITICAL_ERROR_UNIMPLEMENTED;
   }
 
-  void                SDLPlatformDespawnWindow( const DesktopWindowHandle& )
+  void                SDLPlatformDespawnWindow( const WindowHandle& )
   {
     TAC_CRITICAL_ERROR_UNIMPLEMENTED;
   }
 
-  void                SDLPlatformWindowMoveControls( const DesktopWindowHandle&, const DesktopWindowRect& )
+  void                SDLPlatformWindowMoveControls( const WindowHandle&, const DesktopWindowRect& )
   {
     TAC_CRITICAL_ERROR_UNIMPLEMENTED;
   }
 
-  void                SDLPlatformWindowResizeControls( const DesktopWindowHandle&, int )
+  void                SDLPlatformWindowResizeControls( const WindowHandle&, int )
   {
     TAC_CRITICAL_ERROR_UNIMPLEMENTED;
   }
 
-  DesktopWindowHandle SDLPlatformGetMouseHoveredWindow()
+  WindowHandle SDLPlatformGetMouseHoveredWindow()
   {
     TAC_CRITICAL_ERROR_UNIMPLEMENTED;
-    return DesktopWindowHandle();
+    return WindowHandle();
   }
 
 

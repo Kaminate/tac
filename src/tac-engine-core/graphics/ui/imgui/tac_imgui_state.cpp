@@ -15,7 +15,7 @@
 #include "tac-std-lib/os/tac_os.h"
 
 // This is a shell include, how is it in tac/src/common?
-#include "tac-engine-core/system/tac_desktop_window_graphics.h"
+//#include "tac-engine-core/window/tac_window_api_graphics.h"
 
 namespace Tac
 {
@@ -209,7 +209,7 @@ namespace Tac
     mViewportSpacePos = mParent ? mParent->mViewportSpaceCurrCursor : mViewportSpacePos;
 
     if( const bool drawWindow = mEnableBG
-        && ( mParent || mStretchWindow || mDesktopWindowHandleOwned ) )
+        && ( mParent || mStretchWindow || mWindowHandleOwned ) )
     {
       const ImGuiRect origRect = ImGuiRect::FromPosSize( mViewportSpacePos, mSize );
       if( Overlaps( origRect ) )
@@ -249,7 +249,7 @@ namespace Tac
     {
       mIDAllocator = mParent->mIDAllocator;
       mDesktopWindow = mParent->mDesktopWindow;
-      mDesktopWindowHandleOwned = false;
+      mWindowHandleOwned = false;
     }
     else
     {
@@ -314,13 +314,15 @@ namespace Tac
 
   bool ImGuiWindow::IsHovered( const ImGuiRect& rectViewport )
   {
-    const DesktopWindowHandle mouseHoveredWindow = ImGuiGlobals::Instance.mMouseHoveredWindow;
-    const DesktopWindowHandle desktopWindowHandle = GetDesktopWindowHandle();
-    return
-      mouseHoveredWindow.IsValid() &&
-      desktopWindowHandle.IsValid() &&
-      mouseHoveredWindow == desktopWindowHandle &&
-      rectViewport.ContainsPoint( GetMousePosViewport() );
+    const WindowHandle mouseHoveredWindow = ImGuiGlobals::Instance.mMouseHoveredWindow;
+    if( !mouseHoveredWindow.IsValid() )
+      return false;
+
+    const WindowHandle windowHandle = GetWindowHandle();
+    if( mouseHoveredWindow.GetIndex() != windowHandle.GetIndex() )
+      return false;
+
+    return rectViewport.ContainsPoint( GetMousePosViewport() );
   }
 
   void ImGuiWindow::PushXOffset()
@@ -333,19 +335,21 @@ namespace Tac
     return mViewportSpaceVisibleRegion.mMaxi.x - mViewportSpaceCurrCursor.x;
   }
 
-  DesktopWindowHandle           ImGuiWindow::GetDesktopWindowHandle() const
+  WindowHandle           ImGuiWindow::GetWindowHandle() const
   {
-    return mDesktopWindow->mDesktopWindowHandle;
+    return mDesktopWindow->mWindowHandle;
   }
 
-  const DesktopWindowState* ImGuiWindow::GetDesktopWindowState() const
-  {
-    return GetDesktopWindowHandle().GetDesktopWindowState();
-  }
+  //const DesktopWindowState* ImGuiWindow::GetDesktopWindowState() const
+  //{
+  //  return GetWindowHandle().GetDesktopWindowState();
+  //}
 
   v2 ImGuiWindow::GetMousePosViewport()
   {
-    return KeyboardApi::GetMousePosScreenspace() - GetDesktopWindowState()->GetPosV2();
+    const v2 mouseScreenspace = KeyboardApi::GetMousePosScreenspace();
+    const v2 windowScreenspace = mDesktopWindow->mWindowHandle.GetPosf();
+    return mouseScreenspace - windowScreenspace;
   }
 
   void* ImGuiWindow::GetWindowResource( ImGuiIndex index )
@@ -366,10 +370,10 @@ namespace Tac
     return resource.mData.data();
   }
 
-  ImGuiDesktopWindowImpl* ImGuiGlobals::FindDesktopWindow( DesktopWindowHandle h )
+  ImGuiDesktopWindowImpl* ImGuiGlobals::FindDesktopWindow( WindowHandle h )
   {
     for( ImGuiDesktopWindowImpl* impl : mDesktopWindows )
-      if( impl->mDesktopWindowHandle == h )
+      if( impl->mWindowHandle.GetIndex() == h.GetIndex() )
         return impl;
 
     return nullptr;
@@ -475,7 +479,7 @@ namespace Tac
 
   void ImGuiDesktopWindowImpl::Render( Errors& errors )
   {
-    if( !mDesktopWindowHandle.IsValid() )
+    if( !mWindowHandle.IsValid() )
       return;
 
     FrameDrawData frameData = GetFrameData();
@@ -494,11 +498,11 @@ namespace Tac
 #if 0
     TAC_RENDER_GROUP_BLOCK( String() + __FUNCTION__
                             + "("
-                            + Tac::ToString( mDesktopWindowHandle.GetIndex() )
+                            + Tac::ToString( mWindowHandle.GetIndex() )
                             + ")" );
 #endif
 
-    const DesktopWindowHandle hDesktopWindow = mDesktopWindowHandle;
+    const WindowHandle hDesktopWindow = mWindowHandle;
 
     TAC_ASSERT( hDesktopWindow.IsValid() );
     if(! hDesktopWindow.GetDesktopWindowNativeHandle())

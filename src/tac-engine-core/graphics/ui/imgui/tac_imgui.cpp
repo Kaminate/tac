@@ -18,13 +18,13 @@
 #include "tac-engine-core/profile/tac_profile.h"
 //#include "tac-engine-core/shell/tac_shell.h"
 #include "tac-std-lib/string/tac_string.h"
-#include "tac-engine-core/system/tac_desktop_window.h"
+#include "tac-engine-core/window/tac_window_api.h"
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/algorithm/tac_algorithm.h"
 //#include "tac-rhi/tac_render.h" // ?
 
 //#include "tac-desktop-app/tac_desktop_app.h"
-#include "tac-engine-core/system/tac_desktop_window_graphics.h"
+//#include "tac-engine-core/window/tac_window_api_graphics.h"
 
 namespace Tac
 {
@@ -156,7 +156,7 @@ namespace Tac
 
     TAC_RENDER_GROUP_BLOCK( String() + __FUNCTION__ "(" + window->mName + ")" );
 
-    const DesktopWindowHandle hDesktopWindow = window->mDesktopWindowHandle;
+    const WindowHandle hDesktopWindow = window->mWindowHandle;
 
     TAC_ASSERT( hDesktopWindow.IsValid() );
     const DesktopWindowState* desktopWindowState = GetDesktopWindowState( hDesktopWindow );
@@ -171,7 +171,7 @@ namespace Tac
     if( !viewHandle.IsValid() )
       return;
 
-    if( window->mDesktopWindowHandleOwned )
+    if( window->mWindowHandleOwned )
     {
       const Render::FramebufferHandle hFB = WindowGraphicsGetFramebuffer( hDesktopWindow );
 
@@ -319,14 +319,14 @@ namespace Tac
   {
     gNextWindow.mStretch = true;
   }
-  void ImGuiSetNextWindowHandle( const DesktopWindowHandle& desktopWindowHandle )
+  void ImGuiSetNextWindowHandle( const WindowHandle& WindowHandle )
   {
-    gNextWindow.mDesktopWindowHandle = desktopWindowHandle;
+    gNextWindow.mWindowHandle = WindowHandle;
   }
 
-  DesktopWindowHandle ImGuiGetWindowHandle()
+  WindowHandle ImGuiGetWindowHandle()
   {
-    return ImGuiGlobals::Instance.mCurrentWindow->GetDesktopWindowHandle();
+    return ImGuiGlobals::Instance.mCurrentWindow->GetWindowHandle();
   }
 
   void ImGuiSetNextWindowMoveResize()            { gNextWindow.mMoveResize = true; }
@@ -380,19 +380,17 @@ namespace Tac
     ImGuiWindow* window = ImGuiGlobals::Instance.FindWindow( name );
     if( !window )
     {
-      DesktopWindowHandle hDesktopWindow = gNextWindow.mDesktopWindowHandle;
+      WindowHandle hDesktopWindow = gNextWindow.mWindowHandle;
       int desktopWindowWidth = 0;
       int desktopWindowHeight = 0;
 
       if( hDesktopWindow.IsValid() )
       {
-        const DesktopWindowState* desktopWindowState = hDesktopWindow.GetDesktopWindowState();
-        TAC_ASSERT( desktopWindowState );
-        if( !desktopWindowState->mNativeWindowHandle )
+        if( !hDesktopWindow.IsShown() )
           return false;
 
-        desktopWindowWidth = desktopWindowState->mWidth;
-        desktopWindowHeight = desktopWindowState->mHeight;
+        desktopWindowWidth = hDesktopWindow.GetWidth();
+        desktopWindowHeight = hDesktopWindow.GetHeight();
       }
       else
       {
@@ -435,7 +433,7 @@ namespace Tac
       if( !imguiDesktopWindow )
       {
         imguiDesktopWindow = TAC_NEW ImGuiDesktopWindowImpl;
-        imguiDesktopWindow->mDesktopWindowHandle = hDesktopWindow;
+        imguiDesktopWindow->mWindowHandle = hDesktopWindow;
         ImGuiGlobals::Instance.mDesktopWindows.push_back( imguiDesktopWindow );
       }
 
@@ -444,7 +442,7 @@ namespace Tac
       window->mName = name;
       window->mDrawData = TAC_NEW UI2DDrawData;
       window->mDesktopWindow = imguiDesktopWindow;
-      window->mDesktopWindowHandleOwned = !gNextWindow.mDesktopWindowHandle.IsValid();
+      window->mWindowHandleOwned = !gNextWindow.mWindowHandle.IsValid();
       window->mViewportSpacePos = {};
       window->mSize = size;
       window->mStretchWindow = gNextWindow.mStretch;
@@ -457,15 +455,18 @@ namespace Tac
 
     TAC_ASSERT( window->mSize.x > 0 && window->mSize.y > 0 );
     
-    const DesktopWindowState* desktopWindowState = window->GetDesktopWindowState();
-    if( !desktopWindowState || !desktopWindowState->mNativeWindowHandle )
+    WindowHandle hWindow = window->mDesktopWindow->mWindowHandle;
+    if( !hWindow.IsShown() )
       return false;
 
     ImGuiGlobals::Instance.mWindowStack.push_back( window );
     ImGuiGlobals::Instance.mCurrentWindow = window;
 
+    if( window->mStretchWindow )
+      window->mSize = v2( ( float )hWindow.GetX(),
+                          ( float )hWindow.GetY() );
+
     window->mRequestTime = ImGuiGlobals::Instance.mElapsedSeconds;
-    window->mSize = window->mStretchWindow ? desktopWindowState->GetSizeV2() : window->mSize;
     window->BeginFrame();
 
     return true;
@@ -1162,10 +1163,10 @@ namespace Tac
     ImGuiGlobals::Instance.mMouseHoveredWindow = data.mMouseHoveredWindow;
   }
 
-  //static bool ImGuiDesktopWindowOwned( DesktopWindowHandle desktopWindowHandle )
+  //static bool ImGuiDesktopWindowOwned( WindowHandle WindowHandle )
   //{
   //  for( ImGuiWindow* window : ImGuiGlobals::Instance.mAllWindows )
-  //    if( window->mDesktopWindowHandleOwned && window->mDesktopWindowHandle == desktopWindowHandle )
+  //    if( window->mWindowHandleOwned && window->mWindowHandle == WindowHandle )
   //      return true;
   //  return false;
   //}
@@ -1187,7 +1188,7 @@ namespace Tac
     for( ImGuiWindow* window : ImGuiGlobals::Instance.mAllWindows )
     {
       const TimestampDifference deletionWaitSeconds = 0.1f;
-      if( curSeconds > window->mRequestTime + deletionWaitSeconds && window->mDesktopWindowHandleOwned )
+      if( curSeconds > window->mRequestTime + deletionWaitSeconds && window->mWindowHandleOwned )
       {
         windowsToDeleteImGui.push_back( window );
         continue;
@@ -1195,18 +1196,18 @@ namespace Tac
 
       if( window->mMoveResizeWindow )
       {
-        if( DesktopWindowHandle desktopWindowHandle = window->GetDesktopWindowHandle();
-            desktopWindowHandle.IsValid() )
+        if( WindowHandle WindowHandle = window->GetWindowHandle();
+            WindowHandle.IsValid() )
         {
           OS::OSDebugBreak();
           // TODO: copy MoveControls and ResizeControls logic here
-          //DesktopApp::GetInstance()->MoveControls( desktopWindowHandle );
-          //DesktopApp::GetInstance()->ResizeControls( desktopWindowHandle );
+          //DesktopApp::GetInstance()->MoveControls( WindowHandle );
+          //DesktopApp::GetInstance()->ResizeControls( WindowHandle );
 
           //v2 newPos = ;
           //v2 newSize = ;
-          //ImGuiGlobals::Instance.mSetWindowPos( desktopWindowHandle, newPos ); 
-          //ImGuiGlobals::Instance.mSetWindowSize( desktopWindowHandle, newSize ); 
+          //ImGuiGlobals::Instance.mSetWindowPos( WindowHandle, newPos ); 
+          //ImGuiGlobals::Instance.mSetWindowSize( WindowHandle, newSize ); 
         }
       }
 
@@ -1215,8 +1216,8 @@ namespace Tac
     for( ImGuiWindow* window : windowsToDeleteImGui )
     {
       // Destroy the desktop app window
-      //DesktopApp::GetInstance()->DestroyWindow( window->GetDesktopWindowHandle() );
-      ImGuiGlobals::Instance.mDestroyWindow( window->GetDesktopWindowHandle() );
+      //DesktopApp::GetInstance()->DestroyWindow( window->GetWindowHandle() );
+      ImGuiGlobals::Instance.mDestroyWindow( window->GetWindowHandle() );
 
       // Destroy the imgui window
       {
@@ -1268,13 +1269,13 @@ namespace Tac
   void ImGuiSaveWindowSettings()
   {
     for( ImGuiWindow* window : ImGuiGlobals::Instance.mAllWindows )
-      if( window->mDesktopWindowHandleOwned )
-        if( const DesktopWindowState* desktopWindowState = window->GetDesktopWindowState() )
+      if( window->mWindowHandleOwned )
+        if( WindowHandle h = window->GetWindowHandle(); h.IsShown() )
           ImGuiSaveWindowSettings( window->mName,
-                                   desktopWindowState->mX,
-                                   desktopWindowState->mY,
-                                   desktopWindowState->mWidth,
-                                   desktopWindowState->mHeight );
+                                   h.GetX(),
+                                   h.GetY(),
+                                   h.GetWidth(),
+                                   h.GetHeight() );
   }
 
   void ImGuiUninit()

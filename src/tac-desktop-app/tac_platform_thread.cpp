@@ -11,7 +11,7 @@
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/profile/tac_profile.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
-//#include "tac-engine-core/system/tac_desktop_window_graphics.h"
+//#include "tac-engine-core/window/tac_window_api_graphics.h"
 #include "tac-engine-core/platform/tac_platform.h"
 #include "tac-engine-core/window/tac_window_backend.h"
 #include "tac-engine-core/shell/tac_shell_timer.h"
@@ -61,7 +61,7 @@ namespace Tac::DesktopEventApi
 
     void Handle( const CursorUnobscuredEvent& data ) override
     {
-      //SetHoveredWindow( data.mDesktopWindowHandle );
+      //SetHoveredWindow( data.mWindowHandle );
     }
 
     void Handle( const KeyInputEvent& data ) override
@@ -81,7 +81,7 @@ namespace Tac::DesktopEventApi
     void Handle( const MouseMoveEvent& mouseState ) override
     {
       const DesktopWindowState* windowState
-        = mouseState.mDesktopWindowHandle.GetDesktopWindowState();
+        = mouseState.mWindowHandle.GetDesktopWindowState();
 
       const v2 screenSpaceWindowPos = windowState->GetPosV2();
       const v2 windowSpaceMousePos = { ( float )mouseState.mX, ( float )mouseState.mY };
@@ -95,14 +95,14 @@ namespace Tac::DesktopEventApi
 
     void Handle( const WindowMoveEvent& data ) override
     {
-      WindowBackend::SetWindowPos( data.mDesktopWindowHandle, v2i( data.mX, data.mY ) );
+      WindowBackend::SetWindowPos( data.mWindowHandle, v2i( data.mX, data.mY ) );
     }
 
     void Handle( const WindowResizeEvent& data ) override
     {
-      WindowBackend::SetWindowSize( data.mDesktopWindowHandle, v2i( data.mWidth, data.mHeight ) );
+      WindowBackend::SetWindowSize( data.mWindowHandle, v2i( data.mWidth, data.mHeight ) );
 
-      WindowGraphics::Instance().Resize( data.mDesktopWindowHandle,
+      WindowGraphics::Instance().Resize( data.mWindowHandle,
                                          desktopWindowState->mWidth,
                                          desktopWindowState->mHeight );
     }
@@ -113,19 +113,19 @@ namespace Tac::DesktopEventApi
 
 namespace Tac
 {
-  static void                ImGuiPlatformSetWindowPos( DesktopWindowHandle handle, v2 pos )
+  static void                ImGuiPlatformSetWindowPos( WindowHandle handle, v2 pos )
   {
     PlatformFns* platform = PlatformFns::GetInstance();
     platform->PlatformSetWindowPos( handle, ( int )pos.x, ( int )pos.y );
   }
 
-  static void                ImGuiPlatformSetWindowSize( DesktopWindowHandle handle, v2 size )
+  static void                ImGuiPlatformSetWindowSize( WindowHandle handle, v2 size )
   {
     PlatformFns* platform = PlatformFns::GetInstance();
     platform->PlatformSetWindowSize( handle, ( int )size.x, ( int )size.y );
   }
 
-  static DesktopWindowHandle ImGuiPlatformCreateWindow( const ImGuiCreateWindowParams& params )
+  static WindowHandle ImGuiPlatformCreateWindow( const ImGuiCreateWindowParams& params )
   {
     DesktopApp* desktopApp = DesktopApp::GetInstance();
     const DesktopAppCreateWindowParams desktopParams
@@ -139,7 +139,7 @@ namespace Tac
     return desktopApp->CreateWindow( desktopParams );
   }
 
-  static void                ImGuiPlatformDestroyWindow( const DesktopWindowHandle& handle )
+  static void                ImGuiPlatformDestroyWindow( const WindowHandle& handle )
   {
     DesktopApp* desktopApp = DesktopApp::GetInstance();
 

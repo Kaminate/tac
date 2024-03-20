@@ -12,11 +12,11 @@ namespace Tac
     void PlatformFrameBegin( Errors& ) override;
     void PlatformFrameEnd( Errors& ) override;
     void PlatformSpawnWindow( const PlatformSpawnWindowParams&, Errors& ) override;
-    void PlatformDespawnWindow( const DesktopWindowHandle& ) override;
-    void PlatformWindowMoveControls( const DesktopWindowHandle&,
+    void PlatformDespawnWindow( const WindowHandle& ) override;
+    void PlatformWindowMoveControls( const WindowHandle&,
                                      const DesktopWindowRect& ) override;
-    void PlatformWindowResizeControls( const DesktopWindowHandle&, int ) override;
-    DesktopWindowHandle PlatformGetMouseHoveredWindow() override;
+    void PlatformWindowResizeControls( const WindowHandle&, int ) override;
+    WindowHandle PlatformGetMouseHoveredWindow() override;
   };
 } // namespace
 

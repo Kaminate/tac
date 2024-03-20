@@ -10,7 +10,7 @@
 namespace Tac
 {
   Creation gCreation;
-  DesktopWindowHandle hWnd;
+  WindowHandle hWnd;
 
   // -----------------------------------------------------------------------------------------------
 

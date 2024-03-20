@@ -4,18 +4,18 @@ namespace Tac
 {
   struct StringView;
   struct DesktopAppCreateWindowParams;
-  struct DesktopWindowHandle;
+  struct WindowHandle;
 }
 
 namespace Tac
 {
-  DesktopWindowHandle CreateTrackedWindow( const StringView& path,
+  WindowHandle CreateTrackedWindow( const StringView& path,
                                            int x = 50,
                                            int y = 50,
                                            int w = 800,
                                            int h = 600 );
-  DesktopWindowHandle CreateTrackedWindow( const DesktopAppCreateWindowParams& );
+  WindowHandle CreateTrackedWindow( const DesktopAppCreateWindowParams& );
 
   void UpdateTrackedWindows();
-  void QuitProgramOnWindowClose( const DesktopWindowHandle& );
+  void QuitProgramOnWindowClose( const WindowHandle& );
 }

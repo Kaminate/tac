@@ -9,7 +9,7 @@
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-engine-core/profile/tac_profile.h"
 #include "tac-std-lib/string/tac_string.h"
-#include "tac-engine-core/system/tac_desktop_window.h"
+#include "tac-engine-core/window/tac_window_api.h"
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-desktop-app/tac_desktop_app.h"
 #include "tac-desktop-app/tac_desktop_event.h"
@@ -25,7 +25,7 @@ namespace Tac
 
   static HWND                mParentHWND = nullptr;
 
-  static DesktopWindowHandle sWindowUnderConstruction;
+  static WindowHandle sWindowUnderConstruction;
 
   static Key       GetKey( u8 keyCode )
   {
@@ -98,12 +98,12 @@ namespace Tac
     static bool verboseActivate = false;
     static bool verboseCapture = false;
 
-    const DesktopWindowHandle desktopWindowHandleFound = Win32WindowManagerFindWindow( hwnd );
-    const DesktopWindowHandle desktopWindowHandle
-      = desktopWindowHandleFound.IsValid()
-      ? desktopWindowHandleFound
+    const WindowHandle WindowHandleFound = Win32WindowManagerFindWindow( hwnd );
+    const WindowHandle WindowHandle
+      = WindowHandleFound.IsValid()
+      ? WindowHandleFound
       : sWindowUnderConstruction;
-    if( !desktopWindowHandle.IsValid() )
+    if( !WindowHandle.IsValid() )
     {
       switch( uMsg )
       {
@@ -122,33 +122,33 @@ namespace Tac
       // should it be like...
       // if( window.allow_alt_f4 )
       //    close window?
-      //DesktopEventAssignHandle( desktopWindowHandle, nullptr, 0, 0, 0, 0 );
+      //DesktopEventAssignHandle( WindowHandle, nullptr, 0, 0, 0, 0 );
     } break;
 
     // Sent when a window is being destroyed
     case WM_DESTROY:
     {
       ImGuiSaveWindowSettings();
-      const int i = desktopWindowHandle.GetIndex();
+      const int i = WindowHandle.GetIndex();
       sHWNDs[ i ] = nullptr;
       const DesktopEventApi::AssignHandleEvent data
       {
-        .mDesktopWindowHandle = desktopWindowHandle
+        .mWindowHandle = WindowHandle
       };
       DesktopEventApi::Queue( data );
     } break;
 
     case WM_CREATE:
     {
-      const int i = desktopWindowHandle.GetIndex();
+      const int i = WindowHandle.GetIndex();
       sHWNDs[ i ] = hwnd;
-      sWindowUnderConstruction = DesktopWindowHandle();
+      sWindowUnderConstruction = WindowHandle();
       auto windowInfo = ( const CREATESTRUCT* )lParam;
       TAC_ASSERT( windowInfo->cx && windowInfo->cy );
       TAC_ASSERT( windowInfo->lpszName );
       const DesktopEventApi::AssignHandleEvent data
       {
-          .mDesktopWindowHandle = desktopWindowHandle,
+          .mWindowHandle = WindowHandle,
           .mNativeWindowHandle = hwnd,
           .mName = windowInfo->lpszName,
           .mX = windowInfo->x,
@@ -172,7 +172,7 @@ namespace Tac
     {
       const DesktopEventApi::WindowResizeEvent data
       {
-        .mDesktopWindowHandle = desktopWindowHandle,
+        .mWindowHandle = WindowHandle,
         .mWidth = ( int )LOWORD( lParam ),
         .mHeight = ( int )HIWORD( lParam ),
       };
@@ -182,7 +182,7 @@ namespace Tac
     {
       const DesktopEventApi::WindowMoveEvent data
       {
-        .mDesktopWindowHandle = desktopWindowHandle,
+        .mWindowHandle = WindowHandle,
         .mX = ( int )LOWORD( lParam ),
         .mY = ( int )HIWORD( lParam ),
       };
@@ -363,7 +363,7 @@ namespace Tac
 
       const DesktopEventApi::MouseMoveEvent data
       {
-        .mDesktopWindowHandle = desktopWindowHandle,
+        .mWindowHandle = WindowHandle,
         .mX = xPos,
         .mY = yPos,
       };
@@ -418,7 +418,7 @@ namespace Tac
                         "Failed to register window class " + String( classname ) );
   }
 
-  DesktopWindowHandle Win32WindowManagerFindWindow( HWND hwnd )
+  WindowHandle Win32WindowManagerFindWindow( HWND hwnd )
   {
     for( int i = 0; i < kDesktopWindowCapacity; ++i )
       if( sHWNDs[ i ] == hwnd )
@@ -462,7 +462,7 @@ namespace Tac
     RegisterWindowClass( errors );
   }
 
-  DesktopWindowHandle Win32WindowManagerGetCursorUnobscuredWindow()
+  WindowHandle Win32WindowManagerGetCursorUnobscuredWindow()
   {
     POINT cursorPos;
     const bool cursorPosValid = 0 != ::GetCursorPos( &cursorPos );
@@ -470,8 +470,8 @@ namespace Tac
       return {};
 
     const HWND hoveredHwnd = ::WindowFromPoint( cursorPos );
-    const DesktopWindowHandle desktopWindowHandle = Win32WindowManagerFindWindow( hoveredHwnd );
-    return desktopWindowHandle;
+    const WindowHandle WindowHandle = Win32WindowManagerFindWindow( hoveredHwnd );
+    return WindowHandle;
   }
 
   void                Win32WindowManagerPoll( Errors& )
@@ -485,9 +485,9 @@ namespace Tac
     }
   }
 
-  void                Win32WindowManagerDespawnWindow( const DesktopWindowHandle& desktopWindowHandle )
+  void                Win32WindowManagerDespawnWindow( const WindowHandle& WindowHandle )
   {
-    const auto i = desktopWindowHandle.GetIndex();
+    const auto i = WindowHandle.GetIndex();
     const HWND hwnd = sHWNDs[ i ];
 
     // unparent the children to prevent them from being
@@ -511,7 +511,7 @@ namespace Tac
   void                Win32WindowManagerSpawnWindow( const PlatformSpawnWindowParams& params,
                                                      Errors& errors )
   {
-    const DesktopWindowHandle& desktopWindowHandle = params.mHandle;
+    const WindowHandle& WindowHandle = params.mHandle;
 
     // Name of the window, displayed in the window's title bar or alt-tab menu
     const char* name = params.mName;
@@ -562,13 +562,13 @@ namespace Tac
 
     TAC_ASSERT( w && h );
 
-    sWindowUnderConstruction = desktopWindowHandle;
+    sWindowUnderConstruction = WindowHandle;
 
     static HWND parentHWND = nullptr;
 
     if( parentHWND )
     {
-      DesktopWindowHandle hParent = Win32WindowManagerFindWindow( parentHWND );
+      WindowHandle hParent = Win32WindowManagerFindWindow( parentHWND );
       TAC_ASSERT_MSG( hParent.IsValid(), "The parent was deleted!" );
     }
 

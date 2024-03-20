@@ -30,10 +30,10 @@ namespace Tac
     virtual void PlatformDespawnWindow( WindowHandle ) {}
     virtual void PlatformSetWindowPos( WindowHandle, v2i ) {}
     virtual void PlatformSetWindowSize( WindowHandle, v2i ) {}
-    //virtual void PlatformWindowMoveControls( const DesktopWindowHandle&,
+    //virtual void PlatformWindowMoveControls( const WindowHandle&,
     //                                         const DesktopWindowRect& ) {}
-    //virtual void PlatformWindowResizeControls( const DesktopWindowHandle&, int ) {}
-    //virtual DesktopWindowHandle PlatformGetMouseHoveredWindow() { return{}; }
+    //virtual void PlatformWindowResizeControls( const WindowHandle&, int ) {}
+    //virtual WindowHandle PlatformGetMouseHoveredWindow() { return{}; }
 
     static PlatformFns* GetInstance();
     static void         SetInstance( PlatformFns* );

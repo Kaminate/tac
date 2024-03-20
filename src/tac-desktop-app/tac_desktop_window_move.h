@@ -4,8 +4,8 @@
 namespace Tac
 {
   struct DesktopWindowRect;
-  struct DesktopWindowHandle;
+  struct WindowHandle;
   void DesktopAppUpdateMove();
-  void DesktopAppImplMoveControls( const DesktopWindowHandle&, const DesktopWindowRect& );
-  void DesktopAppImplMoveControls( const DesktopWindowHandle& );
+  void DesktopAppImplMoveControls( const WindowHandle&, const DesktopWindowRect& );
+  void DesktopAppImplMoveControls( const WindowHandle& );
 }

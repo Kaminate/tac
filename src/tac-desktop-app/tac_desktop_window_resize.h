@@ -3,8 +3,8 @@
 
 namespace Tac
 {
-  struct DesktopWindowHandle;
+  struct WindowHandle;
 
   void DesktopAppUpdateResize();
-  void DesktopAppImplResizeControls( const DesktopWindowHandle&, int edgePx );
+  void DesktopAppImplResizeControls( const WindowHandle&, int edgePx );
 }

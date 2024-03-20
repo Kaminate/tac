@@ -1,6 +1,6 @@
 #include "tac_win32_mouse_edge.h" // self-inc
 
-#include "tac-engine-core/system/tac_desktop_window.h"
+#include "tac-engine-core/window/tac_window_api.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-desktop-app/tac_desktop_event.h"
@@ -67,7 +67,7 @@ namespace Tac
   static Timestamp   keyboardMoveT;
 
   static HWND                sMouseHoveredHwnd;
-  static DesktopWindowHandle sMouseHoveredDesktopWindow;
+  static WindowHandle sMouseHoveredDesktopWindow;
 
   static HCURSOR GetCursor( CursorDir cursorDir )
   {
@@ -119,7 +119,7 @@ namespace Tac
     return ::WindowFromPoint( cursorPos );
   }
 
-  DesktopWindowHandle Win32MouseEdgeGetCursorHovered()
+  WindowHandle Win32MouseEdgeGetCursorHovered()
   {
     return sMouseHoveredDesktopWindow;
   }
@@ -129,7 +129,7 @@ namespace Tac
     if( !sMouseHoveredDesktopWindow.IsValid() )
       return;
 
-    const DesktopWindowHandle desktopWindowHandle = sMouseHoveredDesktopWindow;
+    const WindowHandle WindowHandle = sMouseHoveredDesktopWindow;
     const HWND windowHandle = sMouseHoveredHwnd;
     if( !windowHandle )
       return;
@@ -148,7 +148,7 @@ namespace Tac
         cursorPos.y < windowRect.top )
       return;
 
-    const int i = desktopWindowHandle.GetIndex();
+    const int i = WindowHandle.GetIndex();
     MouseEdge& mouseEdge = sMouseEdges[i];
     const bool mouseEdgeMovable = ( int )mouseEdge.mFlags | ( int )MouseEdgeFlags::kMovable;
     const bool mouseEdgeResizable = ( int )mouseEdge.mFlags | ( int )MouseEdgeFlags::kResizable;
@@ -290,20 +290,20 @@ namespace Tac
     }
   }
 
-  void Win32MouseEdgeSetMovable( const DesktopWindowHandle& desktopWindowHandle,
+  void Win32MouseEdgeSetMovable( const WindowHandle& WindowHandle,
                                  const DesktopWindowRect& windowSpaceRect )
   {
-    const int i = desktopWindowHandle.GetIndex();
+    const int i = WindowHandle.GetIndex();
     TAC_ASSERT_INDEX( i, kDesktopWindowCapacity );
     MouseEdge& mouseEdge = sMouseEdges[i];
     mouseEdge.mFlags = MouseEdgeFlags( ( int )mouseEdge.mFlags | ( int )MouseEdgeFlags::kMovable );
     mouseEdge.mWindowSpaceMoveRect = windowSpaceRect;
   }
 
-  void Win32MouseEdgeSetResizable( const DesktopWindowHandle& desktopWindowHandle,
+  void Win32MouseEdgeSetResizable( const WindowHandle& WindowHandle,
                                    int borderPx )
   {
-    const int i = desktopWindowHandle.GetIndex();
+    const int i = WindowHandle.GetIndex();
     TAC_ASSERT_INDEX( i, kDesktopWindowCapacity );
     MouseEdge& mouseEdge = sMouseEdges[i];
     mouseEdge.mFlags = MouseEdgeFlags( ( int )mouseEdge.mFlags | ( int )MouseEdgeFlags::kResizable );

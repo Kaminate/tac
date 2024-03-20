@@ -1,6 +1,6 @@
 #include "tac_desktop_window_resize.h"
 
-#include "tac-engine-core/system/tac_desktop_window.h"
+#include "tac-engine-core/window/tac_window_api.h"
 #include "tac-engine-core/system/tac_platform.h"
 
 namespace Tac
@@ -20,23 +20,23 @@ void Tac::DesktopAppUpdateResize()
 
   for( int i = 0; i < kDesktopWindowCapacity; ++i )
   {
-    const DesktopWindowHandle desktopWindowHandle = { i };
-    if( !desktopWindowHandle.GetDesktopWindowNativeHandle() )
+    const WindowHandle WindowHandle = { i };
+    if( !WindowHandle.GetDesktopWindowNativeHandle() )
       continue;
 
     const RequestResize* requestResize = &sRequestResize[ i ];
     if( !requestResize->mRequested )
       continue;
 
-    platform->PlatformWindowResizeControls( desktopWindowHandle, requestResize->mEdgePx );
+    platform->PlatformWindowResizeControls( WindowHandle, requestResize->mEdgePx );
     sRequestResize[ i ] = RequestResize();
   }
 }
 
-void Tac::DesktopAppImplResizeControls( const DesktopWindowHandle& desktopWindowHandle,
+void Tac::DesktopAppImplResizeControls( const WindowHandle& WindowHandle,
                                         int edgePx )
 {
-  sRequestResize[ desktopWindowHandle.GetIndex() ] = RequestResize
+  sRequestResize[ WindowHandle.GetIndex() ] = RequestResize
   {
    .mRequested = true,
    .mEdgePx = edgePx,

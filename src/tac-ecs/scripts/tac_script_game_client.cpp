@@ -10,7 +10,7 @@
 #include "tac-engine-core/shell/tac_shell.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-std-lib/filesystem/tac_filesystem.h"
-#include "tac-engine-core/system/tac_job_queue.h"
+#include "tac-engine-core/job/tac_job_queue.h"
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-engine-core/thirdparty/stb_image.h"
 #include "tac-ecs/graphics/tac_graphics.h"
