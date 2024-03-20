@@ -4,11 +4,14 @@
 #include "tac-std-lib/string/tac_string_view.h"
 #include "tac-engine-core/window/tac_window_backend.h"
 
+import std; // mutex
+
 namespace Tac
 {
-  WindowHandle::WindowHandle( int index ) : mIndex( index ) {}
-
   using WindowBackend::sGameLogicCurr;
+
+
+  WindowHandle::WindowHandle( int index ) : mIndex( index ) {}
 
   v2i        WindowHandle::GetPos() const { return sGameLogicCurr[ mIndex ].mPos; }
 
@@ -24,12 +27,14 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  WindowHandle WindowApi::CreateWindow( CreateParams )
+  WindowHandle WindowApi::CreateWindow( CreateParams params )
   {
+    return WindowBackend::GameLogicCreateWindow( params );
   }
 
-  void         WindowApi::DestroyWindow( WindowHandle )
+  void         WindowApi::DestroyWindow( WindowHandle h )
   {
+    WindowBackend::GameLogicDestroyWindow( h );
   }
 
 } // namespace Tac

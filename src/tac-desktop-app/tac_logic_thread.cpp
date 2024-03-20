@@ -62,7 +62,7 @@ namespace Tac
   void LogicThread::Update( Errors& errors )
   {
     TAC_ASSERT( mErrors && mApp );
-    PlatformFns* platform = PlatformFns::GetInstance();
+    //PlatformFns* platform = PlatformFns::GetInstance();
 
     TAC_CALL( Init( errors ) );
     while( OS::OSAppIsRunning() )

@@ -9,6 +9,7 @@
 
 #include "tac-engine-core/window/tac_window_api.h"
 
+namespace Tac { struct Errors; }
 namespace Tac::WindowBackend
 {
   struct WindowState
@@ -31,6 +32,11 @@ namespace Tac::WindowBackend
 
   extern WindowStates sGameLogicCurr;
 
+  // -----------------------------------------------------------------------------------------------
+
+  // Platform thread functions:
+
+  // Handle desktop event queue on the platform thread
   void ApplyBegin();
   void SetWindowCreated( WindowHandle, const void*, StringView, v2i pos, v2i size );
   void SetWindowDestroyed( WindowHandle );
@@ -39,8 +45,16 @@ namespace Tac::WindowBackend
   void SetWindowPos( WindowHandle, v2i );
   void ApplyEnd();
 
+  void PlatformApplyRequests( Errors& );
   const void* GetNativeWindowHandle( WindowHandle );
 
-  void UpdateGameLogicWindowStates();
+
+  // -----------------------------------------------------------------------------------------------
+
+  // Sim thread functions:
+
+  void         GameLogicUpdate();
+  WindowHandle GameLogicCreateWindow( WindowApi::CreateParams );
+  void         GameLogicDestroyWindow( WindowHandle );
 }
 
