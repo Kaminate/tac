@@ -10,7 +10,7 @@
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/string/tac_string_view.h"
-#include "tac-engine-core/window/tac_window_api.h"
+#include "tac-engine-core/window/tac_window_handle.h"
 #include "tac-std-lib/containers/tac_map.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-rhi/render/tac_render_handles.h" // DynamicBufferHandle2
@@ -218,13 +218,14 @@ namespace Tac
     ImGuiWindow*                      mCurrentWindow = nullptr;
     Vector< float >                   mFontSizeSK; // wtf does sk stand for?
     UIStyle                           mUIStyle;
-    WindowHandle               mMouseHoveredWindow;
+    WindowHandle                      mMouseHoveredWindow;
     bool                              mScrollBarEnabled = true;
     int                               mMaxGpuFrameCount{};
     //ImGuiSetWindowPos                 mSetWindowPos{};
     //ImGuiSetWindowSize                mSetWindowSize{};
     ImGuiCreateWindow                 mCreateWindow{};
     ImGuiDestroyWindow                mDestroyWindow{};
+    SimWindowApi*                     mSimWindowApi{};
   };
 
   struct ImGuiNextWindow

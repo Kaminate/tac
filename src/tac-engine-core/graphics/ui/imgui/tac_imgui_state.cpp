@@ -340,8 +340,10 @@ namespace Tac
 
   v2           ImGuiWindow::GetMousePosViewport()
   {
+    SimWindowApi* windowApi = ImGuiGlobals::Instance.mSimWindowApi;
+
     const v2 mouseScreenspace = KeyboardApi::GetMousePosScreenspace();
-    const v2 windowScreenspace = mDesktopWindow->mWindowHandle.GetPosf();
+    const v2 windowScreenspace = windowApi->GetPos( mDesktopWindow->mWindowHandle );
     return mouseScreenspace - windowScreenspace;
   }
 

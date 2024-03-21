@@ -13,6 +13,7 @@ namespace Tac::KeyboardBackend
 {
   enum KeyState { Up = 0, Down = 1 };
 
+#if 0
   using KeyStates = Array< KeyState, ( int )Key::Count >;
   using KeyTimes = Array< Timepoint, ( int )Key::Count >;
   using KeyToggles = Array< int, ( int )Key::Count >;
@@ -38,12 +39,21 @@ namespace Tac::KeyboardBackend
 
   // ... api wise, this could return a structure that holds
   // the lock, and has member functions that update state..
-  void ApplyBegin();
-  void SetKeyState( Key, KeyState );
-  void SetCodepoint( Codepoint );
-  void SetMousePos( v2 screenspace );
-  void SetMouseWheel( float );
-  void ApplyEnd();
+#endif
   
-  void UpdateGameLogicKeyState();
+
+  struct SysApi
+  {
+    void ApplyBegin();
+    void SetKeyState( Key, KeyState );
+    void SetCodepoint( Codepoint );
+    void SetMousePos( v2 screenspace );
+    void SetMouseWheel( float );
+    void ApplyEnd();
+  };
+
+  struct SymApi
+  {
+    void Sync();
+  };
 }

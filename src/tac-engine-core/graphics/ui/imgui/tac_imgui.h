@@ -4,7 +4,8 @@
 
 #include "tac-engine-core/i18n/tac_localization.h" // Codepoint
 #include "tac-engine-core/shell/tac_shell_timestep.h"
-#include "tac-engine-core/window/tac_window_api.h" // WindowHandle
+#include "tac-engine-core/window/tac_window_handle.h" // WindowHandle
+#include "tac-engine-core/window/tac_sim_window_api.h"
 #include "tac-engine-core/graphics/ui/tac_ui_2d.h" // UI2DDrawData
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac-std-lib/math/tac_vector2i.h"
@@ -18,6 +19,7 @@ namespace Tac
   struct ImGuiDesktopWindow
   {
     virtual ~ImGuiDesktopWindow() = default;
+
     WindowHandle mWindowHandle;
   };
 
@@ -118,6 +120,7 @@ namespace Tac
   struct ImGuiInitParams
   {
     int                mMaxGpuFrameCount{};
+    SimWindowApi*      mSimWindowApi;
     ImGuiSetWindowPos  mSetWindowPos{};
     ImGuiSetWindowSize mSetWindowSize{};
     ImGuiCreateWindow  mCreateWindow{};
@@ -131,14 +134,14 @@ namespace Tac
   void ImGuiDebugDraw();
   // called by the main thread
 
-  //   ImGuiBegin
+  //   ImGuiBegin functions
   bool ImGuiBegin( const StringView& );
   void ImGuiBeginMenuBar();
   void ImGuiBeginChild( const StringView& name, const v2& size );
   void ImGuiBeginGroup();
   void ImGuiBeginFrame( const BeginFrameData& );
 
-  //   ImGuiEnd
+  //   ImGuiEnd functions
   void ImGuiEnd();
   void ImGuiEndMenuBar();
   void ImGuiEndChild();

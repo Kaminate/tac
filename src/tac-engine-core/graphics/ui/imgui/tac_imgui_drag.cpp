@@ -46,13 +46,16 @@ namespace Tac
                                    Drag_Setter setter,
                                    Drag_MouseHandler mouseHandler )
   {
+    ImGuiGlobals& globals = ImGuiGlobals::Instance;
+    SimWindowApi* windowApi = globals.mSimWindowApi;
+
     const float fontSize = ImGuiGetFontSize();
     const float buttonPadding = ImGuiGetButtonPadding();
 
     String valueStr = getter( valueBytes );
     bool changed = false;
 
-    ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
+    ImGuiWindow* window = globals.mCurrentWindow;
     UI2DDrawData* drawData = window->mDrawData;
     TextInputData* inputData = window->mTextInputData;
     DragData* dragFloatData = ( DragData* )window->GetWindowResource( sDragDataID );
@@ -97,9 +100,7 @@ namespace Tac
         else if ( KeyboardApi::IsPressed( Key::MouseLeft ) )
         {
           WindowHandle windowHandle = window->GetWindowHandle();
-          const v2 desktopWindowPos( ( float )windowHandle.GetX(),
-                                     ( float )windowHandle.GetY() );
-          //const v2 desktopWindowPos = window->GetDesktopWindowState()->GetPosV2();
+          const v2 desktopWindowPos = windowApi->GetPos( windowHandle );
           const v2 viewportSpaceMousePos = screenspaceMousePos - desktopWindowPos;
 
           float moveCursorDir = 0;

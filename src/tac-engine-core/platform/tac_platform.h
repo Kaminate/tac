@@ -1,6 +1,6 @@
 #pragma once
 
-#include "tac-engine-core/window/tac_window_api.h"
+#include "tac-engine-core/window/tac_window_handle.h"
 #include "tac-std-lib/string/tac_string_view.h"
 #include "tac-std-lib/math/tac_vector2i.h"
 

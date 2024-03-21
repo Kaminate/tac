@@ -3,6 +3,25 @@
 
 namespace Tac::KeyboardBackend
 {
+  using KeyStates = Array< KeyState, ( int )Key::Count >;
+  using KeyTimes = Array< Timepoint, ( int )Key::Count >;
+  using KeyToggles = Array< int, ( int )Key::Count >;
+
+  struct KeyboardMouseState
+  {
+    float     mMouseWheel;
+    v2        mMousePosScreenspace;
+    KeyStates mKeyStates;
+    KeyTimes  mKeyTimes;
+    Timepoint mTime;
+  };
+
+  struct KeyboardDelta
+  {
+    KeyToggles          mToggles;
+    Vector< Codepoint > mCodepointDelta;
+  };
+
   static KeyStates           sKeyStates;
   static KeyTimes            sKeyTimes;
   static KeyToggles          sKeyToggleCount;
@@ -11,27 +30,26 @@ namespace Tac::KeyboardBackend
   static std::mutex          sMutex;
   static bool                sModificationAllowed;
   static float               sMouseWheel;
-}
 
-namespace Tac
-{
-  KeyboardBackend::KeyboardMouseState KeyboardBackend::sGameLogicPrev;
-  KeyboardBackend::KeyboardMouseState KeyboardBackend::sGameLogicCurr;
-  KeyboardBackend::KeyboardDelta      KeyboardBackend::sGameLogicDelta;
+  static KeyboardMouseState  sGameLogicPrev;
+  static KeyboardMouseState  sGameLogicCurr;
+  static KeyboardDelta       sGameLogicDelta;
 
-  void KeyboardBackend::ApplyBegin()
+  // -----------------------------------------------------------------------------------------------
+
+  void SysApi::ApplyBegin()
   {
     sMutex.lock();
     sModificationAllowed = true;
   }
 
-  void KeyboardBackend::ApplyEnd()
+  void SysApi::ApplyEnd()
   {
     sModificationAllowed = false;
     sMutex.unlock();
   }
 
-  void KeyboardBackend::SetKeyState( Key key, KeyState state )
+  void SysApi::SetKeyState( Key key, KeyState state )
   {
     TAC_ASSERT( sModificationAllowed );
     if( const int i = ( int )key; sKeyStates[ i ] != state )
@@ -42,25 +60,27 @@ namespace Tac
     }
   }
 
-  void KeyboardBackend::SetCodepoint( Codepoint codepoint )
+  void SysApi::SetCodepoint( Codepoint codepoint )
   {
     TAC_ASSERT( sModificationAllowed );
     sCodepointDelta.push_back( codepoint );
   }
 
-  void KeyboardBackend::SetMousePos( v2 screenspace )
+  void SysApi::SetMousePos( v2 screenspace )
   {
     TAC_ASSERT( sModificationAllowed );
     sMousePosScreenspace = screenspace;
   }
 
-  void KeyboardBackend::SetMouseWheel( float wheelPos )
+  void SysApi::SetMouseWheel( float wheelPos )
   {
     TAC_ASSERT( sModificationAllowed );
     sMouseWheel = wheelPos;
   }
 
-  void KeyboardBackend::UpdateGameLogicKeyState()
+  // -----------------------------------------------------------------------------------------------
+
+  void SymApi::Sync()
   {
     TAC_SCOPE_GUARD( std::lock_guard, sMutex );
 

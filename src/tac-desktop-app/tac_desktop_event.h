@@ -7,7 +7,7 @@
 //
 #pragma once
 
-#include "tac-engine-core/window/tac_window_api.h"
+#include "tac-engine-core/window/tac_window_handle.h"
 #include "tac-engine-core/i18n/tac_localization.h"
 #include "tac-engine-core/hid/tac_key.h"
 #include "tac-std-lib/string/tac_short_fixed_string.h"

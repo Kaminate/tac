@@ -8,7 +8,7 @@
 #include "tac-engine-core/hid/tac_keyboard_api.h"
 #include "tac-engine-core/profile/tac_profile.h"
 #include "tac-engine-core/settings/tac_settings.h"
-#include "tac-engine-core/window/tac_window_api.h"
+#include "tac-engine-core/window/tac_window_handle.h"
 
 #include "tac-rhi/renderer/tac_renderer.h"
 
@@ -389,8 +389,10 @@ namespace Tac
   //        why is that?
   bool ImGuiBegin( const StringView& name )
   {
-    ImGuiCreateWindow createWindowFn = ImGuiGlobals::Instance.mCreateWindow;
-    ImGuiWindow* window = ImGuiGlobals::Instance.FindWindow( name );
+    ImGuiGlobals& globals = ImGuiGlobals::Instance;
+    SimWindowApi* windowApi = globals.mSimWindowApi;
+    ImGuiCreateWindow createWindowFn = globals.mCreateWindow;
+    ImGuiWindow* window = globals.FindWindow( name );
     if( !window )
     {
       WindowHandle hDesktopWindow = gNextWindow.mWindowHandle;
@@ -399,11 +401,12 @@ namespace Tac
 
       if( hDesktopWindow.IsValid() )
       {
-        if( !hDesktopWindow.IsShown() )
+        if( !windowApi->IsShown( hDesktopWindow ) )
           return false;
 
-        desktopWindowWidth = hDesktopWindow.GetWidth();
-        desktopWindowHeight = hDesktopWindow.GetHeight();
+        const v2i size = windowApi->GetSize( hDesktopWindow );
+        desktopWindowWidth = size.x;
+        desktopWindowHeight = size.y;
       }
       else
       {
@@ -468,16 +471,16 @@ namespace Tac
 
     TAC_ASSERT( window->mSize.x > 0 && window->mSize.y > 0 );
     
-    WindowHandle hWindow = window->mDesktopWindow->mWindowHandle;
-    if( !hWindow.IsShown() )
+    ImGuiDesktopWindow* desktopWindow = window->mDesktopWindow;
+    WindowHandle hWindow = desktopWindow->mWindowHandle;
+    if( !windowApi->IsShown( hWindow ) )
       return false;
 
     ImGuiGlobals::Instance.mWindowStack.push_back( window );
     ImGuiGlobals::Instance.mCurrentWindow = window;
 
     if( window->mStretchWindow )
-      window->mSize = v2( ( float )hWindow.GetX(),
-                          ( float )hWindow.GetY() );
+      window->mSize = windowApi->GetSize( hWindow );
 
     window->mRequestTime = ImGuiGlobals::Instance.mElapsedSeconds;
     window->BeginFrame();
@@ -1266,18 +1269,32 @@ namespace Tac
     //globals.mSetWindowSize = params.mSetWindowSize;
     globals.mCreateWindow = params.mCreateWindow;
     globals.mDestroyWindow = params.mDestroyWindow;
+    globals.mSimWindowApi = params.mSimWindowApi;
+  }
+
+  static void ImGuiSaveWindowSettings( ImGuiWindow* window )
+  {
+    ImGuiGlobals& globals = ImGuiGlobals::Instance;
+    SimWindowApi* windowApi = globals.mSimWindowApi;
+    if( !window->mWindowHandleOwned )
+      return;
+
+    WindowHandle h = window->GetWindowHandle();
+    if( !windowApi->IsShown( h ) )
+      return;
+
+    const v2i pos = windowApi->GetPos( h );
+    const v2i size = windowApi->GetSize( h );
+    ImGuiSaveWindowSettings( window->mName, pos.x, pos.y, size.x, size.y );
   }
 
   void ImGuiSaveWindowSettings()
   {
-    for( ImGuiWindow* window : ImGuiGlobals::Instance.mAllWindows )
-      if( window->mWindowHandleOwned )
-        if( WindowHandle h = window->GetWindowHandle(); h.IsShown() )
-          ImGuiSaveWindowSettings( window->mName,
-                                   h.GetX(),
-                                   h.GetY(),
-                                   h.GetWidth(),
-                                   h.GetHeight() );
+    ImGuiGlobals& globals = ImGuiGlobals::Instance;
+    SimWindowApi* windowApi = globals.mSimWindowApi;
+
+    for( ImGuiWindow* window : globals.mAllWindows )
+      ImGuiSaveWindowSettings( window );
   }
 
   void ImGuiUninit()

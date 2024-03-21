@@ -13,20 +13,6 @@ namespace Tac
   {
     WindowHandle( int index = -1 );
 
-    // int api
-    v2i        GetPosi() const;
-    v2i        GetSizei() const;
-    int        GetX() const;
-    int        GetY() const;
-    int        GetWidth() const;
-    int        GetHeight() const;
-
-    // float api
-    v2         GetPosf() const;
-    v2         GetSizef() const;
-
-    StringView GetName() const;
-    bool       IsShown() const;
     bool       IsValid() const;
     int        GetIndex() const;
 
@@ -44,6 +30,10 @@ namespace Tac
   // TODO: make not global and dependency inject
   struct PlatformWindowApi
   {
+    bool         IsShown( WindowHandle ) const;
+    v2i          GetPos() const;
+    v2i          GetSize() const;
+    StringView   GetName() const;
   };
 
   // TODO: make not global and dependency inject
@@ -52,11 +42,14 @@ namespace Tac
     struct CreateParams
     {
       StringView  mName = "";
-      int         mX = 0;
-      int         mY = 0;
-      int         mWidth = 0;
-      int         mHeight = 0;
+      v2i         mPos;
+      v2i         mSize;
     };
+
+    bool         IsShown( WindowHandle ) const;
+    v2i          GetPos() const;
+    v2i          GetSize() const;
+    StringView   GetName() const;
 
     WindowHandle CreateWindow( CreateParams );
     void         DestroyWindow( WindowHandle );

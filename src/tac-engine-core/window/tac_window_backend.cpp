@@ -1,18 +1,27 @@
 #include "tac_window_backend.h" // self-inc
+#include "tac_sim_window_api.h"
+#include "tac_sys_window_api.h"
 
 #include "tac-std-lib/error/tac_assert.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac-engine-core/platform/tac_platform.h"
+#include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-rhi/render3/tac_render_api.h"
 
 import std; // mutex
 
-Tac::WindowBackend::WindowStates Tac::WindowBackend::sGameLogicCurr;
-Tac::WindowBackend::WindowStates Tac::WindowBackend::sPlatformCurr;
-
 namespace Tac::WindowBackend
 {
+  struct WindowState
+  {
+    String mName;
+    v2i    mPos;
+    v2i    mSize;
+    bool   mShown;
+  };
+
+  using WindowStates = Array< WindowState, kDesktopWindowCapacity >;
   using NWHArray = Array< const void*, kDesktopWindowCapacity >; // Native Window Handles (HWND)
   using FBArray = Array< Render::FBHandle, kDesktopWindowCapacity >; // Window Framebuffers
 
@@ -24,6 +33,8 @@ namespace Tac::WindowBackend
   //   Locked by the simulation thread in GameLogicUpdate()
   //   to copy sGameLogicCurr to sPlatformCurr
   static std::mutex   sWindowStateMutex;
+  static WindowStates sGameLogicCurr;
+  static WindowStates sPlatformCurr;
   static bool         sModificationAllowed;
   static NWHArray     sPlatformNative;
   static FBArray      sFramebuffers;
@@ -47,26 +58,22 @@ namespace Tac::WindowBackend
   static Vector< WindowHandle >    sDestroyRequests;
   static int                       sHandleCounter;
   static Vector< int >             sFreeHandles;
-}
-
-namespace Tac
-{
 
   // -----------------------------------------------------------------------------------------------
 
   // Platform thread functions:
 
-  void WindowBackend::ApplyBegin()
+  void SysApi::ApplyBegin()
   {
     sWindowStateMutex.lock();
     sModificationAllowed = true;
   }
 
-  void WindowBackend::SetWindowCreated( WindowHandle h,
-                                        const void* nwh,
-                                        StringView name,
-                                        v2i pos,
-                                        v2i size )
+  void SysApi::SetWindowCreated( WindowHandle h,
+                                 const void* nwh,
+                                 StringView name,
+                                 v2i pos,
+                                 v2i size )
   {
     TAC_ASSERT( sModificationAllowed );
     const int i = h.GetIndex();
@@ -81,7 +88,7 @@ namespace Tac
     sFramebuffers[ i ] = Render::RenderApi::CreateFB( nwh, size );
   }
 
-  void WindowBackend::SetWindowDestroyed( WindowHandle h )
+  void SysApi::SetWindowDestroyed( WindowHandle h )
   {
     TAC_ASSERT( sModificationAllowed );
     const int i = h.GetIndex();
@@ -91,13 +98,13 @@ namespace Tac
     sFramebuffers[ i ] = {};
   }
 
-  void WindowBackend::SetWindowIsVisible( WindowHandle h, bool shown )
+  void SysApi::SetWindowIsVisible( WindowHandle h, bool shown )
   {
     TAC_ASSERT( sModificationAllowed );
     sPlatformCurr[ h.GetIndex() ].mShown = shown;
   }
 
-  void WindowBackend::SetWindowSize( WindowHandle h, v2i size )
+  void SysApi::SetWindowSize( WindowHandle h, v2i size )
   {
     TAC_ASSERT( sModificationAllowed );
     const int i = h.GetIndex();
@@ -105,19 +112,19 @@ namespace Tac
     Render::RenderApi::ResizeFB( sFramebuffers[ i ], size );
   }
 
-  void WindowBackend::SetWindowPos( WindowHandle h, v2i pos )
+  void SysApi::SetWindowPos( WindowHandle h, v2i pos )
   {
     TAC_ASSERT( sModificationAllowed );
     sPlatformCurr[ h.GetIndex() ].mPos = pos;
   }
 
-  void WindowBackend::ApplyEnd()
+  void SysApi::ApplyEnd()
   {
     sModificationAllowed = false;
     sWindowStateMutex.unlock();
   }
 
-  void WindowBackend::PlatformApplyRequests( Errors& errors )
+  void SysApi::Sync( Errors& errors )
   {
     TAC_SCOPE_GUARD( std::lock_guard, sRequestMutex );
 
@@ -151,23 +158,25 @@ namespace Tac
     sDestroyRequests = {};
   }
 
-  const void* WindowBackend::GetNativeWindowHandle( WindowHandle h )
-  {
-    return sPlatformNative[ h.GetIndex() ];
-  }
-
   // -----------------------------------------------------------------------------------------------
 
   // Sim thread functions:
 
-  void         WindowBackend::GameLogicUpdate()
+  void SimApi::Sync()
   {
     sWindowStateMutex.lock();
     sGameLogicCurr = sPlatformCurr;
     sWindowStateMutex.unlock();
   }
 
-  WindowHandle WindowBackend::GameLogicCreateWindow( WindowApi::CreateParams params )
+  // -----------------------------------------------------------------------------------------------
+}
+
+namespace Tac
+{
+  using namespace WindowBackend;
+
+  WindowHandle SimWindowApi::CreateWindow( CreateParams params ) const
   {
     TAC_SCOPE_GUARD( std::lock_guard, sRequestMutex );
 
@@ -186,19 +195,109 @@ namespace Tac
     {
       .mHandle = WindowHandle{ i },
       .mName = params.mName,
-      .mPos = v2i{ params.mX, params.mY },
-      .mSize = v2i{ params.mWidth, params.mHeight },
+      .mPos = params.mPos,
+      .mSize = params.mSize,
     };
     sCreateRequests.push_back( request );
 
     return WindowHandle{ i };
   }
 
-  void         WindowBackend::GameLogicDestroyWindow( WindowHandle h )
+  void         SimWindowApi::DestroyWindow( WindowHandle h ) const
   {
     TAC_SCOPE_GUARD( std::lock_guard, sRequestMutex );
     sDestroyRequests.push_back( h );
   }
 
-} // namespace Tac
+  bool         SimWindowApi::IsShown( WindowHandle h ) const
+  {
+    return sGameLogicCurr[ h.GetIndex() ].mShown;
+  }
+
+  v2i          SimWindowApi::GetPos( WindowHandle h ) const
+  {
+    return sGameLogicCurr[ h.GetIndex() ].mPos;
+  }
+
+  v2i          SimWindowApi::GetSize( WindowHandle h ) const
+  {
+    return sGameLogicCurr[ h.GetIndex() ].mSize;
+  }
+
+  StringView   SimWindowApi::GetName( WindowHandle h ) const
+  {
+    return sGameLogicCurr[ h.GetIndex() ].mName;
+  }
+
+  // -----------------------------------------------------------------------------------------------
+
+  bool             SysWindowApi::IsShown( WindowHandle h ) const
+  {
+    return sPlatformCurr[ h.GetIndex() ].mShown;
+  }
+
+  v2i              SysWindowApi::GetPos( WindowHandle h ) const
+  {
+    return sPlatformCurr[ h.GetIndex() ].mPos;
+  }
+
+  v2i              SysWindowApi::GetSize( WindowHandle h ) const
+  {
+    return sPlatformCurr[ h.GetIndex() ].mSize;
+  }
+
+  StringView       SysWindowApi::GetName( WindowHandle h ) const
+  {
+    return sPlatformCurr[ h.GetIndex() ].mName;
+  }
+
+  const void*      SysWindowApi::GetNWH( WindowHandle h ) const // native window handle
+  {
+    return sPlatformNative[ h.GetIndex() ];
+  }
+
+  Render::FBHandle SysWindowApi::GetFBHandle( WindowHandle h ) const
+  {
+    return sFramebuffers[ h.GetIndex() ];
+  }
+
+  void             SysWindowApi::DesktopWindowDebugImgui()
+  {
+#if 0
+    if( !ImGuiCollapsingHeader( "DesktopWindowDebugImgui" ) )
+      return;
+
+    TAC_IMGUI_INDENT_BLOCK;
+
+    int stateCount = 0;
+    for( int iWindow = 0; iWindow < kDesktopWindowCapacity; ++iWindow )
+    {
+      const DesktopWindowState* state = &sDesktopWindowStates[ iWindow ];
+      if( !state->mNativeWindowHandle )
+        continue;
+
+      String handleStr = ToString( iWindow );
+      while( handleStr.size() < 2 )
+        handleStr += ' ';
+
+      String nameStr = state->mName;
+
+      String str;
+      str += "Window: " + handleStr + ", ";
+      str += "Name: " + nameStr + ", ";
+      str += "Pos(" + ToString( state->mX ) + ", " + ToString( state->mY ) + "), ";
+      str += "Size( " + ToString( state->mWidth ) + ", " + ToString( state->mHeight ) + "), ";
+      str += "Native: " + ToString( ( void* )state->mNativeWindowHandle );
+
+      ImGuiText( str );
+      stateCount++;
+    }
+
+    if( !stateCount )
+      ImGuiText( " No desktop window states (how are you reading this)" );
+#endif
+  }
+
+}
+
 
