@@ -102,6 +102,7 @@ namespace Tac::DesktopEventApi
   void Queue( const MouseWheelEvent& );
   void Queue( const WindowMoveEvent& );
   void Queue( const WindowResizeEvent& );
+
   void Apply();
 
 

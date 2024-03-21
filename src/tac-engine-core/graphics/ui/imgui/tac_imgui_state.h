@@ -223,19 +223,20 @@ namespace Tac
     int                               mMaxGpuFrameCount{};
     //ImGuiSetWindowPos                 mSetWindowPos{};
     //ImGuiSetWindowSize                mSetWindowSize{};
-    ImGuiCreateWindow                 mCreateWindow{};
-    ImGuiDestroyWindow                mDestroyWindow{};
+    //ImGuiCreateWindow                 mCreateWindow{};
+    //ImGuiDestroyWindow                mDestroyWindow{};
     SimWindowApi*                     mSimWindowApi{};
+    SimKeyboardApi*                   mSimKeyboardApi{};
   };
 
   struct ImGuiNextWindow
   {
-    v2                            mPosition = {};
-    v2                            mSize = {};
-		WindowHandle           mWindowHandle;
-    bool                          mStretch = false;
-    bool                          mMoveResize = false;
-    bool                          mEnableBG = true; // Set false to disable background render
+    v2           mPosition = {};
+    v2           mSize = {};
+		WindowHandle mWindowHandle;
+    bool         mStretch = false;
+    bool         mMoveResize = false;
+    bool         mEnableBG = true; // Set false to disable background render
   };
 
   extern ImGuiNextWindow gNextWindow;

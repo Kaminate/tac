@@ -4,7 +4,6 @@
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-engine-core/graphics/ui/tac_ui_2d.h"
-#include "tac-engine-core/hid/tac_keyboard_api.h"
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-engine-core/graphics/ui/tac_text_edit.h"
 
@@ -47,6 +46,7 @@ namespace Tac
                                    Drag_MouseHandler mouseHandler )
   {
     ImGuiGlobals& globals = ImGuiGlobals::Instance;
+    SimKeyboardApi* keyboardApi = globals.mSimKeyboardApi;
     SimWindowApi* windowApi = globals.mSimWindowApi;
 
     const float fontSize = ImGuiGetFontSize();
@@ -77,7 +77,7 @@ namespace Tac
     //if( hovered )
     //  Mouse::TryConsumeMouseMovement( &consumeMouse, TAC_STACK_FRAME );
 
-    if( hovered && KeyboardApi::JustPressed( Key::MouseLeft ) )
+    if( hovered && keyboardApi->JustPressed( Key::MouseLeft ) )
       window->SetActiveID( id );
 
 
@@ -87,17 +87,17 @@ namespace Tac
     {
       if( dragFloatData->mMode == DragMode::Drag )
       {
-        v2 screenspaceMousePos = KeyboardApi::GetMousePosScreenspace();
+        v2 screenspaceMousePos = keyboardApi->GetMousePosScreenspace();
         static float lastMouseXDesktopWindowspace;
 
 
-        if( KeyboardApi::JustPressed( Key::MouseLeft ) )
+        if( keyboardApi->JustPressed( Key::MouseLeft ) )
         {
           lastMouseXDesktopWindowspace = screenspaceMousePos.x;
           dragFloatData->mDragDistPx = 0;
           MemCpy( dragFloatData->mValueCopy, valueBytes, valueByteCount );
         }
-        else if ( KeyboardApi::IsPressed( Key::MouseLeft ) )
+        else if ( keyboardApi->IsPressed( Key::MouseLeft ) )
         {
           WindowHandle windowHandle = window->GetWindowHandle();
           const v2 desktopWindowPos = windowApi->GetPos( windowHandle );
@@ -125,7 +125,7 @@ namespace Tac
         // handle double click
         static Timestamp lastMouseReleaseSeconds;
         static v2 lastMousePositionDesktopWindowspace;
-        if( KeyboardApi::JustDepressed( Key::MouseLeft ) && hovered )
+        if( keyboardApi->JustDepressed( Key::MouseLeft ) && hovered )
         {
           const Timestamp mouseReleaseSeconds = ImGuiGlobals::Instance.mElapsedSeconds;
           const TimestampDifference kDoubleClickSecs = 0.5f;
@@ -163,7 +163,7 @@ namespace Tac
           valueStr = newText;
 
           // tab between x,y,z for imguidragfloat3
-          if( KeyboardApi::JustPressed( Key::Tab ) )
+          if( keyboardApi->JustPressed( Key::Tab ) )
             window->mIDAllocator->mActiveID++;
         }
       }

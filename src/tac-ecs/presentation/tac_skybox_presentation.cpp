@@ -4,7 +4,7 @@
 #include "tac-std-lib/filesystem/tac_asset.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/memory/tac_memory.h"
-#include "tac-engine-core/window/tac_window_api.h"
+#include "tac-engine-core/window/tac_window_handle.h"
 #include "tac-engine-core/graphics/camera/tac_camera.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h"

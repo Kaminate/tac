@@ -92,7 +92,6 @@ namespace Tac
 
   void DesktopEventApi::Init( Handler* handler )
   {
-    TAC_ASSERT( DesktopAppThreads::IsMainThread() );
     sEventQueue.Init();
     sHandler = handler;
   }

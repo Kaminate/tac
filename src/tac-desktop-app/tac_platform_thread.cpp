@@ -18,6 +18,14 @@
 #include "tac-engine-core/shell/tac_shell_timer.h"
 #include "tac-engine-core/hid/tac_keyboard_backend.h"
 
+
+#include "tac-engine-core/window/tac_window_backend.h"
+#include "tac-engine-core/window/tac_sys_window_api.h"
+//#include "tac-engine-core/window/tac_sys_window_api.h"
+//#include "tac-engine-core/hid/tac_sys_keyboard_api.h"
+#include "tac-engine-core/hid/tac_keyboard_backend.h"
+#include "tac-engine-core/hid/tac_sys_keyboard_api.h"
+
 //#include "tac-rhi/render/tac_render.h"
 #include "tac-rhi/render3/tac_render_api.h"
 //#include "tac-rhi/renderer/tac_renderer.h"
@@ -27,86 +35,11 @@
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/containers/tac_array.h"
 
-namespace Tac::DesktopEventApi
-{
-
-  struct DesktopEventHandler : public Handler
-  {
-    void HandleBegin() override
-    {
-      WindowBackend::ApplyBegin();
-      KeyboardBackend::ApplyBegin();
-    }
-
-    void HandleEnd() override
-    {
-      WindowBackend::ApplyEnd();
-      KeyboardBackend::ApplyEnd();
-    }
-
-    void Handle( const WindowDestroyEvent& data ) override
-    {
-      WindowBackend::SetWindowDestroyed( data.mWindowHandle );
-    }
-
-    void Handle( const WindowCreateEvent& data ) override
-    {
-      const v2i pos{ data.mX, data.mY };
-      const v2i size{ data.mW, data.mH };
-      WindowBackend::SetWindowCreated( data.mWindowHandle,
-                                       data.mNativeWindowHandle,
-                                       data.mName,
-                                       pos,
-                                       size );
-    }
-
-    void Handle( const CursorUnobscuredEvent& data ) override
-    {
-      //SetHoveredWindow( data.mWindowHandle );
-    }
-
-    void Handle( const KeyInputEvent& data ) override
-    {
-      KeyboardBackend::SetCodepoint( data.mCodepoint );
-    }
-
-    void Handle( const KeyStateEvent& data ) override
-    {
-      const KeyboardBackend::KeyState state = data.mDown
-        ? KeyboardBackend::KeyState::Down
-        : KeyboardBackend::KeyState::Up;
-
-      KeyboardBackend::SetKeyState( data.mKey, state );
-    }
-
-    void Handle( const MouseMoveEvent& data ) override
-    {
-      const v2 screenSpaceWindowPos = data.mWindowHandle.GetPosf();
-      const v2 windowSpaceMousePos{ ( float )data.mX, ( float )data.mY };
-      KeyboardBackend::SetMousePos( screenSpaceWindowPos + windowSpaceMousePos );
-    }
-
-    void Handle( const MouseWheelEvent& data ) override
-    {
-      KeyboardBackend::SetMouseWheel( data.mDelta );
-    }
-
-    void Handle( const WindowMoveEvent& data ) override
-    {
-      WindowBackend::SetWindowPos( data.mWindowHandle, v2i( data.mX, data.mY ) );
-    }
-
-    void Handle( const WindowResizeEvent& data ) override
-    {
-      WindowBackend::SetWindowSize( data.mWindowHandle, v2i( data.mWidth, data.mHeight ) );
-    }
-  };
-
-  static DesktopEventHandler sDesktopEventHandler;
-}
 
 namespace Tac
 {
+  static SysWindowApi            sWindowApi;
+  static SysKeyboardApi          sKeyboardApi;
   //static void                ImGuiSimSetWindowPos( WindowHandle handle, v2i pos )
   //{
   //  PlatformFns* platform = PlatformFns::GetInstance();
@@ -120,6 +53,7 @@ namespace Tac
   //}
 
   static bool sVerbose;
+
   void PlatformThread::Uninit()
   {
     Errors& errors = *mErrors;
@@ -134,13 +68,12 @@ namespace Tac
   void PlatformThread::Init( Errors& errors )
   {
     TAC_ASSERT( mErrors && mApp );
+
     DesktopAppThreads::SetType( DesktopAppThreads::ThreadType::Main );
 
     FrameMemoryInitThreadAllocator( 1024 * 1024 * 10 );
 
-    DesktopEventApi::Init( &DesktopEventApi::sDesktopEventHandler );
     
-    TAC_CALL( Render::RenderApi::Init( {}, errors ) );
     //TAC_CALL( Render::Init2( Render::InitParams{}, errors ) );
 
   }
@@ -200,8 +133,10 @@ namespace Tac
                                                       t );
 
 
-        const App::RenderParams params
+        const App::SysRenderParams params
         {
+          .mWindowApi = &sWindowApi,
+          .mKeyboardApi = &sKeyboardApi,
           .mOldState = pair.mOldState, // A
           .mNewState = pair.mNewState, // B
           .mT = t, // inbetween B and (future) C

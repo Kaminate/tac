@@ -5,10 +5,11 @@
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui_drag.h"
 #include "tac-engine-core/graphics/ui/tac_text_edit.h"
 #include "tac-engine-core/graphics/ui/tac_ui_2d.h"
-#include "tac-engine-core/hid/tac_keyboard_api.h"
+//#include "tac-engine-core/hid/tac_keyboard_api.h"
 #include "tac-engine-core/profile/tac_profile.h"
 #include "tac-engine-core/settings/tac_settings.h"
 #include "tac-engine-core/window/tac_window_handle.h"
+#include "tac-engine-core/hid/tac_sim_keyboard_api.h"
 
 #include "tac-rhi/renderer/tac_renderer.h"
 
@@ -65,6 +66,9 @@ namespace Tac
                                        const v2& mousePos,
                                        const v2& textPos )
   {
+    ImGuiGlobals& globals = ImGuiGlobals::Instance;
+    SimKeyboardApi* keyboardApi = globals.mSimKeyboardApi;
+
     struct KeyMap
     {
       Key mKey;
@@ -80,21 +84,20 @@ namespace Tac
     };
 
     for( const KeyMap& keyMap : keyMaps )
-      if( KeyboardApi::JustPressed( keyMap.mKey ) )
+      if( keyboardApi->JustPressed( keyMap.mKey ) )
         inputData->OnKeyPressed( keyMap.mTextInputKey );
 
-
-    const Span< Codepoint > codepoints = KeyboardApi::GetCodepoints();
+    const Span< Codepoint > codepoints = keyboardApi->GetCodepoints();
     for( Codepoint codepoint : codepoints )
       inputData->OnCodepoint( codepoint );
 
-    if( KeyboardApi::JustPressed( Key::MouseLeft ) )
+    if( keyboardApi->JustPressed( Key::MouseLeft ) )
     {
       const int numGlyphsBeforeCaret = GetCaret( inputData->mCodepoints,
                                                  mousePos.x - textPos.x );
       inputData->OnClick( numGlyphsBeforeCaret );
     }
-    else if( KeyboardApi::IsPressed( Key::MouseLeft ) )
+    else if( keyboardApi->IsPressed( Key::MouseLeft ) )
     {
       const int numGlyphsBeforeCaret = GetCaret( inputData->mCodepoints,
                                                  mousePos.x - textPos.x );
@@ -147,7 +150,10 @@ namespace Tac
 
   static const v4& GetFrameColor( const bool hovered )
   {
-    const bool active = hovered && KeyboardApi::IsPressed( Key::MouseLeft );
+    ImGuiGlobals& globals = ImGuiGlobals::Instance;
+    SimKeyboardApi* keyboardApi = globals.mSimKeyboardApi;
+
+    const bool active = hovered && keyboardApi->IsPressed( Key::MouseLeft );
     const v4& boxColor = ImGuiGetColor( active ? ImGuiCol::FrameBGActive :
                                         hovered ? ImGuiCol::FrameBGHovered : ImGuiCol::FrameBG );
     return boxColor;
@@ -391,7 +397,7 @@ namespace Tac
   {
     ImGuiGlobals& globals = ImGuiGlobals::Instance;
     SimWindowApi* windowApi = globals.mSimWindowApi;
-    ImGuiCreateWindow createWindowFn = globals.mCreateWindow;
+    //ImGuiCreateWindow createWindowFn = globals.mCreateWindow;
     ImGuiWindow* window = globals.FindWindow( name );
     if( !window )
     {
@@ -429,13 +435,17 @@ namespace Tac
         //  .mHeight = h,
         //};
 
-        const ImGuiCreateWindowParams params
+        const v2i pos{ x, y };
+        const v2i size{ w, h };
+        const SimWindowApi::CreateParams params
         {
-          .mPos = { ( float )x, ( float )y },
-          .mSize = { ( float )w, ( float )h },
+          .mName = name,
+          .mPos{ pos },
+          .mSize{ size }
         };
 
-        hDesktopWindow = createWindowFn( params );// DesktopApp::GetInstance()->CreateWindow(createParams);
+        hDesktopWindow = windowApi->CreateWindow( params );
+
         desktopWindowWidth = w;
         desktopWindowHeight = h;
       }
@@ -490,16 +500,20 @@ namespace Tac
 
   void ImGuiEnd()
   {
-    Vector< ImGuiWindow* >& windowStack = ImGuiGlobals::Instance.mWindowStack;
+    ImGuiGlobals& globals = ImGuiGlobals::Instance;
+
+    Vector< ImGuiWindow* >& windowStack = globals.mWindowStack;
 
     windowStack.pop_back();
-    ImGuiGlobals::Instance.mCurrentWindow = windowStack.empty() ? nullptr : windowStack.back();
+    globals.mCurrentWindow = windowStack.empty() ? nullptr : windowStack.back();
   }
-
 
   bool ImGuiIsMouseHoveringRectScreenspace( ImGuiRect rectScreenspace )
   {
-    const v2 screenspaceMousePos = KeyboardApi::GetMousePosScreenspace();
+    ImGuiGlobals& globals = ImGuiGlobals::Instance;
+    SimKeyboardApi* keyboardApi = globals.mSimKeyboardApi;
+
+    const v2 screenspaceMousePos = keyboardApi->GetMousePosScreenspace();
     return rectScreenspace.ContainsPoint( screenspaceMousePos );
   }
 
@@ -635,13 +649,16 @@ namespace Tac
 
   bool ImGuiInputText( const StringView& label, String& text )
   {
+    ImGuiGlobals& globals = ImGuiGlobals::Instance;
+    SimKeyboardApi* keyboardApi = globals.mSimKeyboardApi;
+
     const float fontSize = ImGuiGetFontSize();
     const float buttonPadding = ImGuiGetButtonPadding();
     const v2& itemSpacing = ImGuiGetItemSpacing();
 
-    const Timestamp mouseReleaseSeconds = ImGuiGlobals::Instance.mElapsedSeconds;
+    const Timestamp mouseReleaseSeconds = globals.mElapsedSeconds;
 
-    ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
+    ImGuiWindow* window = globals.mCurrentWindow;
 
     const ImGuiId id = window->GetID();
     const String oldText = text;
@@ -670,7 +687,7 @@ namespace Tac
       //static Timestamp mouseMovementConsummation;
       //Mouse::TryConsumeMouseMovement( &mouseMovementConsummation, TAC_STACK_FRAME );
 
-      if( KeyboardApi::JustPressed( Key::MouseLeft ) )
+      if( keyboardApi->JustPressed( Key::MouseLeft ) )
         window->SetActiveID( id );
     }
 
@@ -700,11 +717,11 @@ namespace Tac
       // handle double click
       static Timestamp lastMouseReleaseSeconds;
       static v2 lastMousePositionDesktopWindowspace;
-      if( KeyboardApi::JustDepressed ( Key::MouseLeft ) &&
+      if( keyboardApi->JustDepressed ( Key::MouseLeft ) &&
           hovered &&
           !textInputData->mCodepoints.empty() )
       {
-        const v2 screenspaceMousePos = KeyboardApi::GetMousePosScreenspace();
+        const v2 screenspaceMousePos = keyboardApi->GetMousePosScreenspace();
         const Timestamp elapsedSecs = ImGuiGlobals::Instance.mElapsedSeconds;
         const TimestampDifference kDoubleClickSecs = 0.5f;
         const bool releasedRecently = elapsedSecs - lastMouseReleaseSeconds < kDoubleClickSecs;
@@ -750,6 +767,9 @@ namespace Tac
 
   bool ImGuiSelectable( const StringView& str, bool selected )
   {
+    ImGuiGlobals& globals = ImGuiGlobals::Instance;
+    SimKeyboardApi* keyboardApi = globals.mSimKeyboardApi;
+
     const float fontSize = ImGuiGetFontSize();
 
     ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
@@ -765,15 +785,14 @@ namespace Tac
     if( !window->Overlaps( origRect ) )
       return false;
 
-
     UI2DDrawData* drawData = window->mDrawData;
     drawData->PushDebugGroup( "ImGuiSelectable", str );
     TAC_ON_DESTRUCT(drawData->PopDebugGroup());
 
     const ImGuiRect clipRectViewport = window->Clip( origRect );
     const bool hovered = window->IsHovered( clipRectViewport );
-    const bool clicked = hovered && KeyboardApi::JustPressed( Key::MouseLeft );
-    if(clicked)
+    const bool clicked = hovered && keyboardApi->JustPressed( Key::MouseLeft );
+    if( clicked )
       window->SetActiveID( id );
 
     if( selected || hovered )
@@ -801,10 +820,13 @@ namespace Tac
 
   bool ImGuiButton( const StringView& str )
   {
+    ImGuiGlobals& globals = ImGuiGlobals::Instance;
+    SimKeyboardApi* keyboardApi = globals.mSimKeyboardApi;
+
     const float fontSize = ImGuiGetFontSize();
     const float buttonPadding = ImGuiGetButtonPadding();
 
-    ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
+    ImGuiWindow* window = globals.mCurrentWindow;
 
     const v2 textSize = CalculateTextSize( str, fontSize );
     const v2 buttonSize = textSize + v2( 2 * buttonPadding, 0 );
@@ -849,7 +871,7 @@ namespace Tac
     drawData->AddText( text, &clipRect );
     drawData->PopDebugGroup();
 
-    return hovered && KeyboardApi::JustPressed( Key::MouseLeft );
+    return hovered && keyboardApi->JustPressed( Key::MouseLeft );
   }
 
   static void ImGuiDrawCheckMark( const v2& pos, const  float boxWidth )
@@ -896,11 +918,14 @@ namespace Tac
 
   bool ImGuiCheckbox( const StringView& str, bool* value )
   {
+    ImGuiGlobals& globals = ImGuiGlobals::Instance;
+    SimKeyboardApi* keyboardApi = globals.mSimKeyboardApi;
+
     const bool oldValue = *value;
     const float fontSize = ImGuiGetFontSize();
     const v2& itemSpacing = ImGuiGetItemSpacing();
 
-    ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
+    ImGuiWindow* window = globals.mCurrentWindow;
 
     const v2 pos = window->mViewportSpaceCurrCursor;
     const v2 textSize = CalculateTextSize( str, fontSize );
@@ -917,7 +942,7 @@ namespace Tac
     const bool hovered = window->IsHovered( clipRect );
     const Key lmb = Key::MouseLeft;
 
-    if( hovered && KeyboardApi::JustPressed( lmb ) )
+    if( hovered && keyboardApi->JustPressed( lmb ) )
     {
       *value = !*value;
       //Mouse::ButtonSetIsDown( lmb, false );
@@ -1056,10 +1081,13 @@ namespace Tac
 
   bool ImGuiCollapsingHeader( const StringView& name, const ImGuiNodeFlags flags )
   {
+    ImGuiGlobals& globals = ImGuiGlobals::Instance;
+    SimKeyboardApi* keyboardApi = globals.mSimKeyboardApi;
+
     const float fontSize = ImGuiGetFontSize();
     const float buttonPadding = ImGuiGetButtonPadding();
 
-    ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
+    ImGuiWindow* window = globals.mCurrentWindow;
 
     const float width = window->GetRemainingWidth();
     const v2 pos = window->mViewportSpaceCurrCursor;
@@ -1079,7 +1107,7 @@ namespace Tac
 
     bool& isOpen = window->mCollapsingHeaderStates[ id ];
 
-    if( hovered && KeyboardApi::JustPressed( Key::MouseLeft ) )
+    if( hovered && keyboardApi->JustPressed( Key::MouseLeft ) )
       isOpen = !isOpen;
 
     const UI2DDrawData::Box box =
@@ -1180,17 +1208,21 @@ namespace Tac
   {
     TAC_PROFILE_BLOCK;
 
-    for( const ImGuiWindow* window : ImGuiGlobals::Instance.mWindowStack )
+    ImGuiGlobals& globals = ImGuiGlobals::Instance;
+    SimWindowApi* windowApi = globals.mSimWindowApi;
+
+    const Timestamp curSeconds = globals.mElapsedSeconds;
+
+    for( const ImGuiWindow* window : globals.mWindowStack )
     {
       TAC_ASSERT_CRITICAL( String() + "Mismatched ImGuiBegin/ImGuiEnd for " + window->mName );
     }
 
     //ImGuiRender( errors );
 
-    const Timestamp curSeconds = ImGuiGlobals::Instance.mElapsedSeconds;
     FrameMemoryVector< ImGuiWindow* > windowsToDeleteImGui;
 
-    for( ImGuiWindow* window : ImGuiGlobals::Instance.mAllWindows )
+    for( ImGuiWindow* window : globals.mAllWindows )
     {
       const TimestampDifference deletionWaitSeconds = 0.1f;
       if( curSeconds > window->mRequestTime + deletionWaitSeconds && window->mWindowHandleOwned )
@@ -1222,11 +1254,12 @@ namespace Tac
     {
       // Destroy the desktop app window
       //DesktopApp::GetInstance()->DestroyWindow( window->GetWindowHandle() );
-      ImGuiGlobals::Instance.mDestroyWindow( window->GetWindowHandle() );
+      windowApi->DestroyWindow( window->GetWindowHandle() );
+
 
       // Destroy the imgui window
       {
-        Vector< ImGuiWindow* >& windows = ImGuiGlobals::Instance.mAllWindows;
+        Vector< ImGuiWindow* >& windows = globals.mAllWindows;
 
         // Get the window index
         const int n = windows.size();
@@ -1267,9 +1300,16 @@ namespace Tac
     globals.mMaxGpuFrameCount = params.mMaxGpuFrameCount;
     //globals.mSetWindowPos = params.mSetWindowPos;
     //globals.mSetWindowSize = params.mSetWindowSize;
-    globals.mCreateWindow = params.mCreateWindow;
-    globals.mDestroyWindow = params.mDestroyWindow;
+    //globals.mCreateWindow = params.mCreateWindow;
+    //globals.mDestroyWindow = params.mDestroyWindow;
     globals.mSimWindowApi = params.mSimWindowApi;
+    globals.mSimKeyboardApi = params.mSimKeyboardApi;
+
+    TAC_ASSERT( params.mMaxGpuFrameCount &&
+                //params.mCreateWindow &&
+                //params.mDestroyWindow &&
+                params.mSimWindowApi &&
+                params.mSimKeyboardApi );
   }
 
   static void ImGuiSaveWindowSettings( ImGuiWindow* window )

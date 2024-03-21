@@ -6,6 +6,7 @@
 #include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-engine-core/window/tac_window_handle.h" // WindowHandle
 #include "tac-engine-core/window/tac_sim_window_api.h"
+#include "tac-engine-core/hid/tac_sim_keyboard_api.h"
 #include "tac-engine-core/graphics/ui/tac_ui_2d.h" // UI2DDrawData
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac-std-lib/math/tac_vector2i.h"
@@ -106,25 +107,26 @@ namespace Tac
     const WindowHandle& mMouseHoveredWindow;
   };
 
-  struct ImGuiCreateWindowParams
-  {
-    v2 mPos;
-    v2 mSize;
-  };
+  //struct ImGuiCreateWindowParams
+  //{
+  //  v2 mPos;
+  //  v2 mSize;
+  //};
 
-  using ImGuiSetWindowPos = void( * )( WindowHandle, v2i );
-  using ImGuiSetWindowSize = void( * )( WindowHandle, v2i );
-  using ImGuiCreateWindow = WindowHandle( * )( const ImGuiCreateWindowParams& );
-  using ImGuiDestroyWindow = void ( * )( WindowHandle );
+  //using ImGuiSetWindowPos = void( * )( WindowHandle, v2i );
+  //using ImGuiSetWindowSize = void( * )( WindowHandle, v2i );
+  //using ImGuiCreateWindow = WindowHandle( * )( const ImGuiCreateWindowParams& );
+  //using ImGuiDestroyWindow = void ( * )( WindowHandle );
 
   struct ImGuiInitParams
   {
     int                mMaxGpuFrameCount{};
-    SimWindowApi*      mSimWindowApi;
-    ImGuiSetWindowPos  mSetWindowPos{};
-    ImGuiSetWindowSize mSetWindowSize{};
-    ImGuiCreateWindow  mCreateWindow{};
-    ImGuiDestroyWindow mDestroyWindow{};
+    SimWindowApi*      mSimWindowApi{};
+    SimKeyboardApi*    mSimKeyboardApi{};
+    //ImGuiSetWindowPos  mSetWindowPos{};
+    //ImGuiSetWindowSize mSetWindowSize{};
+    //ImGuiCreateWindow  mCreateWindow{};
+    //ImGuiDestroyWindow mDestroyWindow{};
   };
 
   //   ImGui System Functions

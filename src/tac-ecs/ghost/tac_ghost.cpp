@@ -14,7 +14,7 @@
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/graphics/ui/tac_font.h"
 #include "tac-engine-core/hid/controller/tac_controller_input.h"
-#include "tac-engine-core/hid/tac_keyboard_api.h"
+#include "tac-engine-core/hid/tac_sim_keyboard_api.h"
 #include "tac-engine-core/i18n/tac_localization.h"
 #include "tac-engine-core/settings/tac_settings.h"
 #include "tac-engine-core/shell/tac_shell.h"
@@ -35,10 +35,12 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  User::User( Ghost* ghost,
-              StringView name,
+  User::User( StringView name,
+              Ghost* ghost,
+              SimKeyboardApi* keyboardApi,
               Errors& errors )
   {
+    mKeyboardApi = keyboardApi;
     mName = name;
     mGhost = ghost;
     auto serverData = mGhost->mServerData;
@@ -71,17 +73,16 @@ namespace Tac
 
     //auto serverData = mGhost->mServerData;
     v2 inputDirection = { 0, 0 };
-    if( KeyboardApi::IsPressed( Key::RightArrow ) ) inputDirection += { 1, 0 };
-    if( KeyboardApi::IsPressed( Key::UpArrow ) ) inputDirection += { 0, 1 };
-    if( KeyboardApi::IsPressed( Key::DownArrow ) ) inputDirection += { 0, -1 };
-    if( KeyboardApi::IsPressed( Key::LeftArrow ) ) inputDirection += { -1, 0 };
+    if( mKeyboardApi->IsPressed( Key::RightArrow ) ) inputDirection += { 1, 0 };
+    if( mKeyboardApi->IsPressed( Key::UpArrow ) ) inputDirection += { 0, 1 };
+    if( mKeyboardApi->IsPressed( Key::DownArrow ) ) inputDirection += { 0, -1 };
+    if( mKeyboardApi->IsPressed( Key::LeftArrow ) ) inputDirection += { -1, 0 };
     if( inputDirection.Length() )
       inputDirection.Normalize();
 
     mPlayer->mInputDirection = inputDirection;
-    mPlayer->mIsSpaceJustDown = KeyboardApi::JustPressed( Key::Spacebar );
+    mPlayer->mIsSpaceJustDown = mKeyboardApi->JustPressed( Key::Spacebar );
   }
-
 
   // -----------------------------------------------------------------------------------------------
 
@@ -102,7 +103,6 @@ namespace Tac
     delete mServerData;
     delete mClientData;
   }
-
 
   void Ghost::Init( Errors& errors )
   {
@@ -163,9 +163,11 @@ namespace Tac
     //mUIRoot->mGhost = this;
   }
 
-  User* Ghost::AddPlayer( StringView name, Errors& errors )
+  User* Ghost::AddPlayer( StringView name, 
+                          Errors& errors )
   {
-    auto* user = TAC_NEW User( this, name, errors );
+    Ghost* ghost = this;
+    auto* user = TAC_NEW User( name, ghost, mKeyboardApi, errors );
     mUsers.push_back( user );
 
     const ScriptMsg scriptMsg

@@ -9,6 +9,7 @@ namespace Tac
 {
   struct SysKeyboardApi
   {
+    void TestTest();
   };
 }
 

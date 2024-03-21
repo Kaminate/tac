@@ -1,13 +1,14 @@
 #include "tac_desktop_window_settings_tracker.h" // self-inc
 
 #include "tac-std-lib/containers/tac_vector.h"
-#include "tac-engine-core/window/tac_window_api.h"
+#include "tac-engine-core/window/tac_sim_window_api.h"
 #include "tac-engine-core/settings/tac_settings.h"
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-desktop-app/tac_desktop_app.h"
 
 namespace Tac
 {
+  static SimWindowApi* sWindowApi;
   struct TrackInfo
   {
     String              mPath;
@@ -42,14 +43,25 @@ namespace Tac
   }
 }
 
-Tac::WindowHandle Tac::CreateTrackedWindow( const WindowApi::CreateParams& params )
+Tac::WindowHandle Tac::CreateTrackedWindow( const SimWindowApi::CreateParams& params )
 {
-  return CreateTrackedWindow( params.mName,
-                              params.mX,
-                              params.mY,
-                              params.mWidth,
-                              params.mHeight );
-}
+ 
+  const WindowHandle windowHandle = sWindowApi->CreateWindow( params );
+  //DesktopApp::GetInstance()->MoveControls( WindowHandle );
+  //DesktopApp::GetInstance()->ResizeControls( WindowHandle );
+
+  const char* path = params.mName; // just reuse it
+  const TrackInfo info
+  {
+    .mPath = path,
+    .mWindowHandle = windowHandle,
+    .mX = params.mPos.x,
+    .mY = params.mPos.y,
+    .mW = params.mSize.x,
+    .mH = params.mSize.y,
+  };
+  sTrackInfos.push_back( info );
+  return windowHandle;}
 
 Tac::WindowHandle Tac::CreateTrackedWindow( const StringView& path,
                                             int x,
@@ -66,30 +78,14 @@ Tac::WindowHandle Tac::CreateTrackedWindow( const StringView& path,
   const char* name = path; // just reuse it
 
   //const WindowApi::CreateParams createParams
-  const WindowApi::CreateParams createParams
+  const SimWindowApi::CreateParams createParams
   {
     .mName = path,
-    .mX = x,
-    .mY = y,
-    .mWidth = w,
-    .mHeight = h,
+    .mPos = v2i( x, y ),
+    .mSize = v2i( w, h ),
   };
 
-  const WindowHandle windowHandle = WindowApi::CreateWindow( createParams );
-  //DesktopApp::GetInstance()->MoveControls( WindowHandle );
-  //DesktopApp::GetInstance()->ResizeControls( WindowHandle );
-
-  const TrackInfo info
-  {
-    .mPath = path,
-    .mWindowHandle = windowHandle,
-    .mX = x,
-    .mY = y,
-    .mW = w,
-    .mH = h,
-  };
-  sTrackInfos.push_back( info );
-  return windowHandle;
+  return CreateTrackedWindow( createParams );
 }
 
 void Tac::UpdateTrackedWindows()
@@ -97,18 +93,20 @@ void Tac::UpdateTrackedWindows()
   for( TrackInfo& info : sTrackInfos )
   {
     WindowHandle windowHandle = info.mWindowHandle;
-    if( !windowHandle.IsShown() && info.mEverOpened )
+    if( !sWindowApi-> IsShown(windowHandle) && info.mEverOpened )
       OS::OSAppStopRunning();
 
-    if( !windowHandle.IsShown() )
+    if( !sWindowApi->IsShown(windowHandle) )
       continue;
 
     info.mEverOpened = true;
 
-    const int x = windowHandle.GetX();
-    const int y = windowHandle.GetY();
-    const int w = windowHandle.GetWidth();
-    const int h = windowHandle.GetHeight();
+    const v2i pos = sWindowApi->GetPos( windowHandle );
+    const v2i size = sWindowApi->GetSize( windowHandle );
+    const int x = pos.x;
+    const int y = pos.y;
+    const int w = size.x;
+    const int h = size.y;
     if( x == info.mX &&
         y == info.mY &&
         w == info.mW &&
@@ -133,5 +131,11 @@ void Tac::QuitProgramOnWindowClose( const WindowHandle& WindowHandle )
   TrackInfo* trackInfo = FindTrackInfo( WindowHandle );
   TAC_ASSERT( trackInfo ); // maybe todo make this work on non-tracked windows?
   trackInfo->mQuitOnClose = true;
+}
+
+
+void Tac::TrackWindowInit( SimWindowApi* windowApi )
+{
+  sWindowApi = windowApi;
 }
 

@@ -25,4 +25,6 @@ namespace Tac
     v2i  operator - ( const v2i& ) const;
   };
 
+  v2i operator / ( const v2i, int );
+
 }

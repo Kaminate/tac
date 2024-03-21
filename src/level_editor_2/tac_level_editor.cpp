@@ -4,6 +4,8 @@
 #include "tac-desktop-app/tac_desktop_app.h"
 
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
+#include "tac-engine-core/window/tac_sim_window_api.h"
+
 #include "tac-rhi/render/tac_render.h"
 #include "tac-rhi/render/tac_render_handles.h"
 
@@ -21,28 +23,24 @@ namespace Tac
   struct LevelEditorApp : public App
   {
     LevelEditorApp( const Config& );
-    void Init( Errors& ) override;
-    void Update( Errors& ) override;
+    void Init( SimInitParams, Errors& ) override;
+    void Update( SimUpdateParams, Errors& ) override;
     void Uninit( Errors& ) override;
-    void Render( RenderParams, Errors& ) override;
+    void Render( SysRenderParams, Errors& ) override;
     IState* GetGameState() override;
   };
 
   LevelEditorApp::LevelEditorApp( const Config& cfg ) : App( cfg ) {}
 
-  void LevelEditorApp::Init( Errors& errors )
+  void LevelEditorApp::Init( SimInitParams initParams, Errors& errors )
   {
     DesktopApp* desktopApp = DesktopApp::GetInstance();
+    SimWindowApi* windowApi = initParams.mWindowApi;
 
-    const WindowApi::CreateParams params
-    {
+    sWindowHandle = windowApi->CreateWindow( {
       .mName = "level editor",
-      .mX = 50,
-      .mY = 50,
-      .mWidth = 800,
-      .mHeight = 600,
-    };
-    sWindowHandle = WindowApi::CreateWindow( params );
+      .mPos{ 50, 50 },
+      .mSize{ 800, 600 }, } );
     sCreation.Init( errors );
 
     {
@@ -52,7 +50,7 @@ namespace Tac
 
   }
 
-  void LevelEditorApp::Update( Errors& errors )
+  void LevelEditorApp::Update( SimUpdateParams, Errors& errors )
   {
     sCreation.Uninit( errors );
   }
@@ -62,7 +60,7 @@ namespace Tac
     sCreation.Update( errors );
   }
 
-  void LevelEditorApp::Render( RenderParams, Errors& )
+  void LevelEditorApp::Render( SysRenderParams, Errors& )
   {
 
   }

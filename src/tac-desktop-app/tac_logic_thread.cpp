@@ -4,6 +4,7 @@
 #include "tac-desktop-app/tac_desktop_event.h"
 #include "tac-desktop-app/tac_iapp.h"
 #include "tac-desktop-app/tac_render_state.h"
+#include "tac-desktop-app/tac_desktop_window_settings_tracker.h"
 
 #include "tac-ecs/tac_space.h"
 
@@ -23,9 +24,13 @@
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/os/tac_os.h"
 
+#include "tac-engine-core/window/tac_window_backend.h"
 
 namespace Tac
 {
+  WindowBackend::SimApi sWindowBackend;
+  SimWindowApi          sWindowApi;
+  SimKeyboardApi        sKeyboardApi;
 
   void LogicThread::Init( Errors& errors )
   {
@@ -39,9 +44,16 @@ namespace Tac
 
     TAC_CALL( FontApi::Init( errors ) );
 
+    TrackWindowInit( &sWindowApi );
+
     SpaceInit();
 
-    TAC_CALL( mApp->Init( errors ) );
+    App::SimInitParams initParams
+    {
+      .mWindowApi = &sWindowApi,
+      .mKeyboardApi = &sKeyboardApi,
+    };
+    TAC_CALL( mApp->Init( initParams, errors ) );
   }
 
   void LogicThread::Uninit()
@@ -89,9 +101,7 @@ namespace Tac
       TAC_PROFILE_BLOCK_NAMED( "frame" );
       DesktopEventApi::Apply();
 
-      //KeyboardBeginFrame();
-      //Mouse::MouseBeginFrame();
-      KeyboardBackend::UpdateGameLogicKeyState();
+      sWindowBackend.Sync();
 
       const BeginFrameData data =
       {
@@ -102,7 +112,12 @@ namespace Tac
 
       Controller::UpdateJoysticks();
 
-      TAC_CALL( mApp->Update( errors ) );
+      App::SimUpdateParams updateParams
+      {
+        .mWindowApi = &sWindowApi,
+        .mKeyboardApi = &sKeyboardApi,
+      };
+      TAC_CALL( mApp->Update( updateParams, errors ) );
 
       TAC_CALL( ImGuiEndFrame( errors ) );
 

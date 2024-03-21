@@ -2,6 +2,7 @@
 
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 
+namespace Tac {struct SimKeyboardApi;}
 namespace Tac
 {
   //   Sets a point of reference to align the profile visulization
@@ -12,7 +13,7 @@ namespace Tac
   bool ProfileGetIsRuning();
 
   //   API to draw the profile visualization
-  void ImGuiProfileWidget();
+  void ImGuiProfileWidget( SimKeyboardApi* );
 
   struct ProfileBlock
   {

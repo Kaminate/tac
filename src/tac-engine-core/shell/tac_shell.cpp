@@ -1,31 +1,27 @@
 #include "tac_shell.h" // self-inc
 
 #include "tac-engine-core/assetmanagers/tac_model_asset_manager.h"
-#include "tac-std-lib/filesystem/tac_asset.h"
 #include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h"
-#include "tac-std-lib/algorithm/tac_algorithm.h"
-#include "tac-std-lib/preprocess/tac_preprocessor.h"
-#include "tac-std-lib/dataprocess/tac_log.h"
-#include "tac-engine-core/settings/tac_settings.h"
+#include "tac-engine-core/framememory/tac_frame_memory.h"
 #include "tac-engine-core/graphics/debug/tac_debug_3d.h"
-#include "tac-engine-core/graphics/ui/tac_font.h"
-#include "tac-rhi/renderer/tac_renderer.h"
 #include "tac-engine-core/graphics/tac_renderer_util.h"
+#include "tac-engine-core/graphics/ui/tac_font.h"
 #include "tac-engine-core/graphics/ui/tac_ui_2d.h"
 #include "tac-engine-core/hid/controller/tac_controller_input.h"
-#include "tac-engine-core/hid/tac_keyboard_api.h"
-#include "tac-engine-core/framememory/tac_frame_memory.h"
+#include "tac-engine-core/job/tac_job_queue.h"
 #include "tac-engine-core/net/tac_net.h"
 #include "tac-engine-core/profile/tac_profile.h"
+#include "tac-engine-core/settings/tac_settings.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
-#include "tac-std-lib/string/tac_string.h"
+#include "tac-rhi/renderer/tac_renderer.h"
+#include "tac-std-lib/algorithm/tac_algorithm.h"
+#include "tac-std-lib/dataprocess/tac_log.h"
+#include "tac-std-lib/filesystem/tac_asset.h"
 #include "tac-std-lib/filesystem/tac_asset.h"
 #include "tac-std-lib/filesystem/tac_filesystem.h"
-#include "tac-engine-core/job/tac_job_queue.h"
 #include "tac-std-lib/os/tac_os.h"
-
-//#include <iostream>
-//#include <thread>
+#include "tac-std-lib/preprocess/tac_preprocessor.h"
+#include "tac-std-lib/string/tac_string.h"
 
 namespace Tac
 {

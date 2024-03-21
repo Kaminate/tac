@@ -25,6 +25,7 @@ namespace Tac
   struct UIRoot;
   struct IndexBuffer;
   struct VertexBuffer;
+  struct SimKeyboardApi;
   //struct Controller;
   struct NewI;
 
@@ -34,11 +35,15 @@ namespace Tac
   //
   struct User
   {
-    User( Ghost* ghost, StringView name, Errors& );
+    User( StringView name,
+          Ghost*,
+          SimKeyboardApi*,
+          Errors& );
     void                   Update( Errors& );
     void                   DebugImgui();
     Player*                mPlayer = nullptr;
     Ghost*                 mGhost = nullptr;
+    SimKeyboardApi*        mKeyboardApi = nullptr;
     String                 mName;
     bool                   mHasControllerIndex = false;
     Controller::ControllerIndex mControllerIndex = Controller::TAC_CONTROLLER_COUNT_MAX;
@@ -69,6 +74,7 @@ namespace Tac
     bool            CanDrawImgui();
     bool            IsPartyFull();
     Vector< User* > mUsers;
+    SimKeyboardApi* mKeyboardApi = nullptr;
     ServerData*     mServerData = nullptr;
     ClientData*     mClientData = nullptr;
     ScriptRoot*     mScriptRoot = nullptr;

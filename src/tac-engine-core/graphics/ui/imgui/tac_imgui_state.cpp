@@ -4,7 +4,6 @@
 #include "tac-engine-core/graphics/ui/tac_font.h"
 #include "tac-engine-core/graphics/ui/tac_text_edit.h"
 #include "tac-engine-core/graphics/ui/tac_ui_2d.h"
-#include "tac-engine-core/hid/tac_keyboard_api.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
 
 #include "tac-rhi/render/tac_render.h" // CreateContext
@@ -101,6 +100,9 @@ namespace Tac
 
   void         ImGuiWindow::Scrollbar()
   {
+    ImGuiGlobals& globals = ImGuiGlobals::Instance;
+    SimKeyboardApi* keyboardApi = globals.mSimKeyboardApi;
+
     const bool stuffBelowScreen = mViewportSpaceMaxiCursor.y > mViewportSpaceVisibleRegion.mMaxi.y;
     const bool stuffAboveScreen = mScroll;
     if( !stuffBelowScreen && !stuffAboveScreen )
@@ -138,8 +140,8 @@ namespace Tac
     // scroll with middle mouse
     if( GetActiveID() == ImGuiIdNull
         && IsHovered( ImGuiRect::FromPosSize( mViewportSpacePos, mSize ) )
-        && KeyboardApi::GetMouseWheelDelta() )
-      mScroll = Clamp( mScroll - KeyboardApi::GetMouseWheelDelta() * 40.0f, scrollMin, scrollMax );
+        && keyboardApi->GetMouseWheelDelta() )
+      mScroll = Clamp( mScroll - keyboardApi->GetMouseWheelDelta() * 40.0f, scrollMin, scrollMax );
 
     const v2 scrollbarForegroundMini
     {
@@ -175,20 +177,20 @@ namespace Tac
     if( mScrolling )
     {
       const float mouseDY
-        = KeyboardApi::GetMousePosScreenspace().y
+        = keyboardApi->GetMousePosScreenspace().y
         - mScrollMousePosScreenspaceInitial.y;
-      mScrollMousePosScreenspaceInitial.y = KeyboardApi::GetMousePosScreenspace().y;
+      mScrollMousePosScreenspaceInitial.y = keyboardApi->GetMousePosScreenspace().y;
       const float scrollDY = mouseDY * ( contentVisibleHeight / scrollbarHeight );
       mScroll = Clamp( mScroll + scrollDY , scrollMin, scrollMax );
 
 
-      if( !KeyboardApi::IsPressed( Key::MouseLeft ) )
+      if( !keyboardApi->IsPressed( Key::MouseLeft ) )
         mScrolling = false;
     }
-    else if( KeyboardApi::JustPressed( Key::MouseLeft ) && hovered )//&& consumeT )
+    else if( keyboardApi->JustPressed( Key::MouseLeft ) && hovered )//&& consumeT )
     {
       mScrolling = true;
-      mScrollMousePosScreenspaceInitial = KeyboardApi::GetMousePosScreenspace();
+      mScrollMousePosScreenspaceInitial = keyboardApi->GetMousePosScreenspace();
     }
 
     mViewportSpaceVisibleRegion.mMaxi.x -= scrollbarWidth;
@@ -197,6 +199,8 @@ namespace Tac
   void         ImGuiWindow::BeginFrame()
   {
     const ImGuiGlobals& globals = ImGuiGlobals::Instance;
+    SimKeyboardApi* keyboardApi = globals.mSimKeyboardApi;
+
     const UIStyle& style = ImGuiGetStyle();
     const float windowPadding = style.windowPadding;
     const bool scrollBarEnabled = globals.mScrollBarEnabled;
@@ -255,7 +259,7 @@ namespace Tac
         mIDAllocator = TAC_NEW ImGuiIDAllocator;
 
       mIDAllocator->mIDCounter = 0;
-      if( KeyboardApi::JustPressed( Key::MouseLeft ) )
+      if( keyboardApi->JustPressed( Key::MouseLeft ) )
       {
         mIDAllocator->mActiveID = ImGuiIdNull;
       }
@@ -340,9 +344,11 @@ namespace Tac
 
   v2           ImGuiWindow::GetMousePosViewport()
   {
+    ImGuiGlobals& globals = ImGuiGlobals::Instance;
     SimWindowApi* windowApi = ImGuiGlobals::Instance.mSimWindowApi;
+    SimKeyboardApi* keyboardApi = globals.mSimKeyboardApi;
 
-    const v2 mouseScreenspace = KeyboardApi::GetMousePosScreenspace();
+    const v2 mouseScreenspace = keyboardApi->GetMousePosScreenspace();
     const v2 windowScreenspace = windowApi->GetPos( mDesktopWindow->mWindowHandle );
     return mouseScreenspace - windowScreenspace;
   }

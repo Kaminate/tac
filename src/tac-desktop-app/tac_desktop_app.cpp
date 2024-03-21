@@ -21,15 +21,18 @@
 #include "tac-engine-core/graphics/ui/tac_font.h"
 #include "tac-engine-core/graphics/ui/tac_ui_2d.h"
 #include "tac-engine-core/hid/controller/tac_controller_input.h"
-#include "tac-engine-core/hid/tac_keyboard_api.h"
+//#include "tac-engine-core/hid/tac_keyboard_api.h"
 #include "tac-engine-core/net/tac_net.h"
 #include "tac-engine-core/profile/tac_profile.h"
 #include "tac-engine-core/settings/tac_settings.h"
 #include "tac-engine-core/shell/tac_shell.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
-#include "tac-engine-core/window/tac_window_api.h"
+//#include "tac-engine-core/window/tac_window_api.h"
 //#include "tac-engine-core/window/tac_window_api_graphics.h"
 #include "tac-engine-core/platform/tac_platform.h"
+#include "tac-engine-core/hid/tac_keyboard_backend.h"
+#include "tac-engine-core/window/tac_window_backend.h"
+#include "tac-engine-core/window/tac_sys_window_api.h"
 
 #include "tac-std-lib/containers/tac_fixed_vector.h"
 #include "tac-std-lib/containers/tac_frame_vector.h"
@@ -46,6 +49,91 @@ import std; // mutex, thread, type_traits
 
 namespace Tac
 {
+  using namespace DesktopEventApi;
+
+  struct DesktopEventHandler : public DesktopEventApi::Handler
+  {
+    void HandleBegin() override
+    {
+      mWindowBackend->ApplyBegin();
+      mKeyboardBackend->ApplyBegin();
+    }
+
+    void HandleEnd() override
+    {
+      mWindowBackend->ApplyEnd();
+      mKeyboardBackend->ApplyEnd();
+    }
+
+    void Handle( const WindowDestroyEvent& data ) override
+    {
+      mWindowBackend->SetWindowDestroyed( data.mWindowHandle );
+    }
+
+    void Handle( const WindowCreateEvent& data ) override
+    {
+      const v2i pos{ data.mX, data.mY };
+      const v2i size{ data.mW, data.mH };
+      mWindowBackend->SetWindowCreated( data.mWindowHandle,
+                                       data.mNativeWindowHandle,
+                                       data.mName,
+                                       pos,
+                                       size );
+    }
+
+    void Handle( const CursorUnobscuredEvent& data ) override
+    {
+      //SetHoveredWindow( data.mWindowHandle );
+    }
+
+    void Handle( const KeyInputEvent& data ) override
+    {
+      mKeyboardBackend->SetCodepoint( data.mCodepoint );
+    }
+
+    void Handle( const KeyStateEvent& data ) override
+    {
+      const KeyboardBackend::KeyState state = data.mDown
+        ? KeyboardBackend::KeyState::Down
+        : KeyboardBackend::KeyState::Up;
+
+      mKeyboardBackend->SetKeyState( data.mKey, state );
+    }
+
+    void Handle( const MouseMoveEvent& data ) override
+    {
+      const v2 screenSpaceWindowPos = mWindowApi->GetPos( data.mWindowHandle );
+      const v2 windowSpaceMousePos{ ( float )data.mX, ( float )data.mY };
+      const v2 screenSpaceMousePos = screenSpaceWindowPos + windowSpaceMousePos;
+      mKeyboardBackend->SetMousePos(screenSpaceMousePos);
+    }
+
+    void Handle( const MouseWheelEvent& data ) override
+    {
+      mKeyboardBackend->SetMouseWheel( data.mDelta );
+    }
+
+    void Handle( const WindowMoveEvent& data ) override
+    {
+      mWindowBackend->SetWindowPos( data.mWindowHandle, v2i( data.mX, data.mY ) );
+    }
+
+    void Handle( const WindowResizeEvent& data ) override
+    {
+      mWindowBackend->SetWindowSize( data.mWindowHandle, v2i( data.mWidth, data.mHeight ) );
+    }
+
+    KeyboardBackend::SysApi* mKeyboardBackend;
+    WindowBackend::SysApi* mWindowBackend;
+    SysWindowApi* mWindowApi;
+  };
+
+
+  static DesktopEventHandler           sDesktopEventHandler;
+
+  static KeyboardBackend::SysApi       sKeyboardBackend;
+  static WindowBackend::SysApi         sWindowBackend;
+
   static Errors                        gPlatformThreadErrors( Errors::kDebugBreaks );
   static Errors                        gLogicThreadErrors( Errors::kDebugBreaks );
   static Errors                        gMainFunctionErrors( Errors::kDebugBreaks );
@@ -54,30 +142,40 @@ namespace Tac
 
   static GameStateManager              sGameStateManager;
   static DesktopApp                    sDesktopApp;
+  static SimKeyboardApi                sSimKeyboardApi;
+  static SimWindowApi                  sSimWindowApi;
+  static SysWindowApi                  sSysWindowApi;
 
   // -----------------------------------------------------------------------------------------------
 
+#if 0
   static WindowHandle ImGuiSimCreateWindow( const ImGuiCreateWindowParams& imguiParams )
   {
     DesktopApp* desktopApp = DesktopApp::GetInstance();
+
+    // todo: ... mixing v2 and v2i bad
+    const v2 imPos = imguiParams.mPos;
+    const v2 imSize = imguiParams.mSize;
+    const v2i simPos = v2i( ( int )imPos.x, ( int )imPos.y );
+    const v2i simSize = v2i( ( int )imSize.x, ( int )imSize.y );
+
     //const WindowApi::CreateParams desktopParams
-    const WindowApi::CreateParams platformParams
+    const SimWindowApi::CreateParams platformParams
     {
       .mName = "<unnamed>",
-      .mX = ( int )imguiParams.mPos.x,
-      .mY = ( int )imguiParams.mPos.y,
-      .mWidth = ( int )imguiParams.mSize.x,
-      .mHeight = ( int )imguiParams.mSize.y,
+      .mPos = simPos,
+      .mSize = simSize,
     };
     //return desktopApp->CreateWindow( desktopParams );
 
-    return WindowApi::CreateWindow( platformParams );
+    return SimWindowApi::CreateWindow( platformParams );
   }
 
   static void ImGuiSimDestroyWindow( WindowHandle handle )
   {
     WindowApi::DestroyWindow( handle );
   }
+#endif
 
   // -----------------------------------------------------------------------------------------------
 
@@ -149,17 +247,26 @@ namespace Tac
       .mGameStateManager = &sGameStateManager,
     };
 
-    std::thread logicThread( &LogicThread::Update, sLogicThread, std::ref( gLogicThreadErrors ) );
+    TAC_CALL( Render::RenderApi::Init( {}, errors ) );
 
     const ImGuiInitParams imguiInitParams 
     {
       .mMaxGpuFrameCount = Render::RenderApi::GetMaxGPUFrameCount() ,
       //.mSetWindowPos = ImGuiSimSetWindowPos,
       //.mSetWindowSize = ImGuiSimSetWindowSize,
-      .mCreateWindow = ImGuiSimCreateWindow,
-      .mDestroyWindow = ImGuiSimDestroyWindow,
+      //.mCreateWindow = ImGuiSimCreateWindow,
+      //.mDestroyWindow = ImGuiSimDestroyWindow,
+      .mSimWindowApi = &sSimWindowApi,
+      .mSimKeyboardApi = &sSimKeyboardApi,
     };
     ImGuiInit( imguiInitParams );
+
+    sDesktopEventHandler.mKeyboardBackend = &sKeyboardBackend;
+    sDesktopEventHandler.mWindowBackend = &sWindowBackend;
+    sDesktopEventHandler.mWindowApi = &sSysWindowApi;
+    DesktopEventApi::Init( &sDesktopEventHandler );
+
+    std::thread logicThread( &LogicThread::Update, sLogicThread, std::ref( gLogicThreadErrors ) );
 
     sPlatformThread.mApp = sApp;
     sPlatformThread.mErrors = &gPlatformThreadErrors;

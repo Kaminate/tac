@@ -3,7 +3,7 @@
 #include "tac-engine-core/profile/tac_profile_backend.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-std-lib/os/tac_os.h"
-#include "tac-engine-core/hid/tac_keyboard_api.h"
+#include "tac-engine-core/hid/tac_sim_keyboard_api.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui_state.h"
 #include "tac-std-lib/containers/tac_map.h"
 #include "tac-engine-core/framememory/tac_frame_memory.h"
@@ -16,6 +16,7 @@ namespace Tac
   static float             sMilisecondsToDisplay = 20.0f;
   static Timepoint         sPauseSec;
   static ProfileFrame      sProfiledFunctions;
+  static SimKeyboardApi*   sKeyboardApi;
 
   // Totally unused, but keeping it because its the only place where ImGuiRegisterWindowResource is used
   // It would be gotten like this:
@@ -23,9 +24,13 @@ namespace Tac
   //   ImGuiWindow* imguiWindow = ImGuiGlobals::Instance.mCurrentWindow;
   //   auto profileWidgetData = ( ImguiProfileWidgetData* )imguiWindow->GetWindowResource( sWidgetID );
   //
-  static const struct ImguiProfileWidgetData
+
+  struct ImguiProfileWidgetData
   {
-  } sDefaultWidgetData;
+  };
+
+  static ImguiProfileWidgetData sDefaultWidgetData;
+
   static const ImGuiIndex sWidgetID = ImGuiRegisterWindowResource( TAC_STRINGIFY( ImguiProfileWidgetData ),
                                                                    &sDefaultWidgetData,
                                                                    sizeof( ImguiProfileWidgetData ) );
@@ -65,18 +70,18 @@ namespace Tac
     return fps;
   }
 
-  static struct
+  struct ProfileThreadManager
   {
     int GetProfileThreadCount()
     {
       return ( int )sThreadNumberMap.size();
     }
-    
+
     int GetProfileThreadNumber( const std::thread::id threadId )
     {
       const int n = sThreadNumberMap.size();
       for( int i = 0; i < n; ++i )
-        if( sThreadNumberMap[i] == threadId )
+        if( sThreadNumberMap[ i ] == threadId )
           return i;
 
       sThreadNumberMap.push_back( threadId );
@@ -84,7 +89,9 @@ namespace Tac
     }
 
     Vector< std::thread::id > sThreadNumberMap;
-  } sProfileThreadManager;
+  };
+
+  static ProfileThreadManager sProfileThreadManager;
 
   static v4 GetProfileFunctionColor( const ProfileFunction* profileFunction )
   {
@@ -195,9 +202,9 @@ namespace Tac
         const v4        boxColor = GetProfileFunctionColor( profileFunction );
 
         const StringView textPrefix( "Tac::" );
-        const char*      textFunction = profileFunction->mName;
+        const char* textFunction = profileFunction->mName;
         const v4         textColor( 0, 0, 0, 1 );
-        const char*      text = StringView( textFunction ).starts_with( textPrefix )
+        const char* text = StringView( textFunction ).starts_with( textPrefix )
           ? textFunction + textPrefix.size()
           : textFunction;
 
@@ -207,7 +214,7 @@ namespace Tac
           const float boxDeltaMsec = ( float )( boxDeltaSeconds * 1000 );
 
 
-          ImGuiSetNextWindowPosition( KeyboardApi::GetMousePosScreenspace() );
+          ImGuiSetNextWindowPosition( sKeyboardApi->GetMousePosScreenspace() );
           ImGuiSetNextWindowSize( textSize + v2( 1, 1 ) * 50.0f );
           ImGuiBegin( "hovered" );
           ImGuiText( profileFunction->mName );
@@ -244,21 +251,21 @@ namespace Tac
 
         //if( mouseMovement )
         {
-          if( KeyboardApi::IsPressed( Key::MouseLeft ) )
+          if( sKeyboardApi->IsPressed( Key::MouseLeft ) )
           {
-            const float movePixels = KeyboardApi::GetMousePosDelta().x;
+            const float movePixels = sKeyboardApi->GetMousePosDelta().x;
             const float movePercent = movePixels / cameraViewportSize.x;
             const float moveSeconds = movePercent * ( sMilisecondsToDisplay / 1000 );
             sPauseSec -= moveSeconds;
           }
-          sMilisecondsToDisplay -= KeyboardApi::GetMouseWheelDelta() * 0.4f;
+          sMilisecondsToDisplay -= sKeyboardApi->GetMouseWheelDelta() * 0.4f;
         }
       }
     }
   }
 
   static void ImGuiProfileWidgetTimeScale( const v2 timelinePos,
-                                    const v2 timelineSize )
+                                           const v2 timelineSize )
   {
     const float fontSize = ImGuiGetFontSize();
     const v4& textColor = ImGuiGetColor( ImGuiCol::Text );
@@ -283,7 +290,7 @@ namespace Tac
       const v2    tickBot = timelinePos + v2( msOffset, timelineSize.y );
       const v2    tickTop = tickBot - v2( 0, 10 );
 
-      auto text = ToString(iMs);
+      auto text = ToString( iMs );
       const v2    textSize = CalculateTextSize( text, fontSize );
       const v2    textPos( tickTop.x - textSize.x / 2,
                            tickTop.y - textSize.y );
@@ -308,66 +315,68 @@ namespace Tac
       drawData->AddText( drawText );
     }
   }
+}
 
-  void ImGuiProfileWidget()
+void Tac::ImGuiProfileWidget( SimKeyboardApi* keyboardApi )
+{
+  sKeyboardApi = keyboardApi;
+
+  const float fontSize = ImGuiGetFontSize();
+  ImGuiWindow* imguiWindow = ImGuiGlobals::Instance.mCurrentWindow;
+  UI2DDrawData* drawData = imguiWindow->mDrawData;
+
+  const int   fps = GetFPS();
+  const float fpsT = Saturate( ( float )fps / 400.0f ); // 1 = fast, 0 = slow
+  const v2    fpsBoxMin = imguiWindow->mViewportSpaceCurrCursor + v2( 80.0f, 7.0f );
+  const v2    fpsBoxMax = fpsBoxMin + v2( ( imguiWindow->mViewportSpaceVisibleRegion.mMaxi.x - fpsBoxMin.x ) * fpsT,
+                                          2.0f );
+  const v4    fastColor( 0, 1, 0, 1 );
+  const v4    slowColor( 1, 0, 0, 1 );
+  const v4    fpsColor = Lerp( slowColor, fastColor, fpsT );
+
+  const UI2DDrawData::Box fpsBox
   {
-    const float fontSize = ImGuiGetFontSize();
-    ImGuiWindow* imguiWindow = ImGuiGlobals::Instance.mCurrentWindow;
-    UI2DDrawData* drawData = imguiWindow->mDrawData;
+    .mMini = fpsBoxMin,
+    .mMaxi = fpsBoxMax,
+    .mColor = fpsColor,
+  };
+  drawData->AddBox( fpsBox );
 
-    const int   fps = GetFPS();
-    const float fpsT = Saturate( ( float )fps / 400.0f ); // 1 = fast, 0 = slow
-    const v2    fpsBoxMin = imguiWindow->mViewportSpaceCurrCursor + v2( 80.0f, 7.0f );
-    const v2    fpsBoxMax = fpsBoxMin + v2( ( imguiWindow->mViewportSpaceVisibleRegion.mMaxi.x - fpsBoxMin.x ) * fpsT,
-                                            2.0f );
-    const v4    fastColor( 0, 1, 0, 1 );
-    const v4    slowColor( 1, 0, 0, 1 );
-    const v4    fpsColor = Lerp( slowColor, fastColor, fpsT );
 
-    const UI2DDrawData::Box fpsBox
+  ImGuiText( String() + "FPS: " + ToString( fps ) );
+
+  if( ProfileGetIsRuning() )
+  {
+    const bool hasData = !sProfiledFunctions.empty();
+    if( hasData )
+      sProfiledFunctions.Clear();
+
+    sProfiledFunctions = ProfileCopyFrame();
+    if( ImGuiButton( "Pause Profiling" ) )
     {
-      .mMini = fpsBoxMin,
-      .mMaxi = fpsBoxMax,
-      .mColor = fpsColor,
-    };
-    drawData->AddBox( fpsBox );
-
-
-    ImGuiText( String() + "FPS: " + ToString( fps ) );
-
-    if( ProfileGetIsRuning() )
-    {
-      const bool hasData = !sProfiledFunctions.empty();
-      if( hasData )
-        sProfiledFunctions.Clear();
-
-      sProfiledFunctions = ProfileCopyFrame();
-      if( ImGuiButton( "Pause Profiling" ) )
-      {
-        ProfileSetIsRuning( false );
-        sPauseSec = ProfileTimepointGetLastGameFrameBegin();
-      }
+      ProfileSetIsRuning( false );
+      sPauseSec = ProfileTimepointGetLastGameFrameBegin();
     }
-    else if( ImGuiButton( "Resume Profiling" ) )
-      ProfileSetIsRuning( true );
+  }
+  else if( ImGuiButton( "Resume Profiling" ) )
+    ProfileSetIsRuning( true );
 
-    static bool profileDrawGrid = true;
-    ImGuiCheckbox( "Profile draw grid", &profileDrawGrid );
+  static bool profileDrawGrid = true;
+  ImGuiCheckbox( "Profile draw grid", &profileDrawGrid );
 
-    const v2    timelinePos = imguiWindow->mViewportSpaceCurrCursor;
-    const v2    timelineSize = v2( imguiWindow->mViewportSpaceVisibleRegion.mMaxi.x - imguiWindow->mViewportSpaceCurrCursor.x,
-                                   fontSize * 3.0f );
-    imguiWindow->mViewportSpaceCurrCursor.y += timelineSize.y;
+  const v2    timelinePos = imguiWindow->mViewportSpaceCurrCursor;
+  const v2    timelineSize = v2( imguiWindow->mViewportSpaceVisibleRegion.mMaxi.x - imguiWindow->mViewportSpaceCurrCursor.x,
+                                 fontSize * 3.0f );
+  imguiWindow->mViewportSpaceCurrCursor.y += timelineSize.y;
 
-    const v2    cameraViewportPos = imguiWindow->mViewportSpaceCurrCursor;
-    const v2    cameraViewportSize = imguiWindow->mViewportSpaceVisibleRegion.mMaxi - cameraViewportPos;
-    imguiWindow->mViewportSpaceCurrCursor.y += timelineSize.y;
+  const v2    cameraViewportPos = imguiWindow->mViewportSpaceCurrCursor;
+  const v2    cameraViewportSize = imguiWindow->mViewportSpaceVisibleRegion.mMaxi - cameraViewportPos;
+  imguiWindow->mViewportSpaceCurrCursor.y += timelineSize.y;
 
-    if( profileDrawGrid )
-    {
-      ImGuiProfileWidgetTimeScale( timelinePos, timelineSize );
-      ImGuiProfileWidgetCamera( cameraViewportPos, cameraViewportSize );
-    }
+  if( profileDrawGrid )
+  {
+    ImGuiProfileWidgetTimeScale( timelinePos, timelineSize );
+    ImGuiProfileWidgetCamera( cameraViewportPos, cameraViewportSize );
   }
 }
 

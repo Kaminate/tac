@@ -49,10 +49,10 @@ namespace Tac
 
     DX12AppHelloFrameBuf( const Config& );
 
-    void     Init( Errors& ) override;
-    void     Update( Errors& ) override;
+    void     Init( SimInitParams, Errors& ) override;
+    void     Update( SimUpdateParams, Errors& ) override;
     void     Uninit( Errors& ) override;
-    void     Render( RenderParams, Errors& ) override;
+    void     Render( SysRenderParams, Errors& ) override;
     IState*  GetGameState() override;
 
   private:
@@ -79,7 +79,7 @@ namespace Tac
     void RenderEnd(Errors&);
 
     // Helper functions for Update()
-    void DX12CreateSwapChain( Errors& );
+    void DX12CreateSwapChain( SysWindowApi* , Errors& );
     void CreateRenderTargetViews( Errors& );
     void ClearRenderTargetView( ID3D12GraphicsCommandList* );
     D3D12_CPU_DESCRIPTOR_HANDLE GetRTVCpuDescHandle( int ) const;

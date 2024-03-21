@@ -1,6 +1,7 @@
+// this whole file sucks and should be deleted
 #pragma once
 
-#include "tac-engine-core/window/tac_window_api.h"
+#include "tac-engine-core/window/tac_sim_window_api.h"
 
 namespace Tac
 {
@@ -14,8 +15,9 @@ namespace Tac
                                            int y = 50,
                                            int w = 800,
                                            int h = 600 );
-  WindowHandle CreateTrackedWindow( const WindowApi::CreateParams& );
+  WindowHandle CreateTrackedWindow( const SimWindowApi::CreateParams& );
 
+  void TrackWindowInit( SimWindowApi* );
   void UpdateTrackedWindows();
   void QuitProgramOnWindowClose( const WindowHandle& );
 }

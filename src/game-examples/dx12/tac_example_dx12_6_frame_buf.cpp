@@ -24,7 +24,8 @@
 
 #include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-engine-core/shell/tac_shell.h"
-#include "tac-engine-core/window/tac_window_backend.h"
+#include "tac-engine-core/window/tac_sim_window_api.h"
+#include "tac-engine-core/window/tac_sys_window_api.h"
 
 #include "tac-desktop-app/tac_desktop_app.h"
 #include "tac-desktop-app/tac_desktop_window_settings_tracker.h"
@@ -77,14 +78,16 @@ namespace Tac
   void DX12AppHelloFrameBuf::CreateDesktopWindow()
   {
     const OS::Monitor monitor = OS::OSGetPrimaryMonitor();
-    const int s = Min( monitor.mWidth, monitor.mHeight ) / 2;
-    const WindowApi::CreateParams desktopParams
+
+    const v2i monitorSize{ monitor.mWidth, monitor.mHeight };
+    const v2i windowSize = monitorSize / 2;
+    const v2i windowPos = ( monitorSize - windowSize ) / 2;
+
+    const SimWindowApi::CreateParams desktopParams
     {
       .mName = "DX12 Window",
-      .mX = ( monitor.mWidth - s ) / 2,
-      .mY = ( monitor.mHeight - s ) / 2,
-      .mWidth = s,
-      .mHeight = s,
+      .mPos = windowPos,
+      .mSize = windowSize,
     };
     hDesktopWindow = CreateTrackedWindow( desktopParams );
 
@@ -705,24 +708,25 @@ namespace Tac
 
   // Helper functions for App::Update
 
-  void DX12AppHelloFrameBuf::DX12CreateSwapChain( Errors& errors )
+  void DX12AppHelloFrameBuf::DX12CreateSwapChain(  SysWindowApi* windowApi, Errors& errors )
   {
     TAC_ASSERT( !m_swapChain );
 
-    const auto hwnd = ( HWND ) WindowBackend::GetNativeWindowHandle( hDesktopWindow );
+    const auto hwnd = ( HWND ) windowApi->GetNWH( hDesktopWindow );
     if( !hwnd )
       return;
 
     ID3D12CommandQueue* commandQueue = mCommandQueue.GetCommandQueue();
     TAC_ASSERT( commandQueue );
 
+    const v2i size = windowApi->GetSize( hDesktopWindow );
     const SwapChainCreateInfo scInfo
     {
       .mHwnd = hwnd,
       .mDevice = ( IUnknown* )commandQueue, // swap chain can force flush the queue
       .mBufferCount = SWAP_CHAIN_BUFFER_COUNT,
-      .mWidth = WindowBackend::sPlatformCurr[ hDesktopWindow.GetIndex() ].mSize.x,
-      .mHeight = WindowBackend::sPlatformCurr[ hDesktopWindow.GetIndex() ].mSize.y,
+      .mWidth = size.x,
+      .mHeight = size.y,
     };
 
     m_swapChain = TAC_CALL( DXGICreateSwapChain( scInfo, errors ) );
@@ -1042,7 +1046,7 @@ namespace Tac
 
   DX12AppHelloFrameBuf::DX12AppHelloFrameBuf( const Config& cfg ) : App( cfg ) {}
 
-  void         DX12AppHelloFrameBuf::Init( Errors& errors )
+  void         DX12AppHelloFrameBuf::Init( SimInitParams initParams, Errors& errors )
   {
     CreateDesktopWindow();
   }
@@ -1086,9 +1090,9 @@ namespace Tac
     mUploadPageManager.Init( m_device.Get(), &mCommandQueue );
   }
 
-  void         DX12AppHelloFrameBuf::Update( Errors& errors )
+  void         DX12AppHelloFrameBuf::Update( SimUpdateParams updateParams, Errors& errors )
   {
-    if( !hDesktopWindow.IsShown() )
+    if( !updateParams.mWindowApi->IsShown( hDesktopWindow ) )
       return;
 
     const double t = Timestep::GetElapsedTime().mSeconds;
@@ -1133,13 +1137,13 @@ namespace Tac
     TAC_ASSERT( m_gpuFlightFrameIndex == mSentGPUFrameCount % MAX_GPU_FRAME_COUNT );
   }
    
-  void         DX12AppHelloFrameBuf::Render( RenderParams params, Errors& errors )
+  void         DX12AppHelloFrameBuf::Render( SysRenderParams renderParams, Errors& errors )
   {
+    SysWindowApi* windowApi = renderParams.mWindowApi;
 
-
-    const State* oldState = ( State* )params.mOldState;
-    const State* newState = ( State* )params.mNewState;
-    const float t = params.mT;
+    const State* oldState = ( State* )renderParams.mOldState;
+    const State* newState = ( State* )renderParams.mNewState;
+    const float t = renderParams.mT;
 
     const float translateX = Lerp( oldState->mTranslateX, newState->mTranslateX, t );
 
@@ -1148,14 +1152,14 @@ namespace Tac
     {
       once = true;
       TAC_CALL( PreSwapChainInit( errors ) );
-      TAC_CALL( DX12CreateSwapChain( errors ) );
+      TAC_CALL( DX12CreateSwapChain( windowApi, errors ) );
       TAC_CALL( CreateRenderTargetViews( errors ) );
       TAC_CALL( CreateVertexBuffer( errors ) );
       TAC_CALL( CreateTexture( errors ) );
       RecordBundle();
     }
 
-    if( !hDesktopWindow.IsShown() )
+    if( !windowApi->IsShown( hDesktopWindow ) )
       return;
 
     TAC_CALL( RenderBegin( errors ) );

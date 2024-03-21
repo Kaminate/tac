@@ -33,3 +33,6 @@ namespace Tac
 
 
 }
+
+Tac::v2i Tac::operator / ( const v2i v, int i ) { return { v.x / i, v.y / i }; }
+
