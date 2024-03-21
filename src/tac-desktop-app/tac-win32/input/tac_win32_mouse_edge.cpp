@@ -1,16 +1,20 @@
 #include "tac_win32_mouse_edge.h" // self-inc
 
-#include "tac-engine-core/window/tac_window_api.h"
-#include "tac-std-lib/preprocess/tac_preprocessor.h"
-#include "tac-engine-core/shell/tac_shell_timestep.h"
-#include "tac-desktop-app/tac_desktop_event.h"
-#include "tac-std-lib/string/tac_string.h"
-#include "tac-engine-core/hid/tac_keyboard_api.h"
-#include "tac-std-lib/os/tac_os.h"
+
 #include "tac-desktop-app/tac_desktop_app.h"
+#include "tac-desktop-app/tac_desktop_event.h"
+
+#include "tac-engine-core/hid/tac_keyboard_api.h"
+#include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-engine-core/window/tac_window_api.h"
+#include "tac-engine-core/window/tac_window_backend.h"
+
+#include "tac-std-lib/os/tac_os.h"
+#include "tac-std-lib/preprocess/tac_preprocessor.h"
+#include "tac-std-lib/string/tac_string.h"
+
 #include "tac-win32/desktopwindow/tac_win32_desktop_window_manager.h"
 #include "tac-win32/tac_win32.h"
-
 
 namespace Tac
 {
@@ -24,10 +28,10 @@ namespace Tac
   struct MouseEdge
   {
     MouseEdgeFlags    mFlags = MouseEdgeFlags::kNone;
-    DesktopWindowRect mWindowSpaceMoveRect;
+    //DesktopWindowRect mWindowSpaceMoveRect;
     int               mResizeBorder = false;
   };
-  
+
   enum HandlerType
   {
     None = 0,
@@ -39,34 +43,34 @@ namespace Tac
   // and the right side of the window would be cursor locked.
   typedef int CursorDir;
 
-  static MouseEdge   sMouseEdges[ kDesktopWindowCapacity ];
+  static MouseEdge    sMouseEdges[ kDesktopWindowCapacity ];
 
-  const CursorDir    CursorDirN = 0b0001;
-  const CursorDir    CursorDirW = 0b0010;
-  const CursorDir    CursorDirS = 0b0100;
-  const CursorDir    CursorDirE = 0b1000;
+  const CursorDir     CursorDirN = 0b0001;
+  const CursorDir     CursorDirW = 0b0010;
+  const CursorDir     CursorDirS = 0b0100;
+  const CursorDir     CursorDirE = 0b1000;
 
-  static HCURSOR     cursorArrow;
-  static HCURSOR     cursorArrowNS;
-  static HCURSOR     cursorArrowWE;
-  static HCURSOR     cursorArrowNE_SW;
-  static HCURSOR     cursorArrowNW_SE;
+  static HCURSOR      cursorArrow;
+  static HCURSOR      cursorArrowNS;
+  static HCURSOR      cursorArrowWE;
+  static HCURSOR      cursorArrowNE_SW;
+  static HCURSOR      cursorArrowNW_SE;
 
   // Used to set the cursor icon
-  static CursorDir   mCursorLock;
-  static POINT       mCursorPositionOnClick;
-  static RECT        mWindowRectOnClick;
-  static int         edgeDistResizePx;
-  static int         edgeDistMovePx;
-  static bool        mEverSet;
-  static HandlerType mHandlerType;
-  static bool        mIsFinished;
-  static HWND        mHwnd;
-  static bool        mMouseDownCurr;
-  static bool        mMouseDownPrev;
-  static Timestamp   keyboardMoveT;
+  static CursorDir    mCursorLock;
+  static POINT        mCursorPositionOnClick;
+  static RECT         mWindowRectOnClick;
+  static int          edgeDistResizePx;
+  static int          edgeDistMovePx;
+  static bool         mEverSet;
+  static HandlerType  mHandlerType;
+  static bool         mIsFinished;
+  static HWND         mHwnd;
+  static bool         mMouseDownCurr;
+  static bool         mMouseDownPrev;
+  static Timestamp    keyboardMoveT;
 
-  static HWND                sMouseHoveredHwnd;
+  static HWND         sMouseHoveredHwnd;
   static WindowHandle sMouseHoveredDesktopWindow;
 
   static HCURSOR GetCursor( CursorDir cursorDir )
@@ -74,15 +78,15 @@ namespace Tac
     // switch by the integral type cuz of the bit-twiddling
     switch( cursorDir )
     {
-      case CursorDirN: return cursorArrowNS;
-      case CursorDirW: return cursorArrowWE;
-      case CursorDirS: return cursorArrowNS;
-      case CursorDirE: return cursorArrowWE;
-      case CursorDirN | CursorDirE: return cursorArrowNE_SW;
-      case CursorDirS | CursorDirW: return cursorArrowNE_SW;
-      case CursorDirN | CursorDirW: return cursorArrowNW_SE;
-      case CursorDirS | CursorDirE: return cursorArrowNW_SE;
-      default: return cursorArrow;
+    case CursorDirN: return cursorArrowNS;
+    case CursorDirW: return cursorArrowWE;
+    case CursorDirS: return cursorArrowNS;
+    case CursorDirE: return cursorArrowWE;
+    case CursorDirN | CursorDirE: return cursorArrowNE_SW;
+    case CursorDirS | CursorDirW: return cursorArrowNE_SW;
+    case CursorDirN | CursorDirW: return cursorArrowNW_SE;
+    case CursorDirS | CursorDirE: return cursorArrowNW_SE;
+    default: return cursorArrow;
     }
   }
 
@@ -119,13 +123,15 @@ namespace Tac
     return ::WindowFromPoint( cursorPos );
   }
 
-  WindowHandle Win32MouseEdgeGetCursorHovered()
+  static void SetCursor( const CursorDir cursorDir )
   {
-    return sMouseHoveredDesktopWindow;
+    const HCURSOR cursor = GetCursor( cursorDir );
+    SetCursor( cursor );
   }
 
   static void UpdateIdle()
   {
+#if 0
     if( !sMouseHoveredDesktopWindow.IsValid() )
       return;
 
@@ -149,7 +155,7 @@ namespace Tac
       return;
 
     const int i = WindowHandle.GetIndex();
-    MouseEdge& mouseEdge = sMouseEdges[i];
+    MouseEdge& mouseEdge = sMouseEdges[ i ];
     const bool mouseEdgeMovable = ( int )mouseEdge.mFlags | ( int )MouseEdgeFlags::kMovable;
     const bool mouseEdgeResizable = ( int )mouseEdge.mFlags | ( int )MouseEdgeFlags::kResizable;
 
@@ -185,7 +191,7 @@ namespace Tac
       else if( mouseEdgeMovable )
       {
         const bool hovered = PtInRect( &screenMoveRect, cursorPos );
-        if( hovered)
+        if( hovered )
         {
           //Mouse::TryConsumeMouseMovement( &keyboardMoveT, TAC_STACK_FRAME );
           if( keyboardMoveT )
@@ -199,20 +205,21 @@ namespace Tac
     mCursorPositionOnClick = cursorPos;
     mWindowRectOnClick = windowRect;
     mHwnd = windowHandle;
+#endif
   }
 
   static void UpdateResize()
   {
     if( !mMouseDownCurr )
     {
-        mHandlerType = HandlerType::None;
-        return;
+      mHandlerType = HandlerType::None;
+      return;
     }
 
     //Mouse::TryConsumeMouseMovement( &keyboardMoveT, TAC_STACK_FRAME );
 
     POINT cursorPos;
-    if( !GetCursorPos( &cursorPos ))
+    if( !GetCursorPos( &cursorPos ) )
       return;
 
     LONG dx = cursorPos.x - mCursorPositionOnClick.x;
@@ -235,8 +242,8 @@ namespace Tac
   {
     if( !mMouseDownCurr )
     {
-        mHandlerType = HandlerType::None;
-        return;
+      mHandlerType = HandlerType::None;
+      return;
     }
 
     //Mouse::TryConsumeMouseMovement( &keyboardMoveT, TAC_STACK_FRAME );
@@ -251,62 +258,64 @@ namespace Tac
     int h = mWindowRectOnClick.bottom - mWindowRectOnClick.top;
     SetWindowPos( mHwnd, nullptr, x, y, w, h, SWP_ASYNCWINDOWPOS );
   }
+}
 
-  void SetCursor( const CursorDir cursorDir )
+void Tac::Win32MouseEdgeInit()
+{
+  cursorArrow = LoadCursor( NULL, IDC_ARROW );
+  cursorArrowNS = LoadCursor( NULL, IDC_SIZENS );
+  cursorArrowWE = LoadCursor( NULL, IDC_SIZEWE );
+  cursorArrowNE_SW = LoadCursor( NULL, IDC_SIZENESW );
+  cursorArrowNW_SE = LoadCursor( NULL, IDC_SIZENWSE );
+  edgeDistResizePx = 7;
+  edgeDistMovePx = edgeDistResizePx + 6;
+
+  // the distance that your mouse can be from the edge to resize the window is a thin border
+  // but the top bar that you can move is a fat border.
+  // The resize border sits on top of the move border, so if it were the bigger border it would
+  // completely obscure the move border and youd never be able to move your window.
+  TAC_ASSERT( edgeDistMovePx > edgeDistResizePx );
+}
+
+void Tac::Win32MouseEdgeUpdate()
+{
+  sMouseHoveredHwnd = GetMouseHoveredHWND();
+  sMouseHoveredDesktopWindow = Win32WindowManagerFindWindow( sMouseHoveredHwnd );
+
+  mMouseDownPrev = mMouseDownCurr;
+  mMouseDownCurr = GetKeyState( VK_LBUTTON ) & 0x100;
+  switch( mHandlerType )
   {
-    const HCURSOR cursor = GetCursor( cursorDir );
-    SetCursor( cursor );
+    case Tac::None: UpdateIdle(); break;
+    case Tac::Move: UpdateMove(); break;
+    case Tac::Resize: UpdateResize(); break;
   }
+}
 
-  void Win32MouseEdgeInit()
-  {
-    cursorArrow = LoadCursor( NULL, IDC_ARROW );
-    cursorArrowNS = LoadCursor( NULL, IDC_SIZENS );
-    cursorArrowWE = LoadCursor( NULL, IDC_SIZEWE );
-    cursorArrowNE_SW = LoadCursor( NULL, IDC_SIZENESW );
-    cursorArrowNW_SE = LoadCursor( NULL, IDC_SIZENWSE );
-    edgeDistResizePx = 7;
-    edgeDistMovePx = edgeDistResizePx + 6;
+void Tac::Win32MouseEdgeSetMovable( [[maybe_unused]] const WindowHandle& WindowHandle,
+                                    [[maybe_unused]] const DesktopWindowRect& windowSpaceRect )
+{
+#if 0
+  const int i = WindowHandle.GetIndex();
+  TAC_ASSERT_INDEX( i, kDesktopWindowCapacity );
 
-    // the distance that your mouse can be from the edge to resize the window is a thin border
-    // but the top bar that you can move is a fat border.
-    // The resize border sits on top of the move border, so if it were the bigger border it would
-    // completely obscure the move border and youd never be able to move your window.
-    TAC_ASSERT( edgeDistMovePx > edgeDistResizePx );
-  }
+  MouseEdge& mouseEdge = sMouseEdges[ i ];
+  mouseEdge.mFlags = MouseEdgeFlags( ( int )mouseEdge.mFlags | ( int )MouseEdgeFlags::kMovable );
+  mouseEdge.mWindowSpaceMoveRect = windowSpaceRect;
+#endif
+}
 
-  void Win32MouseEdgeUpdate()
-  {
-    sMouseHoveredHwnd = GetMouseHoveredHWND();
-    sMouseHoveredDesktopWindow = Win32WindowManagerFindWindow( sMouseHoveredHwnd );
+void Tac::Win32MouseEdgeSetResizable( const WindowHandle& WindowHandle,
+                                      int borderPx )
+{
+  const int i = WindowHandle.GetIndex();
+  TAC_ASSERT_INDEX( i, kDesktopWindowCapacity );
+  MouseEdge& mouseEdge = sMouseEdges[i];
+  mouseEdge.mFlags = MouseEdgeFlags( ( int )mouseEdge.mFlags | ( int )MouseEdgeFlags::kResizable );
+  mouseEdge.mResizeBorder = borderPx;
+}
 
-    mMouseDownPrev = mMouseDownCurr;
-    mMouseDownCurr = GetKeyState( VK_LBUTTON ) & 0x100;
-    switch( mHandlerType )
-    {
-      case Tac::None: UpdateIdle(); break;
-      case Tac::Move: UpdateMove(); break;
-      case Tac::Resize: UpdateResize(); break;
-    }
-  }
-
-  void Win32MouseEdgeSetMovable( const WindowHandle& WindowHandle,
-                                 const DesktopWindowRect& windowSpaceRect )
-  {
-    const int i = WindowHandle.GetIndex();
-    TAC_ASSERT_INDEX( i, kDesktopWindowCapacity );
-    MouseEdge& mouseEdge = sMouseEdges[i];
-    mouseEdge.mFlags = MouseEdgeFlags( ( int )mouseEdge.mFlags | ( int )MouseEdgeFlags::kMovable );
-    mouseEdge.mWindowSpaceMoveRect = windowSpaceRect;
-  }
-
-  void Win32MouseEdgeSetResizable( const WindowHandle& WindowHandle,
-                                   int borderPx )
-  {
-    const int i = WindowHandle.GetIndex();
-    TAC_ASSERT_INDEX( i, kDesktopWindowCapacity );
-    MouseEdge& mouseEdge = sMouseEdges[i];
-    mouseEdge.mFlags = MouseEdgeFlags( ( int )mouseEdge.mFlags | ( int )MouseEdgeFlags::kResizable );
-    mouseEdge.mResizeBorder = borderPx;
-  }
-} // namespace Tac
+Tac::WindowHandle Tac::Win32MouseEdgeGetCursorHovered()
+{
+  return sMouseHoveredDesktopWindow;
+}

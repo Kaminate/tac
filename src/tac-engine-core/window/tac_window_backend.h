@@ -11,6 +11,12 @@
 #include "tac-rhi/render3/tac_render_api.h"
 
 namespace Tac { struct Errors; }
+
+namespace Tac
+{
+  inline const int kDesktopWindowCapacity = 100;
+}
+
 namespace Tac::WindowBackend
 {
   struct WindowState
@@ -21,17 +27,17 @@ namespace Tac::WindowBackend
     bool   mShown;
   };
 
-  inline const int kWindowCapacity = 100;
+  // +------------------------------------------------------------+
+  // |                          TODO                              |
+  // +------------------------------------------------------------+
+  // | handle destroying and creating windows not having the same |
+  // | id in the same frame                                       |
+  // +------------------------------------------------------------+
 
-  //                          TODO
-  // -------------------------------------------------------------
-  // handle destroying and creating windows not having the same
-  // id in the same frame
-  // -------------------------------------------------------------
-
-  using WindowStates = Array<WindowState, kWindowCapacity >;
+  using WindowStates = Array< WindowState, kDesktopWindowCapacity >;
 
   extern WindowStates sGameLogicCurr;
+  extern WindowStates sPlatformCurr;
 
   // -----------------------------------------------------------------------------------------------
 

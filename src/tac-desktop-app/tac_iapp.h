@@ -7,6 +7,10 @@
 #include "tac-engine-core/shell/tac_shell_timestep.h" // FrameIndex
 #include "tac-engine-core/shell/tac_shell_timestamp.h" // Timestamp
 #include "tac-engine-core/shell/tac_shell_timer.h" // Timepoint
+#include "tac-engine-core/graphics/ui/imgui/tac_imgui_state.h" // ImGuiSimFrameDraws
+
+ // ImGuiSimFrameDraws::mWindowDraws:mDrawData::~UI2DDrawData
+//#include "tac-engine-core/graphics/ui/tac_ui_2d.h"
 
 namespace Tac
 {
@@ -16,10 +20,10 @@ namespace Tac
     {
       virtual ~IState() = default;
 
-      FrameIndex mFrameIndex{};
-      Timestamp  mTimestamp{};
-      Timepoint  mTimepoint{};
-
+      FrameIndex         mFrameIndex{};
+      Timestamp          mTimestamp{};
+      Timepoint          mTimepoint{};
+      ImGuiSimFrameDraws mImGuiDraws;
     };
 
     struct Config

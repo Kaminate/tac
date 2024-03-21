@@ -1,10 +1,10 @@
 #pragma once
 
+#include "tac-engine-core/window/tac_window_api.h"
+
 namespace Tac
 {
   struct StringView;
-  struct DesktopAppCreateWindowParams;
-  struct WindowHandle;
 }
 
 namespace Tac
@@ -14,7 +14,7 @@ namespace Tac
                                            int y = 50,
                                            int w = 800,
                                            int h = 600 );
-  WindowHandle CreateTrackedWindow( const DesktopAppCreateWindowParams& );
+  WindowHandle CreateTrackedWindow( const WindowApi::CreateParams& );
 
   void UpdateTrackedWindows();
   void QuitProgramOnWindowClose( const WindowHandle& );

@@ -19,8 +19,8 @@ namespace Tac
     void Update( Errors& );
     void Uninit();
 
-    App*    mApp = nullptr;
-    Errors* mErrors = nullptr;
-    GameStateManager* sGameStateManager = nullptr;
+    App*              mApp = nullptr;
+    Errors*           mErrors = nullptr;
+    GameStateManager* mGameStateManager = nullptr;
   };
 }

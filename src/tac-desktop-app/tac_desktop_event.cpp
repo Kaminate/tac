@@ -98,6 +98,8 @@ namespace Tac
   }
 
 #if 1
+
+  // todo: statically assert that the event data is trivally copyable
 #define TAC_QUEUE( Data, Type ) void DesktopEventApi::Queue( const Data& data )     { sEventQueue.QueuePush( Type, &data, sizeof( Data ) ); }
   TAC_QUEUE( WindowCreateEvent, DesktopEventType::WindowCreate );
   TAC_QUEUE( WindowDestroyEvent, DesktopEventType::WindowDestroy );

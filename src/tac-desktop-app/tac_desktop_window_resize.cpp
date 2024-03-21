@@ -1,7 +1,7 @@
 #include "tac_desktop_window_resize.h"
 
 #include "tac-engine-core/window/tac_window_api.h"
-#include "tac-engine-core/system/tac_platform.h"
+#include "tac-engine-core/platform/tac_platform.h"
 
 namespace Tac
 {
@@ -11,34 +11,38 @@ namespace Tac
     int               mEdgePx = 0;
   };
 
-  static RequestResize                 sRequestResize[ kDesktopWindowCapacity ];
+  //static RequestResize                 sRequestResize[ kDesktopWindowCapacity ];
 }
 
 void Tac::DesktopAppUpdateResize()
 {
+#if 0
   PlatformFns* platform = PlatformFns::GetInstance();
 
   for( int i = 0; i < kDesktopWindowCapacity; ++i )
   {
-    const WindowHandle WindowHandle = { i };
-    if( !WindowHandle.GetDesktopWindowNativeHandle() )
+    const WindowHandle windowHandle = { i };
+    if( !windowHandle.GetDesktopWindowNativeHandle() )
       continue;
 
     const RequestResize* requestResize = &sRequestResize[ i ];
     if( !requestResize->mRequested )
       continue;
 
-    platform->PlatformWindowResizeControls( WindowHandle, requestResize->mEdgePx );
+    platform->PlatformWindowResizeControls( windowHandle, requestResize->mEdgePx );
     sRequestResize[ i ] = RequestResize();
   }
+#endif
 }
 
-void Tac::DesktopAppImplResizeControls( const WindowHandle& WindowHandle,
-                                        int edgePx )
+void Tac::DesktopAppImplResizeControls( [[maybe_unused]] const WindowHandle& WindowHandle,
+                                        [[maybe_unused]] int edgePx )
 {
+#if 0
   sRequestResize[ WindowHandle.GetIndex() ] = RequestResize
   {
    .mRequested = true,
    .mEdgePx = edgePx,
   };
+#endif
 }

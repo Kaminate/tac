@@ -16,12 +16,13 @@ namespace Tac::DesktopEventApi
 {
   struct WindowCreateEvent
   {
-    WindowHandle mWindowHandle;
-    const void* mNativeWindowHandle;
-    int mX;
-    int mY;
-    int mW;
-    int mH;
+    WindowHandle     mWindowHandle;
+    ShortFixedString mName;
+    const void*      mNativeWindowHandle;
+    int              mX;
+    int              mY;
+    int              mW;
+    int              mH;
   };
 
   struct WindowDestroyEvent
@@ -37,8 +38,8 @@ namespace Tac::DesktopEventApi
   struct WindowResizeEvent
   {
     WindowHandle mWindowHandle;
-    int                 mWidth = 0;
-    int                 mHeight = 0;
+    int          mWidth = 0;
+    int          mHeight = 0;
   };
 
   struct KeyStateEvent

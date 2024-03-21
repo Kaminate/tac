@@ -1,34 +1,43 @@
 #include "tac_imgui.h" // self-inc
 
-#include "tac_imgui_drag.h"
-
-#include "tac-std-lib/containers/tac_array.h"
-#include "tac-std-lib/containers/tac_frame_vector.h"
-#include "tac-std-lib/error/tac_error_handling.h"
-#include "tac-std-lib/preprocess/tac_preprocessor.h"
-#include "tac-engine-core/settings/tac_settings.h"
-#include "tac-engine-core/graphics/ui/imgui/tac_imgui_state.h"
-#include "tac-rhi/renderer/tac_renderer.h"
 #include "tac-engine-core/graphics/tac_renderer_util.h"
+#include "tac-engine-core/graphics/ui/imgui/tac_imgui_state.h"
+#include "tac-engine-core/graphics/ui/imgui/tac_imgui_drag.h"
 #include "tac-engine-core/graphics/ui/tac_text_edit.h"
 #include "tac-engine-core/graphics/ui/tac_ui_2d.h"
 #include "tac-engine-core/hid/tac_keyboard_api.h"
+#include "tac-engine-core/profile/tac_profile.h"
+#include "tac-engine-core/settings/tac_settings.h"
+#include "tac-engine-core/window/tac_window_api.h"
+
+#include "tac-rhi/renderer/tac_renderer.h"
+
+#include "tac-std-lib/algorithm/tac_algorithm.h"
+#include "tac-std-lib/containers/tac_array.h"
+#include "tac-std-lib/containers/tac_frame_vector.h"
+#include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/math/tac_vector4.h"
-#include "tac-engine-core/profile/tac_profile.h"
-//#include "tac-engine-core/shell/tac_shell.h"
-#include "tac-std-lib/string/tac_string.h"
-#include "tac-engine-core/window/tac_window_api.h"
 #include "tac-std-lib/os/tac_os.h"
-#include "tac-std-lib/algorithm/tac_algorithm.h"
-//#include "tac-rhi/tac_render.h" // ?
+#include "tac-std-lib/preprocess/tac_preprocessor.h"
+#include "tac-std-lib/string/tac_string.h"
 
 //#include "tac-desktop-app/tac_desktop_app.h"
 //#include "tac-engine-core/window/tac_window_api_graphics.h"
 
 namespace Tac
 {
-  int GetCaret( const Vector< Codepoint >& codepoints,
+  static int ComputeLineCount( const StringView& s )
+  {
+    // todo: word wrap
+    int lineCount = 1;
+    for( char c : s )
+      if( c == '\n' )
+        lineCount++;
+    return lineCount;
+  }
+
+  static int GetCaret( const Vector< Codepoint >& codepoints,
                        float mousePos ) // mouse pos rel text top left corner
   {
     const float fontSize = ImGuiGetFontSize();
@@ -189,6 +198,7 @@ namespace Tac
 
 
 
+#if 0
   static void ImGuiRender( Errors& errors )
   {
     //ImGuiGlobals::Instance.mDesktopWindows;
@@ -206,16 +216,15 @@ namespace Tac
     //  sWindowDraws.AddWindow( window );
 
 
-#if 0
     // this should iteratre through imgui views?
     // and the draw data shouldnt exist, it should just be inlined here
     // in 1 big ass vbo/ibo
     for( ImGuiWindow* window : ImGuiGlobals::Instance.mAllWindows )
       ImGuiRenderWindow( window, errors );
-#endif
 
     //TAC_CALL( sWindowDraws.Render( errors ) );
   }
+#endif
 
   ImGuiMouseCursor ImGuiGetMouseCursor()
   {
@@ -242,12 +251,14 @@ namespace Tac
     return names[ ( int )colIdx ];
   }
 
+  // -----------------------------------------------------------------------------------------------
+
   UIStyle::UIStyle()
   {
      ImGuiDefaultColors();
   }
 
-
+  // -----------------------------------------------------------------------------------------------
 
   ImGuiRect ImGuiRect::FromPosSize( v2 pos, v2 size )
   {
@@ -300,7 +311,7 @@ namespace Tac
       r.mMaxi.y <= mMaxi.y;
   }
 
-  bool ImGuiRect::Overlaps( const ImGuiRect& r ) const
+  bool      ImGuiRect::Overlaps( const ImGuiRect& r ) const
   {
     return
       r.mMini.x <= mMaxi.x &&
@@ -308,6 +319,8 @@ namespace Tac
       r.mMini.y <= mMaxi.y &&
       r.mMaxi.y >= mMini.y;
   }
+
+  // -----------------------------------------------------------------------------------------------
 
   //void ImGuiSetNextWindowPos( const v2 screenspacePos )
   //{
@@ -404,7 +417,7 @@ namespace Tac
         //PlatformFns* platform = PlatformFns::GetInstance();
         //
 
-        //const DesktopAppCreateWindowParams createParams
+        //const WindowApi::CreateParams createParams
         //{
         //  .mName = name,
         //  .mX = x,
@@ -616,15 +629,6 @@ namespace Tac
     drawData->PopDebugGroup();
   }
 
-  static int ComputeLineCount( const StringView& s )
-  {
-    // todo: word wrap
-    int lineCount = 1;
-    for( char c : s )
-      if( c == '\n' )
-        lineCount++;
-    return lineCount;
-  }
 
   bool ImGuiInputText( const StringView& label, String& text )
   {
@@ -1155,8 +1159,6 @@ namespace Tac
     ImGuiText( String() + "Cur window active id: " + ToString( id ) );
   }
 
-
-
   void ImGuiBeginFrame(const BeginFrameData& data )
   {
     ImGuiGlobals::Instance.mElapsedSeconds = data.mElapsedSeconds;
@@ -1180,7 +1182,7 @@ namespace Tac
       TAC_ASSERT_CRITICAL( String() + "Mismatched ImGuiBegin/ImGuiEnd for " + window->mName );
     }
 
-    ImGuiRender( errors );
+    //ImGuiRender( errors );
 
     const Timestamp curSeconds = ImGuiGlobals::Instance.mElapsedSeconds;
     FrameMemoryVector< ImGuiWindow* > windowsToDeleteImGui;
@@ -1260,8 +1262,8 @@ namespace Tac
   {
     ImGuiGlobals& globals = ImGuiGlobals::Instance;
     globals.mMaxGpuFrameCount = params.mMaxGpuFrameCount;
-    globals.mSetWindowPos = params.mSetWindowPos;
-    globals.mSetWindowSize = params.mSetWindowSize;
+    //globals.mSetWindowPos = params.mSetWindowPos;
+    //globals.mSetWindowSize = params.mSetWindowSize;
     globals.mCreateWindow = params.mCreateWindow;
     globals.mDestroyWindow = params.mDestroyWindow;
   }
@@ -1286,6 +1288,23 @@ namespace Tac
   void ImGuiSetIsScrollbarEnabled( bool b)
   {
     ImGuiGlobals::Instance.mScrollBarEnabled = b;
+  }
+
+  ImGuiSimFrameDraws ImGuiGetSimFrameDraws()
+  { 
+    Vector< ImGuiSimWindowDraws > allWindowDraws;
+    for( ImGuiDesktopWindowImpl* window : ImGuiGlobals::Instance.mDesktopWindows )
+    {
+      ImGuiSimWindowDraws curWindowDraws = window->GetSimWindowDraws();
+      allWindowDraws.push_back( curWindowDraws );
+    }
+
+    return ImGuiSimFrameDraws{ .mWindowDraws = allWindowDraws };
+  }
+
+  void ImGuiPlatformRender( ImGuiSimFrameDraws* draws )
+  {
+    ImGuiPersistantPlatformData::Instance.UpdateAndRender( draws );
   }
 
 } // namespace Tac

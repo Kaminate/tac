@@ -9,11 +9,12 @@
 import std; // mutex
 
 Tac::WindowBackend::WindowStates Tac::WindowBackend::sGameLogicCurr;
+Tac::WindowBackend::WindowStates Tac::WindowBackend::sPlatformCurr;
 
 namespace Tac::WindowBackend
 {
-  using NWHArray = Array< const void*, kWindowCapacity >; // Native Window Handles (HWND)
-  using FBArray = Array< Render::FBHandle, kWindowCapacity >; // Window Framebuffers
+  using NWHArray = Array< const void*, kDesktopWindowCapacity >; // Native Window Handles (HWND)
+  using FBArray = Array< Render::FBHandle, kDesktopWindowCapacity >; // Window Framebuffers
 
   // sWindowStateMutex:
   //   Locked by the platform thread inbetween calls to
@@ -24,7 +25,6 @@ namespace Tac::WindowBackend
   //   to copy sGameLogicCurr to sPlatformCurr
   static std::mutex   sWindowStateMutex;
   static bool         sModificationAllowed;
-  static WindowStates sPlatformCurr;
   static NWHArray     sPlatformNative;
   static FBArray      sFramebuffers;
 

@@ -22,102 +22,6 @@ namespace Tac
 
   static Vector< TrackInfo > sTrackInfos;
 
-  static String GetJsonPath( StringView oldName )
-  {
-    String name = oldName;
-    for( char& c : name )
-      if( !IsAlpha(c ) && !IsDigit(c) )
-        c = '_';
-    return name;
-  }
-  
-  WindowHandle CreateTrackedWindow( const DesktopAppCreateWindowParams& params )
-  {
-    return CreateTrackedWindow( params.mName,
-                                params.mX,
-                                params.mY,
-                                params.mWidth,
-                                params.mHeight );
-  }
-
-  WindowHandle CreateTrackedWindow( const StringView& path,
-                                           int x,
-                                           int y,
-                                           int w,
-                                           int h )
-  {
-    String jsonPath = GetJsonPath( path );
-    Json* json = SettingsGetJson( jsonPath );
-    x = ( int )SettingsGetNumber( "x", x, json );
-    y = ( int )SettingsGetNumber( "y", y, json );
-    w = ( int )SettingsGetNumber( "w", w, json );
-    h = ( int )SettingsGetNumber( "h", h, json );
-    const char* name = path; // just reuse it
-
-    const DesktopAppCreateWindowParams createParams
-    {
-      .mName = path,
-      .mX = x,
-      .mY = y,
-      .mWidth = w,
-      .mHeight = h,
-    };
-
-    const WindowHandle WindowHandle = DesktopApp::GetInstance()->CreateWindow( createParams );
-    DesktopApp::GetInstance()->MoveControls( WindowHandle );
-    DesktopApp::GetInstance()->ResizeControls( WindowHandle );
-
-    const TrackInfo info
-    {
-      .mPath = path,
-      .mWindowHandle = WindowHandle,
-      .mX = x,
-      .mY = y,
-      .mW = w,
-      .mH = h,
-    };
-    sTrackInfos.push_back( info );
-    return WindowHandle;
-  }
-
-  void UpdateTrackedWindows()
-  {
-    for( TrackInfo& info : sTrackInfos )
-    {
-      DesktopWindowState* state = info.mWindowHandle.GetDesktopWindowState();
-      if( !state )
-        continue;
-
-      if( !state->mNativeWindowHandle )
-      {
-        if( info.mEverOpened && info.mQuitOnClose )
-        {
-          OS::OSAppStopRunning();
-        }
-
-        continue;
-      }
-
-      info.mEverOpened = true;
-
-      if( state->mX == info.mX &&
-          state->mY == info.mY &&
-          state->mWidth == info.mW &&
-          state->mHeight == info.mH )
-        continue;
-
-      info.mX = state->mX;
-      info.mY = state->mY;
-      info.mW = state->mWidth;
-      info.mH = state->mHeight;
-      Json* json = SettingsGetJson( info.mPath );
-      SettingsSetNumber( "x", info.mX, json );
-      SettingsSetNumber( "y", info.mY, json );
-      SettingsSetNumber( "w", info.mW, json );
-      SettingsSetNumber( "h", info.mH, json );
-    }
-  }
-
   static TrackInfo* FindTrackInfo( const WindowHandle& WindowHandle )
   {
     for( TrackInfo& info : sTrackInfos )
@@ -126,11 +30,108 @@ namespace Tac
     return nullptr;
   }
 
-  void QuitProgramOnWindowClose( const WindowHandle& WindowHandle )
-  {
-    TrackInfo* trackInfo = FindTrackInfo( WindowHandle );
-    TAC_ASSERT( trackInfo ); // maybe todo make this work on non-tracked windows?
-    trackInfo->mQuitOnClose = true;
-  }
 
-} // namespace Tac
+  static String GetJsonPath( StringView oldName )
+  {
+    String name = oldName;
+    for( char& c : name )
+      if( !IsAlpha( c ) && !IsDigit( c ) )
+        c = '_';
+    return name;
+
+  }
+}
+
+Tac::WindowHandle Tac::CreateTrackedWindow( const WindowApi::CreateParams& params )
+{
+  return CreateTrackedWindow( params.mName,
+                              params.mX,
+                              params.mY,
+                              params.mWidth,
+                              params.mHeight );
+}
+
+Tac::WindowHandle Tac::CreateTrackedWindow( const StringView& path,
+                                            int x,
+                                            int y,
+                                            int w,
+                                            int h )
+{
+  String jsonPath = GetJsonPath( path );
+  Json* json = SettingsGetJson( jsonPath );
+  x = ( int )SettingsGetNumber( "x", x, json );
+  y = ( int )SettingsGetNumber( "y", y, json );
+  w = ( int )SettingsGetNumber( "w", w, json );
+  h = ( int )SettingsGetNumber( "h", h, json );
+  const char* name = path; // just reuse it
+
+  //const WindowApi::CreateParams createParams
+  const WindowApi::CreateParams createParams
+  {
+    .mName = path,
+    .mX = x,
+    .mY = y,
+    .mWidth = w,
+    .mHeight = h,
+  };
+
+  const WindowHandle windowHandle = WindowApi::CreateWindow( createParams );
+  //DesktopApp::GetInstance()->MoveControls( WindowHandle );
+  //DesktopApp::GetInstance()->ResizeControls( WindowHandle );
+
+  const TrackInfo info
+  {
+    .mPath = path,
+    .mWindowHandle = windowHandle,
+    .mX = x,
+    .mY = y,
+    .mW = w,
+    .mH = h,
+  };
+  sTrackInfos.push_back( info );
+  return windowHandle;
+}
+
+void Tac::UpdateTrackedWindows()
+{
+  for( TrackInfo& info : sTrackInfos )
+  {
+    WindowHandle windowHandle = info.mWindowHandle;
+    if( !windowHandle.IsShown() && info.mEverOpened )
+      OS::OSAppStopRunning();
+
+    if( !windowHandle.IsShown() )
+      continue;
+
+    info.mEverOpened = true;
+
+    const int x = windowHandle.GetX();
+    const int y = windowHandle.GetY();
+    const int w = windowHandle.GetWidth();
+    const int h = windowHandle.GetHeight();
+    if( x == info.mX &&
+        y == info.mY &&
+        w == info.mW &&
+        h == info.mH )
+      continue;
+
+    info.mX = x;
+    info.mY = y;
+    info.mW = w;
+    info.mH = h;
+    Json* json = SettingsGetJson( info.mPath );
+    SettingsSetNumber( "x", info.mX, json );
+    SettingsSetNumber( "y", info.mY, json );
+    SettingsSetNumber( "w", info.mW, json );
+    SettingsSetNumber( "h", info.mH, json );
+  }
+}
+
+
+void Tac::QuitProgramOnWindowClose( const WindowHandle& WindowHandle )
+{
+  TrackInfo* trackInfo = FindTrackInfo( WindowHandle );
+  TAC_ASSERT( trackInfo ); // maybe todo make this work on non-tracked windows?
+  trackInfo->mQuitOnClose = true;
+}
+

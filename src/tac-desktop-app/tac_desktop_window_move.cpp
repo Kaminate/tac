@@ -1,10 +1,11 @@
 #include "tac_desktop_window_move.h"
 
 #include "tac-engine-core/window/tac_window_api.h"
-#include "tac-engine-core/system/tac_platform.h"
+#include "tac-engine-core/platform/tac_platform.h"
 
 namespace Tac
 {
+#if 0
   struct RequestMove
   {
     bool              mRequested = false;
@@ -12,10 +13,12 @@ namespace Tac
   };
 
   static RequestMove                   sRequestMove[ kDesktopWindowCapacity ];
+#endif
 }
 
 void Tac::DesktopAppUpdateMove()
 {
+#if 0
   PlatformFns* sPlatformFns = PlatformFns::GetInstance();
 
   for( int i = 0; i < kDesktopWindowCapacity; ++i )
@@ -35,9 +38,11 @@ void Tac::DesktopAppUpdateMove()
     sPlatformFns->PlatformWindowMoveControls( WindowHandle, desktopWindowRect );
     sRequestMove[ i ] = RequestMove();
   }
+#endif
 }
 
 
+#if 0
 void                Tac::DesktopAppImplMoveControls( const WindowHandle& WindowHandle,
                                                      const DesktopWindowRect& rect )
 {
@@ -52,3 +57,4 @@ void                Tac::DesktopAppImplMoveControls( const WindowHandle& WindowH
 {
   sRequestMove[ WindowHandle.GetIndex() ].mRequested = true;
 }
+#endif

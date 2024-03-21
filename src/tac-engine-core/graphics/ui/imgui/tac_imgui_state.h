@@ -145,13 +145,41 @@ namespace Tac
     int mIBCount = 0;
   };
 
+  struct ImGuiSimWindowDraws
+  {
+      WindowHandle                       mHandle;
+      Vector< SmartPtr< UI2DDrawData > > mDrawData;
+      int                                mVertexCount{};
+      int                                mIndexCount{};
+  };
+
+  // generated once per game logic update frame,
+  // passed to the imgui platform frame
+  struct ImGuiSimFrameDraws
+  {
+    Vector< ImGuiSimWindowDraws > mWindowDraws;
+  };
+
+  struct ImGuiPersistantPlatformData
+  {
+    static ImGuiPersistantPlatformData Instance;
+
+    void UpdateAndRender( ImGuiSimFrameDraws* );
+
+    int                          mFrameIndex{};
+    Vector< ImGuiRenderBuffers > mRenderBuffers;
+  };
+
   struct ImGuiDesktopWindowImpl : public ImGuiDesktopWindow
   {
     ImGuiDesktopWindowImpl();
+#if 0
     void Render( Errors& );
+#endif
 
   private:
 
+#if 0
     // Holds draw data from every ImGuiWindow that draws onto this DesktopWindow.
     // Used to combine these draws into a single vtx/idx buffer.
     struct FrameDrawData
@@ -168,6 +196,11 @@ namespace Tac
 
     int                          mFrameIndex{};
     Vector< ImGuiRenderBuffers > mRenderBuffers;
+#else
+  public:
+    ImGuiSimWindowDraws GetSimWindowDraws();
+    
+#endif
   };
 
   struct ImGuiGlobals
@@ -188,8 +221,8 @@ namespace Tac
     WindowHandle               mMouseHoveredWindow;
     bool                              mScrollBarEnabled = true;
     int                               mMaxGpuFrameCount{};
-    ImGuiSetWindowPos                 mSetWindowPos{};
-    ImGuiSetWindowSize                mSetWindowSize{};
+    //ImGuiSetWindowPos                 mSetWindowPos{};
+    //ImGuiSetWindowSize                mSetWindowSize{};
     ImGuiCreateWindow                 mCreateWindow{};
     ImGuiDestroyWindow                mDestroyWindow{};
   };

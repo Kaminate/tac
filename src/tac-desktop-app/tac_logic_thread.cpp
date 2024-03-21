@@ -8,14 +8,17 @@
 #include "tac-ecs/tac_space.h"
 
 #include "tac-engine-core/framememory/tac_frame_memory.h"
+#include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
+//#include "tac-engine-core/graphics/ui/tac_ui_2d.h" // ~UI2DDrawData
+#include "tac-engine-core/graphics/ui/imgui/tac_imgui_state.h"
 #include "tac-engine-core/graphics/ui/tac_font.h"
 #include "tac-engine-core/hid/controller/tac_controller_input.h"
 #include "tac-engine-core/hid/tac_keyboard_backend.h"
 #include "tac-engine-core/net/tac_net.h"
+#include "tac-engine-core/platform/tac_platform.h"
 #include "tac-engine-core/profile/tac_profile.h"
 #include "tac-engine-core/settings/tac_settings.h"
 #include "tac-engine-core/shell/tac_shell.h"
-#include "tac-engine-core/system/tac_platform.h"
 
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/os/tac_os.h"
@@ -90,18 +93,18 @@ namespace Tac
       //Mouse::MouseBeginFrame();
       KeyboardBackend::UpdateGameLogicKeyState();
 
-      //const BeginFrameData data =
-      //{
-      //  .mElapsedSeconds = Timestep::GetElapsedTime(),
-      //  .mMouseHoveredWindow = platform->PlatformGetMouseHoveredWindow(),
-      //};
-      //ImGuiBeginFrame( data );
+      const BeginFrameData data =
+      {
+        .mElapsedSeconds = Timestep::GetElapsedTime(),
+        .mMouseHoveredWindow = {} // platform->PlatformGetMouseHoveredWindow(),
+      };
+      ImGuiBeginFrame( data );
 
       Controller::UpdateJoysticks();
 
       TAC_CALL( mApp->Update( errors ) );
 
-      //TAC_CALL( ImGuiEndFrame( errors ) );
+      TAC_CALL( ImGuiEndFrame( errors ) );
 
       //KeyboardEndFrame();
       //Mouse::MouseEndFrame();
@@ -110,6 +113,7 @@ namespace Tac
       gameState->mFrameIndex = Timestep::GetElapsedFrames();
       gameState->mTimestamp = Timestep::GetElapsedTime();
       gameState->mTimepoint = Timestep::GetLastTick();
+      gameState->mImGuiDraws = ImGuiGetSimFrameDraws();
 
       sGameStateManager->Enqueue( gameState );
 

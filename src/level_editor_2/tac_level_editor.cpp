@@ -9,8 +9,8 @@
 
 namespace Tac
 {
-  Creation gCreation;
-  WindowHandle hWnd;
+  Creation     sCreation;
+  WindowHandle sWindowHandle;
 
   // -----------------------------------------------------------------------------------------------
 
@@ -34,7 +34,7 @@ namespace Tac
   {
     DesktopApp* desktopApp = DesktopApp::GetInstance();
 
-    DesktopAppCreateWindowParams params
+    const WindowApi::CreateParams params
     {
       .mName = "level editor",
       .mX = 50,
@@ -42,8 +42,8 @@ namespace Tac
       .mWidth = 800,
       .mHeight = 600,
     };
-    hWnd = desktopApp->CreateWindow( params );
-    gCreation.Init( errors );
+    sWindowHandle = WindowApi::CreateWindow( params );
+    sCreation.Init( errors );
 
     {
       //Render::ViewHandle2 viewHandle = Render::CreateView2();
@@ -52,36 +52,18 @@ namespace Tac
 
   }
 
-  void LevelEditorApp::Update( Errors& errors ) { gCreation.Uninit( errors ); }
+  void LevelEditorApp::Update( Errors& errors )
+  {
+    sCreation.Uninit( errors );
+  }
 
-  void LevelEditorApp::Uninit( Errors& errors ) { gCreation.Update( errors ); }
+  void LevelEditorApp::Uninit( Errors& errors )
+  {
+    sCreation.Update( errors );
+  }
 
   void LevelEditorApp::Render( RenderParams, Errors& )
   {
-    gCreation.mShowUnownedWindow = true;
-    gCreation.mShowOwnedWindow = false;
-
-    if( gCreation.mShowUnownedWindow )
-    {
-      ImGuiSetNextWindowHandle( hWnd );
-      if( ImGuiBegin( "Unowned Window" ) )
-      {
-        ImGuiButton( "" );
-        ImGuiEnd();
-      }
-    }
-
-    if( gCreation.mShowOwnedWindow )
-    {
-      ImGuiSetNextWindowPosition( v2( 500, 100 ) );
-      ImGuiSetNextWindowSize( v2( 300, 300 ) );
-      ImGuiSetNextWindowMoveResize();
-      if( ImGuiBegin( "Owned Window" ) )
-      {
-        ImGuiButton("");
-        ImGuiEnd();
-      }
-    }
 
   }
 
@@ -116,6 +98,31 @@ namespace Tac
 
   void                Creation::Update( Errors& errors )
   {
+    mShowUnownedWindow = true;
+    mShowOwnedWindow = false;
+
+    if( mShowUnownedWindow )
+    {
+      ImGuiSetNextWindowHandle( sWindowHandle );
+      if( ImGuiBegin( "Unowned Window" ) )
+      {
+        ImGuiButton( "" );
+        ImGuiEnd();
+      }
+    }
+
+    if( mShowOwnedWindow )
+    {
+      ImGuiSetNextWindowPosition( v2( 500, 100 ) );
+      ImGuiSetNextWindowSize( v2( 300, 300 ) );
+      ImGuiSetNextWindowMoveResize();
+      if( ImGuiBegin( "Owned Window" ) )
+      {
+        ImGuiButton("");
+        ImGuiEnd();
+      }
+    }
+
   }
 
 } // namespace Tac

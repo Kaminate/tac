@@ -9,6 +9,7 @@
 
 #include "tac-engine-core/framememory/tac_frame_memory.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
+//#include "tac-engine-core/graphics/ui/tac_ui_2d.h" // ~UI2DDrawData
 #include "tac-engine-core/profile/tac_profile.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
 //#include "tac-engine-core/window/tac_window_api_graphics.h"
@@ -78,13 +79,10 @@ namespace Tac::DesktopEventApi
       KeyboardBackend::SetKeyState( data.mKey, state );
     }
 
-    void Handle( const MouseMoveEvent& mouseState ) override
+    void Handle( const MouseMoveEvent& data ) override
     {
-      const DesktopWindowState* windowState
-        = mouseState.mWindowHandle.GetDesktopWindowState();
-
-      const v2 screenSpaceWindowPos = windowState->GetPosV2();
-      const v2 windowSpaceMousePos = { ( float )mouseState.mX, ( float )mouseState.mY };
+      const v2 screenSpaceWindowPos = data.mWindowHandle.GetPosf();
+      const v2 windowSpaceMousePos{ ( float )data.mX, ( float )data.mY };
       KeyboardBackend::SetMousePos( screenSpaceWindowPos + windowSpaceMousePos );
     }
 
@@ -101,10 +99,6 @@ namespace Tac::DesktopEventApi
     void Handle( const WindowResizeEvent& data ) override
     {
       WindowBackend::SetWindowSize( data.mWindowHandle, v2i( data.mWidth, data.mHeight ) );
-
-      WindowGraphics::Instance().Resize( data.mWindowHandle,
-                                         desktopWindowState->mWidth,
-                                         desktopWindowState->mHeight );
     }
   };
 
@@ -113,40 +107,17 @@ namespace Tac::DesktopEventApi
 
 namespace Tac
 {
-  static void                ImGuiPlatformSetWindowPos( WindowHandle handle, v2 pos )
-  {
-    PlatformFns* platform = PlatformFns::GetInstance();
-    platform->PlatformSetWindowPos( handle, ( int )pos.x, ( int )pos.y );
-  }
+  //static void                ImGuiSimSetWindowPos( WindowHandle handle, v2i pos )
+  //{
+  //  PlatformFns* platform = PlatformFns::GetInstance();
+  //  platform->PlatformSetWindowPos( handle, pos );
+  //}
 
-  static void                ImGuiPlatformSetWindowSize( WindowHandle handle, v2 size )
-  {
-    PlatformFns* platform = PlatformFns::GetInstance();
-    platform->PlatformSetWindowSize( handle, ( int )size.x, ( int )size.y );
-  }
-
-  static WindowHandle ImGuiPlatformCreateWindow( const ImGuiCreateWindowParams& params )
-  {
-    DesktopApp* desktopApp = DesktopApp::GetInstance();
-    const DesktopAppCreateWindowParams desktopParams
-    {
-      .mName = "<unnamed>",
-      .mX = ( int )params.mPos.x,
-      .mY = ( int )params.mPos.y,
-      .mWidth = ( int )params.mSize.x,
-      .mHeight = ( int )params.mSize.y,
-    };
-    return desktopApp->CreateWindow( desktopParams );
-  }
-
-  static void                ImGuiPlatformDestroyWindow( const WindowHandle& handle )
-  {
-    DesktopApp* desktopApp = DesktopApp::GetInstance();
-
-    desktopApp->DestroyWindow( handle );
-  }
-  
-
+  //static void                ImGuiSimSetWindowSize( WindowHandle handle, v2i size )
+  //{
+  //  PlatformFns* platform = PlatformFns::GetInstance();
+  //  platform->PlatformSetWindowSize( handle, size );
+  //}
 
   static bool sVerbose;
   void PlatformThread::Uninit()
@@ -155,7 +126,6 @@ namespace Tac
     if( !errors.empty() )
       OS::OSAppStopRunning();
 
-    ImGuiUninit();
     //if( mApp->IsRenderEnabled() )
     //  Render::RenderFinish();
 
@@ -173,15 +143,6 @@ namespace Tac
     TAC_CALL( Render::RenderApi::Init( {}, errors ) );
     //TAC_CALL( Render::Init2( Render::InitParams{}, errors ) );
 
-    const ImGuiInitParams imguiInitParams 
-    {
-      .mMaxGpuFrameCount = Render::RenderApi::GetMaxGPUFrameCount() ,
-      .mSetWindowPos = ImGuiPlatformSetWindowPos,
-      .mSetWindowSize = ImGuiPlatformSetWindowSize,
-      .mCreateWindow = ImGuiPlatformCreateWindow,
-      .mDestroyWindow = ImGuiPlatformDestroyWindow,
-    };
-    ImGuiInit( imguiInitParams );
   }
 
   void PlatformThread::Update( Errors& errors )
@@ -214,7 +175,7 @@ namespace Tac
       //   the future. If the current time is 25% of the way from B to C, we render (25% A + 75% B).
       //   This introduces some latency at the expense of misprediction (the alternative is 
       //   predicting 125% B)
-      if( GameStateManager::Pair pair = sGameStateManager->Dequeue(); pair.IsValid() )
+      if( GameStateManager::Pair pair = mGameStateManager->Dequeue(); pair.IsValid() )
       {
         const TimestampDifference dt = pair.mNewState->mTimestamp - pair.mOldState->mTimestamp;
         TAC_ASSERT( dt.mSeconds != 0 );
@@ -230,7 +191,7 @@ namespace Tac
         TAC_ASSERT( t >= 0 );
 
         if( sVerbose )
-          OS::OSDebugPrintLine( String() + "unminned t: " + ToString( t ) );
+          OS::OSDebugPrintLine( String() + "t before clamping: " + ToString( t ) );
 
         t = Min( t, 1.0f );
 
@@ -239,13 +200,6 @@ namespace Tac
                                                       t );
 
 
-        const BeginFrameData imguiBeginFrameData =
-        {
-          .mElapsedSeconds = interpolatedTimestamp,
-          .mMouseHoveredWindow = platform->PlatformGetMouseHoveredWindow(),
-        };
-        ImGuiBeginFrame( imguiBeginFrameData );
-
         const App::RenderParams params
         {
           .mOldState = pair.mOldState, // A
@@ -253,7 +207,8 @@ namespace Tac
           .mT = t, // inbetween B and (future) C
         };
         TAC_CALL( mApp->Render( params, errors ) );
-        TAC_CALL( ImGuiEndFrame( errors ) );
+        //TAC_CALL( ImGuiEndFrame( errors ) );
+        ImGuiPlatformRender( &pair.mNewState->mImGuiDraws );
         //Render::FrameEnd();
       }
 

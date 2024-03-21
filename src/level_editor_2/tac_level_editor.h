@@ -14,7 +14,7 @@ namespace Tac
     bool mShowOwnedWindow{};
   };
 
-  extern Creation gCreation;
+  extern Creation sCreation;
 
 } // namespace Tac
 

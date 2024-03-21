@@ -2,6 +2,8 @@
 
 #pragma once
 
+#undef CreateWindow
+
 #include "tac-std-lib/string/tac_string_view.h"
 
 namespace Tac { struct v2i; struct v2; }

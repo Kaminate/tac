@@ -12,18 +12,18 @@ namespace Tac { struct Errors; }
 
 namespace Tac
 {
-  struct PlatformFns;
+  //struct PlatformFns;
 
   // -----------------------------------------------------------------------------------------------
 
-  struct DesktopAppCreateWindowParams
-  {
-    const char* mName = "";
-    int         mX = 0;
-    int         mY = 0;
-    int         mWidth = 0;
-    int         mHeight = 0;
-  };
+  //struct WindowApi::CreateParams
+  //{
+  //  const char* mName = "";
+  //  int         mX = 0;
+  //  int         mY = 0;
+  //  int         mWidth = 0;
+  //  int         mHeight = 0;
+  //};
 
   // -----------------------------------------------------------------------------------------------
 
@@ -32,7 +32,7 @@ namespace Tac
   {
     void                Init( Errors& );
     void                Run( Errors& );
-    //WindowHandle CreateWindow( const DesktopAppCreateWindowParams& );
+    //WindowHandle CreateWindow( const WindowApi::CreateParams& );
     //void                DestroyWindow( const WindowHandle& );
     void                Update( Errors& );
     //void                ResizeControls( const WindowHandle&, int edgePx = 7 );

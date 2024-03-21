@@ -2,17 +2,18 @@
 
 #pragma once
 
+#include "tac-engine-core/i18n/tac_localization.h" // Codepoint
+#include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-engine-core/window/tac_window_api.h" // WindowHandle
+#include "tac-engine-core/graphics/ui/tac_ui_2d.h" // UI2DDrawData
+#include "tac-std-lib/containers/tac_vector.h"
+#include "tac-std-lib/math/tac_vector2i.h"
 #include "tac-std-lib/math/tac_vector4.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
-#include "tac-engine-core/shell/tac_shell_timestep.h"
-#include "tac-engine-core/i18n/tac_localization.h" // Codepoint
-#include "tac-std-lib/containers/tac_vector.h"
-#include "tac-engine-core/window/tac_window_api.h" // WindowHandle
 
 
 namespace Tac
 {
-  struct UI2DDrawData;
 
   struct ImGuiDesktopWindow
   {
@@ -109,10 +110,10 @@ namespace Tac
     v2 mSize;
   };
 
-  using ImGuiSetWindowPos = void( * )( WindowHandle, v2 );
-  using ImGuiSetWindowSize = void( * )( WindowHandle, v2 );
+  using ImGuiSetWindowPos = void( * )( WindowHandle, v2i );
+  using ImGuiSetWindowSize = void( * )( WindowHandle, v2i );
   using ImGuiCreateWindow = WindowHandle( * )( const ImGuiCreateWindowParams& );
-  using ImGuiDestroyWindow = void ( * )( const WindowHandle& );
+  using ImGuiDestroyWindow = void ( * )( WindowHandle );
 
   struct ImGuiInitParams
   {
@@ -199,6 +200,10 @@ namespace Tac
   void ImGuiSetIsScrollbarEnabled( bool );
   
 
+  struct ImGuiSimFrameDraws;
+  ImGuiSimFrameDraws ImGuiGetSimFrameDraws();
+  void               ImGuiPlatformRender( ImGuiSimFrameDraws* );
+
 
 #define TAC_IMGUI_INDENT_BLOCK            ImGuiIndent();                          \
                                           TAC_ON_DESTRUCT( ImGuiUnindent() );
@@ -212,8 +217,8 @@ namespace Tac
                                 const v2& mousePos,
                                 const v2& textPos );
 
-  int GetCaret( const Vector< Codepoint >& codepoints,
-                float mousePos );
+  //int GetCaret( const Vector< Codepoint >& codepoints,
+  //              float mousePos );
   void TextInputDataDrawSelection( TextInputData* inputData,
                                    UI2DDrawData* drawData,
                                    const v2& textPos,

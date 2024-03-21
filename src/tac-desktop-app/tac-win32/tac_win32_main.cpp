@@ -149,27 +149,27 @@ namespace Tac
     Win32WindowManagerSpawnWindow( params, errors );
   }
 
-  void Win32PlatformFns::PlatformDespawnWindow( const WindowHandle& errors ) 
+  void Win32PlatformFns::PlatformDespawnWindow( WindowHandle handle ) 
   {
-    Win32WindowManagerDespawnWindow( errors );
+    Win32WindowManagerDespawnWindow( handle );
   }
 
-  void Win32PlatformFns::PlatformWindowMoveControls( const WindowHandle& handle,
-                                                     const DesktopWindowRect& rect )
-  {
-    Win32MouseEdgeSetMovable( handle, rect );
-  }
+  //void Win32PlatformFns::PlatformWindowMoveControls( const WindowHandle& handle,
+  //                                                   const DesktopWindowRect& rect )
+  //{
+  //  Win32MouseEdgeSetMovable( handle, rect );
+  //}
 
-  void Win32PlatformFns::PlatformWindowResizeControls( const WindowHandle& handle,
-                                                       int i )
-  {
-    Win32MouseEdgeSetResizable( handle, i );
-  }
+  //void Win32PlatformFns::PlatformWindowResizeControls( const WindowHandle& handle,
+  //                                                     int i )
+  //{
+  //  Win32MouseEdgeSetResizable( handle, i );
+  //}
 
-  WindowHandle Win32PlatformFns::PlatformGetMouseHoveredWindow() 
-  {
-    return Win32WindowManagerGetCursorUnobscuredWindow();
-  }
+  //WindowHandle Win32PlatformFns::PlatformGetMouseHoveredWindow() 
+  //{
+  //  return Win32WindowManagerGetCursorUnobscuredWindow();
+  //}
 
   // -----------------------------------------------------------------------------------------------
 

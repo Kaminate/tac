@@ -4,7 +4,7 @@
 #include "tac-desktop-app/tac_desktop_app_renderers.h"
 #include "tac-desktop-app/tac_desktop_app_threads.h"
 #include "tac-desktop-app/tac_desktop_event.h"
-#include "tac-desktop-app/tac_desktop_window_life.h"
+//#include "tac-desktop-app/tac_desktop_window_life.h"
 #include "tac-desktop-app/tac_desktop_window_move.h"
 #include "tac-desktop-app/tac_desktop_window_resize.h"
 #include "tac-desktop-app/tac_desktop_window_settings_tracker.h"
@@ -13,6 +13,8 @@
 #include "tac-desktop-app/tac_render_state.h"
 
 #include "tac-ecs/tac_space.h"
+
+#include "tac-rhi/render3/tac_render_api.h"
 
 #include "tac-engine-core/framememory/tac_frame_memory.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
@@ -26,8 +28,8 @@
 #include "tac-engine-core/shell/tac_shell.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-engine-core/window/tac_window_api.h"
-#include "tac-engine-core/window/tac_window_api_graphics.h"
-#include "tac-engine-core/system/tac_platform.h"
+//#include "tac-engine-core/window/tac_window_api_graphics.h"
+#include "tac-engine-core/platform/tac_platform.h"
 
 #include "tac-std-lib/containers/tac_fixed_vector.h"
 #include "tac-std-lib/containers/tac_frame_vector.h"
@@ -52,6 +54,30 @@ namespace Tac
 
   static GameStateManager              sGameStateManager;
   static DesktopApp                    sDesktopApp;
+
+  // -----------------------------------------------------------------------------------------------
+
+  static WindowHandle ImGuiSimCreateWindow( const ImGuiCreateWindowParams& imguiParams )
+  {
+    DesktopApp* desktopApp = DesktopApp::GetInstance();
+    //const WindowApi::CreateParams desktopParams
+    const WindowApi::CreateParams platformParams
+    {
+      .mName = "<unnamed>",
+      .mX = ( int )imguiParams.mPos.x,
+      .mY = ( int )imguiParams.mPos.y,
+      .mWidth = ( int )imguiParams.mSize.x,
+      .mHeight = ( int )imguiParams.mSize.y,
+    };
+    //return desktopApp->CreateWindow( desktopParams );
+
+    return WindowApi::CreateWindow( platformParams );
+  }
+
+  static void ImGuiSimDestroyWindow( WindowHandle handle )
+  {
+    WindowApi::DestroyWindow( handle );
+  }
 
   // -----------------------------------------------------------------------------------------------
 
@@ -120,10 +146,20 @@ namespace Tac
     {
       .mApp = sApp,
       .mErrors = &gLogicThreadErrors,
-      .sGameStateManager = &sGameStateManager,
+      .mGameStateManager = &sGameStateManager,
     };
 
     std::thread logicThread( &LogicThread::Update, sLogicThread, std::ref( gLogicThreadErrors ) );
+
+    const ImGuiInitParams imguiInitParams 
+    {
+      .mMaxGpuFrameCount = Render::RenderApi::GetMaxGPUFrameCount() ,
+      //.mSetWindowPos = ImGuiSimSetWindowPos,
+      //.mSetWindowSize = ImGuiSimSetWindowSize,
+      .mCreateWindow = ImGuiSimCreateWindow,
+      .mDestroyWindow = ImGuiSimDestroyWindow,
+    };
+    ImGuiInit( imguiInitParams );
 
     sPlatformThread.mApp = sApp;
     sPlatformThread.mErrors = &gPlatformThreadErrors;
@@ -132,6 +168,7 @@ namespace Tac
 
     sPlatformThread.Uninit();
     sLogicThread.Uninit();
+    ImGuiUninit();
 
     DesktopAppErrorReport errorReport;
     errorReport.Add( "Platform Thread", &gPlatformThreadErrors );
@@ -142,7 +179,7 @@ namespace Tac
 
   void                DesktopApp::Update( Errors& errors )
   {
-    TAC_CALL( DesktopAppUpdateWindowRequests( errors ) );
+    //TAC_CALL( DesktopAppUpdateWindowRequests( errors ) );
     DesktopAppUpdateMove();
     DesktopAppUpdateResize();
     UpdateTrackedWindows();
@@ -165,7 +202,7 @@ namespace Tac
   //  DesktopAppImplMoveControls( WindowHandle );
   //}
 
-  //WindowHandle DesktopApp::CreateWindow( const DesktopAppCreateWindowParams& desktopParams )
+  //WindowHandle DesktopApp::CreateWindow( const WindowApi::CreateParams& desktopParams )
   //{
   //  return DesktopAppImplCreateWindow( desktopParams );
   //}
@@ -180,6 +217,7 @@ namespace Tac
   static void         DesktopAppDebugImGuiHoveredWindow()
   {
     PlatformFns* platform = PlatformFns::GetInstance();
+#if 0
     const WindowHandle hoveredHandle = platform->PlatformGetMouseHoveredWindow();
     const DesktopWindowState* hovered = hoveredHandle.GetDesktopWindowState();
     if( !hovered )
@@ -194,6 +232,7 @@ namespace Tac
       " ",
       hovered->mName );
     ImGuiText( text );
+#endif
   }
 
   void                DesktopApp::DebugImGui(Errors& errors)
@@ -203,7 +242,7 @@ namespace Tac
 
     TAC_IMGUI_INDENT_BLOCK;
 
-    DesktopWindowDebugImgui();
+    //DesktopWindowDebugImgui();
 
     DesktopAppDebugImGuiHoveredWindow();
 

@@ -1,25 +1,29 @@
 #include "tac_imgui_state.h" // self-inc
 
-#include "tac-std-lib/dataprocess/tac_hash.h"
-#include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-engine-core/graphics/color/tac_color_util.h"
+#include "tac-engine-core/graphics/ui/tac_font.h"
 #include "tac-engine-core/graphics/ui/tac_text_edit.h"
 #include "tac-engine-core/graphics/ui/tac_ui_2d.h"
-#include "tac-engine-core/graphics/ui/tac_ui_2d.h"
-#include "tac-rhi/render/tac_render.h" // CreateContext
 #include "tac-engine-core/hid/tac_keyboard_api.h"
-#include "tac-engine-core/graphics/ui/tac_font.h"
-#include "tac-std-lib/math/tac_math.h"
-#include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
-#include "tac-std-lib/os/tac_os.h"
 
-// This is a shell include, how is it in tac/src/common?
-//#include "tac-engine-core/window/tac_window_api_graphics.h"
+#include "tac-rhi/render/tac_render.h" // CreateContext
+
+#include "tac-std-lib/dataprocess/tac_hash.h"
+#include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-std-lib/math/tac_math.h"
+#include "tac-std-lib/os/tac_os.h"
+#include "tac-std-lib/preprocess/tac_preprocessor.h"
+
+
+Tac::ImGuiNextWindow          Tac::gNextWindow;
 
 namespace Tac
 {
-  ImGuiNextWindow gNextWindow;
+  ImGuiPersistantPlatformData ImGuiPersistantPlatformData::Instance;
+  ImGuiGlobals                ImGuiGlobals::Instance;
+
+  // -----------------------------------------------------------------------------------------------
 
   struct RegisteredWindowResource
   {
@@ -27,6 +31,8 @@ namespace Tac
     Vector< char > mInitialData;
     ImGuiIndex     mId = 0;
   };
+
+  // -----------------------------------------------------------------------------------------------
 
   struct WindowResourceRegistry
   {
@@ -40,6 +46,8 @@ namespace Tac
     int                                mResourceCounter = 0;
   };
 
+  // -----------------------------------------------------------------------------------------------
+
   RegisteredWindowResource* WindowResourceRegistry::FindResource( ImGuiIndex  index )
   {
     for( RegisteredWindowResource& resource : mRegisteredWindowResources )
@@ -48,15 +56,15 @@ namespace Tac
     return nullptr;
   }
 
-  WindowResourceRegistry* WindowResourceRegistry::GetInstance()
+  WindowResourceRegistry*   WindowResourceRegistry::GetInstance()
   {
     static WindowResourceRegistry instance;
     return &instance;
   }
 
-  ImGuiIndex WindowResourceRegistry::RegisterResource( StringView name,
-                                                       const void* initialDataBytes,
-                                                       int initialDataByteCount )
+  ImGuiIndex                WindowResourceRegistry::RegisterResource( StringView name,
+                                                                      const void* initialDataBytes,
+                                                                      int initialDataByteCount )
   {
     Vector< char > initialData;
     if( initialDataBytes )
@@ -77,17 +85,7 @@ namespace Tac
     return id;
   }
 
-  ImGuiIndex ImGuiRegisterWindowResource( StringView name,
-                                          const void* initialDataBytes,
-                                          int initialDataByteCount )
-  {
-    return WindowResourceRegistry::GetInstance()->RegisterResource( name,
-                                                                    initialDataBytes,
-                                                                    initialDataByteCount );
-
-  }
-
-  ImGuiGlobals ImGuiGlobals::Instance;
+  // -----------------------------------------------------------------------------------------------
 
   ImGuiWindow::ImGuiWindow()
   {
@@ -101,7 +99,7 @@ namespace Tac
     delete mDrawData;
   }
 
-  void ImGuiWindow::Scrollbar()
+  void         ImGuiWindow::Scrollbar()
   {
     const bool stuffBelowScreen = mViewportSpaceMaxiCursor.y > mViewportSpaceVisibleRegion.mMaxi.y;
     const bool stuffAboveScreen = mScroll;
@@ -196,7 +194,7 @@ namespace Tac
     mViewportSpaceVisibleRegion.mMaxi.x -= scrollbarWidth;
   }
 
-  void ImGuiWindow::BeginFrame()
+  void         ImGuiWindow::BeginFrame()
   {
     const ImGuiGlobals& globals = ImGuiGlobals::Instance;
     const UIStyle& style = ImGuiGetStyle();
@@ -264,12 +262,12 @@ namespace Tac
     }
   }
 
-  bool  ImGuiWindow::Overlaps( const ImGuiRect& clipRect) const
+  bool         ImGuiWindow::Overlaps( const ImGuiRect& clipRect) const
   {
     return mViewportSpaceVisibleRegion.Overlaps( clipRect );
   }
 
-  ImGuiRect  ImGuiWindow::Clip( const ImGuiRect& clipRect) const
+  ImGuiRect    ImGuiWindow::Clip( const ImGuiRect& clipRect) const
   {
     return ImGuiRect
     {
@@ -278,7 +276,7 @@ namespace Tac
     };
   }
 
-  void ImGuiWindow::ItemSize( v2 size )
+  void         ImGuiWindow::ItemSize( v2 size )
   {
     mCurrLineHeight = Max( mCurrLineHeight, size.y );
     UpdateMaxCursorDrawPos( mViewportSpaceCurrCursor + v2{ size.x, mCurrLineHeight } );
@@ -291,28 +289,28 @@ namespace Tac
     mCurrLineHeight = 0;
   }
 
-  void ImGuiWindow::UpdateMaxCursorDrawPos( v2 pos )
+  void         ImGuiWindow::UpdateMaxCursorDrawPos( v2 pos )
   {
     mViewportSpaceMaxiCursor.x = Max( mViewportSpaceMaxiCursor.x, pos.x );
     mViewportSpaceMaxiCursor.y = Max( mViewportSpaceMaxiCursor.y, pos.y );
   }
 
-  ImGuiId ImGuiWindow::GetActiveID()
+  ImGuiId      ImGuiWindow::GetActiveID()
   {
     return mIDAllocator->mActiveID;
   }
 
-  void ImGuiWindow::SetActiveID( ImGuiId id )
+  void         ImGuiWindow::SetActiveID( ImGuiId id )
   {
     mIDAllocator->mActiveID = id;
   }
 
-  ImGuiId ImGuiWindow::GetID()
+  ImGuiId      ImGuiWindow::GetID()
   {
     return mIDAllocator->mIDCounter++;
   }
 
-  bool ImGuiWindow::IsHovered( const ImGuiRect& rectViewport )
+  bool         ImGuiWindow::IsHovered( const ImGuiRect& rectViewport )
   {
     const WindowHandle mouseHoveredWindow = ImGuiGlobals::Instance.mMouseHoveredWindow;
     if( !mouseHoveredWindow.IsValid() )
@@ -325,34 +323,29 @@ namespace Tac
     return rectViewport.ContainsPoint( GetMousePosViewport() );
   }
 
-  void ImGuiWindow::PushXOffset()
+  void         ImGuiWindow::PushXOffset()
   {
     mXOffsets.push_back( mViewportSpaceCurrCursor.x - mViewportSpacePos.x );
   }
 
-  float ImGuiWindow::GetRemainingWidth() const
+  float        ImGuiWindow::GetRemainingWidth() const
   {
     return mViewportSpaceVisibleRegion.mMaxi.x - mViewportSpaceCurrCursor.x;
   }
 
-  WindowHandle           ImGuiWindow::GetWindowHandle() const
+  WindowHandle ImGuiWindow::GetWindowHandle() const
   {
     return mDesktopWindow->mWindowHandle;
   }
 
-  //const DesktopWindowState* ImGuiWindow::GetDesktopWindowState() const
-  //{
-  //  return GetWindowHandle().GetDesktopWindowState();
-  //}
-
-  v2 ImGuiWindow::GetMousePosViewport()
+  v2           ImGuiWindow::GetMousePosViewport()
   {
     const v2 mouseScreenspace = KeyboardApi::GetMousePosScreenspace();
     const v2 windowScreenspace = mDesktopWindow->mWindowHandle.GetPosf();
     return mouseScreenspace - windowScreenspace;
   }
 
-  void* ImGuiWindow::GetWindowResource( ImGuiIndex index )
+  void*        ImGuiWindow::GetWindowResource( ImGuiIndex index )
   {
     ImGuiId imGuiId = GetID();
     for( ImGuiWindowResource& resource : mResources )
@@ -370,6 +363,8 @@ namespace Tac
     return resource.mData.data();
   }
 
+  // -----------------------------------------------------------------------------------------------
+
   ImGuiDesktopWindowImpl* ImGuiGlobals::FindDesktopWindow( WindowHandle h )
   {
     for( ImGuiDesktopWindowImpl* impl : mDesktopWindows )
@@ -379,7 +374,7 @@ namespace Tac
     return nullptr;
   }
 
-  ImGuiWindow* ImGuiGlobals::FindWindow( const StringView& name )
+  ImGuiWindow*            ImGuiGlobals::FindWindow( const StringView& name )
   {
     for( ImGuiWindow* window : mAllWindows )
       if( ( StringView )window->mName == name )
@@ -448,11 +443,12 @@ namespace Tac
 #endif
    
   ImGuiDesktopWindowImpl::ImGuiDesktopWindowImpl()
-    : mRenderBuffers( ImGuiGlobals::Instance.mMaxGpuFrameCount )
+    //: mRenderBuffers( ImGuiGlobals::Instance.mMaxGpuFrameCount )
   {
   }
 
 
+#if 0
   ImGuiDesktopWindowImpl::FrameDrawData ImGuiDesktopWindowImpl::GetFrameData()
   {
     Vector< UI2DDrawData* > mDrawData;
@@ -476,7 +472,40 @@ namespace Tac
       .mIndexCount = mIndexCount,
     };
   }
+#else
+  ImGuiSimWindowDraws ImGuiDesktopWindowImpl::GetSimWindowDraws()
+  {
+    Vector< SmartPtr< UI2DDrawData > > drawData;
+    int vertexCount{};
+    int indexCount{};
+    WindowHandle handle = mWindowHandle;
 
+    for( ImGuiWindow* window : ImGuiGlobals::Instance.mAllWindows )
+    {
+      if( window->mDesktopWindow != this )
+        continue;
+
+      if( window->mDrawData->empty() )
+        continue;
+
+      // Yoink!
+      drawData.push_back( window->mDrawData );
+      vertexCount += window->mDrawData->mVtxs.size();
+      indexCount += window->mDrawData->mIdxs.size();
+      window->mDrawData = TAC_NEW UI2DDrawData;
+    }
+
+    return ImGuiSimWindowDraws
+    {
+      .mHandle = handle,
+      .mDrawData = drawData,
+      .mVertexCount = vertexCount,
+      .mIndexCount = indexCount,
+    };
+  }
+#endif
+
+#if 0
   void ImGuiDesktopWindowImpl::Render( Errors& errors )
   {
     if( !mWindowHandle.IsValid() )
@@ -495,12 +524,10 @@ namespace Tac
     //TAC_CALL( frameData.CopyVertexes( context, &renderBuffers, errors ) );
     //TAC_CALL( frameData.CopyIndexes( context, &renderBuffers, errors ) );
 
-#if 0
     TAC_RENDER_GROUP_BLOCK( String() + __FUNCTION__
                             + "("
                             + Tac::ToString( mWindowHandle.GetIndex() )
                             + ")" );
-#endif
 
     const WindowHandle hDesktopWindow = mWindowHandle;
 
@@ -592,7 +619,29 @@ namespace Tac
     OS::OSDebugBreak();
 
   }
+#else
 
-  // -----------------------------------------------------------------------------------------------
+void ImGuiPersistantPlatformData::UpdateAndRender( ImGuiSimFrameDraws* frameDraws )
+{
+  const int n = ImGuiGlobals::Instance.mMaxGpuFrameCount;
+  if( mRenderBuffers.size() < n )
+    mRenderBuffers.resize( n );
+
+  OS::OSDebugBreak();
+}
+
+#endif
+
+// -----------------------------------------------------------------------------------------------
 
 } // namespace Tac
+
+Tac::ImGuiIndex Tac::ImGuiRegisterWindowResource( StringView name,
+                                                  const void* initialDataBytes,
+                                                  int initialDataByteCount )
+{
+  WindowResourceRegistry* registry = WindowResourceRegistry::GetInstance();
+  return registry->RegisterResource( name,
+                                     initialDataBytes,
+                                     initialDataByteCount );
+}

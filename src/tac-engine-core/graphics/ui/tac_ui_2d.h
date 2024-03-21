@@ -96,6 +96,7 @@ namespace Tac
     void                   PushDebugGroup( const StringView& );
     void                   PushDebugGroup( const StringView& prefix, const StringView& suffix );
     void                   PopDebugGroup();
+    bool                   empty() const { return mDrawCall2Ds.empty(); }
 
     Vector< UI2DVertex >   mVtxs;
     Vector< UI2DIndex >    mIdxs;
