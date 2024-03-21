@@ -39,13 +39,15 @@ namespace Tac
     int mIndex;
   };
 
-  //static const int            kDesktopWindowCapacity = 10;
-  //bool                        IsWindowHovered( WindowHandle );
-  //void                        SetHoveredWindow( WindowHandle );
-
   //void                        DesktopWindowDebugImgui();
 
-  struct WindowApi
+  // TODO: make not global and dependency inject
+  struct PlatformWindowApi
+  {
+  };
+
+  // TODO: make not global and dependency inject
+  struct SimulationWindowApi
   {
     struct CreateParams
     {
@@ -56,8 +58,8 @@ namespace Tac
       int         mHeight = 0;
     };
 
-    static WindowHandle CreateWindow( CreateParams );
-    static void         DestroyWindow( WindowHandle );
+    WindowHandle CreateWindow( CreateParams );
+    void         DestroyWindow( WindowHandle );
   };
 
 } // namespace Tac
