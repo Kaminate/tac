@@ -87,7 +87,7 @@ namespace Tac::DesktopEventApi
   struct Handler
   {
     virtual void HandleBegin() {};
-    virtual void Handle( const WindowCreateEvent& ) {};
+    virtual void Handle( const WindowCreateEvent&, Errors& ) {};
     virtual void Handle( const WindowDestroyEvent& ) {};
     virtual void Handle( const CursorUnobscuredEvent& ) {};
     virtual void Handle( const KeyInputEvent& ) {};
@@ -112,7 +112,7 @@ namespace Tac::DesktopEventApi
   void Queue( const WindowResizeEvent& );
   void Queue( const WindowVisibleEvent& );
 
-  void Apply();
+  void Apply(Errors&);
 
 
   // -----------------------------------------------------------------------------------------------

@@ -16,6 +16,7 @@
 
 namespace Tac
 {
+  struct SysWindowApi;
 
   struct ImGuiDesktopWindow
   {
@@ -207,7 +208,14 @@ namespace Tac
 
   struct ImGuiSimFrameDraws;
   ImGuiSimFrameDraws ImGuiGetSimFrameDraws();
-  void               ImGuiPlatformRender( ImGuiSimFrameDraws*, Errors& );
+
+  struct ImGuiSysDrawParams
+  {
+    ImGuiSimFrameDraws* mSimFrameDraws;
+    SysWindowApi*       mWindowApi;
+    Timestamp           mTimestamp;
+  };
+  void               ImGuiPlatformRender( ImGuiSysDrawParams*, Errors& );
 
 
 #define TAC_IMGUI_INDENT_BLOCK            ImGuiIndent();                          \

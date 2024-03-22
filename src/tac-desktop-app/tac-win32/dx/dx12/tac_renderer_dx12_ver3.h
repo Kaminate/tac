@@ -1,20 +1,22 @@
 #pragma once
 
 #include "tac-std-lib/tac_ints.h" // u64
+#include "tac-std-lib/containers/tac_array.h"
 #include "tac-win32/tac_win32_com_ptr.h" // PCom
+#include "tac-win32/dx/dxgi/tac_dxgi.h"
 #include "tac-rhi/render3/tac_render_backend.h"
 
 #include "tac_dx12_device.h"
 #include "tac_dx12_info_queue.h"
 #include "tac_dx12_debug_layer.h"
-/*
+
 #include "tac_dx12_samplers.h"
 #include "tac_dx12_command_queue.h"
 #include "tac_dx12_descriptor_heap.h"
 #include "tac_dx12_command_allocator_pool.h"
 #include "tac_dx12_context_manager.h"
 #include "tac_dx12_gpu_upload_allocator.h"
-*/
+
 
 #include <d3d12.h> // D3D12...
 
@@ -23,7 +25,6 @@ namespace Tac { struct Errors; }
 namespace Tac::Render
 {
   /*
-  const int SWAP_CHAIN_BUFFER_COUNT = 3;
 
   struct DX12CommandList : public ICommandList
   {
@@ -31,19 +32,41 @@ namespace Tac::Render
 
     DX12Context mContext;
   };
+  */
 
-  struct DX12DynBuf
-  {
-    void SetName( StringView );
 
-    PCom< ID3D12Resource > mResource;
-    void*                  mMappedCPUAddr = nullptr;
-  };
-
+  /*
   struct DX12Window
   {
   };
   */
+
+  struct DX12Resource
+  {
+    PCom< ID3D12Resource > mResource;
+    D3D12_RESOURCE_DESC    mDesc{};
+    D3D12_RESOURCE_STATES  mState{};
+  };
+
+  struct DX12DynBuf
+  {
+    DX12Resource mResource;
+    void*        mMappedCPUAddr = nullptr;
+  };
+
+  const int TAC_SWAP_CHAIN_BUF_COUNT = 3;
+
+  using SwapChainRTVs = Array< DX12Resource, TAC_SWAP_CHAIN_BUF_COUNT >;
+
+  struct DX12FrameBuf
+  {
+    const void*             mNWH{};
+    v2i                     mSize{};
+    DX12CommandQueue        mCommandQueue;
+    PCom< IDXGISwapChain4 > mSwapChain;
+    DXGI_SWAP_CHAIN_DESC1   mSwapChainDesc;
+    SwapChainRTVs           mRTVs;
+  };
 
   // you know, do we even inherit form renderer?
   // this is our chance to rebuild the renderer
@@ -54,6 +77,20 @@ namespace Tac::Render
     DX12Device                 mDevice;
     DX12DebugLayer             mDebugLayer;
     DX12InfoQueue              mInfoQueue;
+
+    void CreateFB( FBHandle, const void*, v2i, Errors& ) override;
+    void ResizeFB( FBHandle, v2i )  override;
+    void DestroyFB( FBHandle, PostFBDestroy )  override;
+
+    void CreateDynBuf( DynBufHandle, int, StackFrame, Errors& ) override;
+    void UpdateDynBuf( RenderApi::UpdateDynBufParams ) override;
+    void DestroyDynBuf( DynBufHandle, PostDBDestroy ) override;
+
+    DX12FrameBuf mFrameBufs[ 100 ];
+    DX12DynBuf mDynBufs[ 100 ];
+
+    DX12DescriptorHeap         mRTVDescriptorHeap;
+
 
 /*
     void CreateDynamicBuffer2( const DynBufCreateParams&, Errors& ) override;
@@ -81,7 +118,6 @@ namespace Tac::Render
     DX12CommandQueue           mCommandQueue;
     DX12CommandAllocatorPool   mCommandAllocatorPool;
     DX12ContextManager         mContextManager;
-    DX12DescriptorHeap         mRTVDescriptorHeap;
     DX12DescriptorHeap         mSRVDescriptorHeap;
     DX12DescriptorHeap         mSamplerDescriptorHeap;
     DX12Samplers               mSamplers;

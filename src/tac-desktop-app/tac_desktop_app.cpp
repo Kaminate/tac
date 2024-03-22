@@ -75,7 +75,7 @@ namespace Tac
       mWindowBackend->SetWindowDestroyed( data.mWindowHandle );
     }
 
-    void Handle( const WindowCreateEvent& data ) override
+    void Handle( const WindowCreateEvent& data, Errors& errors ) override
     {
       const v2i pos{ data.mX, data.mY };
       const v2i size{ data.mW, data.mH };
@@ -83,7 +83,8 @@ namespace Tac
                                        data.mNativeWindowHandle,
                                        data.mName,
                                        pos,
-                                       size );
+                                       size,
+                                       errors );
     }
 
     void Handle( const CursorUnobscuredEvent& data ) override
@@ -265,6 +266,8 @@ namespace Tac
       .mSimKeyboardApi = &sSimKeyboardApi,
     };
     ImGuiInit( imguiInitParams );
+
+    sWindowBackend.mIsRendererEnabled = sApp->IsRenderEnabled();
 
     sDesktopEventHandler.mKeyboardBackend = &sKeyboardBackend;
     sDesktopEventHandler.mWindowBackend = &sWindowBackend;

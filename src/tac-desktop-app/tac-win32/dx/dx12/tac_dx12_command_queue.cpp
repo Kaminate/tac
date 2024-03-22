@@ -2,7 +2,7 @@
 
 #include "tac-win32/dx/dx12/tac_dx12_helper.h" // TAC_DX12_CALL_RET
 #include "tac-std-lib/containers/tac_array.h"
-#include "tac-std-lib/algorithm/tac_algorithm.h"
+#include "tac-std-lib/algorithm/tac_algorithm.h" // move
 
 namespace Tac::Render
 {
@@ -24,6 +24,8 @@ namespace Tac::Render
     mLastCompletedFenceValue = val;
     return val;
   }
+
+  ID3D12CommandQueue* DX12CommandQueue::GetCommandQueue() { return m_commandQueue.Get(); }
 
   FenceSignal DX12CommandQueue::IncrementFence( Errors& errors )
   {
@@ -136,4 +138,25 @@ namespace Tac::Render
     FenceSignal fenceValue = TAC_CALL( IncrementFence( errors ) );
     TAC_CALL( WaitForFence( fenceValue, errors ) );
   };
+
+
+  void   DX12CommandQueue::MoveFrom( DX12CommandQueue&& other )
+  {
+    m_fence = move( other.m_fence );
+    m_fenceEvent = move( other.m_fenceEvent );
+    mLastCompletedFenceValue = move( other.mLastCompletedFenceValue );
+    mNextFenceValue = move( other.mNextFenceValue );
+    m_commandQueue = move( other.m_commandQueue );
+  }
+
+
+  DX12CommandQueue::DX12CommandQueue( DX12CommandQueue&& other )
+  {
+    MoveFrom( move( other ) );
+  }
+
+  void DX12CommandQueue::operator = ( DX12CommandQueue&& other )
+  {
+    MoveFrom( move( other ) );
+  }
 }

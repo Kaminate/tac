@@ -134,7 +134,14 @@ namespace Tac
           .mT = t, // inbetween B and (future) C, but used to lerp A and B
         };
         TAC_CALL( mApp->Render( params, errors ) );
-        TAC_CALL( ImGuiPlatformRender( &pair.mNewState->mImGuiDraws, errors ) );
+
+        ImGuiSysDrawParams imguiDrawParams
+        {
+          .mSimFrameDraws = &pair.mNewState->mImGuiDraws,
+          .mWindowApi = &sWindowApi,
+          .mTimestamp = interpolatedTimestamp,
+        };
+        TAC_CALL( ImGuiPlatformRender( &imguiDrawParams, errors ) );
         //Render::FrameEnd();
       }
 

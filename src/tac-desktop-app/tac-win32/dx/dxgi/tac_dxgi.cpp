@@ -107,7 +107,7 @@ namespace Tac::Render
     if( res == S_OK )
       return "There is no error, it is S_OK";
 
-    return String() + DXGI_ERROR_ToString( res ) + " " + DXGI_ERROR_DescToString( res );
+    return String() + DXGI_ERROR_ToString( res ) + "(" + DXGI_ERROR_DescToString( res ) + ")";
   }
 
   static PCom<IDXGIAdapter1> GetBestAdapter( IDXGIFactory1* factory, Errors& errors )

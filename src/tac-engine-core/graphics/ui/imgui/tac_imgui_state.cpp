@@ -5,8 +5,9 @@
 #include "tac-engine-core/graphics/ui/tac_text_edit.h"
 #include "tac-engine-core/graphics/ui/tac_ui_2d.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-engine-core/window/tac_sys_window_api.h"
 
-#include "tac-rhi/render/tac_render.h" // CreateContext
+#include "tac-rhi/render3/tac_render_api.h" // CreateContext
 
 #include "tac-std-lib/dataprocess/tac_hash.h"
 #include "tac-std-lib/error/tac_error_handling.h"
@@ -393,63 +394,59 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  void ImGuiSimFrameDraws::CopyVertexes( void* context,
-                                         ImGuiRenderBuffers* gDrawInterface,
+  void ImGuiSimWindowDraws::CopyVertexes( ImGuiRenderBuffers* gDrawInterface,
                                          Errors& errors )
   {
-
-#if 0
     if( !gDrawInterface->mVB.IsValid() || gDrawInterface->mVBCount < mVertexCount )
     {
       const int byteCount = mVertexCount * sizeof( UI2DVertex );
-      gDrawInterface->mVB = context.CreateDynamicBuffer( byteCount, TAC_STACK_FRAME );
+      gDrawInterface->mVB = TAC_CALL(
+        Render::RenderApi::CreateDynBuf( byteCount, TAC_STACK_FRAME, errors ) );
       gDrawInterface->mVBCount = mVertexCount;
     }
 
     int byteOffset = 0;
-    for( UI2DDrawData* drawData : mDrawData )
+    for( SmartPtr< UI2DDrawData>& drawData : mDrawData )
     {
-      struct UpdateVtx : public Render::UpdateMemory
+      const int srcByteCount = drawData->mVtxs.size() * sizeof( UI2DVertex );
+      const Render::RenderApi::UpdateDynBufParams updateParams
       {
-        UpdateVtx( Vector< UI2DVertex >& vtxs ) { mVtxs.swap( vtxs ); }
-        const void* GetBytes() const override { return mVtxs.data(); }
-        int         GetByteCount() const override { return mVtxs.size() * sizeof( UI2DVertex ); }
-        Vector< UI2DVertex > mVtxs;
-      }*src = TAC_NEW UpdateVtx{ drawData->mVtxs };
-
-      context.UpdateDynamicBuffer( gDrawInterface->mVB, byteOffset, src );
-      byteOffset += src->GetByteCount();
+        .mHandle = gDrawInterface->mVB,
+        .mSrcBytes = drawData->mVtxs.data(),
+        .mSrcByteCount = srcByteCount,
+        .mDstByteOffset = byteOffset,
+      };
+      Render::RenderApi::UpdateDynBuf( updateParams );
+      byteOffset += srcByteCount;
     }
-#endif
   }
 
-  void ImGuiSimFrameDraws::CopyIndexes( void* context, // Render::ContextHandle context,
-                                        ImGuiRenderBuffers* gDrawInterface,
+  void ImGuiSimWindowDraws::CopyIndexes( ImGuiRenderBuffers* gDrawInterface,
                                         Errors& errors )
   {
-#if 0
     if( !gDrawInterface->mIB.IsValid() || gDrawInterface->mIBCount < mIndexCount )
     {
       const int byteCount = mIndexCount * sizeof( UI2DIndex );
-      gDrawInterface->mIB = context.CreateDynamicBuffer( byteCount, TAC_STACK_FRAME );
+      gDrawInterface->mIB
+        = TAC_CALL( Render::RenderApi::CreateDynBuf( byteCount, TAC_STACK_FRAME, errors ) );
       gDrawInterface->mIBCount = mIndexCount;
     }
 
     int byteOffset = 0;
-    for( UI2DDrawData* drawData : mDrawData )
+    for( SmartPtr< UI2DDrawData >& drawData : mDrawData )
     {
-      struct UpdateIdx : public Render::UpdateMemory
+      const int srcByteCount = drawData->mVtxs.size() * sizeof( UI2DVertex );
+      const Render::RenderApi::UpdateDynBufParams updateParams
       {
-        UpdateIdx( Vector< UI2DIndex >& idxs )    { mIdxs.swap( idxs ); }
-        const void* GetBytes() const override     { return mIdxs.data(); }
-        int         GetByteCount() const override { return mIdxs.size() * sizeof( UI2DIndex ); }
-        Vector< UI2DIndex > mIdxs;
-      }* src = TAC_NEW UpdateIdx{ drawData->mIdxs };
+        .mHandle = gDrawInterface->mIB,
+        .mSrcBytes = drawData->mIdxs.data(),
+        .mSrcByteCount = srcByteCount,
+        .mDstByteOffset = byteOffset,
+      };
 
-      context.UpdateDynamicBuffer( gDrawInterface->mIB, byteOffset, src );
-      byteOffset += src->GetByteCount();
+      Render::RenderApi::UpdateDynBuf( updateParams );
+      byteOffset += srcByteCount;
     }
-#endif
   }
    
   ImGuiDesktopWindowImpl::ImGuiDesktopWindowImpl()
@@ -487,21 +484,30 @@ namespace Tac
     };
   }
 
-  void ImGuiPersistantPlatformData::UpdateAndRender( ImGuiSimFrameDraws* frameDraws,
-                                                     Errors& errors )
+  static void UpdateAndRenderWindow( ImGuiSysDrawParams* sysDrawParams,
+                                     ImGuiSimWindowDraws* simDraws,
+                                     ImGuiPersistantViewport* sysDraws,
+                                     Errors& errors )
   {
-    const int n = ImGuiGlobals::Instance.mMaxGpuFrameCount;
-    if( mRenderBuffers.size() < n )
-      mRenderBuffers.resize( n );
+    SysWindowApi* windowApi = sysDrawParams->mWindowApi;
 
-    ImGuiRenderBuffers& renderBuffers = mRenderBuffers[ mFrameIndex ];
-    ( ++mFrameIndex ) %= n;
+    const WindowHandle hDesktopWindow = sysDraws->mWindowHandle;
+    if( !windowApi->IsShown( hDesktopWindow ) )
+      return;
+
+    const int n = ImGuiGlobals::Instance.mMaxGpuFrameCount;
+    if( sysDraws->mRenderBuffers.size() < n )
+      sysDraws->mRenderBuffers.resize( n );
+
+    ImGuiRenderBuffers& renderBuffers = sysDraws->mRenderBuffers[ sysDraws->mFrameIndex ];
+    ( ++sysDraws->mFrameIndex ) %= n;
 
     // combine draw data
+    simDraws->CopyVertexes( &renderBuffers, errors );
+    simDraws->CopyIndexes( &renderBuffers, errors );
+
     //Render::ContextHandle context = TAC_CALL( Render::CreateContext( errors ) );
     void* context = nullptr;
-    frameDraws->CopyVertexes( context, &renderBuffers, errors );
-    frameDraws->CopyIndexes( context, &renderBuffers, errors );
 
 #if 0
 
@@ -518,8 +524,24 @@ namespace Tac
                             + "("
                             + Tac::ToString( mWindowHandle.GetIndex() )
                             + ")" );
+#endif
 
-    const WindowHandle hDesktopWindow = mWindowHandle;
+    const v2i windowSize = windowApi->GetSize( hDesktopWindow );
+
+
+    const Timestamp elapsedSeconds = sysDrawParams->mTimestamp;
+    const Render::DefaultCBufferPerFrame perFrameData
+    {
+      .mView = m4::Identity(),
+      .mProjection = OrthographicUIMatrix( ( float )windowSize.x, ( float )windowSize.y ),
+      .mSecModTau = ( float )Fmod( elapsedSeconds.mSeconds, 6.2831853 ),
+      .mSDFOnEdge = FontApi::GetSDFOnEdgeValue(),
+      .mSDFPixelDistScale = FontApi::GetSDFPixelDistScale(),
+    };
+
+
+#if 0
+    
 
     TAC_ASSERT( hDesktopWindow.IsValid() );
     if(! hDesktopWindow.GetDesktopWindowNativeHandle())
@@ -547,20 +569,9 @@ namespace Tac
 
     //Render::DebugGroup::Iterator debugGroupIterator = mDebugGroupStack.IterateBegin();
 
-    const Timestamp elapsedSeconds = Timestep::GetElapsedTime();
-    const Render::DefaultCBufferPerFrame perFrameData
-    {
-      .mView = m4::Identity(),
-      .mProjection = OrthographicUIMatrix( ( float )w, ( float )h ),
-      .mSecModTau = ( float )Fmod( elapsedSeconds.mSeconds, 6.2831853 ),
-      .mSDFOnEdge = FontApi::GetSDFOnEdgeValue(),
-      .mSDFPixelDistScale = FontApi::GetSDFPixelDistScale(),
-    };
-
     const Render::ConstantBufferHandle hPerFrame = Render::DefaultCBufferPerFrame::Handle;
     const int perFrameSize = sizeof( Render::DefaultCBufferPerFrame );
     Render::UpdateConstantBuffer( hPerFrame, &perFrameData, perFrameSize, TAC_STACK_FRAME );
-
 
     for( UI2DDrawData* drawData : frameData.mDrawData )
     {
@@ -609,6 +620,20 @@ namespace Tac
     OS::OSDebugBreak();
 
 #endif
+  }
+
+  void ImGuiPersistantPlatformData::UpdateAndRender( ImGuiSysDrawParams* params,
+                                                     Errors& errors )
+  {
+    for( ImGuiSimWindowDraws& simDraw : params->mSimFrameDraws->mWindowDraws )
+    {
+      ImGuiPersistantViewport* viewportDraw = GetPersistantWindowData( simDraw.mHandle );
+      UpdateAndRenderWindow( params,
+                             &simDraw,
+                             viewportDraw,
+                             errors );
+    }
+
   }
 
 

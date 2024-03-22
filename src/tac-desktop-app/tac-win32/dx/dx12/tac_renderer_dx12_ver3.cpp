@@ -2,19 +2,21 @@
 
 //#include "tac-rhi/render3/tac_render_api.h"
 
-//#include "tac-std-lib/os/tac_os.h"
+#if !TAC_DELETE_ME()
+#include "tac-std-lib/os/tac_os.h" // OS::DebugBreak
+#endif
 //#include "tac-rhi/render/tac_render.h"
 //#include "tac-rhi/render/tac_render.h"
 //#include "tac-std-lib/error/tac_error_handling.h"
-//#include "tac-win32/dx/dx12/tac_dx12_helper.h"
-#include "tac-win32/dx/dxgi/tac_dxgi.h"
+#include "tac-win32/dx/dx12/tac_dx12_helper.h" // TAC_DX12_CALL
+#include "tac-win32/dx/dxgi/tac_dxgi.h" // DXGICreateSwapChain
 
 #pragma comment( lib, "d3d12.lib" ) // D3D12...
 
 namespace Tac::Render
 {
 
-  /*
+#if 0
   // -----------------------------------------------------------------------------------------------
 
   // DX12CommandList
@@ -44,7 +46,9 @@ namespace Tac::Render
   // -----------------------------------------------------------------------------------------------
 
   // DX12Backend
-  */
+#endif
+
+  const int TAC_MAX_FB_COUNT = 100;
 
   void DX12Backend::Init( Errors& errors )
   {
@@ -57,6 +61,8 @@ namespace Tac::Render
     ID3D12Device* device = mDevice.GetID3D12Device();
 
     TAC_CALL( mInfoQueue.Init( mDebugLayer, device, errors ) );
+
+    TAC_CALL( mRTVDescriptorHeap.InitRTV( TAC_MAX_FB_COUNT * TAC_SWAP_CHAIN_BUF_COUNT, device, errors ) );
 
     //const int maxGPUFrameCount = RenderApi::GetMaxGPUFrameCount();
     /*
@@ -75,7 +81,6 @@ namespace Tac::Render
 
     TAC_CALL( mCommandQueue.Create( device, errors ) );
 
-    TAC_CALL( mRTVDescriptorHeap.InitRTV( 100, device, errors ) );
     TAC_CALL( mSRVDescriptorHeap.InitSRV( 100, device, errors ) );
     TAC_CALL( mSamplerDescriptorHeap.InitSampler( 100, device, errors ) );
 
@@ -90,7 +95,8 @@ namespace Tac::Render
     mSamplers.Init( device, &mSamplerDescriptorHeap );
     */
   }
-  /*
+
+#if 0
 
   SmartPtr< ICommandList > DX12Backend::GetCommandList( ContextHandle handle, Errors& errors )
   {
@@ -195,5 +201,168 @@ namespace Tac::Render
     case HandleType::kContext: mContexts[ i ].SetName( params.mName ); break;
     }
   }
-  */
+#endif
+
+  void DX12Backend::CreateFB( FBHandle h, const void* nwh, v2i size, Errors& errors )
+  {
+    const int iHandle = h.GetIndex();
+
+    DX12CommandQueue cmdQ;
+    cmdQ.Create( mDevice.GetID3D12Device(), errors );
+    
+    const SwapChainCreateInfo scInfo
+    {
+      .mHwnd = ( HWND )nwh,
+      .mDevice = ( IUnknown* )cmdQ.GetCommandQueue(), // swap chain can force flush the queue
+      .mBufferCount = TAC_SWAP_CHAIN_BUF_COUNT,
+      .mWidth = size.x,
+      .mHeight = size.y,
+    };
+    TAC_ASSERT( scInfo.mDevice );
+
+    PCom< IDXGISwapChain4 > swapChain = TAC_CALL( DXGICreateSwapChain( scInfo, errors ) );
+    DXGI_SWAP_CHAIN_DESC1 swapChainDesc;
+    TAC_CALL( swapChain->GetDesc1( &swapChainDesc ) );
+
+    SwapChainRTVs rtvs;
+    for( UINT iSwapChainBuf = 0; iSwapChainBuf < TAC_SWAP_CHAIN_BUF_COUNT; iSwapChainBuf++ )
+    {
+      const int iRTVDescriptor = iHandle * TAC_SWAP_CHAIN_BUF_COUNT;
+      const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle
+        = mRTVDescriptorHeap.IndexCPUDescriptorHandle( iRTVDescriptor );
+
+      PCom< ID3D12Resource > renderTarget;
+      TAC_DX12_CALL( swapChain->GetBuffer(
+        iSwapChainBuf,
+        renderTarget.iid(),
+        renderTarget.ppv() ) );
+
+      ID3D12Device* device = mDevice.GetID3D12Device();
+      device->CreateRenderTargetView( ( ID3D12Resource* )renderTarget, nullptr, rtvHandle );
+
+      DX12SetName( renderTarget, "Render Target " + Tac::ToString( iHandle ) );
+
+      rtvs[ iSwapChainBuf ] = DX12Resource
+      {
+        .mResource = renderTarget,
+        .mDesc = renderTarget->GetDesc(),
+
+        // the render target resource is created in a state that is ready to be displayed on screen
+        .mState = D3D12_RESOURCE_STATE_PRESENT,
+      };
+    }
+
+    mFrameBufs[ iHandle ] = DX12FrameBuf
+    {
+      .mNWH = nwh,
+      .mSize = size,
+      .mCommandQueue = ( DX12CommandQueue&& )cmdQ,
+      .mSwapChain = swapChain,
+      .mSwapChainDesc = swapChainDesc,
+      .mRTVs = rtvs
+    };
+  }
+
+  void DX12Backend::ResizeFB( FBHandle h, v2i size )
+  {
+    DX12FrameBuf& frameBuf = mFrameBufs[ h.GetIndex() ];
+    if( frameBuf.mSize == size )
+      return;
+
+    OS::OSDebugBreak();
+
+  }
+
+  void DX12Backend::DestroyFB( FBHandle h, PostFBDestroy postDestroy )
+  {
+    if( h.IsValid() )
+    {
+      mFrameBufs[ h.GetIndex() ] = {};
+      postDestroy( h );
+    }
+  }
+
+  void DX12Backend::CreateDynBuf( DynBufHandle h, int byteCount, StackFrame sf, Errors& errors )
+  {
+    const D3D12_HEAP_PROPERTIES HeapProps
+    {
+      .Type = D3D12_HEAP_TYPE_UPLOAD,
+      .CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN,
+      .MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN,
+      .CreationNodeMask = 1,
+      .VisibleNodeMask = 1,
+    };
+
+    const D3D12_RESOURCE_DESC ResourceDesc
+    {
+      .Dimension = D3D12_RESOURCE_DIMENSION_BUFFER,
+      .Alignment = 0,
+      .Width = ( UINT64 )byteCount,
+      .Height = 1,
+      .DepthOrArraySize = 1,
+      .MipLevels = 1,
+      .Format = DXGI_FORMAT_UNKNOWN,
+      .SampleDesc = DXGI_SAMPLE_DESC
+      {
+        .Count = 1,
+        .Quality = 0
+      },
+      .Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR,
+      .Flags = D3D12_RESOURCE_FLAG_NONE,
+    };
+
+    const D3D12_RESOURCE_STATES DefaultUsage{ D3D12_RESOURCE_STATE_GENERIC_READ };
+
+    ID3D12Device* device = mDevice.GetID3D12Device();
+
+    PCom< ID3D12Resource > buffer;
+    TAC_DX12_CALL( device->CreateCommittedResource(
+      &HeapProps,
+      D3D12_HEAP_FLAG_NONE,
+      &ResourceDesc,
+      DefaultUsage,
+      nullptr,
+      buffer.iid(),
+      buffer.ppv() ) );
+
+    DX12SetName( buffer, sf );
+
+    void* cpuAddr;
+
+    TAC_DX12_CALL( buffer->Map(
+      0, // subrsc idx
+      nullptr, // nullptr indicates the whole subrsc may be read by cpu
+      &cpuAddr ) );
+
+    const int i = h.GetIndex();
+
+    DX12Resource rsc
+    {
+      .mResource = buffer,
+    };
+
+    mDynBufs[ i ] = DX12DynBuf
+    {
+      .mResource = rsc,
+      .mMappedCPUAddr = cpuAddr,
+    };
+  }
+
+  void DX12Backend::UpdateDynBuf( RenderApi::UpdateDynBufParams params )
+  {
+    DynBufHandle h = params.mHandle;
+    DX12DynBuf& dynBuf = mDynBufs[ h.GetIndex() ];
+    char* dstBytes = ( char* )dynBuf.mMappedCPUAddr + params.mDstByteOffset;
+    MemCpy( dstBytes, params.mSrcBytes, params.mSrcByteCount );
+  }
+
+  void DX12Backend::DestroyDynBuf( DynBufHandle h, PostDBDestroy postDestroy )
+  {
+    if( h.IsValid() )
+    {
+      mDynBufs[ h.GetIndex() ] = {};
+      postDestroy( h );
+    }
+  }
+
 } // namespace Tac::Render

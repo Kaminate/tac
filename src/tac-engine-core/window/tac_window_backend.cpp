@@ -73,7 +73,8 @@ namespace Tac::WindowBackend
                                  const void* nwh,
                                  StringView name,
                                  v2i pos,
-                                 v2i size )
+                                 v2i size,
+                                 Errors& errors )
   {
     TAC_ASSERT( sModificationAllowed );
     const int i = h.GetIndex();
@@ -85,7 +86,8 @@ namespace Tac::WindowBackend
       .mShown = false,
     };
     sPlatformNative[ i ] = nwh;
-    sFramebuffers[ i ] = Render::RenderApi::CreateFB( nwh, size );
+    if( mIsRendererEnabled )
+      sFramebuffers[ i ] = Render::RenderApi::CreateFB( nwh, size, errors );
   }
 
   void SysApi::SetWindowDestroyed( WindowHandle h )
@@ -94,7 +96,8 @@ namespace Tac::WindowBackend
     const int i = h.GetIndex();
     sPlatformCurr[ i ] = {};
     sPlatformNative[ i ] = {};
-    Render::RenderApi::DestroyFB( sFramebuffers[ i ] );
+    if( mIsRendererEnabled )
+      Render::RenderApi::DestroyFB( sFramebuffers[ i ] );
     sFramebuffers[ i ] = {};
   }
 
@@ -109,7 +112,8 @@ namespace Tac::WindowBackend
     TAC_ASSERT( sModificationAllowed );
     const int i = h.GetIndex();
     sPlatformCurr[ i ].mSize = size;
-    Render::RenderApi::ResizeFB( sFramebuffers[ i ], size );
+    if( mIsRendererEnabled )
+      Render::RenderApi::ResizeFB( sFramebuffers[ i ], size );
   }
 
   void SysApi::SetWindowPos( WindowHandle h, v2i pos )

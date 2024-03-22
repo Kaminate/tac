@@ -6,8 +6,8 @@
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/window/tac_sim_window_api.h"
 
-#include "tac-rhi/render/tac_render.h"
-#include "tac-rhi/render/tac_render_handles.h"
+//#include "tac-rhi/render/tac_render.h"
+//#include "tac-rhi/render/tac_render_handles.h"
 
 namespace Tac
 {
@@ -52,12 +52,12 @@ namespace Tac
 
   void LevelEditorApp::Update( SimUpdateParams, Errors& errors )
   {
-    sCreation.Uninit( errors );
+    sCreation.Update( errors );
   }
 
   void LevelEditorApp::Uninit( Errors& errors )
   {
-    sCreation.Update( errors );
+    sCreation.Uninit( errors );
   }
 
   void LevelEditorApp::Render( SysRenderParams, Errors& )

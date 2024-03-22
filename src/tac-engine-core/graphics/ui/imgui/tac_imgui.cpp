@@ -1363,8 +1363,8 @@ Tac::ImGuiSimFrameDraws Tac::ImGuiGetSimFrameDraws()
   return ImGuiSimFrameDraws{ .mWindowDraws = allWindowDraws };
 }
 
-void Tac::ImGuiPlatformRender( ImGuiSimFrameDraws* draws, Errors& errors )
+void Tac::ImGuiPlatformRender( ImGuiSysDrawParams* params, Errors& errors )
 {
-  ImGuiPersistantPlatformData::Instance.UpdateAndRender( draws, errors );
+  ImGuiPersistantPlatformData::Instance.UpdateAndRender( params, errors );
 }
 

@@ -8,12 +8,14 @@
 #include "tac-std-lib/math/tac_vector2.h"
 #include "tac-std-lib/math/tac_vector4.h"
 #include "tac-std-lib/containers/tac_vector.h"
+#include "tac-std-lib/memory/tac_smart_ptr.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/string/tac_string_view.h"
 #include "tac-engine-core/window/tac_window_handle.h"
 #include "tac-std-lib/containers/tac_map.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
-#include "tac-rhi/render/tac_render_handles.h" // DynamicBufferHandle2
+//#include "tac-rhi/render/tac_render_handles.h" // DynamicBufferHandle2
+#include "tac-rhi/render3/tac_render_api.h"
 
 #undef FindWindow
 
@@ -139,38 +141,53 @@ namespace Tac
 
   struct ImGuiRenderBuffers
   {
-    Render::DynamicBufferHandle2 mVB;
-    Render::DynamicBufferHandle2 mIB;
+    Render::DynBufHandle mVB;
+    Render::DynBufHandle mIB;
     int mVBCount = 0;
     int mIBCount = 0;
   };
 
   struct ImGuiSimWindowDraws
   {
-      WindowHandle                       mHandle;
-      Vector< SmartPtr< UI2DDrawData > > mDrawData;
-      int                                mVertexCount{};
-      int                                mIndexCount{};
+    void CopyVertexes( ImGuiRenderBuffers*, Errors& );
+    void CopyIndexes( ImGuiRenderBuffers*, Errors& );
+
+    WindowHandle                       mHandle;
+    Vector< SmartPtr< UI2DDrawData > > mDrawData;
+    int                                mVertexCount{};
+    int                                mIndexCount{};
   };
 
   // generated once per game logic update frame,
   // passed to the imgui platform frame
   struct ImGuiSimFrameDraws
   {
-    void CopyVertexes( void*, ImGuiRenderBuffers*, Errors& );
-    void CopyIndexes( void*, ImGuiRenderBuffers*, Errors& );
-
     Vector< ImGuiSimWindowDraws > mWindowDraws;
+  };
+
+  struct ImGuiPersistantViewport
+  {
+    WindowHandle                 mWindowHandle;
+    int                          mFrameIndex{};
+    Vector< ImGuiRenderBuffers > mRenderBuffers;
   };
 
   struct ImGuiPersistantPlatformData
   {
     static ImGuiPersistantPlatformData Instance;
 
-    void UpdateAndRender( ImGuiSimFrameDraws*, Errors& );
+    void UpdateAndRender( ImGuiSysDrawParams*, Errors& );
 
-    int                          mFrameIndex{};
-    Vector< ImGuiRenderBuffers > mRenderBuffers;
+    ImGuiPersistantViewport* GetPersistantWindowData( WindowHandle h)
+    {
+      for( ImGuiPersistantViewport& viewportData : mViewportDatas )
+        if( viewportData.mWindowHandle == h )
+          return &viewportData;
+      mViewportDatas.push_back( ImGuiPersistantViewport{ .mWindowHandle = h } );
+      return &mViewportDatas.back();
+    }
+
+    Vector< ImGuiPersistantViewport > mViewportDatas;
   };
 
   struct ImGuiDesktopWindowImpl : public ImGuiDesktopWindow
@@ -197,10 +214,15 @@ namespace Tac
     WindowHandle                      mMouseHoveredWindow;
     bool                              mScrollBarEnabled = true;
     int                               mMaxGpuFrameCount{};
-    //ImGuiSetWindowPos                 mSetWindowPos{};
-    //ImGuiSetWindowSize                mSetWindowSize{};
-    //ImGuiCreateWindow                 mCreateWindow{};
-    //ImGuiDestroyWindow                mDestroyWindow{};
+
+    // Ok so here's a problem:
+    //
+    //   Almost all imgui functions operate on the simulation thread and thus should have access to
+    //   mSimWindowApi/mSimKeyboardApi.
+    //
+    //   However ImGuiPlatformRender runs on the system thread and should not have access to these.
+    // 
+    // Possible solution... split off ImGuiGlobals access from ImGuiPlatformRender render?
     SimWindowApi*                     mSimWindowApi{};
     SimKeyboardApi*                   mSimKeyboardApi{};
   };
