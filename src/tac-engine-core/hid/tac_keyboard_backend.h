@@ -52,7 +52,7 @@ namespace Tac::KeyboardBackend
     void ApplyEnd();
   };
 
-  struct SymApi
+  struct SimApi
   {
     void Sync();
   };

@@ -393,12 +393,12 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-#if 0
-  void ImGuiDesktopWindowImpl::FrameDrawData::CopyVertexes( Render::ContextHandle context,
-                                                            ImGuiRenderBuffers* gDrawInterface,
-                                                            Errors& errors )
+  void ImGuiSimFrameDraws::CopyVertexes( void* context,
+                                         ImGuiRenderBuffers* gDrawInterface,
+                                         Errors& errors )
   {
 
+#if 0
     if( !gDrawInterface->mVB.IsValid() || gDrawInterface->mVBCount < mVertexCount )
     {
       const int byteCount = mVertexCount * sizeof( UI2DVertex );
@@ -411,21 +411,23 @@ namespace Tac
     {
       struct UpdateVtx : public Render::UpdateMemory
       {
-        UpdateVtx( Vector< UI2DVertex >& vtxs )   { mVtxs.swap( vtxs ); }
-        const void* GetBytes() const override     { return mVtxs.data(); }
+        UpdateVtx( Vector< UI2DVertex >& vtxs ) { mVtxs.swap( vtxs ); }
+        const void* GetBytes() const override { return mVtxs.data(); }
         int         GetByteCount() const override { return mVtxs.size() * sizeof( UI2DVertex ); }
         Vector< UI2DVertex > mVtxs;
-      }* src = TAC_NEW UpdateVtx{ drawData->mVtxs };
+      }*src = TAC_NEW UpdateVtx{ drawData->mVtxs };
 
       context.UpdateDynamicBuffer( gDrawInterface->mVB, byteOffset, src );
       byteOffset += src->GetByteCount();
     }
+#endif
   }
 
-  void ImGuiDesktopWindowImpl::FrameDrawData::CopyIndexes( Render::ContextHandle context,
-                                                           ImGuiRenderBuffers* gDrawInterface,
-                                                           Errors& errors )
+  void ImGuiSimFrameDraws::CopyIndexes( void* context, // Render::ContextHandle context,
+                                        ImGuiRenderBuffers* gDrawInterface,
+                                        Errors& errors )
   {
+#if 0
     if( !gDrawInterface->mIB.IsValid() || gDrawInterface->mIBCount < mIndexCount )
     {
       const int byteCount = mIndexCount * sizeof( UI2DIndex );
@@ -447,40 +449,13 @@ namespace Tac
       context.UpdateDynamicBuffer( gDrawInterface->mIB, byteOffset, src );
       byteOffset += src->GetByteCount();
     }
-  }
 #endif
+  }
    
   ImGuiDesktopWindowImpl::ImGuiDesktopWindowImpl()
-    //: mRenderBuffers( ImGuiGlobals::Instance.mMaxGpuFrameCount )
   {
   }
 
-
-#if 0
-  ImGuiDesktopWindowImpl::FrameDrawData ImGuiDesktopWindowImpl::GetFrameData()
-  {
-    Vector< UI2DDrawData* > mDrawData;
-    int mVertexCount{};
-    int mIndexCount{};
-
-    for( ImGuiWindow* window : ImGuiGlobals::Instance.mAllWindows )
-    {
-      if( window->mDesktopWindow != this || Contains( mDrawData, window->mDrawData ) )
-        continue;
-
-      mDrawData.push_back( window->mDrawData );
-      mVertexCount += window->mDrawData->mVtxs.size();
-      mIndexCount += window->mDrawData->mIdxs.size();
-    }
-
-    return FrameDrawData
-    {
-      .mDrawData = mDrawData,
-      .mVertexCount = mVertexCount,
-      .mIndexCount = mIndexCount,
-    };
-  }
-#else
   ImGuiSimWindowDraws ImGuiDesktopWindowImpl::GetSimWindowDraws()
   {
     Vector< SmartPtr< UI2DDrawData > > drawData;
@@ -511,26 +486,33 @@ namespace Tac
       .mIndexCount = indexCount,
     };
   }
-#endif
 
-#if 0
-  void ImGuiDesktopWindowImpl::Render( Errors& errors )
+  void ImGuiPersistantPlatformData::UpdateAndRender( ImGuiSimFrameDraws* frameDraws,
+                                                     Errors& errors )
   {
-    if( !mWindowHandle.IsValid() )
-      return;
-
-    FrameDrawData frameData = GetFrameData();
-
-    if( frameData.mVertexCount == 0 || frameData.mIndexCount == 0 )
-      return;
+    const int n = ImGuiGlobals::Instance.mMaxGpuFrameCount;
+    if( mRenderBuffers.size() < n )
+      mRenderBuffers.resize( n );
 
     ImGuiRenderBuffers& renderBuffers = mRenderBuffers[ mFrameIndex ];
-    ( ++mFrameIndex ) %= ImGuiGlobals::Instance.mMaxGpuFrameCount;
+    ( ++mFrameIndex ) %= n;
 
     // combine draw data
     //Render::ContextHandle context = TAC_CALL( Render::CreateContext( errors ) );
-    //TAC_CALL( frameData.CopyVertexes( context, &renderBuffers, errors ) );
-    //TAC_CALL( frameData.CopyIndexes( context, &renderBuffers, errors ) );
+    void* context = nullptr;
+    frameDraws->CopyVertexes( context, &renderBuffers, errors );
+    frameDraws->CopyIndexes( context, &renderBuffers, errors );
+
+#if 0
+
+    for( ImGuiSimWindowDraws& windowDraws : frameDraws->mWindowDraws )
+    {
+      WindowHandle handle = windowDraws.mHandle;
+      Vector< SmartPtr< UI2DDrawData > > drawData = windowDraws.mDrawData;
+      const int vertexCount = windowDraws.mVertexCount;
+      const int indexCount = windowDraws.mIndexCount;
+    }
+
 
     TAC_RENDER_GROUP_BLOCK( String() + __FUNCTION__
                             + "("
@@ -626,21 +608,11 @@ namespace Tac
 
     OS::OSDebugBreak();
 
-  }
-#else
-
-void ImGuiPersistantPlatformData::UpdateAndRender( ImGuiSimFrameDraws* frameDraws )
-{
-  const int n = ImGuiGlobals::Instance.mMaxGpuFrameCount;
-  if( mRenderBuffers.size() < n )
-    mRenderBuffers.resize( n );
-
-  OS::OSDebugBreak();
-}
-
 #endif
+  }
 
-// -----------------------------------------------------------------------------------------------
+
+  // -----------------------------------------------------------------------------------------------
 
 } // namespace Tac
 

@@ -20,6 +20,7 @@ namespace Tac
     WindowDestroy,
     WindowMove,
     WindowResize,
+    WindowVisible,
     Count,
   };
 
@@ -109,6 +110,7 @@ namespace Tac
   TAC_QUEUE( MouseWheelEvent, DesktopEventType::MouseWheel );
   TAC_QUEUE( WindowMoveEvent, DesktopEventType::WindowMove );
   TAC_QUEUE( WindowResizeEvent, DesktopEventType::WindowResize );
+  TAC_QUEUE( WindowVisibleEvent, DesktopEventType::WindowVisible );
 #undef TAC_QUEUE
 #else
   void DesktopEventApi::Queue( const WindowCreateEvent& data )     { sEventQueue.QueuePush( DesktopEventType::WindowAssignHandle, &data, sizeof( WindowCreateEvent ) ); }
@@ -152,6 +154,7 @@ namespace Tac
   TAC_CASE( MouseWheelEvent, DesktopEventType::MouseWheel );
   TAC_CASE( WindowMoveEvent, DesktopEventType::WindowMove );
   TAC_CASE( WindowResizeEvent, DesktopEventType::WindowResize );
+  TAC_CASE( WindowVisibleEvent, DesktopEventType::WindowVisible );
 #undef TAC_CASE
 #endif
       default: TAC_ASSERT_INVALID_CASE( desktopEventType ); return;

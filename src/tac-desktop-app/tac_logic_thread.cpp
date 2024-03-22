@@ -28,9 +28,11 @@
 
 namespace Tac
 {
-  WindowBackend::SimApi sWindowBackend;
-  SimWindowApi          sWindowApi;
-  SimKeyboardApi        sKeyboardApi;
+
+  KeyboardBackend::SimApi sKeyboardBackendSimApi;
+  WindowBackend::SimApi   sWindowBackend;
+  SimWindowApi            sWindowApi;
+  SimKeyboardApi          sKeyboardApi;
 
   void LogicThread::Init( Errors& errors )
   {
@@ -102,6 +104,7 @@ namespace Tac
       DesktopEventApi::Apply();
 
       sWindowBackend.Sync();
+      sKeyboardBackendSimApi.Sync();
 
       const BeginFrameData data =
       {

@@ -207,7 +207,7 @@ namespace Tac
 
   struct ImGuiSimFrameDraws;
   ImGuiSimFrameDraws ImGuiGetSimFrameDraws();
-  void               ImGuiPlatformRender( ImGuiSimFrameDraws* );
+  void               ImGuiPlatformRender( ImGuiSimFrameDraws*, Errors& );
 
 
 #define TAC_IMGUI_INDENT_BLOCK            ImGuiIndent();                          \

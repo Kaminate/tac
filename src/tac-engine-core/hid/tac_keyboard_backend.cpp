@@ -83,7 +83,7 @@ namespace Tac::KeyboardBackend
 
   // -----------------------------------------------------------------------------------------------
 
-  void SymApi::Sync()
+  void SimApi::Sync()
   {
     TAC_SCOPE_GUARD( std::lock_guard, sMutex );
 

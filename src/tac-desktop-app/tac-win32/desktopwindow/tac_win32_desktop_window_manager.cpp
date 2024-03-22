@@ -118,6 +118,15 @@ namespace Tac
 
     switch( uMsg )
     {
+    case WM_SHOWWINDOW:
+    {
+      const DesktopEventApi::WindowVisibleEvent data
+      {
+          .mWindowHandle = windowHandle,
+          .mVisible = ( wParam == TRUE ),
+      };
+      DesktopEventApi::Queue( data );
+    } break;
       // Sent as a signal that a window or an application should terminate.
     case WM_CLOSE:
     {

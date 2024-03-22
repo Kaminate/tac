@@ -14,6 +14,13 @@
 
 namespace Tac::DesktopEventApi
 {
+
+  struct WindowVisibleEvent
+  {
+    WindowHandle     mWindowHandle;
+    bool             mVisible;
+  };
+  
   struct WindowCreateEvent
   {
     WindowHandle     mWindowHandle;
@@ -89,6 +96,7 @@ namespace Tac::DesktopEventApi
     virtual void Handle( const MouseWheelEvent& ) {};
     virtual void Handle( const WindowMoveEvent& ) {};
     virtual void Handle( const WindowResizeEvent& ) {};
+    virtual void Handle( const WindowVisibleEvent& ) {};
     virtual void HandleEnd() {};
   };
 
@@ -102,6 +110,7 @@ namespace Tac::DesktopEventApi
   void Queue( const MouseWheelEvent& );
   void Queue( const WindowMoveEvent& );
   void Queue( const WindowResizeEvent& );
+  void Queue( const WindowVisibleEvent& );
 
   void Apply();
 

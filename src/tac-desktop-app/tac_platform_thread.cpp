@@ -1,7 +1,6 @@
 #include "tac_platform_thread.h" // self-inc
 
 #include "tac-desktop-app/tac_desktop_app.h"
-#include "tac-desktop-app/tac_desktop_app.h"
 #include "tac-desktop-app/tac_desktop_app_threads.h"
 #include "tac-desktop-app/tac_desktop_event.h"
 #include "tac-desktop-app/tac_iapp.h"
@@ -9,26 +8,16 @@
 
 #include "tac-engine-core/framememory/tac_frame_memory.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
-//#include "tac-engine-core/graphics/ui/tac_ui_2d.h" // ~UI2DDrawData
-#include "tac-engine-core/profile/tac_profile.h"
-#include "tac-engine-core/shell/tac_shell_timestep.h"
-//#include "tac-engine-core/window/tac_window_api_graphics.h"
-#include "tac-engine-core/platform/tac_platform.h"
-#include "tac-engine-core/window/tac_window_backend.h"
-#include "tac-engine-core/shell/tac_shell_timer.h"
-#include "tac-engine-core/hid/tac_keyboard_backend.h"
-
-
-#include "tac-engine-core/window/tac_window_backend.h"
-#include "tac-engine-core/window/tac_sys_window_api.h"
-//#include "tac-engine-core/window/tac_sys_window_api.h"
-//#include "tac-engine-core/hid/tac_sys_keyboard_api.h"
 #include "tac-engine-core/hid/tac_keyboard_backend.h"
 #include "tac-engine-core/hid/tac_sys_keyboard_api.h"
+#include "tac-engine-core/platform/tac_platform.h"
+#include "tac-engine-core/profile/tac_profile.h"
+#include "tac-engine-core/shell/tac_shell_timer.h"
+#include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-engine-core/window/tac_sys_window_api.h"
+#include "tac-engine-core/window/tac_window_backend.h"
 
-//#include "tac-rhi/render/tac_render.h"
 #include "tac-rhi/render3/tac_render_api.h"
-//#include "tac-rhi/renderer/tac_renderer.h"
 
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/math/tac_math.h" // Clamp
@@ -38,6 +27,7 @@
 
 namespace Tac
 {
+  static WindowBackend::SysApi   sWindowBackendSysApi;
   static SysWindowApi            sWindowApi;
   static SysKeyboardApi          sKeyboardApi;
   //static void                ImGuiSimSetWindowPos( WindowHandle handle, v2i pos )
@@ -96,6 +86,8 @@ namespace Tac
       TAC_CALL( desktopApp->Update( errors ) );
       TAC_CALL( platform->PlatformFrameEnd( errors ) );
 
+      TAC_CALL( sWindowBackendSysApi.Sync( errors ) );
+
       //if( mApp->IsRenderEnabled() )
       //{
       //  TAC_CALL( Render::RenderFrame( errors ) );
@@ -139,11 +131,10 @@ namespace Tac
           .mKeyboardApi = &sKeyboardApi,
           .mOldState = pair.mOldState, // A
           .mNewState = pair.mNewState, // B
-          .mT = t, // inbetween B and (future) C
+          .mT = t, // inbetween B and (future) C, but used to lerp A and B
         };
         TAC_CALL( mApp->Render( params, errors ) );
-        //TAC_CALL( ImGuiEndFrame( errors ) );
-        ImGuiPlatformRender( &pair.mNewState->mImGuiDraws );
+        TAC_CALL( ImGuiPlatformRender( &pair.mNewState->mImGuiDraws, errors ) );
         //Render::FrameEnd();
       }
 

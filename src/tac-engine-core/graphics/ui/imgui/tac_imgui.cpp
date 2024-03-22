@@ -1347,22 +1347,24 @@ namespace Tac
     ImGuiGlobals::Instance.mScrollBarEnabled = b;
   }
 
-  ImGuiSimFrameDraws ImGuiGetSimFrameDraws()
-  { 
-    Vector< ImGuiSimWindowDraws > allWindowDraws;
-    for( ImGuiDesktopWindowImpl* window : ImGuiGlobals::Instance.mDesktopWindows )
-    {
-      ImGuiSimWindowDraws curWindowDraws = window->GetSimWindowDraws();
-      allWindowDraws.push_back( curWindowDraws );
-    }
 
-    return ImGuiSimFrameDraws{ .mWindowDraws = allWindowDraws };
-  }
-
-  void ImGuiPlatformRender( ImGuiSimFrameDraws* draws )
-  {
-    ImGuiPersistantPlatformData::Instance.UpdateAndRender( draws );
-  }
 
 } // namespace Tac
+
+Tac::ImGuiSimFrameDraws Tac::ImGuiGetSimFrameDraws()
+{ 
+  Vector< ImGuiSimWindowDraws > allWindowDraws;
+  for( ImGuiDesktopWindowImpl* window : ImGuiGlobals::Instance.mDesktopWindows )
+  {
+    ImGuiSimWindowDraws curWindowDraws = window->GetSimWindowDraws();
+    allWindowDraws.push_back( curWindowDraws );
+  }
+
+  return ImGuiSimFrameDraws{ .mWindowDraws = allWindowDraws };
+}
+
+void Tac::ImGuiPlatformRender( ImGuiSimFrameDraws* draws, Errors& errors )
+{
+  ImGuiPersistantPlatformData::Instance.UpdateAndRender( draws, errors );
+}
 

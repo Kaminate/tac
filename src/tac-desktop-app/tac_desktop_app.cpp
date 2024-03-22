@@ -65,6 +65,11 @@ namespace Tac
       mKeyboardBackend->ApplyEnd();
     }
 
+    void Handle( const WindowVisibleEvent& data ) override
+    {
+      mWindowBackend->SetWindowIsVisible( data.mWindowHandle, data.mVisible );
+    }
+
     void Handle( const WindowDestroyEvent& data ) override
     {
       mWindowBackend->SetWindowDestroyed( data.mWindowHandle );

@@ -157,6 +157,9 @@ namespace Tac
   // passed to the imgui platform frame
   struct ImGuiSimFrameDraws
   {
+    void CopyVertexes( void*, ImGuiRenderBuffers*, Errors& );
+    void CopyIndexes( void*, ImGuiRenderBuffers*, Errors& );
+
     Vector< ImGuiSimWindowDraws > mWindowDraws;
   };
 
@@ -164,7 +167,7 @@ namespace Tac
   {
     static ImGuiPersistantPlatformData Instance;
 
-    void UpdateAndRender( ImGuiSimFrameDraws* );
+    void UpdateAndRender( ImGuiSimFrameDraws*, Errors& );
 
     int                          mFrameIndex{};
     Vector< ImGuiRenderBuffers > mRenderBuffers;
@@ -173,34 +176,7 @@ namespace Tac
   struct ImGuiDesktopWindowImpl : public ImGuiDesktopWindow
   {
     ImGuiDesktopWindowImpl();
-#if 0
-    void Render( Errors& );
-#endif
-
-  private:
-
-#if 0
-    // Holds draw data from every ImGuiWindow that draws onto this DesktopWindow.
-    // Used to combine these draws into a single vtx/idx buffer.
-    struct FrameDrawData
-    {
-      //void CopyIndexes( Render::ContextHandle, ImGuiRenderBuffers*, Errors& );
-      //void CopyVertexes( Render::ContextHandle, ImGuiRenderBuffers*, Errors& );
-
-      Vector< UI2DDrawData* > mDrawData;
-      int                     mVertexCount{};
-      int                     mIndexCount{};
-    };
-
-    FrameDrawData                    GetFrameData();
-
-    int                          mFrameIndex{};
-    Vector< ImGuiRenderBuffers > mRenderBuffers;
-#else
-  public:
     ImGuiSimWindowDraws GetSimWindowDraws();
-    
-#endif
   };
 
   struct ImGuiGlobals
