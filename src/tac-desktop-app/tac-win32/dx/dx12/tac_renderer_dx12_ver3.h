@@ -66,6 +66,7 @@ namespace Tac::Render
     PCom< IDXGISwapChain4 > mSwapChain;
     DXGI_SWAP_CHAIN_DESC1   mSwapChainDesc;
     SwapChainRTVs           mRTVs;
+    TexFmt                  mFmt = TexFmt::kUnknown;
   };
 
   // you know, do we even inherit form renderer?
@@ -78,13 +79,20 @@ namespace Tac::Render
     DX12DebugLayer             mDebugLayer;
     DX12InfoQueue              mInfoQueue;
 
-    void CreateFB( FBHandle, const void*, v2i, Errors& ) override;
-    void ResizeFB( FBHandle, v2i )  override;
-    void DestroyFB( FBHandle, PostFBDestroy )  override;
+    void   CreateFB( FBHandle, FrameBufferParams, Errors& ) override;
+    void   ResizeFB( FBHandle, v2i )  override;
+    TexFmt GetFBFmt( FBHandle ) override;
+    void   DestroyFB( FBHandle)  override;
 
     void CreateDynBuf( DynBufHandle, int, StackFrame, Errors& ) override;
     void UpdateDynBuf( RenderApi::UpdateDynBufParams ) override;
-    void DestroyDynBuf( DynBufHandle, PostDBDestroy ) override;
+    void DestroyDynBuf( DynBufHandle) override;
+
+    void CreateShaderProgram( ProgramHandle, ShaderProgramParams, Errors& ) override;
+    void DestroyShaderProgram( ProgramHandle ) override;
+
+    void CreateRenderPipeline( PipelineHandle, PipelineParams, Errors& ) override;
+    void DestroyRenderPipeline( PipelineHandle ) override;
 
     DX12FrameBuf mFrameBufs[ 100 ];
     DX12DynBuf mDynBufs[ 100 ];

@@ -20,15 +20,6 @@ namespace Tac
 
 namespace Tac::WindowBackend
 {
-#if 0
-  struct WindowState
-  {
-    String mName;
-    v2i    mPos;
-    v2i    mSize;
-    bool   mShown;
-  };
-#endif
 
   // +------------------------------------------------------------+
   // |                          TODO                              |
@@ -36,13 +27,6 @@ namespace Tac::WindowBackend
   // | handle destroying and creating windows not having the same |
   // | id in the same frame                                       |
   // +------------------------------------------------------------+
-
-#if 0
-  using WindowStates = Array< WindowState, kDesktopWindowCapacity >;
-
-  extern WindowStates sGameLogicCurr;
-  extern WindowStates sPlatformCurr;
-#endif
 
   struct SysApi
   {
@@ -60,6 +44,8 @@ namespace Tac::WindowBackend
 
     bool mIsRendererEnabled = true;
   };
+
+  inline Render::TexFmt sTexFmt = Render::TexFmt::kRGBA16F;
 
   // Sim thread functions:
 

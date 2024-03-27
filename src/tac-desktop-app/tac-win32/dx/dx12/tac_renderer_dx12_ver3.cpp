@@ -1,4 +1,5 @@
 #include "tac_renderer_dx12_ver3.h" // self-inc
+#include "tac-win32/dx/dxc/tac_dxc.h"
 
 //#include "tac-rhi/render3/tac_render_api.h"
 
@@ -203,12 +204,23 @@ namespace Tac::Render
   }
 #endif
 
-  void DX12Backend::CreateFB( FBHandle h, const void* nwh, v2i size, Errors& errors )
+  void DX12Backend::CreateFB( FBHandle h, FrameBufferParams params, Errors& errors )
   {
+    const void* nwh = params.mNWH;
+    const v2i size = params.mSize;
     const int iHandle = h.GetIndex();
 
     DX12CommandQueue cmdQ;
     cmdQ.Create( mDevice.GetID3D12Device(), errors );
+
+
+    DXGI_FORMAT fmt = DXGI_FORMAT_UNKNOWN;
+    switch( params.mColorFmt )
+    {
+    case kD24S8: fmt = DXGI_FORMAT_D24_UNORM_S8_UINT; break;
+    case kRGBA16F: fmt = DXGI_FORMAT_R16G16B16A16_FLOAT; break;
+    default: TAC_ASSERT_INVALID_CASE( params.mColorFmt ); break;
+    };
     
     const SwapChainCreateInfo scInfo
     {
@@ -217,6 +229,7 @@ namespace Tac::Render
       .mBufferCount = TAC_SWAP_CHAIN_BUF_COUNT,
       .mWidth = size.x,
       .mHeight = size.y,
+      .mFmt = fmt,
     };
     TAC_ASSERT( scInfo.mDevice );
 
@@ -259,7 +272,8 @@ namespace Tac::Render
       .mCommandQueue = ( DX12CommandQueue&& )cmdQ,
       .mSwapChain = swapChain,
       .mSwapChainDesc = swapChainDesc,
-      .mRTVs = rtvs
+      .mRTVs = rtvs,
+      .mFmt = params.mColorFmt,
     };
   }
 
@@ -273,12 +287,16 @@ namespace Tac::Render
 
   }
 
-  void DX12Backend::DestroyFB( FBHandle h, PostFBDestroy postDestroy )
+  TexFmt DX12Backend::GetFBFmt( FBHandle h )
+  {
+    return mFrameBufs[ h.GetIndex() ].mFmt;
+  }
+
+  void DX12Backend::DestroyFB( FBHandle h )
   {
     if( h.IsValid() )
     {
       mFrameBufs[ h.GetIndex() ] = {};
-      postDestroy( h );
     }
   }
 
@@ -356,13 +374,65 @@ namespace Tac::Render
     MemCpy( dstBytes, params.mSrcBytes, params.mSrcByteCount );
   }
 
-  void DX12Backend::DestroyDynBuf( DynBufHandle h, PostDBDestroy postDestroy )
+  void DX12Backend::DestroyDynBuf( DynBufHandle h )
   {
     if( h.IsValid() )
     {
       mDynBufs[ h.GetIndex() ] = {};
-      postDestroy( h );
     }
+  }
+
+  void DX12Backend::CreateShaderProgram( ProgramHandle h,
+                                         ShaderProgramParams params,
+                                         Errors& errors )
+  {
+    String path = "assets/hlsl/" + params.mFileStem + ".hlsl";
+
+    const DX12ProgramCompiler::Params compilerParams
+    {
+      .mOutputDir = sShellPrefPath,
+      .mDevice = ( ID3D12Device* )m_device,
+    };
+    TAC_CALL( DX12ProgramCompiler compiler( compilerParams, errors ) );
+
+    DX12ExampleProgramCompiler::Result compileResult = TAC_CALL( compiler.Compile( shaderAssetPath, errors ) );
+    const String shaderStrProcessed = DX12PreprocessShader( shaderAssetPath, errors );
+
+    const char* entryPoints[ ( int )ShaderType::Count ]{};
+    entryPoints[ ( int )ShaderType::Vertex ] = "VSMain";
+    entryPoints[ ( int )ShaderType::Fragment ] = "PSMain";
+
+    const char* entryPoint = entryPoints[ (int)shaderType ];
+    if( !entryPoint )
+      return {};
+
+    if( !shaderStrProcessed.contains( String() + entryPoint + "(" ) )
+      return {};
+
+    const DXC::ExampleInput input
+    {
+      .mShaderAssetPath = shaderAssetPath,
+      .mPreprocessedShader = shaderStrProcessed,
+      .mEntryPoint = entryPoint,
+      .mType = shaderType,
+      .mShaderModel = shaderModel,
+      .mOutputDir = sOutputDir,
+    };
+    return TAC_CALL_RET( {}, DXC::ExampleCompile( input, errors ));
+
+
+  }
+
+  void DX12Backend::DestroyShaderProgram( ProgramHandle h )
+  {
+  }
+
+  void DX12Backend::CreateRenderPipeline( PipelineHandle h, PipelineParams params, Errors& errors )
+  {
+  }
+
+  void DX12Backend::DestroyRenderPipeline( PipelineHandle h )
+  {
   }
 
 } // namespace Tac::Render

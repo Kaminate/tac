@@ -1,4 +1,4 @@
-#include "tac_example_dx12_2_dxc.h" // self-inc
+#include "tac_dxc.h" // self-inc
 
 #include "tac-std-lib/containers/tac_array.h"
 #include "tac-std-lib/string/tac_string_util.h" // IsAscii
@@ -11,12 +11,12 @@
 //#include <dxcapi.h> // IDxcUtils, IDxcCompiler3, DxcCreateInstance, 
 #pragma comment (lib, "dxcompiler.lib" )
 
-namespace Tac::Render::DXC
+namespace Tac::Render
 {
   // -----------------------------------------------------------------------------------------------
 
   // https://github.com/microsoft/DirectXShaderCompiler/wiki/Using-dxc.exe-and-dxcompiler.dll
-  struct ExampleDXCArgHelper
+  struct DXCArgHelper
   {
     struct BasicSetup
     {
@@ -24,10 +24,10 @@ namespace Tac::Render::DXC
       StringView mTargetProfile;
       StringView mFilename;
       Filesystem::Path mPDBDir;
-      PCom<IDxcUtils> mUtils;
+      PCom< IDxcUtils > mUtils;
     };
 
-    ExampleDXCArgHelper( BasicSetup );
+    DXCArgHelper( BasicSetup );
 
     void SetEntryPoint( String s )         { AddArgs( "-E", s ); }
     void SetTargetProfile( String s )      { AddArgs( "-T", s ); }
@@ -59,7 +59,7 @@ namespace Tac::Render::DXC
     String                   mStem;
   };
 
-  std::wstring ExampleDXCArgHelper::ToWStr(StringView s)
+  std::wstring DXCArgHelper::ToWStr(StringView s)
   {
     std::wstring result;
     for( char c : s )
@@ -67,7 +67,7 @@ namespace Tac::Render::DXC
     return result;
   }
 
-  ExampleDXCArgHelper::ExampleDXCArgHelper( BasicSetup setup )
+  DXCArgHelper::DXCArgHelper( BasicSetup setup )
   {
     TAC_ASSERT(!setup.mFilename.empty());
 
@@ -108,20 +108,20 @@ namespace Tac::Render::DXC
     }
   }
 
-  void ExampleDXCArgHelper::AddArgs( StringView arg0, StringView arg1 )
+  void DXCArgHelper::AddArgs( StringView arg0, StringView arg1 )
   {
     AddArg(arg0);
     AddArg(arg1);
   }
 
-  void ExampleDXCArgHelper::AddArg( StringView arg )
+  void DXCArgHelper::AddArg( StringView arg )
   {
     TAC_NOT_CONST Array args = { arg.data() };
     const HRESULT hr = mArgs->AddArgumentsUTF8( args.data(), args.size() );
     TAC_ASSERT( SUCCEEDED( hr ) );
   }
 
-  void ExampleDXCArgHelper::SetFilename( String s )
+  void DXCArgHelper::SetFilename( String s )
   {
     const Filesystem::Path fsPath = s;
     auto ext = fsPath.extension();
@@ -136,18 +136,18 @@ namespace Tac::Render::DXC
     TAC_ASSERT(!mStem.empty());
   }
 
-  void ExampleDXCArgHelper::SetHLSLVersion( StringView ver )
+  void DXCArgHelper::SetHLSLVersion( StringView ver )
   {
     AddArgs( "-HV", ver );
   }
 
-  void ExampleDXCArgHelper::SaveReflection()
+  void DXCArgHelper::SaveReflection()
   {
     TAC_ASSERT(!mStem.empty());
     AddArgs( "-Fre", mStem + ".refl" );
   }
 
-  void ExampleDXCArgHelper::SaveBytecode()  
+  void DXCArgHelper::SaveBytecode()  
   {
     TAC_ASSERT(!mStem.empty());
     AddArgs( "-Fo", mStem + ".dxo");
@@ -155,7 +155,7 @@ namespace Tac::Render::DXC
 
   // https://devblogs.microsoft.com/pix/using-automatic-shader-pdb-resolution-in-pix/
   // Best practice is to let dxc name the shader with the hash
-  void ExampleDXCArgHelper::SaveDebug( const Filesystem::Path& pdbDir )
+  void DXCArgHelper::SaveDebug( const Filesystem::Path& pdbDir )
   {
     TAC_ASSERT( Filesystem::IsDirectory( pdbDir ) );
     String dir = pdbDir.u8string();
@@ -272,7 +272,14 @@ namespace Tac::Render::DXC
       OS::OSDebugPrintLine( AsciiBoxAround( Join( strs, "\n" ) ) );
   }
 
-  PCom<IDxcBlob> ExampleCompile( const ExampleInput& input, Errors& errors )
+
+} // namespace Tac::Render
+
+
+namespace Tac
+{
+
+  PCom< IDxcBlob > Render::DXCCompile( const DXCInput& input, Errors& errors )
   {
     TAC_ASSERT( !input.mOutputDir.empty() );
 
@@ -324,7 +331,7 @@ namespace Tac::Render::DXC
 
     TAC_CALL_RET( {}, Filesystem::SaveToFile( hlslShaderPath, input.mPreprocessedShader, errors ) );
 
-    TAC_NOT_CONST ExampleDXCArgHelper::BasicSetup argHelperSetup
+    TAC_NOT_CONST DXCArgHelper::BasicSetup argHelperSetup
     {
       .mEntryPoint = input.mEntryPoint ,
       .mTargetProfile = target,
@@ -332,7 +339,7 @@ namespace Tac::Render::DXC
       .mPDBDir = input.mOutputDir,
       .mUtils = pUtils,
     };
-    TAC_NOT_CONST ExampleDXCArgHelper argHelper( argHelperSetup );
+    TAC_NOT_CONST DXCArgHelper argHelper( argHelperSetup );
 
     const auto pArguments = argHelper.GetArgs();
     const auto argCount = argHelper.GetArgCount();
@@ -429,5 +436,5 @@ namespace Tac::Render::DXC
 
     return pShader;
   }
-} // namespace Tac::Render::DXC
 
+}

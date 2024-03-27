@@ -7,9 +7,14 @@
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac-engine-core/platform/tac_platform.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
+
+
+#if TAC_WINDOW_BACKEND_CREATES_SWAP_CHAIN()
 #include "tac-rhi/render3/tac_render_api.h"
+#endif
 
 import std; // mutex
+
 
 namespace Tac::WindowBackend
 {
@@ -23,7 +28,9 @@ namespace Tac::WindowBackend
 
   using WindowStates = Array< WindowState, kDesktopWindowCapacity >;
   using NWHArray = Array< const void*, kDesktopWindowCapacity >; // Native Window Handles (HWND)
+#if TAC_WINDOW_BACKEND_CREATES_SWAP_CHAIN()
   using FBArray = Array< Render::FBHandle, kDesktopWindowCapacity >; // Window Framebuffers
+#endif
 
   // sWindowStateMutex:
   //   Locked by the platform thread inbetween calls to
@@ -37,7 +44,9 @@ namespace Tac::WindowBackend
   static WindowStates sPlatformCurr;
   static bool         sModificationAllowed;
   static NWHArray     sPlatformNative;
+#if TAC_WINDOW_BACKEND_CREATES_SWAP_CHAIN()
   static FBArray      sFramebuffers;
+#endif
 
   // Contains data for a window to be created as requested by game logic simulation
   struct SimWindowCreate
@@ -86,8 +95,19 @@ namespace Tac::WindowBackend
       .mShown = false,
     };
     sPlatformNative[ i ] = nwh;
+
+#if TAC_WINDOW_BACKEND_CREATES_SWAP_CHAIN()
     if( mIsRendererEnabled )
-      sFramebuffers[ i ] = Render::RenderApi::CreateFB( nwh, size, errors );
+    {
+      const Render::FrameBufferParams params
+      {
+        .mNWH = nwh,
+        .mSize = size,
+        .mColorFmt = sTexFmt,
+      };
+      sFramebuffers[ i ] = Render::RenderApi::CreateFB( params, errors );
+    }
+#endif
   }
 
   void SysApi::SetWindowDestroyed( WindowHandle h )
@@ -96,9 +116,11 @@ namespace Tac::WindowBackend
     const int i = h.GetIndex();
     sPlatformCurr[ i ] = {};
     sPlatformNative[ i ] = {};
+#if TAC_WINDOW_BACKEND_CREATES_SWAP_CHAIN()
     if( mIsRendererEnabled )
       Render::RenderApi::DestroyFB( sFramebuffers[ i ] );
     sFramebuffers[ i ] = {};
+#endif
   }
 
   void SysApi::SetWindowIsVisible( WindowHandle h, bool shown )
@@ -112,8 +134,10 @@ namespace Tac::WindowBackend
     TAC_ASSERT( sModificationAllowed );
     const int i = h.GetIndex();
     sPlatformCurr[ i ].mSize = size;
+#if TAC_WINDOW_BACKEND_CREATES_SWAP_CHAIN()
     if( mIsRendererEnabled )
       Render::RenderApi::ResizeFB( sFramebuffers[ i ], size );
+#endif
   }
 
   void SysApi::SetWindowPos( WindowHandle h, v2i pos )
@@ -260,10 +284,12 @@ namespace Tac
     return sPlatformNative[ h.GetIndex() ];
   }
 
+#if TAC_WINDOW_BACKEND_CREATES_SWAP_CHAIN()
   Render::FBHandle SysWindowApi::GetFBHandle( WindowHandle h ) const
   {
     return sFramebuffers[ h.GetIndex() ];
   }
+#endif
 
   void             SysWindowApi::DesktopWindowDebugImgui()
   {

@@ -256,6 +256,7 @@ namespace Tac
 
   void Render::DXGIUninit() { sImpl = {}; }
 
+#if 0
   DXGI_FORMAT      Render::DXGIGetSwapChainFormat()
   {
       // Standard way of implementing hdr in games is to use 16 bit floating backbuffer, and
@@ -270,6 +271,7 @@ namespace Tac
       //return DXGI_FORMAT_R8G8B8A8_UNORM;
       return DXGI_FORMAT_R16G16B16A16_FLOAT;
   }
+#endif
 
 
   PCom<IDXGISwapChain4> Render::DXGICreateSwapChain( const SwapChainCreateInfo& info,
@@ -283,12 +285,12 @@ namespace Tac
 
     const DXGI_SWAP_CHAIN_DESC1 scd1 =
     {
-      .Width = (UINT)info.mWidth,
-      .Height = (UINT)info.mHeight,
-      .Format = DXGIGetSwapChainFormat(),
+      .Width = ( UINT )info.mWidth,
+      .Height = ( UINT )info.mHeight,
+      .Format = info.mFmt,
       .SampleDesc = SampleDesc,
       .BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT,
-      .BufferCount = (UINT)info.mBufferCount,
+      .BufferCount = ( UINT )info.mBufferCount,
       .SwapEffect = SwapEffect,
       .Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH,
     };

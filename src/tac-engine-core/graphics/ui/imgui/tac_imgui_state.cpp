@@ -6,6 +6,7 @@
 #include "tac-engine-core/graphics/ui/tac_ui_2d.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-engine-core/window/tac_sys_window_api.h"
+//#include "tac-engine-core/window/tac_window_backend.h"
 
 #include "tac-rhi/render3/tac_render_api.h" // CreateContext
 
@@ -508,6 +509,26 @@ namespace Tac
 
     //Render::ContextHandle context = TAC_CALL( Render::CreateContext( errors ) );
     void* context = nullptr;
+
+    const Render::ShaderProgramParams programParams
+    {
+      .mFileStem = "2D",
+    };
+    Render::ProgramHandle program = TAC_CALL(
+      Render::RenderApi::CreateShaderProgram( programParams, errors ) );
+
+#if 1
+    Render::FBHandle fb = windowApi->GetFBHandle( hDesktopWindow );
+#endif
+    const Render::TexFmt fbFmt = Render::RenderApi::GetFBFmt( fb );
+
+    const Render::PipelineParams pipelineParams
+    {
+      .mProgram = program,
+      .mRTVColorFmts = fbFmt,
+    };
+    Render::PipelineHandle pipeline = TAC_CALL(
+      Render::RenderApi::CreateRenderPipeline( pipelineParams, errors ) );
 
 #if 0
 

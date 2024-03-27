@@ -5,43 +5,45 @@
 
 namespace Tac::Render
 {
-  struct IdProt
-  {
-    void FreeIdx( int );
-    int AllocIdx();
-    IdCollection mIDs;
-    std::mutex   mMtx;
-  };
-
-  IdProt sIDPropFB;
-  IdProt sIDPropDB;
-
   static int sMaxGPUFrameCount; 
 
   static IRenderBackend3* sBackend;
 
+  // -----------------------------------------------------------------------------------------------
   Handle::Handle( int i ) : mIndex( i ) {}
   int Handle::GetIndex() const { TAC_ASSERT( IsValid() ); return mIndex; }
   bool Handle::IsValid() const { return mIndex != -1; }
+  // -----------------------------------------------------------------------------------------------
 
-  void IdProt::FreeIdx( int i)
+  template< typename T >
+  struct IdProtT
   {
-    TAC_SCOPE_GUARD( std::lock_guard, mMtx );
-    mIDs.Free( i );
-  }
+    static T Alloc()
+    {
+      TAC_SCOPE_GUARD( std::lock_guard, GetMtx() );
+      return GetIds().Alloc();
+    }
 
-  int IdProt::AllocIdx()
-  {
-    TAC_SCOPE_GUARD( std::lock_guard, mMtx );
-    return mIDs.Alloc();
-  }
+    static void Free(T t )
+    {
+      TAC_SCOPE_GUARD( std::lock_guard, GetMtx() );
+      return GetIds().Free( ( ( Handle )t ).GetIndex() );
+    }
 
-  static FBHandle     AllocIdxFrameBuf()            { return sIDPropFB.AllocIdx(); }
-  static void         FreeIdxFrameBuf( FBHandle h ) { sIDPropFB.FreeIdx( h.GetIndex() ); }
+  private:
 
-  static DynBufHandle AllocIdxDynBuf()                { return sIDPropDB.AllocIdx(); }
-  static void         FreeIdxDynBuf( DynBufHandle h ) { sIDPropDB.FreeIdx( h.GetIndex() ); }
+    static IdCollection& GetIds()
+    {
+      static IdCollection sCollection;
+      return sCollection;
+    }
 
+    static std::mutex& GetMtx()
+    {
+      static std::mutex sMtx;
+      return sMtx;
+    }
+  };
 
   // -----------------------------------------------------------------------------------------------
 
@@ -57,10 +59,10 @@ namespace Tac::Render
     return sMaxGPUFrameCount;
   }
 
-  FBHandle RenderApi::CreateFB( const void* nwh, v2i size, Errors& errors )
+  FBHandle RenderApi::CreateFB( FrameBufferParams params, Errors& errors )
   {
-    const FBHandle h = AllocIdxFrameBuf();
-    sBackend->CreateFB( h, nwh, size, errors );
+    const FBHandle h = IdProtT<FBHandle>::Alloc();
+    sBackend->CreateFB( h, params, errors );
     return h; 
   }
 
@@ -69,15 +71,20 @@ namespace Tac::Render
     sBackend->ResizeFB( h, size );
   }
 
+  TexFmt         RenderApi::GetFBFmt( FBHandle h )
+  {
+    return sBackend->GetFBFmt( h );
+  }
 
   void     RenderApi::DestroyFB( FBHandle h )
   {
-    sBackend->DestroyFB( h, FreeIdxFrameBuf );
+    sBackend->DestroyFB( h );
+    IdProtT<FBHandle>::Free( h );
   }
 
   DynBufHandle RenderApi::CreateDynBuf( int n, StackFrame sf, Errors& errors )
   {
-    const DynBufHandle h = AllocIdxDynBuf();
+    const DynBufHandle h = IdProtT< DynBufHandle >::Alloc();
     sBackend->CreateDynBuf( h, n, sf, errors );
     return h;
   }
@@ -89,6 +96,33 @@ namespace Tac::Render
 
   void         RenderApi::DestroyDynBuf( DynBufHandle h )
   {
-    sBackend->DestroyDynBuf( h, FreeIdxDynBuf );
+    sBackend->DestroyDynBuf( h );
+    IdProtT<DynBufHandle>::Free( h );
+  }
+
+  ProgramHandle RenderApi::CreateShaderProgram( ShaderProgramParams params, Errors& errors )
+  {
+    const ProgramHandle h = IdProtT< ProgramHandle >::Alloc();
+    sBackend->CreateShaderProgram( h, params, errors );
+    return h;
+  }
+
+  void           RenderApi::DestroyShaderProgram( ProgramHandle h )
+  {
+    sBackend->DestroyShaderProgram( h );
+    IdProtT<ProgramHandle>::Free( h );
+  }
+
+  PipelineHandle RenderApi::CreateRenderPipeline( PipelineParams params, Errors& errors )
+  {
+    const PipelineHandle h = IdProtT< PipelineHandle >::Alloc();
+    sBackend->CreateRenderPipeline( h, params, errors );
+    return h;
+  }
+
+  void           RenderApi::DestroyRenderPipeline( PipelineHandle h )
+  {
+    sBackend->DestroyRenderPipeline( h );
+    IdProtT<PipelineHandle>::Free( h );
   }
 }

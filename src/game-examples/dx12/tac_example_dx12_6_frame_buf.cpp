@@ -26,6 +26,7 @@
 #include "tac-engine-core/shell/tac_shell.h"
 #include "tac-engine-core/window/tac_sim_window_api.h"
 #include "tac-engine-core/window/tac_sys_window_api.h"
+#include "tac-engine-core/window/tac_window_backend.h"
 
 #include "tac-desktop-app/tac_desktop_app.h"
 #include "tac-desktop-app/tac_desktop_window_settings_tracker.h"
@@ -614,11 +615,11 @@ namespace Tac
                                       .RegisterSpace = 1, } );
 
     builder.AddConstantBuffer( D3D12_SHADER_VISIBILITY_ALL,
-                             D3D12_ROOT_DESCRIPTOR1
-                             {
-                                .ShaderRegister = 0,
-                                .RegisterSpace = 0,
-                             } );
+                               D3D12_ROOT_DESCRIPTOR1
+                               {
+                                  .ShaderRegister = 0,
+                                  .RegisterSpace = 0,
+                               } );
 
     m_rootSignature = TAC_CALL( builder.Build( errors ) );
     DX12SetName( m_rootSignature, "My Root Signature" );
@@ -628,14 +629,14 @@ namespace Tac
   {
     const AssetPathStringView shaderAssetPath = "assets/hlsl/DX12HelloFrameBuf.hlsl";
 
-    const DX12ProgramCompiler::Params compilerParams
+    const DX12ExampleProgramCompiler::Params compilerParams
     {
       .mOutputDir = sShellPrefPath,
       .mDevice = ( ID3D12Device* )m_device,
     };
-    TAC_CALL( DX12ProgramCompiler compiler( compilerParams, errors ) );
+    TAC_CALL( DX12ExampleProgramCompiler compiler( compilerParams, errors ) );
 
-    DX12ProgramCompiler::Result compileResult = TAC_CALL( compiler.Compile( shaderAssetPath, errors ) );
+    DX12ExampleProgramCompiler::Result compileResult = TAC_CALL( compiler.Compile( shaderAssetPath, errors ) );
 
 
     const VertexDeclaration posDecl
@@ -671,7 +672,7 @@ namespace Tac
 
     const D3D12_BLEND_DESC BlendState
     {
-      .RenderTarget = 
+      .RenderTarget =
       {
         D3D12_RENDER_TARGET_BLEND_DESC
         {
@@ -680,11 +681,14 @@ namespace Tac
       },
     };
 
+    const DXGI_FORMAT RTVFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
+    TAC_ASSERT( WindowBackend::sTexFmt == Render::TexFmt::kRGBA16F );
+
     const D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc
     {
       .pRootSignature = ( ID3D12RootSignature* )m_rootSignature,
-      .VS = compileResult.GetBytecode(Render::ShaderType::Vertex ),
-      .PS = compileResult.GetBytecode(Render::ShaderType::Fragment ),
+      .VS = compileResult.GetBytecode( Render::ShaderType::Vertex ),
+      .PS = compileResult.GetBytecode( Render::ShaderType::Fragment ),
       .BlendState = BlendState,
       .SampleMask = UINT_MAX,
       .RasterizerState = RasterizerState,
@@ -692,13 +696,13 @@ namespace Tac
       .InputLayout = D3D12_INPUT_LAYOUT_DESC{},
       .PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE,
       .NumRenderTargets = 1,
-      .RTVFormats = { DXGIGetSwapChainFormat() },
-      .SampleDesc = { .Count = 1 },
+      .RTVFormats = { RTVFormat },
+      .SampleDesc = {.Count = 1 },
     };
     TAC_CALL( m_device->CreateGraphicsPipelineState(
-              &psoDesc,
-              mPipelineState.iid(),
-              mPipelineState.ppv() ) );
+      &psoDesc,
+      mPipelineState.iid(),
+      mPipelineState.ppv() ) );
 
     DX12SetName( mPipelineState, "My Pipeline State" );
 

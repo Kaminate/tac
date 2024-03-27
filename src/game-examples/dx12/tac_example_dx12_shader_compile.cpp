@@ -44,9 +44,9 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
-  // DX12ProgramCompiler::Result definition
+  // DX12ExampleProgramCompiler::Result definition
   
-  D3D12_SHADER_BYTECODE DX12ProgramCompiler::Result::GetBytecode( ShaderType type )
+  D3D12_SHADER_BYTECODE DX12ExampleProgramCompiler::Result::GetBytecode( ShaderType type )
   {
     auto blob = ( IDxcBlob* )mBlobs[ ( int )type ];
     return blob ?
@@ -56,11 +56,11 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
-  // DX12ProgramCompiler definitions
+  // DX12ExampleProgramCompiler definitions
 
   const D3D_SHADER_MODEL shaderModel = D3D_SHADER_MODEL_6_5;
 
-  DX12ProgramCompiler::DX12ProgramCompiler( Params params, Errors& errors )
+  DX12ExampleProgramCompiler::DX12ExampleProgramCompiler( Params params, Errors& errors )
   {
     ID3D12Device* device = params.mDevice;
     sOutputDir = params.mOutputDir;
@@ -85,7 +85,7 @@ namespace Tac::Render
     if( !shaderStrProcessed.contains( String() + entryPoint + "(" ) )
       return {};
 
-    const DXC::Input input
+    const DXC::ExampleInput input
     {
       .mShaderAssetPath = shaderAssetPath,
       .mPreprocessedShader = shaderStrProcessed,
@@ -94,12 +94,12 @@ namespace Tac::Render
       .mShaderModel = shaderModel,
       .mOutputDir = sOutputDir,
     };
-    return TAC_CALL_RET( {}, DXC::Compile( input, errors ));
+    return TAC_CALL_RET( {}, DXC::ExampleCompile( input, errors ));
   }
 
   // you know... this code assumes all the shaders are in the same file... why would that
   // even be a fair assumption...
-  DX12ProgramCompiler::Result DX12ProgramCompiler::Compile( const AssetPathStringView& path,
+  DX12ExampleProgramCompiler::Result DX12ExampleProgramCompiler::Compile( const AssetPathStringView& path,
                                                             Errors& errors )
   {
     Result result;

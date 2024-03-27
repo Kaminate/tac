@@ -10,7 +10,7 @@
 namespace Tac { struct Errors; struct AssetPathStringView; }
 namespace Tac::Render
 {
-  struct DX12ProgramCompiler
+  struct DX12ExampleProgramCompiler
   {
     struct Result
     {
@@ -24,7 +24,7 @@ namespace Tac::Render
       ID3D12Device* mDevice;
     };
 
-    DX12ProgramCompiler( Params, Errors& );
+    DX12ExampleProgramCompiler( Params, Errors& );
     Result Compile( const AssetPathStringView&, Errors& );
 
   };

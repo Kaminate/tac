@@ -9,9 +9,9 @@
 #include <d3d12.h> // D3D12_SHADER_BYTECODE
 #include <dxcapi.h> // (include after d3d12.h) IDxcBlob IDxcUtils, IDxcCompiler3, DxcCreateInstance
 
-namespace Tac::Render::DXC
+namespace Tac::Render
 {
-  struct ExampleInput
+  struct DXCInput
   {
     AssetPathStringView mShaderAssetPath;
     StringView          mPreprocessedShader;
@@ -21,7 +21,7 @@ namespace Tac::Render::DXC
     Filesystem::Path    mOutputDir;
   };
 
-  PCom<IDxcBlob> ExampleCompile( const ExampleInput&, Errors& );
+  PCom< IDxcBlob > DXCCompile( const DXCInput&, Errors& );
 
 } // namespace Tac::Render
 

@@ -15,17 +15,17 @@ namespace Tac::Render
 
   struct SwapChainCreateInfo
   {
-    HWND      mHwnd = nullptr;
-    IUnknown* mDevice = nullptr; // in dx12 this is a ID3D12CommandQueue
-    int       mBufferCount = 0;
-    int       mWidth = 0;
-    int       mHeight = 0;
+    HWND        mHwnd = nullptr;
+    IUnknown*   mDevice = nullptr; // in dx12 this is a ID3D12CommandQueue
+    int         mBufferCount = 0;
+    int         mWidth = 0;
+    int         mHeight = 0;
+    DXGI_FORMAT mFmt = DXGI_FORMAT_R16G16B16A16_FLOAT;
   };
 
   PCom<IDXGISwapChain4> DXGICreateSwapChain( const SwapChainCreateInfo&, Errors& );
 
 
-  DXGI_FORMAT      DXGIGetSwapChainFormat();
   DXGI_FORMAT      GetDXGIFormatTexture( Format );
   DXGI_FORMAT      GetDXGIFormatTextureTypeless( int );
   DXGI_FORMAT      GetDXGIFormatDepth( int );
