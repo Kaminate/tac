@@ -2,10 +2,12 @@
 #include "tac_render_backend.h"
 #include "tac-rhi/identifier/tac_id_collection.h"
 #include "tac-std-lib/error/tac_assert.h"
+#include "tac-std-lib/filesystem/tac_filesystem.h"
 
 namespace Tac::Render
 {
   static int sMaxGPUFrameCount; 
+  static Filesystem::Path sShaderOutputPath; 
 
   static IRenderBackend3* sBackend;
 
@@ -50,8 +52,14 @@ namespace Tac::Render
   void RenderApi::Init( InitParams params, Errors& errors )
   {
     sMaxGPUFrameCount = params.mMaxGPUFrameCount;
+    sShaderOutputPath = params.mShaderOutputPath;
     sBackend = IRenderBackend3::sInstance;
     sBackend->Init( errors );
+  }
+
+  Filesystem::Path RenderApi::GetShaderOutputPath()
+  {
+    return sShaderOutputPath;
   }
 
   int RenderApi::GetMaxGPUFrameCount()

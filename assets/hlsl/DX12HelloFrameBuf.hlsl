@@ -70,7 +70,7 @@ SamplerState                 Sampler       : register( s0 );
 ConstantBuffer< MyCBufType > MyCBuf        : register( b0 );
 
 
-VSOutput VSMain(uint iVtx : SV_VertexID )
+VSOutput VSMain( uint iVtx : SV_VertexID )
 {
   const uint byteOffset = sizeof( Vertex ) * iVtx;
   const ByteAddressBuffer vertexBytes = BufferTable[ MyCBuf.mVertexBuffer ];
@@ -83,7 +83,7 @@ VSOutput VSMain(uint iVtx : SV_VertexID )
   return result;
 }
 
-LinearColor4 PSMain(PSInput input) : SV_TARGET
+LinearColor4 PSMain( PSInput input) : SV_TARGET
 {
   Texture2D texture = Textures[MyCBuf.mTexture];
 

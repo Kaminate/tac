@@ -4,6 +4,7 @@
 #include "tac-std-lib/containers/tac_array.h"
 #include "tac-win32/tac_win32_com_ptr.h" // PCom
 #include "tac-win32/dx/dxgi/tac_dxgi.h"
+#include "tac-win32/dx/dx12/shaderprogram/tac_dx12_shader_program_mgr.h"
 #include "tac-rhi/render3/tac_render_backend.h"
 
 #include "tac_dx12_device.h"
@@ -34,6 +35,10 @@ namespace Tac::Render
   };
   */
 
+  struct DX12Pipeline
+  {
+    PCom< ID3D12PipelineState > mPSO;
+  };
 
   /*
   struct DX12Window
@@ -94,10 +99,11 @@ namespace Tac::Render
     void CreateRenderPipeline( PipelineHandle, PipelineParams, Errors& ) override;
     void DestroyRenderPipeline( PipelineHandle ) override;
 
-    DX12FrameBuf mFrameBufs[ 100 ];
-    DX12DynBuf mDynBufs[ 100 ];
-
-    DX12DescriptorHeap         mRTVDescriptorHeap;
+    DX12FrameBuf         mFrameBufs[ 100 ];
+    DX12DynBuf           mDynBufs[ 100 ];
+    DX12ShaderProgramMgr mShaderProgramMgr;
+    DX12Pipeline         mPipelines[ 100 ];
+    DX12DescriptorHeap   mRTVDescriptorHeap;
 
 
 /*

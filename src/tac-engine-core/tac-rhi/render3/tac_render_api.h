@@ -5,6 +5,7 @@
 #include "tac-std-lib/containers/tac_fixed_vector.h"
 
 namespace Tac{ struct Errors; }
+namespace Tac::Filesystem{ struct Path; }
 namespace Tac::Render
 {
   struct Handle
@@ -78,7 +79,7 @@ namespace Tac::Render
     //DepthStencilType       mDepthStencilType;
     //FBHandle               mRenderTarget;
     FixedVector< TexFmt, 8 > mRTVColorFmts;
-    TexFmt                   mRTVDepthFmt = TexFmt::kUnknown;
+    TexFmt                   mDSVDepthFmt = TexFmt::kUnknown;
     // root sig? <-- parse using dx reflection
     //PrimTopology     mPrimTopo;
   };
@@ -89,7 +90,8 @@ namespace Tac::Render
   {
     struct InitParams
     {
-      int mMaxGPUFrameCount = 2;
+      int                     mMaxGPUFrameCount = 2;
+      const Filesystem::Path& mShaderOutputPath;
     };
 
     struct UpdateDynBufParams
@@ -101,7 +103,8 @@ namespace Tac::Render
     };
 
     static void Init( InitParams, Errors& );
-    static int GetMaxGPUFrameCount();
+    static int              GetMaxGPUFrameCount();
+    static Filesystem::Path GetShaderOutputPath();
 
     static PipelineHandle CreateRenderPipeline( PipelineParams, Errors& );
     static void           DestroyRenderPipeline( PipelineHandle );

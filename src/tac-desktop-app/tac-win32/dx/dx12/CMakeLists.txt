@@ -5,8 +5,8 @@ target_sources( TacWin32 PRIVATE
   "tac_dx12_samplers.h"
   "tac_dx12_enum_helper.cpp"
   "tac_dx12_enum_helper.h"
-  "tac_dx12_shader_preprocess.cpp"
-  "tac_dx12_shader_preprocess.h"
+  #"tac_dx12_shader_preprocess.cpp"
+  #"tac_dx12_shader_preprocess.h"
   "tac_dx12_command_allocator_pool.cpp"
   "tac_dx12_command_allocator_pool.h"
   "tac_dx12_command_queue.cpp"
@@ -32,4 +32,5 @@ target_sources( TacWin32 PRIVATE
   "tac_dx12_descriptor_heap.cpp"
 )
 
+add_subdirectory( shaderprogram )
 

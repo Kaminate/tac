@@ -22,6 +22,9 @@ namespace Tac
 
   String ToLower( const StringView& );
   char   ToLower( char );
+  bool   IsLower( char );
+  char   ToUpper( char );
+  bool   IsUpper( char );
   String FormatPercentage( float number_between_0_and_1 );
   String FormatPercentage( float curr, float maxi );
   bool   IsAscii( const StringView& );

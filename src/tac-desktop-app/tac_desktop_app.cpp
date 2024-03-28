@@ -253,7 +253,11 @@ namespace Tac
       .mGameStateManager = &sGameStateManager,
     };
 
-    TAC_CALL( Render::RenderApi::Init( {}, errors ) );
+    const Render::RenderApi::InitParams renderApiInitParams
+    {
+      .mShaderOutputPath = sShellPrefPath,
+    };
+    TAC_CALL( Render::RenderApi::Init( renderApiInitParams, errors ) );
 
     const ImGuiInitParams imguiInitParams 
     {

@@ -6,7 +6,8 @@
 #include "tac-std-lib/dataprocess/tac_text_parser.h"
 #include "tac-std-lib/os/tac_os.h" //tmp
 //#include "tac-std-lib/shell/tac_shell.h" // sShellPrefPath
-#include "tac-win32/dx/dx12/tac_dx12_shader_preprocess.h"
+//#include "tac-win32/dx/dx12/tac_dx12_shader_preprocess.h"
+#include "tac-win32/dx/hlsl/tac_hlsl_preprocess.h"
 
 
 namespace Tac::Render
@@ -72,7 +73,7 @@ namespace Tac::Render
                                        AssetPathStringView shaderAssetPath,
                                        Errors& errors)
   {
-    const String shaderStrProcessed = DX12PreprocessShader( shaderAssetPath, errors );
+    const String shaderStrProcessed = HLSLPreprocess( shaderAssetPath, errors );
 
     const char* entryPoints[ ( int )ShaderType::Count ]{};
     entryPoints[ ( int )ShaderType::Vertex ] = "VSMain";
@@ -95,6 +96,8 @@ namespace Tac::Render
       .mOutputDir = sOutputDir,
     };
     return TAC_CALL_RET( {}, DXC::ExampleCompile( input, errors ));
+
+
   }
 
   // you know... this code assumes all the shaders are in the same file... why would that

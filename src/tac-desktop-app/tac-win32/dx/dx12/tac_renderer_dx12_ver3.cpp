@@ -1,5 +1,4 @@
 #include "tac_renderer_dx12_ver3.h" // self-inc
-#include "tac-win32/dx/dxc/tac_dxc.h"
 
 //#include "tac-rhi/render3/tac_render_api.h"
 
@@ -64,6 +63,8 @@ namespace Tac::Render
     TAC_CALL( mInfoQueue.Init( mDebugLayer, device, errors ) );
 
     TAC_CALL( mRTVDescriptorHeap.InitRTV( TAC_MAX_FB_COUNT * TAC_SWAP_CHAIN_BUF_COUNT, device, errors ) );
+
+    TAC_CALL( mShaderProgramMgr.Init( device, errors ) );
 
     //const int maxGPUFrameCount = RenderApi::GetMaxGPUFrameCount();
     /*
@@ -204,7 +205,9 @@ namespace Tac::Render
   }
 #endif
 
-  void DX12Backend::CreateFB( FBHandle h, FrameBufferParams params, Errors& errors )
+  void DX12Backend::CreateFB( FBHandle h,
+                              FrameBufferParams params,
+                              Errors& errors )
   {
     const void* nwh = params.mNWH;
     const v2i size = params.mSize;
@@ -300,7 +303,10 @@ namespace Tac::Render
     }
   }
 
-  void DX12Backend::CreateDynBuf( DynBufHandle h, int byteCount, StackFrame sf, Errors& errors )
+  void DX12Backend::CreateDynBuf( DynBufHandle h,
+                                  int byteCount,
+                                  StackFrame sf,
+                                  Errors& errors )
   {
     const D3D12_HEAP_PROPERTIES HeapProps
     {
@@ -386,40 +392,8 @@ namespace Tac::Render
                                          ShaderProgramParams params,
                                          Errors& errors )
   {
-    String path = "assets/hlsl/" + params.mFileStem + ".hlsl";
 
-    const DX12ProgramCompiler::Params compilerParams
-    {
-      .mOutputDir = sShellPrefPath,
-      .mDevice = ( ID3D12Device* )m_device,
-    };
-    TAC_CALL( DX12ProgramCompiler compiler( compilerParams, errors ) );
-
-    DX12ExampleProgramCompiler::Result compileResult = TAC_CALL( compiler.Compile( shaderAssetPath, errors ) );
-    const String shaderStrProcessed = DX12PreprocessShader( shaderAssetPath, errors );
-
-    const char* entryPoints[ ( int )ShaderType::Count ]{};
-    entryPoints[ ( int )ShaderType::Vertex ] = "VSMain";
-    entryPoints[ ( int )ShaderType::Fragment ] = "PSMain";
-
-    const char* entryPoint = entryPoints[ (int)shaderType ];
-    if( !entryPoint )
-      return {};
-
-    if( !shaderStrProcessed.contains( String() + entryPoint + "(" ) )
-      return {};
-
-    const DXC::ExampleInput input
-    {
-      .mShaderAssetPath = shaderAssetPath,
-      .mPreprocessedShader = shaderStrProcessed,
-      .mEntryPoint = entryPoint,
-      .mType = shaderType,
-      .mShaderModel = shaderModel,
-      .mOutputDir = sOutputDir,
-    };
-    return TAC_CALL_RET( {}, DXC::ExampleCompile( input, errors ));
-
+    mShaderProgramMgr.CreateShaderProgram( h, params, errors );
 
   }
 
@@ -427,8 +401,84 @@ namespace Tac::Render
   {
   }
 
-  void DX12Backend::CreateRenderPipeline( PipelineHandle h, PipelineParams params, Errors& errors )
+  void DX12Backend::CreateRenderPipeline( PipelineHandle h,
+                                          PipelineParams params,
+                                          Errors& errors )
   {
+    auto ToDxgiFormat = []( TexFmt fmt )
+      {
+        switch( fmt )
+        {
+        case Tac::Render::kUnknown: return DXGI_FORMAT_UNKNOWN;
+        case Tac::Render::kD24S8: return DXGI_FORMAT_D24_UNORM_S8_UINT;
+        case Tac::Render::kRGBA16F: return DXGI_FORMAT_R16G16B16A16_FLOAT;
+        default: TAC_ASSERT_INVALID_CASE( fmt ); return DXGI_FORMAT_UNKNOWN;
+        }
+      };
+
+    ID3D12Device* device = mDevice.GetID3D12Device();
+
+    DX12ShaderProgram* program = mShaderProgramMgr.FindProgram( params.mProgram );
+
+    const D3D12_RASTERIZER_DESC RasterizerState
+    {
+      .FillMode = D3D12_FILL_MODE_SOLID,
+      .CullMode = D3D12_CULL_MODE_BACK,
+      .FrontCounterClockwise = true,
+      .DepthBias = D3D12_DEFAULT_DEPTH_BIAS,
+      .DepthBiasClamp = D3D12_DEFAULT_DEPTH_BIAS_CLAMP,
+      .SlopeScaledDepthBias = D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS,
+      .DepthClipEnable = true,
+    };
+
+    const D3D12_BLEND_DESC BlendState
+    {
+      .RenderTarget =
+      {
+        D3D12_RENDER_TARGET_BLEND_DESC
+        {
+          .RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL,
+        },
+      },
+    };
+
+    const DXGI_SAMPLE_DESC SampleDesc{ .Count = 1 };
+
+    OS::OSDebugBreak();
+    //device->CreateRootSignature( ... );
+
+
+    D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc
+    {
+      //.pRootSignature = ( ID3D12RootSignature* )m_rootSignature,
+      .VS = program->mVSBytecode,
+      .PS = program->mPSBytecode,
+      .BlendState = BlendState,
+      .SampleMask = UINT_MAX,
+      .RasterizerState = RasterizerState,
+      .DepthStencilState = D3D12_DEPTH_STENCIL_DESC{},
+      .InputLayout = D3D12_INPUT_LAYOUT_DESC{},
+      .PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE,
+      .NumRenderTargets = 1,
+      .DSVFormat = ToDxgiFormat( params.mDSVDepthFmt ),
+      .SampleDesc = SampleDesc,
+    };
+
+
+    const int n  = params.mRTVColorFmts.size(); 
+    for( int i = 0; i < n; ++i )
+      psoDesc.RTVFormats[i] = ToDxgiFormat( params.mRTVColorFmts[i] );
+
+
+    PCom< ID3D12PipelineState > pso;
+    TAC_CALL( device->CreateGraphicsPipelineState( &psoDesc, pso.iid(), pso.ppv() ) );
+
+    DX12SetName( pso, "Pipeline State" + Tac::ToString( h.GetIndex() ) );
+
+    mPipelines[ h.GetIndex() ] = DX12Pipeline
+    {
+      .mPSO = pso,
+    };
   }
 
   void DX12Backend::DestroyRenderPipeline( PipelineHandle h )

@@ -510,6 +510,7 @@ namespace Tac
     //Render::ContextHandle context = TAC_CALL( Render::CreateContext( errors ) );
     void* context = nullptr;
 
+    // TODO obviously move this to init
     const Render::ShaderProgramParams programParams
     {
       .mFileStem = "2D",

@@ -39,11 +39,11 @@ namespace Tac
   }
 }
 
-char   Tac::ToLower( char c )
-{
-  char offset = c >= 'A' && c <= 'Z' ? ( 'a' - 'A' ) : 0;
-  return c + offset;
-}
+// Note: 'A' == 65, 'a' == 97
+bool   Tac::IsLower( char c ) { return c >= 'a' && c <= 'z'; }
+bool   Tac::IsUpper( char c ) { return c >= 'A' && c <= 'Z'; }
+char   Tac::ToLower( char c ) { return IsUpper( c ) ? c + ( 'a' - 'A' ) : c; }
+char   Tac::ToUpper( char c ) { return IsLower( c ) ? c - ( 'a' - 'A' ) : c; }
 
 Tac::String Tac::ToLower( const StringView& str )
 {

@@ -2,7 +2,6 @@
 #pragma once
 
 #include "tac-win32/tac_win32_com_ptr.h" // PCom
-#include "tac-rhi/renderer/tac_renderer.h" // ShaderType
 #include "tac-std-lib/filesystem/tac_asset.h" // AssetPathStringView
 #include "tac-std-lib/filesystem/tac_filesystem.h" // Filesystem::Path
 
@@ -11,17 +10,21 @@
 
 namespace Tac::Render
 {
-  struct DXCInput
+  struct DXCCompileParams
   {
-    AssetPathStringView mShaderAssetPath;
+    StringView          mFileName; // ie: "foo.hlsl"
     StringView          mPreprocessedShader;
-    StringView          mEntryPoint;
-    ShaderType          mType = ShaderType::Count;
     D3D_SHADER_MODEL    mShaderModel = ( D3D_SHADER_MODEL )0;
     Filesystem::Path    mOutputDir;
   };
 
-  PCom< IDxcBlob > DXCCompile( const DXCInput&, Errors& );
+  struct DXCCompileOutput
+  {
+    PCom< IDxcBlob > mVSBlob;
+    PCom< IDxcBlob > mPSBlob;
+  };
+
+  DXCCompileOutput DXCCompile( const DXCCompileParams&, Errors& );
 
 } // namespace Tac::Render
 

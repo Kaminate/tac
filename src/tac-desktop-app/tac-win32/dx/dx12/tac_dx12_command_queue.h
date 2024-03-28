@@ -2,7 +2,7 @@
 
 #include "tac-std-lib/tac_ints.h"
 #include "tac-win32/tac_win32_com_ptr.h" // PCom
-#include "tac-win32/tac_win32_event.h" // Win32Event
+#include "tac-win32/event/tac_win32_event.h" // Win32Event
 #include "tac_dx12_fence.h"
 
 #include <d3d12.h> // ID3D12...

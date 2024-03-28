@@ -1,10 +1,14 @@
 #include "tac_dxc.h" // self-inc
+#include "tac_dxc_arg_helper.h"
 
 #include "tac-std-lib/containers/tac_array.h"
+#include "tac-std-lib/containers/tac_optional.h"
 #include "tac-std-lib/string/tac_string_util.h" // IsAscii
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/error/tac_assert.h"
 #include "tac-win32/dx/dx12/tac_dx12_helper.h" // TAC_DX12_CALL_RET
+
+#include <d3d12shader.h> // Shader reflection (ID3D12ShaderReflection)
 
 // d3d12 must be included before dxcapi
 //#include <d3d12.h> // D3D12_SHADER_BYTECODE
@@ -13,181 +17,39 @@
 
 namespace Tac::Render
 {
-  // -----------------------------------------------------------------------------------------------
-
-  // https://github.com/microsoft/DirectXShaderCompiler/wiki/Using-dxc.exe-and-dxcompiler.dll
-  struct DXCArgHelper
+  struct ShaderTypeData
   {
-    struct BasicSetup
+    String             GetTarget( D3D_SHADER_MODEL model ) const
     {
-      StringView mEntryPoint;
-      StringView mTargetProfile;
-      StringView mFilename;
-      Filesystem::Path mPDBDir;
-      PCom< IDxcUtils > mUtils;
-    };
+      // example return value: "vs_6_1"
+      return String() + String( 1, Tac::ToLower( mLetter ) ) + "s"
+        + "_" + ( '0' + ( char )( ( int )model / 16 ) )
+        + "_" + ( '0' + ( char )( ( int )model % 16 ) );
+    }
 
-    DXCArgHelper( BasicSetup );
+    Optional< String > FindEntryPoint( StringView shader ) const
+    {
+      String entryPoint0 = String( 1, Tac::ToUpper( mLetter ) ) + "S";
+      String entryPoint1 = entryPoint0 + "Main";
+      StringView entryPoints[] = { entryPoint0, entryPoint1 };
 
-    void SetEntryPoint( String s )         { AddArgs( "-E", s ); }
-    void SetTargetProfile( String s )      { AddArgs( "-T", s ); }
-    void SetFilename( String );
-    void SetHLSLVersion( StringView ver = "2021" );
-    void DefineMacro( String s )           { AddArgs( "-D", s ); }
-    void ColPackMtxs()                     { AddArg( "-Zpc" ); }
-    void RowPackMtxs()                     { AddArg( "-Zpr" ); }
-    void DisableOptimizations()            { AddArg( "-Od" ); }
-    void EnableDebug()                     { AddArg( "-Zi" ); } // enable pdb
-    void StripBytecodeDebug()              { AddArg( "-Qstrip_debug" ); }
-    void StripBytecodeReflection()         { AddArg( "-Qstrip_reflect" ); }
-    void StripBytecodeRootSignature()      { AddArg( "-Qstrip_rootsignature" ); }
-    //void StripBytecodePrivateData()        { AddArg( "-Qstrip_priv" ); }
-    void SaveReflection();
-    void SaveBytecode();
-    void SaveDebug( const Filesystem::Path& pdbDir );
-    void AddArgs( StringView , StringView );
-    void AddArg( StringView );
+      for( StringView& entryPoint : entryPoints )
+      {
+        String search = entryPoint + "(";
+        if( shader.contains( search ) )
+        {
+          return ( String )entryPoint;
+        }
+      }
 
-    auto GetArgs()     { return mArgs->GetArguments(); }
-    auto GetArgCount() { return mArgs->GetCount(); }
+      return {};
+    }
 
-
-  private:
-    std::wstring ToWStr(StringView);
-    PCom<IDxcCompilerArgs>   mArgs;
-    String                   mFilename;
-    String                   mStem;
+    char mLetter;
   };
 
-  std::wstring DXCArgHelper::ToWStr(StringView s)
-  {
-    std::wstring result;
-    for( char c : s )
-      result += c;
-    return result;
-  }
-
-  DXCArgHelper::DXCArgHelper( BasicSetup setup )
-  {
-    TAC_ASSERT(!setup.mFilename.empty());
-
-    const HRESULT hr = setup.mUtils->BuildArguments(
-      ToWStr( setup.mFilename ).data(),
-      ToWStr( setup.mEntryPoint ).data(),
-      ToWStr( setup.mTargetProfile ).data(),
-      nullptr,
-      0,
-      nullptr,
-      0,
-      mArgs.CreateAddress() );
-    TAC_ASSERT( SUCCEEDED(hr) );
-
-
-    //SetTargetProfile(setup.mTargetProfile);
-    //SetEntryPoint( setup.mEntryPoint );
-    SetFilename( setup.mFilename );
-
-    StripBytecodeDebug();
-
-    SaveReflection();
-    SaveBytecode();
-    SaveDebug(setup.mPDBDir);
-
-    SetHLSLVersion();
-
-    if constexpr( IsDebugMode )
-    {
-      EnableDebug();
-      DisableOptimizations();
-    }
-    else
-    {
-      StripBytecodeReflection();
-      StripBytecodeRootSignature();
-      //StripBytecodePrivateData();
-    }
-  }
-
-  void DXCArgHelper::AddArgs( StringView arg0, StringView arg1 )
-  {
-    AddArg(arg0);
-    AddArg(arg1);
-  }
-
-  void DXCArgHelper::AddArg( StringView arg )
-  {
-    TAC_NOT_CONST Array args = { arg.data() };
-    const HRESULT hr = mArgs->AddArgumentsUTF8( args.data(), args.size() );
-    TAC_ASSERT( SUCCEEDED( hr ) );
-  }
-
-  void DXCArgHelper::SetFilename( String s )
-  {
-    const Filesystem::Path fsPath = s;
-    auto ext = fsPath.extension();
-    TAC_ASSERT( fsPath.has_extension() && ext == ".hlsl" );
-    TAC_ASSERT( !fsPath.has_parent_path() );
-    TAC_ASSERT( fsPath.has_stem() );
-    TAC_ASSERT( mFilename.empty() && mStem.empty() );
-
-    mFilename = s;
-    mStem = fsPath.stem().u8string();
-    TAC_ASSERT( IsAscii( mStem ) );
-    TAC_ASSERT(!mStem.empty());
-  }
-
-  void DXCArgHelper::SetHLSLVersion( StringView ver )
-  {
-    AddArgs( "-HV", ver );
-  }
-
-  void DXCArgHelper::SaveReflection()
-  {
-    TAC_ASSERT(!mStem.empty());
-    AddArgs( "-Fre", mStem + ".refl" );
-  }
-
-  void DXCArgHelper::SaveBytecode()  
-  {
-    TAC_ASSERT(!mStem.empty());
-    AddArgs( "-Fo", mStem + ".dxo");
-  } // assert path ends in .dxo (it is a dxil file)
-
-  // https://devblogs.microsoft.com/pix/using-automatic-shader-pdb-resolution-in-pix/
-  // Best practice is to let dxc name the shader with the hash
-  void DXCArgHelper::SaveDebug( const Filesystem::Path& pdbDir )
-  {
-    TAC_ASSERT( Filesystem::IsDirectory( pdbDir ) );
-    String dir = pdbDir.u8string();
-    if( !dir.ends_with( "/" ) ||
-        !dir.ends_with( "\\" ) )
-      dir += '\\'; // ensure trailing slash
-
-    AddArgs( "-Fd",  dir  ); // not quoted
-  }
-
-  // -----------------------------------------------------------------------------------------------
-
-  static const char* GetTargetPrefix( ShaderType type )
-  {
-    switch( type )
-    {
-    case ShaderType::Vertex: return "vs";
-    case ShaderType::Fragment: return "ps";
-    case ShaderType::Geometry: return "gs";
-    case ShaderType::Compute: return "cs";
-    default: TAC_ASSERT_INVALID_CASE( type ); return "";
-    }
-  }
-
-  static String GetTarget( ShaderType type, D3D_SHADER_MODEL model )
-  {
-    const char* prefix = GetTargetPrefix( type );
-    TAC_ASSERT_INDEX( type, ShaderType::Count );
-    return String() + prefix 
-      + "_" + ( '0' + ( char )( ( int )model / 16 ) )
-      + "_" + ( '0' + ( char )( ( int )model % 16 ) );
-  }
+  static const ShaderTypeData sVSData{ .mLetter = 'v' };
+  static const ShaderTypeData sPSData{ .mLetter = 'p' };
 
   // -----------------------------------------------------------------------------------------------
 
@@ -219,7 +81,6 @@ namespace Tac::Render
     return SUCCEEDED( hrStatus );
   }
 
-  // -----------------------------------------------------------------------------------------------
 
   static void PrintCompilerInfo( IDxcPdbUtils* pdbUtils, IDxcBlob* pPDB)
   {
@@ -242,46 +103,46 @@ namespace Tac::Render
       return;
 
 
-      UINT32 commitCount{};
-      char* commitHash{};
-      UINT32 flags{};
-      UINT32 major{};
-      UINT32 minor{};
-      if( PCom<IDxcVersionInfo2> verInfo2 = verInfo.QueryInterface<IDxcVersionInfo2>() )
-      {
-        verInfo2->GetCommitInfo( &commitCount, &commitHash );
-        verInfo2->GetFlags( &flags );
-        verInfo2->GetVersion( &major, &minor );
-      }
+    UINT32 commitCount{};
+    char* commitHash{};
+    UINT32 flags{};
+    UINT32 major{};
+    UINT32 minor{};
+    if( PCom<IDxcVersionInfo2> verInfo2 = verInfo.QueryInterface<IDxcVersionInfo2>() )
+    {
+      verInfo2->GetCommitInfo( &commitCount, &commitHash );
+      verInfo2->GetFlags( &flags );
+      verInfo2->GetVersion( &major, &minor );
+    }
 
-      char* ver = nullptr;
-      if( PCom<IDxcVersionInfo3> verInfo3 = verInfo.QueryInterface<IDxcVersionInfo3>() )
-      {
-        verInfo3->GetCustomVersionString( &ver );
-      }
+    char* ver = nullptr;
+    if( PCom<IDxcVersionInfo3> verInfo3 = verInfo.QueryInterface<IDxcVersionInfo3>() )
+    {
+      verInfo3->GetCustomVersionString( &ver );
+    }
 
-      Vector< String > strs;
-      strs.push_back( String() + "Dxc Compiler commit count "
-                      + Tac::ToString( commitCount ) + " hash " + commitHash );
-      strs.push_back( String() + "Flags: " + Tac::ToString( flags ) );
-      strs.push_back( String() + "Version: "
-                      + Tac::ToString( major ) + "."
-                      + Tac::ToString( minor ) );
-      strs.push_back( String() + "Custom Version: " + ( ver ? ver : "n/a" ) );
+    Vector< String > strs;
+    strs.push_back( String() + "Dxc Compiler commit count "
+                    + Tac::ToString( commitCount ) + " hash " + commitHash );
+    strs.push_back( String() + "Flags: " + Tac::ToString( flags ) );
+    strs.push_back( String() + "Version: "
+                    + Tac::ToString( major ) + "."
+                    + Tac::ToString( minor ) );
+    strs.push_back( String() + "Custom Version: " + ( ver ? ver : "n/a" ) );
 
-      OS::OSDebugPrintLine( AsciiBoxAround( Join( strs, "\n" ) ) );
+    OS::OSDebugPrintLine( AsciiBoxAround( Join( strs, "\n" ) ) );
   }
 
 
-} // namespace Tac::Render
-
-
-namespace Tac
-{
-
-  PCom< IDxcBlob > Render::DXCCompile( const DXCInput& input, Errors& errors )
+  static PCom< IDxcBlob > DXCCompileBlob( const ShaderTypeData& typeData,
+                                          const DXCCompileParams& input,
+                                          Errors& errors  )
   {
     TAC_ASSERT( !input.mOutputDir.empty() );
+
+    Optional<String> entryPoint = typeData.FindEntryPoint( input.mPreprocessedShader );
+    if( !entryPoint.HasValue() )
+      return {};
 
     TAC_ASSERT_MSG(
       input.mShaderModel >= D3D_SHADER_MODEL_6_0,
@@ -289,13 +150,13 @@ namespace Tac
 
     // https://github.com/microsoft/DirectXShaderCompiler/wiki/Using-dxc.exe-and-dxcompiler.dll
 
-    PCom<IDxcCompiler3> pCompiler;
+    PCom< IDxcCompiler3 > pCompiler;
     TAC_DX12_CALL_RET( {}, DxcCreateInstance( CLSID_DxcCompiler, pCompiler.iid(), pCompiler.ppv() ) );
 
-    PCom<IDxcUtils> pUtils;
+    PCom< IDxcUtils > pUtils;
     TAC_DX12_CALL_RET( {}, DxcCreateInstance( CLSID_DxcUtils, pUtils.iid(), pUtils.ppv() ) );
 
-    PCom<IDxcPdbUtils> pdbUtils;
+    PCom< IDxcPdbUtils > pdbUtils;
     TAC_DX12_CALL_RET( {}, DxcCreateInstance( CLSID_DxcPdbUtils, pdbUtils.iid(), pdbUtils.ppv() ) );
 
 
@@ -325,15 +186,16 @@ namespace Tac
       ++asdf;
     }
 
-    const String target = GetTarget( input.mType, input.mShaderModel );
-    const String inputShaderName =  input.mShaderAssetPath.GetFilename();
+    const String target = typeData.GetTarget( input.mShaderModel );
+    const String inputShaderName =  input.mFileName;
     const Filesystem::Path hlslShaderPath = input.mOutputDir / inputShaderName;
 
     TAC_CALL_RET( {}, Filesystem::SaveToFile( hlslShaderPath, input.mPreprocessedShader, errors ) );
 
-    TAC_NOT_CONST DXCArgHelper::BasicSetup argHelperSetup
+
+    TAC_NOT_CONST DXCArgHelper::Params argHelperSetup
     {
-      .mEntryPoint = input.mEntryPoint ,
+      .mEntryPoint = entryPoint.GetValueUnchecked(),
       .mTargetProfile = target,
       .mFilename = inputShaderName,
       .mPDBDir = input.mOutputDir,
@@ -389,13 +251,79 @@ namespace Tac
       TAC_RAISE_ERROR_RETURN( errorStr, {} );
     }
 
+    PCom<IDxcBlob> reflBlob;
+    if( pResults->HasOutput( DXC_OUT_REFLECTION ) )
+    {
+      TAC_ASSERT( SUCCEEDED( pResults->GetOutput(
+        DXC_OUT_REFLECTION,
+        reflBlob.iid(),
+        reflBlob.ppv(),
+        nullptr ) ) );
+
+      const DxcBuffer reflBuf
+      {
+          .Ptr = reflBlob->GetBufferPointer(),
+          .Size = reflBlob->GetBufferSize(),
+          .Encoding = 0,
+      };
+
+      PCom< ID3D12ShaderReflection > shaderReflection{};
+      TAC_ASSERT( SUCCEEDED( pUtils->CreateReflection(
+        &reflBuf,
+        shaderReflection.iid(),
+        shaderReflection.ppv() ) ) );
+
+      D3D12_SHADER_DESC shaderDesc{};
+      shaderReflection->GetDesc( &shaderDesc );
+
+      for( UINT iCBuf = 0; iCBuf < shaderDesc.ConstantBuffers; ++iCBuf )
+      {
+        ID3D12ShaderReflectionConstantBuffer* cBuf =
+          shaderReflection->GetConstantBufferByIndex( iCBuf );
+
+        D3D12_SHADER_BUFFER_DESC desc{}; // ie CBufferPerFrame, CBufferPerObject
+        cBuf->GetDesc( &desc );
+
+        ++asdf;
+      }
+
+      for( UINT iRsc = 0; iRsc < shaderDesc.BoundResources; ++iRsc )
+      {
+        // ie: CBufferPerFrame, CBufferPerObject, "linearSampler", "image"
+        D3D12_SHADER_INPUT_BIND_DESC desc; 
+        shaderReflection->GetResourceBindingDesc( iRsc, &desc );
+        ++asdf;
+      }
+
+      for( UINT iInput = 0; iInput < shaderDesc.InputParameters; ++iInput )
+      {
+        // ie: POSITION, TEXCOORD, etc
+        D3D12_SIGNATURE_PARAMETER_DESC inputParamDesc;
+        shaderReflection->GetInputParameterDesc( iInput, &inputParamDesc );
+        ++asdf;
+      }
+
+      for( UINT iOutput = 0; iOutput < shaderDesc.OutputParameters; ++iOutput )
+      {
+        // ie: SV_POSITION, SV_TARGET, etc
+        D3D12_SIGNATURE_PARAMETER_DESC desc;
+        shaderReflection->GetOutputParameterDesc( iOutput, &desc );
+        ++asdf;
+      }
+
+
+      shaderDesc.Creator; // <-- note this shows dxc ver info
+
+    }
+    
+
     PCom<IDxcBlob> pShader;
     if( pResults->HasOutput( DXC_OUT_OBJECT ) )
     {
       //
       // Save shader binary.
       //
-      PCom< IDxcBlobUtf16> pShaderName;
+      PCom< IDxcBlobUtf16 > pShaderName;
       TAC_DX12_CALL_RET( {},
                          pResults->GetOutput(
                          DXC_OUT_OBJECT,
@@ -435,6 +363,27 @@ namespace Tac
     }
 
     return pShader;
+  }
+
+} // namespace Tac::Render
+
+namespace Tac
+{
+  Render::DXCCompileOutput Render::DXCCompile( const DXCCompileParams& input, Errors& errors )
+  {
+    PCom< IDxcBlob > vsBlob;
+    PCom< IDxcBlob > psBlob;
+
+    vsBlob = DXCCompileBlob( sVSData, input, errors );
+    psBlob = DXCCompileBlob( sPSData, input, errors );
+
+    TAC_RAISE_ERROR_IF_RETURN( !vsBlob && !psBlob, "Failed to find any shaders", {} );
+
+    return DXCCompileOutput
+    {
+      .mVSBlob = vsBlob,
+      .mPSBlob = psBlob,
+    };
   }
 
 }
